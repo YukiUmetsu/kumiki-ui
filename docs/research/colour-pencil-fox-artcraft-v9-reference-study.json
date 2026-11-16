@@ -154,6 +154,35 @@
           "implementation_rule": "Use separate narrow optical carpal plane, four low-pressure toe-root creases, short fine hairs, dark claws; no photo filter."
         }
       ]
+    },
+    {
+      "id": "seated-fox-neck-artsdatabanken",
+      "url": "https://artsdatabanken.no/arter/takson/31173",
+      "title": "Red Fox – Seated Natural Profile",
+      "creator": "Artsdatabanken (photograph attribution requires source-specific verification)",
+      "rights": "web image reference only; no pixels, cropped image, derivatives, or external media imported",
+      "medium": "actual photograph, source-based anatomical observation",
+      "view": "right-facing seated red fox on grass in clear lateral profile; 3/4 authored character differs in yaw",
+      "deep_study": true,
+      "analysis": {
+        "construction": "The white jaw, cheek ruff and vertical lower throat emerge as connected fur fields. There is no rigid long dark band descending independently from the lower jaw into the chest.",
+        "material": "Cream/gray fine cervical underfur overlaps russet cheek and merges into the front throat; lower long fur grows along sternum with scattered charcoal roots.",
+        "microdetail": "Many short angled hairs turn from the jaw toward the chest. Sparse longer guard hairs interrupt the lower edge; boundaries are not vector lines.",
+        "light": "Orange cheek rolls into cool pale throat with a narrow soft shadow at the jaw angle; dark fur appears as rooted flecks, not an isolated opaque tube."
+      },
+      "crops": [
+        {
+          "feature": "jaw-neck-sternum",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "The web preview was visually inspected; this normalized rectangle records the whole image, NOT an actual measured source crop or pixel registration.",
+          "implementation_rule": "Jaw root intersects existing cream muzzle; cheek-ruff ends within the top half of white chest; use cream-value layered fur, short asymmetric guard hairs and distinct jaw/chest path intersections."
+        }
+      ]
     }
   ],
   "feature_targets": [
@@ -272,6 +301,40 @@
       },
       "detail_critical": true,
       "release_status": "blocked — semantic art improvement not pixel source-registered, independent artist approval pending"
+    },
+    {
+      "id": "fox-cheek-neck-continuity",
+      "reference_ids": [
+        "seated-fox-neck-artsdatabanken",
+        "fox-cc0-anatomy",
+        "gwatkin-fox-eye"
+      ],
+      "critical": true,
+      "geometry_rule": "Light malar fan must begin beneath the muzzle and terminate WITHIN the pale chest, never a 97px hanging grey vertical ribbon. Original authored jaw and chest regions retain their independent silhouette/color layers.",
+      "microdetails": [
+        "short warm-grey → cream directional transition",
+        "two measured root-to-root optical turns",
+        "three pressure-specific pigment passes",
+        "3 feathered fringe families",
+        "mouth/jaw negative space preserved"
+      ],
+      "test_view": "native 960×540 16:9/9:16 + Storybook 2.15× fox-cheek native SVG target, actual jaw/chest path overlap",
+      "part_ids": [
+        "muzzle",
+        "cheek-ruff",
+        "chest",
+        "neck-ruff"
+      ],
+      "source_observation": "Visual review of a real seated red fox profile rejects a detached hanging cheek stripe; the lower malar hairs become long chest fur rather than continuing as an independent shaded tube.",
+      "five_axes": {
+        "topology": "Distinct cheek path intersects both jaw at (253,235) and upper sternum at (251,269); retains independent editable mask.",
+        "flow": "Upper short jaw hairs rotate into longer lower neck fur; no single repeated long diagonal hatch.",
+        "weight": "Warm cream outer values, sparse sepia root shadows and selective highlighted guard tips; no solid dark strip.",
+        "rhythm": "Unequal fan root length, 4 root guides and 3 interleaved contour families.",
+        "texture": "Original CP-F1 dry fibre with tooth, seed, velocity and 3 pressure families, no raster underpainting."
+      },
+      "release_status": "blocked — source/pose pixel-fidelity and actual latest visual review required",
+      "detail_critical": true
     }
   ]
 }
