@@ -30,6 +30,7 @@ describe("ArtCraft F1 source-oral V14 / native wax fidelity experiment",()=>{
       const before=previous.elements.find(e=>e.id===id);
       const after=candidate.elements.find(e=>e.id===id);
       if(!before||!after)throw Error("Missing source lip layer "+id);
+      if(!("d" in before)||!("d" in after))throw Error("Non-illustration oral node "+id);
       expect(after.d).not.toBe(before.d);
       expect(after.parentId).toBe(before.parentId);
       expect(after.timing).toEqual(before.timing);
