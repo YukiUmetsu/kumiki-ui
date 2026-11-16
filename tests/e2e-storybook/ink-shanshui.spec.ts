@@ -347,7 +347,7 @@ test("four distinct historical ink schools paint separate real rooted rock struc
 });
 
 
-test("four-master ArtCraft gallery can inspect full native film and macro/meso/micro without replacing film stages",async({page})=>{
+test("four-master ArtCraft gallery can inspect full native film and macro/meso/micro without replacing film stages",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");
   const stages=lab.locator("[data-km-master-study]");
@@ -379,6 +379,10 @@ test("four-master ArtCraft gallery can inspect full native film and macro/meso/m
   await expect(page.getByRole("button",{name:"Pine grove · full crowns"}))
     .toHaveAttribute("aria-pressed","true");
   await expect(cameras.first()).toHaveAttribute("data-km-master-camera-view","crop");
+  // Independent native screenshot for large-pine centerline/fan silhouettes.
+  // This is the same four live renderer stages, not a flattened source.
+  await page.screenshot({animations:"disabled",
+    path:info.outputPath("shanshui-full-pine-crowns-145.png")});
   await page.getByRole("slider",{name:"Master frame"}).focus();
   await page.getByRole("slider",{name:"Master frame"}).press("End");
   await expect(lab.locator("[data-km-master-study='fuchun'] [data-km-shanshui-scene]"))
