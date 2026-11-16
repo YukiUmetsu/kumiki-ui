@@ -1257,6 +1257,16 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       /data-km-cliff-pine="" data-km-cliff-pine-root="([^"]+)" data-km-cliff-pine-crest="[^"]+" data-km-cliff-pine-height="([^"]+)" data-km-cliff-pine-centerline="([^"]+)"/g,
     )];
     expect(trees).toHaveLength(5);
+    const sites=trees.map(m=>m[1].split(",").map(Number));
+    const xSites=sites.map(p=>p[0]);
+    const gaps=xSites.slice(1).map((x,j)=>x-xSites[j]);
+    // NPM Fuchun trees are irregular, cliff-rooted groups rather than
+    // a single five-antenna crest cluster. Preserve compact pairs AND
+    // genuinely vacant paper/stone passages between them.
+    expect(xSites[4]-xSites[0]).toBeGreaterThan(160);
+    expect(gaps.filter(dx=>dx<40)).toHaveLength(2);
+    expect(gaps.filter(dx=>dx>50)).toHaveLength(2);
+    expect(trees.map(m=>Number(m[2]))).toEqual([29,48,70,89,32]);
     const branches=[...html.matchAll(
       /data-km-cliff-pine-bough="" data-km-cliff-pine-bough-root="([^"]+)" data-km-cliff-pine-bough-station="([^"]+)"/g,
     )];
