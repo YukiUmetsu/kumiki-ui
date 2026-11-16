@@ -495,7 +495,14 @@ test("Fuchun source-fidelity desk uses two real seeded stages at native 1x and c
     await expect(sample.locator("[data-km-master-stratum]")).toHaveCount(15);
     await expect(sample.locator("[data-km-master-fuchun-hillback]")).toHaveCount(6);
     await expect(sample.locator("[data-km-cliff-pine-grove]")).toHaveCount(1);
-    await expect(sample.locator("image,foreignObject")).toHaveCount(0);
+    // The stage has exactly one intentional HTML actor/children compositing
+    // slot. It is a production <foreignObject>, not a rasterized backdrop;
+    // asserting zero foreignObjects falsely rejected a working film stage.
+    await expect(sample.locator("image")).toHaveCount(0);
+    const composite=sample.locator("foreignObject");
+    await expect(composite).toHaveCount(1);
+    await expect(composite).toHaveAttribute("width","960");
+    await expect(composite).toHaveAttribute("height","540");
     const viewport=sample.locator("[data-km-fidelity-viewport]");
     await expect(viewport).toHaveCSS("width","960px");
     await expect(viewport).toHaveCSS("height","540px");
