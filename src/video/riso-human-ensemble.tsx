@@ -10,7 +10,7 @@ import type {RisoHandoffSchedule} from "../../registry/video/riso-prop-handoff";
 import type {RisoForegroundLayer} from "../../registry/video/print-plates-react";
 import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
-import {COURIER} from "./riso-character-demo";
+import {COURIER,COURIER_BASE_JOINTS} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso47PalmContour} from "./riso47-palmar-cup";
@@ -306,7 +306,7 @@ const arms=sharedLimbs.slice(8).map(id=>{
 });
 export const PAPER_ARTIST:RisoCharacterSpec={
   version:1,id:"paper-artist",durationFrames:240,cadence:2,
-  joints:COURIER.joints.map(staticLeg),
+  joints:COURIER_BASE_JOINTS.map(staticLeg),
   // Original full-body rest and gestures; no fake cross-person IK. Every hand
   // remains a child of a stable arm with independent articulated digits.
   ik:[],
