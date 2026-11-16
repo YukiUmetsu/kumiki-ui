@@ -31,7 +31,10 @@ import {riso32ThumbDistalId} from "./riso32-thumb-ip";
 const take=(id:string,ink?: "blue"|"red"):RisoCharacterPart=>{
   const p=COURIER.parts.find(part=>part.id===id);
   if(!p)throw new Error("RISO14: missing shared articulated contour "+id);
-  return {...p,plate:ink??p.plate};
+  // RISO51: the Paper Artist shares unprojected anatomical source contours,
+  // not the Courier donor's actor-only *animated view keys*. Never inherit
+  // his right-hand contact projection into her independently active left.
+  return {...p,pathKeys:undefined,plate:ink??p.plate};
 };
 const staticLeg=(j:RisoJoint):RisoJoint=>{
   // The receiver alone foreshortens real supporting PIP/DIP stations in the
