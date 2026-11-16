@@ -156,6 +156,56 @@ describe("ArtCraft head reference fidelity (independent photo vs final SVG expor
     expect(r.tonalMeanError).toBeNull();
   });
 
+  it("rejects identical flat five-tone photo and export even when their swatches numerically match",()=>{
+    const f=fixture();
+    for(const t of [...f.sourceTones,...f.outputTones])
+      t.meanRgb=[128,128,128];
+    const r=evaluatePencilHeadFidelity(f);
+    expect(r.status).toBe("blocked");
+    expect(r.errors).toContain("SOURCE_TONAL_RANGE_COLLAPSED");
+    expect(r.errors).toContain("RENDER_TONAL_RANGE_COLLAPSED");
+    expect(r.artistApproved).toBe(false);
+    // Similarity does not imply material quality.
+    expect(r.tonalMeanError).toBeCloseTo(0,8);
+  });
+
+  it("rejects implausible tonal role ordering when both images share the same invalid structure",()=>{
+    const f=fixture();
+    for(const values of [f.sourceTones,f.outputTones]){
+      values.find(v=>v.id==="highlight")!.meanRgb=[20,20,20];
+      values.find(v=>v.id==="core-shadow")!.meanRgb=[240,240,240];
+    }
+    const r=evaluatePencilHeadFidelity(f);
+    expect(r.status).toBe("blocked");
+    expect(r.errors).toContain("SOURCE_TONE_ORDER_INVALID");
+    expect(r.errors).toContain("RENDER_TONE_ORDER_INVALID");
+    expect(r.tonalMeanError).toBeCloseTo(0,8);
+  });
+
+  it("rejects duplicated or overlapping tonal swatch ROIs and near-zero-sized ROIs",()=>{
+    const f=fixture();
+    const tone=f.sourceTones[1],prior=f.sourceTones[0];
+    tone.rect={...prior.rect};
+    f.outputTones[3].rect.width=2;
+    const r=evaluatePencilHeadFidelity(f);
+    expect(r.status).toBe("blocked");
+    expect(r.errors).toContain("SOURCE_TONE_REGIONS_OVERLAP");
+    expect(r.errors).toContain("RENDER_TONE_RECT_OUT_OF_BOUNDS");
+    expect(r.tonalMeanError).toBeNull();
+  });
+
+  it("fails closed on distorted contour sequencing, not just on valid endpoints",()=>{
+    const f=fixture();
+    const near=f.sourceLandmarks.find(p=>p.id==="malar-near")!;
+    const far=f.sourceLandmarks.find(p=>p.id==="malar-far")!;
+    const tmp=near.x;near.x=far.x;far.x=tmp;
+    // Mirrored or crisscrossed contour landmarks cannot be meaningful
+    // even if geometry RMS coincidentally matches the exported image.
+    const r=evaluatePencilHeadFidelity(f);
+    expect(r.status).toBe("blocked");
+    expect(r.errors).toContain("SOURCE_CONTOUR_TOPOLOGY_INVALID");
+  });
+
   it("rejects duplicate/source-as-render hashes and impossible head reference extents",()=>{
     const f=fixture();
     f.output.sha256=f.source.sha256;
