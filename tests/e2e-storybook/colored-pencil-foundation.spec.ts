@@ -158,6 +158,7 @@ test("ArtCraft fox brush, orbital slit and human nape are inspectable from anato
     for(const [specimen,focus,part] of [
       ["fox","fox-tail","tail-back"],
       ["fox","fox-eye","eye-near"],
+      ["fox","fox-chest","chest"],
       ["portrait","portrait-nape","neck"],
     ] as const){
       await subject.selectOption(specimen);
