@@ -44,7 +44,10 @@ function fixture():PencilHeadFidelityEvidence{
   return {
     source,output,
     sourceLandmarks:points(source.width,source.height),
-    outputLandmarks:points(output.width,output.height,[.05,.03],[.87,.90]),
+    // A genuine camera/export resize is an isotropic (one-factor) scale,
+    // never independently stretched to fit source and film aspect ratios.
+    outputLandmarks:points(source.width,source.height)
+      .map(p=>({id:p.id,x:420+.29*p.x,y:55+.29*p.y})),
     sourceTones:tones(source.width,source.height),
     outputTones:tones(output.width,output.height),
   };
@@ -102,6 +105,16 @@ describe("ArtCraft head reference fidelity (independent photo vs final SVG expor
     expect(r.errors).toContain("SOURCE_LANDMARK_MISSING");
     expect(r.errors).toContain("RENDER_LANDMARK_MISSING");
     expect(r.geometryRms).toBeNull();
+    expect(r.artistApproved).toBe(false);
+  });
+
+  it("rejects squashed skull proportions even if both axes independently normalize",()=>{
+    const f=fixture();
+    const mid=f.outputLandmarks.find(p=>p.id==="glabella")!.x;
+    for(const p of f.outputLandmarks)p.x=mid+(p.x-mid)*.53;
+    const r=evaluatePencilHeadFidelity(f);
+    expect(r.status).toBe("blocked");
+    expect(r.errors).toContain("HEAD_ASPECT_MISMATCH");
     expect(r.artistApproved).toBe(false);
   });
 
