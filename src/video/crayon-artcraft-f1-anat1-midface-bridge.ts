@@ -37,7 +37,7 @@ const bounds=(pairs:XY[],pad:number)=>{
   const yy=Math.ceil(Math.max(...pairs.map(p=>p[1]))+pad);
   return {x,y,width:xx-x,height:yy-y};
 };
-type Shape=Pick<Wax,"d"|"bounds"|"angle">;
+type Shape=Pick<Wax,"d"|"bounds"> & {angle:number};
 
 export function crayonF1Anat1MidfacePaths():Readonly<Record<
   (typeof CRAYON_F1_V32_ANAT1_IDS)[number],Shape>>{
