@@ -497,18 +497,18 @@ Some of these forms got larger, toward the teacher's own size: she writes 暑 11
 
 Characters without parts of two strokes (心 八 火, the かな) then had each stroke tried on its own in the same way. Over the 64 weakest forms, 38 changed (心 0.65 → 0.71, 八 0.67 → 0.72, 火 0.66 → 0.72 in the fit frame).
 
-**Result.** 336 forms have new ends, 34 have moved parts and 38 have moved strokes. All were reviewed in overlays.
+**Result.** 336 forms have new ends, 34 have moved parts and 38 have moved strokes; the ends of the moved forms were then tried again (32 changed). All were reviewed in overlays.
 
 | | Round ten | Round eleven |
 |---|---|---|
-| Best-aligned overlap, the 439 forms | 0.769 | 0.779 |
+| Best-aligned overlap, the 439 forms | 0.769 | 0.780 |
 | Kanji | 0.772 | 0.782 |
 | Kana | 0.692 | 0.699 |
-| Overlap in the fit frame (the teacher's size and position) | 0.781 | 0.800 |
+| Overlap in the fit frame (the teacher's size and position) | 0.781 | 0.801 |
 | Median stroke discrepancy | 0.14 | 0.12 |
 | 95th percentile of stroke discrepancy | 0.45 | 0.35 |
 | Characters whose worst stroke is over 0.6 | 51 | 35 |
-| Characters with a mismatch patch over 5 % of the ink | 44 | 23 |
+| Characters with a mismatch patch over 5 % of the ink | 44 | 22 |
 
 The best-aligned overlap rescales both shapes to their boxes, so moved parts change it little; the overlap in the fit frame shows them. The weakest forms are now 雪 (0.67) and 達 敬 感 (0.70) among kanji, and ゑ (0.58), ゐ (0.64) and ひ (0.65) among かな, whose loops are smaller than the teacher's.
 
