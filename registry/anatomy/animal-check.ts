@@ -82,13 +82,20 @@ export function measureAnimal(l: AnimalLandmarks, yUp = true): Partial<Record<Co
 export interface SpeciesDataFinding { species: string; message: string }
 /**
  * Cross-check species records against their own reported sizes: trunk + neck + head must give the reported
- * head-and-body length ÷ shoulder height (within `tolerance`), and every range must be ordered.
+ * head-and-body length ÷ shoulder height (within `tolerance`), and every range must be ordered. Every mammal has a
+ * face, with its shares of the head length in range.
  */
 export function checkSpeciesData(species: readonly AnimalSpecies[] = ANIMAL_SPECIES, tolerance = .15): SpeciesDataFinding[] {
   const out: SpeciesDataFinding[] = [];
   for (const sp of species) {
     for (const [k, r] of Object.entries(sp.proportions)) if (typeof r === "object" && "min" in r && !(r.min <= r.typical && r.typical <= r.max)) out.push({ species: sp.id, message: `${k} range is not ordered` });
     for (const [k, r] of Object.entries(sp.size)) if (r && !(r.min <= r.typical && r.typical <= r.max)) out.push({ species: sp.id, message: `size.${k} range is not ordered` });
+    if (BODY_PLANS[sp.plan].group === "mammal") {
+      const f = sp.face;
+      if (!f) out.push({ species: sp.id, message: "mammal has no face" });
+      else for (const [k, v, lo, hi] of [["eyeFromNose", f.eyeFromNose, .2, .8], ["eye", f.eye, .02, .25], ["ear", f.ear, .05, 1.2], ["depth", f.depth, .3, 1.1], ["eyeSpacing", f.eyeSpacing, .2, .95]] as const)
+        if (!(v >= lo && v <= hi)) out.push({ species: sp.id, message: `face.${k} ${v} is outside ${lo}–${hi}` });
+    }
     if (BODY_PLANS[sp.plan].group !== "mammal" || !sp.size.shoulder || sp.size.length.grade !== "reported" || sp.size.shoulder.grade !== "reported") continue;
     const plan = BODY_PLANS[sp.plan].construction, pick = (k: "trunk" | "neck" | "head") => sp.proportions[k]?.typical ?? plan[k];
     const built = headBodyLength({ trunk: pick("trunk"), neck: pick("neck"), head: pick("head") }), reported = sp.size.length.typical / sp.size.shoulder.typical;

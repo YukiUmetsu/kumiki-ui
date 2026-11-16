@@ -127,10 +127,50 @@ What was wrong and what changed:
 The face numbers are recorded in `AnimalSpecies.face` (graded `estimated`: read by eye off the references). They drive
 the ANIM1 construction, so the next style starts from them.
 
+## Faces for the other mammals (2026-11-15)
+
+Every mammal now has a face. The nine new ones (fox, wolf, Shiba, cat, hare, macaque, sika, cattle, horse) were read
+off gridded crops of public-domain and CC0 references, with head length taken from the nose tip to the back of the
+skull, just behind the ear base.
+
+- **Sources.**
+  - Siebold's *Fauna Japonica* plates for the Japanese wolf, the macaque (profile and square on) and the sika.
+  - CC0 iNaturalist observations (338352584 fox, 350287666 and 234370227 cat, 307096718 and 391307506 hare, 326610803
+    sika).
+  - Commons photographs for the fox, Shiba, cattle, horse and a *Lepus brachyurus* specimen.
+  - The AKC standard's "muzzle length is 40 percent of the total head length from occiput to nose tip" (Shiba).
+- **Eye from the nose, in head lengths.**
+
+  | Animal | Eye from the nose |
+  |---|---|
+  | macaque | 0.37 |
+  | cat | 0.42 |
+  | Shiba | 0.43 (the AKC muzzle, plus the eye just behind the stop) |
+  | wolf | 0.45 |
+  | hare | 0.55 |
+  | fox | 0.56 |
+  | cattle | 0.6 |
+  | sika | 0.63 |
+  | horse | 0.67 |
+
+  The pattern is the expected one: short-faced primates and cats forward, carnivores at the stop, grazers far back.
+- **Disagreements, recorded rather than averaged.**
+  - The mounted hare puts the eye 0.39 back; live hares and rabbits put it 0.54–0.6, so the live animals were used.
+  - The bull's head turns slightly to the camera, so its eye length and depth were not used.
+  - The near-profile cat is a close-up with perspective, so its ear and eye sizes were rounded down.
+- **Effect on the construction.**
+  - The wolf's ears shorten to the plate's.
+  - The cat's eye grows.
+  - The deer's, cattle's and horse's eyes move back toward the poll.
+- **Check.** `checkSpeciesData` now flags a mammal without a face, or with a face value out of range.
+
+Birds and the koi need a face of their own (a bill instead of a muzzle, no ears), and are next.
+
 ## Not done
 
 - Front and back constructions in ANIM1 (styles draw their own).
 - The long-and-low UKIYO1 quadrupeds listed above.
 - Measured, not estimated, colours and faces.
+- Faces for the birds and the koi.
 - Recordings for most animal voices; the search terms are listed per species.
 - No owner viewing review yet.
