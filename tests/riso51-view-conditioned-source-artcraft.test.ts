@@ -1,3 +1,4 @@
+import {riso58ContactSkin} from "../src/video/riso58-anat1-volume-skin";
 import {describe,expect,it} from "vitest";
 import {evaluateRisoPathMorph,inspectRisoPathMorph} from "../registry/video/riso-path-morph";
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
@@ -118,7 +119,12 @@ describe("RISO51 independent two-human ORIGINAL moving print sources",()=>{
       const crest=spec.parts.find(p=>p.id===active+"-glove-knuckle-arc")!;
       const palm160=evaluateRisoCharacter(spec,160).parts.find(p=>p.id===palm.id)!;
       const crest160=evaluateRisoCharacter(spec,160).parts.find(p=>p.id===crest.id)!;
-      expect(palm160.d).toBe(riso51ProjectPalmarPath(palm.d,active,spec.id as "courier"|"paper-artist",1));
+      // RISO58 keeps the identical original 16-C1 positive palm, but its
+      // contact view is conditioned on actual inferred 3D MCP/PIP/DIP.
+      const surface=riso58ContactSkin(spec,spec.id as "courier"|"paper-artist",active,160);
+      expect(palm160.d).toBe(surface.path);
+      expect(surface.bones).toHaveLength(4);
+      expect(surface.maxSurfaceDepth).toBeGreaterThan(1);
       expect(crest160.d).toBe(riso51ProjectPalmarPath(crest.d,active,spec.id as "courier"|"paper-artist",1));
       const neutral=flattenRisoSvgPath(palm.d,.15);
       const contact=flattenRisoSvgPath(palm160.d,.15);
