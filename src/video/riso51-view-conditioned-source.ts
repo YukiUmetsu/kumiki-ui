@@ -90,17 +90,14 @@ export function riso51ProjectPalmarPath(
 
 /** Full first-drawing -> side-cup -> release. The normalized view is
  * deliberately actor-dependent and matches the actual original PIP/DIP
- * view-key timing. Every RED/BLEU part is interpolated from source vectors.
+ * view-key timing. Every RED/BLUE part is interpolated from source vectors.
  */
 export function riso51SourceKeys(
-  base:string,contact:string,actor:Riso51Actor,unfolded?:string,
+  base:string,contact:string,actor:Riso51Actor,
 ):readonly RisoPathMorphKey[]{
-  const release=unfolded??base;
   const isDonor=actor==="courier";
-  const at180=isDonor?"0.72":"1";
   const partial180=isDonor?blendMorph(base,contact,.72):contact;
-  const at205=isDonor?release:blendMorph(base,contact,.74);
-  void at180;
+  const at205=isDonor?base:blendMorph(base,contact,.74);
   return [
     {frame:0,d:base,easing:"ease"},
     {frame:146,d:base,easing:"ease"},
@@ -129,8 +126,7 @@ export function riso51MorphSourcePart(
   if(palm&&palm[1]===activeSide){
     const side=palm[1] as Riso51Side;
     const contact=riso51ProjectPalmarPath(part.d,side,actor,1);
-    const after=riso51ProjectPalmarPath(part.d,side,actor,.74);
-    return {...part,pathKeys:riso51SourceKeys(part.d,contact,actor,after)};
+    return {...part,pathKeys:riso51SourceKeys(part.d,contact,actor)};
   }
   const match=fingerPart.exec(part.id);
   if(!match||match[1]!==activeSide)return part;
@@ -142,9 +138,5 @@ export function riso51MorphSourcePart(
     geometry.intermediate+data[digit].dip:geometry.proximal+data[digit].pip;
   const width=geometry.width*(stage==="middle"?.95:1);
   const contact=riso31PhalanxSourcePath(digit,stage,shortened,width);
-  const at=.74;
-  const after=riso31PhalanxSourcePath(digit,stage,
-    (stage==="middle"?geometry.intermediate:geometry.proximal)+
-      (stage==="middle"?data[digit].dip:data[digit].pip)*at,width);
-  return {...part,pathKeys:riso51SourceKeys(part.d,contact,actor,after)};
+  return {...part,pathKeys:riso51SourceKeys(part.d,contact,actor)};
 }
