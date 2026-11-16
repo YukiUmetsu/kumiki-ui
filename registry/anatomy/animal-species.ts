@@ -39,13 +39,15 @@ export interface Swatch { region: AnimalRegion; name: string; hex: string; fill?
 export interface Marking { name: string; region: AnimalRegion; shape: string }
 export interface CoatVariant { name: string; when: string; palette: readonly Swatch[] }
 /**
- * The face, in any style. Profile values are shares of the head length (occiput to nose); `eyeSpacing` is the gap
- * between the eye centres ÷ the head's width square on.
+ * The face, in any style. Profile values are shares of the head length: occiput to nose for mammals, the back of the
+ * skull to the bill tip for birds, the snout to the back of the gill cover for fish. `eyeSpacing` is the gap between the
+ * eye centres ÷ the head's width square on. A bird's bill share is its `proportions.muzzle`.
  */
 export interface AnimalFace {
+  /** The eye centre's distance back from the nose (bill tip, snout). */
   eyeFromNose: number;
-  /** Eye length, ear height and head depth (at the jaw), as shares of the head length. */
-  eye: number; ear: number; depth: number;
+  /** Eye length, ear height (mammals; birds and fish have none) and head depth at the eye, as shares of the head length. */
+  eye: number; ear?: number; depth: number;
   eyeSpacing: number;
   /** How the eye reads: a glossy black bead, an iris with a round or slit pupil. */
   eyeLook: "bead" | "iris" | "slit";
@@ -90,6 +92,7 @@ export interface AnimalSpecies {
 const MUYBRIDGE: AnimalReference = { title: "Muybridge, Animals in Motion (1899): phases of the gallop, p. 201", url: "https://archive.org/details/gri_33125012264293", rights: "public-domain", kind: "motion" };
 const AKC_SHIBA = "AKC Shiba Inu breed standard";
 const INAT = (id: number) => `https://www.inaturalist.org/observations/${id}`;
+const INAT_CARP = INAT(259810202), INAT_CARP_2 = INAT(183724795);
 const INAT_FOX = INAT(338352584), INAT_CAT_PROFILE = INAT(350287666), INAT_CAT_FRONT = INAT(234370227), INAT_HARE = INAT(307096718), INAT_SIKA = INAT(326610803);
 const uk = (id: string, note?: string): StyleImplementation => ({ style: "ukiyo-e", pack: "ukiyoe-handscroll", id, note });
 
@@ -359,93 +362,114 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
   {
     id: "red-crowned-crane", name: "Red-crowned crane", ja: { kana: "タンチョウ", kanji: "丹頂", romaji: "tanchō" }, scientific: "Grus japonensis", plan: "bird-wader",
     size: { length: r(101, 140, 150, "reported", "Red-crowned crane (bill to tail; standing 150–158 cm)"), wingspan: r(220, 235, 250, "reported", "Red-crowned crane"), mass: r(4.8, 8.5, 10.5, "reported", "Red-crowned crane") },
-    proportions: { tail: r(.15, .18, .21, "reported", "tail 21.5–30 cm ÷ length") },
+    proportions: { muzzle: r(.5, .55, .6, "estimated", "read off the Tsurui crane's head in profile"), tail: r(.15, .18, .21, "reported", "tail 21.5–30 cm ÷ length") },
     coat: { type: "feathers", long: ["tail"], lay: "Smooth white body; the black secondaries droop over the tail like a bustle.",
       palette: [{ region: "back", name: "white", hex: "#f6f4ef" }, { region: "neck", name: "black neck", hex: "#1c1b1b" }, { region: "wings", name: "black secondaries", hex: "#1c1b1b", fill: "tip" },
         { region: "crown", name: "red crown", hex: "#c1272d" }, { region: "muzzle", name: "bill", hex: "#8a9a6a" }, { region: "hind-leg", name: "legs", hex: "#2a2a2a" }],
       markings: [{ name: "red crown", region: "crown", shape: "A patch of bare red skin on top of the head." }, { name: "black 'tail'", region: "wings", shape: "The black secondaries fall over the white tail." }], variants: [] },
-    eyes: { pupil: "round", iris: "#4a3a2a" }, parts: [],
+    eyes: { pupil: "round", iris: "#4a3a2a" },
+    face: { eyeFromNose: .74, eye: .05, depth: .25, eyeSpacing: .85, eyeLook: "bead", ears: "None visible: the ear opening is hidden under the feathers behind the eye.",
+      features: ["A long straight greenish-horn bill, more than half the head.", "Bare red skin on the crown (the tanchō, red cap); a black face and throat; white from behind the eye round the nape.", "A small dark eye at the edge of the black face, close to the white."],
+      grade: "estimated", source: "Measured off a red-crowned crane's head in profile (Commons, CC0)" }, parts: [],
     behaviour: { gaits: ["walk"], canRear: false, flies: true, notes: ["Dances in pairs: bowing, leaping and throwing grass."] },
     sounds: [{ kind: "vocal", label: "unison call", query: "crane call" }, { kind: "foley", label: "wingbeats", catalog: "flap-wings-1" }],
     culture: ["Longevity: 'the crane lives a thousand years'.", "The crane's gratitude (Tsuru no ongaeshi)."],
-    references: [], sources: [W("Red-crowned_crane")], styles: [uk("crane")],
+    references: [{ title: "Red-crowned crane, head in profile", url: C("Wiki-c-tantyo-head.jpg"), rights: "CC0", kind: "photo" }], sources: [W("Red-crowned_crane")], styles: [uk("crane")],
   },
   {
     id: "grey-heron", name: "Grey heron", ja: { kana: "アオサギ", kanji: "蒼鷺", romaji: "aosagi" }, scientific: "Ardea cinerea", plan: "bird-wader",
     size: { length: r(84, 93, 102, "reported", "Grey heron"), wingspan: r(155, 175, 195, "reported", "Grey heron"), mass: r(1.0, 1.5, 2.1, "reported", "Grey heron") },
-    proportions: {},
+    proportions: { muzzle: r(.72, .77, .8, "estimated", "read off Boutell's heron head") },
     coat: { type: "feathers", long: ["neck", "crown"], lay: "Long plumes on the breast and a black crest from the eye back.",
       palette: [{ region: "back", name: "grey", hex: "#9aa1a6" }, { region: "neck", name: "white neck", hex: "#eceae6" }, { region: "crown", name: "black crest", hex: "#1c1c1e", fill: "band" }, { region: "muzzle", name: "yellow bill", hex: "#d8b03a" }],
       markings: [{ name: "black eye stripe and crest", region: "crown", shape: "From above the eye back into a thin plume." }], variants: [] },
-    eyes: { pupil: "round", iris: "#e3c23a" }, parts: [],
+    eyes: { pupil: "round", iris: "#e3c23a" },
+    face: { eyeFromNose: .87, eye: .06, depth: .15, eyeSpacing: .85, eyeLook: "iris", ears: "None visible.",
+      features: ["A dagger bill three quarters of the head, deep at the base and tapering to a point.", "A slim flat head with the yellow eye at the very back of the bill's line; a bare strip from the eye to the bill.", "Black plumes from behind the eye trail down the nape."],
+      grade: "estimated", source: "Measured off Boutell's 'Head of heron' engraving (Commons, public domain)" }, parts: [],
     behaviour: { gaits: ["walk"], canRear: false, flies: true, notes: ["Stands motionless, neck coiled, then strikes."] },
     sounds: [{ kind: "vocal", label: "harsh frank", query: "heron call" }], culture: ["The heron maiden (Sagi musume)."],
-    references: [], sources: [W("Grey_heron")], styles: [uk("heron")],
+    references: [{ title: "Boutell, Picture Natural History No. 156: head of heron", url: C("Picture_Natural_History_-_No_156_-_Head_of_Heron.png"), rights: "public-domain", kind: "plate" }], sources: [W("Grey_heron")], styles: [uk("heron")],
   },
   {
     id: "large-billed-crow", name: "Large-billed crow", ja: { kana: "ハシブトガラス", kanji: "烏", romaji: "karasu" }, scientific: "Corvus macrorhynchos", plan: "bird-perching",
     size: { length: r(46, 52, 59, "reported", "Large-billed crow"), mass: r(.45, .7, 1.0, "reported", "Large-billed crow") },
-    proportions: {},
+    proportions: { muzzle: r(.43, .47, .5, "estimated", "read off a large-billed crow's head in profile") },
     coat: { type: "feathers", long: [], lay: "Glossy black, a blue-purple sheen.",
       palette: [{ region: "back", name: "black", hex: "#141416" }, { region: "back", name: "sheen", hex: "#2c3a5a", fill: "accent" }], markings: [], variants: [] },
-    eyes: { pupil: "round", iris: "#2a2220" }, parts: [{ id: "arched-bill", name: "heavy arched bill (7–8 cm)", region: "head" }],
+    eyes: { pupil: "round", iris: "#2a2220" },
+    face: { eyeFromNose: .63, eye: .075, depth: .4, eyeSpacing: .8, eyeLook: "bead", ears: "None visible.",
+      features: ["A heavy bill nearly half the head, its top arching down from a steep, domed forehead.", "Bristle feathers over the nostrils at the bill's base.", "A dark eye (blue in fledglings) just behind the bill base."],
+      grade: "estimated", source: "Measured off a large-billed crow fledgling's head in profile (Commons, public domain)" }, parts: [{ id: "arched-bill", name: "heavy arched bill (7–8 cm)", region: "head" }],
     behaviour: { gaits: ["walk", "bound"], canRear: false, flies: true, notes: [] },
     sounds: [{ kind: "vocal", label: "caws", catalog: "bed-crows-day", query: "crow caw" }],
     culture: ["Yatagarasu, the three-legged crow that guided Emperor Jimmu.", "Crows at dusk, calling the children home."],
-    references: [], sources: [W("Large-billed_crow")], styles: [uk("crow")],
+    references: [{ title: "Large-billed crow, head in profile", url: C("Corvus_macrorhynchos(head).jpg"), rights: "public-domain", kind: "photo" }], sources: [W("Large-billed_crow")], styles: [uk("crow")],
   },
   {
     id: "green-pheasant", name: "Green pheasant", ja: { kana: "キジ", kanji: "雉", romaji: "kiji" }, scientific: "Phasianus versicolor", plan: "bird-galliform",
     size: { length: r(60, 75, 89, "reported", "Common pheasant (close relative): males, including tail"), mass: r(.5, 1.0, 1.4, "reported", "Common pheasant (close relative)") },
-    proportions: { tail: r(.5, .55, .6, "reported", "Common pheasant: tail ~50 cm of the male's length") },
+    proportions: { muzzle: r(.33, .37, .4, "estimated", "read off Huet's Phasianus versicolor"), tail: r(.5, .55, .6, "reported", "Common pheasant: tail ~50 cm of the male's length") },
     coat: { type: "feathers", long: ["tail"], lay: "Scaled iridescent breast; a long barred tail.",
       palette: [{ region: "breast", name: "dark green", hex: "#2f5d3a" }, { region: "face", name: "red wattle", hex: "#c0302b", fill: "eye-patch" }, { region: "back", name: "bronze back", hex: "#7a5a3a" }, { region: "tail", name: "barred tail", hex: "#a4865e" }],
       markings: [{ name: "red facial wattle", region: "face", shape: "Bare red skin round the eye." }],
       variants: [{ name: "hen", when: "female", palette: [{ region: "back", name: "mottled brown", hex: "#9a7c58" }] }] },
-    eyes: { pupil: "round", iris: "#d0a23a" }, parts: [],
+    eyes: { pupil: "round", iris: "#d0a23a" },
+    face: { eyeFromNose: .72, eye: .08, depth: .55, eyeSpacing: .85, eyeLook: "iris", ears: "Small feather ear tufts at the back of the crown (the male's).",
+      features: ["A short, pale, slightly hooked bill.", "Bare scarlet wattles round the eye, swelling down the cheek in the breeding male.", "Iridescent blue-green head and neck."],
+      grade: "estimated", source: "Measured off Huet's 1838 plate of the male in profile (Commons, public domain)" }, parts: [],
     behaviour: { gaits: ["walk", "trot"], canRear: false, flies: true, notes: ["Bursts up noisily when flushed; prefers to run."] },
     sounds: [{ kind: "vocal", label: "kokyo crow", query: "pheasant call" }, { kind: "foley", label: "wing burst", catalog: "flap-wings-1" }],
     culture: ["Japan's national bird.", "Momotarō's pheasant."],
-    references: [], sources: [W("Green_pheasant"), W("Common_pheasant")], styles: [uk("pheasant")],
+    references: [{ title: "Huet, Phasianus versicolor male (1838)", url: C("Phasianus_versicolor_male_1838.jpg"), rights: "public-domain", kind: "plate" }, { title: "H. Jones, Green Japanese pheasant", url: C("Green_Japanese_Pheasant_by_H._Jones.png"), rights: "public-domain", kind: "plate" }], sources: [W("Green_pheasant"), W("Common_pheasant")], styles: [uk("pheasant")],
   },
   {
     id: "eurasian-tree-sparrow", name: "Eurasian tree sparrow", ja: { kana: "スズメ", kanji: "雀", romaji: "suzume" }, scientific: "Passer montanus", plan: "bird-perching",
     size: { length: r(12.5, 13.3, 14, "reported", "Eurasian tree sparrow"), wingspan: r(20, 21, 22, "reported", "Eurasian tree sparrow"), mass: r(.02, .024, .028, "reported", "Eurasian tree sparrow") },
-    proportions: {},
+    proportions: { muzzle: r(.2, .23, .26, "estimated", "read off a tree sparrow in profile") },
     coat: { type: "feathers", long: [], lay: "Puffed in cold weather.",
       palette: [{ region: "crown", name: "chestnut crown", hex: "#8a4f2b" }, { region: "face", name: "white cheek", hex: "#f2eee6" }, { region: "face", name: "black cheek spot", hex: "#1c1a18", fill: "accent" },
         { region: "back", name: "streaked back", hex: "#9b7650" }, { region: "breast", name: "buff breast", hex: "#d8cdb8" }],
       markings: [{ name: "black cheek spot", region: "face", shape: "A black spot on the white cheek." }], variants: [] },
-    eyes: { pupil: "round", iris: "#1a1614" }, parts: [],
+    eyes: { pupil: "round", iris: "#1a1614" },
+    face: { eyeFromNose: .46, eye: .13, depth: .7, eyeSpacing: .8, eyeLook: "bead", ears: "None visible; a black ear spot on the white cheek.",
+      features: ["A short, thick, conical seed-eater's bill.", "A chestnut crown and nape; a black bib and a black spot on a white cheek.", "A large dark eye in a black mask from the bill."],
+      grade: "estimated", source: "Measured off a tree sparrow photographed in Osaka (Commons, public domain)" }, parts: [],
     behaviour: { gaits: ["bound"], canRear: false, flies: true, notes: ["Hops with both feet together."] },
     sounds: [{ kind: "vocal", label: "chirp", query: "sparrow chirp" }], culture: ["The tongue-cut sparrow (Shita-kiri suzume)."],
-    references: [], sources: [W("Eurasian_tree_sparrow")], styles: [uk("sparrow"), { style: "rig", pack: "rig", id: "birdRig()", note: "Songbird." }],
+    references: [{ title: "Tree sparrow, Osaka", url: C("Tree_Sparrow_August_2007_Osaka_Japan.jpg"), rights: "public-domain", kind: "photo" }], sources: [W("Eurasian_tree_sparrow")], styles: [uk("sparrow"), { style: "rig", pack: "rig", id: "birdRig()", note: "Songbird." }],
   },
   {
     id: "eurasian-goshawk", name: "Eurasian goshawk", ja: { kana: "オオタカ", kanji: "蒼鷹", romaji: "ōtaka" }, scientific: "Accipiter gentilis", plan: "bird-raptor",
     size: { length: r(46, 58, 69, "reported", "Eurasian goshawk (males 46–63, females 58–69)"), wingspan: r(89, 110, 127, "reported", "Eurasian goshawk"), mass: r(.5, 1.0, 2.2, "reported", "Eurasian goshawk") },
-    proportions: {},
+    proportions: { muzzle: r(.27, .3, .34, "estimated", "read off Naumann's goshawk (head turned to the viewer)") },
     coat: { type: "feathers", long: ["hind-leg"], lay: "Feathered 'trousers'; finely barred underparts.",
       palette: [{ region: "back", name: "slate grey", hex: "#5e6670" }, { region: "breast", name: "white, barred", hex: "#eceae6" }, { region: "face", name: "white brow", hex: "#f2f0ec", fill: "band" }, { region: "feet", name: "yellow feet", hex: "#e2b23a" }],
       markings: [{ name: "white eyebrow", region: "face", shape: "A white stripe over the eye." }, { name: "fine barring", region: "breast", shape: "Thin dark bars across the white underparts." }], variants: [] },
-    eyes: { pupil: "round", iris: "#e08a2a", note: "Yellow to deep orange with age." }, parts: [],
+    eyes: { pupil: "round", iris: "#e08a2a", note: "Yellow to deep orange with age." },
+    face: { eyeFromNose: .45, eye: .12, depth: .6, eyeSpacing: .65, eyeLook: "iris", ears: "None visible.",
+      features: ["A short, deep, hooked bill with a yellow cere.", "A large yellow to orange eye shaded by a bony brow ridge: the fierce look.", "A dark crown and cheek, a white eyebrow stripe."],
+      grade: "estimated", source: "Read off Naumann's plate (1899) and a 1904 plate (Commons, public domain); both turn the head toward the viewer, so the bill is foreshortened" }, parts: [],
     behaviour: { gaits: ["walk"], canRear: false, flies: true, notes: ["Short broad wings and a long tail for flying through woods."] },
     sounds: [{ kind: "vocal", label: "kek-kek alarm", query: "goshawk call" }], culture: ["The falconer's bird (takagari)."],
-    references: [], sources: [W("Eurasian_goshawk")], styles: [uk("hawk")],
+    references: [{ title: "Naumann, Accipiter gentilis (1899)", url: C("Accipiter_gentilis,_Naumann_1899.jpg"), rights: "public-domain", kind: "plate" }, { title: "Accipiter gentilis (1904)", url: C("Accipiter_gentilis_1904.jpg"), rights: "public-domain", kind: "plate" }], sources: [W("Eurasian_goshawk")], styles: [uk("hawk")],
   },
   {
     id: "mandarin-duck", name: "Mandarin duck", ja: { kana: "オシドリ", kanji: "鴛鴦", romaji: "oshidori" }, scientific: "Aix galericulata", plan: "bird-waterfowl",
     size: { length: r(41, 45, 49, "reported", "Mandarin duck"), wingspan: r(65, 70, 75, "reported", "Mandarin duck"), mass: r(.43, .55, .69, "estimated") },
-    proportions: {},
+    proportions: { muzzle: r(.24, .27, .3, "estimated", "read off a mandarin drake in profile") },
     coat: { type: "feathers", long: ["crown"], lay: "The drake's orange 'sails' stand up over the back; a crest at the nape.",
       palette: [{ region: "back", name: "dark back", hex: "#4a4436" }, { region: "wings", name: "orange sails", hex: "#e07b28" }, { region: "face", name: "white eye stripe", hex: "#f4f1ea", fill: "band" }, { region: "breast", name: "purple breast", hex: "#5a3a6a" },
         { region: "crown", name: "green crest", hex: "#3a6a4a" }, { region: "muzzle", name: "red bill", hex: "#c8473a" }],
       markings: [{ name: "white crescent over the eye", region: "face", shape: "A broad white stripe from the eye to the nape." }],
       variants: [{ name: "duck (female)", when: "female", palette: [{ region: "back", name: "grey-brown", hex: "#8a7f72" }, { region: "face", name: "white eye ring", hex: "#f4f1ea", fill: "eye-patch" }] }] },
-    eyes: { pupil: "round", iris: "#2a1e18" }, parts: [{ id: "sails", name: "orange sail feathers", region: "wings" }],
+    eyes: { pupil: "round", iris: "#2a1e18" },
+    face: { eyeFromNose: .48, eye: .06, depth: .7, eyeSpacing: .85, eyeLook: "bead", ears: "None visible.",
+      features: ["A short red bill with a pale nail at the tip (the drake's).", "A dark eye in a broad white eyebrow that sweeps back into the crest.", "Orange 'whiskers' fanning down the cheek; a full crest at the back."],
+      grade: "estimated", source: "Measured off a mandarin drake swimming in profile (Commons, CC0)" }, parts: [{ id: "sails", name: "orange sail feathers", region: "wings" }],
     behaviour: { gaits: ["walk"], canRear: false, swims: true, flies: true, notes: [] },
     sounds: [{ kind: "vocal", label: "whistle", query: "mandarin duck" }], culture: ["Conjugal fidelity: 'oshidori fūfu'."],
-    references: [], sources: [W("Mandarin_duck")], styles: [uk("oshidori")],
+    references: [{ title: "Mandarin drake, Doorwerth", url: C("Aix_galericulata_(Mandarin_duck)_male,_Doorwerth,_the_Netherlands.jpg"), rights: "CC0", kind: "photo" }], sources: [W("Mandarin_duck")], styles: [uk("oshidori")],
   },
   {
     id: "common-kingfisher", name: "Common kingfisher", ja: { kana: "カワセミ", kanji: "翡翠", romaji: "kawasemi" }, scientific: "Alcedo atthis", plan: "bird-perching",
@@ -454,10 +478,13 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     coat: { type: "feathers", long: [], lay: "Tight and glossy.",
       palette: [{ region: "back", name: "azure", hex: "#1d8ec4" }, { region: "breast", name: "orange", hex: "#e3793b" }, { region: "throat", name: "white throat", hex: "#f4f1ea" }, { region: "feet", name: "red feet", hex: "#d2453a" }],
       markings: [{ name: "azure back stripe", region: "back", shape: "A bright stripe down the back, glinting in flight." }], variants: [] },
-    eyes: { pupil: "round", iris: "#121010" }, parts: [{ id: "dagger-bill", name: "dagger bill", region: "head" }],
+    eyes: { pupil: "round", iris: "#121010" },
+    face: { eyeFromNose: .72, eye: .09, depth: .4, eyeSpacing: .8, eyeLook: "bead", ears: "None visible; an orange ear patch and a white neck patch.",
+      features: ["A long dagger bill about half the head (the female's lower mandible is orange).", "A big head on a short body; the eye at the top of an orange stripe from the bill.", "Blue-green crown with pale blue spots."],
+      grade: "estimated", source: "Measured off a kingfisher photographed in Japan (Commons, public domain)" }, parts: [{ id: "dagger-bill", name: "dagger bill", region: "head" }],
     behaviour: { gaits: [], canRear: false, flies: true, notes: ["Dives headfirst from a perch."] },
     sounds: [{ kind: "vocal", label: "shrill whistle", query: "kingfisher call" }], culture: ["The 'river jewel' (kawasemi) of haiku."],
-    references: [], sources: [W("Common_kingfisher")],
+    references: [{ title: "Common kingfisher in Japan", url: C("Common_kingfisher_in_Japan,_January_2019_-_谷崎7303.jpg"), rights: "public-domain", kind: "photo" }], sources: [W("Common_kingfisher")],
     styles: [{ style: "paper-craft", pack: "paper-craft", id: "kingfisher" }, { style: "coloured-pencil", pack: "colored-pencil", id: "createKingfisherActor" }],
   },
   {
@@ -467,11 +494,14 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     coat: { type: "scales", long: [], lay: "Large overlapping scales in diagonal rows; mirror and leather varieties have few.",
       palette: [{ region: "back", name: "kohaku white", hex: "#f5f1ea" }, { region: "back", name: "kohaku red", hex: "#d9362b", fill: "band" }, { region: "back", name: "sumi black", hex: "#1c1a1a", fill: "accent" }, { region: "fins", name: "fins", hex: "#f0e8dc" }],
       markings: [{ name: "kohaku", region: "back", shape: "Red patterns on white." }, { name: "taishō sanshoku", region: "back", shape: "Red and black on white." }], variants: [] },
-    eyes: { pupil: "round", iris: "#2a2220" }, parts: [{ id: "barbels", name: "two pairs of barbels", region: "head" }],
+    eyes: { pupil: "round", iris: "#2a2220" },
+    face: { eyeFromNose: .36, eye: .11, depth: .95, eyeSpacing: .7, eyeLook: "iris", ears: "None; the gill cover ends the head.",
+      features: ["A small toothless mouth at the end of a blunt snout, with two pairs of barbels.", "A gold-ringed eye high on the head, a third of the way back.", "The gill cover's curved edge marks the end of the head."],
+      grade: "estimated", source: "Measured off common carp in side view (iNaturalist 259810202 and 183724795, CC0)" }, parts: [{ id: "barbels", name: "two pairs of barbels", region: "head" }],
     behaviour: { gaits: [], canRear: false, swims: true, notes: [] },
     sounds: [{ kind: "foley", label: "splash", catalog: "props-splash", query: "fish splash" }],
     culture: ["The carp that climbs the waterfall becomes a dragon: carp streamers (koinobori) for Children's Day."],
-    references: [], sources: [W("Koi"), W("Common_carp")],
+    references: [{ title: "Common carp, side view (iNaturalist 259810202)", url: INAT_CARP, rights: "CC0", kind: "photo" }, { title: "Common carp, side view (iNaturalist 183724795)", url: INAT_CARP_2, rights: "CC0", kind: "photo" }], sources: [W("Koi"), W("Common_carp")],
     styles: [uk("carp"), { style: "rig", pack: "rig", id: "fishRig()", note: "Koi." }],
   },
 ];

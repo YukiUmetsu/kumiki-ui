@@ -164,13 +164,36 @@ skull, just behind the ear base.
   - The deer's, cattle's and horse's eyes move back toward the poll.
 - **Check.** `checkSpeciesData` now flags a mammal without a face, or with a face value out of range.
 
-Birds and the koi need a face of their own (a bill instead of a muzzle, no ears), and are next.
+## Faces for the birds and the koi (2026-11-15)
+
+Every species now has a face. A bird's head is measured from the back of the skull to the bill tip, and a fish's
+from the snout to the back of the gill cover. Birds and fish have no `ear`. A bird's measured bill share is its
+`proportions.muzzle`.
+
+| Animal | Bill share | Eye back from the tip | Eye | Head depth | Source |
+|---|---|---|---|---|---|
+| Crane | 0.55 | 0.74 | 0.05 | 0.25 | head in profile (Commons, CC0) |
+| Heron | 0.77 | 0.87 | 0.06 | 0.15 | Boutell's engraving (public domain) |
+| Crow | 0.47 | 0.63 | 0.075 | 0.4 | fledgling in profile (public domain) |
+| Pheasant | 0.37 | 0.72 | 0.08 | 0.55 | Huet's 1838 plate (public domain) |
+| Sparrow | 0.23 | 0.46 | 0.13 | 0.7 | Osaka photograph (public domain) |
+| Goshawk | 0.3 | 0.45 | 0.12 | 0.6 | Naumann and 1904 plates (public domain; head turned, bill foreshortened) |
+| Mandarin duck | 0.27 | 0.48 | 0.06 | 0.7 | drake in profile (CC0) |
+| Kingfisher | 0.45 (kept) | 0.72 | 0.09 | 0.4 | photograph in Japan (public domain) |
+| Koi | — | 0.36 | 0.11 | 0.95 | common carp in side view (iNaturalist 259810202, 183724795, CC0) |
+
+- **Estimates.** Eye spacing square on is estimated for the birds and the koi: the eyes sit at the sides of the head,
+  and no square-on reference was measured.
+- **Construction.** The bird construction now takes the head's depth and the eye's place from the face, and the fish
+  construction the eye's.
+- **Effect.** The crane's and heron's heads slim to their references (the neck follows, since its width comes from the
+  head), the sparrow's eye grows, and the goshawk's eye is large under the brow.
+- **Check.** `checkSpeciesData` flags any species without a face, and a mammal face without an ear.
 
 ## Not done
 
 - Front and back constructions in ANIM1 (styles draw their own).
 - The long-and-low UKIYO1 quadrupeds listed above.
 - Measured, not estimated, colours and faces.
-- Faces for the birds and the koi.
 - Recordings for most animal voices; the search terms are listed per species.
 - No owner viewing review yet.
