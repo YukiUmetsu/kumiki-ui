@@ -896,10 +896,12 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         .toBeGreaterThan(54);
       expect(Math.max(...gaps)-Math.min(...gaps))
         .toBeGreaterThan(8);
-      // The tallest pine is rooted on the *lower* right-hand hillside,
-      // not a single antenna on the geometric apex.
+      // The tallest pine belongs to the displaced right-hand terrace,
+      // not the old tightly packed apex; the same plan is repositioned
+      // by scene-specific centers, so never hardcode a film x coordinate.
       expect(heights[3]).toBe(Math.max(...heights));
-      expect(treeXs[3]).toBeGreaterThan(665);
+      expect(treeXs[3]-treeXs[2]).toBeGreaterThan(50);
+      expect(treeXs[3]-treeXs[0]).toBeGreaterThan(140);
       const boughStations=[...full.matchAll(
         /data-km-cliff-pine-bough-station="([^"]+)"/g,
       )].map(m=>Number(m[1]));
