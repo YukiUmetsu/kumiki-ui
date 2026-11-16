@@ -211,7 +211,7 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
       return p.d;
     };
     const box=(d:string)=>{
-      const nums=(d.match(/-?\\d+(?:\\.\\d+)?/g)??[]).map(Number);
+      const nums=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
       expect(nums.length%2).toBe(0);
       expect(nums.length).toBeGreaterThanOrEqual(8);
       const xs=nums.filter((_,k)=>k%2===0);
