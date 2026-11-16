@@ -1252,3 +1252,37 @@ test("Fuchun Storybook toggles actual 40-ink-canopy paper channels without chang
   await lab.getByRole("button",{name:"Reset all four studies"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
 });
+
+
+test("native Fuchun crown branches join 40 fan islands in the original painting",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const bridges=fuchun.locator("[data-km-cliff-pine-connected-canopy]");
+  await expect(bridges).toHaveCount(20);
+  const paths=await bridges.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d")));
+  await page.getByRole("button",{name:"Pine before continuous crown bridge"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine-unlinked");
+  expect(await bridges.evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).visibility)))
+    .toEqual(Array(20).fill("hidden"));
+  const before=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-unlinked-40-pine-fans.png")});
+  await page.getByRole("button",{name:"Pine crowns · source anatomy"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine");
+  expect(await bridges.evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).visibility)))
+    .toEqual(Array(20).fill("visible"));
+  const after=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-connected-20-pine-canopies.png")});
+  expect(hash(after)).not.toBe(hash(before));
+  expect(await bridges.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d"))))
+    .toEqual(paths);
+  await expect(fuchun.locator("[data-km-cliff-pine-ink-island]")).toHaveCount(40);
+  await expect(fuchun.locator("[data-km-cliff-pine-needle]")).toHaveCount(310);
+  await expect(fuchun.locator("[data-km-cliff-pine-wet-cluster]")).toHaveCount(119);
+  await lab.getByRole("button",{name:"Pine armature · connected brush bones"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine-bones");
+  expect(await bridges.evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).visibility)))
+    .toEqual(Array(20).fill("hidden"));
+  await lab.getByRole("button",{name:"Reset all four studies"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+});
