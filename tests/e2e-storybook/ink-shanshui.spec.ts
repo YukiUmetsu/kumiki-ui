@@ -571,6 +571,66 @@ test("Fuchun source-fidelity desk uses two real seeded stages at native 1x and c
     .getAttribute("d")).toBe(roots[0]);
 });
 
+test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-station rounded source anatomy",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--fuchun-fidelity-review&viewMode=story");
+  const lab=page.getByTestId("shanshui-fuchun-fidelity-desk");
+  const samples=lab.locator("[data-km-fidelity-sample]");
+  const path=(sample:number)=>samples.nth(sample)
+    .locator('[data-km-shanshui-ridge-contour="2"]');
+  await expect(lab).toHaveAttribute("data-km-fidelity-comparison","seeds");
+  const nativeOriginal=await path(0).getAttribute("d");
+  const nativeDifferentSeed=await path(1).getAttribute("d");
+  expect(nativeOriginal).not.toBe(nativeDifferentSeed);
+  await page.getByRole("button",{
+    name:"Near mountain · original vs rounded anatomy (EXPERIMENT)",
+  }).click();
+  await expect(lab).toHaveAttribute("data-km-fidelity-comparison","near");
+  await expect(samples.first()).toHaveAttribute("data-km-fidelity-near-study","legacy");
+  await expect(samples.last()).toHaveAttribute("data-km-fidelity-near-study","rounded");
+  await expect(samples.first()).toHaveAttribute("data-km-fidelity-seed","71");
+  await expect(samples.last()).toHaveAttribute("data-km-fidelity-seed","71");
+  const rounded=await path(1).getAttribute("d");
+  expect(await path(0).getAttribute("d")).toBe(nativeOriginal);
+  expect(rounded).not.toBe(nativeOriginal);
+  expect((rounded?.match(/L /g)??[]).length).toBe(164);
+  for(const i of [0,1]){
+    await expect(samples.nth(i).locator("[data-km-master-stroke]")).toHaveCount(78);
+    await expect(samples.nth(i).locator("[data-km-master-fuchun-alum-head]"))
+      .toHaveCount(9);
+    await expect(samples.nth(i).locator("[data-km-fidelity-viewport]"))
+      .toHaveCSS("width","960px");
+    await expect(samples.nth(i).locator("image")).toHaveCount(0);
+    await samples.nth(i).locator("[data-km-fidelity-viewport]").screenshot({
+      animations:"disabled",
+      path:info.outputPath(i===0?"fuchun-legacy-near-native-1x.png":
+        "fuchun-rounded-near-native-1x.png"),
+    });
+  }
+  await page.getByRole("button",{name:"Lower stone shoulder · 2.3×"}).click();
+  await expect(lab).toHaveAttribute("data-km-fidelity-lens","near");
+  for(let i=0;i<2;i++){
+    await samples.nth(i).locator("[data-km-fidelity-viewport]").screenshot({
+      animations:"disabled",
+      path:info.outputPath(i===0?"fuchun-legacy-near-2.3x.png":
+        "fuchun-rounded-near-2.3x.png"),
+    });
+  }
+  // Film events must remain synchronized; geometry is source-authored
+  // and independent of the absolute frame for each individual construction.
+  await page.getByRole("button",{name:/Late atmospheric pass/}).click();
+  await expect(samples.first().locator("[data-km-shanshui-scene]"))
+    .toHaveAttribute("data-km-shanshui-frame","215");
+  await expect(samples.last().locator("[data-km-shanshui-scene]"))
+    .toHaveAttribute("data-km-shanshui-frame","215");
+  expect(await path(0).getAttribute("d")).toBe(nativeOriginal);
+  expect(await path(1).getAttribute("d")).toBe(rounded);
+  await page.getByRole("button",{name:"Reset native source-fidelity review"}).click();
+  await expect(lab).toHaveAttribute("data-km-fidelity-comparison","seeds");
+  await expect(lab).toHaveAttribute("data-km-fidelity-lens","native");
+  expect(await path(0).getAttribute("d")).toBe(nativeOriginal);
+  expect(await path(1).getAttribute("d")).toBe(nativeDifferentSeed);
+});
+
 test("Fuchun bank inspection preserves the live film while isolating root-linked ink phrases",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");
