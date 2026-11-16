@@ -7,7 +7,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { CanvasHTMLAttributes, CSSProperties } from "react";
 import { renderPortrait } from "./face-portrait";
-import type { PortraitOptions } from "./face-portrait";
+import type { Portrait, PortraitOptions } from "./face-portrait";
 import { BEAUTY_EVIDENCE, GOLDEN_RATIO, beautifulFace } from "./face-beauty";
 import type { BeautyOptions } from "./face-beauty";
 import { enqueueRender as enqueue } from "./foundation-queue";
@@ -16,10 +16,12 @@ import { sheetList, sheetSmall } from "./foundation-react";
 export interface FacePortraitProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> {
   options: PortraitOptions;
   label: string;
+  /** Called with each finished render (its time, and the groomed hair: strand count, groom time). */
+  onRendered?: (portrait: Portrait) => void;
 }
 
 /** A portrait rendered from the measured, attractiveness-calibrated face (see `renderPortrait`). */
-export const FacePortrait = forwardRef<HTMLCanvasElement, FacePortraitProps>(function FacePortrait({ options, label, style, ...rest }, ref) {
+export const FacePortrait = forwardRef<HTMLCanvasElement, FacePortraitProps>(function FacePortrait({ options, label, style, onRendered, ...rest }, ref) {
   const canvas = useRef<HTMLCanvasElement>(null), [busy, setBusy] = useState(true);
   useImperativeHandle(ref, () => canvas.current as HTMLCanvasElement, []);
   const key = JSON.stringify(options), W = options.width ?? 384, H = options.height ?? 480;
@@ -30,7 +32,7 @@ export const FacePortrait = forwardRef<HTMLCanvasElement, FacePortraitProps>(fun
       if (!live || !canvas.current) return;
       const p = renderPortrait(options), ctx = canvas.current.getContext("2d");
       if (ctx) ctx.putImageData(new ImageData(new Uint8ClampedArray(p.rgba), p.width, p.height), 0, 0);
-      if (live) setBusy(false);
+      if (live) { setBusy(false); onRendered?.(p); }
     });
     return () => { live = false; };
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps

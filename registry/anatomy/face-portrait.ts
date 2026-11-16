@@ -18,7 +18,9 @@
  * - regional colour comes from ANAT1's skin zones;
  * - eyes have a sclera, a textured iris lit brighter on the side away from the light (the cornea focuses light
  *   there), a pupil and a corneal highlight;
- * - hair uses Kajiya–Kay anisotropic highlights (two lobes, Scheuermann 2004) over strands traced along a flow field.
+ * - hair is groomed and drawn strand by strand by ANAT1's hair foundation (`hair-groom.ts`): a style settled by physics
+ *   and cut, tens of thousands of strands, Marschner highlights, deep-opacity self-shadowing and multiple scattering; it
+ *   shadows the skin under it.
  *
  * Construction for any style, not an approved realistic portrait (see AGENTS.md rule 14 for the pencil portrait gate).
  */
@@ -34,8 +36,11 @@ import type { AuWeights, ExpressedFace } from "./expression-face";
 import { createRaster, downsample, encodeSrgb, fbm, fillPolygon, gaussianBlur, hash2, linearOf, rasterizeTriangles, strokePolyline } from "./foundation-raster";
 import type { Raster, RGB3 } from "./foundation-raster";
 import ansur from "./data/ansur-ii-ranges.json";
+import { findHairStyle, groomHair, HAIR_PHYSICS, HAIR_SHADOW, hairDensityMap, partLine, renderHairStrands, rotateGroom, scalpCover } from "./hair-groom";
+import type { FringeKind, HairGroom, HairHead, Parting } from "./hair-groom";
 
-export type HairStyle = "short" | "bob" | "long";
+/** A HAIRSTYLES id (hair-groom.ts); "short", "bob" and "long" are kept as aliases. */
+export type HairStyle = string;
 export type EyeColour = "dark-brown" | "brown" | "hazel" | "green" | "blue" | "grey";
 export interface PortraitOptions extends BeautyOptions {
   width?: number; height?: number;
@@ -47,6 +52,8 @@ export interface PortraitOptions extends BeautyOptions {
   /** Hair melanin (eumelanin 0.3 blonde … 1.3 brown … 8 black; pheomelanin for red). */
   hair?: { eumelanin: number; pheomelanin?: number };
   hairStyle?: HairStyle;
+  /** Override the style's fringe and parting; strands drawn (default by size, 12,000–40,000; up to 120,000); length scale; curl type 1–8; share of grey strands. */
+  fringe?: FringeKind; parting?: Parting; hairStrands?: number; hairLength?: number; hairCurl?: number; hairGrey?: number;
   /** An emotion prototype (EXPR1 id) at an intensity, or raw action-unit weights. */
   expression?: string; intensity?: number; weights?: AuWeights;
   /** Head turn and nod (degrees; the renderer is built for about ±25° of yaw). */
@@ -56,9 +63,11 @@ export interface PortraitOptions extends BeautyOptions {
   background?: string; clothing?: string;
   seed?: number;
   /** Output a pass instead of the portrait, for checking: surface normals, irradiance before scattering, or occlusion. */
-  debug?: "normals" | "irradiance" | "ao";
+  debug?: "normals" | "irradiance" | "ao" | "hair-shadow";
 }
-export interface Portrait { width: number; height: number; rgba: Uint8ClampedArray; face: BeautifulFace; expressed?: ExpressedFace; ms: number }
+export interface Portrait { width: number; height: number; rgba: Uint8ClampedArray; face: BeautifulFace; expressed?: ExpressedFace; ms: number;
+  /** The groomed hair and the head it was groomed on. */
+  hair?: { groom: HairGroom; head: HairHead } }
 
 /** The six-Gaussian skin diffusion profile (variance mm², RGB weight), d'Eon & Luebke 2007 (GPU Gems 3, ch. 14). */
 export const SKIN_PROFILE: readonly { variance: number; weight: RGB3 }[] = [
@@ -109,17 +118,23 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   }
   const flat = (vs: readonly Vec3[]) => { const f2 = new Float64Array(vs.length * 3); vs.forEach((q, i) => { f2[i * 3] = q[0]; f2[i * 3 + 1] = q[1]; f2[i * 3 + 2] = q[2]; }); return f2; };
   const sub1 = loopSubdivide([flat(V0), flat(N0)], faceTris0), sub2 = loopSubdivide(sub1.pos, sub1.tris);
-  const FV = sub2.pos[0], FN0 = sub2.pos[1], nFace = FV.length / 3;
+  // cranium: an ellipsoid from tragion − 45 mm to the head top, its front 6 mm behind the brow
+  const ay = (headTop - (tragionY - 45)) / 2, cyE = headTop - ay, az = headLen / 2, czE = gl[2] - 6 - az, ax = headHalfW;
+  const ellZ = (x: number, y: number) => { const r = 1 - (x / ax) ** 2 - ((y - cyE) / ay) ** 2; return r > 0 ? czE + az * Math.sqrt(r) : NaN; };
+  // The face mask ends below the hairline. A strip of skin grows from its top edge up and round the forehead and
+  // temples until it lies on the cranium, sharing the mask's edge vertices, so the forehead is one surface.
+  const strip = foreheadStrip(sub2.pos[0], sub2.pos[1], sub2.tris, Math.max(ec.L[1], ec.R[1]) + 6, ellZ);
+  const FV = strip.E, FN0 = strip.N, faceTris = strip.tris, nFace = FV.length / 3;
   /** A chain of original vertices expanded through both levels' edge midpoints (exact opening boundaries). */
-  const expand = (chain: readonly number[]) => { let c1: number[] = [chain[0]]; for (let k = 1; k < chain.length; k++) { const m = sub1.mid.get(ekey(chain[k - 1], chain[k])); if (m !== undefined) c1.push(m); c1.push(chain[k]); }
+  const expand = (chain: readonly number[]) => { const c1: number[] = [chain[0]]; for (let k = 1; k < chain.length; k++) { const m = sub1.mid.get(ekey(chain[k - 1], chain[k])); if (m !== undefined) c1.push(m); c1.push(chain[k]); }
     const c2: number[] = [c1[0]]; for (let k = 1; k < c1.length; k++) { const m = sub2.mid.get(ekey(c1[k - 1], c1[k])); if (m !== undefined) c2.push(m); c2.push(c1[k]); } return c2; };
   const nPos = (i: number): Vec3 => [FN0[i * 3], FN0[i * 3 + 1], FN0[i * 3 + 2]];
   for (let i = 0; i < nFace; i++) P.push(FV[i * 3], FV[i * 3 + 1], FV[i * 3 + 2]);
-  for (let t = 0; t < sub2.tris.length / 3; t++) { tris.push(sub2.tris[t * 3], sub2.tris[t * 3 + 1], sub2.tris[t * 3 + 2]); triMat.push(0); }
+  for (let t = 0; t < faceTris.length / 3; t++) { tris.push(faceTris[t * 3], faceTris[t * 3 + 1], faceTris[t * 3 + 2]); triMat.push(0); }
   {
     const fn = new Float64Array(nFace * 3);
-    for (let t = 0; t < sub2.tris.length / 3; t++) {
-      const a = sub2.tris[t * 3], b = sub2.tris[t * 3 + 1], c = sub2.tris[t * 3 + 2];
+    for (let t = 0; t < faceTris.length / 3; t++) {
+      const a = faceTris[t * 3], b = faceTris[t * 3 + 1], c = faceTris[t * 3 + 2];
       const ax = FV[b * 3] - FV[a * 3], ay = FV[b * 3 + 1] - FV[a * 3 + 1], az = FV[b * 3 + 2] - FV[a * 3 + 2], bx = FV[c * 3] - FV[a * 3], by = FV[c * 3 + 1] - FV[a * 3 + 1], bz = FV[c * 3 + 2] - FV[a * 3 + 2];
       const nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx;
       for (const i of [a, b, c]) { fn[i * 3] += nx; fn[i * 3 + 1] += ny; fn[i * 3 + 2] += nz; }
@@ -129,10 +144,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     for (let i = 0; i < nFace; i++) { const n = norm3([fn[i * 3] * sg, fn[i * 3 + 1] * sg, fn[i * 3 + 2] * sg]); Nn.push(n[0], n[1], n[2]); }
   }
   const addVert = (x: number, y: number, z: number, n: Vec3) => { P.push(x, y, z); Nn.push(n[0], n[1], n[2]); return P.length / 3 - 1; };
-  // cranium: an ellipsoid from tragion − 45 mm to the head top, its front 6 mm behind the brow
-  const ay = (headTop - (tragionY - 45)) / 2, cyE = headTop - ay, az = headLen / 2, czE = gl[2] - 6 - az, ax = headHalfW;
   {
-    const NU = 48, NV = 28, base = P.length / 3;
+    const NU = 96, NV = 56, base = P.length / 3;
     for (let j = 0; j <= NV; j++) for (let i = 0; i < NU; i++) {
       const th = (j / NV) * Math.PI, ph = (i / NU) * Math.PI * 2, x = ax * Math.sin(th) * Math.sin(ph), y = cyE + ay * Math.cos(th), z = czE + az * Math.sin(th) * Math.cos(ph);
       addVert(x, y, z, norm3([x / (ax * ax), (y - cyE) / (ay * ay), (z - czE) / (az * az)]));
@@ -140,6 +153,19 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     for (let j = 0; j < NV; j++) for (let i = 0; i < NU; i++) {
       const a = base + j * NU + i, b = base + j * NU + ((i + 1) % NU), c = a + NU, d = b + NU;
       tris.push(a, c, b, b, c, d); triMat.push(1, 1);
+    }
+    // normals from the (reshaped) surface, oriented like the ellipsoid's
+    const acc = new Float64Array((P.length / 3 - base) * 3);
+    for (let t = tris.length / 3 - NV * NU * 2; t < tris.length / 3; t++) {
+      const [a, b, c] = [tris[t * 3], tris[t * 3 + 1], tris[t * 3 + 2]];
+      const ux = P[b * 3] - P[a * 3], uy = P[b * 3 + 1] - P[a * 3 + 1], uz = P[b * 3 + 2] - P[a * 3 + 2], vx = P[c * 3] - P[a * 3], vy = P[c * 3 + 1] - P[a * 3 + 1], vz = P[c * 3 + 2] - P[a * 3 + 2];
+      const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+      for (const v of [a, b, c]) { acc[(v - base) * 3] += nx; acc[(v - base) * 3 + 1] += ny; acc[(v - base) * 3 + 2] += nz; }
+    }
+    for (let v = base; v < P.length / 3; v++) {
+      let n = norm3([acc[(v - base) * 3], acc[(v - base) * 3 + 1], acc[(v - base) * 3 + 2]]);
+      if (n[0] * Nn[v * 3] + n[1] * Nn[v * 3 + 1] + n[2] * Nn[v * 3 + 2] < 0) n = [-n[0], -n[1], -n[2]];
+      Nn[v * 3] = n[0]; Nn[v * 3 + 1] = n[1]; Nn[v * 3 + 2] = n[2];
     }
   }
   // neck: an elliptic cylinder behind the jaw
@@ -213,12 +239,12 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const keyI: RGB3 = [3.0, 2.86, 2.72], fillI: RGB3 = [0.3, 0.32, 0.36], rimI: RGB3 = [0.95, 0.94, 0.98], skyI: RGB3 = [0.2, 0.215, 0.25], bounceI: RGB3 = [0.1, 0.085, 0.07];
   const camPos: Vec3 = [0, yc, D];
   // ---- Depth maps along directions: the key light's shadow and ambient occlusion ------------------------------------------------
-  const occluderTris = tris.filter((_, i) => triMat[Math.floor(i / 3)] !== 1 || true);
+  const occluderTris = tris.filter((_, i) => triMat[Math.floor(i / 3)] !== 1 || true), shadowHalf = Math.max(headTop - me[1] + 120, 2 * shoulderHalf) / 2 + 10;
   function depthMap(dir: Vec3, res: number) {
     // orthographic along dir, square covering the head and neck
     const up: Vec3 = Math.abs(dir[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0], r = norm3([up[1] * dir[2] - up[2] * dir[1], up[2] * dir[0] - up[0] * dir[2], up[0] * dir[1] - up[1] * dir[0]]);
     const u = norm3([dir[1] * r[2] - dir[2] * r[1], dir[2] * r[0] - dir[0] * r[2], dir[0] * r[1] - dir[1] * r[0]]);
-    const cx = 0, cy = (headTop + me[1] - 90) / 2, half = Math.max(headTop - me[1] + 120, 2 * shoulderHalf) / 2 + 10;
+    const cx = 0, cy = (headTop + me[1] - 90) / 2, half = shadowHalf;
     const lx = new Float32Array(nV), ly = new Float32Array(nV), lz = new Float32Array(nV);
     for (let i = 0; i < nV; i++) {
       const px = PX[i] - cx, py = PY[i] - cy, pz = PZ[i];
@@ -238,6 +264,49 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
       if (!(d > z + bias)) s++;
     }
     return s / n;
+  };
+  // ---- Hair: groomed on this head (cached), and its density along the key light (it shadows the skin) ---------------------------
+  const styleId = { short: "short-crop", long: "long-straight" }[o.hairStyle ?? ""] ?? o.hairStyle ?? (sex > 0.5 ? "short-crop" : "long-straight");
+  // the face's front as a height field (2 mm cells) from the neutral face: fringes rest on it, side hair passes beside it
+  const FF = faceHeightField(FN0, me[1] - 12, face.hairlineY + 44);
+  const hairHead: HairHead = { centre: [0, cyE, czE], radii: [ax, ay, az], hairlineY: face.hairlineY, browY: (LM("brow-mid.L", N0)[1] + LM("brow-mid.R", N0)[1]) / 2, tragionY, chinY: me[1], faceHalf: zyHalf,
+    eyeY: pupilY, faceZ: gl[2], earX: headHalfW + 1, earZ: czE + az * 0.08, neck: { rx: neckRx, rz: neckRz, cz: neckCz }, shoulderY, shoulderHalf, sex,
+    faceFront: FF, shoulderTop: x => shoulderY + 18 - (Math.abs(x) < neckRx ? 0 : 0.22 * (Math.abs(x) - neckRx) + 0.0009 * Math.max(0, Math.abs(x) - neckRx - 60) ** 2),
+    chestFront: x => chestCz + 70 * Math.sqrt(Math.max(0, 1 - (x / shoulderHalf) ** 2)) - 20 };
+  // strands drawn: as asked, or by the picture's size (a thumbnail needs fewer than a large portrait)
+  const hairStrands = Math.round(o.hairStrands ?? Math.min(40000, Math.max(12000, W * H * 0.25)));
+  const groomKey = JSON.stringify([styleId, o.fringe, o.parting, hairStrands, o.hairLength, o.hairCurl, seed, hairHead.radii.map(Math.round), Math.round(hairHead.hairlineY), Math.round(hairHead.browY), Math.round(gl[2]), Math.round(zyHalf), Math.round(sex * 10)]);
+  let groom = GROOMS.get(groomKey);
+  if (!groom) {
+    groom = groomHair(hairHead, { style: findHairStyle(styleId), fringe: o.fringe, parting: o.parting, strands: hairStrands, lengthScale: o.hairLength, curl: o.hairCurl, seed });
+    if (GROOMS.size > 6) GROOMS.clear();
+    GROOMS.set(groomKey, groom);
+  }
+  const hairRot = rotateGroom(groom, rotH), hairKeyMap = hairDensityMap(groom, hairRot, Lkey, 320, 3.5);
+  // The hair's shadow on the skin: fibre coverage between the first skin along the key and the light, in the shadow
+  // map's frame, blurred by about 2 mm (a soft key).
+  const hairOnSkin = new Float32Array(shadow.res * shadow.res);
+  {
+    const res = shadow.res, cellMm = (2 * shadowHalf) / res, fibreEff = (HAIR_PHYSICS.fibreDiameter.value * HAIR_PHYSICS.scalpCount.value) / Math.max(1, groom.starts.length);
+    for (let s2 = 0; s2 < groom.starts.length; s2++) {
+      const st = groom.starts[s2], c = groom.counts[s2];
+      for (let j = 1; j < c; j++) {
+        const a = (st + j - 1) * 3, b = (st + j) * 3, m: Vec3 = [(hairRot[a] + hairRot[b]) / 2, (hairRot[a + 1] + hairRot[b + 1]) / 2, (hairRot[a + 2] + hairRot[b + 2]) / 2];
+        const [x, y, z] = shadow.lookup(m), xi = Math.floor(x), yi = Math.floor(y);
+        if (xi < 0 || yi < 0 || xi >= res || yi >= res) continue;
+        const sd = shadow.buf.depth[yi * res + xi];
+        if (!(z > sd + 0.6)) continue;
+        hairOnSkin[yi * res + xi] += (Math.hypot(hairRot[b] - hairRot[a], hairRot[b + 1] - hairRot[a + 1], hairRot[b + 2] - hairRot[a + 2]) * fibreEff) / (cellMm * cellMm);
+      }
+    }
+    const blurred = gaussianBlur(hairOnSkin, res, res, 1, 2 / cellMm);
+    hairOnSkin.set(blurred);
+  }
+  const underHair = (p: Vec3) => {
+    const [x, y] = shadow.lookup(p), res = shadow.res, fx = x - 0.5, fy = y - 0.5, xi = Math.floor(fx), yi = Math.floor(fy), u = fx - xi, v = fy - yi;
+    const at = (i: number, j: number) => hairOnSkin[Math.min(res - 1, Math.max(0, j)) * res + Math.min(res - 1, Math.max(0, i))];
+    const cov = (at(xi, yi) * (1 - u) + at(xi + 1, yi) * u) * (1 - v) + (at(xi, yi + 1) * (1 - u) + at(xi + 1, yi + 1) * u) * v;
+    return Math.exp(-HAIR_SHADOW.direct * cov);
   };
   // ambient occlusion per vertex from 22 directions over the front and upper hemisphere
   const ao = new Float32Array(nV).fill(1);
@@ -292,6 +361,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   // ---- Shade skin and cloth: irradiance (to be scattered), albedo and specular per pixel ---------------------------------------------
   const E = new Float32Array(w * h * 3), Alb = new Float32Array(w * h * 3), Spec = new Float32Array(w * h * 3), skinM = new Float32Array(w * h), solid = new Uint8Array(w * h);
   const cloth = linearOf(o.clothing ?? "#30343c"), lipBase = linearOf(skinZoneColor(skinHex, "lips"));
+  const hairEu = o.hair?.eumelanin ?? (sex > 0.5 ? 1.6 : 1.3), hairPheo = o.hair?.pheomelanin ?? 0.15, scalpHair = hairAlbedo(hairSigmaA(hairEu, hairPheo)) as unknown as RGB3;
+  const rootCol: RGB3 = [scalpHair[0] * 0.8, scalpHair[1] * 0.8, scalpHair[2] * 0.8];
   // natural lip colour: rosier and deeper than the skin zone's average (women's a little more saturated)
   const lipLin: RGB3 = [lipBase[0] * (1.02 - 0.06 * sex), lipBase[1] * (0.68 + 0.12 * sex), lipBase[2] * (0.72 + 0.1 * sex)];
   const ggx = (n: Vec3, v: Vec3, l: Vec3, a: number) => {
@@ -307,14 +378,18 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     const a = tri3[t * 3], b = tri3[t * 3 + 1], c = tri3[t * 3 + 2], b1 = gbuf.b1[i], b2 = gbuf.b2[i], b0 = 1 - b1 - b2, mat = triMat[t];
     const p: Vec3 = [PX[a] * b0 + PX[b] * b1 + PX[c] * b2, PY[a] * b0 + PY[b] * b1 + PY[c] * b2, PZ[a] * b0 + PZ[b] * b1 + PZ[c] * b2];
     let n = norm3([NX[a] * b0 + NX[b] * b1 + NX[c] * b2, NY[a] * b0 + NY[b] * b1 + NY[c] * b2, NZ[a] * b0 + NZ[b] * b1 + NZ[c] * b2]);
-    if (mat === 0) {
+    if (mat === 0 || (mat === 1 && p[2] > czE)) {
       // fine skin relief (about 1 mm and 0.4 mm scales): bends the normal slightly so highlights break up like real skin
       const e2 = 0.25, f1 = (q: number, r: number) => 0.6 * fbm(seed + 21, q / 1.1, r / 1.1, 2) + 0.4 * fbm(seed + 29, q / 0.45, r / 0.45, 1);
       const gx = (f1(p[0] + e2, p[1]) - f1(p[0] - e2, p[1])) / (2 * e2), gy = (f1(p[0], p[1] + e2) - f1(p[0], p[1] - e2)) / (2 * e2);
       n = norm3([n[0] - gx * 0.035, n[1] - gy * 0.035, n[2]]);
     }
     const v = norm3([camPos[0] - p[0], camPos[1] - p[1], camPos[2] - p[2]]), occ = ao[a] * b0 + ao[b] * b1 + ao[c] * b2;
-    const sKey = lit(p, 1.6), nlKey = dot3(n, Lkey), nlFill = dot3(n, Lfill), nlRim = dot3(n, Lrim), nlSky = dot3(n, Lsky);
+    // the roots: where hair covers the scalp (and the skin above the hairline) it shows the hair's colour, lit like the
+    // hair mass it stands for rather than shadowed like skin under hair
+    const ph: Vec3 = [P[a * 3] * b0 + P[b * 3] * b1 + P[c * 3] * b2, P[a * 3 + 1] * b0 + P[b * 3 + 1] * b1 + P[c * 3 + 1] * b2, P[a * 3 + 2] * b0 + P[b * 3 + 2] * b1 + P[c * 3 + 2] * b2];
+    const cover = mat <= 1 ? scalpCover(hairHead, groom.style, ph) : 0, partW = mat <= 1 ? partLine(hairHead, groom.style, ph) : 0;
+    const sKey = lit(p, 1.6) * (underHair(p) + (1 - underHair(p)) * 0.6 * cover), nlKey = dot3(n, Lkey), nlFill = dot3(n, Lfill), nlRim = dot3(n, Lrim), nlSky = dot3(n, Lsky);
     if (mat === 3) {
       const d = Math.max(0, nlKey) * sKey * 0.9 + Math.max(0, nlFill) * 0.6 + occ * 0.3 * (0.6 + 0.4 * nlSky);
       for (let k = 0; k < 3; k++) { Alb[i * 3 + k] = cloth[k]; E[i * 3 + k] = d * (k === 2 ? 1.04 : 1) * 1.6; }
@@ -337,6 +412,9 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
       }
       alb = [r, g, bb]; tz = 0.25 + 0.75 * (tzone[a] * b0 + tzone[b] * b1 + tzone[c] * b2);
     } else if (mat === 2) alb = mixC(baseLin, linearOf(skinZoneColor(skinHex, "cheeks")), 0.12);
+    if (mat === 1) { alb = mixC(baseLin, zoneCol[0], 0.7); tz = 0.25 + 0.75 * 0.7 * (1 - smoothstep(10, 45, Math.abs(ph[0]))) * (1 - cover); }
+    if (cover > 0) alb = mixC(alb, rootCol, cover);
+    if (partW > 0) alb = mixC(alb, [alb[0] * 0.62, alb[1] * 0.58, alb[2] * 0.56], partW);
     const mott = 1 + 0.035 * fbm(seed, p[0] / 5, p[1] / 5, 3) + 0.012 * fbm(seed + 9, p[0] / 1.2, p[1] / 1.2, 2);
     const lipW = lipMask[i] * (1 - mouthMask[i]);
     // lip volume: the lower lip's upper half catches the light, the upper lip (facing down) is a shade deeper
@@ -345,7 +423,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     const lines = lipW > 0 ? 1 - 0.09 * Math.pow(Math.abs(Math.sin(p[0] * 2.1 + fbm(seed + 3, p[0] / 3, p[1] / 3, 2) * 2)), 6) : 1;
     for (let k = 0; k < 3; k++) Alb[i * 3 + k] = (alb[k] * (1 - lipW) + lipLin[k] * lipW * lipShade) * mott * lines;
     // Specular: oilier T-zone, glossier lips; the key and rim lights and a soft sky reflection.
-    const rough = 0.42 - 0.12 * tz - 0.18 * lipW, sstr = 0.9 * (0.55 + 0.6 * tz) + 1.4 * lipW;
+    const rough = 0.42 - 0.12 * tz - 0.18 * lipW, sstr = (0.9 * (0.55 + 0.6 * tz) + 1.4 * lipW) * (1 - cover);
     const sk = ggx(n, v, Lkey, rough) * Math.max(0, nlKey) * sKey, sr = ggx(n, v, Lrim, rough) * Math.max(0, nlRim), sf = ggx(n, v, Lfill, rough + 0.1) * Math.max(0, nlFill);
     const fres = 0.028 + 0.972 * Math.pow(1 - Math.max(0, dot3(n, v)), 5);
     for (let k = 0; k < 3; k++) Spec[i * 3 + k] = (keyI[k] * sk + rimI[k] * sr + fillI[k] * sf) * sstr + skyI[k] * fres * occ * 0.35;
@@ -357,21 +435,11 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
       const a = tris[t * 3], b = tris[t * 3 + 1], c = tris[t * 3 + 2], b1 = gbuf.b1[i], b2 = gbuf.b2[i], b0 = 1 - b1 - b2;
       if (o.debug === "normals") { dbg.rgb[i * 3] = (NX[a] * b0 + NX[b] * b1 + NX[c] * b2) * 0.5 + 0.5; dbg.rgb[i * 3 + 1] = (NY[a] * b0 + NY[b] * b1 + NY[c] * b2) * 0.5 + 0.5; dbg.rgb[i * 3 + 2] = (NZ[a] * b0 + NZ[b] * b1 + NZ[c] * b2) * 0.5 + 0.5; }
       else if (o.debug === "ao") { const v2 = ao[a] * b0 + ao[b] * b1 + ao[c] * b2; dbg.rgb[i * 3] = dbg.rgb[i * 3 + 1] = dbg.rgb[i * 3 + 2] = v2; }
+      else if (o.debug === "hair-shadow") { const pp: Vec3 = [PX[a] * b0 + PX[b] * b1 + PX[c] * b2, PY[a] * b0 + PY[b] * b1 + PY[c] * b2, PZ[a] * b0 + PZ[b] * b1 + PZ[c] * b2]; dbg.rgb[i * 3] = dbg.rgb[i * 3 + 1] = dbg.rgb[i * 3 + 2] = underHair(pp); }
       else for (let k = 0; k < 3; k++) dbg.rgb[i * 3 + k] = E[i * 3 + k] / 4;
     }
     const fin2 = downsample(dbg, SS), rgba2 = encodeSrgb(fin2);
-    return { width: W, height: H, rgba: rgba2, face, expressed, ms: 0 };
-  }
-  // ---- Hair mask early, to shadow the skin it covers ---------------------------------------------------------------------------
-  const hair = buildHair(o.hairStyle ?? (sex > 0.5 ? "short" : "long"), { w, h, proj: (q: Vec3) => { const r = rotH(q); return proj(r[0], r[1], r[2]); }, headTop, headHalfW, hairlineY: face.hairlineY, zyHalf, me, gl, browY: (LM("brow-mid.L", N0)[1] + LM("brow-mid.R", N0)[1]) / 2, tragionY, sex, seed, czE, neckRx });
-  {
-    // Hair over the skin blocks sky and key light near its edge: a soft contact shadow.
-    const hm = gaussianBlur(hair.front, w, h, 1, 3.2 / mmPerPx), dx = Math.round(-Lkey[0] * 3 / mmPerPx), dy = Math.round(Lkey[1] * 3 / mmPerPx);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const i = y * w + x; if (!skinM[i]) continue;
-      const xs = Math.min(w - 1, Math.max(0, x + dx)), ys = Math.min(h - 1, Math.max(0, y + dy)), s = 1 - 0.55 * hm[ys * w + xs];
-      for (let k = 0; k < 3; k++) { E[i * 3 + k] *= s; Spec[i * 3 + k] *= s; }
-    }
+    return { width: W, height: H, rgba: rgba2, face, expressed, ms: 0, hair: { groom, head: hairHead } };
   }
   // ---- Subsurface scattering: blur the irradiance with the six-Gaussian skin profile (mm → pixels) ------------------------------
   const Es = new Float32Array(w * h * 3);
@@ -397,15 +465,16 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     const i = y * w + x, r = Math.hypot((x - w * 0.42) / w, (y - h * 0.38) / h), k = 1.12 - 0.75 * r;
     out.rgb[i * 3] = bg[0] * k; out.rgb[i * 3 + 1] = bg[1] * k; out.rgb[i * 3 + 2] = bg[2] * k; out.alpha[i] = 1;
   }
-  const hairCol = hairAlbedo(hairSigmaA(o.hair?.eumelanin ?? (sex > 0.5 ? 1.6 : 1.3), o.hair?.pheomelanin ?? 0.15)) as unknown as RGB3;
-  shadeHair(out, hair.back, hair, hairCol, Lkey, keyI, true);
+  const hairCol = scalpHair;
   for (let i = 0; i < w * h; i++) {
     if (!solid[i]) continue;
     const s = skinM[i] ? Es : E;
     for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] = Alb[i * 3 + k] * s[i * 3 + k] + Spec[i * 3 + k];
   }
   // ears (before the front hair, after the head)
-  drawEars(out, { proj: (q: Vec3) => { const r = rotH(q); return proj(r[0], r[1], r[2]); }, headHalfW, tragionY, browY: hair.browY, sn: sn[1], zEar: czE + az * 0.08, skinHex, Lkey, keyI, mmPerPx, yaw: o.yaw ?? 0 });
+  const hairSolid = Float32Array.from(gbuf.depth);
+  drawEars(out, { proj: (q: Vec3) => { const r = rotH(q); return proj(r[0], r[1], r[2]); }, headHalfW, tragionY, browY: hairHead.browY, sn: sn[1], zEar: czE + az * 0.08, skinHex, Lkey, keyI, mmPerPx, yaw: o.yaw ?? 0,
+    depth: hairSolid, depthOf: (q: Vec3) => rotH(q)[2] });
   // mouth interior where the lips part
   drawMouth(out, mouthMask, gbuf.tri, { w, h, upper: INNER_UPPER_LIP.map(pv), lower: INNER_LOWER_LIP.map(pv), mmPerPx, keyI });
   // eyes
@@ -453,24 +522,95 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const VS: Vec3[] = Array.from({ length: nFace }, (_, i) => [FV[i * 3], FV[i * 3 + 1], FV[i * 3 + 2]] as Vec3);
   drawBrows(out, { V: VS, rot: rotH, proj, mmPerPx, sex, col: browCol, seed });
   drawLashes(out, { V: VS, rot: rotH, proj, mmPerPx, seed, col: [0.012, 0.009, 0.008] });
-  // front hair, then fine hairs breaking the hairline
-  shadeHair(out, hair.front, hair, hairCol, Lkey, keyI, false);
-  {
-    const fine: RGB3 = [hairCol[0] * 0.55, hairCol[1] * 0.5, hairCol[2] * 0.48];
-    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
-      const i = y * w + x;
-      // pixels on the hair's lower edge over skin
-      if (!(hair.front[i] > 0.5 && hair.front[i + w] < 0.5 && skinM[i + w] > 0)) continue;
-      if (hash2(seed + 61, x, y) > 0.35) continue;
-      const len = (1.5 + 3 * hash2(seed + 63, x, y)) / mmPerPx, ang = (hash2(seed + 67, x, y) - 0.5) * 0.9;
-      strokePolyline(out, [[x, y], [x + Math.sin(ang) * len, y + Math.cos(ang) * len]], 0.07 / mmPerPx, 0.02 / mmPerPx, fine, 0.45);
-    }
-  }
+  // the hair, strand by strand, over everything it is in front of
+  renderHairStrands(out, groom, { project: (q: Vec3) => { const r = rotH(q), [sx, sy] = proj(r[0], r[1], r[2]); return [sx, sy, r[2]]; }, rotate: rotH, camera: camPos, pxPerMm: 1 / mmPerPx, solidDepth: hairSolid },
+    { eumelanin: hairEu, pheomelanin: hairPheo, grey: o.hairGrey, key: { dir: Lkey, colour: keyI }, fill: { dir: Lfill, colour: fillI }, rim: { dir: Lrim, colour: rimI }, sky: skyI, headShadow: (q: Vec3) => lit(q, 2.5), rotated: hairRot, keyMap: hairKeyMap });
   const fin = downsample(out, SS), rgba = encodeSrgb(fin, { toneMap: "filmic", exposure: 0.88, white: 3.6 });
   const t1 = typeof performance !== "undefined" ? performance.now() : Date.now();
-  return { width: W, height: H, rgba, face, expressed, ms: t1 - t0 };
+  return { width: W, height: H, rgba, face, expressed, ms: t1 - t0, hair: { groom, head: hairHead } };
 }
 
+/**
+ * Grow the face mask's top edge (its outer boundary above `yMin`) into a strip of skin: rows 4.5 mm apart continuing the
+ * surface outward from the edge, bending onto the cranium (`ellZ`, the front of the ellipsoid) over 32 mm. Returns the
+ * expressed and neutral positions and the triangles, extended; the mask's own vertices keep their indices.
+ */
+function foreheadStrip(E0: Float64Array, N0: Float64Array, T0: ArrayLike<number>, yMin: number, ellZ: (x: number, y: number) => number) {
+  const n0 = E0.length / 3, count = new Map<number, number>(), triOf = new Map<number, number>();
+  for (let t = 0; t < T0.length / 3; t++) for (let e = 0; e < 3; e++) { const k = ekey(T0[t * 3 + e], T0[t * 3 + ((e + 1) % 3)]); count.set(k, (count.get(k) ?? 0) + 1); triOf.set(k, t); }
+  const adj = new Map<number, number[]>(), inner = new Map<number, Vec3>();
+  const pos = (A: Float64Array, i: number): Vec3 => [A[i * 3], A[i * 3 + 1], A[i * 3 + 2]];
+  for (const [k, c] of count) {
+    if (c !== 1) continue;
+    const a = Math.floor(k / 1048576), b = k % 1048576;
+    if (N0[a * 3 + 1] < yMin || N0[b * 3 + 1] < yMin) continue;
+    for (const [u, v] of [[a, b], [b, a]] as const) { if (!adj.has(u)) adj.set(u, []); adj.get(u)!.push(v); }
+    // outward: from the triangle's third vertex across the edge
+    const t = triOf.get(k)!, cIdx = [T0[t * 3], T0[t * 3 + 1], T0[t * 3 + 2]].find(i => i !== a && i !== b)!, cp = pos(N0, cIdx);
+    for (const v of [a, b]) { const pv = pos(N0, v), d: Vec3 = [pv[0] - cp[0], pv[1] - cp[1], pv[2] - cp[2]], o = inner.get(v) ?? [0, 0, 0]; inner.set(v, [o[0] + d[0], o[1] + d[1], o[2] + d[2]]); }
+  }
+  let start = -1;
+  for (const [v, ns] of adj) if (ns.length === 1 && (start < 0 || N0[v * 3] < N0[start * 3])) start = v;
+  const chain: number[] = [];
+  for (let prev = -1, cur = start; cur >= 0 && chain.length < 4000;) { chain.push(cur); const nx = (adj.get(cur) ?? []).find(v => v !== prev); prev = cur; cur = nx ?? -1; if (cur === start) break; }
+  if (chain.length < 3) return { E: E0, N: N0, tris: Array.from(T0) };
+  // smooth the outward directions along the chain (the mask's edge is ragged)
+  const dirs = chain.map(v => norm3(inner.get(v) ?? [0, 1, 0]));
+  const sm = dirs.map((_, i) => { let s: Vec3 = [0, 0, 0]; for (let d = -4; d <= 4; d++) { const q = dirs[Math.min(dirs.length - 1, Math.max(0, i + d))], w = Math.exp(-(d * d) / 8); s = [s[0] + q[0] * w, s[1] + q[1] * w, s[2] + q[2] * w]; } return norm3(s); });
+  const K = 7, DS = 4.5, M = chain.length, E: number[] = Array.from(E0), N: number[] = Array.from(N0), tris: number[] = Array.from(T0);
+  for (let k = 1; k <= K; k++) for (let i = 0; i < M; i++) {
+    const w = smoothstep(0, 1, k / K);
+    for (const [A, out] of [[E0, E], [N0, N]] as const) {
+      const b0 = pos(A, chain[i]), p: Vec3 = [b0[0] + sm[i][0] * DS * k, b0[1] + sm[i][1] * DS * k, b0[2] + sm[i][2] * DS * k], ez = ellZ(p[0], p[1]);
+      if (Number.isFinite(ez)) p[2] += (ez + 0.3 - p[2]) * w;
+      out.push(p[0], p[1], p[2]);
+    }
+  }
+  // wind the strip like the mask (whose triangles may face in or out; the caller orients normals from the whole)
+  let wz = 0;
+  for (let t = 0; t < T0.length / 3; t++) { const a = pos(N0, T0[t * 3]), b = pos(N0, T0[t * 3 + 1]), c = pos(N0, T0[t * 3 + 2]); wz += (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]); }
+  const outward = wz >= 0;
+  const idx = (k: number, i: number) => (k === 0 ? chain[i] : n0 + (k - 1) * M + i);
+  const centre: Vec3 = [0, (Math.max(...chain.map(v => N0[v * 3 + 1]))), Math.min(...chain.map(v => N0[v * 3 + 2])) - 80];
+  for (let k = 0; k < K; k++) for (let i = 0; i < M - 1; i++) {
+    const a = idx(k, i), b = idx(k, i + 1), c = idx(k + 1, i + 1), d = idx(k + 1, i), pa = pos(Float64Array.from(N.slice(a * 3, a * 3 + 3)), 0), pb = [N[b * 3], N[b * 3 + 1], N[b * 3 + 2]], pc = [N[c * 3], N[c * 3 + 1], N[c * 3 + 2]];
+    const u = [pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2]], v = [pc[0] - pa[0], pc[1] - pa[1], pc[2] - pa[2]], nrm: Vec3 = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+    const out: Vec3 = [pa[0] - centre[0], pa[1] - centre[1], pa[2] - centre[2]];
+    if ((nrm[0] * out[0] + nrm[1] * out[1] + nrm[2] * out[2] >= 0) === outward) tris.push(a, b, c, a, c, d); else tris.push(a, c, b, a, d, c);
+  }
+  return { E: Float64Array.from(E), N: Float64Array.from(N), tris };
+}
+
+/** The face's front surface as a height field over (x, y): 2 mm cells, holes (eye openings) filled from their neighbours; NaN off the face. */
+function faceHeightField(V: Float64Array, y0: number, y1: number): (x: number, y: number) => number {
+  const C = 2, x0 = -112, nx = Math.ceil(224 / C) + 1, ny = Math.ceil((y1 - y0) / C) + 1;
+  let g = new Float32Array(nx * ny).fill(-Infinity);
+  for (let i = 0; i < V.length / 3; i++) {
+    const xi = Math.round((V[i * 3] - x0) / C), yi = Math.round((V[i * 3 + 1] - y0) / C);
+    if (xi >= 0 && yi >= 0 && xi < nx && yi < ny) g[yi * nx + xi] = Math.max(g[yi * nx + xi], V[i * 3 + 2]);
+  }
+  for (let pass = 0; pass < 4; pass++) {
+    const n2 = g.slice();
+    for (let y = 1; y < ny - 1; y++) for (let x = 1; x < nx - 1; x++) {
+      if (g[y * nx + x] > -Infinity) continue;
+      let s = 0, n = 0;
+      for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) { const v = g[(y + j) * nx + x + i]; if (v > -Infinity) { s += v; n++; } }
+      if (n >= 4) n2[y * nx + x] = s / n;
+    }
+    g = n2;
+  }
+  return (x: number, y: number) => {
+    const fx = (x - x0) / C, fy = (y - y0) / C, xi = Math.floor(fx), yi = Math.floor(fy);
+    if (xi < 0 || yi < 0 || xi >= nx - 1 || yi >= ny - 1) return NaN;
+    const a = g[yi * nx + xi], b = g[yi * nx + xi + 1], c = g[(yi + 1) * nx + xi], d = g[(yi + 1) * nx + xi + 1];
+    if (!(a > -Infinity && b > -Infinity && c > -Infinity && d > -Infinity)) return NaN;
+    const u = fx - xi, v = fy - yi;
+    return (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v;
+  };
+}
+
+/** Grooms reused while only the light, pose or expression changes. */
+const GROOMS = new Map<string, HairGroom>();
 const ekey = (a: number, b: number) => (a < b ? a * 1048576 + b : b * 1048576 + a);
 /**
  * One level of Loop subdivision of a triangle mesh, applied to several position sets with the same topology (the
@@ -705,7 +845,8 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
 
 // ---- Ears ------------------------------------------------------------------------------------------------------------------------
 
-function drawEars(out: Raster, e: { proj: (p: Vec3) => [number, number]; headHalfW: number; tragionY: number; browY: number; sn: number; zEar: number; skinHex: string; Lkey: Vec3; keyI: RGB3; mmPerPx: number; yaw: number }) {
+function drawEars(out: Raster, e: { proj: (p: Vec3) => [number, number]; headHalfW: number; tragionY: number; browY: number; sn: number; zEar: number; skinHex: string; Lkey: Vec3; keyI: RGB3; mmPerPx: number; yaw: number;
+  depth?: Float32Array; depthOf?: (p: Vec3) => number }) {
   // the ear's colour: skin a little redder (thin, vascular), lit as a surface facing sideways and forward
   const ear = mixC(linearOf(e.skinHex), linearOf(skinZoneColor(e.skinHex, "ears")), 0.55), top = e.browY - 2, bot = e.sn - 2, len = top - bot;
   for (const s of [-1, 1]) {
@@ -715,145 +856,13 @@ function drawEars(out: Raster, e: { proj: (p: Vec3) => [number, number]; headHal
     const poly = toS(shape), concha = toS(inner);
     const n = norm3([s * 0.75, 0.05, 0.66]), nl = dot3(n, e.Lkey), lit = 0.28 + 0.72 * Math.max(0, (nl + 0.2) / 1.2), glow = 0.12 * Math.max(0, -nl);
     const base: RGB3 = [ear[0] * (lit * e.keyI[0] * 0.38 + 0.18) + glow * 0.6, ear[1] * (lit * e.keyI[1] * 0.36 + 0.17) + glow * 0.18, ear[2] * (lit * e.keyI[2] * 0.35 + 0.17) + glow * 0.12];
-    fillPolygon(out.width, out.height, poly, (i, c) => { for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] = out.rgb[i * 3 + k] * (1 - c) + base[k] * c; });
+    const zE = e.depthOf ? e.depthOf([s * (e.headHalfW + 2), (top + bot) / 2, e.zEar - 5]) : 0;
+    fillPolygon(out.width, out.height, poly, (i, c) => { for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] = out.rgb[i * 3 + k] * (1 - c) + base[k] * c; if (e.depth && c > 0.5) e.depth[i] = Math.max(e.depth[i], zE); });
     const cmask = new Float32Array(out.width * out.height);
     fillPolygon(out.width, out.height, concha, (i, c) => (cmask[i] = c));
     const soft = gaussianBlur(cmask, out.width, out.height, 1, 1.2 / e.mmPerPx);
     for (let i = 0; i < soft.length; i++) if (soft[i] > 0.01) for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] *= 1 - 0.42 * soft[i];
     strokePolyline(out, poly.slice(1, 6), 1.4 / e.mmPerPx, 0.6 / e.mmPerPx, [base[0] * 1.25, base[1] * 1.2, base[2] * 1.18], 0.45);
-  }
-}
-
-// ---- Hair ------------------------------------------------------------------------------------------------------------------------
-
-interface HairBuild { front: Float32Array; back: Float32Array; flow: Float32Array; height: Float32Array; w: number; h: number; dome: [number, number, number, number]; browY: number; seed: number; part: [number, number] }
-
-/** Chamfer distance (pixels) from each inside pixel to the outside of a mask. */
-function insideDistance(mask: Float32Array, w: number, h: number): Float32Array {
-  const d = new Float32Array(w * h), INF = 1e6;
-  for (let i = 0; i < w * h; i++) d[i] = mask[i] > 0.5 ? INF : 0;
-  const a = 1, b = Math.SQRT2;
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; if (!d[i]) continue; let m = d[i]; if (x > 0) m = Math.min(m, d[i - 1] + a); if (y > 0) { m = Math.min(m, d[i - w] + a); if (x > 0) m = Math.min(m, d[i - w - 1] + b); if (x < w - 1) m = Math.min(m, d[i - w + 1] + b); } d[i] = m; }
-  for (let y = h - 1; y >= 0; y--) for (let x = w - 1; x >= 0; x--) { const i = y * w + x; if (!d[i]) continue; let m = d[i]; if (x < w - 1) m = Math.min(m, d[i + 1] + a); if (y < h - 1) { m = Math.min(m, d[i + w] + a); if (x < w - 1) m = Math.min(m, d[i + w + 1] + b); if (x > 0) m = Math.min(m, d[i + w - 1] + b); } d[i] = m; }
-  return d;
-}
-
-function buildHair(style: HairStyle, g: { w: number; h: number; proj: (p: Vec3) => [number, number]; headTop: number; headHalfW: number; hairlineY: number; zyHalf: number; me: Vec3; gl: Vec3; browY: number; tragionY: number; sex: number; seed: number; czE: number; neckRx: number }): HairBuild {
-  const { w, h } = g, vol = style === "short" ? 8 : 15, top = g.headTop + vol, R = g.headHalfW + vol * 0.9;
-  const zF = g.gl[2] + 4, zM = g.czE, templeY = g.browY + 15;
-  // A rounded hairline from temple to temple through the hairline height; men's temples recede a little (an M).
-  const hairline: Vec3[] = [];
-  for (let k = 0; k <= 24; k++) {
-    const u = k / 24 * 2 - 1, x = u * g.zyHalf * 0.9, prof = Math.pow(Math.max(0, 1 - Math.pow(Math.abs(u), 2.2)), 0.5);
-    const recess = g.sex * 8 * Math.exp(-((Math.abs(u) - 0.55) ** 2) / 0.018);
-    hairline.push([x, templeY + (g.hairlineY - templeY) * prof + recess, zF - Math.abs(u) ** 1.5 * 28]);
-  }
-  const dome: Vec3[] = [];
-  for (let k = 0; k <= 32; k++) { const a = Math.PI * (k / 32); dome.push([Math.cos(a) * R, g.tragionY + 22 + Math.sin(a) * (top - (g.tragionY + 22)), zM]); }
-  let outline: Vec3[] = [], backPoly: Vec3[] = [];
-  const jaw = g.me[1] + 16;
-  if (style === "short") {
-    outline = [...dome.slice().reverse().filter(p => p[1] > g.browY - 6), [R - 3, g.browY - 8, zM], [g.headHalfW - 3, g.tragionY + 4, zM + 8], [g.zyHalf * 0.93, templeY - 10, zF - 32],
-      ...hairline.slice().reverse(), [-g.zyHalf * 0.93, templeY - 10, zF - 32], [-(g.headHalfW - 3), g.tragionY + 4, zM + 8], [-(R - 3), g.browY - 8, zM]];
-  } else {
-    const long = style === "long", fall = long ? g.me[1] - 130 : jaw - 4;
-    // the side curtain: out at the temples, in a little at the jaw, out again over the shoulders (long)
-    const side = (sgn: number): Vec3[] => {
-      const pts: Vec3[] = [];
-      for (let k = 0; k <= 12; k++) {
-        const t = k / 12, y = g.tragionY + 6 - t * (g.tragionY + 6 - fall);
-        const x = R + 4 + (long ? 10 * Math.sin(Math.PI * t * 1.2) - 6 * Math.sin(Math.PI * t * 0.5) + 14 * t * t : -10 * t * t);
-        pts.push([sgn * x, y, zM]);
-      }
-      return pts;
-    };
-    const inner = (sgn: number): Vec3[] => {
-      // the face side of the curtain: over the temple, hiding the ear, past the cheek
-      const pts: Vec3[] = [[sgn * g.zyHalf * 0.9, templeY - 4, zF - 30], [sgn * g.zyHalf * 0.97, g.tragionY - 6, zF - 36], [sgn * g.zyHalf * 0.94, jaw + 14, zF - 34]];
-      if (long) pts.push([sgn * (g.neckRx + 16), g.me[1] - 20, zF - 50], [sgn * (g.neckRx + 30), fall + 6, zF - 60]);
-      else pts.push([sgn * g.zyHalf * 0.86, fall + 2, zF - 40]);
-      return pts;
-    };
-    const right = side(1), left = side(-1);
-    outline = [...dome.slice().reverse(), ...right, ...inner(1).reverse(), ...hairline.slice().reverse(), ...inner(-1), ...left.reverse()];
-    if (long) backPoly = [[-(R + 6), g.tragionY - 6, zM - 70], [R + 6, g.tragionY - 6, zM - 70], [R + 22, g.me[1] - 132, zM - 70], [-(R + 22), g.me[1] - 132, zM - 70]];
-  }
-  // Hair does not end in a smooth line: clumps push the outline out by a few millimetres (none along the hairline).
-  const hlSet = new Set(hairline);
-  const ragged = outline.flatMap((p, k) => {
-    if (hlSet.has(p)) return [p];
-    const q = outline[(k + 1) % outline.length], out2: Vec3[] = [p];
-    for (let j = 1; j < 4; j++) {
-      const t = j / 4, x = p[0] + (q[0] - p[0]) * t, y = p[1] + (q[1] - p[1]) * t, z = p[2] + (q[2] - p[2]) * t, r = Math.hypot(x, y - g.tragionY) || 1;
-      const push = 2.6 * Math.max(0, fbm(g.seed + 71, x / 9, y / 9, 2) + 0.15) * (hash2(g.seed + 73, k, j) > 0.5 ? 1.4 : 0.6);
-      out2.push([x + (x / r) * push, y + ((y - g.tragionY) / r) * push, z]);
-    }
-    return out2;
-  });
-  const front = new Float32Array(w * h), back = new Float32Array(w * h);
-  fillPolygon(w, h, ragged.map(g.proj), (i, c) => (front[i] = c));
-  if (backPoly.length) fillPolygon(w, h, backPoly.map(g.proj), (i, c) => (back[i] = c));
-  // Height field for shading: rounded at the silhouette (distance to the edge).
-  const both = new Float32Array(w * h); for (let i = 0; i < w * h; i++) both[i] = Math.max(front[i], back[i]);
-  const dist = insideDistance(both, w, h), [, s0] = g.proj([0, 0, 0]), [, s1] = g.proj([0, 10, 0]), pxPerMm = Math.abs(s0 - s1) / 10, Rr = 12 * pxPerMm;
-  const height = new Float32Array(w * h);
-  for (let i = 0; i < w * h; i++) { const t = Math.min(1, dist[i] / Rr); height[i] = Rr * Math.sqrt(1 - (1 - t) * (1 - t)); }
-  // Flow: from the parting outward over the crown, then down; the curtains follow their own edge downward.
-  const part3: Vec3 = [g.sex > 0.5 ? -g.zyHalf * 0.38 : 0, g.hairlineY + 6, zF - 8], [px, py] = g.proj(part3), [, templeS] = g.proj([0, templeY, zF]);
-  const flow = new Float32Array(w * h * 2);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const i = y * w + x; if (both[i] <= 0) continue;
-    let dx = x - px, dy = y - py; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
-    if (dy < 0) dy *= 0.35;
-    const down = smoothstep(py, templeS + (templeS - py) * 0.4, y);
-    const fx = dx * (1 - down) + Math.sign(x - px) * 0.12 * down, fy = Math.abs(dy) * 0.4 * (1 - down) + (dy < 0 ? dy : 0) * (1 - down) + down, fl = Math.hypot(fx, fy) || 1;
-    flow[i * 2] = fx / fl; flow[i * 2 + 1] = fy / fl;
-  }
-  const [cxs, cys] = g.proj([0, g.tragionY + 30, zM]), [rxs] = g.proj([R, g.tragionY + 30, zM]), [, tys] = g.proj([0, top, zM]);
-  return { front, back, flow, height, w, h, dome: [cxs, cys, rxs - cxs, cys - tys], browY: g.browY, seed: g.seed, part: [px, py] };
-}
-
-function shadeHair(out: Raster, mask: Float32Array, hb: HairBuild, alb: RGB3, Lkey: Vec3, keyI: RGB3, isBack: boolean) {
-  const { w, h } = hb, [cx, cy, rx, ry] = hb.dome;
-  let area = 0; for (let i = 0; i < mask.length; i++) area += mask[i];
-  if (area <= 0) return;
-  // Strands traced along the flow, each lighter or darker; some run past the edge as loose wisps.
-  const strands = createRaster(w, h, [0.5, 0.5, 0.5], 0), wisps = createRaster(w, h);
-  const n = Math.min(14000, Math.round(area / 14));
-  for (let k = 0; k < n; k++) {
-    let x = hash2(hb.seed + (isBack ? 91 : 97), k, 1) * w, y = hash2(hb.seed + (isBack ? 93 : 99), k, 2) * h;
-    if (mask[Math.floor(y) * w + Math.floor(x)] <= 0.5) continue;
-    const pts: [number, number][] = [[x, y]], L = 40 + hash2(hb.seed + 7, k, 3) * 160, step = 2;
-    let outside = 0, fx = 0, fy = 1;
-    for (let s = 0; s < L / step; s++) {
-      const xi = Math.min(w - 1, Math.max(0, Math.floor(x))), yi = Math.min(h - 1, Math.max(0, Math.floor(y))), i = yi * w + xi;
-      if (mask[i] > 0.05) { fx = hb.flow[i * 2]; fy = hb.flow[i * 2 + 1]; outside = 0; } else if (++outside > 6) break;
-      const wob = (hash2(hb.seed + 3, k, s) - 0.5) * 0.18;
-      x += (fx + wob * fy) * step; y += (fy - wob * fx) * step; pts.push([x, y]);
-    }
-    const tone = hash2(hb.seed + 13, k, 4);
-    strokePolyline(strands, pts, 1.3, 0.6, [tone, tone, tone], 0.6);
-    if (!isBack && hash2(hb.seed + 17, k, 5) < 0.06) strokePolyline(wisps, pts, 0.9, 0.3, [alb[0], alb[1], alb[2]], 0.5);
-  }
-  const V: Vec3 = [0, 0, 1], H = norm3([Lkey[0] + V[0], Lkey[1] + V[1], Lkey[2] + V[2]]);
-  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
-    const i = y * w + x, m = mask[i];
-    if (m <= 0 && wisps.alpha[i] <= 0) continue;
-    // surface normal: the head's dome blended with the rounded edge of the mass
-    const ux = (x - cx) / rx, uy = (cy - y) / ry, r2 = Math.min(0.95, ux * ux + uy * uy), dome = norm3([ux * 0.75, uy * 0.75, Math.sqrt(1 - r2)]);
-    const gx = (hb.height[i + 1] - hb.height[i - 1]) * 0.5, gy = (hb.height[i - w] - hb.height[i + w]) * 0.5, edge = norm3([-gx, -gy, 1.2]);
-    const nrm = norm3([dome[0] * 0.55 + edge[0] * 0.45, dome[1] * 0.55 + edge[1] * 0.45, dome[2] * 0.55 + edge[2] * 0.45]);
-    const tx = hb.flow[i * 2], ty = -hb.flow[i * 2 + 1], T = norm3([tx, ty, -(tx * nrm[0] + ty * nrm[1]) / Math.max(0.2, nrm[2])]);
-    const diff = 0.1 + 0.9 * Math.max(0, (dot3(nrm, Lkey) + 0.3) / 1.3);
-    // Kajiya–Kay: highlights where the strand runs perpendicular to the half vector; two shifted lobes (Scheuermann 2004)
-    const T1 = norm3([T[0] + nrm[0] * 0.12, T[1] + nrm[1] * 0.12, T[2] + nrm[2] * 0.12]), T2 = norm3([T[0] - nrm[0] * 0.2, T[1] - nrm[1] * 0.2, T[2] - nrm[2] * 0.2]);
-    const kk = (t: Vec3, p: number) => Math.pow(Math.sqrt(Math.max(0, 1 - dot3(t, H) ** 2)), p);
-    const sa = strands.alpha[i], strand = 0.45 + 1.1 * (strands.rgb[i * 3] * sa + 0.5 * (1 - sa));
-    const occ = 0.55 + 0.45 * Math.min(1, hb.height[i] / 25), shade = isBack ? 0.42 : 1;
-    const lit = Math.max(0, dot3(nrm, Lkey)), s1 = kk(T1, 110) * 0.075 * strand * strand * lit * occ, s2 = kk(T2, 26) * 0.12 * strand * lit * occ;
-    const c: RGB3 = [0, 1, 2].map(k => (alb[k] * diff * keyI[k] * 0.4 * strand * occ + s1 * keyI[k] + s2 * keyI[k] * alb[k] * 2.4) * shade) as unknown as RGB3;
-    const a = Math.max(m, wisps.alpha[i] * 0.6);
-    for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] = out.rgb[i * 3 + k] * (1 - a) + c[k] * a;
   }
 }
 

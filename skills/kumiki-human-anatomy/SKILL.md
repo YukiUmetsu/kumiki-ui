@@ -25,9 +25,13 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
      symmetry, femininity, measured eye, lip and breadth values and Pallett's ratios, never the golden ratio
      (`goldenRatioReport` only reports it).
    - `renderPortrait` / `FacePortrait` render it lit, with skin scattering, eyes, brows, lashes and hair.
-6. **Hair and colour** — `growHair(body, posed.points, { length, curl, parting, flow, fringe })` and pass it to
-   `HumanFigure` (`hair`, `hairColor` with eumelanin/pheomelanin/grey) or stroke `renderHairSegments` yourself; never
-   draw hair as one flat shape — clumps, a white highlight near the root side and a tinted one toward the tip. Skin:
+6. **Hair and colour** — for a rendered head, `groomHair(head, { style, fringe, parting, strands })` from
+   `hair-groom.ts` (15 `HAIRSTYLES`, 7 `FRINGES`, up to 120,000 strands; `renderPortrait` does it for you from
+   `hairStyle`, `fringe`, `hairStrands`). For the posable body, `growHair(body, posed.points, { length, curl,
+   parting, flow, fringe })` and pass it to `HumanFigure` (`hair`, `hairColor` with eumelanin/pheomelanin/grey) or
+   stroke `renderHairSegments` yourself. Never draw hair as one flat shape: it falls from the widest part of the head,
+   gathers into locks, has a white highlight toward the root and a tinted one toward the tip, and keeps its colour on
+   the shadow side. Skin:
    pick a `MONK_SKIN_TONES` swatch, shade with `skinShade`/`skinRamp` (warm band at the terminator), add
    `skinZoneColor` for cheeks, nose, ears, lips, beard shadow and palms. Eyes: `IRIS_COLORS`, `EYE_NOTES`.
 7. **Check before you claim realism** — `measureHumanBody` (headsTall, crotch, girths), `MODEL_TABLES.byAge`,
