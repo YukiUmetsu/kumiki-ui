@@ -140,3 +140,79 @@ export function postureFit(plan: BodyPlanId, posture: PostureId, canRear = true)
   if (posture === "rear" && !canRear) return undefined;
   return ANIMAL_POSTURES[posture].plans[plan];
 }
+
+// ---- Birds ---------------------------------------------------------------------------------------------------------
+
+export type BirdPostureId = "one-leg" | "roost" | "swim" | "upend";
+export const BIRD_POSTURE_IDS: readonly BirdPostureId[] = ["one-leg", "roost", "swim", "upend"];
+
+export interface BirdPosture {
+  id: BirdPostureId;
+  label: string;
+  ja: string;
+  /** The bird plans that take it naturally. */
+  plans: readonly BodyPlanId[];
+  /** Body tilt (degrees, + head up) at full strength; `undefined` keeps the standing tilt. */
+  bodyAngle?: Range;
+  /** Water: the waterline's height on the body as a share of its depth (0 the keel, 1 the back). */
+  waterline?: Range;
+  /** The head: up as standing, drawn down onto the shoulders, or turned back with the bill in the back feathers. */
+  head: "up" | "hunched" | "tucked" | "under";
+  /** One leg drawn up into the feathers. */
+  oneLeg: boolean;
+  /** The body fluffed out (× depth). */
+  fluff: number;
+  frames: number;
+  drawing: readonly string[];
+  references: readonly FoundationReference[];
+}
+
+const INAT = (id: number) => `https://www.inaturalist.org/observations/${id}`;
+const SWIM_DRAKE: FoundationReference = { title: "Mallard drake swimming (iNaturalist 409758570)", url: INAT(409758570), rights: "CC0", kind: "photo" };
+const SWIM_HEN: FoundationReference = { title: "Mallard duck swimming (iNaturalist 142761384)", url: INAT(142761384), rights: "CC0", kind: "photo" };
+const UPEND: FoundationReference = { title: "Mallards upending (iNaturalist 145299840)", url: INAT(145299840), rights: "CC0", kind: "photo" };
+const DUCK_SLEEP: FoundationReference = { title: "Duck asleep on one leg, bill in the back feathers", url: C("Another_Sleeping_Duck_2023-11-04.jpg"), rights: "CC0", kind: "photo" };
+const HERON_STUMP: FoundationReference = { title: "Grey heron standing on a stump", url: C("Graureiher.Grienericksee.1.jpg"), rights: "CC0", kind: "photo" };
+
+export const BIRD_POSTURES: Readonly<Record<BirdPostureId, BirdPosture>> = {
+  "one-leg": {
+    id: "one-leg", label: "Stand on one leg", ja: "片足立ち", plans: ["bird-wader", "bird-waterfowl", "bird-perching", "bird-raptor", "bird-galliform"],
+    head: "hunched", oneLeg: true, fluff: 1.05, frames: 20,
+    drawing: [
+      "One leg drawn up into the belly feathers, the standing foot under the body's centre.",
+      "Wading birds rest this way, more often in water and in the cold (reported for flamingos: Anderson & Williams 2010).",
+      "Herons hunch the neck down onto the shoulders.",
+    ],
+    references: [HERON_STUMP],
+  },
+  roost: {
+    id: "roost", label: "Sleep", ja: "眠る", plans: ["bird-wader", "bird-waterfowl", "bird-perching", "bird-raptor", "bird-galliform"],
+    head: "tucked", oneLeg: true, fluff: 1.15, frames: 30,
+    drawing: [
+      "Fluffed out, the head turned back over the shoulder with the bill in the back feathers, the eye closed.",
+      "Often on one leg (the sleeping duck).",
+    ],
+    references: [DUCK_SLEEP],
+  },
+  swim: {
+    id: "swim", label: "Swim", ja: "泳ぐ", plans: ["bird-waterfowl"],
+    bodyAngle: r(-3, 0, 3, "measured", "the swimming drake's and hen's backs are level"), waterline: r(.28, .33, .38, "measured", "the waterline about a third of the way up the body, off two swimming mallards"),
+    head: "up", oneLeg: false, fluff: 1, frames: 12,
+    drawing: [
+      "A boat: the body level, a third of its depth under water, the tail cocked up behind.",
+      "The legs paddle under water, out of sight.",
+    ],
+    references: [SWIM_DRAKE, SWIM_HEN],
+  },
+  upend: {
+    id: "upend", label: "Upend", ja: "逆立ち", plans: ["bird-waterfowl"],
+    bodyAngle: r(-85, -75, -60, "estimated", "the upending mallards stand tail-up, nearly vertical"), waterline: r(.45, .55, .65, "estimated"),
+    head: "under", oneLeg: false, fluff: 1, frames: 14,
+    drawing: ["Dabbling ducks feed by up-ending without completely submerging (reported: Wikipedia, Duck): the tail and rump straight up, the head and neck under water, the feet paddling at the surface."],
+    references: [UPEND],
+  },
+};
+
+/** Whether a bird plan takes a posture. */
+export const birdPostureFits = (plan: BodyPlanId, posture: BirdPostureId) => BIRD_POSTURES[posture].plans.includes(plan);
+

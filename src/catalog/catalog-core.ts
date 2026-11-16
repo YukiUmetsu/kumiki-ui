@@ -176,7 +176,7 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "animal-anatomy":["animal anatomy","animal","animals","draw an animal","draw animals","animal proportions","quadruped","four-legged","bird anatomy","fish anatomy",
     "body plan","plantigrade","digitigrade","unguligrade","hooves","paws","claws","gait","gaits","walk cycle","trot","canter","gallop","rotary gallop","bound","footfall","muybridge","hildebrand",
     "posture","postures","animal sitting","dog sit","cat sit","lie down","lying down","animal resting","sleeping animal","rear up","rearing horse","levade","bear standing up",
-    "bird flight","flying bird","wingbeat","wing beat","flapping","flap","glide","gliding","bounding flight","wings","wing fold","crane flying","heron flying",
+    "bird on one leg","sleeping bird","roosting","duck swimming","floating duck","upending","dabbling","bird flight","flying bird","wingbeat","wing beat","flapping","flap","glide","gliding","bounding flight","wings","wing fold","crane flying","heron flying",
     "fur","coat","fur map","fur direction","coat colour","coat color","markings","palette","animal colours","animal colors","seasonal coat","winter coat",
     "character sheet","model sheet","animal model sheet","turnaround","size comparison","animal size","animal sounds","animal face","muzzle","snout","ears",
     "bear","moon bear","boar","wild boar","fox","kitsune","tanuki","raccoon dog","wolf","dog","shiba","cat","hare","rabbit","monkey","macaque","deer","sika","cattle","ox","horse",

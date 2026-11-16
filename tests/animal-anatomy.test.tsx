@@ -6,7 +6,7 @@ import { ANIMAL_GAITS, footfallBars, quadFootfalls } from "../registry/anatomy/a
 import { animalConstruction, poseAnimal, skeletonShapes } from "../registry/anatomy/animal-construct";
 import { checkAnimalProportions, checkSpeciesData, measureAnimal } from "../registry/anatomy/animal-check";
 import { AnimalSheet } from "../registry/anatomy/animal-react";
-import { ANIMAL_POSTURES, POSTURE_IDS, postureFit } from "../registry/anatomy/animal-postures";
+import { ANIMAL_POSTURES, BIRD_POSTURE_IDS, BIRD_POSTURES, birdPostureFits, POSTURE_IDS, postureFit } from "../registry/anatomy/animal-postures";
 import { BIRD_FLIGHT, flightAt, speciesWingbeat, wingbeatHz, wingStroke } from "../registry/anatomy/animal-flight";
 import { UKIYOE_SPECIES, ukiyoeBeastLandmarks } from "../registry/video/ukiyoe/ukiyoe-creatures";
 
@@ -154,4 +154,36 @@ describe("ANIM1 flight", () => {
     const crane = poseAnimal(animalConstruction("red-crowned-crane"), { flight: "glide" });
     expect(crane.limbs[1].points[4][0]).toBeLessThan(crane.joints.tailRoot[0]);
   });
+
+  it("rests birds on one leg and asleep, floats ducks at the measured waterline, all without snapping", () => {
+    const birds = ANIMAL_SPECIES.filter(sp => BODY_PLANS[sp.plan].group === "bird");
+    for (const sp of birds) {
+      const c = animalConstruction(sp);
+      for (const p of BIRD_POSTURE_IDS) {
+        if (!birdPostureFits(c.plan.id, p)) continue;
+        const n = BIRD_POSTURES[p].frames;
+        let prev: readonly (readonly number[])[] | undefined;
+        for (let f = 0; f <= n; f++) {
+          const s = poseAnimal(c, { birdPosture: p, amount: f / n }), pts = [...s.limbs.flatMap(l => l.points), s.joints.crown, s.head.nose, ...s.tail.points];
+          const tag = `${sp.id} ${p} ${f}/${n}`;
+          if (!s.joints.waterline) expect(Math.min(...s.limbs.flatMap(l => l.points).map(q => q[1])), tag).toBeGreaterThan(-.005);
+          if (prev) expect(Math.max(...pts.map((q, i) => Math.hypot(q[0] - prev![i][0], q[1] - prev![i][1]))), tag).toBeLessThan(.12);
+          prev = pts;
+        }
+        const s = poseAnimal(c, { birdPosture: p });
+        if (BIRD_POSTURES[p].oneLeg) expect(s.limbs.filter(l => l.onGround).length, `${sp.id} ${p}`).toBe(1);
+        if (p === "roost") expect(s.head.eyeClosed, sp.id).toBe(true);
+      }
+    }
+    // A swimming duck sits a third of its depth in the water, its back level.
+    const duck = poseAnimal(animalConstruction("mandarin-duck"), { birdPosture: "swim", water: .1 }), b = duck.masses.body;
+    expect((duck.joints.waterline[1] - (b.cy - b.ry)) / (2 * b.ry)).toBeCloseTo(BIRD_POSTURES.swim.waterline!.typical, 1);
+    expect(Math.abs(b.angle)).toBeLessThan(4);
+    // Upending puts the head under the surface.
+    const up = poseAnimal(animalConstruction("mandarin-duck"), { birdPosture: "upend", water: .1 });
+    expect(up.head.nose[1]).toBeLessThan(.1);
+    // Only ducks swim.
+    expect(birdPostureFits("bird-wader", "swim")).toBe(false);
+  });
 });
+

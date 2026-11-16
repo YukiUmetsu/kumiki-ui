@@ -102,7 +102,12 @@ export const AnimalFigure = forwardRef<SVGSVGElement, AnimalFigureProps>(functio
           {flow.map((line, i) => <polyline key={i} points={pts(line)} fill="none" stroke={ACCENT} strokeWidth={lw * 1.4} markerEnd={`url(#${id}-arrow)`} opacity=".9" />)}
         </>}
         {mode === "construction" && <Construction s={s} lw={lw} />}
-        {(mode === "colour" || mode === "construction" || mode === "fur") && <circle cx={s.head.eye[0]} cy={s.head.eye[1]} r={s.head.eyeR} fill={mode === "colour" ? eyeColour : INK} />}
+        {(mode === "colour" || mode === "construction" || mode === "fur") && (s.head.eyeClosed
+          ? <line x1={s.head.eye[0] - s.head.eyeR} x2={s.head.eye[0] + s.head.eyeR} y1={s.head.eye[1]} y2={s.head.eye[1]} stroke={INK} strokeWidth={lw * 1.4} strokeLinecap="round" />
+          : <circle cx={s.head.eye[0]} cy={s.head.eye[1]} r={s.head.eyeR} fill={mode === "colour" ? eyeColour : INK} />)}
+        {/* Water over a floating bird: what is below the surface reads as under it. */}
+        {s.joints.waterline && <g><rect x={x0} y={y0} width={w} height={s.joints.waterline[1] - y0} fill={PAPER} opacity=".72" />
+          <line x1={x0} x2={x1} y1={s.joints.waterline[1]} y2={s.joints.waterline[1]} stroke={MUTED} strokeWidth={lw * 1.2} /></g>}
       </g>
     </svg>
   );

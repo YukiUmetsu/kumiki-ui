@@ -22,10 +22,10 @@ import type { AnimalRegion, BodyPlan, BodyPlanId, PlanConstruction } from "./ani
 import { findAnimal } from "./animal-species";
 import type { AnimalSpecies, ConstructionKey, Grade } from "./animal-species";
 import { ANIMAL_GAITS, quadBody, quadFootfalls } from "./animal-gaits";
-import { ANIMAL_POSTURES, postureFit } from "./animal-postures";
+import { ANIMAL_POSTURES, BIRD_POSTURES, birdPostureFits, postureFit } from "./animal-postures";
 import { birdFlight, foldedPoint, glideStroke, mixStroke, placeWing, projectWing, wingPlanform, wingStroke } from "./animal-flight";
 import type { BirdFlight, FlightMode, PlanformPoint, WingPoint3 } from "./animal-flight";
-import type { PostureFit, PostureId } from "./animal-postures";
+import type { BirdPostureId, PostureFit, PostureId } from "./animal-postures";
 import type { AnimalGait, GaitId, QuadLeg } from "./animal-gaits";
 
 import { RAD, add, circlePoints, dir, ellipsePoints, len, lerpP, polyPath as poly, rotate, smoothClosedPath, smoothTube, smoothstep, sub, tubePoints } from "./foundation-shapes";
@@ -88,7 +88,8 @@ export interface AnimalSkeleton {
   /** The back from the tail root forward to the nape. */
   topLine: AnimalPoint[];
   neck: { points: AnimalPoint[]; widths: number[] };
-  head: { cranium: AnimalEllipse; muzzle: AnimalPoint[]; ear?: AnimalPoint[]; eye: AnimalPoint; eyeR: number; nose: AnimalPoint; axis: number };
+  /** `eyeClosed`: asleep (a sleeping bird), so painters draw the lid instead of the eye. */
+  head: { cranium: AnimalEllipse; muzzle: AnimalPoint[]; ear?: AnimalPoint[]; eye: AnimalPoint; eyeR: number; nose: AnimalPoint; axis: number; eyeClosed?: boolean };
   tail: { points: AnimalPoint[]; widths: number[] };
   fins: AnimalPoint[][];
   legLength: { fore: number; hind: number };
@@ -120,6 +121,10 @@ export interface PoseOptions {
   flight?: FlightMode;
   /** How far above the side view the camera sits for the open wings (degrees, default 12), so both wings read. */
   view?: number;
+  /** A bird's posture (`BIRD_POSTURES`): on one leg, asleep, swimming or upending; eased in by `amount`. */
+  birdPosture?: BirdPostureId;
+  /** Where the water's surface is (model y) for a swimming bird; set by the posture's waterline when left out. */
+  water?: number;
 }
 
 /** Direction at `a` degrees from straight down, + toward the nose. */
@@ -457,25 +462,41 @@ function poseQuadruped(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
 function poseBird(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
   const fl = o.flight && c.species ? birdFlight(c.species) : undefined;
   if (fl && o.flight) return poseBirdFlight(c, o.flight, o.t ?? 0, o.amount ?? 1, o.view ?? 12, fl);
-  const g = o.gait ? ANIMAL_GAITS[o.gait] : undefined, t = o.t ?? 0;
-  const a = c.bodyAngle ?? 20, rx = c.trunk / 2, ry = c.chestDepth / 2, Cl = c.legClearance;
-  const lift = Math.sqrt((rx * Math.sin(a * RAD)) ** 2 + (ry * Math.cos(a * RAD)) ** 2);
+  const bp = o.birdPosture && birdPostureFits(c.plan.id, o.birdPosture) ? BIRD_POSTURES[o.birdPosture] : undefined, k = bp ? smoothstep(o.amount ?? 1) : 0;
+  const g = !bp && o.gait ? ANIMAL_GAITS[o.gait] : undefined, t = o.t ?? 0;
+  const a0 = c.bodyAngle ?? 20, a = a0 + ((bp?.bodyAngle?.typical ?? a0) - a0) * k;
+  const rx = c.trunk / 2, ry = c.chestDepth / 2 * (1 + ((bp?.fluff ?? 1) - 1) * k), Cl = c.legClearance;
+  const lift = Math.sqrt((rx * Math.sin(a0 * RAD)) ** 2 + (ry * Math.cos(a0 * RAD)) ** 2);
   const bob = g ? Math.abs(Math.sin(2 * Math.PI * t)) * .01 : 0;
-  const centre: AnimalPoint = [0, Cl + lift + bob], ax = dir(a), up = dir(a + 90);
+  // Afloat, the body settles until the waterline sits at its share of the body's depth (the legs hang below, unseen).
+  const water = o.water ?? Cl * .5, floatY = bp?.waterline ? water + ry * (1 - 2 * bp.waterline.typical) : undefined;
+  // Upending, the body tips forward about its middle at the surface, so the tail rises and the breast goes under.
+  const tipDrop = bp?.id === "upend" ? rx * .1 * k : 0;
+  const centre: AnimalPoint = [0, floatY !== undefined ? (Cl + lift) + (floatY - tipDrop - Cl - lift) * k : Cl + lift + bob], ax = dir(a), up = dir(a + 90);
   const body: AnimalEllipse = { cx: centre[0], cy: centre[1], rx, ry, angle: a };
   const wingC = add(add(centre, ax, -rx * .2), up, ry * .25), wing: AnimalEllipse = { cx: wingC[0], cy: wingC[1], rx: rx * 1.08, ry: ry * .62, angle: a - 6 };
   const neckRoot = add(add(centre, ax, rx * .62), up, ry * .45);
   const nod = g ? 6 * Math.sin(2 * Math.PI * t * 2) : 0;
-  const crown = add(neckRoot, dir(c.neckAngle), Math.max(c.neck, .02));
-  const neckMid = add(lerpP(neckRoot, crown, .5), dir(c.neckAngle - 90), c.neck * .12);
+  // The neck: standing up, hunched down onto the shoulders, turned back over the shoulder (asleep), or reaching down
+  // into the water (upending).
+  const standCrown = add(neckRoot, dir(c.neckAngle), Math.max(c.neck, .02)), pose = bp?.head ?? "up";
+  const goalCrown = pose === "hunched" ? add(neckRoot, dir(c.neckAngle + 10), Math.max(c.neck * .3, .02))
+    : pose === "tucked" ? add(add(centre, ax, rx * .05), up, ry * .75)
+      : pose === "under" ? add(neckRoot, dir(a - 15), Math.max(c.neck, .02) * 1.05) : standCrown;
+  const crown = lerpP(standCrown, goalCrown, k);
+  const neckMid = pose === "tucked" ? lerpP(add(lerpP(neckRoot, standCrown, .5), dir(c.neckAngle - 90), c.neck * .12), add(neckRoot, up, ry * .55), k)
+    : add(lerpP(neckRoot, crown, .5), dir(c.neckAngle - 90), c.neck * .12 * (1 - k * .6));
   // A species' measured face sets the head's depth and places the eye back from the bill tip.
   const face = c.species?.face, cranLen = c.head * (1 - c.muzzle);
-  const hr = face ? c.head * face.depth / 2 : cranLen * .5, axis = -c.headAngle + nod, hx = dir(axis), hu = dir(axis + 90);
+  // Asleep the head faces back with the bill laid along the back; upending, it points down along the neck.
+  const headGoal = pose === "tucked" ? 180 + a + 12 : pose === "under" ? a - 20 : pose === "hunched" ? -c.headAngle - 8 : -c.headAngle;
+  const hr = face ? c.head * face.depth / 2 : cranLen * .5, axis = -c.headAngle + nod + (headGoal + c.headAngle) * k, hx = dir(axis), hu = dir(axis + 90);
   const cranium: AnimalEllipse = { cx: crown[0], cy: crown[1], rx: cranLen * .55, ry: hr, angle: axis };
   const billBase = add(crown, hx, cranLen * .425), nose = add(billBase, hx, c.head * c.muzzle);
   const muzzle: AnimalPoint[] = [add(billBase, hu, hr * .45), add(nose, hu, hr * .05), add(nose, hu, -hr * .05), add(billBase, hu, -hr * .4)];
   const eye = face ? add(add(nose, hx, -c.head * face.eyeFromNose), hu, hr * .25) : add(add(crown, hx, hr * .3), hu, hr * .2);
-  const tailRoot = add(centre, ax, -rx * .85), tailEnd = add(tailRoot, dir(180 + a - 8), c.tail);
+  // Afloat, a duck's tail is cocked up behind.
+  const tailRoot = add(centre, ax, -rx * .85), tailEnd = add(tailRoot, dir(180 + a - 8 - (bp?.waterline ? 22 * k : 0)), c.tail);
   const hip = add(add(centre, ax, -rx * .08), up, -ry * .25);
   // Long-legged waders stand on nearly straight legs; perching birds crouch.
   const stand = Cl > .4 ? [20, -12, 4, 85] : BIRD_STAND;
@@ -486,6 +507,19 @@ function poseBird(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
   for (const [i, leg] of [[0, "hind-far"], [2, "hind-near"]] as const) {
     const s = states?.[i];
     let foot: AnimalPoint = [restX, 0], aT = stand[3], aC = stand[2];
+    if (bp?.waterline || (bp?.oneLeg && leg === "hind-far")) {
+      // Paddling under water, or drawn up into the belly feathers: the thigh hidden, the shin folded up against the
+      // belly and the foot tucked under. A long-legged wader's shin is longer than the body is deep, so it hangs back
+      // down along the standing leg with only the ankle raised (the heron on its stump).
+      const wader = lens[1] + lens[2] > ry * 2.2, standing = solveLeg(hip, foot, lens, aC, aT, false);
+      // A wader keeps its standing thigh and knee; the shank hangs back from the knee and the foot folds up behind it.
+      const up0 = wader ? fkLeg(standing[0], lens, [angleDown(sub(standing[1], standing[0])), angleDown(sub(standing[2], standing[1])) - 35, 150, 175])
+        : fkLeg(hip, lens, [70, -150, 150, 160]);
+      limbs.push({ leg, fore: false, far: leg === "hind-far", points: standing.map((q, j) => lerpP(q, up0[j], k)), widths: [c.girth * 3, c.girth * 1.4, c.girth, c.girth * .8, c.girth * .6], onGround: k < .5 });
+      continue;
+    }
+    // On one leg the standing foot moves under the body's centre.
+    if (bp?.oneLeg) foot = [restX + (centre[0] - rx * .05 - restX) * k, 0];
     if (s && g) {
       if (s.onGround) foot = [restX + sweep * (.5 - s.progress), 0];
       else { foot = [restX - sweep / 2 + sweep * smoothstep(s.progress), s.lift * L * .6]; const f = Math.sin(Math.PI * s.progress); aC += 30 * f; aT = aC + 40 + (stand[3] - stand[2] - 40) * (1 - f); }
@@ -495,9 +529,9 @@ function poseBird(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
   // Folded, a long tail (pheasant, magpie) narrows to its tip; a short one fans a little.
   const tw = c.tail > .45 ? [ry * .5, ry * .42, ry * .2] : [ry * .5, ry * .6, ry * .7];
   return {
-    kind: "bird", c, joints: { neckRoot, crown, occiput: crown, nose, eye, tailRoot, hip }, limbs, masses: { body, wing },
+    kind: "bird", c, joints: { neckRoot, crown, occiput: crown, nose, eye, tailRoot, hip, ...(floatY !== undefined ? { waterline: [0, water] as AnimalPoint } : {}) }, limbs, masses: { body, wing },
     topLine: [tailRoot, add(centre, up, ry), neckRoot], neck: { points: [neckRoot, neckMid, crown], widths: [Math.min(ry * 1.1, hr * 2.6), hr * 1.25, hr * 1.35] },
-    head: { cranium, muzzle, eye, eyeR: face ? c.head * face.eye / 2 : c.head * .06, nose, axis }, tail: { points: [tailRoot, lerpP(tailRoot, tailEnd, .5), tailEnd], widths: tw }, fins: [], legLength: { fore: 0, hind: L },
+    head: { cranium, muzzle, eye, eyeR: face ? c.head * face.eye / 2 : c.head * .06, nose, axis, eyeClosed: bp?.head === "tucked" && k > .6 }, tail: { points: [tailRoot, lerpP(tailRoot, tailEnd, .5), tailEnd], widths: tw }, fins: [], legLength: { fore: 0, hind: L },
     outline: {},
   };
 }
