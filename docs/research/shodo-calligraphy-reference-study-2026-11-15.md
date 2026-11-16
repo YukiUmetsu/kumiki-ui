@@ -516,6 +516,37 @@ The best-aligned overlap rescales both shapes to their boxes, so moved parts cha
 
 **A third teacher.** A third channel writes each character in vermilion, sped up, and then explains it on other sheets. Taking the shot from the start to the moment the ink stops growing gives whole characters, and a sheet that holds the character twice keeps the copy written first. But the first stroke is often already on the sheet when the lesson starts, and the stroke split is weak, so the fits lie a few pixels off along most strokes (0.54 best-aligned overlap on average). No form of this teacher is accepted yet.
 
+## 2.21 Seventeenth study round: the teacher's press along a stroke
+
+**What was wrong.** After the parts were aligned, the weakest forms were かな. Their overlays show the teacher's ink as a border around ours in some places and ours outside hers in others: she swells and thins inside one stroke (the heavy start of ひ, the thick right side of の), while our stroke keeps one width, set by its `weight`.
+
+**What changed.**
+- *Engine.* A stroke can carry `press`: one multiplier per centreline point, 0.4 to 1.8. Every brush sample's press is scaled by the profile where the sample lies nearest the centreline. A stroke without it is written as before.
+- *Learning.* At each point of each stroke, the half-width of the teacher's stroke is compared with ours, both on that stroke alone. The point's press moves toward the ratio, damped and smoothed along the stroke. Three rounds go through the renderer. A character keeps its profiles only when its overlap rises and no mismatch patch grows.
+
+**Result.** 46 forms changed, and the stroke ends of those were then tried again (10 changed); all were reviewed in overlays. They are 23 of the 48 かな and kanji with curving strokes (心 鳥 月 寿). 114 strokes carry a profile. A second round of press changes only one form: the fit has converged.
+
+| | Round eleven | Round twelve |
+|---|---|---|
+| かな, best-aligned overlap | 0.699 | 0.711 |
+| かな, overlap in the fit frame | 0.741 | 0.756 |
+| Characters with a mismatch patch over 5 % of the ink | 22 | 19 |
+
+For example, の 0.75 → 0.82 (its largest mismatch patch 4.6 % → 1.1 % of the ink), く 0.72 → 0.82 and ひ 0.65 → 0.71 in the fit frame. Kanji change little (0.808 → 0.809): their strokes keep a more even width.
+
+**One more character.** The same part, stroke, press and end searches recover ぎ, whose diagonal had lain a few pixels off (0.69 → 0.72): the first teacher now has 440 forms. び 献 建 様 短 improve but still have one part off and keep the rules. For the second teacher, the same searches recover 帆 (0.65 → 0.70) and bring his four forms closer (叶 0.80, 確 0.77, 臣 0.76, 罪 0.73): he now has 5 forms, and one more search over the fits his gate had dropped recovers 哉 (6). For the third teacher, they bring his fits to 0.62 to 0.77; 改 (0.77) and 阜 (0.76) are close (2 forms). The others still have one part off.
+
+**Other teachers give positions only.** Teachers differ much more in stroke thickness, and in the techniques that go with it, than in where their strokes go. Before a teacher is added, the two teachers' own ink is compared on the characters both write, each scaled to one box:
+
+| Against the first teacher | Third teacher (40 shared characters) | Second teacher (4 clean shared kaisho takes) |
+|---|---|---|
+| Stroke thickness for the character's size | 0.98× | 0.79× |
+| Aspect (height over width) | 1.01× | 1.14× |
+| Ink coverage of the box | 1.01× | 0.73× |
+| Shape overlap at one box size | 0.53 | 0.49 |
+
+The third teacher writes with the first teacher's weight and proportions. The second teacher writes thinner and taller; his take beside the model card is rarely clean kaisho for a shared character, so his sample is small. The two hands overlap about as much as the rules overlap the first teacher (0.58): every teacher places strokes in an own way. The other teachers' forms therefore keep only their stroke order and centrelines. Each stroke takes its thickness from the rules, which are calibrated on the first teacher, and leaves out that teacher's own press, technique and pace, so every character is written in the first teacher's style. The demos list the first teacher, then the third, then the second. The first teacher is the standard, so the second teacher's forms also take her proportions: each character gets the rules form's height over width (measured on her models) and keeps its own size, centre and stroke places inside the box.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
