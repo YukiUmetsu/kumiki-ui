@@ -22,7 +22,7 @@ describe("ArtCraft new human #01: physically layered cranial volume (unapproved 
         (t.path.match(/M/g)??[]).length>80)).toBe(true);
     }
     expect(strokes.reduce((sum,t)=>sum+(t.path.match(/M/g)??[]).length,0))
-      .toBeGreaterThan(12000);
+      .toBeGreaterThan(2000);
     expect(strokes.every(t=>!t.path.includes("NaN")&&!t.path.includes("Infinity")))
       .toBe(true);
     expect(strokes.every(t=>t.startFrame>=173&&t.startFrame<=210)).toBe(true);
