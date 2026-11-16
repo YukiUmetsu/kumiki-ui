@@ -116,6 +116,54 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(()=>newCharacterHeadStageOne(-1)).toThrow(RangeError);
   });
 
+  it("deposits five ANAT1 normal-driven tonal families as native, editable dry-pencil curves",()=>{
+    const one=newCharacterHeadStageOne(291);
+    const head=one[0];
+    const valueFamilies=[
+      "highlight","light","halftone","core-shadow","reflected-light",
+    ] as const;
+    const meshValues=head.details!.filter(trace=>
+      trace.id?.startsWith("newhead-anat1-"));
+    expect(meshValues).toHaveLength(15);
+    expect(new Set(meshValues.map(trace=>trace.id)).size).toBe(15);
+    for(const name of valueFamilies){
+      const cohort=meshValues.filter(trace=>
+        trace.id?.startsWith("newhead-anat1-"+name+"-"));
+      expect(cohort,name).toHaveLength(3);
+      for(const trace of cohort){
+        expect(trace.path).not.toMatch(/NaN|Infinity/);
+        expect((trace.path.match(/M/g)??[]).length).toBeGreaterThan(90);
+        expect((trace.path.match(/ Q/g)??[]).length).toBeGreaterThan(90);
+        expect(trace.path.length).toBeLessThan(18000);
+        expect(trace.width).toBeGreaterThan(.18);
+        expect(trace.width).toBeLessThan(.55);
+        expect(trace.opacity).toBeGreaterThan(.12);
+        expect(trace.opacity).toBeLessThan(.55);
+      }
+    }
+    // Five value families are not a single pattern recolored five times.
+    const locations=valueFamilies.map(name=>{
+      const trace=meshValues.find(v=>
+        v.id==="newhead-anat1-"+name+"-0")!;
+      const coords=[...trace.path.matchAll(/M(-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/g)]
+        .map(m=>[Number(m[1]),Number(m[2])]);
+      const x=coords.reduce((sum,p)=>sum+p[0],0)/coords.length;
+      const y=coords.reduce((sum,p)=>sum+p[1],0)/coords.length;
+      expect(x).toBeGreaterThanOrEqual(head.bounds[0]-8);
+      expect(x).toBeLessThanOrEqual(head.bounds[0]+head.bounds[2]+8);
+      expect(y).toBeGreaterThanOrEqual(head.bounds[1]-8);
+      expect(y).toBeLessThanOrEqual(head.bounds[1]+head.bounds[3]+8);
+      return [Math.round(x),Math.round(y)];
+    });
+    expect(new Set(locations.map(p=>p.join(","))).size)
+      .toBeGreaterThanOrEqual(4);
+    expect(one).toEqual(newCharacterHeadStageOne(291));
+    expect(newCharacterHeadStageOne(291)[0].details)
+      .not.toEqual(newCharacterHeadStageOne(515)[0].details);
+    // Still a ONE REGION head, no facial-feature geometry.
+    expect(one.map(p=>p.id)).toEqual(["head-silhouette-01"]);
+  });
+
   it("exposes nine NEW mesh-derived head-guide points, not the former woman's portrait anchors",()=>{
     const anchors=newCharacterHeadInspectionAnchors();
     const head=newCharacterHeadStageOne(291)[0];
