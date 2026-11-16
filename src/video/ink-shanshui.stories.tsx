@@ -1026,6 +1026,14 @@ function FuchunSourceFidelityDesk(){
   const transform=lens==="native"?"none":
     "translate("+(camera.width/2-camera.zoom*camera.x)+"px,"+
       (camera.height/2-camera.zoom*camera.y)+"px) scale("+camera.zoom+")";
+  // Typed outside JSX so this ArtCraft inspector remains valid TSX under
+  // Storybook/Vite, without sacrificing any original inspection modes.
+  const isolationModes=[
+    ["complete","All original paint"],
+    ["stone","Positive rock anatomy"],
+    ["hemp","Original 78 hemp strokes"],
+    ["pine","Rooted old-pine anatomy"],
+  ] as const;
   const checklist={
     complete:"At 1×, reject triangular wash panels, decorative dark hooks, disconnected pine crowns and collapsed mist/paper space.",
     stone:"Positive stone only: reject a pale isolated triangle or floating shelves. Six parent hillbacks must turn into three connected rock cheeks.",
@@ -1076,9 +1084,7 @@ function FuchunSourceFidelityDesk(){
     </div>
     <div role="group" aria-label="Fuchun original-paint isolation"
       style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
-      {([["complete","All original paint"],["stone","Positive rock anatomy"],
-        ["hemp","Original 78 hemp strokes"],["pine","Rooted old-pine anatomy"]]
-        as const).map(([key,title])=>
+      {isolationModes.map(([key,title])=>
         <button key={key} type="button" style={style.button}
           aria-pressed={layer===key} onClick={()=>setLayer(key)}>{title}</button>)}
     </div>
