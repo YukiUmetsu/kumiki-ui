@@ -124,12 +124,20 @@ const run = (bin, args) => new Promise((ok, fail) => {
 /** Open the capture page for one output. The page compiles with real fonts, which is the final word on the film. */
 async function openFilm(browser, url) {
   const page = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: 1400, height: 900 } });
-  const errors = [];
+  const errors = [], loadErrors = [];
   page.on("pageerror", error => errors.push(error.stack || error.message));
+  // A failed module request otherwise surfaces only as a generic dynamic-import
+  // error, hiding the HTTP status or network failure that explains the cause.
+  page.on("response", response => {
+    if (response.status() >= 400) loadErrors.push(`HTTP ${response.status()} loading ${response.url()}`);
+  });
+  page.on("requestfailed", request => {
+    loadErrors.push(`Request failed for ${request.url()}: ${request.failure()?.errorText ?? "unknown network error"}`);
+  });
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
   try {
     await page.waitForFunction(() => window.__kmFilm?.failed || typeof window.__kmVideoExport?.seek === "function", null, { timeout: 120000 });
-  } catch (error) { throw Error("The capture page did not start: " + (errors.join("; ") || error.message)); }
+  } catch (error) { throw Error("The capture page did not start: " + ([...errors, ...loadErrors].join("; ") || error.message)); }
   const state = await page.evaluate(() => ({ failed: window.__kmFilm.failed, diagnostics: window.__kmFilm.diagnostics, reviewFrames: window.__kmFilm.reviewFrames, manifest: window.__kmVideoExport?.manifest }));
   return { page, errors, ...state };
 }
