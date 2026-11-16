@@ -78,6 +78,13 @@ describe("ArtCraft F1 V24 native nasofacial source values",()=>{
     expect(html).toContain('data-km-crayon-paper-contact-wax');
     expect(html).toContain('data-km-crayon-feather-contacts="open-wax"');
     expect(html).not.toContain("<image");
-    expect(html).not.toContain("feGaussianBlur");
+    // The inherited CRAYON1 renderer has its own common material filters.
+    // V24 may not add ANY filter relative to the exact original V23 scene;
+    // don't incorrectly assert that the unchanged shared renderer has none.
+    const previous=renderToStaticMarkup(<CrayonScene
+      spec={crayonCc0FaceStudy({midfaceForm:"source-naris-occlusion"})}
+      frame={299}/>);
+    expect((html.match(/<feGaussianBlur\\b/g)??[]).length)
+      .toBe((previous.match(/<feGaussianBlur\\b/g)??[]).length);
   });
 });
