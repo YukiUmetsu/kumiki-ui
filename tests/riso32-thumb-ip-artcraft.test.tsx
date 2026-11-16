@@ -7,6 +7,7 @@ import {PAPER_ARTIST,RISO_PAPER_ARTIST_SHEET,evaluateRisoHumanEnsemble} from "..
 import {RISO_COURIER_SHEET} from "../src/video/riso-character-mesh-sheets";
 import {RISO32_THUMB_ANAT1,RISO32_THUMB_GEOMETRY,riso32ThumbDistalId,inspectRiso32ThumbIp} from "../src/video/riso32-thumb-ip";
 import {RISO30_GRIP_FOREGROUND_IDS,layoutRisoHandArtcraft} from "../src/video/riso-hand-artcraft";
+import {inspectRiso33HandFan} from "../src/video/riso33-hand-negative-space";
 
 const actors=[COURIER,PAPER_ARTIST] as const;
 const sides=["left","right"] as const;
@@ -82,6 +83,32 @@ describe("RISO32 ArtCraft: thumb IP truly articulates as separate physical ink",
       expect(sheet.regions.some(r=>r.id===id)).toBe(true);
       const posed=evaluateRisoCharacterMesh(actor,sheet,160,{maxEdgeLength:6});
       expect(posed.regions.find(r=>r.id===id)).toBeDefined();
+    }
+  });
+
+  it.each(actors)("%s: anatomically fanned moving digits do not cross each other at paper pinch",actor=>{
+    for(const side of sides){
+      // Even though all four fingers flex, the paper-white interdigit tunnels
+      // must not be replaced with a self-intersecting 25-degree index sweep.
+      const at=side==="right"?160:166;
+      const sample=inspectRiso33HandFan(actor,at,side);
+      expect(sample.intersectingAxisPairs,actor.id+"/"+side+" crossed finger axes").toEqual([]);
+      expect(sample.minimumAxisGap,actor.id+"/"+side+" finger centerlines collapsed").toBeGreaterThan(3);
+      expect(sample.minimumTipGap,actor.id+"/"+side+" fingertips collapse").toBeGreaterThan(4);
+      for(const pair of sample.pairs){
+        expect(pair.tipDistance).toBeGreaterThan(4);
+        expect(pair.minimumAxisGap).toBeGreaterThan(3);
+      }
+    }
+  });
+
+  it.each(actors)("%s: underprinted wrist is an actual connected source stencil, not alpha paint",actor=>{
+    for(const side of sides){
+      const mask=actor.parts.find(p=>p.id===side+"-wrist-underprint-clearance");
+      expect(mask?.joint).toBe(side+"-hand");
+      expect(mask?.knockoutOnly).toBe(true);
+      expect(mask?.d).toMatch(/^M.*Z$/);
+      expect(mask?.opacity??1).toBe(1);
     }
   });
 
