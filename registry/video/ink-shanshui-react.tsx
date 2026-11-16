@@ -1904,6 +1904,38 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
           " "+f(cb[0])+" "+f(cb[1])+
           " "+f(to[0])+" "+f(to[1]);
       }).join(" ");
+      // Four long fracture ribs were still read as continuous computer
+      // wires through the newly rounded positive mountain. Like the
+      // 78 child hemp strokes, their 3 *already present* tapered cubic
+      // phases should physically skip fibres and reveal support paper.
+      // Six uneven openings are evaluated on the same three-section
+      // geometric centerline, never scattered at screen coordinates.
+      const ribReserve=sections.flatMap((stage,k)=>
+        ([.38,.7] as const).map((at,m)=>{
+          const from=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,
+            at+.022*(s(seed+5721,i*31+k*13+m*17)-.5));
+          const control=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,
+            at+.071);
+          const end=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,
+            at+.15+.018*s(seed+5741,i*19+k*29+m*11));
+          const cut="M"+f(from[0])+" "+f(from[1])+
+            " Q"+f(control[0])+" "+f(control[1])+
+            " "+f(end[0])+" "+f(end[1]);
+          const breadth=stage.load*(m===0?.33:.24)*
+            (.86+.25*s(seed+5759,i*23+k*17+m*31));
+          return {stage:k,at,cut,breadth};
+        }));
+      const ribReserveId="kmrock"+faceId+"-rib-paper-"+i;
+      const ribControl=sections.flatMap(stage=>[
+        stage.a,stage.c1,stage.c2,stage.b,
+      ]);
+      const reserveMargin=rib.load*3+8;
+      const ribX=Math.min(...ribControl.map(p=>p[0]))-reserveMargin;
+      const ribY=Math.min(...ribControl.map(p=>p[1]))-reserveMargin;
+      const ribWidth=Math.max(...ribControl.map(p=>p[0]))-ribX+
+        reserveMargin;
+      const ribHeight=Math.max(...ribControl.map(p=>p[1]))-ribY+
+        reserveMargin;
       // Exactly three original re-inking events now land on their own
       // *actual* section centerlines, with tapered local wet deposits.
       const deposits=sections.map((stage,k)=>{
@@ -1938,13 +1970,30 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
         data-km-rock-hero-rib-root={f(r[0])+","+f(r[1])}
         data-km-rock-hero-rib-support={supportIndex}
         data-km-rock-hero-rib-course="folded-3">
+        <defs><mask data-km-rock-hero-rib-reserve=""
+          id={ribReserveId} maskUnits="userSpaceOnUse"
+          maskContentUnits="userSpaceOnUse"
+          x={f(ribX)} y={f(ribY)}
+          width={f(ribWidth)} height={f(ribHeight)}
+          style={{maskType:"luminance"}}>
+          <rect x={f(ribX)} y={f(ribY)}
+            width={f(ribWidth)} height={f(ribHeight)} fill="#fff"/>
+          {ribReserve.map(({stage,at,cut,breadth},k)=><path key={k}
+            data-km-rock-hero-rib-paper-slit=""
+            data-km-rock-hero-rib-paper-stage={stage}
+            data-km-rock-hero-rib-paper-station={at}
+            d={cut} stroke="#000" strokeWidth={f(breadth)}
+            strokeLinecap="round" fill="none"/>)}
+        </mask></defs>
         <path data-km-rock-hero-face="" d={face}
           fill={i%2===0?"#504338":"#75614d"}
+          mask={"url(#"+ribReserveId+")"}
           opacity={f((i%2===0?.39:.32)*(1-.19*mist))}/>
         <path data-km-rock-hero-crease="" d={crease}
           fill="none" stroke={i%2===0?"#40362c":"#6b5744"}
           strokeWidth={f(i%2===0?1.1:.85)}
           strokeLinecap="round"
+          mask={"url(#"+ribReserveId+")"}
           opacity={f(.42*(1-.2*mist))}/>
         {deposits.map(({a,body},k)=><path key={"load"+k}
           data-km-rock-hero-rib-deposit=""
