@@ -20,7 +20,7 @@
 - Pure `riso59PreviewContact(spec,actor)` preserves **all original source-part IDs** and both physical inks. The three support PIP 3D stations inform independent max-3.6-unit crest adjustments. Different moving real MCP/PIP/DIP chains and authored ring/little weights prevent a cloned three-finger stamp.
 - The two source-white four-C web reserves move with the relocated red contours; the existing four-C blue knuckle planes are re-registered from the exact same updated landmark set. Existing 12 separate red finger phalanges and all nail engraving are retained (untouched).
 - The source starts with the exact same original unmodified f0 ink and maintains original [0,146,160,180,205,239] RISO2 Bézier source keys and 24fps timing. The editing surface is not a duplicate painted layer.
-- **Baseline production actors are unchanged.** The existing RISO30/RISO59 ArtCraft Storybook workbench gains a reversible, explicitly labeled experimental A/B checkbox for both original actors, red, cobalt or both true stencil passes, film frame, true full source zoom and dot density. The default is the merged baseline.
+- **Baseline production actors are unchanged.** The existing RISO30/RISO59 ArtCraft Storybook workbench gains a reversible, explicitly labeled experimental A/B checkbox for both original actors, red, cobalt or both true stencil passes, film frame, true full source zoom and dot density. The existing 16:9 / 9:16 full-story film gains a separate opt-in RISO59 A/B with matching original camera, page, live ANAT1 poses, foreground original index overprint and 24fps motion. The default in both workbenches remains the merged baseline.
 
 ## Required independent ArtCraft gate before promoting
 
