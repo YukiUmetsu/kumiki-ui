@@ -1793,16 +1793,59 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
       const crown:P=[
         x+bow,root[1]-height,
       ];
+      // Independent old-pine silhouette: each tree has a different
+      // basal sweep and opposing crown-ward bend, but shares ONE true
+      // continuously painted cubic centerline with all of its children.
+      // Source: Huang Gongwang Fuchun NPM, wet/dry shoreline tree study.
+      const crooked=([
+        {low:6.5,high:-19.5},
+        {low:-6.1,high:18.3},
+        {low:8.2,high:-23.7},
+        {low:-7.4,high:21.9},
+        {low:5.7,high:-17.5},
+      ] as const)[i];
+      const c1:P=[x+crooked.low,root[1]-height*.28];
+      const c2:P=[x+crooked.high,root[1]-height*.77];
+      const trunkAt=(t:number):P=>school==="fuchun"
+        ?cubicPoint(root,c1,c2,crown,t)
+        :quadraticPoint(root,trunkControl,crown,t);
       const trunkLoad=school==="fuchun"?
         ([1.08,1.73,2.05,1.3,1.02] as const)[i]:
         i===2?1.63:1.08;
-      const trunk=rockLoadedRibbon(root,trunkControl,crown,
-        trunkLoad,seed+1711+i*29);
-      const barkFrom=quadraticPoint(root,trunkControl,crown,.13);
-      const barkTo=quadraticPoint(root,trunkControl,crown,.89);
-      const bark="M"+f(barkFrom[0])+" "+f(barkFrom[1])+
-        " Q"+f(trunkControl[0]-1.4)+" "+f(trunkControl[1])+
-        " "+f(barkTo[0])+" "+f(barkTo[1]);
+      const trunk=school==="fuchun"
+        ?rockLoadedCubicRibbon(root,c1,c2,crown,
+          trunkLoad,seed+1711+i*29)
+        :rockLoadedRibbon(root,trunkControl,crown,
+          trunkLoad,seed+1711+i*29);
+      const centerline="M"+f(root[0])+" "+f(root[1])+
+        " C"+f(c1[0])+" "+f(c1[1])+
+        " "+f(c2[0])+" "+f(c2[1])+
+        " "+f(crown[0])+" "+f(crown[1]);
+      const barkFrom=trunkAt(.13),barkTo=trunkAt(.89);
+      // Exact sub-curve from .13 to .89 of the same parent cubic.
+      // De Casteljau endpoint tangents prevent bark drifting off a
+      // different quadratic approximation of the painted trunk.
+      const tangent=(t:number):P=>{
+        const q=1-t;
+        return [
+          3*q*q*(c1[0]-root[0])+6*q*t*(c2[0]-c1[0])+
+            3*t*t*(crown[0]-c2[0]),
+          3*q*q*(c1[1]-root[1])+6*q*t*(c2[1]-c1[1])+
+            3*t*t*(crown[1]-c2[1]),
+        ];
+      };
+      const tangent0=tangent(.13),tangent1=tangent(.89);
+      const step=(.89-.13)/3;
+      const bark=school==="fuchun"
+        ?"M"+f(barkFrom[0])+" "+f(barkFrom[1])+
+          " C"+f(barkFrom[0]+tangent0[0]*step)+" "+
+            f(barkFrom[1]+tangent0[1]*step)+" "+
+            f(barkTo[0]-tangent1[0]*step)+" "+
+            f(barkTo[1]-tangent1[1]*step)+" "+
+            f(barkTo[0])+" "+f(barkTo[1])
+        :"M"+f(barkFrom[0])+" "+f(barkFrom[1])+
+          " Q"+f(trunkControl[0]-1.4)+" "+f(trunkControl[1])+
+          " "+f(barkTo[0])+" "+f(barkTo[1]);
       // Four nonperiodic branch stations per tree; each still grows
       // from the ACTUAL painted trunk curve, preserving all 20 boughs.
       const boughStations=school==="fuchun"?([
@@ -1815,7 +1858,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
       const boughs=boughStations.map((t,j)=>{
         // Every branch root is *on* its own winding trunk, while the
         // ink-loaded terminal twigs carry their own fine foliage tips.
-        const origin=quadraticPoint(root,trunkControl,crown,t);
+        const origin=trunkAt(t);
         const direction=(j%2===0?-1:1)*(i%3===0?-1:1);
         const distance=(i===2?24:17)+
           13*s(seed+1763,i*19+j*17);
@@ -1966,7 +2009,8 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
       return <g key={i} data-km-cliff-pine=""
         data-km-cliff-pine-root={f(root[0])+","+f(root[1])}
         data-km-cliff-pine-crest={f(crest)}
-        data-km-cliff-pine-height={height}>
+        data-km-cliff-pine-height={height}
+        data-km-cliff-pine-centerline={school==="fuchun"?centerline:undefined}>
         <path data-km-cliff-pine-trunk="" d={trunk}
           fill="#37332d" opacity={f(.91*shade)}/>
         <path data-km-cliff-pine-bark="" d={bark}
