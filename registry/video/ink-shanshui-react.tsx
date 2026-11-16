@@ -2702,7 +2702,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             <path key={"root"+k} data-km-cliff-pine-rootlet=""
               data-km-cliff-pine-rootlet-source={f(a[0])+","+f(a[1])}
               data-km-cliff-pine-rootlet-end={f(b[0])+","+f(b[1])}
-              data-km-cliff-pine-rootlet-station={f(at)}
+              data-km-cliff-pine-rootlet-station={at}
               data-km-cliff-pine-rootlet-hand={hand}
               d={d} fill={k===1?"#65543e":"#40372c"}
               opacity={f((k===2?.46:.72)*shade)}/>)}
