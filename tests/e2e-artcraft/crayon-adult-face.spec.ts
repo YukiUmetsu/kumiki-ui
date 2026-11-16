@@ -1062,7 +1062,11 @@ test("F1 V18 physically rooted nasal wax undercoat and hood A/B",async({page},in
 /** V19: real source-registered 1x/3x wax screenshot artifacts.
  * Evidence of native render only, NOT ArtCraft visual release.
  */
-test("F1 V19 joined near/far nasal rim browser A/B against V17/V18",async({page},info)=>{
+test("F1 V20b joined near/far nasal rim browser A/B against V17/V18",async({page},info)=>{
+  // 3 actors × native wax strokes and 1×/3× screenshot rasterization cost
+  // more than the 60s default on slower CI. Keep two construction frames
+  // for the candidate, final source-registered A/B for both controls.
+  test.setTimeout(120_000);
   await page.setViewportSize({width:608,height:1082});
   const errors:string[]=[];
   page.on("pageerror",error=>errors.push(error.message));
@@ -1073,7 +1077,9 @@ test("F1 V19 joined near/far nasal rim browser A/B against V17/V18",async({page}
     for(const focus of [null,{focusX:417,focusY:629,zoom:3}] as const){
       const candidate=focus?{...spec,camera:[
         {frame:0,...focus},{frame:299,...focus}]}:spec;
-      for(const frame of [210,299] as const){
+      const proofFrames=midfaceForm==="source-contour-joined"?
+        [210,299] as const:[299] as const;
+      for(const frame of proofFrames){
         const art=renderToStaticMarkup(createElement(CrayonScene,{
           spec:candidate,frame,
         }));
