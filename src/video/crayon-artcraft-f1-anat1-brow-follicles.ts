@@ -18,7 +18,12 @@ import {CRAYON_PORTRAIT_AUDIT} from "./crayon-artcraft-portrait-audit";
  * Keep all 20 separately authored source-brow-fibers-near strokes.
  * Strengthen only three existing near-brow wax layers and append 128
  * asymmetric source-follicle/contact fibers plus 37 reflected loose
- * fibers, before film eyes and hair. Existing far brow stays unchanged.
+ * fibers, before film eyes and hair. The FIRST 1×/3× browser evidence
+ * showed unconvincing chunky, rectangular wax terminal chips at the
+ * follicles despite an improved photographic RGB core: reject that
+ * pressure/width configuration. Width .22/.13px and more flowing hair
+ * curvature/length let the original root shadow carry value, while
+ * physically deposited native dry-wax hairs carry authentic microtexture. Existing far brow stays unchanged.
  *
  * Licensed photo: Christopher Campbell "Brunette woman portrait"
  * https://commons.wikimedia.org/wiki/File:Brunette_woman_portrait_(Unsplash).jpg
@@ -116,8 +121,8 @@ export function crayonF1Anat1BrowFibrePaths():
       // Follicle roots occupy the underside/dense interior of the brow;
       // tips curve into the top envelope; the outermost 7% splay away.
       const rootY=bottom-(.07+.38*jitter(i,salt+2))*depth;
-      const length=(isReflection?3.2:4.4)+
-        (isReflection?7.0:11.8)*jitter(i,salt+3)*
+      const length=(isReflection?4.0:7.8)+
+        (isReflection?8.1:14.2)*jitter(i,salt+3)*
         clamp(depth/13,.4,1.15);
       const lean=(x<245?.52:x<289?.17:.58)+
         (jitter(i,salt+4)-.5)*.33;
@@ -189,10 +194,10 @@ const newContours:Readonly<Record<NewId,Readonly<{
   color:CrayonColor;width:number;opacity:number;waxPressure:number;
 }>>>={
   "source-brow-follicles-near":{
-    color:"#493435",width:.39,opacity:.83,waxPressure:.72,
+    color:"#493435",width:.22,opacity:.53,waxPressure:.38,
   },
   "source-brow-flyaways-near":{
-    color:"#a48072",width:.22,opacity:.40,waxPressure:.45,
+    color:"#a48072",width:.13,opacity:.31,waxPressure:.22,
   },
 };
 /**
