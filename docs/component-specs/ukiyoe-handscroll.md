@@ -511,8 +511,17 @@ Storybook **Wardrobe** shows every role, by season and view, with a re-dress but
     with its red cloth and paper tie, a tortoiseshell comb, the bar and a pin with dangling strips.
   - The front shimada: the Fuji-shaped hairline, the side locks combed out into thin wings, the front puff, the knot,
     the comb and two pins.
-- **Expressions.** The `emote` action (`mood`: smile, laugh, sad, cry, surprise, angry, fear, shy) blends like any
-  action. It moves the brows, the lids and iris, and the mouth; tears run, and the cheeks colour.
+- **Expressions.** The `emote` action blends like any action. Its `mood` is one of smile, laugh, sad, cry, surprise,
+  angry, fear, shy, disgust, contempt, pain, sleepy, determined or mie.
+  - **The anatomy comes from EXPR1** (the facial expressions framework). A mood's action units move ANAT1's measured
+    face, and `moodShape` turns the features into the drawing: brows lift, slant or knit, lids open or narrow and arch
+    over raised cheeks, the iris drops with a lowered gaze, and the mouth's corners turn, one-sided for contempt.
+  - **So a felt smile narrows the eyes** (Duchenne), anger presses the lips instead of turning them down, and blended
+    moods mix their muscles, not their drawings.
+  - **The prints' conventions sit on top.** Laughter closes the eyes into crescents, a stare shows the lower lid, tears
+    run and the cheeks colour. A frown is inked even on a woman, because the soft brow smudge cannot frown.
+  - **Creases** (forehead lines, the lines between the brows, the fold from nose to mouth, from EXPR1's marks) show on
+    men while the expression lasts and fade in with it. A beauty's face stays smooth, as in the prints.
 - **Face traits.** `look.features` sets eye, brow, nose, mouth, jaw, age and mole. Whatever is left out comes from a
   hash of the look's identity (hair, build, skin, robe, sash), not its view or props, so a character keeps one face in
   every shot while a crowd's faces differ. Age adds lines at the brow, eye and mouth.

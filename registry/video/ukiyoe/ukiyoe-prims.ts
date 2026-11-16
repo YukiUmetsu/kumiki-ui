@@ -36,14 +36,17 @@ export type Prim =
   /** `union`: every subpath of `d` clips on its own, so overlapping sub-shapes always add (never cancel by winding). */
   | { t: "clip"; d: string; prims: Prim[]; key: string; union?: boolean };
 
-/** Circle as a path segment, for `dots`. */
+/**
+ * Circle as a path segment, for `dots`. The radius is rounded once and the arcs span exactly twice it: rounding the
+ * radius and the span separately (0.45 → 0.5 against a 0.9 span) bent small arcs into two lobes.
+ */
 export const circleD = (x: number, y: number, r: number) => {
-  const f = (v: number) => (Math.round(v * 10) / 10).toString();
-  return `M${f(x - r)} ${f(y)}a${f(r)} ${f(r)} 0 1 0 ${f(2 * r)} 0a${f(r)} ${f(r)} 0 1 0 ${f(-2 * r)} 0`;
+  const f = (v: number) => (Math.round(v * 10) / 10).toString(), q = Math.round(r * 10) / 10;
+  return `M${f(x - q)} ${f(y)}a${q} ${q} 0 1 0 ${f(2 * q)} 0a${q} ${q} 0 1 0 ${f(-2 * q)} 0`;
 };
 export const ellipseD = (cx: number, cy: number, rx: number, ry: number) => {
-  const f = (v: number) => (Math.round(v * 10) / 10).toString();
-  return `M${f(cx - rx)} ${f(cy)}a${f(rx)} ${f(ry)} 0 1 0 ${f(2 * rx)} 0a${f(rx)} ${f(ry)} 0 1 0 ${f(-2 * rx)} 0Z`;
+  const f = (v: number) => (Math.round(v * 10) / 10).toString(), q = Math.round(rx * 10) / 10;
+  return `M${f(cx - q)} ${f(cy)}a${q} ${f(ry)} 0 1 0 ${f(2 * q)} 0a${q} ${f(ry)} 0 1 0 ${f(-2 * q)} 0Z`;
 };
 export const rectD = (x: number, y: number, w: number, h: number) => {
   const f = (v: number) => (Math.round(v * 10) / 10).toString();

@@ -68,4 +68,5 @@ with ANIM1 and FLORA1.
 - The face is ANAT1's mask: no hair, teeth, tongue or eyeballs. Irises are drawn at the gaze.
 - Front-view line studies only; turn the clay render with ANAT1's camera.
 - Amounts are estimates and not yet calibrated against measured landmark displacement data.
-- Not yet applied to UKIYO1's eight moods.
+- Applied to UKIYO1: its fourteen moods are drawn from these features (`moodShape` in `ukiyoe-face.ts`); other styles
+  still map their own.

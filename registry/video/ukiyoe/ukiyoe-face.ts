@@ -13,9 +13,21 @@
  *   edge; the hair mass carries fine lines of sheen.
  * - Men's brows are darker and heavier; their eyes shorter. Age adds lines at the brow, the eye and the cheek.
  *
- * Expressions (`emote` action, blended like any action): smile, laugh, sad, cry, surprise, angry, fear, shy — brows
- * tilt and lift, lids curve, lower or open, the iris hides or shows, the mouth turns up, down or opens, tears run, the
- * cheeks colour. Kept within the prints' restraint.
+ * Expressions (`emote` action, blended like any action) come from the facial expressions framework (EXPR1): a mood is
+ * a set of FACS action units moved on ANAT1's measured face, and its features set the drawing (`moodShape`):
+ * - brows lift, slant or knit;
+ * - the lids open, narrow or arch over raised cheeks; the iris drops with a lowered gaze;
+ * - the mouth's corners turn (one-sided for contempt) and it widens or opens;
+ * - on men, creases show while the expression lasts: forehead lines, lines between the brows, the fold from nose to
+ *   mouth. A beauty's face stays smooth, as in the prints.
+ *
+ * So a smile narrows the eyes (Duchenne) and anger presses the lips rather than turning them down. The prints'
+ * conventions are added on top, kept within their restraint:
+ * - laughter closes the eyes into crescents, and a stare shows the lower lid;
+ * - a frown is inked even on a woman (the soft brow smudge cannot frown);
+ * - tears run, rouge rises on the cheeks.
+ *
+ * Moods: smile, laugh, sad, cry, surprise, angry, fear, shy, disgust, contempt, pain, sleepy, determined, mie.
  *
  * Face traits (`look.features`) — eye, brow, nose, mouth, jaw, age, mole — default from a hash of the look itself, so a
  * character keeps one face in every shot while the people of a crowd all differ.
@@ -25,15 +37,76 @@ import { carvedLine, clamp01, hash01, lerp, smoothD } from "./ukiyoe-core";
 import type { Prim } from "./ukiyoe-prims";
 import { circleD, ellipseD } from "./ukiyoe-prims";
 import type { UkiyoePaint } from "./ukiyoe-pigments";
+import { createFace, FACE_LANDMARKS } from "../../anatomy/anatomy-face";
+import type { FaceStudy } from "../../anatomy/anatomy-face";
+import { blendWeights, expressFace, expressionFeatures, expressionMarks } from "../../anatomy/expression-face";
+import { EMOTIONS } from "../../anatomy/expression-facs";
 
 type Map2 = (x: number, y: number) => Pt;
 const f1 = (n: number) => n.toFixed(1);
 
-export type UkiyoeMood = "smile" | "laugh" | "sad" | "cry" | "surprise" | "angry" | "fear" | "shy";
-export const UKIYOE_MOODS: readonly UkiyoeMood[] = ["smile", "laugh", "sad", "cry", "surprise", "angry", "fear", "shy"];
+export type UkiyoeMood = "smile" | "laugh" | "sad" | "cry" | "surprise" | "angry" | "fear" | "shy" | "disgust" | "contempt" | "pain" | "sleepy" | "determined" | "mie";
+export const UKIYOE_MOODS: readonly UkiyoeMood[] = ["smile", "laugh", "sad", "cry", "surprise", "angry", "fear", "shy", "disgust", "contempt", "pain", "sleepy", "determined", "mie"];
 /** Expression weights (0–1), carried on the figure pose. */
-export interface FaceMoods { smile: number; laugh: number; sad: number; cry: number; surprise: number; angry: number; fear: number; shy: number }
-export const NO_MOOD: FaceMoods = { smile: 0, laugh: 0, sad: 0, cry: 0, surprise: 0, angry: 0, fear: 0, shy: 0 };
+export type FaceMoods = Record<UkiyoeMood, number>;
+export const NO_MOOD: FaceMoods = Object.fromEntries(UKIYOE_MOODS.map(m => [m, 0])) as FaceMoods;
+
+/** The mood weights out of any record that carries them (a figure's pose). */
+export function moodsOf(p: FaceMoods): FaceMoods {
+  return Object.fromEntries(UKIYOE_MOODS.map(m => [m, p[m]])) as FaceMoods;
+}
+
+/** What an expression does to a UKIYO1 face's drawing (head units; eye ≈ 6 units long), from EXPR1's features. */
+export interface MoodShape {
+  browRaise: number; browInnerTilt: number; browKnit: number;
+  eyeOpen: number; eyeArch: number; eyeOuterUp: number; crescent: number; gazeDown: number;
+  /**
+   * Mouth corner turn (+ up) for the face's own left and right (one-sided for contempt); the left is drawn at +x, the
+   * side the head faces, so it is the far corner in three-quarter and profile. Then width (× neutral) and opening.
+   */
+  curveL: number; curveR: number; mouthWidth: number; mouthOpen: number;
+  /** Crease strengths (0..1) from EXPR1's marks: forehead lines, the lines between the brows, the nose-to-mouth fold. */
+  forehead: number; glabella: number; fold: number;
+}
+const NEUTRAL_SHAPE: MoodShape = { browRaise: 0, browInnerTilt: 0, browKnit: 0, eyeOpen: 1, eyeArch: 0, eyeOuterUp: 0, crescent: 0, gazeDown: 0, curveL: 0, curveR: 0, mouthWidth: 1, mouthOpen: 0, forehead: 0, glabella: 0, fold: 0 };
+let NEUTRAL_FACE: FaceStudy | undefined;
+const SHAPES = new Map<string, MoodShape>();
+/** Head units per eye width, and the prints' restraint (a print face moves less than a photograph). */
+const U = 6, RESTRAINT = .9;
+/**
+ * The drawing parameters for a blend of moods: the moods' action units blended and moved on ANAT1's face (EXPR1), the
+ * features read back and scaled to the print. Cached by the rounded weights.
+ */
+export function moodShape(m: Partial<FaceMoods>): MoodShape {
+  const active = UKIYOE_MOODS.filter(k => (m[k] ?? 0) > .01);
+  if (!active.length) return NEUTRAL_SHAPE;
+  const key = active.map(k => `${k}:${(m[k] ?? 0).toFixed(2)}`).join(",");
+  const hit = SHAPES.get(key);
+  if (hit) return hit;
+  NEUTRAL_FACE ??= createFace();
+  const sets = active.map(k => [EMOTIONS.find(e => e.id === k)?.aus ?? {}, m[k] ?? 0] as [Readonly<Record<number, number>>, number]);
+  const lead = active.reduce((a, b) => ((m[a] ?? 0) >= (m[b] ?? 0) ? a : b));
+  const f = expressFace(blendWeights(...sets), NEUTRAL_FACE, EMOTIONS.find(e => e.id === lead)?.side);
+  const ft = expressionFeatures(f), R = RESTRAINT * U;
+  // Each corner's own turn (one-sided for contempt), in eye widths, from the moved face.
+  const L = (k: keyof typeof FACE_LANDMARKS) => f.neutral[FACE_LANDMARKS[k]][0];
+  const ew = (Math.abs(L("exocanthion.L") - L("endocanthion.L")) + Math.abs(L("exocanthion.R") - L("endocanthion.R"))) / 2;
+  const corner = (k: "cheilion.L" | "cheilion.R") => (f.vertices[FACE_LANDMARKS[k]][1] - f.neutral[FACE_LANDMARKS[k]][1]) / ew;
+  const grief = Math.max(0, ft.browInner - ft.browOuter), marks = expressionMarks(f);
+  const crease = (id: string) => Math.max(0, ...marks.filter(x => x.id.startsWith(id)).map(x => x.strength));
+  const shape: MoodShape = {
+    // The nose wrinkler (AU 9) also narrows the eyes and pulls the inner brows down; the mesh's lids miss it, so add it.
+    browRaise: ft.browOuter * R * 1.1, browInnerTilt: (ft.browInner - ft.browOuter - ft.noseWrinkle * 2) * R / .6, browKnit: ft.browKnit,
+    eyeOpen: ft.eyeOpen - ft.noseWrinkle * 2.5, eyeArch: ft.cheekRaise * 7.4 - grief * 2, eyeOuterUp: -grief * 4 + Math.max(0, ft.browOuter - ft.browInner) * 2,
+    // The prints close a laughing face's eyes into crescents (anatomy narrows them to slits).
+    crescent: clamp01(ft.cheekRaise / .17) * clamp01(ft.mouthOpen * 6), gazeDown: Math.max(0, -f.gaze.y),
+    curveL: corner("cheilion.L") * R * .82, curveR: corner("cheilion.R") * R * .82, mouthWidth: ft.mouthWidth, mouthOpen: ft.mouthOpen * 2.7,
+    forehead: crease("forehead"), glabella: crease("glabella"), fold: crease("nasolabial"),
+  };
+  if (SHAPES.size > 512) SHAPES.clear();
+  SHAPES.set(key, shape);
+  return shape;
+}
 
 /** Facial traits; any left out are chosen from the look's hash. */
 export interface UkiyoeFaceFeatures {
@@ -93,21 +166,22 @@ export function profileOutline(base: readonly Pt[], t: FaceTraits): Pt[] {
   });
 }
 
-interface Ctx { P: Map2; k: number; lw: number; m: FaceMoods; t: FaceTraits; blink: number; mouth: number; hair: UkiyoePaint; lips?: UkiyoePaint; gaze?: number }
+interface Ctx { P: Map2; k: number; lw: number; m: FaceMoods; s: MoodShape; t: FaceTraits; blink: number; mouth: number; hair: UkiyoePaint; lips?: UkiyoePaint; gaze?: number }
 
 /** One eye: the upper lid (curving with the mood), the iris hanging from it, lower lid when wide, lashes of the closed eye. */
 function eye(c: Ctx, cx: number, cy: number, len: number, dir: 1 | -1, tilt: number): Prim[] {
-  const { P, k, m, t } = c, out: Prim[] = [], w = len * t.eye;
-  // Open (0 shut … 1 normal … >1 wide), lid curve (+ smile-arch, − droop), outer corner raise.
-  const shut = clamp01(Math.max(c.blink, m.laugh * .95, m.cry * .55, m.shy * .45));
-  const open = (1 - shut) * (1 + m.surprise * .8 + m.fear * .6 - m.angry * .35 - m.sad * .25);
-  const arch = (m.smile * .9 + m.laugh) * 1.2 - m.sad * .4;
-  const outerUp = tilt + t.eyeTilt - m.sad * .9 + m.angry * .5;
+  const { P, k, m, s, t } = c, out: Prim[] = [], w = len * t.eye;
+  // Open (0 shut … 1 normal … >1 wide), lid curve (+ arched over raised cheeks, − drooping), outer corner raise.
+  const shut = clamp01(Math.max(c.blink, s.crescent, s.gazeDown * .45));
+  // Widening is drawn larger than narrowing: the prints' stare shows the lower lid (anatomy's AU 7 holds the lids in).
+  const open = (1 - shut) * Math.min(2.2, Math.max(0, 1 + (s.eyeOpen - 1) * (s.eyeOpen > 1 ? 3.5 : 1.3)));
+  const arch = s.eyeArch;
+  const outerUp = tilt + t.eyeTilt + s.eyeOuterUp;
   const inner: Pt = [cx + dir * w * .5, cy], outer: Pt = [cx - dir * w * .5, cy - outerUp * .6];
   const lineW = k * (t.female ? .3 : .42) + .3;
   if (open < .12) {
-    // Closed: a lid line curving down (laughing, an upturned crescent) with a hint of lashes.
-    const mid: Pt = [cx, cy + (arch > .3 ? -.9 * arch : .5)];
+    // Closed: a lid line curving down, or an upturned crescent over smiling cheeks; squeezed shut (pain) stays flat.
+    const mid: Pt = [cx, cy + (arch > .3 && s.browKnit < .1 ? -.9 * arch : s.browKnit >= .1 ? .15 : .5)];
     out.push({ t: "line", d: carvedLine([P(...inner), P(...mid), P(...outer)], lineW * 1.1, { taper: "both", smooth: true }), color: "sumi" });
     if (m.cry > .2) out.push({ t: "stroke", d: [0, 1, 2].map(i => { const q = P(cx - dir * w * (.1 + i * .16), cy + .6); return `M${f1(q[0])} ${f1(q[1])}l${f1(-dir * k * .3)} ${f1(k * .9)}`; }).join(""), color: "sumi", width: lineW * .5, opacity: .7 });
     return out;
@@ -117,8 +191,11 @@ function eye(c: Ctx, cx: number, cy: number, len: number, dir: 1 | -1, tilt: num
   out.push({ t: "line", d: carvedLine([P(...inner), P(...mid), P(...outer), P(outer[0] - dir * w * .06, outer[1] - .2)], lineW, { taper: "both", minRatio: .2, smooth: true }), color: "sumi" });
   // Iris: a small black almond hanging from the lid toward the inner corner; hidden more as the lid lowers.
   const irisR = .66 * Math.min(1.3, .7 + open * .3), ix = cx + dir * w * .12 + (c.gaze ?? 0) * w * .2, iy = cy + lift * .55 + irisR * .55;
-  const hide = clamp01(1 - open) * .6 + m.shy * .3;
-  out.push({ t: "clip", d: smoothD([P(...inner), P(...mid), P(...outer), P(cx, cy + 1.6 * open + .4)], true, .35), key: "iris", prims: [
+  const hide = clamp01(1 - open) * .6 + s.gazeDown * .4;
+  // The eye opening the iris shows through: the upper lid, then a convex lower arc (a single low point pinched the iris).
+  const low = 1.6 * open + .4;
+  const opening = [inner, mid, outer, [cx - dir * w * .28, cy + low * .75], [cx + dir * w * .08, cy + low], [cx + dir * w * .36, cy + low * .6]] as Pt[];
+  out.push({ t: "clip", d: smoothD(opening.map(q => P(...q)), true, .35), key: "iris", prims: [
     { t: "fill", d: ellipseD(...P(ix, iy + hide * irisR), irisR * k * .85, irisR * k), fill: "sumi" },
     { t: "fill", d: circleD(...P(ix - dir * irisR * .3, iy - irisR * .25 + hide * irisR), irisR * k * .22), fill: "gofun", opacity: .55 },
   ] });
@@ -131,12 +208,12 @@ function eye(c: Ctx, cx: number, cy: number, len: number, dir: 1 | -1, tilt: num
 
 /** One brow: a soft grey smudge for women, an inked stroke for men; tilts with the mood. */
 function brow(c: Ctx, cx: number, cy: number, len: number, dir: 1 | -1): Prim[] {
-  const { P, k, m, t } = c, w = len * (t.female ? 1.1 : 1);
-  const raise = m.surprise * 1.6 + m.fear * 1.1 + m.sad * .4 - m.angry * .9;
-  const innerTilt = (m.sad * 1.5 + m.fear * 1.2 + m.cry * 1.2) - m.angry * 1.6 + t.browTilt;
+  const { P, k, s, t } = c, w = len * (t.female ? 1.1 : 1);
+  const raise = s.browRaise, innerTilt = s.browInnerTilt + t.browTilt;
   const inner: Pt = [cx + dir * w * .5, cy - raise - innerTilt * .6], outer: Pt = [cx - dir * w * .5, cy - raise + .2 + t.browTilt * .3];
-  const peak: Pt = [cx + dir * w * (.05 - m.angry * .1), cy - raise - .9 * t.browArch - m.surprise * .6 - innerTilt * .25];
-  if (t.female && !m.angry) {
+  const peak: Pt = [cx + dir * w * (.05 - s.browKnit * .4), cy - raise - .9 * t.browArch - innerTilt * .25];
+  // Brows knitted and lowered (a frown) are drawn as an inked line even on a woman: the soft smudge cannot frown.
+  if (t.female && !(s.browKnit > .1 && s.browInnerTilt < -.5)) {
     // The soft grey smudge, darker along its lower edge.
     const th = .75 * t.browW;
     return [
@@ -149,11 +226,12 @@ function brow(c: Ctx, cx: number, cy: number, len: number, dir: 1 | -1): Prim[] 
 
 /** The mouth at (cx, cy): lips (rouged on women), parting line turning up or down, open when talking or crying out. */
 function mouth(c: Ctx, cx: number, cy: number, w0: number, dir: 1 | -1): Prim[] {
-  const { P, k, m, t } = c, out: Prim[] = [], w = w0 * t.mouth, curve = m.smile * .9 + m.shy * .4 + m.laugh * .6 - m.sad * .8 - m.angry * .5 - m.cry * .6;
-  const open = Math.max(c.mouth, m.laugh * .75, m.surprise * .5, m.fear * .45, m.cry * .4);
-  const corner = (s: 1 | -1): Pt => [cx + s * dir * w * .5, cy - curve * .7];
+  const { P, k, s, t } = c, out: Prim[] = [], w = w0 * t.mouth * s.mouthWidth, curve = (s.curveL + s.curveR) / 2;
+  const open = Math.max(c.mouth, s.mouthOpen);
+  // Each corner turns by its own amount (one-sided for contempt); `side` 1 is the face's left.
+  const corner = (side: 1 | -1): Pt => [cx + side * dir * w * .5, cy - (side === 1 ? s.curveL : s.curveR) * .7];
   if (open > .08) {
-    const h = (.5 + 1.5 * open) * (1 + m.surprise * .3);
+    const h = (.5 + 1.5 * open) * (1 + Math.max(0, s.eyeOpen - 1));
     out.push({ t: "fill", d: smoothD([P(...corner(1)), P(cx, cy - h * .45 - curve * .2), P(...corner(-1)), P(cx, cy + h * .55)], true, .45), fill: "kogecha", outline: k * .2 + .25, outlineColor: "sumi" });
     if (t.female || c.lips) out.push({ t: "fill", d: smoothD([P(cx - w * .3, cy + h * .45), P(cx, cy + h * .75), P(cx + w * .3, cy + h * .45), P(cx, cy + h * .5)], true, .4), fill: c.lips ?? "beni", opacity: .9 });
     return out;
@@ -182,19 +260,36 @@ function colour(c: Ctx, eyeAt: Pt, cheekAt: Pt, dir: 1 | -1): Prim[] {
   return out;
 }
 
-/** Age lines: the brow furrow, the fold from nose to mouth. */
-function aged(c: Ctx, brow: Pt, fold: [Pt, Pt]): Prim[] {
-  const { P, k, t, m } = c;
-  const a = Math.max(t.age, m.angry * .5);
-  if (a < .3) return [];
-  return [{ t: "stroke", d: [0, 1].map(i => { const q = P(brow[0], brow[1] - 2.2 - i * 1.4); return `M${f1(q[0] - k * 2)} ${f1(q[1])}q${f1(k * 2)} ${f1(-k * .5)} ${f1(k * 4)} 0`; }).join("") + `M${f1(P(...fold[0])[0])} ${f1(P(...fold[0])[1])}Q${f1(P(fold[0][0], fold[1][1])[0])} ${f1(P(fold[0][0], fold[1][1])[1])} ${f1(P(...fold[1])[0])} ${f1(P(...fold[1])[1])}`, color: "sumi", width: k * .2 + .25, opacity: .4 * a }];
+/**
+ * Age lines and expression creases: forehead lines, the lines between the brows, the fold from nose to mouth. Age
+ * draws them for good; an expression draws them while it lasts (EXPR1's marks). A beauty's face stays smooth, as in
+ * the prints: her creases show only from age.
+ */
+function aged(c: Ctx, brow: Pt, folds: readonly { a: Pt; b: Pt; side: "L" | "R" }[], between: Pt): Prim[] {
+  const { P, k, t, s } = c, x = t.female ? 0 : 1;
+  // Creases fade in from where they start to show, so an expression easing in does not pop them on.
+  const fade = (v: number) => .4 * Math.min(v, clamp01((v - .3) / .25)), out: Prim[] = [];
+  const stroke = (d: string, v: number) => { if (v > .3) out.push({ t: "stroke", d, color: "sumi", width: k * .2 + .25, opacity: fade(v) }); };
+  const forehead = Math.max(t.age, s.forehead * x);
+  stroke([0, 1].map(i => { const q = P(brow[0], brow[1] - 2.2 - i * 1.4); return `M${f1(q[0] - k * 2)} ${f1(q[1])}q${f1(k * 2)} ${f1(-k * .5)} ${f1(k * 4)} 0`; }).join(""), forehead);
+  // The fold needs a broad smile or a grimace (a shy smile leaves it smooth), and shows on the side whose corner rises.
+  const top = Math.max(s.curveL, s.curveR);
+  for (const f of folds) {
+    const share = top > .1 ? clamp01((f.side === "L" ? s.curveL : s.curveR) / top) : 1;
+    const q0 = P(...f.a), q1 = P(f.a[0], f.b[1]), q2 = P(...f.b);
+    stroke(`M${f1(q0[0])} ${f1(q0[1])}Q${f1(q1[0])} ${f1(q1[1])} ${f1(q2[0])} ${f1(q2[1])}`, Math.max(t.age, (s.fold - .3) / .7 * x * share));
+  }
+  const knit = s.glabella * x;
+  // The lines between knitted brows: two short fine strokes, closing toward the nose.
+  if (knit > .3) out.push({ t: "stroke", d: [-1, 1].map(i => { const a = P(between[0] + i * .5, between[1] - 1.2), b = P(between[0] + i * .3, between[1] + .4); return `M${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}`; }).join(""), color: "sumi", width: k * .14 + .2, opacity: fade(knit) * .9 });
+  return out;
 }
 
 export interface FaceArgs { P: Map2; k: number; lw: number; moods: FaceMoods; traits: FaceTraits; blink: number; mouth: number; hair: UkiyoePaint; lips?: UkiyoePaint; gaze?: number }
 
 /** Features of a head in profile (head units, facing +x): eye, brow, nostril, mouth, rouge, age, mole. */
 export function faceProfile(a: FaceArgs): Prim[] {
-  const c: Ctx = { P: a.P, k: a.k, lw: a.lw, m: a.moods, t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips, gaze: a.gaze }, t = a.traits, out: Prim[] = [];
+  const c: Ctx = { P: a.P, k: a.k, lw: a.lw, m: a.moods, s: moodShape(a.moods), t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips, gaze: a.gaze }, t = a.traits, out: Prim[] = [];
   out.push(...colour(c, [10.2, -1.4], [12.5, 4.5], -1));
   out.push(...brow(c, 9.6, -6.9, 7.4, 1));
   out.push(...eye(c, 10, -1.4, 6.2, 1, .2));
@@ -202,14 +297,14 @@ export function faceProfile(a: FaceArgs): Prim[] {
   const nx = 20.2 + (t.nose - 1) * 3 - 1.4;
   out.push({ t: "line", d: carvedLine([a.P(nx, 5.6), a.P(nx - 1.1, 6.1), a.P(nx - 1.2, 5.3)], a.k * .22 + .25, { taper: "both", smooth: true }), color: "sumi", opacity: .7 });
   out.push(...mouth(c, 16.5, 9.4, 2.3, 1));
-  out.push(...aged(c, [9.6, -6.9], [[16.2, 6.4], [15.6, 10.6]]));
+  out.push(...aged(c, [9.6, -6.9], [{ a: [16.2, 6.4], b: [15.6, 10.6], side: "R" }], [15.4, -6.2]));
   if (t.mole) out.push({ t: "fill", d: circleD(...a.P(13.6, 7.2), a.k * .35), fill: "sumi", opacity: .8 });
   return out;
 }
 
 /** Features of a head turned three-quarters (head units): the near eye long, the far eye foreshortened; nose line. */
 export function faceThreeQuarter(a: FaceArgs): Prim[] {
-  const c: Ctx = { P: a.P, k: a.k, lw: a.lw, m: a.moods, t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips, gaze: a.gaze }, t = a.traits, out: Prim[] = [];
+  const c: Ctx = { P: a.P, k: a.k, lw: a.lw, m: a.moods, s: moodShape(a.moods), t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips, gaze: a.gaze }, t = a.traits, out: Prim[] = [];
   out.push(...colour(c, [6.8, -1.3], [5.5, 4.5], -1));
   out.push(...brow(c, 6.6, -7.2, 7, 1), ...brow(c, 14.2, -7.1, 3, 1));
   out.push(...eye(c, 6.8, -1.3, 5.6, 1, .25), ...eye(c, 14.1, -1.1, 2.7, 1, .1));
@@ -217,7 +312,7 @@ export function faceThreeQuarter(a: FaceArgs): Prim[] {
   const tip = 5 + (t.nose - 1) * 2;
   out.push({ t: "line", d: carvedLine([a.P(12.4, -5.6), a.P(13.6, -1.5), a.P(15.4 + t.hook * .6, tip - 1), a.P(16.2, tip), a.P(15, tip + .9), a.P(13.9, tip + .6)], a.k * (t.female ? .24 : .34) + .3, { taper: "start", minRatio: .2, smooth: true }), color: "sumi" });
   out.push(...mouth(c, 12.8, 10.2, 2.6, 1));
-  out.push(...aged(c, [8.6, -7.2], [[11, 6.5], [10.2, 11]]));
+  out.push(...aged(c, [8.6, -7.2], [{ a: [11, 6.5], b: [10.2, 11], side: "R" }], [11.2, -6.6]));
   if (t.mole) out.push({ t: "fill", d: circleD(...a.P(9.2, 7.4), a.k * .35), fill: "sumi", opacity: .8 });
   return out;
 }
@@ -225,7 +320,7 @@ export function faceThreeQuarter(a: FaceArgs): Prim[] {
 /** Features of a head seen square on (unit radius r): both eyes, brows, nose line, mouth. */
 export function faceFront(a: FaceArgs): Prim[] {
   // Work in the profile helpers' units (≈ 18 units to the radius) and mirror for the two sides.
-  const u = a.k / 18, P: Map2 = (x, y) => a.P(x / 18, y / 18), c: Ctx = { P, k: a.k / 18 * 1, lw: a.lw, m: a.moods, t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips, gaze: a.gaze }, out: Prim[] = [];
+  const u = a.k / 18, P: Map2 = (x, y) => a.P(x / 18, y / 18), c: Ctx = { P, k: a.k / 18 * 1, lw: a.lw, m: a.moods, s: moodShape(a.moods), t: a.traits, blink: a.blink, mouth: a.mouth, hair: a.hair, lips: a.lips, gaze: a.gaze }, out: Prim[] = [];
   void u;
   for (const s of [-1, 1] as const) {
     out.push(...colour(c, [s * 6.4, -1.2], [s * 8.5, 5], s === 1 ? -1 : 1));
@@ -234,7 +329,7 @@ export function faceFront(a: FaceArgs): Prim[] {
   }
   out.push({ t: "line", d: carvedLine([P(.6, -3), P(1.1, 3.6 + (a.traits.nose - 1) * 2), P(.2, 5.8), P(-1, 5.4)], a.k / 18 * (a.traits.female ? .24 : .34) + .3, { taper: "start", minRatio: .25, smooth: true }), color: "sumi", opacity: .85 });
   out.push(...mouth(c, 0, 10.6, 3.4, 1));
-  out.push(...aged(c, [0, -8], [[3.6, 5.6], [4.4, 10]]));
+  out.push(...aged(c, [0, -8], [{ a: [3.6, 5.6], b: [4.4, 10], side: "L" }, { a: [-3.6, 5.6], b: [-4.4, 10], side: "R" }], [0, -7.8]));
   if (a.traits.mole) out.push({ t: "fill", d: circleD(...P(-5, 7), a.k / 18 * .4), fill: "sumi", opacity: .8 });
   return out;
 }
