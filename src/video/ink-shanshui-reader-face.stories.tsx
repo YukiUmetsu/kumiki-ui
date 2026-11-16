@@ -631,14 +631,20 @@ function ReaderExpressionLab(){
           strokeLinecap="round" strokeLinejoin="round"/>:null):null;
     };
     const part=(key:string,pivot:[number,number],asset=key,
-      offset?:{readonly x:number;readonly y:number})=>{
-      // Gaze stays inside each original RIG1 rest pivot. No iris detail or
-      // dry ink edge is rasterized or replaced with a generic round pupil.
+      offset?:{readonly x:number;readonly y:number},clip?:string)=>{
       const rest=pose(fit.facialRest[key as keyof typeof fit.facialRest],pivot);
-      const travel=offset&&(offset.x!==0||offset.y!==0)?
-        " translate("+offset.x+" "+offset.y+")":"";
-      return <g data-km-ink-expression-part={key} transform={rest+travel}>
-        {shapes(asset)}
+      // The SVG clipPath must share the pupil's OWN source-local space.
+      // Applying the mask to a parent head-transformed group made actual
+      // Chromium irises vanish despite correct DOM path/count tests.
+      const travel="translate("+(offset?.x??0)+" "+(offset?.y??0)+")";
+      return <g data-km-ink-expression-part={key} transform={rest}>
+        {clip?
+          <g data-km-ink-iris-window="" clipPath={"url(#"+clip+")"}>
+            <g data-km-ink-iris-travel="" transform={travel}>
+              {shapes(asset)}
+            </g>
+          </g>:
+          shapes(asset)}
       </g>;
     };
     return <g data-km-ink-expression-paint=""
@@ -646,14 +652,10 @@ function ReaderExpressionLab(){
       <defs>
         {apertures&&<>
           <clipPath id={clipNear} clipPathUnits="userSpaceOnUse">
-            <g transform={pose(fit.facialRest.eyes,[140,102])}>
-              <path d={apertures.near}/>
-            </g>
+            <path d={apertures.near}/>
           </clipPath>
           <clipPath id={clipFar} clipPathUnits="userSpaceOnUse">
-            <g transform={pose(fit.facialRest.eyes,[140,102])}>
-              <path d={apertures.far}/>
-            </g>
+            <path d={apertures.far}/>
           </clipPath>
         </>}
       </defs>
@@ -663,11 +665,11 @@ function ReaderExpressionLab(){
       {part("brows",[140,94],"brow")}
       {part("eyes",[140,102],"eyes-"+eyes)}
       {apertures&&<>
-        <g data-km-ink-iris-occlusion="near" clipPath={"url(#"+clipNear+")"}>
-          {part("pupil-left",[128,102],"pupil-left",gaze.near)}
+        <g data-km-ink-iris-occlusion="near">
+          {part("pupil-left",[128,102],"pupil-left",gaze.near,clipNear)}
         </g>
-        <g data-km-ink-iris-occlusion="far" clipPath={"url(#"+clipFar+")"}>
-          {part("pupil-right",[156,102],"pupil-right",gaze.far)}
+        <g data-km-ink-iris-occlusion="far">
+          {part("pupil-right",[156,102],"pupil-right",gaze.far,clipFar)}
         </g>
       </>}
       {part("mouth",[142,124],"mouth-"+mouth)}
