@@ -21,10 +21,10 @@ export const RISO48_RECEIVER_PROJECTION={
   source:"Proko hand-muscle construction and Kumiki ANAT1 original 3-bone hand",
   // World 2D projected foreshortening in source units, relative to the
   // original hidden 3D bone length. Earlier contact must interpolate.
-  middle:{pip:-2.2,dip:-2.1},
-  ring:{pip:-2.3,dip:-1.8},
-  pinky:{pip:-2.0,dip:-1.5},
-  minimumVisibleBoneRatio:.55,
+  middle:{pip:-3.25,dip:-2.55},
+  ring:{pip:-2.8,dip:-2.25},
+  pinky:{pip:-2.25,dip:-1.65},
+  minimumVisibleBoneRatio:.58,
   maximumCompressionRatio:.42,
   verification:"independent exact render and 2-frame no-collisions required",
 } as const;
