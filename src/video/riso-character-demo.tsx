@@ -109,18 +109,26 @@ export const COURIER: RisoCharacterSpec = {
     // not the proximal forearm and not an independent sticker.
     { id: "left-palm-surface", parent: "left-hand", x: 0, y: 11 },
     // RISO33: the MCP fan MUST preserve separate negative-space tunnels at
+    // RISO41 ArtCraft source-contact: the former red thumb/index pads missed
+    // by 4.7 source units in the actual 6.2x Chromium f166 ink master.
+    // At true 156–186 contact the real INDEX MCP retracts 3.8 units into
+    // the palmar crease while the CMC thumb pad advances 1.5 units, both
+    // connected to the existing ANAT1 PIP/DIP/IP bones and pressed page.
+    // Keep radial x splay for independent index/middle paper-white tunnels.
     // handoff. Inward 25-degree index sweep made three articulated fingers
     // intersect even though each had the right number of source bones.
     // Palm -> individual digits: all are genuinely joint-local and keep
     // anatomical roots, even under the moving elbow rig.
     { id: "left-thumb", parent: "left-hand", x: -7.1, y: 8,
-      keys: [{frame:0,rotate:-8,easing:"ease"},{frame:92,rotate:-20,easing:"ease"},
-        {frame:160,rotate:-37,easing:"ease"},{frame:198,rotate:-15,easing:"ease"},{frame:239,rotate:-15}] },
+      keys: [{frame:0,rotate:-8,y:0,easing:"ease"},{frame:92,rotate:-20,y:0,easing:"ease"},
+        {frame:160,rotate:-37,y:1.5,easing:"ease"},
+        {frame:186,rotate:-28,y:1.5,easing:"ease"},
+        {frame:205,rotate:-15,y:0,easing:"ease"},{frame:239,rotate:-15,y:0}] },
     { id: "left-index", parent: "left-hand", x: -6, y: 16,
       keys: [{frame:0,rotate:7,easing:"ease"},{frame:92,rotate:5,easing:"ease"},
-        {frame:160,rotate:29,x:-3.25,easing:"ease"},
-        {frame:186,rotate:29,x:-3.25,easing:"ease"},
-        {frame:205,rotate:5,x:0,easing:"ease"},{frame:239,rotate:5,x:0}] },
+        {frame:160,rotate:29,x:-3.25,y:-3.8,easing:"ease"},
+        {frame:186,rotate:29,x:-3.25,y:-3.8,easing:"ease"},
+        {frame:205,rotate:5,x:0,y:0,easing:"ease"},{frame:239,rotate:5,x:0,y:0}] },
     { id: "left-middle", parent: "left-hand", x: 0, y: 18,
       keys: [{frame:0,rotate:3,easing:"ease"},{frame:92,rotate:0,easing:"ease"},
         {frame:160,rotate:0,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
@@ -163,13 +171,15 @@ export const COURIER: RisoCharacterSpec = {
     // The right hand follows the satchel via IK; separate roots let the
     // fingers close gently without dragging the palm or wrist shape.
     { id: "right-thumb", parent: "right-hand", x: 7.1, y: 8,
-      keys: [{frame:0,rotate:-9,easing:"ease"},{frame:90,rotate:18,easing:"ease"},
-        {frame:156,rotate:37,easing:"ease"},{frame:198,rotate:14},{frame:239,rotate:14}] },
+      keys: [{frame:0,rotate:-9,y:0,easing:"ease"},{frame:90,rotate:18,y:0,easing:"ease"},
+        {frame:156,rotate:37,y:1.5,easing:"ease"},
+        {frame:186,rotate:24,y:1.5,easing:"ease"},
+        {frame:205,rotate:14,y:0},{frame:239,rotate:14,y:0}] },
     { id: "right-index", parent: "right-hand", x: 6, y: 16,
       keys: [{frame:0,rotate:3,easing:"ease"},{frame:90,rotate:-3,easing:"ease"},
-        {frame:156,rotate:-29,x:3.25,easing:"ease"},
-        {frame:186,rotate:-29,x:3.25,easing:"ease"},
-        {frame:205,rotate:-5,x:0},{frame:239,rotate:-5,x:0}] },
+        {frame:156,rotate:-29,x:3.25,y:-3.8,easing:"ease"},
+        {frame:186,rotate:-29,x:3.25,y:-3.8,easing:"ease"},
+        {frame:205,rotate:-5,x:0,y:0},{frame:239,rotate:-5,x:0,y:0}] },
     { id: "right-middle", parent: "right-hand", x: 0, y: 18,
       keys: [{frame:0,rotate:0,easing:"ease"},{frame:90,rotate:0,easing:"ease"},
         {frame:156,rotate:0,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
