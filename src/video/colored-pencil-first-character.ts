@@ -629,7 +629,7 @@ export function newCharacterHeadStageOne(
       // though the earlier browser geometry gate was green. In a
       // slight 3/4 turn, the near temporal inset is visible; the far
       // contour remains mostly straight until its cheekbone turn.
-      const recession=faceWidth*(silhouetteStudy?.061:.042)*temporal*
+      const recession=faceWidth*(silhouetteStudy?.027:.042)*temporal*
         (side===-1?1:(silhouetteStudy?.34:.45));
       const cheekLift=faceWidth*(silhouetteStudy?.026:.009)*malar*
         (side===-1?1:(silhouetteStudy?.68:.78));
@@ -676,10 +676,10 @@ export function newCharacterHeadStageOne(
   // arch, and forward frontal fall. More samples, never a simplified
   // ellipse; all lower ANAT1 contour vertices are still preserved.
   const studyVault:Point[]=[
-    [r(lo-faceWidth*.050),r(faceTop+faceWidth*.240)],
-    [r(lo-faceWidth*.081),r(faceTop+faceWidth*.120)],
-    [r(lo-faceWidth*.095),r(faceTop+faceWidth*.017)],
-    [r(lo-faceWidth*.056),r(faceTop-faceWidth*.085)],
+    [r(lo-faceWidth*.027),r(faceTop+faceWidth*.240)],
+    [r(lo-faceWidth*.042),r(faceTop+faceWidth*.120)],
+    [r(lo-faceWidth*.048),r(faceTop+faceWidth*.017)],
+    [r(lo-faceWidth*.035),r(faceTop-faceWidth*.085)],
     [r(lo+faceWidth*.015),r(faceTop-faceWidth*.165)],
     [r(lo+faceWidth*.130),r(faceTop-faceWidth*.215)],
     [r(lo+faceWidth*.265),r(faceTop-faceWidth*.250)],
