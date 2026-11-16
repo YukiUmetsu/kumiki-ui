@@ -242,7 +242,7 @@ function BrushworkDetail(){
     {label:"松針 · Old-pine needle clusters",scene:"mountain-trail",
       x:95,y:161,note:"Eight deliberately crooked two-elbow old-pine branches, exact rooted child forks and narrow directional needle bundles; examine negative space"},
     {label:"皴法 · Geological texture",scene:"mountain-trail",
-      x:568,y:147,note:"Huang Gongwang, Dwelling in the Fuchun Mountains: inspect the softened, connected summit, 3 parent-rooted interlocking graded rock faces, 6 cap shelves, 9 attached erosion cuts and 3 cubic hill-back strokes with 40 hemp descendants; also verify the 5 ridge-rooted middle pines and 310 needles. Reject round rubber stamps, flat triangles and pale wireframe cliffs"},
+      x:568,y:147,note:"Huang Gongwang, Dwelling in the Fuchun Mountains: inspect the softened, connected summit, 3 parent-rooted interlocking graded rock faces, 6 cap shelves, 9 attached erosion cuts and 3 cubic hill-back strokes with 40 hemp descendants; also verify the 5 ridge-rooted middle pines and 310 needles. The 4 original long-hemp fracture strokes now each travel three jointly rooted, turning brush sections attached to the same positive stone geometry, preserving 12 reloads and 8 side fibres. At native 960x540 compare broad interlocking rock anatomy, not counts. Reject round rubber stamps, flat triangles and pale wireframe cliffs"},
     {label:"柳 · Hanging willow foliage",scene:"river-scholar",
       x:196,y:174,note:"Compare Mei Qing: 39 differently swept pressure-tapered silk strands, five bare paper reserves and asymmetrical angled leaves"},
     {label:"竹葉 · Bamboo leaf canopy",scene:"misty-hermit",
