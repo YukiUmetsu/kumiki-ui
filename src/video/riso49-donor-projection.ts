@@ -14,10 +14,12 @@ import type {RisoJoint} from "../../registry/video/riso-character";
 export const RISO49_DONOR_PROJECTION={
   actor:"courier" as const,side:"right" as const,contactFrame:160,
   source:"original thumb-index paper pinch and anatomy reference photo; ANAT1 source bones",
-  middle:{pip:-3.1,dip:-2.35},
-  ring:{pip:-2.75,dip:-2.15},
-  pinky:{pip:-2.15,dip:-1.65},
-  minimumVisibleBoneRatio:.58,
+  // RISO54: original ANAT1 three-bone *print projection*, not an
+  // anatomical bone reduction; ~66° camera-ray incidence at contact.
+  middle:{pip:-5.160,dip:-4.087},
+  ring:{pip:-4.234,dip:-3.481},
+  pinky:{pip:-3.248,dip:-2.640},
+  minimumVisibleBoneRatio:.385,
   reference:"CMU's Hand Holding Papers photograph; Proko real-hand anatomy",
   quality:"source-candidate: no photo-aligned landmark approval" as const,
 } as const;
