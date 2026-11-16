@@ -16,6 +16,7 @@ import { drawYokai, UKIYOE_YOKAI } from "./ukiyoe-yokai";
 import type { UkiyoeCritter } from "./ukiyoe-critters";
 import { drawCritter, UKIYOE_CRITTERS } from "./ukiyoe-critters";
 import type { UkiyoeFill, UkiyoePaint } from "./ukiyoe-pigments";
+import { birdFlight, flightAt, glideStroke, wingStroke } from "../../anatomy/animal-flight";
 
 export type UkiyoeSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue" | "bear" | "boar" | "deer" | "ox" | "wolf" | "mouse" | "weasel" | "baku" | "ape" | "crane" | "heron" | "crow" | "pheasant" | "sparrow" | "hawk" | "oshidori" | "dragon" | UkiyoeYokai | UkiyoeCritter;
 export const UKIYOE_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "nue", "bear", "boar", "deer", "ox", "wolf", "mouse", "weasel", "baku", "ape", "crane", "heron", "crow", "pheasant", "sparrow", "hawk", "oshidori", "dragon", ...UKIYOE_YOKAI, ...UKIYOE_CRITTERS];
@@ -1405,6 +1406,10 @@ interface Bird {
   primary: UkiyoePaint; secondary: UkiyoePaint; covert: UkiyoePaint; tailColor: UkiyoePaint; eye: UkiyoePaint;
   crown?: UkiyoePaint; cheek?: UkiyoePaint; bib?: UkiyoePaint; slim: number; beakLen: number; beakDepth: number; headR: number; scallop: number; sheen?: UkiyoePaint; plume?: boolean; bustle?: boolean; bars?: UkiyoePaint;
 }
+/** Each UKIYO1 bird's species in ANIM1, for its flight. */
+const ANIM1_BIRDS: Readonly<Record<"crane" | "heron" | "crow" | "pheasant" | "sparrow" | "hawk" | "oshidori", string>> = {
+  crane: "red-crowned-crane", heron: "grey-heron", crow: "large-billed-crow", pheasant: "green-pheasant", sparrow: "eurasian-tree-sparrow", hawk: "eurasian-goshawk", oshidori: "mandarin-duck",
+};
 const BIRDS: Readonly<Record<"crane" | "heron" | "crow" | "pheasant" | "sparrow" | "hawk" | "oshidori", Bird>> = {
   // The goshawk of the falconry prints: barred pale breast, brown back, yellow eye and feet, the hooked beak.
   hawk: { body: 56, neck: 12, leg: 30, tail: 42, color: "gofun", back: "cha", neckColor: "gofun", head: "cha", beak: "sumi", legColor: "ki", primary: "kogecha", secondary: "cha", covert: "cha",
@@ -1461,9 +1466,23 @@ function bird(species: keyof typeof BIRDS, spec: UkiyoeCreatureSpec, frame: numb
   const fly = st("fly").w, dance = st("dance").w, peck = st("peck"), walk = Math.max(st("walk").w, st("run").w) * (tr.moving ? 1 : 0);
   const B = b.body * k, N = b.neck * k, Lg = b.leg * k, out: Prim[] = [];
   const color = look.color ?? b.color, back = look.color ?? b.back, line = Math.max(.8, Math.min(1.3, B * .02));
-  const flapRate = species === "sparrow" ? 2.2 : species === "crow" ? 4.5 : 6.5;
-  const beat = (frame / flapRate + seed) % (Math.PI * 2), down = .5 - .5 * Math.cos(beat);   // 0 top of stroke … 1 bottom
-  const lift = fly * (Lg * .9 + Math.sin(frame / (flapRate * 2)) * B * .08);
+  // The wingbeat comes from ANIM1's flight table: the species' predicted cruising rate (drawn at no more than 7.5 beats a
+  // second, four frames a beat at 30 fps) and its style: a crane rows on steadily, a goshawk flaps and glides, a pheasant
+  // bursts then glides on bowed wings, a sparrow bounds with its wings closed between bursts.
+  const fl = birdFlight(ANIM1_BIRDS[species]), at = fl ? flightAt(ANIM1_BIRDS[species], frame / 30, seed, 7.5) : undefined;
+  let down: number, closed = 0, flex = 0;
+  if (fl && at) {
+    const { top, bottom } = fl.stroke, share = (e: number) => clamp01((top - e) / (top - bottom));
+    // On the upstroke the wrist flexes and the wing comes up narrow; it opens again for the downstroke.
+    if (at.flight === "flap") { const ws = wingStroke(fl, at.t); down = share(ws.elevation); flex = ws.fold; }
+    else if (at.flight === "glide") down = share(glideStroke(fl).elevation) * at.amount;
+    else { down = 0; closed = at.amount; }
+  } else {
+    const beat = (frame / 6.5 + seed) % (Math.PI * 2);
+    down = .5 - .5 * Math.cos(beat);   // 0 top of stroke … 1 bottom
+  }
+  // The body rises on each downstroke (and sinks a little through a closed-wing bound).
+  const lift = fly * (Lg * .9 + (1 - down) * B * .06 - closed * B * .05);
   const bodyC: Pt = [0, -Lg * (1 - fly) - B * .42 - lift + dance * Math.abs(Math.sin(frame / 10)) * B * .3];
   const tilt = fly * 6 - (1 - fly) * (species === "crane" || species === "heron" ? 6 : 16);
   const T = (x: number, y: number): Pt => rot(add(bodyC, [x * B, y * B]), tilt, bodyC);
@@ -1508,7 +1527,7 @@ function bird(species: keyof typeof BIRDS, spec: UkiyoeCreatureSpec, frame: numb
   // falls with the stroke; the hand lags behind the wrist; the primaries fan from the hand, the secondaries hang from
   // the forearm along the trailing edge.
   const wingPrims = (near: boolean): Prim[] => {
-    const open = Math.max(fly, dance * .9), res: Prim[] = [];
+    const open = Math.max(fly * (1 - closed) * (1 - .55 * flex), dance * .9), res: Prim[] = [];
     const shoulder = T(.16, -.2 * sl), span2 = B * (longNeck ? 1.25 : species === "sparrow" ? .9 : 1.05);
     // In flight the arm sweeps from up-and-back at the top of the stroke to down at the bottom; dancing, it waves.
     const strokeA = dance > fly ? -95 + Math.sin(frame / 7) * 50 : lerp(-112, 78, down) + (near ? 0 : -8);
