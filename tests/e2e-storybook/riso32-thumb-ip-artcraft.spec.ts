@@ -81,6 +81,18 @@ test("RISO32 moving thumb IP remains attached at contact, release and both ink m
         expect(realGap).toBeLessThan(1.5);
         expect(paperPressure).toBeGreaterThan(0);
       }
+      // RISO42 live source support digit flex. Former three RED parallel
+      // tines must become genuinely articulated ANAT1 PIP/DIP bone pieces.
+      await expect(panel).toHaveAttribute("data-km-riso42-support-red-bones","9");
+      const supportFlex=Number(await panel.getAttribute("data-km-riso42-support-pip-flex"));
+      expect(Number.isFinite(supportFlex)).toBe(true);
+      if(frame===0)expect(supportFlex).toBeLessThan(.01);
+      if(frame===160||frame===166){
+        expect(supportFlex).toBeGreaterThan(32);
+        expect(supportFlex).toBeLessThan(55);
+      }
+      if(frame===239&&panelId==="paper-artist-left")
+        expect(supportFlex).toBeGreaterThan(20);
       const measured=Number(await panel.getAttribute("data-km-riso33-minimum-axis-gap"));
       expect(Number.isFinite(measured)).toBe(true);
       if(frame===160||frame===166){
