@@ -48,6 +48,34 @@ function ReaderFaceStudio(){
         opacity={shape.opacity??1}
         strokeLinecap="round" strokeLinejoin="round"/>:null);
   const fit=shanshuiBodyFit("river-scholar");
+  /** The film head is NOT in illustration coordinates after source fitting.
+   * A raw viewBox around y=90..148 once rendered only the sitter's chin
+   * because headRest maps face-space y=100 to output y≈84. Build the
+   * Storybook inspection camera from the SAME rigged head transform
+   * (including its asymmetric scale and downward head rotation).
+   * Visual comparison without an actual visible face is a false pass.
+   */
+  const fittedFaceWindow=(bounds:readonly [number,number,number,number],
+    marginX:number,marginY:number)=>{
+    const [x0,y0,x1,y1]=bounds;
+    const angle=(fit.headRest.rotation??0)*Math.PI/180;
+    const cs=Math.cos(angle),sn=Math.sin(angle);
+    const sx=fit.headRest.scaleX??1,sy=fit.headRest.scaleY??1;
+    const project=(x:number,y:number):readonly [number,number]=>{
+      const dx=(x-139)*sx,dy=(y-124)*sy;
+      return [139+(fit.headRest.x??0)+cs*dx-sn*dy,
+        124+(fit.headRest.y??0)+sn*dx+cs*dy];
+    };
+    const points=[
+      project(x0,y0),project(x1,y0),
+      project(x0,y1),project(x1,y1),
+    ];
+    const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]);
+    const left=Math.min(...xs)-marginX,top=Math.min(...ys)-marginY;
+    const right=Math.max(...xs)+marginX,bottom=Math.max(...ys)+marginY;
+    return [left,top,right-left,bottom-top]
+      .map(x=>Number(x.toFixed(3))).join(" ");
+  };
   const pose=(rest:{x?:number;y?:number;rotation?:number;
     scaleX?:number;scaleY?:number},pivotX:number,pivotY:number)=>
     "translate("+(rest.x??0)+" "+(rest.y??0)+") "+
@@ -200,7 +228,8 @@ function ReaderFaceStudio(){
         </h2>
         <svg data-testid="reader-anatomy-closeup" role="img"
           aria-label="Native portrait microanatomy with adjustable eyelid and viseme"
-          viewBox="107 89 64 58" style={{...box,height:266}}>
+          viewBox={fittedFaceWindow([112,89,166,137],4,5)}
+          style={{...box,height:266}}>
           <g transform={pose(fit.headRest,139,124)}>
             <g data-ink-anatomy-feature="base-face">{shapes("face")}</g>
             {facePart("brows","brow",[140,94])}
@@ -233,7 +262,8 @@ function ReaderFaceStudio(){
         </h2>
         <svg data-testid="reader-face-plane-study" role="img"
           aria-label="Original ANAT1-anchored three-quarter reader facial planes"
-          viewBox="106 90 65 58" style={{...box,height:300}}>
+          viewBox={fittedFaceWindow([106,68,170,147],4.5,3.5)}
+          style={{...box,height:300}}>
           <g transform={pose(fit.headRest,139,124)}>
             <g data-km-reader-anatomy-region="opaque-head">
               {anatomyMarks(faceBase)}
