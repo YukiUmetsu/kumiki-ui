@@ -603,8 +603,13 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           phrase=meter<3?"short":meter<9?"medium":"long";
           // Long diluted hemp follows the slope; short dense presses
           // build its rock crown. Preserve 78 attached material contacts.
-          const len=phrase==="short"?9+13*wt:
-            phrase==="medium"?18+18*wt:35+20*wt;
+          // NPM Fuchun close-up: no 55px steel needles over flat ochre
+          // triangles. Keep 78 source contacts and all three optical
+          // registers, but let short ink press, intermediate dry fibre
+          // and longest dilute tail each end at a human brush lift.
+          // The long group remains >34 scene units, as true pima must.
+          const len=phrase==="short"?9+11*wt:
+            phrase==="medium"?17+17*wt:35+14*wt;
           // Native ArtCraft review rejected the v52 strong 25% reversal:
           // it made intersecting X wires over one positive rock bank.
           // Keep the long gesture descending WITH its supporting cheek.
@@ -614,9 +619,26 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           const sway=direction*(7+15*wt2)+jitter*5.2+hand*1.5;
           const roll=direction*
             (meter%4===1?-(2.6+2*wt):(1.7+1.6*wt2));
-          c1=[entry[0]+sway*.13+roll,entry[1]+len*.23];
-          c2=[entry[0]+sway*.8-roll*.8,
-            entry[1]+len*.7];
+          // Material fact from Huang's original pima: the brush first
+          // follows its curved STONE SHOULDER and only then sweeps
+          // downward across the face. Starting at 23% of the fall with
+          // merely 13% of the horizontal flow was a near-straight
+          // diagonal computer ruler. A convex lateral head now turns
+          // before 16% fall, with three independent, pressure-aware
+          // short / medium / long flow profiles. Later handles do not
+          // reverse into an X-hatch against this parent cheek.
+          const crownFlow=phrase==="short"?.68:
+            phrase==="medium"?.56:.46;
+          const shoulderFlow=phrase==="short"?.97:
+            phrase==="medium"?.94:.9;
+          const firstDrop=phrase==="short"?.095:
+            phrase==="medium"?.115:.155;
+          const secondDrop=phrase==="short"?.54:
+            phrase==="medium"?.59:.64;
+          c1=[entry[0]+sway*crownFlow+roll*.22,
+            entry[1]+len*firstDrop];
+          c2=[entry[0]+sway*shoulderFlow-roll*.22,
+            entry[1]+len*secondDrop];
           end=[entry[0]+sway,entry[1]+len];
           width=(.72+1.24*wt)+(phrase==="long"?-.12:
             phrase==="short"?.28:0)+(j%13===0?.27:0);
@@ -1396,7 +1418,8 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
             data-km-master-stroke-curl={isGuo?(curlHandedness>0?"with":"counter"):"none"}
             data-km-master-stroke-phrase={isHuang?phrase:undefined}
             data-km-master-stroke-axis={isHuang?axis:undefined}
-            data-km-master-stroke-source-zone={sourceZone}>
+            data-km-master-stroke-source-zone={sourceZone}
+            data-km-master-stroke-flow={isHuang?"shoulder-first-pima":undefined}>
             {reserve.length>0&&<defs>
               <mask data-km-master-stroke-reserve=""
                 id={reserveId} maskUnits="userSpaceOnUse"
@@ -1417,7 +1440,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
                 phrase==="long"?"#675541":"#44382f"}
               mask={reserve.length>0?"url(#"+reserveId+")":undefined}
               opacity={f((dry?.35:isFan?.83:isWang?.68:isGuo?.72:
-                phrase==="long"?.43:phrase==="short"?.79:.58)*
+                phrase==="long"?.38:phrase==="short"?.79:.56)*
                 (1-.25*mist))}/>
             {dry&&<path data-km-master-dry-tail="" d={dryPath}
               fill="none" stroke="#86735a" strokeWidth={isFan?.34:.55}

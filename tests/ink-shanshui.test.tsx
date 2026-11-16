@@ -1608,6 +1608,74 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       'data-km-master-stroke-phrase=');
   });
 
+
+  it("sweeps all 78 Fuchun pima across the source rock shoulder before descending with a tapered dry tail",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    for(const seed of [71,97,111]){
+      const html=draw("fuchun",seed);
+      const marks=[...html.matchAll(
+        /data-km-master-stroke="" data-km-master-stroke-style="long-hemp" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(?:wet|dry)" data-km-master-stroke-bank="[0-4]" data-km-master-stroke-bank-station="[^"]+" data-km-master-stroke-placement="attached-stratum" data-km-master-stroke-curl="none" data-km-master-stroke-phrase="(short|medium|long)" data-km-master-stroke-axis="([^"]+)" data-km-master-stroke-source-zone="[^"]+" data-km-master-stroke-flow="shoulder-first-pima"/g,
+      )];
+      expect(marks).toHaveLength(78);
+      const lengths:number[]=[];
+      const sweeps:number[]=[];
+      let strongEarlyTurns=0;
+      for(const [,root,phrase,axis] of marks){
+        const p=(axis.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+        expect(p).toHaveLength(8);
+        expect(axis.startsWith("M"+root.replace(","," "))).toBe(true);
+        const dx=p[6]-p[0],dy=p[7]-p[1];
+        expect(Math.abs(dx)).toBeGreaterThan(3);
+        expect(dy).toBeGreaterThan(8);
+        expect(dy).toBeLessThan(50);
+        const firstTurn=(p[2]-p[0])/dx;
+        const secondTurn=(p[4]-p[0])/dx;
+        const headFall=(p[3]-p[1])/dy;
+        const shoulderFall=(p[5]-p[1])/dy;
+        expect(firstTurn).toBeGreaterThan(.26);
+        expect(firstTurn).toBeLessThan(.9);
+        expect(secondTurn).toBeGreaterThan(.62);
+        expect(secondTurn).toBeLessThan(1.35);
+        expect(headFall).toBeGreaterThan(0);
+        expect(headFall).toBeLessThan(.19);
+        expect(shoulderFall).toBeGreaterThan(.49);
+        expect(shoulderFall).toBeLessThan(.68);
+        expect(p[3]).toBeLessThan(p[5]);
+        if(firstTurn>.49)strongEarlyTurns++;
+        lengths.push(dy);sweeps.push(firstTurn);
+        if(phrase==="short")expect(dy).toBeLessThan(22);
+        if(phrase==="medium"){
+          expect(dy).toBeGreaterThan(16);
+          expect(dy).toBeLessThan(35);
+        }
+        if(phrase==="long"){
+          expect(dy).toBeGreaterThan(34);
+          expect(dy).toBeLessThan(50);
+        }
+      }
+      expect(strongEarlyTurns).toBeGreaterThanOrEqual(36);
+      expect(Math.max(...lengths)-Math.min(...lengths))
+        .toBeGreaterThan(37);
+      expect(Math.max(...sweeps)-Math.min(...sweeps))
+        .toBeGreaterThan(.14);
+      // Three real geological faces, fifteen supporting rock
+      // stratum centerlines; no parent detail destroyed in redesign.
+      expect((html.match(/data-km-master-face=""/g)??[])).toHaveLength(3);
+      expect((html.match(/data-km-master-stratum=""/g)??[])).toHaveLength(15);
+      expect((html.match(/data-km-master-stroke-loaded=""/g)??[]))
+        .toHaveLength(78);
+      expect(draw("fuchun",seed)).toBe(html);
+    }
+    expect(draw("fuchun",71,0)).not.toContain(
+      'data-km-master-stroke-flow="shoulder-first-pima"');
+    expect(draw("early-spring")).not.toContain(
+      'data-km-master-stroke-flow="shoulder-first-pima"');
+  });
+
   it("roots all original 78 Fuchun long-hemp marks to curving parent strata rather than straight dark wires",()=>{
     const paint=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{

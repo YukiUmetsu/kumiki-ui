@@ -1337,6 +1337,40 @@ test("original Fuchun stone rock strata become positive rounded parent-anchored 
 
 
 
+
+test("source Fuchun fibre strokes paint early curved shoulder turns rather than diagonal rulers",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const guo=lab.locator('[data-km-master-study="early-spring"]');
+  const masters=fuchun.locator('[data-km-master-stroke-flow="shoulder-first-pima"]');
+  const hero=fuchun.locator("[data-km-rock-hero-cliff]");
+  const pines=fuchun.locator("[data-km-cliff-pine-grove]");
+  await expect(masters).toHaveCount(78);
+  await expect(hero).toHaveCount(1);
+  await expect(pines).toHaveCount(1);
+  await expect(guo.locator('[data-km-master-stroke-flow]')).toHaveCount(0);
+  const original=await masters.evaluateAll(nodes=>
+    nodes.map(n=>n.getAttribute("data-km-master-stroke-axis")));
+  await lab.getByRole("button",{name:"Hemp fibres · source shoulder sweep"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","hemp-flow");
+  await expect(page.getByRole("slider",{name:"Master zoom"})).toHaveValue("2.4");
+  await expect(hero).toBeHidden();
+  await expect(pines).toBeHidden();
+  await expect(masters.first()).toBeVisible();
+  await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-78-authored-shoulder-first-fibres.png")});
+  await lab.getByRole("button",{name:"All Fuchun hemp"}).click();
+  await expect(hero).toBeVisible();
+  await expect(pines).toBeVisible();
+  await expect(masters).toHaveCount(78);
+  expect(await masters.evaluateAll(nodes=>
+    nodes.map(n=>n.getAttribute("data-km-master-stroke-axis"))))
+    .toEqual(original);
+  await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-corrected-curving-hemp-in-full-scene.png")});
+});
+
 test("native Fuchun original four rib paper masks reach both the supporting cheek and each ink reload",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");

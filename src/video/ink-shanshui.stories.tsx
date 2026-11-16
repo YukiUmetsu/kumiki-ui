@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"stone-before-turning"|"hero-before-cheek"|"hero-uncut"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"stone-before-turning"|"hero-before-cheek"|"hero-uncut"|"hemp-flow"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -603,6 +603,15 @@ function MasterInkSourceComparison(){
       [data-km-master-ink-inspection="hero-uncut"]
       [data-km-master-study="fuchun"]
       [data-km-rock-hero-rib-deposit] { mask:none !important; }
+      /* Internal ArtCraft lens on the ACTUAL 78 rendered Fuchun strokes.
+         Hide the other native foreground decorative layers, not the
+         stone mass, 15 supporting strata, or original 78 pima paths. */
+      [data-km-master-ink-inspection="hemp-flow"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff],
+      [data-km-master-ink-inspection="hemp-flow"]
+      [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-grove] { visibility:hidden; }
       /* The *real* 960x540 renderer supplies all three nested ridges.
          Isolate only the middle band’s original filled skyline path.
          Do not replace it with a polygon, diagram or copied image. */
@@ -706,6 +715,7 @@ function MasterInkSourceComparison(){
         ["stone-before-turning","Stone before rounded stratum relief"],
         ["hero-before-cheek","Hero ribs before geological cheek wash"],
         ["hero-uncut","Hero ribs before shared paper lift"],
+        ["hemp-flow","Hemp fibres · source shoulder sweep"],
         ["ridge","Skyline · contour only"],
         ["pine","Pine crowns · source anatomy"],
         ["pine-bones","Pine armature · connected brush bones"],
@@ -719,7 +729,8 @@ function MasterInkSourceComparison(){
             setFuchunZone(zone);
             if(zone==="stone-before-turning"||
               zone==="hero-before-cheek"||
-              zone==="hero-uncut")inspect(2.4,552,177);
+              zone==="hero-uncut"||
+              zone==="hemp-flow")inspect(2.4,552,177);
             else if(zone==="pine-bones")inspect(1.65,615,135);
             else if(zone==="pine"||zone==="pine-contours"||
               zone==="pine-unlinked"||
@@ -738,6 +749,9 @@ function MasterInkSourceComparison(){
         Hero ribs before geological cheek wash isolates four physical
         inward rock shades without removing their source-brush fibres,
         fine deposits or original six true-paper reserve windows each.
+        Hemp fibres source shoulder sweep isolates all 78 original
+        short/medium/long pima from the overlaid hero and pine, exposing
+        their real early lateral crown turns and delayed dry tails.
         Hero ribs before shared paper lift demonstrates why a correct
         transparent hole in only the top loaded stroke is insufficient:
         the original source six per rib must also remove underneath
