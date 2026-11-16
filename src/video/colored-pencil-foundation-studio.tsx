@@ -18,7 +18,7 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-nape";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-nape";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
@@ -72,7 +72,8 @@ export function PencilFoundationStudio(){
   // in the human actor, at either film aspect. No alternate artwork.
   const focusPart=inspectionFocus==="fox-tail"&&specimen==="fox"?
     "tail-back":inspectionFocus==="fox-eye"&&specimen==="fox"?
-    "eye-near":inspectionFocus==="fox-chest"&&specimen==="fox"?
+    "eye-near":inspectionFocus==="fox-cheek"&&specimen==="fox"?
+    "cheek-ruff":inspectionFocus==="fox-chest"&&specimen==="fox"?
     "chest":inspectionFocus==="fox-forepaw"&&specimen==="fox"?
     "foreleg-right":inspectionFocus==="fox-hock"&&specimen==="fox"?
     "rear-leg":inspectionFocus==="portrait-nape"&&specimen==="portrait"?
@@ -152,6 +153,9 @@ export function PencilFoundationStudio(){
           </option>
           <option value="fox-eye" disabled={specimen!=="fox"}>
             Fox orbital rim / cheek
+          </option>
+          <option value="fox-cheek" disabled={specimen!=="fox"}>
+            Fox malar-to-neck fur continuity
           </option>
           <option value="fox-chest" disabled={specimen!=="fox"}>
             Fox sternum / cervical ruff
