@@ -29,7 +29,7 @@ export const RISO32_THUMB_GEOMETRY={
   // the rooted thenar base. Former negative y placed the thumb tip above
   // the real paper pinch and left both fingers permanently disconnected.
   ipX:3.3,ipY:2.15,
-  rootLength:Math.hypot(3.3,-1.15),
+  rootLength:Math.hypot(3.3,2.15),
   distalReach:5.6,
   overlap:2.4,
 } as const;
