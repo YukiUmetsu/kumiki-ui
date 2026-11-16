@@ -1,5 +1,5 @@
 {
-  "schema_version": 7,
+  "schema_version": 8,
   "project": "kumiki-ui / CP-F1 new single character #01",
   "subject_type": "human",
   "status": "stage_1_outline_only_unapproved",
@@ -51,8 +51,15 @@
       "title": "Human Skull portrait.jpg, Circa24",
       "url": "https://commons.wikimedia.org/wiki/File:Human_Skull_portrait.jpg",
       "type": "three-quarter skull photographic anatomic study",
-      "rights": "Commons source license to be checked before any pixel reuse; study/reference URL only",
-      "observation": "Parietal cranial mass has different curvature from cheek and mandible; continuous skull silhouette is not the facial mask oval."
+      "rights": "CC BY-SA 3.0 Unported, creator Circa24 (photo metadata Marijo Readey), attribution/source URL required if used as pixels; currently shape/technique observation only, no pixels, contour trace or derived graphic included.",
+      "observation": "Independent three-quarter skull anatomy reference. Broad convex parietal cranium turns behind temporal recess, then cheekbone/malar prominence and mandibular angle. The rounded crown must not jump straight to a deep bilateral temple pinch; head/face topology is a single flowing mass."
+    },
+    {
+      "title": "Open Oregon State / OpenStax, Anatomy & Physiology 7.3 The Skull",
+      "url": "https://open.oregonstate.education/anatomy/chapter/7-3-the-skull/",
+      "type": "open educational human cranial and facial anatomy textbook",
+      "rights": "Read and studied as anatomical reference only; no third-party artwork, pixels or traced contours embedded in component",
+      "observation": "The rounded cranium houses brain; temporal bones lie laterally beneath parietals, zygomatic arch turns outward toward cheek, mandible narrows toward chin. Use these 3D anatomical landmarks to constrain screen-space form."
     }
   ],
   "character_spec": {
@@ -79,7 +86,7 @@
       "body"
     ],
     "anatomy": {
-      "authority": "ANAT1 MediaPipe 468-point face mask supplies the lower jaw / cheek / temple chain from its 36-index reference ring. The skull vault is NOT in that mask: it is separately authored from observed cranial proportions using 8 new parietal/frontal arch anchors.",
+      "authority": "ANAT1 MediaPipe 468-point face supplies 23 preserved ordered lower oval anchor points after clipping upper face, with a bounded smooth temporal soft-tissue recession. Face mesh has no cranium; 11 independently authored rounded parietal/frontal anchors bridge the missing upper skull using public 3/4 skull references. This remains subject-independent anatomical construction, NOT a matched full-face source photo.",
       "new_parameters": {
         "sex": 0.69,
         "eyeSpacing": 0.07,
@@ -96,7 +103,7 @@
         "yaw_degrees": 17
       },
       "caveat": "Sex parameter is a mesh morph parameter, not an individual's inferred sex or identity. No reference-aligned anatomy fidelity claim; the model face mask excludes skull back/ears/hairline.",
-      "diagnostics": "Nine projected NEW-HEAD ANAT1 points (forehead, glabella, both zygions, cheekbones, gonions, menton) computed through the same source-of-truth projectNewHeadPoint as the subject. NOT 18 retired-woman landmarks or independent source/actual-image comparisons."
+      "diagnostics": "Nine ANAT1 projected output-only head guide points share the actual character yaw; no source-photo landmark claim. Browser's independently queried live SVG Path2D scanlines assess crown width, restrained temporal recession, zygomatic flare and mandibular taper across both film aspect ratios."
     },
     "regions": [
       "head-silhouette-01"
@@ -117,7 +124,7 @@
       "newhead-plane-far-malar-0..2-0..2",
       "newhead-plane-mandibular-0..2-0..2"
     ],
-    "geometry": "One completely new 3D face-mask lower jaw/temple chain plus eight separately authored frontal/parietal vault anchors: head outline only, not filled dermis. 3 independent transparent dry-pencil optical passes with 342 small construction contacts and five measured guide marks, no eyes, nose, mouth, hair, ear or former female geometry. Added 36 named local volume traces (4 cranial/temporal/cheek value fields × 3 colours × 3 cohorts), each composed of many pressure-attenuated curved strokes, plus asymmetric gently peaked cranial arch. Follow-on native visual inspection found underfilled contralateral cheek and mandibular turn. Two additional asymmetrically smaller/lighter plane families bring local head volume groups to 54, preserving all prior marks and stage-1-only morphology.",
+    "geometry": "One editable cranial+facial outline: 23 ordered lower ANAT1 mesh anchors and 11 new parietal/frontal cranium anchors; asymmetric smooth near/far temporal recess; 54 localized 3-color pressure traces plus 3 × 114 short value contacts and 5 subtle construction guide traces. No ears, eyes, nose, lips, clothing, hairstyle, neck, photo filters or old woman geometry. Exact-native scans and independently observed reference are separate quality gates.",
     "camera_aspects": [
       "16:9",
       "9:16"
@@ -128,19 +135,19 @@
     "pigment_study": "Generic CP1 glaze made a repeated diagonal grid over the entire head at native film size. The candidate uses three independent granular low-pressure optical passes instead, retains 342 separately curved face-plane marks and shades the silhouette with a measured fine sepia boundary. No photography pixels or filter."
   },
   "five_axes": {
-    "topology": "one editable standalone head, no old portrait parts and no face stickers. Mark visible missing cranium behind the mask as blocker, not as finished skull. Storybook's diagnostic geometry is now derived from the same new-head mesh and camera, eliminating the unrelated previous portrait's hard-coded anchor coordinates.",
-    "vector_flow": "3 curved local pressure fans run from forehead through zygomatic bones to jaw; no global diagonal identical strokes",
+    "topology": "One SVG-native head contour joins the face mesh to eleven separately drafted cranial vault anchors and rounds the parietal apex. No flat trapezoid or bilateral wasp-waist. Live Chromium Path2D scanline checks distinguish rounded crown, subtle temple recession, zygomatic flare and jaw taper. Visual review still rejects the result as a finished human.",
+    "vector_flow": "Six independently oriented anatomical pigment regions (cranial, near/far temple, near/far malar, mandible) plus three separate curved low-pressure construction fans. No repeated full-screen diagonal hatch texture.",
     "weight": "6 anatomy-anchored local pigment fields (cranial, temporal, far-temple, malar, opposite malar, mandibular); unlike screen-wide hatches, each has independently curved 3-colour stroke families; the far cheek is deliberately lighter and narrower, jaw has warm half-tone. No existing line/texture detail removed.",
     "rhythm": "3 × 114 short strokes follow three bony guides with deterministic irregular offsets, not wallpaper",
-    "texture": "36 additional bounded, separately editable 3-colour LOCAL pencil pigment traces, 4 cranial/temporal/zygomatic fields with softened tips and source-guided vector flow; no whole-head lattice, pixel filters or pseudo-photo texture. Realistic-art approval still requires fresh native screenshot."
+    "texture": "54 independently editable, low-pressure, locally feathered pigment traces (six 3-color anatomical fields × 3 group cohorts), original 342 construction contacts and subtle projected guides, natural paper tooth; no bitmaps, photo edits or blanket gradients."
   },
   "gates": {
-    "source_match": "BLOCKED: anatomy construction source is general, no matched human identity/body pose photograph was supplied.",
-    "head_silhouette": "First original face-mask candidate REJECTED for flat forehead, second corrected cranial-vault silhouette candidate REJECTED as solid salmon wax face. Latest candidate keeps cranial vault but changes only the new head region from filled skin to transparent dry-pencil glaze; native 960px/2.15x inspection required. The old 18-point overlay and fictional eyes/nose/mouth construction selectors have since been removed from the new-human Storybook. This is a provenance/diagnostic correction, not an art approval.",
-    "quality": "ART HOLD: all three exact-head CI checks on ea1fd6a succeeded, but native 960×540 real screenshot showed light marks reading like a hairless skull map or accidental cranial hair and a disproportionately empty far cheek/jaw. Still not anatomically credible as a portrait, so refuse merge. Next experimental pass adds two asymmetric local pigment fields to support that volume; must rerun CI and inspect the new screenshot. No claim of source-photo landmark approval.",
-    "automated": "Changed-contracts + native Playwright revisions are committed to the same open draft PR. Corrected CP-F1 assumption that all materials have opaque craft base, and Living Atelier selectors that still expected the deleted former face. Unit assertions check 9 new-head guides lie within the actual head bounds. Re-run CI on exact head; results not yet confirmed at the time of this edit."
+    "source_match": "BLOCKED: 3/4 CC-BY-SA skull and OpenStax references legally inspected for cranial technique but not used as source-matched 18 landmark/5 tonal plane comparator for a real human portrait. Preserve failure until a suitably licensed full-head photo and independent measurements are added.",
+    "head_silhouette": "REVIEW-REQUIRED: initial flat-top shape failed browser dome fraction 0.953 vs reference target <0.84 (run 43804727018). Expanded 11-point cranium passed browser but native 1x/2.15x render showed gross bilateral hourglass, cheek/temple width 1.099 vs required <1.075 (run 43805712539). Current 681ba01 Stage 1 head passes both geometric tests in 16:9/9:16 but still reads as a featureless white pencil mannequin, not a realistic head.",
+    "quality": "ART HOLD (DO NOT MERGE): all three checks GREEN at code commit 681ba01 (changed contract run 43806052416, native foundation run 43806052567, fibre run 43806052426). Opened actual native 960x540 screenshot from foundation artifact 14197824813 and compared against earlier straight-wall and over-pinched candidates. Dome is now better rounded and cheek/temple smoother but whole head remains unfinished: diffuse faint hatch, unapproved three-quarter anatomical evidence, no reference/photo value map, absent features per one-at-a-time stop. Structural acceptance != artist-quality acceptance.",
+    "automated": "Exact-code SHA 681ba01: all passed. New Chromium human Path2D proof rejects flat-sided dome, exaggerated temple pinch and oversized jaw in both aspects. Fox anatomical QA/CP-F1 tests preserved and passing. Docs-only update to manifest will require fresh exact-head CI check before merge."
   },
-  "next_step": "Only after native Stage 1 art review: complete head/cranium silhouette including rear skull and ear bases, then render a SINGLE isolated eye. Do not generate another full character or return to the old woman.",
+  "next_step": "Prioritize actual full-head anatomical geometry from ANAT1 body/head lattice or a source-measured matched 3/4 head photo; rework temporal/parietal-to-malar contour and five source-comparable tonal planes, then inspect native 1×/2.15× and ArtCraft independent source/outcome landmarks. Only after approving that ONE head component, draw an isolated next facial component. Do not restore old woman or jump ahead to a full character.",
   "visual_review_log": [
     {
       "candidate": "initial stage1 face mask",
@@ -187,6 +194,21 @@
       "observed": "Examined new head at real 960×540: solid paper space remains visible, cranial cap now has dense curved pencil hatches, but right-lower jaw and cheek are underdrawn. Approximate measured dark-contact occupancy (RGB difference from paper >16) in lower-right face quadrant was ~7%, versus ~19% in lower-left. Upper cap reads too hairlike. Shape still looks cylindrical/shield-like. No eye/nose/lip/ear/hair from former woman was reintroduced.",
       "decision": "REJECT; CONTINUE STAGE 1",
       "correction": "Add separate far-malar and mandibular local curved pigment families with reduced far-side load, preserve existing 4 fields and sparse crown paper; re-test both aspects and inspect exact-head macro before authorizing next facial component."
+    },
+    {
+      "candidate": "11-anchor rounded parietal dome and unrestrained symmetric temple recession",
+      "workflow": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43805712539",
+      "observed": "Native browser 960×540 and 2.15× shows a newly rounded head cap but narrow bilateral waist, producing an hourglass/peanut silhouette. Actual live SVG ratio: cheek/temple 1.0993975903614448 vs art bounds <1.075. General shape tests from previous commit passed despite visually bad anatomy.",
+      "decision": "REJECT; FIX THE TEST AND CONTOUR",
+      "correction": "Use asymmetric near/far 4.2% / 1.89% temporal recession and softer 0.12-height Gaussian; flatten sharply peaked crown by adjusting three independently authored parietal anchors; preserve all traces."
+    },
+    {
+      "candidate": "Latest restrained asymmetric single head / commit 681ba01",
+      "workflow": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43806052567",
+      "artifact": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43806052567/artifacts/14197824813",
+      "observed": "Exact code passes all 3 CI checks, including independent Path2D dome width and temple-to-zygoma bounded-shape checks; 960×540 actual PNG now shows more continuous cranial shape and gentler temporal transitions, but still does not read as a lifelike human. Hatching above the forehead can resemble early hair, facial planes are weak and no independently matched anatomy photo has been approved.",
+      "decision": "STRUCTURAL TEST PASS; ART REJECT/HOLD",
+      "correction": "Stop algorithmic tune-to-threshold iterations. Next source-measured full-head silhouette and five tonal planes are the high-priority art tasks, one component at a time; do not merge."
     }
   ]
 }
