@@ -40,6 +40,7 @@ export function riso32ThumbIpJoint(side:Riso32Side):RisoJoint{
   const s=side==="right"?1:-1;
   const delay=side==="left"?6:0;
   const full=RISO32_THUMB_ANAT1.clinicalFistFlex*RISO32_THUMB_ANAT1.projectionFactor*s;
+  const heldReceive=side==="left";
   return {
     id:side+"-thumb-ip",parent:side+"-thumb",
     x:s*RISO32_THUMB_GEOMETRY.ipX,y:RISO32_THUMB_GEOMETRY.ipY,
@@ -48,9 +49,9 @@ export function riso32ThumbIpJoint(side:Riso32Side):RisoJoint{
       {frame:96,rotate:s*1.3,easing:"ease"},
       {frame:126,rotate:s*2.5,easing:"ease"},
       {frame:160+delay,rotate:full,easing:"ease"},
-      {frame:180+delay,rotate:full*.55,easing:"ease"},
-      {frame:205,rotate:full*.13,easing:"ease"},
-      {frame:239,rotate:full*.13},
+      {frame:180+delay,rotate:heldReceive?full:full*.55,easing:"ease"},
+      {frame:205,rotate:heldReceive?full:full*.13,easing:"ease"},
+      {frame:239,rotate:heldReceive?full:full*.13},
     ],
   };
 }
