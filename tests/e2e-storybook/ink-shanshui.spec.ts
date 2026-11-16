@@ -332,6 +332,21 @@ test("four distinct historical ink schools paint separate real rooted rock struc
       .toHaveCount(school==="travelers"?6:0);
     await expect(card.locator("[data-km-master-fan-facet-rim]"))
       .toHaveCount(school==="travelers"?6:0);
+    const hempPhrases=card.locator("[data-km-master-stroke-phrase]");
+    await expect(hempPhrases).toHaveCount(school==="fuchun"?78:0);
+    if(school==="fuchun"){
+      const strokes=await hempPhrases.evaluateAll(nodes=>nodes.map(node=>{
+        const root=node.getAttribute("data-km-master-stroke-root")??"";
+        const axis=node.getAttribute("data-km-master-stroke-axis")??"";
+        return {phrase:node.getAttribute("data-km-master-stroke-phrase"),
+          connected:axis.startsWith("M"+root.replace(","," "))&&
+            axis.includes(" C")};
+      }));
+      expect(strokes.every(stroke=>stroke.connected)).toBe(true);
+      for(const phrase of ["short","medium","long"])
+        expect(strokes.filter(stroke=>stroke.phrase===phrase).length)
+          .toBeGreaterThanOrEqual(12);
+    }
     const banked=card.locator("[data-km-master-stroke-bank]");
     await expect(banked).toHaveCount(count);
     for(let bank=0;bank<5;bank++)
