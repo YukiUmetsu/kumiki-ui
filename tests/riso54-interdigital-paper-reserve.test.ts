@@ -65,8 +65,7 @@ describe("RISO54 carved paper-white ulnar saddle: physical PRINT source not red 
         const rest=f0.parts.find(p=>p.id===v.id)!;
         const cut=f160.parts.find(p=>p.id===v.id)!;
         expect(rest.d).not.toBe(cut.d);
-        expect(rest.transform).toBe(cut.transform===rest.transform?
-          rest.transform:cut.transform);
+        expect(cut.transform).toBe(f160.parts.find(p=>p.id===side+"-glove")!.transform);
         const restPoly=selectRisoSourceContour(rest.d,undefined,.15);
         expect(restPoly.every(p=>!risoPointInContour(p,palm0))).toBe(true);
         const cutPoly=selectRisoSourceContour(cut.d,undefined,.15);
