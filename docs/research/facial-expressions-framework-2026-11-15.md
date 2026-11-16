@@ -55,7 +55,24 @@ earlier UKIYO1 quality ask included facial expressions; ANAT1 placed the face's 
 
 No owner review yet.
 
-## Next
+## Applied to UKIYO1 (2026-11-15)
 
-Map UKIYO1's eight moods (smile, laugh, sad, cry, surprise, angry, fear, shy) onto EXPR1's features, and check the
-drawn ukiyo-e faces with `nearestEmotion` against the Sharaku and bijin-ga references.
+UKIYO1's moods are now drawn from EXPR1: each mood's units move ANAT1's face, and the features set the woodblock
+face's brows, lids, iris and mouth (`moodShape`). The eight old moods gained six (disgust, contempt, pain, sleepy,
+determined, mie).
+
+**Busts were compared before and after** in profile, three-quarter and front, for a woman, a townsman and an elder,
+plus frame-by-frame strips of a mood easing in. Fixes along the way:
+
+- The first mapping lost two print conventions: laughter's closed crescents (EXPR1 only narrows the eyes to slits) and
+  the surprised or frightened stare (AU 7 holds the lids in). The drawing now closes laughing eyes and widens the stare
+  more than it narrows.
+- The anatomy's knitted brows drew an old man's nose-to-mouth fold on young women. Expression creases are now separate
+  from age lines and drawn on men only.
+- A shy smile no longer draws the fold.
+- AU 9 (disgust) barely moved the lids, so the drawing adds its narrowing and its lowered inner brows.
+- The front view's fold is drawn on both sides, weighted by each mouth corner.
+- Small irises drew as two lobes. The arc radius was rounded apart from its span, so `circleD` and `ellipseD` now
+  round the radius once (UKIYO1-wide).
+
+No owner review yet.
