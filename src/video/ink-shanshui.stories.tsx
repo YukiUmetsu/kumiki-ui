@@ -703,6 +703,123 @@ function MasterInkSourceComparison(){
     </p>
   </main>;
 }
+
+/** Production-source paper-lift A/B. Two genuine film renderers share the
+ * same absolute clock, authored paths, scene and camera. Only the left
+ * specimen suppresses the paper-reserve masks for material comparison. */
+function FuchunPaperLiftStudio(){
+  const [frame,setFrame]=useState(145);
+  const [seed,setSeed]=useState(71);
+  const [detail,setDetail]=useState(1);
+  const [ink,setInk]=useState(.9);
+  const [mist,setMist]=useState(.35);
+  const [cameraKey,setCameraKey]=useState<"film"|"summit"|"stone"|"fibre">("fibre");
+  const cameras={
+    film:{label:"Full 16:9 film",scale:1,x:480,y:270},
+    summit:{label:"Summit silhouette",scale:1.65,x:549,y:151},
+    stone:{label:"Rounded rock courses",scale:2.4,x:552,y:177},
+    fibre:{label:"Fibre and paper cuts",scale:3.35,x:553,y:207},
+  } as const;
+  const width=456,height=314;
+  const camera=cameras[cameraKey];
+  const fitted=Math.min(width/960,height/540);
+  const transform=cameraKey==="film"
+    ?"translate("+((width-960*fitted)/2)+"px,"+
+      ((height-540*fitted)/2)+"px) scale("+fitted+")"
+    :"translate("+(width/2-camera.scale*camera.x)+"px,"+
+      (height/2-camera.scale*camera.y)+"px) scale("+camera.scale+")";
+  const controls:ShanshuiControls={
+    ...DEFAULT_SHANSHUI,scene:"mountain-trail",inkSchool:"fuchun",
+    seed,detail,ink,mist,wind:0,
+  };
+  const specimens=[
+    {key:"uncut",name:"A · Before dry-paper lift",
+      note:"All 78 original hemp paths, transverse rock courses and hero ribs remain; only the local paper-reserve masks are bypassed."},
+    {key:"lifted",name:"B · Masked production ink",
+      note:"Identical positive brush geometry and ink load, with the real SVG fibre and rock-face luminance masks enabled."},
+  ] as const;
+  return <main data-testid="shanshui-fuchun-paper-lift-studio"
+    style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
+      color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
+      gap:16,alignContent:"start"}}>
+    <header style={{maxWidth:1050}}>
+      <h1 style={{font:"400 32px Georgia,serif",margin:"0 0 10px"}}>
+        Fuchun · true paper-reserve A/B
+      </h1>
+      <p style={{margin:0}}>
+        Two synchronized instances of the original 960×540 Chinese ink film.
+        The mountain silhouette, stone, trees, brush Béziers, color, seed,
+        clock and camera are identical. Only the negative-paper cuts differ.
+        Judge the full film before zooming into the source strokes.
+      </p>
+    </header>
+    <style>{'[data-km-fuchun-material="uncut"] [data-km-master-stroke-loaded][mask],'+
+      '[data-km-fuchun-material="uncut"] [data-km-rock-hero-face][mask],'+
+      '[data-km-fuchun-material="uncut"] [data-km-rock-hero-crease][mask]'+
+      '{mask:none!important;}'}</style>
+    <div role="group" aria-label="Paper lift inspection cameras"
+      style={{display:"flex",flexWrap:"wrap",gap:9}}>
+      {(Object.keys(cameras) as (keyof typeof cameras)[]).map(key=>
+        <button key={key} type="button" style={style.button}
+          aria-pressed={cameraKey===key} onClick={()=>setCameraKey(key)}>
+          {cameras[key].label}
+        </button>)}
+    </div>
+    <div role="group" aria-label="Synchronized material conditions"
+      style={{display:"flex",flexWrap:"wrap",gap:14,alignItems:"end"}}>
+      {([
+        ["Paper-lift frame",frame,setFrame,0,SHANSHUI_FRAMES-1,1],
+        ["Paper-lift seed",seed,setSeed,1,199,1],
+        ["Paper-lift detail",detail,setDetail,0,1,.05],
+        ["Paper-lift ink",ink,setInk,0,1,.05],
+        ["Paper-lift mist",mist,setMist,0,1,.05],
+      ] as const).map(([label,value,setValue,min,max,step])=>
+        <label key={label} style={{...style.field,minWidth:165}}>
+          {label} · {value}
+          <input aria-label={label} type="range"
+            min={min} max={max} step={step} value={value}
+            onChange={e=>setValue(Number(e.target.value))}/>
+        </label>)}
+      <button type="button" style={style.button} onClick={()=>{
+        setFrame(145);setSeed(71);setDetail(1);setInk(.9);setMist(.35);
+        setCameraKey("fibre");
+      }}>Reset paper-lift study</button>
+    </div>
+    <div style={{display:"grid",
+      gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,456px),1fr))",
+      gap:18,alignItems:"start",maxWidth:980}}>
+      {specimens.map(specimen=><section key={specimen.key}
+        data-km-fuchun-material={specimen.key}
+        data-km-fuchun-camera={cameraKey}
+        data-km-fuchun-frame={frame}
+        data-km-fuchun-seed={seed}
+        style={{display:"grid",gap:9,minWidth:0}}>
+        <h2 style={{font:"500 20px Georgia,serif",margin:0}}>
+          {specimen.name}
+        </h2>
+        <div data-km-fuchun-material-crop={specimen.key}
+          style={{width,height,maxWidth:"100%",position:"relative",
+            overflow:"hidden",background:"#f3e6cd",
+            border:"1px solid #9b8a74"}}>
+          <div style={{position:"absolute",left:0,top:0,
+            transformOrigin:"top left",transform}}>
+            <InkShanshuiStage frame={frame} controls={controls}/>
+          </div>
+        </div>
+        <p style={{margin:0,fontSize:12,color:"#675745"}}>{specimen.note}</p>
+      </section>)}
+    </div>
+    <p style={{margin:0,maxWidth:1000,fontSize:12,color:"#675745"}}>
+      Reference: Huang Gongwang's rounded nested stone backs, loaded and
+      depleted hemp-fibre pressure and open paper in the National Palace
+      Museum scroll. No museum pixels are incorporated here. This is a
+      material-causality inspection, not a certified reconstruction.{" "}
+      <a href="https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975"
+        target="_blank" rel="noreferrer">Original museum painting</a>.
+    </p>
+  </main>;
+}
+
 /** Temporal ArtCraft QA. Four independent real renderer samples are deliberately
  * frozen at absolute frames: compare wet reveal, layering, settled ink and
  * final atmosphere without screenshots, duplicates or a second animation clock. */
@@ -813,6 +930,11 @@ export const BrushworkDetailStudio:StoryObj<typeof BrushworkDetail>={
 export const FourMastersInkStudio:StoryObj<typeof MasterInkSourceComparison>={
   name:"Four masters · brushwork source comparisons",
   render:()=> <MasterInkSourceComparison/>,
+};
+
+export const FuchunPaperLift:StoryObj<typeof FuchunPaperLiftStudio>={
+  name:"Fuchun · wet/dry paper-lift A/B (production source)",
+  render:()=> <FuchunPaperLiftStudio/>,
 };
 
 export const InkFilmContinuity:StoryObj<typeof InkFilmContinuityStudio>={
