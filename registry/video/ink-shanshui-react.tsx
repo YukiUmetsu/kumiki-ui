@@ -2696,7 +2696,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
         data-km-cliff-pine-crest={f(crest)}
         data-km-cliff-pine-height={height}
         data-km-cliff-pine-centerline={school==="fuchun"?centerline:undefined}>
-        <g data-km-cliff-pine-ground-contact=""
+        {school==="fuchun"&&<g data-km-cliff-pine-ground-contact=""
           data-km-cliff-pine-ground-root={f(root[0])+","+f(root[1])}>
           {plantedRoots.map(({a,b,at,hand,d},k)=>
             <path key={"root"+k} data-km-cliff-pine-rootlet=""
@@ -2713,7 +2713,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
               data-km-cliff-pine-ground-ink-load={f(load)}
               d={d} fill={k%4===1?"#7b684e":"#40362c"}
               opacity={f((k%4===1?.37:.62)*shade)}/>)}
-        </g>
+        </g>}
         <path data-km-cliff-pine-trunk="" d={trunk}
           fill="#37332d" opacity={f(.91*shade)}/>
         <path data-km-cliff-pine-bark="" d={bark}

@@ -633,6 +633,8 @@ function MasterInkSourceComparison(){
       <span style={{maxWidth:500,fontSize:12,color:"#675745"}}>
         Storybook-only: isolate skyline and stone backs, or compare
         all 78 original fibres and four hero ribs before/after dry-paper cuts.
+        The pine-root camera isolates genuine trunk-to-soil contact on the
+        existing continuous mountain; it never creates a test-only path.
         The pine views toggle only two internal bristle-reserve cutouts per
         original Fuchun fan, retaining all 40 crowns, 60 pads and 310 needles.
         CSS cannot alter the source paths, attached roots or film clock.
@@ -673,6 +675,11 @@ function MasterInkSourceComparison(){
       <button type="button" style={style.button}
         aria-pressed={view==="crop"&&zoom===1.65&&cropX===628&&cropY===137}
         onClick={()=>inspect(1.65,628,137)}>Pine grove · full crowns</button>
+      <button type="button" style={style.button}
+        aria-pressed={view==="crop"&&zoom===2.8&&cropX===615&&cropY===145}
+        onClick={()=>{setFuchunZone("pine");inspect(2.8,615,145);}}>
+        Pine feet · live ridge contact
+      </button>
       <button type="button" style={style.button}
         aria-pressed={view==="crop"&&zoom===2.4&&cropX===552&&cropY===177}
         onClick={()=>inspect(2.4,552,177)}>Rock strata · meso</button>

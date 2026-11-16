@@ -869,6 +869,34 @@ test("Fuchun native pine anatomy Storybook preset preserves all loaded botanical
   await expect(fuchun.locator("[data-km-master-rock-art]")).toBeVisible();
 });
 
+
+test("Fuchun pine-foot Storybook lens inspects actual trunk to mountain grounding",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const guo=lab.locator('[data-km-master-study="early-spring"]');
+  await expect(fuchun.locator("[data-km-cliff-pine]")).toHaveCount(5);
+  await expect(fuchun.locator("[data-km-cliff-pine-rootlet]")).toHaveCount(15);
+  await expect(fuchun.locator("[data-km-cliff-pine-ground-ink]")).toHaveCount(40);
+  await expect(guo.locator("[data-km-cliff-pine-rootlet]")).toHaveCount(0);
+  await page.getByRole("button",{name:"Pine feet · live ridge contact"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine");
+  await expect(page.getByRole("slider",{name:"Master zoom"})).toHaveValue("2.8");
+  await expect(page.getByRole("slider",{name:"Master crop X"})).toHaveValue("615");
+  await expect(page.getByRole("slider",{name:"Master crop Y"})).toHaveValue("145");
+  await expect(fuchun.locator("[data-km-cliff-pine-grove]")).toBeVisible();
+  await expect(fuchun.locator("[data-km-master-rock-art]")).toBeHidden();
+  await expect(guo.locator("[data-km-master-rock-art]")).toBeVisible();
+  await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-native-live-root-to-ridge-contact.png")});
+  await page.getByRole("slider",{name:"Master seed"}).focus();
+  await page.getByRole("slider",{name:"Master seed"}).press("ArrowRight");
+  await expect(fuchun.locator("[data-km-cliff-pine-rootlet]")).toHaveCount(15);
+  await page.getByRole("button",{name:"Reset all four studies"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+  await expect(fuchun.locator("[data-km-master-rock-art]")).toBeVisible();
+});
+
 test("geological ArtCraft proof compares real native paintings across independently seeded constructions",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--geological-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-geology-study");
