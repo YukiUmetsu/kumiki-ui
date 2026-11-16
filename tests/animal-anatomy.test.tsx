@@ -7,6 +7,7 @@ import { animalConstruction, poseAnimal, skeletonShapes } from "../registry/anat
 import { checkAnimalProportions, checkSpeciesData, measureAnimal } from "../registry/anatomy/animal-check";
 import { AnimalSheet } from "../registry/anatomy/animal-react";
 import { ANIMAL_POSTURES, POSTURE_IDS, postureFit } from "../registry/anatomy/animal-postures";
+import { BIRD_FLIGHT, flightAt, speciesWingbeat, wingbeatHz, wingStroke } from "../registry/anatomy/animal-flight";
 import { UKIYOE_SPECIES, ukiyoeBeastLandmarks } from "../registry/video/ukiyoe/ukiyoe-creatures";
 
 describe("ANIM1 data", () => {
@@ -113,5 +114,44 @@ describe("AnimalSheet", () => {
       expect(html).toContain(s.coat.palette[0].name);
       expect(html).toContain('role="img"');
     }
+  });
+});
+
+describe("ANIM1 flight", () => {
+  it("flies every bird on open wings: a beat that loops, folds on the upstroke and joins its glides and pauses", () => {
+    // Pennycuick (1990): a grey heron (1.5 kg, 1.75 m span, aspect 8) beats about 2.6 times a second.
+    expect(wingbeatHz(1.5, 1.75, 8)).toBeCloseTo(2.6, 1);
+    for (const id of Object.keys(BIRD_FLIGHT)) {
+      const sp = findAnimal(id)!, f = BIRD_FLIGHT[id], c = animalConstruction(sp), hz = speciesWingbeat(id)!;
+      expect(hz, id).toBeGreaterThan(1.5);
+      expect(hz, id).toBeLessThan(20);
+      // Spread on the downstroke, folded on the upstroke.
+      expect(wingStroke(f, f.downShare / 2).fold, id).toBe(0);
+      expect(wingStroke(f, f.downShare + (1 - f.downShare) / 2).fold, id).toBeGreaterThan(f.fold * .8);
+      const span = (t: number) => { const w = poseAnimal(c, { flight: "flap", t }).wings!.near.outline; return Math.max(...w.map(p => p[1])) - Math.min(...w.map(p => p[1])); };
+      expect(span(0), `${id} raised wing is tall`).toBeGreaterThan(span(f.downShare + (1 - f.downShare) / 2) * .6);
+      // The beat loops, and flapping joins its glides, pauses and closed wings without a jump.
+      const near = (o: Parameters<typeof poseAnimal>[1]) => poseAnimal(c, o).wings!.near.outline;
+      const gap = (a: readonly (readonly number[])[], b: readonly (readonly number[])[]) => Math.max(...a.map((p, i) => Math.hypot(p[0] - b[i][0], p[1] - b[i][1])));
+      expect(gap(near({ flight: "flap", t: .9999 }), near({ flight: "flap", t: 0 })), id).toBeLessThan(.002);
+      expect(gap(near({ flight: "glide", amount: 0 }), near({ flight: "flap", t: 0 })), id).toBeLessThan(1e-6);
+      expect(gap(near({ flight: "closed", amount: 0 }), near({ flight: "flap", t: 0 })), id).toBeLessThan(1e-6);
+      // At the drawn rate (at most 7.5 beats a second at 30 fps), moving into or out of a held wing is no bigger a
+      // step than an ordinary flapping frame.
+      let prev: readonly (readonly number[])[] | undefined, last = "", flapStep = 0, holdStep = 0;
+      for (let k = 0; k < 150; k++) {
+        const at = flightAt(id, k / 30, 2, 7.5), w = near({ flight: at.flight, t: at.t, amount: at.amount });
+        expect(w.every(p => Number.isFinite(p[0]) && Number.isFinite(p[1])), id).toBe(true);
+        if (prev) { const step = gap(w, prev); if (at.flight === "flap" && last === "flap") flapStep = Math.max(flapStep, step); else holdStep = Math.max(holdStep, step); }
+        prev = w; last = at.flight;
+      }
+      if (f.style !== "flapping") expect(holdStep, `${id} holding`).toBeLessThanOrEqual(flapStep * 1.05);
+    }
+    // Herons fly with the neck drawn back, cranes with it stretched out; both trail their legs.
+    const crown = (id: string) => { const s = poseAnimal(animalConstruction(id), { flight: "glide" }); return s.joints.crown[0] - s.joints.neckRoot[0]; };
+    expect(crown("red-crowned-crane")).toBeGreaterThan(.2);
+    expect(crown("grey-heron")).toBeLessThan(crown("red-crowned-crane") * .2);
+    const crane = poseAnimal(animalConstruction("red-crowned-crane"), { flight: "glide" });
+    expect(crane.limbs[1].points[4][0]).toBeLessThan(crane.joints.tailRoot[0]);
   });
 });

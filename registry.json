@@ -3805,6 +3805,11 @@
         },
         {
           "type": "registry:ui",
+          "target": "components/anatomy/animal-flight.ts",
+          "path": "registry/anatomy/animal-flight.ts"
+        },
+        {
+          "type": "registry:ui",
           "target": "components/anatomy/animal-plans.ts",
           "path": "registry/anatomy/animal-plans.ts"
         },

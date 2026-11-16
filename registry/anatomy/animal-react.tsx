@@ -117,6 +117,8 @@ function Construction({ s, lw }: { s: AnimalSkeleton; lw: number }) {
       {s.neck.points.length > 0 && <polyline points={pts(s.neck.points)} />}
       {j.occiput && <line x1={j.occiput[0]} y1={j.occiput[1]} x2={s.head.nose[0]} y2={s.head.nose[1]} />}
       <polyline points={pts(s.topLine)} stroke={INK} strokeWidth={lw * .9} />
+      {s.wings && [s.wings.far, s.wings.near].map((w, i) => <g key={`w${i}`} opacity={i ? 1 : .5}><polyline points={pts(w.bones)} stroke={INK} strokeWidth={lw * 1.6} />
+        {w.bones.slice(0, 3).map((p, k) => <circle key={k} cx={p[0]} cy={p[1]} r={lw * 2.4} fill={PAPER} stroke={INK} strokeWidth={lw} />)}</g>)}
       {s.limbs.map((l, i) => <g key={i} opacity={l.far ? .5 : 1}><polyline points={pts(l.points)} stroke={INK} strokeWidth={lw * 1.6} />
         {l.points.slice(0, 4).map((p, k) => <circle key={k} cx={p[0]} cy={p[1]} r={lw * 2.4} fill={PAPER} stroke={INK} strokeWidth={lw} />)}</g>)}
       {s.kind === "quadruped" && j.withers && j.brisket && <g stroke={MUTED} strokeWidth={lw}>

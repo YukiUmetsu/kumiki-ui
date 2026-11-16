@@ -31,6 +31,11 @@ The pack `animal-anatomy` decides *what the animal is*: its build, face, coat, g
    - Animate with `poseAnimal(c, { posture, amount })` over the posture's `frames`. Cattle and horses kneel first;
      dogs and cats sit first.
    - Check every frame: nothing through the ground, the planted feet still.
+
+   **Flight:** birds fly with `poseAnimal(c, { flight, t, amount })`; `flightAt(id, seconds, seed, maxHz)` gives the
+   beat, glide or closed wings for the species' style.
+   - Herons draw the neck in and cranes stretch it out.
+   - For drawn animation keep at least four frames per beat (`maxHz` 7.5 at 30 fps).
 6. **Sound.** Use the catalog ids in `species.sounds`. For the rest, source a CC0 recording with the search term given,
    and add it to the sound catalog.
 7. **Check.** Read your drawing's or rig's landmarks: withers, brisket, point of shoulder, point of buttock and ground.
