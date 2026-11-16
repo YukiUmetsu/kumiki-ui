@@ -164,6 +164,8 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
       ["fox","fox-forepaw","foreleg-right"],
       ["fox","fox-hock","rear-leg"],
       ["portrait","portrait-nape","neck"],
+      ["portrait","portrait-crown","hair-crown"],
+      ["portrait","portrait-lock","hair-lock-right"],
     ] as const){
       await subject.selectOption(specimen);
       const before=await svg.screenshot({animations:"disabled"});
@@ -182,6 +184,26 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
       // a photograph edit or duplicated/flattened alternate hero.
       await svg.screenshot({animations:"disabled",
         path:info.outputPath("pencil-"+specimen+"-"+format+"-"+part+"-macro.png")});
+      if(focus==="portrait-crown"||focus==="portrait-lock"){
+        const physicalHair=await svg.evaluate((root,part)=>{
+          const region=root.querySelector('[data-km-pencil-region="'+part+'"]')!;
+          const traces=[...region.querySelectorAll("[data-km-pencil-trace]")];
+          const ids=traces.map(t=>t.getAttribute("data-km-pencil-trace"));
+          const hair=region.querySelectorAll('[data-km-pencil-trace^="fibre-"]');
+          const paths=[...hair].map(t=>t.getAttribute("d")??"");
+          return {
+            actualEditableFibres:hair.length,
+            rootQuadratics:paths.every(p=>p.includes(" Q")&&p.length<12000),
+            darkClumps:ids.includes(part==="hair-crown"?
+              "crown-dark-clump-troughs":"hair-right-lock-occlusion"),
+            noImages:region.querySelectorAll("image,foreignObject,feImage").length===0,
+          };
+        },part);
+        expect(physicalHair.actualEditableFibres).toBeGreaterThanOrEqual(12);
+        expect(physicalHair.rootQuadratics).toBe(true);
+        expect(physicalHair.darkClumps).toBe(true);
+        expect(physicalHair.noImages).toBe(true);
+      }
       if(focus==="fox-eye"){
         const topology=await svg.evaluate(root=>{
           const ctx=document.createElement("canvas").getContext("2d")!;

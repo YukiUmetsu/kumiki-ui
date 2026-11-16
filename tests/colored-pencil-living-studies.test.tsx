@@ -226,6 +226,55 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("builds portrait hair as observed lock-flow and hundreds of short curved pencil contacts, not bright parallel ribbons",()=>{
+    const A=pencilPortraitAnatomy();
+    for(const aspect of ["landscape","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291});
+      const map=new Map(drawing.regions.map(p=>[p.id,p]));
+      const specs=[
+        ["hair-back",12,["hair-occipital-parting"]],
+        ["hair-crown",18,["crown-dark-clump-troughs","crown-reserved-glints"]],
+        ["hair-lock-left",12,["hair-left-lock-occlusion"]],
+        ["hair-lock-right",12,["hair-right-lock-occlusion"]],
+      ] as const;
+      let totalContacts=0;
+      for(const [id,minFamilies,required] of specs){
+        const region=map.get(id)!;
+        expect(region.craft?.kind,id).toBe("hair");
+        expect(region.layers).toHaveLength(3);
+        expect(region.layers.every(l=>l.texture==="fiber")).toBe(true);
+        const fibres=region.details!.filter(t=>t.id?.startsWith("fibre-"));
+        expect(fibres.length,id).toBeGreaterThanOrEqual(minFamilies);
+        for(const trace of fibres){
+          expect(trace.path,id).not.toMatch(/NaN|Infinity/);
+          expect(trace.width,id).toBeLessThanOrEqual(.56);
+          expect(trace.opacity,id).toBeLessThanOrEqual(.69);
+          expect(trace.path,id).toContain(" Q");
+          expect(trace.path.length,id).toBeLessThan(12000);
+          const contacts=(trace.path.match(/M/g)??[]).length;
+          expect(contacts,id).toBeGreaterThanOrEqual(12);
+          expect(contacts,id).toBeLessThanOrEqual(36);
+          totalContacts+=contacts;
+        }
+        for(const feature of required)
+          expect(region.details!.some(t=>t.id===feature),id+" "+feature).toBe(true);
+        const longLocks=region.details!.filter(t=>!t.id&&(t.path.match(/M/g)??[]).length>=14);
+        expect(longLocks.length,id).toBeGreaterThanOrEqual(2);
+        expect(longLocks.every(t=>t.width<.36),id).toBe(true);
+      }
+      expect(totalContacts).toBeGreaterThanOrEqual(1450);
+      // Hair is authored over the SAME MediaPipe/ANSUR-informed ANAT1
+      // face, not a stand-in bitmap that breaks eye, lip or jaw geometry.
+      expect(map.get("face-main")!.path).toBe(A.features.oval.path);
+      expect(map.get("eye-white-near")!.path).toBe(A.eyes.L.path);
+      expect(map.get("eye-white-far")!.path).toBe(A.eyes.R.path);
+      expect(map.get("nose-bridge")!.path).toBe(A.nose.path);
+      expect(map.get("lip-upper")!.path).toBe(A.lips.upper);
+      expect(pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291}))
+        .toEqual(drawing);
+    }
+  });
+
   it("builds soft three-quarter human eye and nasal planes without hard iris or brow stickers",()=>{
     const regions=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"}).regions;
     const parts=new Map(regions.map(r=>[r.id,r]));
