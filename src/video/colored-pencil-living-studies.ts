@@ -323,7 +323,7 @@ function pencilAnatIrisRadials(
         fmt(mx)+" "+fmt(my)+" "+fmt(bx)+" "+fmt(by));
     }
     out.push({...mark(strokes.join(" "),colors[layer],
-      [.28,.23,.18][layer],240+layer*8,[.66,.42,.31][layer]),
+      [.28,.23,.21][layer],240+layer*8,[.66,.42,.31][layer]),
       id:"anat-radial-iris-"+side+"-"+layer});
   }
   out.push({...mark("M"+fmt(cx-rx*.74)+" "+fmt(cy-ry*.53)+" Q"+
