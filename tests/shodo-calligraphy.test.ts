@@ -3,11 +3,14 @@ import { SHODO_GLYPHS, inspectShodoGlyph, parseKanjiVgSvg, shodoKaishoForm } fro
 import type { ShodoGlyph } from "../registry/video/shodo/shodo-glyphs";
 import { loadShodoGlyph, shodoTeacherFor } from "../registry/video/shodo/shodo-glyph-source";
 import { shodoKankaRulesFor, shodoLayout, shodoStructure } from "../registry/video/shodo/shodo-structure";
-import { planShodoWriting, shodoBrushPose, shodoRestLean } from "../registry/video/shodo/shodo-hand";
+import { createElement } from "react";
+import { render, screen } from "@testing-library/react";
+import { planShodoWriting, shodoBrushPose, shodoRestLean, shodoStrokeNumberBox, shodoStrokeNumbers } from "../registry/video/shodo/shodo-hand";
 import { shodoFerruleHeight } from "../registry/video/shodo/shodo-brush";
 import { ShodoInkSurface } from "../registry/video/shodo/shodo-ink";
 import { DEFAULT_SHODO_STYLE, inspectShodoStyle, resolveShodoStyle } from "../registry/video/shodo/shodo-style";
 import { SHODO_BASICS, auditShodoTechniques } from "../registry/video/shodo/shodo-techniques";
+import { ShodoKanjiInfoCard, kanjiCardPhaseAt, kanjiCardTimeline, resolveKanjiCardContent } from "../src/video/shodo-demos";
 
 const ei = () => planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["永"], x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE });
 
@@ -275,5 +278,51 @@ describe("SHO1 shodō calligraphy", () => {
     expect(paired.strokes.slice(1)).toEqual(pair.strokes.slice(1));     // the right part and all widths stay
     expect(shodoKaishoForm(SHODO_GLYPHS["永"]).strokes[0].points).toEqual(shodoKaishoForm(SHODO_GLYPHS["永"], { structure: false }).strokes[0].points);
     expect(shodoKaishoForm(stack, { structure: false }).strokes[2].points[0][0]).toBeLessThan(shodoKaishoForm(stack).strokes[2].points[0][0]);
+  });
+
+  it("numbers each stroke nearest to its own start, and off the ink where a clear place is near", () => {
+    const sheet = { x: 0, y: 0, width: 880, height: 720 };
+    // 道 and 永 have crowded starts: the corner of 自, the centre of 永.
+    for (const char of ["道", "永"]) {
+      const plan = planShodoWriting({ items: [{ glyph: SHODO_GLYPHS[char], x: 170, y: 95, size: 540 }], style: DEFAULT_SHODO_STYLE });
+      const numbers = shodoStrokeNumbers(plan, { bounds: sheet });
+      const real = plan.strokes.filter(s => s.kind !== "link");
+      expect(numbers.map(n => n.number)).toEqual(real.map((_, i) => i + 1));
+      const starts = real.map(s => [s.samples[0].x, s.samples[0].y]);
+      const D = plan.brush.diameter;
+      for (const n of numbers) {
+        const [hw, hh] = shodoStrokeNumberBox(String(n.number).length, n.size);
+        expect(n.size).toBeLessThan(D * .5);                                          // small text
+        expect(n.t0).toBe(plan.strokes[n.stroke].t0);                                 // shows when the brush lands
+        const d = starts.map(([x, y]) => Math.hypot(n.x - x, n.y - y));
+        expect(d.indexOf(Math.min(...d)), char + " " + n.number).toBe(n.number - 1);  // nearest start is its own
+        expect(n.x - hw).toBeGreaterThan(sheet.x); expect(n.y + hh).toBeLessThan(sheet.y + sheet.height);
+        if (!n.onInk) for (const s of plan.strokes) for (const c of s.samples) {     // off all ink, also later ink
+          const ex = Math.max(Math.abs(c.x - n.x) - hw, 0), ey = Math.max(Math.abs(c.y - n.y) - hh, 0);
+          expect(Math.hypot(ex, ey)).toBeGreaterThan(Math.max(c.width, c.length) / 2);
+        }
+        for (const m of numbers) if (m !== n) expect(Math.abs(m.x - n.x) > hw * 2 || Math.abs(m.y - n.y) > hh * 2).toBe(true);
+      }
+      // The first stroke of 自 starts under 一: its number sits on the ink at that start.
+      if (char === "道") expect(numbers.find(n => n.number === 4)?.onInk).toBe(true);
+    }
+    const plan = planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["道"], x: 170, y: 95, size: 540 }], style: DEFAULT_SHODO_STYLE });
+    expect(shodoStrokeNumbers(plan, { only: [12] }).map(n => n.number)).toEqual([12]);
+  });
+
+  it("times the kanji card in three phases and shows a JLPT badge only for a given level", () => {
+    const t = kanjiCardTimeline(10, { write: 6, review: 8, info: 4 }, 30);
+    expect([t.write, t.review, t.info, t.frames]).toEqual([[0, 180], [180, 420], [420, 540], 540]);
+    expect(kanjiCardPhaseAt(t, 200)).toEqual({ phase: "review", local: 20, length: 240 });
+    expect(kanjiCardTimeline(10, { write: 0 }, 30).review).toEqual([0, 300]);        // a 0 s phase is skipped
+    // Sample data belongs to 道 only; nothing is invented for another character.
+    expect(resolveKanjiCardContent("道", {}).jlpt).toBe("N4");
+    expect(resolveKanjiCardContent("道", { jlpt: null }).jlpt).toBeNull();
+    expect(Object.values(resolveKanjiCardContent("山", {})).every(v => v === undefined)).toBe(true);
+    const { unmount } = render(createElement(ShodoKanjiInfoCard, { char: "山", meanings: "MOUNTAIN" }));
+    expect(screen.queryByText(/JLPT/)).toBeNull();
+    unmount();
+    render(createElement(ShodoKanjiInfoCard, { char: "山", meanings: "MOUNTAIN", jlpt: "N5" }));
+    expect(screen.getByText("JLPT N5")).toBeInTheDocument();
   });
 });

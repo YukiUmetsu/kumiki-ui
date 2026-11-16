@@ -22,10 +22,19 @@ export const Techniques: StoryObj<typeof ShodoStudio> = {
   render: () => <ShodoTechniquesBoard />,
 };
 
-/** A study frame for video: the character on gridded hanshi, a reading card, the last stroke in vermilion. */
+/**
+ * A study video for one kanji (16:9): the brush writes the character, writes it again with
+ * small vermilion stroke-order numbers, then the reading card holds. The last stroke is in vermilion.
+ */
 export const KanjiCard: StoryObj<typeof ShodoStudio> = {
   name: "SHO1 · Kanji study card",
   render: () => <ShodoKanjiCard />,
+};
+
+/** The same card as a 9:16 short for phones: the card sits under the sheet, and the video lasts about 20 s. */
+export const KanjiCardShort: StoryObj<typeof ShodoStudio> = {
+  name: "SHO1 · Kanji study card (9:16 short)",
+  render: () => <ShodoKanjiCard layout="portrait" timing={{ write: 7, review: 9, info: 4 }} />,
 };
 
 /** Macro view of the tuft: the press, the bend at the ferrule, the flick and the spring-back. */
