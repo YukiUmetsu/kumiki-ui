@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -521,7 +521,7 @@ function MasterInkSourceComparison(){
     {school:"fuchun",title:"Huang Gongwang · long hemp fibre",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975",
       observation:"Rounded nested hills, uneven long hemp loaded at the head, bare paper between linked families. Do not confuse with raindrop marks.",
-      target:"Six positive curved Fuchun stone cheeks now support twelve independent low, laterally sweeping loaded rock courses sampled from the actual undercut rim. Each is clipped to its own source rock, rather than painting parallel free wires into empty paper. Preserve all six undercuts, 15 loaded parent banks, 78 short/mid/long attached children, original five pines and 20 boughs, 119 wet bunches, 40 fan masses, 60 pads and 310 needles. In Stone volumes mode inspect rounded horizontal value rhythms at macro/meso/micro before restoring the complete film. Artistic source fidelity is not certified."},
+      target:"The original middle-ridge silhouette now rolls across a broad irregular summit and a separately held right shoulder, not a single sawtooth needle apex. Inspect Skyline mode at the *same* seed/camera as Stone volumes and All hemp. Six positive curved Fuchun cheeks support twelve independent lateral rock courses rooted on their undercuts. Preserve all six undercuts, 15 loaded parent banks, 78 short/mid/long attached children, five original pines and 20 boughs, 119 wet bunches, 40 fan masses, 60 pads and 310 needles. Fidelity to the actual handscroll requires independent human judgment."},
     {school:"early-spring",title:"Guo Xi · curled cloud-head",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000960",
       observation:"Reversing cloud-head rock rolls, layered ink ranges and open mist; crab-claw pine branching in the source.",
@@ -578,21 +578,32 @@ function MasterInkSourceComparison(){
       [data-km-rock-hero-cliff],
       [data-km-master-ink-inspection="stone"] [data-km-master-study="fuchun"]
       [data-km-cliff-pine-grove] { visibility:hidden; }
+      /* The *real* 960x540 renderer supplies all three nested ridges.
+         Isolate only the middle band’s original filled skyline path.
+         Do not replace it with a polygon, diagram or copied image. */
+      [data-km-master-ink-inspection="ridge"] [data-km-master-study="fuchun"]
+      [data-km-shanshui-ridge="1"] > :not([data-km-shanshui-ridge-contour]),
+      [data-km-master-ink-inspection="ridge"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-paint-layer],
+      [data-km-master-ink-inspection="ridge"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-grove] { visibility:hidden; }
     `}</style>
     <div role="group" aria-label="Fuchun paper-reserve inspection"
       data-testid="shanshui-master-zone-presets"
       style={{display:"flex",gap:9,flexWrap:"wrap",alignItems:"center"}}>
       {([["all","All Fuchun hemp"],["upper","Upper-bank contacts only"],
         ["lower","Lower-bank contacts only"],
-        ["stone","Stone volumes · brush hidden"]] as const).map(([zone,title])=>
+        ["stone","Stone volumes · brush hidden"],
+        ["ridge","Skyline · contour only"]] as const).map(([zone,title])=>
         <button type="button" key={zone} style={style.button}
           aria-pressed={fuchunZone===zone} onClick={()=>setFuchunZone(zone)}>
           {title}
         </button>)}
       <span style={{maxWidth:500,fontSize:12,color:"#675745"}}>
-        Storybook-only: isolate original seven-curve stone backs, wet/dry
-        undercuts and twelve transverse ink courses. All source paths,
-        other schools and the native film clock remain untouched.
+        Storybook-only: isolate the original paper-backed skyline, or
+        inspect the seven-curve stone backs, wet/dry undercuts and twelve
+        transverse courses. These controls only hide SVG layers;
+        all source roots, the other schools and the film clock stay live.
       </span>
     </div>
     <div data-testid="shanshui-master-controls"
