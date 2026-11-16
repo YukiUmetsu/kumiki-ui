@@ -42,12 +42,15 @@ const point=(x:number,y:number)=>`${n(x)} ${n(y)}`;
  */
 function webContour(cx:number,cy:number,skew:number):string{
   const p=(x:number,y:number)=>point(cx+x+skew*(y<2?(.45-y*.1):0),cy+y);
+  // At original 7.4× Chromium, the first 8.4-unit reservation removed
+  // whole strips of the gripping fingers. This smaller 4.4-unit oblique
+  // scallop still opens to the OUTER crest but preserves distal pulp.
   return [
-    `M${p(-1.45,7.4)}`,
-    `C${p(-1.18,5.4)} ${p(-.68,4.0)} ${p(-.82,2.14)}`,
-    `C${p(-.77,.75)} ${p(-.3,-.78)} ${p(.1,-.98)}`,
-    `C${p(.49,-.91)} ${p(.73,.69)} ${p(.68,2.03)}`,
-    `C${p(.63,4.06)} ${p(1.26,5.65)} ${p(1.43,7.4)} Z`,
+    `M${p(-.74,3.85)}`,
+    `C${p(-.63,2.74)} ${p(-.38,1.87)} ${p(-.44,1.08)}`,
+    `C${p(-.41,.43)} ${p(-.18,-.34)} ${p(.06,-.56)}`,
+    `C${p(.31,-.48)} ${p(.45,.43)} ${p(.4,1.14)}`,
+    `C${p(.35,2.31)} ${p(.69,3.06)} ${p(.78,3.85)} Z`,
   ].join(" ");
 }
 /** Do not apply paper reserves to inactive hands; leave their exact
@@ -65,7 +68,7 @@ export function riso54WebReserveParts(actor:Riso54Actor):readonly RisoCharacterP
     // the metacarpal arc: no moving holes in relaxed/open fingers, no
     // detached white sticker anywhere in the full film. Real negative
     // paper grows into the anatomical exterior edge only at contact.
-    const rest=point(x,y+7.5);
+    const rest=point(x,y+3.95);
     const base=`M${rest} C${rest} ${rest} ${rest} C${rest} ${rest} ${rest} C${rest} ${rest} ${rest} C${rest} ${rest} ${rest} Z`;
     const originalContact=webContour(x,y,i===0?.2:-.27);
     const contact=riso51ProjectPalmarPath(originalContact,side,actor,1);
