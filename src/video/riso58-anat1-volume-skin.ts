@@ -61,16 +61,11 @@ export const RISO58_ANAT1_SURFACE={
 } as const;
 
 const n=(v:number)=>Number(v.toFixed(4));
-const clamp=(v:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,v));
 const vec=(x:number,y:number,z:number):Riso58Vec3=>({
   x:n(x),y:n(y),z:n(z),
 });
-const between=(a:Riso58Vec3,b:Riso58Vec3,t:number):Riso58Vec3=>
-  vec(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,a.z+(b.z-a.z)*t);
 const length2=(a:Riso58Vec3,b:Riso58Vec3)=>
   Math.hypot(a.x-b.x,a.y-b.y);
-const length3=(a:Riso58Vec3,b:Riso58Vec3)=>
-  Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
 const boneDepth=(trueLength:number,projected:number)=>
   Math.sqrt(Math.max(0,trueLength*trueLength-
     Math.min(trueLength,projected)**2));
