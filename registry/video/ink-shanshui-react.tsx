@@ -1106,7 +1106,7 @@ function MountainHeroCliff({root,stations,seed,mist,detail}:{
         a small rounded alum-head rim, folds twice, then ends in a dry
         tail. Their dark-to-dilute gradient is local to that face. */}
     <g data-km-rock-interlocked-mass-family="">
-      {rockFacePlan.map((face,i)=>{
+      {rockFacePlan.map((_,i)=>{
         const {a,sign,spread,depth,crest,cap,belly,base,inner}=parentFaces[i];
         // A nibble along the outer edge is a supported erosion recess,
         // not a triangle cut from the silhouette.
