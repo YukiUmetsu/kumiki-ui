@@ -707,7 +707,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       })).toBe(true);
       // A real folded centerline changes curvature, not only pressure.
       const trajectoryStarts=ribFaces.map(d=>
-        [...d.matchAll(/(?:^| )M(-?[\\d.]+) (-?[\\d.]+)/g)]
+        [...d.matchAll(/(?:^| )M(-?[\d.]+) (-?[\d.]+)/g)]
           .map(([,x,y])=>[Number(x),Number(y)]));
       expect(trajectoryStarts.every(points=>points.length===3&&
         points.every(p=>p.every(Number.isFinite)))).toBe(true);
