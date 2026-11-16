@@ -41,7 +41,7 @@ const point=(x:number,y:number)=>`${n(x)} ${n(y)}`;
  * outside at positive local-y; the negative valley narrows organically at
  * its inner base and has a small off-axis character-specific inflection.
  */
-function webContour(cx:number,cy:number,skew:number):string{
+export function riso54WebContour(cx:number,cy:number,skew:number):string{
   const p=(x:number,y:number)=>point(cx+x+skew*(y<2?(.45-y*.1):0),cy+y);
   // At original 7.4× Chromium, the first 8.4-unit reservation removed
   // whole strips of the gripping fingers. This smaller 4.4-unit oblique
@@ -84,7 +84,7 @@ export function riso54WebReserveParts(actor:Riso54Actor):readonly RisoCharacterP
     // paper grows into the anatomical exterior edge only at contact.
     const rest=point(x,y+3.95);
     const base=`M${rest} C${rest} ${rest} ${rest} C${rest} ${rest} ${rest} C${rest} ${rest} ${rest} C${rest} ${rest} ${rest} Z`;
-    const originalContact=webContour(x,y,i===0?.2:-.27);
+    const originalContact=riso54WebContour(x,y,i===0?.2:-.27);
     const contact=riso51ProjectPalmarPath(originalContact,side,actor,1);
     return {
       id:side+"-glove-web-reserve-"+saddle,
