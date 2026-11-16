@@ -341,3 +341,46 @@ src/video/ink-shanshui-expression-cue.ts.
 teacher painting; check continuity at 0→1,12→13,83→84, independent blink
 and speech overrides. A passing CI run is not human visual approval.
 The existing Fuchun rock/pima/pine hold still prevents merging PR #466.
+
+
+## Source-fitted reader ear: antihelix Y, concha recess and baimiao pressure · November 16, 2026
+
+**Status: source-led anatomy refinement, artistic hold pending same-camera browser review.**
+The previous full-resolution Storybook ear crop `reader-ear-ANAT1-helix-concha-full.png`
+still showed *nested, circular, same-spacing cartilage*, visually closer to a
+decorative snail than an individual young scholar's ear. Passing topology
+assertions did not mean an anatomically credible silhouette.
+
+### Checked references and discriminating observations
+
+1. [National Museum of China — Ming and Qing portraits](https://www2.chnmuseum.cn/exhibition/exhibition_series/temporary_exhibitions/classical_art_exhibitions/202204/t20220429_256191.html):
+   traditional likeness joins wash depth to sparse, carefully weighted ink contours.
+2. [University of Michigan Museum of Art — Zeng Jing, *Portrait of Pan Qintai*](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/):
+   a credible individual head comes from fine contours plus subtly layered tonal
+   washes, especially around the eyes and nose, rather than uniform thick rings.
+3. [NIH — standardized external ear anatomy](https://elementsofmorphology.nih.gov/anatomy-ear.shtml):
+   the antihelix is a genuine Y with distinct superior/inferior crura; the
+   scapha lies between helix and antihelix, and the soft lobule lacks cartilage.
+   This is the structural reference, *not* a visual style source.
+
+### Topological changes (source coordinates, no imported pixels)
+
+- Keep original near-ear head pivot, over-hair layer, landmark names and all
+  ear-part source asset IDs. Preserve the four original main path slots.
+- Replace the oval pointed lobule with a graduated return to the face and
+  an outer stroke of varied visual weight, retaining negative paper.
+- Align the Y's three own-path subpaths to a shared hinge at (114.45, 106.7).
+  Use separate arc directions for the superior and inferior crura; no nested U.
+- Separate the small tragal lip and antitragus/soft lobule. Shade the concha
+  with a translucent *asymmetric* wash; add independent meatal recess accents,
+  pale scapha ridge and ochre dry-glaze, all behind delicate contour lines.
+- High detail increases source-anatomy marks instead of simplifying the drawing.
+  Existing EXPR1 cue and film rig do not deform the ear, preventing expression
+  transitions from collapsing the cartilage.
+
+**Visual sign-off remains pending:** compare 1× and 2.4× native source-fitted ear
+Storybook captures against the above references. Avoid a plastic circular
+cartilage stamp, unbroken 1px vector lines, oversized concha shadow or detached
+lobule. Run ANAT1, EXPR1, browser/Storybook and original Shanshui film checks.
+Fuchun landscape geology/fibre and old-pine quality still independently block
+PR #466 merge.

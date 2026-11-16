@@ -200,14 +200,21 @@ export function scrollReaderFacePortrait(detail=1):
   // the ear is outlined *in front of* the sideburn; putting both marks
   // inside the base face asset hid it beneath the cap and read as a wedge.
   const visibleEar=asset("near-ear-front-plane",[
-    p("M117.2 95.2 C113.1 93.8 110.7 97.7 110.3 103.6 C110.2 109.7 112.5 116.3 116.2 119.2 C119.2 119.2 120.1 115.8 120.2 111 C120.5 105.3 119.2 98.2 117.2 95.2 Z",
-      "$skin","$shadow",.96,1),
-    p("M116.7 99.4 C113.5 99.7 112.8 102.4 113.4 106 C113.8 108 114.8 109 116.1 109.4",
-      "none","$skinshade",.7,.53),
-    p("M116.2 112.4 C114.1 110.4 113.8 108.1 114.9 106.2 M114.9 106.2 C114.1 104.4 115.3 103.3 116.7 103.2 M114.9 106.2 C116 105 117.1 105.2 118.1 106.3",
-      "none","$shadow",.65,.62),
-    p("M111.7 102.7 Q110.8 108 113.1 114.4",
-      "none","$paper",.48,.62),
+    // The ear turns behind the sideburn rather than hanging as a uniform
+    // ink oval. Its rounded soft lobule returns into the cheek without a
+    // sharp apex, and the rim has more paper-visible negative space.
+    p("M117.1 95.2 C113.6 93.7 110.5 97.9 110.3 103.7 C110.25 109 112.1 115.1 115.7 118.5 C117.9 120 119.2 117.1 119.3 113.6 C120.7 109.9 120.3 104.7 118.7 98.9 C118.15 96.8 117.6 95.45 117.1 95.2 Z",
+      "$skin","$shadow",.78,1),
+    // Outer rim/fossa: a shallow scapha wash, not two nested C-shaped
+    // outlines that make the source portrait look like a rubber stamp.
+    p("M115.65 97.7 C112.7 97.3 111.2 100.6 111.85 104.9 C112.2 108.2 113.25 111.5 114.9 112.8",
+      "none","$skinshade",.56,.45),
+    // ANAT1 Y-shaped antihelix: the superior and inferior crura depart
+    // from exactly the same stem hinge while projecting at different depths.
+    p("M116.15 113.4 C114.65 111.45 113.8 109.15 114.45 106.7 M114.45 106.7 C113.7 104.4 114.3 101.9 116.35 100.95 M114.45 106.7 C115.5 105.25 117 105.3 117.75 106.5",
+      "none","$shadow",.55,.57),
+    p("M111.25 102.7 Q111.02 107.2 113.12 114.5",
+      "none","$paper",.43,.57),
     ...anatomy.ear,
   ]);
   return {

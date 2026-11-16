@@ -303,8 +303,9 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     const outer=ear[0];
     if(outer.type!=="path")throw Error("Front ear should be a path");
     expect(outer.fill).toBe("$skin");
-    expect(outer.d).toContain("120.2 111");
-    expect(outer.d).toContain("116.2 119.2");
+    expect(outer.d).toContain("119.3 113.6");
+    expect(outer.d).toContain("115.7 118.5");
+    expect(outer.strokeWidth).toBeLessThan(1);
     expect(ear.length).toBeGreaterThanOrEqual(10);
     expect(ear.every(shape=>shape.type==="path")).toBe(true);
     // The concha is a recessed pigment volume, while the antihelix
@@ -312,9 +313,15 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     // dropped simplified outline.
     expect(ear[2].type==="path"&&
       (ear[2].d.match(/M/g)??[]).length).toBe(3);
+    // The superior and inferior crus must share a stem hinge. Their
+    // actual source control points are connected in 3/4 projection.
+    expect(ear[2].type==="path"&&ear[2].d)
+      .toContain("M114.45 106.7");
+    // Anatomy now has separate meatus, concha and low-opacity scapha.
+    expect(ear.length).toBeGreaterThanOrEqual(13);
     expect(ear.some(shape=>shape.type==="path"&&
       shape.fill==="$shadow"&&shape.stroke==="none"&&
-      (shape.opacity??0)>.25)).toBe(true);
+      (shape.opacity??0)>.15)).toBe(true);
     expect(scrollReaderFacePortrait(1)).toEqual(scrollReaderFacePortrait(1));
   });
   it("preserves an asymmetric, foreshortened near/far eye and five speaking visemes",()=>{

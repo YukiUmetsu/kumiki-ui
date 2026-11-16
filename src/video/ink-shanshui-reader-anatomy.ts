@@ -237,32 +237,43 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       .38,632,"$skinshade",.31),
   );
   const ear:CharacterPathShape[]=[
-    // The temple-side helix follows the bony cartilage rim but is
-    // separate from the outer ear silhouette. The previous three
-    // concentric curls read as a stamped snail at film resolution.
-    // Keep every anatomical mark and light channel, change direction
-    // and value to load-bearing helix / antihelix / concha / tragus.
-    ink("M115.7 98.5 C112.9 98.2 111.5 101.3 111.7 104.5 C111.9 107.3 113.6 110 115.2 110.4",
-      "none","$shadow",.5,.46),
-    ink("M116.3 102.4 C117.8 102.2 118.6 103.8 118.1 105.3",
-      "none","$shadow",.49,.42),
-    ink("M112.7 107.5 Q113 110.5 114.8 112 Q116.5 113.1 116.3 114.9",
-      "none","$skinshade",.52,.52),
-    ink("M118.3 108.8 Q117.2 110.2 118.1 111.4",
-      "none","$deep",.42,.52),
-    ink("M114.2 110.5 Q115.4 111.7 116.8 111.5",
-      "none","$paper",.48,.47),
+    // Baimiao line economy + weak ochre/wash modelling. Anatomical anchors:
+    // an outer rolled helix, shallow scapha, Y-branch antihelix, concha,
+    // tragus/antitragus/intertragal notch, and non-cartilaginous lobule.
+    // In three-quarter projection all of these must remain distinct,
+    // not three concentric ornamental spirals.
+    ink("M116.55 96.95 C113.85 96.8 112.25 99.35 112.58 103.4",
+      "none","$shadow",.40,.37),
+    // Superior helix crus breaks toward the triangular fossa rather
+    // than continuing parallel around the entire outer rim.
+    ink("M115.2 102.35 Q116.5 101.65 117.85 102.75",
+      "none","$shadow",.42,.37),
+    // The lower antihelix returns to antitragus, not a round cartoon curl.
+    ink("M113.65 110.7 C114.6 112.6 116.6 113.1 117.45 112.2",
+      "none","$skinshade",.47,.58),
+    // Tragus is a small inward lip facing the shadowed meatus.
+    ink("M118.5 108.7 Q117.5 109.45 117.85 110.6 Q118.45 111.6 117.55 112.1",
+      "none","$deep",.4,.56),
+    ink("M112.8 103.2 Q112.4 106.3 114 108.9",
+      "none","$paper",.35,.49),
   ];
   if(high)ear.push(
-    line([115.9,114.1],[117.3,115.4],[117.9,117.9],[116.2,118.7],
-      .44,634,"$shadow",.62),
-    ink("M111.7 100.4 Q111.1 102.9 111.4 105.1",
-      "none","$paper",.5,.45),
-    // A recessed concha bowl carries its own softened wash, *not* a
-    // thick circular spiral. The three existing antihelix forks stay
-    // independent so the fold is anatomically Y-shaped and articulated.
-    ink("M116.9 106.9 C118 106.5 118.6 107.4 118.2 108.6 C117.9 109.5 116.9 110 116.3 109.5 C116.6 108.4 116.5 107.4 116.9 106.9 Z",
-      "$shadow","none",0,.32),
+    // Soft lobule has little or no cartilage; no hard spiral inside it.
+    line([115.65,115.2],[117,116],[118.3,117.5],[116.5,118.3],
+      .35,634,"$shadow",.4),
+    ink("M111.35 99.95 Q110.95 102.6 111.2 104.5",
+      "none","$paper",.43,.53),
+    // The asymmetric concha is a *recessed* ink-wash volume, not a ring.
+    ink("M116.9 107.35 C117.85 107 118.6 107.7 118.7 108.65 C118.4 109.45 117.7 110.6 116.6 110.35 C116.2 109.65 116.35 108.25 116.9 107.35 Z",
+      "$shadow","none",0,.21),
+    ink("M117.6 109.4 Q118.45 109.9 118.05 110.85",
+      "none","$deep",.40,.47),
+    ink("M117.0 110.15 Q116.7 109.5 117.25 109.0",
+      "none","$deep",.23,.32),
+    // Weak ochre glaze holds the upper scapha and antitragal fold
+    // together without smearing the contour or erasing paper grain.
+    ink("M112.65 100.4 C112.1 107.5 114.15 113.8 115.8 115",
+      "none","$skinshade",1.45,.11),
   );
   const brow:CharacterPathShape[]=[];
   if(medium){
