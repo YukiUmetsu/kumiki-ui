@@ -234,7 +234,6 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
         (faceWidth*.067*temporal-faceWidth*.009*malar);
       return [r(x-side*depth),y];
     });
-  const left=lower[lower.length-1],right=lower[0];
   // A complete adult CRANIUM is a high convex parietal dome that flows
   // into a temporal narrowing, then flares over the cheekbones. The
   // original eight vault points reached almost the entire head width at
