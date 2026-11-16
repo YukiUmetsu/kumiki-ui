@@ -33,8 +33,10 @@ describe("RISO55 ArtCraft: 3/4 distal pulp folds BACK into the palm",()=>{
         const theta=RISO55_FOLDBACK_SOURCE.projectionDegrees[actor][digit];
         expect(theta).toBeGreaterThan(90);
         expect(theta).toBeLessThan(130);
-        const [x0,y0]=riso55FoldbackPoint(0,-2,actor,digit);
-        expect([x0,y0]).toEqual([0,-2]);
+        // Pivot-centered proper rotation: old DIP source attachment remains
+        // exactly at its original named joint, while the visible pulp turns.
+        const [x0,y0]=riso55FoldbackPoint(0,0,actor,digit);
+        expect([x0,y0]).toEqual([0,0]);
         const [x1,y1]=riso55FoldbackPoint(0,3,actor,digit);
         expect(y1).toBeLessThan(0);
         if(actor==="courier")expect(x1).toBeGreaterThan(2.3);
@@ -57,7 +59,12 @@ describe("RISO55 ArtCraft: 3/4 distal pulp folds BACK into the palm",()=>{
         const shape=extent(folded).paths;
         expect(shape).toHaveLength(1);
         expect(shape[0].closed).toBe(true);
-        expect(Math.abs(risoContourSignedArea(shape[0].points))).toBeGreaterThan(2);
+        const originalArea=Math.abs(risoContourSignedArea(extent(forward).paths[0].points));
+        const foldedArea=Math.abs(risoContourSignedArea(shape[0].points));
+        // A true 3/4 turn must preserve the original soft positive-ink
+        // pulp MASS, not degenerate into a flattened self-crossing strip.
+        expect(foldedArea).toBeGreaterThan(4);
+        expect(Math.abs(foldedArea-originalArea)).toBeLessThan(.5);
         for(const stage of segments){
           const id=active+"-glove-"+digit+"-"+stage;
           const part=spec.parts.find(p=>p.id===id)!;
