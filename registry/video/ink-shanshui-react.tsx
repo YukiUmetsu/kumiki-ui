@@ -191,14 +191,13 @@ const MASTER_TRAIL_MIDDLE:Record<Exclude<InkRockSchool,"fuchun">,readonly P[]>={
  *
  * Unlike the paper tint/gradient, every mark is rooted to the SAME
  * fractured ridge geometry as the outer silhouette. */
-function RockInkPlanes({stations,seed,band,detail,mist,nearBankFlow=false}:{
+function RockInkPlanes({stations,seed,band,detail,mist,nearBankFlow=false,sourceClipId}:{
   stations:readonly P[];seed:number;band:number;detail:number;mist:number;
-  nearBankFlow?:boolean;
+  nearBankFlow?:boolean;sourceClipId?:string;
 }){
   const anchors=band===0?[116,255,564,755,890]:[82,247,345,532,711,857];
   const count=Math.round((band===0?7:band===1?12:17)*detail);
-  return <g data-km-rock-plane-family={band}>
-    {Array.from({length:count},(_,i)=>{
+  const marks=Array.from({length:count},(_,i)=>{
       const x=anchors[i%anchors.length]+
         (s(seed+band*491,i*17+41)-.5)*(band===0?48:74);
       const crest=ridgeHeight(stations,x);
@@ -330,7 +329,23 @@ function RockInkPlanes({stations,seed,band,detail,mist,nearBankFlow=false}:{
             fill="#493f30" opacity={f((.33+.28*s(seed+709,i*31+j))*(1-.23*mist))}/>;
         })}
       </g>;
-    })}
+    });
+  // A cubic can briefly overshoot its sampled ridge even when all its
+  // loaded source stations are geographically correct. Constrain ONLY
+  // the opt-in near-band wet ink, dry ink, ledges and tiny attached moss
+  // to the very same positive mountain that generated their roots.
+  // Never erase any of the 17 original contact paths or clip the other
+  // three historical schools' authored mountain grammars.
+  return <g data-km-rock-plane-family={band}>
+    {nearBankFlow&&sourceClipId&&<defs>
+      <clipPath id={sourceClipId} clipPathUnits="userSpaceOnUse">
+        <path d={ridgePath(stations)}/>
+      </clipPath>
+    </defs>}
+    {nearBankFlow&&sourceClipId
+      ?<g data-km-rock-plane-source-clip=""
+        clipPath={"url(#"+sourceClipId+")"}>{marks}</g>
+      :marks}
   </g>;
 }
 /** Source-led Huang Gongwang mountain *bone* (shan gu): each dark
@@ -3656,7 +3671,9 @@ function Mountains({scene,seed,detail,mist,ink,school,nearStudy,ids}:{
           seed={seed+band*251} band={band} detail={detail} mist={mist}
           id={ids.grain+"-rock-"+band}/>
         <RockInkPlanes stations={stations} seed={seed+band*181} band={band}
-          detail={detail} mist={mist} nearBankFlow={coherentNearEdge}/>
+          detail={detail} mist={mist} nearBankFlow={coherentNearEdge}
+          sourceClipId={coherentNearEdge
+            ?ids.grain+"-source-supported-near-ink-"+band:undefined}/>
         {nearStudy&&scene==="mountain-trail"&&school==="fuchun"&&
           band===2&&<FuchunNearBankRelief stations={stations}
             seed={seed+band*193} detail={detail} mist={mist}
