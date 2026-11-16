@@ -61,15 +61,19 @@ export function riso32ThumbIpJoint(side:Riso32Side):RisoJoint{
  * Original cheek-like thenar-to-proximal knuckle and rounded distal pad,
  * with a narrower overlapping bridge at the actual moving joint. The cap is part
  * of the same two-color physical stencil as the other four fingers.
- * Source paths differ across hands; they are not a reflected photograph.
+ * RISO46: proximal volume has an asymmetric CMC shoulder, two broad curved
+ * fleshy facets and a return into the wrist, rather than a sharp angular
+ * four-segment wedge. Distal IP pad, opposition keys and original paper
+ * occlusion remain exactly as before. Source paths differ across hands;
+ * they are not a reflected photograph.
  */
 export function riso32ThumbInkParts(side:Riso32Side):readonly RisoCharacterPart[]{
   const left=side==="left";
   return [
     {id:side+"-glove-thumb",joint:side+"-thumb",plate:"red",paint:"solid",
       d:left
-        ?"M1.8 -3.3 C.4 -5.4 -1.7 -5.3 -3.3 -4.2 Q-5.3 -2.7 -5.2 -.8 C-4.4 1.6 -2.6 2.0 -.6 1.4 Q1.6 .5 1.8 -3.3 Z"
-        :"M-1.8 -3.3 C-.3 -5.4 1.9 -5.4 3.4 -4.2 Q5.4 -2.7 5.1 -.8 C4.5 1.5 2.6 2.0 .6 1.4 Q-1.6 .4 -1.8 -3.3 Z"},
+        ?"M1.8 -3.3 C.8 -5.1 -.9 -5.6 -2.2 -4.97 C-3.83 -4.22 -5.28 -2.78 -5.27 -1.07 C-5.21 .54 -4.3 1.74 -2.66 1.91 C-1.43 2.07 -.21 1.65 .71 .78 C1.48 -.13 1.79 -1.89 1.8 -3.3 Z"
+        :"M-1.8 -3.3 C-.95 -5.05 .84 -5.62 2.2 -5.06 C3.82 -4.39 5.27 -2.7 5.27 -1.05 C5.19 .58 4.33 1.79 2.67 1.95 C1.4 2.09 .2 1.62 -.68 .75 C-1.42 -.19 -1.79 -1.86 -1.8 -3.3 Z"},
     {id:side+"-glove-thumb-distal-phalanx",joint:side+"-thumb-ip",plate:"red",paint:"solid",
       d:left
         ?"M-2.1 -1.5 C-2 -2.7 -.7 -3.2 .5 -2.4 C2.3 -1.1 2.8 .7 2.5 2.7 Q2.3 4.6 1.0 5.4 C.1 6.0 -.9 5.6 -1.6 4.8 Q-2.5 3.3 -2.4 1.1 Q-2.6 -.4 -2.1 -1.5 Z"
