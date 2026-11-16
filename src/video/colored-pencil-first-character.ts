@@ -509,14 +509,27 @@ export function newCharacterHeadStageOne(seed=271,contourCraft=true):PencilSubje
   // Stage 1 is PENCIL CONSTRUCTION on paper, not fully opaque dermal
   // paint. The previous flat salmon wax mask was rejected in native proof.
   const palette:PencilPalette=["#B1978A","#82707A","#E0C3A6"];
+  // The CP-F1 SVG contract caps a single region at 80 editable traces.
+  // This head already contains 77: adding six separate groups would
+  // discard the rendered head through validation. Instead append ALL six
+  // new short mark paths, two each, to the three existing dry colour
+  // value traces. The previous path bytes, trace IDs and animation starts
+  // remain exactly intact, as does every other detail; no strokes lost.
+  const valueTraces=newHeadValuePencil(guides,(seed+1001)%2147483647);
+  const contourContacts=contourCraft?
+    newHeadContourContacts(perimeter,(seed+3491)%2147483647):[];
+  const connectedValueTraces=valueTraces.map((trace,i)=>contourCraft?{
+    ...trace,
+    path:trace.path+" "+contourContacts.slice(i*2,i*2+2)
+      .map(contact=>contact.path).join(" "),
+  }:trace);
   return [{
     id:NEW_CHARACTER_01_ID,material:"glaze",palette,path:contour,
     bounds,direction:64,flow:11,start:73,
     details:[
       ...newHeadPlanePigment(bounds,(seed+1831)%2147483647),
-      ...(contourCraft?newHeadContourContacts(perimeter,(seed+3491)%2147483647):[]),
       ...newHeadAnat1ValuePigment(face,(seed+2393)%2147483647),
-      ...newHeadValuePencil(guides,(seed+1001)%2147483647),
+      ...connectedValueTraces,
       drawn("newhead-sagittal-guide",line(forehead,glabella,chin),
         "#90777C",.32,.31,103),
       drawn("newhead-zygomatic-guides",
