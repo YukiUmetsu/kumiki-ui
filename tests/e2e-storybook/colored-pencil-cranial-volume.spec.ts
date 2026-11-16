@@ -9,7 +9,8 @@ test("ArtCraft human #01 native 16:9 and 9:16 head-only optical value A/B",async
   const weave=page.getByRole("checkbox",{name:"Foundation head cranial optical volume"});
   await subject.selectOption("portrait");
   await expect(studio).toHaveAttribute("data-km-head-cranial-volume","on");
-  await expect(studio).toHaveAttribute("data-km-head-source-fidelity","blocked");
+  await expect(page.locator("[data-km-head-source-proof]"))
+    .toHaveAttribute("data-km-head-source-fidelity","blocked");
   await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
   await expect(svg.locator("[data-km-pencil-craft-base]")).toHaveCount(0);
   const volume=svg.locator('[data-km-pencil-trace^="newhead-cranium-"]');
@@ -34,7 +35,7 @@ test("ArtCraft human #01 native 16:9 and 9:16 head-only optical value A/B",async
     expect(bare).not.toEqual(full);
     await weave.check();
     await expect(volume).toHaveCount(15);
-    await expect(svg.screenshot({animations:"disabled"})).resolves.toEqual(full);
+    expect(await svg.screenshot({animations:"disabled"})).toEqual(full);
     await expect(svg.locator("image,foreignObject,feImage")).toHaveCount(0);
     await expect(page.locator("[data-km-head-source-proof]"))
       .toHaveAttribute("data-km-head-source-photo","none");
