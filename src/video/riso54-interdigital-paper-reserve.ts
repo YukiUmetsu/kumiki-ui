@@ -71,7 +71,13 @@ export function riso54WebReserveParts(actor:Riso54Actor):readonly RisoCharacterP
     const name=i===0?"middle-ring-web":"ring-little-web";
     const landmark=web.find(p=>p.landmark===name);
     if(!landmark)throw new Error("RISO54 missing actual ANAT1 interdigital valley");
-    const x=landmark.x,y=landmark.y+.10;
+    // Position the 4-C source reserve slightly *inward* from the
+    // actual outer valley: the Paper Artist's mirrored 3/4 incidence
+    // previously touched only one sampled red point, not the required
+    // physical open edge. At this station the narrow negative channel
+    // remains mostly OUTSIDE positive skin, but the proximal lip really
+    // begins inside the red master as a continuous notch.
+    const x=landmark.x,y=landmark.y-.25;
     // At f0..146 this source is a ZERO-AREA point on the outside of
     // the metacarpal arc: no moving holes in relaxed/open fingers, no
     // detached white sticker anywhere in the full film. Real negative
