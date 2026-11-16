@@ -209,6 +209,25 @@ test("four distinct historical ink schools paint separate real rooted rock struc
     await expect(card.locator("[data-km-master-stratum]")).toHaveCount(15);
     await expect(card.locator("[data-km-master-stratum-wash]")).toHaveCount(15);
     await expect(card.locator("[data-km-master-stratum-lip]")).toHaveCount(15);
+    // True native-render proof: all 15 long hemp parents are CURVING
+    // painted stone centerlines; their full 78 brush children receive
+    // explicit stations on the same (nonquadratic) parent bone.
+    const curvedStrata=card.locator("[data-km-master-stratum-centerline]");
+    await expect(curvedStrata).toHaveCount(school==="fuchun"?15:0);
+    await expect(card.locator("[data-km-master-stroke-bank-station]"))
+      .toHaveCount(school==="fuchun"?78:0);
+    if(school==="fuchun"){
+      const bend=await curvedStrata.evaluateAll(nodes=>nodes.map(node=>{
+        const d=node.getAttribute("data-km-master-stratum-centerline")??"";
+        const p=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+        if(p.length!==8||!d.startsWith("M")||!d.includes(" C"))return -1;
+        const dx=p[6]-p[0];
+        return Math.abs(p[2]-p[0]-dx/3)+
+          Math.abs(p[4]-p[0]-2*dx/3);
+      }));
+      expect(bend.filter(v=>v>12).length).toBeGreaterThanOrEqual(12);
+    }
+
     const gullies=school==="forest-grotto"?9:0;
     await expect(card.locator("[data-km-master-wang-gully]"))
       .toHaveCount(gullies);
