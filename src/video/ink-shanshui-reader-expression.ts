@@ -33,14 +33,21 @@ const mark=(d:string,opacity:number,width=.45,ink="$shadow"):CharacterPathShape=
  * follicle marks remain in place rather than being replaced by 2 straight
  * lines. Keep this deliberately limited to that command vocabulary.
  */
-function deformAbsoluteInk(shape:CharacterPathShape,dy:(x:number)=>number):CharacterPathShape{
+type InkWarp=(x:number,y:number)=>readonly [number,number];
+function deformAbsoluteInk(shape:CharacterPathShape,warp:InkWarp):CharacterPathShape{
   if(shape.type!=="path")return shape;
+  // The original hand-authored source uses absolute cubic/quad curves,
+  // whereas pressure strokes use many absolute L vertices. Never attempt
+  // to move relative paths: a relative delta is not a facial landmark.
   if(/[^MLCQZ0-9eE+.,\s-]/.test(shape.d))return shape;
   if(/[mlcqz]/.test(shape.d))return shape;
   return {...shape,d:shape.d.replace(
     /(-?\d+(?:\.\d+)?)([\s,]+)(-?\d+(?:\.\d+)?)/g,
-    (_whole:string,x:string,space:string,y:string)=>
-      x+space+round(Number(y)+dy(Number(x))),
+    (_whole:string,x:string,space:string,y:string)=>{
+      const px=Number(x),py=Number(y);
+      const [dx,dy]=warp(px,py);
+      return round(px+dx)+space+round(py+dy);
+    },
   )};
 }
 function withShapes(base:CharacterShapeAsset,shapes:CharacterPathShape[]):CharacterShapeAsset{
@@ -98,7 +105,7 @@ export function inkReaderExpressionStudy(
   const sourceBrow=assets.brow;
   if(sourceBrow.kind!=="shapes")throw new Error("Reader brow must be a shape asset");
   assets.brow=withShapes(sourceBrow,sourceBrow.shapes.map(s=>
-    s.type==="path"?deformAbsoluteInk(s,browWarp):s).filter(
+    s.type==="path"?deformAbsoluteInk(s,(x,_y)=>[0,browWarp(x)]):s).filter(
       (s):s is CharacterPathShape=>s.type==="path",
     ));
 
@@ -143,26 +150,77 @@ export function inkReaderExpressionStudy(
   }
   const baseFace=assets.face;
   if(baseFace.kind!=="shapes")throw new Error("Reader face must be a shape asset");
+  // AU6 lifts the malar mass. Move only the existing transparent cheek
+  // washes (never the opaque head silhouette or the nose's structural ink).
+  // In 3/4 projection the near cheek has a broader active area.
+  const malarLift=clamp(features.cheekRaise*14,0,2.5);
+  const cheekWarp:InkWarp=(x,y)=>{
+    const near=clamp(1-Math.abs(x-130)/17,0,1);
+    const far=clamp(1-Math.abs(x-157)/10,0,1);
+    const height=clamp((y-104)/7,0,1)*clamp((130-y)/10,0,1);
+    return [0,-malarLift*height*Math.max(near,far*.58)];
+  };
   assets.face=withShapes(baseFace,[
-    ...baseFace.shapes.filter((s):s is CharacterPathShape=>s.type==="path"),...extra,
+    ...baseFace.shapes.filter((s):s is CharacterPathShape=>s.type==="path")
+      .map(s=>(s.fill==="$skinshade"&&s.stroke==="none")?
+        deformAbsoluteInk(s,cheekWarp):s),
+    ...extra,
   ]);
 
-  const mouth:ReaderInkMouth=emotion==="smile"?"smile":
-    emotion==="surprise"?"oh":emotion==="angry"?"mm":"rest";
-  // Sadness lowers mouth corners (AU 15); happiness lifts them (AU 12).
-  // The original lip/philtrum contours remain unmodified in every viseme
-  // other than the selected lower-emotion rest cel.
-  if(emotion==="sad"){
-    const source=assets["mouth-rest"];
-    if(source.kind!=="shapes")throw new Error("Reader mouth must be a shape asset");
-    const depression=clamp(-features.mouthCorner*11,0,3.2);
-    assets["mouth-rest"]=withShapes(source,source.shapes
-      .filter((s):s is CharacterPathShape=>s.type==="path")
-      .map(s=>deformAbsoluteInk(s,x=>{
-        const t=clamp((x-135.4)/13.5,0,1);
-        return depression*(.65+.35*Math.abs(2*t-1));
-      })));
+  // Continuously tighten or widen the existing SOFT eyelid artwork by
+  // EXPR1 lid aperture. The nearer eye remains wider, the far-eye stays
+  // foreshortened. Doing this on a single source cel avoids the sudden
+  // 0%→1% switch between unrelated open and half-lid path topologies.
+  const sourceEyes=assets["eyes-soft"];
+  if(sourceEyes.kind!=="shapes")throw new Error("Reader lids must be SVG shapes");
+  const aperture=clamp(1+1.17*(features.eyeOpen-1),.61,1.56);
+  const lidWarp:InkWarp=(x,y)=>{
+    const center=x<143?105.25:104.6;
+    const fall=clamp(1-Math.abs(y-center)/8,0,1);
+    return [0,(y-center)*(aperture-1)*fall];
+  };
+  assets["eyes-soft"]=withShapes(sourceEyes,sourceEyes.shapes
+    .filter((s):s is CharacterPathShape=>s.type==="path")
+    .map(s=>deformAbsoluteInk(s,lidWarp)));
+
+  // An expressive mouth is the original closed REST mouth with a
+  // continuously warped vermilion border, NOT an instant swap to a
+  // different smile/oh/mm cel. Its lip relief and original pressure
+  // paths move together, preserving the known five speech visemes.
+  const sourceMouth=assets["mouth-rest"];
+  if(sourceMouth.kind!=="shapes")throw new Error("Reader lip must be SVG shapes");
+  const cornerLift=clamp(features.mouthCorner*13,-3.2,3.2);
+  const widthFactor=clamp(1+(features.mouthWidth-1)*.7,.88,1.12);
+  const lipWarp:InkWarp=(x,_y)=>{
+    const t=clamp((x-135.4)/13.4,0,1);
+    // The far corner sits on the receding, slightly higher facial plane.
+    const edge=Math.pow(Math.abs(2*t-1),1.25);
+    const tilt=t>.5?1.16:.85;
+    return [(x-142.1)*(widthFactor-1),-cornerLift*edge*tilt];
+  };
+  const lipShapes=sourceMouth.shapes
+    .filter((s):s is CharacterPathShape=>s.type==="path")
+    .map(s=>deformAbsoluteInk(s,lipWarp));
+
+  // AU26 surprise opens the jaw. A pressure-controlled negative ink
+  // opening grows from the original lips at zero width/height, with a
+  // complementary lower-lip reflected wash. Neither shape is rasterized
+  // or drawn on top of a detached smile sticker.
+  const gape=emotion==="surprise"?
+    clamp(Math.max(features.jaw*12,features.mouthOpen*13),0,6.2):0;
+  if(gape>.001){
+    const upper=126.4-cornerLift*.06;
+    const bottom=upper+gape;
+    lipShapes.push({
+      type:"path",
+      d:`M138.4 ${round(upper)} C140.1 ${round(upper-.38)} 143.9 ${round(upper-.24)} 146.2 ${round(upper-.04)} C145.5 ${round(bottom-.1)} 143.2 ${round(bottom+.2)} 141.4 ${round(bottom)} C139.8 ${round(bottom-.14)} 138.6 ${round(bottom*.5+upper*.5)} 138.4 ${round(upper)} Z`,
+      fill:"$shadow",stroke:"$ink",strokeWidth:.39,
+      opacity:round(clamp(.18+intensity*.68,0,.87)),
+    });
+    lipShapes.push(mark(`M139.5 ${round(bottom+.7)} Q142.3 ${round(bottom+1.15)} 145.1 ${round(bottom+.45)}`,
+      clamp(intensity*.36,0,.36),.46,"$skinshade"));
   }
+  assets["mouth-rest"]=withShapes(sourceMouth,lipShapes);
   return {emotion,intensity,features,activeCreases,
-    lids:emotion==="surprise"?"open":"soft",mouth,assets};
+    lids:"soft",mouth:"rest",assets};
 }
