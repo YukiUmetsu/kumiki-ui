@@ -260,6 +260,7 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
   const [playing,setPlaying]=useState(false);
   const anchor=useRef<{time:number;frame:number}|null>(null);
   useEffect(()=>{setPlayhead(130);setPlaying(false);anchor.current=null;},[film,aspect]);
+  useEffect(()=>{if(reducedMotion){setPlaying(false);anchor.current=null;}},[reducedMotion]);
   useEffect(()=>{
     if(!playing||reducedMotion)return;
     let request=0;
@@ -272,7 +273,7 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
     request=requestAnimationFrame(tick);
     return ()=>cancelAnimationFrame(request);
   },[playing,reducedMotion,plan]);
-  const frame=reducedMotion?plan.durationFrames-1:playhead;
+  const frame=playhead;
   const shot=resolvePaperDirector(plan,frame,aspect);
   const beat=ROYAL_STORY_BEATS[shot.shotIndex];
   const selectBeat=(start:number)=>{setPlaying(false);anchor.current=null;setPlayhead(start);};
@@ -308,15 +309,16 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
         <button type="button" style={control}
           onClick={()=>selectBeat(0)}>Restart</button>
         <span style={{fontSize:12,color:"#DFC8B3"}}>
-          {(frame/30).toFixed(1)}s / 24.0s · {aspect==="portrait"?"9:16":"16:9"} · {medium}
+          {reducedMotion?"Still chapter":`${(frame/30).toFixed(1)}s / 24.0s`} · {aspect==="portrait"?"9:16":"16:9"} · {medium}
         </span>
       </div>
       <label style={{display:"block",fontSize:12,color:"#D8C4B7",marginBottom:18}}>
         Scrub fairy tale
         <input type="range" min={0} max={plan.durationFrames-1} step={1}
-          value={Math.min(plan.durationFrames-1,frame)} aria-label="Scrub fairy tale"
+          value={Math.min(plan.durationFrames-1,frame)} aria-label="Scrub fairy tale" disabled={reducedMotion}
           style={{display:"block",marginTop:9,width:"100%",accentColor:"#E0B78B"}}
           onChange={e=>selectBeat(Number(e.currentTarget.value))}/>
+        {reducedMotion&&<span>Choose a chapter to view its still pose.</span>}
       </label>
       <div style={{display:"grid",justifyItems:"center"}}>
         <div style={{width:"100%",maxWidth:aspect==="portrait"?440:960,
