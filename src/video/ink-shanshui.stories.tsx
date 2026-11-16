@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"pine"|"pine-bones"|"pine-unlinked"|"pine-uncut"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"pine"|"pine-bones"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -625,6 +625,18 @@ function MasterInkSourceComparison(){
       [data-km-rock-hero-cliff],
       [data-km-master-ink-inspection="pine-unlinked"] [data-km-master-study="fuchun"]
       [data-km-cliff-pine-connected-canopy] { visibility:hidden; }
+      /* Toggle only the underpaint's *real* luminance mask: compare the
+         same bridge centerline and two existing fan windows before/after
+         preserving paper through BOTH positive, overlapping ink layers. */
+      [data-km-master-ink-inspection="pine-bridge-uncut"]
+      [data-km-master-study="fuchun"] [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine-bridge-uncut"]
+      [data-km-master-study="fuchun"] [data-km-rock-hero-cliff] {
+        visibility:hidden;
+      }
+      [data-km-master-ink-inspection="pine-bridge-uncut"]
+      [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-connected-canopy][mask] { mask:none !important; }
       /* Before/after the actual Fuchun pine source's two hollow
          brush-aligned windows: exactly the same d, seed and camera.
          Nonzero fills all inner loops instead of cutting true paper.
@@ -652,6 +664,7 @@ function MasterInkSourceComparison(){
         ["pine","Pine crowns · source anatomy"],
         ["pine-bones","Pine armature · connected brush bones"],
         ["pine-unlinked","Pine before continuous crown bridge"],
+        ["pine-bridge-uncut","Pine bridge before paper reserve"],
         ["pine-uncut","Pine before bristle paper lift"],
         ["uncut","Ink before dry-paper lift"]] as const).map(([zone,title])=>
         <button type="button" key={zone} style={style.button}
@@ -659,7 +672,8 @@ function MasterInkSourceComparison(){
             setFuchunZone(zone);
             if(zone==="pine-bones")inspect(1.65,615,135);
             else if(zone==="pine"||zone==="pine-unlinked"||
-              zone==="pine-uncut")inspect(1.65,628,137);
+              zone==="pine-uncut"||zone==="pine-bridge-uncut")
+              inspect(1.65,628,137);
           }}>
           {title}
         </button>)}
@@ -672,6 +686,9 @@ function MasterInkSourceComparison(){
         planted roots and twenty unequal loaded living branches. Compare
         Pine before continuous crown bridge with Pine crowns to inspect
         actual joining pigment, without changing source paths or 20 branches.
+        Pine bridge before paper reserve toggles only the connected
+        underwash's source-derived two-fan luminance mask: four original
+        hollow bristle channels per linked bough, no pasted paper ink.
         The pine views toggle only two internal bristle-reserve cutouts per
         original Fuchun fan, retaining all 40 crowns, 60 pads and 310 needles.
         CSS cannot alter the source paths, attached roots or film clock.

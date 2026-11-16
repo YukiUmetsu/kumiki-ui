@@ -1254,6 +1254,52 @@ test("Fuchun Storybook toggles actual 40-ink-canopy paper channels without chang
 });
 
 
+
+test("the Fuchun continuous pine underwash preserves all 80 physical paper gaps under both original fans",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const guo=lab.locator('[data-km-master-study="early-spring"]');
+  const masks=fuchun.locator("[data-km-cliff-pine-bridge-paper-mask]");
+  const cuts=fuchun.locator("[data-km-cliff-pine-bridge-paper-cut]");
+  const bridges=fuchun.locator("[data-km-cliff-pine-connected-canopy]");
+  await expect(masks).toHaveCount(20);
+  await expect(cuts).toHaveCount(40);
+  await expect(bridges).toHaveCount(20);
+  await expect(guo.locator("[data-km-cliff-pine-bridge-paper-mask]"))
+    .toHaveCount(0);
+  const geometry=await bridges.evaluateAll(nodes=>
+    nodes.map(n=>n.getAttribute("d")));
+  const originalMask=await bridges.evaluateAll(nodes=>
+    nodes.map(n=>n.getAttribute("mask")));
+  expect(new Set(originalMask).size).toBe(20);
+  const uncut=page.getByRole("button",{name:"Pine bridge before paper reserve"});
+  await uncut.click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection",
+    "pine-bridge-uncut");
+  expect(await bridges.evaluateAll(nodes=>
+    nodes.map(n=>getComputedStyle(n).maskImage)))
+    .toEqual(Array(20).fill("none"));
+  const before=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-connected-canopy-before-paper-reserve.png")});
+  await page.getByRole("button",{name:"Pine crowns · source anatomy"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine");
+  const applied=await bridges.evaluateAll(nodes=>
+    nodes.map(n=>getComputedStyle(n).maskImage));
+  expect(applied.every(v=>v!=="none"&&v.includes("kmpine"))).toBe(true);
+  const after=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-connected-canopy-after-paper-reserve.png")});
+  // Both images come from the same original film scene. Source trees
+  // never move, while the underlying wet brush genuinely unpaints.
+  expect(hash(before)).not.toBe(hash(after));
+  expect(await bridges.evaluateAll(nodes=>
+    nodes.map(n=>n.getAttribute("d")))).toEqual(geometry);
+  expect(await bridges.evaluateAll(nodes=>
+    nodes.map(n=>n.getAttribute("mask")))).toEqual(originalMask);
+  await lab.getByRole("button",{name:"Reset all four studies"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+});
+
 test("native Fuchun crown branches join 40 fan islands in the original painting",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");

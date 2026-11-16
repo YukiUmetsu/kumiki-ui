@@ -2214,6 +2214,9 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
   stations:readonly P[];scene:ShanshuiScene;seed:number;
   detail:number;mist:number;school:InkRockSchool;
 }){
+  // Each concurrently mounted native film and Storybook specimen needs its
+  // own deterministic SVG mask namespace, including when detail is zero.
+  const groveId=useId().replace(/[^a-z0-9_-]/gi,"");
   if(detail<.58)return null;
   const center=scene==="mountain-trail"?620:
     scene==="river-scholar"?596:536;
@@ -2651,7 +2654,11 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             [fanTip[0]-sweep*reach*.12,fanTip[1]+crest*.18],
             k===0?.88:.71,seed+1973+i*97+j*31+k*17);
           return {r,d:paperChannels?d+" "+paperChannels:d,
-            ridge,lobes:lobeCount,paperChannels:paperChannels?2:0};
+            ridge,lobes:lobeCount,paperChannels:paperChannels?2:0,
+            // Feed the identical two original local paper channels into
+            // the underlying connected wet bridge; without this, that
+            // later positive ink fills the foreground island's holes.
+            cutPaths:paperChannels};
         });
         // Tertiary Fuchun pine ink twigs: three connected cubic child
         // bones grown from exact existing bough stations, not stamped
@@ -2757,7 +2764,11 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             d+=" Q"+f(mid[0])+" "+f(mid[1])+
               " "+f(tip[0])+" "+f(tip[1]);
           }
-          return {start,end,d:d+" Z"};
+          return {start,end,d:d+" Z",
+            // A single wet underpaint passes beneath TWO fan heads.
+            // Its two fans each contribute two physical Flying White
+            // reserves; don't re-cover their actual blank paper.
+            cuts:inkIslands.map(island=>island.cutPaths)};
         })():null;
         // Source-specific younger hooks: true child of the same bough
         // at two exact quadratic stations, not random floating marks.
@@ -2824,15 +2835,31 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             <path data-km-cliff-pine-bough-bone="" d={bone}
               fill={j%2===0?"#3d352d":"#554638"}
               opacity={f(.88*shade)}/>
-            {connectedCanopy&&<path data-km-cliff-pine-connected-canopy=""
-              data-km-cliff-pine-connected-canopy-bough={i*4+j}
-              data-km-cliff-pine-connected-canopy-root={
-                f(connectedCanopy.start[0])+","+f(connectedCanopy.start[1])}
-              data-km-cliff-pine-connected-canopy-tip={
-                f(connectedCanopy.end[0])+","+f(connectedCanopy.end[1])}
-              d={connectedCanopy.d}
-              fill={j===1?"#4d4133":"#342e27"}
-              opacity={f((j===1?.68:.79)*shade)}/>}
+            {connectedCanopy&&<>
+              <defs><mask data-km-cliff-pine-bridge-paper-mask=""
+                data-km-cliff-pine-bridge-paper-mask-bough={i*4+j}
+                id={"kmpine"+groveId+"-bridge-"+i+"-"+j}
+                x="-110" y="-20" width="1190" height="580"
+                maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
+                style={{maskType:"luminance"}}>
+                <rect x="-110" y="-20" width="1190" height="580"
+                  fill="#fff"/>
+                {connectedCanopy.cuts.map((cut,k)=>
+                  <path key={k} data-km-cliff-pine-bridge-paper-cut=""
+                    data-km-cliff-pine-bridge-paper-cut-fan={k}
+                    d={cut} fill="#000"/>)}
+              </mask></defs>
+              <path data-km-cliff-pine-connected-canopy=""
+                data-km-cliff-pine-connected-canopy-bough={i*4+j}
+                data-km-cliff-pine-connected-canopy-root={
+                  f(connectedCanopy.start[0])+","+f(connectedCanopy.start[1])}
+                data-km-cliff-pine-connected-canopy-tip={
+                  f(connectedCanopy.end[0])+","+f(connectedCanopy.end[1])}
+                d={connectedCanopy.d}
+                mask={"url(#kmpine"+groveId+"-bridge-"+i+"-"+j+")"}
+                fill={j===1?"#4d4133":"#342e27"}
+                opacity={f((j===1?.68:.79)*shade)}/>
+            </>}
             {canopyGrafts.map(({r,at,hand,body},k)=><path key={"graft"+k}
               data-km-cliff-pine-graft=""
               data-km-cliff-pine-graft-root={f(r[0])+","+f(r[1])}
