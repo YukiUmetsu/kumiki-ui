@@ -540,6 +540,23 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
   await expect(fuchun.locator("[data-km-cliff-pine-grove]")).toBeHidden();
   await expect(fuchun.locator("[data-km-rock-hero-cliff]")).toBeHidden();
   await expect(fuchun.locator("[data-km-master-fuchun-hillback-wash]")).toHaveCount(6);
+  // Visual proof is sampled from the actual animated 1.65× SVG
+  // silhouette, not copied from a study-only simplified illustration.
+  const masses=await fuchun.locator("[data-km-master-mass]")
+    .evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d")??""));
+  expect(masses).toHaveLength(3);
+  const backs=await fuchun.locator("[data-km-master-fuchun-hillback-wash]")
+    .evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d")??""));
+  expect(backs).toHaveLength(6);
+  const broad=(d:string,minimum:number)=>{
+    const n=(d.match(/-?\\d+(?:\\.\\d+)?/g)??[]).map(Number);
+    const x=n.filter((_,j)=>j%2===0),y=n.filter((_,j)=>j%2===1);
+    const spanX=Math.max(...x)-Math.min(...x);
+    const spanY=Math.max(...y)-Math.min(...y);
+    return (d.match(/ C/g)??[]).length===7&&spanX/spanY>minimum;
+  };
+  expect(masses.every(d=>broad(d,.83))).toBe(true);
+  expect(backs.every(d=>broad(d,.76))).toBe(true);
   await expect(undercuts).toHaveCount(6);
   await expect(courses).toHaveCount(12);
   await expect(courses.locator("xpath=..").first()).toBeVisible();
