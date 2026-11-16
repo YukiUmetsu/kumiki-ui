@@ -999,6 +999,178 @@ function FuchunPaperLiftStudio(){
   </main>;
 }
 
+/** Source-fidelity release desk: two real Fuchun canvases, never a copied
+ * still or a reconstructed diagnostic landscape. ArtCraft review deliberately
+ * separates the macro rock silhouette from the attached pigment and pine
+ * anatomy. Passing structural tests does NOT approve historical likeness. */
+function FuchunSourceFidelityDesk(){
+  const [frame,setFrame]=useState(145);
+  const [firstSeed,setFirstSeed]=useState(71);
+  const [secondSeed,setSecondSeed]=useState(87);
+  const [detail,setDetail]=useState(1);
+  const [mist,setMist]=useState(.35);
+  const [ink,setInk]=useState(.9);
+  const [lens,setLens]=useState<"native"|"rock"|"edge"|"pine">("native");
+  const [layer,setLayer]=useState<"complete"|"stone"|"hemp"|"pine">("complete");
+  const lenses={
+    native:{width:960,height:540,zoom:1,x:480,y:270,
+      title:"Full scene · actual 960×540"},
+    rock:{width:420,height:308,zoom:2.4,x:552,y:177,
+      title:"Rock shoulders · 2.4×"},
+    edge:{width:420,height:308,zoom:3.35,x:553,y:207,
+      title:"Dry-brush edge · 3.35×"},
+    pine:{width:420,height:308,zoom:2.8,x:615,y:145,
+      title:"Pine root/crown · 2.8×"},
+  } as const;
+  const camera=lenses[lens];
+  const transform=lens==="native"?"none":
+    "translate("+(camera.width/2-camera.zoom*camera.x)+"px,"+
+      (camera.height/2-camera.zoom*camera.y)+"px) scale("+camera.zoom+")";
+  const checklist={
+    complete:"At 1×, reject triangular wash panels, decorative dark hooks, disconnected pine crowns and collapsed mist/paper space.",
+    stone:"Positive stone only: reject a pale isolated triangle or floating shelves. Six parent hillbacks must turn into three connected rock cheeks.",
+    hemp:"Actual source-guided ink: reject uniform hook spacing, sharp hairpins, evenly inked tube widths or detached short/medium/long fibres.",
+    pine:"Living rooted old pine: reject stacked clip-art caps, isolated branch-to-crown gaps, uniform needle stars and unplanted trunks.",
+  } as const;
+  return <main data-testid="shanshui-fuchun-fidelity-desk"
+    data-km-fidelity-layer={layer} data-km-fidelity-lens={lens}
+    style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
+      color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
+      gap:16,alignContent:"start"}}>
+    <header style={{maxWidth:1040}}>
+      <h1 style={{font:"400 32px Georgia,serif",margin:"0 0 9px"}}>
+        Fuchun · native source-fidelity release desk
+      </h1>
+      <p style={{margin:"0 0 10px"}}>
+        Compare two independently seeded runs of the exact production
+        Fuchun landscape stage at synchronized absolute frames. Use full
+        native size for landform anatomy before inspecting the same SVG at
+        2.4×/3.35×. Diagnostic layers only hide paint for inspection;
+        they do not substitute paths, delete fibres or alter film export.
+      </p>
+      <p style={{margin:0,fontSize:12,color:"#675745"}}>
+        Historical source: Huang Gongwang, <em>Dwelling in the Fuchun Mountains</em>{" "}
+        <a href="https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975"
+          target="_blank" rel="noreferrer">National Palace Museum</a>{" · "}
+        <a href="https://smarthistory.org/huang-gongwang-dwelling-in-the-fuchun-mountains/"
+          target="_blank" rel="noreferrer">annotated hemp / alum-head detail</a>.
+        Original artwork is not redistributed or embedded.
+      </p>
+    </header>
+    <div role="group" aria-label="Fuchun temporal review presets"
+      style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+      {([["First painted layers",84],["Source-rhythm review",145],
+        ["Late atmospheric pass",215]] as const).map(([name,moment])=>
+        <button key={moment} type="button" style={style.button}
+          aria-pressed={frame===moment} onClick={()=>setFrame(moment)}>
+          {name} · f{moment}
+        </button>)}
+    </div>
+    <div role="group" aria-label="Fuchun fidelity cameras"
+      style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+      {(["native","rock","edge","pine"] as const).map(key=>
+        <button key={key} type="button" style={style.button}
+          aria-pressed={lens===key} onClick={()=>setLens(key)}>
+          {lenses[key].title}
+        </button>)}
+    </div>
+    <div role="group" aria-label="Fuchun original-paint isolation"
+      style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+      {([["complete","All original paint"],["stone","Positive rock anatomy"],
+        ["hemp","Original 78 hemp strokes"],["pine","Rooted old-pine anatomy"]]
+        as const).map(([key,title])=>
+        <button key={key} type="button" style={style.button}
+          aria-pressed={layer===key} onClick={()=>setLayer(key)}>{title}</button>)}
+    </div>
+    <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+      {([
+        ["Fidelity frame",frame,setFrame,0,SHANSHUI_FRAMES-1,1],
+        ["Fidelity seed A",firstSeed,setFirstSeed,1,199,1],
+        ["Fidelity seed B",secondSeed,setSecondSeed,1,199,1],
+        ["Fidelity detail",detail,setDetail,0,1,.05],
+        ["Fidelity mist",mist,setMist,0,1,.05],
+        ["Fidelity ink",ink,setInk,0,1,.05],
+      ] as const).map(([name,value,change,min,max,step])=>
+        <label key={name} style={{...style.field,width:155}}>
+          {name} · {value}
+          <input aria-label={name} type="range" min={min} max={max}
+            step={step} value={value}
+            onChange={event=>change(Number(event.target.value))}/>
+        </label>)}
+      <button type="button" style={style.button} onClick={()=>{
+        setFrame(145);setFirstSeed(71);setSecondSeed(87);
+        setDetail(1);setMist(.35);setInk(.9);
+        setLens("native");setLayer("complete");
+      }}>Reset native source-fidelity review</button>
+    </div>
+    <style>{`
+      [data-km-fidelity-layer="stone"] [data-km-fidelity-sample]
+        [data-km-master-stratum-field],
+      [data-km-fidelity-layer="stone"] [data-km-fidelity-sample]
+        [data-km-master-brush-field],
+      [data-km-fidelity-layer="stone"] [data-km-fidelity-sample]
+        [data-km-rock-hero-cliff],
+      [data-km-fidelity-layer="stone"] [data-km-fidelity-sample]
+        [data-km-cliff-pine-grove],
+      [data-km-fidelity-layer="hemp"] [data-km-fidelity-sample]
+        [data-km-rock-hero-cliff],
+      [data-km-fidelity-layer="hemp"] [data-km-fidelity-sample]
+        [data-km-cliff-pine-grove],
+      [data-km-fidelity-layer="pine"] [data-km-fidelity-sample]
+        [data-km-master-rock-art],
+      [data-km-fidelity-layer="pine"] [data-km-fidelity-sample]
+        [data-km-rock-hero-cliff] {visibility:hidden;}
+    `}</style>
+    <p role="status" data-testid="fuchun-fidelity-criteria"
+      style={{margin:0,maxWidth:1050,fontSize:13}}>
+      <strong>Artist rejection check:</strong> {checklist[layer]}
+    </p>
+    <div style={{display:"grid",gridTemplateColumns:
+      "repeat(auto-fit,minmax(min(100%,510px),1fr))",
+      gap:16,alignItems:"start"}}>
+      {([firstSeed,secondSeed] as const).map((seed,index)=>{
+        const controls:ShanshuiControls={
+          ...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:"fuchun",seed,detail,ink,mist,wind:0,
+        };
+        return <section key={index} data-km-fidelity-sample={index}
+          data-km-fidelity-seed={seed} data-km-fidelity-frame={frame}
+          style={{display:"grid",gap:8,minWidth:0}}>
+          <h2 style={{font:"500 19px Georgia,serif",margin:0}}>
+            {index===0?"Original run A":"Independent run B"} · seed {seed}
+            {" · frame "}{frame}
+          </h2>
+          <div data-km-fidelity-camera={lens}
+            style={{width:camera.width,maxWidth:"100%",overflowX:"auto",
+              border:"1px solid #9b8a74",background:"#f3e6cd"}}>
+            <div data-km-fidelity-viewport=""
+              style={{width:camera.width,height:camera.height,
+                overflow:"hidden",position:"relative"}}>
+              <div style={{position:"absolute",top:0,left:0,
+                width:960,height:540,transformOrigin:"top left",
+                transform}}>
+                <InkShanshuiStage frame={frame} controls={controls}/>
+              </div>
+            </div>
+          </div>
+          <p style={{margin:0,fontSize:12,color:"#675745"}}>
+            Same original 960×540 scene coordinates;{" "}
+            {lens==="native"?"unscaled production painting":
+              "browser camera crop, original editable paths"}.
+          </p>
+        </section>;
+      })}
+    </div>
+    <p style={{margin:0,maxWidth:1050,fontSize:12,color:"#675745"}}>
+      Hold artist approval until both seeds at frames 84, 145 and 215
+      show credible nested boulder silhouettes, pressure-varied connected
+      hemp with real dry-paper voids, planted pine trunks and directional
+      canopy spacing at 1× and macro scale. Green tests alone do not
+      establish likeness, historical source fidelity or a finished film.
+    </p>
+  </main>;
+}
+
 /** Temporal ArtCraft QA. Four independent real renderer samples are deliberately
  * frozen at absolute frames: compare wet reveal, layering, settled ink and
  * final atmosphere without screenshots, duplicates or a second animation clock. */
@@ -1159,6 +1331,11 @@ export const FourMastersInkStudio:StoryObj<typeof MasterInkSourceComparison>={
 export const FuchunPaperLift:StoryObj<typeof FuchunPaperLiftStudio>={
   name:"Fuchun · wet/dry paper-lift A/B (production source)",
   render:()=> <FuchunPaperLiftStudio/>,
+};
+
+export const FuchunFidelityReview:StoryObj<typeof FuchunSourceFidelityDesk>={
+  name:"Fuchun · 2-seed native source-fidelity review (ART HOLD)",
+  render:()=> <FuchunSourceFidelityDesk/>,
 };
 
 export const InkFilmContinuity:StoryObj<typeof InkFilmContinuityStudio>={
