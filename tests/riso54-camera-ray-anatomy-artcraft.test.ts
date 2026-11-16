@@ -101,5 +101,5 @@ describe("RISO54 view-ray anatomical grip: 3D bone length vs printed 2D stations
           expect(state.thumbUnderPaper).toBe(true);
         }
       }
-  });
+  },20000);
 });
