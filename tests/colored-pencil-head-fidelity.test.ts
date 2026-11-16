@@ -6,16 +6,17 @@ import {
 import type { PencilHeadFidelityEvidence } from "../src/video/colored-pencil-head-fidelity";
 
 const xy:Record<string,readonly[number,number]>={
-  "cranial-apex":[.53,.08], "cranial-near-edge":[.18,.26],
-  "cranial-far-edge":[.82,.25], "temple-near":[.16,.42],
-  "temple-far":[.83,.42], "zygion-near":[.14,.57],
-  "zygion-far":[.84,.55], "gonion-near":[.26,.83],
-  "gonion-far":[.74,.81], "menton":[.53,.94],
-  "glabella":[.52,.45], "sellion":[.54,.54],
-  "pronasale":[.59,.65], "subnasale":[.56,.70],
-  "orbit-near":[.36,.48], "orbit-far":[.69,.47],
-  "mouth-near":[.44,.79], "mouth-far":[.66,.78],
-};
+  "cranial-apex":[.53,.08],
+  "parietal-near":[.23,.14],"parietal-far":[.76,.13],
+  "frontal-near":[.16,.25],"frontal-far":[.84,.24],
+  "upper-temple-near":[.16,.32],"upper-temple-far":[.83,.31],
+  "temple-near":[.16,.42],"temple-far":[.83,.42],
+  "zygion-near":[.14,.57],"zygion-far":[.84,.55],
+  "malar-near":[.16,.66],"malar-far":[.80,.64],
+  "gonion-near":[.26,.83],"gonion-far":[.74,.81],
+  "mandible-near":[.37,.89],"mandible-far":[.68,.88],
+  "menton":[.53,.94],
+}
 const COLORS:Record<string,readonly[number,number,number]>={
   "highlight":[224,203,188], "light":[187,157,147],
   "halftone":[142,114,109], "core-shadow":[53,42,49],
@@ -57,6 +58,15 @@ describe("ArtCraft head reference fidelity (independent photo vs final SVG expor
   it("requires all 18 independently annotated anatomical points and 5 tonal regions",()=>{
     expect(HEAD_FIDELITY_LANDMARK_IDS).toHaveLength(18);
     expect(new Set(HEAD_FIDELITY_LANDMARK_IDS).size).toBe(18);
+    // STAGE 1 has no eyes, nose, lips, mouth or hair yet. Source/output
+    // points must be independently observable on the ONE finished head
+    // silhouette; feature-point requirements would make this gate
+    // impossible to satisfy before drawing those features.
+    expect(HEAD_FIDELITY_LANDMARK_IDS.some(id=>
+      /orbit|eye|nose|pronasale|subnasale|mouth|lip|cheilion/.test(id)))
+      .toBe(false);
+    for(const id of Object.keys(xy))
+      expect(HEAD_FIDELITY_LANDMARK_IDS).toContain(id);
     expect(HEAD_FIDELITY_TONES).toEqual([
       "highlight","light","halftone","core-shadow","reflected-light",
     ]);
