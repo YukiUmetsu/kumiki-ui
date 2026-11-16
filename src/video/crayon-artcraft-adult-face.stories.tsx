@@ -641,6 +641,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-carved-naris">CC0 attached negative-space cavity carve (V26 !dev)</option>
            <option value="source-fused-naris">CC0 feathered cavities under shared alar roof (V27 experimental)</option>
            <option value="source-face-values">CC0 measured cheek and orbit light planes (V28 unapproved)</option>
+           <option value="source-orbital-hood">CC0 natural supraorbital ribbon, not eye disks (V29 study)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -689,6 +690,12 @@ export const Cc0NasalDepthAndOcclusion:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
+};
+export const Cc0OrbitalHoodV29:Story={
+  name:"CC0 asymmetric wax brow hood and eyelid continuity (!dev V29)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-orbital-hood" initialInspection="eyes"/>,
 };
 export const Cc0FacialValuePlanesV28:Story={
   name:"CC0 measured near/far cheek and eye socket value planes (!dev V28)",
