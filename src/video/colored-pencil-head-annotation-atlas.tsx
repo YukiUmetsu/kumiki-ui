@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useState} from "react";
+import {useEffect,useMemo,useRef,useState} from "react";
 import type {ChangeEvent,PointerEvent} from "react";
 import {
   HEAD_FIDELITY_LANDMARK_IDS, HEAD_FIDELITY_TONES,
@@ -9,8 +9,12 @@ import {
   type HeadAnnotationSession,type HeadAnnotationSide,
   type NativePoint,type NativeDimensions,
 } from "./colored-pencil-head-annotation";
+import {
+  makePencilHeadAnnotationCheckpoint,restorePencilHeadAnnotationCheckpoint,
+  type PencilHeadCheckpointImages,
+} from "./colored-pencil-head-checkpoint";
 
-type Photo={url:string;name:string;dimensions:NativeDimensions};
+type Photo={url:string;name:string;sha256:string;dimensions:NativeDimensions};
 type LocalImages={source:Photo|null;output:Photo|null};
 type Interaction="landmark"|"tone";
 const common={background:"#FCFAF5",border:"1px solid #C3BEB3",
@@ -25,8 +29,11 @@ const supported=["image/jpeg","image/png"];
  */
 function usePrivateLocalImage(){
   const [photo,setPhoto]=useState<Photo|null>(null);
+  const request=useRef(0);
+  useEffect(()=>()=>{request.current++;},[]);
   useEffect(()=>()=>{if(photo)URL.revokeObjectURL(photo.url);},[photo]);
-  const load=async(file:File)=>{
+  const load=async(file:File):Promise<boolean>=>{
+    const ticket=++request.current;
     if(!supported.includes(file.type)||file.size>MAX_BYTES||!file.size)
       throw new Error("Select a local JPEG/PNG file under 32 MiB");
     const url=URL.createObjectURL(file);
@@ -41,7 +48,17 @@ function usePrivateLocalImage(){
       });
       if(dim.width<64||dim.height<64||dim.width*dim.height>60_000_000)
         throw new Error("Image must be 64+ pixels per axis and <=60 MP");
-      setPhoto({url,name:file.name,dimensions:dim});
+      // Real file bytes bind saved coordinate drafts to their correct images.
+      // Hash locally after native decode. Never persist pixel data or
+      // substitute a mesh-derived digest. The CLI still independently hashes.
+      const digest=await crypto.subtle.digest("SHA-256",await file.arrayBuffer());
+      const sha256=Array.from(new Uint8Array(digest))
+        .map(byte=>byte.toString(16).padStart(2,"0")).join("");
+      // Two rapid file selections must not let the older async decode/hash
+      // overwrite the newer image or clear its annotations.
+      if(ticket!==request.current){URL.revokeObjectURL(url);return false;}
+      setPhoto({url,name:file.name,sha256,dimensions:dim});
+      return true;
     }catch(error){
       URL.revokeObjectURL(url);
       throw error;
@@ -221,15 +238,21 @@ export function PencilHeadSourceAnnotationAtlas(){
   });
   const [message,setMessage]=useState("");
   const images:LocalImages={source:source.photo,output:output.photo};
+  const fingerprints:PencilHeadCheckpointImages|null=images.source&&images.output?{
+    source:{name:images.source.name,sha256:images.source.sha256,
+      dimensions:images.source.dimensions},
+    output:{name:images.output.name,sha256:images.output.sha256,
+      dimensions:images.output.dimensions},
+  }:null;
   const changeFile=async(side:HeadAnnotationSide,
     event:ChangeEvent<HTMLInputElement>)=>{
     const file=event.currentTarget.files?.[0];
     if(!file)return;
     try{
       setMessage("");
-      await (side==="source"?source:output).load(file);
+      const accepted=await (side==="source"?source:output).load(file);
       // Replacing an image invalidates coordinates on THAT side only.
-      setSession(prev=>({...prev,[side]:{landmarks:[],tones:[]}}));
+      if(accepted)setSession(prev=>({...prev,[side]:{landmarks:[],tones:[]}}));
     }catch(ex){setMessage(ex instanceof Error?ex.message:String(ex));}
   };
   const proof=useMemo(()=>{
@@ -252,6 +275,37 @@ export function PencilHeadSourceAnnotationAtlas(){
       // navigation can be deferred. Revoke outside the current stack.
       window.setTimeout(()=>URL.revokeObjectURL(url),1000);
     }
+  };
+  const saveCheckpoint=()=>{
+    if(!fingerprints)return;
+    try{
+      const draft=makePencilHeadAnnotationCheckpoint(session,fingerprints,reference);
+      const blob=new Blob([JSON.stringify(draft,null,2)+"\n"],{
+        type:"application/json"});
+      const url=URL.createObjectURL(blob);
+      try{
+        const link=document.createElement("a");
+        link.href=url;link.download="pencil-head-private-checkpoint.json";
+        document.body.append(link);link.click();link.remove();
+        setMessage("Downloaded private draft. Restore requires both exact original image files.");
+      }finally{window.setTimeout(()=>URL.revokeObjectURL(url),1000);}
+    }catch(error){setMessage(error instanceof Error?error.message:String(error));}
+  };
+  const restoreCheckpoint=async(event:ChangeEvent<HTMLInputElement>)=>{
+    const file=event.currentTarget.files?.[0];
+    event.currentTarget.value="";
+    if(!file)return;
+    if(!fingerprints){setMessage("Load both original local images before restoring a checkpoint.");return;}
+    if(file.size>256*1024||file.size===0){
+      setMessage("Checkpoint JSON must be under 256 KiB");return;
+    }
+    try{
+      const parsed:unknown=JSON.parse(await file.text());
+      const restored=restorePencilHeadAnnotationCheckpoint(parsed,fingerprints);
+      setSession(restored.session);
+      setReference(restored.reference);
+      setMessage("Restored annotations only after matching both exact file-byte SHA-256 fingerprints. Artist review still required.");
+    }catch(error){setMessage(error instanceof Error?error.message:String(error));}
   };
   return <main data-km-pencils-head-annotation-atlas=""
     data-km-reference-approval="unapproved"
@@ -314,6 +368,23 @@ export function PencilHeadSourceAnnotationAtlas(){
       </label>
     </section>
     <section style={{maxWidth:1000,display:"grid",gap:8}}>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end"}}>
+        <button type="button" onClick={saveCheckpoint}
+          data-km-annotation-checkpoint-save="" disabled={!fingerprints}
+          style={{...common,cursor:fingerprints?"pointer":"not-allowed"}}>
+          Save local checkpoint (partial annotations allowed)
+        </button>
+        <label style={labelStyle}>Restore checkpoint JSON
+          <input type="file" accept=".json,application/json"
+            aria-label="Restore checkpoint JSON" disabled={!fingerprints}
+            onChange={e=>{void restoreCheckpoint(e);}}/>
+        </label>
+      </div>
+      <p style={{margin:0,fontSize:12}}>
+        No pixels are stored. A checkpoint is a private drawing draft, not
+        a photographic source license, measurement, or artistic approval.
+        Restoring requires both original byte-identical local images.
+      </p>
       <button type="button" data-km-annotation-export=""
         onClick={exportProof} disabled={!proof}
         style={{...common,background:proof?"#E1EBDB":"#F6F4EE",
