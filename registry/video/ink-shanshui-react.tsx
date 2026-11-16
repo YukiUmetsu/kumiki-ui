@@ -284,7 +284,7 @@ function RockInkPlanes({stations,seed,band,detail,mist,nearBankFlow=false}:{
         data-km-rock-plane-bank-end={nearBankFlow
           ?f(end[0])+","+f(end[1]):undefined}>
         <path d={nearBankFlow?bankRibbon:plane}
-          fill={band===0?"#806c58":"#5b4837"
+          fill={band===0?"#806c58":"#5b4837"}
           opacity={f(opacity)}/>
         <path d={nearBankFlow?bankFibre:fibre} fill="none"
           stroke={i%4===0?"#4b392d":"#796149"}
