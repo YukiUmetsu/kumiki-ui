@@ -90,6 +90,11 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(high.brow.length).toBeGreaterThanOrEqual(8);
     expect(high.eyesOpen.length).toBeGreaterThanOrEqual(8);
     expect(high.eyesOpen.length).toBeGreaterThan(low.eyesOpen.length);
+    // Downcast lids still need two actual paper-lit aperture planes so
+    // attached animated iris geometry never becomes an isolated dot.
+    expect(high.eyesSoft.filter(shape=>shape.fill==="$paper"&&
+      shape.stroke==="none")).toHaveLength(2);
+    expect(high.eyesSoft.length).toBeGreaterThan(high.eyesClosed.length+4);
     expect(high.eyesSoft.length).toBeGreaterThan(4);
     expect(high.eyesClosed.length).toBeGreaterThanOrEqual(3);
     expect(high.nearPupil.length).toBeGreaterThanOrEqual(3);
