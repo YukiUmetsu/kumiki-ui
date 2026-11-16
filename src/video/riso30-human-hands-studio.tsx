@@ -15,6 +15,7 @@ import {inspectRiso36RedFingerSilhouettes} from "./riso36-red-silhouette-gate";
 import {inspectRiso39OpposedPaperPinch} from "./riso39-opposed-paper-pinch";
 import {inspectRiso41InkPressure} from "./riso41-contact-pressure";
 import {inspectRiso42SupportingDigits} from "./riso42-support-digits-gesture";
+import {inspectRiso46ThenarWeb} from "./riso46-thenar-web";
 
 type PlateMode="both"|"blue"|"red";
 type GestureFrame=0|46|126|144|160|166|178|186|198|239;
@@ -62,6 +63,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const pinch=useMemo(()=>inspectRiso39OpposedPaperPinch(actor,frame,side),[actor,frame,side]);
   const inkPressure=useMemo(()=>inspectRiso41InkPressure(actor,frame,side),[actor,frame,side]);
   const support=useMemo(()=>inspectRiso42SupportingDigits(actor,frame,side),[actor,frame,side]);
+  const thenar=useMemo(()=>inspectRiso46ThenarWeb(actor,frame,side),[actor,frame,side]);
   // Frame the real articulated five-finger and forearm envelope: the
   // Artist's hand rotates almost horizontally at 160f, so wrist-centering
   // alone clipped source fingertips even though the actor had them.
@@ -87,6 +89,9 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso41-press-ink={inkPressure.pressure.toFixed(3)}
     data-km-riso42-support-pip-flex={support.meanSupportFlex.toFixed(3)}
     data-km-riso42-support-red-bones={support.movingRedSourceCount}
+    data-km-riso46-thenar-web-ink={thenar.sourceCount}
+    data-km-riso46-thumb-palm-separated={String(thenar.independentThumbAndPalmTransforms)}
+    data-km-riso46-thenar-cubic-turns={thenar.authoredCubicTurns}
     data-km-riso30-crop-margin={camera.marginX.toFixed(2)}
     data-km-riso30-effective-scale={camera.scale.toFixed(2)}
     style={{border:"1px solid #CBB9A4",borderRadius:7,padding:13,background:"#FFF7E9"}}>
@@ -130,6 +135,9 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
       closed red tip ink gap: {pinch.sourceInkGap.toFixed(1)} source units;
       three support fingers mean PIP flex {support.meanSupportFlex.toFixed(1)}° with
       {support.movingRedSourceCount} moving red source segments.
+       RISO46: {thenar.sourceCount} radial thumb/palm source contours on the original two ink masters;
+       {thenar.authoredCubicTurns} loaded cubic turns preserve CMC/thenar roundness
+       with a narrow web-paper reserve and living thumb motion.
       This is 2D projected anatomy before print registration, not a human-likeness or 3D contact approval.
     </p>
   </article>;
@@ -150,7 +158,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO45</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO46</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
