@@ -1153,7 +1153,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     for(let i=0;i<40;i++){
       const upper=canopyPaths[i].split(" C")[0];
       const q=[...upper.matchAll(
-        / Q(-?[\\d.]+) (-?[\\d.]+) (-?[\\d.]+) (-?[\\d.]+)/g,
+        / Q(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)/g,
       )];
       expect(q).toHaveLength(lobes[i]+1);
       const heights=q.slice(0,lobes[i]).map(m=>
