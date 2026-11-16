@@ -21,6 +21,10 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
    reference painter. Use `projectPoint` to place props and guides in 3D.
 5. **Faces** — `createFace({ norm, sex, ...z-scores })` in `anatomy-face.ts`; `FACE_LANDMARKS`, `FACE_FEATURES`,
    `faceFeatureLines`, irises from `eyeCentres` at `IRIS_DIAMETER_MM`, upper lid overlapping the iris.
+   - For an attractive face, start from `beautifulFace({ sex, beauty })` (`face-beauty.ts`). It applies averageness,
+     symmetry, femininity, measured eye, lip and breadth values and Pallett's ratios, never the golden ratio
+     (`goldenRatioReport` only reports it).
+   - `renderPortrait` / `FacePortrait` render it lit, with skin scattering, eyes, brows, lashes and hair.
 6. **Hair and colour** — `growHair(body, posed.points, { length, curl, parting, flow, fringe })` and pass it to
    `HumanFigure` (`hair`, `hairColor` with eumelanin/pheomelanin/grey) or stroke `renderHairSegments` yourself; never
    draw hair as one flat shape — clumps, a white highlight near the root side and a tinted one toward the tip. Skin:
