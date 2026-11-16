@@ -2018,7 +2018,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
   // transition. Their actual bases still sample the live ridge contour.
   // Every 20 boughs, 40 crowns, 60 pads and 310 touches is retained.
   const distribution=school==="fuchun"?([
-    {dx:-97,height:29,bow:-11},
+    {dx:-97,height:31,bow:-11},
     {dx:-71,height:48,bow:13},
     {dx:-12,height:70,bow:-18},
     {dx:53,height:89,bow:16},
