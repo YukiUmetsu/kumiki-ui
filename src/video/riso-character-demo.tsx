@@ -4,6 +4,11 @@ import type { RisoCharacterSpec, RisoJoint } from "../../registry/video/riso-cha
 import type { RisoPrintSpec } from "../../registry/video/print-plates";
 import type { RisoPaint, RisoArtwork } from "../../registry/video/print-plates-react";
 import type { ReactNode } from "react";
+import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
+import {risoHandArtcraftParts} from "./riso-hand-artcraft";
+import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
+import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
+import {riso32ThumbIpJoint,riso32ThumbInkParts,riso33WristUnderprintClearance} from "./riso32-thumb-ip";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
 // RISO28: arm pendulum tracks the same 54-frame alternating contact
@@ -54,7 +59,12 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 205, x: 192, y: -12, easing: "ease" },
       { frame: 239, x: 192, y: -12 },
     ] },
-    { id: "body", parent: "root", x: 0, y: -72, keys: [
+    // RISO29 / ANAT1: original thighs were only a 62-unit projected
+    // run below the pelvis in a ~215-unit figure (childlike <.35).
+    // Rearticulate the upper-body + pelvic stations together and lengthen
+    // both real two-bone leg segments, preserving authored foot plant positions
+    // and ALL jacket, shoulder, hair and knee ink contours at source fidelity.
+    { id: "body", parent: "root", x: 0, y: -104, keys: [
       // RISO28: six alternating weight compressions over three complete
       // 54-frame strides. The penultimate/last frame pair plants both shoes
       // at f162; the body eases *over still boots* into the handoff by f198.
@@ -75,7 +85,13 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 198, y: 0, rotate: 0, easing: "ease" },
       { frame: 239, y: 0, rotate: 0 },
     ] },
-    { id: "head", parent: "body", x: 0, y: -68, keys: [
+    // ANAT1 cervical → atlas → cranium hierarchy. The old head pivot sat
+    // inside the chest and the chin completely hid a straight, blue "neck".
+    // This distinct neck joint follows the thorax yet leaves a visible
+    // sternomastoid/clavicle connection beneath the smaller skull.
+    { id: "neck", parent: "body", x: 0, y: RISO29_ANAT1.neckY },
+    { id: "head", parent: "neck", x: 0, y: RISO29_ANAT1.headNeckOffsetY,
+      scale: RISO29_ANAT1.headScale, keys: [
       { frame: 0, rotate: -3, easing: "ease" },
       { frame: 77, rotate: 3, easing: "ease" },
       { frame: 154, rotate: -8, easing: "ease" },
@@ -88,57 +104,80 @@ export const COURIER: RisoCharacterSpec = {
       { frame: 140, rotate: -8, easing: "ease" }, { frame: 200, rotate: 12 }, { frame: 239, rotate: 12 },
     ] },
     { id: "left-hand", parent: "left-elbow", x: 0, y: 24 },
+    // ANAT1: palm volume has its own wrist-surface coordinate frame.
+    // Printed metacarpal and thenar marks stay attached to the palm,
+    // not the proximal forearm and not an independent sticker.
+    { id: "left-palm-surface", parent: "left-hand", x: 0, y: 11 },
+    // RISO33: the MCP fan MUST preserve separate negative-space tunnels at
+    // handoff. Inward 25-degree index sweep made three articulated fingers
+    // intersect even though each had the right number of source bones.
     // Palm -> individual digits: all are genuinely joint-local and keep
     // anatomical roots, even under the moving elbow rig.
-    { id: "left-thumb", parent: "left-hand", x: -7, y: -4,
-      keys: [{frame:0,rotate:-8,easing:"ease"},{frame:92,rotate:15,easing:"ease"},
-        {frame:160,rotate:4,easing:"ease"},{frame:198,rotate:-14,easing:"ease"},{frame:239,rotate:-14}] },
-    { id: "left-index", parent: "left-hand", x: 6, y: 1,
-      keys: [{frame:0,rotate:7,easing:"ease"},{frame:92,rotate:-8,easing:"ease"},
-        {frame:160,rotate:13,easing:"ease"},{frame:198,rotate:-5,easing:"ease"},{frame:239,rotate:-5}] },
-    { id: "left-middle", parent: "left-hand", x: 2, y: 7,
-      keys: [{frame:0,rotate:3,easing:"ease"},{frame:92,rotate:-11,easing:"ease"},
-        {frame:160,rotate:9,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
-    { id: "left-ring", parent: "left-hand", x: -4, y: 7,
-      keys: [{frame:0,rotate:-4,easing:"ease"},{frame:92,rotate:-10,easing:"ease"},
-        {frame:160,rotate:6,easing:"ease"},{frame:198,rotate:4},{frame:239,rotate:4}] },
+    { id: "left-thumb", parent: "left-hand", x: -7.1, y: 8,
+      keys: [{frame:0,rotate:-8,easing:"ease"},{frame:92,rotate:-20,easing:"ease"},
+        {frame:160,rotate:-37,easing:"ease"},{frame:198,rotate:-15,easing:"ease"},{frame:239,rotate:-15}] },
+    { id: "left-index", parent: "left-hand", x: -6, y: 16,
+      keys: [{frame:0,rotate:7,easing:"ease"},{frame:92,rotate:5,easing:"ease"},
+        {frame:160,rotate:7,easing:"ease"},{frame:198,rotate:5,easing:"ease"},{frame:239,rotate:5}] },
+    { id: "left-middle", parent: "left-hand", x: 0, y: 18,
+      keys: [{frame:0,rotate:3,easing:"ease"},{frame:92,rotate:0,easing:"ease"},
+        {frame:160,rotate:0,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
+    { id: "left-ring", parent: "left-hand", x: 6, y: 16,
+      keys: [{frame:0,rotate:-4,easing:"ease"},{frame:92,rotate:-6,easing:"ease"},
+        {frame:160,rotate:-6,easing:"ease"},{frame:198,rotate:-4},{frame:239,rotate:-4}] },
+    // Fifth digit on the ulnar side; shorter than the ring finger, with
+    // its own independent source bone and print contour, not 4 fingers.
+    { id: "left-pinky", parent: "left-hand", x: 11, y: 15, keys: [
+      {frame:0,rotate:4,easing:"ease"},{frame:144,rotate:-7,easing:"ease"},
+      {frame:160,rotate:-9,easing:"ease"},{frame:198,rotate:-6},{frame:239,rotate:-6},
+    ] },
+    // RISO31: full original printed phalanges are a bone hierarchy.
+    ...riso31PhalanxJoints("left"),
+    riso32ThumbIpJoint("left"),
     { id: "right-arm", parent: "body", x: 24, y: -44, keys: [
       { frame: 0, rotate: 14, easing: "ease" }, { frame: 65, rotate: -9, easing: "ease" },
       { frame: 137, rotate: 25, easing: "ease" }, { frame: 187, rotate: 42, easing: "ease" },
       { frame: 239, rotate: 42 },
     ] },
-    { id: "left-leg", parent: "root", x: -15, y: -62, keys: waveKeys() },
-    { id: "left-knee", parent: "left-leg", x: 0, y: 40 },
-    { id: "left-ankle", parent: "left-knee", x: 0, y: 36 },
-    { id: "right-leg", parent: "root", x: 15, y: -62, keys: [
+    { id: "left-leg", parent: "root", x: -15, y: -90, keys: waveKeys() },
+    { id: "left-knee", parent: "left-leg", x: 0, y: 55 },
+    { id: "left-ankle", parent: "left-knee", x: 0, y: 52 },
+    { id: "right-leg", parent: "root", x: 15, y: -90, keys: [
       { frame: 0, rotate: 13, easing: "ease" }, { frame: 16, rotate: -12, easing: "ease" },
       { frame: 36, rotate: 13, easing: "ease" }, { frame: 58, rotate: -12, easing: "ease" },
       { frame: 83, rotate: 13, easing: "ease" }, { frame: 108, rotate: -12, easing: "ease" },
       { frame: 138, rotate: 13, easing: "ease" }, { frame: 163, rotate: -12, easing: "ease" },
       { frame: 190, rotate: 13, easing: "ease" }, { frame: 239, rotate: 13 },
     ] },
-    { id: "right-knee", parent: "right-leg", x: 0, y: 40 },
-    { id: "right-ankle", parent: "right-knee", x: 0, y: 36 },
+    { id: "right-knee", parent: "right-leg", x: 0, y: 55 },
+    { id: "right-ankle", parent: "right-knee", x: 0, y: 52 },
     { id: "right-elbow", parent: "right-arm", x: 0, y: 28, keys: [
       { frame: 0, rotate: 6, easing: "ease" }, { frame: 40, rotate: -20, easing: "ease" },
       { frame: 80, rotate: 10, easing: "ease" }, { frame: 142, rotate: -35, easing: "ease" },
       { frame: 180, rotate: -45, easing: "ease" }, { frame: 239, rotate: -45 },
     ] },
     { id: "right-hand", parent: "right-elbow", x: 0, y: 24 },
+    { id: "right-palm-surface", parent: "right-hand", x: 0, y: 11 },
     // The right hand follows the satchel via IK; separate roots let the
     // fingers close gently without dragging the palm or wrist shape.
-    { id: "right-thumb", parent: "right-hand", x: 7, y: -4,
-      keys: [{frame:0,rotate:-9,easing:"ease"},{frame:90,rotate:0,easing:"ease"},
-        {frame:156,rotate:18,easing:"ease"},{frame:198,rotate:12},{frame:239,rotate:12}] },
-    { id: "right-index", parent: "right-hand", x: 6, y: 1,
-      keys: [{frame:0,rotate:3,easing:"ease"},{frame:90,rotate:16,easing:"ease"},
-        {frame:156,rotate:25,easing:"ease"},{frame:198,rotate:19},{frame:239,rotate:19}] },
-    { id: "right-middle", parent: "right-hand", x: 2, y: 7,
-      keys: [{frame:0,rotate:0,easing:"ease"},{frame:90,rotate:10,easing:"ease"},
-        {frame:156,rotate:18,easing:"ease"},{frame:198,rotate:12},{frame:239,rotate:12}] },
-    { id: "right-ring", parent: "right-hand", x: -4, y: 7,
-      keys: [{frame:0,rotate:-5,easing:"ease"},{frame:90,rotate:9,easing:"ease"},
-        {frame:156,rotate:14,easing:"ease"},{frame:198,rotate:11},{frame:239,rotate:11}] },
+    { id: "right-thumb", parent: "right-hand", x: 7.1, y: 8,
+      keys: [{frame:0,rotate:-9,easing:"ease"},{frame:90,rotate:18,easing:"ease"},
+        {frame:156,rotate:37,easing:"ease"},{frame:198,rotate:14},{frame:239,rotate:14}] },
+    { id: "right-index", parent: "right-hand", x: 6, y: 16,
+      keys: [{frame:0,rotate:3,easing:"ease"},{frame:90,rotate:-3,easing:"ease"},
+        {frame:156,rotate:-7,easing:"ease"},{frame:198,rotate:-5},{frame:239,rotate:-5}] },
+    { id: "right-middle", parent: "right-hand", x: 0, y: 18,
+      keys: [{frame:0,rotate:0,easing:"ease"},{frame:90,rotate:0,easing:"ease"},
+        {frame:156,rotate:0,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
+    { id: "right-ring", parent: "right-hand", x: -6, y: 16,
+      keys: [{frame:0,rotate:-5,easing:"ease"},{frame:90,rotate:5,easing:"ease"},
+        {frame:156,rotate:6,easing:"ease"},{frame:198,rotate:5},{frame:239,rotate:5}] },
+    { id: "right-pinky", parent: "right-hand", x: -11, y: 15, keys: [
+      {frame:0,rotate:-5,easing:"ease"},{frame:144,rotate:7,easing:"ease"},
+      {frame:160,rotate:9,easing:"ease"},{frame:198,rotate:6},{frame:239,rotate:6},
+    ] },
+    ...riso31PhalanxJoints("right"),
+    riso32ThumbIpJoint("right"),
     { id: "satchel", parent: "body", x: 29, y: 0, keys: [
       { frame: 0, rotate: -5, easing: "ease" }, { frame: 25, rotate: 6, easing: "ease" },
       { frame: 49, rotate: -5, easing: "ease" }, { frame: 90, rotate: 7, easing: "ease" },
@@ -225,60 +264,59 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-25 -12 Q-16 -14 -7 -12 L-7 -10 Q-16 -11 -25 -9 Z" },
     { id: "coat-buttons", joint: "body", plate: "red", paint: "solid",
       d: "M4 -37 L8 -40 L12 -36 L8 -33 Z M6 -13 L10 -16 L14 -12 L10 -9 Z" },
-    { id: "neck", joint: "body", plate: "blue", paint: "solid",
-      d: "M-10 -83 H9 V-56 H-10 Z" },
+    ...risoAnatomicalNeckParts("courier"),
     { id: "left-upper-sleeve", joint: "left-arm", plate: "blue", paint: "solid",
       skin: { tipJoint: "left-elbow", baseWidth: 21, tipWidth: 18, overlap: 3, bow: -1.3 },
       d: "M-9 0 Q-18 16 -10 30 Q0 36 9 27 Q8 7 4 0 Z" },
     { id: "left-forearm", joint: "left-elbow", plate: "blue", paint: "solid",
-      skin: { tipJoint: "left-hand", baseWidth: 17, tipWidth: 15, overlap: 2.9, bow: 0.6 },
+      skin: { tipJoint: "left-hand", baseWidth: 17, tipWidth: 15, overlap: 0.9, bow: 0.6 },
       d: "M-8 -1 Q0 -7 8 -1 L9 23 Q1 30 -8 25 Z" },
     { id: "sleeve-left-fold", joint: "left-arm", plate: "red", paint: "screen",
       d: "M-7 7 Q-1 13 7 9 L7 12 Q-2 16 -7 11 Z" },
+    // RISO34: the actual two-ink cuff deposits a narrow hand-drawn seam,
+    // never an oversized red rectangle on the blue forearm.
     { id: "cuff-left", joint: "left-elbow", plate: "red", paint: "screen",
-      d: "M-7 17 Q0 19 7 17 L8 20 Q1 23 -8 20 Z" },
+      d: "M-7.8 20.9 Q-4.5 21.1 -1.2 21.0 Q3.4 20.5 7.4 20.8 L7.5 21.45 Q3.6 21.1 -.6 21.65 Q-4.4 21.75 -7.65 21.52 Z" },
+    riso33WristUnderprintClearance("left"),
     { id: "left-glove", joint: "left-hand", plate: "red", paint: "solid",
-      d: "M-9 -8 C-7 -13 -1 -13 5 -10 Q9 -7 8 -1 L7 6 Q4 10 -2 10 C-8 9 -11 2 -9 -8 Z" },
-    { id: "left-glove-index", joint: "left-index", plate: "red", paint: "solid",
-      d: "M-1 -2 C1 -3 3 -1 3 2 Q5 8 4 14 Q4 18 2 18 Q0 17 0 13 Q-1 7 -2 3 Z" },
-    { id: "left-glove-middle", joint: "left-middle", plate: "red", paint: "solid",
-      d: "M-1 -3 C1 -4 2 -2 3 2 Q5 11 3 17 Q2 19 0 18 Q-2 17 -2 12 Q-3 5 -1 -3 Z" },
-    { id: "left-glove-ring", joint: "left-ring", plate: "red", paint: "solid",
-      d: "M-2 -2 Q0 -4 1 0 Q3 5 3 12 Q3 17 0 17 Q-2 16 -2 12 Q-3 4 -2 -2 Z" },
-    { id: "left-glove-thumb", joint: "left-thumb", plate: "red", paint: "solid",
-      d: "M-2 -3 Q-1 -7 3 -7 Q7 -6 9 -3 Q10 0 8 1 Q5 2 3 -1 L0 0 L-3 2 Z" },
+      d: "M-6.5 -1.7 C-9.4 -2.4 -10.4 1.1 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -2 4 -1.8 Q0 -2.1 -3 -1.6 Z" },
+    ...riso31FingerParts("left","index"),
+    ...riso31FingerParts("left","middle"),
+    ...riso31FingerParts("left","ring"),
+    ...riso31FingerParts("left","pinky"),
+    ...riso32ThumbInkParts("left"),
     { id: "left-finger-joint-lines", joint: "left-middle", plate: "blue", paint: "solid",
       d: "M0 4 Q2 3 3 5 L3 5.8 Q2 5 0 5 Z" },
-    { id: "left-glove-detail", joint: "left-hand", plate: "blue", paint: "solid",
-      d: "M-5 2 Q-2 1 -1 3 L-2 4 Q-4 3 -5 4 Z M1 1 Q3 1 4 3 L3 4 Q2 2 1 3 Z" },
-    { id: "left-glove-thumb-fold", joint: "left-hand", plate: "blue", paint: "solid",
-      d: "M7 -2 Q10 -1 11 1 Q8 -1 7 1 Z" },
+    refineRiso37SourceEngraving({ id: "left-glove-detail", joint: "left-hand", plate: "blue", paint: "solid",
+      d: "M-5 2 Q-2 1 -1 3 L-2 4 Q-4 3 -5 4 Z M1 1 Q3 1 4 3 L3 4 Q2 2 1 3 Z" },"courier","left"),
+    refineRiso37SourceEngraving({ id: "left-glove-thumb-fold", joint: "left-hand", plate: "blue", paint: "solid",
+      d: "M-8.2 6.2 Q-11.4 7.7 -10.6 10.0 Q-9.1 7.6 -7.1 7.8 Z" },"courier","left"),
+    ...risoHandArtcraftParts("courier","left"),
     { id: "right-upper-sleeve", joint: "right-arm", plate: "blue", paint: "solid",
       skin: { tipJoint: "right-elbow", baseWidth: 21, tipWidth: 18, overlap: 3, bow: 1.4 },
       d: "M-10 0 Q-17 18 -9 30 Q0 35 9 27 Q8 10 4 0 Z" },
     { id: "right-forearm", joint: "right-elbow", plate: "blue", paint: "solid",
-      skin: { tipJoint: "right-hand", baseWidth: 17, tipWidth: 15, overlap: 2.9, bow: -0.6 },
+      skin: { tipJoint: "right-hand", baseWidth: 17, tipWidth: 15, overlap: 0.9, bow: -0.6 },
       d: "M-8 -2 Q0 -8 8 -1 L8 26 Q0 32 -9 24 Z" },
     { id: "sleeve-right-fold", joint: "right-arm", plate: "red", paint: "screen",
       d: "M-8 8 Q0 12 7 8 L7 11 Q-1 16 -8 12 Z" },
     { id: "cuff-right", joint: "right-elbow", plate: "red", paint: "screen",
-      d: "M-7 18 Q0 20 7 18 L8 21 Q0 24 -8 21 Z" },
+      d: "M-7.5 21.0 Q-3.8 21.6 .2 21.05 Q3.9 20.5 7.6 20.8 L7.3 21.52 Q3.7 21.1 -.3 21.76 Q-4.0 21.68 -7.5 21.6 Z" },
+    riso33WristUnderprintClearance("right"),
     { id: "right-glove", joint: "right-hand", plate: "red", paint: "solid",
-      d: "M-9 -8 C-7 -13 -1 -13 5 -10 Q9 -7 8 -1 L7 6 Q4 10 -2 10 C-8 9 -11 2 -9 -8 Z" },
-    { id: "right-glove-index", joint: "right-index", plate: "red", paint: "solid",
-      d: "M-1 -2 C1 -3 3 -1 3 2 Q5 8 4 14 Q4 18 2 18 Q0 17 0 13 Q-1 7 -2 3 Z" },
-    { id: "right-glove-middle", joint: "right-middle", plate: "red", paint: "solid",
-      d: "M-1 -3 C1 -4 2 -2 3 2 Q5 11 3 17 Q2 19 0 18 Q-2 17 -2 12 Q-3 5 -1 -3 Z" },
-    { id: "right-glove-ring", joint: "right-ring", plate: "red", paint: "solid",
-      d: "M-2 -2 Q0 -4 1 0 Q3 5 3 12 Q3 17 0 17 Q-2 16 -2 12 Q-3 4 -2 -2 Z" },
-    { id: "right-glove-thumb", joint: "right-thumb", plate: "red", paint: "solid",
-      d: "M-2 -3 Q-1 -7 3 -7 Q7 -6 9 -3 Q10 0 8 1 Q5 2 3 -1 L0 0 L-3 2 Z" },
+      d: "M-6.5 -1.7 C-9.4 -2.4 -10.4 1.1 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -2 4 -1.8 Q0 -2.1 -3 -1.6 Z" },
+    ...riso31FingerParts("right","index"),
+    ...riso31FingerParts("right","middle"),
+    ...riso31FingerParts("right","ring"),
+    ...riso31FingerParts("right","pinky"),
+    ...riso32ThumbInkParts("right"),
     { id: "right-finger-joint-lines", joint: "right-index", plate: "blue", paint: "solid",
       d: "M0 4 Q2 3 3 5 L3 5.8 Q2 5 0 5 Z" },
-    { id: "right-glove-detail", joint: "right-hand", plate: "blue", paint: "solid",
-      d: "M-5 2 Q-2 1 -1 3 L-2 4 Q-4 3 -5 4 Z M1 1 Q3 1 4 3 L3 4 Q2 2 1 3 Z" },
-    { id: "right-glove-thumb-fold", joint: "right-hand", plate: "blue", paint: "solid",
-      d: "M7 -2 Q10 -1 11 1 Q8 -1 7 1 Z" },
+    refineRiso37SourceEngraving({ id: "right-glove-detail", joint: "right-hand", plate: "blue", paint: "solid",
+      d: "M-5 2 Q-2 1 -1 3 L-2 4 Q-4 3 -5 4 Z M1 1 Q3 1 4 3 L3 4 Q2 2 1 3 Z" },"courier","right"),
+    refineRiso37SourceEngraving({ id: "right-glove-thumb-fold", joint: "right-hand", plate: "blue", paint: "solid",
+      d: "M7.2 6 Q11 7.1 11.8 9.6 Q9.1 8.1 7.1 8 Z" },"courier","right"),
+    ...risoHandArtcraftParts("courier","right"),
     { id: "satchel-ink", joint: "satchel", plate: "red", paint: "solid",
       d: "M-6 0 Q25 -15 36 5 L35 56 Q9 70 -9 51 Z" },
     { id: "satchel-buckle", joint: "satchel", plate: "blue", paint: "solid",
@@ -382,7 +420,7 @@ export const COURIER: RisoCharacterSpec = {
     // bright-red chips. Fine details now print solid; ONLY sufficiently wide
     // facial shadow planes use physically discrete screened dots.
     // Each zone follows brow/zygomatic anatomy in the *original* head frame.
-    { id: "orbital-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"mid",
+    { id: "orbital-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M-27 -25 C-22 -29 -14 -28 -9 -24 Q-16 -23 -21 -17 Q-26 -15 -27 -25 Z M7 -25 C14 -31 24 -29 29 -20 Q28 -14 23 -15 Q20 -23 13 -22 Z" },
     { id: "zygomatic-tone-planes", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M-29 -7 C-29 2 -27 10 -19 16 Q-22 5 -21 -5 Q-25 -11 -29 -7 Z M21 -6 Q27 -11 31 -5 C32 4 28 13 21 18 Q27 6 24 -2 Z" },
@@ -399,7 +437,7 @@ export const COURIER: RisoCharacterSpec = {
     { id: "nose-bridge-plane", joint: "head", plate: "red", paint: "screen",screenTone:"light",
       d: "M1 -13 Q5 -9 4 -3 Q3 1 2 4 L0 3 Q2 -4 1 -13 Z" },
     { id: "nose", joint: "head", plate: "blue", paint: "solid",
-      d: "M1 -10 Q3 -5 2 -1 Q0 3 2 6 Q5 8 7 5 L9 6 Q7 9 3 9 Q-2 8 0 3 Q2 -1 1 -10 Z" },
+      d: "M1 -12 Q2.3 -7.5 2 -3 C1.1 .7 1.2 3.2 2 4.8 Q3.5 6.8 5.8 5.8 L8.3 5.5 Q8 7.6 5.3 8.2 Q.8 8.6 0 4.3 Q1 -3 1 -12 Z" },
     { id: "nose-ala-right", joint: "head", plate: "blue", paint: "solid",
       d: "M8 6 Q11 5 11 8 Q10 11 7 10 Q10 9 8 6 Z" },
     { id: "philtrum", joint: "head", plate: "blue", paint: "solid",
@@ -410,18 +448,21 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-26 7 Q-22 5 -18 7 L-19 8 Q-23 7 -25 9 Z" },
     { id: "cheek-plane", joint: "head", plate: "red", paint: "solid",
       d: "M19 8 Q24 7 26 10 L25 11 Q23 9 20 10 Z" },
+    // ANAT1 lip loop: defined upper vermilion border, gentle parted volume,
+    // and two independently authored corner trajectories. Retain the
+    // nasolabial, philtrum and sublabial source engraving underneath.
     { id: "mouth", joint: "head", plate: "red", paint: "solid",
-      d: "M-7 17 Q-1 20 6 16 L6 18 Q0 22 -7 19 Z",
+      d: "M-7 17.3 C-4 19.3 -1 19.8 1 18.7 Q4 18.0 7 16 L6.7 18.1 Q3 21.4 -1 21.3 Q-5 20.7 -7 17.3 Z",
       expressions: {
-        speak: "M-4 15 C-2 13 3 13 5 16 Q6 21 1 22 Q-4 21 -4 15 Z",
-        smile: "M-9 15 Q0 22 9 14 Q6 23 0 24 Q-7 22 -9 15 Z",
+        speak: "M-3.6 15 C-2.1 13.6 1.5 13.5 4 15.8 Q5.1 18.8 2.5 21 Q-.3 21.9 -3 19 Q-4.3 17 -3.6 15 Z",
+        smile: "M-7.8 15.3 C-3.4 18.4 2.7 19.2 7.3 14.8 C5.9 17.6 2.8 19.6 -.6 19.9 Q-5 19.2 -7.8 15.3 Z",
       },
     },
     { id: "mouth-corner-creases", joint: "head", plate: "blue", paint: "solid",
       d: "M-10 17 L-8 16 L-8 18 Z M7 15 L9 14 L9 17 Z",
       expressions: {
         speak: "M-7 16 L-5 14 L-5 17 Z M5 15 L7 14 L7 18 Z",
-        smile: "M-11 14 Q-10 17 -9 18 L-10 18 Z M9 14 Q11 12 11 10 L11 15 Z",
+        smile: "M-9 15 Q-8.3 17 -7.4 17.7 L-8.6 17.4 Z M7.5 14.3 Q9 13.0 9.1 11.8 L9.4 14.5 Z",
       },
     },
     { id: "chin-plane", joint: "head", plate: "red", paint: "screen",screenTone:"light",
@@ -442,7 +483,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7 16.4 Q-4 15.8 -1 16.1 Q1 15.8 3 15.2 Q5 14.8 6.7 15.2 Q4 16 2 16.2 Q-2 16.5 -6 16.9 Z",
       expressions: {
         speak:"M-4 14.3 Q-1.8 12.6 1 12.5 Q3.2 12.8 4.2 14.4 Q.7 13 -1.7 13.7 Z",
-        smile:"M-9 14.8 Q-2 19 8.5 13.8 Q3.7 17.7 -4.9 16.7 Z",
+        smile:"M-7.6 15.0 Q-1 19.0 7.3 14.6 Q3.6 16.9 -3.8 16.7 Z",
       },
     },
     { id: "nasolabial-flow", joint: "head", plate: "red", paint: "solid",

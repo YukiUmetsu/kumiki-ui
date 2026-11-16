@@ -29,7 +29,7 @@ import { dragonCrownSide, tamatebakoHeld, tamatebakoPrims } from "./ukiyoe-ryugu
 import type { UkiyoeFaceFeatures, UkiyoeMood } from "./ukiyoe-face";
 import { faceProfile, faceThreeQuarter, faceTraits, hairSheen, kewari, lookHash, profileOutline } from "./ukiyoe-face";
 import { dangoProp, noboriProp } from "./ukiyoe-treasure";
-import { drawTool, firewood, hachiSide, kozuchi, onigiri, strikeBits, toolAt, toolBody, toolContact, treasure } from "./ukiyoe-folk";
+import { drawTool, firewood, hachiSide, kozuchi, onigiri, strikeBits, toolAt, toolBody, toolContact, toolStrikes, treasure } from "./ukiyoe-folk";
 import { babyBundle, faceOutline, ghostFaceSide, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
 import type { UkiyoePaint, UkiyoeFill } from "./ukiyoe-pigments";
 
@@ -221,6 +221,18 @@ export function travelAt(actions: readonly UkiyoeAction[], frame: number): { x: 
   return { x, y, moving, from, dir, dist };
 }
 
+/**
+ * Ground covered by one full stride (two steps) of a walk, run or procession step. A three-quarter figure's stride is
+ * foreshortened (see turnSkeleton), so its legs cycle faster for the same ground and the stance foot stays planted; on
+ * okobo the steps are short and quick; the courtesan's figure-eight step covers little ground.
+ */
+export function gaitCycle(spec: UkiyoeFigureSpec, a: UkiyoeAction, height = figureHeight(spec.look)): number {
+  const turned = spec.look.view === "three-quarter" && spec.look.face !== "oni";
+  if (a.type === "dochu") return height * .34 * (a.amount ?? 1) * (turned ? .72 : 1);
+  const okobo = spec.look.feet === "okobo" && a.type !== "run";
+  return height * (a.type === "run" ? 1.25 : .62) * (a.amount ?? 1) * (turned ? .72 : 1) * (okobo ? .42 : 1);
+}
+
 /** Facing at a frame: walking sets it from the travel direction; `turn` flips it at the action's midpoint. */
 export function facingAt(spec: UkiyoeFigureSpec, frame: number): { dir: 1 | -1; squeeze: number } {
   let dir: 1 | -1 = spec.facing === "left" ? -1 : 1, squeeze = 1, x = 0;
@@ -258,13 +270,9 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
     const t = frame - a.start, len = Math.max(1, a.end - a.start), target: Partial<FigurePose> = {};
     switch (a.type) {
       case "walk": case "run": {
-        // A three-quarter figure's stride is foreshortened (see turnSkeleton), so its legs cycle faster for the same
-        // ground covered and the stance foot stays planted.
-        const turned = spec.look.view === "three-quarter" && spec.look.face !== "oni";
         // On okobo the steps are short and quick, the knee barely lifting.
         const okobo = spec.look.feet === "okobo" && a.type !== "run";
-        const run = a.type === "run", cycle = height * (run ? 1.25 : .62) * (a.amount ?? 1) * (turned ? .72 : 1) * (okobo ? .42 : 1);
-        const ph = tr.dist / cycle * Math.PI * 2;
+        const run = a.type === "run", ph = tr.dist / gaitCycle(spec, a, height) * Math.PI * 2;
         const A = run ? 30 : okobo ? 8 : 17, s = Math.sin(ph), c = Math.cos(ph);
         // On okobo the stance leg sweeps at an even rate (a triangle wave), matching the even travel, so the planted
         // clog does not skate on these short steps.
@@ -336,8 +344,7 @@ export function figurePose(spec: UkiyoeFigureSpec, frame: number, seed: number, 
         // The courtesan's procession step (soto-hachimonji): very slow and deliberate. The free foot lifts its tall clog,
         // swings out and round in an arc and is set down only a little ahead, tracing a figure eight; the body rides
         // level with a slight sway, the head steady, the hands holding the over-robe closed at the breast.
-        const turned = spec.look.view === "three-quarter" && spec.look.face !== "oni";
-        const cycle = height * .34 * (a.amount ?? 1) * (turned ? .72 : 1), ph = tr.dist / cycle * Math.PI * 2;
+        const ph = tr.dist / gaitCycle(spec, a, height) * Math.PI * 2;
         const s = Math.sin(ph), c = Math.cos(ph), upF = Math.max(0, c) ** 1.6, upB = Math.max(0, -c) ** 1.6;
         // The stance leg's sweep (±10° on a leg of about half the height) covers the ground travelled in a step, and it
         // sweeps at an even rate (a triangle wave, as the travel is even), so the planted clog does not slide.
@@ -847,6 +854,54 @@ export interface DrawnFigure { prims: Prim[]; x: number; y: number; dir: 1 | -1;
 
 export function figureHeight(look: UkiyoeFigureLook): number {
   return look.height ?? ({ slim: 262, average: 250, stout: 238, child: 168, brute: 300 } as const)[look.build ?? "average"];
+}
+
+/**
+ * What a figure does that can be heard: `step` a foot set down (walk, run, procession), `strike` a tool's head landing,
+ * `release` an arrow loosed, `contact` a blade or club meeting its mark (cut, parry, smash, swing, throw), `land` the
+ * feet back down from a jump, `fall` the body hitting the ground, `drop` a dropped thing landing, and `start` / `end`
+ * of any action.
+ */
+export type UkiyoeFigureMoment = "step" | "strike" | "release" | "contact" | "land" | "fall" | "drop" | "start" | "end";
+export const UKIYOE_FIGURE_MOMENTS: readonly UkiyoeFigureMoment[] = ["step", "strike", "release", "contact", "land", "fall", "drop", "start", "end"];
+/** Where in its action each contact lands when the action names no `contact` frame (as the pose and the weapons use it). */
+const CONTACT_AT: Partial<Record<UkiyoeActionType, number>> = { cut: .46, parry: .5, smash: .5, swing: .5, throw: .55 };
+
+/**
+ * The frames of a figure's moments, as they are drawn: a moment between two drawings on `cadence` is seen, and so
+ * heard, on the drawing that shows it. `type` keeps the actions of one kind. A step falls each time the stride's
+ * phase reaches a quarter or three quarters of a cycle, where the forward foot is furthest out and comes down.
+ */
+export function figureMoments(spec: UkiyoeFigureSpec, moment: UkiyoeFigureMoment, o: { type?: UkiyoeActionType; cadence?: number } = {}): number[] {
+  const cad = Math.max(1, o.cadence ?? 1), seen = (f: number) => Math.ceil(f / cad - 1e-9) * cad, out: number[] = [];
+  const actions = spec.actions ?? [], H = figureHeight(spec.look);
+  for (const a of actions) {
+    if (o.type && a.type !== o.type) continue;
+    const len = Math.max(1, a.end - a.start);
+    switch (moment) {
+      case "start": out.push(a.start); break;
+      case "end": out.push(a.end); break;
+      case "step": {
+        if (a.type !== "walk" && a.type !== "run" && a.type !== "dochu") break;
+        const cycle = gaitCycle(spec, a, H);
+        let last = -1;
+        for (let f = a.start; f <= a.end; f++) {
+          const tr = travelAt(actions, f);
+          if (tr.moving !== a) continue;
+          const n = Math.floor((tr.dist / cycle - .25) / .5);
+          if (n > last) { if (n >= 0) out.push(f); last = n; }
+        }
+        break;
+      }
+      case "strike": out.push(...toolStrikes(a)); break;
+      case "release": if (a.type === "shoot") out.push(a.contact ?? Math.round(a.start + len * .6)); break;
+      case "contact": if (CONTACT_AT[a.type] !== undefined) out.push(a.contact ?? Math.round(a.start + len * CONTACT_AT[a.type]!)); break;
+      case "land": if (a.type === "jump") out.push(Math.round(a.start + len * .8)); break;
+      case "fall": if (a.type === "fall") out.push(a.end); break;
+      case "drop": if (a.type === "drop") out.push(a.end); break;
+    }
+  }
+  return [...new Set(out.map(seen))].sort((p, q) => p - q);
 }
 
 /** Actions whose hands must land exactly on a contact frame: no follow-through is added to their arms. */

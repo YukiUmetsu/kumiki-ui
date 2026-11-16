@@ -71,6 +71,65 @@ describe("ArtCraft high-fidelity medium deposition",()=>{
     expect(()=>pencilMicroDeposit(spec.regions[0],profile,-1)).toThrow(RangeError);
   });
 
+  it("adds only explicit source-free dry pencil mass, never changing legacy marks",()=>{
+    const spec=drawing(),region=spec.regions[0],craft=region.craft!;
+    const baseline=pencilMicroDeposit(region,craft,123);
+    const zero=pencilMicroDeposit(region,{...craft,pigmentDensity:0},123);
+    expect(zero).toEqual(baseline);
+    const expanded=pencilMicroDeposit(region,{
+      ...craft,pigmentDensity:.8,
+    },123);
+    expect(expanded.length).toBe(3);
+    expect(expanded.reduce((n,g)=>n+g.count,0))
+      .toBeGreaterThan(baseline.reduce((n,g)=>n+g.count,0)*2);
+    expect(expanded.reduce((n,g)=>n+g.count,0))
+      .toBeLessThanOrEqual(5500);
+    expect(expanded.every(g=>g.path.startsWith("M")&&
+      !g.path.includes("NaN"))).toBe(true);
+    expect(pencilMicroDeposit(region,{
+      ...craft,pigmentDensity:.8,
+    },123)).toEqual(expanded);
+    expect(isPencilCraftFinish({...craft,pigmentDensity:.8})).toBe(true);
+    expect(isPencilCraftFinish({...craft,pigmentDensity:1.1})).toBe(false);
+    expect(isPencilCraftFinish({...craft,pigmentDensity:NaN})).toBe(false);
+    expect(()=>pencilMicroDeposit(region,{
+      ...craft,pigmentDensity:-.1,
+    },123)).toThrow(RangeError);
+    const fox=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const head=fox.regions.find(r=>r.id==="head-main")!;
+    expect(head.craft?.pigmentDensity).toBeGreaterThan(.7);
+    expect(head.opaqueSupport).toBe(true);
+    const human=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
+    expect(human.regions.every(r=>r.craft?.pigmentDensity===undefined)).toBe(true);
+  });
+  it("makes optically subordinate tonal support an explicit, bounded original-pigment craft choice",()=>{
+    const spec=drawing(),base=spec.regions[0],finish=base.craft!;
+    const html=(weight?:number)=>renderToStaticMarkup(<PencilDrawing
+      drawing={{...spec,regions:[{...base,craft:{
+        ...finish,...(weight===undefined?{}:{tonalSupportWeight:weight}),
+      }}]}} frame={330}/>);
+    const opacity=(markup:string)=>{
+      const match=markup.match(/data-km-pencil-craft-base=""[^>]*opacity="([0-9.]+)"/);
+      if(!match)throw new Error("Missing pigment base");
+      return Number(match[1]);
+    };
+    expect(html(1)).toEqual(html());
+    expect(opacity(html(.64))).toBeCloseTo(opacity(html())*.64,5);
+    expect(isPencilCraftFinish({...finish,tonalSupportWeight:0})).toBe(true);
+    expect(isPencilCraftFinish({...finish,tonalSupportWeight:1})).toBe(true);
+    expect(isPencilCraftFinish({...finish,tonalSupportWeight:-.1})).toBe(false);
+    expect(isPencilCraftFinish({...finish,tonalSupportWeight:1.01})).toBe(false);
+    expect(isPencilCraftFinish({...finish,tonalSupportWeight:NaN})).toBe(false);
+    const fox=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
+    const fur=fox.regions.filter(r=>r.craft?.kind==="fur");
+    expect(fur.length).toBeGreaterThanOrEqual(12);
+    expect(fur.every(r=>(r.craft?.tonalSupportWeight??1)<.73)).toBe(true);
+    expect(fur.every(r=>(r.craft?.tonalSupportWeight??0)>.49)).toBe(true);
+    const human=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
+    expect(human.regions.every(r=>r.craft?.tonalSupportWeight===undefined))
+      .toBe(true);
+  });
+
   it("renders a volumetric layer and a dry tooth instead of a uniform matte",()=>{
     const spec=drawing();
     const html=(frame:number,reducedMotion=false)=>renderToStaticMarkup(

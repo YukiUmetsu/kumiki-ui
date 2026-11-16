@@ -1,0 +1,92 @@
+{
+  "schema_version": 3,
+  "project": "Kumiki UI CP-F1 original ANAT1 human portrait",
+  "subject_type": "human",
+  "reference_mode": "style_guided",
+  "evidence_state": "source technique research done; actual browser render and independent source-aligned human anatomical/portrait fidelity BLOCKED",
+  "sources": [
+    {
+      "id": "hair-2019",
+      "title": "COLORED PENCIL Magazine, 5 tips for Drawing Hair",
+      "creator": "Catie Sheeran",
+      "page": 26,
+      "url": "https://coloredpencilmag.com/wp-content/uploads/2019/06/cpm1907w.pdf",
+      "rights": "copyright magazine, study only; no photo or source paths copied",
+      "observations": [
+        "Render the larger individual locks first and let dark troughs establish clump structure",
+        "Short colored-pencil marks follow hair direction, vary tone and pressure, and interrupt bright strand ribbons"
+      ]
+    },
+    {
+      "id": "hair-2016",
+      "title": "COLORED PENCIL Magazine, Dare to Draw Hair!",
+      "creator": "Silvia Maccaferri",
+      "page": 24,
+      "url": "https://coloredpencilmag.com/wp-content/uploads/2017/02/COLORED_PENCIL_Magazine_05_May_2016.pdf",
+      "rights": "copyright magazine, textual techniques only",
+      "observations": [
+        "Preserve original dark strands before extending colored pencil highlights",
+        "Protect light reserves and direct all pencil marks in actual hair-growth direction"
+      ]
+    },
+    {
+      "id": "susak",
+      "title": "How to Draw Portraits with Colored Pencils",
+      "creator": "Jasmina Susak",
+      "url": "https://www.jasminasusak.com/blog/how-to-draw-portraits-with-colored-pencils/",
+      "rights": "copyright artist process; technique study only; no artwork copied",
+      "observations": [
+        "Low-pressure Dark Umber/Dark Brown shadows precede highlights",
+        "Sweep from both ends toward the reserved light with pressure lifted before the center"
+      ]
+    }
+  ],
+  "baseline": {
+    "source": "Actual 960×540 native CP-F1 Storybook portrait screenshot from previous merged branch",
+    "defect": "Crown and sides read as a wig with coarse long parallel tan bands and uniform paper grain, not soft layered dark brown hair. Original 468-point ANAT1 face is untouched.",
+    "full_source_pixel_alignment": false,
+    "reference_identity_match": false
+  },
+  "regions": [
+    {
+      "ids": [
+        "hair-back"
+      ],
+      "flow": "scalp rear→occipital locks→shoulder",
+      "strokes": "4 × 3 native short curved pigment families, occlusion trough"
+    },
+    {
+      "ids": [
+        "hair-crown"
+      ],
+      "flow": "root crown→temple and forehead clumps",
+      "strokes": "6 × 3 short pigment families plus dark trough/retained cream glint"
+    },
+    {
+      "ids": [
+        "hair-lock-left",
+        "hair-lock-right"
+      ],
+      "flow": "side part→neck/shoulder",
+      "strokes": "4 × 3 rooted pigment groups per lock, narrow dark occlusion channels"
+    }
+  ],
+  "five_axes": {
+    "topology": "Retain the 4 existing independently editable outer hair silhouettes, rooted behind the same ANAT1 face and collars; never detached stickers",
+    "vector_flow": "Three pressure passes of short Beziers follow local curved roots; not uniform broad diagonal stripes",
+    "weight": "Low-pressure umber/sepia undercoat with sparse chestnut/cream glints, no high-opacity white wig ribbons",
+    "rhythm": "Seeded stagger and clump-specific lengths; >1600 individual authored dry-pencil contacts with independent region names",
+    "texture": "Native CP-F1 fiber/paper tooth and timed layering; no bitmap, photo edit or noise substitute"
+  },
+  "negative_controls": [
+    "oversized repeated 0.69px highlight stripes",
+    "detached floating locks",
+    "uniform matte gradient hiding missing hair structure",
+    "bitmap/photo underpainting"
+  ],
+  "qa": {
+    "unit": "tests/colored-pencil-living-studies.test.tsx tracks original ANAT1 face, eye, nose, lip path identity plus color/pigment families",
+    "storybook": "Existing pencil studio macro focus portrait-crown and portrait-lock, 16:9 and 9:16 native screenshots at 1×/2.15×",
+    "final": "Do not claim source identity or world-class style until physical native screenshots inspected and human v9 anatomy fidelity source/render landmark gates passed"
+  }
+}

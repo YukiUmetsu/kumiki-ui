@@ -1629,6 +1629,261 @@ blobs.
 - Smoke billows have no inner curls.
 - Nobody has done a human visual review yet.
 
+## Transitions (quality slice Q5, 2026-11-15)
+
+**Grounding.**
+
+- **Scroll.** A handscroll is unrolled leftward, so new pictures enter from the left. Its sheets are joined at paper
+  seams.
+- **Ink.** Sumi on damp paper spreads with a pale centre and a darker rim where the pigment gathers.
+- **Print.** Woodblock printing lays the key block and then the colours, light to dark.
+
+No new image reference was used.
+
+**Review.**
+
+1. The first ink version read as a black iris with a hard circular hole. It became translucent washes with wet rims,
+   the next scene revealed through a feathered mask that lags behind the ink.
+2. The transitions were checked in the `film:review` pipeline (Kasa Jizō: 0 errors). The scroll pushes the hearth off
+   as the market unrolls in, and the ink blooms over the jizō before night.
+3. Longer transitions made the script check flag three captions that started during them; those cues were moved.
+
+**In the episodes.**
+
+- **Kasa Jizō:** scroll into the market, ink into the night.
+- **Urashima:** scroll to the turtle, ink to three hundred years later.
+- **Momotarō:** scroll along the road, ink into the fight.
+- **Kaguya:** print into her grown beauty, ink into the night at the moon.
+
+## Sound effects (quality slice Q6, 2026-11-15)
+
+**Sources.** Every new sound is a recording from Freesound, found through Openverse.
+- **Licence check:** each one's own Freesound page shows Creative Commons 0 (a `publicdomain/zero/1.0` link and no
+  attribution licence), checked on 2026-11-15.
+- **Shipping:** they are trimmed into `assets/sound/recorded/`, each with its source URL and author in
+  `assets/sound/catalog.json`.
+- **The 38 sounds:**
+
+| Sounds | Recording (author, Freesound ID) |
+| --- | --- |
+| `bell-temple-large` | Temple Bell, Valley of the Temples (Mista Bumpy, 232333) |
+| `bells-suzu` | Suzu - Japanese Bell (DiSK, 519190) |
+| `step-snow-1`–`5` | Footstep in the snow_01–04 (cabled_mess, 384421–4) |
+| `step-sand-1`–`4` | Footsteps in Sand (kessir, 264124) |
+| `bed-fire-hearth` | campfire (aerror, 350757), high-passed and gently compressed |
+| `bed-wind-snow` | forest light wind through bare trees winter (kyles, 637566) |
+| `bed-bubbles-underwater` | Hydrophone water bubbles 1 (thaighaudio, 349878) |
+| `bed-crows-day` | A Murder of Crows in the Daytime (kactus23, 121142) |
+| `bed-birds-uguisu` | Japanese bush warbler (uguisu) (warukunai, 524526) |
+| `clash-sword-1`, `clash-sword-2` | Swords Clash (Christopherderp, 364529, 342393) |
+| `swing-sword` | swosh swinging sword 37 (qubodup, 60024) |
+| `draw-sword`, `sheathe-sword` | Unsheathing the sword and Sword sheathing (ihitokage, 395364, 395371) |
+| `thud-club-1`, `thud-club-2` | HEAVY BAG DROP DIRT (burbujafilms, 392008) |
+| `fall-body` | Fight and body falls on stone (craigsmith, 675925) |
+| `chop-axe-1`, `chop-axe-2` | axe chop into old upside down wood rowboat (kyles, 452553) |
+| `bark-dog-1`, `bark-dog-2` | A dog barking (close recording) (felix.blume, 199261) |
+| `howl-dog` | Dog Howl (Latranz, 518566) |
+| `flap-wings-1`, `flap-wings-2` | Bird wings flapping quickly (craigsmith, 675959) |
+| `call-gull-1`, `call-gull-2` | Seagulls clean wildtrack (Soojay, 462462) |
+| `hiss-smoke` | steam (JustineOu, 569449) |
+| `creak-wood` | Boat creaking; moving against dock (craigsmith, 675784) |
+| `lid-box-wood` | Little Wooden Box Opening And Closing (arduenn, 676420) |
+| `paper-sheet-slide`, `paper-sheet-lay` | paper sheets handling (kyles, 450043) and Paper sheets (paulocorona, 334994) |
+
+**Choosing, with earshot.** Each candidate was trimmed with `find`, labelled with `describe` and checked with `realness`
+before import. Earshot `realness` was run again on the 38 files as shipped (after the listening fixes below):
+- 37 read "real or pro-produced" (p_real 0.79–0.996).
+- `bell-temple-large` reads "uncertain" (0.62 on its 10 s file, judged by the long-file thresholds of 0.40 and 0.77).
+  Its strike trims read 0.81–0.92. A long, clean ringing tone is what that model leans toward hearing as synthesised.
+  The recording comes from a source page that places it at the Valley of the Temples, so it was kept.
+
+Earshot rejected these, by what it heard:
+- **Both bowstring recordings:** an impact (z 3.3) and a squelch (z 3.3), not a twang. The Kaguya archers never loose,
+  so their bows now drop with wooden knocks.
+- **A second shrine-bell file:** it read as cutlery.
+- **A "bamboo forest" bed:** it held someone walking through dry leaves (Walk, footsteps 0.49).
+- **A cart crossing a bridge and a sled dragged on snow:** both were unclear.
+- **A second temple bell:** it read as code-synthesised in parts.
+- **Two long snow-walk recordings:** they were continuous crunching, with no single steps. Single steps came from
+  other recordings.
+
+The catalog's older foley, impacts and whooshes are synthesised (Wyzowl). The episodes use none of them. Even the
+transitions' paper sounds are now recorded.
+
+**Placing.** The rig gives the frames:
+- **Steps:** where a stride's phase reaches a quarter or three quarters of a cycle, on the drawing that shows it.
+- **Axe strikes:** from the tool stroke's own timing.
+- **Blows:** the fight's contact frames.
+- **Others:** the end of a fall or a drop.
+
+Frame checks:
+- **Club:** on the club smash at frame 112, the club is coming down beside Momotarō's feet. On 114 it rests on the rock
+  with the dust thrown up.
+- **Axe:** at the axe strike on frame 52, the head is at the shining stalk, and stays there through 54.
+
+**Review.** These are measurements, not listening.
+
+1. **Late steps.** The first steps were late. The snow takes started up to 115 ms before their crunch, and FD1 placed a
+   cue's peak, not its start, on the frame. The importer's `keepLead` now starts a take where it becomes audible. FD1
+   cues gained `align: "start"`, which steps, strikes and contacts use.
+2. **Sync.** earshot `timeline` against each episode's own cue list:
+
+   | Episode | Within one frame (chance) | Median offset |
+   | --- | --- | --- |
+   | Kasa Jizō | 36% (20%) | 44 ms, the snow crunch builds |
+   | Urashima Tarō | 49% (26%) | 23 ms |
+   | Momotarō | 62% (17%) | 18 ms |
+   | Kaguya-hime | 67% (20%) | 19 ms |
+   | Momotarō's battle alone | 77% (16%), 0 cues without a hit | 9 ms |
+
+   Some cues have no hit; these are mostly distant steps and gulls under surf, wind or crickets.
+3. **Stacked steps.** Six jizō walking in step stacked six crunches on one frame. Now the lead and two others, quieter
+   and in different takes, are heard.
+4. **Repeated takes.** A two-take pool could repeat a take across a pass boundary (`soundVariant` compared with the
+   previous pass before its own swap). Fixed; it is covered in `tests/sound-design.test.ts`.
+5. **Levels.** Mastered to −14 LUFS, −2 dBTP. The limiter takes 6–8 dB off the loudest peaks, under the 9 dB cap. Most
+   of that is the beds' own gusts and crackles at +25 dB of master gain: the committed Kasa Jizō, with beds only,
+   already took 6.8 dB. A narration voice will carry the loudness and lower the master gain.
+6. **Seams.** The fire, crow and warbler beds were cut at seam points measured on the importer's own pipeline. The
+   seams are −35, −39 and −34 dB against each bed's level.
+
+**Owner listening, 2026-11-15.** The owner heard Kasa Jizō as "just low buzz sounds and that's it".
+
+**Causes, measured on that mix.**
+- **Drone everywhere.** Almost everything was below 150 Hz:
+  - the hearth bed (a close fireplace whose body is a low roar) was 71% below 150 Hz;
+  - the first snow steps (handling thumps more than crunch) were 41–77%;
+  - the gale bed was low-passed to 700–900 Hz indoors and at night;
+  - in the hearth shot, 77% of the mix was below 150 Hz.
+- **Masking.** Loudness meters discount the low end, so the normalised beds and mastering (+25 dB) raised this rumble
+  over the effects.
+- **Other episodes.** The underwater bed (97% below 150 Hz) did the same to Urashima's three palace shots.
+
+**Fixes.**
+- **Snow steps.** They now come from cabled_mess's crisp series: 46–61% of their energy is at 1–8 kHz, and they are
+  high-passed at 120 Hz.
+- **Hearth.** A dry campfire crackle (3% below 150 Hz).
+- **Outdoor wind.** The gale gives way to a light winter wind through bare trees (`bed-wind-snow`).
+- **Underwater.** A hydrophone bubble bed replaces the old underwater bed.
+- **High-passed re-cuts:**
+  - the warbler, at 400 Hz (city rumble);
+  - the stream, at 150 Hz;
+  - the axe, at 250 Hz.
+- **Importer.** It gains `highpassHz`. For loops it is applied before the crossfade, so the seam stays continuous.
+- **Levels.** The beds sit lower, so the effects carry the shot.
+- **Result.** Every shot of the four episodes now has at most 19% of its energy below 150 Hz.
+- **Kasa Jizō after the fixes:**
+  - −14.8 LUFS, with 8.7 dB of limiting;
+  - earshot hears the sections as crackling fire and crows;
+  - 66% of cues have an onset within one frame (chance 23%), and only 8 cues are without a hit.
+
+**Not done.**
+- The fixed mixes are not yet re-heard by the owner.
+- These effects have no cue yet:
+  - straw rustle for the hats;
+  - the sled's runners;
+  - the monkey and the pheasant's calls;
+  - bowstrings;
+  - a market crowd.
+- Each needs a recording that passes earshot.
+
+## Boar and bear (2026-11-15)
+
+The owner asked to compare the boar and the bear with references and fix them.
+
+**References.** All are public domain or CC0, from Wikimedia Commons.
+
+| Animal | Reference | Rights |
+| --- | --- | --- |
+| Boar | *Fauna Japonica*, Mammalia pl. 20, *Sus leucomystax* (the Japanese wild boar) | PD |
+| Boar | Tachibana Morikuni, *Wild boars running, on cliffs, and near pine trees* (Library of Congress, LCCN 2008660987) | PD |
+| Boar | Utagawa Kuniyoshi, Nitta no Shirō Tadatsune and the boar (British Museum 2008,3037.21407) | PD |
+| Boar | Stefano della Bella, *A wild boar running* (Met DP833249) | CC0 |
+| Bear | Tanaka Yoshio, *Dōbutsu kunmō*, "Tibet bear" (1875) | PD |
+| Bear | Two Okuhida specimens of tsukinowaguma | CC0 photos |
+| Bear | A wild bear on Mount Kurai | CC0 photo |
+| Bear | Hokusai, *Sakata Kintoki Riding on Bear's Back* (Met 56.121.16) | PD |
+| Bear | Torii Kiyomasu I, *Kintoki Wrestling with a Black Bear* | PD |
+| Bear | Kuniyoshi, Shigekiyo fighting a black bear in the snow | PD |
+
+**What was wrong.** Both reused the generic quadruped head, a pointed muzzle stretched by a snout factor.
+
+The boar:
+- It had round bear ears and a rat's snout.
+- Its legs were 36 against a body 64 deep, and the belly fringe hid them, so it had neither legs nor hooves.
+- A dark throat band read as a stripe.
+- Head-on it had a bear's face.
+
+The bear:
+- It had a narrow mole's muzzle.
+- The shared "ruff" colour gave it a brown bib.
+- The crescent sat behind the fore leg.
+- Long tufts all round made a hedgehog outline.
+- From behind it read as a box.
+
+**Changes.**
+
+The boar:
+- **Head:** its own profile head, a long deep wedge with a straight forehead line. It ends in the flat snout disc with its nostril, and the mouth line turns up at the corner.
+- **Face details:**
+  - the lower tusk curves up and back;
+  - the eye is small and high, with heavy folds;
+  - the ears are small, pointed and laid back;
+  - bristles stand on the crown;
+  - the pale jaw stripe (*leucomystax*, "white whiskers") is clipped to the head.
+- **Body:**
+  - high withers with a crest of uneven bristle locks lying back;
+  - slender legs (50) on cloven hooves with dewclaws;
+  - a short coat;
+  - the thin tail hangs, with a tuft.
+- **Head-on:** the face narrows to the round disc with two nostrils, with tusks from the mouth corners, pale jaw stripes and bristles on the brow.
+
+The bear:
+- **Head:** its own profile head: a broad domed skull, big round ears set high and back, a short tan muzzle, a large black nose, a small eye, and long black hair under the jaw.
+- **Carriage:** the head is carried low.
+- **Body and legs:** a heavier body, thick legs, broad paws with long curved claws, and a finer coat edge.
+- **Crescent:** the white crescent across the throat and upper chest, ahead of the fore leg.
+- **Head-on:** a round face with a tan muzzle and a broad white V on the chest.
+- **Flanks, front and back:** locks lying downward on both flanks. Pale hairlines show on the black coat.
+
+Shared changes:
+- Cloven hooves now show the split and dewclaws on the deer and the ox too.
+- Black coats get visible hairlines head-on and from behind.
+
+**Review.** Profile, three-quarter, front, back, walking and running stills were compared against the references over
+five rounds, at 0.6× and 1.2×. The fixes in later rounds:
+- the boar's grey bib went;
+- its sawtooth crest became uneven locks;
+- its jaw stripe had poked out past the head as a white blade, read as a grin, and moved off the lip;
+- the bear's spiky jaw ruff over its crescent read as fangs;
+- the bear's front and back edges were spiky on one flank only.
+
+The mountain habitat scene (bear walking, boar charging) renders cleanly.
+
+**Second round (motion).** The gaits were studied in Muybridge's *Animals in Motion* (1899, public domain, Getty copy
+on the Internet Archive). In its plate of gallop phases (p. 201):
+- the bear flings its fore legs far ahead and drives its hind legs back, its body drawn out long and low;
+- the hog keeps its body level on short, quick strides;
+- the bear, raccoon and hog share one sequence of footfalls.
+
+Muybridge also explains that the "flying gallop" of older art, all four legs flung out at once, never occurs. Morikuni's
+boar uses that convention.
+
+Changes:
+- **`stride`:** a shorter stride gives the boar quicker steps.
+- **`reach`:** the bear's fore legs reach further at the gallop.
+- **`arch`:** the bear's back arches between shoulders and hips, as in Tanaka's plate.
+- **Galloping legs (every quadruped):** a leg on the ground or reaching for it is now nearly straight, and folds only
+  while it is carried forward. Before, the lower leg hung down even when the upper leg reached, so the paws never got
+  ahead of the body.
+- **`stand`:** hooved animals (boar, deer, ox, horse) now stand on all four legs instead of rearing.
+- **Checking:** run cycles of the bear, boar, dog, horse, fox and deer were checked frame by frame.
+
+**Not matched yet.**
+- The bear's gallop still reads compact: its short legs under a deep coat need the body itself to stretch and pitch
+  through the stride.
+- No human visual review yet.
+
 ## Not yet matched (honest gaps)
 
 - No true **karazuri** blind embossing depth or **kirazuri** mica sparkle beyond a light emboss filter.
@@ -1638,3 +1893,44 @@ blobs.
 - Creature fur is procedural carved hairlines and tufted edges. It is closer to Koson's prints but not hand-carved. Figures and animals turn three-quarter, and figures and four-legged animals can face front or back. Birds, the dragon and the yōkai cannot, and there is no animated turn between views.
 - Sound is recorded ambience beds (river, stream, wind, rain, surf, distant fireworks, crickets). There is no music and no hits timed to frames (a crash on the wave's break, each firework). Nobody has listened to the mix yet.
 - Human normal-speed review of the film has **not** been recorded.
+
+## Legs and faces against ANIM1 (2026-11-15)
+
+The new animal anatomy framework ([ANIM1](../component-specs/animal-anatomy.md), research:
+[animal anatomy framework](animal-anatomy-framework-2026-11-15.md)) measures every UKIYO1 quadruped off its own
+standing contour (`ukiyoeBeastLandmarks`). Changes from that check and from the owner's note on faces:
+
+- **Legs.** The boar and the bear stood on less than half the measured clearance under the chest. Their legs are now
+  inside the ranges of the Fauna Japonica plate and the Tanaka plate and Okuhida specimens. Strides grew with the legs,
+  and walking feet now slide less than before.
+- **Faces.** The owner wrote that the bear, tanuki, mouse, weasel and boar faces needed better proportions. They were
+  rebuilt from PD/CC0 references:
+  - **Tanuki:** a short muzzle, with the mask running down over the cheek.
+  - **Mouse:** big bead eyes, huge round ears and no neck.
+  - **Weasel:** a flat head with low side ears, a dark mask and a white chin.
+  - **Bear:** a long tapering muzzle with no smile.
+  - **Boar:** broad laid-back ears, a deep jaw, the eye set back, and a bigger face square on.
+- **Open finding.** The fox, dog, cat, wolf, tanuki, rabbit, ox and mouse are still long and low compared with the real
+  animals (see the Storybook "UKIYO1 proportion check").
+
+## Trees grown by FLORA1 (2026-11-15)
+
+The pine, cherry and willow were rebuilt on the plant anatomy framework
+([FLORA1](../component-specs/plant-anatomy.md)), and a plum (`ume`) was added. They were compared with:
+
+- Hiroshige's *Evening Rain at Karasaki* (MET, CC0) and Hokusai's *Cushion Pine at Aoyama* (MET, CC0);
+- Hiroshige's *Asukayama* cherries and Hokusai's *Bullfinch and Weeping Cherry*;
+- Hiroshige's willows (*Willow on a river bank*, *Tea-house at the Willow Bridge*);
+- Hiroshige's *Plum Garden at Kameido* (Rijksmuseum, CC0) and the *Flora Japonica* plum.
+
+| Tree | Was | Now |
+|---|---|---|
+| Pine | Four tall dome pads on stubs of a smooth trunk | A leaning trunk under whorled tiers of big flat needle pads on long level branches |
+| Cherry | A pink blob on a pole | Limbs of elbows with lenticel bark; blossom clumps over a pink underprint, with gaps; notched five-petal flowers; red young leaves under the blossom |
+| Willow | Arched over a small crown | Limbs that arch up and fall; curtains of strands hanging from along them |
+| Plum (new) | — | Dark gnarled wood; sparse round white flowers and red buds on the twigs |
+
+`height` is the whole tree; `variant` is the seed; `lean`, `spread`, `bloom` and `strands` keep their meanings. The
+trees are grown once per seed and swayed by the scene's wind. The Night Ferry and folktale shots were re-rendered and
+checked; no owner review yet.
+

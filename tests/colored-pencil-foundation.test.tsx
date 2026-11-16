@@ -92,6 +92,24 @@ describe("CP-F1 mandatory foundation for new pencil drawings",()=>{
       expect(inspectPencilFoundationDrawing(qualified)).toEqual([]);
     }
   });
+  it("rejects unsupported pseudo-skin while allowing actual face-connected labial pigment",()=>{
+    const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
+    expect(inspectPencilFoundationDrawing(drawing)).toEqual([]);
+    for(const id of ["lip-upper","lip-lower"]){
+      const part=drawing.regions.find(r=>r.id===id)!;
+      expect(part.layeredSkinOverParent).toBe(true);
+      expect(part.opaqueSupport).toBe(false);
+      expect(part.craft?.kind).toBe("skin");
+      const withoutOptIn={...drawing,regions:drawing.regions.map(r=>
+        r.id===id?{...r,layeredSkinOverParent:false}:r)};
+      expect(inspectPencilFoundationDrawing(withoutOptIn)).toContainEqual(
+        expect.stringContaining("foundation.support: solid "+id));
+      const detachedMaterial={...drawing,regions:drawing.regions.map(r=>
+        r.id===id?{...r,craft:{...r.craft!,kind:"fur" as const}}:r)};
+      expect(inspectPencilFoundationDrawing(detachedMaterial)).toContainEqual(
+        expect.stringContaining("requires non-opaque skin craft"));
+    }
+  });
   it("qualifies every original living and object material, at either film aspect",()=>{
     for(const aspect of ["landscape","portrait"] as const){
       for(const subject of ["portrait","fox","valley"] as const){
@@ -100,7 +118,8 @@ describe("CP-F1 mandatory foundation for new pencil drawings",()=>{
         expect(drawing.foundation?.subject).toBe(
           subject==="portrait"?"human":subject==="fox"?"wildlife":"landscape");
         expect(Object.keys(drawing.foundation!.surfaces)).toHaveLength(drawing.regions.length);
-        expect(drawing.regions.every(r=>r.opaqueSupport?!!r.craft:!r.craft)).toBe(true);
+        expect(drawing.regions.every(r=>r.opaqueSupport?!!r.craft:
+          r.layeredSkinOverParent?r.craft?.kind==="skin":!r.craft)).toBe(true);
       }
       for(const subject of ["rose","glass","architecture","fabric"] as const){
         const drawing=pencilObjectStudyDrawing({subject,aspect});

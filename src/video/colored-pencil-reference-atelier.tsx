@@ -11,6 +11,7 @@ import {
 } from "./colored-pencil-dry-contact";
 import type {PortraitHeadStroke,DryPencilHeadPlate} from "./colored-pencil-full-head";
 import {createPhotometricSkinGlaze} from "./colored-pencil-photometric-glaze";
+import {createPhotoSkinToothBridge} from "./colored-pencil-tooth-bridge";
 import {createPhotoNeckContactFibres} from "./colored-pencil-neck-contact";
 import {createPhotoJawToothFibres} from "./colored-pencil-jaw-tooth";
 import type {PortraitFeatureMap} from "./colored-pencil-portrait-guides";
@@ -115,7 +116,8 @@ function paintDryHeadRange(ctx:CanvasRenderingContext2D,
   strokes:readonly PortraitHeadStroke[],from:number,to:number,tooth:number,
   needlepoint:number,plate:DryPencilHeadPlate,
   raw:PencilPhotoPixels,guides:PortraitFeatureMap,glaze:number,
-  neck:readonly PencilPhotoMark[],jawStrength:number){
+  neck:readonly PencilPhotoMark[],jawStrength:number,
+  bridgeStrength:number){
   ctx.lineCap="round";ctx.lineJoin="round";
   // Source-measured face polygon clips ONLY the extra needle contacts,
   // never existing hair, pupil, lip, skin value or root pigment.
@@ -177,8 +179,20 @@ function paintDryHeadRange(ctx:CanvasRenderingContext2D,
     for(const nib of contact.marks)paintNib(nib);
     jawNibs=contact.photoSupported;
   }
+  let bridgeNibs=0;
+  if(bridgeStrength>0&&from===0&&to===plate.strokes.length){
+    const observed=ctx.getImageData(
+      0,0,ctx.canvas.width,ctx.canvas.height);
+    const bridge=createPhotoSkinToothBridge(
+      raw,{width:observed.width,height:observed.height,data:observed.data},
+      guides,plate.geometry.face,plate.crop,bridgeStrength);
+    ctx.save();ctx.clip(faceClip);
+    for(const nib of bridge.marks)paintNib(nib);
+    ctx.restore();
+    bridgeNibs=bridge.marks.length;
+  }
   ctx.globalAlpha=1;
-  return jawNibs;
+  return {jawNibs,bridgeNibs};
 }
 function paint(ctx:CanvasRenderingContext2D,study:PencilPhotoStudy,
   frame:number,source:HTMLCanvasElement,wash:number){
@@ -246,6 +260,8 @@ export function ReferencePencilAtelier({
   const [skinWeave,setSkinWeave]=useState(.70);
   const [needlepoint,setNeedlepoint]=useState(.72);
   const [opticalGlaze,setOpticalGlaze]=useState(.72);
+  // Experimental ArtCraft research only; preserve default exported pixels.
+  const [toothBridge,setToothBridge]=useState(0);
   const [neckContact,setNeckContact]=useState(.80);
   const [jawEdge,setJawEdge]=useState(.76);
   const [featureDepth,setFeatureDepth]=useState(.85);
@@ -418,11 +434,14 @@ export function ReferencePencilAtelier({
     ink.globalAlpha=1;ink.globalCompositeOperation="source-over";
     ink.fillStyle=headPlate.paperColor;
     ink.fillRect(0,0,dry.width,dry.height);
-    const jawCount=paintDryHeadRange(
+    const {jawNibs:jawCount,bridgeNibs:bridgeCount}=paintDryHeadRange(
       ink,headPlate.strokes,0,headPlate.strokes.length,
       headDryTooth,needlepoint,headPlate,raw,faceGuides,opticalGlaze,
-      neckEvidence?.marks??[],jawEdge);
+      neckEvidence?.marks??[],jawEdge,toothBridge);
     dry.setAttribute("data-km-pencil-full-head-rendered","true");
+    dry.setAttribute("data-km-pencil-render-method","cc0-measured-dry-strokes");
+    dry.setAttribute("data-km-pencil-photo-underpaint","none");
+    dry.setAttribute("data-km-pencil-reference-input","cc0-photo-pixels");
     dry.setAttribute("data-km-pencil-eyelid-depth",String(headPlate.eyelidDepth));
     dry.setAttribute("data-km-pencil-iris-depth",String(headPlate.irisDepth));
     dry.setAttribute("data-km-pencil-skin-weave",String(headPlate.skinWeaveDepth));
@@ -433,6 +452,8 @@ export function ReferencePencilAtelier({
       String(neckEvidence?.marks.length??0));
     dry.setAttribute("data-km-pencil-jaw-edge",String(jawEdge));
     dry.setAttribute("data-km-pencil-jaw-edge-nibs",String(jawCount));
+    dry.setAttribute("data-km-pencil-tooth-bridge",String(toothBridge));
+    dry.setAttribute("data-km-pencil-tooth-bridge-nibs",String(bridgeCount));
     dry.setAttribute("data-km-pencil-glaze-strokes",
       String(glazeEvidence?.marks.length??0));
     dry.setAttribute("data-km-pencil-glaze-protected",
@@ -444,6 +465,10 @@ export function ReferencePencilAtelier({
         Math.floor(needlepoint*8+.001)));
     dry.setAttribute("data-km-pencil-skin-weave-nibs",
       String(headPlate.skinWeaveEvidence.pigments));
+    dry.setAttribute("data-km-pencil-skin-light-plane-fibres",
+      String(headPlate.skinWeaveEvidence.opticalLightFibres));
+    dry.setAttribute("data-km-pencil-skin-protected-curve-spans",
+      String(headPlate.skinWeaveEvidence.protectedSpans));
     dry.setAttribute("data-km-pencil-skin-weave-highlight-reserves",
       String(headPlate.skinWeaveEvidence.protectedHighlights));
     dry.setAttribute("data-km-pencil-iris-near",String(
@@ -477,7 +502,7 @@ export function ReferencePencilAtelier({
     setLightSkinEvidence(compareCC0LuminousSkin(original,rendered));
     setJawEvidence(compareCC0JawContact(original,rendered));
   },[headPlate,raw,faceGuides,headDryTooth,needlepoint,opticalGlaze,
-    neckEvidence,neckContact,jawEdge]);
+    neckEvidence,neckContact,jawEdge,toothBridge]);
   useEffect(()=>{
     if(!showHairContact||!headPlate)return;
     const src=fullHeadSourceRef.current,dry=fullHeadRef.current;
@@ -500,7 +525,8 @@ export function ReferencePencilAtelier({
         0,0,target.width,target.height);
       target.setAttribute("data-km-pencil-contact-rendered","ready");
     }
-  },[showHairContact,headPlate,raw,needlepoint,opticalGlaze,neckEvidence,jawEdge]);
+  },[showHairContact,headPlate,raw,needlepoint,opticalGlaze,neckEvidence,jawEdge,
+    toothBridge]);
   useEffect(()=>{
     if(!showFeatureAtlas||!headPlate)return;
     const from=fullHeadSourceRef.current,to=fullHeadRef.current;
@@ -530,7 +556,7 @@ export function ReferencePencilAtelier({
       detail.setAttribute("data-km-pencil-anatomy-rendered",featureFocus);
     }
   },[showFeatureAtlas,featureFocus,headPlate,raw,needlepoint,opticalGlaze,
-    neckEvidence,jawEdge]);
+    neckEvidence,jawEdge,toothBridge]);
   // Each storyboard panel reuses the EXACT paper-only full-head strokes,
   // chronologically filtered by construction material and immutable pass.
   // Small stage canvases render at 1/2 scale without any bitmap shortcut.
@@ -547,17 +573,19 @@ export function ReferencePencilAtelier({
       ctx.fillStyle=headPlate.paperColor;
       ctx.fillRect(0,0,headPlate.width,headPlate.height);
       const stageMarks=selectHeadStoryboardStrokes(headPlate.strokes,phase.id);
-      const jawCount=paintDryHeadRange(ctx,stageMarks,0,stageMarks.length,
+      const {jawNibs:jawCount,bridgeNibs:bridgeCount}=paintDryHeadRange(
+        ctx,stageMarks,0,stageMarks.length,
         headDryTooth,needlepoint,headPlate,raw,faceGuides,opticalGlaze,
-        neckEvidence?.marks??[],phase.id==="detail"?jawEdge:0);
+        neckEvidence?.marks??[],phase.id==="detail"?jawEdge:0,
+        phase.id==="detail"?toothBridge:0);
       ctx.setTransform(1,0,0,1,0,0);
       canvas.setAttribute("data-km-pencil-storyboard-rendered",phase.id);
       canvas.setAttribute("data-km-pencil-storyboard-strokes",
         String(stageMarks.length+(phase.id==="detail"?
-          (neckEvidence?.marks.length??0):0)+jawCount));
+          (neckEvidence?.marks.length??0):0)+jawCount+bridgeCount));
     }
   },[showStoryboard,headPlate,raw,faceGuides,headDryTooth,needlepoint,
-    opticalGlaze,neckEvidence,jawEdge]);
+    opticalGlaze,neckEvidence,jawEdge,toothBridge]);
   useEffect(()=>{
     if(!playing)return;
     const began=performance.now(),offset=frame;
@@ -614,9 +642,11 @@ export function ReferencePencilAtelier({
         Anatomy-first pencil reconstruction
       </h1>
       <p style={{margin:0,maxWidth:870}}>
-        The old vector characters were too simple. This alternate code-only
-        renderer preserves real source-image anatomy, creates softened paper
-        pigment, and draws seeded strokes tangent to the source's features.
+        This research atelier has two separate outputs: the standard
+        photo-to-pencil preview composites photographed pixels under its marks;
+        the experimental full-head sheet is drawn on blank paper entirely from
+        independent quadratic coloured-pencil strokes, using CC0 photo pixels
+        only to guide shape, pigment and lighting. Neither proves artistic mastery.
         Upload a licensed photograph or study CC0 human, fox and bird examples.
       </p>
     </header>
@@ -714,6 +744,12 @@ export function ReferencePencilAtelier({
         <input aria-label="Pencil overlapping skin optical weave" type="range"
           min="0" max="1" step=".05" value={skinWeave}
           onChange={e=>setSkinWeave(Number(e.target.value))}/>
+      </label>}
+      {faceGuides&&showFullHead&&<label style={control}>
+        Experimental source-aware pencil tooth bridge · {Math.round(toothBridge*100)}%
+        <input aria-label="Pencil source-aware tooth bridge" type="range"
+          min="0" max="1" step=".1" value={toothBridge}
+          onChange={e=>setToothBridge(Number(e.target.value))}/>
       </label>}
       {faceGuides&&showFullHead&&<label style={control}>
         Needlepoint skin optical fill · {Math.round(needlepoint*100)}%
@@ -821,12 +857,14 @@ export function ReferencePencilAtelier({
       maxWidth:showReference?1800:900}}>
       <figure style={{margin:0,flex:"1 1 380px",maxWidth:900}}>
         <figcaption style={{fontSize:13,fontWeight:700,marginBottom:7}}>
-          Coloured-pencil rendition · code-generated mark layers
+          Photo-to-pencil preview · photograph used as translucent underpainting
         </figcaption>
         <div style={{position:"relative",width:"100%"}}>
           <canvas ref={canvasRef} width={size.width} height={size.height}
             aria-label="Code-rendered coloured-pencil reconstruction"
             data-km-pencil-photo={study?"ready":"source-pending"}
+            data-km-pencil-render-method="photo-underpaint-plus-strokes"
+            data-km-pencil-photo-underpaint={wash>0?"enabled":"disabled"}
             data-km-pencil-foundation={study?.foundationVersion}
             data-km-portrait-features={study?.portraitFeatures?"source-guided":"none"}
             style={{display:"block",width:"100%",maxWidth:900,
@@ -1201,7 +1239,14 @@ export function ReferencePencilAtelier({
             {" "+headPlate.skinWeaveEvidence.protectedHighlights+" / "+
               headPlate.skinWeaveEvidence.protectedEdges+" / "+
               headPlate.skinWeaveEvidence.protectedAnatomy}.
+            {" "}Curved-nib protected crossings: {" "+
+              headPlate.skinWeaveEvidence.protectedSpans}.
+            {" "}Light-plane dry pencil fibres: {" "+
+              headPlate.skinWeaveEvidence.opticalLightFibres}.
             Skin optical weave: {" "+Math.round(headPlate.skinWeaveDepth*100)}%.
+            Experimental source-aware tooth bridge:
+            {" "+Math.round(toothBridge*100)}% (actual nibs recorded on canvas).
+            {" "}
             Fine needlepoint skin fibres: {" "+
               headPlate.skinWeaveEvidence.pigments*
               Math.floor(needlepoint*8+.001)}.

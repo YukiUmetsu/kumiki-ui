@@ -2891,5 +2891,37 @@
   "attributionRequired": false,
   "sha256": "ef8c000ed37a21ebd4f38c8fe5efa59f0e8c311f332bfb8ca390112bcce458ad",
   "note": "Licence read from the Wikimedia Commons file page metadata (Public domain)."
+ },
+ {
+  "id": "ambientcg-bamboo001b",
+  "assetPath": "registry/video/shodo/shodo-textures.ts",
+  "name": "Bamboo 001 B (1K-JPG colour)",
+  "creator": "ambientCG (Lennart Demes)",
+  "sourceUrl": "https://ambientcg.com/view?id=Bamboo001B",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://docs.ambientcg.com/license/",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "one cane cropped (columns 213–246), converted to luminance detail normalized around 1.0, resized to 768×32, JPEG re-encoded and embedded as a data URI; other files in the archive discarded"
+  ],
+  "intendedUse": "registry-component",
+  "redistributionVerified": true,
+  "attributionRequired": false
+ },
+ {
+  "id": "ambientcg-wood066",
+  "assetPath": "registry/video/shodo/shodo-textures.ts",
+  "name": "Wood 066 (1K-JPG colour)",
+  "creator": "ambientCG (Lennart Demes)",
+  "sourceUrl": "https://ambientcg.com/view?id=Wood066",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://docs.ambientcg.com/license/",
+  "acquiredOn": "2026-11-15",
+  "modifications": [
+   "band rows 300–460 cropped, resized to 640×100, JPEG re-encoded and embedded as a data URI; other files in the archive discarded"
+  ],
+  "intendedUse": "registry-component",
+  "redistributionVerified": true,
+  "attributionRequired": false
  }
 ]

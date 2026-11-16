@@ -3510,6 +3510,78 @@
       ]
     },
     {
+      "name": "shodo-calligraphy",
+      "type": "registry:ui",
+      "title": "Shodō Brush Calligraphy (SHO1)",
+      "description": "Japanese brush calligraphy written by a simulated hand and brush: every stroke is 始筆 (打ち込み, 蔵鋒, 露鋒) → 送筆 with 転折 turns → 終筆 (止め/垂露, 懸針, 撥ね, 払い) and 点, each a generated move with tunable press, hold and reach; measured technique checks on the rendered ink; configurable script (kaisho, gyōsho, sōsho), speed, pressure, width, width decay, entry angle, tremor and hairline links; brush size, hair spring and bristle lanes; ink colour, strength, colour-strength decay, water, load and re-dipping, per-stroke vermilion 朱墨; deterministic paper raster with contact-saturating deposit, dwell pooling, bristle-lane kasure, fibre-gated nijimi and wet sheen; hanshi with a faint vermilion kentei grid; a 3D bamboo fude whose lean and height follow the writing (stands up to press, leans into travel, lifts straight; 直筆 to 側筆), with a bending, ink-soaked tuft, cast shadow, motion blur and a side-view profile; any kanji or kana from pinned KanjiVG stroke data loaded at run time (not bundled) with layout rules measured on 411 teacher models (結構法), kaisho form rules and joins (接筆); original offline glyphs; scanned CC0 bamboo and wood textures and a FilmStage slot. Pure absolute-frame evaluation.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-brush"
+      ],
+      "files": [
+        {
+          "path": "registry/video/shodo/shodo-style.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-style.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-glyphs.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-glyphs.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-structure.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-structure.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-hand.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-hand.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-ink.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-ink.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-paper.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-paper.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-brush.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-brush.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-techniques.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-techniques.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-react.tsx"
+        },
+        {
+          "path": "registry/video/shodo/shodo-film-slot.tsx",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-film-slot.tsx"
+        },
+        {
+          "path": "registry/video/shodo/shodo-textures.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-textures.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-glyph-source.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-glyph-source.ts"
+        }
+      ]
+    },
+    {
       "name": "universal-rig",
       "type": "registry:ui",
       "title": "Universal Rig (RIG1)",
@@ -3517,7 +3589,8 @@
       "dependencies": [],
       "registryDependencies": [
         "motion-track",
-        "crayon-storybook"
+        "crayon-storybook",
+        "animal-anatomy"
       ],
       "files": [
         {
@@ -3688,6 +3761,141 @@
       ]
     },
     {
+      "name": "art-foundations",
+      "type": "registry:ui",
+      "title": "Art Foundations (shared)",
+      "description": "Shared pieces of the art-foundation frameworks (ANIM1 animals, FLORA1 plants): points and outlines wound one way, smooth closed curves, tubes and ellipses as path data, a seeded random stream, graded ranges, sounds, references and style-index record types, a person to show scale outlined through ANAT1's measured landmarks, and the character-sheet card, swatch list and to-scale chart.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/foundation-shapes.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-shapes.ts"
+        },
+        {
+          "path": "registry/anatomy/foundation-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "animal-anatomy",
+      "type": "registry:ui",
+      "title": "Animal Anatomy Framework (ANIM1)",
+      "description": "Style-neutral animals for drawing the same creature in any art style: sixteen body plans (bears, dogs and foxes, cats, pigs, deer and cattle, horses, hares, mice, weasels, monkeys, five bird plans, fish) fixing foot posture, side-view construction (trunk, chest depth, leg clearance, head, muzzle, neck, tail, leg segments, back line, limb girth, waist, head carriage, ears), gaits, rearing, the parts every member has, coat regions and footfall; 23 Japanese folklore species (moon bear, wild boar, fox, tanuki, wolf, Shiba, cat, hare, macaque, sika, black cattle, Kiso horse, weasel, mouse, crane, heron, crow, pheasant, sparrow, goshawk, mandarin duck, kingfisher, koi) with graded size and proportion ranges (reported, measured, estimated) and sources, face proportions, coat type and length by region, palettes painted by region, tip, band or eye mask, markings, seasonal and juvenile variants, sounds (catalog ids or search terms), culture, public-domain and CC0 references and where each is already drawn in the library; one shared gait table (walk, amble, trot, canter, transverse and rotary gallop, half-bound) after Muybridge and Hildebrand, with footfall diagrams, speeds by dynamic similarity and stride times by body mass; a construction that poses any species standing or at any point of a stride with planted feet that never slide; silhouette, construction, colour-map and fur-map painters; proportion checks that measure any drawing or rig against the species' ranges; and a character sheet with size against a person.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy",
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-gaits.ts",
+          "path": "registry/anatomy/animal-gaits.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-plans.ts",
+          "path": "registry/anatomy/animal-plans.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-species.ts",
+          "path": "registry/anatomy/animal-species.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-construct.ts",
+          "path": "registry/anatomy/animal-construct.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-check.ts",
+          "path": "registry/anatomy/animal-check.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-react.tsx",
+          "path": "registry/anatomy/animal-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "plant-anatomy",
+      "type": "registry:ui",
+      "title": "Plant Anatomy Framework (FLORA1)",
+      "description": "Style-neutral plants for drawing the same tree, bamboo, flower or grass in any art style. Thirteen growth forms (spire conifers, pines, broadleaf, blossom trees, weeping, layered, bamboo, shrubs, climbers, herbs, irises, water plants, grasses) built after Rex Vicat Cole's The Artistic Anatomy of Trees (1915): bud plans (opposite, alternate, spiral, whorled), excurrent, sympodial and forking leaders, crown envelopes, branch angles, droop and upturned tips, foliage manners (needle pads, scale sprays, clouds, hanging strands, layered sprays, leaf fans, blades, swords, floating leaves) and widths by Leonardo's rule. 24 Japanese plants (black and red pine, cedar, hinoki, mountain cherry, plum, willow, maple, madake bamboo, ginkgo, zelkova, camphor, persimmon, peach, wisteria, camellia, chrysanthemum, kakitsubata iris, lotus, susuki, reed, paulownia, morning glory, rice) with graded sizes and sources, leaves, flowers, fruit and bark, a calendar of leaf, bloom, autumn colour and fruit, seasonal colours, sounds, culture, public-domain and CC0 references (Flora Japonica, Hokusai, Hiroshige, Kōrin) and where each is already drawn. A seeded generator grows any plant for any month and wind; leaf, flower, fruit and bark shape generators; silhouette, construction and colour painters; data and proportion checks; and a character sheet with the four seasons and size against a person.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/plant-forms.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-forms.ts"
+        },
+        {
+          "path": "registry/anatomy/plant-organs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-organs.ts"
+        },
+        {
+          "path": "registry/anatomy/plant-species.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-species.ts"
+        },
+        {
+          "path": "registry/anatomy/plant-construct.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-construct.ts"
+        },
+        {
+          "path": "registry/anatomy/plant-check.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-check.ts"
+        },
+        {
+          "path": "registry/anatomy/plant-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "facial-expressions",
+      "type": "registry:ui",
+      "title": "Facial Expressions Framework (EXPR1)",
+      "description": "Style-neutral facial expressions for any art style, built on ANAT1's measured face. FACS action units (names and muscles from the Facial Action Coding System) become displacement fields on the 468-point face, with a dropping jaw, closing lids, gaze and head pose. The seven EMFACS emotion prototypes (happiness, sadness, surprise, fear, anger, disgust, contempt; reported) and drawing extras (polite smile, laughter, crying, shyness, pain, sleep, determination, the kabuki mie glare; estimated), with blending. Style-neutral features (brows, lids, cheeks, nose, mouth corners, width and opening, in eye widths) any style can map onto its own drawing; the creases each unit makes, drawn as lines or as kumadori in the role's colour; a nearest-emotion check that a drawn face reads as intended; Noh tilt and kumadori colour and pattern notes; a line-study painter, an atlas and per-emotion sheets.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy",
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/expression-facs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/expression-facs.ts"
+        },
+        {
+          "path": "registry/anatomy/expression-face.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/expression-face.ts"
+        },
+        {
+          "path": "registry/anatomy/expression-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/expression-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "editorial-collage",
       "type": "registry:ui",
       "title": "Editorial Paper Collage (COLLAGE1)",
@@ -3763,9 +3971,11 @@
       "name": "ukiyoe-handscroll",
       "type": "registry:ui",
       "title": "Ukiyo-e Woodblock & Handscroll (UKIYO1)",
-      "description": "Data-driven ukiyo-e woodblock-print and emaki handscroll film engine: colour blocks assigned to impressions light-to-dark with kento misregistration, bokashi gradients, wood-grain (itame) and baren-mottle textures, carved key-block lines and a washi skin; a print-pass reveal (key block, then colours); generated motifs (sky incl. great-wave horizon bokashi, great-wave Fuji, sea, great-wave crest with Prussian face, flecks and hooked claw rows, pine, cherry, willow, reeds, rock, suyari-gasumi clouds, sun, moon, townhouse incl. fukinuki-yatai cutaway, pagoda, torii, bridge, boats, lanterns, pier, fields, folktale peach that splits open, terraced rice paddies young/ripe/flooded); weather and particles (Hiroshige rain, snow, petals, leaves, fireflies, birds, ripples, fireworks, spray); articulated Edo figures with costumes, patterns, props and 20 layered actions, including oni (horns, fangs, wild mane, tiger loincloth, kanabo); folktale creature rigs: fox and nine-tailed kitsune with foxfire, tanuki (upright drumming), dog, cat, rabbit, crane, heron, crow, pheasant, sparrow and a serpentine dragon with pearl, with henge transform puffs; one scene-wide wind field; handscroll camera with parallax; cartouche, seal and caption text; gold mist-band (kasumi) transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors.",
+      "description": "Data-driven ukiyo-e woodblock-print and emaki handscroll film engine: colour blocks assigned to impressions light-to-dark with kento misregistration, bokashi gradients, wood-grain (itame) and baren-mottle textures, carved key-block lines and a washi skin; a print-pass reveal (key block, then colours); generated motifs (sky incl. great-wave horizon bokashi, great-wave Fuji, sea, great-wave crest with Prussian face, flecks and hooked claw rows, pine, cherry, willow and plum grown by FLORA1 (whorled needle-pad tiers, branches of elbows with blossom clouds, arching curtains, flowers on dark wood), reeds, rock, suyari-gasumi clouds, sun, moon, townhouse incl. fukinuki-yatai cutaway, pagoda, torii, bridge, boats, lanterns, pier, fields, folktale peach that splits open, terraced rice paddies young/ripe/flooded); weather and particles (Hiroshige rain, snow, petals, leaves, fireflies, birds, ripples, fireworks, spray); articulated Edo figures with costumes, patterns, props and 20 layered actions, including oni (horns, fangs, wild mane, tiger loincloth, kanabo); folktale creature rigs: fox and nine-tailed kitsune with foxfire, tanuki (upright drumming), dog, cat, rabbit, crane, heron, crow, pheasant, sparrow and a serpentine dragon with pearl, with henge transform puffs; one scene-wide wind field; handscroll camera with parallax; cartouche, seal and caption text; gold mist-band (kasumi) transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors.",
       "dependencies": [],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "plant-anatomy"
+      ],
       "files": [
         {
           "path": "registry/video/ukiyoe/ukiyoe-core.ts",
@@ -3983,17 +4193,23 @@
       "name": "ukiyoe-episode",
       "type": "registry:ui",
       "title": "Ukiyo-e Folktale Episode Template (UKIYO1)",
-      "description": "Turns a folktale written as UKIYO1 shots and the narration over each into one FD1 film document for YouTube (16:9) and Shorts (9:16): a title printed block by block with a cartouche and seal, gold-mist (kasumi) transitions, narration as the film caption track sized per output inside the platform safe area, an end card that keeps the end-screen area clear, a pre-render script check (reading speed, two-line fit per output, caption gaps, scene text out of the caption band, end-card length) and an .srt export for upload.",
+      "description": "Turns a folktale written as UKIYO1 shots and the narration over each into one FD1 film document for YouTube (16:9) and Shorts (9:16): a title printed block by block with a cartouche and seal, gold-mist (kasumi) transitions, narration as the film caption track sized per output inside the platform safe area, an end card that keeps the end-screen area clear, recorded sound effects placed on what the picture does (footsteps on every foot plant, blows on their contact frames) and panned and distanced from where their source stands on screen, a pre-render script check (reading speed, two-line fit per output, caption gaps, scene text out of the caption band, end-card length) and an .srt export for upload.",
       "dependencies": [],
       "registryDependencies": [
         "ukiyoe-handscroll",
-        "film-document"
+        "film-document",
+        "sound-design"
       ],
       "files": [
         {
           "path": "registry/video/ukiyoe/ukiyoe-episode.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-episode.ts"
+        },
+        {
+          "path": "registry/video/ukiyoe/ukiyoe-sound.ts",
+          "type": "registry:ui",
+          "target": "components/video/ukiyoe/ukiyoe-sound.ts"
         }
       ]
     },

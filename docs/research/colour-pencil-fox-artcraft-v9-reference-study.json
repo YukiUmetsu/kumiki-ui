@@ -1,0 +1,376 @@
+{
+  "schema_version": 3,
+  "project": "Kumiki UI / CP-F1 original left-facing red fox",
+  "mode": "style-research",
+  "reference_policy": {
+    "min_references": 3,
+    "min_deep_studies": 2
+  },
+  "evidence_state": "research-completed; source-aligned anatomy/five-axis pixel gate BLOCKED",
+  "direct_source_identity_match": false,
+  "source_image_crop_artifact_present": false,
+  "sources": [
+    {
+      "id": "fox-cc0-anatomy",
+      "url": "https://commons.wikimedia.org/wiki/File:Wild_Red_Fox.jpg",
+      "title": "Wild Red Fox",
+      "creator": "T.Voekler",
+      "rights": "CC0; verify file-specific metadata before redistribution",
+      "medium": "wildlife photograph",
+      "view": "right-facing fox at rest; mirrored design cues only, not source-identity match",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Long cranium-to-nose taper, substantial ear cartilage rooted behind skull, chest ruff physically merges with shoulders and long narrow forelegs, small eye in deeper brow orbit.",
+        "material": "Warm rust upper coat, cooler charcoal-brown lower limbs, cream chin and ruff; tail has a brush silhouette and pale far tip.",
+        "microdetail": "Rooted whiskers near muzzle, fur growth reverses across crown, ear cartilage and cheek, separate soft/short rostrum fur.",
+        "light": "Soft side-lit fur plane transitions, under-jaw shadow and dark eye recesses."
+      },
+      "crops": [
+        {
+          "feature": "head-eye-nose",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "Available photographed preview confirms an eye much smaller than the cranial volume, nose tip small relative to muzzle and a tapered profile; this box is whole-source only, not an independently measured semantic crop.",
+          "implementation_rule": "Apply small near eyelid, small black nose and eye-to-nose connected pencil tracts. DO NOT claim source-pixel likeness."
+        }
+      ]
+    },
+    {
+      "id": "gwatkin-fox-eye",
+      "url": "https://www.gwatkinartworks.co.uk/wildlife-art",
+      "title": "Fox - Early Morning Gaze",
+      "creator": "Darren Gwatkin",
+      "rights": "artist-owned; technique study ONLY, do not trace/export image data",
+      "medium": "realistic colored pencil wildlife painting",
+      "view": "portrait-close side profile fox eye, muzzle, cheek",
+      "deep_study": true,
+      "analysis": {
+        "construction": "One small amber focal eye, upper-lid black sepia contact held in larger eye socket, long nasal bridge, lower muzzle darker than upper cheek.",
+        "material": "Many individually directed warm gray, pale ochre, russet and chocolate strands optically build coat instead of solid polygons.",
+        "microdetail": "Eyelid darkest near pupil, small discontinuous catchlight, short hairs near muzzle, longer along cheek/ruff and soft whiskers.",
+        "light": "Warm russet upper plane fading to gray/cream lower plane with shadow at their interface."
+      },
+      "crops": [
+        {
+          "feature": "eye-and-lower-cheek",
+          "bbox": [
+            0.29,
+            0.24,
+            0.76,
+            0.74
+          ],
+          "observation": "Public preview eye sits in dense changing-direction hair with much darker upper eyelid than lower eyelid and short glint; approximate whole-image region, not pixel-registered data.",
+          "implementation_rule": "The full fox close-up eye must be under one seventh of the visible cranium width; use upper-lid, iris, pupil and lower fur as distinct pencil marks; no cartoon white oval."
+        }
+      ]
+    },
+    {
+      "id": "bonny-snowdon-process",
+      "url": "https://bonnysnowdonacademy.com/fox-draw-resources/",
+      "title": "How to Draw a Fox in Coloured Pencil",
+      "creator": "Bonny Snowdon",
+      "rights": "artist-owned educational text and artwork; technique-only, no line-art/file copying",
+      "medium": "colored pencil fox step-by-step tutorial",
+      "view": "studio pencil process",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Work structure, small eye and ear BEFORE fur, then muzzle and ruff; whiskers last.",
+        "material": "Polychromos burnt ochre/terracotta/sepia plus ash grey/beige/cream layered at low pressure on Pastelmat tooth, without a single opaque white face sticker.",
+        "microdetail": "Small upper-lid sepia contact; warm gray tiny nose over indigo, fur fans out from ear base, whicker pores and fine pale marks drawn last.",
+        "light": "Darkness built progressively inside sockets/behind ear, light-over-dark accents selective."
+      },
+      "crops": [
+        {
+          "feature": "structure-eyes-muzzle",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "Source is written multi-stage studio tutorial. No source-image crop is imported; general process guidance only.",
+          "implementation_rule": "Order structure -> eye -> ear -> head color -> tiny nose/velvety muzzle -> neck ruff -> whiskers; preserve editable stroke paths and paper-resident tooth."
+        }
+      ]
+    },
+    {
+      "id": "permuted-fox-cub-paws",
+      "url": "https://permuted.org.uk/fox/fox_october2007/album/slides/fox_cub_foot_1210072121.html",
+      "title": "Fox Cub Foot – Wildlife Close-up",
+      "creator": "Photographer not independently verified",
+      "rights": "unknown, technical observation only; no redistribution, no imported image pixels",
+      "medium": "close wildlife photograph",
+      "view": "ground-level front feet with two visible legs and individually tufted toes; fox cub, not adult proportion source",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Two narrow lower front legs swell only around the lower metacarpal and toe pads; ankle insertion narrows above the front digits; toes and claws separate across the front ground plane.",
+        "material": "Dark near-black legs with warm brown toe tips and hair tip edges, small uneven dark nails.",
+        "microdetail": "Four close but distinct toes; narrow exposed nails; micro hairs converge on each digit, not uniform long strokes down a black boot.",
+        "light": "Very dark velvet upper leg with smaller amber highlights only at root/foot; soft contact shadow beneath pads."
+      },
+      "crops": [
+        {
+          "feature": "two-front-paws",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "Public preview directly examined at tool resolution, but source-relative pixel crop not obtained; bbox is full image. Fox cub feet differ from adult seated pose; use only construction grammar.",
+          "implementation_rule": "Wrist narrows before gradual toe fan; retain digit creases, dark claw slits, small warm toe hair and non-uniform fur flow; no rectangular boot hem."
+        }
+      ]
+    },
+    {
+      "id": "wildlifeonline-red-fox-forepaw",
+      "url": "https://www.wildlifeonline.me.uk/animals/article/red-fox-appearance",
+      "title": "Red Fox Appearance – Fur-covered Forepaw",
+      "creator": "Wildlife Online; individual photograph creator not confirmed",
+      "rights": "unknown, observational study only; no photo pixels or tracing committed",
+      "medium": "front paw anatomical wildlife detail",
+      "view": "dorsal paw and fur, non-pose matched",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Canine metacarpus transitions into densely furred adjacent toe knuckles and a hidden lower pad; direct front view may show only a narrow claw slit and darker toe tips.",
+        "material": "Coarse dark brown guard hairs overlay warm brown fine undercoat, with fur wrapped around toe curves.",
+        "microdetail": "Each toe has its own curved center ridge and short pointed hair, rather than evenly spaced straight vertical lines; padded digits taper below wrist.",
+        "light": "Very restrained top-plane highlights, rich darker toe creases."
+      },
+      "crops": [
+        {
+          "feature": "fur-covered-forepaw",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "Public standalone image preview inspected; exact image bounds and source-pixel measurements unavailable.",
+          "implementation_rule": "Use separate narrow optical carpal plane, four low-pressure toe-root creases, short fine hairs, dark claws; no photo filter."
+        }
+      ]
+    },
+    {
+      "id": "seated-fox-neck-artsdatabanken",
+      "url": "https://artsdatabanken.no/arter/takson/31173",
+      "title": "Red Fox – Seated Natural Profile",
+      "creator": "Artsdatabanken (photograph attribution requires source-specific verification)",
+      "rights": "web image reference only; no pixels, cropped image, derivatives, or external media imported",
+      "medium": "actual photograph, source-based anatomical observation",
+      "view": "right-facing seated red fox on grass in clear lateral profile; 3/4 authored character differs in yaw",
+      "deep_study": true,
+      "analysis": {
+        "construction": "The white jaw, cheek ruff and vertical lower throat emerge as connected fur fields. There is no rigid long dark band descending independently from the lower jaw into the chest.",
+        "material": "Cream/gray fine cervical underfur overlaps russet cheek and merges into the front throat; lower long fur grows along sternum with scattered charcoal roots.",
+        "microdetail": "Many short angled hairs turn from the jaw toward the chest. Sparse longer guard hairs interrupt the lower edge; boundaries are not vector lines.",
+        "light": "Orange cheek rolls into cool pale throat with a narrow soft shadow at the jaw angle; dark fur appears as rooted flecks, not an isolated opaque tube."
+      },
+      "crops": [
+        {
+          "feature": "jaw-neck-sternum",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "The web preview was visually inspected; this normalized rectangle records the whole image, NOT an actual measured source crop or pixel registration.",
+          "implementation_rule": "Jaw root intersects existing cream muzzle; cheek-ruff ends within the top half of white chest; use cream-value layered fur, short asymmetric guard hairs and distinct jaw/chest path intersections."
+        }
+      ]
+    }
+  ],
+  "feature_targets": [
+    {
+      "id": "fox-eye",
+      "reference_ids": [
+        "fox-cc0-anatomy",
+        "gwatkin-fox-eye",
+        "bonny-snowdon-process"
+      ],
+      "critical": true,
+      "geometry_rule": "At max ~24 local units width the focal near eye is attached to brow and tear-trough planes; far canthus remains occluded and >75% inside head silhouette.",
+      "microdetails": [
+        "superior lid thicker and darker",
+        "soft lower lid",
+        "amber iris encircles indigo slit",
+        "one reserved glint",
+        "rooted periocular fur"
+      ],
+      "test_view": "1x/3x actual Storybook 16:9, 9:16",
+      "part_ids": [
+        "eye-near",
+        "eye-far",
+        "periocular-form",
+        "mask"
+      ],
+      "source_observation": "Realistic eye is a small subordinate element within the russet and black socket, not an oversized stylized orange ellipse.",
+      "detail_critical": true
+    },
+    {
+      "id": "fox-muzzle",
+      "reference_ids": [
+        "fox-cc0-anatomy",
+        "gwatkin-fox-eye",
+        "bonny-snowdon-process"
+      ],
+      "critical": true,
+      "geometry_rule": "Connected narrowing upper rostrum and gray/cream lower jaw, with small less-than-30-unit curved nose, not a bulbous rounded rectangle.",
+      "microdetails": [
+        "nasal leather highlights",
+        "off-center nostril",
+        "short rostrum fur",
+        "soft cheek-to-upper-muzzle boundary"
+      ],
+      "test_view": "3x full-head and nasal bridge",
+      "part_ids": [
+        "head-main",
+        "muzzle",
+        "rostrum-bridge",
+        "nose"
+      ],
+      "source_observation": "Muzzle tapers continuously in perspective with a small soft-edged dark nose.",
+      "detail_critical": true
+    },
+    {
+      "id": "fox-fur-mass",
+      "reference_ids": [
+        "fox-cc0-anatomy",
+        "gwatkin-fox-eye",
+        "bonny-snowdon-process"
+      ],
+      "critical": true,
+      "geometry_rule": "Ear cartilage masses overlap skull, thorax and ruff interlock, forelegs have thin paws; pale tail tip physically at end of brush.",
+      "microdetails": [
+        "directionally distinct ear internal hair",
+        "rooted ruff",
+        "undercoat/guard hair separation",
+        "warm dark/light pigment build"
+      ],
+      "test_view": "1x whole fox; 3x ear/ruff/tail",
+      "part_ids": [
+        "ear-near",
+        "ear-far",
+        "ear-near-inner",
+        "ear-far-inner",
+        "chest",
+        "neck-ruff",
+        "body",
+        "tail-back",
+        "tail-tip"
+      ],
+      "source_observation": "Warm rust top, pale cream ruff and dark limbs require nonuniform hand-layered marks, not uniform hatch or synthetic noise.",
+      "detail_critical": true
+    },
+    {
+      "id": "fox-forepaws-and-hind-hock",
+      "reference_ids": [
+        "permuted-fox-cub-paws",
+        "wildlifeonline-red-fox-forepaw",
+        "fox-cc0-anatomy"
+      ],
+      "critical": true,
+      "geometry_rule": "Seated fox has 2 nearly vertical weight-bearing thin forelegs ending in outward splayed 4-toed paws; the rear hock is a low folded lateral mass rooted underneath the rump, NOT a third straight upright black leg.",
+      "microdetails": [
+        "radius/ulna metacarpal transition",
+        "independently scored dark toe-root furrows",
+        "short separate black claw slits",
+        "optical charcoal/sepia/warm undercoat micro hairs",
+        "rear hock crease",
+        "ground-bearing interlocking rear digit pads"
+      ],
+      "test_view": "1× full fox and 2.15× actual Storybook forepaw/hock in both 16:9 and 9:16, before/after crop critique",
+      "part_ids": [
+        "body",
+        "rear-leg",
+        "foreleg-left",
+        "foreleg-right"
+      ],
+      "source_observation": "Adult/cub reference photos corroborate curved toe/ankle transitions and fur-wrapped compact paws; neither is a pose-matched seated canonical source.",
+      "five_axes": {
+        "topology": "Rear hock intersects orange rump and reaches ground; forepaw stays connected to slender upper leg; 4 toe knuckles and 3+ tiny claws per front paw.",
+        "flow": "Short fibers travel carpus→paw front and rotate around claw pits, not uniform diagonal hatch.",
+        "weight": "Dark metacarpal marks; controlled warmer browns on highlights; strong only under toe creases/claws.",
+        "rhythm": "Asymmetric digit widths and staggered rooted fur tracts.",
+        "texture": "Actual CP-F1 dry pencil three pressure families/seeded undercoat, no image/photo/shader fill replacement."
+      },
+      "detail_critical": true,
+      "release_status": "blocked — semantic art improvement not pixel source-registered, independent artist approval pending"
+    },
+    {
+      "id": "fox-cheek-neck-continuity",
+      "reference_ids": [
+        "seated-fox-neck-artsdatabanken",
+        "fox-cc0-anatomy",
+        "gwatkin-fox-eye"
+      ],
+      "critical": true,
+      "geometry_rule": "Diagonal light malar fur must begin beneath the muzzle and distribute across the existing pale cervical/chest field, never a tall 97px hanging gray ribbon or a second 67px ivory sticker. Original authored jaw and chest regions retain their independent silhouette/color layers.",
+      "microdetails": [
+        "short warm-grey → cream directional transition",
+        "two measured root-to-root optical turns",
+        "three pressure-specific pigment passes",
+        "3 feathered fringe families",
+        "mouth/jaw negative space preserved"
+      ],
+      "test_view": "native 960×540 16:9/9:16 + Storybook 2.15× fox-cheek native SVG target, actual jaw/chest path overlap",
+      "part_ids": [
+        "muzzle",
+        "cheek-ruff",
+        "chest",
+        "neck-ruff"
+      ],
+      "source_observation": "Visual review of a real seated red fox profile rejects a detached hanging cheek stripe; the lower malar hairs become long chest fur rather than continuing as an independent shaded tube.",
+      "five_axes": {
+        "topology": "Distinct cheek path intersects both jaw at (253,235) and upper sternum at (240,265); retains independent editable mask.",
+        "flow": "Upper short jaw hairs rotate into longer lower neck fur; no single repeated long diagonal hatch.",
+        "weight": "Warm cream outer values, sparse sepia root shadows and selective highlighted guard tips; no solid dark strip.",
+        "rhythm": "Unequal fan root length, 4 root guides and 3 interleaved contour families.",
+        "texture": "Original CP-F1 dry fibre with tooth, seed, velocity and 3 pressure families, no raster underpainting."
+      },
+      "release_status": "blocked — source/pose pixel-fidelity and actual latest visual review required",
+      "detail_critical": true
+    },
+    {
+      "id": "fox-near-pinna-concha",
+      "reference_ids": [
+        "seated-fox-neck-artsdatabanken",
+        "bonny-snowdon-process",
+        "fox-cc0-anatomy"
+      ],
+      "critical": true,
+      "geometry_rule": "Fox near auricle has a bright pointed cartilaginous external helix, a smaller deeply recessed dark conchal bowl and warm fine rooted internal fur; the bowl cannot fill the entire ear as a uniform salmon-pink leaf.",
+      "microdetails": [
+        "helix anterior light edge",
+        "posterior fold separable from inner surface",
+        "darkest conchal root",
+        "soft reflected antihelix",
+        "three independent short-fibre families",
+        "skull overlap at ear base"
+      ],
+      "test_view": "same native 960×540 fox in 16:9 and 9:16, 2.15× head/ear macro, actual SVG Path2D inside/rim check",
+      "part_ids": [
+        "ear-near",
+        "ear-near-inner",
+        "ear-far",
+        "head-main"
+      ],
+      "source_observation": "In true fox photos and colored-pencil construction sequence, the ear is a cupped concave cartilage with a narrow brighter rim and darker conchal cavity, while fine fur emerges from the base. Current hero rendered it as a light flat leaf with uniform diagonal hatch.",
+      "five_axes": {
+        "topology": "True concha contained within near outer pinna in local coordinates (287,153) and (282,175), with exposed bright rim (271,177).",
+        "flow": "Fibres emerge from ear base and follow inward cartilage, rather than uniform roof-to-bottom diagonals.",
+        "weight": "Shaded concha dark sepia / dark indigo, warm clay rim and sparsely ivory antihelix; no all-black triangle, no bright peach flat fill.",
+        "rhythm": "3 rim subfeature paths and 3 concha paths plus 9 distinct rooted conchal pigment fans (3 guides × 3 colored pencil passes).",
+        "texture": "Three CP-F1 fur pressure passes and real named independent drawing traces, protected paper tooth and deterministic drawn-frame reveal."
+      },
+      "rights_note": "References are visual-construction studies only; no artist paths or photographic pixels are imported.",
+      "release_status": "draft: actual browser visual comparison against original ear and pose-matched source evidence required",
+      "detail_critical": true
+    }
+  ]
+}

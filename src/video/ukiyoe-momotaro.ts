@@ -13,7 +13,7 @@ import { interiorScene } from "../../registry/video/ukiyoe/ukiyoe-interior";
 import { oniFight, UKIYOE_MOMOTARO_LOOK, UKIYOE_ONI_LOOK } from "../../registry/video/ukiyoe/ukiyoe-oni";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { base, CAST } from "./ukiyoe-night-ferry";
-import { cam, creature, figure, follow, motif } from "./ukiyoe-episode-kit";
+import { cam, creature, figure, follow, motif, STEPS } from "./ukiyoe-episode-kit";
 
 type A = UkiyoeEpisodeAspect;
 const MOMO: UkiyoeFigureLook = { ...UKIYOE_MOMOTARO_LOOK, bag: true } as UkiyoeFigureLook;
@@ -63,6 +63,9 @@ const title = ukiyoeTitleCard({
 const OPEN = 170;
 const home: UkiyoeEpisodeShot = {
   id: "home", title: "The peach opens", kasumi: 30, sound: { sound: "bed-stream-close", gainDb: -28, lowpassHz: 700 },
+  // The hearth fire in the room; the peach splits with a soft crack.
+  ambience: [{ sound: "bed-fire-hearth", gainDb: -24 }],
+  sounds: [{ sound: "chop-axe-2", at: OPEN + 2, source: "peach", distance: 3, room: "room", gainDb: -14 }],
   narration: [
     { text: "She carried it home to her husband.", from: 36, to: 140 },
     { text: "When they cut it open, out came a baby boy!", from: 186, to: 290 },
@@ -90,6 +93,9 @@ const home: UkiyoeEpisodeShot = {
 
 const departure: UkiyoeEpisodeShot = {
   id: "departure", title: "Setting out", kasumi: 30, sound: { sound: "bed-stream-close", gainDb: -22 },
+  // A spring morning: the bush warbler, and Momotarō's steps on the village path.
+  ambience: [{ sound: "bed-birds-uguisu", gainDb: -17 }],
+  sounds: [{ sound: STEPS.gravel, at: { node: "momo", on: "step" }, gainDb: -15 }],
   narration: [
     { text: "Momotarō grew up strong and kind.", from: 32, to: 118 },
     { text: "When oni raided the villages, he set out to stop them,", from: 124, to: 242 },
@@ -117,7 +123,14 @@ const departure: UkiyoeEpisodeShot = {
 
 const MEET = { dog: 70, monkey: 190, pheasant: 280 }, WALK = 360;
 const companions: UkiyoeEpisodeShot = {
-  id: "companions", title: "Dog, monkey, pheasant", kasumi: 30, sound: { sound: "bed-crickets-night", gainDb: -26 },
+  id: "companions", title: "Dog, monkey, pheasant", kasumi: 36, transition: "scroll", sound: { sound: "bed-crickets-night", gainDb: -26 },
+  sounds: [
+    { sound: STEPS.gravel, at: { node: "momo", on: "step" }, gainDb: -13 },
+    // The dog bounds up and barks; the pheasant flies in and lands.
+    { sound: "bark-dog-1", at: { node: "dog", on: "end", type: "run" }, gainDb: -6 },
+    { sound: "flap-wings-1", at: { node: "pheasant", on: "start", type: "fly" }, gainDb: -8 },
+    { sound: "flap-wings-2", at: { node: "pheasant", on: "end", type: "fly" }, gainDb: -10 },
+  ],
   narration: [
     { text: "On the road, a dog asked for a dumpling,", from: 36, to: 160 },
     { text: "then a monkey, then a pheasant.", from: 176, to: 300 },
@@ -145,6 +158,8 @@ const companions: UkiyoeEpisodeShot = {
 
 const crossing: UkiyoeEpisodeShot = {
   id: "crossing", title: "Across the sea", kasumi: 30, sound: { sound: "bed-surf-beach", gainDb: -12 },
+  // The boat's timbers creak as it rides the swell.
+  sounds: [{ sound: "creak-wood", at: [40, 170, 290], source: "boat", distance: 4, gainDb: -11 }],
   narration: [
     { text: "Together they sailed for Onigashima,", from: 34, to: 150 },
     { text: "the island where the oni lived.", from: 160, to: 300 },
@@ -173,7 +188,22 @@ const crossing: UkiyoeEpisodeShot = {
 // ---- 6. The fight -----------------------------------------------------------------------------------------------------------------
 
 const battle: UkiyoeEpisodeShot = {
-  id: "battle", title: "The fight on Onigashima", kasumi: 30, sound: { sound: "bed-surf-beach", gainDb: -16 },
+  id: "battle", title: "The fight on Onigashima", kasumi: 36, transition: "ink", sound: { sound: "bed-surf-beach", gainDb: -16 },
+  // Every blow on its contact frame, from the fight's own timing: the sword drawn, the club slamming the rock where Momotarō was,
+  // blade on club at each parry, the cuts swishing, the club dropped, the oni king falling, the sword sheathed.
+  sounds: [
+    { sound: "draw-sword", at: { node: "fight-hero", on: "end", type: "draw" }, gainDb: -8 },
+    { sound: ["thud-club-1", "thud-club-2"], at: { node: "fight-oni", on: "contact", type: "smash" }, gainDb: -3 },
+    { sound: ["clash-sword-1", "clash-sword-2"], at: { node: "fight-oni", on: "contact", type: "parry" }, gainDb: -6 },
+    { sound: ["clash-sword-2", "clash-sword-1"], at: { node: "fight-hero", on: "contact", type: "parry" }, gainDb: -6 },
+    { sound: "swing-sword", at: { node: "fight-hero", on: "contact", type: "cut" }, gainDb: -9, align: "peak" },
+    { sound: "swing-sword", at: { node: "fight-oni", on: "contact", type: "swing" }, gainDb: -10, align: "peak" },
+    { sound: "flap-wings-1", at: { node: "pheasant", on: "start", type: "fly" }, gainDb: -12 },
+    { sound: "howl-dog", at: { node: "dog", on: "start", type: "howl" }, gainDb: -7 },
+    { sound: "thud-club-2", at: { node: "fight-oni", on: "drop" }, gainDb: -9 },
+    { sound: "fall-body", at: { node: "fight-oni", on: "fall" }, gainDb: -5, align: "peak" },
+    { sound: "sheathe-sword", at: { node: "fight-hero", on: "end", type: "sheathe" }, gainDb: -9 },
+  ],
   narration: [
     { text: "The pheasant pecked, the monkey scratched,", from: 150, to: 270 },
     { text: "the dog bit, and Momotarō fought the oni king", from: 280, to: 410 },
@@ -248,6 +278,8 @@ const homecoming = (a: A): UkiyoeSceneSpec => {
 };
 const end = ukiyoeEndCard({
   closing: "めでたし、めでたし", next: "Next: Kaguya-hime", seal: "組木", backdrop: homecoming, kasumi: 30, sound: { sound: "bed-stream-close", gainDb: -20 },
+  ambience: [{ sound: "bed-birds-uguisu", gainDb: -19 }],
+  sounds: [{ sound: STEPS.gravel, at: { node: "momo", on: "step" }, gainDb: -15 }],
   narration: [{ text: "They came home with the treasure,", from: 44, to: 136 }, { text: "and everyone lived happily ever after.", from: 144, to: 230 }],
 });
 

@@ -780,7 +780,8 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
       case "collage-tear": return renderCollageSlot(content, context);
       // UKIYO1 woodblock scenes and gold-mist (kasumi) transitions.
       case "ukiyoe-scene":
-      case "ukiyoe-kasumi": return renderUkiyoeSlot(content, context);
+      case "ukiyoe-kasumi":
+      case "ukiyoe-transition": return renderUkiyoeSlot(content, context);
       case "ink-brush-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const subject = props.subject;
@@ -1076,7 +1077,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           tooth={.62} shadowStrength={.92} edgeStrength={artwork === "scenery" ? .34 : .68} curlStrength={1} liftStrength={1}/>
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, watercolour-master-study, painted-composition, watercolour-actor, collage-scene, collage-tear, ukiyoe-scene, ukiyoe-kasumi.`);
+      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, watercolour-master-study, painted-composition, watercolour-actor, collage-scene, collage-tear, ukiyoe-scene, ukiyoe-kasumi, ukiyoe-transition.`);
     }
   };
 }

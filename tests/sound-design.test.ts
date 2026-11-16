@@ -33,10 +33,9 @@ describe("takes", () => {
     expect(Array.from({ length: 12 }, (_, i) => soundVariant(pool, 5, i))).not.toEqual(Array.from({ length: 12 }, (_, i) => soundVariant(pool, 6, i)));
   });
   it("uses every take in a pass and never repeats a take across a pass boundary", () => {
-    const pool = ["a", "b", "c", "d"];
-    for (let seed = 0; seed < 50; seed += 1) {
+    for (const pool of [["a", "b", "c", "d"], ["a", "b"]]) for (let seed = 0; seed < 50; seed += 1) {
       const run = Array.from({ length: 40 }, (_, i) => soundVariant(pool, seed, i));
-      expect(new Set(run.slice(0, 4)).size).toBe(4);
+      expect(new Set(run.slice(0, pool.length)).size).toBe(pool.length);
       run.forEach((take, i) => { if (i) expect(take).not.toBe(run[i - 1]); });
     }
   });

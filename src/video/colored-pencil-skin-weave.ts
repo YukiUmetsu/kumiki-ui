@@ -19,6 +19,12 @@ type Point=readonly[number,number];
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
 
 const dist=(a:Point,b:Point)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+/** Evaluate the actual deposited quadratic, not just its endpoint chord. */
+const onCurve=(a:Point,c:Point,b:Point,t:number):Point=>{
+  const q=1-t;
+  return [q*q*a[0]+2*q*t*c[0]+t*t*b[0],
+    q*q*a[1]+2*q*t*c[1]+t*t*b[1]];
+};
 const inside=(p:Point,poly:readonly Point[])=>{
   let state=false;
   for(let i=0,j=poly.length-1;i<poly.length;j=i++){
@@ -70,6 +76,12 @@ export interface PencilSkinWeave {
   readonly protectedHighlights:number;
   readonly protectedEdges:number;
   readonly protectedAnatomy:number;
+  /** Full curved nib rejected before crossing an eyelid, lip or paper reserve. */
+  readonly protectedSpans:number;
+  /** Independently drawn light-plane fibres, not a smooth raster glaze. */
+  readonly opticalLightFibres:number;
+  /** Exact mark indices supporting a photographed light skin plane. */
+  readonly lightFibreIndices:readonly number[];
   readonly rasterUnderpainting:false;
   readonly sourceRequired:true;
   readonly strength:number;
@@ -80,12 +92,14 @@ export function createPencilSkinOpticalWeave(
 ):PencilSkinWeave {
   validate(source,guides,face,seed,strength);
   const marks:PencilPhotoMark[]=[];
+  const lightFibreIndices:number[]=[];
   let sourceSupported=0,protectedHighlights=0,
-    protectedEdges=0,protectedAnatomy=0;
+    protectedEdges=0,protectedAnatomy=0,protectedSpans=0,
+    opticalLightFibres=0;
   if(strength===0)return {
     marks,sourceSupported,protectedHighlights,protectedEdges,
-    protectedAnatomy,rasterUnderpainting:false,sourceRequired:true,
-    strength,
+    protectedAnatomy,protectedSpans,opticalLightFibres,lightFibreIndices,
+    rasterUnderpainting:false,sourceRequired:true,strength,
   };
   const eyeDist=dist(guides.eyeNearCenter,guides.eyeFarCenter);
   // Preserve the existing <120k whole-head pencil mark budget.
@@ -134,8 +148,12 @@ export function createPencilSkinOpticalWeave(
       // eye, nose, lip and jaw passes. Merging it would lose topology.
       if(edge>.085){protectedEdges++;continue;}
       const shade=clamp((.93-v)/.70,0,1);
-      const probability=clamp(.40+.23*shade+
-        .11*pencilHash(seed,key,813),0,.80);
+      // Source light is not blank paper: add quiet, overlapping fibres
+      // in the 0.67–0.91 luminance band without touching true glints.
+      const lightSupport=clamp((v-.67)/.23,0,1)*
+        clamp((.918-v)/.11,0,1);
+      const probability=clamp(.40+.23*shade+.14*lightSupport+
+        .11*pencilHash(seed,key,813),0,.82);
       if(pencilHash(seed,key,814)>probability)continue;
       // Crossed elongated ellipses: the complementary pass is rotated,
       // but the tangent itself tracks a continuous cheek→nose→jaw field.
@@ -163,23 +181,54 @@ export function createPencilSkinOpticalWeave(
           rgb[2]*.88+82*.12]:
         [rgb[0]*.88+150*.12,rgb[1]*.87+91*.13,
           rgb[2]*.89+112*.11];
-      const alpha=clamp((.18+.19*shade)*
+      const alpha=clamp((.19+.17*shade+.09*lightSupport)*
         (.73+.27*pencilHash(seed,key,817))*strength,.008,.43);
-      const width=step*(.45+.35*pencilHash(seed,key,818));
+      const width=step*(.45+.35*pencilHash(seed,key,818)+
+        .14*lightSupport);
       // Curvature changes sign by pass, creating real small looping
       // scumbles (quadratic pigment strokes), never identical hatch rows.
       const turn=(pass===0?1:-1)*(.20+
         .25*pencilHash(seed,key,819));
+      const control:Point=[x-vy*turn,y+vx*turn];
+      // Endpoint-only tests admitted arcs across eyelids and unmarked
+      // paper. Evaluate the entire quadratic before depositing pigment.
+      let blocked=false;
+      for(const t of [.2,.4,.6,.8]){
+        const q=onCurve(start,control,end,t);
+        if(!inside(q,face)){blocked=true;protectedSpans++;break;}
+        const sample=optical(source,q[0],q[1],.45);
+        if(yOf(sample)>.918){
+          protectedHighlights++;protectedSpans++;blocked=true;break;
+        }
+        if(Math.min(dist(q,guides.eyeNearCenter),
+          dist(q,guides.eyeFarCenter))<eyeDist*.28||
+          dist(q,guides.lipCupid)<eyeDist*.24||
+          dist(q,guides.noseTip)<eyeDist*.14){
+          protectedAnatomy++;protectedSpans++;blocked=true;break;
+        }
+        const a=yOf(optical(source,q[0]+.55,q[1],.4))-
+          yOf(optical(source,q[0]-.55,q[1],.4));
+        const b=yOf(optical(source,q[0],q[1]+.55,.4))-
+          yOf(optical(source,q[0],q[1]-.55,.4));
+        if(Math.hypot(a,b)>.085){
+          protectedEdges++;protectedSpans++;blocked=true;break;
+        }
+      }
+      if(blocked)continue;
       marks.push({
         x:start[0],y:start[1],
-        controlX:x-vy*turn,controlY:y+vx*turn,
+        controlX:control[0],controlY:control[1],
         endX:end[0],endY:end[1],
         color:hex(local),alpha,width,pass:2,
       });
+      if(lightSupport>.2){
+        lightFibreIndices.push(marks.length-1);
+        opticalLightFibres++;
+      }
       sourceSupported++;
     }
   }
   return {marks,sourceSupported,protectedHighlights,protectedEdges,
-    protectedAnatomy,rasterUnderpainting:false,sourceRequired:true,
-    strength};
+    protectedAnatomy,protectedSpans,opticalLightFibres,lightFibreIndices,
+    rasterUnderpainting:false,sourceRequired:true,strength};
 }

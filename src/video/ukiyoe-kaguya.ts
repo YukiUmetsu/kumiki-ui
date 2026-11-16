@@ -16,7 +16,7 @@ import { UKIYOE_KAMI_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-kami";
 import { UKIYOE_BUSHI_LOOKS } from "../../registry/video/ukiyoe/ukiyoe-bushi";
 import type { UkiyoeNode, UkiyoeSceneSpec } from "../../registry/video/ukiyoe/ukiyoe-scene";
 import { base, CAST } from "./ukiyoe-night-ferry";
-import { cam, figure, motif } from "./ukiyoe-episode-kit";
+import { cam, figure, motif, STEPS } from "./ukiyoe-episode-kit";
 
 type A = UkiyoeEpisodeAspect;
 const look = (l: unknown) => l as UkiyoeFigureLook;
@@ -60,7 +60,9 @@ const groveBackdrop = (a: A): UkiyoeSceneSpec => {
   });
 };
 const title = ukiyoeTitleCard({
-  title: "Kaguya-hime", titleJa: "かぐや姫", seal: "組木", backdrop: groveBackdrop, sound: { sound: "bed-crickets-night", gainDb: -20 },
+  title: "Kaguya-hime", titleJa: "かぐや姫", seal: "組木", backdrop: groveBackdrop, sound: { sound: "bed-crickets-night", gainDb: -16 },
+  // Dusk in the grove: his steps on the path, the stalks creaking as they sway.
+  sounds: [{ sound: STEPS.gravel, at: { node: "cutter", on: "step" }, gainDb: -10 }, { sound: "creak-wood", at: [70, 176], pan: -.3, distance: 10, gainDb: -12 }],
   narration: [{ text: "Long ago, an old bamboo cutter went into the grove,", from: 30, to: 132 }, { text: "and found a stalk that shone like the moon.", from: 138, to: 236 }],
 });
 
@@ -68,7 +70,9 @@ const title = ukiyoeTitleCard({
 
 const CUT = 110;
 const girl: UkiyoeEpisodeShot = {
-  id: "girl", title: "The girl in the bamboo", kasumi: 30, sound: { sound: "bed-crickets-night", gainDb: -22 },
+  id: "girl", title: "The girl in the bamboo", kasumi: 30, sound: { sound: "bed-crickets-night", gainDb: -18 },
+  // Each blow of the axe into the hollow stalk; then the small bells of the light inside it.
+  sounds: [{ sound: ["chop-axe-1", "chop-axe-2"], at: { node: "cutter", on: "strike" }, gainDb: -13 }, { sound: "bells-suzu", at: CUT + 6, source: "cut", distance: 3, gainDb: -14 }],
   narration: [
     { text: "Inside, no bigger than his thumb, sat a tiny girl.", from: 140, to: 252 },
     { text: "He carried her home, and they named her Kaguya.", from: 262, to: 356 },
@@ -92,9 +96,9 @@ const girl: UkiyoeEpisodeShot = {
 
 const ladyOn = (l: UkiyoeFigureLook, x: number, acts: UkiyoeAction[], extra: Record<string, unknown> = {}) => figure("kaguya", l, x, FLOOR, [{ type: "kneel", start: 0, end: 9999 }, ...acts], { scale: 1.3, facing: "right", ...extra });
 const grown: UkiyoeEpisodeShot = {
-  id: "grown", title: "A woman of shining beauty", kasumi: 30, sound: { sound: "bed-stream-close", gainDb: -26 },
+  id: "grown", title: "A woman of shining beauty", kasumi: 36, transition: "print", sound: { sound: "bed-stream-close", gainDb: -22 },
   narration: [
-    { text: "In three months she grew into a woman of shining beauty.", from: 34, to: 190 },
+    { text: "In three months she grew into a woman of shining beauty.", from: 40, to: 192 },
     { text: "Her light filled the whole house.", from: 200, to: 296 },
   ],
   build: a => {
@@ -114,7 +118,7 @@ const grown: UkiyoeEpisodeShot = {
 // ---- 4. The five suitors -----------------------------------------------------------------------------------------------------------
 
 const suitors: UkiyoeEpisodeShot = {
-  id: "suitors", title: "Five suitors", kasumi: 30, sound: { sound: "bed-stream-close", gainDb: -26 },
+  id: "suitors", title: "Five suitors", kasumi: 30, sound: { sound: "bed-stream-close", gainDb: -22 },
   narration: [
     { text: "Five great lords came to ask for her hand.", from: 30, to: 122 },
     { text: "She asked each for a treasure no one could find:", from: 128, to: 230 },
@@ -137,9 +141,11 @@ const suitors: UkiyoeEpisodeShot = {
 // ---- 5. Weeping at the moon ------------------------------------------------------------------------------------------------------
 
 const moon: UkiyoeEpisodeShot = {
-  id: "moon", title: "Weeping at the moon", kasumi: 36, sound: { sound: "bed-crickets-night", gainDb: -18 },
+  id: "moon", title: "Weeping at the moon", kasumi: 40, transition: "ink", sound: { sound: "bed-crickets-night", gainDb: -14 },
+  // A temple bell far off in the night.
+  sounds: [{ sound: "bell-temple-large", at: 56, pan: .3, distance: 50, gainDb: -4 }],
   narration: [
-    { text: "Then, night after night, she wept at the moon.", from: 36, to: 160 },
+    { text: "Then, night after night, she wept at the moon.", from: 44, to: 164 },
     { text: "'I came from the Moon,' she said at last,", from: 172, to: 262 },
     { text: "'and they are coming to take me home.'", from: 270, to: 356 },
   ],
@@ -161,7 +167,12 @@ const moon: UkiyoeEpisodeShot = {
 
 const BLAZE = 140;
 const guards: UkiyoeEpisodeShot = {
-  id: "guards", title: "The moon people come", kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -24, lowpassHz: 900 },
+  id: "guards", title: "The moon people come", kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -20, lowpassHz: 900 },
+  sounds: [
+    // The light pours down to small bells; the archers' bows fall from their hands to the ground, one after another.
+    { sound: "bells-suzu", at: [40, 130], source: "cart", distance: 6, gainDb: -9 },
+    ...[0, 1, 2, 3].map(i => ({ sound: "lid-box-wood", at: { node: "archer-" + i, on: "drop" as const }, gainDb: -9 })),
+  ],
   narration: [
     { text: "The Emperor sent two thousand soldiers to guard her.", from: 30, to: 136 },
     { text: "But in a blaze of light the moon people came,", from: 146, to: 262 },
@@ -195,7 +206,9 @@ const guards: UkiyoeEpisodeShot = {
 
 const ROBE = 150, RISE = 200;
 const ascent: UkiyoeEpisodeShot = {
-  id: "ascent", title: "Home to the moon", kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -26, lowpassHz: 900 },
+  id: "ascent", title: "Home to the moon", kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -22, lowpassHz: 900 },
+  // The feather robe goes over her shoulders with the bells, and she rises.
+  sounds: [{ sound: "bells-suzu", at: [ROBE - 6, RISE + 10], source: "envoy", distance: 5, gainDb: -7 }],
   narration: [
     { text: "An envoy wrapped her in a robe of feathers,", from: 40, to: 160 },
     { text: "and all her earthly sorrow was forgotten.", from: 172, to: 290 },
@@ -243,7 +256,8 @@ const fujiBackdrop = (a: A): UkiyoeSceneSpec => {
   });
 };
 const end = ukiyoeEndCard({
-  closing: "おしまい", next: "Next: Tsuru no Ongaeshi", seal: "組木", backdrop: fujiBackdrop, kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -26 },
+  closing: "おしまい", next: "Next: Tsuru no Ongaeshi", seal: "組木", backdrop: fujiBackdrop, kasumi: 30, sound: { sound: "bed-wind-mountain", gainDb: -22 },
+  sounds: [{ sound: "bell-temple-large", at: 40, pan: -.2, distance: 60, gainDb: -6 }],
   narration: [{ text: "The Emperor burned her last letter", from: 44, to: 118 }, { text: "on the highest mountain,", from: 124, to: 184 }, { text: "and they say its smoke still rises to the moon.", from: 190, to: 300 }],
 });
 

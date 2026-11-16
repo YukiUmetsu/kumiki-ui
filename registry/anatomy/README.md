@@ -21,3 +21,47 @@ find it: `npm run catalog:find -- --query="hair"` (or "skin colour", "pose", "fa
 
 Binary body model: `assets/models/anatomy/human-body-lattice.bin` (CC0 MakeHuman, see `NOTICE.md`). Reference images:
 `assets/photos/anatomy-references/`. Bake scripts: `scripts/anatomy/`.
+
+# ANIM1 — animal anatomy framework (file map)
+
+The same animal in any art style. Full guide: [spec](../../docs/component-specs/animal-anatomy.md) · agent workflow:
+[skill](../../skills/kumiki-animal-anatomy/SKILL.md) · Storybook: Video production → Art Foundations → Animal Anatomy ·
+find it: `npm run catalog:find -- --query="tanuki"` (or "gallop", "fur map", "animal proportions") · exact exports:
+`npm run catalog:api -- --id=animal-anatomy --format=json`.
+
+| I need… | File | Start with |
+|---|---|---|
+| What a whole group shares (feet, construction, gaits, parts, coat regions) | `animal-plans.ts` | `BODY_PLANS` |
+| One animal: sizes, proportions, face, coat, palette, sounds, culture, references, where it is drawn | `animal-species.ts` | `findAnimal`, `ANIMAL_SPECIES`, `animalStyles` |
+| Footfalls, body motion, speeds and stride times | `animal-gaits.ts` | `ANIMAL_GAITS`, `quadFootfalls`, `quadBody`, `footfallBars`, `gaitSpeed`, `strideFrames` |
+| A posed side-view construction and region shapes to paint over | `animal-construct.ts` | `animalConstruction`, `poseAnimal`, `skeletonShapes` |
+| Check a drawing or rig against the real animal | `animal-check.ts` | `measureAnimal`, `checkAnimalProportions`, `checkSpeciesData` |
+| A painter or the character sheet (React) | `animal-react.tsx` | `AnimalFigure`, `AnimalSheet`, `FootfallDiagram` |
+
+# FLORA1 — plant anatomy framework (file map)
+
+Trees, bamboo, flowers and grasses in any art style. Full guide: [spec](../../docs/component-specs/plant-anatomy.md) ·
+[skill](../../skills/kumiki-plant-anatomy/SKILL.md) · Storybook: Art Foundations → Plant Anatomy.
+
+| I need… | File | Start with |
+|---|---|---|
+| How a group of plants is built (leader, buds, crown, branches, foliage) | `plant-forms.ts` | `GROWTH_FORMS` |
+| One plant: sizes, leaf, flower, fruit, bark, calendar, colours, culture | `plant-species.ts` | `findPlant`, `PLANT_SPECIES`, `inSeason` |
+| Leaf, flower, fruit and bark shapes | `plant-organs.ts` | `leafShape`, `flowerShape`, `fruitShape`, `barkMarks` |
+| A whole plant for a month and a wind | `plant-construct.ts` | `plantConstruction`, `growPlant`, `plantShapes` |
+| Checks | `plant-check.ts` | `checkPlantData`, `measurePlant`, `checkPlantProportions` |
+| Painters and the sheet (React) | `plant-react.tsx` | `PlantFigure`, `OrganFigure`, `PlantSheet` |
+
+Shared by ANIM1 and FLORA1 (`art-foundations`): `foundation-shapes.ts` (geometry, record types, the scale person) and
+`foundation-react.tsx` (sheet cards, swatches, the to-scale chart).
+
+# EXPR1 — facial expressions (file map)
+
+Expressions for any style, on ANAT1's measured face. Guide: [spec](../../docs/component-specs/facial-expressions.md) ·
+[skill](../../skills/kumiki-facial-expressions/SKILL.md) · Storybook: Art Foundations → Facial Expressions.
+
+| I need… | File | Start with |
+|---|---|---|
+| Action units, emotions, kumadori, Noh tilt | `expression-facs.ts` | `ACTION_UNITS`, `EMOTIONS`, `KUMADORI`, `NOH_TILT` |
+| A moved face, its features and creases, a check | `expression-face.ts` | `expressEmotion`, `expressFace`, `expressionFeatures`, `expressionMarks`, `nearestEmotion`, `blendWeights` |
+| Painters (React) | `expression-react.tsx` | `ExpressionFace`, `ExpressionAtlas`, `ExpressionSheet` |

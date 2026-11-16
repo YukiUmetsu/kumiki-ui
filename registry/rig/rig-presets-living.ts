@@ -17,6 +17,8 @@ import type { Pt, RigPresetOptions } from "./rig-kit";
 import { ACTION_MOTIONS, ACTION_PALETTE, addPersonAction } from "./rig-presets-actions";
 import type { ActionMotion } from "./rig-presets-actions";
 import { FLOOR_MOTIONS } from "./rig-presets-rest";
+import { ANIMAL_GAITS } from "../anatomy/animal-gaits";
+import type { AnimalGait } from "../anatomy/animal-gaits";
 
 // ---- People ----------------------------------------------------------------------------------------------------------------------
 
@@ -328,26 +330,8 @@ const QUAD: Record<QuadKind, QuadDef> = {
   horse: { palette: { fur: "#7a4a2c", "fur-dark": "#4f2e1a", belly: "#8d5a38", hair: "#24170f", eye: "#1d1715", detail: "#24170f", horn: "#3a3a3a", mouth: "#24170f" }, H: 55, neck: 30, neckAngle: -132, legW: 7, tail: 9, tailAngle: 48, head: 1.25, pastern: 9.5, pasternAngle: 56, flex: 2.5, curlFore: 44, curlHind: 26 },
   cat: { palette: { fur: "#8b8f97", "fur-dark": "#5e626a", belly: "#d9dade", eye: "#c9a227", detail: "#2a2b2e", mouth: "#4a2a2a", horn: "#2a2b2e" }, H: 31, neck: 9, neckAngle: -122, legW: 5.6, tail: 9, tailAngle: 120, head: .9, pastern: 4, pasternAngle: 70, flex: 12, curlFore: 40, curlHind: 26 },
 };
-/**
- * Gait table. Phases are listed hind-far, fore-far, hind-near, fore-near; a leg lands when (cycle + phase) wraps to 0,
- * so phase = 1 − landing time. Stride is in fore-leg lengths, cycle in frames at 30 fps.
- */
-interface GaitDef { phases: readonly number[]; stance: number; stride: number; lift: number; bob: number; bobPhase: number; bobH: 1 | 2; pitch: number; pitchPhase: number; sink: number; neck: number; neckH: 1 | 2; neckPhase: number; flex: number; flexPhase: number }
-// Walk, trot and canter let the shoulder blade and pelvis follow the legs further (more reach); the gallop keeps the
-// hips steadier so the planted legs visibly sweep from forward-sloping to back-sloping.
-const GAITS: Record<string, GaitDef> = {
-  // Lateral-sequence walk: LH, LF, RH, RF a quarter apart; the head nods twice per stride.
-  walk: { phases: [0, .75, .5, .25], stance: .64, stride: 1.02, lift: .13, bob: .6, bobPhase: .2, bobH: 2, pitch: 0, pitchPhase: 0, sink: .6, neck: 3, neckH: 2, neckPhase: .15, flex: .25, flexPhase: .2 },
-  // Trot: diagonal pairs with a short suspension between them; the body is highest in the suspension.
-  trot: { phases: [0, .5, .5, 0], stance: .4, stride: 1.95, lift: .22, bob: 1.8, bobPhase: .45, bobH: 2, pitch: .8, pitchPhase: .2, sink: 1.2, neck: 2, neckH: 2, neckPhase: .3, flex: .3, flexPhase: .2 },
-  // Canter: three beats (outside hind, diagonal pair, leading fore) and a suspension; the body rocks once per stride.
-  canter: { phases: [0, .7, .7, .5], stance: .42, stride: 2.2, lift: .26, bob: 2.4, bobPhase: .96, bobH: 1, pitch: 3.4, pitchPhase: .7, sink: 1.5, neck: 5, neckH: 1, neckPhase: .3, flex: .6, flexPhase: .1 },
-  // Transverse gallop, timed from Muybridge's 15-frame stride: hinds land at 0 and .1, fores at .27 and .4, each foot
-  // down for ~30%, then ~30% gathered suspension with the legs folded under the body.
-  gallop: { phases: [0, .73, .9, .6], stance: .3, stride: 3.2, lift: .38, bob: 1.8, bobPhase: .86, bobH: 1, pitch: 4, pitchPhase: .55, sink: 1.6, neck: 7, neckH: 1, neckPhase: .43, flex: 1, flexPhase: .1 },
-  // Rotary gallop (dogs, cats): LH, RH, RF, LF; extended and gathered suspensions, the spine flexing between them.
-  rotary: { phases: [0, .46, .92, .56], stance: .27, stride: 3.1, lift: .3, bob: 2.5, bobPhase: .9, bobH: 1, pitch: 3, pitchPhase: .55, sink: 1.4, neck: 3, neckH: 1, neckPhase: .45, flex: 1, flexPhase: .1 },
-};
+/** The gait table is ANIM1's (`registry/anatomy/animal-gaits.ts`), shared with every style that animates animals. */
+const GAITS: Readonly<Record<string, AnimalGait>> = ANIMAL_GAITS;
 const CYCLE: Record<QuadKind, Record<string, number>> = {
   dog: { walk: 26, trot: 16, canter: 14, gallop: 11 }, horse: { walk: 34, trot: 22, canter: 19, gallop: 15 }, cat: { walk: 28, trot: 16, canter: 13, gallop: 10 },
 };

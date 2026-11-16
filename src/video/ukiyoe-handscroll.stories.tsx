@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { AnimalYokai, Animals, Bestiary, CastLab, CastleTown, CrowdLab, Effects, EpisodePlayer, FaceLab, WardrobeLab, FolkWork, FolkYokai, FolktaleFilmPlayer, Giants, HeianCourt, Interiors, Kami, MaikoDance, MotifGallery, NightFerryPlayer, OiranProcession, OniFight, Parades, PrintersProof, Realms, SamuraiDuel, SamuraiKata, SceneEditor, SnowWomanFilmPlayer, Temples, Trees, Tsukumogami, Warriors, WomenGhosts } from "./ukiyoe-studio";
+import { AnimalYokai, Animals, Bestiary, CastLab, CastleTown, CrowdLab, Effects, EpisodePlayer, FaceLab, TransitionLab, WardrobeLab, FolkWork, FolkYokai, FolktaleFilmPlayer, Giants, HeianCourt, Interiors, Kami, MaikoDance, MotifGallery, NightFerryPlayer, OiranProcession, OniFight, Parades, PrintersProof, Realms, SamuraiDuel, SamuraiKata, SceneEditor, SnowWomanFilmPlayer, Temples, Trees, Tsukumogami, Warriors, WomenGhosts } from "./ukiyoe-studio";
 
 const meta = {
   title: "Video Production/Film Looks/Ukiyo-e Handscroll",
@@ -39,6 +39,7 @@ export const Duel: Story = { name: "UKIYO1 · Samurai duel", render: () => <Samu
 export const Samurai: Story = { name: "UKIYO1 · Samurai kata", render: () => <SamuraiKata /> };
 export const Maiko: Story = { name: "UKIYO1 · Maiko dance", render: () => <MaikoDance /> };
 export const Oiran: Story = { name: "UKIYO1 · Oiran procession", render: () => <OiranProcession /> };
+export const Transitions: Story = { name: "UKIYO1 · Transitions", render: () => <TransitionLab /> };
 export const Wardrobe: Story = { name: "UKIYO1 · Wardrobe", render: () => <WardrobeLab /> };
 export const Faces: Story = { name: "UKIYO1 · Faces", render: () => <FaceLab /> };
 export const CastAndActions: Story = { name: "UKIYO1 · Cast & actions", render: () => <CastLab /> };

@@ -103,8 +103,14 @@ function inspectManifest(drawing:PencilDrawingSpec,
       errors.push("foundation.layers: each region needs 3+ colour deposits ("+region.id+")");
     const finish=pencilMaterialCraftFinish(surface);
     if(finish){
-      if(!region.opaqueSupport)
+      // Anatomically continuous dermal children inherit their parent facial
+      // pigment without introducing a second blank ivory support. All other
+      // solid materials continue to require a fully occluding paper base.
+      if(!region.opaqueSupport&&
+        !(surface==="skin"&&region.layeredSkinOverParent===true))
         errors.push("foundation.support: solid "+region.id+" must be paper-opaque");
+      if(region.layeredSkinOverParent&&surface!=="skin")
+        errors.push("foundation.skin-overlap: only skin can inherit skin pigment ("+region.id+")");
       if(region.craft?.kind!==finish.kind)
         errors.push("foundation.craft: wrong / missing "+surface+" finish for "+region.id);
     }else if(region.opaqueSupport){

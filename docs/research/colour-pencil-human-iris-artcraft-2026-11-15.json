@@ -1,0 +1,81 @@
+{
+  "schema_version": 3,
+  "project": "Kumiki UI CP-F1 original ANAT1 near/far human eye",
+  "subject_type": "human",
+  "reference_mode": "style_guided",
+  "evidence_state": "authentic medium observations, no identity/source crop registration; v9 source-aligned portrait fidelity blocked",
+  "sources": [
+    {
+      "id": "prismacolor-eye",
+      "title": "How to Draw a Realistic Eye",
+      "url": "https://www.prismacolor.com/blog?cid=drawing-realistic-eye",
+      "creator": "Prismacolor / artist image (individual creator per source)",
+      "rights": "copyright original; read visual/process only, no images traced or embedded",
+      "observations": [
+        "Dark upper lid overlies iris; angular lighter edge and separately visible tear duct",
+        "Fine indigo/blue radial iris strokes mixed with warm cream and dark limbal ring; sclera is shaded rather than paper white"
+      ]
+    },
+    {
+      "id": "plaid-fiona-eye",
+      "title": "How to Draw a Realistic Eye with Fiona Badelt",
+      "url": "https://plaidonline.com/inspire-and-create/article/how-to-draw-a-realistic-eye-with-fiona-badelt",
+      "creator": "Fiona Badelt",
+      "rights": "artist-owned teaching material, construction/process study only",
+      "observations": [
+        "Iris requires directional radial multicolor deposits anchored between pupil and limbus, not a flat digitally colored disc",
+        "Upper/lower eyelid lash line is a separate narrow warm contact and each lash is a directional tapered pencil mark"
+      ]
+    },
+    {
+      "id": "sharpened-artist",
+      "title": "Draw Eyes So REAL They Stare Back At You!",
+      "url": "https://www.youtube.com/watch?v=GeJywgSlo0o",
+      "creator": "Sharpened Artist",
+      "rights": "video is artist's tutorial; technique observations only",
+      "observations": [
+        "Top eyelid casts shadow on iris and sclera",
+        "Warm-gray, ultramarine, cream, pink-white and separate infraorbital tear-pad strokes create ocular volume"
+      ]
+    }
+  ],
+  "current_render": "The CP-F1 native 960×540 portrait still has large white flat sclera ovals and small featureless pale blue discs, after merged #438 hair and #440 mouth correction.",
+  "canonical_model": "registry/video/colored-pencil-anatomy.ts pencilPortraitAnatomy(): original 468-point MediaPipe face → ANAT1 eye-upper/lower, iris, pupils, lash roots; preserved",
+  "feature_contracts": [
+    {
+      "id": "eye-white-far/near",
+      "topology": "same ANAT1 curved upper/lower eyelid shared canthi",
+      "material": "warmer muted sclera and upper-lid shadow; medial caruncle at correct inward corner",
+      "no": "white detached complete oval"
+    },
+    {
+      "id": "iris-far/near",
+      "topology": "original ANAT1 bounded iris and projected elliptical globe; not a new circle",
+      "material": "29 × 3 short individually curved ray lines, dark superior shadow and limbal ring",
+      "no": "uniform cyan button and black concentric rings"
+    },
+    {
+      "id": "pupil-far/near",
+      "topology": "preserved projected dark pupil occluded by upper lid",
+      "material": "existing single sharp wet glint, no plastic multiple highlights",
+      "no": "bright broad shiny pupil or perfect eye icon"
+    }
+  ],
+  "five_axes": {
+    "topology": "Original shared ANAT1 eye and eyelid contours unchanged; iris and pupil bounded and nested",
+    "flow": "29 radial rays per pigment family follow 3D iris ellipse from pupil collarette toward limbus; lash root tracks remain projected from mesh",
+    "weight": "Sclera value darker around upper tarsal edge; blue/sepia/dark limbal rim, soft caruncle, only one crisp wet glint",
+    "rhythm": "Seeded irregular angular spacing, ray length, curvature and three pigment pressures; no identical repeated circle segments",
+    "texture": "Native CP-F1 pencil pressure/tooth/segmented SVG traces, no photos or digital image filters"
+  },
+  "release_blockers": [
+    "No matched human-eye photograph/portrait identity source",
+    "Source-to-candidate iris/eyelid crop SSIM/edge/frequency and anatomical pose/mask gate not performed",
+    "Portrait overall nose/eyes/lips remain stylistically schematic"
+  ],
+  "tests": [
+    "Both 16:9 and 9:16 original ANAT1 paths byte-for-byte unchanged",
+    "174 individual radial pupil-to-limbus pigment contacts, bounded SVG segments",
+    "Native 1× and 2.15× Storybook `portrait-eye` macro, reversible, no bitmap/media"
+  ]
+}

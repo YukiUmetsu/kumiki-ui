@@ -52,6 +52,11 @@ export interface PencilRegion {
    * not the occlusion matte. Disabled by default to preserve earlier illustration looks.
    */
   opaqueSupport?: boolean;
+  /** A source-grounded translucent dermal child on top of a separately drawn
+   * opaque parent skin surface (e.g. lips). Do not erase the parent pigment
+   * with an ivory paper matte. Requires three real pencil colour passes and
+   * a skin craft finish; cannot be used for detached/floating objects. */
+  layeredSkinOverParent?: boolean;
   layers: readonly PencilPigmentLayer[];
   contour: PencilTrace;
   details?: readonly PencilTrace[];
@@ -147,6 +152,12 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
       issues.push(at + ".underpaintOpacity: needs a base pigment and value in 0..1.");
     if (region.opaqueSupport !== undefined && typeof region.opaqueSupport !== "boolean")
       issues.push(at + ".opaqueSupport: expected a boolean.");
+    if(region.layeredSkinOverParent!==undefined&&
+      typeof region.layeredSkinOverParent!=="boolean")
+      issues.push(at+".layeredSkinOverParent: expected a boolean.");
+    if(region.layeredSkinOverParent&&
+      (region.opaqueSupport!==false||region.craft?.kind!=="skin"))
+      issues.push(at+".layeredSkinOverParent: requires non-opaque skin craft.");
     if (region.clipDetails !== undefined && typeof region.clipDetails !== "boolean")
       issues.push(at + ".clipDetails: expected a boolean.");
     if (region.craft !== undefined) {
