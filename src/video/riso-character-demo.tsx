@@ -9,6 +9,7 @@ import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso47PalmContour} from "./riso47-palmar-cup";
 import {riso51MorphSourcePart} from "./riso51-view-conditioned-source";
 import {riso53ReorderPalmarInk} from "./riso53-palmar-depth-composition";
+import {riso54ApplyWebReserves} from "./riso54-interdigital-paper-reserve";
 import {riso49ProjectedDonorPivot} from "./riso49-donor-projection";
 import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
@@ -557,9 +558,9 @@ export const COURIER:RisoCharacterSpec={
   // Original physical RED drum: three far-side support fingers now print
   // beneath the real metacarpal cup, radial thumb/index stay above it.
   // RISO43's actual opaque sheet remains above palm/below actual index.
-  parts:riso53ReorderPalmarInk(
+  parts:riso54ApplyWebReserves(riso53ReorderPalmarInk(
     COURIER_SOURCE.parts.map(p=>riso51MorphSourcePart(p,"courier")),
-    "courier"),
+    "courier"),"courier"),
 };
 /** Tiny paper bird: demonstrates that parent rig is anatomy-agnostic. */
 export const PAPER_BIRD: RisoCharacterSpec = {
