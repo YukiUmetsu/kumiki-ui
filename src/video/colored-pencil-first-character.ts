@@ -160,6 +160,50 @@ function newHeadContourContacts(
   return out;
 }
 
+/**
+ * Add every curved contact as an SVG path subcommand inside the established
+ * 54 coloured plane traces; the renderer limits each editable trace's path
+ * to 12k characters and each anatomical region to 80 traces.
+ *
+ * The source 77 traces retain their original order/IDs/material attributes,
+ * each unchanged path as its prefix, and the three ANAT1 guide fans retain
+ * exactly 114 native marks each. Never silently truncate a source stroke:
+ * fail closed if one new contact cannot fit an existing same-value trace.
+ */
+function embedHeadContourContacts(
+  base:readonly PencilTrace[],contour:readonly PencilTrace[],
+):PencilTrace[]{
+  if(contour.length!==6)throw new Error("Expected six independently drawn contour-contact passes");
+  const paths=base.map(trace=>trace.path);
+  for(let layer=0;layer<3;layer++){
+    const candidates=base.flatMap((trace,index)=>
+      trace.id?.startsWith("newhead-plane-")&&
+        trace.id.match(/-[0-2]-[0-2]$/)?.[0].startsWith("-"+layer+"-")?
+        [index]:[]);
+    if(candidates.length!==18)
+      throw new Error("Expected all 18 existing painted field traces for one cranial value");
+    const tokens=contour.slice(layer*2,layer*2+2)
+      .flatMap(trace=>(trace.path.match(/M[^M]+/g)??[])
+        .map(stroke=>stroke.trim()).filter(Boolean));
+    if(tokens.length<40)throw new Error("Source-connected pigment produced too few genuine contacts");
+    let cursor=0;
+    for(const stroke of tokens){
+      let assigned=false;
+      for(let attempt=0;attempt<candidates.length;attempt++){
+        const index=candidates[(cursor+attempt)%candidates.length];
+        if(paths[index].length+stroke.length+1<=12000){
+          paths[index]+=" "+stroke;
+          cursor=(cursor+attempt+1)%candidates.length;
+          assigned=true;break;
+        }
+      }
+      if(!assigned)throw new RangeError("Contour material exceeds the existing 12k pigment-path budget");
+    }
+  }
+  return base.map((trace,i)=>paths[i]===trace.path?trace:
+    {...trace,path:paths[i]});
+}
+
 /** Stage 1-only head value fields. Pencil touches follow the cranial turn,
  * temporal recession, zygomatic wedge and mandibular fold. Unlike an
  * all-head Cartesian hatch these marks have independent local growth angles
@@ -509,27 +553,20 @@ export function newCharacterHeadStageOne(seed=271,contourCraft=true):PencilSubje
   // Stage 1 is PENCIL CONSTRUCTION on paper, not fully opaque dermal
   // paint. The previous flat salmon wax mask was rejected in native proof.
   const palette:PencilPalette=["#B1978A","#82707A","#E0C3A6"];
-  // The CP-F1 SVG contract caps a single region at 80 editable traces.
-  // This head already contains 77: adding six separate groups would
-  // discard the rendered head through validation. Instead append ALL six
-  // new short mark paths, two each, to the three existing dry colour
-  // value traces. The previous path bytes, trace IDs and animation starts
-  // remain exactly intact, as does every other detail; no strokes lost.
-  const valueTraces=newHeadValuePencil(guides,(seed+1001)%2147483647);
-  const contourContacts=contourCraft?
-    newHeadContourContacts(perimeter,(seed+3491)%2147483647):[];
-  const connectedValueTraces=valueTraces.map((trace,i)=>contourCraft?{
-    ...trace,
-    path:trace.path+" "+contourContacts.slice(i*2,i*2+2)
-      .map(contact=>contact.path).join(" "),
-  }:trace);
+  // Blend all six true contour contact curves into the existing 54
+  // same-value plane traces, respecting BOTH the 80-region trace count and
+  // 12k/path budget. Do not modify the original three 114-mark value
+  // fans or even one original stroke, hue, construction guide or layer.
+  const fieldTraces=newHeadPlanePigment(bounds,(seed+1831)%2147483647);
+  const connectedPlanes=contourCraft?embedHeadContourContacts(fieldTraces,
+    newHeadContourContacts(perimeter,(seed+3491)%2147483647)):fieldTraces;
   return [{
     id:NEW_CHARACTER_01_ID,material:"glaze",palette,path:contour,
     bounds,direction:64,flow:11,start:73,
     details:[
-      ...newHeadPlanePigment(bounds,(seed+1831)%2147483647),
+      ...connectedPlanes,
       ...newHeadAnat1ValuePigment(face,(seed+2393)%2147483647),
-      ...connectedValueTraces,
+      ...newHeadValuePencil(guides,(seed+1001)%2147483647),
       drawn("newhead-sagittal-guide",line(forehead,glabella,chin),
         "#90777C",.32,.31,103),
       drawn("newhead-zygomatic-guides",
