@@ -115,10 +115,11 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     const points=[...ridge!.matchAll(/[ML] ?(-?[0-9.]+) (-?[0-9.]+)/g)]
       .map(([,x,y])=>[Number(x),Number(y)]);
     const summit=points.filter(([x])=>x>=531&&x<=572);
-    // The formerly needle-sharp triangle now has a real rounded
-    // double-shoulder summit with many intermediate contour stations.
+    // The formerly needle-sharp triangle now has a broad, held,
+    // lower, asymmetrically rolled summit with full dense stations.
+    // Avoid silently preserving the old 105px needle-height band.
     expect(summit.length).toBeGreaterThan(20);
-    expect(summit.filter(([,y])=>y>=96&&y<=115).length)
+    expect(summit.filter(([,y])=>y>=116&&y<=146).length)
       .toBeGreaterThan(12);
     // A saw-tooth skyline was visible at native 960x540 when each
     // 13–15px section inherited a full long-cliff jitter budget.
