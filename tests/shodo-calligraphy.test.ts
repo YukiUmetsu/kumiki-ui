@@ -106,6 +106,18 @@ describe("SHO1 shodō calligraphy", () => {
     expect(await loadShodoGlyph("永")).toBe(SHODO_GLYPHS["永"]);
   });
 
+  it("gives a stroke its own pace without changing its path or the other strokes", () => {
+    const glyph = SHODO_GLYPHS["二"];
+    const plan = (g: ShodoGlyph) => planShodoWriting({ items: [{ glyph: g, x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE }).strokes;
+    const base = plan(glyph);
+    const paced = plan({ ...glyph, strokes: glyph.strokes.map((st, i) => i === 1 ? { ...st, pace: 2 } : st) });
+    const time = (st: { t0: number; t1: number }) => st.t1 - st.t0;
+    expect(time(paced[0])).toBeCloseTo(time(base[0]), 6);               // the first stroke is untouched
+    expect(time(paced[1])).toBeCloseTo(time(base[1]) / 2, 2);           // twice as fast
+    const end = (st: typeof base[number]) => st.samples[st.samples.length - 1];
+    expect(Math.hypot(end(paced[1]).x - end(base[1]).x, end(paced[1]).y - end(base[1]).y)).toBeLessThan(1);
+  });
+
   it("writes a teacher's own form when the teacher has the character, and the rules elsewhere", async () => {
     const taught: ShodoGlyph = { char: "永", source: "teacher", strokes: [{ kind: "horizontal", points: [[120, 520], [880, 470]] }] };
     expect(shodoKaishoForm(taught)).toBe(taught);                       // already the teacher's shape

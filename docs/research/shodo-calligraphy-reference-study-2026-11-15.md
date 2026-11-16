@@ -247,6 +247,34 @@ These numbers say how closely the engine reproduces this teacher's own models. T
 
 **Limits.** The rules still write 84 of the teacher's characters (split failures, videos that start after the first stroke, incomplete ink). Kana loops (よ, あ, る) stay smaller than the teacher's. Heads and stops come from the technique programs, not from each stroke of the teacher. The writing time of every stroke is measured but not yet used to set the hand's rhythm.
 
+## 2.11 Seventh study round: checks, harder strokes and the teacher's rhythm
+
+**A better reference.** About one video in six ends on a model that is not the writing just shown (the overlap of the two is below 0.65 after the best small shift and scale). Forms are therefore compared with the live writing that they were learned from, after the best small shift and scale, which a single long sweep tip cannot distort as it can a box normalization.
+
+**Checks before a form is used.**
+- *Complete data*: the timed ink must cover at least 80 % of the end-of-video model. A shot that starts after the first strokes or ends before the last (旅, 史, 井) fails, so those characters keep the rules.
+- *Every stroke*: each stroke must lie on the teacher's ink (precision 0.45 or more) and cover its own stroke (recall 0.25 or more). The overlap of the whole character hides a broken small stroke; this check does not (神's radical, 羊's foot).
+- A stroke that fails goes back to the rule shape, placed with the character's mapping, and is checked again.
+- Near-ties (within 0.03) go to the teacher's form.
+
+**Harder strokes.**
+- *Width*: measured across the stroke only where it does not run into an earlier stroke, and the whole character's ink is scaled to the teacher's total. Before, the forms carried 9 % more ink than the teacher's; now 0 %.
+- *Shapes far from KanjiVG* (long sweeps, 史's ノ): a second candidate lays the stroke along the teacher's own brush path and wins when it lies clearly better on the teacher's stroke. 圧 0.39 → 0.78, 史 0.48 → 0.67, 顔 0.50 → 0.70. 349 of 2897 strokes use it.
+- *Dots*: sized from their area and from their length along their own axis.
+- *Kana*: the brush-path variant is kept for あ き け し に ふ む ら り れ, where it lies better.
+
+**Rhythm.** The brush trace gives the time each stroke was being written (frames that added ink; pauses for explanation are left out). `ShodoStrokeSpec.pace` scales the hand's speed for one stroke, and each form's paces give every stroke the teacher's share of the writing time. The hand's speed still sets the tempo. Per-stroke shares match the teacher's within 0.002 on average (0.036 without pace), and the shapes do not change (overlap 0.726 with and without).
+
+**Result.** Best-aligned overlap with the teacher's live writing:
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (360) | 0.564 | 0.677 |
+| Kana (46) | 0.498 | 0.640 |
+| The 326 characters with a form | 0.581 | 0.726 (98 % better) |
+
+**Limits.** 80 characters keep the rules: about 40 for incomplete data and the rest for a stroke that still fails its check. Kana loops are still small (よ, あ, る); や and ゆ fail. Heads and stops come from the technique programs.
+
 ## 3. From observation to model
 
 | Observation | Model decision |

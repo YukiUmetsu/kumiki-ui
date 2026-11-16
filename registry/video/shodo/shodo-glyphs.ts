@@ -51,6 +51,11 @@ export interface ShodoStrokeSpec {
   /** Thickness multiplier for this stroke, 0.4..1.8. */
   weight?: number;
   /**
+   * Speed of this stroke relative to the hand, 0.25..4 (default 1). A teacher's form uses it
+   * to give each stroke that teacher's share of the writing time.
+   */
+  pace?: number;
+  /**
    * The stroke starts or ends on another stroke (接筆), as the inner lines of 口 and 目 do.
    * The hand then writes a small head or a quiet stop that disappears into the other line
    * instead of a full 打ち込み or 止め knob. Set by `shodoJoinStrokes`.
@@ -198,6 +203,8 @@ export function inspectShodoGlyph(glyph: ShodoGlyph): ShodoGlyphIssue[] {
       issues.push({ path: at + "/weight", message: "Weight must be 0.4..1.8." });
     if (s.hook && (s.hook.length !== 2 || Math.hypot(s.hook[0], s.hook[1]) < 1e-3))
       issues.push({ path: at + "/hook", message: "Hook must be a nonzero [dx, dy]." });
+    if (s.pace !== undefined && (!Number.isFinite(s.pace) || s.pace < .25 || s.pace > 4))
+      issues.push({ path: at + "/pace", message: "Pace must be 0.25..4." });
   });
   return issues;
 }
