@@ -1805,6 +1805,44 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(draw("early-spring",71,1)).not.toContain("data-km-cliff-pine-graft");
   });
 
+  it("retains all pine stroke geometry while cutting two true Fuchun flying-white channels in each fan",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,seed,detail},
+      }));
+    const full=draw("fuchun");
+    const canopies=[...full.matchAll(
+      /data-km-cliff-pine-ink-canopy="" d="([^"]+)" data-km-cliff-pine-canopy-paper-channels="(\d+)" fill-rule="([^"]+)"/g,
+    )];
+    expect(canopies).toHaveLength(40);
+    const paperShapes=new Set<string>();
+    for(const [,d,holes,winding] of canopies){
+      expect(holes).toBe("2");
+      expect(winding).toBe("evenodd");
+      expect((d.match(/ M/g)??[])).toHaveLength(2);
+      expect((d.match(/ Z/g)??[])).toHaveLength(3);
+      expect((d.match(/ C/g)??[])).toHaveLength(4);
+      expect(d.startsWith("M")).toBe(true);
+      expect(d.endsWith(" Z")).toBe(true);
+      expect(d.split(" Z ").slice(1)).toHaveLength(2);
+      expect(d).not.toMatch(/NaN|Infinity|undefined/);
+      paperShapes.add(d);
+    }
+    expect(paperShapes.size).toBe(40);
+    expect((full.match(/data-km-cliff-pine-graft=""/g)??[])).toHaveLength(60);
+    expect((full.match(/data-km-cliff-pine-pad=""/g)??[])).toHaveLength(60);
+    expect((full.match(/data-km-cliff-pine-needle=""/g)??[])).toHaveLength(310);
+    expect((full.match(/data-km-cliff-pine-wet-cluster=""/g)??[])).toHaveLength(119);
+    expect(draw("fuchun")).toBe(full);
+    expect(draw("fuchun",97)).not.toBe(full);
+    expect(draw("fuchun",71,0)).not.toContain('data-km-cliff-pine-ink-canopy');
+    const guo=draw("early-spring");
+    expect((guo.match(/data-km-cliff-pine-ink-canopy=""/g)??[])).toHaveLength(40);
+    expect(guo).not.toContain('data-km-cliff-pine-canopy-paper-channels="2"');
+    expect(guo).not.toContain('fill-rule="evenodd"');
+  });
+
   it("renders willow boughs as closed tapering brush geometry with fine attached leaves",()=>{
     const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:125,controls:{...DEFAULT_SHANSHUI,scene:"river-scholar",detail:1},
