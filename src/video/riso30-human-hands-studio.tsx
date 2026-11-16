@@ -60,6 +60,9 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const bones=riso31Inspect(actor,frame,side);
   const mainPalmSource=pose.parts.find(p=>p.id===side+"-glove");
   const mcpPlateSource=pose.parts.find(p=>p.id===side+"-glove-knuckle-arc");
+  const riso51MorphParts=actor.parts.filter(p=>
+    p.id.startsWith(side+"-glove")&&p.pathKeys?.length).length;
+  const riso51PalmChanged=mainPalmSource?.d!==actor.parts.find(p=>p.id===side+"-glove")?.d;
   const mcpSourcePlaneCount=(mcpPlateSource?.d.match(/[Mm]/g)??[]).length;
   const palmSourceCubicCount=(mainPalmSource?.d.match(/[Cc]/g)??[]).length;
   // Exact live anatomical source stations, not a visual proxy or an
@@ -87,6 +90,8 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso49-support-projection-ratio={supportProjectionRatio.toFixed(3)}
     data-km-riso50-source-mcp-planes={mcpSourcePlaneCount}
     data-km-riso50-palm-cubics={palmSourceCubicCount}
+    data-km-riso51-live-source-morph-parts={riso51MorphParts}
+    data-km-riso51-palm-projected={String(riso51PalmChanged)}
     data-km-riso32-ip-articulated={String(thumb.independentRedSegments)}
     data-km-riso32-ip-flexion={thumb.ipLocalAngle.toFixed(2)}
     data-km-riso33-minimum-axis-gap={spacing.minimumAxisGap.toFixed(3)}
@@ -164,7 +169,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO50</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO51</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
