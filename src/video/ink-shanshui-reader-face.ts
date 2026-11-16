@@ -34,7 +34,10 @@ const asset=(name:string,shapes:CharacterPathShape[]):CharacterShapeAsset=>({
     source:"Original Kumiki scroll-reader three-quarter portrait: "+name},
 });
 const mouth={
-  rest:"M135.2 125.5 Q139.6 126.4 142.8 127 Q146.4 127.2 149 126.9",
+  // The neutral scholar rests his lips without a thick horizontal bar:
+  // slight perspective asymmetry preserves soft mouth-corner volume.
+  // Other AA/OH/MM/smile paths remain independently animated visemes.
+  rest:"M135.4 125.9 C137.1 125.6 139.1 126.2 141.6 126.8 C143.2 127.2 145.7 127.1 148.7 126.2",
   aa:"M135.5 124.8 Q141.7 127.3 147.9 124.4 Q144.2 133.8 139.9 131.4 Q136.2 129.1 135.5 124.8 Z",
   oh:"M141.3 125.2 Q145.2 125.1 145.8 128.5 Q145.5 132.1 142 131.7 Q139.4 129.5 141.3 125.2 Z",
   mm:"M135.6 125.7 Q141 125.4 148.5 124.5",
@@ -113,8 +116,10 @@ export function scrollReaderFacePortrait(detail=1):
     // Philtrum and lower lip are almost invisible in the teacher art.
     p("M144.5 119.6 Q144.9 121.4 145.3 122.1",
       "none","$skinshade",.35,.37),
+    // The dynamic lip line (mouth-rest/visemes) supplies the contour;
+    // this anatomical underside stays as quiet wet-paper reflected form.
     p("M139.9 129.6 Q143.6 131.7 147.2 128.6",
-      "none","$skinshade",.66,.57),
+      "none","$skinshade",.46,.35),
   ];
   if(medium)face.push(
     pressure([116.3,108.5],[116.3,114.1],[117.1,118.4],[120.3,122.8],
@@ -169,7 +174,8 @@ export function scrollReaderFacePortrait(detail=1):
   const mouthAsset=(state:keyof typeof mouth)=>asset("mouth-"+state,[
     ...(state==="aa"||state==="oh"?anatomy.lips.slice(2):anatomy.lips),
     p(mouth[state],state==="aa"||state==="oh"?"$shadow":"none",
-      "$shadow",state==="mm"?1.14:.99,state==="aa"?.85:.94),
+      "$shadow",state==="mm"?.84:state==="rest"?.74:.9,
+      state==="aa"?.85:state==="rest"?.75:.9),
     p(state==="aa"?"M139.2 130.8 Q143.4 132.4 146 129.9":
       "M138.2 128.9 Q143.6 129.5 147 127.6",
       "none","$skinshade",.55,.43),
