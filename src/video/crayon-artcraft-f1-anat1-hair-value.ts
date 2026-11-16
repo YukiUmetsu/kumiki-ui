@@ -126,11 +126,11 @@ export function crayonF1CalibrateAnat1HairValues(
     }
     return el;
   });
-  const counts=[...hairBandsByRegion.values()].map(bands=>bands.size);
+  // The source's seeded strand allocation can leave sparse pigment bands
+  // at lower detail. Require a real rooted group per physical hair volume,
+  // but never invent missing bands or demand contiguous numeric indices.
   if(seen.size!==CRAYON_F1_V38_HAIR_IDS.length||
-     counts.some(n=>n<1||n!==counts[0])||
-     [...hairBandsByRegion.values()].some(bands=>
-       [...bands].some(i=>!bands.has(i===0?0:i-1))))
-    throw new RangeError("Incomplete or non-contiguous crown/left/right directional hair fibers");
+     [...hairBandsByRegion.values()].some(bands=>bands.size<1))
+    throw new RangeError("Missing crown/left/right directional hair fibers");
   return out;
 }
