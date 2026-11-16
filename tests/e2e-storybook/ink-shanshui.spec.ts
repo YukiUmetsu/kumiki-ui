@@ -637,6 +637,18 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
   }
   expect(await path(0).getAttribute("d")).toBe(nativeOriginal);
   expect(rounded).not.toBe(nativeOriginal);
+  // The 17 wet/dry planes are clipped to the identical sampled source
+  // rock, never to a separate approximation or a bitmap mountain.
+  const candidateClip=samples.last().locator(
+    "[data-km-rock-plane-source-clip]");
+  await expect(candidateClip).toHaveCount(1);
+  await expect(samples.first().locator(
+    "[data-km-rock-plane-source-clip]")).toHaveCount(0);
+  const clipRef=await candidateClip.getAttribute("clip-path");
+  expect(clipRef).toMatch(/^url\(#[a-z0-9_-]+\)$/i);
+  const clipName=clipRef!.slice(5,-1);
+  await expect(samples.last().locator(
+    'clipPath[id="'+clipName+'"] > path')).toHaveAttribute("d",rounded!);
   expect((rounded?.match(/L /g)??[]).length).toBe(164);
   for(const i of [0,1]){
     await expect(samples.nth(i).locator("[data-km-master-stroke]")).toHaveCount(78);
