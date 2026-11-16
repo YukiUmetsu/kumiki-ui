@@ -601,6 +601,36 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
     await otherFar.getAttribute("d"));
   await fuchun.locator("[data-km-master-camera-view]").screenshot({
     animations:"disabled",path:info.outputPath("fuchun-native-rolling-skyline-145.png")});
+  // Compare native *same-frame* Fuchun brush pigments before and after
+  // physical paper-fibre abrasion, without deleting paths or changing
+  // another master's volume/ink or the production film renderer.
+  const fibres=fuchun.locator("[data-km-master-stroke-loaded][mask]");
+  expect(await fibres.count()).toBeGreaterThan(18);
+  expect(await fibres.count()).toBeLessThan(45);
+  const nativeMasks=await fibres.evaluateAll(nodes=>nodes.map(el=>({
+    geometry:el.getAttribute("d"),
+    mask:el.getAttribute("mask"),
+  })));
+  await page.getByRole("button",{name:"Ink before dry-paper lift"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","uncut");
+  expect(await fibres.first().evaluate(el=>getComputedStyle(el).maskImage))
+    .toBe("none");
+  await expect(fuchun.locator("[data-km-master-stroke]")).toHaveCount(78);
+  await expect(fuchun.locator("[data-km-master-stroke-reserve]"))
+    .toHaveCount(nativeMasks.length);
+  await fuchun.locator("[data-km-master-camera-view]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-native-before-paper-lift-145.png")});
+  await page.getByRole("button",{name:"All Fuchun hemp"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+  const restored=await fibres.evaluateAll(nodes=>nodes.map(el=>({
+    geometry:el.getAttribute("d"),
+    mask:el.getAttribute("mask"),
+  })));
+  expect(restored).toEqual(nativeMasks);
+  expect(await fibres.first().evaluate(el=>getComputedStyle(el).maskImage))
+    .not.toBe("none");
+  await fuchun.locator("[data-km-master-camera-view]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-native-after-paper-lift-145.png")});
   await page.getByRole("button",{name:"Reset all four studies"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
   await expect(middle).toHaveAttribute("d",originalRidge!);
