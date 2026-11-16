@@ -195,7 +195,7 @@ test("ANAT1 reader facial planes preserve source identity across soft-wash and i
   const close=page.getByTestId("reader-anatomy-closeup");
   await expect(drawing).toBeVisible();
   await expect(inspector).toBeVisible();
-  const viewport=(await close.getAttribute("viewBox"))?.split(/\\s+/).map(Number)??[];
+  const viewport=(await close.getAttribute("viewBox"))?.split(/\s+/).map(Number)??[];
   expect(viewport).toHaveLength(4);
   // Previous close-up cropped its own nose and mouth (viewBox ended y105).
   expect(viewport[0]+viewport[2]).toBeGreaterThan(166);
@@ -204,8 +204,6 @@ test("ANAT1 reader facial planes preserve source identity across soft-wash and i
   const nasal=inspector.locator('[data-km-reader-anatomy-region="nose"]');
   const lids=inspector.locator('[data-km-reader-anatomy-region="near-far-eyes"]');
   const lips=inspector.locator('[data-km-reader-anatomy-region="lips"]');
-  await expect(volume.locator("path")).toHaveCount(
-    await volume.locator("path").count());
   expect(await volume.locator("path").count()).toBeGreaterThanOrEqual(15);
   expect(await nasal.locator("path").count()).toBeGreaterThanOrEqual(6);
   const original=await drawing.locator('[data-ink-reader-part="face"] path')
