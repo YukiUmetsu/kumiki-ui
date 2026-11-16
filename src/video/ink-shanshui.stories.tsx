@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"pine"|"pine-bones"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -596,6 +596,24 @@ function MasterInkSourceComparison(){
       [data-km-master-rock-art],
       [data-km-master-ink-inspection="pine-uncut"] [data-km-master-study="fuchun"]
       [data-km-rock-hero-cliff] { visibility:hidden; }
+      /* Macro ArtCraft inspection: isolate the 40 true old-pine loaded
+         crown silhouettes and the 20 joined bough masses. Underneath,
+         actual source wood is retained. Temporarily hide ONLY the
+         superficial needle/graft/wet material and mountain strokes,
+         so two wet pressure crests separated by a real dry lift can
+         be judged at delivered scale. Never remove production paths. */
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-graft],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-wet-cluster],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-pad],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-needle] { visibility:hidden; }
       /* An anatomical Storybook diagnostic only. No paths are removed:
          hide superficial pine brush islands to inspect the actual
          source-connected loaded armature (trunk, roots and 20 arms). */
@@ -663,6 +681,7 @@ function MasterInkSourceComparison(){
         ["ridge","Skyline · contour only"],
         ["pine","Pine crowns · source anatomy"],
         ["pine-bones","Pine armature · connected brush bones"],
+        ["pine-contours","Pine dual-load crown silhouettes"],
         ["pine-unlinked","Pine before continuous crown bridge"],
         ["pine-bridge-uncut","Pine bridge before paper reserve"],
         ["pine-uncut","Pine before bristle paper lift"],
@@ -671,7 +690,8 @@ function MasterInkSourceComparison(){
           aria-pressed={fuchunZone===zone} onClick={()=>{
             setFuchunZone(zone);
             if(zone==="pine-bones")inspect(1.65,615,135);
-            else if(zone==="pine"||zone==="pine-unlinked"||
+            else if(zone==="pine"||zone==="pine-contours"||
+              zone==="pine-unlinked"||
               zone==="pine-uncut"||zone==="pine-bridge-uncut")
               inspect(1.65,628,137);
           }}>
