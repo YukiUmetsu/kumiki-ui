@@ -10,6 +10,7 @@ import {riso47PalmContour} from "./riso47-palmar-cup";
 import {riso51MorphSourcePart} from "./riso51-view-conditioned-source";
 import {riso53ReorderPalmarInk} from "./riso53-palmar-depth-composition";
 import {riso54ApplyWebReserves} from "./riso54-interdigital-paper-reserve";
+import {riso58ApplyContactSkin} from "./riso58-anat1-volume-skin";
 import {riso49ProjectedDonorPivot} from "./riso49-donor-projection";
 import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
@@ -552,7 +553,7 @@ const COURIER_SOURCE: RisoCharacterSpec = {
 export const COURIER_BASE_JOINTS=COURIER_SOURCE.joints;
 /** Production Courier continues using the EXACT same named physical ink
  * parts with only source joint-stage 2D camera projection at donor contact. */
-export const COURIER:RisoCharacterSpec={
+export const COURIER:RisoCharacterSpec=riso58ApplyContactSkin({
   ...COURIER_SOURCE,
   joints:COURIER_BASE_JOINTS.map(j=>riso49ProjectedDonorPivot(j)??j),
   // Original physical RED drum: three far-side support fingers now print
@@ -561,7 +562,7 @@ export const COURIER:RisoCharacterSpec={
   parts:riso54ApplyWebReserves(riso53ReorderPalmarInk(
     COURIER_SOURCE.parts.map(p=>riso51MorphSourcePart(p,"courier")),
     "courier"),"courier"),
-};
+},"courier");
 /** Tiny paper bird: demonstrates that parent rig is anatomy-agnostic. */
 export const PAPER_BIRD: RisoCharacterSpec = {
   version: 1, id: "paper-bird", durationFrames: 240, cadence: 2,
