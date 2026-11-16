@@ -961,16 +961,23 @@ export function pencilLivingStudyDrawing({
       // plaid over the fox, which real wildlife pencil studies avoid.
       // Keep the broad three-pass pigment model and every other subject
       // byte-identical; only the explicitly authored fox-fur atlas changes.
-      angle:locallyRooted?region.layers[0].angle+[0,16,-12][index]:
-        layer.angle,
-      // Native CP-F1 portrait head-stage supports finite skin-grain pressure;
-      // no old woman eye, lip, brow or hairstyle is reused.
-      texture:locallyRooted||fineHair?"fiber" as const:
+      // The single unfinished head must NOT receive the generic CP1
+      // triangular crosshatch grid. Actual head-plane gestures are authored
+      // separately in newHeadValuePencil along the ANAT1 bone axes.
+      // These three optical layers deposit granular tooth contacts instead
+      // of intersecting 25-unit "CAD" hairline stripes over the whole skull.
+      // This changes no fox, valley or object material recipe.
+      texture:subject==="portrait"?"stipple" as const:
+        locallyRooted||fineHair?"fiber" as const:
         softSkin?"stipple" as const:layer.texture,
-      tipWidth:locallyRooted?layer.tipWidth*.85:
+      spacing:subject==="portrait"?[6.1,8.3,11.5][index]:layer.spacing,
+      angle:subject==="portrait"?[12,-23,49][index]:
+        locallyRooted?region.layers[0].angle+[0,16,-12][index]:layer.angle,
+      tipWidth:subject==="portrait"?[.53,.42,.34][index]:
+        locallyRooted?layer.tipWidth*.85:
         fineHair?layer.tipWidth*.80:softSkin?layer.tipWidth*.70:layer.tipWidth,
       pressure:Math.min(1,layer.pressure*pressure*
-        (locallyRooted?.90:softSkin?.85:1)),
+        (subject==="portrait"?.46:locallyRooted?.90:softSkin?.85:1)),
     }))};
   });
   const reference=subject==="portrait"?{
