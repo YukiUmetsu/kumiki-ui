@@ -62,6 +62,26 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
         .toHaveCount(frame>=160?1:0);
       if(frame===142)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","unfurl");
       if(frame===160)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","shared");
+      if(frame===160){
+        // RISO40 corrected the actual f160 visual error: paper ended at
+        // characters' wrists, while all true fingertip pads sat outside.
+        // Assert distinct source-driven paper-to-fingertip connections
+        // instead of approving a mere "shared" timeline label.
+        for(const side of ["source","receiver"] as const){
+          const rootOffset=Number(await stage.getAttribute(
+            "data-km-riso40-"+side+"-fingertip-anchor"));
+          const padGap=Number(await stage.getAttribute(
+            side==="source"?"data-km-riso40-donor-pad-distance":
+              "data-km-riso40-receiver-pad-distance"));
+          expect(Number.isFinite(rootOffset)).toBe(true);
+          expect(rootOffset).toBeGreaterThan(5);
+          expect(Number.isFinite(padGap)).toBe(true);
+          expect(padGap).toBeLessThan(14);
+        }
+        expect(Number(await stage.getAttribute("data-km-riso-paper-source-contact"))).toBeGreaterThan(.95);
+        expect(Number(await stage.getAttribute("data-km-riso-paper-receiver-contact"))).toBeGreaterThan(.95);
+      }
+
       if(frame===189)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","release");
       if(frame>=202){
         await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","received");
