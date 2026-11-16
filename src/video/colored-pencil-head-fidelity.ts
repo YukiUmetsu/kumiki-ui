@@ -3,7 +3,7 @@
  *
  * Distinguishes two kinds of evidence that had been conflated:
  *  - ANAT1's generated mesh points and theoretical lighting (NOT a reference).
- *  - Independently measured points/patches on a legally sourced PHOTO and an
+ *  - Independently measured head-only silhouette points and tonal patches on a legally sourced PHOTO and an
  *    ACTUAL native-resolution output image (potential matching evidence).
  *
  * This is a strict STRUCTURAL and NUMERICAL preflight, not an image decoder:
@@ -15,12 +15,22 @@
  * ArtCraft's independent artist review and exact source-image verification
  * remain mandatory even for a "measurement-ready" result.
  */
+/** Stage 1 ONLY: 18 independently visible contour anchors. Do not
+ * require pupils, nose, lips, eyelids or any other UN-DRAWN feature to
+ * validate the one freshly authored human head. The later full-portrait
+ * ArtCraft gate will have its own independent feature measurements.
+ */
 export const HEAD_FIDELITY_LANDMARK_IDS=[
-  "cranial-apex","cranial-near-edge","cranial-far-edge",
-  "temple-near","temple-far","zygion-near","zygion-far",
-  "gonion-near","gonion-far","menton","glabella","sellion",
-  "pronasale","subnasale","orbit-near","orbit-far",
-  "mouth-near","mouth-far",
+  "cranial-apex",
+  "parietal-near","parietal-far",
+  "frontal-near","frontal-far",
+  "upper-temple-near","upper-temple-far",
+  "temple-near","temple-far",
+  "zygion-near","zygion-far",
+  "malar-near","malar-far",
+  "gonion-near","gonion-far",
+  "mandible-near","mandible-far",
+  "menton",
 ] as const;
 export type HeadFidelityLandmarkId=typeof HEAD_FIDELITY_LANDMARK_IDS[number];
 
