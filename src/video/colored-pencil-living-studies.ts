@@ -284,6 +284,55 @@ function pencilVermilionFibres(
   return traces;
 }
 
+/**
+ * Expose the iris as the fine radial muscular-stromal structure of an eye
+ * rather than a flat cyan button. The ANAT1 projected iris ellipse remains
+ * canonical and all individual pupil-to-limbus pencil deposits stay inside
+ * that exact drawable oval; no screen-space photograph/overlay is involved.
+ */
+function pencilAnatIrisRadials(
+  bounds:readonly [number,number,number,number],
+  side:"R"|"L",seed:number,
+):PencilTrace[]{
+  const [left,top,width,height]=bounds;
+  if(![left,top,width,height].every(Number.isFinite)||
+    width<8||height<6||height>30||
+    !Number.isSafeInteger(seed)||seed<0||seed>2147483647)
+    throw new RangeError("ANAT1 iris needs finite projected eye aperture");
+  const cx=left+width*.5,cy=top+height*.5;
+  const rx=(width-4)*.5,ry=(height-4)*.5;
+  const colors=["#43565F","#6F8C8F","#B0B8A4"] as const;
+  const out:PencilTrace[]=[];
+  for(let layer=0;layer<3;layer++){
+    const strokes:string[]=[];
+    for(let i=0;i<29;i++){
+      const key=layer*137+i;
+      const angle=(Math.PI*2*(i+.5)/29)+
+        (pencilHash(seed,key,74)-.5)*.10;
+      const inner=.37+.10*pencilHash(seed,key,75);
+      const outer=.75+.16*pencilHash(seed,key,76);
+      const drift=(pencilHash(seed,key,77)-.5)*.12;
+      const ax=cx+Math.cos(angle)*rx*inner;
+      const ay=cy+Math.sin(angle)*ry*inner;
+      const bx=cx+Math.cos(angle)*rx*outer;
+      const by=cy+Math.sin(angle)*ry*outer;
+      const midR=(inner+outer)*.52;
+      const mx=cx+Math.cos(angle+drift)*rx*midR;
+      const my=cy+Math.sin(angle+drift)*ry*midR;
+      strokes.push("M"+fmt(ax)+" "+fmt(ay)+" Q"+
+        fmt(mx)+" "+fmt(my)+" "+fmt(bx)+" "+fmt(by));
+    }
+    out.push({...mark(strokes.join(" "),colors[layer],
+      [.28,.23,.18][layer],240+layer*8,[.66,.42,.31][layer]),
+      id:"anat-radial-iris-"+side+"-"+layer});
+  }
+  out.push({...mark("M"+fmt(cx-rx*.74)+" "+fmt(cy-ry*.53)+" Q"+
+    fmt(cx)+" "+fmt(cy-ry*.94)+" "+
+    fmt(cx+rx*.73)+" "+fmt(cy-ry*.55),
+    "#36404A",.45,275,.54),id:"anat-superior-iris-shadow-"+side});
+  return out;
+}
+
 const PENCIL_PORTRAIT_ANAT1=pencilPortraitAnatomy();
 function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
   const A=PENCIL_PORTRAIT_ANAT1;
@@ -321,18 +370,29 @@ function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
       details:[
         {...mark(upper,"#624F56",.84,201,.82),id:"anat-upper-lid-"+eye},
         {...mark(lower,"#B68D8A",.48,221,.56),id:"anat-lower-lid-"+eye},
+        {...mark(upper,"#8F777A",.27,244,.37),
+          id:"anat-superior-sclera-shadow-"+eye},
         {...mark(upper,"#D8B4A4",.28,248,.43),id:"anat-orbital-fold-"+eye},
         {...mark(A.hair["lash-upper."+eye].path,"#584850",.25,258,.54),
           id:"anat-lash-upper-"+eye},
         {...mark(A.hair["lash-lower."+eye].path,"#94777C",.22,267,.42),
           id:"anat-lash-lower-"+eye},
+        // The caruncle sits at the INNER ANAT1 canthus and is lightly
+        // hydrated/pink; far eye medial=right, near medial=left.
+        {...mark("M"+fmt(eye==="R"?
+            A.eyes[eye].bounds[0]+A.eyes[eye].bounds[2]-4:
+            A.eyes[eye].bounds[0]+2)+" "+
+          fmt(A.eyes[eye].bounds[1]+A.eyes[eye].bounds[3]*.51)+" q1.3 1.4 2.4 .4",
+          "#BC8D8A",.34,274,.60),id:"anat-medial-caruncle-"+eye},
       ]};
   }
   const iris=part.id==="iris-far"?"R":
     part.id==="iris-near"?"L":undefined;
   if(iris)return {...part,path:A.irises[iris].path,
     bounds:A.irises[iris].bounds,details:[
-      {...mark(A.irises[iris].path,"#667C7E",.27,235,.61),
+      ...pencilAnatIrisRadials(A.irises[iris].bounds,iris,
+        iris==="R"?5077:5099),
+      {...mark(A.irises[iris].path,"#546A6D",.23,235,.46),
         id:"anat-iris-fibre-"+iris},
     ]};
   const pupil=part.id==="pupil-far"?"R":
@@ -502,7 +562,7 @@ function face():PencilSubjectPart[] {
       path:"M234 229 Q260 212 286 234 C292 251 280 272 260 277 Q237 278 230 260 Z",
       bounds:[227,209,69,72],direction:53,start:103,
       details:[mark("M238 250 Q257 240 278 248","#F9D3B6",.6,223,.56)]},
-    {id:"eye-white-far",material:"skin",palette:["#CCB8B0","#997F83","#E4D3C9"],
+    {id:"eye-white-far",material:"skin",palette:["#BDAEA7","#887983","#DACCC3"],
       // Exposed sclera is an occluded warm sliver, never a complete white ellipse.
       path:"M158 207 C167 201 179 201 189 205 Q186 211 177 212 Q165 213 158 207 Z",
       bounds:[155,199,36,16],direction:7,start:137,
@@ -523,7 +583,7 @@ function face():PencilSubjectPart[] {
       path:"M177 204 Q180 204 180 208 Q180 212 178 212 Q175 209 177 204 Z",
       bounds:[175,203,7,11],start:157,
       details:[mark("M176 205 L177 206","#F8EBDA",.48,245,.81)]},
-    {id:"eye-white-near",material:"skin",palette:["#D5C1B5","#A68B8B","#ECE0D3"],
+    {id:"eye-white-near",material:"skin",palette:["#C6B7AE","#988586","#E2D2C6"],
       path:"M242 207 C253 200 269 199 284 207 Q281 216 266 216 Q251 216 242 207 Z",
       bounds:[240,198,47,21],direction:6,start:138,
       details:[
