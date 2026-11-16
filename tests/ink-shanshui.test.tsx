@@ -1036,7 +1036,9 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(shelves).toHaveLength(12);
     for(let j=0;j<shelves.length;j++){
       const [,parent,root,station,axis,loaded,body]=shelves[j];
-      expect(Number(parent)).toBe(j%2);
+      // The two courses of one hill-back share its 0/1 local
+      // parent index; their load role alternates within that parent.
+      expect(Number(parent)).toBe(Math.floor(j/2)%2);
       expect(Number(loaded)).toBe(j%2);
       expect(Number(station)).toBe(j%2===0?.24:.68);
       const undercut=undertops[j>>1][2];
