@@ -322,6 +322,8 @@ Most women in the ghost stories look alive until the story turns, so they are fi
   - `towel`: a tenugui knotted over the head, for the bakeneko's dance.
   - `glowEyes`: eyes lit gold in the dark.
   - `carry`: `key`, `jewel` or `scroll` held in the mouth, for Inari's messenger fox.
+- **Proportions.** The fox, dog, cat, wolf, ox, boar and bear stand inside ANIM1's measured ranges (tested); hooved
+  animals lie down, forelegs folded, where others sit.
 - **New species.** `weasel`, long and low; `baku`, after Hokusai: a shaggy tawny coat, a ringed trunk and tusks, a bushy tail; and `ape`, the great long-haired mountain ape with a red face. All three have front and back views.
 - **Particle `whirlwind`.** Sekien's spiral of three turning wind bands with leaves along them, seen face on; `count > 0` adds the kamaitachi's sickle-flashes.
 - **`animalYokaiScene(kind)`.** Builds `bakeneko`, `kamaitachi`, `okuriinu` (wolves with glowing eyes following a traveller's lantern), `baku` (the nightmare cloud fades as it eats), `messenger` or `satori`. Storybook **Animal yōkai** plays them.

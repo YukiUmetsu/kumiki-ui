@@ -222,8 +222,10 @@ Units:
 
 The check found that the boar's legs were less than half the measured clearance under the chest (0.23 against
 0.40–0.57), and the bear's too (0.18 against 0.30–0.42). Both were fixed, and a test keeps them inside their ranges. The
-Storybook story "UKIYO1 proportion check" lists every UKIYO1 quadruped. Its systematically long trunks and short legs
-are open findings for a later pass.
+Storybook story "UKIYO1 proportion check" lists every UKIYO1 quadruped. The fox, dog, cat, wolf and ox were drawn long
+and low too, the ox nearly on the ground; they were refitted toward the stylised edge of their ranges (2026-11-16) and
+the same test now covers them. The tanuki, rabbit and mouse stay as drawn: the folk tanuki's stoutness and the
+crouching rabbit and mouse are deliberate, pending the owner's word on the tanuki.
 
 ## Limits
 

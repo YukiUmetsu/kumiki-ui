@@ -135,13 +135,13 @@ interface Beast {
 }
 type QuadSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue" | "bear" | "boar" | "deer" | "ox" | "wolf" | "mouse" | "weasel" | "baku" | "ape";
 const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
-  fox: { L: 150, bh: 46, leg: 54, color: "tan", belly: "gofun", dark: "kogecha", head: 34, tail: 118, tailW: 36, ears: "fox", snout: 1.25,
+  fox: { L: 90, bh: 44, leg: 63, color: "tan", belly: "gofun", dark: "kogecha", head: 34, tail: 88, tailW: 36, ears: "fox", snout: 1.25,
     tuck: .2, chest: .14, fur: .2, hairs: 1, ruff: "gofun", stocking: "sumi", iris: "ki", slit: true, tailTip: "gofun" },
   tanuki: { L: 128, bh: 60, leg: 34, color: "cha", belly: "kincha", dark: "kogecha", head: 32, tail: 70, tailW: 32, ears: "round", snout: .75,
     tuck: -.12, chest: .06, fur: .26, hairs: 1.2, ruff: "kincha", stocking: "kogecha", iris: "kogecha", slit: false },
-  dog: { L: 138, bh: 50, leg: 52, color: "kincha", belly: "gofun", dark: "cha", head: 30, tail: 48, tailW: 16, ears: "dog", snout: 1,
+  dog: { L: 94, bh: 38, leg: 60, color: "kincha", belly: "gofun", dark: "cha", head: 30, tail: 38, tailW: 16, ears: "dog", snout: 1,
     tuck: .16, chest: .14, fur: .12, hairs: .8, ruff: "gofun", iris: "cha", slit: false },
-  cat: { L: 112, bh: 40, leg: 40, color: "gofun", belly: "gofun", dark: "sumi", head: 27, tail: 92, tailW: 10, ears: "cat", snout: .6,
+  cat: { L: 94, bh: 32, leg: 46, color: "gofun", belly: "gofun", dark: "sumi", head: 27, tail: 80, tailW: 10, ears: "cat", snout: .6,
     tuck: .1, chest: .08, fur: .07, hairs: .6, ruff: "gofun", iris: "ki", slit: true },
   rabbit: { L: 86, bh: 48, leg: 26, color: "gofun", belly: "gofun", dark: "usuzumi", head: 26, tail: 14, tailW: 14, ears: "rabbit", snout: .6,
     tuck: 0, chest: .04, fur: .14, hairs: .8, ruff: "gofun", iris: "beni", slit: false },
@@ -155,7 +155,10 @@ const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
   nue: { L: 150, bh: 56, leg: 56, head: 32, tail: 170, tailW: 15, ears: "monkey", snout: .3, tuck: .14, chest: .12, fur: .1, hairs: 1,
     color: "ki", belly: "gofun", dark: "kogecha", ruff: "ki", iris: "ki", slit: false, face: "beni", neck: .35, headTilt: 4, stripes: true },
   // Legs and strides are set so the standing profile meets ANIM1's measured ranges (clearance under the chest about a
-  // third of the shoulder height for the bear, nearly half for the boar; see `ukiyoeBeastLandmarks`).
+  // third of the shoulder height for the bear, nearly half for the boar; see `ukiyoeBeastLandmarks`). The fox, dog,
+  // cat, wolf and ox were fitted the same way, toward the stylised edge of each range: they had been drawn long and low,
+  // the ox nearly on the ground. The tanuki, the rabbit and the mouse are left as drawn: the folk tanuki's stoutness
+  // and the crouching rabbit and mouse are deliberate.
   // The Asian black bear (tsukinowaguma) Kintarō rides, after Tanaka Yoshio's 1875 plate, Hokusai and Kuniyoshi: a heavy
   // barrel of a body on thick legs, the head carried low, a broad skull with big round ears and a short tan muzzle, a
   // shaggy ruff round the neck, the white crescent on the chest, flat broad paws with long curved claws.
@@ -171,10 +174,10 @@ const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
   deer: { L: 140, bh: 46, leg: 86, color: "kincha", belly: "gofun", dark: "cha", head: 28, tail: 14, tailW: 10, ears: "horse", snout: 1.1, tuck: .18, chest: .12, fur: .05, hairs: .5,
     ruff: "gofun", iris: "kogecha", slit: false, horns: "antler", spots: true, hoof: true, neck: 1.6, headTilt: 22 },
   // The black ox of Tenjin's shrines and the cowherd's tale: massive, a deep dewlap, short curved horns, hooves.
-  ox: { L: 196, bh: 88, leg: 70, color: "sumi", belly: "sumi", dark: "sumi", head: 46, tail: 74, tailW: 8, ears: "horse", snout: .72, tuck: 0, chest: .3, fur: .03, hairs: .4,
-    ruff: "sumi", iris: "kogecha", slit: false, horns: "ox", hoof: true, neck: .9, headTilt: 46 },
+  ox: { L: 157, bh: 57, leg: 90, color: "sumi", belly: "sumi", dark: "sumi", head: 46, tail: 64, tailW: 8, ears: "horse", snout: .72, tuck: 0, chest: .3, fur: .03, hairs: .4,
+    ruff: "sumi", iris: "kogecha", slit: false, horns: "ox", hoof: true, neck: .1, headTilt: 52, paw: 1.5 },
   // The Japanese wolf (the okuri-inu): leaner and longer-legged than the dog, grey with a pale belly and a thick tail.
-  wolf: { L: 152, bh: 50, leg: 60, color: "usuzumi", belly: "gofun", dark: "sumi", head: 32, tail: 72, tailW: 22, ears: "dog", snout: 1.3, tuck: .22, chest: .16, fur: .18, hairs: 1.1,
+  wolf: { L: 109, bh: 40, leg: 67, color: "usuzumi", belly: "gofun", dark: "sumi", head: 32, tail: 56, tailW: 22, ears: "dog", snout: 1.3, tuck: .22, chest: .16, fur: .18, hairs: 1.1,
     ruff: "gofun", iris: "ki", slit: false },
   // The mouse of the rolling rice ball and the mouse's wedding: small, round-bodied, big thin ears, a long bare tail.
   // The weasel (itachi) of the kamaitachi: long and low, a slim neck, short legs, a bushy tail.
@@ -1085,17 +1088,20 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
   const st = actionState(spec.actions ?? [], frame), tr = creatureTravel(spec.actions ?? [], frame);
   // Hooved animals (deer, ox, boar, horse) do not rear up: "stand" leaves them standing on all four legs.
   const run = st("run").w, hop = st("hop").w, sit = Math.max(st("sit").w, st("sleep").w), stand = b.hoof ? 0 : Math.max(st("stand").w, st("drum").w), sleep = st("sleep").w;
+  // Hooved animals never sit on their haunches (ANIM1's postures): "sit" lays them down on folded legs as sleep does,
+  // with the head up and the eyes open. `lie` is the lying body; `sleep` still closes the eyes and lowers the head.
+  const lie = b.hoof ? sit : sleep;
   const gaitLen = L * (run > .5 ? 1.6 : hop > .5 ? 1.2 : .9) * (b.stride ?? 1);
   const ph = tr.dist / gaitLen * Math.PI * 2, moving = tr.moving ? 1 : 0;
   // Body pitch: sitting raises the chest just enough for straight front legs to reach the ground; standing (tanuki)
   // turns the body upright on its hind legs; sleeping lays it flat.
   const sitPitch = species === "rabbit" ? -22 : -46;
-  const pitch = sitPitch * sit * (1 - sleep) - 80 * stand + (hop > 0 ? -Math.sin(ph) * 14 * hop * moving : 0);
+  const pitch = sitPitch * sit * (1 - lie) - 80 * stand + (hop > 0 ? -Math.sin(ph) * 14 * hop * moving : 0);
   const bob = moving * (run > .5 ? Math.abs(Math.sin(ph)) * leg * .18 : Math.abs(Math.sin(ph * 2)) * leg * .04) + (hop > 0 ? Math.max(0, Math.sin(ph)) * leg * 1.2 * hop * moving : 0);
   const leap = st("leap"), leapT = leap.w > 0 && leap.a ? span(leap.t, 0, leap.a.end - leap.a.start) : 0, leapH = leap.w * Math.sin(Math.PI * leapT) * leg * 2.4;
   // Standing, the legs reach the ground exactly (hind: upper .52 at 78°, lower .58 at 112° from a root .1·bh below the hip).
   const hipStand = beastHipStand(leg, bh), hipLow = -bh * .45;
-  const hipY = lerp(lerp(lerp(hipStand, hipLow, sit), -leg * 1.02, stand), hipLow * .9, sleep) - bob - leapH;
+  const hipY = lerp(lerp(lerp(hipStand, hipLow, sit), -leg * 1.02, stand), hipLow * .9, lie) - bob - leapH;
   const hip: Pt = [-L * .34, hipY], pivot = hip;
   const R = (p: Pt) => rot(p, pitch, pivot);
   const shoulder = R([L * .3, hip[1] + bh * .06]);
@@ -1124,17 +1130,19 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
       const swing = Math.sin(p * Math.PI * 2) * (run > .5 ? 38 : hop > .5 ? 30 : 22) * moving * (hind ? 1 : 1 + ((b.reach ?? 1) - 1) * run);
       const lift = Math.max(0, Math.cos(p * Math.PI * 2)) * moving;
       const root = hind ? R([-L * .33, hip[1] + bh * .1]) : shoulder;
-      const reach = !hind && sit > 0 ? lerp(1, clamp((-root[1]) / (leg * 1.06), 1, 2.4), sit * (1 - sleep)) : 1;
+      const reach = !hind && sit > 0 ? lerp(1, clamp((-root[1]) / (leg * 1.06), 1, 2.4), sit * (1 - lie)) : 1;
       const seg1 = leg * (hind ? .52 : .5) * reach, seg2 = leg * (hind ? .58 : .56) * reach;
       let a1 = hind ? 78 - swing : 92 - swing, a2 = hind ? 112 - swing * .3 + lift * 25 : 88 - swing * .2 - lift * 45;
       // Galloping, a leg on the ground or reaching for it is nearly straight (the fore leg flung ahead, the hind leg
       // driving back, as in Muybridge's plates); it folds only while it is carried forward off the ground.
       if (run > 0 && moving) { const plant = run * (1 - lift); a2 = lerp(a2, hind ? a1 + 28 : a1 + 6, plant * (hind ? .6 : .85)); }
       const mix = (w: number, t1: number, t2: number) => { if (w > 0) { a1 = lerp(a1, t1, w); a2 = lerp(a2, t2, w); } };
-      mix(sit * (1 - sleep), hind ? 6 : 90, hind ? 168 : 90);
+      mix(sit * (1 - lie), hind ? 6 : 90, hind ? 168 : 90);
       if (!hind) mix(stand, 30 + Math.sin(frame / (st("drum").w > .5 ? 2.4 : 22)) * 35 * Math.max(st("drum").w, .2), 110);
       else mix(stand, near ? 84 : 96, near ? 96 : 84);
-      mix(sleep, hind ? 8 : 12, hind ? 170 : 4);
+      // Lying, hooved animals fold the forelegs under the chest (the forearm forward and down, the cannon tucked back);
+      // the others stretch them out in front.
+      mix(lie, hind ? 8 : b.hoof ? 40 : 12, hind ? 170 : b.hoof ? 172 : 4);
       if (leap.w > 0) { const k2 = leap.w * Math.sin(Math.PI * leapT); a1 = lerp(a1, hind ? 160 : 25, k2); a2 = lerp(a2, hind ? 175 : 15, k2); }
       const knee = polar(root, a1, seg1), paw = polar(knee, a2, seg2);
       // The hock bends back from the line knee → paw; the wrist sits low on the fore leg with the pastern angled forward.
@@ -1277,7 +1285,7 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
   }
   // Head on the neck: pitch for howl/look, lowered for sleep.
   const howl = st("howl").w, lk = st("look"), roar = st("roar").w;
-  const headPitch = -55 * howl + (lk.a?.angle ?? -10) * lk.w + 30 * sleep + 10 * sit - pitch * .55;
+  const headPitch = -55 * howl + (lk.a?.angle ?? -10) * lk.w + 30 * sleep + 10 * sit * (b.hoof ? 0 : 1) - pitch * .55;
   const neck = R([L * .44, top + bh * .05]), nl = b.neck ?? 1, headRot = headPitch + (b.headTilt ?? 0) * (1 - .6 * sleep);
   // A long neck (the horse's) rises steeply from the withers; the head hangs from its end, tilted face-down.
   const headC = add(neck, rot([hs * .9 * (nl > 1 ? .55 * nl : 1), -hs * (.55 - .8 * sleep) * (nl > 1 ? 1.25 * nl : nl)], -headPitch * .3 + pitch * .45, [0, 0]));
