@@ -64,8 +64,10 @@ const parseFile=(input:unknown,which:Side,ctx:ImageContext)=>{
   return file;
 };
 const parsePoints=(input:unknown,which:Side,ctx:ImageContext)=>{
-  if(!Array.isArray(input)||input.length!==HEAD_FIDELITY_LANDMARK_IDS.length)
-    fail(which+" requires exactly 18 independently placed contour points");
+  if(!Array.isArray(input))
+    throw new Error(which+" requires exactly 18 independently placed contour points");
+  if(input.length!==HEAD_FIDELITY_LANDMARK_IDS.length)
+    throw new Error(which+" requires exactly 18 independently placed contour points");
   const originals=ctx.annotations[which].landmarks;
   if(originals.length!==18)
     fail(which+" live annotation session does not contain 18 points");
@@ -74,11 +76,13 @@ const parsePoints=(input:unknown,which:Side,ctx:ImageContext)=>{
   for(const item of input){
     const p=asObject(item,which+" landmark");
     exactKeys(p,["id","x","y"],which+" landmark");
-    if(typeof p.id!=="string"||!pointIds.has(p.id)||
-      found.has(p.id)||!int(p.x)||!int(p.y))
-      fail(which+" has duplicate, unknown or non-pixel landmark data");
-    found.add(p.id);
-    const original=originals.find(x=>x.id===p.id);
+    const id=p.id;
+    if(typeof id!=="string")
+      throw new Error(which+" has duplicate, unknown or non-pixel landmark data");
+    if(!pointIds.has(id)||found.has(id)||!int(p.x)||!int(p.y))
+      throw new Error(which+" has duplicate, unknown or non-pixel landmark data");
+    found.add(id);
+    const original=originals.find(x=>x.id===id);
     if(!original||original.x!==p.x||original.y!==p.y)
       fail(which+" landmark "+p.id+" is stale or differs from independent photo annotation");
     points.push({id:p.id as HeadFidelityPoint["id"],
@@ -87,8 +91,10 @@ const parsePoints=(input:unknown,which:Side,ctx:ImageContext)=>{
   return points;
 };
 const parseTones=(input:unknown,which:Side,ctx:ImageContext)=>{
-  if(!Array.isArray(input)||input.length!==HEAD_FIDELITY_TONES.length)
-    fail(which+" requires five measured nonoverlapping tone samples");
+  if(!Array.isArray(input))
+    throw new Error(which+" requires five measured nonoverlapping tone samples");
+  if(input.length!==HEAD_FIDELITY_TONES.length)
+    throw new Error(which+" requires five measured nonoverlapping tone samples");
   const originals=ctx.annotations[which].tones;
   if(originals.length!==5)
     fail(which+" live annotation session does not contain five rectangles");
@@ -98,8 +104,10 @@ const parseTones=(input:unknown,which:Side,ctx:ImageContext)=>{
     const tone=asObject(item,which+" measured tone");
     exactKeys(tone,["id","rect","meanRgb"],which+" measured tone");
     const id=tone.id;
-    if(typeof id!=="string"||!toneIds.has(id)||found.has(id))
-      fail(which+" has duplicate or unknown measured value role");
+    if(typeof id!=="string")
+      throw new Error(which+" has duplicate or unknown measured value role");
+    if(!toneIds.has(id)||found.has(id))
+      throw new Error(which+" has duplicate or unknown measured value role");
     found.add(id);
     const rect=asObject(tone.rect,which+" measured region");
     exactKeys(rect,["x","y","width","height"],which+" measured region");
