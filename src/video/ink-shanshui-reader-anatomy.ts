@@ -14,8 +14,50 @@
  */
 import type {CharacterPathShape} from "../../registry/character/definition";
 import {inkPressureStroke} from "./ink-shanshui-fine-craft";
+import type {FaceLandmark} from "../../registry/anatomy/anatomy-face";
 
 type P=[number,number];
+/**
+ * ANAT1 face-landmark vocabulary mapped to this ORIGINAL three-quarter
+ * teacher-observed 260×340 image. Image-space coordinates are not a frontal
+ * MediaPipe render: far-side foreshortening, head pitch and the existing
+ * 139,124 animation pivot remain deliberate. Do NOT replace them with
+ * symmetric adult averages or make claims about a sitter's identity.
+ * These landmarks are the authority for subsequent facial-plane painting.
+ */
+export const READER_FACE_ANAT1_POINTS={
+  "exocanthion.R":[118.4,103],
+  "endocanthion.R":[135.5,104.1],
+  "palpebrale-superius.R":[126.7,101.8],
+  "palpebrale-inferius.R":[126.7,108.3],
+  "exocanthion.L":[163.9,102],
+  "endocanthion.L":[149,102.9],
+  "palpebrale-superius.L":[156.4,101.2],
+  "palpebrale-inferius.L":[156.4,106.1],
+  "brow-outer.R":[118.1,94.3],
+  "brow-inner.R":[135.8,96.3],
+  "brow-inner.L":[149.2,95.5],
+  "brow-outer.L":[162.9,95.1],
+  "sellion":[147.2,99.5],
+  "pronasale":[153.8,116.7],
+  "subnasale":[151.8,119.2],
+  "alare.R":[149.1,116.1],
+  "alare.L":[156.1,117.5],
+  "labiale-superius":[142.2,125.7],
+  "stomion":[142.2,126.8],
+  "labiale-inferius":[142.5,128.5],
+  "cheilion.R":[135.5,126],
+  "cheilion.L":[149,126.7],
+  "sublabiale":[143,132.7],
+  "pogonion":[143.9,140.8],
+  "menton":[143.3,143.7],
+  "zygion.R":[119.1,111.7],
+  "zygion.L":[161.5,111.7],
+  "gonion.R":[124.9,133.1],
+  "gonion.L":[153,126.5],
+} as const satisfies Partial<Record<FaceLandmark,readonly [number,number]>>;
+const coord=(n:keyof typeof READER_FACE_ANAT1_POINTS)=>READER_FACE_ANAT1_POINTS[n];
+const num=(v:number)=>Number(v.toFixed(2));
 const ink=(d:string,fill="none",stroke="$shadow",strokeWidth=.7,
   opacity=.65):CharacterPathShape=>({
     type:"path",d,fill,stroke,strokeWidth,opacity,
@@ -74,6 +116,70 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     ink("M132.7 131.9 C139.3 136.9 145.4 138.7 149.8 132.8 C145.5 141.4 138.4 143.1 132.7 131.9 Z",
       "$skinshade","none",0,.13),
   ];
+  // Zeng Jing-style graded face volume beneath baimiao outlines. Eight
+  // distinct closed wet-paper value planes follow the ANAT1 canthi,
+  // sellion/alar, zygion and lip/chin stations rather than random hatching.
+  // No opaque cartoon blush circles, mirror symmetry or new face overlay.
+  const nearCanthus=coord("endocanthion.R"),
+    farCanthus=coord("endocanthion.L"),
+    sellion=coord("sellion"),noseTip=coord("pronasale"),
+    cheek=coord("zygion.R"),farCheek=coord("zygion.L"),
+    chin=coord("menton");
+  const plane=(id:string,d:string,opacity:number)=>
+    ink(d,"$skinshade","none",0,opacity);
+  planes.push(
+    plane("near-orbital-socket",
+      "M117.7 99.7 C123.3 96.2 129.8 97 136.3 101.1 "+
+      "C130.7 99.6 125.2 101.1 120.1 104.6 "+
+      "C118.4 103.7 117.6 101.9 117.7 99.7 Z",.235),
+    plane("far-orbital-socket",
+      "M148.3 99.9 C153.4 97 160.1 97.6 164.1 99.8 "+
+      "C162.8 101.1 158.4 102 153.8 103.9 "+
+      "C151.2 103.8 149.5 102.4 148.3 99.9 Z",.19),
+    // A soft, sloping anatomical glabella→nose bridge, lifted paper
+    // on the center plane and an alar shadow on the near nostril.
+    plane("nasal-sidewall",
+      "M"+num(sellion[0]+.9)+" "+num(sellion[1]+.9)+
+      " C149.2 103.4 153 109.3 155 112.6 "+
+      "C156.1 115.1 155.4 117 153.9 118.5 "+
+      "C152 116.8 149.5 113.3 148.7 109 "+
+      "C148.1 105.3 148 102 148.1 100.4 Z",.26),
+    plane("nasal-alar-side",
+      "M149.1 113.9 C151.2 112.9 154.8 114.5 156.6 116.5 "+
+      "C156.4 118.9 153.8 119.7 151.4 118.8 "+
+      "C153.4 117.9 151.7 115.8 149.1 113.9 Z",.2),
+    // Wide malar transition gives the cheek its actual skull volume
+    // without dark drawn stripes or the previous mask-like flatness.
+    plane("near-malar-volume",
+      "M"+num(cheek[0]+1.7)+" "+num(cheek[1]-2.1)+
+      " C124.9 107 132.3 109.5 139.8 113.8 "+
+      "C143.2 117.5 145.1 121.1 143.8 124.8 "+
+      "C138.9 124.1 133.1 120.5 128.3 117.8 "+
+      "C124.3 115.9 122.1 112.6 120.8 109.6 Z",.16),
+    plane("far-malar-turn",
+      "M"+num(farCheek[0]-6.3)+" "+num(farCheek[1]-4.7)+
+      " C159 108.2 161.5 110.8 161.4 114.2 "+
+      "C159.9 119.6 156.9 122.6 152.1 126.2 "+
+      "C156.7 119.1 158.7 113.6 155.2 107 Z",.165),
+    plane("mentolabial-transition",
+      "M136 129.9 C139.1 131.9 145.5 132.8 150.3 129.6 "+
+      "C149 134.1 146 138.1 142.9 138.1 "+
+      "C139.1 137.2 137 134.4 136 129.9 Z",.185),
+    plane("underside-chin-turn",
+      "M133.8 137.6 C137.3 139.4 141.6 142.4 "+
+      num(chin[0])+" "+num(chin[1])+
+      " C140.5 144.1 136.8 141.2 133.8 137.6 Z",.12),
+    // Paper-bright planar relief (not a white glow or a skin-gradient).
+    ink("M146.7 100.8 C147.8 104.4 149.1 108.5 149 111.5 "+
+      "C147.3 109.4 146.5 105.2 146.7 100.8 Z",
+      "$paper","none",0,.32),
+    ink("M125.8 114.1 C129 113.3 134.2 114.9 137.7 117.4 "+
+      "C134.9 116.8 130.7 116.7 125.8 114.1 Z",
+      "$paper","none",0,.16),
+    ink("M148.6 125.4 Q150.3 121.7 "+num(noseTip[0])+
+      " "+num(noseTip[1])+" Q151.5 120.7 148.6 125.4 Z",
+      "$paper","none",0,.13),
+  );
   if(medium)planes.push(
     ink("M120.4 111.7 C122.5 114.4 124.7 118.2 129 120.4 C125 117.4 123.3 114.5 122.9 112.8 Z",
       "$skinshade","none",0,.11),
