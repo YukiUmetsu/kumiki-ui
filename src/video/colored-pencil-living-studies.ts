@@ -589,35 +589,37 @@ function fox():PencilSubjectPart[] {
         ],1831,["#C8865D","#744E45","#ECC299"],244),
       ]},
     {id:"rear-leg",material:"fur",palette:charcoal,
-      // The hind limb is FLEXED inside the orange haunch; it cannot be a
-      // third vertical foreleg. The hock rolls into a low, ground-bearing
-      // lateral paw while its superior root remains beneath the rump.
-      path:"M300 347 C309 338 324 337 335 345 "+
-        "C343 353 345 364 348 377 C352 384 363 390 367 397 "+
-        "C370 401 364 404 357 404 C349 407 342 403 337 402 "+
-        "C330 406 321 405 315 401 C315 390 312 381 307 372 "+
-        "C300 361 294 355 300 347 Z",
-      bounds:[292,334,80,74],direction:80,start:84,
+      // ArtCraft native 960px review rejected even the first bent hock:
+      // the ~80×74 dark cap read as a THIRD standing furry mound. In an
+      // alert seated fox only a shortened rear metatarsus and toe pad
+      // emerge from beneath the large russet haunch at ground level.
+      // The hidden upper thigh stays orange; never extend a charcoal boot
+      // from the rump to the grass just to fill empty picture space.
+      path:"M328 369 C334 366 344 371 349 379 "+
+        "C352 385 359 392 368 396 C373 399 372 403 367 405 "+
+        "C359 408 353 405 348 404 C337 409 326 406 320 403 "+
+        "C323 395 321 388 318 381 C318 374 322 369 328 369 Z",
+      bounds:[315,364,59,46],direction:83,start:84,
       details:[
         ...pencilRootedFur([
-          [308,347,337,388,318,366,29,12],
-          [333,353,350,391,349,367,27,10],
-          [317,372,355,401,345,391,28,9],
-          [340,379,363,401,358,392,25,7],
+          [326,377,345,398,334,387,27,7],
+          [338,372,360,399,348,388,28,8],
+          [322,389,345,404,336,399,27,6],
+          [352,389,368,401,358,399,25,5],
         ],421,["#A69A8F","#605451","#C8B9A8"],234),
-        {...mark("M310 349 C324 350 337 362 339 374 "+
-          "M316 372 Q325 382 329 393",
+        {...mark("M326 374 C338 376 345 384 345 391 "+
+          "M327 390 Q333 397 341 398",
           "#87736A",.44,261,.58),id:"hind-hock-plane"},
-        {...mark("M317 399 Q325 402 331 400 "+
-          "M335 401 Q342 403 348 401 "+
-          "M351 402 Q358 404 365 400",
+        {...mark("M323 400 Q330 403 335 402 "+
+          "M338 404 Q347 407 352 402 "+
+          "M356 402 Q363 405 369 400",
           "#443C3E",.37,269,.59),id:"hind-digit-folds"},
-        {...mark("M322 402 l1.7 1.1 M339 404 l1.6 .7 "+
-          "M355 403 l1.9 .8",
+        {...mark("M327 405 l1.7 1.1 M345 406 l1.6 .7 "+
+          "M362 404 l1.9 .8",
           "#3B3135",.30,276,.62),id:"hind-tiny-claws"},
-        {...mark("M303 354 Q310 361 312 371 "+
-          "M326 348 Q338 356 342 367 "+
-          "M332 385 Q345 391 358 395",
+        {...mark("M331 375 Q340 379 342 386 "+
+          "M344 382 Q353 393 361 396 "+
+          "M325 393 Q335 402 344 403",
           "#C0AE9D",.31,280,.45),id:"hind-fur-light-turn"},
       ]},
     {id:"foreleg-left",material:"fur",palette:charcoal,
