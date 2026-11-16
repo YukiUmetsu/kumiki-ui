@@ -70,9 +70,13 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const riso54Web=(actor.id==="courier"&&side==="right")||
     (actor.id==="paper-artist"&&side==="left")?
     inspectRiso54WebReserves(actor,frame):null;
-  const realVolume=(actor.id==="courier"&&side==="right")||
+  // Source 3D inverse-kinematic reconstruction is independent of live
+  // film frame/ink-density; cache its actual ANAT1 joints once per actor.
+  const realVolume=useMemo(()=>(
+    (actor.id==="courier"&&side==="right")||
     (actor.id==="paper-artist"&&side==="left")?
-    riso58ContactSkin(actor,actor.id as "courier"|"paper-artist",side,160):null;
+      riso58ContactSkin(actor,actor.id as "courier"|"paper-artist",side,160):null
+  ),[actor,side]);
   const mainPalmSource=pose.parts.find(p=>p.id===side+"-glove");
   const mcpPlateSource=pose.parts.find(p=>p.id===side+"-glove-knuckle-arc");
   const riso51MorphParts=actor.parts.filter(p=>
