@@ -1196,7 +1196,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     crayonF1SculptTarsal(valueEyes):valueEyes;
   // One source-rooted face artist, one baseline: no invented brow arch
   // is silently promoted to the existing scene defaults.
-  const brow= browForm==="source-rooted"||midfaceForm==="source-anat1-brow-follicles"?
+  const brow= browForm==="source-rooted"||["source-anat1-brow-follicles","source-anat1-hair-values"].includes(midfaceForm)?
     crayonF1ReconstructBrows(ocular):ocular;
   // The sparse/original lashes are the negative control for photographic
   // lash density. Rooted dense fibers are never silently promoted.
