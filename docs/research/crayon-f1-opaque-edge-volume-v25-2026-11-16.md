@@ -14,3 +14,17 @@ Four existing named CRAYON1 shapes only are switched to opaque core in an opt-in
 References: [Philadelphia Museum of Art wax-on-paper terminology](https://legacyweb.philamuseum.org/doc_downloads/conservation/DescriptiveTerminologyforArtonPaper.pdf); [Mould et al., Simulating Wax Crayons](https://people.scs.carleton.ca/~mould/papers/crayon.pdf). Learned medium texture only; no art/images copied.
 
 **HARD STOP**: Official ArtCraft 9.1 threshold, 18 annotated anatomy landmarks, faithful 1×/3× source value planes, actual 300-frame acting and independent art approval are not met. Keep draft and unmerged if opaque mask creates a soft plastic patch or hard oval.
+
+## Independent actual V25 pixel review — ARTISTIC REJECT
+
+Native actual [Chromium run 43819506279](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43819506279), artifact 14204292139, 608×1082 1× and 3×; direct inspection and scikit-image comparison against frozen CC0 screenshot:
+
+| Source crop RGB SSIM | V24 open baseline | V25 opaque nose |
+| --- | ---: | ---: |
+| Full portrait | .361959 | **.361674** |
+| Nose x340..493/y570..684 | .557073 | **.548200** |
+| Bright bulb x374..411/y594..633 | .522314 | **.500784** |
+| Septal x412..451/y627..664 | .515725 | **.495639** |
+| Near dark core x389..415/y628..645 | .190615 | .191387 |
+
+Source RGB (405,631): [29,4,4]; actual V25 [140,103,93]. Source far (450,627): [74,22,18]; actual V25 [145,111,101]. The opaque skin improves paper contact but still overpaints the recessed source cavity; the whole portrait remains flat, two dark bean shapes look detached, and V25's nose fidelity **regressed**. V26 independently tests local wax paint-order inversion to expose the cavities without adding new nodes. No claim that simple darkening passes ArtCraft.
