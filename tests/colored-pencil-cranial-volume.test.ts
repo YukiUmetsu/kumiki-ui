@@ -31,7 +31,7 @@ describe("ArtCraft new human #01: physically layered cranial volume (unapproved 
   it("rejects correlated two-axis hash lattices that previously drew dark straight slashes",()=>{
     const traces=newHeadCranialTonalVolume([25,30,220,340],271);
     const pigment=traces.find(t=>t.id==="newhead-cranium-core-shadow-cross0")!;
-    const points=[...pigment.path.matchAll(/M(-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/g)]
+    const points=[...pigment.path.matchAll(/M(-?[0-9]+(?:[.][0-9]+)?) (-?[0-9]+(?:[.][0-9]+)?)/g)]
       .map(match=>[Number(match[1]),Number(match[2])] as const);
     expect(points.length).toBeGreaterThan(150);
     const avgX=points.reduce((s,p)=>s+p[0],0)/points.length;
