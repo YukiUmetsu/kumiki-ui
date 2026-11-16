@@ -14,6 +14,7 @@ import {
   makePencilHeadAnnotationCheckpoint,restorePencilHeadAnnotationCheckpoint,
   type PencilHeadCheckpointImages,
 } from "./colored-pencil-head-checkpoint";
+import {reviewMeasuredHeadEvidence} from "./colored-pencil-head-evidence-review";
 
 type Photo={url:string;name:string;sha256:string;dimensions:NativeDimensions};
 type LocalImages={source:Photo|null;output:Photo|null};
@@ -295,6 +296,7 @@ export function PencilHeadSourceAnnotationAtlas(){
     url:"",license:"",credit:"",
   });
   const [message,setMessage]=useState("");
+  const [measuredEvidence,setMeasuredEvidence]=useState<unknown|null>(null);
   const images:LocalImages={source:source.photo,output:output.photo};
   const fingerprints:PencilHeadCheckpointImages|null=images.source&&images.output?{
     source:{name:images.source.name,sha256:images.source.sha256,
@@ -308,6 +310,7 @@ export function PencilHeadSourceAnnotationAtlas(){
     if(!file)return;
     try{
       setMessage("");
+      setMeasuredEvidence(null);
       const accepted=await (side==="source"?source:output).load(file);
       // Replacing an image invalidates coordinates on THAT side only.
       if(accepted)setSession(prev=>({...prev,[side]:{landmarks:[],tones:[]}}));
@@ -318,6 +321,42 @@ export function PencilHeadSourceAnnotationAtlas(){
     try{return compileHeadAnnotationManifest(session,reference);}
     catch{return null;}
   },[session,reference,images.source,images.output]);
+  // The imported JSON must match BOTH exact local image digests,
+  // currently selected semantic points, actual rectangles and license.
+  // Any subsequent edit invalidates this result immediately, without
+  // pretending it was still measured against the current art.
+  const measuredReview=useMemo(()=>{
+    if(!measuredEvidence)return null;
+    if(!fingerprints)return {view:null,error:"Both original local images are required"};
+    try{
+      return {view:reviewMeasuredHeadEvidence(measuredEvidence,{
+        images:fingerprints,annotations:session,reference,
+      }),error:null};
+    }catch(error){
+      return {view:null,error:error instanceof Error?error.message:String(error)};
+    }
+  },[measuredEvidence,session,reference,images.source,images.output]);
+  const importMeasuredEvidence=async(event:ChangeEvent<HTMLInputElement>)=>{
+    const file=event.currentTarget.files?.[0];
+    event.currentTarget.value="";
+    if(!file)return;
+    if(!fingerprints){setMessage("Load both exact original images before reviewing measured evidence.");return;}
+    if(!file.size||file.size>256*1024){
+      setMessage("Measured evidence JSON must be under 256 KiB");return;
+    }
+    try{
+      const raw:unknown=JSON.parse(await file.text());
+      // Preserve the import only after validating full parity.
+      reviewMeasuredHeadEvidence(raw,{
+        images:fingerprints,annotations:session,reference,
+      });
+      setMeasuredEvidence(raw);
+      setMessage("Measured source/native image JSON matched the current original files and artist annotations. Independent visual approval is still required.");
+    }catch(error){
+      setMeasuredEvidence(null);
+      setMessage(error instanceof Error?error.message:String(error));
+    }
+  };
   const exportProof=()=>{
     if(!proof){setMessage("Both original images, 18+18 contour points and 5+5 tonal boxes are required");return;}
     const blob=new Blob([JSON.stringify(proof,null,2)+"\n"],{
@@ -443,6 +482,73 @@ export function PencilHeadSourceAnnotationAtlas(){
         a photographic source license, measurement, or artistic approval.
         Restoring requires both original byte-identical local images.
       </p>
+      <section aria-label="Measured source versus native head evidence"
+        data-km-head-evidence-status={measuredReview?.view?.report.status??
+          (measuredReview?.error?"stale":"missing")}
+        style={{display:"grid",gap:10,padding:"13px 15px",
+          border:"1px solid #B7B4AE",background:"#F5F3ED",maxWidth:900}}>
+        <strong style={{font:"600 18px Georgia,serif"}}>
+          Source / native head measurement review
+        </strong>
+        <p style={{margin:0,fontSize:13}}>
+          After placing 18+18 head points and five + five tonal rectangles,
+          run the native image capture CLI with the two unmodified local
+          files. Import its JSON output here. This view rejects stale,
+          swapped or incorrectly attributed evidence; it cannot certify
+          portrait realism or replace direct 1× / 3× visual comparison.
+        </p>
+        <label style={labelStyle}>Import exact-byte measured evidence JSON
+          <input type="file" accept=".json,application/json"
+            aria-label="Import measured head evidence JSON"
+            disabled={!fingerprints}
+            onChange={e=>{void importMeasuredEvidence(e);}}/>
+        </label>
+        {measuredReview?.error&&<p role="alert"
+          data-km-evidence-invalid=""
+          style={{margin:0,color:"#8A2924",fontSize:13}}>
+          INVALID / STALE: {measuredReview.error}
+        </p>}
+        {measuredReview?.view&&<div style={{display:"grid",gap:8}}>
+          <div data-km-evidence-report-status=""
+            style={{fontSize:14,fontWeight:700}}>
+            {measuredReview.view.report.status==="measurement-ready"?
+              "MEASUREMENT READY · ARTISTIC RELEASE HELD":
+              "MEASUREMENT BLOCKED · ARTISTIC RELEASE HELD"}
+          </div>
+          <div style={{display:"flex",gap:18,flexWrap:"wrap",fontSize:13}}>
+            <span>18 independently observed contour pairs</span>
+            <span>5 original/native RGB patch pairs</span>
+            <span>Geometry RMS: {measuredReview.view.report.geometryRms===null?
+              "invalid":measuredReview.view.report.geometryRms.toFixed(4)}</span>
+            <span>Five-tone luma difference: {
+              measuredReview.view.report.tonalMeanError===null?
+                "invalid":measuredReview.view.report.tonalMeanError.toFixed(4)}</span>
+          </div>
+          {measuredReview.view.report.errors.length>0&&
+            <p data-km-evidence-errors="" role="status"
+              style={{margin:0,color:"#8A2924",fontSize:12}}>
+              {measuredReview.view.report.errors.join(" · ")}
+            </p>}
+          <details>
+            <summary>Five measured native RGB pairs</summary>
+            <table style={{fontSize:12,borderSpacing:"11px 5px"}}>
+              <thead><tr><th scope="col">Value</th><th scope="col">Original photograph</th>
+                <th scope="col">Native vector render</th></tr></thead>
+              <tbody>{HEAD_FIDELITY_TONES.map(id=>{
+                const src=measuredReview.view!.sourceTones.find(t=>t.id===id)!;
+                const out=measuredReview.view!.outputTones.find(t=>t.id===id)!;
+                return <tr key={id}><th scope="row">{id}</th>
+                  <td>{src.meanRgb.join(", ")}</td><td>{out.meanRgb.join(", ")}</td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </details>
+        </div>}
+        <p style={{margin:0,fontSize:12,fontWeight:700}}>
+          Artist approved: NO. Unmeasured work and mismatched data remain
+          blocked. Do not draw an eye until the source silhouette is accepted.
+        </p>
+      </section>
       <button type="button" data-km-annotation-export=""
         onClick={exportProof} disabled={!proof}
         style={{...common,background:proof?"#E1EBDB":"#F6F4EE",
