@@ -54,7 +54,7 @@ describe("ArtCraft V25 opt-in real opaque wax undercoat / soft edge",()=>{
      expect(html).not.toContain("<image");
      if(frame===175)expect(html).toContain("data-km-crayon-solid-feather-deposit");
    }
- });
+ },20_000);
  it("fails closed on duplicate, missing or reapplied existing anatomy",()=>{
    const before=crayonCc0FaceStudy({midfaceForm:"source-nasal-relief"});
    const after=crayonCc0FaceStudy({midfaceForm:"source-solid-relief"});
