@@ -50,3 +50,12 @@ At the real f160 paper transfer, existing RISO51 continuous 2D perspective evalu
 - **Reject if** positive palm still resembles a small slab/mitten, if the anatomical concavity exposes a page-white pinhole, if the thumb/index base reads detached, or if the three RED distal curled pads appear as independent floating round dots; keep draft, do not claim world-class/photographic approval.
 
 Known simplification **not concealed**: ANAT1 skeletal projection is clinical reference, not true view-calibrated 3D hand biomechanics. RISO57 still draws one editorial 2D palm plate and hence does not provide occlusion computed from a full 3D flesh mesh; further geometry could be required.
+
+
+## First failure caught by existing physical gates — source attachment correction
+
+The first RISO57 silhouette candidate was too flattering to a generic palm silhouette: its index/middle/ring/little knuckles were shifted radially ~3–4 units relative to the **real existing original ANAT1 MCP root positions**. Existing RISO54 paper-white interdigital source reserves (`x=-3.2/-8.12`, `y=18.8/16.15` from the earlier wide mitt) now sat wholly *outside* that red positive contour; RISO54's actual `inside >1 / outside >1` printed-paper-lip geometry test correctly failed. **Do not remove or weaken that test.**
+
+RISO57 corrects the clinical source-plane alignment using the actual immutable `COURIER_BASE_JOINTS` root stations (right-hand index `[6,16]`, middle `[0,18]`, ring `[-6,16]`, little `[-11,15]`; mirrored on left). The source knot landmarks and RED filled carpal edge now stay within 2.6 source units of these physical original joint roots, not within an invented symmetric hand. Four knuckle crests are distinctly different heights and source positions. The two original RISO54 four-cubic negative paper reserves are **retargeted** to the RISO57 actual `middle-ring-web` and `ring-little-web` knots and project under the same real RISO51 3/4 palm transform: each must genuinely cross from RED palm interior to unprinted exterior at f160, not form isolated white holes or disappear off outside the hand. Zero third-colour matte; genuine paper on both physical spot masters.
+
+Added source-MCP proximity regression to `tests/riso57-palmar-silhouette-artcraft.test.ts`; retained RISO54 negative-paper-lip test and all original RISO42 red-ink finger-gap checks. This is the critical anatomical assembly fix missed by small cosmetic RISO49–55 iterations.
