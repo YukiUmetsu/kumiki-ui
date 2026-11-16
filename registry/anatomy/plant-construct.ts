@@ -31,7 +31,8 @@ export function plantConstruction(subject: string | PlantSpecies, overrides: Dee
 }
 
 export interface PlantBranch { points: FPoint[]; radii: number[]; order: number; depth: number }
-export interface FoliageMass extends FEllipse { depth: number }
+/** A foliage or blossom mass, with the order of the branch it grows on (1 = a primary branch). */
+export interface FoliageMass extends FEllipse { depth: number; order?: number }
 export interface PlantStrand { points: FPoint[]; width: number; depth: number; kind: "twig" | "blade" | "raceme" | "stem" | "petiole" }
 export interface PlantOrgan { at: FPoint; angle: number; size: number; depth: number }
 export interface PlantSkeleton {
@@ -170,14 +171,14 @@ function growWoody(sk: PlantSkeleton, rnd: () => number, o: GrowOptions, bloomin
     if (F.kind === "needle-pads") for (const b of sk.branches.filter(b => b.order >= 1)) {
       // Needle pads: flat-topped clouds over the outer half of each branch, the largest at the branch ends.
       const L = pathLength(b.points), at = pointAt(b.points, b.order === 1 ? .8 : .75), rx = Math.max(.035, L * (b.order === 1 ? .48 : .62)), ry = rx * .3;
-      sk.foliage.push({ cx: at[0], cy: at[1] + ry * .5, rx, ry, angle: 0, depth: b.depth });
+      sk.foliage.push({ cx: at[0], cy: at[1] + ry * .5, rx, ry, angle: 0, depth: b.depth, order: b.order });
     }
     else if (F.kind === "scale-sprays") for (const b of sk.branches.filter(b => b.order >= 1)) {
       // Dense drooping sprays clothe every branch: overlapping masses along it, so the crown reads as one cone.
       const L = pathLength(b.points);
       for (const u of b.order === 1 ? [.35, .65, .92] : [.7]) {
         const at = pointAt(b.points, u), s = Math.max(.025, L * (b.order === 1 ? .32 : .5)) * (.8 + rnd() * .4);
-        sk.foliage.push({ cx: at[0], cy: at[1] - s * .15, rx: s, ry: s * .55, angle: 0, depth: b.depth });
+        sk.foliage.push({ cx: at[0], cy: at[1] - s * .15, rx: s, ry: s * .55, angle: 0, depth: b.depth, order: b.order });
       }
     }
     else if (F.kind === "leafy-stems") for (const b of sk.branches) {
@@ -194,14 +195,15 @@ function growWoody(sk: PlantSkeleton, rnd: () => number, o: GrowOptions, bloomin
     }
     else if (F.kind === "cloud") for (const b of tips) {
       const end = b.points[b.points.length - 1], mid = pointAt(b.points, .6), s = F.size * (.6 + rnd() * .6) * Math.sqrt(cover);
-      sk.foliage.push({ cx: end[0], cy: end[1] + s * .2, rx: s, ry: s * .78, angle: 0, depth: b.depth });
+      sk.foliage.push({ cx: end[0], cy: end[1] + s * .2, rx: s, ry: s * .78, angle: 0, depth: b.depth, order: b.order });
       if (rnd() < F.density - .3) sk.foliage.push({ cx: mid[0], cy: mid[1], rx: s * .7, ry: s * .55, angle: 0, depth: b.depth - .1 });
     }
     else if (F.kind === "strands") for (const b of sk.branches.filter(b => b.order >= 1)) {
       // Weeping twigs (or, on a vine's trellis, leafy trailing shoots) hanging from along the branch.
       for (let u = .3; u <= 1; u += .12) {
         const at = pointAt(b.points, u), len = F.size * (.6 + rnd() * .5) * (form.id === "vine" ? .5 : 1), pts: FPoint[] = [at];
-        for (let i = 1; i <= 8; i++) pts.push(add(pts[i - 1], [(rnd() - .5) * .006 + .002, -len / 8]));
+        for (let i = 1; i <= 8; i++) { const q = add(pts[i - 1], [(rnd() - .5) * .006 + .002, -len / 8]); if (q[1] < .02) break; pts.push(q); }
+        if (pts.length < 2) continue;
         sk.strands.push({ points: pts, width: .004, depth: b.depth, kind: "twig" });
       }
     }
@@ -218,7 +220,7 @@ function growWoody(sk: PlantSkeleton, rnd: () => number, o: GrowOptions, bloomin
       const end = b.points[b.points.length - 1], mid = pointAt(b.points, .55), s = a.foliage.size * (.75 + rnd() * .5);
       sk.blossom.push({ cx: end[0], cy: end[1] + s * .15, rx: s, ry: s * .75, angle: 0, depth: b.depth + .05 }, { cx: mid[0], cy: mid[1], rx: s * .7, ry: s * .55, angle: 0, depth: b.depth });
     }
-    else for (const b of sk.branches.filter(b => b.order >= Math.max(1, B.orders - 2))) for (let u = .2; u <= 1; u += .09) {
+    else for (const b of sk.branches.filter(b => b.order >= Math.max(1, B.orders - 1))) for (let u = .2; u <= 1; u += .16) {
       // Solitary blossom (plum, peach) sits singly along the twigs, close to the wood.
       const at = pointAt(b.points, u);
       sk.flowers.push({ at: add(at, [(rnd() - .5) * .008, (rnd() - .5) * .008]), angle: rnd() * 360, size: size * 1.3 * (.8 + rnd() * .4), depth: b.depth + .05 });
@@ -339,6 +341,20 @@ function growHerbaceous(sk: PlantSkeleton, rnd: () => number, blooming: boolean,
       sk.flowers.push({ at: pts[2], angle: nod ? -60 - rnd() * 40 : 90 + (rnd() - .5) * 20, size: form.id === "iris-clump" ? .1 : .22, depth: .4 });
     }
   }
+}
+
+/**
+ * A copy of a grown plant moved by wind at time `t`: grow once (with a fixed seed), then sway the copy every frame
+ * instead of growing again.
+ */
+export function swayPlant(sk: PlantSkeleton, wind: number, t: number): PlantSkeleton {
+  const copy: PlantSkeleton = {
+    ...sk,
+    branches: sk.branches.map(b => ({ ...b, points: b.points.slice() })), foliage: sk.foliage.map(f => ({ ...f })), blossom: sk.blossom.map(f => ({ ...f })),
+    strands: sk.strands.map(s => ({ ...s, points: s.points.slice() })), leaves: sk.leaves.map(o => ({ ...o })), flowers: sk.flowers.map(o => ({ ...o })), fruits: sk.fruits.map(o => ({ ...o })),
+  };
+  if (wind) sway(copy, wind, t);
+  return copy;
 }
 
 /** Wind: everything leans downwind with height and swings; long thin parts swing most. */

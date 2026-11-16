@@ -94,6 +94,16 @@ describe("UKIYO1 frame purity", () => {
     const calm = JSON.stringify(drawMotif("willow", {}, { frame: 30, wind: 0, seed: 4, progress: 1 }));
     expect(JSON.stringify(drawMotif("willow", {}, { frame: 30, wind: 1.5, seed: 4, progress: 1 }))).not.toEqual(calm);
   });
+  it("grows the pine, cherry, willow and plum with FLORA1: the whole tree stands `height` tall, blossom follows `bloom`", () => {
+    const top = (prims: unknown) => [...JSON.stringify(prims).matchAll(/"d":"([^"]+)"/g)].flatMap(m => [...m[1].matchAll(/-?\d+(?:\.\d+)?/g)].map(Number).filter((_, i) => i % 2 === 1)).reduce((a, v) => Math.min(a, v), Infinity);
+    for (const m of ["pine", "sakura", "willow", "ume"] as const) {
+      const t = -top(drawMotif(m, { height: 400 }, { frame: 0, wind: 0, seed: 4, progress: 1 }));
+      expect(t, m).toBeGreaterThan(360); expect(t, m).toBeLessThan(470);
+    }
+    const blossom = (bloom: number) => drawMotif("sakura", { height: 400, bloom }, { frame: 0, wind: 0, seed: 4, progress: 1 }).filter(p => JSON.stringify(p).includes('"beni"')).length;
+    expect(blossom(1)).toBeGreaterThan(0);
+    expect(blossom(0)).toBe(0);
+  });
   it("raises and breaks the wave from its progress and break frame", () => {
     const extent = (p: number, frame: number) => {
       const d = drawMotif("wave", { breakAt: 100 }, { frame, wind: 0, seed: 1, progress: p })[0];

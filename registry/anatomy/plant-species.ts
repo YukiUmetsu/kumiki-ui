@@ -65,7 +65,7 @@ export const PLANT_SPECIES: readonly PlantSpecies[] = [
     seasons: {}, sounds: [{ kind: "ambience", label: "wind in the pines (matsukaze)", query: "wind in pine trees" }, { kind: "ambience", label: "surf beyond a coastal pine grove", catalog: "bed-surf-beach" }],
     culture: ["One of the Three Friends of Winter (shō-chiku-bai) with bamboo and plum: longevity and constancy.", "Coastal groves such as Miho no Matsubara; the painted pine behind every Noh stage.", "Matsukaze, the wind in the pines: a Noh play and the sound of the tea kettle."],
     references: [SZ("Pinus_massoniana_SZ113.png", "Pinus thunbergii (as P. massoniana), pl. 113"), SZ("Pinus_massoniana_SZ114.png", "Pinus thunbergii (as P. massoniana), pl. 114")],
-    sources: [W("Pinus_thunbergii")], styles: [uk("pine", "Motif: crooked trunk, needle pads.")],
+    sources: [W("Pinus_thunbergii")], styles: [uk("pine", "Motif: grown by FLORA1; leaning trunk, whorled tiers of flat needle pads.")],
   },
   {
     id: "japanese-red-pine", name: "Japanese red pine", ja: { kana: "アカマツ", kanji: "赤松", romaji: "akamatsu" }, scientific: "Pinus densiflora", form: "pine",
@@ -109,7 +109,7 @@ export const PLANT_SPECIES: readonly PlantSpecies[] = [
     seasons: { leaf: DECIDUOUS, autumn: [10, 11] }, sounds: [WIND_LEAVES],
     culture: ["Flowers open together with the red-brown young leaves (Koidzumi: 'coetaneous flowers').", "Hanami, and Yoshino's hillsides; the falling petals of mono no aware.", "The Edo-period cherry of the prints: Somei-yoshino came later, in the Meiji era."],
     references: [{ title: "Hokusai, Bullfinch and Weeping Cherry", url: C("Bullfinch_and_Weeping_Cherry_(Uso,_shidarezakura).jpg"), rights: "public-domain", kind: "print" }],
-    sources: [W("Prunus_jamasakura")], styles: [uk("sakura", "Motif: blossom clouds on a gnarled tree.")],
+    sources: [W("Prunus_jamasakura")], styles: [uk("sakura", "Motif: grown by FLORA1; blossom clouds over a pink underprint, limbs of elbows, lenticel bark.")],
   },
   {
     id: "japanese-plum", name: "Japanese apricot (ume)", ja: { kana: "ウメ", kanji: "梅", romaji: "ume" }, scientific: "Prunus mume", form: "blossom-tree",
@@ -122,7 +122,7 @@ export const PLANT_SPECIES: readonly PlantSpecies[] = [
     seasons: { leaf: [4, 5, 6, 7, 8, 9, 10], autumn: [10] }, sounds: [{ kind: "vocal", label: "bush warbler (uguisu) in the plum", catalog: "bed-birds-uguisu" }],
     culture: ["The first blossom of the year, in the cold: one of the Three Friends of Winter.", "The plum rain (tsuyu) when its fruit ripens; umeboshi.", "Sugawara no Michizane's flying plum (tobiume); Hiroshige's Plum Garden at Kameido."],
     references: [SZ("Prunus_mume_SZ11.png", "Prunus mume, pl. 11"), { title: "Hiroshige, Plum Garden at Kameido (Rijksmuseum)", url: C("De_pruimenboomgaard_te_Kameido_Kameido_umeyashiki_(titel_op_object)_Honderd_beroemde_gezichten_op_Edo_(serietitel)_Meisho_Edo_hyakkei_(serietitel_op_object),_RP-P-1956-743.jpg"), rights: "CC0", kind: "print" }],
-    sources: [W("Prunus_mume")], styles: [],
+    sources: [W("Prunus_mume")], styles: [uk("ume", "Motif: grown by FLORA1; white flowers and red buds on dark wood.")],
   },
   {
     id: "weeping-willow", name: "Weeping willow", ja: { kana: "シダレヤナギ", kanji: "枝垂柳", romaji: "shidare yanagi" }, scientific: "Salix babylonica", form: "weeping",
@@ -134,7 +134,7 @@ export const PLANT_SPECIES: readonly PlantSpecies[] = [
     seasons: { leaf: [3, 4, 5, 6, 7, 8, 9, 10, 11], autumn: [11] }, sounds: [WIND_LEAVES],
     culture: ["Ghosts (yūrei) appear under willows on summer nights.", "The Mikaeri-yanagi, the 'looking-back willow' at the Yoshiwara gate; Ono no Tōfū watching the frog leap at a willow.", "Phyllotaxis 5/13 of a turn (Phyllotaxis article)."],
     references: [{ title: "Hiroshige, Tea-house at the Willow Bridge (MET DP123292)", url: C("Ryogoku_Yanagibashi_(Kawachiya)-江戸高名会亭尽_両国柳橋_河内屋-Tea-house_at_the_Willow_Bridge_MET_DP123292.jpg"), rights: "CC0", kind: "print" }],
-    sources: [W("Salix_babylonica"), W("Phyllotaxis")], styles: [uk("willow", "Motif: hanging strands.")],
+    sources: [W("Salix_babylonica"), W("Phyllotaxis")], styles: [uk("willow", "Motif: grown by FLORA1; arching limbs, hanging curtains.")],
   },
   {
     id: "japanese-maple", name: "Japanese maple (momiji)", ja: { kana: "イロハモミジ", kanji: "紅葉", romaji: "iroha momiji" }, scientific: "Acer palmatum", form: "layered",
