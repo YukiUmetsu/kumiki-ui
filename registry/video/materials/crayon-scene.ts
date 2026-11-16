@@ -87,15 +87,14 @@ export interface CrayonWaxElement extends CrayonBase {
   /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
    * default open retains translucent scenery and older CRAYON1 documents. */
   coverage?: "open" | "opaque";
-  /** Edge blending radius (0..18 SVG units) for painted open wax glazes.
-   * Finished subjects remain opaque because their own underpaint is separate. */
+  /** Edge alpha feather (0..18) on open scumbles; opaque volumes can opt in
+   * only with featherContacts and stroke-built deposition. RGB wax and
+   * raised paper tooth are never photo-filtered. */
   blendRadius?: number;
-  /** Feather the DIRECTIONAL GRAIN CONTACT along the same open-wax
-   * silhouette radius. Unlike blendRadius alone, this also fades the
-   * pressure marks and contact clumps that would otherwise end abruptly
-   * at the clipPath and create a cut-paper polygon. Requires an open,
-   * stroke-built glaze with blendRadius > 0. Off by default, especially
-   * for opaque characters and precise ink boundaries. */
+  /** Physical edge contact: historical open glazes unchanged; opt-in
+   * opaque stroke-built wax simultaneously feathers its undercoat and
+   * dry-fiber grain WITHOUT losing the core solid pigment or draw-in.
+   * Default off for all older opaque characters and hard ink edges. */
   featherContacts?: boolean;
   /** 0..1 artistic density of medium-native random tooth marks.
    * Lower values leave opaque underpaint intact; the artist can layer
@@ -349,14 +348,16 @@ export function inspectCrayonScene(input: unknown): string[] {
         if (node.coverage !== undefined && node.coverage !== "open" && node.coverage !== "opaque")
           errors.push(p + ".coverage must be open or opaque");
         if (node.blendRadius !== undefined && (!finite(node.blendRadius)||node.blendRadius<0||
-          node.blendRadius>18||node.coverage!=="open"))
-          errors.push(p + ".blendRadius must be 0..18 on open wax");
+          node.blendRadius>18||(node.coverage!=="open"&&
+            !(node.coverage==="opaque"&&node.featherContacts===true&&
+              node.deposition==="stroke-built"))))
+          errors.push(p + ".blendRadius requires open or opt-in solid feather");
         if (node.featherContacts !== undefined &&
           (typeof node.featherContacts!=="boolean" ||
             (node.featherContacts &&
-              (node.coverage!=="open" || node.deposition!=="stroke-built" ||
+              (node.deposition!=="stroke-built" ||
                 !finite(node.blendRadius) || (node.blendRadius??0)<=0))))
-          errors.push(p + ".featherContacts requires open stroke-built wax with blendRadius > 0");
+          errors.push(p + ".featherContacts requires stroke-built wax and blendRadius > 0");
         if (node.underpaintGradient !== undefined) {
           const g=node.underpaintGradient;
           if(!g || node.coverage!=="opaque" || !finite(g.focusX) || !finite(g.focusY) ||

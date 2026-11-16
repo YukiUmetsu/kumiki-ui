@@ -637,6 +637,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-nasal-value">CC0 connected near wing and septal tonal wax (V22 unapproved)</option>
            <option value="source-naris-occlusion">CC0 projected 3/4 nostril cutouts (V23 experimental)</option>
            <option value="source-nasal-relief">CC0 source light and far nasal shadow relief (V24 !dev)</option>
+           <option value="source-solid-relief">CC0 pressure-built opaque nose and soft wax edge (V25 !dev)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -685,6 +686,12 @@ export const Cc0NasalDepthAndOcclusion:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
+};
+export const Cc0OpaqueNasalVolumeV25:Story={
+  name:"CC0 opaque wax nasal volume / soft real paper contacts 3× (!dev V25)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-solid-relief" initialInspection="nose"/>,
 };
 export const Cc0NasalTonalReliefV24:Story={
   name:"CC0 lit tip / far-side warm shadow native wax relief 3× (!dev V24)",

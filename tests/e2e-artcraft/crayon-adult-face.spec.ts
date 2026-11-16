@@ -1251,3 +1251,32 @@ test("F1 V24 CC0 nasal light planes, source native 1x and 3x f299",async({page},
   expect(Buffer.compare(Buffer.from(png[1]),Buffer.from(png[3]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+test("F1 V25 source native solid volume 1x and 3x f299",async({page},info)=>{
+  test.setTimeout(120_000);
+  await page.setViewportSize({width:608,height:1082});
+  const png:Uint8Array[]=[];const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  for(const midfaceForm of ["source-nasal-relief","source-solid-relief"] as const){
+    const base=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?base:{...base,camera:[
+        {frame:0,focusX:417,focusY:629,zoom:3},
+        {frame:299,focusX:417,focusY:629,zoom:3}]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["nose-tip","nose-dorsum","nose-sidewall-form",
+        "nose-septal-transition","naris-shadow-near","naris-shadow-far"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      png.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v25-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(png[0]),Buffer.from(png[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(png[1]),Buffer.from(png[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
