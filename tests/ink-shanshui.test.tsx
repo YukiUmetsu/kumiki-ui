@@ -867,6 +867,23 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       )].map(m=>m[1]);
       expect(groves).toBe(1);
       expect(rooted).toHaveLength(5);
+      // ArtCraft old-pine reference: Huang Gongwang's grove is uneven
+      // in age, spacing and crown rhythm, not 5 regularly tiered antennas.
+      // This tests original *connected trunk* geometry, not pixel count.
+      const treeXs=rooted.map(([,root])=>Number(root.split(",")[0]));
+      const heights=rooted.map(([, , ,h])=>Number(h));
+      const gaps=treeXs.slice(1).map((x,i)=>x-treeXs[i]);
+      expect(Math.max(...heights)-Math.min(...heights))
+        .toBeGreaterThan(54);
+      expect(Math.max(...gaps)-Math.min(...gaps))
+        .toBeGreaterThan(8);
+      expect(heights[2]).toBe(Math.max(...heights));
+      const boughStations=[...full.matchAll(
+        /data-km-cliff-pine-bough-station="([^"]+)"/g,
+      )].map(m=>Number(m[1]));
+      expect(boughStations).toHaveLength(20);
+      expect(new Set(boughStations).size).toBeGreaterThan(13);
+      expect(boughStations.every(t=>t>=.18&&t<=.95)).toBe(true);
       for(const [,root,crest,height] of rooted){
         const coords=root.split(",").map(Number);
         expect(coords.every(Number.isFinite)).toBe(true);
