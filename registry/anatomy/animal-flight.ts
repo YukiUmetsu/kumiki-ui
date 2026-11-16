@@ -178,6 +178,8 @@ export function foldedPoint(q: PlanformPoint, p: WingPlanform, shoulder: readonl
 
 export type FlightMode = "flap" | "glide" | "closed";
 
+/** Each bird's burst–pause schedule (cycle start times, flap and pause lengths), by species, seed and rate. */
+const SCHEDULES = new Map<string, { starts: number[]; flaps: number[]; pauses: number[] }>();
 /** Seconds to ease from the top of the stroke into a held wing (glide or closed), and back out before the next burst. */
 const HOLD_IN = .25, HOLD_OUT = .2;
 
@@ -195,19 +197,26 @@ export function flightAt(sp: string | AnimalSpecies, seconds: number, seed = 1, 
   const f = birdFlight(sp), hz = Math.min(maxHz, speciesWingbeat(sp) ?? 4);
   if (!f) return { flight: "flap", t: 0, amount: 0, hz };
   if (f.style === "flapping" || !f.burst) return { flight: "flap", t: seconds * hz, amount: 0, hz };
-  // Walk the burst–pause sequence from 0; each cycle's lengths are drawn from the ranges by a small hash.
+  // The burst–pause schedule: each cycle's lengths are drawn from the ranges by a small hash. It is built once per bird
+  // and seed and extended as time goes on, then searched, so a long film costs no more per frame than a short one.
   const h = (i: number) => { const x = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453; return x - Math.floor(x); };
-  let time = 0;
-  for (let i = 0; i < 10000; i++) {
-    const beats = Math.round(f.burst.beats[0] + (f.burst.beats[1] - f.burst.beats[0]) * h(i)), flap = beats / hz;
-    const pause = f.burst.pause[0] + (f.burst.pause[1] - f.burst.pause[0]) * h(i + 5000);
-    if (seconds < time + flap) return { flight: "flap", t: (seconds - time) * hz, amount: 0, hz };
-    if (seconds < time + flap + pause) {
-      const into = seconds - time - flap, left = time + flap + pause - seconds, share = Math.min(1, pause / (HOLD_IN + HOLD_OUT));
-      const amount = smoothstep(into / (HOLD_IN * share)) * smoothstep(left / (HOLD_OUT * share));
-      return { flight: f.style === "bounding" ? "closed" : "glide", t: 0, amount, hz };
-    }
-    time += flap + pause;
+  const key = `${typeof sp === "string" ? sp : sp.id}|${seed}|${hz}`;
+  let sched = SCHEDULES.get(key);
+  if (!sched) { sched = { starts: [0], flaps: [], pauses: [] }; SCHEDULES.set(key, sched); if (SCHEDULES.size > 256) SCHEDULES.delete(SCHEDULES.keys().next().value!); }
+  while (sched.starts[sched.starts.length - 1] <= seconds && sched.starts.length < 200000) {
+    const i = sched.flaps.length, beats = Math.round(f.burst.beats[0] + (f.burst.beats[1] - f.burst.beats[0]) * h(i));
+    const flap = beats / hz, pause = f.burst.pause[0] + (f.burst.pause[1] - f.burst.pause[0]) * h(i + 5000);
+    sched.flaps.push(flap); sched.pauses.push(pause); sched.starts.push(sched.starts[i] + flap + pause);
+  }
+  // The cycle that contains `seconds`: the last start at or before it.
+  let lo = 0, hi = sched.flaps.length - 1;
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (sched.starts[mid] <= seconds) lo = mid; else hi = mid - 1; }
+  const time = sched.starts[lo], flap = sched.flaps[lo], pause = sched.pauses[lo];
+  if (seconds < time + flap) return { flight: "flap", t: (seconds - time) * hz, amount: 0, hz };
+  if (seconds < time + flap + pause) {
+    const into = seconds - time - flap, left = time + flap + pause - seconds, share = Math.min(1, pause / (HOLD_IN + HOLD_OUT));
+    const amount = smoothstep(into / (HOLD_IN * share)) * smoothstep(left / (HOLD_OUT * share));
+    return { flight: f.style === "bounding" ? "closed" : "glide", t: 0, amount, hz };
   }
   return { flight: "flap", t: seconds * hz, amount: 0, hz };
 }

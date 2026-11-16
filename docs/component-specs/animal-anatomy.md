@@ -190,9 +190,14 @@ for ungulates, about 9 weeks for carnivores, a downy chick for birds) to 1 (the 
   - the fox kit's dark brown fur and blue eyes;
   - the macaque infant's dark brown hair;
   - the mandarin duckling's dark-and-yellow down.
+- **Suids** have their own rule (estimated): a small round body on short legs, not a foal's stilts. Pigs are not
+  runners.
+- **Consistency.** Each mammal rule's part shares (the legs by their segments' average, the body by the trunk) agree
+  with its stated height within 15%. So a style that grows the parts (UKIYO1's `look.age`) and one that scales by
+  `heightAt` draw the same animal.
 - **Tested.** Every species grows on the ground without breaking, the adult is unchanged at age 1, the foal is
-  taller on its legs and shorter in the body, the puppy has bigger feet and eyes and a shorter muzzle, and the kit's
-  coat applies.
+  taller on its legs and shorter in the body, the puppy has bigger feet and eyes and a shorter muzzle, the kit's coat
+  applies, and the rules are consistent.
 
 ## Faces
 

@@ -17,6 +17,8 @@ import type { UkiyoeCritter } from "./ukiyoe-critters";
 import { drawCritter, UKIYOE_CRITTERS } from "./ukiyoe-critters";
 import type { UkiyoeFill, UkiyoePaint } from "./ukiyoe-pigments";
 import { birdFlight, flightAt, glideStroke, wingStroke } from "../../anatomy/animal-flight";
+import { growthRule } from "../../anatomy/animal-growth";
+import type { BodyPlanId } from "../../anatomy/animal-plans";
 
 export type UkiyoeSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue" | "bear" | "boar" | "deer" | "ox" | "wolf" | "mouse" | "weasel" | "baku" | "ape" | "crane" | "heron" | "crow" | "pheasant" | "sparrow" | "hawk" | "oshidori" | "dragon" | UkiyoeYokai | UkiyoeCritter;
 export const UKIYOE_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "nue", "bear", "boar", "deer", "ox", "wolf", "mouse", "weasel", "baku", "ape", "crane", "heron", "crow", "pheasant", "sparrow", "hawk", "oshidori", "dragon", ...UKIYOE_YOKAI, ...UKIYOE_CRITTERS];
@@ -54,6 +56,12 @@ export interface UkiyoeCreatureLook {
   /** Turned three-quarters toward the viewer: a foreshortened body, the far legs (and wing) set back and higher, the
    * head turned to us with a shorter muzzle and the far eye showing. Four-legged animals and birds. */
   view?: "profile" | "three-quarter" | "front" | "back";
+  /**
+   * Four-legged animals: 0 the youngest that stands (a foal, a fawn, a calf, a piglet, a puppy, a kit) … 1 adult
+   * (default). Grown by ANIM1's growth rules, drawn to scale beside its parent: the long-legged foal, the big-headed
+   * puppy; no horns, antlers or tusks before half grown. `size` still sets the body length when given.
+   */
+  age?: number;
 }
 export interface UkiyoeCreatureAction { type: UkiyoeCreatureActionType; start: number; end: number; to?: number; toY?: number; via?: readonly (readonly [number, number])[]; angle?: number; amount?: number; blend?: number }
 export interface UkiyoeCreatureSpec { species: UkiyoeSpecies; look?: UkiyoeCreatureLook; actions?: readonly UkiyoeCreatureAction[]; facing?: "left" | "right" }
@@ -117,6 +125,8 @@ interface Beast {
   neck?: number; headTilt?: number; mane?: UkiyoePaint; hoof?: boolean; face?: UkiyoePaint;
   /** Tiger stripes over the coat and legs. */
   stripes?: boolean;
+  /** The wild boar piglet's (uribō's) pale stripes running along the body, from the neck to the rump. */
+  melon?: boolean;
   /** Belly tuck (+ up at the waist, − sagging), chest depth, fur length (fraction of body height), hairline density. */
   tuck: number; chest: number; fur: number; hairs: number;
   /** Long-coat colour for ruff, cheeks and belly fringe; lower-leg colour ("stockings"); eye iris; slit pupil. */
@@ -809,8 +819,32 @@ function beastHead(b: Beast, species: string, hs: number, open: number, blink: b
  * at its tip, the species' markings), the chest ruff, the front legs side by side and the hind legs peeking behind.
  * From behind: the backs of the ears over the shoulders, the rump with the tail down its middle, the hind legs side by side.
  */
+/** Each UKIYO1 four-legged animal's ANIM1 body plan, for growing its young (the mythic nue, baku and ape have none). */
+const BEAST_PLANS: Partial<Record<QuadSpecies, BodyPlanId>> = {
+  fox: "canid", tanuki: "canid", dog: "canid", wolf: "canid", cat: "felid", rabbit: "leporid", monkey: "primate", horse: "equid",
+  bear: "ursid", boar: "suid", deer: "ruminant", ox: "ruminant", mouse: "rodent", weasel: "mustelid",
+};
+/**
+ * The beast at `age` (0 youngest … 1 adult), grown by ANIM1's rule for its plan. The body grows like the trunk; the legs
+ * by their segments' average (an ungulate's near-grown cannons give the long-legged young); the head, the muzzle, the
+ * neck and the tail by their own shares.
+ */
+function youngBeast(b: Beast, species: QuadSpecies, age: number | undefined): Beast {
+  const plan = BEAST_PLANS[species], rule = plan && growthRule(plan, "mammal");
+  if (age === undefined || age >= 1 || !rule) return b;
+  const k = 1 - (1 - clamp01(age)) ** 2, mix = (young: number) => young + (1 - young) * k, g = rule.legSegments;
+  const legs = mix(g[0] * .28 + g[1] * .32 + g[2] * .28 + g[3] * .12), body = mix(rule.trunk);
+  return {
+    ...b, L: b.L * body, bh: b.bh * body, leg: b.leg * legs, head: b.head * mix(rule.head), snout: b.snout * mix(rule.muzzle),
+    tail: b.tail * mix(rule.tail), tailW: b.tailW * mix(rule.tail), ...(b.neck !== undefined ? { neck: b.neck * (b.neck > 0 ? mix(rule.neck) : 1) } : {}),
+    // Horns, antlers and tusks come with age; the boar piglet wears its stripes for its first months (ANIM1's coat).
+    ...(age < .5 ? { horns: undefined, tusks: false } : {}),
+    ...(species === "boar" && age < .4 ? { melon: true, bristles: undefined, withers: (b.withers ?? 0) * .3 } : {}),
+  };
+}
+
 function quadFrontBack(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number, wind: number, seed: number, back: boolean): Prim[] {
-  const b = BEASTS[species], look = spec.look ?? {}, k = (look.size ?? b.L) / b.L, out: Prim[] = [];
+  const look = spec.look ?? {}, b = youngBeast(BEASTS[species], species, look.age), k = (look.size ?? b.L) / b.L, out: Prim[] = [];
   // Square on, the boar's great wedge of a head is nearly as wide as its chest and is carried low.
   const leg = b.leg * k, bh = b.bh * k, hs = b.head * k * (species === "boar" ? 1.3 : 1), W = bh * (species === "horse" ? .72 : .85);
   const color = look.color ?? b.color, belly = look.belly ?? b.belly, dark = look.dark ?? b.dark, stocking = look.color ? undefined : b.stocking;
@@ -1142,7 +1176,7 @@ export function ukiyoeBeastLandmarks(species: UkiyoeSpecies) {
 }
 
 function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number, wind: number, seed: number): Prim[] {
-  const b = BEASTS[species], look = spec.look ?? {}, k = (look.size ?? b.L) / b.L;
+  const look = spec.look ?? {}, b = youngBeast(BEASTS[species], species, look.age), k = (look.size ?? b.L) / b.L;
   if (look.view === "front" || look.view === "back") return quadFrontBack(species, spec, frame, wind, seed, look.view === "back");
   // Three-quarter: the body foreshortens along its length; the far legs stand back and higher (see below).
   const tq = look.view === "three-quarter";
@@ -1399,6 +1433,11 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
       if (hash01(seed, i, 404) < .4) stripesD.push(carvedLine([m3, add(m3, [dn[0] * len * .35 - t2[0] * bh * .12, dn[1] * len * .35 - t2[1] * bh * .12])], bh * .06, { taper: "end", minRatio: .05 }));
     }
     out.push({ t: "clip", d: coatD + neckD, union: true, key: "stripes", prims: [{ t: "fill", d: stripesD.join(""), fill: "sumi", opacity: .85 }] });
+  }
+  if (b.melon && !look.color) {
+    // The uribō's 'melon' stripes: pale bands along the body, following the back from the neck to the rump.
+    const bands = [.18, .34, .5, .66].map((v, i) => carvedLine([R([-L * .5, top + bh * v]), R([-L * .1, top + bh * (v - .03)]), R([L * .3, top + bh * (v + .02)]), R([L * .48, top + bh * (v + .06)])], bh * (.055 - i * .006), { taper: "both", minRatio: .4, smooth: true }));
+    out.push({ t: "clip", d: coatD, key: "melon", prims: [{ t: "fill", d: bands.join(""), fill: "gofun", opacity: .6 }] });
   }
   if (b.spots && !look.color) {
     // A sika's white spots in loose rows along the flank.
