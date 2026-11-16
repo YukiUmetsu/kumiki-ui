@@ -275,3 +275,43 @@ test("ANAT1 reader facial planes preserve source identity across soft-wash and i
   await expect(page.getByTestId("shanshui-portrait-lineage")
     .locator("[data-km-scene-face]")).toHaveCount(3);
 });
+
+
+test("ear microcamera reveals the real Y-branch antihelix, concha wash and landmarks at both detail levels",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const ear=page.getByTestId("reader-ear-native-study");
+    await expect(ear).toBeVisible();
+    for(const layer of ["opaque-face","hair","cartilage"]){
+      await expect(ear.locator('[data-km-reader-ear-layer="'+layer+'"]'))
+        .toHaveCount(1);
+    }
+    const cartilage=ear.locator('[data-km-reader-ear-layer="cartilage"]');
+    const hi=await cartilage.locator("path").count();
+    expect(hi).toBeGreaterThanOrEqual(11);
+    const fold=await cartilage.locator("path").nth(2).getAttribute("d");
+    expect((fold?.match(/M/g)??[]).length).toBe(3);
+    const coverage=await cartilage.evaluate(group=>{
+      const svg=group.closest("svg");
+      if(!svg)return 0;
+      const a=svg.getBoundingClientRect(),b=group.getBoundingClientRect();
+      const w=Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left));
+      const h=Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
+      return w*h/Math.max(1,b.width*b.height);
+    });
+    expect(coverage).toBeGreaterThan(.85);
+    await ear.screenshot({animations:"disabled",
+      path:info.outputPath("reader-ear-ANAT1-helix-concha-full.png")});
+    await page.getByLabel("Show portrait landmarks").check();
+    await expect(ear.locator("[data-km-reader-ear-landmark]")).toHaveCount(2);
+    await ear.screenshot({animations:"disabled",
+      path:info.outputPath("reader-ear-ANAT1-source-landmarks.png")});
+    const detail=page.getByRole("slider",{name:"Face craftsmanship"});
+    await detail.focus();
+    await detail.press("Home");
+    await expect(detail).toHaveValue("0");
+    const low=await cartilage.locator("path").count();
+    expect(low).toBeLessThan(hi);
+    await ear.screenshot({animations:"disabled",
+      path:info.outputPath("reader-ear-ANAT1-minimum-detail.png")});
+  });

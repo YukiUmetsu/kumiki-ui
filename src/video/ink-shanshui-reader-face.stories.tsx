@@ -312,6 +312,40 @@ function ReaderFaceStudio(){
       </section>
       <section>
         <h2 style={{font:"500 18px Georgia,serif"}}>
+          ArtCraft · live auricular Y-fold and recessed concha
+        </h2>
+        <svg data-testid="reader-ear-native-study" role="img"
+          aria-label="Source-fitted live reader ear helix, forked antihelix and concha"
+          viewBox={fittedFaceWindow([109,94,122,121],2.4,2)}
+          style={{...box,height:304}}>
+          <g transform={pose(fit.headRest,139,124)}>
+            <g data-km-reader-ear-layer="opaque-face">{shapes("face")}</g>
+            <g data-km-reader-ear-layer="hair">
+              {facePart("hair","hair",[140,74])}
+            </g>
+            <g data-km-reader-ear-layer="cartilage">
+              {shapes("reader-ear")}
+            </g>
+            {showPoints&&READER_FACE_LANDMARKS
+              .filter(pt=>pt.name==="exposed-ear"||pt.name==="earlobe")
+              .map(pt=><g key={pt.name}
+                data-km-reader-ear-landmark={pt.name}>
+                <circle cx={pt.x} cy={pt.y} r=".37"
+                  fill="#b33f30"/>
+                <title>{pt.name}</title>
+              </g>)}
+          </g>
+        </svg>
+        <p style={{fontSize:12,lineHeight:1.6,color:"#715d48"}}>
+          The production ear, not a new decal. A three-branch antihelix
+          diverges around the concha's recessed wash; the helix,
+          tragus and lobule keep independent ink weight and fine paper
+          highlights. Use brush detail and landmark controls above to
+          inspect actual source-linked geometry.
+        </p>
+      </section>
+      <section>
+        <h2 style={{font:"500 18px Georgia,serif"}}>
           ArtCraft · isolated nine-region crown construction
         </h2>
         <svg data-testid="reader-crown-artcraft" role="img"
