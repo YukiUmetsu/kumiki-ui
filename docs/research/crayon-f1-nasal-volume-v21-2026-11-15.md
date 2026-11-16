@@ -37,3 +37,26 @@ The numerical gaps motivate modeling bone, sidewall, and alar color as attached 
 - Existing Crayon ArtCraft Adult Face Lab gains 3× source nose macro and full-face stories and one selector option. Unit cases cover scene and native SSR, guard malformed anatomy and repeated passes, verify side asymmetry, source ordering, and negative-control preservation. Chromium A/B renders same-frame 1× and 3× against previous candidate and 3× frame 210.
 - **HARD STOP:** V21 screenshot source registration, independent ArtCraft 9.1 unmodified portrait and ANAT1 human anatomy gates, five-axis hand-art review, and 300-frame real-speed acting quality remain unverified. Technical proof or screenshot production does NOT certify realistic crayon portrait. Keep PR in draft and do not merge.
 - Next priority: examine actual identical-resolution 1× photos and macro 3×, fix residual dark sticker effect and wax layering; independently score candidate vs source. After a natural nose passes, correct mouth/teeth, eyelid/iris, cheek/skull, jaw/neck, hair and animation.
+
+
+## Independent actual V21 native browser visual rejection — 2026-11-15
+
+Exact [run 43805244661](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43805244661), artifact 14198985779. Chromium produced source-registered 608×1082 1× and 3× A/B frame299 and a frame210 material-progress sample. All Chromium cases passed structurally. Independently inspecting source vs actual pixels, **V21 is rejected**: root/near sidewall turned into a long muddy diagonal dry-hatch smear not present in the real three-quarter photograph, while nostrils still look like detached shaded stamps. The far nostril and graphic lips/eye/scalp were not corrected. Textural anatomy failed despite deterministic rendering.
+
+Simple diagnostic (scikit-image RGB SSIM on exact matching native screenshot; this is NOT the unmodified ArtCraft 9.1 gate):
+
+| Region | V20b | V21 (rejected) | Expected threshold of official portrait gate |
+| --- | ---: | ---: | ---: |
+| Full 608×1082 | 0.362006 | 0.360766 | ≥0.85 |
+| Nose x340–493/y570–684 | 0.562831 | 0.527002 | 1× artist sign-off also required |
+| Broad sidewall x340–413/y534–645 | 0.659273 | 0.576006 | Source-specific matched anatomy required |
+| Dorsum x367–434/y554–620 | 0.693739 | 0.632173 | Source-specific matched anatomy required |
+| Septal underplane x412–451/y627–664 | 0.519475 | 0.488100 | Source-specific matched anatomy required |
+
+Independent RGB MAE: sidewall 21.6→27.3 (worse), near recess 49.1→39.6 (improved), full image still ~84.2. None supports releasing a realistic portrait.
+
+V21 source and Storybook tests: new CRAYON1 Vitest cases PASS, TypeScript and Storybook source guard PASS; broad mixed suite 662 passed/16 failed (13 pre-existing RISO23/26/30/31 assertions and 3 unrelated timeout cases). No new Crayon failure detected. Native drawing grammar PASS.
+
+### Corrective V21b on current draft head
+
+Reduce broad dark bridge/sidewall stroke force, remove erroneous 148px left-cheek stripe and locally constrain warm sidewall, restore reddish near/far alar flesh while maintaining all 13 semantic shapes, subtle grain, exact V20 recess controls, and unchanged photo source/film. New browser proof must independently compare V20b / V21b in natural 1×/3× pixels and reject again if disconnected. This is a corrective source-volume iteration, not a finished face.

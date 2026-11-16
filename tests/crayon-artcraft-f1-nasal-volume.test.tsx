@@ -60,6 +60,13 @@ describe("ArtCraft F1 V21 source anatomical nose volume (unapproved)",()=>{
        far?.kind!=="wax"||septum?.kind!=="wax")
       throw Error("Missing nasal morphology");
     expect(root.bounds.y).toBeLessThan(dorsum.bounds.y);
+    const sidewall=get(next,"nose-sidewall-form");
+    if(sidewall?.kind!=="wax")throw Error("Missing source sidewall");
+    // A rejected V21 148px dark hatch ran from nose root to cheek.
+    // Keep the feathered source-sidewall locally bounded and warmer.
+    expect(sidewall.bounds.height).toBeLessThan(110);
+    expect(sidewall.bounds.y).toBeGreaterThan(540);
+    expect(sidewall.markStrength).toBeLessThan(.3);
     expect(dorsum.bounds.height).toBeGreaterThan(near.bounds.height);
     expect(near.bounds.width).toBeGreaterThan(far.bounds.width);
     expect(near.angle).not.toBe(far.angle);

@@ -1,13 +1,16 @@
 import type {CrayonElement} from "../../registry/video/materials/crayon-scene";
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 
-/** ArtCraft F1 V21 experimental CC0 source-projected nasal volume.
+/** ArtCraft F1 V21b experimental CC0 source-projected nasal volume.
  * Source: Christopher Campbell CC0 608×1082 portrait, study x328..478 y493..667.
  * Builds true nose root, dorsum, bulb, near/far wings, and septum from
  * pre-existing named native CRAYON1 wax forms. No source-photo pixels,
  * smooth photo filters, mirror duplicates, pale disks, or reduced detail.
  * V20 dark-source rims, all controls/animation, paper and unrelated anatomy
- * remain unchanged. Material/portrait quality awaits actual-pixel review.
+ * remain unchanged. V21 actual native pixels were rejected: broad dark
+ * dry-hatching smeared from root toward the left cheek without contour
+ * resemblance. V21b confines sidewall marks and restores source warm
+ * transitions. Material/portrait quality requires a fresh actual-pixel check.
  */
 export const CRAYON_F1_NOSE_VOLUME_ANCHORS=Object.freeze({
   boneRoot:[357,531],dorsalPlane:[372,570],bulb:[409,612],
@@ -21,8 +24,8 @@ const patches:Readonly<Record<string,Partial<Wax>>> ={
       "C367 582 357 577 351 558 "+
       "C343 531 337 510 331 494Z",
     bounds:{x:328,y:490,width:51,height:93},
-    colors:["#997675","#6e555c","#cba6a2"],
-    pressure:.53,spacing:6.8,markStrength:.34,angle:57,
+    colors:["#bca09e","#90757b","#dbc0b7"],
+    pressure:.46,spacing:7.0,markStrength:.24,angle:50,
     coverage:"open",deposition:"stroke-built",nibStyle:"dry",
     featherContacts:true,blendRadius:11.4,outlineOpacity:0,edgeRoughness:.18,
   },
@@ -44,8 +47,8 @@ const patches:Readonly<Record<string,Partial<Wax>>> ={
       "C390 652 373 644 362 627 "+
       "C350 601 343 569 342 543Z",
     bounds:{x:339,y:539,width:66,height:115},
-    colors:["#9f7470","#74565c","#c49488"],
-    pressure:.64,spacing:5.5,markStrength:.47,angle:68,
+    colors:["#bc9189","#947276","#d9afa3"],
+    pressure:.48,spacing:6.8,markStrength:.28,angle:44,
     coverage:"open",deposition:"stroke-built",nibStyle:"dry",
     featherContacts:true,blendRadius:13.3,outlineOpacity:0,edgeRoughness:.20,
   },
@@ -95,16 +98,15 @@ const patches:Readonly<Record<string,Partial<Wax>>> ={
     featherContacts:true,blendRadius:7.3,outlineOpacity:0,edgeRoughness:.18,
   },
   "nose-sidewall-form":{
-    d:"M336 511 C347 527 355 548 363 568 "+
-      "C374 589 387 610 397 623 "+
-      "C404 634 407 640 401 648 "+
-      "C389 655 375 639 366 623 "+
-      "C350 603 344 567 336 511Z",
-    bounds:{x:333,y:507,width:78,height:148},
-    colors:["#956b67","#674d50","#be8f83"],
-    pressure:.70,spacing:6.2,markStrength:.45,angle:62,
+    d:"M348 552 C359 563 366 584 377 604 "+
+      "C387 619 397 630 400 643 "+
+      "C398 650 388 645 381 638 "+
+      "C362 617 355 592 348 552Z",
+    bounds:{x:344,y:548,width:61,height:103},
+    colors:["#b9938b","#947276","#dbb4a4"],
+    pressure:.45,spacing:7.2,markStrength:.25,angle:41,
     coverage:"open",deposition:"stroke-built",nibStyle:"dry",
-    featherContacts:true,blendRadius:15.3,outlineOpacity:0,edgeRoughness:.23,
+    featherContacts:true,blendRadius:13.2,outlineOpacity:0,edgeRoughness:.23,
   },
   "nose-subalar-contact":{
     d:"M371 630 C384 639 393 649 409 650 "+
@@ -142,13 +144,13 @@ const patches:Readonly<Record<string,Partial<Wax>>> ={
   },
   // V20 alar rim and cavity remain exact. These are surrounding skin wax.
   "nasal-alar-attachment-near":{
-    colors:["#ae7770","#724a48","#d69a88"],
-    pressure:.67,spacing:5.7,markStrength:.42,angle:32,
+    colors:["#bf9285","#805956","#e0ae9b"],
+    pressure:.60,spacing:5.9,markStrength:.38,angle:32,
     featherContacts:true,blendRadius:8.0,outlineOpacity:0,
   },
   "nasal-alar-attachment-far":{
-    colors:["#ab746b","#704847","#d39d8b"],
-    pressure:.59,spacing:5.9,markStrength:.36,angle:63,
+    colors:["#b58c84","#805d5a","#d6a398"],
+    pressure:.55,spacing:6.1,markStrength:.33,angle:63,
     featherContacts:true,blendRadius:6.5,outlineOpacity:0,
   },
 };
