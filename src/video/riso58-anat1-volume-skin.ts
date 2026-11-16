@@ -3,6 +3,7 @@ import type {RisoCharacterSpec,RisoJointFrame,RisoMatrix}
 import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import {RISO31_GEOMETRY} from "./riso31-finger-phalanges";
 import {riso51SourceKeys} from "./riso51-view-conditioned-source";
+import {riso54WebContour} from "./riso54-interdigital-paper-reserve";
 import {
   riso57PalmLandmarks,riso57PalmContourFromKnots,
 } from "./riso57-palm-contact-silhouette";
@@ -240,7 +241,25 @@ export function riso58ApplyContactSkin(
     original.paint!=="solid"||!original.pathKeys)
     throw new Error("RISO58 needs actual RISO51 living RED palm source");
   const skin=riso58ContactSkin(spec,actor,side,160);
-  const updated=spec.parts.map(p=>p.id===original.id?
-    {...p,pathKeys:riso51SourceKeys(p.d,skin.path,actor)}:p);
+  const stations=new Map(skin.anchors.map(k=>[k.landmark,k]));
+  const updated=spec.parts.map(p=>{
+    if(p.id===original.id)
+      return {...p,pathKeys:riso51SourceKeys(p.d,skin.path,actor)};
+    // The exact same ORIGINAL physical paper-negative cutters must
+    // follow the new 3D skin outline. Cutting the previous RISO57 2D
+    // outline instead (although code still runs) would carve a hole
+    // entirely INSIDE the new red palm or float outside it. Both are
+    // physically impossible views of an interdigital web.
+    const reserve=p.id===side+"-glove-web-reserve-middle-ring"?
+      {landmark:"middle-ring-web" as const,skew:.2}:
+      p.id===side+"-glove-web-reserve-ring-pinky"?
+        {landmark:"ring-little-web" as const,skew:-.27}:null;
+    if(!reserve)return p;
+    const knot=stations.get(reserve.landmark);
+    if(!knot||!p.knockoutOnly||p.plate!=="red"||!p.pathKeys)
+      throw new Error("RISO58 missing original registered physical web negative");
+    const contact=riso54WebContour(knot.x,knot.y-.55,reserve.skew);
+    return {...p,pathKeys:riso51SourceKeys(p.d,contact,actor)};
+  });
   return {...spec,parts:updated};
 }
