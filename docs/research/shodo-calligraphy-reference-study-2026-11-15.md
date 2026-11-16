@@ -582,6 +582,22 @@ The rise (3.5°) and the main factor (1.1) had come from general kaisho habits a
 
 Kana did not improve (−0.003 and −0.001 on 27 + 27 characters), so they keep the earlier rise and full-length horizontals; bundled originals keep theirs too. In the tested range, the score changes little (rise 1–2.5°, `freeEnd` 0.84–0.92, a separate factor for joined starts 0.75–0.88); the kept values are close to her measured medians.
 
+## 2.23 Nineteenth study round: more of her stroke habits
+
+**Her own sources.** Of her 536 large-brush kaisho videos, only a few characters were left. Two single-character videos had an English word in their titles, and five small-brush kaisho lessons existed. Six more forms come from the clean model at the end of a video and from small-brush thumbnails. A held-out check on two characters that she wrote with both brushes favours the small-brush source over the rules. A school teacher's model sheets (another channel, 322 characters) are the closest other hand to hers: shape overlap 0.668, against 0.49 to 0.53 for the other sources. But their positions are not closer to her ink than the rules (0.600 against 0.613, 125 characters), so they are not used. Fitted again on her ink, only 9 of her 444 forms improve after review: her forms have converged.
+
+**Stroke habits.** Her 389 kanji forms were compared again with our forms, now with the habits of §2.22. Five differences had a middle half on one side of the rules. Each was tried on its own through the renderer, on both halves of the characters:
+
+| Her stroke against ours | Measured | Overlap change, half one / half two | Kept |
+|---|---|---|---|
+| Dot length | 0.78× | +0.0012 / +0.0011 (77/25 and 70/34 characters better/worse) | yes, 0.8 |
+| 提 (rising stroke ㇀) length | 1.20× | +0.0003 / +0.0002 | yes, 1.2 |
+| Vertical that hangs from an earlier stroke | 0.85× | −0.0018 / −0.0013 | no |
+| Horizontal that starts on an earlier stroke, beyond `freeEnd` | 0.85× | −0.0003 / −0.0005 | no |
+| Right sweep angle | 3.4° flatter | −0.0008 / −0.0007 | no |
+
+Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/27 and 71/37 characters better/worse), and the centreline distance also improves. The effect is small, about a tenth of §2.22. Dots look a little more compact, as hers are. `shodoKaishoForm` applies them to KanjiVG kanji only (`dotLength`, `riseStrokeLength`).
+
 ## 3. From observation to model
 
 | Observation | Model decision |

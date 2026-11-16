@@ -532,6 +532,10 @@ export interface ShodoFormOptions {
    * joined start or about its centre. 0.8..1. KanjiVG kanji: 0.88 (measured); otherwise 1.
    */
   freeEnd?: number;
+  /** Length factor for a kanji dot, from its start. 0.6..1. KanjiVG kanji: 0.8 (measured); otherwise 1. */
+  dotLength?: number;
+  /** Length factor for a kanji 提 (rising stroke ㇀), from its start. 1..1.4. KanjiVG kanji: 1.2 (measured); otherwise 1. */
+  riseStrokeLength?: number;
   /**
    * Component layout (結構法) measured on a teacher's models, see `shodoStructure`. Pass
    * `false` to keep KanjiVG's layout, or override single rules.
@@ -543,7 +547,7 @@ export interface ShodoFormOptions {
  * Give a typeface-like skeleton (for example KanjiVG) the habits of brush kaisho:
  * - the teacher-measured layout (結構法, `shodoStructure`), for KanjiVG glyphs only;
  * - 右上がり as a gentle shear, so verticals stay vertical and joints stay closed;
- * - a free horizontal end that stops short of the skeleton's (kanji);
+ * - a free horizontal end that stops short of the skeleton's, compact dots and a longer 提 (kanji);
  * - weight from length, so main strokes carry the character and short ones stay light;
  * - 懸針 for a final vertical that hangs below the rest of the character;
  * - a pressed foot on every 右払い.
@@ -561,6 +565,9 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
   const measured = !kana && source.source === "kanjivg";
   const rise = Math.tan((options.rise ?? (measured ? 1 : 3.5)) * (kana ? .5 : 1) * Math.PI / 180);
   const freeEnd = kana ? 1 : options.freeEnd ?? (measured ? .88 : 1);
+  // Her dots are shorter and her 提 strokes longer than KanjiVG's (§2.23).
+  const dotLength = kana ? 1 : options.dotLength ?? (measured ? .8 : 1);
+  const riseStrokeLength = kana ? 1 : options.riseStrokeLength ?? (measured ? 1.2 : 1);
   const sweep = kana ? 1 : options.sweep ?? 1.16;
   // 主画: one horizontal carries the character; it is written longer than the rest.
   const mainFactor = kana ? 1 : options.main ?? 1.1;
@@ -596,16 +603,23 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
     }
     return out;
   });
-  const joined = shodoJoinStrokes({ ...glyph, strokes });
-  if (freeEnd === 1) return joined;
+  let formed = shodoJoinStrokes({ ...glyph, strokes });
   // A horizontal that does not end on an earlier stroke shortens toward its joined start (or
   // about its centre); joins are then closed again.
-  return shodoJoinStrokes({ ...joined, strokes: joined.strokes.map(st => {
+  if (freeEnd !== 1) formed = shodoJoinStrokes({ ...formed, strokes: formed.strokes.map(st => {
     if (st.kind !== "horizontal" || st.joinEnd) return st;
     const p = st.points, q = p[p.length - 1];
     const [ax, ay] = st.joinStart ? p[0] : [(p[0][0] + q[0]) / 2, (p[0][1] + q[1]) / 2];
     return { ...st, points: p.map(([x, y]) => [Math.round(ax + (x - ax) * freeEnd), Math.round(ay + (y - ay) * freeEnd)] as const) };
   }) });
+  // Dots are written compact, and 提 (the rising stroke ㇀) reaches further, both from their start.
+  if (dotLength !== 1 || riseStrokeLength !== 1) formed = shodoJoinStrokes({ ...formed, strokes: formed.strokes.map(st => {
+    const k = st.kind === "dot" && st.points.length >= 2 ? dotLength : st.kind === "rise" ? riseStrokeLength : 1;
+    if (k === 1) return st;
+    const [ax, ay] = st.points[0];
+    return { ...st, points: st.points.map(([x, y]) => [Math.round(ax + (x - ax) * k), Math.round(ay + (y - ay) * k)] as const) };
+  }) });
+  return formed;
 }
 
 /** KanjiVG file name for a character, for example 道 → "09053.svg". */
