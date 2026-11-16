@@ -143,7 +143,7 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
 });
 
 
-test("ArtCraft fox brush and human nape are inspectable from actual anatomy at 1×/2.15× in both film aspects",async({page},info)=>{
+test("ArtCraft fox brush, orbital slit and human nape are inspectable from anatomy in both aspects",async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
   const scene=page.locator("[data-km-foundation-studio]");
   const svg=page.locator("svg[data-km-colored-pencil]");
@@ -157,6 +157,7 @@ test("ArtCraft fox brush and human nape are inspectable from actual anatomy at 1
     await aspect.selectOption(format);
     for(const [specimen,focus,part] of [
       ["fox","fox-tail","tail-back"],
+      ["fox","fox-eye","eye-near"],
       ["portrait","portrait-nape","neck"],
     ] as const){
       await subject.selectOption(specimen);
@@ -176,6 +177,39 @@ test("ArtCraft fox brush and human nape are inspectable from actual anatomy at 1
       // a photograph edit or duplicated/flattened alternate hero.
       await svg.screenshot({animations:"disabled",
         path:info.outputPath("pencil-"+specimen+"-"+format+"-"+part+"-macro.png")});
+      if(focus==="fox-eye"){
+        const topology=await svg.evaluate(root=>{
+          const ctx=document.createElement("canvas").getContext("2d")!;
+          const path=(id:string)=>{
+            const region=root.querySelector(
+              '[data-km-pencil-region="'+id+'"]');
+            const d=region?.querySelector("[data-km-pencil-support]")?.getAttribute("d");
+            if(!d)throw new Error("Missing actual animal anatomy path "+id);
+            return new Path2D(d);
+          };
+          const head=path("head-main"),muzzle=path("muzzle");
+          const eyeRegion=root.querySelector(
+            '[data-km-pencil-region="eye-near"]')!;
+          const eyePaths=[...eyeRegion.querySelectorAll(
+            "[data-km-pencil-trace]")].map(p=>p.getAttribute("data-km-pencil-trace"));
+          const pupil=eyeRegion.querySelector(
+            '[data-km-pencil-trace="fox-vertical-pupil"]');
+          // The pupil and superior tarsus must be real authored paths;
+          // the focal cornea is embedded in the fox cranial silhouette.
+          return {
+            cranialEyeContact:ctx.isPointInPath(head,244,189),
+            nasalConnection:ctx.isPointInPath(muzzle,183,224),
+            tarsus:eyePaths.includes("fox-superior-tarsus"),
+            pupil:!!pupil&&pupil.getAttribute("d")?.includes("Q"),
+            material:eyeRegion.getAttribute("data-km-pencil-region"),
+          };
+        });
+        expect(topology.cranialEyeContact).toBe(true);
+        expect(topology.nasalConnection).toBe(true);
+        expect(topology.tarsus).toBe(true);
+        expect(topology.pupil).toBe(true);
+        expect(topology.material).toBe("eye-near");
+      }
       expect(await svg.locator("image,foreignObject,feImage").count()).toBe(0);
       await target.selectOption("default");
       await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus","default");
