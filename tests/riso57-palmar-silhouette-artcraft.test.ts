@@ -6,7 +6,7 @@ import {PAPER_ARTIST,evaluateRisoHumanEnsemble} from "../src/video/riso-human-en
 import {RISO57_PALMAR_ANATOMY,RISO57_SOURCE_MCP_ANCHORS,riso57PalmLandmarks,riso57PositivePalmContour}
   from "../src/video/riso57-palm-contact-silhouette";
 import {riso47PalmContour} from "../src/video/riso47-palmar-cup";
-import {riso51ProjectPalmarPath} from "../src/video/riso51-view-conditioned-source";
+import {riso58ContactSkin} from "../src/video/riso58-anat1-volume-skin";
 import {inspectRiso44PrintedIndexContact} from "../src/video/riso44-source-index-paper-contact";
 
 const subjects=[
@@ -125,7 +125,7 @@ describe("RISO57 original 3/4 index/thenar and four-MCP positive skin topology",
         expect(red.d.match(/C/g)).toHaveLength(16);
         expect(blue.d.match(/C/g)).toHaveLength(16);
         if(frame===160){
-          const cameraProjected=riso51ProjectPalmarPath(base.d,active,actor,1);
+          const cameraProjected=riso58ContactSkin(spec,actor,active,160).path;
           expect(red.d).toBe(cameraProjected);
           const area=Math.abs(risoContourSignedArea(
             flattenRisoSvgPath(red.d,.12)[0].points));
