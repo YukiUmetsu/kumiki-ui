@@ -40,7 +40,8 @@ const cubicPoint=(a:P,b:P,c:P,d:P,t:number):P=>{
  * used for the filled contour, cliff brush roots, and moss deposits. Linear
  * interpolation over only the teacher nodes put some strokes into empty sky.
  */
-const ridgeStations=(nodes:readonly P[],seed:number,band:number):P[]=>{
+const ridgeStations=(nodes:readonly P[],seed:number,band:number,
+  nearRockEdge=false):P[]=>{
   const stations:P[]=[[f(nodes[0][0]),f(nodes[0][1])]];
   for(let i=0;i<nodes.length-1;i++){
     const a=nodes[Math.max(i-1,0)][1],b=nodes[i][1],
@@ -57,8 +58,22 @@ const ridgeStations=(nodes:readonly P[],seed:number,band:number):P[]=>{
       // the spatial span of the SAME parent rock, not its point count.
       // Long cliffs retain all their original seed-specific fracture.
       const segmentScale=Math.min(1,(x1-x0)/70);
+      // The experimental Fuchun lower bank exposes a continuous,
+      // hand-laid rolling shoulder rather than a random 9-tooth comb.
+      // Keep EVERY interpolated 9x edge station, including subpixel dry
+      // fracture, but correlate each stone's capillary disturbance.
+      // sin² has zero tangent at the actual source stations, so one
+      // ridge's brush-bearing segments join without digital sawteeth.
+      const nearContour=nearRockEdge
+        ?Math.pow(Math.sin(Math.PI*t),2)*(
+          .75*Math.sin(Math.PI*(1.55*t+
+            2*s(seed+band*113,i*31+3)))+
+          .35*Math.sin(Math.PI*(3.35*t+
+            2*s(seed+band*139,i*17+11)))+
+          .14*shapeNoise)
+        :shapeNoise*Math.sin(Math.PI*t);
       const fracture=(band===0?2.5:band===1?4.5:6.2)*
-        segmentScale*Math.sin(Math.PI*t)*shapeNoise;
+        segmentScale*nearContour;
       stations.push([f(x0+(x1-x0)*t),f(smooth+fracture)]);
     }
   }
@@ -3531,7 +3546,9 @@ function Mountains({scene,seed,detail,mist,ink,school,nearStudy,ids}:{
         :scene==="mountain-trail"&&band===0&&school==="fuchun"
           ?FUCHUN_TRAIL_FAR:baseRidge;
       const width=band===0?1.1:band===1?1.3:1.8;
-      const stations=ridgeStations(ridge,seed,band);
+      const coherentNearEdge=scene==="mountain-trail"&&band===2&&
+        school==="fuchun"&&nearStudy===true;
+      const stations=ridgeStations(ridge,seed,band,coherentNearEdge);
       const count=Math.round((band===0?27:band===1?48:67)*detail);
       // Select the original mid-range root before painting; a loaded
       // geometric crag must not be faded again by the parent slope wash.
