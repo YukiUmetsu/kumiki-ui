@@ -17,12 +17,15 @@
  */
 import type { AnimalPart, AnimalRegion, BodyPlanId, PlanConstruction } from "./animal-plans";
 import type { GaitId } from "./animal-gaits";
+import { commons as C, range as r, wikipedia as W } from "./foundation-shapes";
+import type { FoundationReference, FoundationSound, Grade, Range, StyleImplementation } from "./foundation-shapes";
 
-export type Grade = "reported" | "measured" | "estimated";
+export type { Grade, Range, StyleImplementation };
+export type AnimalSound = FoundationSound;
+export type AnimalReference = FoundationReference;
+
 /** The numeric construction values a species can override. */
 export type ConstructionKey = "trunk" | "chestDepth" | "legClearance" | "head" | "muzzle" | "neck" | "neckAngle" | "tail" | "girth" | "barrel" | "headAngle" | "bodyAngle";
-/** A range with its typical value, grade and source. */
-export interface Range { min: number; typical: number; max: number; grade: Grade; source?: string }
 /**
  * A colour and where it goes. `fill` says how a colour map paints it:
  * - "area" (the default) fills the region;
@@ -35,8 +38,6 @@ export interface Range { min: number; typical: number; max: number; grade: Grade
 export interface Swatch { region: AnimalRegion; name: string; hex: string; fill?: "area" | "tip" | "band" | "eye-patch" | "accent" }
 export interface Marking { name: string; region: AnimalRegion; shape: string }
 export interface CoatVariant { name: string; when: string; palette: readonly Swatch[] }
-export interface AnimalSound { kind: "vocal" | "foley"; label: string; catalog?: string; query?: string }
-export interface AnimalReference { title: string; url: string; rights: "public-domain" | "CC0"; kind: "print" | "plate" | "photo" | "motion" | "painting" }
 /**
  * The face, in any style. Profile values are shares of the head length (occiput to nose); `eyeSpacing` is the gap
  * between the eye centres ÷ the head's width square on.
@@ -55,8 +56,6 @@ export interface AnimalFace {
   grade: Grade;
   source: string;
 }
-/** Where the animal is already drawn in this library, by style (the id it is drawn by there). */
-export interface StyleImplementation { style: string; pack: string; id: string; note?: string }
 
 export interface AnimalSpecies {
   id: string;
@@ -88,9 +87,6 @@ export interface AnimalSpecies {
   styles: readonly StyleImplementation[];
 }
 
-const r = (min: number, typical: number, max: number, grade: Grade, source?: string): Range => ({ min, typical, max, grade, source });
-const W = (page: string) => ({ title: `Wikipedia: ${page.replace(/_/g, " ")}`, url: `https://en.wikipedia.org/wiki/${page}` });
-const C = (file: string): string => `https://commons.wikimedia.org/wiki/File:${file}`;
 const MUYBRIDGE: AnimalReference = { title: "Muybridge, Animals in Motion (1899): phases of the gallop, p. 201", url: "https://archive.org/details/gri_33125012264293", rights: "public-domain", kind: "motion" };
 const AKC_SHIBA = "AKC Shiba Inu breed standard";
 const uk = (id: string, note?: string): StyleImplementation => ({ style: "ukiyo-e", pack: "ukiyoe-handscroll", id, note });

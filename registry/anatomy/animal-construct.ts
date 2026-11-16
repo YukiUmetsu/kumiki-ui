@@ -21,7 +21,11 @@ import type { AnimalSpecies, ConstructionKey, Grade } from "./animal-species";
 import { ANIMAL_GAITS, quadBody, quadFootfalls } from "./animal-gaits";
 import type { AnimalGait, GaitId, QuadLeg } from "./animal-gaits";
 
-export type AnimalPoint = readonly [number, number];
+import { RAD, add, circlePoints, dir, ellipsePoints, len, lerpP, polyPath as poly, rotate, smoothClosedPath, smoothTube, smoothstep, sub, tubePoints } from "./foundation-shapes";
+import type { FPoint } from "./foundation-shapes";
+
+export type AnimalPoint = FPoint;
+export { ellipsePoints, smoothClosedPath, tubePoints };
 export type RangePick = "min" | "typical" | "max";
 
 export interface AnimalConstruction extends PlanConstruction {
@@ -91,20 +95,8 @@ export interface PoseOptions {
   t?: number;
 }
 
-const RAD = Math.PI / 180;
-const add = (a: AnimalPoint, b: AnimalPoint, s = 1): AnimalPoint => [a[0] + b[0] * s, a[1] + b[1] * s];
-const sub = (a: AnimalPoint, b: AnimalPoint): AnimalPoint => [a[0] - b[0], a[1] - b[1]];
-const len = (a: AnimalPoint) => Math.hypot(a[0], a[1]);
-const lerpP = (a: AnimalPoint, b: AnimalPoint, t: number): AnimalPoint => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 /** Direction at `a` degrees from straight down, + toward the nose. */
 const down = (a: number): AnimalPoint => [Math.sin(a * RAD), -Math.cos(a * RAD)];
-/** Direction at `a` degrees counter-clockwise from +x. */
-const dir = (a: number): AnimalPoint => [Math.cos(a * RAD), Math.sin(a * RAD)];
-const rotate = (p: AnimalPoint, deg: number, about: AnimalPoint): AnimalPoint => {
-  const c = Math.cos(deg * RAD), s = Math.sin(deg * RAD), x = p[0] - about[0], y = p[1] - about[1];
-  return [about[0] + x * c - y * s, about[1] + x * s + y * c];
-};
-const smoothstep = (t: number) => { const u = Math.min(1, Math.max(0, t)); return u * u * (3 - 2 * u); };
 const angleDown = (v: AnimalPoint) => Math.atan2(v[0], -v[1]) / RAD;
 
 /** Standing segment angles from straight down (+ toward the nose) for upper, lower, cannon and toes, by foot posture. */
@@ -355,41 +347,7 @@ function poseFish(c: AnimalConstruction, t: number): AnimalSkeleton {
 
 // ---- Shapes ----------------------------------------------------------------------------------------------------------------------------
 
-const f3 = (v: number) => (Math.round(v * 1000) / 1000).toString();
-/** Every outline wound the same way (counter-clockwise, y up), so overlapping parts fill instead of cutting holes. */
-const ccw = (pts: readonly AnimalPoint[]) => (pts.reduce((a, p, i) => { const q = pts[(i + 1) % pts.length]; return a + p[0] * q[1] - q[0] * p[1]; }, 0) < 0 ? pts.slice().reverse() : pts);
-const poly = (pts0: readonly AnimalPoint[]) => { const pts = ccw(pts0); return pts.length ? `M${pts.map(p => `${f3(p[0])} ${f3(p[1])}`).join("L")}Z` : ""; };
-/** A closed Catmull-Rom curve through `pts`, as cubic Béziers. */
-export function smoothClosedPath(pts0: readonly AnimalPoint[]): string {
-  const pts = ccw(pts0), n = pts.length;
-  if (n < 3) return poly(pts);
-  let d = `M${f3(pts[0][0])} ${f3(pts[0][1])}`;
-  for (let i = 0; i < n; i++) {
-    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
-    const c1: AnimalPoint = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2: AnimalPoint = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-    d += `C${f3(c1[0])} ${f3(c1[1])} ${f3(c2[0])} ${f3(c2[1])} ${f3(p2[0])} ${f3(p2[1])}`;
-  }
-  return d + "Z";
-}
-/** A smooth tube: the tube outline with rounded ends, as a closed curve. */
-const smoothTube = (pts: readonly AnimalPoint[], widths: readonly number[]) => smoothClosedPath(tubePoints(pts, widths));
-export function ellipsePoints(e: AnimalEllipse, n = 40): AnimalPoint[] {
-  const out: AnimalPoint[] = [];
-  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; out.push(rotate([e.cx + e.rx * Math.cos(a), e.cy + e.ry * Math.sin(a)], e.angle, [e.cx, e.cy])); }
-  return out;
-}
-const circle = (p: AnimalPoint, r: number) => ellipsePoints({ cx: p[0], cy: p[1], rx: r, ry: r, angle: 0 }, 16);
-/** A tube along a polyline with a width at each point, as one outline. */
-export function tubePoints(pts: readonly AnimalPoint[], widths: readonly number[]): AnimalPoint[] {
-  if (pts.length < 2) return [];
-  const left: AnimalPoint[] = [], right: AnimalPoint[] = [];
-  pts.forEach((p, i) => {
-    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], v = sub(b, a), l = len(v) || 1, n: AnimalPoint = [-v[1] / l, v[0] / l], w = widths[i] / 2;
-    left.push(add(p, n, w)); right.push(add(p, n, -w));
-  });
-  return [...left, ...right.reverse()];
-}
-const limbShape = (l: AnimalLimb) => poly(tubePoints(l.points, l.widths)) + l.points.slice(0, 4).map((p, i) => poly(circle(p, l.widths[i] / 2))).join("");
+const limbShape = (l: AnimalLimb) => poly(tubePoints(l.points, l.widths)) + l.points.slice(0, 4).map((p, i) => poly(circlePoints(p, l.widths[i] / 2))).join("");
 
 export interface AnimalShapes {
   /** Path data (model units, y up) for the far legs, then the body, then the near legs: fill all in one colour for a silhouette. */
@@ -423,7 +381,7 @@ export function skeletonShapes(s: AnimalSkeleton): AnimalShapes {
   const tailTip = (k: number) => (s.kind === "fish" ? "" : poly(tubePoints(s.tail.points.slice(Math.floor(s.tail.points.length * k)), s.tail.widths.slice(Math.floor(s.tail.points.length * k)))));
   regions.head = poly(ellipsePoints(h.cranium)); regions.face = regions.head; regions.muzzle = poly(h.muzzle);
   if (h.ear) { const k = h.ear.length; regions.ears = smoothClosedPath(h.ear); tips.ears = poly(h.ear.slice(Math.floor(k * .3), Math.ceil(k * .7))); }
-  regions.eyes = poly(circle(h.eye, h.eyeR));
+  regions.eyes = poly(circlePoints(h.eye, h.eyeR));
   regions.tail = tailD; tips.tail = s.kind === "fish" ? tailD : tailTip(.62);
   tips.muzzle = poly([lerpP(h.muzzle[0], h.muzzle[1], .6), h.muzzle[1], h.muzzle[2], lerpP(h.muzzle[3], h.muzzle[2], .6)]);
   const eyePatch = poly(ellipsePoints({ cx: h.eye[0], cy: h.eye[1], rx: h.eyeR * 3.2, ry: h.eyeR * 2.4, angle: h.axis }));

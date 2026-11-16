@@ -36,6 +36,8 @@ Write data, not TSX. Read [the film document](../../docs/component-specs/film-do
 
 **Animals on screen:** any drawn, painted or rigged animal, bird or fish starts from the animal anatomy framework — [kumiki-animal-anatomy](../kumiki-animal-anatomy/SKILL.md) — so build, face, coat, gait timing and sounds come from the species record, and an animal already drawn in another style is reused.
 
+**Plants on screen:** any tree, bamboo, flower or grass starts from the plant anatomy framework — [kumiki-plant-anatomy](../kumiki-plant-anatomy/SKILL.md) — so its architecture, season (blossom, leaves, autumn colour) and sway come from the species record.
+
 **Stop and ask** if an asset has no clear rights, if a claim has no source, or if no recipe fits a beat. Do not change a recipe to fix one film. Fix an authoring rule or a component once, then use it.
 
 **Never:** put exact text or numbers inside generated imagery, add motion that teaches nothing, repeat a title and a caption, or call a film finished before you watch it.
