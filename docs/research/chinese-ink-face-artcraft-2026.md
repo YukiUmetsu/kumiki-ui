@@ -291,3 +291,53 @@ faithful Chinese ink figure painting.
 Checks are wired in `tests/ink-shanshui-reader-expression.test.tsx`,
 `tests/e2e-storybook/ink-shanshui-reader-expression.spec.ts`, and
 `.github/workflows/ink-shanshui-qa.yml`.
+
+
+## EXPR1 24-fps temporal facial study · November 16, 2026
+
+**Status: opt-in Storybook facial motion, not production portrait approval.**
+Follow-up to the ANAT1 source-fitted eye, malar, brow and lip pass. Five
+still-pose intensities previously did not permit inspection of how the
+reader's facial changes actually flow in time and recover to neutral.
+
+### Historical ArtCraft reference and edge contract
+
+The original teacher figure's head, asymmetrical 3/4 gaze, ear, cap and five
+visemes remain the identity reference. Historic technique comparisons:
+
+- [Zeng Jing, Portrait of Pan Qintai, UMMA](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/):
+  layered translucent cheek and periocular modelling. AU6 eye narrowing must
+  move original local relief, not place a new dark eye sticker.
+- [Met scholar portrait](https://www.metmuseum.org/art/collection/search/48941):
+  quiet uneven brow, downcast upper lid, mouth-corner recession. Preserve
+  near/far perspective and the original broken dry edges.
+- [SOAS survey of Chinese figure-painting line modes](https://eprints.soas.ac.uk/12775/1/McCausland%20Figure%20Painting.3.19.14%20FINAL%20EDIT.pdf):
+  continuous silken/iron-wire/orchid-leaf contours are material gestures,
+  not CSS curves with lost pressure detail.
+
+These are studies of method, not authority to trace or bundle museum pixels.
+
+### Cue construction
+
+The pure readerInkCueWeight(frame) and
+inkReaderCueFrame(emotion,peakIntensity,frame,detail) sampler lives in
+src/video/ink-shanshui-expression-cue.ts.
+
+- 24 fps; 96 source frames; ease-in 0–12, sustained hold 12–60,
+  ease-out 60–84, neutral recovery 84–96.
+- Cubic smoothstep ensures zero velocity at segment boundaries. At frames
+  0,6,12,72,84,96 the activation is 0%,50%,100%,50%,0%,0%.
+- Drives the original EXPR1 malar, asymmetric brow, eyelid and lip geometry.
+  Crown, ear, pupil, independent speaking assets and head pivot stay intact.
+- Reader Face Studio now exposes an accessible film-frame slider, Play/Pause,
+  Reset, seven native source-frame reference poses and numeric ease readout.
+  Playback is disabled when reduced motion is preferred; manual scrubbing
+  stays available. Storybook does not autoplay.
+- Unit tests and native Chromium tests check deterministic continuity and
+  exact recovery to neutral source shapes.
+
+**Unresolved artistic gate:** inspect native 1×/macro crops at frames
+0/6/12/60/72/84/96 and the full 960×540 sequence against the original
+teacher painting; check continuity at 0→1,12→13,83→84, independent blink
+and speech overrides. A passing CI run is not human visual approval.
+The existing Fuchun rock/pima/pine hold still prevents merging PR #466.
