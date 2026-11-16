@@ -1023,6 +1023,44 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(paint("early-spring")).not.toContain('data-km-cliff-pine-centerline=');
   });
 
+  it("Fuchun old-pine needles include hooked and lateral flicks, not 310 uniformly upward comb teeth",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed=71)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,seed,detail:1},
+      }));
+    const getFlicks=(school:"fuchun"|"early-spring")=>{
+      const html=paint(school);
+      const needles=[...html.matchAll(
+        /data-km-cliff-pine-needle="" data-km-cliff-pine-needle-root="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(needles).toHaveLength(310);
+      return needles.map(([,root,path])=>{
+        const origin=root.split(",").map(Number);
+        const curve=path.match(
+          /^M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) Q(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/,
+        );
+        expect(curve).not.toBeNull();
+        expect(Math.abs(Number(curve![1])-origin[0])).toBeLessThan(.01);
+        expect(Math.abs(Number(curve![2])-origin[1])).toBeLessThan(.01);
+        const dy=Number(curve![6])-origin[1];
+        expect(Number.isFinite(dy)).toBe(true);
+        return dy;
+      });
+    };
+    const fuchun=getFlicks("fuchun");
+    const upward=fuchun.filter(dy=>dy< -2.5).length;
+    const lateral=fuchun.filter(dy=>Math.abs(dy)<=1.6).length;
+    const hooked=fuchun.filter(dy=>dy>2).length;
+    expect(upward).toBeGreaterThan(95);
+    expect(lateral).toBeGreaterThan(40);
+    expect(hooked).toBeGreaterThan(55);
+    // Another historical school retains its original independently
+    // designed needle flow rather than inheriting the Fuchun vocabulary.
+    expect(getFlicks("early-spring").filter(dy=>dy>2)).toHaveLength(0);
+    expect(paint("fuchun",73)).not.toBe(paint("fuchun"));
+  });
+
   it("renders willow boughs as closed tapering brush geometry with fine attached leaves",()=>{
     const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:125,controls:{...DEFAULT_SHANSHUI,scene:"river-scholar",detail:1},
