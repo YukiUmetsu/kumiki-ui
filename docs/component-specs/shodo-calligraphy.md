@@ -57,7 +57,7 @@ Every contact sample in a plan reports `phase` (`kihitsu`, `sohitsu`, `tensetsu`
 
    `SHODO_KANKA_RULES` gives each rule's term, reading and summary for captions. Each amount can be changed in the `structure` option, and `structure: false` turns the rules off. Bundled originals are not changed.
 
-   Then `shodoKaishoForm` trims KanjiVG's entry and exit curls and gives the skeleton brush habits: 右上がり as a shear (verticals stay vertical, joints stay closed; 1° over KanjiVG's slope for kanji, measured), free horizontal ends that stop short (`freeEnd`, 0.88 for kanji, measured), weight by stroke length, a longer main horizontal (主画), longer sweeps, 懸針 on a hanging final vertical, a foot on every 右払い, a pressed head on the 辶 sweep (平捺), and flowing curves for kana; the ゜ of ぱ and パ is a light closed ring.
+   Then `shodoKaishoForm` trims KanjiVG's entry and exit curls and gives the skeleton brush habits: 右上がり as a shear (verticals stay vertical, joints stay closed; 1° over KanjiVG's slope for kanji, measured), free horizontal ends that stop short (`freeEnd`, 0.88 for kanji, measured), compact dots (`dotLength`, 0.8) and a longer 提 (`riseStrokeLength`, 1.2), weight by stroke length, a longer main horizontal (主画), longer sweeps, 懸針 on a hanging final vertical, a foot on every 右払い, a pressed head on the 辶 sweep (平捺), and flowing curves for kana; the ゜ of ぱ and パ is a light closed ring.
 3. `shodoJoinStrokes` finds ends that meet an earlier stroke (the inner lines of 口, 目, 日) and marks them as joins: a small head and a quiet stop that hide inside the other line.
 4. The hand writes the result with the ten basics. Stop knobs scale with the stroke's length: big on main strokes, quiet on short ones.
 
