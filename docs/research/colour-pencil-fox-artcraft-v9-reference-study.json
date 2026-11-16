@@ -335,6 +335,42 @@
       },
       "release_status": "blocked — source/pose pixel-fidelity and actual latest visual review required",
       "detail_critical": true
+    },
+    {
+      "id": "fox-near-pinna-concha",
+      "reference_ids": [
+        "seated-fox-neck-artsdatabanken",
+        "bonny-snowdon-process",
+        "fox-cc0-anatomy"
+      ],
+      "critical": true,
+      "geometry_rule": "Fox near auricle has a bright pointed cartilaginous external helix, a smaller deeply recessed dark conchal bowl and warm fine rooted internal fur; the bowl cannot fill the entire ear as a uniform salmon-pink leaf.",
+      "microdetails": [
+        "helix anterior light edge",
+        "posterior fold separable from inner surface",
+        "darkest conchal root",
+        "soft reflected antihelix",
+        "three independent short-fibre families",
+        "skull overlap at ear base"
+      ],
+      "test_view": "same native 960×540 fox in 16:9 and 9:16, 2.15× head/ear macro, actual SVG Path2D inside/rim check",
+      "part_ids": [
+        "ear-near",
+        "ear-near-inner",
+        "ear-far",
+        "head-main"
+      ],
+      "source_observation": "In true fox photos and colored-pencil construction sequence, the ear is a cupped concave cartilage with a narrow brighter rim and darker conchal cavity, while fine fur emerges from the base. Current hero rendered it as a light flat leaf with uniform diagonal hatch.",
+      "five_axes": {
+        "topology": "True concha contained within near outer pinna in local coordinates (287,153) and (282,175), with exposed bright rim (271,177).",
+        "flow": "Fibres emerge from ear base and follow inward cartilage, rather than uniform roof-to-bottom diagonals.",
+        "weight": "Shaded concha dark sepia / dark indigo, warm clay rim and sparsely ivory antihelix; no all-black triangle, no bright peach flat fill.",
+        "rhythm": "3 rim subfeature paths and 3 concha paths plus 9 distinct rooted conchal pigment fans (3 guides × 3 colored pencil passes).",
+        "texture": "Three CP-F1 fur pressure passes and real named independent drawing traces, protected paper tooth and deterministic drawn-frame reveal."
+      },
+      "rights_note": "References are visual-construction studies only; no artist paths or photographic pixels are imported.",
+      "release_status": "draft: actual browser visual comparison against original ear and pose-matched source evidence required",
+      "detail_critical": true
     }
   ]
 }
