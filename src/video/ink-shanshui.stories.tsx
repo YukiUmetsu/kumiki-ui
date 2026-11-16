@@ -620,7 +620,7 @@ function MasterInkSourceComparison(){
         ["lower","Lower-bank contacts only"],
         ["stone","Stone volumes · brush hidden"],
         ["ridge","Skyline · contour only"],
-        ["pine","Pine crowns · flying-white ink"],
+        ["pine","Pine crowns · source anatomy"],
         ["pine-uncut","Pine before bristle paper lift"],
         ["uncut","Ink before dry-paper lift"]] as const).map(([zone,title])=>
         <button type="button" key={zone} style={style.button}
