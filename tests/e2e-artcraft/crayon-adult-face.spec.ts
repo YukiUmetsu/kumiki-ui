@@ -1806,3 +1806,38 @@ test("F1 V37 ANAT1 source-follicle brow original native 300-frame wax film",asyn
   expect(Buffer.compare(Buffer.from(frames[0]),Buffer.from(frames[2]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** V38 source-conditioned hair: native 608×1082 exact-camera 1×/3×
+ * source-photo vs V37 negative control. Only the hair pigment changes.
+ * ArtCraft realism still needs independent photographic pixel review. */
+test("F1 V38 ANAT1 photographed three volume hair light values source 1x/3x vs V37",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const pngs:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-brow-follicles",
+    "source-anat1-hair-values"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:300,focusY:298,zoom:3},
+        {frame:299,focusX:300,focusY:298,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["hair-back","hair-crown-surface","hair-left-curtain",
+        "hair-right-curtain","hair-rooted-crown-0","hair-rooted-left-0",
+        "hair-rooted-right-0","source-brow-follicles-near","sclera-near",
+        "nose-root","face-outline","lip-lower"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      pngs.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v38-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(pngs[0]),Buffer.from(pngs[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(pngs[1]),Buffer.from(pngs[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
