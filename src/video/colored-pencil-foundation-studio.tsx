@@ -60,15 +60,17 @@ export function PencilFoundationStudio(){
   const [reduced,setReduced]=useState(false);
   const [showTonalSupport,setShowTonalSupport]=useState(true);
   const [valueBand,setValueBand]=useState<AnatomyValueBand>("all");
+  const [headVolumeWeave,setHeadVolumeWeave]=useState(true);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
       pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,seed}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
-        specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,seed});
+        specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,seed,
+        headVolumeWeave});
     return {...base,regions:base.regions.map(r=>({
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
-  },[specimen,aspect,pressure,tooth,burnish,seed]);
+  },[specimen,aspect,pressure,tooth,burnish,seed,headVolumeWeave]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -111,6 +113,7 @@ export function PencilFoundationStudio(){
   return <main data-km-foundation-studio="" data-km-foundation-stage={PENCIL_FOUNDATION_STAGES[current].id}
     data-km-foundation-inspection-focus={focusPart??"default"}
     data-km-anat1-value-inspection={specimen==="portrait"?valueBand:"all"}
+    data-km-head-cranial-volume={specimen==="portrait"?(headVolumeWeave?"on":"off"):"not-applicable"}
     style={{minHeight:"100vh",padding:24,display:"grid",alignContent:"start",
       gap:16,background:"#E8E7DE",font:"15px/1.5 system-ui",color:"#3B4747"}}>
     <header style={{maxWidth:1050,display:"grid",gap:4}}>
@@ -261,6 +264,11 @@ export function PencilFoundationStudio(){
           <option value="core-shadow">Core shadow</option>
           <option value="reflected-light">Reflected-light return</option>
         </select>
+      </label>}
+      {specimen==="portrait"&&<label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation head cranial optical volume" type="checkbox"
+          checked={headVolumeWeave} onChange={e=>setHeadVolumeWeave(e.target.checked)}/>
+        Multi-pass cranial value weave · compare before/after
       </label>}
       <label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
         <input aria-label="Foundation inspect macro" type="checkbox" checked={zoom}
