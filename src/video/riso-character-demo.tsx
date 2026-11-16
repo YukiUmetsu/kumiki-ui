@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
+import {riso32ThumbIpJoint,riso32ThumbInkParts,riso33WristUnderprintClearance} from "./riso32-thumb-ip";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
 // RISO28: arm pendulum tracks the same 54-frame alternating contact
@@ -106,28 +107,32 @@ export const COURIER: RisoCharacterSpec = {
     // Printed metacarpal and thenar marks stay attached to the palm,
     // not the proximal forearm and not an independent sticker.
     { id: "left-palm-surface", parent: "left-hand", x: 0, y: 11 },
+    // RISO33: the MCP fan MUST preserve separate negative-space tunnels at
+    // handoff. Inward 25-degree index sweep made three articulated fingers
+    // intersect even though each had the right number of source bones.
     // Palm -> individual digits: all are genuinely joint-local and keep
     // anatomical roots, even under the moving elbow rig.
-    { id: "left-thumb", parent: "left-hand", x: -9, y: 8,
-      keys: [{frame:0,rotate:-8,easing:"ease"},{frame:92,rotate:15,easing:"ease"},
-        {frame:160,rotate:4,easing:"ease"},{frame:198,rotate:-14,easing:"ease"},{frame:239,rotate:-14}] },
+    { id: "left-thumb", parent: "left-hand", x: -7.1, y: 8,
+      keys: [{frame:0,rotate:-8,easing:"ease"},{frame:92,rotate:-20,easing:"ease"},
+        {frame:160,rotate:-37,easing:"ease"},{frame:198,rotate:-15,easing:"ease"},{frame:239,rotate:-15}] },
     { id: "left-index", parent: "left-hand", x: -6, y: 16,
-      keys: [{frame:0,rotate:7,easing:"ease"},{frame:92,rotate:-8,easing:"ease"},
-        {frame:160,rotate:13,easing:"ease"},{frame:198,rotate:-5,easing:"ease"},{frame:239,rotate:-5}] },
+      keys: [{frame:0,rotate:7,easing:"ease"},{frame:92,rotate:5,easing:"ease"},
+        {frame:160,rotate:7,easing:"ease"},{frame:198,rotate:5,easing:"ease"},{frame:239,rotate:5}] },
     { id: "left-middle", parent: "left-hand", x: 0, y: 18,
-      keys: [{frame:0,rotate:3,easing:"ease"},{frame:92,rotate:-11,easing:"ease"},
-        {frame:160,rotate:9,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
+      keys: [{frame:0,rotate:3,easing:"ease"},{frame:92,rotate:0,easing:"ease"},
+        {frame:160,rotate:0,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
     { id: "left-ring", parent: "left-hand", x: 6, y: 16,
-      keys: [{frame:0,rotate:-4,easing:"ease"},{frame:92,rotate:-10,easing:"ease"},
-        {frame:160,rotate:6,easing:"ease"},{frame:198,rotate:4},{frame:239,rotate:4}] },
+      keys: [{frame:0,rotate:-4,easing:"ease"},{frame:92,rotate:-6,easing:"ease"},
+        {frame:160,rotate:-6,easing:"ease"},{frame:198,rotate:-4},{frame:239,rotate:-4}] },
     // Fifth digit on the ulnar side; shorter than the ring finger, with
     // its own independent source bone and print contour, not 4 fingers.
     { id: "left-pinky", parent: "left-hand", x: 11, y: 15, keys: [
-      {frame:0,rotate:4,easing:"ease"},{frame:144,rotate:-4,easing:"ease"},
-      {frame:160,rotate:7,easing:"ease"},{frame:198,rotate:3},{frame:239,rotate:3},
+      {frame:0,rotate:4,easing:"ease"},{frame:144,rotate:-7,easing:"ease"},
+      {frame:160,rotate:-9,easing:"ease"},{frame:198,rotate:-6},{frame:239,rotate:-6},
     ] },
     // RISO31: full original printed phalanges are a bone hierarchy.
     ...riso31PhalanxJoints("left"),
+    riso32ThumbIpJoint("left"),
     { id: "right-arm", parent: "body", x: 24, y: -44, keys: [
       { frame: 0, rotate: 14, easing: "ease" }, { frame: 65, rotate: -9, easing: "ease" },
       { frame: 137, rotate: 25, easing: "ease" }, { frame: 187, rotate: 42, easing: "ease" },
@@ -154,23 +159,24 @@ export const COURIER: RisoCharacterSpec = {
     { id: "right-palm-surface", parent: "right-hand", x: 0, y: 11 },
     // The right hand follows the satchel via IK; separate roots let the
     // fingers close gently without dragging the palm or wrist shape.
-    { id: "right-thumb", parent: "right-hand", x: 9, y: 8,
-      keys: [{frame:0,rotate:-9,easing:"ease"},{frame:90,rotate:0,easing:"ease"},
-        {frame:156,rotate:18,easing:"ease"},{frame:198,rotate:12},{frame:239,rotate:12}] },
+    { id: "right-thumb", parent: "right-hand", x: 7.1, y: 8,
+      keys: [{frame:0,rotate:-9,easing:"ease"},{frame:90,rotate:18,easing:"ease"},
+        {frame:156,rotate:37,easing:"ease"},{frame:198,rotate:14},{frame:239,rotate:14}] },
     { id: "right-index", parent: "right-hand", x: 6, y: 16,
-      keys: [{frame:0,rotate:3,easing:"ease"},{frame:90,rotate:16,easing:"ease"},
-        {frame:156,rotate:25,easing:"ease"},{frame:198,rotate:19},{frame:239,rotate:19}] },
+      keys: [{frame:0,rotate:3,easing:"ease"},{frame:90,rotate:-3,easing:"ease"},
+        {frame:156,rotate:-7,easing:"ease"},{frame:198,rotate:-5},{frame:239,rotate:-5}] },
     { id: "right-middle", parent: "right-hand", x: 0, y: 18,
-      keys: [{frame:0,rotate:0,easing:"ease"},{frame:90,rotate:10,easing:"ease"},
-        {frame:156,rotate:18,easing:"ease"},{frame:198,rotate:12},{frame:239,rotate:12}] },
+      keys: [{frame:0,rotate:0,easing:"ease"},{frame:90,rotate:0,easing:"ease"},
+        {frame:156,rotate:0,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
     { id: "right-ring", parent: "right-hand", x: -6, y: 16,
-      keys: [{frame:0,rotate:-5,easing:"ease"},{frame:90,rotate:9,easing:"ease"},
-        {frame:156,rotate:14,easing:"ease"},{frame:198,rotate:11},{frame:239,rotate:11}] },
+      keys: [{frame:0,rotate:-5,easing:"ease"},{frame:90,rotate:5,easing:"ease"},
+        {frame:156,rotate:6,easing:"ease"},{frame:198,rotate:5},{frame:239,rotate:5}] },
     { id: "right-pinky", parent: "right-hand", x: -11, y: 15, keys: [
-      {frame:0,rotate:-5,easing:"ease"},{frame:144,rotate:5,easing:"ease"},
-      {frame:160,rotate:-7,easing:"ease"},{frame:198,rotate:-3},{frame:239,rotate:-3},
+      {frame:0,rotate:-5,easing:"ease"},{frame:144,rotate:7,easing:"ease"},
+      {frame:160,rotate:9,easing:"ease"},{frame:198,rotate:6},{frame:239,rotate:6},
     ] },
     ...riso31PhalanxJoints("right"),
+    riso32ThumbIpJoint("right"),
     { id: "satchel", parent: "body", x: 29, y: 0, keys: [
       { frame: 0, rotate: -5, easing: "ease" }, { frame: 25, rotate: 6, easing: "ease" },
       { frame: 49, rotate: -5, easing: "ease" }, { frame: 90, rotate: 7, easing: "ease" },
@@ -266,16 +272,18 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-8 -1 Q0 -7 8 -1 L9 23 Q1 30 -8 25 Z" },
     { id: "sleeve-left-fold", joint: "left-arm", plate: "red", paint: "screen",
       d: "M-7 7 Q-1 13 7 9 L7 12 Q-2 16 -7 11 Z" },
+    // RISO34: the actual two-ink cuff deposits a narrow hand-drawn seam,
+    // never an oversized red rectangle on the blue forearm.
     { id: "cuff-left", joint: "left-elbow", plate: "red", paint: "screen",
-      d: "M-7 17 Q0 19 7 17 L8 20 Q1 23 -8 20 Z" },
+      d: "M-7.8 20.9 Q-4.5 21.1 -1.2 21.0 Q3.4 20.5 7.4 20.8 L7.5 21.45 Q3.6 21.1 -.6 21.65 Q-4.4 21.75 -7.65 21.52 Z" },
+    riso33WristUnderprintClearance("left"),
     { id: "left-glove", joint: "left-hand", plate: "red", paint: "solid",
       d: "M-6.5 -1.7 C-9.4 -2.4 -10.4 1.1 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -2 4 -1.8 Q0 -2.1 -3 -1.6 Z" },
     ...riso31FingerParts("left","index"),
     ...riso31FingerParts("left","middle"),
     ...riso31FingerParts("left","ring"),
     ...riso31FingerParts("left","pinky"),
-    { id: "left-glove-thumb", joint: "left-thumb", plate: "red", paint: "solid",
-      d: "M2.1 -3.6 Q-.5 -6 -3.2 -5.2 Q-6.3 -4.4 -9.5 -.6 Q-10.8 2.5 -8 3.5 Q-5.5 3.4 -3 1.6 Q-.5 .3 1.7 2.2 Z" },
+    ...riso32ThumbInkParts("left"),
     { id: "left-finger-joint-lines", joint: "left-middle", plate: "blue", paint: "solid",
       d: "M0 4 Q2 3 3 5 L3 5.8 Q2 5 0 5 Z" },
     { id: "left-glove-detail", joint: "left-hand", plate: "blue", paint: "solid",
@@ -292,15 +300,15 @@ export const COURIER: RisoCharacterSpec = {
     { id: "sleeve-right-fold", joint: "right-arm", plate: "red", paint: "screen",
       d: "M-8 8 Q0 12 7 8 L7 11 Q-1 16 -8 12 Z" },
     { id: "cuff-right", joint: "right-elbow", plate: "red", paint: "screen",
-      d: "M-7 18 Q0 20 7 18 L8 21 Q0 24 -8 21 Z" },
+      d: "M-7.5 21.0 Q-3.8 21.6 .2 21.05 Q3.9 20.5 7.6 20.8 L7.3 21.52 Q3.7 21.1 -.3 21.76 Q-4.0 21.68 -7.5 21.6 Z" },
+    riso33WristUnderprintClearance("right"),
     { id: "right-glove", joint: "right-hand", plate: "red", paint: "solid",
       d: "M-6.5 -1.7 C-9.4 -2.4 -10.4 1.1 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -2 4 -1.8 Q0 -2.1 -3 -1.6 Z" },
     ...riso31FingerParts("right","index"),
     ...riso31FingerParts("right","middle"),
     ...riso31FingerParts("right","ring"),
     ...riso31FingerParts("right","pinky"),
-    { id: "right-glove-thumb", joint: "right-thumb", plate: "red", paint: "solid",
-      d: "M-2 -3.6 Q.8 -6.2 3.5 -5.5 Q7 -4.9 9.8 -.5 Q11.1 2.1 8.2 3.4 Q5.4 3.5 3.2 1.5 Q1 -.1 -1.7 2.0 Z" },
+    ...riso32ThumbInkParts("right"),
     { id: "right-finger-joint-lines", joint: "right-index", plate: "blue", paint: "solid",
       d: "M0 4 Q2 3 3 5 L3 5.8 Q2 5 0 5 Z" },
     { id: "right-glove-detail", joint: "right-hand", plate: "blue", paint: "solid",

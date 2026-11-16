@@ -125,7 +125,12 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
   await expect(stage.locator("[data-km-riso-grip-occlusion]")).toHaveCount(0);
   await page.getByRole("checkbox",{name:"RISO ensemble anatomical fingertip occlusion"}).check();
   await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-contact-overprint","true");
-  await expect(stage.locator("[data-km-riso-grip-occlusion]")).toHaveCount(2);
+  // The 239f received state owns the paper only at the receiver. Donor
+  // fingers must not float on a transferred sheet after release. The old
+  // two-grip assertion was a stale RISO17 assumption, not valid handoff QA.
+  await expect(stage.locator("[data-km-riso-grip-occlusion]")).toHaveCount(1);
+  await expect(stage.locator('[data-km-riso-grip-occlusion="artist-grip"]')).toHaveCount(1);
+  await expect(stage.locator('[data-km-riso-grip-occlusion="courier-grip"]')).toHaveCount(0);
   await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(1);
   await page.getByRole("checkbox",{name:"RISO ensemble fine printed-sheet detail"}).uncheck();
   await expect(stage.locator("[data-km-riso-transfer-postmark]")).toHaveCount(0);
@@ -153,7 +158,12 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
     input.dispatchEvent(new Event("change",{bubbles:true}));
   });
   await expect(page.getByText("Screen cell · 9px")).toBeVisible();
-  await expect(stage.locator('pattern[width="9"]')).toHaveCount(2);
+  // RISO26 prints three genuine dot-area values on *each* of the two
+  // physical spot masters (normal, light, mid), never RGB alpha washes.
+  // All six must inherit a calibrated 9-unit screen tile.
+  await expect(stage.locator('pattern[width="9"]')).toHaveCount(6);
+  await expect(stage.locator('pattern[id*="-dots-light-"]')).toHaveCount(2);
+  await expect(stage.locator('pattern[id*="-dots-mid-"]')).toHaveCount(2);
   await page.getByRole("slider",{name:"RISO ensemble paper grain"}).evaluate(node=>{
     const input=node as HTMLInputElement;
     const set=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
