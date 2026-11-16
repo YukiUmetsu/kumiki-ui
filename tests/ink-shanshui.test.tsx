@@ -959,6 +959,85 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("roots all original 78 Fuchun long-hemp marks to curving parent strata rather than straight dark wires",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,seed,detail,mist:.35},
+      }));
+    const full=paint("fuchun");
+    const strata=[...full.matchAll(
+      /data-km-master-stratum="" data-km-master-stratum-root="([^"]+)" data-km-master-stratum-index="([0-4])" data-km-master-stratum-centerline="([^"]+)"/g,
+    )];
+    expect(strata).toHaveLength(15);
+    const bones=strata.map(([,root,,d])=>{
+      expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+      expect((d.match(/ C/g)??[])).toHaveLength(1);
+      const p=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(p).toHaveLength(8);
+      expect(p.every(Number.isFinite)).toBe(true);
+      expect(p[7]-p[1]).toBeGreaterThan(25);
+      return p;
+    });
+    const bent=bones.filter(([x,,c1x,,c2x,,endx])=>{
+      const dx=endx-x;
+      return Math.abs(c1x-x-dx/3)+
+        Math.abs(c2x-x-2*dx/3)>12;
+    });
+    expect(bent.length).toBeGreaterThanOrEqual(12);
+    const marked=[...full.matchAll(
+      /data-km-master-stroke="" data-km-master-stroke-style="long-hemp" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(?:wet|dry)" data-km-master-stroke-bank="([0-4])" data-km-master-stroke-bank-station="([^"]+)"/g,
+    )];
+    expect(marked).toHaveLength(78);
+    const counts=[0,0,0,0,0];
+    for(const [,root,bank,station] of marked){
+      const b=Number(bank);
+      const t=Number(station);
+      const face=counts[b]%3;
+      counts[b]++;
+      expect(t).toBeGreaterThan(.05);
+      expect(t).toBeLessThan(.95);
+      const [x,y,c1x,c1y,c2x,c2y,tipx,tipy]=bones[Number(
+        // Master faces retain their own group of five parent strata.
+        // Resolve by the rendered stroke's enclosing face order below.
+        0)]; 
+      void x;void y;void c1x;void c1y;void c2x;void c2y;void tipx;void tipy;void face;
+      expect(root.split(",").every(v=>Number.isFinite(Number(v)))).toBe(true);
+    }
+    // Independent original master faces carry 34, 26 and 18 marks.
+    // Read actual nested source groups so each stroke samples the
+    // correct 0-4 bone in its own *positive* face.
+    const faces=[...full.matchAll(/<g data-km-master-face=""[^>]*>/g)];
+    expect(faces).toHaveLength(3);
+    for(let i=0;i<faces.length;i++){
+      const start=faces[i].index!;
+      const end=i===2?full.length:faces[i+1].index!;
+      const part=full.slice(start,end);
+      const ownedBones=bones.slice(i*5,i*5+5);
+      const strokes=[...part.matchAll(
+        /data-km-master-stroke="" data-km-master-stroke-style="long-hemp" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(?:wet|dry)" data-km-master-stroke-bank="([0-4])" data-km-master-stroke-bank-station="([^"]+)"/g,
+      )];
+      expect(strokes).toHaveLength([34,26,18][i]);
+      for(const [,root,bank,station] of strokes){
+        const [x,y,c1x,c1y,c2x,c2y,tx,ty]=ownedBones[Number(bank)];
+        const t=Number(station),q=1-t;
+        const actual=root.split(",").map(Number);
+        const expected=[
+          q*q*q*x+3*q*q*t*c1x+3*q*t*t*c2x+t*t*t*tx,
+          q*q*q*y+3*q*q*t*c1y+3*q*t*t*c2y+t*t*t*ty,
+        ];
+        expect(Math.hypot(actual[0]-expected[0],
+          actual[1]-expected[1])).toBeLessThan(.055);
+      }
+    }
+    expect(paint("fuchun")).toBe(full);
+    expect(paint("fuchun",77)).not.toBe(full);
+    expect(paint("fuchun",71,0)).not.toContain(
+      'data-km-master-stroke-style="long-hemp"');
+    expect(paint("early-spring")).not.toContain(
+      'data-km-master-stratum-centerline=');
+  });
+
   it("paints three connected Fuchun rounded mountain underbacks with real rooted dry hemp",()=>{
     const make=(school:"fuchun"|"early-spring",detail=1,seed=71,mist=.35)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{
