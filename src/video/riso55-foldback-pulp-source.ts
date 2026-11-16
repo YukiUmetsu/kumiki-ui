@@ -28,10 +28,16 @@ export const RISO55_FOLDBACK_SOURCE={
   source:"CMU real Hand Holding Papers photograph, index-thumb pinch with tucked ulnar pads",
   anatomy:"distal fingertip pulp returns into hollow of palm; fixed DIP joint local origin",
   preserved:"all 12 original red finger bones, live PIP/DIP anatomy, cobalt nails and 2-ink print",
+  // The long middle pad flexes toward thumb opposition, the ring turns
+  // deep into the palm (mostly out of image plane), and the short little
+  // pulp turns onto the ulnar hypothenar border. Rotating all three
+  // toward the same radial direction made their real RED ink intersect
+  // at f160/166 (the original RISO42 gap gate correctly rejected it).
   projectionDegrees:{
-    courier:{middle:106,ring:116,pinky:122},
-    "paper-artist":{middle:104,ring:112,pinky:120},
+    courier:{middle:106,ring:148,pinky:114},
+    "paper-artist":{middle:104,ring:146,pinky:112},
   },
+  projectedSide:{middle:1,ring:1,pinky:-1} as const,
   affectedOriginalPartsPerActor:6,
   sourceFrame:160,
   space:"pure authored 2D image of clinical 3D flex, not new clinical joint rotation",
@@ -54,7 +60,8 @@ export function riso55FoldbackPoint(
   if(!Number.isFinite(x)||!Number.isFinite(y)||Math.abs(x)>8192||Math.abs(y)>8192)
     throw new RangeError("RISO55 source point must be finite and bounded");
   const angle=RISO55_FOLDBACK_SOURCE.projectionDegrees[actor][digit]*Math.PI/180;
-  const handed=actor==="courier"?1:-1;
+  const handed=(actor==="courier"?1:-1)*
+    RISO55_FOLDBACK_SOURCE.projectedSide[digit];
   const cosine=Math.cos(angle),sine=Math.sin(angle)*handed;
   return [Number(n(x*cosine+y*sine)),Number(n(-x*sine+y*cosine))];
 }
