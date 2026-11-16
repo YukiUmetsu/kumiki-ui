@@ -542,8 +542,11 @@ export function RisoHumanEnsembleStudio(){
     {spec:COURIER,stage:riso56ProjectPlacement(state.first,camera)},
     {spec:PAPER_ARTIST,stage:riso56ProjectPlacement(state.second,camera)},
   ] as const;
-  const footContacts=people.flatMap(({spec,stage})=>["left-ankle","right-ankle"].map(joint=>
-    personPoint(spec,frame,joint,stage.x,stage.y,stage.scale)));
+  const footContacts=([
+    {spec:COURIER,stage:state.first},
+    {spec:PAPER_ARTIST,stage:state.second},
+  ] as const).flatMap(({spec,stage})=>["left-ankle","right-ankle"].map(joint=>
+    riso56ProjectPoint(personPoint(spec,frame,joint,stage.x,stage.y,stage.scale),camera)));
   const gripLayer=(spec:RisoCharacterSpec,stage:{x:number;y:number;scale:number},
     side:"left"|"right",id:string):RisoForegroundLayer=>{
     const onlyPartIds=riso43FrontIndexIds(side);
