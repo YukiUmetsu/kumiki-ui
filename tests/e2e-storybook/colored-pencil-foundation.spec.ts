@@ -253,7 +253,13 @@ test("ArtCraft single-head-only construction and fox geometry inspect both nativ
         // steep, parallel sidewalls and a flattened trapezoid are rejected.
         expect(anatomy.dome/anatomy.widest).toBeLessThan(.84);
         // At the zygion, cheeks flare OUT again after temporal recession.
-        expect(anatomy.zygoma/anatomy.temple).toBeGreaterThan(1.07);
+        // The preceding candidate passed the original >=1.07 flare test
+        // yet rendered as a visibly pinched hourglass: both temples
+        // receded much too deeply. This subject-specific measured
+        // transition must be present but restrained, never a gourd waist.
+        const templeCheekRatio=anatomy.zygoma/anatomy.temple;
+        expect(templeCheekRatio).toBeGreaterThan(1.025);
+        expect(templeCheekRatio).toBeLessThan(1.075);
         expect(anatomy.jaw/anatomy.zygoma).toBeLessThan(.90);
         for(const retired of ["face-main","hair-back","hair-crown",
           "eye-white-near","lip-upper","neck","coat-back"]){
