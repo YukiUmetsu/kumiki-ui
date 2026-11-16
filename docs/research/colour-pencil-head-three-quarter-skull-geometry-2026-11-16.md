@@ -43,7 +43,7 @@ The actual underlying head art is still rejected.
 
 **New 3/4 experiment (B):** original ANAT1 mesh sampled at **29°**
 instead of 17°, **15** separately authored vault coordinates,
-posterior x-extension up to `0.095×` the face width, reduced upper
+posterior x-extension up to `0.048×` the face width after native visual correction, reduced upper
 vault height (`0.265×` rather than `0.325×` forehead width), a
 narrow near-side temporal hollow and separately curved cheek and
 mandibular gonial transition. These are **authored relative
@@ -92,3 +92,19 @@ repeated dark slash, larger skull geometry but loss of microdetail,
 unstable image at frame 335, and failure to move the cheeks/landmarks
 with the same yaw. A green test is only a structural and compatibility
 pass, *never* the independent artist's release signature.
+
+## Browser inspection, first experimental shape rejected
+
+The first native Chromium A/B render showed a **peanut/hourglass** at the
+near temple: an exaggerated posterior parietal x-extension
+(`0.095×faceWidth`) combined with too deep a temporal recession
+(`0.061×faceWidth`). This violates the continuous cranium/face join,
+even though all compiler, unit and browser checks were green. It was
+**visually rejected**, not misrepresented as a quality improvement.
+We retained all 15 authored vault anchors, the 29° camera and every
+original pigment stroke while easing the rear upper turn to at most
+`0.048×faceWidth` and near temporal hollow to `0.027×faceWidth`.
+The measured true 960×540 baseline/first-candidate screenshot was
+recorded in [PR #498 ArtCraft review](https://github.com/YukiUmetsu/kumiki-ui/pull/498).
+Re-run both native A/B screenshots before accepting even this *shape
+study* and keep formal portrait approval on HOLD.
