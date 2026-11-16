@@ -611,9 +611,21 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
     geometry:el.getAttribute("d"),
     mask:el.getAttribute("mask"),
   })));
+  const heroRibs=fuchun.locator("[data-km-rock-hero-rib-reserve]");
+  const heroFaces=fuchun.locator("[data-km-rock-hero-face][mask]");
+  const heroCreases=fuchun.locator("[data-km-rock-hero-crease][mask]");
+  await expect(heroRibs).toHaveCount(4);
+  await expect(heroFaces).toHaveCount(4);
+  await expect(heroCreases).toHaveCount(4);
+  const heroOriginal=await heroFaces.evaluateAll(nodes=>nodes.map(
+    el=>({geometry:el.getAttribute("d"),mask:el.getAttribute("mask")})));
   await page.getByRole("button",{name:"Ink before dry-paper lift"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","uncut");
   expect(await fibres.first().evaluate(el=>getComputedStyle(el).maskImage))
+    .toBe("none");
+  expect(await heroFaces.first().evaluate(el=>getComputedStyle(el).maskImage))
+    .toBe("none");
+  expect(await heroCreases.first().evaluate(el=>getComputedStyle(el).maskImage))
     .toBe("none");
   await expect(fuchun.locator("[data-km-master-stroke]")).toHaveCount(78);
   await expect(fuchun.locator("[data-km-master-stroke-reserve]"))
@@ -627,7 +639,14 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
     mask:el.getAttribute("mask"),
   })));
   expect(restored).toEqual(nativeMasks);
+  expect(await heroFaces.evaluateAll(nodes=>nodes.map(
+    el=>({geometry:el.getAttribute("d"),mask:el.getAttribute("mask")}))))
+    .toEqual(heroOriginal);
   expect(await fibres.first().evaluate(el=>getComputedStyle(el).maskImage))
+    .not.toBe("none");
+  expect(await heroFaces.first().evaluate(el=>getComputedStyle(el).maskImage))
+    .not.toBe("none");
+  expect(await heroCreases.first().evaluate(el=>getComputedStyle(el).maskImage))
     .not.toBe("none");
   await fuchun.locator("[data-km-master-camera-view]").screenshot({
     animations:"disabled",path:info.outputPath("fuchun-native-after-paper-lift-145.png")});
