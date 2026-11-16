@@ -292,10 +292,38 @@ colour for open wings.
 - The sleeping head crossed its own body. It is now tucked lower on the back.
 - Upending in 10 frames jumped 0.14 per frame. It takes 14 frames.
 
+## Young animals (2026-11-16)
+
+`animal-growth.ts` grows a species' construction from its youngest to the adult.
+
+**Measured or reported:**
+
+- **Horse.** The horse is "61, 84, 92 and 95 percent of its mature size at birth, 6, 12 and 18 months", and "the
+  cannon bone is the most mature bone in terms of length at birth" (horses.extension.org). "The cannon bones only grow
+  about 20 percent in length after birth, while the humerus and femur increase 100 percent" (Butler farrier school).
+- **Beagle** (Helmsmüller et al. 2013, BMC Vet Res 9:203; PMC full text), from 9 to 51 weeks:
+  - withers height +37–42% and trunk length +37–44%;
+  - the manus fell from 21.2% to 19.6% of the fore limb, the pes from 35.2% to 30.4% of the hind limb.
+- **Faces** (Wikipedia, *Cuteness* and *Neoteny*): juveniles have smaller snouts, higher foreheads and larger eyes;
+  neotenous domestic animals have large eyes, a rounded forehead, large ears and a shortened muzzle.
+- **Young coats** (Wikipedia, species articles):
+  - crane chicks are "covered in yellow natal down for two weeks", and juveniles are tawny and cinnamon with a
+    "grayish to coffee brown" neck;
+  - fox kits have "dark brown fluffy fur" and eyes that are "blue at birth";
+  - macaque infants are "born with dark-brown hair";
+  - mandarin ducklings are "very similar to mallard ducklings", which are yellow below and on the face.
+
+**Estimated:** the face amounts, the trunk, neck and tail growth of most kinds, and all of the small mammals,
+primates and birds.
+
+**Renders:** foal, fawn, calf, piglet, puppy, kitten, bear cub, fox kit, leveret and infant macaque beside their
+parents to scale, and crane, duck, sparrow and pheasant chicks.
+
 ## Not done
 
 - Front and back constructions in ANIM1 (styles draw their own).
 - Leaping, take-off and landing; birds on a perch (gripping a branch rather than standing on the ground).
+- Young animals' postures and gaits are the adults' (a foal's gangly walk is not modelled).
 - The long-and-low UKIYO1 quadrupeds listed above.
 - Measured, not estimated, colours and faces.
 - Recordings for most animal voices; the search terms are listed per species.

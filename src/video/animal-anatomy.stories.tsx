@@ -15,6 +15,7 @@ import { ukiyoeBeastLandmarks } from "../../registry/video/ukiyoe/ukiyoe-creatur
 import { ANIMAL_POSTURES, BIRD_POSTURE_IDS, BIRD_POSTURES, birdPostureFits, POSTURE_IDS, postureFit } from "../../registry/anatomy/animal-postures";
 import type { BirdPostureId, PostureId } from "../../registry/anatomy/animal-postures";
 import { BIRD_FLIGHT, flightAt, speciesWingbeat } from "../../registry/anatomy/animal-flight";
+import { coatAt, growthRule, heightAt, juvenileConstruction } from "../../registry/anatomy/animal-growth";
 import type { UkiyoeSpecies } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 
 const page = { display: "grid", gap: 16, alignContent: "start", padding: 24, minHeight: "100vh", background: "var(--km-surface-canvas, #f6f3f1)", color: "var(--km-text-primary, #242424)",
@@ -292,9 +293,55 @@ function FlightLab() {
   );
 }
 
+/** The young beside the parent, to scale: proportions and coat from `animal-growth.ts`. */
+function GrowthLab() {
+  const [id, setId] = useState("kiso-horse");
+  const sp = findAnimal(id)!;
+  const c = useMemo(() => animalConstruction(sp), [sp]);
+  const rule = growthRule(c.plan.id, c.plan.group);
+  const [age, setAge] = useState(0);
+  const [mode, setMode] = useState<AnimalFigureMode>("colour");
+  const young = useMemo(() => poseAnimal(juvenileConstruction(c, age)), [c, age]), adult = useMemo(() => poseAnimal(c), [c]);
+  // One frame for both: the adult's bounds in its own units; the young is drawn in its units scaled by its height.
+  const b = useMemo(() => skeletonShapes(adult).bounds, [adult]), w = b[2] - b[0], hgt = b[3] - b[1], h = rule ? heightAt(rule, age) : 1;
+  const yb = [b[0] / h, b[1] / h, b[2] / h, b[3] / h] as const;
+  const figure = { width: "100%", height: "auto", maxWidth: 420 } as const;
+  return (
+    <div style={page}>
+      <div style={row}>
+        <SpeciesSelect value={id} onChange={setId} />
+        <label style={{ ...label, minWidth: 240 }}>Age: {age === 0 ? (rule?.youngest ?? "youngest") : age >= 1 ? "adult" : age.toFixed(2)}
+          <input type="range" min={0} max={1} step={.01} value={age} onChange={e => setAge(Number(e.target.value))} disabled={!rule} />
+        </label>
+        <label style={label}>Drawing
+          <select style={field} value={mode} onChange={e => setMode(e.target.value as AnimalFigureMode)}>
+            {(["construction", "silhouette", "colour", "fur"] as const).map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+      </div>
+      {rule ? (
+        <>
+          <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", alignItems: "end", maxWidth: 900 }}>
+            <figure style={{ margin: 0 }}><AnimalFigure skeleton={young} mode={mode} palette={coatAt(sp, age)} bounds={yb} label={`${sp.name}, young, at ${Math.round(h * 100)}% of adult height`} style={figure} />
+              <figcaption style={{ ...label, fontWeight: 400 }}>Young: {Math.round(h * 100)}% of adult height</figcaption></figure>
+            <figure style={{ margin: 0 }}><AnimalFigure skeleton={adult} mode={mode} bounds={b} label={`${sp.name}, adult`} style={figure} />
+              <figcaption style={{ ...label, fontWeight: 400 }}>Adult</figcaption></figure>
+          </div>
+          <div style={{ maxWidth: "70ch" }}>
+            <p style={{ margin: "0 0 8px" }}>Youngest drawn: {rule.youngest}. Height then {Math.round(rule.height.typical * 100)}% of adult ({rule.height.grade}{rule.height.source ? `: ${rule.height.source}` : ""}). Frame {w.toFixed(2)} × {hgt.toFixed(2)} {c.plan.group === "mammal" ? "adult shoulder heights" : "adult lengths"}.</p>
+            <ul style={{ margin: 0, paddingLeft: 20 }}>{rule.notes.map(n => <li key={n}>{n}</li>)}
+              {sp.coat.variants.filter(v => v.age).map(v => <li key={v.name}>Young coat, {v.name}: {v.when}</li>)}</ul>
+          </div>
+        </>
+      ) : <p>{sp.name}: no growth rule (fish).</p>}
+    </div>
+  );
+}
+
 export const Sheet: Story = { render: () => <SheetStory /> };
 export const Gaits: Story = { render: () => <GaitLab /> };
 export const Postures: Story = { render: () => <PostureLab /> };
 export const Flight: Story = { render: () => <FlightLab /> };
+export const Growth: Story = { render: () => <GrowthLab /> };
 export const BodyPlans: Story = { name: "Body plans", render: () => <BodyPlansStory /> };
 export const UkiyoeCheck: Story = { name: "UKIYO1 proportion check", render: () => <ProportionCheck /> };
