@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"pine"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -587,6 +587,11 @@ function MasterInkSourceComparison(){
       [data-km-rock-hero-paint-layer],
       [data-km-master-ink-inspection="ridge"] [data-km-master-study="fuchun"]
       [data-km-cliff-pine-grove] { visibility:hidden; }
+      /* Isolate actual attached pine topology without replacing a path. */
+      [data-km-master-ink-inspection="pine"] [data-km-master-study="fuchun"]
+      [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff] { visibility:hidden; }
       /* Material proof: same original long-hemp SVG ribbons and
          gradients, but before their local dry-paper fissures. Attribute
          masks are overridden with CSS; restoring 'all' reinstates the
@@ -605,9 +610,13 @@ function MasterInkSourceComparison(){
         ["lower","Lower-bank contacts only"],
         ["stone","Stone volumes · brush hidden"],
         ["ridge","Skyline · contour only"],
+        ["pine","Pine crowns · source anatomy"],
         ["uncut","Ink before dry-paper lift"]] as const).map(([zone,title])=>
         <button type="button" key={zone} style={style.button}
-          aria-pressed={fuchunZone===zone} onClick={()=>setFuchunZone(zone)}>
+          aria-pressed={fuchunZone===zone} onClick={()=>{
+            setFuchunZone(zone);
+            if(zone==="pine")inspect(1.65,628,137);
+          }}>
           {title}
         </button>)}
       <span style={{maxWidth:500,fontSize:12,color:"#675745"}}>

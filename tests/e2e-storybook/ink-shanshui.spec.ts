@@ -846,6 +846,29 @@ test("Fuchun paper-lift Storybook compares native masked ink without changing so
   expect(await source(uncut)).toEqual(await source(lifted));
 });
 
+test("Fuchun native pine anatomy Storybook preset preserves all loaded botanical details",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const guo=lab.locator('[data-km-master-study="early-spring"]');
+  await expect(fuchun.locator("[data-km-cliff-pine-graft]")).toHaveCount(60);
+  await expect(fuchun.locator("[data-km-cliff-pine-ink-island]")).toHaveCount(40);
+  await expect(fuchun.locator("[data-km-cliff-pine-needle]")).toHaveCount(310);
+  const preset=page.getByRole("button",{name:"Pine crowns · source anatomy"});
+  await preset.click();
+  await expect(preset).toHaveAttribute("aria-pressed","true");
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine");
+  await expect(page.getByRole("slider",{name:"Master crop X"})).toHaveValue("628");
+  await expect(fuchun.locator("[data-km-master-rock-art]")).toBeHidden();
+  await expect(fuchun.locator("[data-km-cliff-pine-grove]")).toBeVisible();
+  await expect(guo.locator("[data-km-master-rock-art]")).toBeVisible();
+  await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-pine-rooted-source-60-grafts.png")});
+  await page.getByRole("button",{name:"Reset all four studies"}).click();
+  await expect(preset).toHaveAttribute("aria-pressed","false");
+  await expect(fuchun.locator("[data-km-master-rock-art]")).toBeVisible();
+});
+
 test("geological ArtCraft proof compares real native paintings across independently seeded constructions",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--geological-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-geology-study");

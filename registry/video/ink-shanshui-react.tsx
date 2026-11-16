@@ -2498,16 +2498,33 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             f(previous[1]-crest*.2)+" "+f(fanTip[0])+" "+f(fanTip[1]);
           const lower:P=[r[0]+sweep*reach*.8,
             r[1]+crest*(.12+.15*s(seed+1987,i*19+j*17+k))];
+          // Preserve all upper needle lobes while curving the lower ink
+          // lip through two asymmetric paper-facing recesses instead
+          // of closing the former smooth mushroom-like half-oval.
+          const notch:P=[r[0]+sweep*reach*.55,
+            r[1]-crest*(.065+.10*s(seed+7301,i*13+j*47+k*23))];
+          const innerLip:P=[r[0]+sweep*reach*.29,
+            r[1]+crest*(.10+.14*s(seed+7313,i*41+j*17+k))];
           const d=upper+
             " C"+f(fanTip[0]+sweep*reach*.015)+" "+
                 f(fanTip[1]+crest*.46)+" "+
                 f(lower[0]+sweep*reach*.06)+" "+
                 f(lower[1])+" "+
                 f(lower[0])+" "+f(lower[1])+
-            " C"+f(r[0]+sweep*reach*.57)+" "+
-                f(r[1]+crest*.23)+" "+
-                f(r[0]+sweep*reach*.19)+" "+
-                f(r[1]+crest*.11)+" "+
+            " C"+f(r[0]+sweep*reach*.7)+" "+
+                f(r[1]+crest*.15)+" "+
+                f(notch[0]+sweep*reach*.08)+" "+
+                f(notch[1]-crest*.06)+" "+
+                f(notch[0])+" "+f(notch[1])+
+            " C"+f(r[0]+sweep*reach*.45)+" "+
+                f(r[1]+crest*.14)+" "+
+                f(innerLip[0]+sweep*reach*.07)+" "+
+                f(innerLip[1])+" "+
+                f(innerLip[0])+" "+f(innerLip[1])+
+            " C"+f(r[0]+sweep*reach*.16)+" "+
+                f(r[1]+crest*.04)+" "+
+                f(r[0]+sweep*reach*.09)+" "+
+                f(r[1]-crest*.045)+" "+
                 f(r[0])+" "+f(r[1])+" Z";
           const ridge=rockLoadedRibbon(r,
             [r[0]+sweep*reach*.41,r[1]-crest*.42],
@@ -2515,6 +2532,26 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             k===0?.88:.71,seed+1973+i*97+j*31+k*17);
           return {r,d,ridge,lobes:lobeCount};
         });
+        // Tertiary Fuchun pine ink twigs: three connected cubic child
+        // bones grown from exact existing bough stations, not stamped
+        // floating clusters. All original needles/pads remain.
+        const canopyGrafts=school==="fuchun"
+          ?([.56,.74,.92] as const).map((at,k)=>{
+            const r=quadraticPoint(origin,control,tip,at);
+            const hand=k===1?-direction:direction;
+            const span=(k===0?11.5:k===1?9.1:7.7)*
+              (.82+.37*s(seed+7421,i*31+j*43+k*17));
+            const drop=(k===0?-5.8:k===1?3.5:-4.2)*
+              (.8+.29*s(seed+7433,i*19+j*37+k*13));
+            const c1:P=[r[0]+hand*span*.19,
+              r[1]-2.7-.9*s(seed+7441,i*17+j*23+k)];
+            const c2:P=[r[0]+hand*span*.72,
+              r[1]+drop*.64+(k===1?1.1:-.7)];
+            const end:P=[r[0]+hand*span,r[1]+drop];
+            return {r,at,hand,body:rockLoadedCubicRibbon(
+              r,c1,c2,end,k===1?.75:1.05,
+              seed+7451+i*101+j*29+k*17)};
+          }):[];
         // Fuchun / Huang Gongwang: wet horizontal dots do not live as
         // detached stippled confetti. Each brush-load must start on a
         // REAL bough, change pressure as it slides across a planted
@@ -2571,7 +2608,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             seed+6143+i*47+j*19+k*37),bend:k};
         }):[];
         return {t,origin,bone,boughCenterline,
-          foliage,pads,inkIslands,wetClusters,crabClaws};
+          foliage,pads,inkIslands,canopyGrafts,wetClusters,crabClaws};
       });
       return <g key={i} data-km-cliff-pine=""
         data-km-cliff-pine-root={f(root[0])+","+f(root[1])}
@@ -2584,7 +2621,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
           stroke="#a18b70" fill="none" strokeWidth=".48"
           strokeLinecap="round" opacity={f(.47*shade)}/>
         {boughs.map(({t,origin,bone,boughCenterline,
-          foliage,pads,inkIslands,wetClusters,crabClaws},j)=>
+          foliage,pads,inkIslands,canopyGrafts,wetClusters,crabClaws},j)=>
           <g key={j} data-km-cliff-pine-bough=""
             data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}
             data-km-cliff-pine-bough-station={f(t)}
@@ -2593,6 +2630,14 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             <path data-km-cliff-pine-bough-bone="" d={bone}
               fill={j%2===0?"#3d352d":"#554638"}
               opacity={f(.88*shade)}/>
+            {canopyGrafts.map(({r,at,hand,body},k)=><path key={"graft"+k}
+              data-km-cliff-pine-graft=""
+              data-km-cliff-pine-graft-root={f(r[0])+","+f(r[1])}
+              data-km-cliff-pine-graft-station={f(at)}
+              data-km-cliff-pine-graft-bough={i*4+j}
+              data-km-cliff-pine-graft-hand={hand}
+              d={body} fill={k===1?"#5a4d3d":"#352f28"}
+              opacity={f((k===1?.55:.73)*shade)}/>)}
             {inkIslands.map(({r,d,ridge,lobes},k)=><g key={"island"+k}
               data-km-cliff-pine-ink-island=""
               data-km-cliff-pine-ink-island-root={f(r[0])+","+f(r[1])}

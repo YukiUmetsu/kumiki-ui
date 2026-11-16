@@ -1770,6 +1770,35 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(peaked).toBeGreaterThanOrEqual(27);
   });
 
+  it("keeps 60 source-anchored Fuchun pine grafts under 40 four-cubic ink crowns",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed:number,detail:number)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    const full=draw("fuchun",71,1);
+    const grafts=[...full.matchAll(/data-km-cliff-pine-graft="" data-km-cliff-pine-graft-root="([^"]+)" data-km-cliff-pine-graft-station="([^"]+)" data-km-cliff-pine-graft-bough="(\d+)" data-km-cliff-pine-graft-hand="(-?1)" d="([^"]+)"/g)];
+    expect(grafts).toHaveLength(60);
+    expect(new Set(grafts.map(m=>m[5])).size).toBe(60);
+    for(let i=0;i<20;i++)expect(grafts.filter(m=>Number(m[3])===i)
+      .map(m=>Number(m[2]))).toEqual([.56,.74,.92]);
+    for(const [,root,,group,hand,d] of grafts){
+      expect(Number(group)).toBeGreaterThanOrEqual(0);
+      expect(Math.abs(Number(hand))).toBe(1);
+      expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+      expect((d.match(/ C/g)??[]).length).toBeGreaterThan(20);
+    }
+    const canopies=[...full.matchAll(/data-km-cliff-pine-ink-canopy="" d="([^"]+)"/g)];
+    expect(canopies).toHaveLength(40);
+    expect(canopies.every(m=>(m[1].match(/ C/g)??[]).length===4)).toBe(true);
+    expect((full.match(/data-km-cliff-pine-needle=""/g)??[])).toHaveLength(310);
+    expect((full.match(/data-km-cliff-pine-pad=""/g)??[])).toHaveLength(60);
+    expect(draw("fuchun",71,1)).toBe(full);
+    expect(draw("fuchun",87,1)).not.toBe(full);
+    expect(draw("fuchun",71,0)).not.toContain("data-km-cliff-pine-graft");
+    expect(draw("early-spring",71,1)).not.toContain("data-km-cliff-pine-graft");
+  });
+
   it("renders willow boughs as closed tapering brush geometry with fine attached leaves",()=>{
     const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:125,controls:{...DEFAULT_SHANSHUI,scene:"river-scholar",detail:1},
