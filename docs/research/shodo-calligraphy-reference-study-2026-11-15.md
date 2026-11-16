@@ -319,6 +319,28 @@ These numbers say how closely the engine reproduces this teacher's own models. T
 
 **Limits.** 41 characters keep the rules: 23 for incomplete data, 3 after review, the rest for a stroke that fails its check. The checks catch a missing stroke or component, not a wrong shape with the right amount of ink; review stays the last step.
 
+## 2.14 Tenth study round: strokes written before the shot, and crossings
+
+**What "incomplete" was.** Of the 23 characters, about half had their first component already on the sheet when the shot began (亻 of 信, 礻 of 福, 加 of 賀, 隺 of 鶴); five were complete, with an end-of-video model that is another writing (々, 涙, 期, 女, 必); the rest had a shot that starts or ends in the wrong place.
+
+**Ink already on the sheet.** The shot's first second and last second and a half are kept as medians (the hand does not count). Ink that is there at the start and still there at the end, inside the sheet and not the paperweight, is kept without a time. The first KanjiVG strokes whose paths lie on it take it by position; the timed alignment covers the rest.
+
+**Completeness.** A shot is incomplete only when a patch of its final ink that our ink does not explain is larger than 8 % of the ink. A share of the final ink was the wrong measure: a brush resting on the sheet at the end made complete characters look incomplete.
+
+**Crossings.** A gap of 0.3 s or less across old ink is one stroke: the brush did not lift. Before, the vertical of 木 broke at the horizontal and every later stroke of 木 moved up by one, so 杉 and 松 wrote 木 like 扌. They now pass review.
+
+**A conservative merge.** New data changes the stroke labels of many characters, and label-based checks then fail forms that review had passed. The round therefore starts from the reviewed set, adds new characters, and replaces a reviewed form only when the new one lies clearly better on the teacher's writing (+0.02). Every added or replaced form (43) was reviewed: 圧 keeps its round-four form.
+
+**Result.** Best-aligned overlap with the teacher's live writing (the reference ink now includes pre-written strokes, so the numbers are not directly comparable with §2.13):
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (362) | 0.566 | 0.710 |
+| Kana (46) | 0.498 | 0.678 |
+| The 378 characters with a form | 0.567 | 0.727 (97 % better) |
+
+**Limits.** 30 characters keep the rules; 侍 still loses 亻 and stays rejected.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
