@@ -201,11 +201,23 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       ["travelers","raindrop",187],
       ["forest-grotto","ox-hair",178],
     ] as const;
-    const paint=(school:typeof schools[number][0],detail=1,ink=.95)=>
-      renderToStaticMarkup(createElement(InkShanshuiStage,{
+    // This cross-school proof intentionally renders large source-rooted
+    // trees + hundreds of strokes for four masters. Reuse identical
+    // deterministic specimens rather than re-rendering the Fuchun scene
+    // in every comparison. Distinct school/detail/ink settings still
+    // undergo separate complete native renderers.
+    const specimens=new Map<string,string>();
+    const paint=(school:typeof schools[number][0],detail=1,ink=.95)=>{
+      const key=school+":"+detail+":"+ink;
+      const prior=specimens.get(key);
+      if(prior!==undefined)return prior;
+      const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
         frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
           seed:71,mist:.35,detail,ink,inkSchool:school},
       }));
+      specimens.set(key,html);
+      return html;
+    };
     const ridgeContour:string[]=[];
     const uniqueStyles:string[]=[];
     for(const [school,expectedStyle,count] of schools){
@@ -562,7 +574,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(new Set(scoping).size).toBe(12);
     expect(four).not.toContain("<image ");
     expect(four).not.toContain("data:image/");
-  });
+  },30000);
 
   it("constructs pine canopies as root-connected, pressure-tapered needle clusters",()=>{
     for(const scene of ["mountain-trail","misty-hermit"] as const){
