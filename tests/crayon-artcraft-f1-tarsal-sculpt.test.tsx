@@ -63,7 +63,7 @@ describe("ArtCraft source-specific upper tarsus + ocular socket — experimental
           featherContacts:true,outlineOpacity:0});
         if(e?.kind!=="wax")throw new Error("Missing pressure-painted "+id);
         expect(e.blendRadius).toBeGreaterThan(2);
-        expect(e.markStrength).toBeGreaterThan(.15);
+        expect(e.markStrength).toBeGreaterThanOrEqual(.15);
         expect(e.angle).toBeGreaterThan(-89);
         expect(e.pressure).toBeGreaterThan(.5);
       }

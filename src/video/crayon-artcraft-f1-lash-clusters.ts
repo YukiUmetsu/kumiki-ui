@@ -1,7 +1,7 @@
 import type {CrayonElement} from "../../registry/video/materials/crayon-scene";
 
 type Contour=Extract<CrayonElement,{kind:"contour"}>;
-export type CrayonF1LashFinish="sparse"|"rooted";
+export type CrayonF1LashFinish="sparse"|"rooted"|"rooted-flow";
 
 /**
  * ArtCraft F1 lash construction: authored from source 608×1082 CC0 eye
@@ -94,6 +94,41 @@ function depositTowardRoot(path:string):string{
   return "M"+x3+" "+y3+" C"+x2+" "+y2+" "+x1+" "+y1+" "+x0+" "+y0;
 }
 
+
+/**
+ * Opt-in F1 ArtCraft v12 photo-observed lash *tip* length study.
+ * v11 Chromium still revealed free tick-like eyelashes sticking out of
+ * the upper lid despite all 47 roots being attached. This is a source
+ * anatomy hypothesis, NOT a verified attractive render.
+ *
+ * Shorten each original hand-authored cubic by de Casteljau subdivision:
+ * preserve its original root, tangent, curvature, asymmetry, 33/14 strand
+ * count and terminal wax pickup at the true lid, but contract only the
+ * source-visible free segment. Unlike moving the endpoint alone this
+ * preserves geometric curvature of every authored strand.
+ */
+function depositShortF1Lash(path:string,maxReach:number):string{
+  const m=/^M(-?\d+) (-?\d+) C(-?\d+) (-?\d+) (-?\d+) (-?\d+) (-?\d+) (-?\d+)$/.exec(path);
+  if(!m||!Number.isFinite(maxReach)||maxReach<=0)
+    throw new RangeError("Invalid source-rooted F1 lash geometry");
+  const xy=(a:number):Point=>[Number(m[a]),Number(m[a+1])];
+  const p0=xy(1),p1=xy(3),p2=xy(5),p3=xy(7);
+  const len=Math.hypot(p3[0]-p0[0],p3[1]-p0[1]);
+  if(!Number.isFinite(len)||len<=0)throw new RangeError("Degenerate F1 lash");
+  // Near source eye supports a longer central fan, far eye is hair-occluded.
+  // Cap the long outliers; don't resample the original uneven spacing.
+  const t=Math.min(.78,maxReach/len);
+  const lerp=(p:Point,q:Point):Point=>[
+    p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t,
+  ];
+  const a=lerp(p0,p1),b=lerp(p1,p2),c=lerp(p2,p3);
+  const d=lerp(a,b),e=lerp(b,c),tip=lerp(d,e);
+  const fmt=(p:Point)=>p[0].toFixed(2)+" "+p[1].toFixed(2);
+  // Reverse the exact subdivided cubic: visible free tip first, wax
+  // terminal density at the anatomical parent-rim root.
+  return "M"+fmt(tip)+" C"+fmt(d)+" "+fmt(a)+" "+fmt(p0);
+}
+
 /**
  * ArtCraft topology gate for the opt-in F1 rooted lash construction.
  * Five-axis source deconstruction: these are two *different* photographed
@@ -176,15 +211,21 @@ export function auditCrayonF1LashRootContinuity(
  */
 export function crayonF1AddRootedLashes(elements:readonly CrayonElement[],
   finish:CrayonF1LashFinish="sparse"):CrayonElement[]{
-  if(!["sparse","rooted"].includes(finish))
+  if(!["sparse","rooted","rooted-flow"].includes(finish))
     throw new RangeError("Invalid F1 native rooted lash finish");
   if(finish==="sparse")return [...elements];
   const result=elements.map(e=>{
     if(e.kind!=="contour")return e;
     const group=clusters[e.id];
-    return group?{...e,d:group.paths.map(depositTowardRoot).join(" "),
-      width:group.width,opacity:group.opacity,
-      waxContact:"dry-wax",waxPressure:group.waxPressure} satisfies Contour:e;
+    if(!group)return e;
+    const flow=finish==="rooted-flow";
+    const maxReach=e.id==="lash-contact-near"?5.2:3.9;
+    return {...e,d:group.paths.map(path=>flow?
+        depositShortF1Lash(path,maxReach):depositTowardRoot(path)).join(" "),
+      width:flow?group.width*.87:group.width,
+      opacity:flow?Math.min(.72,group.opacity*1.02):group.opacity,
+      waxContact:"dry-wax",waxPressure:flow?
+        group.waxPressure*.92:group.waxPressure} satisfies Contour;
   });
   const audit=auditCrayonF1LashRootContinuity(result);
   if(audit.near.detached||audit.far.detached)

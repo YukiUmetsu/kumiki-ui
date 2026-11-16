@@ -753,3 +753,47 @@ test("F1 tarsal wax sculpture near/far source-vs-previous native crop",async({pa
   }
   expect(errors).toEqual([]);
 });
+
+/**
+ * Source-native v12 eyelash tip A/B (ArtCraft REJECT until actual pixels
+ * inspected). Unlike generated images, this is the exact CRAYON1 SVG output
+ * at the same 608×1082 paper, 299th frame and source-registered camera.
+ */
+test("F1 ArtCraft photographed short-rooted wax fibers near/far native A/B",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  for(const side of ["near","far"] as const){
+    const focus=CRAYON_F1_EYE_INSPECTION[side];
+    const outputs:Uint8Array[]=[];
+    for(const lashFinish of ["rooted","rooted-flow"] as const){
+      const spec=crayonCc0FaceStudy({
+        detail:1,eyeContact:"source-sculpt",
+        lashFinish,midfaceForm:"baseline",browForm:"baseline",
+        jawNeckForm:"baseline",
+      });
+      const focused={...spec,camera:[{frame:0,...focus},{frame:299,...focus}]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec:focused,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg.locator(
+        '[data-km-crayon-element="lash-contact-'+side+'"] '+
+        '[data-km-crayon-fiber-contact="dry-wax"]')).toHaveCount(1);
+      for(const id of ["tarsal-shelf-"+side,"source-tarsal-burnish-"+side,
+        "iris-"+side,"pupil-"+side]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toBeAttached();
+      }
+      outputs.push(await svg.screenshot({path:info.outputPath(
+        "crayon-f1-"+side+"-wax-lash-"+lashFinish+"-299.png"),
+        animations:"disabled"}));
+    }
+    expect(Buffer.compare(Buffer.from(outputs[0]),Buffer.from(outputs[1])))
+      .not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});

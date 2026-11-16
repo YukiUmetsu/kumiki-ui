@@ -127,7 +127,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     !["baseline","source-volume"].includes(midfaceForm)||
     !["baseline","source-contour"].includes(jawNeckForm)||
     !["baseline","source-rooted"].includes(browForm)||
-    !["sparse","rooted"].includes(lashFinish))
+    !["sparse","rooted","rooted-flow"].includes(lashFinish))
     throw new RangeError("Invalid ArtCraft F1 face controls");
   const elements:CrayonElement[]=[];
   const wax=(id:string,d:string,bounds:ReturnType<typeof rect>,
