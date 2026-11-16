@@ -62,6 +62,13 @@ export interface UkiyoeCreatureLook {
    * puppy; no horns, antlers or tusks before half grown. `size` still sets the body length when given.
    */
   age?: number;
+  /**
+   * The tanuki, the hare and the mouse come in two builds: `"print"` (default) is the stout folk tanuki and the low,
+   * crouching hare and mouse of the prints; `"natural"` stands them on the legs ANIM1 measures for the real animals
+   * (leg clearance 0.40, 0.33 and 0.26 of the shoulder height, against 0.15, 0.14 and 0.08). Other animals already
+   * stand inside their ranges, so both builds are the same for them.
+   */
+  proportions?: "print" | "natural";
 }
 export interface UkiyoeCreatureAction { type: UkiyoeCreatureActionType; start: number; end: number; to?: number; toY?: number; via?: readonly (readonly [number, number])[]; angle?: number; amount?: number; blend?: number }
 export interface UkiyoeCreatureSpec { species: UkiyoeSpecies; look?: UkiyoeCreatureLook; actions?: readonly UkiyoeCreatureAction[]; facing?: "left" | "right" }
@@ -819,6 +826,19 @@ function beastHead(b: Beast, species: string, hs: number, open: number, blink: b
  * at its tip, the species' markings), the chest ruff, the front legs side by side and the hind legs peeking behind.
  * From behind: the backs of the ears over the shoulders, the rump with the tail down its middle, the hind legs side by side.
  */
+/**
+ * The natural builds (`look.proportions: "natural"`): leg length, body depth and length fitted to ANIM1's typical
+ * values by a small search, keeping the withers height; tails scaled with the body.
+ */
+const NATURAL: Partial<Record<QuadSpecies, Partial<Beast>>> = {
+  tanuki: { L: 100, bh: 43, leg: 46, tail: 52, tailW: 26, tuck: -.04 },
+  rabbit: { L: 81, bh: 38, leg: 33, tail: 13 },
+  mouse: { L: 71, bh: 23, leg: 17, tail: 85 },
+};
+/** The beast in the requested build. */
+const builtBeast = (species: QuadSpecies, proportions: UkiyoeCreatureLook["proportions"]): Beast =>
+  proportions === "natural" && NATURAL[species] ? { ...BEASTS[species], ...NATURAL[species] } : BEASTS[species];
+
 /** Each UKIYO1 four-legged animal's ANIM1 body plan, for growing its young (the mythic nue, baku and ape have none). */
 const BEAST_PLANS: Partial<Record<QuadSpecies, BodyPlanId>> = {
   fox: "canid", tanuki: "canid", dog: "canid", wolf: "canid", cat: "felid", rabbit: "leporid", monkey: "primate", horse: "equid",
@@ -844,7 +864,7 @@ function youngBeast(b: Beast, species: QuadSpecies, age: number | undefined): Be
 }
 
 function quadFrontBack(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number, wind: number, seed: number, back: boolean): Prim[] {
-  const look = spec.look ?? {}, b = youngBeast(BEASTS[species], species, look.age), k = (look.size ?? b.L) / b.L, out: Prim[] = [];
+  const look = spec.look ?? {}, b = youngBeast(builtBeast(species, look.proportions), species, look.age), k = (look.size ?? b.L) / b.L, out: Prim[] = [];
   // Square on, the boar's great wedge of a head is nearly as wide as its chest and is carried low.
   const leg = b.leg * k, bh = b.bh * k, hs = b.head * k * (species === "boar" ? 1.3 : 1), W = bh * (species === "horse" ? .72 : .85);
   const color = look.color ?? b.color, belly = look.belly ?? b.belly, dark = look.dark ?? b.dark, stocking = look.color ? undefined : b.stocking;
@@ -1168,15 +1188,15 @@ function beastContour(b: Beast, L: number, bh: number, hipY: number) {
  * contour `quadruped` draws: give them to ANIM1's `measureAnimal(…, false)` and `checkAnimalProportions` to compare
  * the drawing with the real animal.
  */
-export function ukiyoeBeastLandmarks(species: UkiyoeSpecies) {
-  const b = (BEASTS as Partial<Record<UkiyoeSpecies, Beast>>)[species];
-  if (!b) return undefined;
+export function ukiyoeBeastLandmarks(species: UkiyoeSpecies, proportions: UkiyoeCreatureLook["proportions"] = "print") {
+  if (!(species in BEASTS)) return undefined;
+  const b = builtBeast(species as QuadSpecies, proportions);
   const c = beastContour(b, b.L, b.bh, beastHipStand(b.leg, b.bh));
   return { ground: 0, withers: c.back[5], brisket: c.chest[3], pointOfShoulder: c.chest[1], pointOfButtock: c.back[0] };
 }
 
 function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number, wind: number, seed: number): Prim[] {
-  const look = spec.look ?? {}, b = youngBeast(BEASTS[species], species, look.age), k = (look.size ?? b.L) / b.L;
+  const look = spec.look ?? {}, b = youngBeast(builtBeast(species, look.proportions), species, look.age), k = (look.size ?? b.L) / b.L;
   if (look.view === "front" || look.view === "back") return quadFrontBack(species, spec, frame, wind, seed, look.view === "back");
   // Three-quarter: the body foreshortens along its length; the far legs stand back and higher (see below).
   const tq = look.view === "three-quarter";

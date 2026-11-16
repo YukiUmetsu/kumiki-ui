@@ -407,7 +407,8 @@ its body plan's estimate.
 - Front and back body constructions in ANIM1 (faces have one; styles draw the body square on).
 - Leaping, take-off and landing; birds on a perch (gripping a branch rather than standing on the ground).
 - Young animals' postures and gaits are the adults' (a foal's gangly walk is not modelled).
-- The tanuki, rabbit and mouse stay low as drawn (owner to confirm the tanuki).
+- The tanuki, hare and mouse: the owner chose two builds (2026-11-16). The print build stays low as drawn; the natural
+  build was fitted to ANIM1's typical values (UKIYO1 `look.proportions`).
 - Measured, not estimated, colours and faces.
 - Recordings for most animal voices; the search terms are listed per species.
 - No owner viewing review yet.

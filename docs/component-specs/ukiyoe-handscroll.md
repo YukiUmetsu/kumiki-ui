@@ -292,6 +292,12 @@ Most women in the ghost stories look alive until the story turns, so they are fi
   - `wolf`;
   - `mouse`: big pink ears and a long tail.
 - **New `Beast` options.** `horns: "antler" | "ox"`, `tusks`, `spots` and `crescent`.
+- **Two builds.** The tanuki, the hare (`rabbit`) and the mouse come in two builds (`look.proportions`):
+  - `"print"` (default): the stout folk tanuki and the low, crouching hare and mouse of the prints;
+  - `"natural"`: standing on the legs ANIM1 measures for the real animals (leg clearance 0.40, 0.33 and 0.26 of the
+    shoulder height, against 0.15, 0.14 and 0.08).
+
+  Every other animal already stands inside its range, so both builds are the same for it.
 - **Young animals.** `look.age` grows any four-legged animal from its youngest (0) to the adult (1, default), using
   ANIM1's growth rules for its body plan. The young is drawn to scale beside its parent:
   - the long-legged foal and fawn;
