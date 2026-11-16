@@ -1064,8 +1064,19 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
             data-km-master-stratum-root={f(top[0])+","+f(top[1])}
             data-km-master-stratum-index={k}
             data-km-master-stratum-centerline={isHuang?centerline:undefined}>
+            {isHuang&&<defs>
+              <linearGradient id={tone+"hemp-body"+k}
+                x1="12%" y1="0%" x2="24%" y2="100%">
+                <stop offset="0" stopColor="#393129" stopOpacity=".94"/>
+                <stop offset=".23" stopColor="#514435" stopOpacity=".88"/>
+                <stop offset=".51" stopColor="#6d5b47" stopOpacity=".59"/>
+                <stop offset=".78" stopColor="#a18c71" stopOpacity=".17"/>
+                <stop offset="1" stopColor="#bca68c" stopOpacity="0"/>
+              </linearGradient>
+            </defs>}
             <path data-km-master-stratum-wash="" d={body}
-              fill={isFan?"#312c27":isWang?"#4c4034":"#5c4e3e"}
+              fill={isHuang?"url(#"+tone+"hemp-body"+k+")":
+                isFan?"#312c27":isWang?"#4c4034":"#5c4e3e"}
               opacity={f((isFan?.19:isWang?.35:isGuo?.29:.19)*
                 (1-.18*mist))}/>
             <path data-km-master-stratum-lip="" d={lip}
