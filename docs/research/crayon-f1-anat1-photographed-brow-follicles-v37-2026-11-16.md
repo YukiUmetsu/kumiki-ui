@@ -1,0 +1,44 @@
+# ArtCraft V37 — photographed ANAT1 eyebrow bone, follicle density and dry-wax roots
+
+**Status: source-referenced !dev study; draft PR #461 ART HOLD; NOT an approved human portrait.**
+**License and exact source:** Christopher Campbell, [*Brunette woman portrait (Unsplash)*](https://commons.wikimedia.org/wiki/File:Brunette_woman_portrait_(Unsplash).jpg), **CC0 1.0**, reviewed original-browser screenshot **608×1082**, verified SHA256 `f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2` (the high-resolution original camera JPEG is **not** certified). No photo pixels, cutouts or image masks are shipped as runtime geometry.
+
+## Visual deconstruction and why the old brow fails
+
+The actual photo shows a *naturally rooted human eyebrow*, not a flat brown oval, a clean geometric arch or regularly spaced ticks: the lateral tail rises from source x201..222/y500 with almost no pigment, thickens into a deep brown/burgundy band through x240..307/y470..494, then its dense right-hand follicular fringe tapers upward to x330/y488. Hair directions evolve from rising diagonals into a near-vertical center and a splayed tail. Fine glints and a soft brow-ridge shadow persist beneath the filament roots. The eye below remains in the ANAT1 upper-orbital bone and lip-of-lid mass from V35–V36.
+
+Independent **median 7×7 original photo RGB** against verified V36 f299 **native Chromium 608×1082**, same pixels ([V36 native source A/B](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43953207140/artifacts/14269067302)):
+
+| Source eyebrow pixel | Original photo | V36 browser wax | Issue |
+| --- | --- | --- | --- |
+| (214,497), eyebrow tail | (158,116,101) | (191,162,149) | weak lateral root |
+| (225,493), rising arch | (135,94,80) | (192,164,150) | root lacks tissue shadow |
+| (241,486), brow lower edge | (108,70,61) | (172,141,131) | little real pigment |
+| (265,474), central body | (106,64,52) | (188,159,147) | eyebrow nearly invisible |
+| (280,472), upper dense ridge | (111,69,61) | (183,153,142) | curved hairs absent |
+| (306,476), medial dense root | (110,72,63) | (189,157,145) | strong original form missing |
+
+**Authentic dry-wax technique references:** [Jerome A. Barhydt, *Crayon Portraiture* (1892), Project Gutenberg](https://www.gutenberg.org/ebooks/30248) teaches direction-dependent curved marks and dark/light contrast without smearing the paper into a muddy flat surface. [The Postman's Knock, Crayola wax crayon portrait](https://thepostmansknock.com/how-to-create-a-crayola-crayon-portrait/) demonstrates layering darker forms at moderate pressure and a brighter skin tone afterward. This study retains discrete dry-wax deposits and original CRAYON1 paper tooth instead of painting a photographic raster or opaque feature sticker.
+
+## Reuse ANAT1 and the **existing** native source-rooted brow pack
+
+- Existing [ANAT1 face framework](../component-specs/human-anatomy.md) uses MediaPipe's 468 canonical 3D vertices and source-fitted camera. `crayonF1RegisterAnat1Face()` supplies the source-projected `brow-mid.R` tangent and yaw/pitch/roll, **not** invented ancestry- or individual identity geometry. The canonical mesh is a population reference and does not contain complete scalp, ears, or neck. Original photo point `brow_near_peak=[274,480]` remains the authority; the ANAT1 3D suggestion is clipped to **±2 source pixels** rather than warping the sitter into a generic face.
+- Existing `crayonF1ReconstructBrows` already produces **8** source-rooted near/far native wax/fibre elements from the photo, with an original **20 hand-authored near-brow crayon-fibre curves** and a separate, smaller far brow. V37 **does not replace, delete, flatten or resample** the original 20. It opts into that existing pack, then updates only `source-brow-feather-near`, `source-brow-wax-near` and `source-brow-vein-near` pigment/tactile contact.
+- Two additional named, material-native CRAYON1 contour components append **128 asymmetric dark rooted cubic follicles and 37 warm fine reflected/flyaway cubic hairs**. The 20 original remain, resulting in 185 named stroke instances for the near brow. Every stroke's ink pickup is oriented **tip→root** so the naturally heavier terminal deposition happens *at the underlying skin follicle*, not as a black bead at the free tip. Roots are not uniformly spaced or parallel: source-measured upper/lower edge envelopes are piecewise interpolated with deterministic subpixel staggering, depth-weighted lengths and variable lean.
+
+## ArtCraft five-axis source→component mapping
+
+| Axis | Authentic photographic feature | How native original-wax works |
+| --- | --- | --- |
+| Topological continuity | shadow follows continuous superciliary ridge and underlying socket | preserve V36 near iris/lid/orbital/cheek/nose 3D geometry; existing V9 broad *open* eyebrow halo connects to tissue; narrow saturated core follows the same original superciliary hair-root envelope |
+| Vector flow | tail rises diagonally, center densely vertical/radial, medial edge splays unevenly | 128 original non-repeating tip→skin cubic dark fibres + 37 fine warm flyaways. ANAT1 controls tiny perspective offset only; actual source envelope has priority |
+| Tactile edge physics | naturally feathered periphery, paper tooth, nonuniform deep roots | existing CRAYON1 `deposition:"stroke-built"`, `nibStyle:"dry"`, `waxContact:"dry-wax"`; open 5–10.2px feathered haloes, thinner opaque underlying core with physical burnish/tooth and 4.2px feather; no blurred raster or big solid brow pasted on |
+| Value and color | shadow near photo (106,64,52) against surrounding skin (190–204,165–175,150–160) | dark umber/burgundy core, intermediate warm root, sparse higher-value flyaways, untouched skin/malar underpainting; original RGB numbers are targets, not copied pixels |
+| Microstructure + film | hair strands differ length, root density, choppiness, curvature, tone | preserve *every* previous CC0 face/hair/eye/nose/mouth/chin node and timing. Add only 2 native contour elements, change only 3 existing eyebrow pigment materials. Existing 300-frame deterministic scene, exact paper grain, camera and seed remain unchanged |
+
+## Independent QA before claiming any improvement
+
+- Opt-in only: `midfaceForm:"source-anat1-brow-follicles"` runs V36 exactly, enables existing source-rooted brow once (even if its Storybook browForm control also requests source-rooted), then applies V37; prior V36/35 and rejected V33/34 remain immutable comparators. Two states inside the **existing** Adult Face Lab: original source full portrait and native 3× near-brow close-up.
+- Unit tests check the licensed SHA, ANAT1 no-art-approval invariant, deterministic 128+37 uneven cubic curves, preservation of original 20 source hairs, unchanged every unrelated named native element/near iris/far eyebrow/hair, native pressure/timing, fail-closed missing/duplicate/foreign parent and rendering without `<image>`.
+- Native Chromium Playwright captures source-registered real `608×1082` 1× and `3×` negative-control V36/V37 PNGs at frame 299, plus three 300-frame animation spots. Full original 300-frame natural-speed review remains **uncompleted**.
+- **Visual hold:** compare original vs V37 eyebrow crop x196–338/y458–515, the near eye x174–346/y430–609, nasal root, cheeks and whole image, at **actual source-matching pixels**, not V37 vs V36 alone. 1×/3× wax fibers and 18 independent candidate-render facial landmarks and five matched source tonal planes require human review. The ArtCraft ≥0.85 whole-original SSIM threshold has not been met anywhere in this branch. An apparent darker brow can still be a cut-paper false eyebrow; in that case **reject** this new candidate and keep PR **DRAFT/UNMERGED**.
