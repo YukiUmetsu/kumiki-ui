@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import {RisoGradientStudio} from "./riso-gradient-studio";
 import {RisoBrushStudio} from "./riso-brush-studio";
+import {RisoDryBrushFilmStudio} from "./riso-dry-brush-film-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -379,6 +380,12 @@ export const RisographGradientInk:StoryObj<typeof RisoGradientStudio>={
 export const RisographDryBrush:StoryObj<typeof RisoBrushStudio>={
   name:"Risograph · Dry-Brush Ink Atelier",
   render:()=> <RisoBrushStudio/>,
+};
+
+/** Existing FD1 production capture and MP4 proof of the exact RISO62 artist's ink. */
+export const RisographDryBrushFilm:StoryObj<typeof RisoDryBrushFilmStudio>={
+  name:"Risograph · Dry-Brush Production Film",
+  render:()=> <RisoDryBrushFilmStudio/>,
 };
 
 const meta = {

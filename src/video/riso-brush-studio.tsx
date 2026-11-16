@@ -9,7 +9,8 @@ import type {RisoAspect} from "./riso-print-demo";
  * have independent original cubic vector gestures and micro-fibre relief.
  * Source strokes respond to the 24fps absolute film frame; stock and
  * register never resample when scrubbing backwards. */
-type Plate="both"|"blue"|"red";
+export type RisoBrushPlate="both"|"blue"|"red";
+type Plate=RisoBrushPlate;
 const P=(x:number,y:number):RisoBrushPoint=>({x,y});
 const cobalt="#2362A0",vermilion="#DD593D",paper="#F2E9D6";
 const pressure=[
@@ -78,9 +79,33 @@ const cubicPoint=(g:Gesture,t:number,w:number,h:number)=>{
   return P(w*(a*g[0]+b*g[2]+c*g[4]+d*g[6]),
     h*(a*g[1]+b*g[3]+c*g[5]+d*g[7]));
 };
-function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registration,
-  grain,animate}:{aspect:RisoAspect;frame:number;plate:Plate;dryness:number;
-  seed:number;inkScale:number;registration:number;grain:number;animate:boolean}){
+export interface RisoBrushArtProps {
+  aspect:RisoAspect;
+  /** Absolute source frame, 0..239; the production FilmStage owns the clock. */
+  frame:number;
+  plate:RisoBrushPlate;
+  dryness:number;
+  seed:number;
+  inkScale:number;
+  registration:number;
+  grain:number;
+  animate:boolean;
+  /** Remove preview-only shadows and width caps inside a film output. */
+  layout?:"studio"|"film";
+}
+/** Same source artwork for the Storybook studio AND FD1 capture/export. */
+export function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registration,
+  grain,animate,layout="studio"}:RisoBrushArtProps){
+  if(!Number.isSafeInteger(frame)||frame<0||frame>239)
+    throw new RangeError("RISO63 requires an absolute source frame between 0 and 239.");
+  if(!["both","blue","red"].includes(plate)||
+    !Number.isFinite(dryness)||dryness<0||dryness>1||
+    !Number.isFinite(grain)||grain<0||grain>1||
+    !Number.isFinite(registration)||registration<0||registration>1||
+    !Number.isFinite(inkScale)||inkScale<.5||inkScale>1.7||
+    !Number.isSafeInteger(seed)||seed<0||seed>200000||
+    typeof animate!=="boolean"||(layout!=="studio"&&layout!=="film"))
+    throw new RangeError("RISO63 requires valid physical spot masters and bounded source controls.");
   const portrait=aspect==="portrait",w=portrait?540:960,h=portrait?960:540;
   const spec=useMemo(()=>{
     const source=risoExampleSpec(aspect,seed);
@@ -160,8 +185,10 @@ function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registration,
   };
   return <div data-km-riso62-stage={aspect} data-km-riso62-absolute-frame={frame}
     data-km-riso62-stroke-motion={String(animate)}
-    style={{width:"100%",maxWidth:portrait?460:960,
-      background:paper,boxShadow:"0 12px 34px #2b30251c"}}>
+    data-km-riso63-film-layout={String(layout==="film")}
+    style={{width:"100%",maxWidth:layout==="film"?"none":portrait?460:960,
+      background:paper,
+      boxShadow:layout==="film"?"none":"0 12px 34px #2b30251c"}}>
     <RisoPrint spec={spec} frame={239} artworks={artworks}
       visiblePlateIds={plate==="both"?undefined:[plate]}
       paperGrain={grain} misregistration={registration}
