@@ -1375,6 +1375,63 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       'data-km-rock-hero-rib-cheek-wash=""');
   });
 
+
+  it("keeps 24 Fuchun hero ink paper slits open through the original brush, its positive cheek, and all twelve loaded deposits",()=>{
+    const render=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,detail,seed},
+      }));
+    for(const seed of [71,97]){
+      const html=render("fuchun",seed);
+      const ids=[...html.matchAll(
+        /<mask data-km-rock-hero-rib-reserve="" id="([^"]+)" /g,
+      )].map(m=>m[1]);
+      expect(ids).toHaveLength(4);
+      expect(new Set(ids).size).toBe(4);
+      const cheeks=[...html.matchAll(
+        /data-km-rock-hero-rib-cheek-wash="" d="[^"]+" data-km-rock-hero-rib-cheek-root="[^"]+" data-km-rock-hero-rib-cheek-knee="[^"]+" data-km-rock-hero-rib-cheek-tip="[^"]+" fill="[^"]+" mask="url\(#([^"]+)\)"/g,
+      )].map(m=>m[1]);
+      expect(cheeks).toEqual(ids);
+      const strokes=[...html.matchAll(
+        /data-km-rock-hero-face="" d="[^"]+" fill="[^"]+" mask="url\(#([^"]+)\)"/g,
+      )].map(m=>m[1]);
+      expect(strokes).toEqual(ids);
+      const deposits=[...html.matchAll(
+        /data-km-rock-hero-rib-deposit="" data-km-rock-hero-rib-deposit-root="[^"]+" data-km-rock-hero-rib-deposit-stage="[012]" d="[^"]+" fill="[^"]+" mask="url\(#([^"]+)\)"/g,
+      )].map(m=>m[1]);
+      expect(deposits).toEqual(ids.flatMap(id=>[id,id,id]));
+      const masks=ids.map(id=>{
+        const start=html.indexOf('id="'+id+'"');
+        return html.slice(start,html.indexOf("</mask>",start)+7);
+      });
+      expect(masks).toHaveLength(4);
+      masks.forEach((mask,i)=>{
+        expect(mask).toContain('style="mask-type:luminance"');
+        expect((mask.match(/data-km-rock-hero-rib-paper-slit=""/g)??[]))
+          .toHaveLength(6);
+        const actualIds=[...mask.matchAll(
+          /data-km-rock-hero-rib-paper-station="([^"]+)" d="([^"]+)"/g,
+        )];
+        expect(actualIds).toHaveLength(6);
+        for(const [,at,d] of actualIds){
+          expect([.38,.7]).toContain(Number(at));
+          expect(d).not.toMatch(/NaN|Infinity|undefined/);
+        }
+        expect(cheeks[i]).toBe(ids[i]);
+      });
+      expect((html.match(/data-km-rock-hero-rib-cheek-wash=""/g)??[]))
+        .toHaveLength(4);
+      expect((html.match(/data-km-rock-hero-rib-deposit=""/g)??[]))
+        .toHaveLength(12);
+      expect(render("fuchun",seed)).toBe(html);
+    }
+    expect(render("fuchun",71,0)).not.toContain(
+      'data-km-rock-hero-rib-cheek-wash=""');
+    expect(render("early-spring")).not.toContain(
+      'data-km-rock-hero-rib-cheek-wash=""');
+  });
+
   it("preserves Fuchun loaded fibres while opening true negative dry-paper reserves",()=>{
     const paint=(school:"fuchun"|"early-spring",seed=71,detail=1,
       mist=.35)=>renderToStaticMarkup(createElement(InkShanshuiStage,{

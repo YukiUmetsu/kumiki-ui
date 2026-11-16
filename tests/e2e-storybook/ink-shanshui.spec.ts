@@ -1336,6 +1336,49 @@ test("original Fuchun stone rock strata become positive rounded parent-anchored 
 });
 
 
+
+test("native Fuchun original four rib paper masks reach both the supporting cheek and each ink reload",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const cheeks=fuchun.locator("[data-km-rock-hero-rib-cheek-wash]");
+  const deposits=fuchun.locator("[data-km-rock-hero-rib-deposit]");
+  const cuts=fuchun.locator("[data-km-rock-hero-rib-paper-slit]");
+  await expect(cheeks).toHaveCount(4);
+  await expect(deposits).toHaveCount(12);
+  await expect(cuts).toHaveCount(24);
+  const geometry=await cheeks.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d")));
+  const actualMasks=await cheeks.evaluateAll(nodes=>
+    nodes.map(n=>n.getAttribute("mask")));
+  expect(new Set(actualMasks).size).toBe(4);
+  const without=lab.getByRole("button",{name:"Hero ribs before shared paper lift"});
+  await without.click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","hero-uncut");
+  await expect(without).toHaveAttribute("aria-pressed","true");
+  expect(await cheeks.evaluateAll(nodes=>
+    nodes.map(n=>getComputedStyle(n).maskImage)))
+    .toEqual(Array(4).fill("none"));
+  expect(await deposits.evaluateAll(nodes=>
+    nodes.map(n=>getComputedStyle(n).maskImage)))
+    .toEqual(Array(12).fill("none"));
+  const before=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-native-hero-underpaint-before-original-paper-lifts.png")});
+  await lab.getByRole("button",{name:"All Fuchun hemp"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+  expect((await cheeks.evaluateAll(nodes=>
+    nodes.map(n=>getComputedStyle(n).maskImage)))
+    .every(x=>x!=="none"&&x.includes("kmrock"))).toBe(true);
+  const after=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-native-hero-underpaint-after-original-paper-lifts.png")});
+  expect(hash(before)).not.toEqual(hash(after));
+  expect(await cheeks.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d"))))
+    .toEqual(geometry);
+  expect(await cheeks.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("mask"))))
+    .toEqual(actualMasks);
+  await expect(cuts).toHaveCount(24);
+  await expect(fuchun.locator("[data-km-rock-hero-face]")).toHaveCount(4);
+});
+
 test("native Fuchun hero ink ribs are embedded in real short rounded stone cheeks, not long detached wires",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");

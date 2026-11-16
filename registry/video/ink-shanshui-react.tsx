@@ -2157,6 +2157,9 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
           data-km-rock-hero-rib-cheek-knee={f(knee[0])+","+f(knee[1])}
           data-km-rock-hero-rib-cheek-tip={f(tip[0])+","+f(tip[1])}
           fill={"url(#"+cheekGradient+")"}
+          // Do not refill the original SIX dry-paper lifts just because
+          // this physically supporting wash lives below the loaded rib.
+          mask={"url(#"+ribReserveId+")"}
           opacity={f((i===1?.79:.66)*(1-.2*mist))}/>
         <path data-km-rock-hero-face="" d={face}
           fill={i%2===0?"#504338":"#75614d"}
@@ -2173,6 +2176,9 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
           data-km-rock-hero-rib-deposit-root={f(a[0])+","+f(a[1])}
           data-km-rock-hero-rib-deposit-stage={k}
           d={body} fill={k===1?"#41382f":"#56493a"}
+          // A reloaded pigment segment may vary pressure, but an
+          // explicitly cut original paper window stays material-free.
+          mask={"url(#"+ribReserveId+")"}
           opacity={f((k===1?.71:.56)*(1-.19*mist))}/>)}
         {branches.map(({point,q},k)=><path key={k}
           data-km-rock-hero-fibre=""

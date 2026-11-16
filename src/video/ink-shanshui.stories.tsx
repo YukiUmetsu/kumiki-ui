@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"stone-before-turning"|"hero-before-cheek"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"stone-before-turning"|"hero-before-cheek"|"hero-uncut"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -592,6 +592,17 @@ function MasterInkSourceComparison(){
       [data-km-master-ink-inspection="hero-before-cheek"]
       [data-km-master-study="fuchun"]
       [data-km-rock-hero-rib-cheek-wash] { visibility:hidden; }
+      /* Same exact 4 original rock support shapes, 4 loaded multi-stage
+         strokes, 12 pressure reloads, 24 local paper cuts: temporarily
+         remove ONLY their shared reserve mask on the below-stroke wash
+         and re-inked deposits. This catches visually buried paper
+         cutouts without false background-colored paper overlays. */
+      [data-km-master-ink-inspection="hero-uncut"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-rib-cheek-wash],
+      [data-km-master-ink-inspection="hero-uncut"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-rib-deposit] { mask:none !important; }
       /* The *real* 960x540 renderer supplies all three nested ridges.
          Isolate only the middle band’s original filled skyline path.
          Do not replace it with a polygon, diagram or copied image. */
@@ -694,6 +705,7 @@ function MasterInkSourceComparison(){
         ["stone","Stone volumes · brush hidden"],
         ["stone-before-turning","Stone before rounded stratum relief"],
         ["hero-before-cheek","Hero ribs before geological cheek wash"],
+        ["hero-uncut","Hero ribs before shared paper lift"],
         ["ridge","Skyline · contour only"],
         ["pine","Pine crowns · source anatomy"],
         ["pine-bones","Pine armature · connected brush bones"],
@@ -706,7 +718,8 @@ function MasterInkSourceComparison(){
           aria-pressed={fuchunZone===zone} onClick={()=>{
             setFuchunZone(zone);
             if(zone==="stone-before-turning"||
-              zone==="hero-before-cheek")inspect(2.4,552,177);
+              zone==="hero-before-cheek"||
+              zone==="hero-uncut")inspect(2.4,552,177);
             else if(zone==="pine-bones")inspect(1.65,615,135);
             else if(zone==="pine"||zone==="pine-contours"||
               zone==="pine-unlinked"||
@@ -725,6 +738,10 @@ function MasterInkSourceComparison(){
         Hero ribs before geological cheek wash isolates four physical
         inward rock shades without removing their source-brush fibres,
         fine deposits or original six true-paper reserve windows each.
+        Hero ribs before shared paper lift demonstrates why a correct
+        transparent hole in only the top loaded stroke is insufficient:
+        the original source six per rib must also remove underneath
+        washes and physical pressure reloads.
         Pine armature hides material layers to show the source trunk,
         planted roots and twenty unequal loaded living branches. Compare
         Pine before continuous crown bridge with Pine crowns to inspect
