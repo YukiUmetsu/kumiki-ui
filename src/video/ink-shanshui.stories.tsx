@@ -781,9 +781,11 @@ function InkFilmContinuityStudio(){
         <div style={{position:"relative",width:468,height:264,
           maxWidth:"100%",overflowX:"auto",overflowY:"hidden",background:"#f3e6cd",
           border:"1px solid #b8aa96"}}>
-          <div style={{transform:"scale(.4875)",transformOrigin:"top left",
-            width:960,height:540}}>
-            <InkShanshuiStage frame={frame} controls={controls}/>
+          <div style={{width:468,height:264,position:"relative",overflow:"hidden"}}>
+            <div style={{transform:"scale(.4875)",transformOrigin:"top left",
+              width:960,height:540}}>
+              <InkShanshuiStage frame={frame} controls={controls}/>
+            </div>
           </div>
         </div>
       </section>)}
