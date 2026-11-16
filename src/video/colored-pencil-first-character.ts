@@ -107,8 +107,12 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
   const templeLevel=faceTop+(faceBottom-faceTop)*.24;
   const rightTempleIndex=faceRing.findIndex((p,i)=>
     i>0&&p[1]>=templeLevel);
-  const leftTempleIndex=faceRing.findLastIndex((p,i)=>
-    i>rightTempleIndex&&p[1]>=templeLevel);
+  // Repository TypeScript libs target pre-ES2023: explicit reverse
+  // scan preserves deterministic source mesh ordering on every runtime.
+  let leftTempleIndex=-1;
+  for(let i=faceRing.length-1;i>rightTempleIndex;i--){
+    if(faceRing[i][1]>=templeLevel){leftTempleIndex=i;break;}
+  }
   if(rightTempleIndex<2||leftTempleIndex-rightTempleIndex<16)
     throw new Error("ANAT1 lacks two connected cheek/temple side chains");
   const lower=faceRing.slice(rightTempleIndex,leftTempleIndex+1);
