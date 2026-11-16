@@ -15,7 +15,7 @@ import { ShodoBrushProfile, ShodoCanvas } from "../../registry/video/shodo/shodo
 import { shodoFerruleHeight } from "../../registry/video/shodo/shodo-brush";
 import { DEFAULT_SHODO_STYLE, SHODO_INKS, resolveShodoStyle } from "../../registry/video/shodo/shodo-style";
 import { SHODO_BASICS, auditShodoTechniques, shodoStepLabel } from "../../registry/video/shodo/shodo-techniques";
-import { SHODO_FPS, SHODO_PHASE_LABEL, SHODO_TECH_LABEL, ShodoTransport, useShodoGlyphs, useShodoPlayback, useShodoTeacher } from "./shodo-studio";
+import { SHODO_FPS, SHODO_PHASE_LABEL, SHODO_TECH_LABEL, ShodoTransport, useShodoGlyphs, useShodoPlayback, useShodoTeachers, shodoTeacherLabels } from "./shodo-studio";
 
 const W = 1280, H = 720;
 const page: CSSProperties = {
@@ -252,11 +252,11 @@ export function ShodoCharacterGallery({ initialText = "道永書和夢心東京�
   const [text, setText] = useState(initialText);
   const [bundled, setBundled] = useState(false);
   const [structure, setStructure] = useState(true);
-  const teacher = useShodoTeacher();
+  const teachers = useShodoTeachers();
   const [useTeacher, setUseTeacher] = useState(true);
   const chars = useMemo(() => [...text].filter(c => c.trim()).slice(0, 24), [text]);
   const form = useMemo(() => structure ? {} : { structure: false as const }, [structure]);
-  const loaded = useShodoGlyphs(chars, bundled ? "bundled" : teacher && useTeacher ? "teacher" : "kanjivg", form, teacher);
+  const loaded = useShodoGlyphs(chars, bundled ? "bundled" : teachers.length && useTeacher ? "teacher" : "kanjivg", form, teachers);
   const glyphs = loaded?.glyphs ?? null, error = loaded?.error ?? null;
   const cols = 8, cell = 150, gap = 6;
   const rows = Math.max(1, Math.ceil(chars.length / cols));
@@ -281,7 +281,7 @@ export function ShodoCharacterGallery({ initialText = "道永書和夢心東京�
       <label style={{ display: "grid", gap: 4, fontWeight: 600, fontSize: 12.5 }}>Text (up to 24 characters)
         <input value={text} onChange={e => setText(e.target.value)} aria-label="Text" style={{ minHeight: 36, font: "20px serif", width: 420 }} />
       </label>
-      {teacher ? <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 600, fontSize: 12.5 }}><input type="checkbox" checked={useTeacher} onChange={e => setUseTeacher(e.target.checked)} />Teacher's own forms (local)</label> : null}
+      {teachers.length ? <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 600, fontSize: 12.5 }}><input type="checkbox" checked={useTeacher} onChange={e => setUseTeacher(e.target.checked)} />Teacher's own forms (local)</label> : null}
       <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 600, fontSize: 12.5 }}><input type="checkbox" checked={structure} onChange={e => setStructure(e.target.checked)} />Teacher layout rules (間架結構法)</label>
       <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 600, fontSize: 12.5 }}><input type="checkbox" checked={bundled} onChange={e => setBundled(e.target.checked)} />Prefer bundled originals</label>
     </div>
@@ -308,7 +308,7 @@ export function ShodoCharacterGallery({ initialText = "道永書和夢心東京�
     <p style={{ margin: 0, fontSize: 12.5, maxWidth: 980 }}>
       Kanji and kana are read from KanjiVG stroke data. The 間架結構法 layout rules, measured on 411 teacher
       models, and the kaisho brush rules are applied.
-      {taughtCount && teacher ? <> {taughtCount} of {glyphs?.length} characters use the teacher's own forms ({teacher.label}).</> : null}
+      {taughtCount && teachers.length ? <> {taughtCount} of {glyphs?.length} characters use a teacher's own forms ({shodoTeacherLabels(chars, teachers).join("; ")}).</> : null}
       {usesKanjiVg ? <> {SHODO_KANJIVG_CREDIT}. Credit KanjiVG in any film made from it.</> : null}
     </p>
   </div>;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SHODO_GLYPHS, inspectShodoGlyph, parseKanjiVgSvg, shodoKaishoForm } from "../registry/video/shodo/shodo-glyphs";
 import type { ShodoGlyph } from "../registry/video/shodo/shodo-glyphs";
-import { loadShodoGlyph } from "../registry/video/shodo/shodo-glyph-source";
+import { loadShodoGlyph, shodoTeacherFor } from "../registry/video/shodo/shodo-glyph-source";
 import { shodoKankaRulesFor, shodoLayout, shodoStructure } from "../registry/video/shodo/shodo-structure";
 import { planShodoWriting, shodoBrushPose, shodoRestLean } from "../registry/video/shodo/shodo-hand";
 import { shodoFerruleHeight } from "../registry/video/shodo/shodo-brush";
@@ -175,6 +175,14 @@ describe("SHO1 shodō calligraphy", () => {
     expect(await loadShodoGlyph("永", { teacher, fetcher })).toBe(taught);  // before bundled and KanjiVG
     expect(calls).toBe(0);
     await expect(loadShodoGlyph("道", { teacher, fetcher, preferBundled: false })).rejects.toThrow(/KanjiVG 404/);
+    expect(calls).toBe(1);
+    // Several teachers: the first one that has the character writes it.
+    const other: ShodoGlyph = { ...taught, strokes: [{ kind: "horizontal", points: [[100, 500], [900, 500]] }] };
+    const second = { id: "u", label: "Second", glyphs: { 永: other, 道: other } };
+    expect(await loadShodoGlyph("永", { teacher: [teacher, second], fetcher })).toBe(taught);
+    expect(await loadShodoGlyph("道", { teacher: [teacher, second], fetcher })).toBe(other);
+    expect(shodoTeacherFor("道", [teacher, second])).toBe(second);
+    expect(shodoTeacherFor("山", [teacher, second])).toBeNull();
     expect(calls).toBe(1);
   });
 

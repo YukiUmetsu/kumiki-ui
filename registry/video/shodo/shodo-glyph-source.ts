@@ -32,13 +32,22 @@ export interface ShodoTeacher {
 }
 
 export interface ShodoGlyphLoadOptions extends ShodoFormOptions {
-  /** Write the characters this teacher has as the teacher wrote them. */
-  teacher?: ShodoTeacher | null;
+  /**
+   * Write the characters a teacher has as that teacher wrote them. With several teachers, the
+   * first one that has the character is used.
+   */
+  teacher?: ShodoTeacher | readonly ShodoTeacher[] | null;
   /** Folder or server holding KanjiVG `kanji/*.svg` files; defaults to the pinned release on GitHub. */
   baseUrl?: string;
   /** Use the bundled original glyph when one exists. Default true. */
   preferBundled?: boolean;
   fetcher?: (url: string) => Promise<{ ok: boolean; status: number; text: () => Promise<string> }>;
+}
+
+/** The teacher whose form is used for a character: the first one that has it. */
+export function shodoTeacherFor(char: string, teacher: ShodoTeacher | readonly ShodoTeacher[] | null | undefined): ShodoTeacher | null {
+  const list: readonly ShodoTeacher[] = !teacher ? [] : Array.isArray(teacher) ? teacher : [teacher as ShodoTeacher];
+  return list.find(t => t.glyphs[char]) ?? null;
 }
 
 const cache = new Map<string, Promise<ShodoGlyph>>();
@@ -47,7 +56,7 @@ const cache = new Map<string, Promise<ShodoGlyph>>();
 export function loadShodoGlyph(char: string, options: ShodoGlyphLoadOptions = {}): Promise<ShodoGlyph> {
   const c = [...char][0];
   if (!c || !c.trim()) return Promise.reject(new RangeError("A non-space character is required."));
-  const taught = options.teacher?.glyphs[c];
+  const taught = shodoTeacherFor(c, options.teacher)?.glyphs[c];
   if (taught) return Promise.resolve(taught);
   if (options.preferBundled !== false && SHODO_GLYPHS[c]) return Promise.resolve(SHODO_GLYPHS[c]);
   const base = options.baseUrl ?? SHODO_KANJIVG_BASE;

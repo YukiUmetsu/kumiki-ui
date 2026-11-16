@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { SHODO_GLYPHS } from "../../registry/video/shodo/shodo-glyphs";
 import type { ShodoFormOptions } from "../../registry/video/shodo/shodo-glyphs";
 import { SHODO_KANJIVG_CREDIT, loadShodoGlyph } from "../../registry/video/shodo/shodo-glyph-source";
-import type { ShodoTeacher } from "../../registry/video/shodo/shodo-glyph-source";
+import { shodoTeacherFor, type ShodoTeacher } from "../../registry/video/shodo/shodo-glyph-source";
 import type { ShodoGlyph } from "../../registry/video/shodo/shodo-glyphs";
 import { planShodoWriting, shodoBrushPose } from "../../registry/video/shodo/shodo-hand";
 import { kenteiSheet } from "../../registry/video/shodo/shodo-paper";
@@ -20,20 +20,29 @@ const W = 1280, H = 720;
 export type ShodoGlyphMode = "teacher" | "kanjivg" | "bundled";
 
 /**
- * The teacher's fitted forms, when the owner keeps them in `local-assets/shodo-teachers/`
- * (served by Storybook only when the folder exists; never committed). Null otherwise.
+ * The teachers' fitted forms, when the owner keeps them in `local-assets/shodo-teachers/`
+ * (served by Storybook only when the folder exists; never committed): the files listed in
+ * `teachers.json`, in order of preference, or `teacher.json` alone. Empty otherwise.
  */
-export function useShodoTeacher(): ShodoTeacher | null {
-  const [teacher, setTeacher] = useState<ShodoTeacher | null>(null);
+export function useShodoTeachers(): readonly ShodoTeacher[] {
+  const [teachers, setTeachers] = useState<readonly ShodoTeacher[]>([]);
   useEffect(() => {
     let live = true;
-    fetch("/shodo-teachers/teacher.json")
-      .then(res => res.ok ? res.json() : null)
-      .then((data: ShodoTeacher | null) => { if (live && data && typeof data.label === "string" && data.glyphs) setTeacher(data); })
-      .catch(() => undefined);
+    const get = (name: string) => fetch("/shodo-teachers/" + name).then(res => res.ok ? res.json() : null).catch(() => null);
+    get("teachers.json")
+      .then((list: unknown) => Promise.all((Array.isArray(list) ? list.filter((n): n is string => typeof n === "string") : ["teacher.json"]).map(get)))
+      .then((found: (ShodoTeacher | null)[]) => {
+        if (live) setTeachers(found.filter((t): t is ShodoTeacher => !!t && typeof t.label === "string" && !!t.glyphs));
+      });
     return () => { live = false; };
   }, []);
-  return teacher;
+  return teachers;
+}
+
+/** The labels of the teachers whose forms write these characters, for the credit line. */
+export function shodoTeacherLabels(chars: readonly string[], teachers: readonly ShodoTeacher[]): string[] {
+  const used = new Set(chars.map(c => shodoTeacherFor(c, teachers)).filter((t): t is ShodoTeacher => !!t));
+  return teachers.filter(t => used.has(t)).map(t => t.label);
 }
 
 /**
@@ -42,10 +51,10 @@ export function useShodoTeacher(): ShodoTeacher | null {
  * rules (any character); "bundled": the original offline set first. Falls back to a bundled
  * glyph when stroke data cannot be loaded.
  */
-export function useShodoGlyphs(chars: readonly string[], mode: ShodoGlyphMode, form: ShodoFormOptions = {}, teacher: ShodoTeacher | null = null) {
+export function useShodoGlyphs(chars: readonly string[], mode: ShodoGlyphMode, form: ShodoFormOptions = {}, teachers: readonly ShodoTeacher[] = []) {
   const [state, setState] = useState<{ key: string; glyphs: ShodoGlyph[]; error: string | null } | null>(null);
-  const taught = mode === "teacher" ? teacher : null;
-  const key = chars.join("") + "|" + mode + "|" + JSON.stringify(form) + "|" + (taught?.id ?? "");
+  const taught = mode === "teacher" ? teachers : [];
+  const key = chars.join("") + "|" + mode + "|" + JSON.stringify(form) + "|" + taught.map(t => t.id).join(",");
   useEffect(() => {
     let live = true;
     Promise.all(chars.map(c => loadShodoGlyph(c, { ...form, preferBundled: mode === "bundled", teacher: taught }).catch((e: unknown) => {
@@ -160,15 +169,15 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
   const [grid, setGrid] = useState(true);
   const [guide, setGuide] = useState<"none" | "current" | "all">("current");
   const [showBrush, setShowBrush] = useState(true);
-  const teacher = useShodoTeacher();
+  const teachers = useShodoTeachers();
   const [chosenMode, setGlyphMode] = useState<ShodoGlyphMode | null>(null);
   // A teacher's forms are the default whenever they are available.
-  const glyphMode = chosenMode ?? (teacher ? "teacher" : "kanjivg");
+  const glyphMode = chosenMode ?? (teachers.length ? "teacher" : "kanjivg");
   const set = <K extends keyof ShodoStyle>(group: K, patch: Partial<ShodoStyle[K]>) =>
     setStyle(s => ({ ...s, [group]: { ...(s[group] as object), ...patch } }));
 
   const chars = [...text].filter(c => c.trim()).slice(0, 4);
-  const loaded = useShodoGlyphs(chars, glyphMode, {}, teacher);
+  const loaded = useShodoGlyphs(chars, glyphMode, {}, teachers);
   const glyphs = loaded?.glyphs ?? [];
   const loadError = loaded?.error ?? null;
   const paper = useMemo(() => {
@@ -224,13 +233,13 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
     <div style={{ display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center", fontSize: 12.5 }}>
       <label style={label}>Character shapes
         <select aria-label="Character shapes" value={glyphMode} onChange={e => setGlyphMode(e.target.value as ShodoGlyphMode)}>
-          {teacher ? <option value="teacher">Teacher's own forms (local)</option> : null}
+          {teachers.length ? <option value="teacher">Teacher's own forms (local)</option> : null}
           <option value="kanjivg">KanjiVG strokes and layout rules (any character)</option>
           <option value="bundled">Bundled originals (offline)</option>
         </select>
       </label>
       <span>
-        {glyphs.some(g => g.source === "teacher") && teacher ? <>{teacher.label}. </> : null}
+        {glyphMode === "teacher" ? shodoTeacherLabels(chars, teachers).map(l => <span key={l}>{l}. </span>) : null}
         {usesKanjiVg ? <>{SHODO_KANJIVG_CREDIT}. Credit KanjiVG in any film made from it.</> : null}
       </span>
     </div>
