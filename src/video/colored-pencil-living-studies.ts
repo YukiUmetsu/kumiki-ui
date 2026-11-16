@@ -967,35 +967,35 @@ function fox():PencilSubjectPart[] {
         mark("M150 209 Q179 196 207 197 M200 216 Q225 207 245 211",
           "#BD7C69",.50,265,.58),
       ]},
-    {id:"cheek-ruff",material:"fur",
-      // A fox's cream malar fan turns into the underside of the neck.
-      // Browser review rejected the former 97px dark, almost vertical
-      // scarf: it looked like a dangling tube in front of the sternum.
-      // The upper root is hidden under the maxilla and the 60px tuft
-      // disperses INTO the existing cream chest. Warm light/sparse dark
-      // shadow stays visible in dry pencil, not a pasted ivory polygon.
-      palette:["#D8C3AA","#9E897C","#F2E0C8"],
-      path:"M253 227 C261 230 267 237 269 245 "+
-        "C271 251 269 258 266 262 C267 267 266 272 263 277 "+
-        "C260 282 258 285 253 288 C250 281 247 278 245 272 "+
-        "C243 265 245 259 244 252 C244 242 248 231 253 227 Z",
-      bounds:[241,224,32,67],direction:65,start:150,
+    {id:"cheek-ruff",material:"fur",palette:pale,
+      // Second ArtCraft VISUAL FAILURE: the first shorter ivory strip
+      // still sat outside the cream chest as a separate drooping lobe.
+      // Real fox ventral malar fur sweeps rearward/inward toward the
+      // STRESSED cream thorax; only the hidden root is beneath the jaw.
+      // This original dry-pencil coat now overlaps the existing cervical
+      // field diagonally, where identical fur substrate prevents a sticker
+      // while independent directional pigment passes retain local craft.
+      path:"M249 227 C257 230 264 236 264 243 "+
+        "C263 251 256 254 250 260 C245 266 241 274 238 283 "+
+        "C235 277 229 273 226 264 C226 257 231 251 235 245 "+
+        "C240 238 245 231 249 227 Z",
+      bounds:[223,225,44,61],direction:56,start:150,
       details:[
         ...pencilRootedFur([
-          [253,232,264,267,268,250,31,7],
-          [258,244,255,283,265,269,33,7],
-          [247,246,250,279,243,262,30,6],
-          [260,256,258,282,263,272,29,5],
-        ],765,["#E4CEB4","#9E887A","#FAE8CE"],257),
-        {...mark("M252 234 Q259 245 261 260 "+
-          "M249 255 Q250 272 255 283",
+          [254,235,240,270,258,252,31,7],
+          [248,242,235,278,239,260,33,7],
+          [233,253,238,279,228,268,30,6],
+          [250,254,242,281,252,271,29,5],
+        ],765,["#E4D4BE","#8E867E","#FBEBD6"],257),
+        {...mark("M250 234 Q248 249 239 264 "+
+          "M245 252 Q240 267 236 277",
           "#F4DFC5",.36,279,.55),id:"fox-malar-light-fan"},
-        {...mark("M263 246 C267 256 265 265 261 274 "+
-          "M246 248 Q246 260 248 268",
+        {...mark("M255 242 C253 253 246 264 240 274 "+
+          "M236 247 Q230 260 234 270",
           "#9B867A",.29,283,.43),id:"fox-cervical-turn"},
         ...pencilContourFringe([
-          [268,244,262,278,272,260,30,-1],
-          [252,286,244,243,242,266,31,1],
+          [263,243,238,283,261,268,30,-1],
+          [238,282,249,227,223,257,31,1],
         ],905,["#E8D6BD","#A99C8D","#FFF2D8"],255),
       ]},
     {id:"eye-far",material:"glaze",palette:["#856B5E","#615250","#AE947D"],
