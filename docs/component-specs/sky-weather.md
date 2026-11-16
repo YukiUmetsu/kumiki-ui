@@ -93,6 +93,41 @@ The forms follow the 1896 atlas plates and the genus descriptions:
 patterned elements at their WMO widths and layers as slices that fade with distance. Haze lies in the lowest 1.5 km
 (estimated), so high clouds fade less than the horizontal visibility suggests.
 
+## Cumulus in detail (registry/nature/sky-cumulus.ts)
+
+`cumulusModel` builds a heaped cloud the way photographs and time-lapses show it:
+
+- **A tree of rising thermals.** Base bubbles each spawn one or two smaller bubbles above them, until their column
+  reaches its own height. Towers of different heights leave notches. Towering clouds keep their bubble size;
+  fair cumulus taper.
+- **Lumps on lumps.** Face lumps cover each mass. Cauliflower lumps at about 0.45 of their parent's size grow on every
+  exposed stretch of rim, at three more levels.
+- **Light.**
+  - The masses carry the big-form light:
+    - a frontal part (the sun's azimuth from the viewer's back: 0 front-lit, 90 side-lit, 180 backlit);
+    - a side part, which dies away with the depth of cloud between a mass and the sun across the picture;
+    - darkening with height, base and overlap.
+  - Each lump takes its mass's light, brighter on the cap facing the sun.
+  - The cloud is exposed like a camera, so the brightest crown is white.
+  - Backlit, the body darkens to the measured "no direct light" tone. Lumps whose edge borders sky glow on the side
+    facing the hidden sun (the silver lining).
+- **Paint order.** Mass by mass, back to front. Each lump casts a soft occlusion shadow onto what lies behind it, so
+  a lower crown stands bright against the shade above (the crevices). Lumps are drawn as slightly irregular rounded
+  shapes, and a slight blur turns vector edges into vapour.
+- **Colour.** The shading ladders were measured from cloud-pixel luminance percentiles in CC0 and public-domain
+  photographs:
+  - fair: cumulus mediocris;
+  - towering: cumulus congestus;
+  - the backlit body: a silver-lining photograph.
+- **Time.** Upper masses are turrets that rise, swell, then soften and fade together, each on its own phase. The rise
+  speed comes from measured updrafts (fair under about 1 m/s, congestus median peak 4.9 m/s); turret life is
+  estimated.
+- **Patterned decks.** Altocumulus and stratocumulus elements in `cloudDeck` are small clusters of lumps lit the same
+  way.
+- **Detail levels.** Far clouds use fewer levels (`detail`).
+- **Edge roughness.** `outlineDimension` box-counts the silhouette. The model measures about 1.0, and real cumulus
+  photographs about 1.03–1.19 with the same method (the higher values partly from mask noise).
+
 ## React (registry/nature/sky-react.tsx)
 
 - `CloudLayers` and `CloudFigure` draw a cloud.
@@ -113,8 +148,8 @@ Text is HTML in cards. The SVG labels in `CloudAtlas` sit under each cloud at fi
 
 ## Known limits
 
-- Cloud shapes are construction for painting, not photoreal. At large sizes the cumulonimbus lobes read as stacked
-  discs, and its base band flares a little wider than the lowest lobes.
+- Cloud shapes are construction for painting, not volume renders. The cumulonimbus anvil is still thicker than real
+  anvils (which are a few kilometres thick over tens of kilometres) and reads a little like a lid.
 - Sky colours are one photograph each where measured. Camera exposure and white balance vary, so treat them as a
   starting palette.
 - Rain visibility is a second-hand regression (estimated), and the 1.5 km haze layer and the ×2.5 contrast for the

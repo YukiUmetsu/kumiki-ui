@@ -22,6 +22,8 @@ import type { FPoint } from "../anatomy/foundation-shapes";
 import { ellipsePoints, seeded, smoothClosedPath, smoothTube } from "../anatomy/foundation-shapes";
 import type { CloudGenus } from "./sky-data";
 import { CLOUD_GENERA, ELEMENT_WIDTH_DEG } from "./sky-data";
+import type { Lump } from "./sky-cumulus";
+import { cumulusModel } from "./sky-cumulus";
 
 export type CloudTone = "lit" | "mid" | "shade" | "base" | "rain";
 export interface CloudLayer { d: string; tone: CloudTone; opacity: number; /** Clip to the cloud's outline. */ clip?: boolean; /** How far to mix toward the horizon colour (0 near, 1 lost in haze). */ fade?: number }
@@ -30,6 +32,15 @@ export interface CloudShape {
   width: number; height: number;
   outline: string;
   layers: readonly CloudLayer[];
+  /** Heaped clouds: lumps with light (paint back to front with `ladder`), drawn above `layers` that precede `lumpsAt`. */
+  lumps?: readonly Lump[];
+  ladder?: "fair" | "towering";
+  /** Index in `layers` at which the lumps are painted (layers before go under, after go over). */
+  lumpsAt?: number;
+  /** The sun's side the lumps are lit from. */
+  sunSide?: -1 | 1;
+  /** Heaped clouds sit on a flat base at y 0 (clipped there, darkened in a band). */
+  flatBase?: boolean;
   /** Extent [minX, minY, maxX, maxY]. */
   bounds: readonly [number, number, number, number];
 }
@@ -38,8 +49,14 @@ export interface CloudOptions {
   seed?: number;
   /** Cumulus only: humilis (flat, wider than tall), mediocris, congestus (towering). */
   species?: "humilis" | "mediocris" | "congestus";
-  /** The sun's side: −1 from the left, +1 from the right. */
-  sun?: -1 | 1;
+  /** The sun's side: −1 from the left, +1 from the right; and its elevation in degrees. */
+  sun?: -1 | 1; sunElevation?: number;
+  /** Heaped clouds: the sun's azimuth from the viewer's back, degrees (0 front-lit, 90 side-lit, 180 backlit). */
+  sunAzimuth?: number;
+  /** Seconds of growth for heaped clouds (turrets rise, swell and fade). */
+  time?: number;
+  /** Heaped clouds: how many lump levels (lower for clouds that are small on screen). */
+  detail?: "full" | "medium" | "low";
   /** Downwind side for anvils and rain shafts: −1 left, +1 right. */
   wind?: -1 | 1;
 }
@@ -48,7 +65,6 @@ export interface CloudOptions {
 export const CUMULUS_ASPECT = { humilis: .38, mediocris: .7, congestus: 1.35 } as const;
 
 interface Bubble { c: FPoint; r: number }
-const circle = (b: Bubble, n = 20) => smoothClosedPath(ellipsePoints({ cx: b.c[0], cy: b.c[1], rx: b.r, ry: b.r, angle: 0 }, n));
 /** A polygon (not smoothed: the cusps between bubbles are the point) as path data. */
 const poly = (pts: readonly FPoint[]) => `M${pts.map(p => `${p[0].toFixed(4)} ${p[1].toFixed(4)}`).join("L")}Z`;
 
@@ -71,75 +87,17 @@ function discUnion(discs: readonly Bubble[], origin: FPoint, baseY?: number, ste
   return pts;
 }
 
-/**
- * Bubbles for a heaped cloud: lobes set just inside a superellipse dome (flat base, bulging sides, a rounded crown),
- * larger toward the crown, a second smaller generation on the upper lobes (the cauliflower), and fillers inside.
- */
-function heapBubbles(rnd: () => number, w: number, h: number, flare = 0): { lobes: Bubble[]; all: Bubble[] } {
-  const out: Bubble[] = [], n = 2.6, prof = (phi: number): FPoint => {
-    const c = Math.cos(phi), s = Math.sin(phi);
-    return [w / 2 * Math.sign(c) * Math.abs(c) ** (2 / n), h * Math.abs(s) ** (2 / n)];
-  };
-  const N = Math.round(9 + 5 * h / w);
-  for (let i = 0; i <= N; i++) {
-    const phi = Math.PI * (1 - i / N) + (rnd() - .5) * .08, p = prof(phi), up = Math.sin(phi);
-    const r = w * (.085 + .085 * up) * (.8 + rnd() * .45) * Math.max(1, Math.sqrt(h / w) * .9);
-    // Set the lobe inside the profile by most of its radius; side lobes near the base hang down to it.
-    // Low side lobes tuck in, so the corners round into the flat base.
-    const cx = p[0] - Math.cos(phi) * r * (.75 + .45 * (1 - up) ** 2), cy = Math.max(r * .15, p[1] - up * r * .8);
-    out.push({ c: [cx, cy], r });
-  }
-  // Lobes on the cloud's face, in rows, so the middle is billows too, not a flat fill.
-  const halfAt = (y: number) => w / 2 * Math.max(0, 1 - (y / h) ** n) ** (1 / n);
-  for (let y = h * .22; y < h * .85; y += w * .17) {
-    const hw = halfAt(y) * .72, r0 = w * (.1 + .05 * y / h);
-    for (let x = -hw + r0 * .6; x < hw; x += r0 * 1.5) out.push({ c: [x + (rnd() - .5) * r0 * .5, y + (rnd() - .5) * r0 * .4], r: r0 * (.85 + rnd() * .3) });
-  }
-  // A tower widens upward into its anvil.
-  if (flare) for (const b of out) b.c = [b.c[0] * (1 - flare * .5 + flare * b.c[1] / h), b.c[1]];
-  // The cauliflower: small lobes on the upper lobes' outer edges.
-  for (const b of out.slice(0, N + 1)) {
-    if (b.c[1] < h * .35) continue;
-    for (let k = 0; k < 2; k++) {
-      const out0 = Math.atan2(b.c[1] - h * .3, b.c[0]), a = out0 + (rnd() - .5) * 1.4, r = b.r * (.32 + rnd() * .2);
-      out.push({ c: [b.c[0] + Math.cos(a) * b.r * .82, b.c[1] + Math.sin(a) * b.r * .82], r });
-    }
-  }
-  // Fillers down the middle (outline only), so every ray from inside meets a disc.
-  const fill: Bubble[] = [];
-  for (let y = 0; y < h * .8; y += w * .16) fill.push({ c: [(rnd() - .5) * w * .2, Math.max(w * .05, y)], r: w * (.22 + rnd() * .05) });
-  return { lobes: out, all: [...out, ...fill] };
-}
 
-/**
- * Light and shade for heaped lobes: painted from the top down, so each lower (nearer) lobe's bright crown stands in
- * front of the shaded underside of the one above (the cauliflower read). Each lobe's lit disc sits inside it, tangent
- * on the sun's side, larger near the crown and small near the base, where the cloud is in its own shadow.
- */
-function lobeLayers(bubbles: readonly Bubble[], h: number, sun: number, litFrom = .32): CloudLayer[] {
-  const layers: CloudLayer[] = [], ux = sun * .5, uy = .87;
-  for (const b of [...bubbles].sort((p, q) => q.c[1] - p.c[1])) {
-    // Upper lobes are mostly lit with a thin crease beneath; low lobes mostly in the cloud's shadow.
-    const hh = Math.min(1, Math.max(0, b.c[1] / h)), litR = b.r * (.5 + .42 * hh), off = (b.r - litR) * .96;
-    layers.push({ d: circle(b), tone: hh > .45 ? "mid" : "shade", opacity: 1, clip: true });
-    if (hh > litFrom * (litFrom > .4 ? .9 : .55)) layers.push({ d: circle({ c: [b.c[0] + ux * off, b.c[1] + uy * off], r: litR }), tone: hh > litFrom ? "lit" : "mid", opacity: 1, clip: true });
-  }
-  return layers;
-}
-
-/** A shadow with a soft edge: nested ellipses, each faint, toward the side away from the sun. */
-const softShadow = (cx: number, cy: number, rx: number, ry: number): CloudLayer[] =>
-  [1, .82, .64].map(k => ({ d: smoothClosedPath(ellipsePoints({ cx: cx - Math.sign(cx) * rx * (1 - k) * .6, cy, rx: rx * k, ry: ry * (.9 + .1 * k), angle: 0 }, 28)), tone: "shade" as const, opacity: .14, clip: true }));
-
-function heaps(o: { width: number; sun: number }, rnd: () => number, aspect: number) {
-  const w = o.width, h = w * aspect, { lobes, all } = heapBubbles(rnd, w, h);
-  const pts = discUnion(all, [0, Math.min(h * .3, w * .12)], 0), outline = poly(pts);
+function heaps(o: { width: number; sun: number; seed: number; sunElevation?: number; sunAzimuth?: number; time?: number; detail?: "full" | "medium" | "low" }, rnd: () => number, aspect: number) {
+  void rnd;
+  const w = o.width, kind = aspect > 1 ? "towering" as const : "fair" as const;
+  const model = cumulusModel({ width: w, aspect, seed: o.seed, kind, sun: o.sun < 0 ? -1 : 1, sunElevation: o.sunElevation, sunAzimuth: o.sunAzimuth, time: o.time, detail: o.detail });
+  const h = model.height, pts = discUnion(model.lumps.filter(l => l.opacity > .4), [0, Math.min(h * .3, w * .12)], 0), outline = poly(pts);
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
-  // The side away from the sun and the flat base lie in the cloud's own shadow.
-  const away = softShadow(-o.sun * w * .45, h * .3, w * .4, h * .75);
-  const baseBand = smoothClosedPath([[-w, -.01], [w, -.01], [w, h * .07], [w * .2, h * .1], [-w * .25, h * .085], [-w, h * .06]]);
-  return { outline, h, bounds: [Math.min(...xs), 0, Math.max(...xs), Math.max(...ys)] as const,
-    layers: [{ d: outline, tone: "shade" as const, opacity: 1 }, ...lobeLayers(lobes, h, o.sun), ...away, { d: baseBand, tone: "base" as const, opacity: .75, clip: true }] };
+  // The flat base in the cloud's own shadow: a dark band under the lumps, fading up.
+  const baseBand = smoothClosedPath([[-w, -.01], [w, -.01], [w, h * .05], [w * .2, h * .07], [-w * .25, h * .06], [-w, h * .045]]);
+  return { outline, h, bounds: [Math.min(...xs), 0, Math.max(...xs), Math.max(...ys)] as const, lumps: model.lumps, ladder: kind,
+    layers: [{ d: baseBand, tone: "base" as const, opacity: .55, clip: true }], lumpsAt: 0 };
 }
 
 function tower(o: { width: number; sun: number; wind: number }, rnd: () => number) {
@@ -147,20 +105,24 @@ function tower(o: { width: number; sun: number; wind: number }, rnd: () => numbe
   // down from the downwind tip into the body, thinning to fibres downwind (drawn compressed: the real cloud is 10 km
   // tall and its anvil can spread over 100 km; proportions estimated from the atlas plate and photographs).
   const w = o.width, body = w * 1.3, wind = o.wind, aTop = w * 1.42;
-  const { lobes, all } = heapBubbles(rnd, w, body, .3);
-  const bodyPts = discUnion(all, [0, w * .2], 0);
+  const model = cumulusModel({ width: w, aspect: body / w, seed: Math.floor(rnd() * 1e6), kind: "towering", sun: o.sun < 0 ? -1 : 1, lean: .12 * wind });
+  const bodyPts = discUnion(model.lumps.filter(l => l.opacity > .4), [0, w * .2], 0);
   const X = (x: number) => x * wind;
   // The anvil: its underside flares out of the body's upper flanks and thins to the downwind tip.
   const anvil: FPoint[] = [[X(-.56 * w), aTop - w * .055], [X(-.4 * w), aTop - w * .005], [X(.35 * w), aTop + w * .008], [X(1.05 * w), aTop - w * .004], [X(1.35 * w), aTop - w * .03],
     [X(1.1 * w), aTop - w * .065], [X(.8 * w), aTop - w * .13], [X(.52 * w), body * .76], [X(0), body * .82], [X(-.46 * w), body * .78], [X(-.53 * w), aTop - w * .12]];
   const anvilD = smoothClosedPath(anvil), outline = `${poly(bodyPts)}${anvilD}`;
-  const anvilTop = smoothClosedPath([[X(-.52 * w), aTop - w * .045], [X(-.4 * w), aTop - w * .005], [X(.35 * w), aTop + w * .008], [X(1.05 * w), aTop - w * .004], [X(1.3 * w), aTop - w * .03], [X(.95 * w), aTop - w * .045], [X(.3 * w), aTop - w * .055]]);
-  const fibres = Array.from({ length: 8 }, (_, i) => {
-    const y = aTop - w * (.01 + i * .01), x0 = X(w * (.9 + rnd() * .2)), x1 = X(w * (1.4 + rnd() * .25));
-    return smoothTube([[x0, y], [(x0 + x1) / 2, y - w * .01], [x1, y - w * .03]], [w * .018, w * .012, w * .002]);
+  // Bands between the underside (k 0) and the top (k 1): the anvil's outline lifted toward its flat top.
+  const anvilBand = (k: number) => smoothClosedPath(anvil.map(([x, y]) => [x * (1 - k * .06), y + (aTop - y) * k * .55] as FPoint));
+  // The lit top: the upper third of the anvil, its top edge rippled by small lumps.
+  const litPts: FPoint[] = [];
+  for (let i = 0; i <= 40; i++) { const u = i / 40, x = X(w * (-.52 + 1.82 * u)), bump = w * .008 * Math.abs(Math.sin(u * 37 + rnd() * .5)); litPts.push([x, aTop + w * .006 - w * .035 * u ** 3 + bump]); }
+  for (let i = 40; i >= 0; i--) { const u = i / 40, x = X(w * (-.5 + 1.75 * u)); litPts.push([x, aTop - w * (.05 + .02 * u) - w * .03 * u ** 3]); }
+  const anvilLitTop = smoothClosedPath(litPts);
+  const fibres = Array.from({ length: 14 }, (_, i) => {
+    const y = aTop - w * (.008 + i * .007), x0 = X(w * (.75 + rnd() * .3)), x1 = X(w * (1.35 + rnd() * .35));
+    return smoothTube([[x0, y], [(x0 + x1) / 2, y - w * (.005 + rnd() * .01)], [x1, y - w * (.02 + rnd() * .02)]], [w * .012, w * .008, w * .0015]);
   }).join("");
-  const away = softShadow(-o.sun * w * .45, body * .4, w * .42, body * .7);
-  const baseBand = smoothClosedPath([[-w, -.01], [w, -.01], [w, body * .1], [0, body * .13], [-w, body * .09]]);
   // Rain: streaks in a curtain under the downwind part of the base, fading toward the ground.
   const rain: CloudLayer[] = [];
   for (let i = 0; i < 18; i++) {
@@ -169,9 +131,12 @@ function tower(o: { width: number; sun: number; wind: number }, rnd: () => numbe
   }
   const xs = [...bodyPts.map(p => p[0]), ...anvil.map(p => p[0]), X(w * 1.68)];
   return { outline, h: aTop, bounds: [Math.min(...xs), -body * .42, Math.max(...xs), aTop + w * .03] as const,
-    layers: [...rain, { d: poly(bodyPts), tone: "shade" as const, opacity: 1 }, ...lobeLayers(lobes, body, o.sun, .42),
-      ...away, { d: baseBand, tone: "base" as const, opacity: .9, clip: true },
-      { d: anvilD, tone: "mid" as const, opacity: 1 }, { d: anvilTop, tone: "lit" as const, opacity: .95 }, { d: fibres, tone: "lit" as const, opacity: .6 }] };
+    lumps: model.lumps, ladder: "towering" as const, lumpsAt: rain.length,
+    layers: [...rain,
+      // The anvil over the body: shaded underside, then lighter bands up to a broad sunlit top with a softly lumpy
+      // edge, fibres downwind.
+      { d: anvilD, tone: "shade" as const, opacity: 1 }, { d: anvilBand(.3), tone: "mid" as const, opacity: .85 }, { d: anvilBand(.55), tone: "mid" as const, opacity: .8 },
+      { d: anvilLitTop, tone: "lit" as const, opacity: .95 }, { d: fibres, tone: "lit" as const, opacity: .45 }] };
 }
 
 function wisps(w: number, rnd: () => number) {
@@ -291,13 +256,14 @@ export function cloudShape(genus: CloudGenus, opts: CloudOptions = {}): CloudSha
   const o = { width: opts.width ?? 1, seed: opts.seed ?? 1, sun: opts.sun ?? -1, wind: opts.wind ?? 1, species: opts.species };
   const rnd = seeded(o.seed * 7919 + genus.length * 31);
   const form = CLOUD_GENERA[genus].form;
-  const s = form === "heaps" ? heaps(o, rnd, CUMULUS_ASPECT[o.species ?? "mediocris"])
+  const s = form === "heaps" ? heaps({ ...o, sunElevation: opts.sunElevation, sunAzimuth: opts.sunAzimuth, time: opts.time, detail: opts.detail }, rnd, CUMULUS_ASPECT[o.species ?? "mediocris"])
     : form === "tower" ? tower(o, rnd)
     : form === "wisps" ? wisps(o.width, rnd)
     : form === "ripples" ? ripples(o.width, rnd)
     : form === "puffs" ? puffs(o.width, rnd, o.sun)
     : layered(genus, o.width, rnd, o.sun, o.wind);
-  return { genus, width: o.width, height: s.h, outline: s.outline, layers: s.layers, bounds: s.bounds };
+  const ex = s as { lumps?: readonly Lump[]; ladder?: "fair" | "towering"; lumpsAt?: number };
+  return { genus, width: o.width, height: s.h, outline: s.outline, layers: s.layers, bounds: s.bounds, lumps: ex.lumps, ladder: ex.ladder, lumpsAt: ex.lumpsAt, sunSide: o.sun < 0 ? -1 : 1, flatBase: !!ex.lumps };
 }
 
 // ---- A cloud deck in perspective ---------------------------------------------------------------------------------------
@@ -338,7 +304,10 @@ export function cloudDeck(genus: CloudGenus, cam: DeckCamera): DeckItem[] {
     const n = g.form === "tower" ? 1 : Math.round(3 + cover * 12), d0 = Math.max(dNear * 1.4, 2000), d1 = Math.max(d0 * 2, 25000);
     for (let i = 0; i < n; i++) {
       const wm = g.form === "tower" ? 9000 : 700 + rnd() * 900, r0 = rnd(), xr = rnd() - .5;
-      const shape = cloudShape(genus, { width: wm, seed: (cam.seed ?? 1) * 31 + i, sun, species: cover > .7 && rnd() < .5 ? "congestus" : rnd() < .4 ? "humilis" : "mediocris" });
+      const species = cover > .7 && rnd() < .5 ? "congestus" as const : rnd() < .4 ? "humilis" as const : "mediocris" as const;
+      // Fewer lump levels for clouds that are small on screen (estimated from their width at a guess of the distance).
+      const guessPx = wm * f / (g.form === "tower" ? 50000 : d0 * (d1 / d0) ** (r0 ** 1.3));
+      const shape = cloudShape(genus, { width: wm, seed: (cam.seed ?? 1) * 31 + i, sun, species, detail: guessPx > 260 ? "full" : guessPx > 90 ? "medium" : "low" });
       // No nearer than keeps the whole cloud below the top of the frame.
       const d = Math.max(g.form === "tower" ? 50000 : d0 * (d1 / d0) ** (r0 ** 1.3), f * (base + shape.height) / Math.max(10, H0 - 4)), xm = xr * 2 * (W / 2 + 60) / f * d;
       items.push({ shape, x: g.form === "tower" ? W * .3 : W / 2 + xm * f / d, y: yAt(d), scale: f / d, fade: fade(d, base + shape.height * .4), distance: d });
@@ -351,20 +320,30 @@ export function cloudDeck(genus: CloudGenus, cam: DeckCamera): DeckItem[] {
     for (let d = dNear; d < dFar; d *= 1.16) {
       const y = yAt(d), rx0 = ew / 2 * f / d;
       if (rx0 < .6 || y > H0 - 1) break;
-      const alpha = Math.atan2(base, d), flat = .22 + .6 * Math.sin(alpha), half = (W / 2 + rx0 * 3) / f * d, shade: string[] = [], lit: string[] = [];
+      const alpha = Math.atan2(base, d), flat = .22 + .6 * Math.sin(alpha), half = (W / 2 + rx0 * 3) / f * d, shade: string[] = [], lumps: Lump[] = [];
       // Stratocumulus elements are rolls: wider, overlapping into each other.
       for (let xm = -half + rnd() * ew; xm < half; xm += ew * (rolls ? .95 + rnd() * .4 : 1.15 + rnd() * .5)) {
         if (rnd() > .35 + cover * .65) continue;
         const cx = W / 2 + xm * f / d, rx = rx0 * (.75 + rnd() * .5) * (rolls ? 1.25 : 1), ry = rx * flat * (.8 + rnd() * .4) * (rolls ? .85 : 1), cy = y + (rnd() - .5) * ry * .6;
         const pts = ellipsePoints({ cx, cy: -cy, rx, ry, angle: (rnd() - .5) * 10 }, 14);
         shade.push(smoothClosedPath(pts));
-        // Overhead we see the shaded underside with a bright rim on the sun's side; toward the horizon, lit tops.
-        lit.push(smoothClosedPath(ellipsePoints({ cx: cx + sun * rx * .18 * Math.sin(alpha), cy: -cy + ry * .32 * (1 - Math.sin(alpha) * .6), rx: rx * .78, ry: ry * .55, angle: 0 }, 12)));
+        if (genus === "cirrocumulus") continue;
+        // Each element as a small cluster of lit lumps along its long axis: overhead we see shaded undersides with a
+        // bright edge on the sun's side; toward the horizon, the lit tops of the sides (the same light as cumulus).
+        const k = rolls ? 5 + Math.floor(rnd() * 4) : 3 + Math.floor(rnd() * 3), side = 1 - Math.sin(alpha);
+        for (let j = 0; j < k; j++) {
+          const u = (j + .5) / k * 2 - 1, lr = ry * (.85 + rnd() * .45), lx = cx + u * (rx - lr * .7), ly = -cy + (rnd() - .3) * ry * .35 + (1 - u * u) * ry * .25;
+          const top = (ly + cy) / Math.max(1e-6, ry), toward = sun * (lx - cx) / Math.max(1e-6, rx);
+          const light = Math.min(1, Math.max(.15, (rolls ? .62 : .78) * (.55 + .45 * side) + .14 * top + .08 * toward));
+          lumps.push({ c: [lx, ly], r: lr, light, level: 1, opacity: 1 });
+          if (lr > 1.2) lumps.push({ c: [lx + sun * lr * .25, ly + lr * .55], r: lr * .5, light: Math.min(1, light + .08), level: 2, opacity: 1 });
+        }
       }
       if (!shade.length) continue;
       const outline = shade.join("");
-      items.push({ shape: { genus, width: W, height: 0, outline, bounds: [0, -H0, W, 0], layers: [{ d: outline, tone: genus === "cirrocumulus" ? "lit" : "shade", opacity: genus === "cirrocumulus" ? .9 : 1 },
-        ...(genus === "cirrocumulus" ? [] : [{ d: lit.join(""), tone: (genus === "stratocumulus" ? "mid" : "lit") as CloudTone, opacity: .9, clip: true }])] }, x: 0, y: 0, scale: 1, fade: fade(d), distance: d });
+      lumps.sort((a, b) => b.c[1] - a.c[1]);
+      items.push({ shape: { genus, width: W, height: 0, outline, bounds: [0, -H0, W, 0], ladder: rolls ? "towering" : "fair", lumps: genus === "cirrocumulus" ? undefined : lumps, lumpsAt: 0, sunSide: sun,
+        layers: genus === "cirrocumulus" ? [{ d: outline, tone: "lit", opacity: .9 }] : [] }, x: 0, y: 0, scale: 1, fade: fade(d), distance: d });
     }
     return items.sort((a, b) => b.distance - a.distance);
   }

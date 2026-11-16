@@ -7,6 +7,7 @@ import {
   sunElevation, thunderDelay, toEnvironmentalEffect, weatherState,
 } from "../registry/nature/sky-physics";
 import { cloudDeck, cloudShape } from "../registry/nature/sky-clouds";
+import { cumulusModel, outlineDimension } from "../registry/nature/sky-cumulus";
 import { SkySheet } from "../registry/nature/sky-react";
 
 const GENERA = Object.keys(CLOUD_GENERA) as CloudGenus[];
@@ -95,6 +96,18 @@ describe("SKY1 clouds", () => {
       expect(it.fade).toBeLessThanOrEqual(1);
       if (CLOUD_GENERA[g].form === "heaps") expect(it.y - it.shape.height * it.scale).toBeGreaterThanOrEqual(-1);
     }
+  });
+  it("builds cumulus from lit lumps at several scales, exposed to a white crown, darker when backlit", () => {
+    const front = cumulusModel({ aspect: .7, seed: 3, sunAzimuth: 30 }), back = cumulusModel({ aspect: .7, seed: 3, sunAzimuth: 165 });
+    expect(new Set(front.lumps.map(l => l.level)).size).toBeGreaterThanOrEqual(3);
+    expect(Math.max(...front.lumps.map(l => l.light))).toBeCloseTo(1, 5);
+    const mean = (m: typeof front) => m.lumps.reduce((a, l) => a + l.light, 0) / m.lumps.length;
+    expect(mean(back)).toBeLessThan(mean(front) * .5);
+    expect(back.lumps.some(l => (l.glow ?? 0) > .3)).toBe(true);
+    expect(front.lumps.every(l => Number.isFinite(l.c[0] + l.c[1] + l.r))).toBe(true);
+    const d = outlineDimension(front);
+    expect(d).toBeGreaterThan(.85);
+    expect(d).toBeLessThan(1.3);
   });
   it("renders the sheet in one tree without NaN", () => {
     const html = renderToStaticMarkup(<SkySheet />);
