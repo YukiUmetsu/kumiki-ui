@@ -534,6 +534,8 @@ The best-aligned overlap rescales both shapes to their boxes, so moved parts cha
 
 For example, の 0.75 → 0.82 (its largest mismatch patch 4.6 % → 1.1 % of the ink), く 0.72 → 0.82 and ひ 0.65 → 0.71 in the fit frame. Kanji change little (0.808 → 0.809): their strokes keep a more even width.
 
+**One more character.** The same part, stroke, press and end searches recover ぎ, whose diagonal had lain a few pixels off (0.69 → 0.72): the first teacher now has 440 forms. び 献 建 様 短 improve but still have one part off and keep the rules.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
