@@ -502,6 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -520,7 +521,7 @@ function MasterInkSourceComparison(){
     {school:"fuchun",title:"Huang Gongwang · long hemp fibre",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975",
       observation:"Rounded nested hills, uneven long hemp loaded at the head, bare paper between linked families. Do not confuse with raindrop marks.",
-      target:"Six rounded/saddle hill-back volumes, 15 pressure-loaded curving cubic parent strata and all 78 child long-hemp deposits grouped as genuinely drawn short/medium/long mixed-handedness phrases, plus four 3-stage hero fractures; five separately crooked old-pine trunks, 20 non-alternating and occasionally drooping real boughs, 40 taller and asymmetric positive fan masses, 119 loaded/dry horizontal ink bunches attached exactly to their supporting branch skeletons, 60 original pads and 310 fine needle touches. At full-crown crop inspect silhouette/value density before counting marks. Reject pale wire cliffs, repeated upright antenna trunks or false museum parity."},
+      target:"Six linked round/saddle rock volumes, 15 curved loaded parent banks and all 78 anatomically rooted short/mid/long child fibres. New five-mark bank phrases alternate upper and lower parent windows with real reserved paper, saturated short crown contacts, and more diluted long recess strokes; use the bank-isolation proof to detect parallel rain or too-clean peaks. Preserve four hero fractures and five distinct pines with 20 boughs, 119 wet bunches, 40 fan masses, 60 pads and 310 needles. This remains an unapproved original technique study, not a reconstruction."},
     {school:"early-spring",title:"Guo Xi · curled cloud-head",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000960",
       observation:"Reversing cloud-head rock rolls, layered ink ranges and open mist; crab-claw pine branching in the source.",
@@ -545,6 +546,7 @@ function MasterInkSourceComparison(){
     :"translate("+(width/2-zoom*cropX)+"px,"+
       (height/2-zoom*cropY)+"px) scale("+zoom+")";
   return <main data-testid="shanshui-master-ink-study"
+    data-km-master-ink-inspection={fuchunZone}
     style={{padding:24,minHeight:"100vh",background:"#e9e2d5",
       color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
       gap:16,alignContent:"start"}}>
@@ -563,6 +565,26 @@ function MasterInkSourceComparison(){
         rendered mountain at macro, meso and micro scales.
       </p>
     </header>
+    <style>{`
+      [data-km-master-ink-inspection="upper"] [data-km-master-study="fuchun"]
+      [data-km-master-stroke-source-zone="lower-bank"] { visibility:hidden; }
+      [data-km-master-ink-inspection="lower"] [data-km-master-study="fuchun"]
+      [data-km-master-stroke-source-zone="upper-bank"] { visibility:hidden; }
+    `}</style>
+    <div role="group" aria-label="Fuchun paper-reserve inspection"
+      data-testid="shanshui-master-zone-presets"
+      style={{display:"flex",gap:9,flexWrap:"wrap",alignItems:"center"}}>
+      {([["all","All Fuchun hemp"],["upper","Upper-bank contacts only"],
+        ["lower","Lower-bank contacts only"]] as const).map(([zone,title])=>
+        <button type="button" key={zone} style={style.button}
+          aria-pressed={fuchunZone===zone} onClick={()=>setFuchunZone(zone)}>
+          {title}
+        </button>)}
+      <span style={{maxWidth:500,fontSize:12,color:"#675745"}}>
+        Storybook-only inspection: hides a stroke family without removing its
+        native SVG paths or changing the production ink, mountain, or clock.
+      </span>
+    </div>
     <div data-testid="shanshui-master-controls"
       style={{display:"flex",gap:12,flexWrap:"wrap"}}>
       {([
