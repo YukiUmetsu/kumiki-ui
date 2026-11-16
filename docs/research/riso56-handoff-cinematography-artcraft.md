@@ -40,3 +40,27 @@ When zoom exceeds 1.22, the full-body title disappears to give the enlarged gest
 6. **Visual release gate remains independent:** close-up should make the human fingers' individual source details clearly visible; but it may also make poor mitt geometry more obvious. If so, do not merge #471. The priority after a successful meaningful source shot is a truly positive 3/4 thumb–index–ulnar hand silhouette reconstruction with camera and source plate QA. Only true source ink changes can solve shape; editing the camera does not certify realistic anatomy.
 
 This is a non-photoreal, original 2D editorial camera/ArtCraft study, and not a verified physical Risograph press run.
+
+
+## Native Chromium acceptance, exact staged film comparison
+
+**Baseline RISO55:** [CI run 43914165728](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43914165728), physical source artifact `14249167658`. **RISO56 pre-toggle exact source head `42df33b4dad22af8dcc86e56ac49b3fe44277932`:** [CI 43917937911](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43917937911), physical native same-CI f0/f142/f156/f160/f166/f177/f189/f202/f239 both-aspect screenshots and real RED/BLUE source masters, artifact `14250952509`. Both builds passed three independent Actions workflows before final on/off toggle browser-test addition.
+
+Original exact PNG data at same viewport, >6/255 max-channel delta, screen size 958×539 (landscape) and 448×799 (portrait):
+
+| Authored cel | 16:9 changed pixels | 9:16 changed pixels |
+| --- | ---: | ---: |
+| f0 | **0%** | **0%** |
+| f142 | **0%** | **0%** |
+| f160 | **26.630%** | **16.613%** |
+| f166 | **26.511%** | **16.609%** |
+| f202 | **6.687%** | **6.547%** |
+| f239 | **0%** | **0%** |
+
+This is finally a **material 1× film composition change**, unlike RISO49–55 fingertip ink source differences of <0.05%. Screenshots show the original two-person handing scene filling frame around the paper edges; native f160 16:9 closes from ~210px-long original sheet to a legible ~450px length. Source f0/f142/f239 are pixel-identical. Critically, the camera is not a brush/gradient overlay and the two real actors/print layers remain intact.
+
+### Real artist's visual critique — still rejected
+
+The enlarged f160 image **exposes**, rather than resolves, the original hand defect: Courier's real RED positive thumb/index junction forms an oversized square/angled side-pinch, surrounded by broad brown-red coat material; Paper Artist's upper RED pads are separate rounded blobs disconnected from a convincing carpal/MCP body, and an angular V-shaped source finger curls below the page. At 6.2× anatomy workbench, the palm remains broad, red fingertip roots do not follow a real 3/4 overlapping proximal phalanx and the pressure is indicated by paper overlap rather than a genuinely continuous index–thenar–metacarpal silhouette. Faces/upper bodies are intentionally cropped by the close-up; film output remains visually coherent but anatomy is **not authentic photographic or premium-illustration quality**.
+
+**RISO56 visual verdict:** CINEMATOGRAPHY PASS, ANATOMY FAIL, HOLD DRAFT. Source/stencil/register tests prove technical integrity only. **RISO57 next:** reauthor a *single connected positive-ink contour* across the radial thenar/index MCP and folded ulnar three-finger support, with measured true original ANAT1 joint landmark overlays, non-self-intersecting exterior concave/convex web transitions and independently registered cobalt tendon/fold morphology; explicitly reject floating red blobs or visible zero-area seams. Preserve precise finger/hand articulations and both physical ink masters, prove at 1× and 7.4× under the actual cinematic shot. Do not substitute a paper-coloured mask, cartoon sticker or overlapping same-RED rectangles, and do not weaken RISO42 physical ink-intersection thresholds.
