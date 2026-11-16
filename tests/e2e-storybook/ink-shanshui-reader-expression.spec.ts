@@ -43,6 +43,8 @@ test("Chinese-ink EXPR1 atelier uses the source-fitted reader with visible full,
     await page.getByRole("combobox",{name:"EXPR1 viseme"}).selectOption("aa");
     await expect(micro.locator('[data-km-ink-expression-part="mouth"] path'))
       .not.toHaveCount(0);
+    await page.getByRole("combobox",{name:"EXPR1 eyelids"}).selectOption("auto");
+    await page.getByRole("combobox",{name:"EXPR1 viseme"}).selectOption("auto");
     const slider=page.getByRole("slider",{name:"EXPR1 intensity"});
     await slider.focus();
     await slider.press("Home");
