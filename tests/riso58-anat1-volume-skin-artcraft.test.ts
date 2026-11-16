@@ -85,7 +85,7 @@ describe("RISO58 ArtCraft: ANAT1 real joint-constrained 3D skin volume",()=>{
       expect(source.anchors).toHaveLength(16);
       expect(source.anchors.map(x=>x.landmark)).toEqual(neutral.map(x=>x.landmark));
       const by=new Map(source.anchors.map(k=>[k.landmark,k]));
-      const webs=["index-middle-web","middle-ring-web","ring-little-web"];
+      const webs=["index-middle-web","middle-ring-web","ring-little-web"] as const;
       for(const web of webs){
         const node=by.get(web)!;
         expect(node.z).toBeLessThan(0);
