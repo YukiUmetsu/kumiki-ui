@@ -72,8 +72,16 @@ describe("RISO40 real letter-contact geometry / original film FK/IK rig",()=>{
     for(let frame=128;frame<=238;frame+=2){
       const p=evaluateRisoHumanEnsemble(frame,aspect);
       const receiver=evaluateRiso40PaperGrip(PAPER_ARTIST,frame,"left",p.second);
-      expect(Math.hypot(p.paperEnd.x-receiver.paperAnchor.x,
-        p.paperEnd.y-receiver.paperAnchor.y)).toBeLessThan(.00001);
+      // During unfurl, the physical tip advances from donor toward the
+      // moving receiver. It only REACHES her original pad when progress=1
+      // at f160; an early full-tip contact assertion would contradict the
+      // actual 126–160 frame handoff motion.
+      const intended=p.progress<1
+        ?{x:p.source.x+(receiver.paperAnchor.x-p.source.x)*p.progress,
+          y:p.source.y+(receiver.paperAnchor.y-p.source.y)*p.progress}
+        :receiver.paperAnchor;
+      expect(Math.hypot(p.paperEnd.x-intended.x,
+        p.paperEnd.y-intended.y),aspect+" f"+frame).toBeLessThan(.00001);
       const step=Math.hypot(p.paperEnd.x-previous.paperEnd.x,
         p.paperEnd.y-previous.paperEnd.y);
       // This is a bound against disconnected paper jumps; a single source
