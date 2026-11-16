@@ -65,6 +65,8 @@ describe("ArtCraft F1 photographed rooted lash tip flow (unapproved)",()=>{
         waxContact:"dry-wax",
       });
       expect(after.width).toBeLessThan(before.width);
+      if(before.waxPressure===undefined||after.waxPressure===undefined)
+        throw new Error("Missing native CRAYON1 wax pressure");
       expect(after.waxPressure).toBeLessThan(before.waxPressure);
     }
     const audit=auditCrayonF1LashRootContinuity(next.elements);
