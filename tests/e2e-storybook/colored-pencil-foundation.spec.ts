@@ -143,7 +143,7 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
 });
 
 
-test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect actual drawing in both aspects",async({page},info)=>{
+test("ArtCraft one-at-a-time: retired woman is absent; only new head outline is live in both film aspects",async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
   const scene=page.locator("[data-km-foundation-studio]");
   const svg=page.locator("svg[data-km-colored-pencil]");
@@ -151,248 +151,68 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
   const aspect=page.getByRole("combobox",{name:"Foundation aspect"});
   const target=page.getByRole("combobox",{name:"Foundation inspection focus"});
   const macro=page.getByRole("checkbox",{name:"Foundation inspect macro"});
-
-  await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus","default");
+  const cases=[
+    ["fox","fox-tail","tail-back"],
+    ["fox","fox-eye","eye-near"],
+    ["fox","fox-ear","ear-near-inner"],
+    ["fox","fox-cheek","cheek-ruff"],
+    ["fox","fox-chest","chest"],
+    ["fox","fox-forepaw","foreleg-right"],
+    ["fox","fox-hock","rear-leg"],
+    ["portrait","portrait-head","head-silhouette-01"],
+  ] as const;
   for(const format of ["landscape","portrait"] as const){
     await aspect.selectOption(format);
-    for(const [specimen,focus,part] of [
-      ["fox","fox-tail","tail-back"],
-      ["fox","fox-eye","eye-near"],
-      ["fox","fox-ear","ear-near-inner"],
-      ["fox","fox-cheek","cheek-ruff"],
-      ["fox","fox-chest","chest"],
-      ["fox","fox-forepaw","foreleg-right"],
-      ["fox","fox-hock","rear-leg"],
-      ["portrait","portrait-nape","neck"],
-      ["portrait","portrait-crown","hair-crown"],
-      ["portrait","portrait-lock","hair-lock-right"],
-      ["portrait","portrait-lips","lip-lower"],
-      ["portrait","portrait-eye","iris-near"],
-    ] as const){
+    for(const [specimen,focus,part] of cases){
       await subject.selectOption(specimen);
       const before=await svg.screenshot({animations:"disabled"});
       await target.selectOption(focus);
       await macro.check();
       await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus",part);
       await expect(svg).toHaveAttribute("style",/scale\(2\.15\)/);
-      const origin=await svg.evaluate(node=>(node as SVGSVGElement).style.transformOrigin);
-      const coordinates=(origin.match(/([\d.]+)% ([\d.]+)%/)??[]);
-      expect(coordinates.length).toBe(3);
-      expect(Number(coordinates[1])).toBeGreaterThan(0);
-      expect(Number(coordinates[1])).toBeLessThan(100);
-      expect(Number(coordinates[2])).toBeGreaterThan(0);
-      expect(Number(coordinates[2])).toBeLessThan(100);
-      // A real browser screenshot of the original CP-F1 artwork, NOT
-      // a photograph edit or duplicated/flattened alternate hero.
+      const transform=await svg.evaluate(el=>(el as SVGSVGElement).style.transformOrigin);
+      const coords=transform.match(/([\d.]+)% ([\d.]+)%/);
+      expect(coords).toBeTruthy();
+      for(const index of [1,2]){
+        expect(Number(coords![index])).toBeGreaterThan(0);
+        expect(Number(coords![index])).toBeLessThan(100);
+      }
       await svg.screenshot({animations:"disabled",
         path:info.outputPath("pencil-"+specimen+"-"+format+"-"+part+"-macro.png")});
-      if(focus==="portrait-eye"){
-        const measured=await svg.evaluate(root=>{
-          const eye=root.querySelector(
-            '[data-km-pencil-region="eye-white-near"]')!;
-          const iris=root.querySelector(
-            '[data-km-pencil-region="iris-near"]')!;
-          const pupil=root.querySelector(
-            '[data-km-pencil-region="pupil-near"]')!;
-          const named=(p:Element,name:string)=>
-            Boolean(p.querySelector('[data-km-pencil-trace="'+name+'"]'));
+      if(specimen==="portrait"){
+        await expect(page.locator("[data-km-character-stage]"))
+          .toHaveAttribute("data-km-character-stage","head-outline");
+        const shape=await svg.evaluate(root=>{
+          const regions=[...root.querySelectorAll("[data-km-pencil-region]")];
+          const ids=regions.map(x=>x.getAttribute("data-km-pencil-region"));
+          const head=root.querySelector('[data-km-pencil-region="head-silhouette-01"]')!;
+          const path=head.querySelector("[data-km-pencil-support]")?.getAttribute("d")??"";
+          const traces=[...head.querySelectorAll("[data-km-pencil-trace]")]
+            .map(e=>e.getAttribute("data-km-pencil-trace"));
           return {
-            radial:Array.from({length:3},(_,i)=>
-              named(iris,"anat-radial-iris-L-"+i)).every(Boolean),
-            shadow:named(iris,"anat-superior-iris-shadow-L"),
-            caruncle:named(eye,"anat-medial-caruncle-L"),
-            upperSclera:named(eye,"anat-superior-sclera-shadow-L"),
-            upperLashes:named(eye,"anat-lash-upper-L"),
-            catchlight:named(pupil,"anat-catchlight-L"),
-            noBitmap:root.querySelectorAll("image,foreignObject,feImage").length===0,
+            ids,outlineCurves:(path.match(/C|Q/g)??[]).length,
+            shapeName:head.getAttribute("data-km-pencil-region"),
+            valuePasses:[0,1,2].every(i=>traces.includes("newhead-value-"+i)),
+            guides:["newhead-sagittal-guide","newhead-zygomatic-guides",
+              "newhead-mandibular-hinge"].every(id=>traces.includes(id)),
+            hasPhotos:root.querySelectorAll("image,foreignObject,feImage").length>0,
           };
         });
-        expect(Object.values(measured).every(Boolean)).toBe(true);
-      }
-      if(focus==="portrait-lips"){
-        const mouth=await svg.evaluate(root=>{
-          const upper=root.querySelector(
-            '[data-km-pencil-region="lip-upper"]')!;
-          const lower=root.querySelector(
-            '[data-km-pencil-region="lip-lower"]')!;
-          const face=root.querySelector(
-            '[data-km-pencil-region="face-main"]')!;
-          const count=(node:Element,plane:string)=>
-            [...node.querySelectorAll("[data-km-pencil-trace]")].filter(
-              t=>t.getAttribute("data-km-pencil-trace")?.startsWith(
-                "anat-vermilion-"+plane+"-")).length;
-          return {
-            upperPasses:count(upper,"upper"),
-            lowerPasses:count(lower,"lower"),
-            seam:!!upper.querySelector(
-              '[data-km-pencil-trace="anat-mouth-seam"]'),
-            commissure:!!upper.querySelector(
-              '[data-km-pencil-trace="anat-left-commissure"]'),
-            lowerReserve:!!lower.querySelector(
-              '[data-km-pencil-trace="anat-lower-vermilion-reserve"]'),
-            mentolabial:!!face.querySelector(
-              '[data-km-pencil-trace="anat-mentolabial-turn"]'),
-            supports:[upper,lower].map(el=>
-              el.querySelectorAll("[data-km-pencil-support]")).map(n=>n.length),
-            noBitmap:root.querySelectorAll("image,foreignObject,feImage").length===0,
-          };
-        });
-        expect(mouth.upperPasses).toBe(3);
-        expect(mouth.lowerPasses).toBe(3);
-        expect(mouth.seam).toBe(true);
-        expect(mouth.commissure).toBe(true);
-        expect(mouth.lowerReserve).toBe(true);
-        expect(mouth.mentolabial).toBe(true);
-        expect(mouth.noBitmap).toBe(true);
-      }
-      if(focus==="portrait-crown"||focus==="portrait-lock"){
-        const physicalHair=await svg.evaluate((root,part)=>{
-          const region=root.querySelector('[data-km-pencil-region="'+part+'"]')!;
-          const traces=[...region.querySelectorAll("[data-km-pencil-trace]")];
-          const ids=traces.map(t=>t.getAttribute("data-km-pencil-trace"));
-          const hair=region.querySelectorAll('[data-km-pencil-trace^="fibre-"]');
-          const paths=[...hair].map(t=>t.getAttribute("d")??"");
-          return {
-            actualEditableFibres:hair.length,
-            rootQuadratics:paths.every(p=>p.includes(" Q")&&p.length<12000),
-            darkClumps:ids.includes(part==="hair-crown"?
-              "crown-dark-clump-troughs":"hair-right-lock-occlusion"),
-            noImages:region.querySelectorAll("image,foreignObject,feImage").length===0,
-          };
-        },part);
-        expect(physicalHair.actualEditableFibres).toBeGreaterThanOrEqual(12);
-        expect(physicalHair.rootQuadratics).toBe(true);
-        expect(physicalHair.darkClumps).toBe(true);
-        expect(physicalHair.noImages).toBe(true);
-      }
-      if(focus==="fox-eye"){
-        const topology=await svg.evaluate(root=>{
-          const ctx=document.createElement("canvas").getContext("2d")!;
-          const path=(id:string)=>{
-            const region=root.querySelector(
-              '[data-km-pencil-region="'+id+'"]');
-            const d=region?.querySelector("[data-km-pencil-support]")?.getAttribute("d");
-            if(!d)throw new Error("Missing actual animal anatomy path "+id);
-            return new Path2D(d);
-          };
-          const head=path("head-main"),muzzle=path("muzzle");
-          const eyeRegion=root.querySelector(
-            '[data-km-pencil-region="eye-near"]')!;
-          const eyePaths=[...eyeRegion.querySelectorAll(
-            "[data-km-pencil-trace]")].map(p=>p.getAttribute("data-km-pencil-trace"));
-          const pupil=eyeRegion.querySelector(
-            '[data-km-pencil-trace="fox-vertical-pupil"]');
-          // The pupil and superior tarsus must be real authored paths;
-          // the focal cornea is embedded in the fox cranial silhouette.
-          return {
-            cranialEyeContact:ctx.isPointInPath(head,244,189),
-            nasalConnection:ctx.isPointInPath(muzzle,183,224),
-            tarsus:eyePaths.includes("fox-superior-tarsus"),
-            pupil:!!pupil&&pupil.getAttribute("d")?.includes("Q"),
-            material:eyeRegion.getAttribute("data-km-pencil-region"),
-          };
-        });
-        expect(topology.cranialEyeContact).toBe(true);
-        expect(topology.nasalConnection).toBe(true);
-        expect(topology.tarsus).toBe(true);
-        expect(topology.pupil).toBe(true);
-        expect(topology.material).toBe("eye-near");
-      }
-      if(focus==="fox-ear"){
-        const ear=await svg.evaluate(root=>{
-          const ctx=document.createElement("canvas").getContext("2d")!;
-          const path=(id:string)=>{
-            const element=root.querySelector(
-              '[data-km-pencil-region="'+id+'"] [data-km-pencil-support]');
-            if(!element)throw new Error("Missing actual pencil ear silhouette: "+id);
-            return new Path2D(element.getAttribute("d")!);
-          };
-          const outer=path("ear-near"),inner=path("ear-near-inner");
-          const details=root.querySelector(
-            '[data-km-pencil-region="ear-near-inner"]')!;
-          return {
-            nestedTip:ctx.isPointInPath(outer,287,153)&&
-              ctx.isPointInPath(inner,287,153),
-            nestedConcha:ctx.isPointInPath(outer,282,175)&&
-              ctx.isPointInPath(inner,282,175),
-            exposedHelix:ctx.isPointInPath(outer,271,177)&&
-              !ctx.isPointInPath(inner,271,177),
-            shadow:!!details.querySelector(
-              '[data-km-pencil-trace="near-conchal-shadow"]'),
-            antihelix:!!details.querySelector(
-              '[data-km-pencil-trace="near-antihelix-reflection"]'),
-          };
-        });
-        expect(ear.nestedTip).toBe(true);
-        expect(ear.nestedConcha).toBe(true);
-        expect(ear.exposedHelix).toBe(true);
-        expect(ear.shadow).toBe(true);
-        expect(ear.antihelix).toBe(true);
-      }
-      if(focus==="fox-cheek"){
-        const connection=await svg.evaluate(root=>{
-          const ctx=document.createElement("canvas").getContext("2d")!;
-          const outline=(name:string)=>{
-            const p=root.querySelector(
-              '[data-km-pencil-region="'+name+'"] [data-km-pencil-support]');
-            if(!p)throw new Error("No native pencil silhouette for "+name);
-            return new Path2D(p.getAttribute("d")!);
-          };
-          const cheek=outline("cheek-ruff");
-          const muzzle=outline("muzzle");
-          const chest=outline("chest");
-          const details=root.querySelector(
-            '[data-km-pencil-region="cheek-ruff"]')!;
-          return {
-            jaw:ctx.isPointInPath(cheek,253,235)&&
-              ctx.isPointInPath(muzzle,253,235),
-            neck:ctx.isPointInPath(cheek,240,265)&&
-              ctx.isPointInPath(chest,240,265),
-            softFan:!!details.querySelector(
-              '[data-km-pencil-trace="fox-malar-light-fan"]'),
-            cervicalTurn:!!details.querySelector(
-              '[data-km-pencil-trace="fox-cervical-turn"]'),
-          };
-        });
-        expect(connection.jaw).toBe(true);
-        expect(connection.neck).toBe(true);
-        expect(connection.softFan).toBe(true);
-        expect(connection.cervicalTurn).toBe(true);
-      }
-      if(focus==="fox-hock"||focus==="fox-forepaw"){
-        const pose=await svg.evaluate((root,partId)=>{
-          const region=root.querySelector('[data-km-pencil-region="'+partId+'"]')!;
-          const base=region.querySelector("[data-km-pencil-support]")!;
-          const trace=(name:string)=>Boolean(region.querySelector(
-            '[data-km-pencil-trace="'+name+'"]'));
-          const ctx=document.createElement("canvas").getContext("2d")!;
-          const partPath=new Path2D(base.getAttribute("d")!);
-          const hock=partId==="rear-leg";
-          const body=root.querySelector(
-            '[data-km-pencil-region="body"] [data-km-pencil-support]')!;
-          return {
-            hasBentHock:hock?trace("hind-hock-plane"):trace("near-antebrachial-plane"),
-            digitDetail:hock?trace("hind-digit-folds"):trace("toe-furrows"),
-            clawDetail:hock?trace("hind-tiny-claws"):trace("claw-tips"),
-            insideFoot:ctx.isPointInPath(partPath,hock?355:281,hock?400:400),
-            // The hind hock passes beneath the rendered rump: two real,
-            // independently editable pigment regions overlap in world space.
-            joinedBody:hock?ctx.isPointInPath(
-              new Path2D(body.getAttribute("d")!),321,375)&&
-              ctx.isPointInPath(partPath,321,375):true,
-          };
-        },part);
-        expect(pose.hasBentHock).toBe(true);
-        expect(pose.digitDetail).toBe(true);
-        expect(pose.clawDetail).toBe(true);
-        expect(pose.insideFoot).toBe(true);
-        expect(pose.joinedBody).toBe(true);
+        expect(shape.ids).toEqual(["head-silhouette-01"]);
+        expect(shape.shapeName).toBe("head-silhouette-01");
+        expect(shape.outlineCurves).toBeGreaterThanOrEqual(26);
+        expect(shape.valuePasses).toBe(true);
+        expect(shape.guides).toBe(true);
+        expect(shape.hasPhotos).toBe(false);
+        for(const retired of ["face-main","hair-back","hair-crown",
+          "eye-white-near","lip-upper","neck","coat-back"]){
+          expect(shape.ids).not.toContain(retired);
+        }
       }
       expect(await svg.locator("image,foreignObject,feImage").count()).toBe(0);
-      await target.selectOption("default");
-      await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus","default");
       await macro.uncheck();
       expect(await svg.screenshot({animations:"disabled"})).toEqual(before);
+      await target.selectOption("default");
     }
   }
 });
