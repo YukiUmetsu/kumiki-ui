@@ -4,7 +4,7 @@ import {test,expect} from "@playwright/test";
  * source model, cross-origin bitmap or artwork substitution. Their colors
  * are for checking native coordinate placement only, not image fidelity.
  */
-test("ArtCraft annotation atlas uses separate local source/native files and exports 18+5 coordinates",async({page})=>{
+test("ArtCraft annotation atlas uses separate local source/native files and exports 18+5 coordinates",async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--source-annotation-atlas&viewMode=story");
   const atlas=page.locator("[data-km-pencils-head-annotation-atlas]");
   await expect(atlas).toBeVisible();
@@ -71,6 +71,9 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
   expect(raw).not.toContain("data:image");
   await expect(page.locator("[data-km-annotation-progress]"))
     .toContainText("ready for byte capture");
+  await page.screenshot({path:info.outputPath(
+    "head-local-source-and-native-annotation-atlas.png"),
+    fullPage:true,animations:"disabled"});
   // A replacement must invalidate only that image's coordinates.
   await page.getByLabel("source local image").setInputFiles({
     name:"replacement-source.png",mimeType:"image/png",buffer:buf,
