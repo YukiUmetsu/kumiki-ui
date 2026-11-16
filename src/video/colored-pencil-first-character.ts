@@ -215,21 +215,49 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
   }
   if(rightTempleIndex<2||leftTempleIndex-rightTempleIndex<16)
     throw new Error("ANAT1 lacks two connected cheek/temple side chains");
-  const lower=faceRing.slice(rightTempleIndex,leftTempleIndex+1);
   const lo=Math.min(...faceRing.map(p=>p[0]));
   const hi=Math.max(...faceRing.map(p=>p[0]));
+  const centerX=(lo+hi)*.5;
+  // ANAT1 supplies the REAL facial cheek/jaw chain but has no cranial
+  // volume. Preserve all 23 measured lower-oval points, then apply a
+  // bounded, smooth skin-volume recession only at the temporal hollow.
+  // 3/4 reference: the temporal plane INSETS before the zygion emerges.
+  // This is not a simple symmetrical head oval or a path traced from
+  // another artist's portrait.
+  const lower=faceRing.slice(rightTempleIndex,leftTempleIndex+1)
+    .map(([x,y]):Point=>{
+      const t=(y-faceTop)/(faceBottom-faceTop);
+      const temporal=Math.exp(-Math.pow((t-.40)/.105,2));
+      const malar=Math.exp(-Math.pow((t-.53)/.075,2));
+      const side=x<centerX?-1:1;
+      const depth=(side===-1?1:.89)*
+        (faceWidth*.067*temporal-faceWidth*.009*malar);
+      return [r(x-side*depth),y];
+    });
   const left=lower[lower.length-1],right=lower[0];
-  // Open curved vault with frontal and parietal surface turns: NOT the
-  // previous portrait scalp, nor a circle/ellipse pasted on a face.
+  // A complete adult CRANIUM is a high convex parietal dome that flows
+  // into a temporal narrowing, then flares over the cheekbones. The
+  // original eight vault points reached almost the entire head width at
+  // 15% of height (native browser scanline 0.953); that produced the
+  // rejected square-top cylindrical/bucket silhouette.
+  //
+  // Technique/reference, NOT copied pixels: CC-BY-SA 3.0 photograph of
+  // a 3/4 human skull by Circa24/Marijo Readey (Wikimedia Commons),
+  // plus OpenStax 7.3 skull anatomy and ANAT1's independent face mask.
+  // These 11 separately authored frontal/parietal points retain a
+  // continuous contour and a mild off-axis dome apex at 17° yaw.
   const vault:Point[]=[
-    [r(left[0]-faceWidth*.04),r(faceTop+faceWidth*.055)],
-    [r(lo-faceWidth*.05),r(faceTop-faceWidth*.075)],
-    [r(lo+faceWidth*.02),r(faceTop-faceWidth*.205)],
-    [r(lo+faceWidth*.205),r(faceTop-faceWidth*.315)],
-    [r(lo+faceWidth*.415),r(faceTop-faceWidth*.365)],
-    [r(lo+faceWidth*.665),r(faceTop-faceWidth*.295)],
-    [r(hi+faceWidth*.015),r(faceTop-faceWidth*.135)],
-    [r(right[0]+faceWidth*.025),r(faceTop+faceWidth*.055)],
+    [r(lo-faceWidth*.018),r(faceTop+faceWidth*.26)],
+    [r(lo-faceWidth*.010),r(faceTop+faceWidth*.12)],
+    [r(lo+faceWidth*.11),r(faceTop-faceWidth*.055)],
+    [r(lo+faceWidth*.235),r(faceTop-faceWidth*.205)],
+    [r(lo+faceWidth*.400),r(faceTop-faceWidth*.30)],
+    [r(lo+faceWidth*.555),r(faceTop-faceWidth*.345)],
+    [r(lo+faceWidth*.713),r(faceTop-faceWidth*.30)],
+    [r(lo+faceWidth*.845),r(faceTop-faceWidth*.20)],
+    [r(hi-faceWidth*.080),r(faceTop-faceWidth*.06)],
+    [r(hi+faceWidth*.005),r(faceTop+faceWidth*.095)],
+    [r(hi+faceWidth*.025),r(faceTop+faceWidth*.26)],
   ];
   const perimeter=[...lower,...vault];
   const contour=smoothPath(perimeter,true);
@@ -270,10 +298,10 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
         "#B39D97",.28,.24,174),
       // Partial nested skull vault line is observed construction, NOT hair.
       drawn("newhead-cranial-vault-turn",
-        line([vault[1][0]+7,vault[1][1]+19],
-          [vault[4][0],vault[4][1]+16],
-          [vault[6][0]-7,vault[6][1]+14]),
-        "#A58C85",.33,.39,153),
+        line([vault[2][0]+8,vault[2][1]+20],
+          [vault[5][0],vault[5][1]+31],
+          [vault[8][0]-9,vault[8][1]+25]),
+        "#A58C85",.33,.35,153),
     ],
   }];
 }
