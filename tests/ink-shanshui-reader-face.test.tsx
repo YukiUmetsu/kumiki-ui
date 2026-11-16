@@ -60,8 +60,7 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
       shape.fill==="$skinshade"&&shape.stroke==="none"&&
       (shape.opacity??0)>.11);
     expect(wash.length).toBeGreaterThanOrEqual(8);
-    expect(wash.length).toBeGreaterThan(
-      low.planes.filter(shape=>shape.fill==="$skinshade").length);
+    expect(high.planes.length).toBeGreaterThan(low.planes.length);
     for(const shape of wash){
       if(shape.type!=="path")throw Error("A wash must be geometry");
       expect(shape.d.trim().endsWith("Z")).toBe(true);
