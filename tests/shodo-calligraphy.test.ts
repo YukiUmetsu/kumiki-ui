@@ -106,6 +106,18 @@ describe("SHO1 shodō calligraphy", () => {
     expect(await loadShodoGlyph("永")).toBe(SHODO_GLYPHS["永"]);
   });
 
+  it("writes a teacher's own form when the teacher has the character, and the rules elsewhere", async () => {
+    const taught: ShodoGlyph = { char: "永", source: "teacher", strokes: [{ kind: "horizontal", points: [[120, 520], [880, 470]] }] };
+    expect(shodoKaishoForm(taught)).toBe(taught);                       // already the teacher's shape
+    const teacher = { id: "t", label: "Teacher", glyphs: { 永: taught } };
+    let calls = 0;
+    const fetcher = async () => { calls++; return { ok: false, status: 404, text: async () => "" }; };
+    expect(await loadShodoGlyph("永", { teacher, fetcher })).toBe(taught);  // before bundled and KanjiVG
+    expect(calls).toBe(0);
+    await expect(loadShodoGlyph("道", { teacher, fetcher, preferBundled: false })).rejects.toThrow(/KanjiVG 404/);
+    expect(calls).toBe(1);
+  });
+
   it("moves the brush like the side-view studies: it stands up to press, leans into travel and lifts clear", () => {
     const style = DEFAULT_SHODO_STYLE;
     const plan = planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["一"], x: 20, y: 20, size: 400 }], style });

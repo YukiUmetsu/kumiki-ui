@@ -9,6 +9,11 @@
  *
  * `shodoKaishoForm` then applies the teacher-measured layout rules (結構法, `shodoStructure`)
  * and brush habits (右上がり, weight by length, 懸針, 右払い feet, kana curves).
+ *
+ * A host can also supply a teacher: forms fitted to one teacher's models. When the teacher
+ * has the character, it is written as that teacher wrote it; other characters use the rules.
+ * A teacher's forms reproduce that teacher's work, so a host keeps them with the rights it
+ * has for them; this library bundles none.
  */
 import { SHODO_GLYPHS, kanjiVgFileName, parseKanjiVgSvg, shodoKaishoForm } from "./shodo-glyphs";
 import type { ShodoFormOptions, ShodoGlyph } from "./shodo-glyphs";
@@ -18,7 +23,17 @@ export const SHODO_KANJIVG_RELEASE = "r20260714";
 export const SHODO_KANJIVG_BASE = `https://raw.githubusercontent.com/KanjiVG/kanjivg/${SHODO_KANJIVG_RELEASE}/kanji/`;
 export const SHODO_KANJIVG_CREDIT = `Stroke data: KanjiVG ${SHODO_KANJIVG_RELEASE} © Ulrich Apel, CC BY-SA 3.0 (kanjivg.tagaini.net)`;
 
+/** Forms fitted to one teacher's models, by character. */
+export interface ShodoTeacher {
+  id: string;
+  /** Name and credit to show with the writing. */
+  label: string;
+  glyphs: Readonly<Record<string, ShodoGlyph>>;
+}
+
 export interface ShodoGlyphLoadOptions extends ShodoFormOptions {
+  /** Write the characters this teacher has as the teacher wrote them. */
+  teacher?: ShodoTeacher | null;
   /** Folder or server holding KanjiVG `kanji/*.svg` files; defaults to the pinned release on GitHub. */
   baseUrl?: string;
   /** Use the bundled original glyph when one exists. Default true. */
@@ -32,6 +47,8 @@ const cache = new Map<string, Promise<ShodoGlyph>>();
 export function loadShodoGlyph(char: string, options: ShodoGlyphLoadOptions = {}): Promise<ShodoGlyph> {
   const c = [...char][0];
   if (!c || !c.trim()) return Promise.reject(new RangeError("A non-space character is required."));
+  const taught = options.teacher?.glyphs[c];
+  if (taught) return Promise.resolve(taught);
   if (options.preferBundled !== false && SHODO_GLYPHS[c]) return Promise.resolve(SHODO_GLYPHS[c]);
   const base = options.baseUrl ?? SHODO_KANJIVG_BASE;
   // Every form option changes the result, so all of them are part of the cache key.

@@ -217,6 +217,36 @@ The same ten kanji lose clearly (IoU drop over 0.05): 人, 元, 兄, 刀, 口, �
 
 **How a new character is laid out.** KanjiVG gives the strokes and the component tree. `shodoLayout` finds the top-level layout. `shodoKankaRulesFor` lists the rules that apply. `shodoStructure` applies them. No video of the character is necessary. `SHODO_KANKA_RULES` gives each rule's term, reading and summary for captions and teaching views. To add a rule, measure it on the teacher set, apply it to all characters, and keep it only if both halves improve.
 
+## 2.10 Sixth study round: learning each character from the teacher
+
+**Question.** When a teacher's model of a character exists, can the engine write that character as the teacher wrote it, not only by general rules? The owner asked for this to be the default whenever a teacher is available.
+
+**Writing time of each ink pixel.** The camera does not move while the teacher writes. A pixel that shows bare paper is not written yet, and ink never goes away. So a pixel's writing time is the first dark frame after the last frame that showed bare paper; the hand and the brush can hide or darken a pixel for a while, but they cannot make ink look like paper.
+- The fixed shot is found from the cuts, and its end from a thin strip just inside the paper's left edge: ink, brush and hands never reach it, and a crossfade to the next shot always changes it.
+- The paper is the bright region around the character. The paperweight is top ink that never showed bare paper. Small marks apart from the character are removed.
+- Ink that was hidden under the hand before it showed dark has no reliable time. Only "fresh" ink, paper to dark within 0.4 s, is used to follow the brush.
+
+**Strokes.** The brush's position at each frame is the largest patch of fresh ink added in the last 0.3 s. Its runs are joined into strokes: a pause in place, a crossing of older ink in the same direction, or a quick continuation joins; a jump starts a new stroke. An order-keeping alignment then matches the runs to KanjiVG's strokes by distance and direction, merging runs and skipping short stray runs. In a random check of 16 characters, 14 were split exactly right and the two complex ones (感, 徳) looked right.
+
+**Fit.** Each stroke of our form is fitted to the teacher's stroke with one smooth transform (affine about its centre and a gentle bend), so that the line lies on the teacher's ink, in its middle, and covers its skeleton. Kana strokes then follow the middle of the teacher's line. Three rounds through our own renderer set each stroke's weight, its two ends and its centring. Two variants were rejected after testing: a press profile along each stroke (lumpy strokes) and a press range wider than the weight's (no gain).
+
+**Gate.** A character keeps its teacher form only when the form matches the teacher's finished model at least as well as the rules do, its video starts before the first stroke, and its ink is complete: 322 of 406 characters. The other 84 use the rules.
+
+**Result.** Overlap with the teacher's finished models, the same measure as §2.8–2.9:
+
+| | Rules | With teacher forms (gated) |
+|---|---|---|
+| Kanji IoU, mean | 0.457 | 0.597 |
+| Kana IoU, mean | 0.367 | 0.496 |
+
+These numbers say how closely the engine reproduces this teacher's own models. They are not a prediction for characters the teacher has not written; those keep the rules.
+
+**Data handling.** The fitted forms reproduce one teacher's work. They stay on the owner's machine in `local-assets/shodo-teachers/` (git-ignored) and are never committed or bundled. A film that writes a teacher's characters needs that teacher's permission. The forms keep KanjiVG's stroke order and kinds, so KanjiVG's credit and share-alike terms also apply.
+
+**Model.** `ShodoGlyph.source` can be `"teacher"`; `shodoKaishoForm` leaves such a glyph as it is; `loadShodoGlyph(char, { teacher })` uses the teacher's form first. The studio and the character gallery load `local-assets/shodo-teachers/teacher.json` when it exists and use it by default, with a switch to compare with the rules.
+
+**Limits.** The rules still write 84 of the teacher's characters (split failures, videos that start after the first stroke, incomplete ink). Kana loops (よ, あ, る) stay smaller than the teacher's. Heads and stops come from the technique programs, not from each stroke of the teacher. The writing time of every stroke is measured but not yet used to set the hand's rhythm.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
