@@ -74,7 +74,7 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
 - **Brush (筆):** hair, diameter (size relative to the character), tuft length, spring (コシ), bristle lanes, hair and handle colours, handle length.
 - **Ink (墨):** colour and dilute colour, strength (濃墨 to 淡墨), water, load, colour-strength decay per em written, fade as the brush empties, re-dip threshold, gloss. Presets: sumi, seiboku, chaboku, tanboku, shuboku.
 - **Paper (紙):** colour, absorbency (にじみ), fibre, tooth (かすれ catch), drying time. Presets: hanshi, gasenshi, sized, practice.
-- **Per stroke:** `weight`, `start`, `end`, `turns`, `hook`, `pace` (speed of this stroke relative to the hand, 0.25..4; a teacher's form uses it so each stroke gets that teacher's share of the writing time). **Per item:** `strokeInk` writes chosen strokes in another ink; the brush visits the inkstone to change ink.
+- **Per stroke:** `weight`, `start`, `end`, `turns`, `hook`, `pace` (speed of this stroke relative to the hand, 0.25..4; a teacher's form uses it so each stroke gets that teacher's share of the writing time), `technique` (this stroke's own technique settings over the style's, within the same ranges; a teacher's form uses it for that teacher's heads, stops and lifts stroke by stroke). **Per item:** `strokeInk` writes chosen strokes in another ink; the brush visits the inkstone to change ink.
 - **Canvas:** `sheet` (null or `kenteiSheet(...)`), `underlay`, `paperweight`, `orderGuide` and `guideStrokes`, `brushLook` (lean, azimuth, light, shadow, cord), `cameraHeight`, `inkScale`, `reducedMotion`.
 
 ## States and accessibility

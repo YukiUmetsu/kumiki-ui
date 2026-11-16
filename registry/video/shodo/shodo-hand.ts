@@ -440,7 +440,9 @@ function endSegments(
 }
 
 /** The full program of one stroke, in em units. */
-function strokeProgram(spec: ShodoStrokeSpec, style: ShodoStyle, seed: number, strokeCount: number): { segs: Segment[]; land: V; start: ShodoStart; end: ShodoEnd } {
+function strokeProgram(spec: ShodoStrokeSpec, base: ShodoStyle, seed: number, strokeCount: number): { segs: Segment[]; land: V; start: ShodoStart; end: ShodoEnd } {
+  // A stroke's own technique settings (a teacher's head, stop or lift) override the style's.
+  const style: ShodoStyle = spec.technique ? { ...base, technique: { ...base.technique, ...spec.technique } } : base;
   const T = style.technique;
   const D = style.brush.diameter * style.hand.width;
   const weight = spec.weight ?? 1;
