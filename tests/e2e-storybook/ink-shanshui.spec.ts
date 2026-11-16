@@ -580,7 +580,7 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","ridge");
   await expect(middle).toBeVisible();
   await expect(middle).toHaveAttribute("d",originalRidge!);
-  await expect(fuchun.locator("[data-km-shanshui-cunfa]").first())
+  await expect(fuchun.locator('[data-km-shanshui-ridge="1"] [data-km-shanshui-cunfa]').first())
     .toBeHidden();
   await expect(fuchun.locator("[data-km-master-mass]").first())
     .toBeHidden();
@@ -595,7 +595,7 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
   await page.getByRole("button",{name:"Reset all four studies"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
   await expect(middle).toHaveAttribute("d",originalRidge!);
-  await expect(fuchun.locator("[data-km-shanshui-cunfa]").first())
+  await expect(fuchun.locator('[data-km-shanshui-ridge="1"] [data-km-shanshui-cunfa]').first())
     .toBeVisible();
   await expect(fuchun.locator("[data-km-cliff-pine-grove]")).toBeVisible();
 });
