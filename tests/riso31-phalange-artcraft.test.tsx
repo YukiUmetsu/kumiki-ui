@@ -78,9 +78,11 @@ describe("RISO31 ArtCraft / actual PIP+DIP printed phalanx animation",()=>{
             (spec.id==="courier"&&side==="right"&&frame<=202));
           if(projected){
             expect(sample.rootLength).toBeLessThan(sample.expectedProximal-.005);
-            expect(sample.rootLength).toBeGreaterThan(sample.expectedProximal*.58);
+            // RISO54 2D side-on projection can be ~.39, while the
+            // original clinical ANAT1 3D lengths remain unchanged.
+            expect(sample.rootLength).toBeGreaterThan(sample.expectedProximal*.385);
             expect(sample.intermediateLength).toBeLessThan(sample.expectedIntermediate-.005);
-            expect(sample.intermediateLength).toBeGreaterThan(sample.expectedIntermediate*.58);
+            expect(sample.intermediateLength).toBeGreaterThan(sample.expectedIntermediate*.385);
           }else if(courierTail){
             // f204 is the last 2-frame easing sample before original bone
             // length returns exactly at f205. Do not assume it already
