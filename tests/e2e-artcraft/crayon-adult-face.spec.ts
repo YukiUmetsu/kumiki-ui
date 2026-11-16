@@ -797,3 +797,46 @@ test("F1 ArtCraft photographed short-rooted wax fibers near/far native A/B",asyn
   }
   expect(errors).toEqual([]);
 });
+
+
+/** ArtCraft nasal source volume experiment. A screenshot proves native paint
+ * differences, not likeness. Genuine 608x1082 registered CC0 geometry only.
+ */
+test("F1 attached nasal roof native 3x source A/B, dark cavities and paper tooth",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const focus={focusX:416,focusY:626,zoom:3};
+  const images:Uint8Array[]=[];
+  for(const midfaceForm of ["source-volume","source-alar"] as const){
+    const original=crayonCc0FaceStudy({
+      eyeContact:"source-shade",midfaceForm,lashFinish:"sparse",
+    });
+    const spec={...original,camera:[{frame:0,...focus},{frame:299,...focus}]};
+    const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+    for(const side of ["near","far"]){
+      await expect(svg.locator('[data-km-crayon-element="naris-shadow-'+side+'"]'))
+        .toBeAttached();
+      for(const part of ["alar-roof","alar-septum"]){
+        const node=svg.locator('[data-km-crayon-element="'+part+'-'+side+'"]');
+        await expect(node).toHaveCount(midfaceForm==="source-alar"?1:0);
+        if(midfaceForm==="source-alar"){
+          await expect(node.locator(
+            '[data-km-crayon-feather-contacts="open-wax"]')).toHaveCount(1);
+        }
+      }
+    }
+    images.push(await svg.screenshot({
+      path:info.outputPath("crayon-f1-alar-native-"+midfaceForm+"-299.png"),
+      animations:"disabled",
+    }));
+  }
+  expect(Buffer.compare(Buffer.from(images[0]),Buffer.from(images[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
