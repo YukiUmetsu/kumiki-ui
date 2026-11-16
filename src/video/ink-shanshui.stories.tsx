@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -521,7 +521,7 @@ function MasterInkSourceComparison(){
     {school:"fuchun",title:"Huang Gongwang · long hemp fibre",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975",
       observation:"Rounded nested hills, uneven long hemp loaded at the head, bare paper between linked families. Do not confuse with raindrop marks.",
-      target:"The original middle-ridge silhouette now rolls across a broad irregular summit and a separately held right shoulder, not a single sawtooth needle apex. Inspect Skyline mode at the *same* seed/camera as Stone volumes and All hemp. Six positive curved Fuchun cheeks support twelve independent lateral rock courses rooted on their undercuts. Preserve all six undercuts, 15 loaded parent banks, 78 short/mid/long attached children, five original pines and 20 boughs, 119 wet bunches, 40 fan masses, 60 pads and 310 needles. Fidelity to the actual handscroll requires independent human judgment."},
+      target:"The live asymmetric summit, softened far dome and original rounded source rock cheeks support 15 pressure banks, 78 short/mid/long child fibres and 12 parent-rooted transverse stone courses. Selected medium and all long fibres now contain two material dry-paper slits, sampled exactly on the actual child cubic and cut through pigment with luminance masks; all 78 pressure ribbons remain. Compare Ink before dry-paper lift against All Fuchun hemp at the identical camera/seed. Preserve five original pines, 20 boughs, 119 wet bunches, 40 fan masses, 60 pads and 310 needles. This original technique remains source-inspired, not an approved reconstruction."},
     {school:"early-spring",title:"Guo Xi · curled cloud-head",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000960",
       observation:"Reversing cloud-head rock rolls, layered ink ranges and open mist; crab-claw pine branching in the source.",
@@ -587,6 +587,12 @@ function MasterInkSourceComparison(){
       [data-km-rock-hero-paint-layer],
       [data-km-master-ink-inspection="ridge"] [data-km-master-study="fuchun"]
       [data-km-cliff-pine-grove] { visibility:hidden; }
+      /* Material proof: same original long-hemp SVG ribbons and
+         gradients, but before their local dry-paper fissures. Attribute
+         masks are overridden with CSS; restoring 'all' reinstates the
+         original production mask without deleting a single brush. */
+      [data-km-master-ink-inspection="uncut"] [data-km-master-study="fuchun"]
+      [data-km-master-stroke-loaded][mask] { mask:none !important; }
     `}</style>
     <div role="group" aria-label="Fuchun paper-reserve inspection"
       data-testid="shanshui-master-zone-presets"
@@ -594,16 +600,17 @@ function MasterInkSourceComparison(){
       {([["all","All Fuchun hemp"],["upper","Upper-bank contacts only"],
         ["lower","Lower-bank contacts only"],
         ["stone","Stone volumes · brush hidden"],
-        ["ridge","Skyline · contour only"]] as const).map(([zone,title])=>
+        ["ridge","Skyline · contour only"],
+        ["uncut","Ink before dry-paper lift"]] as const).map(([zone,title])=>
         <button type="button" key={zone} style={style.button}
           aria-pressed={fuchunZone===zone} onClick={()=>setFuchunZone(zone)}>
           {title}
         </button>)}
       <span style={{maxWidth:500,fontSize:12,color:"#675745"}}>
-        Storybook-only: isolate the original paper-backed skyline, or
-        inspect the seven-curve stone backs, wet/dry undercuts and twelve
-        transverse courses. These controls only hide SVG layers;
-        all source roots, the other schools and the film clock stay live.
+        Storybook-only: isolate skyline and stone backs, or compare
+        the original 78 loaded fibres before/after genuine dry-paper cuts.
+        CSS toggles never change the source paths, attached parent roots,
+        four historic schools or the original production film clock.
       </span>
     </div>
     <div data-testid="shanshui-master-controls"
