@@ -217,8 +217,14 @@ export function newHeadCranialTonalVolume(
     let i=0;
     while(collected.some((n,band)=>n<budgets[band])&&i<150000){
       const key=pass*523991+i++;
-      const x=left+width*pencilHash(seed,key,401);
-      const y=top+height*pencilHash(seed,key,402);
+      // Independent 2D spatial sampling is essential: adjacent salts on
+      // pencilHash are correlated along diagonal lattices. Actual 1×
+      // Chromium evidence showed TWO unnatural dark slashes across the
+      // cranium despite passing all scalar/trace-budget tests.
+      // Decouple axis index strides and seeds, preserving determinism.
+      const x=left+width*pencilHash(seed,Math.imul(key,2),401);
+      const y=top+height*pencilHash(
+        seed^0x9e3779b9,Math.imul(key,3)+106113,402);
       const u=(x-cx)/rx,v=(y-cy)/ry;
       const r2=u*u+v*v;
       if(r2>=.965)continue;
