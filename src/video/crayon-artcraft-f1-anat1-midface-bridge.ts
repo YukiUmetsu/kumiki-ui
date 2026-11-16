@@ -60,7 +60,6 @@ export function crayonF1Anat1MidfacePaths():Readonly<Record<
     lerp(src.nose_tip[1]-19,alar[1]-29,.3));
   const innerCheek=xy(clamp(alarSide[0]+11,327,362),
     clamp(alarSide[1]+33,616,652));
-  const malarUpper=xy(high[0]+19,high[1]-59);
   const cheekTurn=xy(clamp(high[0]+45,246,286),
     clamp(high[1]+91,713,767));
   const cheekReturn=xy(clamp(high[0]-61,120,167),
