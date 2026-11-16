@@ -1,5 +1,5 @@
 {
-  "schema_version": 6,
+  "schema_version": 7,
   "project": "kumiki-ui / CP-F1 new single character #01",
   "subject_type": "human",
   "status": "stage_1_outline_only_unapproved",
@@ -113,9 +113,11 @@
       "newhead-plane-cranial-0..2-0..2",
       "newhead-plane-temporal-0..2-0..2",
       "newhead-plane-far-temple-0..2-0..2",
-      "newhead-plane-malar-0..2-0..2"
+      "newhead-plane-malar-0..2-0..2",
+      "newhead-plane-far-malar-0..2-0..2",
+      "newhead-plane-mandibular-0..2-0..2"
     ],
-    "geometry": "One completely new 3D face-mask lower jaw/temple chain plus eight separately authored frontal/parietal vault anchors: head outline only, not filled dermis. 3 independent transparent dry-pencil optical passes with 342 small construction contacts and five measured guide marks, no eyes, nose, mouth, hair, ear or former female geometry. Added 36 named local volume traces (4 cranial/temporal/cheek value fields × 3 colours × 3 cohorts), each composed of many pressure-attenuated curved strokes, plus asymmetric gently peaked cranial arch.",
+    "geometry": "One completely new 3D face-mask lower jaw/temple chain plus eight separately authored frontal/parietal vault anchors: head outline only, not filled dermis. 3 independent transparent dry-pencil optical passes with 342 small construction contacts and five measured guide marks, no eyes, nose, mouth, hair, ear or former female geometry. Added 36 named local volume traces (4 cranial/temporal/cheek value fields × 3 colours × 3 cohorts), each composed of many pressure-attenuated curved strokes, plus asymmetric gently peaked cranial arch. Follow-on native visual inspection found underfilled contralateral cheek and mandibular turn. Two additional asymmetrically smaller/lighter plane families bring local head volume groups to 54, preserving all prior marks and stage-1-only morphology.",
     "camera_aspects": [
       "16:9",
       "9:16"
@@ -128,14 +130,14 @@
   "five_axes": {
     "topology": "one editable standalone head, no old portrait parts and no face stickers. Mark visible missing cranium behind the mask as blocker, not as finished skull. Storybook's diagnostic geometry is now derived from the same new-head mesh and camera, eliminating the unrelated previous portrait's hard-coded anchor coordinates.",
     "vector_flow": "3 curved local pressure fans run from forehead through zygomatic bones to jaw; no global diagonal identical strokes",
-    "weight": "Stage 1 outline now intentionally .82 paper units / .56 opacity sepia in the existing CP-F1 renderer, paired with optical stipple; no solid skin support or opaque salmon wax.",
+    "weight": "6 anatomy-anchored local pigment fields (cranial, temporal, far-temple, malar, opposite malar, mandibular); unlike screen-wide hatches, each has independently curved 3-colour stroke families; the far cheek is deliberately lighter and narrower, jaw has warm half-tone. No existing line/texture detail removed.",
     "rhythm": "3 × 114 short strokes follow three bony guides with deterministic irregular offsets, not wallpaper",
     "texture": "36 additional bounded, separately editable 3-colour LOCAL pencil pigment traces, 4 cranial/temporal/zygomatic fields with softened tips and source-guided vector flow; no whole-head lattice, pixel filters or pseudo-photo texture. Realistic-art approval still requires fresh native screenshot."
   },
   "gates": {
     "source_match": "BLOCKED: anatomy construction source is general, no matched human identity/body pose photograph was supplied.",
     "head_silhouette": "First original face-mask candidate REJECTED for flat forehead, second corrected cranial-vault silhouette candidate REJECTED as solid salmon wax face. Latest candidate keeps cranial vault but changes only the new head region from filled skin to transparent dry-pencil glaze; native 960px/2.15x inspection required. The old 18-point overlay and fictional eyes/nose/mouth construction selectors have since been removed from the new-human Storybook. This is a provenance/diagnostic correction, not an art approval.",
-    "quality": "HOLD: CI head 3a0fef9 foundation browser passed; native 960x540 pencil-foundation-portrait-landscape.png was inspected and remains too empty/diagrammatic despite removal of plaid hatches. The next candidate adds curved local volume deposits and softer vault to reveal mass. Typecheck and fibre proof failed on stale test assumptions and overlapping Storybook title, not native rendering. All fixes must pass exact-head CI before promotion.",
+    "quality": "ART HOLD: all three exact-head CI checks on ea1fd6a succeeded, but native 960×540 real screenshot showed light marks reading like a hairless skull map or accidental cranial hair and a disproportionately empty far cheek/jaw. Still not anatomically credible as a portrait, so refuse merge. Next experimental pass adds two asymmetric local pigment fields to support that volume; must rerun CI and inspect the new screenshot. No claim of source-photo landmark approval.",
     "automated": "Changed-contracts + native Playwright revisions are committed to the same open draft PR. Corrected CP-F1 assumption that all materials have opaque craft base, and Living Atelier selectors that still expected the deleted former face. Unit assertions check 9 new-head guides lie within the actual head bounds. Re-run CI on exact head; results not yet confirmed at the time of this edit."
   },
   "next_step": "Only after native Stage 1 art review: complete head/cranium silhouette including rear skull and ear bases, then render a SINGLE isolated eye. Do not generate another full character or return to the old woman.",
@@ -177,6 +179,14 @@
       "observed": "Actual 960×540 drawing now preserves dry-paper reserves and distinct head outline, but has no convincing volume: large empty cap and cheeks, almost invisible bony planes, and an overly straight elongated temporal wall; source comparison rejects artistic realism.",
       "decision": "REJECT; NEW LOCAL VALUE PASS EXPERIMENT",
       "correction": "Preserve exact head contour and all 342 original pressure strokes. Add four anatomy-aligned, soft-edged, pressure-tapered local pigment fields with 36 bounded editable trace groups (cranial, temporal, far-temple, malar), revise the 8-anchor dome curve, and retain the one-character head-only stop gate. Independently visually review native 1×/2.15× after CI."
+    },
+    {
+      "candidate": "ArtCraft native review of 4-plane Stage 1 after all three CI jobs passed",
+      "workflow": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43801340570",
+      "artifact": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43801340570/artifacts/14195499913",
+      "observed": "Examined new head at real 960×540: solid paper space remains visible, cranial cap now has dense curved pencil hatches, but right-lower jaw and cheek are underdrawn. Approximate measured dark-contact occupancy (RGB difference from paper >16) in lower-right face quadrant was ~7%, versus ~19% in lower-left. Upper cap reads too hairlike. Shape still looks cylindrical/shield-like. No eye/nose/lip/ear/hair from former woman was reintroduced.",
+      "decision": "REJECT; CONTINUE STAGE 1",
+      "correction": "Add separate far-malar and mandibular local curved pigment families with reduced far-side load, preserve existing 4 fields and sparse crown paper; re-test both aspects and inspect exact-head macro before authorizing next facial component."
     }
   ]
 }

@@ -97,6 +97,16 @@ function newHeadPlanePigment(
     {id:"malar",center:[.35,.68],radii:[.29,.21],skew:-.30,
       heading:.25,turn:.62,colors:["#9C7374","#D3A28D","#ECC5A6"],
       load:.94},
+    // The 3/4 view turns into a lighter, smaller opposite cheek plane.
+    // Different projected radii and pigment hue avoid a mirror patch.
+    {id:"far-malar",center:[.76,.68],radii:[.22,.20],skew:.15,
+      heading:-.49,turn:-.37,colors:["#A0817C","#D0AA97","#E8C9B2"],
+      load:.69},
+    // The mandibular arch carries a soft warm half-tone under the malar
+    // turn: the earlier exact-native crop left this whole region blank.
+    {id:"mandibular",center:[.57,.83],radii:[.30,.17],skew:-.18,
+      heading:.55,turn:.46,colors:["#927879","#BD9889","#E2BA9F"],
+      load:.83},
   ] as const;
   const traces:PencilTrace[]=[];
   planes.forEach((plane,part)=>{
