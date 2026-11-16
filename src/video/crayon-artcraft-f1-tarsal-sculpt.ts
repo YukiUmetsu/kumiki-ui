@@ -89,7 +89,7 @@ const sourcePatches:Readonly<Record<string,Partial<Wax>>>={
       "C257 540 237 548 220 561Z",
     bounds:{x:212,y:528,width:112,height:38},
     colors:["#442e31","#221c23","#735351"],
-    pressure:.93,spacing:3.9,markStrength:.25,
+    pressure:.93,spacing:4.2,markStrength:.25,
     underpaintTooth:.18,opaqueBurnish:.86,edgeRoughness:.21,
     outlineOpacity:0,
     underpaintGradient:{
@@ -165,7 +165,7 @@ const additions:Readonly<Record<string,Wax>>={
     coverage:"open",deposition:"stroke-built",
     colors:["#38282d","#211a20","#65494a"],
     blendRadius:2.6,featherContacts:true,angle:10,
-    pressure:.91,spacing:3.7,markStrength:.31,
+    pressure:.91,spacing:4.2,markStrength:.31,
     edgeRoughness:.18,outlineOpacity:0,nibStyle:"dry",
   },
   "source-tarsal-burnish-far":{
@@ -180,7 +180,7 @@ const additions:Readonly<Record<string,Wax>>={
     coverage:"open",deposition:"stroke-built",
     colors:["#36282b","#1f1a20","#60474b"],
     blendRadius:2.3,featherContacts:true,angle:15,
-    pressure:.9,spacing:3.8,markStrength:.29,
+    pressure:.9,spacing:4.2,markStrength:.29,
     edgeRoughness:.18,outlineOpacity:0,nibStyle:"dry",
   },
   "source-infraorbital-wax-near":{
@@ -233,7 +233,7 @@ export function crayonF1SculptTarsal(
   const anchors=new Set<string>();
   const out:CrayonElement[]=[];
   for(const element of elements){
-    if(element.kind==="wax"&&Object.hasOwn(sourcePatches,element.id)){
+    if(element.kind==="wax"&&Object.prototype.hasOwnProperty.call(sourcePatches,element.id)){
       if(found.has(element.id))
         throw new RangeError("Duplicate F1 source lid plane: "+element.id);
       found.add(element.id);
