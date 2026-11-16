@@ -1913,3 +1913,24 @@ standing contour (`ukiyoeBeastLandmarks`). Changes from that check and from the 
 - **Open finding.** The fox, dog, cat, wolf, tanuki, rabbit, ox and mouse are still long and low compared with the real
   animals (see the Storybook "UKIYO1 proportion check").
 
+## Trees grown by FLORA1 (2026-11-15)
+
+The pine, cherry and willow were rebuilt on the plant anatomy framework
+([FLORA1](../component-specs/plant-anatomy.md)), and a plum (`ume`) was added. They were compared with:
+
+- Hiroshige's *Evening Rain at Karasaki* (MET, CC0) and Hokusai's *Cushion Pine at Aoyama* (MET, CC0);
+- Hiroshige's *Asukayama* cherries and Hokusai's *Bullfinch and Weeping Cherry*;
+- Hiroshige's willows (*Willow on a river bank*, *Tea-house at the Willow Bridge*);
+- Hiroshige's *Plum Garden at Kameido* (Rijksmuseum, CC0) and the *Flora Japonica* plum.
+
+| Tree | Was | Now |
+|---|---|---|
+| Pine | Four tall dome pads on stubs of a smooth trunk | A leaning trunk under whorled tiers of big flat needle pads on long level branches |
+| Cherry | A pink blob on a pole | Limbs of elbows with lenticel bark; blossom clumps over a pink underprint, with gaps; notched five-petal flowers; red young leaves under the blossom |
+| Willow | Arched over a small crown | Limbs that arch up and fall; curtains of strands hanging from along them |
+| Plum (new) | — | Dark gnarled wood; sparse round white flowers and red buds on the twigs |
+
+`height` is the whole tree; `variant` is the seed; `lean`, `spread`, `bloom` and `strands` keep their meanings. The
+trees are grown once per seed and swayed by the scene's wind. The Night Ferry and folktale shots were re-rendered and
+checked; no owner review yet.
+

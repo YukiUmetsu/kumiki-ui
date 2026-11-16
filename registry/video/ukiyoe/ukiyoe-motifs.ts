@@ -26,6 +26,10 @@ import { ANIMATED_TSUKUMO, TSUKUMO_MOTIFS } from "./ukiyoe-tsukumo";
 import { ANIMATED_REALMS, REALM_MOTIFS } from "./ukiyoe-realms";
 import { ANIMATED_PARADE, PARADE_MOTIFS } from "./ukiyoe-parade";
 import { ANIMATED_VILLAGE, VILLAGE_MOTIFS } from "./ukiyoe-village";
+import { growPlant, plantConstruction, swayPlant } from "../../anatomy/plant-construct";
+import type { PlantBranch, PlantSkeleton } from "../../anatomy/plant-construct";
+import { flowerShape } from "../../anatomy/plant-organs";
+import type { Month } from "../../anatomy/plant-species";
 import { ANIMATED_RYUGU, RYUGU_MOTIFS } from "./ukiyoe-ryugu";
 import { ANIMATED_TREASURE, TREASURE_MOTIFS } from "./ukiyoe-treasure";
 
@@ -872,14 +876,6 @@ function smoothPts(points: readonly Pt[], per = 6): Pt[] {
 
 // ---- Trees -------------------------------------------------------------------------------------------------------------------------
 
-function trunkPath(base: Pt, height: number, lean: number, bend: number, seed: number, segs = 10): Pt[] {
-  const pts: Pt[] = [];
-  for (let i = 0; i <= segs; i++) {
-    const t = i / segs;
-    pts.push([base[0] + Math.sin(lean * DEG) * height * t + noise1(seed, t * 3) * height * .06 * t + bend * height * t * t, base[1] - height * t * Math.cos(lean * DEG)]);
-  }
-  return pts;
-}
 function taperedBody(pts: readonly Pt[], w0: number, w1: number): string {
   const l: Pt[] = [], r: Pt[] = [];
   pts.forEach((q, i) => {
@@ -901,109 +897,141 @@ function pinePad(cx: number, cy: number, rx: number, ry: number, seed: number): 
   return { d: smoothD([...top, ...bottom], true, .35), top };
 }
 
+// The pine, cherry, willow and plum are grown by FLORA1 (registry/anatomy/plant-*): its architecture (whorled pine
+// tiers of flat needle pads, the cherry's branches of elbows, the willow's curtains, the plum's gnarled wood and twigs)
+// and its calendar. They are painted here as the prints carve and print them: a key line round the wood, scalloped
+// needle pads, blossom clouds over a pink underprint, five-petalled flowers, hanging dashed strands.
+const FLORA_CACHE = new Map<string, PlantSkeleton>();
+/** A FLORA1 plant grown once per seed and season, then swayed by the scene's wind each frame. */
+function floraTree(species: string, seed: number, month: Month, over: Record<string, unknown>, c: MotifContext, windScale: number): PlantSkeleton {
+  const key = `${species}|${seed}|${month}|${JSON.stringify(over)}`;
+  let sk = FLORA_CACHE.get(key);
+  if (!sk) {
+    // Scaled so the whole tree (crown and all) stands `height` tall, as the motif's height always meant.
+    const grown = growPlant(plantConstruction(species, over), { month, seed });
+    const top = Math.max(...grown.branches.flatMap(b => b.points.map(q => q[1])), ...grown.foliage.map(f => f.cy + f.ry), ...grown.blossom.map(f => f.cy + f.ry), 1e-6);
+    sk = scaleSkeleton(grown, 1 / top);
+    if (FLORA_CACHE.size > 256) FLORA_CACHE.clear();
+    FLORA_CACHE.set(key, sk);
+  }
+  return swayPlant(sk, (c.wind + Math.sin(c.frame / 37 + seed) * .12) * windScale, c.frame / 30);
+}
+function scaleSkeleton(sk: PlantSkeleton, k: number): PlantSkeleton {
+  const s2 = (q: readonly [number, number]) => [q[0] * k, q[1] * k] as const, m = <T extends { cx: number; cy: number; rx: number; ry: number }>(f: T): T => ({ ...f, cx: f.cx * k, cy: f.cy * k, rx: f.rx * k, ry: f.ry * k });
+  return { ...sk, branches: sk.branches.map(b => ({ ...b, points: b.points.map(s2), radii: b.radii.map(r => r * k) })), foliage: sk.foliage.map(m), blossom: sk.blossom.map(m),
+    strands: sk.strands.map(st => ({ ...st, points: st.points.map(s2), width: st.width * k })), leaves: sk.leaves.map(o => ({ ...o, at: s2(o.at), size: o.size * k })),
+    flowers: sk.flowers.map(o => ({ ...o, at: s2(o.at), size: o.size * k })), fruits: sk.fruits.map(o => ({ ...o, at: s2(o.at), size: o.size * k })) };
+}
+/** FLORA1 units (heights, y up) to motif pixels (y down). */
+const floraPx = (h: number) => (q: readonly [number, number]): Pt => [q[0] * h, -q[1] * h];
+/** The wood: limbs and branches as carved bodies with a key line; twigs as tapering dark lines. */
+function floraWood(branches: readonly PlantBranch[], h: number, fill: UkiyoePaint, twig: UkiyoePaint, outline = 1.2): Prim[] {
+  const P = floraPx(h), out: Prim[] = [];
+  for (const b of branches) {
+    const pts = b.points.map(P), w0 = b.radii[0] * 2 * h, w1 = b.radii[b.radii.length - 1] * 2 * h;
+    if (pts.length < 2) continue;
+    if (w0 < 2.4) out.push({ t: "line", d: carvedLine(pts, Math.max(.8, w0), { taper: "end", minRatio: .35, smooth: true }), color: twig, opacity: .9 });
+    else out.push({ t: "fill", d: taperedBody(pts, w0, Math.max(1, w1)), fill, outline: b.order === 0 ? outline * 1.4 : outline, grain: b.order === 0 ? .5 : .3 });
+  }
+  return out;
+}
+/** A five-petalled flower (cherry notched, plum round) at a point, radius r, in motif pixels. */
+function floraFlower(at: Pt, r: number, notch: number, angle: number): string {
+  return flowerShape({ shape: "rosaceous", petals: 5, notch }, 3).outlines.slice(0, 5).map(o => polyD(o.map(q => rotatePt([at[0] + q[0] * r, at[1] - q[1] * r], angle, at)))).join("");
+}
+
 function pine(p: P, c: MotifContext): Prim[] {
   const h = num(p, "height", 460), lean = num(p, "lean", -12), seed = c.seed + num(p, "variant", 0) * 23, spread = num(p, "spread", 1);
   const trunkC = paint(p, "trunk", "cha"), needle = paint(p, "needles", "matsu"), lightC = paint(p, "light", "kusa");
-  const sway = c.wind * .9 + Math.sin(c.frame / 37 + seed) * .12;
-  const trunk = trunkPath([0, 0], h, lean, sway * .05, seed);
-  const out: Prim[] = [{ t: "fill", d: taperedBody(trunk, h * .085, h * .03), fill: { type: "linear", angle: 0, stops: [[0, trunkC, 1], [1, "kogecha", 1]] }, outline: 1.8 }];
-  // Bark scales.
+  // A foreground pine of the prints: a thicker trunk, long level branches, a few big pads (those on the primary branches).
+  const sk = floraTree("japanese-black-pine", seed, 7, { trunk: { lean: -lean, baseWidth: .06 }, crown: { width: 1.05 * spread, base: .42 }, branch: { spacing: .2 } }, c, .9);
+  const P = floraPx(h), out: Prim[] = [], trunk = sk.branches[0];
+  // Pads: flat-topped scalloped clouds of needles, light on top, the needle strokes standing up from their edge.
+  const pad = (f: (typeof sk.foliage)[number], i: number, back: boolean): Prim => {
+    const rx = f.rx * h * 1.3, ry = f.ry * h * 1.7, shape = pinePad(0, 0, rx, ry, seed + i * 7), needles: string[] = [];
+    for (let k = 2; k < shape.top.length - 2; k += 2) { const q = shape.top[k]; for (let m = -1; m <= 1; m++) needles.push(`M${q[0].toFixed(1)} ${(q[1] + 2).toFixed(1)}l${m * 3} ${(ry * .32).toFixed(1)}`); }
+    const [cx, cy] = P([f.cx, f.cy]);
+    return { t: "group", transform: tf(cx, cy + ry * .15, Math.sin(c.frame / 23 + i) * c.wind * 1.5), prims: [
+      { t: "fill", d: shape.d, grain: .4, fill: { type: "linear", angle: 90, stops: back ? [[0, needle, 1], [1, "sumi", .9]] : [[0, lightC, 1], [.4, needle, 1], [1, needle, 1]] }, outline: 1.3 },
+      { t: "stroke", d: needles.join(""), color: "sumi", width: .8, opacity: back ? .35 : .5 }] };
+  };
+  const pads = sk.foliage.map((f, i) => [f, i] as const).filter(([f]) => (f.order ?? 1) <= 1);
+  const back = pads.filter(([f]) => f.depth < 0), front = pads.filter(([f]) => f.depth >= 0);
+  out.push(...floraWood(sk.branches.filter(b => b.order > 0 && b.depth < 0), h, "kogecha", "sumi"));
+  out.push(...back.map(([f, i]) => pad(f, i, true)));
+  out.push({ t: "fill", d: taperedBody(trunk.points.map(P), trunk.radii[0] * 2 * h, Math.max(2, trunk.radii[trunk.radii.length - 1] * 2 * h)), fill: { type: "linear", angle: 0, stops: [[0, trunkC, 1], [1, "kogecha", 1]] }, outline: 1.8 });
+  // Bark: plates outlined by short carved marks up the trunk.
   const bark: string[] = [];
-  for (let i = 0; i < 9; i++) {
-    const q = trunk[1 + Math.floor(hash01(seed, i) * (trunk.length - 3))], s = h * .02;
-    bark.push(carvedLine([[q[0] - s, q[1]], [q[0], q[1] - s * .5], [q[0] + s, q[1] + s * .2]], 1.3, { seed: seed + i }));
-  }
-  out.push({ t: "line", d: bark.join(""), color: "sumi", opacity: .6 });
-  const pads = clamp(Math.round(num(p, "pads", 6)), 1, 14);
-  const branchPrims: Prim[] = [], padPrims: Prim[] = [];
-  for (let i = 0; i < pads; i++) {
-    const top = i === pads - 1;
-    const at = top ? trunk[trunk.length - 1] : trunk[Math.round(lerp(4, trunk.length - 2, i / Math.max(1, pads - 1)))];
-    const side = top ? 0 : (i % 2 ? 1 : -1) * (hash01(seed, i, 2) < .2 ? -1 : 1);
-    const blen = top ? 0 : h * (.18 + .22 * hash01(seed, i, 3)) * spread * (1 - i / pads * .4);
-    const bendA = sway * 8 * (.5 + i / pads);
-    const tip = rotatePt([at[0] + side * blen, at[1] - blen * .12 + hashSigned(seed, i, 4) * h * .04], bendA * .3, at);
-    if (!top) {
-      const mid: Pt = [lerp(at[0], tip[0], .5), lerp(at[1], tip[1], .5) + h * .03];
-      branchPrims.push({ t: "fill", d: taperedBody(quad(at, mid, tip, 8), h * .03, h * .012), fill: trunkC, outline: 1.3 });
-    }
-    const rx = h * (.13 + .07 * hash01(seed, i, 5)) * spread, ry = rx * (.42 + .1 * hash01(seed, i, 6));
-    const pad = pinePad(0, 0, rx, ry, seed + i * 7);
-    const needles: string[] = [];
-    for (let k = 2; k < pad.top.length - 2; k += 2) {
-      const q = pad.top[k];
-      for (let m = -1; m <= 1; m++) needles.push(`M${q[0]} ${q[1] + 2}l${m * 3} ${ry * .32}`);
-    }
-    padPrims.push({ t: "group", transform: tf(tip[0], tip[1] - ry * .25, bendA + Math.sin(c.frame / 23 + i) * c.wind * 2), prims: [
-      { t: "fill", d: pad.d, grain: .4, fill: { type: "linear", angle: 90, stops: [[0, lightC, 1], [.4, needle, 1], [1, needle, 1]] }, outline: 1.4 },
-      { t: "stroke", d: needles.join(""), color: "sumi", width: .9, opacity: .5 },
-    ] });
-  }
-  return [...out, ...branchPrims, ...padPrims];
+  for (let i = 0; i < 12; i++) { const q = P(trunk.points[1 + Math.floor(hash01(seed, i) * (trunk.points.length - 3))]), s2 = h * .018; bark.push(carvedLine([[q[0] - s2, q[1]], [q[0], q[1] - s2 * .5], [q[0] + s2, q[1] + s2 * .2]], 1.2, { seed: seed + i })); }
+  out.push({ t: "line", d: bark.join(""), color: "sumi", opacity: .55 });
+  out.push(...floraWood(sk.branches.filter(b => b.order > 0 && b.depth >= 0), h, trunkC, "sumi"));
+  out.push(...front.map(([f, i]) => pad(f, i, false)));
+  return out;
 }
 
 function sakura(p: P, c: MotifContext): Prim[] {
   const h = num(p, "height", 380), seed = c.seed + num(p, "variant", 0) * 29, bloom = clamp01(num(p, "bloom", 1) * c.progress);
   const trunkC = paint(p, "trunk", "kogecha"), petal = paint(p, "blossom", "sakura");
-  const sway = c.wind * .6 + Math.sin(c.frame / 41 + seed) * .08;
-  const trunk = trunkPath([0, 0], h * .55, num(p, "lean", 6), sway * .03, seed, 6);
-  const out: Prim[] = [{ t: "fill", d: taperedBody(trunk, h * .07, h * .035), fill: trunkC, outline: 1.6 }];
-  const tips: Pt[] = [];
-  const branches = clamp(Math.round(num(p, "branches", 6)), 2, 12);
-  for (let i = 0; i < branches; i++) {
-    const at = trunk[Math.round(lerp(2, trunk.length - 1, hash01(seed, i)))];
-    const ang = -90 + lerp(-70, 70, (i + .5) / branches) + hashSigned(seed, i, 2) * 12 + sway * 10;
-    const len = h * (.25 + .25 * hash01(seed, i, 3)) * num(p, "spread", 1);
-    const mid = polar(at, ang + hashSigned(seed, i, 5) * 25, len * .5), tip = polar(mid, ang - hashSigned(seed, i, 6) * 20, len * .5);
-    out.push({ t: "fill", d: taperedBody(quad(at, mid, tip, 8), h * .028, h * .008), fill: trunkC, outline: 1.1 });
-    tips.push(tip, mid);
+  // Limbs show between the blossom clumps, as Hiroshige's Asukayama cherries do.
+  const sk = floraTree("mountain-cherry", seed, bloom > .05 ? 4 : 3, { trunk: { lean: num(p, "lean", 6), forkAt: .34 }, crown: { width: .78 * num(p, "spread", 1), base: .38 } }, c, .6);
+  const P = floraPx(h), out: Prim[] = [];
+  out.push(...floraWood(sk.branches.filter(b => b.depth < 0), h, "kogecha", "sumi"));
+  out.push(...floraWood(sk.branches.filter(b => b.depth >= 0), h, trunkC, "sumi"));
+  // Bark: the cherry's horizontal lenticels across the trunk and the great limbs.
+  const marks: string[] = [];
+  for (const b of sk.branches.filter(b => b.order === 0)) for (let i = 2; i < b.points.length - 1; i += 2) {
+    const q = P(b.points[i]), w = b.radii[i] * h * .8;
+    if (w > 2) marks.push(`M${(q[0] - w * .6).toFixed(1)} ${q[1].toFixed(1)}h${(w * (.5 + hash01(seed, i) * .6)).toFixed(1)}`);
   }
+  out.push({ t: "stroke", d: marks.join(""), color: "gofun", width: 1, opacity: .35 });
+  // The red-brown young leaves opening with the flowers (yamazakura), under the blossom.
+  if (sk.leafCover > 0 && bloom > .05) out.push({ t: "fill", d: sk.foliage.map(f => { const [cx, cy] = P([f.cx, f.cy]); return ellipseD(cx, cy, f.rx * h * .7, f.ry * h * .6); }).join(""), fill: "cha", opacity: .55 });
+  // Blossom clouds: a deeper pink underprint offset down-right, the pale mass over it, no outlines (as printed).
   const cloud: string[] = [], flowers: string[] = [];
-  tips.forEach((tip, i) => {
-    const r = h * .1 * (.6 + .5 * hash01(seed, i, 7)) * bloom;
-    if (r < 1) return;
-    for (let k = 0; k < 5; k++) cloud.push(circleD(tip[0] + hashSigned(seed, i, k) * r, tip[1] + hashSigned(seed, i, k + 9) * r * .7, r * (.55 + .3 * hash01(seed, i, k + 3))));
-    for (let k = 0; k < 9; k++) {
-      const fx = tip[0] + hashSigned(seed, i, k + 20) * r * 1.1, fy = tip[1] + hashSigned(seed, i, k + 30) * r * .8;
-      for (let q = 0; q < 5; q++) flowers.push(circleD(fx + Math.cos(q * 1.2566 + k) * 2.6, fy + Math.sin(q * 1.2566 + k) * 2.6, 1.9));
-    }
+  sk.blossom.forEach((m, i) => {
+    if (i % 3) return;
+    const [cx, cy] = P([m.cx, m.cy]), rx = m.rx * h * bloom * .8, ry = m.ry * h * bloom * .72;
+    if (rx < 1) return;
+    for (let k = 0; k < 3; k++) cloud.push(circleD(cx + hashSigned(seed, i, k) * rx * .55, cy + hashSigned(seed, i, k + 9) * ry * .45, Math.min(rx, ry) * (.55 + .35 * hash01(seed, i, k + 3))));
+    for (let k = 0; k < 3; k++) flowers.push(floraFlower([cx + hashSigned(seed, i, k + 20) * rx * .8, cy + hashSigned(seed, i, k + 30) * ry * .7], Math.max(2.2, h * .011), .22, hash01(seed, i, k) * 72));
   });
   if (cloud.length) {
-    // Blossom masses: a deeper pink underprint offset down-right, the pale mass over it, no outlines (as printed).
-    out.push({ t: "group", transform: `translate(${h * .012} ${h * .016})`, prims: [{ t: "fill", d: cloud.join(""), fill: "beni", opacity: .35 }] });
+    out.push({ t: "group", transform: `translate(${(h * .012).toFixed(1)} ${(h * .016).toFixed(1)})`, prims: [{ t: "fill", d: cloud.join(""), fill: "beni", opacity: .35 }] });
     out.push({ t: "fill", d: cloud.join(""), fill: { type: "linear", angle: 90, stops: [[0, "gofun", 1], [.5, petal, 1], [1, petal, 1]] }, grain: .3 });
   }
-  if (flowers.length) out.push({ t: "dots", d: flowers.join(""), color: "gofun", opacity: .85 });
+  if (flowers.length) out.push({ t: "fill", d: flowers.join(""), fill: "gofun", opacity: .9, noPrint: true });
   return out;
 }
 
 function willow(p: P, c: MotifContext): Prim[] {
-  const h = num(p, "height", 420), seed = c.seed + num(p, "variant", 0) * 41, strands = clamp(Math.round(num(p, "strands", 22)), 3, 80);
+  const h = num(p, "height", 420), seed = c.seed + num(p, "variant", 0) * 41, want = clamp(Math.round(num(p, "strands", 22)), 3, 80);
   const trunkC = paint(p, "trunk", "kogecha"), leaf = paint(p, "leaves", "kusa");
-  const trunk = trunkPath([0, 0], h * .62, num(p, "lean", 4), c.wind * .02, seed, 6);
-  const crown = trunk[trunk.length - 1];
-  const out: Prim[] = [{ t: "fill", d: taperedBody(trunk, h * .055, h * .025), fill: trunkC, outline: 1.5, grain: .6 }];
-  for (let i = 0; i < 4; i++) {
-    // Limbs arch up and over, then droop: the strands hang from the falling ends.
-    const side = i % 2 ? 1 : -1, at = trunk[trunk.length - 2 - (i >> 1)], tip: Pt = [crown[0] + side * h * (.2 + .1 * hash01(seed, i, 7)), crown[1] + h * (.03 + .05 * hash01(seed, i, 8))];
-    out.push({ t: "fill", d: taperedBody(quad(at, [lerp(at[0], tip[0], .45), crown[1] - h * (.12 + .05 * hash01(seed, i, 6))], tip, 10), h * .022, h * .006), fill: trunkC, outline: 1.1 });
-  }
-  const lines: string[] = [];
-  for (let i = 0; i < strands; i++) {
-    const a = lerp(-1, 1, (i + hash01(seed, i)) / strands);
-    const anchor: Pt = [crown[0] + a * h * .32, crown[1] + Math.abs(a) ** 2 * h * .1 - h * .04];
-    const len = h * (.45 + .4 * hash01(seed, i, 2)), segs = 9, pts: Pt[] = [anchor];
-    let x = anchor[0], y = anchor[1];
-    for (let j = 1; j <= segs; j++) {
-      const t = j / segs;
-      const swing = c.wind * .55 * t + Math.sin(c.frame / 24 + i * .7 + t * 2) * .09 * t + Math.sin(c.frame / 9 + i) * .03 * t * (Math.abs(c.wind) + .3);
-      x += Math.sin(swing) * len / segs + a * len / segs * .18 * (1 - t); y += Math.cos(swing) * len / segs;
-      pts.push([x, y]);
-    }
-    lines.push(smoothD(pts, false, .5));
-  }
+  // Limbs arch up and over and fall; the twigs are the hanging strands themselves, so only limbs and branches are drawn as wood.
+  const sk = floraTree("weeping-willow", seed, 6, { trunk: { lean: num(p, "lean", 4) }, crown: { width: .75 * num(p, "spread", 1) }, branch: { droop: .95, angleLow: 35, angleHigh: 20 } }, c, 1.1);
+  const P = floraPx(h), out: Prim[] = [...floraWood(sk.branches.filter(b => b.order <= 1), h, trunkC, "kogecha")];
+  const twigs = sk.strands.filter(s => s.kind === "twig"), stepN = Math.max(1, Math.floor(twigs.length / (want * 8)));
+  const lines = twigs.filter((_, i) => i % stepN === 0).map(s => smoothD(s.points.map(P), false, .5));
   out.push({ t: "stroke", d: lines.join(""), color: leaf, width: 2.2, opacity: .9, dash: "7 3" });
   out.push({ t: "stroke", d: lines.join(""), color: "matsu", width: .8, opacity: .55 });
+  return out;
+}
+
+/** The plum (ume) in bloom on bare, dark, gnarled wood: round white or pink five-petalled flowers and red buds along the twigs. */
+function ume(p: P, c: MotifContext): Prim[] {
+  const h = num(p, "height", 340), seed = c.seed + num(p, "variant", 0) * 31, bloom = clamp01(num(p, "bloom", 1) * c.progress);
+  const trunkC = paint(p, "trunk", "sumi"), petal = paint(p, "blossom", "gofun");
+  const sk = floraTree("japanese-plum", seed, 2, { trunk: { lean: num(p, "lean", 10) }, crown: { width: .9 * num(p, "spread", 1) } }, c, .4);
+  const P = floraPx(h), out: Prim[] = [...floraWood(sk.branches.filter(b => b.depth < 0), h, "kogecha", "sumi"), ...floraWood(sk.branches.filter(b => b.depth >= 0), h, trunkC, "sumi")];
+  const flowers: string[] = [], buds: string[] = [], hearts: string[] = [];
+  // Sparse white flowers close to the dark wood (Hiroshige's Kameido plum), a few red buds among them.
+  sk.flowers.forEach((f, i) => {
+    if (i % 2) return;
+    const at = P(f.at), r = Math.max(2.8, h * .017);
+    if (hash01(seed, i, 5) > bloom || i % 7 === 0) { buds.push(circleD(at[0], at[1], r * .4)); return; }
+    flowers.push(floraFlower(at, r, 0, f.angle)); hearts.push(circleD(at[0], at[1], r * .25));
+  });
+  if (buds.length) out.push({ t: "fill", d: buds.join(""), fill: "beni" });
+  if (flowers.length) out.push({ t: "fill", d: flowers.join(""), fill: petal }, { t: "fill", d: hearts.join(""), fill: "beni", opacity: .8, noPrint: true });
   return out;
 }
 
@@ -1456,7 +1484,7 @@ function field(p: P): Prim[] {
 }
 
 export type UkiyoeMotifName =
-  | "sky" | "mountain" | "hills" | "sea" | "wave" | "pine" | "sakura" | "willow" | "reeds" | "rock" | "cloud" | "sun" | "moon"
+  | "sky" | "mountain" | "hills" | "sea" | "wave" | "pine" | "sakura" | "willow" | "ume" | "reeds" | "rock" | "cloud" | "sun" | "moon"
   | "house" | "pagoda" | "torii" | "bridge" | "boat" | "lantern" | "field" | "pier" | "peach" | "ricefield"
   | "range" | "minka" | "jizo" | "komainu" | "castle" | "shop" | "kura" | "yashiki" | "firetower"
   | "room" | "andon" | "irori" | "futon" | "loom" | "byobu" | "well" | "stump" | "usu" | "tarai" | "fire" | "halo" | "kumo" | "mato"
@@ -1464,16 +1492,16 @@ export type UkiyoeMotifName =
   | "gissha" | "sudare" | "kicho" | "shinden" | "ikou"
   | "ryugu" | "seabed" | "lightrays" | "moonpalace" | "amanogawa" | "magpies" | "iwato" | "onigashima" | "sasa" | "kago" | "kasa" | "tawara" | "sori" | "tamatebako" | "takara" | "kuruma" | "takegiri";
 export const UKIYOE_MOTIFS: readonly UkiyoeMotifName[] = [
-  "sky", "mountain", "hills", "sea", "wave", "pine", "sakura", "willow", "reeds", "rock", "cloud", "sun", "moon",
+  "sky", "mountain", "hills", "sea", "wave", "pine", "sakura", "willow", "ume", "reeds", "rock", "cloud", "sun", "moon",
   "house", "pagoda", "torii", "bridge", "boat", "lantern", "field", "pier", "peach", "ricefield",
   "range", "minka", "jizo", "komainu", "castle", "shop", "kura", "yashiki", "firetower",
   "room", "andon", "irori", "futon", "loom", "byobu", "well", "stump", "usu", "tarai", "fire", "halo", "kumo", "mato", "belfry", "hondo", "gate", "hokora", "graves", "toro", "hut", "bamboo", "kaki", "shinboku", "jinmenju", "gissha", "sudare", "kicho", "shinden", "ikou", "ryugu", "seabed", "lightrays", "moonpalace", "amanogawa", "magpies", "iwato", "onigashima", "sasa", "kago", "kasa", "tawara", "sori", "tamatebako", "takara", "kuruma", "takegiri",
 ];
 /** Motifs whose drawing depends on the frame or wind (others are drawn once and cached). */
-export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "reeds", "lantern", "peach", "ricefield", "boat", "range", "minka", ...ANIMATED_TOWN, ...ANIMATED_INTERIOR, ...ANIMATED_FOLK, ...ANIMATED_EFFECTS, ...ANIMATED_KAMI, ...ANIMATED_TEMPLE, ...ANIMATED_TREES, ...ANIMATED_HEIAN, ...ANIMATED_TSUKUMO, ...ANIMATED_REALMS, ...ANIMATED_PARADE, ...ANIMATED_VILLAGE, ...ANIMATED_RYUGU, ...ANIMATED_TREASURE] as UkiyoeMotifName[]);
+export const ANIMATED_MOTIFS: ReadonlySet<UkiyoeMotifName> = new Set(["sea", "wave", "pine", "sakura", "willow", "ume", "reeds", "lantern", "peach", "ricefield", "boat", "range", "minka", ...ANIMATED_TOWN, ...ANIMATED_INTERIOR, ...ANIMATED_FOLK, ...ANIMATED_EFFECTS, ...ANIMATED_KAMI, ...ANIMATED_TEMPLE, ...ANIMATED_TREES, ...ANIMATED_HEIAN, ...ANIMATED_TSUKUMO, ...ANIMATED_REALMS, ...ANIMATED_PARADE, ...ANIMATED_VILLAGE, ...ANIMATED_RYUGU, ...ANIMATED_TREASURE] as UkiyoeMotifName[]);
 
 const MOTIFS: Readonly<Record<UkiyoeMotifName, (p: P, c: MotifContext) => Prim[]>> = {
-  sky, mountain, hills, sea, wave, pine, sakura, willow, reeds, rock, cloud, sun, moon, house, pagoda, torii, bridge, boat, lantern, field, pier, peach, ricefield,
+  sky, mountain, hills, sea, wave, pine, sakura, willow, ume, reeds, rock, cloud, sun, moon, house, pagoda, torii, bridge, boat, lantern, field, pier, peach, ricefield,
   ...SCENERY_MOTIFS,
   ...CASTLE_MOTIFS,
   ...TOWN_MOTIFS,

@@ -580,6 +580,7 @@ const GALLERY: { motif: UkiyoeMotifName; label: string; params: Record<string, u
   { motif: "pine", label: "Pine in wind", params: { height: 280, lean: -10 }, y: 330 },
   { motif: "sakura", label: "Cherry in bloom", params: { height: 280 }, y: 330 },
   { motif: "willow", label: "Willow strands", params: { height: 300 }, y: 330 },
+  { motif: "ume", label: "Plum in bloom", params: { height: 280 }, y: 330 },
   { motif: "torii", label: "Torii", params: { width: 220, height: 240 }, y: 330 },
   { motif: "pagoda", label: "Pagoda", params: { height: 300, width: 120 }, y: 330 },
   { motif: "house", label: "Townhouse · noren", params: { width: 280, height: 120, noren: "ai", stories: 2 }, y: 330 },

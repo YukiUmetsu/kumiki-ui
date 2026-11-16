@@ -106,8 +106,7 @@ Defects found and fixed along the way:
 
 No owner review yet.
 
-## Next
+## Applied to UKIYO1
 
-Apply FLORA1 to the ukiyo-e trees, comparing with the Hiroshige and Hokusai references. Today the UKIYO1 cherry's
-branches are straight spokes with dot flowers, where FLORA1 calls for sympodial elbows, notched five-petal blossom and
-lenticel bark.
+The ukiyo-e pine, cherry and willow are now grown by FLORA1, and a plum motif (`ume`) was added. See the UKIYO1
+reference study, section "Trees grown by FLORA1".
