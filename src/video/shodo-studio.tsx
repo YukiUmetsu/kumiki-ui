@@ -39,6 +39,72 @@ export function useShodoTeachers(): readonly ShodoTeacher[] {
   return teachers;
 }
 
+type KanjiLevel = "N5" | "N4" | "N3" | "N2" | "N1";
+const KANJI_LEVELS: readonly KanjiLevel[] = ["N5", "N4", "N3", "N2", "N1"];
+
+/** One kanji of the owner's study-card data: its level and the props of its card. */
+export interface ShodoKanjiDatasetEntry {
+  char: string;
+  level?: KanjiLevel;
+  card: {
+    meanings?: string; onyomi?: string; kunyomi?: string; jlpt?: KanjiLevel;
+    words?: { word: string; ruby: string; romaji: string; meaning: string }[];
+  };
+}
+
+/** Where Storybook serves the owner's study-card data (from `local-assets/shodo-teachers/kanji-cards/`). */
+export const KANJI_DATASET_URL = "/shodo-teachers/kanji-cards/jlpt-n5-n3.json";
+/** Credit for the study-card data; show it when a card uses the data. */
+export const KANJI_DATASET_CREDIT = "Kanji data: KANJIDIC2 and JMdict, © EDRDG, CC BY-SA 4.0. JLPT levels and vocabulary: Jonathan Waller's JLPT resources, CC BY.";
+
+/**
+ * Reads the study-card file `{ about, kanji: [{ char, jlpt, card: { meanings, onyomi, kunyomi,
+ * jlpt, words } }] }` into a map by character. Entries and fields of the wrong type are left out.
+ * Null when nothing usable is in the file.
+ */
+export function readKanjiCardDataset(json: unknown): ReadonlyMap<string, ShodoKanjiDatasetEntry> | null {
+  const list = json && typeof json === "object" ? (json as { kanji?: unknown }).kanji : undefined;
+  if (!Array.isArray(list)) return null;
+  const text = (v: unknown) => typeof v === "string" && v.trim() ? v : undefined;
+  const level = (v: unknown) => KANJI_LEVELS.find(l => l === v);
+  const out = new Map<string, ShodoKanjiDatasetEntry>();
+  for (const item of list as unknown[]) {
+    if (!item || typeof item !== "object") continue;
+    const e = item as { char?: unknown; jlpt?: unknown; card?: unknown };
+    if (typeof e.char !== "string" || !e.char || !e.card || typeof e.card !== "object") continue;
+    const c = e.card as Record<string, unknown>;
+    const words = Array.isArray(c.words) ? (c.words as unknown[]).flatMap(w => {
+      const x = w as Record<string, unknown> | null;
+      return x && ["word", "ruby", "romaji", "meaning"].every(k => typeof x[k] === "string")
+        ? [{ word: x.word as string, ruby: x.ruby as string, romaji: x.romaji as string, meaning: x.meaning as string }] : [];
+    }) : undefined;
+    out.set(e.char, {
+      char: e.char, level: level(e.jlpt),
+      card: { meanings: text(c.meanings), onyomi: text(c.onyomi), kunyomi: text(c.kunyomi), jlpt: level(c.jlpt), words: words?.length ? words : undefined },
+    });
+  }
+  return out.size ? out : null;
+}
+
+let kanjiDatasetLoad: Promise<ReadonlyMap<string, ShodoKanjiDatasetEntry> | null> | null = null;
+
+/**
+ * The owner's study-card data for the JLPT N5–N3 kanji, when it is kept in
+ * `local-assets/shodo-teachers/kanji-cards/jlpt-n5-n3.json` (served by Storybook only when the
+ * folder exists; never committed). Loaded once per page. Null while it loads, and on every
+ * other machine.
+ */
+export function useKanjiCardDataset(): ReadonlyMap<string, ShodoKanjiDatasetEntry> | null {
+  const [data, setData] = useState<ReadonlyMap<string, ShodoKanjiDatasetEntry> | null>(null);
+  useEffect(() => {
+    let live = true;
+    kanjiDatasetLoad ??= fetch(KANJI_DATASET_URL).then(res => res.ok ? res.json() : null).then(readKanjiCardDataset).catch(() => null);
+    kanjiDatasetLoad.then(d => { if (live) setData(d); }).catch(() => undefined);
+    return () => { live = false; };
+  }, []);
+  return data;
+}
+
 /** The labels of the teachers whose forms write these characters, for the credit line. */
 export function shodoTeacherLabels(chars: readonly string[], teachers: readonly ShodoTeacher[]): string[] {
   const used = new Set(chars.map(c => shodoTeacherFor(c, teachers)).filter((t): t is ShodoTeacher => !!t));

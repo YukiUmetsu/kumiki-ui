@@ -11,8 +11,10 @@ import { ShodoInkSurface } from "../registry/video/shodo/shodo-ink";
 import { DEFAULT_SHODO_STYLE, inspectShodoStyle, resolveShodoStyle } from "../registry/video/shodo/shodo-style";
 import { SHODO_BASICS, auditShodoTechniques } from "../registry/video/shodo/shodo-techniques";
 import {
-  KANJI_WORD_EASE, ShodoKanjiInfoCard, kanjiCardPhaseAt, kanjiCardTimeline, parseWordHighlights, resolveKanjiCardContent, wordHighlightAt,
+  KANJI_WORD_EASE, ShodoKanjiInfoCard, fillKanjiCardContent, kanjiCardPhaseAt, kanjiCardTimeline, parseWordHighlights, resolveKanjiCardContent,
+  spreadWordHighlights, wordHighlightAt,
 } from "../src/video/shodo-demos";
+import { readKanjiCardDataset } from "../src/video/shodo-studio";
 
 const ei = () => planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["永"], x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE });
 
@@ -385,5 +387,30 @@ describe("SHO1 shodō calligraphy", () => {
     const words = resolveKanjiCardContent("道", {}).words;
     render(createElement(ShodoKanjiInfoCard, { char: "道", words, highlight: { word: 1, strength: 1 } }));
     expect(screen.getByRole("listitem", { current: true })).toHaveTextContent("道路");
+  });
+
+  it("fills the empty card fields from local kanji data, and typed values win", () => {
+    // A tiny inline fixture: one usable entry with one malformed word, and one malformed entry.
+    const data = readKanjiCardDataset({ kanji: [
+      { char: "山", jlpt: "N5", card: { meanings: "MOUNTAIN", onyomi: "SAN (サン)", jlpt: "N5", words: [{ word: "山", ruby: "やま", romaji: "yama", meaning: "mountain" }, { word: 1 }] } },
+      { char: 2, card: {} },
+    ] });
+    expect(data?.size).toBe(1);
+    const card = data?.get("山")?.card;
+    expect(card?.words).toHaveLength(1);
+    expect(card?.kunyomi).toBeUndefined();
+    const empty = fillKanjiCardContent({}, card);
+    expect(empty.filled).toBe(true);
+    expect([empty.content.meanings, empty.content.jlpt, empty.content.kunyomi]).toEqual(["MOUNTAIN", "N5", undefined]);
+    const typed = fillKanjiCardContent({ meanings: "HILL", jlpt: null, words: resolveKanjiCardContent("道", {}).words }, card);
+    expect(typed.content.meanings).toBe("HILL");                              // typed text wins
+    expect(typed.content.jlpt).toBeNull();                                    // "no badge" wins
+    expect(typed.content.words?.[0].word).toBe("山");                         // the 道 sample words are replaced
+    expect(fillKanjiCardContent({ meanings: "X" }, undefined)).toEqual({ content: { meanings: "X" }, filled: false });
+    expect(readKanjiCardDataset(null)).toBeNull();
+    expect(readKanjiCardDataset({ kanji: "x" })).toBeNull();
+    // "each": every word in turn, from 20 % to 80 % of the video.
+    expect(spreadWordHighlights(3, 20).map(c => c.at)).toEqual([4, 10, 16]);
+    expect(spreadWordHighlights(2, 10)).toEqual([{ word: 0, at: 2, hold: 2.5 }, { word: 1, at: 8, hold: 2.5 }]);
   });
 });
