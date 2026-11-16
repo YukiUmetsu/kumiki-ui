@@ -80,12 +80,16 @@ export function riso56CameraMatrix(camera:Riso56Camera):string{
   return `matrix(${camera.zoom} 0 0 ${camera.zoom} ${camera.tx} ${camera.ty})`;
 }
 export function riso56ProjectPoint(point:Riso56Point,camera:Riso56Camera):Riso56Point{
+  // Literal identity is important for original source-vs-browser
+  // screenshots at f0/f142/f207/f239, which must remain pixel exact.
+  if(camera.zoom===1&&camera.tx===0&&camera.ty===0)return point;
   return {x:bounded(point.x*camera.zoom+camera.tx),
     y:bounded(point.y*camera.zoom+camera.ty)};
 }
 export function riso56ProjectPlacement(
   place:Riso56Placement,camera:Riso56Camera,
 ):Riso56Placement{
+  if(camera.zoom===1&&camera.tx===0&&camera.ty===0)return place;
   const point=riso56ProjectPoint(place,camera);
   return {...point,scale:bounded(place.scale*camera.zoom)};
 }
