@@ -49,7 +49,8 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   if(!palm)throw new Error("RISO30 missing original hand "+actor.id+" "+side);
   const inkPartIds=useMemo(()=>actor.parts.filter(p=>
     p.id.startsWith(side+"-glove")||p.id===side+"-finger-joint-lines"||
-    p.id==="cuff-"+side||p.id===side+"-forearm").map(p=>p.id),[actor,side]);
+    p.id==="cuff-"+side||p.id===side+"-forearm"||
+    p.id===side+"-wrist-underprint-clearance").map(p=>p.id),[actor,side]);
   const region=inspectRisoHandArtcraft(actor,frame,side);
   const bones=riso31Inspect(actor,frame,side);
   const thumb=inspectRiso32ThumbIp(actor,frame,side);
