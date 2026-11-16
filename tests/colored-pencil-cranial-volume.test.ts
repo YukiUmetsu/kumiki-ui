@@ -27,6 +27,27 @@ describe("ArtCraft new human #01: physically layered cranial volume (unapproved 
       .toBe(true);
     expect(strokes.every(t=>t.startFrame>=173&&t.startFrame<=210)).toBe(true);
   },15000);
+  it("rejects correlated two-axis hash lattices that previously drew dark straight slashes",()=>{
+    const traces=newHeadCranialTonalVolume([25,30,220,340],271);
+    const pigment=traces.find(t=>t.id==="newhead-cranium-core-shadow-cross0")!;
+    const points=[...pigment.path.matchAll(/M(-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/g)]
+      .map(match=>[Number(match[1]),Number(match[2])] as const);
+    expect(points.length).toBeGreaterThan(150);
+    const avgX=points.reduce((s,p)=>s+p[0],0)/points.length;
+    const avgY=points.reduce((s,p)=>s+p[1],0)/points.length;
+    const xx=points.reduce((s,p)=>s+(p[0]-avgX)**2,0);
+    const yy=points.reduce((s,p)=>s+(p[1]-avgY)**2,0);
+    const xy=points.reduce((s,p)=>s+(p[0]-avgX)*(p[1]-avgY),0);
+    const correlation=xy/Math.sqrt(xx*yy);
+    expect(Number.isFinite(correlation)).toBe(true);
+    // Old adjacent-hash-salt XY sampling produced a near-perfect -1
+    // diagonal stripe, visibly unacceptable even with 15 pigment passes.
+    // A true surface sample occupies 2D area; the core is naturally curved.
+    expect(Math.abs(correlation)).toBeLessThan(.87);
+    expect(Math.sqrt(xx/points.length)).toBeGreaterThan(12);
+    expect(Math.sqrt(yy/points.length)).toBeGreaterThan(25);
+  });
+
   it("preserves original cranium, ANAT1 and morphology when volume A/B is disabled",()=>{
     const original=newCharacterHeadStageOne(291,false);
     const woven=newCharacterHeadStageOne(291,true);
