@@ -26,6 +26,19 @@ test("RISO32 moving thumb IP remains attached at contact, release and both ink m
       const svg=panel.locator("svg").first();
       await expect(svg).toBeVisible();
       await expect(panel.locator("[data-km-riso-part$='glove-thumb-distal-phalanx']")).toHaveCount(1);
+      // RISO37: four independent truly drawn MCP curves and moving nail
+      // outlines on the original real cobalt ink path, not raster highlights.
+      const mcp=panel.locator('[data-km-riso-part$="-glove-knuckle-arc"]');
+      await expect(mcp).toHaveCount(1);
+      const mcpInk=await mcp.getAttribute("d");
+      expect((mcpInk?.match(/M/g)??[]).length).toBe(4);
+      const nails=panel.locator('[data-km-riso-part$="-nail"]');
+      await expect(nails).toHaveCount(5);
+      for(const n of await nails.all()){
+        const d=await n.getAttribute("d");
+        expect((d?.match(/M/g)??[]).length).toBeGreaterThanOrEqual(2);
+      }
+
       // The hand-only print must use the SAME actual paper knockout already
       // authored for the full moving actor: otherwise the blue forearm shows
       // through the red glove as a broad black wrist band.
