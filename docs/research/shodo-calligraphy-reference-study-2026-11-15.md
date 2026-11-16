@@ -547,6 +547,41 @@ For example, の 0.75 → 0.82 (its largest mismatch patch 4.6 % → 1.1 % of th
 
 The third teacher writes with the first teacher's weight and proportions. The second teacher writes thinner and taller; his take beside the model card is rarely clean kaisho for a shared character, so his sample is small. The two hands overlap about as much as the rules overlap the first teacher (0.58): every teacher places strokes in an own way. The other teachers' forms therefore keep only their stroke order and centrelines. Each stroke takes its thickness from the rules, which are calibrated on the first teacher, and leaves out that teacher's own press, technique and pace, so every character is written in the first teacher's style. The demos list the first teacher, then the third, then the second. The first teacher is the standard, so the second teacher's forms also take her proportions: each character gets the rules form's height over width (measured on her models) and keeps its own size, centre and stroke places inside the box.
 
+## 2.22 Eighteenth study round: positions from still images, and the brush habits measured
+
+**Still images (owner's request).** Stroke positions can come from a still image of the finished character: KanjiVG gives the strokes and their order, and the fit moves them onto the ink (the whole character, each stroke, each centreline point and each end). The fit runs on a fast stand-in (thick lines along the engine's curve, each as wide as the renderer draws that stroke) and checks the result once with the renderer. The second and third teachers are no longer used: their forms are freer and more artistic, and most people find them harder to read.
+
+Before a source is used, it gets a held-out check. Forms fitted to the source's ink are scored against the first teacher's brush ink on the characters that she wrote both ways. She also writes kaisho with a pen on lesson cards:
+
+| Against her brush ink, 117 characters | Best-aligned overlap | Centreline distance (hundredths of the box) |
+|---|---|---|
+| Rules | 0.560 | 2.90 |
+| Fitted to her pen ink | 0.559 | 2.80 |
+| Her brush forms | 0.772 | 1.12 |
+
+Her pen kaisho places strokes differently from her brush kaisho by about as much as the rules do, so pen forms are not used. Her own brush ink, fitted without a stroke split, recovers three forms that the video fits had lost (短, や, ば).
+
+**Forms from parts.** A form composed from her forms of the same parts in other characters (氵 on the left, 艹 on top), checked by leaving each character out, places strokes a little closer (centreline 2.64 → 2.38, 257 characters) but overlaps her ink less (0.579 → 0.563). The part's place and size depend on the other parts, and the rules already hold her general habits. It is not used.
+
+**Brush habits measured.** Her 389 kanji forms were compared with our forms of the same characters, stroke by stroke:
+
+| | Her forms against ours |
+|---|---|
+| Horizontal length, for the character's width | 0.885× (middle half 0.79–0.98) |
+| Horizontal with a free end | 0.855× |
+| Horizontal joined at both ends | 0.942× |
+| Horizontal angle | 5.7° (ours 8.2°) |
+| Main horizontal against the others | about 1.1× longer, as `main` already does |
+
+The rise (3.5°) and the main factor (1.1) had come from general kaisho habits and fonts, not from measurement. `shodoKaishoForm` now uses, for KanjiVG kanji, a rise of 1° over KanjiVG's own slope and `freeEnd` 0.88: a horizontal that does not end on an earlier stroke shortens toward its joined start or about its centre, and the joins are closed again. Both halves of the characters (even and odd code points) improve:
+
+| Best-aligned overlap with her ink | Half one | Half two |
+|---|---|---|
+| Change | +0.015 | +0.017 |
+| Characters better / worse | 146 / 48 | 149 / 42 |
+
+Kana did not improve (−0.003 and −0.001 on 27 + 27 characters), so they keep the earlier rise and full-length horizontals; bundled originals keep theirs too. In the tested range, the score changes little (rise 1–2.5°, `freeEnd` 0.84–0.92, a separate factor for joined starts 0.75–0.88); the kept values are close to her measured medians.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
