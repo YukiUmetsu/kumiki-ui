@@ -15,6 +15,7 @@ import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso47PalmContour} from "./riso47-palmar-cup";
 import {riso48ProjectedPivot} from "./riso48-projected-support";
+import {riso51MorphSourcePart} from "./riso51-view-conditioned-source";
 import {riso43FrontIndexIds} from "./riso43-physical-paper-depth";
 import {inspectRiso44PrintedIndexContact} from "./riso44-source-index-paper-contact";
 import {evaluateRiso40PaperGrip} from "./riso40-paper-fingertip-contact";
@@ -316,7 +317,7 @@ export const PAPER_ARTIST:RisoCharacterSpec={
   parts:[...legs,...coatPieces,...arms,
     ...risoHandArtcraftParts("paper-artist","left"),
     ...risoHandArtcraftParts("paper-artist","right"),
-    ...facePieces],
+    ...facePieces].map(p=>riso51MorphSourcePart(p,"paper-artist")),
 };
 function category(part:RisoCharacterPart):RisoMeshCategory{
   if(part.id.startsWith("hair"))return "hair";
