@@ -957,3 +957,97 @@ export function shodoBrushPose(plan: ShodoPlan, seconds: number): ShodoBrushPose
     color: before ? first.color : last.nextColor, leanX: restLean[0], leanY: restLean[1],
   };
 }
+
+// ── Stroke numbers (筆順) ───────────────────────────────────────────────────────────
+
+/** A stroke-order number placed next to the start of its stroke. */
+export interface ShodoStrokeNumber {
+  /** Writing order from 1. Links (連綿) are not counted. */
+  number: number;
+  /** Index of the stroke in `plan.strokes`. */
+  stroke: number;
+  /** Time when the brush lands for the stroke, s. */
+  t0: number;
+  /** Centre of the number, design px. */
+  x: number;
+  y: number;
+  /** Point where the brush lands, design px. */
+  anchor: readonly [number, number];
+  /** Text size (font size), design px. */
+  size: number;
+}
+
+export interface ShodoStrokeNumberOptions {
+  /** Text size (font size), design px. Default: 0.42 of the brush diameter, at least 12. */
+  size?: number;
+  /** Keep every number inside this rectangle, design px (for example, the sheet). */
+  bounds?: { x: number; y: number; width: number; height: number };
+  /** Label only these strokes (writing order from 1). The other strokes keep their numbers. */
+  only?: readonly number[];
+}
+
+/** Half width and half height of the box that a number with `digits` digits uses at `size`, halo included. */
+export function shodoStrokeNumberBox(digits: number, size: number): readonly [number, number] {
+  return [digits * .6 * size / 2 + size * .14, .74 * size / 2 + size * .14];
+}
+
+/**
+ * Puts a small stroke-order number next to the start of each stroke, as a teacher writes
+ * them in vermilion on a model sheet. The obstacles are the contact patches of the full
+ * finished writing, so a number never sits on ink. This includes ink that a later stroke
+ * writes. Of the clear positions, the position nearest to the landing point wins, with a
+ * small preference for the side that the brush comes from. Numbers do not overlap.
+ * Pure and deterministic.
+ */
+export function shodoStrokeNumbers(plan: ShodoPlan, options: ShodoStrokeNumberOptions = {}): ShodoStrokeNumber[] {
+  const D = plan.brush.diameter;
+  const size = options.size ?? Math.max(12, D * .42);
+  const bounds = options.bounds;
+  // Ink bleeds a little past the contact patch. Keep a gap of a quarter of the text size.
+  const pad = size * .25 + D * .04;
+  const blobs: [number, number, number][] = [];
+  for (const s of plan.strokes) for (let k = 0; k < s.samples.length; k += 2) {
+    const c = s.samples[k];
+    blobs.push([c.x, c.y, Math.max(c.width, c.length) / 2]);
+  }
+  const placed: [number, number, number, number][] = [];
+  const out: ShodoStrokeNumber[] = [];
+  let number = 0;
+  plan.strokes.forEach((s, index) => {
+    if (s.kind === "link") return;
+    number++;
+    if (options.only && !options.only.includes(number)) return;
+    const land = s.samples[0];
+    // The direction of the brush at the start, over the first part of the stroke.
+    const ahead = s.samples.find(c => c.arc >= D * .8) ?? s.samples[s.samples.length - 1];
+    const [ux, uy] = norm(ahead.x - land.x || 1e-6, ahead.y - land.y);
+    const [hw, hh] = shodoStrokeNumberBox(String(number).length, size);
+    const reach = D * .35 + size * 5.5;
+    const near = blobs.filter(b => Math.hypot(b[0] - land.x, b[1] - land.y) < reach + b[2] + hw + pad);
+    let best: { x: number; y: number; cost: number } | null = null;
+    for (let ring = 0; ring < 18; ring++) {
+      const r = D * .35 + size * (.55 + ring * .28);
+      for (let k = 0; k < 32; k++) {
+        const a = k / 32 * Math.PI * 2, dx = Math.cos(a), dy = Math.sin(a);
+        const x = land.x + dx * r, y = land.y + dy * r;
+        let ink = 0;
+        for (const [bx, by, br] of near) {
+          const ex = Math.max(Math.abs(bx - x) - hw, 0), ey = Math.max(Math.abs(by - y) - hh, 0);
+          const depth = br + pad - Math.hypot(ex, ey);
+          if (depth > 0) ink += depth / size;
+        }
+        // Ink under the number costs most; then the distance; then a place ahead of the brush.
+        let cost = ink * 10 + r / size * .5 + (1 + dx * ux + dy * uy) * .12;
+        for (const [px, py, pw, ph] of placed)
+          if (Math.abs(px - x) < pw + hw + size * .15 && Math.abs(py - y) < ph + hh + size * .15) cost += 100;
+        if (bounds && (x - hw < bounds.x + size * .3 || x + hw > bounds.x + bounds.width - size * .3
+          || y - hh < bounds.y + size * .3 || y + hh > bounds.y + bounds.height - size * .3)) cost += 100;
+        if (!best || cost < best.cost) best = { x, y, cost };
+      }
+    }
+    if (!best) return;
+    placed.push([best.x, best.y, hw, hh]);
+    out.push({ number, stroke: index, t0: s.t0, x: best.x, y: best.y, anchor: [land.x, land.y], size });
+  });
+  return out;
+}
