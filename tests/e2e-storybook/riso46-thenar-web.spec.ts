@@ -50,6 +50,9 @@ test("RISO46 real red thenar and cobalt web print through both physical masters"
           // bones/nails and strict 3-unit spacing remain verified.
           expect(ratio).toBeLessThan(.49);
           expect(ratio).toBeGreaterThan(.385);
+          const rays=Number(await panel.getAttribute("data-km-riso54-mean-source-camera-ray-deg"));
+          expect(rays).toBeGreaterThan(62);
+          expect(rays).toBeLessThan(68);
         }
       }
     }
