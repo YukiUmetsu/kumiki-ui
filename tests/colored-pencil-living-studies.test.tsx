@@ -75,14 +75,14 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(one).toHaveLength(1);
     const head=one[0];
     expect(head.material).toBe("glaze");
-    expect(head.details?.length).toBe(77); // 54 local + 15 ANAT1 value + 3 guide fans + 5 structural guides
+    expect(head.details?.length).toBe(74); // 36 packed local + 15 cranial + 15 ANAT1 + 3 guide fans + 5 structural
     const fields=head.details!.filter(t=>t.id?.startsWith("newhead-plane-"));
-    expect(fields).toHaveLength(54);
-    expect(new Set(fields.map(t=>t.id)).size).toBe(54);
+    expect(fields).toHaveLength(36);
+    expect(new Set(fields.map(t=>t.id)).size).toBe(36);
     expect(fields.filter(t=>t.id?.startsWith("newhead-plane-far-malar-")))
-      .toHaveLength(9);
+      .toHaveLength(6);
     expect(fields.filter(t=>t.id?.startsWith("newhead-plane-mandibular-")))
-      .toHaveLength(9);
+      .toHaveLength(6);
     for(const t of fields){
       expect(t.path).not.toMatch(/NaN|Infinity/);
       expect(t.path.length).toBeLessThan(12000);
