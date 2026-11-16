@@ -18,6 +18,7 @@ import {inspectRiso39OpposedPaperPinch} from "./riso39-opposed-paper-pinch";
 import {inspectRiso41InkPressure} from "./riso41-contact-pressure";
 import {inspectRiso42SupportingDigits} from "./riso42-support-digits-gesture";
 import {riso52ExpectedOriginalSourceIds} from "./riso52-folded-terminal-source";
+import {riso57PalmLandmarks,riso57PositivePalmContour} from "./riso57-palm-contact-silhouette";
 
 type PlateMode="both"|"blue"|"red";
 type GestureFrame=0|46|126|144|154|156|160|166|178|186|198|239;
@@ -87,6 +88,13 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
       (sample.d.match(/[Cc]/g)??[]).length===
         (original.d.match(/[Cc]/g)??[]).length);
   }).length;
+  const riso57Knots=riso57PalmLandmarks(actor.id as "courier"|"paper-artist",side);
+  const riso57At=(name:string)=>riso57Knots.find(p=>p.landmark===name)!;
+  const riso57Handed=side==="right"?1:-1;
+  const riso57FirstWebRelief=riso57Handed*
+    (riso57At("index-mcp").x-riso57At("first-web-inset").x);
+  const riso57OriginalPositiveSource=actor.parts.find(p=>p.id===side+"-glove")?.d===
+    riso57PositivePalmContour(actor.id as "courier"|"paper-artist",side);
   const mcpSourcePlaneCount=(mcpPlateSource?.d.match(/[Mm]/g)??[]).length;
   const palmSourceCubicCount=(mainPalmSource?.d.match(/[Cc]/g)??[]).length;
   // Exact live anatomical source stations, not a visual proxy or an
@@ -121,6 +129,9 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso54-mean-source-camera-ray-deg={riso54MeanRayAngle.toFixed(2)}
     data-km-riso50-source-mcp-planes={mcpSourcePlaneCount}
     data-km-riso50-palm-cubics={palmSourceCubicCount}
+    data-km-riso57-source-landmarks={riso57Knots.length}
+    data-km-riso57-first-web-inset={riso57FirstWebRelief.toFixed(3)}
+    data-km-riso57-original-positive-contour={String(riso57OriginalPositiveSource)}
     data-km-riso51-live-source-morph-parts={riso51MorphParts}
     data-km-riso52-cobalt-red-terminal-pairs={riso52TerminalPairs}
     data-km-riso55-folded-source-tip-count={riso55TerminalCount}
@@ -205,7 +216,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO55</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO57</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
