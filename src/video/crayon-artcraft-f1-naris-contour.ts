@@ -56,7 +56,7 @@ const patches:Readonly<Record<string,Partial<Wax>>>={
       "C450 641 447 635 446 627Z",
     bounds:{x:443,y:613,width:21,height:32},
     colors:["#71504a","#302226","#91675c"],coverage:"opaque",
-    pressure:.86,spacing:3.9,markStrength:.29,
+    pressure:.86,spacing:4.0,markStrength:.29,
     underpaintTooth:.12,opaqueBurnish:.81,
     underpaintGradient:{light:"#95695d",shadow:"#281e23",
       focusX:.3,focusY:.48,radius:.87},
