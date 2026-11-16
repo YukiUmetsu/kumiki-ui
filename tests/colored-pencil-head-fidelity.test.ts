@@ -120,7 +120,7 @@ describe("ArtCraft head reference fidelity (independent photo vs final SVG expor
 
   it("rejects squashed skull proportions even if both axes independently normalize",()=>{
     const f=fixture();
-    const mid=f.outputLandmarks.find(p=>p.id==="glabella")!.x;
+    const mid=f.outputLandmarks.find(p=>p.id==="cranial-apex")!.x;
     for(const p of f.outputLandmarks)p.x=mid+(p.x-mid)*.53;
     const r=evaluatePencilHeadFidelity(f);
     expect(r.status).toBe("blocked");
