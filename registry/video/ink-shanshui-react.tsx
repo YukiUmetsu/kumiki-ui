@@ -1859,9 +1859,28 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
         // Every branch root is *on* its own winding trunk, while the
         // ink-loaded terminal twigs carry their own fine foliage tips.
         const origin=trunkAt(t);
-        const direction=(j%2===0?-1:1)*(i%3===0?-1:1);
+        // Source-view silhouette: Fuchun old pines do NOT grow
+        // mirror-alternating ladder shelves. Each age/lean profile has
+        // an authored branch handedness; some limbs curl down and some
+        // wind back across the stem, always rooted on the same cubic.
+        const direction=school==="fuchun"
+          ?([
+            [-1,-1,1,1],
+            [-1,1,1,-1],
+            [1,1,-1,-1],
+            [-1,1,-1,-1],
+            [1,-1,-1,1],
+          ] as const)[i][j]
+          :(j%2===0?-1:1)*(i%3===0?-1:1);
         const distance=(i===2?24:17)+
           13*s(seed+1763,i*19+j*17);
+        const fuchunPitch=([
+          [-8,4,-11,3],
+          [6,-5,4,-9],
+          [-4,8,-10,6],
+          [7,-5,4,-12],
+          [-8,5,-9,4],
+        ] as const)[i][j];
         // Guo Xi's crab-claw old pines hook downward, not twenty
         // equivalent up-pointing antenna shelves. The *same rooted*
         // four boughs now travel over a lifted arch and drop irregular
@@ -1870,13 +1889,21 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
           origin[0]+direction*distance,
           crab
             ?origin[1]+(3.4+8.7*s(seed+1777,i*13+j*23))
-            :origin[1]-(3.2+9.8*s(seed+1777,i*13+j*23)),
+            :school==="fuchun"
+              ?origin[1]+fuchunPitch+
+                (s(seed+1777,i*13+j*23)-.5)*3.2
+              :origin[1]-(3.2+9.8*s(seed+1777,i*13+j*23)),
         ];
         const control:P=[
-          origin[0]+direction*distance*(crab?.48:.34),
+          origin[0]+direction*distance*(crab?.48:
+            school==="fuchun"?.45:.34),
           crab
             ?origin[1]-(6+7*s(seed+1789,i*23+j))
-            :origin[1]+(j%3===0?3:-4)-3*s(seed+1789,i*23+j),
+            :school==="fuchun"
+              ?origin[1]+(fuchunPitch>0?-4.8:fuchunPitch*.37)+
+                (s(seed+1789,i*23+j)-.5)*2.4
+              :origin[1]+(j%3===0?3:-4)-
+                3*s(seed+1789,i*23+j),
         ];
         const bone=rockLoadedRibbon(origin,control,tip,
           1.12*(1-.12*j),seed+1801+i*17+j*37);
@@ -1955,16 +1982,33 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
           // irregular deposited needle lobes, NOT oval paint balloons.
           // Keep two visibly unequal rooted islands per bough and retain
           // all original dry/wet twig micro-elements on top.
-          const reach=(k===0?13:9)*(1+
-            .33*s(seed+1951,i*19+j*37+k*13));
-          const crest=(k===0?3.4:2.7)*(1+
-            .28*s(seed+1957,i*11+j*41+k*23));
+          // Source-guided true *value shapes*, not a larger number of
+          // tiny mechanical needles: asymmetric clusters of wet/near
+          // dry ink overlap on select boughs and leave open-paper
+          // channels between other clusters. Each existing 6-8-lobe
+          // filled canopy stays rooted at its real branch station.
+          const reach=school==="fuchun"
+            ?(k===0?16.3:11.8)*
+              (.88+.5*s(seed+1951,i*19+j*37+k*13))*
+              (j===1?1.06:j===3?.89:1)
+            :(k===0?13:9)*(1+
+              .33*s(seed+1951,i*19+j*37+k*13));
+          const crest=school==="fuchun"
+            ?(k===0?9.2:7)*(.87+
+              .34*s(seed+1957,i*11+j*41+k*23))*
+              (j===0?.96:1)
+            :(k===0?3.4:2.7)*(1+
+              .28*s(seed+1957,i*11+j*41+k*23));
           const sweep=direction*(k===0?1:-1);
           const lobeCount=6+(i+j+k)%3;
           const peaks=Array.from({length:lobeCount},(_,n)=>{
-            const t=(n+1)/(lobeCount+1);
-            const yLift=crest*(.41+.59*s(seed+1961,
-              i*79+j*43+k*19+n*17))+(n%4===0?.7:0);
+            const t=(n+1)/(lobeCount+1)+
+              (school==="fuchun"?
+                (s(seed+7177,i*31+j*47+k*19+n*13)-.5)*.045:0);
+            const liftFactor=school==="fuchun"
+              ?.64+.35*s(seed+1961,i*79+j*43+k*19+n*17)
+              :.41+.59*s(seed+1961,i*79+j*43+k*19+n*17);
+            const yLift=crest*liftFactor+(n%4===0?.7:0);
             return [r[0]+sweep*reach*t,r[1]-yLift] as P;
           });
           let upper="M"+f(r[0])+" "+f(r[1]);
