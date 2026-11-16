@@ -89,6 +89,8 @@ describe("ANAT1 hair and colour", () => {
 
 import { beautifulFace, goldenRatioReport, PHI } from "../registry/anatomy/face-beauty";
 import { renderPortrait } from "../registry/anatomy/face-portrait";
+import { FRINGES, HAIRSTYLES, findHairStyle, groomHair, partLine, scalpCover } from "../registry/anatomy/hair-groom";
+import type { HairGroom } from "../registry/anatomy/hair-groom";
 import { eyeCentres, FACE_LANDMARKS } from "../registry/anatomy/anatomy-face";
 import { createRaster, fft2, fillPolygon, gaussianBlur, strokePolyline } from "../registry/anatomy/foundation-raster";
 
@@ -123,7 +125,7 @@ describe("ANAT1 beautiful faces and portraits", () => {
     expect(eyeCentres(f.vertices).L[0]).toBeGreaterThan(0);
   });
   it("renders a portrait: a lit face over the background, dark pupils, nothing out of range", () => {
-    const p = renderPortrait({ sex: 0, width: 96, height: 120, supersample: 1 });
+    const p = renderPortrait({ sex: 0, width: 96, height: 120, supersample: 1, hairStrands: 4000 });
     expect(p.rgba.length).toBe(96 * 120 * 4);
     const lum = (x: number, y: number) => { const i = (y * 96 + x) * 4; return 0.2126 * p.rgba[i] + 0.7152 * p.rgba[i + 1] + 0.0722 * p.rgba[i + 2]; };
     const corner = lum(2, 2);
@@ -133,6 +135,30 @@ describe("ANAT1 beautiful faces and portraits", () => {
     let darkest = 255;
     for (let y = 40; y < 60; y++) for (let x = 20; x < 76; x++) darkest = Math.min(darkest, lum(x, y));
     expect(darkest).toBeLessThan(60);
+  });
+  it("grooms hair on the portrait head: falls beside the face, bangs cut at their line, coils stand out, the scalp painted under it", () => {
+    const head = renderPortrait({ sex: 0, width: 48, height: 60, supersample: 1, hairStrands: 500 }).hair!.head;
+    const a = groomHair(head, { style: "long-straight", strands: 1500, seed: 4 }), b = groomHair(head, { style: "long-straight", strands: 1500, seed: 4 });
+    expect(a.points).toEqual(b.points);
+    expect(a.starts.length).toBe(1500);
+    const pts = (g: HairGroom) => Array.from({ length: g.points.length / 3 }, (_, i) => [g.points[i * 3], g.points[i * 3 + 1], g.points[i * 3 + 2]]);
+    // nothing hangs over the face below the brows when there are no bangs
+    expect(pts(a).filter(([x, y, z]) => Math.abs(x) < 40 && y < head.browY - 6 && y > head.chinY && z > head.faceZ - 25)).toHaveLength(0);
+    // blunt bangs end at the brows: tips in front of the forehead lie within a few millimetres of the cut
+    const bangs = groomHair(head, { style: "bob-bangs", strands: 3000, seed: 4 }), tips: number[] = [];
+    for (let s = 0; s < bangs.starts.length; s++) { const e = (bangs.starts[s] + bangs.counts[s] - 1) * 3; if (Math.abs(bangs.points[e]) < 30 && bangs.points[e + 2] > head.faceZ - 15 && bangs.points[e + 1] < head.hairlineY) tips.push(bangs.points[e + 1]); }
+    expect(tips.length).toBeGreaterThan(40);
+    expect(Math.abs(tips.reduce((p, q) => p + q, 0) / tips.length - (head.browY + 2))).toBeLessThan(6);
+    // tightly coiled hair stands out from the scalp (an afro), straight hair lies on it
+    const out = (g: HairGroom) => { let s = 0; for (let k = 0; k < g.starts.length; k++) { const e = (g.starts[k] + g.counts[k] - 1) * 3, d = [(g.points[e] - head.centre[0]) / head.radii[0], (g.points[e + 1] - head.centre[1]) / head.radii[1], (g.points[e + 2] - head.centre[2]) / head.radii[2]]; s += Math.hypot(d[0], d[1], d[2]); } return s / g.starts.length; };
+    expect(out(groomHair(head, { style: "afro", strands: 800, seed: 4 }))).toBeGreaterThan(out(groomHair(head, { style: "slicked-back", strands: 800, seed: 4 })) + 0.2);
+    // the scalp: bare below the hairline, covered above, a thin bare parting
+    const st = findHairStyle("long-straight"), over: [number, number, number] = [0, head.hairlineY + 20, head.centre[2] + head.radii[2] * 0.8];
+    expect(scalpCover(head, st, [30, head.browY, head.faceZ - 10])).toBe(0);
+    expect(scalpCover(head, st, [25, head.hairlineY + 20, head.centre[2] + head.radii[2] * 0.75])).toBeGreaterThan(0.95);
+    expect(partLine(head, st, over)).toBeGreaterThan(0.5);
+    expect(FRINGES.map(f => f.id)).toEqual(["blunt", "wispy", "micro", "long", "curtain", "bottleneck", "side-swept"]);
+    expect(HAIRSTYLES.length).toBeGreaterThanOrEqual(15);
   });
   it("raster foundation: polygon coverage, blur, strokes and FFT round trip", () => {
     let cov = 0;

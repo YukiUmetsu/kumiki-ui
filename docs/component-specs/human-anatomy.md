@@ -6,14 +6,15 @@ length/stature for age), `anatomy-measure.ts` (tape-measure sections, ANSUR-name
 `anatomy-pose.ts` (clinical joints, ranges, forward kinematics, skinning, pose and hand-pose library),
 `anatomy-view.ts` (camera, `HumanFrame`, contours, terminators, software rasteriser, `projectPoint`),
 `anatomy-face.ts` (3D face study, landmarks, feature loops, facial norms), `anatomy-hair.ts` (hair data, strand
-generator, hair rendering, brows and lashes), `anatomy-color.ts` (skin, hair and iris colour; colour science), `anatomy-reference.ts` (ANSUR access,
+generator, hair rendering, brows and lashes), `hair-groom.ts` (groomed hairstyles and bangs, strand renderer),
+`anatomy-color.ts` (skin, hair and iris colour; colour science), `anatomy-reference.ts` (ANSUR access,
 regressions, canon checks, surface forms, age changes, drawing recipe), `anatomy-react.tsx` (`HumanFigure` reference
 painter), `data/*` (baked tables and licences). Binary body model: `assets/models/anatomy/human-body-lattice.bin`
 (2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (22 public-domain/CC0 plates).
 **Storybook:** Video production → Art Foundations → Human Anatomy → **Lab**, **Population line-up**, **Turnaround**,
 **Pose library** (+ front/side QA), **Hand poses**, **Face lab**, **Head angles**, **Range of motion**, **Any style**,
-**Proportions and ranges**, **Reference board**, **Hair lab**, **Hair types and colours**, **Skin, hair and eye colour**,
-**Beautiful faces**, **Portrait lab**
+**Proportions and ranges**, **Reference board**, **Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Hair on the
+posable body**, **Hair types and colours**, **Skin, hair and eye colour**, **Beautiful faces**, **Portrait lab**
 **Status:** implemented; agent review of Chromium screenshots only — **human visual review not recorded**. This is a
 construction and reference framework. It does **not** certify a finished realistic portrait or pencil drawing: those
 still need their style's gates (CP-F1, ArtCraft v7 portrait gate — AGENTS.md rules 13–14).
@@ -170,9 +171,11 @@ nose : mouth = 1 : φ, and the popular length : width = φ. Tests found the mask
 (Holland 2008), and a 2024 systematic review found no link between golden-ratio fit and attractiveness. So φ is
 reported, not built in.
 
-**`renderPortrait(options)`.** Renders on the CPU, about 0.4 s for a 220 px draft and 3–4 s for 384 × 480 at 2×
-supersampling. Geometry:
+**`renderPortrait(options)`.** Renders on the CPU, about 3–6 s for 256 × 320 and 8–15 s for 480 × 600 at 2×
+supersampling, most of it the hair. Geometry:
 - the calibrated face, Loop-subdivided twice;
+- a strip of skin grown from the face mask's top edge up and round to the cranium, so the forehead is one surface up
+  to the hairline;
 - a cranium from ANSUR head measures;
 - a neck behind the jaw, and shoulders.
 
@@ -185,13 +188,21 @@ Shading:
 - **Regional skin colour** (`SKIN_ZONES`).
 - **Eyes:** ray-traced, with sclera, a textured iris brighter opposite the light, pupil, a softbox catchlight and lid
   shadow.
-- **Lashes, brows and fine hairline hairs** drawn as hairs.
+- **Lashes and brows** drawn as hairs.
 - **Lips:** volume and border.
-- **Hair:** strand-traced, with Kajiya–Kay highlights.
+- **Hair:** groomed by `hair-groom.ts` (below). It shadows the skin under it, and the scalp under it is painted in the
+  hair's colour (a soft hairline, a thin parting).
 - **Expressions:** EXPR1 action units and creases.
 
-Options: sex, beauty, skin, eye colour, hair melanin and style (long, bob, short), expression, yaw (±25°), key light,
-and `debug` passes.
+Options:
+- sex, beauty, skin and eye colour;
+- hair: melanin, a `HAIRSTYLES` id ("long", "short" and "bob" are kept as aliases), and `fringe`, `parting`,
+  `hairStrands`, `hairLength`, `hairCurl` and `hairGrey` to override the style;
+- expression, yaw (±25°), key light;
+- `debug` passes (normals, irradiance, occlusion, hair shadow).
+
+The result carries the groom and the head it was groomed on (`hair`). By default 12,000–40,000 strands are drawn,
+scaled with the picture's size, up to 120,000 on request.
 
 `FacePortrait` draws one in a canvas after paint, queued one at a time. `GoldenRatioTable` and `BeautyEvidence` show
 the checks and sources.
@@ -200,7 +211,66 @@ the checks and sources.
 rule 14 still applies to the pencil portrait style). The mask is one average face, so individuals differ only by the
 parameters above.
 
-## Hair (`growHair`, `renderHairSegments`, `faceHair`)
+## Groomed hair (`hair-groom.ts`)
+
+The hair foundation for rendered heads ([research note](../research/hair-groom-2026-11-16.md)).
+
+**`groomHair(head, { style, fringe, parting, curl, lengthScale, strands, guides, seed })`** grooms a style on a
+`HairHead`. A `HairHead` gives:
+- the cranium (ellipsoid), hairline, brow, eye, ear, chin and neck heights;
+- optionally the face's front surface, the shoulder tops and the chest front, so hair can rest on them.
+
+Steps:
+- **Roots** sit on the skin inside an anatomical hairline (front, temples, around the ears, the nape).
+- **Comb:** away from the crown whorl, or back, or to the side. Hair leaves a parting on its own side, and over the
+  front of the head the style holds it off the face until it passes the temple.
+- **Guides (480)** grow from the root as heavy elastic rods:
+  - where the hair beneath holds them (outer layers from higher roots lie further out), they lie on the head and
+    follow the comb;
+  - where the head falls away, they turn toward gravity over √(ℓ³/L), with ℓ ≈ 5 cm (Goldstein et al. 2012). So
+    long hair falls from the widest part of the head, short hair stands, and the last few centimetres keep their
+    direction;
+  - they rest on the forehead (bangs), pass beside the cheeks and over the ears, and drape over the shoulders: in
+    front of the ridge onto the chest, behind it down the back.
+- **Styles:** blow-dried cuts hug the head; set or gathered styles stay against it; coils stand out.
+- **Cut:** a blunt line, layers or a textured trim, and each fringe on its own line.
+- **Children (5,000–120,000)** follow only guides that stay together, with their offset carried in the strand's own
+  frame. Then they:
+  - gather into locks (leaders chosen by root and tip);
+  - curl (waves as flattened spirals in step across the head, helices for curls);
+  - frizz and fly away in smooth arcs;
+  - stay off the face and below the parting.
+
+**`HAIRSTYLES`** (15): long straight, long wavy, lob, bob, bob with blunt bangs, shoulder length with curtain bangs,
+long side wave, curly, afro, ponytail, low bun, pixie, short crop, slicked back, buzz. Each has lengths by region,
+cut, parting, fringe, comb, curl, volume, clumping, frizz, hold, ends, front lift and hug.
+
+**`FRINGES`** (7): blunt, wispy (see-through), micro, long (lash-grazing), curtain, bottleneck, side-swept. Each has a
+triangular section (width to the temple corners, depth behind the hairline), density, set, clumping and its cut line:
+- blunt at the brows;
+- micro halfway up the forehead;
+- long at the lashes;
+- curtain from the bridge of the nose to the cheekbones;
+- bottleneck from the brows round the eyes to the cheekbones;
+- side-swept from the brow on the part side to the cheekbone.
+
+**`renderHairStrands(raster, groom, view, light)`** draws the strands as anti-aliased lines, far to near, hidden
+behind the skin and ears. Each drawn strand is as wide as the real hairs it stands for. Shading:
+- Marschner's R, TT and TRT lobes with melanin absorption;
+- deep opacity maps along the key light (`hairDensityMap`) for self-shadowing, and along the view for sky occlusion;
+- light scattered through the hair volume in the hair's colour, so the side away from the light still reads as hair,
+  not as a bald scalp;
+- a sheen from the fill; locks and tips vary a little in tone; grey strands are a share of white fibres.
+
+`scalpCover` and `partLine` say where to paint the scalp in the hair's colour, and where a parting shows.
+`HAIR_PHYSICS` and `HAIR_SHADOW` hold the constants.
+
+**Status:** agent review of renders only (Hair lab, Hairstyles, Bangs). It is a groom for portraits from the front
+(±25°), not a simulation in motion.
+
+## Hair on the posable body (`growHair`, `renderHairSegments`, `faceHair`)
+
+The quick drawing hair for the 3D body and the painters (the portrait uses `hair-groom.ts`).
 
 `growHair(body, posedPoints, params)` plants roots inside an anatomical hairline — the front at the trichion (sellion
 + Farkas tr–n), temples (with `recession`), above the ears, the nape — orients them away from the crown whorl (right of

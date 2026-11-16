@@ -27,6 +27,8 @@ const referenceUrls = import.meta.glob("../../assets/photos/anatomy-references/*
 import type { HumanCamera } from "../../registry/anatomy/anatomy-view";
 import { BeautyEvidence, FacePortrait, GoldenRatioTable } from "../../registry/anatomy/face-portrait-react";
 import type { EyeColour, HairStyle, PortraitOptions } from "../../registry/anatomy/face-portrait";
+import { FRINGES, HAIRSTYLES, findHairStyle } from "../../registry/anatomy/hair-groom";
+import type { FringeKind, Parting } from "../../registry/anatomy/hair-groom";
 import { EMOTIONS } from "../../registry/anatomy/expression-facs";
 
 const page = { display: "grid", gap: 16, padding: 24, minHeight: "100vh", background: "#f3efe8", color: "#26211d", font: "15px/1.45 system-ui, sans-serif" } as const;
@@ -476,7 +478,7 @@ function HeadWithHair({ model, params, hair, color, yaw, pitch = 4, size, surfac
   return <HumanFigure frame={frame} surface={surface} hair={strands} hairColor={color} palette={skin ? { light: skin, shadow: rgbToHex(skinShade(skin, -0.35)) } : undefined} label="Head with grown hair" />;
 }
 
-function HairLab() {
+function BodyHairLab() {
   const { model, error } = useHumanModel();
   const [hair, setHair] = useState<HairParams>({ length: 0.22, curl: 1, strands: 2200, parting: "left", flow: "natural", recession: 0, clump: 0.45, frizz: 0.15, seed: 1 });
   const [color, setColor] = useState<HairColorChoice>({ eumelanin: 1.3, pheomelanin: 0, grey: 0 });
@@ -487,7 +489,8 @@ function HairLab() {
   return (
     <div style={{ ...page, gridTemplateColumns: "minmax(260px, 340px) 1fr" }}>
       <div style={panel}>
-        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Hair lab</h2>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Hair on the posable body</h2>
+        <p style={{ ...muted, maxWidth: 300 }}>The quick drawing hair on the posable 3D body. The groomed, rendered hair (styles, bangs, up to 120,000 strands) is in the Hair lab.</p>
         {num("length", "Length (m)", 0.01, 0.6, 0.01)}
         <label style={label}>Curl type: {CURL_TYPES[(hair.curl ?? 1) - 1].label}<input type="range" min={1} max={8} step={1} value={hair.curl} onChange={e => setHair(h => ({ ...h, curl: Number(e.target.value) }))} /></label>
         {num("strands", "Strands drawn", 300, 5000, 100, v => String(v))}
@@ -649,9 +652,79 @@ function BeautifulFaces() {
 }
 
 const SKINS = ["#f1d3bd", "#e6c0a4", "#d8a98a", "#c99a7e", "#b3825f", "#8d5a3b", "#6d452f", "#4b2e20"];
+const MEN_STYLES = new Set(["short-crop", "slicked-back", "buzz"]);
+
+/** The hair foundation on the portrait head: every style, bang and part, with as many strands as you like. */
+function HairLab() {
+  const [o, setO] = useState<PortraitOptions>({ sex: 0, skin: "#e6c0a4", eyes: "brown", hairStyle: "shoulder-curtain", hairStrands: 40000, hairLength: 1, hair: { eumelanin: 1.3, pheomelanin: 0 }, hairGrey: 0, keyAzimuth: -22, keyElevation: 40, yaw: 0 });
+  const [info, setInfo] = useState("");
+  const set = (k: keyof PortraitOptions, v: unknown) => setO(prev => ({ ...prev, [k]: v }));
+  const style = findHairStyle(o.hairStyle ?? "long-straight"), fringe = FRINGES.find(f => f.id === (o.fringe ?? style.fringe));
+  const colour = HAIR_COLOR_PRESETS.find(c => c.eumelanin === o.hair?.eumelanin && c.pheomelanin === (o.hair?.pheomelanin ?? 0))?.id ?? "";
+  const range = (k: keyof PortraitOptions, name: string, min: number, max: number, step: number, fmt = (v: number) => String(v), dflt = 0) => (
+    <label key={k} style={label}>{name}: {fmt(Number(o[k] ?? dflt))}<input type="range" min={min} max={max} step={step} value={Number(o[k] ?? dflt)} onChange={e => set(k, Number(e.target.value))} /></label>);
+  return (
+    <div style={{ ...page, gridTemplateColumns: "minmax(250px, 330px) 1fr" }}>
+      <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Hair lab</h2>
+        <label style={label}>Style<select style={field} value={o.hairStyle} onChange={e => setO(prev => ({ ...prev, hairStyle: e.target.value, sex: MEN_STYLES.has(e.target.value) ? 1 : prev.sex, fringe: undefined, parting: undefined, hairCurl: undefined }))}>
+          {HAIRSTYLES.map(st => <option key={st.id} value={st.id}>{st.label}</option>)}</select></label>
+        <label style={label}>Bangs<select style={field} value={o.fringe ?? ""} onChange={e => set("fringe", (e.target.value || undefined) as FringeKind | undefined)}>
+          <option value="">the style's ({style.fringe})</option><option value="none">none</option>{FRINGES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}</select></label>
+        <label style={label}>Part<select style={field} value={o.parting ?? ""} onChange={e => set("parting", (e.target.value || undefined) as Parting | undefined)}>
+          <option value="">the style's ({style.parting})</option>{(["none", "center", "left", "right"] as const).map(v => <option key={v} value={v}>{v}</option>)}</select></label>
+        {range("hairStrands", "Strands drawn", 5000, 120000, 5000, v => v.toLocaleString("en"), 40000)}
+        {range("hairLength", "Length", 0.4, 1.6, 0.05, v => `${v.toFixed(2)}×`, 1)}
+        <label style={label}>Curl<select style={field} value={o.hairCurl ?? ""} onChange={e => set("hairCurl", e.target.value ? Number(e.target.value) : undefined)}>
+          <option value="">the style's ({CURL_TYPES[style.curl - 1].label})</option>{CURL_TYPES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label>
+        <label style={label}>Colour<select style={field} value={colour} onChange={e => { const c = HAIR_COLOR_PRESETS.find(x => x.id === e.target.value); if (c) set("hair", { eumelanin: c.eumelanin, pheomelanin: c.pheomelanin }); }}>
+          {colour ? null : <option value="">custom</option>}{HAIR_COLOR_PRESETS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label>
+        {range("hairGrey", "Grey strands", 0, 1, 0.05, v => `${Math.round(v * 100)}%`)}
+        {range("sex", "Woman → man", 0, 1, 1)}
+        <label style={label}>Skin<select style={field} value={o.skin} onChange={e => set("skin", e.target.value)}>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+        {range("yaw", "Head turn", -25, 25, 5, v => `${v}°`)}{range("keyAzimuth", "Key light from", -70, 70, 5, v => `${v}°`)}{range("keyElevation", "Key light height", 0, 70, 5, v => `${v}°`)}
+      </div>
+      <div style={{ display: "grid", gap: 8, alignContent: "start", maxWidth: 520 }}>
+        <FacePortrait options={{ ...o, width: 416, height: 520 }} label={`Portrait with ${style.label} hair`} onRendered={p => setInfo(`${(p.hair?.groom.starts.length ?? 0).toLocaleString("en")} strands · groomed in ${Math.round(p.hair?.groom.ms ?? 0)} ms · rendered in ${Math.round(p.ms)} ms`)} />
+        <p style={muted} aria-live="polite">{info || "Rendering…"}</p>
+        <p style={muted}><b>{style.label}.</b> {style.note}</p>
+        {fringe ? <p style={muted}><b>{fringe.label} bangs.</b> {fringe.note}</p> : null}
+      </div>
+    </div>
+  );
+}
+
+/** Every hairstyle, groomed on the portrait head. */
+function Hairstyles() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Each style is combed on the head, grown under gravity (lying on the head where the hair beneath holds it, hanging where it leaves the head), cut (a blunt line, layers, texture, or the bangs' own line) and filled out to tens of thousands of strands.</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 210px), 1fr))" }}>
+        {HAIRSTYLES.map((st, k) => <figure key={st.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <FacePortrait options={{ sex: MEN_STYLES.has(st.id) ? 1 : 0, skin: SKINS[[1, 2, 0, 3, 1, 2, 1, 2, 6, 2, 1, 3, 2, 4, 3][k]], hairStyle: st.id, hairStrands: 30000, hair: st.id === "afro" ? { eumelanin: 7 } : undefined, width: 256, height: 320, seed: 3 + k }} label={`Portrait with ${st.label} hair`} />
+          <figcaption style={muted}><b>{st.label}</b> — {st.note}</figcaption></figure>)}
+      </div>
+    </div>
+  );
+}
+
+/** Every kind of bangs (fringe) on one cut. */
+function Bangs() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Bangs are cut from a triangular section behind the front hairline: combed forward over the hairline, set and left to fall on the forehead, then cut on their own line (straight at the brows, halfway up the forehead, at the lashes, from the bridge of the nose to the cheekbones, or across from the brow to the cheekbone).</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 210px), 1fr))" }}>
+        {(["none", ...FRINGES.map(f => f.id)] as FringeKind[]).map((f, k) => { const spec = FRINGES.find(x => x.id === f); return (
+          <figure key={f} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+            <FacePortrait options={{ sex: 0, skin: SKINS[1], hairStyle: "lob", fringe: f, parting: f === "curtain" || f === "bottleneck" ? "center" : f === "side-swept" ? "left" : "none", hairStrands: 30000, width: 256, height: 320, seed: 11 + k }} label={`Lob with ${spec ? spec.label : "no"} bangs`} />
+            <figcaption style={muted}><b>{spec ? spec.label : "No bangs"}</b>{spec ? ` — ${spec.note}` : " — the front swept off the face to either side of the part."}</figcaption></figure>); })}
+      </div>
+    </div>
+  );
+}
 /** One portrait with every control. */
 function PortraitLab() {
-  const [o, setO] = useState<PortraitOptions>({ sex: 0, beauty: 1, skin: "#d8a98a", eyes: "brown", hairStyle: "long", expression: "", intensity: 1, yaw: 0, keyAzimuth: -22, keyElevation: 40 });
+  const [o, setO] = useState<PortraitOptions>({ sex: 0, beauty: 1, skin: "#d8a98a", eyes: "brown", hairStyle: "long-straight", expression: "", intensity: 1, yaw: 0, keyAzimuth: -22, keyElevation: 40 });
   const set = (k: keyof PortraitOptions, v: unknown) => setO(prev => ({ ...prev, [k]: v }));
   const num = (k: keyof PortraitOptions, min: number, max: number, step: number) => <label key={k} style={label}>{k}: {String(o[k])}
     <input type="range" min={min} max={max} step={step} value={Number(o[k] ?? 0)} onChange={e => set(k, Number(e.target.value))} /></label>;
@@ -661,7 +734,7 @@ function PortraitLab() {
         {num("sex", 0, 1, 1)}{num("beauty", 0, 1, 0.25)}
         <label style={label}>Skin<select style={field} value={o.skin} onChange={e => set("skin", e.target.value)}>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
         <label style={label}>Eyes<select style={field} value={o.eyes} onChange={e => set("eyes", e.target.value as EyeColour)}>{(["dark-brown", "brown", "hazel", "green", "blue", "grey"] as const).map(c => <option key={c}>{c}</option>)}</select></label>
-        <label style={label}>Hair<select style={field} value={o.hairStyle} onChange={e => set("hairStyle", e.target.value as HairStyle)}>{(["long", "bob", "short"] as const).map(c => <option key={c}>{c}</option>)}</select></label>
+        <label style={label}>Hair<select style={field} value={o.hairStyle} onChange={e => set("hairStyle", e.target.value as HairStyle)}>{HAIRSTYLES.map(st => <option key={st.id} value={st.id}>{st.label}</option>)}</select></label>
         <label style={label}>Expression<select style={field} value={o.expression} onChange={e => set("expression", e.target.value)}><option value="">neutral</option>{EMOTIONS.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}</select></label>
         {num("intensity", 0, 1, 0.1)}{num("yaw", -25, 25, 5)}{num("keyAzimuth", -70, 70, 5)}{num("keyElevation", 0, 70, 5)}
       </div>
@@ -678,5 +751,8 @@ export const AnyStyleStory: Story = { name: "Any style", render: () => <AnyStyle
 export const ProportionsStory: Story = { name: "Proportions and ranges", render: () => <Proportions /> };
 export const ReferenceBoardStory: Story = { name: "Reference board", render: () => <ReferenceBoard /> };
 export const HairLabStory: Story = { name: "Hair lab", render: () => <HairLab /> };
+export const HairstylesStory: Story = { name: "Hairstyles", render: () => <Hairstyles /> };
+export const BangsStory: Story = { name: "Bangs (fringes)", render: () => <Bangs /> };
+export const BodyHairLabStory: Story = { name: "Hair on the posable body", render: () => <BodyHairLab /> };
 export const HairTypesStory: Story = { name: "Hair types and colours", render: () => <HairTypes /> };
 export const SkinColourStory: Story = { name: "Skin, hair and eye colour", render: () => <SkinAndColour /> };
