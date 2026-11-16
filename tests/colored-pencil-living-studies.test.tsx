@@ -1,20 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PencilDrawing } from "../registry/video/colored-pencil-react";
-import { pencilPortraitAnatomy } from "../registry/video/colored-pencil-anatomy";
+import { NEW_CHARACTER_01_ID, NEW_CHARACTER_01_STAGE, newCharacterHeadStageOne } from "../src/video/colored-pencil-first-character";
 import { inspectPencilDrawing, hatchPencilRegion } from "../registry/video/colored-pencil";
 import {
   PENCIL_LIVING_STUDIES, flowBundles, pencilLivingStudyDrawing,
 } from "../src/video/colored-pencil-living-studies";
 
 describe("ArtCraft source-led coloured-pencil living subjects",()=>{
-  it("generates independent, constrained human, animal and landscape studies in 16:9 and 9:16",()=>{
+  it("separates a brand-new single human head from the independently finished fox and landscape",()=>{
     expect(PENCIL_LIVING_STUDIES).toEqual(["portrait","fox","valley"]);
     for(const subject of PENCIL_LIVING_STUDIES){
       for(const aspect of ["landscape","portrait"] as const){
         const drawing=pencilLivingStudyDrawing({subject,aspect});
         expect(inspectPencilDrawing(drawing)).toEqual([]);
-        expect(drawing.regions.length).toBeGreaterThanOrEqual(16);
+        expect(drawing.regions.length).toBeGreaterThanOrEqual(subject==="portrait"?1:16);
         expect(drawing.regions.length).toBeLessThanOrEqual(24);
         expect(drawing.width).toBe(aspect==="landscape"?960:540);
         expect(drawing.height).toBe(aspect==="landscape"?540:960);
@@ -32,364 +32,80 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
-  it("keeps the authored human nape under the mandible and both collar wings without white-paper slots",()=>{
-    for(const aspect of ["landscape","portrait"] as const){
-      const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect});
-      const parts=new Map(drawing.regions.map(r=>[r.id,r]));
-      const hair=parts.get("hair-back")!,neck=parts.get("neck")!;
-      const face=parts.get("face-main")!,collar=parts.get("collar-left")!;
-      // Hair returns inside toward the neck: no abrupt L143 311 cut.
-      expect(hair.path).toContain("C174 333 177 353 169 373");
-      expect(hair.path).not.toContain("L143 311");
-      expect(neck.path).toContain("C206 375 185 371 164 375");
-      expect(neck.bounds[0]).toBeLessThan(collar.bounds[0]+collar.bounds[2]*.45);
-      expect(neck.bounds[1]).toBeLessThan(face.bounds[1]+face.bounds[3]);
-      expect(neck.details?.map(d=>d.id)).toContain("neck-scm-attachments");
-      expect(neck.details?.map(d=>d.id)).toContain("neck-trapezius-turn");
-      expect(neck.details?.every(d=>d.width<.7&&d.opacity!>.3)).toBe(true);
-      expect(pencilLivingStudyDrawing({subject:"portrait",aspect})).toEqual(drawing);
-    }
-  });
-
-  it("constructs human eyes, oral ring and head oval from Kumiki ANAT1 measured 3D landmarks",()=>{
-    const atlas=pencilPortraitAnatomy();
-    const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
-    const parts=new Map(drawing.regions.map(region=>[region.id,region]));
-    expect(atlas.source).toContain("MediaPipe");
-    expect(atlas.metrics.enEn).toBeGreaterThan(23);
-    expect(atlas.metrics.enEn).toBeLessThan(42);
-    expect(atlas.metrics.alAl).toBeGreaterThan(24);
-    expect(atlas.metrics.alAl).toBeLessThan(48);
-    expect(atlas.landmarks["pronasale"][1]).toBeGreaterThan(
-      atlas.landmarks["sellion"][1]+35);
-    expect(atlas.landmarks["menton"][1]).toBeGreaterThan(
-      atlas.landmarks["subnasale"][1]+55);
-    expect(atlas.features["eye-upper.R"].path).toMatch(/C/);
-    expect(atlas.features["eye-lower.L"].path).toMatch(/C/);
-    expect(parts.get("face-main")!.path).toBe(atlas.features.oval.path);
-    expect(parts.get("eye-white-far")!.path).toBe(atlas.eyes.R.path);
-    expect(parts.get("eye-white-near")!.path).toBe(atlas.eyes.L.path);
-    expect(parts.get("brows")!.details?.some(t=>t.id==="anat-brow-R")).toBe(true);
-    expect(parts.get("brows")!.details?.some(t=>t.id==="anat-brow-L")).toBe(true);
-    expect(parts.get("nose-bridge")!.details?.some(t=>t.id==="anat-nose-base")).toBe(true);
-    expect(parts.get("lip-upper")!.path).toBe(atlas.lips.upper);
-    expect(parts.get("lip-lower")!.path).toBe(atlas.lips.lower);
-    // Five-axis gate: no floating guessed eye coordinates. The mouth and
-    // nasal landmarks derive from one shared, posed cranial model.
-    for(const region of ["eye-white-far","eye-white-near","lip-upper","lip-lower"]){
-      expect(parts.get(region)!.path).not.toMatch(/NaN|Infinity/);
-      expect(parts.get(region)!.path.length).toBeGreaterThan(60);
-    }
-  });
-
-  it("uses ANAT1 grown eyebrow follicles and upper/lower lash flow instead of solid bars",()=>{
-    const A=pencilPortraitAnatomy();
-    const parts=new Map(pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"})
-      .regions.map(r=>[r.id,r]));
-    for(const side of ["R","L"] as const){
-      for(const [kind,count] of [["brow",35],["lash-upper",15],["lash-lower",5]] as const){
-        const strands=A.hair[kind+"."+side];
-        expect(strands,kind+"."+side).toBeDefined();
-        expect(strands.count).toBeGreaterThanOrEqual(count);
-        expect(strands.path).toContain(" Q");
-        expect(strands.path).not.toMatch(/NaN|Infinity/);
-        expect(strands.path.length).toBeLessThanOrEqual(12000);
-      }
-      const eye=parts.get(side==="R"?"eye-white-far":"eye-white-near")!;
-      expect(eye.details?.some(d=>d.id==="anat-lash-upper-"+side)).toBe(true);
-      expect(eye.details?.some(d=>d.id==="anat-lash-lower-"+side)).toBe(true);
-      const brow=parts.get("brows")!;
-      expect(brow.details?.some(d=>d.id==="anat-brow-fibres-"+side)).toBe(true);
-    }
-  });
-
-  it("preserves projected ANAT1 eyelid/iris geometry while drawing physically radial iris fibres and caruncles",()=>{
-    const A=pencilPortraitAnatomy();
-    for(const aspect of ["landscape","portrait"] as const){
-      const d=pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291});
-      const regions=new Map(d.regions.map(r=>[r.id,r]));
-      for(const [side,eyeId,irisId,pupilId] of [
-        ["R","eye-white-far","iris-far","pupil-far"],
-        ["L","eye-white-near","iris-near","pupil-near"],
-      ] as const){
-        const eye=regions.get(eyeId)!,iris=regions.get(irisId)!;
-        const pupil=regions.get(pupilId)!;
-        expect(eye.path).toBe(A.eyes[side].path);
-        expect(iris.path).toBe(A.irises[side].path);
-        expect(pupil.path).toBe(A.pupils[side].path);
-        expect(iris.opaqueSupport).toBe(false);
-        expect(eye.layers[0].color).not.toBe("#FFFFFF");
-        for(let layer=0;layer<3;layer++){
-          const ray=iris.details?.find(t=>t.id==="anat-radial-iris-"+side+"-"+layer);
-          expect(ray,side+" "+layer).toBeDefined();
-          expect(ray!.width).toBeLessThanOrEqual(.3);
-          expect(ray!.opacity).toBeLessThan(.7);
-          expect((ray!.path.match(/ Q/g)??[]).length).toBe(29);
-          expect((ray!.path.match(/ M/g)??[]).length).toBe(28);
-          expect(ray!.path.length).toBeLessThan(12000);
-          expect(ray!.path).not.toMatch(/NaN|Infinity/);
-        }
-        const shade=iris.details?.find(t=>
-          t.id==="anat-superior-iris-shadow-"+side);
-        expect(shade).toBeDefined();
-        expect(shade!.opacity).toBeLessThan(.6);
-        expect(eye.details?.some(t=>
-          t.id==="anat-medial-caruncle-"+side)).toBe(true);
-        expect(eye.details?.some(t=>
-          t.id==="anat-superior-sclera-shadow-"+side)).toBe(true);
-        expect(eye.details?.some(t=>
-          t.id==="anat-lash-upper-"+side)).toBe(true);
-      }
-      expect(d.regions.find(r=>r.id==="lip-lower")!.path)
-        .toBe(A.lips.lower);
-      expect(pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291}))
-        .toEqual(d);
-    }
-  });
-
-  it("uses ANAT1 nasal cartilage and restrained lip volume instead of floating rectangular mouth stickers",()=>{
-    const A=pencilPortraitAnatomy();
-    const parts=new Map(pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"})
-      .regions.map(r=>[r.id,r]));
-    const nose=parts.get("nose-bridge")!;
-    const upper=parts.get("lip-upper")!,lower=parts.get("lip-lower")!;
-    expect(nose.path).toBe(A.nose.path);
-    expect(nose.bounds[2]).toBeLessThan(45);
-    expect(A.nose.path).toContain("C");
-    expect(nose.details?.some(d=>d.id==="anat-nose-base")).toBe(true);
-    expect(A.lips.bounds[3]).toBeLessThanOrEqual(23);
-    // Anatomical lip tissue cannot sit on white-paper cutouts of the face:
-    // the parent facial plane must show through both tinted pencil layers.
-    expect(upper.opaqueSupport).toBe(false);
-    expect(lower.opaqueSupport).toBe(false);
-    expect(upper.layeredSkinOverParent).toBe(true);
-    expect(lower.layeredSkinOverParent).toBe(true);
-    expect(upper.craft?.kind).toBe("skin");
-    expect(lower.craft?.kind).toBe("skin");
-    expect(upper.layers).toHaveLength(3);
-    expect(lower.layers).toHaveLength(3);
-    expect(upper.details?.some(d=>d.id==="anat-mouth-seam")).toBe(true);
-  });
-
-  it("rebuilds ANAT1 vermilion and mentolabial volume from three independent rose pencil pressure families",()=>{
-    const A=pencilPortraitAnatomy();
-    for(const aspect of ["landscape","portrait"] as const){
-      const d=pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291});
-      const regions=new Map(d.regions.map(p=>[p.id,p]));
-      const upper=regions.get("lip-upper")!,lower=regions.get("lip-lower")!;
-      const face=regions.get("face-main")!;
-      expect(upper.path).toBe(A.lips.upper);
-      expect(lower.path).toBe(A.lips.lower);
-      expect(upper.bounds).toEqual(lower.bounds);
-      expect(upper.opaqueSupport).toBe(false);
-      expect(lower.opaqueSupport).toBe(false);
-      expect(upper.layeredSkinOverParent).toBe(true);
-      expect(lower.layeredSkinOverParent).toBe(true);
-      for(const [region,plane] of [[upper,"upper"],[lower,"lower"]] as const){
-        expect(region.craft?.kind).toBe("skin");
-        expect(region.layers).toHaveLength(3);
-        for(let i=0;i<3;i++){
-          const trace=region.details?.find(x=>x.id==="anat-vermilion-"+plane+"-"+i);
-          expect(trace,plane+" "+i).toBeDefined();
-          expect(trace!.width).toBeLessThanOrEqual(.4);
-          expect(trace!.opacity).toBeLessThanOrEqual(.5);
-          expect(trace!.path).toContain(" Q");
-          expect((trace!.path.match(/M/g)??[]).length).toBe(29);
-          expect(trace!.path).not.toMatch(/NaN|Infinity/);
-          expect(trace!.path.length).toBeLessThan(12000);
-        }
-      }
-      expect(upper.details?.some(t=>t.id==="anat-mouth-seam")).toBe(true);
-      expect(upper.details?.some(t=>t.id==="anat-left-commissure")).toBe(true);
-      expect(lower.details?.some(t=>t.id==="anat-lower-vermilion-reserve")).toBe(true);
-      const chin=face.details?.find(t=>t.id==="anat-mentolabial-turn");
-      expect(chin).toBeDefined();
-      expect(chin!.width).toBeLessThan(.3);
-      expect(chin!.opacity).toBeLessThan(.4);
-      // Each pressure layer is a native editable pencil mark; neither
-      // the ANAT1 facial landmark projection nor the eye geometry changed.
-      expect(face.path).toBe(A.features.oval.path);
-      expect(regions.get("eye-white-near")!.path).toBe(A.eyes.L.path);
-      expect(regions.get("nose-bridge")!.path).toBe(A.nose.path);
-      expect(pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291}))
-        .toEqual(d);
-    }
-  });
-
-  it("rejects facial stubble-shaped heavy dashes: skin contacts stay short, low-pressure optical layers",()=>{
-    const atlas=pencilPortraitAnatomy();
-    expect(atlas.pigment.length).toBeGreaterThanOrEqual(12);
-    for(const trace of atlas.pigment){
-      expect(trace.opacity,trace.id).toBeLessThanOrEqual(.31);
-      expect(trace.width,trace.id).toBeLessThanOrEqual(.44);
-      const segments=[...trace.path.matchAll(
-        /M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) Q-?\d+(?:\.\d+)? -?\d+(?:\.\d+)? (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g,
-      )];
-      expect(segments.length,trace.id).toBeGreaterThan(0);
-      const max=Math.max(...segments.map(m=>
-        Math.hypot(Number(m[3])-Number(m[1]),Number(m[4])-Number(m[2]))));
-      expect(max,trace.id).toBeLessThanOrEqual(3.4);
-    }
-  });
-
-  it("builds visible layered human skin value using true ANAT1 surface normals and native pencil marks",()=>{
-    const atlas=pencilPortraitAnatomy();
-    const portrait=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
-    const face=portrait.regions.find(r=>r.id==="face-main")!;
-    const anatomy=face.details!.filter(d=>d.id?.startsWith("anat-skin-"));
-    expect(atlas.pigment.length).toBeGreaterThanOrEqual(12);
-    expect(anatomy.length).toBe(atlas.pigment.length);
-    const contacts=anatomy.reduce((sum,d)=>sum+(d.path.match(/M/g)??[]).length,0);
-    expect(contacts).toBeGreaterThan(3200);
-    expect(anatomy.some(d=>d.id?.startsWith("anat-skin-shadow"))).toBe(true);
-    expect(anatomy.some(d=>d.id?.startsWith("anat-skin-light"))).toBe(true);
-    expect(anatomy.some(d=>d.id?.startsWith("anat-skin-middle"))).toBe(true);
-    expect(atlas.pigment.every(v=>v.path.length<=12000&&v.width<=.76&&
-      v.opacity>=.2&&v.opacity<=.31)).toBe(true);
-    const redraw=pencilPortraitAnatomy();
-    expect(redraw.pigment).toEqual(atlas.pigment);
-  });
-
-  it("deposits genuine local low-pressure colored-pencil contacts across the human facial volume",()=>{
-    const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
-    const face=drawing.regions.find(r=>r.id==="face-main")!;
-    const dermis=face.details?.filter(t=>t.id?.startsWith("dermis-"))??[];
-    expect(dermis).toHaveLength(9);
-    expect(dermis.reduce((n,trace)=>n+(trace.path.match(/M/g)??[]).length,0))
-      .toBeGreaterThanOrEqual(1050);
-    for(const trace of dermis){
-      expect(trace.path).not.toMatch(/NaN|Infinity/);
-      expect(trace.width).toBeLessThan(.55);
-      expect(trace.opacity).toBeGreaterThan(.2);
-      expect(trace.opacity).toBeLessThan(.5);
-      expect((trace.path.match(/M/g)??[]).length).toBeGreaterThanOrEqual(60);
-      expect(trace.path.length).toBeLessThanOrEqual(12000);
-      expect(trace.path).toContain(" Q");
-      // An ordered arch follows cheek or forehead planes; broad one-piece
-      // photographic skin gradients never satisfy a dry-point contact gate.
-    }
-    const withoutTonal=renderToStaticMarkup(
-      <PencilDrawing drawing={drawing} frame={330} showTonalSupport={false}/>);
-    expect(withoutTonal).toContain('data-km-pencil-tonal-support="off"');
-    expect(withoutTonal).toContain('data-km-pencil-details');
-    expect(withoutTonal).not.toContain("<image");
-  });
-
-  it("constructs an original face with independent eyes, brow, bridge, jaw, lips and layered hair",()=>{
-    const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
-    const parts=new Map(drawing.regions.map(region=>[region.id,region]));
-    const must=[
-      "hair-back","coat-back","neck","ear","face-main","temple-light",
-      "cheek-light","eye-white-far","iris-far","pupil-far","eye-white-near","iris-near","pupil-near",
-      "brows","nose-bridge","lip-upper","lip-lower","hair-crown",
-      "hair-lock-left","hair-lock-right","collar-left","collar-right",
+  it("deletes the previous woman and starts exactly one NEW head outline without eyes/hair/nose/mouth",()=>{
+    expect(NEW_CHARACTER_01_STAGE).toBe("head-outline");
+    expect(NEW_CHARACTER_01_ID).toBe("head-silhouette-01");
+    const oldWomanParts=[
+      "face-main","hair-back","hair-crown","hair-lock-left",
+      "eye-white-near","eye-white-far","pupil-near","iris-near",
+      "nose-bridge","lip-upper","lip-lower","neck","collar-left",
     ];
-    expect([...parts.keys()]).toEqual(must);
-    expect(parts.get("hair-back")!.details!.length).toBeGreaterThan(3);
-    expect(parts.get("hair-crown")!.details!.length).toBeGreaterThan(3);
-    expect(parts.get("face-main")!.opaqueSupport).toBe(true);
-    expect(parts.get("face-main")!.clipDetails).toBe(true);
-    expect(parts.get("iris-near")!.opaqueSupport).toBe(false);
-    expect(parts.get("pupil-near")!.opaqueSupport).toBe(true);
-    expect(parts.get("pupil-far")!.opaqueSupport).toBe(true);
-    expect(parts.get("temple-light")!.opaqueSupport).toBe(false);
-    expect(parts.get("cheek-light")!.opaqueSupport).toBe(false);
-    // Source-led face construction: narrow natural apertures, layered sockets,
-    // cartilage/naris detail, and short directional brow hairs, not doll eyes.
-    for(const eye of ["eye-white-far","eye-white-near"]){
-      const r=parts.get(eye)!;
-      expect(r.bounds[3]).toBeLessThanOrEqual(30);
-      expect(r.details!.length).toBeGreaterThanOrEqual(3);
-      expect(r.path.match(/C|Q/g)?.length).toBeGreaterThanOrEqual(2);
-    }
-    expect(parts.get("face-main")!.details!.length).toBeGreaterThanOrEqual(8);
-    expect(parts.get("brows")!.details!.length).toBeGreaterThanOrEqual(3);
-    expect(parts.get("nose-bridge")!.details!.length).toBeGreaterThanOrEqual(4);
-    expect(parts.get("lip-upper")!.details!.length).toBeGreaterThanOrEqual(2);
-    expect(parts.get("eye-white-near")!.bounds[2])
-      .toBeGreaterThan(parts.get("eye-white-far")!.bounds[2]);
-    expect(parts.get("lip-upper")!.path).not.toBe(parts.get("lip-lower")!.path);
-    for(const id of ["hair-back","hair-crown","hair-lock-left","hair-lock-right"]){
-      const r=parts.get(id)!;
-      expect(r.details!.some(x=>(x.path.match(/ Q/g)??[]).length>=15)).toBe(true);
-    }
-  });
-
-  it("builds portrait hair as observed lock-flow and hundreds of short curved pencil contacts, not bright parallel ribbons",()=>{
-    const A=pencilPortraitAnatomy();
     for(const aspect of ["landscape","portrait"] as const){
-      const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291});
-      const map=new Map(drawing.regions.map(p=>[p.id,p]));
-      const specs=[
-        ["hair-back",12,["hair-occipital-parting"]],
-        ["hair-crown",18,["crown-dark-clump-troughs","crown-reserved-glints"]],
-        ["hair-lock-left",12,["hair-left-lock-occlusion"]],
-        ["hair-lock-right",12,["hair-right-lock-occlusion"]],
-      ] as const;
-      let totalContacts=0;
-      for(const [id,minFamilies,required] of specs){
-        const region=map.get(id)!;
-        expect(region.craft?.kind,id).toBe("hair");
-        expect(region.layers).toHaveLength(3);
-        expect(region.layers.every(l=>l.texture==="fiber")).toBe(true);
-        const fibres=region.details!.filter(t=>t.id?.startsWith("fibre-"));
-        expect(fibres.length,id).toBeGreaterThanOrEqual(minFamilies);
-        for(const trace of fibres){
-          expect(trace.path,id).not.toMatch(/NaN|Infinity/);
-          expect(trace.width,id).toBeLessThanOrEqual(.56);
-          expect(trace.opacity,id).toBeLessThanOrEqual(.69);
-          expect(trace.path,id).toContain(" Q");
-          expect(trace.path.length,id).toBeLessThan(12000);
-          const contacts=(trace.path.match(/M/g)??[]).length;
-          expect(contacts,id).toBeGreaterThanOrEqual(12);
-          expect(contacts,id).toBeLessThanOrEqual(36);
-          totalContacts+=contacts;
-        }
-        for(const feature of required)
-          expect(region.details!.some(t=>t.id===feature),id+" "+feature).toBe(true);
-        const longLocks=region.details!.filter(t=>!t.id&&(t.path.match(/M/g)??[]).length>=14);
-        expect(longLocks.length,id).toBeGreaterThanOrEqual(2);
-        expect(longLocks.every(t=>t.width<.36),id).toBe(true);
-      }
-      expect(totalContacts).toBeGreaterThanOrEqual(1450);
-      // Hair is authored over the SAME MediaPipe/ANSUR-informed ANAT1
-      // face, not a stand-in bitmap that breaks eye, lip or jaw geometry.
-      expect(map.get("face-main")!.path).toBe(A.features.oval.path);
-      expect(map.get("eye-white-near")!.path).toBe(A.eyes.L.path);
-      expect(map.get("eye-white-far")!.path).toBe(A.eyes.R.path);
-      expect(map.get("nose-bridge")!.path).toBe(A.nose.path);
-      expect(map.get("lip-upper")!.path).toBe(A.lips.upper);
-      expect(pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291}))
-        .toEqual(drawing);
+      const d=pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291});
+      expect(d.foundation?.subject).toBe("human");
+      expect(d.regions).toHaveLength(1);
+      expect(d.regions[0].id).toBe("head-silhouette-01");
+      expect(d.foundation?.construction).toContain("stage 1 only");
+      expect(d.regions[0].craft?.kind).toBe("skin");
+      expect(d.regions[0].opaqueSupport).toBe(true);
+      expect(d.regions[0].clipDetails).toBe(true);
+      expect(d.regions[0].layers).toHaveLength(3);
+      expect(d.regions[0].bounds[2]).toBeGreaterThan(125);
+      expect(d.regions[0].bounds[3]).toBeGreaterThan(180);
+      expect(d.regions[0].path.match(/C|Q/g)?.length)
+        .toBeGreaterThanOrEqual(26);
+      for(const id of oldWomanParts)
+        expect(d.regions.some(r=>r.id===id),id).toBe(false);
+      expect(inspectPencilDrawing(d)).toEqual([]);
     }
   });
 
-  it("builds soft three-quarter human eye and nasal planes without hard iris or brow stickers",()=>{
-    const regions=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"}).regions;
-    const parts=new Map(regions.map(r=>[r.id,r]));
-    const nose=parts.get("nose-bridge")!;
-    expect(nose.opaqueSupport).toBe(false);
-    expect(nose.craft).toBeUndefined();
-    const eyebrow=parts.get("brows")!;
-    expect(eyebrow.bounds[3]).toBeLessThan(18);
-    expect(eyebrow.layers.every(l=>l.texture==="fiber")).toBe(true);
-    for(const [eye,iris,pupil] of [
-      ["eye-white-far","iris-far","pupil-far"],
-      ["eye-white-near","iris-near","pupil-near"],
-    ] as const){
-      const sclera=parts.get(eye)!,colour=parts.get(iris)!,dark=parts.get(pupil)!;
-      expect(sclera.bounds[3]).toBeLessThanOrEqual(23);
-      expect(colour.bounds[1]).toBeGreaterThanOrEqual(sclera.bounds[1]);
-      expect(colour.bounds[1]+colour.bounds[3])
-        .toBeLessThanOrEqual(sclera.bounds[1]+sclera.bounds[3]+2);
-      expect(dark.bounds[2]).toBeLessThan(colour.bounds[2]);
-      expect(sclera.layers[0].color).not.toBe("#FFFFFF");
+  it("draws the first human skull silhouette using measured 3D mesh anchors and 3 bounded dry-pencil value fans",()=>{
+    const one=newCharacterHeadStageOne(291);
+    expect(one).toHaveLength(1);
+    const head=one[0];
+    expect(head.material).toBe("skin");
+    expect(head.details?.length).toBe(7);
+    for(let layer=0;layer<3;layer++){
+      const t=head.details!.find(x=>x.id==="newhead-value-"+layer);
+      expect(t).toBeDefined();
+      expect((t!.path.match(/M/g)??[]).length).toBe(114);
+      expect((t!.path.match(/ Q/g)??[]).length).toBe(114);
+      expect(t!.path.length).toBeLessThan(12000);
+      expect(t!.width).toBeLessThan(.5);
+      expect(t!.opacity).toBeLessThan(.5);
     }
-    const skin=regions.filter(r=>r.craft?.kind==="skin");
-    expect(skin.length).toBeGreaterThan(5);
-    expect(skin.every(r=>r.layers[0].texture==="stipple")).toBe(true);
-    expect(regions.filter(r=>r.craft?.kind==="hair")
-      .every(r=>r.layers.every(layer=>layer.texture==="fiber"))).toBe(true);
+    for(const id of ["newhead-sagittal-guide",
+      "newhead-zygomatic-guides","newhead-mandibular-hinge",
+      "newhead-orbital-placement-only"]){
+      const d=head.details?.find(x=>x.id===id);
+      expect(d,id).toBeDefined();
+      expect(d!.path).toContain(" Q");
+    }
+    expect(one).toEqual(newCharacterHeadStageOne(291));
+    expect(newCharacterHeadStageOne(291)[0].details)
+      .not.toEqual(newCharacterHeadStageOne(515)[0].details);
+    expect(newCharacterHeadStageOne(2147483000)).toHaveLength(1);
+    expect(()=>newCharacterHeadStageOne(-1)).toThrow(RangeError);
+  });
+
+  it("keeps the brand-new character head in the original CP-F1 renderer with no previous woman's geometry or bitmap art",()=>{
+    const d=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape",seed:291});
+    const render=(frame:number)=>renderToStaticMarkup(
+      <PencilDrawing drawing={d} frame={frame}/>);
+    const final=render(335);
+    expect(final).toContain('data-km-pencil-region="head-silhouette-01"');
+    expect(final).toContain('data-km-pencil-support="head-silhouette-01"');
+    expect(final).toContain('data-km-pencil-render-method="authored-vector-pigment"');
+    expect(final).toContain('data-km-pencil-photo-pixels="none"');
+    expect(final).toContain('data-km-pencil-details');
+    expect(final).not.toContain('data-km-pencil-region="face-main"');
+    expect(final).not.toContain('data-km-pencil-region="hair-crown"');
+    expect(final).not.toContain('data-km-pencil-region="eye-white-near"');
+    expect(final).not.toContain("<image");
+    expect(final).not.toContain("<foreignObject");
+    render(52);
+    expect(render(335)).toBe(final);
   });
 
   it("grows the fox brush tail from the rump with interleaved low-pressure distal pencil fibres",()=>{
@@ -1056,19 +772,6 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       <PencilDrawing drawing={drawing} frame={335}/>)).toBe(original);
   });
 
-  it("renders opaque face masses without leaking paper through skin and preserves frame seeking",()=>{
-    const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
-    const at=(frame:number)=>renderToStaticMarkup(
-      <PencilDrawing drawing={drawing} frame={frame}/>);
-    const final=at(310);
-    expect(final).toContain('data-km-pencil-region="face-main"');
-    expect(final).toContain('data-km-pencil-support="face-main"');
-    expect(final).toContain('data-km-pencil-details');
-    expect(final).not.toContain('data-km-pencil-support="iris-near"');
-    at(50);
-    expect(at(310)).toBe(final);
-  });
-
   it("rejects malformed controls; near maximum seed remains bounded",()=>{
     const base={subject:"portrait" as const,aspect:"landscape" as const};
     expect(()=>pencilLivingStudyDrawing({...base,subject:"invalid" as "portrait"}))
@@ -1082,5 +785,4 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(inspectPencilDrawing(pencilLivingStudyDrawing({
       ...base,seed:2147483000,pressure:1.2,
     }))).toEqual([]);
-  });
-});
+  });}
