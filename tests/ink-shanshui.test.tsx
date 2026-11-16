@@ -1004,6 +1004,15 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         z.has("upper-bank")&&z.has("lower-bank"))).toBe(true);
     }
     expect(allMarks).toHaveLength(78);
+    const graded=[...full.matchAll(
+      /data-km-master-stratum-wash="" d="[^"]+" fill="url\\(#([^"]+)\\)"/g,
+    )].map(m=>m[1]);
+    expect(graded).toHaveLength(15);
+    expect(new Set(graded).size).toBe(15);
+    for(const id of graded){
+      expect(full).toContain('id="'+id+'"');
+      expect(id).toContain("hemp-body");
+    }
     expect(full).toContain('data-km-master-stroke-source-zone="upper-bank"');
     expect(full).toContain('data-km-master-stroke-source-zone="lower-bank"');
     // Altered pigment load makes the short roots the dark notes; full
