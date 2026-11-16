@@ -13,7 +13,7 @@
 
 **Topology:** preserve ANAT1's *four different original* index, middle, ring, little MCP → PIP → DIP bone hierarchies on both actors, with three closed red source-Bézier parts each and their independently moving cobalt nail engraving. No flat composite mitten, added detached red blob or source clip-path masking.
 
-**Vector flow and natural gesture:** use the existing actual **ANAT1 `HAND_POSES.grip`** as a reference (not copy the full fist). Art-direct each of the three *supporting* fingers separately: middle PIP 52%/DIP 42% of grip, ring PIP 50%/DIP 40%, little PIP 55%/DIP 43%. Curl signs remain those of the existing finger fan so the fingers fold inward and individually. Original editor-friendly source x/y/rotation keys and red contour geometry remain unchanged; only each independent PIP/DIP's contact angles are revised. Source trajectories are sampled continuously at all existing movie frames.
+**Vector flow and natural gesture:** use the existing actual **ANAT1 `HAND_POSES.grip`** as a reference (not copy the full fist). Art-direct each of the three *supporting* fingers separately: middle PIP 52%/DIP 42% of grip, ring PIP 50%/DIP 40%, little PIP 55%/DIP 43%. MCP lateral fan/abduction remains entirely independent; all PIP/DIP **flexion** shares the same palmarward handedness, with distinct magnitudes per digit. Copying ring/pinky's lateral fan sign to their flexor bones caused actual middle-ring intersections and merged red distal tips in the first physical geometry test; the original bone structure had to be corrected, not the tolerance. Original editor-friendly source x/y/rotation keys and red contour geometry remain unchanged; only each independent PIP/DIP's contact angles are revised. Source trajectories are sampled continuously at all existing movie frames.
 
 **Material weight:** each originally authored red phalanx remains **solid vermilion**, each blue nail/palm crease remains its original screened cobalt. No flat uniform recoloring; preserve localized pressure and original lineweight.
 
@@ -31,3 +31,9 @@
 ## Remaining evidence / artistic release hold
 
 RISO42 corrects an obvious **support-finger silhouette** defect; it does not yet prove 3D contact pressure, three-quarter palm foreshortening or reference-photo-verified portrait likeness. The original source's overall hand/jacket form may still be coarse and thumb/index at f166 is a too-dark compact knot. Only visual inspection of the new native print, and regressions for crossing/ink occlusion, can decide readiness of PR #451.
+
+## Independent failed-candidate and correction log (RISO42)
+
+The first proposed flexion used each finger's MCP fan *abduction* sign for the flexor PIP/DIP joint. CI source-red geometry found the receiver middle/ring and ring/pinky **physically collided** (0 source-unit fingertip gap) and two real finger axes intersected. A second timing-only attempt kept early f140 staging clear but still collided at f166 and grazed the right middle/ring at f152. Both candidates were rejected. The source fix uses **same palmar flexion handedness** for all three supporting PIP/DIP chains, preserves their lateral MCP fan and adds a short late close at f146 donor/f152 receiver rather than closing the non-index digits long before the letter arrives.
+
+The independently timed roles are essential: donor right hand peaks f160; receiver left hand peaks f166. At f160 the receiver is only partway into its support curl (~25° mean in a real Chromium run), and the browser test must verify it remains in motion, **not** demand the full f166 peak six frames early. The paired peak and 240-frame axis/real-ink gates still remain strict. These are source failures observed in actual animation, not aesthetic guesses or render filters.
