@@ -343,6 +343,7 @@ function BrushworkDetail(){
  * Museum images stay external and are never included in the video output.
  */
 function GeologicalInkStudy(){
+  const [compareSeeds,setCompareSeeds]=useState(false);
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -351,17 +352,23 @@ function GeologicalInkStudy(){
   const [centerX,setCenterX]=useState(549);
   const [centerY,setCenterY]=useState(147);
   const [zoom,setZoom]=useState(1.75);
+  // Compare independent geometry under an identical camera and ink load.
+  // Wrapping keeps the second seed in the documented [1,199] domain.
+  const alternateSeed=(seed+15)%199+1;
   const studies=[
     {key:"no-structure",label:"0 · Structural negative control",
       note:"Geometry disabled, not a fake painted sample. This must lose the attached ridge folds, pima-cun fibres and pine detail.",
-      level:0,load:ink},
+      level:0,load:ink,sampleSeed:seed},
     {key:"original",label:"1 · Current authored ink",
       note:"Inspect the new rounded multi-saddle ridge, three bone-rooted graded crag masses, six mass caps and nine attached erosion grooves and a new brush-clipped 33-stroke hemp field beneath three cubic hill backs, six tertiary caps and forty additional hemp strokes. Look for actual nested stone volume, source-like pressure and open paper; reject triangle outlines, duplicated scallops or strings.",
-      level:detail,load:ink},
+      level:detail,load:ink,sampleSeed:seed},
     {key:"dilute",label:"2 · Diluted ink comparison",
       note:"Identical scene, seed, frame, geometry and camera; only ink concentration changes. Verify the same attachments survive.",
-      level:detail,load:ink*.42},
-  ] as const;
+      level:detail,load:ink*.42,sampleSeed:seed},
+    ...(compareSeeds?[{key:"seed-variation",label:"3 · Alternate seeded construction",
+      note:"The same ink, film frame, detail and camera as study 1; only the seeded geometric construction differs. Reject repeated rock silhouettes, identical dry-brush clumps or detached fibres.",
+      level:detail,load:ink,sampleSeed:alternateSeed}]:[]),
+  ];
   const sliders=[
     {label:"Geology frame",value:frame,min:0,max:SHANSHUI_FRAMES-1,
       step:1,onChange:setFrame},
@@ -432,9 +439,16 @@ function GeologicalInkStudy(){
           value={control.value}
           onChange={event=>control.onChange(Number(event.target.value))}/>
       </label>)}
+      <label style={{...style.field,display:"flex",flexDirection:"row",
+        alignItems:"center",gap:8,minHeight:38}}>
+        <input type="checkbox" aria-label="Compare alternate seed"
+          checked={compareSeeds} onChange={event=>setCompareSeeds(event.target.checked)}/>
+        Compare a second original construction · seed {alternateSeed}
+      </label>
       <button type="button" style={style.button}
         onClick={()=>{setFrame(145);setSeed(71);setDetail(1);setInk(.9);
-          setMist(.35);setCenterX(549);setCenterY(147);setZoom(1.75);}}>
+          setMist(.35);setCenterX(549);setCenterY(147);setZoom(1.75);
+          setCompareSeeds(false);}}>
         Reset geology proof
       </button>
     </div>
@@ -442,12 +456,12 @@ function GeologicalInkStudy(){
       {studies.map(study=>{
         const controls:ShanshuiControls={...DEFAULT_SHANSHUI,
           scene:"mountain-trail",detail:study.level,ink:study.load,
-          mist,wind:0,seed};
+          mist,wind:0,seed:study.sampleSeed};
         const tx=160-zoom*centerX,ty=128-zoom*centerY;
         return <section key={study.key}
           data-km-geology-condition={study.key}
           data-km-geology-frame={frame}
-          data-km-geology-seed={seed}
+          data-km-geology-seed={study.sampleSeed}
           style={{display:"grid",gap:8,width:328,maxWidth:"100%"}}>
           <strong style={{fontSize:13}}>{study.label}</strong>
           <div data-km-geology-crop={study.key}
@@ -465,8 +479,8 @@ function GeologicalInkStudy(){
     </div>
     <p style={{maxWidth:950,margin:0,fontSize:12,color:"#6f5c49"}}>
       Release gate remains visual: inspect the actual 960×540 mountain scene,
-      enlarged shoulder, three source-defined fibre densities and at least
-      two seeds. Test success alone cannot approve the painting.
+      enlarged shoulder, three source-defined fibre densities and the
+      independently seeded comparison. Test success alone cannot approve the painting.
     </p>
   </main>;
 }
