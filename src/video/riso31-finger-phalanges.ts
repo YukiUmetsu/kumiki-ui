@@ -119,6 +119,11 @@ export function riso31PhalanxJoints(side:Riso31Side):readonly RisoJoint[]{
         {frame:0,rotate:0,easing:"ease"},
         {frame:96,rotate:1*handed*spec.curlDirection,easing:"ease"},
         {frame:126,rotate:2*handed*spec.curlDirection,easing:"ease"},
+        // Support digits begin their inward tuck only when the page comes
+        // into fingertip range. Earlier f126–140 global curl made the
+        // ring/little source-bone axes graze the neighboring fingers.
+        ...(digit==="index"?[]:[{frame:146+delay,
+          rotate:3*handed*spec.curlDirection,easing:"ease" as const}]),
         {frame:160+delay,rotate:pip,easing:"ease"},
         ...(side==="right"&&digit==="index"?[{frame:178,rotate:pip,easing:"ease" as const}]:[]),
         {frame:180+delay+(side==="right"&&digit==="index"?6:0),rotate:pip*atRelease,easing:"ease"},
@@ -130,6 +135,7 @@ export function riso31PhalanxJoints(side:Riso31Side):readonly RisoJoint[]{
         {frame:0,rotate:0,easing:"ease"},
         {frame:96,rotate:0,easing:"ease"},
         {frame:126,rotate:0,easing:"ease"},
+        ...(digit==="index"?[]:[{frame:146+delay,rotate:0,easing:"ease" as const}]),
         {frame:160+delay,rotate:dip,easing:"ease"},
         ...(side==="right"&&digit==="index"?[{frame:178,rotate:dip,easing:"ease" as const}]:[]),
         {frame:180+delay+(side==="right"&&digit==="index"?6:0),rotate:dip*atRelease,easing:"ease"},
