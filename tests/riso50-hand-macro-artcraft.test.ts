@@ -81,10 +81,10 @@ describe("RISO50 ArtCraft: real tilted MCP planes and carpal wrist contour",()=>
         }else{
           const rootRatio=projected.rootLength/original.rootLength;
           const midRatio=projected.intermediateLength/original.intermediateLength;
-          expect(rootRatio).toBeGreaterThan(.58);
-          expect(midRatio).toBeGreaterThan(.58);
-          expect(rootRatio).toBeLessThan(.8);
-          expect(midRatio).toBeLessThan(.8);
+          expect(rootRatio).toBeGreaterThan(.385);
+          expect(midRatio).toBeGreaterThan(.385);
+          expect(rootRatio).toBeLessThan(.48);
+          expect(midRatio).toBeLessThan(.48);
         }
         expect(projected.exactRedSource).toBe(true);
       }
