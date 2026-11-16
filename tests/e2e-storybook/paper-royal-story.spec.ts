@@ -17,6 +17,19 @@ test("portrait prince review loupe keeps his face in the review viewport in each
     await loupe.locator("..").screenshot({path:info.outputPath(`prince-loupe-chapter-${index+1}.png`),animations:"disabled"});
   }
 });
+test("reduced motion keeps chapter navigation usable without playback or animated loupe",async({page})=>{
+  await page.goto(path+"&args=aspect:portrait;motion:0.75;medium:layered;reducedMotion:true");
+  const stage=page.locator('svg[data-km-paper-director="the-moonlit-lantern"]');
+  await expect(page.getByRole("button",{name:"Play story"})).toBeDisabled();
+  await expect(page.getByRole("slider",{name:"Scrub fairy tale"})).toBeDisabled({timeout:3000});
+  for(const [chapter,shot] of [[/01 ·/,"the-hushed-orchard"],[/02 ·/,"the-fox-guides"],[/03 ·/,"the-lantern-awakens"]] as const){
+    await page.getByRole("button",{name:chapter}).click();
+    await expect(stage).toHaveAttribute("data-km-paper-shot",shot);
+    await expect(page.locator("[data-km-paper-curtain]")).toHaveCount(0);
+  }
+  await page.getByRole("button",{name:"Inspect prince · 3×",exact:true}).click();
+  await expect(page.locator('[data-royal-inspection-target="prince"]')).toHaveCSS("transition-duration","0s");
+});
 for(const aspect of ["landscape","portrait"] as const){
   test("original royal paper fairy tale "+aspect+" renders all three acts with connected cutout actors",async({page},info)=>{
     const errors:string[]=[];
