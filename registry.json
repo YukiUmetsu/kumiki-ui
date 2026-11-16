@@ -3868,6 +3868,34 @@
       ]
     },
     {
+      "name": "facial-expressions",
+      "type": "registry:ui",
+      "title": "Facial Expressions Framework (EXPR1)",
+      "description": "Style-neutral facial expressions for any art style, built on ANAT1's measured face. FACS action units (names and muscles from the Facial Action Coding System) become displacement fields on the 468-point face, with a dropping jaw, closing lids, gaze and head pose. The seven EMFACS emotion prototypes (happiness, sadness, surprise, fear, anger, disgust, contempt; reported) and drawing extras (polite smile, laughter, crying, shyness, pain, sleep, determination, the kabuki mie glare; estimated), with blending. Style-neutral features (brows, lids, cheeks, nose, mouth corners, width and opening, in eye widths) any style can map onto its own drawing; the creases each unit makes, drawn as lines or as kumadori in the role's colour; a nearest-emotion check that a drawn face reads as intended; Noh tilt and kumadori colour and pattern notes; a line-study painter, an atlas and per-emotion sheets.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy",
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/expression-facs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/expression-facs.ts"
+        },
+        {
+          "path": "registry/anatomy/expression-face.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/expression-face.ts"
+        },
+        {
+          "path": "registry/anatomy/expression-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/expression-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "editorial-collage",
       "type": "registry:ui",
       "title": "Editorial Paper Collage (COLLAGE1)",
