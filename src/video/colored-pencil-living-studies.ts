@@ -930,7 +930,13 @@ export function pencilLivingStudyDrawing({
         undefined:region.underpaintOpacity,
       // The fox iris has its own traced upper eyelid and pupil. Suppress
       // only the enclosing glass-vector ring, not the separate pencil marks.
-      contour:subject==="fox"&&part.id==="whisker-roots"?
+      // A measured head-outline drawing needs a readable, hand-pressure
+      // boundary at native film size; the glass/glaze recipe's almost
+      // invisible .09 contour is inadequate for an anatomy block-in.
+      // Do not flood the incomplete head with opaque wax/skin support.
+      contour:subject==="portrait"?
+        {...region.contour,color:"#8C6E66",width:.82,opacity:.56}:
+        subject==="fox"&&part.id==="whisker-roots"?
         {...region.contour,opacity:.05}:
         subject==="fox"&&part.id==="muzzle"?
         {...region.contour,opacity:.16}:
