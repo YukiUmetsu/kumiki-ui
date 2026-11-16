@@ -20,13 +20,21 @@ describe("ArtCraft V18 source-observed nose / native wax volume and occlusion",(
     expect(next.camera).toEqual(prev.camera);
     expect(next.durationFrames).toBe(prev.durationFrames);
     expect(next.elements.length).toBe(prev.elements.length+7);
-    expect(next.elements.filter(e=>!inserts.has(e.id))).toEqual(prev.elements);
+    expect(next.elements.filter(e=>!inserts.has(e.id)&&e.id!=="naris-shadow-far"))
+      .toEqual(prev.elements.filter(e=>e.id!=="naris-shadow-far"));
+    const oldFar=prev.elements.find(e=>e.id==="naris-shadow-far");
+    const newFar=next.elements.find(e=>e.id==="naris-shadow-far");
+    if(oldFar?.kind!=="wax"||newFar?.kind!=="wax")
+      throw Error("Source far naris missing");
+    expect(newFar.d).not.toBe(oldFar.d);
+    expect(newFar.timing).toEqual(oldFar.timing);
+    expect(newFar.parentId).toEqual(oldFar.parentId);
     expect(new Set(next.elements.map(e=>e.id)).size).toBe(next.elements.length);
     expect(inspectCrayonScene(prev)).toEqual([]);
     expect(inspectCrayonScene(next)).toEqual([]);
   });
 
-  it("inserts distinct upper cartilage OPAQUE skin first and flesh occluder AFTER nostril shadow",()=>{
+  it("lays down asymmetric feathered alar wax and curved hood after each cavity",()=>{
     const spec=crayonCc0FaceStudy({midfaceForm:"source-nasal-depth"});
     const all=spec.elements,ids=all.map(x=>x.id);
     for(const side of ["near","far"] as const){
@@ -43,24 +51,27 @@ describe("ArtCraft V18 source-observed nose / native wax volume and occlusion",(
       expect(ids.indexOf(dark.id)).toBeLessThan(ids.indexOf(hood.id));
       expect(ids.indexOf(hood.id)).toBeLessThan(ids.indexOf(contact.id));
       expect(mass).toMatchObject({
-        parentId:"face-outline",clipToParent:true,coverage:"opaque",
-        deposition:"stroke-built",outlineOpacity:0,
+        parentId:"face-outline",clipToParent:true,coverage:"open",
+        deposition:"stroke-built",featherContacts:true,outlineOpacity:0,
       });
       expect(hood).toMatchObject({
-        parentId:"face-outline",clipToParent:true,coverage:"opaque",
-        deposition:"stroke-built",outlineOpacity:0,
+        parentId:"face-outline",clipToParent:true,coverage:"open",
+        deposition:"stroke-built",featherContacts:true,outlineOpacity:0,
       });
       expect(contact).toMatchObject({
         parentId:"face-outline",clipToParent:true,coverage:"open",
         deposition:"stroke-built",featherContacts:true,
       });
       for(const node of [mass,hood]){
-        expect(node.underpaintGradient).toBeDefined();
-        expect(node.opaqueBurnish).toBeGreaterThan(.35);
-        expect(node.underpaintTooth).toBeGreaterThan(.14);
+        expect(node.underpaintGradient).toBeUndefined();
+        expect(node.opaqueBurnish).toBeUndefined();
+        expect(node.underpaintTooth).toBeUndefined();
+        expect(node.blendRadius).toBeGreaterThan(3);
+        expect(node.nibStyle).toBe("dry");
+        expect(node.markStrength).toBeGreaterThan(.2);
       }
-      // An opaque skin region must ACTUALLY OVERLAP the dark cavity;
-      // disconnected neighboring patches do not constitute occlusion.
+      // Pressure-rooted contact must geometrically meet the real dark cavity;
+      // a bounding-box overlap is only a preliminary test, NOT art approval.
       const overlap=(a:typeof mass,b:typeof mass)=>{
         const dx=Math.max(0,Math.min(a.bounds.x+a.bounds.width,
           b.bounds.x+b.bounds.width)-Math.max(a.bounds.x,b.bounds.x));
