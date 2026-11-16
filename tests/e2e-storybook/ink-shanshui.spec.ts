@@ -590,6 +590,15 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
     .toBeVisible();
   await expect(other.locator("[data-km-master-mass]").first())
     .toBeVisible();
+  // The Fuchun pale mountain is now a more held source-specific far
+  // shoulder; Guo Xi keeps the original far contour, not this school’s
+  // new front/back rock grammar or a shared flattened skyline.
+  const far=fuchun.locator('[data-km-shanshui-ridge-contour="0"]');
+  const otherFar=other.locator('[data-km-shanshui-ridge-contour="0"]');
+  await expect(far).toBeVisible();
+  await expect(otherFar).toBeVisible();
+  expect(await far.getAttribute("d")).not.toBe(
+    await otherFar.getAttribute("d"));
   await fuchun.locator("[data-km-master-camera-view]").screenshot({
     animations:"disabled",path:info.outputPath("fuchun-native-rolling-skyline-145.png")});
   await page.getByRole("button",{name:"Reset all four studies"}).click();
