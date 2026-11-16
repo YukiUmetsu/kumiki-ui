@@ -3,6 +3,7 @@ import type {RisoPathMorphKey} from "../../registry/video/riso-path-morph";
 import {RISO31_GEOMETRY,riso31PhalanxSourcePath} from "./riso31-finger-phalanges";
 import {RISO48_RECEIVER_PROJECTION} from "./riso48-projected-support";
 import {RISO49_DONOR_PROJECTION} from "./riso49-donor-projection";
+import {riso52FoldedTerminalContact} from "./riso52-folded-terminal-source";
 
 /**
  * RISO51 — build real view-conditioned, moving RED / BLUE source contours.
@@ -25,7 +26,7 @@ export const RISO51_VIEW_CONTRACT={
   inking:"original RED palm/finger bones with matching BLUE MCP support, no alpha blend",
   genuineSourceViewFrames:[0,146,160,180,205,239] as const,
   contactDepth:{courier:1,"paper-artist":1} as const,
-  affectedOriginalPartsPerActor:8,
+  affectedOriginalPartsPerActor:14,
 } as const;
 
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
@@ -128,6 +129,12 @@ export function riso51MorphSourcePart(
     const contact=riso51ProjectPalmarPath(part.d,side,actor,1);
     return {...part,pathKeys:riso51SourceKeys(part.d,contact,actor)};
   }
+  // RISO52 physically redraws *both* RED terminal pads and the original
+  // COBALT nail engravings. RISO51 compressed only proximal/middle sections:
+  // their full-length distal tips remained an unmistakable three-prong rake.
+  const foldedTerminal=riso52FoldedTerminalContact(part,actor);
+  if(foldedTerminal!==null)
+    return {...part,pathKeys:riso51SourceKeys(part.d,foldedTerminal,actor)};
   const match=fingerPart.exec(part.id);
   if(!match||match[1]!==activeSide)return part;
   const digit=match[2] as "middle"|"ring"|"pinky";
