@@ -107,25 +107,28 @@ export const COURIER: RisoCharacterSpec = {
     // Printed metacarpal and thenar marks stay attached to the palm,
     // not the proximal forearm and not an independent sticker.
     { id: "left-palm-surface", parent: "left-hand", x: 0, y: 11 },
+    // RISO33: the MCP fan MUST preserve separate negative-space tunnels at
+    // handoff. Inward 25-degree index sweep made three articulated fingers
+    // intersect even though each had the right number of source bones.
     // Palm -> individual digits: all are genuinely joint-local and keep
     // anatomical roots, even under the moving elbow rig.
     { id: "left-thumb", parent: "left-hand", x: -9, y: 8,
-      keys: [{frame:0,rotate:-8,easing:"ease"},{frame:92,rotate:15,easing:"ease"},
-        {frame:160,rotate:4,easing:"ease"},{frame:198,rotate:-14,easing:"ease"},{frame:239,rotate:-14}] },
+      keys: [{frame:0,rotate:-8,easing:"ease"},{frame:92,rotate:-20,easing:"ease"},
+        {frame:160,rotate:-37,easing:"ease"},{frame:198,rotate:-15,easing:"ease"},{frame:239,rotate:-15}] },
     { id: "left-index", parent: "left-hand", x: -6, y: 16,
-      keys: [{frame:0,rotate:7,easing:"ease"},{frame:92,rotate:-8,easing:"ease"},
-        {frame:160,rotate:13,easing:"ease"},{frame:198,rotate:-5,easing:"ease"},{frame:239,rotate:-5}] },
+      keys: [{frame:0,rotate:7,easing:"ease"},{frame:92,rotate:5,easing:"ease"},
+        {frame:160,rotate:7,easing:"ease"},{frame:198,rotate:5,easing:"ease"},{frame:239,rotate:5}] },
     { id: "left-middle", parent: "left-hand", x: 0, y: 18,
-      keys: [{frame:0,rotate:3,easing:"ease"},{frame:92,rotate:-11,easing:"ease"},
-        {frame:160,rotate:9,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
+      keys: [{frame:0,rotate:3,easing:"ease"},{frame:92,rotate:0,easing:"ease"},
+        {frame:160,rotate:0,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
     { id: "left-ring", parent: "left-hand", x: 6, y: 16,
-      keys: [{frame:0,rotate:-4,easing:"ease"},{frame:92,rotate:-10,easing:"ease"},
-        {frame:160,rotate:6,easing:"ease"},{frame:198,rotate:4},{frame:239,rotate:4}] },
+      keys: [{frame:0,rotate:-4,easing:"ease"},{frame:92,rotate:-6,easing:"ease"},
+        {frame:160,rotate:-6,easing:"ease"},{frame:198,rotate:-4},{frame:239,rotate:-4}] },
     // Fifth digit on the ulnar side; shorter than the ring finger, with
     // its own independent source bone and print contour, not 4 fingers.
     { id: "left-pinky", parent: "left-hand", x: 11, y: 15, keys: [
-      {frame:0,rotate:4,easing:"ease"},{frame:144,rotate:-4,easing:"ease"},
-      {frame:160,rotate:7,easing:"ease"},{frame:198,rotate:3},{frame:239,rotate:3},
+      {frame:0,rotate:4,easing:"ease"},{frame:144,rotate:-7,easing:"ease"},
+      {frame:160,rotate:-9,easing:"ease"},{frame:198,rotate:-6},{frame:239,rotate:-6},
     ] },
     // RISO31: full original printed phalanges are a bone hierarchy.
     ...riso31PhalanxJoints("left"),
@@ -157,20 +160,20 @@ export const COURIER: RisoCharacterSpec = {
     // The right hand follows the satchel via IK; separate roots let the
     // fingers close gently without dragging the palm or wrist shape.
     { id: "right-thumb", parent: "right-hand", x: 9, y: 8,
-      keys: [{frame:0,rotate:-9,easing:"ease"},{frame:90,rotate:0,easing:"ease"},
-        {frame:156,rotate:18,easing:"ease"},{frame:198,rotate:12},{frame:239,rotate:12}] },
+      keys: [{frame:0,rotate:-9,easing:"ease"},{frame:90,rotate:18,easing:"ease"},
+        {frame:156,rotate:37,easing:"ease"},{frame:198,rotate:14},{frame:239,rotate:14}] },
     { id: "right-index", parent: "right-hand", x: 6, y: 16,
-      keys: [{frame:0,rotate:3,easing:"ease"},{frame:90,rotate:16,easing:"ease"},
-        {frame:156,rotate:25,easing:"ease"},{frame:198,rotate:19},{frame:239,rotate:19}] },
+      keys: [{frame:0,rotate:3,easing:"ease"},{frame:90,rotate:-3,easing:"ease"},
+        {frame:156,rotate:-7,easing:"ease"},{frame:198,rotate:-5},{frame:239,rotate:-5}] },
     { id: "right-middle", parent: "right-hand", x: 0, y: 18,
-      keys: [{frame:0,rotate:0,easing:"ease"},{frame:90,rotate:10,easing:"ease"},
-        {frame:156,rotate:18,easing:"ease"},{frame:198,rotate:12},{frame:239,rotate:12}] },
+      keys: [{frame:0,rotate:0,easing:"ease"},{frame:90,rotate:0,easing:"ease"},
+        {frame:156,rotate:0,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
     { id: "right-ring", parent: "right-hand", x: -6, y: 16,
-      keys: [{frame:0,rotate:-5,easing:"ease"},{frame:90,rotate:9,easing:"ease"},
-        {frame:156,rotate:14,easing:"ease"},{frame:198,rotate:11},{frame:239,rotate:11}] },
+      keys: [{frame:0,rotate:-5,easing:"ease"},{frame:90,rotate:5,easing:"ease"},
+        {frame:156,rotate:6,easing:"ease"},{frame:198,rotate:5},{frame:239,rotate:5}] },
     { id: "right-pinky", parent: "right-hand", x: -11, y: 15, keys: [
-      {frame:0,rotate:-5,easing:"ease"},{frame:144,rotate:5,easing:"ease"},
-      {frame:160,rotate:-7,easing:"ease"},{frame:198,rotate:-3},{frame:239,rotate:-3},
+      {frame:0,rotate:-5,easing:"ease"},{frame:144,rotate:7,easing:"ease"},
+      {frame:160,rotate:9,easing:"ease"},{frame:198,rotate:6},{frame:239,rotate:6},
     ] },
     ...riso31PhalanxJoints("right"),
     riso32ThumbIpJoint("right"),
