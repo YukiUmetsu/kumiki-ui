@@ -1,4 +1,4 @@
-import {riso58ContactSkin} from "../src/video/riso58-anat1-volume-skin";
+import {riso58ContactSkin,riso58ProjectMcpInk} from "../src/video/riso58-anat1-volume-skin";
 import {describe,expect,it} from "vitest";
 import {evaluateRisoPathMorph,inspectRisoPathMorph} from "../registry/video/riso-path-morph";
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
@@ -125,7 +125,10 @@ describe("RISO51 independent two-human ORIGINAL moving print sources",()=>{
       expect(palm160.d).toBe(surface.path);
       expect(surface.bones).toHaveLength(4);
       expect(surface.maxSurfaceDepth).toBeGreaterThan(1);
-      expect(crest160.d).toBe(riso51ProjectPalmarPath(crest.d,active,spec.id as "courier"|"paper-artist",1));
+      // Four original cobalt MCP facets are now re-registered onto
+      // the SAME physical ANAT1 volume as the red exterior skin.
+      expect(crest160.d).toBe(riso58ProjectMcpInk(crest.d,surface));
+      expect((crest160.d.match(/C/g)??[])).toHaveLength(16);
       const neutral=flattenRisoSvgPath(palm.d,.15);
       const contact=flattenRisoSvgPath(palm160.d,.15);
       expect(neutral).toHaveLength(1);
