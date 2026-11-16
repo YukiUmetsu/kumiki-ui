@@ -340,8 +340,12 @@ function trimFlourish(raw: Vec[]): Vec[] {
   return raw.slice(from, to + 1);
 }
 
+/** Small かな: the 拗音 and 促音 marks. */
+const SMALL_KANA = new Set([..."ぁぃぅぇぉっゃゅょゎゕゖァィゥェォッャュョヮヵヶ"]);
 /** The ring of ゜ is written light and quick, so its hole stays open. */
 const LOOP_WEIGHT = .75;
+/** かな strokes carry the teacher's weight: her かな are bolder than the kanji skeleton's default (research note §2.24). */
+const KANA_WEIGHT = 1.1;
 
 /** Convert one sampled centreline (em units) and its stroke class into a SHO1 stroke. */
 export function strokeFromCentreline(raw: Vec[], kvgType = "", kana = false): ShodoStrokeSpec {
@@ -394,7 +398,7 @@ export function strokeFromCentreline(raw: Vec[], kvgType = "", kana = false): Sh
     // presses, and an end that lifts while moving unless the stroke is a dot or a hook.
     const dot = kind === "dot";
     return { kind: dot ? "dot" : turns.length || points.length > 3 ? "curve" : kind, points: rounded,
-      start: dot ? "uchikomi" : "roho", ...(dot ? {} : { end: hook ? "hane" : "nuki" }), ...(hook ? { hook } : {}), weight: loop ? LOOP_WEIGHT : .96 };
+      start: dot ? "uchikomi" : "roho", ...(dot ? {} : { end: hook ? "hane" : "nuki" }), ...(hook ? { hook } : {}), weight: loop ? LOOP_WEIGHT : dot ? .96 : KANA_WEIGHT };
   }
   return { kind, points: rounded, ...(flatSweep ? { start: "uchikomi" as const } : {}),
     ...(turns.length ? { turns } : {}), ...(end ? { end } : {}), ...(hook ? { hook } : {}) };
@@ -537,6 +541,12 @@ export interface ShodoFormOptions {
   /** Length factor for a kanji 提 (rising stroke ㇀), from its start. 1..1.4. KanjiVG kanji: 1.2 (measured); otherwise 1. */
   riseStrokeLength?: number;
   /**
+   * Size factor for a small かな (ぁ っ ゃ ァ ッ ャ …) from KanjiVG, about the foot of its box. 0.6..1.
+   * Default 0.76: KanjiVG draws them at 0.79 of a full かな, too large to read beside one (ゃ
+   * next to し reads as や); 0.76 gives about 0.6, as handwriting is taught.
+   */
+  smallKana?: number;
+  /**
    * Component layout (結構法) measured on a teacher's models, see `shodoStructure`. Pass
    * `false` to keep KanjiVG's layout, or override single rules.
    */
@@ -568,6 +578,7 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
   // Her dots are shorter and her 提 strokes longer than KanjiVG's (§2.23).
   const dotLength = kana ? 1 : options.dotLength ?? (measured ? .8 : 1);
   const riseStrokeLength = kana ? 1 : options.riseStrokeLength ?? (measured ? 1.2 : 1);
+  const small = source.source === "kanjivg" && SMALL_KANA.has(source.char) ? options.smallKana ?? .76 : 1;
   const sweep = kana ? 1 : options.sweep ?? 1.16;
   // 主画: one horizontal carries the character; it is written longer than the rest.
   const mainFactor = kana ? 1 : options.main ?? 1.1;
@@ -619,6 +630,12 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
     const [ax, ay] = st.points[0];
     return { ...st, points: st.points.map(([x, y]) => [Math.round(ax + (x - ax) * k), Math.round(ay + (y - ay) * k)] as const) };
   }) });
+  // A small かな is written smaller still, on the foot of its box.
+  if (small !== 1) {
+    const pts = formed.strokes.flatMap(st => st.points);
+    const fx = (Math.min(...pts.map(p => p[0])) + Math.max(...pts.map(p => p[0]))) / 2, fy = Math.max(...pts.map(p => p[1]));
+    formed = { ...formed, strokes: formed.strokes.map(st => ({ ...st, points: st.points.map(([x, y]) => [Math.round(fx + (x - fx) * small), Math.round(fy + (y - fy) * small)] as const) })) };
+  }
   return formed;
 }
 
