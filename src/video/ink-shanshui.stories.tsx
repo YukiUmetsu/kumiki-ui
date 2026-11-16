@@ -573,7 +573,11 @@ function MasterInkSourceComparison(){
       [data-km-master-ink-inspection="stone"] [data-km-master-study="fuchun"]
       [data-km-master-stratum-field],
       [data-km-master-ink-inspection="stone"] [data-km-master-study="fuchun"]
-      [data-km-master-brush-field] { visibility:hidden; }
+      [data-km-master-brush-field],
+      [data-km-master-ink-inspection="stone"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff],
+      [data-km-master-ink-inspection="stone"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-grove] { visibility:hidden; }
     `}</style>
     <div role="group" aria-label="Fuchun paper-reserve inspection"
       data-testid="shanshui-master-zone-presets"
