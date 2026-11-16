@@ -603,6 +603,28 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
     .toHaveCount(12);
   await expect(samples.first().locator("[data-km-fuchun-near-hemp]"))
     .toHaveCount(0);
+  // These are the original 17 near-band ink marks, not newly added
+  // decorative texture. Every origin stays on a true source ridge;
+  // all 17 former long hanging planes turn across the positive stone
+  // without deleting the 19 other far/middle source planes.
+  const originalFlows=samples.first().locator(
+    '[data-km-rock-plane-flow="source-following"]');
+  const reconstructedFlows=samples.last().locator(
+    '[data-km-rock-plane-flow="source-following"]');
+  await expect(originalFlows).toHaveCount(0);
+  await expect(reconstructedFlows).toHaveCount(17);
+  const origins=await reconstructedFlows.evaluateAll(nodes=>nodes.map(el=>({
+    root:el.getAttribute("data-km-rock-plane-root"),
+    axis:el.getAttribute("data-km-rock-plane-bank-axis"),
+    tip:el.getAttribute("data-km-rock-plane-bank-end"),
+  })));
+  for(const {root,axis,tip} of origins){
+    expect(root).not.toBeNull();
+    expect(tip).not.toBeNull();
+    const start=root!.split(",").map(Number),end=tip!.split(",").map(Number);
+    expect(axis).toContain("M"+start.join(" ")+" C");
+    expect(Math.abs(end[0]-start[0])).toBeGreaterThan(16);
+  }
   for(const [i,bank] of (await sourceBank.evaluateAll(nodes=>
     nodes.map(el=>({
       order:el.getAttribute("data-km-fuchun-near-bank-order"),
