@@ -51,8 +51,8 @@ export const READER_FACE_LANDMARKS:readonly ReaderFaceLandmark[]=[
   {name:"earlobe",x:115.3,y:117.8},
   {name:"near-eye-inner",x:136,y:102},
   {name:"near-eye-outer",x:119,y:102.3},
-  {name:"far-eye-inner",x:152,y:102.8},
-  {name:"far-eye-outer",x:163.5,y:101.1},
+  {name:"far-eye-inner",x:152,y:103.6},
+  {name:"far-eye-outer",x:163.5,y:102},
   {name:"nose-tip",x:152.4,y:115.5},
   {name:"mouth-corner",x:148.8,y:124},
   {name:"chin",x:143.3,y:143.7},
@@ -101,7 +101,7 @@ export function scrollReaderFacePortrait(detail=1):
     // Orbital shadows sit below the eyelids, not as symmetrical smile arcs.
     p("M119.2 105.4 Q127.7 108.8 135.7 105.1",
       "none","$skinshade",.49,.4),
-    p("M153.2 105.1 Q158.7 107.1 163.2 104.2",
+    p("M153.2 105.9 Q158.7 107.9 163.2 105",
       "none","$skinshade",.45,.38),
     // Philtrum and lower lip are almost invisible in the teacher art.
     p("M144.5 119.6 Q144.9 121.4 145.3 122.1",
@@ -172,7 +172,7 @@ export function scrollReaderFacePortrait(detail=1):
   ]);
   const pupilRight=asset("far-pupil",[
     ...anatomy.farPupil,
-    p("M156.3 104.3 l.2 1.1","none","$ink",.66,.64),
+    p("M156.3 105.1 l.2 1.1","none","$ink",.66,.64),
   ]);
   // The near ear needs its own OVER-HAIR plane. In the source painting
   // the ear is outlined *in front of* the sideburn; putting both marks
