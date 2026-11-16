@@ -632,6 +632,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
           <option value="source-oral-sculpt">CC0 tooth-overhang / rounded inner lip wax (unapproved V16)</option>
           <option value="source-nose-sculpt">CC0 attached nasal tip, alar and septal cartilage (unapproved V17)</option>
           <option value="source-nasal-depth">CC0 physically occluded nasal wax / painted alar undercoat (unapproved V18)</option>
+           <option value="source-contour-joined">CC0 shared alar rim and dark recess wax (experimental V19)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -680,6 +681,12 @@ export const Cc0NasalDepthAndOcclusion:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
+};
+export const Cc0JoinedNarisContourMacro:Story={
+  name:"CC0 source-attached alar rim and shadow 3× (!dev V19)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-contour-joined" initialInspection="nose"/>,
 };
 export const Cc0NasalCartilageSculptMacro:Story={
   name:"CC0 human nose · source-rooted 3D cartilage wax 3× (unapproved V17)",

@@ -1058,3 +1058,43 @@ test("F1 V18 physically rooted nasal wax undercoat and hood A/B",async({page},in
     .not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** V19: real source-registered 1x/3x wax screenshot artifacts.
+ * Evidence of native render only, NOT ArtCraft visual release.
+ */
+test("F1 V19 joined near/far nasal rim browser A/B against V17/V18",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  const imgs:Uint8Array[]=[];
+  for(const midfaceForm of ["source-nose-sculpt","source-nasal-depth",
+    "source-contour-joined"] as const){
+    const spec=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const focus of [null,{focusX:417,focusY:629,zoom:3}] as const){
+      const candidate=focus?{...spec,camera:[
+        {frame:0,...focus},{frame:299,...focus}]}:spec;
+      for(const frame of [210,299] as const){
+        const art=renderToStaticMarkup(createElement(CrayonScene,{
+          spec:candidate,frame,
+        }));
+        await page.setContent("<!doctype html><html><body style='margin:0'>"+
+          art+"</body></html>");
+        const svg=page.locator("svg[data-km-crayon-scene]");
+        await expect(svg).toBeVisible();
+        for(const side of ["near","far"] as const){
+          for(const region of ["naris-shadow","alar-roof",
+            "nasal-alar-attachment"])
+            await expect(svg.locator('[data-km-crayon-element="'+
+              region+"-"+side+'"]')).toHaveCount(1);
+        }
+        const shot=await svg.screenshot({animations:"disabled",
+          path:info.outputPath("crayon-f1-v19-"+(focus?"3x":"1x")+
+            "-"+midfaceForm+"-"+frame+".png")});
+        if(frame===299&&focus)imgs.push(shot);
+      }
+    }
+  }
+  expect(Buffer.compare(Buffer.from(imgs[0]),Buffer.from(imgs[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(imgs[1]),Buffer.from(imgs[2]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
