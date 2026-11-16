@@ -4,6 +4,8 @@ import {inkReaderExpressionStudy,READER_INK_EMOTIONS} from
   "../src/video/ink-shanshui-reader-expression";
 import {inkReaderCueFrame,readerInkCueWeight,READER_INK_CUE} from
   "../src/video/ink-shanshui-expression-cue";
+import {readerInkGaze,readerInkEyeApertures,READER_INK_GAZE_LIMITS} from
+  "../src/video/ink-shanshui-reader-gaze";
 const shapes=(assets:ReturnType<typeof scrollReaderFacePortrait>,name:string)=>{
   const asset=assets[name];
   if(asset.kind!=="shapes")throw Error("Expected SVG shape layer");
@@ -134,6 +136,46 @@ describe("EXPR1 anatomy-driven Chinese-ink reader",()=>{
         expect(new Set(lips).size).toBe(5);
       }
     }
+  });
+
+  it("keeps original near/far ANAT1 iris detail at neutral and bounds asymmetric gaze",()=>{
+    const unchanged=scrollReaderFacePortrait(1);
+    const neutral=readerInkGaze(0,0);
+    expect(neutral).toEqual({near:{x:0,y:0},far:{x:0,y:0}});
+    const right=readerInkGaze(1,1);
+    const left=readerInkGaze(-1,-1);
+    expect(right.near.x).toBeGreaterThan(right.far.x);
+    expect(right.near.y).toBeGreaterThan(right.far.y);
+    expect(right.near.x).toBeCloseTo(READER_INK_GAZE_LIMITS.near.x);
+    expect(right.far.y).toBeCloseTo(READER_INK_GAZE_LIMITS.far.y);
+    expect(left.near.x).toBe(-right.near.x);
+    expect(left.far.y).toBe(-right.far.y);
+    expect(unchanged).toEqual(scrollReaderFacePortrait(1));
+    for(const [x,y] of [[NaN,0],[0,Infinity],[-1.01,0],[0,1.01]]){
+      expect(()=>readerInkGaze(x,y)).toThrow(RangeError);
+    }
+  });
+  it("clips original iris strokes to the authored dynamic near/far eyelid paint, not a generic oval",()=>{
+    const original=scrollReaderFacePortrait(1);
+    for(const lids of ["open","soft"] as const){
+      const windows=readerInkEyeApertures(original,lids);
+      expect(windows).not.toBeNull();
+      const shapes=original["eyes-"+lids];
+      if(shapes.kind!=="shapes")throw Error("eyes must be paths");
+      const [near,far]=shapes.shapes;
+      expect(near.type).toBe("path");
+      expect(far.type).toBe("path");
+      if(near.type!=="path"||far.type!=="path")continue;
+      expect(windows).toEqual({near:near.d,far:far.d});
+      expect(windows?.near).not.toEqual(windows?.far);
+    }
+    const expanded=inkReaderExpressionStudy("surprise",1,1);
+    const contracted=inkReaderExpressionStudy("smile",1,1);
+    expect(readerInkEyeApertures(expanded.assets,"soft")).not.toEqual(
+      readerInkEyeApertures(contracted.assets,"soft"));
+    expect(readerInkEyeApertures(original,"closed")).toBeNull();
+    expect(original["pupil-left"]).toEqual(scrollReaderFacePortrait(1)["pupil-left"]);
+    expect(original["pupil-right"]).toEqual(scrollReaderFacePortrait(1)["pupil-right"]);
   });
 
 });
