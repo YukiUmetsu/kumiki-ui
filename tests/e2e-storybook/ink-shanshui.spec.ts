@@ -276,9 +276,15 @@ test("four distinct historical ink schools paint separate real rooted rock struc
       .evaluateAll(nodes=>nodes.map(node=>
         Number(node.getAttribute("data-km-cliff-pine-height"))));
     expect(treeHeights).toHaveLength(5);
-    if(school==="fuchun")
+    if(school==="fuchun"){
       expect(Math.max(...treeHeights)-Math.min(...treeHeights))
         .toBeGreaterThan(54);
+      const sites=await card.locator("[data-km-cliff-pine-root]").evaluateAll(
+        nodes=>nodes.map(node=>Number((node.getAttribute("data-km-cliff-pine-root")??"").split(",")[0])));
+      expect(sites).toHaveLength(5);
+      expect(sites[4]-sites[0]).toBeGreaterThan(160);
+      expect(sites.slice(1).filter((x,j)=>x-sites[j]>50)).toHaveLength(2);
+    }
     const boughStations=await card.locator(
       "[data-km-cliff-pine-bough-station]").evaluateAll(nodes=>nodes.map(
         node=>Number(node.getAttribute("data-km-cliff-pine-bough-station"))));
@@ -511,8 +517,16 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
   await expect(undercuts).toHaveCount(6);
   await page.getByRole("button",{name:"Stone volumes · brush hidden"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","stone");
-  await expect(fuchun.locator("[data-km-master-stratum-field]")).toBeHidden();
-  await expect(fuchun.locator("[data-km-master-brush-field]")).toBeHidden();
+  const stratumFields=fuchun.locator("[data-km-master-stratum-field]");
+  const brushFields=fuchun.locator("[data-km-master-brush-field]");
+  // Three source stone faces each own a field; never call a singular
+  // visibility assertion on a multi-match Playwright locator.
+  await expect(stratumFields).toHaveCount(3);
+  await expect(brushFields).toHaveCount(3);
+  for(let i=0;i<3;i++){
+    await expect(stratumFields.nth(i)).toBeHidden();
+    await expect(brushFields.nth(i)).toBeHidden();
+  }
   await expect(fuchun.locator("[data-km-cliff-pine-grove]")).toBeHidden();
   await expect(fuchun.locator("[data-km-rock-hero-cliff]")).toBeHidden();
   await expect(fuchun.locator("[data-km-master-fuchun-hillback-wash]")).toHaveCount(6);
