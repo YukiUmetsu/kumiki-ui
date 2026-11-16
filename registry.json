@@ -3981,6 +3981,38 @@
       ]
     },
     {
+      "name": "costume",
+      "type": "registry:ui",
+      "title": "Clothing and Costume Framework (COSTUME1)",
+      "description": "Clothing and costume of the whole world found by tags, not by period alone: UN M49 regions (hierarchical), ISO 3166 countries and cultures, year ranges and named eras (Heian, Edo, Joseon, Ming, Qing, Victorian and more), worn by women, men or all, roles, occasions, body slot, cut, fabrics and climate. 74 garments across East, South and South-east Asia, Western Asia, Africa, Europe, the Americas and Oceania, each with local names, a sourced description, graded period, drawing notes and where the library already draws it; 33 outfits for a place, year and wearer; a query engine (findGarments, findOutfits, tag strings), facet counts, a world-by-time matrix, front-view garment constructions on the measured ANAT1 person (sleeves, skirts, trousers, bands, drapes, hats) and a reference sheet.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/costume/costume-data.ts",
+          "type": "registry:ui",
+          "target": "components/costume/costume-data.ts"
+        },
+        {
+          "path": "registry/costume/costume-query.ts",
+          "type": "registry:ui",
+          "target": "components/costume/costume-query.ts"
+        },
+        {
+          "path": "registry/costume/costume-shapes.ts",
+          "type": "registry:ui",
+          "target": "components/costume/costume-shapes.ts"
+        },
+        {
+          "path": "registry/costume/costume-react.tsx",
+          "type": "registry:ui",
+          "target": "components/costume/costume-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "facial-expressions",
       "type": "registry:ui",
       "title": "Facial Expressions Framework (EXPR1)",
