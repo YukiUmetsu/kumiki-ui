@@ -202,8 +202,8 @@ export function newHeadCranialTonalVolume(
     ["#805C68","#996C72","#745F70"], // deep far temporal terminator
     ["#B18B90","#D0ABA0","#8D7A82"], // narrow cool bounce
   ] as const;
-  const opacities=[.17,.30,.38,.53,.33] as const;
-  const weights=[.74,.61,.44] as const;
+  const opacities=[.28,.43,.58,.73,.48] as const;
+  const weights=[2.40,1.75,1.05] as const;
   const strokes:string[][][]=Array.from({length:5},()=>
     Array.from({length:3},()=>[] as string[]));
   // Fill each of 5 values with an exact, independently preserved count.
@@ -240,7 +240,7 @@ export function newHeadCranialTonalVolume(
         (pencilHash(seed,key,405)-.5)*.19;
       const ux=Math.cos(angle),uy=Math.sin(angle);
       const orthoX=-uy,orthoY=ux;
-      const span=(3.0+3.9*pencilHash(seed,key,406))*
+      const span=(5.1+6.7*pencilHash(seed,key,406))*
         (.58+.42*edge)*(.77+.23*pressure)*(pass===2?.78:1);
       const deflect=(pencilHash(seed,key,407)-.5)*.54;
       strokes[band][pass].push(line(
@@ -266,7 +266,7 @@ export function newHeadCranialTonalVolume(
     out.push(drawn("newhead-cranium-"+id+"-cross"+pass,
       strokePath,
       palette[band][pass],weights[pass],
-      opacities[band]*[.86,1,.76][pass],
+      opacities[band]*[.93,1,.84][pass],
       173+band*4+pass*7));
   }
   return out;
