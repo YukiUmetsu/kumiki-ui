@@ -39,18 +39,28 @@ function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registration,
     return <g data-km-riso62-plate-art={ink}>
       {Array.from({length:isBlue?11:9},(_,i)=>{
         const count=isBlue?11:9;
-        const t=i/(count-1),angle=t*Math.PI*1.53+phase*.18+(isBlue?0:.4);
-        const large=portrait?178:209;
-        const radius=large*(.72+t*.65);
-        const sx=w*.51-Math.cos(angle)*radius*.84;
-        const sy=originY-Math.sin(angle)*radius*.66;
-        const ex=w*.51+Math.cos(angle+.33)*radius*.90;
-        const ey=originY+Math.sin(angle+.21)*radius*.73;
-        const bend=(isBlue?1:-1)*radius*(.33+.13*Math.sin(i*1.8));
+        const lane=i-(count-1)/2,t=i/(count-1);
+        // Actual film-media art direction: do not put every original
+        // pressure ribbon through one common central red/blue ink knot.
+        // In landscape the curves flow across adjacent river courses;
+        // portrait rotates the spatial grammar into tall, staggered S-curves.
+        const pulse=Math.sin(phase*Math.PI*2+i*.47)*18;
+        const sx=portrait?w*.33+lane*17:w*.11+Math.sin(i*1.18)*13;
+        const sy=portrait?h*.17+(i%3)*12:originY+lane*24+
+          Math.sin(i*1.31)*7+(isBlue?0:-19);
+        const ex=portrait?w*.69+lane*16:w*.89-Math.sin(i*.9)*13;
+        const ey=portrait?h*.83-(i%4)*10:originY+lane*24+
+          Math.cos(i*.88)*13+(isBlue?0:23);
+        const c1=portrait
+          ? P(sx+(isBlue?-79:65)+pulse*.45,h*.35)
+          : P(w*.35,sy+(isBlue?-51:54)+pulse*.6);
+        const c2=portrait
+          ? P(ex+(isBlue?85:-69)-pulse*.65,h*.64)
+          : P(w*.65,ey+(isBlue?46:-61)-pulse*.75);
         const options:RisoBrushOptions={
-          start:P(sx,sy),control1:P(w*.47+bend,sy-radius*.22),
-          control2:P(w*.54-bend,ey+radius*.22),end:P(ex,ey),
-          width:inkScale*(isBlue?8.8:7.5)*(1-t*.48),
+          start:P(sx,sy),control1:c1,
+          control2:c2,end:P(ex,ey),
+          width:inkScale*(isBlue?12:9.7)*(1-t*.33),
           pressure:i%3===0?pressure:finePressure,
           dryness:Math.min(1,dryness*(i%4===0?1:.67)),
           seed:seed+offset+i*53,steps:80,
