@@ -1097,3 +1097,39 @@ test("four-frame ink continuity Storybook uses distinct native frames and isolat
   }))).toMatchObject({overflowX:"auto"});
   expect(await crop.evaluate(node=>node.scrollWidth>node.clientWidth)).toBe(true);
 });
+
+test("native full-film ink continuity inspector keeps one original scholar and source-sized video",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--ink-film-continuity&viewMode=story");
+  const lab=page.getByTestId("shanshui-ink-continuity-studio");
+  const cards=lab.locator("[data-km-ink-continuity-frame]");
+  await expect(cards).toHaveCount(4);
+  await expect(lab.locator("[data-km-ink-character-frame]")).toHaveCount(0);
+  const native=lab.getByRole("button",{name:/Native 1× complete film/});
+  await native.click();
+  await expect(native).toHaveAttribute("aria-pressed","true");
+  await expect(cards).toHaveCount(0);
+  const viewport=lab.getByTestId("shanshui-ink-native-viewport");
+  const film=viewport.locator("[data-km-shanshui-frame]");
+  await expect(viewport).toBeVisible();
+  await expect(film).toHaveCount(1);
+  await expect(film).toHaveAttribute("data-km-shanshui-frame","156");
+  const actor=viewport.locator("[data-km-ink-character-frame]");
+  await expect(actor).toHaveCount(1);
+  await expect(actor).toHaveAttribute("data-km-ink-character-frame","156");
+  expect(await film.evaluate(node=>({
+    width:node.getBoundingClientRect().width,
+    height:node.getBoundingClientRect().height
+  }))).toEqual({width:960,height:540});
+  await lab.getByRole("combobox",{name:"Continuity inspect moment"})
+    .selectOption("3");
+  await expect(film).toHaveAttribute("data-km-shanshui-frame","210");
+  await expect(actor).toHaveAttribute("data-km-ink-character-frame","210");
+  await viewport.screenshot({animations:"disabled",
+    path:info.outputPath("chinese-ink-native-scholar-film-frame210.png")});
+  await page.setViewportSize({width:400,height:900});
+  expect(await viewport.evaluate(node=>node.scrollWidth>node.clientWidth)).toBe(true);
+  await lab.getByRole("button",{name:"Four-frame landscape contact sheet"}).click();
+  await expect(cards).toHaveCount(4);
+  await expect(lab.locator("[data-km-ink-character-frame]")).toHaveCount(0);
+  await expect(native).toHaveAttribute("aria-pressed","false");
+});
