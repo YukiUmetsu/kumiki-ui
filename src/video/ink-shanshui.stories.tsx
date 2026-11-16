@@ -521,7 +521,7 @@ function MasterInkSourceComparison(){
     {school:"fuchun",title:"Huang Gongwang · long hemp fibre",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975",
       observation:"Rounded nested hills, uneven long hemp loaded at the head, bare paper between linked families. Do not confuse with raindrop marks.",
-      target:"Six linked round/saddle rock volumes, 15 curved loaded parent banks and all 78 anatomically rooted short/mid/long child fibres. New five-mark bank phrases alternate upper and lower parent windows with real reserved paper, saturated short crown contacts, and more diluted long recess strokes; use the bank-isolation proof to detect parallel rain or too-clean peaks. Preserve four hero fractures and five distinct pines with 20 boughs, 119 wet bunches, 40 fan masses, 60 pads and 310 needles. This remains an unapproved original technique study, not a reconstruction."},
+      target:"Six positive curved Fuchun stone cheeks now support twelve independent low, laterally sweeping loaded rock courses sampled from the actual undercut rim. Each is clipped to its own source rock, rather than painting parallel free wires into empty paper. Preserve all six undercuts, 15 loaded parent banks, 78 short/mid/long attached children, original five pines and 20 boughs, 119 wet bunches, 40 fan masses, 60 pads and 310 needles. In Stone volumes mode inspect rounded horizontal value rhythms at macro/meso/micro before restoring the complete film. Artistic source fidelity is not certified."},
     {school:"early-spring",title:"Guo Xi · curled cloud-head",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000960",
       observation:"Reversing cloud-head rock rolls, layered ink ranges and open mist; crab-claw pine branching in the source.",
@@ -590,9 +590,9 @@ function MasterInkSourceComparison(){
           {title}
         </button>)}
       <span style={{maxWidth:500,fontSize:12,color:"#675745"}}>
-        Storybook-only: isolate original seven-curve rock volumes and wet/dry
-        undercuts from long-fibre marks without editing the source paths,
-        the other schools, or the production film clock.
+        Storybook-only: isolate original seven-curve stone backs, wet/dry
+        undercuts and twelve transverse ink courses. All source paths,
+        other schools and the native film clock remain untouched.
       </span>
     </div>
     <div data-testid="shanshui-master-controls"
