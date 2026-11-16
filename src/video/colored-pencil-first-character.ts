@@ -191,7 +191,7 @@ function embedHeadContourContacts(
       let assigned=false;
       for(let attempt=0;attempt<candidates.length;attempt++){
         const index=candidates[(cursor+attempt)%candidates.length];
-        if(paths[index].length+stroke.length+1<=12000){
+        if(paths[index].length+stroke.length+1<12000){
           paths[index]+=" "+stroke;
           cursor=(cursor+attempt+1)%candidates.length;
           assigned=true;break;
