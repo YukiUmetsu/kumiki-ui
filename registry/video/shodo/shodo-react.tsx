@@ -155,9 +155,14 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
         drawShodoBrushShadow(c, cam, p, plan.style.brush, plan.brush.diameter, look);
         drawShodoBrush(c, cam, p, plan.style.brush, plan.style.ink, plan.brush.diameter, look, plan.style.seed, textures);
       };
-      // A 180° shutter at the film rate: fast moves are averaged over several sub-poses.
+      // A 180° shutter at the film rate: fast moves are averaged over several sub-poses. The
+      // travel is measured over the shutter: the tip in 3D, and the top of the handle, which
+      // swings with the lean. Sub-poses are spaced closely enough to read as one smear.
       const shutter = .5 / fps;
-      const travel = pose.speed * shutter;
+      const p0 = shodoBrushPose(plan, seconds - shutter / 2), p1 = shodoBrushPose(plan, seconds + shutter / 2);
+      const handle = plan.brush.tuftLength * (1 + plan.style.brush.handleLength);
+      const swing = Math.hypot(p1.leanX - p0.leanX, p1.leanY - p0.leanY) * Math.PI / 180 * handle;
+      const travel = Math.max(Math.hypot(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z), swing);
       if (motionBlur && blurLayers && travel > plan.brush.diameter * .12) {
         const [acc, one] = blurLayers;
         for (const c of [acc, one]) if (c.width !== canvas.width || c.height !== canvas.height) { c.width = canvas.width; c.height = canvas.height; }
@@ -166,7 +171,7 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
           a.setTransform(1, 0, 0, 1, 0, 0); a.clearRect(0, 0, acc.width, acc.height);
           a.globalCompositeOperation = "lighter";
           // Enough sub-poses that the blur reads as a smear, not as separate ghosts.
-          const n = Math.max(3, Math.min(7, Math.ceil(travel / (plan.brush.diameter * .2))));
+          const n = Math.max(3, Math.min(16, Math.ceil(travel / (plan.brush.diameter * .12))));
           for (let k = 0; k < n; k++) {
             o.setTransform(1, 0, 0, 1, 0, 0); o.clearRect(0, 0, one.width, one.height);
             o.setTransform(dpr, 0, 0, dpr, 0, 0);

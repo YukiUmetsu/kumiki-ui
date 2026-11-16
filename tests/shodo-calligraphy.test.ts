@@ -246,6 +246,27 @@ describe("SHO1 shodō calligraphy", () => {
     expect(worstHeight).toBeLessThan(.3 * L);
   });
 
+  it("moves the tip smoothly at 30 fps: an early start, eased arcs, no step to full speed, no snap at a lift", () => {
+    for (const char of ["永", "道"]) {
+      const plan = planShodoWriting({ items: [{ glyph: SHODO_GLYPHS[char], x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE });
+      const D = plan.brush.diameter;
+      const P = Array.from({ length: Math.ceil(plan.duration * 30) + 1 }, (_, f) => shodoBrushPose(plan, f / 30));
+      const step = (a: typeof P[0], b: typeof P[0]) => Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z);
+      let airAcc = 0, bendStep = 0, jumps = 0;
+      for (let f = 2; f < P.length; f++) {
+        const [a, b, c] = [P[f - 2], P[f - 1], P[f]];
+        const acc = Math.hypot(c.x - 2 * b.x + a.x, c.y - 2 * b.y + a.y, c.z - 2 * b.z + a.z);
+        if (!(a.contact && b.contact && c.contact)) airAcc = Math.max(airAcc, acc);
+        bendStep = Math.max(bendStep, Math.abs(c.bend - b.bend));
+        if (step(a, b) < .5 && step(b, c) > 8) jumps++;                  // standstill, then full speed
+      }
+      expect(P.findIndex((p, f) => f > 0 && step(P[f - 1], p) > .5)).toBeLessThanOrEqual(8);  // moves within 8 frames
+      expect(airAcc, char).toBeLessThan(.4 * D);                         // was .52–.59 D before the eased arcs
+      expect(bendStep, char).toBeLessThan(.25);                          // was .35 when the spring-back snapped
+      expect(jumps, char).toBe(0);
+    }
+  });
+
   it("reads KanjiVG components, merging a part split around another one", () => {
     const glyph = parseKanjiVgSvg(`<svg viewBox="0 0 109 109"><g kvg:element="回">
       <g kvg:element="囗" kvg:part="1" kvg:position="kamae"><path d="M20,20 L20,90"/><path d="M20,20 L90,20 L90,90"/></g>
@@ -318,6 +339,7 @@ describe("SHO1 shodō calligraphy", () => {
     // Sample data belongs to 道 only; nothing is invented for another character.
     expect(resolveKanjiCardContent("道", {}).jlpt).toBe("N4");
     expect(resolveKanjiCardContent("道", { jlpt: null }).jlpt).toBeNull();
+    expect(resolveKanjiCardContent("道", {}).vermilionStrokes).toBeUndefined();         // all black unless asked
     expect(Object.values(resolveKanjiCardContent("山", {})).every(v => v === undefined)).toBe(true);
     const { unmount } = render(createElement(ShodoKanjiInfoCard, { char: "山", meanings: "MOUNTAIN" }));
     expect(screen.queryByText(/JLPT/)).toBeNull();

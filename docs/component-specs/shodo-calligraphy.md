@@ -1,7 +1,7 @@
 # Shodō brush calligraphy (SHO1)
 
 **Pack:** `shodo-calligraphy` · **Files:** `registry/video/shodo/` · **Storybook:** Video production / Film Looks / Shodō Calligraphy
-**Research:** [SHO1 reference study](../research/shodo-calligraphy-reference-study-2026-11-15.md)
+**Research:** [SHO1 reference study](../research/shodo-calligraphy-reference-study-2026-11-15.md) · [brush photo reference note](../research/shodo-brush-reference-2026-11-16.md)
 
 SHO1 writes Japanese characters with a simulated hand and brush. The shape of each mark comes from the brush motion, not from drawn outlines. Every frame is a pure function of the plan and the time, so a film can seek in any order.
 
@@ -69,6 +69,17 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
 - **Lean** (`ShodoBrushPose.leanX/leanY`, degrees): `hand.lean` toward `hand.leanAzimuth` at rest; pressing stands the brush up; travel tilts it toward the direction of motion, more with `hand.sideBrush` (直筆 0 → 側筆 1); 払い follows through, 撥ね throws toward the hook, a pushed 逆筆 entry leans against the motion. Filtered at 85 ms.
 - **Height**: in contact the ferrule height falls with press (about 0.9 → 0.45 tuft lengths) and the tuft bends into an L; in the air the brush lifts nearly straight up, travels high and comes straight down onto the next start.
 - `ShodoBrushProfile` draws the brush from the side; the story *Brush motion (top and side)* traces lean and height over time.
+- **Smooth at 30 fps.** These rules were measured frame by frame on 道.
+  - The brush starts to move after 0.2 s (6 frames; `lead`, before 0.5 s).
+  - An air move is one smooth arc. It uses quintic eases. The lift takes the first 42 % of the move, the travel 90 % and the descent the last 45 %. The travel starts at the speed with which the brush left the paper, so a 払い follows through.
+  - A quick hop (under 0.4 s) lifts less, down to 60 % of the height. The exit hover rises only a little.
+  - The spring-back of the hair starts from the bend that the hair had on the paper, so it does not snap.
+  - Along a stroke, the speed (not the path) is smoothed in time: a Gaussian with σ = 22 ms. The start, the end, the exit speed, the press and the corners do not change.
+  - The canvas measures the brush travel over the shutter (tip and handle top) and uses up to 16 motion-blur sub-poses.
+  - Result on 道 at speed 1.6:
+    - peak tip acceleration: 41 → 22 px/frame² in the air, 18 → 14 on the paper;
+    - steps from a standstill to full speed: 7 → 1;
+    - the largest bend step: 0.42 → 0.25.
 
 ## Configuration
 
@@ -83,7 +94,7 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
 
 `ShodoKanjiCard` (in `src/video/shodo-demos.tsx`, story *Kanji study card*) is a study video for one kanji in three phases:
 
-1. **Write.** The brush writes the character. Strokes in `vermilionStrokes` use 朱墨 and get the arrow guide.
+1. **Write.** The brush writes the character in black ink (sumi). Vermilion ink (朱墨) is an option, off by default: `ink: "vermilion"` for the whole character, or `vermilionStrokes` to highlight strokes (these get the arrow guide).
 2. **Review.** The sheet is fresh and the brush writes the character again. When the brush lands for a stroke, a small number fades in next to the start of that stroke. The numbers are dark vermilion (#B3301A, contrast 5.6:1 on hanshi) with a thin paper halo. Their text size is 0.42 of the brush diameter (about 24 px at 1280 × 720). `shodoStrokeNumbers` applies two rules. First, a number is nearer to the start of its own stroke than to the start of any other stroke, so it cannot be read as the number of a different stroke. Second, a number is clear of the ink of the finished character, also of ink that a later stroke writes. When no place within about 3.6 text sizes obeys both rules, the number sits on the ink at the start of its own stroke, with a wider paper halo (in 道, number 4 sits on 一 where the first stroke of 自 starts). The numbers do not overlap each other.
 3. **Info.** The finished review holds with the reading card.
 
@@ -96,7 +107,10 @@ The ink of the character is centred in the writing panel, not in the full frame.
 | `meanings`, `onyomi`, `kunyomi` | sample for 道 only | The text of the card. |
 | `jlpt` | sample for 道 only (`"N4"`) | `"N5"` to `"N1"`. With no level (or `null`), the card shows no badge. |
 | `words` | sample for 道 only | Useful words: `{ word, ruby, romaji, meaning }`. The Japanese word is the largest text of the row. |
-| `vermilionStrokes` | sample for 道 only (`[12]`) | Strokes (from 1) written in 朱墨. |
+| `vermilionStrokes` | none | Strokes (from 1) written in 朱墨 to highlight them. |
+| `ink` | `"sumi"` | `"sumi"` (black) or `"vermilion"` for the whole character. |
+| `speed` | `1.6` | Hand speed (0.25..4) when `timing.write` is not set. |
+| `strokeNumbers` | `true` | The order numbers in the review pass. |
 | `layout` | `"landscape"` | `"landscape"` is 16:9 (1280 × 720), card on the right. `"portrait"` is 9:16 (720 × 1280) for phone shorts, card under the sheet. |
 | `timing` | `{}` | Seconds per phase: `write` (default: the natural pace of the brush at speed 1.6), `review` (default: the same as `write`), `info` (default: 4). A phase of 0 s is skipped. When `write` is set (or `review`, with `write: 0`), the hand speed is fitted to it (0.25 to 4), and each pass is then stretched to its phase. |
 | `sections` | all `true` | Turn off `label`, `meanings`, `readings`, `jlpt` or `words`. A part with no data never shows. With no card parts, the sheet fills the frame. |
@@ -106,7 +120,11 @@ The ink of the character is centred in the writing panel, not in the full frame.
 
 **JLPT levels.** JLPT has published no official kanji list since 2010, so a level is an estimate. The card takes the level as data and bundles no level table. The level of the 道 sample (N4) is from Jonathan Waller's JLPT kanji lists at tanos.co.uk. The page *Use my data!* of that site (`tanos.co.uk/jlpt/sharing/`, archived 2026-08-09) states that everything on the site that is not for sale is licensed under Creative Commons "BY", and asks for credit. A host that copies levels from those lists must credit the site.
 
-**Phone fit.** In the portrait layout, body text is 26 design px or more and the furigana is 21 design px. On a phone frame 390 px wide, this gives 14 px body text and 11.5 px furigana. If long text does not fit the card, its text gets smaller, to 60 % at the least, before anything is cut. The card reports `data-km-fit` and `data-km-overflow`. The frame reports `data-km-ink-box`, `data-km-timeline` and `data-km-kanji-phase` for rendered-bounds checks.
+**Layout of the 9:16 card.** The readings stand side by side, with the JLPT badge on the same row. The useful words are tiles in one row (up to 3; 4 words make a 2 × 2 grid). Each tile has the word with its furigana, then the romaji and the meaning.
+
+**Storybook controls.** Both kanji-card stories have controls for every setting: the character, the card data (empty fields use the 道 sample), the speed, the phase times, the layout, the sections, the ink, one highlighted stroke and the stroke numbers.
+
+**Phone fit.** In the portrait layout, body text is 25 design px or more and the furigana is 22 design px. On a phone frame 390 px wide, this gives 13.5 px body text and 11.9 px furigana. If long text does not fit the card, its text gets smaller, to 60 % at the least, before anything is cut. The card reports `data-km-fit` and `data-km-overflow`. The frame reports `data-km-ink-box`, `data-km-timeline` and `data-km-kanji-phase` for rendered-bounds checks.
 
 ## States and accessibility
 
