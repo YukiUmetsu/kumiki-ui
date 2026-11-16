@@ -25,9 +25,9 @@ export const RISO32_THUMB_ANAT1={
 };
 /** Source units at the anatomical DIP-equivalent thumb IP pivot. */
 export const RISO32_THUMB_GEOMETRY={
-  ipX:5.2,ipY:-1.3,
-  rootLength:Math.hypot(5.2,-1.3),
-  distalReach:7.2,
+  ipX:3.3,ipY:-1.15,
+  rootLength:Math.hypot(3.3,-1.15),
+  distalReach:5.6,
   overlap:2.4,
 } as const;
 
@@ -54,7 +54,7 @@ export function riso32ThumbIpJoint(side:Riso32Side):RisoJoint{
 
 /**
  * Original cheek-like thenar-to-proximal knuckle and rounded distal pad,
- * with generous ink-to-ink overlap at the moving joint. The cap is part
+ * with a narrower overlapping bridge at the actual moving joint. The cap is part
  * of the same two-color physical stencil as the other four fingers.
  * Source paths differ across hands; they are not a reflected photograph.
  */
@@ -63,12 +63,12 @@ export function riso32ThumbInkParts(side:Riso32Side):readonly RisoCharacterPart[
   return [
     {id:side+"-glove-thumb",joint:side+"-thumb",plate:"red",paint:"solid",
       d:left
-        ?"M2.1 -3.6 Q-.5 -6 -3.2 -5.2 Q-5.5 -4.8 -7.1 -3.2 Q-7.5 -1.3 -6.7 .3 Q-5 2.5 -3 1.6 Q-.5 .3 1.7 2.2 Z"
-        :"M-2 -3.6 Q.8 -6.2 3.5 -5.5 Q5.5 -5.2 7.1 -3.2 Q7.5 -1.6 6.6 .3 Q5.1 2.8 3.1 1.6 Q.4 -.1 -1.7 2 Z"},
+        ?"M1.8 -3.3 C.4 -5.4 -1.7 -5.3 -3.3 -4.2 Q-5.3 -2.7 -5.2 -.8 C-4.4 1.6 -2.6 2.0 -.6 1.4 Q1.6 .5 1.8 -3.3 Z"
+        :"M-1.8 -3.3 C-.3 -5.4 1.9 -5.4 3.4 -4.2 Q5.4 -2.7 5.1 -.8 C4.5 1.5 2.6 2.0 .6 1.4 Q-1.6 .4 -1.8 -3.3 Z"},
     {id:side+"-glove-thumb-distal-phalanx",joint:side+"-thumb-ip",plate:"red",paint:"solid",
       d:left
-        ?"M-2.5 -1.4 C-2.3 -2.8 -.9 -3.1 .7 -2.2 C2.9 -.9 3.1 1.1 2.8 3.4 Q3.0 6.1 1.6 7.2 C.8 7.9 -.6 7.8 -1.5 7.0 Q-3.1 5.4 -3.0 3.2 Q-3.1 .3 -2.5 -1.4 Z"
-        :"M2.5 -1.5 C2.1 -2.9 .9 -3.1 -.8 -2.3 C-2.8 -.8 -3.2 1.0 -2.8 3.3 Q-2.9 6.0 -1.5 7.1 C-.7 7.8 .7 7.8 1.5 6.9 Q3.0 5.3 3.0 3.1 Q3.1 .3 2.5 -1.5 Z"},
+        ?"M-2.1 -1.5 C-2 -2.7 -.7 -3.2 .5 -2.4 C2.3 -1.1 2.8 .7 2.5 2.7 Q2.3 4.6 1.0 5.4 C.1 6.0 -.9 5.6 -1.6 4.8 Q-2.5 3.3 -2.4 1.1 Q-2.6 -.4 -2.1 -1.5 Z"
+        :"M2.1 -1.5 C2.0 -2.8 .7 -3.1 -.6 -2.4 C-2.4 -1.1 -2.7 .8 -2.5 2.7 Q-2.2 4.7 -1.0 5.4 C-.1 5.9 .9 5.6 1.6 4.7 Q2.6 3.2 2.4 1.0 Q2.6 -.5 2.1 -1.5 Z"},
   ];
 }
 
