@@ -580,6 +580,40 @@ test("brushwork study shows native rooted foliage and uneven rock deposition",as
   await expect(study.locator("[data-km-bamboo-pressure-twig]")).toHaveCount(0);
 });
 
+test("geological ArtCraft proof compares real native paintings across independently seeded constructions",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--geological-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-geology-study");
+  const original=lab.locator('[data-km-geology-condition="original"]');
+  const alternate=lab.locator('[data-km-geology-condition="seed-variation"]');
+  const checkbox=page.getByRole("checkbox",{name:"Compare alternate seed"});
+  await expect(checkbox).not.toBeChecked();
+  await expect(alternate).toHaveCount(0);
+  await checkbox.check();
+  await expect(alternate).toHaveCount(1);
+  await expect(original).toHaveAttribute("data-km-geology-seed","71");
+  await expect(alternate).toHaveAttribute("data-km-geology-seed","87");
+  await expect(alternate.locator("[data-km-shanshui-scene]"))
+    .toHaveAttribute("data-km-shanshui-frame","145");
+  await expect(alternate.locator("image")).toHaveCount(0);
+  // Both studies paint from the production renderer, not seeded screenshot assets.
+  const first=await original.locator('[data-km-geology-crop="original"]')
+    .screenshot({animations:"disabled"});
+  const second=await alternate.locator('[data-km-geology-crop="seed-variation"]')
+    .screenshot({animations:"disabled",path:info.outputPath("shanshui-geology-alternate-seed-87.png")});
+  expect(first.equals(second)).toBe(false);
+  // The second seed wraps safely at the documented 199 upper bound.
+  const seedSlider=page.getByRole("slider",{name:"Geology seed"});
+  await seedSlider.focus();
+  await seedSlider.press("End");
+  await expect(seedSlider).toHaveValue("199");
+  await expect(alternate).toHaveAttribute("data-km-geology-seed","16");
+  await expect(original).toHaveAttribute("data-km-geology-seed","199");
+  await page.getByRole("button",{name:"Reset geology proof"}).click();
+  await expect(checkbox).not.toBeChecked();
+  await expect(alternate).toHaveCount(0);
+  await expect(seedSlider).toHaveValue("71");
+});
+
 test("geological ArtCraft proof compares source-rooted forms against a genuine missing-detail control",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--geological-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-geology-study");
