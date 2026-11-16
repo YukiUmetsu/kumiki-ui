@@ -63,7 +63,8 @@ test("Chinese-ink EXPR1 timeline scrubs an actual source reader through neutral,
   const picker=page.getByRole("combobox",{name:"EXPR1 emotion"});
   const frame=page.getByRole("slider",{name:"EXPR1 motion frame"});
   const brow=micro.locator('[data-km-ink-expression-part="brows"] path').first();
-  const mouth=micro.locator('[data-km-ink-expression-part="mouth"] path').last();
+  const mouth=micro.locator('[data-km-ink-expression-part="mouth"] path');
+  const mouthGeometry=()=>mouth.evaluateAll(paths=>paths.map(path=>path.getAttribute("d")).join("|"));
   await picker.selectOption("sad");
   await frame.focus();
   await frame.press("Home");
@@ -82,10 +83,10 @@ test("Chinese-ink EXPR1 timeline scrubs an actual source reader through neutral,
   await expect(frame).toHaveValue("96");
   expect(await brow.getAttribute("d")).toEqual(neutral);
   await picker.selectOption("smile");
-  const mouthNeutral=await mouth.getAttribute("d");
+  const mouthNeutral=await mouthGeometry();
   await frame.press("Home");
   for(let n=0;n<12;n++)await frame.press("ArrowRight");
-  expect(await mouth.getAttribute("d")).not.toEqual(mouthNeutral);
+  expect(await mouthGeometry()).not.toEqual(mouthNeutral);
   await expect(page.getByTestId("reader-expr1-cue-frames")
     .locator("[data-km-ink-cue-frame]")).toHaveCount(7);
   await expect(page.getByRole("button",{name:"Reset cue"})).toBeVisible();
