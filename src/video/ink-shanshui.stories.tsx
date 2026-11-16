@@ -1125,8 +1125,9 @@ function FuchunSourceFidelityDesk(){
       style={{margin:0,maxWidth:1050,fontSize:13}}>
       <strong>Artist rejection check:</strong> {checklist[layer]}
     </p>
-    <div style={{display:"grid",gridTemplateColumns:
-      "repeat(auto-fit,minmax(min(100%,510px),1fr))",
+    <div style={{display:"grid",
+      gridTemplateColumns:lens==="native"?"minmax(0,1fr)":
+        "repeat(auto-fit,minmax(min(100%,510px),1fr))",
       gap:16,alignItems:"start"}}>
       {([firstSeed,secondSeed] as const).map((seed,index)=>{
         const controls:ShanshuiControls={
