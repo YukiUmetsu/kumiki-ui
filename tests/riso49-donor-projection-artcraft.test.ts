@@ -14,7 +14,6 @@ const phases=["pip","dip"] as const;
 describe("RISO49 — Courier original 3/4 donor support, original print and human identity",()=>{
   it("changes only the six original right PIP/DIP stations; no new or flattened ink",()=>{
     expect(COURIER.joints).toHaveLength(COURIER_BASE_JOINTS.length);
-    expect(COURIER.parts).toHaveLength(PAPER_ARTIST.parts.length-0+(COURIER.parts.length-PAPER_ARTIST.parts.length));
     expect(inspectRisoCharacter(COURIER)).toEqual([]);
     expect(inspectRisoCharacter(PAPER_ARTIST)).toEqual([]);
     for(const original of COURIER_BASE_JOINTS){
