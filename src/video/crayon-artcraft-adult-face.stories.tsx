@@ -720,7 +720,7 @@ export const Cc0Anat1NearEyeDetailV36:Story={
   name:"CC0 ANAT1 source near-eye tarsal occlusion 3× (!dev V36)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
-    initialMidfaceForm="source-anat1-near-eye" initialInspection="eyes"/>,
+    initialMidfaceForm="source-anat1-near-eye" initialInspection="near-eye"/>,
 };
 export const Cc0Anat1OrbitMalarV35:Story={
   name:"CC0 ANAT1 continuous orbital, cheek and bridge mass (!dev V35)",
