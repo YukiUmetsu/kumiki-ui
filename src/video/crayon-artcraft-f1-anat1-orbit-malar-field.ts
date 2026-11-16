@@ -206,7 +206,7 @@ const paint:Readonly<Record<ChangedId,Partial<Wax>>>={
   "malar-cheek-near":{
     colors:["#eac1ad","#b88a7a","#ffddc2"],
     coverage:"opaque",deposition:"stroke-built",nibStyle:"dry",
-    featherContacts:true,blendRadius:20,
+    featherContacts:true,blendRadius:18,
     underpaintGradient:{light:"#f6ceaf",shadow:"#a4766b",
       focusX:.42,focusY:.41,radius:1.16},
     underpaintTooth:.27,opaqueBurnish:.12,
@@ -214,8 +214,11 @@ const paint:Readonly<Record<ChangedId,Partial<Wax>>>={
   },
   "cheek-malar-cast":{
     colors:["#91665c","#533e3c","#c0927d"],
-    coverage:"open",deposition:"stroke-built",nibStyle:"dry",
+    coverage:"opaque",deposition:"stroke-built",nibStyle:"dry",
     featherContacts:true,blendRadius:14,
+    underpaintGradient:{light:"#bc8978",shadow:"#614744",
+      focusX:.35,focusY:.40,radius:1.10},
+    underpaintTooth:.24,opaqueBurnish:.27,
     pressure:.79,spacing:5.9,markStrength:.37,outlineOpacity:0,
   },
   "cheek-malar-bounce":{
