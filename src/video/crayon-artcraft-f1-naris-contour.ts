@@ -6,16 +6,21 @@ type Wax=Extract<CrayonElement,{kind:"wax"}>;
  * nostril turns under alar hood; far side is narrower and foreshortened.
  * We reconstruct a shared cubic skin/shadow boundary, not add opaque
  * pale circles (rejected V18). V17/V18, other anatomy and timing are kept.
+ * V19 source-registered Chromium was artistically rejected: near naris
+ * became a circular dark blob, far one a stamp, and an artificial bright rim
+ * persisted. V20 restores the source hook by carving concave negative space
+ * into the near naris and tapering the far slit while retaining an exact
+ * source-shared cartilage edge. No other anatomy or prior control is changed.
  * Neither structural tests nor screenshot creation imply artist sign-off.
  */
 export const CRAYON_F1_SHARED_NARIS_RIMS=Object.freeze({
   near:{
-    forward:"M388 632 C395 621 408 619 420 629",
-    reverse:"C408 619 395 621 388 632",
+    forward:"M388 635 C393 629 400 624 407 624 C415 622 420 625 423 630",
+    reverse:"C420 625 415 622 407 624 C400 624 393 629 388 635",
   },
   far:{
-    forward:"M446 627 C449 616 455 616 460 626",
-    reverse:"C455 616 449 616 446 627",
+    forward:"M450 634 C448 628 450 620 454 617 C458 615 461 620 461 626",
+    reverse:"C461 620 458 615 454 617 C450 620 448 628 450 634",
   },
 });
 const n=CRAYON_F1_SHARED_NARIS_RIMS.near;
@@ -41,22 +46,24 @@ const patches:Readonly<Record<string,Partial<Wax>>>={
   },
   // Exact same cubic control points in reverse: a true joined wax boundary.
   "naris-shadow-near":{
-    d:n.forward+" C421 635 415 640 410 643 "+
-      "C404 648 394 643 388 632Z",
-    bounds:{x:384,y:617,width:40,height:35},
+    d:n.forward+" C420 635 415 635 414 631 "+
+      "C407 628 405 635 403 640 "+
+      "C400 646 396 647 393 644 "+
+      "C390 642 389 638 388 635Z",
+    bounds:{x:384,y:619,width:43,height:33},
     colors:["#67403c","#211b1d","#88574f"],coverage:"opaque",
-    pressure:.89,spacing:4.1,markStrength:.31,
+    pressure:.87,spacing:4.1,markStrength:.30,
     underpaintTooth:.12,opaqueBurnish:.84,
     underpaintGradient:{light:"#875c51",shadow:"#21191c",
       focusX:.36,focusY:.57,radius:.89},
     outlineOpacity:0,edgeRoughness:.11,
   },
   "naris-shadow-far":{
-    d:f.forward+" C462 633 458 641 454 642 "+
-      "C450 641 447 635 446 627Z",
-    bounds:{x:443,y:613,width:21,height:32},
+    d:f.forward+" C462 635 458 641 454 642 "+
+      "C451 642 450 638 450 634Z",
+    bounds:{x:444,y:612,width:21,height:34},
     colors:["#71504a","#302226","#91675c"],coverage:"opaque",
-    pressure:.86,spacing:4.0,markStrength:.29,
+    pressure:.84,spacing:4.0,markStrength:.27,
     underpaintTooth:.12,opaqueBurnish:.81,
     underpaintGradient:{light:"#95695d",shadow:"#281e23",
       focusX:.3,focusY:.48,radius:.87},
@@ -64,22 +71,22 @@ const patches:Readonly<Record<string,Partial<Wax>>>={
   },
   "alar-roof-near":{
     d:"M373 624 C381 606 393 602 408 607 "+
-      "C424 612 430 623 423 635 "+
-      "C421 636 420 631 420 629 "+n.reverse+
-      " C382 634 377 631 373 624Z",
+      "C424 612 430 623 427 635 "+
+      "C426 637 424 634 423 630 "+n.reverse+
+      " C382 636 377 631 373 624Z",
     bounds:{x:369,y:600,width:64,height:39},
     colors:["#d6a99b","#9d726c","#e7bbab"],coverage:"open",
-    pressure:.61,spacing:5.4,markStrength:.29,
+    pressure:.65,spacing:5.4,markStrength:.34,
     featherContacts:true,blendRadius:5.1,outlineOpacity:0,edgeRoughness:.15,
   },
   "alar-roof-far":{
     d:"M440 617 C442 605 453 602 460 609 "+
       "C469 616 471 628 465 635 "+
-      "C461 637 462 629 460 626 "+f.reverse+
-      " C442 629 440 624 440 617Z",
+      "C462 639 461 630 461 626 "+f.reverse+
+      " C443 638 440 624 440 617Z",
     bounds:{x:437,y:600,width:37,height:41},
     colors:["#cba094","#956f69","#e2b2a4"],coverage:"open",
-    pressure:.57,spacing:5.8,markStrength:.26,
+    pressure:.62,spacing:5.8,markStrength:.30,
     featherContacts:true,blendRadius:4.4,outlineOpacity:0,edgeRoughness:.15,
   },
 };
