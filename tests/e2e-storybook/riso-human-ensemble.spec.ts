@@ -158,7 +158,12 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
     input.dispatchEvent(new Event("change",{bubbles:true}));
   });
   await expect(page.getByText("Screen cell · 9px")).toBeVisible();
-  await expect(stage.locator('pattern[width="9"]')).toHaveCount(2);
+  // RISO26 prints three genuine dot-area values on *each* of the two
+  // physical spot masters (normal, light, mid), never RGB alpha washes.
+  // All six must inherit a calibrated 9-unit screen tile.
+  await expect(stage.locator('pattern[width="9"]')).toHaveCount(6);
+  await expect(stage.locator('pattern[id*="-dots-light-"]')).toHaveCount(2);
+  await expect(stage.locator('pattern[id*="-dots-mid-"]')).toHaveCount(2);
   await page.getByRole("slider",{name:"RISO ensemble paper grain"}).evaluate(node=>{
     const input=node as HTMLInputElement;
     const set=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
