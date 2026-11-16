@@ -95,3 +95,64 @@ test("Chinese-ink EXPR1 timeline scrubs an actual source reader through neutral,
   await micro.screenshot({animations:"disabled",
     path:info.outputPath("reader-EXPR1-cue-neutral-frame0.png")});
 });
+
+
+test("ANAT1 binocular gaze remains inside separate source-painted eye apertures across EXPR1 poses",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--reader-expression-art-craft&viewMode=story");
+    const micro=page.getByTestId("reader-expr1-micro");
+    const near=micro.locator('[data-km-ink-expression-part="pupil-left"]');
+    const far=micro.locator('[data-km-ink-expression-part="pupil-right"]');
+    const nearD=await near.locator("path").first().getAttribute("d");
+    const farD=await far.locator("path").first().getAttribute("d");
+    const neutralNear=await near.getAttribute("transform");
+    const neutralFar=await far.getAttribute("transform");
+    await expect(micro.locator("[data-km-ink-iris-occlusion]")).toHaveCount(2);
+    const clips=micro.locator("clipPath");
+    await expect(clips).toHaveCount(2);
+    const nearClip=await clips.nth(0).locator("path").getAttribute("d");
+    const farClip=await clips.nth(1).locator("path").getAttribute("d");
+    expect(nearClip).toContain("118.4");
+    expect(farClip).toContain("149.1");
+    expect(nearClip).not.toEqual(farClip);
+    const horizontal=page.getByRole("slider",{name:"EXPR1 iris gaze horizontal"});
+    const vertical=page.getByRole("slider",{name:"EXPR1 iris gaze vertical"});
+    await horizontal.focus();await horizontal.press("End");
+    await vertical.focus();await vertical.press("End");
+    await expect(horizontal).toHaveValue("1");
+    await expect(vertical).toHaveValue("1");
+    const travelNear=await near.getAttribute("transform");
+    const travelFar=await far.getAttribute("transform");
+    expect(travelNear).not.toEqual(neutralNear);
+    expect(travelFar).not.toEqual(neutralFar);
+    expect(travelNear).not.toEqual(travelFar);
+    expect(await near.locator("path").first().getAttribute("d")).toEqual(nearD);
+    expect(await far.locator("path").first().getAttribute("d")).toEqual(farD);
+    await micro.screenshot({animations:"disabled",
+      path:info.outputPath("reader-ANAT1-iris-gaze-down-right.png")});
+    await page.getByRole("combobox",{name:"EXPR1 eyelids"}).selectOption("closed");
+    await expect(micro.locator("[data-km-ink-iris-occlusion]")).toHaveCount(0);
+    await expect(micro.locator("clipPath")).toHaveCount(0);
+    await page.getByRole("combobox",{name:"EXPR1 eyelids"}).selectOption("open");
+    await expect(micro.locator("[data-km-ink-iris-occlusion]")).toHaveCount(2);
+    await page.getByRole("button",{name:"Reset gaze"}).click();
+    await expect(horizontal).toHaveValue("0");
+    await expect(vertical).toHaveValue("0");
+    expect(await near.getAttribute("transform")).toEqual(neutralNear);
+    await micro.screenshot({animations:"disabled",
+      path:info.outputPath("reader-ANAT1-original-gaze-open.png")});
+  });
+
+test("reduced-motion disables autoplay without blocking deterministic facial and gaze scrubbing",
+  async({page})=>{
+    await page.emulateMedia({reducedMotion:"reduce"});
+    await page.goto("/iframe.html?id=video-ink-reader-face--reader-expression-art-craft&viewMode=story");
+    await expect(page.getByRole("button",{name:"Play EXPR1 cue"})).toBeDisabled();
+    const frame=page.getByRole("slider",{name:"EXPR1 motion frame"});
+    await frame.focus();await frame.press("Home");await frame.press("ArrowRight");
+    await expect(frame).toHaveValue("1");
+    const gaze=page.getByRole("slider",{name:"EXPR1 iris gaze horizontal"});
+    await gaze.focus();await gaze.press("End");
+    await expect(gaze).toHaveValue("1");
+    await expect(page.getByTestId("reader-expr1-diagnostics")).toContainText("Cue frame 1");
+  });
