@@ -233,16 +233,21 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       .38,632,"$skinshade",.31),
   );
   const ear:CharacterPathShape[]=[
-    ink("M117 97.8 Q112.2 96.3 110.7 101.6 Q110.7 107.3 114.1 110.5",
-      "none","$shadow",.7,.64),
-    ink("M114.5 100.6 C118.1 98.6 120.7 103.9 118 106.6 C116.9 107.2 116.2 108.1 117 109.8",
-      "none","$shadow",.79,.78),
-    ink("M112.1 105.9 Q111.5 110.1 115.1 113.8 Q118.8 117.6 117 118.8",
-      "none","$skinshade",.76,.7),
-    ink("M117.8 105.3 Q114.6 104.9 115.6 107.2",
-      "none","$deep",.6,.7),
-    ink("M113.4 110.2 Q114.4 112 115.9 111.2",
-      "none","$paper",.65,.57),
+    // The temple-side helix follows the bony cartilage rim but is
+    // separate from the outer ear silhouette. The previous three
+    // concentric curls read as a stamped snail at film resolution.
+    // Keep every anatomical mark and light channel, change direction
+    // and value to load-bearing helix / antihelix / concha / tragus.
+    ink("M115.8 98.2 C112.7 98.1 111.1 101.2 111.5 104.4 C111.9 107.5 113.7 109.5 115.1 109.8",
+      "none","$shadow",.61,.53),
+    ink("M115 101.8 C116.8 101.5 118.5 103.4 117.8 105.4 C117.2 107.1 115.3 107.8 115.6 109.3",
+      "none","$shadow",.63,.58),
+    ink("M112.8 106.8 Q113.2 109.9 114.7 111.1 Q116.7 113.4 116.3 115.6",
+      "none","$skinshade",.55,.54),
+    ink("M117.1 105.8 Q115.9 105.2 115.7 106.8",
+      "none","$deep",.43,.49),
+    ink("M113.2 110.5 Q114.3 111.5 115.5 111.3",
+      "none","$paper",.53,.43),
   ];
   if(high)ear.push(
     line([115.9,114.1],[117.3,115.4],[117.9,117.9],[116.2,118.7],
