@@ -592,7 +592,11 @@ function MasterInkSourceComparison(){
          masks are overridden with CSS; restoring 'all' reinstates the
          original production mask without deleting a single brush. */
       [data-km-master-ink-inspection="uncut"] [data-km-master-study="fuchun"]
-      [data-km-master-stroke-loaded][mask] { mask:none !important; }
+      [data-km-master-stroke-loaded][mask],
+      [data-km-master-ink-inspection="uncut"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-face][mask],
+      [data-km-master-ink-inspection="uncut"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-crease][mask] { mask:none !important; }
     `}</style>
     <div role="group" aria-label="Fuchun paper-reserve inspection"
       data-testid="shanshui-master-zone-presets"
@@ -608,7 +612,7 @@ function MasterInkSourceComparison(){
         </button>)}
       <span style={{maxWidth:500,fontSize:12,color:"#675745"}}>
         Storybook-only: isolate skyline and stone backs, or compare
-        the original 78 loaded fibres before/after genuine dry-paper cuts.
+        all 78 original fibres and four hero ribs before/after dry-paper cuts.
         CSS toggles never change the source paths, attached parent roots,
         four historic schools or the original production film clock.
       </span>
