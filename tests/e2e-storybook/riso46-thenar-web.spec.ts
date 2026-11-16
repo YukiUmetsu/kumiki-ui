@@ -36,6 +36,11 @@ test("RISO46 real red thenar and cobalt web print through both physical masters"
       const isHandoff=id==="courier-right"||id==="paper-artist-left";
       await expect(panel).toHaveAttribute("data-km-riso51-live-source-morph-parts",isHandoff?"14":"0");
       await expect(panel).toHaveAttribute("data-km-riso52-cobalt-red-terminal-pairs",isHandoff?"3":"0");
+      // Counts the genuinely time-conditioned original print RED distal
+      // vectors, not a drawn sticker or hard-coded display label.
+      await expect(panel).toHaveAttribute(
+        "data-km-riso55-folded-source-tip-count",
+        isHandoff&&frame>146?"3":"0");
       await expect(panel).toHaveAttribute("data-km-riso53-original-red-support-behind-palm",isHandoff?"9":"0");
       await expect(panel).toHaveAttribute("data-km-riso54-native-web-reserves",isHandoff?"2":"0");
       await expect(panel).toHaveAttribute("data-km-riso54-moving-web-cubics",isHandoff?"8":"0");
