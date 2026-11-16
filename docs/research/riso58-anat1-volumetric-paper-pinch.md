@@ -5,7 +5,7 @@
 ## Reference study: actual grasp, not a guessed decorative contour
 
 - [The Orthopaedic Physical Examination, Hand and Wrist, Figure 4-1](https://cintabukumedis.wordpress.com/wp-content/uploads/2014/01/the-orthopaedic-physical-exam.pdf) differentiates *side pinch/key pinch*, *tip pinch*, *chuck pinch*, and *hook grasp* in actual human hands. The page transfer is a **lateral/tip pinch by thumb and index**; the middle, ring and little fingers are supporting volume behind the paper and must not form a second symmetric claw.
-- [Hand Holding Blank Paper](https://www.gettyimages.com/) (reference-only stock photograph; no assets licensed for redistribution) shows a true index/thumb C-shaped outer envelope with a concave first web, visible index dorsal plane and a multi-lobed receding hypothenar rather than three equally long frontal fingers.
+- [CMU Paper/Hand Real Photo Study, fig45](https://www.cs.cmu.edu/~jialiu1/dbimg/fig45.jpg) (reference-only photographic gesture; no image pixels redistributed) shows the page-edge thumb/index opposition with the thenar arch continuous to the wrist while unopposed fingers remain in the receding palm plane rather than three equal frontal tubes.
 - [Proko — How to Draw Hands: Details for Realistic Hands](https://www.proko.com/course-lesson/how-to-draw-hands-details-for-realistic-hands/) gives an artistic muscle/tendon and skin crease study; the original blue printed knuckle crests must belong to the moving skin, not float on top of a new RED geometry.
 - Kumiki's own [ANAT1 clinical joint spec](../../skills/kumiki-human-anatomy/SKILL.md) and `registry/anatomy/anatomy-pose.ts` constrain the true 4 individual MCP→PIP→DIP phalanx lengths and independent active thumb IP.
 
