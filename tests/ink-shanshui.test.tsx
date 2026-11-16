@@ -1108,6 +1108,42 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(paint("early-spring")).not.toContain('data-km-cliff-pine-wet-cluster=');
   });
 
+  it("gives Huang's old pine crowns asymmetric drooping arms and real filled value depth",()=>{
+    const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls:{...DEFAULT_SHANSHUI,
+        scene:"mountain-trail",inkSchool:"fuchun",seed:71,detail:1},
+    }));
+    const boughs=[...html.matchAll(
+      /data-km-cliff-pine-bough-centerline="([^"]+)"/g,
+    )].map(m=>(m[1].match(/-?\d+(?:\.\d+)?/g)??[]).map(Number));
+    expect(boughs).toHaveLength(20);
+    expect(boughs.every(n=>n.length===6&&n.every(Number.isFinite))).toBe(true);
+    const drops=boughs.map(([x,y,,,tx,ty])=>ty-y);
+    expect(drops.filter(d=>d>2).length).toBeGreaterThanOrEqual(6);
+    expect(drops.filter(d=>d< -4).length).toBeGreaterThanOrEqual(7);
+    const alternating=Array.from({length:5},(_,i)=>{
+      const s=boughs.slice(i*4,i*4+4).map(([x,y,cx,cy,tx])=>
+        Math.sign(tx-x));
+      return s.every((v,j)=>j===0||v!==s[j-1]);
+    }).filter(Boolean).length;
+    expect(alternating).toBeLessThan(3);
+    const islandRoots=[...html.matchAll(
+      /data-km-cliff-pine-ink-island="" data-km-cliff-pine-ink-island-root="([^"]+)"/g,
+    )].map(m=>Number(m[1].split(",")[1]));
+    const canopyPaths=[...html.matchAll(
+      /data-km-cliff-pine-ink-canopy="" d="([^"]+)"/g,
+    )].map(m=>m[1]);
+    expect(islandRoots).toHaveLength(40);
+    expect(canopyPaths).toHaveLength(40);
+    const lifts=canopyPaths.map((d,i)=>{
+      const ns=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(ns.length%2).toBe(0);
+      return islandRoots[i]-Math.min(...ns.filter((_,j)=>j%2===1));
+    });
+    expect(lifts.filter(h=>h>6).length).toBeGreaterThan(24);
+    expect(lifts.filter(h=>h>8).length).toBeGreaterThanOrEqual(10);
+  });
+
   it("renders willow boughs as closed tapering brush geometry with fine attached leaves",()=>{
     const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:125,controls:{...DEFAULT_SHANSHUI,scene:"river-scholar",detail:1},
