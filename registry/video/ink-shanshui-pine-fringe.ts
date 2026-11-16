@@ -30,7 +30,7 @@ export function fuchunPineFibreFringe(
   peaks:readonly InkPinePoint[],sweep:number,seed:number,
 ):readonly InkPineFibre[]{
   if(peaks.length<3||peaks.length>24||sweep!==1&&sweep!==-1||
-    !Number.isSafeInteger(seed)||seed<0||seed>2147483647||
+    !Number.isSafeInteger(seed)||seed<0||
     !peaks.every(finite))
     throw new RangeError("Fuchun pine fringe requires 3..24 finite source lobes, direction and seed");
   const roles=[
