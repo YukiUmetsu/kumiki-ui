@@ -50,7 +50,7 @@ const staticLeg=(j:RisoJoint):RisoJoint=>{
     const source=j.keys??[];
     const neutral=source.find(k=>k.frame===144)||source.find(k=>k.frame===146)
       ?[]:[{frame:146,rotate:source.find(k=>k.frame===92)?.rotate??0,
-        easing:"ease" as const}];
+        x:0,easing:"ease" as const}];
     return {...j,keys:[...source,...neutral]
       .sort((a,b)=>a.frame-b.frame).map(key=>{
         const add=key.frame>=198?support.hold:
