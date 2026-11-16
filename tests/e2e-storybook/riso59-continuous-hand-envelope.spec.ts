@@ -57,3 +57,61 @@ test("RISO59 A/B retains original master geometry at rest and changes the two ac
   expect([await red("right"),await red("left")]).toEqual(baseline);
   expect(errors).toEqual([]);
 });
+
+/** Render the entire original camera, joint-registered paper, and BOTH actors
+ * at actual output sizes; the same shot with a preview toggle must never
+ * change source rig, paper or approved stage timing. */
+test("RISO59 real 16:9 and 9:16 whole-film A/B exposes the original source silhouette without changing paper",async({page},info)=>{
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  await page.setViewportSize({width:1750,height:1280});
+  await page.goto("/iframe.html?id=video-riso-artcraft-studies--human-ensemble-acting&viewMode=story");
+  await page.evaluate(()=>document.fonts.ready);
+  const stage=page.locator("svg[data-km-riso-human-ensemble-frame]");
+  const checkbox=page.getByRole("checkbox",{name:"RISO59 film three-quarter skin A/B"});
+  const slider=page.getByRole("slider",{name:"RISO ensemble film frame"});
+  const seek=async(frame:number)=>{
+    await slider.evaluate((node,value)=>{
+      const input=node as HTMLInputElement;
+      const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+      if(!setter)throw new Error("Native source slider setter absent");
+      setter.call(input,String(value));
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+    },frame);
+    await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-frame",String(frame));
+  };
+  const original=async()=>{
+    const courier=await stage.locator('[data-km-riso-part="right-glove"]').first().getAttribute("d");
+    const artist=await stage.locator('[data-km-riso-part="left-glove"]').first().getAttribute("d");
+    const sheet=await stage.locator("[data-km-riso-human-ensemble-sheet]").first().getAttribute("d");
+    return {courier,artist,sheet};
+  };
+  await expect(stage).toHaveAttribute("data-km-riso59-film-preview","false");
+  for(const aspect of ["landscape","portrait"] as const){
+    await page.getByRole("combobox",{name:"RISO ensemble aspect"}).selectOption(aspect);
+    await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-aspect",aspect);
+    await seek(0);
+    const baselineRest=await original();
+    expect(baselineRest.courier).toBeTruthy();
+    expect(baselineRest.artist).toBeTruthy();
+    await checkbox.check();
+    await expect(stage).toHaveAttribute("data-km-riso59-film-preview","true");
+    expect(await original()).toEqual(baselineRest);
+    await checkbox.uncheck();
+    await seek(160);
+    const baseline=await original();
+    const film=page.locator('[data-km-riso-ensemble-stage-container="'+aspect+'"]');
+    await film.screenshot({path:info.outputPath("riso59-"+aspect+"-original-full-film-f160.png"),animations:"disabled"});
+    await checkbox.check();
+    const candidate=await original();
+    expect(candidate.courier).not.toBe(baseline.courier);
+    expect(candidate.artist).not.toBe(baseline.artist);
+    expect(candidate.sheet).toBe(baseline.sheet);
+    await expect(stage).toHaveAttribute("data-km-riso43-paper-layering","index-above-thumb-below");
+    await film.screenshot({path:info.outputPath("riso59-"+aspect+"-candidate-full-film-f160.png"),animations:"disabled"});
+    await checkbox.uncheck();
+    expect(await original()).toEqual(baseline);
+  }
+  expect(errors).toEqual([]);
+});
