@@ -128,8 +128,27 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     // A thoughtful downward-looking reader has a nearly level, closed
     // mouth at rest; the expressive "smile" cel remains distinct.
     expect(restMouth.some(s=>s.type==="path"&&
-      s.d.includes("M135.2 125.5 Q139.6 126.4"))).toBe(true);
+      s.d.includes("M135.4 125.9 C137.1 125.6"))).toBe(true);
     expect(paths(face,"mouth-smile")).not.toEqual(restMouth);
+    const anatomicalSeam=anatomy.lips.find(s=>s.type==="path"&&
+      s.d.includes("M135.2 125.9 Q138.9"));
+    if(!anatomicalSeam||anatomicalSeam.type!=="path")
+      throw new Error("Original attached muscle seam missing");
+    // ANAT1 lip volume must not double-ink the independent animated
+    // neutral mouth. Both original paths stay present and editable.
+    expect(anatomicalSeam.stroke).toBe("$skinshade");
+    expect(anatomicalSeam.strokeWidth).toBeLessThan(.5);
+    expect(anatomicalSeam.opacity).toBeLessThan(.5);
+    const dynamicRest=restMouth.find(s=>s.type==="path"&&
+      s.d.includes("M135.4 125.9 C137.1 125.6"));
+    if(!dynamicRest||dynamicRest.type!=="path")
+      throw new Error("Dynamic resting mouth contour missing");
+    expect(dynamicRest.fill).toBe("none");
+    expect(dynamicRest.strokeWidth).toBeLessThan(.8);
+    expect(dynamicRest.opacity).toBeLessThan(.8);
+    const speech=["mouth-aa","mouth-oh","mouth-mm","mouth-smile"];
+    expect(new Set(speech.map(id=>JSON.stringify(paths(face,id))).concat(
+      JSON.stringify(restMouth))).size).toBe(5);
     const root=paths(face,"face").find(s=>s.type==="path"&&s.d.includes("143.3 143.7"));
     expect(root).toMatchObject({fill:"$skin",opacity:1});
     const rig=makeShanshuiScholar(1,.88,"river-scholar");
