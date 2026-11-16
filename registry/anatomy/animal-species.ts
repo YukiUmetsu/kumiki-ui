@@ -393,7 +393,7 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
   },
   {
     id: "large-billed-crow", name: "Large-billed crow", ja: { kana: "ハシブトガラス", kanji: "烏", romaji: "karasu" }, scientific: "Corvus macrorhynchos", plan: "bird-perching",
-    size: { length: r(46, 52, 59, "reported", "Large-billed crow"), mass: r(.45, .7, 1.0, "reported", "Large-billed crow") },
+    size: { length: r(46, 52, 59, "reported", "Large-billed crow"), wingspan: r(95, 110, 125, "estimated", "scaled from the carrion crow's reported 84–100 cm; the large-billed crow is heavier (450–1,000 g against 400–600 g)"), mass: r(.45, .7, 1.0, "reported", "Large-billed crow") },
     proportions: { muzzle: r(.43, .47, .5, "estimated", "read off a large-billed crow's head in profile") },
     coat: { type: "feathers", long: [], lay: "Glossy black, a blue-purple sheen.",
       palette: [{ region: "back", name: "black", hex: "#141416" }, { region: "back", name: "sheen", hex: "#2c3a5a", fill: "accent" }], markings: [], variants: [] },
@@ -408,7 +408,7 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
   },
   {
     id: "green-pheasant", name: "Green pheasant", ja: { kana: "キジ", kanji: "雉", romaji: "kiji" }, scientific: "Phasianus versicolor", plan: "bird-galliform",
-    size: { length: r(60, 75, 89, "reported", "Common pheasant (close relative): males, including tail"), mass: r(.5, 1.0, 1.4, "reported", "Common pheasant (close relative)") },
+    size: { length: r(60, 75, 89, "reported", "Common pheasant (close relative): males, including tail"), wingspan: r(56, 71, 86, "reported", "Common pheasant (close relative)"), mass: r(.5, 1.0, 1.4, "reported", "Common pheasant (close relative)") },
     proportions: { muzzle: r(.33, .37, .4, "estimated", "read off Huet's Phasianus versicolor"), tail: r(.5, .55, .6, "reported", "Common pheasant: tail ~50 cm of the male's length") },
     coat: { type: "feathers", long: ["tail"], lay: "Scaled iridescent breast; a long barred tail.",
       palette: [{ region: "breast", name: "dark green", hex: "#2f5d3a" }, { region: "face", name: "red wattle", hex: "#c0302b", fill: "eye-patch" }, { region: "back", name: "bronze back", hex: "#7a5a3a" }, { region: "tail", name: "barred tail", hex: "#a4865e" }],

@@ -226,6 +226,52 @@ animals from one table (`ANIMAL_POSTURES`), like the gaits.
 **Not checked against recorded motion.** The transitions are staged blends: no video of an animal sitting or lying
 down was studied frame by frame.
 
+## Flight (2026-11-16)
+
+Birds now fly in ANIM1 on open wings, from a flight table (`BIRD_FLIGHT`).
+
+**Sources.**
+
+- **Motion:** Muybridge, *Animal Locomotion* (1887), plate 755 (pigeon) and plate 769 (eagle), public domain on
+  Commons, read frame by frame. The pigeon runs about six frames per beat:
+  - the top of the stroke has the wings raised 70–80° and the tips curved back;
+  - the downstroke has the wings fully spread, sweeping down and forward;
+  - at the bottom the wings are 40–60° below the body, then trailing back;
+  - on the upstroke the wing is flexed narrow at the wrist and raised nearly vertical.
+
+  The eagle shows fanned primaries at the top and on the downstroke, the wingtip ahead of the head at the bottom, and
+  the hand trailing on the upstroke. Both birds were taking off or flying slowly, so the cruising strokes are set
+  shallower (estimated).
+- **Shapes and styles:** Wikipedia, *Bird flight* (reported):
+  - elliptical wings for small birds, Accipiter hawks and pheasants;
+  - short pointed high-speed wings for most ducks;
+  - deeply slotted soaring wings for large land birds;
+  - bounding flight in small birds;
+  - an upstroke "slightly folded inwards".
+- **Neck and legs:** Wikipedia, *Heron* (the neck "retracted during flight", legs pointing backwards) and *Crane*
+  (legs outstretched, neck extended).
+- **Rate:** Pennycuick (1990), f = 1.08·m^(1/3)·g^(1/2)·b^(−1)·S^(−1/4)·ρ^(−1/3), as reported by Physics World.
+  - The original PDF was not accessible.
+  - The formula was checked: it comes out in hertz, and it gives a grey heron 2.6 Hz.
+- **Spans:**
+  - pheasant 56–86 cm (reported: Wikipedia, Common pheasant);
+  - large-billed crow 95–125 cm, estimated from the carrion crow's reported 84–100 cm, since the large-billed crow is
+    heavier.
+
+**What the renders and the frame-by-frame checks changed.**
+
+- **Closed wings.** A rigid planform cannot fold: tucking it pushed the hand across the back as a stub. A closing wing
+  now blends toward the folded wing along the flank.
+- **Held wings.** Glides and closed wings popped in from mid-stroke. Bursts end at the top of the stroke and the wing
+  eases from there.
+- **Thigh.** A thick black thigh showed under the crane; the thigh now stays inside the feathers.
+- **Body.** The flying body slims.
+- **Small birds at 30 fps.** A 14 Hz beat is about two frames per beat and reads as noise, hence `maxHz` (an animation
+  convention).
+
+**Not done.** Take-off, landing, banking and turning; a hovering kingfisher; roosting and one-legged birds; per-feather
+colour for open wings.
+
 ## Not done
 
 - Front and back constructions in ANIM1 (styles draw their own).

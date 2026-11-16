@@ -5,7 +5,7 @@ import { BODY_PLANS } from "../../registry/anatomy/animal-plans";
 import type { BodyPlanId } from "../../registry/anatomy/animal-plans";
 import { ANIMAL_GAITS, gaitSpeed, strideFrames } from "../../registry/anatomy/animal-gaits";
 import type { GaitId } from "../../registry/anatomy/animal-gaits";
-import { animalConstruction, poseAnimal } from "../../registry/anatomy/animal-construct";
+import { animalConstruction, poseAnimal, skeletonShapes } from "../../registry/anatomy/animal-construct";
 import type { AnimalSkeleton } from "../../registry/anatomy/animal-construct";
 import { AnimalFigure, AnimalSheet, FootfallDiagram } from "../../registry/anatomy/animal-react";
 import type { AnimalFigureMode } from "../../registry/anatomy/animal-react";
@@ -14,6 +14,7 @@ import { findAnimal } from "../../registry/anatomy/animal-species";
 import { ukiyoeBeastLandmarks } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 import { ANIMAL_POSTURES, POSTURE_IDS, postureFit } from "../../registry/anatomy/animal-postures";
 import type { PostureId } from "../../registry/anatomy/animal-postures";
+import { BIRD_FLIGHT, flightAt, speciesWingbeat } from "../../registry/anatomy/animal-flight";
 import type { UkiyoeSpecies } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 
 const page = { display: "grid", gap: 16, alignContent: "start", padding: 24, minHeight: "100vh", background: "var(--km-surface-canvas, #f6f3f1)", color: "var(--km-text-primary, #242424)",
@@ -220,8 +221,64 @@ function PostureLab() {
   );
 }
 
+/** Birds in the air: open wings through the beat, glides and bounding, at the species' predicted wingbeat. */
+function FlightLab() {
+  const birds = Object.keys(BIRD_FLIGHT);
+  const [id, setId] = useState("red-crowned-crane");
+  const sp = findAnimal(id)!, f = BIRD_FLIGHT[id];
+  const c = useMemo(() => animalConstruction(sp), [sp]);
+  const [mode, setMode] = useState<AnimalFigureMode>("colour");
+  const [capped, setCapped] = useState(true);
+  const reduced = usePrefersReducedMotion();
+  const [playing, setPlaying] = useState(true);
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    if (!playing || reduced) return;
+    let raf = 0; const t0 = performance.now() - seconds * 1000;
+    const tick = (now: number) => { setSeconds(((now - t0) / 1000) % 12); raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- restart from the paused time only when play toggles
+  }, [playing, reduced]);
+  // Frames are drawn on the 30 fps grid, as a film would.
+  const frame = Math.floor(seconds * 30) / 30, at = flightAt(id, frame, 1, capped ? 7.5 : Infinity);
+  const pose = useMemo(() => poseAnimal(c, { flight: at.flight, t: at.t, amount: at.amount }), [c, at.flight, at.t, at.amount]);
+  // One frame for every bird: the bounds of a whole beat and the glide.
+  const bounds = useMemo(() => {
+    const all = [0, .25, .5, .75].map(t => skeletonShapes(poseAnimal(c, { flight: "flap", t })).bounds).concat([skeletonShapes(poseAnimal(c, { flight: "glide" })).bounds]);
+    return [Math.min(...all.map(b => b[0])), Math.min(...all.map(b => b[1])), Math.max(...all.map(b => b[2])), Math.max(...all.map(b => b[3]))] as const;
+  }, [c]);
+  const hz = speciesWingbeat(id) ?? 0;
+  return (
+    <div style={page}>
+      <div style={row}>
+        <label style={label}>Bird
+          <select style={field} value={id} onChange={e => setId(e.target.value)}>{birds.map(b => <option key={b} value={b}>{findAnimal(b)?.name ?? b}</option>)}</select>
+        </label>
+        <label style={label}>Drawing
+          <select style={field} value={mode} onChange={e => setMode(e.target.value as AnimalFigureMode)}>
+            {(["construction", "silhouette", "colour"] as const).map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+        <label style={{ ...label, display: "flex", gap: 8, alignItems: "center" }}><input type="checkbox" checked={capped} onChange={e => setCapped(e.target.checked)} /> At most 7.5 beats a second (4 frames per beat)</label>
+        <button type="button" style={field} onClick={() => setPlaying(p => !p)} aria-pressed={playing && !reduced} disabled={reduced}>{reduced ? "Motion reduced" : playing ? "Pause" : "Play"}</button>
+        <label style={{ ...label, minWidth: 220 }}>Time: {frame.toFixed(2)} s
+          <input type="range" min={0} max={12} step={1 / 30} value={seconds} onChange={e => { setPlaying(false); setSeconds(Number(e.target.value)); }} />
+        </label>
+      </div>
+      <div style={{ maxWidth: 900, width: "100%" }}><AnimalFigure skeleton={pose} mode={mode} bounds={bounds} ground={false} label={`${sp.name} flying: ${at.flight === "flap" ? "wingbeat" : at.flight === "glide" ? "gliding" : "wings closed"}`} /></div>
+      <div style={{ maxWidth: "70ch", display: "grid", gap: 8 }}>
+        <p style={{ margin: 0 }}><strong>{sp.name}</strong>: {f.wing} wing (aspect ratio {f.aspect.typical}, {f.aspect.grade}), {f.style} flight; neck {f.neck}, legs {f.legs}.
+          Predicted wingbeat {hz.toFixed(1)} Hz in steady cruising flight (Pennycuick 1990, from {sp.size.mass.typical} kg and a {sp.size.wingspan?.typical} cm span){capped && hz > 7.5 ? "; drawn at 7.5 Hz" : ""}.</p>
+        <ul style={{ margin: 0, paddingLeft: 20 }}>{f.notes.map(n => <li key={n}>{n}</li>)}</ul>
+      </div>
+    </div>
+  );
+}
+
 export const Sheet: Story = { render: () => <SheetStory /> };
 export const Gaits: Story = { render: () => <GaitLab /> };
 export const Postures: Story = { render: () => <PostureLab /> };
+export const Flight: Story = { render: () => <FlightLab /> };
 export const BodyPlans: Story = { name: "Body plans", render: () => <BodyPlansStory /> };
 export const UkiyoeCheck: Story = { name: "UKIYO1 proportion check", render: () => <ProportionCheck /> };

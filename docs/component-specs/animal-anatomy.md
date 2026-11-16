@@ -32,6 +32,7 @@ The style decides only how it looks. It mirrors [ANAT1](human-anatomy.md) for pe
 
 | Layer | File | What it holds |
 |---|---|---|
+| Flight | `animal-flight.ts` | `BIRD_FLIGHT` per bird: wing planform (type, aspect ratio, hand share, tip and fingers), stroke (top and bottom elevation, downstroke share, upstroke fold), flight style (flapping, flap-and-glide, bounding, bursts), glide shape, neck and legs in flight. `wingbeatHz` / `speciesWingbeat` (Pennycuick 1990), `wingStroke`, `flightAt` (seconds → beat, glide or closed wings), `wingPlanform`, `placeWing`, `projectWing`. |
 | Postures | `animal-postures.ts` | `ANIMAL_POSTURES` (sit, lie, rest, rear): per body plan, the body's pitch (graded, with sources), how the fore and hind legs are held, how far the neck and head follow, and the frames it takes. `postureFit(plan, posture, canRear)`. |
 | Gaits | `animal-gaits.ts` | `ANIMAL_GAITS` (walk, amble, trot, canter, transverse gallop, rotary gallop, half-bound): footfall phases, duty factor, stride, lift, bob, pitch, spine flex, Froude number, suspension. `quadFootfalls`, `quadBody`, `footfallBars` (Hildebrand diagrams), `gaitSpeed` (dynamic similarity), `strideSeconds` / `strideFrames` (Heglund & Taylor). RIG1 imports this table. |
 | Body plans | `animal-plans.ts` | `BODY_PLANS`: 10 mammal plans, 5 bird plans and fish. Each holds foot posture, the side-view construction (`PlanConstruction`), gaits, rearing, the parts every member has, coat regions, footfall sound and drawing notes. |
@@ -118,6 +119,43 @@ stands instead (a horse does not sit), and so does a species that cannot rear.
 - **Tested.** Every mammal, in every posture it takes, frame by frame: nothing goes through the ground, no joint
   snaps between frames, the planted feet stay put, and the full posture reaches its pitch.
 
+## Flight
+
+`poseAnimal(c, { flight, t, amount, view })` flies a bird on open wings. `flight` is `"flap"` (with `t` through the
+beat, 0 at the top of the stroke), `"glide"` or `"closed"` (the wings folded between bursts). `flightAt(id, seconds)`
+turns time into these for the species' style.
+
+- **The wing** is built in 3D and projected to the side view, with the camera `view` degrees above (default 12) so the
+  near and far wings both read.
+  - Planform: the half-span from the species' wingspan; the mean chord from the aspect ratio; the hand's share; the tip
+    pointed, rounded, or fingered into separated primaries.
+  - The near wing is drawn in front of the body and the far wing behind it. `wings` carries each wing's outline,
+    bones (shoulder, elbow, wrist, tip) and secondaries band.
+  - Coat regions: `regions.wings` is the open wing, and a `tip` swatch on the wings paints the secondaries along the
+    inner trailing edge.
+- **The beat**, read off Muybridge's pigeon and eagle (*Animal Locomotion* pl. 755 and 769):
+  - at the top of the stroke the spread wing is raised, the tips curved back;
+  - on the downstroke it sweeps down and forward, the hand trailing up, the tips reaching ahead of the head at the
+    bottom;
+  - on the upstroke the wrist flexes and the hand trails down.
+
+  Muybridge's birds were taking off, so the cruising strokes are set shallower (estimated).
+- **Rate.** Pennycuick's (1990) prediction for steady cruising flight, from mass, span and wing area (reported). The
+  results: crane 3.0 Hz, heron 2.6, crow 3.8, goshawk 4.2, duck 7.4, pheasant 7.7, kingfisher 13, sparrow 14.
+  - At 30 fps a 14 Hz beat leaves two frames per beat and reads as noise.
+  - `flightAt(…, maxHz)` caps the drawn beat; at least four frames per beat (7.5 Hz at 30 fps) is an animation
+    convention, not anatomy.
+- **Styles.**
+  - Flapping: crane, heron, crow, duck, kingfisher.
+  - Flap-and-glide: goshawk.
+  - Bounding: sparrow, wings closed between bursts.
+  - Bursts then a glide: pheasant.
+
+  A burst ends at the top of the stroke and the wing eases from there into the held position and back, so flapping,
+  gliding and closing join without a jump (tested).
+- **Neck and legs.** Herons draw the neck back into the shoulders and cranes stretch it out (reported: Wikipedia), and
+  both trail their legs. The others tuck their legs. The body slims in the air.
+
 ## Faces
 
 `AnimalSpecies.face` records:
@@ -152,7 +190,10 @@ are open findings for a later pass.
 ## Limits
 
 - Side view only for the construction; front and back views are the style's.
-- Postures are for four-legged animals; birds have no perching, roosting or flying postures yet, and fish swim only.
+- Postures are for four-legged animals; birds fly, but have no roosting or one-legged postures yet, and fish swim only.
+- Flight is side view only (plus the camera's tilt); there is no banking, turning, take-off or landing yet.
+- An open wing paints the species' `wings` swatch over all of it. A folded-wing colour that only shows at rest (the
+  mandarin's orange sails) paints the open wing too.
 - Posture transitions are staged blends, not recorded motion: they have not been checked against video frame by frame.
 - Bird and fish constructions are simpler (body egg, wing, legs; spindle and fins).
 - Most proportions are estimated; extend the `reported` and `measured` grades as sources are found, and never upgrade a
