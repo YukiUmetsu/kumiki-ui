@@ -217,7 +217,6 @@ export function newHeadCranialTonalVolume(
     let i=0;
     while(collected.some((n,band)=>n<budgets[band])&&i<150000){
       const key=pass*523991+i++;
-      const key=pass*523991+i;
       const x=left+width*pencilHash(seed,key,401);
       const y=top+height*pencilHash(seed,key,402);
       const u=(x-cx)/rx,v=(y-cy)/ry;
