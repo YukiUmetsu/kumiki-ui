@@ -242,22 +242,27 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     // concentric curls read as a stamped snail at film resolution.
     // Keep every anatomical mark and light channel, change direction
     // and value to load-bearing helix / antihelix / concha / tragus.
-    ink("M115.8 98.2 C112.7 98.1 111.1 101.2 111.5 104.4 C111.9 107.5 113.7 109.5 115.1 109.8",
-      "none","$shadow",.61,.53),
-    ink("M115 101.8 C116.8 101.5 118.5 103.4 117.8 105.4 C117.2 107.1 115.3 107.8 115.6 109.3",
-      "none","$shadow",.63,.58),
-    ink("M112.8 106.8 Q113.2 109.9 114.7 111.1 Q116.7 113.4 116.3 115.6",
-      "none","$skinshade",.55,.54),
-    ink("M117.1 105.8 Q115.9 105.2 115.7 106.8",
-      "none","$deep",.43,.49),
-    ink("M113.2 110.5 Q114.3 111.5 115.5 111.3",
-      "none","$paper",.53,.43),
+    ink("M115.7 98.5 C112.9 98.2 111.5 101.3 111.7 104.5 C111.9 107.3 113.6 110 115.2 110.4",
+      "none","$shadow",.5,.46),
+    ink("M116.3 102.4 C117.8 102.2 118.6 103.8 118.1 105.3",
+      "none","$shadow",.49,.42),
+    ink("M112.7 107.5 Q113 110.5 114.8 112 Q116.5 113.1 116.3 114.9",
+      "none","$skinshade",.52,.52),
+    ink("M118.3 108.8 Q117.2 110.2 118.1 111.4",
+      "none","$deep",.42,.52),
+    ink("M114.2 110.5 Q115.4 111.7 116.8 111.5",
+      "none","$paper",.48,.47),
   ];
   if(high)ear.push(
     line([115.9,114.1],[117.3,115.4],[117.9,117.9],[116.2,118.7],
       .44,634,"$shadow",.62),
     ink("M111.7 100.4 Q111.1 102.9 111.4 105.1",
       "none","$paper",.5,.45),
+    // A recessed concha bowl carries its own softened wash, *not* a
+    // thick circular spiral. The three existing antihelix forks stay
+    // independent so the fold is anatomically Y-shaped and articulated.
+    ink("M116.9 106.9 C118 106.5 118.6 107.4 118.2 108.6 C117.9 109.5 116.9 110 116.3 109.5 C116.6 108.4 116.5 107.4 116.9 106.9 Z",
+      "$shadow","none",0,.32),
   );
   const brow:CharacterPathShape[]=[];
   if(medium){

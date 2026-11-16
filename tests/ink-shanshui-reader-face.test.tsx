@@ -307,6 +307,14 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(outer.d).toContain("116.2 119.2");
     expect(ear.length).toBeGreaterThanOrEqual(10);
     expect(ear.every(shape=>shape.type==="path")).toBe(true);
+    // The concha is a recessed pigment volume, while the antihelix
+    // branches into three anatomical stems instead of a spiral or a
+    // dropped simplified outline.
+    expect(ear[2].type==="path"&&
+      (ear[2].d.match(/M/g)??[]).length).toBe(3);
+    expect(ear.some(shape=>shape.type==="path"&&
+      shape.fill==="$shadow"&&shape.stroke==="none"&&
+      (shape.opacity??0)>.25)).toBe(true);
     expect(scrollReaderFacePortrait(1)).toEqual(scrollReaderFacePortrait(1));
   });
   it("preserves an asymmetric, foreshortened near/far eye and five speaking visemes",()=>{
