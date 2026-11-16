@@ -17,7 +17,7 @@ test("RISO59 A/B retains original master geometry at rest and changes the two ac
   const ink=page.getByRole("combobox",{name:"RISO30 ink plate"});
   const red=async(side:"right"|"left")=>{
     const owner=side==="right"?"courier-right":"paper-artist-left";
-    return panels.locator('[data-km-riso30-hand="'+owner+'"]')
+    return root.locator('[data-km-riso30-hand="'+owner+'"]')
       .locator('[data-km-riso-part="'+side+'-glove"]').first().getAttribute("d");
   };
   await pose.selectOption("0");
@@ -84,7 +84,10 @@ test("RISO59 real 16:9 and 9:16 whole-film A/B exposes the original source silho
   const original=async()=>{
     const courier=await stage.locator('[data-km-riso-part="right-glove"]').first().getAttribute("d");
     const artist=await stage.locator('[data-km-riso-part="left-glove"]').first().getAttribute("d");
-    const sheet=await stage.locator("[data-km-riso-human-ensemble-sheet]").first().getAttribute("d");
+    const sheets=stage.locator("[data-km-riso-human-ensemble-sheet]");
+    // The opening cel intentionally precedes the first paper prop. Read
+    // absence as null instead of waiting three minutes for a non-existent path.
+    const sheet=await sheets.count()?await sheets.first().getAttribute("d"):null;
     return {courier,artist,sheet};
   };
   await expect(stage).toHaveAttribute("data-km-riso59-film-preview","false");
@@ -101,6 +104,7 @@ test("RISO59 real 16:9 and 9:16 whole-film A/B exposes the original source silho
     await checkbox.uncheck();
     await seek(160);
     const baseline=await original();
+    expect(baseline.sheet).toBeTruthy();
     const film=page.locator('[data-km-riso-ensemble-stage-container="'+aspect+'"]');
     await film.screenshot({path:info.outputPath("riso59-"+aspect+"-original-full-film-f160.png"),animations:"disabled"});
     await checkbox.check();
