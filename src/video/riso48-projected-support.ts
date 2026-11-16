@@ -41,7 +41,7 @@ export function riso48ProjectedPivot(j:RisoJoint):RisoJoint|null{
     // Already-canonical source keys, with *only* camera-space station
     // projection. The original angle, X, easing and true ink never change.
     const amount=k.frame<146?0:k.frame<160?0:
-      k.frame<=186?1:k.frame<205?.86:.74;
+      k.frame<=186?1:k.frame<205?0.86:0.74;
     return {...k,y:(k.y??0)+delta*amount};
   })};
 }
