@@ -43,6 +43,10 @@ test("RISO62 two physical dry-brush print masters retain source richness at both
   }
   await aspect.selectOption("landscape");
   await plate.selectOption("both");
+  await page.getByRole("button",{name:"RISO62 play preview"}).click();
+  await expect(root).toHaveAttribute("data-km-riso62-playing","true");
+  await page.getByRole("button",{name:"RISO62 pause preview"}).click();
+  await expect(root).toHaveAttribute("data-km-riso62-playing","false");
   await setRange(frame,11);
   const early=await source.first().getAttribute("d");
   await setRange(frame,202);

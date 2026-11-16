@@ -1,4 +1,4 @@
-import {useMemo,useState} from "react";
+import {useEffect,useMemo,useRef,useState} from "react";
 import {RisoPrint} from "../../registry/video/print-plates-react";
 import {RisoDryBrushInk} from "../../registry/video/riso-dry-brush-react";
 import type {RisoBrushOptions,RisoBrushPoint} from "../../registry/video/riso-dry-brush";
@@ -179,8 +179,35 @@ export function RisoBrushStudio(){
   const [grain,setGrain]=useState(.58);
   const [seed,setSeed]=useState(62);
   const [animate,setAnimate]=useState(true);
+  // Storybook-only 24fps preview transport. The reusable stencil components
+  // still require an absolute authored frame; no internal runtime clock.
+  const [playing,setPlaying]=useState(false);
+  const previewStart=useRef(0);
+  useEffect(()=>{
+    if(!playing)return;
+    const started=performance.now();
+    let raf=0;
+    const tick=(now:number)=>{
+      const next=Math.min(239,previewStart.current+
+        Math.floor((now-started)*24/1000));
+      setFrame(next);
+      if(next>=239)setPlaying(false);
+      else raf=requestAnimationFrame(tick);
+    };
+    raf=requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(raf);
+  },[playing]);
+  const togglePreview=()=>{
+    if(!playing){
+      previewStart.current=frame>=239?0:frame;
+      setFrame(previewStart.current);
+      setAnimate(true);
+    }
+    setPlaying(!playing);
+  };
   return <main data-km-riso62-studio="" data-km-riso62-frame={frame}
     data-km-riso62-aspect={aspect} data-km-riso62-plate={plate}
+    data-km-riso62-playing={String(playing)}
     style={{minHeight:"100vh",padding:22,background:"#EAE0CF",color:"#253F57",
       font:"14px/1.5 system-ui,sans-serif",display:"grid",alignContent:"start",gap:14}}>
     <header style={{maxWidth:920}}>
@@ -199,6 +226,18 @@ export function RisoBrushStudio(){
     <RisoBrushArt aspect={aspect} frame={frame} plate={plate}
       dryness={dryness} seed={seed} inkScale={inkScale}
       registration={registration} grain={grain} animate={animate}/>
+    <div style={{display:"flex",gap:12,alignItems:"center"}}>
+      <button type="button"
+        aria-label={playing?"RISO62 pause preview":"RISO62 play preview"}
+        onClick={togglePreview} style={{background:"#253F57",color:paper,
+          border:"none",padding:"8px 16px",font:"600 14px system-ui",
+          borderRadius:4,cursor:"pointer"}}>
+        {playing?"Pause  /  24 fps":frame>=239?"Replay  /  24 fps":"Play  /  24 fps"}
+      </button>
+      <span aria-live="off" style={{fontSize:13}}>
+        {playing?"Playing":"Stopped"} · source frame {frame} / 239
+      </span>
+    </div>
     <section aria-label="RISO62 source stroke and material controls"
       style={{display:"flex",gap:13,flexWrap:"wrap",maxWidth:1040,alignItems:"end"}}>
       <label>Output
@@ -218,7 +257,7 @@ export function RisoBrushStudio(){
       </label>
       <label>Source frame {frame}
         <input aria-label="RISO62 absolute frame" type="range" min={0} max={239}
-          value={frame} onChange={e=>setFrame(Number(e.target.value))}/>
+          value={frame} onChange={e=>{setPlaying(false);setFrame(Number(e.target.value));}}/>
       </label>
       <label>Dry fibre {Math.round(dryness*100)}%
         <input aria-label="RISO62 dryness" type="range" min={0} max={1} step={.05}
@@ -241,7 +280,7 @@ export function RisoBrushStudio(){
           value={seed} onChange={e=>setSeed(Math.max(0,Math.min(200000,Math.floor(+e.target.value||0))))}/>
       </label>
       <label><input type="checkbox" aria-label="RISO62 animate original strokes"
-        checked={animate} onChange={e=>setAnimate(e.target.checked)}/>
+        checked={animate} onChange={e=>{setPlaying(false);setAnimate(e.target.checked);}}/>
         Animate drawn source curves</label>
     </section>
     <p style={{fontSize:12,maxWidth:920}}>
