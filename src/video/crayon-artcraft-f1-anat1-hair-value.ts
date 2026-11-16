@@ -47,7 +47,7 @@ const wax:Readonly<Record<Region,Partial<Wax>>>={
   "hair-back":{
     colors:["#3e2e29","#191719","#78543f"],
     coverage:"opaque",deposition:"stroke-built",nibStyle:"dry",
-    pressure:.96,spacing:4.4,markStrength:.36,
+    pressure:.96,spacing:8.6,markStrength:.36,
     underpaintTooth:.14,opaqueBurnish:.90,
     underpaintGradient:{light:"#594033",shadow:"#131013",
       focusX:.32,focusY:.19,radius:1.15},
