@@ -129,11 +129,13 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     ink(d,"$skinshade","none",0,opacity);
   planes.push(
     plane(
-      "M117.7 99.7 C123.3 96.2 129.8 97 136.3 101.1 "+
+      "M117.7 99.7 C123.3 96.2 129.8 97 "+
+      num(nearCanthus[0]+.8)+" "+num(nearCanthus[1]-3)+" "+
       "C130.7 99.6 125.2 101.1 120.1 104.6 "+
       "C118.4 103.7 117.6 101.9 117.7 99.7 Z",.235),
     plane(
-      "M148.3 99.9 C153.4 97 160.1 97.6 164.1 99.8 "+
+      "M"+num(farCanthus[0]-.7)+" "+
+      num(farCanthus[1]-3)+" C153.4 97 160.1 97.6 164.1 99.8 "+
       "C162.8 101.1 158.4 102 153.8 103.9 "+
       "C151.2 103.8 149.5 102.4 148.3 99.9 Z",.19),
     // A soft, sloping anatomical glabella→nose bridge, lifted paper
