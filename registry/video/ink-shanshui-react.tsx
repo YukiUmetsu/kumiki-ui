@@ -2307,6 +2307,49 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
         :"M"+f(barkFrom[0])+" "+f(barkFrom[1])+
           " Q"+f(trunkControl[0]-1.4)+" "+f(trunkControl[1])+
           " "+f(barkTo[0])+" "+f(barkTo[1]);
+      // A pine needs physical purchase in the SAME rock contour as
+      // its trunk. Form secondary roots from exact parent-cubic stations,
+      // then let the paired brush roots settle at real sampled ridge
+      // heights, not at invented screen-space stones. Fuchun-only.
+      const plantedRoots=school==="fuchun"
+        ?([
+          {at:.012,hand:-1,reach:12.4,weight:1.18},
+          {at:.032,hand:1,reach:9.7,weight:.82},
+          {at:.071,hand:-1,reach:6.8,weight:.66},
+        ] as const).map((plan,k)=>{
+          const a=trunkAt(plan.at);
+          const reach=plan.reach*(.84+.3*s(seed+7521,i*23+k*13));
+          const endX=root[0]+plan.hand*reach;
+          const b:P=[endX,ridgeHeight(stations,endX)+
+            4.1+1.9*s(seed+7529,i*19+k*17)];
+          const c1:P=[a[0]+plan.hand*reach*.2,a[1]+1.7];
+          const c2:P=[b[0]-plan.hand*reach*.27,b[1]+1.2];
+          return {a,b,at:plan.at,hand:plan.hand,
+            d:rockLoadedCubicRibbon(a,c1,c2,b,plan.weight,
+              seed+7541+i*47+k*19)};
+        }):[];
+      // Botanical ink at the actual rooting plane: eight unequal
+      // local ground-loaded marks per pine, spaced across both sides
+      // of the same parent contour. Keep the alternate spaces bare.
+      const plantedInk=school==="fuchun"
+        ?Array.from({length:8},(_,k)=>{
+          const hand=k<4?-1:1;
+          const offset=1.8+(k%4)*3.2+
+            .9*s(seed+7561,i*31+k*11);
+          const px=root[0]+hand*offset;
+          const a:P=[px,ridgeHeight(stations,px)+
+            2.5+.9*s(seed+7567,i*19+k*29)];
+          const reach=3.1+4.9*s(seed+7573,i*41+k*13);
+          const b:P=[a[0]+hand*reach,
+            a[1]+(k%3===1?-2.3:2.8)+
+              2.2*s(seed+7583,i*37+k*17)];
+          const c:P=[a[0]+hand*reach*.37,
+            a[1]-1.2-2.1*s(seed+7591,i*13+k*23)];
+          const load=.63+1.41*s(seed+7603,i*23+k*29);
+          return {a,hand,load,
+            d:rockLoadedRibbon(a,c,b,load,
+              seed+7613+i*73+k*19)};
+        }):[];
       // Four nonperiodic branch stations per tree; each still grows
       // from the ACTUAL painted trunk curve, preserving all 20 boughs.
       const boughStations=school==="fuchun"?([
@@ -2653,6 +2696,24 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
         data-km-cliff-pine-crest={f(crest)}
         data-km-cliff-pine-height={height}
         data-km-cliff-pine-centerline={school==="fuchun"?centerline:undefined}>
+        <g data-km-cliff-pine-ground-contact=""
+          data-km-cliff-pine-ground-root={f(root[0])+","+f(root[1])}>
+          {plantedRoots.map(({a,b,at,hand,d},k)=>
+            <path key={"root"+k} data-km-cliff-pine-rootlet=""
+              data-km-cliff-pine-rootlet-source={f(a[0])+","+f(a[1])}
+              data-km-cliff-pine-rootlet-end={f(b[0])+","+f(b[1])}
+              data-km-cliff-pine-rootlet-station={f(at)}
+              data-km-cliff-pine-rootlet-hand={hand}
+              d={d} fill={k===1?"#65543e":"#40372c"}
+              opacity={f((k===2?.46:.72)*shade)}/>)}
+          {plantedInk.map(({a,hand,load,d},k)=>
+            <path key={"earth"+k} data-km-cliff-pine-ground-ink=""
+              data-km-cliff-pine-ground-ink-root={f(a[0])+","+f(a[1])}
+              data-km-cliff-pine-ground-ink-hand={hand}
+              data-km-cliff-pine-ground-ink-load={f(load)}
+              d={d} fill={k%4===1?"#7b684e":"#40362c"}
+              opacity={f((k%4===1?.37:.62)*shade)}/>)}
+        </g>
         <path data-km-cliff-pine-trunk="" d={trunk}
           fill="#37332d" opacity={f(.91*shade)}/>
         <path data-km-cliff-pine-bark="" d={bark}
