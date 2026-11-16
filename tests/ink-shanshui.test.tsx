@@ -1821,6 +1821,56 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(peaked).toBeGreaterThanOrEqual(27);
   });
 
+  it("breaks former symmetric Fuchun pine crowns into separate parent-rooted wet load crests",()=>{
+    const render=(seed:number)=>renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls:{...DEFAULT_SHANSHUI,
+        scene:"mountain-trail",inkSchool:"fuchun",seed,detail:1},
+    }));
+    for(const seed of [71,97]){
+      const html=render(seed);
+      const roots=[...html.matchAll(
+        /data-km-cliff-pine-ink-island="" data-km-cliff-pine-ink-island-root="([^"]+)"/g,
+      )].map(m=>Number(m[1].split(",")[1]));
+      const lobes=[...html.matchAll(
+        /data-km-cliff-pine-fan-lobes="([6-8])"/g,
+      )].map(m=>Number(m[1]));
+      const fans=[...html.matchAll(
+        /data-km-cliff-pine-ink-canopy="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(roots).toHaveLength(40);
+      expect(lobes).toHaveLength(40);
+      expect(fans).toHaveLength(40);
+      let independentWetCrests=0;
+      for(let i=0;i<fans.length;i++){
+        const upper=fans[i].split(" C")[0];
+        const q=[...upper.matchAll(
+          / Q(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)/g,
+        )];
+        expect(q).toHaveLength(lobes[i]+1);
+        const heights=q.slice(0,lobes[i]).map(m=>
+          roots[i]-Number(m[4]));
+        // This rejects the earlier global sine umbrella: its crest
+        // rose monotonically and declined monotonically at every seed.
+        // A physically separate mid-bough dry lift now divides at least
+        // 15 of 40 ORIGINAL rooted fan silhouettes into two wet loads.
+        const hasInkLift=heights.some((height,k)=>
+          k>0&&k<heights.length-1&&
+          height<heights[k-1]-.4&&height<heights[k+1]-.4);
+        if(hasInkLift)independentWetCrests++;
+        expect(Math.max(...heights)).toBeGreaterThan(4);
+      }
+      expect(independentWetCrests).toBeGreaterThanOrEqual(15);
+      // Preserve the actual rich source, never flatten other layers.
+      expect((html.match(/data-km-cliff-pine-connected-canopy=""/g)??[]))
+        .toHaveLength(20);
+      expect((html.match(/data-km-cliff-pine-needle=""/g)??[]))
+        .toHaveLength(310);
+      expect((html.match(/data-km-cliff-pine-canopy-paper-channels="2"/g)??[]))
+        .toHaveLength(40);
+      expect(render(seed)).toBe(html);
+    }
+  });
+
   it("keeps 60 source-anchored Fuchun pine grafts under 40 four-cubic ink crowns",()=>{
     const draw=(school:"fuchun"|"early-spring",seed:number,detail:number)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{
