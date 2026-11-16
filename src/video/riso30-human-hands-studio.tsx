@@ -82,9 +82,10 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     const id=side+"-glove-"+digit+"-distal-phalanx";
     const original=actor.parts.find(p=>p.id===id);
     const sample=pose.parts.find(p=>p.id===id);
-    return original?.pathKeys&&sample?.d!==original.d&&
+    return Boolean(original?.pathKeys?.length&&sample&&
+      sample.d!==original.d&&
       (sample.d.match(/[Cc]/g)??[]).length===
-        (original.d.match(/[Cc]/g)??[]).length;
+        (original.d.match(/[Cc]/g)??[]).length);
   }).length;
   const mcpSourcePlaneCount=(mcpPlateSource?.d.match(/[Mm]/g)??[]).length;
   const palmSourceCubicCount=(mainPalmSource?.d.match(/[Cc]/g)??[]).length;
