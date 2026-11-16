@@ -17,6 +17,7 @@ import type { PencilTrace } from "../../registry/video/colored-pencil";
 import type { PencilSubjectPart, PencilPalette } from "./colored-pencil-living-studies";
 
 type Point=[number,number];
+type Point3=[number,number,number];
 const r=(x:number)=>Math.round(x*100)/100;
 const n=(x:number)=>r(x).toFixed(2);
 const line=(a:Point,b:Point,c:Point)=>"M"+n(a[0])+" "+n(a[1])+
@@ -168,6 +169,132 @@ const projectNewHeadPoint=(vertex:readonly number[]):Point=>[
     (vertex[2]-50)*Math.sin(NEW_HEAD_YAW))),
   r(227-1.44*vertex[1]+.03*(vertex[2]-50)),
 ];
+/**
+ * Stage-1 five-value map from ACTUAL ANAT1 face-surface normals.
+ *
+ * The old rendering placed all material by 2D circles on an invented mask.
+ * Instead, project the real 468-vertex, 898-triangle face and accumulate
+ * area-weighted vertex normals. Dry-pencil contacts use barycentric points
+ * on FRONT-FACING triangles, so the five optical value bands follow cheek,
+ * brow, malar and mandibular volume rather than a screen-wide hatch field.
+ *
+ * Do not mislabel this as photographic fidelity: the ANAT1 face is an
+ * averaged mesh and excludes the rear cranium. An independent photographed
+ * source + measured landmarks still gate the ArtCraft portrait release.
+ * We add only paper pigment, never facial-feature stickers or an image.
+ */
+function newHeadAnat1ValuePigment(
+  face:ReturnType<typeof createFace>,seed:number,
+):PencilTrace[]{
+  const verts=face.vertices,triangles=face.mesh.faces;
+  const normals:Point3[]=verts.map(()=>[0,0,0]);
+  const cross=(a:Point3,b:Point3):Point3=>[
+    a[1]*b[2]-a[2]*b[1],
+    a[2]*b[0]-a[0]*b[2],
+    a[0]*b[1]-a[1]*b[0],
+  ];
+  const diff=(a:readonly number[],b:readonly number[]):Point3=>[
+    a[0]-b[0],a[1]-b[1],a[2]-b[2],
+  ];
+  const norm=(v:Point3):Point3=>{
+    const d=Math.hypot(...v)||1;
+    return [v[0]/d,v[1]/d,v[2]/d];
+  };
+  const dot=(a:Point3,b:Point3)=>
+    a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+  for(let i=0;i<triangles.length;i+=3){
+    const a=triangles[i],b=triangles[i+1],c=triangles[i+2];
+    const nrm=cross(diff(verts[b],verts[a]),diff(verts[c],verts[a]));
+    for(const ix of [a,b,c]){
+      normals[ix][0]+=nrm[0];
+      normals[ix][1]+=nrm[1];
+      normals[ix][2]+=nrm[2];
+    }
+  }
+  const light=norm([-.62,.58,.52]);
+  const camera:Point3=[Math.sin(NEW_HEAD_YAW),0,Math.cos(NEW_HEAD_YAW)];
+  const lit=normals.map(nrm=>dot(norm(nrm),light));
+  const facing=normals.map(nrm=>dot(norm(nrm),camera));
+  const screen=verts.map(projectNewHeadPoint);
+  const values=[
+    {name:"highlight",min:.72,color:"#F4D9BD",width:.25,opacity:.20},
+    {name:"light",min:.47,color:"#DBB299",width:.30,opacity:.29},
+    {name:"halftone",min:.19,color:"#B88B7E",width:.34,opacity:.38},
+    {name:"core-shadow",min:-.07,color:"#7B6269",width:.38,opacity:.44},
+    {name:"reflected-light",min:-Infinity,color:"#C7A39E",width:.28,opacity:.25},
+  ] as const;
+  type Surface={points:[Point,Point,Point];angle:number;weight:number};
+  const palettes:Surface[][]=values.map(()=>[]);
+  const totals=values.map(()=>0);
+  for(let i=0;i<triangles.length;i+=3){
+    const ids=[triangles[i],triangles[i+1],triangles[i+2]] as const;
+    if(ids.some(ix=>facing[ix]<.16))continue;
+    const p0=screen[ids[0]],p1=screen[ids[1]],p2=screen[ids[2]];
+    const ax=p1[0]-p0[0],ay=p1[1]-p0[1];
+    const bx=p2[0]-p0[0],by=p2[1]-p0[1];
+    const det=ax*by-ay*bx,area=Math.abs(det)*.5;
+    if(area<.12)continue;
+    const lv=(lit[ids[0]]+lit[ids[1]]+lit[ids[2]])/3;
+    const band=values.findIndex(value=>lv>=value.min);
+    if(band<0)continue;
+    // Tangents follow iso-light directions across the actual triangle.
+    const dl1=lit[ids[1]]-lit[ids[0]];
+    const dl2=lit[ids[2]]-lit[ids[0]];
+    const gx=(dl1*by-dl2*ay)/det;
+    const gy=(ax*dl2-bx*dl1)/det;
+    const angle=Math.atan2(gx,-gy);
+    palettes[band].push({
+      points:[p0,p1,p2],
+      angle:Number.isFinite(angle)?angle:0,
+      weight:area,
+    });
+    totals[band]+=area;
+  }
+  if(palettes.some((p,i)=>p.length<9||totals[i]<25))
+    throw new Error("ANAT1 face does not provide five visible value surfaces");
+  const out:PencilTrace[]=[];
+  values.forEach((value,band)=>{
+    const surfaces=palettes[band],total=totals[band];
+    const distribution:number[]=[];
+    let acc=0;
+    for(const surface of surfaces){acc+=surface.weight;distribution.push(acc);}
+    for(let group=0;group<3;group++){
+      const marks:string[]=[];
+      for(let n=0;n<154;n++){
+        const key=band*9001+group*409+n;
+        const v=pencilHash(seed,key,81)*total;
+        let lo=0,hi=distribution.length-1;
+        while(lo<hi){
+          const mid=(lo+hi)>>1;
+          if(v<distribution[mid])hi=mid;else lo=mid+1;
+        }
+        const tri=surfaces[lo];
+        const root=Math.sqrt(pencilHash(seed,key,82));
+        const split=pencilHash(seed,key,83);
+        const a=1-root,b=root*(1-split),c=root*split;
+        const [pa,pb,pc]=tri.points;
+        const x=pa[0]*a+pb[0]*b+pc[0]*c;
+        const y=pa[1]*a+pb[1]*b+pc[1]*c;
+        const deviation=(pencilHash(seed,key,84)-.5)*.62;
+        const angle=tri.angle+deviation;
+        const vx=Math.cos(angle),vy=Math.sin(angle);
+        const span=(2.4+3.7*pencilHash(seed,key,85))*(band===0?.78:1);
+        const curl=(pencilHash(seed,key,86)-.5)*.71;
+        marks.push(line(
+          [x-vx*span*.51,y-vy*span*.51],
+          [x-vy*curl,y+vx*curl],
+          [x+vx*span*.49-vy*curl*.25,
+            y+vy*span*.49+vx*curl*.25],
+        ));
+      }
+      out.push(drawn("newhead-anat1-"+value.name+"-"+group,
+        marks.join(" "),value.color,value.width,value.opacity,
+        194+band*8+group*4));
+    }
+  });
+  return out;
+}
+
 export const NEW_CHARACTER_01_INSPECTION_KEYS=[
   "forehead","glabella","zygion.R","zygion.L",
   "cheekbone.R","cheekbone.L","gonion.R","gonion.L","menton",
@@ -289,6 +416,7 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
     bounds,direction:64,flow:11,start:73,
     details:[
       ...newHeadPlanePigment(bounds,(seed+1831)%2147483647),
+      ...newHeadAnat1ValuePigment(face,(seed+2393)%2147483647),
       ...newHeadValuePencil(guides,(seed+1001)%2147483647),
       drawn("newhead-sagittal-guide",line(forehead,glabella,chin),
         "#90777C",.32,.31,103),
