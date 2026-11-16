@@ -28,7 +28,7 @@ export function riso47PalmContour(actor:Riso47Actor,side:Riso47Side):string{
   const n=(v:number)=>Number(v.toFixed(2));
   // Artist has a softer heel and rounder index saddle; Courier's contours
   // are tenser and slightly more angular. Source identity is preserved.
-  const radial=artist?.43:.05,heel=artist?.55:.18,knuckle=artist?.36:.12;
+  const radial=artist?0.43:0.05,heel=artist?0.55:0.18,knuckle=artist?0.36:0.12;
   const c=(a:number,b:number)=>`${x(a)} ${n(b)}`;
   return [
     `M${c(6.4,-2.21)}`,
