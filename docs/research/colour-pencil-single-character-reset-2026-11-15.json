@@ -1,5 +1,5 @@
 {
-  "schema_version": 8,
+  "schema_version": 9,
   "project": "kumiki-ui / CP-F1 new single character #01",
   "subject_type": "human",
   "status": "stage_1_outline_only_unapproved",
@@ -60,6 +60,20 @@
       "type": "open educational human cranial and facial anatomy textbook",
       "rights": "Read and studied as anatomical reference only; no third-party artwork, pixels or traced contours embedded in component",
       "observation": "The rounded cranium houses brain; temporal bones lie laterally beneath parietals, zygomatic arch turns outward toward cheek, mandible narrows toward chin. Use these 3D anatomical landmarks to constrain screen-space form."
+    },
+    {
+      "title": "Alexandre Debiève — An Older Bald Man (23 February 2017)",
+      "url": "https://commons.wikimedia.org/wiki/File:Alexandre-debieve-an-older-bald-man.jpg",
+      "type": "CC0 independently licensed photo considered for eventual new-human reference",
+      "rights": "Creative Commons CC0 1.0, published on Unsplash before 2017-06-05; verified on Commons. Do not confuse the Commons SHA-1 1bd26c28... with the SHA-256 required by the ArtCraft fidelity gate.",
+      "observation": "REJECTED as the current 18-point full-head silhouette source: original 5712×3808 photo crops the top of the scalp and lower chin; it cannot independently validate full cranium/mandible joins. No pixels traced, copied or embedded into kumiki-ui."
+    },
+    {
+      "title": "Veronica Winters — Realistic Colored Pencil Portrait Drawing Guide",
+      "url": "https://veronicasart.com/realistic-colored-pencil-portrait-drawing-guide/",
+      "type": "colored-pencil craft study, technique-only",
+      "rights": "Original artist copyright retained. Technique/tonal observations only, no borrowed art.",
+      "observation": "Pencil value planning must reserve highlights, build true dark/light directional value structures and calibrate in grayscale before finish; additional microhatches cannot compensate for incorrect skull geometry."
     }
   ],
   "character_spec": {
@@ -122,9 +136,14 @@
       "newhead-plane-far-temple-0..2-0..2",
       "newhead-plane-malar-0..2-0..2",
       "newhead-plane-far-malar-0..2-0..2",
-      "newhead-plane-mandibular-0..2-0..2"
+      "newhead-plane-mandibular-0..2-0..2",
+      "newhead-anat1-highlight-0..2",
+      "newhead-anat1-light-0..2",
+      "newhead-anat1-halftone-0..2",
+      "newhead-anat1-core-shadow-0..2",
+      "newhead-anat1-reflected-light-0..2"
     ],
-    "geometry": "One editable cranial+facial outline: 23 ordered lower ANAT1 mesh anchors and 11 new parietal/frontal cranium anchors; asymmetric smooth near/far temporal recess; 54 localized 3-color pressure traces plus 3 × 114 short value contacts and 5 subtle construction guide traces. No ears, eyes, nose, lips, clothing, hairstyle, neck, photo filters or old woman geometry. Exact-native scans and independently observed reference are separate quality gates.",
+    "geometry": "Exactly ONE editable head region with 23 ANAT1 lower-face silhouette points, 11 separately authored skull arch points and soft near/far temporal transitions. Preserves ALL previous 54 anatomy-local pigment trace groups, 342 guide contacts and 5 structural guides. Adds 15 further deterministic SVG pencil paths (5 face-mesh normal-derived tonal classes x 3 cohorts) with 2925 short strokes at graduated densities [150,192,218,238,177] per cohort and mesh-triangle barycentric placement. Full head contains 77 named editable traces, no image/foreignObject/bitmaps, no detailed facial feature/retired woman geometry. Value classification is mesh-generated, NOT measured in a real source photo.",
     "camera_aspects": [
       "16:9",
       "9:16"
@@ -136,18 +155,18 @@
   },
   "five_axes": {
     "topology": "One SVG-native head contour joins the face mesh to eleven separately drafted cranial vault anchors and rounds the parietal apex. No flat trapezoid or bilateral wasp-waist. Live Chromium Path2D scanline checks distinguish rounded crown, subtle temple recession, zygomatic flare and jaw taper. Visual review still rejects the result as a finished human.",
-    "vector_flow": "Six independently oriented anatomical pigment regions (cranial, near/far temple, near/far malar, mandible) plus three separate curved low-pressure construction fans. No repeated full-screen diagonal hatch texture.",
-    "weight": "6 anatomy-anchored local pigment fields (cranial, temporal, far-temple, malar, opposite malar, mandibular); unlike screen-wide hatches, each has independently curved 3-colour stroke families; the far cheek is deliberately lighter and narrower, jaw has warm half-tone. No existing line/texture detail removed.",
-    "rhythm": "3 × 114 short strokes follow three bony guides with deterministic irregular offsets, not wallpaper",
-    "texture": "54 independently editable, low-pressure, locally feathered pigment traces (six 3-color anatomical fields × 3 group cohorts), original 342 construction contacts and subtle projected guides, natural paper tooth; no bitmaps, photo edits or blanket gradients."
+    "vector_flow": "Original 3 curved ANAT1 bony value fans and 54 local skin field pigment traces remain. New five-class value map samples actual 468-vertex/898-face ANAT1 normals, projects area-weighted face triangles, and aligns each short dry-pencil mark to local surface iso-light tangents, with reduced hand irregularity and pressure. This is geometry-based, not photo-matched.",
+    "weight": "Five explicit ANAT1 normal-derived optical values (highlight, light, halftone, core-shadow, reflected light) with darker plane cohorts receiving more low-pressure short pencil contacts; the existing six local 3-colour cranial/temporal/cheek/mandibular plane families remain intact and editable. No opaque photographic underpainting.",
+    "rhythm": "ANAT1 3x 114 construction micro-strokes + 54 local field traces + 15 lit-surface traces; band cohort densities 150/192/218/238/177 advance value pressure without global axis-aligned CAD hatch. Per-triangle tangent + natural deterministic jitter preserve direction.",
+    "texture": "69 editable pigment trace groups (54 original local + 15 ANAT1 mesh value) plus 3 old construction fans and 5 bony guides; 468-point mesh influences each of 2925 additional independent dry-pencil contacts; CP-F1 tooth, micrograin, detail markers and all prior material layers remain. No bitmap, gradient fill, vector flattening or artist image tracing."
   },
   "gates": {
-    "source_match": "BLOCKED: 3/4 CC-BY-SA skull and OpenStax references legally inspected for cranial technique but not used as source-matched 18 landmark/5 tonal plane comparator for a real human portrait. Preserve failure until a suitably licensed full-head photo and independent measurements are added.",
+    "source_match": "BLOCKED: no eligible full-head reference photo with 18 independent source and output measurements, exact file SHA-256, five matched source tonal rectangles and actual render fidelity overlay. Debiève CC0 candidate was rejected because scalp and chin are cropped; nonmatching original woman never reused. The ANAT1 face-mesh value engine is NOT a substitute for source-photo evidence.",
     "head_silhouette": "REVIEW-REQUIRED: initial flat-top shape failed browser dome fraction 0.953 vs reference target <0.84 (run 43804727018). Expanded 11-point cranium passed browser but native 1x/2.15x render showed gross bilateral hourglass, cheek/temple width 1.099 vs required <1.075 (run 43805712539). Current 681ba01 Stage 1 head passes both geometric tests in 16:9/9:16 but still reads as a featureless white pencil mannequin, not a realistic head.",
-    "quality": "ART HOLD (DO NOT MERGE): all three checks GREEN at code commit 681ba01 (changed contract run 43806052416, native foundation run 43806052567, fibre run 43806052426). Opened actual native 960x540 screenshot from foundation artifact 14197824813 and compared against earlier straight-wall and over-pinched candidates. Dome is now better rounded and cheek/temple smoother but whole head remains unfinished: diffuse faint hatch, unapproved three-quarter anatomical evidence, no reference/photo value map, absent features per one-at-a-time stop. Structural acceptance != artist-quality acceptance.",
-    "automated": "Exact-code SHA 681ba01: all passed. New Chromium human Path2D proof rejects flat-sided dome, exaggerated temple pinch and oversized jaw in both aspects. Fox anatomical QA/CP-F1 tests preserved and passing. Docs-only update to manifest will require fresh exact-head CI check before merge."
+    "quality": "ART HOLD: 2026-11-15 verified real 960x540 and 2.15x native Chromium artwork at production a8c37cb. New five 3D-surface tonal families and differential pigment density are technically correct and preserve one-stage head-only topology. Compared with prior 154-even-density version; 960x540 image changed 8.13% of lower-face pixels by ≥3 RGB per channel and 3.43% by ≥8 in head x550..754,y180..410 (manual experimental sample), so change is visible but not transformative. Current result still reads as weak scratchy mannequin, lacks a matched source 3/4 face/shadow value study and realistic macro/meso coherence. DO NOT MERGE or approve new eye.",
+    "automated": "GREEN on exact production commit a8c37cb, all three CI jobs: changed-contracts https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43811479647 ; fibre-proof https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43811479604 ; foundation-proof https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43811479655 . Unit test was first observed failing (0 vs 15 ANAT1 traces) before implementation. Browser now verifies both 16:9/9:16, all five tonal IDs, zero bitmap substitutions, reversible per-value isolation and exactly identical default output on reset. Further docs-only commit may generate new CI results."
   },
-  "next_step": "Prioritize actual full-head anatomical geometry from ANAT1 body/head lattice or a source-measured matched 3/4 head photo; rework temporal/parietal-to-malar contour and five source-comparable tonal planes, then inspect native 1×/2.15× and ArtCraft independent source/outcome landmarks. Only after approving that ONE head component, draw an isolated next facial component. Do not restore old woman or jump ahead to a full character.",
+  "next_step": "Do NOT add an eye or merge yet. First select a rights-verified FULL-head three-quarter photograph with clear scalp/skull and complete jaw, side light, and no heavy occlusion. Record source bytes/SHA256 and 18 independently annotated photographed and output landmarks; map five PHOTO-measured tonal rectangles to the one-head construction (not just ANAT1 theoretical values). Review actual native 1×/3× shape, tone and skin-pencil flow; reject inaccurate skull or stubble texture until artist quality passes. Then move to one isolated facial feature.",
   "visual_review_log": [
     {
       "candidate": "initial stage1 face mask",
@@ -209,6 +228,22 @@
       "observed": "Exact code passes all 3 CI checks, including independent Path2D dome width and temple-to-zygoma bounded-shape checks; 960×540 actual PNG now shows more continuous cranial shape and gentler temporal transitions, but still does not read as a lifelike human. Hatching above the forehead can resemble early hair, facial planes are weak and no independently matched anatomy photo has been approved.",
       "decision": "STRUCTURAL TEST PASS; ART REJECT/HOLD",
       "correction": "Stop algorithmic tune-to-threshold iterations. Next source-measured full-head silhouette and five tonal planes are the high-priority art tasks, one component at a time; do not merge."
+    },
+    {
+      "candidate": "ANAT1 mesh-normal five-value surface + reversible native band inspector",
+      "workflow": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43810781127",
+      "artifact": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43810781127/artifacts/14199813885",
+      "observed": "Opened original 960x540, 2.15x macro, and core-shadow-only screenshots. The five values were genuinely separate 15 named SVG paths and the inspector reversibly showed three per band. Core still occupied sparse scratch marks on near-shadow cheek; full head too pale and looked like scalp stubble, not human flesh. One face/head region and all older pencil details remained.",
+      "decision": "TECHNICAL PASS; ART REJECT",
+      "correction": "Graduated 5-band deposition densities by tonal role, shortened surface-tangent contacts and slightly raised core opacity; maintained real face-normal placement and all prior traces."
+    },
+    {
+      "candidate": "Graduated ANAT1 five-value deposition / a8c37cb",
+      "workflow": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43811479655",
+      "artifact": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43811479655/artifacts/14200592832",
+      "observed": "All three exact-head CI checks passed. Opened 960x540 final artwork and isolated core-shadow pass, compared with prior identical composition. Darker regions acquire more short pencil contacts, while isolated value proof remains right-cheek localized and all 54 prior original skin-plane families are preserved. Overall look still too scratched and schematic for finished portrait; five mesh classes are generic light theory, not five independently measured source-photo value planes.",
+      "decision": "TECHNICAL PASS; ART HOLD",
+      "correction": "Stop adding unmeasured hatching and choose a genuinely full-head licensed photo with recorded SHA256, independent landmarks and five tonal measurements. Rebuild cranial flow and material value hierarchy from source evidence before facial-feature work."
     }
   ]
 }
