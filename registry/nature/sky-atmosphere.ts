@@ -30,6 +30,10 @@ export const ATMOSPHERE = {
 } as const;
 
 const R0 = ATMOSPHERE.earthRadius, RT = R0 + ATMOSPHERE.top;
+/** Share of the once-scattered light that scatters again (estimated; Hillaire 2020 tabulates it, this is a constant fill). */
+const MS = 0.6;
+/** The air is lit by blue skylight as well as by the sun: a bluish tint on the re-scattered light (estimated). */
+const MS_TINT = [0.8, 0.95, 1.2] as const;
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 export const norm3 = (v: readonly number[]): V3 => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
 
@@ -118,7 +122,10 @@ export function atmosphere(o: AtmosphereOptions): Atmosphere {
       // the sun's height seen from the sample point
       const upx = d[0] * t, upy = R0 + eye + d[1] * t, upz = d[2] * t, sinE = (upx * sunDir[0] + upy * sunDir[1] + upz * sunDir[2]) / rr;
       const sl = sunlight(h, sinE);
-      for (let c = 0; c < 3; c++) L[c] += Math.exp(-tau[c]) * sl[c] * (RB[c] * dr * pr + mieScat * dm * pm) * ds;
+      // multiple scattering: light already scattered once by the air around the sample, re-scattered isotropically
+      // (an estimated share of the sunlight there; it brightens long, low paths, so the horizon whitens)
+      const msSun = Math.max(0, sinE + 0.1) * 0.6 + 0.08;
+      for (let c = 0; c < 3; c++) L[c] += Math.exp(-tau[c]) * (sl[c] * (RB[c] * dr * pr + mieScat * dm * pm) + sl[c] * MS_TINT[c] * MS * msSun * (RB[c] * dr + 1.1 * mieScat * dm) / (4 * Math.PI)) * ds;
     }
     return { L, T: [Math.exp(-tau[0]), Math.exp(-tau[1]), Math.exp(-tau[2])] };
   };
@@ -131,7 +138,7 @@ export function atmosphere(o: AtmosphereOptions): Atmosphere {
     const e = elAt(i), a = sunAz + (j / (AZ - 1)) * Math.PI, d: V3 = [Math.cos(e) * Math.sin(a), Math.sin(e), Math.cos(e) * Math.cos(a)];
     const { L } = singleScatter(d), k = (i * AZ + j) * 3;
     // multiple scattering adds a soft, bluish fill (estimated share of the single-scattered light)
-    sTab[k] = L[0] * 1.15; sTab[k + 1] = L[1] * 1.2; sTab[k + 2] = L[2] * 1.3;
+    sTab[k] = L[0]; sTab[k + 1] = L[1]; sTab[k + 2] = L[2];
   }
   const sky = (d: readonly number[]): V3 => {
     const e = Math.asin(Math.max(-1, Math.min(1, d[1]))), a = Math.atan2(d[0], d[2]);
@@ -155,7 +162,7 @@ export function atmosphere(o: AtmosphereOptions): Atmosphere {
   // aerial perspective: transmittance over a path, and the light the air adds (a fraction of the sky behind)
   const aerial = (d: readonly number[], m: number) => {
     const { L, T } = singleScatter(d, m);
-    return { t: T, add: [L[0] * 1.15, L[1] * 1.2, L[2] * 1.3] as V3 };
+    return { t: T, add: L };
   };
   return { sunlight, sky, skyIrradiance, aerial, sunDir };
 }

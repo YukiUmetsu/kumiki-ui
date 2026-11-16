@@ -1,9 +1,10 @@
 # WATER1 — water framework for any art style
 
 **Registry item:** `water` (needs `art-foundations`, `sky-weather`) · **Files:** `registry/nature/water-*.ts(x)` ·
-**Storybook:** Video production → Art Foundations → Water (Sheet, Sea lab, Breaker lab) · **Skill:**
+**Storybook:** Video production → Art Foundations → Water (Sheet, Sea lab, Breaker lab, Open sea rendered, Ocean lab) · **Skill:**
 [kumiki-water](../../skills/kumiki-water/SKILL.md) · **Research:**
-[water framework, 2026-11-16](../research/water-framework-2026-11-16.md)
+[water framework, 2026-11-16](../research/water-framework-2026-11-16.md),
+[the rendered ocean, 2026-11-16](../research/water-ocean-2026-11-16.md)
 
 WATER1 holds what stays true about water in every art style:
 
@@ -96,6 +97,40 @@ absorption: red dies within metres (`WATER_ABSORPTION`, Pope & Fry 1997).
 (`FOAM_DECAY`: e-folding about 5 s, from a CC0 surf video). Bubbly water beneath the foam is paler. At force 7 and
 above, the lace is drawn out along the wind. With a low sun ahead, thin crests glow teal.
 
+## The rendered ocean (registry/nature/water-ocean.ts)
+
+`renderOcean({ wind, fetchKm, windDirection, choppiness, time, sunElevation, sunAzimuth, pitch, eyeHeight, sky,
+particles, width, height })` renders the open sea under SKY1's physical sky on the CPU and returns sRGBA. The pieces
+are exported.
+
+**The waves.** `seaSpectrum`:
+- **Spectrum:** JONSWAP (Hasselmann et al. 1973), the Pierson–Moskowitz sea when fully developed.
+  - The fully developed peak and height reproduce the reported relations within 10%: H_s ≈ 0.22 U₁₉.₅²/g,
+    ω_p = 0.877 g/U₁₉.₅.
+  - A short fetch gives the smaller, shorter JONSWAP sea.
+- **Spreading:** cos^2s with s from Hasselmann et al. 1980 (estimated coefficients).
+- **Dispersion:** deep water with a capillary correction.
+
+**The surface.** `oceanField`:
+- **Cascades:** three FFT cascades (Tessendorf 2001), with no common tile.
+- **Crests:** the horizontal displacement −λD gathers and sharpens the crests.
+- **Whitecaps:** where the Jacobian folds, at the cover Monahan & O'Muircheartaigh measured for the wind. Foam from
+  2.5 s earlier fades at WATER1's measured 5 s.
+- **Slope calibration:** the finer cascades are scaled so the resolved slopes stay within 85% of Cox–Munk's measured
+  mean square slope; the rest is sub-pixel roughness.
+
+**The light:**
+- Fresnel reflection of the sky and its clouds (`skyEnvironment` from SKY1), spread by the unresolved slopes.
+- The sun's glitter from the Cox–Munk slope density.
+- Light back out of the water from absorption (WATER1's table) and Morel's (1974) seawater backscatter, R ≈ 0.33 b_b/a
+  (estimated form): blue for clear water, greener with particles.
+- Turquoise light through backlit crests.
+- Foam lit by sun and sky.
+- Haze to the horizon.
+- Detail fades with each pixel's footprint.
+
+React: `OceanView` (queued, cached) and `SeaByBeaufort`.
+
 ## Known limits
 
 - **`breakerShape` is a construction for painting, not a fluid simulation.** The lip arc is ballistic and the tube
@@ -105,3 +140,5 @@ above, the lace is drawn out along the wind. With a low sun ahead, thin crests g
 - **The whitecap patch size and the depth-colour clarity are estimated**, as is the mapping from coverage to crest
   height.
 - **Measured colours come from one photograph each.** The storm-sea body is underexposed in its source.
+- **The rendered ocean is deep water only:** no shoaling, breakers or spray. Foam has no history beyond 2.5 s, and
+  the spreading coefficients are estimated. No human visual review yet.

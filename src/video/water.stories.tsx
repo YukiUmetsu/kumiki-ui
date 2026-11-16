@@ -6,6 +6,9 @@ import type { BreakerType } from "../../registry/nature/water-data";
 import { BreakerFigure, SeaScene, WaterSheet } from "../../registry/nature/water-react";
 import { breakingDepth, glitterPath, iribarren, lipReach, seaForBeaufort } from "../../registry/nature/water-physics";
 import { beaufortSpeed } from "../../registry/nature/sky-physics";
+import type { CloudGenus } from "../../registry/nature/sky-data";
+import { seaSpectrum } from "../../registry/nature/water-ocean";
+import { OceanView, SeaByBeaufort } from "../../registry/nature/water-ocean-react";
 
 const page = { display: "grid", gap: 16, alignContent: "start", padding: 24, minHeight: "100vh", background: "var(--km-surface-canvas, #f6f3f1)", color: "var(--km-text-primary, #242424)",
   font: "15px/1.5 var(--km-font-sans, system-ui, sans-serif)" } as const;
@@ -76,9 +79,49 @@ function BreakerLab() {
   );
 }
 
+/** The open sea rendered by force: waves from the measured spectrum, whitecaps at the measured cover. */
+function RenderedSeas() {
+  return (
+    <main style={page}>
+      <h1 style={{ margin: 0, font: "600 22px var(--km-font-sans, system-ui, sans-serif)" }}>The open sea, rendered</h1>
+      <p style={{ margin: 0, maxWidth: 820 }}>Waves summed by FFT from the sea spectrum for each wind (Pierson–Moskowitz, fully developed), crests sharpened where the surface gathers, whitecaps where it folds at Monahan's measured cover, the sky and sun reflected by Fresnel with Cox–Munk's sub-pixel slopes, and the blue that comes back up out of deep water.</p>
+      <SeaByBeaufort />
+    </main>
+  );
+}
+
+/** Wind, fetch, sun, camera, a cloud layer, the water's particles, and time. */
+function OceanLab() {
+  const [wind, setWind] = useState(9), [fetch, setFetch] = useState(0), [sunEl, setSunEl] = useState(30), [sunAz, setSunAz] = useState(-110), [pitch, setPitch] = useState(-7);
+  const [eye, setEye] = useState(4), [sky, setSky] = useState<"" | CloudGenus>(""), [particles, setParticles] = useState(0.0006), [time, setTime] = useState(0), [full, setFull] = useState(false);
+  const W = full ? 960 : 480, H = Math.round(W * 9 / 16), sp = seaSpectrum({ wind, fetchKm: fetch || undefined });
+  const options = { width: W, height: H, wind, fetchKm: fetch || undefined, sunElevation: sunEl, sunAzimuth: sunAz, pitch, eyeHeight: eye, sky: sky ? [sky] : [], particles, time, seed: 3 };
+  const range = (text: string, v: number, set: (n: number) => void, min: number, max: number, step: number) => <label style={label}>{text} {v}<input type="range" min={min} max={max} step={step} value={v} onChange={e => set(+e.target.value)} /></label>;
+  return (
+    <main style={page}>
+      <div style={row}>
+        {range("Wind m/s", wind, setWind, 1, 24, 0.5)}
+        {range("Fetch km (0 = open ocean)", fetch, setFetch, 0, 300, 5)}
+        {range("Sun height °", sunEl, setSunEl, -2, 80, 1)}
+        {range("Sun from °", sunAz, setSunAz, -180, 180, 5)}
+        {range("Look °", pitch, setPitch, -40, 10, 1)}
+        {range("Eye m", eye, setEye, 1, 40, 1)}
+        {range("Time s", time, setTime, 0, 30, 0.5)}
+        {range("Particles", particles, setParticles, 0.0002, 0.006, 0.0002)}
+        <label style={label}>Sky<select style={field} value={sky} onChange={e => setSky(e.target.value as "" | CloudGenus)}>{["", "cumulus", "stratocumulus", "altocumulus", "cirrus", "altostratus", "stratus"].map(g => <option key={g} value={g}>{g || "clear"}</option>)}</select></label>
+        <label style={{ ...label, gridAutoFlow: "column", alignItems: "center" }}><input type="checkbox" checked={full} onChange={e => setFull(e.target.checked)} /> Full size (slow)</label>
+      </div>
+      <div style={{ maxWidth: 960 }}><OceanView options={options} label={`The open sea in a ${wind} m/s wind, rendered`} /></div>
+      <p style={{ margin: 0, maxWidth: 820 }}>Significant height {sp.significantHeight.toFixed(2)} m, peak period {sp.peakPeriod.toFixed(1)} s, peak wavelength {Math.round(sp.peakLength)} m{fetch ? ` (JONSWAP, fetch ${fetch} km)` : " (fully developed)"}. More particles make the water greener and lighter; time moves every wave at its own speed.</p>
+    </main>
+  );
+}
+
 const meta = { title: "Video production/Art Foundations/Water", id: "video-water", component: SheetStory, parameters: { layout: "fullscreen" } } satisfies Meta<typeof SheetStory>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Sheet: Story = { render: () => <SheetStory /> };
 export const Sea: Story = { name: "Sea lab", render: () => <SeaLab /> };
 export const Breakers: Story = { name: "Breaker lab", render: () => <BreakerLab /> };
+export const Rendered: Story = { name: "Open sea, rendered", render: () => <RenderedSeas /> };
+export const Ocean: Story = { name: "Ocean lab", render: () => <OceanLab /> };
