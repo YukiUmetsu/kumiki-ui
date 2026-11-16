@@ -9,7 +9,7 @@ type Specimen="rose"|"fox"|"portrait"|"architecture"|"fabric"|"valley";
 const specimenMeta:Record<Specimen,{title:string;detail:string;focus:[number,number]}> = {
   rose:{title:"Botanical / rose",detail:"Curved petal folds, layered reds, directional veins",focus:[.72,.43]},
   fox:{title:"Wildlife / red fox",detail:"Ear, eye socket, cheek and rooted ruff tracts",focus:[.73,.38]},
-  portrait:{title:"Human / facial study",detail:"Cranial volumes, soft planes, separate ocular features",focus:[.71,.38]},
+  portrait:{title:"New human #01 / HEAD ONLY",detail:"Fresh one-character construction; only facial contour and bony value guides exist. Eyes, nose, mouth, ears and hair are NOT drawn yet.",focus:[.70,.42]},
   architecture:{title:"Built form / brick",detail:"Masonry joints, hard edges and reflected planes",focus:[.72,.45]},
   fabric:{title:"Fabric / metal",detail:"Fold shadow, drape direction and cup reflections",focus:[.68,.49]},
   valley:{title:"Landscape / river",detail:"Atmosphere, distance, evergreen branches and water",focus:[.73,.45]},
@@ -18,7 +18,7 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-nape"|"portrait-crown"|"portrait-lock"|"portrait-lips"|"portrait-eye";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
@@ -43,7 +43,7 @@ function projectedInspectionCenter(
  * Artwork is 100% programmatic, frame-addressed and authored from original geometry.
  */
 export function PencilFoundationStudio(){
-  const [specimen,setSpecimen]=useState<Specimen>("rose");
+  const [specimen,setSpecimen]=useState<Specimen>("portrait");
   const [aspect,setAspect]=useState<PencilAspect>("landscape");
   const [frame,setFrame]=useState(335);
   const [pressure,setPressure]=useState(1);
@@ -77,12 +77,8 @@ export function PencilFoundationStudio(){
     "cheek-ruff":inspectionFocus==="fox-chest"&&specimen==="fox"?
     "chest":inspectionFocus==="fox-forepaw"&&specimen==="fox"?
     "foreleg-right":inspectionFocus==="fox-hock"&&specimen==="fox"?
-    "rear-leg":inspectionFocus==="portrait-nape"&&specimen==="portrait"?
-    "neck":inspectionFocus==="portrait-crown"&&specimen==="portrait"?
-    "hair-crown":inspectionFocus==="portrait-lock"&&specimen==="portrait"?
-    "hair-lock-right":inspectionFocus==="portrait-lips"&&specimen==="portrait"?
-    "lip-lower":inspectionFocus==="portrait-eye"&&specimen==="portrait"?
-    "iris-near":null;
+    "rear-leg":inspectionFocus==="portrait-head"&&specimen==="portrait"?
+    "head-silhouette-01":null;
   const focus=(focusPart?projectedInspectionCenter(
     drawing as ReturnType<typeof pencilLivingStudyDrawing>,focusPart):null)??
     specimenMeta[specimen].focus;
@@ -101,6 +97,11 @@ export function PencilFoundationStudio(){
       <h1 style={{font:"600 33px Georgia,serif",margin:0}}>
         From observation to a finished pencil drawing
       </h1>
+      {specimen==="portrait"&&<p data-km-character-stage="head-outline"
+        style={{margin:0,fontSize:13,fontWeight:700,color:"#715443"}}>
+        NEW CHARACTER #01 · STAGE 1 OF ONE ACTIVE FEATURE · HEAD CONTOUR ONLY.
+        Previous woman removed; eyes, nose, lips, ears, hair and clothing are intentionally not authored.
+      </p>}
       <p style={{margin:"4px 0",maxWidth:950}}>
         This studio draws original author-defined SVG geometry with CP-F1
         pencil pigments, layered stroke paths and paper-tooth masks.
@@ -174,20 +175,8 @@ export function PencilFoundationStudio(){
           <option value="fox-hock" disabled={specimen!=="fox"}>
             Fox folded hind hock / grounded digits
           </option>
-          <option value="portrait-nape" disabled={specimen!=="portrait"}>
-            Human nape / collar
-          </option>
-          <option value="portrait-crown" disabled={specimen!=="portrait"}>
-            Human scalp / crown pencil flow
-          </option>
-          <option value="portrait-lock" disabled={specimen!=="portrait"}>
-            Human descending side lock
-          </option>
-          <option value="portrait-lips" disabled={specimen!=="portrait"}>
-            Human mouth / vermilion pencil anatomy
-          </option>
-          <option value="portrait-eye" disabled={specimen!=="portrait"}>
-            Human ANAT1 iris / eyelid shadow
+          <option value="portrait-head" disabled={specimen!=="portrait"}>
+            New character #01 / head contour only
           </option>
         </select>
       </label>
