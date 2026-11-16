@@ -50,3 +50,27 @@ The **first** actual Chromium V37 screenshot, head `cca415b3`, was produced by [
 **Crucial actual 3× artist rejection:** the 128 initial dark wax follicles were visibly **large, separated, horizontal rectangular pigment chips** under the eyebrow instead of thin rooted hairs. Their straight/root pickup silhouettes made the eyebrow resemble intentionally pixelated decals, worse at actual 1× full portrait despite meaningful local RGB/SSIM improvements. Therefore this first revision is **REJECTED** by the medium's tactile/shape standards. The next iteration keeps all 128+37 distinct curves and the original 20 hand-authored V9 hairs but lengthens their curved flow and reduces native pigment width from **0.39→0.22 px dark**, **0.22→0.13 px reflected**; opacity **0.83→0.53 dark** and wax pressure **0.72→0.38**, without removing the original small wax root cores. This correctly places strong color in the broad source-rooted underpaint, leaving fine hairs to supply direction and irregular individual texture rather than spiky digital blocks. 
 
 This revision is **not yet approved**; independently compare its exact-head 1× and 3× screenshots, full-brow/coronal eye/malar photo crops and natural 300-frame moving evidence before any promotion. Preserve V36 as negative control and keep draft PR #461 open.
+
+
+## V37 revised exact-head native 1×/3× audit
+
+**Verified head c039eb29**, exact original CC0 source screenshot SHA256 \`f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2\`.
+[Chromium native 1×/3× artifact #14274427728](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43961677823/artifacts/14274427728) and [native CRAYON1 grammar PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43961677786).
+Each value is actual full-resolution RGB \`skimage.metrics.structural_similarity(..., channel_axis=2,data_range=255)\` against the **original photograph**, never against another rendering.
+
+| Exact original-source region | V36 | Revised V37 | Difference |
+|---|---:|---:|---:|
+| Whole 608×1082 | 0.365142 | **0.365753** | +0.000611 |
+| Near brow x185–345,y444–515 | 0.523709 | **0.571503** | +0.047794 |
+| Dense brow core x220–320,y462–499 | 0.384070 | **0.508600** | +0.124530 |
+| Brow upper crest x238–311,y463–490 | 0.346252 | **0.459777** | +0.113525 |
+| Lower brow edge x215–326,y479–512 | 0.418060 | **0.507087** | +0.089027 |
+| Near eye x174–346,y430–609 | 0.549397 | **0.563332** | +0.013935 |
+| Near eyelid x208–327,y503–596 | **0.435410** | 0.424891 | **−0.010519** |
+| Nasal root x322–405,y482–575 | **0.633889** | 0.633282 | −0.000606 |
+
+Source 7×7 median at (265,474) is (106,64,52), V36 (188,159,147), and revised V37 (146,117,110): it is still roughly 40–58 RGB units too bright, but its brow **geometry/source shape** scores improve. At actual **3×** the revised 0.22px/0.13px follicles no longer read as giant isolated square wax chips, unlike **initial V37 (head cca415b3)**. However they remain too sparse, separated, short/tick-like; the original photographed brow has higher density and finer curved root flow. The broad root volume is still not organically modeled. The photo is not reproduced faithfully. **Neither version is artist-approved.** V36 near-lid SSIM still regresses and is not hidden.
+
+**Engineering regression note:** Head c039 exact-code [changed unit run #43961677816](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43961677816) was re-run twice; both runs passed **49/50 test files and 410/411 tests**, with only an unrelated UKIYO1 **210 full frame + 7,200 wave sample** test at a hard 20-second timeout under shared runner contention. No UKIYO runtime code changed. Keep all frames/assertions/samples; increase only this test's timeout to 60 seconds and rerun exact-head verification. Do not skip, suppress or delete the test.
+
+**ART HOLD:** The full original-source image SSIM remains ~0.366, far below ArtCraft ≥0.85. Further work still requires an artistically credible photo-shaped eyebrow, natural hair volume, connected eye/root geometry, 18 independent rendered landmark comparisons, five source tonal planes, and real-time review of the entire 300-frame film. Preserve PR #461 as DRAFT and unmerged.
