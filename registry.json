@@ -3979,7 +3979,7 @@
       "name": "water",
       "type": "registry:ui",
       "title": "Water Framework (WATER1)",
-      "description": "Style-neutral water for any art style: the WMO sea state code; the fully developed sea a wind raises (Pierson-Moskowitz: significant height, peak period, wavelength, crest speed) with whitecap cover (Monahan & O'Muircheartaigh); dispersion in deep and shallow water; a seeded sea surface of short-crested third-order Stokes waves to sample anywhere and any time, float heave and pitch, and particle orbits; wave limits (H/L 0.142, 120 degree crest, breaking at 0.8 depth); breakers by the Iribarren number (spilling, plunging, collapsing, surging) drawn in cross-section at any stage with foam, a plunging lip on its ballistic arc and the air of the tube; Kelvin wakes (19.47 degrees, transverse spacing 2 pi V^2/g) and ripple rings; Fresnel reflectance, the mirror rule, sun glitter from Cox-Munk slopes and colour through depth; sine-generated meanders 11 widths long; water colours measured off CC0 and public-domain photographs. A sea scene (colours from Fresnel and the sky, glints only where a facet mirrors the sun), true-scale seas by wind, breaker, wake, ripple, reflection and meander figures and a reference sheet; every value graded with sources. Breakers and foam in detail (breakerDetail): flow lines in the face, a translucent teal lip from water's absorption, a lit tube, whitewater with bubbles over an aerated plume, foam lace, spray and spindrift blown off the crest, with colours measured from surf photos; the sea scene leaves foam lace that fades at a rate measured from surf video, streaked along the wind in gales.",
+      "description": "Style-neutral water for any art style: the WMO sea state code; the fully developed sea a wind raises (Pierson-Moskowitz: significant height, peak period, wavelength, crest speed) with whitecap cover (Monahan & O'Muircheartaigh); dispersion in deep and shallow water; a seeded sea surface of short-crested third-order Stokes waves to sample anywhere and any time, float heave and pitch, and particle orbits; wave limits (H/L 0.142, 120 degree crest, breaking at 0.8 depth); breakers by the Iribarren number (spilling, plunging, collapsing, surging) drawn in cross-section at any stage with foam, a plunging lip on its ballistic arc and the air of the tube; Kelvin wakes (19.47 degrees, transverse spacing 2 pi V^2/g) and ripple rings; Fresnel reflectance, the mirror rule, sun glitter from Cox-Munk slopes and colour through depth; sine-generated meanders 11 widths long; water colours measured off CC0 and public-domain photographs. A sea scene (colours from Fresnel and the sky, glints only where a facet mirrors the sun), true-scale seas by wind, breaker, wake, ripple, reflection and meander figures and a reference sheet; every value graded with sources. Breakers and foam in detail (breakerDetail): flow lines in the face, a translucent teal lip from water's absorption, a lit tube, whitewater with bubbles over an aerated plume, foam lace, spray and spindrift blown off the crest, with colours measured from surf photos; the sea scene leaves foam lace that fades at a rate measured from surf video, streaked along the wind in gales. A rendered open sea (water-ocean.ts): JONSWAP and Pierson-Moskowitz spectra with Hasselmann spreading summed by FFT in three cascades (Tessendorf), choppy crests, whitecaps where the surface folds at Monahan's measured cover with fading foam, slopes calibrated to Cox-Munk, Fresnel reflection of SKY1's sky and clouds, Cox-Munk sun glitter, the blue light back out of deep water from absorption and Morel's backscatter, turquoise backlit crests and haze; OceanView and SeaByBeaufort.",
       "dependencies": [],
       "registryDependencies": [
         "art-foundations",
@@ -4000,6 +4000,16 @@
           "path": "registry/nature/water-react.tsx",
           "type": "registry:ui",
           "target": "components/nature/water-react.tsx"
+        },
+        {
+          "path": "registry/nature/water-ocean.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-ocean.ts"
+        },
+        {
+          "path": "registry/nature/water-ocean-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/water-ocean-react.tsx"
         }
       ]
     },

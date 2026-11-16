@@ -42,4 +42,11 @@ The pack `water` decides *how water behaves and what colour it is*. Your style d
    - `meanderPath({ width, sinuosity })`: meanders 11 widths long, bends 2–3 widths in radius, sand point bars on
      the inside of each bend.
    - Add wander; never a perfect sine.
-8. **Check.** Compare with the cited photographs side by side, and run `tests/water.test.tsx`.
+8. **A realistic sea.**
+   - `renderOcean({ wind, sunElevation, sunAzimuth, pitch, sky })` (or `OceanView` in React) renders the open sea
+     under SKY1's physical sky.
+   - Waves come from the measured spectrum for the wind, whitecaps at Monahan's cover, and the glitter from Cox–Munk
+     slopes.
+   - Use it as the realistic look or as a reference for any style.
+   - The sea's statistics come from `seaSpectrum` and `oceanField`.
+9. **Check.** Compare with the cited photographs side by side, and run `tests/water.test.tsx`.
