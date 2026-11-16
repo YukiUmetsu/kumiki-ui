@@ -1,6 +1,4 @@
 import {describe,expect,it} from "vitest";
-import {renderToStaticMarkup} from "react-dom/server";
-import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
 import {crayonCc0FaceStudy}
   from "../src/video/crayon-artcraft-cc0-face";
@@ -85,14 +83,22 @@ describe("ArtCraft F1 photographed rooted lash tip flow (unapproved)",()=>{
     expect(()=>crayonCc0FaceStudy({lashFinish:"invalid" as "rooted-flow"}))
       .toThrow(RangeError);
   });
-  it("renders source-grain dry wax rather than raster eyelashes",()=>{
-    const svg=renderToStaticMarkup(<CrayonScene spec={crayonCc0FaceStudy(studied)}
-      frame={299}/>);
-    for(const id of ["lash-contact-near","lash-contact-far","tarsal-shelf-near",
-      "tarsal-shelf-far","source-tarsal-burnish-near"]){
-      expect(svg).toContain('data-km-crayon-element="'+id+'"');
+  it("keeps native dry-wax and opaque lid contracts; browser independently proves pixels",()=>{
+    const spec=crayonCc0FaceStudy(studied);
+    expect(inspectCrayonScene(spec)).toEqual([]);
+    for(const side of ["near","far"] as const){
+      const lash=spec.elements.find(x=>x.id==="lash-contact-"+side);
+      const shelf=spec.elements.find(x=>x.id==="tarsal-shelf-"+side);
+      const burnish=spec.elements.find(x=>x.id==="source-tarsal-burnish-"+side);
+      expect(lash).toMatchObject({kind:"contour",waxContact:"dry-wax",
+        clipToParent:true,parentId:"face-outline"});
+      expect(shelf).toMatchObject({kind:"wax",coverage:"opaque",
+        deposition:"stroke-built",parentId:"face-outline"});
+      expect(burnish).toMatchObject({kind:"wax",coverage:"open",
+        deposition:"stroke-built",featherContacts:true});
     }
-    expect(svg).toContain('data-km-crayon-fiber-contact="dry-wax"');
-    expect(svg).not.toContain("<image ");
-  },20_000);
+    // No generic raster element or photographic shading replaces wax paths.
+    expect(spec.elements.every(e=>["wax","contour","lettering","connector"]
+      .includes(e.kind))).toBe(true);
+  });
 });
