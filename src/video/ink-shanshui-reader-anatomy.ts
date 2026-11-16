@@ -295,6 +295,23 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       .33,679,"$ink",.53),
   );
   const eyesSoft:CharacterPathShape[]=[
+    // Layer a thin *real almond opening* beneath each lowered upper lid.
+    // Without it the gaze looked like two stamped straight eyebrow dashes
+    // and its moving iris appeared to float on bare skin. These are tiny
+    // partial scleral reserves, not wide cartoon white eyes; the near
+    // aperture spans more canvas because the face is in 3/4 view.
+    ink("M118.4 104.6 C123.7 103.7 130.4 104.4 135.4 105.9 "+
+      "C132.2 107.2 125 108.2 119.1 106.3 Z",
+      "$paper","none",0,.38),
+    ink("M149.1 104.1 C154 103 160.2 102.5 163.7 103 "+
+      "C160.9 105 155.3 106 149.6 105.1 Z",
+      "$paper","none",0,.32),
+    // Each upper lid folds over the iris; two differently weighted
+    // tarsal creases follow the sockets rather than mirroring.
+    line([118.2,104.2],[124.1,102.9],[129.7,104.1],[135.6,105.7],
+      1.08,690,"$shadow",.73),
+    line([149.1,104],[153.5,102.6],[159.7,102.2],[164,103],
+      .87,691,"$shadow",.7),
     // Downcast eyes still have curved tarsal planes and an orbital
     // shadow; a horizontal flat-line gaze destroys volume and emotion.
     ink("M118.5 104.3 C123.4 102.5 130.2 102.8 135.4 105.5 "+
