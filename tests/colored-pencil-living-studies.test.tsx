@@ -145,7 +145,7 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     const locations=valueFamilies.map(name=>{
       const trace=meshValues.find(v=>
         v.id==="newhead-anat1-"+name+"-0")!;
-      const coords=[...trace.path.matchAll(/M(-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/g)]
+      const coords=[...trace.path.matchAll(/M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)]
         .map(m=>[Number(m[1]),Number(m[2])]);
       const x=coords.reduce((sum,p)=>sum+p[0],0)/coords.length;
       const y=coords.reduce((sum,p)=>sum+p[1],0)/coords.length;
