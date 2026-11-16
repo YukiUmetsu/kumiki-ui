@@ -32,6 +32,7 @@ The style decides only how it looks. It mirrors [ANAT1](human-anatomy.md) for pe
 
 | Layer | File | What it holds |
 |---|---|---|
+| Growth | `animal-growth.ts` | `GROWTH` rules (ungulates, carnivores, small mammals, primates, birds): height at the youngest age, each leg segment's share of adult length, trunk, neck, head and tail, and the baby-schema face (muzzle, eye, ear). `juvenileConstruction(c, age)`, `heightAt`, `growthRule`, `coatAt` (young coats from `CoatVariant.age`). |
 | Flight | `animal-flight.ts` | `BIRD_FLIGHT` per bird: wing planform (type, aspect ratio, hand share, tip and fingers), stroke (top and bottom elevation, downstroke share, upstroke fold), flight style (flapping, flap-and-glide, bounding, bursts), glide shape, neck and legs in flight. `wingbeatHz` / `speciesWingbeat` (Pennycuick 1990), `wingStroke`, `flightAt` (seconds → beat, glide or closed wings), `wingPlanform`, `placeWing`, `projectWing`. |
 | Postures | `animal-postures.ts` | `ANIMAL_POSTURES` (sit, lie, rest, rear): per body plan, the body's pitch (graded, with sources), how the fore and hind legs are held, how far the neck and head follow, and the frames it takes. `postureFit(plan, posture, canRear)`. |
 | Gaits | `animal-gaits.ts` | `ANIMAL_GAITS` (walk, amble, trot, canter, transverse gallop, rotary gallop, half-bound): footfall phases, duty factor, stride, lift, bob, pitch, spine flex, Froude number, suspension. `quadFootfalls`, `quadBody`, `footfallBars` (Hildebrand diagrams), `gaitSpeed` (dynamic similarity), `strideSeconds` / `strideFrames` (Heglund & Taylor). RIG1 imports this table. |
@@ -170,6 +171,29 @@ turns time into these for the species' style.
 - **Neck and legs.** Herons draw the neck back into the shoulders and cranes stretch it out (reported: Wikipedia), and
   both trail their legs. The others tuck their legs. The body slims in the air.
 
+## Young animals
+
+`juvenileConstruction(c, age)` reshapes a species' construction for `age` from 0 (the youngest that stands; newborn
+for ungulates, about 9 weeks for carnivores, a downy chick for birds) to 1 (the adult). Draw it scaled by
+`heightAt(rule, age)` beside the parent, and paint it with `coatAt(species, age)`.
+
+- **Legs** grow segment by segment.
+  - A foal's cannons are 83% grown at birth (they grow about 20% after), while its humerus and femur are half grown.
+    With the foal at 61% of adult height (reported), this gives the long-legged, short-bodied foal.
+  - A Beagle's manus and pes are a larger share of its limbs at 9 weeks than at a year (measured, Helmsmüller et al.
+    2013): big paws.
+- **The face** is the baby schema: larger eyes, a shorter muzzle, larger ears, a rounder head (reported
+  qualitatively; amounts estimated).
+- **Young coats** are `CoatVariant`s with an `age` span:
+  - the bear cub and the uribō piglet's stripes;
+  - the crane chick's yellow natal down and the juvenile's tawny neck;
+  - the fox kit's dark brown fur and blue eyes;
+  - the macaque infant's dark brown hair;
+  - the mandarin duckling's dark-and-yellow down.
+- **Tested.** Every species grows on the ground without breaking, the adult is unchanged at age 1, the foal is
+  taller on its legs and shorter in the body, the puppy has bigger feet and eyes and a shorter muzzle, and the kit's
+  coat applies.
+
 ## Faces
 
 `AnimalSpecies.face` records:
@@ -206,6 +230,8 @@ are open findings for a later pass.
 - Side view only for the construction; front and back views are the style's.
 - Postures are for four-legged animals; birds fly, but have no roosting or one-legged postures yet, and fish swim only.
 - Flight is side view only (plus the camera's tilt); there is no banking, turning, take-off or landing yet.
+- Growth amounts beyond the horse's leg bones and the Beagle's limbs and height are estimated; birds' chicks are
+  rough (downy proportions, no feather development).
 - An open wing paints the species' `wings` swatch over all of it. A folded-wing colour that only shows at rest (the
   mandarin's orange sails) paints the open wing too.
 - Posture transitions are staged blends, not recorded motion: they have not been checked against video frame by frame.

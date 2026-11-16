@@ -8,6 +8,7 @@ import { checkAnimalProportions, checkSpeciesData, measureAnimal } from "../regi
 import { AnimalSheet } from "../registry/anatomy/animal-react";
 import { ANIMAL_POSTURES, BIRD_POSTURE_IDS, BIRD_POSTURES, birdPostureFits, POSTURE_IDS, postureFit } from "../registry/anatomy/animal-postures";
 import { BIRD_FLIGHT, flightAt, speciesWingbeat, wingbeatHz, wingStroke } from "../registry/anatomy/animal-flight";
+import { coatAt, growthRule, heightAt, juvenileConstruction } from "../registry/anatomy/animal-growth";
 import { UKIYOE_SPECIES, ukiyoeBeastLandmarks } from "../registry/video/ukiyoe/ukiyoe-creatures";
 
 describe("ANIM1 data", () => {
@@ -184,6 +185,37 @@ describe("ANIM1 flight", () => {
     expect(up.head.nose[1]).toBeLessThan(.1);
     // Only ducks swim.
     expect(birdPostureFits("bird-wader", "swim")).toBe(false);
+  });
+});
+
+describe("ANIM1 growth", () => {
+  it("grows every animal from its young to its adult construction, a foal long-legged and a puppy big-pawed", () => {
+    for (const sp of ANIMAL_SPECIES) {
+      const c = animalConstruction(sp), rule = growthRule(c.plan.id, c.plan.group);
+      if (!rule) continue;
+      expect(juvenileConstruction(c, 1), sp.id).toBe(c);
+      expect(heightAt(rule, 0)).toBeCloseTo(rule.height.typical);
+      for (const age of [0, .25, .5, .75]) {
+        const s = poseAnimal(juvenileConstruction(c, age)), pts = [...s.limbs.flatMap(l => l.points), s.head.nose, s.head.eye];
+        expect(pts.every(p => Number.isFinite(p[0]) && Number.isFinite(p[1])), `${sp.id} ${age}`).toBe(true);
+        expect(Math.min(...s.limbs.flatMap(l => l.points).map(p => p[1])), `${sp.id} ${age}`).toBeGreaterThan(-.01);
+      }
+    }
+    // The foal (61% of adult height, cannons 83% grown): taller on its legs for its size and shorter in the body.
+    const horse = animalConstruction("kiso-horse"), foal = juvenileConstruction(horse, 0);
+    expect(foal.legClearance).toBeGreaterThan(horse.legClearance + .08);
+    expect(foal.trunk).toBeLessThan(horse.trunk);
+    expect(foal.fore[2]).toBeGreaterThan(horse.fore[2]);
+    // The puppy's feet are a larger share of its legs (the Beagles' manus and pes), its eye larger for its head.
+    const dog = animalConstruction("shiba-inu"), pup = juvenileConstruction(dog, 0);
+    expect(pup.fore[3]).toBeGreaterThan(dog.fore[3]);
+    expect(pup.species!.face!.eye).toBeGreaterThan(dog.species!.face!.eye);
+    expect(pup.muzzle).toBeLessThan(dog.muzzle);
+    // Young coats: a fox kit is dark brown with blue eyes; the adult is not.
+    const fox = findAnimal("red-fox")!;
+    expect(coatAt(fox, 0).find(x => x.region === "back")!.hex).toBe("#4a3a30");
+    expect(coatAt(fox, 0).find(x => x.region === "eyes")).toBeTruthy();
+    expect(coatAt(fox, 1)).toBe(fox.coat.palette);
   });
 });
 

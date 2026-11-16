@@ -3810,6 +3810,11 @@
         },
         {
           "type": "registry:ui",
+          "target": "components/anatomy/animal-growth.ts",
+          "path": "registry/anatomy/animal-growth.ts"
+        },
+        {
+          "type": "registry:ui",
           "target": "components/anatomy/animal-plans.ts",
           "path": "registry/anatomy/animal-plans.ts"
         },
