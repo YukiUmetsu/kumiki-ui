@@ -259,3 +259,35 @@ silk-thread folds, eyes and contact while the full-film framing
 still checks continuity. Actual new Chromium crops and film review
 remain artistic release gates; more paths alone do not establish
 faithful Chinese ink figure painting.
+
+
+## EXPR1 action-unit ↔ ink anatomy experiment (2026-11-16)
+
+**Scope:** only the *young three-quarter scroll reader*. This does not alter the independently authored hermit/traveler or declare the broader Fuchun landscape historically faithful. The experiment adds `src/video/ink-shanshui-reader-expression.ts` and a dedicated story **EXPR1 expression atelier** to the existing Chinese Ink / Shanshui Reader Face Studio directory.
+
+### Source deconstruction before deformation
+
+- [Shanghai Museum · Zeng Jing, Portrait of Li Zhaoheng](https://www.shanghaimuseum.net/mu/frontend/pg/article/id/CI00004164): refined oval head in ink and colour, near-transparent cheek model and projecting nose with a clear jaw/ear seam. Continuous silhouette carries the bone; brows/lips are subordinate to facial value. **Borrow the value hierarchy, not the sitter's geometry.**
+- [Met · Portrait of a Scholar, 29.20.1](https://www.metmuseum.org/art/collection/search/48941): a separate, public-domain historical scholar image. Compare head turn, individual brow angles, nasal and lower eyelid masses, and understated lip asymmetry at matching head crop; no museum image is bundled.
+- [Met · Twenty-five bust portraits, 55.37](https://www.metmuseum.org/art/collection/search/51810): clearly different noses, eyes, hair and face silhouettes among a group. Never transplant the reader's proportional face onto the older film characters.
+- [Met · Ren Xun, Scholar in the Wind, 1986.267.45](https://www.metmuseum.org/art/collection/search/49460): especially inspect kinetic ink contour flow in relation to the physical material and moving figure. Ink pressure follows an anatomical change rather than uniformly shifted decoration.
+- Shared ANAT1 3/4 anchors are the near and far canthi, sellion/pronasale, zygion, mouth corners, chin/menton and exposed ear. EXPR1 muscle units are **a guide to displacement**, not an image generator or guaranteed emotional interpretation.
+
+### Implementation contract
+
+1. Neutral emotion and zero intensity return exactly the original source-fitted ink assets. Never lose base face opacity, 12+ eyebrow follicle marks, full crown hierarchy, independently rigged lids, pupils or five visemes.
+2. `expressEmotion` and `expressionFeatures` supply scaled inner/outer eyebrow lift, brow knit, cheek raise and lip-corner displacement. The original near/far brow paths and each of their pressure-loaded polygon vertices are deformed *in place*, retaining dry edges and source contour topology. The far eye has a shorter foreshortened span, never a mirror copy.
+3. `expressionMarks` activates discrete named material strokes: AU 6 crow's feet and quiet under-eye malar lift; AU 4 short glabella knots; AU 1/2 faint forehead-relief traces; AU 12 soft nasolabial contact. Opacity stays low for a young reader so the expression does not add decades of false age.
+4. Original eyelid cels and AA/OH/MM/smile/rest visemes remain separate. The atelier's **automatic** choices are a pose suggestion only: an authored scene can override lids for blinks and mouth for speech. The five-keyframe strip currently exposes sampled static expression poses; it does not claim temporal interpolation or full film expression cue integration.
+5. Storybook must expose a full head, source-fitted microcamera, 0/25/50/75/100% expression poses, detail/intensity and eyelid/viseme overrides, plus the actual EXPR1 numerical features. Browser screenshots are evidence to *inspect*, never visual acceptance by themselves.
+
+### Art release blockers
+
+- Judge brows at native film resolution: the individual follicles must bend with the brow mass without turning into a second parallel ink band or appearing pasted on. Compare source image and generated crop at equal head scale.
+- Check cheek and mouth continuity for smile, sadness, anger and surprise **between** keyframes; no popping cels. Distinguish still-pose prototypes from a continuous cinematic acting system.
+- Full visual approval requires the referenced painting's actual crop and the same-camera final 960×540 animation. Code checks alone are insufficient.
+- Existing Fuchun **mountain positive geology, fibre rhythm and old pine structure** remain independent, unresolved ART HOLD items of PR #466; this face experiment does not authorize merging it.
+
+Checks are wired in `tests/ink-shanshui-reader-expression.test.tsx`,
+`tests/e2e-storybook/ink-shanshui-reader-expression.spec.ts`, and
+`.github/workflows/ink-shanshui-qa.yml`.
