@@ -421,3 +421,40 @@ test("ArtCraft single-head-only construction and fox geometry inspect both nativ
     }
   }
 });
+
+
+test("ANAT1 tonal value bands isolate live head pigment without changing exported default art",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
+  const svg=page.locator("svg[data-km-colored-pencil]");
+  const scene=page.locator("[data-km-foundation-studio]");
+  const control=page.getByRole("combobox",{name:"Foundation ANAT1 value band"});
+  const aspect=page.getByRole("combobox",{name:"Foundation aspect"});
+  const subject=page.getByRole("combobox",{name:"Foundation subject"});
+  await expect(control).toBeVisible();
+  for(const format of ["landscape","portrait"] as const){
+    await aspect.selectOption(format);
+    const untouched=await svg.screenshot({animations:"disabled"});
+    for(const band of ["highlight","light","halftone","core-shadow","reflected-light"] as const){
+      await control.selectOption(band);
+      await expect(scene).toHaveAttribute("data-km-anat1-value-inspection",band);
+      const paths=svg.locator('[data-km-pencil-region="head-silhouette-01"] '+
+        '[data-km-pencil-trace^="newhead-anat1-"]');
+      await expect(paths).toHaveCount(3);
+      const ids=await paths.evaluateAll(nodes=>nodes.map(node=>
+        node.getAttribute("data-km-pencil-trace")));
+      expect(ids.every(id=>id?.startsWith("newhead-anat1-"+band+"-"))).toBe(true);
+      await expect(svg.locator("[data-km-pencil-region]")).toHaveCount(1);
+      if(band==="core-shadow"){
+        await svg.screenshot({animations:"disabled",path:info.outputPath(
+          "pencil-anat1-"+format+"-core-shadow-isolated.png")});
+      }
+    }
+    await control.selectOption("all");
+    await expect(scene).toHaveAttribute("data-km-anat1-value-inspection","all");
+    await expect(svg.locator('[data-km-pencil-trace^="newhead-anat1-"]')).toHaveCount(15);
+    expect(await svg.screenshot({animations:"disabled"})).toEqual(untouched);
+  }
+  await subject.selectOption("fox");
+  await expect(control).toHaveCount(0);
+  await expect(svg.locator('[data-km-pencil-trace^="newhead-anat1-"]')).toHaveCount(0);
+});
