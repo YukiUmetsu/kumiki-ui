@@ -70,6 +70,96 @@ function newHeadValuePencil(
   });
 }
 
+/**
+ * Stage-1 anatomy-CONNECTED dry pigment at the actual outer cranium.
+ *
+ * Existing pigment fields remain intact. This adds separate short, real
+ * pencil contacts just INSIDE the 23-point ANAT1 facial perimeter and the
+ * independently constructed cranial vault. Unlike offset ellipses or a
+ * screen-space shadow filter, every fibre follows the contour's local
+ * Catmull-Rom tangent. Positive SVG polygon winding determines the inward
+ * normal; edge-distance pressure and skipped marks leave visible paper
+ * tooth. This is an artist's material construction, not photo evidence.
+ */
+function newHeadContourContacts(
+  perimeter:readonly Point[],seed:number,
+):PencilTrace[]{
+  if(perimeter.length<30||perimeter.some(p=>
+    p.length!==2||!p.every(Number.isFinite)))
+    throw new Error("An intact, finite cranial plus ANAT1 jaw perimeter is required");
+  let signedArea=0;
+  for(let i=0;i<perimeter.length;i++){
+    const a=perimeter[i],b=perimeter[(i+1)%perimeter.length];
+    signedArea+=a[0]*b[1]-b[0]*a[1];
+  }
+  if(Math.abs(signedArea)<100)
+    throw new Error("Cranial perimeter is degenerate");
+  const inward=signedArea>0?1:-1;
+  // Ordered value planes build from the boundary INWARD; do not replace the
+  // source-authored paper skin, coloured transitions, five ANAT1 value
+  // bands or the original silhouette. All 3 layers remain editable.
+  const layers=[
+    {id:"cold-turn",color:"#735E69",width:.27,opacity:.31,inset:1.5,spread:3.2,start:169},
+    {id:"warm-scumble",color:"#B88F84",width:.31,opacity:.24,inset:4.3,spread:4.6,start:194},
+    {id:"lit-tooth",color:"#E3BEA9",width:.22,opacity:.20,inset:7.1,spread:4.5,start:226},
+  ] as const;
+  const n=perimeter.length;
+  // Cubic Catmull-Rom point + derivative; C1-continuous between stored
+  // cranial/mandibular vertices. Never turn 23 jaw anchors into a 2D oval.
+  const segment=(index:number,t:number)=>{
+    const p0=perimeter[(index+n-1)%n],p1=perimeter[index];
+    const p2=perimeter[(index+1)%n],p3=perimeter[(index+2)%n];
+    const sample=(axis:0|1)=>{
+      const a=-p0[axis]+p2[axis],b=2*p0[axis]-5*p1[axis]+
+        4*p2[axis]-p3[axis];
+      const c=-p0[axis]+3*p1[axis]-3*p2[axis]+p3[axis];
+      return {
+        position:.5*(2*p1[axis]+a*t+b*t*t+c*t*t*t),
+        derivative:.5*(a+2*b*t+3*c*t*t),
+      };
+    };
+    const x=sample(0),y=sample(1);
+    return {x:x.position,y:y.position,dx:x.derivative,dy:y.derivative};
+  };
+  const out:PencilTrace[]=[];
+  for(let layer=0;layer<layers.length;layer++){
+    const material=layers[layer];
+    for(let group=0;group<2;group++){
+      const marks:string[]=[];
+      for(let edge=0;edge<n;edge++){
+        const a=perimeter[edge],b=perimeter[(edge+1)%n];
+        const length=Math.hypot(b[0]-a[0],b[1]-a[1]);
+        const count=Math.max(2,Math.ceil(length/3.8));
+        for(let k=0;k<count;k++){
+          const key=edge*7193+group*917+layer*11971+k;
+          if(pencilHash(seed,key,97)>.82)continue;
+          const t=(k+.18+.64*pencilHash(seed,key,91))/count;
+          const p=segment(edge,Math.min(.999,Math.max(.001,t)));
+          const magnitude=Math.hypot(p.dx,p.dy);
+          if(magnitude<1e-4)continue;
+          const tx=p.dx/magnitude,ty=p.dy/magnitude;
+          const nx=-ty*inward,ny=tx*inward;
+          const inset=material.inset+material.spread*pencilHash(seed,key,92);
+          const x=p.x+nx*inset,y=p.y+ny*inset;
+          const span=(1.1+2.6*pencilHash(seed,key,93))*
+            (layer===2?.74:1);
+          const bend=(pencilHash(seed,key,94)-.5)*.56;
+          marks.push(line(
+            [x-tx*span*.44,y-ty*span*.44],
+            [x+nx*bend,y+ny*bend],
+            [x+tx*span*.56+nx*bend*.21,
+             y+ty*span*.56+ny*bend*.21],
+          ));
+        }
+      }
+      out.push(drawn("newhead-contour-contact-"+material.id+"-"+group,
+        marks.join(" "),material.color,material.width,
+        material.opacity,material.start+group*5));
+    }
+  }
+  return out;
+}
+
 /** Stage 1-only head value fields. Pencil touches follow the cranial turn,
  * temporal recession, zygomatic wedge and mandibular fold. Unlike an
  * all-head Cartesian hatch these marks have independent local growth angles
@@ -315,9 +405,11 @@ export function newCharacterHeadInspectionAnchors(){
 
 /** Fresh original skull/vault blockout: measured lower face plus newly
  * authored parietal and frontal arch; NO previous woman silhouette. */
-export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
+export function newCharacterHeadStageOne(seed=271,contourCraft=true):PencilSubjectPart[]{
   if(!Number.isSafeInteger(seed)||seed<0||seed>2147483000)
     throw new RangeError("New character study requires a valid drawing seed");
+  if(typeof contourCraft!=="boolean")
+    throw new TypeError("Head contour craftsmanship toggle must be boolean");
   // Fresh proportions, camera yaw, outline and local marks are independent
   // of pencilPortraitAnatomy() and the retired woman face() factory.
   const face=createFace(NEW_HEAD_FACE);
@@ -422,6 +514,7 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
     bounds,direction:64,flow:11,start:73,
     details:[
       ...newHeadPlanePigment(bounds,(seed+1831)%2147483647),
+      ...(contourCraft?newHeadContourContacts(perimeter,(seed+3491)%2147483647):[]),
       ...newHeadAnat1ValuePigment(face,(seed+2393)%2147483647),
       ...newHeadValuePencil(guides,(seed+1001)%2147483647),
       drawn("newhead-sagittal-guide",line(forehead,glabella,chin),
