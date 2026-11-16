@@ -455,7 +455,7 @@ Review now uses overlays: the teacher's ink and our form in two colours. The dif
 - *A virtual sheet.* Each new character gets a sheet of the single-model proportions, sized from its own ink (ink is 0.779 of the sheet width on single models). Its size in em then agrees with the single models.
 - *A fixed em frame.* The frame that maps the sheet to em is now kept in a file, so new data does not move reviewed forms.
 
-**Result.** 15 characters are new: ぼ じ 射 玉 カ ど 朗 理 想 鳴 台 が 間 進 from word models, and 夢 from a single model. All were reviewed against the teacher. Their overlap is 0.544 with the rules and 0.757 with the forms. 仲 keeps the rules (its 中 collapses). Ten characters are left out because the cut of their word was bad (蒼 貢 献 農 振 興 清 里 式 ば).
+**Result.** 15 characters are new: ぼ じ 射 玉 カ ど 朗 理 想 鳴 台 が 間 進 from word models, and 夢 from a single model. All were reviewed against the teacher. Their overlap is 0.544 with the rules and 0.757 with the forms. 仲 keeps the rules (its 中 collapses). Twenty characters are left out: ten words do not cut into one compact character per segment (蒼 貢 献 農 振 興 清 里 式 ば), and ten cuts were wrong at review (遺 草 謝 解 ス テ ラ び で ぎ).
 
 **Several teachers.** `teacher` now also takes a list. The first teacher in the list that has a form for a character writes it, and the rules write a character that no teacher has. A second teacher can then fill characters that the first one does not write.
 
