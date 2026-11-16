@@ -242,3 +242,28 @@ The illustrations are **authored original editable vector + physical CP-F1 penci
 
 
 **First visual-failure follow-up (native CP-F1 proof run [43780950148](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43780950148)):** comparing the before/after 960×540 hero crop showed the first 80×74-unit “folded” hock was **still recognizably a third standing dark furry mound**, merely shorter. The local lower-body crop changed by mean absolute RGB 3.331/255 and 10.94% of pixels exceeded 12-channel difference; these quantify edits, not realism. The visual judgement therefore rejected that candidate and narrowed the **independently authored rear tarsal pad to 59×46 units**, attaching its hidden upper root beneath the orange rump. Only low dark toe arcs and fur remain visible at the ground, with the upper thigh's rust coat exposed. A local 450×450 CairoSVG structural mask rasterization found 48 overlapping pixels between authored rump/hind path geometry, verifying nonempty internal root attachment without claiming a source-matched human/animal photography fidelity pass. The E2E overlap test now checks an actual interior root coordinate (321,375) in the two independently rendered SVG paths. **The second candidate is unapproved until its exact-head 1×/2.15× browser frames are inspected.**
+
+
+## Post-merge ArtCraft fox cheek-to-sternum reconstruction (2026-11-15, new PR)
+
+**Prior release baseline:** PR #409 merged as `a661da3fc61f2c5ca4166143daa0986ab92b66a7` on the explicit maintainer request, without a source-pixel artistic fidelity PASS. Follow-on work is an independent PR from `main`, not an unrecorded modification of that merge.
+
+**Reference evidence:** inspected actual CP-F1 960×540 1× fox/3× face crop from merged workflow, then the publicly visible seated lateral fox photographed on the [Artsdatabanken red fox page](https://artsdatabanken.no/arter/takson/31173); technique sources remain [Darren Gwatkin](https://www.gwatkinartworks.co.uk/wildlife-art) and [Bonny Snowdon](https://bonnysnowdonacademy.com/fox-draw-resources/). The source image and authored three-quarter fox are *not pose-aligned*; source image bytes, photographic crops, paths and copyrighted paintings were not committed, and relative SSIM/pixel fidelity is **not claimed**.
+
+**Specific failure from native render:** the intermediate cheek feature descended almost a full 97 local units as a pale-gray stiff ribbon over the chest from the jaw, separating into an unnatural drooping flap. Real fox cheeks have white/grey under-malar hair that *flows into* the light cervical collar, with only narrow darker roots immediately below the jaw.
+
+**Topological fix, not surface decoration:** the original `cheek-ruff` remains an editable CP-F1 fur region with 3 surface pigment passes but has a 32×67-unit authored cubic boundary instead of the former 38×97 hanging strip; it intersects the existing maxillary cream muzzle at (253,235) and white sternum at (251,269). Four direction-changing anatomically rooted fan guides, two individually named low-pressure jaw/cervical value turns, and three bounded guard-fringe bands build continuous long-to-short fur. Hue moves toward cream with sparse grey undercoat; 16:9 and 9:16 maintain identical geometry/seed/animation staging.
+
+**Five axes (qualitative reference to numeric contracts):**
+
+| Axis | Target | Regression/negative control |
+| --- | --- | --- |
+| Topology | Real jaw/cheek and cheek/sternum SVG path intersections | Disconnected patch or extended floating tube; cheek height >72 |
+| Flow | Short warm-grey muzzle contacts rotate into long cream throat hairs | Same-direction long slashes across all cheek pixels |
+| Weight | Only low-opacity sepia under-jaw and shadowed hair roots; pale cream fronts | Dark gray opaque stripe or sticker-like white patch |
+| Rhythm | Four independent irregular rooted fans with three pressure passes | Uniformly repeated identical triangular tufts |
+| Texture | Original editable dry-pencil pigment plus 3 outer guard-fringe families | Imported photo, blur or generic noise substituting for anatomy |
+
+**Studio/browser QA:** new `fox-cheek` macro is added *inside the existing Storybook pencil foundation*, not a new art folder, alternative screenshot or filtered photo. The same actual SVG is captured at 2.15× for both aspect ratios; head-to-muzzle and cheek-to-sternum intersections are checked as native geometric Path2D fills. Unit tests ensure individual light/dark family IDs, bounds, deterministic strokes and retained continuity.
+
+**Status:** draft until exact browser screenshots are inspected against the native merged baseline at both 1×/2.15× and artistic reviewer can see improvement. This change alone cannot certify the fox, ears, hind paw, human 468-landmark face or medium realism. Do not weaken the ArtCraft anatomy/source gates to make code green.
