@@ -10,6 +10,16 @@ test("RISO62 two physical dry-brush print masters retain source richness at both
   const plate=page.getByRole("combobox",{name:"RISO62 spot ink"});
   const frame=page.getByRole("slider",{name:"RISO62 absolute frame"});
   const dry=page.getByRole("slider",{name:"RISO62 dryness"});
+  const setRange=async(locator:typeof frame,value:number)=>{
+    await locator.evaluate((element,next)=>{
+      const input=element as HTMLInputElement;
+      const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+      if(!setter)throw new Error("missing browser input setter");
+      setter.call(input,String(next));
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+    },value);
+  };
   const source=root.locator('[data-km-riso62-source-ink="blue"] [data-km-riso62-source-path]');
   const print=root.locator("svg[data-km-riso-print]");
   await expect(source).toHaveCount(11);
@@ -28,19 +38,19 @@ test("RISO62 two physical dry-brush print masters retain source richness at both
   }
   await aspect.selectOption("landscape");
   await plate.selectOption("both");
-  await frame.fill("11");
+  await setRange(frame,11);
   const early=await source.first().getAttribute("d");
-  await frame.fill("202");
+  await setRange(frame,202);
   const late=await source.first().getAttribute("d");
   expect(early).not.toBe(late);
-  await frame.fill("11");
+  await setRange(frame,11);
   expect(await source.first().getAttribute("d")).toBe(early);
-  await frame.fill("160");
+  await setRange(frame,160);
   const at160=await source.first().getAttribute("d");
-  await dry.fill("0");
+  await setRange(dry,0);
   const wet=await source.first().getAttribute("d");
   expect(wet).not.toBe(at160);
-  await dry.fill("0.75");
+  await setRange(dry,.75);
   await expect(root.locator("[data-km-riso62-brush]").first()).toHaveAttribute("data-km-riso62-ink-seed","62");
   await expect(print).toHaveAttribute("data-km-riso-frame","239");
   expect(errors).toEqual([]);
