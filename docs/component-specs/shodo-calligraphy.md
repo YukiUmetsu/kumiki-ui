@@ -22,6 +22,8 @@ Every stroke is 始筆 (start) → 送筆 (travel) → 終筆 (end), the "トン
 | 右払い migi-harai | `kind: "right-sweep"` | Swells to a pressed foot, pauses, pulls out flat. | `footPress`, `footHold`, `pullOut` |
 | 点 ten | `kind: "dot"` | Touches, presses along 45°, holds, gathers back. | `tenPress`, `tenHold` |
 
+**結び (かな loops).** Where a かな curve comes back across its own path and the loop has room for an open counter, the brush eases off through the loop so the counter stays open. A loop counts when the path returns within 0.8 stroke widths after at least 3 widths, and the largest circle inside it is 0.6 to 4 widths across. Hairpin turns and wide bowls are not loops. `technique.musubiLift` sets how much the brush eases off (default 0.25, range 0 to 0.9). 結び is a かな technique, not one of the ten kaisho basics.
+
 Every contact sample in a plan reports `phase` (`kihitsu`, `sohitsu`, `tensetsu`, `shuhitsu`, `renmen`), `technique` and `step`. `shodoStepLabel(sample)` gives the words for the step, so a film can caption the move on screen.
 
 **Measured checks.** `auditShodoTechniques(surface)` measures the inked width across each rendered stroke and checks the signature of its techniques: a pressed head wider than the travel for 打ち込み, a bare tip for 露鋒, a shoulder at 転折, a heavier stop for 止め, a needle under 35 % of the travel width for 懸針, a taper for 払い, a foot for 右払い, an inked hook for 撥ね. The checks are deterministic geometry on the ink raster. They are not image recognition and they do not judge beauty.
@@ -93,5 +95,5 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
 ## Evidence and limits
 
 - Storybook stories: Studio, Start/turn/stop/end, Kanji study card, Brush close-up, Brush motion (top and side), Film shot (16:9 and 9:16), Character gallery (any text).
-- `tests/shodo-calligraphy.test.ts`: style validation, deterministic plans, the ten basics pass their checks, seek-independent ink, brush and ink share the contact, KanjiVG adapter and component tree, the layout rules, kaisho form rules and joins, kana curves, the cached loader, brush lean and height dynamics, and frame-to-frame smoothness.
+- `tests/shodo-calligraphy.test.ts`: style validation, deterministic plans, the ten basics pass their checks, 結び opens a loop's counter, seek-independent ink, brush and ink share the contact, KanjiVG adapter and component tree, the layout rules, kaisho form rules and joins, kana curves, the cached loader, brush lean and height dynamics, and frame-to-frame smoothness.
 - The ink model is a deterministic approximation, not a fluid simulation. The glyph set is small, with proportions judged by eye against teaching models. There is no hand or arm. Human visual review at normal playback speed is still required before a film is called finished.

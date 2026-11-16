@@ -296,6 +296,51 @@ const TRAVEL: Record<ShodoStrokeKind, number> = {
   dot: 420, horizontal: 720, vertical: 640, "left-sweep": 780, "right-sweep": 600, rise: 900, turn: 680, curve: 640,
 };
 
+/** Radius of the largest circle inside a closed polygon, sampled on a grid. */
+function inscribedRadius(poly: readonly V[]): number {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const [x, y] of poly) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  let best = 0;
+  const n = 18;
+  for (let gy = 0; gy <= n; gy++) for (let gx = 0; gx <= n; gx++) {
+    const px = lerp(x0, x1, gx / n), py = lerp(y0, y1, gy / n);
+    let inside = false, dmin = Infinity;
+    for (let k = 0, m = poly.length, l = m - 1; k < m; l = k++) {
+      const [ax, ay] = poly[l], [bx, by] = poly[k];
+      if ((ay > py) !== (by > py) && px < ax + (bx - ax) * (py - ay) / (by - ay)) inside = !inside;
+      const ex = bx - ax, ey = by - ay, t = clamp(((px - ax) * ex + (py - ay) * ey) / ((ex * ex + ey * ey) || 1), 0, 1);
+      dmin = Math.min(dmin, Math.hypot(px - ax - t * ex, py - ay - t * ey));
+    }
+    if (inside) best = Math.max(best, dmin);
+  }
+  return best;
+}
+
+/**
+ * 結び: the loops of a path, as arc ranges. A point that comes back within `0.8 w` of a point at
+ * least `3 w` earlier closes a loop between them (overlapping loops are joined). Only a loop with
+ * room for an open counter counts: the largest circle inside it is 0.6 to 4 stroke widths
+ * across. A hairpin turn (arms closer than a stroke) and a wide bowl are not 結び.
+ */
+function shodoLoopWindows(path: readonly V[], arcs: readonly number[], w: number): [number, number][] {
+  const found: [number, number][] = [];
+  for (let j = 0; j < path.length; j++) {
+    for (let i = 0; i < j && arcs[j] - arcs[i] >= 3 * w; i++) {
+      if (Math.hypot(path[j][0] - path[i][0], path[j][1] - path[i][1]) <= .8 * w) { found.push([i, j]); break; }
+    }
+  }
+  found.sort((x, y) => x[0] - y[0]);
+  const merged: [number, number][] = [];
+  for (const [a, b] of found) {
+    const prev = merged[merged.length - 1];
+    if (prev && a <= prev[1]) prev[1] = Math.max(prev[1], b); else merged.push([a, b]);
+  }
+  return merged.filter(([a, b]) => {
+    const r = inscribedRadius(path.slice(a, b + 1));
+    return r >= .3 * w && r <= 2 * w;
+  }).map(([a, b]) => [arcs[a], arcs[b]]);
+}
+
 /** 送筆: one run of the centreline, with the start's ease-back and the end's lift built in. */
 function runSegments(
   path: V[], ctx: StrokeContext, kind: ShodoStrokeKind, opts: {
@@ -305,6 +350,8 @@ function runSegments(
 ): Segment[] {
   const arcs = arcTable(path), total = arcs[arcs.length - 1];
   const { style, seed } = ctx, T = style.technique;
+  // かな curves lift through their loops (結び) so the counter stays open.
+  const loops = kind === "curve" && T.musubiLift > 0 ? shodoLoopWindows(path, arcs, ctx.w) : [];
   const sweepOut = opts.lastRun && (opts.end === "harai" || opts.end === "nuki") && kind !== "right-sweep";
   const liftFrom = opts.end === "nuki" ? T.kenshinLift : T.haraiLift;
   const roho = opts.firstRun && !opts.pressedStart;
@@ -325,6 +372,10 @@ function runSegments(
       // 払い / 懸針: lift progressively while still moving.
       const lift = smooth((u - liftFrom) / (1 - liftFrom));
       p *= Math.pow(1 - lift, opts.end === "nuki" ? 1.25 : 1.05);
+    }
+    for (const [a, b] of loops) {
+      const into = Math.min(u * total - a, b - u * total) / (.3 * (b - a));
+      if (into > 0) p *= 1 - T.musubiLift * smooth(clamp(into, 0, 1));
     }
     const s = (opts.strokeArc0 + u * total) / Math.max(1, opts.strokeArcTotal);
     p *= 1 - decay * s;
