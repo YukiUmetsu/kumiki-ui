@@ -635,6 +635,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-contour-joined">CC0 shared alar rim and source-hooked naris wax (experimental V20)</option>
           <option value="source-nasal-volume">CC0 bone-to-tip wax with restrained sidewall (experimental V21b)</option>
            <option value="source-nasal-value">CC0 connected near wing and septal tonal wax (V22 unapproved)</option>
+           <option value="source-naris-occlusion">CC0 projected 3/4 nostril cutouts (V23 experimental)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -683,6 +684,12 @@ export const Cc0NasalDepthAndOcclusion:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
+};
+export const Cc0NarisOcclusionV23:Story={
+  name:"CC0 independently curved near/far nasal undercuts / ANAT1 3× (!dev V23)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-naris-occlusion" initialInspection="nose"/>,
 };
 export const Cc0NasalValue:Story={
   name:"CC0 attached nasal underplane / asymmetric alae 3× (V22 !dev)",
