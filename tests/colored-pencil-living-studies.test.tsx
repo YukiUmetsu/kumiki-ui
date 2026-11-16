@@ -666,6 +666,65 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("tucks the seated hind hock into the rump instead of inventing a third upright boot",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject:"fox",aspect,seed:291});
+      const parts=new Map(drawing.regions.map(r=>[r.id,r]));
+      const hind=parts.get("rear-leg")!,body=parts.get("body")!;
+      // Sitting fox anatomy: the bent thigh disappears under the rust
+      // pelvis and the short tarsus contacts the ground transversely.
+      expect(hind.bounds[1]).toBeGreaterThanOrEqual(330);
+      expect(hind.bounds[3]).toBeLessThanOrEqual(78);
+      expect(hind.bounds[2]/hind.bounds[3]).toBeGreaterThan(1.0);
+      expect(hind.bounds[0]).toBeLessThan(body.bounds[0]+body.bounds[2]);
+      expect(hind.path).toContain("M300 347 C309 338 324 337 335 345");
+      expect(hind.path).not.toContain("L369 402");
+      expect((hind.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(7);
+      expect((hind.path.match(/ L/g)??[]).length).toBe(0);
+      for(const id of ["hind-hock-plane","hind-digit-folds",
+        "hind-tiny-claws","hind-fur-light-turn"]){
+        const t=hind.details?.find(d=>d.id===id);
+        expect(t,id).toBeDefined();
+        expect(t!.opacity).toBeLessThanOrEqual(.7);
+        expect(t!.width).toBeLessThanOrEqual(.5);
+        expect(t!.path).not.toMatch(/NaN|Infinity/);
+      }
+      expect(hind.details!.filter(d=>d.id?.startsWith("fibre-")))
+        .toHaveLength(12);
+      expect(pencilLivingStudyDrawing({subject:"fox",aspect,seed:291}))
+        .toEqual(drawing);
+    }
+  });
+
+  it("preserves four separate canine toe creases while giving each forearm physical turning planes",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject:"fox",aspect,seed:291});
+      for(const [id,prefix] of [
+        ["foreleg-left","far"],["foreleg-right","near"],
+      ] as const){
+        const leg=drawing.regions.find(r=>r.id===id)!;
+        expect((leg.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(9);
+        expect((leg.path.match(/ L/g)??[]).length).toBe(0);
+        expect(leg.opaqueSupport).toBe(true);
+        for(const name of ["antebrachial-plane","metacarpal-turn"]){
+          const trace=leg.details?.find(d=>d.id===prefix+"-"+name);
+          expect(trace,prefix+" "+name).toBeDefined();
+          expect(trace!.width).toBeLessThan(.5);
+          expect(trace!.opacity).toBeLessThanOrEqual(.6);
+        }
+        const roots=leg.details!.filter(d=>d.id?.startsWith("fibre-"));
+        expect(roots.length).toBeGreaterThanOrEqual(15);
+        expect(roots.every(t=>t.path.includes(" Q")&&!/NaN|Infinity/.test(t.path)))
+          .toBe(true);
+        for(const digit of ["paw-toes","toe-furrows","claw-tips"]){
+          const t=leg.details?.find(d=>d.id===digit);
+          expect(t,digit).toBeDefined();
+          expect((t!.path.match(/M/g)??[]).length).toBeGreaterThanOrEqual(3);
+        }
+      }
+    }
+  });
+
   it("fox weight-bearing forelegs taper to articulated toes rather than uniform black boots",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     const parts=new Map(drawing.regions.map(r=>[r.id,r]));
