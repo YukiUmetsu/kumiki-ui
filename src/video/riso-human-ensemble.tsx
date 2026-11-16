@@ -14,6 +14,7 @@ import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso47PalmContour} from "./riso47-palmar-cup";
+import {riso48ProjectedPivot} from "./riso48-projected-support";
 import {riso43FrontIndexIds} from "./riso43-physical-paper-depth";
 import {inspectRiso44PrintedIndexContact} from "./riso44-source-index-paper-contact";
 import {evaluateRiso40PaperGrip} from "./riso40-paper-fingertip-contact";
@@ -32,6 +33,10 @@ const take=(id:string,ink?: "blue"|"red"):RisoCharacterPart=>{
   return {...p,plate:ink??p.plate};
 };
 const staticLeg=(j:RisoJoint):RisoJoint=>{
+  // The receiver alone foreshortens real supporting PIP/DIP stations in the
+  // source 2D plane; all original parts, paint and index pinch stay live.
+  const projected=riso48ProjectedPivot(j);
+  if(projected)return projected;
   // RISO45 / Paper Artist original source: 3 supporting MCP digits must
   // fold *behind* the sheet's upper edge, not point to the upper-right
   // like red rake tines while index alone pinches. Preserve original
