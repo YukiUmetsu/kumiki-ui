@@ -55,7 +55,8 @@ describe("EXPR1 anatomy-driven Chinese-ink reader",()=>{
       expect(new Set(mouthPaths).size).toBe(5);
       const eyelids=frames.map(f=>shapes(f.assets,"eyes-soft")
         .map(s=>s.type==="path"?s.d:"").join("|"));
-      expect(new Set(eyelids).size).toBeGreaterThanOrEqual(3);
+      // Sadness prototype moves AU1/4 brows and AU15 lips, not lids.
+      if(emotion!=="sad")expect(new Set(eyelids).size).toBeGreaterThanOrEqual(3);
       expect(frames[0].assets).toEqual(scrollReaderFacePortrait(1));
       expect(frames.every(f=>f.lids==="soft"&&f.mouth==="rest")).toBe(true);
       const original=scrollReaderFacePortrait(1);
