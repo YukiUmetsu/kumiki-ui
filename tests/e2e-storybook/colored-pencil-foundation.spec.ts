@@ -498,13 +498,22 @@ test("ArtCraft: new human head's anatomy-rooted pencil contacts are a native rev
     const enhanced=await svg.screenshot({animations:"disabled",
       path:info.outputPath("pencil-head-contour-contacts-"+format+".png")});
     const enhancedMarks=await svg.locator("[data-km-pigment-layer] path").count();
+    const enhancedPathBytes=await svg.locator("[data-km-pigment-layer] path")
+      .evaluateAll(nodes=>nodes.reduce((sum,node)=>
+        sum+(node.getAttribute("d")?.length??0),0));
     await toggle.uncheck();
     await expect(scene).toHaveAttribute("data-km-contour-craft","off");
     const earlier=await svg.screenshot({animations:"disabled",
       path:info.outputPath("pencil-head-no-contacts-"+format+".png")});
     const earlierMarks=await svg.locator("[data-km-pigment-layer] path").count();
+    const earlierPathBytes=await svg.locator("[data-km-pigment-layer] path")
+      .evaluateAll(nodes=>nodes.reduce((sum,node)=>
+        sum+(node.getAttribute("d")?.length??0),0));
     expect(enhanced.equals(earlier)).toBe(false);
-    expect(enhancedMarks).toBeGreaterThan(earlierMarks);
+    // No extra SVG trace node is added (CP-F1 keeps the 80-trace cap).
+    // Instead all extra dry contacts are genuine additional path segments.
+    expect(enhancedMarks).toBe(earlierMarks);
+    expect(enhancedPathBytes).toBeGreaterThan(earlierPathBytes);
     expect(await svg.locator("image,foreignObject,feImage").count()).toBe(0);
     await toggle.check();
     await expect(scene).toHaveAttribute("data-km-contour-craft","on");
