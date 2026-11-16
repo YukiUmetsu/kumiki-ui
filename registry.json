@@ -4263,6 +4263,11 @@
           "path": "registry/video/ink-shanshui-react.tsx",
           "type": "registry:ui",
           "target": "components/video/ink-shanshui-react.tsx"
+        },
+        {
+          "path": "registry/video/ink-shanshui-pine-fringe.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink-shanshui-pine-fringe.ts"
         }
       ]
     },
