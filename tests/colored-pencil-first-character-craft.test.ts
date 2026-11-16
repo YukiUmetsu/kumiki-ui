@@ -8,10 +8,10 @@ import {pencilLivingStudyDrawing} from
  * anonymous head: the whole cranial outline and all previously authored
  * micro-elements MUST survive the new contour-anchored dry contacts.
  */
-const contours=(head:ReturnType<typeof newCharacterHeadStageOne>)=>
-  head[0].details!.filter(t=>t.id?.startsWith("newhead-contour-contact-"));
-const rest=(head:ReturnType<typeof newCharacterHeadStageOne>)=>
-  head[0].details!.filter(t=>!t.id?.startsWith("newhead-contour-contact-"));
+const values=(head:ReturnType<typeof newCharacterHeadStageOne>)=>
+  head[0].details!.filter(t=>t.id?.startsWith("newhead-value-"));
+const other=(head:ReturnType<typeof newCharacterHeadStageOne>)=>
+  head[0].details!.filter(t=>!t.id?.startsWith("newhead-value-"));
 
 describe("ArtCraft head-only perimeter-connected dry-pencil fidelity",()=>{
   it("adds independent multi-pressure ANAT1 + cranial-vault contacts without erasing any original art",()=>{
@@ -23,38 +23,36 @@ describe("ArtCraft head-only perimeter-connected dry-pencil fidelity",()=>{
     // all existing five-value skin and six pigment planes must be preserved.
     expect(enhanced[0].path).toBe(earlier[0].path);
     expect(enhanced[0].bounds).toEqual(earlier[0].bounds);
-    expect(rest(enhanced)).toEqual(earlier[0].details);
-    const passes=contours(enhanced);
-    expect(passes.map(p=>p.id)).toEqual([
-      "newhead-contour-contact-cold-turn-0",
-      "newhead-contour-contact-cold-turn-1",
-      "newhead-contour-contact-warm-scumble-0",
-      "newhead-contour-contact-warm-scumble-1",
-      "newhead-contour-contact-lit-tooth-0",
-      "newhead-contour-contact-lit-tooth-1",
-    ]);
-    for(const trace of passes){
-      expect(trace.path).toMatch(/^M/);
-      expect(trace.path.match(/M/g)!.length).toBeGreaterThan(25);
-      expect(trace.path).toMatch(/Q/);
-      expect(trace.path).not.toMatch(/NaN|Infinity|<svg|image|filter/);
-      expect(trace.width).toBeGreaterThan(0);
-      expect(trace.opacity).toBeGreaterThan(0);
-      expect(trace.opacity).toBeLessThan(1);
-      expect(trace.startFrame).toBeGreaterThan(100);
-      expect(trace.startFrame).toBeLessThan(350);
+    // Registry enforces <=80 traces; head already has 77. Six separate
+    // material subpasses attach to existing three original value traces,
+    // leaving every preexisting ID, path prefix and pressure untouched.
+    expect(enhanced[0].details).toHaveLength(77);
+    expect(earlier[0].details).toHaveLength(77);
+    expect(other(enhanced)).toEqual(other(earlier));
+    const before=values(earlier),after=values(enhanced);
+    expect(after).toHaveLength(3);
+    expect(after.map(t=>t.id)).toEqual(before.map(t=>t.id));
+    for(let i=0;i<3;i++){
+      const original=before[i],enhancedTrace=after[i];
+      expect(enhancedTrace.path.startsWith(original.path+" ")).toBe(true);
+      expect(enhancedTrace.path.match(/M/g)!.length)
+        .toBeGreaterThan(original.path.match(/M/g)!.length+50);
+      expect(enhancedTrace.path).not.toMatch(/NaN|Infinity|<svg|image|filter/);
+      expect(enhancedTrace.color).toBe(original.color);
+      expect(enhancedTrace.width).toBe(original.width);
+      expect(enhancedTrace.opacity).toBe(original.opacity);
+      expect(enhancedTrace.startFrame).toBe(original.startFrame);
+      expect(enhancedTrace.durationFrames).toBe(original.durationFrames);
     }
-    expect(passes.some(p=>p.color==="#735E69")).toBe(true);
-    expect(passes.some(p=>p.color==="#E3BEA9")).toBe(true);
   });
   it("is repeatable and seeded without changing unrelated anatomy or legacy geometries",()=>{
     const a=newCharacterHeadStageOne(75,true);
     const b=newCharacterHeadStageOne(75,true);
     const c=newCharacterHeadStageOne(76,true);
-    expect(contours(a)).toEqual(contours(b));
-    expect(contours(a)[0].path).not.toBe(contours(c)[0].path);
+    expect(values(a)).toEqual(values(b));
+    expect(values(a)[0].path).not.toBe(values(c)[0].path);
     expect(a[0].path).toEqual(c[0].path);
-    expect(rest(a).length).toBe(rest(c).length);
+    expect(other(a).length).toBe(other(c).length);
   });
   it("provides an honest Storybook A/B switch on both output formats, not global stylization",()=>{
     for(const aspect of ["landscape","portrait"] as const){
@@ -68,10 +66,11 @@ describe("ArtCraft head-only perimeter-connected dry-pencil fidelity",()=>{
       expect(changed.height).toBe(base.height);
       expect(changed.regions).toHaveLength(base.regions.length);
       expect(changed.regions[0].path).toEqual(base.regions[0].path);
-      const traceIds=(which:typeof base)=>which.regions[0].details!
-        .filter(t=>t.id?.startsWith("newhead-contour-contact-"));
-      expect(traceIds(base)).toHaveLength(0);
-      expect(traceIds(changed)).toHaveLength(6);
+      const oldTrace=base.regions[0].details!.find(t=>t.id==="newhead-value-0")!;
+      const newTrace=changed.regions[0].details!.find(t=>t.id==="newhead-value-0")!;
+      expect(changed.regions[0].details).toHaveLength(base.regions[0].details!.length);
+      expect(base.regions[0].details).toHaveLength(77);
+      expect(newTrace.path.startsWith(oldTrace.path+" ")).toBe(true);
       // A colour-pencil subject change must never receive head-specific art.
       for(const subject of ["fox","valley"] as const){
         const x=pencilLivingStudyDrawing({
