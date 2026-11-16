@@ -33,7 +33,7 @@ const surfaces:Readonly<Record<string,Partial<Wax>>> = {
     featherContacts:true,blendRadius:2.15,
     nibStyle:"dry",markLength:"short",strokeOrder:"patches",
     colors:["#4e2925","#170b0f","#8e5448"],
-    pressure:.95,spacing:3.8,markStrength:.21,angle:-27,
+    pressure:.95,spacing:4.2,markStrength:.21,angle:-27,
     opaqueBurnish:.96,underpaintTooth:.07,
     underpaintGradient:{
       light:"#55302b",shadow:"#12070b",
@@ -46,7 +46,7 @@ const surfaces:Readonly<Record<string,Partial<Wax>>> = {
     featherContacts:true,blendRadius:2.55,
     nibStyle:"dry",markLength:"short",strokeOrder:"patches",
     colors:["#633a32","#261316","#b17b69"],
-    pressure:.91,spacing:3.9,markStrength:.21,angle:66,
+    pressure:.91,spacing:4.4,markStrength:.21,angle:66,
     opaqueBurnish:.94,underpaintTooth:.08,
     underpaintGradient:{
       light:"#71423b",shadow:"#201014",
