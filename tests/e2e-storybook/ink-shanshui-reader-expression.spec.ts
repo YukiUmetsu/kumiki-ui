@@ -105,8 +105,8 @@ test("ANAT1 binocular gaze remains inside separate source-painted eye apertures 
     const far=micro.locator('[data-km-ink-expression-part="pupil-right"]');
     const nearD=await near.locator("path").first().getAttribute("d");
     const farD=await far.locator("path").first().getAttribute("d");
-    const neutralNear=await near.getAttribute("transform");
-    const neutralFar=await far.getAttribute("transform");
+    const neutralNear=await near.locator("[data-km-ink-iris-travel]").getAttribute("transform");
+    const neutralFar=await far.locator("[data-km-ink-iris-travel]").getAttribute("transform");
     await expect(micro.locator("[data-km-ink-iris-occlusion]")).toHaveCount(2);
     const clips=micro.locator("clipPath");
     await expect(clips).toHaveCount(2);
@@ -121,8 +121,8 @@ test("ANAT1 binocular gaze remains inside separate source-painted eye apertures 
     await vertical.focus();await vertical.press("End");
     await expect(horizontal).toHaveValue("1");
     await expect(vertical).toHaveValue("1");
-    const travelNear=await near.getAttribute("transform");
-    const travelFar=await far.getAttribute("transform");
+    const travelNear=await near.locator("[data-km-ink-iris-travel]").getAttribute("transform");
+    const travelFar=await far.locator("[data-km-ink-iris-travel]").getAttribute("transform");
     expect(travelNear).not.toEqual(neutralNear);
     expect(travelFar).not.toEqual(neutralFar);
     expect(travelNear).not.toEqual(travelFar);
@@ -138,7 +138,43 @@ test("ANAT1 binocular gaze remains inside separate source-painted eye apertures 
     await page.getByRole("button",{name:"Reset gaze"}).click();
     await expect(horizontal).toHaveValue("0");
     await expect(vertical).toHaveValue("0");
-    expect(await near.getAttribute("transform")).toEqual(neutralNear);
+    expect(await near.locator("[data-km-ink-iris-travel]").getAttribute("transform")).toEqual(neutralNear);
+    // Pixel-level proof, not just valid mask markup: a previous source-
+    // coordinate clip made BOTH painted eyes blank while all DOM assertions
+    // passed. Rasterize the exact actual source SVG twice (irises on/off),
+    // and require measurable ink contribution in the native browser.
+    const visibleIrisPixels=await micro.evaluate(async svg=>{
+      const render=async(show:boolean):Promise<Uint8ClampedArray>=>{
+        const clone=svg.cloneNode(true) as SVGSVGElement;
+        clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
+        clone.setAttribute("width","516");
+        clone.setAttribute("height","400");
+        clone.querySelectorAll('[data-km-ink-expression-part="pupil-left"],'+
+          '[data-km-ink-expression-part="pupil-right"]').forEach(el=>
+          el.setAttribute("visibility",show?"visible":"hidden"));
+        const xml=new XMLSerializer().serializeToString(clone);
+        const uri=URL.createObjectURL(new Blob([xml],{type:"image/svg+xml"}));
+        try{
+          const image=new Image();image.src=uri;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=516;canvas.height=400;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw Error("Canvas 2D missing");
+          ctx.drawImage(image,0,0,516,400);
+          return ctx.getImageData(0,0,516,400).data;
+        }finally{URL.revokeObjectURL(uri);}
+      };
+      const [on,off]=await Promise.all([render(true),render(false)]);
+      let changed=0;
+      for(let i=0;i<on.length;i+=4)
+        if(Math.abs(on[i]-off[i])+Math.abs(on[i+1]-off[i+1])+
+          Math.abs(on[i+2]-off[i+2])>12)changed++;
+      return changed;
+    });
+    expect(visibleIrisPixels,
+      "Original near/far irises must remain visibly painted through the clip")
+      .toBeGreaterThan(20);
     await micro.screenshot({animations:"disabled",
       path:info.outputPath("reader-ANAT1-original-gaze-open.png")});
   });
