@@ -1005,7 +1005,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
     expect(allMarks).toHaveLength(78);
     const graded=[...full.matchAll(
-      /data-km-master-stratum-wash="" d="[^"]+" fill="url\\(#([^"]+)\\)"/g,
+      /data-km-master-stratum-wash="" d="[^"]+" fill="url\(#([^"]+)\)"/g,
     )].map(m=>m[1]);
     expect(graded).toHaveLength(15);
     expect(new Set(graded).size).toBe(15);
