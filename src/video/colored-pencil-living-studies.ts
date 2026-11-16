@@ -236,6 +236,54 @@ function pencilDermalGlaze(
  * vocabulary. The previous hand-guessed feature stickers no longer decide
  * facial topology. This is a 2D pencil painter, not a mesh screenshot.
  */
+/**
+ * Three families of microscopic vermilion creases from the SAME ANAT1 lip
+ * bounds as the upper/lower labial contours. Real coloured-pencil lips are
+ * not paper-white stickers or a dark outlined oval: soft plum mouth seam,
+ * individually curved rose grain and a few reserved creamy contacts build
+ * a light-facing lower lip, with both masses clipped to true labial tissue.
+ * Only the 468-vertex ANAT1 projection defines the region and centerline.
+ */
+function pencilVermilionFibres(
+  bounds:readonly [number,number,number,number],
+  plane:"upper"|"lower",seed:number,
+):PencilTrace[]{
+  const [left,top,width,height]=bounds;
+  if(![left,top,width,height].every(Number.isFinite)||
+    width<15||height<4||height>32||
+    !Number.isSafeInteger(seed)||seed<0||seed>2147483647)
+    throw new RangeError("Lip anatomy requires finite ANAT1 tissue bounds");
+  const colors=plane==="upper"?
+    ["#925E69","#C98986","#EAB9AC"] as const:
+    ["#A46D77","#D39995","#F2C6B4"] as const;
+  const traces:PencilTrace[]=[];
+  for(let layer=0;layer<3;layer++){
+    const pieces:string[]=[];
+    for(let i=0;i<29;i++){
+      const key=layer*173+i;
+      const u=Math.max(.025,Math.min(.975,
+        (i+.5+(pencilHash(seed,key,63)-.5)*.52)/29));
+      const x=left+width*(.055+.89*u);
+      const transverse=Math.pow(2*u-1,2);
+      const volume=.23+.77*(1-transverse);
+      const base=plane==="upper"?.19:.53;
+      const y=top+height*(base+.12*transverse)+
+        (pencilHash(seed,key,64)-.5)*height*.045;
+      const length=height*(plane==="upper"?.24:.29)*volume*
+        (.68+.3*pencilHash(seed,key,65))*(layer===2?.58:1);
+      const tip=y+length;
+      const drift=(pencilHash(seed,key,66)-.5)*1.35;
+      pieces.push("M"+fmt(x)+" "+fmt(y)+" Q"+
+        fmt(x+drift)+" "+fmt(y+length*.47)+" "+
+        fmt(x+drift*.34)+" "+fmt(tip));
+    }
+    traces.push({...mark(pieces.join(" "),colors[layer],
+      [.38,.29,.22][layer],247+layer*7,[.43,.33,.29][layer]),
+      id:"anat-vermilion-"+plane+"-"+layer});
+  }
+  return traces;
+}
+
 const PENCIL_PORTRAIT_ANAT1=pencilPortraitAnatomy();
 function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
   const A=PENCIL_PORTRAIT_ANAT1;
@@ -250,6 +298,15 @@ function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
             216+Math.min(30,Math.floor(index/4)*5),group.opacity),
           id:group.id,
         })),
+        // A tiny mentolabial terminator belongs to the parent face pigment,
+        // NOT an opaque sticker attached below the projected lower lip.
+        {...mark("M"+fmt(A.lips.bounds[0]+A.lips.bounds[2]*.24)+" "+
+          fmt(A.lips.bounds[1]+A.lips.bounds[3]+5)+" Q"+
+          fmt(A.lips.bounds[0]+A.lips.bounds[2]*.51)+" "+
+          fmt(A.lips.bounds[1]+A.lips.bounds[3]+8)+" "+
+          fmt(A.lips.bounds[0]+A.lips.bounds[2]*.76)+" "+
+          fmt(A.lips.bounds[1]+A.lips.bounds[3]+4),
+          "#9B7779",.28,275,.30),id:"anat-mentolabial-turn"},
         ...(part.details??[]),
       ]};
   }
@@ -315,22 +372,40 @@ function applyPortraitAnatomy(part:PencilSubjectPart):PencilSubjectPart{
         id:"anat-nose-terminator"},
     ]};
   if(part.id==="lip-upper")return {...part,
-    palette:["#CDA99D","#A38382","#E9C8B6"],
+    // Soft vermilion attached to real skin: three *visible* rose/sepia
+    // pigment passes rather than pale opaque lip-shaped paper cutouts.
+    palette:["#C38E88","#8F636B","#DDB0A4"],
     path:A.lips.upper,bounds:A.lips.bounds,
     details:[
-      {...mark(A.features["mouth-line"].path,"#835D66",.48,240,.57),
+      ...pencilVermilionFibres(A.lips.bounds,"upper",4101),
+      {...mark(A.features["mouth-line"].path,"#815760",.44,240,.65),
         id:"anat-mouth-seam"},
-      {...mark(A.features["lips-upper"].path,"#EBC1AD",.35,249,.47),
+      {...mark(A.features["lips-upper"].path,"#E4A9A3",.29,249,.47),
         id:"anat-cupid-bow"},
+      {...mark("M"+fmt(A.lips.bounds[0]+2)+" "+
+        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.53)+" Q"+
+        fmt(A.lips.bounds[0]+4)+" "+
+        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.65)+" "+
+        fmt(A.lips.bounds[0]+6)+" "+
+        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.58),
+        "#845B64",.31,269,.46),id:"anat-left-commissure"},
     ]};
   if(part.id==="lip-lower")return {...part,
-    palette:["#D4ADA3","#AE8888","#EFCBBC"],
+    palette:["#D4A09A","#986F78","#EDC1AD"],
     path:A.lips.lower,bounds:A.lips.bounds,
     details:[
-      {...mark(A.features["lips-lower"].path,"#E3BAAF",.31,241,.48),
+      ...pencilVermilionFibres(A.lips.bounds,"lower",4117),
+      {...mark(A.features["lips-lower"].path,"#DFADA5",.26,241,.38),
         id:"anat-lower-lip"},
-      {...mark(A.features["mouth-line"].path,"#AC7D7B",.24,250,.34),
+      {...mark(A.features["mouth-line"].path,"#986E71",.27,250,.46),
         id:"anat-labial-contact"},
+      {...mark("M"+fmt(A.lips.bounds[0]+A.lips.bounds[2]*.40)+" "+
+        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.76)+" Q"+
+        fmt(A.lips.bounds[0]+A.lips.bounds[2]*.50)+" "+
+        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.69)+" "+
+        fmt(A.lips.bounds[0]+A.lips.bounds[2]*.57)+" "+
+        fmt(A.lips.bounds[1]+A.lips.bounds[3]*.76),
+        "#FFE0CE",.28,269,.48),id:"anat-lower-vermilion-reserve"},
     ]};
   return part;
 }
