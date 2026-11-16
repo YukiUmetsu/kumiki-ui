@@ -53,61 +53,64 @@ const sourcePatches:Readonly<Record<string,Partial<Wax>>>={
     },
   },
   "tarsal-shelf-near":{
-    // A real overlapping opaque SKIN plane, after both iris and pupil.
-    // The lower edge is irregular and cuts across the upper iris 7-11px.
-    // The far/near eyes are deliberately different, not mirrored.
-    d:"M214 557 C225 539 248 528 267 526 "+
-      "C292 525 313 536 325 544 "+
-      "C310 542 295 540 282 544 "+
-      "C257 546 236 551 217 565Z",
-    bounds:{x:210,y:522,width:119,height:48},
-    colors:["#b28b84","#775a5e","#d3aa9d"],
-    pressure:.87,spacing:5.3,markStrength:.22,
-    underpaintTooth:.23,edgeRoughness:.17,
+    // Native v10 proof rejected a bright cut-paper band between lid and
+    // iris. Preserve the skin occluder, but root its lower edge INSIDE
+    // the adjacent dark margin. This is source-observed TARSAL tissue,
+    // not a second floating eyeliner ribbon.
+    d:"M214 556 C226 539 248 529 268 528 "+
+      "C291 526 314 536 325 545 "+
+      "C309 541 298 539 281 539 "+
+      "C256 539 237 549 217 563Z",
+    bounds:{x:210,y:523,width:119,height:45},
+    colors:["#a78581","#6f545b","#c19b91"],
+    pressure:.82,spacing:5.7,markStrength:.2,
+    underpaintTooth:.23,edgeRoughness:.18,
     underpaintGradient:{
-      light:"#c9a69c",shadow:"#65505a",focusX:.69,focusY:.23,radius:1.04,
+      light:"#bd9791",shadow:"#624e55",focusX:.69,focusY:.26,radius:1.04,
     },
   },
   "tarsal-shelf-far":{
-    d:"M400 529 C410 508 428 498 446 497 "+
-      "C461 497 476 504 482 512 "+
-      "C465 508 451 505 435 513 "+
-      "C420 520 412 529 406 535Z",
-    bounds:{x:396,y:492,width:91,height:47},
-    colors:["#aa8783","#725a60","#c09a95"],
-    pressure:.84,spacing:5.2,markStrength:.23,
-    underpaintTooth:.19,edgeRoughness:.16,
+    d:"M401 528 C411 509 429 499 445 498 "+
+      "C461 498 477 505 482 512 "+
+      "C467 509 452 506 436 509 "+
+      "C420 516 412 528 406 534Z",
+    bounds:{x:397,y:493,width:90,height:46},
+    colors:["#9c7a7b","#6b545a","#b78d8b"],
+    pressure:.79,spacing:5.8,markStrength:.2,
+    underpaintTooth:.19,edgeRoughness:.17,
     underpaintGradient:{
-      light:"#bc9690",shadow:"#634f55",focusX:.56,focusY:.35,radius:1.03,
+      light:"#b28b89",shadow:"#5e4b53",focusX:.56,focusY:.35,radius:1.02,
     },
   },
   "lash-root-near":{
-    // Connected mass with variable thickness; not a thick constant-width line.
-    d:"M216 558 C224 546 239 537 260 534 "+
-      "C282 530 306 536 319 544 "+
-      "C304 540 291 538 278 539 "+
-      "C257 540 237 548 220 561Z",
-    bounds:{x:212,y:528,width:112,height:38},
-    colors:["#442e31","#221c23","#735351"],
-    pressure:.93,spacing:4.2,markStrength:.25,
-    underpaintTooth:.18,opaqueBurnish:.86,edgeRoughness:.21,
+    // The source dark root is a thin, irregular implanted boundary,
+    // not the previous thick, painted continuous eyebrow-like slab.
+    // Named source-fiber curves and the anatomical canthi are retained.
+    d:"M217 557 C226 545 240 540 261 537 "+
+      "C282 535 303 538 317 544 "+
+      "C304 541 287 540 274 541 "+
+      "C251 543 235 550 221 559Z",
+    bounds:{x:213,y:531,width:109,height:33},
+    colors:["#594146","#31272d","#7d5e59"],
+    pressure:.79,spacing:6.1,markStrength:.18,
+    underpaintTooth:.2,opaqueBurnish:.32,edgeRoughness:.23,
     outlineOpacity:0,
     underpaintGradient:{
-      light:"#624745",shadow:"#211b23",focusX:.57,focusY:.42,radius:.89,
+      light:"#765955",shadow:"#30252e",focusX:.58,focusY:.43,radius:.88,
     },
   },
   "lash-root-far":{
-    d:"M404 529 C414 509 432 501 447 499 "+
-      "C464 497 474 505 480 513 "+
-      "C468 510 454 506 441 508 "+
-      "C423 514 414 524 406 534Z",
-    bounds:{x:400,y:494,width:84,height:43},
-    colors:["#3c292d","#201a20","#61484b"],
-    pressure:.92,spacing:4.1,markStrength:.24,
-    underpaintTooth:.18,opaqueBurnish:.84,edgeRoughness:.2,
+    d:"M406 528 C418 512 431 505 447 504 "+
+      "C462 503 475 509 480 513 "+
+      "C464 510 454 509 441 510 "+
+      "C425 515 415 526 407 531Z",
+    bounds:{x:402,y:499,width:81,height:36},
+    colors:["#533d42","#30262d","#745858"],
+    pressure:.78,spacing:6.1,markStrength:.17,
+    underpaintTooth:.21,opaqueBurnish:.3,edgeRoughness:.22,
     outlineOpacity:0,
     underpaintGradient:{
-      light:"#594143",shadow:"#1e1920",focusX:.56,focusY:.47,radius:.9,
+      light:"#6c5252",shadow:"#30272c",focusX:.55,focusY:.46,radius:.9,
     },
   },
   "lower-lid-near":{
@@ -157,31 +160,33 @@ const additions:Readonly<Record<string,Wax>>={
     kind:"wax",id:"source-tarsal-burnish-near",
     parentId:"face-outline",clipToParent:true,
     timing:{start:195,end:295},
-    d:"M219 557 C230 544 245 539 264 537 "+
-      "C283 535 306 538 317 544 "+
-      "C302 541 289 539 277 541 "+
-      "C254 542 237 550 221 560Z",
-    bounds:{x:215,y:533,width:106,height:31},
+    // Worn compact wax fibers touch the parent lash root, without
+    // widening the eyelid into an unnatural uniformly dark ribbon.
+    d:"M231 551 C243 542 255 539 269 539 "+
+      "C283 538 295 539 305 542 "+
+      "C292 540 280 541 266 542 "+
+      "C251 544 241 550 232 554Z",
+    bounds:{x:226,y:535,width:83,height:23},
     coverage:"open",deposition:"stroke-built",
-    colors:["#38282d","#211a20","#65494a"],
-    blendRadius:2.6,featherContacts:true,angle:10,
-    pressure:.91,spacing:4.2,markStrength:.31,
+    colors:["#61494b","#30282f","#83605a"],
+    blendRadius:4.6,featherContacts:true,angle:10,
+    pressure:.48,spacing:7.2,markStrength:.15,
     edgeRoughness:.18,outlineOpacity:0,nibStyle:"dry",
   },
   "source-tarsal-burnish-far":{
     kind:"wax",id:"source-tarsal-burnish-far",
     parentId:"face-outline",clipToParent:true,
     timing:{start:195,end:294},
-    d:"M405 528 C417 509 432 503 447 501 "+
-      "C463 501 473 506 478 513 "+
-      "C460 508 449 506 439 509 "+
-      "C425 514 415 526 406 532Z",
-    bounds:{x:402,y:497,width:80,height:39},
+    d:"M416 520 C426 510 435 507 446 506 "+
+      "C458 505 469 508 475 513 "+
+      "C459 509 448 510 440 511 "+
+      "C428 514 422 520 417 524Z",
+    bounds:{x:412,y:502,width:66,height:26},
     coverage:"open",deposition:"stroke-built",
-    colors:["#36282b","#1f1a20","#60474b"],
-    blendRadius:2.3,featherContacts:true,angle:15,
-    pressure:.9,spacing:4.2,markStrength:.29,
-    edgeRoughness:.18,outlineOpacity:0,nibStyle:"dry",
+    colors:["#5b4648","#2d272e","#7a5b59"],
+    blendRadius:4.3,featherContacts:true,angle:15,
+    pressure:.46,spacing:7.1,markStrength:.15,
+    edgeRoughness:.17,outlineOpacity:0,nibStyle:"dry",
   },
   "source-infraorbital-wax-near":{
     kind:"wax",id:"source-infraorbital-wax-near",

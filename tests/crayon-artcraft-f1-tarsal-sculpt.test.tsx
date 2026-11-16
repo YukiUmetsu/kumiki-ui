@@ -75,7 +75,11 @@ describe("ArtCraft source-specific upper tarsus + ocular socket — experimental
       expect(shelf.coverage).toBe("opaque");
       expect(shelf.underpaintTooth).toBeGreaterThan(.18);
       expect(shelf.underpaintGradient).toBeDefined();
-      expect(root.opaqueBurnish).toBeGreaterThan(.8);
+      // Actual source-camera v10 pixels rejected the dark eyeliner slab.
+      // Wax contact must stay pigmented, irregular, and skin-integrated.
+      expect(root.opaqueBurnish).toBeGreaterThan(.2);
+      expect(root.opaqueBurnish).toBeLessThan(.5);
+      expect(root.markStrength).toBeLessThan(.22);
       expect(root.underpaintGradient).toBeDefined();
       expect(root.outlineOpacity).toBe(0);
       expect(ids.indexOf("eye-orbital-fold-"+side)).toBeLessThan(ids.indexOf(socket));
@@ -116,21 +120,17 @@ describe("ArtCraft source-specific upper tarsus + ocular socket — experimental
       .toThrow(RangeError);
   });
 
-  it("renders actual opaque overlapping wax at animation extrema without raster overlays",()=>{
-    for(const frame of [120,210,299]){
-      const spec=crayonCc0FaceStudy({
-        ...common,eyeContact:"source-sculpt",detail:frame===120?.2:1,
-      });
-      expect(inspectCrayonScene(spec)).toEqual([]);
-      const markup=renderToStaticMarkup(<CrayonScene spec={spec} frame={frame}/>);
-      expect(markup).toContain('data-km-crayon-scene');
-      if(frame===299){
-        for(const id of CRAYON_F1_TARSAL_SCULPT_ADDITIONS)
-          expect(markup).toContain('data-km-crayon-element="'+id+'"');
-        expect(markup).toContain('data-km-crayon-underpaint="opaque"');
-        expect(markup).toContain('data-km-crayon-fiber-contact="dry-wax"');
-      }
-      expect(markup).not.toContain("<image ");
-    }
-  });
+  it("renders opaque overlapping wax without raster overlays",()=>{
+    // 120/210 source-camera frames are photographed by Playwright.
+    // Only one costly full-scene React SSR is needed here.
+    const spec=crayonCc0FaceStudy({...common,eyeContact:"source-sculpt"});
+    expect(inspectCrayonScene(spec)).toEqual([]);
+    const markup=renderToStaticMarkup(<CrayonScene spec={spec} frame={299}/>);
+    expect(markup).toContain('data-km-crayon-scene');
+    for(const id of CRAYON_F1_TARSAL_SCULPT_ADDITIONS)
+      expect(markup).toContain('data-km-crayon-element="'+id+'"');
+    expect(markup).toContain('data-km-crayon-underpaint="opaque"');
+    expect(markup).toContain('data-km-crayon-fiber-contact="dry-wax"');
+    expect(markup).not.toContain("<image ");
+  },20_000);
 });
