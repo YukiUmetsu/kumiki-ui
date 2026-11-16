@@ -19,6 +19,7 @@ Drawing or reviewing people, faces, hands, poses, hair or skin and eye colour in
 Drawing, animating or reviewing animals, birds or fish in any style (proportions, faces, coat colours, fur, gaits, sounds): follow [kumiki-animal-anatomy](../kumiki-animal-anatomy/SKILL.md).
 Drawing or animating trees, bamboo, flowers, grasses or other vegetation in any style (architecture, seasons, blossom, autumn colour, bark): follow [kumiki-plant-anatomy](../kumiki-plant-anatomy/SKILL.md).
 Drawing or animating sky, clouds and weather in any style (rain, snow, fog and haze, wind, time-of-day light, lightning, rainbows): follow [kumiki-sky-weather](../kumiki-sky-weather/SKILL.md).
+Drawing or animating seas, waves, surf, wakes, ripples, reflections or rivers in any style: follow [kumiki-water](../kumiki-water/SKILL.md).
 Drawing or animating facial expressions and emotions in any style (brows, lids, mouth, creases, smiles that reach the eyes): follow [kumiki-facial-expressions](../kumiki-facial-expressions/SKILL.md).
 
 **Never:** hardcode a specific consuming application; substitute tiny low-contrast text for elegance; add generic glow/gradients by default; ship untested animation or overlays; hide essential information for minimalism; overwrite consumer customization without review.

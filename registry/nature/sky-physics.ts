@@ -153,7 +153,8 @@ export interface SkyGradient {
  */
 export function skyGradient(sunElevationDeg: number, cover = 0): SkyGradient {
   // The phases' centres in elevation, high to low; blend between the two around the sun.
-  const centres = SKY_PHASES.map(p => ({ p, at: p.id === "day" ? 30 : p.id === "night" ? -18 : (p.sun[0] + p.sun[1]) / 2 })).sort((a, b) => b.at - a.at);
+  // Day holds from 12° up (golden hour is under 10° by most definitions); night from −18°.
+  const centres = SKY_PHASES.map(p => ({ p, at: p.id === "day" ? 12 : p.id === "night" ? -18 : (p.sun[0] + p.sun[1]) / 2 })).sort((a, b) => b.at - a.at);
   let a = centres[0], b = centres[0], t = 0;
   if (sunElevationDeg <= centres[centres.length - 1].at) { a = b = centres[centres.length - 1]; }
   else for (let i = 0; i < centres.length - 1; i++) if (sunElevationDeg <= centres[i].at && sunElevationDeg > centres[i + 1].at) { a = centres[i]; b = centres[i + 1]; t = (centres[i].at - sunElevationDeg) / (centres[i].at - centres[i + 1].at); break; }
