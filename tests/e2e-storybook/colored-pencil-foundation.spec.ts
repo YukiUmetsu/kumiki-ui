@@ -166,6 +166,7 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
       ["portrait","portrait-nape","neck"],
       ["portrait","portrait-crown","hair-crown"],
       ["portrait","portrait-lock","hair-lock-right"],
+      ["portrait","portrait-lips","lip-lower"],
     ] as const){
       await subject.selectOption(specimen);
       const before=await svg.screenshot({animations:"disabled"});
@@ -184,6 +185,42 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
       // a photograph edit or duplicated/flattened alternate hero.
       await svg.screenshot({animations:"disabled",
         path:info.outputPath("pencil-"+specimen+"-"+format+"-"+part+"-macro.png")});
+      if(focus==="portrait-lips"){
+        const mouth=await svg.evaluate(root=>{
+          const upper=root.querySelector(
+            '[data-km-pencil-region="lip-upper"]')!;
+          const lower=root.querySelector(
+            '[data-km-pencil-region="lip-lower"]')!;
+          const face=root.querySelector(
+            '[data-km-pencil-region="face-main"]')!;
+          const count=(node:Element,plane:string)=>
+            [...node.querySelectorAll("[data-km-pencil-trace]")].filter(
+              t=>t.getAttribute("data-km-pencil-trace")?.startsWith(
+                "anat-vermilion-"+plane+"-")).length;
+          return {
+            upperPasses:count(upper,"upper"),
+            lowerPasses:count(lower,"lower"),
+            seam:!!upper.querySelector(
+              '[data-km-pencil-trace="anat-mouth-seam"]'),
+            commissure:!!upper.querySelector(
+              '[data-km-pencil-trace="anat-left-commissure"]'),
+            lowerReserve:!!lower.querySelector(
+              '[data-km-pencil-trace="anat-lower-vermilion-reserve"]'),
+            mentolabial:!!face.querySelector(
+              '[data-km-pencil-trace="anat-mentolabial-turn"]'),
+            supports:[upper,lower].map(el=>
+              el.querySelectorAll("[data-km-pencil-support]")).map(n=>n.length),
+            noBitmap:root.querySelectorAll("image,foreignObject,feImage").length===0,
+          };
+        });
+        expect(mouth.upperPasses).toBe(3);
+        expect(mouth.lowerPasses).toBe(3);
+        expect(mouth.seam).toBe(true);
+        expect(mouth.commissure).toBe(true);
+        expect(mouth.lowerReserve).toBe(true);
+        expect(mouth.mentolabial).toBe(true);
+        expect(mouth.noBitmap).toBe(true);
+      }
       if(focus==="portrait-crown"||focus==="portrait-lock"){
         const physicalHair=await svg.evaluate((root,part)=>{
           const region=root.querySelector('[data-km-pencil-region="'+part+'"]')!;
