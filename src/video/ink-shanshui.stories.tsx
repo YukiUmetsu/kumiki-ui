@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"pine"|"pine-bones"|"pine-uncut"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"pine"|"pine-bones"|"pine-unlinked"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -612,7 +612,19 @@ function MasterInkSourceComparison(){
       [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
       [data-km-cliff-pine-pad],
       [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
-      [data-km-cliff-pine-needle] { visibility:hidden; }
+      [data-km-cliff-pine-needle],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-connected-canopy] { visibility:hidden; }
+      /* Same original 20 Fuchun canopy bridge source paths retained,
+         but remove them from PAINT only to compare the previous floating
+         40 caplets against the loaded continuous branched composition.
+         All existing brush/needle microdetail remains live in both. */
+      [data-km-master-ink-inspection="pine-unlinked"] [data-km-master-study="fuchun"]
+      [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine-unlinked"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff],
+      [data-km-master-ink-inspection="pine-unlinked"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-connected-canopy] { visibility:hidden; }
       /* Before/after the actual Fuchun pine source's two hollow
          brush-aligned windows: exactly the same d, seed and camera.
          Nonzero fills all inner loops instead of cutting true paper.
@@ -639,14 +651,15 @@ function MasterInkSourceComparison(){
         ["ridge","Skyline · contour only"],
         ["pine","Pine crowns · source anatomy"],
         ["pine-bones","Pine armature · connected brush bones"],
+        ["pine-unlinked","Pine before continuous crown bridge"],
         ["pine-uncut","Pine before bristle paper lift"],
         ["uncut","Ink before dry-paper lift"]] as const).map(([zone,title])=>
         <button type="button" key={zone} style={style.button}
           aria-pressed={fuchunZone===zone} onClick={()=>{
             setFuchunZone(zone);
             if(zone==="pine-bones")inspect(1.65,615,135);
-            else if(zone==="pine"||zone==="pine-uncut")
-              inspect(1.65,628,137);
+            else if(zone==="pine"||zone==="pine-unlinked"||
+              zone==="pine-uncut")inspect(1.65,628,137);
           }}>
           {title}
         </button>)}
@@ -655,8 +668,10 @@ function MasterInkSourceComparison(){
         all 78 original fibres and four hero ribs before/after dry-paper cuts.
         The pine-root camera isolates genuine trunk-to-soil contact on the
         existing continuous mountain; it never creates a test-only path.
-        Pine armature mode only hides material layers to show the source
-        trunk, planted roots and twenty unequal loaded living branches.
+        Pine armature hides material layers to show the source trunk,
+        planted roots and twenty unequal loaded living branches. Compare
+        Pine before continuous crown bridge with Pine crowns to inspect
+        actual joining pigment, without changing source paths or 20 branches.
         The pine views toggle only two internal bristle-reserve cutouts per
         original Fuchun fan, retaining all 40 crowns, 60 pads and 310 needles.
         CSS cannot alter the source paths, attached roots or film clock.
