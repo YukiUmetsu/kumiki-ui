@@ -3179,6 +3179,15 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       /data-km-rock-plane-flow="source-following" data-km-rock-plane-bank-axis="([^"]+)" data-km-rock-plane-bank-end="([^"]+)"/g,
     )];
     expect(nearFlow).toHaveLength(17);
+    // Huang's upper-to-lower long pima remains distinct from the
+    // rounded alum-head presses and cheek-following middle ink.
+    expect((candidate.match(/data-km-rock-plane-bank-register="descending-hemp"/g)??[]))
+      .toHaveLength(6);
+    expect((candidate.match(/data-km-rock-plane-bank-register="short-head"/g)??[]))
+      .toHaveLength(2);
+    expect((candidate.match(/data-km-rock-plane-bank-register="rolled-cheek"/g)??[]))
+      .toHaveLength(9);
+    expect(legacy).not.toContain("data-km-rock-plane-bank-register=");
     const nearRoots=[...candidate.matchAll(
       /data-km-rock-ink-plane="" data-km-rock-plane-root="([^"]+)" data-km-rock-plane-crest="([^"]+)" data-km-rock-plane-style="([^"]+)" data-km-rock-plane-flow="source-following"/g,
     )];
