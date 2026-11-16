@@ -99,8 +99,8 @@ describe("ANIM1 checks applied to UKIYO1", () => {
     expect(f[0].status).toBe("low");
     expect(f[0].grade).toBe("measured");
   });
-  it("the UKIYO1 boar and bear stand inside their species' ranges", () => {
-    for (const id of ["boar", "bear"] as const) {
+  it("the UKIYO1 boar, bear, fox, dog, cat, wolf and ox stand inside their species' ranges", () => {
+    for (const id of ["boar", "bear", "fox", "dog", "cat", "wolf", "ox"] as const) {
       const findings = checkAnimalProportions(id, measureAnimal(ukiyoeBeastLandmarks(id)!, false));
       expect(findings.filter(x => x.status !== "ok").map(x => x.message), id).toEqual([]);
     }

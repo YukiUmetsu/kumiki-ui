@@ -74,6 +74,31 @@ Measured off each creature's own standing contour (`ukiyoeBeastLandmarks`), with
 The second group shows a pattern: the shared quadruped rig makes every animal long and low. It is an open finding for a
 later pass: compare each animal with its prints and decide where it is deliberate (the folk tanuki) and where it is not.
 
+**Refit (2026-11-16).** The fox, dog, cat, wolf and ox were refitted by a small search over leg length, body depth and
+body length:
+
+- **Target:** the leg clearance halfway between the species' typical value and its minimum, the trunk halfway to its
+  maximum, a little of the prints' elongation kept;
+- **Size kept:** the withers height stays near its old value, so the animals keep their size in existing scenes;
+- **Tails:** scaled with the shorter bodies.
+
+| Animal | Leg clearance | Trunk |
+|---|---|---|
+| Fox | 0.39 → 0.47 | 1.81 → 1.00 |
+| Dog | 0.34 → 0.51 | 1.66 → 1.12 |
+| Cat | 0.36 → 0.50 | 1.72 → 1.42 |
+| Wolf | 0.39 → 0.52 | 1.67 → 1.19 |
+| Ox | 0.12 → 0.43 | 1.57 → 1.25 |
+
+**Ox.** Compared with a bull in profile, it also carried its head high on an upright, goat-like neck. It now carries
+the head low on a short neck, and its legs are thicker.
+
+**Lying down.** Hooved animals now lie down, forelegs folded under the chest, where the others sit (ANIM1's postures:
+cattle, deer and horses do not sit).
+
+**Not changed:** the tanuki, the rabbit and the mouse (deliberate); the ox's head shape, which is still long and
+goat-like. Walk, run and sit frames were checked after the change.
+
 ## Boar and bear legs
 
 The changes:
@@ -324,7 +349,8 @@ parents to scale, and crane, duck, sparrow and pheasant chicks.
 - Front and back constructions in ANIM1 (styles draw their own).
 - Leaping, take-off and landing; birds on a perch (gripping a branch rather than standing on the ground).
 - Young animals' postures and gaits are the adults' (a foal's gangly walk is not modelled).
-- The long-and-low UKIYO1 quadrupeds listed above.
+- The tanuki, rabbit and mouse stay low as drawn (owner to confirm the tanuki); the UKIYO1 ox's head is still
+  goat-like.
 - Measured, not estimated, colours and faces.
 - Recordings for most animal voices; the search terms are listed per species.
 - No owner viewing review yet.
