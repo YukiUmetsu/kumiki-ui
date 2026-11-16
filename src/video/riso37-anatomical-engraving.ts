@@ -96,6 +96,26 @@ export function refineRiso37SourceEngraving(
   const prefix=side+"-glove-";
   if(!part.id.startsWith(prefix))return part;
   const name=part.id.slice(prefix.length);
+  if(name==="detail"){
+    // Previous unedited original glove-detail source consisted of two
+    // ~3-unit filled black triangular holes at the wrist. The hands looked
+    // punched-through rather than supported by small soft-palmar tendons.
+    // Preserve the same two original anatomical marks as *several* curved
+    // incision outlines in actual joint-local cobalt, now with ink weight.
+    const d=actor==="courier"
+      ?"M-5.75 2.43 C-4.68 1.86 -3.61 1.71 -2.64 2.54 L-2.78 2.89 C-3.81 2.14 -4.65 2.38 -5.58 2.78 Z M-4.65 3.42 Q-4.02 3.05 -3.47 3.36 L-3.57 3.59 Q-4.04 3.39 -4.53 3.69 Z M.95 2.34 C2.3 1.55 3.63 1.84 4.24 2.64 L4.12 2.97 C3.4 2.17 2.43 2.3 1.04 2.71 Z M1.75 3.51 Q2.6 3.18 3.47 3.71 L3.33 3.95 Q2.53 3.56 1.81 3.85 Z"
+      :"M-5.72 2.51 C-4.71 1.94 -3.59 1.97 -2.56 2.61 L-2.71 2.99 C-3.85 2.37 -4.64 2.48 -5.61 2.86 Z M-4.63 3.53 Q-4 3.24 -3.43 3.51 L-3.59 3.76 Q-4.1 3.54 -4.55 3.82 Z M.87 2.39 C2.05 1.83 3.59 1.88 4.32 2.73 L4.19 3.05 C3.45 2.31 2.21 2.38 .99 2.75 Z M1.68 3.59 Q2.65 3.27 3.59 3.68 L3.48 3.92 Q2.58 3.65 1.79 3.89 Z";
+    return {...part,d,paint:"screen",screenTone:"mid"};
+  }
+  if(name==="thumb-fold"){
+    // Thumb basal web creases should be narrow S-contours with a visible
+    // red pad between them. Prior triangular slashes were more visually
+    // prominent than the thumb's whole IP shadow.
+    const d=side==="right"
+      ?"M7.55 6.14 C8.6 6.61 10.05 7.2 10.7 8.35 L10.37 8.49 C9.41 7.47 8.2 6.98 7.46 6.43 Z M8.28 7.65 Q9.24 8.02 10.07 8.84 L9.91 9.07 Q9.05 8.35 8.31 8.02 Z"
+      :"M-7.54 6.2 C-8.51 6.64 -10.11 7.3 -10.72 8.42 L-10.39 8.56 C-9.42 7.53 -8.18 7.05 -7.45 6.49 Z M-8.22 7.69 Q-9.22 8.09 -10.09 8.92 L-9.9 9.13 Q-9.03 8.4 -8.22 8.06 Z";
+    return {...part,d,paint:"screen",screenTone:"mid"};
+  }
   if(name==="knuckle-arc")return {...part,d:mcpContours(actor),paint:"solid"};
   if(name==="wrist-crease")return {...part,d:wristContours(actor),paint:"screen",screenTone:"mid"};
   if(name==="thenar-fold")return {...part,d:thenarContours(side,actor),paint:"screen",screenTone:"mid"};
