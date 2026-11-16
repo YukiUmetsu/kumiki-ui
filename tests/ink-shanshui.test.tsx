@@ -1047,7 +1047,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(guoFar).toBeDefined();
     const stationY=(d:string,x:number)=>{
       const coords=[...d.matchAll(
-        /[ML] (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/g,
+        /[ML] (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g,
       )].map(m=>[Number(m[1]),Number(m[2])]);
       const nearest=coords.reduce((best,p)=>
         Math.abs(p[0]-x)<Math.abs(best[0]-x)?p:best);
