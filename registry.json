@@ -3800,6 +3800,11 @@
         },
         {
           "type": "registry:ui",
+          "target": "components/anatomy/animal-postures.ts",
+          "path": "registry/anatomy/animal-postures.ts"
+        },
+        {
+          "type": "registry:ui",
           "target": "components/anatomy/animal-plans.ts",
           "path": "registry/anatomy/animal-plans.ts"
         },
