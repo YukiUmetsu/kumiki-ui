@@ -25,10 +25,13 @@ Required paired inputs:
   dimensions, and **SHA-256 calculated from its exact raw image bytes**.
 - **One unmodified final-native screenshot** of the actual Storybook/film SVG
   geometry, its pixel dimensions and its separate file-byte SHA-256.
-- **Eighteen independently annotated 2D semantic landmarks** in source AND
-  render, on the actual pixels: cranial apex, near/far cranium, near/far
-  temple, near/far zygion, near/far gonion, menton, glabella, sellion,
-  pronasale, subnasale, near/far orbit, near/far mouth corner.
+- **Eighteen independently annotated 2D head-contour landmarks** in
+  source AND render, on actual pixels: cranial apex; near/far parietal,
+  frontal, upper temple, lower temple, zygion, malar, gonion and
+  mandibular turns; menton. Every point is a feature of the **one head
+  silhouette** being drawn at Stage 1. Do not require eyes, nose or lips
+  that do not yet exist in the render. A later face-feature ArtCraft gate
+  still separately requires its own independently measured landmarks.
 - **Five actual sampled sRGB patches** in both images: highlight, light,
   halftone, core shadow, reflected light. Record each real ROI rectangle and
   measured mean RGB. Never infer the photographic values from ANAT1 lights.
