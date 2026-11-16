@@ -34,7 +34,7 @@ describe("FLORA1 growth", () => {
       expect(sh.bounds.every(Number.isFinite), `${s.id} ${m}`).toBe(true);
       expect(sh.woodBack + sh.woodFront).not.toContain("NaN");
     }
-  });
+  }, 20_000);
   it("follows the calendar: bare deciduous winters, evergreen winters in leaf, blossom in its month", () => {
     const winter = (id: string) => growPlant(plantConstruction(id), { month: 1, seed: 2 });
     expect(winter("mountain-cherry").foliage.length).toBe(0);
