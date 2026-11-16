@@ -1412,3 +1412,38 @@ test("F1 V29 real orbital hood vs V28 at source 1x and 3x f299",async({page},inf
   expect(Buffer.compare(Buffer.from(renders[1]),Buffer.from(renders[3]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** V30 source photo-calibrated three-quarter cheek/jaw: native evidence,
+ * not an ArtCraft likeness certificate. Preserve both source identities.
+ */
+test("F1 V30 photographed mandibular silhouette vs V29 at 1x and 2.4x",async({page},info)=>{
+  test.setTimeout(140_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",err=>errors.push(err.message));
+  const images:Uint8Array[]=[];
+  for(const midfaceForm of ["source-orbital-hood","source-mandibular-turn"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,2.4] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:300,focusY:761,zoom:2.4},
+        {frame:299,focusX:300,focusY:761,zoom:2.4},
+      ]};
+      const markup=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        markup+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","jaw-underside","chin-plane",
+        "cheek-malar-cast","cheek-malar-bounce","socket-near","socket-far",
+        "naris-shadow-near","naris-shadow-far","lip-lower"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      const img=await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v30-"+zoom+"x-"+midfaceForm+"-299.png")});
+      images.push(img);
+    }
+  }
+  expect(Buffer.compare(Buffer.from(images[0]),Buffer.from(images[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(images[1]),Buffer.from(images[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
