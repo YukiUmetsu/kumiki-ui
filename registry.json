@@ -3990,7 +3990,8 @@
       "dependencies": [],
       "registryDependencies": [
         "plant-anatomy",
-        "facial-expressions"
+        "facial-expressions",
+        "animal-anatomy"
       ],
       "files": [
         {

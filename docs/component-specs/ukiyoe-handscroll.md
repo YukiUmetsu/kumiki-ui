@@ -293,6 +293,14 @@ Most women in the ghost stories look alive until the story turns, so they are fi
   - `mouse`: big pink ears and a long tail.
 - **New `Beast` options.** `horns: "antler" | "ox"`, `tusks`, `spots` and `crescent`.
 - **Birds.** The bird rig gains the `hawk` and the `oshidori` mandarin drake (a plain duck with `look.color`).
+- **Bird flight from ANIM1.** `fly` takes each bird's wingbeat and style from the animal framework's flight table. The
+  rate is the species' predicted cruising rate (Pennycuick 1990), drawn at no more than 7.5 beats a second at 30 fps:
+  - the crane at about 3 beats a second (it was 0.7);
+  - the heron 2.6, the crow 3.8, the hawk 4.2;
+  - the duck, pheasant, kingfisher and sparrow at 7.5.
+
+  The wrist flexes on the upstroke, so the wing comes up narrow. The goshawk flaps and glides, the pheasant bursts and
+  glides, and the sparrow bounds with its wings closed between bursts.
 - **Critters.** New rigs in `ukiyoe-critters.ts`:
   - `crab`: scuttles sideways on eight jointed legs; its claws snap on `dance` or `roar`.
   - `turtle`: the minogame; its flippers row when it moves, and its seaweed tail streams.

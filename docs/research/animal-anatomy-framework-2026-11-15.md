@@ -356,6 +356,18 @@ primates and birds.
 **Renders:** foal, fawn, calf, piglet, puppy, kitten, bear cub, fox kit, leveret and infant macaque beside their
 parents to scale, and crane, duck, sparrow and pheasant chicks.
 
+## UKIYO1 birds fly by ANIM1 (2026-11-16)
+
+UKIYO1's `fly` used one hand-set rate for every bird: 0.7 beats a second for the crane, against Pennycuick's 3.0. It now
+reads the bird's ANIM1 flight:
+
+- the rate, capped at four frames a beat;
+- the style: flap and glide, bursts, bounding with closed wings;
+- the upstroke's wrist flex.
+
+Frame strips of the crane, heron, sparrow and hawk were checked. UKIYO1 draws creatures on twos, so at 3 Hz a beat
+shows five distinct poses.
+
 ## Not done
 
 - Front and back constructions in ANIM1 (styles draw their own).
