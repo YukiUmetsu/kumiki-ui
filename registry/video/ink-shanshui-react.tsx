@@ -91,13 +91,17 @@ const RIDGES:Record<ShanshuiScene,readonly (readonly P[])[]>={
     // Fuchun source: rolling crag shoulder, short rock saddles and an
     // uneven but continuous summit; NOT one geometric triangular apex.
     [[-60,334],[64,271],[146,288],[254,195],[340,251],
-      // Native 1.65x comparison rejected a second triangular summit:
-      // the 492/512 V-notch read as another vector sticker. Retain one
-      // geological support and make its left shoulder a BROAD rounded
-      // contour with a held bench, continuous flow and no false spike.
-      [420,222],[452,205],[474,184],[492,173],[512,170],
-      [531,147],[545,124],[559,105],[572,111],[588,126],
-      [603,137],[622,166],[647,181],[672,172],[707,154],
+      // The exact-head native stone-only 420x308 study still showed a
+      // sharp central triangle: the 559px apex fell 61px between adjacent
+      // 512/622px support points, despite local curved pressure washes.
+      // A single broad, asymmetrically rolled *connected rock dome* is
+      // supported by all 25 original skyline stations. The near-level
+      // 559/572/588 crest widens into a held right bank before a softer
+      // 647/672 saddle rises toward the distinct 707 shoulder. Preserve
+      // full nine-substation seed-specific paper-edge fracturing.
+      [420,222],[452,203],[474,186],[492,171],[512,168],
+      [531,145],[545,127],[559,119],[572,118],[588,120],
+      [603,129],[622,146],[647,162],[672,165],[707,155],
       [741,159],[763,183],[790,208],[825,221],[1050,318]],
     [[-60,430],[78,359],[160,405],[275,298],[338,361],[427,304],[530,235],[586,274],[713,340],[812,295],[1050,383]],
   ],
