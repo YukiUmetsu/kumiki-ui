@@ -4,9 +4,13 @@ import type {Meta,StoryObj} from "@storybook/react-vite";
 import {shanshuiBodyFit} from "./ink-shanshui-full-body";
 import {shanshuiFaceAssets} from "./ink-shanshui-face-plates";
 import {READER_FACE_LANDMARKS} from "./ink-shanshui-reader-face";
+import {readerFaceAnatomy,READER_FACE_ANAT1_POINTS} from
+  "./ink-shanshui-reader-anatomy";
+import type {CharacterPathShape} from "../../registry/character/definition";
 import {READER_CROWN_STRUCTURE,readerCrownRegions} from "./ink-shanshui-reader-crown";
 type Eyes="open"|"soft"|"closed";
 type Mouth="rest"|"aa"|"oh"|"mm"|"smile";
+type AnatomyReview="full"|"wash"|"bones";
 const palette:Record<string,string>={
   "$ink":"#403329","$shadow":"#66513e","$deep":"#937251",
   "$wash":"#bd9d7b","$mist":"#dfcaad","$paper":"#f6ead4",
@@ -19,6 +23,7 @@ function ReaderFaceStudio(){
   const [mouth,setMouth]=useState<Mouth>("rest");
   const [showPoints,setShowPoints]=useState(false);
   const [crownRegion,setCrownRegion]=useState("all");
+  const [anatomyReview,setAnatomyReview]=useState<AnatomyReview>("full");
   const [source,setSource]=useState<string|undefined>();
   const [error,setError]=useState<string|undefined>();
   useEffect(()=>()=>{if(source)URL.revokeObjectURL(source)},[source]);
@@ -31,6 +36,17 @@ function ReaderFaceStudio(){
   };
   const parts=shanshuiFaceAssets("river-scholar",detail);
   const crown=readerCrownRegions(detail);
+  const volume=readerFaceAnatomy(detail);
+  const faceBase=parts.face.kind==="shapes"?
+    parts.face.shapes.filter(shape=>shape.type==="path"&&
+      shape.fill==="$skin").slice(-1):[];
+  const anatomyMarks=(marks:readonly CharacterPathShape[])=>
+    marks.map((shape,index)=>shape.type==="path"?
+      <path key={index} d={shape.d}
+        fill={colour(shape.fill)} stroke={colour(shape.stroke)}
+        strokeWidth={shape.strokeWidth??1}
+        opacity={shape.opacity??1}
+        strokeLinecap="round" strokeLinejoin="round"/>:null);
   const fit=shanshuiBodyFit("river-scholar");
   const pose=(rest:{x?:number;y?:number;rotation?:number;
     scaleX?:number;scaleY?:number},pivotX:number,pivotY:number)=>
@@ -107,6 +123,15 @@ function ReaderFaceStudio(){
           onChange={e=>setShowPoints(e.target.checked)}/>
         Show portrait landmarks
       </label>
+      <label style={{display:"grid",gap:5}}>Face structure review
+        <select aria-label="Face structure review" value={anatomyReview}
+          style={style} onChange={e=>
+            setAnatomyReview(e.target.value as AnatomyReview)}>
+          <option value="full">Skin planes + facial features</option>
+          <option value="wash">Soft ink planes only</option>
+          <option value="bones">ANAT1 eyes, nose, mouth only</option>
+        </select>
+      </label>
       <label style={{display:"grid",gap:5}}>Crown structural region
         <select aria-label="Crown structural region" value={crownRegion}
           style={style} onChange={e=>setCrownRegion(e.target.value)}>
@@ -175,7 +200,7 @@ function ReaderFaceStudio(){
         </h2>
         <svg data-testid="reader-anatomy-closeup" role="img"
           aria-label="Native portrait microanatomy with adjustable eyelid and viseme"
-          viewBox="112 71 48 34" style={{...box,height:266}}>
+          viewBox="107 89 64 58" style={{...box,height:266}}>
           <g transform={pose(fit.headRest,139,124)}>
             <g data-ink-anatomy-feature="base-face">{shapes("face")}</g>
             {facePart("brows","brow",[140,94])}
@@ -200,6 +225,53 @@ function ReaderFaceStudio(){
           nasal ridge and alar wings, philtrum, cheek tonal planes and
           expression-sensitive lips. The eye and mouth controls above drive
           this same production artwork, not a separate static mockup.
+        </p>
+      </section>
+      <section>
+        <h2 style={{font:"500 18px Georgia,serif"}}>
+          ArtCraft · ANAT1 facial volume and ink-bone inspection
+        </h2>
+        <svg data-testid="reader-face-plane-study" role="img"
+          aria-label="Original ANAT1-anchored three-quarter reader facial planes"
+          viewBox="106 90 65 58" style={{...box,height:300}}>
+          <g transform={pose(fit.headRest,139,124)}>
+            <g data-km-reader-anatomy-region="opaque-head">
+              {anatomyMarks(faceBase)}
+            </g>
+            <g data-km-reader-anatomy-region="wash"
+              opacity={anatomyReview==="bones"?.08:1}>
+              {anatomyMarks(volume.planes)}
+            </g>
+            <g data-km-reader-anatomy-region="nose"
+              opacity={anatomyReview==="wash"?.08:1}>
+              {anatomyMarks(volume.nose)}
+            </g>
+            <g data-km-reader-anatomy-region="near-far-eyes"
+              opacity={anatomyReview==="wash"?.08:1}>
+              {anatomyMarks(eyes==="open"?volume.eyesOpen:
+                eyes==="soft"?volume.eyesSoft:volume.eyesClosed)}
+              {eyes!=="closed"&&anatomyMarks([
+                ...volume.nearPupil,...volume.farPupil])}
+            </g>
+            <g data-km-reader-anatomy-region="lips"
+              opacity={anatomyReview==="wash"?.08:1}>
+              {anatomyMarks(volume.lips)}
+            </g>
+            {showPoints&&Object.entries(READER_FACE_ANAT1_POINTS)
+              .filter(([id])=>["sellion","pronasale","subnasale",
+                "stomion","menton","zygion.R","zygion.L",
+                "endocanthion.R","endocanthion.L"].includes(id))
+              .map(([id,[x,y]])=>
+                <circle key={id} data-km-anat1-face-point={id}
+                  cx={x} cy={y} r=".48" fill="#b33f30"/>)}
+          </g>
+        </svg>
+        <p style={{fontSize:12,lineHeight:1.6,color:"#715d48"}}>
+          Compare graded wash, skeletal feature lines and the finished
+          anatomical composition. The same original face anatomy powers
+          every blinking and speaking cel. The 3/4 view retains far-side
+          foreshortening; this is not a generic mirrored frontal mask.
+          All guide landmarks use Kumiki ANAT1 anatomical naming.
         </p>
       </section>
       <section>
