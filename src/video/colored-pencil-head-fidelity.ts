@@ -131,6 +131,26 @@ function checkPoints(
     errors.push(label+"_HEAD_EXTENTS_INVALID");
     return null;
   }
+  // The near and far surface chains must preserve left-to-right order
+  // all the way from parietal dome to mandibular turn.  Looking only at
+  // apex/chin/zygions allows a crossed cheek or flipped temple while the
+  // rest of the report still returns plausible normalized distances.
+  const lateralPairs=[
+    ["parietal-near","parietal-far"],
+    ["frontal-near","frontal-far"],
+    ["upper-temple-near","upper-temple-far"],
+    ["temple-near","temple-far"],
+    ["malar-near","malar-far"],
+    ["gonion-near","gonion-far"],
+    ["mandible-near","mandible-far"],
+  ] as const satisfies readonly (readonly[HeadFidelityLandmarkId,HeadFidelityLandmarkId])[];
+  const orientation=Math.sign(far.x-near.x);
+  const zygionSpan=Math.abs(far.x-near.x);
+  if(lateralPairs.some(([a,b])=>
+    orientation*(map.get(b)!.x-map.get(a)!.x)<Math.max(2,zygionSpan*.06))){
+    errors.push(label+"_CONTOUR_TOPOLOGY_INVALID");
+    return null;
+  }
   return map;
 }
 
@@ -160,6 +180,21 @@ function checkTones(
       meanRgb.some(x=>!finite(x)||x<0||x>255))
       errors.push(label+"_TONE_RGB_INVALID");
   }
+  // Mean RGB can match perfectly on BOTH sides of a proof even when all
+  // five ROIs sampled the same background patch. Forbid rectangle overlap
+  // before comparing any luminance statistic.
+  for(let a=0;a<tones.length;a++)for(let b=a+1;b<tones.length;b++){
+    const p=tones[a]?.rect,q=tones[b]?.rect;
+    if(!p||!q||!finite(p.x)||!finite(p.y)||!finite(p.width)||
+      !finite(p.height)||!finite(q.x)||!finite(q.y)||
+      !finite(q.width)||!finite(q.height))continue;
+    const dx=Math.min(p.x+p.width,q.x+q.width)-Math.max(p.x,q.x);
+    const dy=Math.min(p.y+p.height,q.y+q.height)-Math.max(p.y,q.y);
+    if(dx>0&&dy>0){
+      errors.push(label+"_TONE_REGIONS_OVERLAP");
+      break;
+    }
+  }
   if(errors.some(error=>error.startsWith(label+"_TONE"))||
     !validDimensions(file))return null;
   return new Map(tones.map(tone=>[tone.id,tone]));
@@ -185,6 +220,24 @@ function normalizedPoint(
 
 const luma=(rgb:readonly[number,number,number])=>
   (rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722)/255;
+
+/** Real-source tonal hierarchy: five differently named patches must
+ * measure as distinct physical values, not five labels on flat gray.
+ * This gate tests value roles only; an independent artist must still
+ * examine the photographed surface and judge texture, color, and beauty.
+ */
+function validateTonalHierarchy(
+  values:Map<HeadFidelityToneId,HeadFidelityTone>,
+  label:"SOURCE"|"RENDER",errors:string[],
+){
+  const lum=(id:HeadFidelityToneId)=>luma(values.get(id)!.meanRgb);
+  const h=lum("highlight"),l=lum("light"),mid=lum("halftone");
+  const c=lum("core-shadow"),ref=lum("reflected-light");
+  if(h-c<.22)errors.push(label+"_TONAL_RANGE_COLLAPSED");
+  if(!(h>l+.025&&l>mid+.025&&mid>c+.045&&
+    ref>c+.025&&ref<l-.015))
+    errors.push(label+"_TONE_ORDER_INVALID");
+}
 
 /** A passing result is only "measurements are ready for independent review". */
 export function evaluatePencilHeadFidelity(
@@ -239,6 +292,8 @@ export function evaluatePencilHeadFidelity(
     if(geometryRms>.045)errors.push("GEOMETRY_MISMATCH");
   }
   if(srcTones&&outTones){
+    validateTonalHierarchy(srcTones,"SOURCE",errors);
+    validateTonalHierarchy(outTones,"RENDER",errors);
     tonalMeanError=HEAD_FIDELITY_TONES.reduce((acc,id)=>acc+
       Math.abs(luma(srcTones.get(id)!.meanRgb)-
         luma(outTones.get(id)!.meanRgb)),0)/HEAD_FIDELITY_TONES.length;
