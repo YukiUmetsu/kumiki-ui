@@ -4,6 +4,7 @@ import {HAND_POSES} from "../../registry/anatomy/anatomy-pose";
 import {SURFACE_FORMS,ANSUR} from "../../registry/anatomy/anatomy-reference";
 import {RISO31_GEOMETRY} from "./riso31-finger-phalanges";
 import {refineRiso37SourceEngraving,riso37ProximalPressureStrands} from "./riso37-anatomical-engraving";
+import {riso46ThenarWebParts} from "./riso46-thenar-web";
 
 /**
  * RISO30 | ArtCraft + ANAT1.
@@ -173,7 +174,10 @@ M${Number((-width*.78).toFixed(2))} .65 Q.05 .38 ${Number((width*.70).toFixed(2)
   // source chronology and physical two-ink coverage; add source-born tendons.
   const refinements=[...adjusted,...distalInk,thumbIpInk].map(part=>
     refineRiso37SourceEngraving(part,actor,side));
-  return [...refinements,...riso37ProximalPressureStrands(actor,side)];
+  // RISO46 original radial thumb/thenar web is deposited on the same two
+  // moving source joints; preserve every RISO30–45 red/blue microstroke.
+  return [...refinements,...riso37ProximalPressureStrands(actor,side),
+    ...riso46ThenarWebParts(actor,side)];
 };
 
 /** Source-only new art; never mutates or rewrites original expression keys. */
