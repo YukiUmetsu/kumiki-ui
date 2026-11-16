@@ -959,6 +959,50 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("keeps all 78 live Fuchun ink strokes while varying length and handedness across rock cheeks",()=>{
+    const paint=(school:"fuchun"|"early-spring",detail=1,seed=71)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,detail,seed},
+      }));
+    const html=paint("fuchun");
+    const marks=[...html.matchAll(
+      /data-km-master-stroke="" data-km-master-stroke-style="long-hemp" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(?:dry|wet)" data-km-master-stroke-bank="[0-4]" data-km-master-stroke-bank-station="[^"]+" data-km-master-stroke-placement="attached-stratum" data-km-master-stroke-curl="none" data-km-master-stroke-phrase="(short|medium|long)" data-km-master-stroke-axis="([^"]+)"/g,
+    )];
+    expect(marks).toHaveLength(78);
+    const lens:number[]=[];
+    const lean:number[]=[];
+    for(const [,root,phrase,axis] of marks){
+      const p=(axis.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(p).toHaveLength(8);
+      expect(axis.startsWith("M"+root.replace(","," "))).toBe(true);
+      expect(axis.includes(" C")).toBe(true);
+      expect(p.every(Number.isFinite)).toBe(true);
+      expect(p[3]).toBeGreaterThan(p[1]);
+      expect(p[5]).toBeGreaterThan(p[3]);
+      expect(p[7]).toBeGreaterThan(p[5]);
+      const length=p[7]-p[1];
+      lens.push(length);
+      lean.push(p[6]-p[0]);
+      expect(length).toBeGreaterThan(8);
+      expect(length).toBeLessThan(62);
+      if(phrase==="short")expect(length).toBeLessThan(26);
+      if(phrase==="long")expect(length).toBeGreaterThan(34);
+    }
+    for(const phrase of ["short","medium","long"])
+      expect(marks.filter(m=>m[2]===phrase).length)
+        .toBeGreaterThanOrEqual(12);
+    expect(Math.max(...lens)-Math.min(...lens)).toBeGreaterThan(37);
+    expect(lean.filter(x=>x< -5).length).toBeGreaterThanOrEqual(15);
+    expect(lean.filter(x=>x>5).length).toBeGreaterThanOrEqual(9);
+    expect(paint("fuchun")).toBe(html);
+    expect(paint("fuchun",1,91)).not.toBe(html);
+    expect(paint("fuchun",0)).not.toContain(
+      'data-km-master-stroke-phrase=');
+    expect(paint("early-spring")).not.toContain(
+      'data-km-master-stroke-phrase=');
+  });
+
   it("roots all original 78 Fuchun long-hemp marks to curving parent strata rather than straight dark wires",()=>{
     const paint=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{
