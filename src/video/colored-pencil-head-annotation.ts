@@ -33,6 +33,10 @@ const sideOf=(p:HeadAnnotationSession,which:HeadAnnotationSide)=>
   p[which];
 const legalLandmarks=new Set<string>(HEAD_FIDELITY_LANDMARK_IDS);
 const legalTones=new Set<string>(HEAD_FIDELITY_TONES);
+const legalLicenses=new Set([
+  "CC0-1.0","CC-BY-4.0","CC-BY-SA-4.0",
+  "CC-BY-3.0","CC-BY-SA-3.0","PDM-1.0","PD-US",
+]);
 const finite=(x:number)=>Number.isFinite(x);
 function assertDimensions(d:NativeDimensions){
   if(!Number.isSafeInteger(d.width)||!Number.isSafeInteger(d.height)||
@@ -125,10 +129,15 @@ export function annotatedTone(
 export function compileHeadAnnotationManifest(
   session:HeadAnnotationSession,origin:HeadAnnotationProvenance,
 ){
-  if(!origin.url?.startsWith("https://"))
-    throw new Error("An HTTPS original source URL is required");
-  if(!origin.license?.trim()||!origin.credit?.trim())
-    throw new Error("A verified license and original photographer credit are required");
+  let url:URL;
+  try{url=new URL(origin.url);}
+  catch{throw new Error("A valid HTTPS original source URL is required");}
+  if(url.protocol!=="https:"||!url.hostname||url.username||url.password)
+    throw new Error("A valid HTTPS original source URL is required");
+  if(!legalLicenses.has(origin.license))
+    throw new Error("The original photo must have a verified supported license");
+  if(!origin.credit?.trim())
+    throw new Error("Original photographer credit is required");
   for(const side of ["source","output"] as const){
     const annotated=session[side];
     if(annotated.landmarks.length!==18||
