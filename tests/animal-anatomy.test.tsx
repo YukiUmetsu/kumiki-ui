@@ -9,6 +9,7 @@ import { AnimalSheet } from "../registry/anatomy/animal-react";
 import { ANIMAL_POSTURES, BIRD_POSTURE_IDS, BIRD_POSTURES, birdPostureFits, POSTURE_IDS, postureFit } from "../registry/anatomy/animal-postures";
 import { BIRD_FLIGHT, flightAt, speciesWingbeat, wingbeatHz, wingStroke } from "../registry/anatomy/animal-flight";
 import { coatAt, GROWTH, growthRule, heightAt, juvenileConstruction } from "../registry/anatomy/animal-growth";
+import { furDirection, furStrands } from "../registry/anatomy/animal-fur";
 import { UKIYOE_SPECIES, ukiyoeBeastLandmarks } from "../registry/video/ukiyoe/ukiyoe-creatures";
 
 describe("ANIM1 data", () => {
@@ -221,6 +222,30 @@ describe("ANIM1 growth", () => {
     expect(coatAt(fox, 0).find(x => x.region === "back")!.hex).toBe("#4a3a30");
     expect(coatAt(fox, 0).find(x => x.region === "eyes")).toBeTruthy();
     expect(coatAt(fox, 1)).toBe(fox.coat.palette);
+  });
+});
+
+describe("ANIM1 fur", () => {
+  it("lays the hair from snout to tail and down the limbs (Kidd), long where the coat is long, deterministically", () => {
+    const fox = poseAnimal(animalConstruction("red-fox")), s = fox;
+    // The back: toward the tail (−x), not up. The fore leg: downward.
+    const back = furDirection(s, [s.joints.withers[0] - .2, s.joints.withers[1] - .05]);
+    expect(back.part).toBe("trunk");
+    expect(back.dir[0]).toBeLessThan(-.5);
+    const leg = s.limbs.find(l => l.fore && !l.far)!, mid = [(leg.points[1][0] + leg.points[2][0]) / 2, (leg.points[1][1] + leg.points[2][1]) / 2] as const;
+    const limb = furDirection(s, mid);
+    expect(limb.part).toBe("limb");
+    expect(limb.dir[1]).toBeLessThan(-.5);
+    // Strands: deterministic, the fox's brush longer than its back, none for birds.
+    const a = furStrands(fox, { seed: 4 }), b = furStrands(fox, { seed: 4 });
+    expect(a).toEqual(b);
+    expect(a.length).toBeGreaterThan(300);
+    const lenOf = (p: readonly (readonly number[])[]) => p.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - p[i][0], q[1] - p[i][1]), 0);
+    const avg = (xs: number[]) => xs.reduce((t, x) => t + x, 0) / xs.length;
+    expect(avg(a.filter(x => x.part === "tail").map(x => lenOf(x.points)))).toBeGreaterThan(avg(a.filter(x => x.part === "trunk" && !x.long).map(x => lenOf(x.points))) * 1.4);
+    expect(furStrands(poseAnimal(animalConstruction("red-crowned-crane")))).toEqual([]);
+    // Every strand of a posed (sitting) animal starts on the body.
+    expect(furStrands(poseAnimal(animalConstruction("shiba-inu"), { posture: "sit" })).every(x => x.points.every(p => Number.isFinite(p[0]) && Number.isFinite(p[1])))).toBe(true);
   });
 });
 
