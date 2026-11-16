@@ -948,3 +948,53 @@ test("F1 V16 source tooth-root occlusion native Chromium",async({page},info)=>{
     .not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** F1 V17 source-native nasal cartilage light-to-dark continuity.
+ * Same 608x1082 CC0 projection, 3x camera (416,629), same paper,
+ * color, seed and pose, with exact before/after snapshots.
+ * This is not a picture-quality pass until separately inspected.
+ */
+test("F1 V17 source-native nasal cartilage light-to-dark continuity",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const focus={focusX:417,focusY:629,zoom:3};
+  const final:Uint8Array[]=[];
+  for(const midfaceForm of ["source-oral-sculpt","source-nose-sculpt"] as const){
+    const original=crayonCc0FaceStudy({
+      eyeContact:"source-shade",midfaceForm,lashFinish:"sparse",
+    });
+    const spec={...original,camera:[{frame:0,...focus},{frame:299,...focus}]};
+    for(const frame of [210,299] as const){
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame",String(frame));
+      for(const id of ["nose-tip","naris-shadow-near","naris-shadow-far",
+        "alar-roof-near","alar-roof-far","alar-septum-near",
+        "alar-septum-far"]){
+        await expect(svg.locator(
+          '[data-km-crayon-element="'+id+'"]')).toBeAttached();
+      }
+      const shot=await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-f1-v17-nose-"+midfaceForm+"-"+frame+".png")});
+      if(frame===299)final.push(shot);
+    }
+    if(midfaceForm==="source-nose-sculpt"){
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec:original,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      await page.locator("svg[data-km-crayon-scene]").screenshot({
+        animations:"disabled",
+        path:info.outputPath("crayon-f1-v17-nose-full-299.png"),
+      });
+    }
+  }
+  expect(Buffer.compare(Buffer.from(final[0]),Buffer.from(final[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
