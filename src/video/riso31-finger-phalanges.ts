@@ -110,7 +110,11 @@ export function riso31PhalanxJoints(side:Riso31Side):readonly RisoJoint[]{
     const dip=digit==="index"?
       RISO39_INDEX_OPPOSITION.fullProjectedDipFlex*handed:
       riso42SupportFlex(digit,"dip")*handed;
-    // RISO45: the receiving three support digits close BEFORE the thumb/\n    // index precision pinch. Their former extra six-frame delay left an\n    // open red rake outside the original paper at f160 (native print QA).\n    // Preserve the index's deliberately delayed f166 final opposition.\n    const delay=side==="left"&&digit==="index"?6:0;
+    // RISO45: the receiving three support digits close BEFORE the thumb/
+    // index precision pinch. Their former extra six-frame delay left an
+    // open red rake outside the original paper at f160 (native print QA).
+    // Preserve the index's deliberately delayed f166 final opposition.
+    const delay=side==="left"&&digit==="index"?6:0;
     const heldReceive=side==="left"&&digit==="index";
     const supportHold=side==="left"&&digit!=="index"?
       RISO42_SUPPORT_CURL[digit].lateReceiveFactor:0;
