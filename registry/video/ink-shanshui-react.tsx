@@ -282,7 +282,8 @@ function rockLoadedRibbon(root:P,control:P,tip:P,width:number,seed:number){
  * tangent: a swelled brush stroke, not two unrelated geometrical wedges.
  * The long midsection rolls over a landform; dry release keeps paper holes.
  */
-function rockLoadedCubicRibbon(root:P,c1:P,c2:P,tip:P,width:number,seed:number){
+function rockLoadedCubicRibbon(root:P,c1:P,c2:P,tip:P,width:number,seed:number,
+  pressureRole?:"root-loaded"|"broken-middle"|"feathered-tail"){
   const knots=[0,.02,.05,.09,.14,.2,.27,.34,.42,.5,.58,.66,.73,.8,.86,.91,.95,.98,1];
   const pressure=[0,.08,.2,.37,.56,.72,.85,.94,1,.88,.75,.66,.53,.4,.3,.19,.1,.03,0];
   const point=(t:number):P=>{
@@ -301,7 +302,24 @@ function rockLoadedCubicRibbon(root:P,c1:P,c2:P,tip:P,width:number,seed:number){
     const norm=Math.max(.001,Math.hypot(tangent[0],tangent[1]));
     const teeth=k===0||k===knots.length-1?0:
       (s(seed+31,k*37+(sign===1?3:17))-.5)*.19;
-    const load=width*Math.max(0,pressure[k]+teeth)*(sign===1?.69:.42);
+    // A real brush is NOT one identical press/release envelope at
+    // every scale. Huang's short alum-head catches its ink near the
+    // crown; the middle hand lifts and reloads; long pima travels
+    // under drying capillary supply. Other schools remain bit-for-bit
+    // on the existing original reference pressure curve.
+    const loadEnvelope=pressureRole==="root-loaded"
+      ?.67+.72*Math.exp(-Math.pow((t-.23)/.21,2))
+      :pressureRole==="broken-middle"
+        ?.72+.51*Math.exp(-Math.pow((t-.29)/.2,2))+
+          .35*Math.exp(-Math.pow((t-.66)/.14,2))-
+          .28*Math.exp(-Math.pow((t-.49)/.11,2))
+        :pressureRole==="feathered-tail"
+          ?(.65+.52*Math.exp(-Math.pow((t-.3)/.26,2)))*
+            (1-.35*Math.max(0,(t-.56)/.44))
+          :1;
+    const load=width*Math.max(0,
+      pressure[k]*Math.max(.24,loadEnvelope)+teeth)*
+      (sign===1?.69:.42);
     return [location[0]-sign*tangent[1]/norm*load,
       location[1]+sign*tangent[0]/norm*load];
   });
@@ -627,12 +645,21 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           // before 16% fall, with three independent, pressure-aware
           // short / medium / long flow profiles. Later handles do not
           // reverse into an X-hatch against this parent cheek.
-          const crownFlow=phrase==="short"?.68:
-            phrase==="medium"?.56:.46;
-          const shoulderFlow=phrase==="short"?.97:
-            phrase==="medium"?.94:.9;
-          const firstDrop=phrase==="short"?.095:
-            phrase==="medium"?.115:.155;
+          // The 15 actual source stratum tangent directions modulate
+          // each of the 78 local crown turns. This is not unrelated
+          // random hook rotation: two samples belong to the *same*
+          // original cubic on which this brush's root is planted.
+          const near=upperBank.sample(clamp(depth-.043,.025,.95));
+          const far=upperBank.sample(clamp(depth+.043,.025,.95));
+          const sourceLean=clamp(
+            direction*(far[0]-near[0])/
+              Math.max(4,far[1]-near[1]),-.5,.5);
+          const crownFlow=(phrase==="short"?.68:
+            phrase==="medium"?.56:.46)+sourceLean*.14;
+          const shoulderFlow=(phrase==="short"?.97:
+            phrase==="medium"?.94:.9)+sourceLean*.08;
+          const firstDrop=(phrase==="short"?.095:
+            phrase==="medium"?.115:.155)*(1-.16*sourceLean);
           const secondDrop=phrase==="short"?.54:
             phrase==="medium"?.59:.64;
           c1=[entry[0]+sway*crownFlow+roll*.22,
@@ -647,8 +674,13 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           " C"+f(c1[0])+" "+f(c1[1])+
           " "+f(c2[0])+" "+f(c2[1])+
           " "+f(end[0])+" "+f(end[1]);
+        const pressureRole=school==="fuchun"
+          ?phrase==="short"?"root-loaded" as const
+            :phrase==="medium"?"broken-middle" as const
+              :"feathered-tail" as const
+          :undefined;
         const pressure=rockLoadedCubicRibbon(entry,c1,c2,end,width,
-          seed+4211+i*113+j*13);
+          seed+4211+i*113+j*13,pressureRole);
         // True dry hemp exposes the very paper *beneath* pigment. A
         // pale overpaint would fake opaque chalk on a warm translucent
         // rock wash. Use a luminance mask like the original bamboo
@@ -688,7 +720,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const sourceZone=school==="fuchun"
           ?(depth<.46?"upper-bank":"lower-bank"):undefined;
         return {entry,pressure,dry,dryPath,bank,depth,
-          curlHandedness,phrase,axis,sourceZone,
+          curlHandedness,phrase,axis,sourceZone,pressureRole,
           reserve,reserveId,maskX,maskY,maskWidth,maskHeight};
       });
       const isFan=school==="travelers",isGuo=school==="early-spring";
@@ -1407,7 +1439,8 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         <g data-km-master-brush-field="" data-km-master-field-count={qty}
           clipPath={"url(#"+clip+")"}>
           {brush.map(({entry,pressure,dry,dryPath,bank,depth,
-            curlHandedness,phrase,axis,sourceZone,reserve,reserveId,
+            curlHandedness,phrase,axis,sourceZone,pressureRole,
+            reserve,reserveId,
             maskX,maskY,maskWidth,maskHeight},j)=><g key={j}
             data-km-master-stroke="" data-km-master-stroke-style={label[school]}
             data-km-master-stroke-root={f(entry[0])+","+f(entry[1])}
@@ -1419,7 +1452,8 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
             data-km-master-stroke-phrase={isHuang?phrase:undefined}
             data-km-master-stroke-axis={isHuang?axis:undefined}
             data-km-master-stroke-source-zone={sourceZone}
-            data-km-master-stroke-flow={isHuang?"shoulder-first-pima":undefined}>
+            data-km-master-stroke-flow={isHuang?"shoulder-first-pima":undefined}
+            data-km-master-stroke-pressure-role={pressureRole}>
             {reserve.length>0&&<defs>
               <mask data-km-master-stroke-reserve=""
                 id={reserveId} maskUnits="userSpaceOnUse"

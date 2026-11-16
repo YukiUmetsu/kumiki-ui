@@ -772,7 +772,9 @@ function MasterInkSourceComparison(){
         lift; parent geometry and all dependent brushwork stay rooted.
         Hemp fibres source shoulder sweep isolates all 78 original
         short/medium/long pima from the overlaid hero and pine, exposing
-        their real early lateral crown turns and delayed dry tails.
+        their rock-tangent-guided lateral crown turns, independently
+        pressured root press / mid-stroke reload / drying long tails,
+        and already-authored real-paper slit windows.
         Hero ribs before shared paper lift demonstrates why a correct
         transparent hole in only the top loaded stroke is insufficient:
         the original source six per rib must also remove underneath

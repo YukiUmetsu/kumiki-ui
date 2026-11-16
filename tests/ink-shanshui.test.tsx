@@ -1682,6 +1682,53 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
   });
 
 
+
+  it("loads the original 78 parent-rooted Fuchun hemp paths with three historically distinct pressure envelopes",()=>{
+    const make=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    for(const seed of [71,97,111]){
+      const html=make("fuchun",seed);
+      const strokes=[...html.matchAll(
+        /data-km-master-stroke="" data-km-master-stroke-style="long-hemp" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(?:wet|dry)" data-km-master-stroke-bank="[0-4]" data-km-master-stroke-bank-station="[^"]+" data-km-master-stroke-placement="attached-stratum" data-km-master-stroke-curl="none" data-km-master-stroke-phrase="(short|medium|long)" data-km-master-stroke-axis="([^"]+)" data-km-master-stroke-source-zone="[^"]+" data-km-master-stroke-flow="shoulder-first-pima" data-km-master-stroke-pressure-role="(root-loaded|broken-middle|feathered-tail)"/g,
+      )];
+      expect(strokes).toHaveLength(78);
+      for(const mode of ["root-loaded","broken-middle","feathered-tail"]){
+        expect(strokes.filter(x=>x[4]===mode).length).toBeGreaterThan(12);
+      }
+      const mapping={
+        short:"root-loaded",medium:"broken-middle",long:"feathered-tail",
+      } as const;
+      const roots=strokes.map(x=>x[1]);
+      for(const [,root,phrase,axis,role] of strokes){
+        expect(role).toBe(mapping[phrase as keyof typeof mapping]);
+        expect(axis.startsWith("M"+root.replace(","," "))).toBe(true);
+      }
+      const positive=[...html.matchAll(
+        /data-km-master-stroke-loaded="" d="([^"]+)" fill="[^"]+"(?: mask="[^"]+")?/g,
+      )].map(x=>x[1]);
+      expect(positive).toHaveLength(78);
+      expect(new Set(positive).size).toBe(78);
+      positive.forEach((path,i)=>{
+        expect(path.startsWith("M"+roots[i].replace(","," "))).toBe(true);
+        expect((path.match(/ C/g)??[]).length).toBeGreaterThan(30);
+        expect(path.endsWith(" Z")).toBe(true);
+        expect(path).not.toMatch(/NaN|Infinity|undefined/);
+      });
+      expect((html.match(/data-km-master-stratum=""/g)??[]))
+        .toHaveLength(15);
+      expect((html.match(/data-km-master-stroke-paper-slit=""/g)??[]).length)
+        .toBeGreaterThan(35);
+      expect(make("fuchun",seed)).toBe(html);
+    }
+    expect(make("fuchun",71,0)).not.toContain(
+      'data-km-master-stroke-pressure-role="root-loaded"');
+    expect(make("early-spring")).not.toContain(
+      "data-km-master-stroke-pressure-role");
+  });
+
   it("sweeps all 78 Fuchun pima across the source rock shoulder before descending with a tapered dry tail",()=>{
     const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{

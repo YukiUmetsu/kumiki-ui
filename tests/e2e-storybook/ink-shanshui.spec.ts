@@ -1347,6 +1347,14 @@ test("source Fuchun fibre strokes paint early curved shoulder turns rather than 
   const hero=fuchun.locator("[data-km-rock-hero-cliff]");
   const pines=fuchun.locator("[data-km-cliff-pine-grove]");
   await expect(masters).toHaveCount(78);
+  const profiles=await masters.evaluateAll(nodes=>
+    nodes.map(n=>n.getAttribute("data-km-master-stroke-pressure-role")));
+  expect(profiles.filter(p=>p==="root-loaded").length)
+    .toBeGreaterThan(12);
+  expect(profiles.filter(p=>p==="broken-middle").length)
+    .toBeGreaterThan(12);
+  expect(profiles.filter(p=>p==="feathered-tail").length)
+    .toBeGreaterThan(12);
   await expect(hero).toHaveCount(1);
   await expect(pines).toHaveCount(1);
   await expect(guo.locator('[data-km-master-stroke-flow]')).toHaveCount(0);
