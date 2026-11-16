@@ -3893,6 +3893,39 @@
       ]
     },
     {
+      "name": "sky-weather",
+      "type": "registry:ui",
+      "title": "Sky and Weather Framework (SKY1)",
+      "description": "Style-neutral weather and sky for any art style: the Beaufort scale with sea and land signs; rain, snow, hail, fog, mist and haze classes; drop size spectra (Marshall-Palmer), fall speeds (Atlas 1973), drop shapes (Brandes 2002), slant in wind, streak length at a shutter, visibility and Koschmieder distance fading; the ten WMO cloud genera with heights, looks, WMO element widths and 1896 Cloud Atlas plates, drawn as layered shapes (cauliflower cumulus, anvil cumulonimbus, cirrus wisps, rows of altocumulus, rolls, layers with rain curtains) and set in perspective as cloud decks; sky phases by sun elevation with sampled palettes and the CIE overcast sky; sun elevation and shadow length; lightning stroke timing and branching channels, thunder delay and rainbow geometry. One weather state feeds the environmental-effects renderers at real speeds. A weather scene, cloud atlas and reference sheet; every value graded reported, measured or estimated with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations",
+        "plant-anatomy"
+      ],
+      "files": [
+        {
+          "path": "registry/nature/sky-data.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-data.ts"
+        },
+        {
+          "path": "registry/nature/sky-physics.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-physics.ts"
+        },
+        {
+          "path": "registry/nature/sky-clouds.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-clouds.ts"
+        },
+        {
+          "path": "registry/nature/sky-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/sky-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "facial-expressions",
       "type": "registry:ui",
       "title": "Facial Expressions Framework (EXPR1)",
