@@ -14,6 +14,7 @@ import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso43FrontIndexIds} from "./riso43-physical-paper-depth";
+import {inspectRiso44PrintedIndexContact} from "./riso44-source-index-paper-contact";
 import {evaluateRiso40PaperGrip} from "./riso40-paper-fingertip-contact";
 import {inspectRiso41InkPressure} from "./riso41-contact-pressure";
 import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
@@ -389,9 +390,13 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
     handoff.paperStart,handoff.paperEnd,handoff.progress,
     {...paperOptions,sourceGrip:sourceContactPressure,
       receiverGrip:receiverContactPressure});
+  const donorRedPaper=inspectRiso44PrintedIndexContact(COURIER,frame,"right",
+    first,printDetails.outline);
+  const receiverRedPaper=inspectRiso44PrintedIndexContact(PAPER_ARTIST,frame,"left",
+    second,printDetails.outline);
   return {...handoff,sourceTouching,receiverTouching,
     sourceContactPressure,receiverContactPressure,
-    donorGrip,artistGrip,donorInk,receiverInk,
+    donorGrip,artistGrip,donorInk,receiverInk,donorRedPaper,receiverRedPaper,
     frame,aspect,width,height,first,second,source:a,receiver:b,
     propEnd:handoff.paperEnd,progress:handoff.progress,
     sheet:printDetails.outline,printDetails};
@@ -680,6 +685,10 @@ export function RisoHumanEnsembleStudio(){
           data-km-riso-human-ensemble-paper-curl={paperCurl}
           data-km-riso-human-ensemble-grip-pinch={gripPinch}
           data-km-riso-human-ensemble-imprint-depth={imprintDepth}
+          data-km-riso44-donor-index-ink-paper-gap={Number.isFinite(state.donorRedPaper.nearestIndexPaperInkGap)?state.donorRedPaper.nearestIndexPaperInkGap.toFixed(3):"none"}
+          data-km-riso44-receiver-index-ink-paper-gap={Number.isFinite(state.receiverRedPaper.nearestIndexPaperInkGap)?state.receiverRedPaper.nearestIndexPaperInkGap.toFixed(3):"none"}
+          data-km-riso44-donor-index-overpaper={state.donorRedPaper.redIndexAreaTouchesPaper}
+          data-km-riso44-receiver-index-overpaper={state.receiverRedPaper.redIndexAreaTouchesPaper}
           data-km-riso41-donor-ink-gap={state.donorInk.inkGap.toFixed(3)}
           data-km-riso41-receiver-ink-gap={state.receiverInk.inkGap.toFixed(3)}
           data-km-riso41-donor-pad-pressure={state.donorInk.pressure.toFixed(3)}
