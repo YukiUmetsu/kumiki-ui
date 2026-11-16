@@ -1515,3 +1515,66 @@ test("F1 V32 ANAT1 zygoma-to-alar native 1x/3x vs V31 at f299",async({page},info
   expect(Buffer.compare(Buffer.from(shots[1]),Buffer.from(shots[3]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** ArtCraft F1 V33 ANAT1 nasal bone-to-bulb real native browser evidence.
+ * The 468-point 3D framework guides original-source projection only;
+ * this is NOT an independently approved face or a photo raster effect.
+ */
+test("F1 V33 ANAT1 photographed nasal volume 1x/3x vs V32 at f299",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const captures:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-midface-bridge",
+    "source-anat1-nasal-volume"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:403,focusY:581,zoom:3},
+        {frame:299,focusX:403,focusY:581,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","nose-root","nose-dorsum","nose-sidewall-form",
+        "nose-tip","nose-tip-reflected-light","naris-shadow-near","naris-shadow-far",
+        "socket-near","socket-far","lip-lower","chin-plane"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      captures.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v33-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[2])))
+    .not.toBe(0);
+  expect(Buffer.compare(Buffer.from(captures[1]),Buffer.from(captures[3])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** Spot-check three native film exposures as a temporal negative control.
+ * A full 300-frame artist review remains an independent release blocker.
+ */
+test("F1 V33 ANAT1 native nose preserves 300-frame scene exposures",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const scene=crayonCc0FaceStudy({detail:.35,midfaceForm:"source-anat1-nasal-volume",
+    eyeContact:"source-shade"});
+  expect(scene.durationFrames).toBe(300);
+  const pngs:Uint8Array[]=[];
+  for(const frame of [0,149,299] as const){
+    const html=renderToStaticMarkup(createElement(CrayonScene,{spec:scene,frame}));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["face-outline","nose-dorsum","nose-tip","naris-shadow-near"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+    }
+    pngs.push(await svg.screenshot({animations:"disabled",
+      path:info.outputPath("crayon-v33-film-native-"+frame+".png")}));
+  }
+  expect(Buffer.compare(Buffer.from(pngs[0]),Buffer.from(pngs[2]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
