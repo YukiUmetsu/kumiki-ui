@@ -1081,6 +1081,21 @@ function MountainHeroCliff({root,stations,seed,mist,detail}:{
     {at:.31,side:1,reach:42,depth:71,crest:10},
     {at:.55,side:-1,reach:34,depth:48,crest:8},
   ] as const;
+  // Construct the positive rocky cheek skeleton ONCE. The revised
+  // Fuchun ribs read these exact cap/belly edges; they cannot quietly
+  // drift from the underlying painted stone as controls or seeds change.
+  const parentFaces=rockFacePlan.map((face,i)=>{
+    const a=quadraticPoint(root,boneControl,boneTip,face.at);
+    const sign=face.side;
+    const spread=face.reach*(.91+.17*s(seed+2801,i*13));
+    const depth=face.depth*(.93+.12*s(seed+2807,i*17));
+    const crest=face.crest*(.89+.17*s(seed+2819,i*29));
+    const cap:P=[a[0]+sign*spread*.47,a[1]-crest];
+    const belly:P=[a[0]+sign*spread*.81,a[1]+depth*.43];
+    const base:P=[a[0]+sign*spread*.73,a[1]+depth];
+    const inner:P=[a[0]+sign*spread*.17,a[1]+depth*.62];
+    return {a,sign,spread,depth,crest,cap,belly,base,inner};
+  });
   // Instance-local IDs keep simultaneous film/Storybook specimens isolated.
   const faceId=useId().replace(/[^a-z0-9_-]/gi,"");
   const pool=quadraticPoint(root,boneControl,boneTip,.49);
@@ -1092,15 +1107,7 @@ function MountainHeroCliff({root,stations,seed,mist,detail}:{
         tail. Their dark-to-dilute gradient is local to that face. */}
     <g data-km-rock-interlocked-mass-family="">
       {rockFacePlan.map((face,i)=>{
-        const a=quadraticPoint(root,boneControl,boneTip,face.at);
-        const sign=face.side;
-        const spread=face.reach*(.91+.17*s(seed+2801,i*13));
-        const depth=face.depth*(.93+.12*s(seed+2807,i*17));
-        const crest=face.crest*(.89+.17*s(seed+2819,i*29));
-        const cap:P=[a[0]+sign*spread*.47,a[1]-crest];
-        const belly:P=[a[0]+sign*spread*.81,a[1]+depth*.43];
-        const base:P=[a[0]+sign*spread*.73,a[1]+depth];
-        const inner:P=[a[0]+sign*spread*.17,a[1]+depth*.62];
+        const {a,sign,spread,depth,crest,cap,belly,base,inner}=parentFaces[i];
         // A nibble along the outer edge is a supported erosion recess,
         // not a triangle cut from the silhouette.
         const faceD="M"+f(a[0])+" "+f(a[1])+
@@ -1427,48 +1434,93 @@ function MountainHeroCliff({root,stations,seed,mist,detail}:{
       const swing=rib.side*(rib.reach+
         (s(seed+401,i*19)-.5)*7);
       const length=rib.len*(.95+.12*s(seed+403,i*23));
-      // The reference uses translucent dry long-hemp tracks with
-      // interrupted, locally re-loaded brush segments. The older
-      // quadratic and uninterrupted dark creases read as four straight
-      // arrow-like slashes from a single computer-drawn apex.
-      // Keep the complete source stroke, and change its *flow* to an
-      // authored over-shoulder cubic with paper breaks and dark inclusions.
-      const c1:P=[r[0]+swing*(i%2===0?.35:.14),
-        r[1]+length*(i%2===0?.07:.21)];
-      const c2:P=[r[0]+swing*(i%3===1?.66:.83),
-        r[1]+length*(i%2===0?.51:.69)];
-      const tip:P=[r[0]+swing,r[1]+length*(i%3===0?.83:.96)];
-      const face=rockLoadedCubicRibbon(r,c1,c2,tip,
-        rib.load*.39,seed+1019*i);
-      const mid=cubicPoint(r,c1,c2,tip,.39);
-      const split=cubicPoint(r,c1,c2,tip,.56);
-      const crease="M"+f(r[0])+" "+f(r[1])+
-        " C"+f(c1[0]-rib.side*1.9)+" "+f(c1[1])+
-        " "+f(c2[0]-swing*.09)+" "+f(c2[1]-length*.14)+
-        " "+f(mid[0])+" "+f(mid[1])+
-        " M"+f(split[0])+" "+f(split[1])+
-        " C"+f(c1[0]+swing*.14)+" "+f(c1[1]+length*.26)+
-        " "+f(c2[0]+rib.side*2.2)+" "+f(c2[1])+
-        " "+f(tip[0])+" "+f(tip[1]);
-      // Intermittent wet re-inking at three sampled source-flow
-      // intervals. The full dry backbone remains; no information is
-      // deleted or replaced by a generic screen-wide noise texture.
-      const deposits=([.09,.38,.7] as const).map((at,k)=>{
-        const endAt=Math.min(.97,at+.16+
-          .04*s(seed+5423,i*71+k*31));
-        const a=cubicPoint(r,c1,c2,tip,at);
-        const b=cubicPoint(r,c1,c2,tip,endAt);
-        const control1=cubicPoint(r,c1,c2,tip,
-          at+(endAt-at)*.27);
-        const control2=cubicPoint(r,c1,c2,tip,
-          at+(endAt-at)*.79);
+      // The four existing fracture brushes must follow the geometry
+      // of a positive parent stone cheek, NOT remain independent long,
+      // straight vectors. Use the same bank geometry already painted
+      // above, and turn across its head, shoulder and re-entering fold.
+      const supportIndex=([0,1,2,1] as const)[i];
+      const support=parentFaces[supportIndex];
+      const brow=quadraticPoint(support.a,support.cap,support.belly,.32);
+      const shoulder=quadraticPoint(support.a,support.cap,support.belly,.76);
+      const knee:P=[
+        r[0]+(brow[0]-r[0])*.76+rib.side*2.4,
+        r[1]+length*(.26+.035*s(seed+5557,i*19)),
+      ];
+      const returning:P=[
+        r[0]+(shoulder[0]-r[0])*.34-rib.side*
+          (5.7+2.7*s(seed+5563,i*29)),
+        r[1]+length*(.57+.05*s(seed+5573,i*13)),
+      ];
+      const tip:P=[
+        r[0]+swing*.77+(support.belly[0]-r[0])*.08,
+        r[1]+length*(i%3===0?.87:.96),
+      ];
+      // C1 continuity at both direction changes: short arch into the
+      // loaded bank, reverse at its geological shoulder, then a lighter
+      // down-slope release. Each section is a genuine 37-station,
+      // pressure-tapered painted ribbon, not a CSS filter or SVG line.
+      const tangentA:P=[rib.side*(5+4*s(seed+5581,i*23)),
+        length*.13];
+      const tangentB:P=[-rib.side*(7+3*s(seed+5591,i*31)),
+        length*.14];
+      const sections=[
+        {a:r,c1:[r[0]+rib.side*2.6,r[1]-length*.08] as P,
+          c2:[knee[0]-tangentA[0],knee[1]-tangentA[1]] as P,
+          b:knee,load:rib.load*.47},
+        {a:knee,
+          c1:[knee[0]+tangentA[0],knee[1]+tangentA[1]] as P,
+          c2:[returning[0]-tangentB[0],
+            returning[1]-tangentB[1]] as P,
+          b:returning,load:rib.load*.35},
+        {a:returning,
+          c1:[returning[0]+tangentB[0],
+            returning[1]+tangentB[1]] as P,
+          c2:[tip[0]-rib.side*length*.12,
+            tip[1]-length*.14] as P,
+          b:tip,load:rib.load*.25},
+      ];
+      const onRib=(at:number):P=>{
+        const segment=Math.min(2,Math.floor(clamp(at,0,1)*3));
+        const stage=sections[segment];
+        return cubicPoint(stage.a,stage.c1,stage.c2,stage.b,
+          clamp(at*3-segment,0,1));
+      };
+      const face=sections.map((stage,k)=>rockLoadedCubicRibbon(
+        stage.a,stage.c1,stage.c2,stage.b,
+        stage.load,seed+1019*i+37*k)).join(" ");
+      // The thin, lifted calligraphic witness line obeys the same three
+      // physical sections and leaves real reserve windows between loads.
+      const crease=sections.map((stage,k)=>{
+        const from=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,k? .09:.02);
+        const to=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,k===2?.89:.81);
+        const ca=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,.29);
+        const cb=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,.68);
+        return "M"+f(from[0])+" "+f(from[1])+
+          " C"+f(ca[0])+" "+f(ca[1])+
+          " "+f(cb[0])+" "+f(cb[1])+
+          " "+f(to[0])+" "+f(to[1]);
+      }).join(" ");
+      // Exactly three original re-inking events now land on their own
+      // *actual* section centerlines, with tapered local wet deposits.
+      const deposits=sections.map((stage,k)=>{
+        const from=.13+.045*s(seed+5423,i*71+k*31);
+        const to=.76+.08*s(seed+5429,i*31+k*47);
+        const a=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,from);
+        const b=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,to);
+        const control1=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,
+          from+(to-from)*.27);
+        const control2=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,
+          from+(to-from)*.79);
         const load=(k===0?1.56:k===1?2.07:1.02)*
           (.79+.39*s(seed+5437,i*43+k*29));
         return {a,body:rockLoadedCubicRibbon(a,control1,
           control2,b,load,seed+5459+i*73+k*19)};
       });
+      // Both preserved dependent splits attach exactly to a joint on
+      // the NEW bank-following curve; their downstream twig anatomy
+      // remains unchanged.
       const branches=([.3,.63] as const).map((station,k)=>{
-        const point=cubicPoint(r,c1,c2,tip,station);
+        const point=onRib(station);
         const side=(i+k)%2===0?-rib.side:rib.side;
         const sideReach=(9+8*s(seed+419,i*17+k*7))*side;
         const tipY=point[1]+(12+13*s(seed+421,i*13+k));
@@ -1479,7 +1531,9 @@ function MountainHeroCliff({root,stations,seed,mist,detail}:{
         return {point,q};
       });
       return <g key={i} data-km-rock-hero-rib=""
-        data-km-rock-hero-rib-root={f(r[0])+","+f(r[1])}>
+        data-km-rock-hero-rib-root={f(r[0])+","+f(r[1])}
+        data-km-rock-hero-rib-support={supportIndex}
+        data-km-rock-hero-rib-course="folded-3">
         <path data-km-rock-hero-face="" d={face}
           fill={i%2===0?"#504338":"#75614d"}
           opacity={f((i%2===0?.39:.32)*(1-.19*mist))}/>
