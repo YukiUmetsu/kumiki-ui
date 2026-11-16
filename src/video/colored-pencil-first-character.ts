@@ -220,7 +220,7 @@ function newHeadAnat1ValuePigment(
     {name:"highlight",min:.72,color:"#F4D9BD",width:.25,opacity:.20},
     {name:"light",min:.47,color:"#DBB299",width:.30,opacity:.29},
     {name:"halftone",min:.19,color:"#B88B7E",width:.34,opacity:.38},
-    {name:"core-shadow",min:-.07,color:"#7B6269",width:.38,opacity:.44},
+    {name:"core-shadow",min:-.07,color:"#7B6269",width:.42,opacity:.50},
     {name:"reflected-light",min:-Infinity,color:"#C7A39E",width:.28,opacity:.25},
   ] as const;
   type Surface={points:[Point,Point,Point];angle:number;weight:number};
@@ -260,7 +260,12 @@ function newHeadAnat1ValuePigment(
     for(const surface of surfaces){acc+=surface.weight;distribution.push(acc);}
     for(let group=0;group<3;group++){
       const marks:string[]=[];
-      for(let n=0;n<154;n++){
+      // At actual 960×540, five equal-density value maps remained
+      // physically sparse and read as floating scratches. Under the
+      // same projected area, mass turns receive progressively more
+      // short, low-pressure contacts than paper-reserved highlights.
+      const density=[150,192,218,238,177][band];
+      for(let n=0;n<density;n++){
         const key=band*9001+group*409+n;
         const v=pencilHash(seed,key,81)*total;
         let lo=0,hi=distribution.length-1;
@@ -275,10 +280,11 @@ function newHeadAnat1ValuePigment(
         const [pa,pb,pc]=tri.points;
         const x=pa[0]*a+pb[0]*b+pc[0]*c;
         const y=pa[1]*a+pb[1]*b+pc[1]*c;
-        const deviation=(pencilHash(seed,key,84)-.5)*.62;
+        const deviation=(pencilHash(seed,key,84)-.5)*.40;
         const angle=tri.angle+deviation;
         const vx=Math.cos(angle),vy=Math.sin(angle);
-        const span=(2.4+3.7*pencilHash(seed,key,85))*(band===0?.78:1);
+        const span=(1.8+3.0*pencilHash(seed,key,85))*
+          (band===0?.80:band===3?.94:1);
         const curl=(pencilHash(seed,key,86)-.5)*.71;
         marks.push(line(
           [x-vx*span*.51,y-vy*span*.51],
