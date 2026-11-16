@@ -28,7 +28,7 @@ describe("ArtCraft F1 V36 ANAT1 photographed source near iris and tarsal apertur
     expect(CRAYON_F1_V36_SOURCE.rightSclera.source).toEqual([114,99,100]);
     expect(CRAYON_F1_V36_SOURCE.iris.source).toEqual([19,12,10]);
     expect(CRAYON_F1_V36_SOURCE.lidMargin.source).toEqual([108,64,60]);
-    expect(CRAYON_F1_V36_IDS).toHaveLength(8);
+    expect(CRAYON_F1_V36_IDS).toHaveLength(9);
     const forms=crayonF1Anat1NearEyePaths();
     expect(Object.keys(forms).sort()).toEqual([...CRAYON_F1_V36_IDS].sort());
     for(const [id,shape] of Object.entries(forms)){
@@ -47,7 +47,7 @@ describe("ArtCraft F1 V36 ANAT1 photographed source near iris and tarsal apertur
     }
   });
 
-  it("rebuilds precisely eight V35 wax forms and preserves complete separate iris/hair/nose",()=>{
+  it("rebuilds precisely nine V35 wax forms and preserves complete separate iris/hair/nose",()=>{
     const previous=crayonCc0FaceStudy({midfaceForm:"source-anat1-orbit-malar"});
     const latest=crayonCc0FaceStudy({midfaceForm:"source-anat1-near-eye"});
     expect(inspectCrayonScene(previous)).toEqual([]);
@@ -77,7 +77,7 @@ describe("ArtCraft F1 V36 ANAT1 photographed source near iris and tarsal apertur
       expect(after.deposition).toBe("stroke-built");
       expect(after.nibStyle).toBe("dry");
       expect(after.clipToParent).toBe(true);
-      expect(after.parentId).toBe(id==="iris-near"?"sclera-near":
+      expect(after.parentId).toBe(id==="iris-near"||id==="sclera-inner-contact-near"?"sclera-near":
         id==="pupil-near"?"iris-near":"face-outline");
       for(const key of ["id","kind","timing","markLength",
         "strokeOrder","motion","pivot","edgeRoughness"] as const){
