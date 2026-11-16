@@ -7,7 +7,8 @@ import {crayonAdultFaceStudy} from "./crayon-artcraft-adult-face-fixtures";
 import {crayonCc0NearEyeStudy} from "./crayon-artcraft-cc0-near-eye";
 import {crayonPaperContactSwatches} from "./crayon-artcraft-paper-contact-fixtures";
 import {crayonArtcraftBodyStudy,CRAYON_BODY_REFERENCE} from "./crayon-artcraft-body-study";
-import {crayonCc0FaceStudy,CRAYON_F1_FACE_PROOF,CRAYON_F1_EYE_INSPECTION} from "./crayon-artcraft-cc0-face";
+import {crayonCc0FaceStudy,CRAYON_F1_FACE_PROOF,CRAYON_F1_EYE_INSPECTION,
+  type Cc0EyeContact} from "./crayon-artcraft-cc0-face";
 import {useCrayonStoryPlayback} from "./crayon-story-playback";
 import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit} from "./crayon-artcraft-portrait-audit";
 import {auditCrayonF1LashRootContinuity} from "./crayon-artcraft-f1-lash-clusters";
@@ -464,14 +465,16 @@ export function crayonF1SourceCssCamera(spec:CrayonSceneSpec,frame:number){
 export function Cc0SourceRegisteredFaceWorkbench({
   detail,startFrame,playbackRate,loop,
   initialLashFinish="sparse",initialInspection="full",
+  initialEyeContact="source-shade",
 }:StudyProps & {
   initialLashFinish?:"sparse"|"rooted";
   initialInspection?:"full"|"near-eye"|"far-eye";
+  initialEyeContact?:Cc0EyeContact;
 }){
   const [view,setView]=useState<"wax"|"anatomy">("wax");
   const [showReference,setShowReference]=useState(true);
   const [fiberMaterial,setFiberMaterial]=useState<"line"|"dry-wax">("dry-wax");
-  const [eyeContact,setEyeContact]=useState<"source-shade"|"source-value"|"baseline">("source-shade");
+  const [eyeContact,setEyeContact]=useState<Cc0EyeContact>(initialEyeContact);
   const [browForm,setBrowForm]=useState<"baseline"|"source-rooted">("baseline");
   const [midfaceForm,setMidfaceForm]=useState<"source-volume"|"baseline">("baseline");
   const [jawNeckForm,setJawNeckForm]=useState<"source-contour"|"baseline">("baseline");
@@ -595,10 +598,10 @@ export function Cc0SourceRegisteredFaceWorkbench({
       </button>
       <label>Source eye anatomy and wax{" "}
         <select aria-label="F1 source eye anatomy" value={eyeContact}
-          onChange={e=>setEyeContact(e.target.value as
-            "source-shade"|"source-value"|"baseline")}>
+          onChange={e=>setEyeContact(e.target.value as Cc0EyeContact)}>
           <option value="source-shade">Source-led iris, lids and root wax (experiment)</option>
-          <option value="source-value">Deeper source-measured wax eye values (experiment)</option>
+          <option value="source-value">Deeper source-measured wax eye values (negative control)</option>
+          <option value="source-sculpt">Photographed tarsal and socket wax planes (ArtCraft experimental)</option>
           <option value="baseline">Unchanged previous eye (negative control)</option>
         </select>
       </label>
@@ -675,4 +678,18 @@ export const Cc0RootedFarLashMacro:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialLashFinish="rooted" initialInspection="far-eye"/>,
+};
+export const Cc0SculptedNearEyeMacro:Story={
+  name:"CC0 source-specific upper lid and socket · near eye 2.95× (!dev)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialEyeContact="source-sculpt" initialInspection="near-eye"
+    initialLashFinish="rooted"/>,
+};
+export const Cc0SculptedFarEyeMacro:Story={
+  name:"CC0 source-specific upper lid and socket · far eye 3× (!dev)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialEyeContact="source-sculpt" initialInspection="far-eye"
+    initialLashFinish="rooted"/>,
 };

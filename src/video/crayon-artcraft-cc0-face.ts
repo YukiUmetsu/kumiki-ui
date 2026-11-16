@@ -5,6 +5,8 @@ import {CRAYON_PORTRAIT_AUDIT}
 import {crayonHash} from "../../registry/video/materials/crayon";
 import {crayonF1ReconstructEyes,crayonF1SourceValueEyes}
   from "./crayon-artcraft-f1-ocular-geometry";
+import {crayonF1SculptTarsal}
+  from "./crayon-artcraft-f1-tarsal-sculpt";
 import {crayonF1ReconstructMidface} from "./crayon-artcraft-f1-midface-geometry";
 import {crayonF1ReconstructBrows} from "./crayon-artcraft-f1-brow-geometry";
 import {crayonF1ReconstructJawNeck} from "./crayon-artcraft-f1-jaw-neck-geometry";
@@ -40,7 +42,7 @@ export const CRAYON_F1_FACE_PROOF={
 } as const;
 export type Cc0FaceView="wax"|"anatomy";
 /** Source-registered ocular pigment experiment; baseline is an unchanged negative control. */
-export type Cc0EyeContact="baseline"|"source-shade"|"source-value";
+export type Cc0EyeContact="baseline"|"source-shade"|"source-value"|"source-sculpt";
 export type Cc0BrowForm="baseline"|"source-rooted";
 export type Cc0MidfaceForm="baseline"|"source-volume";
 export type Cc0JawNeckForm="baseline"|"source-contour";
@@ -121,7 +123,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   if(!Number.isFinite(detail)||detail<.2||detail>1||
     !["wax","anatomy"].includes(view)||
     !["line","dry-wax"].includes(fiberMaterial)||
-    !["baseline","source-shade","source-value"].includes(eyeContact)||
+    !["baseline","source-shade","source-value","source-sculpt"].includes(eyeContact)||
     !["baseline","source-volume"].includes(midfaceForm)||
     !["baseline","source-contour"].includes(jawNeckForm)||
     !["baseline","source-rooted"].includes(browForm)||
@@ -1163,8 +1165,10 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // the original CRAYON1 absolute-frame timing, paper and camera.
   const ocularGeometry=eyeContact!=="baseline"?
     crayonF1ReconstructEyes(elements):elements;
-  const ocular=eyeContact==="source-value"?
+  const valueEyes=eyeContact==="source-value"||eyeContact==="source-sculpt"?
     crayonF1SourceValueEyes(ocularGeometry):ocularGeometry;
+  const ocular=eyeContact==="source-sculpt"?
+    crayonF1SculptTarsal(valueEyes):valueEyes;
   // One source-rooted face artist, one baseline: no invented brow arch
   // is silently promoted to the existing scene defaults.
   const brow= browForm==="source-rooted"?

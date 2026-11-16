@@ -689,3 +689,67 @@ test("F1 source-rooted eyebrow wax vs unchanged wash, actual 3x Chromium",async(
     .not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+
+/**
+ * Original F1 wax drawing experiment, exact-viewport A/B.
+ * Source-value remains an unchanged negative control. The new upper tarsal
+ * mass must actually show up in a native 608x1082 Chromium screenshot.
+ * A screenshot is visual evidence, NEVER art-director approval.
+ */
+test("F1 tarsal wax sculpture near/far source-vs-previous native crop",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  for(const side of ["near","far"] as const){
+    const focus=CRAYON_F1_EYE_INSPECTION[side];
+    const shots:Uint8Array[]=[];
+    for(const eyeContact of ["source-value","source-sculpt"] as const){
+      const old=crayonCc0FaceStudy({
+        detail:1,eyeContact,lashFinish:"rooted",
+        midfaceForm:"baseline",jawNeckForm:"baseline",browForm:"baseline",
+      });
+      const spec={...old,camera:[{frame:0,...focus},{frame:299,...focus}]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      const newPaint=svg.locator('[data-km-crayon-element^="source-socket-turn-"],'+
+        '[data-km-crayon-element^="source-tarsal-burnish-"],'+
+        '[data-km-crayon-element^="source-infraorbital-wax-"]');
+      await expect(newPaint).toHaveCount(eyeContact==="source-sculpt"?6:0);
+      for(const id of ["iris-"+side,"pupil-"+side,"tarsal-shelf-"+side,
+        "lash-root-"+side,"lash-contact-"+side]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toBeAttached();
+      }
+      shots.push(await svg.screenshot({path:info.outputPath(
+        "crayon-f1-"+side+"-tarsal-"+eyeContact+"-299.png"),
+        animations:"disabled"}));
+    }
+    expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[1])))
+      .not.toBe(0);
+  }
+  // A genuine progressing draw-in is still required: no paint may pop
+  // into place as a photographic overlay at the final frame.
+  const midpoint=crayonCc0FaceStudy({
+    eyeContact:"source-sculpt",lashFinish:"rooted",detail:1,
+    midfaceForm:"baseline",browForm:"baseline",jawNeckForm:"baseline",
+  });
+  for(const frame of [120,210]){
+    const spec={...midpoint,camera:[
+      {frame:0,...CRAYON_F1_EYE_INSPECTION.near},
+      {frame:299,...CRAYON_F1_EYE_INSPECTION.near},
+    ]};
+    const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame}));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toHaveAttribute("data-km-crayon-frame",String(frame));
+    await svg.screenshot({path:info.outputPath(
+      "crayon-f1-near-tarsal-sculpt-"+frame+".png"),animations:"disabled"});
+  }
+  expect(errors).toEqual([]);
+});
