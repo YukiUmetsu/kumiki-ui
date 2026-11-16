@@ -2695,6 +2695,56 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
                 weight,seed+7151+i*103+j*29+n*19),
               ink:n%5===0?"dry":n%3===0?"midtone":"wet"};
           }):[];
+        // Fuchun pines have actual load-bearing needle masses along a
+        // crooked branch, not isolated stamped cloud caps. This wet
+        // underside connects both existing fan roots to the original
+        // quadratic branch spine with natural upper/underleaf variation.
+        // All 40 fan islands, 60 grafts/pads and 310 fine needles survive.
+        const connectedCanopy=school==="fuchun"?(()=>{
+          const edge=(t:number,width:number):P=>{
+            const at=quadraticPoint(origin,control,tip,t);
+            const dx=2*(1-t)*(control[0]-origin[0])+
+              2*t*(tip[0]-control[0]);
+            const dy=2*(1-t)*(control[1]-origin[1])+
+              2*t*(tip[1]-control[1]);
+            const length=Math.hypot(dx,dy)||1;
+            return [at[0]+direction*dy/length*width,
+              at[1]-direction*dx/length*width];
+          };
+          const stations=[.34,.43,.52,.60,.68,.77,.86,.93,.985];
+          // Non-periodic clump weights, different on each original bough.
+          // A continuous area underneath is essential at delivery size;
+          // the 40 original lobed brush fans create the toothy outside.
+          const raised=[0,3.6,5.2,3.25,7.2,4.35,6.4,3.9,0];
+          const dropped=[0,-1.35,-2.2,-2.65,-3.1,-2.4,-2.55,-1.8,0];
+          const maturity=(.82+.27*s(seed+7673,i*47+j*17))*
+            (j===0?1.15:j===3?.75:1);
+          const upper=stations.map((t,k)=>({
+            t,w:raised[k]*maturity*
+              (.88+.24*s(seed+7691,i*43+j*29+k*19)),
+          }));
+          const lower=stations.map((t,k)=>({
+            t,w:dropped[k]*maturity*
+              (.87+.22*s(seed+7703,i*23+j*41+k*17)),
+          }));
+          const start=edge(stations[0],0),end=edge(stations[8],0);
+          let d="M"+f(start[0])+" "+f(start[1]);
+          for(let k=1;k<upper.length;k++){
+            const a=upper[k-1],b=upper[k];
+            const mid=edge((a.t+b.t)/2,Math.max(a.w,b.w)*.91);
+            const tip=edge(b.t,b.w);
+            d+=" Q"+f(mid[0])+" "+f(mid[1])+
+              " "+f(tip[0])+" "+f(tip[1]);
+          }
+          for(let k=lower.length-2;k>=0;k--){
+            const a=lower[k+1],b=lower[k];
+            const mid=edge((a.t+b.t)/2,Math.min(a.w,b.w)*.86);
+            const tip=edge(b.t,b.w);
+            d+=" Q"+f(mid[0])+" "+f(mid[1])+
+              " "+f(tip[0])+" "+f(tip[1]);
+          }
+          return {start,end,d:d+" Z"};
+        })():null;
         // Source-specific younger hooks: true child of the same bough
         // at two exact quadratic stations, not random floating marks.
         const crabClaws=crab?([.71,.9] as const).map((at,k)=>{
@@ -2714,7 +2764,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             attach,cx1,cx2,tipClaw,k===0?1.1:.79,
             seed+6143+i*47+j*19+k*37),bend:k};
         }):[];
-        return {t,origin,bone,boughCenterline,
+        return {t,origin,bone,boughCenterline,connectedCanopy,
           armReach:arm?distance:undefined,armArch:arm?.arch,
           foliage,pads,inkIslands,canopyGrafts,wetClusters,crabClaws};
       });
@@ -2746,7 +2796,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
         <path data-km-cliff-pine-bark="" d={bark}
           stroke="#a18b70" fill="none" strokeWidth=".48"
           strokeLinecap="round" opacity={f(.47*shade)}/>
-        {boughs.map(({t,origin,bone,boughCenterline,armReach,armArch,
+        {boughs.map(({t,origin,bone,boughCenterline,connectedCanopy,armReach,armArch,
           foliage,pads,inkIslands,canopyGrafts,wetClusters,crabClaws},j)=>
           <g key={j} data-km-cliff-pine-bough=""
             data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}
@@ -2760,6 +2810,15 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             <path data-km-cliff-pine-bough-bone="" d={bone}
               fill={j%2===0?"#3d352d":"#554638"}
               opacity={f(.88*shade)}/>
+            {connectedCanopy&&<path data-km-cliff-pine-connected-canopy=""
+              data-km-cliff-pine-connected-canopy-bough={i*4+j}
+              data-km-cliff-pine-connected-canopy-root={
+                f(connectedCanopy.start[0])+","+f(connectedCanopy.start[1])}
+              data-km-cliff-pine-connected-canopy-tip={
+                f(connectedCanopy.end[0])+","+f(connectedCanopy.end[1])}
+              d={connectedCanopy.d}
+              fill={j===1?"#4d4133":"#342e27"}
+              opacity={f((j===1?.68:.79)*shade)}/>}
             {canopyGrafts.map(({r,at,hand,body},k)=><path key={"graft"+k}
               data-km-cliff-pine-graft=""
               data-km-cliff-pine-graft-root={f(r[0])+","+f(r[1])}
