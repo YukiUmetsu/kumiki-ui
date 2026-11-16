@@ -2005,10 +2005,22 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             const t=(n+1)/(lobeCount+1)+
               (school==="fuchun"?
                 (s(seed+7177,i*31+j*47+k*19+n*13)-.5)*.045:0);
+            // v48 screenshot rejected all forty flat-top miniature
+            // gray slabs. The upper dot sequence must recede towards
+            // both true bough-joined ends, not hold an identical tall
+            // wall of pigment at the first and last tip. A smooth
+            // sine-eased envelope creates unequal parent-rooted
+            // calligraphic pine tufts without clipping needle detail;
+            // tiny asymmetry comes from the existing ink-seed rhythm.
+            const taper=school==="fuchun"
+              ?Math.pow(Math.max(0,Math.sin(Math.PI*t)),1.26)
+              :1;
             const liftFactor=school==="fuchun"
-              ?.64+.35*s(seed+1961,i*79+j*43+k*19+n*17)
+              ?(.09+.89*taper)*
+                (.81+.19*s(seed+1961,i*79+j*43+k*19+n*17))
               :.41+.59*s(seed+1961,i*79+j*43+k*19+n*17);
-            const yLift=crest*liftFactor+(n%4===0?.7:0);
+            const yLift=crest*liftFactor+
+              (n%4===0?(school==="fuchun"?.27:.7):0);
             return [r[0]+sweep*reach*t,r[1]-yLift] as P;
           });
           let upper="M"+f(r[0])+" "+f(r[1]);
@@ -2133,7 +2145,8 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
               data-km-cliff-pine-fan-lobes={lobes}>
               <path data-km-cliff-pine-ink-canopy="" d={d}
                 fill={k===0?"#332f29":"#484036"}
-                opacity={f((k===0?.76:.69)*shade)}/>
+                opacity={f((school==="fuchun"
+                  ?(k===0?.65:.56):(k===0?.76:.69))*shade)}/>
               <path data-km-cliff-pine-ink-edge="" d={ridge}
                 fill={k===0?"#2e2925":"#39342d"}
                 opacity={f(.77*shade)}/>
