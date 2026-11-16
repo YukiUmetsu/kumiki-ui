@@ -957,6 +957,89 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           gradient:tone+"fuchunhillback"+k,
           form:k===0?"round":"saddle" as const};
       }):[];
+      // ArtCraft: Huang Gongwang's alum-head stones are physical, uneven
+      // positive rock caps, not parallel wet hooks laid on a blank wash.
+      // The original Fuchun painting has small loaded ridgelines at the
+      // tops of longer hemp courses. These nine DIFFERENT crowns grow out
+      // of our own 15 surviving cubic stone supports, and remain clipped
+      // to their exact parent rock face. The six large hillbacks, source
+      // banks, full 78 hemp strokes and all four school grammars survive.
+      const fuchunAlumheads=isHuang?([
+        {bank:1,at:.22,reach:27,rise:13,drop:20,turn:1},
+        {bank:3,at:.44,reach:35,rise:16,drop:24,turn:-1},
+        {bank:0,at:.71,reach:21,rise:10,drop:16,turn:1},
+      ] as const).map((plan,k)=>{
+        const support=stratum[(plan.bank+i)%stratum.length];
+        const root=support.sample(plan.at);
+        const hand=direction*plan.turn;
+        const spread=plan.reach*(.83+.28*s(seed+8651,i*29+k*47));
+        const rise=plan.rise*(.81+.31*s(seed+8663,i*53+k*31));
+        const fall=plan.drop*(.85+.27*s(seed+8671,i*43+k*37));
+        const summit:P=[root[0]+hand*spread*.33,root[1]-rise];
+        const worn:P=[root[0]+hand*spread*.72,
+          root[1]-rise*(k===1?.77:.56)];
+        const cheek:P=[root[0]+hand*spread*.91,
+          root[1]+fall*.21];
+        const heel:P=[root[0]+hand*spread*.58,
+          root[1]+fall*.8];
+        const throat:P=[root[0]+hand*spread*.15,
+          root[1]+fall*.63];
+        const c1:P=[root[0]+hand*spread*.12,
+          root[1]-rise*.89];
+        const c2:P=[summit[0]-hand*spread*.13,
+          summit[1]-rise*.19];
+        // The first lifted arc is the exact source for rim abrasion and
+        // tiny moss deposits. Five continuous cubic edges make a bent,
+        // asymmetrical positive boulder rather than an SVG ellipse/stamp.
+        const d="M"+f(root[0])+" "+f(root[1])+
+          " C"+f(c1[0])+" "+f(c1[1])+
+          " "+f(c2[0])+" "+f(c2[1])+
+          " "+f(summit[0])+" "+f(summit[1])+
+          " C"+f(summit[0]+hand*spread*.12)+" "+
+            f(summit[1]-rise*.025)+
+          " "+f(worn[0]-hand*spread*.16)+" "+
+            f(worn[1]-rise*.18)+
+          " "+f(worn[0])+" "+f(worn[1])+
+          " C"+f(worn[0]+hand*spread*.15)+" "+
+            f(worn[1]+rise*.14)+
+          " "+f(cheek[0]+hand*spread*.06)+" "+
+            f(cheek[1]-fall*.16)+
+          " "+f(cheek[0])+" "+f(cheek[1])+
+          " C"+f(cheek[0]-hand*spread*.055)+" "+
+            f(cheek[1]+fall*.24)+
+          " "+f(heel[0]+hand*spread*.16)+" "+
+            f(heel[1]-fall*.08)+
+          " "+f(heel[0])+" "+f(heel[1])+
+          " C"+f(heel[0]-hand*spread*.19)+" "+
+            f(heel[1]+fall*.11)+
+          " "+f(throat[0]+hand*spread*.11)+" "+
+            f(throat[1]+fall*.12)+
+          " "+f(throat[0])+" "+f(throat[1])+
+          " C"+f(root[0]-hand*spread*.13)+" "+
+            f(root[1]+fall*.32)+
+          " "+f(root[0]+hand*spread*.075)+" "+
+            f(root[1]+fall*.13)+
+          " "+f(root[0])+" "+f(root[1])+" Z";
+        const lip=rockLoadedCubicRibbon(root,c1,c2,summit,
+          1.7+.4*s(seed+8693,i*13+k*19),
+          seed+8701+i*37+k*29);
+        // Three miniature loaded deposits are attached to exact points
+        // on the same wet head arc. The dry tail removes uniformity and
+        // maintains separate ink voices at normal and macro viewing size.
+        const moss=([.29,.58,.84] as const).map((at,j)=>{
+          const point=cubicPoint(root,c1,c2,summit,at);
+          const end:P=[point[0]+hand*(1.5+j*.54),
+            point[1]+(j===1?3.7:2.4)];
+          const bend:P=[point[0]+hand*(.8+j*.33),
+            point[1]+.6+j*.33];
+          return rockLoadedRibbon(point,bend,end,
+            .61+.26*s(seed+8711,i*43+k*19+j*31),
+            seed+8723+i*53+k*31+j*13);
+        });
+        return {root,d,lip,moss,gradient:tone+"alumhead"+k,
+          sourceBank:(plan.bank+i)%stratum.length,
+          station:plan.at};
+      }):[];
       // Wang Meng's moss stipple is a separate brush-particle class,
       // semantically owned by the shaded rock, not a disconnected rock.
       // Dabs gather near the 5 existing stone folds with irregular
@@ -1205,6 +1288,36 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </defs>
         <path data-km-master-mass="" d={mass}
           fill={"url(#"+tone+")"} opacity={f((isFan?.96:isWang?.94:.87)*(1-.16*mist))}/>
+        {isHuang&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-fuchun-alum-head-field="">
+          {fuchunAlumheads.map(({root,d,lip,moss,gradient,sourceBank,
+            station},k)=><g key={k} data-km-master-fuchun-alum-head=""
+            data-km-master-fuchun-alum-head-root={
+              f(root[0])+","+f(root[1])}
+            data-km-master-fuchun-alum-head-bank={sourceBank}
+            data-km-master-fuchun-alum-head-station={station}>
+            <defs>
+              <linearGradient id={gradient} gradientUnits="userSpaceOnUse"
+                x1={f(root[0])} y1={f(root[1]-17)}
+                x2={f(root[0]+direction*32)} y2={f(root[1]+25)}>
+                <stop offset="0" stopColor="#40372e" stopOpacity=".71"/>
+                <stop offset=".31" stopColor="#5c4a3b" stopOpacity=".53"/>
+                <stop offset=".67" stopColor="#83705b" stopOpacity=".2"/>
+                <stop offset="1" stopColor="#ae9981" stopOpacity="0"/>
+              </linearGradient>
+            </defs>
+            <path data-km-master-fuchun-alum-head-volume=""
+              d={d} fill={"url(#"+gradient+")"}
+              opacity={f((k===1?.69:.58)*(1-.23*mist))}/>
+            <path data-km-master-fuchun-alum-head-lip=""
+              d={lip} fill="#493c30"
+              opacity={f((k===1?.74:.59)*(1-.24*mist))}/>
+            {moss.map((d,j)=><path key={j}
+              data-km-master-fuchun-alum-head-moss=""
+              d={d} fill="#463a30"
+              opacity={f((j===1?.78:.54)*(1-.15*mist))}/>)}
+          </g>)}
+        </g>}
         {isHuang&&<g clipPath={"url(#"+clip+")"}
           data-km-master-fuchun-hillback-field="">
           {fuchunHillbacks.map(({root,d,lip,undercut,knuckle,throat,
