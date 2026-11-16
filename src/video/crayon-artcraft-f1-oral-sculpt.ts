@@ -154,7 +154,7 @@ export function crayonF1SculptOralOcclusion(
   const next:CrayonElement[]=[];
   let inserted=false;
   for(const e of elements){
-    if(Object.hasOwn(patches,e.id)){
+    if(Object.prototype.hasOwnProperty.call(patches,e.id)){
       if(e.kind!=="wax"||found.has(e.id))
         throw new RangeError("Invalid duplicated oral wax anchor "+e.id);
       found.add(e.id);
