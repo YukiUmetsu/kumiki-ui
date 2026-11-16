@@ -1578,3 +1578,38 @@ test("F1 V33 ANAT1 native nose preserves 300-frame scene exposures",async({page}
   expect(Buffer.compare(Buffer.from(pngs[0]),Buffer.from(pngs[2]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** F1 V34 rejected V33's nasal-bridge regression. This independently
+ * compares the ANAT1 camera's PHOTO-FITTED native dark cavity/overhang
+ * to the original positive-control V32. Green CI != artist approval.
+ */
+test("F1 V34 ANAT1 continuous attached alar rims source 1x/3x vs V32",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const shots:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-midface-bridge",
+    "source-anat1-alar-recess"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:416,focusY:635,zoom:3},
+        {frame:299,focusX:416,focusY:635,zoom:3},
+      ]};
+      const markup=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+markup+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","alar-roof-near","naris-shadow-near",
+        "alar-roof-far","naris-shadow-far","nose-root","nose-tip",
+        "nose-dorsum","socket-near","socket-far","chin-plane"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      shots.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v34-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(shots[1]),Buffer.from(shots[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
