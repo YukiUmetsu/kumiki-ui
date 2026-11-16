@@ -277,6 +277,16 @@ describe("SHO1 shodō calligraphy", () => {
     expect(shodoLayout(glyph)).toBe("enclosure");
   });
 
+  it("does not pull a stroke of 旁 into 偏: joins across parts only where the ends already meet", () => {
+    const glyph = parseKanjiVgSvg(`<svg viewBox="0 0 109 109"><g kvg:element="仁">
+      <g kvg:element="亻" kvg:position="left"><path d="M30,20 L30,90"/></g>
+      <g kvg:element="二" kvg:position="right"><path d="M35,40 L90,40"/><path d="M50,80 L90,80"/></g></g></svg>`);
+    const formed = shodoKaishoForm(glyph);
+    const vertical = formed.strokes[0].points[0][0], start = formed.strokes[1].points[0][0];
+    expect(start - vertical).toBeGreaterThan(25);           // about 46 em apart in KanjiVG; not snapped
+    expect(formed.strokes[1].joinStart).toBeFalsy();
+  });
+
   it("applies the 間架結構 rules: taller 冠/脚, 左短右長 for 偏/旁, originals untouched", () => {
     const stack: ShodoGlyph = { char: "旦", source: "kanjivg", strokes: [
       { kind: "horizontal", points: [[300, 200], [700, 200]] }, { kind: "horizontal", points: [[300, 450], [700, 450]] },
