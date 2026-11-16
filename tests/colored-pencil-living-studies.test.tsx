@@ -141,7 +141,18 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
         expect(trace.opacity).toBeLessThan(.55);
       }
     }
-    // Five value families are not a single pattern recolored five times.
+    // Real native 1x/2.15x visual proof found the five equal-density
+    // families too scratchy and pale. The face's dark core must receive
+    // MORE shorter contacts than the highlight: graded pressure/coverage
+    // is required before calling this a five-value pencil mass.
+    const count=(name:string)=>meshValues
+      .filter(trace=>trace.id?.startsWith("newhead-anat1-"+name+"-"))
+      .reduce((sum,trace)=>sum+(trace.path.match(/M/g)?.length??0),0);
+    expect(count("core-shadow")).toBeGreaterThan(count("highlight")*1.48);
+    expect(count("halftone")).toBeGreaterThan(count("highlight")*1.30);
+    expect(count("light")).toBeGreaterThan(count("highlight")*1.18);
+    expect(count("reflected-light")).toBeGreaterThan(count("highlight")*1.10);
+        // Five value families are not a single pattern recolored five times.
     const locations=valueFamilies.map(name=>{
       const trace=meshValues.find(v=>
         v.id==="newhead-anat1-"+name+"-0")!;
