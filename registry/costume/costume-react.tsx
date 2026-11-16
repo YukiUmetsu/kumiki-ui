@@ -2,6 +2,7 @@
  * COSTUME1 React pieces: a garment or an outfit drawn as a construction on the scale person, a world-by-time matrix,
  * garment cards with their tags, and the reference sheet.
  */
+import { useId } from "react";
 import type { CSSProperties } from "react";
 import { personOutline, smoothClosedPath } from "../anatomy/foundation-shapes";
 import { MUTED, SheetCard, sheetGrid, sheetList, sheetSmall } from "../anatomy/foundation-react";
@@ -13,34 +14,99 @@ import { garmentShape } from "./costume-shapes";
 /** A plain colour for each garment's construction (estimated from its description: white togas and thawbs, black abayas). */
 const COLOURS: Record<string, string> = {
   toga: "#efe9dc", thawb: "#f1efe8", chiton: "#ece6d6", "habesha-kemis": "#f2efe6", abaya: "#26252a", chador: "#2a2a2f", gat: "#1d1c1f", keffiyeh: "#e6e0d6",
-  kente: "#d4a531", junihitoe: "#8e2f4a", sokutai: "#2b2a3a", hakama: "#7c2a2a", kamishimo: "#3f4a57", yukata: "#2f4f7a", furisode: "#b8324a", kimono: "#4a5f7d",
+  kente: "#d4a531", junihitoe: "#8e2f4a", sokutai: "#2b2a3a", hakama: "#7a7670", kamishimo: "#3f4a57", yukata: "#2f4f7a", furisode: "#b8324a", kimono: "#8fb0c4",
   kosode: "#6a4a3a", obi: "#c9a45a", cheongsam: "#9c2a33", crinoline: "#6f5a7e", bustle: "#4f6a5a", "robe-a-la-francaise": "#b9c7a5", "frock-coat": "#2c2c34",
   suit: "#3a3f4a", "zoot-suit": "#5a3d6a", kilt: "#3f5a46", dirndl: "#6b8a5a", lederhosen: "#6b4b30", sarafan: "#b03a32", sari: "#c0573a", lehenga: "#a3324a",
   poncho: "#9a5a3a", parka: "#8a7258", jeans: "#3a5a86", boubou: "#4a7aa0", agbada: "#6a5a8a", dashiki: "#c2803a", huipil: "#e8e0cc", deel: "#3a6a8a",
+  haori: "#2e2b2c", hanbok: "#d98aa0", jeogori: "#e9c46a",
 };
 /** Obi, sashes and braces in a contrasting colour (estimated: a gold-ochre band reads on most grounds). */
 const BAND = "#c9a45a";
-const colourOf = (g: GarmentRecord) => COLOURS[g.id] ?? `hsl(${[...g.id].reduce((a, c) => a + c.charCodeAt(0), 0) % 360} 28% 46%)`;
+/** Cords and ties: the obijime and goreum in a strong red, the haori-himo white, a tie dark (estimated). */
+const CORDS: Record<string, string> = { haori: "#f2efe6", suit: "#2a2d3a", "frock-coat": "#2a2d3a", "zoot-suit": "#2a2d3a", kilt: "#c8c2b4", dirndl: "#f2efe6", corset: "#f2efe6", hakama: "#f2efe6", hanbok: "#7a2a4a", jeogori: "#7a2a4a" };
+/** The lining colour that shows at kimono sleeve openings and hems (hakkake), and the layered edges of a jūnihitoe (estimated). */
+const LINING: Record<string, string> = { junihitoe: "url(#kasane)" };
+const hsl2hex = (h: number, s: number, l: number) => { const k = (n: number) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1))); return `#${[f(0), f(8), f(4)].map(v => Math.round(v * 255).toString(16).padStart(2, "0")).join("")}`; };
+const colourOf = (g: GarmentRecord) => COLOURS[g.id] ?? hsl2hex([...g.id].reduce((a, c) => a + c.charCodeAt(0), 0) % 360, .28, .46);
+const mix = (a: string, b: string, t: number) => { const p = (h: string) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), x = p(a), y = p(b); return `#${x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, "0")).join("")}`; };
 const PERSON = smoothClosedPath(personOutline());
 
-/** One or more garments drawn in order on the scale person (front view, metres). */
+/** Woven and dyed patterns, in metres: a tartan sett, the fine stripes of hakama silk, kente's woven strips, scattered dyed motifs. */
+function PatternDefs({ id, g, c }: { id: string; g: GarmentRecord; c: string }) {
+  const k = garmentShape(g).pattern;
+  if (k === "tartan") return (
+    <pattern id={`${id}-pat`} patternUnits="userSpaceOnUse" width=".16" height=".16">
+      <rect width=".16" height=".16" fill={c} />
+      {[[0, .05, "#1f2c45", .55], [.09, .02, "#121417", .6], [.125, .006, "#b0303a", .9], [.03, .004, "#e8dcae", .7]].map(([o, w, col, op], i) => <g key={i} opacity={op as number}>
+        <rect x={o as number} y={0} width={w as number} height=".16" fill={col as string} /><rect x={0} y={o as number} width=".16" height={w as number} fill={col as string} />
+      </g>)}
+    </pattern>);
+  if (k === "stripes") return (
+    <pattern id={`${id}-pat`} patternUnits="userSpaceOnUse" width=".014" height=".1"><rect width=".014" height=".1" fill={c} /><rect width=".0045" height=".1" fill={mix(c, "#000000", .55)} /><rect x=".008" width=".0015" height=".1" fill={mix(c, "#000000", .35)} /></pattern>);
+  if (k === "kente") return (
+    <pattern id={`${id}-pat`} patternUnits="userSpaceOnUse" width=".1" height=".12">
+      <rect width=".1" height=".12" fill={c} />
+      <rect x=".01" y=".005" width=".08" height=".035" fill="#2f6b3a" /><rect x=".02" y=".015" width=".06" height=".015" fill="#a8323a" />
+      <rect x=".01" y=".065" width=".035" height=".045" fill="#1d1c1f" /><rect x=".055" y=".065" width=".035" height=".045" fill="#a8323a" />
+      <rect x="0" width=".004" height=".12" fill="#1d1c1f" opacity=".6" />
+    </pattern>);
+  if (k === "scatter") {
+    const flowers: [number, number, string, number][] = [[.04, .05, "#f3c6cf", .022], [.13, .12, "#f6f1e8", .018], [.07, .16, "#e8c86a", .014], [.16, .03, "#f3c6cf", .012]];
+    return (
+      <pattern id={`${id}-pat`} patternUnits="userSpaceOnUse" width=".2" height=".2">
+        <rect width=".2" height=".2" fill={c} />
+        {flowers.map(([x, y, col, r], i) => <g key={i}>{[0, 1, 2, 3, 4].map(p => <circle key={p} cx={x + Math.cos(p * 1.2566) * r * .55} cy={y + Math.sin(p * 1.2566) * r * .55} r={r * .5} fill={col} opacity=".9" />)}<circle cx={x} cy={y} r={r * .25} fill="#c9a45a" /></g>)}
+        <path d="M.0 .1q.03 -.02 .06 0" stroke={mix(c, "#ffffff", .35)} strokeWidth=".003" fill="none" />
+      </pattern>);
+  }
+  return null;
+}
+
+/**
+ * One or more garments drawn in order on the scale person (front view, metres). Each is filled, patterned if its look
+ * is a pattern, shaded round the body (light from the upper left), then folded:
+ * - fold shadows and ridges from the fabric's stiffness (`costume-drape`);
+ * - collars, linings, cords, buttons and pleats.
+ */
 export function CostumeFigure({ garments, label, height = 200 }: { garments: readonly GarmentRecord[]; label?: string; height?: number }) {
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   return (
     <svg role="img" aria-label={label ?? garments.map(g => g.name).join(", ")} viewBox="-.85 -2.02 1.7 2.08" style={{ display: "block", width: "100%", height }} preserveAspectRatio="xMidYMax meet">
+      <defs>
+        <linearGradient id={`${uid}-form`} x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#000" stopOpacity=".26" /><stop offset=".2" stopColor="#000" stopOpacity=".05" /><stop offset=".4" stopColor="#fff" stopOpacity=".08" />
+          <stop offset=".62" stopColor="#000" stopOpacity="0" /><stop offset=".86" stopColor="#000" stopOpacity=".14" /><stop offset="1" stopColor="#000" stopOpacity=".32" />
+        </linearGradient>
+        <linearGradient id="kasane" x1="0" x2="1"><stop offset="0" stopColor="#5a7a3a" /><stop offset=".25" stopColor="#c9a45a" /><stop offset=".5" stopColor="#c45a6a" /><stop offset=".75" stopColor="#f2efe6" /><stop offset="1" stopColor="#6a3a6a" /></linearGradient>
+        {garments.map(g => <PatternDefs key={g.id} id={`${uid}-${g.id}`} g={g} c={colourOf(g)} />)}
+      </defs>
       <g transform="scale(1 -1)">
         <path d={PERSON} fill={MUTED} opacity=".22" />
         {garments.map(g => {
-          const s = garmentShape(g), c = colourOf(g);
+          const s = garmentShape(g), c = colourOf(g), fill = s.pattern !== "none" ? `url(#${uid}-${g.id}-pat)` : c;
+          const shade = mix(c, "#000000", .42), ridge = mix(c, "#ffffff", .4), edge = "#00000033";
           return (
             <g key={g.id}>
-              <path d={s.legs} fill={c} stroke="#00000033" strokeWidth={.006} />
-              <path d={s.body} fill={c} stroke="#00000033" strokeWidth={.006} />
-              <path d={s.sleeves} fill={c} stroke="#00000033" strokeWidth={.006} />
+              <path d={s.legs} fill={fill} stroke={edge} strokeWidth={.006} />
+              <path d={s.body} fill={fill} stroke={edge} strokeWidth={.006} />
+              <path d={s.sleeves} fill={fill} stroke={edge} strokeWidth={.006} />
+              <path d={s.body + s.sleeves + s.legs} fill={`url(#${uid}-form)`} />
+              <path d={s.foldShadow} fill={shade} opacity=".38" />
+              <path d={s.foldRidges} fill="none" stroke={ridge} strokeWidth={.0045} opacity=".55" strokeLinecap="round" />
+              <path d={s.lining} fill={LINING[g.id] ?? "#b8323a"} />
+              <path d={s.underCollar} fill="#f4f1ea" stroke={edge} strokeWidth={.003} />
+              <path d={s.collar} fill={mix(c, "#000000", .18)} stroke={edge} strokeWidth={.004} />
               <path d={s.details} fill={c} stroke="#00000044" strokeWidth={.005} />
-              <path d={s.drape} fill={c} fillOpacity=".7" stroke="#ffffff" strokeOpacity=".6" strokeWidth={.006} />
+              {/* The drape lies over the body: lit a little more, and casting a soft shadow along its lower edge. */}
+              <path d={s.drape} fill="none" stroke="#000000" strokeOpacity=".16" strokeWidth={.02} transform="translate(.004 -.008)" />
+              <path d={s.drape} fill={s.pattern !== "none" ? fill : mix(c, "#ffffff", .1)} stroke={shade} strokeOpacity=".5" strokeWidth={.004} />
+              <path d={s.drapeFolds} fill="none" stroke={shade} strokeWidth={.006} opacity=".45" strokeLinecap="round" />
               <path d={s.trim} fill="#f4f1ea" stroke="#00000044" strokeWidth={.005} />
               <path d={s.bands} fill={g.id === "obi" ? c : BAND} stroke="#00000044" strokeWidth={.005} />
-              <path d={s.lines} fill="none" stroke="#00000040" strokeWidth={.005} />
+              <path d={s.cords} fill={CORDS[g.id] ?? "#b8323a"} stroke="#00000033" strokeWidth={.002} />
+              <path d={s.pleats} fill="none" stroke={shade} strokeWidth={.006} opacity=".75" />
+              <path d={s.buttons} fill="#1d1c1f" />
+              <path d={s.lines} fill="none" stroke="#00000055" strokeWidth={.005} />
             </g>
           );
         })}

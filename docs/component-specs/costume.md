@@ -46,12 +46,60 @@ by period:
 - About 70 garments carry their own: furisode sleeves hang to the knee, crinolines and panniers spread, the
   kamishimo has wings, a gat has a brim, a sari or toga drapes over the left shoulder.
 
+## Drape and detail (registry/costume/costume-drape.ts, round two)
+
+- **Folds come from the cloth.**
+  - Each garment's first fabric gives a bending length (`FABRIC_BENDING`), placed within the range Peirce measured
+    on about 50 fabrics: 1.81–6.35 cm, or 1.6–8.5 cm with other overhangs. The placements are estimated.
+  - Folds hang about four bending lengths apart (`foldSpacing`; estimated from Cusick drape-test sizes). Silk
+    therefore folds narrow and often, wool broader, denim, brocade and skins in few broad folds. This is Leonardo's
+    rule in numbers (`FOLD_RULES`).
+  - The depth comes from the extra cloth at the hem over its support: a gathered or flared hem folds deeply, a
+    straight tube only softly.
+- **`hangingFolds`.** Pipe folds hang from the support (obi, sash, waistband, else the bust) and spread to the hem.
+  Their depths vary, and each fold's shadow lies on the side away from the light (upper left). The hem waves with
+  the folds. Skirts held out by hoops (crinoline, farthingale, robe à la française) span the frame in a few broad
+  folds.
+- **Other folds.**
+  - `swagFolds`: catenary swags across a draped cloth (a sari's pallu, a toga's sinus).
+  - `elbowFolds`: zigzag folds at the elbow of a long sleeve.
+  - Pipe folds fall in wide sleeves; folds gather at the bottom of a hanging sleeve.
+- **Necklines** (`neckline`):
+  - **crossed:** kimono family, hanbok, hanfu, deel. Always left over right: the top panel's collar runs from the
+    viewer's right of the neck down to the left, a "y". The first round drew it the other way, which is how the dead
+    are dressed. Women's kimono show the white under-collar inside it.
+  - **mandarin:** a standing collar, with the flap to the wearer's right underarm and knot buttons.
+  - **lapel:** notched lapels with a shirt and tie, buttons (double-breasted for the frock coat) and pockets.
+  - **placket:** a slit and buttons.
+  - **round** and **square:** a low square neck shows a white chemise, laced on a dirndl.
+- **Drapes** go over the wearer's left shoulder (the viewer's right), leaving the right arm free, as the sari, toga
+  and kente articles describe. The first round had them on the right.
+- **Signatures.**
+  - **Women's kimono:** obiage and obijime on the obi, as in Kusakabe Kimbei's photographs, and lining showing at
+    the sleeve openings and hem.
+  - **Kimono-family sleeves:** long rectangles hanging to the hip, or to the knee on a furisode.
+  - **Hakama:** read from the front as one wide skirt, with five front pleats, two on the wearer's right and three on
+    the left (reported, Wikipedia), and a waist tie.
+  - **Haori:** the himo loop and crests.
+  - **Jūnihitoe:** layered edges (kasane) at the neck and sleeve openings.
+  - **Hanbok:** the goreum bow.
+  - **Kilt:** a flat front apron with its fringed edge and pin.
+  - **Sari:** front pleats.
+- **Patterns** (`pattern`): tartan (kilt), fine stripes (hakama), kente strips, scattered dyed motifs (kimono,
+  furisode, kosode, yukata).
+- **`CostumeFigure`** paints each garment:
+  - filled, patterned, and shaded round the body;
+  - then fold shadows and ridges, linings, collars, bands, cords, pleats and buttons;
+  - drapes lie over the body with a soft shadow below them.
+
 ## Known limits
 
 - **The silhouettes are constructions, not patterns:**
   - front view only (the bustle's shape is at the back);
-  - estimated from descriptions;
-  - no fabric folds or prints.
+  - estimated from descriptions.
+- **Folds are a construction for painting**, set by bending length and fullness, not a cloth simulation:
+  - patterns lie flat and do not follow the folds;
+  - the fold spacing factor and the per-fabric bending lengths are estimated within Peirce's reported range.
 - **The records are a first round.** Periods marked estimated need checking against dated museum objects;
   regional and class variants (Edo merchants versus samurai, Ming versus Tang hanfu) are tags and notes, not
   separate shapes yet.

@@ -20,8 +20,18 @@ The pack `costume` decides *what people wore, where, when and by whom*. Your sty
    - `garmentShape(g)` (or `CostumeFigure`) gives the front-view construction on ANAT1's measured person: hem and
      sleeve lengths, skirt spread, trousers, bands, drapes and hats.
    - Paint over it in your style.
-   - Keep the details that identify a garment: left over right for kimono and hanfu, the sari's end over the left
-     shoulder, the kamishimo's wings, the furisode's hanging sleeves.
+   - Keep the details that identify a garment: left over right for kimono and hanfu (the top collar runs from the
+     viewer's right down to the left, a "y"), the sari's end over the left shoulder (the viewer's right), the
+     kamishimo's wings, the furisode's hanging sleeves, the hakama's five front pleats.
+   - **Fold by the cloth** (`registry/costume/costume-drape.ts`):
+     - soft silk makes many narrow folds, stiff wool, brocade or skins a few broad ones (`bendingLength`,
+       `foldSpacing`);
+     - folds hang from supports (obi, sash, waistband) and deepen with the extra cloth;
+     - swags sag between held points;
+     - sleeves bunch at the elbow.
+
+     The shape gives `foldShadow`, `foldRidges`, `drapeFolds`, collars, linings, cords, buttons and pleats to paint
+     over.
 4. **Re-use.** Check `styles` first: UKIYO1 already draws Edo townsfolk (`ukiyoeWardrobe(role)`) and the Heian
    court (`ukiyoe-heian`).
 5. **Add a garment.**
