@@ -409,6 +409,44 @@ Without smoothing the overlap was a little higher, but the forms showed the jitt
 - か や ゆ 建 様 短 keep the rules.
 - The loops of る ゐ ぬ ね are still smaller than the teacher's: their brush-path forms did not beat the reviewed forms.
 
+## 2.17 Thirteenth study round: alignment by parts
+
+**A good total can hide a wrong part.** The owner found a form whose total matched well but whose top was very different (the ノ at the top of 毎 in 海). So each character is now measured part by part:
+- Each stroke is measured against the teacher's stroke. The measure counts the teacher's ink that our form misses plus the ink our stroke adds where the teacher has none, divided by the area of the teacher's stroke.
+- A label-free measure takes the largest connected patch of mismatch. It finds a different part even where the stroke split is wrong.
+
+Review now uses overlays: the teacher's ink and our form in two colours. The difference that side-by-side boards hide becomes plain, for example a form a few pixels off the teacher's position, or a stroke end that stops short.
+
+**What was wrong.**
+- *Strokes off by a few pixels.* Many forms sat a few pixels from the teacher's strokes. The overlap measure forgave this, because it searches a wide shift and scale.
+- *Stroke ends.* Ends carried most of the mismatch: per unit of length, three times as much as the middle of a stroke.
+- *Stroke split.* In 海, the teacher writes the ノ and the 一 of 毎 in one motion, and the stroke split gave the long ノ to the 一.
+
+**What changed.**
+1. Every character is fitted twice:
+   - the KanjiVG line bent onto the teacher's stroke, now with a smooth sideways correction along the whole stroke, end moves of up to 16 px and five iterations;
+   - the teacher's own brush path, centred and smoothed, for kanji as well as かな.
+
+   Each stroke comes from the fit that lies closer to the teacher's stroke.
+2. A reviewed form is replaced only when the new one overlaps better and no part looks worse.
+3. An optional rule in the stroke split keeps a long run off a stroke whose kind it crosses (a horizontal is not written downward). It fixes 海 and eleven other characters but hurts characters with 心, so a round with it is merged character by character.
+4. The worst characters then had each stroke end moved along the stroke and tried against the teacher's ink, keeping only moves that help.
+5. Three forms held back by earlier reviews (午 町 圧) were fitted again and now pass. 雪 and 暑 keep their held forms.
+
+**Result.** 240 forms changed, plus end corrections on 70 characters. All were reviewed with overlays.
+
+| | Round seven | Round eight |
+|---|---|---|
+| Kanji (371) | 0.753 | 0.773 |
+| Kana (48) | 0.691 | 0.708 |
+| Median stroke discrepancy | 0.17 | 0.14 |
+| Characters with a mismatch patch over 5 % of the ink | 98 | 42 |
+
+**Limits.** The remaining large patches are:
+- whole parts drawn at the wrong scale (岡);
+- かな shapes (ひ ゐ ゑ み ろ);
+- the hook of 心.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
