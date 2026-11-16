@@ -31,6 +31,35 @@ const take=(id:string,ink?: "blue"|"red"):RisoCharacterPart=>{
   return {...p,plate:ink??p.plate};
 };
 const staticLeg=(j:RisoJoint):RisoJoint=>{
+  // RISO45 / Paper Artist original source: 3 supporting MCP digits must
+  // fold *behind* the sheet's upper edge, not point to the upper-right
+  // like red rake tines while index alone pinches. Preserve original
+  // human ANAT1 PIP/DIP sources and indexed thumb opposition unchanged.
+  // Distinct MCP fan arcs follow paper contact; no pasted silhouette.
+  const supportMcpContact={
+    "left-middle":{pinch:34,hold:25,splay:3.0},
+    "left-ring":{pinch:30,hold:23,splay:1.25},
+    "left-pinky":{pinch:26,hold:21,splay:0},
+  } as const;
+  const support= supportMcpContact[j.id as keyof typeof supportMcpContact];
+  if(support){
+    // Do not begin a 34-degree fan change immediately after the f92 rest
+    // key. RISO45 native 2-frame QA caught paper-white index/middle spacing
+    // collapsing at f140, long before the receiving paper arrives. Preserve
+    // the actual neutral pose until f146, then ease into the pinch by f160.
+    const source=j.keys??[];
+    const neutral=source.find(k=>k.frame===144)||source.find(k=>k.frame===146)
+      ?[]:[{frame:146,rotate:source.find(k=>k.frame===92)?.rotate??0,
+        x:0,easing:"ease" as const}];
+    return {...j,keys:[...source,...neutral]
+      .sort((a,b)=>a.frame-b.frame).map(key=>{
+        const add=key.frame>=198?support.hold:
+          key.frame>=156?support.pinch:0;
+        return {...key,rotate:(key.rotate??0)+add,
+          x:(key.x??0)+(key.frame>=156?support.splay:0)};
+      })};
+  }
+
   if(j.id==="root")return {...j,keys:[
     {frame:0,x:0,y:0,easing:"ease"},
     {frame:110,x:-8,y:0,easing:"ease"},
