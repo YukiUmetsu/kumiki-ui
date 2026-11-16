@@ -1,12 +1,16 @@
 name: Crayon ArtCraft adult face browser proof
 
-# Only changes to the new source-led portrait probe trigger this isolated
-# proof. No video/FFmpeg/full Storybook/legacy tests run here.
+# PR checks exercise the modified source-led portrait and its predecessors.
+# The complete archival screenshot suite remains available manually.
+# No video/FFmpeg/full Storybook/legacy tests or deleted test files.
 on:
   pull_request:
     paths:
       - src/video/crayon-artcraft-adult-face-fixtures.ts
       - src/video/crayon-artcraft-adult-face.stories.tsx
+      - src/video/crayon-artcraft-cc0-face.ts
+      - src/video/crayon-artcraft-f1-anat1-malar.ts
+      - registry/anatomy/anatomy-face.ts
       - tests/e2e-artcraft/crayon-expression-comparison.spec.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
       - playwright.artcraft.config.ts
@@ -33,8 +37,18 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Install browser runtime
         run: npx playwright install --with-deps chromium
-      - name: Capture source-native portrait and synchronized inspection proofs
-        run: npx playwright test -c playwright.artcraft.config.ts tests/e2e-artcraft/crayon-adult-face.spec.ts tests/e2e-artcraft/crayon-expression-comparison.spec.ts
+      - name: Capture changed anatomy and adjacent source-native negative controls (PR)
+        if: github.event_name == 'pull_request'
+        run: >-
+          npx playwright test -c playwright.artcraft.config.ts
+          tests/e2e-artcraft/crayon-adult-face.spec.ts
+          --grep "ArtCraft source-referenced portrait audit|F1 V(29|30|31)"
+      - name: Capture complete portrait and expression archival evidence (manual)
+        if: github.event_name == 'workflow_dispatch'
+        run: >-
+          npx playwright test -c playwright.artcraft.config.ts
+          tests/e2e-artcraft/crayon-adult-face.spec.ts
+          tests/e2e-artcraft/crayon-expression-comparison.spec.ts
       - name: Save native screenshots and failures
         if: always()
         uses: actions/upload-artifact@v4
