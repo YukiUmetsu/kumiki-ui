@@ -128,6 +128,32 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
   expect(raw).not.toContain("meanRgb");
   expect(raw).not.toContain("sha256");
   expect(raw).not.toContain("data:image");
+  // Strict negative proof: synthetic equal-colored PNGs MUST be blocked.
+  // The two actual local hashes come from the exact browser input bytes.
+  const {createHash}=await import("node:crypto");
+  const digest=createHash("sha256").update(buf).digest("hex");
+  const pixels=[223,174,150]; // synthetic test-only flat PNG
+  const measured={
+    source:{...data.source,width:240,height:240,sha256:digest},
+    output:{width:240,height:240,sha256:digest},
+    sourceLandmarks:data.sourceLandmarks,outputLandmarks:data.outputLandmarks,
+    sourceTones:data.sourceTones.map((t:{id:string;rect:object})=>({
+      ...t,meanRgb:pixels,
+    })),
+    outputTones:data.outputTones.map((t:{id:string;rect:object})=>({
+      ...t,meanRgb:pixels,
+    })),
+  };
+  await page.getByLabel("Import measured head evidence JSON").setInputFiles({
+    name:"test-only-fake-paired-source.json",mimeType:"application/json",
+    buffer:Buffer.from(JSON.stringify(measured)),
+  });
+  await expect(page.locator("[data-km-head-evidence-status]"))
+    .toHaveAttribute("data-km-head-evidence-status","blocked");
+  await expect(page.locator("[data-km-evidence-errors]"))
+    .toContainText("SOURCE_RENDER_SAME_HASH");
+  await expect(page.getByText("Artist approved: NO.",{exact:false}))
+    .toBeVisible();
   await expect(page.locator("[data-km-annotation-progress]"))
     .toContainText("ready for byte capture");
   await page.screenshot({path:info.outputPath(
@@ -148,6 +174,15 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
   expect(privateDraft).not.toContain("data:image");
   expect(privateDraft).not.toContain("meanRgb");
 
+  // Changing a native pixel invalidates the imported measured proof.
+  await page.getByLabel("source annotation mode").selectOption("landmark");
+  await page.getByLabel("source contour point").selectOption("0");
+  await page.getByRole("button",{name:
+    "Nudge source selected annotation right by 1 native pixel"}).click();
+  await expect(page.locator("[data-km-head-evidence-status]"))
+    .toHaveAttribute("data-km-head-evidence-status","stale");
+  await expect(page.locator("[data-km-evidence-invalid]"))
+    .toContainText("stale");
   // A replacement must invalidate only that image's coordinates.
   await page.getByLabel("source local image").setInputFiles({
     name:"replacement-source.png",mimeType:"image/png",buffer:buf,
