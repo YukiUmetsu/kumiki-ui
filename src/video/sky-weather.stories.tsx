@@ -5,6 +5,8 @@ import type { CloudGenus } from "../../registry/nature/sky-data";
 import { CloudFigure, SkySheet, WeatherScene } from "../../registry/nature/sky-react";
 import type { Precipitation, WeatherInput } from "../../registry/nature/sky-physics";
 import { weatherState } from "../../registry/nature/sky-physics";
+import { CLOUD_SCENES, CLOUD_VOLUMES } from "../../registry/nature/sky-volume";
+import { CloudSky, RenderedCloudAtlas } from "../../registry/nature/sky-volume-react";
 
 const page = { display: "grid", gap: 16, alignContent: "start", padding: 24, minHeight: "100vh", background: "var(--km-surface-canvas, #f6f3f1)", color: "var(--km-text-primary, #242424)",
   font: "15px/1.5 var(--km-font-sans, system-ui, sans-serif)" } as const;
@@ -94,6 +96,46 @@ function CumulusStudy() {
   );
 }
 
+/** The ten genera rendered as skies: volumetric clouds under a physical atmosphere. */
+function RenderedGenera() {
+  return (
+    <main style={page}>
+      <h1 style={{ margin: 0, font: "600 22px var(--km-font-sans, system-ui, sans-serif)" }}>Cloud genera, rendered</h1>
+      <p style={{ margin: 0, maxWidth: 820 }}>Each genus as cloud water or ice in a physical atmosphere, lit by marching sunlight through it, seen from the ground in the view that shows what identifies it: cirrostratus's 22° halo, the sun through altostratus as through ground glass, the anvil downwind of a storm. Heights, water contents and droplet sizes are listed under each; extinction is 3·LWC ÷ (2·ρ·r<sub>e</sub>).</p>
+      <RenderedCloudAtlas />
+    </main>
+  );
+}
+
+/** Pick a genus (and a second layer), move the sun, the camera and the haze. */
+function SkyLab() {
+  const [genus, setGenus] = useState<CloudGenus>("cumulus"), [second, setSecond] = useState<CloudGenus | "">(""), [s, setS] = useState(CLOUD_SCENES.cumulus);
+  const [cover, setCover] = useState(CLOUD_VOLUMES.cumulus.cover), [full, setFull] = useState(false);
+  const pick = (g: CloudGenus) => { setGenus(g); setS(CLOUD_SCENES[g]); setCover(CLOUD_VOLUMES[g].cover); };
+  const W = full ? 960 : 480, H = Math.round(W * 9 / 16);
+  const options = { width: W, height: H, layers: [{ genus, cover }, ...(second ? [{ genus: second }] : [])], ...s };
+  const num = (k: keyof typeof s, min: number, max: number, step: number, text: string) => (
+    <label style={label}>{text} {s[k]}<input type="range" min={min} max={max} step={step} value={s[k]} onChange={e => setS({ ...s, [k]: +e.target.value })} /></label>
+  );
+  return (
+    <main style={page}>
+      <div style={row}>
+        <label style={label}>Genus<select style={field} value={genus} onChange={e => pick(e.target.value as CloudGenus)}>{(Object.keys(CLOUD_GENERA) as CloudGenus[]).map(g => <option key={g} value={g}>{g} {CLOUD_GENERA[g].ja}</option>)}</select></label>
+        <label style={label}>Second layer<select style={field} value={second} onChange={e => setSecond(e.target.value as CloudGenus | "")}><option value="">none</option>{(Object.keys(CLOUD_GENERA) as CloudGenus[]).filter(g => g !== genus).map(g => <option key={g} value={g}>{g}</option>)}</select></label>
+        <label style={label}>Cover {Math.round(cover * 100)}%<input type="range" min={0.05} max={1} step={0.05} value={cover} onChange={e => setCover(+e.target.value)} /></label>
+        {num("sunElevation", -4, 80, 1, "Sun height °")}
+        {num("sunAzimuth", -180, 180, 5, "Sun from °")}
+        {num("pitch", 0, 70, 1, "Look up °")}
+        {num("visibilityKm", 5, 120, 5, "Visibility km")}
+        {num("wind", 0, 360, 10, "Wind to °")}
+        <label style={{ ...label, gridAutoFlow: "column", alignItems: "center" }}><input type="checkbox" checked={full} onChange={e => setFull(e.target.checked)} /> Full size (slow)</label>
+      </div>
+      <div style={{ maxWidth: 960 }}><CloudSky options={options} label={`${genus}${second ? ` with ${second}` : ""}, rendered sky`} /></div>
+      <p style={{ margin: 0, maxWidth: 820 }}>{CLOUD_VOLUMES[genus].note} Sun azimuth 0 is straight ahead (backlit clouds); 180 is behind you. Wind 90 blows to the right.</p>
+    </main>
+  );
+}
+
 const meta = { title: "Video production/Art Foundations/Sky and Weather", id: "video-sky-weather", component: SheetStory, parameters: { layout: "fullscreen" } } satisfies Meta<typeof SheetStory>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -101,3 +143,5 @@ export const Sheet: Story = { render: () => <SheetStory /> };
 export const Lab: Story = { name: "Weather lab", render: () => <WeatherLab /> };
 export const Clouds: Story = { name: "Cloud genera", render: () => <Genera /> };
 export const Cumulus: Story = { name: "Cumulus study", render: () => <CumulusStudy /> };
+export const Rendered: Story = { name: "Cloud genera, rendered", render: () => <RenderedGenera /> };
+export const SkyLabStory: Story = { name: "Sky lab", render: () => <SkyLab /> };

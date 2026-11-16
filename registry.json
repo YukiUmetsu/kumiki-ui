@@ -3926,7 +3926,7 @@
       "name": "sky-weather",
       "type": "registry:ui",
       "title": "Sky and Weather Framework (SKY1)",
-      "description": "Style-neutral weather and sky for any art style: the Beaufort scale with sea and land signs; rain, snow, hail, fog, mist and haze classes; drop size spectra (Marshall-Palmer), fall speeds (Atlas 1973), drop shapes (Brandes 2002), slant in wind, streak length at a shutter, visibility and Koschmieder distance fading; the ten WMO cloud genera with heights, looks, WMO element widths and 1896 Cloud Atlas plates, drawn as layered shapes (cauliflower cumulus, anvil cumulonimbus, cirrus wisps, rows of altocumulus, rolls, layers with rain curtains) and set in perspective as cloud decks; sky phases by sun elevation with sampled palettes and the CIE overcast sky; sun elevation and shadow length; lightning stroke timing and branching channels, thunder delay and rainbow geometry. One weather state feeds the environmental-effects renderers at real speeds. A weather scene, cloud atlas and reference sheet; every value graded reported, measured or estimated with sources. Cumulus in detail (sky-cumulus.ts): a tree of rising thermals, lumps on lumps (cauliflower), light by sun azimuth per mass, shading ladders measured from CC0/PD cloud photos, backlit silver linings on the true silhouette, and turrets that rise and fade at measured updraft speeds.",
+      "description": "Style-neutral weather and sky for any art style: the Beaufort scale with sea and land signs; rain, snow, hail, fog, mist and haze classes; drop size spectra (Marshall-Palmer), fall speeds (Atlas 1973), drop shapes (Brandes 2002), slant in wind, streak length at a shutter, visibility and Koschmieder distance fading; the ten WMO cloud genera with heights, looks, WMO element widths and 1896 Cloud Atlas plates, drawn as layered shapes (cauliflower cumulus, anvil cumulonimbus, cirrus wisps, rows of altocumulus, rolls, layers with rain curtains) and set in perspective as cloud decks; sky phases by sun elevation with sampled palettes and the CIE overcast sky; sun elevation and shadow length; lightning stroke timing and branching channels, thunder delay and rainbow geometry. One weather state feeds the environmental-effects renderers at real speeds. A weather scene, cloud atlas and reference sheet; every value graded reported, measured or estimated with sources. Cumulus in detail (sky-cumulus.ts): a tree of rising thermals, lumps on lumps (cauliflower), light by sun azimuth per mass, shading ladders measured from CC0/PD cloud photos, backlit silver linings on the true silhouette, and turrets that rise and fade at measured updraft speeds. Rendered skies: a single-scattering atmosphere (Rayleigh, Mie from visibility, ozone; Hillaire 2020 constants) and all ten genera as volumes of cloud water or ice built from their physics (extinction from water content and effective radius, WMO element widths, Kelvin-Helmholtz billow rows, cirrus fall streaks bent by shear, 22 and 46 degree ice halos, translucent altostratus, ragged nimbostratus with scud and rain, cumulonimbus towers, anvil, overshooting top and mammatus), lit by marched sunlight, multiple-scattering octaves and two-stream diffusion, with aerial perspective, cloud shadows and camera metering; CloudSky and RenderedCloudAtlas.",
       "dependencies": [],
       "registryDependencies": [
         "art-foundations",
@@ -3957,6 +3957,21 @@
           "path": "registry/nature/sky-react.tsx",
           "type": "registry:ui",
           "target": "components/nature/sky-react.tsx"
+        },
+        {
+          "path": "registry/nature/sky-atmosphere.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-atmosphere.ts"
+        },
+        {
+          "path": "registry/nature/sky-volume.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-volume.ts"
+        },
+        {
+          "path": "registry/nature/sky-volume-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/sky-volume-react.tsx"
         }
       ]
     },
