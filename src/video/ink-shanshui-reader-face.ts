@@ -98,8 +98,11 @@ export function scrollReaderFacePortrait(detail=1):
       "$skinshade","none",0,.14),
     // A light embedded cheek plane follows the malar arch, not the
     // old long striped jaw hatch. Preserve unpainted skin for the light.
-    p("M118.2 113.6 C120.5 121.8 127.6 126.8 133.1 130.1 C129 125.3 123.6 122.6 119.5 116.3 Z",
-      "$skinshade","none",0,.115),
+    // A broad straight lower-cheek stripe looked like painted-on
+    // hatching rather than the rounded jaw plane. Follow the
+    // masseter into the mentolabial shadow with a fine wet taper.
+    p("M119.2 116 C121.8 123.3 126.7 127 132 129.1 C127.7 125.5 122.6 122.7 119.2 116 Z",
+      "$skinshade","none",0,.095),
     // No additional heavy jaw-tracing strokes: the solid face outline
     // already describes the young chin. Extra lines aged this reader.
     // Subtle, anatomically placed nose bridge and nostril. The earlier
