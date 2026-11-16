@@ -54,10 +54,11 @@ const animatedParts=(side:string)=>[
   side+"-glove",side+"-glove-knuckle-arc",
   ...["middle","ring","pinky"].flatMap(d=>[
     side+"-glove-"+d,side+"-glove-"+d+"-middle-phalanx",
+    side+"-glove-"+d+"-distal-phalanx",side+"-glove-"+d+"-nail",
   ]),
 ];
 describe("RISO51 independent two-human ORIGINAL moving print sources",()=>{
-  it("retains opposite-hand old art while morphing exactly eight physical source-contours per actor",()=>{
+  it("retains opposite-hand old art while morphing all fourteen original RED/BLUE source-contours per actor",()=>{
     for(const {spec,active,inactive} of actors){
       expect(inspectRisoCharacter(spec,["red","blue"])).toEqual([]);
       const authored=spec.parts.filter(p=>p.pathKeys);
@@ -67,7 +68,11 @@ describe("RISO51 independent two-human ORIGINAL moving print sources",()=>{
         expect(p.pathKeys?.[0].d).toBe(p.d);
         expect(inspectRisoPathMorph(p.d,p.pathKeys!,240)).toBeNull();
         expect(p.plate==="red"||p.plate==="blue").toBe(true);
-        expect(p.paint).toBe("solid");
+        if(p.id.endsWith("-nail")){
+          expect(p.plate).toBe("blue");
+          expect(p.paint).toBe("screen");
+          expect(p.screenTone).toBe("mid");
+        }else expect(p.paint).toBe("solid");
       }
       for(const p of spec.parts.filter(p=>p.id.startsWith(inactive+"-glove")))
         expect(p.pathKeys).toBeUndefined();
