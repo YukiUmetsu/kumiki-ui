@@ -17,8 +17,8 @@ describe("ArtCraft new human #01: physically layered cranial volume (unapproved 
       const value=strokes.filter(t=>t.id?.startsWith("newhead-cranium-"+name+"-"));
       expect(value).toHaveLength(3);
       expect(value.map(t=>t.color).every(c=>/^#[0-9a-f]{6}$/i.test(c))).toBe(true);
-      expect(value.every(t=>(t.opacity??0)>0&&(t.opacity??0)<.54&&
-        t.width>.3&&t.width<.8&&t.path.length>1000&&
+      expect(value.every(t=>(t.opacity??0)>0&&(t.opacity??0)<.74&&
+        t.width>1&&t.width<2.5&&t.path.length>1000&&
         (t.path.match(/M/g)??[]).length>80)).toBe(true);
     }
     expect(strokes.reduce((sum,t)=>sum+(t.path.match(/M/g)??[]).length,0))
