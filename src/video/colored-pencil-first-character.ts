@@ -16,7 +16,7 @@ import { pencilHash } from "../../registry/video/colored-pencil";
 import type { PencilTrace } from "../../registry/video/colored-pencil";
 import type { PencilSubjectPart, PencilPalette } from "./colored-pencil-living-studies";
 
-type Point=readonly [number,number];
+type Point=[number,number];
 const r=(x:number)=>Math.round(x*100)/100;
 const n=(x:number)=>r(x).toFixed(2);
 const line=(a:Point,b:Point,c:Point)=>"M"+n(a[0])+" "+n(a[1])+
