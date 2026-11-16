@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"stone-before-turning"|"hero-before-cheek"|"hero-uncut"|"hemp-flow"|"hero-bone-ruler"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"alum-before"|"stone-before-turning"|"hero-before-cheek"|"hero-uncut"|"hemp-flow"|"hero-bone-ruler"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -578,6 +578,11 @@ function MasterInkSourceComparison(){
       [data-km-rock-hero-cliff],
       [data-km-master-ink-inspection="stone"] [data-km-master-study="fuchun"]
       [data-km-cliff-pine-grove] { visibility:hidden; }
+      /* Same-source A/B: conceal nine alum-head crowns and 27 attached
+         micro ink deposits without deleting their real source geometry. */
+      [data-km-master-ink-inspection="alum-before"]
+      [data-km-master-study="fuchun"]
+      [data-km-master-fuchun-alum-head-field] { visibility:hidden; }
       /* A/B the actual mid-slope parent-rooted Fuchun stone volumes.
          Retain all original pima, six hillbacks, 12 transverse shelves,
          and four master views. Only the three new turning bands per
@@ -727,6 +732,7 @@ function MasterInkSourceComparison(){
       {([["all","All Fuchun hemp"],["upper","Upper-bank contacts only"],
         ["lower","Lower-bank contacts only"],
         ["stone","Stone volumes · brush hidden"],
+        ["alum-before","Before attached alum-head crowns"],
         ["stone-before-turning","Stone before rounded stratum relief"],
         ["hero-before-cheek","Hero ribs before geological cheek wash"],
         ["hero-uncut","Hero ribs before shared paper lift"],
@@ -761,6 +767,10 @@ function MasterInkSourceComparison(){
         all 78 original fibres and four hero ribs before/after dry-paper cuts.
         The pine-root camera isolates genuine trunk-to-soil contact on the
         existing continuous mountain; it never creates a test-only path.
+        Before attached alum-head crowns hides only the nine positive source
+        boulder caps with their 27 miniature attached loaded brush marks.
+        All six large hillbacks, 12 cross-shelves, 78 original hemp
+        fibres and old-pine anatomy stay intact in both states.
         Stone before rounded stratum relief isolates the same live
         rock cheek contours before nine original nested turning washes.
         Hero ribs before geological cheek wash isolates four physical
