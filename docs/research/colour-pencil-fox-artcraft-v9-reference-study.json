@@ -96,6 +96,64 @@
           "implementation_rule": "Order structure -> eye -> ear -> head color -> tiny nose/velvety muzzle -> neck ruff -> whiskers; preserve editable stroke paths and paper-resident tooth."
         }
       ]
+    },
+    {
+      "id": "permuted-fox-cub-paws",
+      "url": "https://permuted.org.uk/fox/fox_october2007/album/slides/fox_cub_foot_1210072121.html",
+      "title": "Fox Cub Foot – Wildlife Close-up",
+      "creator": "Perverted? Photographer not independently verified",
+      "rights": "unknown, technical observation only; no redistribution, no imported image pixels",
+      "medium": "close wildlife photograph",
+      "view": "ground-level front feet with two visible legs and individually tufted toes; fox cub, not adult proportion source",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Two narrow lower front legs swell only around the lower metacarpal and toe pads; ankle insertion narrows above the front digits; toes and claws separate across the front ground plane.",
+        "material": "Dark near-black legs with warm brown toe tips and hair tip edges, small uneven dark nails.",
+        "microdetail": "Four close but distinct toes; narrow exposed nails; micro hairs converge on each digit, not uniform long strokes down a black boot.",
+        "light": "Very dark velvet upper leg with smaller amber highlights only at root/foot; soft contact shadow beneath pads."
+      },
+      "crops": [
+        {
+          "feature": "two-front-paws",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "Public preview directly examined at tool resolution, but source-relative pixel crop not obtained; bbox is full image. Fox cub feet differ from adult seated pose; use only construction grammar.",
+          "implementation_rule": "Wrist narrows before gradual toe fan; retain digit creases, dark claw slits, small warm toe hair and non-uniform fur flow; no rectangular boot hem."
+        }
+      ]
+    },
+    {
+      "id": "wildlifeonline-red-fox-forepaw",
+      "url": "https://www.wildlifeonline.me.uk/animals/article/red-fox-appearance",
+      "title": "Red Fox Appearance – Fur-covered Forepaw",
+      "creator": "Wildlife Online; individual photograph creator not confirmed",
+      "rights": "unknown, observational study only; no photo pixels or tracing committed",
+      "medium": "front paw anatomical wildlife detail",
+      "view": "dorsal paw and fur, non-pose matched",
+      "deep_study": true,
+      "analysis": {
+        "construction": "Canine metacarpus transitions into densely furred adjacent toe knuckles and a hidden lower pad; direct front view may show only a narrow claw slit and darker toe tips.",
+        "material": "Coarse dark brown guard hairs overlay warm brown fine undercoat, with fur wrapped around toe curves.",
+        "microdetail": "Each toe has its own curved center ridge and short pointed hair, rather than evenly spaced straight vertical lines; padded digits taper below wrist.",
+        "light": "Very restrained top-plane highlights, rich darker toe creases."
+      },
+      "crops": [
+        {
+          "feature": "fur-covered-forepaw",
+          "bbox": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "observation": "Public standalone image preview inspected; exact image bounds and source-pixel measurements unavailable.",
+          "implementation_rule": "Use separate narrow optical carpal plane, four low-pressure toe-root creases, short fine hairs, dark claws; no photo filter."
+        }
+      ]
     }
   ],
   "feature_targets": [
@@ -179,6 +237,41 @@
       ],
       "source_observation": "Warm rust top, pale cream ruff and dark limbs require nonuniform hand-layered marks, not uniform hatch or synthetic noise.",
       "detail_critical": true
+    },
+    {
+      "id": "fox-forepaws-and-hind-hock",
+      "reference_ids": [
+        "permuted-fox-cub-paws",
+        "wildlifeonline-red-fox-forepaw",
+        "fox-cc0-anatomy"
+      ],
+      "critical": true,
+      "geometry_rule": "Seated fox has 2 nearly vertical weight-bearing thin forelegs ending in outward splayed 4-toed paws; the rear hock is a low folded lateral mass rooted underneath the rump, NOT a third straight upright black leg.",
+      "microdetails": [
+        "radius/ulna metacarpal transition",
+        "independently scored dark toe-root furrows",
+        "short separate black claw slits",
+        "optical charcoal/sepia/warm undercoat micro hairs",
+        "rear hock crease",
+        "ground-bearing interlocking rear digit pads"
+      ],
+      "test_view": "1× full fox and 2.15× actual Storybook forepaw/hock in both 16:9 and 9:16, before/after crop critique",
+      "part_ids": [
+        "body",
+        "rear-leg",
+        "foreleg-left",
+        "foreleg-right"
+      ],
+      "source_observation": "Adult/cub reference photos corroborate curved toe/ankle transitions and fur-wrapped compact paws; neither is a pose-matched seated canonical source.",
+      "five_axes": {
+        "topology": "Rear hock intersects orange rump and reaches ground; forepaw stays connected to slender upper leg; 4 toe knuckles and 3+ tiny claws per front paw.",
+        "flow": "Short fibers travel carpus→paw front and rotate around claw pits, not uniform diagonal hatch.",
+        "weight": "Dark metacarpal marks; controlled warmer browns on highlights; strong only under toe creases/claws.",
+        "rhythm": "Asymmetric digit widths and staggered rooted fur tracts.",
+        "texture": "Actual CP-F1 dry pencil three pressure families/seeded undercoat, no image/photo/shader fill replacement."
+      },
+      "detail_critical": true,
+      "release_status": "blocked — semantic art improvement not pixel source-registered, independent artist approval pending"
     }
   ]
 }
