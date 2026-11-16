@@ -690,6 +690,32 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       )];
       expect(ribs).toHaveLength(4);
       expect(ribFaces).toHaveLength(4);
+      // ArtCraft Fuchun bank-following reconstruction: all four existing
+      // fracture ribbons traverse three joined, curved ink-loaded stages.
+      // Each segment inherits a named positive bank, rather than painting
+      // one long nearly straight black vector from a summit.
+      const ribCourses=[...full.matchAll(
+        /data-km-rock-hero-rib="" data-km-rock-hero-rib-root="([^"]+)" data-km-rock-hero-rib-support="([012])" data-km-rock-hero-rib-course="folded-3"/g,
+      )];
+      expect(ribCourses).toHaveLength(4);
+      expect(ribCourses.map(m=>Number(m[2]))).toEqual([0,1,2,1]);
+      expect(ribFaces.every((d,i)=>{
+        const parts=d.split(" Z").filter(Boolean);
+        return parts.length===3&&
+          d.startsWith("M"+ribCourses[i][1].replace(","," "))&&
+          (d.match(/ C/g)??[]).length>=90;
+      })).toBe(true);
+      // A real folded centerline changes curvature, not only pressure.
+      const trajectoryStarts=ribFaces.map(d=>
+        [...d.matchAll(/(?:^| )M(-?[\\d.]+) (-?[\\d.]+)/g)]
+          .map(([,x,y])=>[Number(x),Number(y)]));
+      expect(trajectoryStarts.every(points=>points.length===3&&
+        points.every(p=>p.every(Number.isFinite)))).toBe(true);
+      expect(trajectoryStarts.some(points=>{
+        const dx1=points[1][0]-points[0][0];
+        const dx2=points[2][0]-points[1][0];
+        return dx1*dx2<0; // actual stroke reverses across rock folds
+      })).toBe(true);
       // Fuchun should contain dry continuous parent brushwork AND
       // independently loaded, curved sub-marks, instead of four
       // solid dark arrow-like spines with one uniform value.
