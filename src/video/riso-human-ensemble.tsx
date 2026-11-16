@@ -13,6 +13,7 @@ import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video
 import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS} from "./riso-hand-artcraft";
+import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
 import {riso31SegmentIds} from "./riso31-finger-phalanges";
 import {riso32ThumbDistalId} from "./riso32-thumb-ip";
 
@@ -252,7 +253,16 @@ const sharedLimbs=[
   riso32ThumbDistalId("right"),
 ];
 const legs=sharedLimbs.slice(0,8).map(id=>take(id));
-const arms=sharedLimbs.slice(8).map(id=>take(id));
+const arms=sharedLimbs.slice(8).map(id=>{
+  const original=take(id);
+  const originalPalmInk=/^(left|right)-glove-(detail|thumb-fold)$/.exec(id);
+  // Paper Artist preserves the exact inherited source wrist anchors and
+  // structural body outline, but gets independently authored contour rhythm
+  // for the cobalt glove landmarks instead of a duplicate Courier stamp.
+  return originalPalmInk?
+    refineRiso37SourceEngraving(original,"paper-artist",originalPalmInk[1] as "left"|"right"):
+    original;
+});
 export const PAPER_ARTIST:RisoCharacterSpec={
   version:1,id:"paper-artist",durationFrames:240,cadence:2,
   joints:COURIER.joints.map(staticLeg),
