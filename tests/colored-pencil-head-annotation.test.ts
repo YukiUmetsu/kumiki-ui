@@ -2,6 +2,7 @@ import {describe,it,expect} from "vitest";
 import {
   emptyHeadAnnotations, annotatedPoint, annotatedTone,
   clientToNativePoint, compileHeadAnnotationManifest,
+  removeHeadAnnotation,
 } from "../src/video/colored-pencil-head-annotation";
 import {HEAD_FIDELITY_LANDMARK_IDS,HEAD_FIDELITY_TONES} from
   "../src/video/colored-pencil-head-fidelity";
@@ -56,6 +57,31 @@ describe("ArtCraft standalone head-only photo/source annotation atlas",()=>{
     expect(()=>annotatedTone(state,"source","light",
       {x:-3,y:7},{x:50,y:50},source)).toThrow(/bounds/i);
     expect(state.output.tones).toHaveLength(1);
+  });
+
+  it("removes exactly the chosen source-side landmark or tone without touching native-image data",()=>{
+    let state=emptyHeadAnnotations();
+    state=annotatedPoint(state,"source","cranial-apex",{x:220,y:30},source);
+    state=annotatedPoint(state,"source","parietal-near",{x:200,y:90},source);
+    state=annotatedPoint(state,"output","cranial-apex",{x:100,y:40},output);
+    state=annotatedTone(state,"source","highlight",
+      {x:10,y:15},{x:80,y:85},source);
+    state=annotatedTone(state,"output","highlight",
+      {x:10,y:15},{x:80,y:85},output);
+
+    const afterPoint=removeHeadAnnotation(state,"source","landmark","cranial-apex");
+    expect(afterPoint.source.landmarks.map(x=>x.id)).toEqual(["parietal-near"]);
+    expect(afterPoint.output).toEqual(state.output);
+    expect(state.source.landmarks).toHaveLength(2);
+    const afterTone=removeHeadAnnotation(afterPoint,"source","tone","highlight");
+    expect(afterTone.source.tones).toEqual([]);
+    expect(afterTone.output.tones).toEqual(state.output.tones);
+    expect(removeHeadAnnotation(afterTone,"source","landmark","cranial-apex"))
+      .toEqual(afterTone);
+    expect(()=>removeHeadAnnotation(state,"source","landmark","iris" as never))
+      .toThrow(/unknown/i);
+    expect(()=>removeHeadAnnotation(state,"output","tone","iris" as never))
+      .toThrow(/unknown/i);
   });
 
   it("exports only independently authored 18+5 pixel annotations and cited source metadata",()=>{
