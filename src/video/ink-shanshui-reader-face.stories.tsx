@@ -38,8 +38,8 @@ function ReaderFaceStudio(){
   const crown=readerCrownRegions(detail);
   const volume=readerFaceAnatomy(detail);
   const faceBase=parts.face.kind==="shapes"?
-    parts.face.shapes.filter(shape=>shape.type==="path"&&
-      shape.fill==="$skin").slice(-1):[];
+    parts.face.shapes.filter((shape):shape is CharacterPathShape=>
+      shape.type==="path"&&shape.fill==="$skin").slice(-1):[];
   const anatomyMarks=(marks:readonly CharacterPathShape[])=>
     marks.map((shape,index)=>shape.type==="path"?
       <path key={index} d={shape.d}
