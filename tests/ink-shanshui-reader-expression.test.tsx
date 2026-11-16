@@ -31,7 +31,9 @@ describe("EXPR1 anatomy-driven Chinese-ink reader",()=>{
       expect(shapes(sample.assets,"brow").every(s=>
         s.type==="path"&&!/NaN|Infinity|undefined/.test(s.d))).toBe(true);
     }
-    expect(shapes(smile.assets,"brow")).not.toEqual(shapes(baseline,"brow"));
+    // AU 6 + AU 12 (Duchenne smile) moves cheeks and mouth, not brows.
+    expect(shapes(smile.assets,"brow")).toEqual(shapes(baseline,"brow"));
+    expect(shapes(sad.assets,"brow")).not.toEqual(shapes(baseline,"brow"));
     expect(shapes(sad.assets,"brow")).not.toEqual(shapes(angry.assets,"brow"));
     expect(shapes(smile.assets,"face").length)
       .toBeGreaterThan(shapes(baseline,"face").length);
