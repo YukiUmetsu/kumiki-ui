@@ -40,3 +40,9 @@ Native f160 RISO36 workbench screenshot inspected at full scale and 3× detail:
 ## Unresolved release conditions
 
 This is a **detailed original 2D editorial illustration**, not a skin-shaded 3D hand or photographed anatomically correct portrait. True three-quarter thumb opposition and individual facial landmark fidelity remain unproved without comparable independently annotated anatomical/figure references. **Passing tests alone is not an ArtCraft artist approval**. Next review must inspect full-scale print and 6× glove crops for too faint or too dark cobalt, the negative-space fan at peak, sleeve seam and physical paper occlusion. Rework any actual visual failures.
+
+## Chromium visual iteration 1 — actual render, not test-only acceptance
+
+The first RISO37 native Chromium f160 print has now been visually inspected alongside the prior RISO36 f160 capture. Observed real improvement: the four dorsal finger channels remain paper-white, the formerly full-width black MCP scallop is four thin crests, and black PIP stripes no longer dominate the distal pads. **Newly visible remaining defect:** two triangular near-black strokes on the wrist-side red palm and a heavy thumb-web wedge still read as dark painted holes, not tendon folds. These were inherited as `glove-detail` and `glove-thumb-fold` source ink in `src/video/riso-character-demo.tsx`, not fixed by the initial MCP source rewrite.
+
+**Iteration 2 source correction:** preserve original source IDs and attachment to the original `left/right-hand` joint; redraw `glove-detail` as 4 short original C/Q source incisions and `glove-thumb-fold` as two short asymmetric C/Q web-crease shapes, print in `blue screenTone=mid` instead of broad blue solid blocks. Source tests independently reject the old unrefined triangular geometry. Re-render both real actors, real ink masters and film in Chromium; do not merge if the new source introduces pose detachment, blank color plates or unreadable details.
