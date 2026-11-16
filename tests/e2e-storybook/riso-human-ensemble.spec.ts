@@ -26,7 +26,7 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
     const containerBox=await container.boundingBox();
     expect(containerBox).not.toBeNull();
     expect(Math.abs(containerBox!.height-artBox!.height)).toBeLessThan(6);
-    for(const frame of [0,92,142,160,177,189,202,239]){
+    for(const frame of [0,92,142,156,160,166,177,186,189,202,239]){
       const slider=page.getByRole("slider",{name:"RISO ensemble film frame"});
       await slider.evaluate((node,value)=>{
         const input=node as HTMLInputElement;
@@ -78,10 +78,28 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
           expect(Number.isFinite(padGap)).toBe(true);
           expect(padGap).toBeLessThan(14);
         }
-        expect(Number(await stage.getAttribute("data-km-riso-paper-source-contact"))).toBeGreaterThan(.95);
-        expect(Number(await stage.getAttribute("data-km-riso-paper-receiver-contact"))).toBeGreaterThan(.95);
+        // Physical 2-spot printer creases track the ACTUAL articulated
+        // red thumb/index pad surfaces, not an assumption that a wrist
+        // joint being near paper equals 100% pressure.
+        for(const [who,inkAttr,forceAttr] of [
+          ["donor","data-km-riso41-donor-ink-gap","data-km-riso41-donor-pad-pressure"],
+          ["receiver","data-km-riso41-receiver-ink-gap","data-km-riso41-receiver-pad-pressure"],
+        ] as const){
+          const gap=Number(await stage.getAttribute(inkAttr));
+          const sourceForce=Number(await stage.getAttribute(forceAttr));
+          const paperForce=Number(await stage.getAttribute("data-km-riso-paper-"+(who==="donor"?"source":"receiver")+"-contact"));
+          expect(Number.isFinite(gap)).toBe(true);
+          expect(Number.isFinite(sourceForce)).toBe(true);
+          expect(gap,who+" f160 original red gap").toBeLessThan(3);
+          expect(paperForce).toBeCloseTo(sourceForce,3);
+          expect(paperForce).toBeGreaterThan(0);
+        }
       }
 
+      if(frame===166){
+        const actual=Number(await stage.getAttribute("data-km-riso41-receiver-ink-gap"));
+        expect(actual).toBeLessThan(1.5);
+      }
       if(frame===189)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","release");
       if(frame>=202){
         await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","received");
