@@ -785,4 +785,5 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(inspectPencilDrawing(pencilLivingStudyDrawing({
       ...base,seed:2147483000,pressure:1.2,
     }))).toEqual([]);
-  });}
+  }
+});
