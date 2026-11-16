@@ -90,6 +90,15 @@ describe("F1 V38 ANAT1/CC0 photographed crown + face-occluding curtain native wa
     expect(()=>crayonF1CalibrateAnat1HairValues(native.elements.map(e=>
       e.id==="hair-rooted-left-0"?{...e,parentId:"other-person"}:e)))
       .toThrow(RangeError);
+    const left= native.elements.find(e=>e.id==="hair-rooted-left-0");
+    if(!left)throw Error("Source left fiber missing");
+    expect(()=>crayonF1CalibrateAnat1HairValues([...native.elements,left]))
+      .toThrow(RangeError);
+    expect(()=>crayonF1CalibrateAnat1HairValues(native.elements.map(e=>
+      e.id==="hair-rooted-left-0"?{...e,id:"hair-rooted-left-7"}:e)))
+      .toThrow(RangeError);
+    expect(()=>crayonF1CalibrateAnat1HairValues(native.elements.filter(e=>
+      e.id!=="hair-rooted-right-0"))).toThrow(RangeError);
   });
 
   it("preserves 300-frame paper tooth, real hair strokes and original !dev Storybook",()=>{
