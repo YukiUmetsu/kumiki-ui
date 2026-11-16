@@ -480,6 +480,26 @@ Fifteen characters now cut. Review accepts 11 forms (草 謝 貢 遺 農 振 興
 | First teacher's forms | 428 | 439 |
 | Second teacher's forms | | 4 |
 
+## 2.20 Sixteenth study round: every stroke end tried, and two more teachers' videos
+
+**Every stroke end.** Round eight tried stroke ends only on the 80 worst characters. Now every reviewed form of the first teacher has each stroke end moved along the stroke by −24, −12, +12 and +24 em and rendered. A move is kept only when the overlap with the teacher's ink rises and the largest mismatch patch does not grow, and a character keeps its new ends only when all of them together still help. Every changed form was then reviewed in overlays, with the changed pixels outlined.
+
+**Result.** 336 of 439 forms changed, all reviewed.
+
+| | Round ten | Round eleven |
+|---|---|---|
+| Overlap, the 439 forms | 0.769 | 0.777 |
+| Kanji | 0.772 | 0.780 |
+| Kana | 0.692 | 0.697 |
+| Median stroke discrepancy | 0.14 | 0.12 |
+| Characters with a mismatch patch over 5 % of the ink | 44 | 41 |
+
+The weakest forms stay weak (前 0.59, 敬 0.59, 賀 0.62, 歩 0.63): a whole part lies off the teacher's, which moving ends cannot fix.
+
+**The second teacher's large-brush take.** His take beside the model card is semi-cursive. The large-brush kaisho take comes before it, with the whole sheet in view. Two simple rules (the minute before the card; the shot whose new ink has the thickest strokes) do not find that take reliably, because his lessons also hold pen and brush-pen takes, and a hand or a sleeve can pass for thick ink. The four forms of round ten stay; the large-brush take is the next thing to find.
+
+**A third teacher.** A third channel writes each character in vermilion, sped up, and then explains it on other sheets. Taking the shot from the start to the moment the ink stops growing gives whole characters, and a sheet that holds the character twice keeps the copy written first. But the first stroke is often already on the sheet when the lesson starts, and the stroke split is weak, so the fits lie a few pixels off along most strokes (0.54 best-aligned overlap on average). No form of this teacher is accepted yet.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
