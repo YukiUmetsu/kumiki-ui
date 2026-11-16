@@ -6,6 +6,7 @@ import { ANIMAL_GAITS, footfallBars, quadFootfalls } from "../registry/anatomy/a
 import { animalConstruction, poseAnimal, skeletonShapes } from "../registry/anatomy/animal-construct";
 import { checkAnimalProportions, checkSpeciesData, measureAnimal } from "../registry/anatomy/animal-check";
 import { AnimalSheet } from "../registry/anatomy/animal-react";
+import { frontFace, frontFaceShapes } from "../registry/anatomy/animal-front";
 import { ANIMAL_POSTURES, BIRD_POSTURE_IDS, BIRD_POSTURES, birdPostureFits, POSTURE_IDS, postureFit } from "../registry/anatomy/animal-postures";
 import { BIRD_FLIGHT, flightAt, speciesWingbeat, wingbeatHz, wingStroke } from "../registry/anatomy/animal-flight";
 import { coatAt, GROWTH, growthRule, heightAt, juvenileConstruction } from "../registry/anatomy/animal-growth";
@@ -246,6 +247,26 @@ describe("ANIM1 fur", () => {
     expect(furStrands(poseAnimal(animalConstruction("red-crowned-crane")))).toEqual([]);
     // Every strand of a posed (sitting) animal starts on the body.
     expect(furStrands(poseAnimal(animalConstruction("shiba-inu"), { posture: "sit" })).every(x => x.points.every(p => Number.isFinite(p[0]) && Number.isFinite(p[1])))).toBe(true);
+  });
+});
+
+describe("ANIM1 faces square on", () => {
+  it("gives every mammal a front face, measured where a reference allowed, and draws it symmetric with the eyes inside the head", () => {
+    const measured = ["shiba-inu", "red-fox", "japanese-wolf", "domestic-cat", "japanese-black-cattle"];
+    for (const sp of ANIMAL_SPECIES.filter(x => BODY_PLANS[x.plan].group === "mammal")) {
+      const f = frontFace(sp)!, sh = frontFaceShapes(sp)!;
+      expect(f, sp.id).toBeTruthy();
+      expect(f.grade, sp.id).toBe(measured.includes(sp.id) ? "measured" : "estimated");
+      // The eyes sit inside the head's width, the nose below them, the crown above.
+      expect(sh.eyeCentres[1][0] + sh.eyeR, sp.id).toBeLessThan(.52);
+      expect(sh.eyeCentres[0][0], sp.id).toBeCloseTo(-sh.eyeCentres[1][0]);
+      expect(f.nose, sp.id).toBeGreaterThan(0);
+      expect(f.crown, sp.id).toBeGreaterThan(0);
+      expect(sh.head + sh.ears + sh.eyes + sh.nose, sp.id).not.toMatch(/NaN/);
+    }
+    // Dogs carry their ears up above the crown; cattle out to the sides at the eye line.
+    expect(frontFace("shiba-inu")!.earTip[1]).toBeGreaterThan(frontFace("shiba-inu")!.crown);
+    expect(frontFace("japanese-black-cattle")!.earTip[0]).toBeGreaterThan(1);
   });
 });
 

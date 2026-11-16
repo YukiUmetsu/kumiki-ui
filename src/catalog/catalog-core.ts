@@ -176,6 +176,7 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "animal-anatomy":["animal anatomy","animal","animals","draw an animal","draw animals","animal proportions","quadruped","four-legged","bird anatomy","fish anatomy",
     "body plan","plantigrade","digitigrade","unguligrade","hooves","paws","claws","gait","gaits","walk cycle","trot","canter","gallop","rotary gallop","bound","footfall","muybridge","hildebrand",
     "posture","postures","animal sitting","dog sit","cat sit","lie down","lying down","animal resting","sleeping animal","rear up","rearing horse","levade","bear standing up",
+    "animal face front","face square on","front view face","animal front view",
     "fur strands","hair direction","hair flow","fur direction","coat strands","draw fur","young animal","baby animal","juvenile","foal","fawn","calf","puppy","kitten","cub","piglet","kit","chick","duckling","growth","baby schema","bird on one leg","sleeping bird","roosting","duck swimming","floating duck","upending","dabbling","bird flight","flying bird","wingbeat","wing beat","flapping","flap","glide","gliding","bounding flight","wings","wing fold","crane flying","heron flying",
     "fur","coat","fur map","fur direction","coat colour","coat color","markings","palette","animal colours","animal colors","seasonal coat","winter coat",
     "character sheet","model sheet","animal model sheet","turnaround","size comparison","animal size","animal sounds","animal face","muzzle","snout","ears",

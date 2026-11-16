@@ -29,6 +29,7 @@ import type { AnimalPoint, AnimalSkeleton } from "./animal-construct";
 import { proportionRange } from "./animal-check";
 import { ACCENT, INK, MUTED, PAPER, ScaleChart, SheetCard, SwatchList, sheetGrid, sheetSmall } from "./foundation-react";
 import { furStrands, furStreamlines } from "./animal-fur";
+import { frontFace, frontFaceShapes } from "./animal-front";
 
 export type AnimalFigureMode = "silhouette" | "construction" | "colour" | "fur";
 
@@ -154,6 +155,28 @@ function furFlow(s: AnimalSkeleton): AnimalPoint[][] {
   return lines;
 }
 
+/** The face square on, from `animal-front.ts` (measured or the plan's), in the species' colours. */
+export function FrontFaceFigure({ species }: { species: AnimalSpecies }) {
+  const sh = frontFaceShapes(species), f = frontFace(species);
+  if (!sh || !f) return null;
+  const [x0, y0, x1, y1] = sh.bounds, W = Math.max(x1 - x0, y1 - y0), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, lw = W / 160;
+  const pal = species.coat.palette, base = pal.find(p => p.region === "back" && p.fill !== "accent")?.hex ?? "#8a7a68";
+  const face = pal.find(p => (p.region === "face" || p.region === "head") && (p.fill ?? "area") === "area")?.hex ?? base;
+  const muzzle = pal.find(p => (p.region === "muzzle" || p.region === "throat") && (p.fill ?? "area") === "area")?.hex;
+  return (
+    <figure style={{ margin: 0, display: "grid", gap: 4, justifyItems: "start" }}>
+      <svg role="img" aria-label={`${species.name}, face square on`} viewBox={`${cx - W / 2} ${-(cy + W / 2)} ${W} ${W}`} style={{ width: 140, height: 140 }}>
+        <g transform="scale(1 -1)" stroke={INK} strokeWidth={lw}>
+          <path d={sh.ears} fill={base} /><path d={sh.earsInner} fill={PAPER} stroke="none" opacity={.8} />
+          <path d={sh.head} fill={face} />{muzzle && <path d={sh.muzzle} fill={muzzle} stroke="none" />}
+          <path d={sh.nose} fill={INK} /><path d={sh.eyes} fill={species.eyes.iris} />
+        </g>
+      </svg>
+      <figcaption style={{ ...sheetSmall, margin: 0 }}>Square on ({f.grade}: {f.source}).</figcaption>
+    </figure>
+  );
+}
+
 // ---- The character sheet -------------------------------------------------------------------------------------------------------
 
 const small = sheetSmall;
@@ -239,6 +262,7 @@ export const AnimalSheet = forwardRef<HTMLDivElement, AnimalSheetProps>(function
           {sp.face.features.map(f => <li key={f}>{f}</li>)}
         </ul>
         <p style={{ ...small, margin: 0 }}>{sp.face.grade}: {sp.face.source}.</p>
+        <FrontFaceFigure species={sp} />
       </Card>}
       <Card title="Parts">
         <ul style={{ margin: 0, paddingLeft: 18, columns: "2 160px" }}>
