@@ -525,8 +525,13 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           phrase=meter<3?"short":meter<9?"medium":"long";
           const len=phrase==="short"?9+13*wt:
             phrase==="medium"?20+21*wt:35+22*wt;
+          // Native ArtCraft review rejected the v52 strong 25% reversal:
+          // it made intersecting X wires over one positive rock bank.
+          // Keep the long gesture descending WITH its supporting cheek.
+          // Reserve the opposite handedness only for small within-stroke
+          // roll controls, not the large geometric endpoint direction.
           const hand=meter===2||meter===8||meter===10?-1:1;
-          const sway=direction*hand*(6+14*wt2)+jitter*6.7;
+          const sway=direction*(7+15*wt2)+jitter*5.2+hand*1.5;
           const roll=direction*
             (meter%4===1?-(2.6+2*wt):(1.7+1.6*wt2));
           c1=[entry[0]+sway*.13+roll,entry[1]+len*.23];
