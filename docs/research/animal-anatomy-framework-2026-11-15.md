@@ -368,6 +368,25 @@ reads the bird's ANIM1 flight:
 Frame strips of the crane, heron, sparrow and hawk were checked. UKIYO1 draws creatures on twos, so at 3 Hz a beat
 shows five distinct poses.
 
+## Fur strands (2026-11-16)
+
+`animal-fur.ts` is ANIM1's fur. Its direction field comes from Walter Kidd, *The Direction of Hair in Animals and Man*
+(London, 1903; public domain, full text on the Internet Archive, `cu31924003075425`):
+
+- "The slope was from the tip of the snout to the caudal extremity of the animal, along the head, neck and trunk, and
+  on the limbs from the proximal to the distal ends."
+- On the flank, "the general backward and downward direction of hair".
+- "In nearly all CARNIVORES and UNGULATES an area of reversed hair, where the 'knee' of the animal rests in flexion,
+  during lying and sitting, against the flank."
+
+Strands are seeded inside the trunk and head outlines (rejection sampling) and along the limb, neck and tail tubes.
+Each is laid in three steps along the field, so it curves with the coat.
+
+**First renders** seeded the strands in the mass ellipses, so hair stuck out past the belly and the rump. The traced
+flow arrows also ran off the body. Both now stop at the outline.
+
+**Not modelled:** Kidd's whorls and partings for particular species.
+
 ## Not done
 
 - Front and back constructions in ANIM1 (styles draw their own).

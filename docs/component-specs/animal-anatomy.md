@@ -32,6 +32,7 @@ The style decides only how it looks. It mirrors [ANAT1](human-anatomy.md) for pe
 
 | Layer | File | What it holds |
 |---|---|---|
+| Fur | `animal-fur.ts` | `furDirection(skeleton, point)` (the direction the hair lies, after Kidd 1903), `furStrands(skeleton, options)` (seeded strands of hair laid along it, long in the species' long-coated regions), `furStreamlines` (flow arrows). `AnimalFigure`'s `fur` mode draws them. |
 | Growth | `animal-growth.ts` | `GROWTH` rules (ungulates, carnivores, small mammals, primates, birds): height at the youngest age, each leg segment's share of adult length, trunk, neck, head and tail, and the baby-schema face (muzzle, eye, ear). `juvenileConstruction(c, age)`, `heightAt`, `growthRule`, `coatAt` (young coats from `CoatVariant.age`). |
 | Flight | `animal-flight.ts` | `BIRD_FLIGHT` per bird: wing planform (type, aspect ratio, hand share, tip and fingers), stroke (top and bottom elevation, downstroke share, upstroke fold), flight style (flapping, flap-and-glide, bounding, bursts), glide shape, neck and legs in flight. `wingbeatHz` / `speciesWingbeat` (Pennycuick 1990), `wingStroke`, `flightAt` (seconds → beat, glide or closed wings), `wingPlanform`, `placeWing`, `projectWing`. |
 | Postures | `animal-postures.ts` | `ANIMAL_POSTURES` (sit, lie, rest, rear): per body plan, the body's pitch (graded, with sources), how the fore and hind legs are held, how far the neck and head follow, and the frames it takes. `postureFit(plan, posture, canRear)`. |
@@ -171,6 +172,27 @@ turns time into these for the species' style.
 - **Neck and legs.** Herons draw the neck back into the shoulders and cranes stretch it out (reported: Wikipedia), and
   both trail their legs. The others tuck their legs. The body slims in the air.
 
+## Fur
+
+`furDirection(s, p)` gives the direction the hair lies anywhere on a posed four-legged animal. It follows Walter Kidd,
+*The Direction of Hair in Animals and Man* (1903, public domain):
+
+- **The basic slope.** "The slope was from the tip of the snout to the caudal extremity of the animal, along the head,
+  neck and trunk, and on the limbs from the proximal to the distal ends."
+- **The flank.** Its "general backward and downward direction".
+- **The reversed patch** where the flexed knee rests against the flank "in nearly all CARNIVORES and UNGULATES".
+
+`furStrands(s, { seed, density, length, long })` seeds strands inside the trunk and head outlines and along the limbs,
+neck and tail, and lays each one along the field in three short steps:
+
+- **Length** comes from the coat type (sleek, dense, shaggy, bristly). Strands are 2.2× long in the species'
+  long-coated regions (the fox's brush and throat, the bear's ruff) and shorter on the head and limbs. The amounts are
+  estimated.
+- **Determinism.** The strands are deterministic for a seed and follow the pose (a sitting dog, a lying ox).
+- **Not for birds and fish.** Feathers and scales have their own structure, so these return none.
+
+`AnimalFigure`'s `fur` mode draws the strands, with streamlines of the same field as arrows (`furStreamlines`).
+
 ## Young animals
 
 `juvenileConstruction(c, age)` reshapes a species' construction for `age` from 0 (the youngest that stands; newborn
@@ -237,6 +259,8 @@ crouching rabbit and mouse are deliberate, pending the owner's word on the tanuk
 - Side view only for the construction; front and back views are the style's.
 - Postures are for four-legged animals; birds fly, but have no roosting or one-legged postures yet, and fish swim only.
 - Flight is side view only (plus the camera's tilt); there is no banking, turning, take-off or landing yet.
+- Fur follows Kidd's general slope and one reversed patch; whorls, partings and the many reversed areas he records
+  for particular species (the horse's flank whorl, the ox's back) are not modelled.
 - Growth amounts beyond the horse's leg bones and the Beagle's limbs and height are estimated; birds' chicks are
   rough (downy proportions, no feather development).
 - An open wing paints the species' `wings` swatch over all of it. A folded-wing colour that only shows at rest (the

@@ -17,7 +17,8 @@ The pack `animal-anatomy` decides *what the animal is*: its build, face, coat, g
    coat region. Draw over it in your medium; do not invent proportions.
 3. **Face.** Take the eye position and size, ear size and placement, head depth and the defining features from
    `species.face`. Keep its "do not" notes ("a bear does not smile", "not a fox's long snout").
-4. **Colour and fur.** Use `species.coat`:
+4. **Colour and fur.** For fur drawn stroke by stroke, lay strokes along `furDirection` or draw `furStrands` (after
+   Kidd: snout to tail, down the limbs, back and down the flank). Use `species.coat`:
    - `palette` swatches are painted by `fill` (area, tip, band, eye-patch; accents are palette only);
    - `long` lists the long-coated regions, `lay` says how the coat lies;
    - `markings` and `variants` give the seasonal and juvenile coats.

@@ -3815,6 +3815,11 @@
         },
         {
           "type": "registry:ui",
+          "target": "components/anatomy/animal-fur.ts",
+          "path": "registry/anatomy/animal-fur.ts"
+        },
+        {
+          "type": "registry:ui",
           "target": "components/anatomy/animal-plans.ts",
           "path": "registry/anatomy/animal-plans.ts"
         },
