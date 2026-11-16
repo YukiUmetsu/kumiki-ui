@@ -27,6 +27,14 @@ test("RISO32 moving thumb IP remains attached at contact, release and both ink m
       await expect(svg).toBeVisible();
       await expect(panel.locator("[data-km-riso-part$='glove-thumb-distal-phalanx']")).toHaveCount(1);
       expect(Number(await panel.getAttribute("data-km-riso30-crop-margin"))).toBeGreaterThan(0);
+      // Measured physically printable RED SVG silhouettes, not only rig axes.
+      await expect(panel).toHaveAttribute("data-km-riso36-source-contours","12");
+      const actualInkGap=Number(await panel.getAttribute("data-km-riso36-minimum-distal-ink-gap"));
+      const crossInkContacts=Number(await panel.getAttribute("data-km-riso36-ink-contacts"));
+      expect(Number.isFinite(actualInkGap)).toBe(true);
+      expect(actualInkGap).toBeGreaterThanOrEqual(0);
+      expect(crossInkContacts).toBeGreaterThanOrEqual(0);
+      expect(crossInkContacts).toBeLessThanOrEqual(27);
       const measured=Number(await panel.getAttribute("data-km-riso33-minimum-axis-gap"));
       expect(Number.isFinite(measured)).toBe(true);
       if(frame===160||frame===166){
