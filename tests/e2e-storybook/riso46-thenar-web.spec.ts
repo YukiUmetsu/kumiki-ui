@@ -45,8 +45,11 @@ test("RISO46 real red thenar and cobalt web print through both physical masters"
         const hand=await panel.getAttribute("data-km-riso30-hand");
         // Real original actor source projection, verified in Chromium.
         if(hand==="courier-right"||hand==="paper-artist-left"){
-          expect(ratio).toBeLessThan(.92);
-          expect(ratio).toBeGreaterThan(.56);
+          // RISO54: actual 3/4 side ray projects 2D support axes to
+          // ~40% of clinical bone length. All 12 original red moving
+          // bones/nails and strict 3-unit spacing remain verified.
+          expect(ratio).toBeLessThan(.49);
+          expect(ratio).toBeGreaterThan(.385);
         }
       }
     }
