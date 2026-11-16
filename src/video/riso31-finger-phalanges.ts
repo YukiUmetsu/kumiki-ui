@@ -44,6 +44,26 @@ export const RISO31_ANAT1_REFERENCE={
   projection:"stylized source frontal 2D — no inferred 3D hand" as const,
 };
 
+/** RISO39 / observed paper-edge pinch. A real opposed index bends its
+ * PIP/DIP much more than an open hand's background three digits. Source
+ * flexion stays strictly inside Kumiki ANAT1's independently recorded
+ * clinical joint range, but is projected as an EDITORIAL two-dimensional
+ * pose, not claimed observed three-dimensional individual anatomy.
+ *
+ * At contact the index tip curls back near the already moving thumb IP;
+ * ring/little fingers keep the formerly passing noncrossing fan. */
+const indexPipClinical=JOINTS.find(j=>j.id==="finger2-pip")?.dofs.flex;
+const indexDipClinical=JOINTS.find(j=>j.id==="finger2-dip")?.dofs.flex;
+if(!indexPipClinical||!indexDipClinical)throw new Error("RISO39 requires anatomical index PIP/DIP ranges");
+export const RISO39_INDEX_OPPOSITION={
+  reference:"ANAT1 finger2 PIP/DIP clinical maxima, Proko opposing paper-edge pinch",
+  fullProjectedPipFlex:Math.min(104,indexPipClinical.max*.94),
+  fullProjectedDipFlex:Math.min(70,indexDipClinical.max*.875),
+  pipClinicalMax:indexPipClinical.max,
+  dipClinicalMax:indexDipClinical.max,
+  role:"index pinch against moving opposed thumb, not four identical curl fingers",
+} as const;
+
 /** Explicit source 2D curvature per joint and frame. No detached nail dot.
  * The index and little finger curl toward the middle of the palm rather than
  * four parallel copies all rotating by an identical amount. */
@@ -52,10 +72,14 @@ export function riso31PhalanxJoints(side:Riso31Side):readonly RisoJoint[]{
   for(const digit of FINGERS){
     const spec=RISO31_GEOMETRY[digit],prefix=side+"-"+digit;
     const handed=side==="right"?1:-1;
-    const pip=anatomical(spec.fingerIndex,"pip")*
-      RISO31_ANAT1_REFERENCE.projectedPinchFactor*handed*spec.curlDirection;
-    const dip=anatomical(spec.fingerIndex,"dip")*
-      RISO31_ANAT1_REFERENCE.projectedPinchFactor*.66*handed*spec.curlDirection;
+    const pip=digit==="index"?
+      RISO39_INDEX_OPPOSITION.fullProjectedPipFlex*handed:
+      anatomical(spec.fingerIndex,"pip")*
+        RISO31_ANAT1_REFERENCE.projectedPinchFactor*handed*spec.curlDirection;
+    const dip=digit==="index"?
+      RISO39_INDEX_OPPOSITION.fullProjectedDipFlex*handed:
+      anatomical(spec.fingerIndex,"dip")*
+        RISO31_ANAT1_REFERENCE.projectedPinchFactor*.66*handed*spec.curlDirection;
     const delay=side==="left"?6:0;
     result.push({
       id:prefix+"-pip",parent:prefix,x:0,y:spec.proximal,keys:[
