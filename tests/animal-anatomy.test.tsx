@@ -107,6 +107,16 @@ describe("ANIM1 checks applied to UKIYO1", () => {
       expect(findings.filter(x => x.status !== "ok").map(x => x.message), id).toEqual([]);
     }
   });
+
+  it("draws the tanuki, hare and mouse in two builds: the low print build, and a natural build inside ANIM1's ranges", () => {
+    for (const id of ["tanuki", "rabbit", "mouse"] as const) {
+      const natural = checkAnimalProportions(id, measureAnimal(ukiyoeBeastLandmarks(id, "natural")!, false)), print = checkAnimalProportions(id, measureAnimal(ukiyoeBeastLandmarks(id)!, false));
+      expect(natural.find(x => x.key === "legClearance")!.status, id).toBe("ok");
+      expect(print.find(x => x.key === "legClearance")!.status, `${id} print stays low`).toBe("low");
+    }
+    // Animals already in range draw the same in both builds.
+    expect(ukiyoeBeastLandmarks("fox", "natural")).toEqual(ukiyoeBeastLandmarks("fox"));
+  });
 });
 
 describe("AnimalSheet", () => {
