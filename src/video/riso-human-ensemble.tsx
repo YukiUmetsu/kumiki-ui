@@ -37,9 +37,9 @@ const staticLeg=(j:RisoJoint):RisoJoint=>{
   // human ANAT1 PIP/DIP sources and indexed thumb opposition unchanged.
   // Distinct MCP fan arcs follow paper contact; no pasted silhouette.
   const supportMcpContact={
-    "left-middle":{pinch:34,hold:25},
-    "left-ring":{pinch:30,hold:23},
-    "left-pinky":{pinch:26,hold:21},
+    "left-middle":{pinch:34,hold:25,splay:3.0},
+    "left-ring":{pinch:30,hold:23,splay:1.25},
+    "left-pinky":{pinch:26,hold:21,splay:0},
   } as const;
   const support= supportMcpContact[j.id as keyof typeof supportMcpContact];
   if(support){
@@ -55,7 +55,8 @@ const staticLeg=(j:RisoJoint):RisoJoint=>{
       .sort((a,b)=>a.frame-b.frame).map(key=>{
         const add=key.frame>=198?support.hold:
           key.frame>=156?support.pinch:0;
-        return {...key,rotate:(key.rotate??0)+add};
+        return {...key,rotate:(key.rotate??0)+add,
+          x:(key.x??0)+(key.frame>=156?support.splay:0)};
       })};
   }
 
