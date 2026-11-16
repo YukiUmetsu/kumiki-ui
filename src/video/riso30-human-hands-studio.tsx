@@ -75,6 +75,17 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const riso51PalmChanged=mainPalmSource?.d!==actor.parts.find(p=>p.id===side+"-glove")?.d;
   const riso52TerminalPairs=riso52ExpectedOriginalSourceIds(side).filter(id=>
     actor.parts.some(p=>p.id===id&&p.pathKeys?.length)).length/2;
+  // Actual evaluated RED distal source (not a hand-wavy artist flag).
+  // A true curl returns the DIP positive-ink tip toward the palm,
+  // instead of leaving RISO54's three linear red printed rakes.
+  const riso55TerminalCount=["middle","ring","pinky"].filter(digit=>{
+    const id=side+"-glove-"+digit+"-distal-phalanx";
+    const original=actor.parts.find(p=>p.id===id);
+    const sample=pose.parts.find(p=>p.id===id);
+    return original?.pathKeys&&sample?.d!==original.d&&
+      (sample.d.match(/[Cc]/g)??[]).length===
+        (original.d.match(/[Cc]/g)??[]).length;
+  }).length;
   const mcpSourcePlaneCount=(mcpPlateSource?.d.match(/[Mm]/g)??[]).length;
   const palmSourceCubicCount=(mainPalmSource?.d.match(/[Cc]/g)??[]).length;
   // Exact live anatomical source stations, not a visual proxy or an
@@ -111,6 +122,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso50-palm-cubics={palmSourceCubicCount}
     data-km-riso51-live-source-morph-parts={riso51MorphParts}
     data-km-riso52-cobalt-red-terminal-pairs={riso52TerminalPairs}
+    data-km-riso55-folded-source-tip-count={riso55TerminalCount}
     data-km-riso51-palm-projected={String(riso51PalmChanged)}
     data-km-riso53-original-red-support-behind-palm={riso53VisibleSourceOrder}
     data-km-riso54-native-web-reserves={riso54Web?.sourceCount??0}
@@ -192,7 +204,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO54</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO55</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
