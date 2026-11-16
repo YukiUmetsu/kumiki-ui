@@ -21,6 +21,17 @@ export const RISO47_PALM_RECONSTRUCTION={
   medium:"one closed positive red Risograph print master, original two-ink layering",
 } as const;
 
+/** RISO50 original source continuation: angled three-quarter carpal cup,
+ * differentiated flesh volumes and sixteen articulated Bézier transitions.
+ * Source-control tests must retain every RISO47 and RISO46 engraved mark.
+ */
+export const RISO50_PALM_CRAFT={
+  mainRedMaster:"positive-ink only" as const,
+  clinicalAnchors:["thenar","hypothenar","pisiform","index MCP","ulnar MCP"] as const,
+  authoredCubicCount:16,
+  source:"Proko palmar muscle-group construction & observed f160 native hand image",
+  noPhotoTrace:true,
+} as const;
 export function riso47PalmContour(actor:Riso47Actor,side:Riso47Side):string{
   const hand=side==="right"?1:-1;
   const artist=actor==="paper-artist";
@@ -31,22 +42,32 @@ export function riso47PalmContour(actor:Riso47Actor,side:Riso47Side):string{
   const radial=artist?0.43:0.05,heel=artist?0.55:0.18,knuckle=artist?0.36:0.12;
   const c=(a:number,b:number)=>`${x(a)} ${n(b)}`;
   return [
-    `M${c(6.4,-2.21)}`,
-    `C${c(8.12,-2.9)} ${c(9.46+radial,-1.11)} ${c(9.64+radial,1.16)}`,
-    `C${c(10.67+radial,3.45)} ${c(9.9,6.25)} ${c(9.92,8.44)}`,
-    `C${c(11.07,10.06)} ${c(10.04,12.36)} ${c(10.45,14.16)}`,
-    `C${c(11.13,16.47)} ${c(10.01,18.02)} ${c(8.32,18.15)}`,
-    // Four unequal positive knuckle shoulders and shallow inter-digit
-    // valleys. Finger *bones* and their own red/cobalt plates are separate.
-    `C${c(7.69,19.55)} ${c(6.22,20.19+knuckle)} ${c(4.78,19.33)}`,
-    `C${c(3.06,20.53+knuckle)} ${c(1.04,21.16)} ${c(-.65,19.96)}`,
-    `C${c(-2.18,20.49)} ${c(-4.43,20.24+knuckle)} ${c(-5.36,18.87)}`,
-    `C${c(-7.29,19.66)} ${c(-8.85,18.44+heel)} ${c(-9.15,16.45)}`,
-    `C${c(-10.99-heel,14.63)} ${c(-10.02,11.91)} ${c(-9.49,9.84)}`,
-    `C${c(-10.66-heel,7.37)} ${c(-10.28,4.04)} ${c(-9.18,2.0)}`,
-    `C${c(-9.82,-.63)} ${c(-8.02,-2.78)} ${c(-6.27,-2.36)}`,
-    `C${c(-3.68,-2.73)} ${c(-2.31,-1.97)} ${c(-.86,-2.22)}`,
-    `C${c(1.22,-2.71)} ${c(3.37,-1.83)} ${c(4.66,-2.31)}`,
-    `C${c(5.34,-2.43)} ${c(5.84,-2.42)} ${c(6.4,-2.21)} Z`,
+    // RISO50 primary positive silhouette, same original named RED glove.
+    // The three-quarter palm tapers into a REAL wrist and carries a
+    // dissimilar, proximal-to-distal staggered MCP crest. Unlike the
+    // previous 20-unit balloon, the ulnar heel cuts inward before turning
+    // into three independent source RED finger bases.
+    `M${c(5.12,-2.25)}`,
+    `C${c(7.10,-2.84)} ${c(8.14+radial,-1.18)} ${c(7.86+radial,1.18)}`,
+    `C${c(7.62+radial,3.33)} ${c(8.96+radial,5.09)} ${c(9.17+radial,7.58)}`,
+    `C${c(10.23+radial,9.27)} ${c(10.68,10.68)} ${c(9.08,12.40)}`,
+    `C${c(10.45+radial,14.19)} ${c(11.13,15.87)} ${c(9.86,17.27)}`,
+    `C${c(9.28,18.24)} ${c(8.21,18.63)} ${c(7.21,17.98)}`,
+    // First MCP is a rolled radial eminence, not one continuous smile
+    // connecting all knuckle pits; the interdigit valleys are real
+    // changes of positive red silhouette, not shallow screen overlays.
+    `C${c(6.33,18.92)} ${c(5.72,20.31+knuckle)} ${c(4.21,19.02)}`,
+    `C${c(2.79,20.41+knuckle)} ${c(.65,21.17)} ${c(-.54,19.38)}`,
+    `C${c(-2.09,20.42+knuckle)} ${c(-4.16,19.91)} ${c(-5.16,18.32)}`,
+    `C${c(-6.37,19.39)} ${c(-8.22-heel,18.12)} ${c(-8.78-heel,16.23)}`,
+    // The ulnar carpal transition is a flatter, bony change of plane
+    // at the pisiform, while the thenar side stays continuously rounded.
+    `C${c(-9.20-heel,14.42)} ${c(-8.64,12.31)} ${c(-7.66,10.34)}`,
+    `C${c(-8.88-heel,8.72)} ${c(-8.94-heel,6.58)} ${c(-8.19,4.44)}`,
+    `C${c(-8.73-heel,2.39)} ${c(-8.14,1.00)} ${c(-6.58,-.74)}`,
+    `C${c(-5.68,-1.48)} ${c(-4.93,-1.02)} ${c(-4.10,-1.66)}`,
+    `C${c(-2.66,-2.15)} ${c(-1.50,-2.12)} ${c(-.46,-1.99)}`,
+    `C${c(.89,-2.13)} ${c(2.20,-2.53)} ${c(3.43,-2.10)}`,
+    `C${c(4.14,-2.03)} ${c(4.74,-2.13)} ${c(5.12,-2.25)} Z`,
   ].join(" ");
 }
