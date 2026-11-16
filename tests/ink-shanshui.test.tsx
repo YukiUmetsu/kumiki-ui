@@ -3072,4 +3072,45 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(empty).not.toContain("data-km-ink-character-frame");
     expect(empty.length).toBeLessThan(rich.length);
   });
+
+  it("keeps nine original source-supported alum-head stone caps with all 27 attached microdeposits, independent of seed",()=>{
+    const paint=(seed:number,school:"fuchun"|"early-spring"="fuchun")=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,detail:1,ink:.9,mist:.35,seed},
+      }));
+    const a=paint(71),again=paint(71),b=paint(87);
+    expect(a).toBe(again);
+    const crowns=[...a.matchAll(/data-km-master-fuchun-alum-head="" data-km-master-fuchun-alum-head-root="([^"]+)" data-km-master-fuchun-alum-head-bank="(\d+)" data-km-master-fuchun-alum-head-station="([^"]+)"/g)];
+    const volumes=[...a.matchAll(/data-km-master-fuchun-alum-head-volume="" d="([^"]+)" fill="url\(#([^"]+)\)"/g)];
+    const lips=[...a.matchAll(/data-km-master-fuchun-alum-head-lip="" d="([^"]+)"/g)];
+    expect(crowns).toHaveLength(9);
+    expect(volumes).toHaveLength(9);
+    expect(lips).toHaveLength(9);
+    expect((a.match(/data-km-master-fuchun-alum-head-moss=""/g)??[])).toHaveLength(27);
+    expect((a.match(/data-km-master-fuchun-alum-head-field=""/g)??[])).toHaveLength(3);
+    for(let k=0;k<9;k++){
+      const [x,y]=crowns[k][1].split(",").map(Number);
+      expect([x,y].every(Number.isFinite)).toBe(true);
+      expect(Number(crowns[k][2])).toBeLessThan(5);
+      expect(Number(crowns[k][3])).toBeGreaterThan(.1);
+      expect(Number(crowns[k][3])).toBeLessThan(.85);
+      expect(volumes[k][1].startsWith("M"+crowns[k][1].replace(","," ")))
+        .toBe(true);
+      expect((volumes[k][1].match(/ C/g)??[])).toHaveLength(6);
+      expect(volumes[k][1].endsWith(" Z")).toBe(true);
+      expect(lips[k][1].startsWith("M")).toBe(true);
+      expect(a.includes('id="'+volumes[k][2]+'"')).toBe(true);
+    }
+    expect((a.match(/data-km-master-fuchun-hillback=""/g)??[])).toHaveLength(6);
+    expect((a.match(/data-km-master-fuchun-cross-shelf=""/g)??[])).toHaveLength(12);
+    expect((a.match(/data-km-master-stroke-bank-station=/g)??[])).toHaveLength(78);
+    expect((a.match(/data-km-master-stratum=""/g)??[])).toHaveLength(15);
+    const crownsB=[...b.matchAll(/data-km-master-fuchun-alum-head-volume="" d="([^"]+)"/g)];
+    expect(crownsB).toHaveLength(9);
+    expect(crownsB.some((m,k)=>m[1]!==volumes[k][1])).toBe(true);
+    expect(paint(71,"early-spring")).not.toContain("data-km-master-fuchun-alum-head");
+    expect(a).not.toContain("<image ");
+    expect(a).not.toContain("data:image/");
+  });
 });
