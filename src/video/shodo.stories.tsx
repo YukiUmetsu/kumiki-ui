@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ShodoBrushCloseUp, ShodoBrushMotionStudy, ShodoCharacterGallery, ShodoFilmShot, ShodoKanjiCard, ShodoTechniquesBoard } from "./shodo-demos";
+import { ShodoBrushCloseUp, ShodoBrushMotionStudy, ShodoCharacterGallery, ShodoFilmShot, ShodoKanjiCard, ShodoTechniquesBoard, parseWordHighlights } from "./shodo-demos";
 import type { JlptLevel, KanjiCardInk, KanjiCardLayout, KanjiCardPhase, KanjiCardWord } from "./shodo-demos";
 import { ShodoStudio } from "./shodo-studio";
 
@@ -46,6 +46,9 @@ interface KanjiCardArgs {
   ink: KanjiCardInk;
   highlightStroke: number;
   strokeNumbers: boolean;
+  /** Word highlight cues as text: "word@seconds", with an optional "+hold". */
+  wordHighlights: string;
+  highlightMotion: "viewer" | "full" | "fade";
 }
 
 // A cleared number field gives null or NaN; treat both as "not set".
@@ -61,7 +64,9 @@ function KanjiCardFromArgs(args: KanjiCardArgs) {
     speed={args.speed} timing={{ write: seconds(args.writeSeconds), review: seconds(args.reviewSeconds), info: seconds(args.infoSeconds) }}
     sections={{ label: args.showLabel, meanings: args.showMeanings, readings: args.showReadings, jlpt: args.showJlpt, words: args.showWords }}
     cardFrom={args.cardFrom} ink={args.ink} strokeNumbers={args.strokeNumbers}
-    vermilionStrokes={args.highlightStroke > 0 ? [Math.round(args.highlightStroke)] : []} />;
+    vermilionStrokes={args.highlightStroke > 0 ? [Math.round(args.highlightStroke)] : []}
+    wordHighlights={parseWordHighlights(args.wordHighlights ?? "")}
+    reducedMotion={args.highlightMotion === "viewer" ? undefined : args.highlightMotion === "fade"} />;
 }
 
 const KANJI_CARD_ARG_TYPES = {
@@ -83,6 +88,8 @@ const KANJI_CARD_ARG_TYPES = {
   ink: { control: "inline-radio", options: ["sumi", "vermilion"], description: "Ink for the whole character." },
   highlightStroke: { control: { type: "number", min: 0, step: 1 }, description: "One stroke (from 1) written in vermilion. 0: none." },
   strokeNumbers: { control: "boolean", description: "Order numbers in the review pass." },
+  wordHighlights: { control: "text", description: "Highlight the useful words one at a time: word@seconds, with an optional +hold (default 2.5 s). Words count from 0; seconds count from the start of the video (the frame readout). Example: 0@3, 1@6.5+1.5, 2@9." },
+  highlightMotion: { control: "inline-radio", options: ["viewer", "full", "fade"], description: "\"viewer\" follows prefers-reduced-motion; \"fade\" has no scale or lift; \"full\" always lifts (use it for an export)." },
   initialText: { table: { disable: true } }, initialStyle: { table: { disable: true } },
 } as const;
 
@@ -90,6 +97,8 @@ const KANJI_CARD_ARGS: KanjiCardArgs = {
   char: "道", heading: "Kanji study", jlpt: "sample", layout: "landscape", speed: 1.6, infoSeconds: 4,
   showLabel: true, showMeanings: true, showReadings: true, showJlpt: true, showWords: true,
   cardFrom: "write", ink: "sumi", highlightStroke: 0, strokeNumbers: true,
+  // One word in each phase: write, review and info.
+  wordHighlights: "0@8, 1@20, 2@29", highlightMotion: "viewer",
 };
 
 /**
@@ -108,7 +117,7 @@ export const KanjiCard: StoryObj<typeof KanjiCardFromArgs> = {
 export const KanjiCardShort: StoryObj<typeof KanjiCardFromArgs> = {
   name: "SHO1 · Kanji study card (9:16 short)",
   render: args => <KanjiCardFromArgs {...args} />,
-  args: { ...KANJI_CARD_ARGS, layout: "portrait", writeSeconds: 7, reviewSeconds: 9, infoSeconds: 4 },
+  args: { ...KANJI_CARD_ARGS, layout: "portrait", writeSeconds: 7, reviewSeconds: 9, infoSeconds: 4, wordHighlights: "0@4, 1@11, 2@16.5" },
   argTypes: KANJI_CARD_ARG_TYPES,
 };
 

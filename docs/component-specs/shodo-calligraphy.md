@@ -111,6 +111,8 @@ The ink of the character is centred in the writing panel, not in the full frame.
 | `ink` | `"sumi"` | `"sumi"` (black) or `"vermilion"` for the whole character. |
 | `speed` | `1.6` | Hand speed (0.25..4) when `timing.write` is not set. |
 | `strokeNumbers` | `true` | The order numbers in the review pass. |
+| `wordHighlights` | none | Timed highlights of the useful words: `{ word, at, hold? }[]`. See *Word highlights*. |
+| `reducedMotion` | the viewer's setting | `true`: the word highlight has no scale or lift (fade only). Give `true` or `false` for a video export. |
 | `layout` | `"landscape"` | `"landscape"` is 16:9 (1280 × 720), card on the right. `"portrait"` is 9:16 (720 × 1280) for phone shorts, card under the sheet. |
 | `timing` | `{}` | Seconds per phase: `write` (default: the natural pace of the brush at speed 1.6), `review` (default: the same as `write`), `info` (default: 4). A phase of 0 s is skipped. When `write` is set (or `review`, with `write: 0`), the hand speed is fitted to it (0.25 to 4), and each pass is then stretched to its phase. |
 | `sections` | all `true` | Turn off `label`, `meanings`, `readings`, `jlpt` or `words`. A part with no data never shows. With no card parts, the sheet fills the frame. |
@@ -122,7 +124,27 @@ The ink of the character is centred in the writing panel, not in the full frame.
 
 **Layout of the 9:16 card.** The readings stand side by side, with the JLPT badge on the same row. The useful words are tiles in one row (up to 3; 4 words make a 2 × 2 grid). Each tile has the word with its furigana, then the romaji and the meaning.
 
-**Storybook controls.** Both kanji-card stories have controls for every setting: the character, the card data (empty fields use the 道 sample), the speed, the phase times, the layout, the sections, the ink, one highlighted stroke and the stroke numbers.
+**Storybook controls.** Both kanji-card stories have controls for every setting: the character, the card data (empty fields use the 道 sample), the speed, the phase times, the layout, the sections, the ink, one highlighted stroke, the stroke numbers, the word highlights and the highlight motion.
+
+### Word highlights
+
+`wordHighlights` highlights the useful word cards one at a time, for example while a voice-over says each word.
+
+- **Cue format.** One cue is `{ word, at, hold? }`:
+  - `word` is the index in `words`, from 0.
+  - `at` is in seconds from the start of the video. This is the clock of the frame readout (frame / 30).
+  - `hold` is in seconds. The default is 2.5 s (`KANJI_WORD_HOLD`), and the eases are included in it.
+  - A voice-over cue list gives the cues directly: `at` is the start time of the spoken word, and `hold` is its length plus a short tail. The Storybook text control and `parseWordHighlights` read the same cues as text: `0@3, 1@6.5+1.5` means word 0 at 3 s, then word 1 at 6.5 s for 1.5 s.
+- **One at a time.** When cues overlap, the later cue wins (by `at`, then by list order). The earlier highlight ends where the later one starts. A cue with an index outside `words`, or with a time that is not a number, is ignored.
+- **Animation.** The highlight eases in during the 0.25 s after `at` (`KANJI_WORD_EASE`). It eases out during the 0.25 s before it ends.
+  - At a handover, the earlier word eases out just before the later cue, and the later word eases in from the cue time.
+  - The strength (0..1) comes from `wordHighlightAt(cues, seconds)`, a pure function of the video time, so every frame of an export is the same. There are no CSS transitions.
+- **Look.** The highlighted card gets a light vermilion tint, a vermilion ring and vermilion romaji. The other word cards dim to 70 % opacity.
+  - **9:16 tiles:** the tile lifts by 6 design px and scales to 1.045.
+  - **16:9 list:** the row scales to 1.03 about its centre, over a tint layer that takes no space.
+  - Only transforms and shadows change. The layout does not move, and the scaled card stays inside the card panel (measured on every checked frame).
+- **Reduced motion.** With `reducedMotion` (default: the viewer's prefers-reduced-motion setting), there is no scale and no lift. Only the tint, the ring and the dimming fade.
+- **Before the reveal.** A highlighted word card shows also before the card text fades in (`cardFrom`). It fades in and out with its highlight, and the rest of the card stays hidden until its reveal.
 
 **Phone fit.** In the portrait layout, body text is 25 design px or more and the furigana is 22 design px. On a phone frame 390 px wide, this gives 13.5 px body text and 11.9 px furigana. If long text does not fit the card, its text gets smaller, to 60 % at the least, before anything is cut. The card reports `data-km-fit` and `data-km-overflow`. The frame reports `data-km-ink-box`, `data-km-timeline` and `data-km-kanji-phase` for rendered-bounds checks.
 
