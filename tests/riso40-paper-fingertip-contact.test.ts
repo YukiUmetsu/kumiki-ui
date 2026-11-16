@@ -3,6 +3,9 @@ import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,evaluateRisoHumanEnsemble} from "../src/video/riso-human-ensemble";
 import {evaluateRiso40PaperGrip} from "../src/video/riso40-paper-fingertip-contact";
 import {inspectRiso39OpposedPaperPinch} from "../src/video/riso39-opposed-paper-pinch";
+import {evaluateRisoCharacter} from "../registry/video/riso-character";
+import {riso36WorldContour} from "../src/video/riso36-red-silhouette-gate";
+import {selectRisoSourceContour} from "../registry/video/riso-path-geometry";
 
 const actors=[COURIER,PAPER_ARTIST] as const;
 const sides=["right","left"] as const;
@@ -64,6 +67,23 @@ describe("RISO40 real letter-contact geometry / original film FK/IK rig",()=>{
       // Hold/release source always derives from original joints, not the
       // previous frame or an independent sheet motion track.
       expect(evaluateRisoHumanEnsemble(frame,aspect)).toEqual(p);
+    }
+  });
+
+  it.each(aspects)("received letter stays above planted shoes, not through the floor (%s)",aspect=>{
+    for(const frame of [202,239]){
+      const p=evaluateRisoHumanEnsemble(frame,aspect);
+      const sheetBottom=Math.max(...selectRisoSourceContour(p.sheet,undefined,.35).map(pt=>pt[1]));
+      const bootBottoms=([COURIER,PAPER_ARTIST] as const).map((actor,i)=>{
+        const stage=i===0?p.first:p.second;
+        const source=evaluateRisoCharacter(actor,frame);
+        return Math.max(...source.parts.filter(part=>
+          part.id==="left-boot"||part.id==="right-boot").flatMap(part=>
+          riso36WorldContour(part.d,part.transform,.35).map(pt=>stage.y+pt[1]*stage.scale)));
+      });
+      const groundBaseline=Math.max(...bootBottoms);
+      expect(sheetBottom,aspect+" f"+frame+" letter penetrating foot-ground line")
+        .toBeLessThan(groundBaseline+1);
     }
   });
 
