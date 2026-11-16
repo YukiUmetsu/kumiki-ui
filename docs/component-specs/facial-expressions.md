@@ -1,7 +1,8 @@
 # EXPR1 — facial expressions for any art style
 
 **Registry item:** `facial-expressions` · **Files:** `registry/anatomy/expression-*.ts(x)` · **Storybook:** Video
-production → Art Foundations → Facial Expressions (Atlas, Sheet, Action unit lab) · **Skill:**
+production → Art Foundations → Facial Expressions (Atlas: rendered portraits of varied people or the construction
+line study; Sheet; Action unit lab) · **Skill:**
 [kumiki-facial-expressions](../../skills/kumiki-facial-expressions/SKILL.md) · **Research:**
 [facial expressions, 2026-11-15](../research/facial-expressions-framework-2026-11-15.md)
 

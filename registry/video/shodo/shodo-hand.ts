@@ -296,6 +296,51 @@ const TRAVEL: Record<ShodoStrokeKind, number> = {
   dot: 420, horizontal: 720, vertical: 640, "left-sweep": 780, "right-sweep": 600, rise: 900, turn: 680, curve: 640,
 };
 
+/** Radius of the largest circle inside a closed polygon, sampled on a grid. */
+function inscribedRadius(poly: readonly V[]): number {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const [x, y] of poly) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  let best = 0;
+  const n = 18;
+  for (let gy = 0; gy <= n; gy++) for (let gx = 0; gx <= n; gx++) {
+    const px = lerp(x0, x1, gx / n), py = lerp(y0, y1, gy / n);
+    let inside = false, dmin = Infinity;
+    for (let k = 0, m = poly.length, l = m - 1; k < m; l = k++) {
+      const [ax, ay] = poly[l], [bx, by] = poly[k];
+      if ((ay > py) !== (by > py) && px < ax + (bx - ax) * (py - ay) / (by - ay)) inside = !inside;
+      const ex = bx - ax, ey = by - ay, t = clamp(((px - ax) * ex + (py - ay) * ey) / ((ex * ex + ey * ey) || 1), 0, 1);
+      dmin = Math.min(dmin, Math.hypot(px - ax - t * ex, py - ay - t * ey));
+    }
+    if (inside) best = Math.max(best, dmin);
+  }
+  return best;
+}
+
+/**
+ * 結び: the loops of a path, as arc ranges. A point that comes back within `0.8 w` of a point at
+ * least `3 w` earlier closes a loop between them (overlapping loops are joined). Only a loop with
+ * room for an open counter counts: the largest circle inside it is 0.6 to 4 stroke widths
+ * across. A hairpin turn (arms closer than a stroke) and a wide bowl are not 結び.
+ */
+function shodoLoopWindows(path: readonly V[], arcs: readonly number[], w: number): [number, number][] {
+  const found: [number, number][] = [];
+  for (let j = 0; j < path.length; j++) {
+    for (let i = 0; i < j && arcs[j] - arcs[i] >= 3 * w; i++) {
+      if (Math.hypot(path[j][0] - path[i][0], path[j][1] - path[i][1]) <= .8 * w) { found.push([i, j]); break; }
+    }
+  }
+  found.sort((x, y) => x[0] - y[0]);
+  const merged: [number, number][] = [];
+  for (const [a, b] of found) {
+    const prev = merged[merged.length - 1];
+    if (prev && a <= prev[1]) prev[1] = Math.max(prev[1], b); else merged.push([a, b]);
+  }
+  return merged.filter(([a, b]) => {
+    const r = inscribedRadius(path.slice(a, b + 1));
+    return r >= .3 * w && r <= 2 * w;
+  }).map(([a, b]) => [arcs[a], arcs[b]]);
+}
+
 /** 送筆: one run of the centreline, with the start's ease-back and the end's lift built in. */
 function runSegments(
   path: V[], ctx: StrokeContext, kind: ShodoStrokeKind, opts: {
@@ -305,6 +350,8 @@ function runSegments(
 ): Segment[] {
   const arcs = arcTable(path), total = arcs[arcs.length - 1];
   const { style, seed } = ctx, T = style.technique;
+  // かな curves lift through their loops (結び) so the counter stays open.
+  const loops = kind === "curve" && T.musubiLift > 0 ? shodoLoopWindows(path, arcs, ctx.w) : [];
   const sweepOut = opts.lastRun && (opts.end === "harai" || opts.end === "nuki") && kind !== "right-sweep";
   const liftFrom = opts.end === "nuki" ? T.kenshinLift : T.haraiLift;
   const roho = opts.firstRun && !opts.pressedStart;
@@ -325,6 +372,10 @@ function runSegments(
       // 払い / 懸針: lift progressively while still moving.
       const lift = smooth((u - liftFrom) / (1 - liftFrom));
       p *= Math.pow(1 - lift, opts.end === "nuki" ? 1.25 : 1.05);
+    }
+    for (const [a, b] of loops) {
+      const into = Math.min(u * total - a, b - u * total) / (.3 * (b - a));
+      if (into > 0) p *= 1 - T.musubiLift * smooth(clamp(into, 0, 1));
     }
     const s = (opts.strokeArc0 + u * total) / Math.max(1, opts.strokeArcTotal);
     p *= 1 - decay * s;
@@ -439,6 +490,28 @@ function endSegments(
   return [{ duration: .03, pos: line(e, out), press: () => 0, phase: "shuhitsu", technique: end, step: 1, follow: .8 }];
 }
 
+/**
+ * A stroke's own press profile (`press`, one multiplier per centreline point): every sample's
+ * press is scaled by the profile where the sample lies nearest the centreline.
+ */
+function applyPressProfile(segs: Segment[], points: readonly ShodoPoint[], press: readonly number[]): void {
+  const at = (p: V): number => {
+    let best = Infinity, value = 1;
+    for (let i = 0; i < points.length - 1; i++) {
+      const a = points[i], b = points[i + 1];
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      const t = clamp(((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1), 0, 1);
+      const d = Math.hypot(a[0] + dx * t - p[0], a[1] + dy * t - p[1]);
+      if (d < best) { best = d; value = lerp(press[i], press[i + 1], t); }
+    }
+    return value;
+  };
+  for (const sg of segs) {
+    const base = sg.press;
+    sg.press = u => Math.min(.97, base(u) * at(sg.pos(u)));
+  }
+}
+
 /** The full program of one stroke, in em units. */
 function strokeProgram(spec: ShodoStrokeSpec, base: ShodoStyle, seed: number, strokeCount: number): { segs: Segment[]; land: V; start: ShodoStart; end: ShodoEnd } {
   // A stroke's own technique settings (a teacher's head, stop or lift) override the style's.
@@ -479,6 +552,7 @@ function strokeProgram(spec: ShodoStrokeSpec, base: ShodoStyle, seed: number, st
       { duration: T.tenHold, pos: line(pressed, b), press: ramp(peak, peak * .98), phase: "shuhitsu", technique: "ten", step: 1, pause: true },
       { duration: .14, pos: line(b, back), press: ramp(peak * .98, 0, t => Math.pow(t, .7)), phase: "shuhitsu", technique: "ten", step: 2, follow: .45 },
     );
+    if (spec.press) applyPressProfile(segs, spec.points, spec.press);
     return { segs, land, start: "uchikomi", end: "tome" };
   }
 
@@ -567,6 +641,7 @@ function strokeProgram(spec: ShodoStrokeSpec, base: ShodoStyle, seed: number, st
     segs.push(...endSegments(end, spec.kind, lastRun[lastRun.length - 1], dirAt(lastRun, true), spec.hook ? [spec.hook[0], spec.hook[1]] : undefined, ctx,
       runLengths[runLengths.length - 1], spec.joinEnd));
   }
+  if (spec.press) applyPressProfile(segs, spec.points, spec.press);
   return { segs, land: begin.land, start, end };
 }
 
@@ -881,4 +956,117 @@ export function shodoBrushPose(plan: ShodoPlan, seconds: number): ShodoBrushPose
     ink: t < first.t0 ? plan.style.ink.load : last.ink, contact: false, phase: "rest", technique: null, stroke: next,
     color: before ? first.color : last.nextColor, leanX: restLean[0], leanY: restLean[1],
   };
+}
+
+// ── Stroke numbers (筆順) ───────────────────────────────────────────────────────────
+
+/** A stroke-order number placed next to the start of its stroke. */
+export interface ShodoStrokeNumber {
+  /** Writing order from 1. Links (連綿) are not counted. */
+  number: number;
+  /** Index of the stroke in `plan.strokes`. */
+  stroke: number;
+  /** Time when the brush lands for the stroke, s. */
+  t0: number;
+  /** Centre of the number, design px. */
+  x: number;
+  y: number;
+  /** Point where the brush lands (the first point of the stroke), design px. */
+  anchor: readonly [number, number];
+  /** Text size (font size), design px. */
+  size: number;
+  /** True when no clear place was near enough, so the number sits on the ink at its stroke's start. */
+  onInk: boolean;
+}
+
+export interface ShodoStrokeNumberOptions {
+  /** Text size (font size), design px. Default: 0.42 of the brush diameter, at least 12. */
+  size?: number;
+  /** Keep every number inside this rectangle, design px (for example, the sheet). */
+  bounds?: { x: number; y: number; width: number; height: number };
+  /** Label only these strokes (writing order from 1). The other strokes keep their numbers. */
+  only?: readonly number[];
+}
+
+/** Half width and half height of the box that a number with `digits` digits uses at `size`, halo included. */
+export function shodoStrokeNumberBox(digits: number, size: number): readonly [number, number] {
+  return [digits * .6 * size / 2 + size * .14, .74 * size / 2 + size * .14];
+}
+
+/**
+ * Puts a small stroke-order number next to the start of each stroke, as a teacher writes
+ * them in vermilion on a model sheet. Two rules apply:
+ *
+ * 1. A number is nearer to the start (first point) of its own stroke than to the start of
+ *    any other stroke, so that it cannot be read as the number of a different stroke.
+ * 2. A number does not sit on ink. The obstacles are the contact patches of the full finished
+ *    writing, so this includes ink that a later stroke writes.
+ *
+ * Of the places that obey both rules, within about 3.6 text sizes of the start, the place
+ * nearest to the start wins, with a small preference for the side that the brush comes from.
+ * When no such place exists, the number sits on the ink at the start of its own stroke
+ * (`onInk`); the paper-coloured halo of the renderer keeps it legible there. Numbers do not
+ * overlap each other. Pure and deterministic.
+ */
+export function shodoStrokeNumbers(plan: ShodoPlan, options: ShodoStrokeNumberOptions = {}): ShodoStrokeNumber[] {
+  const D = plan.brush.diameter;
+  const size = options.size ?? Math.max(12, D * .42);
+  const bounds = options.bounds;
+  // Ink bleeds a little past the contact patch. Keep a gap of a quarter of the text size.
+  const pad = size * .25 + D * .04;
+  const blobs: [number, number, number][] = [];
+  for (const s of plan.strokes) for (let k = 0; k < s.samples.length; k += 2) {
+    const c = s.samples[k];
+    blobs.push([c.x, c.y, Math.max(c.width, c.length) / 2]);
+  }
+  const real = plan.strokes.filter(s => s.kind !== "link");
+  const starts = real.map(s => [s.samples[0].x, s.samples[0].y] as const);
+  const placed: [number, number, number, number][] = [];
+  const out: ShodoStrokeNumber[] = [];
+  real.forEach((s, own) => {
+    const number = own + 1;
+    if (options.only && !options.only.includes(number)) return;
+    const land = s.samples[0];
+    // The direction of the brush at the start, over the first part of the stroke.
+    const ahead = s.samples.find(c => c.arc >= D * .8) ?? s.samples[s.samples.length - 1];
+    const [ux, uy] = norm(ahead.x - land.x || 1e-6, ahead.y - land.y);
+    const [hw, hh] = shodoStrokeNumberBox(String(number).length, size);
+    const nearestIsOwn = (x: number, y: number) => {
+      const d = Math.hypot(x - land.x, y - land.y);
+      return starts.every(([sx, sy], k) => k === own || Math.hypot(x - sx, y - sy) > d);
+    };
+    const free = (x: number, y: number) => !placed.some(([px, py, pw, ph]) =>
+      Math.abs(px - x) < pw + hw + size * .15 && Math.abs(py - y) < ph + hh + size * .15)
+      && !(bounds && (x - hw < bounds.x + size * .3 || x + hw > bounds.x + bounds.width - size * .3
+        || y - hh < bounds.y + size * .3 || y + hh > bounds.y + bounds.height - size * .3));
+    const rings = 12;
+    const reach = D * .35 + size * (.55 + (rings - 1) * .28);
+    const near = blobs.filter(b => Math.hypot(b[0] - land.x, b[1] - land.y) < reach + b[2] + hw + pad);
+    const clear = (x: number, y: number) => near.every(([bx, by, br]) =>
+      Math.hypot(Math.max(Math.abs(bx - x) - hw, 0), Math.max(Math.abs(by - y) - hh, 0)) >= br + pad);
+    let best: { x: number; y: number; cost: number } | null = null;
+    for (let ring = 0; ring < rings; ring++) {
+      const r = D * .35 + size * (.55 + ring * .28);
+      for (let k = 0; k < 32; k++) {
+        const a = k / 32 * Math.PI * 2, dx = Math.cos(a), dy = Math.sin(a);
+        const x = land.x + dx * r, y = land.y + dy * r;
+        // The distance costs most; a place ahead of the brush costs a little more.
+        const cost = r / size * .5 + (1 + dx * ux + dy * uy) * .12;
+        if (best && cost >= best.cost) continue;
+        if (nearestIsOwn(x, y) && free(x, y) && clear(x, y)) best = { x, y, cost };
+      }
+    }
+    let at: { x: number; y: number } | null = best;
+    if (!at) {
+      // On the ink at the start of the stroke; a little along the stroke if another number is there.
+      for (let k = 0; k < 6 && !at; k++) {
+        const x = land.x + ux * size * .6 * k, y = land.y + uy * size * .6 * k;
+        if (free(x, y) && nearestIsOwn(x, y)) at = { x, y };
+      }
+      at ??= { x: land.x, y: land.y };
+    }
+    placed.push([at.x, at.y, hw, hh]);
+    out.push({ number, stroke: plan.strokes.indexOf(s), t0: s.t0, x: at.x, y: at.y, anchor: [land.x, land.y], size, onInk: !best });
+  });
+  return out;
 }

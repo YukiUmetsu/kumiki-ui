@@ -92,29 +92,38 @@ describe("CP-F1 mandatory foundation for new pencil drawings",()=>{
       expect(inspectPencilFoundationDrawing(qualified)).toEqual([]);
     }
   });
-  it("rejects detached pseudo-skin and confirms the retired woman's lips are absent",()=>{
-    const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
+  it("rejects detached pseudo-skin without depending on the removed woman",()=>{
+    const head=createPencilMaterialRegion({
+      id:"independent-head",surface:"skin",seed:21,startFrame:30,
+      path:"M40 20 Q82 7 121 26 C130 54 108 114 74 120 C42 106 25 63 40 20 Z",
+      bounds:[20,5,114,118],craft:true,
+      palette:["#C7A596","#947A7C","#F1D1B5"],
+    });
+    const tissue=createPencilMaterialRegion({
+      id:"labial-synthetic",surface:"skin",seed:22,startFrame:90,
+      path:"M52 82 Q74 77 97 82 Q77 89 52 82 Z",
+      bounds:[50,75,51,16],craft:true,
+      palette:["#C89894","#986F78","#E3B5A5"],
+    });
+    const drawing=createPencilFoundationDrawing({
+      version:1,width:420,height:310,seed:22,paper:"#FAF4E8",
+      paperTooth:.63,regions:[head,{...tissue,
+        opaqueSupport:false,layeredSkinOverParent:true}],
+    },{
+      ...required,subject:"human",
+      construction:"A synthetic, fresh human head with separate labial underlay validates skin-on-skin support but is not a character asset.",
+      surfaces:{"independent-head":"skin","labial-synthetic":"skin"},
+    });
     expect(inspectPencilFoundationDrawing(drawing)).toEqual([]);
-    expect(drawing.regions.map(r=>r.id)).toEqual(["head-construction"]);
-    const head=drawing.regions[0];
-    expect(head.opaqueSupport).toBe(true);
-    expect(head.craft?.kind).toBe("skin");
-    expect(head.layeredSkinOverParent).toBe(false);
-    // A complete new head solid cannot become translucent unsupported
-    // detached skin. The old woman's translucent lips no longer exist.
-    const missingSupport={...drawing,regions:[{
-      ...head,opaqueSupport:false,layeredSkinOverParent:false,
-    }]};
-    expect(inspectPencilFoundationDrawing(missingSupport)).toContainEqual(
-      expect.stringContaining("foundation.support: solid head-construction"));
-    const detachedMaterial={...drawing,regions:[{
-      ...head,opaqueSupport:false,layeredSkinOverParent:true,
-      craft:{...head.craft!,kind:"fur" as const},
-    }]};
-    expect(inspectPencilFoundationDrawing(detachedMaterial)).toContainEqual(
+    const rejected={...drawing,regions:drawing.regions.map(r=>
+      r.id==="labial-synthetic"?{...r,layeredSkinOverParent:false}:r)};
+    expect(inspectPencilFoundationDrawing(rejected)).toContainEqual(
+      expect.stringContaining("foundation.support: solid labial-synthetic"));
+    const invalidKind={...drawing,regions:drawing.regions.map(r=>
+      r.id==="labial-synthetic"?{...r,craft:{...r.craft!,kind:"fur" as const}}:r)};
+    expect(inspectPencilFoundationDrawing(invalidKind)).toContainEqual(
       expect.stringContaining("requires non-opaque skin craft"));
   });
-
   it("qualifies every original living and object material, at either film aspect",()=>{
     for(const aspect of ["landscape","portrait"] as const){
       for(const subject of ["portrait","fox","valley"] as const){

@@ -74,6 +74,43 @@ Measured off each creature's own standing contour (`ukiyoeBeastLandmarks`), with
 The second group shows a pattern: the shared quadruped rig makes every animal long and low. It is an open finding for a
 later pass: compare each animal with its prints and decide where it is deliberate (the folk tanuki) and where it is not.
 
+**Refit (2026-11-16).** The fox, dog, cat, wolf and ox were refitted by a small search over leg length, body depth and
+body length:
+
+- **Target:** the leg clearance halfway between the species' typical value and its minimum, the trunk halfway to its
+  maximum, a little of the prints' elongation kept;
+- **Size kept:** the withers height stays near its old value, so the animals keep their size in existing scenes;
+- **Tails:** scaled with the shorter bodies.
+
+| Animal | Leg clearance | Trunk |
+|---|---|---|
+| Fox | 0.39 → 0.47 | 1.81 → 1.00 |
+| Dog | 0.34 → 0.51 | 1.66 → 1.12 |
+| Cat | 0.36 → 0.50 | 1.72 → 1.42 |
+| Wolf | 0.39 → 0.52 | 1.67 → 1.19 |
+| Ox | 0.12 → 0.43 | 1.57 → 1.25 |
+
+**Ox.** Compared with a bull in profile, it also carried its head high on an upright, goat-like neck. It now carries
+the head low on a short neck, and its legs are thicker.
+
+**Lying down.** Hooved animals now lie down, forelegs folded under the chest, where the others sit (ANIM1's postures:
+cattle, deer and horses do not sit).
+
+**Not changed:** the tanuki, the rabbit and the mouse (deliberate). Walk, run and sit frames were checked after the
+change.
+
+**Ox head (2026-11-16).** The ox now has its own head (`oxHead`), drawn after a bull in profile and ANIM1's cattle face:
+
+- a broad, flat forehead and a straight face down to a deep, square muzzle with a wide nose pad and a comma nostril;
+- the large eye high under a bony orbit (0.6 of the head back from the nose), with a pale lid rim so it reads on the
+  black coat;
+- the round cheek muscle;
+- the curly poll of the Japanese Black between shorter horns;
+- broad ears held straight back in the world whatever the head's tilt, fringed pale inside.
+
+Square on and from behind, the ears stand out sideways below the horns; they were tall horse ears floating above the
+head.
+
 ## Boar and bear legs
 
 The changes:
@@ -226,11 +263,152 @@ animals from one table (`ANIMAL_POSTURES`), like the gaits.
 **Not checked against recorded motion.** The transitions are staged blends: no video of an animal sitting or lying
 down was studied frame by frame.
 
+## Flight (2026-11-16)
+
+Birds now fly in ANIM1 on open wings, from a flight table (`BIRD_FLIGHT`).
+
+**Sources.**
+
+- **Motion:** Muybridge, *Animal Locomotion* (1887), plate 755 (pigeon) and plate 769 (eagle), public domain on
+  Commons, read frame by frame. The pigeon runs about six frames per beat:
+  - the top of the stroke has the wings raised 70–80° and the tips curved back;
+  - the downstroke has the wings fully spread, sweeping down and forward;
+  - at the bottom the wings are 40–60° below the body, then trailing back;
+  - on the upstroke the wing is flexed narrow at the wrist and raised nearly vertical.
+
+  The eagle shows fanned primaries at the top and on the downstroke, the wingtip ahead of the head at the bottom, and
+  the hand trailing on the upstroke. Both birds were taking off or flying slowly, so the cruising strokes are set
+  shallower (estimated).
+- **Shapes and styles:** Wikipedia, *Bird flight* (reported):
+  - elliptical wings for small birds, Accipiter hawks and pheasants;
+  - short pointed high-speed wings for most ducks;
+  - deeply slotted soaring wings for large land birds;
+  - bounding flight in small birds;
+  - an upstroke "slightly folded inwards".
+- **Neck and legs:** Wikipedia, *Heron* (the neck "retracted during flight", legs pointing backwards) and *Crane*
+  (legs outstretched, neck extended).
+- **Rate:** Pennycuick (1990), f = 1.08·m^(1/3)·g^(1/2)·b^(−1)·S^(−1/4)·ρ^(−1/3), as reported by Physics World.
+  - The original PDF was not accessible.
+  - The formula was checked: it comes out in hertz, and it gives a grey heron 2.6 Hz.
+- **Spans:**
+  - pheasant 56–86 cm (reported: Wikipedia, Common pheasant);
+  - large-billed crow 95–125 cm, estimated from the carrion crow's reported 84–100 cm, since the large-billed crow is
+    heavier.
+
+**What the renders and the frame-by-frame checks changed.**
+
+- **Closed wings.** A rigid planform cannot fold: tucking it pushed the hand across the back as a stub. A closing wing
+  now blends toward the folded wing along the flank.
+- **Held wings.** Glides and closed wings popped in from mid-stroke. Bursts end at the top of the stroke and the wing
+  eases from there.
+- **Thigh.** A thick black thigh showed under the crane; the thigh now stays inside the feathers.
+- **Body.** The flying body slims.
+- **Small birds at 30 fps.** A 14 Hz beat is about two frames per beat and reads as noise, hence `maxHz` (an animation
+  convention).
+
+**Not done.** Take-off, landing, banking and turning; a hovering kingfisher; roosting and one-legged birds; per-feather
+colour for open wings.
+
+## Bird postures (2026-11-16)
+
+`BIRD_POSTURES`: one leg, sleep, swim and upend.
+
+**Sources:**
+
+- swimming mallards, iNaturalist 409758570 and 142761384 (CC0): the back level, the waterline about a third of the
+  way up the body;
+- mallards upending, iNaturalist 145299840 (CC0), and Wikipedia, *Duck*: "up-ending without completely submerging";
+- a duck asleep on one leg with its bill in the back feathers (Commons, CC0);
+- a grey heron on a stump (Commons, CC0);
+- Anderson & Williams (2010), via the PubMed abstract: flamingos rest on one leg more in water and in the cold.
+
+**Fixes found in renders and frame checks:**
+
+- A wader's raised leg folded straight up through the body: its shank is longer than the body is deep. It now keeps
+  the thigh and swings the shank back from the knee.
+- The sleeping head crossed its own body. It is now tucked lower on the back.
+- Upending in 10 frames jumped 0.14 per frame. It takes 14 frames.
+
+## Young animals (2026-11-16)
+
+`animal-growth.ts` grows a species' construction from its youngest to the adult.
+
+**Measured or reported:**
+
+- **Horse.** The horse is "61, 84, 92 and 95 percent of its mature size at birth, 6, 12 and 18 months", and "the
+  cannon bone is the most mature bone in terms of length at birth" (horses.extension.org). "The cannon bones only grow
+  about 20 percent in length after birth, while the humerus and femur increase 100 percent" (Butler farrier school).
+- **Beagle** (Helmsmüller et al. 2013, BMC Vet Res 9:203; PMC full text), from 9 to 51 weeks:
+  - withers height +37–42% and trunk length +37–44%;
+  - the manus fell from 21.2% to 19.6% of the fore limb, the pes from 35.2% to 30.4% of the hind limb.
+- **Faces** (Wikipedia, *Cuteness* and *Neoteny*): juveniles have smaller snouts, higher foreheads and larger eyes;
+  neotenous domestic animals have large eyes, a rounded forehead, large ears and a shortened muzzle.
+- **Young coats** (Wikipedia, species articles):
+  - crane chicks are "covered in yellow natal down for two weeks", and juveniles are tawny and cinnamon with a
+    "grayish to coffee brown" neck;
+  - fox kits have "dark brown fluffy fur" and eyes that are "blue at birth";
+  - macaque infants are "born with dark-brown hair";
+  - mandarin ducklings are "very similar to mallard ducklings", which are yellow below and on the face.
+
+**Estimated:** the face amounts, the trunk, neck and tail growth of most kinds, and all of the small mammals,
+primates and birds.
+
+**Renders:** foal, fawn, calf, piglet, puppy, kitten, bear cub, fox kit, leveret and infant macaque beside their
+parents to scale, and crane, duck, sparrow and pheasant chicks.
+
+## UKIYO1 birds fly by ANIM1 (2026-11-16)
+
+UKIYO1's `fly` used one hand-set rate for every bird: 0.7 beats a second for the crane, against Pennycuick's 3.0. It now
+reads the bird's ANIM1 flight:
+
+- the rate, capped at four frames a beat;
+- the style: flap and glide, bursts, bounding with closed wings;
+- the upstroke's wrist flex.
+
+Frame strips of the crane, heron, sparrow and hawk were checked. UKIYO1 draws creatures on twos, so at 3 Hz a beat
+shows five distinct poses.
+
+## Fur strands (2026-11-16)
+
+`animal-fur.ts` is ANIM1's fur. Its direction field comes from Walter Kidd, *The Direction of Hair in Animals and Man*
+(London, 1903; public domain, full text on the Internet Archive, `cu31924003075425`):
+
+- "The slope was from the tip of the snout to the caudal extremity of the animal, along the head, neck and trunk, and
+  on the limbs from the proximal to the distal ends."
+- On the flank, "the general backward and downward direction of hair".
+- "In nearly all CARNIVORES and UNGULATES an area of reversed hair, where the 'knee' of the animal rests in flexion,
+  during lying and sitting, against the flank."
+
+Strands are seeded inside the trunk and head outlines (rejection sampling) and along the limb, neck and tail tubes.
+Each is laid in three steps along the field, so it curves with the coat.
+
+**First renders** seeded the strands in the mass ellipses, so hair stuck out past the belly and the rump. The traced
+flow arrows also ran off the body. Both now stop at the outline.
+
+**Not modelled:** Kidd's whorls and partings for particular species.
+
+## Faces square on (2026-11-16)
+
+`AnimalFace.front` and `animal-front.ts`. Measured on gridded crops, in head widths at the eyes:
+
+| Animal | Eye spacing | Nose below the eyes | Ear tip (out, up) | Source |
+|---|---|---|---|---|
+| Shiba | 0.36 | 0.25 | 0.44, 0.54 | Commons, public domain |
+| Red fox | 0.37 | 0.48 | 0.5, 0.77 | Commons, public domain |
+| Grey wolf | 0.36 | 0.41 | 0.4, 0.54 | Commons, public domain |
+| Cat | 0.45 | 0.29 | 0.42, 0.62 | adult CC0; ears off a CC0 kitten, whose eyes sit wider (0.58) |
+| Japanese Black | 0.75 | 0.76 | 1.1, 0.14 (out sideways) | Commons, public domain |
+
+The cat's side-view eye spacing was corrected from 0.4 to 0.45, the cattle's from 0.5 to 0.75. Every other mammal uses
+its body plan's estimate.
+
 ## Not done
 
-- Front and back constructions in ANIM1 (styles draw their own).
-- Bird postures (perching, roosting, flight) and leaping.
-- The long-and-low UKIYO1 quadrupeds listed above.
+- Front and back body constructions in ANIM1 (faces have one; styles draw the body square on).
+- Leaping, take-off and landing; birds on a perch (gripping a branch rather than standing on the ground).
+- Young animals' postures and gaits are the adults' (a foal's gangly walk is not modelled).
+- The tanuki, hare and mouse: the owner chose two builds (2026-11-16). The print build stays low as drawn; the natural
+  build was fitted to ANIM1's typical values (UKIYO1 `look.proportions`).
 - Measured, not estimated, colours and faces.
 - Recordings for most animal voices; the search terms are listed per species.
 - No owner viewing review yet.

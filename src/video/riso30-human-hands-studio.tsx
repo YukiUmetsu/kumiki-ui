@@ -7,20 +7,29 @@ import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import {COURIER} from "./riso-character-demo";
 import {PAPER_ARTIST} from "./riso-human-ensemble";
 import {RISO30_ANAT1_HAND,inspectRisoHandArtcraft,layoutRisoHandArtcraft} from "./riso-hand-artcraft";
+import {riso53InspectSourceDepth} from "./riso53-palmar-depth-composition";
+import {inspectRiso54WebReserves} from "./riso54-interdigital-paper-reserve";
 import type {RisoHandSide} from "./riso-hand-artcraft";
 import {RISO31_ANAT1_REFERENCE,riso31Inspect} from "./riso31-finger-phalanges";
 import {inspectRiso32ThumbIp,RISO32_THUMB_ANAT1} from "./riso32-thumb-ip";
 import {inspectRiso33HandFan} from "./riso33-hand-negative-space";
 import {inspectRiso36RedFingerSilhouettes} from "./riso36-red-silhouette-gate";
 import {inspectRiso39OpposedPaperPinch} from "./riso39-opposed-paper-pinch";
+import {inspectRiso41InkPressure} from "./riso41-contact-pressure";
+import {inspectRiso42SupportingDigits} from "./riso42-support-digits-gesture";
+import {riso52ExpectedOriginalSourceIds} from "./riso52-folded-terminal-source";
+import {riso57PalmLandmarks,riso57PositivePalmContour} from "./riso57-palm-contact-silhouette";
+import {riso58ContactSkin} from "./riso58-anat1-volume-skin";
 
 type PlateMode="both"|"blue"|"red";
-type GestureFrame=0|46|126|144|160|166|178|186|198|239;
+type GestureFrame=0|46|126|144|154|156|160|166|178|186|198|239;
 const FRAME_OPTIONS:readonly {frame:GestureFrame;label:string}[]=[
   {frame:0,label:"Opening · anatomical rest"},
   {frame:46,label:"Relaxed fingers"},
   {frame:126,label:"Prepare to receive"},
   {frame:144,label:"Hand approaches"},
+  {frame:154,label:"Thenar web approaches paper"},
+  {frame:156,label:"Thumb/index web compression"},
   {frame:160,label:"Pinch / paper contact"},
   {frame:166,label:"Receiver peak PIP flexion"},
   {frame:178,label:"Fingertip release"},
@@ -54,10 +63,65 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     p.id===side+"-wrist-underprint-clearance").map(p=>p.id),[actor,side]);
   const region=inspectRisoHandArtcraft(actor,frame,side);
   const bones=riso31Inspect(actor,frame,side);
+  const riso53Overlap=riso53InspectSourceDepth(actor.parts,
+    actor.id as "courier"|"paper-artist");
+  const riso53VisibleSourceOrder=side===riso53Overlap.side?
+    riso53Overlap.farRedBehind:0;
+  const riso54Web=(actor.id==="courier"&&side==="right")||
+    (actor.id==="paper-artist"&&side==="left")?
+    inspectRiso54WebReserves(actor,frame):null;
+  // Source 3D inverse-kinematic reconstruction is independent of live
+  // film frame/ink-density; cache its actual ANAT1 joints once per actor.
+  const realVolume=useMemo(()=>(
+    (actor.id==="courier"&&side==="right")||
+    (actor.id==="paper-artist"&&side==="left")?
+      riso58ContactSkin(actor,actor.id as "courier"|"paper-artist",side,160):null
+  ),[actor,side]);
+  const mainPalmSource=pose.parts.find(p=>p.id===side+"-glove");
+  const mcpPlateSource=pose.parts.find(p=>p.id===side+"-glove-knuckle-arc");
+  const riso51MorphParts=actor.parts.filter(p=>
+    p.id.startsWith(side+"-glove")&&p.pathKeys?.length&&!p.knockoutOnly).length;
+  const riso51PalmChanged=mainPalmSource?.d!==actor.parts.find(p=>p.id===side+"-glove")?.d;
+  const riso52TerminalPairs=riso52ExpectedOriginalSourceIds(side).filter(id=>
+    actor.parts.some(p=>p.id===id&&p.pathKeys?.length)).length/2;
+  // Actual evaluated RED distal source (not a hand-wavy artist flag).
+  // A true curl returns the DIP positive-ink tip toward the palm,
+  // instead of leaving RISO54's three linear red printed rakes.
+  const riso55TerminalCount=["middle","ring","pinky"].filter(digit=>{
+    const id=side+"-glove-"+digit+"-distal-phalanx";
+    const original=actor.parts.find(p=>p.id===id);
+    const sample=pose.parts.find(p=>p.id===id);
+    return Boolean(original?.pathKeys?.length&&sample&&
+      sample.d!==original.d&&
+      (sample.d.match(/[Cc]/g)??[]).length===
+        (original.d.match(/[Cc]/g)??[]).length);
+  }).length;
+  const riso57Knots=riso57PalmLandmarks(actor.id as "courier"|"paper-artist",side);
+  const riso57At=(name:string)=>riso57Knots.find(p=>p.landmark===name)!;
+  const riso57Handed=side==="right"?1:-1;
+  const riso57FirstWebRelief=riso57Handed*
+    (riso57At("index-mcp").x-riso57At("first-web-inset").x);
+  const riso57OriginalPositiveSource=actor.parts.find(p=>p.id===side+"-glove")?.d===
+    riso57PositivePalmContour(actor.id as "courier"|"paper-artist",side);
+  const mcpSourcePlaneCount=(mcpPlateSource?.d.match(/[Mm]/g)??[]).length;
+  const palmSourceCubicCount=(mainPalmSource?.d.match(/[Cc]/g)??[]).length;
+  // Exact live anatomical source stations, not a visual proxy or an
+  // after-render pixel measurement. 1.0 = unprojected ANAT1 source.
+  const supportProjectionRatio=bones.filter(b=>b.digit!=="index").reduce((sum,b)=>
+    sum+b.rootLength/b.expectedProximal+
+      b.intermediateLength/b.expectedIntermediate,0)/6;
+  // RISO54: the camera incidence estimate is a *derived* 2D projection
+  // angle from each live moving ANAT1 segment, not a calibrated 3D camera.
+  const riso54MeanRayAngle=bones.filter(b=>b.digit!=="index")
+    .flatMap(b=>[b.rootLength/b.expectedProximal,
+      b.intermediateLength/b.expectedIntermediate])
+    .reduce((sum,ratio)=>sum+Math.acos(Math.max(-1,Math.min(1,ratio)))*180/Math.PI,0)/6;
   const thumb=inspectRiso32ThumbIp(actor,frame,side);
   const spacing=inspectRiso33HandFan(actor,frame,side);
   const redInk=useMemo(()=>inspectRiso36RedFingerSilhouettes(actor,frame,side),[actor,frame,side]);
   const pinch=useMemo(()=>inspectRiso39OpposedPaperPinch(actor,frame,side),[actor,frame,side]);
+  const inkPressure=useMemo(()=>inspectRiso41InkPressure(actor,frame,side),[actor,frame,side]);
+  const support=useMemo(()=>inspectRiso42SupportingDigits(actor,frame,side),[actor,frame,side]);
   // Frame the real articulated five-finger and forearm envelope: the
   // Artist's hand rotates almost horizontally at 160f, so wrist-centering
   // alone clipped source fingertips even though the actor had them.
@@ -69,6 +133,24 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso30-hand-artcraft={String(region.actuallyEngraved)}
     data-km-riso31-segments={bones.reduce((n,j)=>n+j.phalanxPathCount,0)}
     data-km-riso31-actual-flexion={String(bones.every(j=>j.exactRedSource))}
+    data-km-riso49-support-projection-ratio={supportProjectionRatio.toFixed(3)}
+    data-km-riso54-mean-source-camera-ray-deg={riso54MeanRayAngle.toFixed(2)}
+    data-km-riso50-source-mcp-planes={mcpSourcePlaneCount}
+    data-km-riso50-palm-cubics={palmSourceCubicCount}
+    data-km-riso57-source-landmarks={riso57Knots.length}
+    data-km-riso57-first-web-inset={riso57FirstWebRelief.toFixed(3)}
+    data-km-riso57-original-positive-contour={String(riso57OriginalPositiveSource)}
+    data-km-riso58-reconstructed-bone-rays={realVolume?.bones.length??0}
+    data-km-riso58-source-surface-z={realVolume?.maxSurfaceDepth.toFixed(3)??"0.000"}
+    data-km-riso58-source-contact-volume={String(Boolean(
+      realVolume&&frame===160&&mainPalmSource?.d===realVolume.path))}
+    data-km-riso51-live-source-morph-parts={riso51MorphParts}
+    data-km-riso52-cobalt-red-terminal-pairs={riso52TerminalPairs}
+    data-km-riso55-folded-source-tip-count={riso55TerminalCount}
+    data-km-riso51-palm-projected={String(riso51PalmChanged)}
+    data-km-riso53-original-red-support-behind-palm={riso53VisibleSourceOrder}
+    data-km-riso54-native-web-reserves={riso54Web?.sourceCount??0}
+    data-km-riso54-moving-web-cubics={riso54Web?.reserves.reduce((n,p)=>n+p.curveCount,0)??0}
     data-km-riso32-ip-articulated={String(thumb.independentRedSegments)}
     data-km-riso32-ip-flexion={thumb.ipLocalAngle.toFixed(2)}
     data-km-riso33-minimum-axis-gap={spacing.minimumAxisGap.toFixed(3)}
@@ -79,6 +161,10 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso39-thumb-index-tip-gap={pinch.tipDistance.toFixed(3)}
     data-km-riso39-thumb-index-ink-gap={pinch.sourceInkGap.toFixed(3)}
     data-km-riso39-pip-curl={pinch.indexLocalPipCurl.toFixed(2)}
+    data-km-riso41-actual-red-pad-gap={inkPressure.inkGap.toFixed(3)}
+    data-km-riso41-press-ink={inkPressure.pressure.toFixed(3)}
+    data-km-riso42-support-pip-flex={support.meanSupportFlex.toFixed(3)}
+    data-km-riso42-support-red-bones={support.movingRedSourceCount}
     data-km-riso30-crop-margin={camera.marginX.toFixed(2)}
     data-km-riso30-effective-scale={camera.scale.toFixed(2)}
     style={{border:"1px solid #CBB9A4",borderRadius:7,padding:13,background:"#FFF7E9"}}>
@@ -116,8 +202,12 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
       (bone-axis only). Actual red stencil fingertip gap:
       {redInk.minimumDistalGap.toFixed(1)} source units;
       {redInk.crossInkContacts} cross-digit ink-contacts across 27 section pairs.
+      Original red contact: {inkPressure.inkGap.toFixed(2)} source units, physical ink
+      pressure cue {(inkPressure.pressure*100).toFixed(0)}%.
       Thumb–index original moving tip distance: {pinch.tipDistance.toFixed(1)} source units;
-      closed red tip ink gap: {pinch.sourceInkGap.toFixed(1)} source units.
+      closed red tip ink gap: {pinch.sourceInkGap.toFixed(1)} source units;
+      three support fingers mean PIP flex {support.meanSupportFlex.toFixed(1)}° with
+      {support.movingRedSourceCount} moving red source segments.
       This is 2D projected anatomy before print registration, not a human-likeness or 3D contact approval.
     </p>
   </article>;
@@ -138,7 +228,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO39</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO58</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>

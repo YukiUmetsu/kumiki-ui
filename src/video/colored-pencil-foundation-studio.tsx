@@ -3,13 +3,18 @@ import { PencilDrawing } from "../../registry/video/colored-pencil-react";
 import { inspectPencilFoundationDrawing, PENCIL_FOUNDATION_STAGES } from "../../registry/video/colored-pencil-foundation";
 import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { pencilLivingStudyDrawing } from "./colored-pencil-living-studies";
+import {
+  HEAD_FIDELITY_LANDMARK_IDS, HEAD_FIDELITY_TONES,
+  evaluatePencilHeadFidelity,
+} from "./colored-pencil-head-fidelity";
 import { pencilObjectStudyDrawing } from "./colored-pencil-object-studies";
 
 type Specimen="rose"|"fox"|"portrait"|"architecture"|"fabric"|"valley";
+type AnatomyValueBand="all"|"highlight"|"light"|"halftone"|"core-shadow"|"reflected-light";
 const specimenMeta:Record<Specimen,{title:string;detail:string;focus:[number,number]}> = {
   rose:{title:"Botanical / rose",detail:"Curved petal folds, layered reds, directional veins",focus:[.72,.43]},
   fox:{title:"Wildlife / red fox",detail:"Ear, eye socket, cheek and rooted ruff tracts",focus:[.73,.38]},
-  portrait:{title:"NEW human / drawing 01 · head mass",detail:"One anatomical head only: cranial silhouette, cheek and jaw volumes; no prior woman, eyes or hair",focus:[.71,.38]},
+  portrait:{title:"New human #01 / HEAD ONLY",detail:"Fresh one-character construction; only facial contour and bony value guides exist. Eyes, nose, mouth, ears and hair are NOT drawn yet.",focus:[.70,.42]},
   architecture:{title:"Built form / brick",detail:"Masonry joints, hard edges and reflected planes",focus:[.72,.45]},
   fabric:{title:"Fabric / metal",detail:"Fold shadow, drape direction and cup reflections",focus:[.68,.49]},
   valley:{title:"Landscape / river",detail:"Atmosphere, distance, evergreen branches and water",focus:[.73,.45]},
@@ -18,7 +23,7 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"human-head";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
@@ -43,7 +48,7 @@ function projectedInspectionCenter(
  * Artwork is 100% programmatic, frame-addressed and authored from original geometry.
  */
 export function PencilFoundationStudio(){
-  const [specimen,setSpecimen]=useState<Specimen>("rose");
+  const [specimen,setSpecimen]=useState<Specimen>("portrait");
   const [aspect,setAspect]=useState<PencilAspect>("landscape");
   const [frame,setFrame]=useState(335);
   const [pressure,setPressure]=useState(1);
@@ -54,15 +59,35 @@ export function PencilFoundationStudio(){
   const [inspectionFocus,setInspectionFocus]=useState<InspectionFocus>("default");
   const [reduced,setReduced]=useState(false);
   const [showTonalSupport,setShowTonalSupport]=useState(true);
+  const [valueBand,setValueBand]=useState<AnatomyValueBand>("all");
+  const [headContourCraft,setHeadContourCraft]=useState(true);
+  const [headVolumeWeave,setHeadVolumeWeave]=useState(true);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
       pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,seed}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
-        specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,seed});
+        specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,
+        seed,headContourCraft,headVolumeWeave});
     return {...base,regions:base.regions.map(r=>({
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
-  },[specimen,aspect,pressure,tooth,burnish,seed]);
+  },[specimen,aspect,pressure,tooth,burnish,seed,headContourCraft,headVolumeWeave]);
+  // Reference-grade debugging only. The normal studio/export uses the
+  // complete original pencil drawing. Selecting a band isolates those
+  // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
+  // illustration or alternative approximation of the human head.
+  const displayedDrawing=useMemo(()=>{
+    if(specimen!=="portrait"||valueBand==="all")return drawing;
+    return {...drawing,regions:drawing.regions.map(region=>({
+      ...region,
+      details:region.details?.filter(trace=>trace.id?.startsWith(
+        "newhead-anat1-"+valueBand+"-")),
+    }))};
+  },[drawing,specimen,valueBand]);
+  // No real photographer-authorized source or independently measured
+  // native export exists yet. A mesh normal and its own projected guide
+  // points are NOT a photo reference. The gate MUST fail closed.
+  const sourceProof=evaluatePencilHeadFidelity();
   const errors=inspectPencilFoundationDrawing(drawing);
   if(errors.length)throw new Error("Pencil foundation studio: "+errors.join("; "));
   const current=PENCIL_FOUNDATION_STAGES.reduce((acc,s,i)=>frame>=s.frame?i:acc,0);
@@ -77,8 +102,8 @@ export function PencilFoundationStudio(){
     "cheek-ruff":inspectionFocus==="fox-chest"&&specimen==="fox"?
     "chest":inspectionFocus==="fox-forepaw"&&specimen==="fox"?
     "foreleg-right":inspectionFocus==="fox-hock"&&specimen==="fox"?
-    "rear-leg":inspectionFocus==="human-head"&&specimen==="portrait"?
-    "head-construction":null;
+    "rear-leg":inspectionFocus==="portrait-head"&&specimen==="portrait"?
+    "head-silhouette-01":null;
   const focus=(focusPart?projectedInspectionCenter(
     drawing as ReturnType<typeof pencilLivingStudyDrawing>,focusPart):null)??
     specimenMeta[specimen].focus;
@@ -88,6 +113,9 @@ export function PencilFoundationStudio(){
   }:undefined;
   return <main data-km-foundation-studio="" data-km-foundation-stage={PENCIL_FOUNDATION_STAGES[current].id}
     data-km-foundation-inspection-focus={focusPart??"default"}
+    data-km-anat1-value-inspection={specimen==="portrait"?valueBand:"all"}
+    data-km-contour-craft={specimen==="portrait"?(headContourCraft?"on":"off"):"not-applicable"}
+    data-km-head-cranial-volume={specimen==="portrait"?(headVolumeWeave?"on":"off"):"not-applicable"}
     style={{minHeight:"100vh",padding:24,display:"grid",alignContent:"start",
       gap:16,background:"#E8E7DE",font:"15px/1.5 system-ui",color:"#3B4747"}}>
     <header style={{maxWidth:1050,display:"grid",gap:4}}>
@@ -97,6 +125,11 @@ export function PencilFoundationStudio(){
       <h1 style={{font:"600 33px Georgia,serif",margin:0}}>
         From observation to a finished pencil drawing
       </h1>
+      {specimen==="portrait"&&<p data-km-character-stage="head-outline"
+        style={{margin:0,fontSize:13,fontWeight:700,color:"#715443"}}>
+        NEW CHARACTER #01 · STAGE 1 OF ONE ACTIVE FEATURE · HEAD CONTOUR ONLY.
+        Previous woman removed; eyes, nose, lips, ears, hair and clothing are intentionally not authored.
+      </p>}
       <p style={{margin:"4px 0",maxWidth:950}}>
         This studio draws original author-defined SVG geometry with CP-F1
         pencil pigments, layered stroke paths and paper-tooth masks.
@@ -106,6 +139,52 @@ export function PencilFoundationStudio(){
         CP-F1 validates structure and materials, not artistic realism.
       </p>
     </header>
+    {specimen==="portrait"&&<section data-km-head-source-proof=""
+      data-km-head-source-fidelity={sourceProof.status}
+      data-km-head-source-photo="none"
+      aria-label="ArtCraft independent head photo fidelity"
+      style={{border:"1px solid #A48D81",borderRadius:6,
+        maxWidth:960,padding:"13px 16px",background:"#FAF6EE",
+        display:"grid",gap:7,fontSize:13}}>
+      <strong>Artist reference proof · BLOCKED (head only)</strong>
+      <div>{sourceProof.errors.join(", ")}. ANAT1's projected model
+        landmarks and synthetic five-value lighting are NOT independent
+        source-photo measurements. No artistic approval has been granted.</div>
+      <details>
+        <summary style={{cursor:"pointer",fontWeight:600}}>
+          Review independent photo requirements · 18 landmarks / 5 tonal regions
+        </summary>
+        <p style={{maxWidth:825,margin:"8px 0"}}>
+          Select a rights-verified full-head 3/4 photograph with complete
+          skull, temples, jaw and clear directional light. Hash its exact
+          bytes and the native SVG render separately (SHA-256). Independently
+          annotate the same 18 points and sample five real pixel areas on
+          BOTH images. Compare source and render before adding any eye.
+        </p>
+        <div style={{display:"grid",gridTemplateColumns:
+          "repeat(auto-fit,minmax(215px,1fr))",gap:18}}>
+          <section>
+            <b>18 image-measured geometry anchors</b>
+            <ol style={{paddingLeft:22,margin:"6px 0 0"}}>
+              {HEAD_FIDELITY_LANDMARK_IDS.map(id=><li
+                data-km-head-source-landmark-id={id} key={id}>{id}</li>)}
+            </ol>
+          </section>
+          <section>
+            <b>Five source/output luminance patches</b>
+            <ol style={{paddingLeft:22,margin:"6px 0 0"}}>
+              {HEAD_FIDELITY_TONES.map(id=><li
+                data-km-head-source-tone-id={id} key={id}>{id}</li>)}
+            </ol>
+          </section>
+        </div>
+        <p style={{margin:"10px 0 0"}}>
+          Measured numerical parity is a prerequisite for independent artist
+          review, NOT a realism certification. The photographed person is
+          only a licensed reference, never a copied character or image layer.
+        </p>
+      </details>
+    </section>}
     <section aria-label="Pencil foundation controls" style={{
       display:"flex",gap:12,flexWrap:"wrap",alignItems:"end",maxWidth:1100,
     }}>
@@ -114,6 +193,7 @@ export function PencilFoundationStudio(){
           onChange={e=>{
             setSpecimen(e.target.value as Specimen);
             setInspectionFocus("default");
+            setValueBand("all");
           }}>
           {(Object.keys(specimenMeta) as Specimen[]).map(s=>
             <option key={s} value={s}>{specimenMeta[s].title}</option>)}
@@ -170,11 +250,37 @@ export function PencilFoundationStudio(){
           <option value="fox-hock" disabled={specimen!=="fox"}>
             Fox folded hind hock / grounded digits
           </option>
-          <option value="human-head" disabled={specimen!=="portrait"}>
-            NEW human / head mass only
+          <option value="portrait-head" disabled={specimen!=="portrait"}>
+            New character #01 / head contour only
           </option>
         </select>
       </label>
+      {specimen==="portrait"&&<label style={caption}>ANAT1 surface value · inspected
+        <select aria-label="Foundation ANAT1 value band" style={choice}
+          value={valueBand}
+          onChange={e=>setValueBand(e.target.value as AnatomyValueBand)}>
+          <option value="all">All five values / full drawing</option>
+          <option value="highlight">Highlight reserve</option>
+          <option value="light">Lit plane</option>
+          <option value="halftone">Halftone turn</option>
+          <option value="core-shadow">Core shadow</option>
+          <option value="reflected-light">Reflected-light return</option>
+        </select>
+      </label>}
+      {specimen==="portrait"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation head contour contacts" type="checkbox"
+          checked={headContourCraft}
+          onChange={e=>setHeadContourCraft(e.target.checked)}/>
+        Anatomy-connected contour pigment · A/B
+      </label>}
+      {specimen==="portrait"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation head cranial optical volume"
+          type="checkbox" checked={headVolumeWeave}
+          onChange={e=>setHeadVolumeWeave(e.target.checked)}/>
+        Five-tone cranial dry weave · A/B (unapproved)
+      </label>}
       <label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
         <input aria-label="Foundation inspect macro" type="checkbox" checked={zoom}
           onChange={e=>setZoom(e.target.checked)}/> Inspect at 2.15×
@@ -205,7 +311,7 @@ export function PencilFoundationStudio(){
     </nav>
     <div style={{maxWidth:aspect==="landscape"?960:540,width:"100%",overflow:"hidden",
       background:drawing.paper,boxShadow:"0 16px 48px #4A50462B"}}>
-      <PencilDrawing drawing={drawing} frame={frame} reducedMotion={reduced}
+      <PencilDrawing drawing={displayedDrawing} frame={frame} reducedMotion={reduced}
         showTonalSupport={showTonalSupport}
         style={zoomStyle} label={specimenMeta[specimen].title+" original coloured pencil study"}/>
     </div>
@@ -228,6 +334,7 @@ export function PencilFoundationStudio(){
         {drawing.regions.filter(r=>r.opaqueSupport).length} opaque supports ·
         {drawing.regions.filter(r=>!r.opaqueSupport).length} light/transparent passes ·
         {showTonalSupport?"authored tonal supports enabled":"PIGMENT-ONLY NEGATIVE CONTROL: no gradient tonal supports"} ·
+        {specimen==="portrait"&&valueBand!=="all"?"ANAT1 VALUE ISOLATION: only one real value-band stroke family; reset to all for full art · ":""}
         technical contract passed, independent artistic fidelity review remains open
       </p>
     </section>

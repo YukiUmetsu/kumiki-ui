@@ -17,6 +17,7 @@ import { PencilObjectAtelier } from "./colored-pencil-object-studio";
 import { PencilLivingAtelier } from "./colored-pencil-living-studio";
 import { ReferencePencilAtelier } from "./colored-pencil-reference-atelier";
 import { PencilFoundationStudio } from "./colored-pencil-foundation-studio";
+import { PencilHeadSourceAnnotationAtlas } from "./colored-pencil-head-annotation-atlas";
 
 const meta = {
   title: "Video Production/Film Looks/Colour-pencil",
@@ -545,4 +546,15 @@ export const DrawingFoundation: StoryObj<typeof meta> = {
   name:"Foundation · Reference, form, pigment, stroke and finish",
   args:{aspect:"landscape",subject:"leaf",frame:335},
   render:()=> <PencilFoundationStudio/>,
+};
+
+
+/** Stage-1 ONE new head only: user-selected local source and actual native
+ * render. No source image is bundled, embedded, uploaded, or traced into art.
+ * Must stay in the existing colour-pencil Storybook sidebar folder.
+ */
+export const SourceAnnotationAtlas: StoryObj<typeof meta> = {
+  name:"ArtCraft · Source/native head contour + five-tone annotation",
+  args:{aspect:"landscape",subject:"leaf",frame:335},
+  render:()=> <PencilHeadSourceAnnotationAtlas/>,
 };

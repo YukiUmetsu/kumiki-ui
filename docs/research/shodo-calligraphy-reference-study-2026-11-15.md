@@ -343,6 +343,276 @@ These numbers say how closely the engine reproduces this teacher's own models. T
 
 **Limits.** 25 characters keep the rules; 侍 still loses 亻 and stays rejected.
 
+## 2.15 Eleventh study round: whole shots, the hand on the sheet, and かな loops
+
+**Why 38 characters had no form.** None of the causes was in the teacher's writing:
+- *The shot ended or began too early.* The end-of-shot test watches a strip just inside the paper's left edge, which a crossfade changes for good. A hand that writes near that edge (亻, a left sweep, the left dot of 小) changes it too, for a few seconds. In 33 videos the shot ended before the last strokes (方 小 太 参 考 池 町) or began after the first ones (信 侍 福 九 八 名 春). Steady stretches of the strip are now joined across a gap of up to 8 s when the ink from before the gap is still exactly in place after it: no shift of one or two pixels fits better, and 95 % of it is kept. A still of the finished sheet after the writing is shifted by a pixel and is never joined.
+- *The hand was still on the sheet.* The clean step found the paper in the last frame. When the hand was still on the sheet, the paper had a notch, and the ink next to it was dropped: 建 kept 291 of 12,657 pixels, and 人 小 方 呼 太 参 kept none. The paper is now the convex outline of the bright region. The clean step drops a mark as part of the paper's border only when the mark lies mostly in the border band or meets the band over more than 150 pixels. A stroke whose tip reaches the edge (the sweep of 人) stays.
+- *Seven videos were missing.* Six downloaded on a second try. The video for か still fails (HTTP 403).
+
+**Lines.** The clean step now drops seams between the sheet and a white side bar, creases and grid lines: marks at least 30 px long, never more than 7 px thick and at most 6 px wide on average. The completeness check ignores straight patches (at most 15 px thick, at least 60 px long). All ten videos that it still flagged showed only the lower edge of the paperweight or a seam. No video is incomplete now (23 in round five).
+
+**More of each character is timed.** Strokes that the shot used to miss now have a writing time. The stroke split now gets 不 九 八 右 行 好 必 名 春 right, and each stroke's pace comes from the teacher's complete writing time.
+
+**結び (かな loops).** In 17 かな (あ お す な ぬ ね は ひ ほ ま み め よ る ゐ ゑ を), a curve comes back across its own path. The teacher's loops keep an open counter; ours filled with ink. The engine now eases the press through such a loop (`technique.musubiLift`, default 0.25). A loop counts only where the path returns within 0.8 stroke widths after at least 3 widths, and the largest circle inside it is 0.6 to 4 widths across. Hairpin turns and wide bowls are therefore unchanged. Over the 17 かな, 0.25 gave the best overlap (0.653; 0.650 with no lift), and on review it opens the counters. Fitting the lift stroke by stroke did not help. Matching the loop's line width closed the counters again. Matching the counter's area thinned る and ゐ to a hairline, because their loops are smaller than the teacher's: the size of the loop is the next thing to learn.
+
+**Review.** Every added, replaced or re-rendered form was compared with the teacher:
+- 30 forms were added. 侍 is among them: its 亻 is now in the data, so it is no longer rejected.
+- 29 forms were replaced. 女 gets back the horizontal stroke that the old shot missed.
+- 17 かな now have lighter loops.
+
+午, 達 and 秋 keep their round-five forms: the new ones merge the top strokes of 午, break the 辶 of 達 and shrink the sweep of 火 in 秋. 統 keeps its round-five form, which only the new stroke labels disagree with. や keeps the rules, because the new form loses its loop.
+
+**Result.** Best-aligned overlap with the teacher's live writing, on the new reference ink. On the same ink, the round-five forms score 0.737 for kanji and 0.676 for かな.
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (371) | 0.590 | 0.750 |
+| Kana (47) | 0.501 | 0.679 |
+| The 410 characters with a form | 0.582 | 0.747 (all better) |
+
+**Limits.**
+- 8 characters keep the rules: や after review, and ゆ 八 建 桜 様 短 読, whose forms fail a check. 建 and 様 still have debris in the teacher's ink: a seam piece, and the shadow of the hand that holds the sheet.
+- か has no video.
+- The loops of る ゐ ぬ ね are smaller than the teacher's.
+
+## 2.16 Twelfth study round: かな from the teacher's own brush path
+
+**Where the error was.** The lowest-scoring forms were mostly かな (お ゑ ひ わ ほ を れ). The kanji that scored low (念 感 祭 寒) looked right on review: thin dots and the overlap measure keep their scores down. A かな stroke is fitted in one of two ways. Either the KanjiVG line is bent onto the teacher's ink, or a line follows the teacher's brush path. A typeface skeleton cannot follow her curves. The brush-path line could, but it had two faults:
+- It ran along one edge of the fresh ink, not the middle.
+- It kept at most 8 points for a whole curve, so a loop collapsed into a corner (む) or made a detour (わ).
+
+**The brush path, done properly.** A かな brush path is now:
+1. put in the middle of the stroke;
+2. smoothed by 2.5 px, which is far less than the size of a loop but removes the jitter between frames (a bump in ほ, bulbs at the ends of さ);
+3. kept with up to 20 points per run (the engine takes up to 24).
+
+Without smoothing the overlap was a little higher, but the forms showed the jitter, so the smoothed version was kept.
+
+**The stroke split.**
+- *Hidden ink.* お wrote its horizontal, then the vertical, loop and bowl in one stroke. The hand hid the bowl's lower part for 3 s, and that pause looked like a stroke boundary, so the horizontal took the whole vertical, loop and bowl. For かな, two runs apart by a pause of 1.5 s or more that lie nearest the same KanjiVG stroke may now be one stroke. This changes only あ, お and ゆ.
+- *Skipped runs.* Ink of a run that the alignment skips now goes to the stroke of the nearest kept run. Before, it could only go to runs that had already started, which are the earlier strokes, so 八's right stroke began with the left stroke's label.
+
+**Review in both directions.** A form that fails only a label-based check (a weak stroke, a stroke left on the rules, a grid cell) but looks right on review is now accepted (桜, 読). It still has to pass the overlap and completeness checks. Review also rejected two new forms: 短 loses the long sweep of 矢 and か loses its first stroke's sweep, so both keep the rules. The か video downloaded as a video-only stream, so all 419 videos are now in the data.
+
+**Result.** Best-aligned overlap with the teacher's live writing:
+
+| | Rules | Round six | Round seven |
+|---|---|---|---|
+| Kanji (371) | 0.590 | 0.750 | 0.753 |
+| Kana, the 47 of round six | 0.501 | 0.679 | 0.697 |
+| Characters with a form | | 410 | 413 |
+
+15 かな and 28 kanji changed, and 八 桜 読 were added. All were reviewed against the teacher. お's loop, わ's and む's bowls, and the curves of の ひ を す now follow her writing.
+
+**Limits.**
+- か や ゆ 建 様 短 keep the rules.
+- The loops of る ゐ ぬ ね are still smaller than the teacher's: their brush-path forms did not beat the reviewed forms.
+
+## 2.17 Thirteenth study round: alignment by parts
+
+**A good total can hide a wrong part.** The owner found a form whose total matched well but whose top was very different (the ノ at the top of 毎 in 海). So each character is now measured part by part:
+- Each stroke is measured against the teacher's stroke. The measure counts the teacher's ink that our form misses plus the ink our stroke adds where the teacher has none, divided by the area of the teacher's stroke.
+- A label-free measure takes the largest connected patch of mismatch. It finds a different part even where the stroke split is wrong.
+
+Review now uses overlays: the teacher's ink and our form in two colours. The difference that side-by-side boards hide becomes plain, for example a form a few pixels off the teacher's position, or a stroke end that stops short.
+
+**What was wrong.**
+- *Strokes off by a few pixels.* Many forms sat a few pixels from the teacher's strokes. The overlap measure forgave this, because it searches a wide shift and scale.
+- *Stroke ends.* Ends carried most of the mismatch: per unit of length, three times as much as the middle of a stroke.
+- *Stroke split.* In 海, the teacher writes the ノ and the 一 of 毎 in one motion, and the stroke split gave the long ノ to the 一.
+
+**What changed.**
+1. Every character is fitted twice:
+   - the KanjiVG line bent onto the teacher's stroke, now with a smooth sideways correction along the whole stroke, end moves of up to 16 px and five iterations;
+   - the teacher's own brush path, centred and smoothed, for kanji as well as かな.
+
+   Each stroke comes from the fit that lies closer to the teacher's stroke.
+2. A reviewed form is replaced only when the new one overlaps better and no part looks worse.
+3. An optional rule in the stroke split keeps a long run off a stroke whose kind it crosses (a horizontal is not written downward). It fixes 海 and eleven other characters but hurts characters with 心, so a round with it is merged character by character.
+4. The worst characters then had each stroke end moved along the stroke and tried against the teacher's ink, keeping only moves that help.
+5. Three forms held back by earlier reviews (午 町 圧) were fitted again and now pass. 雪 and 暑 keep their held forms.
+
+**Result.** 240 forms changed, plus end corrections on 70 characters. All were reviewed with overlays.
+
+| | Round seven | Round eight |
+|---|---|---|
+| Kanji (371) | 0.753 | 0.773 |
+| Kana (48) | 0.691 | 0.708 |
+| Median stroke discrepancy | 0.17 | 0.14 |
+| Characters with a mismatch patch over 5 % of the ink | 98 | 42 |
+
+**Limits.** The remaining large patches are:
+- whole parts drawn at the wrong scale (岡);
+- かな shapes (ひ ゐ ゑ み ろ);
+- the hook of 心.
+
+## 2.18 Fourteenth study round: characters from the teacher's word models, and several teachers
+
+**Word models.** The teacher has 111 word models: whole words on one sheet, in vertical writing, right column first, in vermilion ink. They hold characters for which she has no single-character model. To learn them:
+- *Vermilion ink.* Vermilion is read as ink. Bare paper must also be unsaturated, so a hand over written vermilion does not look like paper and does not reset the writing time.
+- *One character per writing segment.* Characters touch, so a cut by position fails. The timed ink is cut into one segment per character in writing order, and each segment is as compact on the sheet as possible. A patch of ink goes to the segment that wrote at least 75 % of it, so a late touch stays with its character.
+- *A virtual sheet.* Each new character gets a sheet of the single-model proportions, sized from its own ink (ink is 0.779 of the sheet width on single models). Its size in em then agrees with the single models.
+- *A fixed em frame.* The frame that maps the sheet to em is now kept in a file, so new data does not move reviewed forms.
+
+**Result.** 15 characters are new: ぼ じ 射 玉 カ ど 朗 理 想 鳴 台 が 間 進 from word models, and 夢 from a single model. All were reviewed against the teacher. Their overlap is 0.544 with the rules and 0.757 with the forms. 仲 keeps the rules (its 中 collapses). Twenty characters are left out: ten words do not cut into one compact character per segment (蒼 貢 献 農 振 興 清 里 式 ば), and ten cuts were wrong at review (遺 草 謝 解 ス テ ラ び で ぎ).
+
+**Several teachers.** `teacher` now also takes a list. The first teacher in the list that has a form for a character writes it, and the rules write a character that no teacher has. A second teacher can then fill characters that the first one does not write.
+
+## 2.19 Fifteenth study round: word models cut again, and a second teacher
+
+**Word models, cut again.** Twenty characters from the word models had no form. The cause was a hand or a sleeve over a written character: it delays the writing time of some of that character's pixels, so they fall into the next character's segment, and that segment is then not compact. Now:
+- ink that lies apart from its segment's main body goes to the segment whose main body is nearest, and ink far from every main body is dropped;
+- only the characters that a word is cut for must be compact, and such a character must not lie in the same place as another segment (one character cut in two);
+- when a word does not cut cleanly, the next word that holds the character is tried.
+
+Fifteen characters now cut. Review accepts 11 forms (草 謝 貢 遺 農 振 興 解 清 里 蒼). ば, ぎ and び keep the rules: a dakuten on the tail of a loop, a diagonal a few pixels off, and an offset bowl. 献 fails the automatic gate.
+
+**A second teacher.** The second teacher's videos show the same character four times: with a pen, a brush pen, a large brush beside a model card, and as an art piece. The large-brush take is found from the card.
+- *Size.* His sheet is larger than the camera's view, and the zoom changes from video to video, so the paper does not give a size. Each character gets a virtual sheet on which his ink has the size and centre of the rules form (外形).
+- *Data.* Many extractions are another take, caption text, or partial writing (the card take often starts after the first strokes). 65 clean takes were chosen by eye before fitting.
+- *Result.* His strokes are thinner and freer than the first teacher's. Four forms match his writing closely (叶 確 罪 臣, overlap 0.71 to 0.79). Other forms have one part that lies off his stroke (the long sweep of 木 in 根, a flick of 長 in 張) and keep the rules.
+
+**Not yet learned.** か, や, ゆ, 短, 様 and 建 have single models but keep the rules: the sweep of か's ノ and of 矢 stays short, and the loops of や and ゆ stay small. 様 and 建 had the sheet's edge in their ink; it is now removed, but their fits are not yet close.
+
+| | Round nine | Round ten |
+|---|---|---|
+| First teacher's forms | 428 | 439 |
+| Second teacher's forms | | 4 |
+
+## 2.20 Sixteenth study round: stroke ends, whole parts and single strokes tried, and two more teachers' videos
+
+**Every stroke end.** Round eight tried stroke ends only on the 80 worst characters. Now every reviewed form of the first teacher has each stroke end moved along the stroke by −24, −12, +12 and +24 em and rendered. A move is kept only when the overlap with the teacher's ink rises and the largest mismatch patch does not grow, and a character keeps its new ends only when all of them together still help. Every changed form was then reviewed in overlays, with the changed pixels outlined.
+
+**Whole parts.** Moving ends cannot fix a part at the wrong place or scale (the inner part of 岡, the ヨ of 雪). For the weak kanji (a stroke over 0.5 discrepancy, or a mismatch patch over 3 % of the ink), each KanjiVG component of two or more strokes is moved by 16 em in eight directions or scaled by 8 % about its centre. The best change is kept when the overlap rises and no mismatch patch grows. Three passes changed 34 forms, all reviewed in overlays.
+
+| In the fit frame | Round ten | Round eleven |
+|---|---|---|
+| 岡 | 0.54 | 0.72 |
+| 雪 | 0.43 | 0.66 |
+| 暑 | 0.60 | 0.77 |
+| 賀 | 0.59 | 0.78 |
+
+Some of these forms got larger, toward the teacher's own size: she writes 暑 1126 em tall.
+
+Characters without parts of two strokes (心 八 火, the かな) then had each stroke tried on its own in the same way. Over the 64 weakest forms, 38 changed (心 0.65 → 0.71, 八 0.67 → 0.72, 火 0.66 → 0.72 in the fit frame).
+
+**Result.** 336 forms have new ends, 34 have moved parts and 38 have moved strokes; the ends of the moved forms were then tried again (32 changed). All were reviewed in overlays.
+
+| | Round ten | Round eleven |
+|---|---|---|
+| Best-aligned overlap, the 439 forms | 0.769 | 0.780 |
+| Kanji | 0.772 | 0.782 |
+| Kana | 0.692 | 0.699 |
+| Overlap in the fit frame (the teacher's size and position) | 0.781 | 0.801 |
+| Median stroke discrepancy | 0.14 | 0.12 |
+| 95th percentile of stroke discrepancy | 0.45 | 0.35 |
+| Characters whose worst stroke is over 0.6 | 51 | 35 |
+| Characters with a mismatch patch over 5 % of the ink | 44 | 22 |
+
+The best-aligned overlap rescales both shapes to their boxes, so moved parts change it little; the overlap in the fit frame shows them. The weakest forms are now 雪 (0.67) and 達 敬 感 (0.70) among kanji, and ゑ (0.58), ゐ (0.64) and ひ (0.65) among かな, whose loops are smaller than the teacher's.
+
+**The second teacher's large-brush take.** His take beside the model card is semi-cursive. The large-brush kaisho take comes before it, with the whole sheet in view. Two simple rules (the minute before the card; the shot whose new ink has the thickest strokes) do not find that take reliably, because his lessons also hold pen and brush-pen takes, and a hand or a sleeve can pass for thick ink. The four forms of round ten stay; the large-brush take is the next thing to find.
+
+**A third teacher.** A third channel writes each character in vermilion, sped up, and then explains it on other sheets. Taking the shot from the start to the moment the ink stops growing gives whole characters, and a sheet that holds the character twice keeps the copy written first. But the first stroke is often already on the sheet when the lesson starts, and the stroke split is weak, so the fits lie a few pixels off along most strokes (0.54 best-aligned overlap on average). No form of this teacher is accepted yet.
+
+## 2.21 Seventeenth study round: the teacher's press along a stroke
+
+**What was wrong.** After the parts were aligned, the weakest forms were かな. Their overlays show the teacher's ink as a border around ours in some places and ours outside hers in others: she swells and thins inside one stroke (the heavy start of ひ, the thick right side of の), while our stroke keeps one width, set by its `weight`.
+
+**What changed.**
+- *Engine.* A stroke can carry `press`: one multiplier per centreline point, 0.4 to 1.8. Every brush sample's press is scaled by the profile where the sample lies nearest the centreline. A stroke without it is written as before.
+- *Learning.* At each point of each stroke, the half-width of the teacher's stroke is compared with ours, both on that stroke alone. The point's press moves toward the ratio, damped and smoothed along the stroke. Three rounds go through the renderer. A character keeps its profiles only when its overlap rises and no mismatch patch grows.
+
+**Result.** 46 forms changed, and the stroke ends of those were then tried again (10 changed); all were reviewed in overlays. They are 23 of the 48 かな and kanji with curving strokes (心 鳥 月 寿). 114 strokes carry a profile. A second round of press changes only one form: the fit has converged.
+
+| | Round eleven | Round twelve |
+|---|---|---|
+| かな, best-aligned overlap | 0.699 | 0.711 |
+| かな, overlap in the fit frame | 0.741 | 0.756 |
+| Characters with a mismatch patch over 5 % of the ink | 22 | 19 |
+
+For example, の 0.75 → 0.82 (its largest mismatch patch 4.6 % → 1.1 % of the ink), く 0.72 → 0.82 and ひ 0.65 → 0.71 in the fit frame. Kanji change little (0.808 → 0.809): their strokes keep a more even width.
+
+**One more character.** The same part, stroke, press and end searches recover ぎ, whose diagonal had lain a few pixels off (0.69 → 0.72): the first teacher now has 440 forms. び 献 建 様 短 improve but still have one part off and keep the rules. For the second teacher, the same searches recover 帆 (0.65 → 0.70) and bring his four forms closer (叶 0.80, 確 0.77, 臣 0.76, 罪 0.73): he now has 5 forms, and one more search over the fits his gate had dropped recovers 哉 (6). For the third teacher, they bring his fits to 0.62 to 0.77; 改 (0.77) and 阜 (0.76) are close (2 forms). The others still have one part off.
+
+**Other teachers give positions only.** Teachers differ much more in stroke thickness, and in the techniques that go with it, than in where their strokes go. Before a teacher is added, the two teachers' own ink is compared on the characters both write, each scaled to one box:
+
+| Against the first teacher | Third teacher (40 shared characters) | Second teacher (4 clean shared kaisho takes) |
+|---|---|---|
+| Stroke thickness for the character's size | 0.98× | 0.79× |
+| Aspect (height over width) | 1.01× | 1.14× |
+| Ink coverage of the box | 1.01× | 0.73× |
+| Shape overlap at one box size | 0.53 | 0.49 |
+
+The third teacher writes with the first teacher's weight and proportions. The second teacher writes thinner and taller; his take beside the model card is rarely clean kaisho for a shared character, so his sample is small. The two hands overlap about as much as the rules overlap the first teacher (0.58): every teacher places strokes in an own way. The other teachers' forms therefore keep only their stroke order and centrelines. Each stroke takes its thickness from the rules, which are calibrated on the first teacher, and leaves out that teacher's own press, technique and pace, so every character is written in the first teacher's style. The demos list the first teacher, then the third, then the second. The first teacher is the standard, so the second teacher's forms also take her proportions: each character gets the rules form's height over width (measured on her models) and keeps its own size, centre and stroke places inside the box.
+
+## 2.22 Eighteenth study round: positions from still images, and the brush habits measured
+
+**Still images (owner's request).** Stroke positions can come from a still image of the finished character: KanjiVG gives the strokes and their order, and the fit moves them onto the ink (the whole character, each stroke, each centreline point and each end). The fit runs on a fast stand-in (thick lines along the engine's curve, each as wide as the renderer draws that stroke) and checks the result once with the renderer. The second and third teachers are no longer used: their forms are freer and more artistic, and most people find them harder to read.
+
+Before a source is used, it gets a held-out check. Forms fitted to the source's ink are scored against the first teacher's brush ink on the characters that she wrote both ways. She also writes kaisho with a pen on lesson cards:
+
+| Against her brush ink, 117 characters | Best-aligned overlap | Centreline distance (hundredths of the box) |
+|---|---|---|
+| Rules | 0.560 | 2.90 |
+| Fitted to her pen ink | 0.559 | 2.80 |
+| Her brush forms | 0.772 | 1.12 |
+
+Her pen kaisho places strokes differently from her brush kaisho by about as much as the rules do, so pen forms are not used. Her own brush ink, fitted without a stroke split, recovers three forms that the video fits had lost (短, や, ば).
+
+**Forms from parts.** A form composed from her forms of the same parts in other characters (氵 on the left, 艹 on top), checked by leaving each character out, places strokes a little closer (centreline 2.64 → 2.38, 257 characters) but overlaps her ink less (0.579 → 0.563). The part's place and size depend on the other parts, and the rules already hold her general habits. It is not used.
+
+**Brush habits measured.** Her 389 kanji forms were compared with our forms of the same characters, stroke by stroke:
+
+| | Her forms against ours |
+|---|---|
+| Horizontal length, for the character's width | 0.885× (middle half 0.79–0.98) |
+| Horizontal with a free end | 0.855× |
+| Horizontal joined at both ends | 0.942× |
+| Horizontal angle | 5.7° (ours 8.2°) |
+| Main horizontal against the others | about 1.1× longer, as `main` already does |
+
+The rise (3.5°) and the main factor (1.1) had come from general kaisho habits and fonts, not from measurement. `shodoKaishoForm` now uses, for KanjiVG kanji, a rise of 1° over KanjiVG's own slope and `freeEnd` 0.88: a horizontal that does not end on an earlier stroke shortens toward its joined start or about its centre, and the joins are closed again. Both halves of the characters (even and odd code points) improve:
+
+| Best-aligned overlap with her ink | Half one | Half two |
+|---|---|---|
+| Change | +0.015 | +0.017 |
+| Characters better / worse | 146 / 48 | 149 / 42 |
+
+Kana did not improve (−0.003 and −0.001 on 27 + 27 characters), so they keep the earlier rise and full-length horizontals; bundled originals keep theirs too. In the tested range, the score changes little (rise 1–2.5°, `freeEnd` 0.84–0.92, a separate factor for joined starts 0.75–0.88); the kept values are close to her measured medians.
+
+## 2.23 Nineteenth study round: more of her stroke habits
+
+**Her own sources.** Of her 536 large-brush kaisho videos, only a few characters were left. Two single-character videos had an English word in their titles, and five small-brush kaisho lessons existed. Six more forms come from the clean model at the end of a video and from small-brush thumbnails. A held-out check on two characters that she wrote with both brushes favours the small-brush source over the rules. A school teacher's model sheets (another channel, 322 characters) are the closest other hand to hers: shape overlap 0.668, against 0.49 to 0.53 for the other sources. But their positions are not closer to her ink than the rules (0.600 against 0.613, 125 characters), so they are not used. Fitted again on her ink, only 9 of her 444 forms improve after review: her forms have converged.
+
+**Stroke habits.** Her 389 kanji forms were compared again with our forms, now with the habits of §2.22. Five differences had a middle half on one side of the rules. Each was tried on its own through the renderer, on both halves of the characters:
+
+| Her stroke against ours | Measured | Overlap change, half one / half two | Kept |
+|---|---|---|---|
+| Dot length | 0.78× | +0.0012 / +0.0011 (77/25 and 70/34 characters better/worse) | yes, 0.8 |
+| 提 (rising stroke ㇀) length | 1.20× | +0.0003 / +0.0002 | yes, 1.2 |
+| Vertical that hangs from an earlier stroke | 0.85× | −0.0018 / −0.0013 | no |
+| Horizontal that starts on an earlier stroke, beyond `freeEnd` | 0.85× | −0.0003 / −0.0005 | no |
+| Right sweep angle | 3.4° flatter | −0.0008 / −0.0007 | no |
+
+Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/27 and 71/37 characters better/worse), and the centreline distance also improves. The effect is small, about a tenth of §2.22. Dots look a little more compact, as hers are. `shodoKaishoForm` applies them to KanjiVG kanji only (`dotLength`, `riseStrokeLength`).
+
+## 2.24 Twentieth study round: かな weight and small かな
+
+**かな weight.** Our かな are the weakest rules forms: their best-aligned overlap with her ink is 0.50, against 0.71 for her own forms. Her 52 written かな are larger than ours (1.06 times as wide and 1.09 times as tall), but a larger かな scores worse (overlap 0.499 → 0.477 at 1.10). The overlap allows for size, so a larger character mainly makes the strokes thinner in comparison. Her かな strokes are heavier: weight 1.04 (median) against our 0.96. Heavier strokes improve both halves:
+
+| かな stroke weight | Overlap change, half one / half two | Characters better/worse |
+|---|---|---|
+| 1.00 | +0.0019 / +0.0035 | 19/6, 19/7 |
+| 1.04 | +0.0047 / +0.0059 | 24/2, 20/5 |
+| 1.10 | +0.0075 / +0.0099 | 22/4, 20/6 |
+| 1.10 and 1.05 larger | +0.0013 / +0.0048 | 18/8, 16/7 |
+
+`strokeFromCentreline` now gives KanjiVG かな strokes weight 1.1; dots and dakuten keep 0.96. In renders the loops of あ ぬ ね の め る stay open.
+
+**Small かな.** KanjiVG draws ぁ っ ゃ ァ ッ ャ … at 0.79 of a full かな, and in a grid ゃ beside し reads as や. Her one small かな (っ in a small-brush lesson) is 0.46 of the width of her す, and handwriting guides teach about half to two thirds. `shodoKaishoForm` writes KanjiVG small かな at 0.76 of KanjiVG's size (about 0.6 of a full かな), on the foot of their box (`smallKana`).
+
 ## 3. From observation to model
 
 | Observation | Model decision |

@@ -30,13 +30,24 @@ API; this is the working order.
    - `inSeason(month)` lists what is in flower, in colour or in fruit.
 5. **Organs at close range.** Use `leafShape`, `flowerShape`, `fruitShape` and `barkMarks` with the species' specs
    (cherry petals notched, plum petals round, peach petals pointed). Use the species' seasonal colours.
-6. **Motion.** Pass `wind` and `t` to `growPlant`, and keep the same seed so the plant only sways. Each form's
-   `wind.moves` says what moves.
-7. **Sound.** Use the catalog ids in `species.sounds`. For the rest, source a CC0 recording with the search term
+6. **Motion.**
+   - Pass `wind` and `t` to `growPlant`, and keep the same seed so the plant only sways. Each form's `wind.moves`
+     says what moves.
+   - Add `swayHz: "species"` for the physical rate: the trunk at its cantilever f₀, willow curtains as hanging chains.
+   - For detail grown once, move it with `swayField`.
+7. **Crown and trunk detail.** For a crown that reads like the photographs, follow `CROWN_DRAWING` (Needham):
+   - tufts lit on the sun's side;
+   - sky holes, more toward the rim;
+   - the trunk dark where it peers out;
+   - leaves breaking the outline.
+
+   `crownDetail`, `woodDetail` and `flareTrunk` give the geometry and light; `TreePaint` paints them. Keep the
+   measured ladder and gap (`CROWN_LIGHT`) whatever the style.
+8. **Sound.** Use the catalog ids in `species.sounds`. For the rest, source a CC0 recording with the search term
    given.
-8. **Check.** Read your drawing's ground, top, crown base, crown edges and trunk width, then run
+9. **Check.** Read your drawing's ground, top, crown base, crown edges and trunk width, then run
    `checkPlantProportions(id, measurePlant(lm))`. Compare with the species' references side by side.
-9. **Add a species.**
+10. **Add a species.**
    - Choose a growth form, then record sizes with sources (grade "reported" only with a quoted figure), leaf, flower,
      fruit, bark, calendar, colours, culture and PD/CC0 references.
    - `checkPlantData()` must stay empty, and `tests/plant-anatomy.test.tsx` must pass.

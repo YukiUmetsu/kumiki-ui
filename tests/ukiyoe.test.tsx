@@ -1067,6 +1067,23 @@ describe("UKIYO1 Kaguya-hime", () => {
   });
 });
 
+describe("UKIYO1 young animals", () => {
+  it("grows a four-legged animal's young from ANIM1 (look.age): smaller, no antlers or tusks, the piglet striped", () => {
+    const extent = (spec: Parameters<typeof drawCreature>[0]) => {
+      const nums = JSON.stringify(drawCreature(spec, 30, 0, 3).prims).match(/-?\d+(\.\d+)?/g)!.map(Number).filter(v => Math.abs(v) < 2000);
+      return Math.max(...nums) - Math.min(...nums);
+    };
+    for (const species of ["deer", "boar", "dog", "horse", "bear"] as const) {
+      expect(extent({ species, look: { age: 0 } }), species).toBeLessThan(extent({ species }));
+      for (const view of ["front", "back"] as const) expect(drawCreature({ species, look: { age: 0, view } }, 30, 0, 3).prims.length, `${species} ${view}`).toBeGreaterThan(3);
+    }
+    // The uribō's stripes, and no antlers on the fawn.
+    expect(JSON.stringify(drawCreature({ species: "boar", look: { age: 0 } }, 30, 0, 3).prims)).toContain('"key":"melon"');
+    expect(JSON.stringify(drawCreature({ species: "boar" }, 30, 0, 3).prims)).not.toContain('"key":"melon"');
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "creature", species: "deer", look: { age: 2 } } as never] })).map(i => i.path)).toContain("$.nodes[0].look.age");
+  });
+});
+
 describe("UKIYO1 faces", () => {
   it("draws expressions, keeps one face per character across views and props, and gives different looks different faces", () => {
     const head = (look: object, actions: unknown[] = []) => JSON.stringify(drawFigure({ look, actions } as never, 20, 0, 3).prims.find(p => p.t === "group" && /scale\(/.test(p.transform ?? "")));

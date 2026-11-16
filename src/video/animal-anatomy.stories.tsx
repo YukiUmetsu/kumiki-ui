@@ -5,15 +5,17 @@ import { BODY_PLANS } from "../../registry/anatomy/animal-plans";
 import type { BodyPlanId } from "../../registry/anatomy/animal-plans";
 import { ANIMAL_GAITS, gaitSpeed, strideFrames } from "../../registry/anatomy/animal-gaits";
 import type { GaitId } from "../../registry/anatomy/animal-gaits";
-import { animalConstruction, poseAnimal } from "../../registry/anatomy/animal-construct";
+import { animalConstruction, poseAnimal, skeletonShapes } from "../../registry/anatomy/animal-construct";
 import type { AnimalSkeleton } from "../../registry/anatomy/animal-construct";
 import { AnimalFigure, AnimalSheet, FootfallDiagram } from "../../registry/anatomy/animal-react";
 import type { AnimalFigureMode } from "../../registry/anatomy/animal-react";
 import { checkAnimalProportions, measureAnimal } from "../../registry/anatomy/animal-check";
 import { findAnimal } from "../../registry/anatomy/animal-species";
 import { ukiyoeBeastLandmarks } from "../../registry/video/ukiyoe/ukiyoe-creatures";
-import { ANIMAL_POSTURES, POSTURE_IDS, postureFit } from "../../registry/anatomy/animal-postures";
-import type { PostureId } from "../../registry/anatomy/animal-postures";
+import { ANIMAL_POSTURES, BIRD_POSTURE_IDS, BIRD_POSTURES, birdPostureFits, POSTURE_IDS, postureFit } from "../../registry/anatomy/animal-postures";
+import type { BirdPostureId, PostureId } from "../../registry/anatomy/animal-postures";
+import { BIRD_FLIGHT, flightAt, speciesWingbeat } from "../../registry/anatomy/animal-flight";
+import { coatAt, growthRule, heightAt, juvenileConstruction } from "../../registry/anatomy/animal-growth";
 import type { UkiyoeSpecies } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 
 const page = { display: "grid", gap: 16, alignContent: "start", padding: 24, minHeight: "100vh", background: "var(--km-surface-canvas, #f6f3f1)", color: "var(--km-text-primary, #242424)",
@@ -162,20 +164,26 @@ const meta = { title: "Video production/Art Foundations/Animal Anatomy", id: "vi
 export default meta;
 type Story = StoryObj<typeof meta>;
 /** Sit, lie, rest and rear: a posture's pitch source, and the transition from standing played over its frames. */
+/** A posture the chosen animal takes: four-legged (`ANIMAL_POSTURES`) or a bird's (`BIRD_POSTURES`). */
+type PostureChoice = { kind: "quad"; id: PostureId } | { kind: "bird"; id: BirdPostureId };
+
 function PostureLab() {
   const [id, setId] = useState("shiba-inu");
   const sp = findAnimal(id)!;
   const c = useMemo(() => animalConstruction(sp), [sp]);
-  const usable = POSTURE_IDS.filter(p => postureFit(c.plan.id, p, sp.behaviour.canRear));
-  const [want, setWant] = useState<PostureId>("sit");
-  const posture = usable.includes(want) ? want : usable[0];
+  const usable: PostureChoice[] = c.plan.group === "bird"
+    ? BIRD_POSTURE_IDS.filter(p => birdPostureFits(c.plan.id, p)).map(p => ({ kind: "bird", id: p }))
+    : POSTURE_IDS.filter(p => postureFit(c.plan.id, p, sp.behaviour.canRear)).map(p => ({ kind: "quad", id: p }));
+  const [want, setWant] = useState<string>("sit");
+  const choice = usable.find(u => u.id === want) ?? usable[0];
+  const info = choice ? (choice.kind === "bird" ? BIRD_POSTURES[choice.id] : ANIMAL_POSTURES[choice.id]) : undefined;
   const [mode, setMode] = useState<AnimalFigureMode>("construction");
   const reduced = usePrefersReducedMotion();
   const [playing, setPlaying] = useState(true);
   const [amount, setAmount] = useState(1);
-  const frames = posture ? ANIMAL_POSTURES[posture].frames : 1;
+  const frames = info?.frames ?? 1;
   useEffect(() => {
-    if (!playing || reduced || !posture) return;
+    if (!playing || reduced || !choice) return;
     // Down over the posture's frames, hold, back up, hold.
     let raf = 0; const t0 = performance.now(), cycle = (frames * 2 + 60) / 30;
     const tick = (now: number) => {
@@ -185,16 +193,23 @@ function PostureLab() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing, reduced, posture, frames]);
-  const pose = useMemo(() => poseAnimal(c, { posture, amount }), [c, posture, amount]);
-  const fit = posture ? postureFit(c.plan.id, posture, sp.behaviour.canRear) : undefined;
+  }, [playing, reduced, choice?.id, frames]); // eslint-disable-line react-hooks/exhaustive-deps -- restart per posture
+  const pose = useMemo(() => poseAnimal(c, choice?.kind === "bird" ? { birdPosture: choice.id, amount } : { posture: choice?.id, amount }), [c, choice?.kind, choice?.id, amount]);
+  const fit = choice?.kind === "quad" ? postureFit(c.plan.id, choice.id, sp.behaviour.canRear) : undefined;
+  // Birds are framed on their own standing size; four-legged animals share one frame.
+  const bounds = useMemo(() => {
+    if (c.plan.group !== "bird") return [-2.6, -.06, 1.2, 2] as const;
+    const b = skeletonShapes(poseAnimal(c)).bounds, w = Math.max(b[2] - b[0], b[3] - b[1]) * 1.2, cx = (b[0] + b[2]) / 2;
+    return [cx - w / 2, -w * .08, cx + w / 2, w * .92] as const;
+  }, [c]);
+  const bp = choice?.kind === "bird" ? BIRD_POSTURES[choice.id] : undefined;
   return (
     <div style={page}>
       <div style={row}>
         <SpeciesSelect value={id} onChange={setId} />
         <label style={label}>Posture
-          <select style={field} value={posture ?? ""} onChange={e => setWant(e.target.value as PostureId)} disabled={!usable.length}>
-            {usable.map(p => <option key={p} value={p}>{ANIMAL_POSTURES[p].label}</option>)}
+          <select style={field} value={choice?.id ?? ""} onChange={e => setWant(e.target.value)} disabled={!usable.length}>
+            {usable.map(u => <option key={u.id} value={u.id}>{(u.kind === "bird" ? BIRD_POSTURES[u.id] : ANIMAL_POSTURES[u.id]).label}</option>)}
           </select>
         </label>
         <label style={label}>Drawing
@@ -202,20 +217,123 @@ function PostureLab() {
             {(["construction", "silhouette", "colour", "fur"] as const).map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </label>
-        <button type="button" style={field} onClick={() => setPlaying(p => !p)} aria-pressed={playing && !reduced} disabled={reduced || !posture}>{reduced ? "Motion reduced" : playing ? "Pause" : "Play"}</button>
+        <button type="button" style={field} onClick={() => setPlaying(p => !p)} aria-pressed={playing && !reduced} disabled={reduced || !choice}>{reduced ? "Motion reduced" : playing ? "Pause" : "Play"}</button>
         <label style={{ ...label, minWidth: 220 }}>Amount: {amount.toFixed(2)}
-          <input type="range" min={0} max={1} step={.01} value={amount} onChange={e => { setPlaying(false); setAmount(Number(e.target.value)); }} disabled={!posture} />
+          <input type="range" min={0} max={1} step={.01} value={amount} onChange={e => { setPlaying(false); setAmount(Number(e.target.value)); }} disabled={!choice} />
         </label>
       </div>
-      {posture && fit ? (
+      {choice && info ? (
         <>
-          <AnimalFigure skeleton={pose} mode={mode} bounds={[-2.6, -.06, 1.2, 2]} label={`${sp.name}, ${ANIMAL_POSTURES[posture].label.toLowerCase()}`} style={{ width: "100%", maxWidth: 900, height: "auto" }} />
+          <AnimalFigure skeleton={pose} mode={mode} bounds={bounds} label={`${sp.name}, ${info.label.toLowerCase()}`} style={{ width: "100%", maxWidth: 900, height: "auto" }} />
           <div style={{ maxWidth: "70ch" }}>
-            <p style={{ margin: "0 0 8px" }}><strong>{ANIMAL_POSTURES[posture].label}</strong> ({ANIMAL_POSTURES[posture].ja}) · body {fit.pitch.typical}° ({fit.pitch.min}–{fit.pitch.max}°, {fit.pitch.grade}{fit.pitch.source ? `: ${fit.pitch.source}` : ""}) · forelegs {fit.fore}, hind legs {fit.hind} · {frames} frames at 30 fps</p>
-            <ul style={{ margin: 0, paddingLeft: 20 }}>{ANIMAL_POSTURES[posture].drawing.map(d => <li key={d}>{d}</li>)}</ul>
+            <p style={{ margin: "0 0 8px" }}><strong>{info.label}</strong> ({info.ja})
+              {fit && <> · body {fit.pitch.typical}° ({fit.pitch.min}–{fit.pitch.max}°, {fit.pitch.grade}{fit.pitch.source ? `: ${fit.pitch.source}` : ""}) · forelegs {fit.fore}, hind legs {fit.hind}</>}
+              {bp?.waterline && <> · waterline {Math.round(bp.waterline.typical * 100)}% up the body ({bp.waterline.grade}{bp.waterline.source ? `: ${bp.waterline.source}` : ""})</>}
+              {" "}· {frames} frames at 30 fps</p>
+            <ul style={{ margin: 0, paddingLeft: 20 }}>{info.drawing.map(d => <li key={d}>{d}</li>)}</ul>
           </div>
         </>
-      ) : <p>{sp.name} has no posture beyond standing in ANIM1 yet (birds and fish), or its plan does not take one naturally.</p>}
+      ) : <p>{sp.name} has no posture beyond standing in ANIM1 yet (fish), or its plan does not take one naturally.</p>}
+    </div>
+  );
+}
+
+/** Birds in the air: open wings through the beat, glides and bounding, at the species' predicted wingbeat. */
+function FlightLab() {
+  const birds = Object.keys(BIRD_FLIGHT);
+  const [id, setId] = useState("red-crowned-crane");
+  const sp = findAnimal(id)!, f = BIRD_FLIGHT[id];
+  const c = useMemo(() => animalConstruction(sp), [sp]);
+  const [mode, setMode] = useState<AnimalFigureMode>("colour");
+  const [capped, setCapped] = useState(true);
+  const reduced = usePrefersReducedMotion();
+  const [playing, setPlaying] = useState(true);
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    if (!playing || reduced) return;
+    let raf = 0; const t0 = performance.now() - seconds * 1000;
+    const tick = (now: number) => { setSeconds(((now - t0) / 1000) % 12); raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- restart from the paused time only when play toggles
+  }, [playing, reduced]);
+  // Frames are drawn on the 30 fps grid, as a film would.
+  const frame = Math.floor(seconds * 30) / 30, at = flightAt(id, frame, 1, capped ? 7.5 : Infinity);
+  const pose = useMemo(() => poseAnimal(c, { flight: at.flight, t: at.t, amount: at.amount }), [c, at.flight, at.t, at.amount]);
+  // One frame for every bird: the bounds of a whole beat and the glide.
+  const bounds = useMemo(() => {
+    const all = [0, .25, .5, .75].map(t => skeletonShapes(poseAnimal(c, { flight: "flap", t })).bounds).concat([skeletonShapes(poseAnimal(c, { flight: "glide" })).bounds]);
+    return [Math.min(...all.map(b => b[0])), Math.min(...all.map(b => b[1])), Math.max(...all.map(b => b[2])), Math.max(...all.map(b => b[3]))] as const;
+  }, [c]);
+  const hz = speciesWingbeat(id) ?? 0;
+  return (
+    <div style={page}>
+      <div style={row}>
+        <label style={label}>Bird
+          <select style={field} value={id} onChange={e => setId(e.target.value)}>{birds.map(b => <option key={b} value={b}>{findAnimal(b)?.name ?? b}</option>)}</select>
+        </label>
+        <label style={label}>Drawing
+          <select style={field} value={mode} onChange={e => setMode(e.target.value as AnimalFigureMode)}>
+            {(["construction", "silhouette", "colour"] as const).map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+        <label style={{ ...label, display: "flex", gap: 8, alignItems: "center" }}><input type="checkbox" checked={capped} onChange={e => setCapped(e.target.checked)} /> At most 7.5 beats a second (4 frames per beat)</label>
+        <button type="button" style={field} onClick={() => setPlaying(p => !p)} aria-pressed={playing && !reduced} disabled={reduced}>{reduced ? "Motion reduced" : playing ? "Pause" : "Play"}</button>
+        <label style={{ ...label, minWidth: 220 }}>Time: {frame.toFixed(2)} s
+          <input type="range" min={0} max={12} step={1 / 30} value={seconds} onChange={e => { setPlaying(false); setSeconds(Number(e.target.value)); }} />
+        </label>
+      </div>
+      <div style={{ maxWidth: 900, width: "100%" }}><AnimalFigure skeleton={pose} mode={mode} bounds={bounds} ground={false} label={`${sp.name} flying: ${at.flight === "flap" ? "wingbeat" : at.flight === "glide" ? "gliding" : "wings closed"}`} /></div>
+      <div style={{ maxWidth: "70ch", display: "grid", gap: 8 }}>
+        <p style={{ margin: 0 }}><strong>{sp.name}</strong>: {f.wing} wing (aspect ratio {f.aspect.typical}, {f.aspect.grade}), {f.style} flight; neck {f.neck}, legs {f.legs}.
+          Predicted wingbeat {hz.toFixed(1)} Hz in steady cruising flight (Pennycuick 1990, from {sp.size.mass.typical} kg and a {sp.size.wingspan?.typical} cm span){capped && hz > 7.5 ? "; drawn at 7.5 Hz" : ""}.</p>
+        <ul style={{ margin: 0, paddingLeft: 20 }}>{f.notes.map(n => <li key={n}>{n}</li>)}</ul>
+      </div>
+    </div>
+  );
+}
+
+/** The young beside the parent, to scale: proportions and coat from `animal-growth.ts`. */
+function GrowthLab() {
+  const [id, setId] = useState("kiso-horse");
+  const sp = findAnimal(id)!;
+  const c = useMemo(() => animalConstruction(sp), [sp]);
+  const rule = growthRule(c.plan.id, c.plan.group);
+  const [age, setAge] = useState(0);
+  const [mode, setMode] = useState<AnimalFigureMode>("colour");
+  const young = useMemo(() => poseAnimal(juvenileConstruction(c, age)), [c, age]), adult = useMemo(() => poseAnimal(c), [c]);
+  // One frame for both: the adult's bounds in its own units; the young is drawn in its units scaled by its height.
+  const b = useMemo(() => skeletonShapes(adult).bounds, [adult]), w = b[2] - b[0], hgt = b[3] - b[1], h = rule ? heightAt(rule, age) : 1;
+  const yb = [b[0] / h, b[1] / h, b[2] / h, b[3] / h] as const;
+  const figure = { width: "100%", height: "auto", maxWidth: 420 } as const;
+  return (
+    <div style={page}>
+      <div style={row}>
+        <SpeciesSelect value={id} onChange={setId} />
+        <label style={{ ...label, minWidth: 240 }}>Age: {age === 0 ? (rule?.youngest ?? "youngest") : age >= 1 ? "adult" : age.toFixed(2)}
+          <input type="range" min={0} max={1} step={.01} value={age} onChange={e => setAge(Number(e.target.value))} disabled={!rule} />
+        </label>
+        <label style={label}>Drawing
+          <select style={field} value={mode} onChange={e => setMode(e.target.value as AnimalFigureMode)}>
+            {(["construction", "silhouette", "colour", "fur"] as const).map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+      </div>
+      {rule ? (
+        <>
+          <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", alignItems: "end", maxWidth: 900 }}>
+            <figure style={{ margin: 0 }}><AnimalFigure skeleton={young} mode={mode} palette={coatAt(sp, age)} bounds={yb} label={`${sp.name}, young, at ${Math.round(h * 100)}% of adult height`} style={figure} />
+              <figcaption style={{ ...label, fontWeight: 400 }}>Young: {Math.round(h * 100)}% of adult height</figcaption></figure>
+            <figure style={{ margin: 0 }}><AnimalFigure skeleton={adult} mode={mode} bounds={b} label={`${sp.name}, adult`} style={figure} />
+              <figcaption style={{ ...label, fontWeight: 400 }}>Adult</figcaption></figure>
+          </div>
+          <div style={{ maxWidth: "70ch" }}>
+            <p style={{ margin: "0 0 8px" }}>Youngest drawn: {rule.youngest}. Height then {Math.round(rule.height.typical * 100)}% of adult ({rule.height.grade}{rule.height.source ? `: ${rule.height.source}` : ""}). Frame {w.toFixed(2)} × {hgt.toFixed(2)} {c.plan.group === "mammal" ? "adult shoulder heights" : "adult lengths"}.</p>
+            <ul style={{ margin: 0, paddingLeft: 20 }}>{rule.notes.map(n => <li key={n}>{n}</li>)}
+              {sp.coat.variants.filter(v => v.age).map(v => <li key={v.name}>Young coat, {v.name}: {v.when}</li>)}</ul>
+          </div>
+        </>
+      ) : <p>{sp.name}: no growth rule (fish).</p>}
     </div>
   );
 }
@@ -223,5 +341,7 @@ function PostureLab() {
 export const Sheet: Story = { render: () => <SheetStory /> };
 export const Gaits: Story = { render: () => <GaitLab /> };
 export const Postures: Story = { render: () => <PostureLab /> };
+export const Flight: Story = { render: () => <FlightLab /> };
+export const Growth: Story = { render: () => <GrowthLab /> };
 export const BodyPlans: Story = { name: "Body plans", render: () => <BodyPlansStory /> };
 export const UkiyoeCheck: Story = { name: "UKIYO1 proportion check", render: () => <ProportionCheck /> };

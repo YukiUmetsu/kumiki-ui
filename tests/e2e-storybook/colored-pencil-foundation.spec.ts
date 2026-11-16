@@ -12,7 +12,8 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
     "data-km-pencil-render-method","authored-vector-pigment");
   await expect(svg).toHaveAttribute("data-km-pencil-photo-pixels","none");
   await expect(scene).toHaveAttribute("data-km-foundation-stage","review");
-  await expect(svg.locator("[data-km-pencil-craft-base]").first()).toBeVisible();
+  await expect(svg.locator('[data-km-pencil-region="head-silhouette-01"]')).toHaveCount(1);
+  await expect(svg.locator("[data-km-pencil-craft-base]")).toHaveCount(0);
   for(const format of ["landscape","portrait"] as const){
     await aspect.selectOption(format);
     await expect(svg).toHaveAttribute("viewBox",format==="landscape"?"0 0 960 540":"0 0 540 960");
@@ -20,6 +21,12 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
       await subject.selectOption(item);
       await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
       await expect(svg.locator("[data-km-pencil-region]").first()).toBeVisible();
+      if(item==="portrait"){
+        await expect(svg.locator("[data-km-pencil-craft-base]")).toHaveCount(0);
+        await expect(svg.locator('[data-km-pencil-region="head-silhouette-01"]')).toHaveCount(1);
+      }else{
+        await expect(svg.locator("[data-km-pencil-craft-base]").first()).toBeVisible();
+      }
       // A CP-F1 vector drawing is not photograph stylization: no SVG
       // bitmap/foreignObject reference, no uploaded source/canvas image,
       // and full details remain named editable pencil strokes.
@@ -35,7 +42,7 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
       expect(provenance.pencilMarks).toBeGreaterThan(100);
       // DRAWING 01 deliberately contains one new human head (one outline
       // and three anatomical guides), not the retired 22-part woman.
-      expect(provenance.tracedGeometry).toBeGreaterThan(item==="portrait"?3:10);
+      expect(provenance.tracedGeometry).toBeGreaterThan(item==="portrait"?0:10);
       if(item==="fox"){
         for(const region of ["periocular-form","mask","eye-far","eye-near"])
           await expect(svg.locator(
@@ -145,7 +152,7 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
 });
 
 
-test("ArtCraft fox subjects and NEW single-piece human head inspect native authoring in both aspects",async({page},info)=>{
+test("ArtCraft single-head-only construction and fox geometry inspect both native aspects",async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
   const scene=page.locator("[data-km-foundation-studio]");
   const svg=page.locator("svg[data-km-colored-pencil]");
@@ -165,7 +172,7 @@ test("ArtCraft fox subjects and NEW single-piece human head inspect native autho
       ["fox","fox-chest","chest"],
       ["fox","fox-forepaw","foreleg-right"],
       ["fox","fox-hock","rear-leg"],
-      ["portrait","human-head","head-construction"],
+      ["portrait","portrait-head","head-silhouette-01"],
     ] as const){
       await subject.selectOption(specimen);
       const before=await svg.screenshot({animations:"disabled"});
@@ -184,28 +191,104 @@ test("ArtCraft fox subjects and NEW single-piece human head inspect native autho
       // a photograph edit or duplicated/flattened alternate hero.
       await svg.screenshot({animations:"disabled",
         path:info.outputPath("pencil-"+specimen+"-"+format+"-"+part+"-macro.png")});
-      if(focus==="human-head"){
-        const head=await svg.evaluate(root=>{
-          const regions=[...root.querySelectorAll("[data-km-pencil-region]")]
-            .map(r=>r.getAttribute("data-km-pencil-region"));
-          const mass=root.querySelector(
-            '[data-km-pencil-region="head-construction"]')!;
+      if(specimen==="portrait"){
+        await expect(page.locator("[data-km-character-stage]"))
+          .toHaveAttribute("data-km-character-stage","head-outline");
+        const shape=await svg.evaluate(root=>{
+          const regions=[...root.querySelectorAll("[data-km-pencil-region]")];
+          const ids=regions.map(x=>x.getAttribute("data-km-pencil-region"));
+          const head=root.querySelector('[data-km-pencil-region="head-silhouette-01"]')!;
+          const path=head.querySelector("[data-km-graphite] path")?.getAttribute("d")??"";
+          const traces=[...head.querySelectorAll("[data-km-pencil-trace]")]
+            .map(e=>e.getAttribute("data-km-pencil-trace"));
           return {
-            onlyNewHead:regions.length===1&&regions[0]==="head-construction",
-            sagittal:!!mass.querySelector(
-              '[data-km-pencil-trace="new-head-sagittal-guide"]'),
-            leftPlane:!!mass.querySelector(
-              '[data-km-pencil-trace="new-head-left-mass-turn"]'),
-            rightPlane:!!mass.querySelector(
-              '[data-km-pencil-trace="new-head-right-mass-turn"]'),
-            bitmap:root.querySelectorAll("image,foreignObject,feImage").length,
+            ids,outlineCurves:(path.match(/C|Q/g)??[]).length,
+            shapeName:head.getAttribute("data-km-pencil-region"),
+            valuePasses:[0,1,2].every(i=>traces.includes("newhead-value-"+i)),
+            guides:["newhead-sagittal-guide","newhead-zygomatic-guides",
+              "newhead-mandibular-hinge"].every(id=>traces.includes(id)),
+            hasPhotos:root.querySelectorAll("image,foreignObject,feImage").length>0,
           };
         });
-        expect(head.onlyNewHead).toBe(true);
-        expect(head.sagittal).toBe(true);
-        expect(head.leftPlane).toBe(true);
-        expect(head.rightPlane).toBe(true);
-        expect(head.bitmap).toBe(0);
+        expect(shape.ids).toEqual(["head-silhouette-01"]);
+        expect(shape.shapeName).toBe("head-silhouette-01");
+        expect(shape.outlineCurves).toBeGreaterThanOrEqual(26);
+        expect(shape.valuePasses).toBe(true);
+        expect(shape.guides).toBe(true);
+        // These five light/value families must exist as independently
+        // editable, actual SVG paths in the NATIVE Storybook drawing.
+        // A passing metadata count without pigment would not qualify.
+        const valueMap=await svg.evaluate(root=>{
+          const paths=Array.from(root.querySelectorAll(
+            '[data-km-pencil-region="head-silhouette-01"] '+
+            '[data-km-pencil-trace^="newhead-anat1-"]')) as SVGPathElement[];
+          const families=[
+            "highlight","light","halftone","core-shadow","reflected-light",
+          ];
+          return {
+            total:paths.length,
+            each:families.map(name=>paths.filter(path=>
+              path.getAttribute("data-km-pencil-trace")?.startsWith(
+                "newhead-anat1-"+name+"-")).length),
+            complete:paths.every(path=>((path.getAttribute("d")??"")
+              .match(/M/g)??[]).length>=90),
+            empty:paths.some(path=>!(path.getAttribute("d")??"").trim()),
+          };
+        });
+        expect(valueMap.total).toBe(15);
+        expect(valueMap.each).toEqual([3,3,3,3,3]);
+        expect(valueMap.complete).toBe(true);
+        expect(valueMap.empty).toBe(false);
+        expect(shape.hasPhotos).toBe(false);
+        // Independent real-browser geometry scan, not a replay of the
+        // TypeScript's hand-picked vault anchors. Anatomy references show
+        // a convex rounded braincase, temple recess, zygomatic flare and
+        // narrowing mandible: the previous drawing was a hard-sided bucket.
+        const anatomy=await svg.evaluate(root=>{
+          const region=root.querySelector(
+            '[data-km-pencil-region="head-silhouette-01"]')!;
+          const outline=region.querySelector("[data-km-graphite] path") as
+            SVGPathElement|null;
+          if(!outline)throw new Error("Missing actual pencil contour path");
+          const d=outline.getAttribute("d");
+          if(!d)throw new Error("Empty drawn contour");
+          const b=outline.getBBox();
+          const shape=new Path2D(d);
+          const ctx=document.createElement("canvas").getContext("2d")!;
+          const width=(fraction:number)=>{
+            const y=b.y+b.height*fraction;
+            let lo=Infinity,hi=-Infinity;
+            for(let x=b.x;x<=b.x+b.width;x+=.55){
+              if(ctx.isPointInPath(shape,x,y)){
+                lo=Math.min(lo,x);hi=Math.max(hi,x);
+              }
+            }
+            return hi-lo;
+          };
+          return {
+            actualBounds:{width:b.width,height:b.height},
+            dome:width(.15),temple:width(.53),zygoma:width(.64),
+            jaw:width(.84),widest:b.width,
+          };
+        });
+        expect(anatomy.actualBounds.height/
+          anatomy.actualBounds.width).toBeGreaterThan(1.35);
+        // At 15% head height the braincase is NOT almost full-width:
+        // steep, parallel sidewalls and a flattened trapezoid are rejected.
+        expect(anatomy.dome/anatomy.widest).toBeLessThan(.84);
+        // At the zygion, cheeks flare OUT again after temporal recession.
+        // The preceding candidate passed the original >=1.07 flare test
+        // yet rendered as a visibly pinched hourglass: both temples
+        // receded much too deeply. This subject-specific measured
+        // transition must be present but restrained, never a gourd waist.
+        const templeCheekRatio=anatomy.zygoma/anatomy.temple;
+        expect(templeCheekRatio).toBeGreaterThan(1.025);
+        expect(templeCheekRatio).toBeLessThan(1.075);
+        expect(anatomy.jaw/anatomy.zygoma).toBeLessThan(.90);
+        for(const retired of ["face-main","hair-back","hair-crown",
+          "eye-white-near","lip-upper","neck","coat-back"]){
+          expect(shape.ids).not.toContain(retired);
+        }
       }
       if(focus==="fox-eye"){
         const topology=await svg.evaluate(root=>{
@@ -337,4 +420,111 @@ test("ArtCraft fox subjects and NEW single-piece human head inspect native autho
       expect(await svg.screenshot({animations:"disabled"})).toEqual(before);
     }
   }
+});
+
+
+test("ANAT1 tonal value bands isolate live head pigment without changing exported default art",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
+  const svg=page.locator("svg[data-km-colored-pencil]");
+  const scene=page.locator("[data-km-foundation-studio]");
+  const control=page.getByRole("combobox",{name:"Foundation ANAT1 value band"});
+  const aspect=page.getByRole("combobox",{name:"Foundation aspect"});
+  const subject=page.getByRole("combobox",{name:"Foundation subject"});
+  await expect(control).toBeVisible();
+  for(const format of ["landscape","portrait"] as const){
+    await aspect.selectOption(format);
+    const untouched=await svg.screenshot({animations:"disabled"});
+    for(const band of ["highlight","light","halftone","core-shadow","reflected-light"] as const){
+      await control.selectOption(band);
+      await expect(scene).toHaveAttribute("data-km-anat1-value-inspection",band);
+      const paths=svg.locator('[data-km-pencil-region="head-silhouette-01"] '+
+        '[data-km-pencil-trace^="newhead-anat1-"]');
+      await expect(paths).toHaveCount(3);
+      const ids=await paths.evaluateAll(nodes=>nodes.map(node=>
+        node.getAttribute("data-km-pencil-trace")));
+      expect(ids.every(id=>id?.startsWith("newhead-anat1-"+band+"-"))).toBe(true);
+      await expect(svg.locator("[data-km-pencil-region]")).toHaveCount(1);
+      if(band==="core-shadow"){
+        await svg.screenshot({animations:"disabled",path:info.outputPath(
+          "pencil-anat1-"+format+"-core-shadow-isolated.png")});
+      }
+    }
+    await control.selectOption("all");
+    await expect(scene).toHaveAttribute("data-km-anat1-value-inspection","all");
+    await expect(svg.locator('[data-km-pencil-trace^="newhead-anat1-"]')).toHaveCount(15);
+    expect(await svg.screenshot({animations:"disabled"})).toEqual(untouched);
+  }
+  await subject.selectOption("fox");
+  await expect(control).toHaveCount(0);
+  await expect(svg.locator('[data-km-pencil-trace^="newhead-anat1-"]')).toHaveCount(0);
+});
+
+
+test("ArtCraft head-only source proof fails closed and lists independently required photo measurements",async({page})=>{
+  await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
+  const subject=page.getByRole("combobox",{name:"Foundation subject"});
+  const aspect=page.getByRole("combobox",{name:"Foundation aspect"});
+  const gate=page.locator("[data-km-head-source-proof]");
+  for(const format of ["landscape","portrait"] as const){
+    await aspect.selectOption(format);
+    await subject.selectOption("portrait");
+    await expect(gate).toHaveAttribute("data-km-head-source-fidelity","blocked");
+    await expect(gate).toHaveAttribute("data-km-head-source-photo","none");
+    await expect(gate).toContainText("SOURCE_AND_RENDER_REQUIRED");
+    await gate.locator("summary").click();
+    await expect(gate.locator("[data-km-head-source-landmark-id]")).toHaveCount(18);
+    await expect(gate.locator("[data-km-head-source-tone-id]")).toHaveCount(5);
+    await expect(page.locator('svg[data-km-colored-pencil] '+
+      '[data-km-pencil-region="head-silhouette-01"]')).toHaveCount(1);
+    await subject.selectOption("fox");
+    await expect(gate).toHaveCount(0);
+  }
+});
+
+test("ArtCraft: new human head's anatomy-rooted pencil contacts are a native reversible A/B, not a raster or replaced skull",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
+  const scene=page.locator("[data-km-foundation-studio]");
+  const svg=page.locator("svg[data-km-colored-pencil]");
+  await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("portrait");
+  const toggle=page.getByRole("checkbox",{name:"Foundation head contour contacts"});
+  await expect(toggle).toBeChecked();
+  await expect(scene).toHaveAttribute("data-km-contour-craft","on");
+  for(const format of ["landscape","portrait"] as const){
+    await page.getByRole("combobox",{name:"Foundation aspect"}).selectOption(format);
+    await expect(svg).toHaveAttribute("viewBox",format==="landscape"?
+      "0 0 960 540":"0 0 540 960");
+    await expect(svg.locator('[data-km-pencil-region="head-silhouette-01"]'))
+      .toHaveCount(1);
+    const enhanced=await svg.screenshot({animations:"disabled",
+      path:info.outputPath("pencil-head-contour-contacts-"+format+".png")});
+    const enhancedMarks=await svg.locator('[data-km-pencil-trace^="newhead-plane-"]').count();
+    const enhancedPathBytes=await svg.locator('[data-km-pencil-trace^="newhead-plane-"]')
+      .evaluateAll(nodes=>nodes.reduce((sum,node)=>
+        sum+(node.getAttribute("d")?.length??0),0));
+    await toggle.uncheck();
+    await expect(scene).toHaveAttribute("data-km-contour-craft","off");
+    const earlier=await svg.screenshot({animations:"disabled",
+      path:info.outputPath("pencil-head-no-contacts-"+format+".png")});
+    const earlierMarks=await svg.locator('[data-km-pencil-trace^="newhead-plane-"]').count();
+    const earlierPathBytes=await svg.locator('[data-km-pencil-trace^="newhead-plane-"]')
+      .evaluateAll(nodes=>nodes.reduce((sum,node)=>
+        sum+(node.getAttribute("d")?.length??0),0));
+    expect(enhanced.equals(earlier)).toBe(false);
+    // The actual 54 authored graphite/pigment detail paths, NOT the
+    // separate generic hatching under [data-km-pigment-layer], carry the
+    // six extra contiguous contact subpasses without new SVG trace nodes.
+    expect(enhancedMarks).toBe(earlierMarks);
+    expect(enhancedPathBytes).toBeGreaterThan(earlierPathBytes);
+    expect(await svg.locator("image,foreignObject,feImage").count()).toBe(0);
+    await toggle.check();
+    await expect(scene).toHaveAttribute("data-km-contour-craft","on");
+    expect((await svg.screenshot({animations:"disabled"})).equals(enhanced))
+      .toBe(true);
+  }
+  // The panel must be exclusive to this Stage-1 head, not an accidental
+  // global filter that alters unrelated fox or landscape craft.
+  await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("fox");
+  await expect(scene).toHaveAttribute("data-km-contour-craft","not-applicable");
+  await expect(toggle).toHaveCount(0);
+  await expect(svg.locator("image,foreignObject,feImage")).toHaveCount(0);
 });

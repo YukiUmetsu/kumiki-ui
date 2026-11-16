@@ -17,7 +17,7 @@ test("portrait prince review loupe keeps his face in the review viewport in each
     await loupe.locator("..").screenshot({path:info.outputPath(`prince-loupe-chapter-${index+1}.png`),animations:"disabled"});
   }
 });
-test("reduced motion keeps chapter navigation usable without playback or animated loupe",async({page})=>{
+test("reduced motion keeps chapter navigation usable without playback or animated loupe",async({page},info)=>{
   await page.goto(path+"&args=aspect:portrait;motion:0.75;medium:layered;reducedMotion:true");
   const stage=page.locator('svg[data-km-paper-director="the-moonlit-lantern"]');
   await expect(page.getByRole("button",{name:"Play story"})).toBeDisabled();
@@ -26,7 +26,9 @@ test("reduced motion keeps chapter navigation usable without playback or animate
     await page.getByRole("button",{name:chapter}).click();
     await expect(stage).toHaveAttribute("data-km-paper-shot",shot);
     await expect(page.locator("[data-km-paper-curtain]")).toHaveCount(0);
+    await stage.screenshot({path:info.outputPath(`still-${shot}.png`),animations:"disabled"});
   }
+  await expect(page.getByText("Choose a chapter to view its still pose.")).toBeVisible();
   await page.getByRole("button",{name:"Inspect prince · 3×",exact:true}).click();
   await expect(page.locator('[data-royal-inspection-target="prince"]')).toHaveCSS("transition-duration","0s");
 });

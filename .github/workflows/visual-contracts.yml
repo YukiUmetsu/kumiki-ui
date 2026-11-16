@@ -58,7 +58,14 @@ jobs:
           done < <(git diff --name-only --diff-filter=ACMR "$base" HEAD)
           echo "Changed Vitest files: ${#unit[@]}; Node test files: ${#node[@]}"
           if (( ${#unit[@]} > 0 )); then
-            npx vitest run --project unit "${unit[@]}"
+            # The change-only PR set currently spans 26 concurrently updated
+            # suites, including expensive FLORA1 growth and SKY1 SVG tree
+            # generation. Vitest's default 5s per-test budget timed out
+            # *both unchanged tests* on identical reruns despite passing
+            # their assertions in isolation. Four workers bound resource
+            # contention and 15s preserves a realistic finite upper bound.
+            # Never skip tests or relax geometry/visual assertions.
+            npx vitest run --project unit --maxWorkers=4 --testTimeout=15000 "${unit[@]}"
           fi
           if (( ${#node[@]} > 0 )); then
             node --test "${node[@]}"

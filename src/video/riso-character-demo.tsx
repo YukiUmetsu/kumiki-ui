@@ -6,6 +6,12 @@ import type { RisoPaint, RisoArtwork } from "../../registry/video/print-plates-r
 import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
+import {riso47PalmContour} from "./riso47-palmar-cup";
+import {riso51MorphSourcePart} from "./riso51-view-conditioned-source";
+import {riso53ReorderPalmarInk} from "./riso53-palmar-depth-composition";
+import {riso54ApplyWebReserves} from "./riso54-interdigital-paper-reserve";
+import {riso58ApplyContactSkin} from "./riso58-anat1-volume-skin";
+import {riso49ProjectedDonorPivot} from "./riso49-donor-projection";
 import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
 import {riso32ThumbIpJoint,riso32ThumbInkParts,riso33WristUnderprintClearance} from "./riso32-thumb-ip";
@@ -33,7 +39,7 @@ const waveKeys = (end = 239): RisoJoint["keys"] => [
   { frame: end, rotate: -3 },
 ];
 /** Original paper messenger — arbitrary joint tree, not a hard-coded humanoid renderer. */
-export const COURIER: RisoCharacterSpec = {
+const COURIER_SOURCE: RisoCharacterSpec = {
   version: 1, id: "courier", durationFrames: 240, cadence: 2,
   joints: [
     { id: "root", x: 0, y: 0, keys: [
@@ -109,18 +115,29 @@ export const COURIER: RisoCharacterSpec = {
     // not the proximal forearm and not an independent sticker.
     { id: "left-palm-surface", parent: "left-hand", x: 0, y: 11 },
     // RISO33: the MCP fan MUST preserve separate negative-space tunnels at
+    // RISO41 ArtCraft source-contact: the former red thumb/index pads missed
+    // by 4.7 source units in the actual 6.2x Chromium f166 ink master.
+    // At true 156–186 contact the real INDEX MCP retracts 3.8 units into
+    // the palmar crease while the CMC thumb pad advances 1.5 units, both
+    // connected to the existing ANAT1 PIP/DIP/IP bones and pressed page.
+    // Keep radial x splay for independent index/middle paper-white tunnels.
     // handoff. Inward 25-degree index sweep made three articulated fingers
     // intersect even though each had the right number of source bones.
     // Palm -> individual digits: all are genuinely joint-local and keep
     // anatomical roots, even under the moving elbow rig.
     { id: "left-thumb", parent: "left-hand", x: -7.1, y: 8,
-      keys: [{frame:0,rotate:-8,easing:"ease"},{frame:92,rotate:-20,easing:"ease"},
-        {frame:160,rotate:-37,easing:"ease"},{frame:198,rotate:-15,easing:"ease"},{frame:239,rotate:-15}] },
+      keys: [{frame:0,rotate:-8,y:0,easing:"ease"},{frame:92,rotate:-20,y:0,easing:"ease"},
+        {frame:160,rotate:-37,y:1.5,easing:"ease"},
+        // Receiver still holds the physical letter after donor release.
+        {frame:186,rotate:-37,y:1.5,easing:"ease"},
+        {frame:205,rotate:-37,y:1.5,easing:"ease"},
+        {frame:239,rotate:-37,y:1.5}] },
     { id: "left-index", parent: "left-hand", x: -6, y: 16,
       keys: [{frame:0,rotate:7,easing:"ease"},{frame:92,rotate:5,easing:"ease"},
-        {frame:160,rotate:29,x:-3.25,easing:"ease"},
-        {frame:186,rotate:29,x:-3.25,easing:"ease"},
-        {frame:205,rotate:5,x:0,easing:"ease"},{frame:239,rotate:5,x:0}] },
+        {frame:160,rotate:29,x:-3.25,y:-3.8,easing:"ease"},
+        {frame:186,rotate:29,x:-3.25,y:-3.8,easing:"ease"},
+        {frame:205,rotate:29,x:-3.25,y:-3.8,easing:"ease"},
+        {frame:239,rotate:29,x:-3.25,y:-3.8}] },
     { id: "left-middle", parent: "left-hand", x: 0, y: 18,
       keys: [{frame:0,rotate:3,easing:"ease"},{frame:92,rotate:0,easing:"ease"},
         {frame:160,rotate:0,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
@@ -163,13 +180,19 @@ export const COURIER: RisoCharacterSpec = {
     // The right hand follows the satchel via IK; separate roots let the
     // fingers close gently without dragging the palm or wrist shape.
     { id: "right-thumb", parent: "right-hand", x: 7.1, y: 8,
-      keys: [{frame:0,rotate:-9,easing:"ease"},{frame:90,rotate:18,easing:"ease"},
-        {frame:156,rotate:37,easing:"ease"},{frame:198,rotate:14},{frame:239,rotate:14}] },
+      keys: [{frame:0,rotate:-9,y:0,easing:"ease"},{frame:90,rotate:18,y:0,easing:"ease"},
+        {frame:156,rotate:37,y:1.5,easing:"ease"},
+        // The original donor paper is held until the 178f release beat;
+        // an earlier CMC drift opens the real red pads at 177f and erases
+        // half the source paper pressure creases.
+        {frame:178,rotate:37,y:1.5,easing:"ease"},
+        {frame:186,rotate:24,y:1.5,easing:"ease"},
+        {frame:205,rotate:14,y:0},{frame:239,rotate:14,y:0}] },
     { id: "right-index", parent: "right-hand", x: 6, y: 16,
       keys: [{frame:0,rotate:3,easing:"ease"},{frame:90,rotate:-3,easing:"ease"},
-        {frame:156,rotate:-29,x:3.25,easing:"ease"},
-        {frame:186,rotate:-29,x:3.25,easing:"ease"},
-        {frame:205,rotate:-5,x:0},{frame:239,rotate:-5,x:0}] },
+        {frame:156,rotate:-29,x:3.25,y:-3.8,easing:"ease"},
+        {frame:186,rotate:-29,x:3.25,y:-3.8,easing:"ease"},
+        {frame:205,rotate:-5,x:0,y:0},{frame:239,rotate:-5,x:0,y:0}] },
     { id: "right-middle", parent: "right-hand", x: 0, y: 18,
       keys: [{frame:0,rotate:0,easing:"ease"},{frame:90,rotate:0,easing:"ease"},
         {frame:156,rotate:0,easing:"ease"},{frame:198,rotate:0},{frame:239,rotate:0}] },
@@ -283,7 +306,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7.8 20.9 Q-4.5 21.1 -1.2 21.0 Q3.4 20.5 7.4 20.8 L7.5 21.45 Q3.6 21.1 -.6 21.65 Q-4.4 21.75 -7.65 21.52 Z" },
     riso33WristUnderprintClearance("left"),
     { id: "left-glove", joint: "left-hand", plate: "red", paint: "solid",
-      d: "M-6.5 -1.7 C-9.4 -2.4 -10.4 1.1 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -2 4 -1.8 Q0 -2.1 -3 -1.6 Z" },
+      d:riso47PalmContour("courier","left") },
     ...riso31FingerParts("left","index"),
     ...riso31FingerParts("left","middle"),
     ...riso31FingerParts("left","ring"),
@@ -308,7 +331,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7.5 21.0 Q-3.8 21.6 .2 21.05 Q3.9 20.5 7.6 20.8 L7.3 21.52 Q3.7 21.1 -.3 21.76 Q-4.0 21.68 -7.5 21.6 Z" },
     riso33WristUnderprintClearance("right"),
     { id: "right-glove", joint: "right-hand", plate: "red", paint: "solid",
-      d: "M-6.5 -1.7 C-9.4 -2.4 -10.4 1.1 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -2 4 -1.8 Q0 -2.1 -3 -1.6 Z" },
+      d:riso47PalmContour("courier","right") },
     ...riso31FingerParts("right","index"),
     ...riso31FingerParts("right","middle"),
     ...riso31FingerParts("right","ring"),
@@ -524,6 +547,22 @@ export const COURIER: RisoCharacterSpec = {
 
   ],
 };
+/** Immutable unprojected RISO31/45 skeleton for other human characters.
+ * Do not transfer Courier-only foreshortening to the Paper Artist's hand.
+ */
+export const COURIER_BASE_JOINTS=COURIER_SOURCE.joints;
+/** Production Courier continues using the EXACT same named physical ink
+ * parts with only source joint-stage 2D camera projection at donor contact. */
+export const COURIER:RisoCharacterSpec=riso58ApplyContactSkin({
+  ...COURIER_SOURCE,
+  joints:COURIER_BASE_JOINTS.map(j=>riso49ProjectedDonorPivot(j)??j),
+  // Original physical RED drum: three far-side support fingers now print
+  // beneath the real metacarpal cup, radial thumb/index stay above it.
+  // RISO43's actual opaque sheet remains above palm/below actual index.
+  parts:riso54ApplyWebReserves(riso53ReorderPalmarInk(
+    COURIER_SOURCE.parts.map(p=>riso51MorphSourcePart(p,"courier")),
+    "courier"),"courier"),
+},"courier");
 /** Tiny paper bird: demonstrates that parent rig is anatomy-agnostic. */
 export const PAPER_BIRD: RisoCharacterSpec = {
   version: 1, id: "paper-bird", durationFrames: 240, cadence: 2,

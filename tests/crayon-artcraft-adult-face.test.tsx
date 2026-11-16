@@ -5,7 +5,10 @@ import {renderToStaticMarkup} from "react-dom/server";
 import {inspectCrayonScene,crayonWorldPoint} from "../registry/video/materials/crayon-scene";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy,portraitCriticalParts} from "../src/video/crayon-artcraft-adult-face-fixtures";
-import faceMeta,{AdultFaceThreeQuarter,AdultFacePortrait} from "../src/video/crayon-artcraft-adult-face.stories";
+import faceMeta,{AdultFaceThreeQuarter,AdultFacePortrait,AdultFaceArtcraftWorkbench}
+  from "../src/video/crayon-artcraft-adult-face.stories";
+import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit}
+  from "../src/video/crayon-artcraft-portrait-audit";
 
 describe("ArtCraft v6 reference-led adult portrait construction (not visual approval)",()=>{
   for(const aspect of ["landscape","portrait"] as const){
@@ -169,6 +172,15 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
         if(node?.kind!=="contour")throw new Error("Missing tailored stitching "+id);
         expect(node.clipToParent).toBe(true);
       }
+      const neckPlane=nodes.get("neck-lateral-turn");
+      if(neckPlane?.kind!=="wax")throw new Error("Missing attached lateral neck");
+      expect(neckPlane.coverage).toBe("open");
+      expect(neckPlane.clipToParent).toBe(true);
+      expect(neckPlane.parentId).toBe("neck-under-jaw");
+      expect(nodes.get("nose-sidewall-form-hatching")?.parentId).toBe("adult-face");
+      const noseGrain=nodes.get("nose-sidewall-form-hatching");
+      expect(noseGrain?.kind).toBe("contour");
+      if(noseGrain?.kind==="contour")expect(noseGrain.clipToParent).toBe(true);
       const neck=nodes.get("neck-under-jaw");
       const scarf=nodes.get("tailored-scarf-wrap");
       const collarShadow=nodes.get("neck-jaw-cast-shadow");
@@ -268,9 +280,41 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
   }
   it("keeps unfinished face studies out of public Storybook",()=>{
     expect(faceMeta.tags).toContain("!dev");
-    expect(faceMeta.title).toMatch(/^Video production\/Film Looks\/Crayon\//);
+    expect(faceMeta.title).toBe("Video production/Film Looks/Crayon/ArtCraft Adult Face Lab");
     expect(AdultFaceThreeQuarter.args??{}).toEqual({});
     expect(AdultFacePortrait.args?.aspect).toBe("portrait");
+  });
+  it("rejects real 2026-11-14 reference alignment rather than rewarding cosmetic wax",()=>{
+    const audit=crayonPortraitFrozenAudit();
+    expect(CRAYON_PORTRAIT_AUDIT.source.license).toBe("CC0 1.0");
+    expect(CRAYON_PORTRAIT_AUDIT.source.sha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(CRAYON_PORTRAIT_AUDIT.candidate.sha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(audit.inspectedLandmarks).toBe(18);
+    expect(audit.failedLandmarks).toHaveLength(17);
+    expect(audit.failedTonalRegions.map(x=>x.region))
+      .toEqual(["eye_socket","nose_planes","cheek_planes","lips"]);
+    expect(audit.artisticApproval).toBe(false);
+    expect(audit.sourceOriginalBytesAvailable).toBe(false);
+    expect(audit.status).toBe("REJECT");
+    expect(audit.faceAspectError).toBeLessThan(.16);
+  });
+  it("offers opt-in visible CC0 audit without contaminating normal native art",()=>{
+    const args={aspect:"portrait" as const,detail:1,expression:"warm" as const,
+      headScaleY:.82,startFrame:299,playbackRate:1,loop:false};
+    const normal=renderToStaticMarkup(<AdultFaceArtcraftWorkbench {...args}/>);
+    expect(normal).toContain('data-km-crayon-source-review="off"');
+    expect(normal).not.toContain("CC0 photographic anatomy reference");
+    const review=renderToStaticMarkup(<AdultFaceArtcraftWorkbench {...args}
+      referenceReview showCandidateLandmarks/>);
+    expect(review).toContain('data-km-crayon-portrait-audit="REJECT"');
+    expect(review).toContain("17/18");
+    expect(review).toContain("4/5");
+    expect(review).toContain("CC0 photographic anatomy reference");
+    expect((review.match(/data-km-crayon-portrait-landmark=/g)??[])).toHaveLength(18);
+    const unaligned=renderToStaticMarkup(<AdultFaceArtcraftWorkbench {...args}
+      aspect="landscape" referenceReview showCandidateLandmarks/>);
+    expect(unaligned).not.toContain('data-km-crayon-portrait-landmark=');
+    expect(unaligned).toContain("these current controls differ");
   });
   it("hand-authors distinct lip and commissure geometry for a warm expression",()=>{
     const smiling=crayonAdultFaceStudy("landscape",{expression:"warm"});
@@ -281,6 +325,22 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
         (b?.kind!=="wax"&&b?.kind!=="contour"))
         throw new Error("missing "+id);
       expect(a.d).not.toBe(b.d);
+    }
+    for(const scene of [smiling,neutral]){
+      const elements=new Map(scene.elements.map(n=>[n.id,n]));
+      const lip=elements.get("lip-upper-volume");
+      const cleft=elements.get("mouth-commissures");
+      const garment=elements.get("coat-silhouette");
+      const sleeve=elements.get("coat-sleeve-cap-near");
+      if(lip?.kind!=="wax"||cleft?.kind!=="contour"||
+        garment?.kind!=="wax"||sleeve?.kind!=="wax")
+        throw new Error("No native paint planes");
+      expect((cleft.d.match(/M/g)??[]).length).toBeGreaterThanOrEqual(2);
+      expect(lip.d).toMatch(/Q/);
+      // A portrait bust should continue past the 9:16 bottom edge instead
+      // of ending both sleeves as detached rounded stumps in mid-frame.
+      expect(garment.bounds.y+garment.bounds.height).toBeGreaterThan(440);
+      expect(sleeve.bounds.y+sleeve.bounds.height).toBeGreaterThan(440);
     }
     expect(()=>crayonAdultFaceStudy("landscape",{expression:"surprised" as "warm"}))
       .toThrow(/Invalid ArtCraft facial study/);

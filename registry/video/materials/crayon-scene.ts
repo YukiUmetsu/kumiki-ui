@@ -82,12 +82,21 @@ export interface CrayonWaxElement extends CrayonBase {
   strokeOrder?: CrayonStrokeOrder;
   /** Long connected rubbed patches or legacy short wax flecks. */
   markLength?: CrayonMarkLength;
+  /** Opt-in layers of visible crayon pressure marks, not a polished gradient. */
+  deposition?: "smooth" | "stroke-built";
   /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
    * default open retains translucent scenery and older CRAYON1 documents. */
   coverage?: "open" | "opaque";
   /** Edge blending radius (0..18 SVG units) for painted open wax glazes.
    * Finished subjects remain opaque because their own underpaint is separate. */
   blendRadius?: number;
+  /** Feather the DIRECTIONAL GRAIN CONTACT along the same open-wax
+   * silhouette radius. Unlike blendRadius alone, this also fades the
+   * pressure marks and contact clumps that would otherwise end abruptly
+   * at the clipPath and create a cut-paper polygon. Requires an open,
+   * stroke-built glaze with blendRadius > 0. Off by default, especially
+   * for opaque characters and precise ink boundaries. */
+  featherContacts?: boolean;
   /** 0..1 artistic density of medium-native random tooth marks.
    * Lower values leave opaque underpaint intact; the artist can layer
    * explicit anatomy and form-directed marks on top instead of noise. */
@@ -95,6 +104,11 @@ export interface CrayonWaxElement extends CrayonBase {
   /** Optical wax-undercoat contact with the shared paper relief (0..1).
    * Never changes alpha coverage of a solid character or scene object. */
   underpaintTooth?: number;
+  /** Opt-in extra opaque burnish passes (0..1) physically push colored
+   * wax into the tooth so the darkest iris/naris/ink masses can become
+   * truly dark. Only opaque stroke-built wax; never translucent glazes.
+   * Default 0 exactly preserves all existing scene color and APIs. */
+  opaqueBurnish?: number;
   /** Smooth underlying side-nib mass, combined with full-opacity silhouette
    * and explicit pressure-shaped wax scratches; never a global object blur. */
   underpaintGradient?:CrayonVolumeGradient;
@@ -128,6 +142,10 @@ export interface CrayonContourElement extends CrayonBase {
   color: CrayonColor;
   width: number;
   opacity?: number;
+  /** Source-directed opaque broken crayon pigment, not a digital hairline. */
+  waxContact?: "line"|"dry-wax";
+  /** 0.2..1; only active for dry-wax contour contact. */
+  waxPressure?:number;
 }
 /** Authored drawing anchor on a moving element, prior to camera framing. */
 export interface CrayonAnchorRef { elementId: string; anchor: {x:number; y:number} }
@@ -333,6 +351,12 @@ export function inspectCrayonScene(input: unknown): string[] {
         if (node.blendRadius !== undefined && (!finite(node.blendRadius)||node.blendRadius<0||
           node.blendRadius>18||node.coverage!=="open"))
           errors.push(p + ".blendRadius must be 0..18 on open wax");
+        if (node.featherContacts !== undefined &&
+          (typeof node.featherContacts!=="boolean" ||
+            (node.featherContacts &&
+              (node.coverage!=="open" || node.deposition!=="stroke-built" ||
+                !finite(node.blendRadius) || (node.blendRadius??0)<=0))))
+          errors.push(p + ".featherContacts requires open stroke-built wax with blendRadius > 0");
         if (node.underpaintGradient !== undefined) {
           const g=node.underpaintGradient;
           if(!g || node.coverage!=="opaque" || !finite(g.focusX) || !finite(g.focusY) ||
@@ -352,6 +376,12 @@ export function inspectCrayonScene(input: unknown): string[] {
             node.underpaintTooth>1 ||
             (node.underpaintTooth>0 && node.coverage!=="opaque")))
           errors.push(p + ".underpaintTooth must be 0..1 on opaque wax");
+        if (node.opaqueBurnish !== undefined &&
+          (!finite(node.opaqueBurnish) || node.opaqueBurnish<0 ||
+            node.opaqueBurnish>1 ||
+            (node.opaqueBurnish>0 &&
+              (node.coverage!=="opaque" || node.deposition!=="stroke-built"))))
+          errors.push(p + ".opaqueBurnish requires opaque stroke-built wax and value 0..1");
         if (node.clipToParent !== undefined && typeof node.clipToParent!=="boolean")
           errors.push(p + ".clipToParent must be a boolean");
         if (node.clipToParent && !node.parentId)
@@ -362,6 +392,8 @@ export function inspectCrayonScene(input: unknown): string[] {
           errors.push(p + ".strokeOrder must be scanline or patches");
         if (node.markLength !== undefined && node.markLength !== "long" && node.markLength !== "short")
           errors.push(p + ".markLength must be long or short");
+        if(node.deposition !== undefined && node.deposition !== "smooth" && node.deposition !== "stroke-built")
+          errors.push(p+".deposition must be smooth or stroke-built");
         if(node.edgeRoughness!==undefined && (!finite(node.edgeRoughness)||
           node.edgeRoughness<0||node.edgeRoughness>1))
           errors.push(p+".edgeRoughness must be in [0,1]");
@@ -406,6 +438,13 @@ export function inspectCrayonScene(input: unknown): string[] {
         if (!finite(node.width) || node.width <= 0 || node.width > 64) errors.push(p + ".width out of bounds");
         if (node.opacity !== undefined && (!finite(node.opacity) || node.opacity < 0 || node.opacity > 1))
           errors.push(p + ".opacity out of bounds");
+        if(node.waxContact!==undefined && node.waxContact!=="line" &&
+          node.waxContact!=="dry-wax")
+          errors.push(p+".waxContact must be line or dry-wax");
+        if(node.waxPressure!==undefined &&
+          (!finite(node.waxPressure)||node.waxPressure<.2||
+            node.waxPressure>1||node.waxContact!=="dry-wax"))
+          errors.push(p+".waxPressure requires valid dry-wax contact");
         if (node.poses !== undefined || node.poseCues !== undefined) {
           if (node.drawings !== undefined)
             errors.push(p + ".drawings and named poses cannot be combined");

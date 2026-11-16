@@ -86,3 +86,65 @@ describe("ANAT1 hair and colour", () => {
     expect(ramp.every((v, i) => i === 0 || v >= ramp[i - 1] - 0.5)).toBe(true);
   });
 });
+
+import { beautifulFace, goldenRatioReport, PHI } from "../registry/anatomy/face-beauty";
+import { renderPortrait } from "../registry/anatomy/face-portrait";
+import { eyeCentres, FACE_LANDMARKS } from "../registry/anatomy/anatomy-face";
+import { createRaster, fft2, fillPolygon, gaussianBlur, strokePolyline } from "../registry/anatomy/foundation-raster";
+
+describe("ANAT1 beautiful faces and portraits", () => {
+  it("applies the attractiveness findings: symmetric, measured breadths and eyes, Pallett's ratios, closed lips", () => {
+    for (const sex of [0, 1]) {
+      const f = beautifulFace({ sex }), v = f.vertices, L = (k: keyof typeof FACE_LANDMARKS) => v[FACE_LANDMARKS[k]];
+      // symmetry: paired landmarks mirror across the midline
+      expect(Math.abs(L("exocanthion.L")[0] + L("exocanthion.R")[0])).toBeLessThan(0.2);
+      expect(Math.abs(L("cheilion.L")[1] - L("cheilion.R")[1])).toBeLessThan(0.2);
+      // ANSUR II cheekbone breadth (women 133.8, men 142.6 mm), Pallett's 46% and 36% (the average face)
+      expect(f.applied.faceWidth).toBeGreaterThan(sex ? 136 : 128);
+      expect(f.applied.faceWidth).toBeLessThan(sex ? 148 : 139);
+      const r = Object.fromEntries(f.report.map(x => [x.id, x.value]));
+      expect(Math.abs(r.pupils - 0.46)).toBeLessThan(0.02);
+      expect(Math.abs(r["eye-mouth"] - 0.36)).toBeLessThan(0.005);
+      // the eye opening inside the reported 8–11.5 mm; lips near 1:2 and closed
+      expect(f.applied.palpebral).toBeGreaterThan(8);
+      expect(f.applied.palpebral).toBeLessThan(11.5);
+      expect(f.applied.lowerLip / f.applied.upperLip).toBeGreaterThan(1.5);
+      expect(v[13][1] - v[14][1]).toBeLessThan(0.6);
+      expect(f.applied.canthalTilt).toBeGreaterThan(2);
+    }
+    // beauty 0 keeps the calibrated average face
+    expect(beautifulFace({ sex: 0, beauty: 0 }).vertices).toEqual(createFace({ sex: 0 }).vertices);
+  });
+  it("reports the golden-ratio checks without building on them", () => {
+    const f = beautifulFace({ sex: 0 }), rows = goldenRatioReport(f.vertices, f.hairlineY);
+    expect(rows.find(x => x.id === "mouth-nose")!.target).toBeCloseTo(PHI, 6);
+    // the evidence-built face sits measurably off φ: the claims are reported, not imposed
+    expect(Math.abs(rows.find(x => x.id === "mouth-nose")!.value - PHI)).toBeGreaterThan(0.03);
+    expect(eyeCentres(f.vertices).L[0]).toBeGreaterThan(0);
+  });
+  it("renders a portrait: a lit face over the background, dark pupils, nothing out of range", () => {
+    const p = renderPortrait({ sex: 0, width: 96, height: 120, supersample: 1 });
+    expect(p.rgba.length).toBe(96 * 120 * 4);
+    const lum = (x: number, y: number) => { const i = (y * 96 + x) * 4; return 0.2126 * p.rgba[i] + 0.7152 * p.rgba[i + 1] + 0.0722 * p.rgba[i + 2]; };
+    const corner = lum(2, 2);
+    let face = 0, n = 0;
+    for (let y = 50; y < 70; y++) for (let x = 40; x < 56; x++) { face += lum(x, y); n++; }
+    expect(face / n).toBeGreaterThan(corner + 20);
+    let darkest = 255;
+    for (let y = 40; y < 60; y++) for (let x = 20; x < 76; x++) darkest = Math.min(darkest, lum(x, y));
+    expect(darkest).toBeLessThan(60);
+  });
+  it("raster foundation: polygon coverage, blur, strokes and FFT round trip", () => {
+    let cov = 0;
+    fillPolygon(20, 20, [[2.5, 2.5], [12.5, 2.5], [12.5, 8.5], [2.5, 8.5]], (_, c) => (cov += c));
+    expect(cov).toBeCloseTo(60, 1);
+    const img = new Float32Array(64).fill(0); img[27] = 1;
+    expect(gaussianBlur(img, 8, 8, 1, 1).reduce((a, b) => a + b, 0)).toBeCloseTo(1, 1);
+    const r = createRaster(16, 16);
+    strokePolyline(r, [[2, 8], [14, 8]], 2, 2, [1, 0, 0], 1);
+    expect(r.alpha[8 * 16 + 8]).toBeGreaterThan(0.9);
+    const re = Float64Array.from({ length: 64 }, (_, i) => Math.sin(i)), im = new Float64Array(64), orig = re.slice();
+    fft2(re, im, 8); fft2(re, im, 8, true);
+    re.forEach((x, i) => expect(x).toBeCloseTo(orig[i], 9));
+  });
+});

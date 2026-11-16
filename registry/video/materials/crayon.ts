@@ -69,6 +69,108 @@ export function crayonConstructionWindows(
       outlineStart:last-outlineFrames,outlineEnd:last};
 }
 
+/**
+ * ArtCraft wax-crayon fiber marks: broken, paper-height-dependent pigment
+ * ribbons and attached terminal clumps, never a continuous bright SVG line.
+ * Only the explicit M x y C x y x y x y grammar is supported so malformed
+ * artwork cannot silently become a generic fallback. Compound cubic
+ * paths preserve many individual authored hair gestures under one node.
+ * This is an observable material approximation, not wax-fluid simulation.
+ */
+export function crayonWaxFiberContacts(
+  path:string,width:number,seed:number,paperSeed:number,
+  pressure=.7,progress=1,
+):{body:string;pickup:string;segments:number}{
+  if(typeof path!=="string"||path.length<12||path.length>40000||
+    ![width,pressure,progress].every(Number.isFinite)||
+    width<=0||width>16||pressure<.2||pressure>1||
+    progress<0||progress>1||
+    !Number.isSafeInteger(seed)||!Number.isSafeInteger(paperSeed))
+    throw new RangeError("Invalid CRAYON1 fiber contact input");
+  const compact=path.replace(/[\s,]/g,"");
+  const words=path.match(/[MC]|[+-]?(?:[0-9]+(?:[.][0-9]*)?|[.][0-9]+)/g);
+  if(!words||words.join("")!==compact||words.length%10!==0||
+    words.length>1600)throw new RangeError("Crayon fiber requires compound M/C cubic paths");
+  if(progress===0)return {body:"",pickup:"",segments:0};
+  const fmt=(n:number)=>n.toFixed(2);
+  const pair=(x:number,y:number)=>fmt(x)+" "+fmt(y);
+  const body:string[]=[],pickup:string[]=[];
+  let count=0;
+  for(let k=0;k<words.length;k+=10){
+    if(words[k]!=="M"||words[k+3]!=="C")
+      throw new RangeError("Crayon fiber accepts M/C cubic subpaths only");
+    const v=[words[k+1],words[k+2],words[k+4],words[k+5],
+      words[k+6],words[k+7],words[k+8],words[k+9]].map(Number);
+    if(v.some(n=>!Number.isFinite(n)||Math.abs(n)>8192))
+      throw new RangeError("Unbounded crayon fiber cubic");
+    const [x0,y0,x1,y1,x2,y2,x3,y3]=v;
+    const point=(t:number)=>{
+      const s=1-t;
+      const x=s*s*s*x0+3*s*s*t*x1+3*s*t*t*x2+t*t*t*x3;
+      const y=s*s*s*y0+3*s*s*t*y1+3*s*t*t*y2+t*t*t*y3;
+      const tx=3*s*s*(x1-x0)+6*s*t*(x2-x1)+3*t*t*(x3-x2);
+      const ty=3*s*s*(y1-y0)+6*s*t*(y2-y1)+3*t*t*(y3-y2);
+      const len=Math.hypot(tx,ty)||1;
+      return {x,y,tx,ty,nx:-ty/len,ny:tx/len};
+    };
+    const chord=Math.hypot(x3-x0,y3-y0);
+    const arcLength=(Math.hypot(x1-x0,y1-y0)+
+      Math.hypot(x2-x1,y2-y1)+Math.hypot(x3-x2,y3-y2)+chord)*.5;
+    const steps=Math.min(32,Math.max(3,Math.ceil(arcLength/10)));
+    for(let i=0;i<steps;i++){
+      const t0=i/steps,t1=(i+1)/steps;
+      if(t0>=progress)break;
+      const exposed=Math.min(t1,progress);
+      if(exposed-t0<.012)continue;
+      const mid=point((t0+exposed)*.5);
+      const paper=crayonPaperHeight(mid.x,mid.y,paperSeed);
+      const jitter=crayonHash(seed,k*41+i,33);
+      // A worn crayon catches raised paper and leaves broken lengths.
+      // Paper valley dropout is essential: with the previous low cutoff
+      // almost every station survived at firm pressure, turning individual
+      // wax rubs into smooth, straight vector-colored hair ribbons.
+      if(.62*paper+.30*pressure+.08*jitter<.58)continue;
+      const a=point(t0),b=point(exposed);
+      const scale=(exposed-t0)/3;
+      const aCtl={x:a.x+a.tx*scale,y:a.y+a.ty*scale};
+      const bCtl={x:b.x-b.tx*scale,y:b.y-b.ty*scale};
+      // The *side* of a wax nib is materially wider than the fine
+      // guide centerline. Preserve jagged fiber-height microedges, but
+      // make the cohesive contact visible at the actual 1x film scale.
+      const thickness=width*(1.45+2*pressure)*
+        (.76+.53*paper+.16*crayonHash(seed,k*79+i,14));
+      const start=thickness*(.72+.22*crayonHash(seed,k*77+i,15));
+      const end=thickness*(.55+.48*crayonHash(seed,k*73+i,16));
+      const left=(p:typeof a,w:number)=>pair(p.x+p.nx*w,p.y+p.ny*w);
+      const right=(p:typeof a,w:number)=>pair(p.x-p.nx*w,p.y-p.ny*w);
+      const n0=left(a,start),n1=left(b,end);
+      const m1=right(b,end),m0=right(a,start);
+      const cp0=pair(aCtl.x+a.nx*start,aCtl.y+a.ny*start);
+      const cp1=pair(bCtl.x+b.nx*end,bCtl.y+b.ny*end);
+      const cq1=pair(bCtl.x-b.nx*end,bCtl.y-b.ny*end);
+      const cq0=pair(aCtl.x-a.nx*start,aCtl.y-a.ny*start);
+      body.push("M"+n0+" C"+cp0+" "+cp1+" "+n1+
+        " Q"+pair(b.x+b.tx/Math.max(1,Math.hypot(b.tx,b.ty))*end*.16,
+          b.y+b.ty/Math.max(1,Math.hypot(b.tx,b.ty))*end*.16)+
+        " "+m1+" C"+cq1+" "+cq0+" "+m0+"Z");
+      count++;
+      // Clumping is physically attached to the *end of a deposited ribbon*,
+      // not decoratively scattered around the character.
+      if(crayonHash(seed,k*101+i,91)<.21+.34*pressure){
+        const lift=end*(.48+.6*paper);
+        const bx=b.x+b.nx*lift*.22,by=b.y+b.ny*lift*.22;
+        pickup.push("M"+pair(bx-b.nx*lift,by-b.ny*lift)+
+          " Q"+pair(bx+b.tx*.012-b.nx*lift*1.36,
+            by+b.ty*.012-b.ny*lift*1.36)+" "+
+          pair(bx+b.tx*.026,by+b.ty*.026)+
+          " Q"+pair(bx+b.nx*lift*1.2,by+b.ny*lift*1.2)+
+          " "+pair(bx-b.nx*lift,by-b.ny*lift)+"Z");
+      }
+    }
+  }
+  return {body:body.join(" "),pickup:pickup.join(" "),segments:count};
+}
+
 export function crayonHash(seed: number, a: number, b = 0): number {
   // Integer mixing keeps renders identical across seeks and JavaScript runtimes.
   let n = (seed | 0) ^ Math.imul(a + 1, 0x9e3779b1) ^ Math.imul(b + 1, 0x85ebca6b);
@@ -261,13 +363,177 @@ export function crayonNibPath(mark: CrayonMark, progress = 1): string {
  * Completed geometry is memoized only by dry-mode regions; partial frames
  * regenerate only the active nib and never rearrange painted marks.
  */
-export function crayonDryNibPath(mark:CrayonMark,progress=1):string{
+/** Deterministic paper-contact height in canonical material coordinates.
+ * Smooth, multi-scale paper relief is shared across independent deposits.
+ * This is an SVG-oriented approximation, not a wax thickness simulation.
+ * Hash cells are keyed to position and the PAPER seed (not mark IDs).
+ */
+export function crayonPaperHeight(x:number,y:number,paperSeed:number):number{
+  if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isSafeInteger(paperSeed))
+    throw new RangeError("Invalid crayon paper coordinates or seed");
+  // Repeatable 176-unit paper tile shared by the SVG pigment pattern.
+  // Toroidal lattice indexing prevents a digital seam at tile boundaries.
+  const field=(cells:number,salt:number)=>{
+    const gx=x*cells/176,gy=y*cells/176;
+    const ix=Math.floor(gx),iy=Math.floor(gy);
+    const sx=gx-ix,sy=gy-iy;
+    const smooth=(v:number)=>v*v*(3-2*v);
+    const wrap=(i:number)=>((i%cells)+cells)%cells;
+    const hash=(i:number,j:number)=>crayonHash(paperSeed,
+      (Math.imul(wrap(i),73856093)^Math.imul(wrap(j),19349663))|0,salt);
+    const top=hash(ix,iy)+(hash(ix+1,iy)-hash(ix,iy))*smooth(sx);
+    const bottom=hash(ix,iy+1)+(hash(ix+1,iy+1)-hash(ix,iy+1))*smooth(sx);
+    return top+(bottom-top)*smooth(sy);
+  };
+  // All strokes on the same page sample the same tactile cell structure.
+  return Math.max(0,Math.min(1,.39*field(32,4121)+
+    .37*field(88,4122)+.24*field(352,4123)));
+}
+
+/** Real wax catches raised paper fibers and forms small cohesive clumps.
+ * Generates a few compound SVG paths rather than arbitrary alpha noise.
+ * Coordinates and deposition are fixed by the page seed; locally drawn
+ * regions contribute only placement/angle/pressure and pigment palette.
+ * This intentionally does NOT claim to model the full plastic wax volume.
+ */
+export function crayonWaxContactClumps(
+  bounds:CrayonBounds,seed:number,paperSeed:number,pressure:number,angle=0,
+):ReadonlyArray<{tone:1|2;width:number;count:number;d:string}>{
+  if(![bounds.x,bounds.y,bounds.width,bounds.height,pressure,angle].every(Number.isFinite)||
+    bounds.width<=0||bounds.height<=0||bounds.width>4096||bounds.height>4096||
+    pressure<.2||pressure>1||angle< -89||angle>89||
+    !Number.isSafeInteger(seed)||!Number.isSafeInteger(paperSeed))
+    throw new RangeError("Invalid crayon wax contact clump parameters");
+  const area=bounds.width*bounds.height;
+  const cell=Math.max(2.8,Math.sqrt(area/660));
+  const cols=Math.ceil(bounds.width/cell),rows=Math.ceil(bounds.height/cell);
+  const buckets=[[],[],[],[],[],[]] as string[][];
+  const fmt=(v:number)=>v.toFixed(2);
+  for(let j=0;j<rows;j++){
+    for(let i=0;i<cols;i++){
+      const k=j*cols+i,rand=(ch:number)=>crayonHash(seed,k,4440+ch);
+      const x=bounds.x+(i+.12+.74*rand(1))*bounds.width/cols;
+      const y=bounds.y+(j+.12+.74*rand(2))*bounds.height/rows;
+      const paper=crayonPaperHeight(x,y,paperSeed);
+      // A light nib skips valleys; increased pressure sticks to lower fiber
+      // heights. This gives the same page tactile identity across colors.
+      if(paper+pressure*.25<.48)continue;
+      const tone:1|2=rand(3)<.61?1:2;
+      const band=Math.min(2,Math.floor(rand(4)*3));
+      const theta=(angle+(rand(5)-.5)*42)*Math.PI/180;
+      const length=(1.1+2.3*paper+pressure*2.3)*(.55+.8*rand(6));
+      const dx=Math.cos(theta)*length,dy=Math.sin(theta)*length;
+      const bow=(rand(7)-.5)*1.9;
+      const cx=x+dx*.52-Math.sin(theta)*bow;
+      const cy=y+dy*.52+Math.cos(theta)*bow;
+      const path="M"+fmt(x)+" "+fmt(y)+"Q"+fmt(cx)+" "+fmt(cy)+
+        " "+fmt(x+dx)+" "+fmt(y+dy);
+      buckets[(tone-1)*3+band].push(path);
+    }
+  }
+  return buckets.map((parts,index)=>({
+    tone:(Math.floor(index/3)+1) as 1|2,
+    width:(index%3)*.25+.46+pressure*.28,
+    count:parts.length,
+    d:parts.join(" "),
+  }));
+}
+
+/** Small waxy pickups at stroke lift-off, observed in real wax-crayon
+ * microscopy. Unlike region-wide sprinkle/clumps, the deposits attach to
+ * the actual quadratic nib gesture and share its draw-in timing.
+ *
+ * The final clump geometry is a deterministic function of the nib arc,
+ * contact pressure and canonical paper relief. This is an approximation,
+ * not a conservation-of-mass or temperature-dependent wax simulation.
+ */
+export function crayonStrokeEndPickup(
+  mark:CrayonMark,paperSeed:number,progress=1,
+):string {
+  if(!Number.isSafeInteger(paperSeed)||!Number.isFinite(progress)||
+    progress<0||progress>1)
+    throw new RangeError("Invalid crayon stroke pickup controls");
+  if(progress<=0)return "";
+  const out:string[]=[];
+  const fmt=(n:number)=>n.toFixed(2);
+  for(let i=0;i<mark.nibArcs.length;i++){
+    const exposed=Math.max(0,Math.min(1,progress*mark.nibArcs.length-i));
+    // Waxy matter piles up mainly when the worn nib lifts from paper.
+    if(exposed<.85)continue;
+    const [x0,y0,cx,cy,x1,y1]=mark.nibArcs[i];
+    const t=.85+.15*Math.min(1,(exposed-.85)/.15);
+    const inv=1-t;
+    const x=inv*inv*x0+2*inv*t*cx+t*t*x1;
+    const y=inv*inv*y0+2*inv*t*cy+t*t*y1;
+    const tx=2*inv*(cx-x0)+2*t*(x1-cx);
+    const ty=2*inv*(cy-y0)+2*t*(y1-cy);
+    const len=Math.max(1e-6,Math.hypot(tx,ty));
+    const nx=-ty/len,ny=tx/len,ux=tx/len,uy=ty/len;
+    const paper=crayonPaperHeight(x,y,paperSeed);
+    const wax=mark.pressure*(.32+.68*paper);
+    if(wax<.24)continue;
+    // Three overlapping asymmetric lobes, each joined to the existing
+    // contact ribbon. Their lopsided, tapered edges are not confetti.
+    const base=mark.width*(.14+.18*wax);
+    for(let lobe=0;lobe<3;lobe++){
+      const rand=(ch:number)=>crayonHash(mark.index,i*13+lobe,5230+ch);
+      if(rand(4)>.70+.22*wax)continue;
+      const sideways=(lobe-1)*base*.73+(rand(1)-.5)*base*.22;
+      const ahead=(lobe-.8)*base*.53;
+      const px=x+nx*sideways+ux*ahead;
+      const py=y+ny*sideways+uy*ahead;
+      const w=base*(.55+.65*rand(2));
+      const h=base*(.45+1.25*rand(3));
+      const backward=.85*h,forward=.55*h;
+      const sx=px-ux*backward,sy=py-uy*backward;
+      const ex=px+ux*forward,ey=py+uy*forward;
+      out.push("M"+fmt(sx-nx*w)+" "+fmt(sy-ny*w)+
+        "Q"+fmt(px-nx*w*1.35)+" "+fmt(py-ny*w*.90)+" "+
+        fmt(ex)+" "+fmt(ey)+
+        "Q"+fmt(px+nx*w*1.1)+" "+fmt(py+ny*w*.78)+" "+
+        fmt(sx+nx*w)+" "+fmt(sy+ny*w)+"Z");
+    }
+  }
+  return out.join(" ");
+}
+
+/** Fixed full-stroke arc stations: drawing forward cannot reflow earlier wax.
+ * Only the current moving tip is interpolated; prior paper contacts stay
+ * pinned to their original world positions and shared paper-height samples.
+ * This is intentionally used only for the opt-in hand-contact renderer:
+ * legacy dry nib SVG output remains byte-for-byte unchanged.
+ */
+export function crayonStableNibStops(lo:number,hi:number,end:number):number[]{
+  if(![lo,hi,end].every(Number.isFinite)||
+    lo<0||lo>=hi||hi>1||end<0||end>1)
+    throw new RangeError("Invalid crayon nib sample interval");
+  if(end<=lo)return [];
+  const fractions=[0,.08,.17,.26,.36,.47,.58,.69,.79,.89,1];
+  const stops=fractions.map(f=>lo+(hi-lo)*f)
+    .filter(t=>t<=Math.min(end,hi)+1e-10);
+  // The advancing tip may move; every completed station must be immutable.
+  if(end<hi-1e-10&&
+    (stops.length===0||Math.abs(stops[stops.length-1]-end)>1e-10))
+    stops.push(end);
+  return stops;
+}
+
+export function crayonDryNibPath(
+  mark:CrayonMark,progress=1,contact:"legacy"|"hand"="legacy",
+  paperSeed=0,
+):string{
+  if(contact!=="legacy"&&contact!=="hand")
+    throw new RangeError("Invalid dry nib contact style");
+  if(!Number.isSafeInteger(paperSeed))
+    throw new RangeError("Invalid crayon paper seed");
+  const handmade=contact==="hand";
   if(!Number.isFinite(progress)||progress<0||progress>1)
     throw new RangeError("crayon dry nib progress must be in [0,1]");
   if(progress===0||mark.nibArcs.length===0)return "";
   const fmt=(n:number)=>n.toFixed(2);
   const result:string[]=[];
-  const bands=mark.pressure>=.78?3:mark.pressure>=.42?2:1;
+  const bands=handmade?(mark.pressure>=.78?4:mark.pressure>=.42?3:2):
+    mark.pressure>=.78?3:mark.pressure>=.42?2:1;
   for(let arc=0;arc<mark.nibArcs.length;arc++){
     const exposed=Math.min(1,Math.max(0,progress*mark.nibArcs.length-arc));
     if(exposed<=0)continue;
@@ -281,7 +547,8 @@ export function crayonDryNibPath(mark:CrayonMark,progress=1):string{
       const len=Math.max(1e-6,Math.hypot(tx,ty));
       return {x,y,nx:-ty/len,ny:tx/len};
     };
-    const laneIds=bands===1?[1]:bands===2?[0,2]:[0,1,2];
+    const laneIds=bands===1?[1]:bands===2?[0,2]:
+      bands===3?[0,1,2]:[0,1,2,3];
     for(const lane of laneIds){
       const seed=arc*23+lane;
       const liftStart=.035+.12*crayonHash(mark.index,seed,3102);
@@ -290,29 +557,66 @@ export function crayonDryNibPath(mark:CrayonMark,progress=1):string{
       const gapStart=.43+.04*crayonHash(mark.index,seed,3105);
       const gapEnd=gapStart+.08+.06*crayonHash(mark.index,seed,3106);
       const ranges=lifted?[[liftStart,gapStart],[gapEnd,liftEnd]]:[[liftStart,liftEnd]];
-      const offset=(lane-1)*.28*mark.width+
-        (crayonHash(mark.index,seed,3107)-.5)*mark.width*.095;
+      const offset=(lane-(bands===4?1.5:1))*(handmade?.22:.28)*mark.width+
+        (crayonHash(mark.index,seed,3107)-.5)*mark.width*(handmade?.14:.095);
       for(const [lo,hi] of ranges){
         const end=Math.min(exposed,hi);
         if(end<=lo+.008)continue;
-        const left:string[]=[],right:string[]=[];
-        const fractions=[0,.3,.68,1] as const;
-        for(const [j,fraction] of fractions.entries()){
-          const t=lo+(end-lo)*fraction;
+        let left:string[]=[],right:string[]=[];
+        const flush=()=>{
+          if(left.length>=2)
+            result.push("M"+left.join("L")+"L"+right.reverse().join("L")+"Z");
+          left=[];right=[];
+        };
+        // Legacy nibs retain their historical 4 moving samples. Hand-mode
+        // contacts instead use FIXED stations of the completed arc: the
+        // previous algorithm rescaled the entire ribbon at each seek frame,
+        // so colored wax slid around the page during an animated draw-in.
+        const samples=handmade
+          ? crayonStableNibStops(lo,hi,end)
+          : [0,.3,.68,1].map(fraction=>lo+(end-lo)*fraction);
+        for(const [j,t] of samples.entries()){
           const pos=point(t);
           // Paper friction makes wax break and veer *within* each contact.
           // No three perfectly parallel ribbons or identical edge thicknesses.
+          // The temporary advancing tip can lift lightly; stations behind
+          // it retain their full-contact shape when more of the mark arrives.
+          const edge=j===0||(handmade ? Math.abs(t-hi)<1e-8 :
+            j===samples.length-1);
+          const advancingTip=handmade&&j===samples.length-1&&end<hi-1e-8;
           const drift=(crayonHash(mark.index,seed*11+j,3110)-.5)*
-            mark.width*((j===0||j===3)?0.10:0.22);
-          const taper=(j===0||j===3)?0.43:1;
-          const relief=.59+.57*crayonHash(mark.index,seed+j,3108);
-          const thickness=mark.width*(.065+.043*mark.pressure)*taper*relief;
+            mark.width*(handmade?(edge?.14:.29):(edge?.10:.22));
+          // A real worn crayon end touches intermittently; height changes
+          // along its side, making long contacts lumpy, not polygonal rulers.
+          const taper=edge?(handmade?.23+.25*crayonHash(mark.index,seed+j,3111):.43):
+            advancingTip?.36:1;
           const x=pos.x+pos.nx*(offset+drift);
           const y=pos.y+pos.ny*(offset+drift);
-          left.push(fmt(x+pos.nx*thickness)+" "+fmt(y+pos.ny*thickness));
-          right.push(fmt(x-pos.nx*thickness)+" "+fmt(y-pos.ny*thickness));
+          // Adjacent crayon passes sample the SAME paper relief. A high peak
+          // receives thicker wax while valleys interrupt side-of-nib contact.
+          const paper=handmade?crayonPaperHeight(x,y,paperSeed):1;
+          // Low ridges cannot contact a worn nib at light pressure; the
+          // paper shows through as short in-stroke discontinuities. Strong
+          // pressure bridges more valleys. Only the hand profile uses this.
+          const contactFloor=.24+.21*(1-mark.pressure);
+          if(handmade&&!edge&&paper<contactFloor){
+            flush();
+            continue;
+          }
+          const relief=handmade?
+            .12+1.44*paper:
+            .59+.57*crayonHash(mark.index,seed+j,3108);
+          // Broad worn side-nib wax contacts: observable ribbons are thicker
+          // than pencil-tip hatch lines, with valley gaps preserved by
+          // the shared paper-height field and per-contact abrasion.
+          const thickness=mark.width*(handmade?.14+.10*mark.pressure:
+            .065+.043*mark.pressure)*taper*relief;
+          const deposit=handmade?(.24+.76*mark.pressure):1;
+          const contactWidth=thickness*deposit;
+          left.push(fmt(x+pos.nx*contactWidth)+" "+fmt(y+pos.ny*contactWidth));
+          right.push(fmt(x-pos.nx*contactWidth)+" "+fmt(y-pos.ny*contactWidth));
         }
-        result.push("M"+left.join("L")+"L"+right.reverse().join("L")+"Z");
+        flush();
       }
     }
   }

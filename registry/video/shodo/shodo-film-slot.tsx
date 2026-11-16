@@ -23,7 +23,8 @@ export interface ShodoSlotProps {
   sheet?: "kentei" | "plain";
   /** 1-based stroke numbers (across the whole text) written with vermilion 朱墨. */
   vermilionStrokes?: readonly number[];
-  orderGuide?: "none" | "current" | "all";
+  /** Stroke-order guide: "current" and "all" mark the vermilion strokes; "numbers" numbers every stroke. */
+  orderGuide?: "none" | "current" | "all" | "numbers";
   showBrush?: boolean;
 }
 
@@ -59,7 +60,7 @@ function ShodoShot({ props, context, label }: { props: ShodoSlotProps; context: 
   }, [chars.join(""), props.glyphs, props.vermilionStrokes, style, paper, width]); // eslint-disable-line react-hooks/exhaustive-deps
   const sheet = useMemo(() => props.sheet === "plain" ? null : kenteiSheet(paper.width, paper.height, 1, chars.length), [props.sheet, paper, chars.length]);
   return <ShodoCanvas plan={plan} frame={(props.startFrame ?? 0) + context.frame} width={width} height={height} paper={paper}
-    sheet={sheet} orderGuide={props.orderGuide ?? "none"} guideStrokes={props.vermilionStrokes}
+    sheet={sheet} orderGuide={props.orderGuide ?? "none"} guideStrokes={props.orderGuide === "numbers" ? undefined : props.vermilionStrokes}
     showBrush={props.showBrush ?? true} reducedMotion={context.reducedMotion} label={label} />;
 }
 

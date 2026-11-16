@@ -25,6 +25,9 @@ import { rgbToHex, skinShade } from "../../registry/anatomy/anatomy-color";
 
 const referenceUrls = import.meta.glob("../../assets/photos/anatomy-references/*.jpg", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 import type { HumanCamera } from "../../registry/anatomy/anatomy-view";
+import { BeautyEvidence, FacePortrait, GoldenRatioTable } from "../../registry/anatomy/face-portrait-react";
+import type { EyeColour, HairStyle, PortraitOptions } from "../../registry/anatomy/face-portrait";
+import { EMOTIONS } from "../../registry/anatomy/expression-facs";
 
 const page = { display: "grid", gap: 16, padding: 24, minHeight: "100vh", background: "#f3efe8", color: "#26211d", font: "15px/1.45 system-ui, sans-serif" } as const;
 const panel = { display: "grid", gap: 10, alignContent: "start", minWidth: 260, maxWidth: 340 } as const;
@@ -614,7 +617,61 @@ export const PoseLibrary: Story = { name: "Pose library", render: () => <Poses /
 export const PoseLibraryFront: Story = { name: "Pose library (front QA)", render: () => <PosesAt yaw={0} /> };
 export const PoseLibrarySide: Story = { name: "Pose library (side QA)", render: () => <PosesAt yaw={90} /> };
 export const HandPoses: Story = { name: "Hand poses", render: () => <Hands /> };
+
+const muted = { margin: 0, color: "#5b524b", font: "13px/1.45 system-ui, sans-serif" } as const;
+const field = { minHeight: 34, padding: "5px 8px", borderRadius: 7, border: "1px solid #797776", background: "#fff", color: "inherit", font: "14px system-ui, sans-serif" } as const;
+/** Faces built from the attractiveness research and rendered as portraits. */
+function BeautifulFaces() {
+  const people: { o: PortraitOptions; caption: string }[] = [
+    { o: { sex: 0, skin: "#e6c0a4", hairStyle: "long", eyes: "brown" }, caption: "Woman, light skin, long hair" },
+    { o: { sex: 1, skin: "#c99a7e", hairStyle: "short", eyes: "hazel" }, caption: "Man, medium skin, short hair" },
+    { o: { sex: 0, skin: "#8d5a3b", hairStyle: "bob", eyes: "dark-brown", hair: { eumelanin: 7 } }, caption: "Woman, brown skin, bob" },
+    { o: { sex: 1, skin: "#5e3a26", hairStyle: "short", eyes: "dark-brown", hair: { eumelanin: 8 } }, caption: "Man, dark skin" },
+    { o: { sex: 0, skin: "#f1d3bd", hairStyle: "long", eyes: "blue", hair: { eumelanin: 0.5, pheomelanin: 0.35 } }, caption: "Woman, very light skin, fair hair" },
+    { o: { sex: 1, skin: "#d7aa86", hairStyle: "short", eyes: "grey", hair: { eumelanin: 2.5 } }, caption: "Man, light skin" },
+  ];
+  return (
+    <div style={{ ...page, gap: 20 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Each face starts from measured population means (Farkas norms, ANSUR II face breadths and pupil distances), is made symmetric, gets above-average femininity (women) or a slight feminisation (men), measured attractive lip heights, an open eye at a measured palpebral height and a slight canthal tilt, and a hairline at Pallett's 36% ratio. Rendered with measured skin scattering (d'Eon & Luebke profile), a shadowed key light and occlusion, ray-traced eyes and strand-traced hair.</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+        {people.map((p, k) => <figure key={k} style={{ margin: 0, display: "grid", gap: 4 }}><FacePortrait options={{ ...p.o, width: 288, height: 360, seed: 5 + k }} label={p.caption} /><figcaption style={muted}>{p.caption}</figcaption></figure>)}
+      </div>
+      <h3 style={{ margin: 0 }}>The calibrated average (beauty 0) against the findings applied (beauty 1)</h3>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+        {[0, 1].flatMap(sex => [0, 1].map(beauty => <figure key={`${sex}-${beauty}`} style={{ margin: 0, display: "grid", gap: 4 }}><FacePortrait options={{ sex, beauty, skin: "#d8a98a", hairStyle: sex ? "short" : "bob", width: 288, height: 360 }} label={`${sex ? "Man" : "Woman"}, beauty ${beauty}`} /><figcaption style={muted}>{sex ? "Man" : "Woman"}, beauty {beauty}</figcaption></figure>))}
+      </div>
+      <h3 style={{ margin: 0 }}>The golden ratio face, checked</h3>
+      <GoldenRatioTable face={{ sex: 0 }} />
+      <h3 style={{ margin: 0 }}>What is applied, and where it comes from</h3>
+      <BeautyEvidence />
+    </div>
+  );
+}
+
+const SKINS = ["#f1d3bd", "#e6c0a4", "#d8a98a", "#c99a7e", "#b3825f", "#8d5a3b", "#6d452f", "#4b2e20"];
+/** One portrait with every control. */
+function PortraitLab() {
+  const [o, setO] = useState<PortraitOptions>({ sex: 0, beauty: 1, skin: "#d8a98a", eyes: "brown", hairStyle: "long", expression: "", intensity: 1, yaw: 0, keyAzimuth: -22, keyElevation: 40 });
+  const set = (k: keyof PortraitOptions, v: unknown) => setO(prev => ({ ...prev, [k]: v }));
+  const num = (k: keyof PortraitOptions, min: number, max: number, step: number) => <label key={k} style={label}>{k}: {String(o[k])}
+    <input type="range" min={min} max={max} step={step} value={Number(o[k] ?? 0)} onChange={e => set(k, Number(e.target.value))} /></label>;
+  return (
+    <div style={{ ...page, gridTemplateColumns: "minmax(240px, 320px) 1fr" }}>
+      <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
+        {num("sex", 0, 1, 1)}{num("beauty", 0, 1, 0.25)}
+        <label style={label}>Skin<select style={field} value={o.skin} onChange={e => set("skin", e.target.value)}>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+        <label style={label}>Eyes<select style={field} value={o.eyes} onChange={e => set("eyes", e.target.value as EyeColour)}>{(["dark-brown", "brown", "hazel", "green", "blue", "grey"] as const).map(c => <option key={c}>{c}</option>)}</select></label>
+        <label style={label}>Hair<select style={field} value={o.hairStyle} onChange={e => set("hairStyle", e.target.value as HairStyle)}>{(["long", "bob", "short"] as const).map(c => <option key={c}>{c}</option>)}</select></label>
+        <label style={label}>Expression<select style={field} value={o.expression} onChange={e => set("expression", e.target.value)}><option value="">neutral</option>{EMOTIONS.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}</select></label>
+        {num("intensity", 0, 1, 0.1)}{num("yaw", -25, 25, 5)}{num("keyAzimuth", -70, 70, 5)}{num("keyElevation", 0, 70, 5)}
+      </div>
+      <div style={{ maxWidth: 480 }}><FacePortrait options={{ ...o, expression: o.expression || undefined, width: 384, height: 480 }} label="Portrait" /></div>
+    </div>
+  );
+}
 export const FaceLabStory: Story = { name: "Face lab", render: () => <FaceLab /> };
+export const BeautifulFacesStory: Story = { name: "Beautiful faces", render: () => <BeautifulFaces /> };
+export const PortraitLabStory: Story = { name: "Portrait lab", render: () => <PortraitLab /> };
 export const HeadAngles: Story = { name: "Head angles", render: () => <FaceAngles /> };
 export const RangeOfMotionStory: Story = { name: "Range of motion", render: () => <RangeOfMotion /> };
 export const AnyStyleStory: Story = { name: "Any style", render: () => <AnyStyle /> };

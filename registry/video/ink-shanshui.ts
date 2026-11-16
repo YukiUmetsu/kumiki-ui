@@ -10,10 +10,17 @@ export type ShanshuiScene = "misty-hermit"|"river-scholar"|"mountain-trail";
 export const SHANSHUI_SCENES:readonly ShanshuiScene[]=[
   "misty-hermit","river-scholar","mountain-trail",
 ];
+/** Historical brush grammars are separate technique studies, not a single mixed filter. */
+export type InkRockSchool="fuchun"|"early-spring"|"travelers"|"forest-grotto";
+export const INK_ROCK_SCHOOLS:readonly InkRockSchool[]=[
+  "fuchun","early-spring","travelers","forest-grotto",
+];
 export const SHANSHUI_FRAMES=300;
 export const SHANSHUI_WIDTH=960,SHANSHUI_HEIGHT=540;
 export interface ShanshuiControls {
   scene:ShanshuiScene;
+  /** Source-specific, code-drawn rock construction, independent of scene/clock. */
+  inkSchool?:InkRockSchool;
   /** Independent, bounded original pigment/foliage topology. */
   seed:number;
   /** 0..1; controls the number of brush and dry-rock details, not a post-filter. */
@@ -26,7 +33,7 @@ export interface ShanshuiControls {
   ink:number;
 }
 export const DEFAULT_SHANSHUI:ShanshuiControls={
-  scene:"mountain-trail",seed:71,detail:.9,mist:.67,wind:.32,ink:.73,
+  scene:"mountain-trail",inkSchool:"fuchun",seed:71,detail:.9,mist:.67,wind:.32,ink:.73,
 };
 export interface ShanshuiMotion {
   frame:number;cameraX:number;cameraY:number;cameraZoom:number;
@@ -36,6 +43,7 @@ export interface ShanshuiMotion {
 const finite=(v:number,min:number,max:number)=>Number.isFinite(v)&&v>=min&&v<=max;
 export function assertShanshuiControls(c:ShanshuiControls):void {
   if(!c||!SHANSHUI_SCENES.includes(c.scene)||
+    (c.inkSchool!==undefined&&!INK_ROCK_SCHOOLS.includes(c.inkSchool))||
     !Number.isSafeInteger(c.seed)||c.seed<0||c.seed>2147483647||
     !finite(c.detail,0,1)||!finite(c.mist,0,1)||
     !finite(c.wind,0,1)||!finite(c.ink,0,1))

@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { SHODO_GLYPHS, inspectShodoGlyph, parseKanjiVgSvg, shodoKaishoForm } from "../registry/video/shodo/shodo-glyphs";
 import type { ShodoGlyph } from "../registry/video/shodo/shodo-glyphs";
-import { loadShodoGlyph } from "../registry/video/shodo/shodo-glyph-source";
+import { loadShodoGlyph, shodoTeacherFor } from "../registry/video/shodo/shodo-glyph-source";
 import { shodoKankaRulesFor, shodoLayout, shodoStructure } from "../registry/video/shodo/shodo-structure";
-import { planShodoWriting, shodoBrushPose, shodoRestLean } from "../registry/video/shodo/shodo-hand";
+import { createElement } from "react";
+import { render, screen } from "@testing-library/react";
+import { planShodoWriting, shodoBrushPose, shodoRestLean, shodoStrokeNumberBox, shodoStrokeNumbers } from "../registry/video/shodo/shodo-hand";
 import { shodoFerruleHeight } from "../registry/video/shodo/shodo-brush";
 import { ShodoInkSurface } from "../registry/video/shodo/shodo-ink";
 import { DEFAULT_SHODO_STYLE, inspectShodoStyle, resolveShodoStyle } from "../registry/video/shodo/shodo-style";
 import { SHODO_BASICS, auditShodoTechniques } from "../registry/video/shodo/shodo-techniques";
+import { ShodoKanjiInfoCard, kanjiCardPhaseAt, kanjiCardTimeline, resolveKanjiCardContent } from "../src/video/shodo-demos";
 
 const ei = () => planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["永"], x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE });
 
@@ -88,6 +91,14 @@ describe("SHO1 shodō calligraphy", () => {
       <path d="M50,30 C40,60 25,80 20,70 C15,55 30,30 60,32 C85,35 92,60 80,78 C72,88 60,92 52,93"/></g></svg>`);
     expect(kana.strokes[0]).toMatchObject({ kind: "curve", start: "roho", end: "nuki" });
     expect(kana.strokes[0].turns).toBeUndefined();
+    // The ゜ of ぱ is a closed ring, not a dot: untrimmed, light, and still round.
+    const pa = parseKanjiVgSvg(`<svg viewBox="0 0 109 109"><g kvg:element="ぱ">
+      <path d="M80,20 C74,20 70,15 70,10 C70,4 75,1 80,1 C85,1 90,4 90,10 C90,16 85,20 80,20"/></g></svg>`);
+    const ring = pa.strokes[0];
+    expect(ring).toMatchObject({ kind: "curve", weight: .75 });
+    const xs = ring.points.map(p => p[0]), ys = ring.points.map(p => p[1]);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(150);
+    expect(Math.max(...ys) - Math.min(...ys)).toBeGreaterThan(150);
   });
 
   it("loads any character through one pinned source and caches it", async () => {
@@ -128,6 +139,61 @@ describe("SHO1 shodō calligraphy", () => {
     expect(inspectShodoGlyph(own({ nope: 1 })).map(i => i.path)).toEqual(["/strokes/0/technique/nope"]);
   });
 
+  it("follows a stroke's own press profile along its centreline", () => {
+    const glyph = SHODO_GLYPHS["一"];
+    const st = glyph.strokes[0];
+    const stroke = (g: ShodoGlyph) => planShodoWriting({ items: [{ glyph: g, x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE }).strokes[0];
+    const swell = { ...glyph, strokes: [{ ...st, press: [1, 1.5, 1] }] };
+    // Mean contact width of the travel samples in a stretch of the stroke (fractions of its arc).
+    const width = (s: ReturnType<typeof stroke>, a: number, b: number) => {
+      const end = Math.max(...s.samples.map(x => x.arc));
+      const mid = s.samples.filter(x => x.p > 0 && x.arc >= a * end && x.arc <= b * end);
+      return mid.reduce((sum, x) => sum + x.width, 0) / mid.length;
+    };
+    expect(width(stroke(swell), .4, .6)).toBeGreaterThan(width(stroke(glyph), .4, .6) * 1.15);
+    expect(width(stroke(swell), .05, .15)).toBeLessThan(width(stroke(glyph), .05, .15) * 1.15);
+    expect(inspectShodoGlyph({ ...glyph, strokes: [{ ...st, press: [1, 1] }] }).map(i => i.path)).toEqual(["/strokes/0/press"]);
+    expect(inspectShodoGlyph({ ...glyph, strokes: [{ ...st, press: [1, 2, 1] }] }).map(i => i.path)).toEqual(["/strokes/0/press"]);
+  });
+
+  it("lifts the brush through a かな loop (結び) so the counter stays open, and only there", () => {
+    // A curve that comes down, goes once around a small loop, crosses its own path and leaves.
+    const ring = Array.from({ length: 14 }, (_, i) => {
+      const a = -Math.PI / 2 + i * 2 * Math.PI * 1.06 / 13;
+      return [Math.round(500 + 90 * Math.cos(a)), Math.round(560 + 90 * Math.sin(a))] as const;
+    });
+    const loop: ShodoGlyph = { char: "る", source: "original", strokes: [
+      { kind: "curve", start: "roho", end: "nuki", points: [[500, 230], ...ring, [700, 330], [800, 280]] }] };
+    const bowl: ShodoGlyph = { char: "し", source: "original", strokes: [
+      { kind: "curve", start: "roho", end: "nuki", points: [[380, 150], [380, 600], [460, 800], [620, 760], [760, 620]] }] };
+    const lift = (g: ShodoGlyph, musubiLift: number): ShodoGlyph =>
+      ({ ...g, strokes: g.strokes.map(st => ({ ...st, technique: { musubiLift } })) });
+    const plan = (g: ShodoGlyph) => planShodoWriting({ items: [{ glyph: g, x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE });
+    const press = (g: ShodoGlyph) => plan(g).strokes[0].samples.map(s => s.p);
+    const heavy = press(lift(loop, 0)), light = press(lift(loop, .6));
+    expect(light.length).toBe(heavy.length);
+    // Before the loop the brush is the same; inside it the press drops.
+    expect(light.slice(0, Math.floor(light.length * .15))).toEqual(heavy.slice(0, Math.floor(heavy.length * .15)));
+    const mid = (v: number[]) => Math.min(...v.slice(Math.floor(v.length * .4), Math.floor(v.length * .6)));
+    expect(mid(light)).toBeLessThan(mid(heavy) * .75);
+    // The counter opens: much less ink on a disc around the loop's centre.
+    const counterInk = (g: ShodoGlyph) => {
+      const p = plan(g);
+      const { rgba } = new ShodoInkSurface(p, { x: 0, y: 0, width: 400, height: 400, scale: 1 }).render(p.duration);
+      const cx = 20 + 500 * .36, cy = 20 + 560 * .36, r = 90 * .36 * .6;
+      let ink = 0, n = 0;
+      for (let y = Math.ceil(cy - r); y <= cy + r; y++) for (let x = Math.ceil(cx - r); x <= cx + r; x++) {
+        if ((x - cx) ** 2 + (y - cy) ** 2 > r * r) continue;
+        ink += rgba[(y * 400 + x) * 4 + 3] / 255; n++;
+      }
+      return ink / n;
+    };
+    expect(counterInk(lift(loop, .6))).toBeLessThan(counterInk(lift(loop, 0)) * .5);
+    // A curve without a loop is written the same whatever the setting.
+    expect(press(lift(bowl, .9))).toEqual(press(lift(bowl, 0)));
+    expect(inspectShodoGlyph(lift(loop, 1.5)).map(i => i.path)).toEqual(["/strokes/0/technique/musubiLift"]);
+  });
+
   it("writes a teacher's own form when the teacher has the character, and the rules elsewhere", async () => {
     const taught: ShodoGlyph = { char: "永", source: "teacher", strokes: [{ kind: "horizontal", points: [[120, 520], [880, 470]] }] };
     expect(shodoKaishoForm(taught)).toBe(taught);                       // already the teacher's shape
@@ -137,6 +203,14 @@ describe("SHO1 shodō calligraphy", () => {
     expect(await loadShodoGlyph("永", { teacher, fetcher })).toBe(taught);  // before bundled and KanjiVG
     expect(calls).toBe(0);
     await expect(loadShodoGlyph("道", { teacher, fetcher, preferBundled: false })).rejects.toThrow(/KanjiVG 404/);
+    expect(calls).toBe(1);
+    // Several teachers: the first one that has the character writes it.
+    const other: ShodoGlyph = { ...taught, strokes: [{ kind: "horizontal", points: [[100, 500], [900, 500]] }] };
+    const second = { id: "u", label: "Second", glyphs: { 永: other, 道: other } };
+    expect(await loadShodoGlyph("永", { teacher: [teacher, second], fetcher })).toBe(taught);
+    expect(await loadShodoGlyph("道", { teacher: [teacher, second], fetcher })).toBe(other);
+    expect(shodoTeacherFor("道", [teacher, second])).toBe(second);
+    expect(shodoTeacherFor("山", [teacher, second])).toBeNull();
     expect(calls).toBe(1);
   });
 
@@ -204,5 +278,51 @@ describe("SHO1 shodō calligraphy", () => {
     expect(paired.strokes.slice(1)).toEqual(pair.strokes.slice(1));     // the right part and all widths stay
     expect(shodoKaishoForm(SHODO_GLYPHS["永"]).strokes[0].points).toEqual(shodoKaishoForm(SHODO_GLYPHS["永"], { structure: false }).strokes[0].points);
     expect(shodoKaishoForm(stack, { structure: false }).strokes[2].points[0][0]).toBeLessThan(shodoKaishoForm(stack).strokes[2].points[0][0]);
+  });
+
+  it("numbers each stroke nearest to its own start, and off the ink where a clear place is near", () => {
+    const sheet = { x: 0, y: 0, width: 880, height: 720 };
+    // 道 and 永 have crowded starts: the corner of 自, the centre of 永.
+    for (const char of ["道", "永"]) {
+      const plan = planShodoWriting({ items: [{ glyph: SHODO_GLYPHS[char], x: 170, y: 95, size: 540 }], style: DEFAULT_SHODO_STYLE });
+      const numbers = shodoStrokeNumbers(plan, { bounds: sheet });
+      const real = plan.strokes.filter(s => s.kind !== "link");
+      expect(numbers.map(n => n.number)).toEqual(real.map((_, i) => i + 1));
+      const starts = real.map(s => [s.samples[0].x, s.samples[0].y]);
+      const D = plan.brush.diameter;
+      for (const n of numbers) {
+        const [hw, hh] = shodoStrokeNumberBox(String(n.number).length, n.size);
+        expect(n.size).toBeLessThan(D * .5);                                          // small text
+        expect(n.t0).toBe(plan.strokes[n.stroke].t0);                                 // shows when the brush lands
+        const d = starts.map(([x, y]) => Math.hypot(n.x - x, n.y - y));
+        expect(d.indexOf(Math.min(...d)), char + " " + n.number).toBe(n.number - 1);  // nearest start is its own
+        expect(n.x - hw).toBeGreaterThan(sheet.x); expect(n.y + hh).toBeLessThan(sheet.y + sheet.height);
+        if (!n.onInk) for (const s of plan.strokes) for (const c of s.samples) {     // off all ink, also later ink
+          const ex = Math.max(Math.abs(c.x - n.x) - hw, 0), ey = Math.max(Math.abs(c.y - n.y) - hh, 0);
+          expect(Math.hypot(ex, ey)).toBeGreaterThan(Math.max(c.width, c.length) / 2);
+        }
+        for (const m of numbers) if (m !== n) expect(Math.abs(m.x - n.x) > hw * 2 || Math.abs(m.y - n.y) > hh * 2).toBe(true);
+      }
+      // The first stroke of 自 starts under 一: its number sits on the ink at that start.
+      if (char === "道") expect(numbers.find(n => n.number === 4)?.onInk).toBe(true);
+    }
+    const plan = planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["道"], x: 170, y: 95, size: 540 }], style: DEFAULT_SHODO_STYLE });
+    expect(shodoStrokeNumbers(plan, { only: [12] }).map(n => n.number)).toEqual([12]);
+  });
+
+  it("times the kanji card in three phases and shows a JLPT badge only for a given level", () => {
+    const t = kanjiCardTimeline(10, { write: 6, review: 8, info: 4 }, 30);
+    expect([t.write, t.review, t.info, t.frames]).toEqual([[0, 180], [180, 420], [420, 540], 540]);
+    expect(kanjiCardPhaseAt(t, 200)).toEqual({ phase: "review", local: 20, length: 240 });
+    expect(kanjiCardTimeline(10, { write: 0 }, 30).review).toEqual([0, 300]);        // a 0 s phase is skipped
+    // Sample data belongs to 道 only; nothing is invented for another character.
+    expect(resolveKanjiCardContent("道", {}).jlpt).toBe("N4");
+    expect(resolveKanjiCardContent("道", { jlpt: null }).jlpt).toBeNull();
+    expect(Object.values(resolveKanjiCardContent("山", {})).every(v => v === undefined)).toBe(true);
+    const { unmount } = render(createElement(ShodoKanjiInfoCard, { char: "山", meanings: "MOUNTAIN" }));
+    expect(screen.queryByText(/JLPT/)).toBeNull();
+    unmount();
+    render(createElement(ShodoKanjiInfoCard, { char: "山", meanings: "MOUNTAIN", jlpt: "N5" }));
+    expect(screen.getByText("JLPT N5")).toBeInTheDocument();
   });
 });

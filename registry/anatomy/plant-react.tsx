@@ -16,11 +16,13 @@ import type { HTMLAttributes, SVGAttributes } from "react";
 import { GROWTH_FORMS } from "./plant-forms";
 import { findPlant } from "./plant-species";
 import type { Month, PlantSpecies } from "./plant-species";
-import { crownEnvelope, growPlant, plantConstruction, plantShapes } from "./plant-construct";
-import type { PlantSkeleton } from "./plant-construct";
+import { crownEnvelope, growPlant, plantConstruction, plantShapes, swayField, swayPlant } from "./plant-construct";
+import type { PlantShapes, PlantSkeleton, SwayHz } from "./plant-construct";
+import { crownDetail, flareTrunk, foliageLadder, ladderAt, mixLinear, woodDetail } from "./plant-crown";
+import type { CrownDetail, CrownDetailLevel, Tuft } from "./plant-crown";
 import { barkMarks, flowerShape, fruitShape, leafShape } from "./plant-organs";
 import type { OrganShape } from "./plant-organs";
-import { linePath, polyPath } from "./foundation-shapes";
+import { linePath, polyPath, smoothClosedPath, smoothTube } from "./foundation-shapes";
 import type { FPoint, Range } from "./foundation-shapes";
 import { ACCENT, INK, MUTED, PAPER, ScaleChart, SheetCard, SwatchList, sheetGrid, sheetList, sheetSmall } from "./foundation-react";
 
@@ -31,6 +33,12 @@ export interface PlantFigureProps extends Omit<SVGAttributes<SVGSVGElement>, "mo
   bounds?: readonly [number, number, number, number];
   ground?: boolean;
   label: string;
+  /** Colour mode: the crown in tufts with sky holes, shaded trunks and bark ("full", "medium", "low"), or flat masses ("flat"). */
+  detail?: CrownDetailLevel | "flat";
+  /** Sun azimuth from behind the viewer (0 front-lit, 90 from the right) and elevation, in degrees. */
+  sunAzimuth?: number; sunElevation?: number;
+  /** Wind (0–2) and time (s): the still skeleton is swayed here, its detail grown once and moved with it. */
+  wind?: number; t?: number; swayHz?: SwayHz;
 }
 
 /** The leaf colour a species shows in a month. */
@@ -45,8 +53,9 @@ export function leafColour(sp: PlantSpecies | undefined, month: Month, autumn: b
 }
 
 /** One grown plant as SVG (y up inside, flipped for the screen). */
-export const PlantFigure = forwardRef<SVGSVGElement, PlantFigureProps>(function PlantFigure({ skeleton: sk, mode = "colour", bounds, ground = true, label, style, ...rest }, ref) {
+export const PlantFigure = forwardRef<SVGSVGElement, PlantFigureProps>(function PlantFigure({ skeleton: still, mode = "colour", bounds, ground = true, label, detail = "full", sunAzimuth, sunElevation, wind = 0, t = 0, swayHz, style, ...rest }, ref) {
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const sk = useMemo(() => (wind ? swayPlant(still, wind, t, swayHz) : still), [still, wind, t, swayHz]);
   const sh = useMemo(() => plantShapes(sk), [sk]);
   const [x0, y0, x1, y1] = bounds ?? sh.bounds, w = x1 - x0, h = y1 - y0, lw = w / 300;
   const sp = sk.c.species, leaf = leafColour(sp, sk.month, sk.autumn), bark = sp?.bark.colour ?? "#5a4a3e", bloom = sp?.flower?.colours[0] ?? "#f4eef0";
@@ -58,7 +67,8 @@ export const PlantFigure = forwardRef<SVGSVGElement, PlantFigureProps>(function 
         {sk.waterline !== undefined && <rect x={x0} y={0} width={w} height={sk.waterline} fill="var(--kumiki-plant-water, #bcd2da)" opacity={mode === "colour" ? .9 : .4} />}
         {ground && <line x1={x0} x2={x1} y1={0} y2={0} stroke={MUTED} strokeWidth={lw} />}
         {mode === "silhouette" && <path d={all} fill={INK} />}
-        {mode === "colour" && <>
+        {mode === "colour" && detail !== "flat" && <TreePaint skeleton={still} detail={detail} sunAzimuth={sunAzimuth} sunElevation={sunElevation} lineWidth={lw} wind={wind} t={t} swayHz={swayHz} />}
+        {mode === "colour" && detail === "flat" && <>
           <path d={sh.woodBack} fill={bark} /><path d={sh.woodBack} fill="#000" opacity=".25" />
           <path d={sh.foliageBack} fill={leaf} /><path d={sh.foliageBack} fill="#000" opacity=".18" />
           <path d={sh.woodFront} fill={bark} />
@@ -81,6 +91,149 @@ export const PlantFigure = forwardRef<SVGSVGElement, PlantFigureProps>(function 
     </svg>
   );
 });
+
+export interface TreePaintProps {
+  skeleton: PlantSkeleton;
+  /** Shapes already computed for this skeleton (else computed here). */
+  shapes?: PlantShapes;
+  detail?: CrownDetailLevel;
+  sunAzimuth?: number; sunElevation?: number;
+  /** Mix every colour toward a haze colour (distance), 0 none – 1 all haze. */
+  haze?: { colour: string; amount: number };
+  /** Less light on the tree (overcast, dusk): 0 full daylight – 1 black, applied before the haze (airlight adds on top). */
+  dim?: number;
+  /** Rain-wet: bark darkens (light trapped in the water film is absorbed, Lekner & Dorf 1988; the amount is estimated). */
+  wet?: boolean;
+  /** A hairline width in plant units (default: a 300th of the plant's width). */
+  lineWidth?: number;
+  seed?: number;
+  /** Wind (0–2) and time (s): `skeleton` is the still plant; the crown is grown on it once and moved by the same sway. */
+  wind?: number; t?: number; swayHz?: SwayHz;
+}
+
+/** A crown's detail moved point by point by a sway field. */
+function moveCrown(cd: CrownDetail, f: (p: readonly [number, number]) => readonly [number, number]): CrownDetail {
+  const mv = (pts: readonly (readonly [number, number])[]) => pts.map(f);
+  return {
+    ...cd,
+    tufts: cd.tufts.map(t => ({ ...t, c: f(t.c), outline: mv(t.outline), cap: mv(t.cap), leaves: t.leaves.map(l => ({ ...l, pts: mv(l.pts) })) })),
+    holes: cd.holes.map(mv), body: cd.body.map(mv), flicks: cd.flicks.map(l => ({ ...l, pts: mv(l.pts) })), strandLeaves: cd.strandLeaves.map(l => ({ ...l, pts: mv(l.pts) })),
+  } as CrownDetail;
+}
+
+/**
+ * One grown plant painted in detail, as an SVG group in plant units (y up; put it inside a `scale(1 -1)` group).
+ * Back to front:
+ * - the wood behind;
+ * - the crown's dark body, then the back tufts;
+ * - the front wood, shaded as cylinders, with bark;
+ * - the front tufts and the leaves breaking the outline.
+ * The sky holes are cut out of every foliage layer, so the wood behind shows through them (Needham: bold dark touches
+ * of trunk, with bits of clear light between).
+ */
+export function TreePaint({ skeleton: still, shapes, detail = "full", sunAzimuth = 35, sunElevation = 45, haze, dim = 0, wet = false, lineWidth, seed = 1, wind = 0, t = 0, swayHz }: TreePaintProps) {
+  const id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const sk = useMemo(() => (wind ? swayPlant(still, wind, t, swayHz) : still), [still, wind, t, swayHz]);
+  const sh = useMemo(() => (shapes && !wind ? shapes : plantShapes(sk)), [shapes, sk, wind]);
+  const grown = useMemo(() => crownDetail(still, { seed, sunAzimuth, sunElevation, detail }), [still, seed, sunAzimuth, sunElevation, detail]);
+  const cd = useMemo(() => (wind ? moveCrown(grown, swayField(still, wind, t, swayHz)) : grown), [grown, still, wind, t, swayHz]);
+  const wood = useMemo(() => flareTrunk(sk), [sk]);
+  const wd = useMemo(() => woodDetail(wood, { sunAzimuth, seed, minRadius: (sh.bounds[2] - sh.bounds[0]) * (detail === "low" ? .012 : .005) }), [sk, sunAzimuth, seed, sh, detail]);
+  const [x0, y0, x1, y1] = sh.bounds, lw = lineWidth ?? (x1 - x0) / 300;
+  const hz = (c0: string) => { const c = dim > 0 ? mixLinear(c0, "#000000", dim) : c0; return haze && haze.amount > 0 ? mixLinear(c, haze.colour, haze.amount) : c; };
+  const sp = sk.c.species, bark = wet ? mixLinear(sp?.bark.colour ?? "#5a4a3e", "#000000", .45) : sp?.bark.colour ?? "#5a4a3e";
+  const barkShade = hz(mixLinear(bark, "#0a0806", .5)), barkLit = hz(mixLinear(bark, "#fff1d6", .22)), barkMark = hz(mixLinear(bark, "#000", .55));
+  const strandFill = hz(sp?.flower?.inflorescence === "raceme" && sp.flower.months.includes(sk.month) ? sp.flower.colours[0] : leafColour(sp, sk.month, sk.autumn));
+  // Tufts in z bands; inside a band, bodies then caps, grouped by colour so the SVG stays small.
+  const layers = useMemo(() => {
+    const ladders = new Map<string, string[]>();
+    const ladderFor = (t: Tuft) => {
+      if (!t.colour) return cd.ladder;
+      let l = ladders.get(t.colour);
+      if (!l) { l = foliageLadder(t.colour, t.kind === "blossom" ? "blossom" : "leaf"); ladders.set(t.colour, l); }
+      return l;
+    };
+    const q = (v: number) => Math.round(v * 12) / 12;
+    const band = (list: Tuft[]) => {
+      const out: { fill: string; d: string; leaves?: boolean }[] = [], n = Math.max(1, Math.ceil(list.length / 90));
+      for (let b = 0; b < n; b++) {
+        const part = list.slice(Math.floor(b * list.length / n), Math.floor((b + 1) * list.length / n)), bodies = new Map<string, string[]>(), caps = new Map<string, string[]>();
+        for (const t of part) {
+          const L = ladderFor(t), body = hz(ladderAt(L, q(t.kind === "blossom" ? .35 + t.light * .45 : t.light * .62))), core = t.leaves.length ? t.outline.map(p => [t.c[0] + (p[0] - t.c[0]) * .78, t.c[1] + (p[1] - t.c[1]) * .78] as const) : t.outline;
+          const d = t.kind === "blossom" ? smoothClosedPath(core) : polyPath(core);
+          (bodies.get(body) ?? bodies.set(body, []).get(body)!).push(d);
+          if (t.leaves.length) {
+            // The lit side as single leaves; the deep-shade tufts keep only a few darker leaves.
+            for (const lf of t.leaves) { const fill = hz(ladderAt(L, q(Math.min(1, t.light * lf.light)))); (caps.get(fill) ?? caps.set(fill, []).get(fill)!).push(polyPath(lf.pts)); }
+          } else if (t.light > .28) { const cap = hz(ladderAt(L, q(t.light))); (caps.get(cap) ?? caps.set(cap, []).get(cap)!).push(smoothClosedPath(t.cap)); }
+        }
+        for (const [fill, ds] of bodies) out.push({ fill, d: ds.join("") });
+        for (const [fill, ds] of caps) out.push({ fill, d: ds.join(""), leaves: true });
+      }
+      return out;
+    };
+    const flicks = new Map<string, string[]>();
+    for (const f of cd.flicks) { const L = f.colour ? ladderFor({ colour: f.colour, kind: f.kind } as Tuft) : cd.ladder, fill = hz(ladderAt(L, q(f.light * .85))); (flicks.get(fill) ?? flicks.set(fill, []).get(fill)!).push(polyPath(f.pts)); }
+    const hanging = new Map<string, string[]>();
+    for (const lf of cd.strandLeaves) { const fill = hz(ladderAt(cd.ladder, q(lf.light))); (hanging.get(fill) ?? hanging.set(fill, []).get(fill)!).push(polyPath(lf.pts)); }
+    const merge = (m: Map<string, string[]>) => [...m].map(([fill, ds]) => ({ fill, d: ds.join("") }));
+    return { back: band(cd.tufts.filter(t => t.back)), front: band(cd.tufts.filter(t => !t.back)), flicks: merge(flicks), hanging: merge(hanging) };
+  }, [cd, haze?.colour, haze?.amount, dim]); // eslint-disable-line react-hooks/exhaustive-deps
+  const body = cd.body.map(polyPath).join(""), bodyFill = hz(ladderAt(cd.ladder, .02));
+  // Inside the crown the twigs are in shade: dark, between bark and the deepest foliage.
+  const woodFront = useMemo(() => {
+    const tube = (b: PlantSkeleton["branches"][number]) => (b.points.length > 1 ? smoothTube(b.points, b.radii.map(r => r * 2)) : "");
+    const fr = wood.branches.filter(b => b.depth >= 0), major = Math.max(1, sk.c.a.branch.orders - 1);
+    return { limbs: fr.filter(b => b.order < major).map(tube).join(""), twigs: fr.filter(b => b.order >= major).map(tube).join(""), back: wood.branches.filter(b => b.depth < 0).map(tube).join("") };
+  }, [wood, sk]);
+  const inLeaf = sk.leafCover > .3 && cd.tufts.length > 0;
+  const twigFill = hz(mixLinear(bark, cd.ladder[0] ?? "#1c2418", inLeaf ? .6 : .15));
+  const mask = cd.holes.length ? `url(#holes-${id})` : undefined, fringe = cd.holes.length ? `url(#fringe-${id})` : undefined;
+  return (
+    <g>
+      {cd.holes.length > 0 && <defs><mask id={`holes-${id}`} maskUnits="userSpaceOnUse" x={x0 - 1} y={y0 - 1} width={x1 - x0 + 2} height={y1 - y0 + 2}>
+        <rect x={x0 - 1} y={y0 - 1} width={x1 - x0 + 2} height={y1 - y0 + 2} fill="#fff" />
+        <path d={cd.holes.map(smoothClosedPath).join("")} fill="#000" />
+      </mask>
+      {/* The leaves round an opening overhang its edge: they are cut only by the hole's middle. */}
+      <mask id={`fringe-${id}`} maskUnits="userSpaceOnUse" x={x0 - 1} y={y0 - 1} width={x1 - x0 + 2} height={y1 - y0 + 2}>
+        <rect x={x0 - 1} y={y0 - 1} width={x1 - x0 + 2} height={y1 - y0 + 2} fill="#fff" />
+        <path d={cd.holes.map(h => { const c = h.reduce((a, p) => [a[0] + p[0] / h.length, a[1] + p[1] / h.length], [0, 0]); return smoothClosedPath(h.map(p => [c[0] + (p[0] - c[0]) * .6, c[1] + (p[1] - c[1]) * .6] as const)); }).join("")} fill="#000" />
+      </mask></defs>}
+      <path d={woodFront.back} fill={inLeaf ? twigFill : hz(mixLinear(bark, "#000", .3))} />
+      <path d={wd.backShade.map(polyPath).join("")} fill={barkShade} opacity=".7" />
+      <g mask={mask}>
+        {cd.tufts.length > 0 && <path d={body} fill={bodyFill} />}
+        {layers.back.map((l, i) => <path key={i} d={l.d} fill={l.fill} />)}
+      </g>
+      <path d={woodFront.limbs} fill={hz(bark)} />
+      <path d={woodFront.twigs} fill={twigFill} />
+      {/* Inside the crown the limbs are in the crown's shade: Needham's "bold black touches" where the trunk peers out. */}
+      {inLeaf && <>
+        <defs><clipPath id={`crown-${id}`}><path d={body} /></clipPath></defs>
+        <path d={woodFront.limbs} fill={twigFill} opacity=".85" clipPath={`url(#crown-${id})`} />
+      </>}
+      <path d={wd.shade.map(polyPath).join("")} fill={barkShade} opacity=".85" />
+      <path d={wd.lit.map(polyPath).join("")} fill={barkLit} opacity=".6" />
+      {/* Bark, each branch's marks inside its own outline. Plates are lit faces between dark fissures. */}
+      {wd.bark.map((b, i) => <g key={i} clipPath={`url(#bark-${id}-${i})`}>
+        <defs><clipPath id={`bark-${id}-${i}`}><path d={polyPath(b.outline)} /></clipPath></defs>
+        {b.plates.length > 0 && <path d={b.plates.map(polyPath).join("")} fill={barkLit} fillOpacity=".22" stroke={barkMark} strokeWidth={lw * 1.1} strokeOpacity=".8" strokeLinejoin="round" />}
+        {b.marks.length > 0 && <path d={b.marks.map(linePath).join("")} fill="none" stroke={barkMark} strokeWidth={lw * 1.1} opacity=".7" strokeLinecap="round" />}
+      </g>)}
+      <path d={sh.strands} fill={cd.strandLeaves.length ? twigFill : strandFill} />
+      {layers.hanging.map((l, i) => <path key={i} d={l.d} fill={l.fill} />)}
+      {/* Front tufts: bodies cut by the holes, their lit leaves left whole so they fringe the openings. */}
+      {layers.front.map((l, i) => <path key={i} d={l.d} fill={l.fill} mask={l.leaves ? fringe : mask} />)}
+      {layers.flicks.map((l, i) => <path key={i} d={l.d} fill={l.fill} />)}
+      {/* Placed leaves, nodes, single flowers and fruit, as in the flat painting. */}
+      <path d={sh.leaves} fill={hz(leafColour(sp, sk.month, sk.autumn))} stroke="#0002" strokeWidth={lw * .5} />
+      <path d={sh.nodes} fill={INK} opacity=".55" />
+      <path d={sh.flowers} fill={hz(sp?.flower?.colours[0] ?? "#f4eef0")} stroke="#0002" strokeWidth={lw * .3} />
+      <path d={sh.fruits} fill={hz(sp?.fruit?.colour ?? "#c0502a")} />
+    </g>
+  );
+}
 
 function Envelope({ sk, lw }: { sk: PlantSkeleton; lw: number; id: string }) {
   const a = sk.c.a;
@@ -165,7 +318,7 @@ export const PlantSheet = forwardRef<HTMLDivElement, PlantSheetProps>(function P
       <SheetCard title="Four seasons" wide>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))", gap: 12 }}>
           {seasons.map((s, i) => <figure key={i} style={{ margin: 0, display: "grid", gap: 4 }}>
-            <PlantFigure skeleton={s} mode="colour" bounds={b} label={`${sp.name}, ${picks[i].name}`} />
+            <PlantFigure skeleton={s} mode="colour" detail="medium" bounds={b} label={`${sp.name}, ${picks[i].name}`} />
             <figcaption style={{ ...sheetSmall, textAlign: "center" }}>{picks[i].name}</figcaption>
           </figure>)}
         </div>

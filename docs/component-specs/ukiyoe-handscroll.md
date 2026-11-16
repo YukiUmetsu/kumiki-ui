@@ -292,7 +292,30 @@ Most women in the ghost stories look alive until the story turns, so they are fi
   - `wolf`;
   - `mouse`: big pink ears and a long tail.
 - **New `Beast` options.** `horns: "antler" | "ox"`, `tusks`, `spots` and `crescent`.
+- **Two builds.** The tanuki, the hare (`rabbit`) and the mouse come in two builds (`look.proportions`):
+  - `"print"` (default): the stout folk tanuki and the low, crouching hare and mouse of the prints;
+  - `"natural"`: standing on the legs ANIM1 measures for the real animals (leg clearance 0.40, 0.33 and 0.26 of the
+    shoulder height, against 0.15, 0.14 and 0.08).
+
+  Every other animal already stands inside its range, so both builds are the same for it.
+- **Young animals.** `look.age` grows any four-legged animal from its youngest (0) to the adult (1, default), using
+  ANIM1's growth rules for its body plan. The young is drawn to scale beside its parent:
+  - the long-legged foal and fawn;
+  - the round puppy, kitten and fox kit with bigger heads;
+  - the bear cub;
+  - the hornless calf;
+  - the small uribō piglet with its pale 'melon' stripes and no tusks.
+
+  Horns, antlers and tusks come at half grown. The nue, baku and ape have no young.
 - **Birds.** The bird rig gains the `hawk` and the `oshidori` mandarin drake (a plain duck with `look.color`).
+- **Bird flight from ANIM1.** `fly` takes each bird's wingbeat and style from the animal framework's flight table. The
+  rate is the species' predicted cruising rate (Pennycuick 1990), drawn at no more than 7.5 beats a second at 30 fps:
+  - the crane at about 3 beats a second (it was 0.7);
+  - the heron 2.6, the crow 3.8, the hawk 4.2;
+  - the duck, pheasant, kingfisher and sparrow at 7.5.
+
+  The wrist flexes on the upstroke, so the wing comes up narrow. The goshawk flaps and glides, the pheasant bursts and
+  glides, and the sparrow bounds with its wings closed between bursts.
 - **Critters.** New rigs in `ukiyoe-critters.ts`:
   - `crab`: scuttles sideways on eight jointed legs; its claws snap on `dance` or `roar`.
   - `turtle`: the minogame; its flippers row when it moves, and its seaweed tail streams.
@@ -322,6 +345,8 @@ Most women in the ghost stories look alive until the story turns, so they are fi
   - `towel`: a tenugui knotted over the head, for the bakeneko's dance.
   - `glowEyes`: eyes lit gold in the dark.
   - `carry`: `key`, `jewel` or `scroll` held in the mouth, for Inari's messenger fox.
+- **Proportions.** The fox, dog, cat, wolf, ox, boar and bear stand inside ANIM1's measured ranges (tested); hooved
+  animals lie down, forelegs folded, where others sit.
 - **New species.** `weasel`, long and low; `baku`, after Hokusai: a shaggy tawny coat, a ringed trunk and tusks, a bushy tail; and `ape`, the great long-haired mountain ape with a red face. All three have front and back views.
 - **Particle `whirlwind`.** Sekien's spiral of three turning wind bands with leaves along them, seen face on; `count > 0` adds the kamaitachi's sickle-flashes.
 - **`animalYokaiScene(kind)`.** Builds `bakeneko`, `kamaitachi`, `okuriinu` (wolves with glowing eyes following a traveller's lantern), `baku` (the nightmare cloud fades as it eats), `messenger` or `satori`. Storybook **Animal yōkai** plays them.

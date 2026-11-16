@@ -6,7 +6,11 @@ import { ANIMAL_GAITS, footfallBars, quadFootfalls } from "../registry/anatomy/a
 import { animalConstruction, poseAnimal, skeletonShapes } from "../registry/anatomy/animal-construct";
 import { checkAnimalProportions, checkSpeciesData, measureAnimal } from "../registry/anatomy/animal-check";
 import { AnimalSheet } from "../registry/anatomy/animal-react";
-import { ANIMAL_POSTURES, POSTURE_IDS, postureFit } from "../registry/anatomy/animal-postures";
+import { frontFace, frontFaceShapes } from "../registry/anatomy/animal-front";
+import { ANIMAL_POSTURES, BIRD_POSTURE_IDS, BIRD_POSTURES, birdPostureFits, POSTURE_IDS, postureFit } from "../registry/anatomy/animal-postures";
+import { BIRD_FLIGHT, flightAt, speciesWingbeat, wingbeatHz, wingStroke } from "../registry/anatomy/animal-flight";
+import { coatAt, GROWTH, growthRule, heightAt, juvenileConstruction } from "../registry/anatomy/animal-growth";
+import { furDirection, furStrands } from "../registry/anatomy/animal-fur";
 import { UKIYOE_SPECIES, ukiyoeBeastLandmarks } from "../registry/video/ukiyoe/ukiyoe-creatures";
 
 describe("ANIM1 data", () => {
@@ -97,11 +101,21 @@ describe("ANIM1 checks applied to UKIYO1", () => {
     expect(f[0].status).toBe("low");
     expect(f[0].grade).toBe("measured");
   });
-  it("the UKIYO1 boar and bear stand inside their species' ranges", () => {
-    for (const id of ["boar", "bear"] as const) {
+  it("the UKIYO1 boar, bear, fox, dog, cat, wolf and ox stand inside their species' ranges", () => {
+    for (const id of ["boar", "bear", "fox", "dog", "cat", "wolf", "ox"] as const) {
       const findings = checkAnimalProportions(id, measureAnimal(ukiyoeBeastLandmarks(id)!, false));
       expect(findings.filter(x => x.status !== "ok").map(x => x.message), id).toEqual([]);
     }
+  });
+
+  it("draws the tanuki, hare and mouse in two builds: the low print build, and a natural build inside ANIM1's ranges", () => {
+    for (const id of ["tanuki", "rabbit", "mouse"] as const) {
+      const natural = checkAnimalProportions(id, measureAnimal(ukiyoeBeastLandmarks(id, "natural")!, false)), print = checkAnimalProportions(id, measureAnimal(ukiyoeBeastLandmarks(id)!, false));
+      expect(natural.find(x => x.key === "legClearance")!.status, id).toBe("ok");
+      expect(print.find(x => x.key === "legClearance")!.status, `${id} print stays low`).toBe("low");
+    }
+    // Animals already in range draw the same in both builds.
+    expect(ukiyoeBeastLandmarks("fox", "natural")).toEqual(ukiyoeBeastLandmarks("fox"));
   });
 });
 
@@ -115,3 +129,154 @@ describe("AnimalSheet", () => {
     }
   });
 });
+
+describe("ANIM1 flight", () => {
+  it("flies every bird on open wings: a beat that loops, folds on the upstroke and joins its glides and pauses", () => {
+    // Pennycuick (1990): a grey heron (1.5 kg, 1.75 m span, aspect 8) beats about 2.6 times a second.
+    expect(wingbeatHz(1.5, 1.75, 8)).toBeCloseTo(2.6, 1);
+    for (const id of Object.keys(BIRD_FLIGHT)) {
+      const sp = findAnimal(id)!, f = BIRD_FLIGHT[id], c = animalConstruction(sp), hz = speciesWingbeat(id)!;
+      expect(hz, id).toBeGreaterThan(1.5);
+      expect(hz, id).toBeLessThan(20);
+      // Spread on the downstroke, folded on the upstroke.
+      expect(wingStroke(f, f.downShare / 2).fold, id).toBe(0);
+      expect(wingStroke(f, f.downShare + (1 - f.downShare) / 2).fold, id).toBeGreaterThan(f.fold * .8);
+      const span = (t: number) => { const w = poseAnimal(c, { flight: "flap", t }).wings!.near.outline; return Math.max(...w.map(p => p[1])) - Math.min(...w.map(p => p[1])); };
+      expect(span(0), `${id} raised wing is tall`).toBeGreaterThan(span(f.downShare + (1 - f.downShare) / 2) * .6);
+      // The beat loops, and flapping joins its glides, pauses and closed wings without a jump.
+      const near = (o: Parameters<typeof poseAnimal>[1]) => poseAnimal(c, o).wings!.near.outline;
+      const gap = (a: readonly (readonly number[])[], b: readonly (readonly number[])[]) => Math.max(...a.map((p, i) => Math.hypot(p[0] - b[i][0], p[1] - b[i][1])));
+      expect(gap(near({ flight: "flap", t: .9999 }), near({ flight: "flap", t: 0 })), id).toBeLessThan(.002);
+      expect(gap(near({ flight: "glide", amount: 0 }), near({ flight: "flap", t: 0 })), id).toBeLessThan(1e-6);
+      expect(gap(near({ flight: "closed", amount: 0 }), near({ flight: "flap", t: 0 })), id).toBeLessThan(1e-6);
+      // At the drawn rate (at most 7.5 beats a second at 30 fps), moving into or out of a held wing is no bigger a
+      // step than an ordinary flapping frame.
+      let prev: readonly (readonly number[])[] | undefined, last = "", flapStep = 0, holdStep = 0;
+      for (let k = 0; k < 150; k++) {
+        const at = flightAt(id, k / 30, 2, 7.5), w = near({ flight: at.flight, t: at.t, amount: at.amount });
+        expect(w.every(p => Number.isFinite(p[0]) && Number.isFinite(p[1])), id).toBe(true);
+        if (prev) { const step = gap(w, prev); if (at.flight === "flap" && last === "flap") flapStep = Math.max(flapStep, step); else holdStep = Math.max(holdStep, step); }
+        prev = w; last = at.flight;
+      }
+      if (f.style !== "flapping") expect(holdStep, `${id} holding`).toBeLessThanOrEqual(flapStep * 1.05);
+    }
+    // Herons fly with the neck drawn back, cranes with it stretched out; both trail their legs.
+    const crown = (id: string) => { const s = poseAnimal(animalConstruction(id), { flight: "glide" }); return s.joints.crown[0] - s.joints.neckRoot[0]; };
+    expect(crown("red-crowned-crane")).toBeGreaterThan(.2);
+    expect(crown("grey-heron")).toBeLessThan(crown("red-crowned-crane") * .2);
+    const crane = poseAnimal(animalConstruction("red-crowned-crane"), { flight: "glide" });
+    expect(crane.limbs[1].points[4][0]).toBeLessThan(crane.joints.tailRoot[0]);
+  });
+
+  it("rests birds on one leg and asleep, floats ducks at the measured waterline, all without snapping", () => {
+    const birds = ANIMAL_SPECIES.filter(sp => BODY_PLANS[sp.plan].group === "bird");
+    for (const sp of birds) {
+      const c = animalConstruction(sp);
+      for (const p of BIRD_POSTURE_IDS) {
+        if (!birdPostureFits(c.plan.id, p)) continue;
+        const n = BIRD_POSTURES[p].frames;
+        let prev: readonly (readonly number[])[] | undefined;
+        for (let f = 0; f <= n; f++) {
+          const s = poseAnimal(c, { birdPosture: p, amount: f / n }), pts = [...s.limbs.flatMap(l => l.points), s.joints.crown, s.head.nose, ...s.tail.points];
+          const tag = `${sp.id} ${p} ${f}/${n}`;
+          if (!s.joints.waterline) expect(Math.min(...s.limbs.flatMap(l => l.points).map(q => q[1])), tag).toBeGreaterThan(-.005);
+          if (prev) expect(Math.max(...pts.map((q, i) => Math.hypot(q[0] - prev![i][0], q[1] - prev![i][1]))), tag).toBeLessThan(.12);
+          prev = pts;
+        }
+        const s = poseAnimal(c, { birdPosture: p });
+        if (BIRD_POSTURES[p].oneLeg) expect(s.limbs.filter(l => l.onGround).length, `${sp.id} ${p}`).toBe(1);
+        if (p === "roost") expect(s.head.eyeClosed, sp.id).toBe(true);
+      }
+    }
+    // A swimming duck sits a third of its depth in the water, its back level.
+    const duck = poseAnimal(animalConstruction("mandarin-duck"), { birdPosture: "swim", water: .1 }), b = duck.masses.body;
+    expect((duck.joints.waterline[1] - (b.cy - b.ry)) / (2 * b.ry)).toBeCloseTo(BIRD_POSTURES.swim.waterline!.typical, 1);
+    expect(Math.abs(b.angle)).toBeLessThan(4);
+    // Upending puts the head under the surface.
+    const up = poseAnimal(animalConstruction("mandarin-duck"), { birdPosture: "upend", water: .1 });
+    expect(up.head.nose[1]).toBeLessThan(.1);
+    // Only ducks swim.
+    expect(birdPostureFits("bird-wader", "swim")).toBe(false);
+  });
+});
+
+describe("ANIM1 growth", () => {
+  it("grows every animal from its young to its adult construction, a foal long-legged and a puppy big-pawed", () => {
+    for (const sp of ANIMAL_SPECIES) {
+      const c = animalConstruction(sp), rule = growthRule(c.plan.id, c.plan.group);
+      if (!rule) continue;
+      expect(juvenileConstruction(c, 1), sp.id).toBe(c);
+      expect(heightAt(rule, 0)).toBeCloseTo(rule.height.typical);
+      for (const age of [0, .25, .5, .75]) {
+        const s = poseAnimal(juvenileConstruction(c, age)), pts = [...s.limbs.flatMap(l => l.points), s.head.nose, s.head.eye];
+        expect(pts.every(p => Number.isFinite(p[0]) && Number.isFinite(p[1])), `${sp.id} ${age}`).toBe(true);
+        expect(Math.min(...s.limbs.flatMap(l => l.points).map(p => p[1])), `${sp.id} ${age}`).toBeGreaterThan(-.01);
+      }
+    }
+    // Each mammal rule's parts agree with its height (legs by their segments' average, the body by the trunk).
+    for (const rule of Object.values(GROWTH).filter(g => g.kind !== "bird")) {
+      const g = rule.legSegments, legs = g[0] * .28 + g[1] * .32 + g[2] * .28 + g[3] * .12, implied = (legs + rule.trunk) / 2;
+      expect(Math.abs(implied / rule.height.typical - 1), rule.kind).toBeLessThan(.15);
+    }
+    // The foal (61% of adult height, cannons 83% grown): taller on its legs for its size and shorter in the body.
+    const horse = animalConstruction("kiso-horse"), foal = juvenileConstruction(horse, 0);
+    expect(foal.legClearance).toBeGreaterThan(horse.legClearance + .08);
+    expect(foal.trunk).toBeLessThan(horse.trunk);
+    expect(foal.fore[2]).toBeGreaterThan(horse.fore[2]);
+    // The puppy's feet are a larger share of its legs (the Beagles' manus and pes), its eye larger for its head.
+    const dog = animalConstruction("shiba-inu"), pup = juvenileConstruction(dog, 0);
+    expect(pup.fore[3]).toBeGreaterThan(dog.fore[3]);
+    expect(pup.species!.face!.eye).toBeGreaterThan(dog.species!.face!.eye);
+    expect(pup.muzzle).toBeLessThan(dog.muzzle);
+    // Young coats: a fox kit is dark brown with blue eyes; the adult is not.
+    const fox = findAnimal("red-fox")!;
+    expect(coatAt(fox, 0).find(x => x.region === "back")!.hex).toBe("#4a3a30");
+    expect(coatAt(fox, 0).find(x => x.region === "eyes")).toBeTruthy();
+    expect(coatAt(fox, 1)).toBe(fox.coat.palette);
+  });
+});
+
+describe("ANIM1 fur", () => {
+  it("lays the hair from snout to tail and down the limbs (Kidd), long where the coat is long, deterministically", () => {
+    const fox = poseAnimal(animalConstruction("red-fox")), s = fox;
+    // The back: toward the tail (−x), not up. The fore leg: downward.
+    const back = furDirection(s, [s.joints.withers[0] - .2, s.joints.withers[1] - .05]);
+    expect(back.part).toBe("trunk");
+    expect(back.dir[0]).toBeLessThan(-.5);
+    const leg = s.limbs.find(l => l.fore && !l.far)!, mid = [(leg.points[1][0] + leg.points[2][0]) / 2, (leg.points[1][1] + leg.points[2][1]) / 2] as const;
+    const limb = furDirection(s, mid);
+    expect(limb.part).toBe("limb");
+    expect(limb.dir[1]).toBeLessThan(-.5);
+    // Strands: deterministic, the fox's brush longer than its back, none for birds.
+    const a = furStrands(fox, { seed: 4 }), b = furStrands(fox, { seed: 4 });
+    expect(a).toEqual(b);
+    expect(a.length).toBeGreaterThan(300);
+    const lenOf = (p: readonly (readonly number[])[]) => p.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - p[i][0], q[1] - p[i][1]), 0);
+    const avg = (xs: number[]) => xs.reduce((t, x) => t + x, 0) / xs.length;
+    expect(avg(a.filter(x => x.part === "tail").map(x => lenOf(x.points)))).toBeGreaterThan(avg(a.filter(x => x.part === "trunk" && !x.long).map(x => lenOf(x.points))) * 1.4);
+    expect(furStrands(poseAnimal(animalConstruction("red-crowned-crane")))).toEqual([]);
+    // Every strand of a posed (sitting) animal starts on the body.
+    expect(furStrands(poseAnimal(animalConstruction("shiba-inu"), { posture: "sit" })).every(x => x.points.every(p => Number.isFinite(p[0]) && Number.isFinite(p[1])))).toBe(true);
+  });
+});
+
+describe("ANIM1 faces square on", () => {
+  it("gives every mammal a front face, measured where a reference allowed, and draws it symmetric with the eyes inside the head", () => {
+    const measured = ["shiba-inu", "red-fox", "japanese-wolf", "domestic-cat", "japanese-black-cattle"];
+    for (const sp of ANIMAL_SPECIES.filter(x => BODY_PLANS[x.plan].group === "mammal")) {
+      const f = frontFace(sp)!, sh = frontFaceShapes(sp)!;
+      expect(f, sp.id).toBeTruthy();
+      expect(f.grade, sp.id).toBe(measured.includes(sp.id) ? "measured" : "estimated");
+      // The eyes sit inside the head's width, the nose below them, the crown above.
+      expect(sh.eyeCentres[1][0] + sh.eyeR, sp.id).toBeLessThan(.52);
+      expect(sh.eyeCentres[0][0], sp.id).toBeCloseTo(-sh.eyeCentres[1][0]);
+      expect(f.nose, sp.id).toBeGreaterThan(0);
+      expect(f.crown, sp.id).toBeGreaterThan(0);
+      expect(sh.head + sh.ears + sh.eyes + sh.nose, sp.id).not.toMatch(/NaN/);
+    }
+    // Dogs carry their ears up above the crown; cattle out to the sides at the eye line.
+    expect(frontFace("shiba-inu")!.earTip[1]).toBeGreaterThan(frontFace("shiba-inu")!.crown);
+    expect(frontFace("japanese-black-cattle")!.earTip[0]).toBeGreaterThan(1);
+  });
+});
+
