@@ -573,9 +573,31 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
   await expect(upper.first()).toBeVisible();
   await expect(lower.first()).toBeVisible();
   await expect(fuchun.locator("[data-km-cliff-pine-grove]")).toBeVisible();
-  await page.getByRole("button",{name:"Stone volumes · brush hidden"}).click();
+  const middle=fuchun.locator('[data-km-shanshui-ridge-contour="1"]');
+  const originalRidge=await middle.getAttribute("d");
+  expect(originalRidge).toContain(" L");
+  await page.getByRole("button",{name:"Skyline · contour only"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","ridge");
+  await expect(middle).toBeVisible();
+  await expect(middle).toHaveAttribute("d",originalRidge!);
+  await expect(fuchun.locator("[data-km-shanshui-cunfa]").first())
+    .toBeHidden();
+  await expect(fuchun.locator("[data-km-master-mass]").first())
+    .toBeHidden();
+  await expect(fuchun.locator("[data-km-cliff-pine-grove]")).toBeHidden();
+  const other=lab.locator('[data-km-master-study="early-spring"]');
+  await expect(other.locator('[data-km-shanshui-ridge-contour="1"]'))
+    .toBeVisible();
+  await expect(other.locator("[data-km-master-mass]").first())
+    .toBeVisible();
+  await fuchun.locator("[data-km-master-camera-view]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-native-rolling-skyline-145.png")});
   await page.getByRole("button",{name:"Reset all four studies"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+  await expect(middle).toHaveAttribute("d",originalRidge!);
+  await expect(fuchun.locator("[data-km-shanshui-cunfa]").first())
+    .toBeVisible();
+  await expect(fuchun.locator("[data-km-cliff-pine-grove]")).toBeVisible();
 });
 
 test("artist school choices are live film renderer modes, not a cosmetic Storybook filter",async({page})=>{
