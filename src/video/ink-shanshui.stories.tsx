@@ -703,6 +703,99 @@ function MasterInkSourceComparison(){
     </p>
   </main>;
 }
+/** Temporal ArtCraft QA. Four independent real renderer samples are deliberately
+ * frozen at absolute frames: compare wet reveal, layering, settled ink and
+ * final atmosphere without screenshots, duplicates or a second animation clock. */
+function InkFilmContinuityStudio(){
+  const [school,setSchool]=useState<InkRockSchool>("fuchun");
+  const [seed,setSeed]=useState(71);
+  const [baseFrame,setBaseFrame]=useState(48);
+  const [frameStep,setFrameStep]=useState(54);
+  const [detail,setDetail]=useState(1);
+  const [ink,setInk]=useState(.9);
+  const [mist,setMist]=useState(.35);
+  const [scene,setScene]=useState<ShanshuiScene>("mountain-trail");
+  const frames=Array.from({length:4},(_,i)=>Math.min(SHANSHUI_FRAMES-1,baseFrame+i*frameStep));
+  const controls:ShanshuiControls={...DEFAULT_SHANSHUI,scene,inkSchool:school,
+    seed,detail,ink,mist,wind:0};
+  return <main data-testid="shanshui-ink-continuity-studio"
+    style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
+      color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
+      gap:16,alignContent:"start"}}>
+    <header style={{maxWidth:1050}}>
+      <h1 style={{font:"400 32px Georgia,serif",margin:"0 0 10px"}}>
+        Ink continuity · four real film moments
+      </h1>
+      <p style={{margin:0}}>
+        Compare true production SVG frames at identical camera, paper,
+        seed and brush settings. Inspect mountain topology, stroke contact,
+        reserved paper, wash progression and silhouette stability. Cards
+        sample the original stage; they are not static thumbnails.
+      </p>
+    </header>
+    <div style={{display:"flex",flexWrap:"wrap",gap:14,alignItems:"end"}}>
+      <label style={style.field}>Reference brush school
+        <select aria-label="Continuity ink school" value={school}
+          onChange={e=>setSchool(e.target.value as InkRockSchool)}>
+          <option value="fuchun">Huang Gongwang · long hemp</option>
+          <option value="early-spring">Guo Xi · cloud-head</option>
+          <option value="travelers">Fan Kuan · raindrop</option>
+          <option value="forest-grotto">Wang Meng · ox-hair</option>
+        </select>
+      </label>
+      <label style={style.field}>Composition
+        <select aria-label="Continuity composition" value={scene}
+          onChange={e=>setScene(e.target.value as ShanshuiScene)}>
+          <option value="mountain-trail">Mountain trail</option>
+          <option value="river-scholar">River scholar</option>
+          <option value="misty-hermit">Misty hermit</option>
+        </select>
+      </label>
+      {([
+        ["First frame",baseFrame,setBaseFrame,0,SHANSHUI_FRAMES-1,1],
+        ["Frame interval",frameStep,setFrameStep,1,120,1],
+        ["Seed",seed,setSeed,1,199,1],
+        ["Detail",detail,setDetail,0,1,.05],
+        ["Ink load",ink,setInk,0,1,.05],
+        ["Mist",mist,setMist,0,1,.05],
+      ] as const).map(([label,value,setValue,min,max,step])=>
+        <label key={label} style={{...style.field,minWidth:155}}>
+          {label} · {value}
+          <input aria-label={"Continuity "+label} type="range"
+            min={min} max={max} step={step} value={value}
+            onChange={e=>setValue(Number(e.target.value))}/>
+        </label>)}
+      <button type="button" style={style.button} onClick={()=>{
+        setSchool("fuchun");setScene("mountain-trail");setSeed(71);
+        setBaseFrame(48);setFrameStep(54);setDetail(1);setInk(.9);setMist(.35);
+      }}>Reset continuity study</button>
+    </div>
+    <div style={{display:"grid",
+      gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,470px),1fr))",
+      gap:16,maxWidth:1020}}>
+      {frames.map((frame,index)=><section key={index}
+        data-km-ink-continuity-frame={frame}
+        data-km-ink-continuity-school={school}
+        style={{display:"grid",gap:7}}>
+        <strong>Moment {index+1} · absolute frame {frame}</strong>
+        <div style={{position:"relative",width:468,height:264,
+          maxWidth:"100%",overflow:"hidden",background:"#f3e6cd",
+          border:"1px solid #b8aa96"}}>
+          <div style={{transform:"scale(.4875)",transformOrigin:"top left",
+            width:960,height:540}}>
+            <InkShanshuiStage frame={frame} controls={controls}/>
+          </div>
+        </div>
+      </section>)}
+    </div>
+    <p style={{margin:0,maxWidth:1000,fontSize:12,color:"#6f5c49"}}>
+      Review both full-frame 16:9 composition and four distinct temporal
+      samples. The frame slider clamps at the end of the source film; repeated
+      final frames are intentional. Reset preserves exact default comparison.
+      Structural checks do not replace native visual judgement.
+    </p>
+  </main>;
+}
 const meta={title:"Video production/Film Looks/Chinese Ink/Shanshui Film Gallery",
   id:"video-ink-shanshui",component:Gallery,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof Gallery>;
@@ -718,6 +811,11 @@ export const BrushworkDetailStudio:StoryObj<typeof BrushworkDetail>={
 export const FourMastersInkStudio:StoryObj<typeof MasterInkSourceComparison>={
   name:"Four masters · brushwork source comparisons",
   render:()=> <MasterInkSourceComparison/>,
+};
+
+export const InkFilmContinuity:StoryObj<typeof InkFilmContinuityStudio>={
+  name:"Ink continuity · four production frames",
+  render:()=> <InkFilmContinuityStudio/>,
 };
 
 export const GeologicalInkStudio:StoryObj<typeof GeologicalInkStudy>={
