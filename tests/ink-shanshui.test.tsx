@@ -1140,8 +1140,29 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(ns.length%2).toBe(0);
       return islandRoots[i]-Math.min(...ns.filter((_,j)=>j%2===1));
     });
+    // Actual v48 browser crop rejected large FLAT-TOPPED opaque
+    // blocks. Peak size alone rewarded geometric paper stickers,
+    // not Huang's asymmetric tapered pine tufts. Require sufficient
+    // loaded-value depth AND lifted tips with true arched silhouettes.
     expect(lifts.filter(h=>h>6).length).toBeGreaterThan(24);
-    expect(lifts.filter(h=>h>8).length).toBeGreaterThanOrEqual(10);
+    const lobes=[...html.matchAll(
+      /data-km-cliff-pine-fan-lobes="([6-8])"/g,
+    )].map(m=>Number(m[1]));
+    expect(lobes).toHaveLength(40);
+    let peaked=0;
+    for(let i=0;i<40;i++){
+      const upper=canopyPaths[i].split(" C")[0];
+      const q=[...upper.matchAll(
+        / Q(-?[\\d.]+) (-?[\\d.]+) (-?[\\d.]+) (-?[\\d.]+)/g,
+      )];
+      expect(q).toHaveLength(lobes[i]+1);
+      const heights=q.slice(0,lobes[i]).map(m=>
+        islandRoots[i]-Number(m[4]));
+      const edge=(heights[0]+heights[heights.length-1])/2;
+      const center=Math.max(...heights.slice(1,-1));
+      if(center>edge*1.5&&center-edge>1.1)peaked++;
+    }
+    expect(peaked).toBeGreaterThanOrEqual(27);
   });
 
   it("renders willow boughs as closed tapering brush geometry with fine attached leaves",()=>{
