@@ -514,7 +514,17 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
   // Native isolated stone anatomy is rendered by the SAME film SVG.
   // Compare parent positive volumes without overlaid pine and hemp ink.
   const undercuts=fuchun.locator("[data-km-master-fuchun-hillback-undercut]");
+  const courses=fuchun.locator("[data-km-master-fuchun-cross-shelf]");
   await expect(undercuts).toHaveCount(6);
+  await expect(courses).toHaveCount(12);
+  const axes=await courses.evaluateAll(nodes=>nodes.map(node=>({
+    root:node.getAttribute("data-km-master-fuchun-cross-shelf-root")??"",
+    d:node.getAttribute("data-km-master-fuchun-cross-shelf-axis")??"",
+    clip:node.getAttribute("clip-path")??"",
+  })));
+  expect(axes.every(({root,d,clip})=>
+    d.startsWith("M"+root.replace(","," "))&&
+    d.includes(" C")&&clip.endsWith("-volume-clip)"))).toBe(true);
   await page.getByRole("button",{name:"Stone volumes · brush hidden"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","stone");
   const stratumFields=fuchun.locator("[data-km-master-stratum-field]");
@@ -531,6 +541,12 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
   await expect(fuchun.locator("[data-km-rock-hero-cliff]")).toBeHidden();
   await expect(fuchun.locator("[data-km-master-fuchun-hillback-wash]")).toHaveCount(6);
   await expect(undercuts).toHaveCount(6);
+  await expect(courses).toHaveCount(12);
+  await expect(courses.locator("xpath=..").first()).toBeVisible();
+  for(const school of ["early-spring","travelers","forest-grotto"]){
+    await expect(lab.locator('[data-km-master-study="'+school+'"]')
+      .locator("[data-km-master-fuchun-cross-shelf]")).toHaveCount(0);
+  }
   await expect(fuchun.locator("[data-km-master-stroke]")).toHaveCount(78);
   await expect(fuchun.locator("[data-km-master-stratum]")).toHaveCount(15);
   await fuchun.locator("[data-km-master-camera-view]").screenshot({
