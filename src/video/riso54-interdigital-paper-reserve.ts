@@ -24,7 +24,6 @@ import {riso51ProjectPalmarPath,riso51SourceKeys}
  */
 export type Riso54Actor="courier"|"paper-artist";
 export type Riso54Side="left"|"right";
-type Saddle="middle-ring"|"ring-pinky";
 const saddles=["middle-ring","ring-pinky"] as const;
 export const RISO54_WEB_REFERENCE={
   image:"Kilian van de Water, Tabak risograph hands; Proko finger anatomy",
