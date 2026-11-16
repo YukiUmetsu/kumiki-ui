@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PencilDrawing } from "../registry/video/colored-pencil-react";
-import { NEW_CHARACTER_01_ID, NEW_CHARACTER_01_STAGE, newCharacterHeadStageOne } from "../src/video/colored-pencil-first-character";
+import {
+  NEW_CHARACTER_01_ID, NEW_CHARACTER_01_STAGE,
+  NEW_CHARACTER_01_INSPECTION_KEYS,
+  newCharacterHeadInspectionAnchors, newCharacterHeadStageOne,
+} from "../src/video/colored-pencil-first-character";
 import { inspectPencilDrawing, hatchPencilRegion } from "../registry/video/colored-pencil";
 import {
   PENCIL_LIVING_STUDIES, flowBundles, pencilLivingStudyDrawing,
@@ -87,6 +91,26 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       .not.toEqual(newCharacterHeadStageOne(515)[0].details);
     expect(newCharacterHeadStageOne(2147483000)).toHaveLength(1);
     expect(()=>newCharacterHeadStageOne(-1)).toThrow(RangeError);
+  });
+
+  it("exposes nine NEW mesh-derived head-guide points, not the former woman's portrait anchors",()=>{
+    const anchors=newCharacterHeadInspectionAnchors();
+    const head=newCharacterHeadStageOne(291)[0];
+    expect(anchors.map(x=>x.id)).toEqual([...NEW_CHARACTER_01_INSPECTION_KEYS]);
+    expect(anchors).toHaveLength(9);
+    const [left,top,width,height]=head.bounds;
+    for(const {point:[x,y]} of anchors){
+      expect(Number.isFinite(x)&&Number.isFinite(y)).toBe(true);
+      expect(x).toBeGreaterThanOrEqual(left);
+      expect(x).toBeLessThanOrEqual(left+width);
+      expect(y).toBeGreaterThanOrEqual(top);
+      expect(y).toBeLessThanOrEqual(top+height);
+    }
+    expect(newCharacterHeadInspectionAnchors()).toEqual(anchors);
+    // A staged, new head contains no photometric face patch or original
+    // woman's opaque skin. Diagnostics are the exact same ANAT1 projection.
+    expect(head.material).toBe("glaze");
+    expect(anchors.every(x=>x.id!=="hairline")).toBe(true);
   });
 
   it("keeps the brand-new character head in the original CP-F1 renderer with no previous woman's geometry or bitmap art",()=>{
