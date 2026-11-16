@@ -274,3 +274,27 @@ The illustrations are **authored original editable vector + physical CP-F1 penci
 The initial `32×67` compressed cheek (workflow [43782816414](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43782816414)) passed typed/Chromium geometry but **failed actual 960×540 image inspection**: a pale ivory, vertically hanging flap remained clearly separated from the white sternum. Smaller polygons alone could not resolve an incorrect lateral topology or compositing/undercoat mismatch. The revision shifts the malar support diagonally *leftward/inward* into the already pale neck ruff, uses the **exact same `pale` material palette as the adjoining chest** while retaining all independent fur-trace pressure families, and changes the lower attachment test to the real measured interior intersection at `(240,265)`. The jaw root stays optically hidden within the muzzle at `(253,235)`.
 
 The next native render from [foundation proof run 43783298529](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43783298529) **passes the Storybook+geometry proof** and shows a visibly smaller, connected cream cheek/neck transition at both normal size and 2.15× anatomical crop; the first candidate's independent ivory tassel is eliminated. This is a local shape improvement, not a photorealism pass: the new cheek is still too stylized and the fox's head, muzzle, eyes, ears and forepaws remain insufficiently lifelike. The first-vs-second 3× crop is an independently saved snapshot from the exact two GitHub Chromium proof exports. No pose-matched source-image pixels have been scored, so ArtCraft source-fidelity remains **BLOCKED** and any follow-on artistic claim must remain qualified.
+
+
+## Independent post-#434 Fox Near-Pinna Craft Pass — morphology before texture
+
+**Current native 960×540 failure:** after the merged `#409` anatomy and `#434` cheek transition, the raised near ear still read as a flat elongated peach/brown **leaf** (constant interior hatching) instead of a cupped fox ear. A real pinna has a brighter folded outer helix, deeply shaded conchal bowl and short fine fur growing outward from its base; recoloring the whole existing leaf black would fail its materials and topology.
+
+**Source study:**
+- Actual seated fox ear observed in [Artsdatabanken red fox photograph](https://artsdatabanken.no/arter/takson/31173): ear base connects behind temple, dark warm cup, light hair at edges; source camera is not aligned to this three-quarter authored artwork.
+- [Bonny Snowdon's fox colored-pencil process](https://bonnysnowdonacademy.com/fox-draw-resources/), step 3: ear-base directional fur; walnut-brown cavity shadows, beige/ochre dry layers, selective dark and white finishing hairs. **Technique only**; no lines/pixels copied.
+- Previously catalogued [Wikimedia *Wild Red Fox*](https://commons.wikimedia.org/wiki/File:Wild_Red_Fox.jpg) gives general natural pinna-to-skull proportion, not exact matching animal/pose or measured crop.
+
+**ArtCraft five axes / source-to-contour plan:**
+
+| Axis | Required independent visible feature | Negative control |
+| --- | --- | --- |
+| Topology | Large external ear `ear-near` is a rounded triangular cartilage with named light helix rim and posterior fold; smaller `ear-near-inner` contains the conchal bowl and canal, with an undercut protected exposed rim. | Uniform flat leaf, detached concha, black ellipse/black triangle occupying entire ear. |
+| Vector flow | Three individually traced sets of 3-pressure root fibres follow ear base → folded cartilage → pointed tip; select shorter fine inner hair with different direction than external pinna. | Parallel all-over digital hatching or random hairs unrooted to anatomy. |
+| Weight | Rim clay and pale ochre, dark soft interior shadow, narrow bright antihelix contact; preserve deep ear-base interspace against the orange skull. | Solid black cavity, glossy digital gradient, bright salmon sticker. |
+| Rhythm | Named small paths `near-pinna-helix-rim`, `near-pinna-posterior-fold`, `near-auricular-base`, `near-conchal-shadow`, `near-antihelix-reflection`, `near-canal-base`; 9 independent inner/outer rooted fibre families each. | Single two-path simplified cartoon ear. |
+| Texture | Original three CP-F1 fur pigment passes retained: tooth, paper-resident pressure, deterministic seeded microhair, editable strokes and original frame reveal. | Photo pixels, filters, raster underpainting, blurred/shader-only output. |
+
+**Implementation and tests:** the existing ear and concha part IDs and original film animation remain unchanged; ear height remains at 79 local coordinates and inner cup is <48% of outer ear width, <76% of height. An actual browser `Path2D` check ensures the recess is nested at `(287,153)` and `(282,175)`, while the helix remains uncovered at `(271,177)`. Existing Storybook adds a `fox-ear` macro focus for both 16:9 and 9:16 under the same drawing and tests reversible native-frame SVG output with no images.
+
+**Release decision: HOLD until next native Storybook proof is actually inspected.** Successful code assertions cannot certify the concha's photographic depth or finish. This separate PR can only be merged as an incremental, visually reviewed corrective geometry pass, not as a global ArtCraft release of the fox/human character.

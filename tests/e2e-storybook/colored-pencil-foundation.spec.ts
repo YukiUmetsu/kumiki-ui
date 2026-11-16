@@ -158,6 +158,7 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
     for(const [specimen,focus,part] of [
       ["fox","fox-tail","tail-back"],
       ["fox","fox-eye","eye-near"],
+      ["fox","fox-ear","ear-near-inner"],
       ["fox","fox-cheek","cheek-ruff"],
       ["fox","fox-chest","chest"],
       ["fox","fox-forepaw","foreleg-right"],
@@ -213,6 +214,37 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
         expect(topology.tarsus).toBe(true);
         expect(topology.pupil).toBe(true);
         expect(topology.material).toBe("eye-near");
+      }
+      if(focus==="fox-ear"){
+        const ear=await svg.evaluate(root=>{
+          const ctx=document.createElement("canvas").getContext("2d")!;
+          const path=(id:string)=>{
+            const element=root.querySelector(
+              '[data-km-pencil-region="'+id+'"] [data-km-pencil-support]');
+            if(!element)throw new Error("Missing actual pencil ear silhouette: "+id);
+            return new Path2D(element.getAttribute("d")!);
+          };
+          const outer=path("ear-near"),inner=path("ear-near-inner");
+          const details=root.querySelector(
+            '[data-km-pencil-region="ear-near-inner"]')!;
+          return {
+            nestedTip:ctx.isPointInPath(outer,287,153)&&
+              ctx.isPointInPath(inner,287,153),
+            nestedConcha:ctx.isPointInPath(outer,282,175)&&
+              ctx.isPointInPath(inner,282,175),
+            exposedHelix:ctx.isPointInPath(outer,271,177)&&
+              !ctx.isPointInPath(inner,271,177),
+            shadow:!!details.querySelector(
+              '[data-km-pencil-trace="near-conchal-shadow"]'),
+            antihelix:!!details.querySelector(
+              '[data-km-pencil-trace="near-antihelix-reflection"]'),
+          };
+        });
+        expect(ear.nestedTip).toBe(true);
+        expect(ear.nestedConcha).toBe(true);
+        expect(ear.exposedHelix).toBe(true);
+        expect(ear.shadow).toBe(true);
+        expect(ear.antihelix).toBe(true);
       }
       if(focus==="fox-cheek"){
         const connection=await svg.evaluate(root=>{

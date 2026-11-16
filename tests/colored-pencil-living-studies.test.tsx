@@ -531,6 +531,44 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
+  it("builds an asymmetric fox ear concha inside a rounded outer helix instead of a flat rabbit-like leaf",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject:"fox",aspect,seed:291});
+      const parts=new Map(drawing.regions.map(p=>[p.id,p]));
+      const pinna=parts.get("ear-near")!,concha=parts.get("ear-near-inner")!;
+      const skull=parts.get("head-main")!,far=parts.get("ear-far")!;
+      expect(pinna.bounds[3]).toBeLessThanOrEqual(79);
+      expect(pinna.bounds[3]).toBeGreaterThan(far.bounds[3]);
+      expect(concha.bounds[2]).toBeLessThan(pinna.bounds[2]*.48);
+      expect(concha.bounds[3]).toBeLessThan(pinna.bounds[3]*.76);
+      expect(concha.bounds[0]).toBeGreaterThan(pinna.bounds[0]);
+      expect(concha.bounds[1]).toBeGreaterThanOrEqual(pinna.bounds[1]);
+      expect(concha.bounds[1]+concha.bounds[3])
+        .toBeLessThanOrEqual(pinna.bounds[1]+pinna.bounds[3]);
+      expect(pinna.opaqueSupport).toBe(true);
+      expect(concha.opaqueSupport).toBe(true);
+      expect(concha.craft?.kind).toBe("fur");
+      expect(concha.layers[1].color).not.toBe(pinna.layers[1].color);
+      const outerFeatures=[
+        "near-pinna-helix-rim","near-pinna-posterior-fold","near-auricular-base",
+      ];
+      const innerFeatures=[
+        "near-conchal-shadow","near-antihelix-reflection","near-canal-base",
+      ];
+      for(const [region,ids] of [[pinna,outerFeatures],[concha,innerFeatures]] as const){
+        for(const id of ids)expect(region.details!.some(d=>d.id===id)).toBe(true);
+        expect(region.details!.filter(d=>d.id?.startsWith("fibre-")))
+          .toHaveLength(9);
+        expect(region.details!.every(d=>!d.path.includes("NaN"))).toBe(true);
+      }
+      expect(pinna.path).toContain("C305 146 300 164 289 189");
+      expect(concha.path).toContain("C274 179 273 175 275 170");
+      expect(pinna.bounds[0]+pinna.bounds[2]).toBeGreaterThan(skull.bounds[0]+120);
+      expect(pencilLivingStudyDrawing({subject:"fox",aspect,seed:291}))
+        .toEqual(drawing);
+    }
+  });
+
   it("keeps fox chest and throat curves connected without cardboard spikes or cartoon eye outline",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     const parts=new Map(drawing.regions.map(region=>[region.id,region]));
