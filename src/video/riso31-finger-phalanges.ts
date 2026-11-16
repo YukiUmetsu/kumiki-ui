@@ -223,6 +223,18 @@ C${c(w*.81,L*.14)} ${c(w*.89,-.68)} ${c(w*.55,-2.43)}
 C${c(w*.29,-3.03)} ${c(-w*.18,-3.16)} ${c(-w*.49,-2.81)}
 Q${c(-w*.63,-2.59)} ${c(-w*.77,-2.3)} Z`;
 }
+/** RISO51 exported original segment source drawing (same entire contour
+ * topology and red intrinsic ink). This lets an artist draw a genuine new
+ * physical stroke at a projected side-on bone station, not apply a flat SVG
+ * transform to the old overlong tube.
+ */
+export function riso31PhalanxSourcePath(
+  digit:Riso31Finger,stage:"proximal"|"middle"|"distal",
+  sourceLength:number,sourceWidth:number,
+):string{
+  if(sourceLength<=1||sourceWidth<=0)throw new RangeError("RISO51 invalid source bone");
+  return pathFor(stage,sourceLength,sourceWidth,digit);
+}
 export function riso31FingerParts(side:Riso31Side,digit:Riso31Finger):readonly RisoCharacterPart[]{
   const g=RISO31_GEOMETRY[digit],name=side+"-glove-"+digit;
   return [
