@@ -1381,3 +1381,34 @@ test("F1 V28 source facial value atlas at 1x and 3x f299",async({page},info)=>{
  expect(Buffer.compare(Buffer.from(result[1]),Buffer.from(result[3]))).not.toBe(0);
  expect(errors).toEqual([]);
 });
+
+/** V29 ArtCraft corrective macro brow topology vs V28. Screenshot evidence only. */
+test("F1 V29 real orbital hood vs V28 at source 1x and 3x f299",async({page},info)=>{
+  test.setTimeout(120_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const renders:Uint8Array[]=[];
+  for(const midfaceForm of ["source-face-values","source-orbital-hood"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:315,focusY:515,zoom:3},
+        {frame:299,focusX:315,focusY:515,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["socket-near","socket-far","sclera-near","sclera-far",
+        "upper-lid-near","upper-lid-far","cheek-malar-cast","naris-shadow-near"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      renders.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v29-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(renders[0]),Buffer.from(renders[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(renders[1]),Buffer.from(renders[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
