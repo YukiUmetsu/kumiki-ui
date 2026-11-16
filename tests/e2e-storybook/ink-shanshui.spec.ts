@@ -476,6 +476,94 @@ test("four-master ArtCraft gallery can inspect full native film and macro/meso/m
   await expect(cameras.first()).toHaveAttribute("data-km-master-camera-view","crop");
 });
 
+test("Fuchun source-fidelity desk uses two real seeded stages at native 1x and cropped 2.4x/3.35x",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--fuchun-fidelity-review&viewMode=story");
+  const desk=page.getByTestId("shanshui-fuchun-fidelity-desk");
+  const samples=desk.locator("[data-km-fidelity-sample]");
+  await expect(samples).toHaveCount(2);
+  await expect(desk).toHaveAttribute("data-km-fidelity-lens","native");
+  await expect(desk).toHaveAttribute("data-km-fidelity-layer","complete");
+  await expect(samples.nth(0)).toHaveAttribute("data-km-fidelity-seed","71");
+  await expect(samples.nth(1)).toHaveAttribute("data-km-fidelity-seed","87");
+  const roots:string[]=[];
+  for(let i=0;i<2;i++){
+    const sample=samples.nth(i);
+    await expect(sample.locator("[data-km-shanshui-scene]")).toHaveCount(1);
+    await expect(sample.locator("[data-km-master-school='fuchun']"))
+      .toHaveCount(1);
+    await expect(sample.locator("[data-km-master-stroke]")).toHaveCount(78);
+    await expect(sample.locator("[data-km-master-stratum]")).toHaveCount(15);
+    await expect(sample.locator("[data-km-master-fuchun-hillback]")).toHaveCount(6);
+    await expect(sample.locator("[data-km-cliff-pine-grove]")).toHaveCount(1);
+    await expect(sample.locator("image,foreignObject")).toHaveCount(0);
+    const viewport=sample.locator("[data-km-fidelity-viewport]");
+    await expect(viewport).toHaveCSS("width","960px");
+    await expect(viewport).toHaveCSS("height","540px");
+    const stage=viewport.locator(":scope > div");
+    expect(await stage.evaluate(el=>(el as HTMLElement).style.transform))
+      .toBe("none");
+    roots.push(await sample.locator('[data-km-shanshui-ridge-contour="1"]')
+      .getAttribute("d")??"");
+  }
+  expect(roots[0]).not.toBe(roots[1]); // identical shape must not be canned output
+  await samples.nth(0).locator("[data-km-fidelity-viewport]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-fidelity-seed71-frame145-native.png")});
+  await samples.nth(1).locator("[data-km-fidelity-viewport]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-fidelity-seed87-frame145-native.png")});
+
+  await page.getByRole("button",{name:"Rock shoulders · 2.4×"}).click();
+  await expect(desk).toHaveAttribute("data-km-fidelity-lens","rock");
+  await expect(samples.first().locator("[data-km-fidelity-viewport]"))
+    .toHaveCSS("width","420px");
+  await expect(samples.first().locator("[data-km-fidelity-viewport]"))
+    .toHaveCSS("height","308px");
+  expect(await samples.first().locator("[data-km-fidelity-viewport] > div")
+    .evaluate(el=>(el as HTMLElement).style.transform)).toContain("scale(2.4)");
+  await page.getByRole("button",{name:"Positive rock anatomy"}).click();
+  await expect(desk).toHaveAttribute("data-km-fidelity-layer","stone");
+  await expect(samples.first().locator("[data-km-master-stratum-field]").first())
+    .toBeHidden();
+  await expect(samples.first().locator("[data-km-master-fuchun-hillback-wash]"))
+    .toHaveCount(6);
+  await expect(samples.first().locator("[data-km-master-stroke]")).toHaveCount(78);
+  await samples.first().locator("[data-km-fidelity-viewport]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-fidelity-positive-rock-2.4x.png")});
+
+  await page.getByRole("button",{name:"Original 78 hemp strokes"}).click();
+  await expect(desk).toHaveAttribute("data-km-fidelity-layer","hemp");
+  await expect(samples.first().locator("[data-km-master-brush-field]").first())
+    .toBeVisible();
+  await expect(samples.first().locator("[data-km-cliff-pine-grove]"))
+    .toBeHidden();
+  await page.getByRole("button",{name:"Dry-brush edge · 3.35×"}).click();
+  await samples.first().locator("[data-km-fidelity-viewport]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-fidelity-hemp-dry-3.35x.png")});
+
+  await page.getByRole("button",{name:"Rooted old-pine anatomy"}).click();
+  await expect(samples.first().locator("[data-km-master-rock-art]")).toBeHidden();
+  await expect(samples.first().locator("[data-km-cliff-pine-grove]")).toBeVisible();
+  await page.getByRole("button",{name:"Pine root/crown · 2.8×"}).click();
+  await samples.first().locator("[data-km-fidelity-viewport]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-fidelity-rooted-pine-2.8x.png")});
+
+  for(const [label,frame] of [["First painted layers",84],
+    ["Late atmospheric pass",215]] as const){
+    await page.getByRole("button",{name:new RegExp(label)}).click();
+    await expect(samples.first().locator("[data-km-shanshui-scene]"))
+      .toHaveAttribute("data-km-shanshui-frame",String(frame));
+    await expect(samples.last().locator("[data-km-shanshui-scene]"))
+      .toHaveAttribute("data-km-shanshui-frame",String(frame));
+  }
+  await page.getByRole("button",{name:"Reset native source-fidelity review"}).click();
+  await expect(desk).toHaveAttribute("data-km-fidelity-layer","complete");
+  await expect(desk).toHaveAttribute("data-km-fidelity-lens","native");
+  await expect(samples.first()).toHaveAttribute("data-km-fidelity-frame","145");
+  await expect(samples.first().locator("[data-km-cliff-pine-grove]"))
+    .toBeVisible();
+  expect(await samples.first().locator('[data-km-shanshui-ridge-contour="1"]')
+    .getAttribute("d")).toBe(roots[0]);
+});
+
 test("Fuchun bank inspection preserves the live film while isolating root-linked ink phrases",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");
