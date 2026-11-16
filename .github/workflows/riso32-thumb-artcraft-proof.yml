@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/riso32-thumb-artcraft-proof.yml"
       - "src/video/riso32-thumb-ip.ts"
+      - "src/video/riso33-hand-negative-space.ts"
       - "tests/riso32-thumb-ip-artcraft.test.tsx"
       - "tests/e2e-storybook/riso32-thumb-ip-artcraft.spec.ts"
   workflow_dispatch:
