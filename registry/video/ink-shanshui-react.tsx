@@ -620,6 +620,36 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           " "+f(end[0])+" "+f(end[1]);
         const pressure=rockLoadedCubicRibbon(entry,c1,c2,end,width,
           seed+4211+i*113+j*13);
+        // True dry hemp exposes the very paper *beneath* pigment. A
+        // pale overpaint would fake opaque chalk on a warm translucent
+        // rock wash. Use a luminance mask like the original bamboo
+        // bristles instead, constructed from this exact child's cubic
+        // centerline. Its white silhouette is the FULL original brush;
+        // two short uneven dark core slits take pigment back to the
+        // unpainted support without erasing the parent or its shape.
+        const reserve=school==="fuchun"&&detail>.65&&
+          (phrase==="long"||(phrase==="medium"&&j%3===1))
+          ?([.38,.67] as const).map((at,k)=>{
+            const from=cubicPoint(entry,c1,c2,end,
+              at+.018*(s(seed+5621,i*31+j*7+k*11)-.5));
+            const mid=cubicPoint(entry,c1,c2,end,at+.055);
+            const to=cubicPoint(entry,c1,c2,end,
+              at+.135+.023*s(seed+5633,i*19+j*23+k*17));
+            const cut="M"+f(from[0])+" "+f(from[1])+
+              " Q"+f(mid[0]+(s(seed+5641,i*13+j*17+k*19)-.5)*.5)+
+              " "+f(mid[1])+" "+f(to[0])+" "+f(to[1]);
+            const breadth=width*(k===0?.42:.29)*
+              (.81+.34*s(seed+5651,i*29+j*11+k*31));
+            return {cut,breadth,at};
+          }):[];
+        const reserveId=tone+"fuchun-fibre-paper-"+j;
+        const maskPadding=width*4+4;
+        const boundsX=[entry[0],c1[0],c2[0],end[0]];
+        const boundsY=[entry[1],c1[1],c2[1],end[1]];
+        const maskX=Math.min(...boundsX)-maskPadding;
+        const maskY=Math.min(...boundsY)-maskPadding;
+        const maskWidth=Math.max(...boundsX)-maskX+maskPadding;
+        const maskHeight=Math.max(...boundsY)-maskY+maskPadding;
         const dry=(j%5===2||j%9===4);
         const cut=cubicPoint(entry,c1,c2,end,.76);
         const lift=cubicPoint(entry,c1,c2,end,.96);
@@ -629,7 +659,8 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const sourceZone=school==="fuchun"
           ?(depth<.46?"upper-bank":"lower-bank"):undefined;
         return {entry,pressure,dry,dryPath,bank,depth,
-          curlHandedness,phrase,axis,sourceZone};
+          curlHandedness,phrase,axis,sourceZone,
+          reserve,reserveId,maskX,maskY,maskWidth,maskHeight};
       });
       const isFan=school==="travelers",isGuo=school==="early-spring";
       const isWang=school==="forest-grotto";
@@ -1251,7 +1282,8 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         <g data-km-master-brush-field="" data-km-master-field-count={qty}
           clipPath={"url(#"+clip+")"}>
           {brush.map(({entry,pressure,dry,dryPath,bank,depth,
-            curlHandedness,phrase,axis,sourceZone},j)=><g key={j}
+            curlHandedness,phrase,axis,sourceZone,reserve,reserveId,
+            maskX,maskY,maskWidth,maskHeight},j)=><g key={j}
             data-km-master-stroke="" data-km-master-stroke-style={label[school]}
             data-km-master-stroke-root={f(entry[0])+","+f(entry[1])}
             data-km-master-stroke-dry={dry?"dry":"wet"}
@@ -1262,9 +1294,25 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
             data-km-master-stroke-phrase={isHuang?phrase:undefined}
             data-km-master-stroke-axis={isHuang?axis:undefined}
             data-km-master-stroke-source-zone={sourceZone}>
+            {reserve.length>0&&<defs>
+              <mask data-km-master-stroke-reserve=""
+                id={reserveId} maskUnits="userSpaceOnUse"
+                maskContentUnits="userSpaceOnUse"
+                x={f(maskX)} y={f(maskY)}
+                width={f(maskWidth)} height={f(maskHeight)}
+                style={{maskType:"luminance"}}>
+                <path d={pressure} fill="#fff"/>
+                {reserve.map(({cut,breadth,at},k)=><path key={k}
+                  data-km-master-stroke-paper-slit=""
+                  data-km-master-stroke-paper-station={at}
+                  d={cut} stroke="#000" strokeWidth={f(breadth)}
+                  strokeLinecap="round" fill="none"/>)}
+              </mask>
+            </defs>}
             <path data-km-master-stroke-loaded="" d={pressure}
               fill={isFan?"#2a2623":isWang?"#322d29":isGuo?"#392f28":
                 phrase==="long"?"#675541":"#44382f"}
+              mask={reserve.length>0?"url(#"+reserveId+")":undefined}
               opacity={f((dry?.35:isFan?.83:isWang?.68:isGuo?.72:
                 phrase==="long"?.43:phrase==="short"?.79:.58)*
                 (1-.25*mist))}/>
