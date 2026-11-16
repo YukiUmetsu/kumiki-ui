@@ -84,19 +84,33 @@ test("RISO61 non-character film prints continuous two-spot tonal masters in both
   // an image filter; restoring values must restore the exact deterministic
   // source path bytes.
   const baseline=await allSources().first().getAttribute("d");
-  await page.getByRole("slider",{name:"RISO61 dot gain"}).fill("0.45");
+  await page.getByRole("slider",{name:"RISO61 dot gain"}).evaluate((node,value)=>{
+    const input=node as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!setter)throw new Error("Native RISO61 dot-gain slider setter unavailable");
+    setter.call(input,String(value));
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+  },"0.45");
   expect(await allSources().first().getAttribute("d")).not.toBe(baseline);
-  await page.getByRole("slider",{name:"RISO61 dot gain"}).fill("0.12");
+  await page.getByRole("slider",{name:"RISO61 dot gain"}).evaluate((node,value)=>{
+    const input=node as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!setter)throw new Error("Native RISO61 dot-gain slider setter unavailable");
+    setter.call(input,String(value));
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+  },"0.12");
   expect(await allSources().first().getAttribute("d")).toBe(baseline);
 
   await motion.uncheck();
   await expect(root).toHaveAttribute("data-km-riso61-motion","false");
-  const fixed=await print.locator("[data-km-riso61-contour='0']").first().getAttribute("d");
+  const fixed=await print.locator("[data-km-riso61-contour='1']").first().getAttribute("d");
   await seek(220);
-  expect(await print.locator("[data-km-riso61-contour='0']").first().getAttribute("d")).toBe(fixed);
+  expect(await print.locator("[data-km-riso61-contour='1']").first().getAttribute("d")).toBe(fixed);
   await motion.check();
   await seek(239);
-  expect(await print.locator("[data-km-riso61-contour='0']").first().getAttribute("d")).not.toBe(fixed);
+  expect(await print.locator("[data-km-riso61-contour='1']").first().getAttribute("d")).not.toBe(fixed);
 
   expect(errors).toEqual([]);
 });
