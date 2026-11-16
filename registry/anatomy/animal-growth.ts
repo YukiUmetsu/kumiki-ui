@@ -27,7 +27,7 @@ import { range as r } from "./foundation-shapes";
 import type { AnimalConstruction } from "./animal-construct";
 import type { AnimalSpecies, Swatch } from "./animal-species";
 
-export type GrowthKind = "ungulate" | "carnivore" | "small" | "primate" | "bird";
+export type GrowthKind = "ungulate" | "suid" | "carnivore" | "small" | "primate" | "bird";
 
 export interface GrowthRule {
   kind: GrowthKind;
@@ -55,6 +55,11 @@ export interface GrowthRule {
 
 const est = (min: number, typical: number, max: number, source?: string) => r(min, typical, max, "estimated", source);
 
+/**
+ * The rules for mammals keep their parts consistent with their height: the legs' average share and the trunk's share
+ * (the body's depth grows like its length) give the stated height at age 0, within about 15% (tested), so a drawing
+ * that grows the parts and one that scales by `heightAt` agree.
+ */
 export const GROWTH: Readonly<Record<GrowthKind, GrowthRule>> = {
   ungulate: {
     kind: "ungulate", youngest: "newborn (stands within hours)",
@@ -62,6 +67,11 @@ export const GROWTH: Readonly<Record<GrowthKind, GrowthRule>> = {
     // The cannon grows about 20% after birth (so it is 83% of adult at birth) and the humerus and femur double (50%).
     legSegments: [.5, .62, .83, .85], trunk: .5, neck: .5, head: .62, muzzle: .85, eye: 1.45, ear: 1.15, tail: .5,
     notes: ["Long-legged and short-bodied: the cannons are nearly grown at birth while the upper legs and the body have far to go (reported for the horse).", "The face short and the eye large; a fluffy short tail."],
+  },
+  suid: {
+    kind: "suid", youngest: "a few weeks (the striped uribō, following the sow)",
+    height: est(.3, .35, .4), legSegments: [.32, .36, .45, .5], trunk: .33, neck: .4, head: .48, muzzle: .85, eye: 1.3, ear: 1.1, tail: .4,
+    notes: ["A round little body on short legs (not a foal's stilts: pigs are not runners); a short snout; the pale 'melon' stripes along the body for the first months."],
   },
   carnivore: {
     kind: "carnivore", youngest: "about 9 weeks (walking, weaned)",
@@ -88,7 +98,7 @@ export const GROWTH: Readonly<Record<GrowthKind, GrowthRule>> = {
 };
 
 const KIND: Partial<Record<BodyPlanId, GrowthKind>> = {
-  equid: "ungulate", ruminant: "ungulate", suid: "ungulate",
+  equid: "ungulate", ruminant: "ungulate", suid: "suid",
   canid: "carnivore", felid: "carnivore", ursid: "carnivore", mustelid: "carnivore",
   leporid: "small", rodent: "small", primate: "primate",
 };

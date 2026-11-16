@@ -292,6 +292,15 @@ Most women in the ghost stories look alive until the story turns, so they are fi
   - `wolf`;
   - `mouse`: big pink ears and a long tail.
 - **New `Beast` options.** `horns: "antler" | "ox"`, `tusks`, `spots` and `crescent`.
+- **Young animals.** `look.age` grows any four-legged animal from its youngest (0) to the adult (1, default), using
+  ANIM1's growth rules for its body plan. The young is drawn to scale beside its parent:
+  - the long-legged foal and fawn;
+  - the round puppy, kitten and fox kit with bigger heads;
+  - the bear cub;
+  - the hornless calf;
+  - the small uribō piglet with its pale 'melon' stripes and no tusks.
+
+  Horns, antlers and tusks come at half grown. The nue, baku and ape have no young.
 - **Birds.** The bird rig gains the `hawk` and the `oshidori` mandarin drake (a plain duck with `look.color`).
 - **Bird flight from ANIM1.** `fly` takes each bird's wingbeat and style from the animal framework's flight table. The
   rate is the species' predicted cruising rate (Pennycuick 1990), drawn at no more than 7.5 beats a second at 30 fps:

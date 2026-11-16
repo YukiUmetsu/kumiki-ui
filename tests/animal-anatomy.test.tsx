@@ -8,7 +8,7 @@ import { checkAnimalProportions, checkSpeciesData, measureAnimal } from "../regi
 import { AnimalSheet } from "../registry/anatomy/animal-react";
 import { ANIMAL_POSTURES, BIRD_POSTURE_IDS, BIRD_POSTURES, birdPostureFits, POSTURE_IDS, postureFit } from "../registry/anatomy/animal-postures";
 import { BIRD_FLIGHT, flightAt, speciesWingbeat, wingbeatHz, wingStroke } from "../registry/anatomy/animal-flight";
-import { coatAt, growthRule, heightAt, juvenileConstruction } from "../registry/anatomy/animal-growth";
+import { coatAt, GROWTH, growthRule, heightAt, juvenileConstruction } from "../registry/anatomy/animal-growth";
 import { UKIYOE_SPECIES, ukiyoeBeastLandmarks } from "../registry/video/ukiyoe/ukiyoe-creatures";
 
 describe("ANIM1 data", () => {
@@ -200,6 +200,11 @@ describe("ANIM1 growth", () => {
         expect(pts.every(p => Number.isFinite(p[0]) && Number.isFinite(p[1])), `${sp.id} ${age}`).toBe(true);
         expect(Math.min(...s.limbs.flatMap(l => l.points).map(p => p[1])), `${sp.id} ${age}`).toBeGreaterThan(-.01);
       }
+    }
+    // Each mammal rule's parts agree with its height (legs by their segments' average, the body by the trunk).
+    for (const rule of Object.values(GROWTH).filter(g => g.kind !== "bird")) {
+      const g = rule.legSegments, legs = g[0] * .28 + g[1] * .32 + g[2] * .28 + g[3] * .12, implied = (legs + rule.trunk) / 2;
+      expect(Math.abs(implied / rule.height.typical - 1), rule.kind).toBeLessThan(.15);
     }
     // The foal (61% of adult height, cannons 83% grown): taller on its legs for its size and shorter in the body.
     const horse = animalConstruction("kiso-horse"), foal = juvenileConstruction(horse, 0);

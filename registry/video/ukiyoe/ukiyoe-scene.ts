@@ -300,6 +300,7 @@ export function inspectUkiyoeScene(input: unknown): UkiyoeIssue[] {
         for (const k of ["color", "belly", "dark", "accent"] as const) if (l[k] !== undefined) paint(`${p}.look.${k}`, l[k]);
         range(p + ".look.size", l.size, 8, 6000);
         range(p + ".look.tails", l.tails, 1, 9);
+        range(p + ".look.age", l.age, 0, 1);
         if (l.view !== undefined && !["profile", "three-quarter", "front", "back"].includes(l.view)) bad(p + ".look.view", "must be profile, three-quarter, front or back");
         (n.actions ?? []).forEach((a, j) => {
           if (!UKIYOE_CREATURE_ACTIONS.includes(a.type)) bad(`${p}.actions[${j}].type`, "unknown action; use " + UKIYOE_CREATURE_ACTIONS.join(", "));
