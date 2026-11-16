@@ -217,7 +217,7 @@ export const AnimalSheet = forwardRef<HTMLDivElement, AnimalSheetProps>(function
       </Card>
       {sp.face && <Card title="Face">
         <ul style={{ margin: 0, paddingLeft: 18 }}>
-          <li>Profile, in head lengths: eye {fmt(sp.face.eyeFromNose)} back from the nose, eye {fmt(sp.face.eye)} long, ear {fmt(sp.face.ear)} high, head {fmt(sp.face.depth)} deep.</li>
+          <li>Profile, in head lengths: eye {fmt(sp.face.eyeFromNose)} back from the {sp.face.ear === undefined ? "tip" : "nose"}, eye {fmt(sp.face.eye)} long, {sp.face.ear !== undefined && <>ear {fmt(sp.face.ear)} high, </>}head {fmt(sp.face.depth)} deep.</li>
           <li>Square on: eye centres {fmt(sp.face.eyeSpacing)} of the head's width apart; eyes read as {sp.face.eyeLook === "bead" ? "glossy black beads" : sp.face.eyeLook === "slit" ? "an iris with a slit pupil" : "an iris with a round pupil"}.</li>
           <li>Ears: {sp.face.ears}</li>
           {sp.face.features.map(f => <li key={f}>{f}</li>)}

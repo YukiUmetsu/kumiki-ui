@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SHODO_GLYPHS, parseKanjiVgSvg, shodoKaishoForm } from "../registry/video/shodo/shodo-glyphs";
+import { SHODO_GLYPHS, inspectShodoGlyph, parseKanjiVgSvg, shodoKaishoForm } from "../registry/video/shodo/shodo-glyphs";
 import type { ShodoGlyph } from "../registry/video/shodo/shodo-glyphs";
 import { loadShodoGlyph } from "../registry/video/shodo/shodo-glyph-source";
 import { shodoKankaRulesFor, shodoLayout, shodoStructure } from "../registry/video/shodo/shodo-structure";
@@ -104,6 +104,28 @@ describe("SHO1 shodō calligraphy", () => {
     expect(calls).toBe(1);
     expect(a.source).toBe("kanjivg");
     expect(await loadShodoGlyph("永")).toBe(SHODO_GLYPHS["永"]);
+  });
+
+  it("gives a stroke its own pace without changing its path or the other strokes", () => {
+    const glyph = SHODO_GLYPHS["二"];
+    const plan = (g: ShodoGlyph) => planShodoWriting({ items: [{ glyph: g, x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE }).strokes;
+    const base = plan(glyph);
+    const paced = plan({ ...glyph, strokes: glyph.strokes.map((st, i) => i === 1 ? { ...st, pace: 2 } : st) });
+    const time = (st: { t0: number; t1: number }) => st.t1 - st.t0;
+    expect(time(paced[0])).toBeCloseTo(time(base[0]), 6);               // the first stroke is untouched
+    expect(time(paced[1])).toBeCloseTo(time(base[1]) / 2, 2);           // twice as fast
+    const end = (st: typeof base[number]) => st.samples[st.samples.length - 1];
+    expect(Math.hypot(end(paced[1]).x - end(base[1]).x, end(paced[1]).y - end(base[1]).y)).toBeLessThan(1);
+  });
+
+  it("lets one stroke carry its own head and stop settings, within the style's ranges", () => {
+    const glyph = SHODO_GLYPHS["一"];
+    const stroke = (g: ShodoGlyph) => planShodoWriting({ items: [{ glyph: g, x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE }).strokes[0];
+    const own = (technique: Record<string, number>): ShodoGlyph => ({ ...glyph, strokes: [{ ...glyph.strokes[0], technique }] });
+    const stopPress = (st: ReturnType<typeof stroke>) => Math.max(...st.samples.filter(s => s.technique === "tome").map(s => s.p));
+    expect(stopPress(stroke(own({ tomePress: 1 })))).toBeGreaterThan(stopPress(stroke(glyph)) * 1.2);
+    expect(inspectShodoGlyph(own({ tomePress: 2 })).map(i => i.path)).toEqual(["/strokes/0/technique/tomePress"]);
+    expect(inspectShodoGlyph(own({ nope: 1 })).map(i => i.path)).toEqual(["/strokes/0/technique/nope"]);
   });
 
   it("writes a teacher's own form when the teacher has the character, and the rules elsewhere", async () => {

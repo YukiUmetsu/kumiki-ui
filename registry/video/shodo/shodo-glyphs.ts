@@ -9,6 +9,8 @@
  * reference study). KanjiVG data is never bundled: `parseKanjiVgSvg` reads a file the
  * host supplies, and that output carries KanjiVG's CC BY-SA 3.0 terms.
  */
+import { SHODO_TECHNIQUE_RANGES } from "./shodo-style";
+import type { ShodoTechniqueParams } from "./shodo-style";
 import { shodoStructure } from "./shodo-structure";
 import type { ShodoStructureRules } from "./shodo-structure";
 
@@ -50,6 +52,16 @@ export interface ShodoStrokeSpec {
   hook?: ShodoPoint;
   /** Thickness multiplier for this stroke, 0.4..1.8. */
   weight?: number;
+  /**
+   * Speed of this stroke relative to the hand, 0.25..4 (default 1). A teacher's form uses it
+   * to give each stroke that teacher's share of the writing time.
+   */
+  pace?: number;
+  /**
+   * This stroke's own technique settings over the style's, within the same ranges. A teacher's
+   * form uses it for that teacher's heads, stops and lifts stroke by stroke.
+   */
+  technique?: Partial<ShodoTechniqueParams>;
   /**
    * The stroke starts or ends on another stroke (接筆), as the inner lines of 口 and 目 do.
    * The hand then writes a small head or a quiet stop that disappears into the other line
@@ -198,6 +210,13 @@ export function inspectShodoGlyph(glyph: ShodoGlyph): ShodoGlyphIssue[] {
       issues.push({ path: at + "/weight", message: "Weight must be 0.4..1.8." });
     if (s.hook && (s.hook.length !== 2 || Math.hypot(s.hook[0], s.hook[1]) < 1e-3))
       issues.push({ path: at + "/hook", message: "Hook must be a nonzero [dx, dy]." });
+    if (s.pace !== undefined && (!Number.isFinite(s.pace) || s.pace < .25 || s.pace > 4))
+      issues.push({ path: at + "/pace", message: "Pace must be 0.25..4." });
+    for (const [key, v] of Object.entries(s.technique ?? {})) {
+      const range = SHODO_TECHNIQUE_RANGES[key as keyof ShodoTechniqueParams];
+      if (!range || typeof v !== "number" || !Number.isFinite(v) || v < range[0] || v > range[1])
+        issues.push({ path: at + "/technique/" + key, message: range ? `${key} must be ${range[0]}..${range[1]}.` : `Unknown technique ${key}.` });
+    }
   });
   return issues;
 }

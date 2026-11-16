@@ -96,7 +96,15 @@ carpus or hock:
 - ear placement;
 - the defining features, including what not to draw ("a bear does not smile", "not a fox's long snout").
 
-The construction places the eye and sizes the ear from it.
+The construction places the eye, sizes the ear, and for birds sets the head's depth. Every species has a face.
+`checkSpeciesData` flags a species without one, a face value out of range, and a mammal face without an ear.
+
+Units:
+
+- For birds, the head runs from the back of the skull to the bill tip, the eye is measured back from the tip, and the
+  bill share is `proportions.muzzle`.
+- For fish, the head runs from the snout to the back of the gill cover.
+- Birds and fish have no `ear`.
 
 ## Applying it to a style (UKIYO1 example)
 

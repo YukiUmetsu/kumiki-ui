@@ -26,8 +26,8 @@ import { courtProp, heianHairSide, kanmuriSide } from "./ukiyoe-heian";
 import { arrow, kabutoSide, naginata, oyoroiSide, shootAt, yumi } from "./ukiyoe-bushi";
 import { ancientHairSide, kamiProp, magatama, riceBag, stole, zukin } from "./ukiyoe-kami";
 import { dragonCrownSide, tamatebakoHeld, tamatebakoPrims } from "./ukiyoe-ryugu";
-import type { UkiyoeFaceFeatures, UkiyoeMood } from "./ukiyoe-face";
-import { faceProfile, faceThreeQuarter, faceTraits, hairSheen, kewari, lookHash, profileOutline } from "./ukiyoe-face";
+import type { FaceMoods, UkiyoeFaceFeatures, UkiyoeMood } from "./ukiyoe-face";
+import { NO_MOOD, moodsOf, faceProfile, faceThreeQuarter, faceTraits, hairSheen, kewari, lookHash, profileOutline } from "./ukiyoe-face";
 import { dangoProp, noboriProp } from "./ukiyoe-treasure";
 import { drawTool, firewood, hachiSide, kozuchi, onigiri, strikeBits, toolAt, toolBody, toolContact, toolStrikes, treasure } from "./ukiyoe-folk";
 import { babyBundle, faceOutline, ghostFaceSide, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
@@ -168,8 +168,11 @@ export interface UkiyoeAction {
 
 export interface UkiyoeFigureSpec { look: UkiyoeFigureLook; actions?: readonly UkiyoeAction[]; facing?: "left" | "right" }
 
-/** Joint angles, degrees. Shoulder/hip angles are measured from straight down, + toward the facing direction. */
-export interface FigurePose {
+/**
+ * Joint angles, degrees (shoulder and hip angles from straight down, + toward the facing direction), and weights,
+ * including an expression weight per mood (the `emote` action).
+ */
+export interface FigurePose extends FaceMoods {
   lean: number; tilt: number; crouch: number; lift: number;
   shF: number; elF: number; shB: number; elB: number;
   hipF: number; knF: number; hipB: number; knB: number;
@@ -184,8 +187,6 @@ export interface FigurePose {
   splayF: number; splayB: number;
   /** 0 standing → 1 lying on the back: the `fall` action topples the figure about its heels. */
   fall: number;
-  /** Expression weights (the `emote` action). */
-  smile: number; laugh: number; sad: number; cry: number; surprise: number; angry: number; fear: number; shy: number;
   /** Where the eyes look, −1 back … +1 forward (idle glances). */
   gaze: number;
 }
@@ -195,7 +196,7 @@ const STAND: FigurePose = {
   shF: 10, elF: 28, shB: -4, elB: 18,
   hipF: 3, knF: 2, hipB: -3, knB: 2, footF: 0, footB: 0,
   mouth: 0, blink: 0, kneel: 0, headBack: 0, propAngle: 0, squash: 0, faceView: 0, splayF: 0, splayB: 0, fall: 0, reveal: 0,
-  smile: 0, laugh: 0, sad: 0, cry: 0, surprise: 0, angry: 0, fear: 0, shy: 0, gaze: 0,
+  ...NO_MOOD, gaze: 0,
 };
 const KEYS = Object.keys(STAND) as (keyof FigurePose)[];
 
@@ -626,7 +627,7 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
   const featStart = out.length;
   const shut = pose.blink, browC = hairC === "usuzumi" ? "usuzumi" : "sumi";
   {
-    const moods = { smile: pose.smile, laugh: pose.laugh, sad: pose.sad, cry: pose.cry, surprise: pose.surprise, angry: pose.angry, fear: pose.fear, shy: pose.shy };
+    const moods = moodsOf(pose);
     const args = { P, k, lw, moods, traits, blink: shut, mouth: pose.mouth, hair: browC as UkiyoePaint, lips: look.lips, gaze: pose.gaze };
     out.push(...(tq ? faceThreeQuarter(args) : faceProfile(args)));
   }

@@ -247,6 +247,78 @@ These numbers say how closely the engine reproduces this teacher's own models. T
 
 **Limits.** The rules still write 84 of the teacher's characters (split failures, videos that start after the first stroke, incomplete ink). Kana loops (よ, あ, る) stay smaller than the teacher's. Heads and stops come from the technique programs, not from each stroke of the teacher. The writing time of every stroke is measured but not yet used to set the hand's rhythm.
 
+## 2.11 Seventh study round: checks, harder strokes and the teacher's rhythm
+
+**A better reference.** About one video in six ends on a model that is not the writing just shown (the overlap of the two is below 0.65 after the best small shift and scale). Forms are therefore compared with the live writing that they were learned from, after the best small shift and scale, which a single long sweep tip cannot distort as it can a box normalization.
+
+**Checks before a form is used.**
+- *Complete data*: the timed ink must cover at least 80 % of the end-of-video model. A shot that starts after the first strokes or ends before the last (旅, 史, 井) fails, so those characters keep the rules.
+- *Every stroke*: each stroke must lie on the teacher's ink (precision 0.45 or more) and cover its own stroke (recall 0.25 or more). The overlap of the whole character hides a broken small stroke; this check does not (神's radical, 羊's foot).
+- A stroke that fails goes back to the rule shape, placed with the character's mapping, and is checked again.
+- Near-ties (within 0.03) go to the teacher's form.
+
+**Harder strokes.**
+- *Width*: measured across the stroke only where it does not run into an earlier stroke, and the whole character's ink is scaled to the teacher's total. Before, the forms carried 9 % more ink than the teacher's; now 0 %.
+- *Shapes far from KanjiVG* (long sweeps, 史's ノ): a second candidate lays the stroke along the teacher's own brush path and wins when it lies clearly better on the teacher's stroke. 圧 0.39 → 0.78, 史 0.48 → 0.67, 顔 0.50 → 0.70. 349 of 2897 strokes use it.
+- *Dots*: sized from their area and from their length along their own axis.
+- *Kana*: the brush-path variant is kept for あ き け し に ふ む ら り れ, where it lies better.
+
+**Rhythm.** The brush trace gives the time each stroke was being written (frames that added ink; pauses for explanation are left out). `ShodoStrokeSpec.pace` scales the hand's speed for one stroke, and each form's paces give every stroke the teacher's share of the writing time. The hand's speed still sets the tempo. Per-stroke shares match the teacher's within 0.002 on average (0.036 without pace), and the shapes do not change (overlap 0.726 with and without).
+
+**Result.** Best-aligned overlap with the teacher's live writing:
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (360) | 0.564 | 0.677 |
+| Kana (46) | 0.498 | 0.640 |
+| The 326 characters with a form | 0.581 | 0.726 (98 % better) |
+
+**Limits.** 80 characters keep the rules: about 40 for incomplete data and the rest for a stroke that still fails its check. Kana loops are still small (よ, あ, る); や and ゆ fail. Heads and stops come from the technique programs.
+
+## 2.12 Eighth study round: dots, jump cuts, and each stroke's head and stop
+
+**Dots.** Most strokes that still failed their check were dots: the dots of 氵 and 丷 are written quickly one after another, and the brush trace gave both blobs to one dot. A dot is usually a separate blob of ink, so each KanjiVG dot now takes the blob nearest its expected place, the blobs in the order they were written. 汚, 浅, 源, 羊 and 羽 pass.
+
+**Jump cuts.** Many videos that seemed incomplete are cut once while the camera stays where it is (the editor removed a pause). Neighbouring runs with the same paper box are joined into one writing shot when every ink pixel before the cut is still dark after it (a re-framed shot moves the ink by a few pixels and is not joined), so ink written before the cut keeps its time. 旅, 史, 井, 不 and 筆 among 13 characters become complete; 30 stay incomplete.
+
+**Heads, stops and lifts.** `ShodoStrokeSpec.technique` gives one stroke its own technique settings over the style's, within the same ranges. The fit compares, on our stroke and on the teacher's, the widest point of the head and of the stop with the stroke's middle width, and how long a 払い stays thin before it ends; it sets `uchikomiDepth`, `tomePress` and `haraiLift` or `kenshinLift` stroke by stroke. 1104 strokes have their own settings. On a test set of eight characters the change was small and mostly positive (overlap in the teacher's frame 0.743 → 0.750).
+
+**Choice per character.** Each round keeps, per character, the form that lies best on the teacher's live writing among the forms that passed their checks.
+
+**Visual review.** The forms whose data changed in this round were compared with the teacher one by one. 59 of 60 looked right; 侍 lost its 亻 (the shot misses its first moments) and keeps the rules. A label-free check for teacher ink that our ink leaves uncovered was tried and dropped: this teacher's ink is bolder on the lower right of every stroke in some videos, so the check flagged good forms and missed 侍.
+
+**Result.** Best-aligned overlap with the teacher's live writing (the shots now include the jump cuts):
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (360) | 0.571 | 0.707 |
+| Kana (46) | 0.498 | 0.675 |
+| The 352 characters with a form | 0.579 | 0.742 (99 % better) |
+
+**Limits.** 54 characters keep the rules: 30 for incomplete data (a shot that really changes the camera, or a final model that is not the writing shown) and the rest for a stroke that fails its check. Kana loops (よ, あ, る) are still smaller than the teacher's.
+
+## 2.13 Ninth study round: more complete shots, dots on unexplained ink, and review
+
+**Shots.** The paper box of a shot is measured on its median frame, and the hand or arm often covers part of the sheet there. Cuts are now joined when the boxes differ by up to 20 px, still only when every ink pixel before the cut is dark after it. 冬, 教, 火, 盆, 礼, 祭 and 能 become complete; 23 characters stay incomplete.
+
+**Dots on unexplained ink.** A dot that lies off the teacher's ink after the repair goes to the nearest blob of teacher ink that none of our other strokes explains, and takes that blob's size. Its check is then precision only (0.6 or more), because the stroke split's label is what was wrong. 善, 希, 帰, 悟, 科 and 際 among others pass.
+
+**A missing component.** In a 3 × 3 grid over the teacher's character, a cell that holds a fair share of the teacher's ink but almost none of ours means a missing radical (短 lost 矢). Such a form keeps the rules.
+
+**Kana loops.** Measured again, the kana strokes are as wide as the teacher's along their paths (median ratio 1.00) and the paths follow the loops; earlier overlays drew our outline at a stricter threshold than the teacher's mask. 41 of 44 kana look like the teacher; よ, る and ゐ close their inner loops a little.
+
+**Review.** Every form that this round added or changed (187) was compared with the teacher by eye. 侍, 杉 and 松 keep the rules (侍 lost 亻; 杉 and 松 write 木 like 扌 in every round). 暑, 雪 and 町 keep the round-three form: their new shot data was worse, and the new form followed it. The decisions are kept with the local data so later rounds respect them.
+
+**Result.** Best-aligned overlap with the teacher's live writing:
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (360) | 0.575 | 0.717 |
+| Kana (46) | 0.498 | 0.677 |
+| The 365 characters with a form | 0.580 | 0.743 (99 % better) |
+
+**Limits.** 41 characters keep the rules: 23 for incomplete data, 3 after review, the rest for a stroke that fails its check. The checks catch a missing stroke or component, not a wrong shape with the right amount of ink; review stays the last step.
+
 ## 3. From observation to model
 
 | Observation | Model decision |

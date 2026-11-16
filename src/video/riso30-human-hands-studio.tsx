@@ -12,6 +12,7 @@ import {RISO31_ANAT1_REFERENCE,riso31Inspect} from "./riso31-finger-phalanges";
 import {inspectRiso32ThumbIp,RISO32_THUMB_ANAT1} from "./riso32-thumb-ip";
 import {inspectRiso33HandFan} from "./riso33-hand-negative-space";
 import {inspectRiso36RedFingerSilhouettes} from "./riso36-red-silhouette-gate";
+import {inspectRiso39OpposedPaperPinch} from "./riso39-opposed-paper-pinch";
 
 type PlateMode="both"|"blue"|"red";
 type GestureFrame=0|46|126|144|160|166|178|186|198|239;
@@ -56,6 +57,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const thumb=inspectRiso32ThumbIp(actor,frame,side);
   const spacing=inspectRiso33HandFan(actor,frame,side);
   const redInk=useMemo(()=>inspectRiso36RedFingerSilhouettes(actor,frame,side),[actor,frame,side]);
+  const pinch=useMemo(()=>inspectRiso39OpposedPaperPinch(actor,frame,side),[actor,frame,side]);
   // Frame the real articulated five-finger and forearm envelope: the
   // Artist's hand rotates almost horizontally at 160f, so wrist-centering
   // alone clipped source fingertips even though the actor had them.
@@ -74,6 +76,9 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso36-minimum-distal-ink-gap={redInk.minimumDistalGap.toFixed(3)}
     data-km-riso36-ink-contacts={redInk.crossInkContacts}
     data-km-riso36-source-contours={redInk.sourcePartCount}
+    data-km-riso39-thumb-index-tip-gap={pinch.tipDistance.toFixed(3)}
+    data-km-riso39-thumb-index-ink-gap={pinch.sourceInkGap.toFixed(3)}
+    data-km-riso39-pip-curl={pinch.indexLocalPipCurl.toFixed(2)}
     data-km-riso30-crop-margin={camera.marginX.toFixed(2)}
     data-km-riso30-effective-scale={camera.scale.toFixed(2)}
     style={{border:"1px solid #CBB9A4",borderRadius:7,padding:13,background:"#FFF7E9"}}>
@@ -105,13 +110,15 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     </div>
     <p style={{fontSize:12,margin:"9px 0 0",color:"#55727E",lineHeight:1.5}}>
       {region.sourceCount} original hand source paths; five authentic digits,
-      12 red articulated finger sections, a separate opposed moving thumb IP pad,\n      four distinct MCP cobalt crests, screened anatomical tendon pressure,
+      12 source-red anatomical phalanges with asymmetric pad/plane/tip silhouettes, a separate opposed moving thumb IP pad,\n      four distinct MCP cobalt crests, screened anatomical tendon pressure,
       joint-local engraved creases and attached nail rims. Every mark remains a spot-colour print master.
       Measured adjacent bone-axis gap: {spacing.minimumAxisGap.toFixed(1)} source units
       (bone-axis only). Actual red stencil fingertip gap:
       {redInk.minimumDistalGap.toFixed(1)} source units;
       {redInk.crossInkContacts} cross-digit ink-contacts across 27 section pairs.
-      This is a before-registration geometry diagnostic, not a portrait-quality approval.
+      Thumb–index original moving tip distance: {pinch.tipDistance.toFixed(1)} source units;
+      closed red tip ink gap: {pinch.sourceInkGap.toFixed(1)} source units.
+      This is 2D projected anatomy before print registration, not a human-likeness or 3D contact approval.
     </p>
   </article>;
 }
@@ -131,7 +138,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO37</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO39</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>

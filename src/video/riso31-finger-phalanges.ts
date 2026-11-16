@@ -44,6 +44,26 @@ export const RISO31_ANAT1_REFERENCE={
   projection:"stylized source frontal 2D — no inferred 3D hand" as const,
 };
 
+/** RISO39 / observed paper-edge pinch. A real opposed index bends its
+ * PIP/DIP much more than an open hand's background three digits. Source
+ * flexion stays strictly inside Kumiki ANAT1's independently recorded
+ * clinical joint range, but is projected as an EDITORIAL two-dimensional
+ * pose, not claimed observed three-dimensional individual anatomy.
+ *
+ * At contact the index tip curls back near the already moving thumb IP;
+ * ring/little fingers keep the formerly passing noncrossing fan. */
+const indexPipClinical=JOINTS.find(j=>j.id==="finger2-pip")?.dofs.flex;
+const indexDipClinical=JOINTS.find(j=>j.id==="finger2-dip")?.dofs.flex;
+if(!indexPipClinical||!indexDipClinical)throw new Error("RISO39 requires anatomical index PIP/DIP ranges");
+export const RISO39_INDEX_OPPOSITION={
+  reference:"ANAT1 finger2 PIP/DIP clinical maxima, Proko opposing paper-edge pinch",
+  fullProjectedPipFlex:Math.min(104,indexPipClinical.max*.94),
+  fullProjectedDipFlex:Math.min(70,indexDipClinical.max*.875),
+  pipClinicalMax:indexPipClinical.max,
+  dipClinicalMax:indexDipClinical.max,
+  role:"index pinch against moving opposed thumb, not four identical curl fingers",
+} as const;
+
 /** Explicit source 2D curvature per joint and frame. No detached nail dot.
  * The index and little finger curl toward the middle of the palm rather than
  * four parallel copies all rotating by an identical amount. */
@@ -52,10 +72,14 @@ export function riso31PhalanxJoints(side:Riso31Side):readonly RisoJoint[]{
   for(const digit of FINGERS){
     const spec=RISO31_GEOMETRY[digit],prefix=side+"-"+digit;
     const handed=side==="right"?1:-1;
-    const pip=anatomical(spec.fingerIndex,"pip")*
-      RISO31_ANAT1_REFERENCE.projectedPinchFactor*handed*spec.curlDirection;
-    const dip=anatomical(spec.fingerIndex,"dip")*
-      RISO31_ANAT1_REFERENCE.projectedPinchFactor*.66*handed*spec.curlDirection;
+    const pip=digit==="index"?
+      RISO39_INDEX_OPPOSITION.fullProjectedPipFlex*handed:
+      anatomical(spec.fingerIndex,"pip")*
+        RISO31_ANAT1_REFERENCE.projectedPinchFactor*handed*spec.curlDirection;
+    const dip=digit==="index"?
+      RISO39_INDEX_OPPOSITION.fullProjectedDipFlex*handed:
+      anatomical(spec.fingerIndex,"dip")*
+        RISO31_ANAT1_REFERENCE.projectedPinchFactor*.66*handed*spec.curlDirection;
     const delay=side==="left"?6:0;
     result.push({
       id:prefix+"-pip",parent:prefix,x:0,y:spec.proximal,keys:[
@@ -86,31 +110,71 @@ export function riso31SegmentIds(side:Riso31Side):readonly string[]{
     `${side}-glove-${d}-distal-phalanx`]);
 }
 
-/** Original hand-drawn C/Q topology, irregular cortical edge and overlapping
- * segment caps. No generic rectangular "bones". PIP & DIP plates overlap
- * 2.4 local units to keep continuous red prints even when flexion projects
- * about 20 degrees at contact. Full original palm and wrist sources remain.
+/** RISO38 ArtCraft red source silhouettes — not capsules or tapering
+ * rectangles. Study: Proko "Details for Realistic Hands" anatomical image:
+ * proximal is fuller and cushioned, middle is comparatively flat/straight,
+ * distal is an asymmetrical upswept wedge. The hidden cap extension is
+ * retained for actual PIP/DIP joint continuity in the native Riso print.
+ * Per-digit asymmetry keeps little/index from being mirror-stamped sausages.
+ *
+ * Do not infer a photorealistic profile; this remains authored 2D projection
+ * tied to the exact original ANAT1 source bone pivots and moving nail marks.
  */
+export const RISO38_SOURCE_SHAPE = {
+  curveStage:["proximal-fleshy","intermediate-flat","distal-pulp-wedge"] as const,
+  pipOverlap:2.3,
+  dipOverlap:2.3,
+  midsectionTaper:.89,
+  finalTipTaper:.86,
+  reference:"Proko How to Draw HANDS — Details for Realistic Hands!",
+} as const;
 function pathFor(kind:"proximal"|"middle"|"distal",length:number,width:number,digit:Riso31Finger){
-  const w=width, sway=digit==="middle"?.35:digit==="pinky"?-.33:digit==="index"?.21:-.12;
-  const n=(x:number)=>Number(x.toFixed(2));
-  const capStart=-2.3,capEnd=kind==="distal"?length:length+2.4;
-  const offset=kind==="proximal"?-.2:0;
-  const l=n(-w+offset),r=n(w+offset),wide=n(w+.38),tight=n(w-.36);
-  const lx=n(-w+sway),rx=n(w+sway),bl=n(-w*.9),br=n(w*.75);
-  return kind==="distal"
-    ? `M${l} ${capStart} C${n(-w-.35)} -3.1 ${n(-.9)} -3.5 .12 -2.6
-C${n(w+.3)} -3.2 ${wide} -.6 ${r} 1.3
-Q${n(w+.55)} ${n(length*.56)} ${rx} ${n(length-1.8)}
-C${br} ${n(length+.1)} ${n(.65)} ${n(length+.8)} -.65 ${n(length+.55)}
-Q${bl} ${n(length+.2)} ${lx} ${n(length-1.4)}
-Q${n(-w-.35)} ${n(length*.45)} ${l} ${capStart} Z`
-    :`M${l} ${capStart} C${n(-w-.35)} -3.4 -1.25 -3.6 .1 -2.9
-C1.2 -3.4 ${n(w+.4)} -2.3 ${r} .2
-Q${wide} ${n(length*.47)} ${rx} ${n(length-1.5)}
-Q${n(w+.55)} ${n(length+1.3)} ${tight} ${capEnd}
-C${n(w*.35)} ${n(length+2.8)} ${n(-w*.5)} ${n(length+2.45)} ${lx} ${capEnd}
-Q${n(-w-.35)} ${n(length*.6)} ${l} ${capStart} Z`;
+  const w=width,L=length;
+  // Ink coverage slightly off-axis to avoid the same flat tube profile
+  // on all four distinct phalanges. Controls alter the DRAWN paths only,
+  // not the clinical source anchors or their time-dependent transforms.
+  const drift=digit==="index"?.14:digit==="middle"?-.12:digit==="ring"?.18:-.22;
+  const n=(v:number)=>Number(v.toFixed(3));
+  const c=(x:number,y:number)=>`${n(x)} ${n(y)}`;
+  if(kind==="proximal"){
+    const left=-w*.84,right=w*.86,bulge=w*1.09;
+    return `M${c(left,-2.3)}
+C${c(-w*.99,-3.03)} ${c(-w*1.19,-.54)} ${c(-bulge,1.37)}
+C${c(-w*1.24,L*.27)} ${c(-w*1.18+drift*.2,L*.49)} ${c(-w*.98+drift*.3,L*.70)}
+Q${c(-w*.89+drift*.27,L*.89)} ${c(-w*.79+drift*.3,L+1.9)}
+C${c(-w*.41+drift*.4,L+2.9)} ${c(w*.21+drift*.4,L+2.95)} ${c(w*.62+drift*.3,L+2.12)}
+Q${c(w*.9+drift*.2,L+1.07)} ${c(w*.89+drift*.1,L-.38)}
+C${c(w*.94,L*.64)} ${c(w*1.01,L*.25)} ${c(right,1.04)}
+C${c(w*.79,-1.29)} ${c(w*.71,-2.8)} ${c(w*.19,-2.93)}
+Q${c(-w*.4,-3.37)} ${c(left,-2.3)} Z`;
+  }
+  if(kind==="middle"){
+    // Middle phalanx: smaller, firmer side planes; not another inflated
+    // proximal pot belly. Preserve thin real flexor pads at the PIP capsule.
+    return `M${c(-w*.78,-2.3)}
+C${c(-w*1.03,-3.15)} ${c(-w*1.13,-.8)} ${c(-w*1.01,1.12)}
+Q${c(-w*.97,L*.42)} ${c(-w*.87+drift*.2,L-.61)}
+C${c(-w*.92+drift*.1,L+.25)} ${c(-w*.65+drift*.3,L+1.84)} ${c(-w*.35+drift*.3,L+2.23)}
+Q${c(w*.03+drift*.3,L+2.69)} ${c(w*.41+drift*.3,L+2.07)}
+C${c(w*.86+drift*.2,L+1.45)} ${c(w*.88,L+.08)} ${c(w*.82,L-.63)}
+Q${c(w*.92,L*.38)} ${c(w*.83,1.12)}
+C${c(w*.76,-.79)} ${c(w*.52,-3.02)} ${c(-w*.04,-2.87)}
+C${c(-w*.37,-3.16)} ${c(-w*.59,-2.91)} ${c(-w*.78,-2.3)} Z`;
+  }
+  // Distal phalanx: a tiny, unambiguously *nonsymmetric* palmar pad and
+  // tipped nail wedge. The fat pad squashes toward the bend while the
+  // dorsal upper plane turns flatter. The blue nail is in the same real
+  // moving DIP joint, not positioned by a screenshot.
+  const offset=drift*.6;
+  return `M${c(-w*.77,-2.3)}
+C${c(-w*1.04,-3.03)} ${c(-w*1.14,-.53)} ${c(-w*1.03,1.09)}
+C${c(-w*.99,L*.35)} ${c(-w*.96+offset*.3,L*.61)} ${c(-w*.84+offset*.5,L-.84)}
+C${c(-w*.9+offset*.4,L-.06)} ${c(-w*.52+offset*.6,L+.78)} ${c(-w*.02+offset,L+1.03)}
+C${c(w*.39+offset,L+1.15)} ${c(w*.85+offset*.7,L+.62)} ${c(w*.95+offset*.4,L-.21)}
+Q${c(w*1.13+offset*.3,L-1.19)} ${c(w*.95+offset*.2,L*.48)}
+C${c(w*.81,L*.14)} ${c(w*.89,-.68)} ${c(w*.55,-2.43)}
+C${c(w*.29,-3.03)} ${c(-w*.18,-3.16)} ${c(-w*.49,-2.81)}
+Q${c(-w*.63,-2.59)} ${c(-w*.77,-2.3)} Z`;
 }
 export function riso31FingerParts(side:Riso31Side,digit:Riso31Finger):readonly RisoCharacterPart[]{
   const g=RISO31_GEOMETRY[digit],name=side+"-glove-"+digit;

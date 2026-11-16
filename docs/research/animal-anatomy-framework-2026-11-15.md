@@ -127,6 +127,69 @@ What was wrong and what changed:
 The face numbers are recorded in `AnimalSpecies.face` (graded `estimated`: read by eye off the references). They drive
 the ANIM1 construction, so the next style starts from them.
 
+## Faces for the other mammals (2026-11-15)
+
+Every mammal now has a face. The nine new ones (fox, wolf, Shiba, cat, hare, macaque, sika, cattle, horse) were read
+off gridded crops of public-domain and CC0 references, with head length taken from the nose tip to the back of the
+skull, just behind the ear base.
+
+- **Sources.**
+  - Siebold's *Fauna Japonica* plates for the Japanese wolf, the macaque (profile and square on) and the sika.
+  - CC0 iNaturalist observations (338352584 fox, 350287666 and 234370227 cat, 307096718 and 391307506 hare, 326610803
+    sika).
+  - Commons photographs for the fox, Shiba, cattle, horse and a *Lepus brachyurus* specimen.
+  - The AKC standard's "muzzle length is 40 percent of the total head length from occiput to nose tip" (Shiba).
+- **Eye from the nose, in head lengths.**
+
+  | Animal | Eye from the nose |
+  |---|---|
+  | macaque | 0.37 |
+  | cat | 0.42 |
+  | Shiba | 0.43 (the AKC muzzle, plus the eye just behind the stop) |
+  | wolf | 0.45 |
+  | hare | 0.55 |
+  | fox | 0.56 |
+  | cattle | 0.6 |
+  | sika | 0.63 |
+  | horse | 0.67 |
+
+  The pattern is the expected one: short-faced primates and cats forward, carnivores at the stop, grazers far back.
+- **Disagreements, recorded rather than averaged.**
+  - The mounted hare puts the eye 0.39 back; live hares and rabbits put it 0.54–0.6, so the live animals were used.
+  - The bull's head turns slightly to the camera, so its eye length and depth were not used.
+  - The near-profile cat is a close-up with perspective, so its ear and eye sizes were rounded down.
+- **Effect on the construction.**
+  - The wolf's ears shorten to the plate's.
+  - The cat's eye grows.
+  - The deer's, cattle's and horse's eyes move back toward the poll.
+- **Check.** `checkSpeciesData` now flags a mammal without a face, or with a face value out of range.
+
+## Faces for the birds and the koi (2026-11-15)
+
+Every species now has a face. A bird's head is measured from the back of the skull to the bill tip, and a fish's
+from the snout to the back of the gill cover. Birds and fish have no `ear`. A bird's measured bill share is its
+`proportions.muzzle`.
+
+| Animal | Bill share | Eye back from the tip | Eye | Head depth | Source |
+|---|---|---|---|---|---|
+| Crane | 0.55 | 0.74 | 0.05 | 0.25 | head in profile (Commons, CC0) |
+| Heron | 0.77 | 0.87 | 0.06 | 0.15 | Boutell's engraving (public domain) |
+| Crow | 0.47 | 0.63 | 0.075 | 0.4 | fledgling in profile (public domain) |
+| Pheasant | 0.37 | 0.72 | 0.08 | 0.55 | Huet's 1838 plate (public domain) |
+| Sparrow | 0.23 | 0.46 | 0.13 | 0.7 | Osaka photograph (public domain) |
+| Goshawk | 0.3 | 0.45 | 0.12 | 0.6 | Naumann and 1904 plates (public domain; head turned, bill foreshortened) |
+| Mandarin duck | 0.27 | 0.48 | 0.06 | 0.7 | drake in profile (CC0) |
+| Kingfisher | 0.45 (kept) | 0.72 | 0.09 | 0.4 | photograph in Japan (public domain) |
+| Koi | — | 0.36 | 0.11 | 0.95 | common carp in side view (iNaturalist 259810202, 183724795, CC0) |
+
+- **Estimates.** Eye spacing square on is estimated for the birds and the koi: the eyes sit at the sides of the head,
+  and no square-on reference was measured.
+- **Construction.** The bird construction now takes the head's depth and the eye's place from the face, and the fish
+  construction the eye's.
+- **Effect.** The crane's and heron's heads slim to their references (the neck follows, since its width comes from the
+  head), the sparrow's eye grows, and the goshawk's eye is large under the brow.
+- **Check.** `checkSpeciesData` flags any species without a face, and a mammal face without an ear.
+
 ## Not done
 
 - Front and back constructions in ANIM1 (styles draw their own).

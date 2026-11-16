@@ -9,6 +9,16 @@ on:
       - "src/video/riso33-hand-negative-space.ts"
       - "src/video/riso36-red-silhouette-gate.ts"
       - "src/video/riso37-anatomical-engraving.ts"
+      - "src/video/riso31-finger-phalanges.ts"
+      - "tests/riso38-hand-silhouettes.test.ts"
+      - "src/video/riso39-opposed-paper-pinch.ts"
+      - "src/video/riso-character-demo.tsx"
+      - "tests/riso39-opposed-paper-pinch.test.ts"
+      - "src/video/riso40-paper-fingertip-contact.ts"
+      - "registry/video/riso-prop-handoff.ts"
+      - "src/video/riso-human-ensemble.tsx"
+      - "tests/riso40-paper-fingertip-contact.test.ts"
+      - "tests/e2e-storybook/riso-human-ensemble.spec.ts"
       - "src/video/riso-hand-artcraft.ts"
       - "tests/riso37-anatomical-engraving.test.ts"
       - "tests/riso36-red-silhouette-gate.test.ts"
@@ -38,7 +48,7 @@ jobs:
       - name: Strict TypeScript and legacy animated source contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso32-thumb-ip-artcraft.test.tsx tests/riso36-red-silhouette-gate.test.ts tests/riso37-anatomical-engraving.test.ts tests/riso29-human-anatomy-neck-portrait.test.tsx tests/riso-character.test.tsx tests/riso17-anatomical-grip.test.tsx tests/riso21-ocular-print-artcraft.test.tsx
+          npm run test -- tests/riso32-thumb-ip-artcraft.test.tsx tests/riso36-red-silhouette-gate.test.ts tests/riso37-anatomical-engraving.test.ts tests/riso38-hand-silhouettes.test.ts tests/riso39-opposed-paper-pinch.test.ts tests/riso40-paper-fingertip-contact.test.ts tests/riso29-human-anatomy-neck-portrait.test.tsx tests/riso-character.test.tsx tests/riso17-anatomical-grip.test.tsx tests/riso21-ocular-print-artcraft.test.tsx
       - name: Build real Storybook
         run: npm run build-storybook
       - name: Chromium
