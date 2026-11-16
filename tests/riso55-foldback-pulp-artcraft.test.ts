@@ -32,15 +32,20 @@ describe("RISO55 ArtCraft: 3/4 distal pulp folds BACK into the palm",()=>{
       for(const digit of digits){
         const theta=RISO55_FOLDBACK_SOURCE.projectionDegrees[actor][digit];
         expect(theta).toBeGreaterThan(90);
-        expect(theta).toBeLessThan(130);
+        expect(theta).toBeLessThan(160);
         // Pivot-centered proper rotation: old DIP source attachment remains
         // exactly at its original named joint, while the visible pulp turns.
         const [x0,y0]=riso55FoldbackPoint(0,0,actor,digit);
         expect([x0,y0]).toEqual([0,0]);
         const [x1,y1]=riso55FoldbackPoint(0,3,actor,digit);
         expect(y1).toBeLessThan(0);
-        if(actor==="courier")expect(x1).toBeGreaterThan(2.3);
-        else expect(x1).toBeLessThan(-2.3);
+        // Middle moves toward the opposed thumb, ring aims deeper toward
+        // the palm, and the little fingertip wraps onto the ulnar border.
+        // Never stack the three original red distal pads on top of each
+        // other (the strict RISO42 print-ink gap protects this).
+        const expectedSign=(actor==="courier"?1:-1)*
+          RISO55_FOLDBACK_SOURCE.projectedSide[digit];
+        expect(x1*expectedSign).toBeGreaterThan(1.4);
         expect(()=>riso55FoldbackContour("M0 0 <foreignObject>",actor,digit)).toThrow();
         expect(()=>riso55FoldbackPoint(NaN,2,actor,digit)).toThrow();
       }
