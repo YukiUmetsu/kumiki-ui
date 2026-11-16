@@ -44,7 +44,7 @@ describe("RISO52 original distal foreshortening / two physical Risograph ink mas
      expect(frame0.d).toBe(source.d);
      expect(f160.d).toBe(contact);
      expect(f160.plate).toBe(source.plate);
-     expect(f160.transform).toMatch(/^matrix\\(/);
+     expect(f160.transform).toMatch(/^matrix\(/);
      if(id.endsWith("-nail")){
        expect(source.plate).toBe("blue");
        expect(source.paint).toBe("screen");
