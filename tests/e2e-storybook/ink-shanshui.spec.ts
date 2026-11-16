@@ -549,7 +549,7 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
     .evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d")??""));
   expect(backs).toHaveLength(6);
   const broad=(d:string,minimum:number)=>{
-    const n=(d.match(/-?\\d+(?:\\.\\d+)?/g)??[]).map(Number);
+    const n=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
     const x=n.filter((_,j)=>j%2===0),y=n.filter((_,j)=>j%2===1);
     const spanX=Math.max(...x)-Math.min(...x);
     const spanY=Math.max(...y)-Math.min(...y);
