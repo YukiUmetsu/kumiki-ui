@@ -2,7 +2,7 @@ import {describe,it,expect} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
-import {FACE_LANDMARKS} from "../registry/anatomy/anatomy-face";
+
 import {crayonCc0FaceStudy} from "../src/video/crayon-artcraft-cc0-face";
 import {CRAYON_F1_NARIS_ANAT1,CRAYON_F1_V23_RIMS,
   CRAYON_F1_V23_IDS,crayonF1NarisSourceOcclusion}
@@ -14,10 +14,8 @@ describe("F1 V23 source-joined 3/4 nostril undercuts",()=>{
     scene.elements.find(x=>x.id===id);
   it("cross-references named ANAT1 structure, not a generic oval nose",()=>{
     expect(CRAYON_F1_NARIS_ANAT1).toEqual({
-      root:FACE_LANDMARKS.sellion,tip:FACE_LANDMARKS.pronasale,
-      septum:FACE_LANDMARKS.subnasale,
-      nearAla:FACE_LANDMARKS["alare.R"],
-      farAla:FACE_LANDMARKS["alare.L"],
+      root:"sellion",tip:"pronasale",septum:"subnasale",
+      nearAla:"alare.R",farAla:"alare.L",
     });
     expect(new Set(Object.values(CRAYON_F1_NARIS_ANAT1)).size).toBe(5);
   });

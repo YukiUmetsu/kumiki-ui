@@ -16,3 +16,7 @@ ANAT1 crosswalk: `FACE_LANDMARKS.sellion/pronasale/subnasale/alare.R/alare.L`. L
 Storybook: same Video Production / Film Looks / Crayon / ArtCraft Adult Face Lab with reversible V23 selector and 3× focused story. Vitest covers ANAT1 mapping, joined cubic edges, original orders, CRAYON1 contracts and fail-closed malformed inputs. Playwright captures a source-native 608×1082 1× and 3× f299 A/B against V22; screenshot success is NOT a fidelity pass.
 
 **Gate:** 18 independently annotated landmarks, native source SSIM ≥0.85 with official ArtCraft 9.1 script, five-value-plane match, real visual approval, and 300-frame playback remain unverified. Keep PR draft and implementation unapproved. Prioritize improving whole-face silhouette rather than further arbitrary hatching if V23 still reads as detached.
+
+## First CI correction (native Node ESM)
+
+Initial V23 browser proof [43814046830](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43814046830) failed before rendering: importing the ANAT1 runtime face module also imported a large JSON mesh that Node ESM requires a JSON import attribute for. The actual geometry uses only the landmark *keys*; replacing the unnecessary runtime import with a **type-only ANAT1 key contract** preserves compiler validation without loading the mesh JSON. This is a real compatibility correction, not a weakened test or an aesthetic claim. Re-run source-native browser proof after this change.

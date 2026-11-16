@@ -1,5 +1,7 @@
 import type {CrayonElement} from "../../registry/video/materials/crayon-scene";
-import {FACE_LANDMARKS} from "../../registry/anatomy/anatomy-face";
+/** Type-only ANAT1 contract: do not load Mediapipe JSON through Node/ESM
+ * in the native Chromium proof runner (requires a JSON import attribute). */
+type FaceLandmarkName=keyof typeof import("../../registry/anatomy/anatomy-face").FACE_LANDMARKS;
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 
 /** F1 V23: photo-observed nose cavity/ala occlusion, *not* a source-photo
@@ -8,11 +10,9 @@ type Wax=Extract<CrayonElement,{kind:"wax"}>;
  * V22's dark floating bean/ellipse fails 1x reference fidelity.
  */
 export const CRAYON_F1_NARIS_ANAT1=Object.freeze({
-  root:FACE_LANDMARKS.sellion,tip:FACE_LANDMARKS.pronasale,
-  septum:FACE_LANDMARKS.subnasale,
-  nearAla:FACE_LANDMARKS["alare.R"],
-  farAla:FACE_LANDMARKS["alare.L"],
-});
+  root:"sellion",tip:"pronasale",septum:"subnasale",
+  nearAla:"alare.R",farAla:"alare.L",
+} as const satisfies Record<string,FaceLandmarkName>);
 /** Mathematically identical reversed Bezier rims for the overhanging
  * cartilage and dark recess; near/far are independently constructed. */
 export const CRAYON_F1_V23_RIMS=Object.freeze({
