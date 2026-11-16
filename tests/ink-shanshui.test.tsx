@@ -711,11 +711,21 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
           .map(([,x,y])=>[Number(x),Number(y)]));
       expect(trajectoryStarts.every(points=>points.length===3&&
         points.every(p=>p.every(Number.isFinite)))).toBe(true);
-      expect(trajectoryStarts.some(points=>{
+      // Actual native 1.65x ArtCraft review rejected a violent lateral
+      // hairpin: Huang's hemp follows rounded rock backs, with gently
+      // changing slope rather than a three-piece lightning bolt.
+      expect(trajectoryStarts.every(points=>{
         const dx1=points[1][0]-points[0][0];
         const dx2=points[2][0]-points[1][0];
-        return dx1*dx2<0; // actual stroke reverses across rock folds
+        return dx1*dx2>=-4; // tolerate a tiny real lifted reversal
       })).toBe(true);
+      expect(trajectoryStarts.filter(points=>{
+        const dx1=points[1][0]-points[0][0];
+        const dy1=points[1][1]-points[0][1];
+        const dx2=points[2][0]-points[1][0];
+        const dy2=points[2][1]-points[1][1];
+        return Math.abs(dx1/dy1-dx2/dy2)>.08;
+      }).length).toBeGreaterThanOrEqual(2);
       // Fuchun should contain dry continuous parent brushwork AND
       // independently loaded, curved sub-marks, instead of four
       // solid dark arrow-like spines with one uniform value.
