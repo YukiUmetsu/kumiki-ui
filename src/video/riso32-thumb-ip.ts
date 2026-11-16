@@ -27,7 +27,7 @@ export const RISO32_THUMB_ANAT1={
 export const RISO32_THUMB_GEOMETRY={
   ipX:5.2,ipY:-1.3,
   rootLength:Math.hypot(5.2,-1.3),
-  distalReach:5.8,
+  distalReach:7.2,
   overlap:2.4,
 } as const;
 
@@ -67,10 +67,26 @@ export function riso32ThumbInkParts(side:Riso32Side):readonly RisoCharacterPart[
         :"M-2 -3.6 Q.8 -6.2 3.5 -5.5 Q5.5 -5.2 7.1 -3.2 Q7.5 -1.6 6.6 .3 Q5.1 2.8 3.1 1.6 Q.4 -.1 -1.7 2 Z"},
     {id:side+"-glove-thumb-distal-phalanx",joint:side+"-thumb-ip",plate:"red",paint:"solid",
       d:left
-        ?"M2.3 -2.7 Q-.3 -3.8 -2.2 -2.2 C-4.3 -.9 -5.6 0 -5.8 1.6 Q-5.2 3.3 -3 3.1 Q-1 3 .5 1.6 Q2.3 .3 2.3 -2.7 Z"
-        :"M-2.4 -2.9 Q.2 -3.6 2 -2.2 C4 -.9 5.6 -.2 5.8 1.3 Q5.4 3.1 3.2 3.3 Q1.1 3.2 -.6 1.7 Q-2.2 .6 -2.4 -2.9 Z"},
+        ?"M-2.5 -1.4 C-2.3 -2.8 -.9 -3.1 .7 -2.2 C2.9 -.9 3.1 1.1 2.8 3.4 Q3.0 6.1 1.6 7.2 C.8 7.9 -.6 7.8 -1.5 7.0 Q-3.1 5.4 -3.0 3.2 Q-3.1 .3 -2.5 -1.4 Z"
+        :"M2.5 -1.5 C2.1 -2.9 .9 -3.1 -.8 -2.3 C-2.8 -.8 -3.2 1.0 -2.8 3.3 Q-2.9 6.0 -1.5 7.1 C-.7 7.8 .7 7.8 1.5 6.9 Q3.0 5.3 3.0 3.1 Q3.1 .3 2.5 -1.5 Z"},
   ];
 }
+
+/** Paper-shaped underprint clearance at the cuff/hand junction.
+ * It is an actual reserved-paper stencil BEFORE the glove ink prints, not
+ * opacity reduction, a cosmetic canvas erase or a third color. Slight
+ * irregularity intentionally traps only a narrow blue/red cuff seam while
+ * avoiding the former broad near-black cylinder at 6x zoom. */
+export function riso33WristUnderprintClearance(side:Riso32Side):RisoCharacterPart{
+  return {
+    id:side+"-wrist-underprint-clearance",joint:side+"-hand",
+    plate:"blue",paint:"solid",knockoutOnly:true,
+    d:side==="right"
+      ?"M-8.5 -.2 Q-4.6 -.65 -.4 -.48 Q4 -.2 8.8 -.8 C9.7 1.1 10 4.1 9.1 7.0 Q5.8 10.7 1.2 10.6 Q-4.5 10.6 -9.3 7.2 Q-10 3.9 -8.5 -.2 Z"
+      :"M-8.8 -.8 Q-4.1 -.2 .4 -.48 Q4.6 -.65 8.5 -.2 C10 3.9 9.3 7.2 4.5 10.6 Q-1.2 10.6 -5.8 10.7 Q-9.1 7.0 -9.8 4.1 -8.8 -.8 Z",
+  };
+}
+
 export const riso32ThumbDistalId=(side:Riso32Side)=>side+"-glove-thumb-distal-phalanx";
 
 /** Diagnostic is built from the ACTUAL evaluated film rig and stamped ink,
