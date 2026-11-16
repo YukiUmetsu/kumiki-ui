@@ -376,6 +376,39 @@ These numbers say how closely the engine reproduces this teacher's own models. T
 - か has no video.
 - The loops of る ゐ ぬ ね are smaller than the teacher's.
 
+## 2.16 Twelfth study round: かな from the teacher's own brush path
+
+**Where the error was.** The lowest-scoring forms were mostly かな (お ゑ ひ わ ほ を れ). The kanji that scored low (念 感 祭 寒) looked right on review: thin dots and the overlap measure keep their scores down. A かな stroke is fitted in one of two ways. Either the KanjiVG line is bent onto the teacher's ink, or a line follows the teacher's brush path. A typeface skeleton cannot follow her curves. The brush-path line could, but it had two faults:
+- It ran along one edge of the fresh ink, not the middle.
+- It kept at most 8 points for a whole curve, so a loop collapsed into a corner (む) or made a detour (わ).
+
+**The brush path, done properly.** A かな brush path is now:
+1. put in the middle of the stroke;
+2. smoothed by 2.5 px, which is far less than the size of a loop but removes the jitter between frames (a bump in ほ, bulbs at the ends of さ);
+3. kept with up to 20 points per run (the engine takes up to 24).
+
+Without smoothing the overlap was a little higher, but the forms showed the jitter, so the smoothed version was kept.
+
+**The stroke split.**
+- *Hidden ink.* お wrote its horizontal, then the vertical, loop and bowl in one stroke. The hand hid the bowl's lower part for 3 s, and that pause looked like a stroke boundary, so the horizontal took the whole vertical, loop and bowl. For かな, two runs apart by a pause of 1.5 s or more that lie nearest the same KanjiVG stroke may now be one stroke. This changes only あ, お and ゆ.
+- *Skipped runs.* Ink of a run that the alignment skips now goes to the stroke of the nearest kept run. Before, it could only go to runs that had already started, which are the earlier strokes, so 八's right stroke began with the left stroke's label.
+
+**Review in both directions.** A form that fails only a label-based check (a weak stroke, a stroke left on the rules, a grid cell) but looks right on review is now accepted (桜, 読). It still has to pass the overlap and completeness checks. Review also rejected two new forms: 短 loses the long sweep of 矢 and か loses its first stroke's sweep, so both keep the rules. The か video downloaded as a video-only stream, so all 419 videos are now in the data.
+
+**Result.** Best-aligned overlap with the teacher's live writing:
+
+| | Rules | Round six | Round seven |
+|---|---|---|---|
+| Kanji (371) | 0.590 | 0.750 | 0.753 |
+| Kana, the 47 of round six | 0.501 | 0.679 | 0.697 |
+| Characters with a form | | 410 | 413 |
+
+15 かな and 28 kanji changed, and 八 桜 読 were added. All were reviewed against the teacher. お's loop, わ's and む's bowls, and the curves of の ひ を す now follow her writing.
+
+**Limits.**
+- か や ゆ 建 様 短 keep the rules.
+- The loops of る ゐ ぬ ね are still smaller than the teacher's: their brush-path forms did not beat the reviewed forms.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
