@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ShodoBrushCloseUp, ShodoBrushMotionStudy, ShodoCharacterGallery, ShodoFilmShot, ShodoKanjiCard, ShodoTechniquesBoard } from "./shodo-demos";
+import type { JlptLevel, KanjiCardInk, KanjiCardLayout, KanjiCardPhase, KanjiCardWord } from "./shodo-demos";
 import { ShodoStudio } from "./shodo-studio";
 
 const meta = {
@@ -22,19 +23,93 @@ export const Techniques: StoryObj<typeof ShodoStudio> = {
   render: () => <ShodoTechniquesBoard />,
 };
 
+/** Flat settings for the Controls panel; `KanjiCardFromArgs` maps them onto `ShodoKanjiCard`. */
+interface KanjiCardArgs {
+  char: string;
+  heading: string;
+  meanings?: string;
+  onyomi?: string;
+  kunyomi?: string;
+  jlpt: "sample" | "none" | JlptLevel;
+  words?: KanjiCardWord[];
+  layout: KanjiCardLayout;
+  speed: number;
+  writeSeconds?: number;
+  reviewSeconds?: number;
+  infoSeconds: number;
+  showLabel: boolean;
+  showMeanings: boolean;
+  showReadings: boolean;
+  showJlpt: boolean;
+  showWords: boolean;
+  cardFrom: KanjiCardPhase;
+  ink: KanjiCardInk;
+  highlightStroke: number;
+  strokeNumbers: boolean;
+}
+
+// A cleared number field gives null or NaN; treat both as "not set".
+const seconds = (value: number | null | undefined) => typeof value === "number" && Number.isFinite(value) ? value : undefined;
+
+function KanjiCardFromArgs(args: KanjiCardArgs) {
+  return <ShodoKanjiCard
+    key={args.char + "|" + args.layout}
+    char={args.char.trim() ? [...args.char.trim()][0] : "道"} heading={args.heading} layout={args.layout}
+    meanings={args.meanings || undefined} onyomi={args.onyomi || undefined} kunyomi={args.kunyomi || undefined}
+    jlpt={args.jlpt === "sample" ? undefined : args.jlpt === "none" ? null : args.jlpt}
+    words={args.words?.length ? args.words : undefined}
+    speed={args.speed} timing={{ write: seconds(args.writeSeconds), review: seconds(args.reviewSeconds), info: seconds(args.infoSeconds) }}
+    sections={{ label: args.showLabel, meanings: args.showMeanings, readings: args.showReadings, jlpt: args.showJlpt, words: args.showWords }}
+    cardFrom={args.cardFrom} ink={args.ink} strokeNumbers={args.strokeNumbers}
+    vermilionStrokes={args.highlightStroke > 0 ? [Math.round(args.highlightStroke)] : []} />;
+}
+
+const KANJI_CARD_ARG_TYPES = {
+  char: { control: "text", description: "The character to write. Only 道 has sample card data; any other character shows only the data you enter." },
+  heading: { control: "text", description: "Label text: \"HEADING: char\"." },
+  meanings: { control: "text", description: "Empty: the sample (道 only)." },
+  onyomi: { control: "text", description: "On'yomi. Empty: the sample (道 only)." },
+  kunyomi: { control: "text", description: "Kun'yomi. Empty: the sample (道 only)." },
+  jlpt: { control: "select", options: ["sample", "none", "N5", "N4", "N3", "N2", "N1"], description: "\"sample\" uses the 道 sample (N4); \"none\" shows no badge." },
+  words: { control: "object", description: "Useful words: [{ word, ruby, romaji, meaning }]. Empty: the sample (道 only)." },
+  layout: { control: "inline-radio", options: ["landscape", "portrait"], description: "16:9 or 9:16." },
+  speed: { control: { type: "range", min: .25, max: 4, step: .05 }, description: "Hand speed when no write time is set (1 is an unhurried teacher)." },
+  writeSeconds: { control: { type: "number", min: 0, step: .5 }, description: "Seconds for the first writing. Empty: set by the speed. 0 skips it." },
+  reviewSeconds: { control: { type: "number", min: 0, step: .5 }, description: "Seconds for the review writing. Empty: the same as the write time. 0 skips it." },
+  infoSeconds: { control: { type: "number", min: 0, step: .5 }, description: "Seconds the finished card holds at the end." },
+  showLabel: { control: "boolean" }, showMeanings: { control: "boolean" }, showReadings: { control: "boolean" },
+  showJlpt: { control: "boolean" }, showWords: { control: "boolean" },
+  cardFrom: { control: "inline-radio", options: ["write", "review", "info"], description: "The phase in which the card text fades in." },
+  ink: { control: "inline-radio", options: ["sumi", "vermilion"], description: "Ink for the whole character." },
+  highlightStroke: { control: { type: "number", min: 0, step: 1 }, description: "One stroke (from 1) written in vermilion. 0: none." },
+  strokeNumbers: { control: "boolean", description: "Order numbers in the review pass." },
+  initialText: { table: { disable: true } }, initialStyle: { table: { disable: true } },
+} as const;
+
+const KANJI_CARD_ARGS: KanjiCardArgs = {
+  char: "道", heading: "Kanji study", jlpt: "sample", layout: "landscape", speed: 1.6, infoSeconds: 4,
+  showLabel: true, showMeanings: true, showReadings: true, showJlpt: true, showWords: true,
+  cardFrom: "write", ink: "sumi", highlightStroke: 0, strokeNumbers: true,
+};
+
 /**
- * A study video for one kanji (16:9): the brush writes the character, writes it again with
- * small vermilion stroke-order numbers, then the reading card holds. The last stroke is in vermilion.
+ * A study video for one kanji (16:9): the brush writes the character in black ink, writes it
+ * again with small vermilion stroke-order numbers, then the reading card holds. Every setting
+ * is in the Controls panel.
  */
-export const KanjiCard: StoryObj<typeof ShodoStudio> = {
+export const KanjiCard: StoryObj<typeof KanjiCardFromArgs> = {
   name: "SHO1 · Kanji study card",
-  render: () => <ShodoKanjiCard />,
+  render: args => <KanjiCardFromArgs {...args} />,
+  args: KANJI_CARD_ARGS,
+  argTypes: KANJI_CARD_ARG_TYPES,
 };
 
 /** The same card as a 9:16 short for phones: the card sits under the sheet, and the video lasts about 20 s. */
-export const KanjiCardShort: StoryObj<typeof ShodoStudio> = {
+export const KanjiCardShort: StoryObj<typeof KanjiCardFromArgs> = {
   name: "SHO1 · Kanji study card (9:16 short)",
-  render: () => <ShodoKanjiCard layout="portrait" timing={{ write: 7, review: 9, info: 4 }} />,
+  render: args => <KanjiCardFromArgs {...args} />,
+  args: { ...KANJI_CARD_ARGS, layout: "portrait", writeSeconds: 7, reviewSeconds: 9, infoSeconds: 4 },
+  argTypes: KANJI_CARD_ARG_TYPES,
 };
 
 /** Macro view of the tuft: the press, the bend at the ferrule, the flick and the spring-back. */

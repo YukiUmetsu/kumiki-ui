@@ -111,9 +111,12 @@ export interface KanjiCardContent {
   /** JLPT level. No level (or null) shows no badge. */
   jlpt?: JlptLevel | null;
   words?: readonly KanjiCardWord[];
-  /** Stroke numbers (1-based) written by the teacher's vermilion brush. */
+  /** Strokes (writing order from 1) written in vermilion ink (朱墨) to highlight them. Default: none. */
   vermilionStrokes?: readonly number[];
 }
+
+/** Ink for the whole character: black sumi (default) or vermilion shuboku (朱墨). */
+export type KanjiCardInk = "sumi" | "vermilion";
 
 /** Seconds for each phase of the video. A phase of 0 seconds is skipped. */
 export interface KanjiCardTiming {
@@ -137,6 +140,12 @@ export interface ShodoKanjiCardProps extends KanjiCardContent {
   sections?: Partial<Record<KanjiCardSection, boolean>>;
   /** The phase in which the text of the card fades in. Default: "write" (from the first frame). */
   cardFrom?: KanjiCardPhase;
+  /** Ink for the whole character. Default: "sumi" (black). Use `vermilionStrokes` to highlight single strokes. */
+  ink?: KanjiCardInk;
+  /** Hand speed, 0.25..4 (1 is an unhurried teacher). Used when `timing.write` is not set. Default: 1.6. */
+  speed?: number;
+  /** Show the order number of each stroke in the review pass. Default: true. */
+  strokeNumbers?: boolean;
 }
 
 const MICHI_WORDS: readonly KanjiCardWord[] = [
@@ -151,7 +160,7 @@ const MICHI_WORDS: readonly KanjiCardWord[] = [
  * list since 2010, so a level is an estimate that the host supplies.
  */
 const KANJI_CARD_SAMPLES: Readonly<Record<string, KanjiCardContent>> = {
-  "道": { meanings: "WAY / PATH / ROAD", onyomi: "DŌ (ドウ)", kunyomi: "michi (みち)", jlpt: "N4", words: MICHI_WORDS, vermilionStrokes: [12] },
+  "道": { meanings: "WAY / PATH / ROAD", onyomi: "DŌ (ドウ)", kunyomi: "michi (みち)", jlpt: "N4", words: MICHI_WORDS },
 };
 
 /**
@@ -215,7 +224,7 @@ interface KanjiCardGeometry {
 // Text sizes in design px. Portrait sizes keep body text at 13 px or more on a 390 px wide phone.
 const KANJI_CARD_TYPE: Record<KanjiCardLayout, KanjiCardType> = {
   landscape: { label: 33, pad: [40, 34], gap: 22, head: 31, headKanji: 38, reading: 19, badge: 16, title: 24, word: 46, ruby: 16, gloss: 20 },
-  portrait: { label: 42, pad: [30, 40], gap: 14, head: 36, headKanji: 46, reading: 26, badge: 22, title: 28, word: 48, ruby: 21, gloss: 26 },
+  portrait: { label: 42, pad: [34, 36], gap: 26, head: 38, headKanji: 48, reading: 26, badge: 23, title: 26, word: 58, ruby: 22, gloss: 25 },
 };
 
 function kanjiCardGeometry(layout: KanjiCardLayout, withCard: boolean): KanjiCardGeometry {
@@ -236,6 +245,7 @@ function kanjiCardGeometry(layout: KanjiCardLayout, withCard: boolean): KanjiCar
 }
 
 const KANJI_CARD_SPEED = 1.6;
+const KANJI_CARD_COLUMNS = (n: number) => n <= 3 ? n : n === 4 ? 2 : 3;
 
 /** Union of the contact bounds of every stroke, design px. */
 function kanjiInkBox(plan: ShodoPlan): [number, number, number, number] {
@@ -249,15 +259,19 @@ function kanjiInkBox(plan: ShodoPlan): [number, number, number, number] {
  * only when its ink would reach the label band or the edge of the sheet. With `seconds`, the
  * hand's speed is fitted so that the writing takes about that long.
  */
-function planKanjiCard(glyph: ShodoGlyph, g: KanjiCardGeometry, vermilion: readonly number[], withLabel: boolean, seconds?: number): ShodoPlan {
+function planKanjiCard(
+  glyph: ShodoGlyph, g: KanjiCardGeometry, vermilion: readonly number[], withLabel: boolean, seconds: number | undefined,
+  ink: KanjiCardInk, natural: number,
+): ShodoPlan {
   const strokeInk = Object.fromEntries(vermilion.map(n => [n - 1, SHODO_INKS.shuboku]));
   const rest: [number, number] = [g.paper.x + g.paper.width - 90, g.paper.y + g.paper.height * .83];
   const inkstone: [number, number] = [g.width + 80, g.height / 2];
+  const body = ink === "vermilion" ? { ...SHODO_INKS.shuboku } : undefined;
   const at = (speed: number, x: number, y: number, size: number) => planShodoWriting({
-    style: resolveShodoStyle({ hand: { speed } }, DEFAULT_SHODO_STYLE),
+    style: resolveShodoStyle({ hand: { speed }, ink: body }, DEFAULT_SHODO_STYLE),
     items: [{ glyph, x, y, size, strokeInk }], rest, inkstone, exit: "hover",
   });
-  const [x0, y0, x1, y1] = kanjiInkBox(at(KANJI_CARD_SPEED, 0, 0, g.em));
+  const [x0, y0, x1, y1] = kanjiInkBox(at(natural, 0, 0, g.em));
   const cx = g.paper.x + g.paper.width / 2, cy = g.paper.y + g.paper.height / 2;
   const margin = Math.min(g.paper.width, g.paper.height) * .045;
   const top = withLabel ? g.label.y + g.type.label * 1.5 : g.paper.y + margin;
@@ -266,7 +280,7 @@ function planKanjiCard(glyph: ShodoGlyph, g: KanjiCardGeometry, vermilion: reado
     (cy - top) / ((y1 - y0) / 2),
     (g.paper.y + g.paper.height - margin - cy) / ((y1 - y0) / 2));
   const size = g.em * k, x = cx - k * (x0 + x1) / 2, y = cy - k * (y0 + y1) / 2;
-  if (!seconds || !(seconds > 0)) return at(KANJI_CARD_SPEED, x, y, size);
+  if (!seconds || !(seconds > 0)) return at(natural, x, y, size);
   // The writing takes less time at a higher speed: bisect the speed on a log scale.
   let lo = Math.log(.25), hi = Math.log(4);
   if (at(4, x, y, size).duration >= seconds) return at(4, x, y, size);
@@ -336,6 +350,8 @@ export function ShodoKanjiInfoCard({
   const list = show.words && words?.length ? words : null;
   useFitHeight(ref, [char, meanings, onyomi, kunyomi, level, layout, JSON.stringify(list), JSON.stringify(show)].join("|"));
   const term: CSSProperties = { font: `700 ${fs(t.reading * .84)}/1.3 ${KANJI_DISPLAY}`, letterSpacing: ".06em", color: KANJI_MUTED };
+  // The 9:16 card is wide and short: readings side by side, and the words as a row of tiles.
+  const wide = layout === "portrait";
   return <aside {...rest} ref={ref} aria-label={`${char} readings and words`} style={{
     background: "#FBFAF7", padding: `${cq(t.pad[0])} ${cq(t.pad[1])}`, boxSizing: "border-box", overflow: "hidden", color: KANJI_INK, ...style,
   }}>
@@ -349,7 +365,10 @@ export function ShodoKanjiInfoCard({
         <span style={{ flex: "1 1 8em", minWidth: 0 }}>{meanings}</span>
       </div> : null}
       {readings || level ? <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: `${fs(t.gap * .5)} ${fs(t.gap)}` }}>
-        {readings ? <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "auto auto", justifyContent: "start", alignItems: "baseline", columnGap: ".7em", rowGap: ".2em", font: `600 ${fs(t.reading)}/1.3 system-ui, sans-serif` }}>
+        {readings && wide ? <dl style={{ margin: 0, display: "flex", flexWrap: "wrap", columnGap: fs(t.gap * 1.6), rowGap: fs(t.gap * .4), font: `600 ${fs(t.reading)}/1.3 system-ui, sans-serif` }}>
+          {onyomi ? <div><dt style={term}>ON&apos;YOMI</dt><dd style={{ margin: 0 }}>{onyomi}</dd></div> : null}
+          {kunyomi ? <div><dt style={term}>KUN&apos;YOMI</dt><dd style={{ margin: 0 }}>{kunyomi}</dd></div> : null}
+        </dl> : readings ? <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "auto auto", justifyContent: "start", alignItems: "baseline", columnGap: ".7em", rowGap: ".2em", font: `600 ${fs(t.reading)}/1.3 system-ui, sans-serif` }}>
           {onyomi ? <><dt style={term}>ON&apos;YOMI</dt><dd style={{ margin: 0 }}>{onyomi}</dd></> : null}
           {kunyomi ? <><dt style={term}>KUN&apos;YOMI</dt><dd style={{ margin: 0 }}>{kunyomi}</dd></> : null}
         </dl> : null}
@@ -359,8 +378,20 @@ export function ShodoKanjiInfoCard({
         }}>JLPT {level}</span> : null}
       </div> : null}
       {list ? <>
-        <div style={{ font: `700 ${fs(t.title)}/1 ${KANJI_DISPLAY}`, marginTop: fs(t.gap * .3) }}>USEFUL WORDS</div>
-        <ul role="list" style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "auto 1fr", columnGap: fs(t.word * .45), rowGap: fs(t.gap * .75) }}>
+        <div style={{ font: `700 ${fs(t.title)}/1 ${KANJI_DISPLAY}`, marginTop: fs(t.gap * .3), letterSpacing: wide ? ".04em" : undefined }}>USEFUL WORDS</div>
+        {wide ? <ul role="list" style={{
+          margin: 0, padding: 0, listStyle: "none", display: "grid", gap: fs(t.gap * .55),
+          gridTemplateColumns: `repeat(${KANJI_CARD_COLUMNS(list.length)}, minmax(0, 1fr))`,
+        }}>
+          {list.map((w, i) => <li key={i} style={{
+            display: "grid", justifyItems: "center", alignContent: "start", textAlign: "center", minWidth: 0,
+            background: "#F3EFE7", borderRadius: fs(14), padding: `${fs(t.gap * .7)} ${fs(t.gap * .45)} ${fs(t.gap * .8)}`,
+          }}>
+            <ruby lang="ja" style={{ font: `600 ${fs(t.word)}/1.08 ${KANJI_SERIF}` }}>{w.word}<rt style={{ font: `600 ${fs(t.ruby)}/1.2 system-ui, sans-serif`, letterSpacing: ".04em", color: KANJI_MUTED }}>{w.ruby}</rt></ruby>
+            <span style={{ marginTop: fs(t.gap * .35), font: `600 ${fs(t.gloss)}/1.25 system-ui, sans-serif`, color: KANJI_MUTED, overflowWrap: "anywhere" }}>{w.romaji}</span>
+            <span style={{ font: `500 ${fs(t.gloss)}/1.25 system-ui, sans-serif`, overflowWrap: "anywhere" }}>{w.meaning}</span>
+          </li>)}
+        </ul> : <ul role="list" style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "auto 1fr", columnGap: fs(t.word * .45), rowGap: fs(t.gap * .75) }}>
           {list.map((w, i) => <li key={i} style={{ display: "grid", gridColumn: "1 / -1", gridTemplateColumns: "subgrid", alignItems: "end" }}>
             <ruby lang="ja" style={{ font: `600 ${fs(t.word)}/1.08 ${KANJI_SERIF}` }}>{w.word}<rt style={{ font: `600 ${fs(t.ruby)}/1.2 system-ui, sans-serif`, letterSpacing: ".04em", color: KANJI_MUTED }}>{w.ruby}</rt></ruby>
             <span style={{ display: "grid", font: `500 ${fs(t.gloss)}/1.25 system-ui, sans-serif`, paddingBottom: ".12em", minWidth: 0 }}>
@@ -368,7 +399,7 @@ export function ShodoKanjiInfoCard({
               <span>{w.meaning}</span>
             </span>
           </li>)}
-        </ul>
+        </ul>}
       </> : null}
     </div>
   </aside>;
@@ -376,7 +407,7 @@ export function ShodoKanjiInfoCard({
 
 const KANJI_PHASE_TEXT: Record<KanjiCardPhase, string> = {
   write: "1 · Write: the brush writes the character",
-  review: "2 · Review: the brush writes it again, with the order number of each stroke",
+  review: "2 · Review: the brush writes it again",
   info: "3 · Info: the finished card holds",
 };
 
@@ -387,7 +418,8 @@ const KANJI_PHASE_TEXT: Record<KanjiCardPhase, string> = {
  * puts it under the sheet for phone shorts.
  */
 export function ShodoKanjiCard({
-  char = "道", heading = "Kanji study", layout = "landscape", timing, sections, cardFrom = "write", ...data
+  char = "道", heading = "Kanji study", layout = "landscape", timing, sections, cardFrom = "write", ink = "sumi",
+  speed = KANJI_CARD_SPEED, strokeNumbers = true, ...data
 }: ShodoKanjiCardProps) {
   const content = resolveKanjiCardContent(char, data);
   const show = { label: true, meanings: true, readings: true, jlpt: true, words: true, ...sections };
@@ -401,8 +433,9 @@ export function ShodoKanjiCard({
   const glyph = loaded ? loaded.glyphs[0] ?? SHODO_GLYPHS[char] : undefined;
   // The hand's pace follows the first writing that has a set length; otherwise its natural pace.
   const pace = timing?.write ? timing.write : timing?.write === 0 && timing.review ? timing.review : undefined;
-  const plan = useMemo(() => glyph ? planKanjiCard(glyph, g, vermilionKey ? vermilionKey.split(",").map(Number) : [], show.label, pace) : null,
-    [glyph, g, vermilionKey, show.label, pace]);
+  const natural = Number.isFinite(speed) ? Math.min(4, Math.max(.25, speed)) : KANJI_CARD_SPEED;
+  const plan = useMemo(() => glyph ? planKanjiCard(glyph, g, vermilionKey ? vermilionKey.split(",").map(Number) : [], show.label, pace, ink, natural) : null,
+    [glyph, g, vermilionKey, show.label, pace, ink, natural]);
   const timeline = useMemo(() => kanjiCardTimeline(plan?.duration ?? 0, { write: timing?.write, review: timing?.review, info: timing?.info }),
     [plan, timing?.write, timing?.review, timing?.info]);
   const last = timeline.frames - 1;
@@ -417,7 +450,7 @@ export function ShodoKanjiCard({
   const writeGuide = vermilion.length ? "all" as const : "none" as const;
   // Each pass plays the same plan, stretched to its phase; the info phase holds the last pass.
   const writing = at.phase !== "info" && at.length > 0;
-  const guide = (writing ? at.phase === "review" : reviewed) ? "numbers" as const : writeGuide;
+  const guide = strokeNumbers && (writing ? at.phase === "review" : reviewed) ? "numbers" as const : writeGuide;
   const canvasFps = writing ? at.length / plan.duration : SHODO_FPS;
   const canvasFrame = writing ? at.local : Math.ceil(plan.duration * SHODO_FPS);
   // The text fades in over 12 frames at the start of its phase; from "write" it shows at once.
@@ -442,7 +475,9 @@ export function ShodoKanjiCard({
         }} /> : null}
     </div>
     <ShodoTransport frame={frame} last={last} playing={playing} onPlaying={setPlaying} onFrame={setFrame} />
-    <div aria-live="polite" style={{ fontWeight: 600, minHeight: 22 }}>{KANJI_PHASE_TEXT[at.phase]}</div>
+    <div aria-live="polite" style={{ fontWeight: 600, minHeight: 22 }}>
+      {KANJI_PHASE_TEXT[at.phase]}{at.phase === "review" && strokeNumbers ? ", with the order number of each stroke" : ""}
+    </div>
     {glyph.source === "kanjivg" ? <p style={{ margin: 0, fontSize: 12.5 }}>{SHODO_KANJIVG_CREDIT}.</p> : null}
   </div>;
 }
