@@ -2,6 +2,7 @@ import type {RisoCharacterPart,RisoCharacterSpec} from "../../registry/video/ris
 import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import {riso51ProjectPalmarPath,riso51SourceKeys}
   from "./riso51-view-conditioned-source";
+import {riso57PalmLandmarks} from "./riso57-palm-contact-silhouette";
 
 /**
  * RISO54 — the actual unprinted contour, not a false DOM red-over-red layer.
@@ -59,11 +60,18 @@ function webContour(cx:number,cy:number,skew:number):string{
  */
 export function riso54WebReserveParts(actor:Riso54Actor):readonly RisoCharacterPart[]{
   const side:Riso54Side=actor==="courier"?"right":"left";
-  const handed=side==="right"?1:-1;
-  const actorOffset=actor==="courier"?-.19:.21;
+  // RISO57: the previous fixed x=-3.2/-8.12 and y=18.8/16.15
+  // were defined for a broad mitten, NOT the ANAT1-rooted positive
+  // skin. Their white cut-outs had fallen completely OUTSIDE the new
+  // palm, leaving zero real paper-lip relief. Build from two actual
+  // independently authored anatomical web landmarks; this is still
+  // the SAME physically printed 4-cubic paper-white reserve.
+  const web=riso57PalmLandmarks(actor,side);
   return saddles.map((saddle,i)=>{
-    const x=-handed*(i===0?3.2:8.12)+(i===1?actorOffset:0);
-    const y=(i===0?18.8:16.15)+(actor==="courier"?-.17:.17);
+    const name=i===0?"middle-ring-web":"ring-little-web";
+    const landmark=web.find(p=>p.landmark===name);
+    if(!landmark)throw new Error("RISO54 missing actual ANAT1 interdigital valley");
+    const x=landmark.x,y=landmark.y+.10;
     // At f0..146 this source is a ZERO-AREA point on the outside of
     // the metacarpal arc: no moving holes in relaxed/open fingers, no
     // detached white sticker anywhere in the full film. Real negative
