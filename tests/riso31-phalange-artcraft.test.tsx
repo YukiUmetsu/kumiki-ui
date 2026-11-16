@@ -59,7 +59,7 @@ describe("RISO31 ArtCraft / actual PIP+DIP printed phalanx animation",()=>{
       }
     }
   });
-  it.each(actors)("%s: all 240 source cels preserve independent parent/PIP/DIP lengths and ink contours",spec=>{
+  it.each(actors)("%s: clinical source lengths stay explicit and projected finger lengths are bounded throughout 240 cels",spec=>{
     expect(inspectRisoCharacter(spec)).toEqual([]);
     expect(spec.durationFrames).toBe(240);
     for(const side of sides){
@@ -67,8 +67,21 @@ describe("RISO31 ArtCraft / actual PIP+DIP printed phalanx animation",()=>{
         const inspected=riso31Inspect(spec,frame,side);
         expect(inspected).toHaveLength(4);
         for(const sample of inspected){
-          expect(sample.rootLength).toBeCloseTo(sample.expectedProximal,3);
-          expect(sample.intermediateLength).toBeCloseTo(sample.expectedIntermediate,3);
+          // RISO48 preserves canonical real ANAT1 source lengths in
+          // RISO31_GEOMETRY. Only the receiver's three ulnar supporting
+          // fingers now project shorter in the live 2D camera after f146.
+          // Do not fake equality of true length and visible 3/4 projection.
+          const projected=spec.id==="paper-artist"&&side==="left"&&
+            sample.digit!=="index"&&frame>=148;
+          if(projected){
+            expect(sample.rootLength).toBeLessThan(sample.expectedProximal-.005);
+            expect(sample.rootLength).toBeGreaterThan(sample.expectedProximal*.58);
+            expect(sample.intermediateLength).toBeLessThan(sample.expectedIntermediate-.005);
+            expect(sample.intermediateLength).toBeGreaterThan(sample.expectedIntermediate*.58);
+          }else{
+            expect(sample.rootLength).toBeCloseTo(sample.expectedProximal,3);
+            expect(sample.intermediateLength).toBeCloseTo(sample.expectedIntermediate,3);
+          }
           expect(sample.exactRedSource).toBe(true);
           expect(sample.phalanxPathCount).toBe(3);
           expect(spec.parts.some(p=>p.id===sample.distalPartId)).toBe(true);
