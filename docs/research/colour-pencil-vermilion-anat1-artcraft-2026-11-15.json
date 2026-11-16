@@ -1,0 +1,87 @@
+{
+  "schema_version": 3,
+  "project": "Kumiki UI CP-F1 / ANAT1 original modeled human vermilion (no identity source)",
+  "subject_type": "human",
+  "reference_mode": "style_guided",
+  "evidence_state": "authentic construction/mark-making sources studied; source-registered human v9 anatomical and portrait-fidelity gates blocked",
+  "sources": [
+    {
+      "id": "va-sketching-mouths",
+      "title": "In Practice: Sketching Mouths with Jake Spicer",
+      "creator": "Jake Spicer / V&A Academy",
+      "url": "https://www.vam.ac.uk/event/5Zx3Mq6J6zK/o24080-in-practice-sketching-mouths",
+      "rights": "V&A/artist image and teaching materials copyright; technique observations only, no artwork/copied pixels in repository",
+      "observations": [
+        "Cupid's bow is a soft volume above a narrow shadowed stomion line, not a hard oval outline",
+        "Lower lip has curved vertical texture, central reflected light and soft fade into chin",
+        "Texture uneven with crisscrossing lighter and darker pencil contacts"
+      ]
+    },
+    {
+      "id": "gathered-coloured-pencil-lips",
+      "title": "How to draw lips step by step",
+      "url": "https://www.gathered.how/arts-crafts/art/how-to-draw-lips",
+      "rights": "copyright editorial artwork; observations only",
+      "observations": [
+        "Vermilion is three-dimensional: upper lip is relatively shadowed and lower lip has a selective central highlight",
+        "Small vertical grooves and pressure variation create tissue instead of a blank skin-colored lozenge"
+      ]
+    },
+    {
+      "id": "arielle-komie-lips",
+      "title": "How to Draw Realistic Lips with COLOR NAMES – Step by Step Colored Pencil Tutorial",
+      "url": "https://www.youtube.com/watch?v=VvD4yHet3G0",
+      "creator": "Arielle Komie",
+      "rights": "artist teaching video; process observed, not copied",
+      "observations": [
+        "Explicit separate steps for underpaint, shadow, upper lip, lower lip, Cupid's bow and final highlights",
+        "Protect paper tooth and reserve local specular contact rather than whole-mouth bright fill"
+      ]
+    }
+  ],
+  "source_identity_match": false,
+  "original_artwork": "The existing ANAT1 468-landmark projected model defines actual mouth-line, lip upper/lower boundary, commissures and face cheek and chin. No photography sourced for identity.",
+  "baseline": {
+    "type": "Chromium 960×540 original CP-F1 portrait from merged PR #438",
+    "defect": "Upper and lower lips appear like broad pale outlined lozenges, missing vermilion capillary ridges, soft tissue transitions, mouth corner and chin plane",
+    "direct_source_pixel_comparison": false
+  },
+  "part_manifest": [
+    {
+      "id": "lip-upper",
+      "source": "ANAT1 lips.upper",
+      "color": "soft shadowed warm rose upper labium",
+      "extra": "29 × 3 vertical curved tissue pencil contacts, mouth seam, cupid bow and left commissure"
+    },
+    {
+      "id": "lip-lower",
+      "source": "ANAT1 lips.lower",
+      "color": "lighter warm pink lower lip, narrow highlight reserve",
+      "extra": "29 × 3 vertical tissue contacts, reflected light reserve and central contact"
+    },
+    {
+      "id": "face-main",
+      "source": "ANAT1 oval and 3D skin pigment triangles",
+      "extra": "one low-pressure mentolabial turning shadow at lip-bounds +5..8 below lower border"
+    }
+  ],
+  "five_axes": {
+    "topology": "Both lip masses retain ANAT1 exact upper/lower paths and underlying 468-landmark face; no cutout paper and no detached polygon props",
+    "flow": "Micro grooves follow near-vertical/curved lip tissue ridges, not horizontal uniform face hatching",
+    "weight": "Upper lip shadowed rose/brown, lower lip moderate rose + selective cream, darkest narrow stomion line, corners fade softly",
+    "rhythm": "29 jittered grooves per pigment pass per lip, 3 passes ×2 lip regions, unequal length due arch curvature and seed",
+    "texture": "Native CP-F1 opaque vs translucent layer contract remains, no bitmap, blur or synthetic photon filter, original paper tooth"
+  },
+  "negative_controls": [
+    "uniform flat skin-colored rectangle or pink capsule",
+    "black outline around both lip masses",
+    "detached drawn teeth or a broad white smile",
+    "identical repeated horizontal creases",
+    "pure white opaque lip support"
+  ],
+  "qa": {
+    "unit": "Tests assert original ANAT1 face/eye/nose/lip paths byte-identical, opt-in non-opaque nested skin, 174 bounded pencil marks and ANAT1-derived chin turn",
+    "browser": "Existing Storybook Drawing Foundation 16:9/9:16 at 1×/2.15× via portrait-lips, native SVG editable traces, zoom reversal, no bitmap tags",
+    "blocking": "Independent source vs render facial landmark/mask/SSIM v9 quality review unavailable because an original identity reference was never supplied; no complete human realism approval"
+  }
+}
