@@ -37,3 +37,20 @@ find it: `npm run catalog:find -- --query="tanuki"` (or "gallop", "fur map", "an
 | A posed side-view construction and region shapes to paint over | `animal-construct.ts` | `animalConstruction`, `poseAnimal`, `skeletonShapes` |
 | Check a drawing or rig against the real animal | `animal-check.ts` | `measureAnimal`, `checkAnimalProportions`, `checkSpeciesData` |
 | A painter or the character sheet (React) | `animal-react.tsx` | `AnimalFigure`, `AnimalSheet`, `FootfallDiagram` |
+
+# FLORA1 — plant anatomy framework (file map)
+
+Trees, bamboo, flowers and grasses in any art style. Full guide: [spec](../../docs/component-specs/plant-anatomy.md) ·
+[skill](../../skills/kumiki-plant-anatomy/SKILL.md) · Storybook: Art Foundations → Plant Anatomy.
+
+| I need… | File | Start with |
+|---|---|---|
+| How a group of plants is built (leader, buds, crown, branches, foliage) | `plant-forms.ts` | `GROWTH_FORMS` |
+| One plant: sizes, leaf, flower, fruit, bark, calendar, colours, culture | `plant-species.ts` | `findPlant`, `PLANT_SPECIES`, `inSeason` |
+| Leaf, flower, fruit and bark shapes | `plant-organs.ts` | `leafShape`, `flowerShape`, `fruitShape`, `barkMarks` |
+| A whole plant for a month and a wind | `plant-construct.ts` | `plantConstruction`, `growPlant`, `plantShapes` |
+| Checks | `plant-check.ts` | `checkPlantData`, `measurePlant`, `checkPlantProportions` |
+| Painters and the sheet (React) | `plant-react.tsx` | `PlantFigure`, `OrganFigure`, `PlantSheet` |
+
+Shared by ANIM1 and FLORA1 (`art-foundations`): `foundation-shapes.ts` (geometry, record types, the scale person) and
+`foundation-react.tsx` (sheet cards, swatches, the to-scale chart).

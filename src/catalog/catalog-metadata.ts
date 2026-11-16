@@ -144,6 +144,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:universal-rig":{storyId:"video-universal-rig--lab"},
   "pack:human-anatomy":{storyId:"video-human-anatomy--lab"},
   "pack:animal-anatomy":{storyId:"video-animal-anatomy--sheet"},
+  "pack:plant-anatomy":{storyId:"video-plant-anatomy--sheet"},
   "pack:ukiyoe-handscroll":{storyId:"video-ukiyoe-handscroll--night-ferry"},
   "pack:shodo-calligraphy":{storyId:"video-shodo--studio"},
   "pack:ukiyoe-episode":{storyId:"video-ukiyoe-handscroll--episode"},

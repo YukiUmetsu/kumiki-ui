@@ -3761,13 +3761,36 @@
       ]
     },
     {
+      "name": "art-foundations",
+      "type": "registry:ui",
+      "title": "Art Foundations (shared)",
+      "description": "Shared pieces of the art-foundation frameworks (ANIM1 animals, FLORA1 plants): points and outlines wound one way, smooth closed curves, tubes and ellipses as path data, a seeded random stream, graded ranges, sounds, references and style-index record types, a person to show scale outlined through ANAT1's measured landmarks, and the character-sheet card, swatch list and to-scale chart.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/foundation-shapes.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-shapes.ts"
+        },
+        {
+          "path": "registry/anatomy/foundation-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "animal-anatomy",
       "type": "registry:ui",
       "title": "Animal Anatomy Framework (ANIM1)",
       "description": "Style-neutral animals for drawing the same creature in any art style: sixteen body plans (bears, dogs and foxes, cats, pigs, deer and cattle, horses, hares, mice, weasels, monkeys, five bird plans, fish) fixing foot posture, side-view construction (trunk, chest depth, leg clearance, head, muzzle, neck, tail, leg segments, back line, limb girth, waist, head carriage, ears), gaits, rearing, the parts every member has, coat regions and footfall; 23 Japanese folklore species (moon bear, wild boar, fox, tanuki, wolf, Shiba, cat, hare, macaque, sika, black cattle, Kiso horse, weasel, mouse, crane, heron, crow, pheasant, sparrow, goshawk, mandarin duck, kingfisher, koi) with graded size and proportion ranges (reported, measured, estimated) and sources, face proportions, coat type and length by region, palettes painted by region, tip, band or eye mask, markings, seasonal and juvenile variants, sounds (catalog ids or search terms), culture, public-domain and CC0 references and where each is already drawn in the library; one shared gait table (walk, amble, trot, canter, transverse and rotary gallop, half-bound) after Muybridge and Hildebrand, with footfall diagrams, speeds by dynamic similarity and stride times by body mass; a construction that poses any species standing or at any point of a stride with planted feet that never slide; silhouette, construction, colour-map and fur-map painters; proportion checks that measure any drawing or rig against the species' ranges; and a character sheet with size against a person.",
       "dependencies": [],
       "registryDependencies": [
-        "human-anatomy"
+        "human-anatomy",
+        "art-foundations"
       ],
       "files": [
         {
@@ -3799,6 +3822,48 @@
           "type": "registry:ui",
           "target": "components/anatomy/animal-react.tsx",
           "path": "registry/anatomy/animal-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "plant-anatomy",
+      "type": "registry:ui",
+      "title": "Plant Anatomy Framework (FLORA1)",
+      "description": "Style-neutral plants for drawing the same tree, bamboo, flower or grass in any art style. Thirteen growth forms (spire conifers, pines, broadleaf, blossom trees, weeping, layered, bamboo, shrubs, climbers, herbs, irises, water plants, grasses) built after Rex Vicat Cole's The Artistic Anatomy of Trees (1915): bud plans (opposite, alternate, spiral, whorled), excurrent, sympodial and forking leaders, crown envelopes, branch angles, droop and upturned tips, foliage manners (needle pads, scale sprays, clouds, hanging strands, layered sprays, leaf fans, blades, swords, floating leaves) and widths by Leonardo's rule. 24 Japanese plants (black and red pine, cedar, hinoki, mountain cherry, plum, willow, maple, madake bamboo, ginkgo, zelkova, camphor, persimmon, peach, wisteria, camellia, chrysanthemum, kakitsubata iris, lotus, susuki, reed, paulownia, morning glory, rice) with graded sizes and sources, leaves, flowers, fruit and bark, a calendar of leaf, bloom, autumn colour and fruit, seasonal colours, sounds, culture, public-domain and CC0 references (Flora Japonica, Hokusai, Hiroshige, Kōrin) and where each is already drawn. A seeded generator grows any plant for any month and wind; leaf, flower, fruit and bark shape generators; silhouette, construction and colour painters; data and proportion checks; and a character sheet with the four seasons and size against a person.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/plant-forms.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-forms.ts"
+        },
+        {
+          "path": "registry/anatomy/plant-organs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-organs.ts"
+        },
+        {
+          "path": "registry/anatomy/plant-species.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-species.ts"
+        },
+        {
+          "path": "registry/anatomy/plant-construct.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-construct.ts"
+        },
+        {
+          "path": "registry/anatomy/plant-check.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-check.ts"
+        },
+        {
+          "path": "registry/anatomy/plant-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-react.tsx"
         }
       ]
     },

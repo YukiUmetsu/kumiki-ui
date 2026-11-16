@@ -17,23 +17,19 @@
  * `--kumiki-animal-ink`, `--kumiki-animal-accent` and `--kumiki-animal-paper`, so themes and dark mode restyle it.
  */
 import { forwardRef, useId, useMemo } from "react";
-import type { CSSProperties, HTMLAttributes, ReactNode, SVGAttributes } from "react";
+import type { HTMLAttributes, SVGAttributes } from "react";
 import { BODY_PLANS } from "./animal-plans";
 import type { AnimalRegion } from "./animal-plans";
 import { ANIMAL_GAITS, footfallBars } from "./animal-gaits";
 import type { GaitId } from "./animal-gaits";
 import { findAnimal } from "./animal-species";
 import type { AnimalSpecies, Range, Swatch } from "./animal-species";
-import { CONSTRUCTION_KEYS, animalConstruction, headBodyLength, poseAnimal, skeletonShapes, smoothClosedPath } from "./animal-construct";
+import { CONSTRUCTION_KEYS, animalConstruction, headBodyLength, poseAnimal, skeletonShapes } from "./animal-construct";
 import type { AnimalPoint, AnimalSkeleton } from "./animal-construct";
 import { proportionRange } from "./animal-check";
-import modelTables from "./data/model-tables.json";
+import { ACCENT, INK, MUTED, PAPER, ScaleChart, SheetCard, SwatchList, sheetGrid, sheetSmall } from "./foundation-react";
 
 export type AnimalFigureMode = "silhouette" | "construction" | "colour" | "fur";
-const INK = "var(--kumiki-animal-ink, var(--km-text-primary, #2a211d))";
-const ACCENT = "var(--kumiki-animal-accent, #c2413a)";
-const PAPER = "var(--kumiki-animal-paper, var(--km-surface-subtle, #f4eee3))";
-const MUTED = "var(--km-text-muted, #5b524b)";
 
 export interface AnimalFigureProps extends Omit<SVGAttributes<SVGSVGElement>, "mode"> {
   skeleton: AnimalSkeleton;
@@ -144,33 +140,8 @@ function furFlow(s: AnimalSkeleton): AnimalPoint[][] {
 
 // ---- The character sheet -------------------------------------------------------------------------------------------------------
 
-type Preset = (typeof modelTables.presets)[number];
-const PERSON: Preset = modelTables.presets.find(p => p.id === "man-25") ?? modelTables.presets[0];
-/** A person seen from the front, outlined through ANAT1 landmarks (metres; arms in the model's relaxed A pose). */
-function personOutline(): AnimalPoint[] {
-  const L = PERSON.landmarks as Record<string, number[]>, P = (k: string, dx = 0, dy = 0): AnimalPoint => [L[k][0] + dx, L[k][1] + dy];
-  // The arm as a tube along acromion → elbow → wrist → fingertip, with typical limb widths (m).
-  // The model stands in an A pose; the arm (lengths kept) is swung down to hang at the side.
-  const raw = [P("acromion.L"), P("olecranon.L"), P("stylion.L"), P("dactylion.L")], aw = [.11, .085, .06, .03];
-  const a0 = raw[0], swing = -Math.PI / 2 + .1 - Math.atan2(raw[3][1] - a0[1], raw[3][0] - a0[0]), cs = Math.cos(swing), sn = Math.sin(swing);
-  const arm = raw.map(([x, y]) => [a0[0] + (x - a0[0]) * cs - (y - a0[1]) * sn, a0[1] + (x - a0[0]) * sn + (y - a0[1]) * cs] as AnimalPoint);
-  const side = arm.map((_, i) => { const a = arm[Math.max(0, i - 1)], b = arm[Math.min(3, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [(b[1] - a[1]) / l, -(b[0] - a[0]) / l] as AnimalPoint; });
-  const off = (i: number, k: number): AnimalPoint => [arm[i][0] + side[i][0] * aw[i] / 2 * k, arm[i][1] + side[i][1] * aw[i] / 2 * k];
-  const half: AnimalPoint[] = [P("vertex"), P("zygion.L", 0, .05), P("zygion.L"), P("gonion.L"), [L["gonion.L"][0] * .95, L["cervicale"][1] - .02], off(0, 1),
-    off(1, 1), off(2, 1), arm[3], off(2, -1), off(1, -1), P("acromion.L", -.06, -.16), P("iliocristale.L", -.02, .1),
-    P("iliocristale.L"), P("trochanterion.L"), P("femoral-epicondyle.L"), P("lateral-malleolus.L"), P("lateral-malleolus.L", .02, -.06), P("medial-malleolus.L", -.04, -.045),
-    P("medial-malleolus.L"), P("patella.L", -.06), P("crotch")];
-  return [...half, ...half.slice(1, -1).reverse().map(([x, y]) => [-x, y] as AnimalPoint)];
-}
-
-const card: CSSProperties = { display: "grid", gap: "var(--km-space-1, 8px)", alignContent: "start", padding: "var(--km-space-2, 16px)", minWidth: 0,
-  background: "var(--km-surface-default, #fff)", border: "1px solid var(--km-border-subtle, #cecac8)", borderRadius: "var(--km-radius-lg, 10px)" };
-const h3: CSSProperties = { margin: 0, font: "600 15px/1.3 var(--km-font-sans, system-ui, sans-serif)" };
-const small: CSSProperties = { font: "13px/1.45 var(--km-font-sans, system-ui, sans-serif)", color: "var(--km-text-muted, #4e4d4d)" };
-
-function Card({ title, children, wide }: { title: string; children: ReactNode; wide?: boolean }) {
-  return <section style={{ ...card, gridColumn: wide ? "1 / -1" : undefined }}><h3 style={h3}>{title}</h3>{children}</section>;
-}
+const small = sheetSmall;
+const Card = SheetCard;
 const fmt = (v: number) => (v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.toPrecision(2));
 const rangeText = (r: Range, unit: string) => `${fmt(r.min)}–${fmt(r.max)} ${unit} (typ. ${fmt(r.typical)}; ${r.grade})`;
 const GRADE_NOTE = "Grades: reported (from a cited source), measured (off a reference plate), estimated (no direct source), plan (the body plan's typical value).";
@@ -194,8 +165,7 @@ export const AnimalSheet = forwardRef<HTMLDivElement, AnimalSheetProps>(function
   const strips = (gaits ?? [...new Set([moving[0], fast].filter(Boolean))]) as GaitId[];
   const quad = plan.group === "mammal";
   return (
-    <div ref={ref} style={{ display: "grid", gap: "var(--km-space-2, 16px)", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", color: "var(--km-text-primary, #242424)",
-      font: "14px/1.5 var(--km-font-sans, system-ui, sans-serif)", ...style }} {...rest}>
+    <div ref={ref} style={{ ...sheetGrid, ...style }} {...rest}>
       <header style={{ gridColumn: "1 / -1", display: "grid", gap: 4 }}>
         <h2 style={{ margin: 0, font: "700 22px/1.25 var(--km-font-sans, system-ui, sans-serif)" }}>{sp.name}</h2>
         <div style={small}><span lang="ja">{sp.ja.kanji ? `${sp.ja.kanji} ` : ""}{sp.ja.kana}</span> · {sp.ja.romaji} · <i>{sp.scientific}</i> · {plan.label} ({plan.posture})</div>
@@ -286,16 +256,7 @@ export const AnimalSheet = forwardRef<HTMLDivElement, AnimalSheetProps>(function
   );
 });
 
-function Swatches({ list }: { list: readonly Swatch[] }) {
-  return (
-    <ul style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: 0, padding: 0, listStyle: "none" }}>
-      {list.map(p => <li key={p.region + p.name} style={{ display: "flex", alignItems: "center", gap: 6, ...small }}>
-        <span aria-hidden style={{ width: 18, height: 18, borderRadius: 4, background: p.hex, border: "1px solid var(--km-border-strong, #797776)", flex: "none" }} />
-        <span>{p.name} <span style={{ opacity: .8 }}>· {p.region}{p.fill && p.fill !== "area" ? ` ${p.fill}` : ""}</span></span>
-      </li>)}
-    </ul>
-  );
-}
+const Swatches = ({ list }: { list: readonly Swatch[] }) => <SwatchList items={list.map(p => ({ name: p.name, hex: p.hex, note: `${p.region}${p.fill && p.fill !== "area" ? ` ${p.fill}` : ""}` }))} />;
 
 /** Shoulder height (or length) in metres for the scale chart. */
 function unitMetres(sp: AnimalSpecies, c: { trunk: number; neck: number; head: number }): number {
@@ -304,21 +265,9 @@ function unitMetres(sp: AnimalSpecies, c: { trunk: number; neck: number; head: n
 }
 
 function SizeChart({ species: sp, skeleton: s }: { species: AnimalSpecies; skeleton: AnimalSkeleton }) {
-  const k = unitMetres(sp, s.c), sh = skeletonShapes(s), person = personOutline(), pw2 = Math.max(...person.map(p => p[0]));
-  const aw = (sh.bounds[2] - sh.bounds[0]) * k, top = Math.max(PERSON.stature, sh.bounds[3] * k) + .08, W = pw2 * 2 + .5 + aw + .1;
-  const ax = pw2 * 2 + .35 - sh.bounds[0] * k;
-  return (
-    <>
-      <svg role="img" aria-label={`${sp.name} beside a person ${PERSON.stature.toFixed(2)} m tall, to scale`} viewBox={`0 ${-top} ${W} ${top + .04}`} style={{ display: "block", width: "100%", height: "auto" }}>
-        <g transform="scale(1 -1)">
-          <line x1={0} x2={W} y1={0} y2={0} stroke={MUTED} strokeWidth={W / 300} />
-          <path d={smoothClosedPath(person.map(p => [p[0] + pw2 + .05, p[1]] as AnimalPoint))} fill={MUTED} opacity=".55" />
-          <g transform={`translate(${ax} 0) scale(${k})`}><path d={sh.far + sh.body + sh.near} fill={INK} /></g>
-        </g>
-      </svg>
-      <p style={{ ...small, margin: 0 }}>Person: ANAT1 man, 25 y, {PERSON.stature.toFixed(2)} m (outlined through its measured landmarks). {sp.name}: {sp.size.shoulder ? `${fmt(sp.size.shoulder.typical)} cm at the shoulder` : `${fmt(sp.size.length.typical)} cm long`}.</p>
-    </>
-  );
+  const sh = skeletonShapes(s);
+  return <ScaleChart subject={sh.far + sh.body + sh.near} bounds={sh.bounds} metresPerUnit={unitMetres(sp, s.c)} label={`${sp.name} beside a person, to scale`}
+    caption={<>{sp.name}: {sp.size.shoulder ? `${fmt(sp.size.shoulder.typical)} cm at the shoulder` : `${fmt(sp.size.length.typical)} cm long`}.</>} />;
 }
 
 function GaitStrip({ species: sp, gait, frames = 6 }: { species: AnimalSpecies; gait: GaitId; frames?: number }) {
