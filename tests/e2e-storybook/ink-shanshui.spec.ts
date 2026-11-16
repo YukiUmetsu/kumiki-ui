@@ -470,6 +470,47 @@ test("four-master ArtCraft gallery can inspect full native film and macro/meso/m
   await expect(cameras.first()).toHaveAttribute("data-km-master-camera-view","crop");
 });
 
+test("Fuchun bank inspection preserves the live film while isolating root-linked ink phrases",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const upper=fuchun.locator('[data-km-master-stroke-source-zone="upper-bank"]');
+  const lower=fuchun.locator('[data-km-master-stroke-source-zone="lower-bank"]');
+  await expect(fuchun.locator("[data-km-master-stroke]")).toHaveCount(78);
+  const upperCount=await upper.count(),lowerCount=await lower.count();
+  expect(upperCount).toBeGreaterThan(18);
+  expect(lowerCount).toBeGreaterThan(15);
+  expect(upperCount+lowerCount).toBe(78);
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+  await expect(upper.first()).toBeVisible();
+  await expect(lower.first()).toBeVisible();
+
+  await page.getByRole("button",{name:"Upper-bank contacts only"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","upper");
+  await expect(upper.first()).toBeVisible();
+  await expect(lower.first()).toBeHidden();
+  await expect(fuchun.locator("[data-km-master-stroke]")).toHaveCount(78);
+  await expect(fuchun.locator("[data-km-master-stratum]")).toHaveCount(15);
+  await expect(fuchun.locator("[data-km-master-fuchun-hillback]")).toHaveCount(6);
+  await fuchun.locator("[data-km-master-camera-view]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-upper-banks-native.png")});
+
+  await page.getByRole("button",{name:"Lower-bank contacts only"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","lower");
+  await expect(lower.first()).toBeVisible();
+  await expect(upper.first()).toBeHidden();
+  await expect(fuchun.locator("[data-km-master-stroke]")).toHaveCount(78);
+  for(const school of ["early-spring","travelers","forest-grotto"]){
+    const other=lab.locator('[data-km-master-study="'+school+'"]');
+    await expect(other.locator("[data-km-master-stroke]")).not.toHaveCount(0);
+    await expect(other.locator("[data-km-master-stroke-source-zone]")).toHaveCount(0);
+  }
+  await page.getByRole("button",{name:"All Fuchun hemp"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+  await expect(upper.first()).toBeVisible();
+  await expect(lower.first()).toBeVisible();
+});
+
 test("artist school choices are live film renderer modes, not a cosmetic Storybook filter",async({page})=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--gallery-studio&viewMode=story");
   const input=page.getByRole("combobox",{name:"Shanshui ink school"});
