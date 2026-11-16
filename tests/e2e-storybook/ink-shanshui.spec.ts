@@ -1335,6 +1335,39 @@ test("original Fuchun stone rock strata become positive rounded parent-anchored 
   await expect(guo.locator("[data-km-master-fuchun-turning-bank]")).toHaveCount(0);
 });
 
+
+test("native Fuchun hero ink ribs are embedded in real short rounded stone cheeks, not long detached wires",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const other=lab.locator('[data-km-master-study="early-spring"]');
+  const cheeks=fuchun.locator("[data-km-rock-hero-rib-cheek-wash]");
+  const ribs=fuchun.locator("[data-km-rock-hero-rib]");
+  const cuts=fuchun.locator("[data-km-rock-hero-rib-paper-slit]");
+  await expect(cheeks).toHaveCount(4);
+  await expect(ribs).toHaveCount(4);
+  await expect(cuts).toHaveCount(24);
+  await expect(other.locator("[data-km-rock-hero-rib-cheek-wash]")).toHaveCount(0);
+  const source=await cheeks.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d")));
+  const beforeButton=lab.getByRole("button",{name:"Hero ribs before geological cheek wash"});
+  await beforeButton.click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection",
+    "hero-before-cheek");
+  await expect(cheeks.first()).toBeHidden();
+  await expect(ribs.first()).toBeVisible();
+  const before=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-hero-ribs-before-positive-cheek.png")});
+  await lab.getByRole("button",{name:"All Fuchun hemp"}).click();
+  await expect(cheeks.first()).toBeVisible();
+  const after=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-hero-ribs-with-positive-cheek.png")});
+  expect(hash(before)).not.toBe(hash(after));
+  expect(await cheeks.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d"))))
+    .toEqual(source);
+  await expect(cuts).toHaveCount(24);
+  await expect(other.locator("[data-km-rock-hero-rib-cheek-wash]")).toHaveCount(0);
+});
+
 test("native Fuchun crown branches join 40 fan islands in the original painting",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");

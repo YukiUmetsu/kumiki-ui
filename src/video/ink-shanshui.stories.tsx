@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"stone-before-turning"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"stone-before-turning"|"hero-before-cheek"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -585,6 +585,13 @@ function MasterInkSourceComparison(){
       [data-km-master-ink-inspection="stone-before-turning"]
       [data-km-master-study="fuchun"]
       [data-km-master-fuchun-turning-field] { visibility:hidden; }
+      /* ArtCraft rock-face A/B on the SAME original film paths:
+         only the four new true-trajectory inward wash skins disappear.
+         All 4 original loaded ribbons, 24 real-paper slits, 12 deposits,
+         8 attached fine split marks and every old geological layer stay. */
+      [data-km-master-ink-inspection="hero-before-cheek"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-rib-cheek-wash] { visibility:hidden; }
       /* The *real* 960x540 renderer supplies all three nested ridges.
          Isolate only the middle band’s original filled skyline path.
          Do not replace it with a polygon, diagram or copied image. */
@@ -686,6 +693,7 @@ function MasterInkSourceComparison(){
         ["lower","Lower-bank contacts only"],
         ["stone","Stone volumes · brush hidden"],
         ["stone-before-turning","Stone before rounded stratum relief"],
+        ["hero-before-cheek","Hero ribs before geological cheek wash"],
         ["ridge","Skyline · contour only"],
         ["pine","Pine crowns · source anatomy"],
         ["pine-bones","Pine armature · connected brush bones"],
@@ -697,7 +705,8 @@ function MasterInkSourceComparison(){
         <button type="button" key={zone} style={style.button}
           aria-pressed={fuchunZone===zone} onClick={()=>{
             setFuchunZone(zone);
-            if(zone==="stone-before-turning")inspect(2.4,552,177);
+            if(zone==="stone-before-turning"||
+              zone==="hero-before-cheek")inspect(2.4,552,177);
             else if(zone==="pine-bones")inspect(1.65,615,135);
             else if(zone==="pine"||zone==="pine-contours"||
               zone==="pine-unlinked"||
@@ -713,6 +722,9 @@ function MasterInkSourceComparison(){
         existing continuous mountain; it never creates a test-only path.
         Stone before rounded stratum relief isolates the same live
         rock cheek contours before nine original nested turning washes.
+        Hero ribs before geological cheek wash isolates four physical
+        inward rock shades without removing their source-brush fibres,
+        fine deposits or original six true-paper reserve windows each.
         Pine armature hides material layers to show the source trunk,
         planted roots and twenty unequal loaded living branches. Compare
         Pine before continuous crown bridge with Pine crowns to inspect

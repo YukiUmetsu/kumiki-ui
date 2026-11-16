@@ -1443,11 +1443,17 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
   const [x,y]=root;
   const boneControl:P=[x-19,y+31];
   const boneTip:P=[x-56,y+116];
+  // Historic Fuchun pima follows bending stone cheeks, not the 62–84
+  // vertical-unit, 960px-native-black wires in our ArtCraft browser QA.
+  // Keep all FOUR ribs, original pressure-loaded THREE phases per rib,
+  // 24 source-cut dry windows, 12 re-inked deposits and eight fibres.
+  // Reduce the *geological trajectory's* unsupported pendant length
+  // while increasing its lateral crown bend and supported value mass.
   const ribPlan=[
-    {at:.08,side:-1,len:62,reach:28,load:5.3},
-    {at:.25,side:1,len:84,reach:35,load:8.6},
-    {at:.43,side:-1,len:71,reach:44,load:6.9},
-    {at:.62,side:1,len:67,reach:39,load:7.8},
+    {at:.08,side:-1,len:52,reach:24,load:5.3},
+    {at:.25,side:1,len:60,reach:31,load:8.6},
+    {at:.43,side:-1,len:49,reach:34,load:6.9},
+    {at:.62,side:1,len:54,reach:28,load:7.8},
   ] as const;
   // ArtCraft v7: a handscroll rock *face* is a family of interlocking
   // backs, not four thin freestanding drips. Three differently rolled
@@ -1952,24 +1958,24 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
       const browBias=clamp((brow[0]-r[0])*.105,-2.6,2.6);
       const shoulderBias=clamp((shoulder[0]-r[0])*.065,-2.2,2.2);
       const knee:P=[
-        r[0]+swing*(.31+.025*s(seed+5551,i*17))+browBias,
-        r[1]+length*(.27+.03*s(seed+5557,i*19)),
+        r[0]+swing*(.43+.031*s(seed+5551,i*17))+browBias,
+        r[1]+length*(.20+.025*s(seed+5557,i*19)),
       ];
       const returning:P=[
-        r[0]+swing*(.58+.03*s(seed+5563,i*29))+shoulderBias,
-        r[1]+length*(.59+.025*s(seed+5573,i*13)),
+        r[0]+swing*(.73+.027*s(seed+5563,i*29))+shoulderBias,
+        r[1]+length*(.48+.023*s(seed+5573,i*13)),
       ];
       const tip:P=[
-        r[0]+swing*.84+clamp((support.belly[0]-r[0])*.045,-2,2),
-        r[1]+length*(i%3===0?.89:.96),
+        r[0]+swing*.88+clamp((support.belly[0]-r[0])*.045,-2,2),
+        r[1]+length*(i%3===0?.88:.94),
       ];
       // Signed coherent tangents keep C1-continuous calligraphic flow
       // while intentionally changing the banks' longitudinal pitch.
       // Neither a stiff straight edge nor a pasted sawtooth is valid.
-      const tangentA:P=[swing*(.13+.04*s(seed+5581,i*23)),
-        length*.15];
-      const tangentB:P=[swing*(.14+.04*s(seed+5591,i*31)),
-        length*.15];
+      const tangentA:P=[swing*(.16+.04*s(seed+5581,i*23)),
+        length*.09];
+      const tangentB:P=[swing*(.11+.04*s(seed+5591,i*31)),
+        length*.16];
       const sections=[
         {a:r,c1:[r[0]+rib.side*2.6,r[1]-length*.08] as P,
           c2:[knee[0]-tangentA[0],knee[1]-tangentA[1]] as P,
@@ -1992,6 +1998,48 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
         return cubicPoint(stage.a,stage.c1,stage.c2,stage.b,
           clamp(at*3-segment,0,1));
       };
+      // Positive geological cheek belongs to the EXACT three-source
+      // ribbon trajectory, not an adjacent sticker or generic gradient.
+      // The ink load sits on its contour while wash bleeds INWARD
+      // towards the original parent stone and recedes into bare paper.
+      // Different back directions and load profiles retain readable
+      // folded relief; no extra independent rock paths or screen noise.
+      const shadowWidth=(i===1?18:i===2?13:15)*
+        (.83+.24*s(seed+8311,i*37));
+      const inward=-rib.side;
+      const heel:P=[returning[0]+inward*shadowWidth*.91,
+        returning[1]+length*.118];
+      const waist:P=[knee[0]+inward*shadowWidth*.76,
+        knee[1]+length*.148];
+      const toe:P=[tip[0]+inward*shadowWidth*.33,
+        tip[1]+length*.075];
+      const cheekWash="M"+f(r[0])+" "+f(r[1])+
+        " C"+f(sections[0].c1[0])+" "+f(sections[0].c1[1])+
+        " "+f(sections[0].c2[0])+" "+f(sections[0].c2[1])+
+        " "+f(knee[0])+" "+f(knee[1])+
+        " C"+f(sections[1].c1[0])+" "+f(sections[1].c1[1])+
+        " "+f(sections[1].c2[0])+" "+f(sections[1].c2[1])+
+        " "+f(returning[0])+" "+f(returning[1])+
+        " C"+f(sections[2].c1[0])+" "+f(sections[2].c1[1])+
+        " "+f(sections[2].c2[0])+" "+f(sections[2].c2[1])+
+        " "+f(tip[0])+" "+f(tip[1])+
+        " Q"+f(toe[0]+inward*shadowWidth*.16)+" "+
+          f(toe[1]-length*.025)+" "+f(toe[0])+" "+f(toe[1])+
+        " C"+f(toe[0]+inward*shadowWidth*.32)+" "+
+          f(toe[1]-length*.11)+" "+
+          f(heel[0]+inward*shadowWidth*.1)+" "+
+          f(heel[1]+length*.045)+" "+
+          f(heel[0])+" "+f(heel[1])+
+        " C"+f(heel[0]-inward*shadowWidth*.04)+" "+
+          f(heel[1]-length*.075)+" "+
+          f(waist[0]+inward*shadowWidth*.19)+" "+
+          f(waist[1]+length*.033)+" "+
+          f(waist[0])+" "+f(waist[1])+
+        " C"+f(waist[0]-inward*shadowWidth*.15)+" "+
+          f(waist[1]-length*.095)+" "+
+          f(r[0]+inward*shadowWidth*.21)+" "+
+          f(r[1]+length*.11)+" "+f(r[0])+" "+f(r[1])+" Z";
+      const cheekGradient="kmrock"+faceId+"-rib-cheek-"+i;
       const face=sections.map((stage,k)=>rockLoadedCubicRibbon(
         stage.a,stage.c1,stage.c2,stage.b,
         stage.load,seed+1019*i+37*k)).join(" ");
@@ -2072,7 +2120,10 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
       return <g key={i} data-km-rock-hero-rib=""
         data-km-rock-hero-rib-root={f(r[0])+","+f(r[1])}
         data-km-rock-hero-rib-support={supportIndex}
-        data-km-rock-hero-rib-course="folded-3">
+        data-km-rock-hero-rib-course="folded-3"
+        data-km-rock-hero-rib-knee={f(knee[0])+","+f(knee[1])}
+        data-km-rock-hero-rib-return={f(returning[0])+","+f(returning[1])}
+        data-km-rock-hero-rib-tip={f(tip[0])+","+f(tip[1])}>
         <defs><mask data-km-rock-hero-rib-reserve=""
           id={ribReserveId} maskUnits="userSpaceOnUse"
           maskContentUnits="userSpaceOnUse"
@@ -2087,7 +2138,26 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
             data-km-rock-hero-rib-paper-station={at}
             d={cut} stroke="#000" strokeWidth={f(breadth)}
             strokeLinecap="round" fill="none"/>)}
-        </mask></defs>
+        </mask>
+          <linearGradient id={cheekGradient}
+            gradientUnits="userSpaceOnUse"
+            x1={f(r[0])} y1={f(r[1])}
+            x2={f(toe[0])} y2={f(toe[1])}>
+            <stop offset="0" stopColor="#41372c"
+              stopOpacity={i===1?.77:.6}/>
+            <stop offset=".27" stopColor="#65513e"
+              stopOpacity={i===1?.62:.49}/>
+            <stop offset=".58" stopColor="#92785b" stopOpacity=".29"/>
+            <stop offset=".85" stopColor="#aa9175" stopOpacity=".095"/>
+            <stop offset="1" stopColor="#bba68b" stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        <path data-km-rock-hero-rib-cheek-wash="" d={cheekWash}
+          data-km-rock-hero-rib-cheek-root={f(r[0])+","+f(r[1])}
+          data-km-rock-hero-rib-cheek-knee={f(knee[0])+","+f(knee[1])}
+          data-km-rock-hero-rib-cheek-tip={f(tip[0])+","+f(tip[1])}
+          fill={"url(#"+cheekGradient+")"}
+          opacity={f((i===1?.79:.66)*(1-.2*mist))}/>
         <path data-km-rock-hero-face="" d={face}
           fill={i%2===0?"#504338":"#75614d"}
           mask={"url(#"+ribReserveId+")"}

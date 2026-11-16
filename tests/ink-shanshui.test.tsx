@@ -1316,6 +1316,65 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       'data-km-rock-hero-rib-reserve=""');
   });
 
+
+  it("folds four authentic Fuchun hero-rib ribbons over short positive cheeks instead of diagonal stone wires",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    for(const seed of [71,97]){
+      const html=draw("fuchun",seed);
+      const ribs=[...html.matchAll(
+        /data-km-rock-hero-rib="" data-km-rock-hero-rib-root="([^"]+)" data-km-rock-hero-rib-support="([012])" data-km-rock-hero-rib-course="folded-3" data-km-rock-hero-rib-knee="([^"]+)" data-km-rock-hero-rib-return="([^"]+)" data-km-rock-hero-rib-tip="([^"]+)"/g,
+      )];
+      expect(ribs).toHaveLength(4);
+      const wash=[...html.matchAll(
+        /data-km-rock-hero-rib-cheek-wash="" d="([^"]+)" data-km-rock-hero-rib-cheek-root="([^"]+)" data-km-rock-hero-rib-cheek-knee="([^"]+)" data-km-rock-hero-rib-cheek-tip="([^"]+)" fill="url\(#([^"]+)\)"/g,
+      )];
+      expect(wash).toHaveLength(4);
+      expect(new Set(wash.map(x=>x[1])).size).toBe(4);
+      for(let i=0;i<4;i++){
+        const [,root, ,knee,returning,tip]=ribs[i];
+        const [ ,d,from,bend,end,gradient]=wash[i];
+        expect([from,bend,end]).toEqual([root,knee,tip]);
+        expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+        expect((d.match(/ C/g)??[])).toHaveLength(6);
+        expect((d.match(/ Q/g)??[])).toHaveLength(1);
+        expect(d.endsWith(" Z")).toBe(true);
+        expect(html).toContain('id="'+gradient+'"');
+        const p=[root,knee,returning,tip].map(x=>x.split(",").map(Number));
+        expect(p.every(q=>q.every(Number.isFinite))).toBe(true);
+        const dy=p[3][1]-p[0][1];
+        expect(dy).toBeGreaterThan(35);
+        expect(dy).toBeLessThan(70);
+        // The original 62–84 vertical-unit hanging wire had a weak
+        // lateral turn in its first quarter. These positive rock
+        // brows must reach at least one third their drift by the first
+        // shallow 20–23% of their descent, then physically fold down.
+        const dx=p[3][0]-p[0][0];
+        expect(Math.abs(dx)).toBeGreaterThan(15);
+        expect(Math.abs(p[1][0]-p[0][0])).toBeGreaterThan(
+          Math.abs(dx)*.30);
+        expect((p[1][1]-p[0][1])/dy).toBeLessThan(.32);
+        expect((p[2][1]-p[0][1])/dy).toBeLessThan(.65);
+      }
+      expect((html.match(/data-km-rock-hero-face=""/g)??[]))
+        .toHaveLength(4);
+      expect((html.match(/data-km-rock-hero-rib-deposit=""/g)??[]))
+        .toHaveLength(12);
+      expect((html.match(/data-km-rock-hero-rib-paper-slit=""/g)??[]))
+        .toHaveLength(24);
+      expect((html.match(/data-km-rock-hero-fibre=""/g)??[]))
+        .toHaveLength(8);
+      expect(draw("fuchun",seed)).toBe(html);
+    }
+    expect(draw("fuchun",71,0)).not.toContain(
+      'data-km-rock-hero-rib-cheek-wash=""');
+    expect(draw("early-spring")).not.toContain(
+      'data-km-rock-hero-rib-cheek-wash=""');
+  });
+
   it("preserves Fuchun loaded fibres while opening true negative dry-paper reserves",()=>{
     const paint=(school:"fuchun"|"early-spring",seed=71,detail=1,
       mist=.35)=>renderToStaticMarkup(createElement(InkShanshuiStage,{
