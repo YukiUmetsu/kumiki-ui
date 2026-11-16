@@ -197,9 +197,43 @@ test("ANAT1 reader facial planes preserve source identity across soft-wash and i
   await expect(inspector).toBeVisible();
   const viewport=(await close.getAttribute("viewBox"))?.split(/\s+/).map(Number)??[];
   expect(viewport).toHaveLength(4);
-  // Previous close-up cropped its own nose and mouth (viewBox ended y105).
-  expect(viewport[0]+viewport[2]).toBeGreaterThan(166);
-  expect(viewport[1]+viewport[3]).toBeGreaterThan(143.7);
+  expect(viewport.every(Number.isFinite)).toBe(true);
+  // The source 260x340 drawing is translated, scaled and pitched by the
+  // production actor. Raw illustration y-coordinates are NOT valid camera
+  // assertions. Confirm the original live face really fills the browser
+  // frame, instead of accepting a screenshot of empty paper and chin.
+  const coverage=await inspector.evaluate(svg=>{
+    const canvas=svg.getBoundingClientRect();
+    const fraction=(id:string)=>{
+      const group=svg.querySelector(
+        '[data-km-reader-anatomy-region="'+id+'"]');
+      if(!group)return 0;
+      const face=group.getBoundingClientRect();
+      if(!face.width||!face.height)return 0;
+      const w=Math.max(0,Math.min(face.right,canvas.right)-
+        Math.max(face.left,canvas.left));
+      const h=Math.max(0,Math.min(face.bottom,canvas.bottom)-
+        Math.max(face.top,canvas.top));
+      return w*h/(face.width*face.height);
+    };
+    return Object.fromEntries(["opaque-head","near-far-eyes","nose","lips"]
+      .map(id=>[id,fraction(id)]));
+  });
+  for(const [region,visible] of Object.entries(coverage))
+    expect(visible,region+" must actually be in frame").toBeGreaterThan(.92);
+  const closeEyes=await close.locator(
+    '[data-ink-anatomy-feature="eye-apertures"]')
+    .evaluate(group=>{
+      const root=group.ownerSVGElement;
+      if(!root)return 0;
+      const rect=root.getBoundingClientRect(),eye=group.getBoundingClientRect();
+      const w=Math.max(0,Math.min(eye.right,rect.right)-
+        Math.max(eye.left,rect.left));
+      const h=Math.max(0,Math.min(eye.bottom,rect.bottom)-
+        Math.max(eye.top,rect.top));
+      return w*h/Math.max(1,eye.width*eye.height);
+    });
+  expect(closeEyes).toBeGreaterThan(.85);
   const volume=inspector.locator('[data-km-reader-anatomy-region="wash"]');
   const nasal=inspector.locator('[data-km-reader-anatomy-region="nose"]');
   const lids=inspector.locator('[data-km-reader-anatomy-region="near-far-eyes"]');
