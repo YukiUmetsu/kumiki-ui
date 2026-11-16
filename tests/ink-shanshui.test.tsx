@@ -1118,12 +1118,12 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     )].map(m=>(m[1].match(/-?\d+(?:\.\d+)?/g)??[]).map(Number));
     expect(boughs).toHaveLength(20);
     expect(boughs.every(n=>n.length===6&&n.every(Number.isFinite))).toBe(true);
-    const drops=boughs.map(([x,y,,,tx,ty])=>ty-y);
+    const drops=boughs.map(p=>p[5]-p[1]);
     expect(drops.filter(d=>d>2).length).toBeGreaterThanOrEqual(6);
     expect(drops.filter(d=>d< -4).length).toBeGreaterThanOrEqual(7);
     const alternating=Array.from({length:5},(_,i)=>{
-      const s=boughs.slice(i*4,i*4+4).map(([x,y,cx,cy,tx])=>
-        Math.sign(tx-x));
+      const s=boughs.slice(i*4,i*4+4).map(p=>
+        Math.sign(p[4]-p[0]));
       return s.every((v,j)=>j===0||v!==s[j-1]);
     }).filter(Boolean).length;
     expect(alternating).toBeLessThan(3);
