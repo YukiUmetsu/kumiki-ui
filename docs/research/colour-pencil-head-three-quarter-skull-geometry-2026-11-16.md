@@ -41,9 +41,9 @@ switch is off, including original 92 dry pencil groups
 construction guides, 15 independent cranial crosshatch families).
 The actual underlying head art is still rejected.
 
-**New 3/4 experiment (B):** original ANAT1 mesh sampled at **29°**
+**New 3/4 experiment (B):** original ANAT1 mesh sampled at **24°**
 instead of 17°, **15** separately authored vault coordinates,
-posterior x-extension up to `0.048×` the face width after native visual correction, reduced upper
+posterior x-extension up to `0.060×` the face width at the posterior side after two native visual corrections, reduced upper
 vault height (`0.265×` rather than `0.325×` forehead width), a
 narrow near-side temporal hollow and separately curved cheek and
 mandibular gonial transition. These are **authored relative
@@ -101,10 +101,24 @@ near temple: an exaggerated posterior parietal x-extension
 (`0.061×faceWidth`). This violates the continuous cranium/face join,
 even though all compiler, unit and browser checks were green. It was
 **visually rejected**, not misrepresented as a quality improvement.
-We retained all 15 authored vault anchors, the 29° camera and every
+We retained all 15 authored vault anchors, the 24° camera and every
 original pigment stroke while easing the rear upper turn to at most
-`0.048×faceWidth` and near temporal hollow to `0.027×faceWidth`.
+`0.060×faceWidth` and near temporal hollow to `0.015×faceWidth`.
 The measured true 960×540 baseline/first-candidate screenshot was
 recorded in [PR #498 ArtCraft review](https://github.com/YukiUmetsu/kumiki-ui/pull/498).
 Re-run both native A/B screenshots before accepting even this *shape
 study* and keep formal portrait approval on HOLD.
+
+### Second source-led shape iteration: preserve curvature without a flat back
+
+The first patch reduced the posterior reach but left a long **flat** upper-left
+side and still made a stiff waist at the temporal/malar junction. A second
+shape-only patch reduces the ANAT1 study yaw 29°→24°, changes all five
+posterior vault samples to form a broad convex parietal sweep and eases
+near-side temporal recession `0.027×`→`0.015×`, near-malar lift
+`0.026×`→`0.008×`, and gonial bump `0.014×`→`0.006×` face-width.
+It retains **15 independently sculpted control points**, all ANAT1 jaw points,
+every 92 original dry-pigment trace, 5 true vertex-normal value groups and
+three independent existing Storybook material switches. All these numbers
+are **relative artist construction parameters**, never fabricated coordinates
+or measured photo-fidelity scores. Review actual full-size screenshot again.
