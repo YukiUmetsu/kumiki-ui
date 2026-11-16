@@ -54,3 +54,14 @@ Trees, bamboo, flowers and grasses in any art style. Full guide: [spec](../../do
 
 Shared by ANIM1 and FLORA1 (`art-foundations`): `foundation-shapes.ts` (geometry, record types, the scale person) and
 `foundation-react.tsx` (sheet cards, swatches, the to-scale chart).
+
+# EXPR1 — facial expressions (file map)
+
+Expressions for any style, on ANAT1's measured face. Guide: [spec](../../docs/component-specs/facial-expressions.md) ·
+[skill](../../skills/kumiki-facial-expressions/SKILL.md) · Storybook: Art Foundations → Facial Expressions.
+
+| I need… | File | Start with |
+|---|---|---|
+| Action units, emotions, kumadori, Noh tilt | `expression-facs.ts` | `ACTION_UNITS`, `EMOTIONS`, `KUMADORI`, `NOH_TILT` |
+| A moved face, its features and creases, a check | `expression-face.ts` | `expressEmotion`, `expressFace`, `expressionFeatures`, `expressionMarks`, `nearestEmotion`, `blendWeights` |
+| Painters (React) | `expression-react.tsx` | `ExpressionFace`, `ExpressionAtlas`, `ExpressionSheet` |
