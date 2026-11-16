@@ -49,7 +49,11 @@ describe("RISO42 ArtCraft: three independently curled supporting digits",()=>{
       }
       const red=inspectRiso36RedFingerSilhouettes(actor,contact.frame,side);
       expect(red.sourcePartCount).toBe(12);
-      expect(red.minimumDistalGap).toBeGreaterThan(0);
+      expect(red.minimumDistalGap,
+        actor.id+"/"+side+" f"+contact.frame+" actual red distal tip pairs "+
+        JSON.stringify(red.pairs.map(p=>({pair:p.pair,distal:p.distalInkGap,
+          mid:p.middleInkGap,source:p.sourceInkGap}))))
+        .toBeGreaterThan(0);
     }
   });
   it.each(actors)("%s: no new finger-centerline crossing anywhere in moving 240-frame film",actor=>{
