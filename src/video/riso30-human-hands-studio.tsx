@@ -58,6 +58,11 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     p.id===side+"-wrist-underprint-clearance").map(p=>p.id),[actor,side]);
   const region=inspectRisoHandArtcraft(actor,frame,side);
   const bones=riso31Inspect(actor,frame,side);
+  // Exact live anatomical source stations, not a visual proxy or an
+  // after-render pixel measurement. 1.0 = unprojected ANAT1 source.
+  const supportProjectionRatio=bones.filter(b=>b.digit!=="index").reduce((sum,b)=>
+    sum+b.rootLength/b.expectedProximal+
+      b.intermediateLength/b.expectedIntermediate,0)/6;
   const thumb=inspectRiso32ThumbIp(actor,frame,side);
   const spacing=inspectRiso33HandFan(actor,frame,side);
   const redInk=useMemo(()=>inspectRiso36RedFingerSilhouettes(actor,frame,side),[actor,frame,side]);
@@ -75,6 +80,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso30-hand-artcraft={String(region.actuallyEngraved)}
     data-km-riso31-segments={bones.reduce((n,j)=>n+j.phalanxPathCount,0)}
     data-km-riso31-actual-flexion={String(bones.every(j=>j.exactRedSource))}
+    data-km-riso49-support-projection-ratio={supportProjectionRatio.toFixed(3)}
     data-km-riso32-ip-articulated={String(thumb.independentRedSegments)}
     data-km-riso32-ip-flexion={thumb.ipLocalAngle.toFixed(2)}
     data-km-riso33-minimum-axis-gap={spacing.minimumAxisGap.toFixed(3)}
