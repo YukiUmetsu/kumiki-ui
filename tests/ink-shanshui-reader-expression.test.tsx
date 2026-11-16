@@ -44,14 +44,44 @@ describe("EXPR1 anatomy-driven Chinese-ink reader",()=>{
     expect(shapes(sad.assets,"mouth-rest"))
       .not.toEqual(shapes(baseline,"mouth-rest"));
   });
+  it("produces visibly distinct consecutive EXPR1 smile and surprise keyframes, without switching viseme topology",()=>{
+    for(const emotion of ["smile","sad","angry","surprise"] as const){
+      const frames=[0,.25,.5,.75,1].map(t=>
+        inkReaderExpressionStudy(emotion,t,1));
+      // The actual production lip cel changes with EVERY keyframe, not
+      // an immediate full-intensity smile pasted on at the first sample.
+      const mouthPaths=frames.map(f=>shapes(f.assets,"mouth-rest")
+        .map(s=>s.type==="path"?s.d:"").join("|"));
+      expect(new Set(mouthPaths).size).toBe(5);
+      const eyelids=frames.map(f=>shapes(f.assets,"eyes-soft")
+        .map(s=>s.type==="path"?s.d:"").join("|"));
+      expect(new Set(eyelids).size).toBeGreaterThanOrEqual(3);
+      expect(frames[0].assets).toEqual(scrollReaderFacePortrait(1));
+      expect(frames.every(f=>f.lids==="soft"&&f.mouth==="rest")).toBe(true);
+      const original=scrollReaderFacePortrait(1);
+      for(const frame of frames){
+        expect(frame.assets["eyes-open"]).toEqual(original["eyes-open"]);
+        expect(frame.assets["eyes-closed"]).toEqual(original["eyes-closed"]);
+        expect(frame.assets["mouth-smile"]).toEqual(original["mouth-smile"]);
+        expect(frame.assets.hair).toEqual(original.hair);
+        expect(frame.assets.face.kind).toBe("shapes");
+      }
+    }
+    const heights=[0,.25,.5,.75,1].map(t=>
+      shapes(inkReaderExpressionStudy("surprise",t).assets,"mouth-rest").length);
+    expect(heights[0]).toBeLessThan(heights[4]);
+    expect(heights.slice(1).every(x=>x===heights[4])).toBe(true);
+  });
   it("maps muscle-expression prototypes onto the original lids and five viseme assets",()=>{
     const smile=inkReaderExpressionStudy("smile",.8);
     const surprise=inkReaderExpressionStudy("surprise",.8);
     const angry=inkReaderExpressionStudy("angry",.8);
-    expect(smile.mouth).toBe("smile");
-    expect(surprise.mouth).toBe("oh");
-    expect(surprise.lids).toBe("open");
-    expect(angry.mouth).toBe("mm");
+    // EXPR1 now morphs the one source soft-lid/rest-mouth cel continuously.
+    // AU jaw drop uses an additional opening that grows from zero.
+    expect(smile.mouth).toBe("rest");
+    expect(surprise.mouth).toBe("rest");
+    expect(surprise.lids).toBe("soft");
+    expect(angry.mouth).toBe("rest");
     expect(angry.lids).toBe("soft");
     expect(smile).toEqual(inkReaderExpressionStudy("smile",.8));
     expect(()=>inkReaderExpressionStudy("sad",NaN)).toThrow(RangeError);
