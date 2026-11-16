@@ -1,11 +1,12 @@
 import {useEffect,useMemo,useRef,useState} from "react";
-import type {ChangeEvent,PointerEvent} from "react";
+import type {ChangeEvent,PointerEvent,KeyboardEvent} from "react";
 import {
   HEAD_FIDELITY_LANDMARK_IDS, HEAD_FIDELITY_TONES,
 } from "./colored-pencil-head-fidelity";
 import {
   emptyHeadAnnotations, annotatedPoint, annotatedTone,
   clientToNativePoint,compileHeadAnnotationManifest,removeHeadAnnotation,
+  nudgeHeadAnnotation,
   type HeadAnnotationSession,type HeadAnnotationSide,
   type NativePoint,type NativeDimensions,
 } from "./colored-pencil-head-annotation";
@@ -79,6 +80,7 @@ function AnnotationPanel({side,photo,model,onChange}:AnnotationPanelProps){
   const [selectedPoint,setSelectedPoint]=useState(0);
   const [selectedTone,setSelectedTone]=useState(0);
   const [start,setStart]=useState<NativePoint|null>(null);
+  const [zoom,setZoom]=useState(1);
   const [error,setError]=useState("");
   const current=model[side],dims=photo?.dimensions;
   // PointerEvent data must be kept separate from the SVG element.
@@ -115,6 +117,30 @@ function AnnotationPanel({side,photo,model,onChange}:AnnotationPanelProps){
       if(selectedTone<HEAD_FIDELITY_TONES.length-1)setSelectedTone(i=>i+1);
     }catch(ex){setError(ex instanceof Error?ex.message:String(ex));}
     finally{setStart(null);}
+  };
+  const selectedId=mode==="landmark"?
+    HEAD_FIDELITY_LANDMARK_IDS[selectedPoint]:HEAD_FIDELITY_TONES[selectedTone];
+  const canNudge=mode==="landmark"?
+    current.landmarks.some(p=>p.id===selectedId):
+    current.tones.some(t=>t.id===selectedId);
+  const nudge=(dx:number,dy:number)=>{
+    if(!dims||!canNudge)return;
+    try{
+      onChange(nudgeHeadAnnotation(model,side,mode,selectedId,{x:dx,y:dy},dims));
+      setError("");
+    }catch(ex){setError(ex instanceof Error?ex.message:String(ex));}
+  };
+  const keyDown=(event:KeyboardEvent<SVGSVGElement>)=>{
+    const offset=event.shiftKey?10:1;
+    const step=event.key==="ArrowLeft"?[-offset,0]:
+      event.key==="ArrowRight"?[offset,0]:
+      event.key==="ArrowUp"?[0,-offset]:
+      event.key==="ArrowDown"?[0,offset]:null;
+    if(!step)return;
+    // Arrow keys correct the current native-pixel annotation instead of
+    // scrolling the enlarged photo. Keyboard access requires no pointer.
+    event.preventDefault();
+    nudge(step[0],step[1]);
   };
   const ready=current.landmarks.length===18&&current.tones.length===5;
   return <section data-km-head-photo-side={side} style={{display:"grid",gap:9,
@@ -167,9 +193,41 @@ function AnnotationPanel({side,photo,model,onChange}:AnnotationPanelProps){
           setError("");
         }}>Remove selected {mode==="landmark"?"point":"value box"}</button>
     </div>
-    <div style={{background:"#D4D1C9",border:"1px solid #B7B4AE",
-      borderRadius:5,minHeight:205}}>
-      {photo&&<div style={{position:"relative",width:"100%"}}>
+    <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end"}}>
+      <label style={labelStyle}>Inspection magnification
+        <select aria-label={side+" native annotation magnification"}
+          data-km-photo-zoom={side} style={common} value={zoom}
+          onChange={e=>setZoom(Number(e.target.value))}>
+          <option value={1}>Fit · whole image</option>
+          <option value={2}>2× · cranial planes</option>
+          <option value={4}>4× · contour joints</option>
+          <option value={8}>8× · individual paper pixels</option>
+        </select>
+      </label>
+      <div style={{display:"grid",gap:5,fontSize:12}}>
+        <span>Nudge selected {mode==="landmark"?"point":"value box"} · 1 native px</span>
+        <div style={{display:"flex",gap:5}}>
+          {([
+            ["Left",-1,0],["Up",0,-1],["Down",0,1],["Right",1,0],
+          ] as const).map(([name,dx,dy])=><button key={name}
+            type="button" disabled={!canNudge} style={{
+              ...common,padding:"6px 10px",minHeight:37,
+              cursor:canNudge?"pointer":"not-allowed",
+            }} aria-label={"Nudge "+side+" selected annotation "+
+              name.toLowerCase()+" by 1 native pixel"}
+            onClick={()=>nudge(dx,dy)}>{name}</button>)}
+        </div>
+      </div>
+    </div>
+    <div style={{fontSize:12,color:"#59665E"}}>
+      Zoom changes the display only; exported coordinates remain in
+      original image pixels. Focus the image and use arrow keys
+      (Shift + arrow = 10 px) for precision corrections.
+    </div>
+    <div data-km-photo-scroll={side} style={{background:"#D4D1C9",
+      border:"1px solid #B7B4AE",borderRadius:5,minHeight:205,
+      overflow:"auto",maxHeight:540}}>
+      {photo&&<div style={{position:"relative",width:(zoom*100)+"%"}}>
         <img alt={side+" local photo"} src={photo.url} draggable={false}
           style={{width:"100%",height:"auto",display:"block",
             pointerEvents:"none"}}/>
@@ -177,7 +235,7 @@ function AnnotationPanel({side,photo,model,onChange}:AnnotationPanelProps){
           aria-label={side+" photograph annotation canvas"}
           viewBox={`0 0 ${photo.dimensions.width} ${photo.dimensions.height}`}
           preserveAspectRatio="none" onPointerDown={down}
-          onPointerUp={up}
+          onPointerUp={up} onKeyDown={keyDown} tabIndex={0}
           style={{width:"100%",height:"100%",position:"absolute",
             inset:0,cursor:"crosshair",touchAction:"none",
             userSelect:"none",WebkitUserSelect:"none"}}>
