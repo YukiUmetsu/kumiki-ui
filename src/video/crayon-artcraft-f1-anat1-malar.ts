@@ -68,7 +68,7 @@ function fit(
     p:vector2(face.vertices[FACE_LANDMARKS[p.face]],yaw,pitch),
     target:src[p.source] as XY,w:p.weight,name:p.source,
   }));
-  let sw=0,px=0,py,qx=0,qy=0;
+  let sw=0,px=0,py=0,qx=0,qy=0;
   for(const v of points){sw+=v.w;px+=v.w*v.p.x;py+=v.w*v.p.y;
     qx+=v.w*v.target[0];qy+=v.w*v.target[1];}
   px/=sw;py/=sw;qx/=sw;qy/=sw;
