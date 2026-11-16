@@ -127,8 +127,8 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
       // a static blue sticker on the root during paper pinch.
       return {...part,joint:side+"-thumb-ip",
         d:side==="right"
-          ?"M3.1 1.3 Q4 .9 4.8 1.2 L4.9 1.9 Q4.1 1.55 3.2 2 Z"
-          :"M-3.2 1.4 Q-4 .85 -4.9 1.3 L-4.7 2 Q-4 1.5 -3.1 2.05 Z"};
+          ?"M-.9 5.5 Q.1 5 1.15 5.55 L1.08 6.15 Q.05 5.85 -.8 6.25 Z"
+          :"M-1.1 5.5 Q-.1 5.1 .9 5.52 L.82 6.17 Q-.05 5.85 -1.02 6.23 Z"};
     }
     const nail=/^(index|middle|ring|pinky)-nail$/.exec(id);
     if(nail){
