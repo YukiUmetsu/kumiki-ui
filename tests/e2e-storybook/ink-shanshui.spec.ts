@@ -795,8 +795,10 @@ test("Fuchun paper-lift Storybook compares native masked ink without changing so
     d:node.getAttribute("d"),
     ink:node.getAttribute("fill"),
     load:node.getAttribute("opacity"),
-    reserve:node.getAttribute("mask"),
+    reserve:node.hasAttribute("mask"),
   })));
+  // SVG mask IDs are React-useId instance-local by design; compare the
+  // presence of masks, not two valid but different generated URL fragments.
   expect(await source(uncut)).toEqual(await source(lifted));
   const masked=uncut.locator("[data-km-master-stroke-loaded][mask]");
   await expect.poll(()=>masked.count()).toBeGreaterThan(0);
