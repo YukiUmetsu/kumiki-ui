@@ -230,8 +230,8 @@ test("ArtCraft single-head-only construction and fox geometry inspect both nativ
             each:families.map(name=>paths.filter(path=>
               path.getAttribute("data-km-pencil-trace")?.startsWith(
                 "newhead-anat1-"+name+"-")).length),
-            complete:paths.every(path=>(path.getAttribute("d")??"")
-              .match(/M/g)?.length!>=90),
+            complete:paths.every(path=>((path.getAttribute("d")??"")
+              .match(/M/g)??[]).length>=90),
             empty:paths.some(path=>!(path.getAttribute("d")??"").trim()),
           };
         });
