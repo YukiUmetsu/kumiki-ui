@@ -1,6 +1,19 @@
 import {expect,test} from "@playwright/test";
 
 const path="/iframe.html?id=video-production-film-looks-paper-craft--moonlit-lantern&viewMode=story";
+test("reduced motion allows selecting all chapters as still poses",async({page},info)=>{
+  await page.goto(path+"&args=aspect:portrait;motion:0.75;medium:layered;reducedMotion:true");
+  const stage=page.locator('svg[data-km-paper-director="the-moonlit-lantern"]');
+  await expect(page.getByRole("button",{name:"Play story"})).toBeDisabled();
+  for(const [chapter,shot] of [[/01 ·/,"the-hushed-orchard"],[/02 ·/,"the-fox-guides"],[/03 ·/,"the-lantern-awakens"]] as const){
+    await page.getByRole("button",{name:chapter}).click();
+    await expect(stage).toHaveAttribute("data-km-paper-shot",shot,{timeout:3000});
+    await expect(page.locator("[data-km-paper-curtain]")).toHaveCount(0);
+    await stage.screenshot({path:info.outputPath(`still-${shot}.png`),animations:"disabled"});
+  }
+  await expect(page.getByRole("slider",{name:"Scrub fairy tale"})).toBeDisabled();
+  await expect(page.getByText("Choose a chapter to view its still pose.")).toBeVisible();
+});
 for(const aspect of ["landscape","portrait"] as const){
   test("original royal paper fairy tale "+aspect+" renders all three acts with connected cutout actors",async({page},info)=>{
     const errors:string[]=[];
