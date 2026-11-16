@@ -78,6 +78,12 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const supportProjectionRatio=bones.filter(b=>b.digit!=="index").reduce((sum,b)=>
     sum+b.rootLength/b.expectedProximal+
       b.intermediateLength/b.expectedIntermediate,0)/6;
+  // RISO54: the camera incidence estimate is a *derived* 2D projection
+  // angle from each live moving ANAT1 segment, not a calibrated 3D camera.
+  const riso54MeanRayAngle=bones.filter(b=>b.digit!=="index")
+    .flatMap(b=>[b.rootLength/b.expectedProximal,
+      b.intermediateLength/b.expectedIntermediate])
+    .reduce((sum,ratio)=>sum+Math.acos(Math.max(-1,Math.min(1,ratio)))*180/Math.PI,0)/6;
   const thumb=inspectRiso32ThumbIp(actor,frame,side);
   const spacing=inspectRiso33HandFan(actor,frame,side);
   const redInk=useMemo(()=>inspectRiso36RedFingerSilhouettes(actor,frame,side),[actor,frame,side]);
@@ -96,6 +102,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso31-segments={bones.reduce((n,j)=>n+j.phalanxPathCount,0)}
     data-km-riso31-actual-flexion={String(bones.every(j=>j.exactRedSource))}
     data-km-riso49-support-projection-ratio={supportProjectionRatio.toFixed(3)}
+    data-km-riso54-mean-source-camera-ray-deg={riso54MeanRayAngle.toFixed(2)}
     data-km-riso50-source-mcp-planes={mcpSourcePlaneCount}
     data-km-riso50-palm-cubics={palmSourceCubicCount}
     data-km-riso51-live-source-morph-parts={riso51MorphParts}
@@ -179,7 +186,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO53</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO54</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
