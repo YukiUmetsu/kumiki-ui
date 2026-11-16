@@ -632,13 +632,19 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const root=quadraticPoint(supportingStratum.top,
           supportingStratum.bend,supportingStratum.tip,station);
         const sign=direction*((i+k)%2===0?1:-1);
-        const extent=(k===0?43:32)*
+        // NPM Fuchun detail: small, rounded alum-head outcrops ride
+        // across a broad rock back. Vary the brow/undercut anatomy,
+        // not just the brush density of one long triangular panel.
+        const extent=(k===0?50:38)*
           (.86+.32*s(seed+5431,i*41+k*19));
-        const rise=(k===0?16:10)*
+        const rise=(k===0?19:13)*
           (.84+.32*s(seed+5441,i*29+k*37));
         const fall=(k===0?64:49)*
           (.82+.29*s(seed+5449,i*31+k*23));
-        const crown:P=[root[0]+sign*extent*.42,root[1]-rise];
+        const crown:P=[root[0]+sign*extent*(k===0?.36:.42),
+          root[1]-rise];
+        const knuckle:P=[root[0]+sign*extent*(k===0?.66:.61),
+          root[1]-rise*(k===0?.81:.49)];
         const ledge:P=[root[0]+sign*extent*.89,root[1]-rise*.13];
         const shoulder:P=[root[0]+sign*extent*.75,
           root[1]+fall*.37];
@@ -646,15 +652,20 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           root[1]+fall*.93];
         const inner:P=[root[0]+sign*extent*.13,
           root[1]+fall*.74];
-        // A six-turn closed geological body, not a triangular sticker
-        // or a generic stamp. The enclosing parent face clips all pigment.
+        // Seven continuous bowed edges trace the original stone's
+        // local cap, worn knuckle, undercut and eroded inner foothill.
+        // The enveloping parent stone clips the whole positive body.
         const d="M"+f(root[0])+" "+f(root[1])+
           " C"+f(root[0]+sign*extent*.08)+" "+f(root[1]-rise*.76)+
           " "+f(crown[0]-sign*extent*.2)+" "+f(crown[1]-rise*.12)+
           " "+f(crown[0])+" "+f(crown[1])+
-          " C"+f(crown[0]+sign*extent*.19)+" "+f(crown[1]-rise*.21)+
-          " "+f(ledge[0]-sign*extent*.15)+" "+
-          f(ledge[1]-rise*.25)+" "+f(ledge[0])+" "+f(ledge[1])+
+          " C"+f(crown[0]+sign*extent*.14)+" "+f(crown[1]-rise*.06)+
+          " "+f(knuckle[0]-sign*extent*.19)+" "+
+          f(knuckle[1]-rise*.11)+" "+f(knuckle[0])+" "+f(knuckle[1])+
+          " C"+f(knuckle[0]+sign*extent*.11)+" "+
+          f(knuckle[1]+rise*.14)+
+          " "+f(ledge[0]-sign*extent*.13)+" "+
+          f(ledge[1]-rise*.23)+" "+f(ledge[0])+" "+f(ledge[1])+
           " C"+f(ledge[0]+sign*extent*.13)+" "+f(ledge[1]+fall*.24)+
           " "+f(shoulder[0]+sign*extent*.08)+" "+
           f(shoulder[1]-fall*.19)+" "+f(shoulder[0])+" "+
@@ -671,11 +682,33 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           f(root[1]+fall*.4)+" "+f(root[0]+sign*extent*.08)+
           " "+f(root[1]+fall*.12)+" "+f(root[0])+" "+f(root[1])+" Z";
         const lip=rockLoadedCubicRibbon(root,
-          [root[0]+sign*extent*.1,root[1]-rise*.87],
-          [ledge[0]-sign*extent*.15,ledge[1]-rise*.14],ledge,
+          [root[0]+sign*extent*.12,root[1]-rise*.87],
+          [ledge[0]-sign*extent*.16,ledge[1]-rise*.14],ledge,
           (k===0?3.7:2.6)*(.84+.24*s(seed+5461,i*17+k*43)),
           seed+5471+i*71+k*29);
-        return {root,d,lip,gradient:tone+"fuchunhillback"+k,
+        // Paint a concave volume BELOW the knuckle, with a soft
+        // capillary boundary. It is clipped again to the ORIGINAL
+        // seven-sided hill-back body, so no unrooted triangular mask
+        // spills into the open paper or onto an adjacent rock.
+        const shear:P=[root[0]+sign*extent*.73,
+          root[1]+fall*(k===0?.28:.19)];
+        const throat:P=[root[0]+sign*extent*.43,
+          root[1]+fall*(k===0?.58:.48)];
+        const undercut="M"+f(knuckle[0])+" "+f(knuckle[1])+
+          " C"+f(knuckle[0]+sign*extent*.12)+" "+
+          f(knuckle[1]+rise*.08)+" "+
+          f(shear[0]+sign*extent*.13)+" "+
+          f(shear[1]-fall*.17)+" "+f(shear[0])+" "+f(shear[1])+
+          " C"+f(shear[0]-sign*extent*.09)+" "+
+          f(shear[1]+fall*.21)+" "+
+          f(throat[0]+sign*extent*.22)+" "+
+          f(throat[1]+fall*.18)+" "+f(throat[0])+" "+f(throat[1])+
+          " C"+f(throat[0]-sign*extent*.06)+" "+
+          f(throat[1]-fall*.29)+" "+
+          f(knuckle[0]-sign*extent*.19)+" "+
+          f(knuckle[1]+rise*.12)+" "+f(knuckle[0])+" "+f(knuckle[1])+" Z";
+        return {root,d,lip,undercut,knuckle,throat,
+          gradient:tone+"fuchunhillback"+k,
           form:k===0?"round":"saddle" as const};
       }):[];
       // Wang Meng's moss stipple is a separate brush-particle class,
@@ -928,11 +961,25 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           fill={"url(#"+tone+")"} opacity={f((isFan?.96:isWang?.94:.87)*(1-.16*mist))}/>
         {isHuang&&<g clipPath={"url(#"+clip+")"}
           data-km-master-fuchun-hillback-field="">
-          {fuchunHillbacks.map(({root,d,lip,gradient,form},k)=><g
+          {fuchunHillbacks.map(({root,d,lip,undercut,knuckle,throat,
+            gradient,form},k)=><g
             key={k} data-km-master-fuchun-hillback=""
             data-km-master-fuchun-hillback-root={f(root[0])+","+f(root[1])}
             data-km-master-fuchun-hillback-form={form}>
             <defs>
+              <clipPath id={gradient+"-volume-clip"}
+                clipPathUnits="userSpaceOnUse">
+                <path d={d}/>
+              </clipPath>
+              <linearGradient id={gradient+"-undercut"}
+                gradientUnits="userSpaceOnUse"
+                x1={f(knuckle[0])} y1={f(knuckle[1])}
+                x2={f(throat[0])} y2={f(throat[1])}>
+                <stop offset="0" stopColor="#3e342c" stopOpacity=".67"/>
+                <stop offset=".24" stopColor="#534437" stopOpacity=".57"/>
+                <stop offset=".66" stopColor="#86715a" stopOpacity=".22"/>
+                <stop offset="1" stopColor="#ab9579" stopOpacity="0"/>
+              </linearGradient>
               <linearGradient id={gradient} x1={k===0?"8%":"24%"} y1="0%"
                 x2={k===0?"79%":"52%"} y2="100%">
                 <stop offset="0" stopColor="#39332d"
@@ -948,6 +995,13 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
             <path data-km-master-fuchun-hillback-wash="" d={d}
               fill={"url(#"+gradient+")"}
               opacity={f((k===0?.88:.79)*(1-.2*mist))}/>
+            <path data-km-master-fuchun-hillback-undercut=""
+              data-km-master-fuchun-hillback-undercut-root={
+                f(knuckle[0])+","+f(knuckle[1])}
+              d={undercut}
+              clipPath={"url(#"+gradient+"-volume-clip)"}
+              fill={"url(#"+gradient+"-undercut)"}
+              opacity={f((k===0?.81:.65)*(1-.2*mist))}/>
             <path data-km-master-fuchun-hillback-lip="" d={lip}
               fill="#3f362e" opacity={f((k===0?.62:.49)*(1-.2*mist))}/>
           </g>)}
