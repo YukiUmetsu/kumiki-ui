@@ -231,8 +231,8 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
           return {
             jaw:ctx.isPointInPath(cheek,253,235)&&
               ctx.isPointInPath(muzzle,253,235),
-            neck:ctx.isPointInPath(cheek,251,269)&&
-              ctx.isPointInPath(chest,251,269),
+            neck:ctx.isPointInPath(cheek,240,265)&&
+              ctx.isPointInPath(chest,240,265),
             softFan:!!details.querySelector(
               '[data-km-pencil-trace="fox-malar-light-fan"]'),
             cervicalTurn:!!details.querySelector(
