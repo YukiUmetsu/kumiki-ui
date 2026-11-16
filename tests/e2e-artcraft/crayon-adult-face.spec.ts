@@ -840,3 +840,57 @@ test("F1 attached nasal roof native 3x source A/B, dark cavities and paper tooth
     .not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+
+/** Source photo F1 mouth: x351..485/y686..772. This creates exact
+ * native Chromium evidence for the medium-native oral reconstruction.
+ * Difference alone cannot establish source likeness or ArtCraft quality.
+ */
+test("F1 source-registered oral wax shape vs prior 2.65x Chromium A/B",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const focus={focusX:417,focusY:739,zoom:2.65};
+  const frames=[210,299] as const;
+  for(const frame of frames){
+    const captures:Uint8Array[]=[];
+    for(const midfaceForm of ["source-alar","source-oral"] as const){
+      const original=crayonCc0FaceStudy({
+        eyeContact:"source-shade",midfaceForm,lashFinish:"sparse",
+      });
+      const spec={...original,camera:[
+        {frame:0,...focus},{frame:299,...focus},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame",String(frame));
+      for(const id of ["lip-upper-body-wax","lip-upper","oral-opening",
+        "mouth-aperture-depth","dental-surface-center",
+        "lip-lower-body-wax","labial-lower-value"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toBeAttached();
+      }
+      captures.push(await svg.screenshot({
+        path:info.outputPath("crayon-f1-oral-"+midfaceForm+"-"+frame+".png"),
+        animations:"disabled",
+      }));
+      if(frame===299&&midfaceForm==="source-oral"){
+        const fullHtml=renderToStaticMarkup(createElement(CrayonScene,{
+          spec:original,frame:299,
+        }));
+        await page.setContent("<!doctype html><html><body style='margin:0'>"+
+          fullHtml+"</body></html>");
+        await page.locator("svg[data-km-crayon-scene]").screenshot({
+          path:info.outputPath("crayon-f1-source-oral-full-299.png"),
+          animations:"disabled",
+        });
+      }
+    }
+    expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[1])))
+      .not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
