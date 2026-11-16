@@ -664,7 +664,7 @@ export const HumanAnatomyNeckPortrait:StoryObj<typeof meta>={
 
 /** RISO30: original physical-ink ANAT1 human hand craftsmanship. Same folder. */
 export const HumanHandAnatomyPrint:StoryObj<typeof meta>={
-  name:"RISO55 · ANAT1 Human Hand / Folded Distal Pulp & Living Print",
+  name:"RISO57 · ANAT1 Human Hand / Continuous Thenar & MCP Ink Contour",
   args:{actor:"courier"},
   render:()=> <Riso30HumanHandsWorkbench/>,
 };
