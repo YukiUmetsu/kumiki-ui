@@ -51,6 +51,10 @@ export interface PaperCutLayer {
   swingDegrees?: number;
   /** 0–1 authored curvature cue for opaque graded cardstock (not a 3D mesh). */
   curl?: number;
+  /** Relative size of sheet-anchored fibre marks, 0.25–2; default 1. */
+  fibreScale?: number;
+  /** 0–1 multiplier for this sheet’s paper tooth; default 1. */
+  fibreIntensity?: number;
   /** 0–1 multiplier for this sheet’s base cut line and edge highlight; default 1. */
   edgeIntensity?: number;
   /** Independently sculpted and shadowed opaque stock, attached to main cut. */
@@ -232,6 +236,10 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
       bad(base + ".swingDegrees", "swing must be within ±30 degrees");
     if (layer.curl !== undefined && (!finite(layer.curl) || layer.curl < 0 || layer.curl > 1))
       bad(base + ".curl", "curl must be finite 0–1");
+    if (layer.fibreScale !== undefined && (!finite(layer.fibreScale) || layer.fibreScale < .25 || layer.fibreScale > 2))
+      bad(base + ".fibreScale", "fibreScale must be finite 0.25–2");
+    if (layer.fibreIntensity !== undefined && (!finite(layer.fibreIntensity) || layer.fibreIntensity < 0 || layer.fibreIntensity > 1))
+      bad(base + ".fibreIntensity", "fibreIntensity must be finite 0–1");
     if (layer.edgeIntensity !== undefined && (!finite(layer.edgeIntensity) || layer.edgeIntensity < 0 || layer.edgeIntensity > 1))
       bad(base + ".edgeIntensity", "edgeIntensity must be finite 0–1");
     if (layer.liftedTip !== undefined) {

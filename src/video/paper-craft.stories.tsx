@@ -52,6 +52,8 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
   const [liveFrame, setLiveFrame] = useState(frame), [playing, setPlaying] = useState(false);
   const [selected, setSelected] = useState<PaperStyle>(medium);
   const [wingEdge, setWingEdge] = useState(1);
+  const [wingFibreScale, setWingFibreScale] = useState(1);
+  const [wingFibreIntensity, setWingFibreIntensity] = useState(1);
   useEffect(() => setSelected(medium), [medium]);
   const anchor = useRef<{ time: number; frame: number } | null>(null);
   useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, selected, aspect, artwork, scenery, sceneryPalette, breeze, treeVariety, object, objectPalette, palette, detail, colorLayers, curl, motion, relief, seed]);
@@ -78,7 +80,7 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
       : paperCraftExampleSpec(selected, aspect, seed),
     [artwork, scenery, sceneryPalette, breeze, treeVariety, object, objectPalette, selected, aspect, palette, detail, colorLayers, curl, motion, relief, seed]);
   const authoredSpec = useMemo(() => artwork === "garden" ? {...spec, layers:spec.layers.map(layer =>
-    layer.id === "bird-wing" ? {...layer, edgeIntensity:wingEdge} : layer)} : spec, [spec, artwork, wingEdge]);
+    layer.id === "bird-wing" ? {...layer, edgeIntensity:wingEdge, fibreScale:wingFibreScale, fibreIntensity:wingFibreIntensity} : layer)} : spec, [spec, artwork, wingEdge, wingFibreScale, wingFibreIntensity]);
   const current = reducedMotion ? spec.durationFrames : liveFrame;
   const text: CSSProperties = { fontFamily: "'Newsreader',Georgia,serif", color: "#f3eddf" };
   const small: CSSProperties = { font: "11px/1.5 Arial,sans-serif", letterSpacing: "2px", textTransform: "uppercase", color: "#bfb6a8" };
@@ -135,6 +137,16 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
             {artwork === "garden" && <label style={small}>Wing cut edge {Math.round(wingEdge*100)}%
               <input type="range" min={0} max={1} step={.05} value={wingEdge}
                 onChange={e=>setWingEdge(Number(e.currentTarget.value))} aria-label="Wing cut edge"
+                style={{display:"block",width:"100%",marginTop:10,accentColor:"#edd2ab"}} />
+            </label>}
+            {artwork === "garden" && <label style={small}>Wing fibre scale {wingFibreScale.toFixed(2)}×
+              <input type="range" min={.25} max={2} step={.05} value={wingFibreScale}
+                onChange={e=>setWingFibreScale(Number(e.currentTarget.value))} aria-label="Wing fibre scale"
+                style={{display:"block",width:"100%",marginTop:10,accentColor:"#edd2ab"}} />
+            </label>}
+            {artwork === "garden" && <label style={small}>Wing fibre intensity {Math.round(wingFibreIntensity*100)}%
+              <input type="range" min={0} max={1} step={.05} value={wingFibreIntensity}
+                onChange={e=>setWingFibreIntensity(Number(e.currentTarget.value))} aria-label="Wing fibre intensity"
                 style={{display:"block",width:"100%",marginTop:10,accentColor:"#edd2ab"}} />
             </label>}
             <p style={{font:"12px/1.7 Arial,sans-serif",color:"#bcb5ac"}}>

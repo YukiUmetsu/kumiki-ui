@@ -726,8 +726,11 @@ export function paperRoyalStoryScene(
       : (phase===0?194:phase===1?163:120),
     actorScale=aspect==="portrait"?1.16:1.03;
   const layers:PaperCutLayer[]=[];
+  const facialStock = new Set(["princess-head","princess-face-planes","princess-ear","princess-neck",
+    "prince-head","prince-face-planes","prince-ear","prince-neck"]);
   const add:Add=(id,color,depth,path,rest={})=>{
-    layers.push({id,color,depth,path,motion:"still",...rest});
+    const texture=facialStock.has(id)?{fibreScale:.5,fibreIntensity:.45}:{};
+    layers.push({id,color,depth,path,motion:"still",...texture,...rest});
   };
   scenery(w,h,aspect,phase,seed,add);
   // Scale around each character's physical contact point, never stretch

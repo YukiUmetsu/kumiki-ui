@@ -332,3 +332,7 @@ This is a **rigid leaf with one spine**, not a V-fold engine or dynamic bending-
 ### Sheet-specific cut-edge intensity
 
 `PaperCutLayer.edgeIntensity?: number` scales the authored sheet's existing dark cut line and illuminated edge (finite 0–1; omitted defaults to 1). The stage's `edgeStrength` still controls the global highlight; the sheet multiplier applies in addition to it. At zero, that sheet has neither the base cut line nor the highlight, while its opaque fill, holes, fibre, shadow, geometry and animation remain unchanged. Other sheets retain their own edges; an independently rendered `liftedTip` keeps its own tip edge. This is a rendering control, not a thickness or contact simulation; split semantic pieces into separate sheets when they need different treatments. The existing Garden Storybook page exposes **Wing cut edge** for comparison.
+
+### Sheet-specific paper fibre
+
+`PaperCutLayer.fibreScale?: number` sets the relative size of the seeded, sheet-anchored fibre pattern (finite 0.25–2; default 1), and `fibreIntensity?: number` multiplies that sheet's tooth opacity (finite 0–1; default 1). The stage's `tooth` remains the global control. Different sheets may use different values without changing geometry, fill or other sheets. The existing Garden page exposes wing controls; royal face/neck stock uses smaller, lighter marks as an experimental visual treatment. The repeated horizontal fibre approximation is not a calibrated paper scan, physical microstructure, or an artistic approval.

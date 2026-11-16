@@ -65,6 +65,18 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
       }
     }
   });
+  it("uses finer but still visible paper fibre on both faces",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const scene=paperRoyalStoryScene("layered",aspect,2,37,.85);
+      for(const id of ["princess-head","princess-ear","princess-neck","prince-head","prince-ear","prince-neck"]){
+        const sheet=scene.layers.find(layer=>layer.id===id)!;
+        expect(sheet.fibreScale).toBe(.5);
+        expect(sheet.fibreIntensity).toBe(.45);
+      }
+      expect(scene.layers.find(layer=>layer.id==="princess-tiara")?.fibreScale).toBeUndefined();
+      expect(inspectPaperCraft(scene)).toEqual([]);
+    }
+  });
   it("preserves the prince ear edge while softening the facial-plane rims",()=>{
     for(const aspect of ["landscape","portrait"] as const){
       for(const phase of [0,1,2]){

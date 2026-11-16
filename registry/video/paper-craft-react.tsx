@@ -50,6 +50,8 @@ export function PaperCraftStage({
   })), [spec.seed]);
   const prepared = useMemo(() => spec.layers.map((layer, i) => ({ layer, i }))
     .sort((a, b) => a.layer.depth - b.layer.depth || a.i - b.i), [spec.layers]);
+  const fibreScales = [...new Set(prepared.map(({layer}) => layer.fibreScale ?? 1))].filter(scale => scale !== 1);
+  const fibreId = (scale:number) => uid + "-fibre-" + String(scale).replace(".","_");
   const isLamp = spec.style === "lightbox" || spec.style === "shadow-puppet";
   const puppet = spec.style === "shadow-puppet";
   const hidden = props["aria-hidden"] === true || props["aria-hidden"] === "true";
@@ -72,6 +74,8 @@ export function PaperCraftStage({
             stroke="#3b3028" strokeWidth=".32" />
         </g>)}
       </pattern>
+      {fibreScales.map(scale => <pattern key={scale} id={fibreId(scale)}
+        href={"#" + uid + "-fibre"} patternTransform={`scale(${scale})`}/>)}
       {prepared.map(({ layer }) => <clipPath key={layer.id} id={uid + "-cut-" + layer.id}
         clipPathUnits="userSpaceOnUse">
         <path d={[layer.path, ...(layer.holes ?? [])].join(" ")} clipRule="evenodd"/>
@@ -128,8 +132,9 @@ export function PaperCraftStage({
           {edge > 0 && sheetEdge > 0 && <path d={cut} fill="none" stroke={puppet ? "#ffe2b6" : "#fff5e1"}
             strokeWidth={.6 + edge * 2} strokeOpacity={edge * sheetEdge * (puppet ? .28 : .49)}
             strokeLinejoin="round" pointerEvents="none" />}
-          {grain > 0 && <rect width={spec.width} height={spec.height}
-            fill={`url(#${uid}-fibre)`} opacity={grain * (puppet ? .48 : .8)}/>}
+          {grain > 0 && (layer.fibreIntensity ?? 1) > 0 && <rect width={spec.width} height={spec.height}
+            fill={`url(#${(layer.fibreScale ?? 1) === 1 ? uid + "-fibre" : fibreId(layer.fibreScale!)})`}
+            opacity={grain * (layer.fibreIntensity ?? 1) * (puppet ? .48 : .8)}/>}
           {/* A scored hinge remains legible after folding, unlike an animated scale alone. */}
           {spec.style === "kirigami" && layer.motion === "unfold" && <path
             d={`M${pivot[0]} ${pivot[1] - 48} v96`}
