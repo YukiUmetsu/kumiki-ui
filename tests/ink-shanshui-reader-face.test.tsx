@@ -203,6 +203,49 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
       .find(x=>x.id==="head")?.rest).toEqual(
         shanshuiBodyFit("river-scholar").headRest);
   });
+  it("forms near and far eyelids around their original independent irises and non-spiral ear cartilage",()=>{
+    const high=readerFaceAnatomy(1);
+    const path=(region:readonly {type:string;d?:string}[],idx:number)=>{
+      const p=region[idx];
+      if(p?.type!=="path"||!p.d)throw Error("Missing anatomical path");
+      return p.d;
+    };
+    const box=(d:string)=>{
+      const nums=(d.match(/-?\\d+(?:\\.\\d+)?/g)??[]).map(Number);
+      expect(nums.length%2).toBe(0);
+      expect(nums.length).toBeGreaterThanOrEqual(8);
+      const xs=nums.filter((_,k)=>k%2===0);
+      const ys=nums.filter((_,k)=>k%2===1);
+      return {x0:Math.min(...xs),x1:Math.max(...xs),
+        y0:Math.min(...ys),y1:Math.max(...ys)};
+    };
+    const near=box(path(high.eyesOpen,0));
+    const far=box(path(high.eyesOpen,1));
+    const nearIris=box(path(high.nearPupil,0));
+    const farIris=box(path(high.farPupil,0));
+    expect(near.x1-near.x0).toBeGreaterThan(far.x1-far.x0);
+    expect(far.y0).toBeGreaterThan(near.y0);
+    for(const [eye,iris] of [[near,nearIris],[far,farIris]]){
+      expect(iris.x0).toBeGreaterThan(eye.x0);
+      expect(iris.x1).toBeLessThan(eye.x1);
+      expect(iris.y0).toBeGreaterThan(eye.y0);
+      expect(iris.y1).toBeLessThan(eye.y1);
+    }
+    const nearUpper=path(high.eyesOpen,2);
+    const farUpper=path(high.eyesOpen,3);
+    expect(nearUpper).not.toBe(farUpper);
+    expect(high.eyesOpen).not.toEqual(high.eyesSoft);
+    expect(high.eyesSoft).not.toEqual(high.eyesClosed);
+    const ear=paths(scrollReaderFacePortrait(1),"reader-ear");
+    const outer=ear[0];
+    if(outer.type!=="path")throw Error("Front ear should be a path");
+    expect(outer.fill).toBe("$skin");
+    expect(outer.d).toContain("120.2 111");
+    expect(outer.d).toContain("116.2 119.2");
+    expect(ear.length).toBeGreaterThanOrEqual(10);
+    expect(ear.every(shape=>shape.type==="path")).toBe(true);
+    expect(scrollReaderFacePortrait(1)).toEqual(scrollReaderFacePortrait(1));
+  });
   it("preserves an asymmetric, foreshortened near/far eye and five speaking visemes",()=>{
     const plate=scrollReaderFacePortrait(.8);
     const eyelids=["eyes-open","eyes-soft","eyes-closed"] as const;
