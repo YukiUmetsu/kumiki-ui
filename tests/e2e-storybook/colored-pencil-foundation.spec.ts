@@ -33,7 +33,9 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
       }));
       expect(provenance.photoElements).toBe(0);
       expect(provenance.pencilMarks).toBeGreaterThan(100);
-      expect(provenance.tracedGeometry).toBeGreaterThan(10);
+      // The reset human has ONE real silhouette, not 22 old female parts.
+      // The separately tested head detail pass is deliberately sparse.
+      expect(provenance.tracedGeometry).toBeGreaterThan(item==="portrait"?0:10);
       if(item==="fox"){
         for(const region of ["periocular-form","mask","eye-far","eye-near"])
           await expect(svg.locator(
