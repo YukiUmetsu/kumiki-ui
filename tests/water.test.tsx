@@ -7,6 +7,8 @@ import {
   phaseSpeed, reflectanceAt, reflectPoint, seaStateOf, seaSurface, wavelength, whitecapCoverage,
 } from "../registry/nature/water-physics";
 import { WaterSheet } from "../registry/nature/water-react";
+import { fresnelWater, oceanField, renderOcean, seaSpectrum, subsurfaceReflectance } from "../registry/nature/water-ocean";
+import { FULLY_DEVELOPED, G, SLOPES, WHITECAPS } from "../registry/nature/water-data";
 
 describe("WATER1 waves", () => {
   it("follows the dispersion relation in deep and shallow water", () => {
@@ -90,4 +92,42 @@ describe("WATER1 shore, wakes, light and rivers", () => {
     expect(html).toContain("plunging");
     expect(html).not.toMatch(/NaN|undefined/);
   });
+});
+
+describe("WATER1 rendered ocean", () => {
+  it("makes the measured sea for a wind: Pierson–Moskowitz height and period, shorter fetch a smaller sea", () => {
+    for (const U of [6, 10, 16]) {
+      const sp = seaSpectrum({ wind: U }), u195 = U * FULLY_DEVELOPED.u195;
+      expect(sp.significantHeight / (FULLY_DEVELOPED.height * u195 * u195 / G)).toBeGreaterThan(0.9);
+      expect(sp.significantHeight / (FULLY_DEVELOPED.height * u195 * u195 / G)).toBeLessThan(1.1);
+      expect(sp.peakPeriod).toBeCloseTo((2 * Math.PI * u195) / (FULLY_DEVELOPED.peak * G), 1);
+    }
+    const open = seaSpectrum({ wind: 12 }), bay = seaSpectrum({ wind: 12, fetchKm: 20 });
+    expect(bay.significantHeight).toBeLessThan(open.significantHeight * 0.7);
+    expect(bay.peakPeriod).toBeLessThan(open.peakPeriod);
+  });
+  it("whitecaps the share Monahan measured; keeps resolved slopes within Cox–Munk's", () => {
+    const U = 12, f = oceanField({ wind: U, seed: 2 }), cover = WHITECAPS.a * U ** WHITECAPS.b;
+    expect(f.whitecapCover).toBeCloseTo(cover, 4);
+    let below = 0, n = 0;
+    for (let i = 0; i < 4000; i++) { const s = f.sample((i % 63) * 2.9, Math.floor(i / 63) * 2.9); n++; if (s.jac < f.foamThreshold) below++; }
+    expect(below / n).toBeGreaterThan(cover * 0.4);
+    expect(below / n).toBeLessThan(cover * 2.5);
+    for (const w of [3, 8, 15]) { const g = oceanField({ wind: w }); expect(g.resolvedSlopeVar).toBeLessThanOrEqual((SLOPES.base + SLOPES.perWind * w) * 0.85 + 1e-6); }
+  });
+  it("reflects 2% of light at normal incidence and nearly all at grazing; deep water sends back blue", () => {
+    expect(fresnelWater(1)).toBeCloseTo(0.0204, 3);
+    expect(fresnelWater(0.02)).toBeGreaterThan(0.85);
+    const r = subsurfaceReflectance();
+    expect(r[2]).toBeGreaterThan(r[1]);
+    expect(r[1]).toBeGreaterThan(r[0]);
+  });
+  it("renders a sea to finite, deterministic pixels; a gale is whiter than a calm", () => {
+    const a = renderOcean({ width: 32, height: 18, wind: 6, seed: 1 }), b = renderOcean({ width: 32, height: 18, wind: 6, seed: 1 });
+    expect(a.rgba.length).toBe(32 * 18 * 4);
+    expect(Array.from(a.rgba)).toEqual(Array.from(b.rgba));
+    const white = (px: Uint8ClampedArray) => { let c = 0; for (let i = 0; i < px.length; i += 4) if (px[i] > 200 && px[i + 1] > 200 && px[i + 2] > 200) c++; return c; };
+    const calm = renderOcean({ width: 96, height: 54, wind: 3, pitch: -20, sunAzimuth: -120, seed: 2 }), gale = renderOcean({ width: 96, height: 54, wind: 20, pitch: -20, sunAzimuth: -120, seed: 2 });
+    expect(white(gale.rgba)).toBeGreaterThan(white(calm.rgba));
+  }, 60000);
 });
