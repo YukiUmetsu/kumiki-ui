@@ -469,7 +469,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   initialEyeContact="source-shade",initialMidfaceForm="baseline",
 }:StudyProps & {
   initialLashFinish?:CrayonF1LashFinish;
-  initialInspection?:"full"|"near-eye"|"far-eye";
+  initialInspection?:"full"|"near-eye"|"far-eye"|"mouth";
   initialEyeContact?:Cc0EyeContact;
   initialMidfaceForm?:Cc0MidfaceForm;
 }){
