@@ -119,6 +119,20 @@ stands instead (a horse does not sit), and so does a species that cannot rear.
 - **Tested.** Every mammal, in every posture it takes, frame by frame: nothing goes through the ground, no joint
   snaps between frames, the planted feet stay put, and the full posture reaches its pitch.
 
+**Birds** (`BIRD_POSTURES`, `poseAnimal(c, { birdPosture, amount, water })`):
+
+- **One leg:** one leg drawn up. A wader keeps its thigh and lifts the shank back from the knee (the heron on its
+  stump); smaller birds tuck the whole leg into the belly feathers. The standing foot moves under the body. Herons
+  hunch the neck.
+- **Sleep:** fluffed out on one leg, the head turned back over the shoulder with the bill in the back feathers, the eye
+  closed (`head.eyeClosed`; the painter draws a lid line).
+- **Swim** (ducks): the body level, a third of its depth under water (measured off two swimming mallards, CC0), the
+  tail cocked up, the legs paddling out of sight. `joints.waterline` is the surface; `AnimalFigure` draws the water
+  over the body.
+- **Upend** (ducks): tail up and head under (reported: Wikipedia, Duck).
+- **Tested.** Every bird in every posture it takes, frame by frame: no snapping, nothing through the ground on land,
+  one foot down on one leg, the eye shut asleep, the duck at its waterline, the upended head under the surface.
+
 ## Flight
 
 `poseAnimal(c, { flight, t, amount, view })` flies a bird on open wings. `flight` is `"flap"` (with `t` through the

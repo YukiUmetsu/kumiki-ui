@@ -272,10 +272,30 @@ Birds now fly in ANIM1 on open wings, from a flight table (`BIRD_FLIGHT`).
 **Not done.** Take-off, landing, banking and turning; a hovering kingfisher; roosting and one-legged birds; per-feather
 colour for open wings.
 
+## Bird postures (2026-11-16)
+
+`BIRD_POSTURES`: one leg, sleep, swim and upend.
+
+**Sources:**
+
+- swimming mallards, iNaturalist 409758570 and 142761384 (CC0): the back level, the waterline about a third of the
+  way up the body;
+- mallards upending, iNaturalist 145299840 (CC0), and Wikipedia, *Duck*: "up-ending without completely submerging";
+- a duck asleep on one leg with its bill in the back feathers (Commons, CC0);
+- a grey heron on a stump (Commons, CC0);
+- Anderson & Williams (2010), via the PubMed abstract: flamingos rest on one leg more in water and in the cold.
+
+**Fixes found in renders and frame checks:**
+
+- A wader's raised leg folded straight up through the body: its shank is longer than the body is deep. It now keeps
+  the thigh and swings the shank back from the knee.
+- The sleeping head crossed its own body. It is now tucked lower on the back.
+- Upending in 10 frames jumped 0.14 per frame. It takes 14 frames.
+
 ## Not done
 
 - Front and back constructions in ANIM1 (styles draw their own).
-- Bird postures (perching, roosting, flight) and leaping.
+- Leaping, take-off and landing; birds on a perch (gripping a branch rather than standing on the ground).
 - The long-and-low UKIYO1 quadrupeds listed above.
 - Measured, not estimated, colours and faces.
 - Recordings for most animal voices; the search terms are listed per species.

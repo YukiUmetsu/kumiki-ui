@@ -12,8 +12,8 @@ import type { AnimalFigureMode } from "../../registry/anatomy/animal-react";
 import { checkAnimalProportions, measureAnimal } from "../../registry/anatomy/animal-check";
 import { findAnimal } from "../../registry/anatomy/animal-species";
 import { ukiyoeBeastLandmarks } from "../../registry/video/ukiyoe/ukiyoe-creatures";
-import { ANIMAL_POSTURES, POSTURE_IDS, postureFit } from "../../registry/anatomy/animal-postures";
-import type { PostureId } from "../../registry/anatomy/animal-postures";
+import { ANIMAL_POSTURES, BIRD_POSTURE_IDS, BIRD_POSTURES, birdPostureFits, POSTURE_IDS, postureFit } from "../../registry/anatomy/animal-postures";
+import type { BirdPostureId, PostureId } from "../../registry/anatomy/animal-postures";
 import { BIRD_FLIGHT, flightAt, speciesWingbeat } from "../../registry/anatomy/animal-flight";
 import type { UkiyoeSpecies } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 
@@ -163,20 +163,26 @@ const meta = { title: "Video production/Art Foundations/Animal Anatomy", id: "vi
 export default meta;
 type Story = StoryObj<typeof meta>;
 /** Sit, lie, rest and rear: a posture's pitch source, and the transition from standing played over its frames. */
+/** A posture the chosen animal takes: four-legged (`ANIMAL_POSTURES`) or a bird's (`BIRD_POSTURES`). */
+type PostureChoice = { kind: "quad"; id: PostureId } | { kind: "bird"; id: BirdPostureId };
+
 function PostureLab() {
   const [id, setId] = useState("shiba-inu");
   const sp = findAnimal(id)!;
   const c = useMemo(() => animalConstruction(sp), [sp]);
-  const usable = POSTURE_IDS.filter(p => postureFit(c.plan.id, p, sp.behaviour.canRear));
-  const [want, setWant] = useState<PostureId>("sit");
-  const posture = usable.includes(want) ? want : usable[0];
+  const usable: PostureChoice[] = c.plan.group === "bird"
+    ? BIRD_POSTURE_IDS.filter(p => birdPostureFits(c.plan.id, p)).map(p => ({ kind: "bird", id: p }))
+    : POSTURE_IDS.filter(p => postureFit(c.plan.id, p, sp.behaviour.canRear)).map(p => ({ kind: "quad", id: p }));
+  const [want, setWant] = useState<string>("sit");
+  const choice = usable.find(u => u.id === want) ?? usable[0];
+  const info = choice ? (choice.kind === "bird" ? BIRD_POSTURES[choice.id] : ANIMAL_POSTURES[choice.id]) : undefined;
   const [mode, setMode] = useState<AnimalFigureMode>("construction");
   const reduced = usePrefersReducedMotion();
   const [playing, setPlaying] = useState(true);
   const [amount, setAmount] = useState(1);
-  const frames = posture ? ANIMAL_POSTURES[posture].frames : 1;
+  const frames = info?.frames ?? 1;
   useEffect(() => {
-    if (!playing || reduced || !posture) return;
+    if (!playing || reduced || !choice) return;
     // Down over the posture's frames, hold, back up, hold.
     let raf = 0; const t0 = performance.now(), cycle = (frames * 2 + 60) / 30;
     const tick = (now: number) => {
@@ -186,16 +192,23 @@ function PostureLab() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing, reduced, posture, frames]);
-  const pose = useMemo(() => poseAnimal(c, { posture, amount }), [c, posture, amount]);
-  const fit = posture ? postureFit(c.plan.id, posture, sp.behaviour.canRear) : undefined;
+  }, [playing, reduced, choice?.id, frames]); // eslint-disable-line react-hooks/exhaustive-deps -- restart per posture
+  const pose = useMemo(() => poseAnimal(c, choice?.kind === "bird" ? { birdPosture: choice.id, amount } : { posture: choice?.id, amount }), [c, choice?.kind, choice?.id, amount]);
+  const fit = choice?.kind === "quad" ? postureFit(c.plan.id, choice.id, sp.behaviour.canRear) : undefined;
+  // Birds are framed on their own standing size; four-legged animals share one frame.
+  const bounds = useMemo(() => {
+    if (c.plan.group !== "bird") return [-2.6, -.06, 1.2, 2] as const;
+    const b = skeletonShapes(poseAnimal(c)).bounds, w = Math.max(b[2] - b[0], b[3] - b[1]) * 1.2, cx = (b[0] + b[2]) / 2;
+    return [cx - w / 2, -w * .08, cx + w / 2, w * .92] as const;
+  }, [c]);
+  const bp = choice?.kind === "bird" ? BIRD_POSTURES[choice.id] : undefined;
   return (
     <div style={page}>
       <div style={row}>
         <SpeciesSelect value={id} onChange={setId} />
         <label style={label}>Posture
-          <select style={field} value={posture ?? ""} onChange={e => setWant(e.target.value as PostureId)} disabled={!usable.length}>
-            {usable.map(p => <option key={p} value={p}>{ANIMAL_POSTURES[p].label}</option>)}
+          <select style={field} value={choice?.id ?? ""} onChange={e => setWant(e.target.value)} disabled={!usable.length}>
+            {usable.map(u => <option key={u.id} value={u.id}>{(u.kind === "bird" ? BIRD_POSTURES[u.id] : ANIMAL_POSTURES[u.id]).label}</option>)}
           </select>
         </label>
         <label style={label}>Drawing
@@ -203,20 +216,23 @@ function PostureLab() {
             {(["construction", "silhouette", "colour", "fur"] as const).map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </label>
-        <button type="button" style={field} onClick={() => setPlaying(p => !p)} aria-pressed={playing && !reduced} disabled={reduced || !posture}>{reduced ? "Motion reduced" : playing ? "Pause" : "Play"}</button>
+        <button type="button" style={field} onClick={() => setPlaying(p => !p)} aria-pressed={playing && !reduced} disabled={reduced || !choice}>{reduced ? "Motion reduced" : playing ? "Pause" : "Play"}</button>
         <label style={{ ...label, minWidth: 220 }}>Amount: {amount.toFixed(2)}
-          <input type="range" min={0} max={1} step={.01} value={amount} onChange={e => { setPlaying(false); setAmount(Number(e.target.value)); }} disabled={!posture} />
+          <input type="range" min={0} max={1} step={.01} value={amount} onChange={e => { setPlaying(false); setAmount(Number(e.target.value)); }} disabled={!choice} />
         </label>
       </div>
-      {posture && fit ? (
+      {choice && info ? (
         <>
-          <AnimalFigure skeleton={pose} mode={mode} bounds={[-2.6, -.06, 1.2, 2]} label={`${sp.name}, ${ANIMAL_POSTURES[posture].label.toLowerCase()}`} style={{ width: "100%", maxWidth: 900, height: "auto" }} />
+          <AnimalFigure skeleton={pose} mode={mode} bounds={bounds} label={`${sp.name}, ${info.label.toLowerCase()}`} style={{ width: "100%", maxWidth: 900, height: "auto" }} />
           <div style={{ maxWidth: "70ch" }}>
-            <p style={{ margin: "0 0 8px" }}><strong>{ANIMAL_POSTURES[posture].label}</strong> ({ANIMAL_POSTURES[posture].ja}) · body {fit.pitch.typical}° ({fit.pitch.min}–{fit.pitch.max}°, {fit.pitch.grade}{fit.pitch.source ? `: ${fit.pitch.source}` : ""}) · forelegs {fit.fore}, hind legs {fit.hind} · {frames} frames at 30 fps</p>
-            <ul style={{ margin: 0, paddingLeft: 20 }}>{ANIMAL_POSTURES[posture].drawing.map(d => <li key={d}>{d}</li>)}</ul>
+            <p style={{ margin: "0 0 8px" }}><strong>{info.label}</strong> ({info.ja})
+              {fit && <> · body {fit.pitch.typical}° ({fit.pitch.min}–{fit.pitch.max}°, {fit.pitch.grade}{fit.pitch.source ? `: ${fit.pitch.source}` : ""}) · forelegs {fit.fore}, hind legs {fit.hind}</>}
+              {bp?.waterline && <> · waterline {Math.round(bp.waterline.typical * 100)}% up the body ({bp.waterline.grade}{bp.waterline.source ? `: ${bp.waterline.source}` : ""})</>}
+              {" "}· {frames} frames at 30 fps</p>
+            <ul style={{ margin: 0, paddingLeft: 20 }}>{info.drawing.map(d => <li key={d}>{d}</li>)}</ul>
           </div>
         </>
-      ) : <p>{sp.name} has no posture beyond standing in ANIM1 yet (birds and fish), or its plan does not take one naturally.</p>}
+      ) : <p>{sp.name} has no posture beyond standing in ANIM1 yet (fish), or its plan does not take one naturally.</p>}
     </div>
   );
 }

@@ -36,6 +36,8 @@ The pack `animal-anatomy` decides *what the animal is*: its build, face, coat, g
    beat, glide or closed wings for the species' style.
    - Herons draw the neck in and cranes stretch it out.
    - For drawn animation keep at least four frames per beat (`maxHz` 7.5 at 30 fps).
+   - Birds rest with `birdPosture` (one-leg, roost, swim, upend). Ducks float at a third of their depth, and a
+     sleeping bird's eye is shut (`head.eyeClosed`).
 6. **Sound.** Use the catalog ids in `species.sounds`. For the rest, source a CC0 recording with the search term given,
    and add it to the sound catalog.
 7. **Check.** Read your drawing's or rig's landmarks: withers, brisket, point of shoulder, point of buttock and ground.
