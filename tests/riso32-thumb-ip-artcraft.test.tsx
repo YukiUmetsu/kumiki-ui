@@ -103,6 +103,30 @@ describe("RISO32 ArtCraft: thumb IP truly articulates as separate physical ink",
     }
   });
 
+  it.each(actors)("%s: thumb web stays inset, distal red phalanx is source-drawn not an inflated blob",actor=>{
+    for(const side of sides){
+      const thumb=actor.joints.find(j=>j.id===side+"-thumb")!;
+      const hand=actor.joints.find(j=>j.id===side+"-hand")!;
+      expect(thumb.parent).toBe(hand.id);
+      expect(Math.abs(thumb.x)).toBeGreaterThan(6);
+      expect(Math.abs(thumb.x),side+" root unnaturally detached").toBeLessThan(8);
+      expect(RISO32_THUMB_GEOMETRY.rootLength+RISO32_THUMB_GEOMETRY.distalReach)
+        .toBeLessThan(10);
+      const proximal=actor.parts.find(p=>p.id===side+"-glove-thumb")!;
+      const distal=actor.parts.find(p=>p.id===riso32ThumbDistalId(side))!;
+      for(const part of [proximal,distal]){
+        expect(part.d).toContain("C"); // original real flowing Bézier edges
+        expect(part.d).toMatch(/^M.*Z$/);
+        const contour=flattenRisoSvgPath(part.d);
+        expect(contour).toHaveLength(1);
+        expect(contour[0].closed).toBe(true);
+        const area=Math.abs(risoContourSignedArea(contour[0].points));
+        expect(area).toBeGreaterThan(5);
+        expect(area,part.id+" must not recreate a large red hanging teardrop").toBeLessThan(65);
+      }
+    }
+  });
+
   it.each(actors)("%s: underprinted wrist is an actual connected source stencil, not alpha paint",actor=>{
     for(const side of sides){
       const mask=actor.parts.find(p=>p.id===side+"-wrist-underprint-clearance");
