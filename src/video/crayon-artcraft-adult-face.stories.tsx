@@ -469,7 +469,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   initialEyeContact="source-shade",initialMidfaceForm="baseline",
 }:StudyProps & {
   initialLashFinish?:CrayonF1LashFinish;
-  initialInspection?:"full"|"near-eye"|"far-eye"|"mouth"|"nose";
+  initialInspection?:"full"|"near-eye"|"far-eye"|"mouth"|"nose"|"jaw-neck";
   initialEyeContact?:Cc0EyeContact;
   initialMidfaceForm?:Cc0MidfaceForm;
 }){
@@ -642,6 +642,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-fused-naris">CC0 feathered cavities under shared alar roof (V27 experimental)</option>
            <option value="source-face-values">CC0 measured cheek and orbit light planes (V28 unapproved)</option>
            <option value="source-orbital-hood">CC0 natural supraorbital ribbon, not eye disks (V29 study)</option>
+           <option value="source-mandibular-turn">CC0 photographed jaw-to-malar silhouette (V30 study)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -690,6 +691,12 @@ export const Cc0NasalDepthAndOcclusion:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
+};
+export const Cc0MandibularTurnV30:Story={
+  name:"CC0 oblique cheek and mandibular source silhouette (!dev V30)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-mandibular-turn" initialInspection="jaw-neck"/>,
 };
 export const Cc0OrbitalHoodV29:Story={
   name:"CC0 asymmetric wax brow hood and eyelid continuity (!dev V29)",
