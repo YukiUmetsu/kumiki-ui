@@ -48,6 +48,16 @@ describe("RISO39 ArtCraft anatomical opposed hand and actual paper-grip pose",()
       expect(axes.intersectingAxisPairs,actor.id+"/"+side+" finger bones cross").toEqual([]);
     }
   });
+  it.each(actors)("%s: every two-frame contact / release cel preserves paper-white index-middle axes",actor=>{
+    // A tempting premature radial MCP release made the index cross the
+    // middle finger in f170–198, even though both f160/f166 snapshots passed.
+    // Verify the ENTIRE source sequence, not cherry-picked hero screenshots.
+    for(const side of sides)for(let frame=120;frame<=238;frame+=2){
+      const axes=inspectRiso33HandFan(actor,frame,side);
+      expect(axes.intersectingAxisPairs,actor.id+"/"+side+"/"+frame).toEqual([]);
+      expect(axes.minimumAxisGap,actor.id+"/"+side+"/"+frame).toBeGreaterThan(3);
+    }
+  });
   it.each(actors)("%s: the source thumb/nail/index stays attached through full contact and release",actor=>{
     for(const side of sides)for(const frame of frames){
       const m=inspectRiso39OpposedPaperPinch(actor,frame,side);
