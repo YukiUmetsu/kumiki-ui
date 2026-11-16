@@ -84,7 +84,7 @@ describe("ArtCraft F1 V24 native nasofacial source values",()=>{
     const previous=renderToStaticMarkup(<CrayonScene
       spec={crayonCc0FaceStudy({midfaceForm:"source-naris-occlusion"})}
       frame={299}/>);
-    expect((html.match(/<feGaussianBlur\\b/g)??[]).length)
-      .toBe((previous.match(/<feGaussianBlur\\b/g)??[]).length);
+    expect((html.match(/<feGaussianBlur\b/g)??[]).length)
+      .toBe((previous.match(/<feGaussianBlur\b/g)??[]).length);
   });
 });
