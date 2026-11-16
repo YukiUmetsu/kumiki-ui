@@ -55,7 +55,13 @@ describe("RISO55 ArtCraft: 3/4 distal pulp folds BACK into the palm",()=>{
         const ratio=RISO52_FOLDED_TERMINALS[actor][digit];
         const forward=riso31PhalanxSourcePath(digit,"distal",geometry.distal*ratio,geometry.width*.85);
         const folded=riso55FoldbackContour(forward,actor,digit);
-        expect(extent(folded).maxY).toBeLessThan(extent(forward).maxY-1.2);
+        // A proper rigid view rotation must preserve distal pulp volume.
+        // Its new bounding rectangle includes the rotated proximal cap,
+        // so inspect the actual terminal CENTER returning palmar, and
+        // separately the surviving maximum outline (still inward by .5).
+        const tip=riso55FoldbackPoint(0,geometry.distal*ratio,actor,digit);
+        expect(tip[1]).toBeLessThan(0);
+        expect(extent(folded).maxY).toBeLessThan(extent(forward).maxY-.45);
         const shape=extent(folded).paths;
         expect(shape).toHaveLength(1);
         expect(shape[0].closed).toBe(true);
