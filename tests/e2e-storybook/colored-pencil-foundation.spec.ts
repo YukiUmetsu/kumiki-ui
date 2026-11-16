@@ -232,8 +232,8 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
             // The hind hock passes beneath the rendered rump: two real,
             // independently editable pigment regions overlap in world space.
             joinedBody:hock?ctx.isPointInPath(
-              new Path2D(body.getAttribute("d")!),330,347)&&
-              ctx.isPointInPath(partPath,330,347):true,
+              new Path2D(body.getAttribute("d")!),321,375)&&
+              ctx.isPointInPath(partPath,321,375):true,
           };
         },part);
         expect(pose.hasBentHock).toBe(true);
