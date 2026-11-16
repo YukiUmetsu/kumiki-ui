@@ -1762,13 +1762,23 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
   if(detail<.58)return null;
   const center=scene==="mountain-trail"?620:
     scene==="river-scholar"?596:536;
-  const distribution=[
+  // Smarthistory / NPM Fuchun handscroll: pines are a mixed-age grove,
+  // with nonuniform root intervals and distinct leaning crooked trunks.
+  // The previous symmetric height pattern made five identical antennas.
+  // Other source schools keep their independently developed silhouettes.
+  const distribution=school==="fuchun"?([
+    {dx:-49,height:35,bow:-14},
+    {dx:-23,height:78,bow:13},
+    {dx:-8,height:94,bow:-18},
+    {dx:17,height:55,bow:16},
+    {dx:44,height:33,bow:-12},
+  ] as const):([
     {dx:-33,height:43,bow:-6},
     {dx:-17,height:62,bow:7},
     {dx:-2,height:76,bow:-5},
     {dx:18,height:57,bow:10},
     {dx:33,height:42,bow:-6},
-  ] as const;
+  ] as const);
   const shade=(1-.17*mist);
   const crab=school==="early-spring";
   return <g data-km-cliff-pine-grove=""
@@ -1783,14 +1793,26 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
       const crown:P=[
         x+bow,root[1]-height,
       ];
+      const trunkLoad=school==="fuchun"?
+        ([1.08,1.73,2.05,1.3,1.02] as const)[i]:
+        i===2?1.63:1.08;
       const trunk=rockLoadedRibbon(root,trunkControl,crown,
-        i===2?1.63:1.08,seed+1711+i*29);
+        trunkLoad,seed+1711+i*29);
       const barkFrom=quadraticPoint(root,trunkControl,crown,.13);
       const barkTo=quadraticPoint(root,trunkControl,crown,.89);
       const bark="M"+f(barkFrom[0])+" "+f(barkFrom[1])+
         " Q"+f(trunkControl[0]-1.4)+" "+f(trunkControl[1])+
         " "+f(barkTo[0])+" "+f(barkTo[1]);
-      const boughs=([.31,.5,.67,.84] as const).map((t,j)=>{
+      // Four nonperiodic branch stations per tree; each still grows
+      // from the ACTUAL painted trunk curve, preserving all 20 boughs.
+      const boughStations=school==="fuchun"?([
+        [.25,.48,.69,.88],
+        [.19,.43,.64,.83],
+        [.3,.53,.76,.9],
+        [.23,.46,.68,.86],
+        [.29,.49,.63,.81],
+      ] as const)[i]:([.31,.5,.67,.84] as const);
+      const boughs=boughStations.map((t,j)=>{
         // Every branch root is *on* its own winding trunk, while the
         // ink-loaded terminal twigs carry their own fine foliage tips.
         const origin=quadraticPoint(root,trunkControl,crown,t);
@@ -1858,7 +1880,14 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
         // on each of the 20 trunk-connected boughs. The old 60 loaded
         // pads and 310 thin needle tapers are preserved on TOP.
         const inkIslands=([.61,.86] as const).map((station,k)=>{
-          const r=quadraticPoint(origin,control,tip,station);
+          // Same 40 positive fan islands, planted at uneven *real*
+          // bough stations rather than a perfectly repeated two-tier
+          // canopy pattern. No masking/removal of needle microdetails.
+          const at=school==="fuchun"
+            ?clamp(station+(s(seed+1941,i*19+j*41+k*7)-.5)*.095+
+                (j%3===1?.035:-.017),.49,.97)
+            :station;
+          const r=quadraticPoint(origin,control,tip,at);
           // Source-like pinaceous old-ink crowns are *flat fans* of
           // irregular deposited needle lobes, NOT oval paint balloons.
           // Keep two visibly unequal rooted islands per bough and retain
@@ -1932,7 +1961,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             attach,cx1,cx2,tipClaw,k===0?1.1:.79,
             seed+6143+i*47+j*19+k*37),bend:k};
         }):[];
-        return {origin,bone,foliage,pads,inkIslands,crabClaws};
+        return {t,origin,bone,foliage,pads,inkIslands,crabClaws};
       });
       return <g key={i} data-km-cliff-pine=""
         data-km-cliff-pine-root={f(root[0])+","+f(root[1])}
@@ -1943,9 +1972,10 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
         <path data-km-cliff-pine-bark="" d={bark}
           stroke="#a18b70" fill="none" strokeWidth=".48"
           strokeLinecap="round" opacity={f(.47*shade)}/>
-        {boughs.map(({origin,bone,foliage,pads,inkIslands,crabClaws},j)=>
+        {boughs.map(({t,origin,bone,foliage,pads,inkIslands,crabClaws},j)=>
           <g key={j} data-km-cliff-pine-bough=""
-            data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}>
+            data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}
+            data-km-cliff-pine-bough-station={f(t)}>
             <path data-km-cliff-pine-bough-bone="" d={bone}
               fill={j%2===0?"#3d352d":"#554638"}
               opacity={f(.88*shade)}/>
