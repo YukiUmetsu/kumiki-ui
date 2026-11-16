@@ -351,18 +351,24 @@ function phaseFn(ice: boolean): (c: number, g: number) => V3 {
 }
 
 /** Render a sky with cloud layers, seen from the ground. Returns 8-bit sRGBA. */
-export function renderCloudSky(o: SkyRenderOptions = {}): SkyRender {
-  const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
-  const W = Math.max(16, Math.round(o.width ?? 480)), H = Math.max(9, Math.round(o.height ?? 270)), seed = o.seed ?? 1, eye = o.eyeHeight ?? 2, steps = o.steps ?? 56;
+export interface CloudSkyShader {
+  /** HDR radiance seen from the eye in direction d (unit, y up); `jitter` (0–1) offsets the march. */
+  shade: (d: V3, jitter?: number) => V3;
+  atm: Atmosphere; sun: V3;
+  /** Share of sunlight reaching the ground through the clouds, and the light falling on the ground. */
+  meanSun: number; groundLight: V3;
+  /** Exposure for the ground, and for a sunny day. */
+  exposure: number; sunny: number;
+}
+/** The sky with its clouds as a function of direction: what `renderCloudSky` draws, for reflections and environment maps. */
+export function cloudSkyShader(o: SkyRenderOptions = {}): CloudSkyShader {
+  const seed = o.seed ?? 1, eye = o.eyeHeight ?? 2, steps = o.steps ?? 56;
   const sunEl = o.sunElevation ?? 35, sunAz = o.sunAzimuth ?? 60, atm: Atmosphere = atmosphere({ sunElevation: sunEl, sunAzimuth: sunAz, visibilityKm: o.visibilityKm ?? 40, eyeHeight: eye });
   const sun = atm.sunDir, wind = o.wind ?? 80;
   const layers = (o.layers ?? ["cumulus"]).map(l => (typeof l === "string" ? { genus: l } : l)).map(l => ({ genus: l.genus, f: genusField(l.genus, seed + l.genus.length * 13, l.cover ?? CLOUD_VOLUMES[l.genus].cover, wind) }));
   const fields = layers.map(l => l.f).sort((a, b) => a.base - b.base);
-  const pitch = ((o.pitch ?? 12) * Math.PI) / 180, fov = ((o.fov ?? 75) * Math.PI) / 180, tx = Math.tan(fov / 2), ty = tx * (H / W);
-  const fwd: V3 = [0, Math.sin(pitch), Math.cos(pitch)], right: V3 = [1, 0, 0], up: V3 = [0, Math.cos(pitch), -Math.sin(pitch)];
   const skyAmbient: V3 = [atm.skyIrradiance[0] / Math.PI, atm.skyIrradiance[1] / Math.PI, atm.skyIrradiance[2] / Math.PI];
   const groundAlbedo: V3 = [0.075, 0.095, 0.05];
-  const out = new Uint8ClampedArray(W * H * 4), hdr = new Float32Array(W * H * 3);
   const phases = fields.map(f => phaseFn(f.ice));
   // how much sunlight gets through the clouds on average: it also lights the air and the ground
   let meanSun = 0, meanDiffuse = 0;
@@ -411,8 +417,7 @@ export function renderCloudSky(o: SkyRenderOptions = {}): SkyRender {
   };
   const glowW = 0.0012;
   // one ray: its colour (HDR)
-  const shade = (ux: number, uy: number, jitter: number): V3 => {
-    const d = norm3([fwd[0] + right[0] * ux * tx + up[0] * uy * ty, fwd[1] + right[1] * ux * tx + up[1] * uy * ty, fwd[2] + right[2] * ux * tx + up[2] * uy * ty]);
+  const shade = (d: V3, jitter = 0.5): V3 => {
     let col: V3, T: V3 = [1, 1, 1];
     const L: V3 = [0, 0, 0];
     let meanDist = 0, wsum = 0;
@@ -482,15 +487,28 @@ export function renderCloudSky(o: SkyRenderOptions = {}): SkyRender {
     }
     return col;
   };
+  const sunny = 1.9 / Math.max(0.01, (sunAtEye[1] * Math.max(0.1, sun[1]) + atm.skyIrradiance[1]) * 1.15);
+  return { shade, atm, sun, meanSun, groundLight, exposure, sunny };
+}
+
+/** Render a sky with cloud layers, seen from the ground. Returns 8-bit sRGBA. */
+export function renderCloudSky(o: SkyRenderOptions = {}): SkyRender {
+  const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
+  const W = Math.max(16, Math.round(o.width ?? 480)), H = Math.max(9, Math.round(o.height ?? 270));
+  const { shade, exposure, sunny } = cloudSkyShader(o);
+  const pitch = ((o.pitch ?? 12) * Math.PI) / 180, fov = ((o.fov ?? 75) * Math.PI) / 180, tx = Math.tan(fov / 2), ty = tx * (H / W);
+  const fwd: V3 = [0, Math.sin(pitch), Math.cos(pitch)], right: V3 = [1, 0, 0], up: V3 = [0, Math.cos(pitch), -Math.sin(pitch)];
+  const dirAt = (ux: number, uy: number) => norm3([fwd[0] + right[0] * ux * tx + up[0] * uy * ty, fwd[1] + right[1] * ux * tx + up[1] * uy * ty, fwd[2] + right[2] * ux * tx + up[2] * uy * ty]);
+  const out = new Uint8ClampedArray(W * H * 4), hdr = new Float32Array(W * H * 3);
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const ux = ((i + 0.5) / W) * 2 - 1, uy = 1 - ((j + 0.5) / H) * 2, jitter = ((Math.imul(i, 1103515245) ^ Math.imul(j, 12345 + 2654435761)) >>> 0) / 4294967296;
     // grazing rays near the horizon cross distant clouds in a few long steps: two rays per pixel there
     const elev = pitch + Math.atan(uy * ty);
     let col: V3;
     if (Math.abs(elev) < 0.1) {
-      const a = shade(ux - 0.25 / W * 2, uy + 0.25 / H * 2, jitter), b = shade(ux + 0.25 / W * 2, uy - 0.25 / H * 2, (jitter + 0.5) % 1);
+      const a = shade(dirAt(ux - 0.25 / W * 2, uy + 0.25 / H * 2), jitter), b = shade(dirAt(ux + 0.25 / W * 2, uy - 0.25 / H * 2), (jitter + 0.5) % 1);
       col = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
-    } else col = shade(ux, uy, jitter);
+    } else col = shade(dirAt(ux, uy), jitter);
     const k = (j * W + i) * 3;
     hdr[k] = col[0]; hdr[k + 1] = col[1]; hdr[k + 2] = col[2];
   }
@@ -498,7 +516,7 @@ export function renderCloudSky(o: SkyRenderOptions = {}): SkyRender {
   // so an overcast sky stays grey and a rain layer darker than a thin one
   let logSum = 0;
   for (let k = 0; k < W * H; k++) logSum += Math.log(1e-5 + 0.2126 * hdr[k * 3] + 0.7152 * hdr[k * 3 + 1] + 0.0722 * hdr[k * 3 + 2]);
-  const meanL = Math.exp(logSum / (W * H)), sunny = 1.9 / Math.max(0.01, (sunAtEye[1] * Math.max(0.1, sun[1]) + atm.skyIrradiance[1]) * 1.15);
+  const meanL = Math.exp(logSum / (W * H));
   const ex = o.exposure ?? Math.exp(0.55 * Math.log(0.2 / meanL) + 0.45 * Math.log(Math.min(sunny, exposure)));
   // white balance, as a camera's does it partly: the brightest third of the frame pulled halfway to neutral
   const lums = Array.from({ length: W * H }, (_, k) => 0.2126 * hdr[k * 3] + 0.7152 * hdr[k * 3 + 1] + 0.0722 * hdr[k * 3 + 2]), cut = [...lums].sort((a, b) => a - b)[Math.floor(W * H * 0.67)];
@@ -508,4 +526,26 @@ export function renderCloudSky(o: SkyRenderOptions = {}): SkyRender {
   for (let k = 0; k < W * H; k++) for (let c = 0; c < 3; c++) hdr[k * 3 + c] *= gain[c];
   for (let k = 0; k < W * H; k++) { out[k * 4] = enc(ACES(hdr[k * 3] * ex)); out[k * 4 + 1] = enc(ACES(hdr[k * 3 + 1] * ex)); out[k * 4 + 2] = enc(ACES(hdr[k * 3 + 2] * ex)); out[k * 4 + 3] = 255; }
   return { width: W, height: H, rgba: out, ms: (typeof performance !== "undefined" ? performance.now() : Date.now()) - t0 };
+}
+
+export interface SkyEnvironment { width: number; height: number; /** HDR radiance, rows from the horizon (0) up to the zenith; columns azimuth −180…180°. */ data: Float32Array; shader: CloudSkyShader; lookup: (d: readonly number[]) => V3 }
+/** The upper hemisphere of a sky (with its clouds) as an HDR map, for reflections in water: rows denser near the horizon. */
+export function skyEnvironment(o: SkyRenderOptions = {}, width = 256, height = 64): SkyEnvironment {
+  const shader = cloudSkyShader(o), data = new Float32Array(width * height * 3);
+  for (let j = 0; j < height; j++) for (let i = 0; i < width; i++) {
+    const e = ((j + 0.5) / height) ** 2 * (Math.PI / 2), a = ((i + 0.5) / width) * 2 * Math.PI - Math.PI, d: V3 = [Math.cos(e) * Math.sin(a), Math.sin(e), Math.cos(e) * Math.cos(a)];
+    const c = shader.shade(d, ((i * 7 + j * 13) % 16) / 16), k = (j * width + i) * 3;
+    data[k] = c[0]; data[k + 1] = c[1]; data[k + 2] = c[2];
+  }
+  const lookup = (d: readonly number[]): V3 => {
+    const e = Math.asin(Math.max(0, Math.min(1, d[1]))), a = Math.atan2(d[0], d[2]);
+    const fj = Math.min(height - 1, Math.max(0, Math.sqrt(e / (Math.PI / 2)) * height - 0.5)), fi = ((a + Math.PI) / (2 * Math.PI)) * width - 0.5;
+    const j0 = Math.min(height - 2, Math.floor(fj)), v = fj - j0, i0 = Math.floor(fi), u = fi - i0, ia = ((i0 % width) + width) % width, ib = (ia + 1) % width, out: V3 = [0, 0, 0];
+    for (let c = 0; c < 3; c++) {
+      const p = data[(j0 * width + ia) * 3 + c], q = data[(j0 * width + ib) * 3 + c], r = data[((j0 + 1) * width + ia) * 3 + c], t = data[((j0 + 1) * width + ib) * 3 + c];
+      out[c] = (p * (1 - u) + q * u) * (1 - v) + (r * (1 - u) + t * u) * v;
+    }
+    return out;
+  };
+  return { width, height, data, shader, lookup };
 }
