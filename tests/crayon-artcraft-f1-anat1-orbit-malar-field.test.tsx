@@ -82,6 +82,14 @@ describe("ArtCraft F1 V35 original-source ANAT1 eye-to-zygomatic wax value field
       expect(after.deposition).toBe("stroke-built");
       expect(after.nibStyle).toBe("dry");
       expect(after.featherContacts).toBe(true);
+      // Native V35 first render failed as an opaque pale cheek sticker.
+      // Fail closed if this broad extra opaque field is reintroduced;
+      // original face-outline underpaint and all original micro-wax remain.
+      expect(after.coverage).toBe("open");
+      expect(after.underpaintGradient).toBeUndefined();
+      expect(after.underpaintTooth).toBeUndefined();
+      expect(after.opaqueBurnish).toBeUndefined();
+      expect(after.blendRadius).toBeLessThanOrEqual(18);
       for(const key of ["id","kind","timing","markLength","strokeOrder",
         "motion","pivot","edgeRoughness"] as const){
         expect(after[key]).toEqual(before[key]);
