@@ -238,13 +238,13 @@ const facePieces:readonly RisoCharacterPart[]=[
 const sharedLimbs=[
   "right-thigh","right-shin","right-boot","right-boot-detail",
   "left-thigh","left-shin","left-boot","left-boot-detail",
-  "left-upper-sleeve","left-forearm","sleeve-left-fold","cuff-left",
+  "left-upper-sleeve","left-forearm","sleeve-left-fold","cuff-left","left-wrist-underprint-clearance",
   "left-glove","left-glove-index","left-glove-middle","left-glove-ring","left-glove-pinky","left-glove-thumb",
   "left-glove-detail","left-glove-thumb-fold","left-finger-joint-lines",
   // RISO31: copy both real bending red links of all four original fingers.
   ...riso31SegmentIds("left"),
   riso32ThumbDistalId("left"),
-  "right-upper-sleeve","right-forearm","sleeve-right-fold","cuff-right",
+  "right-upper-sleeve","right-forearm","sleeve-right-fold","cuff-right","right-wrist-underprint-clearance",
   "right-glove","right-glove-index","right-glove-middle","right-glove-ring","right-glove-pinky","right-glove-thumb",
   "right-glove-detail","right-glove-thumb-fold","right-finger-joint-lines",
   // RISO31: copy both real bending red links of all four original fingers.
