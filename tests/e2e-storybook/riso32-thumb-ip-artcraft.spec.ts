@@ -87,10 +87,15 @@ test("RISO32 moving thumb IP remains attached at contact, release and both ink m
       const supportFlex=Number(await panel.getAttribute("data-km-riso42-support-pip-flex"));
       expect(Number.isFinite(supportFlex)).toBe(true);
       if(frame===0)expect(supportFlex).toBeLessThan(.01);
-      if(frame===160||frame===166){
+      // The donor closes at f160, the receiver at f166: do not require
+      // the receiver to have finished closing six real frames prematurely.
+      if((frame===160&&panelId==="courier-right")||
+         (frame===166&&panelId==="paper-artist-left")){
         expect(supportFlex).toBeGreaterThan(32);
         expect(supportFlex).toBeLessThan(55);
       }
+      if(frame===160&&panelId==="paper-artist-left")
+        expect(supportFlex).toBeGreaterThan(20);
       if(frame===239&&panelId==="paper-artist-left")
         expect(supportFlex).toBeGreaterThan(20);
       const measured=Number(await panel.getAttribute("data-km-riso33-minimum-axis-gap"));
