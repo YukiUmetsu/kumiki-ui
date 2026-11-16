@@ -998,3 +998,63 @@ test("F1 V17 source-native nasal cartilage light-to-dark continuity",async({page
     .not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** F1 V18 physically rooted nasal wax undercoat and hood A/B.
+ * Record native wax -- no photograph overlay or generic art filter.
+ * Spatial and temporal evidence is necessary but does NOT pass the
+ * independent source-based artistic and anatomy fidelity gates.
+ */
+test("F1 V18 physically rooted nasal wax undercoat and hood A/B",async({page},info)=>{
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const sourceFocus={focusX:417,focusY:629,zoom:3};
+  const final:Uint8Array[]=[];
+  for(const midfaceForm of ["source-nose-sculpt","source-nasal-depth"] as const){
+    const original=crayonCc0FaceStudy({
+      eyeContact:"source-shade",midfaceForm,lashFinish:"sparse",
+    });
+    const macro={...original,camera:[
+      {frame:0,...sourceFocus},{frame:299,...sourceFocus},
+    ]};
+    for(const frame of [210,299] as const){
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec:macro,frame,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame",String(frame));
+      const ids=["nasal-sidewall-near-underpaint",
+        "nasal-sidewall-far-underpaint","nasal-columella-attached-turn",
+        "nasal-hood-near-occluder","nasal-hood-far-occluder",
+        "nasal-hood-near-dry-contact","nasal-hood-far-dry-contact"];
+      for(const id of ids){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(midfaceForm==="source-nasal-depth"?1:0);
+      }
+      for(const side of ["near","far"])
+        await expect(svg.locator(
+          '[data-km-crayon-element="naris-shadow-'+side+'"]'))
+          .toBeAttached();
+      const png=await svg.screenshot({
+        animations:"disabled",
+        path:info.outputPath("crayon-f1-v18-nasal-"+midfaceForm+"-"+frame+".png"),
+      });
+      if(frame===299)final.push(png);
+    }
+    const fullHtml=renderToStaticMarkup(createElement(CrayonScene,{
+      spec:original,frame:299,
+    }));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      fullHtml+"</body></html>");
+    await page.locator("svg[data-km-crayon-scene]").screenshot({
+      animations:"disabled",
+      path:info.outputPath("crayon-f1-v18-full-"+midfaceForm+"-299.png"),
+    });
+  }
+  expect(Buffer.compare(Buffer.from(final[0]),Buffer.from(final[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
