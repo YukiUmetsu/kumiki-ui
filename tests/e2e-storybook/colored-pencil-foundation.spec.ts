@@ -215,6 +215,30 @@ test("ArtCraft single-head-only construction and fox geometry inspect both nativ
         expect(shape.outlineCurves).toBeGreaterThanOrEqual(26);
         expect(shape.valuePasses).toBe(true);
         expect(shape.guides).toBe(true);
+        // These five light/value families must exist as independently
+        // editable, actual SVG paths in the NATIVE Storybook drawing.
+        // A passing metadata count without pigment would not qualify.
+        const valueMap=await svg.evaluate(root=>{
+          const paths=Array.from(root.querySelectorAll(
+            '[data-km-pencil-region="head-silhouette-01"] '+
+            '[data-km-pencil-trace^="newhead-anat1-"]')) as SVGPathElement[];
+          const families=[
+            "highlight","light","halftone","core-shadow","reflected-light",
+          ];
+          return {
+            total:paths.length,
+            each:families.map(name=>paths.filter(path=>
+              path.getAttribute("data-km-pencil-trace")?.startsWith(
+                "newhead-anat1-"+name+"-")).length),
+            complete:paths.every(path=>(path.getAttribute("d")??"")
+              .match(/M/g)?.length!>=90),
+            empty:paths.some(path=>!(path.getAttribute("d")??"").trim()),
+          };
+        });
+        expect(valueMap.total).toBe(15);
+        expect(valueMap.each).toEqual([3,3,3,3,3]);
+        expect(valueMap.complete).toBe(true);
+        expect(valueMap.empty).toBe(false);
         expect(shape.hasPhotos).toBe(false);
         // Independent real-browser geometry scan, not a replay of the
         // TypeScript's hand-picked vault anchors. Anatomy references show
