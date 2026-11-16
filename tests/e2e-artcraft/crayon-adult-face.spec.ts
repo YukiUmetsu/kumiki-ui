@@ -1677,3 +1677,62 @@ test("F1 V35 ANAT1 facial value mass native three film exposures",async({page},i
   expect(Buffer.compare(Buffer.from(frames[0]),Buffer.from(frames[2]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** V36 native shape/value A/B: real Chromium pixels, fixed original photo
+ * 608×1082 camera and SOURCE sclera/iris values. Passing browser/Typescript
+ * is not equivalent to original identity or independent artist approval.
+ */
+test("F1 V36 ANAT1 near eye actual photographed tarsal source 1x/3x vs V35",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const captures:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-orbit-malar",
+    "source-anat1-near-eye"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:269,focusY:550,zoom:3},
+        {frame:299,focusX:269,focusY:550,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","sclera-near","iris-near","pupil-near",
+        "upper-lid-near","lash-root-near","lower-lid-near","lower-lid-margin-near",
+        "upper-lid-crease-near","socket-near","socket-far","sclera-far",
+        "iris-far","naris-shadow-near","lip-lower","hair-left-curtain"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      captures.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v36-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(captures[1]),Buffer.from(captures[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test("F1 V36 ANAT1 near-eye wax preserves full 300-frame native scene contract",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const scene=crayonCc0FaceStudy({detail:.2,eyeContact:"source-shade",
+    midfaceForm:"source-anat1-near-eye"});
+  expect(scene.durationFrames).toBe(300);
+  const frames:Uint8Array[]=[];
+  for(const frame of [0,149,299] as const){
+    const html=renderToStaticMarkup(createElement(CrayonScene,{spec:scene,frame}));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["face-outline","sclera-near","iris-near","upper-lid-near"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+    }
+    frames.push(await svg.screenshot({animations:"disabled",
+      path:info.outputPath("crayon-v36-native-film-"+frame+".png")}));
+  }
+  expect(Buffer.compare(Buffer.from(frames[0]),Buffer.from(frames[2]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
