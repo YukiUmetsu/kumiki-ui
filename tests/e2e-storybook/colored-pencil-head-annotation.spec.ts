@@ -100,6 +100,21 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
   await page.screenshot({path:info.outputPath(
     "head-local-source-and-native-annotation-atlas.png"),
     fullPage:true,animations:"disabled"});
+  // The private draft contains only independently placed coordinates and
+  // actual local image fingerprints; its import can resume a long session.
+  const [download]=await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button",{name:/Save local checkpoint/}).click(),
+  ]);
+  expect(download.suggestedFilename()).toBe("pencil-head-private-checkpoint.json");
+  const {readFile}=await import("node:fs/promises");
+  const saved=await download.path();
+  expect(saved).not.toBeNull();
+  const privateDraft=await readFile(saved!,"utf8");
+  expect(privateDraft).toContain("sha256");
+  expect(privateDraft).not.toContain("data:image");
+  expect(privateDraft).not.toContain("meanRgb");
+
   // A replacement must invalidate only that image's coordinates.
   await page.getByLabel("source local image").setInputFiles({
     name:"replacement-source.png",mimeType:"image/png",buffer:buf,
@@ -109,5 +124,17 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
   await expect(page.locator('[data-km-head-photo-side="output"] '+
     '[data-km-annotated-contour]')).toHaveCount(18);
   await expect(page.locator("[data-km-annotation-export]")).toBeDisabled();
+  // Only an exact-byte match of both newly loaded local files can restore
+  // the original source/output annotation sets. The photo name can differ.
+  await page.getByLabel("Restore checkpoint JSON").setInputFiles({
+    name:"saved-annotations.json",mimeType:"application/json",
+    buffer:Buffer.from(privateDraft),
+  });
+  for(const side of ["source","output"] as const){
+    const parent=page.locator(`[data-km-head-photo-side="${side}"]`);
+    await expect(parent.locator("[data-km-annotated-contour]")).toHaveCount(18);
+    await expect(parent.locator("[data-km-annotated-tone]")).toHaveCount(5);
+  }
+  await expect(page.locator("[data-km-annotation-export]")).toBeEnabled();
   await expect(page.locator("svg[data-km-colored-pencil]")).toHaveCount(0);
 });
