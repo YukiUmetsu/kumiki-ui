@@ -39,6 +39,17 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
       }});
     }
     await expect(parent.locator("[data-km-annotated-contour]")).toHaveCount(18);
+    const labels=parent.locator("[data-km-annotated-contour] text");
+    await expect(labels).toHaveCount(18);
+    expect(await labels.allTextContents()).toEqual(
+      Array.from({length:18},(_,i)=>String(i+1)));
+    // Correct a wrong point without deleting the 17 others or data on
+    // the other photo; later restore the point to complete the atlas.
+    await page.getByLabel(side+" contour point").selectOption("0");
+    await page.getByRole("button",{name:"Remove selected "+side+" landmark"}).click();
+    await expect(parent.locator("[data-km-annotated-contour]")).toHaveCount(17);
+    await overlay.click({position:{x:box!.width*.08,y:box!.height*.12}});
+    await expect(parent.locator("[data-km-annotated-contour]")).toHaveCount(18);
     await page.getByLabel(side+" annotation mode").selectOption("tone");
     for(let i=0;i<5;i++){
       const b=await overlay.boundingBox();
@@ -47,6 +58,16 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
       await page.mouse.move(x+b!.width*.09,y+b!.height*.07,{steps:4});
       await page.mouse.up();
     }
+    await expect(parent.locator("[data-km-annotated-tone]")).toHaveCount(5);
+    await expect(parent.locator("[data-km-annotated-tone-label]")).toHaveCount(5);
+    await page.getByLabel(side+" tonal band").selectOption("0");
+    await page.getByRole("button",{name:"Remove selected "+side+" tone"}).click();
+    await expect(parent.locator("[data-km-annotated-tone]")).toHaveCount(4);
+    const bx=await overlay.boundingBox();
+    const x=bx!.x+bx!.width*.04,y=bx!.y+bx!.height*.68;
+    await page.mouse.move(x,y);await page.mouse.down();
+    await page.mouse.move(x+bx!.width*.09,y+bx!.height*.07,{steps:4});
+    await page.mouse.up();
     await expect(parent.locator("[data-km-annotated-tone]")).toHaveCount(5);
     await expect(parent.locator("[data-km-annotation-side-ready]"))
       .toHaveAttribute("data-km-annotation-side-ready","yes");
