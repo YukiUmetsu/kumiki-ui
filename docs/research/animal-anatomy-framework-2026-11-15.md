@@ -190,9 +190,46 @@ from the snout to the back of the gill cover. Birds and fish have no `ear`. A bi
   head), the sparrow's eye grows, and the goshawk's eye is large under the brow.
 - **Check.** `checkSpeciesData` flags any species without a face, and a mammal face without an ear.
 
+## Postures (2026-11-15)
+
+The next gap in the agreed order was poses beyond the gaits. ANIM1 now sits, lies, rests and rears four-legged
+animals from one table (`ANIMAL_POSTURES`), like the gaits.
+
+**References** (PD/CC0, measured on gridded crops):
+
+- A corgi-husky sitting in side view (Commons, CC0): the line from the point of the buttock to the point of the
+  shoulder rises 29°, the back line 43°, the forelegs nearly upright.
+- Steinlen, *Calico cat* (Commons, public domain): 41° and 54°; the cat sits more upright than the dog.
+- A cow lying down (Commons, CC0) and Barye's *Doe Lying Down* (Walters, public domain): the back nearly level
+  (4°, 7°), the forelegs folded under the chest, the withers about half the standing height.
+- Ludwig Koch, *Levade* (Commons, public domain): 35°, forelegs tucked, hocks deeply bent. It agrees with Wikipedia's
+  *Airs above the ground*, which reports the levade at "approximately 30–35 degrees from the ground" and the pesade at
+  45° (graded `reported`).
+- A brown bear standing on its hind legs (Commons, public domain): nearly upright. It is a front view, so the pitch is
+  estimated.
+
+**Building it.**
+
+- **Straight-leg geometry would not sit.** A rigid trunk at the measured pitch left the dog's forelegs sloping 31° and
+  capped the cat at 28°. Sitting animals curl the loins, so the sitting trunk now shortens up to 35%. The pitch is then
+  solved, inside its measured range, so the forelegs stand upright: dog 30°, cat 38°.
+- **Frame-by-frame checks** found three defects, all fixed:
+  - the folded stifle went up to 0.19 shoulder heights through the ground: the hock is now placed so the stifle rests
+    above it, and an over-long folded leg splays out to the side, which a side view shows as a knee on the ground;
+  - legs snapped between frames: the leg's straightening fallback jumped, and is now continuous;
+  - cattle floated, with all four legs folding at once and both hind feet in the air. The transition is now staged:
+    cattle, deer, horses and pigs kneel first, dogs and cats lower the rump first, and the near and far legs step at
+    different times.
+- **Coat bands.** The belly, chest band, throat and neck band were drawn for a level body; they now follow the posed
+  trunk and neck.
+
+**Not checked against recorded motion.** The transitions are staged blends: no video of an animal sitting or lying
+down was studied frame by frame.
+
 ## Not done
 
 - Front and back constructions in ANIM1 (styles draw their own).
+- Bird postures (perching, roosting, flight) and leaping.
 - The long-and-low UKIYO1 quadrupeds listed above.
 - Measured, not estimated, colours and faces.
 - Recordings for most animal voices; the search terms are listed per species.

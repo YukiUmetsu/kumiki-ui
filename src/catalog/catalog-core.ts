@@ -175,6 +175,7 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
     "turnaround","model sheet","reference figure","clay figure","value study","shading a figure","contour drawing","silhouette","any art style"],
   "animal-anatomy":["animal anatomy","animal","animals","draw an animal","draw animals","animal proportions","quadruped","four-legged","bird anatomy","fish anatomy",
     "body plan","plantigrade","digitigrade","unguligrade","hooves","paws","claws","gait","gaits","walk cycle","trot","canter","gallop","rotary gallop","bound","footfall","muybridge","hildebrand",
+    "posture","postures","animal sitting","dog sit","cat sit","lie down","lying down","animal resting","sleeping animal","rear up","rearing horse","levade","bear standing up",
     "fur","coat","fur map","fur direction","coat colour","coat color","markings","palette","animal colours","animal colors","seasonal coat","winter coat",
     "character sheet","model sheet","animal model sheet","turnaround","size comparison","animal size","animal sounds","animal face","muzzle","snout","ears",
     "bear","moon bear","boar","wild boar","fox","kitsune","tanuki","raccoon dog","wolf","dog","shiba","cat","hare","rabbit","monkey","macaque","deer","sika","cattle","ox","horse",

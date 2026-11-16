@@ -9,6 +9,8 @@
  * - tail;
  * - for birds, a body egg, wing and bill; for fish, a spindle and fins.
  *
+ * Postures (sit, lie, rest, rear; `animal-postures.ts`) fold the same legs onto the ground.
+ *
  * A crayon fox and a woodblock fox then stand on the same legs. `skeletonShapes` turns a pose into path data for a
  * silhouette and for each coat region, so a colour map or a fur map is painted the same way for every species.
  *
@@ -19,6 +21,8 @@ import type { AnimalRegion, BodyPlan, BodyPlanId, PlanConstruction } from "./ani
 import { findAnimal } from "./animal-species";
 import type { AnimalSpecies, ConstructionKey, Grade } from "./animal-species";
 import { ANIMAL_GAITS, quadBody, quadFootfalls } from "./animal-gaits";
+import { ANIMAL_POSTURES, postureFit } from "./animal-postures";
+import type { PostureFit, PostureId } from "./animal-postures";
 import type { AnimalGait, GaitId, QuadLeg } from "./animal-gaits";
 
 import { RAD, add, circlePoints, dir, ellipsePoints, len, lerpP, polyPath as poly, rotate, smoothClosedPath, smoothTube, smoothstep, sub, tubePoints } from "./foundation-shapes";
@@ -93,6 +97,13 @@ export interface PoseOptions {
   gait?: GaitId;
   /** 0–1 through the stride. */
   t?: number;
+  /**
+   * A posture from `ANIMAL_POSTURES` (four-legged animals). A plan that does not take it naturally, or a species that
+   * cannot rear, stands instead. A posture overrides the gait.
+   */
+  posture?: PostureId;
+  /** 0 standing … 1 the full posture, eased: animate it over the posture's `frames` to sit down, lie down or rear. */
+  amount?: number;
 }
 
 /** Direction at `a` degrees from straight down, + toward the nose. */
@@ -117,11 +128,16 @@ const legLengthFor = (topY: number, fr: readonly number[], ang: readonly number[
  * or hock. Fore elbows bend back, hind stifles forward.
  */
 function solveLeg(top: AnimalPoint, foot: AnimalPoint, lens: readonly number[], aCannon0: number, aToes0: number, fore: boolean): AnimalPoint[] {
-  let aCannon = aCannon0, aToes = aToes0;
-  let ankle = add(add(foot, down(aToes), -lens[3]), down(aCannon), -lens[2]);
-  // At the ends of a long stance the leg cannot reach its planted foot with the joints bent: it straightens (the heel
-  // and the wrist lift, the cannon and toes fall in line) rather than letting the foot slide.
-  if (len(sub(ankle, top)) > lens[0] + lens[1]) { aCannon = aToes = angleDown(sub(foot, top)); ankle = add(foot, down(aCannon), -(lens[2] + lens[3])); }
+  const ankleAt = (c: number, t: number) => add(add(foot, down(t), -lens[3]), down(c), -lens[2]);
+  let aCannon = aCannon0, aToes = aToes0, ankle = ankleAt(aCannon, aToes);
+  // When the leg cannot reach its planted foot with the joints bent, it straightens (the heel and the wrist lift, the
+  // cannon and toes turn toward the line to the foot) only as far as it must, so a slowly moving foot never snaps.
+  if (len(sub(ankle, top)) > lens[0] + lens[1]) {
+    const line = angleDown(sub(foot, top)), turn = (a: number, k: number) => a + (((line - a + 540) % 360) - 180) * k;
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 24; i++) { const m = (lo + hi) / 2; if (len(sub(ankleAt(turn(aCannon0, m), turn(aToes0, m)), top)) > lens[0] + lens[1]) lo = m; else hi = m; }
+    aCannon = turn(aCannon0, hi); aToes = turn(aToes0, hi); ankle = ankleAt(aCannon, aToes);
+  }
   const u = lens[0], l = lens[1], v = sub(ankle, top), d0 = len(v) || 1e-6;
   const d = Math.min(u + l - 1e-6, Math.max(Math.abs(u - l) + 1e-6, d0)), n: AnimalPoint = [v[0] / d0, v[1] / d0];
   if (d0 > u + l) ankle = add(top, n, d);   // out of reach: the leg straightens and the foot lifts a little
@@ -133,43 +149,169 @@ function solveLeg(top: AnimalPoint, foot: AnimalPoint, lens: readonly number[], 
   return [top, knee, ankle, cannonEnd, add(cannonEnd, down(aToes), lens[3])];
 }
 
-/** Pose a construction: standing, or at `t` through a gait's stride. */
+/** Forward kinematics: a leg from its top joint along segment angles from straight down (+ toward the nose). */
+function fkLeg(top: AnimalPoint, lens: readonly number[], angles: readonly number[]): AnimalPoint[] {
+  const pts = [top];
+  for (let i = 0; i < 4; i++) pts.push(add(pts[i], down(angles[i]), lens[i]));
+  return pts;
+}
+
+/**
+ * Where to put the wrist (or hock) on the ground ahead of or behind `top` so the two-bone knee or elbow between them
+ * rests at `rest` height: the forearm (or shin) lies along the ground. Returns the joint's ground point.
+ */
+function jointOnGround(top: AnimalPoint, u: number, l: number, groundY: number, rest: number, fore: boolean, sign: 1 | -1): AnimalPoint {
+  let best: AnimalPoint = [top[0], groundY], err = Infinity;
+  for (let i = 1; i <= 40; i++) {
+    const d = (u + l) * (.3 + .65 * i / 40), h = top[1] - groundY;
+    if (d <= h) continue;
+    const at: AnimalPoint = [top[0] + sign * Math.sqrt(d * d - h * h), groundY];
+    const v = sub(at, top), n: AnimalPoint = [v[0] / d, v[1] / d], along = (u * u - l * l + d * d) / (2 * d), k = Math.sqrt(Math.max(0, u * u - along * along));
+    const perp: AnimalPoint = fore ? [n[1], -n[0]] : [-n[1], n[0]], mid = add(add(top, n, along), perp, k);
+    const e = Math.abs(mid[1] - rest) + Math.max(0, groundY - mid[1]) * 10;
+    if (e < err) { err = e; best = at; }
+  }
+  return best;
+}
+
+/** Pose a construction: standing, at `t` through a gait's stride, or in a posture. */
 export function poseAnimal(c: AnimalConstruction, o: PoseOptions = {}): AnimalSkeleton {
   if (c.plan.group === "fish") return poseFish(c, o.t ?? 0);
   if (c.plan.group === "bird") return poseBird(c, o);
   return poseQuadruped(c, o);
 }
 
-function tailPoints(root: AnimalPoint, length: number, carriage: PlanConstruction["tailCarriage"], sway: number): AnimalPoint[] {
-  const A: Record<PlanConstruction["tailCarriage"], [number, number]> = {
-    stub: [205, 215], hanging: [212, 262], raised: [150, 108], curled: [95, -40], up: [120, 100], trailing: [196, 186], level: [180, 180],
-  };
-  const [a0, a1] = A[carriage], n = 8, pts: AnimalPoint[] = [root];
+const TAIL_ANGLES: Record<PlanConstruction["tailCarriage"], [number, number]> = {
+  stub: [205, 215], hanging: [212, 262], raised: [150, 108], curled: [95, -40], up: [120, 100], trailing: [196, 186], level: [180, 180],
+};
+/** A tail's base and tip directions, eased by `down` (0–1) toward lying along the ground behind (a curled or stub tail keeps its shape). */
+function tailAngles(carriage: PlanConstruction["tailCarriage"], down: number, wrap: boolean): [number, number] {
+  const [a0, a1] = TAIL_ANGLES[carriage];
+  if (carriage === "curled" || carriage === "stub" || down <= 0) return [a0, a1];
+  // Wrapped: down from the root, then forward along the ground round the feet (a sitting cat).
+  const [b0, b1] = wrap ? [240, 395] : [205, 178];
+  return [a0 + (b0 - a0) * down, a1 + (b1 - a1) * down];
+}
+function tailPoints(root: AnimalPoint, length: number, carriage: PlanConstruction["tailCarriage"], sway: number, down = 0, wrap = false): AnimalPoint[] {
+  const [a0, a1] = tailAngles(carriage, down, wrap), n = 8, pts: AnimalPoint[] = [root];
   for (let i = 0; i < n; i++) { const u = (i + .5) / n; pts.push(add(pts[i], dir(a0 + (a1 - a0) * u + sway * u), length / n)); }
   return pts;
 }
 
 function poseQuadruped(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
-  const g: AnimalGait | undefined = o.gait ? ANIMAL_GAITS[o.gait] : undefined, t = o.t ?? 0;
+  const fit: PostureFit | undefined = o.posture ? postureFit(c.plan.id, o.posture, c.species?.behaviour.canRear ?? c.plan.canRear) : undefined;
+  const g: AnimalGait | undefined = !fit && o.gait ? ANIMAL_GAITS[o.gait] : undefined, t = o.t ?? 0;
   const body = g ? quadBody(g, t) : { bob: 0, pitch: 0, flex: 0, neck: 0 };
   const posture = c.plan.posture === "plantigrade" || c.plan.posture === "unguligrade" ? c.plan.posture : "digitigrade";
-  const st = STAND[posture], D = c.chestDepth, Cl = c.legClearance, T = c.trunk * (1 + .07 * body.flex);
-  const croupY = CROUP[c.back], loinsY = LOINS[c.back] + .04 * body.flex;
+  // Postures are staged: each end of the body has its own window of the 0–1 amount. Cattle, deer, horses and pigs kneel
+  // on the forelegs first, then lower the hindquarters; dogs, cats and the rest lower the rump first, then put the
+  // forelegs down; sitting lowers the rump onto planted forefeet; rearing lifts the forehand over planted hind feet.
+  const A = fit ? Math.min(1, Math.max(0, o.amount ?? 1)) : 0;
+  const win = (a: number, w: readonly [number, number]) => smoothstep((a - w[0]) / (w[1] - w[0]));
+  const kneels = c.plan.id === "ruminant" || c.plan.id === "equid" || c.plan.id === "suid";
+  const lying = o.posture === "lie" || o.posture === "rest";
+  const [foreWin, hindWin]: readonly [number, number][] = lying ? (kneels ? [[0, .6], [.35, 1]] : [[.3, 1], [0, .65]]) : o.posture === "sit" ? [[.15, 1], [0, .85]] : [[0, 1], [0, 1]];
+  const pf = fit ? win(A, foreWin) : 0, ph = fit ? win(A, hindWin) : 0;
+  // Sitting curls the loins: the spine flexes and the buttock-to-shoulder span shortens (up to 35%) until the chest
+  // rises to the posture's pitch over upright forelegs.
+  const T0 = c.trunk * (1 + .07 * body.flex), Cl = c.legClearance;
+  const curlFull = o.posture === "sit" && fit
+    ? Math.min(.35, Math.max(0, 1 - ((Cl + .28 * (1 - Cl)) * .99 - c.girth * 1.2) / (1.06 * T0 * Math.sin(fit.pitch.typical * RAD)))) : 0;
+  const curl = curlFull * ph;
+  const st = STAND[posture], D = c.chestDepth, T = T0 * (1 - curl);
+  const croupY = CROUP[c.back], loinsY = LOINS[c.back] + .04 * body.flex + .17 * curl;
   const pivot: AnimalPoint = [-T / 2, Cl + D / 2];
   let bob = body.bob / 100 * .7;
-  const W = (p: AnimalPoint): AnimalPoint => add(rotate(p, body.pitch, pivot), [0, bob]);
-  // Landmarks in the body frame.
-  const shoulderJ: AnimalPoint = [-.02 * T, Cl + .28 * (1 - Cl)], hipJ: AnimalPoint = [-.8 * T, Cl + .28 * (croupY - Cl)];
-  // Legs: lengths, resting feet, footfalls and where each foot is this frame.
+  // Body-frame landmarks for a trunk of length `tl`.
+  const shoulderAt = (tl: number): AnimalPoint => [-.02 * tl, Cl + .28 * (1 - Cl)], hipAt = (tl: number): AnimalPoint => [-.8 * tl, Cl + .28 * (croupY - Cl)];
+  const shoulderJ = shoulderAt(T), hipJ = hipAt(T);
+  // A posture turns the body frame by R and moves it by (tx, ty) (see below); standing, both are zero.
+  let R = 0, tx = 0, ty = 0;
+  const W = (p: AnimalPoint): AnimalPoint => add(rotate(p, body.pitch + R, pivot), [tx, bob + ty]);
+  // Legs: lengths, resting feet (where the animal stood), footfalls and where each foot is this frame.
   const foreFr = c.fore, hindFr = c.hind;
   const Lf = legLengthFor(shoulderJ[1], foreFr, st.fore), Lh = legLengthFor(hipJ[1], hindFr, st.hind);
   const restFoot = (top: AnimalPoint, fr: readonly number[], ang: readonly number[], L: number) => fr.reduce<AnimalPoint>((p, f, i) => add(p, down(ang[i]), f * L), top);
-  const restFore = restFoot(shoulderJ, foreFr, st.fore, Lf), restHind = restFoot(hipJ, hindFr, st.hind, Lh);
+  const restFore = restFoot(shoulderAt(T0), foreFr, st.fore, Lf), restHind = restFoot(hipAt(T0), hindFr, st.hind, Lh);
   const states = g ? quadFootfalls(g, t) : undefined;
   const sweep = g ? g.stride * Lf * g.stance : 0;
   const legOrder: readonly QuadLeg[] = ["hind-far", "fore-far", "hind-near", "fore-near"];
+  // The posture at full strength, built on the fully curled trunk: where the shoulder and hip end up, and each leg
+  // planted (a ground target and the cannon and toe angles) or lifted (segment angles).
+  type LegGoal = { foot: AnimalPoint; aC: number; aT: number } | { angles: readonly number[] };
+  let goals: { fore: LegGoal; hind: LegGoal } | undefined;
+  if (fit) {
+    const Tf = T0 * (1 - curlFull), pivotF: AnimalPoint = [-Tf / 2, Cl + D / 2], sJ = shoulderAt(Tf), hJ = hipAt(Tf);
+    const pelvisRyF = (croupY - Math.max(Cl, Cl + D * (1 - c.barrel) * .9) - .02) / 2 * (.85 + .15 * c.barrel);
+    const B0: AnimalPoint = [-1.02 * Tf, croupY - pelvisRyF * 1.1], S0: AnimalPoint = [.04 * Tf, sJ[1] - .02];
+    const line0 = Math.atan2(S0[1] - B0[1], S0[0] - B0[0]) / RAD;
+    let Rf = fit.pitch.typical - line0, txf = 0, tyf = 0;
+    const Wf = (p: AnimalPoint): AnimalPoint => add(rotate(p, Rf, pivotF), [txf, tyf]);
+    const lf = foreFr.map(f => f * Lf), lh = hindFr.map(f => f * Lh), reachF = len(sub(restFore, shoulderAt(T0))), reachH = len(sub(restHind, hipAt(T0)));
+    const pad = c.girth * .6;
+    // The hind legs folded: the hock on the ground behind the hip, placed so the stifle rests beside the flank above
+    // the ground; the foot flat forward under the haunch.
+    const foldedHind = (): LegGoal => {
+      const H = Wf(hJ), hock = jointOnGround(H, lh[0], lh[1], pad, Math.max(pad * 2.2, H[1] * .55), false, -1);
+      return { foot: [hock[0] + lh[2] + lh[3], hock[1]], aC: 90, aT: 90 };
+    };
+    if (o.posture === "sit") {
+      // The rump on the ground and the forelegs upright: the pitch within the posture's range that sets the shoulder at
+      // the forelegs' standing reach; never higher than they can reach.
+      const hb = c.girth * 1.2, target = reachF * .99, height = (Rd: number) => rotate(sJ, Rd, pivotF)[1] + hb - rotate(B0, Rd, pivotF)[1];
+      let lo = fit.pitch.min - line0, hi = fit.pitch.max - line0;
+      if (height(hi) <= target) Rf = hi;
+      else if (height(lo) >= target) { Rf = lo; while (height(Rf) > reachF * .995 && Rf > -line0) Rf -= 1; }
+      else { for (let k = 0; k < 30; k++) { const m = (lo + hi) / 2; if (height(m) < target) lo = m; else hi = m; } Rf = (lo + hi) / 2; }
+      tyf = hb - rotate(B0, Rf, pivotF)[1];
+      const S = Wf(sJ), dx = Math.sqrt(Math.max(0, reachF * reachF - S[1] * S[1]));
+      txf = restFore[0] - (S[0] + dx);
+      goals = { fore: { foot: [restFore[0], 0], aC: st.fore[2], aT: st.fore[3] }, hind: foldedHind() };
+    } else if (lying) {
+      // The brisket on the folded forelegs (or on the ground beside flat forearms).
+      tyf = (fit.fore === "folded" ? c.girth * 2.2 : c.girth * 1.1) - rotate([-.12 * Tf, Cl], Rf, pivotF)[1];
+      const S = Wf(sJ);
+      let fore: LegGoal;
+      if (fit.fore === "folded") {
+        // Wrist forward on the ground with the elbow down behind it, the cannon folded back under the forearm.
+        const wrist = jointOnGround(S, lf[0], lf[1], pad, pad * 1.4, true, 1), aC = -92, aT = -125;
+        fore = { foot: add(add(wrist, down(aC), lf[2]), down(aT), lf[3]), aC, aT };
+      } else {
+        // The sphinx: elbow on the ground, forearm and paw flat and forward.
+        const wrist = jointOnGround(S, lf[0], lf[1], pad, pad * 1.2, true, 1);
+        fore = { foot: [wrist[0] + lf[2] + lf[3], wrist[1]], aC: 90, aT: 90 };
+      }
+      goals = { fore, hind: foldedHind() };
+    } else {
+      // Rear: the hind feet stay planted and the body rises over them on straight or deeply bent hocks.
+      const hipH = (fit.hind === "straight" ? .97 : .78) * reachH, H0 = rotate(hJ, Rf, pivotF);
+      txf = restHind[0] - .03 * Tf - H0[0]; tyf = hipH - H0[1];
+      const hind: LegGoal = fit.hind === "flexed" ? { foot: [restHind[0], 0], aC: st.hind[2] + 35, aT: st.hind[3] } : fit.hind === "folded" ? foldedHind() : { foot: [restHind[0], 0], aC: st.hind[2], aT: st.hind[3] };
+      // Lifted forelegs: tucked (forearm forward, cannon hanging back) or hanging loose before the chest.
+      const fore: LegGoal = { angles: fit.fore === "tucked" ? [25, 95, -15, 10] : [25, 50, 25, 35] };
+      goals = { fore, hind };
+    }
+    // This frame: the shoulder moves toward its end place by the fore window, the hip by the hind window; the body turns
+    // to lie along the line between them and is placed on the hip.
+    const S1 = Wf(sJ), H1 = Wf(hJ), s0 = shoulderAt(T0), h0 = hipAt(T0);
+    const St = lerpP(s0, S1, pf), Ht = lerpP(h0, H1, ph);
+    R = (Math.atan2(St[1] - Ht[1], St[0] - Ht[0]) - Math.atan2(shoulderJ[1] - hipJ[1], shoulderJ[0] - hipJ[0])) / RAD;
+    const Hr = rotate(hipJ, R, pivot); tx = Ht[0] - Hr[0]; ty = Ht[1] - Hr[1];
+  }
+  // Each leg's share of its end's progress: the far leg moves first, the near one after, so one foot of a pair is
+  // always down while the other steps.
+  const legProgress = (i: number) => {
+    const fore = legOrder[i].startsWith("fore"), p = fore ? pf : ph, far = legOrder[i].endsWith("far");
+    return smoothstep((p - (far ? 0 : .3)) / .7);
+  };
   const footAt = (i: number): AnimalPoint => {
     const fore = legOrder[i].startsWith("fore"), rest = fore ? restFore : restHind, s = states?.[i];
+    const goal = goals?.[fore ? "fore" : "hind"];
+    if (goal && "foot" in goal) {
+      // Planted posture feet move from where they stood, lifting a little on the way so they step, not slide.
+      const k = legProgress(i), dx = goal.foot[0] - rest[0], lift = Math.abs(dx) > .03 ? Math.sin(Math.PI * k) * .08 * (fore ? Lf : Lh) : 0;
+      return [rest[0] + dx * k, goal.foot[1] * k + lift];
+    }
     if (!s) return [rest[0], 0];
     return s.onGround ? [rest[0] + sweep * (.5 - s.progress), 0] : [rest[0] - sweep / 2 + sweep * smoothstep(s.progress), s.lift * (fore ? Lf : Lh)];
   };
@@ -185,7 +327,7 @@ function poseQuadruped(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
   }
   const waistBottom = Cl + D * (1 - c.barrel) * .9;
   const masses: Record<string, AnimalEllipse> = {};
-  const ell = (cx: number, cy: number, rx: number, ry: number): AnimalEllipse => { const p = W([cx, cy]); return { cx: p[0], cy: p[1], rx, ry, angle: body.pitch }; };
+  const ell = (cx: number, cy: number, rx: number, ry: number): AnimalEllipse => { const p = W([cx, cy]); return { cx: p[0], cy: p[1], rx, ry, angle: body.pitch + R }; };
   masses.chest = ell(-.26 * T, Cl + D * .5, .3 * T, D * .5);
   masses.waist = ell(-.55 * T, (loinsY - .03 + waistBottom) / 2, .24 * T, (loinsY - .03 - waistBottom) / 2);
   const pelvisRy = (croupY - Math.max(Cl, waistBottom) - .02) / 2 * (.85 + .15 * c.barrel);
@@ -217,18 +359,41 @@ function poseQuadruped(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
         else { aC += 45 * fast * flex; aT = aC + 15 + (ang[3] - ang[2] - 15) * (1 - flex); }
       }
     }
-    const points = solveLeg(top, foot, lens, aC, aT, fore);
+    const goal = goals?.[fore ? "fore" : "hind"];
+    let points: AnimalPoint[];
+    if (goal && "angles" in goal) {
+      // A lifted leg eases from its standing segment angles to the posture's.
+      const a0 = [ang[0], ang[1], ang[2], ang[3]], k = fore ? pf : ph;
+      points = fkLeg(top, lens, a0.map((a, j) => a + (goal.angles[j] - a) * k)); onGround = k < .05;
+    } else {
+      if (goal) { const k = legProgress(i); aC += (goal.aC - aC) * k; aT += (goal.aT - aT) * k; }
+      points = solveLeg(top, foot, lens, aC, aT, fore);
+      // A folded leg too long for the low hip splays out sideways; seen from the side it shortens and the knee rests on
+      // the ground instead of sinking through it.
+      if (goal && points[1][1] < c.girth * .5) points[1] = [points[1][0], c.girth * .5];
+    }
     const w0 = c.girth * (fore ? 1 : 1.25), widths = [w0 * 1.6, w0 * .85, w0 * .62, w0 * .55, w0 * .5].map((w, j) => (j === 0 && posture === "plantigrade" ? w * 1.1 : w));
     limbs.push({ leg, fore, far, points, widths, onGround });
   }
   joints.elbow = limbs[3].points[1]; joints.carpus = limbs[3].points[2]; joints.stifle = limbs[2].points[1]; joints.hock = limbs[2].points[2];
   // Neck, head, ear, eye.
-  const neckRoot = W([-.02 * T, (1 + shoulderJ[1]) / 2 + .04]);
-  const nAngle = c.neckAngle + body.neck * .6 + body.pitch;
-  const occiput = add(neckRoot, dir(nAngle), Math.max(c.neck, .08));
-  const neckMid = add(lerpP(neckRoot, occiput, .5), dir(nAngle + 90), c.neck * .06);
-  const axis = -c.headAngle + body.neck * .4 + body.pitch, ax = dir(axis), up = dir(axis + 90);
+  const neckRoot = W([-.02 * T, (1 + shoulderJ[1]) / 2 + .04]), neckLen = Math.max(c.neck, .08);
   const cranLen = c.head * (1 - c.muzzle), ry = c.head * (.12 + .14 * (1 - c.muzzle));
+  const pd = fit && o.posture ? ANIMAL_POSTURES[o.posture] : undefined;
+  let nAngle = c.neckAngle + body.neck * .6 + body.pitch + (pd ? R * pd.neckFollows : 0);
+  let axis = -c.headAngle + body.neck * .4 + body.pitch + (pd ? R * pd.headFollows : 0);
+  if (pd?.head === "down") {
+    // The head goes down once the body is down.
+    const hd = win(A, [.55, 1]);
+    // Resting: the neck lowers until the jaw lies on the ground, the head level or tipped a little down.
+    const k = Math.max(-1, Math.min(1, (ry * 1.05 - neckRoot[1]) / neckLen)), low = Math.asin(k) / RAD;
+    nAngle += (low - nAngle) * hd;
+    const occY = neckRoot[1] + Math.sin(nAngle * RAD) * neckLen, flat = Math.asin(Math.max(-1, Math.min(1, (ry * .6 - occY) / c.head))) / RAD;
+    axis += (Math.min(0, flat) - axis) * hd;
+  }
+  const occiput = add(neckRoot, dir(nAngle), neckLen);
+  const neckMid = add(lerpP(neckRoot, occiput, .5), dir(nAngle + 90), c.neck * .06);
+  const ax = dir(axis), up = dir(axis + 90);
   const cc = add(occiput, ax, cranLen * .5), cranium: AnimalEllipse = { cx: cc[0], cy: cc[1], rx: cranLen * .62, ry, angle: axis };
   const nose = add(occiput, ax, c.head), mb = add(occiput, ax, cranLen * .9);
   const muzzle: AnimalPoint[] = [add(mb, up, ry * .85), add(nose, up, ry * .4), add(nose, up, -ry * .35), add(mb, up, -ry * .95)];
@@ -249,7 +414,9 @@ function poseQuadruped(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
   const neckW0 = D * .6, neckW1 = ry * 1.7;
   // Tail.
   const tailLen = c.tail * headBodyLength(c), bushy = c.species?.coat.long.includes("tail") && c.tail >= .25 ? 2.2 : 1;
-  const tp = tailPoints(tailRoot, tailLen, c.tailCarriage, (g ? 10 * Math.sin(2 * Math.PI * t) : 0) - body.pitch);
+  // On the ground (sitting, lying) the tail lies along it rather than through it.
+  const tailDown = o.posture === "sit" || lying ? ph : 0;
+  const tp = tailPoints(tailRoot, tailLen, c.tailCarriage, (g ? 10 * Math.sin(2 * Math.PI * t) : 0) - body.pitch, tailDown, fit?.tail === "wrap").map(q => (q[1] < c.girth * .5 ? [q[0], c.girth * .5] as AnimalPoint : q));
   // A long-haired tail is a brush: fullest past its middle, about a fifth of its length across (a fox's).
   const tw0 = Math.max(.025, c.girth * .45);
   const tailW = tp.map((_, i) => { const u = i / (tp.length - 1); return bushy > 1 ? tailLen * .2 * (.45 + .55 * Math.sin(Math.PI * Math.min(1, .15 + u * .95))) : tw0 * (1 - .75 * u); });
@@ -389,22 +556,29 @@ export function skeletonShapes(s: AnimalSkeleton): AnimalShapes {
   const eyePatch = poly(ellipsePoints({ cx: h.eye[0], cy: h.eye[1], rx: h.eyeR * 3.2, ry: h.eyeR * 2.4, angle: h.axis }));
   if (s.kind === "quadruped") {
     const j = s.joints, ch = m.chest;
+    // The trunk's and the neck's own directions, so the bands follow a sitting, lying or rearing body.
+    const tilt = ch.angle, neckDir = Math.atan2(s.neck.points[2][1] - s.neck.points[0][1], s.neck.points[2][0] - s.neck.points[0][0]) / RAD;
+    const along = (p: AnimalPoint, v: AnimalPoint): AnimalPoint => add(p, rotate(v, tilt, [0, 0]));
     regions.back = trunkD; regions.flank = trunkD; regions.neck = neckD;
-    // The underside of the trunk only (not the legs): the trunk outline cut at a line above the brisket.
-    const cut = j.brisket[1] + s.c.chestDepth * .22;
-    regions.belly = s.outline.trunk ? smoothClosedPath(s.outline.trunk.map(p => [p[0], Math.min(p[1], cut)] as AnimalPoint)) : "";
+    // The underside of the trunk only (not the legs): the trunk outline cut at a line above the brisket, in the
+    // trunk's own frame.
+    const cut = s.c.chestDepth * .22;
+    regions.belly = s.outline.trunk ? smoothClosedPath(s.outline.trunk.map(p => {
+      const q = rotate(p, -tilt, j.brisket);
+      return rotate([q[0], Math.min(q[1], j.brisket[1] + cut)], tilt, j.brisket);
+    })) : "";
     regions.chest = poly(ellipsePoints({ cx: ch.cx + ch.rx * .72, cy: ch.cy - ch.ry * .1, rx: ch.rx * .45, ry: ch.ry * 1.05, angle: ch.angle }));
-    regions.throat = poly(tubePoints(s.neck.points.slice(0, 2).map((p, i) => add(p, dir(s.c.neckAngle - 90), s.neck.widths[i] * .3)), s.neck.widths.slice(0, 2).map(w => w * .5))) + regions.chest;
+    regions.throat = poly(tubePoints(s.neck.points.slice(0, 2).map((p, i) => add(p, dir(neckDir - 90), s.neck.widths[i] * .3)), s.neck.widths.slice(0, 2).map(w => w * .5))) + regions.chest;
     regions.rump = poly(ellipsePoints({ cx: m.pelvis.cx - m.pelvis.rx * .55, cy: m.pelvis.cy + m.pelvis.ry * .2, rx: m.pelvis.rx * .5, ry: m.pelvis.ry * .75, angle: m.pelvis.angle }));
     regions["fore-leg"] = s.limbs.filter(l => l.fore).map(limbShape).join("");
     regions["hind-leg"] = s.limbs.filter(l => !l.fore).map(limbShape).join("");
     regions.feet = legLower(s.limbs, 2);
     bands.back = poly(tubePoints(s.topLine, s.topLine.map(() => s.c.chestDepth * .16)));
-    bands.neck = poly(tubePoints(s.neck.points.map((p, i) => add(p, dir(s.c.neckAngle + 90), s.neck.widths[i] * .42)), s.neck.widths.map(w => w * .22)));
+    bands.neck = poly(tubePoints(s.neck.points.map((p, i) => add(p, dir(neckDir + 90), s.neck.widths[i] * .42)), s.neck.widths.map(w => w * .22)));
     const jawA = add(h.muzzle[3], [0, h.cranium.ry * .12]), jawB = add([h.cranium.cx, h.cranium.cy], dir(h.axis - 90), h.cranium.ry * .7);
     bands.face = poly(tubePoints([lerpP(h.muzzle[3], h.muzzle[2], .25), jawA, jawB, add(jawB, dir(h.axis + 180), h.cranium.rx * .6)], [h.cranium.ry * .25, h.cranium.ry * .35, h.cranium.ry * .4, h.cranium.ry * .3]));
-    const cf: AnimalPoint = [ch.cx + ch.rx * .9, ch.cy + ch.ry * .35];
-    bands.chest = poly(tubePoints([add(cf, [-ch.rx * .25, ch.ry * .5]), cf, add(cf, [-ch.rx * .15, -ch.ry * .45])], [ch.ry * .16, ch.ry * .3, ch.ry * .16]));
+    const cf = along([ch.cx, ch.cy], [ch.rx * .9, ch.ry * .35]);
+    bands.chest = poly(tubePoints([along(cf, [-ch.rx * .25, ch.ry * .5]), cf, along(cf, [-ch.rx * .15, -ch.ry * .45])], [ch.ry * .16, ch.ry * .3, ch.ry * .16]));
     bands.crown = bands.back;
   } else if (s.kind === "bird") {
     const b = m.body;
