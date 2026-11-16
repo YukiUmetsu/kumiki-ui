@@ -31,6 +31,24 @@ const take=(id:string,ink?: "blue"|"red"):RisoCharacterPart=>{
   return {...p,plate:ink??p.plate};
 };
 const staticLeg=(j:RisoJoint):RisoJoint=>{
+  // RISO45 / Paper Artist original source: 3 supporting MCP digits must
+  // fold *behind* the sheet's upper edge, not point to the upper-right
+  // like red rake tines while index alone pinches. Preserve original
+  // human ANAT1 PIP/DIP sources and indexed thumb opposition unchanged.
+  // Distinct MCP fan arcs follow paper contact; no pasted silhouette.
+  const supportMcpContact={
+    "left-middle":{pinch:34,hold:25},
+    "left-ring":{pinch:30,hold:23},
+    "left-pinky":{pinch:26,hold:21},
+  } as const;
+  const support= supportMcpContact[j.id as keyof typeof supportMcpContact];
+  if(support)return {...j,keys:(j.keys??[]).map(key=>{
+    const add=key.frame>=198?support.hold:
+      key.frame>=156?support.pinch:
+      key.frame>=140?support.pinch*.30:0;
+    return {...key,rotate:(key.rotate??0)+add};
+  })};
+
   if(j.id==="root")return {...j,keys:[
     {frame:0,x:0,y:0,easing:"ease"},
     {frame:110,x:-8,y:0,easing:"ease"},
