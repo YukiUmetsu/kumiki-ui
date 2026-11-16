@@ -57,6 +57,18 @@ test("RISO32 moving thumb IP remains attached at contact, release and both ink m
       expect(actualInkGap).toBeGreaterThanOrEqual(0);
       expect(crossInkContacts).toBeGreaterThanOrEqual(0);
       expect(crossInkContacts).toBeLessThanOrEqual(27);
+      // RISO39 actual source FK/IK thumb-index distance. A visual grip
+      // requires the printed tips to approach; source existence alone does
+      // not imply paper pressure or three-quarter anatomical contact.
+      const opposedGap=Number(await panel.getAttribute("data-km-riso39-thumb-index-tip-gap"));
+      const padInkGap=Number(await panel.getAttribute("data-km-riso39-thumb-index-ink-gap"));
+      expect(Number.isFinite(opposedGap)).toBe(true);
+      expect(Number.isFinite(padInkGap)).toBe(true);
+      expect(opposedGap).toBeGreaterThan(0);
+      expect(padInkGap).toBeGreaterThanOrEqual(0);
+      const panelId=await panel.getAttribute("data-km-riso30-hand");
+      if((frame===160&&panelId==="courier-right")||
+         (frame===166&&panelId==="paper-artist-left"))expect(opposedGap).toBeLessThan(12);
       const measured=Number(await panel.getAttribute("data-km-riso33-minimum-axis-gap"));
       expect(Number.isFinite(measured)).toBe(true);
       if(frame===160||frame===166){

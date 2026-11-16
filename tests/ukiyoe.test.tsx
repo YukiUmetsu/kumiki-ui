@@ -8,7 +8,7 @@ import { CLUB, oniFight } from "../registry/video/ukiyoe/ukiyoe-oni";
 import { castleTown } from "../registry/video/ukiyoe/ukiyoe-town";
 import { realmScene, UKIYOE_REALM_SCENES } from "../registry/video/ukiyoe/ukiyoe-realms";
 import { paradeScene, UKIYOE_PARADE_SCENES } from "../registry/video/ukiyoe/ukiyoe-parade";
-import { faceTraits } from "../registry/video/ukiyoe/ukiyoe-face";
+import { faceTraits, moodShape, UKIYOE_MOODS } from "../registry/video/ukiyoe/ukiyoe-face";
 import { UkiyoeInkBleed, UkiyoePrintIn, UkiyoeScrollRoll } from "../registry/video/ukiyoe/ukiyoe-transitions";
 import { UKIYOE_ROLES_LIST, UKIYOE_SEASONS, ukiyoeWardrobe } from "../registry/video/ukiyoe/ukiyoe-wardrobe";
 import { inspectUkiyoeEpisode, ukiyoeCaptionLines, ukiyoeEpisode, ukiyoeEpisodeSrt, ukiyoeTitleCard } from "../registry/video/ukiyoe/ukiyoe-episode";
@@ -1072,7 +1072,7 @@ describe("UKIYO1 faces", () => {
     const head = (look: object, actions: unknown[] = []) => JSON.stringify(drawFigure({ look, actions } as never, 20, 0, 3).prims.find(p => p.t === "group" && /scale\(/.test(p.transform ?? "")));
     const woman = { hair: "shimada", robe: "beni" };
     const calm = head(woman);
-    for (const mood of ["smile", "laugh", "sad", "cry", "surprise", "angry", "fear", "shy"]) expect(head(woman, [{ type: "emote", mood, start: 0, end: 100, blend: 1 }]), mood).not.toBe(calm);
+    for (const mood of UKIYOE_MOODS) expect(head(woman, [{ type: "emote", mood, start: 0, end: 100, blend: 1 }]), mood).not.toBe(calm);
     // Same identity, different prop: the same face traits.
     const a = faceTraits({ ...woman, prop: "umbrella", view: "front" } as object, true), b = faceTraits(woman, true);
     expect(a).toEqual(b);
@@ -1081,6 +1081,26 @@ describe("UKIYO1 faces", () => {
     expect(new Set(men).size).toBeGreaterThan(6);
     // Women are powdered white unless the look gives a skin.
     expect(JSON.stringify(drawFigure({ look: woman } as never, 0, 0, 1).prims)).toContain('"fill":"gofun"');
+  });
+
+  it("draws each mood from EXPR1's anatomy, with the prints' conventions on top", () => {
+    const s = (mood: string, w = 1) => moodShape({ [mood]: w });
+    // Grief lifts the brows' inner ends; a frown lowers them.
+    expect(s("sad").browInnerTilt).toBeGreaterThan(.5);
+    expect(s("angry").browInnerTilt).toBeLessThan(-.5);
+    // A felt smile narrows the eyes; anger presses the lips rather than turning them down.
+    expect(s("smile").eyeOpen).toBeLessThan(.9);
+    expect(s("smile").curveL).toBeGreaterThan(.5);
+    expect(Math.abs(s("angry").curveL)).toBeLessThan(.2);
+    expect(s("angry").mouthWidth).toBeLessThan(1);
+    // Laughter closes the eyes into crescents, easing in with the weight; surprise stares.
+    expect(s("laugh").crescent).toBe(1);
+    expect(s("laugh", .5).crescent).toBeGreaterThan(.2);
+    expect(s("laugh", .5).crescent).toBeLessThan(.8);
+    expect(s("surprise").eyeOpen).toBeGreaterThan(1);
+    expect(s("surprise").browRaise).toBeGreaterThan(1);
+    // Contempt lifts one corner only.
+    expect(s("contempt").curveR - s("contempt").curveL).toBeGreaterThan(.3);
   });
 });
 

@@ -335,4 +335,6 @@ This is a **rigid leaf with one spine**, not a V-fold engine or dynamic bending-
 
 ### Sheet-specific paper fibre
 
-`PaperCutLayer.fibreScale?: number` sets the relative size of the seeded, sheet-anchored fibre pattern (finite 0.25–2; default 1), and `fibreIntensity?: number` multiplies that sheet's tooth opacity (finite 0–1; default 1). The stage's `tooth` remains the global control. Different sheets may use different values without changing geometry, fill or other sheets. The existing Garden page exposes wing controls; royal face/neck stock uses smaller, lighter marks as an experimental visual treatment. The repeated horizontal fibre approximation is not a calibrated paper scan, physical microstructure, or an artistic approval.
+`PaperCutLayer.fibreScale?: number` sets the relative size of the seeded, sheet-anchored fibre pattern (finite 0.25–2; default 1), and `fibreIntensity?: number` multiplies that sheet's tooth opacity (finite 0–1; default 1). The stage's `tooth` remains the global control. Different sheets may use different values without changing geometry, fill or other sheets. The existing Garden page exposes wing controls. The repeated horizontal fibre approximation is not a calibrated paper scan or physical microstructure.
+
+Source observations and rendered comparisons: [paper stock controls study](../research/paper-stock-controls-study.md).

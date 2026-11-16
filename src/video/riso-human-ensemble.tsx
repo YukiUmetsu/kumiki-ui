@@ -13,6 +13,7 @@ import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video
 import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS} from "./riso-hand-artcraft";
+import {evaluateRiso40PaperGrip} from "./riso40-paper-fingertip-contact";
 import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
 import {riso31SegmentIds} from "./riso31-finger-phalanges";
 import {riso32ThumbDistalId} from "./riso32-thumb-ip";
@@ -346,14 +347,21 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
   // Keep both at legible 1.1x, with a dedicated portrait editorial baseline.
   const first={x:portrait?30:120,y:portrait?705:445,scale:portrait?1.1:1.05};
   const second={x:portrait?405:520,y:portrait?705:445,scale:portrait?1.1:1.05};
-  const a=personPoint(COURIER,frame,"right-hand",first.x,first.y,first.scale);
-  const b=personPoint(PAPER_ARTIST,frame,"left-hand",second.x,second.y,second.scale);
-  // Absolute reference pose sampled from the same two rigs: no history and
-  // no independent paper keyframe. After transfer it follows only the receiver.
-  const releaseA=personPoint(COURIER,handoffSchedule.releaseStart,"right-hand",
-    first.x,first.y,first.scale);
-  const releaseB=personPoint(PAPER_ARTIST,handoffSchedule.releaseStart,"left-hand",
-    second.x,second.y,second.scale);
+  // RISO40 visual-failure repair. The page previously spanned the two
+  // WRISTS while the actual source thumb/index prints lay several centimeters
+  // outside its endpoints (see real 16:9 f160 Chromium). Attach both ends to
+  // the moving opposed pads themselves; the only kinematic inputs remain
+  // the original actors' ANAT1 thumb IP / index DIP source joint transforms.
+  const donorGrip=evaluateRiso40PaperGrip(COURIER,frame,"right",first);
+  const artistGrip=evaluateRiso40PaperGrip(PAPER_ARTIST,frame,"left",second);
+  const a=donorGrip.paperAnchor,b=artistGrip.paperAnchor;
+  // Preserve the exact Riso-prop-handoff independently seeking release rule:
+  // absolute releaseStart anchors come from the same 2 source rigs, not a
+  // separately keyframed new letter or history-dependent screen offset.
+  const releaseA=evaluateRiso40PaperGrip(COURIER,handoffSchedule.releaseStart,
+    "right",first).paperAnchor;
+  const releaseB=evaluateRiso40PaperGrip(PAPER_ARTIST,handoffSchedule.releaseStart,
+    "left",second).paperAnchor;
   const handoff=evaluateRisoPropHandoff(frame,a,b,releaseA,releaseB,handoffSchedule);
   // Finger pressure is a *contact* property, not merely a held-gesture
   // parameter. As the sheet peels away its root, the ink folds must relax
@@ -369,6 +377,7 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
     {...paperOptions,sourceGrip:sourceContactPressure,
       receiverGrip:receiverContactPressure});
   return {...handoff,sourceContactPressure,receiverContactPressure,
+    donorGrip,artistGrip,
     frame,aspect,width,height,first,second,source:a,receiver:b,
     propEnd:handoff.paperEnd,progress:handoff.progress,
     sheet:printDetails.outline,printDetails};
@@ -408,7 +417,7 @@ export function RisoHumanEnsembleStudio(){
   const [imprintDepth,setImprintDepth]=useState(.75);
   const [releaseStart,setReleaseStart]=useState(178);
   const [releaseDuration,setReleaseDuration]=useState(24);
-  const [settleDegrees,setSettleDegrees]=useState(-45);
+  const [settleDegrees,setSettleDegrees]=useState(RISO_HANDOFF_DEFAULTS.settleDegrees);
   // Real-time playhead: use source frame based on elapsed wall-clock time,
   // not chained setInterval ticks (which drift under expensive SVG rendering).
   // End on a held final pose: the source is a story, not a seamless idle loop.
@@ -656,6 +665,10 @@ export function RisoHumanEnsembleStudio(){
           data-km-riso-human-ensemble-paper-curl={paperCurl}
           data-km-riso-human-ensemble-grip-pinch={gripPinch}
           data-km-riso-human-ensemble-imprint-depth={imprintDepth}
+          data-km-riso40-donor-pad-distance={state.donorGrip.tipDistance.toFixed(3)}
+          data-km-riso40-receiver-pad-distance={state.artistGrip.tipDistance.toFixed(3)}
+          data-km-riso40-source-fingertip-anchor={state.donorGrip.anchorToRoot.toFixed(3)}
+          data-km-riso40-receiver-fingertip-anchor={state.artistGrip.anchorToRoot.toFixed(3)}
           data-km-riso-paper-source-contact={state.sourceContactPressure.toFixed(3)}
           data-km-riso-paper-receiver-contact={state.receiverContactPressure.toFixed(3)}
           data-km-riso-human-ensemble-contact-overprint={fingertipOcclusion}

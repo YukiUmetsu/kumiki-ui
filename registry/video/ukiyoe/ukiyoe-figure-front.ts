@@ -19,7 +19,7 @@ import { katana, mon, reachArm, saya } from "./ukiyoe-katana";
 import { kanabo } from "./ukiyoe-oni";
 import { hachiSide } from "./ukiyoe-folk";
 import { dragonCrownSquare } from "./ukiyoe-ryugu";
-import { faceFront, faceTraits, hairSheen, kewari } from "./ukiyoe-face";
+import { faceFront, faceTraits, hairSheen, kewari, moodsOf } from "./ukiyoe-face";
 import { courtProp, heianHairSquare, kanmuriSquare } from "./ukiyoe-heian";
 import { armEyes, gourdSquare, minoSquare, zaru } from "./ukiyoe-folkyokai";
 import { animalHeadSquare } from "./ukiyoe-parade";
@@ -370,7 +370,7 @@ function headFront(look: UkiyoeFigureLook, pose: FigurePose, r: number, lw: numb
     out.push({ t: "fill", d: polyD([P(-.35, .55), P(-.25, .85), P(-.15, .55)]) + polyD([P(.15, .55), P(.25, .85), P(.35, .55)]), fill: "gofun", outline: lw * .6 });
     out.push({ t: "line", d: carvedLine([P(-.45, .52), P(0, .62), P(.45, .52)], r * .06, { taper: "both" }), color: "sumi" });
   } else {
-    const moods = { smile: pose.smile, laugh: pose.laugh, sad: pose.sad, cry: pose.cry, surprise: pose.surprise, angry: pose.angry, fear: pose.fear, shy: pose.shy };
+    const moods = moodsOf(pose);
     out.push(...faceFront({ P, k: r, lw, moods, traits: faceTraits(look, female), blink: pose.blink, gaze: pose.gaze * .6, mouth: pose.mouth, hair: hairC === "usuzumi" ? "usuzumi" : "sumi", lips: look.lips }));
     if (look.beard) out.push({ t: "fill", d: smoothD([P(-.5, .55), P(-.3, 1.2), P(0, 1.5), P(.3, 1.2), P(.5, .55), P(0, .85)], true, .4), fill: hairC, outline: lw * .7 });
   }

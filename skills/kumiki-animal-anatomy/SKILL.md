@@ -24,6 +24,13 @@ The pack `animal-anatomy` decides *what the animal is*: its build, face, coat, g
 5. **Motion.** Use `ANIMAL_GAITS` for footfalls (`quadFootfalls`), body bob, pitch and spine flex (`quadBody`).
    `strideFrames(gait, mass)` gives the cycle length, and `gaitSpeed` the travel speed. Planted feet must not slide:
    track them frame by frame. Study Muybridge before changing a gait.
+
+   **Postures:** sit, lie, rest (lying, head down) and rear come from `ANIMAL_POSTURES`.
+   - Only the plans that take a posture naturally have it: horses and cattle never sit; bears, horses, hares, weasels,
+     macaques and mice rear.
+   - Animate with `poseAnimal(c, { posture, amount })` over the posture's `frames`. Cattle and horses kneel first;
+     dogs and cats sit first.
+   - Check every frame: nothing through the ground, the planted feet still.
 6. **Sound.** Use the catalog ids in `species.sounds`. For the rest, source a CC0 recording with the search term given,
    and add it to the sound catalog.
 7. **Check.** Read your drawing's or rig's landmarks: withers, brisket, point of shoulder, point of buttock and ground.

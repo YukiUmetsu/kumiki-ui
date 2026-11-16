@@ -275,6 +275,74 @@ These numbers say how closely the engine reproduces this teacher's own models. T
 
 **Limits.** 80 characters keep the rules: about 40 for incomplete data and the rest for a stroke that still fails its check. Kana loops are still small (よ, あ, る); や and ゆ fail. Heads and stops come from the technique programs.
 
+## 2.12 Eighth study round: dots, jump cuts, and each stroke's head and stop
+
+**Dots.** Most strokes that still failed their check were dots: the dots of 氵 and 丷 are written quickly one after another, and the brush trace gave both blobs to one dot. A dot is usually a separate blob of ink, so each KanjiVG dot now takes the blob nearest its expected place, the blobs in the order they were written. 汚, 浅, 源, 羊 and 羽 pass.
+
+**Jump cuts.** Many videos that seemed incomplete are cut once while the camera stays where it is (the editor removed a pause). Neighbouring runs with the same paper box are joined into one writing shot when every ink pixel before the cut is still dark after it (a re-framed shot moves the ink by a few pixels and is not joined), so ink written before the cut keeps its time. 旅, 史, 井, 不 and 筆 among 13 characters become complete; 30 stay incomplete.
+
+**Heads, stops and lifts.** `ShodoStrokeSpec.technique` gives one stroke its own technique settings over the style's, within the same ranges. The fit compares, on our stroke and on the teacher's, the widest point of the head and of the stop with the stroke's middle width, and how long a 払い stays thin before it ends; it sets `uchikomiDepth`, `tomePress` and `haraiLift` or `kenshinLift` stroke by stroke. 1104 strokes have their own settings. On a test set of eight characters the change was small and mostly positive (overlap in the teacher's frame 0.743 → 0.750).
+
+**Choice per character.** Each round keeps, per character, the form that lies best on the teacher's live writing among the forms that passed their checks.
+
+**Visual review.** The forms whose data changed in this round were compared with the teacher one by one. 59 of 60 looked right; 侍 lost its 亻 (the shot misses its first moments) and keeps the rules. A label-free check for teacher ink that our ink leaves uncovered was tried and dropped: this teacher's ink is bolder on the lower right of every stroke in some videos, so the check flagged good forms and missed 侍.
+
+**Result.** Best-aligned overlap with the teacher's live writing (the shots now include the jump cuts):
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (360) | 0.571 | 0.707 |
+| Kana (46) | 0.498 | 0.675 |
+| The 352 characters with a form | 0.579 | 0.742 (99 % better) |
+
+**Limits.** 54 characters keep the rules: 30 for incomplete data (a shot that really changes the camera, or a final model that is not the writing shown) and the rest for a stroke that fails its check. Kana loops (よ, あ, る) are still smaller than the teacher's.
+
+## 2.13 Ninth study round: more complete shots, dots on unexplained ink, and review
+
+**Shots.** The paper box of a shot is measured on its median frame, and the hand or arm often covers part of the sheet there. Cuts are now joined when the boxes differ by up to 20 px, still only when every ink pixel before the cut is dark after it. 冬, 教, 火, 盆, 礼, 祭 and 能 become complete; 23 characters stay incomplete.
+
+**Dots on unexplained ink.** A dot that lies off the teacher's ink after the repair goes to the nearest blob of teacher ink that none of our other strokes explains, and takes that blob's size. Its check is then precision only (0.6 or more), because the stroke split's label is what was wrong. 善, 希, 帰, 悟, 科 and 際 among others pass.
+
+**A missing component.** In a 3 × 3 grid over the teacher's character, a cell that holds a fair share of the teacher's ink but almost none of ours means a missing radical (短 lost 矢). Such a form keeps the rules.
+
+**Kana loops.** Measured again, the kana strokes are as wide as the teacher's along their paths (median ratio 1.00) and the paths follow the loops; earlier overlays drew our outline at a stricter threshold than the teacher's mask. 41 of 44 kana look like the teacher; よ, る and ゐ close their inner loops a little.
+
+**Review.** Every form that this round added or changed (187) was compared with the teacher by eye. 侍, 杉 and 松 keep the rules (侍 lost 亻; 杉 and 松 write 木 like 扌 in every round). 暑, 雪 and 町 keep the round-three form: their new shot data was worse, and the new form followed it. The decisions are kept with the local data so later rounds respect them.
+
+**Result.** Best-aligned overlap with the teacher's live writing:
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (360) | 0.575 | 0.717 |
+| Kana (46) | 0.498 | 0.677 |
+| The 365 characters with a form | 0.580 | 0.743 (99 % better) |
+
+**Limits.** 41 characters keep the rules: 23 for incomplete data, 3 after review, the rest for a stroke that fails its check. The checks catch a missing stroke or component, not a wrong shape with the right amount of ink; review stays the last step.
+
+## 2.14 Tenth study round: strokes written before the shot, and crossings
+
+**What "incomplete" was.** Of the 23 characters, about half had their first component already on the sheet when the shot began (亻 of 信, 礻 of 福, 加 of 賀, 隺 of 鶴); five were complete, with an end-of-video model that is another writing (々, 涙, 期, 女, 必); the rest had a shot that starts or ends in the wrong place.
+
+**Ink already on the sheet.** The shot's first second and last second and a half are kept as medians (the hand does not count). Ink that is there at the start and still there at the end, inside the sheet and not the paperweight, is kept without a time. The first KanjiVG strokes whose paths lie on it take it by position; the timed alignment covers the rest.
+
+**Completeness.** A shot is incomplete only when a patch of its final ink that our ink does not explain is larger than 8 % of the ink. A share of the final ink was the wrong measure: a brush resting on the sheet at the end made complete characters look incomplete.
+
+**Crossings.** A gap of 0.3 s or less across old ink is one stroke: the brush did not lift. Before, the vertical of 木 broke at the horizontal and every later stroke of 木 moved up by one, so 杉 and 松 wrote 木 like 扌. They now pass review.
+
+**The paperweight.** Keeping the ink that is there from the start also kept the paperweight, which breaks into short pieces and catches light at its edge. The rows at the top of the sheet where that early ink covers a third of the width are the paperweight; no ink at or above its lower edge is kept. Characters keep their highest strokes, which lie below it.
+
+**A conservative merge.** New data changes the stroke labels of many characters, and label-based checks then fail forms that review had passed. The round therefore starts from the reviewed set, adds new characters, and replaces a reviewed form only when the new one lies clearly better on the teacher's writing (+0.02). Every added or replaced form (62 over two passes) was reviewed: 圧 keeps its round-four form.
+
+**Result.** Best-aligned overlap with the teacher's live writing (the reference ink now includes pre-written strokes, so the numbers are not directly comparable with §2.13):
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (360) | 0.585 | 0.736 |
+| Kana (46) | 0.498 | 0.678 |
+| The 381 characters with a form | 0.581 | 0.746 (99 % better) |
+
+**Limits.** 25 characters keep the rules; 侍 still loses 亻 and stays rejected.
+
 ## 3. From observation to model
 
 | Observation | Model decision |

@@ -6,6 +6,7 @@ import { ANIMAL_GAITS, footfallBars, quadFootfalls } from "../registry/anatomy/a
 import { animalConstruction, poseAnimal, skeletonShapes } from "../registry/anatomy/animal-construct";
 import { checkAnimalProportions, checkSpeciesData, measureAnimal } from "../registry/anatomy/animal-check";
 import { AnimalSheet } from "../registry/anatomy/animal-react";
+import { ANIMAL_POSTURES, POSTURE_IDS, postureFit } from "../registry/anatomy/animal-postures";
 import { UKIYOE_SPECIES, ukiyoeBeastLandmarks } from "../registry/video/ukiyoe/ukiyoe-creatures";
 
 describe("ANIM1 data", () => {
@@ -51,6 +52,42 @@ describe("ANIM1 construction", () => {
         });
       }
     }
+  });
+
+  it("sits, lies, rests and rears every mammal that naturally does, frame by frame on the ground without snapping", () => {
+    expect(postureFit("equid", "sit")).toBeUndefined();
+    expect(postureFit("ursid", "rear", false)).toBeUndefined();
+    for (const sp of ANIMAL_SPECIES) {
+      const c = animalConstruction(sp);
+      for (const p of POSTURE_IDS) {
+        const fit = postureFit(c.plan.id, p, sp.behaviour.canRear);
+        if (!fit) continue;
+        const n = ANIMAL_POSTURES[p].frames;
+        let prev: readonly (readonly number[])[] | undefined, first: readonly (readonly number[])[] | undefined;
+        for (let f = 0; f <= n; f++) {
+          const s = poseAnimal(c, { posture: p, amount: f / n }), pts = s.limbs.flatMap(l => l.points), feet = s.limbs.map(l => l.points[4]);
+          const tag = `${sp.id} ${p} frame ${f}/${n}`;
+          // Nothing goes through the ground.
+          expect(Math.min(...pts.map(q => q[1])), tag).toBeGreaterThan(-.005);
+          // No joint jumps between frames (a snap reads as a glitch).
+          if (prev) expect(Math.max(...pts.map((q, i) => Math.hypot(q[0] - prev![i][0], q[1] - prev![i][1]))), tag).toBeLessThan(.3);
+          // Sitting keeps the forefeet where they stood; rearing on straight or bent hocks keeps the hind feet.
+          const start = first ??= feet;
+          if (p === "sit") for (const i of [1, 3]) expect(Math.abs(feet[i][0] - start[i][0]), tag).toBeLessThan(.015);
+          if (p === "rear" && fit.hind !== "folded") for (const i of [0, 2]) expect(Math.abs(feet[i][0] - start[i][0]), tag).toBeLessThan(.015);
+          prev = pts;
+        }
+        // The full posture reaches its measured pitch (sitting may stop short where the forelegs cannot reach).
+        const s = poseAnimal(c, { posture: p }), B = s.joints.pointOfButtock, S = s.joints.pointOfShoulder;
+        const line = Math.atan2(S[1] - B[1], S[0] - B[0]) * 180 / Math.PI;
+        if (p !== "sit") expect(Math.abs(line - fit.pitch.typical), `${sp.id} ${p}`).toBeLessThan(1);
+        else expect(line, `${sp.id} sit`).toBeLessThanOrEqual(fit.pitch.max + .5);
+      }
+    }
+    // The measured sits: the dog's trunk near the corgi's 29°, the cat's inside Steinlen's 36–46°.
+    const sitLine = (id: string) => { const s = poseAnimal(animalConstruction(id), { posture: "sit" }), B = s.joints.pointOfButtock, S = s.joints.pointOfShoulder; return Math.atan2(S[1] - B[1], S[0] - B[0]) * 180 / Math.PI; };
+    expect(sitLine("shiba-inu")).toBeGreaterThan(25);
+    expect(sitLine("domestic-cat")).toBeGreaterThan(36);
   });
 });
 

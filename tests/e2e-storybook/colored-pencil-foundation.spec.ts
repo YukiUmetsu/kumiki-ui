@@ -33,7 +33,9 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
       }));
       expect(provenance.photoElements).toBe(0);
       expect(provenance.pencilMarks).toBeGreaterThan(100);
-      expect(provenance.tracedGeometry).toBeGreaterThan(10);
+      // DRAWING 01 deliberately contains one new human head (one outline
+      // and three anatomical guides), not the retired 22-part woman.
+      expect(provenance.tracedGeometry).toBeGreaterThan(item==="portrait"?3:10);
       if(item==="fox"){
         for(const region of ["periocular-form","mask","eye-far","eye-near"])
           await expect(svg.locator(
@@ -143,7 +145,7 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
 });
 
 
-test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect actual drawing in both aspects",async({page},info)=>{
+test("ArtCraft fox subjects and NEW single-piece human head inspect native authoring in both aspects",async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
   const scene=page.locator("[data-km-foundation-studio]");
   const svg=page.locator("svg[data-km-colored-pencil]");
@@ -163,11 +165,7 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
       ["fox","fox-chest","chest"],
       ["fox","fox-forepaw","foreleg-right"],
       ["fox","fox-hock","rear-leg"],
-      ["portrait","portrait-nape","neck"],
-      ["portrait","portrait-crown","hair-crown"],
-      ["portrait","portrait-lock","hair-lock-right"],
-      ["portrait","portrait-lips","lip-lower"],
-      ["portrait","portrait-eye","iris-near"],
+      ["portrait","human-head","head-construction"],
     ] as const){
       await subject.selectOption(specimen);
       const before=await svg.screenshot({animations:"disabled"});
@@ -186,84 +184,28 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
       // a photograph edit or duplicated/flattened alternate hero.
       await svg.screenshot({animations:"disabled",
         path:info.outputPath("pencil-"+specimen+"-"+format+"-"+part+"-macro.png")});
-      if(focus==="portrait-eye"){
-        const measured=await svg.evaluate(root=>{
-          const eye=root.querySelector(
-            '[data-km-pencil-region="eye-white-near"]')!;
-          const iris=root.querySelector(
-            '[data-km-pencil-region="iris-near"]')!;
-          const pupil=root.querySelector(
-            '[data-km-pencil-region="pupil-near"]')!;
-          const named=(p:Element,name:string)=>
-            Boolean(p.querySelector('[data-km-pencil-trace="'+name+'"]'));
+      if(focus==="human-head"){
+        const head=await svg.evaluate(root=>{
+          const regions=[...root.querySelectorAll("[data-km-pencil-region]")]
+            .map(r=>r.getAttribute("data-km-pencil-region"));
+          const mass=root.querySelector(
+            '[data-km-pencil-region="head-construction"]')!;
           return {
-            radial:Array.from({length:3},(_,i)=>
-              named(iris,"anat-radial-iris-L-"+i)).every(Boolean),
-            shadow:named(iris,"anat-superior-iris-shadow-L"),
-            caruncle:named(eye,"anat-medial-caruncle-L"),
-            upperSclera:named(eye,"anat-superior-sclera-shadow-L"),
-            upperLashes:named(eye,"anat-lash-upper-L"),
-            catchlight:named(pupil,"anat-catchlight-L"),
-            noBitmap:root.querySelectorAll("image,foreignObject,feImage").length===0,
+            onlyNewHead:regions.length===1&&regions[0]==="head-construction",
+            sagittal:!!mass.querySelector(
+              '[data-km-pencil-trace="new-head-sagittal-guide"]'),
+            leftPlane:!!mass.querySelector(
+              '[data-km-pencil-trace="new-head-left-mass-turn"]'),
+            rightPlane:!!mass.querySelector(
+              '[data-km-pencil-trace="new-head-right-mass-turn"]'),
+            bitmap:root.querySelectorAll("image,foreignObject,feImage").length,
           };
         });
-        expect(Object.values(measured).every(Boolean)).toBe(true);
-      }
-      if(focus==="portrait-lips"){
-        const mouth=await svg.evaluate(root=>{
-          const upper=root.querySelector(
-            '[data-km-pencil-region="lip-upper"]')!;
-          const lower=root.querySelector(
-            '[data-km-pencil-region="lip-lower"]')!;
-          const face=root.querySelector(
-            '[data-km-pencil-region="face-main"]')!;
-          const count=(node:Element,plane:string)=>
-            [...node.querySelectorAll("[data-km-pencil-trace]")].filter(
-              t=>t.getAttribute("data-km-pencil-trace")?.startsWith(
-                "anat-vermilion-"+plane+"-")).length;
-          return {
-            upperPasses:count(upper,"upper"),
-            lowerPasses:count(lower,"lower"),
-            seam:!!upper.querySelector(
-              '[data-km-pencil-trace="anat-mouth-seam"]'),
-            commissure:!!upper.querySelector(
-              '[data-km-pencil-trace="anat-left-commissure"]'),
-            lowerReserve:!!lower.querySelector(
-              '[data-km-pencil-trace="anat-lower-vermilion-reserve"]'),
-            mentolabial:!!face.querySelector(
-              '[data-km-pencil-trace="anat-mentolabial-turn"]'),
-            supports:[upper,lower].map(el=>
-              el.querySelectorAll("[data-km-pencil-support]")).map(n=>n.length),
-            noBitmap:root.querySelectorAll("image,foreignObject,feImage").length===0,
-          };
-        });
-        expect(mouth.upperPasses).toBe(3);
-        expect(mouth.lowerPasses).toBe(3);
-        expect(mouth.seam).toBe(true);
-        expect(mouth.commissure).toBe(true);
-        expect(mouth.lowerReserve).toBe(true);
-        expect(mouth.mentolabial).toBe(true);
-        expect(mouth.noBitmap).toBe(true);
-      }
-      if(focus==="portrait-crown"||focus==="portrait-lock"){
-        const physicalHair=await svg.evaluate((root,part)=>{
-          const region=root.querySelector('[data-km-pencil-region="'+part+'"]')!;
-          const traces=[...region.querySelectorAll("[data-km-pencil-trace]")];
-          const ids=traces.map(t=>t.getAttribute("data-km-pencil-trace"));
-          const hair=region.querySelectorAll('[data-km-pencil-trace^="fibre-"]');
-          const paths=[...hair].map(t=>t.getAttribute("d")??"");
-          return {
-            actualEditableFibres:hair.length,
-            rootQuadratics:paths.every(p=>p.includes(" Q")&&p.length<12000),
-            darkClumps:ids.includes(part==="hair-crown"?
-              "crown-dark-clump-troughs":"hair-right-lock-occlusion"),
-            noImages:region.querySelectorAll("image,foreignObject,feImage").length===0,
-          };
-        },part);
-        expect(physicalHair.actualEditableFibres).toBeGreaterThanOrEqual(12);
-        expect(physicalHair.rootQuadratics).toBe(true);
-        expect(physicalHair.darkClumps).toBe(true);
-        expect(physicalHair.noImages).toBe(true);
+        expect(head.onlyNewHead).toBe(true);
+        expect(head.sagittal).toBe(true);
+        expect(head.leftPlane).toBe(true);
+        expect(head.rightPlane).toBe(true);
+        expect(head.bitmap).toBe(0);
       }
       if(focus==="fox-eye"){
         const topology=await svg.evaluate(root=>{

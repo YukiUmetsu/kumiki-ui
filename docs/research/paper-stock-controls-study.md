@@ -1,0 +1,18 @@
+# Paper stock edge and fibre controls
+
+This study supports per-sheet rendering controls, not a claim that the Garden scene reproduces a specific artwork or that the fibre pattern is physical microscopy.
+
+## Sources inspected
+
+- The BFI photograph of [Lotte Reiniger's *Cinderella* cut-out figures](https://www.bfi.org.uk/inside-the-archive/features/object-week-lotte-reiniger-cut-out-figures-backgrounds-cinderella) shows separate opaque cut pieces, overlaps and fastenings. The photograph is © Primrose Productions, licensed to BFI; it was inspected for construction and is not redistributed. Downloaded image SHA-256: `db3a046e1c554fbc73772ab9b21dffc358315b2b9711f8d5a2eb43be66a65035`.
+- [Handmade cattail paper in a confocal image](https://commons.wikimedia.org/wiki/File:Cattail-handmade-paper-1280.jpg), Ckazilek, CC BY-SA 4.0, shows crossing fibres of different widths and directions. Local file SHA-256: `733f55e0db17e469842ccd7a77643f5873eaa218498a3c32a48b21886174a44d`. The [Paper Project cotton-rag SEM](https://paperproject.org/semgallery/semgallery1a.html) shows a tangled branching network; local image SHA-256: `c9adc9331ec98336e7ba1e1b9fa281bedd33b89020d94dc4f00b5d5935416824`, redistribution rights unverified. Neither source is bundled. Both are microscopy, not a reference for the appearance of paper at video scale.
+
+The existing stage uses opaque sheet geometry, a cut rim and a seeded repeated horizontal mark pattern. The controls allow an author to reduce the rim or adjust the scale and intensity of those marks on one sheet while leaving neighboring sheets and solid fill intact. This does not reconstruct the source fibres, change paper thickness, or model physical contact. A dedicated source-led material reconstruction remains separate work.
+
+## Actual renderer evidence
+
+Chromium Storybook screenshots of the original Garden wing at the existing page's display size: [full edge](assets/paper-stock-controls/paper-wing-edge-full.png), SHA-256 `fa407bad0aaba65c5f84015b7f4e497ceb18f518379a09b52665020da564bbfa`; [zero edge](assets/paper-stock-controls/paper-wing-edge-zero.png), SHA-256 `521f5f08a79d2437ecf208792c45e53c438ab7f443622d2121186f99d963d4ef`; [half fibre scale and intensity](assets/paper-stock-controls/paper-wing-fibre-half.png), SHA-256 `d2b10672406e95f0c529f39dac679382c2c354c560e85d42ef510a19fd7532f7`. These samples show an assembled composition, not an isolated microscopy comparison. Automated checks confirm that changing the wing leaves the neighboring body's fibre and edge unchanged. Evaluate actual output at the intended export size before choosing values.
+
+The same edge implementation was previously reviewed independently in a related branch using device-scale-3 wing crops at [full](assets/paper-stock-controls/wing-edge-full-3x.png) and [zero](assets/paper-stock-controls/wing-edge-zero-3x.png). That reviewer observed the wing rim change while the neighboring shoulder and cutouts remained intact. These crops document the earlier branch, not an independent review of this exact branch or of animated footage.
+
+A separate reviewer inspected the three Garden screenshots from this branch and its renderer, validation and Storybook diff. The wing remained filled, the cutouts remained legible and no obvious neighboring-sheet or composition regression was visible at the supplied display size. At 534×292 the reviewer could not judge the half-scale fibre texture artistically; this is not approval of physical fibre fidelity, other browsers, motion, or the whole scene. Changes to the wing can alter pixels underneath its shadow and openings, so the neighboring-sheet tests check their DOM properties, not pixel identity.

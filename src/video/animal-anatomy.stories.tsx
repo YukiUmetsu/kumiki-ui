@@ -12,6 +12,8 @@ import type { AnimalFigureMode } from "../../registry/anatomy/animal-react";
 import { checkAnimalProportions, measureAnimal } from "../../registry/anatomy/animal-check";
 import { findAnimal } from "../../registry/anatomy/animal-species";
 import { ukiyoeBeastLandmarks } from "../../registry/video/ukiyoe/ukiyoe-creatures";
+import { ANIMAL_POSTURES, POSTURE_IDS, postureFit } from "../../registry/anatomy/animal-postures";
+import type { PostureId } from "../../registry/anatomy/animal-postures";
 import type { UkiyoeSpecies } from "../../registry/video/ukiyoe/ukiyoe-creatures";
 
 const page = { display: "grid", gap: 16, alignContent: "start", padding: 24, minHeight: "100vh", background: "var(--km-surface-canvas, #f6f3f1)", color: "var(--km-text-primary, #242424)",
@@ -159,7 +161,67 @@ function ProportionCheck() {
 const meta = { title: "Video production/Art Foundations/Animal Anatomy", id: "video-animal-anatomy", component: SheetStory, parameters: { layout: "fullscreen" } } satisfies Meta<typeof SheetStory>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+/** Sit, lie, rest and rear: a posture's pitch source, and the transition from standing played over its frames. */
+function PostureLab() {
+  const [id, setId] = useState("shiba-inu");
+  const sp = findAnimal(id)!;
+  const c = useMemo(() => animalConstruction(sp), [sp]);
+  const usable = POSTURE_IDS.filter(p => postureFit(c.plan.id, p, sp.behaviour.canRear));
+  const [want, setWant] = useState<PostureId>("sit");
+  const posture = usable.includes(want) ? want : usable[0];
+  const [mode, setMode] = useState<AnimalFigureMode>("construction");
+  const reduced = usePrefersReducedMotion();
+  const [playing, setPlaying] = useState(true);
+  const [amount, setAmount] = useState(1);
+  const frames = posture ? ANIMAL_POSTURES[posture].frames : 1;
+  useEffect(() => {
+    if (!playing || reduced || !posture) return;
+    // Down over the posture's frames, hold, back up, hold.
+    let raf = 0; const t0 = performance.now(), cycle = (frames * 2 + 60) / 30;
+    const tick = (now: number) => {
+      const u = ((now - t0) / 1000 % cycle) * 30, f = frames;
+      setAmount(u < f ? u / f : u < f + 30 ? 1 : u < 2 * f + 30 ? 1 - (u - f - 30) / f : 0);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [playing, reduced, posture, frames]);
+  const pose = useMemo(() => poseAnimal(c, { posture, amount }), [c, posture, amount]);
+  const fit = posture ? postureFit(c.plan.id, posture, sp.behaviour.canRear) : undefined;
+  return (
+    <div style={page}>
+      <div style={row}>
+        <SpeciesSelect value={id} onChange={setId} />
+        <label style={label}>Posture
+          <select style={field} value={posture ?? ""} onChange={e => setWant(e.target.value as PostureId)} disabled={!usable.length}>
+            {usable.map(p => <option key={p} value={p}>{ANIMAL_POSTURES[p].label}</option>)}
+          </select>
+        </label>
+        <label style={label}>Drawing
+          <select style={field} value={mode} onChange={e => setMode(e.target.value as AnimalFigureMode)}>
+            {(["construction", "silhouette", "colour", "fur"] as const).map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+        <button type="button" style={field} onClick={() => setPlaying(p => !p)} aria-pressed={playing && !reduced} disabled={reduced || !posture}>{reduced ? "Motion reduced" : playing ? "Pause" : "Play"}</button>
+        <label style={{ ...label, minWidth: 220 }}>Amount: {amount.toFixed(2)}
+          <input type="range" min={0} max={1} step={.01} value={amount} onChange={e => { setPlaying(false); setAmount(Number(e.target.value)); }} disabled={!posture} />
+        </label>
+      </div>
+      {posture && fit ? (
+        <>
+          <AnimalFigure skeleton={pose} mode={mode} bounds={[-2.6, -.06, 1.2, 2]} label={`${sp.name}, ${ANIMAL_POSTURES[posture].label.toLowerCase()}`} style={{ width: "100%", maxWidth: 900, height: "auto" }} />
+          <div style={{ maxWidth: "70ch" }}>
+            <p style={{ margin: "0 0 8px" }}><strong>{ANIMAL_POSTURES[posture].label}</strong> ({ANIMAL_POSTURES[posture].ja}) · body {fit.pitch.typical}° ({fit.pitch.min}–{fit.pitch.max}°, {fit.pitch.grade}{fit.pitch.source ? `: ${fit.pitch.source}` : ""}) · forelegs {fit.fore}, hind legs {fit.hind} · {frames} frames at 30 fps</p>
+            <ul style={{ margin: 0, paddingLeft: 20 }}>{ANIMAL_POSTURES[posture].drawing.map(d => <li key={d}>{d}</li>)}</ul>
+          </div>
+        </>
+      ) : <p>{sp.name} has no posture beyond standing in ANIM1 yet (birds and fish), or its plan does not take one naturally.</p>}
+    </div>
+  );
+}
+
 export const Sheet: Story = { render: () => <SheetStory /> };
 export const Gaits: Story = { render: () => <GaitLab /> };
+export const Postures: Story = { render: () => <PostureLab /> };
 export const BodyPlans: Story = { name: "Body plans", render: () => <BodyPlansStory /> };
 export const UkiyoeCheck: Story = { name: "UKIYO1 proportion check", render: () => <ProportionCheck /> };

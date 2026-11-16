@@ -25,7 +25,9 @@ export interface RisoHandoffFrame {
 
 export const RISO_HANDOFF_DEFAULTS:Readonly<RisoHandoffSchedule>={
   unfoldStart:126,contactFrame:160,releaseStart:178,releaseEnd:202,
-  settleDegrees:-45,
+  // RISO40 native f202 print QA: original -45 degree release grazed the
+  // planted feet. Hold the physical page above the paper floor at -23 deg.
+  settleDegrees:-23,
 };
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
 const ease=(v:number)=>{const x=clamp(v);return x*x*(3-2*x);};

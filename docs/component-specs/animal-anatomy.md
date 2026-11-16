@@ -32,6 +32,7 @@ The style decides only how it looks. It mirrors [ANAT1](human-anatomy.md) for pe
 
 | Layer | File | What it holds |
 |---|---|---|
+| Postures | `animal-postures.ts` | `ANIMAL_POSTURES` (sit, lie, rest, rear): per body plan, the body's pitch (graded, with sources), how the fore and hind legs are held, how far the neck and head follow, and the frames it takes. `postureFit(plan, posture, canRear)`. |
 | Gaits | `animal-gaits.ts` | `ANIMAL_GAITS` (walk, amble, trot, canter, transverse gallop, rotary gallop, half-bound): footfall phases, duty factor, stride, lift, bob, pitch, spine flex, Froude number, suspension. `quadFootfalls`, `quadBody`, `footfallBars` (Hildebrand diagrams), `gaitSpeed` (dynamic similarity), `strideSeconds` / `strideFrames` (Heglund & Taylor). RIG1 imports this table. |
 | Body plans | `animal-plans.ts` | `BODY_PLANS`: 10 mammal plans, 5 bird plans and fish. Each holds foot posture, the side-view construction (`PlanConstruction`), gaits, rearing, the parts every member has, coat regions, footfall sound and drawing notes. |
 | Species | `animal-species.ts` | `ANIMAL_SPECIES`: 23 Japanese folklore animals. Each holds graded size and proportion ranges with sources, face, coat, palette (painted by region, tip, band or eye mask), markings, variants, eyes, parts, behaviour, sounds, culture, PD/CC0 references and `styles`. Lookups: `findAnimal`, `animalsInPlan`, `animalStyles`. |
@@ -83,7 +84,39 @@ carpus or hock:
 - **Late stance.** The heel lifts and the foot rolls onto its toes.
 - **Planted feet.** They sweep back at exactly the body's speed (`stride × fore-leg length` per stride, tested).
 - **Reach.** At the ends of a long stance the leg straightens rather than letting the foot slide, and the body sinks
-  onto its planted legs.
+  onto its planted legs. The straightening is continuous: the cannon and toes turn toward the foot only as far as the
+  leg must reach, so a slowly moving foot never snaps.
+
+## Postures
+
+`poseAnimal(c, { posture, amount })` sits, lies, rests or rears a four-legged animal. `amount` runs from 0 (standing)
+to 1 (the full posture); animate it over the posture's `frames`. A plan that does not take the posture naturally
+stands instead (a horse does not sit), and so does a species that cannot rear.
+
+- **Pitch** is the line from the point of the buttock to the point of the shoulder, as it reads in a side view:
+  - measured off references: the sitting dog 29°, the sitting cat 41°, the lying cow and doe 4–7°;
+  - reported: the levade 30–35°, the pesade 45°;
+  - the rest are estimated.
+- **Sit.**
+  - The rump rests on the ground over folded hind legs (hock down, foot flat forward).
+  - The forefeet stay where they stood and the hind feet step forward.
+  - The loins curl, shortening the trunk up to 35%, so the chest rises to the measured pitch over upright forelegs.
+  - A cat's tail wraps forward round its feet.
+- **Lie.**
+  - The brisket rests on the folded forelegs (cattle, deer, horses, pigs, cats, hares, mice) or beside forearms laid
+    flat and forward (dogs, bears, weasels).
+  - Cattle and horses kneel first, then lower the hindquarters; the others lower the rump first.
+  - The near and far legs step at different times, so one foot of a pair is always down.
+- **Rest** lies down, then lowers the head until the jaw is on the ground.
+- **Rear.**
+  - The hind feet stay planted and the body rises over them: a horse on deeply bent hocks with the forelegs tucked (the
+    levade); a bear, weasel, hare or macaque upright with the forelegs loose.
+  - A mouse sits up on folded hind legs.
+- **Ground.** A folded leg too long for a low hip splays out sideways, so in the side view its knee rests on the ground.
+  Raised tails lie along the ground when the animal sits or lies; curled and stub tails keep their shape.
+- **Coat regions** (belly, chest band, throat, neck band) follow the posed trunk and neck.
+- **Tested.** Every mammal, in every posture it takes, frame by frame: nothing goes through the ground, no joint
+  snaps between frames, the planted feet stay put, and the full posture reaches its pitch.
 
 ## Faces
 
@@ -96,7 +129,15 @@ carpus or hock:
 - ear placement;
 - the defining features, including what not to draw ("a bear does not smile", "not a fox's long snout").
 
-The construction places the eye and sizes the ear from it.
+The construction places the eye, sizes the ear, and for birds sets the head's depth. Every species has a face.
+`checkSpeciesData` flags a species without one, a face value out of range, and a mammal face without an ear.
+
+Units:
+
+- For birds, the head runs from the back of the skull to the bill tip, the eye is measured back from the tip, and the
+  bill share is `proportions.muzzle`.
+- For fish, the head runs from the snout to the back of the gill cover.
+- Birds and fish have no `ear`.
 
 ## Applying it to a style (UKIYO1 example)
 
@@ -111,6 +152,8 @@ are open findings for a later pass.
 ## Limits
 
 - Side view only for the construction; front and back views are the style's.
+- Postures are for four-legged animals; birds have no perching, roosting or flying postures yet, and fish swim only.
+- Posture transitions are staged blends, not recorded motion: they have not been checked against video frame by frame.
 - Bird and fish constructions are simpler (body egg, wing, legs; spindle and fins).
 - Most proportions are estimated; extend the `reported` and `measured` grades as sources are found, and never upgrade a
   grade without a source.
