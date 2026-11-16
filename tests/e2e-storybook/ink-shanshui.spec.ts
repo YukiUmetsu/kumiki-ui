@@ -1371,6 +1371,35 @@ test("source Fuchun fibre strokes paint early curved shoulder turns rather than 
     path:info.outputPath("fuchun-corrected-curving-hemp-in-full-scene.png")});
 });
 
+
+test("native Fuchun original hero spine preserves anatomy while replacing a straight dark ruler with two loaded dry-brush phrases",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const bone=fuchun.locator("[data-km-rock-hero-bone]");
+  const loads=fuchun.locator("[data-km-rock-hero-bone-loaded]");
+  await expect(bone).toHaveCount(1);
+  await expect(loads).toHaveCount(2);
+  const original=await bone.getAttribute("d");
+  const geometry=await loads.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d")));
+  await lab.getByRole("button",{name:"Hero backbone · former dark ruler"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection",
+    "hero-bone-ruler");
+  await expect(loads.first()).toBeHidden();
+  await expect(fuchun.locator("[data-km-rock-hero-rib]")).toHaveCount(4);
+  const old=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-hero-bone-former-dark-ruler.png")});
+  await lab.getByRole("button",{name:"All Fuchun hemp"}).click();
+  await expect(loads.first()).toBeVisible();
+  const newArt=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-hero-bone-two-loaded-paper-separated-phrases.png")});
+  expect(hash(old)).not.toEqual(hash(newArt));
+  expect(await bone.getAttribute("d")).toBe(original);
+  expect(await loads.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d"))))
+    .toEqual(geometry);
+  await expect(fuchun.locator("[data-km-rock-hero-rib-paper-slit]")).toHaveCount(24);
+});
+
 test("native Fuchun original four rib paper masks reach both the supporting cheek and each ink reload",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");

@@ -1317,6 +1317,70 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
   });
 
 
+
+  it("paints the unchanged Fuchun hero geological bone as two genuine source-exact ink phrases, not one opaque ruler",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    for(const seed of [71,97]){
+      const html=draw("fuchun",seed);
+      const original=html.match(
+        /data-km-rock-hero-bone="" d="([^"]+)" fill="none" stroke="#695745" stroke-width="0.7"/,
+      );
+      expect(original).not.toBeNull();
+      const parts=[...html.matchAll(
+        /data-km-rock-hero-bone-loaded="" data-km-rock-hero-bone-part="(crown|dry-tail)" data-km-rock-hero-bone-loaded-root="([^"]+)" data-km-rock-hero-bone-loaded-tip="([^"]+)" data-km-rock-hero-bone-source-from="([^"]+)" data-km-rock-hero-bone-source-to="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(parts).toHaveLength(2);
+      expect(parts.map(p=>p[1])).toEqual(["crown","dry-tail"]);
+      expect(parts.map(p=>[Number(p[4]),Number(p[5])])).toEqual([
+        [0,.41],[.52,.91],
+      ]);
+      const parent=html.match(/data-km-rock-hero-cliff="" data-km-rock-hero-root="([^"]+)"/)?.[1];
+      expect(parent).toBeDefined();
+      const [x,y]=parent!.split(",").map(Number);
+      const control:[number,number]=[x-19,y+31];
+      const tail:[number,number]=[x-56,y+116];
+      const source=(t:number)=>{
+        const u=1-t;
+        return [
+          u*u*x+2*u*t*control[0]+t*t*tail[0],
+          u*u*y+2*u*t*control[1]+t*t*tail[1],
+        ];
+      };
+      for(const [, ,r,t,start,stop,d] of parts){
+        const at=source(Number(start)),end=source(Number(stop));
+        const actualR=r.split(",").map(Number);
+        const actualT=t.split(",").map(Number);
+        expect(Math.hypot(actualR[0]-at[0],actualR[1]-at[1]))
+          .toBeLessThan(.02);
+        expect(Math.hypot(actualT[0]-end[0],actualT[1]-end[1]))
+          .toBeLessThan(.02);
+        expect(d.startsWith("M"+r.replace(","," "))).toBe(true);
+        expect((d.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(22);
+        expect(d.endsWith(" Z")).toBe(true);
+      }
+      // No pale canvas overpaint; the source quad has a real
+      // unpainted interval .41...52 between the two ink deposits.
+      expect(Number(parts[1][4])-Number(parts[0][5]))
+        .toBeGreaterThan(.1);
+      expect((html.match(/data-km-rock-hero-rib=""/g)??[])).toHaveLength(4);
+      expect((html.match(/data-km-rock-hero-rib-paper-slit=""/g)??[]))
+        .toHaveLength(24);
+      expect((html.match(/data-km-rock-hero-rib-deposit=""/g)??[]))
+        .toHaveLength(12);
+      expect((html.match(/data-km-rock-terrace-hemp=""/g)??[]))
+        .toHaveLength(40);
+      expect(draw("fuchun",seed)).toBe(html);
+    }
+    expect(draw("fuchun",71,0)).not.toContain(
+      'data-km-rock-hero-bone-loaded=""');
+    expect(draw("early-spring")).not.toContain(
+      'data-km-rock-hero-bone-loaded=""');
+  });
+
   it("folds four authentic Fuchun hero-rib ribbons over short positive cheeks instead of diagonal stone wires",()=>{
     const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{

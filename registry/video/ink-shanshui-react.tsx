@@ -1537,6 +1537,34 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
     {offset:-28,side:1,reach:104,rise:19,drop:123,marks:4,load:.59},
     {offset:54,side:-1,reach:89,rise:23,drop:76,marks:3,load:.47},
   ] as const):[];
+  // ArtCraft original-paint native isolate: the only high-contrast,
+  // nearly ruler-straight full-depth spear still present after removing
+  // the 78 master pima marks was THIS source hero backbone. It is 116
+  // world units long. Do not shorten/reposition its bone: all three
+  // positive stone faces, four fracture ribs and their 24 reserves
+  // originate on its exact existing quadratic.
+  // Instead split the physically deposited ink into two independently
+  // loaded calligraphic phrases on exact Bézier sub-curves, with a real
+  // paper lift between them. The unchanged complete source bone remains
+  // a faint material guide rather than a 2.35px opaque computer ruler.
+  const bonePoint=(t:number)=>quadraticPoint(root,boneControl,boneTip,t);
+  const boneSegment=(from:number,to:number,width:number,key:number)=>{
+    const at=bonePoint(from),end=bonePoint(to),span=to-from;
+    // De Casteljau derivative: the new control owns precisely the
+    // SAME parent quadratic from 'from' to 'to', no traced approximation.
+    const control:P=[
+      at[0]+span*((1-from)*(boneControl[0]-root[0])+
+        from*(boneTip[0]-boneControl[0])),
+      at[1]+span*((1-from)*(boneControl[1]-root[1])+
+        from*(boneTip[1]-boneControl[1])),
+    ];
+    return {at,end,from,to,control,
+      d:rockLoadedRibbon(at,control,end,width,seed+8441+key*97)};
+  };
+  const sourceBonePaint=[
+    boneSegment(0,.41,3.7,0),
+    boneSegment(.52,.91,1.9,1),
+  ];
   const paperId="kmrock"+faceId+"-absorption";
   return <g data-km-rock-hero-cliff=""
     data-km-rock-hero-root={f(x)+","+f(y)}>
@@ -1948,7 +1976,20 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
         </g>;
       })}
     </g>
-    {/* One broad moving backbone, with a lifted segment at mid-stroke. */}
+    {/* Two real pressure phrases live on exact sub-curves of the
+        ORIGINAL 116-unit stone backbone; neither moves a single rib,
+        hill back, old terrace, source parent, or cut-through-paper gap. */}
+    {sourceBonePaint.map(({at,end,from,to,d},k)=><path key={k}
+      data-km-rock-hero-bone-loaded=""
+      data-km-rock-hero-bone-part={k===0?"crown":"dry-tail"}
+      data-km-rock-hero-bone-loaded-root={f(at[0])+","+f(at[1])}
+      data-km-rock-hero-bone-loaded-tip={f(end[0])+","+f(end[1])}
+      data-km-rock-hero-bone-source-from={from}
+      data-km-rock-hero-bone-source-to={to}
+      d={d} fill={k===0?"#493a2f":"#695540"}
+      opacity={f((k===0?.69:.41)*(1-.2*mist))}/>)}
+    {/* Faint same-source centerline witnesses real paper between brush
+        loads, not a dark uniform-width digital spear. */}
     <path data-km-rock-hero-bone=""
       d={"M"+f(x)+" "+f(y)+
         " Q"+f(boneControl[0])+" "+f(boneControl[1])+" "+
@@ -1958,8 +1999,8 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
         f(quadraticPoint(root,boneControl,boneTip,.49)[1])+
         " Q"+f(boneControl[0]-9)+" "+f(boneControl[1]+23)+" "+
         f(boneTip[0])+" "+f(boneTip[1])}
-      fill="none" stroke="#47382d" strokeWidth="2.35"
-      strokeLinecap="round" opacity={f(.84*(1-.22*mist))}/>
+      fill="none" stroke="#695745" strokeWidth=".7"
+      strokeLinecap="round" opacity={f(.27*(1-.22*mist))}/>
     {ribPlan.map((rib,i)=>{
       const r=quadraticPoint(root,boneControl,boneTip,rib.at);
       const swing=rib.side*(rib.reach+

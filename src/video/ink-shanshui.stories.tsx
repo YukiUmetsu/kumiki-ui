@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"stone-before-turning"|"hero-before-cheek"|"hero-uncut"|"hemp-flow"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"stone-before-turning"|"hero-before-cheek"|"hero-uncut"|"hemp-flow"|"hero-bone-ruler"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -612,6 +612,21 @@ function MasterInkSourceComparison(){
       [data-km-master-ink-inspection="hemp-flow"]
       [data-km-master-study="fuchun"]
       [data-km-cliff-pine-grove] { visibility:hidden; }
+      /* ArtCraft negative control for the original 116-unit source
+         backbone: compare the former 2.35px uniformly dark witness to
+         its two exact curved pigment phases with an open paper break.
+         Only the style of the ORIGINAL bone changes; every attached
+         rock cheek, fibre, secondary bank and child remains present. */
+      [data-km-master-ink-inspection="hero-bone-ruler"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-bone-loaded] { visibility:hidden; }
+      [data-km-master-ink-inspection="hero-bone-ruler"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-bone] {
+        stroke-width:2.35px !important;
+        stroke:#47382d !important;
+        opacity:.84 !important;
+      }
       /* The *real* 960x540 renderer supplies all three nested ridges.
          Isolate only the middle band’s original filled skyline path.
          Do not replace it with a polygon, diagram or copied image. */
@@ -716,6 +731,7 @@ function MasterInkSourceComparison(){
         ["hero-before-cheek","Hero ribs before geological cheek wash"],
         ["hero-uncut","Hero ribs before shared paper lift"],
         ["hemp-flow","Hemp fibres · source shoulder sweep"],
+        ["hero-bone-ruler","Hero backbone · former dark ruler"],
         ["ridge","Skyline · contour only"],
         ["pine","Pine crowns · source anatomy"],
         ["pine-bones","Pine armature · connected brush bones"],
@@ -730,7 +746,8 @@ function MasterInkSourceComparison(){
             if(zone==="stone-before-turning"||
               zone==="hero-before-cheek"||
               zone==="hero-uncut"||
-              zone==="hemp-flow")inspect(2.4,552,177);
+              zone==="hemp-flow"||
+              zone==="hero-bone-ruler")inspect(2.4,552,177);
             else if(zone==="pine-bones")inspect(1.65,615,135);
             else if(zone==="pine"||zone==="pine-contours"||
               zone==="pine-unlinked"||
@@ -749,6 +766,10 @@ function MasterInkSourceComparison(){
         Hero ribs before geological cheek wash isolates four physical
         inward rock shades without removing their source-brush fibres,
         fine deposits or original six true-paper reserve windows each.
+        Hero backbone former dark ruler compares the source's unchanged
+        deep parent quadratic under a former 2.35px ink ruler to two
+        pressure-loaded exact Bézier phrases with a visible source-paper
+        lift; parent geometry and all dependent brushwork stay rooted.
         Hemp fibres source shoulder sweep isolates all 78 original
         short/medium/long pima from the overlaid hero and pine, exposing
         their real early lateral crown turns and delayed dry tails.
