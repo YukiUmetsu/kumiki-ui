@@ -1,0 +1,213 @@
+{
+  "version": 6,
+  "title": "Chinese Ink bamboo terminal spray – source-to-structure study",
+  "date": "2026-11-15",
+  "goal": "Original seed-addressable code-rendered xieyi bamboo scene for 960×540 animated video; dense terminal brush cluster, thin support wood, exposed rice-paper gaps.",
+  "reference_mode": "style_guided",
+  "rights": "No museum bitmap assets imported, traced, or distributed; all paths are original procedural geometry. NPM digital archive lists CC0 up to 1MP and CC BY 4.0 at 6MP; linked images are cited and not embedded.",
+  "reference_sources": [
+    {
+      "id": "WZ-A",
+      "artist": "Wu Zhen (吳鎮)",
+      "title": "Manual of Ink Bamboo (墨竹譜)",
+      "year": 1350,
+      "repository": "National Palace Museum, Taipei",
+      "url": "https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04009183",
+      "image": "https://theme.npm.edu.tw/selection/att/collection/04009183/17010703.jpg",
+      "rights_url": "https://digitalarchive.npm.gov.tw/Collection/Detail/183?dep=P",
+      "inspected_regions": [
+        "upper arching primary limb",
+        "downward terminal leaf spray",
+        "negative space between long vertical trailing blades"
+      ],
+      "observations": [
+        "main arm bends once in a broad arc",
+        "short twig bone runs through leaf roots",
+        "alternating long/short one-pull brushes meet near terminal branch, dark strokes partially overlap",
+        "large open paper channels survive beside the grouped black marks"
+      ]
+    },
+    {
+      "id": "WZ-B",
+      "artist": "Wu Zhen (吳鎮)",
+      "title": "Manual of Ink Bamboo (墨竹譜)",
+      "year": 1350,
+      "repository": "National Palace Museum, Taipei",
+      "url": "https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04009183",
+      "image": "https://theme.npm.edu.tw/selection/att/collection/04009183/17010711.jpg",
+      "rights_url": "https://digitalarchive.npm.gov.tw/Collection/Detail/183?dep=P",
+      "inspected_regions": [
+        "culm joint attachment",
+        "shooting leaf group at lower left",
+        "low-light leaf fan at lower right"
+      ],
+      "observations": [
+        "strong vertical culms have conspicuous bare internodes",
+        "leaf groups at one joint meet at a woody connection and separate into unequal sweeps",
+        "brush load varies within a stroke; major background remains unpainted"
+      ]
+    },
+    {
+      "id": "ZX-A",
+      "artist": "Zheng Xie (鄭燮)",
+      "title": "Orchids and Bamboo",
+      "year": 1742,
+      "repository": "The Metropolitan Museum of Art",
+      "url": "https://www.metmuseum.org/art/collection/search/49244",
+      "rights": "Visual study only; check the museum's object terms before reusing media",
+      "inspected_regions": [
+        "dark directional leaf bunches",
+        "light long root twigs"
+      ],
+      "observations": [
+        "thin support branches contrast with broad tapered leaf groups",
+        "ink weight is intentionally uneven and leaf heading is not mechanically radial"
+      ]
+    },
+    {
+      "id": "TECH",
+      "artist": "National Gallery of Victoria curatorial essay",
+      "title": "Wu Zhen’s Bamboo in Spring Rain",
+      "url": "https://www.ngv.vic.gov.au/essay/wu-zhens-bamboo-in-spring-rain/",
+      "inspected_regions": [
+        "described brush operation and negative-space rhythm"
+      ],
+      "observations": [
+        "leaves, branches and shoots are made by swift single strokes",
+        "negative-space shapes between strokes are a major motif, not accidental gaps"
+      ]
+    }
+  ],
+  "shape_graph": {
+    "nodes": [
+      "curved culm",
+      "source-driven branch joint",
+      "main twig quadratic",
+      "terminal spray twig quadratic",
+      "seven rooted press-drag-release leaf gestures",
+      "two-mask split-bristle reserves at each gesture when detail>.85"
+    ],
+    "edges": [
+      "culm joint → main twig root",
+      "main twig 0.68 normalized station → terminal spray twig",
+      "terminal twig normalized stations 0.22/0.33/0.46/0.55/0.68/0.78/0.88 → ink leaf roots",
+      "leaf root → tip under branch tangent + authored heading offset",
+      "pressure silhouette → luminance mask → two internal paper gaps"
+    ],
+    "intentionally_absent": [
+      "floating stickers",
+      "detached leaf roots",
+      "identically repeated radial sunburst",
+      "art pixels from museum scan",
+      "phantom branch at bare internode"
+    ]
+  },
+  "shape_specification": {
+    "base_resolution": [
+      960,
+      540
+    ],
+    "hero_clusters_per_shanshui_bamboo": 9,
+    "hero_strokes_per_full_detail_cluster": 7,
+    "hero_motif_relative_stations": [
+      0.22,
+      0.33,
+      0.46,
+      0.55,
+      0.68,
+      0.78,
+      0.88
+    ],
+    "hero_motif_angle_offsets_radians": [
+      0.32,
+      0.92,
+      -0.29,
+      1.2,
+      -0.67,
+      0.52,
+      -0.06
+    ],
+    "hero_length_paper_units": [
+      44,
+      34,
+      53,
+      30,
+      41,
+      39,
+      35
+    ],
+    "hero_width_parameter": [
+      5.5,
+      4.3,
+      6.1,
+      3.9,
+      4.9,
+      5.1,
+      3.8
+    ],
+    "variation": "Small seeded jitter only; topology and root stations locked to parent curve. These are authored procedural proportions, not measured/pixel-traced source distances.",
+    "visibility": "count round(clamp((detail-.55)/.45,0,1)*7); zero at detail<=.55",
+    "animation": "Inherited from common parent branch transform; pure absolute frame position and same wind yaw."
+  },
+  "five_axes": {
+    "topology": {
+      "required": true,
+      "assertions": [
+        "all 63 visible hero leaves at detail=1 begin at painted quadratic stem station",
+        "9 hero twig roots attach to parent branch",
+        "0 loose hero strokes at detail=.35"
+      ],
+      "source_comparison": "Pending independently measured source/candidate semantic masks; tests only assert authored geometry."
+    },
+    "flow": {
+      "required": true,
+      "assertions": [
+        "each leaf heading derived from supporting twig quadratic tangent",
+        "7 authored alternating headings are present per hero cluster"
+      ],
+      "source_comparison": "Manual directional review of source and native crop required."
+    },
+    "pressure": {
+      "required": true,
+      "assertions": [
+        "every hero leaf uses 15 pressured stations and unequal left/right sides",
+        "every full-detail hero leaf uses a directional ink gradient"
+      ],
+      "source_comparison": "Real raster stroke width distribution not independently benchmarked."
+    },
+    "rhythm": {
+      "required": true,
+      "assertions": [
+        "high detail hero groups at 9/21 joints",
+        "3 structurally bare nodes do not draw twigs",
+        "7 gestures grouped at unequal terminal stations"
+      ],
+      "source_comparison": "Optical gap distribution not quantitatively benchmarked."
+    },
+    "microtexture": {
+      "required": true,
+      "assertions": [
+        "2 black masked bristle cuts per full-detail hero leaf",
+        "existing fibre-displacement material applies to entire bamboo"
+      ],
+      "source_comparison": "Texture frequencies not quantitatively benchmarked."
+    }
+  },
+  "release_gate": {
+    "technical": "TypeScript, focused unit, Chromium 5-card Storybook crop study, 960×540 96-frame MP4, seed=71 and 87 stability.",
+    "visual": "Compare 1-stroke and complete-cluster study to WZ-A/WZ-B at full film size and zoom. Assess gaps, crossings, ink load and texture without overfitting to a pixel match. Check all three scenes.",
+    "current": "candidate; not art approved, do not merge based on CI alone."
+  },
+  "visual_review_v12": {
+    "evidence": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43726792573",
+    "input_head": "feb61a856f615f64e7b530efb24f2dcb8b25d031",
+    "rendered_native_resolution": [
+      960,
+      540
+    ],
+    "inspected": "v12 native 2.15x brushwork crops and misty-hermit normal film frame",
+    "observed_problem": "Extra leaves increase dark clustered coverage but many are near-vertical dark knife shapes. Source NPM image 17010703 has more hanging/side-swept leaves beneath its arching bough, so pressure alone is insufficient.",
+    "change": "Rebalance seven authored relative headings toward horizontal and drooping sweeps, preserve the one attached parent twig and all tonal masks.",
+    "approval": "pending new exact-head native review; not an artistic pass"
+  }
+}

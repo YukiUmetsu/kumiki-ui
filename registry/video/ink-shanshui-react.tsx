@@ -1,7 +1,7 @@
 import {useId,useMemo} from "react";
 import type {ReactNode} from "react";
 import {assertShanshuiControls,shanshuiAt,shanshuiHash} from "./ink-shanshui";
-import type {ShanshuiControls,ShanshuiScene,ShanshuiMotion} from "./ink-shanshui";
+import type {ShanshuiControls,ShanshuiScene,ShanshuiMotion,InkRockSchool} from "./ink-shanshui";
 
 /**
  * A procedural painter, NOT a flat bitmap disguised as a movie.
@@ -51,8 +51,14 @@ const ridgeStations=(nodes:readonly P[],seed:number,band:number):P[]=>{
       const smooth=.5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t2+
         (-a+3*b-3*c+d)*t3);
       const shapeNoise=(shanshuiHash(seed+band*113,i*17+k)-.5)*2;
+      // ArtCraft negative control: the earlier 25-node summit became
+      // a saw-tooth ridge because every ~14px segment received a full
+      // 4.5px independent ink fracture. Tooth amplitude must be tied to
+      // the spatial span of the SAME parent rock, not its point count.
+      // Long cliffs retain all their original seed-specific fracture.
+      const segmentScale=Math.min(1,(x1-x0)/70);
       const fracture=(band===0?2.5:band===1?4.5:6.2)*
-        Math.sin(Math.PI*t)*shapeNoise;
+        segmentScale*Math.sin(Math.PI*t)*shapeNoise;
       stations.push([f(x0+(x1-x0)*t),f(smooth+fracture)]);
     }
   }
@@ -82,8 +88,45 @@ const RIDGES:Record<ShanshuiScene,readonly (readonly P[])[]>={
   ],
   "mountain-trail":[
     [[-60,235],[50,180],[152,204],[252,147],[312,192],[422,155],[489,178],[581,103],[624,117],[737,183],[832,149],[1030,230]],
-    [[-60,334],[64,271],[146,288],[254,195],[340,251],[445,216],[554,83],[590,98],[655,188],[745,155],[825,221],[1050,318]],
+    // Fuchun source: rolling crag shoulder, short rock saddles and an
+    // uneven but continuous summit; NOT one geometric triangular apex.
+    [[-60,334],[64,271],[146,288],[254,195],[340,251],
+      // Native 1.65x comparison rejected a second triangular summit:
+      // the 492/512 V-notch read as another vector sticker. Retain one
+      // geological support and make its left shoulder a BROAD rounded
+      // contour with a held bench, continuous flow and no false spike.
+      [420,222],[452,205],[474,184],[492,173],[512,170],
+      [531,147],[545,124],[559,105],[572,111],[588,126],
+      [603,137],[622,166],[647,181],[672,172],[707,154],
+      [741,159],[763,183],[790,208],[825,221],[1050,318]],
     [[-60,430],[78,359],[160,405],[275,298],[338,361],[427,304],[530,235],[586,274],[713,340],[812,295],[1050,383]],
+  ],
+};
+/** One deliberately authored macro landform per master, not four coats
+ * of different strokes on exactly the same generic triangle. All retain
+ * monotone x stations, genuine ridgeHeight-rooted child anatomy, independent
+ * depth bands and source-guided intentional voids. These are not tracings. */
+const MASTER_TRAIL_MIDDLE:Record<Exclude<InkRockSchool,"fuchun">,readonly P[]>={
+  "early-spring":[
+    [-60,334],[64,271],[146,288],[254,195],[340,251],
+    [408,220],[432,182],[451,159],[472,162],[488,173],
+    [507,150],[527,119],[548,109],[565,120],[585,128],
+    [601,116],[617,119],[638,156],[662,185],[690,173],
+    [730,158],[755,181],[825,221],[1050,318],
+  ],
+  "travelers":[
+    [-60,334],[64,271],[146,288],[254,195],[340,251],
+    [382,261],[412,226],[438,164],[457,123],[483,93],
+    [503,78],[529,76],[550,78],[573,84],[596,98],
+    [615,127],[631,157],[650,187],[681,207],[719,190],
+    [755,183],[794,205],[825,221],[1050,318],
+  ],
+  "forest-grotto":[
+    [-60,334],[64,271],[146,288],[254,195],[340,251],
+    [395,233],[421,201],[443,177],[462,149],[478,130],
+    [494,139],[507,154],[526,137],[544,114],
+    [561,94],[578,91],[597,111],[617,156],[636,162],
+    [657,181],[684,175],[711,160],[748,183],[825,221],[1050,318],
   ],
 };
 /** Long, ridge-rooted hemp-fibre families with small alum-head rock
@@ -167,22 +210,2270 @@ function RockInkPlanes({stations,seed,band,detail,mist}:{
     })}
   </g>;
 }
-function Mountains({scene,seed,detail,mist,ink,ids}:{
+/** Source-led Huang Gongwang mountain *bone* (shan gu): each dark
+ * load starts at an actual peak on the same fractured silhouette as the
+ * painted ridge. Lateral dry-fibre families branch from that bone; the
+ * broader ink-water shoulder underneath them fades as the brush dries.
+ * This is not generic noise randomly pasted across a mountain polygon.
+ *
+ * Source: Dwelling in the Fuchun Mountains, 1350 (NPM). Smarthistory's
+ * 2023 detail shows curving densely loaded folds, secondary hemp fibres,
+ * alum-head ledges, and deliberate unmarked paper between the slopes.
+ */
+/** A two-edge, pressure-sampled hemp-fibre ink gesture following one
+ * quadratic spine. Each contour station uses its *local* tangent normal.
+ * Avoid the two-C giant lens/wedge produced when the inner edge is
+ * independently drawn far away from the same curved axis.
+ */
+function rockLoadedRibbon(root:P,control:P,tip:P,width:number,seed:number){
+  const knots=[0,.035,.08,.14,.22,.32,.43,.54,.65,.75,.84,.91,.97,1] as const;
+  const pressure=[0,.08,.25,.52,.82,1,.94,.78,.65,.48,.29,.16,.05,0] as const;
+  const side=(sign:1|-1)=>knots.map((t,k):P=>{
+    const point=quadraticPoint(root,control,tip,t);
+    const tangent:P=[
+      2*(1-t)*(control[0]-root[0])+2*t*(tip[0]-control[0]),
+      2*(1-t)*(control[1]-root[1])+2*t*(tip[1]-control[1]),
+    ];
+    const norm=Math.max(.001,Math.hypot(...tangent));
+    const broken=(k===0||k===knots.length-1)?0:
+      (s(seed+31,k*29+(sign>0?7:11))-.5)*.09;
+    const push=width*Math.max(0,pressure[k]+broken)*(sign>0?.8:.46);
+    return [point[0]-sign*tangent[1]/norm*push,
+      point[1]+sign*tangent[0]/norm*push];
+  });
+  const outline=[...side(1),...side(-1).slice(1,-1).reverse()];
+  const path=["M"+f(root[0])+" "+f(root[1])];
+  for(let k=0;k<outline.length;k++){
+    const p0=outline[(k-1+outline.length)%outline.length];
+    const p1=outline[k],p2=outline[(k+1)%outline.length];
+    const p3=outline[(k+2)%outline.length];
+    const cp1:P=[p1[0]+(p2[0]-p0[0])*.13,
+      p1[1]+(p2[1]-p0[1])*.13];
+    const cp2:P=[p2[0]-(p3[0]-p1[0])*.13,
+      p2[1]-(p3[1]-p1[1])*.13];
+    path.push("C"+f(cp1[0])+" "+f(cp1[1])+
+      " "+f(cp2[0])+" "+f(cp2[1])+
+      " "+f(p2[0])+" "+f(p2[1]));
+  }
+  return path.join(" ")+" Z";
+}
+/** Root-to-tip cubic ink-loaded contour. Both edges sample ONE curve and its
+ * tangent: a swelled brush stroke, not two unrelated geometrical wedges.
+ * The long midsection rolls over a landform; dry release keeps paper holes.
+ */
+function rockLoadedCubicRibbon(root:P,c1:P,c2:P,tip:P,width:number,seed:number){
+  const knots=[0,.02,.05,.09,.14,.2,.27,.34,.42,.5,.58,.66,.73,.8,.86,.91,.95,.98,1];
+  const pressure=[0,.08,.2,.37,.56,.72,.85,.94,1,.88,.75,.66,.53,.4,.3,.19,.1,.03,0];
+  const point=(t:number):P=>{
+    const q=1-t;
+    return [
+      q*q*q*root[0]+3*q*q*t*c1[0]+3*q*t*t*c2[0]+t*t*t*tip[0],
+      q*q*q*root[1]+3*q*q*t*c1[1]+3*q*t*t*c2[1]+t*t*t*tip[1],
+    ];
+  };
+  const side=(sign:1|-1)=>knots.map((t,k):P=>{
+    const q=1-t,location=point(t);
+    const tangent:P=[
+      3*q*q*(c1[0]-root[0])+6*q*t*(c2[0]-c1[0])+3*t*t*(tip[0]-c2[0]),
+      3*q*q*(c1[1]-root[1])+6*q*t*(c2[1]-c1[1])+3*t*t*(tip[1]-c2[1]),
+    ];
+    const norm=Math.max(.001,Math.hypot(tangent[0],tangent[1]));
+    const teeth=k===0||k===knots.length-1?0:
+      (s(seed+31,k*37+(sign===1?3:17))-.5)*.19;
+    const load=width*Math.max(0,pressure[k]+teeth)*(sign===1?.69:.42);
+    return [location[0]-sign*tangent[1]/norm*load,
+      location[1]+sign*tangent[0]/norm*load];
+  });
+  const contour=[...side(1),...side(-1).slice(1,-1).reverse()];
+  const out=["M"+f(root[0])+" "+f(root[1])];
+  for(let k=0;k<contour.length;k++){
+    const before=contour[(k+contour.length-1)%contour.length];
+    const current=contour[k],next=contour[(k+1)%contour.length];
+    const after=contour[(k+2)%contour.length];
+    out.push("C"+f(current[0]+(next[0]-before[0])*.13)+" "+
+      f(current[1]+(next[1]-before[1])*.13)+" "+
+      f(next[0]-(after[0]-current[0])*.13)+" "+
+      f(next[1]-(after[1]-current[1])*.13)+" "+
+      f(next[0])+" "+f(next[1]));
+  }
+  return out.join(" ")+" Z";
+}
+/**
+ * Four distinct historic ink-rock grammars, all drawn as editable SVG.
+ *
+ * Huang Gongwang (Fuchun): uneven long hemp, paper between dense families.
+ * Guo Xi (Early Spring): curled cloud-head folds and reversing hook strokes.
+ * Fan Kuan (Travelers): heavy monumental faces / short loaded raindrop cun.
+ * Wang Meng (Forest Chamber Grotto): dense curved dry ox-hair brush traffic.
+ *
+ * These are original authored parent forms with seeded brush-flow children,
+ * NOT scanned textures, a common noise overlay, or unrelated sticker marks.
+ * Long hemp, ox-hair and cloud-head curves root on named pressure-loaded
+ * sub-strata. Fan Kuan raindrop dots instead live independently *within*
+ * their supporting rocky face, an intentional texture-particle class.
+ * All materials are clipped to that exact parent stone volume. Changing school never changes the 300-frame
+ * camera, walker, ridge topology, or original tree/landscape anatomy.
+ */
+function MasterRockBrush({root,seed,mist,detail,school}:{
+  root:P;seed:number;mist:number;detail:number;school:InkRockSchool;
+}){
+  const id=useId().replace(/[^a-z0-9_-]/gi,"");
+  const control:P=[root[0]-19,root[1]+31];
+  const tip:P=[root[0]-56,root[1]+116];
+  const sourcePlanes:Record<InkRockSchool,readonly {
+    at:number;side:1|-1;spread:number;rise:number;depth:number;
+  }[]>={
+    "fuchun":[
+      {at:.085,side:-1,spread:118,rise:27,depth:132},
+      {at:.32,side:1,spread:94,rise:15,depth:123},
+      {at:.61,side:-1,spread:82,rise:16,depth:92},
+    ],
+    "early-spring":[
+      {at:.09,side:-1,spread:104,rise:40,depth:117},
+      {at:.36,side:1,spread:105,rise:22,depth:135},
+      {at:.65,side:-1,spread:70,rise:29,depth:91},
+    ],
+    "travelers":[
+      {at:.075,side:-1,spread:135,rise:24,depth:156},
+      {at:.31,side:1,spread:126,rise:16,depth:152},
+      {at:.59,side:-1,spread:82,rise:10,depth:118},
+    ],
+    "forest-grotto":[
+      {at:.13,side:-1,spread:115,rise:38,depth:145},
+      {at:.37,side:1,spread:79,rise:33,depth:118},
+      {at:.63,side:-1,spread:95,rise:18,depth:113},
+    ],
+  };
+  const parent=sourcePlanes[school];
+  const strokes:Record<InkRockSchool,readonly number[]>={
+    "fuchun":[34,26,18],
+    "early-spring":[22,17,13],
+    "travelers":[78,65,44],
+    "forest-grotto":[73,59,46],
+  };
+  const label:Record<InkRockSchool,string>={
+    "fuchun":"long-hemp",
+    "early-spring":"cloud-head",
+    "travelers":"raindrop",
+    "forest-grotto":"ox-hair",
+  };
+  return <g data-km-master-rock-art="" data-km-master-school={school}
+    data-km-master-hero-root={f(root[0])+","+f(root[1])}>
+    {parent.map((plane,i)=>{
+      const a=quadraticPoint(root,control,tip,plane.at);
+      const direction=plane.side;
+      const reach=plane.spread*(.95+.12*s(seed+4011,i*47));
+      const rise=plane.rise*(.88+.21*s(seed+4027,i*59));
+      const depth=plane.depth*(.9+.13*s(seed+4031,i*37));
+      const crown:P=[a[0]+direction*reach*.45,a[1]-rise];
+      const shoulder:P=[a[0]+direction*reach*.82,a[1]+depth*.32];
+      const outer:P=[a[0]+direction*reach*.78,a[1]+depth*.91];
+      const inner:P=[a[0]+direction*reach*.12,a[1]+depth*.82];
+      // Three different non-radial rock cheeks: supported concavities
+      // between weighted outer shoulders, no detached polygon triangle.
+      const mass="M"+f(a[0])+" "+f(a[1])+
+        " C"+f(a[0]+direction*reach*.15)+" "+f(a[1]-rise*.61)+
+        " "+f(crown[0]-direction*reach*.14)+" "+f(crown[1]-rise*.11)+
+        " "+f(crown[0])+" "+f(crown[1])+
+        " C"+f(a[0]+direction*reach*.74)+" "+f(a[1]-rise*.63)+
+        " "+f(a[0]+direction*reach*.77)+" "+f(a[1]+depth*.11)+
+        " "+f(shoulder[0])+" "+f(shoulder[1])+
+        " C"+f(a[0]+direction*reach*.97)+" "+f(a[1]+depth*.52)+
+        " "+f(a[0]+direction*reach*.76)+" "+f(a[1]+depth*.75)+
+        " "+f(outer[0])+" "+f(outer[1])+
+        " C"+f(a[0]+direction*reach*.58)+" "+f(a[1]+depth*.8)+
+        " "+f(a[0]+direction*reach*.35)+" "+f(a[1]+depth*.94)+
+        " "+f(inner[0])+" "+f(inner[1])+
+        " C"+f(a[0]-direction*reach*.09)+" "+f(a[1]+depth*.6)+
+        " "+f(a[0]+direction*reach*.19)+" "+f(a[1]+depth*.17)+
+        " "+f(a[0])+" "+f(a[1])+" Z";
+      const clip="kmrk"+id+"m"+i;
+      const tone=clip+"tone";
+      // The previous 495 marks all began on the *upper* rock edge:
+      // at native film scale they resembled a dark fringe above an
+      // otherwise blank tan triangle. In true layered cunfa, the face
+      // contains attached internal strata. These five pressure-loaded
+      // curved spines span the vertical rock mass. Connected line families
+      // start on actual sampled curves; Fan Kuan's *detached loaded dots*
+      // occupy their named rock volume rather than forming fake hair ribs.
+      const density=[.15,.31,.49,.67,.83] as const;
+      const stratum=density.map((at,k)=>{
+        const top=quadraticPoint(a,crown,shoulder,at);
+        const bottom=quadraticPoint(a,inner,outer,at);
+        const drift=direction*((k%2?1:-1)*(2+
+          4*s(seed+4327,i*29+k*11)));
+        const tip:P=[top[0]*.18+bottom[0]*.82+drift,
+          top[1]*.17+bottom[1]*.83];
+        const bend:P=[top[0]*.52+tip[0]*.48+
+          direction*(5+3*s(seed+4337,i*23+k*19)),
+          top[1]*.57+tip[1]*.43+(k%3===1?-7:3)];
+        const load=(school==="travelers"?4.4:
+          school==="forest-grotto"?5.4:
+          school==="early-spring"?6:3.6)*
+          (.66+.49*s(seed+4343,i*41+k*31));
+        // Fuchun long-hemp must wrap a *turning* stone cheek, not descend
+        // the near-straight 130px source/ribbon that looked like wires in
+        // true 960×540 + 1.65× source comparison. The same pressure-loaded
+        // CUBIC is both the visible stroke and the only valid parent
+        // of its 78 dependent fine brush tips. Two soft x bends respond to
+        // the physical parent cheek; y runs downstream and never hairpins.
+        const swerve=4.8+3.9*s(seed+4351,i*17+k*23);
+        const c1:P=[bend[0]+direction*swerve,
+          top[1]+(tip[1]-top[1])*.24];
+        const c2:P=[bend[0]-direction*(swerve+4.7),
+          top[1]+(tip[1]-top[1])*.71];
+        const sample=(t:number):P=>school==="fuchun"
+          ?cubicPoint(top,c1,c2,tip,t)
+          :quadraticPoint(top,bend,tip,t);
+        const centerline="M"+f(top[0])+" "+f(top[1])+
+          " C"+f(c1[0])+" "+f(c1[1])+
+          " "+f(c2[0])+" "+f(c2[1])+
+          " "+f(tip[0])+" "+f(tip[1]);
+        const body=school==="fuchun"
+          ?rockLoadedCubicRibbon(top,c1,c2,tip,load*.91,
+            seed+4357+i*109+k*37)
+          :rockLoadedRibbon(top,bend,tip,load,
+            seed+4357+i*109+k*37);
+        const lip=rockLoadedRibbon(top,
+          [top[0]+direction*(8+k),top[1]+(k%2?-6:-3)],
+          [top[0]+direction*(18+k*1.5),top[1]+(7+k%3*4)],
+          Math.max(1.1,load*.32),seed+4373+i*73+k*17);
+        return {top,bend,tip,body,lip,load,sample,centerline};
+      });
+      const qty=Math.round(strokes[school][i]*detail);
+      const brush=Array.from({length:qty},(_,j)=>{
+        const budget=strokes[school][i];
+        // Distribute marks in two natural, unequal source-flow clusters.
+        // Leave the center of each material mass with breathing paper.
+        const first=Math.ceil(budget*.57);
+        const t=j<first
+          ?.13+j*(.29/Math.max(1,first-1))+
+            (s(seed+4111,j*43+i*17)-.5)*.015
+          :.57+(j-first)*(.31/Math.max(1,budget-first-1))+
+            (s(seed+4127,j*37+i*29)-.5)*.014;
+        const at=clamp(t,.1,.9);
+        // Five attached parent bones: one contact per bank in each
+        // nonuniform five-mark brush phrase, rather than diagonal rain
+        // repeating across vertical strata. Deliberately interleaved
+        // upper/lower source windows leave unpainted stone channels.
+        const phraseGroup=Math.floor(j/5);
+        const bank=school==="fuchun"
+          ?(j*3+phraseGroup+i*2)%stratum.length
+          :(j*17+Math.floor(j/13))%stratum.length;
+        const upperBank=stratum[bank];
+        const sourceWindows=[.14,.61,.29,.78,.36,.69,.21] as const;
+        const depth=school==="fuchun"
+          ?clamp(sourceWindows[phraseGroup%sourceWindows.length]+
+            (s(seed+4411,j*23+i*37)-.5)*.068,.1,.89)
+          :clamp(.12+.78*(at-.1)/.8+
+            (s(seed+4411,j*23+i*37)-.5)*.09,.08,.92);
+        // Fan Kuan's raindrop cun are *separate loaded touches on a
+        // connected rock plane*, unlike parent-rooted long hemp ribbons.
+        // Root them to the parent rock surface, distributing small dots
+        // over its whole face; otherwise five regular vertical tubes
+        // misleadingly replace his source-specific mottled cliff texture.
+        const fanU=clamp(.11+.8*s(seed+4421,j*29+i*13),.1,.91);
+        const fanTop=quadraticPoint(a,crown,shoulder,fanU);
+        const fanBottom=quadraticPoint(a,inner,outer,fanU);
+        const fanDepth=.14+.72*s(seed+4439,j*31+i*23);
+        const fanEntry:P=[
+          fanTop[0]*(1-fanDepth)+fanBottom[0]*fanDepth,
+          fanTop[1]*(1-fanDepth)+fanBottom[1]*fanDepth,
+        ];
+        const entry=school==="travelers"?fanEntry:
+          upperBank.sample(depth);
+        const jitter=(s(seed+4153,j*31+i*19)-.5);
+        // Source vocabularies differ in geometry, loaded width, cadence,
+        // and curve direction. They must not be the same stamp with opacity.
+        const wt=s(seed+4177,j*11+i*31);
+        const wt2=s(seed+4193,j*17+i*47);
+        const curlHandedness=j%4===1||j%7===0?-1:1;
+        let c1:P,c2:P,end:P,width:number;
+        let phrase:"short"|"medium"|"long"|undefined;
+        if(school==="travelers"){
+          // Bulbed, occasionally split press-and-lift droplets. The
+          // short 3–8px gesture must remain a dot at native resolution,
+          // not a 20px repeated black arrowhead or a hanging comb tooth.
+          const len=2.4+4.8*wt+(j%11===0?1.7:0);
+          const drift=direction*(.22+.88*wt2)+jitter*1.7;
+          c1=[entry[0]+drift*.18,entry[1]+len*.18];
+          c2=[entry[0]+drift*.72,entry[1]+len*.49];
+          end=[entry[0]+drift,entry[1]+len];
+          width=.68+1.35*wt+(j%11===0?.58:0);
+        }else if(school==="early-spring"){
+          // Cloud-head stones hook BACK into their support. Reverse
+          // handedness at irregular intervals: identical S-scrolls
+          // in five parallel strings are not Guo Xi brush anatomy.
+          const len=11+18*wt+(j%7===0?7.5:0);
+          const sway=direction*curlHandedness*(7+12*wt2);
+          c1=[entry[0]+sway*.96,entry[1]+len*.06];
+          c2=[entry[0]-sway*.72,entry[1]+len*.68];
+          end=[entry[0]+sway*.31+2.1*jitter,entry[1]+len];
+          width=1.2+2.05*wt;
+        }else if(school==="forest-grotto"){
+          // Wang Meng's ox-tail texture is made of many *short*, tight,
+          // alternating dry-brush turns inside the actual rock folds.
+          // The earlier 23–69px hairs radiated from the summit like
+          // loose strings and erased the grotto's densely nested geology.
+          const len=9+20*wt+(j%13===0?8:0);
+          const turn=(j%5===0||j%7===2?-1:1);
+          const sway=direction*turn*(5+13*wt2)+jitter*3.4;
+          c1=[entry[0]+sway*.13,entry[1]+len*.2];
+          c2=[entry[0]+sway*.87,entry[1]+len*.63];
+          end=[entry[0]+sway*.68,entry[1]+len];
+          width=.48+.86*wt+(j%11===0?.52:0);
+        }else{
+          // Huang's original rolled hemp (NPM scroll / Smarthistory):
+          // short alum-head creases, mid-distance dry fibres and long
+          // cloth-like descending folds share one rock bank, but never
+          // form five parallel computer-rain strands. Preserve all 78
+          // real pressure-loaded marks and their exact parent origins.
+          // Use an authored three-phrase optical rhythm; each still
+          // grows from a station on the newly CUBIC stone cheek.
+          // Step seven is coprime to this twelve-mark wet/dry cycle:
+          // mixed lengths remain represented in every parent cheek,
+          // without the source-bank indexing accidentally hiding one
+          // class or stamping short/long rows in regular order.
+          const meter=(j*7+i*5)%12;
+          phrase=meter<3?"short":meter<9?"medium":"long";
+          // Long diluted hemp follows the slope; short dense presses
+          // build its rock crown. Preserve 78 attached material contacts.
+          const len=phrase==="short"?9+13*wt:
+            phrase==="medium"?18+18*wt:35+20*wt;
+          // Native ArtCraft review rejected the v52 strong 25% reversal:
+          // it made intersecting X wires over one positive rock bank.
+          // Keep the long gesture descending WITH its supporting cheek.
+          // Reserve the opposite handedness only for small within-stroke
+          // roll controls, not the large geometric endpoint direction.
+          const hand=meter===2||meter===8||meter===10?-1:1;
+          const sway=direction*(7+15*wt2)+jitter*5.2+hand*1.5;
+          const roll=direction*
+            (meter%4===1?-(2.6+2*wt):(1.7+1.6*wt2));
+          c1=[entry[0]+sway*.13+roll,entry[1]+len*.23];
+          c2=[entry[0]+sway*.8-roll*.8,
+            entry[1]+len*.7];
+          end=[entry[0]+sway,entry[1]+len];
+          width=(.72+1.24*wt)+(phrase==="long"?-.12:
+            phrase==="short"?.28:0)+(j%13===0?.27:0);
+        }
+        const axis="M"+f(entry[0])+" "+f(entry[1])+
+          " C"+f(c1[0])+" "+f(c1[1])+
+          " "+f(c2[0])+" "+f(c2[1])+
+          " "+f(end[0])+" "+f(end[1]);
+        const pressure=rockLoadedCubicRibbon(entry,c1,c2,end,width,
+          seed+4211+i*113+j*13);
+        const dry=(j%5===2||j%9===4);
+        const cut=cubicPoint(entry,c1,c2,end,.76);
+        const lift=cubicPoint(entry,c1,c2,end,.96);
+        const dryPath="M"+f(cut[0])+" "+f(cut[1])+
+          " Q"+f((cut[0]+lift[0])*.5+direction*.7)+" "+
+          f((cut[1]+lift[1])*.5)+" "+f(lift[0])+" "+f(lift[1]);
+        const sourceZone=school==="fuchun"
+          ?(depth<.46?"upper-bank":"lower-bank"):undefined;
+        return {entry,pressure,dry,dryPath,bank,depth,
+          curlHandedness,phrase,axis,sourceZone};
+      });
+      const isFan=school==="travelers",isGuo=school==="early-spring";
+      const isWang=school==="forest-grotto";
+      const isHuang=school==="fuchun";
+      // Fuchun's hemp families fold OVER rounded rock shoulders, while
+      // Wang Meng's old dark ridges twist into one another. The former
+      // long black comb and the latter free-hanging hairs both lacked
+      // *positive nested stone banks*; local face shading is a geometry
+      // problem, not a request for screen noise. Each sub-bank begins
+      // on the parent crown and ends inside its parent stone silhouette.
+      const stoneBankStations=isHuang?[.13,.39,.71]:
+        isWang?[.1,.29,.53,.76]:[];
+      const stoneBanks=stoneBankStations.map((loc,k)=>{
+        const t=clamp(loc+(s(seed+4621,i*19+k*47)-.5)*.034,.07,.94);
+        const root=quadraticPoint(a,crown,shoulder,t);
+        const target=quadraticPoint(a,inner,outer,t);
+        const depth=(target[1]-root[1])*(isWang?.76:.56)*
+          (.82+.28*s(seed+4637,i*37+k*29));
+        const reach=(isWang?22:29)*(.7+.4*s(seed+4651,i*23+k*13));
+        const dir=direction*((k%3===1)?-1:1);
+        const rim:P=[root[0]+dir*reach*.55,root[1]-
+          (isWang?6:10)*(1+.3*s(seed+4657,i*29+k*31))];
+        const ridge:P=[root[0]+dir*reach,root[1]+depth*.29];
+        const heel:P=[root[0]+dir*reach*.7,root[1]+depth*.93];
+        const inside:P=[root[0]+dir*reach*.05,root[1]+depth*.68];
+        const path="M"+f(root[0])+" "+f(root[1])+
+          " C"+f(root[0]+dir*reach*.16)+" "+f(root[1]-6)+
+          " "+f(rim[0]-dir*reach*.13)+" "+f(rim[1]-4)+
+          " "+f(rim[0])+" "+f(rim[1])+
+          " C"+f(rim[0]+dir*reach*.22)+" "+f(rim[1]-3)+
+          " "+f(ridge[0]+dir*4)+" "+f(ridge[1]-depth*.14)+
+          " "+f(ridge[0])+" "+f(ridge[1])+
+          " C"+f(ridge[0]-dir*reach*.07)+" "+f(ridge[1]+depth*.29)+
+          " "+f(heel[0]+dir*reach*.12)+" "+f(heel[1]-depth*.13)+
+          " "+f(heel[0])+" "+f(heel[1])+
+          " C"+f(heel[0]-dir*reach*.45)+" "+f(heel[1]+depth*.045)+
+          " "+f(inside[0]+dir*reach*.19)+" "+f(inside[1]+depth*.1)+
+          " "+f(inside[0])+" "+f(inside[1])+
+          " C"+f(root[0]-dir*reach*.11)+" "+f(root[1]+depth*.45)+
+          " "+f(root[0]+dir*reach*.08)+" "+f(root[1]+depth*.18)+
+          " "+f(root[0])+" "+f(root[1])+" Z";
+        const cap=rockLoadedCubicRibbon(root,
+          [root[0]+dir*reach*.14,root[1]-5],
+          [rim[0]-dir*reach*.1,rim[1]-2],rim,
+          (isWang?2.1:3.4)*(.8+.45*s(seed+4673,k*29+i*11)),
+          seed+4681+i*41+k*19);
+        return {root,path,cap,gradient:tone+"rockbank"+k};
+      });
+      // Huang Gongwang's Fuchun ridges (NPM): rounded boulders form
+      // positive interlocking *hill backs* BEFORE the long hemp fibres.
+      // Without these six connected rock cheeks the existing stroke
+      // families looked like free black wires on a flat tan triangle.
+      // Each new mass begins on an independently painted parent stratum,
+      // follows a rounded/saddle contour and dries toward a paper channel.
+      // All existing alum caps, fine fibres and source marks remain.
+      const fuchunHillbacks=isHuang?([.24,.63] as const).map((station,k)=>{
+        const supportingStratum=stratum[(i*2+k*3)%stratum.length];
+        const root=quadraticPoint(supportingStratum.top,
+          supportingStratum.bend,supportingStratum.tip,station);
+        const sign=direction*((i+k)%2===0?1:-1);
+        // NPM Fuchun detail: small, rounded alum-head outcrops ride
+        // across a broad rock back. Vary the brow/undercut anatomy,
+        // not just the brush density of one long triangular panel.
+        const extent=(k===0?50:38)*
+          (.86+.32*s(seed+5431,i*41+k*19));
+        const rise=(k===0?19:13)*
+          (.84+.32*s(seed+5441,i*29+k*37));
+        const fall=(k===0?64:49)*
+          (.82+.29*s(seed+5449,i*31+k*23));
+        const crown:P=[root[0]+sign*extent*(k===0?.36:.42),
+          root[1]-rise];
+        const knuckle:P=[root[0]+sign*extent*(k===0?.66:.61),
+          root[1]-rise*(k===0?.81:.49)];
+        const ledge:P=[root[0]+sign*extent*.89,root[1]-rise*.13];
+        const shoulder:P=[root[0]+sign*extent*.75,
+          root[1]+fall*.37];
+        const heel:P=[root[0]+sign*extent*.53,
+          root[1]+fall*.93];
+        const inner:P=[root[0]+sign*extent*.13,
+          root[1]+fall*.74];
+        // Seven continuous bowed edges trace the original stone's
+        // local cap, worn knuckle, undercut and eroded inner foothill.
+        // The enveloping parent stone clips the whole positive body.
+        const d="M"+f(root[0])+" "+f(root[1])+
+          " C"+f(root[0]+sign*extent*.08)+" "+f(root[1]-rise*.76)+
+          " "+f(crown[0]-sign*extent*.2)+" "+f(crown[1]-rise*.12)+
+          " "+f(crown[0])+" "+f(crown[1])+
+          " C"+f(crown[0]+sign*extent*.14)+" "+f(crown[1]-rise*.06)+
+          " "+f(knuckle[0]-sign*extent*.19)+" "+
+          f(knuckle[1]-rise*.11)+" "+f(knuckle[0])+" "+f(knuckle[1])+
+          " C"+f(knuckle[0]+sign*extent*.11)+" "+
+          f(knuckle[1]+rise*.14)+
+          " "+f(ledge[0]-sign*extent*.13)+" "+
+          f(ledge[1]-rise*.23)+" "+f(ledge[0])+" "+f(ledge[1])+
+          " C"+f(ledge[0]+sign*extent*.13)+" "+f(ledge[1]+fall*.24)+
+          " "+f(shoulder[0]+sign*extent*.08)+" "+
+          f(shoulder[1]-fall*.19)+" "+f(shoulder[0])+" "+
+          f(shoulder[1])+
+          " C"+f(shoulder[0]-sign*extent*.06)+" "+
+          f(shoulder[1]+fall*.29)+" "+
+          f(heel[0]+sign*extent*.16)+" "+f(heel[1]-fall*.21)+
+          " "+f(heel[0])+" "+f(heel[1])+
+          " C"+f(heel[0]-sign*extent*.36)+" "+
+          f(heel[1]+fall*.09)+" "+
+          f(inner[0]+sign*extent*.14)+" "+f(inner[1]+fall*.17)+
+          " "+f(inner[0])+" "+f(inner[1])+
+          " C"+f(root[0]-sign*extent*.13)+" "+
+          f(root[1]+fall*.4)+" "+f(root[0]+sign*extent*.08)+
+          " "+f(root[1]+fall*.12)+" "+f(root[0])+" "+f(root[1])+" Z";
+        const lip=rockLoadedCubicRibbon(root,
+          [root[0]+sign*extent*.12,root[1]-rise*.87],
+          [ledge[0]-sign*extent*.16,ledge[1]-rise*.14],ledge,
+          (k===0?3.7:2.6)*(.84+.24*s(seed+5461,i*17+k*43)),
+          seed+5471+i*71+k*29);
+        // Paint a concave volume BELOW the knuckle, with a soft
+        // capillary boundary. It is clipped again to the ORIGINAL
+        // seven-sided hill-back body, so no unrooted triangular mask
+        // spills into the open paper or onto an adjacent rock.
+        const shear:P=[root[0]+sign*extent*.73,
+          root[1]+fall*(k===0?.28:.19)];
+        const throat:P=[root[0]+sign*extent*.43,
+          root[1]+fall*(k===0?.58:.48)];
+        const undercut="M"+f(knuckle[0])+" "+f(knuckle[1])+
+          " C"+f(knuckle[0]+sign*extent*.12)+" "+
+          f(knuckle[1]+rise*.08)+" "+
+          f(shear[0]+sign*extent*.13)+" "+
+          f(shear[1]-fall*.17)+" "+f(shear[0])+" "+f(shear[1])+
+          " C"+f(shear[0]-sign*extent*.09)+" "+
+          f(shear[1]+fall*.21)+" "+
+          f(throat[0]+sign*extent*.22)+" "+
+          f(throat[1]+fall*.18)+" "+f(throat[0])+" "+f(throat[1])+
+          " C"+f(throat[0]-sign*extent*.06)+" "+
+          f(throat[1]-fall*.29)+" "+
+          f(knuckle[0]-sign*extent*.19)+" "+
+          f(knuckle[1]+rise*.12)+" "+f(knuckle[0])+" "+f(knuckle[1])+" Z";
+        return {root,d,lip,undercut,knuckle,throat,
+          gradient:tone+"fuchunhillback"+k,
+          form:k===0?"round":"saddle" as const};
+      }):[];
+      // Wang Meng's moss stipple is a separate brush-particle class,
+      // semantically owned by the shaded rock, not a disconnected rock.
+      // Dabs gather near the 5 existing stone folds with irregular
+      // local density, never across the empty sky.
+      const moss=isWang?Array.from({length:21},(_,j)=>{
+        const layer=j%stratum.length;
+        const bone=stratum[layer];
+        const t=clamp(.17+.66*s(seed+4703,i*59+j*41),.1,.89);
+        const root=quadraticPoint(bone.top,bone.bend,bone.tip,t);
+        const x=root[0]+direction*(s(seed+4711,i*29+j*13)-.5)*9;
+        const y=root[1]+(s(seed+4721,i*17+j*23)-.5)*8;
+        const breadth=.75+2.4*s(seed+4729,i*19+j*37);
+        const height=1.3+4.4*s(seed+4733,i*13+j*43);
+        const dx=direction*(1.6*s(seed+4747,i*31+j*17)-.8);
+        const d="M"+f(x)+" "+f(y)+
+          " q"+f(-breadth*.5)+" "+f(-height*.28)+
+          " "+f(dx)+" "+f(-height*.5)+
+          " q"+f(breadth*.9)+" "+f(height*.3)+
+          " "+f(breadth)+" "+f(height*.76)+
+          " q"+f(-breadth*.4)+" "+f(height*.39)+
+          " "+f(-breadth-dx)+" "+f(-height*.26)+" Z";
+        return {root:[x,y] as P,d,wet:j%6===0};
+      }):[];
+      // Guo Xi / Early Spring (NPM, 1072): cloud-head texture occurs
+      // on mutually INTERLOCKING stone lobes, not forty standalone
+      // cursive S-curves laid across a smooth triangular beige fill.
+      // Twelve irregular, bone-sampled positive crescent banks are
+      // connected to the five *existing* parent stratum bends.
+      // A blank curl throat is reserved between neighboring lobes.
+      const cloudBanks=isGuo?([.14,.41,.67,.85] as const).map((at,k)=>{
+        const bone=stratum[(k*2+i)%stratum.length];
+        const root=quadraticPoint(bone.top,bone.bend,bone.tip,at);
+        const sign=direction*((k+i)%3===1?-1:1);
+        // The first source candidate read as twelve horizontal eaves.
+        // Four morphologically distinct turning rock anatomies encode
+        // a curled crown, a steep hood, a tall split and a gully throat.
+        const motif=(k+i*2)%4;
+        const reach=([19,43,25,34][motif])*
+          (.83+.32*s(seed+5011,i*43+k*17));
+        const rise=([8,13,22,15][motif])*
+          (.74+.36*s(seed+5021,i*29+k*31));
+        const drop=([22,39,46,56][motif])*
+          (.78+.37*s(seed+5039,i*11+k*47));
+        const cap:P=[root[0]+sign*reach*(motif===2?.4:.28),
+          root[1]-rise];
+        const lip:P=[root[0]+sign*reach*(motif===3?.63:.85),
+          root[1]+drop*([.24,.15,.35,.21][motif])];
+        const throat:P=[root[0]+sign*reach*(motif===3?.31:.48),
+          root[1]+drop*(motif===0?.32:.53)];
+        const belly:P=[root[0]+sign*reach*(motif===3?.15:.36),
+          root[1]+drop];
+        const rootD="M"+f(root[0])+" "+f(root[1]);
+        const outline=rootD+
+          " C"+f(root[0]+sign*reach*.1)+" "+f(root[1]-rise*.88)+
+            " "+f(cap[0]-sign*reach*.17)+" "+
+            f(cap[1]-rise*.19)+" "+f(cap[0])+" "+f(cap[1])+
+          " C"+f(cap[0]+sign*reach*.25)+" "+
+            f(cap[1]-rise*.18)+" "+f(lip[0]-sign*reach*.11)+
+            " "+f(lip[1]-rise*.49)+" "+f(lip[0])+" "+f(lip[1])+
+          " C"+f(lip[0]+sign*reach*.05)+" "+
+            f(lip[1]+drop*.22)+" "+f(throat[0]+sign*reach*.19)+
+            " "+f(throat[1]-drop*.31)+" "+
+            f(throat[0])+" "+f(throat[1])+
+          " C"+f(throat[0]-sign*reach*.12)+" "+
+            f(throat[1]-drop*.13)+" "+f(belly[0]+sign*reach*.31)+
+            " "+f(belly[1]-drop*.12)+" "+
+            f(belly[0])+" "+f(belly[1])+
+          " C"+f(root[0]+sign*reach*.18)+" "+
+            f(belly[1]+drop*.1)+" "+f(root[0]-sign*reach*.12)+
+            " "+f(root[1]+drop*.22)+" "+
+            f(root[0])+" "+f(root[1])+" Z";
+        // Early Spring's cloud-head is a *rolled boulder with a
+        // receding, internally shaded undercut*. Its paper cutout and
+        // shadow are intrinsic to its own positive face, not just a
+        // free-hanging S-mark traced over beige mountain wash.
+        const foldLip:P=[root[0]+sign*reach*
+            ([.62,.74,.51,.8][motif]),
+          root[1]+drop*([.19,.14,.27,.23][motif])];
+        const curl=rockLoadedCubicRibbon(root,
+          [root[0]+sign*reach*.08,root[1]-rise*.77],
+          [lip[0]-sign*reach*.17,lip[1]-rise*.34],lip,
+          1.8+1.5*s(seed+5077,i*31+k*19),
+          seed+5083+i*103+k*23);
+        const recess=rockLoadedCubicRibbon(throat,
+          [throat[0]-sign*reach*.19,throat[1]-drop*.23],
+          [belly[0]+sign*reach*.21,belly[1]-drop*.16],belly,
+          1.4+1.6*s(seed+5101,i*47+k*13),
+          seed+5107+i*53+k*37);
+        // Four distinct concave-to-convex turning patterns. The
+        // inner negative paper throat is defined by the contour,
+        // while the underside is a loaded ochre-to-paper recess.
+        const undercut="M"+f(foldLip[0])+" "+f(foldLip[1])+
+          " C"+f(foldLip[0]-sign*reach*.06)+" "+
+            f(foldLip[1]+drop*.15)+" "+
+            f(throat[0]+sign*reach*.11)+" "+
+            f(throat[1]-drop*.19)+" "+
+            f(throat[0])+" "+f(throat[1])+
+          " C"+f(throat[0]-sign*reach*.17)+" "+
+            f(throat[1]+drop*.12)+" "+
+            f(belly[0]+sign*reach*.15)+" "+
+            f(belly[1]-drop*.16)+" "+
+            f(belly[0])+" "+f(belly[1])+
+          " C"+f(belly[0]+sign*reach*.33)+" "+
+            f(belly[1]-drop*.14)+" "+
+            f(lip[0]-sign*reach*.16)+" "+
+            f(lip[1]+drop*.26)+" "+
+            f(lip[0])+" "+f(lip[1])+
+          " Q"+f(lip[0]-sign*reach*.12)+" "+
+            f(lip[1]-drop*.1)+" "+
+            f(foldLip[0])+" "+f(foldLip[1])+" Z";
+        const shelf=rockLoadedCubicRibbon(
+          foldLip,
+          [foldLip[0]+sign*reach*.04,foldLip[1]+drop*.14],
+          [throat[0]+sign*reach*.1,throat[1]-drop*.18],
+          throat,1.1+1.8*s(seed+5119,i*13+k*29),
+          seed+5129+i*67+k*41);
+        return {root,outline,curl,recess,undercut,shelf,
+          tonal:tone+"cloud"+k,motif};
+      }):[];
+      // Wang Meng / Forest Chamber Grotto: nested rock walls are not
+      // monochrome hair on a triangular ridge. The historic work has
+      // tightly coiled, INTERLOCKING dark stone gullies beneath its
+      // fine dry ox-tail marks. These three individually drafted bank
+      // recesses arise at measured sites on the same five stratum bones
+      // as all of their children and stay strictly inside the rock mass.
+      const wangGullies=isWang?([.17,.43,.74] as const).map((at,k)=>{
+        const bank=stratum[(k+i*2)%stratum.length];
+        const source=quadraticPoint(bank.top,bank.bend,bank.tip,
+          clamp(at+(s(seed+5203,i*41+k*31)-.5)*.034,.12,.83));
+        const sign=direction*((k+i)%3===1?-1:1);
+        // v40 rejected: deep 73px opaque gully columns got clipped by
+        // the original parent stone like blunt rectangles. The support
+        // volume must be a *short, tapering* carved recess with a lifted
+        // brush end; the existing ox-tail strata supply long vertical flow.
+        const span=([19,28,22][k])*
+          (.78+.39*s(seed+5209,i*43+k*17));
+        const fall=([37,31,43][k])*
+          (.73+.41*s(seed+5227,i*19+k*23));
+        const lift=([8,6,11][k])*
+          (.8+.29*s(seed+5231,i*31+k*29));
+        const brow:P=[source[0]+sign*span*.3,source[1]-lift];
+        const outer:P=[source[0]+sign*span*.83,
+          source[1]+fall*(k===1?.29:.39)];
+        const heel:P=[source[0]+sign*span*.42,
+          source[1]+fall*.85];
+        const inner:P=[source[0]+sign*span*.31,
+          source[1]+fall*.66];
+        const shape="M"+f(source[0])+" "+f(source[1])+
+          " C"+f(source[0]+sign*span*.16)+" "+
+            f(source[1]-lift*.83)+" "+
+            f(brow[0]-sign*span*.17)+" "+
+            f(brow[1]-lift*.26)+" "+
+            f(brow[0])+" "+f(brow[1])+
+          " C"+f(brow[0]+sign*span*.24)+" "+
+            f(brow[1]-lift*.2)+" "+
+            f(outer[0]-sign*span*.22)+" "+
+            f(outer[1]-fall*.24)+" "+
+            f(outer[0])+" "+f(outer[1])+
+          " C"+f(outer[0]+sign*span*.09)+" "+
+            f(outer[1]+fall*.19)+" "+
+            f(heel[0]+sign*span*.14)+" "+
+            f(heel[1]-fall*.23)+" "+
+            f(heel[0])+" "+f(heel[1])+
+          " C"+f(heel[0]-sign*span*.32)+" "+
+            f(heel[1]+fall*.06)+" "+
+            f(inner[0]+sign*span*.15)+" "+
+            f(inner[1]+fall*.17)+" "+
+            f(inner[0])+" "+f(inner[1])+
+          " C"+f(source[0]-sign*span*.14)+" "+
+            f(source[1]+fall*.46)+" "+
+            f(source[0]+sign*span*.13)+" "+
+            f(source[1]+fall*.2)+" "+
+            f(source[0])+" "+f(source[1])+" Z";
+        const outerEdge=rockLoadedCubicRibbon(source,
+          [source[0]+sign*span*.13,source[1]-lift*.9],
+          [outer[0]-sign*span*.22,outer[1]-fall*.11],outer,
+          (k===1?2.7:1.8)*(1+.36*s(seed+5249,i*17+k*43)),
+          seed+5273+i*83+k*19);
+        const hollowEdge=rockLoadedCubicRibbon(brow,
+          [brow[0]+sign*span*.2,brow[1]+fall*.28],
+          [inner[0]+sign*span*.41,inner[1]-fall*.11],inner,
+          (k===2?1.9:1.3)*(1+.28*s(seed+5281,i*23+k*37)),
+          seed+5303+i*97+k*29);
+        return {source,shape,outerEdge,hollowEdge,gradient:tone+"gully"+k,k,fall};
+      }):[];
+      // Fan Kuan's original monumental rock has grouped cliff *mass*:
+      // two asymmetrically carved dark recesses attach to EACH positive
+      // stone face. These are broad angular geologic facets, not more
+      // independent texture dots or 5 smooth procedural drip-columns.
+      // The many short droplets must sit on a legible shadowed cliff.
+      const fanFacets=isFan?([.19,.59] as const).map((at,k)=>{
+        const root=quadraticPoint(a,crown,shoulder,at);
+        const extent=depth*(k===0?.69:.56)*
+          (.83+.23*s(seed+4513,i*43+k*17));
+        const width=(k===0?20:15)*
+          (.76+.31*s(seed+4523,i*29+k*19));
+        const dir=direction*(k===0?1:-1);
+        const shoulder0:P=[root[0]+dir*width*.32,root[1]-4];
+        const lip:P=[root[0]+dir*width,root[1]+extent*.18];
+        const heel:P=[root[0]+dir*width*.78,
+          root[1]+extent*(k===0?.95:.83)];
+        const throat:P=[root[0]-dir*width*.12,
+          root[1]+extent*.69];
+        const cut="M"+f(root[0])+" "+f(root[1])+
+          " C"+f(root[0]+dir*width*.11)+" "+f(root[1]-4)+
+          " "+f(shoulder0[0]-dir*2)+" "+f(shoulder0[1]-2)+
+          " "+f(shoulder0[0])+" "+f(shoulder0[1])+
+          " L"+f(lip[0])+" "+f(lip[1])+
+          " C"+f(lip[0]+dir*4)+" "+f(lip[1]+extent*.2)+
+          " "+f(heel[0]+dir*7)+" "+f(heel[1]-extent*.17)+
+          " "+f(heel[0])+" "+f(heel[1])+
+          " C"+f(throat[0]+dir*width*.43)+" "+
+            f(throat[1]+extent*.23)+
+          " "+f(throat[0]+dir*width*.18)+" "+
+            f(throat[1]-extent*.12)+
+          " "+f(throat[0])+" "+f(throat[1])+
+          " C"+f(root[0]-dir*width*.11)+" "+
+            f(root[1]+extent*.3)+
+          " "+f(root[0]+dir*width*.06)+" "+
+            f(root[1]+extent*.08)+
+          " "+f(root[0])+" "+f(root[1])+" Z";
+        const rim=rockLoadedRibbon(root,
+          [root[0]+dir*width*.39,root[1]-5],
+          [lip[0]+dir*3,lip[1]-3],2.1+k*.76,
+          seed+4591+i*59+k*17);
+        return {root,cut,rim,gradient:tone+"fanface"+k};
+      }):[];
+      return <g key={i} data-km-master-face=""
+        data-km-master-face-root={f(a[0])+","+f(a[1])}
+        data-km-master-face-side={direction}
+        data-km-master-plane-index={i}>
+        <defs>
+          <clipPath id={clip} clipPathUnits="userSpaceOnUse">
+            <path d={mass}/>
+          </clipPath>
+          <linearGradient id={tone} x1="0%" y1="0%" x2="38%" y2="100%">
+            <stop offset="0" stopColor={isFan?"#2b2826":isWang?"#3d352f":"#504536"}
+              stopOpacity={isFan?.81:isWang?.76:.65}/>
+            <stop offset=".24" stopColor={isFan?"#4b4035":isWang?"#4a3c34":"#77634d"}
+              stopOpacity={isFan?.76:isWang?.7:.49}/>
+            <stop offset=".57" stopColor={isFan?"#735e48":isWang?"#745e4a":"#907960"}
+              stopOpacity={isFan?.41:isWang?.47:.31}/>
+            <stop offset=".92" stopColor="#b9a287" stopOpacity=".08"/>
+            <stop offset="1" stopColor="#b9a287" stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        <path data-km-master-mass="" d={mass}
+          fill={"url(#"+tone+")"} opacity={f((isFan?.96:isWang?.94:.87)*(1-.16*mist))}/>
+        {isHuang&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-fuchun-hillback-field="">
+          {fuchunHillbacks.map(({root,d,lip,undercut,knuckle,throat,
+            gradient,form},k)=><g
+            key={k} data-km-master-fuchun-hillback=""
+            data-km-master-fuchun-hillback-root={f(root[0])+","+f(root[1])}
+            data-km-master-fuchun-hillback-form={form}>
+            <defs>
+              <clipPath id={gradient+"-volume-clip"}
+                clipPathUnits="userSpaceOnUse">
+                <path d={d}/>
+              </clipPath>
+              <linearGradient id={gradient+"-undercut"}
+                gradientUnits="userSpaceOnUse"
+                x1={f(knuckle[0])} y1={f(knuckle[1])}
+                x2={f(throat[0])} y2={f(throat[1])}>
+                <stop offset="0" stopColor="#3e342c" stopOpacity=".67"/>
+                <stop offset=".24" stopColor="#534437" stopOpacity=".57"/>
+                <stop offset=".66" stopColor="#86715a" stopOpacity=".22"/>
+                <stop offset="1" stopColor="#ab9579" stopOpacity="0"/>
+              </linearGradient>
+              <linearGradient id={gradient} x1={k===0?"8%":"24%"} y1="0%"
+                x2={k===0?"79%":"52%"} y2="100%">
+                <stop offset="0" stopColor="#39332d"
+                  stopOpacity={k===0?.79:.71}/>
+                <stop offset=".24" stopColor="#4f4335"
+                  stopOpacity={k===0?.69:.59}/>
+                <stop offset=".61" stopColor="#81705a"
+                  stopOpacity={k===0?.33:.28}/>
+                <stop offset=".89" stopColor="#a98e71" stopOpacity=".09"/>
+                <stop offset="1" stopColor="#b4a18b" stopOpacity="0"/>
+              </linearGradient>
+            </defs>
+            <path data-km-master-fuchun-hillback-wash="" d={d}
+              fill={"url(#"+gradient+")"}
+              opacity={f((k===0?.88:.79)*(1-.2*mist))}/>
+            <path data-km-master-fuchun-hillback-undercut=""
+              data-km-master-fuchun-hillback-undercut-root={
+                f(knuckle[0])+","+f(knuckle[1])}
+              d={undercut}
+              clipPath={"url(#"+gradient+"-volume-clip)"}
+              fill={"url(#"+gradient+"-undercut)"}
+              opacity={f((k===0?.81:.65)*(1-.2*mist))}/>
+            <path data-km-master-fuchun-hillback-lip="" d={lip}
+              fill="#3f362e" opacity={f((k===0?.62:.49)*(1-.2*mist))}/>
+          </g>)}
+        </g>}
+        {(isHuang||isWang)&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-rock-bank-field={school}>
+          {stoneBanks.map(({root,path,cap,gradient},k)=><g key={k}
+            data-km-master-rock-bank=""
+            data-km-master-rock-bank-root={f(root[0])+","+f(root[1])}
+            data-km-master-rock-bank-index={k}>
+            <defs><linearGradient id={gradient} x1="0%" y1="0%"
+              x2={k%2===0?"71%":"28%"} y2="100%">
+              <stop offset="0" stopColor="#382e27"
+                stopOpacity={isWang?.79:.59}/>
+              <stop offset=".37" stopColor={isWang?"#514138":"#77644d"}
+                stopOpacity={isWang?.61:.41}/>
+              <stop offset=".72" stopColor="#897158"
+                stopOpacity={isWang?.3:.19}/>
+              <stop offset="1" stopColor="#a99273" stopOpacity="0"/>
+            </linearGradient></defs>
+            <path data-km-master-rock-bank-wash="" d={path}
+              fill={"url(#"+gradient+")"}
+              opacity={f((isWang?.73:.64)*(1-.23*mist))}/>
+            <path data-km-master-rock-bank-cap="" d={cap}
+              fill={isWang?"#41362d":"#67513c"}
+              opacity={f((isWang?.62:.49)*(1-.2*mist))}/>
+          </g>)}
+          {moss.map(({root,d,wet},j)=><path key={"moss"+j}
+            data-km-master-moss-dab=""
+            data-km-master-moss-root={f(root[0])+","+f(root[1])}
+            data-km-master-moss-wet={wet?"wet":"dry"}
+            d={d} fill={wet?"#342c28":"#554638"}
+            opacity={f((wet?.8:.55)*(1-.2*mist))}/>)}
+        </g>}
+        {isWang&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-wang-gully-family="">
+          {wangGullies.map(({source,shape,outerEdge,hollowEdge,gradient,k,fall})=>
+            <g key={k} data-km-master-wang-gully=""
+              data-km-master-wang-gully-root={f(source[0])+","+f(source[1])}
+              data-km-master-wang-gully-kind={k}
+              data-km-master-wang-gully-fall={f(fall)}>
+              <defs>
+                <linearGradient id={gradient} x1={k%2?"77%":"13%"}
+                  y1="3%" x2={k%2?"22%":"86%"} y2="100%">
+                  <stop offset="0" stopColor="#40372f" stopOpacity=".7"/>
+                  <stop offset=".26" stopColor="#544639" stopOpacity=".52"/>
+                  <stop offset=".67" stopColor="#79654f" stopOpacity=".23"/>
+                  <stop offset="1" stopColor="#8e765c" stopOpacity=".01"/>
+                </linearGradient>
+              </defs>
+              <path data-km-master-wang-gully-shadow="" d={shape}
+                fill={"url(#"+gradient+")"}
+                opacity={f((k===1?.62:.51)*(1-.17*mist))}/>
+              <path data-km-master-wang-gully-rim="" d={outerEdge}
+                fill="#42382f"
+                opacity={f((k===1?.57:.48)*(1-.2*mist))}/>
+              <path data-km-master-wang-gully-fold="" d={hollowEdge}
+                fill="#5f4b3b"
+                opacity={f((k===1?.48:.58)*(1-.23*mist))}/>
+            </g>)}
+        </g>}
+        {isGuo&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-cloud-geology="">
+          {cloudBanks.map(({root,outline,curl,recess,undercut,shelf,tonal,motif},k)=>
+            <g key={k} data-km-master-cloud-bank=""
+              data-km-master-cloud-bank-root={f(root[0])+","+f(root[1])}
+              data-km-master-cloud-bank-index={k}
+              data-km-master-cloud-morph={motif}>
+              <defs>
+                <linearGradient id={tonal} x1="15%" y1="0%" x2="85%" y2="96%">
+                  <stop offset="0" stopColor="#51463b" stopOpacity=".7"/>
+                  <stop offset=".27" stopColor="#635347" stopOpacity=".56"/>
+                  <stop offset=".69" stopColor="#89715e" stopOpacity=".31"/>
+                  <stop offset="1" stopColor="#99836b" stopOpacity="0"/>
+                </linearGradient>
+              </defs>
+              <path data-km-master-cloud-mass="" d={outline}
+                fill={"url(#"+tonal+")"}
+                opacity={f((k===1?.74:.62)*(1-.17*mist))}/>
+              <path data-km-master-cloud-undercut="" d={undercut}
+                fill="#4d4035"
+                opacity={f((k%3===1?.43:.34)*(1-.22*mist))}/>
+              <path data-km-master-cloud-shelf="" d={shelf}
+                fill="#4a3c31"
+                opacity={f((k%2===0?.65:.48)*(1-.18*mist))}/>
+              <path data-km-master-cloud-crown="" d={curl}
+                fill="#39322b"
+                opacity={f((k%2===0?.48:.39)*(1-.21*mist))}/>
+              <path data-km-master-cloud-recess="" d={recess}
+                fill="#5a4b3d"
+                opacity={f((k%2===0?.76:.65)*(1-.2*mist))}/>
+            </g>)}
+        </g>}
+        {isFan&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-fan-geology="">
+          {fanFacets.map(({root,cut,rim,gradient},k)=><g key={k}
+            data-km-master-fan-facet=""
+            data-km-master-fan-facet-root={f(root[0])+","+f(root[1])}>
+            <defs>
+              <linearGradient id={gradient} x1="18%" y1="4%"
+                x2="76%" y2="94%">
+                <stop offset="0" stopColor="#302b26" stopOpacity=".78"/>
+                <stop offset=".36" stopColor="#413a33" stopOpacity=".61"/>
+                <stop offset=".76" stopColor="#5e5142" stopOpacity=".31"/>
+                <stop offset="1" stopColor="#9b856a" stopOpacity=".02"/>
+              </linearGradient>
+            </defs>
+            <path data-km-master-fan-facet-wash="" d={cut}
+              fill={"url(#"+gradient+")"}
+              opacity={f((k===0?.7:.61)*(1-.18*mist))}/>
+            <path data-km-master-fan-facet-rim="" d={rim}
+              fill="#322c27" opacity={f((k===0?.62:.53)*(1-.18*mist))}/>
+          </g>)}
+        </g>}
+        <g clipPath={"url(#"+clip+")"} data-km-master-stratum-field="">
+          {stratum.map(({top,body,lip,load,centerline},k)=><g key={k}
+            data-km-master-stratum=""
+            data-km-master-stratum-root={f(top[0])+","+f(top[1])}
+            data-km-master-stratum-index={k}
+            data-km-master-stratum-centerline={isHuang?centerline:undefined}>
+            {isHuang&&<defs>
+              <linearGradient id={tone+"hemp-body"+k}
+                x1="12%" y1="0%" x2="24%" y2="100%">
+                <stop offset="0" stopColor="#393129" stopOpacity=".94"/>
+                <stop offset=".23" stopColor="#514435" stopOpacity=".88"/>
+                <stop offset=".51" stopColor="#6d5b47" stopOpacity=".59"/>
+                <stop offset=".78" stopColor="#a18c71" stopOpacity=".17"/>
+                <stop offset="1" stopColor="#bca68c" stopOpacity="0"/>
+              </linearGradient>
+            </defs>}
+            <path data-km-master-stratum-wash="" d={body}
+              fill={isHuang?"url(#"+tone+"hemp-body"+k+")":
+                isFan?"#312c27":isWang?"#4c4034":"#5c4e3e"}
+              opacity={f((isFan?.19:isWang?.35:isGuo?.29:.19)*
+                (1-.18*mist))}/>
+            <path data-km-master-stratum-lip="" d={lip}
+              fill={isFan?"#2b2925":"#4a3b31"}
+              opacity={f((isFan?.26:Math.min(.83,.37+load*.027))*(1-.18*mist))}/>
+          </g>)}
+        </g>
+        <g data-km-master-brush-field="" data-km-master-field-count={qty}
+          clipPath={"url(#"+clip+")"}>
+          {brush.map(({entry,pressure,dry,dryPath,bank,depth,
+            curlHandedness,phrase,axis,sourceZone},j)=><g key={j}
+            data-km-master-stroke="" data-km-master-stroke-style={label[school]}
+            data-km-master-stroke-root={f(entry[0])+","+f(entry[1])}
+            data-km-master-stroke-dry={dry?"dry":"wet"}
+            data-km-master-stroke-bank={bank}
+            data-km-master-stroke-bank-station={isHuang?depth.toFixed(6):undefined}
+            data-km-master-stroke-placement={isFan?"rock-volume":"attached-stratum"}
+            data-km-master-stroke-curl={isGuo?(curlHandedness>0?"with":"counter"):"none"}
+            data-km-master-stroke-phrase={isHuang?phrase:undefined}
+            data-km-master-stroke-axis={isHuang?axis:undefined}
+            data-km-master-stroke-source-zone={sourceZone}>
+            <path data-km-master-stroke-loaded="" d={pressure}
+              fill={isFan?"#2a2623":isWang?"#322d29":isGuo?"#392f28":
+                phrase==="long"?"#675541":"#44382f"}
+              opacity={f((dry?.35:isFan?.83:isWang?.68:isGuo?.72:
+                phrase==="long"?.43:phrase==="short"?.79:.58)*
+                (1-.25*mist))}/>
+            {dry&&<path data-km-master-dry-tail="" d={dryPath}
+              fill="none" stroke="#86735a" strokeWidth={isFan?.34:.55}
+              opacity={f(.37*(1-.18*mist))}/>}
+          </g>)}
+        </g>
+      </g>;
+    })}
+  </g>;
+}
+/** One deliberately composed folded rock formation, not a collection
+ * of repeated floating pebbles. Its parent bone emerges at a *real*
+ * mid-distance ridge apex; four unequal paper-separated hemp ribs
+ * emerge from sampled stations along that same bowed bone.
+ * Huang Gongwang's Fuchun handscroll (NPM, 1350) supplies the grammar
+ * of nested rounded hill-backs, connected long fibres and sparse recesses.
+ * These original curves are authored, not traced from museum pixels.
+ */
+function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
+  root:P;stations:readonly P[];seed:number;mist:number;detail:number;
+  scene:ShanshuiScene;
+}){
+  const [x,y]=root;
+  const boneControl:P=[x-19,y+31];
+  const boneTip:P=[x-56,y+116];
+  const ribPlan=[
+    {at:.08,side:-1,len:62,reach:28,load:5.3},
+    {at:.25,side:1,len:84,reach:35,load:8.6},
+    {at:.43,side:-1,len:71,reach:44,load:6.9},
+    {at:.62,side:1,len:67,reach:39,load:7.8},
+  ] as const;
+  // ArtCraft v7: a handscroll rock *face* is a family of interlocking
+  // backs, not four thin freestanding drips. Three differently rolled
+  // longitudinal contours attach to successive stations on the hero bone
+  // and are underpainted behind its vertical fracture ribs.
+  const foldPlan=[
+    {at:.13,side:-1,reach:91,rise:26,drop:61,width:8.4},
+    {at:.36,side:1,reach:77,rise:13,drop:78,width:6.7},
+    {at:.59,side:-1,reach:65,rise:21,drop:54,width:5.6},
+  ] as const;
+  // Huang Gongwang's rounded shan-gu hill backs must read as
+  // INTERLOCKING landform contour, not just descending triangular spines.
+  // Every arc starts on the same actual painted bone, and each small
+  // hemp mark starts on an exact station of its parent's cubic contour.
+  const terracePlan=[
+    {at:.09,side:-1,reach:103,rise:29,fall:51,width:4.8,marks:13},
+    {at:.29,side:1,reach:83,rise:22,fall:57,width:3.6,marks:16},
+    {at:.51,side:-1,reach:69,rise:17,fall:50,width:3.9,marks:11},
+  ] as const;
+  const cubicPoint=(a:P,c1:P,c2:P,b:P,t:number):P=>{
+    const u=1-t;
+    return [u*u*u*a[0]+3*u*u*t*c1[0]+3*u*t*t*c2[0]+t*t*t*b[0],
+      u*u*u*a[1]+3*u*u*t*c1[1]+3*u*t*t*c2[1]+t*t*t*b[1]];
+  };
+  // A rock FACE needs positive, soft-but-fractured underpainting,
+  // not just the dark disconnected outline wires. These overlapping
+  // sectors belong to one parent geological bone; no free ornaments.
+  const rockFacePlan=[
+    {at:.12,side:-1,reach:49,depth:57,crest:13},
+    {at:.31,side:1,reach:42,depth:71,crest:10},
+    {at:.55,side:-1,reach:34,depth:48,crest:8},
+  ] as const;
+  // Construct the positive rocky cheek skeleton ONCE. The revised
+  // Fuchun ribs read these exact cap/belly edges; they cannot quietly
+  // drift from the underlying painted stone as controls or seeds change.
+  const parentFaces=rockFacePlan.map((face,i)=>{
+    const a=quadraticPoint(root,boneControl,boneTip,face.at);
+    const sign=face.side;
+    const spread=face.reach*(.91+.17*s(seed+2801,i*13));
+    const depth=face.depth*(.93+.12*s(seed+2807,i*17));
+    const crest=face.crest*(.89+.17*s(seed+2819,i*29));
+    const cap:P=[a[0]+sign*spread*.47,a[1]-crest];
+    const belly:P=[a[0]+sign*spread*.81,a[1]+depth*.43];
+    const base:P=[a[0]+sign*spread*.73,a[1]+depth];
+    const inner:P=[a[0]+sign*spread*.17,a[1]+depth*.62];
+    return {a,sign,spread,depth,crest,cap,belly,base,inner};
+  });
+  // Instance-local IDs keep simultaneous film/Storybook specimens isolated.
+  const faceId=useId().replace(/[^a-z0-9_-]/gi,"");
+  const pool=quadraticPoint(root,boneControl,boneTip,.49);
+  // Source-led Huang Gongwang: layers of rounded positive stone, from
+  // dilute parent wash through broken dry hemp, not a single triangular
+  // slope under identical free-standing black streaks. The principal
+  // three independent brows use the SAME actual ridge stations as the
+  // underlying painted hill; keep the wider film schools untouched.
+  const underBackPlan=scene==="mountain-trail"&&detail>.7?([
+    {offset:-106,side:-1,reach:131,rise:26,drop:96,marks:5,load:.7},
+    {offset:-28,side:1,reach:104,rise:19,drop:123,marks:4,load:.59},
+    {offset:54,side:-1,reach:89,rise:23,drop:76,marks:3,load:.47},
+  ] as const):[];
+  const paperId="kmrock"+faceId+"-absorption";
+  return <g data-km-rock-hero-cliff=""
+    data-km-rock-hero-root={f(x)+","+f(y)}>
+    {/* Broad geology is the FIRST underpaint, BEFORE the exact original
+        cheek silhouettes, alum-head caps and 78 authored Fuchun marks.
+        One instance-local paper-absorption filter lightly breaks only
+        the dilute wash edge; named dry brush children remain sharp. */}
+    <defs>
+      <filter id={paperId} x="-8%" y="-8%" width="116%" height="116%"
+        colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency=".06"
+          numOctaves="2" seed={seed%997+1} result="paper"/>
+        <feDisplacementMap in="SourceGraphic" in2="paper"
+          scale="1.8" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+    <g data-km-rock-hero-underbacks="">
+      {underBackPlan.map((plan,i)=>{
+        const x=root[0]+plan.offset;
+        const r:P=[x,ridgeHeight(stations,x)+4.2];
+        const side=plan.side;
+        const reach=plan.reach*(.95+.09*s(seed+7821,i*19));
+        const rise=plan.rise*(.9+.14*s(seed+7831,i*29));
+        const drop=plan.drop*(.91+.16*s(seed+7841,i*13));
+        const c1:P=[r[0]+side*reach*.17,r[1]-rise*.83];
+        const c2:P=[r[0]+side*reach*.59,r[1]-rise*.17];
+        const outside:P=[r[0]+side*reach*.86,r[1]+drop*.26];
+        const toe:P=[r[0]+side*reach*.68,r[1]+drop];
+        const arc="M"+f(r[0])+" "+f(r[1])+
+          " C"+f(c1[0])+" "+f(c1[1])+
+          " "+f(c2[0])+" "+f(c2[1])+
+          " "+f(outside[0])+" "+f(outside[1]);
+        const contour=arc+
+          " C"+f(outside[0]+side*reach*.065)+" "+
+            f(outside[1]+drop*.26)+
+          " "+f(toe[0]+side*reach*.07)+" "+
+            f(toe[1]-drop*.09)+" "+
+            f(toe[0])+" "+f(toe[1])+
+          " C"+f(r[0]+side*reach*.45)+" "+
+            f(r[1]+drop*.72)+
+          " "+f(r[0]+side*reach*.09)+" "+
+            f(r[1]+drop*.44)+" "+
+            f(r[0])+" "+f(r[1])+" Z";
+        const gradient="kmrock"+faceId+"-underback-"+i;
+        // Dry hemp actual stations on this curved parent, and only
+        // placed within its own source-mapped pigment wash.
+        const fibres=Array.from({length:plan.marks},(_,j)=>{
+          const t=Number((.18+j*(.57/(plan.marks-1))+
+            (s(seed+7859,i*31+j*19)-.5)*.012).toFixed(4));
+          const p=cubicPoint(r,c1,c2,outside,t);
+          const end:P=[
+            p[0]+side*(7+11*s(seed+7867,i*29+j*37)),
+            p[1]+(14+19*s(seed+7877,i*17+j*23)),
+          ];
+          const handle1:P=[
+            p[0]+side*(2+3*s(seed+7883,i*13+j*41)),
+            p[1]+(6+4*s(seed+7891,i*37+j*11)),
+          ];
+          const handle2:P=[
+            p[0]+(end[0]-p[0])*.77,
+            p[1]+(end[1]-p[1])*.63,
+          ];
+          return {p,t,
+            d:rockLoadedCubicRibbon(p,handle1,handle2,end,
+              .7+(j%3===0?.8:.28)*s(seed+7901,i*19+j*47),
+              seed+7919+i*79+j*29),lift:j%4===1};
+        });
+        return <g key={i} data-km-rock-hero-hill-back="">
+          <defs>
+            <linearGradient id={gradient} x1="13%" y1="0%"
+              x2="61%" y2="100%">
+              <stop offset="0" stopColor="#2c2825" stopOpacity=".68"/>
+              <stop offset=".24" stopColor="#514337" stopOpacity=".41"/>
+              <stop offset=".58" stopColor="#766553" stopOpacity=".25"/>
+              <stop offset=".85" stopColor="#96826b" stopOpacity=".08"/>
+              <stop offset="1" stopColor="#bda98a" stopOpacity="0"/>
+            </linearGradient>
+          </defs>
+          <path data-km-rock-hero-hill-wash=""
+            data-km-rock-hero-hill-wash-root={f(r[0])+","+f(r[1])}
+            data-km-rock-hero-hill-wash-side={side}
+            data-km-rock-hero-hill-wash-arc={arc}
+            d={contour} fill={"url(#"+gradient+")"}
+            filter={"url(#"+paperId+")"}
+            opacity={f(plan.load*(1-.22*mist))}/>
+          {fibres.map(({p,t,d,lift},j)=><path key={j}
+            data-km-rock-hero-hill-fibre=""
+            data-km-rock-hero-hill-fibre-root={f(p[0])+","+f(p[1])}
+            data-km-rock-hero-hill-fibre-parent={i}
+            data-km-rock-hero-hill-fibre-station={t.toFixed(4)}
+            d={d} fill={lift?"#8b7256":"#3a342b"}
+            opacity={f((lift?.34:.64)*(1-.19*mist))}/>)}
+        </g>;
+      })}
+    </g>
+    {/* Source-guided, overlapping positive mountain cheek planes.
+        Each broad face starts from a parent bone station, rises into
+        a small rounded alum-head rim, folds twice, then ends in a dry
+        tail. Their dark-to-dilute gradient is local to that face. */}
+    <g data-km-rock-interlocked-mass-family="">
+      {rockFacePlan.map((_,i)=>{
+        const {a,sign,spread,depth,crest,cap,belly,base,inner}=parentFaces[i];
+        // A nibble along the outer edge is a supported erosion recess,
+        // not a triangle cut from the silhouette.
+        const faceD="M"+f(a[0])+" "+f(a[1])+
+          " C"+f(a[0]+sign*spread*.17)+" "+f(a[1]-crest*.93)+
+          " "+f(a[0]+sign*spread*.38)+" "+f(a[1]-crest*1.16)+
+          " "+f(cap[0])+" "+f(cap[1])+
+          " C"+f(a[0]+sign*spread*.62)+" "+f(a[1]-crest*.52)+
+          " "+f(a[0]+sign*spread*.76)+" "+f(a[1]+depth*.13)+
+          " "+f(belly[0])+" "+f(belly[1])+
+          " C"+f(a[0]+sign*spread*.95)+" "+f(a[1]+depth*.53)+
+          " "+f(a[0]+sign*spread*.81)+" "+f(a[1]+depth*.83)+
+          " "+f(base[0])+" "+f(base[1])+
+          " C"+f(a[0]+sign*spread*.49)+" "+f(a[1]+depth*.81)+
+          " "+f(a[0]+sign*spread*.4)+" "+f(a[1]+depth*.55)+
+          " "+f(inner[0])+" "+f(inner[1])+
+          " C"+f(a[0]-sign*spread*.08)+" "+f(a[1]+depth*.37)+
+          " "+f(a[0]+sign*spread*.16)+" "+f(a[1]+depth*.17)+
+          " "+f(a[0])+" "+f(a[1])+" Z";
+        const grad="kmrock"+faceId+"face"+i;
+        // The dark cap forms the stone structure; the broad dilute
+        // parent wash under it preserves centuries-old paper reserves.
+        const caps=([.18,.53] as const).map((t,j)=>{
+          const start=quadraticPoint(a,cap,belly,t);
+          const c:P=[start[0]+sign*(7+j*4),
+            start[1]+(j===0?-6:3)];
+          const end:P=[start[0]+sign*(18+j*2),
+            start[1]+11+j*7];
+          return {start,d:rockLoadedRibbon(start,c,end,
+            j===0?3.7:2.6,seed+2851+i*71+j*13)};
+        });
+        const abrasions=([.27,.46,.69] as const).map((t,j)=>{
+          const start=quadraticPoint(a,cap,base,t);
+          const c:P=[start[0]+sign*(6+j*2),
+            start[1]+(12+j*3)];
+          const end:P=[start[0]+sign*(12+j*3),
+            start[1]+(24+j*6)];
+          return {start,d:rockLoadedRibbon(start,c,end,
+            .74+j*.31,seed+2911+i*59+j*23)};
+        });
+        // Fuchun long-hemp dry brush: marks do not float over the hill.
+        // Two unequal density clusters follow the SAME curved face crown,
+        // leaving a deliberate open paper passage across the middle.
+        // Material pressure varies without narrowing the parent anatomy.
+        const budget=i===0?14:i===1?11:8;
+        const fibreCount=Math.round(budget*detail);
+        const flow=Array.from({length:fibreCount},(_,j)=>{
+          const dense=Math.ceil(budget*.59);
+          const station=j<dense
+            ? .17+j*.022+(s(seed+3011,i*41+j*17)-.5)*.01
+            : .54+(j-dense)*.043+(s(seed+3023,i*47+j*19)-.5)*.016;
+          const source=quadraticPoint(a,cap,belly,Math.min(.92,station));
+          // Transverse drift responds to the facing direction of the
+          // curved shoulder instead of drawing vertical screen rain.
+          const deviation=(j%4===0?-1:1)*
+            (2.5+3.4*s(seed+3041,i*13+j*29));
+          const fall=9+14*s(seed+3049,i*31+j*11)+(j%5===0?7:0);
+          const ctrl:P=[source[0]+sign*fall*.16+deviation*.24,
+            source[1]+fall*(.31+.12*s(seed+3061,i*17+j*7))];
+          const tip:P=[source[0]+sign*fall*.32+deviation,
+            source[1]+fall];
+          const load=(j%6===0?1.45:j%4===1?1.04:.66)*
+            (.7+.4*s(seed+3079,i*17+j*41));
+          return {source,path:rockLoadedRibbon(source,ctrl,tip,load,
+            seed+3083+i*137+j*37),depleted:j%4===2};
+        });
+        const faceClip=grad+"-contour";
+        return <g key={i} data-km-rock-interlocked-mass=""
+          data-km-rock-mass-root={f(a[0])+","+f(a[1])}
+          data-km-rock-mass-side={sign}>
+          <defs>
+            <linearGradient id={grad} x1="0%" y1="0%" x2="45%" y2="95%">
+              <stop offset="0" stopColor="#39352f" stopOpacity=".88"/>
+              <stop offset=".34" stopColor="#514438" stopOpacity=".57"/>
+              <stop offset=".69" stopColor="#80694f" stopOpacity=".38"/>
+              <stop offset="1" stopColor="#b8a082" stopOpacity=".07"/>
+            </linearGradient>
+            <clipPath id={faceClip} clipPathUnits="userSpaceOnUse">
+              <path d={faceD}/>
+            </clipPath>
+          </defs>
+          <path data-km-rock-mass-underwash="" d={faceD}
+            fill={"url(#"+grad+")"} opacity={f(.81*(1-.2*mist))}/>
+          <g data-km-rock-mass-flow-group=""
+            clipPath={"url(#"+faceClip+")"}
+            data-km-rock-mass-flow-count={fibreCount}>
+            {flow.map(({source,path,depleted},j)=><path key={j}
+              data-km-rock-mass-flow=""
+              data-km-rock-mass-flow-root={f(source[0])+","+f(source[1])}
+              data-km-rock-mass-flow-load={depleted?"lifted":"loaded"}
+              d={path} fill={j%6===0?"#342e2a":"#594939"}
+              opacity={f((depleted?.35:j%6===0?.77:.55)*(1-.21*mist))}/>)}
+          </g>
+          {caps.map(({start,d},j)=><path key={j}
+            data-km-rock-mass-alum-cap=""
+            data-km-rock-mass-cap-root={f(start[0])+","+f(start[1])}
+            d={d} fill={j?"#68523f":"#3d332d"}
+            opacity={f((j?.44:.69)*(1-.17*mist))}/>)}
+          {abrasions.map(({start,d},j)=><path key={j}
+            data-km-rock-mass-erosion=""
+            data-km-rock-mass-erosion-root={f(start[0])+","+f(start[1])}
+            d={d} fill={j===1?"#6c5b48":"#3d342c"}
+            opacity={f((j===1?.39:.61)*(1-.25*mist))}/>)}
+        </g>;
+      })}
+    </g>
+    {/* Source hierarchy: rounded rolling hill backs intersect one rooted
+        dark geological spine. Open paper channels are NOT filled with
+        an overall shadow. This preserves the sparse/dense handscroll. */}
+    {foldPlan.map((fold,i)=>{
+      // A single common apex produced mechanical radial combs.
+      // The Fuchun handscroll's three related banks belong to
+      // *different* true ridge crest stations, linked by the same
+      // continuous mountain silhouette and shared rock-body wash.
+      const crestOffset=[-58,43,-12][i];
+      const ridgeX=root[0]+crestOffset;
+      const r:P=[ridgeX,ridgeHeight(stations,ridgeX)+
+        (i===1?4.6:3.1)];
+      const breadth=fold.reach*(.96+.12*s(seed+501,i*23));
+      const side=fold.side;
+      const rise=fold.rise*(.91+.17*s(seed+509,i*31));
+      const descend=fold.drop*(.92+.15*s(seed+521,i*17));
+      // The high shoulder bends BACK over the attached root, then
+      // descends as a gently rolling hillside rather than a triangle.
+      // The previous fold's quadratic outline collapsed into a
+      // nearly straight 100px diagonal wedge at native film scale.
+      // A real Fuchun rock back rises, curls into a rounded crown,
+      // travels over the shoulder and drops under its own weight.
+      // All 24 pima strokes and 9 tributaries must sample this *same*
+      // newly curved cubic parent—no leftover floating children.
+
+      const c1:P=[r[0]+side*breadth*.19,r[1]-rise*1.18];
+      const c2:P=[r[0]+side*breadth*.73,
+        r[1]-rise*(i===1?.66:.86)+descend*.17];
+      const tip:P=[r[0]+side*breadth,r[1]+descend];
+      const longEdge=rockLoadedCubicRibbon(r,c1,c2,tip,
+        fold.width*.78,seed+1511+i*101);
+      const taperStart=cubicPoint(r,c1,c2,tip,.22);
+      const taperEnd=cubicPoint(r,c1,c2,tip,.87);
+      const inner="M"+f(taperStart[0])+" "+f(taperStart[1]+2)+
+        " C"+f(c1[0]+side*fold.width*.12)+" "+
+          f(c1[1]+fold.width*1.1)+" "+
+          f(c2[0]-side*fold.width*.37)+" "+
+          f(c2[1]+fold.width*1.78)+" "+
+          f(taperEnd[0])+" "+f(taperEnd[1]);
+      // Source-specific dry/wet rhythm: clustered pima-cun along each
+      // rolling hill-back, never independent rain streaks. All origins
+      // are measured on THIS fold's quadratic bone, with a common
+      // descending flow field, asymmetric brush loading and gaps.
+      const bundleCount=i===0?8:i===1?10:6;
+      const pimaBundles=Array.from({length:bundleCount},(_,j)=>{
+        const station=.19+j*(.61/(bundleCount-1))+
+          (s(seed+613,i*29+j*17)-.5)*.018;
+        const origin=cubicPoint(r,c1,c2,tip,station);
+        const t2=Math.min(.99,station+.17+
+          .06*s(seed+619,i*31+j*13));
+        const ahead=cubicPoint(r,c1,c2,tip,t2);
+        const spread=((i+j)%3===0?-1:1)*(5+
+          7*s(seed+631,i*19+j*11));
+        const target:P=[
+          ahead[0]+spread*.35,
+          ahead[1]+9+9*s(seed+641,i*13+j*23),
+        ];
+        const mid:P=[
+          origin[0]+(target[0]-origin[0])*.39+spread*.16,
+          origin[1]+(target[1]-origin[1])*.34,
+        ];
+        const load=(j%5===0?1.95:j%3===0?1.28:.78)*
+          (.79+.35*s(seed+647,i*17+j));
+        const path=rockLoadedRibbon(origin,mid,target,load,
+          seed+1637+i*101+j*17);
+        const depleted=j%4===2;
+        const dryStart=quadraticPoint(origin,mid,target,.82);
+        const dryEnd=quadraticPoint(origin,mid,target,.95);
+        const dry="M"+f(dryStart[0])+" "+f(dryStart[1])+
+          " Q"+f(dryEnd[0]+spread*.16)+" "+f(dryEnd[1]-1.2)+
+          " "+f(target[0]+spread*.13)+" "+f(target[1]+2.2);
+        return {origin,path,dry,depleted};
+      });
+      const tributaries=([.31,.54,.73] as const).map((at,k)=>{
+        const entry=cubicPoint(r,c1,c2,tip,at);
+        const off=((i+k)%2===0?-1:1)*(11+
+          11*s(seed+571,i*19+k*13));
+        const fall=17+19*s(seed+587,i*17+k);
+        const control:P=[entry[0]+off*.21,entry[1]+fall*.33];
+        const end:P=[entry[0]+off,entry[1]+fall];
+        return {entry,end,path:rockLoadedRibbon(entry,control,end,
+          (k===1?1.5:2.25)*(1+.18*s(seed+593,i*7+k)),
+          seed+1601+i*23+k*47)};
+      });
+      return <g key={i} data-km-rock-hero-fold=""
+        data-km-rock-hero-fold-root={f(r[0])+","+f(r[1])}
+        data-km-rock-hero-fold-station={f(fold.at)}>
+        <path data-km-rock-hero-fold-pressure="" d={longEdge}
+          fill={i===1?"#625344":"#4a4035"}
+          opacity={f((i===1?.43:.66)*(1-.19*mist))}/>
+        <path data-km-rock-hero-fold-understroke="" d={inner}
+          fill="none" stroke={i===1?"#907a5d":"#544639"}
+          strokeWidth={f(i===1?1.15:1.5)}
+          strokeLinecap="round"
+          opacity={f((i===1?.38:.59)*(1-.16*mist))}/>
+        <g data-km-rock-pima-family="" data-km-rock-pima-family-count={bundleCount}>
+          {pimaBundles.map(({origin,path,dry,depleted},j)=><g key={j}
+            data-km-rock-pima-stroke=""
+            data-km-rock-pima-root={f(origin[0])+","+f(origin[1])}
+            data-km-rock-pima-dry={depleted?"lifted":"loaded"}>
+            <path data-km-rock-pima-body="" d={path}
+              fill={j%4===0?"#39372f":j%4===1?"#625341":"#584939"}
+              opacity={f((i===1?.69:.78)*
+                (j%4===0?.81:j%4===2?.49:.68)*(1-.2*mist))}/>
+            {depleted&&<path data-km-rock-pima-lift="" d={dry}
+              stroke="#8c7960" strokeWidth=".48"
+              strokeLinecap="round" fill="none"
+              opacity={f(.39*(1-.2*mist))}/>}
+          </g>)}
+        </g>
+        {tributaries.map(({entry,path},k)=><path key={k}
+          data-km-rock-hero-fold-fibre=""
+          data-km-rock-hero-fold-fibre-root={f(entry[0])+","+f(entry[1])}
+          d={path} fill={k===1?"#756450":"#4e4236"}
+          opacity={f((k===1?.37:.54)*(1-.15*mist))}/>)}
+      </g>;
+    })}
+    {/* Three interlocking curved backs (not parallel stamps), with
+        source-led hemp-fibre concentrations and unpainted air gaps.
+        All children attach to cubic stations on this same parent. */}
+    <g data-km-rock-terrace-family="">
+      {terracePlan.map((terrace,i)=>{
+        // Separate geological shoulder attachments: do not stamp
+        // all rounded landform backs out of the same tiny apex bone.
+        // This is a ridgeline-constrained arrangement, not random
+        // screen-space placement.
+        const crestOffset=[-79,23,-33][i];
+        const ridgeX=root[0]+crestOffset;
+        const origin:P=[ridgeX,ridgeHeight(stations,ridgeX)+
+          (i===0?5.2:3.4)];
+        const side=terrace.side;
+        const spread=terrace.reach*(.95+.13*s(seed+2091,i*31));
+        const high=terrace.rise*(.91+.18*s(seed+2093,i*41));
+        const fall=terrace.fall*(.92+.15*s(seed+2101,i*27));
+        const c1:P=[origin[0]+side*spread*.23,origin[1]-high*.86];
+        const c2:P=[origin[0]+side*spread*.81,
+          origin[1]-high*(i===1?.55:.76)];
+        const end:P=[origin[0]+side*spread,origin[1]+fall];
+        const main=rockLoadedCubicRibbon(origin,c1,c2,end,
+          terrace.width*.86,seed+2111+i*101);
+        const subArcStart=cubicPoint(origin,c1,c2,end,.28);
+        const subArcEnd=cubicPoint(origin,c1,c2,end,.76);
+        const subControl:P=[subArcStart[0]+side*spread*.29,
+          subArcStart[1]+12+i*3];
+        const under=rockLoadedRibbon(subArcStart,subControl,
+          [subArcEnd[0]+side*3,subArcEnd[1]+8],2.5-i*.38,
+          seed+2161+i*43);
+        // Each fibre is a child of a specific cubic path station; do not
+        // scatter generic scratches across the triangular background wash.
+        const fibres=Array.from({length:terrace.marks},(_,j)=>{
+          // A deliberately quiet gap between two dense ink concentrations.
+          const cluster=j<Math.ceil(terrace.marks*.56)?0:1;
+          const local=cluster===0
+            ? .14+j*.023+(s(seed+2213,i*53+j*17)-.5)*.011
+            : .56+(j-Math.ceil(terrace.marks*.56))*.034+
+              (s(seed+2221,i*31+j*29)-.5)*.014;
+          const station=Math.min(.87,local);
+          const a=cubicPoint(origin,c1,c2,end,station);
+          const ahead=cubicPoint(origin,c1,c2,end,
+            Math.min(.98,station+.13));
+          const drift=(ahead[0]-a[0])*.27+
+            side*(2+4*s(seed+2243,i*13+j*7));
+          const length=10+11*s(seed+2251,i*19+j*11)+
+            (j%4===0?6:0);
+          const ctrl:P=[a[0]+drift*.27,
+            a[1]+length*(.26+.12*s(seed+2261,i*31+j))];
+          const tip:P=[a[0]+drift,a[1]+length];
+          const width=(j%7===1?1.65:j%5===0?1.3:.66)*
+            (.73+.37*s(seed+2281,i*37+j));
+          return {a,
+            body:rockLoadedRibbon(a,ctrl,tip,width,
+              seed+2293+i*71+j*13),
+            dry:j%4===2};
+        });
+        const caps=([.24,.67] as const).map((station,j)=>{
+          const a=cubicPoint(origin,c1,c2,end,station);
+          const control:P=[a[0]+side*(j?3:8),a[1]+(j?1:-4)];
+          const tip:P=[a[0]+side*(j?14:20),
+            a[1]+(j?11:9)];
+          return {a,path:rockLoadedRibbon(a,control,tip,
+            2.9+j*.75,seed+2333+i*67+j*17)};
+        });
+        return <g key={i} data-km-rock-terrace=""
+          data-km-rock-terrace-root={f(origin[0])+","+f(origin[1])}
+          data-km-rock-terrace-side={side}>
+          <path data-km-rock-terrace-back="" d={main}
+            fill={i===1?"#625444":"#46392d"}
+            opacity={f((i===1?.58:.72)*(1-.18*mist))}/>
+          <path data-km-rock-terrace-under="" d={under}
+            fill="#534233" opacity={f((i===1?.3:.43)*(1-.2*mist))}/>
+          {caps.map(({a,path},j)=><path key={j}
+            data-km-rock-terrace-cap=""
+            data-km-rock-terrace-cap-root={f(a[0])+","+f(a[1])}
+            d={path} fill={j?"#5e4b3a":"#312e28"}
+            opacity={f((j?.51:.76)*(1-.19*mist))}/>)}
+          {fibres.map(({a,body,dry},j)=><path key={j}
+            data-km-rock-terrace-hemp=""
+            data-km-rock-terrace-hemp-root={f(a[0])+","+f(a[1])}
+            data-km-rock-terrace-hemp-dry={dry?"yes":"no"}
+            d={body} fill={j%5===0?"#332f2a":"#5b4b3b"}
+            opacity={f((dry?.36:j%5===0?.74:.53)*(1-.23*mist))}/>)}
+        </g>;
+      })}
+    </g>
+    {/* One broad moving backbone, with a lifted segment at mid-stroke. */}
+    <path data-km-rock-hero-bone=""
+      d={"M"+f(x)+" "+f(y)+
+        " Q"+f(boneControl[0])+" "+f(boneControl[1])+" "+
+        f(quadraticPoint(root,boneControl,boneTip,.43)[0])+" "+
+        f(quadraticPoint(root,boneControl,boneTip,.43)[1])+
+        " M"+f(quadraticPoint(root,boneControl,boneTip,.49)[0])+" "+
+        f(quadraticPoint(root,boneControl,boneTip,.49)[1])+
+        " Q"+f(boneControl[0]-9)+" "+f(boneControl[1]+23)+" "+
+        f(boneTip[0])+" "+f(boneTip[1])}
+      fill="none" stroke="#47382d" strokeWidth="2.35"
+      strokeLinecap="round" opacity={f(.84*(1-.22*mist))}/>
+    {ribPlan.map((rib,i)=>{
+      const r=quadraticPoint(root,boneControl,boneTip,rib.at);
+      const swing=rib.side*(rib.reach+
+        (s(seed+401,i*19)-.5)*7);
+      const length=rib.len*(.95+.12*s(seed+403,i*23));
+      // The four existing fracture brushes must follow the geometry
+      // of a positive parent stone cheek, NOT remain independent long,
+      // straight vectors. Use the same bank geometry already painted
+      // above, and turn across its head, shoulder and re-entering fold.
+      const supportIndex=([0,1,2,1] as const)[i];
+      const support=parentFaces[supportIndex];
+      const brow=quadraticPoint(support.a,support.cap,support.belly,.32);
+      const shoulder=quadraticPoint(support.a,support.cap,support.belly,.76);
+      // The v42 native film crop exposed a sharp lightning-bolt return:
+      // three mathematically connected pieces were visually WORSE than
+      // long hemp. Huang's loaded fibres drift slowly across rounded
+      // cheek banks, with directional change in slope, NOT x hairpins.
+      // The *same* painted parent bank bends the flow only a few units.
+      const browBias=clamp((brow[0]-r[0])*.105,-2.6,2.6);
+      const shoulderBias=clamp((shoulder[0]-r[0])*.065,-2.2,2.2);
+      const knee:P=[
+        r[0]+swing*(.31+.025*s(seed+5551,i*17))+browBias,
+        r[1]+length*(.27+.03*s(seed+5557,i*19)),
+      ];
+      const returning:P=[
+        r[0]+swing*(.58+.03*s(seed+5563,i*29))+shoulderBias,
+        r[1]+length*(.59+.025*s(seed+5573,i*13)),
+      ];
+      const tip:P=[
+        r[0]+swing*.84+clamp((support.belly[0]-r[0])*.045,-2,2),
+        r[1]+length*(i%3===0?.89:.96),
+      ];
+      // Signed coherent tangents keep C1-continuous calligraphic flow
+      // while intentionally changing the banks' longitudinal pitch.
+      // Neither a stiff straight edge nor a pasted sawtooth is valid.
+      const tangentA:P=[swing*(.13+.04*s(seed+5581,i*23)),
+        length*.15];
+      const tangentB:P=[swing*(.14+.04*s(seed+5591,i*31)),
+        length*.15];
+      const sections=[
+        {a:r,c1:[r[0]+rib.side*2.6,r[1]-length*.08] as P,
+          c2:[knee[0]-tangentA[0],knee[1]-tangentA[1]] as P,
+          b:knee,load:rib.load*.47},
+        {a:knee,
+          c1:[knee[0]+tangentA[0],knee[1]+tangentA[1]] as P,
+          c2:[returning[0]-tangentB[0],
+            returning[1]-tangentB[1]] as P,
+          b:returning,load:rib.load*.35},
+        {a:returning,
+          c1:[returning[0]+tangentB[0],
+            returning[1]+tangentB[1]] as P,
+          c2:[tip[0]-rib.side*length*.12,
+            tip[1]-length*.14] as P,
+          b:tip,load:rib.load*.25},
+      ];
+      const onRib=(at:number):P=>{
+        const segment=Math.min(2,Math.floor(clamp(at,0,1)*3));
+        const stage=sections[segment];
+        return cubicPoint(stage.a,stage.c1,stage.c2,stage.b,
+          clamp(at*3-segment,0,1));
+      };
+      const face=sections.map((stage,k)=>rockLoadedCubicRibbon(
+        stage.a,stage.c1,stage.c2,stage.b,
+        stage.load,seed+1019*i+37*k)).join(" ");
+      // The thin, lifted calligraphic witness line obeys the same three
+      // physical sections and leaves real reserve windows between loads.
+      const crease=sections.map((stage,k)=>{
+        const from=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,k? .09:.02);
+        const to=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,k===2?.89:.81);
+        const ca=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,.29);
+        const cb=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,.68);
+        return "M"+f(from[0])+" "+f(from[1])+
+          " C"+f(ca[0])+" "+f(ca[1])+
+          " "+f(cb[0])+" "+f(cb[1])+
+          " "+f(to[0])+" "+f(to[1]);
+      }).join(" ");
+      // Exactly three original re-inking events now land on their own
+      // *actual* section centerlines, with tapered local wet deposits.
+      const deposits=sections.map((stage,k)=>{
+        const from=.13+.045*s(seed+5423,i*71+k*31);
+        const to=.76+.08*s(seed+5429,i*31+k*47);
+        const a=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,from);
+        const b=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,to);
+        const control1=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,
+          from+(to-from)*.27);
+        const control2=cubicPoint(stage.a,stage.c1,stage.c2,stage.b,
+          from+(to-from)*.79);
+        const load=(k===0?1.56:k===1?2.07:1.02)*
+          (.79+.39*s(seed+5437,i*43+k*29));
+        return {a,body:rockLoadedCubicRibbon(a,control1,
+          control2,b,load,seed+5459+i*73+k*19)};
+      });
+      // Both preserved dependent splits attach exactly to a joint on
+      // the NEW bank-following curve; their downstream twig anatomy
+      // remains unchanged.
+      const branches=([.3,.63] as const).map((station,k)=>{
+        const point=onRib(station);
+        const side=(i+k)%2===0?-rib.side:rib.side;
+        const sideReach=(9+8*s(seed+419,i*17+k*7))*side;
+        const tipY=point[1]+(12+13*s(seed+421,i*13+k));
+        const q="M"+f(point[0])+" "+f(point[1])+
+          " Q"+f(point[0]+sideReach*.19)+" "+
+          f(point[1]+(tipY-point[1])*.31)+" "+
+          f(point[0]+sideReach)+" "+f(tipY);
+        return {point,q};
+      });
+      return <g key={i} data-km-rock-hero-rib=""
+        data-km-rock-hero-rib-root={f(r[0])+","+f(r[1])}
+        data-km-rock-hero-rib-support={supportIndex}
+        data-km-rock-hero-rib-course="folded-3">
+        <path data-km-rock-hero-face="" d={face}
+          fill={i%2===0?"#504338":"#75614d"}
+          opacity={f((i%2===0?.39:.32)*(1-.19*mist))}/>
+        <path data-km-rock-hero-crease="" d={crease}
+          fill="none" stroke={i%2===0?"#40362c":"#6b5744"}
+          strokeWidth={f(i%2===0?1.1:.85)}
+          strokeLinecap="round"
+          opacity={f(.42*(1-.2*mist))}/>
+        {deposits.map(({a,body},k)=><path key={"load"+k}
+          data-km-rock-hero-rib-deposit=""
+          data-km-rock-hero-rib-deposit-root={f(a[0])+","+f(a[1])}
+          data-km-rock-hero-rib-deposit-stage={k}
+          d={body} fill={k===1?"#41382f":"#56493a"}
+          opacity={f((k===1?.71:.56)*(1-.19*mist))}/>)}
+        {branches.map(({point,q},k)=><path key={k}
+          data-km-rock-hero-fibre=""
+          data-km-rock-hero-fibre-root={f(point[0])+","+f(point[1])}
+          d={q} stroke={k?"#7b654f":"#443b32"}
+          fill="none" strokeWidth={f(k?.7:.93)}
+          strokeLinecap="round" opacity={f(.57*(1-.18*mist))}/>)}
+      </g>;
+    })}
+    {/* The deepest local junction absorbs pigment while its edges still
+        release into bare paper. Never render it as a detached triangle. */}
+    <path data-km-rock-hero-recess=""
+      d={"M"+f(pool[0]-4.2)+" "+f(pool[1]-3.4)+
+        " Q"+f(pool[0]+7)+" "+f(pool[1]-8.2)+
+        " "+f(pool[0]+12)+" "+f(pool[1]+.8)+
+        " Q"+f(pool[0]+7.9)+" "+f(pool[1]+8)+
+        " "+f(pool[0]-1.6)+" "+f(pool[1]+6.4)+
+        " Q"+f(pool[0]-6.3)+" "+f(pool[1]+2)+
+        " "+f(pool[0]-4.2)+" "+f(pool[1]-3.4)+" Z"}
+      fill="#3c342d" opacity={f(.59*(1-.25*mist))}/>
+  </g>;
+}
+function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
+  ridge:readonly P[];stations:readonly P[];seed:number;band:number;
+  detail:number;mist:number;id:string;
+}){
+  // Geologically anchored positive peaks, not random page coordinates.
+  const peaks=ridge.slice(1,-1).flatMap(([x,y],i)=>
+    y<ridge[i][1]&&y<ridge[i+2][1] ? [[x,y] as P] : []);
+  const count=Math.round(peaks.length*detail);
+  // Only the dominant peak of the middle mountain layer receives the
+  // authored hero rock anatomy. Repeating it at every peak would erase
+  // the handscroll's deliberate sparse/dense geographic rhythm.
+  const ridgeClip=id+"-clip",washFilter=id+"-paper-absorption";
+  return <g data-km-rock-shoulder-family={band}>
+    <defs>
+      <clipPath id={ridgeClip} clipPathUnits="userSpaceOnUse">
+        <path d={ridgePath(stations)}/>
+      </clipPath>
+      {/* Distinct wet wash, not a smoothed contour or global scene blur:
+          pigment wicks into paper and loses the hard SVG triangle rim.
+          Bone/child hemp fibres stay crisp and independently editable. */}
+      <filter id={washFilter} x="-19%" y="-19%" width="138%"
+        height="138%" colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency=".052"
+          numOctaves="2" seed={seed%997+1} result="paper"/>
+        <feDisplacementMap in="SourceGraphic" in2="paper"
+          scale="2.1" xChannelSelector="R" yChannelSelector="G"
+          result="absorbed"/>
+        <feGaussianBlur in="absorbed" stdDeviation=".72"/>
+      </filter>
+    </defs>
+    <g clipPath={"url(#"+ridgeClip+")"}>
+      {peaks.slice(0,count).map(([x],i)=>{
+        const crest=ridgeHeight(stations,x);
+        const side=s(seed+band*37,i*17+13)>.48?1:-1;
+        const depth=(band===0?49:band===1?72:94)*
+          (.84+.27*s(seed+151,i*19));
+        const spread=(band===0?19:band===1?32:43)*
+          (.78+.32*s(seed+163,i*13));
+        const y=crest+2.5;
+        const parent:P=[x,y];
+        const bend:P=[
+          x+side*spread*.31,y+depth*.39,
+        ];
+        const end:P=[
+          x+side*spread*.71,y+depth*.91,
+        ];
+        const washId=id+"-wash-"+i;
+        // Unequal rounded fold edges and a depleted lower release.
+        const wash="M"+f(x-side*spread*.15)+" "+f(y)+
+          " C"+f(x-side*spread*.48)+" "+f(y+depth*.23)+
+          " "+f(x+side*spread*.04)+" "+f(y+depth*.36)+
+          " "+f(x-side*spread*.18)+" "+f(y+depth*.64)+
+          " Q"+f(x+side*spread*.04)+" "+f(y+depth*.87)+
+          " "+f(x+side*spread*.55)+" "+f(y+depth)+
+          " Q"+f(x+side*spread*.94)+" "+f(y+depth*.71)+
+          " "+f(x+side*spread*.85)+" "+f(y+depth*.41)+
+          " Q"+f(x+side*spread*.55)+" "+f(y+depth*.13)+
+          " "+f(x+side*spread*.22)+" "+f(y)+" Z";
+        const spineA=quadraticPoint(parent,bend,end,.43);
+        const spineB=quadraticPoint(parent,bend,end,.57);
+        const bone="M"+f(parent[0])+" "+f(parent[1])+
+          " Q"+f(bend[0])+" "+f(bend[1])+
+          " "+f(spineA[0])+" "+f(spineA[1])+
+          " M"+f(spineB[0])+" "+f(spineB[1])+
+          " Q"+f(bend[0]+side*spread*.13)+" "+f(y+depth*.75)+
+          " "+f(end[0])+" "+f(end[1]);
+        const veins=Array.from({length:band===0?3:band===1?5:7},(_,j)=>{
+          const t=.18+j*.09+(s(seed+181,i*37+j*11)-.5)*.025;
+          const root=quadraticPoint(parent,bend,end,t);
+          const length=(band===0?17:band===1?27:35)*
+            (.72+.39*s(seed+193,i*47+j*7));
+          const wing=(j%2===0?-side:side);
+          const reach=length*(.37+.18*s(seed+197,i*17+j));
+          const tip:P=[
+            root[0]+wing*reach,
+            root[1]+length*(.76+.16*s(seed+199,i*19+j)),
+          ];
+          const arc:P=[
+            root[0]+wing*reach*.31,
+            root[1]+length*.36,
+          ];
+          const out="M"+f(root[0])+" "+f(root[1])+
+            " Q"+f(arc[0])+" "+f(arc[1])+
+            " "+f(tip[0])+" "+f(tip[1]);
+          return {root,d:out};
+        });
+        // Alum-head outcrops describe the rock cap's thickness. Their
+        // dark interiors are physically attached to the crest-to-foothill
+        // spine, not detached triangles sprinkled across the mountain.
+        // Sparse, uneven lips expose paper at different heights.
+        const shelves=Array.from({length:band===0?1:band===1?2:3},
+          (_,j)=>{
+            const t=.24+j*.205+
+              (s(seed+251,i*37+j*13)-.5)*.025;
+            const root=quadraticPoint(parent,bend,end,t);
+            const wing=(j%2===0?side:-side);
+            const reach=(band===0?6:band===1?11:15)*
+              (.81+.34*s(seed+263,i*19+j*17));
+            const load=(band===0?2.3:band===1?4.2:5.9)*
+              (.76+.33*s(seed+269,i*23+j));
+            const x0=root[0],y0=root[1];
+            const face="M"+f(x0)+" "+f(y0)+
+              " Q"+f(x0+wing*reach*.24)+" "+f(y0-load*.4)+
+              " "+f(x0+wing*reach*.53)+" "+f(y0-load*.28)+
+              " Q"+f(x0+wing*reach*.73)+" "+f(y0-load*.55)+
+              " "+f(x0+wing*reach)+" "+f(y0+load*.18)+
+              " Q"+f(x0+wing*reach*.94)+" "+f(y0+load*.77)+
+              " "+f(x0+wing*reach*.58)+" "+f(y0+load)+
+              " Q"+f(x0+wing*reach*.28)+" "+f(y0+load*.64)+
+              " "+f(x0)+" "+f(y0)+" Z";
+            const rim="M"+f(x0)+" "+f(y0)+
+              " Q"+f(x0+wing*reach*.34)+" "+f(y0-load*.58)+
+              " "+f(x0+wing*reach*.53)+" "+f(y0-load*.28)+
+              " Q"+f(x0+wing*reach*.78)+" "+f(y0-load*.46)+
+              " "+f(x0+wing*reach)+" "+f(y0+load*.18);
+            return {root,face,rim};
+          });
+        return <g key={i} data-km-rock-shoulder=""
+          data-km-rock-shoulder-crest={f(crest)}
+          data-km-rock-shoulder-root={f(x)+","+f(y)}
+          data-km-rock-shoulder-band={band}
+          data-km-rock-shoulder-seed={seed}>
+          <defs>
+            <linearGradient id={washId}
+              gradientUnits="userSpaceOnUse"
+              x1={f(x)} y1={f(y)}
+              x2={f(x+side*spread*.43)} y2={f(y+depth)}>
+              <stop offset="0" stopColor="#39352e"
+                stopOpacity={f((band===0?.28:band===1?.58:.78)*(1-.2*mist))}/>
+              <stop offset=".26" stopColor="#554737"
+                stopOpacity={f((band===0?.23:band===1?.45:.62)*(1-.24*mist))}/>
+              <stop offset=".69" stopColor="#79614c"
+                stopOpacity={f((band===0?.13:band===1?.26:.4)*(1-.22*mist))}/>
+              <stop offset="1" stopColor="#927d62" stopOpacity="0"/>
+            </linearGradient>
+          </defs>
+          <path data-km-rock-shoulder-wash=""
+            d={wash} fill={"url(#"+washId+")"}
+            filter={"url(#"+washFilter+")"}/>
+          {shelves.map(({root,face,rim},j)=><g key={"ledge"+j}
+            data-km-rock-alum-ledge=""
+            data-km-rock-alum-ledge-root={f(root[0])+","+f(root[1])}>
+            <path data-km-rock-alum-face="" d={face}
+              fill={j%2===0?"#48382d":"#65503e"}
+              opacity={f((band===0?.27:band===1?.47:.66)*
+                (.78+.19*s(seed+281,i*19+j))*(1-.18*mist))}/>
+            <path data-km-rock-alum-rim="" d={rim} fill="none"
+              stroke="#4d3a2c"
+              strokeWidth={f(band===0?.53:band===1?.77:.98)}
+              opacity={f((band===0?.29:band===1?.48:.68)*(1-.22*mist))}
+              strokeLinecap="round"/>
+          </g>)}
+          <path data-km-rock-shoulder-bone=""
+            d={bone} fill="none" stroke="#4b3d31"
+            strokeWidth={f(band===0?.75:band===1?1.28:1.73)}
+            strokeLinecap="round"
+            opacity={f((band===0?.23:band===1?.48:.68)*(1-.18*mist))}/>
+          {veins.map(({root,d},j)=><path key={j}
+            data-km-rock-shoulder-vein=""
+            data-km-rock-shoulder-vein-root={f(root[0])+","+f(root[1])}
+            d={d} fill="none" stroke={j%3===0?"#574332":"#765b45"}
+            strokeWidth={f((band===0?.45:band===1?.7:1.05)*
+              (.65+.5*s(seed+223,i*13+j)))}
+            opacity={f((band===0?.28:band===1?.47:.64)*
+              (.74+.19*s(seed+227,i*29+j))*(1-.24*mist))}
+            strokeLinecap="round"/>)}
+        </g>;
+      })}
+    </g>
+  </g>;
+}
+/** Five related mid-distance ink pines perched on the *painted* ridge.
+ * ArtCraft v7 structural reference: Huang Gongwang's "Dwelling in the
+ * Fuchun Mountains" (NPM, tree-and-fisherman detail, illustrated by
+ * Smarthistory). The visual motif is slender independent trunk ink bones,
+ * forked branches, short irregular dark brush commas and visible paper
+ * gaps—not a row of triangular Christmas tree silhouettes.
+ *
+ * These are original compositional curves. All 5 bases are sampled from
+ * exactly the same fractured ridge stations that draw the mountain.
+ */
+function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
+  stations:readonly P[];scene:ShanshuiScene;seed:number;
+  detail:number;mist:number;school:InkRockSchool;
+}){
+  if(detail<.58)return null;
+  const center=scene==="mountain-trail"?620:
+    scene==="river-scholar"?596:536;
+  // Smarthistory / NPM Fuchun handscroll: pines are a mixed-age grove,
+  // with nonuniform root intervals and distinct leaning crooked trunks.
+  // The previous symmetric height pattern made five identical antennas.
+  // Other source schools keep their independently developed silhouettes.
+  // The prior 49..44px hilltop cluster painted five antenna trunks on
+  // a single summit; NPM's Fuchun trees instead gather in UNEQUAL
+  // hillside groups, separated by uninked rock. Spread these same five
+  // independent parent-rooted trees over two terraces and a middle
+  // transition. Their actual bases still sample the live ridge contour.
+  // Every 20 boughs, 40 crowns, 60 pads and 310 touches is retained.
+  const distribution=school==="fuchun"?([
+    {dx:-97,height:31,bow:-11},
+    {dx:-71,height:48,bow:13},
+    {dx:-12,height:70,bow:-18},
+    {dx:53,height:89,bow:16},
+    {dx:80,height:32,bow:-12},
+  ] as const):([
+    {dx:-33,height:43,bow:-6},
+    {dx:-17,height:62,bow:7},
+    {dx:-2,height:76,bow:-5},
+    {dx:18,height:57,bow:10},
+    {dx:33,height:42,bow:-6},
+  ] as const);
+  const shade=(1-.17*mist);
+  const crab=school==="early-spring";
+  return <g data-km-cliff-pine-grove=""
+    data-km-cliff-pine-scene={scene}>
+    {distribution.map(({dx,height,bow},i)=>{
+      const x=center+dx+(s(seed+1703,i*31)-.5)*3.2;
+      const crest=ridgeHeight(stations,x);
+      const root:P=[x,crest+2.8];
+      const trunkControl:P=[
+        x+bow*.48,root[1]-height*.57,
+      ];
+      const crown:P=[
+        x+bow,root[1]-height,
+      ];
+      // Independent old-pine silhouette: each tree has a different
+      // basal sweep and opposing crown-ward bend, but shares ONE true
+      // continuously painted cubic centerline with all of its children.
+      // Source: Huang Gongwang Fuchun NPM, wet/dry shoreline tree study.
+      const crooked=([
+        {low:6.5,high:-19.5},
+        {low:-6.1,high:18.3},
+        {low:8.2,high:-23.7},
+        {low:-7.4,high:21.9},
+        {low:5.7,high:-17.5},
+      ] as const)[i];
+      const c1:P=[x+crooked.low,root[1]-height*.28];
+      const c2:P=[x+crooked.high,root[1]-height*.77];
+      const trunkAt=(t:number):P=>school==="fuchun"
+        ?cubicPoint(root,c1,c2,crown,t)
+        :quadraticPoint(root,trunkControl,crown,t);
+      const trunkLoad=school==="fuchun"?
+        ([1.08,1.73,2.05,1.3,1.02] as const)[i]:
+        i===2?1.63:1.08;
+      const trunk=school==="fuchun"
+        ?rockLoadedCubicRibbon(root,c1,c2,crown,
+          trunkLoad,seed+1711+i*29)
+        :rockLoadedRibbon(root,trunkControl,crown,
+          trunkLoad,seed+1711+i*29);
+      const centerline="M"+f(root[0])+" "+f(root[1])+
+        " C"+f(c1[0])+" "+f(c1[1])+
+        " "+f(c2[0])+" "+f(c2[1])+
+        " "+f(crown[0])+" "+f(crown[1]);
+      const barkFrom=trunkAt(.13),barkTo=trunkAt(.89);
+      // Exact sub-curve from .13 to .89 of the same parent cubic.
+      // De Casteljau endpoint tangents prevent bark drifting off a
+      // different quadratic approximation of the painted trunk.
+      const tangent=(t:number):P=>{
+        const q=1-t;
+        return [
+          3*q*q*(c1[0]-root[0])+6*q*t*(c2[0]-c1[0])+
+            3*t*t*(crown[0]-c2[0]),
+          3*q*q*(c1[1]-root[1])+6*q*t*(c2[1]-c1[1])+
+            3*t*t*(crown[1]-c2[1]),
+        ];
+      };
+      const tangent0=tangent(.13),tangent1=tangent(.89);
+      const step=(.89-.13)/3;
+      const bark=school==="fuchun"
+        ?"M"+f(barkFrom[0])+" "+f(barkFrom[1])+
+          " C"+f(barkFrom[0]+tangent0[0]*step)+" "+
+            f(barkFrom[1]+tangent0[1]*step)+" "+
+            f(barkTo[0]-tangent1[0]*step)+" "+
+            f(barkTo[1]-tangent1[1]*step)+" "+
+            f(barkTo[0])+" "+f(barkTo[1])
+        :"M"+f(barkFrom[0])+" "+f(barkFrom[1])+
+          " Q"+f(trunkControl[0]-1.4)+" "+f(trunkControl[1])+
+          " "+f(barkTo[0])+" "+f(barkTo[1]);
+      // Four nonperiodic branch stations per tree; each still grows
+      // from the ACTUAL painted trunk curve, preserving all 20 boughs.
+      const boughStations=school==="fuchun"?([
+        [.25,.48,.69,.88],
+        [.19,.43,.64,.83],
+        [.3,.53,.76,.9],
+        [.23,.46,.68,.86],
+        [.29,.49,.63,.81],
+      ] as const)[i]:([.31,.5,.67,.84] as const);
+      const boughs=boughStations.map((t,j)=>{
+        // Every branch root is *on* its own winding trunk, while the
+        // ink-loaded terminal twigs carry their own fine foliage tips.
+        const origin=trunkAt(t);
+        // Source-view silhouette: Fuchun old pines do NOT grow
+        // mirror-alternating ladder shelves. Each age/lean profile has
+        // an authored branch handedness; some limbs curl down and some
+        // wind back across the stem, always rooted on the same cubic.
+        const direction=school==="fuchun"
+          ?([
+            [-1,-1,1,1],
+            [-1,1,1,-1],
+            [1,1,-1,-1],
+            [-1,1,-1,-1],
+            [1,-1,-1,1],
+          ] as const)[i][j]
+          :(j%2===0?-1:1)*(i%3===0?-1:1);
+        const distance=(i===2?24:17)+
+          13*s(seed+1763,i*19+j*17);
+        const fuchunPitch=([
+          [-8,4,-11,3],
+          [6,-5,4,-9],
+          [-4,8,-10,6],
+          [7,-5,4,-12],
+          [-8,5,-9,4],
+        ] as const)[i][j];
+        // Guo Xi's crab-claw old pines hook downward, not twenty
+        // equivalent up-pointing antenna shelves. The *same rooted*
+        // four boughs now travel over a lifted arch and drop irregular
+        // terminal ends, while retaining every bark/needle/pad detail.
+        const tip:P=[
+          origin[0]+direction*distance,
+          crab
+            ?origin[1]+(3.4+8.7*s(seed+1777,i*13+j*23))
+            :school==="fuchun"
+              ?origin[1]+fuchunPitch+
+                (s(seed+1777,i*13+j*23)-.5)*3.2
+              :origin[1]-(3.2+9.8*s(seed+1777,i*13+j*23)),
+        ];
+        const control:P=[
+          origin[0]+direction*distance*(crab?.48:
+            school==="fuchun"?.45:.34),
+          crab
+            ?origin[1]-(6+7*s(seed+1789,i*23+j))
+            :school==="fuchun"
+              ?origin[1]+(fuchunPitch>0?-4.8:fuchunPitch*.37)+
+                (s(seed+1789,i*23+j)-.5)*2.4
+              :origin[1]+(j%3===0?3:-4)-
+                3*s(seed+1789,i*23+j),
+        ];
+        const bone=rockLoadedRibbon(origin,control,tip,
+          1.12*(1-.12*j),seed+1801+i*17+j*37);
+        const boughCenterline="M"+f(origin[0])+" "+f(origin[1])+
+          " Q"+f(control[0])+" "+f(control[1])+
+          " "+f(tip[0])+" "+f(tip[1]);
+        const touchCount=[13,18,14,17][j];
+        const foliage=Array.from({length:touchCount},(_,k)=>{
+          const at=clamp(.48+(k+.35)/(touchCount+.9)*.5+
+            (s(seed+1811,i*301+j*47+k*19)-.5)*.025,.43,.985);
+          const attach=quadraticPoint(origin,control,tip,at);
+          const lean=(s(seed+1823,i*131+j*29+k*7)-.5);
+          const reach=3.1+7.8*s(seed+1831,i*43+j*11+k*31);
+          const side=(k%7===0?-1:1);
+          // In Huang's Fuchun shoreline grove, the pinaceous
+          // small ink gestures radiate sideways and hook BELOW the
+          // supporting bough; a monotone row of upward needles forms
+          // a digital rooftop comb. Seven actual, deliberately authored
+          // vector-flow roles (raised / oblique / lateral / drooping),
+          // mixed with seeded local variation, preserve all 310 fine
+          // attached touches and the original wet loaded pads/islands.
+          const role=(5*k+3*j+2*i+
+            Math.floor(3*s(seed+6831,i*193+j*43+k*29)))%7;
+          const roles=[-1.12,-.79,-.42,-.08,.16,.46,.83] as const;
+          const tilt=roles[role];
+          const sideFlow=school==="fuchun"
+            ?direction*(role===3?3.2:role===4?2.8:role===6?-1.6:
+                role===0?-.9:0)
+            :0;
+          const tipX=attach[0]+direction*(1.4+3.3*lean)+
+            side*(s(seed+1847,i*53+j*13+k)-.5)*3.6+sideFlow;
+          const tipY=school==="fuchun"
+            ?attach[1]+reach*(tilt+(s(seed+6863,i*37+j*17+k*31)-.5)*.1)
+            :attach[1]-reach*(k%5===1?.56:1)+
+              (k%9===0?reach*.64:0);
+          const path="M"+f(attach[0])+" "+f(attach[1])+
+            " Q"+f(attach[0]+(tipX-attach[0])*.38+lean*1.8)+
+            " "+f(attach[1]+(tipY-attach[1])*.46)+
+            " "+f(tipX)+" "+f(tipY);
+          return {attach,path,loaded:k%6===0};
+        });
+        // Three local loaded *ink pads* join true bough stations.
+        // In the source, the black crowns are packed, overlapping
+        // brush islands—uniform isolated comb needles were too pale
+        // at 960×540. Fine needle taps remain visible over these pads.
+        const pads=([.69,.81,.92] as const).map((at,k)=>{
+          const a=quadraticPoint(origin,control,tip,at);
+          const reach=(6+5*s(seed+1897,i*17+j*31+k*7));
+          const tipPad:P=[
+            a[0]+direction*reach,
+            a[1]-(3+5*s(seed+1901,i*13+j*19+k)),
+          ];
+          const arch:P=[
+            a[0]+direction*reach*.39,
+            a[1]+(k===1?1.7:-1.8),
+          ];
+          return {root:a,path:rockLoadedRibbon(a,arch,tipPad,
+            (k===1?2.85:1.95)*(1+.18*s(seed+1907,i*31+j*23+k)),
+            seed+1921+i*41+j*11+k*19)};
+        });
+        // Historic rocky hillside pines are inked as irregular, joined
+        // fan-crown masses, not bare ribs with several identical needle
+        // combs. Two unequal tiered islands grow from actual locations
+        // on each of the 20 trunk-connected boughs. The old 60 loaded
+        // pads and 310 thin needle tapers are preserved on TOP.
+        const inkIslands=([.61,.86] as const).map((station,k)=>{
+          // Same 40 positive fan islands, planted at uneven *real*
+          // bough stations rather than a perfectly repeated two-tier
+          // canopy pattern. No masking/removal of needle microdetails.
+          const at=school==="fuchun"
+            ?clamp(station+(s(seed+1941,i*19+j*41+k*7)-.5)*.095+
+                (j%3===1?.035:-.017),.49,.97)
+            :station;
+          const r=quadraticPoint(origin,control,tip,at);
+          // Source-like pinaceous old-ink crowns are *flat fans* of
+          // irregular deposited needle lobes, NOT oval paint balloons.
+          // Keep two visibly unequal rooted islands per bough and retain
+          // all original dry/wet twig micro-elements on top.
+          // Source-guided true *value shapes*, not a larger number of
+          // tiny mechanical needles: asymmetric clusters of wet/near
+          // dry ink overlap on select boughs and leave open-paper
+          // channels between other clusters. Each existing 6-8-lobe
+          // filled canopy stays rooted at its real branch station.
+          const reach=school==="fuchun"
+            ?(k===0?16.3:11.8)*
+              (.88+.5*s(seed+1951,i*19+j*37+k*13))*
+              (j===1?1.06:j===3?.89:1)
+            :(k===0?13:9)*(1+
+              .33*s(seed+1951,i*19+j*37+k*13));
+          const crest=school==="fuchun"
+            ?(k===0?9.2:7)*(.87+
+              .34*s(seed+1957,i*11+j*41+k*23))*
+              (j===0?.96:1)
+            :(k===0?3.4:2.7)*(1+
+              .28*s(seed+1957,i*11+j*41+k*23));
+          const sweep=direction*(k===0?1:-1);
+          const lobeCount=6+(i+j+k)%3;
+          const peaks=Array.from({length:lobeCount},(_,n)=>{
+            const t=(n+1)/(lobeCount+1)+
+              (school==="fuchun"?
+                (s(seed+7177,i*31+j*47+k*19+n*13)-.5)*.045:0);
+            // v48 screenshot rejected all forty flat-top miniature
+            // gray slabs. The upper dot sequence must recede towards
+            // both true bough-joined ends, not hold an identical tall
+            // wall of pigment at the first and last tip. A smooth
+            // sine-eased envelope creates unequal parent-rooted
+            // calligraphic pine tufts without clipping needle detail;
+            // tiny asymmetry comes from the existing ink-seed rhythm.
+            const taper=school==="fuchun"
+              ?Math.pow(Math.max(0,Math.sin(Math.PI*t)),1.26)
+              :1;
+            const liftFactor=school==="fuchun"
+              ?(.09+.89*taper)*
+                (.81+.19*s(seed+1961,i*79+j*43+k*19+n*17))
+              :.41+.59*s(seed+1961,i*79+j*43+k*19+n*17);
+            const yLift=crest*liftFactor+
+              (n%4===0?(school==="fuchun"?.27:.7):0);
+            return [r[0]+sweep*reach*t,r[1]-yLift] as P;
+          });
+          let upper="M"+f(r[0])+" "+f(r[1]);
+          let previous=r;
+          for(let n=0;n<peaks.length;n++){
+            const point=peaks[n];
+            // Every lobe has a different crest and inflection; the
+            // continuous branch-connected head remains one parent.
+            const midpoint:P=[
+              previous[0]+(point[0]-previous[0])*.52,
+              Math.min(previous[1],point[1])-
+                (.16+.48*s(seed+1971,i*17+j*29+k*11+n*13)),
+            ];
+            upper+=" Q"+f(midpoint[0])+" "+f(midpoint[1])+
+              " "+f(point[0])+" "+f(point[1]);
+            previous=point;
+          }
+          const fanTip:P=[r[0]+sweep*reach,
+            r[1]-crest*(.21+.18*s(seed+1977,i*13+j*47+k))];
+          upper+=" Q"+f(previous[0]+sweep*reach*.08)+" "+
+            f(previous[1]-crest*.2)+" "+f(fanTip[0])+" "+f(fanTip[1]);
+          const lower:P=[r[0]+sweep*reach*.8,
+            r[1]+crest*(.12+.15*s(seed+1987,i*19+j*17+k))];
+          const d=upper+
+            " C"+f(fanTip[0]+sweep*reach*.015)+" "+
+                f(fanTip[1]+crest*.46)+" "+
+                f(lower[0]+sweep*reach*.06)+" "+
+                f(lower[1])+" "+
+                f(lower[0])+" "+f(lower[1])+
+            " C"+f(r[0]+sweep*reach*.57)+" "+
+                f(r[1]+crest*.23)+" "+
+                f(r[0]+sweep*reach*.19)+" "+
+                f(r[1]+crest*.11)+" "+
+                f(r[0])+" "+f(r[1])+" Z";
+          const ridge=rockLoadedRibbon(r,
+            [r[0]+sweep*reach*.41,r[1]-crest*.42],
+            [fanTip[0]-sweep*reach*.12,fanTip[1]+crest*.18],
+            k===0?.88:.71,seed+1973+i*97+j*31+k*17);
+          return {r,d,ridge,lobes:lobeCount};
+        });
+        // Fuchun / Huang Gongwang: wet horizontal dots do not live as
+        // detached stippled confetti. Each brush-load must start on a
+        // REAL bough, change pressure as it slides across a planted
+        // cluster, then lift with an uneven fibrous edge. All existing
+        // negative-paper gaps, 40 fans, 60 pads and 310 needle taps
+        // remain; the varied 5/6/7 loads here darken the sparse crown
+        // rather than repeating a single scalloped vector icon.
+        const wetCount=5+(i+j)%3;
+        const wetClusters=school==="fuchun"
+          ?Array.from({length:wetCount},(_,n)=>{
+            const station=Number(clamp(
+              .50+(n+.32)/wetCount*.45+
+              (s(seed+7031,i*71+j*37+n*17)-.5)*.018,
+              .48,.975).toFixed(4));
+            const r=quadraticPoint(origin,control,tip,station);
+            const sweep=direction*((n%7===5||n%7===2)?-1:1);
+            const reach=5.3+7.8*s(seed+7051,i*97+j*11+n*31);
+            const rise=(s(seed+7069,i*41+j*19+n*43)-.5)*6.2-
+              (n%4===0?1.2:0);
+            const tipWet:P=[r[0]+sweep*reach,
+              r[1]+rise];
+            const control1:P=[
+              r[0]+sweep*reach*.16,
+              r[1]-(.7+1.5*s(seed+7087,i*17+j*41+n*19)),
+            ];
+            const control2:P=[
+              r[0]+sweep*reach*.72,
+              r[1]+rise*.67+
+                (s(seed+7109,i*13+j*19+n*29)-.5)*1.9,
+            ];
+            const weight=1.55+2.65*s(seed+7121,i*61+j*37+n*17);
+            return {r,station,weight,
+              body:rockLoadedCubicRibbon(r,control1,control2,tipWet,
+                weight,seed+7151+i*103+j*29+n*19),
+              ink:n%5===0?"dry":n%3===0?"midtone":"wet"};
+          }):[];
+        // Source-specific younger hooks: true child of the same bough
+        // at two exact quadratic stations, not random floating marks.
+        const crabClaws=crab?([.71,.9] as const).map((at,k)=>{
+          const attach=quadraticPoint(origin,control,tip,at);
+          const hand=(j+k+i)%3===1?-direction:direction;
+          const span=(k===0?6.5:4.3)*(1+
+            .34*s(seed+6121,i*13+j*29+k*17));
+          const fall=(k===0?11:7)*(1+
+            .29*s(seed+6133,i*31+j*11+k*23));
+          const cx1:P=[attach[0]+hand*span*.26,
+            attach[1]-(3+.72*k)];
+          const cx2:P=[attach[0]+hand*span*1.06,
+            attach[1]+fall*.57];
+          const tipClaw:P=[attach[0]+hand*span*.72,
+            attach[1]+fall];
+          return {attach,body:rockLoadedCubicRibbon(
+            attach,cx1,cx2,tipClaw,k===0?1.1:.79,
+            seed+6143+i*47+j*19+k*37),bend:k};
+        }):[];
+        return {t,origin,bone,boughCenterline,
+          foliage,pads,inkIslands,wetClusters,crabClaws};
+      });
+      return <g key={i} data-km-cliff-pine=""
+        data-km-cliff-pine-root={f(root[0])+","+f(root[1])}
+        data-km-cliff-pine-crest={f(crest)}
+        data-km-cliff-pine-height={height}
+        data-km-cliff-pine-centerline={school==="fuchun"?centerline:undefined}>
+        <path data-km-cliff-pine-trunk="" d={trunk}
+          fill="#37332d" opacity={f(.91*shade)}/>
+        <path data-km-cliff-pine-bark="" d={bark}
+          stroke="#a18b70" fill="none" strokeWidth=".48"
+          strokeLinecap="round" opacity={f(.47*shade)}/>
+        {boughs.map(({t,origin,bone,boughCenterline,
+          foliage,pads,inkIslands,wetClusters,crabClaws},j)=>
+          <g key={j} data-km-cliff-pine-bough=""
+            data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}
+            data-km-cliff-pine-bough-station={f(t)}
+            data-km-cliff-pine-bough-centerline={school==="fuchun"
+              ?boughCenterline:undefined}>
+            <path data-km-cliff-pine-bough-bone="" d={bone}
+              fill={j%2===0?"#3d352d":"#554638"}
+              opacity={f(.88*shade)}/>
+            {inkIslands.map(({r,d,ridge,lobes},k)=><g key={"island"+k}
+              data-km-cliff-pine-ink-island=""
+              data-km-cliff-pine-ink-island-root={f(r[0])+","+f(r[1])}
+              data-km-cliff-pine-fan-lobes={lobes}>
+              <path data-km-cliff-pine-ink-canopy="" d={d}
+                fill={k===0?"#332f29":"#484036"}
+                opacity={f((school==="fuchun"
+                  ?(k===0?.65:.56):(k===0?.76:.69))*shade)}/>
+              <path data-km-cliff-pine-ink-edge="" d={ridge}
+                fill={k===0?"#2e2925":"#39342d"}
+                opacity={f(.77*shade)}/>
+            </g>)}
+            {wetClusters.map(({r,station,weight,body,ink},k)=>
+              <path key={"wet"+k}
+                data-km-cliff-pine-wet-cluster=""
+                data-km-cliff-pine-wet-cluster-root={
+                  f(r[0])+","+f(r[1])}
+                data-km-cliff-pine-wet-cluster-station={
+                  station.toFixed(4)}
+                data-km-cliff-pine-wet-cluster-bough={i*4+j}
+                data-km-cliff-pine-wet-cluster-weight={f(weight)}
+                d={body}
+                fill={ink==="wet"?"#26241f":
+                  ink==="midtone"?"#3d3830":"#65584a"}
+                opacity={f((ink==="wet"?.93:
+                  ink==="midtone"?.82:.68)*shade)}/>)}
+            {crabClaws.map(({attach,body,bend},k)=><path key={"claw"+k}
+              data-km-cliff-pine-crab-claw=""
+              data-km-cliff-pine-crab-claw-root={f(attach[0])+","+f(attach[1])}
+              data-km-cliff-pine-crab-claw-bend={bend}
+              d={body} fill="#3c342c"
+              opacity={f((k===0?.73:.65)*shade)}/>)}
+            {pads.map(({root:padRoot,path},k)=><path key={"pad"+k}
+              data-km-cliff-pine-pad=""
+              data-km-cliff-pine-pad-root={f(padRoot[0])+","+f(padRoot[1])}
+              d={path} fill={k===1?"#302b25":"#40372d"}
+              opacity={f((k===1?.91:.77)*shade)}/>)}
+            {foliage.map(({attach,path,loaded},k)=><path key={k}
+              data-km-cliff-pine-needle=""
+              data-km-cliff-pine-needle-root={f(attach[0])+","+f(attach[1])}
+              d={path} stroke={loaded?"#282922":"#3c362b"}
+              strokeWidth={f(loaded?1.13:.54+.39*s(seed+1877,i*13+j*29+k))}
+              opacity={f((loaded?.9:.65+.23*s(seed+1889,i*71+j*19+k))*shade)}
+              strokeLinecap="round" fill="none"/>)}
+          </g>)}
+      </g>;
+    })}
+  </g>;
+}
+function Mountains({scene,seed,detail,mist,ink,school,ids}:{
   scene:ShanshuiScene;seed:number;detail:number;mist:number;ink:number;
+  school:InkRockSchool;
   ids:{far:string;mid:string;near:string;grain:string};
 }){
   return <g data-km-shanshui-mountains="">
-    {RIDGES[scene].map((ridge,band)=>{
+    {RIDGES[scene].map((baseRidge,band)=>{
+      // Source school changes only its authored mountain-trail middle-rock
+      // skeleton. Far/near ridge depth, path, waterfall and camera remain.
+      const ridge=scene==="mountain-trail"&&band===1&&school!=="fuchun"
+        ?MASTER_TRAIL_MIDDLE[school]:baseRidge;
       const width=band===0?1.1:band===1?1.3:1.8;
       const stations=ridgeStations(ridge,seed,band);
       const count=Math.round((band===0?27:band===1?48:67)*detail);
-      return <g key={band} data-km-shanshui-ridge={band}
-        opacity={(band===0?.32:band===1?.65:.86)*ink}>
+      // Select the original mid-range root before painting; a loaded
+      // geometric crag must not be faded again by the parent slope wash.
+      const peaks=ridge.slice(1,-1).flatMap(([px,py],i)=>
+        py<ridge[i][1]&&py<ridge[i+2][1] ? [[px,py] as P] : []);
+      const heroPeak=band===1&&peaks.length
+        ?peaks.reduce((best,p)=>p[1]<best[1]?p:best,peaks[0]):null;
+      return <g key={band}>
+        <g data-km-shanshui-ridge={band}
+          opacity={(band===0?.32:band===1?.65:.86)*ink}>
         <path data-km-shanshui-ridge-contour={band} d={ridgePath(stations)}
           fill={"url(#"+([ids.far,ids.mid,ids.near][band])+")"}
           stroke={band===2?"#765e48":"#ac9070"} strokeWidth={band===2?1.05:.55}/>
+        <MountainRockShoulders ridge={ridge} stations={stations}
+          seed={seed+band*251} band={band} detail={detail} mist={mist}
+          id={ids.grain+"-rock-"+band}/>
         <RockInkPlanes stations={stations} seed={seed+band*181} band={band}
           detail={detail} mist={mist}/>
+        {/* Ink grove must be AFTER the mountain silhouette and OUTSIDE
+            the cliff-plane clipping group, so all crown strokes appear
+            over the ridge while each trunk enters painted terrain. */}
+
         {/* Reference-led rock painting: cluster different brush pressures
             over local geology. Leave quiet paper between texture families,
             rather than repeating parallel grooves across all the mountains. */}
@@ -293,6 +2584,39 @@ function Mountains({scene,seed,detail,mist,ink,ids}:{
             ry={f(.45+.9*s(seed,i*9+band))}
             fill={INK} opacity={.17+.36*s(seed,i*7+3)}/>;
         })}
+        </g>
+        {/* The fine calligraphic hero is a sibling of the broad mountain
+            wash, not its opacity child. Retain the identical ridge-space
+            clip so not one pixel paints into the sky. Like the separate
+            pine layer this rescues true dark ink deposits without replacing
+            the source-structured geometry with a flat contrast filter. */}
+        {heroPeak&&detail>.7&&<g data-km-rock-hero-paint-layer=""
+          opacity={f(.98*ink)}>
+          <defs>
+            <clipPath id={ids.grain+"-hero-"+band+"-clip"}
+              clipPathUnits="userSpaceOnUse">
+              <path d={ridgePath(stations)}/>
+            </clipPath>
+          </defs>
+          <g clipPath={"url(#"+ids.grain+"-hero-"+band+"-clip)"}>
+            <MasterRockBrush root={[heroPeak[0],ridgeHeight(stations,heroPeak[0])+2.5]}
+              seed={seed+band*251+777} mist={mist} detail={detail} school={school}/>
+            {school==="fuchun"&&<MountainHeroCliff
+              root={[heroPeak[0],ridgeHeight(stations,heroPeak[0])+2.5]}
+              stations={stations}
+              seed={seed+band*251+777} mist={mist} detail={detail}
+              scene={scene}/>} 
+
+          </g>
+        </g>}
+        {/* Independently loaded foreground-to-midground brush layer.
+            Keep BEFORE near ridge (it can occlude lower trunks), but
+            remove the middle mountain's .65× opacity that made black
+            pine clusters disappear at 960×540 playback. */}
+        {band===1&&<g opacity={f(.85*ink)}>
+          <CliffPineGrove stations={stations} scene={scene}
+            seed={seed+1819} detail={detail} mist={mist} school={school}/>
+        </g>}
       </g>;
     })}
   </g>;
@@ -791,75 +3115,444 @@ function OldPine({x,y,scale,wind,seed,detail}:{
     </>}
   </g>;
 }
+/** One calligraphic wrist pull drives both pigment boundary and dry-bristle
+ * skips. The small secondary turn prevents perfectly mirrored SVG lozenges.
+ * Reference: Wu Zhen, Manual of Ink Bamboo (NPM, 1350), album leaves 12/20.
+ */
+function bambooStrokeOffset(t:number,length:number,seed:number){
+  const bow=(s(seed,17)-.5)*length*.22;
+  const wrist=(s(seed,19)-.5)*length*.075;
+  return bow*Math.sin(Math.PI*t)+wrist*Math.sin(2*Math.PI*t);
+}
+/** Pressure-loaded ink *gesture*, not a filled arrow template.
+ * One-sided width, delayed brush contact and families of press/lift timing
+ * separate a stalk-attached broad leaf from a quick light twig gesture.
+ * Fifteen pressure knots are smoothly interpolated on both fibre edges.
+ */
+function bambooBrushBlade(root:P,tip:P,width:number,seed:number){
+  const dx=tip[0]-root[0],dy=tip[1]-root[1];
+  const length=Math.max(.01,Math.hypot(dx,dy));
+  const nx=-dy/length,ny=dx/length;
+  const stations=[0,.045,.09,.15,.23,.32,.42,.52,.62,.70,.78,.84,.90,.95,1] as const;
+  const pressure=([
+    [0,.14,.44,.82,1,.99,.91,.75,.57,.43,.31,.23,.14,.06,0],
+    [0,.04,.12,.31,.59,.85,1,.95,.80,.66,.49,.35,.19,.07,0],
+    [0,.19,.48,.76,.89,1,.92,.79,.69,.48,.29,.18,.09,.04,0],
+  ] as const)[Math.abs(seed)%3];
+  const dominant=.84+.26*s(seed,47);
+  const recessive=.33+.31*s(seed,31);
+  const makeSide=(side:1|-1)=>stations.map((t,k):P=>{
+    // Edge grain follows brush load; none of it jumps independently in X/Y.
+    const scratch=k===0||k===14?0:
+      (s(seed+71,k*23+(side===1?3:17))-.5)*.085*
+      Math.sin(Math.PI*t);
+    const loaded=Math.max(0,pressure[k]+scratch);
+    const turn=bambooStrokeOffset(t,length,seed);
+    const shift=turn+side*width*loaded*(side===1?dominant:recessive);
+    return [root[0]+dx*t+nx*shift,root[1]+dy*t+ny*shift];
+  });
+  const outline=[...makeSide(1),...makeSide(-1).slice(1,-1).reverse()];
+  const path=["M"+f(root[0])+" "+f(root[1])];
+  // Smooth local tangents preserve the pressured edge without angular
+  // polygon vertices or uniform Bézier taper. Both ends return to the axis.
+  for(let k=0;k<outline.length;k++){
+    const p0=outline[(k-1+outline.length)%outline.length];
+    const p1=outline[k],p2=outline[(k+1)%outline.length];
+    const p3=outline[(k+2)%outline.length];
+    const c1:P=[p1[0]+(p2[0]-p0[0])*.13,
+      p1[1]+(p2[1]-p0[1])*.13];
+    const c2:P=[p2[0]-(p3[0]-p1[0])*.13,
+      p2[1]-(p3[1]-p1[1])*.13];
+    path.push("C"+f(c1[0])+" "+f(c1[1])+
+      " "+f(c2[0])+" "+f(c2[1])+
+      " "+f(p2[0])+" "+f(p2[1]));
+  }
+  return path.join(" ")+" Z";
+}
+/** Fei-bai (flying-white): paper reserves are cut *out* of the deposited
+ * ink, not bright highlight stickers painted over an opaque dark leaf.
+ * Every short split travels on the exact same loaded calligraphic centerline.
+ */
+function bambooDryBristles(root:P,tip:P,width:number,seed:number){
+  const dx=tip[0]-root[0],dy=tip[1]-root[1];
+  const length=Math.max(.01,Math.hypot(dx,dy));
+  const nx=-dy/length,ny=dx/length;
+  const point=(t:number,offset:number):P=>{
+    const belly=Math.sin(Math.PI*t);
+    const shift=bambooStrokeOffset(t,length,seed)+width*offset*belly;
+    return [root[0]+dx*t+nx*shift,root[1]+dy*t+ny*shift];
+  };
+  return Array.from({length:3},(_,i)=>{
+    const start=.21+.29*s(seed+191,i*31+5);
+    const finish=Math.min(.91,start+.14+.19*s(seed+193,i*17+11));
+    const offset=(i-1)*.17+.08*(s(seed+197,i*23)-.5);
+    const a=point(start,offset),mid=point((start+finish)*.5,
+      offset+.04*(s(seed+199,i*17)-.5)),b=point(finish,offset);
+    return {
+      d:"M"+f(a[0])+" "+f(a[1])+" Q"+f(mid[0])+" "+f(mid[1])+
+        " "+f(b[0])+" "+f(b[1]),
+      width:f(.29+.28*s(seed+211,i*19)),
+    };
+  });
+}
+/** One complete terminal botanical gesture (the hero crop), not
+ * seven isolated SVG arrows. The supporting thin shoot begins at the
+ * painted main bough and every new leaf roots on that exact secondary
+ * curve. Wu Zhen's NPM 1350 album shows compact crossings of unequal
+ * dark brush marks separated by open windows of paper. Only the high-
+ * load clusters earn this additional botanical mass.
+ */
+function BambooTerminalSpray({root,bend,tip,fan,seed,id,detail}:{
+  root:P;bend:P;tip:P;fan:number;seed:number;id:string;detail:number;
+}){
+  const count=Math.round(clamp((detail-.55)/.45,0,1)*7);
+  if(!count)return null;
+  const stemRoot=quadraticPoint(root,bend,tip,.68);
+  const stemBend:P=[
+    stemRoot[0]+fan*(11+5*s(seed,111)),
+    stemRoot[1]-(3+6*s(seed,113)),
+  ];
+  const stemTip:P=[
+    stemRoot[0]+fan*(29+7*s(seed,117)),
+    stemRoot[1]-(19+9*s(seed,119)),
+  ];
+  // Deliberately authored contact points and crossing directions: these
+  // should remain recognizable as a real leaf group at 960x540. Small
+  // deterministic seed changes alter wrist speed, not its anatomy.
+  const gestures=[
+    // A few long leaves fall *across* the twig, instead of seven
+    // vertically upraised knives. Album 17010703 carries down-swept
+    // pennants under its arching twig and only a few upright accents.
+    {at:.22,angle:.32,len:44,wide:5.5},
+    {at:.33,angle:.92,len:34,wide:4.3},
+    {at:.46,angle:-.29,len:53,wide:6.1},
+    {at:.55,angle:1.2,len:30,wide:3.9},
+    {at:.68,angle:-.67,len:41,wide:4.9},
+    {at:.78,angle:.52,len:39,wide:5.1},
+    {at:.88,angle:-.06,len:35,wide:3.8},
+  ] as const;
+  return <g data-km-bamboo-hero-spray=""
+    data-km-bamboo-hero-parent={f(stemRoot[0])+","+f(stemRoot[1])}
+    data-km-bamboo-hero-plan={count}>
+    <path data-km-bamboo-hero-twig="" fill="none"
+      stroke="#4e493b" strokeWidth="1.25" strokeLinecap="round"
+      opacity=".88"
+      d={"M"+f(stemRoot[0])+" "+f(stemRoot[1])+
+        " Q"+f(stemBend[0])+" "+f(stemBend[1])+
+        " "+f(stemTip[0])+" "+f(stemTip[1])}/>
+    {gestures.slice(0,count).map((gesture,k)=>{
+      const t=clamp(gesture.at+
+        (s(seed+139,k*13)-.5)*.064,.12,.95);
+      const base=quadraticPoint(stemRoot,stemBend,stemTip,t);
+      const tangent:P=[
+        2*(1-t)*(stemBend[0]-stemRoot[0])+
+          2*t*(stemTip[0]-stemBend[0]),
+        2*(1-t)*(stemBend[1]-stemRoot[1])+
+          2*t*(stemTip[1]-stemBend[1]),
+      ];
+      const angle=Math.atan2(tangent[1],tangent[0])+
+        gesture.angle*fan+(s(seed+151,k*17)-.5)*.19;
+      const length=gesture.len*(.91+.19*s(seed+163,k*7));
+      const width=gesture.wide*(.87+.25*s(seed+167,k*29));
+      const end:P=[base[0]+Math.cos(angle)*length,
+        base[1]+Math.sin(angle)*length];
+      const strokeSeed=seed+211+k*79;
+      const blade=bambooBrushBlade(base,end,width,strokeSeed);
+      const fibres=detail>.85
+        ?bambooDryBristles(base,end,width,strokeSeed).slice(0,2):[];
+      const leafId=id+"-hero-"+k;
+      const gradientId=leafId+"-gradient",maskId=leafId+"-reserve";
+      const m=width*4+3,px=Math.min(base[0],end[0])-m,
+        py=Math.min(base[1],end[1])-m,
+        pw=Math.abs(end[0]-base[0])+m*2,
+        ph=Math.abs(end[1]-base[1])+m*2;
+      const light=k===1||k===3||k===6;
+      return <g key={k}>
+        <defs>
+          <linearGradient id={gradientId} gradientUnits="userSpaceOnUse"
+            x1={f(base[0])} y1={f(base[1])}
+            x2={f(end[0])} y2={f(end[1])}>
+            <stop offset="0" stopColor={light?"#4e4a3d":"#222923"}/>
+            <stop offset=".27" stopColor={light?"#655b49":"#21271f"}/>
+            <stop offset=".64" stopColor={light?"#83735c":"#36382f"}/>
+            <stop offset="1" stopColor={light?"#a69779":"#635c4b"}/>
+          </linearGradient>
+          {fibres.length>0&&<mask data-km-bamboo-hero-mask=""
+            id={maskId} maskUnits="userSpaceOnUse"
+            maskContentUnits="userSpaceOnUse"
+            x={f(px)} y={f(py)} width={f(pw)} height={f(ph)}
+            style={{maskType:"luminance"}}>
+            <path d={blade} fill="#fff"/>
+            {fibres.map((bristle,b)=><path key={b}
+              data-km-bamboo-hero-bristle=""
+              d={bristle.d} stroke="#000"
+              strokeWidth={bristle.width} strokeLinecap="round"
+              fill="none"/>)}
+          </mask>}
+        </defs>
+        <path data-km-bamboo-hero-leaf="" d={blade}
+          data-km-bamboo-hero-root={f(base[0])+","+f(base[1])}
+          data-km-bamboo-hero-heading={f(angle)}
+          data-km-bamboo-hero-station={f(t)}
+          fill={"url(#"+gradientId+")"}
+          mask={fibres.length>0?"url(#"+maskId+")":undefined}
+          opacity={light?".82":".97"}/>
+      </g>;
+    })}
+  </g>;
+}
 /** Bamboo is a calligraphic plant, not uniform fence-post lines. The
  * centerline of each tapered culm also supplies the positions of its branch
  * nodes; each broad leaf begins on its own painted branching centerline.
  */
-function Bamboo({x,y,scale,wind,seed,detail}:{
+function Bamboo({x,y,scale,wind,seed,detail,ink,materialId}:{
   x:number;y:number;scale:number;wind:number;seed:number;detail:number;
+  ink:number;materialId:string;
 }){
+  const id="kmbamboo"+useId().replace(/[^a-z0-9_-]/gi,"");
   // Gongbi bamboo paintings place branches at visible culm joints. Sharing
   // node samples between collars and twigs prevents floating leaf clusters.
   return <g data-km-shanshui-bamboo=""
+    data-km-bamboo-ink-load={f(ink)}
+    filter={"url(#"+materialId+")"}
+    opacity={f(.48+.52*ink)}
     transform={"translate("+x+" "+y+") scale("+scale+")"}>
     {[-32,0,25].map((x0,i)=>{
-      const h=315+i*53,tipX=x0-38-i*13;
-      const from:P=[x0,0],control:P=[x0-6,-h*.48],tip:P=[tipX,-h];
-      const half=4.25-i*.35;
-      const culm="M"+f(x0-half)+" 1 Q"+f(x0-6-half)+" "+f(-h*.48)+
-        " "+f(tipX)+" "+f(-h)+
-        " Q"+f(x0-6+half)+" "+f(-h*.48)+" "+f(x0+half)+" 1 Z";
+      // Nonparallel bamboo columns: one strong black stalk and two quieter
+      // ink companions receding on either side, after Zheng Xie's groves.
+      const h=[317,391,356][i],tipX=[-84,-7,64][i];
+      const from:P=[x0,0],tip:P=[tipX,-h];
+      const control:P=[x0+(tipX-x0)*.19,-h*.52];
+      const half=[3.25,4.15,2.9][i];
+      const culm="M"+f(x0-half)+" 1 Q"+f(control[0]-half)+" "+
+        f(control[1])+" "+f(tipX)+" "+f(-h)+
+        " Q"+f(control[0]+half)+" "+f(control[1])+
+        " "+f(x0+half)+" 1 Z";
+      // Each collar belongs to the same curved culm, but natural internodes
+      // are not seven identical evenly-spaced ruler marks.
       const nodes=Array.from({length:7},(_,j)=>
-        quadraticPoint(from,control,tip,(j+1)/8));
+        quadraticPoint(from,control,tip,clamp((j+1)/8+
+          (s(seed+193,i*43+j*17)-.5)*.026,.05,.96)));
       return <g key={i} data-km-shanshui-bamboo-stem={i}>
-        <path d={culm} fill="#66513d" stroke="#43382d"
-          strokeWidth=".78" opacity=".91"/>
-        <path d={"M"+f(x0-.75)+" 0 Q"+f(x0-7)+" "+f(-h*.48)+
-          " "+f(tipX-.6)+" "+f(-h+12)}
-          stroke="#dfc29b" strokeWidth="1.05" fill="none" opacity=".57"/>
+        <path d={culm} fill={["#917b64","#5c4839","#a38b6c"][i]}
+          stroke={i===1?"#3e332a":"#65513f"}
+          strokeWidth={i===1?.82:.63} opacity={i===1?.96:.83}/>
+        <path d={"M"+f(x0-.75)+" 0 Q"+f(control[0]-.75)+" "+
+          f(control[1])+" "+f(tipX-.6)+" "+f(-h+12)}
+          stroke="#dfc29b" strokeWidth={i===1?.9:.67}
+          fill="none" opacity={i===1?.45:.29}/>
         {nodes.map(([cx,cy],j)=>{
           // Sparse, asymmetric calligraphic fans, not alternating rulers.
           const fan=s(seed+211,i*37+j*5)>.47?1:-1;
-          const reach=(34+34*s(seed,i*11+j))*fan;
+          const reach=(28+45*s(seed+239,i*17+j*13))*fan;
+          const lift=14+25*s(seed+101,i*9+j);
           const base:P=[cx,cy];
-          const turn:P=[cx+reach*.44,cy-12-8*s(seed+101,i*9+j)];
-          const end:P=[cx+reach,cy-20-16*s(seed+139,j*11+i)];
+          const turn:P=[cx+reach*(.29+.08*s(seed+231,i*23+j)),
+            cy-lift*.56];
+          const end:P=[cx+reach,cy-lift];
+          const branchControl:P=[turn[0]-fan*.8,turn[1]-.9];
           const branch="M"+f(cx-.95)+" "+f(cy+.4)+
-            " Q"+f(turn[0]-fan*.8)+" "+f(turn[1]-.9)+
+            " Q"+f(branchControl[0])+" "+f(branchControl[1])+
             " "+f(end[0])+" "+f(end[1])+
             " Q"+f(turn[0]+fan*.55)+" "+f(turn[1]+.85)+
             " "+f(cx+1.05)+" "+f(cy+1.35)+" Z";
+          // Zheng Xie's bamboo distinguishes the principal branch from
+          // little lateral shoots. Both child shoots start on the exact
+          // painted parent curve; their leaves must use those curves too.
+          const spurs=([.59,.78] as const).map((at,k)=>{
+            const root=quadraticPoint(base,branchControl,end,at);
+            const side=fan*(k===0?-1:1);
+            const reach=9+12*s(seed+1021,i*53+j*19+k*7);
+            const tip:P=[root[0]+side*reach,
+              root[1]-(9+13*s(seed+1051,i*71+j*13+k*11))];
+            const bend:P=[root[0]+side*reach*.37,
+              root[1]-(7+5*s(seed+1061,i*19+j*37+k*3))];
+            return {root,bend,tip};
+          });
+          // Wu Zhen's bamboo has unequal masses and long silent internodes.
+          // Author a rhythmic motif rather than cloning five stars at every
+          // one of 21 nodes. The same composition scales deterministically
+          // with the public detail control.
+          const clusterBudget=[
+            [0,3,8,1,10,2,10],
+            [10,0,3,10,1,8,2],
+            [2,10,1,8,0,10,3],
+          ][i][j];
+          const visibleLeaves=Math.round(detail*clusterBudget);
+          const visibleSpurs=visibleLeaves>4?2:visibleLeaves>1?1:0;
           return <g key={j} data-km-bamboo-branch-root={f(cx)+","+f(cy)}
+            data-km-bamboo-cluster-budget={clusterBudget}
             transform={"rotate("+f(wind*.6)+" "+f(cx)+" "+f(cy)+")"}>
-            <path data-km-bamboo-pressure-twig="" d={branch}
-              fill="#685541" opacity=".87"/>
-            {Array.from({length:Math.round(detail*5)},(_,k)=>{
-              // Leaf insertion points follow the same drawn twig curve.
-              const along=[.13,.31,.49,.68,.86][k]+
-                (s(seed+71,i*43+j*11+k)-.5)*.035;
-              const [bx,by]=quadraticPoint(base,turn,end,along);
-              const side=k%2===0?1:-1;
-              const len=(17+18*s(seed,i*50+j*9+k))*(k===4?.77:1);
-              const leafDir=side*.85+fan*.22;
-              const leafTipX=bx+leafDir*len;
-              const leafTipY=by-len*(.39+.26*s(seed+5,k+i*23+j));
-              const wide=3.1+3.6*s(seed+11,k+i*13+j);
-              const blade="M"+f(bx)+" "+f(by)+
-                " C"+f(bx+leafDir*len*.16)+" "+f(by-wide*.94)+
-                " "+f(bx+leafDir*len*.63)+" "+f(leafTipY+len*.13)+
-                " "+f(leafTipX)+" "+f(leafTipY)+
-                " C"+f(bx+leafDir*len*.66)+" "+f(leafTipY+len*.33)+
-                " "+f(bx+leafDir*len*.17)+" "+f(by+wide*.92)+
-                " "+f(bx)+" "+f(by)+" Z";
+            {visibleLeaves>0&&<path data-km-bamboo-pressure-twig="" d={branch}
+              fill="#685541" opacity=".87"/>}
+            {spurs.slice(0,visibleSpurs).map((spur,k)=>{
+              const root=spur.root,bend=spur.bend,tip=spur.tip;
+              const side=k===0?-fan:fan;
+              const d="M"+f(root[0]-side*.47)+" "+f(root[1]+.35)+
+                " Q"+f(bend[0]-side*.31)+" "+f(bend[1]+.35)+
+                " "+f(tip[0])+" "+f(tip[1])+
+                " Q"+f(bend[0]+side*.37)+" "+f(bend[1]-.35)+
+                " "+f(root[0]+side*.47)+" "+f(root[1]-.35)+" Z";
+              return <path key={k} data-km-bamboo-secondary-shoot=""
+                data-km-bamboo-secondary-root={f(root[0])+","+f(root[1])}
+                d={d} fill={k===0?"#62513e":"#514438"}
+                opacity={k===0?.78:.65}/>;
+            })}
+            {clusterBudget>=8&&detail>.55&&
+              <BambooTerminalSpray root={base} bend={branchControl}
+                tip={end} fan={fan} detail={detail}
+                seed={seed+i*659+j*131}
+                id={id+"-"+i+"-"+j}/>}
+            {Array.from({length:visibleLeaves},(_,k)=>{
+              const motif=k%5,layer=Math.floor(k/5);
+              const spurIndex=motif===1?0:motif===4?1:-1;
+              const origin=spurIndex<0
+                ?{root:base,bend:branchControl,tip:end}
+                :spurs[spurIndex];
+              // Wu Zhen's bamboo resolves into terminal brush groups:
+              // most leaves emerge from the outer branch section, not
+              // evenly-spaced hooks along the entire bare bough.
+              // Group three main strokes around the same terminal twig,
+              // while both attached lateral spurs retain their own growth
+              // direction. A wide stagger previously made each blade read
+              // as an isolated spear instead of a single botanical spray.
+              const along=spurIndex<0?[.75,0,.82,.89,0][motif]
+                :motif===1?.72:.82;
+              const t=clamp(along-layer*.075+
+                (s(seed+71,i*43+j*11+k)-.5)*.06,.12,.96);
+              const [bx,by]=quadraticPoint(origin.root,origin.bend,
+                origin.tip,t);
+              // Leaf direction is tied to the actual branch tangent.
+              // Independent screen-space arrows caused comb-like foliage.
+              const tangent:P=[
+                2*(1-t)*(origin.bend[0]-origin.root[0])+
+                  2*t*(origin.tip[0]-origin.bend[0]),
+                2*(1-t)*(origin.bend[1]-origin.root[1])+
+                  2*t*(origin.tip[1]-origin.bend[1]),
+              ];
+              const branchAngle=Math.atan2(tangent[1],tangent[0]);
+              // Wu Zhen's loaded leaves overlap at their bases. The five
+              // gesture families are an *alternating* fan (long/short,
+              // open/closed), rather than five equally sized rays.
+              const fanAngles=[-.69,-.95,.36,.83,-.43];
+              const direction=branchAngle+fanAngles[motif]*(fan>0?1:-1)+
+                (layer===0?0:-.095*fan)+
+                // Individual brush wrists diverge slightly within one
+                // common twig fan, avoiding identical ray headings.
+                (s(seed+1081,i*29+j*17+k)-.5)*.64;
+              const familyLength=[1.12,.81,1.06,.7,.79][motif];
+              const len=(24+17*s(seed,i*50+j*9+k))*familyLength*
+                (layer===1?.84:1);
+              const leafTipX=bx+Math.cos(direction)*len;
+              const leafTipY=by+Math.sin(direction)*len;
+              const wide=(2.15+4.4*s(seed+11,k+i*13+j))*
+                (motif===0?1.12:motif===3?.83:1);
+              // Orient the brush belly to the blade tangent, not paper Y.
+              // Secondary tip releases grow from the same parent wood,
+              // but their size and pitch vary rather than forming mirror pairs.
+              const blade=bambooBrushBlade([bx,by],[leafTipX,leafTipY],
+                wide,seed+i*1009+j*41+k*17);
+              // Leaf cluster resolves at a common live twig tip,
+              // not at arbitrary positions distributed across empty space.
+              const echo=detail>.62&&motif%2===0;
+              const echoT=clamp(t+
+                (s(seed+1321,i*59+j*11+k)-.5)*.078,.12,.96);
+              const echoRoot=quadraticPoint(origin.root,origin.bend,
+                origin.tip,echoT);
+              const echoLen=len*(.59+.2*s(seed+1351,i*71+j*17+k));
+              const echoAngle=direction+
+                (motif===0?.33:motif===2?-.31:.25)*fan+
+                (s(seed+1397,i*13+j*29+k)-.5)*.19;
+              const echoTip:P=[echoRoot[0]+Math.cos(echoAngle)*echoLen,
+                echoRoot[1]+Math.sin(echoAngle)*echoLen];
+              const satellite=bambooBrushBlade(echoRoot,echoTip,
+                wide*(.59+.19*s(seed+1381,i*17+j*11+k)),
+                seed+1409+i*31+j*23+k*37);
+              const bristles=detail>.6?bambooDryBristles(
+                [bx,by],[leafTipX,leafTipY],wide,
+                seed+i*1009+j*41+k*17):[];
+              const echoBristles=echo&&detail>.85?bambooDryBristles(
+                echoRoot,echoTip,wide*.65,
+                seed+1409+i*31+j*23+k*37):[];
+              const dilute=k%5===0||j%5===0;
+              const leafId=id+"-"+i+"-"+j+"-"+k;
+              const reserve=leafId+"-reserve",pigment=leafId+"-ink";
+              const echoReserve=leafId+"-echo-reserve";
+              const echoPigment=leafId+"-echo-ink";
+              const margin=wide*3.3+2;
+              const bx0=Math.min(bx,leafTipX)-margin,
+                by0=Math.min(by,leafTipY)-margin;
+              const bw=Math.abs(leafTipX-bx)+margin*2,
+                bh=Math.abs(leafTipY-by)+margin*2;
+              const ex0=Math.min(echoRoot[0],echoTip[0])-margin,
+                ey0=Math.min(echoRoot[1],echoTip[1])-margin;
+              const ew=Math.abs(echoTip[0]-echoRoot[0])+margin*2,
+                eh=Math.abs(echoTip[1]-echoRoot[1])+margin*2;
               return <g key={k}>
+                <defs>
+                  <linearGradient id={pigment} gradientUnits="userSpaceOnUse"
+                    x1={f(bx)} y1={f(by)} x2={f(leafTipX)} y2={f(leafTipY)}>
+                    <stop offset="0" stopColor={dilute?"#655c4e":"#272a23"}/>
+                    <stop offset=".19" stopColor={dilute?"#736857":"#20251f"}/>
+                    <stop offset=".54" stopColor={dilute?"#907b66":"#2c3028"}/>
+                    <stop offset=".83" stopColor={dilute?"#a59075":"#515043"}/>
+                    <stop offset="1" stopColor={dilute?"#baa78d":"#706a58"}/>
+                  </linearGradient>
+                  {bristles.length>0&&<mask id={reserve}
+                    maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
+                    x={f(bx0)} y={f(by0)} width={f(bw)} height={f(bh)}
+                    style={{maskType:"luminance"}}>
+                    <path d={blade} fill="#fff"/>
+                    {bristles.map((bristle,b)=><path key={b}
+                      data-km-bamboo-internal-bristle="" d={bristle.d}
+                      stroke="#000" strokeWidth={bristle.width}
+                      strokeLinecap="round" fill="none"/>)}
+                  </mask>}
+                  {echo&&<linearGradient id={echoPigment}
+                    gradientUnits="userSpaceOnUse" x1={f(echoRoot[0])}
+                    y1={f(echoRoot[1])} x2={f(echoTip[0])}
+                    y2={f(echoTip[1])}>
+                    <stop offset="0" stopColor="#544a3b"/>
+                    <stop offset=".46" stopColor="#84725d"/>
+                    <stop offset="1" stopColor="#aa9174"/>
+                  </linearGradient>}
+                  {echoBristles.length>0&&<mask id={echoReserve}
+                    maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
+                    x={f(ex0)} y={f(ey0)} width={f(ew)} height={f(eh)}
+                    style={{maskType:"luminance"}}>
+                    <path d={satellite} fill="#fff"/>
+                    {echoBristles.map((bristle,b)=><path key={b}
+                      data-km-bamboo-satellite-bristle="" d={bristle.d}
+                      stroke="#000" strokeWidth={bristle.width}
+                      strokeLinecap="round" fill="none"/>)}
+                  </mask>}
+                </defs>
                 <path data-km-shanshui-bamboo-leaf="" d={blade}
-                  fill={k===0||j%5===0?"#89765c":"#40392b"}
-                  opacity={f(.63+.24*s(seed,k+i*31+j*7))}/>
-                {detail>.77&&(k===1||k===3)&&
+                  data-km-bamboo-leaf-root={f(bx)+","+f(by)}
+                  data-km-bamboo-leaf-parent={spurIndex<0?"main":"spur-"+spurIndex}
+                  data-km-bamboo-leaf-heading={f(direction)}
+                  data-km-bamboo-leaf-station={f(t)}
+                  data-km-bamboo-leaf-cluster={i+"-"+j}
+                  fill={"url(#"+pigment+")"}
+                  mask={bristles.length>0?"url(#"+reserve+")":undefined}
+                  opacity={f((dilute?.76:.88)+
+                    .1*s(seed,k+i*31+j*7))}/>
+                {echo&&<path data-km-bamboo-satellite-leaf=""
+                  data-km-bamboo-satellite-root={f(echoRoot[0])+","+f(echoRoot[1])}
+                  d={satellite} data-km-bamboo-satellite-heading={f(echoAngle)}
+                  data-km-bamboo-satellite-station={f(echoT)}
+                  data-km-bamboo-satellite-cluster={i+"-"+j}
+                  fill={"url(#"+echoPigment+")"}
+                  mask={echoBristles.length>0?"url(#"+echoReserve+")":undefined}
+                  opacity={f(.67+.15*s(seed+1459,i*13+j*7+k))}/>}
+                {detail>.77&&(motif===1||motif===3)&&
                   <path data-km-bamboo-dry-lift=""
-                    d={"M"+f(bx+leafDir*len*.21)+" "+f(by-len*.1)+
-                      " Q"+f(bx+leafDir*len*.47)+" "+f(by-len*.29)+
-                      " "+f(bx+leafDir*len*.74)+" "+f(leafTipY+len*.13)}
+                    d={"M"+f(bx+(leafTipX-bx)*.2)+" "+
+                      f(by+(leafTipY-by)*.2)+
+                      " Q"+f(bx+(leafTipX-bx)*.42)+" "+
+                      f(by+(leafTipY-by)*.45)+
+                      " "+f(bx+(leafTipX-bx)*.68)+" "+
+                      f(by+(leafTipY-by)*.69)}
                     stroke="#d6c09b" strokeWidth=".36" opacity=".42"
                     fill="none" strokeLinecap="round"/>}
               </g>;
@@ -867,13 +3560,27 @@ function Bamboo({x,y,scale,wind,seed,detail}:{
           </g>;
         })}
         {/* The collar and all branch roots share exact sampled joint centres. */}
-        {nodes.map(([nx,ny],j)=>
-          <path key={j} data-km-bamboo-node={f(nx)+","+f(ny)}
-            d={"M"+f(nx-4.2)+" "+f(ny+1.05)+
-              " Q"+f(nx)+" "+f(ny-2.75)+" "+f(nx+4.5)+" "+f(ny+.35)}
-            stroke={j%3===0?"#2f281f":"#443426"}
-            strokeWidth={j%3===0?1.8:1.34} fill="none"
-            strokeLinecap="round"/>)}
+        {nodes.map(([nx,ny],j)=>{
+          const t=clamp((j+1)/8+
+            (s(seed+193,i*43+j*17)-.5)*.026,.05,.96);
+          const dx=2*(1-t)*(control[0]-from[0])+
+            2*t*(tip[0]-control[0]);
+          const dy=2*(1-t)*(control[1]-from[1])+
+            2*t*(tip[1]-control[1]);
+          const length=Math.max(1,Math.hypot(dx,dy));
+          const normal:P=[-dy/length,dx/length];
+          const radius=half*(1-t*.43);
+          return <path key={j} data-km-bamboo-node={f(nx)+","+f(ny)}
+            d={"M"+f(nx-normal[0]*radius)+" "+
+              f(ny-normal[1]*radius)+
+              " Q"+f(nx)+" "+f(ny-1.2)+
+              " "+f(nx+normal[0]*radius)+" "+
+              f(ny+normal[1]*radius)}
+            stroke={j%3===0?"#3b3026":"#514132"}
+            strokeWidth={f(.94+.4*s(seed+1209,i*31+j))}
+            opacity={f(.59+.28*s(seed+1229,i*17+j))}
+            fill="none" strokeLinecap="round"/>;
+        })}
       </g>;
     })}
   </g>;
@@ -1077,26 +3784,26 @@ function Grass({x,y,seed,scale=1}:{x:number;y:number;seed:number;scale?:number})
     })}
   </g>;
 }
-function Foreground({scene,seed,detail,wind}:{scene:ShanshuiScene;seed:number;detail:number;wind:number}){
+function Foreground({scene,seed,detail,wind,ink,materialId}:{scene:ShanshuiScene;seed:number;detail:number;wind:number;ink:number;materialId:string}){
   if(scene==="river-scholar")return <g data-km-shanshui-foreground="">
     <Rock x={15} y={540} w={175} h={98} seed={seed+91} detail={detail}/>
     <Rock x={899} y={544} w={151} h={83} seed={seed+47} detail={detail}/>
     <Grass x={360} y={521} seed={seed} scale={1.1}/>
     <Grass x={746} y={510} seed={seed+3}/>
-    <Bamboo x={925} y={510} scale={.55} seed={seed+79} detail={detail} wind={wind}/>
+    <Bamboo x={925} y={510} scale={.55} seed={seed+79} detail={detail} wind={wind} ink={ink} materialId={materialId}/>
   </g>;
   if(scene==="misty-hermit")return <g data-km-shanshui-foreground="">
     <Rock x={23} y={557} w={171} h={96} seed={seed} detail={detail}/>
     <Rock x={873} y={548} w={184} h={83} seed={seed+8} detail={detail}/>
     <OldPine x={74} y={522} scale={1.28} seed={seed+47} detail={detail} wind={wind}/>
-    <Bamboo x={908} y={538} scale={1.07} seed={seed+55} detail={detail} wind={wind}/>
+    <Bamboo x={908} y={538} scale={1.07} seed={seed+55} detail={detail} wind={wind} ink={ink} materialId={materialId}/>
     <Grass x={344} y={510} seed={seed} scale={.8}/>
   </g>;
   return <g data-km-shanshui-foreground="">
     <Rock x={76} y={568} w={218} h={168} seed={seed+7} detail={detail}/>
     <Rock x={885} y={567} w={205} h={162} seed={seed+13} detail={detail}/>
     <OldPine x={65} y={540} scale={1.43} seed={seed+9} detail={detail} wind={wind}/>
-    <Bamboo x={914} y={535} scale={.9} seed={seed+10} detail={detail} wind={wind}/>
+    <Bamboo x={914} y={535} scale={.9} seed={seed+10} detail={detail} wind={wind} ink={ink} materialId={materialId}/>
     <Grass x={366} y={522} seed={seed+10}/>
     <Grass x={758} y={499} seed={seed+35} scale={1.17}/>
   </g>;
@@ -1118,7 +3825,7 @@ export function InkShanshuiStage({frame,controls={
     far:"kmshan"+rawId+"far",mid:"kmshan"+rawId+"mid",
     near:"kmshan"+rawId+"near",grain:"kmshan"+rawId+"grain",
     paper:"kmshan"+rawId+"paper",mist:"kmshan"+rawId+"mist",
-    path:"kmshan"+rawId+"path",
+    path:"kmshan"+rawId+"path",brush:"kmshan"+rawId+"brush",
   }),[rawId]);
   const river=controls.scene==="river-scholar";
   const seed=controls.seed;
@@ -1166,6 +3873,18 @@ export function InkShanshuiStage({frame,controls={
         <filter id={ids.mist} x="-40%" y="-80%" width="180%" height="260%">
           <feGaussianBlur stdDeviation="28"/>
         </filter>
+        <filter id={ids.brush} x="-8%" y="-8%" width="116%" height="116%"
+          colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency=".13" numOctaves="2"
+            seed={seed%997+1} result="fibres"/>
+          <feDisplacementMap in="SourceGraphic" in2="fibres" scale=".9"
+            xChannelSelector="R" yChannelSelector="G" result="absorbed"/>
+          <feGaussianBlur in="absorbed" stdDeviation=".42" result="fringe"/>
+          <feComponentTransfer in="fringe" result="wick">
+            <feFuncA type="linear" slope=".24"/>
+          </feComponentTransfer>
+          <feMerge><feMergeNode in="wick"/><feMergeNode in="absorbed"/></feMerge>
+        </filter>
         <linearGradient id={ids.path} x1="0" y1="0" x2=".6" y2="1">
           <stop offset="0" stopColor="#b29371" stopOpacity=".15"/>
           <stop offset="1" stopColor="#8f7055" stopOpacity=".7"/>
@@ -1175,7 +3894,8 @@ export function InkShanshuiStage({frame,controls={
       <g data-km-shanshui-world="" transform={transform}>
         <g opacity={f(washOpacity)}>
           <Mountains scene={controls.scene} seed={seed} detail={controls.detail}
-            mist={controls.mist} ink={controls.ink} ids={ids}/>
+            mist={controls.mist} ink={controls.ink}
+            school={controls.inkSchool??"fuchun"} ids={ids}/>
           <Clouds shift={at.cloudX}/>
           <Birds motion={at}/>
           {controls.scene==="mountain-trail"&&
@@ -1207,7 +3927,7 @@ export function InkShanshuiStage({frame,controls={
           </div>
         </foreignObject>
         <Foreground scene={controls.scene} seed={seed} detail={controls.detail}
-          wind={at.breeze}/>
+          wind={at.breeze} ink={controls.ink} materialId={ids.brush}/>
       </g>
       <rect width={W} height={H} filter={"url(#"+ids.grain+")"} opacity=".42"
         style={{mixBlendMode:"multiply",pointerEvents:"none"}}/>
