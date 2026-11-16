@@ -46,8 +46,8 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       expect(d.regions).toHaveLength(1);
       expect(d.regions[0].id).toBe("head-silhouette-01");
       expect(d.foundation?.construction).toContain("stage 1 only");
-      expect(d.regions[0].craft?.kind).toBe("skin");
-      expect(d.regions[0].opaqueSupport).toBe(true);
+      expect(d.regions[0].craft).toBeUndefined();
+      expect(d.regions[0].opaqueSupport).toBe(false);
       expect(d.regions[0].clipDetails).toBe(true);
       expect(d.regions[0].layers).toHaveLength(3);
       expect(d.regions[0].bounds[2]).toBeGreaterThan(125);
@@ -64,7 +64,7 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     const one=newCharacterHeadStageOne(291);
     expect(one).toHaveLength(1);
     const head=one[0];
-    expect(head.material).toBe("skin");
+    expect(head.material).toBe("glaze");
     expect(head.details?.length).toBe(8);
     for(let layer=0;layer<3;layer++){
       const t=head.details!.find(x=>x.id==="newhead-value-"+layer);
@@ -95,7 +95,8 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       <PencilDrawing drawing={d} frame={frame}/>);
     const final=render(335);
     expect(final).toContain('data-km-pencil-region="head-silhouette-01"');
-    expect(final).toContain('data-km-pencil-support="head-silhouette-01"');
+    expect(final).not.toContain('data-km-pencil-support="head-silhouette-01"');
+    expect(final).toContain('data-km-graphite');
     expect(final).toContain('data-km-pencil-render-method="authored-vector-pigment"');
     expect(final).toContain('data-km-pencil-photo-pixels="none"');
     expect(final).toContain('data-km-pencil-details');
