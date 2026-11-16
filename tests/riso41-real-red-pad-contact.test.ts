@@ -3,7 +3,8 @@ import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,evaluateRisoHumanEnsemble} from "../src/video/riso-human-ensemble";
 import {RISO41_INK_PRESSURE,inspectRiso41InkPressure} from "../src/video/riso41-contact-pressure";
 import {inspectRiso33HandFan} from "../src/video/riso33-hand-negative-space";
-import {inspectRiso36RedFingerSilhouettes} from "../src/video/riso36-red-silhouette-gate";
+import {inspectRiso36RedFingerSilhouettes,riso36ContourClearance,riso36WorldContour} from "../src/video/riso36-red-silhouette-gate";
+import {evaluateRisoCharacter} from "../registry/video/riso-character";
 import {inspectRiso32ThumbIp,RISO32_THUMB_GEOMETRY} from "../src/video/riso32-thumb-ip";
 import {inspectRiso39OpposedPaperPinch} from "../src/video/riso39-opposed-paper-pinch";
 
@@ -32,6 +33,31 @@ describe("RISO41 genuine thumb/index closed-red pad contact / paper pressure",()
       expect(open.pressure).toBe(0);
       expect(open.pressureCategory).toBe("open");
       expect(contact.meaning).toMatch(/NOT clinical/);
+    }
+  });
+  it("keeps red thumb, index and palm actually ink-connected at every contact/release cel",()=>{
+    // This is real source contour intersection, NOT a count of named SVGs.
+    // A bone can be attached while its stamped artwork breaks at a joint.
+    for(const {actor,side} of hands){
+      for(let frame=126;frame<=205;frame+=2){
+        const posed=evaluateRisoCharacter(actor,frame);
+        const get=(id:string)=>{
+          const p=posed.parts.find(part=>part.id===side+"-"+id);
+          if(!p||p.plate!=="red"||p.paint!=="solid")throw new Error("missing source "+id);
+          return riso36WorldContour(p.d,p.transform,.25);
+        };
+        const palm=get("glove");
+        const thumb=get("glove-thumb");
+        const thumbDistal=get("glove-thumb-distal-phalanx");
+        const index=get("glove-index");
+        const middle=get("glove-index-middle-phalanx");
+        const distal=get("glove-index-distal-phalanx");
+        expect(riso36ContourClearance(palm,thumb),actor.id+"/"+side+"/CMC/f"+frame).toBe(0);
+        expect(riso36ContourClearance(palm,index),actor.id+"/"+side+"/MCP/f"+frame).toBe(0);
+        expect(riso36ContourClearance(thumb,thumbDistal),actor.id+"/"+side+"/IP/f"+frame).toBe(0);
+        expect(riso36ContourClearance(index,middle),actor.id+"/"+side+"/PIP/f"+frame).toBe(0);
+        expect(riso36ContourClearance(middle,distal),actor.id+"/"+side+"/DIP/f"+frame).toBe(0);
+      }
     }
   });
   it("preserves actual ANAT1 thumb-IP and original finger-fan continuity",()=>{
