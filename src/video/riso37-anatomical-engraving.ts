@@ -1,5 +1,6 @@
 import type {RisoCharacterPart} from "../../registry/video/riso-character";
 import {RISO31_GEOMETRY} from "./riso31-finger-phalanges";
+import {riso46ThenarSource} from "./riso46-thenar-source";
 
 /**
  * RISO37 / ArtCraft v9 — native source-drawn cobalt incisions on vermilion
@@ -118,7 +119,9 @@ export function refineRiso37SourceEngraving(
   }
   if(name==="knuckle-arc")return {...part,d:mcpContours(actor),paint:"solid"};
   if(name==="wrist-crease")return {...part,d:wristContours(actor),paint:"screen",screenTone:"mid"};
-  if(name==="thenar-fold")return {...part,d:thenarContours(side,actor),paint:"screen",screenTone:"mid"};
+  if(name==="thenar-fold")return {...part,
+    d:thenarContours(side,actor)+"\n"+riso46ThenarSource(actor,side).blue,
+    paint:"screen",screenTone:"mid"};
   const folds=/^(index|middle|ring|pinky)-(joint-crease|dip-crease)$/.exec(name);
   if(folds){
     const digit=folds[1] as Digit;
