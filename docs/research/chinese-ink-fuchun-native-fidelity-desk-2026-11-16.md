@@ -109,3 +109,20 @@ At **commit \`865c22fe\`**, [full Chinese Ink film QA run 43977539180](https://g
 - **Tests:** Pure deterministic seed and source-tip validation, SVG attachment and original inventories, negative controls for other schools / low-detail, Chromium mode visibility and captured native source zoom.
 
 **Art sign-off pending:** Inspect generated 960×540 + 2.8× crop. The new fine fringes must soften previous dark clumps without becoming sunburst spikes, hatching rollers, or a repeated cloud decoration. Visual success cannot be inferred from path counts.
+
+
+## Native near-bank three-register pima flow — further ArtCraft review, 16 November
+
+**New historical cross-check:** The [National Palace Museum Master Wuyong original](https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975), [Smarthistory's labeled brushstroke study](https://smarthistory.org/wp-content/uploads/2023/10/National_Palace_brushstroke_labeled-copy.jpg), and [unaltered high-resolution painting detail](https://smarthistory.org/wp-content/uploads/2023/06/National-Palace_lrg-det-6.jpeg) show **long hemp-fibre brushwork descending from upper rock to lower face** with irregular wet/dry lift, alongside *shorter alum-head textural touches*. A pure horizontal scratch on the skyline would be as inauthentic as the prior 67px computer-drip. The medium needs local bank topology plus gravitational pima flow, not simply smaller primitives.
+
+**Defect isolated:** The broad 19-node near candidate originally left the **17 existing source-grounded \`RockInkPlanes\` marks** as identical-looking elongated gray droplets beginning from its now nearly flat crown. Adding four positive bank layers did not fix their independent visual grammar; the hanging groups visually disconnected from their supporting bank.
+
+**Correction implemented in the opt-in path only:**
+- Existing **17** rocky plane marks, their 17 double-phrase dry witness lines, source-rooted rock shelves and existing micro-moss are retained intact as independent editable SVG primitives; no path group is removed.
+- Each mark roots at the sampled positive ridge crest, then follows a **cubic centerline with three independently sampled stations** and a pressure-loaded source-aware ink ribbon. Individual runs inherit the local ridge rise/fall; the duplicate-prone long line is split into genuine paper-lift phrases.
+- A deliberate mixed meter of **6 descending long hemp**, **2 short alum-head crown touches**, and **9 rolling cheek creases** maintains long/medium/short optical hierarchy, without ten same-length horizontal stripes or vertical rain wires. Root loading, broken mid-pressure, and feathered lifts are separate geometry roles. Each source is inspectable through \`data-km-rock-plane-bank-register\`, \`-bank-axis\`, \`-bank-end\`, and original \`-root\` attributes.
+- Source-strata and pima remain deterministic across frame seeking and seeded variation. Ordinary production at \`fuchunNearShoulderStudy=false\`, both other scene compositions and the other three rock schools keep their original original paint and original stroke shape.
+
+**Test gate:** Unit and native Chromium checks assert all 17 bank-following marks, original 19 other far/middle contacts, source endpoints, exact per-register budgets and non-deletion of the 78 hero hemp strokes / six hillback / nine alum heads. The output is **still experimentally held** pending independent 960×540 and 2.3× image review after a full exact-head green film QA. Do not turn it on by default on the basis of counts alone.
+
+**Remaining optical criticism:** Current frame evidence still has overly uniform beige area under the lower bank; the rocky left grove and central pine have mechanically thin needle arcs; color separations are warmer and more linear than the original ink's muted gray-black pressure accents. Progress on source-connected topology is not art approval.
