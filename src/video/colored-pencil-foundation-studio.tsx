@@ -3,6 +3,10 @@ import { PencilDrawing } from "../../registry/video/colored-pencil-react";
 import { inspectPencilFoundationDrawing, PENCIL_FOUNDATION_STAGES } from "../../registry/video/colored-pencil-foundation";
 import type { PencilAspect } from "../../registry/video/colored-pencil";
 import { pencilLivingStudyDrawing } from "./colored-pencil-living-studies";
+import {
+  HEAD_FIDELITY_LANDMARK_IDS, HEAD_FIDELITY_TONES,
+  evaluatePencilHeadFidelity,
+} from "./colored-pencil-head-fidelity";
 import { pencilObjectStudyDrawing } from "./colored-pencil-object-studies";
 
 type Specimen="rose"|"fox"|"portrait"|"architecture"|"fabric"|"valley";
@@ -77,6 +81,10 @@ export function PencilFoundationStudio(){
         "newhead-anat1-"+valueBand+"-")),
     }))};
   },[drawing,specimen,valueBand]);
+  // No real photographer-authorized source or independently measured
+  // native export exists yet. A mesh normal and its own projected guide
+  // points are NOT a photo reference. The gate MUST fail closed.
+  const sourceProof=evaluatePencilHeadFidelity();
   const errors=inspectPencilFoundationDrawing(drawing);
   if(errors.length)throw new Error("Pencil foundation studio: "+errors.join("; "));
   const current=PENCIL_FOUNDATION_STAGES.reduce((acc,s,i)=>frame>=s.frame?i:acc,0);
@@ -126,6 +134,52 @@ export function PencilFoundationStudio(){
         CP-F1 validates structure and materials, not artistic realism.
       </p>
     </header>
+    {specimen==="portrait"&&<section data-km-head-source-proof=""
+      data-km-head-source-fidelity={sourceProof.status}
+      data-km-head-source-photo="none"
+      aria-label="ArtCraft independent head photo fidelity"
+      style={{border:"1px solid #A48D81",borderRadius:6,
+        maxWidth:960,padding:"13px 16px",background:"#FAF6EE",
+        display:"grid",gap:7,fontSize:13}}>
+      <strong>Artist reference proof · BLOCKED (head only)</strong>
+      <div>{sourceProof.errors.join(", ")}. ANAT1's projected model
+        landmarks and synthetic five-value lighting are NOT independent
+        source-photo measurements. No artistic approval has been granted.</div>
+      <details>
+        <summary style={{cursor:"pointer",fontWeight:600}}>
+          Review independent photo requirements · 18 landmarks / 5 tonal regions
+        </summary>
+        <p style={{maxWidth:825,margin:"8px 0"}}>
+          Select a rights-verified full-head 3/4 photograph with complete
+          skull, temples, jaw and clear directional light. Hash its exact
+          bytes and the native SVG render separately (SHA-256). Independently
+          annotate the same 18 points and sample five real pixel areas on
+          BOTH images. Compare source and render before adding any eye.
+        </p>
+        <div style={{display:"grid",gridTemplateColumns:
+          "repeat(auto-fit,minmax(215px,1fr))",gap:18}}>
+          <section>
+            <b>18 image-measured geometry anchors</b>
+            <ol style={{paddingLeft:22,margin:"6px 0 0"}}>
+              {HEAD_FIDELITY_LANDMARK_IDS.map(id=><li
+                data-km-head-source-landmark-id={id} key={id}>{id}</li>)}
+            </ol>
+          </section>
+          <section>
+            <b>Five source/output luminance patches</b>
+            <ol style={{paddingLeft:22,margin:"6px 0 0"}}>
+              {HEAD_FIDELITY_TONES.map(id=><li
+                data-km-head-source-tone-id={id} key={id}>{id}</li>)}
+            </ol>
+          </section>
+        </div>
+        <p style={{margin:"10px 0 0"}}>
+          Measured numerical parity is a prerequisite for independent artist
+          review, NOT a realism certification. The photographed person is
+          only a licensed reference, never a copied character or image layer.
+        </p>
+      </details>
+    </section>}
     <section aria-label="Pencil foundation controls" style={{
       display:"flex",gap:12,flexWrap:"wrap",alignItems:"end",maxWidth:1100,
     }}>
