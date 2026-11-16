@@ -3,6 +3,7 @@ import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import {HAND_POSES} from "../../registry/anatomy/anatomy-pose";
 import {SURFACE_FORMS,ANSUR} from "../../registry/anatomy/anatomy-reference";
 import {RISO31_GEOMETRY} from "./riso31-finger-phalanges";
+import {riso46ThenarSource} from "./riso46-thenar-source";
 import {refineRiso37SourceEngraving,riso37ProximalPressureStrands} from "./riso37-anatomical-engraving";
 
 /**
@@ -48,7 +49,8 @@ const groove=(actor:RisoHandActor, side:RisoHandSide)=>{
   const i=side+"-index",m=side+"-middle",r=side+"-ring",p=side+"-pinky",t=side+"-thumb";
   const courier=actor==="courier";
   const red=(id:string,joint:string,d:string):RisoCharacterPart=>({
-    id:side+"-glove-"+id,joint,plate:"red",paint:"screen",screenTone:"light",d,
+    id:side+"-glove-"+id,joint,plate:"red",paint:"screen",screenTone:"light",
+    d:id==="thenar-plane"?d+"\n"+riso46ThenarSource(actor,side).red:d,
   });
   const blue=(id:string,joint:string,d:string):RisoCharacterPart=>({
     id:side+"-glove-"+id,joint,plate:"blue",paint:"solid",d,
