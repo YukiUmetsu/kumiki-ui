@@ -24,7 +24,7 @@ type Wax=Extract<CrayonElement,{kind:"wax"}>;
 const nearSidewall:Wax={
   kind:"wax",id:"nasal-sidewall-near-underpaint",
   parentId:"face-outline",clipToParent:true,
-  coverage:"opaque",deposition:"stroke-built",
+  coverage:"open",deposition:"stroke-built",
   timing:{start:182,end:266},
   d:"M369 620 C371 605 382 595 394 597 "+
     "C408 595 419 608 423 622 "+
@@ -33,19 +33,16 @@ const nearSidewall:Wax={
     "C365 633 368 625 369 620Z",
   bounds:{x:364,y:590,width:65,height:72},
   colors:["#c49a8d","#8e6865","#e0afa0"],
-  pressure:.67,spacing:6.1,markStrength:.20,
-  underpaintTooth:.22,opaqueBurnish:.49,
-  underpaintGradient:{
-    light:"#d7aa9b",shadow:"#8b6762",
-    focusX:.41,focusY:.26,radius:1.06,
-  },
+  pressure:.67,spacing:6.1,markStrength:0.24,
+  blendRadius:9.2,featherContacts:true,
+  nibStyle:"dry",strokeOrder:"patches",markLength:"short",
   outlineOpacity:0,edgeRoughness:.10,
 };
 
 const farSidewall:Wax={
   kind:"wax",id:"nasal-sidewall-far-underpaint",
   parentId:"face-outline",clipToParent:true,
-  coverage:"opaque",deposition:"stroke-built",
+  coverage:"open",deposition:"stroke-built",
   timing:{start:183,end:266},
   d:"M439 613 C442 600 450 595 459 599 "+
     "C468 600 476 613 474 626 "+
@@ -54,12 +51,9 @@ const farSidewall:Wax={
     "C437 624 438 619 439 613Z",
   bounds:{x:435,y:594,width:42,height:59},
   colors:["#be9186","#876461","#d7a498"],
-  pressure:.62,spacing:6.5,markStrength:.17,
-  underpaintTooth:.20,opaqueBurnish:.46,
-  underpaintGradient:{
-    light:"#cda095",shadow:"#896360",
-    focusX:.37,focusY:.25,radius:1.04,
-  },
+  pressure:.62,spacing:6.5,markStrength:0.21,
+  blendRadius:8.3,featherContacts:true,
+  nibStyle:"dry",strokeOrder:"patches",markLength:"short",
   outlineOpacity:0,edgeRoughness:.12,
 };
 
@@ -86,7 +80,7 @@ const columella:Wax={
 const nearHood:Wax={
   kind:"wax",id:"nasal-hood-near-occluder",
   parentId:"face-outline",clipToParent:true,
-  coverage:"opaque",deposition:"stroke-built",
+  coverage:"open",deposition:"stroke-built",
   timing:{start:240,end:298},
   d:"M384 622 C390 610 401 608 411 612 "+
     "C421 616 429 624 427 633 "+
@@ -95,19 +89,16 @@ const nearHood:Wax={
     "C387 632 384 629 384 622Z",
   bounds:{x:380,y:606,width:51,height:33},
   colors:["#d3a399","#a97972","#e2b4a5"],
-  pressure:.76,spacing:5.2,markStrength:.19,
-  underpaintTooth:.18,opaqueBurnish:.52,
-  underpaintGradient:{
-    light:"#dbada0",shadow:"#a17870",
-    focusX:.45,focusY:.20,radius:.98,
-  },
+  pressure:.76,spacing:5.2,markStrength:0.28,
+  blendRadius:4.1,featherContacts:true,
+  nibStyle:"dry",strokeOrder:"patches",markLength:"short",
   outlineOpacity:0,edgeRoughness:.10,
 };
 
 const farHood:Wax={
   kind:"wax",id:"nasal-hood-far-occluder",
   parentId:"face-outline",clipToParent:true,
-  coverage:"opaque",deposition:"stroke-built",
+  coverage:"open",deposition:"stroke-built",
   timing:{start:240,end:298},
   d:"M443 618 C446 609 453 605 462 610 "+
     "C469 615 471 626 467 632 "+
@@ -116,12 +107,9 @@ const farHood:Wax={
     "C447 626 444 621 443 618Z",
   bounds:{x:440,y:605,width:33,height:31},
   colors:["#c89b90","#996e68","#dbafa3"],
-  pressure:.72,spacing:5.7,markStrength:.17,
-  underpaintTooth:.16,opaqueBurnish:.47,
-  underpaintGradient:{
-    light:"#d4a79c",shadow:"#97726a",
-    focusX:.32,focusY:.19,radius:1.03,
-  },
+  pressure:.72,spacing:5.7,markStrength:0.26,
+  blendRadius:3.6,featherContacts:true,
+  nibStyle:"dry",strokeOrder:"patches",markLength:"short",
   outlineOpacity:0,edgeRoughness:.11,
 };
 
@@ -186,7 +174,21 @@ export function crayonF1BuildNasalWaxDepth(
     if(el.id==="nasal-alar-attachment-near")out.push(nearSidewall);
     if(el.id==="nasal-alar-attachment-far")out.push(farSidewall);
     if(el.id==="naris-shadow-near")out.push(columella);
-    out.push(el);
+    if(el.id==="naris-shadow-far"&&el.kind==="wax"){
+      // CC0 far naris is a softly shadowed, inferior-tapered recess, NOT
+      // the symmetric V17 vertical ellipse. Retain its native wax fill.
+      out.push({...el,
+        d:"M450 635 C447 630 447 625 450 619 "+
+          "C453 614 458 613 461 616 "+
+          "C464 620 463 627 460 633 "+
+          "C457 638 454 642 452 642 "+
+          "C452 639 452 637 450 635Z",
+        bounds:{x:444,y:610,width:24,height:37},
+        colors:["#7b514b","#4e3235","#a4756b"],
+        underpaintGradient:{light:"#94675e",shadow:"#38262a",
+          focusX:.32,focusY:.29,radius:.94},
+      });
+    }else out.push(el);
     if(el.id==="naris-shadow-near")out.push(nearHood,nearContact);
     if(el.id==="naris-shadow-far")out.push(farHood,farContact);
   }
