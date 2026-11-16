@@ -190,8 +190,8 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
           Math.ceil(Math.hypot(region.bounds[2], region.bounds[3]) * 1.6 / layer.spacing) > 320)
         issues.push(at + ".layers[" + j + "]: hatch exceeds the 320-stroke per-pass budget.");
     }
-    if ((region.details?.length ?? 0) > 80 || region.details?.some((trace: PencilTrace) => !validTrace(trace)))
-      issues.push(at + ".details: up to 80 bounded graphite details allowed.");
+    if ((region.details?.length ?? 0) > 96 || region.details?.some((trace: PencilTrace) => !validTrace(trace)))
+      issues.push(at + ".details: up to 96 bounded graphite details allowed.");
   }
   return issues;
 }
