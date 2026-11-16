@@ -590,6 +590,29 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
   await expect(samples.first()).toHaveAttribute("data-km-fidelity-seed","71");
   await expect(samples.last()).toHaveAttribute("data-km-fidelity-seed","71");
   const rounded=await path(1).getAttribute("d");
+  const legacyBank=samples.first().locator("[data-km-fuchun-near-bank]");
+  const sourceBank=samples.last().locator("[data-km-fuchun-near-bank]");
+  // Both live SVGs use the same seed and frame, but only the opt-in
+  // reconstruction has four attached positive relief folds and their
+  // individually rooted 28 dry-brush fibres / 12 deposited moss marks.
+  await expect(legacyBank).toHaveCount(0);
+  await expect(sourceBank).toHaveCount(4);
+  await expect(samples.last().locator("[data-km-fuchun-near-hemp]"))
+    .toHaveCount(28);
+  await expect(samples.last().locator("[data-km-fuchun-near-deposit]"))
+    .toHaveCount(12);
+  await expect(samples.first().locator("[data-km-fuchun-near-hemp]"))
+    .toHaveCount(0);
+  for(const [i,bank] of (await sourceBank.evaluateAll(nodes=>
+    nodes.map(el=>({
+      order:el.getAttribute("data-km-fuchun-near-bank-order"),
+      source:el.getAttribute("data-km-fuchun-near-bank-source"),
+      contour:el.getAttribute("data-km-fuchun-near-bank-contour"),
+    })))).entries()){
+    expect(bank.order).toBe(String(i));
+    expect(bank.contour).toContain(" C");
+    expect(bank.source).toContain(";");
+  }
   expect(await path(0).getAttribute("d")).toBe(nativeOriginal);
   expect(rounded).not.toBe(nativeOriginal);
   expect((rounded?.match(/L /g)??[]).length).toBe(164);
