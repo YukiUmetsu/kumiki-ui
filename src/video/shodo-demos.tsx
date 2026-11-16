@@ -148,15 +148,18 @@ export interface ShodoKanjiCardProps extends KanjiCardContent {
   strokeNumbers?: boolean;
   /**
    * Timed highlights of the useful words, one word at a time, in seconds from the start of the
-   * video (see `wordHighlightAt`). A highlighted word card shows also before the card text is
+   * video (see `wordHighlightAt`). "each" highlights every word in turn, spread over the video
+   * (see `spreadWordHighlights`). A highlighted word card shows also before the card text is
    * revealed (`cardFrom`). Default: none.
    */
-  wordHighlights?: readonly KanjiWordHighlight[];
+  wordHighlights?: readonly KanjiWordHighlight[] | "each";
   /**
    * Highlight without scale or lift (fade only). Default: the viewer's prefers-reduced-motion
    * setting. Give true or false for a video export, so that every export is the same.
    */
   reducedMotion?: boolean;
+  /** An extra credit line under the stroke-data credit, for example for the source of the card data. */
+  dataCredit?: string;
 }
 
 const MICHI_WORDS: readonly KanjiCardWord[] = [
@@ -186,6 +189,28 @@ export function resolveKanjiCardContent(char: string, props: KanjiCardContent): 
     meanings: pick("meanings"), onyomi: pick("onyomi"), kunyomi: pick("kunyomi"), jlpt: pick("jlpt"),
     words: pick("words"), vermilionStrokes: pick("vermilionStrokes"),
   };
+}
+
+/**
+ * Fills the card fields that the host left unset from `data` (for example a kanji dataset).
+ * A field is unset when it is undefined or empty, or when a text or the words are still the
+ * 道 sample. Fields that the host set win, and `jlpt: null` (no badge) also wins. `filled`
+ * tells whether any field came from `data`.
+ */
+export function fillKanjiCardContent(typed: KanjiCardContent, data: KanjiCardContent | undefined): { content: KanjiCardContent; filled: boolean } {
+  if (!data) return { content: typed, filled: false };
+  const sample = KANJI_CARD_SAMPLES["道"] ?? {};
+  let filled = false;
+  const pick = <K extends "meanings" | "onyomi" | "kunyomi" | "jlpt" | "words">(key: K): KanjiCardContent[K] => {
+    const value = typed[key];
+    const unset = value === undefined || value === "" || (Array.isArray(value) && value.length === 0)
+      || (key !== "jlpt" && JSON.stringify(value) === JSON.stringify(sample[key]));
+    if (!unset || data[key] === undefined) return value;
+    filled = true;
+    return data[key];
+  };
+  const content = { ...typed, meanings: pick("meanings"), onyomi: pick("onyomi"), kunyomi: pick("kunyomi"), jlpt: pick("jlpt"), words: pick("words") };
+  return { content, filled };
 }
 
 export interface KanjiCardTimeline {
@@ -265,6 +290,17 @@ export function wordHighlightAt(
  * optional "+hold" in seconds. Commas, semicolons and new lines separate the cues. A cue
  * that does not match the pattern is ignored.
  */
+/**
+ * A demo cue list: each of `count` words in turn over a video of `seconds`. The first word starts
+ * at 20 % and the last at 80 % of the video, evenly spaced; each one holds for 2.5 s, or until
+ * the next one if that is sooner.
+ */
+export function spreadWordHighlights(count: number, seconds: number): KanjiWordHighlight[] {
+  if (!(count > 0) || !(seconds > 0)) return [];
+  const gap = count > 1 ? seconds * .6 / (count - 1) : 0;
+  return Array.from({ length: count }, (_, word) => ({ word, at: Math.round((seconds * .2 + gap * word) * 100) / 100, hold: Math.min(KANJI_WORD_HOLD, gap || KANJI_WORD_HOLD) }));
+}
+
 export function parseWordHighlights(text: string): KanjiWordHighlight[] {
   const out: KanjiWordHighlight[] = [];
   for (const part of text.split(/[,;\n]+/)) {
@@ -474,7 +510,8 @@ export function ShodoKanjiInfoCard({
           {kunyomi ? <><dt style={term}>KUN&apos;YOMI</dt><dd style={{ margin: 0 }}>{kunyomi}</dd></> : null}
         </dl> : null}
         {level ? <span data-km-jlpt={level} style={{
-          display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", font: `700 ${fs(t.badge)}/1 ${KANJI_DISPLAY}`, letterSpacing: ".06em",
+          // When long readings push the badge to its own row, it stays at the right.
+          marginLeft: "auto", display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", font: `700 ${fs(t.badge)}/1 ${KANJI_DISPLAY}`, letterSpacing: ".06em",
           color: KANJI_SHU, border: `max(1px, ${cq(2)}) solid ${KANJI_SHU}`, borderRadius: ".3em", padding: ".42em .8em",
         }}>JLPT {level}</span> : null}
       </div> : null}
@@ -537,7 +574,7 @@ const KANJI_PHASE_TEXT: Record<KanjiCardPhase, string> = {
  */
 export function ShodoKanjiCard({
   char = "道", heading = "Kanji study", layout = "landscape", timing, sections, cardFrom = "write", ink = "sumi",
-  speed = KANJI_CARD_SPEED, strokeNumbers = true, wordHighlights, reducedMotion, ...data
+  speed = KANJI_CARD_SPEED, strokeNumbers = true, wordHighlights, reducedMotion, dataCredit, ...data
 }: ShodoKanjiCardProps) {
   const prefersReduced = usePrefersReducedMotion();
   const content = resolveKanjiCardContent(char, data);
@@ -577,7 +614,9 @@ export function ShodoKanjiCard({
   const pct = (v: number, of: number) => `${(v / of * 100).toFixed(3)}%`;
   const portrait = layout === "portrait";
   // Word highlights run on the video clock (frame / fps), so every frame renders the same way.
-  const highlight = wordHighlightAt(wordHighlights ?? [], Math.min(frame, last) / SHODO_FPS, { count: show.words ? content.words?.length ?? 0 : 0 });
+  const wordCount = show.words ? content.words?.length ?? 0 : 0;
+  const cues = wordHighlights === "each" ? spreadWordHighlights(wordCount, timeline.frames / SHODO_FPS) : wordHighlights ?? [];
+  const highlight = wordHighlightAt(cues, Math.min(frame, last) / SHODO_FPS, { count: wordCount });
   return <div style={page}>
     <div data-km-kanji-card={layout} data-km-kanji-phase={at.phase} data-km-ink-box={inkBox} data-km-design={`${g.width}x${g.height}`}
       data-km-word-highlight={highlight.word === null ? "" : `${highlight.word} ${highlight.strength.toFixed(3)}`}
@@ -602,6 +641,7 @@ export function ShodoKanjiCard({
       {KANJI_PHASE_TEXT[at.phase]}{at.phase === "review" && strokeNumbers ? ", with the order number of each stroke" : ""}
     </div>
     {glyph.source === "kanjivg" ? <p style={{ margin: 0, fontSize: 12.5 }}>{SHODO_KANJIVG_CREDIT}.</p> : null}
+    {dataCredit ? <p style={{ margin: 0, fontSize: 12.5 }}>{dataCredit}</p> : null}
   </div>;
 }
 

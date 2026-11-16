@@ -124,12 +124,19 @@ The ink of the character is centred in the writing panel, not in the full frame.
 
 **Layout of the 9:16 card.** The readings stand side by side, with the JLPT badge on the same row. The useful words are tiles in one row (up to 3; 4 words make a 2 × 2 grid). Each tile has the word with its furigana, then the romaji and the meaning.
 
-**Storybook controls.** Both kanji-card stories have controls for every setting: the character, the card data (empty fields use the 道 sample), the speed, the phase times, the layout, the sections, the ink, one highlighted stroke, the stroke numbers, the word highlights and the highlight motion.
+**Storybook controls.** Both kanji-card stories have controls for every setting: the character, the card data, the speed, the phase times, the layout, the sections, the ink, one highlighted stroke, the stroke numbers, the word highlights and the highlight motion.
+
+**Local kanji data (stories only).** On the owner's machine, the stories fill the card from `local-assets/shodo-teachers/kanji-cards/jlpt-n5-n3.json`. Storybook serves this file as `/shodo-teachers/kanji-cards/jlpt-n5-n3.json`. It has study-card data for the 612 JLPT N5–N3 kanji, and it is never committed.
+- `useKanjiCardDataset` in `src/video/shodo-studio.tsx` (beside `useShodoTeachers`) loads the file once per page. `readKanjiCardDataset` reads it and leaves out entries and fields of the wrong type.
+- When the `char` control holds a kanji from the file, `fillKanjiCardContent` fills each empty card field (meanings, on'yomi, kun'yomi, JLPT, words) from the kanji's `card`. A field that still holds the 道 sample counts as empty. A value typed in the controls wins, and the JLPT option "none" also wins.
+- When a card shows data from the file, the footer adds the line "Kanji data: KANJIDIC2 and JMdict, © EDRDG, CC BY-SA 4.0. JLPT levels and vocabulary: Jonathan Waller's JLPT resources, CC BY." under the KanjiVG line (`dataCredit`).
+- Without the file (on every other machine), the stories behave as before: only 道 has sample data.
 
 ### Word highlights
 
 `wordHighlights` highlights the useful word cards one at a time, for example while a voice-over says each word.
 
+- **"each".** `wordHighlights: "each"` highlights every word in turn: the first at 20 % and the last at 80 % of the video, evenly spaced, each for 2.5 s or until the next cue (`spreadWordHighlights`). This works for any kanji and any video length. It is the default of both kanji-card stories; a kanji with two words gets two highlights.
 - **Cue format.** One cue is `{ word, at, hold? }`:
   - `word` is the index in `words`, from 0.
   - `at` is in seconds from the start of the video. This is the clock of the frame readout (frame / 30).
