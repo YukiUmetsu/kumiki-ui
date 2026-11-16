@@ -1657,7 +1657,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(arches.filter(n=>n>10).length).toBeGreaterThanOrEqual(6);
     expect(new Set(arches).size).toBeGreaterThan(8);
     arms.forEach(([,root,station,d,reach],k)=>{
-      const points=(d.match(/-?\\d+(?:\\.\\d+)?/g)??[]).map(Number);
+      const points=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
       expect(points).toHaveLength(6);
       const xy=root.split(",").map(Number);
       expect(Math.hypot(points[0]-xy[0],points[1]-xy[1]))
