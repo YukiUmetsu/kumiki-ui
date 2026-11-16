@@ -331,6 +331,24 @@ test("four distinct historical ink schools paint separate real rooted rock struc
     // Fuchun's four fracture gestures now actually follow a parent
     // painted bank with three direction-changing curved sections, while
     // all twelve source reloads and eight attached twigs are retained.
+    const hillWashes=card.locator("[data-km-rock-hero-hill-wash]");
+    const hillFibres=card.locator("[data-km-rock-hero-hill-fibre]");
+    await expect(hillWashes).toHaveCount(school==="fuchun"?3:0);
+    await expect(hillFibres).toHaveCount(school==="fuchun"?12:0);
+    if(school==="fuchun"){
+      const roots=await hillWashes.evaluateAll(nodes=>nodes.map(node=>{
+        const r=node.getAttribute("data-km-rock-hero-hill-wash-root")??"";
+        const d=node.getAttribute("d")??"";
+        const id=node.getAttribute("fill")??"";
+        return {r,attached:d.startsWith("M"+r.replace(","," ")),
+          closed:d.endsWith(" Z"),gradient:id.startsWith("url(#")};
+      }));
+      expect(roots.every(x=>x.attached&&x.closed&&x.gradient)).toBe(true);
+      expect(new Set(roots.map(x=>x.r)).size).toBe(3);
+      const p=await hillFibres.evaluateAll(nodes=>nodes.map(node=>
+        node.getAttribute("data-km-rock-hero-hill-fibre-parent")));
+      expect(p).toEqual(["0","0","0","0","0","1","1","1","1","2","2","2"]);
+    }
     const heroCourses=card.locator('[data-km-rock-hero-rib-course="folded-3"]');
     await expect(heroCourses).toHaveCount(school==="fuchun"?4:0);
     if(school==="fuchun"){
