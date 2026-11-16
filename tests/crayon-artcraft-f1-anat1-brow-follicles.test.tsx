@@ -92,7 +92,12 @@ describe("ArtCraft F1 V37 ANAT1 photographic near brow rooted-wax microfilaments
       expect(e.waxContact).toBe("dry-wax");
       expect(e.parentId).toBe("face-outline");
       expect(e.clipToParent).toBe(true);
-      expect(e.width).toBeLessThan(.5);
+      // V37 first rendered revision deposited square 3× wax chips.
+      // Fine native filaments must remain physically narrow/soft rather
+      // than ever repeating that cartoon-like thick terminal contact.
+      expect(e.width).toBeLessThanOrEqual(.24);
+      expect(e.opacity).toBeLessThanOrEqual(.6);
+      expect(e.waxPressure).toBeLessThanOrEqual(.42);
       expect(e.timing.end).toBe(299);
     }
     for(const id of ["source-brow-fibers-far","source-brow-wax-far",
