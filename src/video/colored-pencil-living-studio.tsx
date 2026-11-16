@@ -6,7 +6,7 @@ import type { PencilLivingStudy } from "./colored-pencil-living-studies";
 import { newCharacterHeadInspectionAnchors } from "./colored-pencil-first-character";
 
 const descriptive:Record<PencilLivingStudy,{title:string; subtitle:string; material:string; anchor:readonly[number,number]}> = {
-  portrait:{title:"HUMAN #01 · HEAD STUDY",subtitle:"Stage 1: fresh cranial contour · no facial features yet",
+  portrait:{title:"HEAD STUDY · 01",subtitle:"Stage 1: fresh cranial contour · no facial features yet",
     material:"DRY PENCIL / ANAT1 BLOCKOUT",anchor:[224,227]},
   fox:{title:"RED FOX AT REST",subtitle:"Direction of fur · layered ruff · bright eyes",
     material:"FUR / EYE / EAR",anchor:[232,194]},

@@ -69,6 +69,77 @@ function newHeadValuePencil(
   });
 }
 
+/** Stage 1-only head value fields. Pencil touches follow the cranial turn,
+ * temporal recession, zygomatic wedge and mandibular fold. Unlike an
+ * all-head Cartesian hatch these marks have independent local growth angles
+ * and widths; their ellipse boundaries feather by tip pressure, while the
+ * actual (unmodified) silhouette owns the SVG clipping. No eyes, nose,
+ * hair, ears or feature stickers are drawn.
+ *
+ * Each field is split into bounded editable traces: no image underlay, canvas
+ * photograph, flat gradient, displacement filter or global screen grain.
+ */
+function newHeadPlanePigment(
+  bounds:readonly [number,number,number,number],
+  seed:number,
+):PencilTrace[]{
+  const [x0,y0,w,h]=bounds;
+  const planes=[
+    {id:"cranial",center:[.49,.26],radii:[.44,.27],skew:-.08,
+      heading:.13,turn:.32,colors:["#937A7D","#CEA596","#E6CAB0"],
+      load:.87},
+    {id:"temporal",center:[.20,.43],radii:[.25,.35],skew:.16,
+      heading:-.93,turn:.26,colors:["#775E69","#B38D82","#CFAD99"],
+      load:1.00},
+    {id:"far-temple",center:[.82,.46],radii:[.18,.30],skew:-.10,
+      heading:1.03,turn:-.34,colors:["#8C7376","#C59B87","#E3BFA6"],
+      load:.74},
+    {id:"malar",center:[.35,.68],radii:[.29,.21],skew:-.30,
+      heading:.25,turn:.62,colors:["#9C7374","#D3A28D","#ECC5A6"],
+      load:.94},
+  ] as const;
+  const traces:PencilTrace[]=[];
+  planes.forEach((plane,part)=>{
+    const cx=x0+w*plane.center[0],cy=y0+h*plane.center[1];
+    const rx=w*plane.radii[0],ry=h*plane.radii[1];
+    const cs=Math.cos(plane.skew),sn=Math.sin(plane.skew);
+    for(let layer=0;layer<3;layer++)for(let group=0;group<3;group++){
+      const strokes:string[]=[];
+      for(let i=0;i<150;i++){
+        const key=part*79031+layer*12947+group*313+i;
+        const theta=2*Math.PI*pencilHash(seed,key,71);
+        const radial=Math.sqrt(pencilHash(seed,key,72))*.98;
+        const ux=radial*Math.cos(theta),uy=radial*Math.sin(theta);
+        // A dense soft middle feathers outward without stamped ellipse edges.
+        const fade=Math.pow(1-radial*radial,.62);
+        if(pencilHash(seed,key,73)>.59+.41*fade)continue;
+        const localX=ux*rx,localY=uy*ry;
+        const x=cx+localX*cs-localY*sn;
+        const y=cy+localX*sn+localY*cs;
+        const heading=plane.heading+plane.turn*uy+.23*ux+
+          (pencilHash(seed,key,74)-.5)*.26;
+        const len=(2.7+5.7*pencilHash(seed,key,75))*
+          (.32+.68*fade)*(layer===2?.75:1);
+        const vx=Math.cos(heading),vy=Math.sin(heading);
+        const ox=-vy,oy=vx;
+        const bow=(pencilHash(seed,key,76)-.5)*.74*fade;
+        strokes.push(line([x-vx*len*.46,y-vy*len*.46],
+          [x+ox*bow,y+oy*bow],
+          [x+vx*len*.54+ox*bow*.22,
+            y+vy*len*.54+oy*bow*.22]));
+      }
+      traces.push(drawn(
+        "newhead-plane-"+plane.id+"-"+layer+"-"+group,
+        strokes.join(" "),plane.colors[layer],
+        [.43,.34,.27][layer],
+        [.40,.34,.29][layer]*plane.load,
+        162+layer*22+part*4+group*3,
+      ));
+    }
+  });
+  return traces;
+}
+
 export const NEW_CHARACTER_01_ID="head-silhouette-01" as const;
 export const NEW_CHARACTER_01_STAGE="head-outline" as const;
 
@@ -143,11 +214,11 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
   const vault:Point[]=[
     [r(left[0]-faceWidth*.04),r(faceTop+faceWidth*.055)],
     [r(lo-faceWidth*.05),r(faceTop-faceWidth*.075)],
-    [r(lo+faceWidth*.08),r(faceTop-faceWidth*.22)],
-    [r(lo+faceWidth*.27),r(faceTop-faceWidth*.34)],
-    [r(lo+faceWidth*.52),r(faceTop-faceWidth*.37)],
-    [r(hi-faceWidth*.14),r(faceTop-faceWidth*.30)],
-    [r(hi+faceWidth*.03),r(faceTop-faceWidth*.11)],
+    [r(lo+faceWidth*.02),r(faceTop-faceWidth*.205)],
+    [r(lo+faceWidth*.205),r(faceTop-faceWidth*.315)],
+    [r(lo+faceWidth*.415),r(faceTop-faceWidth*.365)],
+    [r(lo+faceWidth*.665),r(faceTop-faceWidth*.295)],
+    [r(hi+faceWidth*.015),r(faceTop-faceWidth*.135)],
     [r(right[0]+faceWidth*.025),r(faceTop+faceWidth*.055)],
   ];
   const perimeter=[...lower,...vault];
@@ -175,6 +246,7 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
     id:NEW_CHARACTER_01_ID,material:"glaze",palette,path:contour,
     bounds,direction:64,flow:11,start:73,
     details:[
+      ...newHeadPlanePigment(bounds,(seed+1831)%2147483647),
       ...newHeadValuePencil(guides,(seed+1001)%2147483647),
       drawn("newhead-sagittal-guide",line(forehead,glabella,chin),
         "#90777C",.32,.31,103),

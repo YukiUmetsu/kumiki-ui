@@ -69,7 +69,7 @@ test("new human head has no fictitious facial-detail controls; fox keeps its mac
   await expect(part).toHaveCount(0);
   await expect(drawing.locator('[data-km-pencil-region="head-silhouette-01"]')).toHaveCount(1);
   await page.getByRole("checkbox",{name:"Living inspect macro"}).check();
-  await expect(drawing).toHaveAttribute("style",/scale\\(2\\.4\\)/);
+  await expect(drawing).toHaveAttribute("style",/scale\(2\.4\)/);
   await drawing.locator("xpath=..").screenshot({animations:"disabled",
     path:info.outputPath("artcraft-newhead-construction-only.png")});
   await page.getByRole("checkbox",{name:"Living inspect macro"}).uncheck();
@@ -103,7 +103,7 @@ test("the new-head-only story has no retired woman's diagnostic coordinates",asy
   await expect(anchors.locator("circle")).toHaveCount(9);
   await expect(page.locator('[data-km-portrait-landmark-index] li')).toHaveCount(9);
   await expect(page.locator('[data-km-portrait-landmark-index]')).not.toContainText("hairline");
-  const title=draw.getByText("HUMAN #01 · HEAD STUDY",{exact:true});
+  const title=draw.getByText("HEAD STUDY · 01",{exact:true});
   await expect(title).toBeVisible();
   const right=await title.evaluate(el=>{
     const rect=(el as SVGGraphicsElement).getBBox();

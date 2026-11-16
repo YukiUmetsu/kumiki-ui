@@ -75,7 +75,20 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(one).toHaveLength(1);
     const head=one[0];
     expect(head.material).toBe("glaze");
-    expect(head.details?.length).toBe(8);
+    expect(head.details?.length).toBe(44);
+    const fields=head.details!.filter(t=>t.id?.startsWith("newhead-plane-"));
+    expect(fields).toHaveLength(36);
+    expect(new Set(fields.map(t=>t.id)).size).toBe(36);
+    for(const t of fields){
+      expect(t.path).not.toMatch(/NaN|Infinity/);
+      expect(t.path.length).toBeLessThan(12000);
+      expect(t.path.match(/M/g)?.length).toBeGreaterThan(65);
+      expect(t.path.match(/ Q/g)?.length).toBeGreaterThan(65);
+      expect(t.width).toBeLessThan(.6);
+      expect(t.opacity).toBeGreaterThan(.15);
+      expect(t.opacity).toBeLessThan(.55);
+    }
+
     for(let layer=0;layer<3;layer++){
       const t=head.details!.find(x=>x.id==="newhead-value-"+layer);
       expect(t).toBeDefined();
@@ -116,7 +129,6 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     // A staged, new head contains no photometric face patch or original
     // woman's opaque skin. Diagnostics are the exact same ANAT1 projection.
     expect(head.material).toBe("glaze");
-    expect(anchors.every(x=>x.id!=="hairline")).toBe(true);
   });
 
   it("keeps the brand-new character head in the original CP-F1 renderer with no previous woman's geometry or bitmap art",()=>{

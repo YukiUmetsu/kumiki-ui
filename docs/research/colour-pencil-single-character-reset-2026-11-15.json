@@ -1,5 +1,5 @@
 {
-  "schema_version": 5,
+  "schema_version": 6,
   "project": "kumiki-ui / CP-F1 new single character #01",
   "subject_type": "human",
   "status": "stage_1_outline_only_unapproved",
@@ -39,6 +39,20 @@
       "type": "project internal measured/model-sourced anatomy",
       "rights": "canonical MediaPipe 468-point face mask, Apache 2.0 source as described in registry",
       "observation": "Use exact 36 vertex oval-loop anchor indices and three-dimensional cheekbone, gonion, menton and forehead positions with a new camera; face mesh is a mask missing full scalp/ears and is not a complete head."
+    },
+    {
+      "title": "Met Museum, Head of a Young Man in Three-Quarter View (MET DP132692)",
+      "url": "https://commons.wikimedia.org/wiki/File:Head_of_a_Young_Man_in_Three-Quarter_View._MET_DP132692.jpg",
+      "type": "historical drawing / form and directional hatch study",
+      "rights": "CC0, museum image; technique reference only and no copied contour/pixels",
+      "observation": "The skull dome falls from a peaked fronto-parietal turn into a recessed temporal side; cheek and jaw must be read through separate local value/pressure zones rather than one uniformly hatched face."
+    },
+    {
+      "title": "Human Skull portrait.jpg, Circa24",
+      "url": "https://commons.wikimedia.org/wiki/File:Human_Skull_portrait.jpg",
+      "type": "three-quarter skull photographic anatomic study",
+      "rights": "Commons source license to be checked before any pixel reuse; study/reference URL only",
+      "observation": "Parietal cranial mass has different curvature from cheek and mandible; continuous skull silhouette is not the facial mask oval."
     }
   ],
   "character_spec": {
@@ -95,9 +109,13 @@
       "newhead-zygomatic-guides",
       "newhead-mandibular-hinge",
       "newhead-orbital-placement-only",
-      "newhead-cranial-vault-turn"
+      "newhead-cranial-vault-turn",
+      "newhead-plane-cranial-0..2-0..2",
+      "newhead-plane-temporal-0..2-0..2",
+      "newhead-plane-far-temple-0..2-0..2",
+      "newhead-plane-malar-0..2-0..2"
     ],
-    "geometry": "One completely new 3D face-mask lower jaw/temple chain plus eight separately authored frontal/parietal vault anchors: head outline only, not filled dermis. 3 independent transparent dry-pencil optical passes with 342 small construction contacts and five measured guide marks, no eyes, nose, mouth, hair, ear or former female geometry.",
+    "geometry": "One completely new 3D face-mask lower jaw/temple chain plus eight separately authored frontal/parietal vault anchors: head outline only, not filled dermis. 3 independent transparent dry-pencil optical passes with 342 small construction contacts and five measured guide marks, no eyes, nose, mouth, hair, ear or former female geometry. Added 36 named local volume traces (4 cranial/temporal/cheek value fields × 3 colours × 3 cohorts), each composed of many pressure-attenuated curved strokes, plus asymmetric gently peaked cranial arch.",
     "camera_aspects": [
       "16:9",
       "9:16"
@@ -112,12 +130,12 @@
     "vector_flow": "3 curved local pressure fans run from forehead through zygomatic bones to jaw; no global diagonal identical strokes",
     "weight": "Stage 1 outline now intentionally .82 paper units / .56 opacity sepia in the existing CP-F1 renderer, paired with optical stipple; no solid skin support or opaque salmon wax.",
     "rhythm": "3 × 114 short strokes follow three bony guides with deterministic irregular offsets, not wallpaper",
-    "texture": "Previous 1× native frame had uniform diagonal hatch lattice, not authentic pencil drawing. New candidate replaces universal hatch/fiber pattern in this ONE glaze with pressure-bounded paper-tooth stipple contacts; three independently authored curved construction fans remain. No claim of photorealism or release without current-head screenshot."
+    "texture": "36 additional bounded, separately editable 3-colour LOCAL pencil pigment traces, 4 cranial/temporal/zygomatic fields with softened tips and source-guided vector flow; no whole-head lattice, pixel filters or pseudo-photo texture. Realistic-art approval still requires fresh native screenshot."
   },
   "gates": {
     "source_match": "BLOCKED: anatomy construction source is general, no matched human identity/body pose photograph was supplied.",
     "head_silhouette": "First original face-mask candidate REJECTED for flat forehead, second corrected cranial-vault silhouette candidate REJECTED as solid salmon wax face. Latest candidate keeps cranial vault but changes only the new head region from filled skin to transparent dry-pencil glaze; native 960px/2.15x inspection required. The old 18-point overlay and fictional eyes/nose/mouth construction selectors have since been removed from the new-human Storybook. This is a provenance/diagnostic correction, not an art approval.",
-    "quality": "HOLD: full human drawing is unapproved/incomplete. Prior native 960×540 screenshot of head-only candidate showed box-like expanded skull top, chin shield and a repeated lattice of long diagonal hatches; failed ArtCraft visual gate even though source geometry and CP-F1 schema were valid. Latest source now changes head-only material from broad grid to low-pressure stippled tooth with stronger authentic contour, but new native render has not been reviewed.",
+    "quality": "HOLD: CI head 3a0fef9 foundation browser passed; native 960x540 pencil-foundation-portrait-landscape.png was inspected and remains too empty/diagrammatic despite removal of plaid hatches. The next candidate adds curved local volume deposits and softer vault to reveal mass. Typecheck and fibre proof failed on stale test assumptions and overlapping Storybook title, not native rendering. All fixes must pass exact-head CI before promotion.",
     "automated": "Changed-contracts + native Playwright revisions are committed to the same open draft PR. Corrected CP-F1 assumption that all materials have opaque craft base, and Living Atelier selectors that still expected the deleted former face. Unit assertions check 9 new-head guides lie within the actual head bounds. Re-run CI on exact head; results not yet confirmed at the time of this edit."
   },
   "next_step": "Only after native Stage 1 art review: complete head/cranium silhouette including rear skull and ear bases, then render a SINGLE isolated eye. Do not generate another full character or return to the old woman.",
@@ -151,6 +169,14 @@
       "decision": "REJECT — NOT MUSEUM QUALITY",
       "cause": "The compatibility glaze inherits generic full-region global hatching, especially three crossed angles, plus near invisible .09 contour opacity. This defeats the separately authored value-guide marks and makes the new ANAT1 silhouette read as flat painted paper.",
       "correction": "For new head ONLY set 3 optical layers to fine paper-tooth stipple with pressures below .3, preserve all 342 curved bone-aligned gestures, and use .82-unit warm sepia outline at .56 opacity. Review full native image again. Next actual form correction: independent rights-verified 3/4 head source and measured posterior vault, frontal arc/temple, zygoma/gonion and chin silhouettes; source-traced paint or old woman re-use prohibited."
+    },
+    {
+      "candidate": "native Stage 1 head after global-hatch removal",
+      "workflow": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43800596379",
+      "artifact": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43800596379/artifacts/14196113459",
+      "observed": "Actual 960×540 drawing now preserves dry-paper reserves and distinct head outline, but has no convincing volume: large empty cap and cheeks, almost invisible bony planes, and an overly straight elongated temporal wall; source comparison rejects artistic realism.",
+      "decision": "REJECT; NEW LOCAL VALUE PASS EXPERIMENT",
+      "correction": "Preserve exact head contour and all 342 original pressure strokes. Add four anatomy-aligned, soft-edged, pressure-tapered local pigment fields with 36 bounded editable trace groups (cranial, temporal, far-temple, malar), revise the 8-anchor dome curve, and retain the one-character head-only stop gate. Independently visually review native 1×/2.15× after CI."
     }
   ]
 }
