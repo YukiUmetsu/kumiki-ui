@@ -143,7 +143,7 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
 });
 
 
-test("ArtCraft fox brush, orbital slit and human nape are inspectable from anatomy in both aspects",async({page},info)=>{
+test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect actual drawing in both aspects",async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
   const scene=page.locator("[data-km-foundation-studio]");
   const svg=page.locator("svg[data-km-colored-pencil]");
@@ -159,6 +159,8 @@ test("ArtCraft fox brush, orbital slit and human nape are inspectable from anato
       ["fox","fox-tail","tail-back"],
       ["fox","fox-eye","eye-near"],
       ["fox","fox-chest","chest"],
+      ["fox","fox-forepaw","foreleg-right"],
+      ["fox","fox-hock","rear-leg"],
       ["portrait","portrait-nape","neck"],
     ] as const){
       await subject.selectOption(specimen);
@@ -210,6 +212,35 @@ test("ArtCraft fox brush, orbital slit and human nape are inspectable from anato
         expect(topology.tarsus).toBe(true);
         expect(topology.pupil).toBe(true);
         expect(topology.material).toBe("eye-near");
+      }
+      if(focus==="fox-hock"||focus==="fox-forepaw"){
+        const pose=await svg.evaluate((root,partId)=>{
+          const region=root.querySelector('[data-km-pencil-region="'+partId+'"]')!;
+          const base=region.querySelector("[data-km-pencil-support]")!;
+          const trace=(name:string)=>Boolean(region.querySelector(
+            '[data-km-pencil-trace="'+name+'"]'));
+          const ctx=document.createElement("canvas").getContext("2d")!;
+          const partPath=new Path2D(base.getAttribute("d")!);
+          const hock=partId==="rear-leg";
+          const body=root.querySelector(
+            '[data-km-pencil-region="body"] [data-km-pencil-support]')!;
+          return {
+            hasBentHock:hock?trace("hind-hock-plane"):trace("near-antebrachial-plane"),
+            digitDetail:hock?trace("hind-digit-folds"):trace("toe-furrows"),
+            clawDetail:hock?trace("hind-tiny-claws"):trace("claw-tips"),
+            insideFoot:ctx.isPointInPath(partPath,hock?355:281,hock?400:400),
+            // The hind hock passes beneath the rendered rump: two real,
+            // independently editable pigment regions overlap in world space.
+            joinedBody:hock?ctx.isPointInPath(
+              new Path2D(body.getAttribute("d")!),330,347)&&
+              ctx.isPointInPath(partPath,330,347):true,
+          };
+        },part);
+        expect(pose.hasBentHock).toBe(true);
+        expect(pose.digitDetail).toBe(true);
+        expect(pose.clawDetail).toBe(true);
+        expect(pose.insideFoot).toBe(true);
+        expect(pose.joinedBody).toBe(true);
       }
       expect(await svg.locator("image,foreignObject,feImage").count()).toBe(0);
       await target.selectOption("default");
