@@ -61,7 +61,7 @@ describe("RISO17 source-driven anatomical grip occlusion",()=>{
     }
   });
 
-  it("orders existing full humans, actual opaque sheet, then finger and thumb prints",()=>{
+  it("orders existing full humans, actual opaque sheet, then index-only moving prints",()=>{
     const html=renderToStaticMarkup(createElement(RisoHumanEnsembleStudio));
     // Previous RISO17 two-front-grip pose is still the default Storybook frame,
     // even though the new RISO18 scene subsequently transfers ownership.
@@ -76,14 +76,16 @@ describe("RISO17 source-driven anatomical grip occlusion",()=>{
     expect(html).toContain('data-km-riso-foreground-layer="courier-grip"');
     expect(html).toContain('data-km-riso-foreground-layer="artist-grip"');
     expect(html).toContain('data-km-riso-human-ensemble-sheet=');
-    // White paper clearance follows every CLOSED red digit segment, not
-    // blue engraving: 5 proximal roots + 8 PIP/DIP + 1 thumb distal.
-    // This is a purposeful RISO31/32 physical topology change.
+    // RISO43 physical paper sandwich: all 14 original red finger/thumb
+    // sources still print in the FIRST actor pass beneath the opaque page;
+    // only the THREE red INDEX source phalanges overwrite in front.
     for(const name of ["courier-grip","artist-grip"]){
       const layer=html.match(new RegExp('<g data-km-riso-grip-occlusion="'+name+'">([\\s\\S]*?)<\\/g>'))?.[1]??"";
       const side=name==="courier-grip"?"right":"left";
-      expect((layer.match(/data-km-riso-knockout-part=/g)||[]).length).toBe(5+8+1);
-      expect(layer).toContain('data-km-riso-knockout-part="'+side+'-glove-thumb-distal-phalanx"');
+      expect((layer.match(/data-km-riso-knockout-part=/g)||[]).length).toBe(3);
+      expect(layer).not.toContain('data-km-riso-knockout-part="'+side+'-glove-thumb-distal-phalanx"');
+      expect(layer).toContain('data-km-riso-knockout-part="'+side+'-glove-index"');
+      expect(layer).toContain('data-km-riso-knockout-part="'+side+'-glove-index-middle-phalanx"');
       expect(layer).toContain('data-km-riso-knockout-part="'+side+'-glove-index-distal-phalanx"');
       expect(layer).not.toContain("finger-joint-lines");
       expect(layer).not.toContain("glove-detail");
