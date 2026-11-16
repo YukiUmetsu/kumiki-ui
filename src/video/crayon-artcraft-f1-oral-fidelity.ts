@@ -31,18 +31,17 @@ const wax:Readonly<Record<string,Partial<Wax>>>={
     blendRadius:10.5,featherContacts:true,
   },
   "lip-upper-body-wax":{
-    d:"M350 747 C358 726 375 710 391 700 "+
-      "C411 688 427 686 444 692 "+
-      "C458 690 470 695 483 706 "+
-      "C485 711 482 716 479 718 "+
-      "C458 711 439 719 426 726 "+
-      "C403 738 374 750 350 747Z",
-    bounds:{x:345,y:682,width:143,height:72},
-    colors:["#a65f68","#693a43","#d28b88"],
-    pressure:.88,spacing:5.0,markStrength:.21,
+    d:"M365 738 C380 721 397 708 414 703 "+
+      "C427 698 438 699 449 703 "+
+      "C462 704 470 707 477 710 "+
+      "C450 712 429 719 410 728 "+
+      "C392 736 376 740 365 738Z",
+    bounds:{x:362,y:696,width:119,height:48},
+    colors:["#95636b","#663d45","#b67f81"],
+    pressure:.78,spacing:5.4,markStrength:.20,
     underpaintTooth:.18,opaqueBurnish:.61,
     underpaintGradient:{
-      light:"#c38283",shadow:"#72424b",focusX:.47,focusY:.29,radius:1.02,
+      light:"#ae7779",shadow:"#6a424a",focusX:.43,focusY:.35,radius:1.06,
     },
     edgeRoughness:.10,outlineOpacity:0,
   },
@@ -53,9 +52,9 @@ const wax:Readonly<Record<string,Partial<Wax>>>={
       "C477 714 462 713 445 717 "+
       "C410 731 376 746 350 746Z",
     bounds:{x:345,y:685,width:143,height:65},
-    colors:["#aa6571","#753e4a","#dc9793"],
-    pressure:.67,spacing:6.6,markStrength:.23,
-    blendRadius:6.5,featherContacts:true,
+    colors:["#a16b74","#704850","#c18c8d"],
+    pressure:.53,spacing:7.0,markStrength:.18,
+    blendRadius:9.1,featherContacts:true,
   },
   "labial-upper-value":{
     d:"M352 744 C367 724 383 709 405 697 "+
@@ -64,9 +63,9 @@ const wax:Readonly<Record<string,Partial<Wax>>>={
       "C464 710 446 715 430 721 "+
       "C407 731 373 745 352 744Z",
     bounds:{x:347,y:687,width:137,height:60},
-    colors:["#955560","#66333d","#c87e80"],
-    pressure:.66,spacing:6.1,markStrength:.19,
-    blendRadius:7.2,featherContacts:true,
+    colors:["#915963","#673f48","#b97d7f"],
+    pressure:.52,spacing:6.4,markStrength:.17,
+    blendRadius:9.2,featherContacts:true,
   },
   "lip-cupid-tubercles":{
     d:"M391 717 C405 706 415 698 424 697 "+
@@ -75,31 +74,31 @@ const wax:Readonly<Record<string,Partial<Wax>>>={
       "C449 707 430 715 410 724 "+
       "C400 727 394 724 391 717Z",
     bounds:{x:386,y:690,width:89,height:39},
-    colors:["#bd7a7c","#8e5961","#dc9c98"],
-    pressure:.35,spacing:7.4,markStrength:.15,blendRadius:8.0,
+    colors:["#b47c7e","#895d64","#cd9693"],
+    pressure:.28,spacing:7.4,markStrength:.12,blendRadius:9.2,
     featherContacts:true,
   },
   "oral-opening":{
-    d:"M351 746 C371 738 396 728 417 724 "+
-      "C440 719 464 714 481 716 "+
-      "C488 721 479 728 465 731 "+
-      "C441 735 408 743 380 751 "+
-      "C361 755 353 752 351 746Z",
+    d:"M351 746 C371 734 395 722 420 718 "+
+      "C445 715 466 714 482 716 "+
+      "C482 722 471 727 455 729 "+
+      "C426 733 401 740 383 748 "+
+      "C361 752 353 753 351 746Z",
     bounds:{x:347,y:710,width:143,height:48},
     colors:["#743f47","#39262d","#956166"],
-    pressure:.67,spacing:5.3,markStrength:.20,
+    pressure:.58,spacing:5.3,markStrength:.18,
     blendRadius:2.6,featherContacts:true,
   },
   "mouth-aperture-depth":{
-    d:"M353 747 C376 738 400 729 421 725 "+
-      "C447 719 464 717 479 718 "+
-      "C484 724 475 726 465 728 "+
-      "C437 733 413 741 386 748 "+
-      "C365 754 356 754 353 747Z",
+    d:"M353 747 C378 735 401 724 424 720 "+
+      "C449 716 467 716 480 719 "+
+      "C482 723 471 727 458 729 "+
+      "C432 733 408 740 384 747 "+
+      "C366 751 355 751 353 747Z",
     bounds:{x:349,y:714,width:135,height:44},
     colors:["#5a3238","#251b23","#74454d"],
     pressure:.91,spacing:4.1,markStrength:.16,
-    underpaintTooth:.08,opaqueBurnish:.91,
+    underpaintTooth:.12,opaqueBurnish:.85,
     underpaintGradient:{
       light:"#6c3f45",shadow:"#24181e",focusX:.45,focusY:.28,radius:.91,
     },
@@ -124,9 +123,10 @@ const wax:Readonly<Record<string,Partial<Wax>>>={
       "C417 726 415 732 410 734 "+
       "C403 735 398 734 397 730Z",
     bounds:{x:394,y:720,width:26,height:18},
-    colors:["#9e8d87","#665a5d","#bcae9f"],
+    colors:["#aaa09b","#7c7270","#c9bcb1"],
     pressure:.74,spacing:5.1,markStrength:.07,
     underpaintTooth:.09,opaqueBurnish:.91,
+    underpaintGradient:{light:"#c3b9af",shadow:"#716564",focusX:.43,focusY:.32,radius:.94},
     edgeRoughness:.05,outlineOpacity:0,
   },
   "dental-surface-center":{
@@ -134,9 +134,10 @@ const wax:Readonly<Record<string,Partial<Wax>>>={
       "C442 719 439 725 434 729 "+
       "C426 732 420 730 415 728Z",
     bounds:{x:412,y:713,width:32,height:22},
-    colors:["#ac9e96","#706566","#c8b7ab"],
+    colors:["#b6a9a1","#857c79","#d0c4b9"],
     pressure:.80,spacing:5.0,markStrength:.08,
     underpaintTooth:.08,opaqueBurnish:.92,
+    underpaintGradient:{light:"#d1c3b7",shadow:"#77706e",focusX:.43,focusY:.31,radius:.91},
     edgeRoughness:.04,outlineOpacity:0,
   },
   "dental-surface-far":{
@@ -144,23 +145,23 @@ const wax:Readonly<Record<string,Partial<Wax>>>={
       "C463 719 457 724 450 725 "+
       "C444 725 440 723 438 718Z",
     bounds:{x:435,y:712,width:29,height:17},
-    colors:["#958982","#62585b","#bdb1a3"],
+    colors:["#aca19a","#776c6a","#cabfb4"],
     pressure:.77,spacing:5.0,markStrength:.07,
     underpaintTooth:.09,opaqueBurnish:.90,
+    underpaintGradient:{light:"#c7bcb3",shadow:"#706666",focusX:.46,focusY:.33,radius:.91},
     edgeRoughness:.06,outlineOpacity:0,
   },
   "lip-lower-body-wax":{
-    d:"M353 749 C375 750 397 744 423 736 "+
-      "C451 728 472 720 483 717 "+
-      "C490 731 480 747 463 757 "+
-      "C437 774 407 779 384 769 "+
-      "C368 763 359 755 353 749Z",
-    bounds:{x:349,y:714,width:143,height:68},
-    colors:["#d09a9a","#926e75","#efb6ae"],
-    pressure:.83,spacing:5.4,markStrength:.22,
+    d:"M370 752 C392 752 412 742 436 736 "+
+      "C452 732 470 725 480 722 "+
+      "C474 736 460 746 443 751 "+
+      "C414 763 390 765 377 756Z",
+    bounds:{x:365,y:719,width:119,height:50},
+    colors:["#cba2a2","#a17d82","#e5bbb3"],
+    pressure:.74,spacing:5.9,markStrength:.18,
     underpaintTooth:.17,opaqueBurnish:.57,
     underpaintGradient:{
-      light:"#e1acac",shadow:"#895c65",focusX:.62,focusY:.72,radius:.95,
+      light:"#ddb1ad",shadow:"#956c72",focusX:.58,focusY:.71,radius:1.03,
     },
     edgeRoughness:.08,outlineOpacity:0,
   },
@@ -171,9 +172,9 @@ const wax:Readonly<Record<string,Partial<Wax>>>={
       "C436 771 404 779 382 767 "+
       "C366 759 361 754 355 748Z",
     bounds:{x:350,y:713,width:141,height:68},
-    colors:["#d5a1a0","#aa8087","#efc0b7"],
-    pressure:.53,spacing:7.3,markStrength:.18,
-    blendRadius:7.8,featherContacts:true,
+    colors:["#cba1a5","#a6818a","#e9c0bc"],
+    pressure:.47,spacing:7.4,markStrength:.16,
+    blendRadius:9.8,featherContacts:true,
   },
   "labial-lower-value":{
     d:"M355 748 C373 751 400 745 426 739 "+
@@ -182,9 +183,9 @@ const wax:Readonly<Record<string,Partial<Wax>>>={
       "C428 769 399 773 378 762 "+
       "C368 757 362 752 355 748Z",
     bounds:{x:350,y:716,width:141,height:62},
-    colors:["#c18c93","#976974","#e1adb0"],
-    pressure:.53,spacing:7.5,markStrength:.16,
-    blendRadius:8.5,featherContacts:true,
+    colors:["#bd8f98","#956e78","#ddb0b2"],
+    pressure:.45,spacing:7.7,markStrength:.15,
+    blendRadius:10.2,featherContacts:true,
   },
   "lip-lower-core-shadow":{
     d:"M360 750 C386 753 403 747 430 739 "+
@@ -193,8 +194,8 @@ const wax:Readonly<Record<string,Partial<Wax>>>={
       "C417 761 384 764 370 756Z",
     bounds:{x:356,y:716,width:129,height:52},
     colors:["#c39493","#926e74","#dda7a2"],
-    pressure:.34,spacing:8,markStrength:.16,
-    blendRadius:9.4,featherContacts:true,
+    pressure:.31,spacing:8,markStrength:.12,
+    blendRadius:11.2,featherContacts:true,
   },
   "lip-commissure-left":{
     d:"M348 745 C352 741 356 738 362 739 "+
