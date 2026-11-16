@@ -417,7 +417,7 @@ export function RisoHumanEnsembleStudio(){
   const [imprintDepth,setImprintDepth]=useState(.75);
   const [releaseStart,setReleaseStart]=useState(178);
   const [releaseDuration,setReleaseDuration]=useState(24);
-  const [settleDegrees,setSettleDegrees]=useState(-45);
+  const [settleDegrees,setSettleDegrees]=useState(RISO_HANDOFF_DEFAULTS.settleDegrees);
   // Real-time playhead: use source frame based on elapsed wall-clock time,
   // not chained setInterval ticks (which drift under expensive SVG rendering).
   // End on a held final pose: the source is a story, not a seamless idle loop.
