@@ -5,7 +5,7 @@ import {
 } from "./colored-pencil-head-fidelity";
 import {
   emptyHeadAnnotations, annotatedPoint, annotatedTone,
-  clientToNativePoint,compileHeadAnnotationManifest,
+  clientToNativePoint,compileHeadAnnotationManifest,removeHeadAnnotation,
   type HeadAnnotationSession,type HeadAnnotationSide,
   type NativePoint,type NativeDimensions,
 } from "./colored-pencil-head-annotation";
@@ -131,6 +131,20 @@ function AnnotationPanel({side,photo,model,onChange}:AnnotationPanelProps){
             {i+1}. {id}</option>)}
         </select>
       </label>}
+      <button type="button" style={{...common,alignSelf:"end",
+        cursor:"pointer",fontSize:12}}
+        aria-label={"Remove selected "+side+" "+
+          (mode==="landmark"?"landmark":"tone")}
+        disabled={mode==="landmark"?
+          !current.landmarks.some(p=>p.id===HEAD_FIDELITY_LANDMARK_IDS[selectedPoint]):
+          !current.tones.some(t=>t.id===HEAD_FIDELITY_TONES[selectedTone])}
+        onClick={()=>{
+          const id=mode==="landmark"?
+            HEAD_FIDELITY_LANDMARK_IDS[selectedPoint]:
+            HEAD_FIDELITY_TONES[selectedTone];
+          onChange(removeHeadAnnotation(model,side,mode,id));
+          setError("");
+        }}>Remove selected {mode==="landmark"?"point":"value box"}</button>
     </div>
     <div style={{background:"#D4D1C9",border:"1px solid #B7B4AE",
       borderRadius:5,minHeight:205}}>
@@ -147,17 +161,34 @@ function AnnotationPanel({side,photo,model,onChange}:AnnotationPanelProps){
             inset:0,cursor:"crosshair",touchAction:"none"}}>
           <rect x={0} y={0} width={photo.dimensions.width}
             height={photo.dimensions.height} fill="transparent"/>
-          {current.tones.map(t=><rect key={t.id} data-km-annotated-tone={t.id}
-            x={t.rect.x} y={t.rect.y} width={t.rect.width}
-            height={t.rect.height} fill="#63B7D02A"
-            stroke="#08728C" strokeWidth={Math.max(2,photo.dimensions.width/500)}
-            pointerEvents="none"/>)}
+          {current.tones.map(t=><g key={t.id} pointerEvents="none">
+            <rect data-km-annotated-tone={t.id}
+              x={t.rect.x} y={t.rect.y} width={t.rect.width}
+              height={t.rect.height} fill="#63B7D02A"
+              stroke="#08728C" strokeWidth={Math.max(2,photo.dimensions.width/500)}/>
+            <text data-km-annotated-tone-label={t.id}
+              x={t.rect.x+Math.max(3,photo.dimensions.width/600)}
+              y={t.rect.y+Math.max(9,photo.dimensions.width/75)}
+              fontSize={Math.max(8,photo.dimensions.width/90)}
+              fontFamily="Arial,sans-serif" fontWeight="bold"
+              fill="#064D64" stroke="#FEFFFF" strokeWidth=".35"
+              paintOrder="stroke">
+              <title>{t.id} sample region</title>
+              {HEAD_FIDELITY_TONES.indexOf(t.id)+1}
+            </text>
+          </g>)}
           {current.landmarks.map(p=><g key={p.id}
             data-km-annotated-contour={p.id} pointerEvents="none">
+            <title>{p.id}</title>
             <circle cx={p.x} cy={p.y}
-              r={Math.max(4,photo.dimensions.width/145)}
-              fill="#CC4327" stroke="white"
+              r={Math.max(9,photo.dimensions.width/60)}
+              fill="#9D2D26" stroke="white"
               strokeWidth={Math.max(1.2,photo.dimensions.width/900)}/>
+            <text x={p.x} y={p.y} textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={Math.max(8,photo.dimensions.width/100)}
+              fontFamily="Arial,sans-serif" fontWeight="bold"
+              fill="white">{HEAD_FIDELITY_LANDMARK_IDS.indexOf(p.id)+1}</text>
           </g>)}
         </svg>
       </div>}
