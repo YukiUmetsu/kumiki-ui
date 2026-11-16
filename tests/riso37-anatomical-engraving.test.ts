@@ -31,6 +31,18 @@ describe("RISO37 ArtCraft / physical hand ink master and source-geometry craftsm
       expect(wrist.paint).toBe("screen");
       expect(wrist.screenTone).toBe("mid");
       expect(flattenRisoSvgPath(wrist.d,.15)).toHaveLength(2);
+      // Neither of the original solid black triangular glove highlights may
+      // survive in the new palm: both are new source curved, screened marks.
+      const wristDetail=actor.parts.find(p=>p.id===side+"-glove-detail")!;
+      const thumbWeb=actor.parts.find(p=>p.id===side+"-glove-thumb-fold")!;
+      expect(wristDetail.paint).toBe("screen");
+      expect(wristDetail.screenTone).toBe("mid");
+      expect(wristDetail.joint).toBe(side+"-hand");
+      expect(flattenRisoSvgPath(wristDetail.d,.15)).toHaveLength(4);
+      expect(thumbWeb.paint).toBe("screen");
+      expect(thumbWeb.screenTone).toBe("mid");
+      expect(thumbWeb.joint).toBe(side+"-hand");
+      expect(flattenRisoSvgPath(thumbWeb.d,.15)).toHaveLength(2);
       const thenar=actor.parts.find(p=>p.id===side+"-glove-thenar-fold")!;
       expect(thenar.joint).toBe(side+"-palm-surface");
       expect(thenar.screenTone).toBe("mid");
