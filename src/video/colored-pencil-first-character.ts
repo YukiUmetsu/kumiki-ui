@@ -149,9 +149,11 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
     [zyR,rightCheek,rightJaw],
     [zyL,leftCheek,leftJaw],
   ];
-  const palette:PencilPalette=["#C6A397","#90767B","#E6C9B2"];
+  // Stage 1 is PENCIL CONSTRUCTION on paper, not fully opaque dermal
+  // paint. The previous flat salmon wax mask was rejected in native proof.
+  const palette:PencilPalette=["#B1978A","#82707A","#E0C3A6"];
   return [{
-    id:NEW_CHARACTER_01_ID,material:"skin",palette,path:contour,
+    id:NEW_CHARACTER_01_ID,material:"glaze",palette,path:contour,
     bounds,direction:64,flow:11,start:73,
     details:[
       ...newHeadValuePencil(guides,(seed+1001)%2147483647),
