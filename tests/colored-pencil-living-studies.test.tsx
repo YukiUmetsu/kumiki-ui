@@ -398,6 +398,31 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(parts.get("whisker-roots")!.clipDetails).toBe(false);
   });
 
+  it("replaces the fox white chest spear with connected convex sternal tuft turns and rooted dry hair",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject:"fox",aspect,seed:291});
+      const chest=drawing.regions.find(r=>r.id==="chest")!;
+      const throat=drawing.regions.find(r=>r.id==="neck-ruff")!;
+      expect(chest.path).not.toContain("244 365");
+      expect(chest.path).toContain("C242 359 238 356 235 349");
+      expect(chest.path).toContain("C231 354 226 351 222 346");
+      expect(chest.path.match(/ C/g)?.length).toBeGreaterThan(8);
+      expect(chest.opaqueSupport).toBe(true);
+      expect(chest.clipDetails).toBe(false);
+      expect(throat.opaqueSupport).toBe(true);
+      const ridge=chest.details?.find(d=>d.id==="fox-sternal-fur-turn");
+      expect(ridge?.path.match(/ Q/g)).toHaveLength(2);
+      expect(ridge!.width).toBeLessThan(.4);
+      expect(chest.details!.filter(d=>d.id?.startsWith("fibre-")))
+        .toHaveLength(24);
+      const fringe=chest.details!.filter(d=>d.id?.startsWith("fringe-"));
+      expect(fringe).toHaveLength(3);
+      expect(fringe.every(d=>(d.path.match(/ Q/g)??[]).length>=110)).toBe(true);
+      expect(pencilLivingStudyDrawing({subject:"fox",aspect,seed:291}))
+        .toEqual(drawing);
+    }
+  });
+
   it("constructs a fox palpebral slit and connected maxillary pencil planes without cartoon eye stickers",()=>{
     for(const aspect of ["landscape","portrait"] as const){
       const drawing=pencilLivingStudyDrawing({subject:"fox",aspect,seed:291});
