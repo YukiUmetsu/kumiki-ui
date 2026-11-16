@@ -14,9 +14,10 @@
  * original RED pulp and matching moving COBALT nail source on the same ink
  * masters, with exactly the same path topology (RISO2 pathKeys).
  *
- * All original endpoints and knuckle engraving remain supported by the
- * original character IK. Negative local y roots stay untouched so no
- * discontinuous sleeve / DIP caps get a fake second finger joint.
+ * The independently moving DIP joint remains fixed. A rigid local
+ * source-plane turn reorients the *whole* terminal-positive ink mass,
+ * including the old overlap cap; signed ink area is preserved exactly.
+ * Unlike a piecewise y>0 fold, this cannot collapse the red pulp polygon.
  */
 export type Riso55Actor="courier"|"paper-artist";
 export type Riso55Digit="middle"|"ring"|"pinky";
@@ -40,11 +41,12 @@ const TOKENS=/[MLCQZ]|[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/g;
 const ARITY:Readonly<Record<string,number>>={M:2,L:2,C:6,Q:4,Z:0};
 const n=(v:number)=>String(Number(v.toFixed(5)));
 
-/** View rotation of a pulp surface *around its DIP attachment plane*.
- * The distal positive-y sheet-facing relief turns toward the palm, while
- * the old overlapping negative-y joint root still joins the real moving
- * middle phalanx. Anatomical bone length does not change. The red/blue
- * engraving pair undergoes exactly the same differentiable projection.
+/** View-plane rotation of one whole positively filled distal pulp around
+ * its EXISTING ANAT1 DIP joint origin. A proper rotation has determinant 1,
+ * so the printed soft pulp cannot vanish, invert its winding, or degenerate
+ * into a thin self-crossing banner. The bone endpoints and every original
+ * PIP/DIP rotation remain unchanged; only original source control points
+ * reorient in the editorial 3/4 projection.
  */
 export function riso55FoldbackPoint(
   x:number,y:number,actor:Riso55Actor,digit:Riso55Digit,
@@ -53,17 +55,8 @@ export function riso55FoldbackPoint(
     throw new RangeError("RISO55 source point must be finite and bounded");
   const angle=RISO55_FOLDBACK_SOURCE.projectionDegrees[actor][digit]*Math.PI/180;
   const handed=actor==="courier"?1:-1;
-  const positive=Math.max(0,y);
-  // Local source relief from DIP bone turns sideways and BACK toward the
-  // palm. The 0..1 transition has no hard displaced seam at y=0.
-  // At an oblique camera angle the soft pulp broadens across the visual
-  // transverse plane, rather than becoming a vanishingly thin bent strip.
-  // Blend the pad-width recovery only over the already turned distal
-  // surface, leaving y<=0 and true DIP overlap roots untouched.
-  const pulpWidth=1+.68*positive/(positive+1);
-  const x2=x*pulpWidth+handed*Math.sin(angle)*positive;
-  const y2=y-positive*(1-Math.cos(angle));
-  return [Number(n(x2)),Number(n(y2))];
+  const cosine=Math.cos(angle),sine=Math.sin(angle)*handed;
+  return [Number(n(x*cosine+y*sine)),Number(n(-x*sine+y*cosine))];
 }
 
 /** Strict, finite, same-source-path command topology. Path keys still use the
