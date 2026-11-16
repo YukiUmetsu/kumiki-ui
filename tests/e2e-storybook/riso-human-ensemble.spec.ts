@@ -41,16 +41,54 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
       await expect(stage.locator('[data-km-riso-human-actor="paper-artist"]')).toHaveCount(1);
       // A passing DOM count is not sufficient: both actors must actually be
       // within the visible paper bounds at every selected film frame.
+      const zoom=Number(await stage.getAttribute("data-km-riso56-handoff-camera-zoom"));
+      const camBeat=Number(await stage.getAttribute("data-km-riso56-handoff-camera-beat"));
+      expect(Number.isFinite(zoom)).toBe(true);
+      expect(Number.isFinite(camBeat)).toBe(true);
+      if(frame<=142||frame>=207){
+        expect(zoom).toBe(1);
+        expect(camBeat).toBe(0);
+      }else if(frame===160||frame===166||frame===177){
+        expect(zoom).toBeCloseTo(aspect==="portrait"?1.36:2.15,2);
+        expect(camBeat).toBe(1);
+      }else if(frame===156||frame===186||frame===189||frame===202){
+        expect(zoom).toBeGreaterThan(1);
+      }
       for(const actorName of ["courier","paper-artist"]){
         const actor=stage.locator(`[data-km-riso-human-actor="${actorName}"]`);
         const bb=await actor.boundingBox();
         expect(bb,actorName+" bbox at "+frame).not.toBeNull();
         expect(bb!.width,actorName).toBeGreaterThan(8);
         expect(bb!.height,actorName).toBeGreaterThan(20);
-        expect(bb!.x,actorName).toBeGreaterThan(artBox!.x-4);
-        expect(bb!.x+bb!.width,actorName).toBeLessThan(artBox!.x+artBox!.width+4);
-        expect(bb!.y,actorName).toBeGreaterThan(artBox!.y-4);
-        expect(bb!.y+bb!.height,actorName).toBeLessThan(artBox!.y+artBox!.height+4);
+        if(zoom<=1.22){
+          // Documentary wide shot retains both *whole* original bodies.
+          expect(bb!.x,actorName).toBeGreaterThan(artBox!.x-4);
+          expect(bb!.x+bb!.width,actorName).toBeLessThan(artBox!.x+artBox!.width+4);
+          expect(bb!.y,actorName).toBeGreaterThan(artBox!.y-4);
+          expect(bb!.y+bb!.height,actorName).toBeLessThan(artBox!.y+artBox!.height+4);
+        }else{
+          // Deliberate RISO56 cinematic close-up crops actors, never the
+          // crucial hand/paper. Require substantial on-screen ink from
+          // BOTH people, rather than weakening the old full-body gate.
+          const visibleWidth=Math.max(0,Math.min(bb!.x+bb!.width,
+            artBox!.x+artBox!.width)-Math.max(bb!.x,artBox!.x));
+          const visibleHeight=Math.max(0,Math.min(bb!.y+bb!.height,
+            artBox!.y+artBox!.height)-Math.max(bb!.y,artBox!.y));
+          expect(visibleWidth,actorName+" printed near handoff").toBeGreaterThan(24);
+          expect(visibleHeight,actorName+" printed near handoff").toBeGreaterThan(60);
+        }
+      }
+      if(zoom>1.22){
+        // Original two-color RISO2 moving sheet, not a viewport overlay;
+        // both paper anchors remain inside the editorial close-up.
+        const sheet=stage.locator("[data-km-riso-human-ensemble-sheet]");
+        const bb=await sheet.boundingBox();
+        expect(bb).not.toBeNull();
+        expect(bb!.width).toBeGreaterThan(aspect==="portrait"?130:220);
+        expect(bb!.x).toBeGreaterThan(artBox!.x+6);
+        expect(bb!.x+bb!.width).toBeLessThan(artBox!.x+artBox!.width-6);
+        expect(bb!.y).toBeGreaterThan(artBox!.y+6);
+        expect(bb!.y+bb!.height).toBeLessThan(artBox!.y+artBox!.height-6);
       }
       if(frame>=142)await expect(stage.locator("[data-km-riso-human-ensemble-sheet]")).toHaveCount(1);
       else await expect(stage.locator("[data-km-riso-human-ensemble-sheet]")).toHaveCount(0);
