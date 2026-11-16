@@ -15,6 +15,10 @@ on:
       - "src/video/riso49-donor-projection.ts"
       - "tests/riso49-donor-projection-artcraft.test.ts"
       - "tests/riso50-hand-macro-artcraft.test.ts"
+      - "tests/riso51-view-conditioned-source-artcraft.test.ts"
+      - "registry/video/riso-path-morph.ts"
+      - "registry/video/riso-character.ts"
+      - "src/video/riso51-view-conditioned-source.ts"
       - "tests/riso48-projected-support-artcraft.test.ts"
       - "tests/riso47-palmar-cup-artcraft.test.ts"
       - "tests/riso46-thenar-web-anatomy.test.ts"
@@ -67,7 +71,7 @@ jobs:
       - name: Strict TypeScript and legacy animated source contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso32-thumb-ip-artcraft.test.tsx tests/riso36-red-silhouette-gate.test.ts tests/riso37-anatomical-engraving.test.ts tests/riso38-hand-silhouettes.test.ts tests/riso39-opposed-paper-pinch.test.ts tests/riso40-paper-fingertip-contact.test.ts tests/riso41-real-red-pad-contact.test.ts tests/riso42-support-finger-gesture.test.ts tests/riso43-physical-paper-depth.test.ts tests/riso29-human-anatomy-neck-portrait.test.tsx tests/riso-character.test.tsx tests/riso17-anatomical-grip.test.tsx tests/riso21-ocular-print-artcraft.test.tsx tests/riso44-source-index-paper-contact.test.ts tests/riso45-support-digit-foreshortening.test.ts tests/riso46-thenar-web-anatomy.test.ts tests/riso47-palmar-cup-artcraft.test.ts tests/riso48-projected-support-artcraft.test.ts tests/riso31-phalange-artcraft.test.tsx tests/riso49-donor-projection-artcraft.test.ts tests/riso50-hand-macro-artcraft.test.ts
+          npm run test -- tests/riso32-thumb-ip-artcraft.test.tsx tests/riso36-red-silhouette-gate.test.ts tests/riso37-anatomical-engraving.test.ts tests/riso38-hand-silhouettes.test.ts tests/riso39-opposed-paper-pinch.test.ts tests/riso40-paper-fingertip-contact.test.ts tests/riso41-real-red-pad-contact.test.ts tests/riso42-support-finger-gesture.test.ts tests/riso43-physical-paper-depth.test.ts tests/riso29-human-anatomy-neck-portrait.test.tsx tests/riso-character.test.tsx tests/riso17-anatomical-grip.test.tsx tests/riso21-ocular-print-artcraft.test.tsx tests/riso44-source-index-paper-contact.test.ts tests/riso45-support-digit-foreshortening.test.ts tests/riso46-thenar-web-anatomy.test.ts tests/riso47-palmar-cup-artcraft.test.ts tests/riso48-projected-support-artcraft.test.ts tests/riso31-phalange-artcraft.test.tsx tests/riso49-donor-projection-artcraft.test.ts tests/riso50-hand-macro-artcraft.test.ts tests/riso51-view-conditioned-source-artcraft.test.ts
       - name: Build real Storybook
         run: npm run build-storybook
       - name: Chromium
