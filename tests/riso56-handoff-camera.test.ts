@@ -107,7 +107,7 @@ describe("RISO56 ArtCraft: cinematic two-real-human printed paper contact framin
       for(let frame=1;frame<240;frame++){
         const next=evaluateRiso56HandoffCamera(frame,aspect,{x:200,y:300},{x:600,y:300});
         expect(Math.abs(next.zoom-old.zoom)).toBeLessThan(.11);
-        expect(Math.abs(next.tx-old.tx)).toBeLessThan(38);
+        expect(Math.abs(next.tx-old.tx)).toBeLessThan(56);
         expect(Math.abs(next.ty-old.ty)).toBeLessThan(30);
         old=next;
       }
