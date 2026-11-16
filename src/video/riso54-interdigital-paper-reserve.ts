@@ -61,9 +61,12 @@ export function riso54WebReserveParts(actor:Riso54Actor):readonly RisoCharacterP
   return saddles.map((saddle,i)=>{
     const x=-handed*(i===0?3.2:8.12)+(i===1?actorOffset:0);
     const y=(i===0?18.8:16.15)+(actor==="courier"?-.17:.17);
-    // At frame zero the open-hand negative reserve is outside all original
-    // hand source ink. It approaches the moving crest ONLY at contact.
-    const base=webContour(x,y+12,i===0?.2:-.27);
+    // At f0..146 this source is a ZERO-AREA point on the outside of
+    // the metacarpal arc: no moving holes in relaxed/open fingers, no
+    // detached white sticker anywhere in the full film. Real negative
+    // paper grows into the anatomical exterior edge only at contact.
+    const rest=point(x,y+7.5);
+    const base=`M${rest} C${rest} ${rest} ${rest} C${rest} ${rest} ${rest} C${rest} ${rest} ${rest} C${rest} ${rest} ${rest} Z`;
     const originalContact=webContour(x,y,i===0?.2:-.27);
     const contact=riso51ProjectPalmarPath(originalContact,side,actor,1);
     return {
