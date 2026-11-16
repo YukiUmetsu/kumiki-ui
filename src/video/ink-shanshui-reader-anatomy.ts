@@ -200,19 +200,24 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       .39,622,"$skinshade",.25),
   );
   const nose:CharacterPathShape[]=[
-    // Two separated bridge strokes, not a curled S pasted onto the cheek.
-    line([147.2,99.5],[149,104.4],[150.3,108.4],[151.3,112.4],
-      .8,630,"$shadow",.68),
-    line([148.1,104.5],[147.8,109.6],[148.3,112.5],[149.6,114.3],
-      .43,631,"$skinshade",.34),
-    ink("M151.2 113.5 Q153.9 114 155.3 115.7 Q155.2 117.1 153.8 117.7",
-      "none","$shadow",.59,.57),
-    ink("M149.1 116.1 Q149.3 118.2 151.7 118.8",
-      "none","$shadow",.56,.69),
-    ink("M154.3 116.8 Q155.2 118.6 156.1 117.5",
-      "none","$ink",.56,.63),
-    ink("M149.7 117.6 Q150.4 118.6 151.2 118.6",
-      "none","$ink",.42,.63),
+    // The original native crop showed a harsh acute slash from brow to
+    // tip and several overlapping dark hooks that read as a beak. Use a
+    // pressure-tapered dorsal line, leave the forward bridge plane
+    // unpainted and describe alar cartilage with lighter separated
+    // strokes, not a single black S. All positions derive from the
+    // original ANAT1 3/4 nose bridge, tip and alare.
+    line([147.2,99.5],[148.4,104],[149.2,108.4],[151,112.9],
+      .62,630,"$shadow",.53),
+    line([148.1,104.5],[147.8,109.4],[148.3,112.4],[149.5,114.2],
+      .38,631,"$skinshade",.29),
+    ink("M151.1 114 C153.2 113.9 154.3 114.6 154.9 115.8 Q155 116.8 153.8 117.2",
+      "none","$shadow",.45,.43),
+    ink("M149.2 116.4 Q149.8 117.7 151.5 118.4",
+      "none","$shadow",.42,.52),
+    ink("M154.2 116.8 Q154.8 117.9 155.8 117.4",
+      "none","$ink",.39,.46),
+    ink("M149.9 117.7 Q150.6 118.4 151.3 118.4",
+      "none","$ink",.32,.45),
     // Nasal tip relief is part of the nose/alar volume. The near nostril
     // is an oblique aperture, not a centered cartoon S or duplicate curve.
     ink("M149.2 113.8 C151.2 114.5 153.5 116.1 154.3 117.6 "+
@@ -222,8 +227,8 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       "none","$ink",.31,.46),
   ];
   if(high)nose.push(
-    ink("M151.2 111.8 Q153.2 111.7 154.5 113.1",
-      "none","$paper",.53,.59),
+    ink("M151.3 112.1 Q153.1 112.1 154.3 113.4",
+      "none","$paper",.49,.55),
     line([156.3,115],[157,116.5],[155.4,118.5],[154.3,119],
       .38,632,"$skinshade",.31),
   );
