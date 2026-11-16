@@ -324,9 +324,13 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
     at:number;side:1|-1;spread:number;rise:number;depth:number;
   }[]>={
     "fuchun":[
-      {at:.085,side:-1,spread:118,rise:27,depth:132},
-      {at:.32,side:1,spread:94,rise:15,depth:123},
-      {at:.61,side:-1,spread:82,rise:16,depth:92},
+      // The NPM scroll's interlocking stone courses traverse hills
+      // broader than they are tall; our old 118×132 vertical cheek
+      // read as a beige cliff curtain even without fibre strokes.
+      // Retain three real parent faces and all dependent child anatomy.
+      {at:.085,side:-1,spread:146,rise:32,depth:107},
+      {at:.32,side:1,spread:124,rise:23,depth:96},
+      {at:.61,side:-1,spread:107,rise:21,depth:77},
     ],
     "early-spring":[
       {at:.09,side:-1,spread:104,rise:40,depth:117},
@@ -369,9 +373,18 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
       const shoulder:P=[a[0]+direction*reach*.82,a[1]+depth*.32];
       const outer:P=[a[0]+direction*reach*.78,a[1]+depth*.91];
       const inner:P=[a[0]+direction*reach*.12,a[1]+depth*.82];
+      // On Huang's southern earth-and-stone hills, the macro form
+      // rolls through a convex head, broad weathered upper bank, and
+      // a shallow undercut BEFORE it turns down to the valley. Two
+      // genuinely connected points form a held geological shelf
+      // within the same parent rock, not painted decorations.
+      const brow:P=[a[0]+direction*reach*.61,
+        a[1]-rise*(i===1?.87:.91)];
+      const bench:P=[a[0]+direction*reach*.79,
+        a[1]-rise*.17];
       // Three different non-radial rock cheeks: supported concavities
       // between weighted outer shoulders, no detached polygon triangle.
-      const mass="M"+f(a[0])+" "+f(a[1])+
+      const originalMass="M"+f(a[0])+" "+f(a[1])+
         " C"+f(a[0]+direction*reach*.15)+" "+f(a[1]-rise*.61)+
         " "+f(crown[0]-direction*reach*.14)+" "+f(crown[1]-rise*.11)+
         " "+f(crown[0])+" "+f(crown[1])+
@@ -387,6 +400,37 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         " C"+f(a[0]-direction*reach*.09)+" "+f(a[1]+depth*.6)+
         " "+f(a[0]+direction*reach*.19)+" "+f(a[1]+depth*.17)+
         " "+f(a[0])+" "+f(a[1])+" Z";
+      const fuchunMass="M"+f(a[0])+" "+f(a[1])+
+        " C"+f(a[0]+direction*reach*.15)+" "+f(a[1]-rise*.61)+
+        " "+f(crown[0]-direction*reach*.14)+" "+
+        f(crown[1]-rise*.11)+" "+f(crown[0])+" "+f(crown[1])+
+        // A first held crown shelf rather than a second sharp apex.
+        " C"+f(crown[0]+direction*reach*.11)+" "+
+        f(crown[1]-rise*.06)+" "+
+        f(brow[0]-direction*reach*.13)+" "+
+        f(brow[1]-rise*.09)+" "+f(brow[0])+" "+f(brow[1])+
+        " C"+f(brow[0]+direction*reach*.1)+" "+
+        f(brow[1]-rise*.06)+" "+
+        f(bench[0]-direction*reach*.12)+" "+
+        f(bench[1]-rise*.15)+" "+f(bench[0])+" "+f(bench[1])+
+        " C"+f(bench[0]+direction*reach*.08)+" "+
+        f(bench[1]+depth*.11)+" "+
+        f(shoulder[0]+direction*reach*.1)+" "+
+        f(shoulder[1]-depth*.11)+" "+f(shoulder[0])+" "+
+        f(shoulder[1])+
+        " C"+f(a[0]+direction*reach*.96)+" "+
+        f(a[1]+depth*.53)+" "+
+        f(a[0]+direction*reach*.8)+" "+
+        f(a[1]+depth*.78)+" "+f(outer[0])+" "+f(outer[1])+
+        " C"+f(a[0]+direction*reach*.58)+" "+
+        f(a[1]+depth*.86)+" "+
+        f(a[0]+direction*reach*.36)+" "+
+        f(a[1]+depth*.94)+" "+f(inner[0])+" "+f(inner[1])+
+        " C"+f(a[0]-direction*reach*.1)+" "+
+        f(a[1]+depth*.59)+" "+
+        f(a[0]+direction*reach*.19)+" "+
+        f(a[1]+depth*.17)+" "+f(a[0])+" "+f(a[1])+" Z";
+      const mass=school==="fuchun"?fuchunMass:originalMass;
       const clip="kmrk"+id+"m"+i;
       const tone=clip+"tone";
       // The previous 495 marks all began on the *upper* rock edge:
@@ -635,11 +679,14 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         // NPM Fuchun detail: small, rounded alum-head outcrops ride
         // across a broad rock back. Vary the brow/undercut anatomy,
         // not just the brush density of one long triangular panel.
-        const extent=(k===0?50:38)*
+        // Replace the draped near-vertical wash shape with broad,
+        // interlocking oval/saddle rocks: preserve every parent bone,
+        // undercut, cross-shelf, dry lip and paper-open join.
+        const extent=(k===0?67:51)*
           (.86+.32*s(seed+5431,i*41+k*19));
-        const rise=(k===0?19:13)*
+        const rise=(k===0?24:18)*
           (.84+.32*s(seed+5441,i*29+k*37));
-        const fall=(k===0?64:49)*
+        const fall=(k===0?43:34)*
           (.82+.29*s(seed+5449,i*31+k*23));
         const crown:P=[root[0]+sign*extent*(k===0?.36:.42),
           root[1]-rise];
