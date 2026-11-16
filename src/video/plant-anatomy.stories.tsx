@@ -65,7 +65,7 @@ function SeasonsLab() {
   }, [reduced, wind]);
   const sp = findPlant(id)!, c = useMemo(() => plantConstruction(sp), [sp]);
   const still = useMemo(() => growPlant(c, { month, seed }), [c, month, seed]);
-  const sk = useMemo(() => (wind && !reduced ? growPlant(c, { month, seed, wind, t }) : still), [c, month, seed, wind, t, reduced, still]);
+  const moving = !!wind && !reduced;
   const bounds = useMemo(() => { const b = plantShapes(still).bounds; return [b[0] - .1, b[1], b[2] + .1, b[3] + .05] as const; }, [still]);
   return (
     <div style={page}>
@@ -82,7 +82,8 @@ function SeasonsLab() {
         </label>
         <button type="button" style={field} onClick={() => setSeed(s => s + 1)}>Another one ({seed})</button>
       </div>
-      <div style={{ maxWidth: 760, width: "100%" }}><PlantFigure skeleton={sk} mode={mode} bounds={bounds} label={`${sp.name} in ${MONTHS[month - 1]}`} /></div>
+      {/* The crown is grown once on the still plant and moved by the sway (its physical rate); medium detail while it moves. */}
+      <div style={{ maxWidth: 760, width: "100%" }}><PlantFigure skeleton={still} wind={moving ? wind : 0} t={t} swayHz="species" detail={moving ? "medium" : "full"} mode={mode} bounds={bounds} label={`${sp.name} in ${MONTHS[month - 1]}`} /></div>
       <p style={muted}>{sp.name} · {GROWTH_FORMS[sp.form].wind.moves}</p>
     </div>
   );

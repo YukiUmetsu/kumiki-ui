@@ -4,7 +4,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { PLANT_SPECIES, findPlant } from "../registry/anatomy/plant-species";
 import type { Month } from "../registry/anatomy/plant-species";
 import { GROWTH_FORMS } from "../registry/anatomy/plant-forms";
-import { growPlant, plantConstruction, plantShapes } from "../registry/anatomy/plant-construct";
+import { growPlant, hangingChainHz, plantConstruction, plantShapes, swayField } from "../registry/anatomy/plant-construct";
+import { CROWN_LIGHT, crownDetail, foliageLadder, ladderAt, luma, speciesSway, woodDetail } from "../registry/anatomy/plant-crown";
 import { checkPlantData, checkPlantProportions, measurePlant, skeletonLandmarks } from "../registry/anatomy/plant-check";
 import { barkMarks, flowerShape, fruitShape, leafShape } from "../registry/anatomy/plant-organs";
 import { PlantSheet } from "../registry/anatomy/plant-react";
@@ -62,6 +63,49 @@ describe("FLORA1 growth", () => {
   it("covers every growth form", () => {
     for (const id of Object.keys(GROWTH_FORMS)) expect(() => growPlant(plantConstruction(id), { seed: 1 })).not.toThrow();
   });
+  it("paints crowns whose light and sky holes match the photographs", () => {
+    for (const id of ["zelkova", "japanese-black-pine", "japanese-cedar", "japanese-maple"]) {
+      const cd = crownDetail(growPlant(plantConstruction(id), { month: 7, seed: 11 }), { seed: 1 });
+      expect(cd.tufts.every(t => [...t.outline, ...t.leaves.flatMap(l => l.pts)].every(p => p.every(Number.isFinite))), id).toBe(true);
+      // The foliage luma ladder (10th–75th percentiles over the 95th) inside the spread of the photographs, ±0.05.
+      const Y = cd.tufts.map(t => luma(ladderAt(cd.ladder, t.light))).sort((a, b) => a - b), at = (p: number) => Y[Math.floor(p * (Y.length - 1))];
+      [.1, .25, .5, .75].forEach((p, i) => {
+        const [lo, hi] = CROWN_LIGHT.ladder.leafSpread[i], v = at(p) / at(.95);
+        expect(v, `${id} p${p * 100}`).toBeGreaterThan(lo - .05);
+        expect(v, `${id} p${p * 100}`).toBeLessThan(hi + .05);
+      });
+      // Sky through the crown inside the measured range (10–26%, a little slack), the top brighter than the bottom.
+      expect(cd.gapSeen, id).toBeGreaterThan(.07);
+      expect(cd.gapSeen, id).toBeLessThan(.3);
+      const ys = cd.tufts.map(t => t.c[1]), y0 = Math.min(...ys), y1 = Math.max(...ys), mean = (a: number[]) => a.reduce((x, v) => x + v, 0) / a.length;
+      const lum = (lo: number, hi: number) => mean(cd.tufts.filter(t => t.c[1] >= lo && t.c[1] <= hi).map(t => luma(ladderAt(cd.ladder, t.light))));
+      const ratio = lum(y1 - (y1 - y0) / 3, y1) / lum(y0, y0 + (y1 - y0) / 3);
+      expect(ratio, id).toBeGreaterThan(1.1);
+      expect(ratio, id).toBeLessThan(2.4);
+    }
+    // Deterministic, and the ladder darkens from sunlit to shade.
+    const sk = growPlant(plantConstruction("camphor"), { month: 7, seed: 3 });
+    expect(crownDetail(sk, { seed: 2 }).tufts.slice(0, 20)).toEqual(crownDetail(sk, { seed: 2 }).tufts.slice(0, 20));
+    const L = foliageLadder("#3f6b34").map(luma);
+    expect(L.slice(1).every((v, i) => v > L[i])).toBe(true);
+    // Willows carry leaves along their hanging twigs; wood thick enough gets shading and bark.
+    expect(crownDetail(growPlant(plantConstruction("weeping-willow"), { month: 6, seed: 2 })).strandLeaves.length).toBeGreaterThan(100);
+    const wd = woodDetail(growPlant(plantConstruction("japanese-black-pine"), { seed: 4 }));
+    expect(wd.shade.length).toBeGreaterThan(0);
+    expect(wd.bark.some(b => b.plates.length > 0)).toBe(true);
+  });
+  it("sways at the physical rate when asked, and at the original pace otherwise", () => {
+    const sk = growPlant(plantConstruction("zelkova"), { seed: 1 });
+    // The original pace repeats every 2π/2.1 s; the species rate is a cantilever f₀ well under 2 Hz.
+    const legacy = swayField(sk, 1, .3), again = swayField(sk, 1, .3 + 2 * Math.PI / 2.1);
+    expect(legacy([.1, .8])[0]).toBeCloseTo(again([.1, .8])[0], 9);
+    const f0 = speciesSway(sk);
+    expect(f0).toBeGreaterThan(.1);
+    expect(f0).toBeLessThan(2);
+    expect(swayField(sk, 1, .3, "species")([.1, .8])[0]).toBeCloseTo(swayField(sk, 1, .3 + 1 / f0, "species")([.1, .8])[0], 9);
+    // A 4 m hanging twig swings as a chain: about 0.3 Hz.
+    expect(hangingChainHz(4)).toBeCloseTo(.30, 2);
+  });
 });
 
 describe("PlantSheet", () => {
@@ -72,5 +116,5 @@ describe("PlantSheet", () => {
       expect(html).toContain('role="img"');
     }
     expect(findPlant("sakura")?.id).toBe("mountain-cherry");
-  });
+  }, 30000);   // 24 sheets, each painting four detailed crowns
 });
