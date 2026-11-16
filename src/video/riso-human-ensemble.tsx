@@ -18,6 +18,7 @@ import {riso48ProjectedPivot} from "./riso48-projected-support";
 import {riso51MorphSourcePart} from "./riso51-view-conditioned-source";
 import {riso53ReorderPalmarInk} from "./riso53-palmar-depth-composition";
 import {riso54ApplyWebReserves} from "./riso54-interdigital-paper-reserve";
+import {riso58ApplyContactSkin} from "./riso58-anat1-volume-skin";
 import {evaluateRiso56HandoffCamera,riso56ProjectPlacement,riso56ProjectPoint,riso56CameraMatrix} from "./riso56-handoff-camera";
 import {riso43FrontIndexIds} from "./riso43-physical-paper-depth";
 import {inspectRiso44PrintedIndexContact} from "./riso44-source-index-paper-contact";
@@ -311,7 +312,7 @@ const arms=sharedLimbs.slice(8).map(id=>{
     refineRiso37SourceEngraving(original,"paper-artist",originalPalmInk[1] as "left"|"right"):
     original;
 });
-export const PAPER_ARTIST:RisoCharacterSpec={
+export const PAPER_ARTIST:RisoCharacterSpec=riso58ApplyContactSkin({
   version:1,id:"paper-artist",durationFrames:240,cadence:2,
   joints:COURIER_BASE_JOINTS.map(staticLeg),
   // Original full-body rest and gestures; no fake cross-person IK. Every hand
@@ -325,7 +326,7 @@ export const PAPER_ARTIST:RisoCharacterSpec={
     ...risoHandArtcraftParts("paper-artist","right"),
     ...facePieces].map(p=>riso51MorphSourcePart(p,"paper-artist")),
     "paper-artist"),"paper-artist"),
-};
+},"paper-artist");
 function category(part:RisoCharacterPart):RisoMeshCategory{
   if(part.id.startsWith("hair"))return "hair";
   if(part.joint==="head")return "face";
