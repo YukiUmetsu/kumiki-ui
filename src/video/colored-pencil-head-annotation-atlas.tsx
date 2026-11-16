@@ -2,7 +2,6 @@ import {useEffect,useMemo,useState} from "react";
 import type {ChangeEvent,PointerEvent} from "react";
 import {
   HEAD_FIDELITY_LANDMARK_IDS, HEAD_FIDELITY_TONES,
-  type HeadFidelityLandmarkId,type HeadFidelityToneId,
 } from "./colored-pencil-head-fidelity";
 import {
   emptyHeadAnnotations, annotatedPoint, annotatedTone,
@@ -176,7 +175,7 @@ export function PencilHeadSourceAnnotationAtlas(){
   const source=usePrivateLocalImage(),output=usePrivateLocalImage();
   const [session,setSession]=useState(emptyHeadAnnotations);
   const [reference,setReference]=useState({
-    url:"",license:"CC-BY-4.0",credit:"",
+    url:"",license:"",credit:"",
   });
   const [message,setMessage]=useState("");
   const images:LocalImages={source:source.photo,output:output.photo};
@@ -242,7 +241,8 @@ export function PencilHeadSourceAnnotationAtlas(){
             aria-label={side+" local image"}
             onChange={e=>{void changeFile(side,e);}}/>
         </label>
-        <AnnotationPanel side={side} photo={images[side]}
+        <AnnotationPanel key={images[side]?.url??side}
+          side={side} photo={images[side]}
           model={session} onChange={setSession}/>
       </div>)}
     </div>
@@ -258,6 +258,7 @@ export function PencilHeadSourceAnnotationAtlas(){
         <select aria-label="Original license" style={common}
           value={reference.license} onChange={e=>
             setReference(prev=>({...prev,license:e.target.value}))}>
+          <option value="">Select a rights-verified source license</option>
           {["CC0-1.0","CC-BY-4.0","CC-BY-SA-4.0",
             "CC-BY-3.0","CC-BY-SA-3.0","PDM-1.0","PD-US"].map(id=>
             <option key={id} value={id}>{id}</option>)}
