@@ -1,6 +1,6 @@
 import {describe,expect,it} from "vitest";
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
-import {flattenRisoSvgPath,risoPointInContour,selectRisoSourceContour}
+import {flattenRisoSvgPath,risoContourSignedArea,risoPointInContour,selectRisoSourceContour}
   from "../registry/video/riso-path-geometry";
 import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,evaluateRisoHumanEnsemble}
@@ -69,6 +69,12 @@ describe("RISO54 carved paper-white ulnar saddle: physical PRINT source not red 
         // an isolated white hole cut through the relaxed original fingers.
         expect(flattenRisoSvgPath(rest.d,.15)).toHaveLength(0);
         const cutPoly=selectRisoSourceContour(cut.d,undefined,.15);
+        // RISO54 first native 7.4× proof rejected 8-unit white gouges.
+        // Keep true negative edge legible but prevent print-white removing
+        // a whole articulated finger or turning into a punched palm hole.
+        const removedInkArea=Math.abs(risoContourSignedArea(cutPoly));
+        expect(removedInkArea,spec.id+"/"+v.id).toBeGreaterThan(.7);
+        expect(removedInkArea,spec.id+"/"+v.id).toBeLessThan(9);
         const inside=cutPoly.filter(p=>risoPointInContour(p,palm160)).length;
         const outside=cutPoly.length-inside;
         expect(inside,spec.id+"/"+v.id+" actual lip").toBeGreaterThan(1);
