@@ -70,6 +70,10 @@ function AnnotationPanel({side,photo,model,onChange}:AnnotationPanelProps){
       e.currentTarget.getBoundingClientRect(),dims!);
   const down=(event:PointerEvent<SVGSVGElement>)=>{
     if(!dims)return;
+    // SVG numeric labels are artist-only overlays, not selectable HTML
+    // text. Prevent native text-selection/drag feedback from swallowing
+    // subsequent independent ROI pointer events.
+    event.preventDefault();
     try{
       setError("");
       const point=actualPoint(event);
@@ -158,9 +162,8 @@ function AnnotationPanel({side,photo,model,onChange}:AnnotationPanelProps){
           preserveAspectRatio="none" onPointerDown={down}
           onPointerUp={up}
           style={{width:"100%",height:"100%",position:"absolute",
-            inset:0,cursor:"crosshair",touchAction:"none"}}>
-          <rect x={0} y={0} width={photo.dimensions.width}
-            height={photo.dimensions.height} fill="transparent"/>
+            inset:0,cursor:"crosshair",touchAction:"none",
+            userSelect:"none",WebkitUserSelect:"none"}}>
           {current.tones.map(t=><g key={t.id} pointerEvents="none">
             <rect data-km-annotated-tone={t.id}
               x={t.rect.x} y={t.rect.y} width={t.rect.width}
@@ -190,6 +193,14 @@ function AnnotationPanel({side,photo,model,onChange}:AnnotationPanelProps){
               fontFamily="Arial,sans-serif" fontWeight="bold"
               fill="white">{HEAD_FIDELITY_LANDMARK_IDS.indexOf(p.id)+1}</text>
           </g>)}
+          {/* The full-image transparent pointer target MUST be last.
+            SVG title/text labels are never input targets; each drag
+            reaches the same stable SVG root even after adding a new
+            tonality or correcting an anatomical point. */}
+          <rect data-km-annotation-input="" x={0} y={0}
+            width={photo.dimensions.width}
+            height={photo.dimensions.height} fill="transparent"
+            pointerEvents="all"/>
         </svg>
       </div>}
     </div>
