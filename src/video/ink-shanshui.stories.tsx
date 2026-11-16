@@ -832,6 +832,8 @@ function InkFilmContinuityStudio(){
   const [ink,setInk]=useState(.9);
   const [mist,setMist]=useState(.35);
   const [scene,setScene]=useState<ShanshuiScene>("mountain-trail");
+  const [inspection,setInspection]=useState<"sheet"|"native">("sheet");
+  const [focusIndex,setFocusIndex]=useState(2);
   const frames=Array.from({length:4},(_,i)=>Math.min(SHANSHUI_FRAMES-1,baseFrame+i*frameStep));
   const controls:ShanshuiControls={...DEFAULT_SHANSHUI,scene,inkSchool:school,
     seed,detail,ink,mist,wind:0};
@@ -845,9 +847,9 @@ function InkFilmContinuityStudio(){
       </h1>
       <p style={{margin:0}}>
         Compare true production SVG frames at identical camera, paper,
-        seed and brush settings. Inspect mountain topology, stroke contact,
-        reserved paper, wash progression and silhouette stability. Cards
-        sample the original stage; they are not static thumbnails.
+        seed and brush settings. The contact sheet samples the exact landscape
+        stage; the native 960×540 inspector renders the original complete
+        film with its articulated scholar. No static thumbnails or second clock.
       </p>
     </header>
     <div style={{display:"flex",flexWrap:"wrap",gap:14,alignItems:"end"}}>
@@ -885,33 +887,76 @@ function InkFilmContinuityStudio(){
       <button type="button" style={style.button} onClick={()=>{
         setSchool("fuchun");setScene("mountain-trail");setSeed(71);
         setBaseFrame(48);setFrameStep(54);setDetail(1);setInk(.9);setMist(.35);
+        setInspection("sheet");setFocusIndex(2);
       }}>Reset continuity study</button>
     </div>
-    <div style={{display:"grid",
-      gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,470px),1fr))",
-      gap:16,maxWidth:1020}}>
-      {frames.map((frame,index)=><section key={index}
-        data-km-ink-continuity-frame={frame}
-        data-km-ink-continuity-school={school}
-        style={{display:"grid",gap:7}}>
-        <strong>Moment {index+1} · absolute frame {frame}</strong>
-        <div style={{position:"relative",width:468,height:264,
-          maxWidth:"100%",overflowX:"auto",overflowY:"hidden",background:"#f3e6cd",
-          border:"1px solid #b8aa96"}}>
-          <div style={{width:468,height:264,position:"relative",overflow:"hidden"}}>
-            <div style={{transform:"scale(.4875)",transformOrigin:"top left",
-              width:960,height:540}}>
-              <InkShanshuiStage frame={frame} controls={controls}/>
-            </div>
+    <div role="group" aria-label="Ink film inspection modes"
+      style={{display:"flex",flexWrap:"wrap",gap:10,alignItems:"end"}}>
+      <button type="button" style={style.button}
+        aria-pressed={inspection==="sheet"} onClick={()=>setInspection("sheet")}>
+        Four-frame landscape contact sheet
+      </button>
+      <button type="button" style={style.button}
+        aria-pressed={inspection==="native"} onClick={()=>setInspection("native")}>
+        Native 1× complete film · articulated scholar
+      </button>
+      {inspection==="native"&&
+        <label style={style.field}>Inspect original film moment
+          <select aria-label="Continuity inspect moment" value={focusIndex}
+            onChange={event=>setFocusIndex(Number(event.target.value))}>
+            {frames.map((frame,index)=>
+              <option key={index} value={index}>
+                {"Moment "+(index+1)+" · frame "+frame}
+              </option>)}
+          </select>
+        </label>}
+    </div>
+    {inspection==="native"?
+      <section data-km-ink-native-frame={frames[focusIndex]}
+        style={{display:"grid",gap:8,maxWidth:"100%"}}>
+        <strong>Original full film · moment {focusIndex+1} ·
+          absolute frame {frames[focusIndex]}</strong>
+        <div data-testid="shanshui-ink-native-viewport"
+          style={{width:960,maxWidth:"100%",overflowX:"auto",
+            border:"1px solid #9b8a74",background:"#f3e6cd"}}>
+          <div style={{width:960,height:540}}>
+            <InkShanshuiFilm frame={frames[focusIndex]} controls={controls}/>
           </div>
         </div>
-      </section>)}
-    </div>
+        <p style={{margin:0,maxWidth:940,fontSize:12,color:"#675745"}}>
+          Inspect full-resolution actor anatomy, shoe contact, robe and ink
+          against the same mountains and atmosphere. The native image is
+          not upscaled or generated from the contact-sheet thumbnails.
+        </p>
+      </section>
+      :
+      <div style={{display:"grid",
+        gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,470px),1fr))",
+        gap:16,maxWidth:1020}}>
+        {frames.map((frame,index)=><section key={index}
+          data-km-ink-continuity-frame={frame}
+          data-km-ink-continuity-school={school}
+          style={{display:"grid",gap:7}}>
+          <strong>Moment {index+1} · absolute frame {frame}</strong>
+          <div style={{position:"relative",width:468,height:264,
+            maxWidth:"100%",overflowX:"auto",overflowY:"hidden",background:"#f3e6cd",
+            border:"1px solid #b8aa96"}}>
+            <div style={{width:468,height:264,position:"relative",overflow:"hidden"}}>
+              <div style={{transform:"scale(.4875)",transformOrigin:"top left",
+                width:960,height:540}}>
+                <InkShanshuiStage frame={frame} controls={controls}/>
+              </div>
+            </div>
+          </div>
+        </section>)}
+      </div>
+    }
     <p style={{margin:0,maxWidth:1000,fontSize:12,color:"#6f5c49"}}>
-      Review both full-frame 16:9 composition and four distinct temporal
-      samples. First frame and interval stay within the film range, so all four
-      source stages are distinct. Reset restores the same exact comparison.
-      Structural checks do not replace native visual judgement.
+      Four distinct native landscape samples preserve the original source
+      coordinates. The 1× mode evaluates the complete film including the
+      original scholar, one frame at a time to avoid four simultaneous rigs.
+      Reset restores the deterministic comparison. Visual approval still
+      requires human inspection of source reference and rendered film.
     </p>
   </main>;
 }
