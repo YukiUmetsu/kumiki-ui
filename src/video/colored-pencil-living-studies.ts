@@ -946,14 +946,14 @@ export function pencilLivingStudyDrawing({
         // now own most of the fox coat's perceptual weight at native 1x.
         tonalSupportWeight:.64,
       }:region.craft,
-      clipDetails:part.id==="whisker-roots"||
-        // Fox guard hairs explicitly rooted on the tail perimeter must be
-        // permitted to lift *outside* the opaque caudal silhouette. The
-        // previous generic fur clip cut off these external brush ends and
-        // made the tail an unnaturally smooth sausage in actual Chromium.
+      // New bare human outline stays clipped; keep original FOX guard
+      // hair exceptions intact when retiring the woman-specific branches.
+      clipDetails:subject==="portrait"?true:
+        (part.id==="whisker-roots"||
+        // Fox exterior fur tips genuinely extend beyond the solid pelt.
         (subject==="fox"&&(part.id==="nose"||part.id==="muzzle"||
-          ["chest","neck-ruff","cheek-ruff","tail-back","tail-tip"].includes(part.id)))||
-        subject==="portrait"?true:region.clipDetails,
+          ["chest","neck-ruff","cheek-ruff","tail-back","tail-tip"].includes(part.id))))?
+          false:region.clipDetails,
       layers:region.layers.map((layer,index)=>({
       ...layer,
       // Multiple dry-pencil colours follow the *same* authored fur-growth
