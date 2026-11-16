@@ -47,6 +47,12 @@ jobs:
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso63-dry-brush-film.spec.ts
       - name: Both full native film documents pass static validation
         run: npm run film:check -- examples/film/riso-dry-brush-native.film.json --format=json
+      - name: Install FFmpeg and FFprobe for real MP4 encoding (not Playwright's minimal bundle)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
       - name: Encode the COMPLETE 240-frame ten-second source film for both outputs
         run: npm run film:render -- examples/film/riso-dry-brush-native.film.json --out=dist/riso63-production
       - name: Verify encoded MP4 dimensions, 24fps, 240 actual frames and nonstatic picture
