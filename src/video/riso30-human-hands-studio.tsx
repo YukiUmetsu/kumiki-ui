@@ -19,6 +19,7 @@ import {inspectRiso41InkPressure} from "./riso41-contact-pressure";
 import {inspectRiso42SupportingDigits} from "./riso42-support-digits-gesture";
 import {riso52ExpectedOriginalSourceIds} from "./riso52-folded-terminal-source";
 import {riso57PalmLandmarks,riso57PositivePalmContour} from "./riso57-palm-contact-silhouette";
+import {riso58ContactSkin} from "./riso58-anat1-volume-skin";
 
 type PlateMode="both"|"blue"|"red";
 type GestureFrame=0|46|126|144|154|156|160|166|178|186|198|239;
@@ -69,6 +70,9 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const riso54Web=(actor.id==="courier"&&side==="right")||
     (actor.id==="paper-artist"&&side==="left")?
     inspectRiso54WebReserves(actor,frame):null;
+  const realVolume=(actor.id==="courier"&&side==="right")||
+    (actor.id==="paper-artist"&&side==="left")?
+    riso58ContactSkin(actor,actor.id as "courier"|"paper-artist",side,160):null;
   const mainPalmSource=pose.parts.find(p=>p.id===side+"-glove");
   const mcpPlateSource=pose.parts.find(p=>p.id===side+"-glove-knuckle-arc");
   const riso51MorphParts=actor.parts.filter(p=>
@@ -132,6 +136,10 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso57-source-landmarks={riso57Knots.length}
     data-km-riso57-first-web-inset={riso57FirstWebRelief.toFixed(3)}
     data-km-riso57-original-positive-contour={String(riso57OriginalPositiveSource)}
+    data-km-riso58-reconstructed-bone-rays={realVolume?.bones.length??0}
+    data-km-riso58-source-surface-z={realVolume?.maxSurfaceDepth.toFixed(3)??"0.000"}
+    data-km-riso58-source-contact-volume={String(Boolean(
+      realVolume&&frame===160&&mainPalmSource?.d===realVolume.path))}
     data-km-riso51-live-source-morph-parts={riso51MorphParts}
     data-km-riso52-cobalt-red-terminal-pairs={riso52TerminalPairs}
     data-km-riso55-folded-source-tip-count={riso55TerminalCount}
@@ -216,7 +224,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO57</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO58</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
