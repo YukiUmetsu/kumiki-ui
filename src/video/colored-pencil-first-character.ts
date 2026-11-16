@@ -72,7 +72,8 @@ function newHeadValuePencil(
 export const NEW_CHARACTER_01_ID="head-silhouette-01" as const;
 export const NEW_CHARACTER_01_STAGE="head-outline" as const;
 
-/** 36 distinct source mesh silhouette anchors; NO previous woman parts. */
+/** Fresh original skull/vault blockout: measured lower face plus newly
+ * authored parietal and frontal arch; NO previous woman silhouette. */
 export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
   if(!Number.isSafeInteger(seed)||seed<0||seed>2147483000)
     throw new RangeError("New character study requires a valid drawing seed");
@@ -89,9 +90,44 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
   ];
   const at=(key:keyof typeof FACE_LANDMARKS):Point=>
     project(face.vertices[FACE_LANDMARKS[key]]);
-  const perimeter=FACE_FEATURES.oval.loop.map(i=>project(face.vertices[i]));
-  if(perimeter.length<30||perimeter.some(p=>p.some(v=>!Number.isFinite(v))))
+  // Browser 960×540 review rejected the unmodified face MASK: it was a
+  // flat-topped salmon shield, not a skull. MediaPipe deliberately STOPS at
+  // the hairline and lacks the cranial vault. Keep the mesh's measured lower
+  // face/jaw points, but lift an independently drafted vault from observed
+  // head/skull construction ratios. This is still a FIRST-STAGE outline.
+  const faceRing=FACE_FEATURES.oval.loop.map(i=>project(face.vertices[i]));
+  if(faceRing.length<30||faceRing.some(p=>p.some(v=>!Number.isFinite(v))))
     throw new Error("Missing ANAT1 facial outline anchor points");
+  const faceTop=Math.min(...faceRing.map(p=>p[1]));
+  const faceBottom=Math.max(...faceRing.map(p=>p[1]));
+  const faceWidth=Math.max(...faceRing.map(p=>p[0]))-
+    Math.min(...faceRing.map(p=>p[0]));
+  // The cheek-temple interfaces are the FIRST anatomical points below
+  // about 24% of the facial mask's projected height on each side.
+  const templeLevel=faceTop+(faceBottom-faceTop)*.24;
+  const rightTempleIndex=faceRing.findIndex((p,i)=>
+    i>0&&p[1]>=templeLevel);
+  const leftTempleIndex=faceRing.findLastIndex((p,i)=>
+    i>rightTempleIndex&&p[1]>=templeLevel);
+  if(rightTempleIndex<2||leftTempleIndex-rightTempleIndex<16)
+    throw new Error("ANAT1 lacks two connected cheek/temple side chains");
+  const lower=faceRing.slice(rightTempleIndex,leftTempleIndex+1);
+  const lo=Math.min(...faceRing.map(p=>p[0]));
+  const hi=Math.max(...faceRing.map(p=>p[0]));
+  const left=lower[lower.length-1],right=lower[0];
+  // Open curved vault with frontal and parietal surface turns: NOT the
+  // previous portrait scalp, nor a circle/ellipse pasted on a face.
+  const vault:Point[]=[
+    [r(left[0]-faceWidth*.04),r(faceTop+faceWidth*.055)],
+    [r(lo-faceWidth*.05),r(faceTop-faceWidth*.075)],
+    [r(lo+faceWidth*.08),r(faceTop-faceWidth*.22)],
+    [r(lo+faceWidth*.27),r(faceTop-faceWidth*.34)],
+    [r(lo+faceWidth*.52),r(faceTop-faceWidth*.37)],
+    [r(hi-faceWidth*.14),r(faceTop-faceWidth*.30)],
+    [r(hi+faceWidth*.03),r(faceTop-faceWidth*.11)],
+    [r(right[0]+faceWidth*.025),r(faceTop+faceWidth*.055)],
+  ];
+  const perimeter=[...lower,...vault];
   const contour=smoothPath(perimeter,true);
   const xs=perimeter.map(p=>p[0]),ys=perimeter.map(p=>p[1]);
   const x0=Math.min(...xs)-4,y0=Math.min(...ys)-4;
@@ -125,6 +161,12 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
       drawn("newhead-orbital-placement-only",
         line(at("exocanthion.R"),glabella,at("exocanthion.L")),
         "#B39D97",.28,.24,174),
+      // Partial nested skull vault line is observed construction, NOT hair.
+      drawn("newhead-cranial-vault-turn",
+        line([vault[1][0]+7,vault[1][1]+19],
+          [vault[4][0],vault[4][1]+16],
+          [vault[6][0]-7,vault[6][1]+14]),
+        "#A58C85",.33,.39,153),
     ],
   }];
 }
