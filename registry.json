@@ -3926,6 +3926,34 @@
       ]
     },
     {
+      "name": "water",
+      "type": "registry:ui",
+      "title": "Water Framework (WATER1)",
+      "description": "Style-neutral water for any art style: the WMO sea state code; the fully developed sea a wind raises (Pierson-Moskowitz: significant height, peak period, wavelength, crest speed) with whitecap cover (Monahan & O'Muircheartaigh); dispersion in deep and shallow water; a seeded sea surface of short-crested third-order Stokes waves to sample anywhere and any time, float heave and pitch, and particle orbits; wave limits (H/L 0.142, 120 degree crest, breaking at 0.8 depth); breakers by the Iribarren number (spilling, plunging, collapsing, surging) drawn in cross-section at any stage with foam, a plunging lip on its ballistic arc and the air of the tube; Kelvin wakes (19.47 degrees, transverse spacing 2 pi V^2/g) and ripple rings; Fresnel reflectance, the mirror rule, sun glitter from Cox-Munk slopes and colour through depth; sine-generated meanders 11 widths long; water colours measured off CC0 and public-domain photographs. A sea scene (colours from Fresnel and the sky, glints only where a facet mirrors the sun), true-scale seas by wind, breaker, wake, ripple, reflection and meander figures and a reference sheet; every value graded with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations",
+        "sky-weather"
+      ],
+      "files": [
+        {
+          "path": "registry/nature/water-data.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-data.ts"
+        },
+        {
+          "path": "registry/nature/water-physics.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-physics.ts"
+        },
+        {
+          "path": "registry/nature/water-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/water-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "facial-expressions",
       "type": "registry:ui",
       "title": "Facial Expressions Framework (EXPR1)",

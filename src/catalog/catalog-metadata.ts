@@ -146,6 +146,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:animal-anatomy":{storyId:"video-animal-anatomy--sheet"},
   "pack:plant-anatomy":{storyId:"video-plant-anatomy--sheet"},
   "pack:sky-weather":{storyId:"video-sky-weather--sheet"},
+  "pack:water":{storyId:"video-water--sheet"},
   "pack:facial-expressions":{storyId:"video-facial-expressions--atlas"},
   "pack:ukiyoe-handscroll":{storyId:"video-ukiyoe-handscroll--night-ferry"},
   "pack:shodo-calligraphy":{storyId:"video-shodo--studio"},
