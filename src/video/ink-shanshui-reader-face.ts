@@ -136,12 +136,18 @@ export function scrollReaderFacePortrait(detail=1):
   const brow:CharacterPathShape[]=[
     // Asymmetry is essential: the near brow is long and the far one is
     // short with a visible gap at the frontal turn.
-    pressure([117.8,94.4],[124.1,91.3],[130.4,92.5],[135.8,96.3],
-      1.62,81,"$ink",.93),
-    pressure([149.2,95.5],[154.4,92.6],[159.4,92.9],[162.9,95.1],
-      1.32,82,"$ink",.89),
-    p("M118.4 93.2 Q126.6 90.5 135 94.8",
-      "none","$shadow",.46,.29),
+    // Scholar eyebrows carry emotion with tapered individual hair flow.
+    // Two former thick near-horizontal bars overwhelmed the delicate
+    // gongbi eye folds and read as stamped makeup at native resolution.
+    // Follow the existing two asymmetrical sockets, peak gently in the
+    // outer-middle third, and let the inner head of each brow breathe.
+    // Keep all original separately planted ANAT1 follicle strokes.
+    pressure([117.8,94.4],[123.3,91.2],[128.2,90.8],[135.8,96.3],
+      1.18,81,"$ink",.78),
+    pressure([149.2,95.5],[153.4,92.9],[158.4,92.7],[162.9,95.1],
+      .94,82,"$ink",.75),
+    p("M118.4 93.2 Q125.4 90.2 134.6 94.3",
+      "none","$shadow",.42,.24),
   ];
   if(medium)brow.push(
     pressure([119.6,92.9],[125.1,90.9],[130.5,92.3],[134.6,95.2],
