@@ -9,7 +9,7 @@ import {inspectRiso33HandFan} from "../src/video/riso33-hand-negative-space";
 import {inspectRiso36RedFingerSilhouettes} from "../src/video/riso36-red-silhouette-gate";
 import {inspectRiso44PrintedIndexContact} from "../src/video/riso44-source-index-paper-contact";
 import {
-  RISO51_VIEW_CONTRACT,riso51ProjectPalmarPoint,riso51ProjectPalmarPath,
+  RISO51_VIEW_CONTRACT,riso51ProjectPalmarPoint,
 } from "../src/video/riso51-view-conditioned-source";
 
 describe("RISO51 RISO2 source-Bézier morph safety",()=>{
