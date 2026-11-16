@@ -192,6 +192,15 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(jaw.d).toMatch(
       /C146 141\.4 144\.9 143\.2 143\.3 143\.7 C140\.6 144\.6 138\.7 143\.7 136\.1 142\.2/);
     expect(jaw.d).not.toMatch(/NaN|Infinity/);
+    // Realistic Chinese face construction uses faint gongbi contours
+    // with ink-wash volume, not one uniform dark mask border.
+    expect(jaw.stroke).toBe("$shadow");
+    expect(jaw.strokeWidth).toBeLessThan(.95);
+    expect(jaw.opacity).toBeGreaterThan(.8);
+    const earContour=paths(source,"reader-ear")[0];
+    if(earContour.type!=="path")throw Error("Near ear geometry missing");
+    expect(earContour.strokeWidth).toBeLessThan(1);
+    expect(earContour.opacity).toBeGreaterThan(.8);
     const nose=readerFaceAnatomy(1).nose;
     const featureLines=nose.filter(shape=>shape.type==="path"&&
       shape.stroke!=="none"&&shape.stroke!=="$paper");
