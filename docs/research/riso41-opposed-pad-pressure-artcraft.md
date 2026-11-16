@@ -41,3 +41,14 @@ Status: reference-led source revision, pending native print screenshot critique.
 The f202–239 inherited RISO39 rig let both figures relax their index PIP/DIP and thumb IP, while the original RISO40 paper still followed the receiver's hand. That violates hand–prop ownership despite a technically valid joint tree. At frame 202 the donor must release its printed red pads, but the **receiving left hand must remain visibly closed over its paper edge**.
 
 This iteration keys left index MCP/PIP/DIP and left thumb CMC/IP to the contact pose through frame 239. Only the donor's right-hand roots, fingers and thumb release by f205. The existing RISO33 full-two-frame fan/axis checks, RISO36 physical red contour checker and the RISO41 independent recipient-versus-donor source pressure test reject accidental crossing, disconnection and a receiver dropping the physical letter. This is a source-actor motion correction rather than a fake paper shadow.
+
+## First native film / ArtCraft review (original 2026-11-15 f166 source)
+
+Actual, not synthesized: GitHub Actions RISO41 workbench shot f166 and complete film f160/f166, run 43798179640, artifact ID 14195327681.
+
+- Receiver blue/red 6.2x hand print: RISO40 had **4.7 source units of red thumb/index separation**; new exact closed red source geometry is **0.0 source units (contours touch/overlap)**, projected independent fingertip joint tips **1.3 source units apart**, native ink-pressure cue **100%**. Distinct cobalt nail crescents and three other red fingertip silhouettes remain, with original screen paper tooth.
+- Donor at f166: **1.55 source units** of red pad white separation; source pressure **66%**, real index/thumb tips ~3.0 original units. The donor still physically contacts its sheet edge.
+- Observed limitation: at high zoom the receiver's curled index and thumb make a compact red knot/diamond near the web with limited 3D tissue/foreshortening cues. It is more convincing as a print-contact gesture than the open RISO40 red hook, but NOT photo-real anatomy. The full 16:9 original film still uses stylized tiny figures and needs independent source silhouette quality work.
+- Found real regression from new physically earned pressure: the donor started uncurling its source PIP/DIP/IP/CMC **before frame 178**, so the native f177 screenshot loses three of six original paper pressure creases. Browser rejected correct output and timed out rather than falsely certifying a good render.
+- Corrective source action: preserve full right thumb CMC and IP, plus right index PIP/DIP through f178; release those real moving bones f178→f186→f205. The left receiving source index and thumb remain pressed through the held f239 shot. Independent unit assertions now require **both actual ink-pressure sources and all six authentic paper pleats at f177**.
+- New real browser render still required before merge; passing geometry and viewing one contact hero cel is not a full-film artistic release sign-off.
