@@ -966,3 +966,56 @@ test("reduced-motion gallery stays static and does not present a nonfunctional p
   await page.getByRole("checkbox",{name:"Reduced motion"}).uncheck();
   await expect(play).toBeEnabled();
 });
+
+
+test("four-frame ink continuity Storybook uses distinct native frames and isolated school controls",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--ink-film-continuity&viewMode=story");
+  const lab=page.getByTestId("shanshui-ink-continuity-studio");
+  const cards=lab.locator("[data-km-ink-continuity-frame]");
+  await expect(cards).toHaveCount(4);
+  const frames=()=>cards.evaluateAll(nodes=>nodes.map(node=>
+    Number(node.getAttribute("data-km-ink-continuity-frame"))));
+  expect(await frames()).toEqual([48,102,156,210]);
+  for(const [index,frame] of [48,102,156,210].entries())
+    await expect(cards.nth(index).locator("[data-km-shanshui-frame]"))
+      .toHaveAttribute("data-km-shanshui-frame",String(frame));
+  await page.getByRole("combobox",{name:"Continuity ink school"})
+    .selectOption("forest-grotto");
+  await expect(lab.locator('[data-km-master-school="forest-grotto"]'))
+    .toHaveCount(4);
+  await page.getByRole("combobox",{name:"Continuity composition"})
+    .selectOption("river-scholar");
+  await expect(lab.locator('[data-km-shanshui-scene="river-scholar"]'))
+    .toHaveCount(4);
+  await page.getByRole("combobox",{name:"Continuity composition"})
+    .selectOption("mountain-trail");
+  const first=page.getByRole("slider",{name:"Continuity First frame"});
+  const interval=page.getByRole("slider",{name:"Continuity Frame interval"});
+  await expect(first).toHaveAttribute("max","137");
+  await first.evaluate(node=>{
+    const el=node as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!setter)throw new Error("No native range value setter");
+    setter.call(el,"137");
+    el.dispatchEvent(new Event("input",{bubbles:true}));
+    el.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+  await expect(first).toHaveValue("137");
+  await expect(interval).toHaveAttribute("max","54");
+  await expect.poll(frames).toEqual([137,191,245,299]);
+  await lab.screenshot({animations:"disabled",
+    path:info.outputPath("ink-continuity-distinct-frames.png")});
+  await lab.getByRole("button",{name:"Reset continuity study"}).click();
+  await expect.poll(frames).toEqual([48,102,156,210]);
+  await expect(page.getByRole("combobox",{name:"Continuity ink school"}))
+    .toHaveValue("fuchun");
+  // The fixed source-space render is not silently cropped on narrow
+  // layouts: horizontal panning must remain available at 400px.
+  await page.setViewportSize({width:400,height:900});
+  const crop=cards.first().locator("div").first();
+  await expect.poll(()=>crop.evaluate(node=>({
+    overflowX:getComputedStyle(node).overflowX,
+    scrollWidth:node.scrollWidth,clientWidth:node.clientWidth
+  }))).toMatchObject({overflowX:"auto"});
+  expect(await crop.evaluate(node=>node.scrollWidth>node.clientWidth)).toBe(true);
+});
