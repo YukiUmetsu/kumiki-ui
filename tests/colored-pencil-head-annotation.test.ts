@@ -79,6 +79,13 @@ describe("ArtCraft standalone head-only photo/source annotation atlas",()=>{
     expect(()=>compileHeadAnnotationManifest(state,{
       url:"",license:"CC-BY-4.0",credit:"Photographer",
     })).toThrow(/https/i);
+    expect(()=>compileHeadAnnotationManifest(state,{
+      url:"https://commons.wikimedia.org/wiki/File:Example.jpg",
+      license:"unknown",credit:"Photographer",
+    })).toThrow(/license/i);
+    expect(()=>compileHeadAnnotationManifest(state,{
+      url:"https://",license:"CC-BY-4.0",credit:"Photographer",
+    })).toThrow(/https/i);
     const evidence=compileHeadAnnotationManifest(state,{
       url:"https://commons.wikimedia.org/wiki/File:Example.jpg",
       license:"CC-BY-4.0",credit:"Photographer",
