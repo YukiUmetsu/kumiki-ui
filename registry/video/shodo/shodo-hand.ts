@@ -744,8 +744,10 @@ export function planShodoWriting(input: ShodoWritingInput): ShodoPlan {
         t = linked.samples[linked.samples.length - 1].t;
         pos = land;
       } else airMove(land, approach, false, strokes.length ? 0 : restZ);
+      // A stroke's own pace (a teacher's rhythm) scales the hand's speed for this stroke only.
+      const paced = spec.pace && spec.pace !== 1 ? { ...strokeStyle, hand: { ...strokeStyle.hand, speed: strokeStyle.hand.speed * spec.pace } } : strokeStyle;
       // An ink override is a separate charge of ink; the main load is kept for later strokes.
-      const { samples, ink: left } = sampleProgram(program.segs, placed, strokeStyle, t, override ? strokeInk.load : ink);
+      const { samples, ink: left } = sampleProgram(program.segs, placed, paced, t, override ? strokeInk.load : ink);
       if (!override) ink = left;
       const lastSample = samples[samples.length - 1];
       strokes.push({
