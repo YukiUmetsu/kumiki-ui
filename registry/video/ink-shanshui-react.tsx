@@ -448,12 +448,21 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           :.57+(j-first)*(.31/Math.max(1,budget-first-1))+
             (s(seed+4127,j*37+i*29)-.5)*.014;
         const at=clamp(t,.1,.9);
-        const bank=(j*17+Math.floor(j/13))%stratum.length;
+        // Five attached parent bones: one contact per bank in each
+        // nonuniform five-mark brush phrase, rather than diagonal rain
+        // repeating across vertical strata. Deliberately interleaved
+        // upper/lower source windows leave unpainted stone channels.
+        const phraseGroup=Math.floor(j/5);
+        const bank=school==="fuchun"
+          ?(j*3+phraseGroup+i*2)%stratum.length
+          :(j*17+Math.floor(j/13))%stratum.length;
         const upperBank=stratum[bank];
-        // Compress alternating deposits and introduce intentional gaps
-        // without adding independent decoration to the blank paper.
-        const depth=clamp(.12+.78*(at-.1)/.8+
-          (s(seed+4411,j*23+i*37)-.5)*.09,.08,.92);
+        const sourceWindows=[.14,.61,.29,.78,.36,.69,.21] as const;
+        const depth=school==="fuchun"
+          ?clamp(sourceWindows[phraseGroup%sourceWindows.length]+
+            (s(seed+4411,j*23+i*37)-.5)*.068,.1,.89)
+          :clamp(.12+.78*(at-.1)/.8+
+            (s(seed+4411,j*23+i*37)-.5)*.09,.08,.92);
         // Fan Kuan's raindrop cun are *separate loaded touches on a
         // connected rock plane*, unlike parent-rooted long hemp ribbons.
         // Root them to the parent rock surface, distributing small dots
@@ -523,8 +532,10 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           // class or stamping short/long rows in regular order.
           const meter=(j*7+i*5)%12;
           phrase=meter<3?"short":meter<9?"medium":"long";
+          // Long diluted hemp follows the slope; short dense presses
+          // build its rock crown. Preserve 78 attached material contacts.
           const len=phrase==="short"?9+13*wt:
-            phrase==="medium"?20+21*wt:35+22*wt;
+            phrase==="medium"?18+18*wt:35+20*wt;
           // Native ArtCraft review rejected the v52 strong 25% reversal:
           // it made intersecting X wires over one positive rock bank.
           // Keep the long gesture descending WITH its supporting cheek.
@@ -538,8 +549,8 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           c2=[entry[0]+sway*.8-roll*.8,
             entry[1]+len*.7];
           end=[entry[0]+sway,entry[1]+len];
-          width=(.72+1.24*wt)+(phrase==="long"?.34:
-            phrase==="short"?-.12:0)+(j%13===0?.27:0);
+          width=(.72+1.24*wt)+(phrase==="long"?-.12:
+            phrase==="short"?.28:0)+(j%13===0?.27:0);
         }
         const axis="M"+f(entry[0])+" "+f(entry[1])+
           " C"+f(c1[0])+" "+f(c1[1])+
@@ -553,8 +564,10 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const dryPath="M"+f(cut[0])+" "+f(cut[1])+
           " Q"+f((cut[0]+lift[0])*.5+direction*.7)+" "+
           f((cut[1]+lift[1])*.5)+" "+f(lift[0])+" "+f(lift[1]);
+        const sourceZone=school==="fuchun"
+          ?(depth<.46?"upper-bank":"lower-bank"):undefined;
         return {entry,pressure,dry,dryPath,bank,depth,
-          curlHandedness,phrase,axis};
+          curlHandedness,phrase,axis,sourceZone};
       });
       const isFan=school==="travelers",isGuo=school==="early-spring";
       const isWang=school==="forest-grotto";
@@ -1063,7 +1076,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         <g data-km-master-brush-field="" data-km-master-field-count={qty}
           clipPath={"url(#"+clip+")"}>
           {brush.map(({entry,pressure,dry,dryPath,bank,depth,
-            curlHandedness,phrase,axis},j)=><g key={j}
+            curlHandedness,phrase,axis,sourceZone},j)=><g key={j}
             data-km-master-stroke="" data-km-master-stroke-style={label[school]}
             data-km-master-stroke-root={f(entry[0])+","+f(entry[1])}
             data-km-master-stroke-dry={dry?"dry":"wet"}
@@ -1072,10 +1085,13 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
             data-km-master-stroke-placement={isFan?"rock-volume":"attached-stratum"}
             data-km-master-stroke-curl={isGuo?(curlHandedness>0?"with":"counter"):"none"}
             data-km-master-stroke-phrase={isHuang?phrase:undefined}
-            data-km-master-stroke-axis={isHuang?axis:undefined}>
+            data-km-master-stroke-axis={isHuang?axis:undefined}
+            data-km-master-stroke-source-zone={sourceZone}>
             <path data-km-master-stroke-loaded="" d={pressure}
-              fill={isFan?"#2a2623":isWang?"#322d29":isGuo?"#392f28":"#44382f"}
-              opacity={f((dry?.35:isFan?.83:isWang?.68:isGuo?.72:.62)*
+              fill={isFan?"#2a2623":isWang?"#322d29":isGuo?"#392f28":
+                phrase==="long"?"#675541":"#44382f"}
+              opacity={f((dry?.35:isFan?.83:isWang?.68:isGuo?.72:
+                phrase==="long"?.43:phrase==="short"?.79:.58)*
                 (1-.25*mist))}/>
             {dry&&<path data-km-master-dry-tail="" d={dryPath}
               fill="none" stroke="#86735a" strokeWidth={isFan?.34:.55}
