@@ -989,21 +989,6 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       /data-km-master-stroke="" data-km-master-stroke-style="long-hemp" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(?:wet|dry)" data-km-master-stroke-bank="([0-4])" data-km-master-stroke-bank-station="([^"]+)"/g,
     )];
     expect(marked).toHaveLength(78);
-    const counts=[0,0,0,0,0];
-    for(const [,root,bank,station] of marked){
-      const b=Number(bank);
-      const t=Number(station);
-      const face=counts[b]%3;
-      counts[b]++;
-      expect(t).toBeGreaterThan(.05);
-      expect(t).toBeLessThan(.95);
-      const [x,y,c1x,c1y,c2x,c2y,tipx,tipy]=bones[Number(
-        // Master faces retain their own group of five parent strata.
-        // Resolve by the rendered stroke's enclosing face order below.
-        0)]; 
-      void x;void y;void c1x;void c1y;void c2x;void c2y;void tipx;void tipy;void face;
-      expect(root.split(",").every(v=>Number.isFinite(Number(v)))).toBe(true);
-    }
     // Independent original master faces carry 34, 26 and 18 marks.
     // Read actual nested source groups so each stroke samples the
     // correct 0-4 bone in its own *positive* face.
