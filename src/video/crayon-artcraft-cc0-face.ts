@@ -1237,12 +1237,12 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     crayonF1PaintAnat1Malar(mandible):mandible;
   const bridge=["source-anat1-midface-bridge","source-anat1-nasal-volume"].includes(midfaceForm)?
     crayonF1RebuildAnat1Midface(anat1):anat1;
-  const nasal=midfaceForm==="source-anat1-nasal-volume"?
+  const photoNose=midfaceForm==="source-anat1-nasal-volume"?
     crayonF1BuildAnat1NasalVolume(bridge):bridge;
   return {version:1,id:"crayon-artcraft-cc0-portrait-"+view,
     width:608,height:1082,durationFrames:300,seed:441501,
     paper:C.paper,paperTooth:.79,
-    elements:nasal,
+    elements:photoNose,
     camera:[{frame:0,focusX:304,focusY:541,zoom:1},
       {frame:299,focusX:304,focusY:541,zoom:1}]};
 }
