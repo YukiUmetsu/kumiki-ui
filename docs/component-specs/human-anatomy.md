@@ -12,7 +12,8 @@ painter), `data/*` (baked tables and licences). Binary body model: `assets/model
 (2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (22 public-domain/CC0 plates).
 **Storybook:** Video production → Art Foundations → Human Anatomy → **Lab**, **Population line-up**, **Turnaround**,
 **Pose library** (+ front/side QA), **Hand poses**, **Face lab**, **Head angles**, **Range of motion**, **Any style**,
-**Proportions and ranges**, **Reference board**, **Hair lab**, **Hair types and colours**, **Skin, hair and eye colour**
+**Proportions and ranges**, **Reference board**, **Hair lab**, **Hair types and colours**, **Skin, hair and eye colour**,
+**Beautiful faces**, **Portrait lab**
 **Status:** implemented; agent review of Chromium screenshots only — **human visual review not recorded**. This is a
 construction and reference framework. It does **not** certify a finished realistic portrait or pencil drawing: those
 still need their style's gates (CP-F1, ArtCraft v7 portrait gate — AGENTS.md rules 13–14).
@@ -148,6 +149,56 @@ height, lower face — so z = 0 is the published average and each step is one SD
 white (Farkas 2005), African American (Farkas 2007) and Saudi (Al-Sebaei 2015) values by sex. `measureFace` reports
 en–en, ex–en, al–al, n–sn, sn–gn, ch–ch, ex–ex, zy–zy. Irises: 11.7 mm, lid-clipped (`eyeCentres`, `IRIS_DIAMETER_MM`).
 The mask has no ears, cranium or hairline.
+
+## Beautiful faces and portraits (`face-beauty.ts`, `face-portrait.ts`, `face-portrait-react.tsx`)
+
+**`beautifulFace(options)`.** Applies what the research on facial attractiveness supports
+([research note](../research/face-beauty-portrait-2026-11-16.md)), each step scaled by `beauty` (0 = the calibrated
+average face, 1 = everything applied):
+- **Averageness:** starts from population means.
+- **Symmetry:** every vertex is averaged with its mirror.
+- **Breadths:** cheekbone breadth set to ANSUR II (133.8 mm women, 142.6 mm men), which gives Pallett's 46% pupil ratio
+  by itself.
+- **Jaw:** a narrower jaw.
+- **Femininity:** above-average femininity for women; slight feminisation for men (Perrett 1998).
+- **Eyes:** the opening set to a measured palpebral height (8–11.5 mm reported) with a slight canthal tilt.
+- **Lips:** vermilion heights from attractive young women (6.5 / 11.6 mm, Popenko's 1:2); the lips closed.
+- **Hairline:** placed where the eye-to-mouth distance is 36% of face length.
+
+**The golden ratio.** `goldenRatioReport` lists the claims beside the face's values (`GOLDEN_RATIO`): Marquardt's
+nose : mouth = 1 : φ, and the popular length : width = φ. Tests found the mask fits masculinised fashion-model faces
+(Holland 2008), and a 2024 systematic review found no link between golden-ratio fit and attractiveness. So φ is
+reported, not built in.
+
+**`renderPortrait(options)`.** Renders on the CPU, about 0.4 s for a 220 px draft and 3–4 s for 384 × 480 at 2×
+supersampling. Geometry:
+- the calibrated face, Loop-subdivided twice;
+- a cranium from ANSUR head measures;
+- a neck behind the jaw, and shoulders.
+
+Shading:
+- **Key light:** shadow-mapped.
+- **Fill, rim, sky and bounce lights.**
+- **Ambient occlusion** from 22 directions.
+- **Subsurface scattering:** the d'Eon & Luebke six-Gaussian skin profile.
+- **Specular:** a GGX dielectric with F₀ 0.028, oilier in the T-zone.
+- **Regional skin colour** (`SKIN_ZONES`).
+- **Eyes:** ray-traced, with sclera, a textured iris brighter opposite the light, pupil, a softbox catchlight and lid
+  shadow.
+- **Lashes, brows and fine hairline hairs** drawn as hairs.
+- **Lips:** volume and border.
+- **Hair:** strand-traced, with Kajiya–Kay highlights.
+- **Expressions:** EXPR1 action units and creases.
+
+Options: sex, beauty, skin, eye colour, hair melanin and style (long, bob, short), expression, yaw (±25°), key light,
+and `debug` passes.
+
+`FacePortrait` draws one in a canvas after paint, queued one at a time. `GoldenRatioTable` and `BeautyEvidence` show
+the checks and sources.
+
+**Status:** agent review of renders only. It reads as a lit CG portrait, not an approved realistic portrait (AGENTS.md
+rule 14 still applies to the pencil portrait style). The mask is one average face, so individuals differ only by the
+parameters above.
 
 ## Hair (`growHair`, `renderHairSegments`, `faceHair`)
 
