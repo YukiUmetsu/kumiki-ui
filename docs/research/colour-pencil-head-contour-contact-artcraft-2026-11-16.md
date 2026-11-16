@@ -55,10 +55,10 @@ fix this. A small, real pencil pressure field is now derived from the
 | Topological continuity | Near/far temple and jaw fibres appeared unconnected to the actual boundary. | Sample the same 23 jaw + 11 vault vertices used by the native film; do not substitute a second oval, ellipse or template face. |
 | Vector flow | A fixed 64° or local ellipse angle cannot describe the entire skull. | Derive the local Catmull-Rom tangent at each physical contour segment and orient every fibre to that tangent. |
 | Edge characteristics | Uniform dark rings become cut-out outlines rather than soft material. | Use three inner offset bands: 1.5px cool turn, 4.3px warm scumble, 7.1px lighter paper-tooth return; local jitter and skipped marks preserve nonuniform contact. |
-| Tactile depth | A simple filled blush hides the tooth and makes hairless heads look plastic. | Add **six editable traces** (three layered colours × two separated contacts) with independent widths, partial opacity and frame timing; keep all previous dense pigment, ANAT1 normal values and fine marks. |
-| Animation/time | Static filter/glow can hide draw-in flaws; editing may reorder existing traces. | Preserve original outline and 350-frame shot; new strokes have explicit deterministic frame starts between frame 169 and 231, with one region and no image/foreignObject/filters. |
+| Tactile depth | A simple filled blush hides the tooth and makes hairless heads look plastic. | Append **six physical subpasses** (three layer values × two separate contact samples) into the existing three editable colour-fan traces. Preserve the exact original 77 head traces, each preexisting path prefix, pigment hue/pressure, five ANAT1 bands, and all fine marks; this respects the renderer's strict 80-trace cap without discarding one stroke. |
+| Animation/time | Static filter/glow can hide draw-in flaws; editing may reorder existing traces. | Preserve original outline and 350-frame shot; new subpass contacts inherit the same three deterministic material draw frames, 186/212/240, as their existing pigment fans, with one region and no image/foreignObject/filters. |
 
-These authored traces are **inside the region's original clipping path**.
+These authored subpass paths are **inside the region's original clipping path**.
 The local right/left normal uses the actual polygon winding, so no
 separate template identity, incorrect mirror image or off-surface
 stylization is introduced. The parent still has a single complete
@@ -89,9 +89,10 @@ ArtCraft approval.
 ## Verified automated contracts
 
 - `tests/colored-pencil-first-character-craft.test.ts` checks that
-  the exact original head path, dimensions and all existing strokes are
-  untouched by the optional pass; six named colour groups, abundant
-  finite real short strokes, deterministic seeds, valid pressure, and
+  the exact original head path, dimensions, 77 existing trace IDs and
+  original path prefixes are untouched by the optional pass; six new
+  spatial contact subpasses are appended to three native value bands,
+  with abundant finite short strokes, deterministic seeds, valid pressure, and
   independence from fox/valley are enforced.
 - `tests/e2e-storybook/colored-pencil-foundation.spec.ts` renders two
   native aspect ratios, takes source head A/B screenshots, checks
