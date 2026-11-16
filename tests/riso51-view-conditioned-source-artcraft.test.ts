@@ -61,7 +61,10 @@ describe("RISO51 independent two-human ORIGINAL moving print sources",()=>{
   it("retains opposite-hand old art while morphing all fourteen original RED/BLUE source-contours per actor",()=>{
     for(const {spec,active,inactive} of actors){
       expect(inspectRisoCharacter(spec,["red","blue"])).toEqual([]);
-      const authored=spec.parts.filter(p=>p.pathKeys);
+      const authored=spec.parts.filter(p=>p.pathKeys&&!p.knockoutOnly);
+      const reserves=spec.parts.filter(p=>p.pathKeys&&p.knockoutOnly);
+      expect(reserves).toHaveLength(2);
+      expect(reserves.every(p=>p.id.includes(active+"-glove-web-reserve-"))).toBe(true);
       expect(authored.map(p=>p.id).sort()).toEqual(animatedParts(active).sort());
       for(const p of authored){
         expect(p.pathKeys?.map(k=>k.frame)).toEqual([...RISO51_VIEW_CONTRACT.genuineSourceViewFrames]);
