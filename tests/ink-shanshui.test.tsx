@@ -959,6 +959,62 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("groups Fuchun 78 child fibres across all five live banks with an unpainted middle reserve",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,seed,detail},
+      }));
+    const full=paint("fuchun");
+    const starts=[...full.matchAll(/<g data-km-master-face=""[^>]*>/g)]
+      .map(match=>match.index!);
+    expect(starts).toHaveLength(3);
+    const allMarks:string[]=[];
+    for(let i=0;i<3;i++){
+      const part=full.slice(starts[i],starts[i+1]??full.length);
+      const marks=[...part.matchAll(/<g data-km-master-stroke=""[^>]+>/g)]
+        .map(m=>m[0]);
+      expect(marks).toHaveLength([34,26,18][i]);
+      allMarks.push(...marks);
+      const zones=new Map<number,Set<string>>();
+      for(let j=0;j<marks.length;j++){
+        const markup=marks[j];
+        const bank=Number(markup.match(/data-km-master-stroke-bank="(\d)"/)?.[1]);
+        const t=Number(markup.match(/data-km-master-stroke-bank-station="([^"]+)"/)?.[1]);
+        const zone=markup.match(/data-km-master-stroke-source-zone="([^"]+)"/)?.[1];
+        expect(bank).toBeGreaterThanOrEqual(0);
+        expect(bank).toBeLessThan(5);
+        expect(Number.isFinite(t)).toBe(true);
+        expect(t).toBeGreaterThanOrEqual(.1);
+        expect(t).toBeLessThan(.9);
+        // Real open paper, not barely different random distribution.
+        expect(t<.46||t>.56).toBe(true);
+        expect(zone).toBe(t<.46?"upper-bank":"lower-bank");
+        if(!zones.has(bank))zones.set(bank,new Set());
+        zones.get(bank)!.add(zone!);
+        expect(markup).toContain('data-km-master-stroke-placement="attached-stratum"');
+      }
+      // Every complete 5-contact phrase visits 5 distinct parent banks.
+      for(let j=0;j<marks.length;j+=5){
+        const group=marks.slice(j,j+5);
+        const banks=group.map(x=>x.match(/data-km-master-stroke-bank="(\d)"/)?.[1]);
+        expect(new Set(banks).size).toBe(group.length);
+      }
+      expect([...zones.values()].every(z=>
+        z.has("upper-bank")&&z.has("lower-bank"))).toBe(true);
+    }
+    expect(allMarks).toHaveLength(78);
+    expect(full).toContain('data-km-master-stroke-source-zone="upper-bank"');
+    expect(full).toContain('data-km-master-stroke-source-zone="lower-bank"');
+    // Altered pigment load makes the short roots the dark notes; full
+    // downhill hemp remains physically present but optically recessive.
+    expect(full).toMatch(/data-km-master-stroke-phrase="long"[^>]*><path data-km-master-stroke-loaded="" d="[^"]+" fill="#675541"/);
+    expect(full).toMatch(/data-km-master-stroke-phrase="short"[^>]*><path data-km-master-stroke-loaded="" d="[^"]+" fill="#44382f"/);
+    expect(paint("fuchun",87)).not.toBe(full);
+    expect(paint("fuchun",71,0)).not.toContain("data-km-master-stroke-source-zone=");
+    expect(paint("early-spring")).not.toContain("data-km-master-stroke-source-zone=");
+  });
+
   it("keeps all 78 live Fuchun ink strokes while varying length and handedness across rock cheeks",()=>{
     const paint=(school:"fuchun"|"early-spring",detail=1,seed=71)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{
