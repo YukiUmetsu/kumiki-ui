@@ -12,7 +12,10 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
     "data-km-pencil-render-method","authored-vector-pigment");
   await expect(svg).toHaveAttribute("data-km-pencil-photo-pixels","none");
   await expect(scene).toHaveAttribute("data-km-foundation-stage","review");
-  await expect(svg.locator("[data-km-pencil-craft-base]").first()).toBeVisible();
+  // The intentionally unfinished head is translucent construction pencil,
+  // not an opaque face. Other five subjects retain their material supports.
+  await expect(svg.locator('[data-km-pencil-region="head-silhouette-01"]')).toHaveCount(1);
+  await expect(svg.locator("[data-km-pencil-craft-base]")).toHaveCount(0);
   for(const format of ["landscape","portrait"] as const){
     await aspect.selectOption(format);
     await expect(svg).toHaveAttribute("viewBox",format==="landscape"?"0 0 960 540":"0 0 540 960");
@@ -20,6 +23,12 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
       await subject.selectOption(item);
       await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
       await expect(svg.locator("[data-km-pencil-region]").first()).toBeVisible();
+      if(item==="portrait"){
+        await expect(svg.locator("[data-km-pencil-craft-base]")).toHaveCount(0);
+        await expect(svg.locator('[data-km-pencil-region="head-silhouette-01"]')).toHaveCount(1);
+      }else{
+        await expect(svg.locator("[data-km-pencil-craft-base]").first()).toBeVisible();
+      }
       // A CP-F1 vector drawing is not photograph stylization: no SVG
       // bitmap/foreignObject reference, no uploaded source/canvas image,
       // and full details remain named editable pencil strokes.
