@@ -100,7 +100,7 @@ test("RISO61 non-character film prints continuous two-spot tonal masters in both
     setter.call(input,String(value));
     input.dispatchEvent(new Event("input",{bubbles:true}));
     input.dispatchEvent(new Event("change",{bubbles:true}));
-  },"0.12");
+  },"0.1");
   expect(await allSources().first().getAttribute("d")).toBe(baseline);
 
   await motion.uncheck();
