@@ -65,7 +65,7 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(one).toHaveLength(1);
     const head=one[0];
     expect(head.material).toBe("skin");
-    expect(head.details?.length).toBe(7);
+    expect(head.details?.length).toBe(8);
     for(let layer=0;layer<3;layer++){
       const t=head.details!.find(x=>x.id==="newhead-value-"+layer);
       expect(t).toBeDefined();
@@ -77,7 +77,7 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
     for(const id of ["newhead-sagittal-guide",
       "newhead-zygomatic-guides","newhead-mandibular-hinge",
-      "newhead-orbital-placement-only"]){
+      "newhead-orbital-placement-only","newhead-cranial-vault-turn"]){
       const d=head.details?.find(x=>x.id===id);
       expect(d,id).toBeDefined();
       expect(d!.path).toContain(" Q");
