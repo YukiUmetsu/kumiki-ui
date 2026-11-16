@@ -69,7 +69,18 @@ describe("ArtCraft F1 source-oral V14 / native wax fidelity experiment",()=>{
        cavity?.kind!=="wax")throw Error("Broken mouth volume");
     expect(upper.bounds.y).toBeLessThan(cavity.bounds.y);
     expect(lower.bounds.y+lower.bounds.height).toBeGreaterThan(cavity.bounds.y+20);
-    expect(upper.bounds.height).toBeGreaterThan(65);
+    expect(upper.bounds.height).toBeLessThan(55);
+    const outerUpper=get("lip-upper"),outerLower=get("lip-lower");
+    if(outerUpper?.kind!=="wax"||outerLower?.kind!=="wax")
+      throw Error("Missing broad feathered vermilion glazes");
+    expect(outerUpper.bounds.height).toBeGreaterThan(upper.bounds.height);
+    expect(outerLower.bounds.height).toBeGreaterThan(lower.bounds.height);
+    // Pressure-built cores occupy the heart, feathered coats the edge:
+    // no hard symmetric digital pill silhouetted at the whole lip boundary.
+    expect(upper.coverage).toBe("opaque");
+    expect(outerUpper.coverage).toBe("open");
+    expect(lower.coverage).toBe("opaque");
+    expect(outerLower.coverage).toBe("open");
     expect(cavity.bounds.height).toBeLessThanOrEqual(48);
     expect(lower.colors).not.toEqual(upper.colors);
     expect(cavity.colors[1]).toMatch(/^#[12][0-9a-f]{5}$/i);
