@@ -37,8 +37,8 @@ jobs:
         run: npm run build-storybook
       - name: Chromium
         run: npx playwright install --with-deps chromium
-      - name: Native source printed hands, two spot-ink masters and both actors
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso32-thumb-ip-artcraft.spec.ts
+      - name: Native print, two spot-ink masters, both humans and 16:9 / 9:16 whole-film handoff
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso32-thumb-ip-artcraft.spec.ts tests/e2e-storybook/riso-human-ensemble.spec.ts
       - name: Preserve actual screenshots and failure traces
         if: always()
         uses: actions/upload-artifact@v4
