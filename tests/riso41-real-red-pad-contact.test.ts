@@ -122,6 +122,13 @@ describe("RISO41 genuine thumb/index closed-red pad contact / paper pressure",()
     }
     // Donor must remain genuinely printed against the sheet through the
     // FINAL shared frame f177; only then can the 178+ release begin.
+    const firstReleased=evaluateRisoHumanEnsemble(186,aspect);
+    expect(firstReleased.phase).toBe("release");
+    expect(firstReleased.donorInk.pressure).toBe(0);
+    expect(firstReleased.sourceContactPressure).toBe(0);
+    expect(firstReleased.sourceTouching,
+      "don't keep painting source red fingers over paper with open pads").toBe(false);
+    expect(firstReleased.receiverTouching).toBe(true);
     const lastShared=evaluateRisoHumanEnsemble(177,aspect);
     expect(lastShared.phase).toBe("shared");
     expect(lastShared.sourceContactPressure).toBeGreaterThan(0.4);
