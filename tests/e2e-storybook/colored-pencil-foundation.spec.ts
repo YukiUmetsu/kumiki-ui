@@ -216,6 +216,45 @@ test("ArtCraft single-head-only construction and fox geometry inspect both nativ
         expect(shape.valuePasses).toBe(true);
         expect(shape.guides).toBe(true);
         expect(shape.hasPhotos).toBe(false);
+        // Independent real-browser geometry scan, not a replay of the
+        // TypeScript's hand-picked vault anchors. Anatomy references show
+        // a convex rounded braincase, temple recess, zygomatic flare and
+        // narrowing mandible: the previous drawing was a hard-sided bucket.
+        const anatomy=await svg.evaluate(root=>{
+          const region=root.querySelector(
+            '[data-km-pencil-region="head-silhouette-01"]')!;
+          const outline=region.querySelector("[data-km-graphite] path") as
+            SVGPathElement|null;
+          if(!outline)throw new Error("Missing actual pencil contour path");
+          const d=outline.getAttribute("d");
+          if(!d)throw new Error("Empty drawn contour");
+          const b=outline.getBBox();
+          const shape=new Path2D(d);
+          const ctx=document.createElement("canvas").getContext("2d")!;
+          const width=(fraction:number)=>{
+            const y=b.y+b.height*fraction;
+            let lo=Infinity,hi=-Infinity;
+            for(let x=b.x;x<=b.x+b.width;x+=.55){
+              if(ctx.isPointInPath(shape,x,y)){
+                lo=Math.min(lo,x);hi=Math.max(hi,x);
+              }
+            }
+            return hi-lo;
+          };
+          return {
+            actualBounds:{width:b.width,height:b.height},
+            dome:width(.15),temple:width(.53),zygoma:width(.64),
+            jaw:width(.84),widest:b.width,
+          };
+        });
+        expect(anatomy.actualBounds.height/
+          anatomy.actualBounds.width).toBeGreaterThan(1.35);
+        // At 15% head height the braincase is NOT almost full-width:
+        // steep, parallel sidewalls and a flattened trapezoid are rejected.
+        expect(anatomy.dome/anatomy.widest).toBeLessThan(.84);
+        // At the zygion, cheeks flare OUT again after temporal recession.
+        expect(anatomy.zygoma/anatomy.temple).toBeGreaterThan(1.07);
+        expect(anatomy.jaw/anatomy.zygoma).toBeLessThan(.90);
         for(const retired of ["face-main","hair-back","hair-crown",
           "eye-white-near","lip-upper","neck","coat-back"]){
           expect(shape.ids).not.toContain(retired);
