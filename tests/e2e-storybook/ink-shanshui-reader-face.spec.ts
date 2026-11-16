@@ -186,3 +186,60 @@ test("ArtCraft crown macro renders nine distinct attached regions and reveals th
       animations:"disabled",
     });
   });
+
+
+test("ANAT1 reader facial planes preserve source identity across soft-wash and ink-bone inspection",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+  const drawing=page.getByTestId("reader-coded-face");
+  const inspector=page.getByTestId("reader-face-plane-study");
+  const close=page.getByTestId("reader-anatomy-closeup");
+  await expect(drawing).toBeVisible();
+  await expect(inspector).toBeVisible();
+  const viewport=(await close.getAttribute("viewBox"))?.split(/\\s+/).map(Number)??[];
+  expect(viewport).toHaveLength(4);
+  // Previous close-up cropped its own nose and mouth (viewBox ended y105).
+  expect(viewport[0]+viewport[2]).toBeGreaterThan(166);
+  expect(viewport[1]+viewport[3]).toBeGreaterThan(143.7);
+  const volume=inspector.locator('[data-km-reader-anatomy-region="wash"]');
+  const nasal=inspector.locator('[data-km-reader-anatomy-region="nose"]');
+  const lids=inspector.locator('[data-km-reader-anatomy-region="near-far-eyes"]');
+  const lips=inspector.locator('[data-km-reader-anatomy-region="lips"]');
+  await expect(volume.locator("path")).toHaveCount(
+    await volume.locator("path").count());
+  expect(await volume.locator("path").count()).toBeGreaterThanOrEqual(15);
+  expect(await nasal.locator("path").count()).toBeGreaterThanOrEqual(6);
+  const original=await drawing.locator('[data-ink-reader-part="face"] path')
+    .evaluateAll(nodes=>nodes.map(node=>node.getAttribute("d")));
+  const selector=page.getByRole("combobox",{name:"Face structure review"});
+  await selector.selectOption("wash");
+  await expect(volume).toHaveAttribute("opacity","1");
+  await expect(nasal).toHaveAttribute("opacity","0.08");
+  await expect(lids).toHaveAttribute("opacity","0.08");
+  await expect(lips).toHaveAttribute("opacity","0.08");
+  await inspector.screenshot({animations:"disabled",
+    path:info.outputPath("reader-face-ANAT1-soft-wash-planes.png")});
+  await selector.selectOption("bones");
+  await expect(volume).toHaveAttribute("opacity","0.08");
+  await expect(nasal).toHaveAttribute("opacity","1");
+  await expect(lids).toHaveAttribute("opacity","1");
+  await expect(lips).toHaveAttribute("opacity","1");
+  await inspector.screenshot({animations:"disabled",
+    path:info.outputPath("reader-face-ANAT1-ink-bone-planes.png")});
+  const opened=await lids.locator("path").count();
+  await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("closed");
+  const closed=await lids.locator("path").count();
+  expect(closed).toBeLessThan(opened);
+  await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("open");
+  await selector.selectOption("full");
+  await expect(volume).toHaveAttribute("opacity","1");
+  await expect(nasal).toHaveAttribute("opacity","1");
+  await page.getByLabel("Show portrait landmarks").check();
+  await expect(inspector.locator("[data-km-anat1-face-point]")).toHaveCount(9);
+  await inspector.screenshot({animations:"disabled",
+    path:info.outputPath("reader-face-ANAT1-full-landmark-study.png")});
+  expect(await drawing.locator('[data-ink-reader-part="face"] path')
+    .evaluateAll(nodes=>nodes.map(node=>node.getAttribute("d"))))
+    .toEqual(original);
+  await expect(page.getByTestId("shanshui-portrait-lineage")
+    .locator("[data-km-scene-face]")).toHaveCount(3);
+});
