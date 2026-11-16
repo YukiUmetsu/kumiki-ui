@@ -383,8 +383,11 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       "none","$paper",.39,.36),
     ink("M135.5 126 Q139 125.6 141.9 126.6 Q145.7 126.7 149 126.7 Q145.5 129.1 142.4 128.5 Q138.6 127.9 135.5 126 Z",
       "$skinshade","none",0,.28),
+    // This fixed anatomical lip-roll is not the speaking mouth seam.
+    // Let the expression-specific cel own the visible mouth contour;
+    // keep the original lip muscle geometry as a finer wet value.
     ink("M135.2 125.9 Q138.9 125.6 142 126.7 Q145.9 127 148.7 126.6",
-      "none","$shadow",.58,.79),
+      "none","$skinshade",.42,.47),
     ink("M137.2 128.3 Q142.1 130.2 147.1 127.2",
       "none","$skinshade",.48,.49),
     ink("M134.4 125.1 Q135.3 125.4 135.7 126.1",
