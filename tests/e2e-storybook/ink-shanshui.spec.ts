@@ -1332,3 +1332,36 @@ test("native Fuchun crown branches join 40 fan islands in the original painting"
   await lab.getByRole("button",{name:"Reset all four studies"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
 });
+
+
+test("Fuchun two-load pine crown QA isolates original contours without deleting live needle anatomy",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const school=lab.locator('[data-km-master-study="fuchun"]');
+  const crowns=school.locator("[data-km-cliff-pine-ink-canopy]");
+  const joins=school.locator("[data-km-cliff-pine-connected-canopy]");
+  const needles=school.locator("[data-km-cliff-pine-needle]");
+  await expect(crowns).toHaveCount(40);
+  await expect(joins).toHaveCount(20);
+  await expect(needles).toHaveCount(310);
+  const original=await crowns.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d")));
+  const mode=lab.getByRole("button",{name:"Pine dual-load crown silhouettes"});
+  await mode.click();
+  await expect(mode).toHaveAttribute("aria-pressed","true");
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine-contours");
+  await expect(school.locator("[data-km-cliff-pine-ink-island]")).toHaveCount(40);
+  expect(await joins.evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).visibility)))
+    .toEqual(Array(20).fill("visible"));
+  expect(await needles.evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).visibility)))
+    .toEqual(Array(310).fill("hidden"));
+  await school.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-dual-load-crown-silhouettes.png")});
+  await lab.getByRole("button",{name:"Pine crowns · source anatomy"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine");
+  expect(await needles.evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).visibility)))
+    .toEqual(Array(310).fill("visible"));
+  expect(await crowns.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d"))))
+    .toEqual(original);
+  await lab.getByRole("button",{name:"Reset all four studies"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+});
