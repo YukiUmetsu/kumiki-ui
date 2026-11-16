@@ -524,13 +524,13 @@ The best-aligned overlap rescales both shapes to their boxes, so moved parts cha
 - *Engine.* A stroke can carry `press`: one multiplier per centreline point, 0.4 to 1.8. Every brush sample's press is scaled by the profile where the sample lies nearest the centreline. A stroke without it is written as before.
 - *Learning.* At each point of each stroke, the half-width of the teacher's stroke is compared with ours, both on that stroke alone. The point's press moves toward the ratio, damped and smoothed along the stroke. Three rounds go through the renderer. A character keeps its profiles only when its overlap rises and no mismatch patch grows.
 
-**Result.** 46 forms changed, all reviewed in overlays: 23 of the 48 かな and kanji with curving strokes (心 鳥 月 寿). 114 strokes carry a profile.
+**Result.** 46 forms changed, and the stroke ends of those were then tried again (10 changed); all were reviewed in overlays. They are 23 of the 48 かな and kanji with curving strokes (心 鳥 月 寿). 114 strokes carry a profile. A second round of press changes only one form: the fit has converged.
 
 | | Round eleven | Round twelve |
 |---|---|---|
 | かな, best-aligned overlap | 0.699 | 0.711 |
-| かな, overlap in the fit frame | 0.741 | 0.755 |
-| Characters with a mismatch patch over 5 % of the ink | 22 | 20 |
+| かな, overlap in the fit frame | 0.741 | 0.756 |
+| Characters with a mismatch patch over 5 % of the ink | 22 | 19 |
 
 For example, の 0.75 → 0.82 (its largest mismatch patch 4.6 % → 1.1 % of the ink), く 0.72 → 0.82 and ひ 0.65 → 0.71 in the fit frame. Kanji change little (0.808 → 0.809): their strokes keep a more even width.
 
