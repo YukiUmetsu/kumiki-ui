@@ -18,7 +18,7 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"portrait-nape";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"portrait-nape";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
@@ -71,7 +71,8 @@ export function PencilFoundationStudio(){
   // corrected anatomy: tail-tip in the wildlife actor and nape/collar
   // in the human actor, at either film aspect. No alternate artwork.
   const focusPart=inspectionFocus==="fox-tail"&&specimen==="fox"?
-    "tail-back":inspectionFocus==="portrait-nape"&&specimen==="portrait"?
+    "tail-back":inspectionFocus==="fox-eye"&&specimen==="fox"?
+    "eye-near":inspectionFocus==="portrait-nape"&&specimen==="portrait"?
     "neck":null;
   const focus=(focusPart?projectedInspectionCenter(
     drawing as ReturnType<typeof pencilLivingStudyDrawing>,focusPart):null)??
@@ -145,6 +146,9 @@ export function PencilFoundationStudio(){
           <option value="default">Reference emphasis</option>
           <option value="fox-tail" disabled={specimen!=="fox"}>
             Fox brush / tail-tip
+          </option>
+          <option value="fox-eye" disabled={specimen!=="fox"}>
+            Fox orbital rim / cheek
           </option>
           <option value="portrait-nape" disabled={specimen!=="portrait"}>
             Human nape / collar
