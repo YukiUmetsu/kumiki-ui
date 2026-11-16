@@ -90,6 +90,20 @@ describe("RISO41 genuine thumb/index closed-red pad contact / paper pressure",()
       }
     }
   });
+  it.each(aspects)("recipient's actual held 239f print stays near the waist, not the shoe baseline (%s)",aspect=>{
+    for(const frame of [202,239]){
+      const p=evaluateRisoHumanEnsemble(frame,aspect);
+      expect(p.owner).toBe("receiver");
+      const d=Math.hypot(p.paperStart.x-p.paperEnd.x,p.paperStart.y-p.paperEnd.y);
+      // Physical sheet is ~200 source-stage units long in the 2D camera.
+      // A 15%-of-chord vertical envelope keeps its free end at hand/waist
+      // level and rejects the earlier -23-degree dangling near-ground pose.
+      expect(d).toBeGreaterThan(50);
+      expect(Math.abs(p.paperStart.y-p.paperEnd.y)/d,
+        aspect+" f"+frame+" stylized sheet falls below hand/waist band")
+        .toBeLessThan(.15);
+    }
+  });
   it.each(aspects)("physically embossed paper responds to the real printed pad gap (%s)",aspect=>{
     for(const frame of [0,126,144,156,160,166,178,186,198,205,239]){
       const film=evaluateRisoHumanEnsemble(frame,aspect);
