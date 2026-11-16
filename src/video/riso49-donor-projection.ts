@@ -34,7 +34,7 @@ export function riso49ProjectedDonorPivot(j:RisoJoint):RisoJoint|null{
   const digit=m[1] as Digit,stage=m[2] as Stage;
   const delta=RISO49_DONOR_PROJECTION[digit][stage];
   return {...j,keys:j.keys?.map(k=>{
-    const amount=k.frame<160?0:k.frame<=178?1:k.frame<205?.72:0;
+    const amount=k.frame<160?0:k.frame<=178?1:k.frame<205?0.72:0;
     return {...k,y:(k.y??0)+delta*amount};
   })};
 }
