@@ -63,6 +63,49 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
       if(frame===142)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","unfurl");
       if(frame===160)await expect(stage).toHaveAttribute("data-km-riso-handoff-phase","shared");
       if(frame===160){
+        // RISO43 native ArtCraft Z-depth: all thumb/support stamps are still
+        // in the ORIGINAL background actor, under the physical opaque page.
+        // Only real 3-bone RED index + its 3 joint-local BLUE engravings
+        // print above it at both endpoints. Previous all-digit overlay
+        // produced a cartoon red knot where the finger pads opposed.
+        await expect(stage).toHaveAttribute(
+          "data-km-riso43-paper-layering","index-above-thumb-below");
+        await expect(stage).toHaveAttribute(
+          "data-km-riso43-front-printed-index-parts","6");
+        for(const [name,side,actorId] of [
+          ["courier-grip","right","courier"],
+          ["artist-grip","left","paper-artist"],
+        ] as const){
+          const aboveRed=stage.locator(
+            '[data-km-riso-foreground-layer="'+name+'"]'+
+            '[data-km-riso-foreground-plate="red"] [data-km-riso-part]');
+          const reds=await aboveRed.evaluateAll(nodes=>nodes.map(n=>
+            n.getAttribute("data-km-riso-part")));
+          expect(reds,actorId+" source-red paper front").toEqual([
+            side+"-glove-index",
+            side+"-glove-index-middle-phalanx",
+            side+"-glove-index-distal-phalanx",
+          ]);
+          const aboveBlue=stage.locator(
+            '[data-km-riso-foreground-layer="'+name+'"]'+
+            '[data-km-riso-foreground-plate="blue"] [data-km-riso-part]');
+          const blues=await aboveBlue.evaluateAll(nodes=>nodes.map(n=>
+            n.getAttribute("data-km-riso-part")));
+          expect(blues,actorId+" cobalt index only").toEqual([
+            side+"-glove-index-nail",
+            side+"-glove-index-joint-crease",
+            side+"-glove-index-dip-crease",
+          ]);
+          // Source thumb exists and prints as part of the same original
+          // actor *beneath* the opaque page, not deleted to pass a test.
+          await expect(stage.locator(
+            '[data-km-riso-foreground-layer="'+actorId+'"]'+
+            '[data-km-riso-foreground-plate="red"]'+
+            ' [data-km-riso-part="'+side+'-glove-thumb-distal-phalanx"]'))
+            .toHaveCount(1);
+        }
+      }
+      if(frame===160){
         // RISO40 corrected the actual f160 visual error: paper ended at
         // characters' wrists, while all true fingertip pads sat outside.
         // Assert distinct source-driven paper-to-fingertip connections
