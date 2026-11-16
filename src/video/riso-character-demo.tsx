@@ -112,7 +112,7 @@ export const COURIER: RisoCharacterSpec = {
     // intersect even though each had the right number of source bones.
     // Palm -> individual digits: all are genuinely joint-local and keep
     // anatomical roots, even under the moving elbow rig.
-    { id: "left-thumb", parent: "left-hand", x: -9, y: 8,
+    { id: "left-thumb", parent: "left-hand", x: -7.1, y: 8,
       keys: [{frame:0,rotate:-8,easing:"ease"},{frame:92,rotate:-20,easing:"ease"},
         {frame:160,rotate:-37,easing:"ease"},{frame:198,rotate:-15,easing:"ease"},{frame:239,rotate:-15}] },
     { id: "left-index", parent: "left-hand", x: -6, y: 16,
@@ -159,7 +159,7 @@ export const COURIER: RisoCharacterSpec = {
     { id: "right-palm-surface", parent: "right-hand", x: 0, y: 11 },
     // The right hand follows the satchel via IK; separate roots let the
     // fingers close gently without dragging the palm or wrist shape.
-    { id: "right-thumb", parent: "right-hand", x: 9, y: 8,
+    { id: "right-thumb", parent: "right-hand", x: 7.1, y: 8,
       keys: [{frame:0,rotate:-9,easing:"ease"},{frame:90,rotate:18,easing:"ease"},
         {frame:156,rotate:37,easing:"ease"},{frame:198,rotate:14},{frame:239,rotate:14}] },
     { id: "right-index", parent: "right-hand", x: 6, y: 16,
