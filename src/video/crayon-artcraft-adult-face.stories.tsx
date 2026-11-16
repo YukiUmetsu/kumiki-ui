@@ -13,6 +13,7 @@ import {useCrayonStoryPlayback} from "./crayon-story-playback";
 import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit} from "./crayon-artcraft-portrait-audit";
 import {auditCrayonF1LashRootContinuity,type CrayonF1LashFinish}
   from "./crayon-artcraft-f1-lash-clusters";
+import {crayonF1RegisterAnat1Face} from "./crayon-artcraft-f1-anat1-malar";
 
 /** ArtCraft reference crops use only the native CRAYON1 camera; source marks remain unchanged. */
 export type ArtcraftInspection="full"|"face"|"eyes"|"nose-mouth"|"garment";
@@ -469,7 +470,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   initialEyeContact="source-shade",initialMidfaceForm="baseline",
 }:StudyProps & {
   initialLashFinish?:CrayonF1LashFinish;
-  initialInspection?:"full"|"near-eye"|"far-eye"|"mouth"|"nose"|"jaw-neck";
+  initialInspection?:"full"|"face"|"near-eye"|"far-eye"|"mouth"|"nose"|"jaw-neck";
   initialEyeContact?:Cc0EyeContact;
   initialMidfaceForm?:Cc0MidfaceForm;
 }){
@@ -487,6 +488,8 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
+  const anat1Fit=useMemo(()=>midfaceForm==="source-anat1-malar"?
+    crayonF1RegisterAnat1Face():null,[midfaceForm]);
   const lashRootAudit=useMemo(()=>lashFinish!=="sparse"&&eyeContact!=="baseline"
     ?auditCrayonF1LashRootContinuity(spec.elements):null,
     [spec,eyeContact,lashFinish]);
@@ -526,6 +529,15 @@ export function Cc0SourceRegisteredFaceWorkbench({
       identity. A source landmark graph can be toggled without changing
       painted shapes or wax sequence. Artistic acceptance is NOT established.
     </p>
+    {anat1Fit&&<p data-km-crayon-f1-anat1-register="not-art-approved"
+      style={{margin:"0 0 12px",fontSize:12,lineHeight:1.65,maxWidth:870}}>
+      ANAT1 468-vertex face mask: source-fitted yaw {anat1Fit.yaw}°,
+      pitch {anat1Fit.pitch}°, 2D roll {anat1Fit.roll.toFixed(1)}°;
+      registered landmark RMSE {anat1Fit.rmse.toFixed(1)} px across
+      13 observed facial anchors. The mesh determines the native cheek
+      wax flow and camera geometry, not the subject’s identity.
+      Source and candidate remain different media; ARTISTIC REVIEW FAILED.
+    </p>}
     {lashRootAudit&&<p data-km-crayon-f1-lash-root-audit="topology-only"
       style={{margin:"0 0 12px",fontSize:12,lineHeight:1.65,maxWidth:870}}>
       Source-space rooted lash proximity: near {lashRootAudit.near.count} contacts,
@@ -643,6 +655,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-face-values">CC0 measured cheek and orbit light planes (V28 unapproved)</option>
            <option value="source-orbital-hood">CC0 natural supraorbital ribbon, not eye disks (V29 study)</option>
            <option value="source-mandibular-turn">CC0 photographed jaw-to-malar silhouette (V30 study)</option>
+           <option value="source-anat1-malar">CC0 ANAT1 3D camera-guided malar wax flow (V31 unapproved)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -691,6 +704,18 @@ export const Cc0NasalDepthAndOcclusion:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
+};
+export const Cc0Anat1MalarV31:Story={
+  name:"CC0 ANAT1 3D source-fitted cheek wax, original face (!dev V31)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-malar" initialInspection="full"/>,
+};
+export const Cc0Anat1MalarCloseV31:Story={
+  name:"CC0 ANAT1 malar bone and eye–cheek tangent, 1.6× (!dev V31)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-malar" initialInspection="face"/>,
 };
 export const Cc0MandibularTurnV30:Story={
   name:"CC0 oblique cheek and mandibular source silhouette (!dev V30)",
