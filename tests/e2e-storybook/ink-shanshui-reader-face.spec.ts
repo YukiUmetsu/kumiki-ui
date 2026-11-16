@@ -224,7 +224,7 @@ test("ANAT1 reader facial planes preserve source identity across soft-wash and i
   const closeEyes=await close.locator(
     '[data-ink-anatomy-feature="eye-apertures"]')
     .evaluate(group=>{
-      const root=group.ownerSVGElement;
+      const root=group.closest("svg");
       if(!root)return 0;
       const rect=root.getBoundingClientRect(),eye=group.getBoundingClientRect();
       const w=Math.max(0,Math.min(eye.right,rect.right)-
