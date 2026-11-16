@@ -1156,3 +1156,34 @@ test("F1 V21 nasal volume native Chromium 1x/3x V20 comparison",async({page},inf
     .not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** V22 exact-source 1×/3× reference A/B, native pixels not aesthetic approval. */
+test("F1 V22 near/far nasal wing joined tonal wax at 1x/3x",async({page},info)=>{
+  test.setTimeout(120_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const imgs:Uint8Array[]=[];
+  for(const midfaceForm of ["source-nasal-volume","source-nasal-value"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:417,focusY:629,zoom:3},
+        {frame:299,focusX:417,focusY:629,zoom:3},
+      ]};
+      const art=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        art+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["nose-sidewall","nose-subalar-contact","nose-alar-near",
+        "nose-alar-far","naris-shadow-near","naris-shadow-far"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      imgs.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v22-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(imgs[0]),Buffer.from(imgs[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(imgs[1]),Buffer.from(imgs[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});

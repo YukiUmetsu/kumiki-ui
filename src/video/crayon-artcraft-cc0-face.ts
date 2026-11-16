@@ -15,6 +15,7 @@ import {crayonF1SculptNasalCartilage} from "./crayon-artcraft-f1-nose-sculpt";
 import {crayonF1BuildNasalWaxDepth} from "./crayon-artcraft-f1-nasal-depth";
 import {crayonF1JoinNarisContours} from "./crayon-artcraft-f1-naris-contour";
 import {crayonF1ConstructNasalVolume} from "./crayon-artcraft-f1-nasal-volume";
+import {crayonF1ReconstructNasalValue} from "./crayon-artcraft-f1-photometric-nose";
 import {crayonF1ReconstructBrows} from "./crayon-artcraft-f1-brow-geometry";
 import {crayonF1ReconstructJawNeck} from "./crayon-artcraft-f1-jaw-neck-geometry";
 import {crayonF1AddRootedLashes,type CrayonF1LashFinish}
@@ -51,7 +52,7 @@ export type Cc0FaceView="wax"|"anatomy";
 /** Source-registered ocular pigment experiment; baseline is an unchanged negative control. */
 export type Cc0EyeContact="baseline"|"source-shade"|"source-value"|"source-sculpt";
 export type Cc0BrowForm="baseline"|"source-rooted";
-export type Cc0MidfaceForm="baseline"|"source-volume"|"source-alar"|"source-oral"|"source-oral-sculpt"|"source-nose-sculpt"|"source-nasal-depth"|"source-contour-joined"|"source-nasal-volume";
+export type Cc0MidfaceForm="baseline"|"source-volume"|"source-alar"|"source-oral"|"source-oral-sculpt"|"source-nose-sculpt"|"source-nasal-depth"|"source-contour-joined"|"source-nasal-volume"|"source-nasal-value";
 export type Cc0JawNeckForm="baseline"|"source-contour";
 export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact;midfaceForm?:Cc0MidfaceForm;browForm?:Cc0BrowForm;jawNeckForm?:Cc0JawNeckForm;lashFinish?:CrayonF1LashFinish}
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
@@ -131,7 +132,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     !["wax","anatomy"].includes(view)||
     !["line","dry-wax"].includes(fiberMaterial)||
     !["baseline","source-shade","source-value","source-sculpt"].includes(eyeContact)||
-    !["baseline","source-volume","source-alar","source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume"].includes(midfaceForm)||
+    !["baseline","source-volume","source-alar","source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)||
     !["baseline","source-contour"].includes(jawNeckForm)||
     !["baseline","source-rooted"].includes(browForm)||
     !["sparse","rooted","rooted-flow"].includes(lashFinish))
@@ -1186,22 +1187,24 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     crayonF1AddRootedLashes(brow,lashFinish):brow;
   const studied=midfaceForm!=="baseline"?
     crayonF1ReconstructMidface(lashed):lashed;
-  const alar=["source-alar","source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume"].includes(midfaceForm)?
+  const alar=["source-alar","source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
     crayonF1ConnectAlarUndercuts(studied):studied;
-  const oral=["source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume"].includes(midfaceForm)?
+  const oral=["source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
     crayonF1ReconstructOralContact(alar):alar;
-  const sculpted=["source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume"].includes(midfaceForm)?
+  const sculpted=["source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
     crayonF1SculptOralOcclusion(oral):oral;
-  const nasal=["source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume"].includes(midfaceForm)?
+  const nasal=["source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
     crayonF1SculptNasalCartilage(sculpted):sculpted;
   const depth=midfaceForm==="source-nasal-depth"?
     crayonF1BuildNasalWaxDepth(nasal):nasal;
-  const joined=["source-contour-joined","source-nasal-volume"].includes(midfaceForm)?
+  const joined=["source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
     crayonF1JoinNarisContours(depth):depth;
-  const volume=midfaceForm==="source-nasal-volume"?
+  const volume=["source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
     crayonF1ConstructNasalVolume(joined):joined;
+  const value=midfaceForm==="source-nasal-value"?
+    crayonF1ReconstructNasalValue(volume):volume;
   const constructed=jawNeckForm==="source-contour"?
-    crayonF1ReconstructJawNeck(volume):volume;
+    crayonF1ReconstructJawNeck(value):value;
   return {version:1,id:"crayon-artcraft-cc0-portrait-"+view,
     width:608,height:1082,durationFrames:300,seed:441501,
     paper:C.paper,paperTooth:.79,
