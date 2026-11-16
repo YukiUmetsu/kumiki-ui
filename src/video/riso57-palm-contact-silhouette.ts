@@ -110,11 +110,17 @@ export function riso57PalmLandmarks(
  * vector *flow* rather than disconnected polygon triangles. All prior
  * source-ink path validators and per-cel morphs require exactly 16 C terms.
  */
-export function riso57PositivePalmContour(
-  actor:Riso57Actor,side:Riso57Side,
+/** Preserve exactly the original 16 named anatomical shape stations and
+ * 16 cubic controls when RISO58 changes the 3D camera-relative skin mass.
+ * This is the *same* original positive ink source, not a second overlay.
+ */
+export function riso57PalmContourFromKnots(
+  points:readonly Riso57PalmKnot[],
 ):string{
-  const points=riso57PalmLandmarks(actor,side);
-  if(points.length!==16)throw new Error("RISO57 missing authored palm landmark");
+  if(points.length!==16||new Set(points.map(p=>p.landmark)).size!==16||
+    points.some(p=>![p.x,p.y,p.tension].every(Number.isFinite)||
+      p.tension<=0||p.tension>1))
+    throw new RangeError("RISO57 requires 16 finite, different clinical skin knots");
   const pt=(i:number)=>points[(i+points.length)%points.length];
   const xy=(x:number,y:number)=>`${round(x)} ${round(y)}`;
   const first=pt(0);
@@ -126,4 +132,13 @@ export function riso57PositivePalmContour(
     outline.push(`C${xy(p.x+v1x,p.y+v1y)} ${xy(q.x-v2x,q.y-v2y)} ${xy(q.x,q.y)}`);
   }
   return outline.join(" ")+" Z";
+}
+
+/** Public original 2D source plate, unchanged at f0 and on inactive hands.
+ * Only the living contact view may use the projected RISO58 3D surface.
+ */
+export function riso57PositivePalmContour(
+  actor:Riso57Actor,side:Riso57Side,
+):string{
+  return riso57PalmContourFromKnots(riso57PalmLandmarks(actor,side));
 }
