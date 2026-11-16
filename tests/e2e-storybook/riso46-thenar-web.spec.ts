@@ -30,6 +30,16 @@ test("RISO46 real red thenar and cobalt web print through both physical masters"
       expect(blueD?.match(/C/g)?.length).toBeGreaterThanOrEqual(7);
       await expect(panel).toHaveAttribute("data-km-riso32-ip-articulated","true");
       await expect(panel).toHaveAttribute("data-km-riso36-source-contours","12");
+      const ratio=Number(await panel.getAttribute("data-km-riso49-support-projection-ratio"));
+      expect(Number.isFinite(ratio)).toBe(true);
+      if(frame===160){
+        const hand=await panel.getAttribute("data-km-riso30-hand");
+        // Real original actor source projection, verified in Chromium.
+        if(hand==="courier-right"||hand==="paper-artist-left"){
+          expect(ratio).toBeLessThan(.92);
+          expect(ratio).toBeGreaterThan(.56);
+        }
+      }
     }
     await root.screenshot({path:info.outputPath("riso46-native-two-actor-web-"+frame+".png"),animations:"disabled"});
   }
