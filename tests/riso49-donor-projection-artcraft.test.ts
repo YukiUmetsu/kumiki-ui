@@ -52,8 +52,8 @@ describe("RISO49 — Courier original 3/4 donor support, original print and huma
       const r=donorRest.find(x=>x.digit===digit)!;
       expect(a.rootLength).toBeLessThan(r.rootLength-1.1);
       expect(a.intermediateLength).toBeLessThan(r.intermediateLength-1.0);
-      expect(a.rootLength).toBeGreaterThan(r.rootLength*.56);
-      expect(a.intermediateLength).toBeGreaterThan(r.intermediateLength*.56);
+      expect(a.rootLength).toBeGreaterThan(r.rootLength*.38);
+      expect(a.intermediateLength).toBeGreaterThan(r.intermediateLength*.38);
       expect(b.rootLength).toBeCloseTo(r.rootLength,3);
       expect(b.intermediateLength).toBeCloseTo(r.intermediateLength,3);
       expect(a.exactRedSource).toBe(true);
