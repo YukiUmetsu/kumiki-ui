@@ -2,7 +2,7 @@ import {describe,expect,it} from "vitest";
 import {HAND_POSES,JOINTS} from "../registry/anatomy/anatomy-pose";
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
 import {evaluateRisoCharacterMesh} from "../registry/video/riso-proportion-mesh";
-import {flattenRisoSvgPath} from "../registry/video/riso-path-geometry";
+import {flattenRisoSvgPath,risoContourSignedArea} from "../registry/video/riso-path-geometry";
 import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,RISO_PAPER_ARTIST_SHEET,evaluateRisoHumanEnsemble} from "../src/video/riso-human-ensemble";
 import {RISO_COURIER_SHEET} from "../src/video/riso-character-mesh-sheets";
@@ -114,6 +114,22 @@ describe("RISO32 ArtCraft: thumb IP truly articulates as separate physical ink",
       expect(silhouette[0].closed).toBe(true);
       expect(silhouette[0].points.length).toBeGreaterThan(6);
       expect(mask?.opacity??1).toBe(1);
+    }
+  });
+
+  it.each(actors)("%s: red cuff is a subtle source-engraved screen, not a giant blocked glove cylinder",actor=>{
+    for(const side of sides){
+      const cuff=actor.parts.find(p=>p.id==="cuff-"+side)!;
+      expect(cuff.paint).toBe("screen");
+      expect(cuff.plate).toBe("red");
+      const outline=flattenRisoSvgPath(cuff.d);
+      expect(outline).toHaveLength(1);
+      expect(outline[0].closed).toBe(true);
+      // Printed red cuff must occupy a narrow purposeful seam area, rather
+      // than the formerly massive red-over-blue near-black square.
+      const surface=Math.abs(risoContourSignedArea(outline[0].points));
+      expect(surface,actor.id+" "+side+" red overprint has no structure").toBeGreaterThan(1);
+      expect(surface,actor.id+" "+side+" cuff creates a black rectangle").toBeLessThan(15);
     }
   });
 
