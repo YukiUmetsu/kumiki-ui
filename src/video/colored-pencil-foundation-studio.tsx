@@ -61,16 +61,17 @@ export function PencilFoundationStudio(){
   const [showTonalSupport,setShowTonalSupport]=useState(true);
   const [valueBand,setValueBand]=useState<AnatomyValueBand>("all");
   const [headContourCraft,setHeadContourCraft]=useState(true);
+  const [headVolumeWeave,setHeadVolumeWeave]=useState(true);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
       pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,seed}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
         specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,
-        seed,headContourCraft});
+        seed,headContourCraft,headVolumeWeave});
     return {...base,regions:base.regions.map(r=>({
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
-  },[specimen,aspect,pressure,tooth,burnish,seed,headContourCraft]);
+  },[specimen,aspect,pressure,tooth,burnish,seed,headContourCraft,headVolumeWeave]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -114,6 +115,7 @@ export function PencilFoundationStudio(){
     data-km-foundation-inspection-focus={focusPart??"default"}
     data-km-anat1-value-inspection={specimen==="portrait"?valueBand:"all"}
     data-km-contour-craft={specimen==="portrait"?(headContourCraft?"on":"off"):"not-applicable"}
+    data-km-head-cranial-volume={specimen==="portrait"?(headVolumeWeave?"on":"off"):"not-applicable"}
     style={{minHeight:"100vh",padding:24,display:"grid",alignContent:"start",
       gap:16,background:"#E8E7DE",font:"15px/1.5 system-ui",color:"#3B4747"}}>
     <header style={{maxWidth:1050,display:"grid",gap:4}}>
@@ -271,6 +273,13 @@ export function PencilFoundationStudio(){
           checked={headContourCraft}
           onChange={e=>setHeadContourCraft(e.target.checked)}/>
         Anatomy-connected contour pigment · A/B
+      </label>}
+      {specimen==="portrait"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation head cranial optical volume"
+          type="checkbox" checked={headVolumeWeave}
+          onChange={e=>setHeadVolumeWeave(e.target.checked)}/>
+        Five-tone cranial dry weave · A/B (unapproved)
       </label>}
       <label style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
         <input aria-label="Foundation inspect macro" type="checkbox" checked={zoom}
