@@ -70,3 +70,37 @@ which is what Schlick gives near 84° incidence. Dark trees reflect at nearly th
 - Shoaling (wave height and length changing as depth falls), refraction around headlands, and swash on sand.
 - Caustics on a shallow bottom, spray and mist, waterfalls, rain on water (with SKY1), ice and snow on water.
 - Applying the sea scene's colours and the breakers to UKIYO1's great-wave idiom and to the watercolour and 3D packs.
+
+## Round two: waves in detail (2026-11-16)
+
+**References studied** (CC0 or public domain):
+- Unsplash: Huge rolling wave, Inside of the small wave, Rolling wave crash, Big ocean surf wave, Wave crashing,
+  Foaming sea wave, Splashing wave from within, Ocean foam, Rolling wave;
+- NOAA: Large breaking wave, Breaking wave;
+- videos: Santa Rosa Island Waves (CC0), Crashing waves in the San Juan Islands (public domain), Body surfing a wave
+  (CC0) and Ocean surface waves 05 (CC0), all studied frame by frame.
+
+**Measured.**
+- Colours as medians in marked boxes:
+  - thin lip and crest: teal #046983 to #0a6c6a;
+  - mid face: #02334a to #0a3f41;
+  - lower face, mirroring the sky: #445f77;
+  - inside the tube: #76b6c9 to #7dbbcd;
+  - whitewater: #eeeef2 in sun, #a6bdd0 in shade.
+- Foam decay from the white-pixel fraction of the Santa Rosa surf zone at 5 frames per second: e-folding 1.8–7.7 s,
+  median about 5 s, over eight breaks in one video, so treat it as one coast and one day.
+
+**Reported.** Pure-water absorption (Pope & Fry 1997, via the Oregon Medical Laser Center data file): 0.0064 m⁻¹ at
+440 nm up to 0.62 m⁻¹ at 700 nm. That is why light through a crest turns teal.
+
+**Seen in the video:**
+1. The crest whitens and peels along its length.
+2. Whitewater rushes forward as a band.
+3. It thins into streaky lace that drifts and fades over seconds.
+4. Bubbly water stays pale turquoise where the foam was.
+
+**What the renders changed:**
+- Stray surface lines framed the tube; the sky-lit line now runs only on flat water.
+- The whitewater read as pebbles; it is now a soft mass with a few bubbles.
+- A foam patch floated in the air after the lip fell; it is gone.
+- Wind streaks drawn as long vertical lines read as rain; lace now aligns along the wind instead.

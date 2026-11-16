@@ -79,6 +79,23 @@ The rules are the ones listed under each function in **What it is for**:
 Text is HTML in cards. The only SVG text is in `SeaByWind`, which sizes each row to its own waves, and in small axis
 labels checked at 1280 px.
 
+## Detail after photographs and video (round two)
+
+**Breakers.** `breakerDetail(shape)` adds what photographs of breaking waves show, and `BreakerFigure` paints it:
+- flow lines inside the face;
+- a translucent teal zone at the crest and lip, where the water is thin and lit through;
+- a cyan-lit tube;
+- whitewater as a soft white mass, shaded beneath and roughened by bubbles, over a blurred plume of aerated water;
+- foam lace crusts on the water ahead and behind;
+- spindrift blown back off the crest.
+
+The colours (`BREAKER_PALETTE`) are measured from four CC0 and public-domain photographs. The teal comes from water's
+absorption: red dies within metres (`WATER_ABSORPTION`, Pope & Fry 1997).
+
+**The sea.** `SeaScene` leaves foam lace where a crest broke in the last 1–8 seconds, fading with the measured decay
+(`FOAM_DECAY`: e-folding about 5 s, from a CC0 surf video). Bubbly water beneath the foam is paler. At force 7 and
+above, the lace is drawn out along the wind. With a low sun ahead, thin crests glow teal.
+
 ## Known limits
 
 - **`breakerShape` is a construction for painting, not a fluid simulation.** The lip arc is ballistic and the tube

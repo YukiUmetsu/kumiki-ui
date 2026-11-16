@@ -162,6 +162,27 @@ export const WATER_COLOURS: readonly WaterColour[] = [
 /** Foam lit by the sun (estimated: near white with a cool cast). */
 export const FOAM_LIT = "#f2f5f7";
 
+/**
+ * A breaking wave's colours, measured as medians in marked boxes on CC0 and public-domain photographs (Unsplash "Huge
+ * rolling wave", "Rolling wave crash"; NOAA "Large breaking wave", "Breaking wave"): the thin lip and crest are teal
+ * where light passes through; the face darkens to deep blue-green; the lower face is lighter where it mirrors the sky;
+ * inside the tube the light comes through the lip; whitewater is white in sun and blue-grey in its own shade.
+ * The thinnest lip highlight is estimated.
+ */
+export const BREAKER_PALETTE = {
+  lipThin: "#2ba8b5", lip: "#08697a", face: "#053a50", lowerFace: "#3f5e74", tube: "#7ab8cb",
+  whitewater: "#eeeef2", whitewaterShade: "#a6bdd0", aerated: "#83b3dc",
+  grade: "measured" as const,
+};
+/**
+ * Why a thin crest glows teal: pure water absorbs red far more than blue (Pope & Fry 1997, Applied Optics 36: about
+ * 0.0064 m⁻¹ at 440 nm, 0.020 at 500, 0.057 at 550, 0.22 at 600, 0.34 at 650 and 0.62 at 700 nm), so light that has
+ * crossed a metre or more of water loses its red first.
+ */
+export const WATER_ABSORPTION: readonly [number, number][] = [[440, .00635], [450, .00922], [470, .0106], [500, .0204], [550, .0565], [600, .2224], [650, .34], [700, .624]];
+/** Whitewater area decays roughly exponentially: e-folding 1.8–7.7 s, median about 5 s (measured: eight breaks in a CC0 surf video, "Santa Rosa Island Waves"). */
+export const FOAM_DECAY = { median: 5, range: [1.8, 7.7] as const, grade: "measured" as const };
+
 export const WATER_SOURCES = [
   W("Sea_state"), W("Wind_wave"), W("Stokes_wave"), W("Breaking_wave"), W("Iribarren_number"), W("Capillary_wave"), W("Kelvin_wake_pattern"),
   W("Meander"), W("Fresnel_equations"), W("Schlick's_approximation"), W("Color_of_water"),

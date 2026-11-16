@@ -10,14 +10,14 @@ import { MUTED, SheetCard, sheetGrid, sheetList, sheetSmall, SwatchList } from "
 import { beaufortSpeed, mixColour, skyGradient } from "./sky-physics";
 import { BEAUFORT } from "./sky-data";
 import type { BreakerType } from "./water-data";
-import { BREAKERS, FOAM_LIT, MEANDERS, SLOPES, WATER_COLOURS, WATER_SOURCES, WAVE_LIMITS } from "./water-data";
+import { BREAKER_PALETTE, BREAKERS, FOAM_DECAY, FOAM_LIT, MEANDERS, SLOPES, WATER_COLOURS, WATER_SOURCES, WAVE_LIMITS } from "./water-data";
 import {
-  breakerShape, fresnel, fullyDevelopedSea, glitterPath, kelvinWake, meanderPath, orbit, reflectanceAt, rippleRings, seaForBeaufort, seaSurface, throughWater, trochoidProfile,
+  breakerDetail, breakerShape, fresnel, fullyDevelopedSea, glitterPath, kelvinWake, meanderPath, orbit, reflectanceAt, rippleRings, seaForBeaufort, seaSurface, throughWater, trochoidProfile,
 } from "./water-physics";
 
 const RAD = Math.PI / 180;
 const useWaterId = () => `wtr${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-const DEEP = "#146593", SAND = "#d8c49a", SEA_AIR = "#cfe0ee";
+const DEEP = "#146593", SAND = "#d8c49a";
 
 /** A deterministic standard normal from integers (for sub-grid facet slopes). */
 function gauss(a: number, b: number, c: number) {
@@ -84,6 +84,10 @@ export function SeaScene({ beaufort = 4, sunElevation = 20, sunAhead = true, eye
   const subRms = Math.max(.01, Math.sqrt(Math.max(0, msTotal - resolvedMs) / 2));
   // Paths grouped by reflectance level and by how far below the horizon (which part of the sky they mirror).
   const levels = 28, buckets = [0, 1, 2.5, 5, 9, 15, 25, 90], bands = new Map<string, string[]>(), foams: string[] = [], glints: string[] = [];
+  // Residual foam: where a crest broke within the last few seconds, lace remains and fades with the measured decay
+  // (e-folding about 5 s); bubbly water beneath it is paler; backlit crests glow teal when the sun is low ahead.
+  const lace: { d: string; o: number }[] = [], aerated: string[] = [], glow: string[] = [];
+  const ago = [1.2, 2.6, 4.5, 7.5], tau = FOAM_DECAY.median, windStreaks = beaufort >= 7, lowSunAhead = sunAhead && sunElevation > 0 && sunElevation < 30;
   const bucketOf = (dep: number) => Math.max(0, buckets.findIndex(b => dep < b) - 1);
   for (let i = 1; i < lines.length; i++) {
     const far = lines[i - 1], near = lines[i], dep = Math.atan2(eye, near.d) / RAD, k = f / near.d;
@@ -109,6 +113,34 @@ export function SeaScene({ beaufort = 4, sunElevation = 20, sunAhead = true, eye
           foams.push(smoothClosedPath([[cx - rx, cy], [cx - rx * .3, cy - ry], [cx + rx * .5, cy - ry * .6], [cx + rx, cy + ry * .2], [cx + rx * .1, cy + ry]]));
         }
         if (size > 4) foams.push(smoothTube([[sx - size * .2, sy + size * .05], [sx, sy + size * .22], [sx + size * .15, sy + size * .4]], [size * .1, size * .06, size * .01]));
+      }
+      // Lace left by earlier breaks at this spot (the water barely moves while the crest runs on).
+      if (foamAbove < Infinity && k > 4) {
+        const y = (sx - W / 2) * near.d / f;
+        for (const dt of ago) {
+          if (surf.at(near.d, time - dt, y) <= foamAbove) continue;
+          const o = Math.exp(-dt / tau), r = seeded(i * 6151 + c * 13 + Math.round(dt * 10)), size = Math.min(40, Math.max(1.5, (.6 + r()) * k * .9));
+          // A loose net of short curved threads around the spot, opener as it ages.
+          const threads: string[] = [];
+          for (let q = 0; q < 4; q++) {
+            const ax = sx + (r() - .5) * size * 1.8, ay = sy + (r() - .3) * size * .25, len = size * (.3 + r() * .5), bend = (r() - .5) * size * .2;
+            if (windStreaks) {
+              // Strong winds draw the foam into streaks along the wind: here toward the viewer, so the threads lie along
+              // lines from the vanishing point, short and broken.
+              const vx = ax - W / 2, vy = ay - H0, vl = Math.hypot(vx, vy) || 1, sl = len * 1.4;
+              threads.push(`M${ax.toFixed(1)} ${ay.toFixed(1)}l${(vx / vl * sl).toFixed(1)} ${(vy / vl * sl).toFixed(1)}`);
+            } else threads.push(`M${ax.toFixed(1)} ${ay.toFixed(1)}q${(len / 2).toFixed(1)} ${bend.toFixed(1)} ${len.toFixed(1)} ${(bend * .2).toFixed(1)}`);
+          }
+          lace.push({ d: threads.join(""), o });
+          aerated.push(`M${(sx - size).toFixed(1)} ${(sy + size * .08).toFixed(1)}a${size.toFixed(1)} ${(size * .22).toFixed(1)} 0 1 0 ${(size * 2).toFixed(1)} 0a${size.toFixed(1)} ${(size * .22).toFixed(1)} 0 1 0 ${(-size * 2).toFixed(1)} 0`);
+          // Strong winds draw foam into streaks along the wind (toward the viewer here, so down the picture).
+          break;
+        }
+      }
+      // A low sun ahead lights the thin crests from behind: teal near the top of faces turned to the viewer.
+      if (lowSunAhead && near.eta[c] > sea.height * .25 && near.slope[c] > .05 && k > 3) {
+        const gw = Math.min(30, colStep * .9), gh = Math.max(1, Math.min(8, near.eta[c] * k * .35));
+        glow.push(`M${(sx - gw).toFixed(1)} ${sy.toFixed(1)}h${(gw * 2).toFixed(1)}v${gh.toFixed(1)}h${(-gw * 2).toFixed(1)}Z`);
       }
       if (sunAhead && sunElevation > 0) {
         // A glint needs a facet tilted to mirror the sun: half the gap between the sun and the view, beyond the
@@ -137,6 +169,9 @@ export function SeaScene({ beaufort = 4, sunElevation = 20, sunAhead = true, eye
       {sunAhead && sunElevation > 0 && sunElevation < 40 ? <circle cx={W / 2} cy={H0 - f * Math.tan(sunElevation * RAD)} r={f * Math.tan(.27 * RAD) * 1.6} fill={sky.sunDisc} /> : null}
       <rect y={H0} width={W} height={H - H0} fill={`url(#${id}-sea)`} />
       {[...bands.entries()].map(([key, ds]) => <path key={key} d={ds.join("")} fill={fillOf(key)} />)}
+      <path d={aerated.join("")} fill={BREAKER_PALETTE.aerated} opacity=".22" />
+      <path d={glow.join("")} fill={BREAKER_PALETTE.lipThin} opacity={.35 * (1 - sunElevation / 30)} />
+      {lace.map((l, i) => <path key={`lace${i}`} d={l.d} fill="none" stroke={FOAM_LIT} strokeWidth={.9} strokeLinecap="round" opacity={(.75 * l.o).toFixed(2)} />)}
       <path d={foams.join("")} fill={FOAM_LIT} opacity=".92" />
       <path d={glints.join("")} stroke="#fffbe8" strokeWidth={1.4} strokeLinecap="round" opacity=".95" />
       <title>{`Glitter half-height about ${glint.halfHeight.toFixed(0)}° (rms slope ${glint.rmsSlope.toFixed(2)}); sky reflected ${skyMid}`}</title>
@@ -144,19 +179,60 @@ export function SeaScene({ beaufort = 4, sunElevation = 20, sunAhead = true, eye
   );
 }
 
-/** A breaker in cross-section at a stage, for a type. */
-export function BreakerFigure({ type, stage, label, height = 150 }: { type: BreakerType; stage: number; label?: string; height?: number }) {
-  const b = breakerShape(type, stage), [x0, y0, x1, y1] = b.bounds;
+/** Stretches of the surface lying flat near still-water level (ahead of the face and far behind the crest). */
+function surfaceRuns(surface: readonly FPoint[], crest: FPoint) {
+  const runs: FPoint[][] = [];
+  let cur: FPoint[] = [];
+  for (const p of surface) {
+    const flat = p[1] < .1 && (p[0] > crest[0] + .25 || p[0] < crest[0] - 2.6);
+    if (flat) cur.push(p); else if (cur.length) { if (cur.length > 1) runs.push(cur); cur = []; }
+  }
+  if (cur.length > 1) runs.push(cur);
+  return runs;
+}
+
+/**
+ * A breaker in cross-section at a stage, painted after photographs of breaking waves: a sky, the face darkening from
+ * the sky-lit trough to deep blue-green, the thin crest and lip glowing teal, flow lines up the face, the tube lit
+ * through its lip, whitewater of shaded bubbles over an aerated plume, foam lace on the water, and spindrift off the crest.
+ */
+export function BreakerFigure({ type, stage, label, height = 150, seed = 1 }: { type: BreakerType; stage: number; label?: string; height?: number; seed?: number }) {
+  const id = useWaterId(), b = breakerShape(type, stage), dt = breakerDetail(b, seed), [x0, y0, x1, y1] = b.bounds, P = BREAKER_PALETTE, cy = dt.crest[1];
   return (
     <svg role="img" aria-label={label ?? `${type} breaker, stage ${stage}`} viewBox={`${x0} ${-y1} ${x1 - x0} ${y1 - y0}`} style={{ display: "block", width: "100%", height }} preserveAspectRatio="xMidYMid meet">
-      <rect x={x0} y={-y1} width={x1 - x0} height={y1 - y0} fill={SEA_AIR} />
+      <defs>
+        <linearGradient id={`${id}-sky`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#6f9fcc" /><stop offset="1" stopColor="#cfe0ee" /></linearGradient>
+        <linearGradient id={`${id}-water`} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={y0} y2={cy}>
+          <stop offset="0" stopColor="#06253a" /><stop offset=".55" stopColor={P.face} /><stop offset=".85" stopColor={P.lip} /><stop offset="1" stopColor={P.lip} />
+        </linearGradient>
+        <filter id={`${id}-soft`} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation=".09" /></filter>
+        <linearGradient id={`${id}-thin`} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={cy - .9} y2={cy}><stop offset="0" stopColor={P.lipThin} stopOpacity="0" /><stop offset="1" stopColor={P.lipThin} stopOpacity=".8" /></linearGradient>
+        <radialGradient id={`${id}-tube`} fx=".62" fy=".5"><stop offset="0" stopColor="#a9d6e1" /><stop offset=".55" stopColor={P.tube} /><stop offset="1" stopColor={P.lip} /></radialGradient>
+        <linearGradient id={`${id}-plume`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor={P.aerated} stopOpacity=".85" /><stop offset="1" stopColor={P.aerated} stopOpacity="0" /></linearGradient>
+        <radialGradient id={`${id}-bub`} cx=".5" cy=".5" r=".5" fx=".45" fy=".65"><stop offset="0" stopColor="#ffffff" /><stop offset=".75" stopColor={P.whitewater} /><stop offset="1" stopColor={P.whitewater} stopOpacity="0" /></radialGradient>
+        <linearGradient id={`${id}-ww`} x1="0" x2="0" y1="1" y2="0"><stop offset="0" stopColor="#ffffff" /><stop offset=".55" stopColor={P.whitewater} /><stop offset="1" stopColor={P.whitewaterShade} /></linearGradient>
+        <filter id={`${id}-soft2`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation=".025" /></filter>
+        <clipPath id={`${id}-wclip`}><path d={polyPath(b.water)} /></clipPath>
+      </defs>
+      <rect x={x0} y={-y1} width={x1 - x0} height={y1 - y0} fill={`url(#${id}-sky)`} />
       <g transform="scale(1 -1)">
         <path d={polyPath([...b.bed, [b.bed[1][0], y0 - 1], [b.bed[0][0], y0 - 1]])} fill={SAND} />
-        <path d={polyPath(b.water)} fill={DEEP} />
-        {b.air ? <path d={polyPath(b.air)} fill={SEA_AIR} /> : null}
-        {b.foam.map((fm, i) => <path key={i} d={smoothClosedPath(fm)} fill={FOAM_LIT} stroke="#9fb3c2" strokeWidth={.02} />)}
-        {b.spray.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r={.04} fill={FOAM_LIT} />)}
-        <line x1={x0} x2={x1} y1={0} y2={0} stroke={MUTED} strokeWidth={.015} strokeDasharray=".1 .1" />
+        <path d={polyPath(b.water)} fill={`url(#${id}-water)`} />
+        <g clipPath={`url(#${id}-wclip)`}>
+          <path d={polyPath(dt.translucent)} fill={`url(#${id}-thin)`} />
+          {dt.faceLines.map((l, i) => <path key={i} d={linePath(l)} fill="none" stroke="#5fb3bb" strokeOpacity={.32 - i * .04} strokeWidth={.012} />)}
+          {dt.plume.map((p, i) => <path key={i} d={smoothClosedPath(p)} fill={`url(#${id}-plume)`} opacity=".7" filter={`url(#${id}-soft)`} />)}
+        </g>
+        {b.air ? <path d={polyPath(b.air)} fill={`url(#${id}-tube)`} /> : null}
+        {/* The surface ahead mirrors the sky: a thin light line along the water. */}
+        {surfaceRuns(b.surface, dt.crest).map((run, i) => <path key={`s${i}`} d={linePath(run)} fill="none" stroke={P.lowerFace} strokeWidth={.05} opacity=".8" />)}
+        {dt.lace.map((l, i) => <path key={i} d={linePath(l)} fill="none" stroke={FOAM_LIT} strokeWidth={.018} strokeLinecap="round" opacity=".85" />)}
+        {/* Whitewater: each patch a soft white mass shaded beneath, its top roughened by bubbles. */}
+        {b.foam.map((f, i) => <path key={`f${i}`} d={smoothClosedPath(f)} fill={`url(#${id}-ww)`} filter={`url(#${id}-soft2)`} />)}
+        {dt.bubbles.filter((_, i) => i % 2 === 0).map((q, i) => <circle key={i} cx={q.c[0]} cy={q.c[1]} r={q.r * .9} fill={`url(#${id}-bub)`} opacity=".75" />)}
+        {b.spray.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r={.025} fill={FOAM_LIT} opacity=".8" />)}
+        {dt.spindrift.map((s, i) => <line key={i} x1={s.from[0]} y1={s.from[1]} x2={s.to[0]} y2={s.to[1]} stroke="#ffffff" strokeOpacity=".35" strokeWidth={.012} strokeLinecap="round" />)}
+        <line x1={x0} x2={x1} y1={0} y2={0} stroke={MUTED} strokeWidth={.012} strokeDasharray=".1 .1" opacity=".5" />
       </g>
     </svg>
   );
