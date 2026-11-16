@@ -2051,6 +2051,20 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     )];
     expect(masks).toHaveLength(20);
     expect(new Set(masks.map(m=>m[2])).size).toBe(20);
+    // Native masks must stay close to each original living branch.
+    // A full-canvas mask ×20 is an unacceptable 960x540 film cost.
+    const boxes=[...ink.matchAll(
+      /<mask data-km-cliff-pine-bridge-paper-mask=""[^>]+ x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)"/g,
+    )];
+    expect(boxes).toHaveLength(20);
+    for(const [,x,y,w,h] of boxes){
+      expect([x,y,w,h].every(v=>Number.isFinite(Number(v)))).toBe(true);
+      expect(Number(w)).toBeGreaterThan(72);
+      expect(Number(w)).toBeLessThan(180);
+      expect(Number(h)).toBeGreaterThan(60);
+      expect(Number(h)).toBeLessThan(140);
+      expect(Number(w)*Number(h)).toBeLessThan(21000);
+    }
     expect(masks.map(m=>Number(m[1]))).toEqual(
       Array.from({length:20},(_,k)=>k));
     const cuts=[...ink.matchAll(

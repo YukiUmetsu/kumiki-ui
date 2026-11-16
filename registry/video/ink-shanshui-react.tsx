@@ -2764,7 +2764,22 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             d+=" Q"+f(mid[0])+" "+f(mid[1])+
               " "+f(tip[0])+" "+f(tip[1]);
           }
-          return {start,end,d:d+" Z",
+          // Render only the live bough-local area into the SVG luminance
+          // buffer. A 1190x580 full-stage mask for EACH of 20 boughs
+          // wastes ~14 million pixels per sample; bounded silhouettes
+          // preserve all original droplets while remaining animatable.
+          // The largest fan reach is <26 scene units and the tallest
+          // crest is <13; 36x30 margin fully encloses both real source
+          // flying-white paths under any seed and branch handedness.
+          const xs=[origin[0],control[0],tip[0]];
+          const ys=[origin[1],control[1],tip[1]];
+          const minX=Math.min(...xs),maxX=Math.max(...xs);
+          const minY=Math.min(...ys),maxY=Math.max(...ys);
+          const bounds={
+            x:f(minX-36),y:f(minY-30),
+            width:f(maxX-minX+72),height:f(maxY-minY+60),
+          };
+          return {start,end,d:d+" Z",bounds,
             // A single wet underpaint passes beneath TWO fan heads.
             // Its two fans each contribute two physical Flying White
             // reserves; don't re-cover their actual blank paper.
@@ -2839,10 +2854,16 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
               <defs><mask data-km-cliff-pine-bridge-paper-mask=""
                 data-km-cliff-pine-bridge-paper-mask-bough={i*4+j}
                 id={"kmpine"+groveId+"-bridge-"+i+"-"+j}
-                x="-110" y="-20" width="1190" height="580"
+                x={connectedCanopy.bounds.x}
+                y={connectedCanopy.bounds.y}
+                width={connectedCanopy.bounds.width}
+                height={connectedCanopy.bounds.height}
                 maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse"
                 style={{maskType:"luminance"}}>
-                <rect x="-110" y="-20" width="1190" height="580"
+                <rect x={connectedCanopy.bounds.x}
+                  y={connectedCanopy.bounds.y}
+                  width={connectedCanopy.bounds.width}
+                  height={connectedCanopy.bounds.height}
                   fill="#fff"/>
                 {connectedCanopy.cuts.map((cut,k)=>
                   <path key={k} data-km-cliff-pine-bridge-paper-cut=""
