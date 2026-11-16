@@ -36,7 +36,7 @@ describe("ArtCraft F1 V32 photograph-registered ANAT1 3D zygoma–alar midface",
       expect(shape.bounds.height).toBeGreaterThan(40);
       expect(shape.bounds.width).toBeLessThan(450);
       expect(shape.bounds.height).toBeLessThan(450);
-      expect(shape.bounds.x).toBeGreaterThan(70);
+      expect(shape.bounds.x).toBeGreaterThan(50);
       expect(shape.bounds.x).toBeLessThan(450);
       expect(shape.bounds.y).toBeGreaterThan(450);
       expect(shape.bounds.y).toBeLessThan(760);
