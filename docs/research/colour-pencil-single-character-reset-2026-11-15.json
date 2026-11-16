@@ -1,5 +1,5 @@
 {
-  "schema_version": 4,
+  "schema_version": 5,
   "project": "kumiki-ui / CP-F1 new single character #01",
   "subject_type": "human",
   "status": "stage_1_outline_only_unapproved",
@@ -81,7 +81,8 @@
         "scaleY": 1.44,
         "yaw_degrees": 17
       },
-      "caveat": "Sex parameter is a mesh morph parameter, not an individual's inferred sex or identity. No reference-aligned anatomy fidelity claim; the model face mask excludes skull back/ears/hairline."
+      "caveat": "Sex parameter is a mesh morph parameter, not an individual's inferred sex or identity. No reference-aligned anatomy fidelity claim; the model face mask excludes skull back/ears/hairline.",
+      "diagnostics": "Nine projected NEW-HEAD ANAT1 points (forehead, glabella, both zygions, cheekbones, gonions, menton) computed through the same source-of-truth projectNewHeadPoint as the subject. NOT 18 retired-woman landmarks or independent source/actual-image comparisons."
     },
     "regions": [
       "head-silhouette-01"
@@ -102,10 +103,11 @@
       "9:16"
     ],
     "one_at_a_time_gate": "No second character or facial feature before stage-1 silhouette is rendered at 1x/2.15x, proportion/plane masks reviewed, and any topology defect corrected.",
-    "material": "glaze, translucent construction pencil on paper without opaque skin support or old female texture; CP-F1 underpainting not rendered as filled wax silhouette"
+    "material": "glaze, translucent construction pencil on paper without opaque skin support or old female texture; CP-F1 underpainting not rendered as filled wax silhouette",
+    "storybook": "Both existing Colour-pencil Storybook screens now show only the fresh head with 2.15x/2.4x review; the Living Atelier shows a 9-point construction overlay and hides facial-feature controls until those parts actually exist."
   },
   "five_axes": {
-    "topology": "one editable standalone head, no old portrait parts and no face stickers. Mark visible missing cranium behind the mask as blocker, not as finished skull.",
+    "topology": "one editable standalone head, no old portrait parts and no face stickers. Mark visible missing cranium behind the mask as blocker, not as finished skull. Storybook's diagnostic geometry is now derived from the same new-head mesh and camera, eliminating the unrelated previous portrait's hard-coded anchor coordinates.",
     "vector_flow": "3 curved local pressure fans run from forehead through zygomatic bones to jaw; no global diagonal identical strokes",
     "weight": "low pressure ochre/rose/sepia head plane values; subtle mandibular and zygomatic turn, not solid gradient contour",
     "rhythm": "3 × 114 short strokes follow three bony guides with deterministic irregular offsets, not wallpaper",
@@ -113,9 +115,9 @@
   },
   "gates": {
     "source_match": "BLOCKED: anatomy construction source is general, no matched human identity/body pose photograph was supplied.",
-    "head_silhouette": "First original face-mask candidate REJECTED for flat forehead, second corrected cranial-vault silhouette candidate REJECTED as solid salmon wax face. Latest candidate keeps cranial vault but changes only the new head region from filled skin to transparent dry-pencil glaze; native 960px/2.15x inspection required.",
+    "head_silhouette": "First original face-mask candidate REJECTED for flat forehead, second corrected cranial-vault silhouette candidate REJECTED as solid salmon wax face. Latest candidate keeps cranial vault but changes only the new head region from filled skin to transparent dry-pencil glaze; native 960px/2.15x inspection required. The old 18-point overlay and fictional eyes/nose/mouth construction selectors have since been removed from the new-human Storybook. This is a provenance/diagnostic correction, not an art approval.",
     "quality": "HOLD: intentionally partial drawing. No eye/nose/mouth/hair regions exist and no photorealism claim is allowed.",
-    "automated": "Vitest verifies exact one region, absence of old parts, projective 36-anchor outline, three seeded pressure families, seed determinism and both Storybook formats. Chromium captures 2.15× Stage 1."
+    "automated": "Changed-contracts + native Playwright revisions are committed to the same open draft PR. Corrected CP-F1 assumption that all materials have opaque craft base, and Living Atelier selectors that still expected the deleted former face. Unit assertions check 9 new-head guides lie within the actual head bounds. Re-run CI on exact head; results not yet confirmed at the time of this edit."
   },
   "next_step": "Only after native Stage 1 art review: complete head/cranium silhouette including rear skull and ear bases, then render a SINGLE isolated eye. Do not generate another full character or return to the old woman.",
   "visual_review_log": [
@@ -133,6 +135,12 @@
       "observed": "Forehead vault rounds but full head still appears as a uniform salmon wax shield rather than a real pencil construction sketch",
       "decision": "REJECT",
       "correction": "Change fresh head from opaque skin to a transparent glaze/material with pale brown contour and three bounded dry-pencil stroke passes. Keep one character at head-only stage; verify actual native 960px screenshots."
+    },
+    {
+      "candidate": "stage-1 provenance and Storybook diagnostic correction",
+      "decision": "PENDING_NATIVE_VISUAL_REVIEW",
+      "observation": "Prior Storybook overlays referenced coordinates of the deleted woman and labeled missing eyes/nose/mouth as editable. These have been replaced with 9 source-of-truth ANAT1 projected points, and human-only facial controls were removed. No new anatomical feature or texture has been artificially added.",
+      "next": "Re-run full native 960x540 and 540x960 pencil screenshots, 2.15x/2.4x crops and exact-head CI. Artist must review revised head silhouette and pressure contacts before merging or drawing the first separate eye."
     }
   ]
 }
