@@ -55,3 +55,42 @@ test("Chinese-ink EXPR1 atelier uses the source-fitted reader with visible full,
     await studio.screenshot({animations:"disabled",
       path:info.outputPath("reader-EXPR1-expression-atlas.png")});
   });
+
+
+test("Chinese-ink EXPR1 timeline scrubs an actual source reader through neutral, expression and recovery",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-reader-face--reader-expression-art-craft&viewMode=story");
+  const micro=page.getByTestId("reader-expr1-micro");
+  const picker=page.getByRole("combobox",{name:"EXPR1 emotion"});
+  const frame=page.getByRole("slider",{name:"EXPR1 motion frame"});
+  const brow=micro.locator('[data-km-ink-expression-part="brows"] path').first();
+  const mouth=micro.locator('[data-km-ink-expression-part="mouth"] path').last();
+  await picker.selectOption("sad");
+  await frame.focus();
+  await frame.press("Home");
+  await expect(frame).toHaveValue("0");
+  const neutral=await brow.getAttribute("d");
+  await expect(page.getByTestId("reader-expr1-diagnostics"))
+    .toContainText("Cue frame 0");
+  // These are source-frame controls, not CSS-morphed screenshots.
+  for(let n=0;n<12;n++)await frame.press("ArrowRight");
+  await expect(frame).toHaveValue("12");
+  const engaged=await brow.getAttribute("d");
+  expect(engaged).not.toEqual(neutral);
+  await micro.screenshot({animations:"disabled",
+    path:info.outputPath("reader-EXPR1-cue-full-sad-frame12.png")});
+  await frame.press("End");
+  await expect(frame).toHaveValue("96");
+  expect(await brow.getAttribute("d")).toEqual(neutral);
+  await picker.selectOption("smile");
+  const mouthNeutral=await mouth.getAttribute("d");
+  await frame.press("Home");
+  for(let n=0;n<12;n++)await frame.press("ArrowRight");
+  expect(await mouth.getAttribute("d")).not.toEqual(mouthNeutral);
+  await expect(page.getByTestId("reader-expr1-cue-frames")
+    .locator("[data-km-ink-cue-frame]")).toHaveCount(7);
+  await expect(page.getByRole("button",{name:"Reset cue"})).toBeVisible();
+  await page.getByRole("button",{name:"Reset cue"}).click();
+  await expect(frame).toHaveValue("0");
+  await micro.screenshot({animations:"disabled",
+    path:info.outputPath("reader-EXPR1-cue-neutral-frame0.png")});
+});
