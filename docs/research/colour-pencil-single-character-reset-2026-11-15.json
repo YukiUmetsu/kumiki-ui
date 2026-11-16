@@ -104,19 +104,20 @@
     ],
     "one_at_a_time_gate": "No second character or facial feature before stage-1 silhouette is rendered at 1x/2.15x, proportion/plane masks reviewed, and any topology defect corrected.",
     "material": "glaze, translucent construction pencil on paper without opaque skin support or old female texture; CP-F1 underpainting not rendered as filled wax silhouette",
-    "storybook": "Both existing Colour-pencil Storybook screens now show only the fresh head with 2.15x/2.4x review; the Living Atelier shows a 9-point construction overlay and hides facial-feature controls until those parts actually exist."
+    "storybook": "Both existing Colour-pencil Storybook screens now show only the fresh head with 2.15x/2.4x review; the Living Atelier shows a 9-point construction overlay and hides facial-feature controls until those parts actually exist.",
+    "pigment_study": "Generic CP1 glaze made a repeated diagonal grid over the entire head at native film size. The candidate uses three independent granular low-pressure optical passes instead, retains 342 separately curved face-plane marks and shades the silhouette with a measured fine sepia boundary. No photography pixels or filter."
   },
   "five_axes": {
     "topology": "one editable standalone head, no old portrait parts and no face stickers. Mark visible missing cranium behind the mask as blocker, not as finished skull. Storybook's diagnostic geometry is now derived from the same new-head mesh and camera, eliminating the unrelated previous portrait's hard-coded anchor coordinates.",
     "vector_flow": "3 curved local pressure fans run from forehead through zygomatic bones to jaw; no global diagonal identical strokes",
-    "weight": "low pressure ochre/rose/sepia head plane values; subtle mandibular and zygomatic turn, not solid gradient contour",
+    "weight": "Stage 1 outline now intentionally .82 paper units / .56 opacity sepia in the existing CP-F1 renderer, paired with optical stipple; no solid skin support or opaque salmon wax.",
     "rhythm": "3 × 114 short strokes follow three bony guides with deterministic irregular offsets, not wallpaper",
-    "texture": "3 independent transparent CP-F1 graphite/pencil mark passes atop paper tooth; no opaque filled salmon face, bitmap or filter"
+    "texture": "Previous 1× native frame had uniform diagonal hatch lattice, not authentic pencil drawing. New candidate replaces universal hatch/fiber pattern in this ONE glaze with pressure-bounded paper-tooth stipple contacts; three independently authored curved construction fans remain. No claim of photorealism or release without current-head screenshot."
   },
   "gates": {
     "source_match": "BLOCKED: anatomy construction source is general, no matched human identity/body pose photograph was supplied.",
     "head_silhouette": "First original face-mask candidate REJECTED for flat forehead, second corrected cranial-vault silhouette candidate REJECTED as solid salmon wax face. Latest candidate keeps cranial vault but changes only the new head region from filled skin to transparent dry-pencil glaze; native 960px/2.15x inspection required. The old 18-point overlay and fictional eyes/nose/mouth construction selectors have since been removed from the new-human Storybook. This is a provenance/diagnostic correction, not an art approval.",
-    "quality": "HOLD: intentionally partial drawing. No eye/nose/mouth/hair regions exist and no photorealism claim is allowed.",
+    "quality": "HOLD: full human drawing is unapproved/incomplete. Prior native 960×540 screenshot of head-only candidate showed box-like expanded skull top, chin shield and a repeated lattice of long diagonal hatches; failed ArtCraft visual gate even though source geometry and CP-F1 schema were valid. Latest source now changes head-only material from broad grid to low-pressure stippled tooth with stronger authentic contour, but new native render has not been reviewed.",
     "automated": "Changed-contracts + native Playwright revisions are committed to the same open draft PR. Corrected CP-F1 assumption that all materials have opaque craft base, and Living Atelier selectors that still expected the deleted former face. Unit assertions check 9 new-head guides lie within the actual head bounds. Re-run CI on exact head; results not yet confirmed at the time of this edit."
   },
   "next_step": "Only after native Stage 1 art review: complete head/cranium silhouette including rear skull and ear bases, then render a SINGLE isolated eye. Do not generate another full character or return to the old woman.",
@@ -141,6 +142,15 @@
       "decision": "PENDING_NATIVE_VISUAL_REVIEW",
       "observation": "Prior Storybook overlays referenced coordinates of the deleted woman and labeled missing eyes/nose/mouth as editable. These have been replaced with 9 source-of-truth ANAT1 projected points, and human-only facial controls were removed. No new anatomical feature or texture has been artificially added.",
       "next": "Re-run full native 960x540 and 540x960 pencil screenshots, 2.15x/2.4x crops and exact-head CI. Artist must review revised head silhouette and pressure contacts before merging or drawing the first separate eye."
+    },
+    {
+      "candidate": "prior original single head under CP-F1 default glaze — native one-to-one ArtCraft negative review",
+      "workflow": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43792850726",
+      "artifact": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43792850726/artifacts/14193580347",
+      "observed": "Opened actual artcraft-living-portrait-landscape.png. Whole head is a tall broad face shield with almost no distinguishable cheek-to-jaw turn. Across the head, three long diagonal CP1 hatch families form a uniform checker/plaid rather than shaped low-pressure coloured-pencil deposits. Facial value guides are almost invisible at native output.",
+      "decision": "REJECT — NOT MUSEUM QUALITY",
+      "cause": "The compatibility glaze inherits generic full-region global hatching, especially three crossed angles, plus near invisible .09 contour opacity. This defeats the separately authored value-guide marks and makes the new ANAT1 silhouette read as flat painted paper.",
+      "correction": "For new head ONLY set 3 optical layers to fine paper-tooth stipple with pressures below .3, preserve all 342 curved bone-aligned gestures, and use .82-unit warm sepia outline at .56 opacity. Review full native image again. Next actual form correction: independent rights-verified 3/4 head source and measured posterior vault, frontal arc/temple, zygoma/gonion and chin silhouettes; source-traced paint or old woman re-use prohibited."
     }
   ]
 }
