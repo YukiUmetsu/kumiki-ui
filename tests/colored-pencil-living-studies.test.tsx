@@ -398,6 +398,44 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(parts.get("whisker-roots")!.clipDetails).toBe(false);
   });
 
+  it("constructs a fox palpebral slit and connected maxillary pencil planes without cartoon eye stickers",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject:"fox",aspect,seed:291});
+      const regions=new Map(drawing.regions.map(r=>[r.id,r]));
+      const eye=regions.get("eye-near")!,far=regions.get("eye-far")!;
+      const head=regions.get("head-main")!,muzzle=regions.get("muzzle")!;
+      expect(eye.bounds[2]/head.bounds[2]).toBeLessThan(.13);
+      expect(eye.bounds[3]).toBeLessThanOrEqual(18);
+      expect(eye.bounds[0]).toBeGreaterThan(far.bounds[0]+far.bounds[2]);
+      expect(eye.opaqueSupport).toBe(false);
+      expect(eye.path).toContain("C250 187 251 189 249 191");
+      for(const id of [
+        "fox-superior-tarsus","fox-inferior-tarsus","fox-iris-pigment",
+        "fox-vertical-pupil","fox-corneal-glint",
+        "fox-supraorbital-arc","fox-orbital-turn",
+      ])expect(eye.details?.some(d=>d.id===id)).toBe(true);
+      // The slit and iris are independent physical pencil traces.
+      // Nine further fibre families grow into the brow instead of masking
+      // the eye with a flat raster/white-sclera ellipse.
+      const eyeFibres=eye.details!.filter(d=>d.id?.startsWith("fibre-"));
+      expect(eyeFibres).toHaveLength(9);
+      expect(eyeFibres.every(d=>d.path.includes(" Q")&&d.width<.65)).toBe(true);
+      for(const id of ["fox-maxillary-plane","fox-mandibular-turn",
+        "fox-rostral-highlight"]){
+        const trace=muzzle.details?.find(t=>t.id===id);
+        expect(trace,id).toBeDefined();
+        expect(trace!.width).toBeLessThan(.35);
+        expect(trace!.opacity).toBeLessThan(.6);
+      }
+      expect(muzzle.details!.filter(d=>d.id?.startsWith("fibre-")))
+        .toHaveLength(21);
+      expect(drawing.regions.every(r=>r.details?.every(t=>
+        t.path.length<=12000&&!/NaN|Infinity/.test(t.path))??true)).toBe(true);
+      expect(pencilLivingStudyDrawing({subject:"fox",aspect,seed:291}))
+        .toEqual(drawing);
+    }
+  });
+
   it("separates distant from close pines, reflected water, river rock and bank foliage",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"valley",aspect:"landscape"});
     const parts=new Map(drawing.regions.map(region=>[region.id,region]));
