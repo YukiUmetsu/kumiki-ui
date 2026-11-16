@@ -15,6 +15,7 @@ on:
       - "src/video/riso-character-demo.tsx"
       - "tests/riso39-opposed-paper-pinch.test.ts"
       - "src/video/riso40-paper-fingertip-contact.ts"
+      - "registry/video/riso-prop-handoff.ts"
       - "src/video/riso-human-ensemble.tsx"
       - "tests/riso40-paper-fingertip-contact.test.ts"
       - "tests/e2e-storybook/riso-human-ensemble.spec.ts"
