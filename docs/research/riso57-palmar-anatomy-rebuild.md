@@ -59,3 +59,32 @@ The first RISO57 silhouette candidate was too flattering to a generic palm silho
 RISO57 corrects the clinical source-plane alignment using the actual immutable `COURIER_BASE_JOINTS` root stations (right-hand index `[6,16]`, middle `[0,18]`, ring `[-6,16]`, little `[-11,15]`; mirrored on left). The source knot landmarks and RED filled carpal edge now stay within 2.6 source units of these physical original joint roots, not within an invented symmetric hand. Four knuckle crests are distinctly different heights and source positions. The two original RISO54 four-cubic negative paper reserves are **retargeted** to the RISO57 actual `middle-ring-web` and `ring-little-web` knots and project under the same real RISO51 3/4 palm transform: each must genuinely cross from RED palm interior to unprinted exterior at f160, not form isolated white holes or disappear off outside the hand. Zero third-colour matte; genuine paper on both physical spot masters.
 
 Added source-MCP proximity regression to `tests/riso57-palmar-silhouette-artcraft.test.ts`; retained RISO54 negative-paper-lip test and all original RISO42 red-ink finger-gap checks. This is the critical anatomical assembly fix missed by small cosmetic RISO49–55 iterations.
+
+
+## Real Chromium render assessment (actual final RISO57 candidate)
+
+**Full tested source head `134faedcf6a78ebf9d61136815048269f54c0695` — all three GitHub workflows passed:**
+- [changed tests, full TypeScript, 27 changed unit suites](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43934721561)
+- [RISO22 eye/face browser gate](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43934721569)
+- [true physical RED/BLUE source ink, Storybook workbench, 16:9 and 9:16 movie](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43934721549), [actual screenshot ZIP artifact 14260282985](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43934721549/artifacts/14260282985).
+
+**Independent exact screenshots, RISO56b → RISO57, source f160 with maximum per-channel difference >6/255:**
+
+| Material/shot | Native pixels changed |
+| --- | ---: |
+| True RED workbench master 1600×1198 | 0.2668% |
+| True BLUE workbench master | 0.0075% |
+| Whole two-human workbench at f160 | 0.2659% |
+| Cropped physical Courier donor hand | 4.392% |
+| Cropped physical Paper Artist receiver hand | 2.093% |
+| Entire 958×539 16:9 f160 film | 0.1102% |
+| Entire 448×799 9:16 f160 film | 0.0684% |
+| Entire 16:9/9:16 f166 film | 0.1230% / 0.0821% |
+
+The red source **does** visibly shift from the earlier flat mitten to a more tapered 3/4 carpal shape, and each original C1 MCP crest is positioned near its real named physical ANAT1 root. The original RISO54 white saddle holes now correctly punch through *both* ink masks from the moving source positive edge, not float outside it. No computer-vision/screenshot raster code is part of the shipped print.
+
+**Independent ArtCraft failure still present**: enlarged Courier wrist-to-fingertip red silhouette now develops a **sharp wedge** extending from sleeve to finger roots; the three folded distal pads still appear as discrete sausage shapes rather than convincing attached tissue. Paper Artist has several disconnected-looking red pads around a V-shaped folding finger and an angular thumb-index junction. The source-blue knuckle/fold pattern is almost unchanged and does not describe the new positive palm depth convincingly. Close-up 1× movie differences are below 0.13% of pixels. Even though all structural/CI/print gates are green, RISO57 is **not a visually approved art release**; do not merge draft #471.
+
+### Next real art intervention — not another cosmetic outline redraw
+
+The recurrent macro issue is a mismatch between 3D **surface contact/occlusion** and individually posed 2D source segments. Before touching RISO58, inspect actual photographed thumb/index paper pinch from **both left and right** at the final 3/4 camera. Reconstruct a **connected skin envelope** from ANAT1 metacarpal+PIP/DIP and CMC/IP contact landmarks in the correct visible ray order (near thumb/index, interior thenar/web and ulnar folded pads), not one disconnected red path per digit. Author both positive silhouette and negative web-space from one shared joint-projected topology at f142/160/166/180. Keep original RED/BLUE print parts, 16 rich C1 curves, tendon creases and independently moving bones; remove no micro-element. Add strict visual source negative-space/overlap checks and compare both real printed masters at f160/166 at 1× AND 7.4× in original film. Consider 3D ANAT1 HumanFrame silhouette conditioning or a licensed reference-photo landmark system rather than further manually guessed fixed 2D joint coordinates. Reject if the wedge and red floating pad effect remain.
