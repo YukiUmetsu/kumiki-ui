@@ -71,13 +71,26 @@ describe("RISO31 ArtCraft / actual PIP+DIP printed phalanx animation",()=>{
           // RISO31_GEOMETRY. Only the receiver's three ulnar supporting
           // fingers now project shorter in the live 2D camera after f146.
           // Do not fake equality of true length and visible 3/4 projection.
-          const projected=spec.id==="paper-artist"&&side==="left"&&
-            sample.digit!=="index"&&frame>=148;
+          const courierTail=spec.id==="courier"&&side==="right"&&
+            sample.digit!=="index"&&frame===204;
+          const projected=sample.digit!=="index"&&frame>=148&&(
+            (spec.id==="paper-artist"&&side==="left")||
+            (spec.id==="courier"&&side==="right"&&frame<=202));
           if(projected){
             expect(sample.rootLength).toBeLessThan(sample.expectedProximal-.005);
-            expect(sample.rootLength).toBeGreaterThan(sample.expectedProximal*.58);
+            // RISO54 2D side-on projection can be ~.39, while the
+            // original clinical ANAT1 3D lengths remain unchanged.
+            expect(sample.rootLength).toBeGreaterThan(sample.expectedProximal*.385);
             expect(sample.intermediateLength).toBeLessThan(sample.expectedIntermediate-.005);
-            expect(sample.intermediateLength).toBeGreaterThan(sample.expectedIntermediate*.58);
+            expect(sample.intermediateLength).toBeGreaterThan(sample.expectedIntermediate*.385);
+          }else if(courierTail){
+            // f204 is the last 2-frame easing sample before original bone
+            // length returns exactly at f205. Do not assume it already
+            // equals the rest pose or weaken the meaningful f160 contract.
+            expect(sample.rootLength).toBeLessThan(sample.expectedProximal);
+            expect(sample.intermediateLength).toBeLessThan(sample.expectedIntermediate);
+            expect(sample.rootLength).toBeGreaterThan(sample.expectedProximal*.98);
+            expect(sample.intermediateLength).toBeGreaterThan(sample.expectedIntermediate*.98);
           }else{
             expect(sample.rootLength).toBeCloseTo(sample.expectedProximal,3);
             expect(sample.intermediateLength).toBeCloseTo(sample.expectedIntermediate,3);

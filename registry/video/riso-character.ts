@@ -1,5 +1,7 @@
 import { applyRisoIK } from "./riso-rig-ik";
 import { risoJointSkinPath } from "./riso-joint-skin";
+import { evaluateRisoPathMorph, inspectRisoPathMorph } from "./riso-path-morph";
+import type { RisoPathMorphKey } from "./riso-path-morph";
 import type { RisoJointSkin } from "./riso-joint-skin";
 import type { RisoIKDiagnostic, RisoTwoBoneIK } from "./riso-rig-ik";
 
@@ -41,6 +43,11 @@ export interface RisoCharacterPart {
   d: string;
   /** Paths for discrete character turns, eyelids, visemes and redraws. */
   expressions?: Readonly<Record<string, string>>;
+  /** Original 2D Bézier source-geometry keys, strict matching command topology.
+   * RISO51 interpolates *the ink silhouette*, not transparency or a filter.
+   * Used only when this part has no expression override or joint skin.
+   */
+  pathKeys?: readonly RisoPathMorphKey[];
   paint: RisoInkLayer;
   /** Optional physically screened finer facial value. Non-screen parts cannot carry it. */
   screenTone?: RisoScreenTone;
@@ -177,6 +184,15 @@ export function inspectRisoCharacter(input: unknown, allowedPlates?: readonly st
     if (!part || typeof part.plate !== "string" || !SLUG.test(part.plate) ||
       (allowedPlates && !allowedPlates.includes(part.plate))) err(p + "/plate", "unknown ink plate");
     if (!part || !pathValid(part.d)) err(p + "/d", "SVG path must be a safe nonempty SVG path");
+    if (part?.pathKeys !== undefined) {
+      if (!Array.isArray(part.pathKeys)) err(p + "/pathKeys", "morph source samples must be an array");
+      else if (part.skin) err(p + "/pathKeys", "morph and joint skin cannot share a source part");
+      else if (!pathValid(part.d)) err(p + "/pathKeys", "cannot morph an invalid original path");
+      else {
+        const issue = inspectRisoPathMorph(part.d, part.pathKeys, s.durationFrames ?? 0);
+        if (issue) err(p + "/pathKeys", issue);
+      }
+    }
     if (part?.paint !== "solid" && part?.paint !== "screen") err(p + "/paint", "paint must be solid or screen");
     if (part?.screenTone !== undefined &&
         (part.paint !== "screen" || (part.screenTone !== "light" && part.screenTone !== "mid")))
@@ -349,7 +365,8 @@ export function evaluateRisoCharacter(
         // The skin already resolves into world-stage coordinates; a second
         // joint transform would incorrectly rotate or translate it twice.
         d: p.skin ? risoJointSkinPath(m, resolve(p.skin.tipJoint), p.skin)
-          : (p.expressions?.[expression] ?? p.d),
+          : (p.expressions?.[expression] ??
+            (p.pathKeys ? evaluateRisoPathMorph(p.pathKeys, sampledFrame) : p.d)),
         transform: p.skin ? "matrix(1 0 0 1 0 0)"
           : "matrix(" + [m.a, m.b, m.c, m.d, m.e, m.f].map(number).join(" ") + ")",
       };

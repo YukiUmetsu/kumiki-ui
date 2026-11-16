@@ -21,11 +21,15 @@ export const RISO48_RECEIVER_PROJECTION={
   source:"Proko hand-muscle construction and Kumiki ANAT1 original 3-bone hand",
   // World 2D projected foreshortening in source units, relative to the
   // original hidden 3D bone length. Earlier contact must interpolate.
-  middle:{pip:-2.2,dip:-2.1},
-  ring:{pip:-2.3,dip:-1.8},
-  pinky:{pip:-2.0,dip:-1.5},
-  minimumVisibleBoneRatio:.55,
-  maximumCompressionRatio:.42,
+  // RISO54: side-facing phalanges are almost aligned with the camera ray.
+  // Preserve each TRUE ANAT1 bone length in RISO31_GEOMETRY, while 2D print
+  // stations show ~40–45% of that length at physical paper contact.
+  // Estimated foreshortening angle acos(.40)≈66°, not a shortened bone.
+  middle:{pip:-4.988,dip:-4.020},
+  ring:{pip:-4.234,dip:-3.481},
+  pinky:{pip:-3.080,dip:-2.508},
+  minimumVisibleBoneRatio:.39,
+  maximumCompressionRatio:.61,
   verification:"independent exact render and 2-frame no-collisions required",
 } as const;
 

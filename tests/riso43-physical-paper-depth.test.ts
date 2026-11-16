@@ -6,6 +6,7 @@ import {riso43FrontIndexIds,inspectRiso43PrintDepth,RISO43_DEPTH_REFERENCE}
 import {inspectRiso41InkPressure} from "../src/video/riso41-contact-pressure";
 import {inspectRiso36RedFingerSilhouettes} from "../src/video/riso36-red-silhouette-gate";
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
+import {evaluateRisoPathMorph} from "../registry/video/riso-path-morph";
 
 const actors=[COURIER,PAPER_ARTIST] as const;
 const sides=["left","right"] as const;
@@ -43,7 +44,19 @@ describe("RISO43 ArtCraft / actual paper between red index and opposed thumb",()
         for(const partId of [...x.aboveIds,...x.underRedIds]){
           const original=actor.parts.find(p=>p.id===partId);
           const printed=pose.parts.find(p=>p.id===partId);
-          expect(printed?.d,partId).toBe(original?.d);
+          // RISO51 SOURCE-geometry animation keeps every original physical
+          // part exactly registered to its designated plate and existing
+          // above/below-paper order. Animated original point vectors must
+          // match the strict interpolated *source* at this same held cel.
+          // Static path identities remain byte-for-byte unchanged.
+          const expected=original?.pathKeys?
+            evaluateRisoPathMorph(original.pathKeys,pose.sampledFrame):original?.d;
+          expect(printed?.d,partId).toBe(expected);
+          if(original?.pathKeys){
+            expect(original.pathKeys[0].d).toBe(original.d);
+            expect(printed?.d.match(/[Cc]/g)?.length,partId)
+              .toBe(original.d.match(/[Cc]/g)?.length);
+          }
           expect(printed?.plate).toBe(original?.plate);
         }
         // This depth-order pass does not simplify, remove or replace a

@@ -30,7 +30,7 @@ describe("RISO48 original receiver 3/4 editorial support-finger projection",()=>
         else expect(amount).toBeLessThan(0);
       }
     }
-    expect(RISO48_RECEIVER_PROJECTION.minimumVisibleBoneRatio).toBeGreaterThan(.5);
+    expect(RISO48_RECEIVER_PROJECTION.minimumVisibleBoneRatio).toBeGreaterThan(.38);
   });
 
   it("physically shortens only the source projection after approach while retaining all red anatomy",()=>{
@@ -45,8 +45,8 @@ describe("RISO48 original receiver 3/4 editorial support-finger projection",()=>
       }else{
         expect(contact[i].rootLength).toBeLessThan(rest[i].rootLength-1.2);
         expect(contact[i].intermediateLength).toBeLessThan(rest[i].intermediateLength-1.0);
-        expect(contact[i].rootLength/rest[i].rootLength).toBeGreaterThan(.57);
-        expect(contact[i].intermediateLength/rest[i].intermediateLength).toBeGreaterThan(.57);
+        expect(contact[i].rootLength/rest[i].rootLength).toBeGreaterThan(.39);
+        expect(contact[i].intermediateLength/rest[i].intermediateLength).toBeGreaterThan(.39);
       }
       expect(contact[i].exactRedSource).toBe(true);
       expect(contact[i].phalanxPathCount).toBe(3);
