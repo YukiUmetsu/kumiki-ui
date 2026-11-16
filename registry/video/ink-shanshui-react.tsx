@@ -1038,8 +1038,9 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
  * of nested rounded hill-backs, connected long fibres and sparse recesses.
  * These original curves are authored, not traced from museum pixels.
  */
-function MountainHeroCliff({root,stations,seed,mist,detail}:{
+function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
   root:P;stations:readonly P[];seed:number;mist:number;detail:number;
+  scene:ShanshuiScene;
 }){
   const [x,y]=root;
   const boneControl:P=[x-19,y+31];
@@ -1099,8 +1100,111 @@ function MountainHeroCliff({root,stations,seed,mist,detail}:{
   // Instance-local IDs keep simultaneous film/Storybook specimens isolated.
   const faceId=useId().replace(/[^a-z0-9_-]/gi,"");
   const pool=quadraticPoint(root,boneControl,boneTip,.49);
+  // Source-led Huang Gongwang: layers of rounded positive stone, from
+  // dilute parent wash through broken dry hemp, not a single triangular
+  // slope under identical free-standing black streaks. The principal
+  // three independent brows use the SAME actual ridge stations as the
+  // underlying painted hill; keep the wider film schools untouched.
+  const underBackPlan=scene==="mountain-trail"&&detail>.7?([
+    {offset:-106,side:-1,reach:131,rise:26,drop:96,marks:5,load:.7},
+    {offset:-28,side:1,reach:104,rise:19,drop:123,marks:4,load:.59},
+    {offset:54,side:-1,reach:89,rise:23,drop:76,marks:3,load:.47},
+  ] as const):[];
+  const paperId="kmrock"+faceId+"-absorption";
   return <g data-km-rock-hero-cliff=""
     data-km-rock-hero-root={f(x)+","+f(y)}>
+    {/* Broad geology is the FIRST underpaint, BEFORE the exact original
+        cheek silhouettes, alum-head caps and 78 authored Fuchun marks.
+        One instance-local paper-absorption filter lightly breaks only
+        the dilute wash edge; named dry brush children remain sharp. */}
+    <defs>
+      <filter id={paperId} x="-8%" y="-8%" width="116%" height="116%"
+        colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency=".06"
+          numOctaves="2" seed={seed%997+1} result="paper"/>
+        <feDisplacementMap in="SourceGraphic" in2="paper"
+          scale="1.8" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+    <g data-km-rock-hero-underbacks="">
+      {underBackPlan.map((plan,i)=>{
+        const x=root[0]+plan.offset;
+        const r:P=[x,ridgeHeight(stations,x)+4.2];
+        const side=plan.side;
+        const reach=plan.reach*(.95+.09*s(seed+7821,i*19));
+        const rise=plan.rise*(.9+.14*s(seed+7831,i*29));
+        const drop=plan.drop*(.91+.16*s(seed+7841,i*13));
+        const c1:P=[r[0]+side*reach*.17,r[1]-rise*.83];
+        const c2:P=[r[0]+side*reach*.59,r[1]-rise*.17];
+        const outside:P=[r[0]+side*reach*.86,r[1]+drop*.26];
+        const toe:P=[r[0]+side*reach*.68,r[1]+drop];
+        const arc="M"+f(r[0])+" "+f(r[1])+
+          " C"+f(c1[0])+" "+f(c1[1])+
+          " "+f(c2[0])+" "+f(c2[1])+
+          " "+f(outside[0])+" "+f(outside[1]);
+        const contour=arc+
+          " C"+f(outside[0]+side*reach*.065)+" "+
+            f(outside[1]+drop*.26)+
+          " "+f(toe[0]+side*reach*.07)+" "+
+            f(toe[1]-drop*.09)+" "+
+            f(toe[0])+" "+f(toe[1])+
+          " C"+f(r[0]+side*reach*.45)+" "+
+            f(r[1]+drop*.72)+
+          " "+f(r[0]+side*reach*.09)+" "+
+            f(r[1]+drop*.44)+" "+
+            f(r[0])+" "+f(r[1])+" Z";
+        const gradient="kmrock"+faceId+"-underback-"+i;
+        // Dry hemp actual stations on this curved parent, and only
+        // placed within its own source-mapped pigment wash.
+        const fibres=Array.from({length:plan.marks},(_,j)=>{
+          const t=Number((.18+j*(.57/(plan.marks-1))+
+            (s(seed+7859,i*31+j*19)-.5)*.012).toFixed(4));
+          const p=cubicPoint(r,c1,c2,outside,t);
+          const end:P=[
+            p[0]+side*(7+11*s(seed+7867,i*29+j*37)),
+            p[1]+(14+19*s(seed+7877,i*17+j*23)),
+          ];
+          const handle1:P=[
+            p[0]+side*(2+3*s(seed+7883,i*13+j*41)),
+            p[1]+(6+4*s(seed+7891,i*37+j*11)),
+          ];
+          const handle2:P=[
+            p[0]+(end[0]-p[0])*.77,
+            p[1]+(end[1]-p[1])*.63,
+          ];
+          return {p,t,
+            d:rockLoadedCubicRibbon(p,handle1,handle2,end,
+              .7+(j%3===0?.8:.28)*s(seed+7901,i*19+j*47),
+              seed+7919+i*79+j*29),lift:j%4===1};
+        });
+        return <g key={i} data-km-rock-hero-hill-back="">
+          <defs>
+            <linearGradient id={gradient} x1="13%" y1="0%"
+              x2="61%" y2="100%">
+              <stop offset="0" stopColor="#2c2825" stopOpacity=".68"/>
+              <stop offset=".24" stopColor="#514337" stopOpacity=".41"/>
+              <stop offset=".58" stopColor="#766553" stopOpacity=".25"/>
+              <stop offset=".85" stopColor="#96826b" stopOpacity=".08"/>
+              <stop offset="1" stopColor="#bda98a" stopOpacity="0"/>
+            </linearGradient>
+          </defs>
+          <path data-km-rock-hero-hill-wash=""
+            data-km-rock-hero-hill-wash-root={f(r[0])+","+f(r[1])}
+            data-km-rock-hero-hill-wash-side={side}
+            data-km-rock-hero-hill-wash-arc={arc}
+            d={contour} fill={"url(#"+gradient+")"}
+            filter={"url(#"+paperId+")"}
+            opacity={f(plan.load*(1-.22*mist))}/>
+          {fibres.map(({p,t,d,lift},j)=><path key={j}
+            data-km-rock-hero-hill-fibre=""
+            data-km-rock-hero-hill-fibre-root={f(p[0])+","+f(p[1])}
+            data-km-rock-hero-hill-fibre-parent={i}
+            data-km-rock-hero-hill-fibre-station={t.toFixed(4)}
+            d={d} fill={lift?"#8b7256":"#3a342b"}
+            opacity={f((lift?.34:.64)*(1-.19*mist))}/>)}
+        </g>;
+      })}
+    </g>
     {/* Source-guided, overlapping positive mountain cheek planes.
         Each broad face starts from a parent bone station, rises into
         a small rounded alum-head rim, folds twice, then ends in a dry
@@ -2353,7 +2457,8 @@ function Mountains({scene,seed,detail,mist,ink,school,ids}:{
             {school==="fuchun"&&<MountainHeroCliff
               root={[heroPeak[0],ridgeHeight(stations,heroPeak[0])+2.5]}
               stations={stations}
-              seed={seed+band*251+777} mist={mist} detail={detail}/>} 
+              seed={seed+band*251+777} mist={mist} detail={detail}
+              scene={scene}/>} 
 
           </g>
         </g>}
