@@ -329,17 +329,19 @@ These numbers say how closely the engine reproduces this teacher's own models. T
 
 **Crossings.** A gap of 0.3 s or less across old ink is one stroke: the brush did not lift. Before, the vertical of 木 broke at the horizontal and every later stroke of 木 moved up by one, so 杉 and 松 wrote 木 like 扌. They now pass review.
 
-**A conservative merge.** New data changes the stroke labels of many characters, and label-based checks then fail forms that review had passed. The round therefore starts from the reviewed set, adds new characters, and replaces a reviewed form only when the new one lies clearly better on the teacher's writing (+0.02). Every added or replaced form (43) was reviewed: 圧 keeps its round-four form.
+**The paperweight.** Keeping the ink that is there from the start also kept the paperweight, which breaks into short pieces and catches light at its edge. The rows at the top of the sheet where that early ink covers a third of the width are the paperweight; no ink at or above its lower edge is kept. Characters keep their highest strokes, which lie below it.
+
+**A conservative merge.** New data changes the stroke labels of many characters, and label-based checks then fail forms that review had passed. The round therefore starts from the reviewed set, adds new characters, and replaces a reviewed form only when the new one lies clearly better on the teacher's writing (+0.02). Every added or replaced form (62 over two passes) was reviewed: 圧 keeps its round-four form.
 
 **Result.** Best-aligned overlap with the teacher's live writing (the reference ink now includes pre-written strokes, so the numbers are not directly comparable with §2.13):
 
 | | Rules | With teacher forms |
 |---|---|---|
-| Kanji (362) | 0.566 | 0.710 |
+| Kanji (360) | 0.585 | 0.736 |
 | Kana (46) | 0.498 | 0.678 |
-| The 378 characters with a form | 0.567 | 0.727 (97 % better) |
+| The 381 characters with a form | 0.581 | 0.746 (99 % better) |
 
-**Limits.** 30 characters keep the rules; 侍 still loses 亻 and stays rejected.
+**Limits.** 25 characters keep the rules; 侍 still loses 亻 and stays rejected.
 
 ## 3. From observation to model
 
