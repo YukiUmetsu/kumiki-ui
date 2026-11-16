@@ -1060,9 +1060,13 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(body.startsWith("M"+root.replace(","," "))).toBe(true);
       expect((body.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(22);
       // The shelves never escape their exact sampled parent rock volume.
-      const sector=full.slice(shelves[j].index!,full.indexOf("/>",shelves[j].index!)+2);
-      expect(sector).toContain("-volume-clip)");
-      expect(sector).toContain(j%2===0?'fill="#41372f"':'fill="#584a3b"');
+      // React's static SVG serializer can emit an explicit </path>
+      // instead of a self-closing />, so inspect only this path's start
+      // tag rather than looking for a serializer-dependent terminator.
+      const start=shelves[j].index!;
+      const openTag=full.slice(start,full.indexOf(">",start)+1);
+      expect(openTag).toContain("-volume-clip)");
+      expect(openTag).toContain(j%2===0?'fill="#41372f"':'fill="#584a3b"');
     }
     const another=paint("fuchun",87);
     const otherAxes=[...another.matchAll(
