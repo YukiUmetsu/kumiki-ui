@@ -534,7 +534,18 @@ The best-aligned overlap rescales both shapes to their boxes, so moved parts cha
 
 For example, の 0.75 → 0.82 (its largest mismatch patch 4.6 % → 1.1 % of the ink), く 0.72 → 0.82 and ひ 0.65 → 0.71 in the fit frame. Kanji change little (0.808 → 0.809): their strokes keep a more even width.
 
-**One more character.** The same part, stroke, press and end searches recover ぎ, whose diagonal had lain a few pixels off (0.69 → 0.72): the first teacher now has 440 forms. び 献 建 様 短 improve but still have one part off and keep the rules. For the second teacher, the same searches recover 帆 (0.65 → 0.70) and bring his four forms closer (叶 0.80, 確 0.77, 臣 0.76, 罪 0.73): he now has 5 forms. For the third teacher, they bring his 26 fits to 0.62 to 0.77; 改 (0.77) is close and is his first form. The others still have one part off. The demos list the first teacher, then the third (bold kaisho, closer to the first), then the second.
+**One more character.** The same part, stroke, press and end searches recover ぎ, whose diagonal had lain a few pixels off (0.69 → 0.72): the first teacher now has 440 forms. び 献 建 様 短 improve but still have one part off and keep the rules. For the second teacher, the same searches recover 帆 (0.65 → 0.70) and bring his four forms closer (叶 0.80, 確 0.77, 臣 0.76, 罪 0.73): he now has 5 forms, and one more search over the fits his gate had dropped recovers 哉 (6). For the third teacher, they bring his fits to 0.62 to 0.77; 改 (0.77) and 阜 (0.76) are close (2 forms). The others still have one part off.
+
+**Other teachers give positions only.** Teachers differ much more in stroke thickness, and in the techniques that go with it, than in where their strokes go. Before a teacher is added, the two teachers' own ink is compared on the characters both write, each scaled to one box:
+
+| Against the first teacher | Third teacher (40 shared characters) | Second teacher (4 clean shared kaisho takes) |
+|---|---|---|
+| Stroke thickness for the character's size | 0.98× | 0.79× |
+| Aspect (height over width) | 1.01× | 1.14× |
+| Ink coverage of the box | 1.01× | 0.73× |
+| Shape overlap at one box size | 0.53 | 0.49 |
+
+The third teacher writes with the first teacher's weight and proportions. The second teacher writes thinner and taller; his take beside the model card is rarely clean kaisho for a shared character, so his sample is small. The two hands overlap about as much as the rules overlap the first teacher (0.58): every teacher places strokes in an own way. The other teachers' forms therefore keep only their stroke order and centrelines. Each stroke takes its thickness from the rules, which are calibrated on the first teacher, and leaves out that teacher's own press, technique and pace, so every character is written in the first teacher's style. The demos list the first teacher, then the third, then the second.
 
 ## 3. From observation to model
 
