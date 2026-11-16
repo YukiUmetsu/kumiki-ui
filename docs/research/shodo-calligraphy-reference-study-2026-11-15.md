@@ -275,6 +275,26 @@ These numbers say how closely the engine reproduces this teacher's own models. T
 
 **Limits.** 80 characters keep the rules: about 40 for incomplete data and the rest for a stroke that still fails its check. Kana loops are still small (よ, あ, る); や and ゆ fail. Heads and stops come from the technique programs.
 
+## 2.12 Eighth study round: dots, jump cuts, and each stroke's head and stop
+
+**Dots.** Most strokes that still failed their check were dots: the dots of 氵 and 丷 are written quickly one after another, and the brush trace gave both blobs to one dot. A dot is usually a separate blob of ink, so each KanjiVG dot now takes the blob nearest its expected place, the blobs in the order they were written. 汚, 浅, 源, 羊 and 羽 pass.
+
+**Jump cuts.** Many videos that seemed incomplete are cut once while the camera stays where it is (the editor removed a pause). Neighbouring runs with the same paper box are now one writing shot, so ink written before the cut keeps its time. 旅, 史, 井, 不 and 筆 among 13 characters become complete; 30 stay incomplete.
+
+**Heads, stops and lifts.** `ShodoStrokeSpec.technique` gives one stroke its own technique settings over the style's, within the same ranges. The fit compares, on our stroke and on the teacher's, the widest point of the head and of the stop with the stroke's middle width, and how long a 払い stays thin before it ends; it sets `uchikomiDepth`, `tomePress` and `haraiLift` or `kenshinLift` stroke by stroke. 1104 strokes have their own settings. On a test set of eight characters the change was small and mostly positive (overlap in the teacher's frame 0.743 → 0.750).
+
+**Choice per character.** Each round keeps, per character, the form that lies best on the teacher's live writing among the forms that passed their checks.
+
+**Result.** Best-aligned overlap with the teacher's live writing (the shots now include the jump cuts):
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (360) | 0.571 | 0.708 |
+| Kana (46) | 0.498 | 0.675 |
+| The 353 characters with a form | 0.579 | 0.742 (99 % better) |
+
+**Limits.** 53 characters keep the rules: 30 for incomplete data (a shot that really changes the camera, or a final model that is not the writing shown) and the rest for a stroke that fails its check. Kana loops (よ, あ, る) are still smaller than the teacher's.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
