@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso47PalmContour} from "./riso47-palmar-cup";
+import {riso49ProjectedDonorPivot} from "./riso49-donor-projection";
 import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
 import {riso32ThumbIpJoint,riso32ThumbInkParts,riso33WristUnderprintClearance} from "./riso32-thumb-ip";
@@ -34,7 +35,7 @@ const waveKeys = (end = 239): RisoJoint["keys"] => [
   { frame: end, rotate: -3 },
 ];
 /** Original paper messenger — arbitrary joint tree, not a hard-coded humanoid renderer. */
-export const COURIER: RisoCharacterSpec = {
+const COURIER_SOURCE: RisoCharacterSpec = {
   version: 1, id: "courier", durationFrames: 240, cadence: 2,
   joints: [
     { id: "root", x: 0, y: 0, keys: [
@@ -541,6 +542,16 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-35 -48 C-18 -51 -1 -49.5 12 -48.6 Q-4 -49 -21 -48.3 Z M16 -47.9 Q29 -47.4 39 -44.7 Q26 -46.1 16 -47.4 Z M-28 -46.3 Q-14 -47.3 -3 -46.5 Q-17 -45.6 -28 -45.8 Z" },
 
   ],
+};
+/** Immutable unprojected RISO31/45 skeleton for other human characters.
+ * Do not transfer Courier-only foreshortening to the Paper Artist's hand.
+ */
+export const COURIER_BASE_JOINTS=COURIER_SOURCE.joints;
+/** Production Courier continues using the EXACT same named physical ink
+ * parts with only source joint-stage 2D camera projection at donor contact. */
+export const COURIER:RisoCharacterSpec={
+  ...COURIER_SOURCE,
+  joints:COURIER_BASE_JOINTS.map(j=>riso49ProjectedDonorPivot(j)??j),
 };
 /** Tiny paper bird: demonstrates that parent rig is anatomy-agnostic. */
 export const PAPER_BIRD: RisoCharacterSpec = {
