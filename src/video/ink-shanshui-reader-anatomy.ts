@@ -109,8 +109,12 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
   const planes:CharacterPathShape[]=[
     // Keep the skintone flat and opaque behind transparent character planes.
     // Front cheek is fuller than the foreshortened far cheek.
-    ink("M119.1 107.9 C122.3 109.4 124.1 117.3 127.4 120.2 C131.3 123.8 136.9 124.1 139.4 127.7 C132.1 125.1 123.5 121.3 119.1 107.9 Z",
-      "$skinshade","none",0,.11),
+    // The original 1× portrait showed a hard diagonal streak all the
+    // way to the mouth. Rotate this malar wash around the ANAT1 zygion:
+    // softly convex upper cheek fades towards the buccal pocket and
+    // keeps unpainted central paper. No layer is removed.
+    ink("M119.1 107.9 C121.1 111 123.2 115.9 126.9 119.2 C129.7 122.1 133.7 124.1 137.9 126.1 C132.6 124.8 128.8 123 125.8 120.8 C122.2 116.8 120 112.2 119.1 107.9 Z",
+      "$skinshade","none",0,.095),
     ink("M152.8 100.8 C158.2 104.3 159.2 112.4 154.8 117.9 C161.1 114.1 162.2 107.7 160.8 101 Z",
       "$skinshade","none",0,.17),
     ink("M132.7 131.9 C139.3 136.9 145.4 138.7 149.8 132.8 C145.5 141.4 138.4 143.1 132.7 131.9 Z",
@@ -154,10 +158,10 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     // without dark drawn stripes or the previous mask-like flatness.
     plane(
       "M"+num(cheek[0]+1.7)+" "+num(cheek[1]-2.1)+
-      " C124.9 107 132.3 109.5 139.8 113.8 "+
-      "C143.2 117.5 145.1 121.1 143.8 124.8 "+
-      "C138.9 124.1 133.1 120.5 128.3 117.8 "+
-      "C124.3 115.9 122.1 112.6 120.8 109.6 Z",.16),
+      " C125.6 110 132.9 113.4 137.2 116.3 "+
+      "C139.8 119 140.6 121 138.7 121.6 "+
+      "C134.6 119.4 129.7 116.8 126.3 114.2 "+
+      "C123.5 112.5 121.8 111.6 120.8 109.6 Z",.125),
     plane(
       "M"+num(farCheek[0]-6.3)+" "+num(farCheek[1]-4.7)+
       " C159 108.2 161.5 110.8 161.4 114.2 "+
