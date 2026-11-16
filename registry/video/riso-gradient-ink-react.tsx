@@ -6,7 +6,7 @@ import {
 import type {RisoGradientOptions} from "./riso-gradient-ink";
 
 export interface RisoGradientInkProps extends RisoGradientOptions,
-  Omit<SVGProps<SVGGElement>,"children"|"color"> {
+  Omit<SVGProps<SVGGElement>,keyof RisoGradientOptions|"children"|"color"> {
   /** The current RisoPrint plate's paint.solid. Never pass an RGB blend. */
   color:string;
   /** Optional original vector contour; clip only, do not rasterize or erase it. */
