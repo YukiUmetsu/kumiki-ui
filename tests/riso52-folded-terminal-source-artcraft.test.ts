@@ -20,6 +20,7 @@ const actors=[
 describe("RISO52 original distal foreshortening / two physical Risograph ink masters",()=>{
  it("rejects invalid nail coordinates and preserves exact source stroke topology",()=>{
    const d="M0 -1 Q1 1 2 4 L1 5 C1 4 0 3 0 2 Z";
+   expect(RISO52_FOLDED_TERMINALS.plates).toEqual(["blue","red"]);
    expect(riso52ProjectNailContour(d,.5)).toBe(
      "M 0 -1 Q 1 0.5 2 2 L 1 2.5 C 1 2 0 1.5 0 1 Z");
    expect(()=>riso52ProjectNailContour(d,.2)).toThrow(/\.4/);
@@ -43,7 +44,7 @@ describe("RISO52 original distal foreshortening / two physical Risograph ink mas
      expect(frame0.d).toBe(source.d);
      expect(f160.d).toBe(contact);
      expect(f160.plate).toBe(source.plate);
-     expect(f160.transform).toBe(frame0.transform===f160.transform?frame0.transform:f160.transform);
+     expect(f160.transform).toMatch(/^matrix\\(/);
      if(id.endsWith("-nail")){
        expect(source.plate).toBe("blue");
        expect(source.paint).toBe("screen");
