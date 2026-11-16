@@ -145,6 +145,8 @@ export interface BreakerShape {
   water: FPoint[]; foam: FPoint[][]; air?: FPoint[]; bed: FPoint[];
   /** Spray points (plunging and spilling). */
   spray: FPoint[];
+  /** The water's top boundary from far behind to the shore side (back, crest, lip, tube wall, the water ahead). */
+  surface: FPoint[];
   bounds: readonly [number, number, number, number];
 }
 /** Beach slope (tan α) that typically gives each breaker for a wave of steepness 1/20 (estimated from the Iribarren bands). */
@@ -200,7 +202,6 @@ export function breakerShape(type: BreakerType, stage: number, seed = 1): Breake
       air = raw.map(([x, y]) => [cx + (x - cx) * k, cy + (y - cy) * k] as FPoint);
       if (post > 0) {
         foam.push(blobAround([reach, yt + .05], .35 + post * .9, .2 + post * .45, rnd));
-        foam.push(blobAround([reach * .45, crest - .1], .25 + post * .5, .12 + post * .2, rnd));
         for (let i = 0; i < 22; i++) spray.push([reach + (rnd() - .35) * (.7 + post * 1.2), yt + .15 + rnd() * (.4 + post * 1.1)]);
       }
     }
@@ -239,8 +240,78 @@ export function breakerShape(type: BreakerType, stage: number, seed = 1): Breake
   }
   const last = pts[pts.length - 1];
   const water: FPoint[] = [...pts, [last[0], bedAt(last[0]) - .01], [x0, bedAt(x0)]];
-  return { type, water, foam, air, bed, spray, bounds: [x0, Math.min(bedAt(x0), -1.6), x1, 2.2] };
+  const surface = pts.slice();
+  return { type, water, foam, air, bed, spray, surface, bounds: [x0, Math.min(bedAt(x0), -1.6), x1, 2.2] };
 }
+/**
+ * The detail a breaker drawing needs beyond its outline, after photographs of breaking waves (CC0 Unsplash and NOAA
+ * public-domain images) and a CC0 video of surf studied frame by frame:
+ * - flow lines: thin layers inside the face, following its surface (water drawn up the face into the lip);
+ * - a translucent zone near the crest and in the lip, where the water is thin and lit through (teal);
+ * - whitewater as packed bubbles (white, shaded beneath), an aerated plume of bubbly water under it (pale cyan);
+ * - foam lace on the water ahead and behind (the remains of earlier breaks), and spindrift blown back off the crest.
+ */
+export interface BreakerDetail {
+  faceLines: FPoint[][];
+  /** The thin water near the crest and in the lip (a polygon). */
+  translucent: FPoint[];
+  bubbles: { c: FPoint; r: number }[];
+  plume: FPoint[][];
+  lace: FPoint[][];
+  spindrift: { from: FPoint; to: FPoint }[];
+  crest: FPoint;
+}
+export function breakerDetail(b: BreakerShape, seed = 1): BreakerDetail {
+  const rnd = seeded(seed * 977 + b.type.length), sf = b.surface;
+  // The crest: the highest surface point; the face runs from it toward the shore until the trough.
+  let ci = 0;
+  sf.forEach((p, i) => { if (p[1] > sf[ci][1]) ci = i; });
+  const crest = sf[ci];
+  let fe = ci;
+  while (fe < sf.length - 1 && sf[fe + 1][1] > -.1) fe++;
+  const face = sf.slice(Math.max(0, ci - 12), fe + 1);
+  // Inward normals along the face (into the water, which lies below a surface that runs left to right).
+  const offset = (line: readonly FPoint[], d: number) => line.map((p, i) => {
+    const a = line[Math.max(0, i - 1)], c = line[Math.min(line.length - 1, i + 1)], tx = c[0] - a[0], ty = c[1] - a[1], l = Math.hypot(tx, ty) || 1;
+    return [p[0] + ty / l * d, p[1] - tx / l * d] as FPoint;
+  });
+  const faceLines = [.05, .11, .19, .3, .44].map((d, k) => offset(face, d).slice(Math.floor(k * 1.5), face.length - Math.floor(k * .8)).filter(p => p[1] > -.6));
+  const inner = offset(face, .22);
+  const translucent: FPoint[] = [...face, ...inner.slice().reverse()];
+  // Whitewater: bubbles packed inside each foam patch, bigger toward its middle.
+  const inside = (p: FPoint, poly: readonly FPoint[]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], q = poly[j]; if ((a[1] > p[1]) !== (q[1] > p[1]) && p[0] < (q[0] - a[0]) * (p[1] - a[1]) / (q[1] - a[1]) + a[0]) c = !c; } return c; };
+  const bubbles: { c: FPoint; r: number }[] = [], plume: FPoint[][] = [];
+  for (const f of b.foam) {
+    const xs = f.map(p => p[0]), ys = f.map(p => p[1]), bx0 = Math.min(...xs), bx1 = Math.max(...xs), by0 = Math.min(...ys), by1 = Math.max(...ys);
+    const n = Math.round(60 + (bx1 - bx0) * (by1 - by0) * 900);
+    for (let k = 0; k < n * 3 && bubbles.length < 1400; k++) {
+      const p: FPoint = [bx0 + rnd() * (bx1 - bx0), by0 + rnd() * (by1 - by0)];
+      if (!inside(p, f)) continue;
+      const mid = 1 - Math.min(1, Math.hypot((p[0] - (bx0 + bx1) / 2) / ((bx1 - bx0) / 2 || 1), (p[1] - (by0 + by1) / 2) / ((by1 - by0) / 2 || 1)));
+      bubbles.push({ c: p, r: .012 + rnd() * .035 + mid * .04 });
+      if (k > n * 3) break;
+    }
+    // The bubble plume: aerated water below the patch, fading downward (clipped to the water when drawn).
+    plume.push([[bx0 - .1, by0 + .05], [bx1 + .1, by0 + .05], [bx1 - .05, by0 - .45 - (bx1 - bx0) * .15], [(bx0 + bx1) / 2, by0 - .65], [bx0 + .05, by0 - .45]]);
+  }
+  // Foam lace: short irregular crusts along the surface ahead of the face and far behind the crest.
+  const lace: FPoint[][] = [];
+  for (const p of sf) {
+    if ((p[0] > sf[fe][0] + .25 || p[0] < crest[0] - 2.4) && p[1] < .1 && rnd() < .35) {
+      // Lace sits on the water as crusts of varied length and thickness.
+      const len = .04 + rnd() ** 2 * .4, y = p[1] + .006 + rnd() * .01;
+      lace.push([[p[0], y], [p[0] + len * .4, y + .012 * (rnd() - .3)], [p[0] + len, y + .006 * (rnd() - .5)]]);
+    }
+  }
+  // Spindrift: fine spray blown back off the crest top (the wind offshore, toward −x).
+  const spindrift: { from: FPoint; to: FPoint }[] = [];
+  if (b.type !== "surging") for (let k = 0; k < 26; k++) {
+    const i = Math.max(0, ci - 6 + Math.floor(rnd() * 12)), p = sf[i], len = .15 + rnd() * .45;
+    spindrift.push({ from: [p[0] + (rnd() - .5) * .1, p[1] + .02], to: [p[0] - len, p[1] + .06 + rnd() * .25] });
+  }
+  return { faceLines, translucent, bubbles, plume, lace, spindrift, crest };
+}
+
 function blobAround(c: FPoint, rx: number, ry: number, rnd: () => number): FPoint[] {
   return Array.from({ length: 14 }, (_, i) => { const a = i / 14 * TAU, k = .8 + rnd() * .35; return [c[0] + rx * k * Math.cos(a), c[1] + ry * k * Math.abs(Math.sin(a)) * (Math.sin(a) < 0 ? .3 : 1)] as FPoint; });
 }

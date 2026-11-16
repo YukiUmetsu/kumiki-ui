@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { BREAKERS, OPTICS, SEA_STATES, WATER_COLOURS } from "../registry/nature/water-data";
 import type { BreakerType } from "../registry/nature/water-data";
 import {
-  breakerShape, breakerType, deepWavelength, fresnel, fullyDevelopedSea, glitterPath, groupSpeed, iribarren, kelvinWake, meanderAngle, meanderPath, orbit,
+  breakerDetail, breakerShape, breakerType, deepWavelength, fresnel, fullyDevelopedSea, glitterPath, groupSpeed, iribarren, kelvinWake, meanderAngle, meanderPath, orbit,
   phaseSpeed, reflectanceAt, reflectPoint, seaStateOf, seaSurface, wavelength, whitecapCoverage,
 } from "../registry/nature/water-physics";
 import { WaterSheet } from "../registry/nature/water-react";
@@ -55,6 +55,10 @@ describe("WATER1 shore, wakes, light and rivers", () => {
       expect(b.water.every(p => p.every(Number.isFinite))).toBe(true);
     }
     expect(breakerShape("plunging", .65).air).toBeDefined();
+    const late = breakerDetail(breakerShape("plunging", .95));
+    expect(late.bubbles.length).toBeGreaterThan(30);
+    expect(late.translucent.length).toBeGreaterThan(10);
+    expect(late.spindrift.length).toBeGreaterThan(0);
     expect(breakerShape("spilling", .2).foam).toHaveLength(0);
   });
   it("keeps a Kelvin wake's cusps on the 19.47° lines at any speed", () => {
