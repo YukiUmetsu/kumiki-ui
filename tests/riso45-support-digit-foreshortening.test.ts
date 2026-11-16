@@ -7,6 +7,7 @@ import {inspectRiso36RedFingerSilhouettes} from "../src/video/riso36-red-silhoue
 import {inspectRiso44PrintedIndexContact} from "../src/video/riso44-source-index-paper-contact";
 import {RISO42_SUPPORT_CURL} from "../src/video/riso31-finger-phalanges";
 import {HAND_POSES,JOINTS} from "../registry/anatomy/anatomy-pose";
+import {evaluateRisoCharacter} from "../registry/video/riso-character";
 
 const actors=[COURIER,PAPER_ARTIST] as const;
 const sides=["left","right"] as const;
@@ -40,6 +41,25 @@ describe("RISO45 ArtCraft early support-digit foreshortening at true sheet conta
       expect(f160.movingRedSourceCount).toBe(9);
       expect(f160.digits.every(x=>x.animatedTransformsUnique)).toBe(true);
     }
+  });
+  it("Paper Artist's *actual MCP source bones* tuck support under paper, independently of Courier",()=>{
+    const sample=(actor:typeof COURIER|typeof PAPER_ARTIST)=>{
+      const pose=evaluateRisoCharacter(actor,160);
+      const map=new Map(pose.joints.map(j=>[j.id,j]));
+      const hand=map.get("left-hand")!;
+      return (["middle","ring","pinky"] as const).map(d=>{
+        const j=map.get("left-"+d)!;
+        return ((j.angle-hand.angle+540)%360)-180;
+      });
+    };
+    const artist=sample(PAPER_ARTIST),courier=sample(COURIER);
+    expect(artist[0]).toBeGreaterThan(25);
+    expect(artist[1]).toBeGreaterThan(15);
+    expect(artist[2]).toBeGreaterThan(9);
+    expect(artist[0]).toBeGreaterThan(artist[1]);
+    expect(artist[1]).toBeGreaterThan(artist[2]);
+    for(let i=0;i<3;i++)
+      expect(artist[i]-courier[i]).toBeGreaterThan(20);
   });
   it.each(actors)("%s: protect all real finger-axis paper-white tunnels in the complete film",actor=>{
     for(const side of sides)for(let frame=0;frame<240;frame+=2){
