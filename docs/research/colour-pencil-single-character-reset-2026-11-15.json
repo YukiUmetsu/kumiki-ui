@@ -96,23 +96,24 @@
       "newhead-orbital-placement-only",
       "newhead-cranial-vault-turn"
     ],
-    "geometry": "New 36-index 3D face ring used for source-informed temple/lower face. Exactly one independent head silhouette joins mesh lower outline to 8 newly drafted cranial vault arcs; 342 bounded short colored pencil contacts in 3 optical value passes plus 5 named light construction guides. No old character paths or features.",
+    "geometry": "One completely new 3D face-mask lower jaw/temple chain plus eight separately authored frontal/parietal vault anchors: head outline only, not filled dermis. 3 independent transparent dry-pencil optical passes with 342 small construction contacts and five measured guide marks, no eyes, nose, mouth, hair, ear or former female geometry.",
     "camera_aspects": [
       "16:9",
       "9:16"
     ],
-    "one_at_a_time_gate": "No second character or facial feature before stage-1 silhouette is rendered at 1x/2.15x, proportion/plane masks reviewed, and any topology defect corrected."
+    "one_at_a_time_gate": "No second character or facial feature before stage-1 silhouette is rendered at 1x/2.15x, proportion/plane masks reviewed, and any topology defect corrected.",
+    "material": "glaze, translucent construction pencil on paper without opaque skin support or old female texture; CP-F1 underpainting not rendered as filled wax silhouette"
   },
   "five_axes": {
     "topology": "one editable standalone head, no old portrait parts and no face stickers. Mark visible missing cranium behind the mask as blocker, not as finished skull.",
     "vector_flow": "3 curved local pressure fans run from forehead through zygomatic bones to jaw; no global diagonal identical strokes",
     "weight": "low pressure ochre/rose/sepia head plane values; subtle mandibular and zygomatic turn, not solid gradient contour",
     "rhythm": "3 × 114 short strokes follow three bony guides with deterministic irregular offsets, not wallpaper",
-    "texture": "3 independent CP-F1 skin-material pigment passes over paper tooth with no bitmap, image filters or external media"
+    "texture": "3 independent transparent CP-F1 graphite/pencil mark passes atop paper tooth; no opaque filled salmon face, bitmap or filter"
   },
   "gates": {
     "source_match": "BLOCKED: anatomy construction source is general, no matched human identity/body pose photograph was supplied.",
-    "head_silhouette": "PREVIOUS CANDIDATE REJECTED: actual 960×540 Chromium native render [run 43790927200] showed a flat-topped pink shield, a fail for human skull topology. Replaced top face-mask boundary with measured/frontal/parietal arch. Latest native full-size review still pending. This is NOT a final character.",
+    "head_silhouette": "First original face-mask candidate REJECTED for flat forehead, second corrected cranial-vault silhouette candidate REJECTED as solid salmon wax face. Latest candidate keeps cranial vault but changes only the new head region from filled skin to transparent dry-pencil glaze; native 960px/2.15x inspection required.",
     "quality": "HOLD: intentionally partial drawing. No eye/nose/mouth/hair regions exist and no photorealism claim is allowed.",
     "automated": "Vitest verifies exact one region, absence of old parts, projective 36-anchor outline, three seeded pressure families, seed determinism and both Storybook formats. Chromium captures 2.15× Stage 1."
   },
@@ -125,6 +126,13 @@
       "decision": "REJECT",
       "cause": "Canonical MediaPipe FACE_FEATURES.oval is front face mask and ends at upper forehead, missing the posterior skull and parietal vault; first implementation treated mask as the whole head.",
       "correction": "Use 3D source ring lower facial side chains only; add 8 measured/proportional frontal/parietal vault anchors above, preserving same jaw/chin geometry and distinct curved construction guides. Re-render."
+    },
+    {
+      "candidate": "second stage1 vaulted face-mask with opaque skin",
+      "workflow": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43791950957",
+      "observed": "Forehead vault rounds but full head still appears as a uniform salmon wax shield rather than a real pencil construction sketch",
+      "decision": "REJECT",
+      "correction": "Change fresh head from opaque skin to a transparent glaze/material with pale brown contour and three bounded dry-pencil stroke passes. Keep one character at head-only stage; verify actual native 960px screenshots."
     }
   ]
 }
