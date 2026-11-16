@@ -26,6 +26,14 @@ test("RISO32 moving thumb IP remains attached at contact, release and both ink m
       const svg=panel.locator("svg").first();
       await expect(svg).toBeVisible();
       await expect(panel.locator("[data-km-riso-part$='glove-thumb-distal-phalanx']")).toHaveCount(1);
+      // The hand-only print must use the SAME actual paper knockout already
+      // authored for the full moving actor: otherwise the blue forearm shows
+      // through the red glove as a broad black wrist band.
+      const handId=await panel.getAttribute("data-km-riso30-hand");
+      const side=handId?.split("-").at(-1);
+      expect(["left","right"]).toContain(side);
+      await expect(panel.locator('[data-km-riso-knockout-part="'+side+'-wrist-underprint-clearance"]')).toHaveCount(1);
+      await expect(panel.locator('[data-km-riso-paper-clearance="'+side+'-wrist-underprint-clearance"]').first()).toBeAttached();
       expect(Number(await panel.getAttribute("data-km-riso30-crop-margin"))).toBeGreaterThan(0);
       // Measured physically printable RED SVG silhouettes, not only rig axes.
       await expect(panel).toHaveAttribute("data-km-riso36-source-contours","12");
