@@ -2,6 +2,7 @@ import {describe,expect,it} from "vitest";
 import {HAND_POSES,JOINTS} from "../registry/anatomy/anatomy-pose";
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
 import {evaluateRisoCharacterMesh} from "../registry/video/riso-proportion-mesh";
+import {flattenRisoSvgPath} from "../registry/video/riso-path-geometry";
 import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,RISO_PAPER_ARTIST_SHEET,evaluateRisoHumanEnsemble} from "../src/video/riso-human-ensemble";
 import {RISO_COURIER_SHEET} from "../src/video/riso-character-mesh-sheets";
@@ -108,6 +109,10 @@ describe("RISO32 ArtCraft: thumb IP truly articulates as separate physical ink",
       expect(mask?.joint).toBe(side+"-hand");
       expect(mask?.knockoutOnly).toBe(true);
       expect(mask?.d).toMatch(/^M.*Z$/);
+      const silhouette=flattenRisoSvgPath(mask!.d);
+      expect(silhouette).toHaveLength(1);
+      expect(silhouette[0].closed).toBe(true);
+      expect(silhouette[0].points.length).toBeGreaterThan(6);
       expect(mask?.opacity??1).toBe(1);
     }
   });
