@@ -49,7 +49,7 @@ export function PencilHeadContourReview({
         Macro ArtCraft · Original-source versus native-head contour
       </h2>
       <p style={{margin:0,fontSize:13,color:ink.gray,maxWidth:940}}>
-        This is a geometry **diagnostic**, not source proof or realism
+        This is a geometry diagnostic, not source proof or realism
         approval. Matched 18-point anchors are displayed at the original
         output pixel coordinates. A source reference is aligned with ONLY
         uniform scale and translation from its cranial apex; no horizontal
