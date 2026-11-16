@@ -56,7 +56,12 @@ export function riso55FoldbackPoint(
   const positive=Math.max(0,y);
   // Local source relief from DIP bone turns sideways and BACK toward the
   // palm. The 0..1 transition has no hard displaced seam at y=0.
-  const x2=x+handed*Math.sin(angle)*positive;
+  // At an oblique camera angle the soft pulp broadens across the visual
+  // transverse plane, rather than becoming a vanishingly thin bent strip.
+  // Blend the pad-width recovery only over the already turned distal
+  // surface, leaving y<=0 and true DIP overlap roots untouched.
+  const pulpWidth=1+.68*positive/(positive+1);
+  const x2=x*pulpWidth+handed*Math.sin(angle)*positive;
   const y2=y-positive*(1-Math.cos(angle));
   return [Number(n(x2)),Number(n(y2))];
 }
