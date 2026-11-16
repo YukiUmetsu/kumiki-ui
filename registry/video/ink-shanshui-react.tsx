@@ -694,11 +694,17 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           root[1]+fall*(k===0?.28:.19)];
         const throat:P=[root[0]+sign*extent*.43,
           root[1]+fall*(k===0?.58:.48)];
+        // The first wet undercut rim IS the source rock bone sampled by
+        // the transverse loaded brush shelves. Never approximate it with
+        // a different line or scatter unattached dark horizontal dashes.
+        const cutC1:P=[knuckle[0]+sign*extent*.12,
+          knuckle[1]+rise*.08];
+        const cutC2:P=[shear[0]+sign*extent*.13,
+          shear[1]-fall*.17];
         const undercut="M"+f(knuckle[0])+" "+f(knuckle[1])+
-          " C"+f(knuckle[0]+sign*extent*.12)+" "+
-          f(knuckle[1]+rise*.08)+" "+
-          f(shear[0]+sign*extent*.13)+" "+
-          f(shear[1]-fall*.17)+" "+f(shear[0])+" "+f(shear[1])+
+          " C"+f(cutC1[0])+" "+f(cutC1[1])+" "+
+          f(cutC2[0])+" "+f(cutC2[1])+" "+
+          f(shear[0])+" "+f(shear[1])+
           " C"+f(shear[0]-sign*extent*.09)+" "+
           f(shear[1]+fall*.21)+" "+
           f(throat[0]+sign*extent*.22)+" "+
@@ -707,7 +713,33 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           f(throat[1]-fall*.29)+" "+
           f(knuckle[0]-sign*extent*.19)+" "+
           f(knuckle[1]+rise*.12)+" "+f(knuckle[0])+" "+f(knuckle[1])+" Z";
-        return {root,d,lip,undercut,knuckle,throat,
+        // Huang Gongwang's low, horizontally rolling alum-head rock
+        // courses layer across the stone. Two unequally loaded positive
+        // shelves originate at exact stations of its OWN undercut rim.
+        // Sweep inward across the already painted parent volume, rather
+        // than continuing the old vertical rain-wire axis.
+        const transverse=([.24,.68] as const).map((station,j)=>{
+          const attach=cubicPoint(knuckle,cutC1,cutC2,shear,station);
+          const sweep=-sign;
+          const reach=extent*(j===0?.56:.43)*
+            (.91+.17*s(seed+5513,i*29+k*41+j*17));
+          const drop=fall*(j===0?.10:.18)*
+            (.89+.21*s(seed+5527,i*43+k*23+j*11));
+          const c1:P=[attach[0]+sweep*reach*.29,
+            attach[1]-drop*.63];
+          const c2:P=[attach[0]+sweep*reach*.77,
+            attach[1]+drop*.27];
+          const tip:P=[attach[0]+sweep*reach,attach[1]+drop];
+          const centerline="M"+f(attach[0])+" "+f(attach[1])+
+            " C"+f(c1[0])+" "+f(c1[1])+
+            " "+f(c2[0])+" "+f(c2[1])+
+            " "+f(tip[0])+" "+f(tip[1]);
+          const body=rockLoadedCubicRibbon(attach,c1,c2,tip,
+            (j===0?6.4:4.2)*(.87+.28*s(seed+5543,k*37+i*17+j*19)),
+            seed+5551+i*97+k*23+j*41);
+          return {attach,station,centerline,body,role:j};
+        });
+        return {root,d,lip,undercut,knuckle,throat,transverse,
           gradient:tone+"fuchunhillback"+k,
           form:k===0?"round":"saddle" as const};
       }):[];
@@ -962,7 +994,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         {isHuang&&<g clipPath={"url(#"+clip+")"}
           data-km-master-fuchun-hillback-field="">
           {fuchunHillbacks.map(({root,d,lip,undercut,knuckle,throat,
-            gradient,form},k)=><g
+            transverse,gradient,form},k)=><g
             key={k} data-km-master-fuchun-hillback=""
             data-km-master-fuchun-hillback-root={f(root[0])+","+f(root[1])}
             data-km-master-fuchun-hillback-form={form}>
@@ -1002,6 +1034,19 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
               clipPath={"url(#"+gradient+"-volume-clip)"}
               fill={"url(#"+gradient+"-undercut)"}
               opacity={f((k===0?.81:.65)*(1-.2*mist))}/>
+            {transverse.map(({attach,station,centerline,body,role},j)=>
+              <path key={"shelf"+j}
+                data-km-master-fuchun-cross-shelf=""
+                data-km-master-fuchun-cross-shelf-parent={k}
+                data-km-master-fuchun-cross-shelf-root={
+                  f(attach[0])+","+f(attach[1])}
+                data-km-master-fuchun-cross-shelf-station={station}
+                data-km-master-fuchun-cross-shelf-axis={centerline}
+                data-km-master-fuchun-cross-shelf-loaded={role}
+                d={body}
+                clipPath={"url(#"+gradient+"-volume-clip)"}
+                fill={role===0?"#41372f":"#584a3b"}
+                opacity={f((role===0?.69:.51)*(1-.24*mist))}/>)}
             <path data-km-master-fuchun-hillback-lip="" d={lip}
               fill="#3f362e" opacity={f((k===0?.62:.49)*(1-.2*mist))}/>
           </g>)}
