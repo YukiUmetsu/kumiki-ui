@@ -20,6 +20,7 @@ import {inspectRiso42SupportingDigits} from "./riso42-support-digits-gesture";
 import {riso52ExpectedOriginalSourceIds} from "./riso52-folded-terminal-source";
 import {riso57PalmLandmarks,riso57PositivePalmContour} from "./riso57-palm-contact-silhouette";
 import {riso58ContactSkin} from "./riso58-anat1-volume-skin";
+import {riso59PreviewContact} from "./riso59-continuous-hand-envelope";
 
 type PlateMode="both"|"blue"|"red";
 type GestureFrame=0|46|126|144|154|156|160|166|178|186|198|239;
@@ -220,15 +221,26 @@ export function Riso30HumanHandsWorkbench(){
   const [density,setDensity]=useState(.40);
   const [rig,setRig]=useState(false);
   const [swap,setSwap]=useState(false);
+  const [riso59Preview,setRiso59Preview]=useState(false);
+  // An explicit A/B review candidate; do not silently promote it into the
+  // two published actors or replace their approved original source parts.
+  const riso59Models=useMemo(()=>({
+    courier:riso59PreviewContact(COURIER,"courier"),
+    artist:riso59PreviewContact(PAPER_ARTIST,"paper-artist"),
+  }),[]);
+  const courier=riso59Preview?riso59Models.courier.spec:COURIER;
+  const artist=riso59Preview?riso59Models.artist.spec:PAPER_ARTIST;
   const subjects=swap
-    ? [{actor:COURIER,side:"left" as const},{actor:PAPER_ARTIST,side:"right" as const}]
-    : [{actor:COURIER,side:"right" as const},{actor:PAPER_ARTIST,side:"left" as const}];
+    ? [{actor:courier,side:"left" as const},{actor:artist,side:"right" as const}]
+    : [{actor:courier,side:"right" as const},{actor:artist,side:"left" as const}];
   return <main data-km-riso30-hands-story="" data-km-riso30-frame={frame}
-    data-km-riso30-ink={plate} style={{background:"#EFE4D1",color:"#284A60",
+    data-km-riso30-ink={plate} data-km-riso59-preview={riso59Preview}
+    data-km-riso59-joint-crests={riso59Preview?6:0}
+    data-km-riso59-mcp-move={riso59Models.courier.crestShifts.map(s=>s.distance).join(",")} style={{background:"#EFE4D1",color:"#284A60",
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO58</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO59 A/B</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
@@ -266,6 +278,10 @@ export function Riso30HumanHandsWorkbench(){
         <label style={{display:"flex",gap:5,alignItems:"center"}}>
           <input type="checkbox" aria-label="RISO30 compare opposite hands" checked={swap}
             onChange={e=>setSwap(e.target.checked)}/> Compare opposite hands</label>
+        <label style={{display:"flex",gap:5,alignItems:"center"}}>
+          <input type="checkbox" aria-label="RISO59 preview original joined skin" checked={riso59Preview}
+            onChange={e=>setRiso59Preview(e.target.checked)}/>
+          RISO59 experimental continuous three-quarter skin A/B</label>
       </section>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(310px,1fr))",gap:18}}>
         {subjects.map(({actor,side})=><HandPrintPanel key={actor.id+"-"+side}
@@ -273,6 +289,8 @@ export function Riso30HumanHandsWorkbench(){
           showRig={rig} density={density}/>)}
       </div>
       <footer style={{padding:"14px 0",fontSize:12,lineHeight:1.5}}>
+        RISO59 is a review-only original-vector silhouette hypothesis, not verified realistic anatomy.
+        Switch off to restore every original production ink source.
         Anatomical basis: Kumiki ANAT1 hand surface form ({RISO30_ANAT1_HAND.anatomicalKnuckleIds.join(", ")});
         source grade S + measured ANSUR median hand length {RISO30_ANAT1_HAND.handLengthMedianMm} mm
         (population reference, NOT this stylized figure's identity).
