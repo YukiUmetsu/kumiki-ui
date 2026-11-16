@@ -94,6 +94,7 @@ export function crayonF1CalibrateAnat1HairValues(
   elements:readonly CrayonElement[],
 ):CrayonElement[]{
   const seen=new Set<string>();
+  const hairRegions=new Set<string>();
   let hairBands=0;
   const out=elements.map(el=>{
     if(Object.prototype.hasOwnProperty.call(wax,el.id)){
@@ -111,6 +112,7 @@ export function crayonF1CalibrateAnat1HairValues(
          el.clipToParent!==true)
         throw new RangeError("Disconnected native hair microstructure");
       hairBands++;
+      hairRegions.add(match[1]);
       const i=Number(match[2]);
       return {...el,color:tone(i),opacity:.28+i*.054,
         // Same source-registered cubic hairs and exact inherited dry wax
@@ -120,7 +122,7 @@ export function crayonF1CalibrateAnat1HairValues(
     return el;
   });
   if(seen.size!==CRAYON_F1_V38_HAIR_IDS.length||
-     hairBands!==18)
+     hairRegions.size!==3||hairBands<3||hairBands>18)
     throw new RangeError("Incomplete crown/left/right directional hair fibers");
   return out;
 }
