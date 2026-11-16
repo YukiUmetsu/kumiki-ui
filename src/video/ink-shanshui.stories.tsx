@@ -1020,7 +1020,8 @@ function FuchunSourceFidelityDesk(){
   const [detail,setDetail]=useState(1);
   const [mist,setMist]=useState(.35);
   const [ink,setInk]=useState(.9);
-  const [lens,setLens]=useState<"native"|"rock"|"edge"|"pine">("native");
+  const [comparison,setComparison]=useState<"seeds"|"near">("seeds");
+  const [lens,setLens]=useState<"native"|"rock"|"edge"|"pine"|"near">("native");
   const [layer,setLayer]=useState<"complete"|"stone"|"hemp"|"pine">("complete");
   const lenses={
     native:{width:960,height:540,zoom:1,x:480,y:270,
@@ -1031,6 +1032,8 @@ function FuchunSourceFidelityDesk(){
       title:"Dry-brush edge · 3.35×"},
     pine:{width:420,height:308,zoom:2.8,x:615,y:145,
       title:"Pine root/crown · 2.8×"},
+    near:{width:420,height:308,zoom:2.3,x:505,y:290,
+      title:"Lower stone shoulder · 2.3×"},
   } as const;
   const camera=lenses[lens];
   const transform=lens==="native"?"none":
@@ -1052,6 +1055,7 @@ function FuchunSourceFidelityDesk(){
   } as const;
   return <main data-testid="shanshui-fuchun-fidelity-desk"
     data-km-fidelity-layer={layer} data-km-fidelity-lens={lens}
+    data-km-fidelity-comparison={comparison}
     style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
       color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
       gap:16,alignContent:"start"}}>
@@ -1084,9 +1088,24 @@ function FuchunSourceFidelityDesk(){
           {name} · f{moment}
         </button>)}
     </div>
+    <div role="group" aria-label="Fuchun macro topology comparisons"
+      style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+      <button type="button" style={style.button}
+        aria-pressed={comparison==="seeds"} onClick={()=>setComparison("seeds")}>
+        Independent seed comparison
+      </button>
+      <button type="button" style={style.button}
+        aria-pressed={comparison==="near"}
+        onClick={()=>{setComparison("near");setLens("native");setLayer("complete");}}>
+        Near mountain · original vs rounded anatomy (EXPERIMENT)
+      </button>
+      <span style={{fontSize:12,color:"#675745"}}>
+        Optional 19-station near-ridge candidate; ordinary film unchanged.
+      </span>
+    </div>
     <div role="group" aria-label="Fuchun fidelity cameras"
       style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
-      {(["native","rock","edge","pine"] as const).map(key=>
+      {(["native","rock","edge","pine","near"] as const).map(key=>
         <button key={key} type="button" style={style.button}
           aria-pressed={lens===key} onClick={()=>setLens(key)}>
           {lenses[key].title}
@@ -1116,7 +1135,7 @@ function FuchunSourceFidelityDesk(){
       <button type="button" style={style.button} onClick={()=>{
         setFrame(145);setFirstSeed(71);setSecondSeed(87);
         setDetail(1);setMist(.35);setInk(.9);
-        setLens("native");setLayer("complete");
+        setLens("native");setLayer("complete");setComparison("seeds");
       }}>Reset native source-fidelity review</button>
     </div>
     <style>{`
@@ -1145,16 +1164,21 @@ function FuchunSourceFidelityDesk(){
       gridTemplateColumns:lens==="native"?"minmax(0,1fr)":
         "repeat(auto-fit,minmax(min(100%,510px),1fr))",
       gap:16,alignItems:"start"}}>
-      {([firstSeed,secondSeed] as const).map((seed,index)=>{
+      {([firstSeed,comparison==="near"?firstSeed:secondSeed] as const).map((seed,index)=>{
+        const nearStudy=comparison==="near"&&index===1;
         const controls:ShanshuiControls={
           ...DEFAULT_SHANSHUI,scene:"mountain-trail",
           inkSchool:"fuchun",seed,detail,ink,mist,wind:0,
+          fuchunNearShoulderStudy:nearStudy,
         };
         return <section key={index} data-km-fidelity-sample={index}
+          data-km-fidelity-near-study={nearStudy?"rounded":"legacy"}
           data-km-fidelity-seed={seed} data-km-fidelity-frame={frame}
           style={{display:"grid",gap:8,minWidth:0}}>
           <h2 style={{font:"500 19px Georgia,serif",margin:0}}>
-            {index===0?"Original run A":"Independent run B"} · seed {seed}
+            {comparison==="near"
+              ?index===0?"Original untouched lower ridge":"19-station curved shoulder candidate"
+              :index===0?"Original run A":"Independent run B"} · seed {seed}
             {" · frame "}{frame}
           </h2>
           <div data-km-fidelity-camera={lens}
