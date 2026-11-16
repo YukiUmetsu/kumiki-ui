@@ -14,6 +14,7 @@ import {
   makePencilHeadAnnotationCheckpoint,restorePencilHeadAnnotationCheckpoint,
   type PencilHeadCheckpointImages,
 } from "./colored-pencil-head-checkpoint";
+import {PencilHeadContourReview} from "./colored-pencil-head-contour-review";
 
 type Photo={url:string;name:string;sha256:string;dimensions:NativeDimensions};
 type LocalImages={source:Photo|null;output:Photo|null};
@@ -400,6 +401,8 @@ export function PencilHeadSourceAnnotationAtlas(){
           model={session} onChange={setSession}/>
       </div>)}
     </div>
+    <PencilHeadContourReview session={session}
+      source={images.source} output={images.output}/>
     <section aria-label="Verified original photographer and license" style={{
       display:"flex",flexWrap:"wrap",alignItems:"end",gap:12,maxWidth:1100}}>
       <label style={labelStyle}>Original source page (HTTPS)
