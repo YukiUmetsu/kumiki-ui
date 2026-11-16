@@ -29,3 +29,9 @@ Construct an anonymous *new* head from scratch, with a fresh ANAT1 468-vertex ge
 - **ART HOLD** until exact-native browser render is actually inspected. This is not a finished human or full portrait.
 
 **Next: review the head silhouette independently**, correct skull/zygomatic/chin proportions if the render looks flat, then draw *one* next anatomical component in a separate PR, using an appropriate new reference. Do not restore the discarded woman, reuse her face, or create several features at once.
+
+## 2026-11-15 reconciliation with pencil reset PR #444
+
+The original 'head-construction' (11.5° front-face-only ANAT1 mask) was a parallel, incomplete Drawing 01 and is superseded by [PR #444](https://github.com/YukiUmetsu/kumiki-ui/pull/444). The active head is now 'head-silhouette-01', in 'src/video/colored-pencil-first-character.ts'; it retains the underlying 468-point ANAT1 lower-face projection but adds a separate eight-anchor cranial vault instead of treating MediaPipe's clipped forehead as an entire skull. The old source image and character geometry remain prohibited. No facial feature is authorized yet.
+
+The merged Storybook keeps the original fox/landscape QA and anatomical checkpoints, while replacing head checks with the new projected nine-point overlay. Actual native screenshots of the previous draft showed a weak geometric shield and global hatch grid; the latest unverified candidate changes ONLY the head's pencil deposition and contour. **Art gate remains REJECT / HOLD** pending fresh 1×/2.15× render, source-licensed comparison, code tests and independent approval. Neither the earlier opaque main head nor the new transparent candidate is a finished illustration.

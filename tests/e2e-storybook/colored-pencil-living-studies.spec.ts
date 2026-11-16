@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("ArtCraft new head-only human, fox and alpine landscape preserve final frames and macros", async({page},info)=>{
+test("ArtCraft new head, fox anatomy and alpine landscape preserve final frames and macros", async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--living-subjects-atelier&viewMode=story");
   const svg=page.locator("svg[data-km-colored-pencil]");
   const subject=page.getByRole("combobox",{name:"Living subject"});
@@ -29,7 +29,9 @@ test("ArtCraft new head-only human, fox and alpine landscape preserve final fram
       await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
       await expect(page.getByRole("combobox",{name:"Living craft rendering"})).toHaveCount(0);
       if(output==="portrait"&&item!=="valley")
-        await expect(svg.locator('[data-km-pencil-region="head-main"], [data-km-pencil-region="head-construction"]'))
+        await expect(svg.locator(item==="portrait"?
+          '[data-km-pencil-region="head-silhouette-01"]':
+          '[data-km-pencil-region="head-main"]'))
           .toHaveAttribute("transform",/scale\(1\.38\)/);
       await expect(svg.locator("[data-km-pencil-region]")).not.toHaveCount(0);
       await svg.screenshot({animations:"disabled",
@@ -46,53 +48,62 @@ test("ArtCraft new head-only human, fox and alpine landscape preserve final fram
   }
   await subject.selectOption("portrait");
   await seek(330);
-  await expect(svg.locator('[data-km-pencil-support="head-construction"]')).toHaveCount(1);
-  await expect(svg.locator('[data-km-pencil-support="iris-near"]')).toHaveCount(0);
+  // A freshly authored, transparent head replaces the retired woman's skin.
+  await expect(svg.locator('[data-km-pencil-region="head-silhouette-01"]')).toHaveCount(1);
+  await expect(svg.locator('[data-km-pencil-support="head-silhouette-01"]')).toHaveCount(0);
+  await expect(svg.locator('[data-km-pencil-support="face-main"]')).toHaveCount(0);
+  await expect(svg.locator('[data-km-pencil-trace="newhead-sagittal-guide"]')).toHaveCount(1);
   await page.getByRole("checkbox",{name:"Living reduced motion"}).check();
   await seek(0);
-  await expect(svg.locator('[data-km-pencil-support="head-construction"]')).toHaveCount(1);
+  await expect(svg.locator('[data-km-pencil-region="head-silhouette-01"]')).toHaveCount(1);
+  await expect(svg.locator('[data-km-pencil-support="face-main"]')).toHaveCount(0);
 });
 
 
-test("human and fox faces expose editable anatomical macro checkpoints without a new Storybook folder",async({page},info)=>{
+test("new human head has no fictitious facial-detail controls; fox keeps its macro checkpoints",async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--living-subjects-atelier&viewMode=story");
   const drawing=page.locator("svg[data-km-colored-pencil]");
   const subject=page.getByRole("combobox",{name:"Living subject"});
   const part=page.getByRole("combobox",{name:"Living facial detail"});
-  await expect(drawing).toBeVisible();
-  for(const item of ["portrait","fox"] as const){
-    await subject.selectOption(item);
-    await page.getByRole("checkbox",{name:"Living inspect macro"}).check();
-    const appearances:string[]=[];
-    for(const area of ["eyes","nose","mouth"] as const){
-      await part.selectOption(area);
-      await expect(drawing).toHaveAttribute("style",/scale\(/);
-      appearances.push((await drawing.getAttribute("style"))??"");
-      await drawing.locator("xpath=..").screenshot({animations:"disabled",
-        path:info.outputPath("artcraft-facial-"+item+"-"+area+".png")});
-    }
-    expect(new Set(appearances).size).toBe(3);
-    await page.getByRole("checkbox",{name:"Living inspect macro"}).uncheck();
+  await subject.selectOption("portrait");
+  await expect(part).toHaveCount(0);
+  await expect(drawing.locator('[data-km-pencil-region="head-silhouette-01"]')).toHaveCount(1);
+  await page.getByRole("checkbox",{name:"Living inspect macro"}).check();
+  await expect(drawing).toHaveAttribute("style",/scale\(2\.4\)/);
+  await drawing.locator("xpath=..").screenshot({animations:"disabled",
+    path:info.outputPath("artcraft-newhead-construction-only.png")});
+  await page.getByRole("checkbox",{name:"Living inspect macro"}).uncheck();
+  await subject.selectOption("fox");
+  await expect(part).toBeVisible();
+  await page.getByRole("checkbox",{name:"Living inspect macro"}).check();
+  const appearances:string[]=[];
+  for(const area of ["eyes","nose","mouth"] as const){
+    await part.selectOption(area);
+    appearances.push((await drawing.getAttribute("style"))??"");
+    await drawing.locator("xpath=..").screenshot({animations:"disabled",
+      path:info.outputPath("artcraft-fox-"+area+".png")});
   }
+  expect(new Set(appearances).size).toBe(3);
   await subject.selectOption("valley");
   await expect(part).toHaveCount(0);
 });
 
-test("unapproved face is explicitly quarantined and output anchors cannot imply source fidelity",async({page},info)=>{
+test("the new-head-only story has no retired woman's diagnostic coordinates",async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--living-subjects-atelier&viewMode=story");
   const subject=page.getByRole("combobox",{name:"Living subject"});
   await subject.selectOption("portrait");
-  const warning=page.locator('[data-km-portrait-quality="construction-rejected"]');
+  const warning=page.locator('[data-km-portrait-quality="head-outline-unapproved"]');
   await expect(warning).toBeVisible();
-  await expect(warning).toContainText("failed reference-quality review");
+  await expect(warning).toContainText("Stage 1, unapproved head outline");
   const draw=page.locator("svg[data-km-colored-pencil]");
   await expect(draw).toHaveAttribute("data-km-pencil-foundation","CP-F1");
   await page.getByRole("checkbox",{name:"Living show output landmarks"}).check();
   const anchors=draw.locator('[data-km-portrait-output-landmarks]');
   await expect(anchors).toHaveCount(1);
-  await expect(anchors.locator("circle")).toHaveCount(18);
-  await expect(page.locator('[data-km-portrait-landmark-index] li')).toHaveCount(18);
-  const title=draw.getByText("PORTRAIT STUDY",{exact:true});
+  await expect(anchors.locator("circle")).toHaveCount(9);
+  await expect(page.locator('[data-km-portrait-landmark-index] li')).toHaveCount(9);
+  await expect(page.locator('[data-km-portrait-landmark-index]')).not.toContainText("hairline");
+  const title=draw.getByText("HEAD STUDY · 01",{exact:true});
   await expect(title).toBeVisible();
   const right=await title.evaluate(el=>{
     const rect=(el as SVGGraphicsElement).getBBox();

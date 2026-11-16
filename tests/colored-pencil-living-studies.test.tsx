@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PencilDrawing } from "../registry/video/colored-pencil-react";
+import {
+  NEW_CHARACTER_01_ID, NEW_CHARACTER_01_STAGE,
+  NEW_CHARACTER_01_INSPECTION_KEYS,
+  newCharacterHeadInspectionAnchors, newCharacterHeadStageOne,
+} from "../src/video/colored-pencil-first-character";
 import { inspectPencilDrawing, hatchPencilRegion } from "../registry/video/colored-pencil";
 import {
   PENCIL_LIVING_STUDIES, flowBundles, pencilLivingStudyDrawing,
 } from "../src/video/colored-pencil-living-studies";
 
 describe("ArtCraft source-led coloured-pencil living subjects",()=>{
-  it("generates independent, constrained human, animal and landscape studies in 16:9 and 9:16",()=>{
+  it("separates a brand-new single human head from the independently finished fox and landscape",()=>{
     expect(PENCIL_LIVING_STUDIES).toEqual(["portrait","fox","valley"]);
     for(const subject of PENCIL_LIVING_STUDIES){
       for(const aspect of ["landscape","portrait"] as const){
@@ -31,38 +36,182 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     }
   });
 
-  it("starts a completely new neutral human head with ONE anatomical mass, no retired woman components",()=>{
+  it("deletes the previous woman and starts exactly one NEW head outline without eyes/hair/nose/mouth",()=>{
+    expect(NEW_CHARACTER_01_STAGE).toBe("head-outline");
+    expect(NEW_CHARACTER_01_ID).toBe("head-silhouette-01");
+    const oldWomanParts=[
+      "face-main","hair-back","hair-crown","hair-lock-left",
+      "eye-white-near","eye-white-far","pupil-near","iris-near",
+      "nose-bridge","lip-upper","lip-lower","neck","collar-left",
+    ];
     for(const aspect of ["landscape","portrait"] as const){
-      const drawing=pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291});
-      expect(inspectPencilDrawing(drawing)).toEqual([]);
-      expect(drawing.regions.map(r=>r.id)).toEqual(["head-construction"]);
-      const head=drawing.regions[0];
-      expect(head.craft?.kind).toBe("skin");
-      expect(head.layers).toHaveLength(3);
-      expect(head.path.startsWith("M")).toBe(true);
-      expect(head.path.length).toBeGreaterThan(300);
-      expect(head.path).not.toMatch(/NaN|Infinity/);
-      expect(head.bounds[2]).toBeGreaterThan(100);
-      expect(head.bounds[3]).toBeGreaterThan(140);
-      expect(head.details?.map(t=>t.id)).toEqual([
-        "new-head-sagittal-guide","new-head-left-mass-turn",
-        "new-head-right-mass-turn",
-      ]);
-      expect(head.details?.every(t=>t.width<.4&&t.opacity!<.4)).toBe(true);
-      expect(head.opaqueSupport).toBe(true);
-      expect(drawing.foundation?.subject).toBe("human");
-      expect(drawing.foundation?.construction).toContain("DRAWING 01");
-      const svg=renderToStaticMarkup(
-        <PencilDrawing drawing={drawing} frame={330}/>);
-      expect(svg).toContain('data-km-pencil-region="head-construction"');
-      for(const removed of ["face-main","hair-crown","lip-upper","lip-lower",
-        "eye-white-near","nose-bridge","hair-lock-left","collar-right"]){
-        expect(svg).not.toContain('data-km-pencil-region="'+removed+'"');
-      }
-      expect(svg).not.toContain("<image");
-      expect(pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291}))
-        .toEqual(drawing);
+      const d=pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291});
+      expect(d.foundation?.subject).toBe("human");
+      expect(d.regions).toHaveLength(1);
+      expect(d.regions[0].id).toBe("head-silhouette-01");
+      expect(d.foundation?.construction).toContain("stage 1 only");
+      expect(d.regions[0].craft).toBeUndefined();
+      expect(d.regions[0].opaqueSupport).toBe(false);
+      expect(d.regions[0].clipDetails).toBe(true);
+      expect(d.regions[0].layers).toHaveLength(3);
+      // No generic broad crosshatch lattice: the head's value-direction
+      // strokes remain independently authored from the ANAT1 bony guides.
+      expect(d.regions[0].layers.every(l=>l.texture==="stipple")).toBe(true);
+      expect(d.regions[0].layers.map(l=>l.spacing)).toEqual([6.1,8.3,11.5]);
+      expect(d.regions[0].layers.every(l=>l.tipWidth<.6&&l.pressure<.3))
+        .toBe(true);
+      expect(d.regions[0].bounds[2]).toBeGreaterThan(125);
+      expect(d.regions[0].bounds[3]).toBeGreaterThan(180);
+      expect(d.regions[0].path.match(/C|Q/g)?.length)
+        .toBeGreaterThanOrEqual(26);
+      for(const id of oldWomanParts)
+        expect(d.regions.some(r=>r.id===id),id).toBe(false);
+      expect(inspectPencilDrawing(d)).toEqual([]);
     }
+  });
+
+  it("draws the first human skull silhouette using measured 3D mesh anchors and 3 bounded dry-pencil value fans",()=>{
+    const one=newCharacterHeadStageOne(291);
+    expect(one).toHaveLength(1);
+    const head=one[0];
+    expect(head.material).toBe("glaze");
+    expect(head.details?.length).toBe(77); // 54 local + 15 ANAT1 value + 3 guide fans + 5 structural guides
+    const fields=head.details!.filter(t=>t.id?.startsWith("newhead-plane-"));
+    expect(fields).toHaveLength(54);
+    expect(new Set(fields.map(t=>t.id)).size).toBe(54);
+    expect(fields.filter(t=>t.id?.startsWith("newhead-plane-far-malar-")))
+      .toHaveLength(9);
+    expect(fields.filter(t=>t.id?.startsWith("newhead-plane-mandibular-")))
+      .toHaveLength(9);
+    for(const t of fields){
+      expect(t.path).not.toMatch(/NaN|Infinity/);
+      expect(t.path.length).toBeLessThan(12000);
+      expect(t.path.match(/M/g)?.length).toBeGreaterThan(65);
+      expect(t.path.match(/ Q/g)?.length).toBeGreaterThan(65);
+      expect(t.width).toBeLessThan(.6);
+      expect(t.opacity).toBeGreaterThan(.15);
+      expect(t.opacity).toBeLessThan(.55);
+    }
+
+    for(let layer=0;layer<3;layer++){
+      const t=head.details!.find(x=>x.id==="newhead-value-"+layer);
+      expect(t).toBeDefined();
+      expect((t!.path.match(/M/g)??[]).length).toBe(114);
+      expect((t!.path.match(/ Q/g)??[]).length).toBe(114);
+      expect(t!.path.length).toBeLessThan(12000);
+      expect(t!.width).toBeLessThan(.5);
+      expect(t!.opacity).toBeLessThan(.5);
+    }
+    for(const id of ["newhead-sagittal-guide",
+      "newhead-zygomatic-guides","newhead-mandibular-hinge",
+      "newhead-orbital-placement-only","newhead-cranial-vault-turn"]){
+      const d=head.details?.find(x=>x.id===id);
+      expect(d,id).toBeDefined();
+      expect(d!.path).toContain(" Q");
+    }
+    expect(one).toEqual(newCharacterHeadStageOne(291));
+    expect(newCharacterHeadStageOne(291)[0].details)
+      .not.toEqual(newCharacterHeadStageOne(515)[0].details);
+    expect(newCharacterHeadStageOne(2147483000)).toHaveLength(1);
+    expect(()=>newCharacterHeadStageOne(-1)).toThrow(RangeError);
+  });
+
+  it("deposits five ANAT1 normal-driven tonal families as native, editable dry-pencil curves",()=>{
+    const one=newCharacterHeadStageOne(291);
+    const head=one[0];
+    const valueFamilies=[
+      "highlight","light","halftone","core-shadow","reflected-light",
+    ] as const;
+    const meshValues=head.details!.filter(trace=>
+      trace.id?.startsWith("newhead-anat1-"));
+    expect(meshValues).toHaveLength(15);
+    expect(new Set(meshValues.map(trace=>trace.id)).size).toBe(15);
+    for(const name of valueFamilies){
+      const cohort=meshValues.filter(trace=>
+        trace.id?.startsWith("newhead-anat1-"+name+"-"));
+      expect(cohort,name).toHaveLength(3);
+      for(const trace of cohort){
+        expect(trace.path).not.toMatch(/NaN|Infinity/);
+        expect((trace.path.match(/M/g)??[]).length).toBeGreaterThan(90);
+        expect((trace.path.match(/ Q/g)??[]).length).toBeGreaterThan(90);
+        expect(trace.path.length).toBeLessThan(18000);
+        expect(trace.width).toBeGreaterThan(.18);
+        expect(trace.width).toBeLessThan(.55);
+        expect(trace.opacity).toBeGreaterThan(.12);
+        expect(trace.opacity).toBeLessThan(.55);
+      }
+    }
+    // Real native 1x/2.15x visual proof found the five equal-density
+    // families too scratchy and pale. The face's dark core must receive
+    // MORE shorter contacts than the highlight: graded pressure/coverage
+    // is required before calling this a five-value pencil mass.
+    const count=(name:string)=>meshValues
+      .filter(trace=>trace.id?.startsWith("newhead-anat1-"+name+"-"))
+      .reduce((sum,trace)=>sum+(trace.path.match(/M/g)?.length??0),0);
+    expect(count("core-shadow")).toBeGreaterThan(count("highlight")*1.48);
+    expect(count("halftone")).toBeGreaterThan(count("highlight")*1.30);
+    expect(count("light")).toBeGreaterThan(count("highlight")*1.18);
+    expect(count("reflected-light")).toBeGreaterThan(count("highlight")*1.10);
+        // Five value families are not a single pattern recolored five times.
+    const locations=valueFamilies.map(name=>{
+      const trace=meshValues.find(v=>
+        v.id==="newhead-anat1-"+name+"-0")!;
+      const coords=[...trace.path.matchAll(/M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)]
+        .map(m=>[Number(m[1]),Number(m[2])]);
+      const x=coords.reduce((sum,p)=>sum+p[0],0)/coords.length;
+      const y=coords.reduce((sum,p)=>sum+p[1],0)/coords.length;
+      expect(x).toBeGreaterThanOrEqual(head.bounds[0]-8);
+      expect(x).toBeLessThanOrEqual(head.bounds[0]+head.bounds[2]+8);
+      expect(y).toBeGreaterThanOrEqual(head.bounds[1]-8);
+      expect(y).toBeLessThanOrEqual(head.bounds[1]+head.bounds[3]+8);
+      return [Math.round(x),Math.round(y)];
+    });
+    expect(new Set(locations.map(p=>p.join(","))).size)
+      .toBeGreaterThanOrEqual(4);
+    expect(one).toEqual(newCharacterHeadStageOne(291));
+    expect(newCharacterHeadStageOne(291)[0].details)
+      .not.toEqual(newCharacterHeadStageOne(515)[0].details);
+    // Still a ONE REGION head, no facial-feature geometry.
+    expect(one.map(p=>p.id)).toEqual(["head-silhouette-01"]);
+  });
+
+  it("exposes nine NEW mesh-derived head-guide points, not the former woman's portrait anchors",()=>{
+    const anchors=newCharacterHeadInspectionAnchors();
+    const head=newCharacterHeadStageOne(291)[0];
+    expect(anchors.map(x=>x.id)).toEqual([...NEW_CHARACTER_01_INSPECTION_KEYS]);
+    expect(anchors).toHaveLength(9);
+    const [left,top,width,height]=head.bounds;
+    for(const {point:[x,y]} of anchors){
+      expect(Number.isFinite(x)&&Number.isFinite(y)).toBe(true);
+      expect(x).toBeGreaterThanOrEqual(left);
+      expect(x).toBeLessThanOrEqual(left+width);
+      expect(y).toBeGreaterThanOrEqual(top);
+      expect(y).toBeLessThanOrEqual(top+height);
+    }
+    expect(newCharacterHeadInspectionAnchors()).toEqual(anchors);
+    // A staged, new head contains no photometric face patch or original
+    // woman's opaque skin. Diagnostics are the exact same ANAT1 projection.
+    expect(head.material).toBe("glaze");
+  });
+
+  it("keeps the brand-new character head in the original CP-F1 renderer with no previous woman's geometry or bitmap art",()=>{
+    const d=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape",seed:291});
+    const render=(frame:number)=>renderToStaticMarkup(
+      <PencilDrawing drawing={d} frame={frame}/>);
+    const final=render(335);
+    expect(final).toContain('data-km-pencil-region="head-silhouette-01"');
+    expect(final).not.toContain('data-km-pencil-support="head-silhouette-01"');
+    expect(final).toContain('data-km-graphite');
+    expect(final).toContain('data-km-pencil-render-method="authored-vector-pigment"');
+    expect(final).toContain('data-km-pencil-photo-pixels="none"');
+    expect(final).toContain('data-km-pencil-details');
+    expect(final).not.toContain('data-km-pencil-region="face-main"');
+    expect(final).not.toContain('data-km-pencil-region="hair-crown"');
+    expect(final).not.toContain('data-km-pencil-region="eye-white-near"');
+    expect(final).not.toContain("<image");
+    expect(final).not.toContain("<foreignObject");
+    render(52);
+    expect(render(335)).toBe(final);
   });
 
   it("grows the fox brush tail from the rump with interleaved low-pressure distal pencil fibres",()=>{
@@ -310,10 +459,15 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       expect(defaultArt).toBe(painted);
       expect(defaultArt).toContain('data-km-pencil-tonal-support="on"');
       expect(isolated).toContain('data-km-pencil-tonal-support="off"');
-      expect(defaultArt).toContain('data-km-pencil-craft-base');
+      if(subject==="fox")expect(defaultArt).toContain('data-km-pencil-craft-base');
+      else {
+        expect(defaultArt).not.toContain('data-km-pencil-craft-base');
+        expect(defaultArt).toContain('data-km-pencil-region="head-silhouette-01"');
+      }
       expect(isolated).not.toContain('data-km-pencil-craft-base');
       expect(isolated).not.toContain("<linearGradient");
-      expect(isolated).toContain('data-km-pencil-micro');
+      if(subject==="fox")expect(isolated).toContain('data-km-pencil-micro');
+      else expect(isolated).toContain('data-km-graphite');
       expect(isolated).toContain('data-km-pigment-layer="2"');
       expect(isolated.match(/data-km-pencil-region=/g)?.length)
         .toBe(defaultArt.match(/data-km-pencil-region=/g)?.length);
@@ -331,9 +485,13 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(far.bounds[3]).toBeLessThanOrEqual(near.bounds[3]*.82);
     expect(far.bounds[1]).toBeGreaterThanOrEqual(119);
     expect(near.bounds[3]).toBeLessThanOrEqual(96);
-    const reference=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
-    const portraitHead=reference.regions.find(r=>r.id==="head-construction")!;
-    expect(portraitHead.craft?.pigmentDensity??0).toBe(0);
+    // Fox coat and the brand-new head remain independent medium systems.
+    // Never reference any of the removed woman's obsolete part IDs.
+    const fresh=pencilLivingStudyDrawing({subject:"portrait",aspect:"landscape"});
+    expect(fresh.regions.map(r=>r.id)).toEqual(["head-silhouette-01"]);
+    expect(fresh.regions[0].craft).toBeUndefined();
+    expect(fresh.regions[0].opaqueSupport).toBe(false);
+    expect(fresh.regions[0].craft?.pigmentDensity??0).toBe(0);
     for(const id of ["tail-back","body","chest","neck-ruff","head-main",
       "ear-far","ear-near"]){
       const region=regions.get(id)!;

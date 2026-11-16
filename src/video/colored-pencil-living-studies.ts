@@ -3,8 +3,7 @@ import type { PencilAspect, PencilDrawingSpec, PencilRegion, PencilTrace } from 
 import { createPencilMaterialRegion } from "../../registry/video/colored-pencil-materials";
 import { createPencilFoundationDrawing } from "../../registry/video/colored-pencil-foundation";
 import type { PencilSurface } from "../../registry/video/colored-pencil-materials";
-import { createFace, FACE_FEATURES } from "../../registry/anatomy/anatomy-face";
-import { smoothPath } from "../../registry/anatomy/anatomy-view";
+import { newCharacterHeadStageOne } from "./colored-pencil-first-character";
 
 /**
  * Original, authored anatomy studies based on observation of pencil technique,
@@ -169,55 +168,9 @@ function pencilContourFringe(
 }
 
 
-/**
- * NEW HUMAN — DRAWING 01: HEAD MASS ONLY
- *
- * The retired woman/Elena character has been completely removed. This is a
- * new anonymous gender-neutral head construction, projected afresh from
- * Kumiki's canonical 468-vertex ANAT1 face geometry (not from the former
- * character's portrait paths, hair, lip palettes or camera). Only the major
- * cranium/zygoma/jaw mass is authorized at this stage; deliberately DO NOT
- * draw eyes, nose, mouth, hair or clothes until the base has been reviewed.
- * The next drawing pass should focus on ONE anatomical component.
- */
-function face():PencilSubjectPart[] {
-  const faceMesh=createFace({calibrate:false,faceWidth:1.035,eyeSpacing:.08,
-    lowerFace:.12,noseWidth:.02});
-  const yaw=11.5*Math.PI/180;
-  const project=(p:readonly number[]):[number,number]=>[
-    Number((229+1.49*(p[0]*Math.cos(yaw)+(p[2]-50)*Math.sin(yaw))).toFixed(2)),
-    Number((249-1.54*p[1]+.036*(p[2]-50)).toFixed(2)),
-  ];
-  const oval=FACE_FEATURES.oval.loop.map(i=>project(faceMesh.vertices[i]));
-  const xs=oval.map(p=>p[0]),ys=oval.map(p=>p[1]);
-  const left=Math.min(...xs),right=Math.max(...xs);
-  const top=Math.min(...ys),bottom=Math.max(...ys);
-  // The frontal oval *is* the visible construction: one continuous
-  // cheek-to-gonion-to-chin-to-cheek loop, no old layers hiding beneath.
-  const silhouette=smoothPath(oval,true);
-  const main:PencilSubjectPart={
-    id:"head-construction",material:"skin",
-    palette:["#D9AA94","#986D78","#F1CCAE"],
-    path:silhouette,
-    bounds:[left-2,top-2,right-left+4,bottom-top+4],
-    direction:29,flow:15,start:62,
-    details:[
-      {...mark("M"+fmt(oval[0][0])+" "+fmt(oval[0][1]+3)+" Q"+
-        fmt((left+right)*.50)+" "+fmt((top+bottom)*.50)+" "+
-        fmt(oval[18][0])+" "+fmt(oval[18][1]-4),
-        "#A47E7B",.31,196,.31),id:"new-head-sagittal-guide"},
-      {...mark("M"+fmt(oval[25][0])+" "+fmt(oval[25][1])+" Q"+
-        fmt(left+18)+" "+fmt((top+bottom)*.58)+" "+
-        fmt(oval[18][0])+" "+fmt(oval[18][1]-7),
-        "#976F73",.33,210,.34),id:"new-head-left-mass-turn"},
-      {...mark("M"+fmt(oval[10][0])+" "+fmt(oval[10][1])+" Q"+
-        fmt(right-17)+" "+fmt((top+bottom)*.62)+" "+
-        fmt(oval[18][0]+8)+" "+fmt(oval[18][1]-6),
-        "#E9BBA4",.34,220,.35),id:"new-head-right-mass-turn"},
-    ],
-  };
-  return [main];
-}
+// The former woman/portrait factory and all of its hand-authored regions
+// were intentionally deleted. The replacement is a separate, fresh
+// single-head construction in colored-pencil-first-character.ts.
 
 function fox():PencilSubjectPart[] {
   const orange:PencilPalette=["#C9825D","#844C4C","#F4BC85"];
@@ -941,9 +894,9 @@ export function pencilLivingStudyDrawing({
     throw new RangeError("Invalid pencil seed");
   if (!Number.isFinite(pressure)||pressure<.2||pressure>1.2)
     throw new RangeError("Invalid pencil pressure");
-  const parts=subject==="portrait"?face():subject==="fox"?fox():valley();
-  // Anatomical head-only construction remains large in film aspect, with no retired woman
-  // floating in a blank page. Dedicated copy-safe top/bottom zones remain.
+  const parts=subject==="portrait"?newCharacterHeadStageOne(seed):subject==="fox"?fox():valley();
+  // Compatibility subject="portrait" now renders the ONLY new character
+  // under construction: head contour first. No retired woman geometry.
   const transform=aspect==="landscape"?"translate(441 35) scale(1.06)":
     subject==="valley"?"translate(-16 154) scale(1.31)":
     "translate(-31 145) scale(1.38)";
@@ -969,11 +922,6 @@ export function pencilLivingStudyDrawing({
       // Whiskers are fine, floating pencil contacts from visible follicles;
       // never flood the chin with an opaque region or gradient undercoat.
       layeredSkinOverParent:false,
-      // Labial skin is continuous with the surrounding face. An opaque
-      // paper-coloured support under each lip made a large white sticker
-      // even after 3 physical pencil passes. Keep the ANAT1 rolled curves,
-      // three layered pigment deposits and tonal support, but let the
-      // parent face's pigment remain beneath the translucent tissue.
       opaqueSupport:subject==="fox"&&part.id==="whisker-roots"?
         false:region.opaqueSupport,
       underpaint:subject==="fox"&&part.id==="whisker-roots"?
@@ -982,7 +930,13 @@ export function pencilLivingStudyDrawing({
         undefined:region.underpaintOpacity,
       // The fox iris has its own traced upper eyelid and pupil. Suppress
       // only the enclosing glass-vector ring, not the separate pencil marks.
-      contour:subject==="fox"&&part.id==="whisker-roots"?
+      // A measured head-outline drawing needs a readable, hand-pressure
+      // boundary at native film size; the glass/glaze recipe's almost
+      // invisible .09 contour is inadequate for an anatomy block-in.
+      // Do not flood the incomplete head with opaque wax/skin support.
+      contour:subject==="portrait"?
+        {...region.contour,color:"#8C6E66",width:.82,opacity:.56}:
+        subject==="fox"&&part.id==="whisker-roots"?
         {...region.contour,opacity:.05}:
         subject==="fox"&&part.id==="muzzle"?
         {...region.contour,opacity:.16}:
@@ -998,38 +952,44 @@ export function pencilLivingStudyDrawing({
         // now own most of the fox coat's perceptual weight at native 1x.
         tonalSupportWeight:.64,
       }:region.craft,
-      clipDetails:part.id==="whisker-roots"||
-        // Fox guard hairs explicitly rooted on the tail perimeter must be
-        // permitted to lift *outside* the opaque caudal silhouette. The
-        // previous generic fur clip cut off these external brush ends and
-        // made the tail an unnaturally smooth sausage in actual Chromium.
+      // New bare human outline stays clipped; keep original FOX guard
+      // hair exceptions intact when retiring the woman-specific branches.
+      clipDetails:subject==="portrait"?true:
+        (part.id==="whisker-roots"||
+        // Fox exterior fur tips genuinely extend beyond the solid pelt.
         (subject==="fox"&&(part.id==="nose"||part.id==="muzzle"||
-          ["chest","neck-ruff","cheek-ruff","tail-back","tail-tip"].includes(part.id)))||
-        (subject==="portrait"&&
-          ["brows","eye-white-far","eye-white-near"].includes(part.id))?
-        false:region.clipDetails, layers:region.layers.map((layer,index)=>({
+          ["chest","neck-ruff","cheek-ruff","tail-back","tail-tip"].includes(part.id))))?
+          false:region.clipDetails,
+      layers:region.layers.map((layer,index)=>({
       ...layer,
       // Multiple dry-pencil colours follow the *same* authored fur-growth
       // tract. The generic +73/-44 crosshatch offsets made a synthetic
       // plaid over the fox, which real wildlife pencil studies avoid.
       // Keep the broad three-pass pigment model and every other subject
       // byte-identical; only the explicitly authored fox-fur atlas changes.
-      angle:locallyRooted?region.layers[0].angle+[0,16,-12][index]:
-        layer.angle,
-      // CP-F1 direction/pressure remains intact, but soft facial skin needs
-      // grain rather than ruler-like diagonals; scalp/brow hair needs fibre.
-      texture:locallyRooted||fineHair?"fiber" as const:
+      // The single unfinished head must NOT receive the generic CP1
+      // triangular crosshatch grid. Actual head-plane gestures are authored
+      // separately in newHeadValuePencil along the ANAT1 bone axes.
+      // These three optical layers deposit granular tooth contacts instead
+      // of intersecting 25-unit "CAD" hairline stripes over the whole skull.
+      // This changes no fox, valley or object material recipe.
+      texture:subject==="portrait"?"stipple" as const:
+        locallyRooted||fineHair?"fiber" as const:
         softSkin?"stipple" as const:layer.texture,
-      tipWidth:locallyRooted?layer.tipWidth*.85:
+      spacing:subject==="portrait"?[6.1,8.3,11.5][index]:layer.spacing,
+      angle:subject==="portrait"?[12,-23,49][index]:
+        locallyRooted?region.layers[0].angle+[0,16,-12][index]:layer.angle,
+      tipWidth:subject==="portrait"?[.53,.42,.34][index]:
+        locallyRooted?layer.tipWidth*.85:
         fineHair?layer.tipWidth*.80:softSkin?layer.tipWidth*.70:layer.tipWidth,
       pressure:Math.min(1,layer.pressure*pressure*
-        (locallyRooted?.90:softSkin?.85:1)),
+        (subject==="portrait"?.46:locallyRooted?.90:softSkin?.85:1)),
     }))};
   });
   const reference=subject==="portrait"?{
-    title:"ANAT1 human head construction — canonical 468-vertex topology",
-    url:"https://github.com/google-ai-edge/mediapipe",
-    observation:"New anonymous head-only character: head outline and cheek/jaw volume first; eye, nose, lips, hair and clothing intentionally absent.",
+    title:"COLORED PENCIL Magazine — portrait block-in method (2012)",
+    url:"https://coloredpencilmag.com/wp-content/uploads/2017/02/COLORED_PENCIL_Magazine_10_October_2012.pdf",
+    observation:"Begin with head contour, major bony landmarks and a measured value map; reserve facial features for individual approved stages.",
   }:subject==="fox"?{
     title:"Claire Milligan — coloured-pencil wildlife and fox",
     url:"https://www.clairemilliganart.com/patreon-video-tutorials",
@@ -1048,7 +1008,7 @@ export function pencilLivingStudyDrawing({
     medium:"dry",
     references:[{...reference,rights:"technique-only"}],
     construction:subject==="portrait"?
-      "DRAWING 01 — fresh neutral human head, only cranial/zygomatic/jaw mass. Stop before adding any ear, eye, nose, mouth, hair or clothes. Independent ArtCraft silhouette critique required.":
+      "Fresh single-person drawing, stage 1 only: verify one source-informed 36-anchor facial contour, cheekbone and jaw turning planes before drawing any eye, nose, mouth, ear, hair or clothing. The retired woman is deleted.":
       subject==="fox"?
       "Build head and ear cartilage over the torso, set eye sockets on the skull, align tapered muzzle, whisker roots and fur growth by form.":
       "Compose far mountains, stepped evergreen hierarchy, near banks and a river widening towards the camera, with directional light and aerial colour.",
