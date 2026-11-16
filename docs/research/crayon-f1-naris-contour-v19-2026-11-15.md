@@ -22,3 +22,14 @@
 - Same ArtCraft Adult Face Lab Storybook folder receives a source-aligned 3× story and reversible form selector. Vitest checks topology, immutable earlier controls, malformed-input failures, wax SSR. Chromium browser test captures native 1×/3× frames 210 and 299 against V17 and V18.
 - **Not yet visually accepted.** Source/candidate photo comparison, ArtCraft 9.1 thresholds, 18 independently measured portrait landmarks, human anatomy framework, 300-frame normal-speed animation and outside artist review remain mandatory. V18 full-frame SSIM **0.376002** (threshold ≥0.85), edge ratio **2.740825** (≤0.20), histogram **−0.208013** (≥0.92); these historical failures are NOT V19 measurements.
 - Next: review exact-head browser PNGs at natural 1× and macro 3×; reject and reconstruct contour if disconnected. Then sculpt lips/tooth occlusion, eyelid/iris, cheek/skull, jaw/neck, rooted hair. No default promotion or merge based only on CI.
+
+## Exact-head native review: V19 REJECTED (Chromium run 43798132936)
+
+- Browser Playwright screenshot evidence [native source run 43798132936](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43798132936), screenshot artifact **14195531973**, captured at source registered 608×1082 1× and exact-camera 3× at frame 299. Both V17 and V18 source-registered controls were held unchanged and captured in the same run. All Chromium checks succeeded **technically**.
+- On direct screenshot inspection, **V19 made the near hooked opening into a circular dark button** and the far narrow shadow into an ellipse. Two disconnected marks remained instead of cartilage volume; false bright pixel-wide edges and overly smooth face silhouette persisted. **ArtCraft visual verdict FAIL** (not an improvement over V18), regardless of exact-cubic contract tests. The full-frame face is still flat, mouth/teeth cartoony, eye shapes and scalp/hair boundaries mismatched. No source likeness score is claimed.
+- V19 technical checks: native drawing grammar and browser PASS; type/Storybook PASS; new focused Crayon tests PASS; full changed-test suite **639 passed, 14 failed** (13 old RISO23/26/30/31 assertions plus 1 plant timeout), no Crayon failures after fixing the CRAYON1 spacing minimum of 4px. This is not a clean repository-wide pass.
+
+### V20 geometry correction awaiting screenshot review
+
+- Source's near hooked negative space restored with an internally concave C-bend: shadow shares **two exact adjoining cubic roof spans** with the skin rather than a solid dark disk. Far shadow transformed to a tapered narrow slit. Roof/body contact increased slightly; no new shapes or old-control edits; existing source-photo, fine strokes, paper grain, film timing remain.
+- Browser V20 A/B at 1× and 3× vs unchanged V17/V18 must be read before any visual verdict. The candidate remains `!dev` and unmerged, even if browser/CI pass.

@@ -43,6 +43,8 @@ describe("ArtCraft V19 source alar rim shared contour (experimental)",()=>{
       if(roof?.kind!=="wax"||shadow?.kind!=="wax"||skin?.kind!=="wax")
         throw Error("Missing "+side);
       expect(shadow.d.startsWith(rim.forward)).toBe(true);
+      if(side==="near")expect(shadow.d).toContain("C407 628 405 635 403 640");
+      if(side==="far")expect(shadow.d).toContain("C462 635 458 641 454 642");
       expect(roof.d.includes(rim.reverse)).toBe(true);
       expect(ids.indexOf(roof.id)).toBe(ids.indexOf(shadow.id)+1);
       expect(shadow.coverage).toBe("opaque");
