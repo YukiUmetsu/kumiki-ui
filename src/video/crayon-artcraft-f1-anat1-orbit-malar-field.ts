@@ -185,56 +185,55 @@ export function crayonF1Anat1OrbitalMalarPaths():
 }
 
 const paint:Readonly<Record<ChangedId,Partial<Wax>>>={
+  // The first V35 actual 1×/3× native screenshot FAILED: six opaque
+  // geometric patches read as glued cut paper; large near cheek wax was
+  // ~23 RGB too light and the cheek shadow ROI regressed badly.
+  //
+  // Use dry open-wax glazing over the EXISTING continuous face-outline
+  // underpaint and ANAT1 shape, not a second flat opaque patch. The wax
+  // engine still deposits three chromatic marks with directional tooth,
+  // while all original face gradient, stipple and original film are kept.
   "socket-near":{
-    colors:["#9a756d","#503738","#c3998a"],
-    coverage:"opaque",deposition:"stroke-built",nibStyle:"dry",
-    featherContacts:true,blendRadius:18,
-    underpaintGradient:{light:"#b88d80",shadow:"#573d40",
-      focusX:.57,focusY:.68,radius:.93},
-    underpaintTooth:.23,opaqueBurnish:.50,
-    pressure:.79,spacing:5.8,markStrength:.29,outlineOpacity:0,
-  },
-  "socket-far":{
-    colors:["#936b65","#4b3437","#aa7c75"],
-    coverage:"opaque",deposition:"stroke-built",nibStyle:"dry",
-    featherContacts:true,blendRadius:13.6,
-    underpaintGradient:{light:"#a58179",shadow:"#513739",
-      focusX:.49,focusY:.71,radius:.94},
-    underpaintTooth:.21,opaqueBurnish:.55,
-    pressure:.84,spacing:5.8,markStrength:.28,outlineOpacity:0,
-  },
-  "malar-cheek-near":{
-    colors:["#eac1ad","#b88a7a","#ffddc2"],
-    coverage:"opaque",deposition:"stroke-built",nibStyle:"dry",
-    featherContacts:true,blendRadius:18,
-    underpaintGradient:{light:"#f6ceaf",shadow:"#a4766b",
-      focusX:.42,focusY:.41,radius:1.16},
-    underpaintTooth:.27,opaqueBurnish:.12,
-    pressure:.68,spacing:6.7,markStrength:.25,outlineOpacity:0,
-  },
-  "cheek-malar-cast":{
-    colors:["#91665c","#533e3c","#c0927d"],
-    coverage:"opaque",deposition:"stroke-built",nibStyle:"dry",
-    featherContacts:true,blendRadius:14,
-    underpaintGradient:{light:"#bc8978",shadow:"#614744",
-      focusX:.35,focusY:.40,radius:1.10},
-    underpaintTooth:.24,opaqueBurnish:.27,
-    pressure:.79,spacing:5.9,markStrength:.37,outlineOpacity:0,
-  },
-  "cheek-malar-bounce":{
-    colors:["#fbd6ba","#cda192","#ffe5c9"],
-    coverage:"opaque",deposition:"stroke-built",nibStyle:"dry",
-    featherContacts:true,blendRadius:18,
-    underpaintGradient:{light:"#ffdfc3",shadow:"#bc9686",
-      focusX:.30,focusY:.34,radius:1.22},
-    underpaintTooth:.27,opaqueBurnish:.14,
-    pressure:.71,spacing:6.3,markStrength:.23,outlineOpacity:0,
-  },
-  "nose-root":{
-    colors:["#ad847b","#795956","#c79f8e"],
+    colors:["#99756c","#4b3538","#c5a092"],
     coverage:"open",deposition:"stroke-built",nibStyle:"dry",
     featherContacts:true,blendRadius:16,
-    pressure:.66,spacing:6.1,markStrength:.31,outlineOpacity:0,
+    underpaintGradient:undefined,underpaintTooth:undefined,opaqueBurnish:undefined,
+    pressure:.60,spacing:6.4,markStrength:.21,outlineOpacity:0,
+  },
+  "socket-far":{
+    colors:["#8c6c67","#503a3f","#b89486"],
+    coverage:"open",deposition:"stroke-built",nibStyle:"dry",
+    featherContacts:true,blendRadius:14,
+    underpaintGradient:undefined,underpaintTooth:undefined,opaqueBurnish:undefined,
+    pressure:.63,spacing:6.2,markStrength:.21,outlineOpacity:0,
+  },
+  "malar-cheek-near":{
+    colors:["#eac1ad","#ad877a","#f4d1bb"],
+    coverage:"open",deposition:"stroke-built",nibStyle:"dry",
+    featherContacts:true,blendRadius:17,
+    underpaintGradient:undefined,underpaintTooth:undefined,opaqueBurnish:undefined,
+    pressure:.35,spacing:7.3,markStrength:.15,outlineOpacity:0,
+  },
+  "cheek-malar-cast":{
+    colors:["#916b61","#60494a","#bb9282"],
+    coverage:"open",deposition:"stroke-built",nibStyle:"dry",
+    featherContacts:true,blendRadius:15,
+    underpaintGradient:undefined,underpaintTooth:undefined,opaqueBurnish:undefined,
+    pressure:.48,spacing:7.1,markStrength:.22,outlineOpacity:0,
+  },
+  "cheek-malar-bounce":{
+    colors:["#f9d4b8","#c7a194","#ffdfc4"],
+    coverage:"open",deposition:"stroke-built",nibStyle:"dry",
+    featherContacts:true,blendRadius:15,
+    underpaintGradient:undefined,underpaintTooth:undefined,opaqueBurnish:undefined,
+    pressure:.39,spacing:7.1,markStrength:.16,outlineOpacity:0,
+  },
+  "nose-root":{
+    colors:["#a9877d","#82645c","#caa292"],
+    coverage:"open",deposition:"stroke-built",nibStyle:"dry",
+    featherContacts:true,blendRadius:15,
+    underpaintGradient:undefined,underpaintTooth:undefined,opaqueBurnish:undefined,
+    pressure:.42,spacing:7.0,markStrength:.20,outlineOpacity:0,
   },
 };
 
