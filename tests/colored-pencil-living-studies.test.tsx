@@ -673,11 +673,12 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       const hind=parts.get("rear-leg")!,body=parts.get("body")!;
       // Sitting fox anatomy: the bent thigh disappears under the rust
       // pelvis and the short tarsus contacts the ground transversely.
-      expect(hind.bounds[1]).toBeGreaterThanOrEqual(330);
-      expect(hind.bounds[3]).toBeLessThanOrEqual(78);
+      expect(hind.bounds[1]).toBeGreaterThanOrEqual(360);
+      expect(hind.bounds[3]).toBeLessThanOrEqual(48);
       expect(hind.bounds[2]/hind.bounds[3]).toBeGreaterThan(1.0);
       expect(hind.bounds[0]).toBeLessThan(body.bounds[0]+body.bounds[2]);
-      expect(hind.path).toContain("M300 347 C309 338 324 337 335 345");
+      expect(hind.bounds[1]+hind.bounds[3]).toBeGreaterThanOrEqual(405);
+      expect(hind.path).toContain("M328 369 C334 366 344 371 349 379");
       expect(hind.path).not.toContain("L369 402");
       expect((hind.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(7);
       expect((hind.path.match(/ L/g)??[]).length).toBe(0);
