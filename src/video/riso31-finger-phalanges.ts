@@ -81,15 +81,16 @@ export function riso31PhalanxJoints(side:Riso31Side):readonly RisoJoint[]{
       anatomical(spec.fingerIndex,"dip")*
         RISO31_ANAT1_REFERENCE.projectedPinchFactor*.66*handed*spec.curlDirection;
     const delay=side==="left"?6:0;
+    const heldReceive=side==="left"&&digit==="index";
     result.push({
       id:prefix+"-pip",parent:prefix,x:0,y:spec.proximal,keys:[
         {frame:0,rotate:0,easing:"ease"},
         {frame:96,rotate:1*handed*spec.curlDirection,easing:"ease"},
         {frame:126,rotate:2*handed*spec.curlDirection,easing:"ease"},
         {frame:160+delay,rotate:pip,easing:"ease"},
-        {frame:180+delay,rotate:pip*.58,easing:"ease"},
-        {frame:205,rotate:pip*.14,easing:"ease"},
-        {frame:239,rotate:pip*.14},
+        {frame:180+delay,rotate:heldReceive?pip:pip*.58,easing:"ease"},
+        {frame:205,rotate:heldReceive?pip:pip*.14,easing:"ease"},
+        {frame:239,rotate:heldReceive?pip:pip*.14},
       ],
     },{
       id:prefix+"-dip",parent:prefix+"-pip",x:0,y:spec.intermediate,keys:[
@@ -97,9 +98,9 @@ export function riso31PhalanxJoints(side:Riso31Side):readonly RisoJoint[]{
         {frame:96,rotate:0,easing:"ease"},
         {frame:126,rotate:0,easing:"ease"},
         {frame:160+delay,rotate:dip,easing:"ease"},
-        {frame:180+delay,rotate:dip*.62,easing:"ease"},
-        {frame:205,rotate:dip*.14,easing:"ease"},
-        {frame:239,rotate:dip*.14},
+        {frame:180+delay,rotate:heldReceive?dip:dip*.62,easing:"ease"},
+        {frame:205,rotate:heldReceive?dip:dip*.14,easing:"ease"},
+        {frame:239,rotate:heldReceive?dip:dip*.14},
       ],
     });
   }
