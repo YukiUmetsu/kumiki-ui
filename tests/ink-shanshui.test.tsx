@@ -1327,9 +1327,11 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     for(const seed of [71,97]){
       const html=draw("fuchun",seed);
       const original=html.match(
-        /data-km-rock-hero-bone="" d="([^"]+)" fill="none" stroke="#695745" stroke-width="0.7"/,
+        /data-km-rock-hero-bone="" d="([^"]+)" fill="none" stroke="#695745"/,
       );
       expect(original).not.toBeNull();
+      expect((original![1].match(/ Q/g)??[])).toHaveLength(2);
+      expect((original![1].match(/ M/g)??[])).toHaveLength(1);
       const parts=[...html.matchAll(
         /data-km-rock-hero-bone-loaded="" data-km-rock-hero-bone-part="(crown|dry-tail)" data-km-rock-hero-bone-loaded-root="([^"]+)" data-km-rock-hero-bone-loaded-tip="([^"]+)" data-km-rock-hero-bone-source-from="([^"]+)" data-km-rock-hero-bone-source-to="([^"]+)" d="([^"]+)"/g,
       )];
@@ -1340,6 +1342,8 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       ]);
       const parent=html.match(/data-km-rock-hero-cliff="" data-km-rock-hero-root="([^"]+)"/)?.[1];
       expect(parent).toBeDefined();
+      expect(original![1].startsWith(
+        "M"+parent!.replace(","," "))).toBe(true);
       const [x,y]=parent!.split(",").map(Number);
       const control:[number,number]=[x-19,y+31];
       const tail:[number,number]=[x-56,y+116];
@@ -1351,6 +1355,11 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
         ];
       };
       for(const [, ,r,t,start,stop,d] of parts){
+        // Even the original fine witness follows the identical source
+        // subcurve and cannot silently paint over the true paper gap.
+        expect(original![1]).toContain("M"+r.replace(","," "));
+        const control=source(Number(start));
+        expect(control.every(Number.isFinite)).toBe(true);
         const at=source(Number(start)),end=source(Number(stop));
         const actualR=r.split(",").map(Number);
         const actualT=t.split(",").map(Number);

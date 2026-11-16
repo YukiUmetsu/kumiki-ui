@@ -1565,6 +1565,14 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
     boneSegment(0,.41,3.7,0),
     boneSegment(.52,.91,1.9,1),
   ];
+  // Both the loaded surface AND its faint witness line now sample
+  // EXACTLY the same parent quadratic subsegments. The original
+  // 0.11-parameter paper gap is no longer accidentally re-inked by
+  // a discordant full-stroke hairline beneath the new material.
+  const sourceBoneWitness=sourceBonePaint.map(({at,control,end})=>
+    "M"+f(at[0])+" "+f(at[1])+
+    " Q"+f(control[0])+" "+f(control[1])+
+    " "+f(end[0])+" "+f(end[1])).join(" ");
   const paperId="kmrock"+faceId+"-absorption";
   return <g data-km-rock-hero-cliff=""
     data-km-rock-hero-root={f(x)+","+f(y)}>
@@ -1991,14 +1999,7 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
     {/* Faint same-source centerline witnesses real paper between brush
         loads, not a dark uniform-width digital spear. */}
     <path data-km-rock-hero-bone=""
-      d={"M"+f(x)+" "+f(y)+
-        " Q"+f(boneControl[0])+" "+f(boneControl[1])+" "+
-        f(quadraticPoint(root,boneControl,boneTip,.43)[0])+" "+
-        f(quadraticPoint(root,boneControl,boneTip,.43)[1])+
-        " M"+f(quadraticPoint(root,boneControl,boneTip,.49)[0])+" "+
-        f(quadraticPoint(root,boneControl,boneTip,.49)[1])+
-        " Q"+f(boneControl[0]-9)+" "+f(boneControl[1]+23)+" "+
-        f(boneTip[0])+" "+f(boneTip[1])}
+      d={sourceBoneWitness}
       fill="none" stroke="#695745" strokeWidth=".7"
       strokeLinecap="round" opacity={f(.27*(1-.22*mist))}/>
     {ribPlan.map((rib,i)=>{
