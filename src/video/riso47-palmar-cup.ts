@@ -1,3 +1,4 @@
+import {riso57PositivePalmContour} from "./riso57-palm-contact-silhouette";
 /**
  * RISO47 ArtCraft — redraw the PRIMARY positive printed palm silhouette.
  *
@@ -32,42 +33,13 @@ export const RISO50_PALM_CRAFT={
   source:"Proko palmar muscle-group construction & observed f160 native hand image",
   noPhotoTrace:true,
 } as const;
+/**
+ * Compatibility entrypoint of the ORIGINAL red-glove source contract.
+ * RISO57 reconstructs its positive contour with independent observed
+ * ANAT1 carpal/thenar/ulnar landmarks rather than retaining the former
+ * 16-cubic round mitten. All original RISO30–56 micro-engraved actors,
+ * known IDs, ink masters and rig transforms remain unchanged.
+ */
 export function riso47PalmContour(actor:Riso47Actor,side:Riso47Side):string{
-  const hand=side==="right"?1:-1;
-  const artist=actor==="paper-artist";
-  const x=(v:number)=>Number((v*hand).toFixed(2));
-  const n=(v:number)=>Number(v.toFixed(2));
-  // Artist has a softer heel and rounder index saddle; Courier's contours
-  // are tenser and slightly more angular. Source identity is preserved.
-  const radial=artist?0.43:0.05,heel=artist?0.55:0.18,knuckle=artist?0.36:0.12;
-  const c=(a:number,b:number)=>`${x(a)} ${n(b)}`;
-  return [
-    // RISO50 primary positive silhouette, same original named RED glove.
-    // The three-quarter palm tapers into a REAL wrist and carries a
-    // dissimilar, proximal-to-distal staggered MCP crest. Unlike the
-    // previous 20-unit balloon, the ulnar heel cuts inward before turning
-    // into three independent source RED finger bases.
-    `M${c(5.12,-2.25)}`,
-    `C${c(7.10,-2.84)} ${c(8.14+radial,-1.18)} ${c(7.86+radial,1.18)}`,
-    `C${c(7.62+radial,3.33)} ${c(8.96+radial,5.09)} ${c(9.17+radial,7.58)}`,
-    `C${c(10.23+radial,9.27)} ${c(10.68,10.68)} ${c(9.08,12.40)}`,
-    `C${c(10.45+radial,14.19)} ${c(11.13,15.87)} ${c(9.86,17.27)}`,
-    `C${c(9.28,18.24)} ${c(8.21,18.63)} ${c(7.21,17.98)}`,
-    // First MCP is a rolled radial eminence, not one continuous smile
-    // connecting all knuckle pits; the interdigit valleys are real
-    // changes of positive red silhouette, not shallow screen overlays.
-    `C${c(6.33,18.92)} ${c(5.72,20.31+knuckle)} ${c(4.21,19.02)}`,
-    `C${c(2.79,20.41+knuckle)} ${c(.65,21.17)} ${c(-.54,19.38)}`,
-    `C${c(-2.09,20.42+knuckle)} ${c(-4.16,19.91)} ${c(-5.16,18.32)}`,
-    `C${c(-6.37,19.39)} ${c(-8.22-heel,18.12)} ${c(-8.78-heel,16.23)}`,
-    // The ulnar carpal transition is a flatter, bony change of plane
-    // at the pisiform, while the thenar side stays continuously rounded.
-    `C${c(-9.20-heel,14.42)} ${c(-8.64,12.31)} ${c(-7.66,10.34)}`,
-    `C${c(-8.88-heel,8.72)} ${c(-8.94-heel,6.58)} ${c(-8.19,4.44)}`,
-    `C${c(-8.73-heel,2.39)} ${c(-8.14,1.00)} ${c(-6.58,-.74)}`,
-    `C${c(-5.68,-1.48)} ${c(-4.93,-1.02)} ${c(-4.10,-1.66)}`,
-    `C${c(-2.66,-2.15)} ${c(-1.50,-2.12)} ${c(-.46,-1.99)}`,
-    `C${c(.89,-2.13)} ${c(2.20,-2.53)} ${c(3.43,-2.10)}`,
-    `C${c(4.14,-2.03)} ${c(4.74,-2.13)} ${c(5.12,-2.25)} Z`,
-  ].join(" ");
+  return riso57PositivePalmContour(actor,side);
 }
