@@ -286,6 +286,25 @@ test("four distinct historical ink schools paint separate real rooted rock struc
       await expect.poll(()=>card.locator(
         '[data-km-master-stroke-curl="with"]').count()).toBeGreaterThan(10);
     }
+    // Fuchun's four fracture gestures now actually follow a parent
+    // painted bank with three direction-changing curved sections, while
+    // all twelve source reloads and eight attached twigs are retained.
+    const heroCourses=card.locator('[data-km-rock-hero-rib-course="folded-3"]');
+    await expect(heroCourses).toHaveCount(school==="fuchun"?4:0);
+    if(school==="fuchun"){
+      const supported=await heroCourses.evaluateAll(nodes=>nodes.map(
+        node=>node.getAttribute("data-km-rock-hero-rib-support")));
+      expect(supported).toEqual(["0","1","2","1"]);
+      const faces=card.locator("[data-km-rock-hero-face]");
+      await expect(faces).toHaveCount(4);
+      for(const d of await faces.evaluateAll(nodes=>nodes.map(
+        node=>node.getAttribute("d")??"")))
+        expect((d.match(/(?:^| )M/g)??[])).toHaveLength(3);
+      await expect(card.locator("[data-km-rock-hero-rib-deposit]"))
+        .toHaveCount(12);
+      await expect(card.locator("[data-km-rock-hero-fibre]"))
+        .toHaveCount(8);
+    }
     await expect(card.locator("[data-km-rock-hero-fold]"))
       .toHaveCount(school==="fuchun"?3:0);
 
