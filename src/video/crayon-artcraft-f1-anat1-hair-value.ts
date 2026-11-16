@@ -94,8 +94,11 @@ export function crayonF1CalibrateAnat1HairValues(
   elements:readonly CrayonElement[],
 ):CrayonElement[]{
   const seen=new Set<string>();
-  const hairRegions=new Set<string>();
-  let hairBands=0;
+  const hairBandsByRegion=new Map<string,Set<number>>([
+    ["crown",new Set<number>()],
+    ["left",new Set<number>()],
+    ["right",new Set<number>()],
+  ]);
   const out=elements.map(el=>{
     if(Object.prototype.hasOwnProperty.call(wax,el.id)){
       if(el.kind!=="wax"||seen.has(el.id)||
@@ -111,9 +114,11 @@ export function crayonF1CalibrateAnat1HairValues(
            match[1]==="left"?"hair-left-curtain":"hair-right-curtain")||
          el.clipToParent!==true)
         throw new RangeError("Disconnected native hair microstructure");
-      hairBands++;
-      hairRegions.add(match[1]);
       const i=Number(match[2]);
+      const bands=hairBandsByRegion.get(match[1]);
+      if(!bands||i>5||bands.has(i))
+        throw new RangeError("Duplicate or unsupported rooted hair band "+el.id);
+      bands.add(i);
       return {...el,color:tone(i),opacity:.28+i*.054,
         // Same source-registered cubic hairs and exact inherited dry wax
         // pressure. No new elements and no tiny uniform digital ticks.
@@ -121,8 +126,11 @@ export function crayonF1CalibrateAnat1HairValues(
     }
     return el;
   });
+  const counts=[...hairBandsByRegion.values()].map(bands=>bands.size);
   if(seen.size!==CRAYON_F1_V38_HAIR_IDS.length||
-     hairRegions.size!==3||hairBands<3||hairBands>18)
-    throw new RangeError("Incomplete crown/left/right directional hair fibers");
+     counts.some(n=>n<1||n!==counts[0])||
+     [...hairBandsByRegion.values()].some(bands=>
+       [...bands].some(i=>!bands.has(i===0?0:i-1))))
+    throw new RangeError("Incomplete or non-contiguous crown/left/right directional hair fibers");
   return out;
 }
