@@ -100,8 +100,11 @@ describe("ArtCraft F1 source-oral V14 / native wax fidelity experiment",()=>{
     expect(defaultScene.elements.some(e=>e.id==="dental-arch-connected-wax")).toBe(false);
     const old=crayonCc0FaceStudy({midfaceForm:"source-alar"});
     const updated=crayonCc0FaceStudy({midfaceForm:"source-oral"});
-    expect(old.elements.find(e=>e.id==="lip-upper")?.d)
-      .not.toEqual(updated.elements.find(e=>e.id==="lip-upper")?.d);
+    const originalLip=old.elements.find(e=>e.id==="lip-upper");
+    const updatedLip=updated.elements.find(e=>e.id==="lip-upper");
+    if(originalLip?.kind!=="wax"||updatedLip?.kind!=="wax")
+      throw Error("Expected source oral wax");
+    expect(originalLip.d).not.toEqual(updatedLip.d);
     expect(()=>crayonCc0FaceStudy({midfaceForm:"fake" as "baseline"}))
       .toThrow(RangeError);
     const upper=old.elements.find(e=>e.id==="lip-upper");
