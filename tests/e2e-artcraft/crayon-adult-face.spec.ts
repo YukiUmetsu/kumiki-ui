@@ -1104,3 +1104,55 @@ test("F1 V20b joined near/far nasal rim browser A/B against V17/V18",async({page
   expect(Buffer.compare(Buffer.from(imgs[1]),Buffer.from(imgs[2]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+
+/** V21 actual source-projected wax volume: screenshot presence is NOT
+ * ArtCraft facial authenticity/texture/temporal approval.
+ */
+test("F1 V21 nasal volume native Chromium 1x/3x V20 comparison",async({page},info)=>{
+  test.setTimeout(120_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const focus={focusX:417,focusY:629,zoom:3};
+  const compared:Uint8Array[]=[];
+  for(const midfaceForm of ["source-contour-joined","source-nasal-volume"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    const focused={...original,camera:[
+      {frame:0,...focus},{frame:299,...focus},
+    ]};
+    for(const [zoom,spec] of [
+      ["3x",focused],["1x",original],
+    ] as const){
+      const frame=299;
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["nose-root","nose-dorsum","nose-sidewall",
+        "nose-tip","nose-alar-near","nose-alar-far",
+        "nose-septal-transition","naris-shadow-near","naris-shadow-far"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      const capture=await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-f1-v21-nasal-"+zoom+"-"+midfaceForm+"-299.png")});
+      if(zoom==="3x")compared.push(capture);
+    }
+    if(midfaceForm==="source-nasal-volume"){
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec:focused,frame:210,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      await page.locator("svg[data-km-crayon-scene]").screenshot({
+        animations:"disabled",
+        path:info.outputPath("crayon-f1-v21-nasal-3x-volume-210.png"),
+      });
+    }
+  }
+  expect(Buffer.compare(Buffer.from(compared[0]),Buffer.from(compared[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
