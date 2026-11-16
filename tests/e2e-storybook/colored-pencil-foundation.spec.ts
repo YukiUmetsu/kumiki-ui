@@ -188,7 +188,7 @@ test("ArtCraft one-at-a-time: retired woman is absent; only new head outline is 
           const regions=[...root.querySelectorAll("[data-km-pencil-region]")];
           const ids=regions.map(x=>x.getAttribute("data-km-pencil-region"));
           const head=root.querySelector('[data-km-pencil-region="head-silhouette-01"]')!;
-          const path=head.querySelector("[data-km-pencil-support]")?.getAttribute("d")??"";
+          const path=head.querySelector("[data-km-graphite] path")?.getAttribute("d")??"";
           const traces=[...head.querySelectorAll("[data-km-pencil-trace]")]
             .map(e=>e.getAttribute("data-km-pencil-trace"));
           return {
