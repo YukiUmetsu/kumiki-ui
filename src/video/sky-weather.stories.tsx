@@ -74,9 +74,30 @@ function Genera() {
   );
 }
 
+/** Cumulus at size: species, the sun front, side and behind, and turrets over time (to compare with photographs). */
+function CumulusStudy() {
+  const cell = { margin: 0, display: "grid", gap: 4 } as const;
+  return (
+    <main style={page}>
+      <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))" }}>
+        {([["Mediocris, sun behind the viewer (30°)", { species: "mediocris", sunAzimuth: 30, seed: 3 }], ["Mediocris, sun to the side (90°)", { species: "mediocris", sunAzimuth: 90, seed: 3 }],
+          ["Mediocris, backlit (160°): the silver lining", { species: "mediocris", sunAzimuth: 160, seed: 3 }], ["Congestus, sun 60°", { species: "congestus", sunAzimuth: 60, seed: 2 }],
+          ["Humilis, sun 45°", { species: "humilis", sunAzimuth: 45, seed: 5 }], ["Congestus, sun from the right", { species: "congestus", sunAzimuth: 70, seed: 7, sun: 1 }]] as const).map(([t, o]) => (
+          <figure key={t} style={cell}><CloudFigure genus="cumulus" options={o} height={320} label={t} /><figcaption>{t}</figcaption></figure>
+        ))}
+      </div>
+      <h2 style={{ margin: 0, font: "600 17px var(--km-font-sans, system-ui, sans-serif)" }}>Turrets over time (congestus; 2 minutes apart)</h2>
+      <div style={{ display: "grid", gap: 8, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))" }}>
+        {[0, 120, 240, 360].map(t => <figure key={t} style={cell}><CloudFigure genus="cumulus" options={{ species: "congestus", sunAzimuth: 60, seed: 2, time: t }} height={220} /><figcaption>{t / 60} min</figcaption></figure>)}
+      </div>
+    </main>
+  );
+}
+
 const meta = { title: "Video production/Art Foundations/Sky and Weather", id: "video-sky-weather", component: SheetStory, parameters: { layout: "fullscreen" } } satisfies Meta<typeof SheetStory>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Sheet: Story = { render: () => <SheetStory /> };
 export const Lab: Story = { name: "Weather lab", render: () => <WeatherLab /> };
 export const Clouds: Story = { name: "Cloud genera", render: () => <Genera /> };
+export const Cumulus: Story = { name: "Cumulus study", render: () => <CumulusStudy /> };

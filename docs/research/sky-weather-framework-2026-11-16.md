@@ -72,3 +72,45 @@ The first drawings were compared with the atlas plates and photos side by side:
 - Photoreal cloud rendering (volumes, silver linings) is out of scope. The shapes are construction for painting.
 - Further phenomena worth adding with sources: halos (22°, sun dogs), crepuscular rays, mammatus, virga detail,
   frost and dew, wind-driven snow drifts, puddle ripples (the water framework).
+
+## Round two: cumulus in detail (2026-11-16)
+
+The owner asked for more detail in clouds, especially cumulus, from more physics and more real images and videos.
+
+**References studied** (CC0 or public domain):
+- four cumulus congestus photographs over Gåseberg (W. Carter, CC0);
+- cumulus mediocris 1 and 3 (J. Naukkarinen, public domain);
+- cumulus humilis, Sunbury (CC0);
+- cumulus congestus, early stages (public domain);
+- a silver lining over Geelong (public domain);
+- two time-lapses: "Growing cumulus clouds in time lapse" (CC0) and "Cloud time lapse 1280" (public domain), studied
+  frame by frame.
+
+**What they show:**
+- Lumps on lumps at three or four scales.
+- Sunlit crowns near white, falling through blue-grey half-tones to deep blue-grey shadow. The shadows take the
+  sky's blue.
+- Crevices where a lower crown stands in front of the shade above.
+- Flat grey bases.
+- Turrets that push up, round over, then soften and fade, while new ones rise beside them.
+
+**Measured.** Shading ladders from the 10th, 25th, 50th, 75th and 95th luminance percentiles of cloud pixels:
+- mediocris: #7892aa, #88a0b5, #92afcb, #b7c2cd, #dddde0;
+- congestus: #3c5f7e, #55718c, #7690aa, #9fb2c4, #e2e5e6;
+- the backlit body: #2f404a to #384c57.
+
+**Reported.**
+- Espy's LCL, about 125 m per °C (Wikipedia).
+- Cloud perimeter fractal dimension about 1.35 (Lovejoy 1982, Science 216). That figure is for cloud areas seen from
+  above, so the model is compared with the photographs' side-view silhouettes instead: the same box count gives
+  about 1.03–1.19 for the photographs and about 1.0 for the model.
+- Updrafts under about 1 m/s in fair cumulus (Penn State Meteo 3). Median peak 4.9 m/s in cumulus 0.7–4 km deep
+  (ACP 16, 10159, 2016).
+
+**What changed from the first renders:**
+- Bubble-wrap discs and too-dark interiors gave way to big forms first: masses lit by sun azimuth and depth, with
+  lumps lit by their place on their mass.
+- Even, smooth outlines gave way to a tree of rising thermals with notches between towers.
+- Hard ball outlines gave way to irregular lumps with occlusion shadows.
+- A backlit glow on interior lumps now sits only on the true silhouette (tested on a raster).
+- Turrets that broke into floating bubbles now rise and fade as whole turrets.

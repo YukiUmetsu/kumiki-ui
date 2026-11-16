@@ -13,6 +13,7 @@ import type { CloudGenus } from "./sky-data";
 import { BEAUFORT, CLOUD_GENERA, HYDROMETEORS, LIGHTNING, RAIN_CLASSES, RAINBOW, SKY_PHASES, SKY_SOURCES } from "./sky-data";
 import type { CloudOptions, CloudShape, CloudTone } from "./sky-clouds";
 import { cloudDeck, cloudShape } from "./sky-clouds";
+import { CUMULUS_LADDERS, ladderColour } from "./sky-cumulus";
 import type { WeatherInput, WeatherState } from "./sky-physics";
 import { cloudBase, contrastAt, dropFallSpeed, dropSpectrum, exposureTime, lightningChannel, lightningFlash, mixColour, rainbow, streakLength, thunderDelay, weatherState } from "./sky-physics";
 
@@ -25,10 +26,94 @@ const toneColour = (genus: CloudGenus, tone: CloudTone, light = 1) => {
 /** A cloud's layers as SVG (inside an `<svg>` whose y axis already points up). `fade` mixes it toward `horizon` (distance haze). */
 export function CloudLayers({ shape, light = 1, colours, fade = 0, horizon = "#b8c4cc" }: { shape: CloudShape; light?: number; colours?: Partial<Record<CloudTone, string>>; fade?: number; horizon?: string }) {
   const id = `sky${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const layer = (l: CloudShape["layers"][number], i: number) => <path key={i} d={l.d} fill={mixColour(colours?.[l.tone] ?? toneColour(shape.genus, l.tone, light), horizon, Math.max(fade, l.fade ?? 0))} opacity={l.opacity} clipPath={l.clip ? `url(#${id}-clip)` : undefined} />;
+  const at = shape.lumps ? shape.lumpsAt ?? 0 : shape.layers.length;
   return (
     <g>
       <clipPath id={`${id}-clip`}><path d={shape.outline} /></clipPath>
-      {shape.layers.map((l, i) => <path key={i} d={l.d} fill={mixColour(colours?.[l.tone] ?? toneColour(shape.genus, l.tone, light), horizon, Math.max(fade, l.fade ?? 0))} opacity={l.opacity} clipPath={l.clip ? `url(#${id}-clip)` : undefined} />)}
+      {shape.layers.slice(0, at).map(layer)}
+      {shape.lumps ? <LumpLayer shape={shape} light={light} fade={fade} horizon={horizon} id={id} /> : null}
+      {shape.layers.slice(at).map((l, i) => layer(l, i + at))}
+    </g>
+  );
+}
+
+const LUMP_LEVELS = 14;
+/** A lump as a slightly irregular rounded shape (two low harmonics on its radius), so no perfect circles show. */
+function lumpPath(l: { c: readonly [number, number]; r: number }, i: number) {
+  const p1 = (i * 2.399) % (Math.PI * 2), p2 = (i * 1.731) % (Math.PI * 2), pts: [number, number][] = [];
+  for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2, rr = l.r * (1 + .06 * Math.sin(3 * a + p1) + .04 * Math.sin(5 * a + p2)); pts.push([l.c[0] + Math.cos(a) * rr, l.c[1] + Math.sin(a) * rr]); }
+  return smoothClosedPath(pts);
+}
+/**
+ * A heaped cloud's lumps, back to front. Each lump first casts a soft occlusion shadow down and away from the sun onto
+ * what lies behind it (the crevices), then is painted with its crown brightest toward the sun, fading into its own
+ * tone with no dark rim, so lumps read by their crowns, not as balls. A body half-tone fills the gaps, the flat base
+ * darkens in a band, and a slight blur turns vector edges into vapour.
+ */
+function LumpLayer({ shape, light, fade, horizon, id }: { shape: CloudShape; light: number; fade: number; horizon: string; id: string }) {
+  const ladder = CUMULUS_LADDERS[shape.ladder ?? "fair"], w = shape.width, h = shape.height, sun = shape.sunSide ?? -1;
+  const tone = (t: number) => mixColour(light >= 1 ? ladderColour(ladder, t) : mixColour("#10141c", ladderColour(ladder, t), light), horizon, fade);
+  const fx = .5 + sun * .2, fy = .74, shade = tone(.12);
+  const flat = !!shape.flatBase, lumps = flat ? shape.lumps!.filter(l => l.c[1] + l.r * .3 > h * .06) : shape.lumps!;
+  return (
+    <g>
+      <defs>
+        <clipPath id={`${id}-base`}><rect x={-w * 3} y={0} width={w * 6} height={h * 4} /></clipPath>
+        <clipPath id={`${id}-mass`}>{shape.lumps!.filter(l => l.level === 0).map((l, i) => <circle key={i} cx={l.c[0]} cy={l.c[1]} r={l.r} />)}</clipPath>
+        <filter id={`${id}-soft`} x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation={flat ? w * .0018 : .5} /></filter>
+        <radialGradient id={`${id}-occ`} cx=".5" cy=".5" r=".5"><stop offset="0" stopColor={shade} stopOpacity=".55" /><stop offset=".7" stopColor={shade} stopOpacity=".22" /><stop offset="1" stopColor={shade} stopOpacity="0" /></radialGradient>
+        {/* Half-tone lumps: a gentle crown, so the face keeps its texture in shade. */}
+        {Array.from({ length: LUMP_LEVELS }, (_, k) => {
+          const t = k / (LUMP_LEVELS - 1);
+          return (
+            <radialGradient key={`h${k}`} id={`${id}-h${k}`} cx=".5" cy=".5" r=".5" fx={fx} fy={fy}>
+              <stop offset="0" stopColor={tone(Math.min(1, t + .045))} /><stop offset=".6" stopColor={tone(t)} /><stop offset="1" stopColor={tone(t * .95)} />
+            </radialGradient>
+          );
+        })}
+        {/* Silver lining: bright only at the lump's outer edge, in eight directions. */}
+        {Array.from({ length: 8 }, (_, k) => {
+          const a = k / 8 * Math.PI * 2;
+          return (
+            <radialGradient key={`rim${k}`} id={`${id}-rim${k}`} cx={.5 - Math.cos(a) * .3} cy={.5 - Math.sin(a) * .3} r=".85">
+              <stop offset=".72" stopColor="#ffffff" stopOpacity="0" /><stop offset=".88" stopColor="#fffdf6" stopOpacity="1" /><stop offset=".96" stopColor="#ffffff" stopOpacity=".7" /><stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+            </radialGradient>
+          );
+        })}
+        <linearGradient id={`${id}-baseg`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor={tone(.18)} stopOpacity=".6" /><stop offset=".45" stopColor={tone(.3)} stopOpacity=".25" /><stop offset="1" stopColor={tone(.3)} stopOpacity="0" /></linearGradient>
+        {/* The big forms: a bright cap toward the sun, rolling down to a shaded underside. */}
+        {Array.from({ length: LUMP_LEVELS }, (_, k) => {
+          const t = k / (LUMP_LEVELS - 1);
+          return (
+            <radialGradient key={`m${k}`} id={`${id}-m${k}`} cx=".5" cy=".5" r=".5" fx={.5 + sun * .16} fy={.7}>
+              <stop offset="0" stopColor={tone(Math.min(1, t + .08))} /><stop offset=".5" stopColor={tone(t)} /><stop offset=".85" stopColor={tone(t * .86)} /><stop offset="1" stopColor={tone(t * .78)} />
+            </radialGradient>
+          );
+        })}
+        {Array.from({ length: LUMP_LEVELS }, (_, k) => {
+          const t = k / (LUMP_LEVELS - 1);
+          return (
+            <radialGradient key={k} id={`${id}-l${k}`} cx=".5" cy=".5" r=".5" fx={fx} fy={fy}>
+              <stop offset="0" stopColor={tone(Math.min(1, t + .07))} /><stop offset=".55" stopColor={tone(t)} /><stop offset="1" stopColor={tone(t * .94)} />
+            </radialGradient>
+          );
+        })}
+      </defs>
+      <g clipPath={flat ? `url(#${id}-base)` : undefined} filter={`url(#${id}-soft)`}>
+        {/* The body: every mass in a half-tone first, so no sky shows between lumps (the star-shaped outline would
+            bridge the notches between towers, so it is not filled). */}
+        {shape.lumps!.filter(l => l.level === 0).map((l, i) => <circle key={`b${i}`} cx={l.c[0]} cy={l.c[1]} r={l.r * .97} fill={tone(Math.min(.55, l.light))} opacity={l.opacity < 1 ? l.opacity : undefined} />)}
+        {lumps.map((l, i) => (
+          <g key={i} opacity={l.opacity < 1 ? l.opacity : undefined}>
+            <ellipse cx={l.c[0] - sun * l.r * .18} cy={l.c[1] - l.r * .42} rx={l.r * 1.05} ry={l.r * .9} fill={`url(#${id}-occ)`} opacity={(l.level === 0 ? .7 : .45) * Math.max(.25, l.light) ** 1.5} />
+            {/* Sunlit lumps carry their crown highlight; lumps in half-tone and shadow are flat, separated by the crevice shadows. */}
+            <path d={lumpPath(l, i)} fill={l.light < .42 ? tone(l.light * (l.level === 0 ? .96 : 1)) : `url(#${id}-${l.level === 0 ? "m" : l.light < .72 ? "h" : "l"}${Math.round(l.light * (LUMP_LEVELS - 1))})`} />
+            {l.glow ? <path d={lumpPath(l, i)} fill={`url(#${id}-rim${Math.round(((l.out ?? 0) / (Math.PI * 2) + 1) * 8) % 8})`} opacity={Math.min(1, l.glow * 1.4)} /> : null}
+          </g>
+        ))}
+        {flat ? <rect x={-w * 3} y={0} width={w * 6} height={h * .2} fill={`url(#${id}-baseg)`} clipPath={`url(#${id}-mass)`} /> : null}
+      </g>
     </g>
   );
 }
@@ -38,7 +123,7 @@ export function CloudFigure({ genus, options, label, height = 150 }: { genus: Cl
   const s = cloudShape(genus, options), [x0, y0, x1, y1] = s.bounds, pad = (x1 - x0) * .06, W = x1 - x0 + pad * 2, H = y1 - y0 + pad * 2;
   const id = `sky${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   return (
-    <svg role="img" aria-label={label ?? `${genus} cloud`} viewBox={`${x0 - pad} ${-y1 - pad} ${W} ${H}`} style={{ display: "block", width: "100%", height, background: `linear-gradient(#4f7fb3, #9cbad2)`, borderRadius: 6 }} preserveAspectRatio="xMidYMid meet">
+    <svg role="img" aria-label={label ?? `${genus} cloud`} viewBox={`${x0 - pad} ${-y1 - pad} ${W} ${H}`} style={{ display: "block", width: "100%", height, background: `linear-gradient(#2f69a6, #6f9ccb 70%, #9fbdd8)`, borderRadius: 6 }} preserveAspectRatio="xMidYMid meet">
       <defs><linearGradient id={`${id}-g`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#4f7fb3" /><stop offset="1" stopColor="#9cbad2" /></linearGradient></defs>
       <g transform="scale(1 -1)"><CloudLayers shape={s} /></g>
     </svg>

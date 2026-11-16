@@ -3914,6 +3914,11 @@
           "target": "components/nature/sky-physics.ts"
         },
         {
+          "path": "registry/nature/sky-cumulus.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-cumulus.ts"
+        },
+        {
           "path": "registry/nature/sky-clouds.ts",
           "type": "registry:ui",
           "target": "components/nature/sky-clouds.ts"
