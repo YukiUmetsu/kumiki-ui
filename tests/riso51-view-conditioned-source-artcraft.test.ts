@@ -74,7 +74,9 @@ describe("RISO51 independent two-human ORIGINAL moving print sources",()=>{
       const rest=evaluateRisoCharacter(spec,0);
       const approach=evaluateRisoCharacter(spec,148);
       const contact=evaluateRisoCharacter(spec,160);
-      const released=evaluateRisoCharacter(spec,205);
+      // RISO2 cadence=2 samples 205 at cel 204; the authored f205
+      // release key is therefore fully printed at cel 206, not 205.
+      const released=evaluateRisoCharacter(spec,206);
       for(const id of animatedParts(active)){
         const source=spec.parts.find(p=>p.id===id)!;
         const p0=rest.parts.find(p=>p.id===id)!;
