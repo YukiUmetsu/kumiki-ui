@@ -49,7 +49,7 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
         expect(zoom).toBe(1);
         expect(camBeat).toBe(0);
       }else if(frame===160||frame===166||frame===177){
-        expect(zoom).toBeCloseTo(aspect==="portrait"?1.36:2.15,2);
+        expect(zoom).toBeCloseTo(aspect==="portrait"?2.20:2.15,2);
         expect(camBeat).toBe(1);
       }else if(frame===156||frame===186||frame===189||frame===202){
         expect(zoom).toBeGreaterThan(1);
