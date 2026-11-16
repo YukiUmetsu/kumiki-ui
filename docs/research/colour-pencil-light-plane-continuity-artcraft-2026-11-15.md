@@ -213,3 +213,29 @@ The 3× Chromium tail crop revealed an obvious **hard, continuous sausage silhou
 **Additional macro failure:** white cervical chest resolved into a narrow spear at the sternum, with charcoal forelegs reading as straight posts. The proper fix is morphological, not adding global grain. The next physically authored sternum candidate therefore replaces the single sharp white tip with four softly interlocking Bézier turns, two new caudally flowing low-pressure tuft fans, one named ventral optical form guide and a denser fringe rooted on the actual revised lower silhouette. `src/video/colored-pencil-living-studies.ts` retains all three dark/mid/light pigment families, the anterior chest mass, the neck ruff, and exact absolute frame timing. Both 16:9 and 9:16 unit tests assert the connected non-spear shape, 24 fur-family passes and 3 fringe-family paths; the **existing** Foundation Storybook adds a direct fox sternum macro target for actual native still critique.
 
 **ART HOLD:** these are geometry/material experiments until the **latest** post-sternum workflow exports and source/review crop verify whether the overpointed triangular chest silhouette really improved. Prior grey leg posts, head silhouette, poor upper muzzle optical gradient, far canthus and human facial realism remain outside approval. Never approve only from path counts, passed tests or a local pixel-change percentage.
+
+
+## Native-frame fox lower-limb continuity — paw/hock ArtCraft refinement
+
+**Observed before change at the actual 960×540 Storybook export (1× and 4× crop):** the two forelegs appeared as dark, nearly uniform-height columns ending in a flat horizontal boot rim, while the rear leg rose as a third large upright charcoal wedge. Small linear toe marks did not resolve the underlying limb topology. This is primarily a *pose and contour* error; adding paper grain alone would amplify the wrong geometry.
+
+**Photographic anatomy references inspected before modifying the authored vectors:**
+
+- <https://permuted.org.uk/fox/fox_october2007/album/slides/fox_cub_foot_1210072121.html> — a close frontal photograph of fox cub legs: narrow furry wrists, four distinctly adjacent compact toes, tiny nail contact and warm brown toe fur. **Caveat:** juvenile standing pose, so no adult-seated proportions copied.
+- <https://www.wildlifeonline.me.uk/animals/article/red-fox-appearance> — close view of fur-covered red fox forepaw and claw/pad relation: toes wrapped in individually curving fine fur; central pad is not visibly pasted as a front-facing oval.
+- <https://mdc.mo.gov/discover-nature/field-guide/red-fox> — adult red fox leg/foot coat blackish, with modestly long legs and separate tail/haunch geometry. Field-guide observation, not a canonical matched pose.
+- <https://www.oreilly.com/library/view/drawing-animals-in/9781600581373/xhtml/ch11.html> — Debra Kauffman Yaun's *Red Fox*, a three-quarter-anatomy drawing study whose perspective warns against assuming both sides or all feet are equally visible. Educational technique reference; no source artwork reused.
+
+The illustrations are **authored original editable vector + physical CP-F1 pencil paths**. The reference photos and book samples are not imported, traced, rasterized or redistributed. The full sources' exact pixel crops are not aligned to this specific authored camera or animal and source-matched release metrics remain blocked.
+
+| ArtCraft axis | Real observed failure | Candidate construction and concrete negative control |
+| --- | --- | --- |
+| **Connectivity** | Rear leg reads as third independent vertical cylinder; wrist-to-toe edge flat. | Rear hock upper root now emerges *inside rump* then curls into low lateral ground contact; foreleg boundaries curve through arm → carpus → four toe pad fronts. **Reject** if rear region is taller than wide or disconnected from body. |
+| **Flow** | Same diagonal streak repeated across all black regions. | Forearms add separate curved, short, direction-specific pressure families, dark-to-warm optical planes; hock pigment turns downward/forward along flexion. **Reject** generic global hatch. |
+| **Weight** | Solid charcoal boot with tiny invisible toe lines. | Shoulder cap, tendon/wrist and metacarpal marks have distinct pressures; nail slits stay darker than brown toe hairs. **Reject** thick black toe outlines or white fluorescent leg stripes. |
+| **Rhythm** | Flat repeating toe hem, identical front and back boot. | Adjacent nonuniform digit ridges, irregular knuckle extents, unequal foot-width to lower-leg ratios, low horizontal hind paw. **Reject** evenly spaced parallel four-stroke foot decal. |
+| **Texture** | Uniform synthetic diagonal pencil scratches obscure geometry. | Three retained original pigment families plus low-pressure local short hair tracts. Existing tooth, seed, dry clip/support and render-time reveal remain unchanged. **Reject** photographic texture or blur. |
+
+**Mechanical gates:** tests enforce original two narrow weight-bearing forelimbs, 4 front paw furrows/claws per foot, shape bends, width and hock height/width ratio, 12 individually authorable hind fibres, source-relative limb/body overlap and exact 16:9 / 9:16 macro screenshot restoration. Existing Storybook adds *Fox carpus/weight-bearing paw* and *Fox folded hind hock/grounded digits* focus in the same folder. The original rendered native images, not static alternate art, are the objects under review.
+
+**ART HOLD — independent aesthetic review pending:** the latest code restores anatomical hierarchy but its exact-head full-frame and macro screenshots must still be inspected for whether the splayed toes truly read at native pixel scale. The three-quarter head, ear insertions, portrait eyelids/nose and full-media texture remain known fidelity failures; do not approve or merge from code assertions alone.
