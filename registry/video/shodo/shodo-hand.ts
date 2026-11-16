@@ -971,10 +971,12 @@ export interface ShodoStrokeNumber {
   /** Centre of the number, design px. */
   x: number;
   y: number;
-  /** Point where the brush lands, design px. */
+  /** Point where the brush lands (the first point of the stroke), design px. */
   anchor: readonly [number, number];
   /** Text size (font size), design px. */
   size: number;
+  /** True when no clear place was near enough, so the number sits on the ink at its stroke's start. */
+  onInk: boolean;
 }
 
 export interface ShodoStrokeNumberOptions {
@@ -993,11 +995,18 @@ export function shodoStrokeNumberBox(digits: number, size: number): readonly [nu
 
 /**
  * Puts a small stroke-order number next to the start of each stroke, as a teacher writes
- * them in vermilion on a model sheet. The obstacles are the contact patches of the full
- * finished writing, so a number never sits on ink. This includes ink that a later stroke
- * writes. Of the clear positions, the position nearest to the landing point wins, with a
- * small preference for the side that the brush comes from. Numbers do not overlap.
- * Pure and deterministic.
+ * them in vermilion on a model sheet. Two rules apply:
+ *
+ * 1. A number is nearer to the start (first point) of its own stroke than to the start of
+ *    any other stroke, so that it cannot be read as the number of a different stroke.
+ * 2. A number does not sit on ink. The obstacles are the contact patches of the full finished
+ *    writing, so this includes ink that a later stroke writes.
+ *
+ * Of the places that obey both rules, within about 3.6 text sizes of the start, the place
+ * nearest to the start wins, with a small preference for the side that the brush comes from.
+ * When no such place exists, the number sits on the ink at the start of its own stroke
+ * (`onInk`); the paper-coloured halo of the renderer keeps it legible there. Numbers do not
+ * overlap each other. Pure and deterministic.
  */
 export function shodoStrokeNumbers(plan: ShodoPlan, options: ShodoStrokeNumberOptions = {}): ShodoStrokeNumber[] {
   const D = plan.brush.diameter;
@@ -1010,44 +1019,54 @@ export function shodoStrokeNumbers(plan: ShodoPlan, options: ShodoStrokeNumberOp
     const c = s.samples[k];
     blobs.push([c.x, c.y, Math.max(c.width, c.length) / 2]);
   }
+  const real = plan.strokes.filter(s => s.kind !== "link");
+  const starts = real.map(s => [s.samples[0].x, s.samples[0].y] as const);
   const placed: [number, number, number, number][] = [];
   const out: ShodoStrokeNumber[] = [];
-  let number = 0;
-  plan.strokes.forEach((s, index) => {
-    if (s.kind === "link") return;
-    number++;
+  real.forEach((s, own) => {
+    const number = own + 1;
     if (options.only && !options.only.includes(number)) return;
     const land = s.samples[0];
     // The direction of the brush at the start, over the first part of the stroke.
     const ahead = s.samples.find(c => c.arc >= D * .8) ?? s.samples[s.samples.length - 1];
     const [ux, uy] = norm(ahead.x - land.x || 1e-6, ahead.y - land.y);
     const [hw, hh] = shodoStrokeNumberBox(String(number).length, size);
-    const reach = D * .35 + size * 5.5;
+    const nearestIsOwn = (x: number, y: number) => {
+      const d = Math.hypot(x - land.x, y - land.y);
+      return starts.every(([sx, sy], k) => k === own || Math.hypot(x - sx, y - sy) > d);
+    };
+    const free = (x: number, y: number) => !placed.some(([px, py, pw, ph]) =>
+      Math.abs(px - x) < pw + hw + size * .15 && Math.abs(py - y) < ph + hh + size * .15)
+      && !(bounds && (x - hw < bounds.x + size * .3 || x + hw > bounds.x + bounds.width - size * .3
+        || y - hh < bounds.y + size * .3 || y + hh > bounds.y + bounds.height - size * .3));
+    const rings = 12;
+    const reach = D * .35 + size * (.55 + (rings - 1) * .28);
     const near = blobs.filter(b => Math.hypot(b[0] - land.x, b[1] - land.y) < reach + b[2] + hw + pad);
+    const clear = (x: number, y: number) => near.every(([bx, by, br]) =>
+      Math.hypot(Math.max(Math.abs(bx - x) - hw, 0), Math.max(Math.abs(by - y) - hh, 0)) >= br + pad);
     let best: { x: number; y: number; cost: number } | null = null;
-    for (let ring = 0; ring < 18; ring++) {
+    for (let ring = 0; ring < rings; ring++) {
       const r = D * .35 + size * (.55 + ring * .28);
       for (let k = 0; k < 32; k++) {
         const a = k / 32 * Math.PI * 2, dx = Math.cos(a), dy = Math.sin(a);
         const x = land.x + dx * r, y = land.y + dy * r;
-        let ink = 0;
-        for (const [bx, by, br] of near) {
-          const ex = Math.max(Math.abs(bx - x) - hw, 0), ey = Math.max(Math.abs(by - y) - hh, 0);
-          const depth = br + pad - Math.hypot(ex, ey);
-          if (depth > 0) ink += depth / size;
-        }
-        // Ink under the number costs most; then the distance; then a place ahead of the brush.
-        let cost = ink * 10 + r / size * .5 + (1 + dx * ux + dy * uy) * .12;
-        for (const [px, py, pw, ph] of placed)
-          if (Math.abs(px - x) < pw + hw + size * .15 && Math.abs(py - y) < ph + hh + size * .15) cost += 100;
-        if (bounds && (x - hw < bounds.x + size * .3 || x + hw > bounds.x + bounds.width - size * .3
-          || y - hh < bounds.y + size * .3 || y + hh > bounds.y + bounds.height - size * .3)) cost += 100;
-        if (!best || cost < best.cost) best = { x, y, cost };
+        // The distance costs most; a place ahead of the brush costs a little more.
+        const cost = r / size * .5 + (1 + dx * ux + dy * uy) * .12;
+        if (best && cost >= best.cost) continue;
+        if (nearestIsOwn(x, y) && free(x, y) && clear(x, y)) best = { x, y, cost };
       }
     }
-    if (!best) return;
-    placed.push([best.x, best.y, hw, hh]);
-    out.push({ number, stroke: index, t0: s.t0, x: best.x, y: best.y, anchor: [land.x, land.y], size });
+    let at: { x: number; y: number } | null = best;
+    if (!at) {
+      // On the ink at the start of the stroke; a little along the stroke if another number is there.
+      for (let k = 0; k < 6 && !at; k++) {
+        const x = land.x + ux * size * .6 * k, y = land.y + uy * size * .6 * k;
+        if (free(x, y) && nearestIsOwn(x, y)) at = { x, y };
+      }
+      at ??= { x: land.x, y: land.y };
+    }
+    placed.push([at.x, at.y, hw, hh]);
+    out.push({ number, stroke: plan.strokes.indexOf(s), t0: s.t0, x: at.x, y: at.y, anchor: [land.x, land.y], size, onInk: !best });
   });
   return out;
 }

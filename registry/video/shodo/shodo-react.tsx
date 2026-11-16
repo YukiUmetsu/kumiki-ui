@@ -243,7 +243,8 @@ function drawStrokeNumbers(ctx: CanvasRenderingContext2D, numbers: readonly Shod
     ctx.font = `600 ${n.size.toFixed(1)}px system-ui, -apple-system, "Segoe UI", sans-serif`;
     // Digits are about 0.72 of the font size tall: put their middle on the placed centre.
     const text = String(n.number), y = n.y + n.size * .36;
-    ctx.lineWidth = n.size * .28;
+    // On ink the halo is wider, so the number reads as a label on a small patch of paper.
+    ctx.lineWidth = n.size * (n.onInk ? .38 : .28);
     ctx.strokeStyle = paper;
     ctx.strokeText(text, n.x, y);
     ctx.fillStyle = color;

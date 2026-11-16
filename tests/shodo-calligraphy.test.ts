@@ -280,25 +280,33 @@ describe("SHO1 shodō calligraphy", () => {
     expect(shodoKaishoForm(stack, { structure: false }).strokes[2].points[0][0]).toBeLessThan(shodoKaishoForm(stack).strokes[2].points[0][0]);
   });
 
-  it("numbers every stroke next to its start, clear of all the finished ink", () => {
+  it("numbers each stroke nearest to its own start, and off the ink where a clear place is near", () => {
     const sheet = { x: 0, y: 0, width: 880, height: 720 };
-    const plan = planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["道"], x: 170, y: 95, size: 540 }], style: DEFAULT_SHODO_STYLE });
-    const numbers = shodoStrokeNumbers(plan, { bounds: sheet });
-    const real = plan.strokes.filter(s => s.kind !== "link");
-    expect(numbers.map(n => n.number)).toEqual(real.map((_, i) => i + 1));
-    const D = plan.brush.diameter;
-    for (const n of numbers) {
-      const [hw, hh] = shodoStrokeNumberBox(String(n.number).length, n.size);
-      expect(n.size).toBeLessThan(D * .5);                                          // small text
-      expect(n.t0).toBe(plan.strokes[n.stroke].t0);                                 // shows when the brush lands
-      expect(Math.hypot(n.x - n.anchor[0], n.y - n.anchor[1])).toBeLessThan(D + n.size * 3); // next to the start
-      expect(n.x - hw).toBeGreaterThan(sheet.x); expect(n.y + hh).toBeLessThan(sheet.y + sheet.height);
-      for (const s of plan.strokes) for (const c of s.samples) {                   // on no ink, also later ink
-        const ex = Math.max(Math.abs(c.x - n.x) - hw, 0), ey = Math.max(Math.abs(c.y - n.y) - hh, 0);
-        expect(Math.hypot(ex, ey)).toBeGreaterThan(Math.max(c.width, c.length) / 2);
+    // 道 and 永 have crowded starts: the corner of 自, the centre of 永.
+    for (const char of ["道", "永"]) {
+      const plan = planShodoWriting({ items: [{ glyph: SHODO_GLYPHS[char], x: 170, y: 95, size: 540 }], style: DEFAULT_SHODO_STYLE });
+      const numbers = shodoStrokeNumbers(plan, { bounds: sheet });
+      const real = plan.strokes.filter(s => s.kind !== "link");
+      expect(numbers.map(n => n.number)).toEqual(real.map((_, i) => i + 1));
+      const starts = real.map(s => [s.samples[0].x, s.samples[0].y]);
+      const D = plan.brush.diameter;
+      for (const n of numbers) {
+        const [hw, hh] = shodoStrokeNumberBox(String(n.number).length, n.size);
+        expect(n.size).toBeLessThan(D * .5);                                          // small text
+        expect(n.t0).toBe(plan.strokes[n.stroke].t0);                                 // shows when the brush lands
+        const d = starts.map(([x, y]) => Math.hypot(n.x - x, n.y - y));
+        expect(d.indexOf(Math.min(...d)), char + " " + n.number).toBe(n.number - 1);  // nearest start is its own
+        expect(n.x - hw).toBeGreaterThan(sheet.x); expect(n.y + hh).toBeLessThan(sheet.y + sheet.height);
+        if (!n.onInk) for (const s of plan.strokes) for (const c of s.samples) {     // off all ink, also later ink
+          const ex = Math.max(Math.abs(c.x - n.x) - hw, 0), ey = Math.max(Math.abs(c.y - n.y) - hh, 0);
+          expect(Math.hypot(ex, ey)).toBeGreaterThan(Math.max(c.width, c.length) / 2);
+        }
+        for (const m of numbers) if (m !== n) expect(Math.abs(m.x - n.x) > hw * 2 || Math.abs(m.y - n.y) > hh * 2).toBe(true);
       }
-      for (const m of numbers) if (m !== n) expect(Math.abs(m.x - n.x) > hw * 2 || Math.abs(m.y - n.y) > hh * 2).toBe(true);
+      // The first stroke of 自 starts under 一: its number sits on the ink at that start.
+      if (char === "道") expect(numbers.find(n => n.number === 4)?.onInk).toBe(true);
     }
+    const plan = planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["道"], x: 170, y: 95, size: 540 }], style: DEFAULT_SHODO_STYLE });
     expect(shodoStrokeNumbers(plan, { only: [12] }).map(n => n.number)).toEqual([12]);
   });
 

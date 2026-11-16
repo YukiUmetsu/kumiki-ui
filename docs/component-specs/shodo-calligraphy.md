@@ -37,7 +37,7 @@ Every contact sample in a plan reports `phase` (`kihitsu`, `sohitsu`, `tensetsu`
 | `shodo-structure.ts` | The 間架結構法 rule book: `shodoStructure`, `shodoLayout`, `shodoKankaRulesFor`, `SHODO_KANKA_RULES`, `SHODO_STRUCTURE_RULES`, measured on 411 teacher models |
 | `shodo-glyph-source.ts` | `loadShodoGlyph` / `loadShodoText`: a supplied teacher's form first, then bundled, otherwise KanjiVG from the pinned release, cached, with form rules; `ShodoTeacher` |
 | `shodo-textures.ts` | Scanned CC0 bamboo cane and wood textures (ambientCG), embedded |
-| `shodo-hand.ts` | `planShodoWriting` (strokes, air moves, ink dips), `shodoBrushPose(plan, seconds)` and `shodoStrokeNumbers` (stroke-order numbers placed next to each stroke start, clear of the finished ink) |
+| `shodo-hand.ts` | `planShodoWriting` (strokes, air moves, ink dips), `shodoBrushPose(plan, seconds)` and `shodoStrokeNumbers` (stroke-order numbers, each nearest to its own stroke start and clear of the finished ink where possible) |
 | `shodo-ink.ts` | `ShodoInkSurface`: paper raster with deposit, pooling, kasure, nijimi, colour mixing and wet sheen |
 | `shodo-paper.ts` | Washi texture and the printed practice grid (`kenteiSheet`) |
 | `shodo-brush.ts` | The 3D fude drawn with Canvas 2D (top or side camera), its cast shadow and `shodoFerruleHeight` |
@@ -84,7 +84,7 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
 `ShodoKanjiCard` (in `src/video/shodo-demos.tsx`, story *Kanji study card*) is a study video for one kanji in three phases:
 
 1. **Write.** The brush writes the character. Strokes in `vermilionStrokes` use 朱墨 and get the arrow guide.
-2. **Review.** The sheet is fresh and the brush writes the character again. When the brush lands for a stroke, a small number fades in next to the start of that stroke. The numbers are dark vermilion (#B3301A, contrast 5.6:1 on hanshi) with a thin paper halo. Their text size is 0.42 of the brush diameter (about 24 px at 1280 × 720). `shodoStrokeNumbers` places them against the ink of the finished character, so a number never sits on ink that a later stroke writes. The numbers do not overlap each other.
+2. **Review.** The sheet is fresh and the brush writes the character again. When the brush lands for a stroke, a small number fades in next to the start of that stroke. The numbers are dark vermilion (#B3301A, contrast 5.6:1 on hanshi) with a thin paper halo. Their text size is 0.42 of the brush diameter (about 24 px at 1280 × 720). `shodoStrokeNumbers` applies two rules. First, a number is nearer to the start of its own stroke than to the start of any other stroke, so it cannot be read as the number of a different stroke. Second, a number is clear of the ink of the finished character, also of ink that a later stroke writes. When no place within about 3.6 text sizes obeys both rules, the number sits on the ink at the start of its own stroke, with a wider paper halo (in 道, number 4 sits on 一 where the first stroke of 自 starts). The numbers do not overlap each other.
 3. **Info.** The finished review holds with the reading card.
 
 The ink of the character is centred in the writing panel, not in the full frame. The character is made smaller only when its ink would reach the label band or the edge of the sheet. The label "HEADING: char" shows once, at the top left of the writing panel.
