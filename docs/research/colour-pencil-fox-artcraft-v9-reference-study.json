@@ -310,7 +310,7 @@
         "gwatkin-fox-eye"
       ],
       "critical": true,
-      "geometry_rule": "Light malar fan must begin beneath the muzzle and terminate WITHIN the pale chest, never a 97px hanging grey vertical ribbon. Original authored jaw and chest regions retain their independent silhouette/color layers.",
+      "geometry_rule": "Diagonal light malar fur must begin beneath the muzzle and distribute across the existing pale cervical/chest field, never a tall 97px hanging gray ribbon or a second 67px ivory sticker. Original authored jaw and chest regions retain their independent silhouette/color layers.",
       "microdetails": [
         "short warm-grey → cream directional transition",
         "two measured root-to-root optical turns",
@@ -327,7 +327,7 @@
       ],
       "source_observation": "Visual review of a real seated red fox profile rejects a detached hanging cheek stripe; the lower malar hairs become long chest fur rather than continuing as an independent shaded tube.",
       "five_axes": {
-        "topology": "Distinct cheek path intersects both jaw at (253,235) and upper sternum at (251,269); retains independent editable mask.",
+        "topology": "Distinct cheek path intersects both jaw at (253,235) and upper sternum at (240,265); retains independent editable mask.",
         "flow": "Upper short jaw hairs rotate into longer lower neck fur; no single repeated long diagonal hatch.",
         "weight": "Warm cream outer values, sparse sepia root shadows and selective highlighted guard tips; no solid dark strip.",
         "rhythm": "Unequal fan root length, 4 root guides and 3 interleaved contour families.",
