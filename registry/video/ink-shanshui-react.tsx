@@ -123,6 +123,25 @@ const RIDGES:Record<ShanshuiScene,readonly (readonly P[])[]>={
 const FUCHUN_TRAIL_FAR:readonly P[]=RIDGES["mountain-trail"][0].map(
   ([x,y]):P=>[x,x===581?123:x===624?122:y],
 );
+/** Optional native contour-reconstruction study for the prominent PALE
+ * lower Fuchun hill. Its old one-station x530/y235 needle apex and long
+ * x427/y304-to-x586/y274 diagonals left an isolated triangular wedge
+ * across the 1× film. This new original 19-station profile holds a
+ * broad irregular 488–586 rock shoulder with two unequal descending
+ * saddles. The shared original ridge and every other school remain
+ * byte-identical in normal output. All generated child ink, rock planes
+ * and the 9× per span edge stations sample this SAME positive geology;
+ * no triangle is covered by a decorative sticker.
+ *
+ * Source topology: Huang Gongwang, Fuchun Mountains; NPM 1194.
+ * Experimental, opt-in until exact 1× and frame-sequence art approval. */
+const FUCHUN_TRAIL_NEAR_ROUNDED:readonly P[]=[
+  [-60,430],[78,359],[160,405],[275,298],[338,345],
+  [401,306],[427,288],[457,272],[488,262],[512,258],
+  [530,259],[552,261],[573,265],[586,268],[618,280],
+  [655,302],[713,334],[812,295],[1050,383],
+];
+
 /** One deliberately authored macro landform per master, not four coats
  * of different strokes on exactly the same generic triangle. All retain
  * monotone x stations, genuine ridgeHeight-rooted child anatomy, independent
@@ -3326,9 +3345,9 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
     })}
   </g>;
 }
-function Mountains({scene,seed,detail,mist,ink,school,ids}:{
+function Mountains({scene,seed,detail,mist,ink,school,nearStudy,ids}:{
   scene:ShanshuiScene;seed:number;detail:number;mist:number;ink:number;
-  school:InkRockSchool;
+  school:InkRockSchool;nearStudy?:boolean;
   ids:{far:string;mid:string;near:string;grain:string};
 }){
   return <g data-km-shanshui-mountains="">
@@ -3336,8 +3355,12 @@ function Mountains({scene,seed,detail,mist,ink,school,ids}:{
       // Each school retains its source-authored middle rock skeleton.
       // Only Fuchun also receives its own softened pale far crest,
       // which must nest behind the taller, now-rounded middle ridge.
-      // The entire near foreground and all other schools are unchanged.
-      const ridge=scene==="mountain-trail"&&band===1&&school!=="fuchun"
+      // The near-foreground experiment is opt-in; ordinary production
+      // keeps the complete historical output until the art gate passes.
+      const ridge=scene==="mountain-trail"&&band===2&&
+        school==="fuchun"&&nearStudy
+        ?FUCHUN_TRAIL_NEAR_ROUNDED
+        :scene==="mountain-trail"&&band===1&&school!=="fuchun"
         ?MASTER_TRAIL_MIDDLE[school]
         :scene==="mountain-trail"&&band===0&&school==="fuchun"
           ?FUCHUN_TRAIL_FAR:baseRidge;
@@ -4786,7 +4809,8 @@ export function InkShanshuiStage({frame,controls={
         <g opacity={f(washOpacity)}>
           <Mountains scene={controls.scene} seed={seed} detail={controls.detail}
             mist={controls.mist} ink={controls.ink}
-            school={controls.inkSchool??"fuchun"} ids={ids}/>
+            school={controls.inkSchool??"fuchun"}
+            nearStudy={controls.fuchunNearShoulderStudy} ids={ids}/>
           <Clouds shift={at.cloudX}/>
           <Birds motion={at}/>
           {controls.scene==="mountain-trail"&&
