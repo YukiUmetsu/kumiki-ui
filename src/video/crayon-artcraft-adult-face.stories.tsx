@@ -488,7 +488,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
-  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess"].includes(midfaceForm)?
+  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar"].includes(midfaceForm)?
     crayonF1RegisterAnat1Face():null,[midfaceForm]);
   const lashRootAudit=useMemo(()=>lashFinish!=="sparse"&&eyeContact!=="baseline"
     ?auditCrayonF1LashRootContinuity(spec.elements):null,
@@ -658,7 +658,8 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-anat1-malar">CC0 ANAT1 3D camera-guided malar wax flow (V31 unapproved)</option>
            <option value="source-anat1-midface-bridge">CC0 ANAT1 continuous zygoma-to-alar wax planes (V32 unapproved)</option>
            <option value="source-anat1-nasal-volume">CC0 ANAT1 root-to-tip nasal bone and cartilage (V33 REJECTED)</option>
-           <option value="source-anat1-alar-recess">CC0 ANAT1 near/far natural nasal recess (V34 unapproved, based on V32)</option>
+           <option value="source-anat1-alar-recess">CC0 ANAT1 near/far nasal recess (V34 REJECTED)</option>
+           <option value="source-anat1-orbit-malar">CC0 ANAT1 orbital-to-malar tonal face mass (V35 !dev, from V32)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -707,6 +708,18 @@ export const Cc0NasalDepthAndOcclusion:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
+};
+export const Cc0Anat1OrbitMalarV35:Story={
+  name:"CC0 ANAT1 continuous orbital, cheek and bridge mass (!dev V35)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-orbit-malar" initialInspection="full"/>,
+};
+export const Cc0Anat1OrbitMalarNearV35:Story={
+  name:"CC0 ANAT1 original source value continuity at 3× (!dev V35)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-orbit-malar" initialInspection="face"/>,
 };
 export const Cc0Anat1AlarRecessV34:Story={
   name:"CC0 ANAT1 anatomically recessed near/far nasal cavities (!dev V34)",
