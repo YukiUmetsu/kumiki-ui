@@ -959,7 +959,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
-  it("constructs a real secondary Fuchun rock brow before the hero summit, not a triangle overlay",()=>{
+  it("holds a broad Fuchun rock bench instead of a pasted triangular secondary crest",()=>{
     const paint=(detail:number)=>renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
         inkSchool:"fuchun",seed:71,detail},
@@ -974,10 +974,12 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       .map(([,x,y])=>[Number(x),Number(y)]);
     const at=(x:number)=>points.reduce((nearest,p)=>
       Math.abs(p[0]-x)<Math.abs(nearest[0]-x)?p:nearest)[1];
-    // An attached 492px brow, lower 512px saddle and distinct higher
-    // 559px hero form three linked geological stations in the SAME ridge.
-    expect(at(492)+8).toBeLessThan(at(512));
-    expect(at(559)+35).toBeLessThan(at(492));
+    // A broad near-level 492–512px bench connects the gentle 474px
+    // shoulder to the 559px summit. The old 11px V notch produced a
+    // second pointed pyramid at 1.65x and is explicitly rejected.
+    expect(Math.abs(at(492)-at(512))).toBeLessThan(7);
+    expect(at(474)).toBeGreaterThan(at(492)+7);
+    expect(at(559)+55).toBeLessThan(at(492));
     expect(at(545)).toBeGreaterThan(at(559));
   });
 
