@@ -1,7 +1,7 @@
 # COSTUME1 — clothing and costume framework, found by tags
 
 **Registry item:** `costume` (needs `art-foundations`) · **Files:** `registry/costume/costume-*.ts(x)` ·
-**Storybook:** Video production → Art Foundations → Clothing and Costume (Sheet, Costume finder) · **Skill:**
+**Storybook:** Video production → Art Foundations → Clothing and Costume (Sheet, Costume finder, Drape and details) · **Skill:**
 [kumiki-costume](../../skills/kumiki-costume/SKILL.md) · **Research:**
 [costume framework, 2026-11-16](../research/costume-framework-2026-11-16.md)
 

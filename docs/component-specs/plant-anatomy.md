@@ -1,7 +1,7 @@
 # FLORA1 — plant anatomy framework for any art style
 
 **Registry item:** `plant-anatomy` (shared pieces in `art-foundations`) · **Files:** `registry/anatomy/plant-*.ts(x)` ·
-**Storybook:** Video production → Art Foundations → Plant Anatomy (Sheet, Seasons, Growth forms, In season) ·
+**Storybook:** Video production → Art Foundations → Plant Anatomy (Sheet, Seasons, Growth forms, In season, Crown and bark detail) ·
 **Skill:** [kumiki-plant-anatomy](../../skills/kumiki-plant-anatomy/SKILL.md) · **Research:**
 [plant anatomy framework, 2026-11-15](../research/plant-anatomy-framework-2026-11-15.md)
 
