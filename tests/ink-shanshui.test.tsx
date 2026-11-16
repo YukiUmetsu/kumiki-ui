@@ -959,6 +959,28 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("constructs a real secondary Fuchun rock brow before the hero summit, not a triangle overlay",()=>{
+    const paint=(detail:number)=>renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+        inkSchool:"fuchun",seed:71,detail},
+    }));
+    const ridge=(html:string)=>html.match(
+      /data-km-shanshui-ridge-contour="1" d="([^"]+)"/,
+    )?.[1];
+    const d=ridge(paint(1));
+    expect(d).toBeDefined();
+    expect(ridge(paint(0))).toBe(d);
+    const points=[...d!.matchAll(/[ML] (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)]
+      .map(([,x,y])=>[Number(x),Number(y)]);
+    const at=(x:number)=>points.reduce((nearest,p)=>
+      Math.abs(p[0]-x)<Math.abs(nearest[0]-x)?p:nearest)[1];
+    // An attached 492px brow, lower 512px saddle and distinct higher
+    // 559px hero form three linked geological stations in the SAME ridge.
+    expect(at(492)+8).toBeLessThan(at(512));
+    expect(at(559)+35).toBeLessThan(at(492));
+    expect(at(545)).toBeGreaterThan(at(559));
+  });
+
   it("groups Fuchun 78 child fibres across all five live banks with an unpainted middle reserve",()=>{
     const paint=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{
