@@ -221,7 +221,7 @@ export function newHeadCranialTonalVolume(
       const ux=Math.cos(angle),uy=Math.sin(angle);
       const orthoX=-uy,orthoY=ux;
       const span=(3.0+3.9*pencilHash(seed,key,406))*
-        (.58+.42*edge)*(pass===2?.78:1);
+        (.58+.42*edge)*(.77+.23*pressure)*(pass===2?.78:1);
       const deflect=(pencilHash(seed,key,407)-.5)*.54;
       strokes[band][pass].push(line(
         [x-ux*span*.51,y-uy*span*.51],
