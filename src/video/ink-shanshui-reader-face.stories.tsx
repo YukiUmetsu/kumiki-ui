@@ -4,6 +4,10 @@ import type {Meta,StoryObj} from "@storybook/react-vite";
 import {shanshuiBodyFit} from "./ink-shanshui-full-body";
 import {shanshuiFaceAssets} from "./ink-shanshui-face-plates";
 import {READER_FACE_LANDMARKS} from "./ink-shanshui-reader-face";
+import {inkReaderExpressionStudy,READER_INK_EMOTIONS} from
+  "./ink-shanshui-reader-expression";
+import type {ReaderInkEmotion,ReaderInkLids,ReaderInkMouth,
+  ReaderInkExpressionStudy} from "./ink-shanshui-reader-expression";
 import {readerFaceAnatomy,READER_FACE_ANAT1_POINTS} from
   "./ink-shanshui-reader-anatomy";
 import type {CharacterPathShape} from "../../registry/character/definition";
@@ -514,12 +518,192 @@ function ThreeFacesArtCraft(){
   </main>;
 }
 
+/**
+ * The SOURCE READER, not a decorative face chart: five deterministic
+ * EXPR1 action-unit stops retain the existing ANAT1/source-fitted face
+ * and all original per-path brow fibre detail. Three-quarter foreshortening,
+ * mouth visemes, ear overlap and the head rig remain in the production art.
+ */
+function ReaderExpressionLab(){
+  const [emotion,setEmotion]=useState<ReaderInkEmotion>("smile");
+  const [intensity,setIntensity]=useState(.75);
+  const [detail,setDetail]=useState(1);
+  const [lidOverride,setLidOverride]=useState<ReaderInkLids|"auto">("auto");
+  const [mouthOverride,setMouthOverride]=useState<ReaderInkMouth|"auto">("auto");
+  const fit=shanshuiBodyFit("river-scholar");
+  const pose=(offset:{x?:number;y?:number;rotation?:number;
+    scaleX?:number;scaleY?:number},pivot:[number,number])=>
+    "translate("+(offset.x??0)+" "+(offset.y??0)+") "+
+    "translate("+pivot.join(" ")+") rotate("+(offset.rotation??0)+") "+
+    "scale("+(offset.scaleX??1)+" "+(offset.scaleY??1)+") "+
+    "translate("+(-pivot[0])+" "+(-pivot[1])+")";
+  const faceCamera=()=>{
+    const angle=(fit.headRest.rotation??0)*Math.PI/180;
+    const cs=Math.cos(angle),sn=Math.sin(angle);
+    const sx=fit.headRest.scaleX??1,sy=fit.headRest.scaleY??1;
+    const project=(x:number,y:number)=>{
+      const dx=(x-139)*sx,dy=(y-124)*sy;
+      return [139+(fit.headRest.x??0)+cs*dx-sn*dy,
+        124+(fit.headRest.y??0)+sn*dx+cs*dy];
+    };
+    const pts=[project(108,87),project(169,87),
+      project(108,143),project(169,143)];
+    const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+    const x=Math.min(...xs)-3.5,y=Math.min(...ys)-4;
+    return [x,y,Math.max(...xs)-Math.min(...xs)+7,
+      Math.max(...ys)-Math.min(...ys)+8]
+      .map(v=>Number(v.toFixed(3))).join(" ");
+  };
+  const main=inkReaderExpressionStudy(emotion,intensity,detail);
+  const brush=(study:ReaderInkExpressionStudy,eyes:ReaderInkLids,
+    mouth:ReaderInkMouth)=>{
+    const shapes=(name:string)=>{
+      const asset=study.assets[name];
+      return asset?.kind==="shapes"?asset.shapes.map((shape,i)=>
+        shape.type==="path"?<path key={name+i} d={shape.d}
+          fill={colour(shape.fill)} stroke={colour(shape.stroke)}
+          strokeWidth={shape.strokeWidth??1} opacity={shape.opacity??1}
+          strokeLinecap="round" strokeLinejoin="round"/>:null):null;
+    };
+    const part=(key:string,pivot:[number,number],asset=key)=>
+      <g data-km-ink-expression-part={key}
+        transform={pose(fit.facialRest[key as keyof typeof fit.facialRest],pivot)}>
+        {shapes(asset)}
+      </g>;
+    return <g data-km-ink-expression-paint=""
+      transform={pose(fit.headRest,[139,124])}>
+      <g data-km-ink-expression-part="face">{shapes("face")}</g>
+      {part("hair",[140,74])}
+      <g data-km-ink-expression-part="reader-ear">{shapes("reader-ear")}</g>
+      {part("brows",[140,94],"brow")}
+      {part("eyes",[140,102],"eyes-"+eyes)}
+      {eyes!=="closed"&&<>
+        {part("pupil-left",[128,102])}
+        {part("pupil-right",[156,102])}
+      </>}
+      {part("mouth",[142,124],"mouth-"+mouth)}
+    </g>;
+  };
+  const eyes=lidOverride==="auto"?main.lids:lidOverride;
+  const mouth=mouthOverride==="auto"?main.mouth:mouthOverride;
+  return <main data-testid="shanshui-expr1-reader-studio"
+    style={{background:"#f0e6d4",minHeight:"100vh",padding:24,
+      color:"#403328",font:"14px/1.6 system-ui"}}>
+    <h1 style={{font:"400 31px Georgia,serif",margin:"0 0 9px"}}>
+      Young reader · EXPR1 facial expression atelier
+    </h1>
+    <p style={{maxWidth:840,margin:"0 0 18px"}}>
+      EXPR1 FACS muscle action units deform the existing ANAT1 reader's
+      individual eyebrow fibres and add restrained facial creases. The
+      actual fitted face, ear, crown, irises and five speaking cels remain
+      editable. This is a reference-guided art study, not an approved
+      historical-portrait likeness.
+    </p>
+    <div style={{display:"flex",gap:16,flexWrap:"wrap",alignItems:"end",
+      marginBottom:22}}>
+      <label style={{display:"grid",gap:5}}>EXPR1 emotion
+        <select aria-label="EXPR1 emotion" value={emotion}
+          onChange={e=>setEmotion(e.target.value as ReaderInkEmotion)}>
+          {READER_INK_EMOTIONS.map(id=><option key={id} value={id}>{id}</option>)}
+        </select>
+      </label>
+      <label style={{display:"grid",gap:5}}>
+        EXPR1 intensity {Math.round(intensity*100)}%
+        <input aria-label="EXPR1 intensity" type="range" min="0" max="1"
+          step=".05" value={intensity}
+          onChange={e=>setIntensity(Number(e.target.value))}/>
+      </label>
+      <label style={{display:"grid",gap:5}}>Ink detail {Math.round(detail*100)}%
+        <input aria-label="EXPR1 ink detail" type="range" min="0" max="1"
+          step=".05" value={detail}
+          onChange={e=>setDetail(Number(e.target.value))}/>
+      </label>
+      <label style={{display:"grid",gap:5}}>Eyelid override
+        <select aria-label="EXPR1 eyelids" value={lidOverride}
+          onChange={e=>setLidOverride(e.target.value as ReaderInkLids|"auto")}>
+          {(["auto","open","soft","closed"] as const).map(id=>
+            <option key={id} value={id}>{id}</option>)}
+        </select>
+      </label>
+      <label style={{display:"grid",gap:5}}>Viseme override
+        <select aria-label="EXPR1 viseme" value={mouthOverride}
+          onChange={e=>setMouthOverride(e.target.value as ReaderInkMouth|"auto")}>
+          {(["auto","rest","aa","oh","mm","smile"] as const).map(id=>
+            <option key={id} value={id}>{id}</option>)}
+        </select>
+      </label>
+    </div>
+    <div style={{display:"grid",gap:18,
+      gridTemplateColumns:"repeat(auto-fit,minmax(275px,1fr))",maxWidth:1050}}>
+      <section>
+        <h2 style={{font:"500 19px Georgia,serif"}}>Production head · full silhouette</h2>
+        <svg data-testid="reader-expr1-full" role="img"
+          aria-label="Full original source-fitted reader with EXPR1 expression"
+          viewBox="96 26 91 125"
+          style={{width:"100%",height:400,background:"#f7eedc"}}>
+          {brush(main,eyes,mouth)}
+        </svg>
+      </section>
+      <section>
+        <h2 style={{font:"500 19px Georgia,serif"}}>ANAT1 eye / mouth microcamera</h2>
+        <svg data-testid="reader-expr1-micro" role="img"
+          aria-label="EXPR1 muscle expression near-eye, brow, nose, cheek and mouth"
+          viewBox={faceCamera()}
+          style={{width:"100%",height:400,background:"#f7eedc"}}>
+          {brush(main,eyes,mouth)}
+        </svg>
+      </section>
+    </div>
+    <h2 style={{font:"500 21px Georgia,serif",marginTop:24}}>
+      Action-unit motion keyframes · same face and lighting
+    </h2>
+    <div data-testid="reader-expr1-frames"
+      style={{display:"grid",gridTemplateColumns:
+        "repeat(auto-fit,minmax(145px,1fr))",gap:10,maxWidth:1050}}>
+      {[0,.25,.5,.75,1].map(weight=>{
+        const frame=inkReaderExpressionStudy(emotion,weight,detail);
+        return <figure key={weight} style={{margin:0}}>
+          <svg data-km-ink-expression-frame={weight} role="img"
+            aria-label={"Original reader emotion "+emotion+" at "+weight*100+" percent"}
+            viewBox={faceCamera()}
+            style={{width:"100%",height:205,background:"#f7eedc"}}>
+            {brush(frame,lidOverride==="auto"?frame.lids:lidOverride,
+              mouthOverride==="auto"?frame.mouth:mouthOverride)}
+          </svg>
+          <figcaption style={{fontSize:12}}>
+            {Math.round(weight*100)}% · {emotion}
+          </figcaption>
+        </figure>;
+      })}
+    </div>
+    <output data-testid="reader-expr1-diagnostics" style={{display:"block",
+      maxWidth:1050,fontSize:12,marginTop:16}}>
+      EXPR1 · brow inner {main.features.browInner.toFixed(3)} eye-widths;
+      brow outer {main.features.browOuter.toFixed(3)};
+      lid opening {main.features.eyeOpen.toFixed(2)}×;
+      cheek raise {main.features.cheekRaise.toFixed(3)};
+      lip corner {main.features.mouthCorner.toFixed(3)};
+      selected {eyes} lids / {mouth} viseme.
+      Active crease regions: {main.activeCreases.join(", ")||"none"}.
+    </output>
+    <p style={{maxWidth:1050,fontSize:12,color:"#756149"}}>
+      Three-quarter perspective and ink-flow strokes are drawn in the source
+      head coordinate system, not a mirrored front-face mask. Review the
+      unscaled 960×540 film separately before visual sign-off.
+    </p>
+  </main>;
+}
+
 const meta={title:"Video production/Film Looks/Chinese Ink/Shanshui Reader Face Studio",
   id:"video-ink-reader-face",component:ReaderFaceStudio,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof ReaderFaceStudio>;
 export default meta;
 export const ThreeQuarterFaceStudy:StoryObj<typeof meta>={
   name:"Reader face · anatomy and eyelid/viseme study",
+};
+export const ReaderExpressionArtCraft:StoryObj<typeof meta>={
+  name:"EXPR1 expression atelier · source-fitted FACS keyframes",
+  render:()=> <ReaderExpressionLab/>,
 };
 export const ThreeFacesComparison:StoryObj<typeof meta>={
   name:"Three figure faces · ArtCraft comparison",
