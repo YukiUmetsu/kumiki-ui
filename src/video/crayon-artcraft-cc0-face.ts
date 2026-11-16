@@ -8,6 +8,7 @@ import {crayonF1ReconstructEyes,crayonF1SourceValueEyes}
 import {crayonF1SculptTarsal}
   from "./crayon-artcraft-f1-tarsal-sculpt";
 import {crayonF1ReconstructMidface} from "./crayon-artcraft-f1-midface-geometry";
+import {crayonF1ConnectAlarUndercuts} from "./crayon-artcraft-f1-alar-continuity";
 import {crayonF1ReconstructBrows} from "./crayon-artcraft-f1-brow-geometry";
 import {crayonF1ReconstructJawNeck} from "./crayon-artcraft-f1-jaw-neck-geometry";
 import {crayonF1AddRootedLashes,type CrayonF1LashFinish}
@@ -44,7 +45,7 @@ export type Cc0FaceView="wax"|"anatomy";
 /** Source-registered ocular pigment experiment; baseline is an unchanged negative control. */
 export type Cc0EyeContact="baseline"|"source-shade"|"source-value"|"source-sculpt";
 export type Cc0BrowForm="baseline"|"source-rooted";
-export type Cc0MidfaceForm="baseline"|"source-volume";
+export type Cc0MidfaceForm="baseline"|"source-volume"|"source-alar";
 export type Cc0JawNeckForm="baseline"|"source-contour";
 export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact;midfaceForm?:Cc0MidfaceForm;browForm?:Cc0BrowForm;jawNeckForm?:Cc0JawNeckForm;lashFinish?:CrayonF1LashFinish}
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
@@ -124,7 +125,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     !["wax","anatomy"].includes(view)||
     !["line","dry-wax"].includes(fiberMaterial)||
     !["baseline","source-shade","source-value","source-sculpt"].includes(eyeContact)||
-    !["baseline","source-volume"].includes(midfaceForm)||
+    !["baseline","source-volume","source-alar"].includes(midfaceForm)||
     !["baseline","source-contour"].includes(jawNeckForm)||
     !["baseline","source-rooted"].includes(browForm)||
     !["sparse","rooted","rooted-flow"].includes(lashFinish))
@@ -1177,10 +1178,12 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
   // lash density. Rooted dense fibers are never silently promoted.
   const lashed=eyeContact!=="baseline"?
     crayonF1AddRootedLashes(brow,lashFinish):brow;
-  const studied=midfaceForm==="source-volume"?
+  const studied=midfaceForm!=="baseline"?
     crayonF1ReconstructMidface(lashed):lashed;
+  const alar=midfaceForm==="source-alar"?
+    crayonF1ConnectAlarUndercuts(studied):studied;
   const constructed=jawNeckForm==="source-contour"?
-    crayonF1ReconstructJawNeck(studied):studied;
+    crayonF1ReconstructJawNeck(alar):alar;
   return {version:1,id:"crayon-artcraft-cc0-portrait-"+view,
     width:608,height:1082,durationFrames:300,seed:441501,
     paper:C.paper,paperTooth:.79,
