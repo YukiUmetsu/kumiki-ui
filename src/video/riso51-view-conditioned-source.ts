@@ -25,7 +25,7 @@ export const RISO51_VIEW_CONTRACT={
   inking:"original RED palm/finger bones with matching BLUE MCP support, no alpha blend",
   genuineSourceViewFrames:[0,146,160,180,205,239] as const,
   contactDepth:{courier:1,"paper-artist":1} as const,
-  affectedOriginalPartsPerActor:9,
+  affectedOriginalPartsPerActor:8,
 } as const;
 
 const clamp=(v:number)=>Math.max(0,Math.min(1,v));
