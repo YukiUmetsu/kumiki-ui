@@ -6,6 +6,8 @@ import {shanshuiFaceAssets} from "./ink-shanshui-face-plates";
 import {READER_FACE_LANDMARKS} from "./ink-shanshui-reader-face";
 import {inkReaderExpressionStudy,READER_INK_EMOTIONS} from
   "./ink-shanshui-reader-expression";
+import {inkReaderCueFrame,readerInkCueWeight,READER_INK_CUE} from
+  "./ink-shanshui-expression-cue";
 import type {ReaderInkEmotion,ReaderInkLids,ReaderInkMouth,
   ReaderInkExpressionStudy} from "./ink-shanshui-reader-expression";
 import {readerFaceAnatomy,READER_FACE_ANAT1_POINTS} from
@@ -530,6 +532,26 @@ function ReaderExpressionLab(){
   const [detail,setDetail]=useState(1);
   const [lidOverride,setLidOverride]=useState<ReaderInkLids|"auto">("auto");
   const [mouthOverride,setMouthOverride]=useState<ReaderInkMouth|"auto">("auto");
+  const [cueFrame,setCueFrame]=useState(24);
+  const [playing,setPlaying]=useState(false);
+  const [reduceMotion,setReduceMotion]=useState(false);
+  useEffect(()=>{
+    const media=window.matchMedia("(prefers-reduced-motion: reduce)");
+    const changed=(event:MediaQueryListEvent)=>{
+      setReduceMotion(event.matches);
+      if(event.matches)setPlaying(false);
+    };
+    setReduceMotion(media.matches);
+    media.addEventListener("change",changed);
+    return ()=>media.removeEventListener("change",changed);
+  },[]);
+  useEffect(()=>{
+    if(!playing||reduceMotion)return;
+    const clock=window.setInterval(()=>setCueFrame(previous=>
+      previous>=READER_INK_CUE.frames?0:previous+1),
+    1000/READER_INK_CUE.fps);
+    return ()=>window.clearInterval(clock);
+  },[playing,reduceMotion]);
   const fit=shanshuiBodyFit("river-scholar");
   const pose=(offset:{x?:number;y?:number;rotation?:number;
     scaleX?:number;scaleY?:number},pivot:[number,number])=>
@@ -554,7 +576,8 @@ function ReaderExpressionLab(){
       Math.max(...ys)-Math.min(...ys)+8]
       .map(v=>Number(v.toFixed(3))).join(" ");
   };
-  const main=inkReaderExpressionStudy(emotion,intensity,detail);
+  const cueWeight=readerInkCueWeight(cueFrame);
+  const main=inkReaderCueFrame(emotion,intensity,cueFrame,detail);
   const brush=(study:ReaderInkExpressionStudy,eyes:ReaderInkLids,
     mouth:ReaderInkMouth)=>{
     const shapes=(name:string)=>{
@@ -613,6 +636,21 @@ function ReaderExpressionLab(){
           step=".05" value={intensity}
           onChange={e=>setIntensity(Number(e.target.value))}/>
       </label>
+      <label style={{display:"grid",gap:5}}>
+        EXPR1 motion frame {cueFrame}/{READER_INK_CUE.frames}
+        <input aria-label="EXPR1 motion frame" type="range"
+          min="0" max={READER_INK_CUE.frames} step="1" value={cueFrame}
+          onChange={e=>{setCueFrame(Number(e.target.value));setPlaying(false);}}/>
+      </label>
+      <button type="button" disabled={reduceMotion}
+        aria-label={playing?"Pause EXPR1 cue":"Play EXPR1 cue"}
+        aria-pressed={playing}
+        onClick={()=>setPlaying(was=>!was)}>
+        {playing?"Pause cue":"Play cue"}
+      </button>
+      <button type="button" onClick={()=>{setPlaying(false);setCueFrame(0);}}>
+        Reset cue
+      </button>
       <label style={{display:"grid",gap:5}}>Ink detail {Math.round(detail*100)}%
         <input aria-label="EXPR1 ink detail" type="range" min="0" max="1"
           step=".05" value={detail}
@@ -676,6 +714,30 @@ function ReaderExpressionLab(){
         </figure>;
       })}
     </div>
+    <h2 style={{font:"500 21px Georgia,serif",marginTop:24}}>
+      Film-time facial transition · 24 fps / four seconds
+    </h2>
+    <div data-testid="reader-expr1-cue-frames"
+      style={{display:"grid",gridTemplateColumns:
+        "repeat(auto-fit,minmax(125px,1fr))",gap:10,maxWidth:1050}}>
+      {[0,6,12,60,72,84,96].map(frame=>{
+        const sampled=inkReaderCueFrame(emotion,intensity,frame,detail);
+        return <figure key={frame} style={{margin:0}}>
+          <svg data-km-ink-cue-frame={frame} role="img"
+            aria-label={"EXPR1 film cue frame "+frame+" "+emotion}
+            viewBox={faceCamera()}
+            style={{width:"100%",height:165,background:"#f7eedc"}}>
+            {brush(sampled,lidOverride==="auto"?sampled.lids:lidOverride,
+              mouthOverride==="auto"?sampled.mouth:mouthOverride)}
+          </svg>
+          <figcaption style={{fontSize:12}}>Frame {frame} · {
+            Math.round(readerInkCueWeight(frame)*100)}%</figcaption>
+        </figure>;
+      })}
+    </div>
+    {reduceMotion&&<p style={{fontSize:12}}>
+      Reduced motion is enabled. Manual frame scrubbing remains available.
+    </p>}
     <output data-testid="reader-expr1-diagnostics" style={{display:"block",
       maxWidth:1050,fontSize:12,marginTop:16}}>
       EXPR1 · brow inner {main.features.browInner.toFixed(3)} eye-widths;
@@ -685,11 +747,13 @@ function ReaderExpressionLab(){
       lip corner {main.features.mouthCorner.toFixed(3)};
       selected {eyes} lids / {mouth} viseme.
       Active crease regions: {main.activeCreases.join(", ")||"none"}.
+      Cue frame {cueFrame} · {Math.round(cueWeight*100)}% eased activation.
     </output>
     <p style={{maxWidth:1050,fontSize:12,color:"#756149"}}>
       Three-quarter perspective and ink-flow strokes are drawn in the source
-      head coordinate system, not a mirrored front-face mask. Review the
-      unscaled 960×540 film separately before visual sign-off.
+      head coordinate system, not a mirrored front-face mask. Cue motion
+      is opt-in to this Storybook study and does not overwrite the original
+      film expression track. Review native 960×540 playback before sign-off.
     </p>
   </main>;
 }
