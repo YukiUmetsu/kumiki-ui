@@ -3,6 +3,7 @@ import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import {HAND_POSES} from "../../registry/anatomy/anatomy-pose";
 import {SURFACE_FORMS,ANSUR} from "../../registry/anatomy/anatomy-reference";
 import {RISO31_GEOMETRY} from "./riso31-finger-phalanges";
+import {refineRiso37SourceEngraving,riso37ProximalPressureStrands} from "./riso37-anatomical-engraving";
 
 /**
  * RISO30 | ArtCraft + ANAT1.
@@ -167,7 +168,12 @@ M${Number((-width*.78).toFixed(2))} .65 Q.05 .38 ${Number((width*.70).toFixed(2)
       ?"M-1.3 -1.2 Q-.6 -1.55 .4 -.9 L.2 -.62 Q-.45 -1.18 -1.27 -.78 Z"
       :"M1.3 -1.18 Q.45 -1.56 -.45 -.94 L-.3 -.62 Q.5 -1.1 1.3 -.77 Z"),
     paint:"screen" as const,screenTone:"light" as const};
-  return [...adjusted,...distalInk,thumbIpInk];
+  // RISO37 ArtCraft: re-engrave the ORIGINAL joint-local cobalt master, not
+  // a viewport overlay. Preserve all existing named paths, transform links,
+  // source chronology and physical two-ink coverage; add source-born tendons.
+  const refinements=[...adjusted,...distalInk,thumbIpInk].map(part=>
+    refineRiso37SourceEngraving(part,actor,side));
+  return [...refinements,...riso37ProximalPressureStrands(actor,side)];
 };
 
 /** Source-only new art; never mutates or rewrites original expression keys. */
