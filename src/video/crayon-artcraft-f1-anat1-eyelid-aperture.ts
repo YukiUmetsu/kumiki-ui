@@ -39,7 +39,7 @@ export const CRAYON_F1_V36_SOURCE=Object.freeze({
   lidMargin:{at:[259,571] as const,source:[108,64,60] as const,v35:[181,155,146] as const},
 });
 export const CRAYON_F1_V36_IDS=[
-  "sclera-near","iris-near","pupil-near","upper-lid-near",
+  "sclera-near","sclera-inner-contact-near","iris-near","pupil-near","upper-lid-near",
   "lash-root-near","lower-lid-near","lower-lid-margin-near",
   "upper-lid-crease-near",
 ] as const;
@@ -81,7 +81,7 @@ const make=(original:readonly XY[],angle:number,pad=8):Shape=>{
   return {d,bounds,angle};
 };
 /**
- * 8 original wax forms share 2 actual canthi and photographic limbus.
+ * 9 original wax forms share 2 actual canthi and photographic limbus.
  * The iris pupil is partially occluded by the upper skin, and left
  * exposed sclera lies INSIDE the near dark lid/sclera intersection.
  * Non-eye regions (forehead, nose, ear, jaw, hair) remain exactly V35.
@@ -95,6 +95,16 @@ export function crayonF1Anat1NearEyePaths():Readonly<Record<Id,Shape>>{
       xy(303,558),xy(285,563),xy(266,566),
       xy(246,570),xy(228,568),xy(216,558),
     ],-9,8),
+    // Actual source inner sclera (x290,y546) is moist/light, but its
+    // medial corner past x305 is cast-shadowed. Split the wet reflection
+    // from the dark corneal base instead of whitening the entire almond.
+    "sclera-inner-contact-near":make([
+      xy(281,544),
+      xy(285,540),xy(293,539),xy(300,543),
+      xy(302,547),xy(298,552),xy(294,555),
+      xy(288,558),xy(282,556),xy(281,549),
+      xy(280,547),xy(280,545),xy(281,544),
+    ],17,5),
     "iris-near":make([
       xy(240,543),
       xy(244,535),xy(253,532),xy(264,533),
@@ -162,6 +172,12 @@ const wax:Readonly<Record<Id,Partial<Wax>>>={
     underpaintTooth:.16,opaqueBurnish:.63,
     pressure:.96,spacing:4.8,markStrength:.35,outlineOpacity:0,
   },
+  "sclera-inner-contact-near":{
+    colors:["#beb0ad","#857b7e","#d8cccb"],
+    coverage:"open",deposition:"stroke-built",nibStyle:"dry",
+    featherContacts:true,blendRadius:4.5,
+    pressure:.70,spacing:5.3,markStrength:.26,outlineOpacity:0,
+  },
   "iris-near":{
     colors:["#32241f","#110d0f","#5b3d2d"],
     coverage:"opaque",deposition:"stroke-built",nibStyle:"dry",
@@ -226,7 +242,7 @@ export function crayonF1BuildAnat1NearEyeAperture(
     if(found.has(el.id)||el.kind!=="wax")
       throw new RangeError("Invalid photographic ANAT1 eye wax "+el.id);
     const id=el.id as Id;
-    const parent=id==="iris-near"?"sclera-near":
+    const parent=id==="iris-near"||id==="sclera-inner-contact-near"?"sclera-near":
       id==="pupil-near"?"iris-near":"face-outline";
     if(el.parentId!==parent||el.clipToParent!==true)
       throw new RangeError("Detached ANAT1 eye skin/cornea: "+id);
