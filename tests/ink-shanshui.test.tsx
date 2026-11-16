@@ -1031,6 +1031,36 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect((d!.match(/L /g)??[])).toHaveLength(218);
     }
     expect(ridge(paint(71,1))).not.toEqual(ridge(paint(87,1)));
+    // The old distant pale mountain retained a tall 581px pyramid
+    // after the closer geology was fixed. Only the Fuchun far band now
+    // shares a gentler two-station crown; do not rewrite the other
+    // three schools' historically separate far/middle ridge grammars.
+    const far=(html:string)=>html.match(
+      /data-km-shanshui-ridge-contour="0" d="([^"]+)"/,
+    )?.[1];
+    const fuchunFar=far(paint(71,1));
+    const guoFar=far(renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+        inkSchool:"early-spring",seed:71,detail:1},
+    })));
+    expect(fuchunFar).toBeDefined();
+    expect(guoFar).toBeDefined();
+    const stationY=(d:string,x:number)=>{
+      const coords=[...d.matchAll(
+        /[ML] (-?\\d+(?:\\.\\d+)?) (-?\\d+(?:\\.\\d+)?)/g,
+      )].map(m=>[Number(m[1]),Number(m[2])]);
+      const nearest=coords.reduce((best,p)=>
+        Math.abs(p[0]-x)<Math.abs(best[0]-x)?p:best);
+      expect(nearest[0]).toBeCloseTo(x,3);
+      return nearest[1];
+    };
+    expect(stationY(fuchunFar!,581)).toBe(123);
+    expect(stationY(fuchunFar!,624)).toBe(122);
+    expect(stationY(guoFar!,581)).toBe(103);
+    expect(stationY(guoFar!,624)).toBe(117);
+    // 12 original far parent nodes, 11×9 natural sub-stations
+    // and both contour closure edges all remain, never simplified.
+    expect((fuchunFar!.match(/L /g)??[])).toHaveLength(101);
   });
 
   it("builds broad connected Fuchun rock brows rather than tall wet-wash curtains",()=>{
