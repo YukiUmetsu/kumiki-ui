@@ -1747,6 +1747,14 @@ test("Fuchun two-load pine crown QA isolates original contours without deleting 
   const crowns=school.locator("[data-km-cliff-pine-ink-canopy]");
   const joins=school.locator("[data-km-cliff-pine-connected-canopy]");
   const needles=school.locator("[data-km-cliff-pine-needle]");
+  const bristles=school.locator("[data-km-cliff-pine-fringe]");
+  await expect(bristles).toHaveCount(280);
+  const attachments=await bristles.evaluateAll(nodes=>nodes.map(path=>({
+    root:path.getAttribute("data-km-cliff-pine-fringe-root"),
+    d:path.getAttribute("d")??"",
+  })));
+  expect(attachments.every(({root,d})=>d.startsWith("M"+
+    (root??"").replace(","," ")))).toBe(true);
   await expect(crowns).toHaveCount(40);
   await expect(joins).toHaveCount(20);
   await expect(needles).toHaveCount(310);
@@ -1760,12 +1768,18 @@ test("Fuchun two-load pine crown QA isolates original contours without deleting 
     .toEqual(Array(20).fill("visible"));
   expect(await needles.evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).visibility)))
     .toEqual(Array(310).fill("hidden"));
+  expect(await bristles.evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).visibility)))
+    .toEqual(Array(280).fill("hidden"));
   await school.screenshot({animations:"disabled",
     path:info.outputPath("fuchun-dual-load-crown-silhouettes.png")});
   await lab.getByRole("button",{name:"Pine crowns · source anatomy"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine");
   expect(await needles.evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).visibility)))
     .toEqual(Array(310).fill("visible"));
+  expect(await bristles.evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).visibility)))
+    .toEqual(Array(280).fill("visible"));
+  await school.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-pine-crown-fringe-pressure-2.8x.png")});
   expect(await crowns.evaluateAll(nodes=>nodes.map(n=>n.getAttribute("d"))))
     .toEqual(original);
   await lab.getByRole("button",{name:"Reset all four studies"}).click();

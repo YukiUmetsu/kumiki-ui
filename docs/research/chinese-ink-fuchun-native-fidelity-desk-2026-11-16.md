@@ -93,3 +93,18 @@ At **commit \`865c22fe\`**, [full Chinese Ink film QA run 43977539180](https://g
 **Follow-up refinement:** The opt-in 19-point source ridge now uses *spatially coherent* seeded capillary edge disturbances instead of nine independently noisy offsets per author segment. It retains every author station, all nine sub-stations per span, detailed dry fracturing, original coarse Catmull–Rom hills and the exact same source for all dependent rock, foliage and brush positions. The new disturbance is multiplied by a \`sin²(πt)\` envelope so each segment approaches both original source nodes with a continuous tangent; two harmonics plus smaller seeded per-station dry vibration avoid uniform vector smoothness. This applies **only** to \`fuchunNearShoulderStudy=true\` in the \`mountain-trail\` near band. The original film, other masters, and far/middle bands remain unchanged.
 
 **Quality gate remains ART HOLD:** verify the new 2.3× contour in a post-change native screenshot before considering any promotion, and continue sculpting the lower bank's positive form rather than merely increasing decorative hanging strokes.
+
+
+## Fuchun pine crown fibre fringe · source-rooted brush microtopology
+
+**Reference:** Huang Gongwang's *Dwelling in the Fuchun Mountains*, particularly the National Palace Museum [tree-and-fisherman shoreline detail](https://smarthistory.org/wp-content/uploads/2023/06/National-Palace_lrg-det-3.jpeg), and the [museum's technical record](https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975). The original handscroll juxtaposes flat but serrated dark pine crowns, open paper, twisted trunk branches and tiny unequal brush deposits. No image is traced, embedded or sampled.
+
+### Deconstruction and integration
+- **Continuity:** Every fine plume must emerge from an *existing source-authored upper fan lobe*. A drawn path begins exactly at that lobe's world-space coordinate; no detached procedural dots or generic leaf sprite.
+- **Flow:** Six distinct fine-nib inclinations mix near-horizontal, oblique-upward and occasional falling strokes; seeded parent variation avoids a ruler-straight comb.
+- **Edge:** Slightly unequal 0.21–0.62 pressure loads are painted as the project's existing 14-knot, two-edge ink-loaded ribbon, with wet, middle and dry pigment classes. The existing 6–8-lobe positive canopy, two white reserves and connected branch-bridge **remain untouched**.
+- **Layering:** Retain all 40 fan islands, 20 connected bridges, 60 loaded pads, 119 wet deposits and 310 original branch needles; add exactly one finer hairline per fan lobe, drawn above the dark edge. Only the Fuchun grove receives this technique. Other masters do not change.
+- **Study controls:** In the established Four Masters source-ink Storybook, *Pine crowns · source anatomy* shows the new fibres, *Pine dual-load crown silhouettes* hides superficial bristles so the original two-load connected positive masses remain independently inspectable, and reset restores full pigment detail.
+- **Tests:** Pure deterministic seed and source-tip validation, SVG attachment and original inventories, negative controls for other schools / low-detail, Chromium mode visibility and captured native source zoom.
+
+**Art sign-off pending:** Inspect generated 960×540 + 2.8× crop. The new fine fringes must soften previous dark clumps without becoming sunburst spikes, hatching rollers, or a repeated cloud decoration. Visual success cannot be inferred from path counts.

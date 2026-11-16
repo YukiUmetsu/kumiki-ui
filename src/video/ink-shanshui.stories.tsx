@@ -667,7 +667,9 @@ function MasterInkSourceComparison(){
       [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
       [data-km-cliff-pine-pad],
       [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
-      [data-km-cliff-pine-needle] { visibility:hidden; }
+      [data-km-cliff-pine-needle],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-fringe] { visibility:hidden; }
       /* An anatomical Storybook diagnostic only. No paths are removed:
          hide superficial pine brush islands to inspect the actual
          source-connected loaded armature (trunk, roots and 20 arms). */

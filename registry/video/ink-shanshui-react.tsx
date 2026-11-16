@@ -2,6 +2,7 @@ import {useId,useMemo} from "react";
 import type {ReactNode} from "react";
 import {assertShanshuiControls,shanshuiAt,shanshuiHash} from "./ink-shanshui";
 import type {ShanshuiControls,ShanshuiScene,ShanshuiMotion,InkRockSchool} from "./ink-shanshui";
+import {fuchunPineFibreFringe} from "./ink-shanshui-pine-fringe";
 
 /**
  * A procedural painter, NOT a flat bitmap disguised as a movie.
@@ -3276,12 +3277,24 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
                 " Q"+f(belly[0])+" "+f(belly[1])+
                 " "+f(a[0])+" "+f(a[1])+" Z";
             }).join(" "):"";
+          // Independent source-edge bristles resolve the formerly soft,
+          // cartoon-like SVG canopy silhouette. Each needle grows from
+          // one REAL upper crown lobe, with nonparallel, mixed-value
+          // calligraphic flicks. Preserve all 310 parent bough needles.
+          const fringe=school==="fuchun"
+            ?fuchunPineFibreFringe(peaks,sweep,
+              seed+10013+i*173+j*79+k*37).map((fibre,n)=>({
+                ...fibre,
+                d:rockLoadedRibbon(fibre.root,fibre.control,fibre.tip,
+                  fibre.width,seed+10201+i*173+j*53+k*17+n*29),
+              }))
+            :[];
           const ridge=rockLoadedRibbon(r,
             [r[0]+sweep*reach*.41,r[1]-crest*.42],
             [fanTip[0]-sweep*reach*.12,fanTip[1]+crest*.18],
             k===0?.88:.71,seed+1973+i*97+j*31+k*17);
           return {r,d:paperChannels?d+" "+paperChannels:d,
-            ridge,lobes:lobeCount,paperChannels:paperChannels?2:0,
+            ridge,fringe,lobes:lobeCount,paperChannels:paperChannels?2:0,
             // Feed the identical two original local paper channels into
             // the underlying connected wet bridge; without this, that
             // later positive ink fills the foreground island's holes.
@@ -3516,7 +3529,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
               data-km-cliff-pine-graft-hand={hand}
               d={body} fill={k===1?"#5a4d3d":"#352f28"}
               opacity={f((k===1?.55:.73)*shade)}/>)}
-            {inkIslands.map(({r,d,ridge,lobes,paperChannels},k)=><g key={"island"+k}
+            {inkIslands.map(({r,d,ridge,fringe,lobes,paperChannels},k)=><g key={"island"+k}
               data-km-cliff-pine-ink-island=""
               data-km-cliff-pine-ink-island-root={f(r[0])+","+f(r[1])}
               data-km-cliff-pine-fan-lobes={lobes}>
@@ -3531,6 +3544,16 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
               <path data-km-cliff-pine-ink-edge="" d={ridge}
                 fill={k===0?"#2e2925":"#39342d"}
                 opacity={f(.77*shade)}/>
+              {fringe.map(({root,tip,d,tone,width,lobe},n)=>
+                <path key={"fringe"+n} data-km-cliff-pine-fringe=""
+                  data-km-cliff-pine-fringe-root={f(root[0])+","+f(root[1])}
+                  data-km-cliff-pine-fringe-tip={f(tip[0])+","+f(tip[1])}
+                  data-km-cliff-pine-fringe-lobe={lobe}
+                  data-km-cliff-pine-fringe-width={f(width)}
+                  d={d} fill={tone==="dry"?"#675845":
+                    tone==="midtone"?"#514536":"#29251e"}
+                  opacity={f((tone==="dry"?.44:
+                    tone==="midtone"?.69:.82)*shade)}/>)}
             </g>)}
             {wetClusters.map(({r,station,weight,body,ink},k)=>
               <path key={"wet"+k}
