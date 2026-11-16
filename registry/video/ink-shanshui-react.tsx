@@ -1888,10 +1888,27 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
           const lean=(s(seed+1823,i*131+j*29+k*7)-.5);
           const reach=3.1+7.8*s(seed+1831,i*43+j*11+k*31);
           const side=(k%7===0?-1:1);
+          // In Huang's Fuchun shoreline grove, the pinaceous
+          // small ink gestures radiate sideways and hook BELOW the
+          // supporting bough; a monotone row of upward needles forms
+          // a digital rooftop comb. Seven actual, deliberately authored
+          // vector-flow roles (raised / oblique / lateral / drooping),
+          // mixed with seeded local variation, preserve all 310 fine
+          // attached touches and the original wet loaded pads/islands.
+          const role=(5*k+3*j+2*i+
+            Math.floor(3*s(seed+6831,i*193+j*43+k*29)))%7;
+          const roles=[-1.12,-.79,-.42,-.08,.16,.46,.83] as const;
+          const tilt=roles[role];
+          const sideFlow=school==="fuchun"
+            ?direction*(role===3?3.2:role===4?2.8:role===6?-1.6:
+                role===0?-.9:0)
+            :0;
           const tipX=attach[0]+direction*(1.4+3.3*lean)+
-            side*(s(seed+1847,i*53+j*13+k)-.5)*3.6;
-          const tipY=attach[1]-reach*(k%5===1?.56:1)+
-            (k%9===0?reach*.64:0);
+            side*(s(seed+1847,i*53+j*13+k)-.5)*3.6+sideFlow;
+          const tipY=school==="fuchun"
+            ?attach[1]+reach*(tilt+(s(seed+6863,i*37+j*17+k*31)-.5)*.1)
+            :attach[1]-reach*(k%5===1?.56:1)+
+              (k%9===0?reach*.64:0);
           const path="M"+f(attach[0])+" "+f(attach[1])+
             " Q"+f(attach[0]+(tipX-attach[0])*.38+lean*1.8)+
             " "+f(attach[1]+(tipY-attach[1])*.46)+
