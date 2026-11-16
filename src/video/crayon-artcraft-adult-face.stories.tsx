@@ -695,7 +695,7 @@ export const Cc0OrbitalHoodV29:Story={
   name:"CC0 asymmetric wax brow hood and eyelid continuity (!dev V29)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
-    initialMidfaceForm="source-orbital-hood" initialInspection="eyes"/>,
+    initialMidfaceForm="source-orbital-hood" initialInspection="near-eye"/>,
 };
 export const Cc0FacialValuePlanesV28:Story={
   name:"CC0 measured near/far cheek and eye socket value planes (!dev V28)",
