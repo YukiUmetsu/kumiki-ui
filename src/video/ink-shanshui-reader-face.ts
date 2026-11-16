@@ -69,7 +69,7 @@ export function scrollReaderFacePortrait(detail=1):
   const face:CharacterPathShape[]=[
     // Ear is behind the cheek; unlike the former oval its lobe projects
     // past the hairline. Separate flesh planes keep it legible at thumbnail.
-    p("M117.2 94.9 C111.1 90.6 107.4 94.5 107.6 102.6 C107.6 112 111.3 121.5 117.2 120.1 C121.9 117.6 122.7 107.7 117.2 94.9 Z",
+    p("M117.2 94.9 C113.3 92.7 109.1 96.2 109.2 103.2 C109.3 111.9 112.4 120.6 117.2 120.1 C121.5 117.3 121.7 107.5 117.2 94.9 Z",
       "$skin","$shadow",1.3),
     p("M114.2 99.4 Q111.5 101.3 112.6 107.3 Q114.2 112.2 117.1 109",
       "none","$skinshade",1.4,.56),
@@ -77,7 +77,7 @@ export function scrollReaderFacePortrait(detail=1):
       "none","$shadow",.83,.67),
     // Three-quarter temple -> tapered cheek -> defined chin. The right
     // cheek reaches forwards; jaw narrows rapidly below the visible ear.
-    p("M119 77.6 C129.2 68.6 147.4 66.8 157.7 73.3 C163.3 78.4 166.2 87.5 165.8 97.7 C165.5 107 162.7 114.6 157.3 122.8 C154.8 126.2 152.7 128.7 150.8 131 C148.4 133.7 146.4 137.6 145.5 139.1 C144.7 140.8 144.3 142.8 143.3 143.7 C141.8 144.6 138.6 143.5 135.9 141.8 C132.1 139.5 127.9 136.8 124.9 133.1 C121.1 128.8 118.9 124.8 117.3 120.1 C115.9 116 115 112.3 114.6 106.8 C113.7 100.3 113.9 95.1 114.4 90.5 C114.7 86.8 116 81.3 119 77.6 Z",
+    p("M119 77.6 C129.2 68.6 147.4 66.8 157.7 73.3 C163.3 78.4 166.2 87.5 165.8 97.7 C165.5 107 162.7 114.6 157.3 122.8 C154.8 126.2 152.7 128.7 150.8 131 C148.4 133.7 146.4 137.6 145.5 139.1 C146 140.1 145.7 142.2 143.3 143.7 C140.8 144.5 137.8 142.6 135.9 141.8 C132.1 139.5 127.9 136.8 124.9 133.1 C121.1 128.8 118.9 124.8 117.3 120.1 C115.9 116 115 112.3 114.6 106.8 C113.7 100.3 113.9 95.1 114.4 90.5 C114.7 86.8 116 81.3 119 77.6 Z",
       "$skin","$shadow",1.12),
     // Soft anatomical planes are placed along the jaw and nose and never
     // replace the opaque skin silhouette (no see-through heads).
@@ -175,7 +175,7 @@ export function scrollReaderFacePortrait(detail=1):
   // the ear is outlined *in front of* the sideburn; putting both marks
   // inside the base face asset hid it beneath the cap and read as a wedge.
   const visibleEar=asset("near-ear-front-plane",[
-    p("M117.2 95.2 C112.3 92.5 107.8 95.7 108.1 103.3 C107.9 111.6 112.1 119.4 117.3 119.7 C121.7 116.7 122.2 106.1 117.2 95.2 Z",
+    p("M117.2 95.2 C113.9 93.3 109.7 97.2 109.8 103.5 C109.7 111.1 112.9 118.7 117.3 119.7 C121.1 116.3 121.3 106.2 117.2 95.2 Z",
       "$skin","$shadow",1.21,1),
     p("M115.5 99.7 Q111.7 100.1 112.6 105.7 Q114.1 111.6 118 109.5",
       "none","$skinshade",1,.59),
