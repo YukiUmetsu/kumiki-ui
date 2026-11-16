@@ -7,7 +7,7 @@ import {RISO_COURIER_SHEET} from "../src/video/riso-character-mesh-sheets";
 import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS,layoutRisoHandArtcraft} from "../src/video/riso-hand-artcraft";
 import {
   RISO31_ANAT1_REFERENCE,RISO31_GEOMETRY,riso31FingerParts,riso31PhalanxJoints,
-  riso31SegmentIds,riso31Inspect,
+  riso31SegmentIds,riso31Inspect,RISO39_INDEX_OPPOSITION,
 } from "../src/video/riso31-finger-phalanges";
 
 const actors=[COURIER,PAPER_ARTIST] as const;
@@ -90,7 +90,9 @@ describe("RISO31 ArtCraft / actual PIP+DIP printed phalanx animation",()=>{
         }
       }
       const original=risoHandArtcraftParts(spec.id as "courier"|"paper-artist",side);
-      expect(original).toHaveLength(18);
+      // RISO37 added five retained source-engraving parts to the old RISO30
+      // 18-piece hand: preserve every path, do not drop ink to fit old tests.
+      expect(original).toHaveLength(23);
       expect(original.filter(p=>p.id.endsWith("-nail")&&p.id.includes("thumb")===false)
         .every(p=>p.joint.endsWith("-dip"))).toBe(true);
       expect(original.filter(p=>p.id.endsWith("-joint-crease"))
@@ -119,8 +121,16 @@ describe("RISO31 ArtCraft / actual PIP+DIP printed phalanx animation",()=>{
         expect(Math.abs(tipBefore)).toBeLessThan(.02);
         expect(Math.abs(after),root+" PIP does not bend").toBeGreaterThan(4);
         expect(Math.abs(tipAfter),root+" DIP does not bend").toBeGreaterThan(1);
-        expect(Math.abs(after)).toBeLessThan(RISO31_ANAT1_REFERENCE.pipMaximum*.5);
-        expect(Math.abs(tipAfter)).toBeLessThan(RISO31_ANAT1_REFERENCE.dipMaximum*.5);
+        // RISO39 genuinely opposes the index at its clinically bounded
+        // pinch; the 2016-era <50° generic RISO31 cap is obsolete.
+        // The 3 supporting digits remain independently bounded at <70%.
+        if(digit==="index"){
+          expect(Math.abs(after)).toBeCloseTo(RISO39_INDEX_OPPOSITION.fullProjectedPipFlex,2);
+          expect(Math.abs(tipAfter)).toBeCloseTo(RISO39_INDEX_OPPOSITION.fullProjectedDipFlex,2);
+        }else{
+          expect(Math.abs(after)).toBeLessThan(RISO31_ANAT1_REFERENCE.pipMaximum*.7);
+          expect(Math.abs(tipAfter)).toBeLessThan(RISO31_ANAT1_REFERENCE.dipMaximum*.7);
+        }
       }
     }
   });
