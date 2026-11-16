@@ -1,6 +1,6 @@
 import {describe,expect,it} from "vitest";
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
-import {risoPointInContour,selectRisoSourceContour}
+import {flattenRisoSvgPath,risoPointInContour,selectRisoSourceContour}
   from "../registry/video/riso-path-geometry";
 import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,evaluateRisoHumanEnsemble}
@@ -54,7 +54,6 @@ describe("RISO54 carved paper-white ulnar saddle: physical PRINT source not red 
     for(const {spec,side} of actors){
       const f0=evaluateRisoCharacter(spec,0);
       const f160=evaluateRisoCharacter(spec,160);
-      const palm0=selectRisoSourceContour(f0.parts.find(p=>p.id===side+"-glove")!.d,undefined,.15);
       const palm160=selectRisoSourceContour(f160.parts.find(p=>p.id===side+"-glove")!.d,undefined,.15);
       const qa=inspectRiso54WebReserves(spec,160);
       expect(qa.sourceCount).toBe(2);
@@ -66,8 +65,9 @@ describe("RISO54 carved paper-white ulnar saddle: physical PRINT source not red 
         const cut=f160.parts.find(p=>p.id===v.id)!;
         expect(rest.d).not.toBe(cut.d);
         expect(cut.transform).toBe(f160.parts.find(p=>p.id===side+"-glove")!.transform);
-        const restPoly=selectRisoSourceContour(rest.d,undefined,.15);
-        expect(restPoly.every(p=>!risoPointInContour(p,palm0))).toBe(true);
+        // The first open-hand reserve collapses to ZERO paper area, not
+        // an isolated white hole cut through the relaxed original fingers.
+        expect(flattenRisoSvgPath(rest.d,.15)).toHaveLength(0);
         const cutPoly=selectRisoSourceContour(cut.d,undefined,.15);
         const inside=cutPoly.filter(p=>risoPointInContour(p,palm160)).length;
         const outside=cutPoly.length-inside;
