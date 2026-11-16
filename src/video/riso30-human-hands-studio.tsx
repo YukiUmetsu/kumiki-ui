@@ -21,6 +21,7 @@ import {riso52ExpectedOriginalSourceIds} from "./riso52-folded-terminal-source";
 import {riso57PalmLandmarks,riso57PositivePalmContour} from "./riso57-palm-contact-silhouette";
 import {riso58ContactSkin} from "./riso58-anat1-volume-skin";
 import {riso59PreviewContact} from "./riso59-continuous-hand-envelope";
+import {inspectRiso60NegativeSpace} from "./riso60-native-hand-negative-space";
 
 type PlateMode="both"|"blue"|"red";
 type GestureFrame=0|46|126|144|154|156|160|166|178|186|198|239;
@@ -56,6 +57,11 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   plate:PlateMode;zoom:number;showRig:boolean;density:number;
 }){
   const pose=useMemo(()=>evaluateRisoCharacter(actor,frame),[actor,frame]);
+  const activeSource=(actor.id==="courier"&&side==="right")||
+    (actor.id==="paper-artist"&&side==="left");
+  const negativeSpace=useMemo(()=>activeSource
+    ? inspectRiso60NegativeSpace(actor,actor.id as "courier"|"paper-artist",frame)
+    :null,[actor,frame,activeSource]);
   const palm=pose.joints.find(j=>j.id===side+"-hand");
   if(!palm)throw new Error("RISO30 missing original hand "+actor.id+" "+side);
   const inkPartIds=useMemo(()=>actor.parts.filter(p=>
@@ -129,6 +135,9 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const camera=layoutRisoHandArtcraft(pose,side,zoom,aspect.width,aspect.height);
   const {x,y}=camera;
   return <article data-km-riso30-hand={actor.id+"-"+side}
+    data-km-riso60-web-count={negativeSpace?.webs.length??0}
+    data-km-riso60-web-states={negativeSpace?.webs.map(w=>w.state).join(",")??"inactive-hand"}
+    data-km-riso60-positive-area={negativeSpace?.positiveArea??""}
     data-km-riso30-hand-frame={frame}
     data-km-riso30-hand-parts={region.sourceCount}
     data-km-riso30-hand-artcraft={String(region.actuallyEngraved)}
@@ -195,7 +204,34 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
         }]}
         style={{display:"block",width:"100%",height:"auto"}}/>
     </div>
-    <p style={{fontSize:12,margin:"9px 0 0",color:"#55727E",lineHeight:1.5}}>
+    {negativeSpace&&<details data-km-riso60-report=""
+      style={{marginTop:11,padding:"9px 10px",border:"1px solid #C6B59C",
+        borderRadius:4,background:"#FCF3E6",fontSize:12,lineHeight:1.5}}>
+      <summary style={{cursor:"pointer",fontWeight:700}}>
+        RISO60 · inspect actual RED stencil and paper-negative webs
+      </summary>
+      <p style={{margin:"8px 0"}}>
+        Original physical source, not image sampling. RED positive palm:
+        {" "}{negativeSpace.positiveArea.toFixed(2)} source units²;
+        {" "}{negativeSpace.positiveCubicCount} continuous cubic strokes.
+        Artist review required: a geometrically open notch does not establish
+        believable anatomy or physical press registration.
+      </p>
+      <table style={{width:"100%",borderCollapse:"collapse",textAlign:"left"}}>
+        <thead><tr><th scope="col">Original cutter</th><th scope="col">Ink edge crossings</th>
+          <th scope="col">Paper result</th></tr></thead>
+        <tbody>{negativeSpace.webs.map(web=><tr data-km-riso60-web={web.id} key={web.id}>
+          <th scope="row">{web.id.endsWith("middle-ring")?"Middle / ring":"Ring / little"}</th>
+          <td>{web.boundaryCrossings}</td><td>{web.state} · {web.cubicCount}C ·
+            {" "}{web.cutterArea.toFixed(2)} area</td>
+        </tr>)}</tbody>
+      </table>
+      <p style={{margin:"7px 0 0"}}>
+        Flag interior-hole, outside-miss or boundary-uncertain before film release.
+        Verify two physical ink plates and a matched 1× human-hand reference.
+      </p>
+    </details>}
+    <p style={{fontSize:12,margin:"9px 0 0",color:"#55727E",lineHeight:1.5}}> 
       {region.sourceCount} original hand source paths; five authentic digits,
       12 source-red anatomical phalanges with asymmetric pad/plane/tip silhouettes, a separate opposed moving thumb IP pad,\n      four distinct MCP cobalt crests, screened anatomical tendon pressure,
       joint-local engraved creases and attached nail rims. Every mark remains a spot-colour print master.

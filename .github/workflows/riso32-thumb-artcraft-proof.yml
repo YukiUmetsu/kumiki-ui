@@ -37,6 +37,9 @@ on:
       - "src/video/riso59-continuous-hand-envelope.ts"
       - "tests/riso59-continuous-hand-envelope-artcraft.test.ts"
       - "tests/e2e-storybook/riso59-continuous-hand-envelope.spec.ts"
+      - "src/video/riso60-native-hand-negative-space.ts"
+      - "tests/riso60-native-hand-negative-space-artcraft.test.ts"
+      - "tests/e2e-storybook/riso60-native-hand-negative-space.spec.ts"
       - "src/video/riso-artcraft-studies.stories.tsx"
       - "tests/riso54-camera-ray-anatomy-artcraft.test.ts"
       - "tests/riso48-projected-support-artcraft.test.ts"
@@ -91,13 +94,13 @@ jobs:
       - name: Strict TypeScript and legacy animated source contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso32-thumb-ip-artcraft.test.tsx tests/riso36-red-silhouette-gate.test.ts tests/riso37-anatomical-engraving.test.ts tests/riso38-hand-silhouettes.test.ts tests/riso39-opposed-paper-pinch.test.ts tests/riso40-paper-fingertip-contact.test.ts tests/riso41-real-red-pad-contact.test.ts tests/riso42-support-finger-gesture.test.ts tests/riso43-physical-paper-depth.test.ts tests/riso29-human-anatomy-neck-portrait.test.tsx tests/riso-character.test.tsx tests/riso17-anatomical-grip.test.tsx tests/riso21-ocular-print-artcraft.test.tsx tests/riso44-source-index-paper-contact.test.ts tests/riso45-support-digit-foreshortening.test.ts tests/riso46-thenar-web-anatomy.test.ts tests/riso47-palmar-cup-artcraft.test.ts tests/riso48-projected-support-artcraft.test.ts tests/riso31-phalange-artcraft.test.tsx tests/riso49-donor-projection-artcraft.test.ts tests/riso50-hand-macro-artcraft.test.ts tests/riso51-view-conditioned-source-artcraft.test.ts tests/riso52-folded-terminal-source-artcraft.test.ts tests/riso53-palmar-depth-composition-artcraft.test.tsx tests/riso54-camera-ray-anatomy-artcraft.test.ts tests/riso54-interdigital-paper-reserve.test.ts tests/riso55-foldback-pulp-artcraft.test.ts tests/riso56-handoff-camera.test.ts tests/riso57-palmar-silhouette-artcraft.test.ts tests/riso58-anat1-volume-skin-artcraft.test.ts tests/riso59-continuous-hand-envelope-artcraft.test.ts
+          npm run test -- tests/riso32-thumb-ip-artcraft.test.tsx tests/riso36-red-silhouette-gate.test.ts tests/riso37-anatomical-engraving.test.ts tests/riso38-hand-silhouettes.test.ts tests/riso39-opposed-paper-pinch.test.ts tests/riso40-paper-fingertip-contact.test.ts tests/riso41-real-red-pad-contact.test.ts tests/riso42-support-finger-gesture.test.ts tests/riso43-physical-paper-depth.test.ts tests/riso29-human-anatomy-neck-portrait.test.tsx tests/riso-character.test.tsx tests/riso17-anatomical-grip.test.tsx tests/riso21-ocular-print-artcraft.test.tsx tests/riso44-source-index-paper-contact.test.ts tests/riso45-support-digit-foreshortening.test.ts tests/riso46-thenar-web-anatomy.test.ts tests/riso47-palmar-cup-artcraft.test.ts tests/riso48-projected-support-artcraft.test.ts tests/riso31-phalange-artcraft.test.tsx tests/riso49-donor-projection-artcraft.test.ts tests/riso50-hand-macro-artcraft.test.ts tests/riso51-view-conditioned-source-artcraft.test.ts tests/riso52-folded-terminal-source-artcraft.test.ts tests/riso53-palmar-depth-composition-artcraft.test.tsx tests/riso54-camera-ray-anatomy-artcraft.test.ts tests/riso54-interdigital-paper-reserve.test.ts tests/riso55-foldback-pulp-artcraft.test.ts tests/riso56-handoff-camera.test.ts tests/riso57-palmar-silhouette-artcraft.test.ts tests/riso58-anat1-volume-skin-artcraft.test.ts tests/riso59-continuous-hand-envelope-artcraft.test.ts tests/riso60-native-hand-negative-space-artcraft.test.ts
       - name: Build real Storybook
         run: npm run build-storybook
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Native print, two spot-ink masters, both humans and 16:9 / 9:16 whole-film handoff
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso32-thumb-ip-artcraft.spec.ts tests/e2e-storybook/riso-human-ensemble.spec.ts tests/e2e-storybook/riso46-thenar-web.spec.ts tests/e2e-storybook/riso59-continuous-hand-envelope.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso32-thumb-ip-artcraft.spec.ts tests/e2e-storybook/riso-human-ensemble.spec.ts tests/e2e-storybook/riso46-thenar-web.spec.ts tests/e2e-storybook/riso59-continuous-hand-envelope.spec.ts tests/e2e-storybook/riso60-native-hand-negative-space.spec.ts
       - name: Preserve actual screenshots and failure traces
         if: always()
         uses: actions/upload-artifact@v4
