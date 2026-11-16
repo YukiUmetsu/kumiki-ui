@@ -239,7 +239,7 @@ function poseQuadruped(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
   if (c.ear) {
     const base = add(add(occiput, ax, cranLen * .3), up, ry * .92), back = { round: 30, pointed: 18, leaf: 55, long: 52 }[c.ear.shape];
     const earLen = (face?.ear ?? c.ear.length) * c.head;
-    const tip = add(base, dir(axis + 90 + back), earLen), w = c.ear.width * c.head * (face ? face.ear / c.ear.length : 1), side = dir(axis);
+    const tip = add(base, dir(axis + 90 + back), earLen), w = c.ear.width * c.head * (face?.ear ? face.ear / c.ear.length : 1), side = dir(axis);
     // Width across the ear, from its front edge to its back edge, at stations along it (base → tip).
     const prof = { round: [.5, .56, .52, .38, .12], pointed: [.5, .42, .3, .16, .02], leaf: [.3, .5, .5, .34, .05], long: [.32, .5, .48, .36, .08] }[c.ear.shape];
     const st2 = prof.map((_, i) => i / (prof.length - 1)), front = st2.map((u, i) => add(lerpP(base, tip, u), side, w * prof[i])), backEdge = st2.map((u, i) => add(lerpP(base, tip, u), side, -w * prof[i]));
@@ -283,11 +283,13 @@ function poseBird(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
   const nod = g ? 6 * Math.sin(2 * Math.PI * t * 2) : 0;
   const crown = add(neckRoot, dir(c.neckAngle), Math.max(c.neck, .02));
   const neckMid = add(lerpP(neckRoot, crown, .5), dir(c.neckAngle - 90), c.neck * .12);
-  const hr = c.head * (1 - c.muzzle) * .5, axis = -c.headAngle + nod, hx = dir(axis), hu = dir(axis + 90);
-  const cranium: AnimalEllipse = { cx: crown[0], cy: crown[1], rx: hr * 1.1, ry: hr, angle: axis };
-  const billBase = add(crown, hx, hr * .85), nose = add(billBase, hx, c.head * c.muzzle);
+  // A species' measured face sets the head's depth and places the eye back from the bill tip.
+  const face = c.species?.face, cranLen = c.head * (1 - c.muzzle);
+  const hr = face ? c.head * face.depth / 2 : cranLen * .5, axis = -c.headAngle + nod, hx = dir(axis), hu = dir(axis + 90);
+  const cranium: AnimalEllipse = { cx: crown[0], cy: crown[1], rx: cranLen * .55, ry: hr, angle: axis };
+  const billBase = add(crown, hx, cranLen * .425), nose = add(billBase, hx, c.head * c.muzzle);
   const muzzle: AnimalPoint[] = [add(billBase, hu, hr * .45), add(nose, hu, hr * .05), add(nose, hu, -hr * .05), add(billBase, hu, -hr * .4)];
-  const eye = add(add(crown, hx, hr * .3), hu, hr * .2);
+  const eye = face ? add(add(nose, hx, -c.head * face.eyeFromNose), hu, hr * .25) : add(add(crown, hx, hr * .3), hu, hr * .2);
   const tailRoot = add(centre, ax, -rx * .85), tailEnd = add(tailRoot, dir(180 + a - 8), c.tail);
   const hip = add(add(centre, ax, -rx * .08), up, -ry * .25);
   // Long-legged waders stand on nearly straight legs; perching birds crouch.
@@ -310,7 +312,7 @@ function poseBird(c: AnimalConstruction, o: PoseOptions): AnimalSkeleton {
   return {
     kind: "bird", c, joints: { neckRoot, crown, occiput: crown, nose, eye, tailRoot, hip }, limbs, masses: { body, wing },
     topLine: [tailRoot, add(centre, up, ry), neckRoot], neck: { points: [neckRoot, neckMid, crown], widths: [Math.min(ry * 1.1, hr * 2.6), hr * 1.25, hr * 1.35] },
-    head: { cranium, muzzle, eye, eyeR: c.head * .06, nose, axis }, tail: { points: [tailRoot, lerpP(tailRoot, tailEnd, .5), tailEnd], widths: tw }, fins: [], legLength: { fore: 0, hind: L },
+    head: { cranium, muzzle, eye, eyeR: face ? c.head * face.eye / 2 : c.head * .06, nose, axis }, tail: { points: [tailRoot, lerpP(tailRoot, tailEnd, .5), tailEnd], widths: tw }, fins: [], legLength: { fore: 0, hind: L },
     outline: {},
   };
 }
@@ -335,11 +337,11 @@ function poseFish(c: AnimalConstruction, t: number): AnimalSkeleton {
     [ab(.75), [ab(.8)[0] - .02, ab(.8)[1] - D * .22], ab(.86)],
   ];
   const cranium: AnimalEllipse = { cx: .5 - c.head * .5, cy: y0 + D * .04, rx: c.head * .5, ry: D * .45, angle: 0 };
-  const eye: AnimalPoint = [.5 - c.head * .3, y0 + D * .12];
+  const face = c.species?.face, eye: AnimalPoint = [.5 - c.head * (face?.eyeFromNose ?? .3), y0 + D * .12];
   return {
     kind: "fish", c, joints: { nose, eye, tailRoot: ped, occiput: [.5 - c.head, y0] }, limbs: [], masses: { body },
     topLine: top.slice().reverse(), neck: { points: [], widths: [] },
-    head: { cranium, muzzle: [...top.slice(0, 3), ...bot.slice(0, 3).reverse()], eye, eyeR: D * .06, nose, axis: 0 },
+    head: { cranium, muzzle: [...top.slice(0, 3), ...bot.slice(0, 3).reverse()], eye, eyeR: face ? c.head * face.eye / 2 : D * .06, nose, axis: 0 },
     tail: { points: caudal, widths: [] }, fins, legLength: { fore: 0, hind: 0 },
     outline: {},
   };
