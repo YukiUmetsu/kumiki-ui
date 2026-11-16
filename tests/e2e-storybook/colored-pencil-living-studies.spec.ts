@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("ArtCraft portraits, fox anatomy and alpine landscape preserve final frames and macros", async({page},info)=>{
+test("ArtCraft new head-only human, fox and alpine landscape preserve final frames and macros", async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--living-subjects-atelier&viewMode=story");
   const svg=page.locator("svg[data-km-colored-pencil]");
   const subject=page.getByRole("combobox",{name:"Living subject"});
@@ -29,7 +29,7 @@ test("ArtCraft portraits, fox anatomy and alpine landscape preserve final frames
       await expect(svg).toHaveAttribute("data-km-pencil-foundation","CP-F1");
       await expect(page.getByRole("combobox",{name:"Living craft rendering"})).toHaveCount(0);
       if(output==="portrait"&&item!=="valley")
-        await expect(svg.locator('[data-km-pencil-region="head-main"], [data-km-pencil-region="face-main"]'))
+        await expect(svg.locator('[data-km-pencil-region="head-main"], [data-km-pencil-region="head-construction"]'))
           .toHaveAttribute("transform",/scale\(1\.38\)/);
       await expect(svg.locator("[data-km-pencil-region]")).not.toHaveCount(0);
       await svg.screenshot({animations:"disabled",
@@ -46,11 +46,11 @@ test("ArtCraft portraits, fox anatomy and alpine landscape preserve final frames
   }
   await subject.selectOption("portrait");
   await seek(330);
-  await expect(svg.locator('[data-km-pencil-support="face-main"]')).toHaveCount(1);
+  await expect(svg.locator('[data-km-pencil-support="head-construction"]')).toHaveCount(1);
   await expect(svg.locator('[data-km-pencil-support="iris-near"]')).toHaveCount(0);
   await page.getByRole("checkbox",{name:"Living reduced motion"}).check();
   await seek(0);
-  await expect(svg.locator('[data-km-pencil-support="face-main"]')).toHaveCount(1);
+  await expect(svg.locator('[data-km-pencil-support="head-construction"]')).toHaveCount(1);
 });
 
 
