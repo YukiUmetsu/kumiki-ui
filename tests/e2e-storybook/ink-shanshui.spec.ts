@@ -1203,7 +1203,7 @@ test("Fuchun Storybook toggles actual 40-ink-canopy paper channels without chang
   expect(uncutRules).toEqual(Array(40).fill("nonzero"));
   const uncut=await fuchun.screenshot({animations:"disabled",
     path:info.outputPath("fuchun-pine-bristles-before.png")});
-  await page.getByRole("button",{name:"Pine crowns · flying-white ink"}).click();
+  await page.getByRole("button",{name:"Pine crowns · source anatomy"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine");
   const liftedRules=await canopy.evaluateAll(nodes=>
     nodes.map(node=>getComputedStyle(node).fillRule));
