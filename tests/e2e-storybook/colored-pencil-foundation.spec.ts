@@ -33,7 +33,9 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
       }));
       expect(provenance.photoElements).toBe(0);
       expect(provenance.pencilMarks).toBeGreaterThan(100);
-      expect(provenance.tracedGeometry).toBeGreaterThan(10);
+      // DRAWING 01 deliberately contains one new human head (one outline
+      // and three anatomical guides), not the retired 22-part woman.
+      expect(provenance.tracedGeometry).toBeGreaterThan(item==="portrait"?3:10);
       if(item==="fox"){
         for(const region of ["periocular-form","mask","eye-far","eye-near"])
           await expect(svg.locator(
