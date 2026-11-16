@@ -1019,6 +1019,65 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(at(545)).toBeGreaterThan(at(559));
   });
 
+  it("roots twelve lateral Fuchun stone courses to the actual wet undercut rim",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed=71,detail=1,mist=.35)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          seed,detail,mist,inkSchool:school},
+      }));
+    const full=paint("fuchun");
+    const undertops=[...full.matchAll(
+      /data-km-master-fuchun-hillback-undercut="" data-km-master-fuchun-hillback-undercut-root="([^"]+)" d="([^"]+)"/g,
+    )];
+    const shelves=[...full.matchAll(
+      /data-km-master-fuchun-cross-shelf="" data-km-master-fuchun-cross-shelf-parent="([01])" data-km-master-fuchun-cross-shelf-root="([^"]+)" data-km-master-fuchun-cross-shelf-station="([^"]+)" data-km-master-fuchun-cross-shelf-axis="([^"]+)" data-km-master-fuchun-cross-shelf-loaded="([01])" d="([^"]+)"/g,
+    )];
+    expect(undertops).toHaveLength(6);
+    expect(shelves).toHaveLength(12);
+    for(let j=0;j<shelves.length;j++){
+      const [,parent,root,station,axis,loaded,body]=shelves[j];
+      expect(Number(parent)).toBe(j%2);
+      expect(Number(loaded)).toBe(j%2);
+      expect(Number(station)).toBe(j%2===0?.24:.68);
+      const undercut=undertops[j>>1][2];
+      const bone=(undercut.match(/-?\d+(?:\.\d+)?/g)??[])
+        .map(Number).slice(0,8);
+      expect(bone).toHaveLength(8);
+      const t=Number(station),u=1-t;
+      const expected=[
+        u*u*u*bone[0]+3*u*u*t*bone[2]+3*u*t*t*bone[4]+t*t*t*bone[6],
+        u*u*u*bone[1]+3*u*u*t*bone[3]+3*u*t*t*bone[5]+t*t*t*bone[7],
+      ];
+      const actual=root.split(",").map(Number);
+      expect(Math.hypot(actual[0]-expected[0],
+        actual[1]-expected[1])).toBeLessThan(.055);
+      expect(axis.startsWith("M"+root.replace(","," "))).toBe(true);
+      const points=(axis.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(points).toHaveLength(8);
+      const dx=points[6]-points[0],dy=points[7]-points[1];
+      expect(Math.abs(dx)).toBeGreaterThan(12);
+      expect(Math.abs(dx)).toBeGreaterThan(Math.abs(dy)*1.25);
+      expect(body.startsWith("M"+root.replace(","," "))).toBe(true);
+      expect((body.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(22);
+      // The shelves never escape their exact sampled parent rock volume.
+      const sector=full.slice(shelves[j].index!,full.indexOf("/>",shelves[j].index!)+2);
+      expect(sector).toContain("-volume-clip)");
+      expect(sector).toContain(j%2===0?'fill="#41372f"':'fill="#584a3b"');
+    }
+    const another=paint("fuchun",87);
+    const otherAxes=[...another.matchAll(
+      /data-km-master-fuchun-cross-shelf-axis="([^"]+)"/g,
+    )].map(x=>x[1]);
+    expect(otherAxes).toHaveLength(12);
+    expect(otherAxes).not.toEqual(shelves.map(m=>m[4]));
+    expect(paint("fuchun",71,0)).not.toContain("data-km-master-fuchun-cross-shelf=");
+    expect(paint("early-spring")).not.toContain("data-km-master-fuchun-cross-shelf=");
+    // Mist is a material/lighting input, not a geometry or anchor mutation.
+    expect([...paint("fuchun",71,1,.9).matchAll(
+      /data-km-master-fuchun-cross-shelf-axis="([^"]+)"/g,
+    )].map(x=>x[1])).toEqual(shelves.map(m=>m[4]));
+  });
+
   it("groups Fuchun 78 child fibres across all five live banks with an unpainted middle reserve",()=>{
     const paint=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{
