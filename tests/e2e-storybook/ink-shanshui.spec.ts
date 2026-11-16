@@ -583,6 +583,30 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
   expect(lowerCount).toBeGreaterThan(15);
   expect(upperCount+lowerCount).toBe(78);
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+  // ArtCraft original-source rock A/B: only the new source-rooted alum
+  // crowns and their fine deposits hide; six large boulders and every
+  // existing parent/child rock and pine trace must survive unmodified.
+  const alum=fuchun.locator("[data-km-master-fuchun-alum-head]");
+  const alumVolumes=fuchun.locator("[data-km-master-fuchun-alum-head-volume]");
+  const originalAlumPaths=await alumVolumes.evaluateAll(nodes=>
+    nodes.map(el=>el.getAttribute("d")));
+  await expect(alum).toHaveCount(9);
+  await expect(fuchun.locator("[data-km-master-fuchun-alum-head-moss]"))
+    .toHaveCount(27);
+  await fuchun.locator("[data-km-master-camera-view]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-native-nine-alum-crowns.png")});
+  await page.getByRole("button",{name:"Before attached alum-head crowns"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","alum-before");
+  await expect(alum.first()).toBeHidden();
+  await expect(fuchun.locator("[data-km-master-fuchun-hillback]")).toHaveCount(6);
+  await expect(fuchun.locator("[data-km-master-fuchun-cross-shelf]")).toHaveCount(12);
+  await expect(fuchun.locator("[data-km-master-stroke]")).toHaveCount(78);
+  await fuchun.locator("[data-km-master-camera-view]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-native-before-alum-crowns.png")});
+  await page.getByRole("button",{name:"All Fuchun hemp"}).click();
+  await expect(alum.first()).toBeVisible();
+  expect(await alumVolumes.evaluateAll(nodes=>
+    nodes.map(el=>el.getAttribute("d")))).toEqual(originalAlumPaths);
   await expect(upper.first()).toBeVisible();
   await expect(lower.first()).toBeVisible();
 
