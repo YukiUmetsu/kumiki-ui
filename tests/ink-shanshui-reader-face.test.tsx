@@ -6,8 +6,10 @@ import {SHANSHUI_SCENES,DEFAULT_SHANSHUI} from
   "../registry/video/ink-shanshui";
 import {scrollReaderFacePortrait,READER_FACE_LANDMARKS} from
   "../src/video/ink-shanshui-reader-face";
-import {readerFaceAnatomy,READER_FACE_CRAFT_REGIONS} from
+import {readerFaceAnatomy,READER_FACE_CRAFT_REGIONS,READER_FACE_ANAT1_POINTS} from
   "../src/video/ink-shanshui-reader-anatomy";
+import {FACE_LANDMARKS,FACE_CANONICAL_MEASURES} from
+  "../registry/anatomy/anatomy-face";
 import {shanshuiFaceAssets} from "../src/video/ink-shanshui-face-plates";
 import {shanshuiOtherFaceCraft,SHANSHUI_PORTRAIT_OBSERVATIONS} from
   "../src/video/ink-shanshui-other-face-craft";
@@ -22,6 +24,58 @@ const paths=(assets:ReturnType<typeof scrollReaderFacePortrait>,key:string)=>{
   return a.shapes;
 };
 describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
+  it("builds an ANAT1-named foreshortened portrait with distinct facial ink-bone volumes",()=>{
+    const guide=READER_FACE_ANAT1_POINTS;
+    const ids=Object.keys(guide);
+    expect(ids.length).toBeGreaterThanOrEqual(25);
+    for(const [id,p] of Object.entries(guide)){
+      expect(id in FACE_LANDMARKS).toBe(true);
+      expect(p).toHaveLength(2);
+      expect(p.every(Number.isFinite)).toBe(true);
+      expect(p[0]).toBeGreaterThan(105);
+      expect(p[0]).toBeLessThan(168);
+      expect(p[1]).toBeGreaterThan(90);
+      expect(p[1]).toBeLessThan(147);
+    }
+    // ANAT1's 468-vertex canonical mask is the *anatomical vocabulary*
+    // and construction reference, not a mirrored mask pasted over the
+    // observed historical three-quarter face.
+    expect(FACE_CANONICAL_MEASURES.exEn).toBeGreaterThan(0);
+    expect(FACE_CANONICAL_MEASURES.nSn).toBeGreaterThan(0);
+    const span=(a:readonly number[],b:readonly number[])=>
+      Math.hypot(a[0]-b[0],a[1]-b[1]);
+    const near=span(guide["exocanthion.R"],guide["endocanthion.R"]);
+    const far=span(guide["exocanthion.L"],guide["endocanthion.L"]);
+    expect(far).toBeLessThan(near);
+    expect(far/near).toBeGreaterThan(.7);
+    expect(guide["pronasale"][1]).toBeGreaterThan(guide["sellion"][1]);
+    expect(guide["subnasale"][1]).toBeGreaterThan(guide["pronasale"][1]);
+    expect(guide["menton"][1]).toBeGreaterThan(guide["stomion"][1]+12);
+    expect(guide["alare.L"][0]).toBeGreaterThan(guide["alare.R"][0]);
+    expect(guide["labiale-superius"][1]).toBeLessThan(
+      guide["labiale-inferius"][1]);
+    const high=readerFaceAnatomy(1);
+    const low=readerFaceAnatomy(.1);
+    const wash=high.planes.filter(shape=>shape.type==="path"&&
+      shape.fill==="$skinshade"&&shape.stroke==="none"&&
+      (shape.opacity??0)>.11);
+    expect(wash.length).toBeGreaterThanOrEqual(8);
+    expect(wash.length).toBeGreaterThan(
+      low.planes.filter(shape=>shape.fill==="$skinshade").length);
+    for(const shape of wash){
+      if(shape.type!=="path")throw Error("A wash must be geometry");
+      expect(shape.d.trim().endsWith("Z")).toBe(true);
+      expect(shape.d).not.toMatch(/NaN|Infinity|undefined/);
+      expect(shape.opacity).toBeLessThan(.4);
+    }
+    const portrait=scrollReaderFacePortrait(1);
+    expect(paths(portrait,"face").length)
+      .toBeGreaterThan(paths(scrollReaderFacePortrait(.1),"face").length);
+    for(const part of ["eyes-open","eyes-soft","eyes-closed",
+      "mouth-rest","mouth-aa","mouth-oh","mouth-mm","mouth-smile"]){
+      expect(paths(portrait,part).length).toBeGreaterThan(1);
+    }
+  });
   it("models an asymmetric near/far eye aperture and individually connected facial planes",()=>{
     const high=readerFaceAnatomy(1),low=readerFaceAnatomy(.1);
     const expected=[
