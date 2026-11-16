@@ -190,8 +190,9 @@ const MASTER_TRAIL_MIDDLE:Record<Exclude<InkRockSchool,"fuchun">,readonly P[]>={
  *
  * Unlike the paper tint/gradient, every mark is rooted to the SAME
  * fractured ridge geometry as the outer silhouette. */
-function RockInkPlanes({stations,seed,band,detail,mist}:{
+function RockInkPlanes({stations,seed,band,detail,mist,nearBankFlow=false}:{
   stations:readonly P[];seed:number;band:number;detail:number;mist:number;
+  nearBankFlow?:boolean;
 }){
   const anchors=band===0?[116,255,564,755,890]:[82,247,345,532,711,857];
   const count=Math.round((band===0?7:band===1?12:17)*detail);
@@ -232,6 +233,40 @@ function RockInkPlanes({stations,seed,band,detail,mist}:{
         " M"+f(x+drift*.59+1.7)+" "+f(rootY+length*.57)+
         " Q"+f(vx+3)+" "+f(rootY+length*.72)+
         " "+f(vx)+" "+f(rootY+length*.88);
+      // Huang's real lower-bank pima follows the geography of a broad
+      // curved rock shoulder. The previous 17 original source contacts
+      // produced ~67px near-vertical gray droplets at 960x540. In the
+      // experimental source ridge, retain ALL 17 parent marks, their
+      // wet/dry branches, shelves and tiny moss, but trace continuous
+      // pressure phrases across stations of THIS same ridgeline.
+      // The original vertical vocabulary remains byte-identical for
+      // ordinary film export and all other schools.
+      const flowDirection=s(seed+9671,i*23+band*37)>.48?1:-1;
+      const flowRun=(30+32*s(seed+9689,i*37+9))*
+        (i%6===0?.68:1);
+      const flowEndX=x+flowDirection*flowRun;
+      const start:P=[x,rootY];
+      const bed=(u:number,dep:number):P=>{
+        const sx=x+(flowEndX-x)*u;
+        return [sx,ridgeHeight(stations,sx)+dep];
+      };
+      // Three supports are sampled independently from exact source
+      // geometry; variation is in the pressure and paper depth, not
+      // in a detached row of equal-length computer-generated hooks.
+      const c1=bed(.25,6.5+2.6*s(seed+9701,i*11));
+      const c2=bed(.7,10.5+3.3*s(seed+9719,i*17));
+      const end=bed(1,14.2+5.1*s(seed+9733,i*31));
+      const bankRibbon=nearBankFlow
+        ?rockLoadedCubicRibbon(start,c1,c2,end,inkWidth*.61,
+          seed+9743+i*53,"broken-middle"):undefined;
+      const along=(t:number)=>cubicPoint(start,c1,c2,end,t);
+      const a=along(.11),b=along(.45),c=along(.6),d=along(.94);
+      const bankFibre="M"+f(a[0])+" "+f(a[1])+
+        " Q"+f((a[0]+b[0])*.5)+" "+f((a[1]+b[1])*.5-1.8)+
+        " "+f(b[0])+" "+f(b[1])+
+        " M"+f(c[0])+" "+f(c[1])+
+        " Q"+f((c[0]+d[0])*.5)+" "+f((c[1]+d[1])*.5+1.2)+
+        " "+f(d[0])+" "+f(d[1]);
       const shelf="M"+f(x-inkWidth*.95)+" "+f(rootY+5)+
         " Q"+f(x+inkWidth*.44)+" "+f(rootY-4.5)+
         " "+f(x+inkWidth*1.55)+" "+f(rootY+2)+
@@ -240,10 +275,18 @@ function RockInkPlanes({stations,seed,band,detail,mist}:{
       return <g key={i} data-km-rock-ink-plane=""
         data-km-rock-plane-root={f(x)+","+f(rootY)}
         data-km-rock-plane-crest={f(crest)}
-        data-km-rock-plane-style={i%3===0?"alum-head":"hemp-fibre"}>
-        <path d={plane} fill={band===0?"#806c58":"#5b4837"}
+        data-km-rock-plane-style={i%3===0?"alum-head":"hemp-fibre"}
+        data-km-rock-plane-flow={nearBankFlow?"source-following":"original"}
+        data-km-rock-plane-bank-axis={nearBankFlow
+          ?"M"+f(start[0])+" "+f(start[1])+" C"+
+            f(c1[0])+" "+f(c1[1])+" "+f(c2[0])+" "+f(c2[1])+
+            " "+f(end[0])+" "+f(end[1]):undefined}
+        data-km-rock-plane-bank-end={nearBankFlow
+          ?f(end[0])+","+f(end[1]):undefined}>
+        <path d={nearBankFlow?bankRibbon:plane}
+          fill={band===0?"#806c58":"#5b4837"
           opacity={f(opacity)}/>
-        <path d={fibre} fill="none"
+        <path d={nearBankFlow?bankFibre:fibre} fill="none"
           stroke={i%4===0?"#4b392d":"#796149"}
           strokeWidth={f(.63+1.18*s(seed+597,i*19))}
           strokeLinecap="round" opacity={f(.42+.31*s(seed+607,i*7))}/>
@@ -3566,7 +3609,7 @@ function Mountains({scene,seed,detail,mist,ink,school,nearStudy,ids}:{
           seed={seed+band*251} band={band} detail={detail} mist={mist}
           id={ids.grain+"-rock-"+band}/>
         <RockInkPlanes stations={stations} seed={seed+band*181} band={band}
-          detail={detail} mist={mist}/>
+          detail={detail} mist={mist} nearBankFlow={coherentNearEdge}/>
         {nearStudy&&scene==="mountain-trail"&&school==="fuchun"&&
           band===2&&<FuchunNearBankRelief stations={stations}
             seed={seed+band*193} detail={detail} mist={mist}
