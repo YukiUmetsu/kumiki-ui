@@ -46,7 +46,11 @@ describe("RISO37 ArtCraft / physical hand ink master and source-geometry craftsm
       const thenar=actor.parts.find(p=>p.id===side+"-glove-thenar-fold")!;
       expect(thenar.joint).toBe(side+"-palm-surface");
       expect(thenar.screenTone).toBe("mid");
-      expect(flattenRisoSvgPath(thenar.d,.15)).toHaveLength(2);
+      // RISO46 keeps BOTH prior source grooves and adds three physically
+      // screened commissure/thenar pressure strands on the same joint.
+      const webCurves=flattenRisoSvgPath(thenar.d,.15);
+      expect(webCurves).toHaveLength(5);
+      expect(webCurves.every(shape=>shape.closed&&shape.points.length>4)).toBe(true);
     }
   });
   it("keeps each original moving knuckle and nail on its real articulated phalanx",()=>{
