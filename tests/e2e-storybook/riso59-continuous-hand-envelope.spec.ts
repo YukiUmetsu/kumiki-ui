@@ -38,7 +38,7 @@ test("RISO59 A/B retains original master geometry at rest and changes the two ac
   expect(candidate[1]).not.toBe(baseline[1]);
   for(const side of ["right","left"] as const){
     const id=side==="right"?"courier-right":"paper-artist-left";
-    const panel=panels.locator('[data-km-riso30-hand="'+id+'"]');
+    const panel=root.locator('[data-km-riso30-hand="'+id+'"]');
     await expect(panel).toHaveAttribute("data-km-riso36-source-contours","12");
     await expect(panel).toHaveAttribute("data-km-riso50-palm-cubics","16");
     await expect(panel).toHaveAttribute("data-km-riso58-reconstructed-bone-rays","4");
@@ -82,8 +82,8 @@ test("RISO59 real 16:9 and 9:16 whole-film A/B exposes the original source silho
     await expect(stage).toHaveAttribute("data-km-riso-human-ensemble-frame",String(frame));
   };
   const original=async()=>{
-    const courier=await stage.locator('[data-km-riso-part="right-glove"]').first().getAttribute("d");
-    const artist=await stage.locator('[data-km-riso-part="left-glove"]').first().getAttribute("d");
+    const courier=await stage.locator('[data-km-riso-human-actor="courier"] [data-km-riso-part="right-glove"]').first().getAttribute("d");
+    const artist=await stage.locator('[data-km-riso-human-actor="paper-artist"] [data-km-riso-part="left-glove"]').first().getAttribute("d");
     const sheets=stage.locator("[data-km-riso-human-ensemble-sheet]");
     // The opening cel intentionally precedes the first paper prop. Read
     // absence as null instead of waiting three minutes for a non-existent path.
