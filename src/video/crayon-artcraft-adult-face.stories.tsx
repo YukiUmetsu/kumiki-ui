@@ -683,7 +683,7 @@ export const Cc0NasalDepthAndOcclusion:Story={
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
 };
 export const Cc0JoinedNarisContourMacro:Story={
-  name:"CC0 source-attached near hook / far slit wax 3× (!dev V20)",
+  name:"CC0 source-attached near hook / far slit wax 3× (!dev V20b)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-contour-joined" initialInspection="nose"/>,

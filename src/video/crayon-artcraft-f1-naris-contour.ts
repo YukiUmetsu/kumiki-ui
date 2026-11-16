@@ -47,7 +47,7 @@ const patches:Readonly<Record<string,Partial<Wax>>>={
   // Exact same cubic control points in reverse: a true joined wax boundary.
   "naris-shadow-near":{
     d:n.forward+" C420 635 415 635 414 631 "+
-      "C407 628 405 635 403 640 "+
+      "C408 628 404 637 403 640 "+
       "C400 646 396 647 393 644 "+
       "C390 642 389 638 388 635Z",
     bounds:{x:384,y:619,width:43,height:33},
@@ -109,7 +109,7 @@ export function crayonF1JoinNarisContours(
     if(el.kind!=="wax"||seen.has(el.id))
       throw new RangeError("Invalid or duplicate V17 naris "+el.id);
     seen.add(el.id);
-    if((el.id==="naris-shadow-near"||el.id==="naris-shadow-far")&&
+    if((el.id==="alar-roof-near"||el.id==="alar-roof-far")&&
       el.d===patches[el.id].d)
       throw new RangeError("Naris contour already joined");
     const item:Wax={...el,...patches[el.id]};
