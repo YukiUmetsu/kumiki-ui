@@ -693,7 +693,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
       ] as const).map((plan,k)=>{
         const left=stratum[plan.first].sample(plan.at);
         const right=stratum[plan.last].sample(plan.at+plan.offset);
-        const span=right[0]-left[0],delta=right[1]-left[1];
+        const span=right[0]-left[0];
         const round=plan.rise*(.88+.25*s(seed+8203,i*53+k*19));
         const drop=plan.fall*(.87+.29*s(seed+8211,i*37+k*29));
         const c1:P=[left[0]+span*.26+direction*3.4,
