@@ -590,16 +590,48 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     const drawing=pencilLivingStudyDrawing({subject:"fox",aspect:"landscape"});
     const cheek=drawing.regions.find(region=>region.id==="cheek-ruff")!;
     const neck=drawing.regions.find(region=>region.id==="neck-ruff")!;
-    expect(cheek.bounds[1]+cheek.bounds[3]).toBeGreaterThanOrEqual(310);
-    // Narrow malar transition: a broad filled triangular cheek becomes an
-    // anatomically detached cardboard flap in native film screenshots.
-    expect(cheek.bounds[2]).toBeLessThanOrEqual(49);
+    expect(cheek.bounds[1]+cheek.bounds[3]).toBeLessThanOrEqual(295);
+    expect(cheek.bounds[1]+cheek.bounds[3]).toBeGreaterThanOrEqual(285);
+    // A diagonal malar-to-cervical overlap now lies inside the white neck
+    // instead of creating a narrow but detached vertical ribbon.
+    expect(cheek.bounds[2]).toBeLessThanOrEqual(46);
+    expect(cheek.bounds[3]).toBeLessThanOrEqual(70);
+    expect(cheek.path).not.toContain("250 313");
     expect((cheek.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(5);
     expect((cheek.path.match(/ L/g)??[]).length).toBe(0);
     expect(cheek.bounds[0]).toBeLessThan(neck.bounds[0]+neck.bounds[2]);
     expect(cheek.clipDetails).toBe(false);
     expect(cheek.details!.filter(t=>t.id?.startsWith("fringe-")))
       .toHaveLength(3);
+  });
+
+  it("constructs a truncated malar fur fan that joins the cream sternum instead of a dangling gray scarf",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const drawing=pencilLivingStudyDrawing({subject:"fox",aspect,seed:291});
+      const map=new Map(drawing.regions.map(p=>[p.id,p]));
+      const cheek=map.get("cheek-ruff")!;
+      const chest=map.get("chest")!;
+      const muzzle=map.get("muzzle")!;
+      expect(cheek.bounds[3]).toBeLessThan(65);
+      expect(cheek.bounds[2]/cheek.bounds[3]).toBeGreaterThan(.65);
+      expect(cheek.bounds[0]+cheek.bounds[2]).toBeGreaterThan(250);
+      expect(cheek.bounds[1]).toBeLessThan(muzzle.bounds[1]+muzzle.bounds[3]);
+      expect(cheek.bounds[1]+cheek.bounds[3]).toBeGreaterThan(chest.bounds[1]+35);
+      expect(cheek.opaqueSupport).toBe(true);
+      expect(cheek.craft?.kind).toBe("fur");
+      expect(cheek.layers[0].color).toBe(chest.layers[0].color);
+      expect(cheek.layers[1].color).toBe(chest.layers[1].color);
+      expect(cheek.details?.find(d=>d.id==="fox-malar-light-fan")).toBeDefined();
+      expect(cheek.details?.find(d=>d.id==="fox-cervical-turn")).toBeDefined();
+      const fibres=cheek.details!.filter(d=>d.id?.startsWith("fibre-"));
+      expect(fibres).toHaveLength(12); // 4 anatomical fan guides × 3 pigment layers
+      expect(fibres.every(d=>d.width<.6&&d.path.includes(" Q"))).toBe(true);
+      for(const part of [cheek,chest,muzzle]){
+        expect(part.path).not.toMatch(/NaN|Infinity/);
+      }
+      expect(pencilLivingStudyDrawing({subject:"fox",aspect,seed:291}))
+        .toEqual(drawing);
+    }
   });
 
   it("anchors the fox's tapered nasal cartilage close to its eye instead of a disconnected 170px beak",()=>{

@@ -967,28 +967,36 @@ function fox():PencilSubjectPart[] {
         mark("M150 209 Q179 196 207 197 M200 216 Q225 207 245 211",
           "#BD7C69",.50,265,.58),
       ]},
-    {id:"cheek-ruff",material:"fur",
-      palette:["#B59278","#69534D","#D8B49A"],
-      // Narrow, layered malar-to-throat root strip, not an opaque gray
-      // triangular scarf. Its lower fibres grow into the existing white
-      // chest and neck fur while the skull still occludes the upper root.
-      path:"M251 225 C260 230 269 242 269 252 "+
-        "C271 263 267 272 261 281 C255 289 252 298 250 313 "+
-        "C247 302 245 292 244 282 C245 269 243 255 246 242 "+
-        "C247 235 249 230 251 225 Z",
-      bounds:[240,221,38,97],direction:64,start:150,
+    {id:"cheek-ruff",material:"fur",palette:pale,
+      // Second ArtCraft VISUAL FAILURE: the first shorter ivory strip
+      // still sat outside the cream chest as a separate drooping lobe.
+      // Real fox ventral malar fur sweeps rearward/inward toward the
+      // STRESSED cream thorax; only the hidden root is beneath the jaw.
+      // This original dry-pencil coat now overlaps the existing cervical
+      // field diagonally, where identical fur substrate prevents a sticker
+      // while independent directional pigment passes retain local craft.
+      path:"M249 227 C257 230 264 236 264 243 "+
+        "C263 251 256 254 250 260 C245 266 241 274 238 283 "+
+        "C235 277 229 273 226 264 C226 257 231 251 235 245 "+
+        "C240 238 245 231 249 227 Z",
+      bounds:[223,225,44,61],direction:56,start:150,
       details:[
         ...pencilRootedFur([
-          [252,236,259,286,258,258,31,8],
-          [250,263,251,307,245,289,35,7],
-          [255,278,251,306,258,292,30,7],
-        ],765,["#D6BBA1","#8B786E","#F2DEC5"],257),
-        mark("M251 245 Q261 260 262 278 M249 282 Q250 298 250 308",
-          "#E7CFB3",.40,279,.55),
+          [254,235,240,270,258,252,31,7],
+          [248,242,235,278,239,260,33,7],
+          [233,253,238,279,228,268,30,6],
+          [250,254,242,281,252,271,29,5],
+        ],765,["#E4D4BE","#8E867E","#FBEBD6"],257),
+        {...mark("M250 234 Q248 249 239 264 "+
+          "M245 252 Q240 267 236 277",
+          "#F4DFC5",.36,279,.55),id:"fox-malar-light-fan"},
+        {...mark("M255 242 C253 253 246 264 240 274 "+
+          "M236 247 Q230 260 234 270",
+          "#9B867A",.29,283,.43),id:"fox-cervical-turn"},
         ...pencilContourFringe([
-          [257,238,267,274,269,250,30,-1],
-          [261,281,250,309,258,297,29,-1],
-        ],905,["#D8BDA1","#9E8980","#F8E4C8"],255),
+          [263,243,238,283,261,268,30,-1],
+          [238,282,249,227,223,257,31,1],
+        ],905,["#E8D6BD","#A99C8D","#FFF2D8"],255),
       ]},
     {id:"eye-far",material:"glaze",palette:["#856B5E","#615250","#AE947D"],
       // Occluded far canthus: a shadow under the left brow, not a second eye.

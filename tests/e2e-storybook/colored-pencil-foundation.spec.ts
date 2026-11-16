@@ -158,6 +158,7 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
     for(const [specimen,focus,part] of [
       ["fox","fox-tail","tail-back"],
       ["fox","fox-eye","eye-near"],
+      ["fox","fox-cheek","cheek-ruff"],
       ["fox","fox-chest","chest"],
       ["fox","fox-forepaw","foreleg-right"],
       ["fox","fox-hock","rear-leg"],
@@ -212,6 +213,36 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
         expect(topology.tarsus).toBe(true);
         expect(topology.pupil).toBe(true);
         expect(topology.material).toBe("eye-near");
+      }
+      if(focus==="fox-cheek"){
+        const connection=await svg.evaluate(root=>{
+          const ctx=document.createElement("canvas").getContext("2d")!;
+          const outline=(name:string)=>{
+            const p=root.querySelector(
+              '[data-km-pencil-region="'+name+'"] [data-km-pencil-support]');
+            if(!p)throw new Error("No native pencil silhouette for "+name);
+            return new Path2D(p.getAttribute("d")!);
+          };
+          const cheek=outline("cheek-ruff");
+          const muzzle=outline("muzzle");
+          const chest=outline("chest");
+          const details=root.querySelector(
+            '[data-km-pencil-region="cheek-ruff"]')!;
+          return {
+            jaw:ctx.isPointInPath(cheek,253,235)&&
+              ctx.isPointInPath(muzzle,253,235),
+            neck:ctx.isPointInPath(cheek,240,265)&&
+              ctx.isPointInPath(chest,240,265),
+            softFan:!!details.querySelector(
+              '[data-km-pencil-trace="fox-malar-light-fan"]'),
+            cervicalTurn:!!details.querySelector(
+              '[data-km-pencil-trace="fox-cervical-turn"]'),
+          };
+        });
+        expect(connection.jaw).toBe(true);
+        expect(connection.neck).toBe(true);
+        expect(connection.softFan).toBe(true);
+        expect(connection.cervicalTurn).toBe(true);
       }
       if(focus==="fox-hock"||focus==="fox-forepaw"){
         const pose=await svg.evaluate((root,partId)=>{
