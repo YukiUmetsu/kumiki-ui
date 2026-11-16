@@ -959,6 +959,70 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
+  it("anchors all five Fuchun crooked old-pine trunks, bark and 20 boughs to one cubic anatomy",()=>{
+    const paint=(school:"fuchun"|"early-spring",frame=145,seed=71)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,seed,detail:1},
+      }));
+    const html=paint("fuchun");
+    const trees=[...html.matchAll(
+      /data-km-cliff-pine="" data-km-cliff-pine-root="([^"]+)" data-km-cliff-pine-crest="[^"]+" data-km-cliff-pine-height="([^"]+)" data-km-cliff-pine-centerline="([^"]+)"/g,
+    )];
+    expect(trees).toHaveLength(5);
+    const branches=[...html.matchAll(
+      /data-km-cliff-pine-bough="" data-km-cliff-pine-bough-root="([^"]+)" data-km-cliff-pine-bough-station="([^"]+)"/g,
+    )];
+    expect(branches).toHaveLength(20);
+    const bark=[...html.matchAll(
+      /data-km-cliff-pine-bark="" d="([^"]+)"/g,
+    )];
+    expect(bark).toHaveLength(5);
+    let bending=0;
+    for(let i=0;i<5;i++){
+      const root=trees[i][1].split(",").map(Number);
+      const coords=(trees[i][3].match(/-?\d+(?:\.\d+)?/g)??[])
+        .map(Number);
+      expect(coords).toHaveLength(8);
+      const [x,y,c1x,c1y,c2x,c2y,tipx,tipy]=coords;
+      expect(Math.abs(x-root[0])).toBeLessThan(.01);
+      expect(Math.abs(y-root[1])).toBeLessThan(.01);
+      expect(Math.abs(y-tipy-Number(trees[i][2]))).toBeLessThan(.01);
+      expect(c1y).toBeLessThan(y);
+      expect(c2y).toBeLessThan(c1y);
+      expect(tipy).toBeLessThan(c2y);
+      // A bent trunk has two independently selected tangent directions,
+      // never the old single-control quadratic pretending to be crooked.
+      const firstLean=c1x-x,secondLean=c2x-c1x;
+      if(firstLean*secondLean<0)bending++;
+      const point=(t:number)=>{
+        const u=1-t;
+        return [
+          u*u*u*x+3*u*u*t*c1x+3*u*t*t*c2x+t*t*t*tipx,
+          u*u*u*y+3*u*u*t*c1y+3*u*t*t*c2y+t*t*t*tipy,
+        ];
+      };
+      for(let j=0;j<4;j++){
+        const branch=branches[i*4+j];
+        const station=Number(branch[2]);
+        const actual=branch[1].split(",").map(Number);
+        const expected=point(station);
+        expect(Math.hypot(actual[0]-expected[0],
+          actual[1]-expected[1])).toBeLessThan(.055);
+      }
+      const barkRoot=(bark[i][1].match(/^M(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/)??[])
+        .slice(1).map(Number);
+      expect(bark[i][1]).toContain(" C");
+      expect(Math.hypot(barkRoot[0]-point(.13)[0],
+        barkRoot[1]-point(.13)[1])).toBeLessThan(.055);
+    }
+    expect(bending).toBeGreaterThanOrEqual(3);
+    expect(paint("fuchun")).toEqual(html);
+    expect(paint("fuchun",0)).toContain('data-km-cliff-pine-centerline=');
+    expect(paint("fuchun",299,87)).not.toEqual(html);
+    expect(paint("early-spring")).not.toContain('data-km-cliff-pine-centerline=');
+  });
+
   it("renders willow boughs as closed tapering brush geometry with fine attached leaves",()=>{
     const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:125,controls:{...DEFAULT_SHANSHUI,scene:"river-scholar",detail:1},
