@@ -469,7 +469,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   initialEyeContact="source-shade",initialMidfaceForm="baseline",
 }:StudyProps & {
   initialLashFinish?:CrayonF1LashFinish;
-  initialInspection?:"full"|"near-eye"|"far-eye"|"mouth";
+  initialInspection?:"full"|"near-eye"|"far-eye"|"mouth"|"nose";
   initialEyeContact?:Cc0EyeContact;
   initialMidfaceForm?:Cc0MidfaceForm;
 }){
@@ -630,6 +630,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
           <option value="source-alar">Source cartilage roof / curved nostril undercut (unapproved A/B)</option>
           <option value="source-oral">Source-curved lips / muted incisor wax contact (unapproved V15)</option>
           <option value="source-oral-sculpt">CC0 tooth-overhang / rounded inner lip wax (unapproved V16)</option>
+          <option value="source-nose-sculpt">CC0 attached nasal tip, alar and septal cartilage (unapproved V17)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -672,6 +673,12 @@ export const Cc0RegisteredFullFace:Story={
   name:"CC0 full face · source-registered wax anatomy (ArtCraft experiment)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}/>,
+};
+export const Cc0NasalCartilageSculptMacro:Story={
+  name:"CC0 human nose · source-rooted 3D cartilage wax 3× (unapproved V17)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-nose-sculpt" initialInspection="nose"/>,
 };
 export const Cc0OralContactSculptMacro:Story={
   name:"CC0 human mouth · source-rooted wax overlap 2.65× (unapproved V16)",
