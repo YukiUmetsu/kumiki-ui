@@ -128,6 +128,44 @@ describe("SHO1 shodō calligraphy", () => {
     expect(inspectShodoGlyph(own({ nope: 1 })).map(i => i.path)).toEqual(["/strokes/0/technique/nope"]);
   });
 
+  it("lifts the brush through a かな loop (結び) so the counter stays open, and only there", () => {
+    // A curve that comes down, goes once around a small loop, crosses its own path and leaves.
+    const ring = Array.from({ length: 14 }, (_, i) => {
+      const a = -Math.PI / 2 + i * 2 * Math.PI * 1.06 / 13;
+      return [Math.round(500 + 90 * Math.cos(a)), Math.round(560 + 90 * Math.sin(a))] as const;
+    });
+    const loop: ShodoGlyph = { char: "る", source: "original", strokes: [
+      { kind: "curve", start: "roho", end: "nuki", points: [[500, 230], ...ring, [700, 330], [800, 280]] }] };
+    const bowl: ShodoGlyph = { char: "し", source: "original", strokes: [
+      { kind: "curve", start: "roho", end: "nuki", points: [[380, 150], [380, 600], [460, 800], [620, 760], [760, 620]] }] };
+    const lift = (g: ShodoGlyph, musubiLift: number): ShodoGlyph =>
+      ({ ...g, strokes: g.strokes.map(st => ({ ...st, technique: { musubiLift } })) });
+    const plan = (g: ShodoGlyph) => planShodoWriting({ items: [{ glyph: g, x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE });
+    const press = (g: ShodoGlyph) => plan(g).strokes[0].samples.map(s => s.p);
+    const heavy = press(lift(loop, 0)), light = press(lift(loop, .6));
+    expect(light.length).toBe(heavy.length);
+    // Before the loop the brush is the same; inside it the press drops.
+    expect(light.slice(0, Math.floor(light.length * .15))).toEqual(heavy.slice(0, Math.floor(heavy.length * .15)));
+    const mid = (v: number[]) => Math.min(...v.slice(Math.floor(v.length * .4), Math.floor(v.length * .6)));
+    expect(mid(light)).toBeLessThan(mid(heavy) * .75);
+    // The counter opens: much less ink on a disc around the loop's centre.
+    const counterInk = (g: ShodoGlyph) => {
+      const p = plan(g);
+      const { rgba } = new ShodoInkSurface(p, { x: 0, y: 0, width: 400, height: 400, scale: 1 }).render(p.duration);
+      const cx = 20 + 500 * .36, cy = 20 + 560 * .36, r = 90 * .36 * .6;
+      let ink = 0, n = 0;
+      for (let y = Math.ceil(cy - r); y <= cy + r; y++) for (let x = Math.ceil(cx - r); x <= cx + r; x++) {
+        if ((x - cx) ** 2 + (y - cy) ** 2 > r * r) continue;
+        ink += rgba[(y * 400 + x) * 4 + 3] / 255; n++;
+      }
+      return ink / n;
+    };
+    expect(counterInk(lift(loop, .6))).toBeLessThan(counterInk(lift(loop, 0)) * .5);
+    // A curve without a loop is written the same whatever the setting.
+    expect(press(lift(bowl, .9))).toEqual(press(lift(bowl, 0)));
+    expect(inspectShodoGlyph(lift(loop, 1.5)).map(i => i.path)).toEqual(["/strokes/0/technique/musubiLift"]);
+  });
+
   it("writes a teacher's own form when the teacher has the character, and the rules elsewhere", async () => {
     const taught: ShodoGlyph = { char: "永", source: "teacher", strokes: [{ kind: "horizontal", points: [[120, 520], [880, 470]] }] };
     expect(shodoKaishoForm(taught)).toBe(taught);                       // already the teacher's shape

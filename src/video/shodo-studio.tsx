@@ -79,6 +79,7 @@ const PARAM_LABEL: Record<keyof ShodoTechniqueParams, string> = {
   haraiLift: "lift starts", kenshinLift: "lift starts",
   footPress: "foot press", footHold: "foot hold (s)", pullOut: "pull-out",
   tenPress: "press", tenHold: "hold (s)",
+  musubiLift: "lift in loops",
 };
 
 const page: CSSProperties = {
@@ -255,6 +256,8 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
         return <Slider key={key} name={`${basic.term} ${PARAM_LABEL[key]}`} value={style.technique[key]} min={min} max={max}
           step={(max - min) / 100} onChange={v => set("technique", { [key]: v } as Partial<ShodoTechniqueParams>)} />;
       }))}
+      <Slider name={`結び (かな) ${PARAM_LABEL.musubiLift}`} value={style.technique.musubiLift} min={SHODO_TECHNIQUE_RANGES.musubiLift[0]}
+        max={SHODO_TECHNIQUE_RANGES.musubiLift[1]} step={.01} onChange={v => set("technique", { musubiLift: v })} />
     </Group>
     <Group title="Ink · 墨">
       <label style={label}>Ink

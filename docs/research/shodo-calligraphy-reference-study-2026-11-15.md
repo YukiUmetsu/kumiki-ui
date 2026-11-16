@@ -343,6 +343,39 @@ These numbers say how closely the engine reproduces this teacher's own models. T
 
 **Limits.** 25 characters keep the rules; 侍 still loses 亻 and stays rejected.
 
+## 2.15 Eleventh study round: whole shots, the hand on the sheet, and かな loops
+
+**Why 38 characters had no form.** None of the causes was in the teacher's writing:
+- *The shot ended or began too early.* The end-of-shot test watches a strip just inside the paper's left edge, which a crossfade changes for good. A hand that writes near that edge (亻, a left sweep, the left dot of 小) changes it too, for a few seconds. In 33 videos the shot ended before the last strokes (方 小 太 参 考 池 町) or began after the first ones (信 侍 福 九 八 名 春). Steady stretches of the strip are now joined across a gap of up to 8 s when the ink from before the gap is still exactly in place after it: no shift of one or two pixels fits better, and 95 % of it is kept. A still of the finished sheet after the writing is shifted by a pixel and is never joined.
+- *The hand was still on the sheet.* The clean step found the paper in the last frame. When the hand was still on the sheet, the paper had a notch, and the ink next to it was dropped: 建 kept 291 of 12,657 pixels, and 人 小 方 呼 太 参 kept none. The paper is now the convex outline of the bright region. The clean step drops a mark as part of the paper's border only when the mark lies mostly in the border band or meets the band over more than 150 pixels. A stroke whose tip reaches the edge (the sweep of 人) stays.
+- *Seven videos were missing.* Six downloaded on a second try. The video for か still fails (HTTP 403).
+
+**Lines.** The clean step now drops seams between the sheet and a white side bar, creases and grid lines: marks at least 30 px long, never more than 7 px thick and at most 6 px wide on average. The completeness check ignores straight patches (at most 15 px thick, at least 60 px long). All ten videos that it still flagged showed only the lower edge of the paperweight or a seam. No video is incomplete now (23 in round five).
+
+**More of each character is timed.** Strokes that the shot used to miss now have a writing time. The stroke split now gets 不 九 八 右 行 好 必 名 春 right, and each stroke's pace comes from the teacher's complete writing time.
+
+**結び (かな loops).** In 17 かな (あ お す な ぬ ね は ひ ほ ま み め よ る ゐ ゑ を), a curve comes back across its own path. The teacher's loops keep an open counter; ours filled with ink. The engine now eases the press through such a loop (`technique.musubiLift`, default 0.25). A loop counts only where the path returns within 0.8 stroke widths after at least 3 widths, and the largest circle inside it is 0.6 to 4 widths across. Hairpin turns and wide bowls are therefore unchanged. Over the 17 かな, 0.25 gave the best overlap (0.653; 0.650 with no lift), and on review it opens the counters. Fitting the lift stroke by stroke did not help. Matching the loop's line width closed the counters again. Matching the counter's area thinned る and ゐ to a hairline, because their loops are smaller than the teacher's: the size of the loop is the next thing to learn.
+
+**Review.** Every added, replaced or re-rendered form was compared with the teacher:
+- 30 forms were added. 侍 is among them: its 亻 is now in the data, so it is no longer rejected.
+- 29 forms were replaced. 女 gets back the horizontal stroke that the old shot missed.
+- 17 かな now have lighter loops.
+
+午, 達 and 秋 keep their round-five forms: the new ones merge the top strokes of 午, break the 辶 of 達 and shrink the sweep of 火 in 秋. 統 keeps its round-five form, which only the new stroke labels disagree with. や keeps the rules, because the new form loses its loop.
+
+**Result.** Best-aligned overlap with the teacher's live writing, on the new reference ink. On the same ink, the round-five forms score 0.737 for kanji and 0.676 for かな.
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (371) | 0.590 | 0.750 |
+| Kana (47) | 0.501 | 0.679 |
+| The 410 characters with a form | 0.582 | 0.747 (all better) |
+
+**Limits.**
+- 8 characters keep the rules: や after review, and ゆ 八 建 桜 様 短 読, whose forms fail a check. 建 and 様 still have debris in the teacher's ink: a seam piece, and the shadow of the hand that holds the sheet.
+- か has no video.
+- The loops of る ゐ ぬ ね are smaller than the teacher's.
+
 ## 3. From observation to model
 
 | Observation | Model decision |

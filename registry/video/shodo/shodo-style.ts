@@ -137,6 +137,8 @@ export interface ShodoTechniqueParams {
   /** 点: extra press and hold of the dot. */
   tenPress: number;
   tenHold: number;
+  /** 結び: how much the brush lifts through the loop of a かな curve, so its counter stays open. */
+  musubiLift: number;
 }
 
 export interface ShodoStyle {
@@ -238,6 +240,7 @@ export const DEFAULT_SHODO_TECHNIQUE: ShodoTechniqueParams = {
   haraiLift: .42, kenshinLift: .62,
   footPress: .46, footHold: .1, pullOut: .22,
   tenPress: .12, tenHold: .12,
+  musubiLift: .25,
 };
 
 export const DEFAULT_SHODO_STYLE: ShodoStyle = {
@@ -287,6 +290,7 @@ export const SHODO_TECHNIQUE_RANGES: Record<keyof ShodoTechniqueParams, Range> =
   haraiLift: [.1, .9], kenshinLift: [.1, .95],
   footPress: [0, 1], footHold: [0, .4], pullOut: [0, .8],
   tenPress: [0, 1], tenHold: [0, .4],
+  musubiLift: [0, .9],
 };
 const PAPER_RANGES: Record<Exclude<keyof ShodoPaper, "color">, Range> = {
   absorbency: [0, 1], fibre: [0, 1], tooth: [0, 1], dryingSeconds: [.5, 12],
