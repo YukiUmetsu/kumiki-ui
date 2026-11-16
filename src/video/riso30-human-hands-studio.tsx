@@ -7,6 +7,7 @@ import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import {COURIER} from "./riso-character-demo";
 import {PAPER_ARTIST} from "./riso-human-ensemble";
 import {RISO30_ANAT1_HAND,inspectRisoHandArtcraft,layoutRisoHandArtcraft} from "./riso-hand-artcraft";
+import {riso53InspectSourceDepth} from "./riso53-palmar-depth-composition";
 import type {RisoHandSide} from "./riso-hand-artcraft";
 import {RISO31_ANAT1_REFERENCE,riso31Inspect} from "./riso31-finger-phalanges";
 import {inspectRiso32ThumbIp,RISO32_THUMB_ANAT1} from "./riso32-thumb-ip";
@@ -59,6 +60,10 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     p.id===side+"-wrist-underprint-clearance").map(p=>p.id),[actor,side]);
   const region=inspectRisoHandArtcraft(actor,frame,side);
   const bones=riso31Inspect(actor,frame,side);
+  const riso53Overlap=riso53InspectSourceDepth(actor.parts,
+    actor.id as "courier"|"paper-artist");
+  const riso53VisibleSourceOrder=side===riso53Overlap.side?
+    riso53Overlap.farRedBehind:0;
   const mainPalmSource=pose.parts.find(p=>p.id===side+"-glove");
   const mcpPlateSource=pose.parts.find(p=>p.id===side+"-glove-knuckle-arc");
   const riso51MorphParts=actor.parts.filter(p=>
@@ -96,6 +101,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso51-live-source-morph-parts={riso51MorphParts}
     data-km-riso52-cobalt-red-terminal-pairs={riso52TerminalPairs}
     data-km-riso51-palm-projected={String(riso51PalmChanged)}
+    data-km-riso53-original-red-support-behind-palm={riso53VisibleSourceOrder}
     data-km-riso32-ip-articulated={String(thumb.independentRedSegments)}
     data-km-riso32-ip-flexion={thumb.ipLocalAngle.toFixed(2)}
     data-km-riso33-minimum-axis-gap={spacing.minimumAxisGap.toFixed(3)}
@@ -173,7 +179,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO52</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO53</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
