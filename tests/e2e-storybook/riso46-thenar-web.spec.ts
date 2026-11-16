@@ -32,6 +32,11 @@ test("RISO46 real red thenar and cobalt web print through both physical masters"
       await expect(panel).toHaveAttribute("data-km-riso36-source-contours","12");
       await expect(panel).toHaveAttribute("data-km-riso50-source-mcp-planes","4");
       await expect(panel).toHaveAttribute("data-km-riso50-palm-cubics","16");
+      await expect(panel).toHaveAttribute("data-km-riso57-source-landmarks","16");
+      await expect(panel).toHaveAttribute("data-km-riso57-original-positive-contour","true");
+      const webInset=Number(await panel.getAttribute("data-km-riso57-first-web-inset"));
+      expect(webInset).toBeGreaterThan(.9);
+      expect(webInset).toBeLessThan(3);
       const id=await panel.getAttribute("data-km-riso30-hand");
       const isHandoff=id==="courier-right"||id==="paper-artist-left";
       await expect(panel).toHaveAttribute("data-km-riso51-live-source-morph-parts",isHandoff?"14":"0");
