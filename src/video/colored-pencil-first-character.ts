@@ -72,6 +72,33 @@ function newHeadValuePencil(
 export const NEW_CHARACTER_01_ID="head-silhouette-01" as const;
 export const NEW_CHARACTER_01_STAGE="head-outline" as const;
 
+/** Source-of-truth for this new head, shared by its drawing and native
+ * Storybook construction overlay. These are generated mesh coordinates,
+ * NOT independent source-photo landmarks or claims of ArtCraft acceptance.
+ * Keep facial details absent until the whole head silhouette is approved.
+ */
+const NEW_HEAD_FACE={
+  norm:"north-american-white" as const,sex:.69,eyeSpacing:.07,
+  noseWidth:.02,noseLength:.10,lowerFace:.23,faceWidth:1.035,
+};
+const NEW_HEAD_YAW=17*Math.PI/180;
+const projectNewHeadPoint=(vertex:readonly number[]):Point=>[
+  r(224+1.36*(vertex[0]*Math.cos(NEW_HEAD_YAW)+
+    (vertex[2]-50)*Math.sin(NEW_HEAD_YAW))),
+  r(227-1.44*vertex[1]+.03*(vertex[2]-50)),
+];
+export const NEW_CHARACTER_01_INSPECTION_KEYS=[
+  "forehead","glabella","zygion.R","zygion.L",
+  "cheekbone.R","cheekbone.L","gonion.R","gonion.L","menton",
+] as const satisfies readonly (keyof typeof FACE_LANDMARKS)[];
+
+export function newCharacterHeadInspectionAnchors(){
+  const face=createFace(NEW_HEAD_FACE);
+  return NEW_CHARACTER_01_INSPECTION_KEYS.map(id=>({
+    id,point:projectNewHeadPoint(face.vertices[FACE_LANDMARKS[id]]),
+  }));
+}
+
 /** Fresh original skull/vault blockout: measured lower face plus newly
  * authored parietal and frontal arch; NO previous woman silhouette. */
 export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
@@ -79,23 +106,15 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
     throw new RangeError("New character study requires a valid drawing seed");
   // Fresh proportions, camera yaw, outline and local marks are independent
   // of pencilPortraitAnatomy() and the retired woman face() factory.
-  const face=createFace({
-    norm:"north-american-white",sex:.69,eyeSpacing:.07,
-    noseWidth:.02,noseLength:.10,lowerFace:.23,faceWidth:1.035,
-  });
-  const yaw=17*Math.PI/180,c=Math.cos(yaw),s=Math.sin(yaw);
-  const project=(vertex:readonly number[]):Point=>[
-    r(224+1.36*(vertex[0]*c+(vertex[2]-50)*s)),
-    r(227-1.44*vertex[1]+.03*(vertex[2]-50)),
-  ];
+  const face=createFace(NEW_HEAD_FACE);
   const at=(key:keyof typeof FACE_LANDMARKS):Point=>
-    project(face.vertices[FACE_LANDMARKS[key]]);
+    projectNewHeadPoint(face.vertices[FACE_LANDMARKS[key]]);
   // Browser 960×540 review rejected the unmodified face MASK: it was a
   // flat-topped salmon shield, not a skull. MediaPipe deliberately STOPS at
   // the hairline and lacks the cranial vault. Keep the mesh's measured lower
   // face/jaw points, but lift an independently drafted vault from observed
   // head/skull construction ratios. This is still a FIRST-STAGE outline.
-  const faceRing=FACE_FEATURES.oval.loop.map(i=>project(face.vertices[i]));
+  const faceRing=FACE_FEATURES.oval.loop.map(i=>projectNewHeadPoint(face.vertices[i]));
   if(faceRing.length<30||faceRing.some(p=>p.some(v=>!Number.isFinite(v))))
     throw new Error("Missing ANAT1 facial outline anchor points");
   const faceTop=Math.min(...faceRing.map(p=>p[1]));
