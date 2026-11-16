@@ -12,7 +12,9 @@ import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
 import {COURIER} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
-import {risoHandArtcraftParts,RISO30_GRIP_FOREGROUND_IDS} from "./riso-hand-artcraft";
+import {risoHandArtcraftParts} from "./riso-hand-artcraft";
+import {riso43FrontIndexIds} from "./riso43-physical-paper-depth";
+import {inspectRiso44PrintedIndexContact} from "./riso44-source-index-paper-contact";
 import {evaluateRiso40PaperGrip} from "./riso40-paper-fingertip-contact";
 import {inspectRiso41InkPressure} from "./riso41-contact-pressure";
 import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
@@ -319,18 +321,12 @@ const personPoint=(spec:RisoCharacterSpec,frame:number,joint:string,x:number,y:n
   return {x:x+pose.x*scale,y:y+pose.y*scale};
 };
 /**
- * Only original rigged finger/digit contours overprint the already-opaque
- * physical letter. The palms, sleeves, coats and faces stay behind the paper.
- * This is depth ordering, not a fake sticker or alpha-blended actor.
+ * RISO43 real paper sandwich: all source figures including thumb and the
+ * supporting 3 fingers are deposited BEFORE opaque paper. ONLY the three
+ * articulated original index RED phalanges and their own COBALT creases/nail
+ * are reprinted above it. Not a detached sticker or blend/mask trick.
+ * The native RisoPrint ordered foreground passes supply depth.
  */
-const risoGripParts=(side:"left"|"right"):readonly string[]=>[
-  side+"-glove-index",side+"-glove-middle",side+"-glove-ring",side+"-glove-pinky",side+"-glove-thumb",
-  // Physically deposited moving PIP/DIP sections belong above the letter.
-  ...riso31SegmentIds(side),
-  riso32ThumbDistalId(side),
-  side+"-finger-joint-lines",side+"-glove-detail",side+"-glove-thumb-fold",
-  ...RISO30_GRIP_FOREGROUND_IDS(side),
-];
 /** Exact geometry for a prop between two authored hand contact anchors.
  * Stage space, including aspect and placements, must be computed once. */
 export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="landscape",
@@ -394,9 +390,13 @@ export function evaluateRisoHumanEnsemble(frame:number,aspect:EnsembleAspect="la
     handoff.paperStart,handoff.paperEnd,handoff.progress,
     {...paperOptions,sourceGrip:sourceContactPressure,
       receiverGrip:receiverContactPressure});
+  const donorRedPaper=inspectRiso44PrintedIndexContact(COURIER,frame,"right",
+    first,printDetails.outline);
+  const receiverRedPaper=inspectRiso44PrintedIndexContact(PAPER_ARTIST,frame,"left",
+    second,printDetails.outline);
   return {...handoff,sourceTouching,receiverTouching,
     sourceContactPressure,receiverContactPressure,
-    donorGrip,artistGrip,donorInk,receiverInk,
+    donorGrip,artistGrip,donorInk,receiverInk,donorRedPaper,receiverRedPaper,
     frame,aspect,width,height,first,second,source:a,receiver:b,
     propEnd:handoff.paperEnd,progress:handoff.progress,
     sheet:printDetails.outline,printDetails};
@@ -484,9 +484,9 @@ export function RisoHumanEnsembleStudio(){
     personPoint(spec,frame,joint,stage.x,stage.y,stage.scale)));
   const gripLayer=(spec:RisoCharacterSpec,stage:{x:number;y:number;scale:number},
     side:"left"|"right",id:string):RisoForegroundLayer=>{
-    const onlyPartIds=risoGripParts(side);
-    // Cut paper only under the real closed RED proximal/distal digit masses.
-    // The IP/PIP/DIP caps are independently moving ink sources, not stickers.
+    const onlyPartIds=riso43FrontIndexIds(side);
+    // Cut through paper only under real index PIP/DIP RED source stamps.
+    // Thumb IP and ulnar support digits remain below the opaque sheet.
     const solidDigits=spec.parts.filter(p=>onlyPartIds.includes(p.id)&&
       p.plate==="red"&&p.paint==="solid"&&!p.knockoutOnly).map(p=>p.id);
     return {
@@ -546,13 +546,14 @@ export function RisoHumanEnsembleStudio(){
         data-km-riso27-playing={playing?"yes":"no"} data-km-riso27-fps={RISO_ENSEMBLE_FILM_FPS}
         data-km-riso27-source-frame={frame}
         data-km-riso28-footfall={frame>=165?"grounded":"approaching"}>
-      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO27 / 24 FPS HANDOFF FILM · SOURCE CONTACT SHEET</div>
+      <div style={{fontWeight:800,letterSpacing:2,fontSize:12}}>RISO43 / 24 FPS HANDOFF FILM · TWO-LAYER PHYSICAL PAPER PINCH</div>
       <h2 style={{font:"700 29px Georgia,serif",margin:"8px 0"}}>Two original figures · a printed-sheet exchange</h2>
       <p style={{fontSize:13,maxWidth:900,lineHeight:1.5}}>
         Distinct coat, bob hair and facial geometry for the Paper Artist; the Courier retains
         its existing body and satchel grip. The curved printed sheet follows both evaluated hands through a shared physical contour,
         with controllable curl, grip compression, screened fold and original address engravings.
-        The joint-posed fingertips print in front of paper during contact, and the Courier
+        Only the real index-finger ink prints in front of paper; the opposing red thumb and other three
+        digits stay below the opaque sheet. During contact, the Courier
         releases the sheet while the Paper Artist keeps holding it. Release timing, duration
         and tilt are authored; original material-local pressure folds and screened compression
         track the two hand grips. This is not a force-based collision solver.
@@ -684,6 +685,10 @@ export function RisoHumanEnsembleStudio(){
           data-km-riso-human-ensemble-paper-curl={paperCurl}
           data-km-riso-human-ensemble-grip-pinch={gripPinch}
           data-km-riso-human-ensemble-imprint-depth={imprintDepth}
+          data-km-riso44-donor-index-ink-paper-gap={Number.isFinite(state.donorRedPaper.nearestIndexPaperInkGap)?state.donorRedPaper.nearestIndexPaperInkGap.toFixed(3):"none"}
+          data-km-riso44-receiver-index-ink-paper-gap={Number.isFinite(state.receiverRedPaper.nearestIndexPaperInkGap)?state.receiverRedPaper.nearestIndexPaperInkGap.toFixed(3):"none"}
+          data-km-riso44-donor-index-overpaper={state.donorRedPaper.redIndexAreaTouchesPaper}
+          data-km-riso44-receiver-index-overpaper={state.receiverRedPaper.redIndexAreaTouchesPaper}
           data-km-riso41-donor-ink-gap={state.donorInk.inkGap.toFixed(3)}
           data-km-riso41-receiver-ink-gap={state.receiverInk.inkGap.toFixed(3)}
           data-km-riso41-donor-pad-pressure={state.donorInk.pressure.toFixed(3)}
@@ -694,6 +699,8 @@ export function RisoHumanEnsembleStudio(){
           data-km-riso40-receiver-fingertip-anchor={state.artistGrip.anchorToRoot.toFixed(3)}
           data-km-riso-paper-source-contact={state.sourceContactPressure.toFixed(3)}
           data-km-riso-paper-receiver-contact={state.receiverContactPressure.toFixed(3)}
+          data-km-riso43-front-printed-index-parts={riso43FrontIndexIds("right").length}
+          data-km-riso43-paper-layering="index-above-thumb-below"
           data-km-riso-human-ensemble-contact-overprint={fingertipOcclusion}
           data-km-riso-handoff-phase={state.phase}
           data-km-riso-handoff-owner={state.owner}
