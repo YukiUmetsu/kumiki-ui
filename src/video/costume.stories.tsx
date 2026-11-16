@@ -1,6 +1,9 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { CostumeSheet, GarmentCard, OutfitCard } from "../../registry/costume/costume-react";
+import { CostumeFigure, CostumeSheet, GarmentCard, OutfitCard } from "../../registry/costume/costume-react";
+import { GARMENTS } from "../../registry/costume/costume-data";
+import { FABRIC_BENDING, FOLD_RULES, bendingLength } from "../../registry/costume/costume-drape";
+import { garmentShape } from "../../registry/costume/costume-shapes";
 import { findGarments, findOutfits, parseCostumeQuery } from "../../registry/costume/costume-query";
 
 const page = { display: "grid", gap: 16, alignContent: "start", padding: 24, minHeight: "100vh", background: "var(--km-surface-canvas, #f6f3f1)", color: "var(--km-text-primary, #242424)",
@@ -35,8 +38,22 @@ function Finder() {
   );
 }
 
+/** Folds and garment details up close (costume-drape.ts): fold size from each cloth's stiffness, necklines, signatures and patterns. */
+function DrapeDetail() {
+  const ids = ["kimono", "furisode", "hakama", "haori", "junihitoe", "cheongsam", "hanbok", "sari", "toga", "kilt", "suit", "frock-coat", "dirndl", "kente", "chiton", "crinoline"];
+  return (
+    <main style={page}>
+      <p style={{ margin: 0, font: "13px/1.5 var(--km-font-sans, system-ui, sans-serif)" }}>Folds hang about four bending lengths apart: soft silk in many narrow folds, wool broader, stiff cloth in few. {FOLD_RULES[2]} Crossed collars are always left over right (a "y" seen from the front); drapes go over the wearer's left shoulder.</p>
+      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))" }}>{ids.map(id => { const g = GARMENTS.find(x => x.id === id)!, s = garmentShape(g); return (
+        <figure key={id} style={{ margin: 0, display: "grid", gap: 4 }}><CostumeFigure garments={[g]} height={320} />
+          <figcaption style={{ font: "12px/1.4 var(--km-font-sans, system-ui, sans-serif)" }}><b>{g.name}</b> · {g.fabrics?.find(f => FABRIC_BENDING[f.toLowerCase()]) ?? "cotton (default)"}, bending length {(bendingLength(g) * 100).toFixed(1)} cm{s.drapeInfo ? `, ${s.drapeInfo.count} folds across the front` : ""}{s.neckline !== "none" ? ` · ${s.neckline} neck` : ""}{s.pattern !== "none" ? ` · ${s.pattern}` : ""}</figcaption></figure>); })}</div>
+    </main>
+  );
+}
+
 const meta = { title: "Video production/Art Foundations/Clothing and Costume", id: "video-costume", component: SheetStory, parameters: { layout: "fullscreen" } } satisfies Meta<typeof SheetStory>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Sheet: Story = { render: () => <SheetStory /> };
 export const FinderStory: Story = { name: "Costume finder", render: () => <Finder /> };
+export const Drape: Story = { name: "Drape and details", render: () => <DrapeDetail /> };
