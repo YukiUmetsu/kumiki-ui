@@ -2531,23 +2531,37 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
               .28*s(seed+1957,i*11+j*41+k*23));
           const sweep=direction*(k===0?1:-1);
           const lobeCount=6+(i+j+k)%3;
+          // National Palace Museum Fuchun tree detail: upper foliage
+          // travels as separately loaded horizontal brush accents, not
+          // forty identical sine-arched umbrella caps. Keep each parent
+          // rooted and all its 6–8 living lobes, but use two offset
+          // pressure crests with an actual dry trough between them.
+          const parentRhythm=s(seed+7739,i*61+j*31+k*43);
+          const firstLoad=.34+.14*parentRhythm;
+          const secondLoad=.68-.11*parentRhythm;
+          const dryValley=.535+.025*(parentRhythm-.5);
           const peaks=Array.from({length:lobeCount},(_,n)=>{
             const t=(n+1)/(lobeCount+1)+
               (school==="fuchun"?
                 (s(seed+7177,i*31+j*47+k*19+n*13)-.5)*.045:0);
-            // v48 screenshot rejected all forty flat-top miniature
-            // gray slabs. The upper dot sequence must recede towards
-            // both true bough-joined ends, not hold an identical tall
-            // wall of pigment at the first and last tip. A smooth
-            // sine-eased envelope creates unequal parent-rooted
-            // calligraphic pine tufts without clipping needle detail;
-            // tiny asymmetry comes from the existing ink-seed rhythm.
+            // Keep the paper-lit tips tapered, but let distinct
+            // brush loads rise and descend at different stations.
+            // The dry trough is NOT a random jagged SVG path; it is
+            // a compositional release between two attached pine
+            // needle deposits. The connected woody branch stays put.
             const taper=school==="fuchun"
-              ?Math.pow(Math.max(0,Math.sin(Math.PI*t)),1.26)
+              ?Math.pow(Math.max(0,Math.sin(Math.PI*t)),.87)
               :1;
             const liftFactor=school==="fuchun"
-              ?(.09+.89*taper)*
-                (.81+.19*s(seed+1961,i*79+j*43+k*19+n*17))
+              ?(()=>{
+                const load=(center:number,width:number)=>
+                  Math.exp(-Math.pow((t-center)/width,2));
+                const loaded=.36+
+                  .65*load(firstLoad,.165)+.69*load(secondLoad,.17)-
+                  .52*load(dryValley,.078);
+                return (.075+taper*Math.max(.22,loaded))*
+                  (.88+.2*s(seed+1961,i*79+j*43+k*19+n*17));
+              })()
               :.41+.59*s(seed+1961,i*79+j*43+k*19+n*17);
             const yLift=crest*liftFactor+
               (n%4===0?(school==="fuchun"?.27:.7):0);
