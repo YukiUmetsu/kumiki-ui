@@ -8,6 +8,9 @@ on:
       - "src/video/riso32-thumb-ip.ts"
       - "src/video/riso33-hand-negative-space.ts"
       - "src/video/riso36-red-silhouette-gate.ts"
+      - "src/video/riso37-anatomical-engraving.ts"
+      - "src/video/riso-hand-artcraft.ts"
+      - "tests/riso37-anatomical-engraving.test.ts"
       - "tests/riso36-red-silhouette-gate.test.ts"
       - "src/video/riso30-human-hands-studio.tsx"
       - "tests/riso32-thumb-ip-artcraft.test.tsx"
@@ -35,7 +38,7 @@ jobs:
       - name: Strict TypeScript and legacy animated source contracts
         run: |
           npm run typecheck
-          npm run test -- tests/riso32-thumb-ip-artcraft.test.tsx tests/riso36-red-silhouette-gate.test.ts tests/riso29-human-anatomy-neck-portrait.test.tsx tests/riso-character.test.tsx tests/riso17-anatomical-grip.test.tsx tests/riso21-ocular-print-artcraft.test.tsx
+          npm run test -- tests/riso32-thumb-ip-artcraft.test.tsx tests/riso36-red-silhouette-gate.test.ts tests/riso37-anatomical-engraving.test.ts tests/riso29-human-anatomy-neck-portrait.test.tsx tests/riso-character.test.tsx tests/riso17-anatomical-grip.test.tsx tests/riso21-ocular-print-artcraft.test.tsx
       - name: Build real Storybook
         run: npm run build-storybook
       - name: Chromium
