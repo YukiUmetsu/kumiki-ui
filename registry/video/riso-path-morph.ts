@@ -63,7 +63,11 @@ export function evaluateRisoPathMorph(keys:readonly RisoPathMorphKey[],frame:num
   let index=0;
   while(index+1<keys.length&&keys[index+1].frame<=frame)index++;
   const source=keys[index],next=keys[index+1];
-  if(!next||source.easing==="hold"||frame===source.frame)return source.d;
+  // An equal-source hold must remain byte-identical: reserializing 16
+  // unchanged Bézier points changes whitespace / decimals, defeats
+  // exact original-ink identity and wastes a whole SVG parser per cel.
+  if(!next||source.easing==="hold"||frame===source.frame||
+    source.d===next.d)return source.d;
   const t=Math.max(0,Math.min(1,(frame-source.frame)/(next.frame-source.frame)));
   const ease=source.easing==="ease"?t*t*(3-2*t):t;
   if(ease===0)return source.d;
