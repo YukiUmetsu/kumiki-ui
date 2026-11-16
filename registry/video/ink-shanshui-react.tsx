@@ -91,11 +91,12 @@ const RIDGES:Record<ShanshuiScene,readonly (readonly P[])[]>={
     // Fuchun source: rolling crag shoulder, short rock saddles and an
     // uneven but continuous summit; NOT one geometric triangular apex.
     [[-60,334],[64,271],[146,288],[254,195],[340,251],
-      // Independent high-side rock brow and modest paper saddle: a
-      // physically continuous second crest, not another pigment stamp.
-      // The farther 559px summit remains the hero geological support.
-      [420,222],[452,200],[474,170],[492,154],[512,165],
-      [531,132],[545,113],[559,105],[572,111],[588,126],
+      // Native 1.65x comparison rejected a second triangular summit:
+      // the 492/512 V-notch read as another vector sticker. Retain one
+      // geological support and make its left shoulder a BROAD rounded
+      // contour with a held bench, continuous flow and no false spike.
+      [420,222],[452,205],[474,184],[492,173],[512,170],
+      [531,147],[545,124],[559,105],[572,111],[588,126],
       [603,137],[622,166],[647,181],[672,172],[707,154],
       [741,159],[763,183],[790,208],[825,221],[1050,318]],
     [[-60,430],[78,359],[160,405],[275,298],[338,361],[427,304],[530,235],[586,274],[713,340],[812,295],[1050,383]],
