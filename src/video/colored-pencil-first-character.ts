@@ -114,8 +114,10 @@ function newHeadPlanePigment(
     const cx=x0+w*plane.center[0],cy=y0+h*plane.center[1];
     const rx=w*plane.radii[0],ry=h*plane.radii[1];
     const cs=Math.cos(plane.skew),sn=Math.sin(plane.skew);
-    for(let layer=0;layer<3;layer++)for(let group=0;group<3;group++){
-      const strokes:string[]=[];
+    for(let layer=0;layer<3;layer++){
+      const layerMarks:string[]=[];
+      for(let group=0;group<3;group++){
+        const strokes:string[]=[];
       for(let i=0;i<150;i++){
         const key=part*79031+layer*12947+group*313+i;
         const theta=2*Math.PI*pencilHash(seed,key,71);
@@ -139,13 +141,26 @@ function newHeadPlanePigment(
           [x+vx*len*.54+ox*bow*.22,
             y+vy*len*.54+oy*bow*.22]));
       }
-      traces.push(drawn(
-        "newhead-plane-"+plane.id+"-"+layer+"-"+group,
-        strokes.join(" "),plane.colors[layer],
-        [.43,.34,.27][layer],
-        [.40,.34,.29][layer]*plane.load,
-        162+layer*22+part*4+group*3,
-      ));
+        // Preserve every original mark; the old three 150-sample groups
+        // redundantly used 54 trace slots. Two visually identical,
+        // serialized-budget-bound chunks leave room for independently
+        // editable anatomical tonal mass, with NO marks discarded.
+        layerMarks.push(...strokes);
+      }
+      const middle=Math.ceil(layerMarks.length/2);
+      for(let chunk=0;chunk<2;chunk++){
+        const trace=layerMarks.slice(chunk===0?0:middle,
+          chunk===0?middle:layerMarks.length).join(" ");
+        if(trace.length>12000||trace.length<2)
+          throw new Error("Cranial base pencil trace exceeds CP-F1 12kB bound");
+        traces.push(drawn(
+          "newhead-plane-"+plane.id+"-"+layer+"-"+chunk,
+          trace,plane.colors[layer],
+          [.43,.34,.27][layer],
+          [.40,.34,.29][layer]*plane.load,
+          162+layer*22+part*4+chunk*3,
+        ));
+      }
     }
   });
   return traces;
@@ -191,12 +206,17 @@ export function newHeadCranialTonalVolume(
   const weights=[.74,.61,.44] as const;
   const strokes:string[][][]=Array.from({length:5},()=>
     Array.from({length:3},()=>[] as string[]));
-  // Fixed samples per crosshatch: the fill is deterministic and bounded.
-  // A modest number of longer broad contacts establishes underlying mass;
-  // crossed thinner contacts retain visible grain and directional flow.
+  // Fill each of 5 values with an exact, independently preserved count.
+  // The CP-F1 contract bounds a trace to 12k chars and a material region
+  // to 80 traces; sampling more and silently throwing samples away would
+  // undermine the original high-detail requirement. The 15 new traces
+  // retain all planned marks without changing those resource limits.
   for(let pass=0;pass<3;pass++){
-    const count=[11400,10300,9200][pass];
-    for(let i=0;i<count;i++){
+    const budgets=[134,170,176,184,105] as const;
+    const collected=budgets.map(()=>0);
+    let i=0;
+    while(collected.some((n,band)=>n<budgets[band])&&i<150000){
+      const key=pass*523991+i++;
       const key=pass*523991+i;
       const x=left+width*pencilHash(seed,key,401);
       const y=top+height*pencilHash(seed,key,402);
@@ -211,6 +231,7 @@ export function newHeadCranialTonalVolume(
       const bounce=u>.57&&v>-.43&&v<.66&&z<.59;
       const band=bounce?4:light>.68?0:light>.39?1:
         light>.12?2:3;
+      if(collected[band]>=budgets[band])continue;
       const edge=Math.pow(1-r2,.28);
       // Sparse reserves reveal paper tooth; avoid a rigid ellipse edge.
       if(pencilHash(seed,key,403)>.64+.36*edge)continue;
@@ -229,7 +250,10 @@ export function newHeadCranialTonalVolume(
         [x+ux*span*.49+orthoX*deflect*.27,
          y+uy*span*.49+orthoY*deflect*.27],
       ));
+      collected[band]++;
     }
+    if(collected.some((n,band)=>n!==budgets[band]))
+      throw new Error("Cranial ellipsoid failed to cover all five values");
   }
   const out:PencilTrace[]=[];
   for(let band=0;band<5;band++)for(let pass=0;pass<3;pass++){
@@ -237,8 +261,11 @@ export function newHeadCranialTonalVolume(
       throw new Error("Stage-1 ellipsoid missing a pencil value region");
     const id=["highlight","light","halftone",
       "core-shadow","reflected-light"][band];
+    const strokePath=strokes[band][pass].join(" ");
+    if(strokePath.length>12000)
+      throw new Error("Cranial tonal-pigment trace exceeds CP-F1 12kB bound");
     out.push(drawn("newhead-cranium-"+id+"-cross"+pass,
-      strokes[band][pass].join(" "),
+      strokePath,
       palette[band][pass],weights[pass],
       opacities[band]*[.86,1,.76][pass],
       173+band*4+pass*7));
