@@ -3,7 +3,6 @@ import type {RisoPathMorphKey} from "../../registry/video/riso-path-morph";
 import {RISO31_GEOMETRY,riso31PhalanxSourcePath} from "./riso31-finger-phalanges";
 import {RISO48_RECEIVER_PROJECTION} from "./riso48-projected-support";
 import {RISO49_DONOR_PROJECTION} from "./riso49-donor-projection";
-import {riso52DistalContactSource} from "./riso52-distal-pulp-and-nail";
 import {riso52FoldedTerminalContact} from "./riso52-folded-terminal-source";
 
 /**
@@ -124,12 +123,6 @@ export function riso51MorphSourcePart(
   part:RisoCharacterPart,actor:Riso51Actor,
 ):RisoCharacterPart{
   const activeSide=actor==="courier"?"right":"left";
-  // RISO52: the PIP/DIP joint stations were already source-projected by
-  // RISO48/49/51, but the third *distal pulp* was still a full-length
-  // frontal tube. Draw it in the 3/4 camera and move its original cobalt
-  // nail by the exact same amount on the same DIP source matrix.
-  const distal=riso52DistalContactSource(part,actor);
-  if(distal!==null)return {...part,pathKeys:riso51SourceKeys(part.d,distal,actor)};
   const palm=palmPart.exec(part.id);
   if(palm&&palm[1]===activeSide){
     const side=palm[1] as Riso51Side;
