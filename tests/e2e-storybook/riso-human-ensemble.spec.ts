@@ -139,6 +139,19 @@ test("RISO14: two-human acting, 16:9 and 9:16, all separations",async({page},inf
         }
       }
 
+      if(frame===160||frame===166){
+        // The presence of 3 real red source IDs in front of the paper
+        // does not guarantee they actually TOUCH that moving paper.
+        // Reject a beautiful-but-fake hovering finger overdraw.
+        for(const who of ["donor","receiver"] as const){
+          const inkPaperGap=Number(await stage.getAttribute(
+            "data-km-riso44-"+who+"-index-ink-paper-gap"));
+          expect(Number.isFinite(inkPaperGap)).toBe(true);
+          expect(inkPaperGap).toBeGreaterThanOrEqual(0);
+          await expect(stage).toHaveAttribute(
+            "data-km-riso44-"+who+"-index-overpaper","true");
+        }
+      }
       if(frame===166){
         const actual=Number(await stage.getAttribute("data-km-riso41-receiver-ink-gap"));
         expect(actual).toBeLessThan(1.5);
