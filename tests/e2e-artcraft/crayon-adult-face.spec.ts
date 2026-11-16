@@ -1613,3 +1613,67 @@ test("F1 V34 ANAT1 continuous attached alar rims source 1x/3x vs V32",async({pag
   expect(Buffer.compare(Buffer.from(shots[1]),Buffer.from(shots[3]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** V35 source-photo 608×1082 camera vs V32 original native wax, at 1× and
+ * 3× with identical source-relative framing. No separate raster/color
+ * photo template, no manufactured "art approval" based on browser success.
+ */
+test("F1 V35 ANAT1 continuous orbital malar five-value field source 1x/3x vs V32",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const captures:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-midface-bridge",
+    "source-anat1-orbit-malar"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:305,focusY:581,zoom:3},
+        {frame:299,focusX:305,focusY:581,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","socket-near","socket-far",
+        "malar-cheek-near","cheek-malar-cast","cheek-malar-bounce",
+        "nose-root","nose-dorsum","naris-shadow-near","naris-shadow-far",
+        "iris-near","iris-far","lip-lower","chin-plane"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      captures.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v35-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[2])))
+    .not.toBe(0);
+  expect(Buffer.compare(Buffer.from(captures[1]),Buffer.from(captures[3])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** Three temporally different native camera exposures provide a minimal
+ * gross-pop baseline. Full natural-speed 300-frame review remains OPEN. */
+test("F1 V35 ANAT1 facial value mass native three film exposures",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const scene=crayonCc0FaceStudy({detail:.28,eyeContact:"source-shade",
+    midfaceForm:"source-anat1-orbit-malar"});
+  const frames:Uint8Array[]=[];
+  expect(scene.durationFrames).toBe(300);
+  for(const frame of [0,149,299] as const){
+    const markup=renderToStaticMarkup(createElement(CrayonScene,{spec:scene,frame}));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+markup+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["face-outline","socket-near","socket-far",
+      "malar-cheek-near","nose-root"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+    }
+    frames.push(await svg.screenshot({animations:"disabled",
+      path:info.outputPath("crayon-v35-native-film-"+frame+".png")}));
+  }
+  expect(Buffer.compare(Buffer.from(frames[0]),Buffer.from(frames[2]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
