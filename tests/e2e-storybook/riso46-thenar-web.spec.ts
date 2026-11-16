@@ -37,6 +37,17 @@ test("RISO46 real red thenar and cobalt web print through both physical masters"
       await expect(panel).toHaveAttribute("data-km-riso51-live-source-morph-parts",isHandoff?"14":"0");
       await expect(panel).toHaveAttribute("data-km-riso52-cobalt-red-terminal-pairs",isHandoff?"3":"0");
       await expect(panel).toHaveAttribute("data-km-riso53-original-red-support-behind-palm",isHandoff?"9":"0");
+      await expect(panel).toHaveAttribute("data-km-riso54-native-web-reserves",isHandoff?"2":"0");
+      await expect(panel).toHaveAttribute("data-km-riso54-moving-web-cubics",isHandoff?"8":"0");
+      if(isHandoff){
+        const side=id==="courier-right"?"right":"left";
+        for(const valley of ["middle-ring","ring-pinky"]){
+          // This is the original per-plate SVG knockout source, not an RGB
+          // paper-colored sticker or a red-on-red painter order assertion.
+          await expect(panel.locator('[data-km-riso-paper-clearance="'+side+
+            '-glove-web-reserve-'+valley+'"]').first()).toBeAttached();
+        }
+      }
       await expect(panel).toHaveAttribute("data-km-riso51-palm-projected",
         String(isHandoff&&frame>146));
       const ratio=Number(await panel.getAttribute("data-km-riso49-support-projection-ratio"));
