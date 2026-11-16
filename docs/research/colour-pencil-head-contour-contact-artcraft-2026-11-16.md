@@ -55,7 +55,7 @@ fix this. A small, real pencil pressure field is now derived from the
 | Topological continuity | Near/far temple and jaw fibres appeared unconnected to the actual boundary. | Sample the same 23 jaw + 11 vault vertices used by the native film; do not substitute a second oval, ellipse or template face. |
 | Vector flow | A fixed 64° or local ellipse angle cannot describe the entire skull. | Derive the local Catmull-Rom tangent at each physical contour segment and orient every fibre to that tangent. |
 | Edge characteristics | Uniform dark rings become cut-out outlines rather than soft material. | Use three inner offset bands: 1.5px cool turn, 4.3px warm scumble, 7.1px lighter paper-tooth return; local jitter and skipped marks preserve nonuniform contact. |
-| Tactile depth | A simple filled blush hides the tooth and makes hairless heads look plastic. | Distribute **six full physical subpasses** (three palette values × two separate contact groups) across the original 54 editable anatomically laid pigment traces. Preserve all 77 original head traces, every original SVG path as a byte-identical prefix, hue/pressure, five ANAT1 bands, all three 114-mark colour fans, and fine marks. Capacity-aware distribution honors the 80-trace-per-region and 12k-path limits without discarding a single contact. |
+| Tactile depth | A simple filled blush hides the tooth and makes hairless heads look plastic. | Distribute **six full physical subpasses** (three palette values × two separate contact groups) across the original 54 editable anatomically laid pigment traces. Preserve all 77 original head traces, every original SVG path as a byte-identical prefix, hue/pressure, five ANAT1 bands, all three 114-mark colour fans, and fine marks. Capacity-aware distribution honors the original 80-trace-per-region limit (extended to 96 for the optional five-tone study) and unchanged 12k-path limits without discarding a single contact. |
 | Animation/time | Static filter/glow can hide draw-in flaws; editing may reorder existing traces. | Preserve original outline and 350-frame shot; new subpass contacts inherit the original value-matched pigment plane timings (three separate transparency/pressure layers) and preserve the three original 114-mark construction fans, with one region and no image/foreignObject/filters. |
 
 These authored subpass paths are **inside the region's original clipping path**.
@@ -107,3 +107,6 @@ ArtCraft approval.
 - Existing original-source/native-render **independent 18+5 measurement
   gates**, SHA256, contour residuals and private checkpoints continue to
   block any artistic promotion.
+
+
+**Follow-up after #494:** The independent optional 5×3 cranial optical-value study enables 92 named native traces only when explicitly selected. The normal new-head construction remains exactly 77 traces. The bounded region budget is 96 and its per-trace 12k limit remains strict. Every original perimeter fibre remains editable and unflattened. This is not an artistic approval.

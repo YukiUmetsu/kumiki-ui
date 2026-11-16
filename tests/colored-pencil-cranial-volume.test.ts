@@ -1,0 +1,111 @@
+import {describe,expect,it} from "vitest";
+import {
+  NEW_CHARACTER_01_ID,newCharacterHeadStageOne,
+  newHeadCranialTonalVolume,
+} from "../src/video/colored-pencil-first-character";
+import {pencilLivingStudyDrawing} from "../src/video/colored-pencil-living-studies";
+import {inspectPencilDrawing} from "../registry/video/colored-pencil";
+
+describe("ArtCraft new human #01: physically layered cranial volume (unapproved study)",()=>{
+  it("draws five distinguishable values and three transparent short crosshatch passes",()=>{
+    const head=newCharacterHeadStageOne(291,true,true);
+    expect(head).toHaveLength(1);
+    expect(head[0].id).toBe(NEW_CHARACTER_01_ID);
+    const strokes=head[0].details!.filter(t=>t.id?.startsWith("newhead-cranium-"));
+    expect(strokes).toHaveLength(15);
+    for(const name of ["highlight","light","halftone",
+      "core-shadow","reflected-light"]){
+      const value=strokes.filter(t=>t.id?.startsWith("newhead-cranium-"+name+"-"));
+      expect(value).toHaveLength(3);
+      expect(value.map(t=>t.color).every(c=>/^#[0-9a-f]{6}$/i.test(c))).toBe(true);
+      expect(value.every(t=>(t.opacity??0)>0&&(t.opacity??0)<.74&&
+        t.width>1&&t.width<2.5&&t.path.length>1000&&
+        (t.path.match(/M/g)??[]).length>80)).toBe(true);
+    }
+    expect(strokes.reduce((sum,t)=>sum+(t.path.match(/M/g)??[]).length,0))
+      .toBeGreaterThan(2000);
+    expect(strokes.every(t=>!t.path.includes("NaN")&&!t.path.includes("Infinity")))
+      .toBe(true);
+    expect(strokes.every(t=>t.startFrame>=173&&t.startFrame<=210)).toBe(true);
+  },15000);
+  it("rejects correlated two-axis hash lattices that previously drew dark straight slashes",()=>{
+    const traces=newHeadCranialTonalVolume([25,30,220,340],271);
+    const pigment=traces.find(t=>t.id==="newhead-cranium-core-shadow-cross0")!;
+    const points=[...pigment.path.matchAll(/M(-?[0-9]+(?:[.][0-9]+)?) (-?[0-9]+(?:[.][0-9]+)?)/g)]
+      .map(match=>[Number(match[1]),Number(match[2])] as const);
+    expect(points.length).toBeGreaterThan(150);
+    const avgX=points.reduce((s,p)=>s+p[0],0)/points.length;
+    const avgY=points.reduce((s,p)=>s+p[1],0)/points.length;
+    const xx=points.reduce((s,p)=>s+(p[0]-avgX)**2,0);
+    const yy=points.reduce((s,p)=>s+(p[1]-avgY)**2,0);
+    const xy=points.reduce((s,p)=>s+(p[0]-avgX)*(p[1]-avgY),0);
+    const correlation=xy/Math.sqrt(xx*yy);
+    expect(Number.isFinite(correlation)).toBe(true);
+    // Old adjacent-hash-salt XY sampling produced a near-perfect -1
+    // diagonal stripe, visibly unacceptable even with 15 pigment passes.
+    // A true surface sample occupies 2D area; the core is naturally curved.
+    expect(Math.abs(correlation)).toBeLessThan(.87);
+    expect(Math.sqrt(xx/points.length)).toBeGreaterThan(12);
+    expect(Math.sqrt(yy/points.length)).toBeGreaterThan(25);
+  });
+
+  it("preserves original cranium, ANAT1 and morphology when volume A/B is disabled",()=>{
+    const original=newCharacterHeadStageOne(291,true,false);
+    const woven=newCharacterHeadStageOne(291,true,true);
+    expect(original).toHaveLength(1);
+    expect(woven).toHaveLength(1);
+    for(const key of ["id","path","bounds","material","direction","flow"] as const)
+      expect(woven[0][key]).toEqual(original[0][key]);
+    expect(woven[0].details!.filter(t=>!t.id?.startsWith("newhead-cranium-")))
+      .toEqual(original[0].details);
+    expect(original[0].details!.filter(t=>t.id?.startsWith("newhead-cranium-")))
+      .toHaveLength(0);
+    expect(woven[0].details!.filter(t=>t.id?.startsWith("newhead-cranium-")))
+      .toHaveLength(15);
+    expect(woven[0].details!.some(t=>t.id?.includes("eye-iris")||
+      t.id?.includes("lip-color")||t.id?.includes("hair-strand")))
+      .toBe(false);
+  },15000);
+  it("makes different real dry contact marks per valid seed while rejecting invalid material",()=>{
+    const bounds=[25,30,220,340] as const;
+    const one=newHeadCranialTonalVolume(bounds,271);
+    const again=newHeadCranialTonalVolume(bounds,271);
+    expect(again).toEqual(one);
+    const another=newHeadCranialTonalVolume(bounds,272);
+    expect(another.map(t=>t.id)).toEqual(one.map(t=>t.id));
+    expect(another[0].path).not.toEqual(one[0].path);
+    expect(()=>newHeadCranialTonalVolume([20,30,0,300],271))
+      .toThrow(RangeError);
+    expect(()=>newHeadCranialTonalVolume([20,30,200,Number.NaN],271))
+      .toThrow(RangeError);
+    expect(()=>newCharacterHeadStageOne(271,true,"yes" as never))
+      .toThrow(TypeError);
+  },15000);
+  it("keeps original CP-F1 single head in both aspect ratios with all film geometry intact",()=>{
+    const options={subject:"portrait" as const,aspect:"landscape" as const,seed:291};
+    const before=pencilLivingStudyDrawing({...options,headVolumeWeave:false});
+    const after=pencilLivingStudyDrawing({...options,headVolumeWeave:true});
+    expect(after.foundation?.version).toBe(before.foundation?.version);
+    expect(after.regions.map(r=>r.id)).toEqual([NEW_CHARACTER_01_ID]);
+    expect(before.regions.map(r=>r.id)).toEqual(after.regions.map(r=>r.id));
+    expect(before.regions[0].path).toBe(after.regions[0].path);
+    expect(before.regions[0].details!).toHaveLength(77);
+    expect(after.regions[0].details!.length).toBe(before.regions[0].details!.length+15);
+    expect(after.regions[0].details!).toHaveLength(92);
+    expect(inspectPencilDrawing(after)).toEqual([]);
+    // The high-detail drawing has 92 editable traces, not a silently
+    // flattened or sliced list of 80. The bounded 96-trace contract
+    // deliberately rejects the next 5 extra traces.
+    const overflow={...after,regions:after.regions.map(r=>({
+      ...r,details:[...r.details!,...r.details!.slice(0,5)],
+    }))};
+    expect(inspectPencilDrawing(overflow)).toContainEqual(
+      expect.stringContaining("up to 96 bounded graphite details"));
+    const tall=pencilLivingStudyDrawing({...options,aspect:"portrait",headVolumeWeave:true});
+    expect(tall.width).toBe(540);expect(tall.height).toBe(960);
+    expect(tall.regions[0].details!.filter(t=>t.id?.startsWith("newhead-cranium-")))
+      .toHaveLength(15);
+    expect(()=>pencilLivingStudyDrawing({...options,headVolumeWeave:1 as never}))
+      .toThrow(TypeError);
+  },20000);
+});
