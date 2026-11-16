@@ -851,6 +851,11 @@ function fox():PencilSubjectPart[] {
           [174,215,218,244,200,239,34,10],
           [220,215,258,235,246,237,33,8],
           [149,231,208,246,176,247,32,8],
+          // Tapered short hairs on the upper rostral plane travel toward
+          // the nasal leather; longer cheek strands rotate caudally.
+          [152,215,193,215,173,212,31,5],
+          [180,220,233,225,210,219,33,9],
+          [218,231,255,243,244,234,28,7],
         ],721,["#E9D2B7","#8D8177","#FFF0D3"],248),
         {...mark("M209 211 C227 208 247 210 258 220 "+
           "C260 230 254 237 244 242",
@@ -858,6 +863,17 @@ function fox():PencilSubjectPart[] {
         {...mark("M147 232 C168 237 187 246 211 247 "+
           "C230 250 249 242 254 236",
           "#78675F",.37,269,.54),id:"nasolabial-shadow"},
+        // A distinct lightly recessed maxillary plane is the missing
+        // 3D cheek/rostrum transition, not a second opaque cream sticker.
+        {...mark("M153 221 C173 216 195 216 214 221 "+
+          "C231 223 246 230 256 237",
+          "#B69A83",.32,264,.45),id:"fox-maxillary-plane"},
+        {...mark("M167 237 Q194 249 214 251 "+
+          "Q240 253 258 238",
+          "#7E6D66",.30,274,.51),id:"fox-mandibular-turn"},
+        {...mark("M146 229 Q174 223 190 226 "+
+          "M200 228 Q220 234 241 232",
+          "#FFF0D7",.26,281,.58),id:"fox-rostral-highlight"},
         mark("M139 219 C164 214 192 208 216 211 M232 211 Q251 216 258 225",
           "#F8E6C6",.53,268,.59),
         mark("M146 234 Q168 241 192 245 M211 249 Q232 250 253 239",
@@ -922,26 +938,37 @@ function fox():PencilSubjectPart[] {
       palette:["#866847","#34343A","#B69161"],
       // Miniature amber aperture recessed under superior brow shadow.
       // Upper eyelid darker than the receding inferior edge.
-      path:"M236 190 C239 186 244 185 249 187 "+
-        "Q250 189 247 191 C243 192 239 192 236 190 Z",
-      bounds:[234,183,19,12],start:155,
+      // Real fox ocular anatomy: palpebral slit tucks beneath a heavier
+      // supraorbital fur ridge. Never expose a white sclera or full circular
+      // iris. The superior lid occludes the pupil's uppermost surface.
+      path:"M235 189 C238 185 242 184 247 186 "+
+        "C250 187 251 189 249 191 C246 194 241 194 238 192 "+
+        "Q236 191 235 189 Z",
+      bounds:[232,181,22,16],start:155,
       details:[
-        mark("M235 189 Q242 181 250 187","#242632",.88,250,.96),
-        mark("M237 191 Q243 195 248 191","#71504A",.46,258,.55),
-        mark("M242 187 Q245 185 247 188 Q248 190 245 191 Q242 190 242 187 Z",
-          "#986D3B",.42,263,.74),
-        mark("M245 187 Q247 189 245 191","#20252C",.55,268,.90),
-        mark("M243 186 L244 185","#FFF0D2",.29,276,.88),
-        mark("M233 190 Q236 193 238 193 M250 186 Q252 184 255 183",
-          "#4B3837",.41,279,.72),
-        mark("M235 194 Q241 198 249 193 M240 198 Q244 199 248 195",
-          "#9A7664",.34,283,.48),
-        mark("M233 185 Q241 179 250 183 M249 184 Q254 185 256 190",
-          "#704E47",.31,287,.56),
+        {...mark("M233 189 C237 183 242 181 248 184 "+
+          "Q253 184 256 186",
+          "#3B3237",.64,249,.86),id:"fox-superior-tarsus"},
+        {...mark("M237 191 Q242 194 248 192 Q252 190 253 188",
+          "#6E5149",.35,258,.48),id:"fox-inferior-tarsus"},
+        {...mark("M241 188 Q243 186 246 187 "+
+          "Q249 189 246 191 Q243 192 241 188 Z",
+          "#AC864E",.29,262,.72),id:"fox-iris-pigment"},
+        {...mark("M245 187 Q246 189 245 191",
+          "#22272C",.42,267,.91),id:"fox-vertical-pupil"},
+        {...mark("M242 187 Q243 186 244 186.5",
+          "#F7E4C9",.24,274,.66),id:"fox-corneal-glint"},
+        {...mark("M228 184 C235 177 246 176 253 181 "+
+          "Q256 183 257 185",
+          "#82554B",.47,281,.62),id:"fox-supraorbital-arc"},
+        {...mark("M231 195 Q242 201 250 195 "+
+          "M239 198 Q247 199 254 191",
+          "#A77A65",.32,287,.44),id:"fox-orbital-turn"},
         ...pencilRootedFur([
-          [230,180,249,183,241,176,28,6],
-          [232,193,250,197,241,200,27,5],
-        ],1779,["#BB8465","#493B3B","#E4AB83"],289),
+          [225,180,250,182,241,173,29,7],
+          [230,196,254,195,242,202,28,6],
+          [252,180,261,192,259,185,22,5],
+        ],1779,["#B67E60","#604449","#E5AC84"],285),
       ]},
     {id:"whisker-roots",material:"glaze",palette:["#BEB2A2","#827874","#E9DBBE"],
       path:"M151 235 Q170 245 187 247 Q207 243 232 234 Q222 254 198 256 Q166 255 149 242 Z",
