@@ -100,8 +100,15 @@ const RIDGES:Record<ShanshuiScene,readonly (readonly P[])[]>={
       // 647/672 saddle rises toward the distinct 707 shoulder. Preserve
       // full nine-substation seed-specific paper-edge fracturing.
       [420,222],[452,203],[474,186],[492,171],[512,168],
-      [531,145],[545,127],[559,119],[572,118],[588,120],
-      [603,129],[622,146],[647,162],[672,165],[707,155],
+      // Native 1x f210 exposed a second visual defect: the mid-band cap
+      // still pinched to a narrow pyramidal high point at 559 while the
+      // paper-visible 603..622 shoulder descended too abruptly. Preserve
+      // all 25 stations and their 9 interpolants per span, but carry the
+      // true rolling convex shoulder across 531..622. Since every hemp
+      // root, pine base and positive stone clips derives from this SAME
+      // ridge, no mark is repositioned as an independent overlay.
+      [531,135],[545,124],[559,118],[572,116],[588,117],
+      [603,122],[622,132],[647,154],[672,160],[707,153],
       [741,159],[763,183],[790,208],[825,221],[1050,318]],
     [[-60,430],[78,359],[160,405],[275,298],[338,361],[427,304],[530,235],[586,274],[713,340],[812,295],[1050,383]],
   ],
