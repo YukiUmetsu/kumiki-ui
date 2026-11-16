@@ -3170,6 +3170,31 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
     expect([...candidate87.matchAll(/data-km-fuchun-near-bank-contour="([^"]+)"/g)]
       .map(m=>m[1])).not.toEqual(banks.map(b=>b[3]));
+    // The formerly near-vertical original wash family keeps every
+    // source mark, shelf and moss deposit. Only the opt-in lower band
+    // follows the widened bank's true curved ridge coordinates.
+    expect((legacy.match(/data-km-rock-plane-flow="source-following"/g)??[]))
+      .toHaveLength(0);
+    const nearFlow=[...candidate.matchAll(
+      /data-km-rock-plane-flow="source-following" data-km-rock-plane-bank-axis="([^"]+)" data-km-rock-plane-bank-end="([^"]+)"/g,
+    )];
+    expect(nearFlow).toHaveLength(17);
+    const nearRoots=[...candidate.matchAll(
+      /data-km-rock-ink-plane="" data-km-rock-plane-root="([^"]+)" data-km-rock-plane-crest="([^"]+)" data-km-rock-plane-style="([^"]+)" data-km-rock-plane-flow="source-following"/g,
+    )];
+    expect(nearRoots).toHaveLength(17);
+    for(const [j,mark] of nearFlow.entries()){
+      const root=nearRoots[j][1].split(",").map(Number);
+      const endpoint=mark[2].split(",").map(Number);
+      expect(root.every(Number.isFinite)).toBe(true);
+      expect(endpoint.every(Number.isFinite)).toBe(true);
+      expect(mark[1].startsWith("M"+root.join(" ")+" C")).toBe(true);
+      expect(Math.abs(endpoint[0]-root[0])).toBeGreaterThan(16);
+      expect(root[1]-Number(nearRoots[j][2])).toBeGreaterThan(3);
+      expect(root[1]-Number(nearRoots[j][2])).toBeLessThan(8);
+    }
+    expect((candidate.match(/data-km-rock-plane-flow="original"/g)??[]))
+      .toHaveLength(19);
     expect(candidate).toContain('data-km-rock-plane-family="2"');
     const roots=(html:string)=>[...html.matchAll(
       /data-km-rock-plane-root="([^"]+)"/g,
