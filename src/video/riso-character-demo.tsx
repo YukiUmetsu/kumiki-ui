@@ -176,6 +176,10 @@ export const COURIER: RisoCharacterSpec = {
     { id: "right-thumb", parent: "right-hand", x: 7.1, y: 8,
       keys: [{frame:0,rotate:-9,y:0,easing:"ease"},{frame:90,rotate:18,y:0,easing:"ease"},
         {frame:156,rotate:37,y:1.5,easing:"ease"},
+        // The original donor paper is held until the 178f release beat;
+        // an earlier CMC drift opens the real red pads at 177f and erases
+        // half the source paper pressure creases.
+        {frame:178,rotate:37,y:1.5,easing:"ease"},
         {frame:186,rotate:24,y:1.5,easing:"ease"},
         {frame:205,rotate:14,y:0},{frame:239,rotate:14,y:0}] },
     { id: "right-index", parent: "right-hand", x: 6, y: 16,
