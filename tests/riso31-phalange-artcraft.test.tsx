@@ -99,7 +99,9 @@ describe("RISO31 ArtCraft / actual PIP+DIP printed phalanx animation",()=>{
         .every(p=>p.joint.endsWith("-pip"))).toBe(true);
       expect(original.filter(p=>p.id.endsWith("-dip-crease"))
         .every(p=>p.joint.endsWith("-dip"))).toBe(true);
-      expect(RISO30_GRIP_FOREGROUND_IDS(side).filter(id=>id.includes("crease"))).toHaveLength(8);
+      // RISO32 added a genuine moving thumb-IP crease to the original
+      // four PIP + four DIP blue overprints: do not delete the ninth mark.
+      expect(RISO30_GRIP_FOREGROUND_IDS(side).filter(id=>id.includes("crease"))).toHaveLength(9);
     }
   });
   it.each(actors)("%s: drawing has genuine finger bend, not just red hatching on rigid finger sticks",spec=>{
