@@ -242,9 +242,27 @@ function RockInkPlanes({stations,seed,band,detail,mist,nearBankFlow=false}:{
       // pressure phrases across stations of THIS same ridgeline.
       // The original vertical vocabulary remains byte-identical for
       // ordinary film export and all other schools.
+      // Source museum comparison: pima has a descending LONG register
+      // from the rock's upper bank, interleaved with shorter alum-head
+      // creases and a broad side-rolling medium register. Forcing every
+      // root into a horizontal route was as synthetic as the former
+      // vertical drips. All three families retain their own seed-specific
+      // pressure and use the exact same source ridge under the stroke.
+      const register=i%6===0||i%6===3
+        ?"descending-hemp" as const
+        :i%5===2?"short-head" as const:"rolled-cheek" as const;
       const flowDirection=s(seed+9671,i*23+band*37)>.48?1:-1;
-      const flowRun=(30+32*s(seed+9689,i*37+9))*
+      const flowRun=(register==="descending-hemp"
+        ?25+18*s(seed+9689,i*37+9)
+        :register==="short-head"
+          ?23+17*s(seed+9689,i*37+9)
+          :30+32*s(seed+9689,i*37+9))*
         (i%6===0?.68:1);
+      const bankFall=register==="descending-hemp"
+        ?34+21*s(seed+9757,i*23)
+        :register==="short-head"
+          ?10+7*s(seed+9769,i*11)
+          :14.2+5.1*s(seed+9733,i*31);
       const flowEndX=x+flowDirection*flowRun;
       const start:P=[x,rootY];
       const bed=(u:number,dep:number):P=>{
@@ -255,11 +273,16 @@ function RockInkPlanes({stations,seed,band,detail,mist,nearBankFlow=false}:{
       // geometry; variation is in the pressure and paper depth, not
       // in a detached row of equal-length computer-generated hooks.
       const c1=bed(.25,6.5+2.6*s(seed+9701,i*11));
-      const c2=bed(.7,10.5+3.3*s(seed+9719,i*17));
-      const end=bed(1,14.2+5.1*s(seed+9733,i*31));
+      const c2=bed(.7,bankFall*(register==="descending-hemp"?.57:.6)+
+        2.1*s(seed+9719,i*17));
+      const end=bed(1,bankFall);
       const bankRibbon=nearBankFlow
-        ?rockLoadedCubicRibbon(start,c1,c2,end,inkWidth*.61,
-          seed+9743+i*53,"broken-middle"):undefined;
+        ?rockLoadedCubicRibbon(start,c1,c2,end,
+          inkWidth*(register==="short-head"?.69:
+            register==="descending-hemp"?.48:.61),
+          seed+9743+i*53,
+          register==="descending-hemp"?"feathered-tail":
+            register==="short-head"?"root-loaded":"broken-middle"):undefined;
       const along=(t:number)=>cubicPoint(start,c1,c2,end,t);
       const a=along(.11),b=along(.45),c=along(.6),d=along(.94);
       const bankFibre="M"+f(a[0])+" "+f(a[1])+
@@ -278,6 +301,7 @@ function RockInkPlanes({stations,seed,band,detail,mist,nearBankFlow=false}:{
         data-km-rock-plane-crest={f(crest)}
         data-km-rock-plane-style={i%3===0?"alum-head":"hemp-fibre"}
         data-km-rock-plane-flow={nearBankFlow?"source-following":"original"}
+        data-km-rock-plane-bank-register={nearBankFlow?register:undefined}
         data-km-rock-plane-bank-axis={nearBankFlow
           ?"M"+f(start[0])+" "+f(start[1])+" C"+
             f(c1[0])+" "+f(c1[1])+" "+f(c2[0])+" "+f(c2[1])+
