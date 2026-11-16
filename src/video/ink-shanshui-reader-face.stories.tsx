@@ -8,6 +8,8 @@ import {inkReaderExpressionStudy,READER_INK_EMOTIONS} from
   "./ink-shanshui-reader-expression";
 import {inkReaderCueFrame,readerInkCueWeight,READER_INK_CUE} from
   "./ink-shanshui-expression-cue";
+import {readerInkGaze,readerInkEyeApertures} from
+  "./ink-shanshui-reader-gaze";
 import type {ReaderInkEmotion,ReaderInkLids,ReaderInkMouth,
   ReaderInkExpressionStudy} from "./ink-shanshui-reader-expression";
 import {readerFaceAnatomy,READER_FACE_ANAT1_POINTS} from
@@ -567,6 +569,8 @@ function ReaderExpressionLab(){
   const [lidOverride,setLidOverride]=useState<ReaderInkLids|"auto">("auto");
   const [mouthOverride,setMouthOverride]=useState<ReaderInkMouth|"auto">("auto");
   const [cueFrame,setCueFrame]=useState(24);
+  const [gazeX,setGazeX]=useState(0);
+  const [gazeY,setGazeY]=useState(0);
   const [playing,setPlaying]=useState(false);
   const [reduceMotion,setReduceMotion]=useState(false);
   useEffect(()=>{
@@ -613,7 +617,11 @@ function ReaderExpressionLab(){
   const cueWeight=readerInkCueWeight(cueFrame);
   const main=inkReaderCueFrame(emotion,intensity,cueFrame,detail);
   const brush=(study:ReaderInkExpressionStudy,eyes:ReaderInkLids,
-    mouth:ReaderInkMouth)=>{
+    mouth:ReaderInkMouth,id:string)=>{
+    const gaze=readerInkGaze(gazeX,gazeY);
+    const apertures=readerInkEyeApertures(study.assets,eyes);
+    const clipNear="reader-ink-gaze-"+id+"-near";
+    const clipFar="reader-ink-gaze-"+id+"-far";
     const shapes=(name:string)=>{
       const asset=study.assets[name];
       return asset?.kind==="shapes"?asset.shapes.map((shape,i)=>
@@ -622,22 +630,46 @@ function ReaderExpressionLab(){
           strokeWidth={shape.strokeWidth??1} opacity={shape.opacity??1}
           strokeLinecap="round" strokeLinejoin="round"/>:null):null;
     };
-    const part=(key:string,pivot:[number,number],asset=key)=>
-      <g data-km-ink-expression-part={key}
-        transform={pose(fit.facialRest[key as keyof typeof fit.facialRest],pivot)}>
+    const part=(key:string,pivot:[number,number],asset=key,
+      offset?:{readonly x:number;readonly y:number})=>{
+      // Gaze stays inside each original RIG1 rest pivot. No iris detail or
+      // dry ink edge is rasterized or replaced with a generic round pupil.
+      const rest=pose(fit.facialRest[key as keyof typeof fit.facialRest],pivot);
+      const travel=offset&&(offset.x!==0||offset.y!==0)?
+        " translate("+offset.x+" "+offset.y+")":"";
+      return <g data-km-ink-expression-part={key} transform={rest+travel}>
         {shapes(asset)}
       </g>;
+    };
     return <g data-km-ink-expression-paint=""
       transform={pose(fit.headRest,[139,124])}>
+      <defs>
+        {apertures&&<>
+          <clipPath id={clipNear} clipPathUnits="userSpaceOnUse">
+            <g transform={pose(fit.facialRest.eyes,[140,102])}>
+              <path d={apertures.near}/>
+            </g>
+          </clipPath>
+          <clipPath id={clipFar} clipPathUnits="userSpaceOnUse">
+            <g transform={pose(fit.facialRest.eyes,[140,102])}>
+              <path d={apertures.far}/>
+            </g>
+          </clipPath>
+        </>}
+      </defs>
       <g data-km-ink-expression-part="face">{shapes("face")}</g>
       {part("hair",[140,74])}
       <g data-km-ink-expression-part="reader-ear">{shapes("reader-ear")}</g>
       {part("brows",[140,94],"brow")}
       {part("eyes",[140,102],"eyes-"+eyes)}
-      {eyes!=="closed"&&<>
-        {part("pupil-left",[128,102])}
-        {part("pupil-right",[156,102])}
-      </>}
+      {apertures&&<>
+        <g data-km-ink-iris-occlusion="near" clipPath={"url(#"+clipNear+")"}>
+          {part("pupil-left",[128,102],"pupil-left",gaze.near)}
+        </g>
+        <g data-km-ink-iris-occlusion="far" clipPath={"url(#"+clipFar+")"}>
+          {part("pupil-right",[156,102],"pupil-right",gaze.far)}
+        </g>
+      </>
       {part("mouth",[142,124],"mouth-"+mouth)}
     </g>;
   };
@@ -690,6 +722,21 @@ function ReaderExpressionLab(){
           step=".05" value={detail}
           onChange={e=>setDetail(Number(e.target.value))}/>
       </label>
+      <label style={{display:"grid",gap:5}}>
+        ANAT1 iris gaze horizontal {gazeX.toFixed(2)}
+        <input aria-label="EXPR1 iris gaze horizontal" type="range"
+          min="-1" max="1" step=".05" value={gazeX}
+          onChange={e=>setGazeX(Number(e.target.value))}/>
+      </label>
+      <label style={{display:"grid",gap:5}}>
+        ANAT1 iris gaze vertical {gazeY.toFixed(2)}
+        <input aria-label="EXPR1 iris gaze vertical" type="range"
+          min="-1" max="1" step=".05" value={gazeY}
+          onChange={e=>setGazeY(Number(e.target.value))}/>
+      </label>
+      <button type="button" onClick={()=>{setGazeX(0);setGazeY(0);}}>
+        Reset gaze
+      </button>
       <label style={{display:"grid",gap:5}}>Eyelid override
         <select aria-label="EXPR1 eyelids" value={lidOverride}
           onChange={e=>setLidOverride(e.target.value as ReaderInkLids|"auto")}>
@@ -713,7 +760,7 @@ function ReaderExpressionLab(){
           aria-label="Full original source-fitted reader with EXPR1 expression"
           viewBox="96 26 91 125"
           style={{width:"100%",height:400,background:"#f7eedc"}}>
-          {brush(main,eyes,mouth)}
+          {brush(main,eyes,mouth,"live-full")}
         </svg>
       </section>
       <section>
@@ -722,7 +769,7 @@ function ReaderExpressionLab(){
           aria-label="EXPR1 muscle expression near-eye, brow, nose, cheek and mouth"
           viewBox={faceCamera()}
           style={{width:"100%",height:400,background:"#f7eedc"}}>
-          {brush(main,eyes,mouth)}
+          {brush(main,eyes,mouth,"live-micro")}
         </svg>
       </section>
     </div>
@@ -740,7 +787,8 @@ function ReaderExpressionLab(){
             viewBox={faceCamera()}
             style={{width:"100%",height:205,background:"#f7eedc"}}>
             {brush(frame,lidOverride==="auto"?frame.lids:lidOverride,
-              mouthOverride==="auto"?frame.mouth:mouthOverride)}
+              mouthOverride==="auto"?frame.mouth:mouthOverride,
+              "intensity-"+Math.round(weight*100))}
           </svg>
           <figcaption style={{fontSize:12}}>
             {Math.round(weight*100)}% · {emotion}
@@ -762,7 +810,8 @@ function ReaderExpressionLab(){
             viewBox={faceCamera()}
             style={{width:"100%",height:165,background:"#f7eedc"}}>
             {brush(sampled,lidOverride==="auto"?sampled.lids:lidOverride,
-              mouthOverride==="auto"?sampled.mouth:mouthOverride)}
+              mouthOverride==="auto"?sampled.mouth:mouthOverride,
+              "cue-"+frame)}
           </svg>
           <figcaption style={{fontSize:12}}>Frame {frame} · {
             Math.round(readerInkCueWeight(frame)*100)}%</figcaption>
@@ -782,6 +831,7 @@ function ReaderExpressionLab(){
       selected {eyes} lids / {mouth} viseme.
       Active crease regions: {main.activeCreases.join(", ")||"none"}.
       Cue frame {cueFrame} · {Math.round(cueWeight*100)}% eased activation.
+      Gaze ({gazeX.toFixed(2)}, {gazeY.toFixed(2)}) with asymmetric orbital masks.
     </output>
     <p style={{maxWidth:1050,fontSize:12,color:"#756149"}}>
       Three-quarter perspective and ink-flow strokes are drawn in the source
