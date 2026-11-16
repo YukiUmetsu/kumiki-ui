@@ -301,9 +301,11 @@ function simplify(points: Vec[], tolerance: number): Vec[] {
   if (points.length < 3) return points;
   const [a, b] = [points[0], points[points.length - 1]];
   const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
+  // A closed loop has no chord to measure from: its farthest point from the start splits it.
+  const closed = len < tolerance;
   let worst = 0, index = 0;
   for (let i = 1; i < points.length - 1; i++) {
-    const dist = Math.abs((points[i][0] - a[0]) * dy - (points[i][1] - a[1]) * dx) / len;
+    const dist = closed ? Math.hypot(points[i][0] - a[0], points[i][1] - a[1]) : Math.abs((points[i][0] - a[0]) * dy - (points[i][1] - a[1]) * dx) / len;
     if (dist > worst) { worst = dist; index = i; }
   }
   if (worst <= tolerance) return [a, b];
@@ -338,11 +340,19 @@ function trimFlourish(raw: Vec[]): Vec[] {
   return raw.slice(from, to + 1);
 }
 
+/** The ring of ゜ is written light and quick, so its hole stays open. */
+const LOOP_WEIGHT = .75;
+
 /** Convert one sampled centreline (em units) and its stroke class into a SHO1 stroke. */
 export function strokeFromCentreline(raw: Vec[], kvgType = "", kana = false): ShodoStrokeSpec {
   const typed = KVG_TYPES[[...kvgType.split("/")[0]][0] ?? ""];
   const hooked = typed?.end === "hane";
-  if (!hooked) raw = trimFlourish(raw);
+  // A closed loop (the circle of ゜ in ぱ, パ) ends near its start but is long: a curve, not a dot,
+  // and its ends are not trimmed as pen curls, so the ring stays closed.
+  const chord = Math.hypot(raw[raw.length - 1][0] - raw[0][0], raw[raw.length - 1][1] - raw[0][1]);
+  const path = raw.reduce((s, p, i) => i ? s + Math.hypot(p[0] - raw[i - 1][0], p[1] - raw[i - 1][1]) : 0, 0);
+  const loop = !typed && chord < 140 && path > 150 && path > 2.5 * chord;
+  if (!hooked && !loop) raw = trimFlourish(raw);
   let points = simplify(raw, 9);
   if (points.length > 24) points = points.filter((_, i) => i % Math.ceil(points.length / 24) === 0 || i === points.length - 1);
   // Corners sharper than ~55° become 転折; gentle bends stay curves.
@@ -367,7 +377,8 @@ export function strokeFromCentreline(raw: Vec[], kvgType = "", kana = false): Sh
     const a = points[0], b = points[points.length - 1];
     const dx = b[0] - a[0], dy = b[1] - a[1];
     const length = Math.hypot(dx, dy);
-    if (turns.length) kind = "turn";
+    if (turns.length && !loop) kind = "turn";
+    else if (loop) kind = "curve";
     else if (length < 140) kind = "dot";
     else if (Math.abs(dy) < Math.abs(dx) * .35) kind = "horizontal";
     else if (Math.abs(dx) < Math.abs(dy) * .25) kind = "vertical";
@@ -383,7 +394,7 @@ export function strokeFromCentreline(raw: Vec[], kvgType = "", kana = false): Sh
     // presses, and an end that lifts while moving unless the stroke is a dot or a hook.
     const dot = kind === "dot";
     return { kind: dot ? "dot" : turns.length || points.length > 3 ? "curve" : kind, points: rounded,
-      start: dot ? "uchikomi" : "roho", ...(dot ? {} : { end: hook ? "hane" : "nuki" }), ...(hook ? { hook } : {}), weight: .96 };
+      start: dot ? "uchikomi" : "roho", ...(dot ? {} : { end: hook ? "hane" : "nuki" }), ...(hook ? { hook } : {}), weight: loop ? LOOP_WEIGHT : .96 };
   }
   return { kind, points: rounded, ...(flatSweep ? { start: "uchikomi" as const } : {}),
     ...(turns.length ? { turns } : {}), ...(end ? { end } : {}), ...(hook ? { hook } : {}) };

@@ -88,6 +88,14 @@ describe("SHO1 shodō calligraphy", () => {
       <path d="M50,30 C40,60 25,80 20,70 C15,55 30,30 60,32 C85,35 92,60 80,78 C72,88 60,92 52,93"/></g></svg>`);
     expect(kana.strokes[0]).toMatchObject({ kind: "curve", start: "roho", end: "nuki" });
     expect(kana.strokes[0].turns).toBeUndefined();
+    // The ゜ of ぱ is a closed ring, not a dot: untrimmed, light, and still round.
+    const pa = parseKanjiVgSvg(`<svg viewBox="0 0 109 109"><g kvg:element="ぱ">
+      <path d="M80,20 C74,20 70,15 70,10 C70,4 75,1 80,1 C85,1 90,4 90,10 C90,16 85,20 80,20"/></g></svg>`);
+    const ring = pa.strokes[0];
+    expect(ring).toMatchObject({ kind: "curve", weight: .75 });
+    const xs = ring.points.map(p => p[0]), ys = ring.points.map(p => p[1]);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(150);
+    expect(Math.max(...ys) - Math.min(...ys)).toBeGreaterThan(150);
   });
 
   it("loads any character through one pinned source and caches it", async () => {
