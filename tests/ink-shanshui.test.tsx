@@ -1061,6 +1061,53 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(paint("fuchun",73)).not.toBe(paint("fuchun"));
   });
 
+  it("builds non-stamped wet Fuchun pine ink bunches rooted on the live branch centerline",()=>{
+    const paint=(school:"fuchun"|"early-spring",detail=1,seed=71)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,detail,seed},
+      }));
+    const full=paint("fuchun");
+    const boughs=[...full.matchAll(
+      /data-km-cliff-pine-bough="" data-km-cliff-pine-bough-root="([^"]+)" data-km-cliff-pine-bough-station="([^"]+)" data-km-cliff-pine-bough-centerline="([^"]+)"/g,
+    )];
+    expect(boughs).toHaveLength(20);
+    const clusters=[...full.matchAll(
+      /data-km-cliff-pine-wet-cluster="" data-km-cliff-pine-wet-cluster-root="([^"]+)" data-km-cliff-pine-wet-cluster-station="([^"]+)" data-km-cliff-pine-wet-cluster-bough="(\d+)" data-km-cliff-pine-wet-cluster-weight="([^"]+)" d="([^"]+)"/g,
+    )];
+    expect(clusters).toHaveLength(119); // 5..7 unequal per real bough
+    const counts=Array.from({length:20},()=>0);
+    const weights:number[]=[];
+    for(const [,root,station,boughId,width,d] of clusters){
+      const i=Number(boughId),t=Number(station);
+      expect(i).toBeGreaterThanOrEqual(0);
+      expect(i).toBeLessThan(20);
+      counts[i]++;
+      const coords=(boughs[i][3].match(/-?\d+(?:\.\d+)?/g)??[])
+        .map(Number);
+      expect(coords).toHaveLength(6);
+      const [x,y,cx,cy,tx,ty]=coords;
+      const q=1-t;
+      const expected=[q*q*x+2*q*t*cx+t*t*tx,
+        q*q*y+2*q*t*cy+t*t*ty];
+      const actual=root.split(",").map(Number);
+      expect(Math.hypot(actual[0]-expected[0],
+        actual[1]-expected[1])).toBeLessThan(.06);
+      expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+      expect((d.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(35);
+      expect(d.endsWith(" Z")).toBe(true);
+      weights.push(Number(width));
+    }
+    expect(new Set(counts)).toEqual(new Set([5,6,7]));
+    expect(counts.every(n=>n>=5&&n<=7)).toBe(true);
+    expect(Math.max(...weights)-Math.min(...weights)).toBeGreaterThan(1.3);
+    expect(new Set(clusters.map(m=>m[5])).size).toBe(119);
+    expect(paint("fuchun")).toBe(full);
+    expect(paint("fuchun",1,97)).not.toBe(full);
+    expect(paint("fuchun",0)).not.toContain('data-km-cliff-pine-wet-cluster=');
+    expect(paint("early-spring")).not.toContain('data-km-cliff-pine-wet-cluster=');
+  });
+
   it("renders willow boughs as closed tapering brush geometry with fine attached leaves",()=>{
     const html=renderToStaticMarkup(createElement(InkShanshuiStage,{
       frame:125,controls:{...DEFAULT_SHANSHUI,scene:"river-scholar",detail:1},
