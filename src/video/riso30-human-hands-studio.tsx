@@ -105,7 +105,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     </div>
     <p style={{fontSize:12,margin:"9px 0 0",color:"#55727E",lineHeight:1.5}}>
       {region.sourceCount} original hand source paths; five authentic digits,
-      12 red articulated finger sections, a separate opposed moving thumb IP pad,\n      four distinct MCP cobalt crests, screened anatomical tendon pressure,
+      12 source-red anatomical phalanges with asymmetric pad/plane/tip silhouettes, a separate opposed moving thumb IP pad,\n      four distinct MCP cobalt crests, screened anatomical tendon pressure,
       joint-local engraved creases and attached nail rims. Every mark remains a spot-colour print master.
       Measured adjacent bone-axis gap: {spacing.minimumAxisGap.toFixed(1)} source units
       (bone-axis only). Actual red stencil fingertip gap:
@@ -131,7 +131,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO37</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO38</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
