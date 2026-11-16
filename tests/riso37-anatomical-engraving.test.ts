@@ -63,7 +63,7 @@ describe("RISO37 ArtCraft / physical hand ink master and source-geometry craftsm
       expect(nail.paint).toBe("screen");
       expect(nail.screenTone).toBe("mid");
       expect(dip.paint).toBe("screen");
-      expect(dip.screenTone).toBe("mid");
+      expect(dip.screenTone).toBe("light");
       expect(pip.paint).toBe("solid");
       expect(tendon.paint).toBe("screen");
       expect(tendon.screenTone).toBe("light");
