@@ -50,26 +50,43 @@ Required paired inputs:
 3. Also compare **physical head width/height ratios**. Otherwise separate
    x/y normalization mathematically hides severe anamorphic stretching,
    allowing a squashed cranium to appear geometrically exact.
-4. Compare normalized native RGB luminance across all five semantic regions.
-   Report whether measurements meet preliminary numeric tolerances,
-   **never** infer that a face is lifelike.
-5. The evaluator checks digest format, **not** actual source file bytes;
+4. Validate native source and output value roles **independently**:
+   highlight brighter than light, light brighter than halftone, halftone
+   brighter than core shadow, with reflected light brighter than the
+   core. Reject insufficient overall light-to-dark range. Five identical
+   grey swatches must never pass because they numerically match each other.
+   Reject overlapping source/output patches and crossed near/far skull
+   topology before trusting computed similarity.
+5. Compare normalized native RGB luminance across the five nonoverlapping
+   semantic regions and report matching error independently from value
+   quality; **never** infer that a head is lifelike.
+6. The evaluator checks digest format, **not** actual source file bytes;
    the capture/annotation workflow must verify those bytes separately.
    A copied or fabricated string is not evidence. Human judgment remains
    mandatory even when `measurement-ready` passes.
 
-## Source candidates (reference scouting, NOT approved image inputs)
+## Source-image audit — inspected originals, not thumbnail guesses
 
-| Source | Rights at source | Verification needed |
+**No image has passed full-head Stage 1 reference approval.** During an
+independent media-file review of Commons originals (2026-11-16), we rejected
+three misleading candidate files and recorded the exact reason. License status
+is never a substitute for checking the subject, camera and source resolution.
+
+| Source and author | Verified status | Actual contents / problem |
 | --- | --- | --- |
-| [Baldness.jpg (Wikimedia Commons)](https://commons.wikimedia.org/wiki/File:Baldness.jpg) | CC0 1.0, self-published photo | Independently inspect whether the face, entire scalp and chin are simultaneously visible and 3/4. Do not claim matched geometry without inspecting pixels. |
-| [Bald head.jpg (Wikimedia Commons)](https://commons.wikimedia.org/wiki/File:Bald_head.jpg) | CC BY-SA 3.0, Smobserver | Low-resolution 640×480 may be unsuitable for 18-point alignment; preserve author attribution and license obligations. |
-| [Three-quarter face portrait of man with beard, LOC](https://commons.wikimedia.org/wiki/File:Three-quarter_face_portrait_of_man_with_beard_LCCN2006688331.jpg) | US public domain / LOC tintype, circa 1860 | Historical lighting and head contours may be hard to measure; not the original intended modern face. |
-| [Alexandre-debieve-an-older-bald-man.jpg](https://commons.wikimedia.org/wiki/File:Alexandre-debieve-an-older-bald-man.jpg) | CC0 1.0 | Rejected in prior #444 art review: cropped scalp and lower chin; must not use for complete head gates. |
+| [Baldness.jpg](https://commons.wikimedia.org/wiki/File:Baldness.jpg), Bạch Linh Phong, CC0 1.0 | **REJECT** | The original is a motorcycle-traffic street scene: only the **rear of a helmeted rider** is visible. No bare skull, facial plane, jaw, or 18 head points. Its Commons filename is misleading. |
+| [Bald head.jpg](https://commons.wikimedia.org/wiki/File:Bald_head.jpg), Smobserver / David Lewis, CC BY-SA 3.0 | **REJECT** | The 640×480 original shows a person's **top-down bowed scalp**, without a usable face or jawline. Cannot annotate a three-quarter full-head silhouette. |
+| [Three-quarter face portrait of man with beard, LOC LCCN2006688331](https://commons.wikimedia.org/wiki/File:Three-quarter_face_portrait_of_man_with_beard_LCCN2006688331.jpg), Library of Congress / circa 1860, public domain | **REJECT for high-fidelity skin microtexture** | The advertised 5153×6408 JPEG was explicitly digitally upscaled from **823×1024**, as documented on its Commons version history. Do not mistake interpolated pixels for fine anatomical/skin reference. It may remain a historical photographic composition reference only. |
+| [Alexandre-debieve-an-older-bald-man.jpg](https://commons.wikimedia.org/wiki/File:Alexandre-debieve-an-older-bald-man.jpg), CC0 1.0 | **REJECT (prior review)** | The photo lacks complete scalp and lower chin in the chosen crop; not a valid complete-head source. |
+| [CLEMENCEAU, Georges, Nadar, GALLICA (cropped).jpg](https://commons.wikimedia.org/wiki/File:CLEMENCEAU,_Georges,_Nadar,_GALLICA_(cropped).jpg), photograph Paul Nadar | **REJECT / rights unresolved** | The Commons source page prominently warns the BnF-derived historical original **may not be public domain** even though the uploader applied a CC0 tag to the edited scan. Do not assume the uploader can license the underlying work. |
 
-These candidates were not copied, cropped, traced, redistributed or silently
-used to generate the current editable SVG head. Confirm **one** suitable
-reference photograph before supplying evidence.
+**Required next selection:** a photograph whose original pixel data (not an
+AI image, print scan, or enlargement) visibly contains the **entire unclipped
+3/4 cranium, temples, zygions, jaw and chin**, with credible side lighting,
+well-resolved surfaces, and explicit rights at the photographer/source.
+Record the file's actual byte SHA-256, author, license, source URL and
+resolution **after** direct photo inspection. No pixels from any of the
+above images were included in the programmatic head.
 
 ## Safe handoff
 
@@ -91,7 +108,8 @@ reference photograph before supplying evidence.
 `tests/colored-pencil-head-fidelity.test.ts` uses synthetic numeric
 **negative controls only**, never pretending to be an annotated photograph.
 It asserts source absence, invalid rights and hashes, missing/out-of-bounds
-landmarks, distorted proportions, missing/corrupted swatches, duplicate
-source/render signatures and isotropic-scale invariance.
+landmarks, distorted/crossed near/far contours, swapped-value and
+flattened-gray five-tone negatives, overlapping or invalid sampling ROIs,
+duplicate source/render signatures and isotropic-scale invariance.
 `tests/e2e-storybook/colored-pencil-foundation.spec.ts` checks the fail-closed
 photo-proof UI in both aspects and confirms fox content remains unchanged.
