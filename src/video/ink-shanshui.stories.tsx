@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"stone-before-turning"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -578,6 +578,13 @@ function MasterInkSourceComparison(){
       [data-km-rock-hero-cliff],
       [data-km-master-ink-inspection="stone"] [data-km-master-study="fuchun"]
       [data-km-cliff-pine-grove] { visibility:hidden; }
+      /* A/B the actual mid-slope parent-rooted Fuchun stone volumes.
+         Retain all original pima, six hillbacks, 12 transverse shelves,
+         and four master views. Only the three new turning bands per
+         actual rock cheek are temporarily hidden by CSS. */
+      [data-km-master-ink-inspection="stone-before-turning"]
+      [data-km-master-study="fuchun"]
+      [data-km-master-fuchun-turning-field] { visibility:hidden; }
       /* The *real* 960x540 renderer supplies all three nested ridges.
          Isolate only the middle band’s original filled skyline path.
          Do not replace it with a polygon, diagram or copied image. */
@@ -678,6 +685,7 @@ function MasterInkSourceComparison(){
       {([["all","All Fuchun hemp"],["upper","Upper-bank contacts only"],
         ["lower","Lower-bank contacts only"],
         ["stone","Stone volumes · brush hidden"],
+        ["stone-before-turning","Stone before rounded stratum relief"],
         ["ridge","Skyline · contour only"],
         ["pine","Pine crowns · source anatomy"],
         ["pine-bones","Pine armature · connected brush bones"],
@@ -689,7 +697,8 @@ function MasterInkSourceComparison(){
         <button type="button" key={zone} style={style.button}
           aria-pressed={fuchunZone===zone} onClick={()=>{
             setFuchunZone(zone);
-            if(zone==="pine-bones")inspect(1.65,615,135);
+            if(zone==="stone-before-turning")inspect(2.4,552,177);
+            else if(zone==="pine-bones")inspect(1.65,615,135);
             else if(zone==="pine"||zone==="pine-contours"||
               zone==="pine-unlinked"||
               zone==="pine-uncut"||zone==="pine-bridge-uncut")
@@ -702,6 +711,8 @@ function MasterInkSourceComparison(){
         all 78 original fibres and four hero ribs before/after dry-paper cuts.
         The pine-root camera isolates genuine trunk-to-soil contact on the
         existing continuous mountain; it never creates a test-only path.
+        Stone before rounded stratum relief isolates the same live
+        rock cheek contours before nine original nested turning washes.
         Pine armature hides material layers to show the source trunk,
         planted roots and twenty unequal loaded living branches. Compare
         Pine before continuous crown bridge with Pine crowns to inspect

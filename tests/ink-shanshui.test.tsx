@@ -1381,6 +1381,59 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       'data-km-master-stroke-reserve=""');
   });
 
+
+  it("paints nine genuine Fuchun slope-turning ink volumes between original cubic rock strata",()=>{
+    const render=(school:"fuchun"|"early-spring",seed=71)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail:1},
+      }));
+    for(const seed of [71,97]){
+      const html=render("fuchun",seed);
+      const ribs=[...html.matchAll(
+        /data-km-master-stratum="" data-km-master-stratum-root="([^"]+)" data-km-master-stratum-index="([0-4])" data-km-master-stratum-centerline="([^"]+)"/g,
+      )].map(m=>(m[3].match(/-?\\d+(?:\\.\\d+)?/g)??[]).map(Number));
+      expect(ribs).toHaveLength(15);
+      const bands=[...html.matchAll(
+        /data-km-master-fuchun-turning-bank="" data-km-master-fuchun-turning-bank-root="([^"]+)" data-km-master-fuchun-turning-bank-tip="([^"]+)" data-km-master-fuchun-turning-bank-from="([0-4])" data-km-master-fuchun-turning-bank-to="([0-4])" data-km-master-fuchun-turning-bank-depth="([^"]+)" data-km-master-fuchun-turning-bank-offset="([^"]+)"/g,
+      )];
+      expect(bands).toHaveLength(9);
+      const sample=(p:number[],t:number)=>{
+        const [x,y,c1x,c1y,c2x,c2y,tx,ty]=p,u=1-t;
+        return [u*u*u*x+3*u*u*t*c1x+3*u*t*t*c2x+t*t*t*tx,
+          u*u*u*y+3*u*u*t*c1y+3*u*t*t*c2y+t*t*t*ty];
+      };
+      for(let i=0;i<9;i++){
+        const [,root,tip,from,to,depth,offset]=bands[i];
+        const face=Math.floor(i/3);
+        const a=sample(ribs[face*5+Number(from)],Number(depth));
+        const b=sample(ribs[face*5+Number(to)],
+          Number(depth)+Number(offset));
+        const actualA=root.split(",").map(Number);
+        const actualB=tip.split(",").map(Number);
+        expect(Math.hypot(actualA[0]-a[0],actualA[1]-a[1]))
+          .toBeLessThan(.06);
+        expect(Math.hypot(actualB[0]-b[0],actualB[1]-b[1]))
+          .toBeLessThan(.06);
+        expect(Math.hypot(actualA[0]-actualB[0],
+          actualA[1]-actualB[1])).toBeGreaterThan(9);
+      }
+      expect((html.match(/data-km-master-fuchun-turning-wash=""/g)??[]))
+        .toHaveLength(9);
+      expect((html.match(/data-km-master-fuchun-turning-crest=""/g)??[]))
+        .toHaveLength(9);
+      expect((html.match(/data-km-master-fuchun-turning-crease=""/g)??[]))
+        .toHaveLength(9);
+      expect((html.match(/data-km-master-stroke-style="long-hemp"/g)??[]))
+        .toHaveLength(78);
+      expect((html.match(/data-km-master-fuchun-hillback=""/g)??[]))
+        .toHaveLength(6);
+      expect(render("fuchun",seed)).toBe(html);
+    }
+    expect(render("early-spring")).not.toContain(
+      "data-km-master-fuchun-turning-bank");
+  });
+
   it("keeps all 78 live Fuchun ink strokes while varying length and handedness across rock cheeks",()=>{
     const paint=(school:"fuchun"|"early-spring",detail=1,seed=71)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{

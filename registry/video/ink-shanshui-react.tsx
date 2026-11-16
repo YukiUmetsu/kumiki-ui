@@ -678,6 +678,67 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
       // *positive nested stone banks*; local face shading is a geometry
       // problem, not a request for screen noise. Each sub-bank begins
       // on the parent crown and ends inside its parent stone silhouette.
+      // In the original Fuchun handscroll, nested hillside volumes turn
+      // broadly ACROSS the sloping pima fibres. Our sparse dark fibres
+      // had no continuous, physically supporting middle-value swell:
+      // they looked like thin wires draped over a flat beige polygon.
+      // Author three connected, pressure-loaded contour folds per real
+      // positive face. Both ends are sampled on two existing cubic
+      // stratum sources at meaningful depth, not placed independently
+      // in screen-space or generated from unrelated noise.
+      const fuchunTurningBanks=isHuang?([
+        {first:0,last:2,at:.25,offset:.07,rise:6.7,fall:13.4,load:3.6},
+        {first:1,last:4,at:.45,offset:-.035,rise:8.1,fall:17.2,load:4.3},
+        {first:0,last:3,at:.67,offset:.08,rise:4.3,fall:12.6,load:2.7},
+      ] as const).map((plan,k)=>{
+        const left=stratum[plan.first].sample(plan.at);
+        const right=stratum[plan.last].sample(plan.at+plan.offset);
+        const span=right[0]-left[0],delta=right[1]-left[1];
+        const round=plan.rise*(.88+.25*s(seed+8203,i*53+k*19));
+        const drop=plan.fall*(.87+.29*s(seed+8211,i*37+k*29));
+        const c1:P=[left[0]+span*.26+direction*3.4,
+          left[1]-round];
+        const c2:P=[right[0]-span*.29-direction*2.1,
+          right[1]-round*.69];
+        const under1:P=[right[0]-span*.25,
+          right[1]+drop*.63];
+        const under2:P=[left[0]+span*.31,
+          left[1]+drop*.78];
+        const volume="M"+f(left[0])+" "+f(left[1])+
+          " C"+f(c1[0])+" "+f(c1[1])+
+          " "+f(c2[0])+" "+f(c2[1])+
+          " "+f(right[0])+" "+f(right[1])+
+          " C"+f(right[0]+direction*2.2)+" "+
+            f(right[1]+drop*.39)+" "+
+            f(under1[0]+direction*1.7)+" "+f(under1[1])+
+            " "+f(under1[0])+" "+f(under1[1])+
+          " C"+f(under1[0]-span*.18)+" "+
+            f(under1[1]+drop*.24)+" "+
+            f(under2[0]+span*.25)+" "+
+            f(under2[1]+drop*.06)+" "+
+            f(under2[0])+" "+f(under2[1])+
+          " C"+f(left[0]-direction*2.9)+" "+
+            f(left[1]+drop*.58)+" "+
+            f(left[0]+direction*2.4)+" "+
+            f(left[1]+drop*.16)+" "+
+            f(left[0])+" "+f(left[1])+" Z";
+        const crest=rockLoadedCubicRibbon(left,c1,c2,right,
+          plan.load*(.84+.24*s(seed+8223,i*13+k*31)),
+          seed+8237+i*101+k*43);
+        // A second, shorter crease is a CHILD of that same live
+        // volume's source crest; deliberate dry releases remain paper.
+        const creaseStart=cubicPoint(left,c1,c2,right,.24);
+        const creaseEnd=cubicPoint(left,c1,c2,right,.77);
+        const crease=rockLoadedCubicRibbon(creaseStart,
+          [creaseStart[0]+span*.11,
+            creaseStart[1]+drop*.14],
+          [creaseEnd[0]-span*.12,
+            creaseEnd[1]+drop*.23],
+          creaseEnd,plan.load*.38,
+          seed+8273+i*79+k*17);
+        return {left,right,plan,volume,crest,crease,
+          gradient:tone+"turningbank"+k};
+      }):[];
       const stoneBankStations=isHuang?[.13,.39,.71]:
         isWang?[.1,.29,.53,.76]:[];
       const stoneBanks=stoneBankStations.map((loc,k)=>{
@@ -1148,6 +1209,41 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
                 opacity={f((role===0?.69:.51)*(1-.24*mist))}/>)}
             <path data-km-master-fuchun-hillback-lip="" d={lip}
               fill="#3f362e" opacity={f((k===0?.62:.49)*(1-.2*mist))}/>
+          </g>)}
+        </g>}
+        {isHuang&&<g clipPath={"url(#"+clip+")"}
+          data-km-master-fuchun-turning-field="">
+          {fuchunTurningBanks.map(({left,right,plan,volume,crest,crease,
+            gradient},k)=><g key={k}
+            data-km-master-fuchun-turning-bank=""
+            data-km-master-fuchun-turning-bank-root={
+              f(left[0])+","+f(left[1])}
+            data-km-master-fuchun-turning-bank-tip={
+              f(right[0])+","+f(right[1])}
+            data-km-master-fuchun-turning-bank-from={plan.first}
+            data-km-master-fuchun-turning-bank-to={plan.last}
+            data-km-master-fuchun-turning-bank-depth={plan.at}
+            data-km-master-fuchun-turning-bank-offset={plan.offset}>
+            <defs><linearGradient id={gradient}
+              x1={k===1?"9%":"19%"} y1="3%"
+              x2={k===0?"81%":"62%"} y2="98%">
+              <stop offset="0" stopColor="#45382d"
+                stopOpacity={k===1?.61:.48}/>
+              <stop offset=".27" stopColor="#67513d"
+                stopOpacity={k===1?.48:.36}/>
+              <stop offset=".67" stopColor="#9e886c"
+                stopOpacity=".16"/>
+              <stop offset="1" stopColor="#b7a28b" stopOpacity="0"/>
+            </linearGradient></defs>
+            <path data-km-master-fuchun-turning-wash="" d={volume}
+              fill={"url(#"+gradient+")"}
+              opacity={f((k===1?.72:.61)*(1-.22*mist))}/>
+            <path data-km-master-fuchun-turning-crest="" d={crest}
+              fill="#514435"
+              opacity={f((k===1?.55:.44)*(1-.2*mist))}/>
+            <path data-km-master-fuchun-turning-crease="" d={crease}
+              fill="#6c5943"
+              opacity={f((k===2?.32:.39)*(1-.21*mist))}/>
           </g>)}
         </g>}
         {(isHuang||isWang)&&<g clipPath={"url(#"+clip+")"}

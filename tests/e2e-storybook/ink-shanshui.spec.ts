@@ -1300,6 +1300,41 @@ test("the Fuchun continuous pine underwash preserves all 80 physical paper gaps 
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
 });
 
+
+test("original Fuchun stone rock strata become positive rounded parent-anchored brush relief",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  const guo=lab.locator('[data-km-master-study="early-spring"]');
+  const volume=fuchun.locator("[data-km-master-fuchun-turning-bank]");
+  const ribs=fuchun.locator("[data-km-master-stratum]");
+  await expect(volume).toHaveCount(9);
+  await expect(ribs).toHaveCount(15);
+  const original=await volume.evaluateAll(nodes=>
+    nodes.map(node=>node.querySelector("[data-km-master-fuchun-turning-wash]")?.getAttribute("d")));
+  const beforeButton=lab.getByRole("button",{name:"Stone before rounded stratum relief"});
+  await beforeButton.click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection",
+    "stone-before-turning");
+  await expect(page.getByRole("slider",{name:"Master zoom"}))
+    .toHaveValue("2.4");
+  await expect(volume.first()).toBeHidden();
+  await expect(guo.locator("[data-km-master-face]").first()).toBeVisible();
+  const before=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-original-stone-before-turning-banks.png")});
+  await lab.getByRole("button",{name:"All Fuchun hemp"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+  await expect(volume.first()).toBeVisible();
+  const after=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-original-stone-after-turning-banks.png")});
+  expect(hash(after)).not.toBe(hash(before));
+  expect(await volume.evaluateAll(nodes=>
+    nodes.map(node=>node.querySelector("[data-km-master-fuchun-turning-wash]")?.getAttribute("d"))))
+    .toEqual(original);
+  await expect(ribs).toHaveCount(15);
+  await expect(guo.locator("[data-km-master-fuchun-turning-bank]")).toHaveCount(0);
+});
+
 test("native Fuchun crown branches join 40 fan islands in the original painting",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
   const lab=page.getByTestId("shanshui-master-ink-study");
