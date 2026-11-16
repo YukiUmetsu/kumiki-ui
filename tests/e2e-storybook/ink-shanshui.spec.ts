@@ -276,7 +276,7 @@ test("four distinct historical ink schools paint separate real rooted rock struc
         "[data-km-cliff-pine-bough-centerline]").evaluateAll(nodes=>
           nodes.map(node=>{
             const n=(node.getAttribute("data-km-cliff-pine-bough-centerline")??"")
-              .match(/-?\\d+(?:\\.\\d+)?/g)?.map(Number)??[];
+              .match(/-?\d+(?:\.\d+)?/g)?.map(Number)??[];
             return n[5]-n[1];
           }));
       expect(ends.filter(n=>n>2).length).toBeGreaterThanOrEqual(6);
