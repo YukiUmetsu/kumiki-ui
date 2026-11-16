@@ -37,7 +37,16 @@ describe("ArtCraft F1 V21 source anatomical nose volume (unapproved)",()=>{
       expect(b.nibStyle).toBe("dry");
       expect(b.featherContacts).toBe(true);
       expect(b.blendRadius).toBeGreaterThan(6);
-      expect(b.markStrength).toBeGreaterThan(.3);
+      // V21b deliberately attenuates the root and both broad sidewalls
+      // after actual native V21 pixels failed as an oversized dark hatch.
+      // Enforce their *upper* pressure bound instead of accidentally
+      // requiring stronger wax (which would reintroduce the rejected smear).
+      if(["nose-root","nose-sidewall","nose-sidewall-form"].includes(id)){
+        expect(b.markStrength).toBeGreaterThanOrEqual(.2);
+        expect(b.markStrength).toBeLessThan(.3);
+      }else{
+        expect(b.markStrength).toBeGreaterThan(.3);
+      }
       expect(b.spacing).toBeGreaterThanOrEqual(4);
       expect(b.outlineOpacity).toBe(0);
       expect(b.d.includes("C")).toBe(true);

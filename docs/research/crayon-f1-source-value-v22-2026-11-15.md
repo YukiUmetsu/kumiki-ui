@@ -20,3 +20,19 @@
 - Same Crayon ArtCraft Adult Face Lab Storybook folder adds 3× opt-in story and selector, Vitest negative-control/source-region/SSR checks, and native Chromium A/B 1×/3× screenshot capture vs V21b.
 - **Not yet artist-approved.** Download latest exact-head actual browser PNG before judging. Independent ArtCraft 9.1 18-point human anatomy / five-axis / portrait-fidelity gates remain unpassed; source x340..493/y570..684 should show no sticker silhouette. If source-fidelity degrades, reject experiment and keep default unchanged.
 - Remaining: full coherent nose rather than local patches if still disconnected, source-specific oral cavity/teeth, eyes, malar/jaw/neck/hair and 300-frame normal-speed motion sign-off. No merge until source-based visual acceptance.
+
+## Independent V22 native pixel review — rejected
+
+- **Exact-head native Chromium PASS**: [workflow 43810584516](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43810584516), artifact **14200607107**. Original V21b negative control and V22 candidate captured at 608×1082 1× and native same-camera 3×, f299. Real screenshots were inspected directly; **ARTISTIC FAIL**. The near dark naris is still a floating bean-shaped patch, and the far naris still looks like a separate oval. A dense new wax shadow area beneath the near nostril improves underplane value locally but reads as a painted smear rather than a realistic connected anatomical cartilage turn. Eyes and mouth were unmodified and remain visibly stylized/incorrect. No production character approval.
+- **Independent diagnostic**: scikit-image channel-aware SSIM at identical 608×1082 source/candidate frames, without post-enhancement. This is not a substitute for the official ArtCraft 9.1 script or the independent 18-landmark check.
+
+| Region | V21b source control | V22 actual | Interpretation |
+|---|---:|---:|---|
+| Full-frame RGB SSIM | 0.361905 | **0.361942** | Negligible difference; far below portrait requirement ≥0.85 |
+| Nose ROI x340..493,y570..684 SSIM | 0.55572 | **0.55635** | Negligible local difference |
+| Sidewall x340..413,y534..645 SSIM | 0.66214 | **0.66464** | Slight positive, still insufficient |
+| Underplane x412..451,y627..664 SSIM | 0.48974 | **0.51215** | Meaningful but limited local improvement |
+| Near naris x389..415,y628..645 SSIM | 0.19232 | **0.18147** | **Worse** core shape fidelity |
+
+- Native grammar [43810584521](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43810584521) PASS. Typecheck and Storybook guards PASS. Changed unit suite on the first V22 head reported **690 PASS / 15 FAIL**: 4 new V22 tests PASS, with one existing V21b root-pressure test contradicting its own deliberate V21b low-pressure correction (the latter's assertion is corrected separately), and 14 non-Crayon failures across RISO and unrelated tests. No ArtCraft threshold was relaxed. Browser proof PASS.
+- **No merge or promotion.** Critical next change should tackle whole nose-to-face source form and near/far cavity *silhouette/occlusion* instead of more spot-like additions or shader noise. ArtCraft human anatomy, full 18 landmark and 300-frame normal-speed gates remain open.
