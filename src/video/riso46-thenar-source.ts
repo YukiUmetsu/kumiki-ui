@@ -22,8 +22,8 @@ export function riso46ThenarSource(actor:Riso46Actor,side:Riso46Side){
   const sign=side==="right"?1:-1;
   const x=(v:number)=>Number((sign*v).toFixed(2));
   const artist=actor==="paper-artist";
-  const fullness=artist?.32:0;
-  const fold=artist?.18:0;
+  const fullness=artist?0.32:0;
+  const fold=artist?0.18:0;
   const red=[
     `M${x(6.45)} -4.15`,
     `C${x(8.3+fullness)} -5.03 ${x(10.10+fullness)} -3.80 ${x(10.72+fullness)} -1.62`,
