@@ -2,7 +2,7 @@ import type {RisoCharacterSpec,RisoJointFrame,RisoMatrix}
   from "../../registry/video/riso-character";
 import {evaluateRisoCharacter} from "../../registry/video/riso-character";
 import {RISO31_GEOMETRY} from "./riso31-finger-phalanges";
-import {riso51SourceKeys} from "./riso51-view-conditioned-source";
+import {riso51SourceKeys,riso51ProjectPalmarPoint} from "./riso51-view-conditioned-source";
 import {riso54WebContour} from "./riso54-interdigital-paper-reserve";
 import {
   riso57PalmLandmarks,riso57PalmContourFromKnots,
@@ -226,6 +226,62 @@ export function riso58ContactSkin(
     maxVolumeDisplacement:n(maxVolumeDisplacement),frame,actor,side};
 }
 
+/**
+ * Project each of the ORIGINAL independently curved BLUE MCP pressure
+ * facets onto the EXACT SAME living 3D skin as the RED positive knuckle
+ * crest. Preserve every M/C/Q/L/Z and every 4-C original cobalt lobe.
+ * The blue art is authored around a separate palm-surface rig joint,
+ * 11 original units distal to the parent hand; compensate for it before
+ * sampling the 16 source skin knots. This corrects the old visually
+ * floating cobalt creases after the new ANAT1 bone-conditioned palm.
+ */
+export function riso58ProjectMcpInk(
+  d:string,skin:Riso58ContactSource,
+):string{
+  const {side,actor}=skin;
+  if(typeof d!=="string"||d.length>20000||
+    /[^MLCQZ0-9\s,.+\-Ee]/.test(d))
+    throw new RangeError("RISO58 blue MCP source must be original absolute cubic ink");
+  const tokens=d.match(/[MLCQZ]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g);
+  if(!tokens)throw new RangeError("RISO58 blue source cannot be empty");
+  const arity:Record<string,number>={M:2,L:2,C:6,Q:4,Z:0};
+  const model=riso57PalmLandmarks(actor,side);
+  // Reconstruct the RISO51 old RED contact plane to get a true
+  // world-consistent RED→BLUE displacement, not an arbitrary screen offset.
+  const offsets=model.map((base,i)=>{
+    const [x,y]=riso51ProjectPalmarPoint(base.x,base.y,side,actor,1);
+    const live=skin.anchors[i];
+    return {x:live.x-x,y:live.y-y};
+  });
+  const mapped:string[]=[];
+  for(let i=0;i<tokens.length;){
+    const cmd=tokens[i++];
+    const argc=arity[cmd];
+    if(argc===undefined)throw new RangeError("RISO58 blue source command unsupported");
+    const params:string[]=[];
+    for(let j=0;j<argc;j+=2){
+      const x=Number(tokens[i++]),y=Number(tokens[i++]);
+      if(!Number.isFinite(x)||!Number.isFinite(y))
+        throw new RangeError("RISO58 blue original pressure control invalid");
+      // Compare positions in the actual hand source, because the
+      // knuckle facet's own joint is y=+11 relative to its parent.
+      const globalY=y+11;
+      let sum=0,dx=0,dy=0;
+      model.forEach((point,k)=>{
+        const d2=(point.x-x)**2+(point.y-globalY)**2;
+        const weight=Math.exp(-d2/(2*5.8**2));
+        sum+=weight;dx+=weight*offsets[k].x;dy+=weight*offsets[k].y;
+      });
+      const [oldX,oldY]=riso51ProjectPalmarPoint(x,y,side,actor,1);
+      const projectedX=oldX+(sum>1e-7?dx/sum:0);
+      const projectedY=oldY+(sum>1e-7?dy/sum:0);
+      params.push(String(n(projectedX)),String(n(projectedY)));
+    }
+    mapped.push([cmd,...params].join(" "));
+  }
+  return mapped.join(" ");
+}
+
 /** Not a second pasted fill: replace the exact SAME existing RED palm
  * source's contact-view Bézier keys with the 3D joint-conditioned single
  * skin envelope. All separately animated phalanges, original ink depth,
@@ -245,6 +301,12 @@ export function riso58ApplyContactSkin(
   const updated=spec.parts.map(p=>{
     if(p.id===original.id)
       return {...p,pathKeys:riso51SourceKeys(p.d,skin.path,actor)};
+    if(p.id===side+"-glove-knuckle-arc"){
+      if(p.plate!=="blue"||p.paint!=="solid"||!p.pathKeys)
+        throw new Error("RISO58 needs original 4-plane COBALT MCP pressure source");
+      const contact=riso58ProjectMcpInk(p.d,skin);
+      return {...p,pathKeys:riso51SourceKeys(p.d,contact,actor)};
+    }
     // The exact same ORIGINAL physical paper-negative cutters must
     // follow the new 3D skin outline. Cutting the previous RISO57 2D
     // outline instead (although code still runs) would carve a hole
