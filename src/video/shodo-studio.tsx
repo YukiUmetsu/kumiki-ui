@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { SHODO_GLYPHS } from "../../registry/video/shodo/shodo-glyphs";
 import type { ShodoFormOptions } from "../../registry/video/shodo/shodo-glyphs";
 import { SHODO_KANJIVG_CREDIT, loadShodoGlyph } from "../../registry/video/shodo/shodo-glyph-source";
+import type { ShodoTeacher } from "../../registry/video/shodo/shodo-glyph-source";
 import type { ShodoGlyph } from "../../registry/video/shodo/shodo-glyphs";
 import { planShodoWriting, shodoBrushPose } from "../../registry/video/shodo/shodo-hand";
 import { kenteiSheet } from "../../registry/video/shodo/shodo-paper";
@@ -16,19 +17,38 @@ import { SHODO_BASICS, shodoStepLabel } from "../../registry/video/shodo/shodo-t
 
 const FPS = 30;
 const W = 1280, H = 720;
-export type ShodoGlyphMode = "kanjivg" | "bundled";
+export type ShodoGlyphMode = "teacher" | "kanjivg" | "bundled";
 
 /**
- * Glyphs for the demos. "kanjivg": KanjiVG strokes with brush form rules (any character);
- * "bundled": the original offline set first. Falls back to a bundled glyph when stroke
- * data cannot be loaded.
+ * The teacher's fitted forms, when the owner keeps them in `local-assets/shodo-teachers/`
+ * (served by Storybook only when the folder exists; never committed). Null otherwise.
  */
-export function useShodoGlyphs(chars: readonly string[], mode: ShodoGlyphMode, form: ShodoFormOptions = {}) {
-  const [state, setState] = useState<{ key: string; glyphs: ShodoGlyph[]; error: string | null } | null>(null);
-  const key = chars.join("") + "|" + mode + "|" + JSON.stringify(form);
+export function useShodoTeacher(): ShodoTeacher | null {
+  const [teacher, setTeacher] = useState<ShodoTeacher | null>(null);
   useEffect(() => {
     let live = true;
-    Promise.all(chars.map(c => loadShodoGlyph(c, { ...form, preferBundled: mode === "bundled" }).catch((e: unknown) => {
+    fetch("/shodo-teachers/teacher.json")
+      .then(res => res.ok ? res.json() : null)
+      .then((data: ShodoTeacher | null) => { if (live && data && typeof data.label === "string" && data.glyphs) setTeacher(data); })
+      .catch(() => undefined);
+    return () => { live = false; };
+  }, []);
+  return teacher;
+}
+
+/**
+ * Glyphs for the demos. "teacher": the teacher's own forms where the teacher has the
+ * character, KanjiVG with the rules elsewhere; "kanjivg": KanjiVG strokes with brush form
+ * rules (any character); "bundled": the original offline set first. Falls back to a bundled
+ * glyph when stroke data cannot be loaded.
+ */
+export function useShodoGlyphs(chars: readonly string[], mode: ShodoGlyphMode, form: ShodoFormOptions = {}, teacher: ShodoTeacher | null = null) {
+  const [state, setState] = useState<{ key: string; glyphs: ShodoGlyph[]; error: string | null } | null>(null);
+  const taught = mode === "teacher" ? teacher : null;
+  const key = chars.join("") + "|" + mode + "|" + JSON.stringify(form) + "|" + (taught?.id ?? "");
+  useEffect(() => {
+    let live = true;
+    Promise.all(chars.map(c => loadShodoGlyph(c, { ...form, preferBundled: mode === "bundled", teacher: taught }).catch((e: unknown) => {
       if (SHODO_GLYPHS[c]) return SHODO_GLYPHS[c];
       throw e;
     }))).then(glyphs => { if (live) setState({ key, glyphs, error: null }); })
@@ -139,12 +159,15 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
   const [grid, setGrid] = useState(true);
   const [guide, setGuide] = useState<"none" | "current" | "all">("current");
   const [showBrush, setShowBrush] = useState(true);
-  const [glyphMode, setGlyphMode] = useState<ShodoGlyphMode>("kanjivg");
+  const teacher = useShodoTeacher();
+  const [chosenMode, setGlyphMode] = useState<ShodoGlyphMode | null>(null);
+  // A teacher's forms are the default whenever they are available.
+  const glyphMode = chosenMode ?? (teacher ? "teacher" : "kanjivg");
   const set = <K extends keyof ShodoStyle>(group: K, patch: Partial<ShodoStyle[K]>) =>
     setStyle(s => ({ ...s, [group]: { ...(s[group] as object), ...patch } }));
 
   const chars = [...text].filter(c => c.trim()).slice(0, 4);
-  const loaded = useShodoGlyphs(chars, glyphMode);
+  const loaded = useShodoGlyphs(chars, glyphMode, {}, teacher);
   const glyphs = loaded?.glyphs ?? [];
   const loadError = loaded?.error ?? null;
   const paper = useMemo(() => {
@@ -167,7 +190,8 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
 
   const pose = plan ? shodoBrushPose(plan, frame / FPS) : null;
   const step = plan && pose?.contact ? plan.strokes[pose.stroke]?.samples.find(s => s.t >= frame / FPS) : undefined;
-  const usesKanjiVg = glyphs.some(g => g.source === "kanjivg");
+  // Teacher forms keep KanjiVG's stroke order, so they carry its credit too.
+  const usesKanjiVg = glyphs.some(g => g.source === "kanjivg" || g.source === "teacher");
 
   return <div style={page}>
     <header style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "baseline", justifyContent: "space-between" }}>
@@ -199,11 +223,15 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
     <div style={{ display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center", fontSize: 12.5 }}>
       <label style={label}>Character shapes
         <select aria-label="Character shapes" value={glyphMode} onChange={e => setGlyphMode(e.target.value as ShodoGlyphMode)}>
-          <option value="kanjivg">KanjiVG strokes (any character)</option>
+          {teacher ? <option value="teacher">Teacher's own forms (local)</option> : null}
+          <option value="kanjivg">KanjiVG strokes and layout rules (any character)</option>
           <option value="bundled">Bundled originals (offline)</option>
         </select>
       </label>
-      <span>{usesKanjiVg ? <>{SHODO_KANJIVG_CREDIT}. Credit KanjiVG in any film made from it.</> : null}</span>
+      <span>
+        {glyphs.some(g => g.source === "teacher") && teacher ? <>{teacher.label}. </> : null}
+        {usesKanjiVg ? <>{SHODO_KANJIVG_CREDIT}. Credit KanjiVG in any film made from it.</> : null}
+      </span>
     </div>
     <Group title="Hand · 運筆">
       <label style={label}>Script

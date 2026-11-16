@@ -77,8 +77,11 @@ export interface ShodoPart {
 export interface ShodoGlyph {
   char: string;
   strokes: readonly ShodoStrokeSpec[];
-  /** Data provenance; `kanjivg` output must be credited to KanjiVG (CC BY-SA 3.0). */
-  source: "original" | "kanjivg";
+  /**
+   * Data provenance; `kanjivg` output must be credited to KanjiVG (CC BY-SA 3.0). `teacher`
+   * is a form fitted to one teacher's model (KanjiVG stroke order, the teacher's shapes).
+   */
+  source: "original" | "kanjivg" | "teacher";
   /** Component tree (from KanjiVG groups), used by the structure rules (結構法). */
   parts?: ShodoPart;
 }
@@ -498,6 +501,8 @@ export interface ShodoFormOptions {
  * Kana keep their curves and get only half the rise.
  */
 export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = {}): ShodoGlyph {
+  // A teacher's form already has that teacher's layout and brush habits.
+  if (source.source === "teacher") return source;
   const kana = isKanaChar(source.char);
   // Bundled originals were drawn with their own proportions; only KanjiVG skeletons get the layout rules.
   const glyph = options.structure === false || source.source !== "kanjivg" ? source : shodoStructure(source, options.structure ?? {});

@@ -33,7 +33,7 @@ Every contact sample in a plan reports `phase` (`kihitsu`, `sohitsu`, `tensetsu`
 | `shodo-style.ts` | `ShodoStyle`: hand, technique, brush, ink and paper groups; presets; `resolveShodoStyle`; path-specific `inspectShodoStyle` |
 | `shodo-glyphs.ts` | Glyph format, original offline glyphs (一 二 三 永 道 山 心), `parseKanjiVgSvg`, `shodoKaishoForm` (右上がり, weight by length, 主画, longer sweeps, 懸針, 右払い feet, kana curves), `shodoJoinStrokes` (接筆) |
 | `shodo-structure.ts` | The 間架結構法 rule book: `shodoStructure`, `shodoLayout`, `shodoKankaRulesFor`, `SHODO_KANKA_RULES`, `SHODO_STRUCTURE_RULES`, measured on 411 teacher models |
-| `shodo-glyph-source.ts` | `loadShodoGlyph` / `loadShodoText`: bundled first, otherwise KanjiVG from the pinned release, cached, with form rules |
+| `shodo-glyph-source.ts` | `loadShodoGlyph` / `loadShodoText`: a supplied teacher's form first, then bundled, otherwise KanjiVG from the pinned release, cached, with form rules; `ShodoTeacher` |
 | `shodo-textures.ts` | Scanned CC0 bamboo cane and wood textures (ambientCG), embedded |
 | `shodo-hand.ts` | `planShodoWriting` (strokes, air moves, ink dips) and `shodoBrushPose(plan, seconds)` |
 | `shodo-ink.ts` | `ShodoInkSurface`: paper raster with deposit, pooling, kasure, nijimi, colour mixing and wet sheen |
@@ -45,7 +45,7 @@ Every contact sample in a plan reports `phase` (`kihitsu`, `sohitsu`, `tensetsu`
 
 ## Writing any character
 
-1. `loadShodoGlyph(char)` reads the character from KanjiVG (stroke order and centrelines) at the pinned release, or returns a bundled original when asked to prefer them. Kanji and kana both work.
+1. `loadShodoGlyph(char)` reads the character from KanjiVG (stroke order and centrelines) at the pinned release, or returns a bundled original when asked to prefer them. Kanji and kana both work. When the host supplies a teacher (`{ teacher }`: forms fitted to one teacher's models, `source: "teacher"`) and the teacher has the character, that form is returned as it is: it already has the teacher's layout and weights, so the steps below leave it unchanged. The library bundles no teacher; a teacher's forms reproduce that teacher's work and stay with the host's rights to them. The demos load `local-assets/shodo-teachers/teacher.json` when the owner has one (never committed) and use it by default.
 2. `shodoKaishoForm` first applies `shodoStructure`, the 間架結構法 rule book measured on 411 finished models by one teacher. `shodoLayout` finds the layout from KanjiVG's component tree, and `shodoKankaRulesFor` lists the rules that apply, in this order:
    - 天覆: a covering crown (宀, 雨, 亠, 人…) keeps its width over the body.
    - 草冠: 艹 stays compact.
