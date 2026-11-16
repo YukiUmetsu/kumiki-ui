@@ -50,9 +50,7 @@ const contourPairs=[
   ["malar-near","malar-far"],
   ["gonion-near","gonion-far"],
   ["mandible-near","mandible-far"],
-] as const satisfies readonly(
-  readonly[HeadFidelityLandmarkId,HeadFidelityLandmarkId]
-)[];
+] as const;
 const blocked=(reason:string):PencilHeadContourDiagnostics=>({
   state:"incomplete",reasons:[reason],artistApproved:false,
   alignment:"none",outputHeadHeight:null,sourceToOutputScale:null,
