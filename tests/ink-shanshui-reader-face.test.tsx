@@ -158,6 +158,39 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(rig.parts.find(p=>p.id==="head")?.rest)
       .toEqual(shanshuiBodyFit("river-scholar").headRest);
   });
+  it("binds translucent cheek and lip material to ANAT1 malar volume, not copied diagonal stripes",()=>{
+    const portrait=scrollReaderFacePortrait(1);
+    const material=readerFaceAnatomy(1);
+    const malar=material.planes.find(s=>s.type==="path"&&
+      s.d.includes("C125.6 110 132.9 113.4"));
+    const lowerCheek=paths(portrait,"face").find(s=>s.type==="path"&&
+      s.d.startsWith("M119.2 116 C121.8 123.3"));
+    const lip=material.lips.find(s=>s.type==="path"&&
+      s.d.includes("M135.2 125.9 Q138.9"));
+    if(!malar||malar.type!=="path"||
+       !lowerCheek||lowerCheek.type!=="path"||
+       !lip||lip.type!=="path")
+      throw Error("Facial anatomy paint course missing");
+    for(const shape of [malar,lowerCheek]){
+      expect(shape.stroke).toBe("none");
+      expect(shape.fill).toBe("$skinshade");
+      expect(shape.opacity).toBeGreaterThan(0);
+      expect(shape.opacity).toBeLessThan(.14);
+      expect(shape.d.trim().endsWith("Z")).toBe(true);
+      expect(shape.d).not.toMatch(/NaN|Infinity/);
+    }
+    // Keep physical paper relief independent of the animated
+    // viseme line, without flattening the original ink micro-detail.
+    expect(lip.strokeWidth).toBeLessThan(.5);
+    expect(lip.opacity).toBeLessThan(.5);
+    const mouth=paths(portrait,"mouth-rest").find(s=>s.type==="path"&&
+      s.d.startsWith("M135.4 125.9 C137.1 125.6"));
+    expect(mouth).toMatchObject({type:"path",fill:"none"});
+    for(const id of ["mouth-rest","mouth-aa","mouth-oh","mouth-mm",
+      "mouth-smile","eyes-open","eyes-soft","eyes-closed"]){
+      expect(paths(portrait,id).length).toBeGreaterThan(1);
+    }
+  });
   it("reconstructs an opaque tapered face with a separately delineated ear and nose",()=>{
     const art=scrollReaderFacePortrait(1);
     expect(allVector(art)).toBe(true);
