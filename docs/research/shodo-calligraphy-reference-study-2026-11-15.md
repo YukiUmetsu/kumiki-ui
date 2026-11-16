@@ -598,6 +598,21 @@ Kana did not improve (−0.003 and −0.001 on 27 + 27 characters), so they keep
 
 Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/27 and 71/37 characters better/worse), and the centreline distance also improves. The effect is small, about a tenth of §2.22. Dots look a little more compact, as hers are. `shodoKaishoForm` applies them to KanjiVG kanji only (`dotLength`, `riseStrokeLength`).
 
+## 2.24 Twentieth study round: かな weight and small かな
+
+**かな weight.** Our かな are the weakest rules forms: their best-aligned overlap with her ink is 0.50, against 0.71 for her own forms. Her 52 written かな are larger than ours (1.06 times as wide and 1.09 times as tall), but a larger かな scores worse (overlap 0.499 → 0.477 at 1.10). The overlap allows for size, so a larger character mainly makes the strokes thinner in comparison. Her かな strokes are heavier: weight 1.04 (median) against our 0.96. Heavier strokes improve both halves:
+
+| かな stroke weight | Overlap change, half one / half two | Characters better/worse |
+|---|---|---|
+| 1.00 | +0.0019 / +0.0035 | 19/6, 19/7 |
+| 1.04 | +0.0047 / +0.0059 | 24/2, 20/5 |
+| 1.10 | +0.0075 / +0.0099 | 22/4, 20/6 |
+| 1.10 and 1.05 larger | +0.0013 / +0.0048 | 18/8, 16/7 |
+
+`strokeFromCentreline` now gives KanjiVG かな strokes weight 1.1; dots and dakuten keep 0.96. In renders the loops of あ ぬ ね の め る stay open.
+
+**Small かな.** KanjiVG draws ぁ っ ゃ ァ ッ ャ … at 0.79 of a full かな, and in a grid ゃ beside し reads as や. Her one small かな (っ in a small-brush lesson) is 0.46 of the width of her す, and handwriting guides teach about half to two thirds. `shodoKaishoForm` writes KanjiVG small かな at 0.76 of KanjiVG's size (about 0.6 of a full かな), on the foot of their box (`smallKana`).
+
 ## 3. From observation to model
 
 | Observation | Model decision |
