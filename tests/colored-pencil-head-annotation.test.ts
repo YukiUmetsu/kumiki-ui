@@ -7,8 +7,6 @@ import {HEAD_FIDELITY_LANDMARK_IDS,HEAD_FIDELITY_TONES} from
   "../src/video/colored-pencil-head-fidelity";
 
 const source={width:1280,height:960},output={width:960,height:540};
-const point=(id:string,i:number)=>({id,x:120+i*23,y:100+i*14});
-const tone=(id:string,i:number)=>({id,rect:{x:100+i*150,y:420,width:56,height:36}});
 
 describe("ArtCraft standalone head-only photo/source annotation atlas",()=>{
   it("maps pointer coordinates to native image pixels, never viewport CSS coordinates",()=>{
