@@ -175,7 +175,7 @@ const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
     ruff: "gofun", iris: "kogecha", slit: false, horns: "antler", spots: true, hoof: true, neck: 1.6, headTilt: 22 },
   // The black ox of Tenjin's shrines and the cowherd's tale: massive, a deep dewlap, short curved horns, hooves.
   ox: { L: 157, bh: 57, leg: 90, color: "sumi", belly: "sumi", dark: "sumi", head: 46, tail: 64, tailW: 8, ears: "horse", snout: .72, tuck: 0, chest: .3, fur: .03, hairs: .4,
-    ruff: "sumi", iris: "kogecha", slit: false, horns: "ox", hoof: true, neck: .1, headTilt: 52, paw: 1.5 },
+    ruff: "sumi", iris: "kogecha", slit: false, horns: "ox", hoof: true, neck: -.25, headTilt: 50, paw: 1.5 },
   // The Japanese wolf (the okuri-inu): leaner and longer-legged than the dog, grey with a pale belly and a thick tail.
   wolf: { L: 109, bh: 40, leg: 67, color: "usuzumi", belly: "gofun", dark: "sumi", head: 32, tail: 56, tailW: 22, ears: "dog", snout: 1.3, tuck: .22, chest: .16, fur: .18, hairs: 1.1,
     ruff: "gofun", iris: "ki", slit: false },
@@ -322,7 +322,7 @@ function hornsSide(b: Beast, hs: number): Prim[] {
     };
     return [{ t: "fill", d: beam(-.3, -.05) + beam(-.05, .15), fill: { type: "linear", angle: 90, stops: [[0, "kincha", 1], [1, "paper", 1]] }, outline: .9 }];
   }
-  if (b.horns === "ox") return [{ t: "fill", d: smoothD([P(-.5, -.5), P(-.45, -1.0), P(-.1, -1.35), P(.28, -1.38), P(.3, -1.25), P(-.02, -1.1), P(-.22, -.85), P(-.18, -.48)], true, .35), fill: { type: "linear", angle: 90, stops: [[0, "ki", 1], [1, "gofun", 1]] }, outline: 1 }];
+  if (b.horns === "ox") return [{ t: "fill", d: smoothD([P(-.46, -.52), P(-.5, -.82), P(-.3, -1.05), P(.02, -1.1), P(.06, -1.0), P(-.18, -.92), P(-.28, -.74), P(-.22, -.5)], true, .35), fill: { type: "linear", angle: 90, stops: [[0, "ki", 1], [1, "gofun", 1]] }, outline: 1 }];
   return [];
 }
 /** Antlers or horns seen square on (head units). */
@@ -434,6 +434,61 @@ function bearHead(b: Beast, hs: number, open: number, blink: boolean, look: Ukiy
   // The near ear, big and round, set high on the back of the skull.
   out.push(...ear(-.44, -.64, .27));
   out.push(...headExtras({ ...look, glowEyes: false }, P, hs, .36, -.32, sn, blink));
+  return out;
+}
+/**
+ * The ox's head, after a bull in profile and ANIM1's cattle face (eye 0.6 of the head back from the nose, ears held out
+ * sideways below the horns). A broad, flat forehead and a straight face down to a deep, square muzzle with a wide moist
+ * nose pad; a large dark eye under a bony orbit; a deep jaw with the round cheek muscle; the curly poll between the
+ * horns; broad ears out to the side, fringed inside. Head units: x forward to the nose, y down, the face carried
+ * steeply downward by the head tilt.
+ */
+function oxHead(b: Beast, hs: number, open: number, blink: boolean, look: UkiyoeCreatureLook, seed: number): Prim[] {
+  const tq = look.view === "three-quarter", color = look.color ?? b.color, dark = look.dark ?? b.dark;
+  const sn = tq ? .8 : 1, X = (x: number) => x > .2 ? .2 + (x - .2) * sn : x, P = (x: number, y: number): Pt => [X(x) * hs, y * hs];
+  const out: Prim[] = [];
+  // The far ear, held out sideways behind the poll.
+  // The ear points straight back in the world, whatever the head's own tilt: in head units that is back and down by the
+  // tilt (the face is carried about 50° down).
+  const tilt = (b.headTilt ?? 0) * Math.PI / 180, bx = -Math.cos(tilt), by = Math.sin(tilt), nx = -by, ny = bx;
+  const ear = (dx: number, dy: number, far: boolean): Prim[] => {
+    const at = (u: number, w: number) => P(dx + bx * u + nx * w, dy + by * u + ny * w);
+    const e: Pt[] = [at(0, -.1), at(.3, -.13), at(.52, -.04), at(.5, .07), at(.24, .11), at(0, .09)];
+    // The inner ear, its pale fringe of hair, shows the ear against the dark head and neck.
+    const inner: Pt[] = [at(.06, -.04), at(.3, -.07), at(.46, -.01), at(.3, .05), at(.06, .04)];
+    return [{ t: "fill", d: smoothD(e, true, .35), fill: color, outline: 1.1, ...(far ? { opacity: .95 } : {}) },
+      { t: "fill", d: smoothD(inner, true, .35), fill: "usuzumi", opacity: far ? .35 : .55, noPrint: true },
+      { t: "stroke", d: furAlong([at(.05, 0), at(.45, 0)], hs * .1, 7, hs * .1, seed + (far ? 91 : 92)), color: "usuzumi", width: .6, opacity: .55 }];
+  };
+  out.push(...ear(-.42, -.42, true));
+  out.push(...hornsSide(b, hs));
+  // The skull: poll and crown, the flat forehead and straight face, the square muzzle, the deep lower jaw, the throat.
+  const skull: Pt[] = [P(-.62, .1), P(-.6, -.38), P(-.42, -.58), P(-.1, -.62), P(.4, -.5), P(.9, -.36), P(1.12, -.28), P(1.22, -.14), P(1.24, .08), P(1.16, .24),
+    P(.95, .3), P(.6, .36), P(.2, .5), P(-.2, .56), P(-.5, .42)];
+  out.push({ t: "fill", d: smoothD(skull, true, .28), fill: color, grain: .25 });
+  out.push({ t: "line", d: carvedLine(smoothPts(skull.slice(1, 11), 5, false), hs * .05, { taper: "both", minRatio: .25, smooth: true }), color: "sumi" });
+  // The round cheek muscle and the bony ridge of the face.
+  out.push({ t: "line", d: carvedLine(smoothPts([P(-.32, -.08), P(-.18, .28), P(.15, .42), P(.42, .3)], 5, false), hs * .03, { taper: "both", minRatio: .2, smooth: true }), color: "sumi", opacity: .55 });
+  out.push({ t: "line", d: carvedLine([P(.2, -.42), P(.75, -.3), P(1.02, -.22)], hs * .02, { taper: "both", minRatio: .3, smooth: true }), color: "usuzumi", opacity: .5 });
+  // The curly poll: tight curls of hair between and in front of the horns (the Japanese Black's topknot).
+  const curls = [0, 1, 2, 3, 4].map(i => { const c = P(-.38 + i * .1, -.58 + Math.abs(i - 2) * .02); const r = hs * .045; return `M${(c[0] - r).toFixed(1)} ${c[1].toFixed(1)}a${r.toFixed(1)} ${r.toFixed(1)} 0 1 1 ${(r * 1.4).toFixed(1)} ${(r * .6).toFixed(1)}`; }).join("");
+  out.push({ t: "stroke", d: curls, color: "usuzumi", width: .8, opacity: .7 });
+  // The moist nose pad across the front of the muzzle, the comma nostril; the mouth line; open when it lows.
+  out.push({ t: "fill", d: smoothD([P(1.02, -.24), P(1.2, -.18), P(1.25, .02), P(1.2, .14), P(1.04, .1), P(.98, -.06)], true, .35), fill: dark === "sumi" ? "usuzumi" : dark, outline: .8, opacity: .95 });
+  out.push({ t: "line", d: carvedLine([P(1.12, -.12), P(1.18, -.06), P(1.13, .02)], hs * .04, { taper: "both", minRatio: .3, smooth: true }), color: "sumi" });
+  if (open > .05) out.push({ t: "fill", d: smoothD([P(1.18, .16), P(.82, .26), P(.95, .34 + .3 * open), P(1.16, .22 + .2 * open)], true, .3), fill: "shu", outline: .9 });
+  out.push({ t: "line", d: carvedLine([P(1.18, .17), P(1.0, .22), P(.78, .28)], hs * .035, { taper: "end", minRatio: .3, smooth: true }), color: "sumi" });
+  // The large dark eye high on the head under a bony orbit, about 0.6 of the head back from the nose.
+  const ex = .12, ey = -.3;
+  out.push({ t: "line", d: carvedLine([P(ex - .14, ey - .04), P(ex, ey - .15), P(ex + .16, ey - .06)], hs * .035, { taper: "both", minRatio: .3, smooth: true }), color: "sumi", opacity: .75 });
+  // On a black coat the eye needs its pale rim of bare lid to read.
+  if (!blink) out.push({ t: "fill", d: ellipseD(X(ex) * hs, ey * hs, .14 * hs, .1 * hs), fill: "usuzumi", opacity: .7, noPrint: true });
+  out.push(...smallEye(P, hs, ex, ey, .1, .07, look.accent ?? b.iris, blink));
+  // Short coat: a few hairlines along the face and over the crown.
+  out.push({ t: "stroke", d: furField([P(-.55, -.4), P(.1, -.52), P(.7, -.34)], [P(-.55, .3), P(.1, .1), P(.7, .1)], 18, hs * .14, seed + 93), color: "usuzumi", width: .5, opacity: .4 });
+  // The near ear, out to the side below the horn.
+  out.push(...ear(-.36, -.34, false));
+  out.push(...headExtras(look, P, hs, ex, ey, sn, blink));
   return out;
 }
 /** A glossy black eye with no iris showing (mouse, weasel): a dark ball, a thin rim, a bright catchlight. */
@@ -611,6 +666,7 @@ function tanukiFace(b: Beast, hs: number, look: UkiyoeCreatureLook, blink: boole
 function beastHead(b: Beast, species: string, hs: number, open: number, blink: boolean, look: UkiyoeCreatureLook, seed: number): Prim[] {
   if (species === "boar") return boarHead(b, hs, open, blink, look, seed);
   if (species === "bear") return bearHead(b, hs, open, blink, look, seed);
+  if (species === "ox") return oxHead(b, hs, open, blink, look, seed);
   if (species === "mouse") return mouseHead(b, hs, open, blink, look, seed);
   if (species === "weasel") return weaselHead(b, hs, open, blink, look, seed);
   if (species === "tanuki") return tanukiHead(b, hs, open, blink, look, seed);
@@ -933,10 +989,17 @@ function beastEars(b: Beast, species: string, hs: number, color: UkiyoePaint, da
     else if (b.ears === "boar") { outer = [P(s * .26, -.46), P(s * .4, -.74), P(s * .76, -.96), P(s * .82, -.62), P(s * .7, -.36)]; inner = [P(s * .36, -.5), P(s * .48, -.72), P(s * .72, -.86), P(s * .74, -.6), P(s * .64, -.44)]; }
     else if (b.ears === "mouse") { out.push({ t: "fill", d: ellipseD(s * .62 * hs, -.62 * hs, .44 * hs, .46 * hs), fill: color, outline: 1 }, ...(backs ? [] : [{ t: "fill" as const, d: ellipseD(s * .62 * hs, -.6 * hs, .31 * hs, .33 * hs), fill: "sakura" as UkiyoePaint, opacity: .75, noPrint: true }])); continue; }
     else if (b.ears === "rabbit") { outer = [P(s * .15, -.5), P(s * .2, -1.9), P(s * .45, -2.05), P(s * .5, -.5)]; inner = [P(s * .22, -.6), P(s * .26, -1.8), P(s * .4, -1.9), P(s * .43, -.6)]; }
+    // Cattle hold their broad ears out sideways from the sides of the poll, below the horns.
+    else if (species === "ox") {
+      // Seen from behind, the poll is lower in the drawing; the ears come out from its sides there.
+      const dy = backs ? .22 : 0;
+      outer = [P(s * .36, -.5 + dy), P(s * .72, -.62 + dy), P(s * 1.02, -.56 + dy), P(s * 1.0, -.44 + dy), P(s * .7, -.36 + dy), P(s * .36, -.34 + dy)];
+      inner = [P(s * .46, -.48 + dy), P(s * .74, -.56 + dy), P(s * .94, -.52 + dy), P(s * .72, -.42 + dy), P(s * .48, -.42 + dy)];
+    }
     else if (b.ears === "horse") { outer = [P(s * .25, -1.25), P(s * .32, -1.75), P(s * .45, -1.25)]; inner = [P(s * .29, -1.3), P(s * .33, -1.65), P(s * .41, -1.3)]; }
     else if (b.ears === "monkey") { out.push({ t: "fill", d: ellipseD(s * .85 * hs, -.15 * hs, .2 * hs, .25 * hs), fill: b.face ?? "hada", outline: 1 }); continue; }
     out.push({ t: "fill", d: smoothD(outer, true, .25), fill: backs && species === "fox" ? dark : color, outline: 1.1 });
-    if (!backs) out.push({ t: "fill", d: smoothD(inner, true, .25), fill: species === "rabbit" ? "sakura" : species === "fox" || species === "dog" ? "gofun" : dark, opacity: .85, noPrint: true });
+    if (!backs) out.push({ t: "fill", d: smoothD(inner, true, .25), fill: species === "rabbit" ? "sakura" : species === "fox" || species === "dog" ? "gofun" : species === "ox" ? "usuzumi" : dark, opacity: species === "ox" ? .55 : .85, noPrint: true });
   }
   return out;
 }
