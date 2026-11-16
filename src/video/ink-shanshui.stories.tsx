@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -570,19 +570,25 @@ function MasterInkSourceComparison(){
       [data-km-master-stroke-source-zone="lower-bank"] { visibility:hidden; }
       [data-km-master-ink-inspection="lower"] [data-km-master-study="fuchun"]
       [data-km-master-stroke-source-zone="upper-bank"] { visibility:hidden; }
+      [data-km-master-ink-inspection="stone"] [data-km-master-study="fuchun"]
+      [data-km-master-stratum-field],
+      [data-km-master-ink-inspection="stone"] [data-km-master-study="fuchun"]
+      [data-km-master-brush-field] { visibility:hidden; }
     `}</style>
     <div role="group" aria-label="Fuchun paper-reserve inspection"
       data-testid="shanshui-master-zone-presets"
       style={{display:"flex",gap:9,flexWrap:"wrap",alignItems:"center"}}>
       {([["all","All Fuchun hemp"],["upper","Upper-bank contacts only"],
-        ["lower","Lower-bank contacts only"]] as const).map(([zone,title])=>
+        ["lower","Lower-bank contacts only"],
+        ["stone","Stone volumes · brush hidden"]] as const).map(([zone,title])=>
         <button type="button" key={zone} style={style.button}
           aria-pressed={fuchunZone===zone} onClick={()=>setFuchunZone(zone)}>
           {title}
         </button>)}
       <span style={{maxWidth:500,fontSize:12,color:"#675745"}}>
-        Storybook-only inspection: hides a stroke family without removing its
-        native SVG paths or changing the production ink, mountain, or clock.
+        Storybook-only: isolate original seven-curve rock volumes and wet/dry
+        undercuts from long-fibre marks without editing the source paths,
+        the other schools, or the production film clock.
       </span>
     </div>
     <div data-testid="shanshui-master-controls"
@@ -605,7 +611,7 @@ function MasterInkSourceComparison(){
         </label>)}
       <button type="button" style={style.button}
         onClick={()=>{setFrame(145);setSeed(71);setDetail(1);setMist(.35);
-          setInk(.9);inspect(1.65,549,151);}}>
+          setInk(.9);setFuchunZone("all");inspect(1.65,549,151);}}>
         Reset all four studies
       </button>
     </div>
