@@ -98,6 +98,73 @@ describe("PAPER1 native paper cut, fold, light and puppet", () => {
     expect(inspectPaperCraft({...spec,layers:[{...spec.layers[0],holes:"invalid" as unknown as string[]}] }).some(i=>i.path.endsWith(".holes"))).toBe(true);
     expect(inspectPaperCraft({...spec,layers:[null as unknown as typeof spec.layers[number]]}).length).toBeGreaterThan(0);
   });
+  it("keeps fine paper fibre sheet-anchored and independently configurable",()=>{
+    const base=paperCraftExampleSpec("layered");
+    const [first,second,third]=base.layers;
+    const spec={...base,layers:[{...first,fibreScale:.5,fibreIntensity:.45},second,
+      {...third,fibreScale:.5}]};
+    const render=(frame:number)=>new DOMParser().parseFromString(renderToStaticMarkup(
+      React.createElement(PaperCraftStage,{spec,frame,tooth:.55})),"image/svg+xml");
+    const actual=render(182),seek=render(30);
+    const rect=(doc:Document,id:string)=>doc.querySelector(`[data-km-paper-layer="${id}"] > g > rect`)!;
+    const changed=rect(actual,first.id),neighbor=rect(actual,second.id),sameScale=rect(actual,third.id);
+    expect(changed.getAttribute("fill")).toBe(sameScale.getAttribute("fill"));
+    expect(changed.getAttribute("fill")).not.toBe(neighbor.getAttribute("fill"));
+    expect(Number(changed.getAttribute("opacity"))).toBeCloseTo(.55*.8*.45);
+    expect(Number(neighbor.getAttribute("opacity"))).toBeCloseTo(.55*.8);
+    const id=changed.getAttribute("fill")!.slice(5,-1);
+    const pattern=actual.getElementById(id)!;
+    expect(pattern.getAttribute("patternTransform")).toBe("scale(0.5)");
+    expect(pattern.getAttribute("href")).toBe("#"+neighbor.getAttribute("fill")!.slice(5,-1));
+    const seekId=rect(seek,first.id).getAttribute("fill")!.slice(5,-1);
+    expect(seek.getElementById(seekId)?.getAttribute("patternTransform")).toBe("scale(0.5)");
+    const puppet=paperCraftExampleSpec("shadow-puppet");
+    for(const scale of [.25,2]) {
+      const puppetSpec={...puppet,layers:[{...puppet.layers[0],fibreScale:scale,fibreIntensity:.45}]};
+      expect(inspectPaperCraft(puppetSpec)).toEqual([]);
+      const output=new DOMParser().parseFromString(renderToStaticMarkup(
+        React.createElement(PaperCraftStage,{spec:puppetSpec,frame:182,tooth:.55})),"image/svg+xml");
+      const paper=rect(output,puppet.layers[0].id);
+      expect(Number(paper.getAttribute("opacity"))).toBeCloseTo(.55*.48*.45);
+      const patternId=paper.getAttribute("fill")!.slice(5,-1);
+      expect(output.getElementById(patternId)?.getAttribute("patternTransform")).toBe(`scale(${scale})`);
+    }
+    for(const bad of [0,.24,2.01,Number.NaN,Infinity,".5" as unknown as number])
+      expect(inspectPaperCraft({...base,layers:[{...first,fibreScale:bad}]}).some(i=>i.path.endsWith(".fibreScale"))).toBe(true);
+    for(const bad of [-.1,1.1,Number.NaN,Infinity,".5" as unknown as number])
+      expect(inspectPaperCraft({...base,layers:[{...first,fibreIntensity:bad}]}).some(i=>i.path.endsWith(".fibreIntensity"))).toBe(true);
+  });
+  it("controls each sheet edge without changing adjacent stock or accepting invalid intensity", () => {
+    const base=paperCraftExampleSpec("layered");
+    const first=base.layers[0], second=base.layers[1];
+    const layered={...base,layers:[{...first,edgeIntensity:0},second]};
+    const render=(spec:typeof layered)=>new DOMParser().parseFromString(
+      renderToStaticMarkup(React.createElement(PaperCraftStage,{spec,frame:182,edgeStrength:1})),"image/svg+xml");
+    const actual=render(layered);
+    const face=actual.querySelector(`[data-km-paper-layer="${first.id}"] > g`)!;
+    const neighbor=actual.querySelector(`[data-km-paper-layer="${second.id}"] > g`)!;
+    expect(face.querySelector("path")?.getAttribute("stroke-opacity")).toBe("0");
+    expect(face.querySelectorAll("path")).toHaveLength(1);
+    expect(neighbor.querySelector("path")?.getAttribute("stroke-opacity")).toBe("0.22");
+    expect(neighbor.querySelectorAll("path")).toHaveLength(2);
+    const half=render({...base,layers:[{...first,edgeIntensity:.5},second]});
+    const halfSheet=half.querySelector(`[data-km-paper-layer="${first.id}"] > g`)!;
+    expect(Number(halfSheet.querySelector("path")?.getAttribute("stroke-opacity"))).toBeCloseTo(.11);
+    expect(Number(halfSheet.querySelectorAll("path")[1]?.getAttribute("stroke-opacity"))).toBeCloseTo(.245);
+    expect(face.querySelector("path")?.getAttribute("fill")).toBe(halfSheet.querySelector("path")?.getAttribute("fill"));
+    expect(face.querySelector("rect")?.getAttribute("opacity")).toBe(halfSheet.querySelector("rect")?.getAttribute("opacity"));
+    const puppet=paperCraftExampleSpec("shadow-puppet");
+    const puppetSpec={...puppet,layers:[{...puppet.layers[0],edgeIntensity:.5}]};
+    const puppetSvg=new DOMParser().parseFromString(renderToStaticMarkup(
+      React.createElement(PaperCraftStage,{spec:puppetSpec,frame:182,edgeStrength:0})),"image/svg+xml");
+    const puppetPaths=puppetSvg.querySelector(`[data-km-paper-layer="${puppet.layers[0].id}"] > g`)!;
+    expect(puppetPaths.querySelector("path")?.getAttribute("stroke-opacity")).toBe("0.3");
+    expect(puppetPaths.querySelectorAll("path")).toHaveLength(1);
+    for(const value of [-.01,1.01,Number.NaN,Infinity,"0.5" as unknown as number]) {
+      const invalid={...base,layers:[{...first,edgeIntensity:value}]};
+      expect(inspectPaperCraft(invalid).some(issue=>issue.path.endsWith(".edgeIntensity"))).toBe(true);
+    }
+  });
   it("keeps all backlight motion stationary for reduced-motion users and opaque puppet stock", () => {
     const spec=paperCraftExampleSpec("lightbox");
     expect(evaluatePaperCraft(spec,0,true).layers).toEqual(evaluatePaperCraft(spec,173,true).layers);

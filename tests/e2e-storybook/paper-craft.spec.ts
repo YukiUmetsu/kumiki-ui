@@ -45,6 +45,41 @@ test("One Garden page supports all five paper media without duplicate Storybook 
   expect(errors).toEqual([]);
 });
 
+test("Garden controls one wing edge without changing neighboring stock",async({page},info)=>{
+  await page.goto(scene("gallery"));
+  const wing=page.locator('[data-km-paper-layer="bird-wing"] > g');
+  const body=page.locator('[data-km-paper-layer="bird-body"] > g');
+  await expect(wing.locator("path")).toHaveCount(2);
+  await page.getByRole("slider",{name:"Wing cut edge"}).fill("0");
+  await expect(wing.locator("path")).toHaveCount(1);
+  await expect(wing.locator("path").first()).toHaveAttribute("stroke-opacity","0");
+  await expect(body.locator("path")).toHaveCount(2);
+  await page.locator('svg[data-km-paper-craft]').screenshot({animations:"disabled",path:info.outputPath("paper-wing-edge-zero.png")});
+  await page.getByRole("slider",{name:"Wing cut edge"}).fill("1");
+  await expect(wing.locator("path")).toHaveCount(2);
+  await page.locator('svg[data-km-paper-craft]').screenshot({animations:"disabled",path:info.outputPath("paper-wing-edge-full.png")});
+});
+
+test("Garden controls fibre on a single sheet without altering adjacent stock",async({page},info)=>{
+  await page.goto(scene("gallery"));
+  const wing=page.locator('[data-km-paper-layer="bird-wing"] > g > rect');
+  const body=page.locator('[data-km-paper-layer="bird-body"] > g > rect');
+  const originalBody=await body.getAttribute("fill");
+  await page.getByRole("slider",{name:"Wing fibre scale"}).fill("0.5");
+  await page.getByRole("slider",{name:"Wing fibre intensity"}).fill("0.5");
+  const fill=await wing.getAttribute("fill");
+  expect(fill).not.toBe(originalBody);
+  expect(await body.getAttribute("fill")).toBe(originalBody);
+  expect(Number(await wing.getAttribute("opacity"))).toBeCloseTo(.55*.8*.5);
+  const id=fill!.slice(5,-1);
+  const transform=await page.evaluate(id=>document.getElementById(id)?.getAttribute("patternTransform"),id);
+  expect(transform).toBe("scale(0.5)");
+  await page.locator('svg[data-km-paper-craft]').screenshot({animations:"disabled",path:info.outputPath("paper-wing-fibre-half.png")});
+  await page.getByRole("slider",{name:"Wing fibre intensity"}).fill("0");
+  await expect(wing).toHaveCount(0);
+  await expect(body).toHaveCount(1);
+});
+
 test("Garden page portrait, frame seek and reduced-motion assembly",async({page},info)=>{
   const errors:string[]=[];
   page.on("pageerror",err=>errors.push(err.message));

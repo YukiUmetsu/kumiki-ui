@@ -51,6 +51,9 @@ const labels: Record<PaperStyle, string> = {
 function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, object, objectPalette, palette, detail, colorLayers, curl, motion, relief, medium, aspect, frame, tooth, shadow, edge, seed, reducedMotion }: Controls) {
   const [liveFrame, setLiveFrame] = useState(frame), [playing, setPlaying] = useState(false);
   const [selected, setSelected] = useState<PaperStyle>(medium);
+  const [wingEdge, setWingEdge] = useState(1);
+  const [wingFibreScale, setWingFibreScale] = useState(1);
+  const [wingFibreIntensity, setWingFibreIntensity] = useState(1);
   useEffect(() => setSelected(medium), [medium]);
   const anchor = useRef<{ time: number; frame: number } | null>(null);
   useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, selected, aspect, artwork, scenery, sceneryPalette, breeze, treeVariety, object, objectPalette, palette, detail, colorLayers, curl, motion, relief, seed]);
@@ -76,6 +79,8 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
       ? paperObjectSpec(selected, aspect, {object, palette: objectPalette, detail, curl, motion, relief, seed})
       : paperCraftExampleSpec(selected, aspect, seed),
     [artwork, scenery, sceneryPalette, breeze, treeVariety, object, objectPalette, selected, aspect, palette, detail, colorLayers, curl, motion, relief, seed]);
+  const authoredSpec = useMemo(() => artwork === "garden" ? {...spec, layers:spec.layers.map(layer =>
+    layer.id === "bird-wing" ? {...layer, edgeIntensity:wingEdge, fibreScale:wingFibreScale, fibreIntensity:wingFibreIntensity} : layer)} : spec, [spec, artwork, wingEdge, wingFibreScale, wingFibreIntensity]);
   const current = reducedMotion ? spec.durationFrames : liveFrame;
   const text: CSSProperties = { fontFamily: "'Newsreader',Georgia,serif", color: "#f3eddf" };
   const small: CSSProperties = { font: "11px/1.5 Arial,sans-serif", letterSpacing: "2px", textTransform: "uppercase", color: "#bfb6a8" };
@@ -129,6 +134,21 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
                 onChange={e=>{setPlaying(false);setLiveFrame(Number(e.currentTarget.value)); anchor.current=null;}}
                 aria-label="Scrub film frame" style={{display:"block",width:"100%",marginTop:10,accentColor:"#edd2ab"}} />
             </label>
+            {artwork === "garden" && <label style={small}>Wing cut edge {Math.round(wingEdge*100)}%
+              <input type="range" min={0} max={1} step={.05} value={wingEdge}
+                onChange={e=>setWingEdge(Number(e.currentTarget.value))} aria-label="Wing cut edge"
+                style={{display:"block",width:"100%",marginTop:10,accentColor:"#edd2ab"}} />
+            </label>}
+            {artwork === "garden" && <label style={small}>Wing fibre scale {wingFibreScale.toFixed(2)}×
+              <input type="range" min={.25} max={2} step={.05} value={wingFibreScale}
+                onChange={e=>setWingFibreScale(Number(e.currentTarget.value))} aria-label="Wing fibre scale"
+                style={{display:"block",width:"100%",marginTop:10,accentColor:"#edd2ab"}} />
+            </label>}
+            {artwork === "garden" && <label style={small}>Wing fibre intensity {Math.round(wingFibreIntensity*100)}%
+              <input type="range" min={0} max={1} step={.05} value={wingFibreIntensity}
+                onChange={e=>setWingFibreIntensity(Number(e.currentTarget.value))} aria-label="Wing fibre intensity"
+                style={{display:"block",width:"100%",marginTop:10,accentColor:"#edd2ab"}} />
+            </label>}
             <p style={{font:"12px/1.7 Arial,sans-serif",color:"#bcb5ac"}}>
               Paper aperture is real transparency; spot shadows grow with depth. Moving sheets
               retain their own tooth. Reduced motion resolves to the final assembled composition.
@@ -138,7 +158,7 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
         <div style={{minWidth:0,display:"grid",justifyItems:"center",gap:12}}>
           <div style={{width:"100%", maxWidth:aspect==="portrait"?400:950,aspectRatio:aspect==="portrait"?"9 / 16":"16 / 9",
             border:"10px solid #353137",boxShadow:"0 22px 68px #0009",background:spec.backing}}>
-            <PaperCraftStage spec={spec} frame={current} reducedMotion={reducedMotion} tooth={tooth}
+            <PaperCraftStage spec={authoredSpec} frame={current} reducedMotion={reducedMotion} tooth={tooth}
               curlStrength={1} liftStrength={1} shadowStrength={shadow} edgeStrength={edge} label={(artwork==="botanical"?"Butterfly botanical relief, ":artwork==="scenery"?"Paper scenery "+scenery+", ":artwork==="object"?"Paper sculpture "+object+", ":"Paper garden, ")+labels[selected]}
               data-testid="paper-craft-stage"/>
           </div>
