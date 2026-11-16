@@ -592,9 +592,9 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     const neck=drawing.regions.find(region=>region.id==="neck-ruff")!;
     expect(cheek.bounds[1]+cheek.bounds[3]).toBeLessThanOrEqual(295);
     expect(cheek.bounds[1]+cheek.bounds[3]).toBeGreaterThanOrEqual(285);
-    // Narrow malar transition: a broad filled triangular cheek becomes an
-    // anatomically detached cardboard flap in native film screenshots.
-    expect(cheek.bounds[2]).toBeLessThanOrEqual(36);
+    // A diagonal malar-to-cervical overlap now lies inside the white neck
+    // instead of creating a narrow but detached vertical ribbon.
+    expect(cheek.bounds[2]).toBeLessThanOrEqual(46);
     expect(cheek.bounds[3]).toBeLessThanOrEqual(70);
     expect(cheek.path).not.toContain("250 313");
     expect((cheek.path.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(5);
@@ -612,12 +612,15 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       const cheek=map.get("cheek-ruff")!;
       const chest=map.get("chest")!;
       const muzzle=map.get("muzzle")!;
-      expect(cheek.bounds[3]).toBeLessThan(72);
+      expect(cheek.bounds[3]).toBeLessThan(65);
+      expect(cheek.bounds[2]/cheek.bounds[3]).toBeGreaterThan(.65);
       expect(cheek.bounds[0]+cheek.bounds[2]).toBeGreaterThan(250);
       expect(cheek.bounds[1]).toBeLessThan(muzzle.bounds[1]+muzzle.bounds[3]);
       expect(cheek.bounds[1]+cheek.bounds[3]).toBeGreaterThan(chest.bounds[1]+35);
       expect(cheek.opaqueSupport).toBe(true);
       expect(cheek.craft?.kind).toBe("fur");
+      expect(cheek.layers[0].color).toBe(chest.layers[0].color);
+      expect(cheek.layers[1].color).toBe(chest.layers[1].color);
       expect(cheek.details?.find(d=>d.id==="fox-malar-light-fan")).toBeDefined();
       expect(cheek.details?.find(d=>d.id==="fox-cervical-turn")).toBeDefined();
       const fibres=cheek.details!.filter(d=>d.id?.startsWith("fibre-"));
