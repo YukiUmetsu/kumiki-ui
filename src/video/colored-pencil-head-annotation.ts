@@ -54,15 +54,16 @@ export function emptyHeadAnnotations():HeadAnnotationSession{
  * When the pointer leaves the image we clamp to valid native boundaries.
  */
 export function clientToNativePoint(
-  client:NativePoint,element:{left:number;top:number;width:number;height:number},
+  client:{clientX:number;clientY:number},
+  element:{left:number;top:number;width:number;height:number},
   original:NativeDimensions,
 ):NativePoint{
   assertDimensions(original);
   if(!finite(element.width)||!finite(element.height)||
     element.width<=0||element.height<=0)
     throw new RangeError("Displayed image dimensions must be positive");
-  const x=(client.x-element.left)/element.width*original.width;
-  const y=(client.y-element.top)/element.height*original.height;
+  const x=(client.clientX-element.left)/element.width*original.width;
+  const y=(client.clientY-element.top)/element.height*original.height;
   return {x:Math.round(Math.max(0,Math.min(original.width,x))),
     y:Math.round(Math.max(0,Math.min(original.height,y)))};
 }
