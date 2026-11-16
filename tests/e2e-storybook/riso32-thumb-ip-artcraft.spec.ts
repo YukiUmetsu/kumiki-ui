@@ -27,6 +27,12 @@ test("RISO32 moving thumb IP remains attached at contact, release and both ink m
       await expect(svg).toBeVisible();
       await expect(panel.locator("[data-km-riso-part$='glove-thumb-distal-phalanx']")).toHaveCount(1);
       expect(Number(await panel.getAttribute("data-km-riso30-crop-margin"))).toBeGreaterThan(0);
+      const measured=Number(await panel.getAttribute("data-km-riso33-minimum-axis-gap"));
+      expect(Number.isFinite(measured)).toBe(true);
+      if(frame===160||frame===166){
+        expect(measured).toBeGreaterThan(3);
+        await expect(panel).toHaveAttribute("data-km-riso33-axis-intersections","0");
+      }
     }
     if([0,160,166,186,198].includes(frame))
       await root.screenshot({path:info.outputPath("riso32-two-original-hands-"+frame+".png"),animations:"disabled"});
