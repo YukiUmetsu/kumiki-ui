@@ -10,14 +10,8 @@ import { renderPortrait } from "./face-portrait";
 import type { PortraitOptions } from "./face-portrait";
 import { BEAUTY_EVIDENCE, GOLDEN_RATIO, beautifulFace } from "./face-beauty";
 import type { BeautyOptions } from "./face-beauty";
+import { enqueueRender as enqueue } from "./foundation-queue";
 import { sheetList, sheetSmall } from "./foundation-react";
-
-let queue: Promise<void> = Promise.resolve();
-/** Run heavy work after the current frame, one job after another. */
-function enqueue(job: () => void): Promise<void> {
-  queue = queue.then(() => new Promise<void>(res => setTimeout(() => { try { job(); } finally { res(); } }, 0)));
-  return queue;
-}
 
 export interface FacePortraitProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> {
   options: PortraitOptions;
