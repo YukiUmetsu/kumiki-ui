@@ -67,7 +67,7 @@ export function RisoGradientStudio(){
   const [plate,setPlate]=useState<PlateView>("both");
   const [direction,setDirection]=useState<RisoGradientDirection>("radial");
   const [seed,setSeed]=useState(53);
-  const [gain,setGain]=useState(.12);
+  const [gain,setGain]=useState(.10);
   const [irregularity,setIrregularity]=useState(.48);
   const [dropout,setDropout]=useState(.04);
   const [grain,setGrain]=useState(.55);
@@ -150,12 +150,13 @@ export function RisoGradientStudio(){
       })}
       <path d={"M"+p(s.cx-18)+" "+p(s.cy)+" h36 M"+p(s.cx)+" "+p(s.cy-18)+" v36"}
         fill="none" stroke={paint.solid} strokeWidth={1.5}/>
-      <text x={s.x+23} y={s.y+28} fontFamily="Arial,sans-serif"
+      <text x={aspect==="portrait"?s.x+s.w-190:s.x+23}
+        y={aspect==="portrait"?s.ruleY-20:s.y+28} fontFamily="Arial,sans-serif"
         fill={paint.solid} fontSize={12} fontWeight={800} letterSpacing={1.8}>
         PLATE 02 / VERMILION
       </text>
       <text x={aspect==="portrait"?s.titleX:s.titleX+5}
-        y={aspect==="portrait"?s.titleY+220:s.titleY+218}
+        y={aspect==="portrait"?s.titleY+190:s.titleY+218}
         fontFamily="Arial,sans-serif" fontSize={aspect==="portrait"?13:12}
         fontWeight={700} letterSpacing={1.2} fill={paint.solid}>
         PAPER-LOCKED / 24 FPS
