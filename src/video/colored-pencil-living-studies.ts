@@ -884,9 +884,12 @@ export interface PencilLivingOptions {
   pressure?:number;
   /** Stage-1 new head ONLY: include true contour-aligned pencil fibres. */
   headContourCraft?:boolean;
+  /** New Human #01, opt-in photograph-unapproved cranial optical volume. */
+  headVolumeWeave?:boolean;
 }
 export function pencilLivingStudyDrawing({
-  subject, aspect, paperTooth=.76, seed=271, pressure=1,headContourCraft=true,
+  subject, aspect, paperTooth=.76, seed=271, pressure=1,
+  headContourCraft=true,headVolumeWeave=false,
 }:PencilLivingOptions):PencilDrawingSpec {
   if (!PENCIL_LIVING_STUDIES.includes(subject)) throw new RangeError("Unknown living pencil subject");
   if (aspect!=="landscape"&&aspect!=="portrait") throw new RangeError("Unknown pencil aspect");
@@ -898,7 +901,10 @@ export function pencilLivingStudyDrawing({
     throw new RangeError("Invalid pencil pressure");
   if(typeof headContourCraft!=="boolean")
     throw new TypeError("headContourCraft must be boolean");
-  const parts=subject==="portrait"?newCharacterHeadStageOne(seed,headContourCraft):subject==="fox"?fox():valley();
+  if(typeof headVolumeWeave!=="boolean")
+    throw new TypeError("headVolumeWeave must be boolean");
+  const parts=subject==="portrait"?
+    newCharacterHeadStageOne(seed,headContourCraft,headVolumeWeave):subject==="fox"?fox():valley();
   // Compatibility subject="portrait" now renders the ONLY new character
   // under construction: head contour first. No retired woman geometry.
   const transform=aspect==="landscape"?"translate(441 35) scale(1.06)":
