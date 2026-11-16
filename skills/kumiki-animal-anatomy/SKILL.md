@@ -37,6 +37,8 @@ The pack `animal-anatomy` decides *what the animal is*: its build, face, coat, g
    beat, glide or closed wings for the species' style.
    - Herons draw the neck in and cranes stretch it out.
    - For drawn animation keep at least four frames per beat (`maxHz` 7.5 at 30 fps).
+   - Faces square on: `frontFace(species)` and `frontFaceShapes` (measured for the Shiba, fox, wolf, cat and cattle;
+     the body plan's otherwise).
    - The young: `juvenileConstruction(c, age)`, drawn at `heightAt(rule, age)` of the parent and painted with
      `coatAt(species, age)` (a kit's dark fur, a chick's down, a piglet's stripes).
    - Birds rest with `birdPosture` (one-leg, roost, swim, upend). Ducks float at a third of their depth, and a

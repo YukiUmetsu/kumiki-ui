@@ -58,6 +58,29 @@ export interface AnimalFace {
   features: readonly string[];
   grade: Grade;
   source: string;
+  /** The face square on, where it was measured off a reference (otherwise `frontFace` uses the body plan's). */
+  front?: FrontFace;
+}
+
+/**
+ * A face square on, in units of the head's width at the eyes (cheek to cheek), measured from the eye line (+ up, −
+ * down) and the centre line. `animal-front.ts` draws it; `frontFace(species)` falls back to the body plan's.
+ */
+export interface FrontFace {
+  /** Top of the skull between the ears, above the eye line. */
+  crown: number;
+  /** Chin (or the lower lip) below the eye line. */
+  chin: number;
+  /** The nose's centre below the eye line, its width, and the muzzle's width at the whisker pads (or lips). */
+  nose: number; noseWidth: number; muzzleWidth: number;
+  /** Eye width. */
+  eye: number;
+  /** The ear tip: out from the centre line, and above the eye line (negative: below, a cow's ears out sideways). */
+  earTip: readonly [number, number];
+  /** The ear's base: its width, and how far out from the centre line its middle sits. */
+  earBase: number; earBaseX: number;
+  grade: Grade;
+  source: string;
 }
 
 export interface AnimalSpecies {
@@ -159,7 +182,8 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     eyes: { pupil: "vertical-slit", iris: "#d9a43a" },
     face: { eyeFromNose: .56, eye: .1, ear: .5, depth: .45, eyeSpacing: .36, eyeLook: "slit", ears: "Large pointed triangles, black-backed, set high and close together; pale fur inside.",
       features: ["A long, slender muzzle tapering to a small black nose; the eye sits well back, just behind the stop.", "Amber eyes with slit pupils, set obliquely.", "White upper lip, cheeks and chin; dark patches on the sides of the muzzle.", "Square on, a narrow wedge of a face under wide ears."],
-      grade: "estimated", source: "Read off a near-profile and two frontal photographs (iNaturalist 338352584, CC0; Commons, public domain)" },
+      grade: "estimated", source: "Read off a near-profile and two frontal photographs (iNaturalist 338352584, CC0; Commons, public domain)",
+      front: { crown: .49, chin: .6, nose: .48, noseWidth: .19, muzzleWidth: .33, eye: .14, earTip: [.5, .77], earBase: .33, earBaseX: .32, grade: "measured", source: "Red fox face (Commons, public domain); the chin is below the frame, estimated" } },
     parts: [{ id: "brush", name: "brush (tail)", region: "tail" }],
     behaviour: { gaits: ["walk", "trot", "rotary"], canRear: false, notes: ["Pounces on prey under snow with a high arching leap."] },
     sounds: [{ kind: "vocal", label: "scream and bark", query: "fox scream" }, { kind: "vocal", label: "gekkering", query: "fox gekkering" }],
@@ -195,7 +219,8 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     eyes: { pupil: "round", iris: "#c9a23a" },
     face: { eyeFromNose: .45, eye: .09, ear: .25, depth: .52, eyeSpacing: .4, eyeLook: "iris", ears: "Short and pointed, set wide on the crown and leaning back; shorter than a grey wolf's.",
       features: ["A long, straight muzzle with a shallow stop; the eye just behind the stop.", "Small oblique eyes with dark-lined lids.", "Grey-brown face, paler on the muzzle, lips and cheeks."],
-      grade: "estimated", source: "Measured off Siebold's Fauna Japonica plate (profile); spacing from a grey wolf photographed square on" },
+      grade: "estimated", source: "Measured off Siebold's Fauna Japonica plate (profile); spacing from a grey wolf photographed square on",
+      front: { crown: .37, chin: .55, nose: .41, noseWidth: .2, muzzleWidth: .39, eye: .12, earTip: [.4, .54], earBase: .3, earBaseX: .3, grade: "measured", source: "Grey wolf portrait square on (Commons, public domain); the Japanese wolf was not photographed square on" } },
     parts: [],
     behaviour: { gaits: ["walk", "trot", "rotary"], canRear: false, notes: ["Last confirmed in 1905; smaller than other grey wolves, about the size of a large dog."] },
     sounds: [{ kind: "vocal", label: "howl", catalog: "howl-dog", query: "wolf howl" }],
@@ -215,7 +240,8 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     eyes: { pupil: "round", iris: "#3a2a1c" },
     face: { eyeFromNose: .43, eye: .08, ear: .33, depth: .55, eyeSpacing: .37, eyeLook: "iris", ears: "Small, triangular and firmly pricked, set well apart and tilted forward (AKC).",
       features: ["Muzzle 40% of the head from occiput to nose (AKC), straight-bridged and tapering slightly; a moderate stop.", "Deep-set, somewhat triangular dark eyes slanting up toward the ears, black-rimmed.", "Broad flat forehead; full cheeks: square on, a rounded triangle.", "White (urajiro) on the muzzle sides, cheeks and throat; black nose and lips."],
-      grade: "estimated", source: "Muzzle share reported by the AKC standard; eye, ear and spacing read off Shiba photographs (Commons, public domain)" },
+      grade: "estimated", source: "Muzzle share reported by the AKC standard; eye, ear and spacing read off Shiba photographs (Commons, public domain)",
+      front: { crown: .43, chin: .56, nose: .25, noseWidth: .14, muzzleWidth: .34, eye: .09, earTip: [.44, .54], earBase: .24, earBaseX: .3, grade: "measured", source: "Shiba Inu square on (Commons, public domain)" } },
     parts: [{ id: "curled-tail", name: "curled tail", region: "tail" }],
     behaviour: { gaits: ["walk", "trot", "rotary"], canRear: false, notes: [] },
     sounds: [{ kind: "vocal", label: "bark", catalog: "bark-dog-1", query: "dog bark" }, { kind: "vocal", label: "double bark", catalog: "bark-dog-2" }, { kind: "vocal", label: "howl", catalog: "howl-dog" }],
@@ -232,9 +258,10 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
       markings: [{ name: "calico (mike-neko)", region: "back", shape: "White with orange and black patches." }],
       variants: [{ name: "grey tabby", when: "colour variety", palette: [{ region: "back", name: "grey", hex: "#8b8f97" }, { region: "back", name: "stripes", hex: "#4e5158", fill: "accent" }] }] },
     eyes: { pupil: "vertical-slit", iris: "#c9a227" },
-    face: { eyeFromNose: .42, eye: .16, ear: .4, depth: .7, eyeSpacing: .4, eyeLook: "slit", ears: "Large upright triangles, broad at the base, set on the top corners of a round head.",
+    face: { eyeFromNose: .42, eye: .16, ear: .4, depth: .7, eyeSpacing: .45, eyeLook: "slit", ears: "Large upright triangles, broad at the base, set on the top corners of a round head.",
       features: ["A short face: big eyes close behind a short muzzle and a small nose leather.", "Slit pupils that open round in the dark.", "Whisker pads either side of the split upper lip; square on, a round head with the ears as its corners."],
-      grade: "estimated", source: "Read off profile and frontal photographs (iNaturalist 350287666 and 234370227, CC0; Commons CC0)" },
+      grade: "estimated", source: "Read off profile and frontal photographs (iNaturalist 350287666 and 234370227, CC0; Commons CC0)",
+      front: { crown: .41, chin: .45, nose: .29, noseWidth: .13, muzzleWidth: .35, eye: .17, earTip: [.42, .62], earBase: .35, earBaseX: .3, grade: "measured", source: "Adult cat (Hauskatze, Commons CC0) for the eyes, nose and muzzle; the ears and crown off a kitten (Commons CC0), its ears scaled down" } },
     parts: [{ id: "bobtail", name: "Japanese bobtail", region: "tail", note: "A short pom-pom tail is the traditional Japanese cat." }],
     behaviour: { gaits: ["walk", "trot", "rotary"], canRear: true, climbs: true, notes: ["Direct register: the hind feet land in the fore feet's prints."] },
     sounds: [{ kind: "vocal", label: "meow", query: "cat meow" }, { kind: "vocal", label: "purr", query: "cat purr" }],
@@ -304,9 +331,10 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     coat: { type: "sleek", long: [], lay: "Short and smooth.",
       palette: [{ region: "back", name: "black", hex: "#1e1b1a" }, { region: "muzzle", name: "muzzle", hex: "#3a3634" }, { region: "head", name: "horns", hex: "#e3d6b8", fill: "accent" }], markings: [], variants: [] },
     eyes: { pupil: "horizontal", iris: "#3a2a1c" },
-    face: { eyeFromNose: .6, eye: .1, ear: .3, depth: .55, eyeSpacing: .5, eyeLook: "bead", ears: "Broad and held out sideways below the horns, fringed inside.",
+    face: { eyeFromNose: .6, eye: .1, ear: .3, depth: .55, eyeSpacing: .75, eyeLook: "bead", ears: "Broad and held out sideways below the horns, fringed inside.",
       features: ["A broad flat forehead with a curly poll between short horns.", "A wide wet nose pad with flared nostrils.", "Large dark eyes at the sides of the face; square on, the cheeks bulge past them."],
-      grade: "estimated", source: "Read off a bull in profile and a Japanese Black square on (Commons, public domain)" },
+      grade: "estimated", source: "Read off a bull in profile and a Japanese Black square on (Commons, public domain)",
+      front: { crown: .62, chin: .95, nose: .76, noseWidth: .57, muzzleWidth: .7, eye: .13, earTip: [1.1, .14], earBase: .3, earBaseX: .55, grade: "measured", source: "Japanese Black (Akita) square on (Commons, public domain); the chin is estimated" } },
     parts: [{ id: "horns", name: "short curved horns", region: "head" }, { id: "dewlap", name: "dewlap", region: "throat" }],
     behaviour: { gaits: ["walk", "trot"], canRear: false, notes: [] },
     sounds: [{ kind: "vocal", label: "low", query: "cow moo" }],

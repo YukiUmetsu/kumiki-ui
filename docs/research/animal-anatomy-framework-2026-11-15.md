@@ -387,9 +387,24 @@ flow arrows also ran off the body. Both now stop at the outline.
 
 **Not modelled:** Kidd's whorls and partings for particular species.
 
+## Faces square on (2026-11-16)
+
+`AnimalFace.front` and `animal-front.ts`. Measured on gridded crops, in head widths at the eyes:
+
+| Animal | Eye spacing | Nose below the eyes | Ear tip (out, up) | Source |
+|---|---|---|---|---|
+| Shiba | 0.36 | 0.25 | 0.44, 0.54 | Commons, public domain |
+| Red fox | 0.37 | 0.48 | 0.5, 0.77 | Commons, public domain |
+| Grey wolf | 0.36 | 0.41 | 0.4, 0.54 | Commons, public domain |
+| Cat | 0.45 | 0.29 | 0.42, 0.62 | adult CC0; ears off a CC0 kitten, whose eyes sit wider (0.58) |
+| Japanese Black | 0.75 | 0.76 | 1.1, 0.14 (out sideways) | Commons, public domain |
+
+The cat's side-view eye spacing was corrected from 0.4 to 0.45, the cattle's from 0.5 to 0.75. Every other mammal uses
+its body plan's estimate.
+
 ## Not done
 
-- Front and back constructions in ANIM1 (styles draw their own).
+- Front and back body constructions in ANIM1 (faces have one; styles draw the body square on).
 - Leaping, take-off and landing; birds on a perch (gripping a branch rather than standing on the ground).
 - Young animals' postures and gaits are the adults' (a foal's gangly walk is not modelled).
 - The tanuki, rabbit and mouse stay low as drawn (owner to confirm the tanuki).

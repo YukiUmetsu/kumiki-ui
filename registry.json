@@ -3820,6 +3820,11 @@
         },
         {
           "type": "registry:ui",
+          "target": "components/anatomy/animal-front.ts",
+          "path": "registry/anatomy/animal-front.ts"
+        },
+        {
+          "type": "registry:ui",
           "target": "components/anatomy/animal-plans.ts",
           "path": "registry/anatomy/animal-plans.ts"
         },

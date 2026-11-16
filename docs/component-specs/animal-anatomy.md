@@ -33,6 +33,7 @@ The style decides only how it looks. It mirrors [ANAT1](human-anatomy.md) for pe
 | Layer | File | What it holds |
 |---|---|---|
 | Fur | `animal-fur.ts` | `furDirection(skeleton, point)` (the direction the hair lies, after Kidd 1903), `furStrands(skeleton, options)` (seeded strands of hair laid along it, long in the species' long-coated regions), `furStreamlines` (flow arrows). `AnimalFigure`'s `fur` mode draws them. |
+| Front faces | `animal-front.ts` | `frontFace(species)` (the face square on: crown, chin, nose, muzzle, eye, ear tip and base, in head widths; measured for five species, the plan's otherwise), `frontFaceShapes` (path data for head, ears, eyes, muzzle and nose), `PLAN_FRONT`. `FrontFaceFigure` on the sheet. |
 | Growth | `animal-growth.ts` | `GROWTH` rules (ungulates, carnivores, small mammals, primates, birds): height at the youngest age, each leg segment's share of adult length, trunk, neck, head and tail, and the baby-schema face (muzzle, eye, ear). `juvenileConstruction(c, age)`, `heightAt`, `growthRule`, `coatAt` (young coats from `CoatVariant.age`). |
 | Flight | `animal-flight.ts` | `BIRD_FLIGHT` per bird: wing planform (type, aspect ratio, hand share, tip and fingers), stroke (top and bottom elevation, downstroke share, upstroke fold), flight style (flapping, flap-and-glide, bounding, bursts), glide shape, neck and legs in flight. `wingbeatHz` / `speciesWingbeat` (Pennycuick 1990), `wingStroke`, `flightAt` (seconds → beat, glide or closed wings), `wingPlanform`, `placeWing`, `projectWing`. |
 | Postures | `animal-postures.ts` | `ANIMAL_POSTURES` (sit, lie, rest, rear): per body plan, the body's pitch (graded, with sources), how the fore and hind legs are held, how far the neck and head follow, and the frames it takes. `postureFit(plan, posture, canRear)`. |
@@ -193,6 +194,25 @@ neck and tail, and lays each one along the field in three short steps:
 
 `AnimalFigure`'s `fur` mode draws the strands, with streamlines of the same field as arrows (`furStreamlines`).
 
+## Faces square on
+
+`AnimalFace.front` records the face square on, in units of the head's width at the eyes (cheek to cheek), measured
+from the eye line and the centre line:
+
+- the crown above the eye line and the chin below it;
+- the nose's place and width, the muzzle's width;
+- the eye's width;
+- the ear tip (out and up) and the ear base.
+
+**Measured** on gridded crops of square-on references (Commons PD/CC0): Shiba, red fox, grey wolf (for the Japanese
+wolf), cat (adult, with a kitten for the ears) and Japanese Black cattle. The cattle's eye spacing was corrected to
+0.75, the eyes at the sides of the face. Every other mammal takes its body plan's `PLAN_FRONT`, estimated from these
+and the side-view faces.
+
+`frontFaceShapes(species)` gives path data for the head outline, the ears (pointed, or round for bears, mice and
+macaques), the eyes, the muzzle and the nose. The species sheet draws it in the species' colours
+(`FrontFaceFigure`).
+
 ## Young animals
 
 `juvenileConstruction(c, age)` reshapes a species' construction for `age` from 0 (the youngest that stands; newborn
@@ -256,7 +276,7 @@ crouching rabbit and mouse are deliberate, pending the owner's word on the tanuk
 
 ## Limits
 
-- Side view only for the construction; front and back views are the style's.
+- Side view only for the body construction; faces have a square-on construction (`animal-front.ts`), bodies do not.
 - Postures are for four-legged animals; birds fly, but have no roosting or one-legged postures yet, and fish swim only.
 - Flight is side view only (plus the camera's tilt); there is no banking, turning, take-off or landing yet.
 - Fur follows Kidd's general slope and one reversed patch; whorls, partings and the many reversed areas he records
