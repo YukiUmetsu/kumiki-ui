@@ -10,6 +10,7 @@ import {RISO30_ANAT1_HAND,inspectRisoHandArtcraft,layoutRisoHandArtcraft} from "
 import type {RisoHandSide} from "./riso-hand-artcraft";
 import {RISO31_ANAT1_REFERENCE,riso31Inspect} from "./riso31-finger-phalanges";
 import {inspectRiso32ThumbIp,RISO32_THUMB_ANAT1} from "./riso32-thumb-ip";
+import {inspectRiso33HandFan} from "./riso33-hand-negative-space";
 
 type PlateMode="both"|"blue"|"red";
 type GestureFrame=0|46|126|144|160|166|178|186|198|239;
@@ -51,6 +52,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const region=inspectRisoHandArtcraft(actor,frame,side);
   const bones=riso31Inspect(actor,frame,side);
   const thumb=inspectRiso32ThumbIp(actor,frame,side);
+  const spacing=inspectRiso33HandFan(actor,frame,side);
   // Frame the real articulated five-finger and forearm envelope: the
   // Artist's hand rotates almost horizontally at 160f, so wrist-centering
   // alone clipped source fingertips even though the actor had them.
@@ -64,6 +66,8 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso31-actual-flexion={String(bones.every(j=>j.exactRedSource))}
     data-km-riso32-ip-articulated={String(thumb.independentRedSegments)}
     data-km-riso32-ip-flexion={thumb.ipLocalAngle.toFixed(2)}
+    data-km-riso33-minimum-axis-gap={spacing.minimumAxisGap.toFixed(3)}
+    data-km-riso33-axis-intersections={spacing.intersectingAxisPairs.length}
     data-km-riso30-crop-margin={camera.marginX.toFixed(2)}
     data-km-riso30-effective-scale={camera.scale.toFixed(2)}
     style={{border:"1px solid #CBB9A4",borderRadius:7,padding:13,background:"#FFF7E9"}}>
@@ -97,6 +101,8 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
       {region.sourceCount} original hand source paths; five authentic digits,
       12 red articulated finger sections, a separate opposed moving thumb IP pad,
       joint-local engraved creases and attached nail rims. Every mark remains a spot-colour print master.
+      Measured adjacent bone-axis gap: {spacing.minimumAxisGap.toFixed(1)} source units
+      (not ink silhouette clearance or artist approval).
     </p>
   </article>;
 }
@@ -116,7 +122,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO32</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO33</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
