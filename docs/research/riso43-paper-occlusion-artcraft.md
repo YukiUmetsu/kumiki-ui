@@ -32,3 +32,15 @@ No external photograph or sample print is traced, embedded as a texture, or conv
 ## Honest scope and remaining visual art risk
 
 Two-dimensional illustration can show which ink region is in front of paper, not certify actual clinical three-dimensional pressure or photoreal hand foreshortening. The RISO42 skeleton/contact tests independently preserve true 2D finger alignment and physical red gap, but accurate palmar tissue compression remains stylized. Source image/reference matched identity landmarks are unavailable; premium human-anatomy certification remains explicitly *unapproved*. Do not merge from unit counts alone; compare native full-film physical paper layering and paper-white negative-space at f160/166 against earlier print screenshots.
+
+## RISO44 independently measured print-ink/letter intersection — actual source, not a DOM count
+
+The original RISO43 full-film Chromium f160/f166 prints were inspected directly, including a 4× crop of the left/right paper endcaps. **Observed**: the three receiving support digits still extend beyond the paper on the upper radial side and the donor fingers form a small hooked cluster. Merely counting 3 source index RED and 3 BLUE SVGs in an overlay layer is insufficient to verify that they actually intersect the paper. Those parts may exist but float in paper-white space.
+
+**RISO44 physical-print QA** therefore samples the *actual evaluated closed source SVG ink contours* in their final figure stage coordinates and the true independently curved, pinched paper contour. It measures minimum Euclidean WHITE distance from each printed RED index region to the letter, and tests edge crossing, containment and genuine source area overlap, without raster masks or fixed rectangular hitboxes. Results are recorded for both original actors and both aspect ratios, on every selected contact/release proof frame. Blank/unfurl source appropriately returns no intersection. A deliberately distant fake letter is rejected. Native Chromium asserts both printed index pads actually intersect the moving page at f160/f166; a physically disconnected finger now fails even when every source ink part exists and the UI still says "shared".
+
+- Implementation: `src/video/riso44-source-index-paper-contact.ts`.
+- Source test: `tests/riso44-source-index-paper-contact.test.ts`.
+- Original film instrumented with `data-km-riso44-(donor|receiver)-index-(ink-paper-gap|overpaper)`.
+- Proof: all three 2026-11-15 RISO44 source/type/native Chromium workflows passed at head `5943cc16`, including existing full-film 16:9/9:16 browser captures.
+- Physical art caveat: area intersection establishes 2D paper-edge continuity, **not** correct three-quarter muscle volume, pressure against the sheet, natural supporting-digit foreshortening or human portrait fidelity. The receiving three-finger rake remains a visually visible future source-drawing target. The original ArtCraft skill package is not discoverable in the present workspace; this pass follows the repository's reference-led study/validation contract without claiming to have executed an unavailable packaged skill.
