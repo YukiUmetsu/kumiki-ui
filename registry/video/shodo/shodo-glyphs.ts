@@ -53,6 +53,12 @@ export interface ShodoStrokeSpec {
   /** Thickness multiplier for this stroke, 0.4..1.8. */
   weight?: number;
   /**
+   * Press along the stroke: one multiplier per point of `points`, 0.4..1.8, applied where the
+   * brush passes nearest that part of the centreline. A teacher's form uses it for that
+   * teacher's swelling and thinning inside one stroke (the thick turn of a かな loop).
+   */
+  press?: readonly number[];
+  /**
    * Speed of this stroke relative to the hand, 0.25..4 (default 1). A teacher's form uses it
    * to give each stroke that teacher's share of the writing time.
    */
@@ -212,6 +218,9 @@ export function inspectShodoGlyph(glyph: ShodoGlyph): ShodoGlyphIssue[] {
       issues.push({ path: at + "/hook", message: "Hook must be a nonzero [dx, dy]." });
     if (s.pace !== undefined && (!Number.isFinite(s.pace) || s.pace < .25 || s.pace > 4))
       issues.push({ path: at + "/pace", message: "Pace must be 0.25..4." });
+    if (s.press !== undefined && (!Array.isArray(s.press) || s.press.length !== points?.length
+        || s.press.some((v: number) => !Number.isFinite(v) || v < .4 || v > 1.8)))
+      issues.push({ path: at + "/press", message: "Press needs one value per point, each 0.4..1.8." });
     for (const [key, v] of Object.entries(s.technique ?? {})) {
       const range = SHODO_TECHNIQUE_RANGES[key as keyof ShodoTechniqueParams];
       if (!range || typeof v !== "number" || !Number.isFinite(v) || v < range[0] || v > range[1])

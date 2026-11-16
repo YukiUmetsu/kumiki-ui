@@ -516,6 +516,24 @@ The best-aligned overlap rescales both shapes to their boxes, so moved parts cha
 
 **A third teacher.** A third channel writes each character in vermilion, sped up, and then explains it on other sheets. Taking the shot from the start to the moment the ink stops growing gives whole characters, and a sheet that holds the character twice keeps the copy written first. But the first stroke is often already on the sheet when the lesson starts, and the stroke split is weak, so the fits lie a few pixels off along most strokes (0.54 best-aligned overlap on average). No form of this teacher is accepted yet.
 
+## 2.21 Seventeenth study round: the teacher's press along a stroke
+
+**What was wrong.** After the parts were aligned, the weakest forms were かな. Their overlays show the teacher's ink as a border around ours in some places and ours outside hers in others: she swells and thins inside one stroke (the heavy start of ひ, the thick right side of の), while our stroke keeps one width, set by its `weight`.
+
+**What changed.**
+- *Engine.* A stroke can carry `press`: one multiplier per centreline point, 0.4 to 1.8. Every brush sample's press is scaled by the profile where the sample lies nearest the centreline. A stroke without it is written as before.
+- *Learning.* At each point of each stroke, the half-width of the teacher's stroke is compared with ours, both on that stroke alone. The point's press moves toward the ratio, damped and smoothed along the stroke. Three rounds go through the renderer. A character keeps its profiles only when its overlap rises and no mismatch patch grows.
+
+**Result.** 46 forms changed, all reviewed in overlays: 23 of the 48 かな and kanji with curving strokes (心 鳥 月 寿). 114 strokes carry a profile.
+
+| | Round eleven | Round twelve |
+|---|---|---|
+| かな, best-aligned overlap | 0.699 | 0.711 |
+| かな, overlap in the fit frame | 0.741 | 0.755 |
+| Characters with a mismatch patch over 5 % of the ink | 22 | 20 |
+
+For example, の 0.75 → 0.82 (its largest mismatch patch 4.6 % → 1.1 % of the ink), く 0.72 → 0.82 and ひ 0.65 → 0.71 in the fit frame. Kanji change little (0.808 → 0.809): their strokes keep a more even width.
+
 ## 3. From observation to model
 
 | Observation | Model decision |

@@ -128,6 +128,23 @@ describe("SHO1 shodō calligraphy", () => {
     expect(inspectShodoGlyph(own({ nope: 1 })).map(i => i.path)).toEqual(["/strokes/0/technique/nope"]);
   });
 
+  it("follows a stroke's own press profile along its centreline", () => {
+    const glyph = SHODO_GLYPHS["一"];
+    const st = glyph.strokes[0];
+    const stroke = (g: ShodoGlyph) => planShodoWriting({ items: [{ glyph: g, x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE }).strokes[0];
+    const swell = { ...glyph, strokes: [{ ...st, press: [1, 1.5, 1] }] };
+    // Mean contact width of the travel samples in a stretch of the stroke (fractions of its arc).
+    const width = (s: ReturnType<typeof stroke>, a: number, b: number) => {
+      const end = Math.max(...s.samples.map(x => x.arc));
+      const mid = s.samples.filter(x => x.p > 0 && x.arc >= a * end && x.arc <= b * end);
+      return mid.reduce((sum, x) => sum + x.width, 0) / mid.length;
+    };
+    expect(width(stroke(swell), .4, .6)).toBeGreaterThan(width(stroke(glyph), .4, .6) * 1.15);
+    expect(width(stroke(swell), .05, .15)).toBeLessThan(width(stroke(glyph), .05, .15) * 1.15);
+    expect(inspectShodoGlyph({ ...glyph, strokes: [{ ...st, press: [1, 1] }] }).map(i => i.path)).toEqual(["/strokes/0/press"]);
+    expect(inspectShodoGlyph({ ...glyph, strokes: [{ ...st, press: [1, 2, 1] }] }).map(i => i.path)).toEqual(["/strokes/0/press"]);
+  });
+
   it("lifts the brush through a かな loop (結び) so the counter stays open, and only there", () => {
     // A curve that comes down, goes once around a small loop, crosses its own path and leaves.
     const ring = Array.from({ length: 14 }, (_, i) => {

@@ -490,6 +490,28 @@ function endSegments(
   return [{ duration: .03, pos: line(e, out), press: () => 0, phase: "shuhitsu", technique: end, step: 1, follow: .8 }];
 }
 
+/**
+ * A stroke's own press profile (`press`, one multiplier per centreline point): every sample's
+ * press is scaled by the profile where the sample lies nearest the centreline.
+ */
+function applyPressProfile(segs: Segment[], points: readonly ShodoPoint[], press: readonly number[]): void {
+  const at = (p: V): number => {
+    let best = Infinity, value = 1;
+    for (let i = 0; i < points.length - 1; i++) {
+      const a = points[i], b = points[i + 1];
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      const t = clamp(((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1), 0, 1);
+      const d = Math.hypot(a[0] + dx * t - p[0], a[1] + dy * t - p[1]);
+      if (d < best) { best = d; value = lerp(press[i], press[i + 1], t); }
+    }
+    return value;
+  };
+  for (const sg of segs) {
+    const base = sg.press;
+    sg.press = u => Math.min(.97, base(u) * at(sg.pos(u)));
+  }
+}
+
 /** The full program of one stroke, in em units. */
 function strokeProgram(spec: ShodoStrokeSpec, base: ShodoStyle, seed: number, strokeCount: number): { segs: Segment[]; land: V; start: ShodoStart; end: ShodoEnd } {
   // A stroke's own technique settings (a teacher's head, stop or lift) override the style's.
@@ -530,6 +552,7 @@ function strokeProgram(spec: ShodoStrokeSpec, base: ShodoStyle, seed: number, st
       { duration: T.tenHold, pos: line(pressed, b), press: ramp(peak, peak * .98), phase: "shuhitsu", technique: "ten", step: 1, pause: true },
       { duration: .14, pos: line(b, back), press: ramp(peak * .98, 0, t => Math.pow(t, .7)), phase: "shuhitsu", technique: "ten", step: 2, follow: .45 },
     );
+    if (spec.press) applyPressProfile(segs, spec.points, spec.press);
     return { segs, land, start: "uchikomi", end: "tome" };
   }
 
@@ -618,6 +641,7 @@ function strokeProgram(spec: ShodoStrokeSpec, base: ShodoStyle, seed: number, st
     segs.push(...endSegments(end, spec.kind, lastRun[lastRun.length - 1], dirAt(lastRun, true), spec.hook ? [spec.hook[0], spec.hook[1]] : undefined, ctx,
       runLengths[runLengths.length - 1], spec.joinEnd));
   }
+  if (spec.press) applyPressProfile(segs, spec.points, spec.press);
   return { segs, land: begin.land, start, end };
 }
 
