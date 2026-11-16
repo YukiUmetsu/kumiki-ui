@@ -1,4 +1,4 @@
-import type {CrayonElement} from "../../registry/video/materials/crayon-scene";
+import type {CrayonColor,CrayonElement} from "../../registry/video/materials/crayon-scene";
 import {crayonF1RegisterAnat1Face} from "./crayon-artcraft-f1-anat1-malar";
 import {CRAYON_PORTRAIT_AUDIT} from "./crayon-artcraft-portrait-audit";
 
@@ -186,7 +186,7 @@ const pigments:Readonly<Record<ExistingId,Partial<Wax>>>={
   },
 };
 const newContours:Readonly<Record<NewId,Readonly<{
-  color:string;width:number;opacity:number;waxPressure:number;
+  color:CrayonColor;width:number;opacity:number;waxPressure:number;
 }>>>={
   "source-brow-follicles-near":{
     color:"#493435",width:.39,opacity:.83,waxPressure:.72,
