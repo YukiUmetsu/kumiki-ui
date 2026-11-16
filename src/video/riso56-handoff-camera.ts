@@ -22,7 +22,7 @@ export type Riso56Placement=Readonly<{x:number;y:number;scale:number}>;
 export const RISO56_CAMERA_BEAT={
   enter:142,fullAt:160,holdUntil:180,exit:207,
   landscapeMaxZoom:2.15,
-  portraitMaxZoom:1.36,
+  portraitMaxZoom:2.20,
   aspectRatio:"16:9 and 9:16, independently framed",
   composition:"middle of two actual living paper pinch anchors",
   layerRule:"the same stage matrix must transform donor, receiver, sheet, RED and BLUE print layers",
@@ -58,7 +58,7 @@ export function evaluateRiso56HandoffCamera(
   // Keep the closed side pinch in the human viewing center, with printed
   // breathing room above and below (portrait uses the paper's lower
   // editorial third rather than wasting half the narrow shot).
-  const targetX=width/2,targetY=portrait?height*.495:height*.535;
+  const targetX=width/2,targetY=portrait?height*.495:height*.665;
   // Smooth screen translation only exists while the editorial beat exists.
   // At beat==0 the global stage is EXACTLY untransformed, preserving
   // old 0f, 142f, 207f and 239f frame pixel outputs byte for byte.
