@@ -65,7 +65,7 @@
       "body"
     ],
     "anatomy": {
-      "authority": "registry/anatomy/anatomy-face.ts createFace() freshly instantiated; 468 vertices; FACE_FEATURES.oval 36 vertex indices",
+      "authority": "ANAT1 MediaPipe 468-point face mask supplies the lower jaw / cheek / temple chain from its 36-index reference ring. The skull vault is NOT in that mask: it is separately authored from observed cranial proportions using 8 new parietal/frontal arch anchors.",
       "new_parameters": {
         "sex": 0.69,
         "eyeSpacing": 0.07,
@@ -93,9 +93,10 @@
       "newhead-sagittal-guide",
       "newhead-zygomatic-guides",
       "newhead-mandibular-hinge",
-      "newhead-orbital-placement-only"
+      "newhead-orbital-placement-only",
+      "newhead-cranial-vault-turn"
     ],
-    "geometry": "Fresh 36-point registered 3D face-mask silhouette projected via smoothPath; 342 individually bounded native dry-pencil contacts in 3 families + 4 translucent construction guides.",
+    "geometry": "New 36-index 3D face ring used for source-informed temple/lower face. Exactly one independent head silhouette joins mesh lower outline to 8 newly drafted cranial vault arcs; 342 bounded short colored pencil contacts in 3 optical value passes plus 5 named light construction guides. No old character paths or features.",
     "camera_aspects": [
       "16:9",
       "9:16"
@@ -111,9 +112,19 @@
   },
   "gates": {
     "source_match": "BLOCKED: anatomy construction source is general, no matched human identity/body pose photograph was supplied.",
-    "head_silhouette": "PENDING: inspect final native screenshot; FACE_FEATURES.oval is face-mask boundary not complete skull, so approve only head-front outline, not head anatomy or whole figure.",
+    "head_silhouette": "PREVIOUS CANDIDATE REJECTED: actual 960×540 Chromium native render [run 43790927200] showed a flat-topped pink shield, a fail for human skull topology. Replaced top face-mask boundary with measured/frontal/parietal arch. Latest native full-size review still pending. This is NOT a final character.",
     "quality": "HOLD: intentionally partial drawing. No eye/nose/mouth/hair regions exist and no photorealism claim is allowed.",
     "automated": "Vitest verifies exact one region, absence of old parts, projective 36-anchor outline, three seeded pressure families, seed determinism and both Storybook formats. Chromium captures 2.15× Stage 1."
   },
-  "next_step": "Only after native Stage 1 art review: complete head/cranium silhouette including rear skull and ear bases, then render a SINGLE isolated eye. Do not generate another full character or return to the old woman."
+  "next_step": "Only after native Stage 1 art review: complete head/cranium silhouette including rear skull and ear bases, then render a SINGLE isolated eye. Do not generate another full character or return to the old woman.",
+  "visual_review_log": [
+    {
+      "candidate": "initial stage1 face mask",
+      "workflow": "https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43790927200",
+      "observed": "At final 960×540, upper head nearly flat and jaw narrows only slightly; resembles pink rounded shield, not a human cranial outline",
+      "decision": "REJECT",
+      "cause": "Canonical MediaPipe FACE_FEATURES.oval is front face mask and ends at upper forehead, missing the posterior skull and parietal vault; first implementation treated mask as the whole head.",
+      "correction": "Use 3D source ring lower facial side chains only; add 8 measured/proportional frontal/parietal vault anchors above, preserving same jaw/chin geometry and distinct curved construction guides. Re-render."
+    }
+  ]
 }
