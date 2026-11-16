@@ -10,7 +10,9 @@ import { shodoFerruleHeight } from "../registry/video/shodo/shodo-brush";
 import { ShodoInkSurface } from "../registry/video/shodo/shodo-ink";
 import { DEFAULT_SHODO_STYLE, inspectShodoStyle, resolveShodoStyle } from "../registry/video/shodo/shodo-style";
 import { SHODO_BASICS, auditShodoTechniques } from "../registry/video/shodo/shodo-techniques";
-import { ShodoKanjiInfoCard, kanjiCardPhaseAt, kanjiCardTimeline, resolveKanjiCardContent } from "../src/video/shodo-demos";
+import {
+  KANJI_WORD_EASE, ShodoKanjiInfoCard, kanjiCardPhaseAt, kanjiCardTimeline, parseWordHighlights, resolveKanjiCardContent, wordHighlightAt,
+} from "../src/video/shodo-demos";
 
 const ei = () => planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["永"], x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE });
 
@@ -356,5 +358,32 @@ describe("SHO1 shodō calligraphy", () => {
     unmount();
     render(createElement(ShodoKanjiInfoCard, { char: "山", meanings: "MOUNTAIN", jlpt: "N5" }));
     expect(screen.getByText("JLPT N5")).toBeInTheDocument();
+  });
+
+  it("highlights one useful word at a time, eased in and out, the later cue first, and nothing outside the cues", () => {
+    const E = KANJI_WORD_EASE;
+    const cues = [{ word: 0, at: 1 }, { word: 1, at: 2, hold: 1 }, { word: 2, at: 2.5 }, { word: 7, at: 1.5 }];
+    const at = (t: number) => wordHighlightAt(cues, t, { count: 3 });
+    expect(at(.99)).toEqual({ word: null, strength: 0 });                    // before the first cue
+    expect(at(1 + E / 2).word).toBe(0);                                       // easing in
+    expect(at(1 + E / 2).strength).toBeGreaterThan(0);
+    expect(at(1 + E / 2).strength).toBeLessThan(1);
+    expect(at(1.5)).toEqual({ word: 0, strength: 1 });                       // fully on; word 7 does not exist
+    expect(at(2 - E / 2).word).toBe(0);                                       // eases out before the next cue …
+    expect(at(2 - E / 2).strength).toBeLessThan(1);
+    expect(at(2 + E / 2).word).toBe(1);                                       // … which then eases in
+    expect(at(2.6).word).toBe(2);                                             // overlap: the later cue wins
+    expect(at(5 - E / 2).strength).toBeLessThan(1);                          // default hold 2.5 s, eased out
+    expect(at(5.01)).toEqual({ word: null, strength: 0 });                   // after the last cue
+    let prev = 0;
+    for (let f = 0; f < 180; f++) {                                           // no jump from frame to frame
+      const h = at(f / 30);
+      expect(Math.abs(h.strength - prev)).toBeLessThan(.25);
+      prev = h.strength;
+    }
+    expect(parseWordHighlights("0@3, 1@6.5+1.5; x@2\n2 @ 9")).toEqual([{ word: 0, at: 3 }, { word: 1, at: 6.5, hold: 1.5 }, { word: 2, at: 9 }]);
+    const words = resolveKanjiCardContent("道", {}).words;
+    render(createElement(ShodoKanjiInfoCard, { char: "道", words, highlight: { word: 1, strength: 1 } }));
+    expect(screen.getByRole("listitem", { current: true })).toHaveTextContent("道路");
   });
 });
