@@ -266,6 +266,32 @@ test("four distinct historical ink schools paint separate real rooted rock struc
     expect(boughStations).toHaveLength(20);
     if(school==="fuchun")
       expect(new Set(boughStations).size).toBeGreaterThan(13);
+    // Real exact-frame native branches carry the same continuously
+    // painted thick/dry bunches from their own skeleton; never copied
+    // screenshot leaves or free-floating decorative dots.
+    const wet=card.locator("[data-km-cliff-pine-wet-cluster]");
+    await expect(wet).toHaveCount(school==="fuchun"?119:0);
+    if(school==="fuchun"){
+      const ends=await card.locator(
+        "[data-km-cliff-pine-bough-centerline]").evaluateAll(nodes=>
+          nodes.map(node=>{
+            const n=(node.getAttribute("data-km-cliff-pine-bough-centerline")??"")
+              .match(/-?\\d+(?:\\.\\d+)?/g)?.map(Number)??[];
+            return n[5]-n[1];
+          }));
+      expect(ends.filter(n=>n>2).length).toBeGreaterThanOrEqual(6);
+      expect(ends.filter(n=>n< -4).length).toBeGreaterThanOrEqual(7);
+      const loads=await wet.evaluateAll(nodes=>nodes.map(node=>
+        Number(node.getAttribute("data-km-cliff-pine-wet-cluster-weight"))));
+      expect(Math.max(...loads)-Math.min(...loads)).toBeGreaterThan(1.3);
+      const connected=await wet.evaluateAll(nodes=>nodes.every(node=>{
+        const root=node.getAttribute("data-km-cliff-pine-wet-cluster-root");
+        const d=node.getAttribute("d")??"";
+        return Boolean(root&&d.startsWith("M"+root.replace(","," "))&&
+          d.endsWith(" Z"));
+      }));
+      expect(connected).toBe(true);
+    }
     const bankCount=school==="fuchun"?9:school==="forest-grotto"?12:0;
     await expect(card.locator("[data-km-master-rock-bank]"))
       .toHaveCount(bankCount);
