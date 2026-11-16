@@ -1,0 +1,53 @@
+name: Risograph RISO62 native dry-brush ArtCraft proof
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso62-dry-brush-artcraft-proof.yml"
+      - "registry/video/riso-dry-brush.ts"
+      - "registry/video/riso-dry-brush-react.tsx"
+      - "src/video/riso-brush-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "tests/riso62-dry-brush-artcraft.test.tsx"
+      - "tests/e2e-storybook/riso62-dry-brush.spec.ts"
+      - "registry.json"
+      - "docs/research/riso62-dry-brush-artcraft.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: riso62-drybrush-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pure-ink-and-native-print:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Source TypeScript and print-material unit regressions
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso62-dry-brush-artcraft.test.tsx tests/riso61-ink-gradient-artcraft.test.tsx tests/print-plates.test.ts
+      - name: Independent riso-print consumer registry installation
+        run: node scripts/registry-fixture.js --item=riso-print
+      - name: Build native Storybook
+        run: npm run build-storybook
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Two native masters, 16:9/9:16 proof, dry and wet, seek
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso62-dry-brush.spec.ts
+      - name: Preserve native master captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso62-native-artproof
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn

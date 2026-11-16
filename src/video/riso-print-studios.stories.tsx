@@ -5,6 +5,7 @@ import { RISO_SHEET_FEED_FILM, RISO_OVERPRINT_FILM, RISO_OVERPRINT_MOTIF, risoOv
 import { useEffect, useMemo, useState } from "react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
 import {RisoGradientStudio} from "./riso-gradient-studio";
+import {RisoBrushStudio} from "./riso-brush-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -372,6 +373,12 @@ export const RisographOverprint: StoryObj<typeof RisoOverprintLab> = {
 export const RisographGradientInk:StoryObj<typeof RisoGradientStudio>={
   name:"Risograph · Continuous Spot-Ink Gradient",
   render:()=> <RisoGradientStudio/>,
+};
+
+/** Independent source-native dry-ink pressure and splintering, non-human. */
+export const RisographDryBrush:StoryObj<typeof RisoBrushStudio>={
+  name:"Risograph · Dry-Brush Ink Atelier",
+  render:()=> <RisoBrushStudio/>,
 };
 
 const meta = {
