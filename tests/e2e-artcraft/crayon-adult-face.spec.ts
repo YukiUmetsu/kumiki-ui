@@ -1317,3 +1317,34 @@ test("F1 V26 late cavity wax 608x1082 native A/B at 1x and 3x",async({page},info
   expect(Buffer.compare(Buffer.from(renders[1]),Buffer.from(renders[3]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** Source-registered V27: identical native f299 1x/3x negative control A/B. */
+test("F1 V27 connected alar wax softness at 1x and 3x f299",async({page},info)=>{
+ test.setTimeout(120_000);
+ await page.setViewportSize({width:608,height:1082});
+ const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+ const result:Uint8Array[]=[];
+ for(const midfaceForm of ["source-carved-naris","source-fused-naris"] as const){
+   const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+   for(const zoom of [1,3] as const){
+     const spec=zoom===1?original:{...original,camera:[
+       {frame:0,focusX:417,focusY:629,zoom:3},
+       {frame:299,focusX:417,focusY:629,zoom:3},
+     ]};
+     const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+     await page.setContent("<!doctype html><html><body style='margin:0'>"+
+       html+"</body></html>");
+     const svg=page.locator("svg[data-km-crayon-scene]");
+     await expect(svg).toBeVisible();
+     for(const id of ["alar-roof-near","alar-roof-far",
+       "naris-shadow-near","naris-shadow-far"])
+       await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+         .toHaveCount(1);
+     result.push(await svg.screenshot({animations:"disabled",
+       path:info.outputPath("crayon-v27-"+zoom+"x-"+midfaceForm+"-299.png")}));
+   }
+ }
+ expect(Buffer.compare(Buffer.from(result[0]),Buffer.from(result[2]))).not.toBe(0);
+ expect(Buffer.compare(Buffer.from(result[1]),Buffer.from(result[3]))).not.toBe(0);
+ expect(errors).toEqual([]);
+});

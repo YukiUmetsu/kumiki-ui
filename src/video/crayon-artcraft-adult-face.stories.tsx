@@ -639,6 +639,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-nasal-relief">CC0 source light and far nasal shadow relief (V24 !dev)</option>
            <option value="source-solid-relief">CC0 pressure-built opaque nose and soft wax edge (V25 !dev)</option>
            <option value="source-carved-naris">CC0 attached negative-space cavity carve (V26 !dev)</option>
+           <option value="source-fused-naris">CC0 feathered cavities under shared alar roof (V27 experimental)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -687,6 +688,12 @@ export const Cc0NasalDepthAndOcclusion:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
+};
+export const Cc0FusedNarisV27:Story={
+  name:"CC0 tapered matte nasal recess / attached alar cartilage 3× (!dev V27)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-fused-naris" initialInspection="nose"/>,
 };
 export const Cc0CarvedNarisV26:Story={
   name:"CC0 attached alar negative-space cavities 3× (!dev V26)",
