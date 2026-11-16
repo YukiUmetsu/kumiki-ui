@@ -4,6 +4,7 @@ import { risoSecondSheetArtworks, risoSecondSheetImprintArt } from "./riso-print
 import { RISO_SHEET_FEED_FILM, RISO_OVERPRINT_FILM, RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "./riso-print-film";
 import { useEffect, useMemo, useState } from "react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
+import {RisoGradientStudio} from "./riso-gradient-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -365,6 +366,12 @@ function RisoOverprintLab() {
 export const RisographOverprint: StoryObj<typeof RisoOverprintLab> = {
   name: "Risograph · Native Overprint Transition",
   render: () => <RisoOverprintLab />,
+};
+
+/** Native paper-space tonal gradient proof; no human actors or hand studies. */
+export const RisographGradientInk:StoryObj<typeof RisoGradientStudio>={
+  name:"Risograph · Continuous Spot-Ink Gradient",
+  render:()=> <RisoGradientStudio/>,
 };
 
 const meta = {

@@ -1,0 +1,54 @@
+name: Risograph RISO61 native gradient ArtCraft proof
+
+# Scoped to the film-material module, not unrelated repository PRs.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso61-gradient-artcraft-proof.yml"
+      - "registry/video/riso-gradient-ink.ts"
+      - "registry/video/riso-gradient-ink-react.tsx"
+      - "src/video/riso-gradient-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "tests/riso61-ink-gradient-artcraft.test.tsx"
+      - "tests/e2e-storybook/riso61-ink-gradient.spec.ts"
+      - "docs/research/riso61-variable-tone-gradient-artcraft.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: riso61-gradient-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-screen-print:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Source TypeScript and existing RISO20 material regression
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso61-ink-gradient-artcraft.test.tsx tests/riso20-print-screening.test.tsx tests/print-plates.test.ts
+      - name: Independent riso-print consumer registry installation
+        run: node scripts/registry-fixture.js --item=riso-print
+      - name: Build production Storybook
+        run: npm run build-storybook
+      - name: Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Native 16:9 / 9:16 screenshots, true spot separation, reverse seeking
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso61-ink-gradient.spec.ts
+      - name: Preserve real material screenshots and failure traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso61-native-material-artproof
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn

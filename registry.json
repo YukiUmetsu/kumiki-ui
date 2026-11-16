@@ -3308,7 +3308,7 @@
       "name": "riso-print",
       "type": "registry:ui",
       "title": "Risograph Spot-Ink Printing",
-      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, fixed registration, halftone screens, paper grain, a sheet-feed transition, and a native incoming spot-ink overprint scene bridge. Authored original SVG plates render through existing FilmStage slots; no alternate renderer or clock.",
+      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, fixed registration, halftone screens, paper grain, a sheet-feed transition, and a native incoming spot-ink overprint scene bridge. Authored original SVG plates render through existing FilmStage slots; no alternate renderer or clock. Adds source-native continuously graded AM ink dots, paper-fixed micro-irregularity, and optional custom SVG contour clipping.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3331,6 +3331,21 @@
           "path": "registry/video/riso-overprint.tsx",
           "type": "registry:ui",
           "target": "components/video/riso-overprint.tsx"
+        },
+        {
+          "path": "registry/video/riso-screening.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-screening.ts"
+        },
+        {
+          "path": "registry/video/riso-gradient-ink.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-gradient-ink.ts"
+        },
+        {
+          "path": "registry/video/riso-gradient-ink-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-gradient-ink-react.tsx"
         }
       ]
     },
