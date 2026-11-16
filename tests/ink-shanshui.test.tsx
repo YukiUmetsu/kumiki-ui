@@ -1024,7 +1024,13 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       expect(at(545)).toBeGreaterThan(at(559));
       const dome=[545,559,572,588,603].map(at);
       expect(Math.max(...dome)-Math.min(...dome)).toBeLessThan(21);
-      expect(at(622)-at(572)).toBeLessThan(37);
+      expect(at(622)-at(572)).toBeLessThan(22);
+      // Original native ArtCraft f210 evidence rejected the narrow
+      // V-shaped peak. The same source crest now rolls across BOTH
+      // shoulders; the actual ridge path, all rooted child strokes,
+      // trees and half-dry paper reserves remain source-connected.
+      expect(at(531)-at(559)).toBeLessThan(21);
+      expect(at(603)-at(559)).toBeLessThan(7);
       expect(at(647)).toBeGreaterThan(at(707)+4);
       // 25 source ridge nodes produce 24×9 preserved organic samples
       // plus two polygon closure edges. Do not decimate curve density.
