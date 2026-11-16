@@ -589,18 +589,47 @@ function fox():PencilSubjectPart[] {
         ],1831,["#C8865D","#744E45","#ECC299"],244),
       ]},
     {id:"rear-leg",material:"fur",palette:charcoal,
-      path:"M311 313 C331 316 344 332 344 349 C342 368 354 384 365 389 L369 402 Q357 407 344 404 Q325 410 312 400 C315 378 305 354 295 342 Z",
-      bounds:[292,310,75,96],direction:72,start:84,
-      details:pencilRootedFur([
-        [318,333,335,388,326,365,30,9],
-      ],421,["#A69A8F","#605451","#C8B9A8"],234)},
+      // The hind limb is FLEXED inside the orange haunch; it cannot be a
+      // third vertical foreleg. The hock rolls into a low, ground-bearing
+      // lateral paw while its superior root remains beneath the rump.
+      path:"M300 347 C309 338 324 337 335 345 "+
+        "C343 353 345 364 348 377 C352 384 363 390 367 397 "+
+        "C370 401 364 404 357 404 C349 407 342 403 337 402 "+
+        "C330 406 321 405 315 401 C315 390 312 381 307 372 "+
+        "C300 361 294 355 300 347 Z",
+      bounds:[292,334,80,74],direction:80,start:84,
+      details:[
+        ...pencilRootedFur([
+          [308,347,337,388,318,366,29,12],
+          [333,353,350,391,349,367,27,10],
+          [317,372,355,401,345,391,28,9],
+          [340,379,363,401,358,392,25,7],
+        ],421,["#A69A8F","#605451","#C8B9A8"],234),
+        {...mark("M310 349 C324 350 337 362 339 374 "+
+          "M316 372 Q325 382 329 393",
+          "#87736A",.44,261,.58),id:"hind-hock-plane"},
+        {...mark("M317 399 Q325 402 331 400 "+
+          "M335 401 Q342 403 348 401 "+
+          "M351 402 Q358 404 365 400",
+          "#443C3E",.37,269,.59),id:"hind-digit-folds"},
+        {...mark("M322 402 l1.7 1.1 M339 404 l1.6 .7 "+
+          "M355 403 l1.9 .8",
+          "#3B3135",.30,276,.62),id:"hind-tiny-claws"},
+        {...mark("M303 354 Q310 361 312 371 "+
+          "M326 348 Q338 356 342 367 "+
+          "M332 385 Q345 391 358 395",
+          "#C0AE9D",.31,280,.45),id:"hind-fur-light-turn"},
+      ]},
     {id:"foreleg-left",material:"fur",palette:charcoal,
-      path:"M199 304 C207 305 215 314 218 329 "+
-        "C221 346 217 365 213 380 C211 392 216 397 223 400 "+
-        "C227 403 224 406 217 407 C211 408 205 405 200 404 "+
-        "C195 407 184 407 178 405 C182 401 189 392 191 382 "+
-        "C193 370 191 353 189 341 C185 325 191 311 199 304 Z",
-      bounds:[175,300,53,109],direction:79,start:90,
+      // The radius/ulna turn under the forearm taper into a slimmer wrist;
+      // the foot flares only BELOW carpal flexion to expose four true digits.
+      path:"M197 305 C207 307 216 315 219 328 "+
+        "C221 337 217 347 213 358 C209 370 209 379 213 387 "+
+        "C216 393 221 397 225 400 C228 402 225 406 221 408 "+
+        "C215 411 207 408 201 405 C192 409 182 410 177 406 "+
+        "C181 402 187 397 190 390 C193 383 192 373 192 364 "+
+        "C191 352 184 342 187 328 C189 317 192 309 197 305 Z",
+      bounds:[175,300,53,112],direction:79,start:90,
       details:[
         ...pencilRootedFur([
           [191,327,204,396,183,365,32,10],
@@ -609,6 +638,19 @@ function fox():PencilSubjectPart[] {
           [196,328,199,395,191,362,31,8],
           [209,342,215,397,205,372,28,8],
         ],2077,["#8C6B60","#393238","#BEA696"],250),
+        // Named optical planes are thin, varied low-pressure pencil, not
+        // a solid photograph-like gradient hiding the dark fur.
+        {...mark("M198 316 Q206 335 204 352 "+
+          "C201 367 198 377 206 392",
+          "#D1B9A4",.44,263,.48),id:"far-antebrachial-plane"},
+        {...mark("M190 380 Q188 393 183 403 "+
+          "M206 387 Q211 398 219 405",
+          "#54464A",.39,271,.60),id:"far-metacarpal-turn"},
+        ...pencilRootedFur([
+          [189,338,198,376,184,361,27,6],
+          [213,335,205,374,216,359,26,6],
+          [188,388,198,407,184,400,24,5],
+        ],2167,["#B9A18D","#4E4142","#8A7770"],263),
         {...mark("M180 402 Q188 399 195 403 M197 406 Q205 402 212 405 M212 406 Q218 403 223 405",
           "#342E32",.58,260,.77),id:"paw-toes"},
         // Digit pads spread into four discrete low-pressure creases;
@@ -630,12 +672,15 @@ function fox():PencilSubjectPart[] {
           "#9B8C83",.32,259,.48),id:"wrist-tendons"},
       ]},
     {id:"foreleg-right",material:"fur",palette:charcoal,
-      path:"M279 306 C287 306 295 319 298 333 "+
-        "C299 348 295 367 292 382 C291 392 298 397 309 400 "+
-        "C315 402 319 406 313 407 C303 409 287 405 280 406 "+
-        "C272 409 263 408 253 406 C259 400 264 389 265 379 "+
-        "C267 363 265 345 268 328 C270 318 272 310 279 306 Z",
-      bounds:[250,302,68,107],direction:75,start:94,
+      // A light sagittal break in the near wrist, a broad weight-bearing
+      // metacarpal and individually rounded toe pads; never a dark column.
+      path:"M280 306 C289 307 295 319 297 332 "+
+        "C300 343 295 353 291 363 C287 378 290 385 295 392 "+
+        "C300 397 313 398 315 402 C319 406 315 408 309 409 "+
+        "C300 411 291 408 282 406 C270 410 259 410 253 405 "+
+        "C258 401 264 394 266 386 C268 376 266 361 267 350 "+
+        "C267 335 271 311 280 306 Z",
+      bounds:[250,302,68,110],direction:75,start:94,
       details:[
         ...pencilRootedFur([
           [270,332,282,399,273,372,33,9],
@@ -644,6 +689,17 @@ function fox():PencilSubjectPart[] {
           [278,328,279,395,277,371,31,10],
           [289,334,297,398,290,372,30,9],
         ],2129,["#8B695E","#3A3036","#B9A292"],248),
+        {...mark("M282 318 Q289 341 283 355 "+
+          "C280 371 279 383 289 393",
+          "#C4AB99",.45,263,.50),id:"near-antebrachial-plane"},
+        {...mark("M266 381 Q266 394 257 404 "+
+          "M292 391 Q302 397 313 405",
+          "#4A4042",.38,272,.60),id:"near-metacarpal-turn"},
+        ...pencilRootedFur([
+          [270,334,278,376,268,361,29,7],
+          [291,339,283,379,297,361,27,6],
+          [260,388,283,406,271,403,25,6],
+        ],2201,["#BDA694","#514548","#998478"],266),
         {...mark("M255 405 Q267 401 278 404 M280 405 Q290 401 301 404 M301 405 Q308 402 314 405",
           "#3B3439",.58,260,.77),id:"paw-toes"},
         // Oblique near paw bears more weight; toe ridges are slightly
