@@ -407,13 +407,34 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           school==="forest-grotto"?5.4:
           school==="early-spring"?6:3.6)*
           (.66+.49*s(seed+4343,i*41+k*31));
-        const body=rockLoadedRibbon(top,bend,tip,load,
-          seed+4357+i*109+k*37);
+        // Fuchun long-hemp must wrap a *turning* stone cheek, not descend
+        // the near-straight 130px source/ribbon that looked like wires in
+        // true 960×540 + 1.65× source comparison. The same pressure-loaded
+        // CUBIC is both the visible stroke and the only valid parent
+        // of its 78 dependent fine brush tips. Two soft x bends respond to
+        // the physical parent cheek; y runs downstream and never hairpins.
+        const swerve=4.8+3.9*s(seed+4351,i*17+k*23);
+        const c1:P=[bend[0]+direction*swerve,
+          top[1]+(tip[1]-top[1])*.24];
+        const c2:P=[bend[0]-direction*(swerve+4.7),
+          top[1]+(tip[1]-top[1])*.71];
+        const sample=(t:number):P=>school==="fuchun"
+          ?cubicPoint(top,c1,c2,tip,t)
+          :quadraticPoint(top,bend,tip,t);
+        const centerline="M"+f(top[0])+" "+f(top[1])+
+          " C"+f(c1[0])+" "+f(c1[1])+
+          " "+f(c2[0])+" "+f(c2[1])+
+          " "+f(tip[0])+" "+f(tip[1]);
+        const body=school==="fuchun"
+          ?rockLoadedCubicRibbon(top,c1,c2,tip,load*.91,
+            seed+4357+i*109+k*37)
+          :rockLoadedRibbon(top,bend,tip,load,
+            seed+4357+i*109+k*37);
         const lip=rockLoadedRibbon(top,
           [top[0]+direction*(8+k),top[1]+(k%2?-6:-3)],
           [top[0]+direction*(18+k*1.5),top[1]+(7+k%3*4)],
           Math.max(1.1,load*.32),seed+4373+i*73+k*17);
-        return {top,bend,tip,body,lip,load};
+        return {top,bend,tip,body,lip,load,sample,centerline};
       });
       const qty=Math.round(strokes[school][i]*detail);
       const brush=Array.from({length:qty},(_,j)=>{
@@ -447,7 +468,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           fanTop[1]*(1-fanDepth)+fanBottom[1]*fanDepth,
         ];
         const entry=school==="travelers"?fanEntry:
-          quadraticPoint(upperBank.top,upperBank.bend,upperBank.tip,depth);
+          upperBank.sample(depth);
         const jitter=(s(seed+4153,j*31+i*19)-.5);
         // Source vocabularies differ in geometry, loaded width, cadence,
         // and curve direction. They must not be the same stamp with opacity.
@@ -503,7 +524,7 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         const dryPath="M"+f(cut[0])+" "+f(cut[1])+
           " Q"+f((cut[0]+lift[0])*.5+direction*.7)+" "+
           f((cut[1]+lift[1])*.5)+" "+f(lift[0])+" "+f(lift[1]);
-        return {entry,pressure,dry,dryPath,bank,curlHandedness};
+        return {entry,pressure,dry,dryPath,bank,depth,curlHandedness};
       });
       const isFan=school==="travelers",isGuo=school==="early-spring";
       const isWang=school==="forest-grotto";
@@ -995,10 +1016,11 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
           </g>)}
         </g>}
         <g clipPath={"url(#"+clip+")"} data-km-master-stratum-field="">
-          {stratum.map(({top,body,lip,load},k)=><g key={k}
+          {stratum.map(({top,body,lip,load,centerline},k)=><g key={k}
             data-km-master-stratum=""
             data-km-master-stratum-root={f(top[0])+","+f(top[1])}
-            data-km-master-stratum-index={k}>
+            data-km-master-stratum-index={k}
+            data-km-master-stratum-centerline={isHuang?centerline:undefined}>
             <path data-km-master-stratum-wash="" d={body}
               fill={isFan?"#312c27":isWang?"#4c4034":"#5c4e3e"}
               opacity={f((isFan?.19:isWang?.35:isGuo?.29:.19)*
@@ -1010,11 +1032,12 @@ function MasterRockBrush({root,seed,mist,detail,school}:{
         </g>
         <g data-km-master-brush-field="" data-km-master-field-count={qty}
           clipPath={"url(#"+clip+")"}>
-          {brush.map(({entry,pressure,dry,dryPath,bank,curlHandedness},j)=><g key={j}
+          {brush.map(({entry,pressure,dry,dryPath,bank,depth,curlHandedness},j)=><g key={j}
             data-km-master-stroke="" data-km-master-stroke-style={label[school]}
             data-km-master-stroke-root={f(entry[0])+","+f(entry[1])}
             data-km-master-stroke-dry={dry?"dry":"wet"}
             data-km-master-stroke-bank={bank}
+            data-km-master-stroke-bank-station={isHuang?depth.toFixed(6):undefined}
             data-km-master-stroke-placement={isFan?"rock-volume":"attached-stratum"}
             data-km-master-stroke-curl={isGuo?(curlHandedness>0?"with":"counter"):"none"}>
             <path data-km-master-stroke-loaded="" d={pressure}
