@@ -17,12 +17,14 @@ import {inspectRiso41InkPressure} from "./riso41-contact-pressure";
 import {inspectRiso42SupportingDigits} from "./riso42-support-digits-gesture";
 
 type PlateMode="both"|"blue"|"red";
-type GestureFrame=0|46|126|144|160|166|178|186|198|239;
+type GestureFrame=0|46|126|144|154|156|160|166|178|186|198|239;
 const FRAME_OPTIONS:readonly {frame:GestureFrame;label:string}[]=[
   {frame:0,label:"Opening · anatomical rest"},
   {frame:46,label:"Relaxed fingers"},
   {frame:126,label:"Prepare to receive"},
   {frame:144,label:"Hand approaches"},
+  {frame:154,label:"Thenar web approaches paper"},
+  {frame:156,label:"Thumb/index web compression"},
   {frame:160,label:"Pinch / paper contact"},
   {frame:166,label:"Receiver peak PIP flexion"},
   {frame:178,label:"Fingertip release"},
@@ -150,7 +152,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO45</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO48</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>

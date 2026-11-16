@@ -6,6 +6,7 @@ import type { RisoPaint, RisoArtwork } from "../../registry/video/print-plates-r
 import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
+import {riso47PalmContour} from "./riso47-palmar-cup";
 import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
 import {riso32ThumbIpJoint,riso32ThumbInkParts,riso33WristUnderprintClearance} from "./riso32-thumb-ip";
@@ -300,7 +301,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7.8 20.9 Q-4.5 21.1 -1.2 21.0 Q3.4 20.5 7.4 20.8 L7.5 21.45 Q3.6 21.1 -.6 21.65 Q-4.4 21.75 -7.65 21.52 Z" },
     riso33WristUnderprintClearance("left"),
     { id: "left-glove", joint: "left-hand", plate: "red", paint: "solid",
-      d: "M-6.5 -1.7 C-9.4 -2.4 -10.4 1.1 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -2 4 -1.8 Q0 -2.1 -3 -1.6 Z" },
+      d:riso47PalmContour("courier","left") },
     ...riso31FingerParts("left","index"),
     ...riso31FingerParts("left","middle"),
     ...riso31FingerParts("left","ring"),
@@ -325,7 +326,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7.5 21.0 Q-3.8 21.6 .2 21.05 Q3.9 20.5 7.6 20.8 L7.3 21.52 Q3.7 21.1 -.3 21.76 Q-4.0 21.68 -7.5 21.6 Z" },
     riso33WristUnderprintClearance("right"),
     { id: "right-glove", joint: "right-hand", plate: "red", paint: "solid",
-      d: "M-6.5 -1.7 C-9.4 -2.4 -10.4 1.1 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -2 4 -1.8 Q0 -2.1 -3 -1.6 Z" },
+      d:riso47PalmContour("courier","right") },
     ...riso31FingerParts("right","index"),
     ...riso31FingerParts("right","middle"),
     ...riso31FingerParts("right","ring"),
