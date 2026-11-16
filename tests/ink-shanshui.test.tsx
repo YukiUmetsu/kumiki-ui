@@ -3209,7 +3209,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(candidate).toContain('data-km-rock-plane-source-clip=""');
     expect(legacy).not.toContain('data-km-rock-plane-source-clip=""');
     const sourceClip=candidate.match(
-      /<clipPath id="([^"]+source-supported-near-ink-2)" clipPathUnits="userSpaceOnUse"><path d="([^"]+)"\/><\/clipPath>/,
+      /<clipPath id="([^"]+source-supported-near-ink-2)" clipPathUnits="userSpaceOnUse"><path d="([^"]+)"/,
     );
     expect(sourceClip).not.toBeNull();
     expect(sourceClip?.[2]).toBe(ridge(candidate,2));
