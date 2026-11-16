@@ -1156,3 +1156,38 @@ test("native full-film ink continuity inspector keeps one original scholar and s
   await expect(lab.locator("[data-km-ink-character-frame]")).toHaveCount(0);
   await expect(native).toHaveAttribute("aria-pressed","false");
 });
+
+
+test("Fuchun Storybook toggles actual 40-ink-canopy paper channels without changing source geometry",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-shanshui--four-masters-ink-studio&viewMode=story");
+  const lab=page.getByTestId("shanshui-master-ink-study");
+  const fuchun=lab.locator('[data-km-master-study="fuchun"]');
+  await expect(fuchun).toBeVisible();
+  const canopy=fuchun.locator("[data-km-cliff-pine-ink-canopy]");
+  await expect(canopy).toHaveCount(40);
+  await expect(canopy.first()).toHaveAttribute(
+    "data-km-cliff-pine-canopy-paper-channels","2");
+  const paths=await canopy.evaluateAll(nodes=>nodes.map(node=>node.getAttribute("d")));
+  await page.getByRole("button",{name:"Pine before bristle paper lift"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine-uncut");
+  const uncutRules=await canopy.evaluateAll(nodes=>
+    nodes.map(node=>getComputedStyle(node).fillRule));
+  expect(uncutRules).toEqual(Array(40).fill("nonzero"));
+  const uncut=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-pine-bristles-before.png")});
+  await page.getByRole("button",{name:"Pine crowns · flying-white ink"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","pine");
+  const liftedRules=await canopy.evaluateAll(nodes=>
+    nodes.map(node=>getComputedStyle(node).fillRule));
+  expect(liftedRules).toEqual(Array(40).fill("evenodd"));
+  const lifted=await fuchun.screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-pine-bristles-after.png")});
+  expect(hash(uncut)).not.toBe(hash(lifted));
+  expect(await canopy.evaluateAll(nodes=>nodes.map(node=>node.getAttribute("d"))))
+    .toEqual(paths);
+  await expect(fuchun.locator("[data-km-cliff-pine-needle]")).toHaveCount(310);
+  await expect(fuchun.locator("[data-km-cliff-pine-pad]")).toHaveCount(60);
+  await expect(fuchun.locator("[data-km-cliff-pine-wet-cluster]")).toHaveCount(119);
+  await lab.getByRole("button",{name:"Reset all four studies"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
+});
