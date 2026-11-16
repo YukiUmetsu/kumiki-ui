@@ -180,6 +180,29 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(READER_FACE_LANDMARKS.find(x=>x.name==="chin")!.y)
       .toBeGreaterThan(READER_FACE_LANDMARKS.find(x=>x.name==="nose-tip")!.y);
   });
+  it("retains a rounded young jaw and fine three-quarter nose without thick overlapping ink hooks",()=>{
+    const source=scrollReaderFacePortrait(1);
+    const face=paths(source,"face");
+    const jaw=face.find(shape=>shape.type==="path"&&
+      shape.fill==="$skin"&&shape.d.includes("143.3 143.7"));
+    if(!jaw||jaw.type!=="path")throw new Error("Reader jaw missing");
+    // Two distinct native cubics approach and leave the actual ANAT1
+    // menton with a curved tangent; the former mask-like V point is
+    // rejected while keeping the original animation pivot unchanged.
+    expect(jaw.d).toMatch(
+      /C146 141\.4 144\.9 143\.2 143\.3 143\.7 C140\.6 144\.6 138\.7 143\.7 136\.1 142\.2/);
+    expect(jaw.d).not.toMatch(/NaN|Infinity/);
+    const nose=readerFaceAnatomy(1).nose;
+    const featureLines=nose.filter(shape=>shape.type==="path"&&
+      shape.stroke!=="none"&&shape.stroke!=="$paper");
+    expect(featureLines.length).toBeGreaterThanOrEqual(6);
+    expect(featureLines.every(shape=>shape.strokeWidth<=.65)).toBe(true);
+    expect(featureLines.every(shape=>shape.opacity<=.65)).toBe(true);
+    expect(readerFaceAnatomy(1).nose).toEqual(nose);
+    expect(makeShanshuiScholar(1,.88,"river-scholar").parts
+      .find(x=>x.id==="head")?.rest).toEqual(
+        shanshuiBodyFit("river-scholar").headRest);
+  });
   it("preserves an asymmetric, foreshortened near/far eye and five speaking visemes",()=>{
     const plate=scrollReaderFacePortrait(.8);
     const eyelids=["eyes-open","eyes-soft","eyes-closed"] as const;
