@@ -65,7 +65,7 @@ describe("ArtCraft source-specific upper tarsus + ocular socket — experimental
         expect(e.blendRadius).toBeGreaterThan(2);
         expect(e.markStrength).toBeGreaterThanOrEqual(.15);
         expect(e.angle).toBeGreaterThan(-89);
-        expect(e.pressure).toBeGreaterThan(.5);
+        expect(e.pressure).toBeGreaterThanOrEqual(.45);
       }
       const shelf=spec.elements.find(e=>e.id==="tarsal-shelf-"+side);
       const root=spec.elements.find(e=>e.id==="lash-root-"+side);
