@@ -6,6 +6,7 @@ import type { RisoPaint, RisoArtwork } from "../../registry/video/print-plates-r
 import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
+import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
 import {riso32ThumbIpJoint,riso32ThumbInkParts,riso33WristUnderprintClearance} from "./riso32-thumb-ip";
 
@@ -286,10 +287,10 @@ export const COURIER: RisoCharacterSpec = {
     ...riso32ThumbInkParts("left"),
     { id: "left-finger-joint-lines", joint: "left-middle", plate: "blue", paint: "solid",
       d: "M0 4 Q2 3 3 5 L3 5.8 Q2 5 0 5 Z" },
-    { id: "left-glove-detail", joint: "left-hand", plate: "blue", paint: "solid",
-      d: "M-5 2 Q-2 1 -1 3 L-2 4 Q-4 3 -5 4 Z M1 1 Q3 1 4 3 L3 4 Q2 2 1 3 Z" },
-    { id: "left-glove-thumb-fold", joint: "left-hand", plate: "blue", paint: "solid",
-      d: "M-8.2 6.2 Q-11.4 7.7 -10.6 10.0 Q-9.1 7.6 -7.1 7.8 Z" },
+    refineRiso37SourceEngraving({ id: "left-glove-detail", joint: "left-hand", plate: "blue", paint: "solid",
+      d: "M-5 2 Q-2 1 -1 3 L-2 4 Q-4 3 -5 4 Z M1 1 Q3 1 4 3 L3 4 Q2 2 1 3 Z" },"courier","left"),
+    refineRiso37SourceEngraving({ id: "left-glove-thumb-fold", joint: "left-hand", plate: "blue", paint: "solid",
+      d: "M-8.2 6.2 Q-11.4 7.7 -10.6 10.0 Q-9.1 7.6 -7.1 7.8 Z" },"courier","left"),
     ...risoHandArtcraftParts("courier","left"),
     { id: "right-upper-sleeve", joint: "right-arm", plate: "blue", paint: "solid",
       skin: { tipJoint: "right-elbow", baseWidth: 21, tipWidth: 18, overlap: 3, bow: 1.4 },
@@ -311,10 +312,10 @@ export const COURIER: RisoCharacterSpec = {
     ...riso32ThumbInkParts("right"),
     { id: "right-finger-joint-lines", joint: "right-index", plate: "blue", paint: "solid",
       d: "M0 4 Q2 3 3 5 L3 5.8 Q2 5 0 5 Z" },
-    { id: "right-glove-detail", joint: "right-hand", plate: "blue", paint: "solid",
-      d: "M-5 2 Q-2 1 -1 3 L-2 4 Q-4 3 -5 4 Z M1 1 Q3 1 4 3 L3 4 Q2 2 1 3 Z" },
-    { id: "right-glove-thumb-fold", joint: "right-hand", plate: "blue", paint: "solid",
-      d: "M7.2 6 Q11 7.1 11.8 9.6 Q9.1 8.1 7.1 8 Z" },
+    refineRiso37SourceEngraving({ id: "right-glove-detail", joint: "right-hand", plate: "blue", paint: "solid",
+      d: "M-5 2 Q-2 1 -1 3 L-2 4 Q-4 3 -5 4 Z M1 1 Q3 1 4 3 L3 4 Q2 2 1 3 Z" },"courier","right"),
+    refineRiso37SourceEngraving({ id: "right-glove-thumb-fold", joint: "right-hand", plate: "blue", paint: "solid",
+      d: "M7.2 6 Q11 7.1 11.8 9.6 Q9.1 8.1 7.1 8 Z" },"courier","right"),
     ...risoHandArtcraftParts("courier","right"),
     { id: "satchel-ink", joint: "satchel", plate: "red", paint: "solid",
       d: "M-6 0 Q25 -15 36 5 L35 56 Q9 70 -9 51 Z" },
