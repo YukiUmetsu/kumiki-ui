@@ -3,7 +3,7 @@ import {flattenRisoSvgPath,risoContourSignedArea} from "../registry/video/riso-p
 import {evaluateRisoCharacter,inspectRisoCharacter} from "../registry/video/riso-character";
 import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,evaluateRisoHumanEnsemble} from "../src/video/riso-human-ensemble";
-import {RISO57_PALMAR_ANATOMY,riso57PalmLandmarks,riso57PositivePalmContour}
+import {RISO57_PALMAR_ANATOMY,RISO57_SOURCE_MCP_ANCHORS,riso57PalmLandmarks,riso57PositivePalmContour}
   from "../src/video/riso57-palm-contact-silhouette";
 import {riso47PalmContour} from "../src/video/riso47-palmar-cup";
 import {riso51ProjectPalmarPath} from "../src/video/riso51-view-conditioned-source";
@@ -58,6 +58,20 @@ describe("RISO57 original 3/4 index/thenar and four-MCP positive skin topology",
       expect(at("middle-mcp").y).toBeGreaterThan(at("ring-mcp").y+.25);
       expect(at("middle-mcp").y).toBeGreaterThan(at("fifth-mcp").y+1.8);
       expect(sign*at("fifth-mcp").x).toBeLessThan(-6.5);
+      for(const [digit,landmarkName] of [
+        ["index","index-mcp"],["middle","middle-mcp"],
+        ["ring","ring-mcp"],["pinky","fifth-mcp"],
+      ] as const){
+        const target=RISO57_SOURCE_MCP_ANCHORS[digit];
+        const actual=at(landmarkName);
+        const gap=Math.hypot(actual.x-sign*target.x,
+          actual.y-target.y);
+        // Actual original clinical MCP anchor in COURIER_BASE_JOINTS;
+        // a pretty hand contour that floats beyond these real digit
+        // attachments is anatomically WRONG even when its area is fine.
+        expect(gap,actor+"/"+side+"/"+digit+" true MCP attachment")
+          .toBeLessThan(2.6);
+      }
       expect(at("ulnar-wrist").y).toBeLessThan(0);
       expect(at("radial-wrist").y).toBeLessThan(0);
       const path=riso57PositivePalmContour(actor,side);
