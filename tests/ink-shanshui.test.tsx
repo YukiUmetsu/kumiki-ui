@@ -3113,4 +3113,54 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(a).not.toContain("<image ");
     expect(a).not.toContain("data:image/");
   });
+
+  it("constructs a candidate Fuchun broad lower mountain from 19 original continuous stations without changing production or other schools",()=>{
+    const paint=(school:"fuchun"|"travelers",seed:number,rounded?:boolean,
+      frame=145,scene:"mountain-trail"|"river-scholar"="mountain-trail")=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame,controls:{...DEFAULT_SHANSHUI,scene,inkSchool:school,
+          seed,detail:1,mist:.35,ink:.9,
+          fuchunNearShoulderStudy:rounded},
+      }));
+    const ridge=(html:string,band:number)=>html.match(
+      new RegExp('data-km-shanshui-ridge-contour="'+band+'" d="([^"]+)"'),
+    )?.[1];
+    const legacy=paint("fuchun",71),off=paint("fuchun",71,false),
+      candidate=paint("fuchun",71,true),candidate87=paint("fuchun",87,true);
+    expect(legacy).toBe(off);
+    expect(candidate).toBe(paint("fuchun",71,true));
+    expect(ridge(legacy,2)).not.toEqual(ridge(candidate,2));
+    expect(ridge(candidate,2)).not.toEqual(ridge(candidate87,2));
+    // The new native source contour contains 18 spans * 9 sub-stations,
+    // not an ellipse, flat path or detached overlay in the lower sky.
+    expect((ridge(candidate,2)?.match(/L /g)??[])).toHaveLength(164);
+    expect((ridge(legacy,2)?.match(/L /g)??[])).toHaveLength(92);
+    expect(ridge(candidate,2)).toContain("512 258");
+    for(const band of [0,1])
+      expect(ridge(candidate,band)).toEqual(ridge(legacy,band));
+    // Same exact clip, ink and downstream ridge-derived features; changing
+    // the actual near ridge changes the child painter's root positions.
+    expect(candidate).toContain('data-km-rock-plane-family="2"');
+    const roots=(html:string)=>[...html.matchAll(
+      /data-km-rock-plane-root="([^"]+)"/g,
+    )].map(m=>m[1]);
+    expect(roots(candidate)).not.toEqual(roots(legacy));
+    for(const frame of [84,215])
+      expect(ridge(paint("fuchun",71,true,frame),2))
+        .toEqual(ridge(candidate,2));
+    // The opt-in is never a cosmetic global shared mountain preference.
+    expect(paint("travelers",71,true)).toBe(paint("travelers",71,false));
+    expect(paint("fuchun",71,true,145,"river-scholar"))
+      .toBe(paint("fuchun",71,false,145,"river-scholar"));
+    expect(candidate).not.toContain("<image ");
+  });
+
+  it("rejects malformed opt-in near-rock study controls",()=>{
+    expect(()=>assertShanshuiControls({
+      ...DEFAULT_SHANSHUI,fuchunNearShoulderStudy:"enabled" as never,
+    })).toThrow(RangeError);
+    expect(()=>assertShanshuiControls({
+      ...DEFAULT_SHANSHUI,fuchunNearShoulderStudy:true,
+    })).not.toThrow();
+  });
 });
