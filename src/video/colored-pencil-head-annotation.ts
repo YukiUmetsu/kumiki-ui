@@ -123,6 +123,27 @@ export function annotatedTone(
   });
 }
 
+/** Remove exactly ONE mistakenly annotated semantic point or tone box.
+ * The other original image and every other mark are immutable; no "clear
+ * source" operation may silently delete the independent output evidence.
+ */
+export function removeHeadAnnotation(
+  session:HeadAnnotationSession,side:HeadAnnotationSide,
+  kind:"landmark"|"tone",id:HeadFidelityLandmarkId|HeadFidelityToneId,
+):HeadAnnotationSession{
+  const expected=kind==="landmark"?legalLandmarks:legalTones;
+  if(!expected.has(id))throw new RangeError("Unknown "+kind+" annotation ID");
+  const previous=sideOf(session,side);
+  if(kind==="landmark"){
+    const remaining=previous.landmarks.filter(p=>p.id!==id);
+    if(remaining.length===previous.landmarks.length)return session;
+    return changedSide(session,side,{...previous,landmarks:remaining});
+  }
+  const remaining=previous.tones.filter(p=>p.id!==id);
+  if(remaining.length===previous.tones.length)return session;
+  return changedSide(session,side,{...previous,tones:remaining});
+}
+
 /** Manifest only: no source pixels, synthetic RGB or invented hashes.
  * The exact-byte capture CLI will hash and mean-sample BOTH real files.
  */
