@@ -21,6 +21,63 @@ const finePressure=[
   {at:.84,width:.5},{at:1,width:.02},
 ] as const;
 const r=(x:number)=>Number(x.toFixed(2));
+/** Independently authored source-cubic gestures: start, loaded handles,
+ * release and pressure role. These are not offset copies of a master line.
+ * Field composition keeps large open-paper spaces and overlapping arcs. */
+type Gesture=readonly [number,number,number,number,number,number,number,number,number];
+const landscapeCobalt:readonly Gesture[]=[
+  [.08,.21,.27,.08,.55,.11,.88,.20,1.25],
+  [.13,.29,.35,.21,.59,.27,.89,.24,.38],
+  [.07,.44,.20,.27,.43,.23,.83,.37,2.05],
+  [.10,.52,.23,.36,.61,.45,.92,.38,.63],
+  [.14,.63,.33,.48,.57,.46,.82,.55,1.35],
+  [.07,.75,.25,.58,.59,.63,.93,.68,1.75],
+  [.20,.81,.42,.72,.70,.81,.90,.77,.45],
+  [.23,.43,.36,.34,.45,.41,.62,.48,.34],
+  [.49,.17,.59,.17,.67,.08,.79,.13,.22],
+  [.13,.69,.29,.76,.37,.64,.50,.62,.28],
+  [.57,.55,.70,.56,.71,.46,.90,.49,.42],
+];
+const landscapeVermilion:readonly Gesture[]=[
+  [.10,.37,.27,.51,.42,.67,.88,.48,1.48],
+  [.12,.54,.36,.68,.51,.27,.89,.35,1.82],
+  [.19,.77,.25,.58,.59,.73,.91,.60,.75],
+  [.33,.21,.39,.33,.56,.45,.65,.34,.60],
+  [.31,.73,.46,.84,.71,.58,.82,.72,.37],
+  [.10,.57,.23,.52,.34,.57,.45,.64,.40],
+  [.49,.33,.63,.23,.68,.37,.83,.32,.35],
+  [.16,.83,.33,.78,.48,.79,.64,.86,.24],
+  [.61,.58,.71,.61,.78,.51,.90,.55,.29],
+];
+const portraitCobalt:readonly Gesture[]=[
+  [.21,.16,.64,.31,.18,.53,.66,.84,1.90],
+  [.37,.14,.70,.34,.24,.63,.73,.88,.82],
+  [.15,.24,.55,.40,.13,.59,.53,.76,1.45],
+  [.26,.29,.73,.38,.28,.60,.76,.73,.85],
+  [.14,.40,.62,.43,.35,.63,.70,.79,.60],
+  [.22,.20,.52,.36,.39,.44,.67,.55,.36],
+  [.15,.59,.44,.59,.35,.78,.60,.87,1.05],
+  [.46,.19,.60,.34,.68,.43,.62,.51,.26],
+  [.26,.67,.46,.70,.55,.83,.73,.86,.44],
+  [.22,.34,.43,.27,.56,.39,.59,.45,.32],
+  [.39,.52,.50,.59,.35,.70,.53,.75,.30],
+];
+const portraitVermilion:readonly Gesture[]=[
+  [.70,.19,.25,.29,.81,.49,.23,.75,1.58],
+  [.80,.30,.26,.40,.82,.62,.30,.84,1.30],
+  [.74,.24,.35,.35,.75,.49,.48,.66,.96],
+  [.59,.14,.54,.30,.78,.41,.49,.56,.60],
+  [.78,.45,.27,.57,.69,.72,.35,.83,.90],
+  [.57,.26,.50,.44,.66,.55,.58,.65,.42],
+  [.70,.56,.47,.60,.48,.79,.42,.89,.36],
+  [.51,.39,.34,.44,.51,.55,.36,.63,.28],
+  [.68,.73,.57,.81,.44,.82,.35,.86,.26],
+];
+const cubicPoint=(g:Gesture,t:number,w:number,h:number)=>{
+  const s=1-t,a=s*s*s,b=3*s*s*t,c=3*s*t*t,d=t*t*t;
+  return P(w*(a*g[0]+b*g[2]+c*g[4]+d*g[6]),
+    h*(a*g[1]+b*g[3]+c*g[5]+d*g[7]));
+};
 function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registration,
   grain,animate}:{aspect:RisoAspect;frame:number;plate:Plate;dryness:number;
   seed:number;inkScale:number;registration:number;grain:number;animate:boolean}){
@@ -33,50 +90,42 @@ function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registration,
     }))};
   },[aspect,seed]);
   const phase=animate?frame/239:0.52;
-  const originY=portrait?430:262;
+  const isPaperSeed=seed;
   const brushes=(ink:"blue"|"red")=>{
     const isBlue=ink==="blue",offset=isBlue?0:17;
+    const gestures=portrait?
+      (isBlue?portraitCobalt:portraitVermilion):
+      (isBlue?landscapeCobalt:landscapeVermilion);
     return <g data-km-riso62-plate-art={ink}>
-      {Array.from({length:isBlue?11:9},(_,i)=>{
-        const count=isBlue?11:9;
-        const lane=i-(count-1)/2,t=i/(count-1);
-        // Actual film-media art direction: do not put every original
-        // pressure ribbon through one common central red/blue ink knot.
-        // In landscape the curves flow across adjacent river courses;
-        // portrait rotates the spatial grammar into tall, staggered S-curves.
-        const pulse=Math.sin(phase*Math.PI*2+i*.47)*18;
-        const sx=portrait?w*.33+lane*17:w*.11+Math.sin(i*1.18)*13;
-        const sy=portrait?h*.17+(i%3)*12:originY+lane*24+
-          Math.sin(i*1.31)*7+(isBlue?0:-19);
-        const ex=portrait?w*.69+lane*16:w*.89-Math.sin(i*.9)*13;
-        const ey=portrait?h*.83-(i%4)*10:originY+lane*24+
-          Math.cos(i*.88)*13+(isBlue?0:23);
-        const c1=portrait
-          ? P(sx+(isBlue?-79:65)+pulse*.45,h*.35)
-          : P(w*.35,sy+(isBlue?-51:54)+pulse*.6);
-        const c2=portrait
-          ? P(ex+(isBlue?85:-69)-pulse*.65,h*.64)
-          : P(w*.65,ey+(isBlue?46:-61)-pulse*.75);
+      {gestures.map((g,i)=>{
+        const pulse=Math.sin(phase*Math.PI*2+i*.57)*(8+g[8]*4);
         const options:RisoBrushOptions={
-          start:P(sx,sy),control1:c1,
-          control2:c2,end:P(ex,ey),
-          width:inkScale*(isBlue?12:9.7)*(1-t*.33),
+          start:P(g[0]*w,g[1]*h),
+          control1:P(g[2]*w+pulse*.43,g[3]*h-pulse*.57),
+          control2:P(g[4]*w-pulse*.49,g[5]*h+pulse*.64),
+          end:P(g[6]*w,g[7]*h),
+          width:inkScale*(isBlue?13:10.5)*g[8],
           pressure:i%3===0?pressure:finePressure,
-          dryness:Math.min(1,dryness*(i%4===0?1:.67)),
-          seed:seed+offset+i*53,steps:80,
+          dryness:Math.min(1,dryness*(i%5===0?1.16:i%3===0?.96:.81)),
+          seed:isPaperSeed+offset+i*53,steps:80,
         };
         return <RisoDryBrushInk key={i} {...options}
           color={isBlue?cobalt:vermilion}
-          data-km-riso62-original-curve={i}/>;
+          data-km-riso62-original-curve={i}
+          data-km-riso62-gesture-class={g[8]>1?"hero":g[8]<.5?"filament":"body"}/>;
       })}
+      {/* All nineteen original press witness marks survive, but now attach to
+          a real source stroke, not an unrelated random background scatter. */}
       {Array.from({length:19},(_,i)=>{
-        const theta=(i*2.399963+phase*.12)+(isBlue?0:.7);
-        const rad=(portrait?148:182)*(1+(i%7)*.09);
-        const x=w*.51+Math.cos(theta)*rad,y=originY+Math.sin(theta)*rad*.65;
+        const g=gestures[i%gestures.length];
+        const t=.20+.57*((i*.381966)%1);
+        const point=cubicPoint(g,t,w,h);
+        const side=(i%2?1:-1)*(3+i%4);
+        const x=point.x+side,y=point.y-(i%3)*3;
         return <g key={i} fill="none" stroke={isBlue?cobalt:vermilion}
-          strokeWidth={i%4===0?1.8:.55} opacity={.78}>
-          <path d={"M"+r(x-4)+" "+r(y)+" q4 -"+r(2+i%4)+" 8 0"}/>
-          <path d={"M"+r(x)+" "+r(y-2)+" v4"}/>
+          strokeWidth={i%4===0?1.4:.65} opacity={.78}>
+          <path d={"M"+r(x-3)+" "+r(y)+" q3 -"+r(2+i%3)+" 6 0"}/>
+          <path d={"M"+r(x)+" "+r(y-1.8)+" v3.6"}/>
         </g>;
       })}
     </g>;
@@ -96,9 +145,12 @@ function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registration,
     red:()=> <g data-km-riso62-source-ink="red">
       {brushes("red")}
       {Array.from({length:9},(_,i)=>{
-        const x=w/2+(i-4)*(portrait?31:48),y=originY+(i%3-1)*13;
-        return <path key={i} d={"M"+r(x-6)+" "+r(y)+" q5 -7 12 0"}
-          fill="none" stroke={vermilion} strokeWidth={1.1}/>;
+        // Original nine red editorial echos sit on the source river arcs,
+        // preserving the microtype rhythm without anonymous scattered noise.
+        const g=portrait?portraitVermilion[i]:landscapeVermilion[i];
+        const point=cubicPoint(g,.31+(i%4)*.125,w,h);
+        return <path key={i} d={"M"+r(point.x-6)+" "+r(point.y+7)+
+          " q5 -7 12 0"} fill="none" stroke={vermilion} strokeWidth={1.1}/>;
       })}
       <text x={w-32} y={37} fill={vermilion} textAnchor="end"
         fontSize={11} fontFamily="Arial,sans-serif" letterSpacing={1.4}>

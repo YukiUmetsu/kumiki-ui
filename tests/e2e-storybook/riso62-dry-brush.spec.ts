@@ -23,6 +23,11 @@ test("RISO62 two physical dry-brush print masters retain source richness at both
   const source=root.locator('[data-km-riso62-source-ink="blue"] [data-km-riso62-source-path]');
   const print=root.locator("svg[data-km-riso-print]");
   await expect(source).toHaveCount(11);
+  await expect(root.locator('[data-km-riso62-gesture-class="hero"]')).not.toHaveCount(0);
+  await expect(root.locator('[data-km-riso62-gesture-class="filament"]')).not.toHaveCount(0);
+  const fibreCount=await root.locator('[data-km-riso62-brush]').first()
+    .getAttribute("data-km-riso62-fibres");
+  expect(Number(fibreCount)).toBeGreaterThan(50);
   const original=await source.first().getAttribute("d");
   expect(original?.match(/ Q/g)?.length).toBeGreaterThan(100);
   for(const mode of ["landscape","portrait"] as const){
@@ -49,8 +54,14 @@ test("RISO62 two physical dry-brush print masters retain source richness at both
   const at160=await source.first().getAttribute("d");
   await setRange(dry,0);
   const wet=await source.first().getAttribute("d");
+  await expect(root.locator('[data-km-riso62-brush]').first())
+    .toHaveAttribute("data-km-riso62-fibres","0");
   expect(wet).not.toBe(at160);
   await setRange(dry,.75);
+  const driedCount=Number(await root.locator('[data-km-riso62-brush]').first()
+    .getAttribute("data-km-riso62-fibres"));
+  expect(driedCount).toBeGreaterThan(50);
+  expect(await source.first().getAttribute("d")).not.toBe(wet);
   await expect(root.locator("[data-km-riso62-brush]").first()).toHaveAttribute("data-km-riso62-ink-seed","62");
   await expect(print).toHaveAttribute("data-km-riso-frame","239");
   expect(errors).toEqual([]);

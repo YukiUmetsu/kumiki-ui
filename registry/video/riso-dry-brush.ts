@@ -36,6 +36,18 @@ const sample=(o:RisoBrushOptions,t:number):RisoBrushPoint=>{
   return {x:a*o.start.x+b*o.control1.x+c*o.control2.x+d*o.end.x,
     y:a*o.start.y+b*o.control1.y+c*o.control2.y+d*o.end.y};
 };
+/** Evaluate the EXACT original authored cubic at arbitrary t; hole
+ * sampling must not quantize to the ribbon's outer station count. */
+function normalAt(o:RisoBrushOptions,t:number):RisoBrushPoint{
+  const s=1-t;
+  const dx=3*s*s*(o.control1.x-o.start.x)+6*s*t*(o.control2.x-o.control1.x)+
+    3*t*t*(o.end.x-o.control2.x);
+  const dy=3*s*s*(o.control1.y-o.start.y)+6*s*t*(o.control2.y-o.control1.y)+
+    3*t*t*(o.end.y-o.control2.y);
+  const len=Math.hypot(dx,dy);
+  if(len<1e-7)throw new RangeError("RISO62 cubic has a collapsed interior tangent");
+  return {x:-dy/len,y:dx/len};
+}
 function validate(o:RisoBrushOptions):void{
   if(!o||![o.start,o.control1,o.control2,o.end].every(p=>
     p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&
@@ -94,37 +106,68 @@ export function createRisoBrushGeometry(o:RisoBrushOptions):RisoBrushGeometry{
     return {x:-dy/len,y:dx/len};
   });
   const widthProfile=nodes.map((_,i)=>n(o.width*risoBrushPressureAt(o.pressure,i/steps)));
+  // Edge grain contains long fibre wobble, short wax/ink pickups and
+  // occasional small void-edge bites. It is tied to the SOURCE station and
+  // seed, never to animation time or rendered pixel position.
   const edge=(side:number)=>nodes.map((p,i)=>{
-    const grain=(printHash(o.seed,i,side>0?21:43)-.5)*o.dryness*.13;
+    const low=Math.sin(i*.21+o.seed*.017+side*2.6)*.075+
+      Math.cos(i*.075+o.seed*.23-side*.7)*.045;
+    const pickup=(printHash(o.seed,i,side>0?21:43)-.5)*.26;
+    const nick=printHash(o.seed,Math.floor(i/3),side>0?83:89)>.91?-.14:0;
+    const grain=(low+pickup+nick)*o.dryness;
     const w=widthProfile[i]*(1+grain)*.5*side;
     return {x:p.x+normals[i].x*w,y:p.y+normals[i].y*w};
   });
   const outside=[...edge(1),...edge(-1).reverse()];
   const outerPath=smoothClosed(outside);
-  // Narrow, nonuniform paper-white channels follow actual tangent fields.
-  // They never escape the positive ribbon; avoid broad opaque rectangles.
+  // Physically unprinted substrate: long tapered bristle streaks and
+  // irregular paper-tooth pinholes are independent source-native cutouts.
+  // Seven offset lanes stop parallel streaks from becoming one giant
+  // polygon; their local width stays strictly INSIDE the positive ribbon.
   const dryPaths:string[]=[];
   if(o.dryness>0){
-    const strands=Math.max(1,Math.round(o.dryness*13));
+    const strands=Math.max(1,Math.round(o.dryness*39));
     for(let j=0;j<strands;j++){
-      const at=.11+printHash(o.seed,j,101)*.69;
-      const span=(.055+printHash(o.seed,j,103)*.17)*(.35+o.dryness*.65);
-      const from=Math.max(.045,at-span/2),to=Math.min(.955,at+span/2);
-      const side=(printHash(o.seed,j,107)-.5)*.95;
-      const radius=.022+printHash(o.seed,j,109)*.038;
-      const slit: RisoBrushPoint[]=[];
-      const other: RisoBrushPoint[]=[];
-      for(let k=0;k<=12;k++){
-        const t=lerp(from,to,k/12),index=Math.min(steps,Math.round(t*steps));
-        const p=nodes[index],normal=normals[index],w=widthProfile[index];
-        const tip=Math.sin(Math.PI*k/12)**.75;
-        const half=Math.max(.004,w*radius*o.dryness*tip);
-        const center=w*side*.34;
+      const at=.11+(j+.31*printHash(o.seed,j,101))/strands*.77;
+      const span=(.038+printHash(o.seed,j,103)*.16)*(.43+o.dryness*.57);
+      const from=Math.max(.042,at-span/2),to=Math.min(.96,at+span/2);
+      const lane=((j*5)%7-3)*.13+(printHash(o.seed,j,107)-.5)*.016;
+      const radius=.019+printHash(o.seed,j,109)*.042;
+      const slit:RisoBrushPoint[]=[],other:RisoBrushPoint[]=[];
+      for(let k=0;k<=16;k++){
+        const t=lerp(from,to,k/16);
+        const p=sample(o,t),normal=normalAt(o,t);
+        const w=o.width*risoBrushPressureAt(o.pressure,t);
+        const tip=Math.sin(Math.PI*k/16)**.7;
+        const flicker=.78+.18*Math.sin(k*1.31+j*.77)+
+          .13*(printHash(o.seed,j,k+171)-.5);
+        const half=Math.max(.0001,w*radius*o.dryness*tip*flicker);
+        const center=w*(lane+.012*Math.sin(k*.44+j*.9));
         slit.push({x:p.x+normal.x*(center+half),y:p.y+normal.y*(center+half)});
         other.push({x:p.x+normal.x*(center-half),y:p.y+normal.y*(center-half)});
       }
-      // True cut-out holes, not fragile different-color drawn lines.
-      if(Math.max(...widthProfile)>0.1)dryPaths.push(smoothClosed([...slit,...other.reverse()]));
+      dryPaths.push(smoothClosed([...slit,...other.reverse()]));
+    }
+    // Micro-pores are grain-sized distinct imperfect droplets where the
+    // master has no pigment; shape and distribution remain editable SVG.
+    const pores=Math.round(o.dryness*38);
+    for(let j=0;j<pores;j++){
+      const t=.12+printHash(o.seed,j,211)*.76;
+      const p=sample(o,t),normal=normalAt(o,t);
+      const w=o.width*risoBrushPressureAt(o.pressure,t);
+      const across=(printHash(o.seed,j,223)-.5)*.73*w;
+      const cx=p.x+normal.x*across,cy=p.y+normal.y*across;
+      const rad=w*(.021+.032*printHash(o.seed,j,227))*o.dryness;
+      const axial=rad*(1.2+1.3*printHash(o.seed,j,229));
+      const tangent={x:-normal.y,y:normal.x};
+      const points=Array.from({length:8},(_,k)=>{
+        const theta=k*Math.PI/4,scatter=.86+.26*printHash(o.seed,j,k+233);
+        return {x:cx+scatter*(Math.cos(theta)*axial*tangent.x+
+          Math.sin(theta)*rad*normal.x),
+          y:cy+scatter*(Math.cos(theta)*axial*tangent.y+
+          Math.sin(theta)*rad*normal.y)};
+      });
+      dryPaths.push(smoothClosed(points));
     }
   }
   return {outerPath,dryPaths,centerline:nodes.map(p=>({x:n(p.x),y:n(p.y)})),

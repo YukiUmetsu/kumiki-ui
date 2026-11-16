@@ -36,6 +36,13 @@ describe("RISO62 native dry-brush ArtCraft source",()=>{
     expect(art.outerPath).toMatch(/^M[-\d. ]+ Q/);
     expect(art.outerPath.endsWith(" Z")).toBe(true);
     expect(art.dryPaths.length).toBeGreaterThan(6);
+    // The original 11-slot proof looked smooth at 1×. Physical dry fibre
+    // must include many separate elongated openings AND fine stock pores.
+    expect(art.dryPaths.length).toBeGreaterThan(50);
+    expect(art.dryPaths.filter(path=>(path.match(/ Q/g)||[]).length>20).length)
+      .toBeGreaterThan(20);
+    expect(art.dryPaths.filter(path=>(path.match(/ Q/g)||[]).length===8).length)
+      .toBeGreaterThan(20);
     expect(new Set(art.dryPaths).size).toBe(art.dryPaths.length);
     expect(art.dryPaths.every(x=>x.startsWith("M")&&x.endsWith(" Z"))).toBe(true);
     expect(risoBrushInkPath(art).match(/ Q/g)?.length).toBeGreaterThan(170);
@@ -47,6 +54,9 @@ describe("RISO62 native dry-brush ArtCraft source",()=>{
     expect(a).toEqual(b);
     expect(wet.dryPaths).toHaveLength(0);
     expect(dust.dryPaths.length).toBeGreaterThan(a.dryPaths.length);
+    // Source centreline geometry cannot drift with stock dryness.
+    expect(dust.dryPaths.length).toBeGreaterThan(70);
+    expect(a.outerPath.match(/ Q/g)?.length).toBe(wet.outerPath.match(/ Q/g)?.length);
     expect(wet.centerline).toEqual(a.centerline);
     expect(dust.centerline).toEqual(a.centerline);
     expect(wet.outerPath).not.toBe(a.outerPath);
