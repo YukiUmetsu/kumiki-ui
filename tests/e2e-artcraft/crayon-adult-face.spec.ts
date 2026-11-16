@@ -1699,7 +1699,7 @@ test("F1 V36 ANAT1 near eye actual photographed tarsal source 1x/3x vs V35",asyn
       await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
       const svg=page.locator("svg[data-km-crayon-scene]");
       await expect(svg).toBeVisible();
-      for(const id of ["face-outline","sclera-near","iris-near","pupil-near",
+      for(const id of ["face-outline","sclera-near","sclera-inner-contact-near","iris-near","pupil-near",
         "upper-lid-near","lash-root-near","lower-lid-near","lower-lid-margin-near",
         "upper-lid-crease-near","socket-near","socket-far","sclera-far",
         "iris-far","naris-shadow-near","lip-lower","hair-left-curtain"]){
