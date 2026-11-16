@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
-import {riso32ThumbIpJoint,riso32ThumbInkParts} from "./riso32-thumb-ip";
+import {riso32ThumbIpJoint,riso32ThumbInkParts,riso33WristUnderprintClearance} from "./riso32-thumb-ip";
 
 export type RisoPerformanceAspect = "landscape" | "portrait";
 // RISO28: arm pendulum tracks the same 54-frame alternating contact
@@ -274,6 +274,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-7 7 Q-1 13 7 9 L7 12 Q-2 16 -7 11 Z" },
     { id: "cuff-left", joint: "left-elbow", plate: "red", paint: "screen",
       d: "M-7 17 Q0 19 7 17 L8 20 Q1 23 -8 20 Z" },
+    riso33WristUnderprintClearance("left"),
     { id: "left-glove", joint: "left-hand", plate: "red", paint: "solid",
       d: "M-6.5 -1.7 C-9.4 -2.4 -10.4 1.1 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -2 4 -1.8 Q0 -2.1 -3 -1.6 Z" },
     ...riso31FingerParts("left","index"),
@@ -298,6 +299,7 @@ export const COURIER: RisoCharacterSpec = {
       d: "M-8 8 Q0 12 7 8 L7 11 Q-1 16 -8 12 Z" },
     { id: "cuff-right", joint: "right-elbow", plate: "red", paint: "screen",
       d: "M-7 18 Q0 20 7 18 L8 21 Q0 24 -8 21 Z" },
+    riso33WristUnderprintClearance("right"),
     { id: "right-glove", joint: "right-hand", plate: "red", paint: "solid",
       d: "M-6.5 -1.7 C-9.4 -2.4 -10.4 1.1 -9.6 5.3 Q-10.2 11.2 -8.3 15.5 Q-6.1 19.6 -1.5 19.4 Q4 20.5 7.3 18.6 Q9.4 16.9 9.5 12.0 Q10.2 6 8.3 1 Q7 -2 4 -1.8 Q0 -2.1 -3 -1.6 Z" },
     ...riso31FingerParts("right","index"),
