@@ -3,6 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { MATERIALS, WEATHERING, WET } from "../registry/materials/materials-data";
 import { f0, findMaterial, fromHex, highlightSpread, lightness, toHex, toStandardMaterial, valueLadder, weathered, wetMaterial } from "../registry/materials/materials-physics";
 import { MaterialsSheet } from "../registry/materials/materials-react";
+import { renderMaterialSwatch } from "../registry/materials/materials-render";
+import { TEXTURE_CALIBRATION, TEXTURE_FACTS, materialTexture, textureStats } from "../registry/materials/materials-texture";
 
 describe("MATL1 data", () => {
   it("gives every material a unique id, a colour in range, a grade and a source", () => {
@@ -54,5 +56,51 @@ describe("MATL1 physics", () => {
     const html = renderToStaticMarkup(<MaterialsSheet />);
     expect(html).toContain("verdigris");
     expect(html).not.toMatch(/NaN|undefined/);
+  });
+});
+
+describe("MATL1 textures and rendered swatches", () => {
+  it("gives every material a texture with finite samples, a scale and known facts", () => {
+    for (const m of MATERIALS) {
+      const t = materialTexture(m.id);
+      expect(t.extentMm).toBeGreaterThan(0);
+      expect(t.ballMm).toBeGreaterThan(0);
+      for (const f of t.facts) expect(TEXTURE_FACTS[f]).toBeDefined();
+      for (const [x, y] of [[0, 0], [7.3, -11.1], [-23.5, 31.7]]) {
+        const s = t.sample(x, y);
+        expect([...s.a, s.h, s.r].every(Number.isFinite)).toBe(true);
+        expect(s.r).toBeGreaterThanOrEqual(0);
+      }
+      if (t.solid) expect(Number.isFinite(t.solid(3, 4, 5).h)).toBe(true);
+    }
+  });
+  it("matches the tone spread measured on the CC0 maps it is calibrated to", () => {
+    for (const [id, c] of Object.entries(TEXTURE_CALIBRATION)) {
+      const s = textureStats(id, undefined, 72);
+      expect(Math.abs(s.pct[0] - c.pct[0]), `${id} p10`).toBeLessThan(0.14);
+      expect(Math.abs(s.pct[2] - c.pct[2]), `${id} p90`).toBeLessThan(0.14);
+    }
+  }, 60000);
+  it("builds the structure at its reported size: tatami wales about 1.5 cm, weathered latewood standing above earlywood", () => {
+    const tatami = materialTexture("tatami"), ys = Array.from({ length: 600 }, (_, i) => i * 0.1), h = ys.map(y => tatami.sample(0.71, y).h);
+    const grooves = ys.filter((_, i) => i > 0 && i < ys.length - 1 && h[i] < h[i - 1] && h[i] <= h[i + 1] && h[i] < Math.min(...h) + 0.05);
+    const gaps = grooves.slice(1).map((y, i) => y - grooves[i]).filter(g => g > 5);
+    expect(gaps.length).toBeGreaterThan(1);
+    for (const g of gaps) expect(g).toBeCloseTo(14.2, 0);
+    const wood = materialTexture("wood-weathered"), across = Array.from({ length: 400 }, (_, i) => wood.sample(5, -20 + i * 0.1).h);
+    const relief = Math.max(...across) - Math.min(...across);
+    expect(relief).toBeGreaterThan(0.5); // 25 years at the reported earlywood and latewood erosion rates: about 0.9 mm
+    expect(relief).toBeLessThan(4);
+  });
+  it("renders a ball and a raking-light tile, the same every time, darker when wet", () => {
+    const a = renderMaterialSwatch("terracotta", { view: "tile", size: 24, supersample: 1 }), b = renderMaterialSwatch("terracotta", { view: "tile", size: 24, supersample: 1 });
+    expect(a.rgba.length).toBe(24 * 24 * 4);
+    expect(Array.from(a.rgba)).toEqual(Array.from(b.rgba));
+    const wet = renderMaterialSwatch("terracotta", { view: "tile", size: 24, supersample: 1, wet: 1 });
+    const mean = (px: Uint8ClampedArray) => { let s = 0; for (let i = 0; i < px.length; i += 4) s += px[i] + px[i + 1] + px[i + 2]; return s / (px.length / 4); };
+    expect(mean(wet.rgba)).toBeLessThan(mean(a.rgba) * 0.92);
+    const ball = renderMaterialSwatch("wood-light", { view: "ball", size: 24, supersample: 1 });
+    expect(ball.rgba.length).toBe(24 * 24 * 4);
+    expect(ball.extentMm).toBe(materialTexture("wood-light").ballMm);
   });
 });

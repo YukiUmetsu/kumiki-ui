@@ -1,15 +1,99 @@
 /**
- * MATL1 React pieces: a material ball (a sphere under one key light and a soft sky, from the record's albedo, F0 and
- * roughness), weathering strips, wet-and-dry pairs, a value ladder and the reference sheet.
+ * MATL1 React pieces: rendered material swatches (a ball in a studio and a tile under raking light, from each
+ * material's procedural texture), a material study with its scale and sources, a flat SVG material ball, weathering
+ * strips, wet-and-dry pairs, a value ladder and the reference sheet.
+ *
+ * Swatches render on the CPU after the page paints, one at a time (a shared queue), and are cached by their options.
  */
-import { useId } from "react";
+import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
+import type { CanvasHTMLAttributes, CSSProperties } from "react";
+import { enqueueRender } from "../anatomy/foundation-queue";
 import { SheetCard, sheetGrid, sheetList, sheetSmall } from "../anatomy/foundation-react";
 import type { MaterialFamily, MaterialRecord, WeatheringTrack } from "./materials-data";
 import { MATERIAL_SOURCES, MATERIALS, WEATHERING } from "./materials-data";
 import type { RGB } from "./materials-physics";
 import { f0, findMaterial, highlightSpread, lightness, toHex, valueLadder, weathered, wetMaterial } from "./materials-physics";
+import { renderMaterialSwatch } from "./materials-render";
+import type { MaterialSwatch as RenderedSwatch, SwatchOptions } from "./materials-render";
+import { TEXTURE_FACTS, materialTexture } from "./materials-texture";
 
 const useMatId = () => `mat${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+
+const swatchCache = new Map<string, RenderedSwatch>();
+export interface MaterialSwatchProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> {
+  /** Material id (`MATERIALS`). */
+  material: string;
+  options?: SwatchOptions;
+  label?: string;
+}
+/**
+ * A material rendered from its texture: a ball in a studio (`view: "ball"`, the default) or a tile under raking light
+ * (`view: "tile"`). Renders after paint, queued with other heavy renders, and cached.
+ */
+export const MaterialSwatch = forwardRef<HTMLCanvasElement, MaterialSwatchProps>(function MaterialSwatch({ material, options = {}, label, style, ...rest }, ref) {
+  const canvas = useRef<HTMLCanvasElement>(null), [busy, setBusy] = useState(true);
+  useImperativeHandle(ref, () => canvas.current as HTMLCanvasElement, []);
+  const key = `${material}|${JSON.stringify(options)}`, size = Math.max(8, Math.round(options.size ?? 160)), m = findMaterial(material);
+  useEffect(() => {
+    let live = true;
+    const draw = (sw: RenderedSwatch) => {
+      const ctx = canvas.current?.getContext("2d");
+      if (ctx) ctx.putImageData(new ImageData(new Uint8ClampedArray(sw.rgba), sw.width, sw.height), 0, 0);
+      setBusy(false);
+    };
+    const hit = swatchCache.get(key);
+    if (hit) { draw(hit); return () => { live = false; }; }
+    setBusy(true);
+    void enqueueRender(() => {
+      if (!live) return;
+      const sw = renderMaterialSwatch(material, options);
+      if (swatchCache.size > 300) swatchCache.clear();
+      swatchCache.set(key, sw);
+      if (live) draw(sw);
+    });
+    return () => { live = false; };
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  const what = options.view === "tile" ? "tile under raking light" : "material ball";
+  return <canvas ref={canvas} width={size} height={size} role="img" aria-label={label ?? `${m?.name ?? material}, ${what}`} aria-busy={busy}
+    style={{ display: "block", width: "100%", height: "auto", aspectRatio: "1 / 1", borderRadius: 6, background: "var(--km-surface-subtle, #8d8c8b)", ...style }} {...rest} />;
+});
+
+const NICE_MM = [1, 2, 5, 10, 20, 50, 100, 200];
+/** A scale bar for a tile `extentMm` wide: the longest round length up to a third of it. */
+export function ScaleBar({ extentMm }: { extentMm: number }) {
+  const len = [...NICE_MM].reverse().find(v => v <= extentMm / 3) ?? NICE_MM[0], pct = (len / extentMm) * 100;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, ...sheetSmall }} aria-label={`Scale: the bar is ${len} mm; the tile is ${Math.round(extentMm)} mm wide`}>
+      <span aria-hidden style={{ display: "block", width: `${pct}%`, minWidth: 8, height: 6, borderLeft: "2px solid currentColor", borderRight: "2px solid currentColor", borderBottom: "2px solid currentColor" }} />
+      <span title={`Tile ${Math.round(extentMm)} mm wide`}>{len} mm</span>
+    </div>
+  );
+}
+
+export interface MaterialStudyProps { id: string; size?: number; wet?: number; record?: MaterialRecord; seed?: number; lightAzimuth?: number; lightElevation?: number; showFacts?: boolean }
+/** A material as a ball and as a tile at its real scale, with what its texture is built from and the evidence. */
+export function MaterialStudy({ id, size = 220, wet = 0, record, seed, lightAzimuth, lightElevation, showFacts = true }: MaterialStudyProps) {
+  const tex = materialTexture(id, seed, record), m = record ?? findMaterial(id);
+  const common: SwatchOptions = { size, wet, record, seed };
+  const facts = tex.facts.map(f => TEXTURE_FACTS[f]).filter(Boolean);
+  return (
+    <figure style={{ margin: 0, display: "grid", gap: 6 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
+        <MaterialSwatch material={id} options={{ ...common, view: "ball" }} />
+        <div style={{ display: "grid", gap: 4, alignContent: "start" }}>
+          <MaterialSwatch material={id} options={{ ...common, view: "tile", lightAzimuth, lightElevation }} />
+          <ScaleBar extentMm={tex.extentMm} />
+        </div>
+      </div>
+      <figcaption style={{ ...sheetSmall, display: "grid", gap: 4 }}>
+        <span><b>{m?.name ?? id}</b>{m?.ja ? ` ${m.ja}` : ""}: {tex.note}</span>
+        {showFacts && facts.length ? <ul style={{ ...sheetList, margin: 0 }}>{facts.map(f => <li key={f.label}>{f.label}: {f.value} ({f.grade}; {f.url ? <a href={f.url}>{f.source}</a> : f.source})</li>)}</ul> : null}
+      </figcaption>
+    </figure>
+  );
+}
+
+const tileGrid: CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12 };
 const scale = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
 const add = (a: RGB, b: RGB): RGB => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 
@@ -51,10 +135,10 @@ export function MaterialBall({ material: m, albedo = m.albedo, roughness = m.rou
   );
 }
 
-function BallCard({ m, note }: { m: MaterialRecord; note?: string }) {
+function BallCard({ m, note, look = "rendered" }: { m: MaterialRecord; note?: string; look?: SheetLook }) {
   return (
     <figure style={{ margin: 0, display: "grid", justifyItems: "center", gap: 2, width: 104 }}>
-      <MaterialBall material={m} />
+      {look === "rendered" ? <div style={{ width: 104 }}><MaterialSwatch material={m.id} options={{ size: 112, supersample: 2 }} /></div> : <MaterialBall material={m} />}
       <figcaption style={{ ...sheetSmall, textAlign: "center", lineHeight: 1.3 }}>{m.name}{m.ja ? <><br />{m.ja}</> : null}<br />{m.metal ? "metal" : `L* ${lightness(m.albedo).toFixed(0)}`} · {m.grade}{note ? <><br />{note}</> : null}</figcaption>
     </figure>
   );
@@ -80,8 +164,12 @@ export function WeatheringStrip({ track, years, environment }: { track: Weatheri
 const FAMILY_ORDER: MaterialFamily[] = ["metal", "metal-oxide", "lacquer", "wood", "plant", "paper", "plaster", "ceramic", "stone", "earth", "organic", "glass", "ice", "liquid", "manmade"];
 const FAMILY_LABEL: Record<MaterialFamily, string> = { metal: "Metals", "metal-oxide": "Rust and patina", lacquer: "Lacquer", wood: "Wood", plant: "Bamboo, rush and straw", paper: "Paper", plaster: "Plaster", ceramic: "Ceramics and tile", stone: "Stone", earth: "Earth and sand", organic: "Organic", glass: "Glass", ice: "Snow and ice", liquid: "Liquids", manmade: "Other" };
 
-/** The MATL1 reference sheet. */
-export function MaterialsSheet() {
+export type SheetLook = "rendered" | "flat";
+/** Materials to see up close: the organic ones first. */
+export const UP_CLOSE = ["wood-light", "wood-mid", "wood-weathered", "bamboo-green", "bamboo-dry", "bamboo-old", "tatami-new", "tatami", "tatami-old", "thatch", "paper-washi", "paper-kraft", "cardboard", "leather", "grass", "charcoal", "granite", "marble", "brick", "rust", "bronze-old", "zinc"] as const;
+
+/** The MATL1 reference sheet: rendered from the textures (`look: "rendered"`, default) or as flat SVG balls (`"flat"`, light and instant). */
+export function MaterialsSheet({ look = "rendered" }: { look?: SheetLook } = {}) {
   const ladder = valueLadder(MATERIALS.filter(m => !m.metal && !["glass", "liquid", "ice"].includes(m.family) || m.id === "snow"));
   const wetIds = ["sand", "terracotta", "brick", "wood-light", "plaster-white", "paper-washi", "concrete", "tatami", "granite"];
   const house = ["wood-light", "plaster-white", "roof-tile-grey", "tatami", "paper-washi", "bamboo-dry", "thatch", "lacquer-black", "lacquer-red", "gold", "cast-iron", "bronze-old"];
@@ -91,13 +179,25 @@ export function MaterialsSheet() {
         const list = MATERIALS.filter(m => m.family === fam);
         return list.length ? (
           <SheetCard key={fam} title={FAMILY_LABEL[fam]} wide={list.length > 6}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>{list.map(m => <BallCard key={m.id} m={m} />)}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>{list.map(m => <BallCard key={m.id} m={m} look={look} />)}</div>
             <ul style={{ ...sheetList, ...sheetSmall }}>{list.slice(0, 6).map(m => <li key={m.id}><b>{m.name}:</b> {m.look[0]}</li>)}</ul>
           </SheetCard>
         ) : null;
       })}
+      {look === "rendered" ? (
+        <SheetCard title="Up close: tiles under raking light" wide>
+          <div style={tileGrid}>{UP_CLOSE.map(id => { const t = materialTexture(id), m = findMaterial(id); return (
+            <figure key={id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+              <MaterialSwatch material={id} options={{ view: "tile", size: 160, supersample: 2 }} />
+              <ScaleBar extentMm={t.extentMm} />
+              <figcaption style={{ ...sheetSmall, lineHeight: 1.3 }}><b>{m?.name ?? id}</b>: {t.note}</figcaption>
+            </figure>
+          ); })}</div>
+          <p style={{ ...sheetSmall, margin: 0 }}>Each texture is built from the material's structure at its real size (rings, rushes, stalks, fibres, crystals), its tone and palette calibrated to measured CC0 ambientCG maps. A low key light from the upper left shows the relief.</p>
+        </SheetCard>
+      ) : null}
       <SheetCard title="A Japanese house" wide>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>{house.map(id => findMaterial(id)).filter((m): m is MaterialRecord => !!m).map(m => <BallCard key={m.id} m={m} />)}</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>{house.map(id => findMaterial(id)).filter((m): m is MaterialRecord => !!m).map(m => <BallCard key={m.id} m={m} look={look} />)}</div>
       </SheetCard>
       <SheetCard title="Value ladder (L*)" wide>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
@@ -129,7 +229,12 @@ export function MaterialsSheet() {
             const w = wetMaterial(m, 1);
             return (
               <figure key={m.id} style={{ margin: 0, display: "grid", gap: 2, justifyItems: "center" }}>
-                <div style={{ display: "flex", gap: 2 }}><MaterialBall material={m} size={56} label={`${m.name}, dry`} /><MaterialBall material={m} albedo={w.albedo} roughness={w.roughness} size={56} label={`${m.name}, wet`} /></div>
+                {look === "rendered" ? (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 72px)", gap: 2 }}>
+                    <MaterialSwatch material={m.id} options={{ view: "tile", size: 96, supersample: 2 }} label={`${m.name}, dry`} />
+                    <MaterialSwatch material={m.id} options={{ view: "tile", size: 96, supersample: 2, wet: 1 }} label={`${m.name}, wet`} />
+                  </div>
+                ) : <div style={{ display: "flex", gap: 2 }}><MaterialBall material={m} size={56} label={`${m.name}, dry`} /><MaterialBall material={m} albedo={w.albedo} roughness={w.roughness} size={56} label={`${m.name}, wet`} /></div>}
                 <figcaption style={{ ...sheetSmall, textAlign: "center" }}>{m.name.split(" (")[0]}<br />wet: {(w.darkening * 100).toFixed(0)}% of dry</figcaption>
               </figure>
             );

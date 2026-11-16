@@ -3796,6 +3796,11 @@
           "target": "components/anatomy/foundation-raster.ts"
         },
         {
+          "path": "registry/anatomy/foundation-queue.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-queue.ts"
+        },
+        {
           "path": "registry/anatomy/foundation-react.tsx",
           "type": "registry:ui",
           "target": "components/anatomy/foundation-react.tsx"
@@ -3987,7 +3992,7 @@
       "name": "materials",
       "type": "registry:ui",
       "title": "Materials Framework (MATL1)",
-      "description": "Style-neutral materials for any art style and any renderer: 56 materials (metals, rust and patina, lacquer, wood, bamboo, tatami, thatch, paper, plaster, ceramics and roof tile, stone, earth, organic, glass, ice, liquids) with linear-light albedo or metal reflectance, metalness, roughness, refractive index, surface variation and painting notes; 36 from the CC0 Physically Based database with its cited measurements, 18 measured off CC0 ambientCG colour maps, red and black lacquer off a CC0 Met photograph. Value (CIE L*) and a value ladder, F0 and highlight spread, standard PBR parameters for three.js, glTF or Blender, wet darkening after Angstrom and Lekner-Dorf, and weathering tracks (copper to verdigris by air, iron to rust, wood to grey, bamboo, tatami, paper, Negoro lacquer wear). Material balls, weathering strips, wet-and-dry pairs and a reference sheet; every value graded with sources.",
+      "description": "Style-neutral materials for any art style and any renderer: 56 materials (metals, rust and patina, lacquer, wood, bamboo, tatami, thatch, paper, plaster, ceramics and roof tile, stone, earth, organic, glass, ice, liquids) with linear-light albedo or metal reflectance, metalness, roughness, refractive index, surface variation and painting notes; 36 from the CC0 Physically Based database with its cited measurements, 18 measured off CC0 ambientCG colour maps, red and black lacquer off a CC0 Met photograph. Value (CIE L*) and a value ladder, F0 and highlight spread, standard PBR parameters for three.js, glTF or Blender, wet darkening after Angstrom and Lekner-Dorf, and weathering tracks (copper to verdigris by air, iron to rust, wood to grey, bamboo, tatami, paper, Negoro lacquer wear). Textures (materials-texture.ts) built from each material's structure at real size and calibrated to measured CC0 ambientCG statistics: wood as a log cut into boards (rings with year-to-year widths, earlywood and latewood, flat-sawn arches, knots with bark rings, weathered earlywood eroding at the reported rates), bamboo culms with nodes, bloom and smoke staining, tatami rushes in 1.5 cm wales between warp grooves (JAS, JAANUS), trimmed thatch stalk ends, washi and kraft fibres, cardboard flutes, leather grain, grass, granite crystals in measured mineral shares, marble veins, slate, sand, salt and snow grains, concrete voids, asphalt aggregate, clay cracks, JIS brick walls, plaster, ibushi tile, rust, patina, lacquer and metal finishes. A CPU renderer (materials-render.ts) shows each as a ball in a studio or a tile under raking light, with soft shadows, cavity occlusion, subsurface scattering, refraction through clear materials, nacre interference, glints, brushed anisotropy and wet looks. Rendered swatches (MaterialSwatch, MaterialStudy with a scale bar), flat material balls, weathering strips, wet-and-dry tiles and a reference sheet; every value graded with sources.",
       "dependencies": [],
       "registryDependencies": [
         "art-foundations"
@@ -4002,6 +4007,16 @@
           "path": "registry/materials/materials-physics.ts",
           "type": "registry:ui",
           "target": "components/materials/materials-physics.ts"
+        },
+        {
+          "path": "registry/materials/materials-texture.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-texture.ts"
+        },
+        {
+          "path": "registry/materials/materials-render.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render.ts"
         },
         {
           "path": "registry/materials/materials-react.tsx",
