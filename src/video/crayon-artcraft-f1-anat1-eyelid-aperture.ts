@@ -64,7 +64,7 @@ function sourceToFittedPhoto(point:XY):XY{
 const fmt=(p:XY)=>p.join(" ");
 const curve=(c1:XY,c2:XY,end:XY)=>" C"+fmt(c1)+" "+fmt(c2)+" "+fmt(end);
 const make=(original:readonly XY[],angle:number,pad=8):Shape=>{
-  if((original.length-1)%3!==0||original.length<13)
+  if((original.length-1)%3!==0||original.length<10)
     throw new RangeError("Incomplete connected ANAT1 tarsal cubic");
   const points=original.map(sourceToFittedPhoto);
   const [start,...control]=points;
