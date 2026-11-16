@@ -1482,3 +1482,36 @@ test("F1 V31 ANAT1 registered 3D cheek vs V30 at 1x and 3x f299",async({page},in
     .not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** V32 exact 608×1082 native CRAYON1 original photo camera A/B.
+ * ANAT1 is anatomical geometry, not a substitute for source visual approval.
+ */
+test("F1 V32 ANAT1 zygoma-to-alar native 1x/3x vs V31 at f299",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));
+  const shots:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-malar","source-anat1-midface-bridge"] as const){
+    const native=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?native:{...native,camera:[
+        {frame:0,focusX:300,focusY:612,zoom:3},
+        {frame:299,focusX:300,focusY:612,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","malar-cheek-near","cheek-malar-bounce",
+        "nose-sidewall","nose-root","nose-tip","socket-near","socket-far",
+        "jaw-underside","chin-plane"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      shots.push(await svg.screenshot({animations:"disabled",path:info.outputPath(
+        "crayon-v32-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(shots[1]),Buffer.from(shots[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
