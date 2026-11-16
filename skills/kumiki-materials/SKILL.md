@@ -1,6 +1,6 @@
 ---
 name: kumiki-materials
-description: Use when choosing, painting, rendering or reviewing what something is made of in Kumiki in any art style (metal, wood, bamboo, tatami, paper, plaster, lacquer, stone, tile, thatch, ceramic, glass, snow), especially when colours or values are guessed, metals look like grey plastic, wet surfaces are not darker, old things look new, or a PBR material needs base colour, metalness and roughness.
+description: Use when choosing, painting, rendering or reviewing what something is made of in Kumiki in any art style (metal, wood, bamboo, tatami, paper, plaster, lacquer, stone, tile, thatch, ceramic, glass, snow), especially when colours or values are guessed, metals look like grey plastic, wet surfaces are not darker, old things look new, textures look like generic noise (wood grain, tatami weave, thatch, washi, leather, granite, marble), or a PBR material needs base colour, metalness and roughness.
 ---
 
 # Kumiki materials (MATL1)
@@ -34,7 +34,26 @@ looks*. Read the [spec](../../docs/component-specs/materials.md) for the API; th
      - iron rusts where water stands;
      - tatami and bamboo yellow and then brown.
    - Red lacquer wears through to black at rims (`lacquerWear`).
-7. **Check.** Compare with the cited references side by side, and run `tests/materials.test.tsx`.
-8. **Add a material.**
+7. **Texture and detail.**
+   - Use `materialTexture(id).sample(x, y)` from `registry/materials/materials-texture.ts`; it works in
+     millimetres at real size.
+   - Each texture is built from the material's structure:
+     - wood: growth rings in a log, cut, with knots and weathering;
+     - tatami: rushes and warp grooves;
+     - thatch: stalk ends;
+     - washi: fibres;
+     - granite: crystals;
+     - marble: veins.
+   - Use `solid(x, y, z)` for objects cut from a block (a turned wooden ball shows end grain).
+   - The structure is the thing to keep when stylising: ring arches and knots, wales about 1.5 cm on tatami,
+     3–7 mm stalks on thatch.
+   - To see a material, use `MaterialStudy` or `MaterialSwatch` (React), or call `renderMaterialSwatch(id, { view: "ball" | "tile" })`.
+     A tile is lit by a low raking light so its relief shows.
+   - Tone and palettes are calibrated to measured CC0 maps (`TEXTURE_CALIBRATION`, `textureStats`); sizes come
+     from `TEXTURE_FACTS`, each graded.
+8. **Check.** Compare with the cited references side by side, and run `tests/materials.test.tsx`.
+9. **Add a material.**
    - Prefer the CC0 Physically Based database, or measure a CC0 ambientCG map or photo in marked boxes.
    - Record the grade and source, and keep the test passing.
+   - Give it a texture recipe that builds its structure at real size (not colour noise). Calibrate it against a
+     measured CC0 map with `textureStats`. Look at the ball and the tile at 1× and 3× before calling it done.

@@ -3,8 +3,8 @@
  * runs in a browser canvas, a film render and a unit test.
  *
  * - `Raster`: linear-light RGB with straight alpha (Float32), encoded to 8-bit sRGB only at the end (`encodeSrgb`).
- * - Seeded noise: value, gradient (Perlin-style), fractal sums, cellular (Worley) and domain warping. The same seed
- *   always gives the same image.
+ * - Seeded noise: value, gradient (Perlin-style), fractal sums, cellular (Worley) and domain warping, in 2D and in 3D
+ *   (solid textures and volumes). The same seed always gives the same image.
  * - Separable Gaussian blur on any number of channels.
  * - Anti-aliased tapered strokes (hairs, lashes, fibres, grain lines) by distance to the segment.
  * - A triangle rasteriser with depth test and barycentrics, for G-buffers.
@@ -33,14 +33,16 @@ export const hexOfLinear = (c: RGB3): string => `#${c.map(v => Math.round(Math.m
  * Encode to 8-bit sRGBA. `filmic` rolls highlights off smoothly (a Hable-style curve normalised so 1.0 stays 1.0 at
  * the white point) instead of clipping them; `exposure` multiplies linear light first.
  */
-export function encodeSrgb(r: Raster, o: { exposure?: number; toneMap?: "none" | "filmic"; white?: number } = {}): Uint8ClampedArray {
-  const n = r.width * r.height, out = new Uint8ClampedArray(n * 4), ex = o.exposure ?? 1, film = o.toneMap === "filmic", W = o.white ?? 4;
+export function encodeSrgb(r: Raster, o: { exposure?: number; toneMap?: "none" | "filmic" | "aces"; white?: number } = {}): Uint8ClampedArray {
+  const n = r.width * r.height, out = new Uint8ClampedArray(n * 4), ex = o.exposure ?? 1, film = o.toneMap === "filmic", aces = o.toneMap === "aces", W = o.white ?? 4;
   const hable = (x: number) => ((x * (0.15 * x + 0.05) + 0.004) / (x * (0.15 * x + 0.5) + 0.06)) - 0.0667;
   const hw = hable(W);
   for (let i = 0; i < n; i++) {
     for (let c = 0; c < 3; c++) {
       let v = Math.max(0, r.rgb[i * 3 + c] * ex);
       if (film) v = hable(v) / hw;
+      // ACES filmic fit (Narkowicz 2015): keeps an albedo's colour close to its sRGB value at exposure ~0.6–1
+      else if (aces) v = (v * (2.51 * v + 0.03)) / (v * (2.43 * v + 0.59) + 0.14);
       out[i * 4 + c] = Math.round(Math.min(1, srgbEncode(Math.min(1, v))) * 255);
     }
     out[i * 4 + 3] = Math.round(Math.min(1, Math.max(0, r.alpha[i])) * 255);
@@ -126,6 +128,45 @@ export function worley(seed: number, x: number, y: number, jitter = 1): { f1: nu
 export function warpedFbm(seed: number, x: number, y: number, warp = 1, octaves = 5): number {
   const qx = fbm(seed + 11, x, y, 4), qy = fbm(seed + 23, x + 5.2, y + 1.3, 4);
   return fbm(seed, x + warp * qx, y + warp * qy, octaves);
+}
+
+// ---- Solid (3D) noise: textures cut from a block (wood rings, stone), volumes (clouds) ----------------------------------------
+
+/** A 32-bit integer hash of (seed, x, y, z) as a float in [0, 1). */
+export function hash3(seed: number, x: number, y: number, z: number): number {
+  let h = (seed | 0) ^ Math.imul(x | 0, 0x27d4eb2d) ^ Math.imul(y | 0, 0x165667b1) ^ Math.imul(z | 0, 0x1b873593);
+  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b); h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+/** 3D gradient noise, about −1…1 (gradients towards the 12 cube edges, as in Perlin's improved noise). */
+export function gradNoise3(seed: number, x: number, y: number, z: number): number {
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z), xf = x - xi, yf = y - yi, zf = z - zi, u = fade(xf), v = fade(yf), w = fade(zf);
+  const g = (ix: number, iy: number, iz: number, dx: number, dy: number, dz: number) => {
+    const h = (hash3(seed, ix, iy, iz) * 12) | 0, a = h < 8 ? dx : dy, b = h < 4 ? dy : dz;
+    return ((h & 1) ? -a : a) + ((h & 2) ? -b : b);
+  };
+  const l = (a: number, b: number, t: number) => a + (b - a) * t;
+  const x0 = l(g(xi, yi, zi, xf, yf, zf), g(xi + 1, yi, zi, xf - 1, yf, zf), u), x1 = l(g(xi, yi + 1, zi, xf, yf - 1, zf), g(xi + 1, yi + 1, zi, xf - 1, yf - 1, zf), u);
+  const x2 = l(g(xi, yi, zi + 1, xf, yf, zf - 1), g(xi + 1, yi, zi + 1, xf - 1, yf, zf - 1), u), x3 = l(g(xi, yi + 1, zi + 1, xf, yf - 1, zf - 1), g(xi + 1, yi + 1, zi + 1, xf - 1, yf - 1, zf - 1), u);
+  return 0.97 * l(l(x0, x1, v), l(x2, x3, v), w);
+}
+/** Fractal sum of 3D gradient noise, about −1…1. */
+export function fbm3(seed: number, x: number, y: number, z: number, octaves = 5, lacunarity = 2, gain = 0.5): number {
+  let s = 0, a = 1, f = 1, norm = 0;
+  for (let o = 0; o < octaves; o++) { s += a * gradNoise3(seed + o * 1013, x * f, y * f, z * f); norm += a; a *= gain; f *= lacunarity; }
+  return s / norm;
+}
+/** 3D cellular (Worley) noise: distances to the nearest and second-nearest feature points and the nearest cell's id. */
+export function worley3(seed: number, x: number, y: number, z: number, jitter = 1): { f1: number; f2: number; id: number } {
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+  let f1 = 9, f2 = 9, id = 0;
+  for (let k = -1; k <= 1; k++) for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) {
+    const cx = xi + i, cy = yi + j, cz = zi + k;
+    const px = cx + 0.5 + (hash3(seed, cx, cy, cz) - 0.5) * jitter, py = cy + 0.5 + (hash3(seed + 1, cx, cy, cz) - 0.5) * jitter, pz = cz + 0.5 + (hash3(seed + 2, cx, cy, cz) - 0.5) * jitter;
+    const d = Math.hypot(px - x, py - y, pz - z);
+    if (d < f1) { f2 = f1; f1 = d; id = hash3(seed + 3, cx, cy, cz); } else if (d < f2) f2 = d;
+  }
+  return { f1, f2, id };
 }
 
 // ---- Blur ----------------------------------------------------------------------------------------------------------------------
