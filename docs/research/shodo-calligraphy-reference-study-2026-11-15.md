@@ -297,6 +297,28 @@ These numbers say how closely the engine reproduces this teacher's own models. T
 
 **Limits.** 54 characters keep the rules: 30 for incomplete data (a shot that really changes the camera, or a final model that is not the writing shown) and the rest for a stroke that fails its check. Kana loops (よ, あ, る) are still smaller than the teacher's.
 
+## 2.13 Ninth study round: more complete shots, dots on unexplained ink, and review
+
+**Shots.** The paper box of a shot is measured on its median frame, and the hand or arm often covers part of the sheet there. Cuts are now joined when the boxes differ by up to 20 px, still only when every ink pixel before the cut is dark after it. 冬, 教, 火, 盆, 礼, 祭 and 能 become complete; 23 characters stay incomplete.
+
+**Dots on unexplained ink.** A dot that lies off the teacher's ink after the repair goes to the nearest blob of teacher ink that none of our other strokes explains, and takes that blob's size. Its check is then precision only (0.6 or more), because the stroke split's label is what was wrong. 善, 希, 帰, 悟, 科 and 際 among others pass.
+
+**A missing component.** In a 3 × 3 grid over the teacher's character, a cell that holds a fair share of the teacher's ink but almost none of ours means a missing radical (短 lost 矢). Such a form keeps the rules.
+
+**Kana loops.** Measured again, the kana strokes are as wide as the teacher's along their paths (median ratio 1.00) and the paths follow the loops; earlier overlays drew our outline at a stricter threshold than the teacher's mask. 41 of 44 kana look like the teacher; よ, る and ゐ close their inner loops a little.
+
+**Review.** Every form that this round added or changed (187) was compared with the teacher by eye. 侍, 杉 and 松 keep the rules (侍 lost 亻; 杉 and 松 write 木 like 扌 in every round). 暑, 雪 and 町 keep the round-three form: their new shot data was worse, and the new form followed it. The decisions are kept with the local data so later rounds respect them.
+
+**Result.** Best-aligned overlap with the teacher's live writing:
+
+| | Rules | With teacher forms |
+|---|---|---|
+| Kanji (360) | 0.575 | 0.717 |
+| Kana (46) | 0.498 | 0.677 |
+| The 365 characters with a form | 0.580 | 0.743 (99 % better) |
+
+**Limits.** 41 characters keep the rules: 23 for incomplete data, 3 after review, the rest for a stroke that fails its check. The checks catch a missing stroke or component, not a wrong shape with the right amount of ink; review stays the last step.
+
 ## 3. From observation to model
 
 | Observation | Model decision |
