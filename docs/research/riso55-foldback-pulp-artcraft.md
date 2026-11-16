@@ -18,11 +18,11 @@ Five contour dimensions:
 
 ## Source implementation
 
-`src/video/riso55-foldback-pulp-source.ts` reprojects each original local DIP ink-point `(x,y)`: **the named original DIP source pivot (0,0) stays fixed and the entire distal pad rotates as a rigid positive-ink mass**; this preserves the original overlap near its moving joint and prevents the source contour from collapsing into a narrow self-intersecting stroke. Each contact point rotates into the palm by actor- and digit-specific signed source-view angles (Courier: middle 106°, ring 116°, pinky 122°; Paper Artist: 104°/112°/120°). Formula:
+`src/video/riso55-foldback-pulp-source.ts` reprojects each original local DIP ink-point `(x,y)`: **the named original DIP source pivot (0,0) stays fixed and the entire distal pad rotates as a rigid positive-ink mass**; this preserves the original overlap near its moving joint and prevents the source contour from collapsing into a narrow self-intersecting stroke. Each contact point rotates into the palm by actor- and digit-specific signed source-view angles (Courier: middle 106°, ring 148°, pinky 114°; Paper Artist: 104°/146°/112°). Formula:
 
 ```
-x' = x * cos(viewAngle) + handSign * y * sin(viewAngle)
-y' = -handSign * x * sin(viewAngle) + y * cos(viewAngle)
+x' = x * cos(viewAngle) + actorHandSign * digitFoldSign * y * sin(viewAngle)
+y' = -actorHandSign * digitFoldSign * x * sin(viewAngle) + y * cos(viewAngle)
 ```
 
 `RISO31_GEOMETRY` represents the **true canonical clinical bone**; these angles are original 2D illustration/camera-projection decisions, **NOT clinical DIP rotations**, and should not be confused with anatomical ROM. The existing `RisoCharacterPart.pathKeys` (RISO51) interpolates the same number of original M/C/Q/L/Z source vertices and preserves exact f0 source bytes. `riso52FoldedTerminalContact` now applies the *same* RISO55 fold to its existing RED printed contact pulp and the cobalt nail after its original foreshortening. All 12 RED original finger segments per actor, original detail bands, 2 authentic inks and exact named DIP moving transforms are preserved. No new printable part IDs, dependencies, image filters, alpha layering, raster, nor hiding/redacting earlier details.
@@ -39,3 +39,7 @@ y' = -handSign * x * sin(viewAngle) + y * cos(viewAngle)
 ## Rejected projection attempt and corrected positive ink
 
 The first RISO55 candidate moved only positive-local-y control points back toward the palm, leaving the negative-local-y attached root fixed. This produced a folded/overlapping polygon that **lost signed printable pulp area** (3.8 and 3.2 square source units, below the existing RISO52 >4 release gate). An attempted transverse-width expansion further collapsed some digit shapes (2.6/3.1, and one new custom test just 1.47). **Those candidates are rejected; thresholds have NOT been relaxed.** The source now uses a single proper rotation around the live DIP source origin, determinant +1, preserving printed pulp area and winding exactly; the cobalt original nail follows the same transform. That preserves true silhouette mass and remains subject to native screenshot critique. The original >4 printed pulp area contract is retained, with an additional near-isometry area regression check.
+
+## RISO42 physical red-tip collision correction
+
+The first proper-rotation proof restored signed red pulp area, but the original RISO42 *real printed ink gap* correctly caught **zero source red gap** between rotated adjacent terminal pads (Courier ring/pinky at f160; receiver middle/ring and ring/pinky at f166). These real material intersections are a quality defect, not a threshold to weaken. The revised fold profile separates digit roles: middle approaches radial thumb opposition; ring largely folds backward into the cup (higher angle / smaller sideways translation); little pulp turns along the ulnar hypothenar border. The corresponding live cobalt nail follows each identical proper-rotation matrix. The strict original RISO42 red clearance remains unchanged, and two-actor native print QA must verify these new silhouettes visually before promotion.
