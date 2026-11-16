@@ -505,10 +505,30 @@ test("Fuchun bank inspection preserves the live film while isolating root-linked
     await expect(other.locator("[data-km-master-stroke]")).not.toHaveCount(0);
     await expect(other.locator("[data-km-master-stroke-source-zone]")).toHaveCount(0);
   }
+  // Native isolated stone anatomy is rendered by the SAME film SVG.
+  // Compare parent positive volumes without overlaid pine and hemp ink.
+  const undercuts=fuchun.locator("[data-km-master-fuchun-hillback-undercut]");
+  await expect(undercuts).toHaveCount(6);
+  await page.getByRole("button",{name:"Stone volumes · brush hidden"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","stone");
+  await expect(fuchun.locator("[data-km-master-stratum-field]")).toBeHidden();
+  await expect(fuchun.locator("[data-km-master-brush-field]")).toBeHidden();
+  await expect(fuchun.locator("[data-km-cliff-pine-grove]")).toBeHidden();
+  await expect(fuchun.locator("[data-km-rock-hero-cliff]")).toBeHidden();
+  await expect(fuchun.locator("[data-km-master-fuchun-hillback-wash]")).toHaveCount(6);
+  await expect(undercuts).toHaveCount(6);
+  await expect(fuchun.locator("[data-km-master-stroke]")).toHaveCount(78);
+  await expect(fuchun.locator("[data-km-master-stratum]")).toHaveCount(15);
+  await fuchun.locator("[data-km-master-camera-view]").screenshot({
+    animations:"disabled",path:info.outputPath("fuchun-native-joined-stone-undercuts-145.png")});
   await page.getByRole("button",{name:"All Fuchun hemp"}).click();
   await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
   await expect(upper.first()).toBeVisible();
   await expect(lower.first()).toBeVisible();
+  await expect(fuchun.locator("[data-km-cliff-pine-grove]")).toBeVisible();
+  await page.getByRole("button",{name:"Stone volumes · brush hidden"}).click();
+  await page.getByRole("button",{name:"Reset all four studies"}).click();
+  await expect(lab).toHaveAttribute("data-km-master-ink-inspection","all");
 });
 
 test("artist school choices are live film renderer modes, not a cosmetic Storybook filter",async({page})=>{
