@@ -13,6 +13,7 @@ import {inspectRiso32ThumbIp,RISO32_THUMB_ANAT1} from "./riso32-thumb-ip";
 import {inspectRiso33HandFan} from "./riso33-hand-negative-space";
 import {inspectRiso36RedFingerSilhouettes} from "./riso36-red-silhouette-gate";
 import {inspectRiso39OpposedPaperPinch} from "./riso39-opposed-paper-pinch";
+import {inspectRiso41InkPressure} from "./riso41-contact-pressure";
 
 type PlateMode="both"|"blue"|"red";
 type GestureFrame=0|46|126|144|160|166|178|186|198|239;
@@ -58,6 +59,7 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const spacing=inspectRiso33HandFan(actor,frame,side);
   const redInk=useMemo(()=>inspectRiso36RedFingerSilhouettes(actor,frame,side),[actor,frame,side]);
   const pinch=useMemo(()=>inspectRiso39OpposedPaperPinch(actor,frame,side),[actor,frame,side]);
+  const inkPressure=useMemo(()=>inspectRiso41InkPressure(actor,frame,side),[actor,frame,side]);
   // Frame the real articulated five-finger and forearm envelope: the
   // Artist's hand rotates almost horizontally at 160f, so wrist-centering
   // alone clipped source fingertips even though the actor had them.
@@ -79,6 +81,8 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso39-thumb-index-tip-gap={pinch.tipDistance.toFixed(3)}
     data-km-riso39-thumb-index-ink-gap={pinch.sourceInkGap.toFixed(3)}
     data-km-riso39-pip-curl={pinch.indexLocalPipCurl.toFixed(2)}
+    data-km-riso41-actual-red-pad-gap={inkPressure.inkGap.toFixed(3)}
+    data-km-riso41-press-ink={inkPressure.pressure.toFixed(3)}
     data-km-riso30-crop-margin={camera.marginX.toFixed(2)}
     data-km-riso30-effective-scale={camera.scale.toFixed(2)}
     style={{border:"1px solid #CBB9A4",borderRadius:7,padding:13,background:"#FFF7E9"}}>
@@ -116,6 +120,8 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
       (bone-axis only). Actual red stencil fingertip gap:
       {redInk.minimumDistalGap.toFixed(1)} source units;
       {redInk.crossInkContacts} cross-digit ink-contacts across 27 section pairs.
+      Original red contact: {inkPressure.inkGap.toFixed(2)} source units, physical ink
+      pressure cue {(inkPressure.pressure*100).toFixed(0)}%.
       Thumb–index original moving tip distance: {pinch.tipDistance.toFixed(1)} source units;
       closed red tip ink gap: {pinch.sourceInkGap.toFixed(1)} source units.
       This is 2D projected anatomy before print registration, not a human-likeness or 3D contact approval.
@@ -138,7 +144,7 @@ export function Riso30HumanHandsWorkbench(){
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO39</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO41</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
