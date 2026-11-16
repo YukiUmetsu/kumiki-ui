@@ -88,6 +88,34 @@ test("native browser decodes exact local PNG bytes and samples 5 genuine pixel r
   }
 });
 
+test("decodes native JPEG photographs without pretending lossy RGB equals the reference pixel for pixel",async(t)=>{
+  if(chromiumUnavailable){t.skip("Chromium image proof runs in foundation-proof");return;}
+  const page=await browser.newPage();
+  try{
+    const original=(await readFile(src)).toString("base64");
+    const jpeg=await page.evaluate(async b64=>{
+      const img=new Image();
+      img.src="data:image/png;base64,"+b64;
+      await img.decode();
+      const canvas=document.createElement("canvas");
+      canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+      canvas.getContext("2d").drawImage(img,0,0);
+      return canvas.toDataURL("image/jpeg",.95).split(",")[1];
+    },original);
+    const file=path.join(dir,"photographic-source.jpg");
+    await writeFile(file,Buffer.from(jpeg,"base64"));
+    const measured=await measureExactLocalImage({file,tones:rois},browser);
+    assert.equal(measured.width,200);assert.equal(measured.height,120);
+    assert.equal(measured.sha256,createHash("sha256")
+      .update(await readFile(file)).digest("hex"));
+    measured.tones.forEach((tone,i)=>{
+      for(let c=0;c<3;c++)
+        assert.ok(Math.abs(tone.meanRgb[c]-bands[i][1][c])<=7,
+          "JPEG pixel approximation exceeds 7 sRGB levels in "+tone.id);
+    });
+  }finally{await page.close();}
+});
+
 test("captures evaluator-compatible independent photo/native render without reusing source pixels",async(t)=>{
   if(chromiumUnavailable){t.skip("Chromium image proof runs in foundation-proof");return;}
   const points=[{id:"cranial-apex",x:78,y:6}];
