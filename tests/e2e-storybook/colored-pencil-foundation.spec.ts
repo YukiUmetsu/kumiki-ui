@@ -167,6 +167,7 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
       ["portrait","portrait-crown","hair-crown"],
       ["portrait","portrait-lock","hair-lock-right"],
       ["portrait","portrait-lips","lip-lower"],
+      ["portrait","portrait-eye","iris-near"],
     ] as const){
       await subject.selectOption(specimen);
       const before=await svg.screenshot({animations:"disabled"});
@@ -185,6 +186,29 @@ test("ArtCraft fox tail, eye, chest, carpus, folded hock and human neck inspect 
       // a photograph edit or duplicated/flattened alternate hero.
       await svg.screenshot({animations:"disabled",
         path:info.outputPath("pencil-"+specimen+"-"+format+"-"+part+"-macro.png")});
+      if(focus==="portrait-eye"){
+        const measured=await svg.evaluate(root=>{
+          const eye=root.querySelector(
+            '[data-km-pencil-region="eye-white-near"]')!;
+          const iris=root.querySelector(
+            '[data-km-pencil-region="iris-near"]')!;
+          const pupil=root.querySelector(
+            '[data-km-pencil-region="pupil-near"]')!;
+          const named=(p:Element,name:string)=>
+            Boolean(p.querySelector('[data-km-pencil-trace="'+name+'"]'));
+          return {
+            radial:Array.from({length:3},(_,i)=>
+              named(iris,"anat-radial-iris-L-"+i)).every(Boolean),
+            shadow:named(iris,"anat-superior-iris-shadow-L"),
+            caruncle:named(eye,"anat-medial-caruncle-L"),
+            upperSclera:named(eye,"anat-superior-sclera-shadow-L"),
+            upperLashes:named(eye,"anat-lash-upper-L"),
+            catchlight:named(pupil,"anat-catchlight-L"),
+            noBitmap:root.querySelectorAll("image,foreignObject,feImage").length===0,
+          };
+        });
+        expect(Object.values(measured).every(Boolean)).toBe(true);
+      }
       if(focus==="portrait-lips"){
         const mouth=await svg.evaluate(root=>{
           const upper=root.querySelector(
