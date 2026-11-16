@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import {RISO29_ANAT1,risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
 import {riso47PalmContour} from "./riso47-palmar-cup";
+import {riso51MorphSourcePart} from "./riso51-view-conditioned-source";
 import {riso49ProjectedDonorPivot} from "./riso49-donor-projection";
 import {refineRiso37SourceEngraving} from "./riso37-anatomical-engraving";
 import {riso31PhalanxJoints,riso31FingerParts} from "./riso31-finger-phalanges";
@@ -552,6 +553,7 @@ export const COURIER_BASE_JOINTS=COURIER_SOURCE.joints;
 export const COURIER:RisoCharacterSpec={
   ...COURIER_SOURCE,
   joints:COURIER_BASE_JOINTS.map(j=>riso49ProjectedDonorPivot(j)??j),
+  parts:COURIER_SOURCE.parts.map(p=>riso51MorphSourcePart(p,"courier")),
 };
 /** Tiny paper bird: demonstrates that parent rig is anatomy-agnostic. */
 export const PAPER_BIRD: RisoCharacterSpec = {
