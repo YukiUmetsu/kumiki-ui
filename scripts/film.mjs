@@ -66,7 +66,15 @@ async function startFilmServer() {
         serveFile(req, res, file);
       });
     },
-  }], server: { ...viteBase.server, host: "127.0.0.1", hmr: false, ws: false }, optimizeDeps: { entries: ["src/film/capture.tsx"] } });
+  }], server: { ...viteBase.server, host: "127.0.0.1", hmr: false, ws: false }, optimizeDeps: {
+    entries: ["src/film/capture.tsx"],
+    // These nested Base UI imports were discovered only after the capture page
+    // started on a cold cache. Pre-bundling them reduces optimizer reloads
+    // that can split React across dependency versions during capture.
+    include: ["@base-ui/react/accordion", "@base-ui/react/checkbox", "@base-ui/react/combobox", "@base-ui/react/dialog",
+      "@base-ui/react/menu", "@base-ui/react/popover", "@base-ui/react/radio-group", "@base-ui/react/radio", "@base-ui/react/select",
+      "@base-ui/react/separator", "@base-ui/react/slider", "@base-ui/react/switch", "@base-ui/react/tabs", "@base-ui/react/toast", "@base-ui/react/tooltip"],
+  } });
   await server.listen();
   const base = server.resolvedUrls.local[0];
   return { pageUrl: outputId => new URL("src/film/capture.html?output=" + encodeURIComponent(outputId), base).toString(), close: () => server.close() };
