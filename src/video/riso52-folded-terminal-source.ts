@@ -29,7 +29,6 @@ export const RISO52_FOLDED_TERMINALS={
 } as const;
 
 const n=(x:number)=>Number(x.toFixed(4));
-const clamp=(x:number)=>Math.max(0,Math.min(1,x));
 const command=/^[MLCQZ]$/;
 const tokens=/[MLCQZ]|[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/g;
 const arity:Readonly<Record<string,number>>={M:2,L:2,C:6,Q:4,Z:0};
