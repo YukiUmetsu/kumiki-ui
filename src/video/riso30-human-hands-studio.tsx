@@ -8,6 +8,7 @@ import {COURIER} from "./riso-character-demo";
 import {PAPER_ARTIST} from "./riso-human-ensemble";
 import {RISO30_ANAT1_HAND,inspectRisoHandArtcraft,layoutRisoHandArtcraft} from "./riso-hand-artcraft";
 import {riso53InspectSourceDepth} from "./riso53-palmar-depth-composition";
+import {inspectRiso54WebReserves} from "./riso54-interdigital-paper-reserve";
 import type {RisoHandSide} from "./riso-hand-artcraft";
 import {RISO31_ANAT1_REFERENCE,riso31Inspect} from "./riso31-finger-phalanges";
 import {inspectRiso32ThumbIp,RISO32_THUMB_ANAT1} from "./riso32-thumb-ip";
@@ -64,10 +65,13 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     actor.id as "courier"|"paper-artist");
   const riso53VisibleSourceOrder=side===riso53Overlap.side?
     riso53Overlap.farRedBehind:0;
+  const riso54Web=(actor.id==="courier"&&side==="right")||
+    (actor.id==="paper-artist"&&side==="left")?
+    inspectRiso54WebReserves(actor,frame):null;
   const mainPalmSource=pose.parts.find(p=>p.id===side+"-glove");
   const mcpPlateSource=pose.parts.find(p=>p.id===side+"-glove-knuckle-arc");
   const riso51MorphParts=actor.parts.filter(p=>
-    p.id.startsWith(side+"-glove")&&p.pathKeys?.length).length;
+    p.id.startsWith(side+"-glove")&&p.pathKeys?.length&&!p.knockoutOnly).length;
   const riso51PalmChanged=mainPalmSource?.d!==actor.parts.find(p=>p.id===side+"-glove")?.d;
   const riso52TerminalPairs=riso52ExpectedOriginalSourceIds(side).filter(id=>
     actor.parts.some(p=>p.id===id&&p.pathKeys?.length)).length/2;
@@ -109,6 +113,8 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     data-km-riso52-cobalt-red-terminal-pairs={riso52TerminalPairs}
     data-km-riso51-palm-projected={String(riso51PalmChanged)}
     data-km-riso53-original-red-support-behind-palm={riso53VisibleSourceOrder}
+    data-km-riso54-native-web-reserves={riso54Web?.sourceCount??0}
+    data-km-riso54-moving-web-cubics={riso54Web?.reserves.reduce((n,p)=>n+p.curveCount,0)??0}
     data-km-riso32-ip-articulated={String(thumb.independentRedSegments)}
     data-km-riso32-ip-flexion={thumb.ipLocalAngle.toFixed(2)}
     data-km-riso33-minimum-axis-gap={spacing.minimumAxisGap.toFixed(3)}
