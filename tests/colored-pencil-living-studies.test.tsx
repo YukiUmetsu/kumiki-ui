@@ -127,6 +127,51 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
     expect(upper.details?.some(d=>d.id==="anat-mouth-seam")).toBe(true);
   });
 
+  it("rebuilds ANAT1 vermilion and mentolabial volume from three independent rose pencil pressure families",()=>{
+    const A=pencilPortraitAnatomy();
+    for(const aspect of ["landscape","portrait"] as const){
+      const d=pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291});
+      const regions=new Map(d.regions.map(p=>[p.id,p]));
+      const upper=regions.get("lip-upper")!,lower=regions.get("lip-lower")!;
+      const face=regions.get("face-main")!;
+      expect(upper.path).toBe(A.lips.upper);
+      expect(lower.path).toBe(A.lips.lower);
+      expect(upper.bounds).toEqual(lower.bounds);
+      expect(upper.opaqueSupport).toBe(false);
+      expect(lower.opaqueSupport).toBe(false);
+      expect(upper.layeredSkinOverParent).toBe(true);
+      expect(lower.layeredSkinOverParent).toBe(true);
+      for(const [region,plane] of [[upper,"upper"],[lower,"lower"]] as const){
+        expect(region.craft?.kind).toBe("skin");
+        expect(region.layers).toHaveLength(3);
+        for(let i=0;i<3;i++){
+          const trace=region.details?.find(x=>x.id==="anat-vermilion-"+plane+"-"+i);
+          expect(trace,plane+" "+i).toBeDefined();
+          expect(trace!.width).toBeLessThanOrEqual(.4);
+          expect(trace!.opacity).toBeLessThanOrEqual(.5);
+          expect(trace!.path).toContain(" Q");
+          expect((trace!.path.match(/M/g)??[]).length).toBe(29);
+          expect(trace!.path).not.toMatch(/NaN|Infinity/);
+          expect(trace!.path.length).toBeLessThan(12000);
+        }
+      }
+      expect(upper.details?.some(t=>t.id==="anat-mouth-seam")).toBe(true);
+      expect(upper.details?.some(t=>t.id==="anat-left-commissure")).toBe(true);
+      expect(lower.details?.some(t=>t.id==="anat-lower-vermilion-reserve")).toBe(true);
+      const chin=face.details?.find(t=>t.id==="anat-mentolabial-turn");
+      expect(chin).toBeDefined();
+      expect(chin!.width).toBeLessThan(.3);
+      expect(chin!.opacity).toBeLessThan(.4);
+      // Each pressure layer is a native editable pencil mark; neither
+      // the ANAT1 facial landmark projection nor the eye geometry changed.
+      expect(face.path).toBe(A.features.oval.path);
+      expect(regions.get("eye-white-near")!.path).toBe(A.eyes.L.path);
+      expect(regions.get("nose-bridge")!.path).toBe(A.nose.path);
+      expect(pencilLivingStudyDrawing({subject:"portrait",aspect,seed:291}))
+        .toEqual(d);
+    }
+  });
+
   it("rejects facial stubble-shaped heavy dashes: skin contacts stay short, low-pressure optical layers",()=>{
     const atlas=pencilPortraitAnatomy();
     expect(atlas.pigment.length).toBeGreaterThanOrEqual(12);

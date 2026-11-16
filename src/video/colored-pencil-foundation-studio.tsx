@@ -18,7 +18,7 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-nape"|"portrait-crown"|"portrait-lock";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-nape"|"portrait-crown"|"portrait-lock"|"portrait-lips";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
@@ -80,7 +80,8 @@ export function PencilFoundationStudio(){
     "rear-leg":inspectionFocus==="portrait-nape"&&specimen==="portrait"?
     "neck":inspectionFocus==="portrait-crown"&&specimen==="portrait"?
     "hair-crown":inspectionFocus==="portrait-lock"&&specimen==="portrait"?
-    "hair-lock-right":null;
+    "hair-lock-right":inspectionFocus==="portrait-lips"&&specimen==="portrait"?
+    "lip-lower":null;
   const focus=(focusPart?projectedInspectionCenter(
     drawing as ReturnType<typeof pencilLivingStudyDrawing>,focusPart):null)??
     specimenMeta[specimen].focus;
@@ -180,6 +181,9 @@ export function PencilFoundationStudio(){
           </option>
           <option value="portrait-lock" disabled={specimen!=="portrait"}>
             Human descending side lock
+          </option>
+          <option value="portrait-lips" disabled={specimen!=="portrait"}>
+            Human mouth / vermilion pencil anatomy
           </option>
         </select>
       </label>
