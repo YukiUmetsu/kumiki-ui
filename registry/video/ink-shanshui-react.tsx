@@ -2432,6 +2432,172 @@ function MountainHeroCliff({root,stations,seed,mist,detail,scene}:{
       fill="#3c342d" opacity={f(.59*(1-.25*mist))}/>
   </g>;
 }
+/** Four connected, paper-absorbed relief courses for the experimental Fuchun
+ * lower bank. Real 960×540 visual QA exposed a featureless beige foreground:
+ * the apex was made broader, yet the surface was still only a smooth polygon
+ * with a few disconnected dark roots. The source (Huang, NPM 1194) has
+ * overlapping, folded boulder cheeks and descending dry hemp rooted in stone.
+ *
+ * These are NOT screen-space overlays or generic perlin speckles: each upper
+ * course begins at two ridgeHeight stations on the *same* opt-in 19-node
+ * mountain; the underside belongs to its own positive curved volume. The
+ * entire family is clipped to its exact original sampled near silhouette.
+ * Source-specific ink belongs to the bands and never to other masters. */
+function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
+  stations:readonly P[];seed:number;detail:number;mist:number;id:string;
+}){
+  const plans=[
+    {left:397,right:480,drop:53,crest:9,marks:6,load:2.15},
+    {left:448,right:547,drop:73,crest:13,marks:8,load:2.8},
+    {left:518,right:616,drop:66,crest:10,marks:7,load:2.35},
+    {left:579,right:681,drop:50,crest:7,marks:7,load:1.95},
+  ] as const;
+  const silhouette=id+"-source-clip";
+  return <g data-km-fuchun-near-relief=""
+    data-km-fuchun-near-relief-source="19-station-ridge">
+    <defs><clipPath id={silhouette} clipPathUnits="userSpaceOnUse">
+      <path d={ridgePath(stations)}/>
+    </clipPath></defs>
+    <g clipPath={"url(#"+silhouette+")"}>
+      {plans.map((plan,i)=>{
+        const jitter=(s(seed+9021,i*43)-.5)*5.5;
+        const left:P=[plan.left+jitter,
+          ridgeHeight(stations,plan.left+jitter)+4.5];
+        const right:P=[plan.right+jitter,
+          ridgeHeight(stations,plan.right+jitter)+5.5];
+        const span=right[0]-left[0];
+        const drop=plan.drop*(.9+.22*s(seed+9047,i*37));
+        const first:P=[left[0]+span*.27,
+          left[1]-plan.crest*(.66+.28*s(seed+9059,i*47))];
+        const second:P=[right[0]-span*.29,
+          right[1]-plan.crest*(.81+.21*s(seed+9067,i*29))];
+        const lowerR:P=[right[0]-span*.09,
+          right[1]+drop*.75];
+        const lowerL:P=[left[0]+span*.23,
+          left[1]+drop*(.86+.09*s(seed+9073,i*19))];
+        // A flowing upper rock edge, eroded right shoulder, concave lower
+        // crease and buried support: five organic cubics, not a triangle.
+        const d="M"+f(left[0])+" "+f(left[1])+
+          " C"+f(first[0])+" "+f(first[1])+
+          " "+f(second[0])+" "+f(second[1])+
+          " "+f(right[0])+" "+f(right[1])+
+          " C"+f(right[0]+span*.13)+" "+f(right[1]+drop*.18)+
+          " "+f(right[0]+span*.095)+" "+f(right[1]+drop*.51)+
+          " "+f(lowerR[0])+" "+f(lowerR[1])+
+          " C"+f(right[0]-span*.29)+" "+f(right[1]+drop*.94)+
+          " "+f(left[0]+span*.61)+" "+f(left[1]+drop*.85)+
+          " "+f(lowerL[0])+" "+f(lowerL[1])+
+          " C"+f(left[0]-span*.06)+" "+f(left[1]+drop*.65)+
+          " "+f(left[0]+span*.14)+" "+f(left[1]+drop*.38)+
+          " "+f(left[0])+ " "+f(left[1])+" Z";
+        const wash=id+"-bank-wash-"+i,clip=id+"-bank-clip-"+i;
+        // Discontinuous loaded crest phrases avoid a computer ruler. The
+        // unsampled middle is REAL blank paper; neither phrase changes
+        // the parent bank's volume or deletes existing rock material.
+        const firstEnd=cubicPoint(left,first,second,right,.47);
+        const secondStart=cubicPoint(left,first,second,right,.59);
+        const rim1=rockLoadedCubicRibbon(left,
+          cubicPoint(left,first,second,right,.14),
+          cubicPoint(left,first,second,right,.33),firstEnd,
+          plan.load*(.75+.25*s(seed+9109,i*53)),
+          seed+9127+i*31,"root-loaded");
+        const rim2=rockLoadedCubicRibbon(secondStart,
+          cubicPoint(left,first,second,right,.7),
+          cubicPoint(left,first,second,right,.85),right,
+          plan.load*(.51+.24*s(seed+9133,i*37)),
+          seed+9151+i*43,"feathered-tail");
+        const strokes=Array.from({length:Math.round(plan.marks*detail)},(_,j)=>{
+          const t=clamp((j+.63)/plan.marks+
+            (s(seed+9161,i*83+j*31)-.5)*.085,.07,.94);
+          const root=cubicPoint(left,first,second,right,t);
+          // Length, stroke pressure and direction respond to the LOCAL
+          // turning stone cheek rather than always shooting downward.
+          const local1=cubicPoint(left,first,second,right,clamp(t-.04,0,1));
+          const local2=cubicPoint(left,first,second,right,clamp(t+.04,0,1));
+          const direction=clamp((local2[0]-local1[0])/
+            Math.max(3,Math.abs(local2[1]-local1[1])+5),-2,2);
+          const tier=j%6;
+          const length=(tier===0?16:tier===3?39:24)*
+            (.73+.43*s(seed+9173,i*53+j*13));
+          const sweep=(tier===2?-1:1)*
+            (3+7*s(seed+9187,i*41+j*19))+direction*1.3;
+          const c1:P=[root[0]+sweep*.51,
+            root[1]+length*(tier===0?.11:.24)];
+          const c2:P=[root[0]+sweep*.76-
+            (tier===4?4.1:1.7),root[1]+length*.61];
+          const end:P=[root[0]+sweep,root[1]+length];
+          const role=tier===0?"root-loaded" as const:
+            tier===3?"feathered-tail" as const:
+              "broken-middle" as const;
+          const body=rockLoadedCubicRibbon(root,c1,c2,end,
+            (.83+1.19*s(seed+9199,i*31+j*47))*
+              (tier===0?1.22:tier===3?.85:1),
+            seed+9217+i*97+j*19,role);
+          return {root,body,kind:role,
+            axis:"M"+f(root[0])+" "+f(root[1])+
+              " C"+f(c1[0])+" "+f(c1[1])+
+              " "+f(c2[0])+" "+f(c2[1])+
+              " "+f(end[0])+" "+f(end[1])};
+        });
+        // Three asymmetrically spaced deposited moss touches link back
+        // to the SAME positive fold rather than floating in the valley.
+        const deposits=([.21,.51,.79] as const).map((t,k)=>{
+          const at=cubicPoint(left,first,second,right,t);
+          const root:P=[at[0]+(k%2?2.5:-1.3),at[1]+4.2+k*.75];
+          const end:P=[root[0]+2.5+(k%2?2.1:-1.3),
+            root[1]+2.8+.9*k];
+          return {root,body:rockLoadedRibbon(root,
+            [root[0]+(end[0]-root[0])*.49,root[1]+1.1],
+            end,1.15+.35*s(seed+9263,i*29+k*11),
+            seed+9281+i*37+k*19)};
+        });
+        return <g key={i} data-km-fuchun-near-bank=""
+          data-km-fuchun-near-bank-source={
+            f(left[0])+","+f(left[1])+";"+f(right[0])+","+f(right[1])}
+          data-km-fuchun-near-bank-order={i}
+          data-km-fuchun-near-bank-contour={d}>
+          <defs>
+            <clipPath id={clip} clipPathUnits="userSpaceOnUse">
+              <path d={d}/>
+            </clipPath>
+            <linearGradient id={wash} gradientUnits="userSpaceOnUse"
+              x1={f(left[0]+span*.27)} y1={f(left[1]-plan.crest)}
+              x2={f(left[0]+span*.57)}
+              y2={f(left[1]+drop*.84)}>
+              <stop offset="0" stopColor="#3e372f" stopOpacity=".65"/>
+              <stop offset=".19" stopColor="#534a3d" stopOpacity=".52"/>
+              <stop offset=".52" stopColor="#766652" stopOpacity=".32"/>
+              <stop offset=".84" stopColor="#a48d71" stopOpacity=".09"/>
+              <stop offset="1" stopColor="#aa967b" stopOpacity="0"/>
+            </linearGradient>
+          </defs>
+          <path data-km-fuchun-near-bank-wash="" d={d}
+            fill={"url(#"+wash+")"}
+            opacity={f((i===1?.61:i===3?.38:.49)*(1-.21*mist))}/>
+          <g clipPath={"url(#"+clip+")"}>
+            <path data-km-fuchun-near-bank-broken-crest="" d={rim1}
+              fill="#4a3b30" opacity={f((i===1?.47:.35)*(1-.24*mist))}/>
+            <path data-km-fuchun-near-bank-broken-crest="" d={rim2}
+              fill="#5b4b3c" opacity={f(.28*(1-.2*mist))}/>
+            {strokes.map(({root,body,axis,kind},j)=>
+              <path key={j} data-km-fuchun-near-hemp=""
+                data-km-fuchun-near-hemp-root={f(root[0])+","+f(root[1])}
+                data-km-fuchun-near-hemp-axis={axis}
+                data-km-fuchun-near-hemp-kind={kind}
+                d={body} fill={j%4===2?"#514739":"#453b31"}
+                opacity={f((j%5===0?.66:.42)*(1-.24*mist))}/>)}
+            {deposits.map(({root,body},j)=>
+              <path key={j} data-km-fuchun-near-deposit=""
+                data-km-fuchun-near-deposit-root={
+                  f(root[0])+","+f(root[1])}
+                d={body} fill="#493c31"
+                opacity={f((j===1?.56:.38)*(1-.18*mist))}/>)}
+          </g>
+        </g>;
+      })}
+    </g>
+  </g>;
+}
 function MountainRockShoulders({ridge,stations,seed,band,detail,mist,id}:{
   ridge:readonly P[];stations:readonly P[];seed:number;band:number;
   detail:number;mist:number;id:string;
@@ -3384,6 +3550,10 @@ function Mountains({scene,seed,detail,mist,ink,school,nearStudy,ids}:{
           id={ids.grain+"-rock-"+band}/>
         <RockInkPlanes stations={stations} seed={seed+band*181} band={band}
           detail={detail} mist={mist}/>
+        {nearStudy&&scene==="mountain-trail"&&school==="fuchun"&&
+          band===2&&<FuchunNearBankRelief stations={stations}
+            seed={seed+band*193} detail={detail} mist={mist}
+            id={ids.grain+"-fuchun-near-bank"}/>} 
         {/* Ink grove must be AFTER the mountain silhouette and OUTSIDE
             the cliff-plane clipping group, so all crown strokes appear
             over the ridge while each trunk enters painted terrain. */}
