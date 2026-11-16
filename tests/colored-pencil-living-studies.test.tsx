@@ -54,6 +54,12 @@ describe("ArtCraft source-led coloured-pencil living subjects",()=>{
       expect(d.regions[0].opaqueSupport).toBe(false);
       expect(d.regions[0].clipDetails).toBe(true);
       expect(d.regions[0].layers).toHaveLength(3);
+      // No generic broad crosshatch lattice: the head's value-direction
+      // strokes remain independently authored from the ANAT1 bony guides.
+      expect(d.regions[0].layers.every(l=>l.texture==="stipple")).toBe(true);
+      expect(d.regions[0].layers.map(l=>l.spacing)).toEqual([6.1,8.3,11.5]);
+      expect(d.regions[0].layers.every(l=>l.tipWidth<.6&&l.pressure<.3))
+        .toBe(true);
       expect(d.regions[0].bounds[2]).toBeGreaterThan(125);
       expect(d.regions[0].bounds[3]).toBeGreaterThan(180);
       expect(d.regions[0].path.match(/C|Q/g)?.length)
