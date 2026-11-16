@@ -211,6 +211,13 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       "none","$ink",.56,.63),
     ink("M149.7 117.6 Q150.4 118.6 151.2 118.6",
       "none","$ink",.42,.63),
+    // Nasal tip relief is part of the nose/alar volume. The near nostril
+    // is an oblique aperture, not a centered cartoon S or duplicate curve.
+    ink("M149.2 113.8 C151.2 114.5 153.5 116.1 154.3 117.6 "+
+      "C151.6 117.5 149.8 116.8 149.2 113.8 Z",
+      "$skinshade","none",0,.21),
+    ink("M150.2 118.1 Q151.1 118.7 152.3 118.2",
+      "none","$ink",.31,.46),
   ];
   if(high)nose.push(
     ink("M151.2 111.8 Q153.2 111.7 154.5 113.1",
@@ -286,6 +293,14 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       .33,679,"$ink",.53),
   );
   const eyesSoft:CharacterPathShape[]=[
+    // Downcast eyes still have curved tarsal planes and an orbital
+    // shadow; a horizontal flat-line gaze destroys volume and emotion.
+    ink("M118.5 104.3 C123.4 102.5 130.2 102.8 135.4 105.5 "+
+      "C132.1 106.3 125.3 107 119.1 105.2 Z",
+      "$skinshade","none",0,.205),
+    ink("M149 103.9 C154.2 101.9 160.1 101.7 163.8 102.2 "+
+      "C161.8 104.8 155.8 105.8 149.4 104.8 Z",
+      "$skinshade","none",0,.175),
     ink("M118.3 105 C124.1 104.4 130.1 104.7 135.5 105.8",
       "none","$shadow",1.07,.83),
     ink("M149 104.6 Q155.7 103.6 163.5 103",
@@ -323,6 +338,20 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       "none","$paper",.29,.43),
   ];
   const lips:CharacterPathShape[]=[
+    // Orbicularis oris upper roll and lower lip reflected plane: the
+    // near corner is lower and the far corner lifts a fraction as the
+    // actual three-quarter muzzle rotates. This stays BELOW the live
+    // mouth cels, so speech/visemes and smiles never become fixed paint.
+    ink("M135.5 126.1 C137.9 125.2 139.3 124.7 141.8 125.8 "+
+      "C144.5 125.5 147.2 125.3 149 126.6 "+
+      "C145.5 127.5 141.5 127 138.8 126.8 "+
+      "C137.2 126.8 136.2 126.6 135.5 126.1 Z",
+      "$skinshade","none",0,.185),
+    ink("M137.5 127.6 C139.7 128.9 144.1 130.1 147.7 127.8 "+
+      "C145.2 130.9 140.5 130.6 137.5 127.6 Z",
+      "$skinshade","none",0,.16),
+    ink("M139.5 128.7 Q143.2 129.7 145.8 128.2",
+      "none","$paper",.39,.36),
     ink("M135.5 126 Q139 125.6 141.9 126.6 Q145.7 126.7 149 126.7 Q145.5 129.1 142.4 128.5 Q138.6 127.9 135.5 126 Z",
       "$skinshade","none",0,.28),
     ink("M135.2 125.9 Q138.9 125.6 142 126.7 Q145.9 127 148.7 126.6",
