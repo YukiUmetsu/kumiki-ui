@@ -9,6 +9,8 @@
  * No reference pixels or traced paths are included.
  */
 import {useId} from "react";
+import {createFace} from "../../registry/anatomy/anatomy-face";
+import {expressEmotion,expressFace,expressionFeatures} from "../../registry/anatomy/expression-face";
 import type {InkPortraitCharacter,InkPortraitEmotion} from "./ink-anatomical-portrait";
 
 export interface InkZengJingScholarHeadProps {
@@ -21,6 +23,30 @@ export interface InkZengJingScholarHeadProps {
 
 const n=(v:number)=>Number(v.toFixed(2));
 const clamp=(v:number,min:number,max:number)=>Math.max(min,Math.min(max,v));
+
+/**
+ * Use the shared ANAT1/EXPR1 human-face foundation as the measured anatomy
+ * and FACS action-unit source, then translate its landmarks/features into
+ * Zeng Jing's separate mogu-and-fine-line painting language. The canonical
+ * mesh is deliberately uncalibrated: no non-East-Asian population norm is
+ * silently applied to this historical Chinese sitter.
+ */
+const ZJ1_FACE_BASE={
+  scholar:createFace({calibrate:false,faceWidth:.94,mouthWidth:.92}),
+  elder:createFace({calibrate:false,faceWidth:.91,mouthWidth:.9}),
+};
+export function inkZengJingExpressionFeatures(
+  character:InkPortraitCharacter,emotion:InkPortraitEmotion,intensity=1,
+){
+  if(character!=="scholar"&&character!=="elder")throw new RangeError("Unknown ZJ1 identity");
+  if(!["neutral","smile","sad","angry","surprise"].includes(emotion))
+    throw new RangeError("Unknown ZJ1 expression");
+  if(!Number.isFinite(intensity)||intensity<0||intensity>1)
+    throw new RangeError("ZJ1 expression intensity must be in [0,1]");
+  const base=ZJ1_FACE_BASE[character];
+  const expressed=emotion==="neutral"?expressFace({},base):expressEmotion(emotion,intensity,base);
+  return expressionFeatures(expressed);
+}
 
 /** Independent source-built head in the 540×1080 standing-figure coordinate system. */
 export function InkZengJingScholarHead({
@@ -43,15 +69,17 @@ export function InkZengJingScholarHead({
   const skin=elder?"#e4d1b8":"#eadbc5";
   const warm=elder?"#ad8870":"#b9987f";
   const bone=elder?"#a28e79":"#b5a18b";
-  const sad=emotion==="sad"?power:0;
-  const smile=emotion==="smile"?power:0;
-  const angry=emotion==="angry"?power:0;
-  const surprise=emotion==="surprise"?power:0;
-  const browInner= -3.1*sad+2.6*angry-3.6*surprise;
-  const browOuter= 1.3*sad-1.4*angry-2.4*surprise;
-  const eyeOpen=5.2+2.2*surprise-1.1*smile-1.0*angry;
-  const mouthLift=2.8*smile-2.4*sad;
-  const mouthOpen=4.2*surprise;
+  const anatomy=inkZengJingExpressionFeatures(character,emotion,power);
+  const browInner=-anatomy.browInner*9.2;
+  const browOuter=-anatomy.browOuter*8.0;
+  const eyeOpen=5.2*clamp(anatomy.eyeOpen,.42,1.85);
+  const cheekRaise=anatomy.cheekRaise*6.4;
+  const noseWrinkle=anatomy.noseWrinkle;
+  const mouthLift=anatomy.mouthCorner*8.6;
+  const mouthHalf=9.6*clamp(anatomy.mouthWidth,.72,1.45);
+  const mouthOpen=anatomy.mouthOpen*9.2;
+  const jawDrop=anatomy.jaw*7.0;
+  const asymmetry=anatomy.asymmetry*6.2;
   const facePath=elder
     ?"M237 269 C239 257 250 252 270 251 C290 252 301 260 303 275 C305 297 301 326 295 349 C290 367 281 379 270 382 C258 379 249 367 244 349 C237 326 234 296 237 269 Z"
     :"M237 268 C240 256 251 252 270 252 C290 252 301 260 303 275 C305 297 302 325 296 348 C291 365 281 377 270 380 C258 377 248 365 243 348 C237 325 234 296 237 268 Z";
@@ -172,9 +200,9 @@ export function InkZengJingScholarHead({
           Q306 313 300 276 Z"
         fill="#8f7864" opacity=".11" filter={`url(#${uid}-wash)`}/>
       <ellipse data-km-zj1-face-plane="left-malar" cx="249" cy="332"
-        rx="17" ry="19" fill={`url(#${uid}-malar)`}/>
+        rx="17" ry="19" fill={`url(#${uid}-malar)`} transform={`translate(0 ${n(-cheekRaise)})`}/>
       <ellipse data-km-zj1-face-plane="right-malar" cx="292" cy="332"
-        rx="15" ry="18" fill={`url(#${uid}-malar)`}/>
+        rx="15" ry="18" fill={`url(#${uid}-malar)`} transform={`translate(0 ${n(-cheekRaise)})`}/>
       <path data-km-zj1-face-plane="left-orbit" d="M242 304 Q254 296 267 305
         Q264 318 253 321 Q244 316 242 304 Z"
         fill={`url(#${uid}-orbital)`}/>
@@ -230,7 +258,7 @@ export function InkZengJingScholarHead({
       <path d="M263 348 Q266 351 269 350 M272 350 Q276 351 278 348"
         fill="none" stroke={ink} strokeWidth=".43" opacity=".46"/>
       <path d="M262 346 q-3 1 -4 3 M278 346 q3 1 4 3"
-        fill="none" stroke={warm} strokeWidth=".66" opacity=".36"/>
+        fill="none" stroke={warm} strokeWidth=".66" opacity={.24+Math.abs(noseWrinkle)*.22}/>
       <path d="M269 350 q-1 3 -2 4 M271 350 q1 3 2 4"
         stroke={bone} strokeWidth=".38" opacity=".38" fill="none"/>
     </g>
