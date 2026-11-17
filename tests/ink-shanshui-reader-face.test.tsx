@@ -548,6 +548,61 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(all.nose.some(x=>x.d.startsWith("M150.9 114.2"))).toBe(true);
     expect(all.nose.length).toBeGreaterThanOrEqual(8);
   });
+  it("builds compact convex secondary malar ink masses instead of multi-pass cheek stripes",()=>{
+    const A=READER_FACE_ANAT1_POINTS;
+    const glazes=readerInkPortraitGlazes({
+      nearCanthus:A["endocanthion.R"],farCanthus:A["endocanthion.L"],
+      sellion:A.sellion,noseTip:A.pronasale,
+      nearCheek:A["zygion.R"],farCheek:A["zygion.L"],chin:A.menton,
+    },1);
+    // Measuring control-point bounds is a conservative topology guard,
+    // not proof of full-scale pictorial quality. The previous narrow
+    // near-cheek passes formed several parallel diagonal wash stripes.
+    const extent=(d:string)=>{
+      const values=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      if(values.length%2)throw Error("Malformed original source ink path");
+      const xs=values.filter((_,i)=>i%2===0);
+      const ys=values.filter((_,i)=>i%2===1);
+      return {w:Math.max(...xs)-Math.min(...xs),
+        h:Math.max(...ys)-Math.min(...ys)};
+    };
+    const near=glazes["malar-near"];
+    const secondary=near.slice(1,4);
+    expect(secondary).toHaveLength(3);
+    for(const shape of secondary){
+      expect(shape.type).toBe("path");
+      const e=extent(shape.d);
+      expect((shape.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+      expect(e.w).toBeGreaterThan(5);
+      expect(e.h).toBeGreaterThan(e.w*.66);
+      expect(shape.opacity).toBeLessThan(.08);
+    }
+    const far=glazes["malar-far"].slice(0,2);
+    for(const shape of far){
+      const e=extent(shape.d);
+      expect((shape.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+      expect(e.h).toBeGreaterThan(e.w*.8);
+    }
+    const nose=glazes["nose-bridge"];
+    expect((nose[0].d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+    expect((nose[1].d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+    const anatomy=readerFaceAnatomy(1);
+    expect(anatomy.nose.some(shape=>shape.type==="path"&&
+      shape.d.startsWith("M150.9 114.2 C152.2 113.9"))).toBe(true);
+    expect(anatomy.nose.some(shape=>shape.type==="path"&&
+      shape.d.includes("C154.2 117.9 152.5 118.4 151.3 117.6"))).toBe(true);
+    for(const detail of [.1,.6,1])
+      expect(readerInkPortraitGlazes({
+        nearCanthus:A["endocanthion.R"],farCanthus:A["endocanthion.L"],
+        sellion:A.sellion,noseTip:A.pronasale,
+        nearCheek:A["zygion.R"],farCheek:A["zygion.L"],chin:A.menton,
+      },detail)).toEqual(readerInkPortraitGlazes({
+        nearCanthus:A["endocanthion.R"],farCanthus:A["endocanthion.L"],
+        sellion:A.sellion,noseTip:A.pronasale,
+        nearCheek:A["zygion.R"],farCheek:A["zygion.L"],chin:A.menton,
+      },detail));
+  });
+
   it("keeps pre-existing reader face contour, lip cels, ear and paint while adding optically nested washes",()=>{
     const original=scrollReaderFacePortrait(1);
     const anatomy=readerFaceAnatomy(1);
