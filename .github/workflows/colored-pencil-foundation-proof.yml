@@ -112,7 +112,7 @@ jobs:
           path: |
             test-results/colored-pencil-rose-lamina-*/
             test-results/colored-pencil-rose-rolled-*/
-            test-results/colored-pencil-rose-five-*/
+            test-results/colored-pencil-rose-calyx-*/
           retention-days: 7
           if-no-files-found: warn
       - name: Check original drawing stages and 16:9 / 9:16 hero pixels
