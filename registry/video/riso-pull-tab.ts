@@ -59,11 +59,12 @@ function check(s:RisoPullSpec){
     throw new RangeError("RISO79 requires 240–8192 paper, 1–4 openings, a cardinal pull, bounded travel, progress 0..1 and a 31-bit seed.");
   const depth=s.paperDepthMm??.32;
   const light=s.lightDirection??[-.55,-.84];
-  const lightLength=Math.hypot(light[0],light[1]);
   if(!finite(depth)||depth<.08||depth>1.2||
-    !Array.isArray(light)||light.length!==2||!light.every(finite)||
-    !finite(lightLength)||lightLength<.25||lightLength>1.5)
-    throw new RangeError("RISO79 paper depth must be .08–1.2mm and light direction must be a finite nonzero vector of length .25–1.5.");
+    !Array.isArray(light)||light.length!==2||!light.every(finite))
+    throw new RangeError("RISO79 paper depth must be .08–1.2mm and light direction must be a finite two-component vector.");
+  const lightLength=Math.hypot(light[0],light[1]);
+  if(!finite(lightLength)||lightLength<.25||lightLength>1.5)
+    throw new RangeError("RISO79 light direction must be a finite nonzero vector of length .25–1.5.");
   const ids=new Set<string>();
   for(const w of s.windows){
     const r=w.radius??Math.min(w.width,w.height)*.065;
@@ -98,8 +99,8 @@ export function risoPullWindowContour(w:RisoPullWindow):string{
     " L"+f(x)+" "+f(y+r)+
     " C"+f(x)+" "+f(y+r*.34)+" "+f(x+r*.39)+" "+f(y)+" "+f(x+r)+" "+f(y)+" Z";
 }
-/** 88 individual torn/cut cellulose whiskers per true paper opening.
- * Fibres anchor to the four physical opening rims, not the video camera. */
+/** 88 deterministic short cut-face microfibrils per true paper opening.
+ * Their anchors belong to source-paper coordinates, never the video camera. */
 export function risoPullWindowFibres(w:RisoPullWindow,seed:number):readonly string[]{
   const r=w.radius??Math.min(w.width,w.height)*.065;
   const x=w.x,y=w.y,x2=x+w.width,y2=y+w.height;
