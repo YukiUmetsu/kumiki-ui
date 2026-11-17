@@ -557,6 +557,12 @@ export interface ShodoFormOptions {
   /** Length factor for a kanji 提 (rising stroke ㇀), from its start. 1..1.4. KanjiVG kanji: 1.2 (measured); otherwise 1. */
   riseStrokeLength?: number;
   /**
+   * Degrees by which a kanji 右払い's pull-out (its last segment, from the pressed foot) turns
+   * flatter than KanjiVG's, never above the horizontal. 0..20. KanjiVG kanji: 12 (measured: her
+   * pull-outs run 21° below the horizontal, KanjiVG's 34°); otherwise 0.
+   */
+  footTurn?: number;
+  /**
    * Size factor for a small かな (ぁ っ ゃ ァ ッ ャ …) from KanjiVG, about the foot of its box. 0.6..1.
    * Default 0.76: KanjiVG draws them at 0.79 of a full かな, too large to read beside one (ゃ
    * next to し reads as や); 0.76 gives about 0.6, as handwriting is taught.
@@ -594,6 +600,7 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
   // Her dots are shorter and her 提 strokes longer than KanjiVG's (§2.23).
   const dotLength = kana ? 1 : options.dotLength ?? (measured ? .8 : 1);
   const riseStrokeLength = kana ? 1 : options.riseStrokeLength ?? (measured ? 1.2 : 1);
+  const footTurn = kana ? 0 : options.footTurn ?? (measured ? 12 : 0);
   const small = source.source === "kanjivg" && SMALL_KANA.has(source.char) ? options.smallKana ?? .76 : 1;
   const sweep = kana ? 1 : options.sweep ?? 1.16;
   // 主画: one horizontal carries the character; it is written longer than the rest.
@@ -633,6 +640,14 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
     if (st.kind === "right-sweep" && st.points.length < 3) {
       const [a, b] = [st.points[0], st.points[st.points.length - 1]];
       strokes[i] = { ...st, points: [a, [Math.round(a[0] + (b[0] - a[0]) * .72), Math.round(a[1] + (b[1] - a[1]) * .74)], b] };
+    }
+    // 右払い: the pull-out leaves the foot flatter than KanjiVG draws it (秋's 火 read as a long dot).
+    const sweep = strokes[i];
+    if (footTurn && sweep.kind === "right-sweep" && resolveEnd(sweep) === "harai" && sweep.points.length >= 3) {
+      const P = sweep.points, foot = P[P.length - 2], tip = P[P.length - 1];
+      const len = Math.hypot(tip[0] - foot[0], tip[1] - foot[1]);
+      const angle = Math.max(0, Math.atan2(tip[1] - foot[1], tip[0] - foot[0]) - footTurn * Math.PI / 180);
+      strokes[i] = { ...sweep, points: [...P.slice(0, -1), [Math.round(foot[0] + Math.cos(angle) * len), Math.round(foot[1] + Math.sin(angle) * len)]] };
     }
   });
   let formed = shodoJoinStrokes({ ...glyph, strokes });
