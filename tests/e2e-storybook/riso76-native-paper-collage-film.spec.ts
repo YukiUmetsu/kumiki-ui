@@ -67,6 +67,9 @@ test("RISO76 FilmStage tears a real two-drum original edition with 144 cellulose
   await studio.getByRole("button",{name:"Fibres / middle"}).click();
   await expect(studio).toHaveAttribute("data-km-riso76-aspect","portrait");
   await expect(studio.locator("[data-km-riso76-cellulose-fibre]")).toHaveCount(144);
+  await studio.getByRole("combobox",{name:"RISO76 paper edge microscope zoom"})
+    .selectOption("1");
+  await expect(studio).toHaveAttribute("data-km-riso76-zoom","1");
   await studio.screenshot({
     path:info.outputPath("riso76-portrait-torn-fibre-paper-collage-full-vector-ink.png"),
     animations:"disabled",
