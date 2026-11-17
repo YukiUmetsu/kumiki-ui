@@ -3373,6 +3373,21 @@
           "target": "components/video/riso-separation-master.ts"
         },
         {
+          "path": "registry/video/riso-press-pdf.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-press-pdf.ts"
+        },
+        {
+          "path": "registry/video/riso-press-tiff.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-press-tiff.ts"
+        },
+        {
+          "path": "registry/video/riso-press-raster.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-press-raster.ts"
+        },
+        {
           "path": "registry/video/riso-path-geometry.ts",
           "type": "registry:ui",
           "target": "components/video/riso-path-geometry.ts"

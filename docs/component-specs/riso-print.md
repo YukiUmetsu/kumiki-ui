@@ -162,3 +162,13 @@ Independent physical master export is opt-in through the pure TypeScript registr
 serializeRisoSeparationMaster(spec,plates,layout,plateId) emits a standalone K-only vector SVG for one physical drum with original source paths, evenodd true unprinted dry holes, white sheet and physically aligned optional black print marks. Digital colored preview opacity, RGB compositing, paper filters and intentional registration shift are never baked into an independent production master. Grayscale coverage comes only from the individual source shape's density (1 is K100, .5 is K50). The ink ID and intended color are encoded in its filename.
 
 See Storybook **Risograph · Native Grayscale Master Separation** and the [RISO68 original ArtCraft prepress research](../research/riso68-grayscale-print-separation-artcraft.md). The A4 layout is a declared demonstration profile, not a universal printer spec. SVG file delivery is not equivalent to a print-shop-approved PDF/TIFF, or proof of actual physical drum registration.
+
+
+## RISO69 — truly grayscale vector PDF and measured TIFF from original ink masters
+
+The \`riso-print\` registry now includes opt-in, dependency-free output format modules:
+- \`serializeRisoSeparationPdf(spec,masters,layout,plateId)\` emits exactly one self-contained vector PDF in true DeviceGray. Every source SVG quadratic is mathematically identical after conversion into a PDF cubic, and all original unprinted paper channels remain as nested evenodd closed contours. No RGB preview, flat composite, pre-applied register drift, font, raster image or layer transparency.
+- \`measureRisoTiffRaster(layout,dpi)\` accepts only explicit 300/600 PPI and bounds sheet/pixel memory. \`encodeRisoGrayscaleTiff(gray,dimensions)\` emits real Baseline TIFF 6.0 (8-bit grayscale, BlackIsZero, uncompressed, one plane, proper rational resolution fields and physical pixel dimensions); it cannot be mistaken for an RGB PNG wrapper.
+- \`rasterizeRisoSeparationTiff(spec,masters,layout,plateId,dpi)\` is the opt-in browser adapter that rasterizes the **source grayscale master** rather than color-proof imagery. It rejects any unexpected RGB channels.
+
+Storybook **Risograph · Physical PDF and TIFF Master Delivery** exposes two real downloadable named masters, sheet, ratio, source frame/seed, density, bleed, crop/registration policy, millimeter safe/printable bounds, 300/600 PPI TIFF selection and original source 1×/2× inspection. PDF retains exact native vector detail; TIFF necessarily quantizes fine holes at DPI. Passing file/geometry checks is not proof of shop-approved PDF/X, full printing accuracy or physical press registration. See [RISO69 press format ArtCraft contract](../research/riso69-physical-press-formats-artcraft.md).
