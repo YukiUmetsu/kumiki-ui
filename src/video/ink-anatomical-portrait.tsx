@@ -153,9 +153,9 @@ function PaintedPortrait({posed,character,detail,view,uid,headScale}:PaintProps)
       <clipPath id={uid+"-eye-"+side}><path d={eyeAperture(side)}/></clipPath>
       <g clipPath={"url(#"+uid+"-eye-"+side+")"}>
         <ellipse cx={center[0]} cy={center[1]+radius*.18} rx={radius*1.05} ry={radius*1.18}
-          fill="#494139" opacity=".64"/>
+          fill="#494139" opacity=".45"/>
         <ellipse cx={center[0]+radius*.05} cy={center[1]+radius*.17}
-          rx={radius*.46} ry={radius*.76} fill={preset.ink} opacity=".9"/>
+          rx={radius*.33} ry={radius*.68} fill={preset.ink} opacity=".79"/>
         <path d={pathBetween(shift(center,-radius*.4,-radius*.5),
           shift(center,-radius*.1,-radius*.7),shift(center,radius*.3,-radius*.47))}
           fill="none" stroke="#ecddc5" strokeWidth=".55" opacity=".64"/>
@@ -202,11 +202,14 @@ function PaintedPortrait({posed,character,detail,view,uid,headScale}:PaintProps)
         stroke={preset.warm} strokeWidth={15} strokeLinecap="round"
         opacity={.16*near} filter={"url(#"+uid+"-face-wet-diffusion)"}/>
       <path d={"M"+xy(shift(eye,-1,5))+" Q"+xy(shift(cheek,0,7))+" "+xy(shift(zy,side==="L"?5:-5,14))}
-        stroke={preset.bone} strokeWidth="5.8" opacity={.09*near} fill="none"/>
+        stroke={preset.bone} strokeWidth="7.8" opacity={.12*near}
+        filter={"url(#"+uid+"-face-wet-diffusion)"} fill="none"/>
       <path d={"M"+xy(shift(eye,0,8))+" Q"+xy(shift(cheek,1,10))+" "+xy(shift(al,side==="L"?7:-7,15))}
-        stroke={preset.warm} strokeWidth="3.7" opacity={.09*near} fill="none"/>
+        stroke={preset.warm} strokeWidth="6.3" opacity={.10*near}
+        filter={"url(#"+uid+"-face-wet-diffusion)"} fill="none"/>
       <path d={"M"+xy(shift(zy,side==="L"?-7:7,8))+" Q"+xy(shift(gon,side==="L"?7:-7,-6))+" "+xy(shift(gon,0,8))}
-        stroke={preset.bone} strokeWidth="3.8" opacity={.12*near} fill="none"/>
+        stroke={preset.bone} strokeWidth="5.1" opacity={.12*near}
+        filter={"url(#"+uid+"-face-wet-diffusion)"} fill="none"/>
       {detail>.42&&Array.from({length:9},(_,i)=>{
         const a=shift(eye,(side==="L"?-1:1)*(i*.8),8+i*.72);
         const b=shift(cheek,(side==="L"?1:-1)*(8+i*.25),4+i*1.22);
@@ -518,27 +521,38 @@ function PaintedPortrait({posed,character,detail,view,uid,headScale}:PaintProps)
     <g data-km-ink-facial-structures="true">
       {/** Nose and orbital canthi come from pose-dependent ANAT1 vertex loops. */}
       <path d={spline(feature("nose-bridge"))} fill="none" stroke={preset.bone}
-        strokeWidth=".51" strokeLinecap="round" opacity=".25"/>
-      {/** Interrupt the nasal-base line at the tissue planes: no U-shaped decal. */}
-      <path d={pathBetween(shift(q("alare.R"),-1,2),
-        shift(q("subnasale"),-13,2),shift(q("subnasale"),-3,3))}
-        stroke={preset.bone} strokeWidth=".63" opacity=".43" fill="none"/>
-      <path d={pathBetween(shift(q("subnasale"),3,3),
-        shift(q("subnasale"),10,4),shift(q("alare.L"),1,1))}
-        stroke={preset.bone} strokeWidth=".53" opacity=".31" fill="none"/>
+        strokeWidth=".42" strokeLinecap="round" opacity=".16"/>
+      {/** Nostril ink is localized to the actual alar tissue, rather than
+           connecting both wings into the cartoon U seen at 1×. A slender
+           lifted tip and soft base shadow suggest bone-immersed depth. */}
+      {(["R","L"] as const).map(side=>{
+        const ala=q(("alare."+side) as keyof typeof FACE_LANDMARKS);
+        const sign=side==="R"?-1:1;
+        return <g key={side} data-km-ink-alar-pocket={side}>
+          <path d={pathBetween(shift(ala,-sign*5,-1),
+            shift(ala,sign*1,4),shift(ala,sign*4,1))}
+            stroke={preset.bone} strokeWidth=".78" opacity=".27"
+            fill="none" strokeLinecap="round"/>
+          <path d={pathBetween(shift(ala,-sign*2,0),
+            shift(ala,sign*1,6),shift(ala,sign*5,4))}
+            stroke={preset.warm} strokeWidth="3.8" opacity=".15"
+            filter={"url(#"+uid+"-wash-feather)"} fill="none"/>
+        </g>;
+      })}
       <path d={pathBetween(shift(nose,-8,8),shift(nose,-2,11),shift(nose,7,8))}
-        fill="none" stroke={preset.warm} strokeWidth="2.3" opacity=".12"/>
+        fill="none" stroke={preset.warm} strokeWidth="2.3" opacity=".08"
+        filter={"url(#"+uid+"-wash-feather)"}/>
       {(["R","L"] as const).map(side=><g key={side} data-km-ink-brow={side}>
         <path d={spline(brow(side))} stroke={preset.ink}
-          strokeWidth={side==="L"?1.43:1.13} fill="none"
-          opacity={character==="scholar"?.68:.49} strokeLinecap="round"/>
+          strokeWidth={side==="L"?.98:.81} fill="none"
+          opacity={character==="scholar"?.38:.34} strokeLinecap="round"/>
         {Array.from({length:16},(_,i)=>{
           const raw=brow(side),t=i/15,j=Math.min(raw.length-2,Math.floor(t*(raw.length-1)));
           const a=raw[j],b=raw[j+1],r=t*(raw.length-1)-j;
           const x=a[0]+(b[0]-a[0])*r,y=a[1]+(b[1]-a[1])*r;
           return <path key={i} d={"M"+xy([x,y])+" q"+fmt((side==="L"?-.9:.6))+" -1.6 "+fmt(i%2===0?1.2:-.8)+" -"+fmt(2.5+i%4*.35)}
             fill="none" stroke={preset.ink} strokeWidth={.33+(i%3)*.16}
-            opacity={(i%4===0?.52:.36)*detail}/>;
+            opacity={(i%4===0?.32:.21)*detail}/>;
         })}
       </g>)}
       {eyeInk("R")}{eyeInk("L")}
