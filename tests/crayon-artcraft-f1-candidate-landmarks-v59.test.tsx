@@ -5,6 +5,7 @@ import {renderToStaticMarkup} from "react-dom/server";
 import {CRAYON_PORTRAIT_AUDIT} from "../src/video/crayon-artcraft-portrait-audit";
 import {CRAYON_F1_V59_NAMES,CRAYON_F1_V59_SOURCE,
   crayonF1CandidateLandmarkAudit,crayonF1CandidatePointerPoint,
+  crayonF1NativeCaptureWorksheetV60,
   type CrayonF1CandidateEvidence,type CrayonF1CandidateMarks}
   from "../src/video/crayon-artcraft-f1-candidate-landmarks-v59";
 import {Cc0Anat1CandidateLandmarksV59,Cc0CandidateLandmarkWorksheetV59}
@@ -115,6 +116,53 @@ describe("ArtCraft V59 actual rendered-landmark evidence quarantine",()=>{
     expect(screen.getByText(/0\/18 candidate observations/)).toBeTruthy();
     expect(JSON.parse(output().value).releaseApproved).toBe(false);
   },60_000);
+  it("V60 binds real Chromium PNG SHA to an EMPTY and explicitly unapproved reviewer worksheet",()=>{
+    const actualScreenshotHash="a".repeat(64);
+    const worksheet=crayonF1NativeCaptureWorksheetV60({
+      variant:"source-anat1-hair-edge-v57",
+      nativePngSha256:actualScreenshotHash,
+      checkoutCommitSha:"d".repeat(40),
+      pngFileName:"v58-photo-native-V57-299.png",
+    });
+    expect(worksheet.schema).toBe("kumiki-crayon-artcraft-candidate-v60");
+    expect(worksheet.source.sha256).toBe(CRAYON_F1_V59_SOURCE.sha256);
+    expect(worksheet.source.screenshotNotOriginalCameraJpeg).toBe(true);
+    expect(Object.keys(worksheet.source.frozenPoints)).toHaveLength(18);
+    expect(worksheet.native.sha256).toBe(actualScreenshotHash);
+    expect(worksheet.native.frame).toBe(299);
+    expect(worksheet.native.viewport).toEqual([608,1082]);
+    expect(worksheet.native.fullSourceCamera).toBe(true);
+    expect(worksheet.evidence.marks).toEqual({});
+    expect(worksheet.evidence.renderedPngSha256).toBe(actualScreenshotHash);
+    expect(worksheet.audit.status).toBe("INCOMPLETE");
+    expect(worksheet.audit.measured).toBe(0);
+    expect(worksheet.audit.missing).toHaveLength(18);
+    expect(worksheet.independentRenderedPointObservations).toBe(0);
+    expect(worksheet.entire300FrameFilmReviewed).toBe(false);
+    expect(worksheet.artistApproved).toBe(false);
+    expect(worksheet.releaseApproved).toBe(false);
+    for(const invalid of [
+      {nativePngSha256:"garbage"},
+      {nativePngSha256:CRAYON_F1_V59_SOURCE.sha256},
+      {checkoutCommitSha:"not-a-commit"},
+      {pngFileName:"../source.jpg"},
+      {pngFileName:"/tmp/screenshot.png"},
+      {pngFileName:"v..jpg.png"},
+    ])expect(()=>crayonF1NativeCaptureWorksheetV60({
+      variant:"source-anat1-hair-top-v56",
+      nativePngSha256:actualScreenshotHash,
+      checkoutCommitSha:"d".repeat(40),
+      pngFileName:"v58-photo-native-V56-299.png",
+      ...invalid,
+    })).toThrow(RangeError);
+    // A perfectly shaped hash with a wrong variant still fails closed.
+    expect(()=>crayonF1NativeCaptureWorksheetV60({
+      variant:"source-anat1-rooted-hair-v51" as never,
+      nativePngSha256:actualScreenshotHash,
+      checkoutCommitSha:"d".repeat(40),
+      pngFileName:"v58-photo-native-V57-299.png",
+    })).toThrow(RangeError);
+  });
   it("retains isolated interactive !dev Storybook tool without image tracing",()=>{
     expect(Cc0Anat1CandidateLandmarksV59.name).toContain("!dev");
     // Render the actual exported Storybook workbench at full source camera;
