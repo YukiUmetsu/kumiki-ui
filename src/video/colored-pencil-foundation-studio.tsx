@@ -23,7 +23,7 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx"|"rose-fold-left"|"rose-fold-right"|"rose-fold-back"|"rose-whorl-center"|"rose-whorl-recess";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx"|"rose-fold-left"|"rose-fold-right"|"rose-fold-back"|"rose-whorl-center"|"rose-whorl-recess"|"rose-mid-left"|"rose-mid-right";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
@@ -69,6 +69,7 @@ export function PencilFoundationStudio(){
   const [rosePinnateStudy,setRosePinnateStudy]=useState(false);
   const [rosePhysicalFolds,setRosePhysicalFolds]=useState(false);
   const [roseInnerWhorlStudy,setRoseInnerWhorlStudy]=useState(false);
+  const [roseMiddleCupStudy,setRoseMiddleCupStudy]=useState(false);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
       pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,
@@ -77,7 +78,8 @@ export function PencilFoundationStudio(){
         roseCalyxStudy:specimen==="rose"&&roseCalyxStudy,
         rosePinnateStudy:specimen==="rose"&&rosePinnateStudy,
         rosePhysicalFolds:specimen==="rose"&&rosePhysicalFolds,
-        roseInnerWhorlStudy:specimen==="rose"&&roseInnerWhorlStudy}):
+        roseInnerWhorlStudy:specimen==="rose"&&roseInnerWhorlStudy,
+        roseMiddleCupStudy:specimen==="rose"&&roseMiddleCupStudy}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
         specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,
         seed,headContourCraft,headVolumeWeave,headSilhouetteStudy});
@@ -85,7 +87,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -124,7 +126,9 @@ export function PencilFoundationStudio(){
     "rose-turn-petal-front-right":inspectionFocus==="rose-fold-back"&&specimen==="rose"&&rosePhysicalFolds?
     "rose-turn-back-cup":inspectionFocus==="rose-whorl-center"&&specimen==="rose"&&roseInnerWhorlStudy?
     "rose-whorl-scroll":inspectionFocus==="rose-whorl-recess"&&specimen==="rose"&&roseInnerWhorlStudy?
-    "rose-whorl-recess":inspectionFocus==="portrait-head"&&specimen==="portrait"?
+    "rose-whorl-recess":inspectionFocus==="rose-mid-left"&&specimen==="rose"&&roseMiddleCupStudy?
+    "rose-mid-left-shoulder":inspectionFocus==="rose-mid-right"&&specimen==="rose"&&roseMiddleCupStudy?
+    "rose-mid-right-tuck":inspectionFocus==="portrait-head"&&specimen==="portrait"?
     "head-silhouette-01":null;
   const focus=(focusPart?projectedInspectionCenter(drawing,focusPart):null)??
     specimenMeta[specimen].focus;
@@ -141,6 +145,7 @@ export function PencilFoundationStudio(){
       (headSilhouetteStudy?"oblique":"baseline"):"not-applicable"}
     data-km-rose-physical-folds={specimen==="rose"?(rosePhysicalFolds?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-inner-whorl={specimen==="rose"?(roseInnerWhorlStudy?"opt-in":"baseline"):"not-applicable"}
+    data-km-rose-middle-cup={specimen==="rose"?(roseMiddleCupStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-pinnate-study={specimen==="rose"?(rosePinnateStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-calyx-study={specimen==="rose"?(roseCalyxStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-rolled-lip={specimen==="rose"?(roseLipStudy?"opt-in":"baseline"):"not-applicable"}
@@ -307,6 +312,12 @@ export function PencilFoundationStudio(){
           <option value="rose-whorl-recess" disabled={specimen!=="rose"||!roseInnerWhorlStudy}>
             Rose inner whorl / deep shaded cup
           </option>
+          <option value="rose-mid-left" disabled={specimen!=="rose"||!roseMiddleCupStudy}>
+            Rose middle cup / left lifted shoulder
+          </option>
+          <option value="rose-mid-right" disabled={specimen!=="rose"||!roseMiddleCupStudy}>
+            Rose middle cup / right tucked wall
+          </option>
         </select>
       </label>
       {specimen==="portrait"&&<label style={caption}>ANAT1 surface value · inspected
@@ -360,6 +371,13 @@ export function PencilFoundationStudio(){
           checked={roseInnerWhorlStudy}
           onChange={e=>setRoseInnerWhorlStudy(e.target.checked)}/>
         FLORA1 inner rose / four separately shaded, overlapping curled petals · A/B (unapproved)
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation rose middle cup" type="checkbox"
+          checked={roseMiddleCupStudy}
+          onChange={e=>setRoseMiddleCupStudy(e.target.checked)}/>
+        FLORA1 three asymmetric intermediate cup laminae · anatomical A/B (unapproved)
       </label>}
       {specimen==="portrait"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
