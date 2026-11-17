@@ -625,7 +625,7 @@ test("Fuchun source-fidelity desk uses two real seeded stages at native 1x and c
     .getAttribute("d")).toBe(roots[0]);
 });
 
-test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-station rounded source anatomy",async({page},info)=>{
+test("Fuchun lower mountain Storybook compares unchanged original 1x against 22-station rounded source anatomy",async({page},info)=>{
   await page.goto("/iframe.html?id=video-ink-shanshui--fuchun-fidelity-review&viewMode=story");
   const lab=page.getByTestId("shanshui-fuchun-fidelity-desk");
   const samples=lab.locator("[data-km-fidelity-sample]");
@@ -652,7 +652,7 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
   await expect(legacyBank).toHaveCount(0);
   await expect(sourceBank).toHaveCount(4);
   // ArtCraft contrast gate: true five-value pigment on the same
-  // 19-station candidate; untouched production baseline does not gain
+  // 22-station candidate; untouched production baseline does not gain
   // washes or lose source-rooted fine details.
   await expect(samples.first().locator(
     '[data-km-fuchun-near-relief-pigment]')).toHaveCount(0);
@@ -794,6 +794,12 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
   }
   expect(await path(0).getAttribute("d")).toBe(nativeOriginal);
   expect(rounded).not.toBe(nativeOriginal);
+  expect(rounded).toContain("243 327");
+  expect(rounded).toContain("271 319");
+  expect(rounded).toContain("299 330");
+  expect(nativeOriginal).toContain("275 298");
+  await expect(samples.last().locator("[data-km-fuchun-near-relief]"))
+    .toHaveAttribute("data-km-fuchun-near-relief-source","22-station-ridge");
   // The 17 wet/dry planes are clipped to the identical sampled source
   // rock, never to a separate approximation or a bitmap mountain.
   const candidateClip=samples.last().locator(
@@ -806,7 +812,7 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
   const clipName=clipRef!.slice(5,-1);
   await expect(samples.last().locator(
     'clipPath[id="'+clipName+'"] > path')).toHaveAttribute("d",rounded!);
-  expect((rounded?.match(/L /g)??[]).length).toBe(164);
+  expect((rounded?.match(/L /g)??[]).length).toBe(191);
   for(const i of [0,1]){
     await expect(samples.nth(i).locator("[data-km-master-stroke]")).toHaveCount(78);
     await expect(samples.nth(i).locator("[data-km-master-fuchun-alum-head]"))
