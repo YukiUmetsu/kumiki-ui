@@ -88,9 +88,9 @@ export function inspectRoseProximalHeels():string[]{
     if(!prior||heel.hinge!==prior.hinge||
       !heel.face.startsWith(prior.hinge)||heel.face===prior.face)
       issues.push("Proximal heel breaks independent underturn hinge "+heel.id);
-    if(!/^M[\\d .CQ-]+ Z$/.test(heel.face)||
+    if(!/^M[0-9 .CQ-]+ Z$/.test(heel.face)||
       heel.face.length>12000||heel.face.split("C").length<9||
-      /NaN|Infinity|<image|url\\(/.test(heel.face))
+      /NaN|Infinity|<image|url/.test(heel.face))
       issues.push("Invalid complete closed heel source "+heel.id);
     const [x,y,w,h]=heel.bounds;
     if(!heel.bounds.every(Number.isFinite)||
