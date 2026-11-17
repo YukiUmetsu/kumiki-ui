@@ -14,6 +14,7 @@
  */
 import type {CharacterPathShape} from "../../registry/character/definition";
 import {inkPressureStroke} from "./ink-shanshui-fine-craft";
+import {readerInkPortraitGlazes} from "./ink-shanshui-reader-glazes";
 import type {FaceLandmark} from "../../registry/anatomy/anatomy-face";
 
 type P=[number,number];
@@ -146,10 +147,10 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     // on the center plane and an alar shadow on the near nostril.
     plane(
       "M"+num(sellion[0]+.9)+" "+num(sellion[1]+.9)+
-      " C149.2 103.4 153 109.3 155 112.6 "+
-      "C156.1 115.1 155.4 117 153.9 118.5 "+
-      "C152 116.8 149.5 113.3 148.7 109 "+
-      "C148.1 105.3 148 102 148.1 100.4 Z",.26),
+      " C149.1 103.8 150.4 109.1 152.2 112.5 "+
+      "C153.8 114.1 154.6 115.7 154 117.1 "+
+      "C152.7 116.6 150.7 114.8 149.7 112.4 "+
+      "C148.8 109.6 148.2 105.2 148.1 100.4 Z",.185),
     plane(
       "M149.1 113.9 C151.2 112.9 154.8 114.5 156.6 116.5 "+
       "C156.4 118.9 153.8 119.7 151.4 118.8 "+
@@ -203,6 +204,15 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     line([155.5,122],[152,127.3],[149.2,130.7],[146.9,131.4],
       .39,622,"$skinshade",.25),
   );
+  // Retain every existing original face wash and source pressure edge.
+  // Add only translucent, source-anchored multi-pass glazes. Layered
+  // technique follows Zeng Jing / Bochen portrait relief: convex paper
+  // remains visibly bright, unlike a single hard nasal triangle.
+  const glazes=readerInkPortraitGlazes({
+    nearCanthus,farCanthus,sellion,noseTip,
+    nearCheek:cheek,farCheek,chin,
+  },detail);
+  for(const region of Object.values(glazes))planes.push(...region);
   const nose:CharacterPathShape[]=[
     // The original native crop showed a harsh acute slash from brow to
     // tip and several overlapping dark hooks that read as a beak. Use a
