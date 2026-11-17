@@ -24,6 +24,8 @@ export function RisoPullTabFilmStudio(){
   const [direction,setDirection]=useState<RisoPullDirection>("right");
   const [windowCount,setWindowCount]=useState(3);
   const [relief,setRelief]=useState(.72);
+  const [depthMm,setDepthMm]=useState(.32);
+  const [lampAngle,setLampAngle]=useState(225);
   const [grain,setGrain]=useState(.57);
   const [dryness,setDryness]=useState(.22);
   const [registration,setRegistration]=useState(.22);
@@ -80,8 +82,13 @@ export function RisoPullTabFilmStudio(){
   },[playing]);
   if(!compiled.ok)return <pre role="alert">{compiled.diagnostics.map(
     d=>d.path+": "+d.message).join("\n")}</pre>;
+  const lampRadians=lampAngle*Math.PI/180;
+  const lightDirection:readonly [number,number]=[
+    Math.cos(lampRadians),Math.sin(lampRadians),
+  ];
   const props={cover,insert,windows,direction,travel,seed,
-    paperRelief:relief,paperGrain:grain,misregistration:registration,
+    paperRelief:relief,paperDepthMm:depthMm,lightDirection,
+    paperGrain:grain,misregistration:registration,
     drumContact:{dryness,feed:"top-to-bottom" as const}};
   const film=compiled.film;
   const stage=<FilmStage film={film} frame={frame}
@@ -166,6 +173,16 @@ export function RisoPullTabFilmStudio(){
           min={0} max={1} step=".05" value={relief}
           onChange={e=>setRelief(Number(e.target.value))}/>
       </label>
+      <label style={label}>Stock thickness · {depthMm.toFixed(2)} mm
+        <input aria-label="RISO79 physical stock thickness" type="range"
+          min=".08" max="1.2" step=".04" value={depthMm}
+          onChange={e=>setDepthMm(Number(e.target.value))}/>
+      </label>
+      <label style={label}>Edge lamp angle · {lampAngle}°
+        <input aria-label="RISO79 edge lamp angle" type="range"
+          min="0" max="360" step="5" value={lampAngle}
+          onChange={e=>setLampAngle(Number(e.target.value))}/>
+      </label>
       <label style={label}>Original paper tooth · {Math.round(grain*100)}%
         <input aria-label="RISO79 paper fibre density" type="range"
           min={0} max={1} step=".05" value={grain}
@@ -229,7 +246,9 @@ export function RisoPullTabFilmStudio(){
     </section>
     <p style={{fontSize:13,maxWidth:960,margin:0}}>
       Separate original printed cover and insert. Four-sided vector die-cuts
-      have 88 individually curved, fixed cellulose whiskers each. Only
+      have 88 short, individually seeded cut-face microfibrils each. The
+      wall and directional cavity shadow follow the stock caliper and lamp.
+      Only
       the hidden paper insert and its grip move; native spot-ink paths never
       repaint or lose registration. This overhead artist's paper mechanism is
       not an empirical friction, cut-die or Risograph calibration model.
