@@ -1,5 +1,8 @@
 # Beautiful faces from film stars' portraits (ANAT1) — research, 2026-11-16
 
+> **Superseded** by [Face types](face-types-2026-11-16.md): one type per ancestry group from modern photographs, never
+> blended. The fitting method and the rendering findings below still hold.
+
 The owner asked for more references from celebrities widely seen as beautiful or handsome, because the Face lab still
 did not show beautiful faces. This note covers the larger reference set, how the face is now fitted to it, and the
 rendering faults that hid it. It supersedes the [first composite](face-composite-2026-11-16.md).

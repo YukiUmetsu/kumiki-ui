@@ -26,7 +26,7 @@ import { rgbToHex, skinShade } from "../../registry/anatomy/anatomy-color";
 const referenceUrls = import.meta.glob("../../assets/photos/anatomy-references/*.jpg", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 import type { HumanCamera } from "../../registry/anatomy/anatomy-view";
 import { BeautyEvidence, FacePortrait, GoldenRatioTable } from "../../registry/anatomy/face-portrait-react";
-import { FACE_COMPOSITE, beautifulFace } from "../../registry/anatomy/face-beauty";
+import { FACE_TYPE_GROUPS, FACE_TYPES, beautifulFace, faceTypeLook, faceTypeOf } from "../../registry/anatomy/face-beauty";
 import type { EyeColour, HairStyle, PortraitOptions } from "../../registry/anatomy/face-portrait";
 import { FRINGES, HAIRSTYLES, findHairStyle } from "../../registry/anatomy/hair-groom";
 import { EYE_EVIDENCE, EYE_SHAPES, IRIS_TYPES, findEyeShape, findIris } from "../../registry/anatomy/eye-detail";
@@ -250,16 +250,14 @@ function useSettled<T>(value: T, ms = 500): T {
   return v;
 }
 
-const LAB_STYLES: Record<"woman" | "man", string> = { woman: "long-straight", man: "short-crop" };
-
 /**
  * The face lab: the beautiful face, rendered. Sex, how much of the findings and of the film stars' average to apply,
  * makeup, skin, eyes, hair, the measured shape sliders (z-scores against a norm), the head and the light; beside it the
  * face's measures against the norm. "Measurement study" shows the calibrated clay mask with its guides.
  */
 function FaceLab() {
-  const [o, setO] = useState<PortraitOptions>({ sex: 0, beauty: 1, realFaces: 1, makeup: "natural", skin: SKINS[1], eyes: "brown", hairStyle: "long-straight", yaw: 0, keyAzimuth: -30, keyElevation: 42,
-    norm: "north-american-white", eyeSpacing: 0, eyeWidth: 0, noseWidth: 0, noseLength: 0, lowerFace: 0, faceWidth: 1, mouthWidth: 1 });
+  const [o, setO] = useState<PortraitOptions>({ sex: 0, beauty: 1, realFaces: 1, faceType: FACE_TYPE_GROUPS[0]?.id, makeup: "natural", yaw: 0, keyAzimuth: -30, keyElevation: 42,
+    eyeSpacing: 0, eyeWidth: 0, noseWidth: 0, noseLength: 0, lowerFace: 0, faceWidth: 1, mouthWidth: 1 });
   const [view, setView] = useState<"portrait" | "study">("portrait");
   const [rendering, setRendering] = useState(true);
   const set = (k: keyof PortraitOptions, v: unknown) => setO(prev => ({ ...prev, [k]: v }));
@@ -267,36 +265,47 @@ function FaceLab() {
   useEffect(() => setRendering(true), [JSON.stringify(settled)]); // eslint-disable-line react-hooks/exhaustive-deps
   const face = useMemo(() => beautifulFace(settled), [settled]);
   const m = useMemo(() => measureFace(face.vertices), [face]);
-  const norm = FACE_NORMS[o.norm ?? "north-american-white"], sex = o.sex ?? 0;
+  const sex = o.sex ?? 0, typeId = faceTypeOf(o), group = FACE_TYPE_GROUPS.find(g => g.id === typeId), look = faceTypeLook(typeId, sex);
+  const type = FACE_TYPES[`${typeId}:${sex < 0.5 ? "female" : "male"}`];
+  const norm = FACE_NORMS[o.norm ?? group?.norm ?? "north-american-white"];
+  // picking a face type brings its look: the skin, eyes and hair are left to the type until changed
+  const pickType = (id: string) => setO(prev => ({ ...prev, faceType: id, faceVariant: 0, skin: undefined, eyes: undefined, hair: undefined, hairStyle: undefined, eyeShape: undefined, hairCurl: undefined, fringe: undefined, parting: undefined, norm: undefined }));
   const range = (k: keyof PortraitOptions, name: string, min: number, max: number, step: number, fmt = (v: number) => v.toFixed(step < 0.1 ? 2 : 1), dflt = 0) => (
     <label key={String(k)} style={label}>{name}: {fmt(Number(o[k] ?? dflt))}<input type="range" min={min} max={max} step={step} value={Number(o[k] ?? dflt)} onChange={e => set(k, Number(e.target.value))} /></label>);
-  const setSex = (to: number) => setO(prev => ({ ...prev, sex: to, makeup: to < 0.5 ? (prev.makeup === "none" ? "natural" : prev.makeup) : "none", hairStyle: LAB_STYLES[to < 0.5 ? "woman" : "man"] as HairStyle }));
+  const setSex = (to: number) => setO(prev => ({ ...prev, sex: to, faceVariant: 0, makeup: to < 0.5 ? (prev.makeup === "none" ? "natural" : prev.makeup) : "none", hairStyle: undefined, hairCurl: undefined, fringe: undefined, parting: undefined }));
   const shapeId = typeof o.eyeShape === "string" ? o.eyeShape : "";
   return (
     <div style={{ ...page, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", alignItems: "start" }}>
       <div style={{ ...panel, maxWidth: 360 }}>
         <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Face lab</h2>
-        <p style={muted}>The beautiful face: measured norms, the attractiveness findings and the shape of {FACE_COMPOSITE.female.n} actresses' and {FACE_COMPOSITE.male.n} actors' faces from public-domain film-star portraits (an average: no one's likeness).</p>
+        <p style={muted}>Pick a face type: each is fitted to beautiful modern stars of one ancestry (freely licensed photographs from 1995 on, measured only and credited; one a person, several people a type so it copies no one's likeness). Groups are never blended.</p>
+        <div style={{ ...row, gap: 6 }} role="group" aria-label="Face type">
+          {FACE_TYPE_GROUPS.map(g => <button key={g.id} type="button" style={typeId === g.id ? active : button} aria-pressed={typeId === g.id} onClick={() => pickType(g.id)} title={g.includes}>{g.label}</button>)}
+        </div>
+        {group && <p style={muted}><b>{group.label}</b> ({group.includes}). {type ? `${sex < 0.5 ? "Woman" : "Man"}: fitted to ${type.n} ${sex < 0.5 ? "actresses, models and singers" : "actors, models and singers"} (residual ${type.residual.toFixed(1)} mm).` : "No type for this sex yet: the other sex's is used."}</p>}
+        {type?.variants && <div style={{ ...row, gap: 6 }} role="group" aria-label="Face shape within the type">
+          {[{ label: "The type as a whole", n: type.n }, ...type.variants].map((x, k) => <button key={k} type="button" style={(o.faceVariant ?? 0) === k ? active : button} aria-pressed={(o.faceVariant ?? 0) === k} onClick={() => set("faceVariant", k)}>{k ? `${k}: ${x.label}` : x.label} ({x.n})</button>)}
+        </div>}
         <div style={row} role="group" aria-label="Sex">
           <button type="button" style={sex < 0.5 ? active : button} aria-pressed={sex < 0.5} onClick={() => setSex(0)}>Woman</button>
           <button type="button" style={sex >= 0.5 ? active : button} aria-pressed={sex >= 0.5} onClick={() => setSex(1)}>Man</button>
         </div>
         {range("sex", "Woman → man", 0, 1, 0.05)}
         {range("beauty", "Attractiveness findings applied", 0, 1, 0.05, v => `${Math.round(v * 100)}%`, 1)}
-        {range("realFaces", "Film stars' average applied", 0, 1.5, 0.05, v => `${Math.round(v * 100)}%`, 1)}
+        {range("realFaces", "Face type applied", 0, 1.5, 0.05, v => `${Math.round(v * 100)}%`, 1)}
         <label style={label}>Makeup<select style={field} value={o.makeup ?? "none"} onChange={e => set("makeup", e.target.value)}>
           <option value="none">none</option><option value="natural">natural</option><option value="glamour">glamour</option></select></label>
-        <div style={label}>Skin<div style={row}>{SKINS.map(c => <button key={c} type="button" aria-label={`Skin ${c}`} aria-pressed={o.skin === c} onClick={() => set("skin", c)}
-          style={{ width: 34, height: 34, borderRadius: 17, background: c, cursor: "pointer", border: o.skin === c ? "3px solid #26211d" : "1px solid #a39a8c" }} />)}</div></div>
-        <label style={label}>Eyes<select style={field} value={o.eyes} onChange={e => set("eyes", e.target.value)}>{IRIS_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
-        <label style={label}>Eye shape<select style={field} value={shapeId} onChange={e => set("eyeShape", e.target.value || undefined)}>
+        <div style={label}>Skin<div style={row}>{[...new Set([look?.skin, ...SKINS].filter((c): c is string => !!c))].map(c => { const on = (o.skin ?? look?.skin) === c; return <button key={c} type="button" aria-label={`Skin ${c}`} aria-pressed={on} onClick={() => set("skin", c)}
+          style={{ width: 34, height: 34, borderRadius: 17, background: c, cursor: "pointer", border: on ? "3px solid #26211d" : "1px solid #a39a8c" }} />; })}</div></div>
+        <label style={label}>Eyes<select style={field} value={o.eyes ?? look?.eyes ?? "brown"} onChange={e => set("eyes", e.target.value)}>{IRIS_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        <label style={label}>Eye shape<select style={field} value={shapeId || look?.eyeShape || ""} onChange={e => set("eyeShape", e.target.value || undefined)}>
           <option value="">the measured average</option>{EYE_SHAPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
-        <label style={label}>Hair<select style={field} value={o.hairStyle} onChange={e => set("hairStyle", e.target.value)}>{HAIRSTYLES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        <label style={label}>Hair<select style={field} value={o.hairStyle ?? look?.hairStyle ?? "long-straight"} onChange={e => set("hairStyle", e.target.value)}>{HAIRSTYLES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
         {range("yaw", "Head turn", -25, 25, 5, v => `${v}°`)}{range("keyAzimuth", "Key light from", -70, 70, 5, v => `${v}°`)}
         <details>
           <summary style={{ font: "600 13px system-ui", cursor: "pointer", minHeight: 28 }}>Face shape against a measured norm (z-scores)</summary>
           <div style={{ display: "grid", gap: 8, paddingTop: 8 }}>
-            <label style={label}>Norm<select style={field} value={o.norm} onChange={e => set("norm", e.target.value)}>{Object.entries(FACE_NORMS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></label>
+            <label style={label}>Norm<select style={field} value={o.norm ?? group?.norm ?? "north-american-white"} onChange={e => set("norm", e.target.value)}>{Object.entries(FACE_NORMS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></label>
             {range("eyeSpacing", "Eye spacing (SD)", -2.5, 2.5, 0.1)}{range("eyeWidth", "Eye width (SD)", -2.5, 2.5, 0.1)}{range("noseWidth", "Nose width (SD)", -2.5, 2.5, 0.1)}
             {range("noseLength", "Nose height (SD)", -2.5, 2.5, 0.1)}{range("lowerFace", "Lower face height (SD)", -2.5, 2.5, 0.1)}
             {range("faceWidth", "Face width ×", 0.88, 1.12, 0.01, v => v.toFixed(2), 1)}{range("mouthWidth", "Mouth width ×", 0.85, 1.15, 0.01, v => v.toFixed(2), 1)}
@@ -309,7 +318,7 @@ function FaceLab() {
           <button type="button" style={view === "study" ? active : button} aria-pressed={view === "study"} onClick={() => setView("study")}>Measurement study</button>
         </div>
         {view === "portrait" ? <>
-          <FacePortrait options={{ ...settled, eyeShape: settled.eyeShape || undefined, width: 384, height: 480, seed: 5 }} label={`${sex < 0.5 ? "Woman" : "Man"}, rendered portrait`} onRendered={() => setRendering(false)} />
+          <FacePortrait options={{ ...settled, eyeShape: settled.eyeShape || undefined, width: 384, height: 480, seed: 5 }} label={`${sex < 0.5 ? "Woman" : "Man"}, ${group?.label ?? ""} face type, rendered portrait`} onRendered={() => setRendering(false)} />
           <p style={muted} role="status" aria-live="polite">{rendering || JSON.stringify(o) !== JSON.stringify(settled) ? "Rendering… (a full render takes a few seconds)" : "Rendered."}</p>
         </> : <>
           <FaceView params={{ ...settled, sex }} yaw={settled.yaw ?? 0} pitch={0} size={460} />
@@ -326,7 +335,7 @@ function FaceLab() {
             <td style={{ padding: "3px 8px" }}>{nmv ? `${nmv[0].toFixed(1)} ± ${nmv[1].toFixed(1)}` : "— (no norm cited)"}</td>
             <td style={{ padding: "3px 8px" }}>{nmv ? ((m[k] - nmv[0]) / nmv[1]).toFixed(1) : ""}</td></tr>;
         })}</tbody>
-        <tfoot><tr><td colSpan={4} style={{ padding: "6px 8px", color: "#5a5048" }}>{norm.source}. Where the face departs from this norm it follows the film stars' average: against North American white norms the actresses' noses are narrower (about −1.8 SD), their lower faces shorter (−1.4 SD) and their eyes a little shorter corner to corner (−1.1 SD); the actors' measures lie within about half an SD.</td></tr></tfoot>
+        <tfoot><tr><td colSpan={4} style={{ padding: "6px 8px", color: "#5a5048" }}>{norm.source}. Where the face departs from the norm, it follows the face type's stars.</td></tr></tfoot>
       </table>
     </div>
   );
@@ -683,28 +692,31 @@ const muted = { margin: 0, color: "#5b524b", font: "13px/1.45 system-ui, sans-se
 const field = { minHeight: 34, padding: "5px 8px", borderRadius: 7, border: "1px solid #797776", background: "#fff", color: "inherit", font: "14px system-ui, sans-serif" } as const;
 /** Faces built from the attractiveness research and rendered as portraits. */
 function BeautifulFaces() {
-  const people: { o: PortraitOptions; caption: string }[] = [
-    { o: { sex: 0, skin: "#e6c0a4", hairStyle: "long-straight", eyes: "brown" }, caption: "Woman, light skin, long hair" },
-    { o: { sex: 1, skin: "#c99a7e", hairStyle: "short-crop", eyes: "hazel" }, caption: "Man, medium skin, short hair" },
-    { o: { sex: 0, skin: "#8d5a3b", hairStyle: "lob", eyes: "dark-brown", hair: { eumelanin: 7 } }, caption: "Woman, brown skin, long bob" },
-    { o: { sex: 1, skin: "#5e3a26", hairStyle: "short-crop", eyes: "dark-brown", hair: { eumelanin: 8 } }, caption: "Man, dark skin" },
-    { o: { sex: 0, skin: "#f1d3bd", hairStyle: "bob", eyes: "blue", hair: { eumelanin: 0.5, pheomelanin: 0.35 } }, caption: "Woman, very light skin, fair hair" },
-    { o: { sex: 1, skin: "#d7aa86", hairStyle: "short-crop", eyes: "grey", hair: { eumelanin: 2.5 } }, caption: "Man, light skin" },
-  ];
   return (
     <div style={{ ...page, gap: 20 }}>
-      <p style={{ ...muted, maxWidth: 900 }}>Each face starts from measured population means (Farkas norms, ANSUR II face breadths and pupil distances), is made symmetric, gets above-average femininity (women) or a slight feminisation (men), measured attractive lip heights, a slight canthal tilt and the brow, eye-rim and cheek depths of young faces, and is then fitted to the shape of beautiful real faces: the average of {FACE_COMPOSITE.female.n} actresses' and {FACE_COMPOSITE.male.n} actors' public-domain studio portraits, read by the same face-landmark model. The lids sit on the iris at measured margin-to-pupil distances, the mouth's corners at the height measured on the stars' closed mouths, the hairline at Pallett's 36% ratio. Rendered with measured skin scattering (d'Eon & Luebke profile), a shadowed key light and occlusion, ray-traced eyes and strand-traced hair.</p>
-      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
-        {people.map((p, k) => <figure key={k} style={{ margin: 0, display: "grid", gap: 4 }}><FacePortrait options={{ ...p.o, width: 288, height: 360, seed: 5 + k }} label={p.caption} /><figcaption style={muted}>{p.caption}</figcaption></figure>)}
-      </div>
-      <h3 style={{ margin: 0 }}>The shape of beautiful real faces</h3>
-      <p style={{ ...muted, maxWidth: 900 }}>Studio portraits of film stars, one a person, frontal, the mouth closed and unsmiling, the eyes open, measured with face landmarks and averaged by sex (no one's likeness survives the average). The face is rendered, read by the same landmark model and corrected until it matches that average (within about 1 mm for women and 2 mm for men). Left: without it; right: with it.</p>
-      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
-        {[0, 1].flatMap(sex => [0, 1].map(rf => <figure key={`${sex}-${rf}`} style={{ margin: 0, display: "grid", gap: 4 }}><FacePortrait options={{ sex, realFaces: rf, skin: SKINS[2], hairStyle: sex ? "short-crop" : "bun", width: 288, height: 360, hairStrands: 14000 }} label={`${sex ? "Man" : "Woman"}, ${rf ? "with" : "without"} the film stars' average`} /><figcaption style={muted}>{sex ? "Man" : "Woman"}, {rf ? "with the film stars' average" : "without it"}</figcaption></figure>))}
-      </div>
-      <h3 style={{ margin: 0 }}>The calibrated average (beauty 0) against the findings applied (beauty 1)</h3>
-      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
-        {[0, 1].flatMap(sex => [0, 1].map(beauty => <figure key={`${sex}-${beauty}`} style={{ margin: 0, display: "grid", gap: 4 }}><FacePortrait options={{ sex, beauty, skin: "#d8a98a", hairStyle: sex ? "short-crop" : "bob", width: 288, height: 360 }} label={`${sex ? "Man" : "Woman"}, beauty ${beauty}`} /><figcaption style={muted}>{sex ? "Man" : "Woman"}, beauty {beauty}</figcaption></figure>))}
+      <p style={{ ...muted, maxWidth: 900 }}>Face types: each is fitted to beautiful modern film, television and music stars of one ancestry, by sex (freely licensed photographs from 1995 on, measured only and credited; one a person, several people a type so it copies no one's likeness; groups are never blended). On top of the type: measured population means, symmetry, measured attractive lip heights, the brow, eye-rim and cheek depths of young faces, lids on the iris at measured margin-to-pupil distances, the mouth's corners where the stars' were, and a hairline at Pallett's 36% ratio. Each type brings a look (skin, eyes, hair) that can be changed. Rendered with measured skin scattering, a softbox key light, ray-traced eyes and strand-traced hair.</p>
+      {FACE_TYPE_GROUPS.map(g => (
+        <section key={g.id} style={{ display: "grid", gap: 8 }} aria-label={`${g.label} face types`}>
+          <h3 style={{ margin: 0 }}>{g.label} <span style={{ ...muted, display: "inline" }}>({g.includes})</span></h3>
+          <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))", maxWidth: 520 }}>
+            {(["female", "male"] as const).map((sx, k) => { const t = FACE_TYPES[`${g.id}:${sx}`]; return (
+              <figure key={sx} style={{ margin: 0, display: "grid", gap: 4 }}>
+                <FacePortrait options={{ sex: k, faceType: g.id, width: 240, height: 300, hairStrands: 14000, seed: 5 + k }} label={`${g.label} ${sx === "female" ? "woman" : "man"}`} />
+                <figcaption style={muted}>{sx === "female" ? "Woman" : "Man"}{t ? `: ${t.n} stars` : ": the other type (none yet)"}</figcaption>
+              </figure>); })}
+          </div>
+          <details>
+            <summary style={{ font: "600 13px system-ui", cursor: "pointer", minHeight: 28 }}>Photographs measured, with credits</summary>
+            <ul style={{ ...muted, margin: "6px 0 0", paddingLeft: 18 }}>
+              {(["female", "male"] as const).flatMap(sx => (FACE_TYPES[`${g.id}:${sx}`]?.sources ?? []).map(c => (
+                <li key={c.page}><a href={c.page}>{c.title.replace(/^File:/, "")}</a>{c.author ? `, ${c.author}` : ""}, {c.licenceUrl ? <a href={c.licenceUrl}>{c.licence}</a> : c.licence}{c.year ? ` (${c.year})` : ""}</li>)))}
+            </ul>
+          </details>
+        </section>
+      ))}
+      <h3 style={{ margin: 0 }}>The face type applied: without it (left) and with it (right)</h3>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))" }}>
+        {[0, 1].flatMap(sex => [0, 1].map(rf => <figure key={`${sex}-${rf}`} style={{ margin: 0, display: "grid", gap: 4 }}><FacePortrait options={{ sex, realFaces: rf, faceType: FACE_TYPE_GROUPS[0]?.id, hairStyle: sex ? "short-crop" : "bun", width: 240, height: 300, hairStrands: 12000 }} label={`${sex ? "Man" : "Woman"}, ${rf ? "with" : "without"} the face type`} /><figcaption style={muted}>{sex ? "Man" : "Woman"}, {rf ? `with the ${FACE_TYPE_GROUPS[0]?.label ?? ""} type` : "without it"}</figcaption></figure>))}
       </div>
       <h3 style={{ margin: 0 }}>The golden ratio face, checked</h3>
       <GoldenRatioTable face={{ sex: 0 }} />
@@ -997,7 +1009,8 @@ function PortraitLab() {
   return (
     <div style={{ ...page, gridTemplateColumns: "minmax(240px, 320px) 1fr" }}>
       <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
-        {num("sex", 0, 1, 1)}{num("beauty", 0, 1, 0.25)}{num("realFaces", 0, 1, 0.25)}
+        <label style={label}>Face type<select style={field} value={faceTypeOf(o)} onChange={e => set("faceType", e.target.value)}>{FACE_TYPE_GROUPS.map(g => <option key={g.id} value={g.id}>{g.label}</option>)}</select></label>
+        {num("sex", 0, 1, 1)}{num("beauty", 0, 1, 0.25)}{num("realFaces", 0, 1.5, 0.25)}
         <label style={label}>Skin<select style={field} value={o.skin} onChange={e => set("skin", e.target.value)}>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
         <label style={label}>Eyes<select style={field} value={o.eyes} onChange={e => set("eyes", e.target.value as EyeColour)}>{IRIS_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
         <label style={label}>Eye shape<select style={field} value={typeof o.eyeShape === "string" ? o.eyeShape : ""} onChange={e => set("eyeShape", e.target.value || undefined)}><option value="">measured average</option>{EYE_SHAPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>

@@ -29,7 +29,7 @@ import { eyeCentres, FACE_FEATURES, FACE_LANDMARKS } from "./anatomy-face";
 import type { FaceLandmark } from "./anatomy-face";
 import { hairAlbedo, hairSigmaA, skinZoneColor } from "./anatomy-color";
 import type { SkinZone } from "./anatomy-color";
-import { beautifulFace } from "./face-beauty";
+import { beautifulFace, faceTypeLook } from "./face-beauty";
 import type { BeautifulFace, BeautyOptions } from "./face-beauty";
 import { expressEmotion, expressFace, expressionMarks } from "./expression-face";
 import type { AuWeights, ExpressedFace } from "./expression-face";
@@ -154,6 +154,11 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
   const W = o.width ?? 384, H = o.height ?? 480, SS = Math.max(1, Math.round(o.supersample ?? 2)), w = W * SS, h = H * SS;
   const sex = clamp01(o.sex ?? 0), seed = o.seed ?? 7;
+  // a face type asked for brings its look (skin, eyes, hair) unless those are given
+  const look = o.faceType ? faceTypeLook(o.faceType, sex) : undefined, hairCurl = o.hairCurl ?? look?.hairCurl;
+  // the type's fringe and parting go with its own hairstyle only
+  const fringe = o.fringe ?? (o.hairStyle ? undefined : look?.fringe as FringeKind | undefined), parting = o.parting ?? (o.hairStyle ? undefined : look?.parting as Parting | undefined);
+  const hairLength = o.hairLength ?? (o.hairStyle ? undefined : look?.hairLength);
   const face = beautifulFace({ ...o, sex });
   const expressed = o.weights ? expressFace(o.weights, face) : o.expression ? expressEmotion(o.expression, o.intensity ?? 1, face) : undefined;
   const V0 = (expressed?.vertices ?? face.vertices) as Vec3[], N0 = face.vertices as Vec3[];
@@ -356,7 +361,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     return s / POISSON.length;
   };
   // ---- Hair: groomed on this head (cached), and its density along the key light (it shadows the skin) ---------------------------
-  const styleId = { short: "short-crop", long: "long-straight" }[o.hairStyle ?? ""] ?? o.hairStyle ?? (sex > 0.5 ? "short-crop" : "long-straight");
+  const styleAsked = o.hairStyle ?? look?.hairStyle;
+  const styleId = { short: "short-crop", long: "long-straight" }[styleAsked ?? ""] ?? styleAsked ?? (sex > 0.5 ? "short-crop" : "long-straight");
   // the face's front as a height field (2 mm cells) from the neutral face: fringes rest on it, side hair passes beside it
   const FF = faceHeightField(FN0, me[1] - 12, face.hairlineY + 44);
   const hairHead: HairHead = { centre: [0, cyE, czE], radii: [ax, ay, az], hairlineY: face.hairlineY, browY: (LM("brow-mid.L", N0)[1] + LM("brow-mid.R", N0)[1]) / 2, tragionY, chinY: me[1], faceHalf: zyHalf,
@@ -365,10 +371,10 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     chestFront: x => chestCz + 70 * Math.sqrt(Math.max(0, 1 - (x / shoulderHalf) ** 2)) - 20 };
   // strands drawn: as asked, or by the picture's size (a thumbnail needs fewer than a large portrait)
   const hairStrands = Math.round(o.hairStrands ?? Math.min(40000, Math.max(12000, W * H * 0.25)));
-  const groomKey = JSON.stringify([styleId, o.fringe, o.parting, hairStrands, o.hairLength, o.hairCurl, seed, hairHead.radii.map(Math.round), Math.round(hairHead.hairlineY), Math.round(hairHead.browY), Math.round(gl[2]), Math.round(zyHalf), Math.round(sex * 10)]);
+  const groomKey = JSON.stringify([styleId, fringe, parting, hairStrands, hairLength, hairCurl, seed, hairHead.radii.map(Math.round), Math.round(hairHead.hairlineY), Math.round(hairHead.browY), Math.round(gl[2]), Math.round(zyHalf), Math.round(sex * 10)]);
   let groom = GROOMS.get(groomKey);
   if (!groom) {
-    groom = groomHair(hairHead, { style: findHairStyle(styleId), fringe: o.fringe, parting: o.parting, strands: hairStrands, lengthScale: o.hairLength, curl: o.hairCurl, seed });
+    groom = groomHair(hairHead, { style: findHairStyle(styleId), fringe, parting, strands: hairStrands, lengthScale: hairLength, curl: hairCurl, seed });
     if (GROOMS.size > 6) GROOMS.clear();
     GROOMS.set(groomKey, groom);
   }
@@ -417,7 +423,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     for (let i = 0; i < nV; i++) ao[i] = wsum[i] > 0 ? 0.16 + 0.84 * Math.pow(acc[i] / wsum[i], 1.6) : 1;
   }
   // ---- Skin colour zones per face vertex (neutral face, so they move with the expression) --------------------------------------
-  const skinHex = o.skin ?? "#d8a98a";
+  const skinHex = o.skin ?? look?.skin ?? "#d8a98a";
   const zoneIds: SkinZone[] = ["forehead", "cheeks", "nose", "eyelids", "under-eye", "beard-shadow"];
   const zoneCol = zoneIds.map(z => linearOf(skinZoneColor(skinHex, z))), baseLin = linearOf(skinHex);
   const zoneW = new Float32Array(nV * zoneIds.length), tzone = new Float32Array(nV);
@@ -464,7 +470,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   paint?.prepare?.(N0);
   const ps: SkinPaintSample = { albedo: [0, 0, 0], film: [0, 0, 0], roughness: 0, specular: 1, sparkle: 0, tint: null };
   const cloth = linearOf(o.clothing ?? "#30343c"), lipBase = linearOf(skinZoneColor(skinHex, "lips"));
-  const hairEu = o.hair?.eumelanin ?? (sex > 0.5 ? 1.6 : 1.3), hairPheo = o.hair?.pheomelanin ?? 0.15, scalpHair = hairAlbedo(hairSigmaA(hairEu, hairPheo)) as unknown as RGB3;
+  const hairEu = o.hair?.eumelanin ?? look?.hair.eumelanin ?? (sex > 0.5 ? 1.6 : 1.3), hairPheo = o.hair?.pheomelanin ?? look?.hair.pheomelanin ?? 0.15, scalpHair = hairAlbedo(hairSigmaA(hairEu, hairPheo)) as unknown as RGB3;
   const rootCol: RGB3 = [scalpHair[0] * 0.8, scalpHair[1] * 0.8, scalpHair[2] * 0.8];
   // natural lip colour: rosier and deeper than the skin zone's average (women's a little more saturated)
   const wrk = { browY: (LM("brow-mid.L", N0)[1] + LM("brow-mid.R", N0)[1]) / 2, hairlineY: face.hairlineY, eyeY: pupilY, outerCorner: Math.abs(LM("exocanthion.L", N0)[0]), neckTop: me[1] - 25,
@@ -635,7 +641,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const gaze = expressed?.gaze ?? { x: 0, y: 0, cross: 0 };
   const shape = face.eyeShape ?? EYE_SHAPES[0], pupilR = Math.min(4, Math.max(1, (o.pupil ?? 4) / 2));
   for (const s of ["L", "R"] as const) drawEye(out, eyeMask[s], { w, h, side: s, centre: rotH([ec[s][0], ec[s][1], ec[s][2] - 9.6]), camPos, f, D, yc, Lkey, keyI, skyI, fillI, Lfill,
-    iris: findIris((s === "R" ? o.eyesRight : undefined) ?? o.eyes ?? "brown"), pupilR, epicanthal: shape.epicanthal, seed: seed + (s === "L" ? 1 : 2),
+    iris: findIris((s === "R" ? o.eyesRight : undefined) ?? o.eyes ?? look?.eyes ?? "brown"), pupilR, epicanthal: shape.epicanthal, seed: seed + (s === "L" ? 1 : 2),
     upper: expand(LOOP(`eye-upper.${s}`)).map(pv), lower: expand(LOOP(`eye-lower.${s}`)).map(pv), mmPerPx, gaze, yawR, pitchR });
   // nostrils
   for (const s of ["L", "R"] as const) {
@@ -1041,6 +1047,9 @@ function applyFaceMakeup(m: { w: number; h: number; Alb: Float32Array; Spec: Flo
 
 // ---- Brows and lashes ------------------------------------------------------------------------------------------------------------
 
+/** The lower edge of each brow on the canonical mesh, lateral to medial (the upper edge is FACE_FEATURES' brow loop). */
+const BROW_LOWER = { R: [46, 53, 52, 65, 55], L: [276, 283, 282, 295, 285] } as const;
+
 function drawBrows(out: Raster, b: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3; proj: (x: number, y: number, z: number) => [number, number]; mmPerPx: number; sex: number; col: RGB3; seed: number; filled?: number; density: number }) {
   // A groomed brow, as in portraits: its head above the inner corner of the eye, its arch peaking about two-thirds of
   // the way out (above the outer edge of the iris) and its tail ending a little above the head's lower edge. Women's are
@@ -1051,16 +1060,21 @@ function drawBrows(out: Raster, b: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3;
     const loop = LOOP(`brow.${s}`).map(i => b.V[i]);
     const pts = Math.abs(loop[0][0]) > Math.abs(loop[loop.length - 1][0]) ? loop.slice().reverse() : loop.slice(); // medial → lateral
     const onLoop = (t: number): Vec3 => { const x = t * (pts.length - 1), i = Math.min(pts.length - 2, Math.floor(x)), f = x - i; return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f, pts[i][2] + (pts[i + 1][2] - pts[i][2]) * f]; };
-    // the loop runs round the brow: its mid-height line, then the shape's own arch over a straight base from head to tail
-    const head = onLoop(0.04), tail = onLoop(0.97), peakT = 0.6 + 0.08 * sex, archH = 2.4 - 1.7 * sex;
-    const arch = (t: number) => (t < peakT ? Math.sin((t / peakT) * Math.PI / 2) : Math.cos(((t - peakT) / (1 - peakT)) * Math.PI / 2) ** 1.4);
-    const at = (t: number): Vec3 => { const q = onLoop(t); return [q[0], head[1] + (tail[1] + 0.8 - head[1]) * t + archH * arch(t) - 2.0, q[2] + 0.6]; };
-    const outward = Math.sign(pts[pts.length - 1][0] - pts[0][0]) || 1;
-    // full height (mm) along the brow
-    const thickAt = (t: number) => {
-      const hd = 5.6 + 3.2 * sex, body = 4.6 + 3.0 * sex, tl = 1.1 + 2.6 * sex;
-      return t < 0.15 ? hd : t < peakT ? hd + (body - hd) * ((t - 0.15) / (peakT - 0.15)) : body + (tl - body) * ((t - peakT) / (1 - peakT)) ** 1.2;
+    // the loop is the brow's upper edge and BROW_LOWER its lower edge (five points each, head to tail): the brow fills
+    // the band between them, smoothed, so its arch and thickness are the face's own (a face type's stars' straight,
+    // full or arched, fine brows), tapering to the tail where the edges meet
+    const peakT = 0.6 + 0.08 * sex;
+    const lo0 = BROW_LOWER[s].map(i => b.V[i]), lo = Math.abs(lo0[0][0]) > Math.abs(lo0[lo0.length - 1][0]) ? lo0.slice().reverse() : lo0;
+    const curve = (P: readonly Vec3[], t: number) => {
+      const x = t * (P.length - 1), i = Math.min(P.length - 2, Math.max(0, Math.floor(x))), f = x - i;
+      const y0 = P[Math.max(0, i - 1)][1], y1 = P[i][1], y2 = P[i + 1][1], y3 = P[Math.min(P.length - 1, i + 2)][1];
+      return 0.5 * (2 * y1 + (-y0 + y2) * f + (2 * y0 - 5 * y1 + 4 * y2 - y3) * f * f + (-y0 + 3 * y1 - 3 * y2 + y3) * f * f * f);
     };
+    const topY = (t: number) => curve(pts, t) - 0.3, botY = (t: number) => Math.min(curve(lo, t) + 0.3, topY(t) - 1.0 - 1.5 * (1 - t));
+    const at = (t: number): Vec3 => { const q = onLoop(t); return [q[0], (topY(t) + botY(t)) / 2, q[2] + 0.6]; };
+    const outward = Math.sign(pts[pts.length - 1][0] - pts[0][0]) || 1;
+    // full height (mm) along the brow: the band, the tail drawn finer than the meeting edges
+    const thickAt = (t: number) => (topY(t) - botY(t)) * (t > 0.8 ? 1 - 0.5 * ((t - 0.8) / 0.2) : 1);
     const upperE: [number, number][] = [], lowerE: [number, number][] = [];
     for (let q = 0; q <= 30; q++) { const t = q / 30, c = at(t), th = thickAt(t) / 2; const pu = b.rot([c[0], c[1] + th * 1.05, c[2]]), pl = b.rot([c[0], c[1] - th * 0.95, c[2]]); upperE.push(b.proj(pu[0], pu[1], pu[2])); lowerE.push(b.proj(pl[0], pl[1], pl[2])); }
     const tone = new Float32Array(out.width * out.height);

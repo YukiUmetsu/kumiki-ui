@@ -23,10 +23,12 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
    `faceFeatureLines`, irises from `eyeCentres` at `IRIS_DIAMETER_MM`, upper lid overlapping the iris.
    - For an attractive face, start from `beautifulFace({ sex, beauty })` (`face-beauty.ts`). It applies averageness,
      symmetry, femininity, measured eye, lip and breadth values, the young-face depth vector and Pallett's ratios,
-     never the golden ratio (`goldenRatioReport` only reports it), and fits the face to the shape of beautiful real
-     faces (`realFaces`: 29 actresses' and 23 actors' public-domain portraits, averaged in landmark space). Lids sit on
-     the iris (MRD1 about 4 mm, MRD2 about 5.3 mm) and the mouth's corners level with the stars'. Never model a face on
-     one named person. The **Face lab** story renders it with every control.
+     never the golden ratio (`goldenRatioReport` only reports it), and fits the face to a face type: beautiful modern
+     stars of one ancestry (`faceType`: east-asian, southeast-asian, south-asian, middle-eastern, black,
+     latin-american, northern-european, southern-european, eastern-european; `FACE_TYPE_GROUPS`), never blended, with
+     the group's bone structure in depth and two face-shape variants each (`faceVariant`). Lids
+     sit on the iris (MRD1 about 4 mm, MRD2 about 5.3 mm) and the mouth's corners level with the stars'. Never model a
+     face on one named person. The **Face lab** story renders it with every control.
    - `renderPortrait` / `FacePortrait` render it lit, with skin scattering, eyes, brows, lashes and hair.
    - Eyes: pick a shape from `EYE_SHAPES` (`eyeShape`: almond, round, hooded, monolid, in-fold double lid, upturned,
      downturned, deep-set, prominent, close-set, wide-set) and an iris from `IRIS_TYPES` (`eyes`, `eyesRight`).

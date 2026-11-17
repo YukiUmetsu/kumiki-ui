@@ -169,18 +169,27 @@ average face, 1 = everything applied):
 - **Jaw:** a narrower jaw.
 - **Femininity:** above-average femininity for women; slight feminisation for men (Perrett 1998).
 - **Eyes:** a slight canthal tilt (the opening: see lids on the iris).
+- **Brows:** drawn in the band between the face's own upper and lower brow edges, so each type's stars' brow shape and
+  thickness carry through.
 - **Lips:** vermilion heights from attractive young women (6.5 / 11.6 mm, Popenko's 1:2); the lips closed.
 - **Form:** brow ridge about 10 mm ahead of the cornea, the rim below the eye about 3 mm behind it, the cheek about
   2 mm ahead (Jelks vector).
-- **Real faces** (`realFaces`, default 1, up to 1.5 to exaggerate): fitted last to the shape of beautiful real faces
-  (`FACE_COMPOSITE`, [research note](../research/beautiful-faces-2026-11-16.md)): public-domain studio portraits of
-  29 actresses and 23 actors, one a person, frontal, mouth closed and unsmiling, eyes open, averaged by sex in
-  MediaPipe's landmark space. The face is rendered, read by the same landmark model and corrected until it matches
-  (about 1.1 mm residual for women, 1.8 mm for men). Lid margins and the inner lip line are left out of the fit.
+- **Face types** (`faceType`, `realFaces` 0–1.5): the shape of beautiful modern stars of one ancestry group, by sex
+  (`FACE_TYPE_GROUPS`, `FACE_TYPES`, [research note](../research/face-types-2026-11-16.md)): East Asian, Southeast
+  Asian, South Asian, Middle Eastern & North African, Black, Latin American, Northern & Western, Southern and Eastern
+  European. Each type is fitted to several stars' photographs (1995 on; public domain, CC0, CC BY or CC BY-SA,
+  measured only and credited; one photograph a person) in MediaPipe's landmark space: rendered, read by the same model
+  and corrected. Groups are never blended. Asking for a type also brings its look (skin, eyes, hair) unless given;
+  without one, the type matching the norm is used. Lid margins and the inner lip line are left out of the fit.
+- **Bone structure** (with the type): the group's depth at the brow ridge, nasal root and cheekbones (measured on its
+  stars' photographs against the Northern European stars) and at the bridge, nose tip and lips (soft-tissue norms
+  and estimates).
+- **Face-shape variants** (`faceVariant` 1 or 2): each type's stars split in two by face shape, each variant from at
+  least four people, named by what it changes (for example "a longer face, a narrower jaw").
 - **Lids on the iris:** the upper margin MRD1 above the pupil (about 4 mm), the lower MRD2 below it (about 5.3 mm),
   where the portrait puts the eyeball, so no white shows above or below the iris. An eye shape keeps its own opening.
-- **Mouth corners:** at the height measured on the stars' closed mouths (0.74 mm below the lips' midline for women,
-  0.86 mm for men), not drooping.
+- **Mouth corners:** at the height measured on the type's stars' closed mouths (a little below the lips' midline),
+  not drooping.
 - **Hairline:** placed where the eye-to-mouth distance is 36% of face length.
 
 **The golden ratio.** `goldenRatioReport` lists the claims beside the face's values (`GOLDEN_RATIO`): Marquardt's

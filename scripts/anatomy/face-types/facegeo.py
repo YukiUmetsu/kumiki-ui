@@ -80,7 +80,6 @@ def features(Q):
     return f
 
 if __name__ == "__main__":
-    # usage: python facegeo.py face_landmarker.task geo.json img/*
     model, out = sys.argv[1], sys.argv[2]
     det = detector(model)
     res = {}

@@ -9,18 +9,21 @@ landmarks that do not respond are left alone, steps are half the residual and sm
 The lid margins and the inner lip line are left out: photographs read the lids by their lash lines and liner (and
 glamour portraits open the eyes wide), and the lips' closure is not a shape; the face sets those itself.
 
-Usage: python 5-fit.py face_landmarker.task targets.json female|male ITERS (6 is plenty)   (writes the offsets into the repository's face-composite.json)
+Usage: fit.py MODEL TARGETS.json GROUP:SEX ITERS SOURCES.json   (writes the type into the repository's face-types.json)
 """
 import json, os, subprocess, sys
 import numpy as np, cv2
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 from facegeo import detector, measure, frontal
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-DATA = f"{REPO}/registry/anatomy/data/face-composite.json"
-model, targets, sex, iters = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
-T = np.array(json.load(open(targets))[sex]["mean"])[:468]
+DATA = f"{REPO}/registry/anatomy/data/face-types.json"
+model, targets, key, iters, srcs = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), json.load(open(sys.argv[5]))
+group, sex = key.split(":")
+TG = json.load(open(targets))[key]; T = np.array(TG["mean"])[:468]
+G = {}
+for gf in sys.argv[6:]: G.update({k: v for k, v in json.load(open(gf)).items() if v})
 det = detector(model)
-opts = {"sex": 0 if sex == "female" else 1, "width": 640, "height": 800, "supersample": 2, "hairStyle": "bun" if sex == "female" else "buzz", "hairStrands": 6000, "makeup": "none"}
+opts = {"sex": 0 if sex == "female" else 1, "faceType": group, "width": 640, "height": 800, "supersample": 2, "hairStyle": "bun" if sex == "female" else "buzz", "hairStrands": 6000, "makeup": "none"}
 REGIONS = {"brows": [70, 63, 105, 66, 107, 300, 293, 334, 296, 336, 46, 53, 52, 65, 55, 276, 283, 282, 295, 285],
            "eyes": [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246, 263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466],
            "nose": [1, 2, 98, 327, 129, 358, 49, 279, 4, 5, 195, 197, 6, 168],
@@ -32,8 +35,8 @@ SKIP = [246, 161, 160, 159, 158, 157, 173, 7, 163, 144, 145, 153, 154, 155, 466,
 USE = np.ones(468, bool); USE[SKIP] = False
 
 def render():
-    out = f"{HERE}/fit/{sex}"
-    os.makedirs(f"{HERE}/fit", exist_ok=True)  # renders land beside the script; delete afterwards
+    out = f"{HERE}/fit/{group}-{sex}"
+    os.makedirs(f"{HERE}/fit", exist_ok=True)
     subprocess.run(["npx", "vite-node", f"{HERE}/fit_face.ts", json.dumps(opts), out], cwd=REPO, check=True, capture_output=True)
     d = json.load(open(out + ".verts.json"))
     rgba = np.frombuffer(open(out + ".rgba", "rb").read(), np.uint8).reshape(d["h"], d["w"], 4)
@@ -47,9 +50,16 @@ def similarity(A, B):
     U, S, Vt = np.linalg.svd(Ac.T @ Bc); M = (U @ Vt).T
     return S.sum() / (Ac ** 2).sum() * M
 
-def write(D):
-    data = json.load(open(DATA)); data[sex]["offsets"] = np.round(D, 3).tolist(); data[sex]["fitted"] = True
-    json.dump(data, open(DATA, "w"), separators=(",", ":"))
+import fcntl
+def write(D, residual=0.0):
+    # several fits may run at once: lock, read, change this type, write atomically
+    lock = open(DATA + ".lock", "w"); fcntl.flock(lock, fcntl.LOCK_EX)
+    data = json.load(open(DATA))
+    data["types"][key] = {"group": group, "sex": sex, "n": TG["n"], "residual": round(residual, 2), "mouthCorner": TG["mouthCorner"] if TG["mouthCorner"] is not None else (0.74 if sex == "female" else 0.86),
+        "offsets": np.round(D, 2).tolist(), "sources": [{"title": srcs[f]["title"], "page": srcs[f]["page"], "licence": srcs[f]["licence"], "licenceUrl": srcs[f].get("licenceUrl") or "",
+            "author": srcs[f].get("author") or "", "year": srcs[f].get("year"), "yaw": round(G[f]["yaw"], 1)} for f in TG["files"]]}
+    json.dump(data, open(DATA + ".tmp", "w"), separators=(",", ":"), ensure_ascii=False); os.replace(DATA + ".tmp", DATA)
+    fcntl.flock(lock, fcntl.LOCK_UN); lock.close()
 
 D = np.zeros((468, 3)); write(D)
 best = (1e9, D.copy()); prevQ = prevD = None; gain = np.ones(468); SR = None
@@ -63,7 +73,7 @@ for it in range(iters):
     R[~USE] = 0
     n = np.sqrt((R ** 2).sum(1)); rms = float(np.sqrt((n[USE] ** 2).mean()))
     by = {k: round(float(np.sqrt((n[[i for i in v if USE[i]]] ** 2).mean())), 2) for k, v in REGIONS.items()}
-    print(f"{sex} iteration {it}: rms {rms:.2f} mm, max {n.max():.2f}", by, flush=True)
+    print(f"{key} iteration {it}: rms {rms:.2f} mm, max {n.max():.2f}", by, flush=True)
     if rms < best[0]: best = (rms, D.copy())
     if prevQ is not None:
         # the detector's gain per landmark: seen movement along the commanded movement
@@ -81,5 +91,5 @@ for it in range(iters):
     D = D + step
     D[:, :2] = np.clip(D[:, :2], -8, 8)
     write(D)
-write(best[1])
-print("kept rms", round(best[0], 2), "written", DATA, flush=True)
+write(best[1], best[0])
+print("kept rms", round(best[0], 2), "written", key, flush=True)
