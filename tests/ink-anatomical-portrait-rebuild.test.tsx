@@ -92,6 +92,28 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
     expect(b).toContain('data-km-ink-hair="scholar"');
     expect((a.match(/clip-path="url\(#ink-a2-/g)||[]).length).toBeGreaterThan(2);
   });
+  it("retains historical head-to-robe scale and independent aged orbital/beard relief",()=>{
+    const scholar=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"scholar",emotion:"smile",detail:1,view:"bust"}));
+    const elder=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"elder",emotion:"sad",detail:1,view:"face"}));
+    for(const s of [scholar,elder]){
+      expect(s).toContain('data-km-ink-anatomic-bust-ratio=".69"');
+      expect(s).toContain('translate(83.7 130.2) scale(.69)');
+      expect(s).toContain('data-km-ink-face-sculpt="lower-third-continuous"');
+      expect(s).toContain('data-km-ink-hair=');
+      expect(s).not.toMatch(/(?:NaN|Infinity|undefined)/);
+    }
+    expect(elder).toContain('data-km-ink-age-anatomy="orbital-temporal-volume"');
+    expect((elder.match(/data-km-ink-age-frontal=/g)||[])).toHaveLength(4);
+    expect((elder.match(/data-km-ink-age-eye=/g)||[])).toHaveLength(2);
+    expect(elder).toContain('data-km-ink-beard-substrate="organic"');
+    expect((elder.match(/data-km-ink-beard-lock=/g)||[])).toHaveLength(5);
+    expect(scholar).not.toContain('data-km-ink-beard-substrate=');
+    expect(scholar).not.toContain('data-km-ink-age-anatomy=');
+    expect(scholar).toContain('viewBox="0 95 540 525"');
+    expect(elder).toContain('viewBox="100 112 345 419"');
+  });
   it("rejects invalid emotion and intensity instead of producing a broken SVG",()=>{
     expect(()=>inkPortraitAnatomy("scholar","surprise",NaN)).toThrow(RangeError);
     expect(()=>inkPortraitAnatomy("scholar","sad",-1)).toThrow(RangeError);
