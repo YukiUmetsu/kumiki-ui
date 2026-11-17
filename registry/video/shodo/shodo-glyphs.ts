@@ -642,10 +642,12 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
       strokes[i] = { ...st, points: [a, [Math.round(a[0] + (b[0] - a[0]) * .72), Math.round(a[1] + (b[1] - a[1]) * .74)], b] };
     }
     // 右払い: the pull-out leaves the foot flatter than KanjiVG draws it (秋's 火 read as a long dot).
+    // Only a real pull-out turns: the last segment of 辶's sweep is its whole tail.
     const sweep = strokes[i];
     if (footTurn && sweep.kind === "right-sweep" && resolveEnd(sweep) === "harai" && sweep.points.length >= 3) {
       const P = sweep.points, foot = P[P.length - 2], tip = P[P.length - 1];
       const len = Math.hypot(tip[0] - foot[0], tip[1] - foot[1]);
+      if (len > .5 * length(sweep)) return;
       const angle = Math.max(0, Math.atan2(tip[1] - foot[1], tip[0] - foot[0]) - footTurn * Math.PI / 180);
       strokes[i] = { ...sweep, points: [...P.slice(0, -1), [Math.round(foot[0] + Math.cos(angle) * len), Math.round(foot[1] + Math.sin(angle) * len)]] };
     }

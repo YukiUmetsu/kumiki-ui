@@ -637,7 +637,7 @@ Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/2
 
 **Measurement.** On her 99 右払い with a rules form, her pull-out leaves the foot at a median 21° below the horizontal (middle half 10° to 31°), ours at 34° (27° to 38°); her stroke turns 18° at the foot, ours 10°. The pull-out's length matches (0.23 against 0.24 of the stroke).
 
-**Change.** For KanjiVG kanji, `shodoKaishoForm` turns the pull-out 12° flatter, never above the horizontal (`footTurn`). On her ink, the 98 of her kanji with a 右払い gain on both halves: overlap +0.0036 and +0.0014 (30/8 and 26/15 characters better/worse); 8° gives +0.0030 and +0.0025, 16° +0.0045 and +0.0018 with a worse centreline on one half.
+**Change.** For KanjiVG kanji, `shodoKaishoForm` turns the pull-out 12° flatter, never above the horizontal (`footTurn`), when it is at most half of the stroke (辶's sweep ends in one long segment, its whole tail, which keeps its course; turning it lifted 辶 into the part above it). On her ink, the 98 of her kanji with a 右払い gain on both halves: overlap +0.0043 and +0.0014 (30/7 and 26/15 characters better/worse); 8° gives +0.0030 and +0.0025, 16° +0.0045 and +0.0018 with a worse centreline on one half.
 
 ## 3. From observation to model
 

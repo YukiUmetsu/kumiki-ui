@@ -292,6 +292,9 @@ describe("SHO1 shodō calligraphy", () => {
     const plain = pullOut(shodoKaishoForm(glyph, { footTurn: 0 })), turned = pullOut(shodoKaishoForm(glyph));
     expect(plain - turned).toBeGreaterThan(10);                                         // 12° by default
     expect(turned).toBeGreaterThan(0);                                                  // never above the horizontal
+    // 辶's sweep: its last segment is the whole tail, not a pull-out, and keeps its course.
+    const nyo: ShodoGlyph = { char: "乀", source: "kanjivg", strokes: [{ kind: "right-sweep", points: [[130, 730], [250, 710], [810, 830]] }] };
+    expect(Math.abs(pullOut(shodoKaishoForm(nyo)) - pullOut(shodoKaishoForm(nyo, { footTurn: 0 })))).toBeLessThan(1);
   });
 
   it("cuts a KanjiVG entry curl at its length, not at the next sparse sample (用 keeps its corner)", () => {
