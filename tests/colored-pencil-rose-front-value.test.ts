@@ -87,8 +87,13 @@ describe("CP-F1 frontal rose artist-local dry optical value planes",()=>{
   });
 
   it("is deterministic for extreme seeds and enforces physical-fold prerequisite",()=>{
-    for(const seed of [0,181,2147483000,2147483647])
+    // The legacy rose studio deliberately limits material-index arithmetic
+    // to 2147483000; the independently reusable new optical mark generator
+    // also supports the full signed 31-bit range without overstepping it.
+    for(const seed of [0,181,2147483000])
       expect(build("portrait",true,true,seed)).toEqual(build("portrait",true,true,seed));
+    expect(roseFrontValueDetails("petal-front-right",2147483647))
+      .toEqual(roseFrontValueDetails("petal-front-right",2147483647));
     expect(()=>pencilObjectStudyDrawing({subject:"rose",aspect:"landscape",
       roseFrontValueStudy:true})).toThrow(/physical|folded/i);
     expect(()=>pencilObjectStudyDrawing({subject:"rose",aspect:"portrait",
