@@ -23,6 +23,8 @@ The earlier center study had six named surfaces and a separate scroll reverse, b
 
 **Root cause:** the topology was wrong before the pencil material was applied. The renderer correctly deposited too many continuous curved traces over a cluster of similar radial shapes. The solution is not stronger contrast, more noise, a blur, or additional outline density.
 
+**FLORA1 lookup:** the current `registry/anatomy/plant-species.ts` has no `Rosa` entry. This isolated object study therefore uses generic, unidentified garden-rose morphology only; it makes no species, cultivar, regional bloom-calendar or measured botanical-size claim. A future whole-plant rose study must add a properly sourced FLORA1 record before using the species-specific plant generator.
+
 ## Reconstructed topology
 
 | Surface | New morphological role | Geometry / material change |
