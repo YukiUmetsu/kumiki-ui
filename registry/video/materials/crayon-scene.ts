@@ -567,6 +567,8 @@ export function inspectCrayonScene(input: unknown): string[] {
       if (!parent) { errors.push("elements["+index+"].parentId does not exist"); continue; }
       if (!!parent.screenSpace !== !!node.screenSpace)
         errors.push("elements["+index+"].parentId crosses screenSpace boundary");
+      if ((parent.renderLayer??"normal")!==(node.renderLayer??"normal"))
+        errors.push("elements["+index+"].parentId crosses renderLayer boundary");
       const visited=new Set<string>([node.id]);
       let cursor:CrayonElement | undefined=parent;
       while (cursor) {
