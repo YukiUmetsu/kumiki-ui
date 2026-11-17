@@ -706,13 +706,14 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
         s.d===originalNeutralSeam)).toBe(false);
       const warped=active.slice(0,4);
       for(let i=0;i<4;i++){
-        expect(warped[i]).toMatchObject({
-          type:"path",fill:old[i].fill,stroke:old[i].stroke,
-          strokeWidth:old[i].strokeWidth,opacity:old[i].opacity,
+        const current=warped[i],original=old[i];
+        expect(current).toMatchObject({
+          type:"path",fill:original.fill,stroke:original.stroke,
+          strokeWidth:original.strokeWidth,opacity:original.opacity,
         });
-        if(warped[i].type!=="path"||old[i].type!=="path")
+        if(current.type!=="path"||original.type!=="path")
           throw Error("Active anatomical lip must remain a path");
-        expect(warped[i].d).not.toEqual(old[i].d);
+        expect(current.d).not.toEqual(original.d);
       }
       // The long neutral 14px line must now lie ABOVE the speaking
       // negative space, not bisecting its apparent opening.
