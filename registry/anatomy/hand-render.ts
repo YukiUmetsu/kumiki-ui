@@ -118,7 +118,8 @@ function buildScene(ph: PosedHand) {
   const thenar: Ellip = { c: add(add(tm, sc(pz, -P.thick * 0.18)), sc(pxv, -t.breadth * 0.05)), e1: tmd, e2: nrm(cross(pz, tmd)), e3: pz, r: [len(sub(thumbMeta.b, thumbMeta.a)) * 0.62, t.breadth * (0.15 + 0.04 * t.muscle + 0.03 * fat), P.thick * (0.34 + 0.08 * t.muscle + 0.06 * fat)] };
   const hypo: Ellip = { c: W([-0.33 * t.breadth, 0.4 * P.mcpY, -P.thick * 0.12]), e1: py, e2: pxv, e3: pz, r: [P.mcpY * 0.36, t.breadth * (0.12 + 0.03 * t.muscle + 0.03 * fat), P.thick * (0.3 + 0.06 * t.muscle + 0.06 * fat)] };
   // the back of the hand's soft tissue over the metacarpals (fills the valleys between them; thin on lean, old hands)
-  const dorsal: Ellip = { c: W([0.0, 0.52 * P.mcpY, P.thick * (0.16 - 0.1 * kn)]), e1: py, e2: pxv, e3: pz, r: [P.mcpY * 0.5, P.mcpHalf * 0.86, P.thick * (0.3 + 0.08 * fat - 0.12 * kn)] };
+  // (it ends below the knuckles and blends wide, so no ledge forms where it stops)
+  const dorsal: Ellip = { c: W([0.0, 0.45 * P.mcpY, P.thick * (0.14 - 0.1 * kn)]), e1: py, e2: pxv, e3: pz, r: [P.mcpY * 0.42, P.mcpHalf * 0.84, P.thick * (0.28 + 0.08 * fat - 0.12 * kn)] };
   const palmCore: Ellip = { c: W([0.02 * t.breadth, 0.55 * P.mcpY, -P.thick * 0.08]), e1: py, e2: pxv, e3: pz, r: [P.mcpY * 0.5, P.mcpHalf * 0.92, P.thick * 0.42] };
   const wrist = { a: W([0, 0.16 * t.length, -P.thick * 0.05]), b: [0, -0.26 * t.length, 0] as Vec3, rx: P.wristHalf * 0.95, rz: P.wristThick * 0.48 };
   // dimples over a child's knuckles; tendons and veins on the back of lean or old hands
@@ -150,15 +151,16 @@ function palmSDF(s: Scene, p: Vec3): number {
   const kMeta = 9 + 9 * (1 - s.kn) * (0.6 + 0.4 * Math.min(1, s.fat * 2));
   for (const m of s.metas) d = smin(d, roundCone(q, m.a, m.b, m.ra, m.rb), kMeta);
   d = smin(d, ellipsoid(p, s.palmCore.c, s.palmCore.e1, s.palmCore.e2, s.palmCore.e3, s.palmCore.r), 8);
-  d = smin(d, ellipsoid(p, s.dorsal.c, s.dorsal.e1, s.dorsal.e2, s.dorsal.e3, s.dorsal.r), 10);
+  d = smin(d, ellipsoid(p, s.dorsal.c, s.dorsal.e1, s.dorsal.e2, s.dorsal.e3, s.dorsal.r), 18);
   d = smin(d, ellipsoid(p, s.thenar.c, s.thenar.e1, s.thenar.e2, s.thenar.e3, s.thenar.r), 7);
   d = smin(d, ellipsoid(p, s.hypo.c, s.hypo.e1, s.hypo.e2, s.hypo.e3, s.hypo.r), 7);
   // the wrist: an elliptic round cone toward the forearm
   {
     const w = s.wrist, ax = nrm(sub(w.b, w.a)), rel = sub(p, w.a), along = dot(rel, ax), perp = sub(rel, sc(ax, along));
     const xz = dot(perp, nrm(cross(ax, pz))), zz = dot(perp, pz), rr = Math.hypot(xz / w.rx, zz / w.rz) * Math.min(w.rx, w.rz) - Math.min(w.rx, w.rz);
-    const L = len(sub(w.b, w.a)), dw = Math.max(rr, along - L);
-    d = smin(d, Math.max(dw, -along - 6), 20);
+    // above its start the wrist narrows into the palm (half a millimetre per millimetre) and ends inside it: no cap edge
+    const L = len(sub(w.b, w.a)), dw = Math.max(rr + Math.max(0, -along) * 0.5, along - L);
+    d = smin(d, Math.max(dw, -along - 40), 14);
   }
   // tendons and veins lie under the skin: their ridges are blended wide unless the hand is lean or old
   for (const tdn of s.tendons) d = smin(d, capsule(p, tdn.a, tdn.b, tdn.r), 2.5 + 3 * (1 - s.t.tendons));
