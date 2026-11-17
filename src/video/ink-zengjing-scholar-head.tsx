@@ -251,7 +251,7 @@ export function InkZengJingScholarHead({
         const side=i<16?-1:1,k=i%16;
         const x=270+side*(3+k*.63);
         const y=365+(k%5)*2.2;
-        return <path key={i} d={`M${n(x)} ${n(y)} q${n(side*(1.5+k*.12))} 10 ${n(side*(2+k*.15)} ${n(20+k*.5)}`}
+        return <path key={i} d={`M${n(x)} ${n(y)} q${n(side*(1.5+k*.12))} 10 ${n(side*(2+k*.15))} ${n(20+k*.5)}`}
           stroke={i%4===0?"#d6c6ac":"#69665e"}
           strokeWidth={.25+(i%3)*.1} opacity={.34+(i%4)*.07}
           fill="none" strokeLinecap="round"/>;
