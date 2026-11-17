@@ -21,7 +21,7 @@ const witnesses=[
 ] as const;
 export const CRAYON_F1_V48_SOURCE_SHA=CRAYON_PORTRAIT_AUDIT.source.sha256;
 export const CRAYON_F1_V48_WITNESSES=Object.freeze(witnesses);
-function field(index:number,color:string,radiusX:number,radiusY:number,
+function field(index:number,color:CrayonUnderpaintField["color"],radiusX:number,radiusY:number,
   strength:number):CrayonUnderpaintField{
   const [x,y]=witnesses[index].at;
   return Object.freeze({x:Number(((x-bounds.x)/bounds.width).toFixed(5)),
