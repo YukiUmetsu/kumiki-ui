@@ -42,7 +42,7 @@ Python pipeline paints it on a photograph (`makeup.py apply --plan`).
 |---|---|---|
 | Atlas | `data/makeup-zones.json`, `makeup-zones.ts` | 38 zones (foundation, under-eye, tear trough, cheek, temple, jaw and nose contour, five highlights, bronzer, five blush placements, lid, crease, outer V, inner corner, lower lash line, liner, wing, puppy wing, inner-corner liner, lower liner, aegyo-sal and its shadow, tear mole, brow, straight brow, lips, liner, lip centre, gloss). A point with `surface: true` sits on the face's skin under its (x, y); 14 products with film opacity and finish; 8 finishes with roughness, specular and sparkle. `zoneField`, `resolveZone`, `zoneOutline`, `eyeWidth`. The parity fixture (`makeup.py parity`) holds Python's weights at sample points, along every stroke and with every adjustment, and the tests compare TypeScript with them. |
 | Colour | `makeup-color.ts` | `deltaE2000`, `lch`, `readSkin` (ITA, undertone), `UNDERTONE_REF`, `filmStep`, `pigmentFor`, `basePalette` (foundation, concealer, corrector, contour, bronzer, highlight), `BLUSH_FAMILIES`, `blushOn`, `LIP_FAMILIES`, `lipColour`, `EYE_COMPLEMENTS`, `irisFamily`, `browColour`, `HEALTHY_SHIFT`. |
-| Knowledge | `makeup-data.ts` | `MAKEUP_EVIDENCE` (graded findings with sources), `FACE_SHAPE_RULES`, `EYE_RULES`, `BROW_RULES`, `EYE_SHAPE_RULES`, `MAKEUP_LOOKS` (17 looks, five of them East Asian), `MAKEUP_LEARNED`. |
+| Knowledge | `makeup-data.ts` | `MAKEUP_EVIDENCE` (graded findings with sources), `FACE_SHAPE_RULES`, `EYE_RULES`, `EYE_SHAPE_RULES`, `MAKEUP_LOOKS` (17 looks, five of them East Asian), `MAKEUP_LEARNED`. |
 | Design | `makeup-design.ts` | `analyzeFace` (shape, eye spacing, tilt, lip ratio, brow peak), `designMakeup` (look + skin + face + iris + hair -> `MakeupPlan` with reasons and eye tools), `tapedEyeShape`, `checkMakeup`, `planSwatches`. |
 | Paint | `makeup-paint.ts` | `makeupPaint(plan)` (the `SkinPaint` that `renderPortrait` calls), `makeupPortraitOptions(portrait, plan)` (paint, tape and no built-in makeup), `wearsMakeup(plan)` (false for a bare plan), `wornFace(portrait, plan)` (the face with its tape, for checks and charts), `paintPhoto(photo, plan)`, `restFrame(landmarks)`. |
 | React | `makeup-react.tsx` | `MakeupPortrait`, `FaceChart`, `MakeupSwatches`, `MakeupChecks`, `UndertonePlane`, `LearnedEffects`, `LearnedContrast`, `BeautyCorrelations`, `MakeupEvidenceList`. |
@@ -94,8 +94,9 @@ caps, and are not used at 0:
   14 mm, and no styled lower lash is longer than 8 mm. A single lid's fold presses bare lashes down, so from
   the front they hardly show. Styled (false) lashes are curled and glued on, so they rise past the fold.
   `styleStrength` (0-1) fades a style in. `designMakeup` sets it from the intensity, so a low intensity does not give
-  a full set of false lashes. `curl` (0-1) lifts lashes past a single lid as false lashes do: a look that wears mascara
-  curls its lashes (a lash curler). Lower lashes drawn with liner take the liner's colour (`lower.colour`).
+  a full set of false lashes. `curl` (0-1) lifts lashes past a single lid as false lashes do: a look curls its lashes in
+  proportion to its mascara (a lash curler). Lower lashes drawn with liner take the lower liner's colour, or the upper liner's
+  (`lower.colour`).
 - **Lens:** `eyes.lens` with the tinted `diameter` (12.5-14.5 mm, a natural iris is about 11.7 mm), the limbal `ring`
   and a `tint`. The tint starts outside the pupil. The renderer keeps the diameter between just past the pupil and
   15 mm.
@@ -112,9 +113,9 @@ and `lens-size` (14.5 mm at most). Storybook: Makeup → East Asian looks.
 
 Rules for any face:
 
-- **Brows that peak early.** Some faces have a brow that peaks before 55% of the eye width (common in East Asian
-  faces). On these, an arched `brow` fill becomes `brow-straight` (`BROW_RULES`). An arch at 71% would paint brow over
-  bare skin.
+- **Brows that peak early.** Many East Asian and male brows peak before 55% of the eye width. The `brow` fill follows
+  the face's own brow, so on these faces it peaks between the brow's own peak and 71%. The `brow-peak` check accepts a
+  peak from the face's own peak outward.
 - **Lip contrast either way.** `lip-contrast` takes the size of the difference. On deep skin a rose or pink lipstick is
   lighter than the skin, and that counts. A sheer light lip that lands at the skin's own value does not.
 - **Plans saved earlier.** `MakeupPlan.eyes` and `brows.straight` are optional: plans saved before the eye tools still

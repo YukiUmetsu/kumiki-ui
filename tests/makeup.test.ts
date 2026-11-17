@@ -166,12 +166,12 @@ describe("MAKEUP1 eye tools in the plan", () => {
   it("scales the eye tools with intensity inside their caps", () => {
     const look: Look = { id: "t", label: "t", summary: "", layers: [], evidence: [], lashes: { length: 1.3, thickness: 1.2, darkness: 1, style: "spiky" }, eyes: { lens: { diameter: 14.5, ring: 0.8 }, tape: 1 }, brows: { density: 1, straight: 0.8 } };
     const strong = designMakeup({ look, face, intensity: 1.5 });
-    expect(strong.eyes!.lens!.diameter).toBeLessThanOrEqual(14.5); expect(strong.eyes!.tape).toBeLessThanOrEqual(1);
+    expect(strong.eyes.lens!.diameter).toBeLessThanOrEqual(14.5); expect(strong.eyes.tape).toBeLessThanOrEqual(1);
     expect(strong.lashes.style).toBe("spiky"); expect(strong.brows.straight).toBeLessThanOrEqual(1);
     expect(strong.lashes.styleStrength).toBe(1);
     expect(designMakeup({ look, face, intensity: 0.1 }).lashes.styleStrength).toBeCloseTo(0.1, 6);
     const bare = designMakeup({ look, face, intensity: 0 });
-    expect(bare.eyes!.lens).toBeUndefined(); expect(bare.eyes!.tape).toBe(0); expect(bare.brows.straight).toBe(0);
+    expect(bare.eyes.lens).toBeUndefined(); expect(bare.eyes.tape).toBe(0); expect(bare.brows.straight).toBe(0);
     // a bare plan renders the bare portrait; a plan with only lashes is still made up
     expect(wearsMakeup(bare)).toBe(false); expect(wearsMakeup(designMakeup({ look: "bare", face }))).toBe(false);
     expect(wearsMakeup(designMakeup({ look: { id: "l", label: "l", summary: "", evidence: [], layers: [], lashes: { length: 1.3, thickness: 1, darkness: 0.5 } }, face }))).toBe(true);
@@ -204,8 +204,7 @@ describe("MAKEUP1 plans adapt and stay readable", () => {
   it("tapes the face's own eye shape, and leaves measured lids (no eye shape) as they are", () => {
     const plan = designMakeup({ look: "neo-gyaru", face: eastAsian });
     expect(makeupPortraitOptions({ width: 64, height: 80 }, plan).eyeShape).toBeUndefined();
-    const own = beautifulFace({ faceType: "east-asian" }).eyeShape;
-    if (own) expect((makeupPortraitOptions({ faceType: "east-asian", width: 64, height: 80 }, plan).eyeShape as { id: string }).id).toBe(`${own.id}+tape`);
+    expect((makeupPortraitOptions({ faceType: "east-asian", eyeShape: "monolid", width: 64, height: 80 }, plan).eyeShape as { id: string }).id).toBe("monolid+tape");
   });
   it("checks a taped plan on the face it renders (wornFace): tape opens the eye", () => {
     const portrait = { sex: 0, faceType: "east-asian" as const, eyeShape: "monolid" };
@@ -222,14 +221,18 @@ describe("MAKEUP1 plans adapt and stay readable", () => {
     const flat: Look = { id: "flat", label: "flat", summary: "", evidence: [], layers: [{ zone: "lips", colour: { kind: "skin", dL: 0 }, coverage: 1 }] };
     expect(checkMakeup(designMakeup({ look: flat, face: eastAsian, skin: "#6b4430" }), eastAsian).find(c => c.id === "lip-contrast")!.ok).toBe(false);
   });
-  it("keeps a brow that peaks early straight instead of drawing an arch over bare skin", () => {
-    const ea = designMakeup({ look: "classic-red", face: eastAsian });
-    expect(ea.layers.some(l => l.zone === "brow")).toBe(false);
-    expect(ea.layers.some(l => l.zone === "brow-straight")).toBe(true);
-    expect(checkMakeup(ea, eastAsian).every(c => c.id !== "brow-peak")).toBe(true);
-    const other = designMakeup({ look: "classic-red", face });
-    expect(other.layers.some(l => l.zone === "brow")).toBe(true);
-    expect(checkMakeup(other, face).find(c => c.id === "brow-peak")!.ok).toBe(true);
+  it("fills a brow that peaks early along its own line, and the brow-peak check accepts it", () => {
+    for (const V of [eastAsian, beautifulFace({ sex: 1 }).vertices, face]) {
+      const plan = designMakeup({ look: "classic-red", face: V });
+      expect(plan.layers.some(l => l.zone === "brow")).toBe(true);
+      expect(plan.layers.some(l => l.zone === "brow-straight")).toBe(false);
+      expect(checkMakeup(plan, V).find(c => c.id === "brow-peak")!.ok).toBe(true);
+      // the caller can still remove the brow
+      expect(designMakeup({ look: "classic-red", face: V, overrides: { brow: false } }).layers.some(l => l.zone.startsWith("brow"))).toBe(false);
+    }
+    // a fill pulled toward the brow head peaks neither at 71% nor where this brow does
+    const pulled = designMakeup({ look: "classic-red", face: eastAsian, overrides: { brow: { adjust: { scale: 0.45 } } } });
+    expect(checkMakeup(pulled, eastAsian).find(c => c.id === "brow-peak")!.ok).toBe(false);
   });
   it("scales brow density with the intensity, colours drawn lower lashes like the liner, and curls mascaraed lashes", () => {
     expect(designMakeup({ look: "k-idol", face, intensity: 0 }).brows.density).toBe(1);
@@ -239,6 +242,11 @@ describe("MAKEUP1 plans adapt and stay readable", () => {
     expect(designMakeup({ look: "classic-red", face }).lashes.curl).toBe(1);
     expect(designMakeup({ look: "classic-red", face, intensity: 0.5 }).lashes.curl).toBeCloseTo(0.5, 6);
     expect(designMakeup({ look: "bare", face }).lashes.curl ?? 0).toBe(0);
+    // a touch of mascara (no-makeup makeup, length 1.08) curls a little, not a full fan
+    expect(designMakeup({ look: "no-makeup", face }).lashes.curl).toBeCloseTo(0.32, 6);
+    // drawn lower lashes follow the lower liner when the look has one (c-glam: a brown lower liner, a black upper one)
+    const drawn = designMakeup({ look: "c-glam", face }).lashes.lower!.colour!;
+    expect(drawn[0]).toBeGreaterThan(drawn[2] * 1.3);
   });
 });
 

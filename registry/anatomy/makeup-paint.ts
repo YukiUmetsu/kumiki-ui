@@ -99,7 +99,8 @@ export function wearsMakeup(plan: MakeupPlan): boolean {
 
 /**
  * Portrait options that wear a plan: its paint, the eye shape with its tape, and none of the renderer's own makeup unless
- * `portrait.makeup` asks for it. For `renderPortrait` or `FacePortrait`.
+ * `portrait.makeup` asks for it. For `renderPortrait` on the page's thread; `MakeupPortrait` renders a plan in a worker
+ * (a paint cannot go to one).
  */
 export function makeupPortraitOptions(portrait: PortraitOptions, plan: MakeupPlan): PortraitOptions {
   const options: PortraitOptions = { makeup: "none", ...portrait, paint: makeupPaint(plan) }, taped = tapedShape(portrait, plan);

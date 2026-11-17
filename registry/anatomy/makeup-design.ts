@@ -16,7 +16,7 @@ import { hairColorHex } from "./anatomy-color";
 import { createFace } from "./anatomy-face";
 import { basePalette, blushOn, BLUSH_FOR, browColour, deltaE2000, EYE_COMPLEMENTS, hexToLab, irisFamily, labToHex, labToLinear, lipColour, readSkin, RED_FOR } from "./makeup-color";
 import type { BlendMode, SkinReading, Undertone } from "./makeup-color";
-import { BROW_RULES, EYE_RULES, EYE_SHAPE_RULES, FACE_SHAPE_RULES, findLook, learnedR, MAKEUP_LEARNED } from "./makeup-data";
+import { EYE_RULES, EYE_SHAPE_RULES, FACE_SHAPE_RULES, findLook, learnedR, MAKEUP_LEARNED } from "./makeup-data";
 import type { ColourRule, FaceShape, Look, LookLayer } from "./makeup-data";
 import { eyeWidth, findZone, MAKEUP_ATLAS, resolveZone } from "./makeup-zones";
 import type { FinishId, ProductId, ZoneAdjust } from "./makeup-zones";
@@ -111,6 +111,8 @@ export interface MakeupPlan {
   brows: { colour: Lab; density: number; straight?: number };
   rationale: string[];
 }
+/** A plan as `designMakeup` makes it: the eye tools and the brow straightening are always there. */
+export type DesignedPlan = MakeupPlan & { eyes: NonNullable<MakeupPlan["eyes"]>; brows: Required<MakeupPlan["brows"]> };
 export interface DesignOptions {
   look?: string | Look;
   /** The skin's colour (sRGB hex, e.g. a Monk Skin Tone, or CIELAB). */
@@ -163,7 +165,7 @@ function resolveColour(rule: ColourRule, skin: SkinReading, eyes: string, hair: 
 }
 
 /** Design a look for a face: colours from the skin, iris and hair; placement from the face's shape and eyes. */
-export function designMakeup(o: DesignOptions = {}): MakeupPlan {
+export function designMakeup(o: DesignOptions = {}): DesignedPlan {
   const look = typeof o.look === "object" ? o.look : findLook(o.look ?? "soft-glam");
   if (!look) throw new Error(`MAKEUP1: unknown look "${String(o.look)}"`);
   const reading = readSkin(o.skin ?? "#d8a98a");
@@ -205,10 +207,6 @@ export function designMakeup(o: DesignOptions = {}): MakeupPlan {
       rationale.push(`Canthal tilt ${analysis.canthalTilt.toFixed(1)} deg: ${EYE_RULES.upturned.note}`);
       layers = layers.map(l => (l.zone === "liner-wing" ? { ...l, adjust: { ...l.adjust, rotate: (l.adjust?.rotate ?? 0) + 6 } } : l));
     }
-    if (analysis.browPeak < BROW_RULES.earlyPeak.below && layers.some(l => l.zone === "brow")) {
-      rationale.push(`Brow peak at ${(analysis.browPeak * 100).toFixed(0)}% of the eye width: ${BROW_RULES.earlyPeak.note}`);
-      layers = layers.map(l => (l.zone === "brow" ? { ...l, zone: "brow-straight", adjust: undefined } : l));
-    }
   }
   // the eye shape (ANAT1's EYE_SHAPES): placement for hooded, single and in-fold lids, tilts and depths
   const shapeRule = o.eyeShape ? EYE_SHAPE_RULES[o.eyeShape] : undefined;
@@ -235,9 +233,9 @@ export function designMakeup(o: DesignOptions = {}): MakeupPlan {
   const lens: LensSpec | undefined = ln && k > 0 ? { diameter: 11.7 + (ln.diameter - 11.7) * k1, ring: ln.ring * k1, ...(ln.tint ? { tint: labToLinear(hexToLab(ln.tint)) } : {}) } : undefined;
   // lower lashes drawn with liner take the liner's colour; mascara goes on curled lashes (a curler lifts them past a
   // single lid's fold), so a look with mascara (longer lashes) curls them unless it says otherwise
-  const liner = out.find(l => l.zone === "liner" && "lab" in l.colour)?.colour as { lab: Lab } | undefined;
+  const liner = (out.find(l => l.zone === "liner-lower" && "lab" in l.colour) ?? out.find(l => l.zone === "liner" && "lab" in l.colour))?.colour as { lab: Lab } | undefined;
   const lower = lash.lower && k > 0 ? { length: 1 + (lash.lower.length - 1) * k, darkness: 0.5 + (lash.lower.darkness - 0.5) * k1, drawn: Math.round(lash.lower.drawn * k1), ...(liner && lash.lower.drawn > 0 ? { colour: labToLinear(liner.lab) } : {}) } : undefined;
-  const curl = (lash.curl ?? (lash.length > 1 ? 1 : 0)) * k1;
+  const curl = (lash.curl ?? Math.min(1, Math.max(0, (lash.length - 1) / 0.25))) * k1;
   return {
     schema: "kumiki.makeup.plan/1", look: look.id, label: look.label, intensity, skin, analysis, layers: out,
     lashes: { length: 1 + (lash.length - 1) * k, thickness: 1 + (lash.thickness - 1) * k, darkness: 0.5 + (lash.darkness - 0.5) * k1, ...(lash.style && k > 0 ? { style: lash.style, styleStrength: k1 } : {}), ...(curl > 0 ? { curl } : {}), ...(lower ? { lower } : {}) },
@@ -325,16 +323,16 @@ export function checkMakeup(plan: MakeupPlan, V: readonly Vec3[]): MakeupCheck[]
     const lipL = target * lips.coverage + natural[0] * (1 - lips.coverage);
     // contrast is a difference either way: on deep skin a rose or pink lipstick is lighter than the skin
     const c = (plan.skin.lab[0] - lipL) / (plan.skin.lab[0] + lipL), made = MAKEUP_LEARNED.contrast.made_up.lips.L, bare = MAKEUP_LEARNED.contrast.bare.lips.L;
-    out.push({ id: "lip-contrast", ok: Math.abs(c) >= bare.median - 0.02, rule: "Makeup raises lip contrast (Russell 2009; Jones et al. 2015). The learned data is mostly light skin, so on deep skin a lighter lip counts too.",
+    out.push({ id: "lip-contrast", ok: Math.abs(c) >= bare.median - 0.02, rule: "Makeup raises lip contrast (Russell 2009; Jones et al. 2015). Contrast is a difference either way: a lip lighter than the skin counts too (on deep skin, rose and pink lipsticks are).",
       message: `Lip luminance contrast about ${Math.abs(c).toFixed(2)}${c < 0 ? " (the lips lighter than the skin)" : ""}; bare faces in the learned data ${bare.median.toFixed(2)}, made-up ${made.p25.toFixed(2)}-${made.p75.toFixed(2)}.` });
   }
   const brow = layer("brow");
   if (brow) {
     // the brow fill's upper edge (its first six points run from the head to the tail): where is its highest point?
     const pts = resolveZone("brow", V, brow.adjust)[0].pts.slice(0, 6), top = pts.reduce((p, q) => (q[1] > p[1] ? q : p));
-    const frac = (top[0] - V[133][0]) / (V[33][0] - V[133][0]), ok = frac >= 0.55 && frac <= 1;
-    out.push({ id: "brow-peak", ok, rule: "Brow peak near 71% of the eye width (the lateral limbus) and no further out than the outer canthus (Griffin & Kim review).",
-      message: `The filled brow peaks at ${(frac * 100).toFixed(0)}% of the eye width (this face's own brow: ${(analyzeFace(V).browPeak * 100).toFixed(0)}%).` });
+    const frac = (top[0] - V[133][0]) / (V[33][0] - V[133][0]), own = analyzeFace(V).browPeak, ok = frac >= Math.min(0.55, own - 0.1) && frac <= 1;
+    out.push({ id: "brow-peak", ok, rule: "Brow peak near 71% of the eye width (the lateral limbus) and no further out than the outer canthus (Griffin & Kim review). A brow that peaks earlier by nature (many East Asian and male brows) may peak anywhere from its own peak outward.",
+      message: `The filled brow peaks at ${(frac * 100).toFixed(0)}% of the eye width (this face's own brow: ${(own * 100).toFixed(0)}%).` });
   }
   return out;
 }

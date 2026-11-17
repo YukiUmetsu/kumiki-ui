@@ -96,8 +96,10 @@ function Lab() {
   const face = useMemo(() => beautifulFace(portrait).vertices, [s.sex, s.faceWidth, s.lowerFace, s.eyeShape]); // eslint-disable-line react-hooks/exhaustive-deps
   const plan: MakeupPlan = useMemo(() => {
     const p = designMakeup({ look: labLook(s), skin: s.skin, eyes: s.eyes, eyeShape: s.eyeShape, hair: hairOf(s.hair), face, intensity: s.intensity, undertone: s.undertone || undefined, faceShape: s.faceShape || undefined });
-    return s.mascara ? { ...p, lashes: { ...p.lashes, length: p.lashes.length * (1 + s.mascara), thickness: p.lashes.thickness * (1 + s.mascara * 0.8) } } : p;
+    // extra mascara goes on curled lashes too
+    return s.mascara ? { ...p, lashes: { ...p.lashes, length: p.lashes.length * (1 + s.mascara), thickness: p.lashes.thickness * (1 + s.mascara * 0.8), curl: Math.max(p.lashes.curl ?? 0, Math.min(1, s.mascara / 0.25)) } } : p;
   }, [s, face]);
+  const worn = useMemo(() => wornFace(portrait, plan), [plan, face]); // eslint-disable-line react-hooks/exhaustive-deps
   const skinOpts = [...SKINS, ...MONK_SKIN_TONES.map(t => t.hex)].filter((v, i, a) => a.indexOf(v) === i);
   return (
     <div style={{ ...page, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))" }}>
@@ -144,11 +146,11 @@ function Lab() {
         <h3 style={h3}>Why these choices</h3>
         <ul style={{ ...muted, paddingLeft: 18, display: "grid", gap: 4 }}>{plan.rationale.map((r, k) => <li key={k}>{r}</li>)}</ul>
         <h3 style={h3}>Checks</h3>
-        <MakeupChecks plan={plan} face={face} />
+        <MakeupChecks plan={plan} face={worn} />
         <h3 style={h3}>Colours</h3>
         <MakeupSwatches plan={plan} />
         <h3 style={h3}>Face chart</h3>
-        <div style={{ maxWidth: 560 }}><FaceChart face={face} plan={plan} title={`${plan.label}: where each product goes on this face`} /></div>
+        <div style={{ maxWidth: 560 }}><FaceChart face={worn} plan={plan} title={`${plan.label}: where each product goes on this face`} /></div>
       </div>
     </div>
   );

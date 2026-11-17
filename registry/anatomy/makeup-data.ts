@@ -120,13 +120,6 @@ export const EYE_RULES = {
   upturned: { above: 7, note: "Strong upward tilt: a flatter wing keeps it from looking severe." },
 } as const;
 
-/** Brow placement (convention): a brow whose own highest point lies before this share of the eye width runs straight
- * (common in East Asian faces). Filling it with an arch at 71% would paint brow over bare skin, so it is filled
- * straight. */
-export const BROW_RULES = {
-  earlyPeak: { below: 0.55, note: "This face's own brow peaks early and runs straight: fill it straight, not with an arch drawn over bare skin. Straighter brows also make the eyes look larger (Morikawa et al. 2015)." },
-} as const;
-
 /** Eye-shape placement (makeup-artist convention) for ANAT1's eye shapes (eye-detail.ts EYE_SHAPES): per zone, a
  * coverage factor and an adjustment. */
 export const EYE_SHAPE_RULES: Record<string, { note: string; zones: Record<string, { coverage?: number; adjust?: ZoneAdjust }> }> = {

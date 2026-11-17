@@ -112,7 +112,7 @@ export interface SkinPaintSample {
  * An interface, so this file needs no import from the packs that build on it (MAKEUP1 implements it).
  */
 export interface SkinPaint {
-  /** A stable description of the paint: FacePortrait re-renders when it changes. */
+  /** A stable description of the paint: a render cache keys on it. */
   key: string;
   prepare?(neutral: readonly Vec3[]): void;
   shade(rest: Vec3, s: SkinPaintSample): void;
