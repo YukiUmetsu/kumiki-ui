@@ -1034,8 +1034,10 @@ export function renderHairStrands(out: Raster, groom: HairGroom, view: HairRende
       const si = clamp(dot(L, t), -1, 1), sr = clamp(dot(v, t), -1, 1), thI = Math.asin(si), thR = Math.asin(sr), thH = (thI + thR) / 2, thD = (thR - thI) / 2;
       const lp = nrm(sub(L, sc(t, si))), vp = nrm(sub(v, sc(t, sr))), phi = Math.acos(clamp(dot(lp, vp), -1, 1));
       const cosD = Math.cos(thD), fr = 0.046 + (1 - 0.046) * Math.pow(1 - cosD * Math.cos(phi / 2), 5);
-      const MR = lobe(thH, aR, bR), MTT = lobe(thH, -aR / 2, bR / 2), MTRT = lobe(thH, -1.5 * aR, bR * 2);
-      const NR = 0.25 * Math.cos(phi / 2) * fr, path = 2 / Math.max(0.3, cosD);
+      // the key is a softbox about 20° across, not a point: its reflection (R) is a broad, bright, colourless band — on dark
+      // hair the brightest thing in the hair (the lobe widened by the light's size, its energy kept)
+      const MR = lobe(thH, aR, Math.hypot(bR, 0.09)), MTT = lobe(thH, -aR / 2, bR / 2), MTRT = lobe(thH, -1.5 * aR, bR * 2);
+      const NR = 0.25 * Math.cos(phi / 2) * fr * 2.6, path = 2 / Math.max(0.3, cosD);
       const diff = Math.sqrt(Math.max(0, 1 - si * si));
       // the fill's own sheen keeps the shadow side reading as hair
       let specF = 0;
