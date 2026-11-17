@@ -40,9 +40,22 @@ async({page},info)=>{
 
   await studio.getByRole("combobox",{name:"RISO79 source microscope zoom"}).selectOption("3");
   await expect(print.locator("[data-km-riso80-organic-contour]")).toHaveCount(3);
-  await studio.locator("[data-km-riso79-film]").screenshot({
-    path:info.outputPath("riso80-organic-cut-edge-3x.png"),animations:"disabled",
-  });
+  const lensX=studio.getByRole("slider",{name:"RISO79 lens X"});
+  const captureContour=async(x:number,name:string)=>{
+    await lensX.evaluate((el,value)=>{
+      const input=el as HTMLInputElement;
+      input.value=String(value);
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+    },x);
+    await expect(studio).toHaveAttribute("data-km-riso80-lens-x",String(x));
+    await studio.locator("[data-km-riso79-film]").screenshot({
+      path:info.outputPath(name),animations:"disabled",
+    });
+  };
+  await captureContour(55,"riso80-organic-leaf-cut-edge-3x.png");
+  await captureContour(68,"riso80-organic-s-curve-cut-edge-3x.png");
+  await captureContour(82,"riso80-organic-flame-cut-edge-3x.png");
   await studio.getByRole("slider",{name:"RISO79 absolute film frame"}).focus();
   await studio.getByRole("slider",{name:"RISO79 absolute film frame"}).press("Home");
   await studio.getByRole("slider",{name:"RISO79 absolute film frame"}).press("End");
