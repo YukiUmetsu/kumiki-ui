@@ -617,11 +617,13 @@ test("original three-quarter forehead ink carries unequal near and far frontal r
     const study=page.getByTestId("reader-ink-frontal-relief-microscope");
     await expect(study).toBeVisible();
     const focus=[
-      {id:"orbital-near",prefix:"M119.5 88.5"},
-      {id:"orbital-far",prefix:"M150.8 88.4"},
+      {id:"orbital-near",prefix:"M119.5 88.5",
+        deposited:"M123.5 85.6"},
+      {id:"orbital-far",prefix:"M150.8 88.4",
+        deposited:"M150.3 86.7"},
     ] as const;
     const cameras:string[]=[];
-    for(const {id,prefix} of focus){
+    for(const {id,prefix,deposited} of focus){
       const micro=study.locator('[data-km-ink-frontal-micro="'+id+'"]');
       const svg=micro.locator("svg");
       await expect(svg).toBeVisible();
@@ -660,6 +662,25 @@ test("original three-quarter forehead ink carries unequal near and far frontal r
       expect(center.height).toBeGreaterThan(3);
       expect(center.opacity).toBeLessThan(.06);
       expect(center.fill).toBe("#ad8d70");
+      const loaded=await svg.evaluate((root,starts)=>{
+        const paint=Array.from(root.querySelectorAll(
+          '[data-km-ink-frontal-face] path')) as SVGPathElement[];
+        const patch=paint.find(p=>
+          (p.getAttribute("d")??"").startsWith(starts));
+        if(!patch)throw Error("Native frontal loaded glaze missing");
+        const box=patch.getBBox();
+        return {opacity:Number(patch.getAttribute("opacity")),
+          fill:patch.getAttribute("fill"),
+          width:box.width,height:box.height};
+      },deposited);
+      // Original 3.8–4.7% pigment at the actual face camera failed
+      // visual review. Require the newly accumulated translucent wash
+      // and a real 2D frontal mass, not another near-invisible path.
+      expect(loaded.opacity).toBeGreaterThan(.06);
+      expect(loaded.opacity).toBeLessThan(.09);
+      expect(loaded.fill).toBe("#ad8d70");
+      expect(loaded.width).toBeGreaterThan(7);
+      expect(loaded.height).toBeGreaterThan(5);
     }
     expect(new Set(cameras).size).toBe(2);
     await study.screenshot({animations:"disabled",
