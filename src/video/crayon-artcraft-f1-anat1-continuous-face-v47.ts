@@ -160,7 +160,7 @@ export function crayonF1AddContinuousFaceWaxV47(
 ):CrayonElement[]{
   const seen=new Set<string>();
   for(const el of elements){
-    if(seen.has(el.id)||CRAYON_F1_V47_NEW_IDS.includes(el.id))
+    if(seen.has(el.id)||new Set<string>(CRAYON_F1_V47_NEW_IDS).has(el.id))
       throw new RangeError("Duplicated/repeated original ANAT1 skin source");
     seen.add(el.id);
   }
