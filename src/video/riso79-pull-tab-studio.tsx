@@ -46,9 +46,12 @@ export function RisoPullTabFilmStudio(){
   }),[aspect]);
   const windows=useMemo(():readonly RisoPullWindow[]=>{
     const candidates=aspect==="landscape"?[
-      {id:"left-slit",x:472,y:164,width:110,height:218,radius:10},
-      {id:"centre-slit",x:601,y:164,width:110,height:218,radius:10},
-      {id:"right-slit",x:730,y:164,width:110,height:218,radius:10},
+      // Chromium 1×/3× reference inspection showed the older x=472
+      // first slit reading as unprinted beige stock. These apertures follow
+      // the real full-detail river/circle source-ink drawing at *all* seeks.
+      {id:"left-slit",x:600,y:170,width:95,height:206,radius:9},
+      {id:"centre-slit",x:710,y:170,width:95,height:206,radius:9},
+      {id:"right-slit",x:820,y:170,width:95,height:206,radius:9},
     ]:[
       {id:"left-slit",x:54,y:529,width:120,height:250,radius:10},
       {id:"centre-slit",x:203,y:529,width:120,height:250,radius:10},
@@ -57,7 +60,7 @@ export function RisoPullTabFilmStudio(){
     return candidates.slice(0,windowCount);
   },[aspect,windowCount]);
   const travel=(direction==="left"||direction==="right"?
-    cover.spec.width:cover.spec.height)*.19;
+    cover.spec.width:cover.spec.height)*.115;
   useEffect(()=>{
     if(!playing)return;
     const initial=playbackHead.current;
@@ -110,7 +113,7 @@ export function RisoPullTabFilmStudio(){
       <h1 style={{font:"700 clamp(24px,3vw,37px)/1.14 Georgia,serif",
         margin:"7px 0"}}>Cut-paper windows · moving printed underlay</h1>
       <p style={{margin:0}}>
-        One complete original cyan and vermilion cover, physically
+        One complete original cobalt and vermilion cover, physically
         pierced by hand-cut windows, stays still. A second independent
         complete printed sheet moves under the paper. Ink dot screens,
         pressure-formed contact fibres, registration, poster typography
