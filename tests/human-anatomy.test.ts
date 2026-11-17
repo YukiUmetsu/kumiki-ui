@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import { createHumanBody, decodeHumanBodyModel, humanJoints } from "../registry/anatomy/anatomy-body";
 import { measureHumanBody } from "../registry/anatomy/anatomy-measure";
 import { poseHumanBody } from "../registry/anatomy/anatomy-pose";
-import { renderHumanFrame } from "../registry/anatomy/anatomy-view";
-import { createFace, measureFace } from "../registry/anatomy/anatomy-face";
+import { renderHumanFrame, renderMeshFrame, rasterizeHumanFrame } from "../registry/anatomy/anatomy-view";
+import { createFace, faceFeatureLines, measureFace } from "../registry/anatomy/anatomy-face";
 import { ansurStat, statureForAge } from "../registry/anatomy/anatomy-reference";
 
 const buf = readFileSync(resolve(process.cwd(), "assets/models/anatomy/human-body-lattice.bin"));
@@ -13,6 +13,27 @@ const model = decodeHumanBodyModel(buf.buffer.slice(buf.byteOffset, buf.byteOffs
 const dir = (a: number[], b: number[]) => { const d = b.map((v, i) => v - a[i]); const l = Math.hypot(...d); return d.map(v => v / l); };
 
 describe("ANAT1 human anatomy", () => {
+  it("can omit occluded face feature lines in a side projection without losing the near eye", () => {
+    const frame = renderMeshFrame(createFace({ calibrate: false }).mesh, { yaw: -75 }, { width: 280, height: 320, padding: 20 });
+    const image = rasterizeHumanFrame(frame, "silhouette", { light: [255,255,255], shadow: [0,0,0], eye: [255,255,255] }, 2);
+    const facingOnly = faceFeatureLines(frame);
+    expect(facingOnly.some(line => line.id === "eye-upper.L")).toBe(true);
+    const visible = faceFeatureLines(frame, undefined, { depth: image.depth, width: image.width, height: image.height });
+    expect(visible.some(line => line.id === "eye-upper.R")).toBe(true);
+    expect(visible.some(line => line.id === "eye-upper.L")).toBe(false);
+    expect(() => faceFeatureLines(frame, undefined, { depth: new Float32Array(1), width: 2, height: 2 })).toThrow(/dimensions/);
+    const opposite = renderMeshFrame(createFace({ calibrate: false }).mesh, { yaw: 75 }, { width: 280, height: 320, padding: 20 });
+    const oppositeImage = rasterizeHumanFrame(opposite, "silhouette", { light: [255,255,255], shadow: [0,0,0], eye: [255,255,255] }, 2);
+    const oppositeLines = faceFeatureLines(opposite, undefined, { depth: oppositeImage.depth, width: oppositeImage.width, height: oppositeImage.height });
+    expect(oppositeLines.some(line => line.id === "eye-upper.L")).toBe(true);
+    expect(oppositeLines.some(line => line.id === "eye-upper.R")).toBe(false);
+    const front = renderMeshFrame(createFace({ calibrate: false }).mesh, { yaw: 0 }, { width: 280, height: 320, padding: 20 });
+    const frontImage = rasterizeHumanFrame(front, "silhouette", { light: [255,255,255], shadow: [0,0,0], eye: [255,255,255] }, 2);
+    const frontLines = faceFeatureLines(front, undefined, { depth: frontImage.depth, width: frontImage.width, height: frontImage.height });
+    expect(frontLines.some(line => line.id === "eye-upper.R")).toBe(true);
+    expect(frontLines.some(line => line.id === "eye-upper.L")).toBe(true);
+  });
+
   it("evaluates deterministic adults close to measured ANSUR proportions", () => {
     for (const [sex, s] of [["female", 0], ["male", 1]] as const) {
       const a = measureHumanBody(createHumanBody(model, { sex: s, age: 25 }));
