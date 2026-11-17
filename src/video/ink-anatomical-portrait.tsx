@@ -282,6 +282,10 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           strokeWidth={.54+(i%3)*.16} opacity={(.19+(i%4)*.045)*detail}/>;
       })}
     </g>
+    {/** Period half-figure bust ratio: period silk sleeves are broader than the
+         sitter's head. Native QA rejected the 0.75-width giant head; fit the
+         new skull and all its EXPR1-attached ink around its collar contact. */}
+    <g data-km-ink-anatomic-bust-ratio=".69" transform="translate(83.7 130.2) scale(.69)">
     {/** Cranial hair/hat, painted behind skin; scalp height derives from the ANAT1 forehead. */}
     <path d={"M"+xy(shift(templeR,0,-39))+" C"+xy(shift(top,-85,-54))+" "+xy(shift(top,45,-76))
       +" "+xy(shift(templeL,7,-25))+" L"+xy(shift(templeL,6,11))}
@@ -571,6 +575,7 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
         </>}
       </g>;
     })()}
+    </g>
     {/** Paper fibers are individual dry, directional lines, not a flat gradient. */}
     {detail>.5&&Array.from({length:27},(_,i)=>{
       const x=110+(i*73)%317,y=492+(i*47)%108;
@@ -591,7 +596,7 @@ export function InkAnatomicalPortrait({character="scholar",emotion="neutral",int
       data-ink-emotion={emotion} data-ink-view={view}
       className={className} xmlns="http://www.w3.org/2000/svg"
       role="img" aria-label={character+" ink portrait, "+emotion+" expression"}
-      viewBox={view==="face"?"100 13 345 476":"0 0 540 620"}
+      viewBox={view==="face"?"100 112 345 419":"0 95 540 525"}
       style={{display:"block",background:"#f3ead9",width:"100%",height:"auto"}}>
     <rect width="540" height="620" fill="#f4ebd9"/>
     <g><PaintedPortrait posed={study.posed} character={character} detail={amount}
