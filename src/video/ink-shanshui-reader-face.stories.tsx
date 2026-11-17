@@ -300,6 +300,59 @@ function ReaderFaceStudio(){
           this same production artwork, not a separate static mockup.
         </p>
       </section>
+      <section data-testid="reader-ink-native-viseme-atlas"
+        style={{gridColumn:"1 / -1"}}>
+        <h2 style={{font:"500 18px Georgia,serif"}}>
+          ArtCraft · five original speech cels · identical source mouth camera
+        </h2>
+        <p style={{fontSize:12,lineHeight:1.6,color:"#715d48",maxWidth:1020}}>
+          Rest, open AA, rounded OH, closed MM and smile retain the
+          original three-quarter ANAT1 mouth pose and head calibration.
+          The moving source face, chin and nose remain beneath each
+          inspected cel. Separate translucent cavity, vermilion edge,
+          philtrum and reflected lower lip paint distinguish AA/OH
+          from pasted opaque black lozenges. Select a cel to update
+          the actual film-face preview above.
+        </p>
+        <div style={{display:"grid",gap:10,
+          gridTemplateColumns:"repeat(auto-fit,minmax(165px,1fr))"}}>
+          {(["rest","aa","oh","mm","smile"] as const).map(state=>{
+            const asset=parts["mouth-"+state];
+            const strokes=asset?.kind==="shapes"?asset.shapes.length:0;
+            const correctedMouthY=fit.facialRest.mouth.y??0;
+            return <figure key={state}
+              data-km-ink-viseme-study={state}
+              style={{margin:0,padding:7,border:"1px solid #d4bfa3",
+                background:"#f7eedc",borderRadius:4}}>
+              <svg data-km-ink-viseme-camera={state} role="img"
+                aria-label={"Original reader source-face "+state+" lip cel"}
+                viewBox={fittedFaceWindow([
+                  131,118.6+correctedMouthY,
+                  152.5,139.2+correctedMouthY,
+                ],1.8,1.3)}
+                style={{display:"block",width:"100%",height:200,
+                  background:"#f7eedc"}}>
+                <g transform={pose(fit.headRest,139,124)}>
+                  <g data-km-ink-viseme-base="">{shapes("face")}</g>
+                  <g data-km-ink-viseme-part={state}
+                    transform={pose(fit.facialRest.mouth,142,124)}>
+                    {shapes("mouth-"+state)}
+                  </g>
+                </g>
+              </svg>
+              <figcaption style={{font:"12px system-ui",padding:"5px 2px"}}>
+                <button type="button" onClick={()=>setMouth(state)}
+                  aria-label={"Inspect "+state.toUpperCase()+" mouth cel"}
+                  aria-pressed={mouth===state}
+                  style={{...style,width:"100%",cursor:"pointer",
+                    fontWeight:mouth===state?700:500}}>
+                  {state.toUpperCase()} · {strokes} independent marks
+                </button>
+              </figcaption>
+            </figure>;
+          })}
+        </div>
+      </section>
       <section>
         <h2 style={{font:"500 18px Georgia,serif"}}>
           ArtCraft · ANAT1 facial volume and ink-bone inspection
