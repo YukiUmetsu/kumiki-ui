@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { PencilDrawing } from "../../registry/video/colored-pencil-react";
 import { inspectPencilFoundationDrawing, PENCIL_FOUNDATION_STAGES } from "../../registry/video/colored-pencil-foundation";
-import type { PencilAspect } from "../../registry/video/colored-pencil";
+import type { PencilAspect, PencilDrawingSpec } from "../../registry/video/colored-pencil";
 import { pencilLivingStudyDrawing } from "./colored-pencil-living-studies";
 import {
   HEAD_FIDELITY_LANDMARK_IDS, HEAD_FIDELITY_TONES,
@@ -23,12 +23,12 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
 function projectedInspectionCenter(
-  drawing:ReturnType<typeof pencilLivingStudyDrawing>,
+  drawing:PencilDrawingSpec,
   partId:string,
 ):[number,number]|null{
   const part=drawing.regions.find(region=>region.id===partId);
@@ -66,12 +66,14 @@ export function PencilFoundationStudio(){
   const [roseLaminaStudy,setRoseLaminaStudy]=useState(true);
   const [roseLipStudy,setRoseLipStudy]=useState(false);
   const [roseCalyxStudy,setRoseCalyxStudy]=useState(false);
+  const [rosePinnateStudy,setRosePinnateStudy]=useState(false);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
       pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,
         seed,roseLaminaStudy:specimen==="rose"&&roseLaminaStudy,
         roseLipStudy:specimen==="rose"&&roseLipStudy,
-        roseCalyxStudy:specimen==="rose"&&roseCalyxStudy}):
+        roseCalyxStudy:specimen==="rose"&&roseCalyxStudy,
+        rosePinnateStudy:specimen==="rose"&&rosePinnateStudy}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
         specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,
         seed,headContourCraft,headVolumeWeave,headSilhouetteStudy});
@@ -79,7 +81,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -110,10 +112,12 @@ export function PencilFoundationStudio(){
     "cheek-ruff":inspectionFocus==="fox-chest"&&specimen==="fox"?
     "chest":inspectionFocus==="fox-forepaw"&&specimen==="fox"?
     "foreleg-right":inspectionFocus==="fox-hock"&&specimen==="fox"?
-    "rear-leg":inspectionFocus==="portrait-head"&&specimen==="portrait"?
+    "rear-leg":inspectionFocus==="rose-left-leaf"&&specimen==="rose"&&rosePinnateStudy?
+    "rose-left-pair-far-down":inspectionFocus==="rose-right-leaf"&&specimen==="rose"&&rosePinnateStudy?
+    "rose-right-pair-near-down":inspectionFocus==="rose-calyx"&&specimen==="rose"&&roseCalyxStudy?
+    "calyx-receptacle":inspectionFocus==="portrait-head"&&specimen==="portrait"?
     "head-silhouette-01":null;
-  const focus=(focusPart?projectedInspectionCenter(
-    drawing as ReturnType<typeof pencilLivingStudyDrawing>,focusPart):null)??
+  const focus=(focusPart?projectedInspectionCenter(drawing,focusPart):null)??
     specimenMeta[specimen].focus;
   const zoomStyle=zoom?{
     transform:"scale(2.15)",
@@ -126,6 +130,7 @@ export function PencilFoundationStudio(){
     data-km-head-cranial-volume={specimen==="portrait"?(headVolumeWeave?"on":"off"):"not-applicable"}
     data-km-skull-silhouette-study={specimen==="portrait"?
       (headSilhouetteStudy?"oblique":"baseline"):"not-applicable"}
+    data-km-rose-pinnate-study={specimen==="rose"?(rosePinnateStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-calyx-study={specimen==="rose"?(roseCalyxStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-rolled-lip={specimen==="rose"?(roseLipStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-lamina-study={specimen==="rose"?
@@ -267,6 +272,15 @@ export function PencilFoundationStudio(){
           <option value="portrait-head" disabled={specimen!=="portrait"}>
             New character #01 / head contour only
           </option>
+          <option value="rose-left-leaf" disabled={specimen!=="rose"||!rosePinnateStudy}>
+            Rose left compound leaflet / actual serration
+          </option>
+          <option value="rose-right-leaf" disabled={specimen!=="rose"||!rosePinnateStudy}>
+            Rose right compound leaflet / actual vein contacts
+          </option>
+          <option value="rose-calyx" disabled={specimen!=="rose"||!roseCalyxStudy}>
+            Rose five-sepal receptacle / negative-space junction
+          </option>
         </select>
       </label>
       {specimen==="portrait"&&<label style={caption}>ANAT1 surface value · inspected
@@ -300,6 +314,13 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose calyx anatomy" type="checkbox"
           checked={roseCalyxStudy} onChange={e=>setRoseCalyxStudy(e.target.checked)}/>
         FLORA1 calyx: five attached sepals / receptacle · anatomical A/B (unapproved)
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation rose pinnate leaves" type="checkbox"
+          checked={rosePinnateStudy}
+          onChange={e=>setRosePinnateStudy(e.target.checked)}/>
+        FLORA1 compound leaf · 5 serrated leaflets, rachis and stipules per spray · A/B (unapproved)
       </label>}
       {specimen==="portrait"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
