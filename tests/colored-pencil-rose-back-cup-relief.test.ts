@@ -77,6 +77,23 @@ describe("CP-F1 / FLORA1 source-native rear rose cup physical relief",()=>{
     expect(front.details?.slice(0,old.details?.length??0))
       .not.toEqual(old.details); // existing face traces are followed by new relief contacts
   });
+  it("composes independently with the two genuine frontal cuticle sidewalls",()=>{
+    const common={
+      subject:"rose" as const,aspect:"portrait" as const,seed:371,
+      rosePhysicalFolds:true,rosePetalRimStudy:true,
+      roseCalyxStudy:true,rosePinnateStudy:true,
+      roseInnerWhorlStudy:true,roseMiddleCupStudy:true,
+      roseFrontValueStudy:true,
+    };
+    const before=pencilObjectStudyDrawing(common);
+    const after=pencilObjectStudyDrawing({...common,roseBackCupReliefStudy:true});
+    expect(before.regions).toHaveLength(44);
+    expect(after.regions).toHaveLength(44);
+    expect(inspectPencilFoundationDrawing(after)).toEqual([]);
+    for(const id of ["rose-rim-front-left","rose-rim-front-right"])
+      expect(after.regions.find(r=>r.id===id))
+        .toEqual(before.regions.find(r=>r.id===id));
+  });
   it("remains OFF for old drawings/other subjects; refuses detached geometry or wrong flags",()=>{
     expect(()=>pencilObjectStudyDrawing({
       subject:"rose",aspect:"landscape",roseBackCupReliefStudy:true,
