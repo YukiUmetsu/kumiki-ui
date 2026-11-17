@@ -37,6 +37,12 @@ export interface CrayonBase {
   exitFade?: CrayonTiming;
   placement?: CrayonPlacement;
   screenSpace?: boolean;
+  /** Optional painter's underlayer. Backdrop is drawn behind all ordinary
+   * world-space art even if authored later; authored element index still
+   * owns its deterministic wax seed. Defaults to normal, with no change
+   * to any legacy film. Useful when adding late reference environments.
+   */
+  renderLayer?: "backdrop" | "normal";
   /** Optional articulated parent. Order of artwork stays independent of the rig hierarchy. */
   parentId?: string;
   /** Local rotation/scale pivot in authored drawing coordinates. */
@@ -241,6 +247,9 @@ export function inspectCrayonScene(input: unknown): string[] {
       if (typeof node.id !== "string" || !/^[a-z][a-z0-9-]{1,63}$/.test(node.id) || seen.has(node.id)) errors.push(p + ".id must be a unique slug");
       else seen.add(node.id);
       checkTime(node.timing, v.durationFrames ?? 0, p, errors);
+      if(node.renderLayer!==undefined&&
+         node.renderLayer!=="normal"&&node.renderLayer!=="backdrop")
+        errors.push(p+".renderLayer must be backdrop or normal");
       if (node.exitFade !== undefined) {
         checkTime(node.exitFade,v.durationFrames ?? 0,p+".exitFade",errors);
         if (!node.exitFade || node.exitFade.start < node.timing?.end)
