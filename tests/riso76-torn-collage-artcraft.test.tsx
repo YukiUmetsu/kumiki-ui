@@ -48,7 +48,7 @@ describe("RISO76 ArtCraft: detailed physical paper cut, source-native two spot i
     // revealed paper and extend OUT onto the outgoing print. Reverse
     // strands are not visible and leave the transition a flat wipe.
     const coords=(d:string)=>
-      (d.match(/-?\\d+(?:\\.\\d+)?/g)??[]).map(Number);
+      (d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
     const ltr=coords(paths[0].fibrePaths[0].d);
     const rtl=coords(paths[1].fibrePaths[0].d);
     const ttb=coords(paths[2].fibrePaths[0].d);
