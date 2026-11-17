@@ -649,6 +649,16 @@ Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/2
 
 **What is still different.** Her pull-out ends in a sharp point with a flat lower edge. Ours ends rounder: 70 of her 102 右払い and 70 of 138 rules 右払い fail the techniques board's tip check (≤ 0.55 of the middle width). The pressed foot's teardrop leads with its round belly, and the pull-out is about as long as that footprint. A softer press curve (−0.001 to −0.007) and a longer pull-out past the tip (`pullOut` 0.4: −0.0006 and −0.0023) both lose overlap with her ink, but her forms were fitted under the current brush, so a change to the foot's footprint needs a refit to be judged.
 
+## 2.29 Twenty-fifth study round: crossing starts and left-falling dots
+
+**What was wrong.** The owner compared her forms with the rules forms on a review page and marked five kanji. In the rules forms, 青's top vertical and the two verticals of 艹 (葉) started on the horizontal instead of above it, and 市's centre vertical started at 巾's top instead of under the horizontal. 泉's first stroke looked wrong in both forms.
+
+**Cause 1: a crossing start was pulled back.** `shodoJoinStrokes` joined any end within 70 em of an earlier line and moved it onto that line. It did not ask on which side of the line the end lies: an end that has already passed through the line and stands beyond it (青: KanjiVG starts the vertical 71 em above the top horizontal) was moved back onto it. Now an end that reaches more than 40 em past the line (about half a stroke's width; less hides inside the line) crosses it and stays free. On her ink, the rules forms of the 74 of her kanji that change gain on both halves: overlap +0.0067 and +0.0112 (15/1 and 15/0 characters better/worse); 25 em gives +0.0066 and +0.0122 with more changes, 60 em +0.0027 and +0.0084.
+
+**Cause 2: a dot that falls to the left.** KanjiVG marks 泉's first stroke as a dot (㇔), but it falls down-left at 119°, as does the left dot of ⺣ (点, 無, 魚: about 115°). The dot's pressed teardrop always points down-right, across such a path, and leaves a blob. In a KanjiVG kanji, `shodoKaishoForm` now writes a dot that falls to the left steeper than 110° as a short ノ. On her ink, the rules forms of the 35 of her kanji with such a dot gain on both halves: +0.0019 and +0.0007 (105°: −0.0009 and −0.0019; 115°: +0.0016 and 0.0000). Keeping such a dot's full length instead of the dot's shortening (0.8) is not better (centreline worse on both halves). Her own forms keep their dots: drawn as a ノ, her 10 kanji with such a dot lose on both halves (−0.026 and −0.014; 応 点 息 −0.08), because their points were fitted to her ink as dots.
+
+**Her forms.** 57 strokes of 47 of her kanji first run backwards and then go their way (青's top vertical, 艹 in 花 英 茶 葉). Trimming them loses overlap with her ink (−0.0009 and −0.0060): many follow her real entry, which moves against the stroke before it turns (蔵鋒). They stay; the owner's marked kanji are handled one by one.
+
 ## 3. From observation to model
 
 | Observation | Model decision |

@@ -496,6 +496,18 @@ const polyDistance = (points: readonly ShodoPoint[], q: ShodoPoint): { d: number
 };
 
 /**
+ * Degrees below the horizontal past which a KanjiVG dot falls to the left steeply enough to be
+ * written as a short ノ (泉's first stroke, the left dot of ⺣). Measured on a teacher's ink: 110.
+ */
+const LEFT_DOT = 110;
+
+const isLeftDot = (st: ShodoStrokeSpec) => st.kind === "dot" && st.points.length >= 2
+  && Math.atan2(st.points[st.points.length - 1][1] - st.points[0][1], st.points[st.points.length - 1][0] - st.points[0][0]) * 180 / Math.PI > LEFT_DOT;
+
+/** How far (em) an end may reach past an earlier line and still join it; further, the stroke crosses that line. */
+const CROSS_REACH = 40;
+
+/**
  * Find stroke ends that meet an earlier stroke (closer than `reach` em) and mark them as joins.
  * With `snap`, a horizontal, vertical or turn end is also moved along its own line onto the
  * other stroke's centreline, so the inner lines of boxes close cleanly.
@@ -515,10 +527,16 @@ export function shodoJoinStrokes(glyph: ShodoGlyph, reach = 70, snap = true): Sh
       const e = points[index];
       let best: { d: number; at: ShodoPoint } | null = null;
       // Only a line already on the paper can take the join (earlier in stroke order).
+      const nb0 = points[index === 0 ? 1 : index - 1];
+      const ox = e[0] - nb0[0], oy = e[1] - nb0[1], ol = Math.hypot(ox, oy) || 1;
       glyph.strokes.forEach((other, j) => {
         if (j >= i || other.kind === "dot") return;
         const limit = partOf.has(i) && partOf.has(j) && partOf.get(i) !== partOf.get(j) ? across : reach;
         const hit = polyDistance(other.points, e);
+        // An end that already passes through the other line and reaches well beyond it crosses that
+        // line (青's top vertical, the verticals of 艹): it stands free, so it is not pulled back.
+        const beyond = -((hit.at[0] - e[0]) * ox + (hit.at[1] - e[1]) * oy) / ol;
+        if (beyond > CROSS_REACH) return;
         if (hit.d < limit && (!best || hit.d < best.d)) best = hit;
       });
       if (!best) continue;
@@ -687,6 +705,10 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
     const fx = (Math.min(...pts.map(p => p[0])) + Math.max(...pts.map(p => p[0]))) / 2, fy = Math.max(...pts.map(p => p[1]));
     formed = { ...formed, strokes: formed.strokes.map(st => ({ ...st, points: st.points.map(([x, y]) => [Math.round(fx + (x - fx) * small), Math.round(fy + (y - fy) * small)] as const) })) };
   }
+  // A dot that falls steeply to the left (泉's first stroke, the left dot of ⺣) is written as a short
+  // ノ: the dot's pressed footprint points down-right, across such a path, and reads as a blob. Not
+  // for a teacher's forms: their dots were fitted to that teacher's ink as dots.
+  if (measured) formed = { ...formed, strokes: formed.strokes.map(st => isLeftDot(st) ? { ...st, kind: "left-sweep" as const } : st) };
   return formed;
 }
 
