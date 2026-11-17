@@ -1,6 +1,7 @@
 import {describe,expect,it} from "vitest";
 import {
   ROSE_PHYSICAL_FOLDS,inspectRosePhysicalFolds,physicalFoldUndersideDetails,
+  physicalFoldFaceDetails,
 } from "../src/video/colored-pencil-rose-physical-folds";
 import {pencilObjectStudyDrawing} from "../src/video/colored-pencil-object-studies";
 import {inspectPencilFoundationDrawing} from "../registry/video/colored-pencil-foundation";
@@ -33,6 +34,29 @@ describe("FLORA1 rose physically separate rolled petal laminae",()=>{
       }
     }
   });
+  it("sculpts nonvertical S-curve frontal edges with original optical detail intact",()=>{
+    const left=ROSE_PHYSICAL_FOLDS.find(f=>f.id==="petal-front-left")!;
+    const right=ROSE_PHYSICAL_FOLDS.find(f=>f.id==="petal-front-right")!;
+    expect(left.face).toContain("C230 250 233 259 237 269");
+    expect(right.face).toContain("C240 257 249 242 256 226");
+    expect(left.face.split("C").length).toBeGreaterThan(6);
+    expect(right.face.split("C").length).toBeGreaterThan(6);
+    expect(left.hinge).toBe(left.face.slice(0,left.hinge.length));
+    expect(right.hinge).toBe(right.face.slice(0,right.hinge.length));
+    expect(physicalFoldFaceDetails(left).map(t=>t.id))
+      .toEqual(["rf-front-left-crease","rf-front-left-return"]);
+    expect(physicalFoldFaceDetails(right).map(t=>t.id))
+      .toEqual(["rf-front-right-crease","rf-front-right-return"]);
+    for(const fold of [left,right]){
+      const traces=physicalFoldFaceDetails(fold);
+      expect(traces).toHaveLength(2);
+      expect(traces.map(t=>t.startFrame).every(n=>n>=200&&n<=270)).toBe(true);
+      expect(traces.every(t=>t.opacity!==undefined&&t.opacity>0&&t.opacity<1))
+        .toBe(true);
+    }
+    expect(ROSE_PHYSICAL_FOLDS.filter(f=>!f.id.startsWith("petal-front-"))
+      .every(f=>physicalFoldFaceDetails(f).length===0)).toBe(true);
+  });
   it.each(["landscape","portrait"] as const)(
     "rebuilds precisely the five keyed petal silhouettes without erasing other art in %s",aspect=>{
       const original=rose(aspect);
@@ -53,7 +77,10 @@ describe("FLORA1 rose physically separate rolled petal laminae",()=>{
           expect(next?.path).not.toBe(region.path);
           expect(next?.bounds).toEqual(keyed.faceBounds);
           expect(next?.layers.map(l=>l.seed)).toEqual(region.layers.map(l=>l.seed));
-          expect(next?.details).toEqual(region.details);
+          expect(next?.details?.slice(0,region.details?.length??0))
+            .toEqual(region.details??[]);
+          expect(next?.details?.slice(region.details?.length??0))
+            .toEqual(physicalFoldFaceDetails(keyed));
           const underside=volume.regions.find(r=>r.id==="rose-turn-"+region.id);
           expect(underside).toBeDefined();
           expect(underside?.path).toBe(keyed.underside);
