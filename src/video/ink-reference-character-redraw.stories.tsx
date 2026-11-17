@@ -28,7 +28,7 @@ const sources=[
     image:"https://cdn.loc.gov/service/pnp/cph/3b30000/3b32000/3b32400/3b32425r.jpg",
     href:"https://commons.wikimedia.org/wiki/File:Elderly_Chinese_man,_possibly_a_scholar,_three-quarter_length_portrait,_seated,_facing_front,_holding_pipe_in_right_hand;_includes_Chinese_language_characters_on_back_LCCN2011660679.jpg",
     credit:"Library of Congress, LCCN 2011660679 · no known restrictions on publication; public-domain work.",
-    note:"Older facial planes, beard silhouette, robe weight, seated balance and the pipe-holding hand. The hand reference is useful for thumb opposition and finger contact, not for copying the original drawing.",
+    note:"Older facial planes and beard silhouette. Seated balance, robe weight and the pipe-holding hand are logged for the next full-body/hand pass; the hand reference is useful for thumb opposition and finger contact, not for copying the original drawing.",
     alt:"1860 charcoal drawing of an elderly Chinese man, possibly a scholar, seated and holding a pipe."
   },
   {
@@ -82,7 +82,7 @@ function ReferenceAtelier(){
         <h2 style={{font:"normal 24px Georgia,serif",margin:"0 0 6px"}}>Scholar · three-quarter study</h2>
         <p style={{fontSize:12,lineHeight:1.55,minHeight:58}}>
           Built around the 1903 three-quarter facial turn: narrow moustache,
-          measured eye foreshortening, a tall scholar headcloth and a restrained
+          anatomically projected eye foreshortening, a tall scholar headcloth and a restrained
           cotton cross-collar. The sitter is not reproduced.
         </p>
         <div style={{maxWidth:360,margin:"0 auto"}}>
