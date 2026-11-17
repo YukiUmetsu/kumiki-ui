@@ -17,3 +17,25 @@
 - Four interactive `!dev` Storybook states live in same original ArtCraft folder (full, crown, left, right). Control UI retains 300 frame scrub/play.
 - Structural tests ensure valid original CC0 hash, source-curved nonmirrored cubic geometry, all V50 original elements exactly unchanged, nine clipped source locks, material wax pressure/width, deterministic detail variants, duplicate/missing root rejection, proper chronology and zero foreign asset.
 - Full output **DO NOT MERGE** until 18 independently reobserved rendered landmarks, five complete true photographic skin value planes, final all-300-frame normal-speed cinematic review, original identity/hair likeness and independent artist acceptance; required overall original-source SSIM ≥.85. Status remains ART HOLD even if technical CI passes.
+
+## Independent source-photo native Chromium review — explicit V51 ART FAILURE, 2026-11-17
+
+Exact rendered commit `9fe227299dcad2b4ba25c9ba458b04808b021ee3`. **All engineering checks PASS:** [typecheck and changed tests](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44127092109), [native wax grammar](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44127092063), [real Chromium image proof](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44127092053). [Original 1× and 2.85× V50/V51 screenshots artifact](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44127092053/artifacts/14349305402).
+
+**Objective independent photo/native test:** decode actual same-head 608×1082 final f299 PNGs and the exact original CC0 source screenshot SHA `f8d28cbe...`, compare `skimage.metrics.structural_similarity(...,channel_axis=2,data_range=255)` and 8-bit RGB mean absolute differences, no overlays, rescaling, retouching or filtered comparisons.
+
+| Original source ROI | V50 SSIM | V51 SSIM | Δ |
+| --- | ---: | ---: | ---: |
+| Whole portrait | **.507668** | .500779 | **−.006889** |
+| Hair crown | **.367543** | .349188 | −.018355 |
+| Central root | **.318159** | .306623 | −.011536 |
+| Left temple | **.323745** | .312444 | −.011301 |
+| Left curtain | **.340958** | .332727 | −.008231 |
+| Right upper veil | **.441029** | .418114 | −.022915 |
+| Right lower veil | **.489245** | .453614 | −.035631 |
+| Original face | .724289 | .724289 | 0 |
+| Original near iris | .516876 | .516876 | 0 |
+| Original upper foliage | .560451 | .560451 | 0 |
+
+**VISUAL REJECTION, DO NOT PROMOTE:** native screenshot V51 introduces parallel dark and orange wax arcs around the *outer* hair boundary instead of naturally rooted part-to-temple clump movement. The original source guide overlay corroborates paths tracing scalp envelope rather than actual internal root whorl/shaft. The added lines make V50's already problematic hair helmet MORE artificial, and **all hair source ROIs regress**. Both photo SSIM and photo MAE worsen. Keep `source-anat1-rooted-hair-v51` opt-in research/negative control only; don't merge or use as baseline. Future variants must recover V50's source-photo score before any promotion; actual photogrammetric topology and shape continuity matter more than adding strands.
+
