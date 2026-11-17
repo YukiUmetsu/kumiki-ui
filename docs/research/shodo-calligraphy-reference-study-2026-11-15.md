@@ -631,6 +631,14 @@ Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/2
 
 **Result.** On her ink, the rules forms of the 316 of her kanji that change are closer on both halves: overlap +0.0054 and +0.0074 (42/7 and 42/4 characters better/worse), centreline distance −0.06 and −0.07. 央 gains 0.24, 夫 0.19, 左 0.16, 映 0.16, 火 0.13; the largest loss is 0.02 (光).
 
+## 2.27 Twenty-third study round: the foot of a 右払い
+
+**What was wrong.** The owner saw 秋's last stroke end like a long dot, not a 右払い. The stroke ends in a round press instead of a foot that flattens to the right. A 右払い is drawn from its last segment: the brush presses at the foot, then pulls out along that segment. KanjiVG's pull-out runs steeply down, close to the stroke's own course, so the press stays round.
+
+**Measurement.** On her 99 右払い with a rules form, her pull-out leaves the foot at a median 21° below the horizontal (middle half 10° to 31°), ours at 34° (27° to 38°); her stroke turns 18° at the foot, ours 10°. The pull-out's length matches (0.23 against 0.24 of the stroke).
+
+**Change.** For KanjiVG kanji, `shodoKaishoForm` turns the pull-out 12° flatter, never above the horizontal (`footTurn`). On her ink, the 98 of her kanji with a 右払い gain on both halves: overlap +0.0036 and +0.0014 (30/8 and 26/15 characters better/worse); 8° gives +0.0030 and +0.0025, 16° +0.0045 and +0.0018 with a worse centreline on one half.
+
 ## 3. From observation to model
 
 | Observation | Model decision |

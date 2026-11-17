@@ -281,6 +281,19 @@ describe("SHO1 shodō calligraphy", () => {
     expect(shodoLayout(glyph)).toBe("enclosure");
   });
 
+  it("turns a kanji 右払い's pull-out flatter at the foot (footTurn), as the teacher writes it", () => {
+    const glyph: ShodoGlyph = { char: "乀", source: "kanjivg", strokes: [
+      { kind: "right-sweep", points: [[300, 300], [600, 650], [700, 720]] },            // pull-out 35° below the horizontal
+    ] };
+    const pullOut = (g: ShodoGlyph) => {
+      const P = g.strokes[0].points, [f, t] = [P[P.length - 2], P[P.length - 1]];
+      return Math.atan2(t[1] - f[1], t[0] - f[0]) * 180 / Math.PI;
+    };
+    const plain = pullOut(shodoKaishoForm(glyph, { footTurn: 0 })), turned = pullOut(shodoKaishoForm(glyph));
+    expect(plain - turned).toBeGreaterThan(10);                                         // 12° by default
+    expect(turned).toBeGreaterThan(0);                                                  // never above the horizontal
+  });
+
   it("cuts a KanjiVG entry curl at its length, not at the next sparse sample (用 keeps its corner)", () => {
     // 用's first two strokes from KanjiVG: the ㇒ opens with a pen curl, then one long cubic whose
     // first sample (t = .1) lies 150 em down the stroke.
