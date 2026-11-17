@@ -4,9 +4,10 @@ import {describe,expect,it} from "vitest";
 import {
   InkReferenceCharacterRedraw,INK_REFERENCE_EXPRESSIONS,
 } from "../src/video/ink-reference-character-redraw";
+import type {InkReferenceCharacterRedrawProps} from "../src/video/ink-reference-character-redraw";
 
-const render=(props:any)=>
-  renderToStaticMarkup(createElement(InkReferenceCharacterRedraw,props));
+const render=(props:unknown)=>
+  renderToStaticMarkup(createElement(InkReferenceCharacterRedraw,props as InkReferenceCharacterRedrawProps));
 
 describe("ANAT3 reference-led Chinese ink character redraw",()=>{
   it("projects the ANAT1 facial topology and feature curves into native ink source space",()=>{
