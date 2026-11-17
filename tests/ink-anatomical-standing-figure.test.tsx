@@ -1,7 +1,7 @@
 import {describe,it,expect} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {createElement} from "react";
-import {InkZengJingScholarHead} from "../src/video/ink-zengjing-scholar-head";
+import {InkZengJingScholarHead,inkZengJingExpressionFeatures} from "../src/video/ink-zengjing-scholar-head";
 import {InkAnatomicalStandingFigure,inkStandingPoseAt,
   INK_STANDING_FIGURE_WIDTH,INK_STANDING_FIGURE_HEIGHT,
 } from "../src/video/ink-anatomical-standing-figure";
@@ -23,6 +23,20 @@ describe("Chinese ink ZJ1 reference-redrawn standing scholar",()=>{
     expect(head).toContain('data-km-zj1-headwear="ming-soft-black-gauze"');
     expect(head).not.toContain('data-ink-view=');
     expect(head).not.toContain('data-km-ink-face-mesh=');
+  });
+  it("maps the shared ANAT1 human-face measurements and EXPR1 FACS action units into the ZJ1 painting language",()=>{
+    const neutral=inkZengJingExpressionFeatures("scholar","neutral");
+    const smile=inkZengJingExpressionFeatures("scholar","smile");
+    const sad=inkZengJingExpressionFeatures("scholar","sad");
+    const angry=inkZengJingExpressionFeatures("scholar","angry");
+    const surprise=inkZengJingExpressionFeatures("scholar","surprise");
+    expect(smile.cheekRaise).toBeGreaterThan(neutral.cheekRaise);
+    expect(smile.mouthCorner).toBeGreaterThan(neutral.mouthCorner);
+    expect(sad.mouthCorner).toBeLessThan(neutral.mouthCorner);
+    expect(angry.eyeOpen).toBeLessThan(neutral.eyeOpen);
+    expect(surprise.eyeOpen).toBeGreaterThan(neutral.eyeOpen);
+    expect(surprise.mouthOpen).toBeGreaterThan(0);
+    expect(()=>inkZengJingExpressionFeatures("scholar","neutral",1.1)).toThrow(RangeError);
   });
   it("changes eye, brow and mouth geometry across five independently authored expressions",()=>{
     const draw=(emotion:"neutral"|"smile"|"sad"|"angry"|"surprise")=>
