@@ -25,6 +25,7 @@ import { RevealDemo } from "./reveal-demo";
 import { DiagramDemo } from "./diagram-demo";
 import { AdvancedShapeMorphFilmstrips, AdvancedShapeMorphLab, AdvancedShapeMorphTextLab } from "./advanced-shape-morph-demo";
 import { AdvancedShapeMorph3DLab } from "./advanced-shape-morph-3d-demo";
+import { SculpturalTypeLab } from "./sculptural-type-demo";
 
 const FPS_30: RationalFps = { num: 30, den: 1 };
 
@@ -407,6 +408,11 @@ export const AdvancedShapeMorphText: Story = {
 export const AdvancedShapeMorph3D: Story = {
   name: "Advanced Shape Morph 3D",
   render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><AdvancedShapeMorph3DLab /></div>,
+};
+
+/** Letters as dimensional, deformable, material-bearing objects (MC1.2 SculpturalTypography). */
+export const SculpturalType: Story = {
+  render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><SculpturalTypeLab /></div>,
 };
 
 /* -------------------------------------------------------------------------- */
