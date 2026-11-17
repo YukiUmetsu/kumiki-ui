@@ -221,6 +221,12 @@ export function scrollReaderFacePortrait(detail=1):
         "$skinshade","none",0,.155),
       p("M138.55 129.82 C140.2 132.08 144.15 132.52 146.15 130.18",
         "none","$skinshade",.43,.53),
+      // Open AA throat has a localized shadow body. Retain the separate
+      // fine ink edge, but don't fake aperture depth with a uniformly
+      // opaque fill. This closed, perspective-tapered wet recess sits
+      // inside the original wide lip opening.
+      p("M139.45 127.2 C141.4 127.65 144.75 127.9 146.85 126.7 C145.85 129.55 143.35 131 141.42 129.85 C140.15 129 139.68 128.3 139.45 127.2 Z",
+        "$deep","none",0,.18),
       p("M140.25 130.2 C141.42 131.02 144.43 131.48 145.2 130.02",
         "none","$deep",.28,.38),
       p("M139.5 132.18 Q142.54 133.18 145.75 131.45",
