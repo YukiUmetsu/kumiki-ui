@@ -183,10 +183,21 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
         ?"M202 421 C163 424 131 439 116 470 Q98 506 83 612 L460 612 Q440 532 425 471 C412 443 372 428 328 420 Q263 451 202 421 Z"
         :"M184 419 C140 422 113 458 92 514 L59 612 L481 612 C469 554 443 458 394 426 Q356 410 324 422 Q250 471 184 419 Z"}
         fill={preset.robe} fillOpacity=".46" stroke={preset.ink} strokeWidth="1.7"/>
-      <path d="M173 453 C189 505 206 554 220 612 L118 612 C139 552 153 493 173 453 Z"
-        fill="#d3c9b6" opacity=".53"/>
-      <path d="M365 443 C390 490 422 563 431 612 L334 612 Q355 522 365 443 Z"
-        fill={preset.ink} opacity=".14"/>
+      {/** Wet robe shadows bend across fabric drape, never the earlier
+           triangular poster-like tone panels. Stroke pressure stays separate
+           from the dry small folds and paper-reserved cloth underlayer. */}
+      <path d="M173 449 C182 480 165 517 156 550 S143 590 138 611"
+        fill="none" stroke={preset.bone} strokeWidth="26" opacity=".20"
+        filter={"url(#"+uid+"-wash-feather)"}/>
+      <path d="M369 449 C379 489 399 523 403 559 S410 588 421 610"
+        fill="none" stroke={preset.ink} strokeWidth="24" opacity=".15"
+        filter={"url(#"+uid+"-wash-feather)"}/>
+      <path d="M191 466 C195 507 196 530 191 552 S176 594 181 609"
+        fill="none" stroke={preset.warm} strokeWidth="12" opacity=".21"
+        filter={"url(#"+uid+"-wash-feather)"}/>
+      <path d="M353 462 Q342 503 355 540 T366 611"
+        fill="none" stroke={preset.ink} strokeWidth="14" opacity=".095"
+        filter={"url(#"+uid+"-wash-feather)"}/>
       {character==="scholar"
         ?<>
           <path d="M209 425 Q261 489 344 422 Q332 483 267 528 Q231 502 209 425Z"
@@ -205,19 +216,39 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
             stroke={preset.ink} strokeWidth="2.05" opacity=".67"/>
         </>}
       {Array.from({length:17},(_,i)=>{
-        const side=i%2===0?-1:1, k=Math.floor(i/2);
-        const start:Point=[270+side*(69+k*10),436+k*1.3];
-        const mid:Point=[270+side*(98+k*13),508-k*1.3];
-        const end:Point=[270+side*(114+k*15),612];
-        return <path key={i} d={"M"+xy(start)+" Q"+xy(mid)+" "+xy(end)}
+        const side=i%2===0?-1:1,k=Math.floor(i/2);
+        const twist=Math.sin(i*2.12)*8;
+        const start:Point=[270+side*(65+k*11)+twist*.38,438+Math.cos(i*1.3)*7];
+        const mid:Point=[270+side*(79+k*12)+twist,488+Math.sin(i*.83)*25];
+        const tipY=520+Math.min(86,((i*37)%103));
+        const end:Point=[270+side*(93+k*13)+twist*.7,tipY];
+        return <path key={i} data-km-ink-cloth-pressure={i}
+          d={"M"+xy(start)+" C"+xy(shift(mid,-side*9,-20))
+            +" "+xy(shift(mid,side*4,24))+" "+xy(end)}
           fill="none" stroke={i%5===0?preset.ink:preset.bone}
-          strokeWidth={.44+(i%4)*.23} opacity={(.16+(i%5)*.075)*detail}/>;
+          strokeWidth={.42+(i%4)*.22}
+          opacity={(.16+(i%5)*.073)*detail}/>;
       })}
       {Array.from({length:24},(_,i)=>{
-        const u=i%12,dir=i<12?-1:1,x=270+dir*(83+u*9);
-        return <path key={"f"+i} d={"M"+fmt(x)+" "+fmt(513+u*3)
-          +" q"+fmt(dir*(3+u*.1))+" 25 "+fmt(dir*(4+u*.5))+" 39"}
-          fill="none" stroke={preset.ink} strokeWidth=".45" opacity={.12*detail}/>;
+        const u=i%12,dir=i<12?-1:1,noise=Math.sin(i*2.27);
+        const x=270+dir*(76+u*10+noise*5);
+        const y=499+u*4.4+Math.sin(i*.7)*11;
+        const length=16+24*Math.abs(Math.sin(i*1.17));
+        return <path key={"f"+i}
+          d={"M"+fmt(x)+" "+fmt(y)
+            +" q"+fmt(dir*(3+noise*2))+" "+fmt(length*.44)
+            +" "+fmt(dir*(2+noise*4))+" "+fmt(length)}
+          fill="none" stroke={i%7===0?preset.warm:preset.ink}
+          strokeWidth={.27+(i%5)*.09} opacity={(.14+(i%3)*.028)*detail}/>;
+      })}
+      {Array.from({length:11},(_,i)=>{
+        const t=i/10,side=i%2===0?-1:1;
+        const a:Point=[270+side*(62+t*39),446+t*14];
+        const b:Point=[270+side*(88+t*54),513+t*46];
+        const c:Point=[270+side*(105+t*66),570+t*29];
+        return <path key={"paperlift"+i} data-km-ink-cloth-dry-lift={i}
+          d={pathBetween(a,b,c)} fill="none" stroke="#f0e5d4"
+          strokeWidth={.54+(i%3)*.16} opacity={(.19+(i%4)*.045)*detail}/>;
       })}
     </g>
     {/** Cranial hair/hat, painted behind skin; scalp height derives from the ANAT1 forehead. */}
