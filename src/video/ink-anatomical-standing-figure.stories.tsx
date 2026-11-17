@@ -18,7 +18,7 @@ function StandingAtelier(){
   const [detail,setDetail]=useState(1);
   const [frame,setFrame]=useState(12);
   const [reduced,setReduced]=useState(false);
-  const [camera,setCamera]=useState<"full"|"waist"|"grip"|"hem">("full");
+  const [camera,setCamera]=useState<"full"|"face"|"waist"|"grip"|"hem">("full");
   return <main data-testid="ink-anat2-standing-figure-studio" style={page}>
     <p style={{fontSize:11,letterSpacing:2,fontWeight:700}}>
       ORIGINAL CHINESE INK / ANAT2 / SOURCE-BUILT FULL STANDING ART HOLD
@@ -27,20 +27,20 @@ function StandingAtelier(){
       Standing late-Ming scholar · source-space figure and live cloth
     </h1>
     <p style={{lineHeight:1.65,maxWidth:960}}>
-      An original 540×1080 standing figure in source space, built beneath
-      the existing independent ANAT1/EXPR1 painted face and wrapped silk.
-      Two fixed sandal soles, continuous long cotton robe, 82 gravity-following
-      fibers, 46 dry paper lifts, six separate native INK1 brush gestures,
-      five oppositional staff-holding fingers and ten articulated bamboo
-      nodes. No pre-existing walking-rig silhouette is duplicated. The feet
-      are stationary: this is a standing portrait, not a fake walk cycle.
-      This remains experimental, not approved historical craft.
+      An original 540×1080 standing figure redrawn from Ming portrait
+      references. Its independent ZJ1 head uses layered mogu face planes,
+      deep-set eyes, subtle expression geometry and separate ear anatomy;
+      it does not reuse ANAT1 or the Shanshui character. A continuous white
+      cotton robe, hand-held bamboo, two visible sandals, fine garment fibers
+      and six registered INK1 strokes form one source-space painting. This
+      remains experimental and is not approved historical craft.
     </p>
     <div style={{display:"flex",flexWrap:"wrap",gap:18,alignItems:"end",marginBottom:20}}>
       <label style={label}>Native source microscope
         <select value={camera} aria-label="Ink standing camera" style={select}
-          onChange={e=>setCamera(e.target.value as "full"|"waist"|"grip"|"hem")}>
+          onChange={e=>setCamera(e.target.value as "full"|"face"|"waist"|"grip"|"hem")}>
           <option value="full">Whole standing figure · 1×</option>
+          <option value="face">Zeng Jing face anatomy and mogu wash · 4.7×</option>
           <option value="waist">Wicked robe junction · 2.8×</option>
           <option value="grip">Bamboo finger opposition · 5.4×</option>
           <option value="hem">Sandals and hem contact · 1.86×</option>
@@ -88,17 +88,16 @@ function StandingAtelier(){
       </div>
       <aside style={{fontSize:13,lineHeight:1.72}}>
         <h2 style={{font:"normal 22px Georgia,serif"}}>Visual gates · not approved</h2>
-        <p>The figure is separately painted in native SVG rather than a
-          bitmapped cutout. The three native microscopes preserve the exact
-          same geometries, including every bristle and paper channel.
-          The complete standing form is matched to the
-          smaller head, yet the original eyelid and body painting still need
-          critical historical comparison at native and magnified views.</p>
-        <p>Staff and fingers require physical contact review at 3×; robe must
-          carry a real fold hierarchy and foot pressure. Technical continuity
-          tests are NOT an artistic release criterion.</p>
-        <a href="https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/"
-          rel="noreferrer" target="_blank">UMMA · Zeng Jing, Portrait of Pan Qintai (1621)</a>
+        <p>The head is a new source-built study of the late-Ming portrait
+          tradition: layered bone-immersing washes shape forehead, orbit,
+          malar plane, nose and jaw; fine lines are reserved for lids,
+          nostrils, lips and calligraphic hair. The four source microscopes
+          preserve original vector geometry, not enlarged raster screenshots.</p>
+        <p>Historical reference: <a href="https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/"
+          rel="noreferrer" target="_blank">UMMA · Zeng Jing, Portrait of Pan Qintai (1621)</a>.
+          Comparative full-figure: <a href="https://www.metmuseum.org/art/collection/search/48941"
+          rel="noreferrer" target="_blank">The Met · Portrait of a Scholar (17th–18th c., Public Domain)</a>.
+          The face, hand and robe still require critical visual review; CI is not an artistic release criterion.</p>
       </aside>
     </div>
   </main>;
