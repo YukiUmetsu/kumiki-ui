@@ -102,11 +102,21 @@ export function wearsMakeup(plan: MakeupPlan): boolean {
  * `portrait.makeup` asks for it. For `renderPortrait` or `FacePortrait`.
  */
 export function makeupPortraitOptions(portrait: PortraitOptions, plan: MakeupPlan): PortraitOptions {
-  const options: PortraitOptions = { makeup: "none", ...portrait, paint: makeupPaint(plan) };
-  // tape changes the face's own eye shape; a face with measured lids (no eye shape) is left as it is
-  const own = (plan.eyes?.tape ?? 0) > 0 ? beautifulFace(portrait).eyeShape : undefined;
-  if (own) options.eyeShape = tapedEyeShape(own, plan.eyes!.tape);
+  const options: PortraitOptions = { makeup: "none", ...portrait, paint: makeupPaint(plan) }, taped = tapedShape(portrait, plan);
+  if (taped) options.eyeShape = taped;
   return options;
+}
+
+/** The face as a plan wears it (tape changes the lids): check and chart a taped plan on this face. */
+export function wornFace(portrait: PortraitOptions, plan: MakeupPlan): readonly Vec3[] {
+  const taped = tapedShape(portrait, plan);
+  return beautifulFace(taped ? { ...portrait, eyeShape: taped } : portrait).vertices;
+}
+
+/** Tape changes the face's own eye shape; a face with measured lids (no eye shape) is left as it is. */
+function tapedShape(portrait: PortraitOptions, plan: MakeupPlan) {
+  const tape = plan.eyes?.tape ?? 0, own = tape > 0 ? beautifulFace(portrait).eyeShape : undefined;
+  return own ? tapedEyeShape(own, tape) : undefined;
 }
 
 // ---- Photographs -----------------------------------------------------------------------------------------------------

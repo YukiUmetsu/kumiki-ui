@@ -14,7 +14,7 @@ import { FACE_SHAPE_RULES, findLook, MAKEUP_LEARNED, MAKEUP_LOOKS } from "../../
 import type { FaceShape, Look, LookLayer } from "../../registry/anatomy/makeup-data";
 import { designMakeup } from "../../registry/anatomy/makeup-design";
 import type { MakeupPlan } from "../../registry/anatomy/makeup-design";
-import { paintPhoto } from "../../registry/anatomy/makeup-paint";
+import { paintPhoto, wornFace } from "../../registry/anatomy/makeup-paint";
 import { BeautyCorrelations, FaceChart, LearnedContrast, LearnedEffects, MakeupChecks, MakeupEvidenceList, MakeupPortrait, MakeupSwatches, UndertonePlane } from "../../registry/anatomy/makeup-react";
 import { findZone } from "../../registry/anatomy/makeup-zones";
 import type { FinishId } from "../../registry/anatomy/makeup-zones";
@@ -320,6 +320,8 @@ function EastAsianLooks() {
   const face = useMemo(() => beautifulFace(portrait).vertices, [s.sex, s.variant, s.eyeShape]); // eslint-disable-line react-hooks/exhaustive-deps
   const plan = useMemo(() => designMakeup({ look: eaLook(s), face, eyeShape: s.eyeShape, skin: s.skin, hair: portrait.hair, eyes: "dark-brown", intensity: s.intensity }), [JSON.stringify(s), face]); // eslint-disable-line react-hooks/exhaustive-deps
   const look = findLook(s.look)!;
+  // the checks and the chart use the face as the plan wears it: tape opens the eye
+  const worn = useMemo(() => wornFace(portrait, plan), [plan, face]); // eslint-disable-line react-hooks/exhaustive-deps
   const toggle = (k: "lashes" | "lens" | "tape" | "aegyo", text: string) =>
     <label style={{ ...label, display: "flex", alignItems: "center", gap: 6, fontWeight: 500 }}><input type="checkbox" checked={s[k]} onChange={e => set(k)(e.target.checked)} />{text}</label>;
   const fig = { margin: 0, display: "grid", gap: 4, alignContent: "start" } as const;
@@ -355,11 +357,11 @@ function EastAsianLooks() {
         <h3 style={h3}>Why these choices</h3>
         <ul style={{ ...muted, paddingLeft: 18, display: "grid", gap: 4 }}>{plan.rationale.map((r, k) => <li key={k}>{r}</li>)}</ul>
         <h3 style={h3}>Checks</h3>
-        <MakeupChecks plan={plan} face={face} />
-        <div style={{ maxWidth: 560 }}><FaceChart face={face} plan={plan} title={`${plan.label}: where each product goes on this face`} /></div>
+        <MakeupChecks plan={plan} face={worn} />
+        <div style={{ maxWidth: 560 }}><FaceChart face={worn} plan={plan} title={`${plan.label}: where each product goes on this face`} /></div>
         {s.gallery ? <div style={grid(200)}>
-          {EAST_ASIAN_LOOKS.map((id, k) => <figure key={id} style={fig}>
-            <MakeupPortrait portrait={{ ...portrait, width: 224, height: 280, seed: 11 + k }} design={{ look: id }} label={`${findLook(id)!.label} on this face`} />
+          {EAST_ASIAN_LOOKS.map(id => <figure key={id} style={fig}>
+            <MakeupPortrait portrait={{ ...portrait, width: 224, height: 280 }} design={{ look: id }} label={`${findLook(id)!.label} on this face`} />
             <figcaption style={muted}>{findLook(id)!.label}</figcaption></figure>)}
         </div> : null}
       </div>

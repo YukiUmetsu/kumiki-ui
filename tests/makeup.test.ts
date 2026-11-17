@@ -12,9 +12,11 @@ import type { Look } from "../registry/anatomy/makeup-data";
 import { EYE_SHAPES } from "../registry/anatomy/eye-detail";
 import { checkMakeup, designMakeup, tapedEyeShape } from "../registry/anatomy/makeup-design";
 import type { MakeupCheck, MakeupPlan } from "../registry/anatomy/makeup-design";
-import { makeupPaint, makeupPortraitOptions, paintPhoto, wearsMakeup } from "../registry/anatomy/makeup-paint";
+import { makeupPaint, makeupPortraitOptions, paintPhoto, wearsMakeup, wornFace } from "../registry/anatomy/makeup-paint";
 import { MAKEUP_RUNNERS } from "../registry/anatomy/makeup-render-jobs";
+import type { FacePortraitProps, PortraitInMotionProps } from "../registry/anatomy/face-portrait-react";
 import { MAKEUP_ZONES, resolveZone, zoneField } from "../registry/anatomy/makeup-zones";
+import type { ZoneAdjust } from "../registry/anatomy/makeup-zones";
 import parity from "./fixtures/makeup-zone-parity.json";
 
 const CANON = faceData.vertices as Vec3[];
@@ -38,6 +40,17 @@ describe("MAKEUP1 zone atlas", () => {
       parity.points.forEach((p, k) => expect(f(p as Vec3), `${id} at point ${k}`).toBeCloseTo(ws[k], 5));
     }
     expect(Object.keys(parity.weights).sort()).toEqual(MAKEUP_ZONES.map(z => z.id).sort());
+  });
+  it("weighs the same in both languages along every stroke and with every adjustment (probes on the zones themselves)", () => {
+    const probes = (parity as unknown as { probes?: { zone: string; adjust?: ZoneAdjust; points: number[][]; weights: number[] }[] }).probes ?? [];
+    const strokes = MAKEUP_ZONES.filter(z => z.shape.kind === "stroke").map(z => z.id);
+    expect(new Set(probes.filter(p => !p.adjust).map(p => p.zone))).toEqual(new Set(strokes));
+    for (const key of ["span", "rotate", "scale", "shift", "radius", "soft", "grow"]) expect(probes.some(p => p.adjust && key in p.adjust), key).toBe(true);
+    for (const p of probes) {
+      const f = zoneField(p.zone, CANON, p.adjust);
+      p.points.forEach((q, k) => expect(f(q as Vec3), `${p.zone} ${JSON.stringify(p.adjust ?? {})} probe ${k}`).toBeCloseTo(p.weights[k], 5));
+      expect(Math.max(...p.weights), `${p.zone} probes touch the zone`).toBeGreaterThan(0.5);
+    }
   });
   it("places the East Asian zones: aegyo-sal under the lower lid, the puppy wing down, the tear mole on one side", () => {
     const V = beautifulFace({ sex: 0, faceType: "east-asian" }).vertices;
@@ -194,6 +207,13 @@ describe("MAKEUP1 plans adapt and stay readable", () => {
     const own = beautifulFace({ faceType: "east-asian" }).eyeShape;
     if (own) expect((makeupPortraitOptions({ faceType: "east-asian", width: 64, height: 80 }, plan).eyeShape as { id: string }).id).toBe(`${own.id}+tape`);
   });
+  it("checks a taped plan on the face it renders (wornFace): tape opens the eye", () => {
+    const portrait = { sex: 0, faceType: "east-asian" as const, eyeShape: "monolid" };
+    const V0 = beautifulFace(portrait).vertices, open = (V: readonly Vec3[]) => Math.hypot(V[159][0] - V[145][0], V[159][1] - V[145][1], V[159][2] - V[145][2]);
+    const taped = designMakeup({ look: "neo-gyaru", face: V0, eyeShape: "monolid" }), plain = designMakeup({ look: "k-idol", face: V0, eyeShape: "monolid" });
+    expect(open(wornFace(portrait, taped))).toBeGreaterThan(open(V0) + 0.5);
+    expect(open(wornFace(portrait, plain))).toBeCloseTo(open(V0), 6);
+  });
   it("counts a lipstick lighter than deep skin as lip contrast, and a lipstick at the skin's own value as none", () => {
     for (const look of ["k-idol", "igari", "c-glam", "monochrome-rose"]) {
       const checks = checkMakeup(designMakeup({ look, face: eastAsian, skin: "#6b4430" }), eastAsian);
@@ -344,6 +364,14 @@ describe("MAKEUP1 eye tools in the renderer", () => {
 });
 
 describe("MAKEUP1 in a render worker", () => {
+  it("keeps a paint out of the worker-rendered portrait components (a paint's functions cannot be cloned)", () => {
+    const paint = makeupPaint(designMakeup({ look: "c-glam", face }));
+    // @ts-expect-error FacePortrait renders in a worker: use MakeupPortrait, or renderPortrait on the page's thread
+    const props: FacePortraitProps = { label: "x", options: { paint } };
+    // @ts-expect-error PortraitInMotion renders its frames in workers too
+    const motion: PortraitInMotionProps = { label: "x", options: { paint } };
+    expect([props.label, motion.label]).toEqual(["x", "x"]);
+  });
   it("renders a plan from plain data, as a worker gets it (a paint's functions cannot be cloned)", () => {
     const portrait = { faceType: "east-asian" as const, eyeShape: "monolid", framing: "eyes" as const, width: 96, height: 48, makeup: "none" as const };
     const plan = designMakeup({ look: "neo-gyaru", face: beautifulFace(portrait).vertices, eyeShape: "monolid", skin: "#d8a98a" });
