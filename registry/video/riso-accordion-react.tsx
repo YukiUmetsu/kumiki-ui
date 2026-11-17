@@ -57,10 +57,6 @@ export function RisoAccordionPrintedZine({
     misregistration,paperGrain,drumContact,reducedMotion:true,
     "aria-hidden":true as const,
   };
-  const upper=projection.faces.map(face=>{
-    const [a,b,,d]=face.rightEdge;return axis==="vertical"?
-      [a,b] as const:[a,b] as const;
-  });
   return <svg xmlns="http://www.w3.org/2000/svg"
     role="img" aria-label={label}
     className={className}
