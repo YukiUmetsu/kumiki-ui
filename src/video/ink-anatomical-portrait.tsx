@@ -8,6 +8,8 @@
  */
 import {useId, useMemo} from "react";
 import type {FaceParams} from "../../registry/anatomy/anatomy-face";
+import {evaluateInkBrush} from "../../registry/video/ink-brush";
+import type {InkBrushSpec} from "../../registry/video/ink-brush";
 import {createFace,FACE_FEATURES,FACE_LANDMARKS,measureFace} from "../../registry/anatomy/anatomy-face";
 import {expressEmotion,expressFace,expressionFeatures,expressionMarks} from "../../registry/anatomy/expression-face";
 import type {ExpressedFace} from "../../registry/anatomy/expression-face";
@@ -82,6 +84,48 @@ export function inkPortraitAnatomy(character:InkPortraitCharacter, emotion:InkPo
   return {posed,measurements:measureFace(base.vertices),features:expressionFeatures(posed),
     landmarks:FACE_LANDMARKS, expressionMarks:expressionMarks(posed)};
 }
+
+
+/**
+ * Source-informed calligraphic sleeve and lapel marks. Reuse the existing
+ * licensed INK1 native pressure/pace/material geometry instead of faking
+ * Chinese brushwork with uniform SVG vector stroke widths.
+ *
+ * Authors may tune every control point independently. These represent
+ * garment-specific calligraphic touch, not a full-frame procedural texture.
+ */
+function robeInkSpec(character:InkPortraitCharacter):InkBrushSpec{
+  const scholar=character==="scholar";
+  const pt=(x:number,y:number,pressure:number,pace:number)=>({x,y,pressure,pace});
+  return {
+    version:1,width:540,height:620,paper:"#f4ebd9",
+    seed:scholar?1641:1839,
+    strokes:[
+      {id:"left-wrap",width:scholar?3.1:3.8,load:.83,dryness:.38,tone:0,
+        startFrame:0,durationFrames:1,
+        points:scholar
+          ?[pt(211,434,.10,1.7),pt(256,476,.86,.64),pt(285,512,.23,1.3),pt(303,550,.03,2)]
+          :[pt(199,436,.09,1.6),pt(248,483,.91,.62),pt(274,499,.47,1.1),pt(305,545,.04,1.9)]},
+      {id:"right-wrap",width:scholar?2.8:3.25,load:.77,dryness:.54,tone:1,
+        startFrame:0,durationFrames:1,
+        points:scholar
+          ?[pt(340,434,.06,1.55),pt(311,472,.93,.7),pt(283,487,.59,1.1),pt(255,523,.04,2.1)]
+          :[pt(348,433,.05,1.9),pt(309,483,.85,.81),pt(283,513,.63,1.25),pt(257,537,.03,2)]},
+      {id:"sleeve-left",width:4.8,load:.72,dryness:.72,tone:1,
+        startFrame:0,durationFrames:1,
+        points:[pt(150,452,.08,1.9),pt(138,495,.87,.55),
+          pt(116,550,.72,1.09),pt(104,595,.03,2.2)]},
+      {id:"sleeve-right",width:4.4,load:.67,dryness:.79,tone:1,
+        startFrame:0,durationFrames:1,
+        points:[pt(394,454,.07,1.75),pt(414,502,.94,.64),
+          pt(432,559,.54,1.3),pt(444,599,.02,2.3)]},
+    ],
+  };
+}
+const ROBE_PRESSURE_MARKS={
+  scholar:evaluateInkBrush(robeInkSpec("scholar"),1,true),
+  elder:evaluateInkBrush(robeInkSpec("elder"),1,true),
+};
 
 interface PaintProps {posed:ExpressedFace; character:InkPortraitCharacter; detail:number; view:InkPortraitView; uid:string}
 function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
@@ -328,6 +372,29 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           d={pathBetween(a,b,c)} fill="none" stroke="#f0e5d4"
           strokeWidth={.54+(i%3)*.16} opacity={(.19+(i%4)*.045)*detail}/>;
       })}
+      {ROBE_PRESSURE_MARKS[character].map((mark,i)=><g key={mark.id}
+        data-km-ink-native-robe-brush={mark.id}
+        data-km-ink-brush-pressure="INK1-variable-width"
+        opacity={mark.opacity*(character==="scholar"?.67:.71)*detail}>
+        <defs>
+          <mask id={uid+"-ink1-robe-"+i}
+            maskUnits="userSpaceOnUse" x="0" y="0" width="540" height="620">
+            <rect x="0" y="0" width="540" height="620" fill="#fff"/>
+            {mark.gaps.map((gap,j)=><path key={"gap"+j} d={gap.d}
+              stroke="#000" strokeWidth={gap.width} fill="none"
+              strokeLinecap="round"/>)}
+            {mark.pores.map((p,j)=><ellipse key={"pore"+j}
+              cx={p.x} cy={p.y} rx={p.rx} ry={p.ry} fill="#000"/>)}
+          </mask>
+        </defs>
+        <path d={mark.outline} fill={preset.ink} opacity=".56"
+          mask={"url(#"+uid+"-ink1-robe-"+i+")"}/>
+        <path d={mark.core} fill={preset.ink} opacity=".15"
+          mask={"url(#"+uid+"-ink1-robe-"+i+")"}/>
+        {mark.hairs.filter((_,j)=>j%4===0).map((hair,j)=><path key={"hair"+j}
+          d={hair.d} fill="none" stroke={preset.ink}
+          strokeWidth={hair.width} opacity={hair.opacity*.78}/>)}
+      </g>)}
     </g>
     {/** Period half-figure bust ratio: period silk sleeves are broader than the
          sitter's head. Native QA rejected the 0.75-width giant head; fit the
