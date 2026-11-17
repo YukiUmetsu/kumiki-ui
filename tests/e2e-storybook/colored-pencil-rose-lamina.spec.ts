@@ -1,4 +1,7 @@
 import {test,expect} from "@playwright/test";
+import {createHash} from "node:crypto";
+
+const sha256=(bytes:Buffer|string)=>createHash("sha256").update(bytes).digest("hex");
 
 test("rose lamina native film: original source and four optical passes at both aspects",async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
@@ -17,6 +20,7 @@ test("rose lamina native film: original source and four optical passes at both a
     await expect(svg.locator('[data-km-pencil-trace^="rose-lam-"]'))
       .toHaveCount(28);
     expect(await svg.locator("image,foreignObject,feImage").count()).toBe(0);
+    const authoredSvgHash=sha256(await svg.evaluate(node=>node.outerHTML));
     const withFibres=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-"+aspect+"-lamina-original-native.png")});
     await checkbox.uncheck();
@@ -25,11 +29,18 @@ test("rose lamina native film: original source and four optical passes at both a
       .toHaveCount(0);
     const before=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-"+aspect+"-baseline-original-native.png")});
-    expect(before).not.toEqual(withFibres);
+    expect(sha256(before)).not.toBe(sha256(withFibres));
     await checkbox.check();
     await expect(svg.locator('[data-km-pencil-trace^="rose-lam-"]'))
       .toHaveCount(28);
-    expect(await svg.screenshot({animations:"disabled"})).toEqual(withFibres);
+    expect(sha256(await svg.evaluate(node=>node.outerHTML))).toBe(authoredSvgHash);
+    // PNG buffers can be extremely large: hash the complete native PNG
+    // instead of invoking Vitest/Playwright byte-by-byte array diffs. A
+    // strict exact-image comparison is still required after A/B restoration.
+    await expect.poll(async()=>sha256(await svg.screenshot({animations:"disabled",
+      path:info.outputPath("rose-"+aspect+"-restored-native.png")})),
+      {timeout:18000,intervals:[400,800,1600]})
+      .toBe(sha256(withFibres));
     await page.getByRole("checkbox",{name:"Foundation inspect macro"}).check();
     await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-"+aspect+"-lamina-macro.png")});
