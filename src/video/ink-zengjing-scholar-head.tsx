@@ -26,6 +26,16 @@ const clamp=(v:number,min:number,max:number)=>Math.max(min,Math.min(max,v));
 export function InkZengJingScholarHead({
   character,emotion,intensity=.9,detail=1,headScale=.48,
 }:InkZengJingScholarHeadProps){
+  if(character!=="scholar"&&character!=="elder")
+    throw new RangeError("Unknown ZJ1 portrait identity");
+  if(!["neutral","smile","sad","angry","surprise"].includes(emotion))
+    throw new RangeError("Unknown ZJ1 facial expression");
+  if(!Number.isFinite(intensity)||intensity<0||intensity>1)
+    throw new RangeError("ZJ1 expression intensity must be in [0,1]");
+  if(!Number.isFinite(detail)||detail<.25||detail>1)
+    throw new RangeError("ZJ1 detail must be .25..1");
+  if(!Number.isFinite(headScale)||headScale<.38||headScale>.75)
+    throw new RangeError("ZJ1 headScale must be .38..75");
   const uid="km-zj1-"+useId().replace(/[^a-zA-Z0-9_-]/g,"");
   const elder=character==="elder",power=clamp(intensity,0,1);
   const scale=.91+(headScale-.48)*.42;
