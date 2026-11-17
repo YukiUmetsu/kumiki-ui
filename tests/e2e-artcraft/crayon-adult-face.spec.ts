@@ -7,7 +7,7 @@ import {crayonCc0NearEyeStudy} from "../../src/video/crayon-artcraft-cc0-near-ey
 import {crayonPaperContactSwatches} from "../../src/video/crayon-artcraft-paper-contact-fixtures";
 import {crayonArtcraftBodyStudy} from "../../src/video/crayon-artcraft-body-study";
 import {crayonCc0FaceStudy,CRAYON_F1_EYE_INSPECTION} from "../../src/video/crayon-artcraft-cc0-face";
-import {AdultFaceArtcraftWorkbench,Cc0HairValueComparisonV38} from "../../src/video/crayon-artcraft-adult-face.stories";
+import {Cc0HairValueComparisonV38} from "../../src/video/crayon-artcraft-adult-face.stories";
 
 /** The rejected blue-coat bust and landmark-dot audit screenshot
  * were retired after visual review; they must not be regenerated in CI.
