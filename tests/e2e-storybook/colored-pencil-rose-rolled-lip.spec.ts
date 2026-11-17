@@ -87,6 +87,6 @@ test("native rose fold contacts remain on their own source petal",async({page})=
     }
     return {failures,samples};
   });
-  expect(evidence.samples).toBe(7*3*37);
   expect(evidence.failures).toEqual([]);
+  expect(evidence.samples).toBe(7*3*37);
 });
