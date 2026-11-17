@@ -3,6 +3,7 @@ import {ROSE_LEAFLET_AXES,ROSE_PINNATE_ORGANS,inspectRosePinnateOrgans}
   from "../src/video/colored-pencil-rose-pinnate";
 import {pencilObjectStudyDrawing} from "../src/video/colored-pencil-object-studies";
 import {inspectPencilFoundationDrawing} from "../registry/video/colored-pencil-foundation";
+import {inspectPencilDrawing} from "../registry/video/colored-pencil";
 
 const rose=(aspect:"landscape"|"portrait",leaves=false,calyx=false,
   lamina=false,lips=false,seed=291)=>
@@ -68,6 +69,19 @@ describe("CP-F1/FLORA1 original serrated odd-pinnate rose leaves",()=>{
     }
   });
 
+  it("bounds the richer native region graph at 48, rejecting unbounded 49th facets",()=>{
+    const base=rose("landscape",true,true);
+    expect(base.regions).toHaveLength(30);
+    const sample=base.regions.find(r=>r.id==="rose-left-terminal")!;
+    const expand=(n:number)=>({...base,
+      regions:[...base.regions,...Array.from({length:n},(_,i)=>({
+        ...sample,id:"extra-leaf-qa-"+i,
+      }))],
+    });
+    expect(inspectPencilDrawing(expand(18))).toEqual([]);
+    expect(inspectPencilDrawing(expand(19)))
+      .toContain("regions: 1–48 named specimens or facets required.");
+  });
   it("keeps material seed stable at extremes and leaves unrelated subjects untouched",()=>{
     for(const seed of [0,291,2147483000]){
       expect(rose("portrait",true,true,true,true,seed))
