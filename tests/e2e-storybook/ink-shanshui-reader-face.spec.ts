@@ -540,10 +540,22 @@ test("ANAT1 Chinese-ink five visemes retain detailed live lip relief and visible
           '[data-km-ink-viseme-part="'+emotion+'"]');
         if(!group)throw Error("Missing source speech cel");
         const paths=Array.from(group.querySelectorAll("path"));
-        const color=emotion==="aa"?"0.54":"0.57";
-        const cavity=paths.find(p=>p.getAttribute("opacity")===color);
-        if(!cavity)throw Error("Cubic opening not drawn");
+        const isInkFill=(p:Element)=>p.getAttribute("stroke")==="none";
+        const alpha=(p:Element)=>Number(p.getAttribute("opacity"));
+        // Use explicit pigment/material semantics instead of brittle
+        // exact opacity strings. The outer mouth is faint wet ground;
+        // at least two smaller interior layers form the deep fissure.
+        const cavity=paths.find(p=>p.getAttribute("fill")==="#66513e"&&
+          isInkFill(p)&&alpha(p)>=.16&&alpha(p)<.2);
+        const inner=paths.find(p=>p.getAttribute("fill")==="#66513e"&&
+          isInkFill(p)&&alpha(p)>=.25&&alpha(p)<.4);
+        const center=paths.find(p=>p.getAttribute("fill")==="#937251"&&
+          isInkFill(p)&&alpha(p)>=.17&&alpha(p)<.3);
+        if(!cavity||!inner||!center)
+          throw Error("Missing multi-load original wet-ink speaking mouth");
         const b=(cavity as SVGPathElement).getBBox();
+        const ib=(inner as SVGPathElement).getBBox();
+        const cb=(center as SVGPathElement).getBBox();
         const matrix=(cavity as SVGPathElement).getScreenCTM();
         if(!matrix)throw Error("Detached source mouth");
         const point=new DOMPoint(b.x+b.width*.5,b.y+b.height*.5)
@@ -552,17 +564,24 @@ test("ANAT1 Chinese-ink five visemes retain detailed live lip relief and visible
         return {x:(point.x-outer.left)/outer.width,
           y:(point.y-outer.top)/outer.height,
           width:b.width,height:b.height,
+          innerWidth:ib.width,innerHeight:ib.height,
+          deepWidth:cb.width,deepHeight:cb.height,
+          outlineOpacity:alpha(cavity),
           fillCount:paths.filter(p=>p.getAttribute("fill")!=="none").length,
           topOpacity:Math.max(...paths
             .filter(p=>p.getAttribute("fill")!=="none")
-            .map(p=>Number(p.getAttribute("opacity"))))};
+            .map(p=>alpha(p)))};
       },state);
       expect(opening.x).toBeGreaterThan(.15);
       expect(opening.x).toBeLessThan(.85);
       expect(opening.y).toBeGreaterThan(.15);
       expect(opening.y).toBeLessThan(.85);
-      expect(opening.fillCount).toBeGreaterThanOrEqual(4);
+      expect(opening.fillCount).toBeGreaterThanOrEqual(6);
       expect(opening.topOpacity).toBeLessThan(.6);
+      expect(opening.outlineOpacity).toBeLessThan(.2);
+      expect(opening.innerWidth).toBeLessThan(opening.width);
+      expect(opening.deepWidth).toBeLessThan(opening.innerWidth);
+      expect(opening.deepHeight).toBeLessThan(opening.height);
       expect(opening.width).toBeLessThan(state==="aa"?15:7);
       expect(opening.height).toBeLessThan(8);
     }
