@@ -15,12 +15,13 @@ regressions, canon checks, surface forms, age changes, drawing recipe), `anatomy
 painter), `data/*` (baked tables and licences). Binary body model: `assets/models/anatomy/human-body-lattice.bin`
 (2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (42 public-domain/CC0 plates and
 photographs: 11 of eyes, 5 of skin, 4 of hands).
-**Storybook:** Video production → Art Foundations → Human Anatomy → **Lab**, **Population line-up**, **Turnaround**,
-**Pose library** (+ front/side QA), **Hand poses**, **Face lab**, **Head angles**, **Range of motion**, **Any style**,
-**Proportions and ranges**, **Reference board**, **Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Hair on the
-posable body**, **Eye lab**, **Eye shapes**, **Iris colours**, **Skin texture by region**, **Hand lab**, **Hand types**,
-**Hand gestures**, **Grasps (GRASP taxonomy)**, **Hand animations**, **Hand details**, **Hair types and colours**, **Skin, hair and eye colour**,
-**Beautiful faces**, **Portrait lab**
+**Storybook:** Video production → Art Foundations → Human Anatomy, in this order:
+body — **Lab**, **Population line-up**, **Turnaround**, **Pose library**, **Range of motion**, **Proportions and
+ranges**, **Any style**, **Reference board**; faces — **Face lab**, **Beautiful faces**, **Head angles**; eyes —
+**Eye lab**, **Eye shapes**, **Iris colours**; skin — **Skin texture by region**, **Skin colour (Monk scale)**; hair —
+**Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Curl types and hair colours**, **Hair on the posable body**;
+hands — **Hand lab**, **Hand types**, **Hand gestures**, **Grasps (GRASP taxonomy)**, **Hand animations**, **Hand
+details**.
 **Status:** implemented; agent review of Chromium screenshots only — **human visual review not recorded**. This is a
 construction and reference framework. It does **not** certify a finished realistic portrait or pencil drawing: those
 still need their style's gates (CP-F1, ArtCraft v7 portrait gate — AGENTS.md rules 13–14).
