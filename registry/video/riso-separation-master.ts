@@ -64,7 +64,6 @@ export interface RisoSeparationReport {
 const finite=(v:number)=>Number.isFinite(v);
 const bounded=(v:number,min:number,max:number)=>finite(v)&&v>=min&&v<=max;
 const slug=(s:string)=>/^[a-z][a-z0-9-]{0,63}$/.test(s);
-const near=(a:number,b:number)=>Math.abs(a-b)<=1e-7;
 const r=(n:number)=>String(Number(n.toFixed(5)));
 const within=(v:number,min:number,max:number)=>v>=min-1e-7&&v<=max+1e-7;
 const xml=(v:string)=>v.replace(/&/g,"&amp;").replace(/"/g,"&quot;")
