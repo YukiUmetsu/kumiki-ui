@@ -4,7 +4,7 @@
  *
  * Reference-led morphology: an irregular rear cup, an off-axis shaded pocket,
  * one lifted narrow left wall, one broader right shoulder, a foreground
- * convex lamina and a small hooked curl with a real abaxial reverse. Their
+ * convex lamina and an offset front petal with a real abaxial reverse. Their
  * silhouettes have distinct centres, widths, shoulder heights and tangent
  * directions. This is still a 2D projection, not a measured 3D specimen.
  *
@@ -49,7 +49,7 @@ const contacts=(id:RoseCenterKnotId,paths:readonly [
 ];
 
 /** Explicit paint order: rear irregular crown, dark pocket, left turned wall,
- * right overlapping shoulder, lower front lobe, then curled front lip.
+ * right overlapping shoulder, lower front lobe, then offset front petal.
  */
 export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
   {
