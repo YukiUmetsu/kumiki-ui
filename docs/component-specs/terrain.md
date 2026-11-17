@@ -11,6 +11,8 @@
 
 **Storybook:** Video production → Art Foundations → Terrain and Landforms → **Sheet**, **Landscapes**, **Terrain lab**.
 **Status:** implemented; agent review of renders only — **human visual review not recorded**.
+**Reference study:** [landscapes compared with photographs](../research/terrain-reference-study-2026-11-17.md)
+(the Matterhorn, Fuji from the ISS, the Seven Sisters, the Palouse, Monument Valley, Yosemite).
 
 ## What it is for
 
@@ -53,26 +55,53 @@ has its own natural span, from 1.2 km for dunes to 30 km for a shield.
 - **Shape by kind.** Ridged, domain-warped noise for ranges. Dunes about 150 m apart, with windward backs of about
   11° and slip faces at the angle of repose (measured on the field: median 11°, 95th percentile 34°), crests rounded. Concave cones with craters and radial gullies for
   volcanoes. Cap-rock plateaus over aprons, with strata, for mesas. Asymmetric sawtooth transverse dunes. Valleys
-  carved as a U or a V along a meander. A cliffed coast with a deep sea floor.
+  carved as a U or a V along a meander. Rolling hills with smaller loess hills on broad swells. A chalk coast: downs
+  cut by dry valleys (about seven crests to the field, so the cliff top rises and falls), a shingle beach about 2 m up,
+  a rock platform awash a metre or two down, then the sea floor. Fuji-like ravines radiating down volcanoes.
 - **Hydraulic erosion** (`erode`): droplets run downhill, eroding where they speed up and depositing where they slow
   (Beyer 2015). This cuts branching gullies and lays fans.
 - **Thermal erosion** (`settle`): material settles to its angle of repose; dunes settle at 33°. Mesas skip it, so their
   cap rock stands.
 - **Reading heights** (`terrainHeightAt`) works anywhere. Past the edge, ranges continue for mountain kinds and a plain
-  for the others (dunes and hills continue their own shape), so a horizon never ends in a cut.
+  for the others (dunes, hills and the coast continue their own shape), so a horizon never ends in a cut.
 
 ## Rendering (`renderTerrain`, `TerrainView`)
 
 Rays march over the heightfield, plus sub-grid ridged detail. Covers follow height, slope and aspect:
 
-- **Snow:** above `snowlineAt(latitude)`, lowered by the season and on shaded slopes, holding only under about 50°,
-  and thinned by wind scour near the line.
-- **Rock and scree:** rock where the slope exceeds about 38°, and scree at the angle of repose below it.
-- **Vegetation:** meadow above `treelineAt` and forest below it, on slopes trees can hold. Forest is a canopy layer
-  about 20 m above the ground, with crowns of mixed sizes (about 6 and 11 m), dark foliage and shade between the
-  crowns, so the eye meets treetops rather than painted ground.
-- **Other covers:** ash on volcanic cones, sand and sandstone, and water below sea level, with wind waves and a
-  Fresnel sky reflection.
+- **Snow:**
+  - It lies above `snowlineAt(latitude)`, lowered by the season and on shaded slopes, with a crisp, ragged edge.
+  - It holds only under about 50°, and wind scour thins it near the line.
+  - It reaches lower down gullies and is blown off spurs. Concavity is measured on the heightfield, so a volcano's snow
+    runs down its ravines in fingers.
+  - On faces too steep for a cover (45–75°) it still lies on ledges along the strata and down couloirs, in patches
+    drawn out along the bands, as on a north face.
+- **Rock:**
+  - Rock shows where the slope exceeds about 38°, with scree at the angle of repose below it.
+  - The rock has its own grain:
+    - dark gneiss with tilted strata on fold ranges;
+    - granite streaked by water in valleys;
+    - white chalk with faint flint bands and runnels on the coast;
+    - sandstone hung with desert varnish on mesas, over red talus.
+  - Near faces get fractured relief.
+- **Vegetation:**
+  - Meadow grows above `treelineAt` and forest below it, on slopes trees can hold.
+  - Forest is a canopy layer about 20 m above the ground:
+    - narrow conifer cones about 4.5 and 7 m across on mountains, rounded broadleaf crowns about 7 and 12 m on lowland
+      hills;
+    - foliage clumps about a metre across that catch the light near by;
+    - shade between crowns, and shadows cast by the trees.
+  - On farmland hills, woods are patches a few hundred metres across with full-height edges.
+  - The fields are about 260 m across: green and ripening wheat, ploughed brown, pale stubble, worked along the
+    contours (fine stripes that follow the hills), with darker lines where fields meet.
+- **Other covers:**
+  - Ash on volcanic cones: dark grey-brown, not red.
+  - Red sand with dark shrubs in mesa country.
+  - A shingle beach under sea cliffs.
+  - Water below sea level, with wind waves and a Fresnel sky reflection; green-blue over the shallows, with a swash
+    line and broken breakers at the platform's edge.
+- **Camera:** on a coast the default view stands on the shore and looks along the cliffs; over farmland it looks down
+  from about 170 m.
 
 Light comes from SKY1's `atmosphere()`: reddened sunlight, sky irradiance by slope, light bounced off the sunlit
 ground (strong over sand and snow), soft terrain shadows marched toward
@@ -82,6 +111,7 @@ worker, cached, with a half-size preview and a working badge (see `foundation-re
 ## Limits
 
 - The grid is 256–384 points per side, so the nearest ground is detail noise, not modelled rocks.
-- Crowns are domes in a canopy layer, not modelled trees.
+- Crowns are cones and domes in a canopy layer, not modelled trees.
+- Dunes have no wind ripples yet.
 - Snow does not drift.
 - Erosion is a droplet model, not a fluid simulation.

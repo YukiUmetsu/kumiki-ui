@@ -95,7 +95,8 @@ function shape(kind: TerrainKind, seed: number, u: number, v: number): number {
       let hh = Math.max(0, 1 - Math.pow(Math.min(1.4, r / R), kind === "cinder" ? 1 : 0.62));
       const crater = kind === "cinder" ? 0.16 : 0.05, rim = kind === "cinder" ? 0.14 : 0.07;
       if (r < crater) hh -= (rim) * (1 - (r / crater) ** 2);
-      const gully = kind === "cinder" ? 0 : 0.035 * Math.max(0, r - 0.12) * ridged(seed + 5, a * 6, r * 4, 3, 2, 0.5);
+      // (deep ravines radiate from below the summit, as on Fuji: the snow reaches down them in long fingers)
+      const gully = kind === "cinder" ? 0 : 0.06 * Math.max(0, r - 0.1) * Math.pow(ridged(seed + 5, a * 6, r * 4, 3, 2, 0.5), 1.5);
       return Math.max(0, hh - gully + 0.04 * fbm(seed + 9, u * 4, v * 4, 4) * smooth(0.1, 0.6, r));
     }
     case "mesa": {
@@ -125,7 +126,8 @@ function shape(kind: TerrainKind, seed: number, u: number, v: number): number {
       return 0.15 + 0.7 * crest + 0.1 * fbm(seed + 3, u * 2, v * 2, 3);
     }
     case "hills":
-      return 0.5 + 0.5 * fbm(seed, u * 2.6, v * 2.6, 5, 2, 0.45);
+      // broad swells with smaller hills on them a few hundred metres across (the Palouse's loess hills)
+      return 0.5 + 0.42 * fbm(seed, u * 2.6, v * 2.6, 5, 2, 0.45) + 0.16 * fbm(seed + 5, u * 11, v * 11, 3);
     case "u-valley": case "v-valley": {
       // mountains either side of a valley running along z; U: a flat floor and steep walls; V: straight sides
       const walls = Math.pow(ridged(seed, u * 2.5, v * 2.5, 5, 2, 0.5), 1.4) * 0.6 + 0.4;
@@ -134,9 +136,14 @@ function shape(kind: TerrainKind, seed: number, u: number, v: number): number {
       return walls * prof + 0.04 * fbm(seed + 2, u * 8, v * 8, 3) * prof + (kind === "v-valley" ? 0.02 : 0.03) * (1 - v);
     }
     case "coast": {
-      // land to the north (+z) ending in cliffs above the sea; headlands and coves along the line
-      const line = 0.42 + 0.08 * fbm(seed, u * 3, 0.2, 4), land = smooth(line - 0.004, line + 0.004, v);
-      return land * (0.75 + 0.25 * fbm(seed + 2, u * 4, v * 4, 4) * smooth(line, 1, v)) - (1 - land) * (0.35 + 0.4 * smooth(line - 0.02, line - 0.3, v));
+      // Chalk downs ending in cliffs above the sea (after the Seven Sisters): dry valleys cross the downs, so the cliff
+      // top rises and falls along the coast, about seven crests to the field; the downs rise inland. Under the cliff a
+      // shingle beach about 2 m above the water, then a rock platform awash a metre or two down, then the sea floor.
+      const line = 0.42 + 0.06 * fbm(seed, u * 3, 0.2, 4), land = smooth(line - 0.004, line + 0.004, v), dSea = line - v;
+      const crests = 0.5 + 0.5 * Math.cos(u * Math.PI * 2 * 7 + 1.5 * fbm(seed + 4, u * 2, 0.7, 2));
+      const downs = 0.42 + 0.38 * crests + 0.25 * smooth(line, line + 0.3, v) + 0.06 * fbm(seed + 2, u * 4, v * 4, 4);
+      const seabed = dSea < 0.012 ? 0.018 - 0.03 * (dSea / 0.012) : -0.012 - 0.004 * (0.5 + 0.5 * fbm(seed + 6, u * 25, v * 25, 2)) - 0.34 * smooth(0.05, 0.25, dSea);
+      return land * downs + (1 - land) * seabed;
     }
   }
   return 0;
@@ -215,8 +222,8 @@ export function terrainHeightAt(f: Heightfield, x: number, z: number): number {
   }
   // beyond: distant ranges as tall as the field, blended in over a tenth of the span
   const out = Math.max(-gx, -gz, gx - (n - 1), gz - (n - 1)) / (n * 0.1), w = Math.min(1, Math.max(0, out));
-  // dunes and hills are a shape with little or no erosion: past the edge the same shape continues
-  if ((f.kind === "dunes" || f.kind === "hills") && f.base !== undefined && f.relief !== undefined) {
+  // dunes, hills and the coast are a shape with little or no erosion: past the edge the same shape continues
+  if ((f.kind === "dunes" || f.kind === "hills" || f.kind === "coast") && f.base !== undefined && f.relief !== undefined) {
     const far = f.base + shape(f.kind, f.seed, x / f.span, z / f.span) * f.relief;
     return inside ? hIn : hIn * (1 - w) + far * w;
   }

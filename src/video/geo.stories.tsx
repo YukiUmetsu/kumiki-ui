@@ -10,13 +10,13 @@ const page: CSSProperties = { display: "grid", gap: 16, alignContent: "start", p
 const muted: CSSProperties = { margin: 0, color: "#5b524b", font: "13px/1.5 system-ui" };
 const h2: CSSProperties = { margin: 0, font: "700 20px system-ui" };
 const button: CSSProperties = { minHeight: 34, padding: "4px 10px", borderRadius: 6, border: "1px solid #a99c8c", background: "#fff", font: "600 13px system-ui", cursor: "pointer" };
-const active: CSSProperties = { ...button, background: "#26211d", color: "#fff", borderColor: "#26211d" };
+const active: CSSProperties = { ...button, background: "#26211d", color: "#fff", border: "1px solid #26211d" };
 const label: CSSProperties = { display: "grid", gap: 4, font: "600 13px system-ui" };
 
 const KINDS: { kind: TerrainKind; label: string; o?: Partial<TerrainRenderOptions> }[] = [
   { kind: "alpine", label: "Fold range with glacial peaks" },
   { kind: "u-valley", label: "Glacial U-valley" },
-  { kind: "volcano", label: "Stratovolcano" },
+  { kind: "volcano", label: "Stratovolcano (winter snow down the ravines)", o: { winter: 0.6 } },
   { kind: "v-valley", label: "River V-valley" },
   { kind: "mesa", label: "Mesas and buttes", o: { seed: 3, sunAzimuth: 100, sunElevation: 18 } },
   { kind: "dunes", label: "Dunes (slip faces toward us)", o: { sunAzimuth: 70, sunElevation: 16 } },
