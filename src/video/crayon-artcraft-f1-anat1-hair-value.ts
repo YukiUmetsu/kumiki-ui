@@ -107,6 +107,10 @@ export function crayonF1CalibrateAnat1HairValues(
       seen.add(el.id);
       return {...el,...wax[el.id as Region]};
     }
+    // Reject malformed bands instead of silently leaving foreign paths intact.
+    if(el.id.startsWith("hair-rooted-")&&
+       !/^hair-rooted-(crown|left|right)-[0-5]$/.test(el.id))
+      throw new RangeError("Malformed native hair-fiber source id "+el.id);
     const match=/^hair-rooted-(crown|left|right)-(\d)$/.exec(el.id);
     if(match){
       if(el.kind!=="contour"||el.parentId!==
