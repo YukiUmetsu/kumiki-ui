@@ -9,6 +9,9 @@
 
 **Storybook:** Video production → Art Foundations → Insects and Small Creatures → **Sheet**, **To scale**, **In motion**.
 **Status:** implemented; agent review of renders only — **human visual review not recorded**.
+**Reference study:** [species compared with specimens and photographs](../research/small-creatures-reference-study-2026-11-17.md)
+(a CC0 museum specimen of *Papilio xuthus*; observation of cicadas, the mantis, stag and rhinoceros beetles, the
+ladybird and the cabbage white).
 
 ## Body plans (`BUG_PLANS`)
 
@@ -50,8 +53,43 @@ glossy chitin, translucent veined wings, a glowing lantern and a contact shadow.
 beats wings at the species' rate (a blur where film could not resolve it) and flashes fireflies. Under reduced motion
 it holds still behind a Play button.
 
+**Butterfly wings** are built in their vein cells, as a lepidopterist reads a pattern. A vein is a line from the
+discal cell to the margin. Each mark sits in the cell between two veins at a set distance from the base:
+`cellPatch` draws bands and wedges, and `lunule` draws crescents.
+
+- **Swallowtail (*Papilio xuthus*), measured from a museum specimen:**
+  - a triangular forewing with a nearly straight outer margin;
+  - a scalloped hindwing with a tail at M3 and a lobe at the tornus;
+  - black ground with pale-yellow marks:
+    - four streaks along the forewing's discal cell and two along its inner margin;
+    - a postdiscal band of wedges growing toward the inner margin;
+    - submarginal lunules;
+  - the hindwing's base pale, crossed by black veins;
+  - blue scales, lunules and margin crescents;
+  - an orange eyespot with a black pupil, and a pale line down the tail.
+- **Cabbage white:**
+  - rounded wings with veins branching from the discal cell;
+  - a charcoal forewing tip with a ragged edge;
+  - one black spot on the forewing, a dark spot on the hindwing's front edge;
+  - grey at the wing bases.
+
+**Other species**
+
+- **Cicada:** opaque brown forewings with pale veins to a line of cross-veins and the apical cells beyond, clouded
+  between the veins. A pale collar on the pronotum and the mesonotum's raised cross. Small eyes at the corners of a
+  broad head.
+- **Mantis:** brown tegmina about 1.5 times the body's width, with a green costal stripe and fine veins.
+- **Stag beetle:**
+  - a broad, square head with small eyes at its sides;
+  - mandibles curved in like calipers, each with an inner tooth;
+  - a pronotum as wide as the elytra.
+- **Rhinoceros beetle:** the head horn with its forked tip, and the pronotum's short forked horn reaching over the
+  head.
+- **Ladybird:** a black pronotum with white patches at its front corners; small eyes.
+
 ## Limits
 
 - Top views only: no side views.
 - Legs are polylines with widths, not modelled segments.
-- Wing patterns are simplified.
+- Wing patterns are drawn for the two butterflies; the dragonfly's net is a regular grid, and other species' wings are
+  plainer.
