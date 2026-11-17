@@ -112,6 +112,29 @@ async({page},info)=>{
   await expect(secondAnnotator).toHaveAttribute("data-km-riso71-count","12");
   const study=page.locator("[data-km-riso73-two-copy-audit]");
   await expect(study).toHaveAttribute("data-km-riso73-valid","true");
+  // Browser SVG screenshot contains ~40 native effective PPI despite 3x CSS
+  // microscope. This MUST be disclosed as too low for real halftone evidence.
+  const micro=study.locator("[data-km-riso74-natural-photo-evidence]");
+  await expect(micro).toHaveAttribute("data-km-riso74-resolution","insufficient");
+  await expect(micro.locator("[data-km-riso74-detail-gate]"))
+    .toContainText("Insufficient native pixels");
+  await expect(micro).toHaveAttribute("data-km-riso74-loaded","true");
+  await expect(micro.locator("[data-km-riso74-measured-stats]")).toBeVisible();
+  await expect(micro.locator("[data-km-riso74-swatch]")).toHaveCount(2);
+  await micro.screenshot({
+    path:info.outputPath("riso74-actual-low-resolution-warning-and-raw-photo-swatches.png"),
+    animations:"disabled",
+  });
+  await micro.getByRole("combobox",{name:"RISO74 original sheet patch diameter"})
+    .selectOption("2");
+  await micro.getByRole("slider",{name:"RISO74 paper sample X"}).focus();
+  await micro.getByRole("slider",{name:"RISO74 paper sample X"}).press("ArrowRight");
+  await expect(micro).toHaveAttribute("data-km-riso74-loaded","true");
+  await expect(micro.locator("[data-km-riso74-error]")).toHaveCount(0);
+  await micro.screenshot({
+    path:info.outputPath("riso74-physical-two-mm-photo-microstructure-true-native-pixels.png"),
+    animations:"disabled",
+  });
   await expect(study).toHaveAttribute("data-km-riso73-within","true");
   await expect(study.locator("[data-km-riso73-paper-image]")).toHaveCount(2);
   await expect(study.locator("[data-km-riso73-mark]")).toHaveCount(16);
