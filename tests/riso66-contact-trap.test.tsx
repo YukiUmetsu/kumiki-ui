@@ -33,6 +33,8 @@ describe("RISO66 original native shared-edge physical stencil geometry",()=>{
       expect(p.expandedStations).toBeGreaterThan(4);
       expect(p.maxAppliedExtension).toBeGreaterThan(0);
       expect(p.maxAppliedExtension).toBeLessThanOrEqual(12);
+      expect(p.maxAppliedExtension).toBeLessThanOrEqual(
+        Math.max(...base.widthProfile)*.22+1e-8);
       expect(p.geometry.outerPath).not.toBe(base.outerPath);
       const shifted={...neighbor,
         centerline:neighbor.centerline.map(pt=>({...pt,y:pt.y+180})),

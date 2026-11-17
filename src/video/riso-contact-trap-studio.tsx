@@ -34,10 +34,10 @@ export function riso66Source(aspect:RisoAspect,frame:number,seed:number){
     width:34,pressure,dryness:.76,seed,steps:80,
   };
   const red:RisoBrushOptions={
-    start:p(mainStart.x,mainStart.y+42),
-    control1:p(mainC1.x,mainC1.y+42),
-    control2:p(mainC2.x,mainC2.y+42),
-    end:p(mainEnd.x,mainEnd.y+42),
+    start:p(mainStart.x,mainStart.y+36),
+    control1:p(mainC1.x,mainC1.y+36),
+    control2:p(mainC2.x,mainC2.y+36),
+    end:p(mainEnd.x,mainEnd.y+36),
     width:31,pressure,dryness:.74,seed:seed+31,steps:80,
   };
   const accent=(kind:"blue"|"red",i:number):RisoBrushOptions=>{
@@ -143,8 +143,8 @@ export function RisoContactTrapStudio(){
   const [seed,setSeed]=useState(66);
   const [enabled,setEnabled]=useState(true);
   const [maxGap,setMaxGap]=useState(12);
-  const [extension,setExtension]=useState(12);
-  const [overlap,setOverlap]=useState(1.2);
+  const [extension,setExtension]=useState(6);
+  const [overlap,setOverlap]=useState(.8);
   const [x,setX]=useState(2);
   const [y,setY]=useState(1.5);
   const [zoom,setZoom]=useState(3);

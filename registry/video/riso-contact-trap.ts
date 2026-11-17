@@ -79,7 +79,10 @@ export function createRisoContactTrap(base:RisoBrushGeometry,
       }
     }
     if(Number.isFinite(nearest))
-      extensions[i]=Math.min(opts.maximumExtension,nearest+opts.overlap);
+      // An ink trap must remain a narrow local lip, never become a new bulky
+      // illustration region. Cap at 22% of authored local ribbon pressure.
+      extensions[i]=Math.min(opts.maximumExtension,nearest+opts.overlap,
+        base.widthProfile[i]*.22);
   }
   const matchedStations=extensions.filter(x=>x>0).length;
   const minRun=opts.minimumRun??5;
