@@ -632,6 +632,13 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
         s.opacity>=.17&&s.opacity<.3);
       expect(cavity).toHaveLength(1);
       expect(deeper).toHaveLength(1);
+      // "$deep" is warm ochre, not the darkest pigment. The actual
+      // wet-mouth recess must also contain a much smaller $ink core,
+      // with its opacity weaker than the original opaque dark stamp.
+      const cores=item.marks.filter(s=>s.type==="path"&&
+        s.fill==="$ink"&&s.stroke==="none"&&
+        s.opacity!==undefined&&s.opacity>=.2&&s.opacity<.3);
+      expect(cores).toHaveLength(1);
       const pressureFibres=item.marks.filter(s=>s.type==="path"&&
         s.stroke==="none"&&s.d.includes(" L")&&
         (s.fill==="$shadow"||s.fill==="$skinshade"));
