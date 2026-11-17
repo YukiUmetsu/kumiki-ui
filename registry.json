@@ -3308,7 +3308,7 @@
       "name": "riso-print",
       "type": "registry:ui",
       "title": "Risograph Spot-Ink Printing",
-      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, native per-drum paper-locked ink contact fissures/pinholes, authored registration and halftone screening, paper-grain, source-native dry-brush gradients, sheet-feed transition, and native spot-ink overprint. Independent original vector masters and FilmStage motion remain intact; optional zero-effect contact cannot replace physical press measurements. Adds an original-frame print-to-print paper collage transition with four physically oriented tear directions, source-native SVG cellulose fibres, paper-lip relief and synchronized independent ink drums. RISO77 adds a full-vector independent spot-ink paper rostrum with depth-sorted original contour masks, stop-motion exposure cadence, shared camera/lamp, and stable physical ink registration.",
+      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, native per-drum paper-locked ink contact fissures/pinholes, authored registration and halftone screening, paper-grain, source-native dry-brush gradients, sheet-feed transition, and native spot-ink overprint. Independent original vector masters and FilmStage motion remain intact; optional zero-effect contact cannot replace physical press measurements. Adds an original-frame print-to-print paper collage transition with four physically oriented tear directions, source-native SVG cellulose fibres, paper-lip relief and synchronized independent ink drums. RISO77 adds a full-vector independent spot-ink paper rostrum with depth-sorted original contour masks, stop-motion exposure cadence, shared camera/lamp, and stable physical ink registration. Original single-continuous-source accordion zine print unfolds through alternating 3–8 connected scored panels, paper-native cellulose scuffs, preserved vector inks, optional physical page relief and exact original fully open frame.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3361,6 +3361,16 @@
           "path": "registry/video/riso-rostrum-react.tsx",
           "type": "registry:ui",
           "target": "components/video/riso-rostrum-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-accordion-projection.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-accordion-projection.ts"
+        },
+        {
+          "path": "registry/video/riso-accordion-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-accordion-react.tsx"
         },
         {
           "path": "registry/video/riso-gradient-ink.ts",
