@@ -2,6 +2,7 @@ import type { PencilAspect, PencilDrawingSpec, PencilRegion, PencilTrace } from 
 import { createPencilMaterialRegion } from "../../registry/video/colored-pencil-materials";
 import { createPencilFoundationDrawing } from "../../registry/video/colored-pencil-foundation";
 import type { PencilMaterialInput, PencilSurface } from "../../registry/video/colored-pencil-materials";
+import {ROSE_LAMINA_AXES,roseLaminaFibres} from "./colored-pencil-rose-lamina";
 
 /**
  * Four independent original subject studies. These are *authored* silhouettes,
@@ -46,8 +47,8 @@ function material(shape: ObjectShape, seed: number, transform: string): PencilRe
   return createPencilMaterialRegion(input);
 }
 
-function roseShapes(): ObjectShape[] {
-  return [
+function roseShapes(laminaStudy=false,seed=173): ObjectShape[] {
+  const shapes:ObjectShape[] = [
     {id:"stem",surface:"wood",palette:leaf,
       path:"M241 266 Q233 324 247 417 L254 417 Q251 331 250 268 Z",
       bounds:[230,263,30,155],direction:86,
@@ -116,6 +117,12 @@ function roseShapes(): ObjectShape[] {
       bounds:[219,130,47,56],direction:35,flow:19,
       details:[line("M228 155 Q241 146 247 160","#FBC1BB",.9,236)]},
   ];
+  // Preserve all original petal supports, layers, geometry, local contours,
+  // overlapping fold edges, palettes and timeline. This optical study is
+  // additive, disabled in shipped default until independent art approval.
+  return laminaStudy?shapes.map(shape=>ROSE_LAMINA_AXES.some(a=>a.id===shape.id)?{
+    ...shape,details:[...(shape.details??[]),...roseLaminaFibres(shape.id,seed)],
+  }:shape):shapes;
 }
 
 function glassShapes(): ObjectShape[] {
@@ -302,6 +309,8 @@ export interface PencilObjectStudyOptions {
   seed?: number;
   /** Global studio art-direction knob; local material deposition remains distinct. */
   pressure?: number;
+  /** Opt-in original anatomical petal fibre study; not artist-approved. */
+  roseLaminaStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -309,6 +318,7 @@ export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
 
 export function pencilObjectStudyDrawing({
   subject, aspect, paperTooth = .72, seed = 173, pressure = 1,
+  roseLaminaStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -318,7 +328,9 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Invalid pencil object seed");
   if (!Number.isFinite(pressure) || pressure < .2 || pressure > 1.2)
     throw new RangeError("Pencil pressure must be .2–1.2");
-  const shapes = subject === "rose" ? roseShapes() :
+  if(typeof roseLaminaStudy !== "boolean")
+    throw new RangeError("Rose lamina study flag must be boolean");
+  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
