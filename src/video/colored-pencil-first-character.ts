@@ -409,9 +409,13 @@ const NEW_HEAD_FACE={
   noseWidth:.02,noseLength:.10,lowerFace:.23,faceWidth:1.035,
 };
 const NEW_HEAD_YAW=17*Math.PI/180;
-const projectNewHeadPoint=(vertex:readonly number[]):Point=>[
-  r(224+1.36*(vertex[0]*Math.cos(NEW_HEAD_YAW)+
-    (vertex[2]-50)*Math.sin(NEW_HEAD_YAW))),
+// Source-led *study*, not a source-image pixel match. At a stronger
+// oblique turn the far forehead recedes and the near temple/zygion read
+// as separately connected masses. Baseline remains 17 degrees.
+const STUDY_HEAD_YAW=24*Math.PI/180;
+const projectNewHeadPoint=(vertex:readonly number[],yaw=NEW_HEAD_YAW):Point=>[
+  r(224+1.36*(vertex[0]*Math.cos(yaw)+
+    (vertex[2]-50)*Math.sin(yaw))),
   r(227-1.44*vertex[1]+.03*(vertex[2]-50)),
 ];
 /**
@@ -429,7 +433,7 @@ const projectNewHeadPoint=(vertex:readonly number[]):Point=>[
  * We add only paper pigment, never facial-feature stickers or an image.
  */
 function newHeadAnat1ValuePigment(
-  face:ReturnType<typeof createFace>,seed:number,
+  face:ReturnType<typeof createFace>,seed:number,yaw=NEW_HEAD_YAW,
 ):PencilTrace[]{
   const verts=face.vertices,triangles=face.mesh.faces;
   const normals:Point3[]=verts.map(()=>[0,0,0]);
@@ -457,10 +461,10 @@ function newHeadAnat1ValuePigment(
     }
   }
   const light=norm([-.62,.58,.52]);
-  const camera:Point3=[Math.sin(NEW_HEAD_YAW),0,Math.cos(NEW_HEAD_YAW)];
+  const camera:Point3=[Math.sin(yaw),0,Math.cos(yaw)];
   const lit=normals.map(nrm=>dot(norm(nrm),light));
   const facing=normals.map(nrm=>dot(norm(nrm),camera));
-  const screen=verts.map(projectNewHeadPoint);
+  const screen=verts.map(v=>projectNewHeadPoint(v,yaw));
   const values=[
     {name:"highlight",min:.72,color:"#F4D9BD",width:.25,opacity:.20},
     {name:"light",min:.47,color:"#DBB299",width:.30,opacity:.29},
@@ -551,33 +555,41 @@ export const NEW_CHARACTER_01_INSPECTION_KEYS=[
   "cheekbone.R","cheekbone.L","gonion.R","gonion.L","menton",
 ] as const satisfies readonly (keyof typeof FACE_LANDMARKS)[];
 
-export function newCharacterHeadInspectionAnchors(){
+export function newCharacterHeadInspectionAnchors(silhouetteStudy=false){
+  if(typeof silhouetteStudy!=="boolean")
+    throw new TypeError("Head silhouette inspection mode must be boolean");
+  const yaw=silhouetteStudy?STUDY_HEAD_YAW:NEW_HEAD_YAW;
   const face=createFace(NEW_HEAD_FACE);
   return NEW_CHARACTER_01_INSPECTION_KEYS.map(id=>({
-    id,point:projectNewHeadPoint(face.vertices[FACE_LANDMARKS[id]]),
+    id,point:projectNewHeadPoint(face.vertices[FACE_LANDMARKS[id]],yaw),
   }));
 }
 
 /** Fresh original skull/vault blockout: measured lower face plus newly
  * authored parietal and frontal arch; NO previous woman silhouette. */
-export function newCharacterHeadStageOne(seed=271,contourCraft=true,cranialVolume=false):PencilSubjectPart[]{
+export function newCharacterHeadStageOne(
+  seed=271,contourCraft=true,cranialVolume=false,silhouetteStudy=false,
+):PencilSubjectPart[]{
   if(!Number.isSafeInteger(seed)||seed<0||seed>2147483000)
     throw new RangeError("New character study requires a valid drawing seed");
   if(typeof contourCraft!=="boolean")
     throw new TypeError("Head contour craftsmanship toggle must be boolean");
   if(typeof cranialVolume!=="boolean")
     throw new TypeError("Head cranial optical-volume toggle must be boolean");
+  if(typeof silhouetteStudy!=="boolean")
+    throw new TypeError("Head silhouette reconstruction study toggle must be boolean");
+  const yaw=silhouetteStudy?STUDY_HEAD_YAW:NEW_HEAD_YAW;
   // Fresh proportions, camera yaw, outline and local marks are independent
   // of pencilPortraitAnatomy() and the retired woman face() factory.
   const face=createFace(NEW_HEAD_FACE);
   const at=(key:keyof typeof FACE_LANDMARKS):Point=>
-    projectNewHeadPoint(face.vertices[FACE_LANDMARKS[key]]);
+    projectNewHeadPoint(face.vertices[FACE_LANDMARKS[key]],yaw);
   // Browser 960×540 review rejected the unmodified face MASK: it was a
   // flat-topped salmon shield, not a skull. MediaPipe deliberately STOPS at
   // the hairline and lacks the cranial vault. Keep the mesh's measured lower
   // face/jaw points, but lift an independently drafted vault from observed
   // head/skull construction ratios. This is still a FIRST-STAGE outline.
-  const faceRing=FACE_FEATURES.oval.loop.map(i=>projectNewHeadPoint(face.vertices[i]));
+  const faceRing=FACE_FEATURES.oval.loop.map(i=>projectNewHeadPoint(face.vertices[i],yaw));
   if(faceRing.length<30||faceRing.some(p=>p.some(v=>!Number.isFinite(v))))
     throw new Error("Missing ANAT1 facial outline anchor points");
   const faceTop=Math.min(...faceRing.map(p=>p[1]));
@@ -617,9 +629,16 @@ export function newCharacterHeadStageOne(seed=271,contourCraft=true,cranialVolum
       // though the earlier browser geometry gate was green. In a
       // slight 3/4 turn, the near temporal inset is visible; the far
       // contour remains mostly straight until its cheekbone turn.
-      const recession=faceWidth*.042*temporal*(side===-1?1:.45);
-      const cheekLift=faceWidth*.009*malar*(side===-1?1:.78);
-      return [r(x-side*(recession-cheekLift)),y];
+      const recession=faceWidth*(silhouetteStudy?.015:.042)*temporal*
+        (side===-1?1:(silhouetteStudy?.34:.45));
+      const cheekLift=faceWidth*(silhouetteStudy?.008:.009)*malar*
+        (side===-1?1:(silhouetteStudy?.68:.78));
+      // The mandibular corner is NOT a straight descent from cheek to
+      // chin. Only the oblique anatomy study raises a bounded soft
+      // gonial turn, preserving every source ANAT1 vertex in order.
+      const gonial=Math.exp(-Math.pow((t-.78)/.080,2))*
+        (silhouetteStudy?faceWidth*.006:0)*(side===-1?1:.62);
+      return [r(x-side*(recession-cheekLift-gonial)),y];
     });
   // A complete adult CRANIUM is a high convex parietal dome that flows
   // into a temporal narrowing, then flares over the cheekbones. The
@@ -632,7 +651,7 @@ export function newCharacterHeadStageOne(seed=271,contourCraft=true,cranialVolum
   // plus OpenStax 7.3 skull anatomy and ANAT1's independent face mask.
   // These 11 separately authored frontal/parietal points retain a
   // continuous contour and a mild off-axis dome apex at 17° yaw.
-  const vault:Point[]=[
+  const legacyVault:Point[]=[
     [r(lo-faceWidth*.018),r(faceTop+faceWidth*.26)],
     [r(lo-faceWidth*.010),r(faceTop+faceWidth*.12)],
     [r(lo+faceWidth*.11),r(faceTop-faceWidth*.055)],
@@ -645,6 +664,35 @@ export function newCharacterHeadStageOne(seed=271,contourCraft=true,cranialVolum
     [r(hi+faceWidth*.005),r(faceTop+faceWidth*.095)],
     [r(hi+faceWidth*.025),r(faceTop+faceWidth*.26)],
   ];
+  // 3/4 skull structural study based on the photographed, muscle-marked
+  // skull by Circa24 / Marijo Readey (CC BY-SA 3.0), plus ANAT1 lower
+  // facial anatomy. Visual observation, NOT 18 independently measured
+  // photo landmarks: posterior parietal width persists down into the
+  // temporal bridge; frontal arc is shorter than the braincase; malar
+  // wedge changes tangent before the gonial angle, not an egg/oval mask.
+  //
+  // Fifteen separately editable vault anchors (vs original eleven):
+  // a lower posterior junction, occipital wing, continuous high parietal
+  // arch, and forward frontal fall. More samples, never a simplified
+  // ellipse; all lower ANAT1 contour vertices are still preserved.
+  const studyVault:Point[]=[
+    [r(lo-faceWidth*.012),r(faceTop+faceWidth*.240)],
+    [r(lo-faceWidth*.060),r(faceTop+faceWidth*.120)],
+    [r(lo-faceWidth*.058),r(faceTop+faceWidth*.017)],
+    [r(lo+faceWidth*.030),r(faceTop-faceWidth*.085)],
+    [r(lo+faceWidth*.095),r(faceTop-faceWidth*.160)],
+    [r(lo+faceWidth*.175),r(faceTop-faceWidth*.210)],
+    [r(lo+faceWidth*.285),r(faceTop-faceWidth*.246)],
+    [r(lo+faceWidth*.410),r(faceTop-faceWidth*.265)],
+    [r(lo+faceWidth*.540),r(faceTop-faceWidth*.262)],
+    [r(lo+faceWidth*.670),r(faceTop-faceWidth*.230)],
+    [r(lo+faceWidth*.800),r(faceTop-faceWidth*.180)],
+    [r(lo+faceWidth*.915),r(faceTop-faceWidth*.085)],
+    [r(hi+faceWidth*.035),r(faceTop+faceWidth*.025)],
+    [r(hi+faceWidth*.048),r(faceTop+faceWidth*.130)],
+    [r(hi+faceWidth*.018),r(faceTop+faceWidth*.250)],
+  ];
+  const vault=silhouetteStudy?studyVault:legacyVault;
   const perimeter=[...lower,...vault];
   const contour=smoothPath(perimeter,true);
   const xs=perimeter.map(p=>p[0]),ys=perimeter.map(p=>p[1]);
@@ -680,7 +728,7 @@ export function newCharacterHeadStageOne(seed=271,contourCraft=true,cranialVolum
       ...connectedPlanes,
       ...(cranialVolume?newHeadCranialTonalVolume(
         bounds,(seed+1957)%2147483647):[]),
-      ...newHeadAnat1ValuePigment(face,(seed+2393)%2147483647),
+      ...newHeadAnat1ValuePigment(face,(seed+2393)%2147483647,yaw),
       ...newHeadValuePencil(guides,(seed+1001)%2147483647),
       drawn("newhead-sagittal-guide",line(forehead,glabella,chin),
         "#90777C",.32,.31,103),
@@ -695,8 +743,10 @@ export function newCharacterHeadStageOne(seed=271,contourCraft=true,cranialVolum
       // Partial nested skull vault line is observed construction, NOT hair.
       drawn("newhead-cranial-vault-turn",
         line([vault[2][0]+8,vault[2][1]+20],
-          [vault[5][0],vault[5][1]+31],
-          [vault[8][0]-9,vault[8][1]+25]),
+          [vault[silhouetteStudy?7:5][0],
+           vault[silhouetteStudy?7:5][1]+31],
+          [vault[silhouetteStudy?11:8][0]-9,
+           vault[silhouetteStudy?11:8][1]+25]),
         "#A58C85",.33,.35,153),
     ],
   }];
