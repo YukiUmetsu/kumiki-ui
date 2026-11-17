@@ -54,7 +54,12 @@ function pen(x0:number,y0:number,s=1){
     return [M(...P(0,0)),C(...P(.2,.7),...P(.67,1.15),...P(1,0)),
       C(...P(.67,-1.15),...P(.2,-.7),...P(0,0)),Z].join(" ");
   };
-  return {M,L,C,Q,Z,xy,poly,oval,band,leaf};
+  // A single face coordinate frame scales every facial sheet and its hinge
+  // around the *same* cranial anchor, keeping brows, crown, hair and jaw
+  // registered under parent-rig motion rather than drifting independently.
+  const sub=(scale:number,anchorX:number,anchorY:number,dx=0,dy=0)=>
+    pen(x0+s*((1-scale)*anchorX+dx),y0+s*((1-scale)*anchorY+dy),s*scale);
+  return {M,L,C,Q,Z,xy,poly,oval,band,leaf,sub};
 }
 type Pen=ReturnType<typeof pen>;
 type Add=(id:string,color:string,depth:number,path:string,rest?:Partial<PaperCutLayer>)=>void;
@@ -98,7 +103,13 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
     attach(root,0,-91));
   add("princess-dress-inset","#DDA7B1",17,[
     p.M(-7,-67),p.C(-19,-39,-20,-13,-16,9),
-    p.C(0,14,14,13,25,10),p.C(12,-8,4,-43,10,-67),p.Z].join(" "),
+    p.C(0,14,14,13,25,10),p.C(12,-8,4,-43,10,-67),p.Z,
+    // The sculpted pleat field is a single die-cut sheet with the inset,
+    // not four extra translucent or independently drifting paper layers.
+    p.band(-29,-60,-43,0,2.1,-.7),
+    p.band(-9,-67,-16,8,1.65,.3),
+    p.band(12,-66,23,9,1.9,-.3),
+    p.band(30,-55,51,1,1.6,.5)].join(" "),
     attach(root,0,-91));
   add("princess-gown-gold-hem","#F8DDAA",18,[
     p.M(-69,-5),p.C(-41,7,-20,7,-2,9),p.C(30,13,49,8,73,-4),
@@ -112,12 +123,24 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
   add("princess-bodice-panel","#8F607F",21,[
     p.M(-7,-117),p.Q(0,-99,-7,-80),p.Q(0,-72,6,-80),
     p.Q(8,-104,3,-117),p.Z].join(" "),attach(root,0,-103));
+  // The lace collar hides the underside of the short neck and overlaps
+  // the two shoulder pin areas: no isolated throat tube at extreme poses.
   add("princess-collar","#FFF0DD",23,[
-    p.M(-18,-132),p.Q(-6,-141,1,-126),p.Q(13,-141,21,-131),
-    p.Q(11,-121,3,-122),p.Q(-7,-124,-18,-132),p.Z].join(" "),attach(root,0,-123));
+    p.M(-19,-133),p.Q(-14,-143,-6,-137),
+    p.Q(-3,-133,0,-132),p.Q(5,-141,11,-138),
+    p.Q(16,-137,22,-131),p.C(17,-126,12,-122,5,-122),
+    p.Q(0,-125,-5,-124),p.Q(-13,-121,-19,-133),p.Z].join(" "),
+    attach(root,0,-128,{holes:[
+      p.band(-17,-132,-9,-128,1.35),
+      p.band(-3,-129,4,-127,1.2),
+      p.band(10,-130,19,-131,1.25),
+    ]}));
   add("princess-gold-seams","#F6D7A4",23,[
     p.band(-18,-95,-6,-80,1.3),p.band(17,-95,8,-80,1.3),
-    p.leaf(-4,-106,9,-85,1.4),p.leaf(3,-104,8,-95,1.2)].join(" "),
+    p.leaf(-4,-106,9,-85,1.4),p.leaf(3,-104,8,-95,1.2),
+    p.M(-19,-82),p.Q(-2,-75,19,-82),
+    p.Q(14,-76,-1,-73),p.Q(-12,-75,-19,-82),p.Z,
+    p.leaf(0,-82,8,-92,3.2)].join(" "),
     attach(root,0,-101));
   add("princess-left-sleeve","#E9A9B7",20,[
     p.M(-22,-128),p.C(-37,-138,-45,-117,-42,-109),
@@ -135,65 +158,105 @@ function princess(p:Pen,add:Add,phase:number,motion:number){
   add("princess-right-cuff","#FFEBD5",25,
     p.band(55,-87,62,-80,5),
     attach("princess-right-sleeve",55,-86));
+  // One anatomically shaped hand silhouette: sleeve-to-palm joint, thumb
+  // opposition, four tapering digits and negative-space knuckle relief.
   add("princess-right-hand","#E4B998",26,[
-    p.M(58,-82),p.C(63,-81,68,-80,69,-74),
-    p.Q(70,-68,66,-67),p.Q(62,-73,58,-77),p.Z].join(" "),
+    p.M(57,-82),p.C(61,-85,64,-83,66,-80),
+    p.Q(69,-79,69,-76),p.L(72,-72),
+    p.Q(74,-70,73,-69),p.Q(71,-68,69,-71),
+    p.Q(71,-67,69,-66),p.Q(67,-66,66,-69),
+    p.Q(66,-66,64,-67),p.Q(62,-67,63,-72),
+    p.Q(59,-74,57,-78),p.Z].join(" "),
     attach("princess-right-sleeve",60,-79));
+  add("princess-left-hand","#DFAF95",26,[
+    p.M(-43,-81),p.Q(-48,-81,-51,-78),
+    p.Q(-54,-76,-54,-73),p.L(-58,-68),
+    p.Q(-59,-66,-57,-65),p.Q(-55,-65,-52,-70),
+    p.Q(-54,-66,-51,-65),p.Q(-49,-65,-49,-68),
+    p.Q(-45,-71,-42,-75),p.Z].join(" "),
+    attach("princess-left-sleeve",-46,-79));
+  // Source-guided adult cranial proportion: crown-to-chin shortened while
+  // the jaw is brought down into the collar instead of a long exposed neck.
+  const h=p.sub(.84,0,-185,0,20);
+  const attachHead=(parentId:string,x:number,y:number,rest:Partial<PaperCutLayer>={})=>
+    ({parentId,pivot:h.xy(x,y),...rest});
   add("princess-hair-back","#3E354E",21,[
-    p.M(-25,-206),p.C(-45,-205,-45,-179,-38,-158),
-    p.C(-38,-135,-53,-120,-36,-107),p.C(-21,-111,-16,-137,-18,-152),
-    p.C(13,-158,29,-176,21,-200),p.C(9,-220,-10,-224,-25,-206),p.Z].join(" "),
-    attach(root,-6,-172));
+    h.M(-25,-206),h.C(-45,-205,-45,-179,-38,-158),
+    h.C(-38,-135,-53,-120,-36,-107),h.C(-21,-111,-16,-137,-18,-152),
+    h.C(13,-158,29,-176,21,-200),h.C(9,-220,-10,-224,-25,-206),h.Z].join(" "),
+    attachHead(root,-6,-172));
   // One opaque, continuous neck stock bridges the chin and the high
   // gown collar. This prevents a detached 'floating paper face' at 1×.
   add("princess-neck","#E5B89A",22,[
-    p.M(-12,-167),p.Q(-1,-163,11,-166),p.L(14,-125),
-    p.Q(0,-119,-15,-125),p.Z].join(" "),attach(root,0,-142));
+    p.M(-10,-151),p.Q(-2,-148,8,-151),p.L(10,-127),
+    p.Q(0,-124,-12,-128),p.Z].join(" "),attach(root,0,-142));
   // Jaw structure: temple, pronounced cheekbone, subtle profile nose,
   // rounded mouth and chin, and actual visible skin-plane material.
   add("princess-head","#EDC3A5",24,[
-    p.M(-22,-206),p.C(-12,-217,8,-219,17,-202),
-    p.C(22,-197,22,-191,21,-185),p.Q(24,-182,26,-180),
-    p.L(31,-175),p.Q(31,-172,25,-172),p.L(23,-170),
-    p.C(21,-161,13,-156,5,-155),p.Q(-3,-157,-5,-161),
-    p.C(-16,-164,-24,-175,-25,-188),p.Z].join(" "),
-    attach(root,-6,-177,{poseKeys:keys(0,0,0,-1,phase===2?-4:1,motion)}));
+    h.M(-22,-205),h.C(-13,-216,4,-220,16,-205),
+    h.C(20,-199,20,-190,19,-186),
+    h.C(20,-182,22,-180,25,-178),
+    h.Q(27,-175,24,-174),h.L(21,-172),
+    h.Q(23,-170,21,-168),h.Q(19,-165,16,-163),
+    h.C(20,-158,14,-155,6,-158),
+    h.C(-11,-163,-24,-174,-25,-190),h.Z].join(" "),
+    attachHead(root,-6,-177,{poseKeys:keys(0,0,0,-1,phase===2?-4:1,motion)}));
   add("princess-forelock","#51415D",27,[
-    p.M(-23,-200),p.C(-24,-223,9,-227,21,-201),
-    p.C(9,-209,4,-208,-2,-195),p.Q(-13,-187,-23,-182),p.Z].join(" "),
-    attach(face,-3,-200));
+    h.M(-23,-200),h.C(-24,-223,9,-227,21,-201),
+    h.C(9,-209,4,-208,-2,-195),h.Q(-13,-187,-23,-182),h.Z].join(" "),
+    attachHead(face,-3,-200));
   add("princess-hair-braid","#4D3758",26,[
-    p.M(-27,-184),p.C(-33,-173,-35,-164,-28,-152),
-    p.C(-40,-141,-38,-129,-27,-122),p.C(-20,-134,-26,-144,-20,-155),
-    p.C(-13,-172,-18,-184,-27,-184),p.Z].join(" "),
-    attach(face,-21,-184));
+    h.M(-27,-184),h.C(-33,-173,-35,-164,-28,-152),
+    h.C(-40,-141,-38,-129,-27,-122),h.C(-20,-134,-26,-144,-20,-155),
+    h.C(-13,-172,-18,-184,-27,-184),h.Z].join(" "),
+    attachHead(face,-21,-184));
   add("princess-braid-stitches","#C59A9D",28,
-    [p.band(-31,-161,-23,-157,1.7),p.band(-32,-151,-23,-147,1.7),
-      p.band(-32,-140,-24,-136,1.7)].join(" "),attach(face,-20,-170));
+    [h.band(-31,-161,-23,-157,1.7),h.band(-32,-151,-23,-147,1.7),
+      h.band(-32,-140,-24,-136,1.7)].join(" "),attachHead(face,-20,-170));
   // Physically stacked value planes of the cheek and upper orbital rim.
   // Every contour is locally attached to the head, not floating in stage space.
-  add("princess-face-planes","#F4D4B9",25,[
-    p.M(7,-183),p.Q(13,-182,19,-178),p.Q(17,-169,13,-165),
-    p.Q(7,-164,3,-172),p.Q(4,-177,7,-183),p.Z,
-    p.M(-12,-190),p.Q(-8,-202,2,-202),p.Q(2,-195,-4,-187),
-    p.Q(-9,-186,-12,-190),p.Z].join(" "),attach(face,7,-177));
-  add("princess-eye-white","#FAE8D7",27,[
-    p.M(8,-187),p.Q(15,-193,21,-186),p.Q(16,-181,8,-187),p.Z].join(" "),
-    attach(face,14,-186));
-  add("princess-lashes","#524050",28,
-    [p.M(8,-187),p.Q(16,-191,21,-184),p.Q(16,-183,8,-187),p.Z,
-      p.oval(15,-186,2,2.8),p.leaf(11,-185,4,-79,1.1)].join(" "),
-    attach(face,11,-186));
+  add("princess-face-planes","#E7BDA5",25,[
+    h.M(6,-180),h.Q(12,-182,17,-178),h.Q(15,-174,10,-175),
+    h.Q(6,-176,6,-180),h.Z,
+    h.M(-11,-191),h.Q(-7,-198,-3,-197),
+    h.Q(-3,-192,-8,-188),h.Q(-11,-187,-11,-191),h.Z,
+    h.M(22,-176),h.Q(24,-177,24,-175),
+    h.Q(23,-174,22,-176),h.Z].join(" "),
+    attachHead(face,7,-177,{edgeIntensity:0}));
+  // The ear is its own cut stock so its edge remains legible while the
+  // adjoining facial value planes do not acquire a mask-like cut rim.
+  add("princess-ear","#E7BDA5",25,[
+    h.M(-20,-183),h.C(-24,-182,-22,-173,-17,-170),
+    h.Q(-13,-168,-12,-175),h.Q(-11,-183,-20,-183),h.Z].join(" "),
+    attachHead(face,-17,-177));
+  add("princess-brow","#806270",27,[
+    h.M(7,-194),h.Q(13,-199,20,-194),h.Q(14,-193,7,-194),h.Z].join(" "),
+    attachHead(face,14,-194));
+  add("princess-eye-white","#F9E5D2",27,[
+    h.M(10,-187),h.C(12,-190,16,-190,18,-186),
+    h.Q(15,-183,10,-187),h.Z].join(" "),
+    attachHead(face,14,-186));
+  // Separate iris stock prevents overlapping even-odd subpaths from
+  // punching a pale opening through the dark eye; the upper lid covers it.
+  add("princess-iris","#524050",28,[
+    h.M(13,-187),h.C(13.5,-188.2,15,-188.2,15.7,-187.1),
+    h.C(16,-186.2,15.5,-185.7,14.9,-185.4),
+    h.C(13.9,-185.2,13.1,-185.8,13,-187),h.Z].join(" "),
+    attachHead(face,14,-186,{edgeIntensity:0}));
+  add("princess-lashes","#524050",29,
+    [h.M(9,-187),h.Q(14,-191,19,-186),h.Q(15,-187.4,11.6,-186.9),
+      h.Q(11.5,-185.8,11,-185),h.Q(10.6,-186,10.4,-186.9),h.L(9,-187),h.Z].join(" "),
+    attachHead(face,11,-186));
   add("princess-lips","#B86E81",28,[
-    p.M(17,-168),p.Q(22,-166,26,-168),p.Q(22,-162,17,-168),p.Z].join(" "),
-    attach(face,15,-170));
+    h.M(17,-167),h.Q(21,-168,23,-166),h.Q(21,-165,18,-165),h.Z].join(" "),
+    attachHead(face,15,-170));
   add("princess-tiara","#E9C780",29,[
-    p.M(-16,-213),p.L(-12,-230),p.L(-3,-218),p.L(4,-237),
-    p.L(11,-218),p.L(21,-230),p.L(23,-211),p.Q(2,-208,-16,-213),p.Z].join(" "),
-    attach(face,0,-213));
+    h.M(-16,-213),h.L(-12,-230),h.L(-3,-218),h.L(4,-237),
+    h.L(11,-218),h.L(21,-230),h.L(23,-211),h.Q(2,-208,-16,-213),h.Z].join(" "),
+    attachHead(face,0,-213));
   add("princess-tiara-jewels","#D99AA5",30,
-    [p.oval(4,-223,2.7,4.3),p.oval(-11,-218,1.7,2.8),
-      p.oval(18,-217,1.7,2.6)].join(" "),attach(face,4,-223));
+    [h.oval(4,-223,2.7,4.3),h.oval(-11,-218,1.7,2.8),
+      h.oval(18,-217,1.7,2.6)].join(" "),attachHead(face,4,-223));
 }
 function prince(p:Pen,add:Add,phase:number,motion:number){
   const root="prince-coat",face="prince-head";
@@ -216,11 +279,13 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
       p.Q(x+7,10,x-19,8),p.Q(x-25,1,x-13,-13),p.Z].join(" "),
       attach("prince-"+n+"-leg",x,-4));
   }
+  // Wider clavicle span and tapered jacket sides. Shoulder outer widths
+  // remain anchored beneath the sleeves; head scale stays independent.
   add("prince-coat","#4D7189",19,[
-    p.M(-26,-131),p.C(-38,-123,-35,-104,-27,-94),
-    p.L(-33,-70),p.C(-16,-60,18,-59,33,-72),
-    p.L(28,-96),p.C(40,-116,28,-131,15,-134),
-    p.Q(-4,-123,-26,-131),p.Z].join(" "),
+    p.M(-29,-132),p.C(-40,-123,-38,-108,-29,-94),
+    p.L(-33,-70),p.C(-18,-58,18,-59,33,-72),
+    p.L(29,-96),p.C(41,-116,31,-129,17,-133),
+    p.Q(0,-125,-29,-132),p.Z].join(" "),
     {pivot:p.xy(0,-110),poseKeys:travel});
   add("prince-coat-tail","#365F79",20,[
     p.M(-28,-77),p.C(-34,-53,-43,-42,-49,-28),
@@ -237,7 +302,15 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
     attach(root,0,-118));
   add("prince-gold-braid","#EBC68C",25,[
     p.band(-23,-90,-14,-80,2),p.band(23,-90,15,-80,2),
-    p.oval(4,-105,2.1,2.8),p.oval(4,-94,2.1,2.8),p.oval(4,-82,2.1,2.8)].join(" "),
+    p.oval(4,-105,2.1,2.8),p.oval(4,-94,2.1,2.8),p.oval(4,-82,2.1,2.8),
+    // Gold-thread tailor seams are disjoint motifs on the *same* paper
+    // pigment sheet: keep details without exceeding the 128-layer cap.
+    p.band(-29,-124,-25,-111,1.3),
+    p.band(28,-123,26,-112,1.3),
+    p.band(-18,-113,-16,-91,1.2),
+    p.band(16,-113,17,-92,1.1),
+    p.band(-29,-72,-13,-68,1.2),
+    p.band(16,-70,28,-74,1.2)].join(" "),
     attach(root,0,-100));
   add("prince-belt","#354957",26,p.band(-25,-81,26,-81,5),attach(root,0,-82));
   add("prince-belt-clasp","#F4D9A2",27,p.oval(4,-81,6,4),
@@ -250,8 +323,11 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
   add("prince-left-cuff","#E7D2AB",25,
     p.band(-62,-86,-48,-80,6),attach("prince-left-arm",-54,-84));
   add("prince-left-hand","#E8BD9F",26,[
-    p.M(-61,-84),p.Q(-68,-86,-69,-79),p.Q(-69,-72,-63,-72),
-    p.Q(-58,-77,-61,-84),p.Z].join(" "),
+    p.M(-58,-85),p.C(-64,-88,-68,-86,-71,-83),
+    p.Q(-74,-80,-73,-77),p.L(-76,-74),
+    p.Q(-78,-71,-76,-70),p.Q(-74,-70,-72,-74),
+    p.Q(-74,-70,-72,-69),p.Q(-69,-69,-68,-72),
+    p.Q(-66,-69,-64,-72),p.Q(-61,-76,-58,-78),p.Z].join(" "),
     attach("prince-left-arm",-60,-81));
   add("prince-right-arm","#426781",21,[
     p.M(22,-130),p.C(38,-132,45,-118,45,-105),
@@ -261,49 +337,75 @@ function prince(p:Pen,add:Add,phase:number,motion:number){
   add("prince-right-cuff","#E1C69E",24,
     p.band(49,-85,59,-78,6),attach("prince-right-arm",53,-83));
   add("prince-right-hand","#EAC2A1",25,[
-    p.M(55,-79),p.Q(63,-83,67,-78),p.Q(70,-72,66,-68),
-    p.Q(61,-72,55,-74),p.Z].join(" "),
+    p.M(54,-81),p.Q(63,-83,66,-79),
+    p.Q(69,-77,69,-74),p.L(73,-71),
+    p.Q(74,-69,72,-68),p.Q(70,-68,68,-72),
+    p.Q(69,-67,67,-67),p.Q(65,-67,65,-71),
+    p.Q(63,-69,61,-71),p.Q(57,-74,54,-75),p.Z].join(" "),
     attach("prince-right-arm",56,-78));
   // Neck joins the jaw to the waistcoat/coat collar continuously.
+  // The prince shares a separate but measured cranial scale. Every face
+  // stock and accessory uses the same rest-space transform and the true
+  // crown-to-jaw relationship is preserved through shoulder rotations.
+  const h=p.sub(.84,0,-185,0,23);
+  const attachHead=(parentId:string,x:number,y:number,rest:Partial<PaperCutLayer>={})=>
+    ({parentId,pivot:h.xy(x,y),...rest});
   add("prince-neck","#E3BD9F",22,[
-    p.M(-10,-165),p.Q(1,-160,12,-164),p.L(14,-122),
-    p.Q(2,-115,-12,-120),p.Z].join(" "),attach(root,0,-140));
+    p.M(-9,-153),p.Q(2,-149,11,-154),p.L(11,-125),
+    p.Q(2,-121,-11,-125),p.Z].join(" "),attach(root,0,-140));
   add("prince-head","#E6C2A5",24,[
-    p.M(-20,-205),p.C(-10,-215,10,-218,21,-202),
-    p.C(26,-195,25,-191,24,-185),p.Q(25,-181,29,-178),
-    p.L(33,-175),p.Q(30,-172,25,-171),
-    p.C(23,-163,15,-156,7,-157),
-    p.Q(-4,-159,-7,-164),p.C(-19,-168,-25,-181,-24,-191),p.Z].join(" "),
-    attach(root,0,-176,{poseKeys:keys(0,0,0,0,phase===1?-5:2,motion)}));
+    h.M(-20,-206),h.C(-11,-216,9,-219,20,-202),
+    h.C(24,-197,24,-188,22,-184),
+    h.C(23,-181,25,-179,27,-177),
+    h.Q(29,-174,25,-172),h.L(22,-171),
+    h.Q(24,-169,22,-166),h.Q(18,-162,14,-159),
+    h.Q(14,-156,10,-157),
+    h.Q(-4,-159,-8,-164),h.C(-19,-169,-25,-182,-24,-192),h.Z].join(" "),
+    attachHead(root,0,-176,{poseKeys:keys(0,0,0,0,phase===1?-5:2,motion)}));
   add("prince-hair","#3B4359",27,[
-    p.M(-23,-195),p.C(-36,-214,-11,-231,8,-224),
-    p.C(20,-229,31,-220,30,-207),
-    p.C(25,-212,21,-210,18,-202),p.Q(10,-206,5,-199),
-    p.C(-7,-203,-17,-192,-22,-186),p.Z].join(" "),attach(face,0,-200));
+    h.M(-23,-195),h.C(-36,-214,-11,-231,8,-224),
+    h.C(20,-229,31,-220,30,-207),
+    h.C(25,-212,21,-210,18,-202),h.Q(10,-206,5,-199),
+    h.C(-7,-203,-17,-192,-22,-186),h.Z].join(" "),attachHead(face,0,-200));
   add("prince-hair-strands","#687183",28,[
-    p.leaf(-15,-212,16,-13,1.6),p.leaf(-2,-215,15,5,1.3),
-    p.leaf(12,-216,14,28,1.1)].join(" "),attach(face,0,-204));
-  add("prince-face-planes","#F4D7BD",25,[
-    p.M(5,-182),p.Q(11,-186,21,-181),p.Q(23,-169,16,-166),
-    p.Q(7,-163,4,-171),p.Z,
-    p.M(-10,-194),p.Q(-4,-202,3,-201),p.Q(5,-195,-2,-188),
-    p.Q(-9,-187,-10,-194),p.Z].join(" "),attach(face,9,-177));
+    h.leaf(-15,-212,16,-13,1.6),h.leaf(-2,-215,15,5,1.3),
+    h.leaf(12,-216,14,28,1.1)].join(" "),attachHead(face,0,-204));
+  add("prince-face-planes","#D8AD94",25,[
+    h.M(6,-180),h.Q(13,-183,18,-179),h.Q(19,-173,15,-172),
+    h.Q(8,-174,6,-180),h.Z,
+    h.M(-11,-192),h.Q(-6,-197,-2,-196),
+    h.Q(-4,-189,-10,-189),h.Z,
+    h.M(23,-176),h.Q(25,-176,24,-174),
+    h.Q(23,-174,23,-176),h.Z].join(" "),
+    attachHead(face,9,-177,{edgeIntensity:0}));
+  // Ear helix is a cut skin plane, not a floating circle. Its root meets
+  // the cheek while the sideburn overlays its uppermost edge.
+  add("prince-ear","#D6AB91",25,[
+    h.M(-17,-182),h.C(-21,-179,-19,-169,-14,-167),
+    h.Q(-10,-165,-9,-172),h.C(-8,-178,-11,-184,-17,-182),h.Z].join(" "),
+    attachHead(face,-15,-176));
   add("prince-eye-white","#FFF1D8",28,[
-    p.M(9,-187),p.Q(17,-191,23,-185),p.Q(19,-181,9,-187),p.Z].join(" "),
-    attach(face,16,-185));
+    h.M(11,-187),h.Q(15,-190,19,-185),h.Q(16,-183,11,-187),h.Z].join(" "),
+    attachHead(face,16,-185));
+  // The lid and iris share one continuous contour, avoiding an even-odd
+  // knockout while fitting the director's bounded cut-stock budget.
   add("prince-eye-brow","#4B4858",29,
-    [p.M(9,-187),p.Q(17,-191,23,-185),p.Q(17,-186,9,-187),p.Z,
-      p.oval(17,-184,2.1,2.6),p.leaf(-8,-175,7,40,1.2)].join(" "),attach(face,16,-187));
+    [h.M(9,-191),h.Q(16,-194,21,-189),h.Q(15,-190,9,-191),h.Z,
+      h.M(10,-187),h.Q(14.5,-190.5,19,-185.4),h.Q(17.8,-186,16.3,-186.4),
+      h.C(16.4,-185.4,16,-184.8,15,-184.8),h.C(14,-184.8,13.6,-185.4,13.8,-186.5),
+      h.Q(11.8,-186.8,10,-187),h.Z,
+      h.M(11,-183),h.Q(16,-181,20,-184),h.Q(15,-182,11,-183),h.Z,
+      h.leaf(-8,-175,7,40,1.2)].join(" "),attachHead(face,16,-187));
   add("prince-mouth","#9A7172",28,[
-    p.M(17,-167),p.Q(23,-165,26,-167),p.Q(22,-163,17,-167),p.Z].join(" "),
-    attach(face,19,-166));
+    h.M(17,-166),h.Q(21,-168,23,-165),h.Q(20,-164,17,-165),h.Z].join(" "),
+    attachHead(face,19,-166));
   add("prince-crown","#E8C17E",29,[
-    p.M(-23,-217),p.L(-21,-234),p.L(-9,-222),
-    p.L(1,-239),p.L(11,-224),p.L(23,-234),p.L(28,-215),
-    p.C(10,-210,-11,-211,-23,-217),p.Z].join(" "),attach(face,0,-217));
+    h.M(-23,-217),h.L(-21,-234),h.L(-9,-222),
+    h.L(1,-239),h.L(11,-224),h.L(23,-234),h.L(28,-215),
+    h.C(10,-210,-11,-211,-23,-217),h.Z].join(" "),attachHead(face,0,-217));
   add("prince-crown-stones","#91A6BA",30,
-    [p.oval(1,-225,2.6,4.1),p.oval(-16,-221,1.6,2.6),
-      p.oval(21,-221,1.6,2.6)].join(" "),attach(face,2,-224));
+    [h.oval(1,-225,2.6,4.1),h.oval(-16,-221,1.6,2.6),
+      h.oval(21,-221,1.6,2.6)].join(" "),attachHead(face,2,-224));
 }
 
 function fox(p:Pen,add:Add,phase:number,motion:number){
@@ -550,7 +652,7 @@ function scenery(w:number,h:number,aspect:PaperDirectorAspect,phase:number,seed:
       ...boughs.map(([a,b,c,d,thick])=>
         p.band(...tip(a,b),...tip(c,d),thick,sign*2.1)),
     ].join(" ");
-    add("forest-"+side+"-wood","#324B54",16,limb);
+    add("forest-"+side+"-wood","#324B54",aspect==="portrait" && sign===1?10:16,limb);
     const leaves=boughs.map(([, ,c,d],i)=>{
       const [x,y]=tip(c,d);
       const spread=sign===-1?[-130,-41]:[-141,-41];
@@ -621,21 +723,25 @@ export function paperRoyalStoryScene(
     ground=h/2+(aspect==="portrait"?244:169),
     distance=aspect==="portrait"
       ? (phase===0?122:phase===1?108:92)
-      : (phase===0?194:phase===1?163:132),
+      : (phase===0?194:phase===1?163:120),
     actorScale=aspect==="portrait"?1.16:1.03;
   const layers:PaperCutLayer[]=[];
+  const facialStock = new Set(["princess-head","princess-face-planes","princess-ear","princess-neck",
+    "prince-head","prince-face-planes","prince-ear","prince-neck"]);
   const add:Add=(id,color,depth,path,rest={})=>{
-    layers.push({id,color,depth,path,motion:"still",...rest});
+    const texture=facialStock.has(id)?{fibreScale:.5,fibreIntensity:.45}:{};
+    layers.push({id,color,depth,path,motion:"still",...texture,...rest});
   };
   scenery(w,h,aspect,phase,seed,add);
   // Scale around each character's physical contact point, never stretch
   // one aspect's people to fill the other aspect's video rectangle.
   princess(pen(w/2-distance,ground,actorScale),add,phase,motion);
-  prince(pen(w/2+distance,ground,actorScale),add,phase,motion);
-  fox(pen(w/2+(aspect==="portrait"?48:56),ground-2,actorScale*.85),add,phase,motion);
+  prince(pen(w/2+distance-(aspect==="portrait"?(phase===0?65:phase===1?30:0):0),ground,actorScale),add,phase,motion);
+  const addFox:Add=(id,color,depth,path,rest)=>add(id,color,depth+6,path,rest);
+  fox(pen(w/2+(aspect==="portrait"?-160:-350),ground+(aspect==="portrait"?35:18),actorScale*.85),addFox,phase,motion);
   rabbit(pen(w/2-(aspect==="portrait"?36:56),ground,actorScale*.71),add,phase,motion);
-  deer(pen(w/2+(aspect==="portrait"?194:327),ground-10,
-    actorScale*(aspect==="portrait"?.77:.77)),add,phase,motion);
+  deer(pen(w/2+(aspect==="portrait"?165:327),ground-10,
+    actorScale*(aspect==="portrait"?.65:.77)),add,phase,motion);
   owl(pen(w/2-(aspect==="portrait"?179:334),ground-(aspect==="portrait"?185:178),actorScale*.64),
     add,phase,motion);
   const lantern=pen(w/2,ground-(phase===0?179:phase===1?144:127),

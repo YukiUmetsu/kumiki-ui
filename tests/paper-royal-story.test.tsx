@@ -65,6 +65,171 @@ describe("PAPER-R1 — original princess-prince woodland fairy tale",()=>{
       }
     }
   });
+  it("uses finer but still visible paper fibre on both faces",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      const scene=paperRoyalStoryScene("layered",aspect,2,37,.85);
+      for(const id of ["princess-head","princess-ear","princess-neck","prince-head","prince-ear","prince-neck"]){
+        const sheet=scene.layers.find(layer=>layer.id===id)!;
+        expect(sheet.fibreScale).toBe(.5);
+        expect(sheet.fibreIntensity).toBe(.45);
+      }
+      expect(scene.layers.find(layer=>layer.id==="princess-tiara")?.fibreScale).toBeUndefined();
+      expect(inspectPaperCraft(scene)).toEqual([]);
+    }
+  });
+  it("preserves the prince ear edge while softening the facial-plane rims",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const phase of [0,1,2]){
+        const scene=paperRoyalStoryScene("layered",aspect,phase,37,.85);
+        const ear=scene.layers.find(layer=>layer.id==="prince-ear");
+        const plane=scene.layers.find(layer=>layer.id==="prince-face-planes");
+        expect(ear?.parentId).toBe("prince-head");
+        expect(ear?.edgeIntensity).toBeUndefined();
+        expect(plane?.edgeIntensity).toBe(0);
+        expect(inspectPaperCraft(scene)).toEqual([]);
+      }
+    }
+  });
+  it("keeps the princess iris and upper lid on separate, attached sheets",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const phase of [0,1,2]){
+        const scene=paperRoyalStoryScene("layered",aspect,phase,37,.85);
+        const aperture=scene.layers.find(layer=>layer.id==="princess-eye-white")!;
+        const iris=scene.layers.find(layer=>layer.id==="princess-iris");
+        const lid=scene.layers.find(layer=>layer.id==="princess-lashes")!;
+        expect(iris?.parentId).toBe("princess-head");
+        expect(iris!.depth).toBeGreaterThan(aperture.depth);
+        expect(iris!.depth).toBeLessThan(lid.depth);
+        expect(scene.layers.length).toBeLessThanOrEqual(MAX_PAPER_LAYERS);
+        expect(inspectPaperCraft(scene)).toEqual([]);
+        const headIndex=scene.layers.findIndex(layer=>layer.id==="princess-head");
+        const irisIndex=scene.layers.findIndex(layer=>layer.id==="princess-iris");
+        for(const frame of [0,120,239]){
+          const pose=evaluatePaperCraft(scene,frame);
+          expect(pose.layers[irisIndex].worldMatrix).toEqual(pose.layers[headIndex].worldMatrix);
+        }
+      }
+    }
+  });
+  it("keeps the princess ear separately edged and attached to the head",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const phase of [0,1,2]){
+        const scene=paperRoyalStoryScene("layered",aspect,phase,37,.85);
+        const ear=scene.layers.find(layer=>layer.id==="princess-ear");
+        const plane=scene.layers.find(layer=>layer.id==="princess-face-planes");
+        expect(ear?.parentId).toBe("princess-head");
+        expect(ear?.edgeIntensity).toBeUndefined();
+        expect(plane?.edgeIntensity).toBe(0);
+        expect(inspectPaperCraft(scene)).toEqual([]);
+        const headIndex=scene.layers.findIndex(layer=>layer.id==="princess-head");
+        const earIndex=scene.layers.findIndex(layer=>layer.id==="princess-ear");
+        for(const frame of [0,120,239]) {
+          const pose=evaluatePaperCraft(scene,frame);
+          expect(pose.layers[earIndex].worldMatrix).toEqual(pose.layers[headIndex].worldMatrix);
+        }
+      }
+    }
+  });
+  it("compresses both adult cranial frames and avoids long giraffe neck gaps",()=>{
+    const extent=(d:string)=>{
+      const numbers=(d.match(/-?\d+(?:\.\d+)?/g)||[]).map(Number);
+      const x=numbers.filter((_,i)=>i%2===0);
+      const y=numbers.filter((_,i)=>i%2===1);
+      return {minX:Math.min(...x),maxX:Math.max(...x),
+        minY:Math.min(...y),maxY:Math.max(...y)};
+    };
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const phase of [0,1,2]){
+        const spec=paperRoyalStoryScene("layered",aspect,phase,37,.85);
+        const byId=(id:string)=>spec.layers.find(l=>l.id===id)!;
+        const bodyHeight=aspect==="portrait"?1.16:.0+1.03;
+        for(const name of ["princess","prince"]){
+          const head=extent(byId(name+"-head").path);
+          const neck=extent(byId(name+"-neck").path);
+          // The sheet also carries a separately connected ear and
+          // nostril. Bound the cheek's *first contour*, not the union of
+          // all semantic features cut into that same physical stock.
+          const cheek=byId(name+"-face-planes").path.split(" Z")[0]+" Z";
+          const plane=extent(cheek);
+          const headHeight=head.maxY-head.minY;
+          const headWidth=head.maxX-head.minX;
+          const neckHeight=neck.maxY-neck.minY;
+          expect(headWidth/headHeight).toBeGreaterThan(.65);
+          expect(headWidth/headHeight).toBeLessThan(1.15);
+          expect(neckHeight/headHeight,name+" neck too long").toBeLessThan(.65);
+          expect(neck.maxY-head.maxY,name+" jaw/collar gap").toBeLessThan(20*bodyHeight);
+          expect(neck.maxY).toBeGreaterThan(head.maxY);
+          expect(plane.maxX-plane.minX).toBeLessThan(headWidth*.72);
+          expect(byId(name+"-head").parentId).toBe(
+            name==="princess"?"princess-bodice":"prince-coat");
+          for(const detail of name==="princess"
+            ? ["forelock","hair-braid","brow","eye-white","lashes","lips","tiara","tiara-jewels"]
+            : ["hair","hair-strands","ear","eye-white","eye-brow","mouth","crown","crown-stones"]){
+            expect(byId(name+"-"+detail).parentId).toBe(name+"-head");
+          }
+        }
+      }
+    }
+  });
+  it("joins anatomically sculpted hands, sleeves and tailored costume stock without broken rig parents",()=>{
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const act of [0,1,2]){
+        const spec=paperRoyalStoryScene("layered",aspect,act,37,.9);
+        const sheets=new Map(spec.layers.map(l=>[l.id,l]));
+        expect(spec.layers.length).toBeLessThanOrEqual(128);
+        for(const [name,parent] of [
+          ["princess-left-hand","princess-left-sleeve"],
+          ["princess-right-hand","princess-right-sleeve"],
+          ["prince-left-hand","prince-left-arm"],
+          ["prince-right-hand","prince-right-arm"],
+          ["princess-gold-seams","princess-bodice"],
+          ["princess-dress-inset","princess-bodice"],
+          ["princess-collar","princess-bodice"],
+          ["prince-gold-braid","prince-coat"],
+        ] as const){
+          const part=sheets.get(name);
+          expect(part,name).toBeDefined();
+          expect(part?.parentId,name).toBe(parent);
+          expect(part?.pivot?.length,name).toBe(2);
+          expect(part?.color,name).toMatch(/^#[0-9A-Fa-f]{6}$/);
+          // Finger, sleeve and costume contours are authored curves,
+          // never one triangular joint placeholder.
+          expect(part?.path.includes("C")||part?.path.includes("Q"),name).toBe(true);
+        }
+        // Rich details are independent closed contours on existing opaque
+        // sheets rather than extra semi-transparent layers.
+        const collar=sheets.get("princess-collar")!;
+        expect(collar.holes).toHaveLength(3);
+        expect(sheets.get("princess-dress-inset")!.path.match(/M/g)?.length).toBeGreaterThan(3);
+        expect(sheets.get("princess-gold-seams")!.path.match(/M/g)?.length).toBeGreaterThan(4);
+        expect(sheets.get("prince-gold-braid")!.path.match(/M/g)?.length).toBeGreaterThan(9);
+        const opening=evaluatePaperCraft(spec,0),mid=evaluatePaperCraft(spec,120);
+        const handIndex=spec.layers.findIndex(l=>l.id==="princess-right-hand");
+        expect(opening.layers[handIndex].worldMatrix).not.toEqual(mid.layers[handIndex].worldMatrix);
+      }
+    }
+  });
+  it("keeps preview-study profiles anatomy-led rather than cartoon eye wedges",()=>{
+    const width=(path:string)=>{
+      const values=Array.from(path.matchAll(/-?\d+(?:\.\d+)?/g),v=>Number(v[0]));
+      const xs=values.filter((_,index)=>index%2===0);
+      return Math.max(...xs)-Math.min(...xs);
+    };
+    for(const aspect of ["landscape","portrait"] as const){
+      for(const phase of [0,1,2]){
+        const s=paperRoyalStoryScene("layered",aspect,phase,37,.85);
+        const get=(id:string)=>s.layers.find(layer=>layer.id===id)!;
+        for(const who of ["princess","prince"] as const){
+          const relative=width(get(who+"-eye-white").path)/width(get(who+"-head").path);
+          expect(relative,who+" pupil aperture vs head width").toBeGreaterThan(.10);
+          expect(relative,who+" pupil aperture vs head width").toBeLessThan(.20);
+          expect(get(who+"-face-planes").path.match(/M/g)?.length)
+            .toBeGreaterThanOrEqual(3);
+          expect(get(who+"-face-planes").parentId).toBe(who+"-head");
+        }
+      }
+    }
+  });
   it("is deterministic, has meaningful body/arm motion and supports a static reduced-motion pose",()=>{
     const spec=paperRoyalStoryScene("layered","landscape",2,37,1);
     const a=evaluatePaperCraft(spec,44);

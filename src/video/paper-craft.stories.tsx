@@ -261,6 +261,7 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
   const plan=useMemo(()=>compilePaperDirector(film),[film]);
   const [playhead,setPlayhead]=useState(130);
   const [playing,setPlaying]=useState(false);
+  const [inspection,setInspection]=useState<"stage"|"princess"|"prince">("stage");
   const anchor=useRef<{time:number;frame:number}|null>(null);
   useEffect(()=>{setPlayhead(130);setPlaying(false);anchor.current=null;},[film,aspect]);
   useEffect(()=>{if(reducedMotion){setPlaying(false);anchor.current=null;}},[reducedMotion]);
@@ -279,6 +280,23 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
   const frame=playhead;
   const shot=resolvePaperDirector(plan,frame,aspect);
   const beat=ROYAL_STORY_BEATS[shot.shotIndex];
+  const inspectCamera=useMemo(()=>{
+    if(inspection==="stage")return "none";
+    // Production framing stays unchanged. This is a Storybook *review
+    // loupe*: magnify the actual cut-sheet output, not a rendered clone.
+    const w=aspect==="landscape"?960:540,h=aspect==="landscape"?540:960;
+    const gap=aspect==="landscape"
+      ? [194,163,120][shot.shotIndex]
+      : [122,108,92][shot.shotIndex];
+    const princeShift=aspect==="portrait"?[65,30,0][shot.shotIndex]:0;
+    const actorX=w/2+(inspection==="princess"?-gap:gap-princeShift);
+    const actorY=(aspect==="landscape"?439:724)
+      -(inspection==="princess"?188:188)*(aspect==="landscape"?1.03:1.16);
+    const zoom=3;
+    const dx=(.5-actorX/w)*100*zoom;
+    const dy=(.5-actorY/h)*100*zoom;
+    return `translate(${dx.toFixed(2)}%,${dy.toFixed(2)}%) scale(${zoom})`;
+  },[inspection,aspect,shot.shotIndex]);
   const selectBeat=(start:number)=>{setPlaying(false);anchor.current=null;setPlayhead(start);};
   const control:CSSProperties={border:"1px solid #c9ad96",background:"#2E334A",
     color:"#FFF2E5",padding:"9px 13px",borderRadius:5,cursor:"pointer",font:"600 13px Arial,sans-serif"};
@@ -299,7 +317,7 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
         display:"flex",flexWrap:"wrap",gap:8,marginBottom:14}}>
         {plan.shots.map((chapter,i)=><button key={chapter.id} type="button"
           style={{...control,background:shot.shotIndex===i?"#825775":"#2E334A"}}
-          aria-pressed={shot.shotIndex===i} onClick={()=>selectBeat(chapter.startFrame)}>
+          aria-pressed={shot.shotIndex===i} onClick={()=>selectBeat(chapter.startFrame+(i===0?0:18))}>
           {String(i+1).padStart(2,"0")} · {ROYAL_STORY_BEATS[i].title}
         </button>)}
       </div>
@@ -323,15 +341,29 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
           onChange={e=>selectBeat(Number(e.currentTarget.value))}/>
         {reducedMotion&&<span>Choose a chapter to view its still pose.</span>}
       </label>
+      <div role="group" aria-label="Inspect royal paper anatomy" style={{
+        display:"flex",gap:8,flexWrap:"wrap",margin:"0 0 14px"}}>
+        {(["stage","princess","prince"] as const).map(mode=>
+          <button key={mode} type="button"
+            onClick={()=>{setPlaying(false);anchor.current=null;setInspection(mode);}}
+            aria-pressed={inspection===mode}
+            style={{...control,background:inspection===mode?"#825775":"#2E334A"}}>
+            {mode==="stage"?"Full stage":mode==="princess"?"Inspect princess · 3×":"Inspect prince · 3×"}
+          </button>)}
+      </div>
       <div style={{display:"grid",justifyItems:"center"}}>
         <div style={{width:"100%",maxWidth:aspect==="portrait"?440:960,
           aspectRatio:aspect==="portrait"?"9 / 16":"16 / 9",overflow:"hidden",
           border:"9px solid #45404C",boxShadow:"0 20px 70px #080911A6"}}>
-          <PaperDirectorStage film={film} aspect={aspect} frame={frame}
-            reducedMotion={reducedMotion} tooth={tooth} shadowStrength={shadow}
-            edgeStrength={edge} curlStrength={.8} liftStrength={1}
-            label={"An original cut-paper fairy tale: "+beat.title}
-            data-testid="paper-royal-story-stage"/>
+          <div data-royal-inspection-target={inspection} style={{
+            width:"100%",height:"100%",transformOrigin:"50% 50%",
+            transform:inspectCamera,transition:reducedMotion?"none":"transform 240ms ease-out"}}>
+            <PaperDirectorStage film={film} aspect={aspect} frame={frame}
+              reducedMotion={reducedMotion} tooth={tooth} shadowStrength={shadow}
+              edgeStrength={edge} curlStrength={.8} liftStrength={1}
+              label={"An original cut-paper fairy tale: "+beat.title}
+              data-testid="paper-royal-story-stage"/>
+          </div>
         </div>
       </div>
       <div aria-live="polite" style={{textAlign:"center",margin:"17px auto 8px",

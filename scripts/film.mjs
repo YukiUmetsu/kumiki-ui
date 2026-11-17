@@ -75,13 +75,13 @@ async function startFilmServer() {
       });
     },
   }], server: { ...viteBase.server, host: "127.0.0.1", hmr: false, ws: false }, optimizeDeps: {
-    // Capture loads film-slots only after a successful document compile.
-    // Include that LAZY entry in the initial dependency scan: otherwise
-    // Vite can re-optimize the React singleton after react-dom/client has
-    // initialized, yielding "Invalid hook call" in original source ink art.
+    // Scan the lazy slot entry and pre-bundle React plus Base UI's nested
+    // imports before the capture page starts, avoiding late optimizer reloads.
     entries: ["src/film/capture.tsx", "src/film/film-slots.tsx"],
-    include: ["react", "react-dom", "react-dom/client",
-      "react/jsx-runtime", "react/jsx-dev-runtime"],
+    include: ["react", "react-dom", "react-dom/client", "react/jsx-runtime", "react/jsx-dev-runtime",
+      "@base-ui/react/accordion", "@base-ui/react/checkbox", "@base-ui/react/combobox", "@base-ui/react/dialog",
+      "@base-ui/react/menu", "@base-ui/react/popover", "@base-ui/react/radio-group", "@base-ui/react/radio", "@base-ui/react/select",
+      "@base-ui/react/separator", "@base-ui/react/slider", "@base-ui/react/switch", "@base-ui/react/tabs", "@base-ui/react/toast", "@base-ui/react/tooltip"],
   } });
   await server.listen();
   const base = server.resolvedUrls.local[0];
@@ -140,12 +140,20 @@ const run = (bin, args) => new Promise((ok, fail) => {
 /** Open the capture page for one output. The page compiles with real fonts, which is the final word on the film. */
 async function openFilm(browser, url) {
   const page = await browser.newPage({ deviceScaleFactor: 1, viewport: { width: 1400, height: 900 } });
-  const errors = [];
+  const errors = [], loadErrors = [];
   page.on("pageerror", error => errors.push(error.stack || error.message));
+  // A failed module request otherwise surfaces only as a generic dynamic-import
+  // error, hiding the HTTP status or network failure that explains the cause.
+  page.on("response", response => {
+    if (response.status() >= 400) loadErrors.push(`HTTP ${response.status()} loading ${response.url()}`);
+  });
+  page.on("requestfailed", request => {
+    loadErrors.push(`Request failed for ${request.url()}: ${request.failure()?.errorText ?? "unknown network error"}`);
+  });
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
   try {
     await page.waitForFunction(() => window.__kmFilm?.failed || typeof window.__kmVideoExport?.seek === "function", null, { timeout: 120000 });
-  } catch (error) { throw Error("The capture page did not start: " + (errors.join("; ") || error.message)); }
+  } catch (error) { throw Error("The capture page did not start: " + ([...errors, ...loadErrors].join("; ") || error.message)); }
   const state = await page.evaluate(() => ({ failed: window.__kmFilm.failed, diagnostics: window.__kmFilm.diagnostics, reviewFrames: window.__kmFilm.reviewFrames, manifest: window.__kmVideoExport?.manifest }));
   return { page, errors, ...state };
 }

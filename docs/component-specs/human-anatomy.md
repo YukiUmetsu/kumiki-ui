@@ -157,6 +157,10 @@ height, lower face — so z = 0 is the published average and each step is one SD
 white (Farkas 2005), African American (Farkas 2007) and Saudi (Al-Sebaei 2015) values by sex. `measureFace` reports
 en–en, ex–en, al–al, n–sn, sn–gn, ch–ch, ex–ex, zy–zy. Irises: 11.7 mm, lid-clipped (`eyeCentres`, `IRIS_DIAMETER_MM`).
 The mask has no ears, cranium or hairline.
+`faceFeatureLines(frame)` filters by vertex facing. For an additional occlusion check, pass the matching
+`rasterizeHumanFrame` depth buffer as the third argument: `faceFeatureLines(frame, undefined, { depth, width, height })`.
+This samples depth at feature vertices (default 1 mm tolerance); it does not clip between vertices or account for hair,
+props, or any occluder absent from that buffer. Supply a depth buffer from the same frame and camera.
 
 ## Beautiful faces and portraits (`face-beauty.ts`, `face-portrait.ts`, `face-portrait-react.tsx`)
 

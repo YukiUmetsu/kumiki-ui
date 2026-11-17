@@ -152,14 +152,34 @@ export function createFace(p: FaceParams & { calibrate?: boolean } = {}): FaceSt
 /** Canonical measurements of the mask itself (mm), for reports. */
 export const FACE_CANONICAL_MEASURES = CANON;
 
-/** Feature curves of a rendered face frame in screen space, keeping only the parts that face the camera. */
-export function faceFeatureLines(frame: HumanFrame, features = FACE_FEATURES): { id: string; points: [number, number][] }[] {
+/** A depth buffer from rasterizeHumanFrame. Depth and tolerance are in the frame's metre units. */
+export interface FaceFeatureDepth {
+  depth: Float32Array; width: number; height: number;
+  /** Allow for sampling between pixels, default 1 mm. */
+  tolerance?: number;
+}
+
+/** Feature curves facing the camera. Pass a matching raster depth buffer to also omit occluded vertices. */
+export function faceFeatureLines(frame: HumanFrame, features = FACE_FEATURES, visibility?: FaceFeatureDepth): { id: string; points: [number, number][] }[] {
+  if (visibility && (!Number.isInteger(visibility.width) || !Number.isInteger(visibility.height) || visibility.width < 1 || visibility.height < 1 || visibility.depth.length !== visibility.width * visibility.height || !Number.isFinite(visibility.tolerance ?? 0.001) || (visibility.tolerance ?? 0.001) < 0)) {
+    throw new Error("Face feature depth must have positive integer dimensions matching the buffer and a nonnegative finite tolerance.");
+  }
+  const visible = (i: number) => {
+    if (frame.vertexFacing[i] <= 0.02) return false;
+    if (!visibility) return true;
+    const x = frame.screen[i * 3], y = frame.screen[i * 3 + 1];
+    const px = Math.floor(x * visibility.width / frame.width), py = Math.floor(y * visibility.height / frame.height);
+    if (px < 0 || py < 0 || px >= visibility.width || py >= visibility.height) return false;
+    const depth = visibility.depth[py * visibility.width + px];
+    // Empty silhouette-edge pixels have no occluder in the raster.
+    return depth === -Infinity || frame.screen[i * 3 + 2] >= depth - (visibility.tolerance ?? 0.001);
+  };
   const out: { id: string; points: [number, number][] }[] = [];
   for (const [id, f] of Object.entries(features)) {
     const loop = f.closed ? [...f.loop, f.loop[0]] : f.loop;
     let run: [number, number][] = [];
     for (const i of loop) {
-      if (frame.vertexFacing[i] > 0.02) run.push([frame.screen[i * 3], frame.screen[i * 3 + 1]]);
+      if (visible(i)) run.push([frame.screen[i * 3], frame.screen[i * 3 + 1]]);
       else { if (run.length > 1) out.push({ id, points: run }); run = []; }
     }
     if (run.length > 1) out.push({ id, points: run });
