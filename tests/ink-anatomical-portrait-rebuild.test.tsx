@@ -54,6 +54,14 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
         expect(svg).not.toMatch(/(?:NaN|Infinity|undefined)/);
         expect(svg).toContain('clipPath');
         expect(svg).toContain('feTurbulence');
+        expect(svg).toContain('feGaussianBlur');
+        expect((svg.match(/data-km-ink-frontal-glaze=/g)||[])).toHaveLength(13);
+        expect((svg.match(/data-km-ink-wet-malar=/g)||[])).toHaveLength(4);
+        expect((svg.match(/data-km-ink-cloth-pressure=/g)||[])).toHaveLength(17);
+        expect((svg.match(/data-km-ink-cloth-dry-lift=/g)||[])).toHaveLength(11);
+        expect(svg).toContain('clipPath');
+        expect(svg).toContain('hair-crown');
+        expect(svg).not.toContain('stroke-width="0"');
       }
     }
   });
@@ -72,6 +80,17 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
       expect((p.match(/data-km-ink-brow=/g)||[])).toHaveLength(2);
       expect(p).not.toMatch(/(?:NaN|Infinity|undefined)/);
     }
+  });
+  it("keeps the elder's split beard and hair attached to authored support, not a rectangular stamp",()=>{
+    const a=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"elder",emotion:"neutral",detail:1}));
+    const b=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"scholar",emotion:"neutral",detail:1}));
+    expect((a.match(/data-km-ink-beard-lock=/g)||[])).toHaveLength(5);
+    expect((b.match(/data-km-ink-beard-lock=/g)||[])).toHaveLength(0);
+    expect(a).toContain('data-km-ink-hair="elder"');
+    expect(b).toContain('data-km-ink-hair="scholar"');
+    expect((a.match(/clip-path="url\(#ink-a2-/g)||[]).length).toBeGreaterThan(2);
   });
   it("rejects invalid emotion and intensity instead of producing a broken SVG",()=>{
     expect(()=>inkPortraitAnatomy("scholar","surprise",NaN)).toThrow(RangeError);
