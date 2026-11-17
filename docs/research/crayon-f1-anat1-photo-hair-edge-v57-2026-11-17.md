@@ -27,3 +27,32 @@ Retarget only three existing full source wax parent outlines (hair-back, crown, 
 ## Art hold
 
 Test V56 (control) vs V57 same actual Chromium source 608×1082 f299 and original SHA, RGB/SSIM for global/crown/central roots/right curtain/eye and compare true 22 station boundary MAE, not merely a changed screenshot. Accept only if **net photo likeness** improves and original protected regions do not regress. Real professional review, 18 independently verified rendered facial landmarks, five connected source value planes, full 300-frame natural-speed review and whole SSIM .85 gate are still absent; PR **must remain draft/unmerged**.
+
+
+## Independent V58 exact original CC0/native f299 acceptance audit (2026-11-17)
+
+**Technical CI PASS** on candidate commit `7437f10d4ee63c3d1fd96ebdbef051eb99d78dd1`:
+[TypeScript and changed unit tests](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44148840140),
+[physical CRAYON1 drawing](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44148840093),
+[real Chromium 1×/2.85×/2.15× A/B and original-CC0 pixel proof](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44148840153),
+[raw source-registered screenshots, original-photo JSON report and source x-boundary values](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44148840153/artifacts/14358207060).
+
+The test hashes the **actual** original 608×1082 CC0 screenshot first; refuses missing/wrong/ambiguous source. Frame 299, original same-head camera/seed, original paper pigment and source-pinned 22 x-stations. The browser's independent 7×7 channel SSIM sampled every 3px returns `REGIONAL_SOURCE_POSITIVE_CANDIDATE` and original brown-hair/green-foliage 22-station mean y-absolute-error **9.6818→5.6364px** (−41.8%). All data and rejected controls are attached as `v58-original-photo-hair-top-audit.json`. **Sampled browser SSIM must not be mislabeled as full-resolution skimage SSIM.**
+
+I then decoded the actual native screenshots and the original photographic source separately to compute **full-resolution** `skimage.metrics.structural_similarity(..., channel_axis=2, data_range=255)` and RGB MAE at original coordinates, no retouch or scaling:
+
+| Original CC0 ROI | V56 SSIM | V57 SSIM | Delta | RGB MAE V56→V57 |
+| --- | ---: | ---: | ---: | ---: |
+| Whole 608×1082 | .514884 | **.515517** | +.000633 | 25.5457→25.5096 |
+| Crown | .409812 | **.418208** | +.008397 | 20.7651→20.3176 |
+| Central hair root | .345640 | **.352846** | +.007206 | 22.8361→22.3247 |
+| Right curtain | .449810 | **.451758** | +.001948 | 21.9673→21.8633 |
+| Hair top (x0–530, y150–420) | .492972 | **.496045** | +.003073 | 20.1694→20.0003 |
+| Left temporal hair | **.321938** | .321877 | **−.000062** | 28.6412→28.6426 |
+| Near iris | .534444 | .534444 | 0, pixel-identical | 24.6062→24.6062 |
+| Original far eye | **.340139** | .339973 | **−.000166** | 51.4765→51.4818 |
+| Upper foliage | .560451 | .560451 | 0, pixel-identical | 16.6081→16.6081 |
+
+**Art review of real Chromium final screenshot:** V57 looks somewhat less like a geometrically uniform scalp cap than V56, especially x250–475, but the reference is still a photographic human with a more complex parting, three-dimensional rooted shafts, shadow occlusion and realistic botanical background; the crayon recreation still looks like a simplified cut-out with hard graphic eyes, nose and lips. The original far-eye photo ROI includes the crossing near-side hair border: 2.64% of pixels differ by >5 summed RGB units and source SSIM mildly regresses there; left-temple source also very slightly regresses. **No claim of complete negative controls or production approval.**
+
+**Decision:** V57 is a *regional source-positive, isolated !dev research candidate* that improves the objective photo topological fit but not an accepted full ArtCraft portrait. Preserve V56 alongside as a same-source control. Release still held by whole SSIM **.5155 vs ≥.85**, source-registered 18 final-render landmarks, five continuous facial value planes, natural-speed entire 300 frames, and independent professional-art approval. The draft PR must remain **unmerged**.
