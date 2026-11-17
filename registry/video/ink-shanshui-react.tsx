@@ -2703,6 +2703,33 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
             end,1.15+.35*s(seed+9263,i*29+k*11),
             seed+9281+i*37+k*19)};
         });
+        // Eight source-crest-rooted, turning-cheek washes restore the
+        // positive lower stone volume beneath the previously pale bank.
+        // Each child follows its own bank's crest and is clipped both to
+        // that parent and to the exact near-ridge, never an SVG sticker.
+        const turning=([.23,.69] as const).map((at,k)=>{
+          const root=cubicPoint(left,first,second,right,at);
+          const hand=(i+k)%2===0?1:-1;
+          const depth=drop*(k===0?.81:.67)*
+            (.86+.2*s(seed+9321,i*53+k*23));
+          const drift=hand*span*(k===0?.17:.11)*
+            (.88+.2*s(seed+9331,i*61+k*13));
+          const c1:P=[root[0]+drift*.13,root[1]+depth*.19];
+          const c2:P=[root[0]+drift*.91,
+            root[1]+depth*(k===0?.67:.76)];
+          const tip:P=[root[0]+drift*.76,root[1]+depth];
+          const width=(k===0?12.8:8.5)*
+            (.87+.3*s(seed+9341,i*47+k*31));
+          const d=rockLoadedCubicRibbon(root,c1,c2,tip,width,
+            seed+9361+i*71+k*19,
+            k===0?"root-loaded":"broken-middle");
+          return {root,tip,d,width,
+            gradient:id+"-turning-"+i+"-"+k,
+            axis:"M"+f(root[0])+" "+f(root[1])+
+              " C"+f(c1[0])+" "+f(c1[1])+
+              " "+f(c2[0])+" "+f(c2[1])+
+              " "+f(tip[0])+" "+f(tip[1])};
+        });
         return <g key={i} data-km-fuchun-near-bank=""
           data-km-fuchun-near-bank-source={
             f(left[0])+","+f(left[1])+";"+f(right[0])+","+f(right[1])}
@@ -2722,11 +2749,37 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
               <stop offset=".84" stopColor="#a48d71" stopOpacity=".09"/>
               <stop offset="1" stopColor="#aa967b" stopOpacity="0"/>
             </linearGradient>
+            {turning.map(({root,tip,gradient},k)=>
+              <linearGradient key={gradient} id={gradient}
+                gradientUnits="userSpaceOnUse"
+                x1={f(root[0])} y1={f(root[1])}
+                x2={f(tip[0])} y2={f(tip[1])}>
+                <stop offset="0" stopColor="#413b31"
+                  stopOpacity={k===0?".57":".41"}/>
+                <stop offset=".28" stopColor="#4a4137"
+                  stopOpacity={k===0?".53":".37"}/>
+                <stop offset=".53" stopColor="#5f5448"
+                  stopOpacity={k===0?".37":".23"}/>
+                <stop offset=".82" stopColor="#877866"
+                  stopOpacity=".085"/>
+                <stop offset="1" stopColor="#998875" stopOpacity="0"/>
+              </linearGradient>)}
           </defs>
           <path data-km-fuchun-near-bank-wash="" d={d}
             fill={"url(#"+wash+")"}
             opacity={f((i===1?.61:i===3?.38:.49)*(1-.21*mist))}/>
           <g clipPath={"url(#"+clip+")"}>
+            {turning.map(({root,tip,d,width,gradient,axis},k)=>
+              <path key={k} data-km-fuchun-near-turning-wash=""
+                data-km-fuchun-near-turning-source={
+                  f(root[0])+","+f(root[1])}
+                data-km-fuchun-near-turning-tip={
+                  f(tip[0])+","+f(tip[1])}
+                data-km-fuchun-near-turning-axis={axis}
+                data-km-fuchun-near-turning-width={f(width)}
+                d={d} fill={"url(#"+gradient+")"}
+                opacity={f((i===1?.92:i===3?.67:.79)*
+                  (k===0?1:.78)*(1-.22*mist))}/>)}
             <path data-km-fuchun-near-bank-broken-crest="" d={rim1}
               fill="#4a3b30" opacity={f((i===1?.47:.35)*(1-.24*mist))}/>
             <path data-km-fuchun-near-bank-broken-crest="" d={rim2}

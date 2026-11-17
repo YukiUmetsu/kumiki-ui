@@ -597,6 +597,20 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
   // individually rooted 28 dry-brush fibres / 12 deposited moss marks.
   await expect(legacyBank).toHaveCount(0);
   await expect(sourceBank).toHaveCount(4);
+  const turns=samples.last().locator("[data-km-fuchun-near-turning-wash]");
+  await expect(turns).toHaveCount(8);
+  await expect(samples.first().locator("[data-km-fuchun-near-turning-wash]"))
+    .toHaveCount(0);
+  await page.getByRole("button",{name:"Turning-cheek wash · hide"}).click();
+  await expect(lab).toHaveAttribute("data-km-fidelity-turning","off");
+  expect(await turns.evaluateAll(nodes=>nodes.map(node=>
+    getComputedStyle(node).visibility))).toEqual(Array(8).fill("hidden"));
+  await page.getByRole("button",{name:"Turning-cheek wash · show"}).click();
+  await expect(lab).toHaveAttribute("data-km-fidelity-turning","on");
+  expect(await turns.evaluateAll(nodes=>nodes.map(node=>
+    getComputedStyle(node).visibility))).toEqual(Array(8).fill("visible"));
+  await samples.last().screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-native-turning-cheek-shadow-145.png")});
   await expect(samples.last().locator("[data-km-fuchun-near-hemp]"))
     .toHaveCount(28);
   await expect(samples.last().locator("[data-km-fuchun-near-deposit]"))

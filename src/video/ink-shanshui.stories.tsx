@@ -1023,6 +1023,7 @@ function FuchunSourceFidelityDesk(){
   const [mist,setMist]=useState(.35);
   const [ink,setInk]=useState(.9);
   const [comparison,setComparison]=useState<"seeds"|"near">("seeds");
+  const [showTurning,setShowTurning]=useState(true);
   const [lens,setLens]=useState<"native"|"rock"|"edge"|"pine"|"near">("native");
   const [layer,setLayer]=useState<"complete"|"stone"|"hemp"|"pine">("complete");
   const lenses={
@@ -1058,6 +1059,7 @@ function FuchunSourceFidelityDesk(){
   return <main data-testid="shanshui-fuchun-fidelity-desk"
     data-km-fidelity-layer={layer} data-km-fidelity-lens={lens}
     data-km-fidelity-comparison={comparison}
+    data-km-fidelity-turning={showTurning?"on":"off"}
     style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
       color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
       gap:16,alignContent:"start"}}>
@@ -1101,6 +1103,11 @@ function FuchunSourceFidelityDesk(){
         onClick={()=>{setComparison("near");setLens("native");setLayer("complete");}}>
         Near mountain · original vs rounded anatomy (EXPERIMENT)
       </button>
+      <button type="button" style={style.button}
+        aria-pressed={!showTurning}
+        onClick={()=>setShowTurning(value=>!value)}>
+        Turning-cheek wash · {showTurning?"hide":"show"}
+      </button>
       <span style={{fontSize:12,color:"#675745"}}>
         Optional 19-station near-ridge candidate; ordinary film unchanged.
       </span>
@@ -1138,9 +1145,13 @@ function FuchunSourceFidelityDesk(){
         setFrame(145);setFirstSeed(71);setSecondSeed(87);
         setDetail(1);setMist(.35);setInk(.9);
         setLens("native");setLayer("complete");setComparison("seeds");
+        setShowTurning(true);
       }}>Reset native source-fidelity review</button>
     </div>
     <style>{`
+      [data-km-fidelity-turning="off"]
+      [data-km-fuchun-near-turning-wash] {visibility:hidden;}
+
       [data-km-fidelity-layer="stone"] [data-km-fidelity-sample]
         [data-km-master-stratum-field],
       [data-km-fidelity-layer="stone"] [data-km-fidelity-sample]

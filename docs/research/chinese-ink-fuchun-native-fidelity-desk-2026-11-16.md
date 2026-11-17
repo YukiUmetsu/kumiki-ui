@@ -126,3 +126,12 @@ At **commit \`865c22fe\`**, [full Chinese Ink film QA run 43977539180](https://g
 **Test gate:** Unit and native Chromium checks assert all 17 bank-following marks, original 19 other far/middle contacts, source endpoints, exact per-register budgets and non-deletion of the 78 hero hemp strokes / six hillback / nine alum heads. The output is **still experimentally held** pending independent 960×540 and 2.3× image review after a full exact-head green film QA. Do not turn it on by default on the basis of counts alone.
 
 **Remaining optical criticism:** Current frame evidence still has overly uniform beige area under the lower bank; the rocky left grove and central pine have mechanically thin needle arcs; color separations are warmer and more linear than the original ink's muted gray-black pressure accents. Progress on source-connected topology is not art approval.
+
+
+## Source-connected undercrest turning washes — 16 November, ArtCraft HOLD
+
+Museum source: National Palace Museum, *Dwelling in the Fuchun Mountains* (Master Wuyong Scroll), https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975 ; Smarthistory's annotated pima/alum-head comparison, https://smarthistory.org/wp-content/uploads/2023/10/National_Palace_brushstroke_labeled-copy.jpg . Large dark, wet turning cheeks resolve into pale dry hemp and open paper; eight cloned unvarying stickers would fail.
+
+The opt-in, original 19-station lower-bank candidate now includes **eight** parent-cubic sourced, two-per-bank, pressure-loaded positive undercrest tonal turns. Their first coordinate is an exact crest sample, and each individual cubic bends then releases at a different depth and handedness. Real SVG user-coordinate gradients load cool-ink tone near the upper shoulder and fade near the dry lower cheek. Both the bank clip and the source-ridge clip apply, preserving the original four parent volumes, 8 crest phrases, 28 fine hemp, 12 moss deposits, 17 existing plane marks, and all other master variants. Ordinary film remains untouched.
+
+Storybook native Fuchun source desk has a reversible *Turning-cheek wash* toggle (visibility-only; the source path never changes); Chromium asserts 8 original-crest roots, A/B isolation, toggled computed visibility and native screenshots. This changes positive material, not just a texture count. **Art hold** until the actual 960×540 and 2.3× screenshot is independently compared. Reject repeated dark sausage-like lines, hard digital edges, or a loss of paper-lit spaces.

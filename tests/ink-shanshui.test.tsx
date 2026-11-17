@@ -3144,6 +3144,19 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect((candidate.match(/data-km-fuchun-near-relief=""/g)??[])).toHaveLength(1);
     expect((candidate.match(/data-km-fuchun-near-bank=""/g)??[])).toHaveLength(4);
     expect((candidate.match(/data-km-fuchun-near-bank-wash=""/g)??[])).toHaveLength(4);
+    const turns=[...candidate.matchAll(
+      /data-km-fuchun-near-turning-wash="" data-km-fuchun-near-turning-source="([^"]+)" data-km-fuchun-near-turning-tip="([^"]+)" data-km-fuchun-near-turning-axis="([^"]+)" data-km-fuchun-near-turning-width="([^"]+)" d="([^"]+)"/g,
+    )];
+    expect(turns).toHaveLength(8);
+    expect(legacy).not.toContain('data-km-fuchun-near-turning-wash');
+    expect(new Set(turns.map(m=>m[4])).size).toBeGreaterThan(5);
+    for(const [,root,tip,axis,width,path] of turns){
+      expect(axis.startsWith("M"+root.replace(","," ")+" C")).toBe(true);
+      expect(path.startsWith("M"+root.replace(","," "))).toBe(true);
+      expect(Number(width)).toBeGreaterThan(7);
+      expect(Number(tip.split(",")[1])-Number(root.split(",")[1]))
+        .toBeGreaterThan(24);
+    }
     expect((candidate.match(/data-km-fuchun-near-bank-broken-crest=""/g)??[]))
       .toHaveLength(8);
     expect((candidate.match(/data-km-fuchun-near-hemp=""/g)??[])).toHaveLength(28);
