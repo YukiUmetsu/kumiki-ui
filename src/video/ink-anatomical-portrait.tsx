@@ -334,9 +334,29 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
          new skull and all its EXPR1-attached ink around its collar contact. */}
     <g data-km-ink-anatomic-bust-ratio=".69" transform="translate(83.7 130.2) scale(.69)">
     {/** Cranial hair/hat, painted behind skin; scalp height derives from the ANAT1 forehead. */}
-    <path d={"M"+xy(shift(templeR,0,-39))+" C"+xy(shift(top,-85,-54))+" "+xy(shift(top,45,-76))
-      +" "+xy(shift(templeL,7,-25))+" L"+xy(shift(templeL,6,11))}
-      fill={preset.ink} fillOpacity={character==="scholar"?.90:.65} stroke={preset.ink} strokeWidth="1.6"/>
+    {/** Independent temporal hair under headcloth only. Earlier native 1x
+         showed one large modern black wedge from the far temple to the ear.
+         These two narrow cap-rooted locks respect the ear/skin occlusion. */}
+    <g data-km-ink-temporal-hair={character}>
+      <path d={"M"+xy(shift(templeL,-2,-22))
+        +" Q"+xy(shift(templeL,19,-27))+" "+xy(shift(templeL,15,-7))
+        +" Q"+xy(shift(templeL,10,11))+" "+xy(shift(templeL,5,19))
+        +" Q"+xy(shift(templeL,-1,2))+" "+xy(shift(templeL,-2,-22))+" Z"}
+        fill={preset.ink} fillOpacity={character==="scholar"?.77:.45}/>
+      <path d={"M"+xy(shift(templeR,-6,-22))
+        +" Q"+xy(shift(templeR,-13,-16))+" "+xy(shift(templeR,-11,-2))
+        +" L"+xy(shift(templeR,-4,7))
+        +" Q"+xy(shift(templeR,0,-8))+" "+xy(shift(templeR,-6,-22))+" Z"}
+        fill={preset.ink} fillOpacity={character==="scholar"?.62:.32}/>
+      {Array.from({length:9},(_,i)=>{
+        const y=templeL[1]-20+i*4.8;
+        const x=templeL[0]+4+Math.sin(i*1.7)*3;
+        return <path key={i}
+          d={"M"+fmt(x)+" "+fmt(y)+" q"+fmt(2+i%3)+" 5 "+fmt(1+i%4)+" 11"}
+          fill="none" stroke={character==="elder"?"#b6ae9f":"#c9baa0"}
+          strokeWidth=".45" opacity={(i%3===0?.43:.24)*detail}/>;
+      })}
+    </g>
     <path d={faceOutline} data-km-ink-face-sculpt="lower-third-continuous"
       fill={preset.complexion} stroke={preset.bone}
       strokeWidth=".65" strokeOpacity=".44"/>
