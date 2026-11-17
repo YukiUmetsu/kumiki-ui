@@ -46,7 +46,9 @@ export function renderFood(o: FoodRenderOptions): FoodRender {
       c = [c[0] * (1 - 0.6 * sh), c[1] * (1 - 0.6 * sh), c[2] * (1 - 0.6 * sh)];
       // the outline wobbles a little (a cut, not a block)
       const wob = 1.6 * fbm(seed + 5, X / 14, 0.5, 3), edgeL = -faceW / 2 * s + wob, edgeR = faceW / 2 * s - wob * 0.7;
-      const yTop = -faceH / 2 * s, yBot = faceH / 2 * s + 0.8 * fbm(seed + 6, X / 10, 0.2, 2);
+      // the ends round off (a steak's edge is rounded, not sawn square): the face's height shrinks toward each end
+      const halfW = (edgeR - edgeL) / 2, xm = (X - (edgeL + edgeR) / 2) / Math.max(1e-6, halfW), endK = Math.pow(Math.max(0, 1 - Math.pow(Math.min(1, Math.abs(xm)), 5)), 0.22);
+      const yMid = 0, yTop = yMid - (faceH / 2) * s * endK, yBot = yMid + ((faceH / 2) * s + 0.8 * fbm(seed + 6, X / 10, 0.2, 2)) * endK;
       const inFace = X > edgeL && X < edgeR && Y > yTop && Y < yBot;
       // the top crust seen from a little above: a strip above the cut face
       const inTop = X > edgeL + 3 && X < edgeR - 3 && Y <= yTop && Y > yTop - topH * s * (1 - ((X / (Wmm / 2)) ** 4)) + 1.2 * fbm(seed + 7, X / 6, 0.1, 2);
@@ -56,14 +58,17 @@ export function renderFood(o: FoodRenderOptions): FoodRender {
         c = meatColour(peak);
         // crust: about a millimetre at each face, ragged
         const crustD = Math.min(Y - yTop, yBot - Y), crustIdx = Y - yTop < yBot - Y ? res.crust[1] : res.crust[0];
-        c = mix(c, crustColour(0.25 + 0.75 * crustIdx, linearOf("#a0522d")), ss(1.6 + 0.6 * fbm(seed + 9, X / 3, Y, 2), 0.3, crustD));
+        // the crust: a dark-brown skin a millimetre or two deep, ragged, darkest at the very surface (round the ends too)
+        const endD = (1 - Math.abs(xm)) * halfW, cd2 = Math.min(crustD, endD * 0.8);
+        c = mix(c, crustColour(Math.min(1, 0.35 + 0.75 * crustIdx), linearOf("#8a4a26")), ss(2.2 + 0.8 * fbm(seed + 9, X / 3, Y, 2), 0.2, cd2));
         // muscle fibres run along the steak; fat marbling in thin flecks
-        const fib = fbm(seed + 11, X / 9, Y / 0.35, 3), marb = fbm(seed + 13, X / 7 + 2 * fbm(seed + 17, X / 20, Y / 8, 2), Y / 2.2, 4);
-        c = c.map(v => v * (0.92 + 0.12 * fib)) as unknown as RGB3;
+        const fib = fbm(seed + 11, X / 9, Y / 0.35, 3), fib2 = fbm(seed + 12, X / 2.5, Y / 0.18, 2), marb = fbm(seed + 13, X / 7 + 2 * fbm(seed + 17, X / 20, Y / 8, 2), Y / 2.2, 4);
+        c = c.map(v => v * (0.88 + 0.14 * fib + 0.08 * fib2)) as unknown as RGB3;
         if (marb > 0.42) c = mix(c, peak > 60 ? linearOf("#e8d2a8") : fat, ss(0.42, 0.55, marb) * 0.9);
         // light: brighter toward the upper left, wet speckled sheen
         const lit = 0.88 + 0.18 * (1 - (X - edgeL) / (edgeR - edgeL)) * 0.6 + 0.1 * (1 - (Y - yTop) / (yBot - yTop));
-        const spec = Math.pow(Math.max(0, fbm(seed + 19, X / 1.4, Y / 1.4, 2)), 6) * 1.8;
+        // juice on the cut face: a wet sheen catching the light in small bright flecks and along the fibres
+        const spec = Math.pow(Math.max(0, fbm(seed + 19, X / 1.4, Y / 1.4, 2)), 5) * 2.4 + Math.pow(Math.max(0, fib2), 8) * 1.2 * (1 - ss(60, 75, peak));
         c = [c[0] * lit + spec * 0.6, c[1] * lit + spec * 0.6, c[2] * lit + spec * 0.6];
       } else if (inTop) {
         // the seared top: a rough, uneven crust (darker where it touched the pan hardest), fat glistening on the peaks
