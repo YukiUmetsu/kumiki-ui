@@ -50,10 +50,13 @@ and that follows the heat flow. So the framework cooks by heat conduction and pa
 - **Egg.** Halved, with a translucent-to-opaque white. The yolk is glossy and domed when runny, jammy, or matte and
   crumbly when set, with the green ring when overcooked.
 - **Toast.** A shokupan slice, darker at the crust and on raised crumb, with pores.
+- **Onigiri.** About 300 cooked short grains (about 5.5 × 3 mm), each glossy and a little translucent, packed into a
+  rounded triangle, darker in the gaps, with a fibrous nori band round the base. Story: **Rice ball**.
 - **`Steam`.** An animated plume, invisible at the surface and white a little above, rising about 0.4 m/s, curling,
   thinning within about 15 cm and bent by a draught. Under reduced motion it shows one still frame.
 
 ## Limits
 
-- Three cooked foods are physically modelled. Other dishes are data and notes only.
+- Three cooked foods are physically modelled, plus a rice ball drawn grain by grain. Other dishes are data and notes
+  only.
 - The renders are 2D rasters, not 3D models.
