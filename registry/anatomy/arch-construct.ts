@@ -46,6 +46,37 @@ export function buildingElevation(typeId: string, o: ElevationOptions = {}): Ele
     line("roof-line", ridge[0], ridge[1], 0.16);
     return yEave + rise;
   };
+  /**
+   * A hip-and-gable (irimoya) roof seen from its long side: eaves that sag in the middle and lift at the corners, a
+   * concave (sori) lower hipped skirt up to the waist where the hips meet the gable, a steeper upper part, and a ridge
+   * with raised end tiles (onigawara). Returns the ridge's height.
+   */
+  const irimoya = (x0: number, x1: number, yEave: number, height: number, lift: number) => {
+    const n = 28, eave: FPoint[] = [];
+    for (let k = 0; k <= n; k++) { const u = k / n, e = (u * 2 - 1) ** 2; eave.push([x0 + (x1 - x0) * u, yEave - 0.2 * lift * (1 - e) + lift * Math.pow(e, 4)]); }
+    const w = x1 - x0, waistY = yEave + height * 0.5, ridgeY = yEave + height, inW = w * 0.17, rW = w * 0.4;
+    // the hips rise concave from the lifted corners to the waist; the upper roof steeper to the ridge
+    const side = (sgn: 1 | -1): FPoint[] => {
+      const pts: FPoint[] = [], xc = (x0 + x1) / 2, xa = sgn < 0 ? x0 : x1, ya = eave[sgn < 0 ? 0 : n][1];
+      for (let k = 1; k <= 10; k++) { const u = k / 10, curve = Math.pow(u, 0.62); pts.push([xa - sgn * inW * curve, ya + (waistY - ya) * u]); }
+      for (let k = 1; k <= 8; k++) { const u = k / 8; pts.push([xa - sgn * (inW + (w / 2 - rW - inW) * u), waistY + (ridgeY - waistY) * Math.pow(u, 0.85)]); }
+      void xc;
+      return pts;
+    };
+    const left = side(-1), right = side(1);
+    poly("roof", [...eave, ...right, ...left.reverse()]);
+    // the waist line where the hipped skirt meets the gabled upper roof, the eave's thick edge, the ridge
+    const xL = x0 + inW, xR = x1 - inW;
+    line("roof-line", [xL, waistY], [xR, waistY], 0.1);
+    poly("roof-line", eave, false, 0.22);
+    const rx0 = (x0 + x1) / 2 - rW, rx1 = (x0 + x1) / 2 + rW;
+    rect("roof-line", rx0, ridgeY - 0.05, rx1, ridgeY + 0.45);
+    // onigawara at the ridge ends, flaring up
+    for (const [xe, sg] of [[rx0, -1], [rx1, 1]] as const) poly("roof-line", [[xe, ridgeY - 0.05], [xe + sg * 0.55, ridgeY + 0.15], [xe + sg * 0.75, ridgeY + 1.1], [xe + sg * 0.2, ridgeY + 0.9], [xe - sg * 0.15, ridgeY + 0.45]]);
+    // tile ribs down the slope, following the curve
+    for (let k = 1; k < 24; k++) { const u = k / 24, xb = x0 + w * u, e = (u * 2 - 1) ** 2, yb = yEave - 0.2 * lift * (1 - e) + lift * Math.pow(e, 4), xt = (x0 + x1) / 2 + (xb - (x0 + x1) / 2) * 0.62; line("shade", [xb, yb + 0.15], [xt, waistY - 0.05], 0.04); }
+    return ridgeY + 1.1;
+  };
   switch (t.id) {
     case "machiya": {
       const h1 = H0, h2 = 2.0 * jit(0.05);
@@ -83,7 +114,8 @@ export function buildingElevation(typeId: string, o: ElevationOptions = {}): Ele
         // bracket sets under the deep eaves
         if (!keep) for (let k = 0; k <= nb; k++) { const x = -w / 2 + (w * k) / nb; rect("bracket", x - 0.35, y + sh, x + 0.35, y + sh + 0.45); }
         const roofY = y + sh + (keep ? 0.1 : 0.45), e = keep ? eaves : eaves * 0.9;
-        const ridge = roofBand(-w / 2 - e, w / 2 + e, roofY, keep && s < storeys - 1 ? 1.4 : (w / 2) * (keep ? 0.55 : 0.75), !keep || s === storeys - 1, keep ? 0.5 : 1.0);
+        // a temple's roof is the building: taller than its walls, hip-and-gable, its corners lifting
+        const ridge = keep ? roofBand(-w / 2 - e, w / 2 + e, roofY, s < storeys - 1 ? 1.4 : (w / 2) * 0.55, s === storeys - 1, 0.5) : irimoya(-w / 2 - e, w / 2 + e, roofY, sh * 1.1, 1.1);
         y = keep && s < storeys - 1 ? roofY + 1.4 * Math.tan(pitch) * 0.6 : ridge;
         if (keep) w *= 0.8;
         top = Math.max(top, ridge);

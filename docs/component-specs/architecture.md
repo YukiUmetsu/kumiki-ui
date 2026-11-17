@@ -43,7 +43,7 @@ Each type lists its region and period, storeys and storey height, bays and bay w
 roof curves, the eaves overhang, colours, and drawing notes with sources:
 
 - Kyoto machiya;
-- Japanese temple hall (irimoya, bracket sets, deep curved eaves);
+- Japanese temple hall: an irimoya roof taller than the walls (a concave hipped skirt with lifted corners, a steeper gabled upper roof, a ridge with onigawara), bracket sets and deep eaves;
 - minka and gasshō farmhouses;
 - castle keep;
 - Georgian town house (the piano nobile, sash windows twice as tall as wide, a parapet);
