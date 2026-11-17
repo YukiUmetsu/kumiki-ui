@@ -144,7 +144,7 @@ export interface BeautifulFace extends FaceStudy {
 
 let MIRROR: Int32Array | undefined;
 /** Each vertex's mirror partner across the midline (nearest reflected neighbour on the canonical face). */
-function mirrorMap(v: readonly Vec3[]): Int32Array {
+export function mirrorMap(v: readonly Vec3[]): Int32Array {
   if (MIRROR && MIRROR.length === v.length) return MIRROR;
   const m = new Int32Array(v.length);
   for (let i = 0; i < v.length; i++) {

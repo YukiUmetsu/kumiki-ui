@@ -1,0 +1,195 @@
+{
+  "schema": "kumiki.makeup.zones/1",
+  "about": "MAKEUP1 zone atlas: where each product sits on a face, anchored to the 468-point MediaPipe face mesh that ANAT1's face and photo landmarks share. One source of truth for the TypeScript library (registry/anatomy/makeup-zones.ts) and the Python pipeline (scripts/makeup/kumiki_makeup/zones.py).",
+  "units": {
+    "frame": "Rest frame of the face: millimetres, +x the face's own left, +y up, +z forward (ANAT1 convention). Photos are aligned to it by a similarity fit to the canonical mesh.",
+    "ew": "Offsets, radii and softness are in eye widths (ew): the mean exocanthion-endocanthion distance of the face, so zones scale with the face.",
+    "sides": "Zones with side 'both' are authored on the face's right (-x) and mirrored to the left through the mesh's mirror map; x offsets flip sign. 'center' zones are evaluated once."
+  },
+  "points": {
+    "v": "{ \"v\": i } a mesh vertex",
+    "mix": "{ \"mix\": [[i, w], ...] } a weighted mean of vertices (weights are normalised)",
+    "lerp": "{ \"lerp\": [P, Q, t] } the point a fraction t of the way from P to Q",
+    "a": "{ \"a\": \"name\" } a named anchor from 'anchors'",
+    "off": "optional [dx, dy, dz] in ew added in the face frame",
+    "r": "stroke points only: half-width of the full-strength core, ew"
+  },
+  "shapes": {
+    "stroke": "A polyline of points with a radius at each point; strength is 1 inside the radius and falls to 0 across 'soft' (centred on the edge), measured in 3D.",
+    "polygon": "A closed loop of points seen from the front (x, y); 'grow' moves the edge outward (ew), 'soft' is the blend width centred on the edge."
+  },
+  "anchors": {
+    "eye-centre": { "lerp": [{ "v": 133 }, { "v": 33 }, 0.5], "note": "Midpoint of the lid corners." },
+    "lateral-limbus": { "lerp": [{ "v": 133 }, { "v": 33 }, 0.71], "note": "Outer edge of the iris looking ahead: about 71% of the eye width from the inner corner (iris 11.7 mm in a 30 mm eye). Observers preferred the brow peak here." },
+    "ear-front": { "mix": [[137, 0.7], [227, 0.3]], "note": "In front of the ear, just under the zygomatic arch." },
+    "cheek-apple": { "mix": [[50, 0.4], [101, 0.3], [205, 0.3]], "note": "The apple of the cheek: the most forward part of the malar fat pad, below the outer iris." },
+    "cheekbone-top": { "lerp": [{ "v": 118 }, { "v": 117 }, 0.5], "note": "Top of the zygoma under the outer third of the eye." },
+    "hollow": { "lerp": [{ "v": 187 }, { "v": 207 }, 0.7], "note": "Front end of the hollow under the cheekbone, between the outer canthus and the iris." },
+    "temple": { "mix": [[156, 0.5], [139, 0.5]], "note": "Temple, level with the outer brow." },
+    "brow-head": { "mix": [[107, 0.5], [55, 0.5]], "note": "Inner end of the brow, above the inner canthus." },
+    "brow-arch": { "lerp": [{ "v": 105 }, { "v": 66 }, 0.24], "off": [0, 0.015, 0], "note": "Brow peak: the upper edge on the vertical through the lateral limbus." },
+    "brow-tail": { "mix": [[70, 0.5], [46, 0.5]], "off": [-0.04, 0.02, 0], "note": "Brow tail on the line from the nose wing (alare) through the outer canthus." },
+    "wing-tip": { "v": 33, "off": [-0.32, 0.15, -0.06], "note": "Tip of a winged liner: about 25 degrees above the lower lash line's extension, aimed at the brow tail." },
+    "lip-centre-lower": { "lerp": [{ "v": 14 }, { "v": 17 }, 0.45], "note": "Fullest point of the lower lip." }
+  },
+  "film": "A product is a thin pigment film over skin. At strength w (zone weight x coverage) it reflects w*hide*pigment itself, before light reaches the skin, and filters the rest: skin <- skin*((1-w) + w*(1-hide)*pigment). hide 0 is a transparent stain (a multiply blend), hide 1 opaque paint (a normal blend). The pigment is the product's colour over white (linear RGB).",
+  "products": {
+    "foundation": { "hide": 0.8, "finish": "satin", "note": "Scattering pigment (titanium dioxide, iron oxides): hides blotches and redness, keeps the skin's own texture at sheer to medium coverage." },
+    "concealer": { "hide": 0.9, "finish": "satin", "note": "Denser foundation one or two shades lighter." },
+    "corrector": { "hide": 0.75, "finish": "satin", "note": "A complementary hue that cancels a discolouration before foundation." },
+    "contour": { "hide": 0.4, "finish": "matte", "note": "A cool, greyed shade deeper than the skin: imitates a shadow." },
+    "bronzer": { "hide": 0.35, "finish": "satin", "note": "A warm shade a little deeper than the skin: imitates a tan." },
+    "highlight": { "hide": 0.55, "finish": "dewy", "note": "Light, low-chroma or golden pigment with reflective particles: imitates light on a high plane." },
+    "blush": { "hide": 0.25, "finish": "satin", "note": "A translucent red, rose or coral: imitates a flush (blood near the surface)." },
+    "eyeshadow": { "hide": 0.6, "finish": "satin", "note": "Pressed or cream pigment on the lid and socket." },
+    "liner": { "hide": 0.95, "finish": "matte", "note": "Gel, pencil or liquid: near-opaque." },
+    "brow": { "hide": 0.55, "finish": "matte", "note": "Pencil or powder between and under the brow hairs." },
+    "lipstick": { "hide": 0.7, "finish": "satin", "note": "Cream lipstick; matte formulas hide more, sheers less." },
+    "lip-liner": { "hide": 0.9, "finish": "matte", "note": "A firm line on the vermilion border." },
+    "gloss": { "hide": 0.05, "finish": "glossy", "note": "Clear or lightly tinted: mostly a specular change." },
+    "powder": { "hide": 0.1, "finish": "matte", "note": "Translucent setting powder: changes the finish, barely the colour." }
+  },
+  "finishes": {
+    "matte": { "roughness": 0.62, "specular": 0.35, "sparkle": 0, "note": "Powder scatters light diffusely: no shine." },
+    "velvet": { "roughness": 0.55, "specular": 0.55, "sparkle": 0, "note": "Soft-focus: a faint, wide sheen." },
+    "satin": { "roughness": 0.45, "specular": 0.85, "sparkle": 0, "note": "Close to bare skin's own sheen." },
+    "dewy": { "roughness": 0.28, "specular": 1.5, "sparkle": 0, "note": "A wet-looking, broad, bright sheen on the high planes." },
+    "glossy": { "roughness": 0.1, "specular": 2.6, "sparkle": 0, "note": "Mirror-like: a sharp highlight (lip gloss)." },
+    "shimmer": { "roughness": 0.4, "specular": 1.2, "sparkle": 0.25, "note": "Fine reflective particles: a sheen broken into points." },
+    "metallic": { "roughness": 0.25, "specular": 2.0, "sparkle": 0.1, "tinted": true, "note": "The highlight takes the pigment's colour." },
+    "glitter": { "roughness": 0.35, "specular": 1.0, "sparkle": 0.8, "note": "Large flakes: separate bright points." }
+  },
+  "zones": [
+    { "id": "foundation", "label": "Foundation (whole face)", "product": "foundation", "side": "center", "measure": false,
+      "shape": { "kind": "polygon", "grow": -0.12, "soft": 0.7, "points": [
+        { "v": 10 }, { "v": 338 }, { "v": 297 }, { "v": 332 }, { "v": 284 }, { "v": 251 }, { "v": 389 }, { "v": 356 }, { "v": 454 }, { "v": 323 }, { "v": 361 }, { "v": 288 },
+        { "v": 397 }, { "v": 365 }, { "v": 379 }, { "v": 378 }, { "v": 400 }, { "v": 377 }, { "v": 152 }, { "v": 148 }, { "v": 176 }, { "v": 149 }, { "v": 150 }, { "v": 136 },
+        { "v": 172 }, { "v": 58 }, { "v": 132 }, { "v": 93 }, { "v": 234 }, { "v": 127 }, { "v": 162 }, { "v": 21 }, { "v": 54 }, { "v": 103 }, { "v": 67 }, { "v": 109 } ] },
+      "minus": ["lips"], "note": "Evens tone over the whole face and blends out at the jaw and hairline. Kept off the lips so their own colour stays." },
+
+    { "id": "under-eye", "label": "Under-eye brightening (concealer)", "product": "concealer", "side": "both", "measure": true,
+      "shape": { "kind": "polygon", "soft": 0.45, "points": [
+        { "v": 133, "off": [0.03, -0.09, 0] }, { "v": 155, "off": [0, -0.1, 0] }, { "v": 145, "off": [0, -0.12, 0] }, { "v": 163, "off": [0, -0.1, 0] }, { "v": 33, "off": [-0.08, -0.1, 0] },
+        { "v": 118 }, { "lerp": [{ "v": 101 }, { "v": 36 }, 0.4] }, { "v": 100 } ] },
+      "note": "Inverted triangle from the lower lash line toward the cheek: lifts the shadow of the tear trough. Lighter periorbital skin reads healthier (Jones et al. 2016)." },
+    { "id": "tear-trough", "label": "Tear trough (colour corrector)", "product": "corrector", "side": "both", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.3, "points": [
+        { "v": 133, "off": [0.02, -0.12, 0], "r": 0.08 }, { "v": 112, "off": [0, -0.08, 0], "r": 0.1 }, { "v": 22, "off": [0, -0.06, 0], "r": 0.1 }, { "v": 23, "off": [0, -0.06, 0], "r": 0.07 } ] },
+      "note": "The inner half under the eye, where dark circles sit: peach or orange cancels blue, green cancels red." },
+
+    { "id": "cheek-contour", "label": "Cheek contour", "product": "contour", "side": "both", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.55, "points": [
+        { "a": "ear-front", "r": 0.36 }, { "v": 147, "r": 0.3 }, { "v": 187, "r": 0.24 }, { "a": "hollow", "r": 0.15 } ] },
+      "note": "The hollow under the cheekbone, from in front of the ear toward the mouth corner, stopping below the outer canthus. A shadow here makes the cheekbone above read as higher." },
+    { "id": "temple-contour", "label": "Temple contour", "product": "contour", "side": "both", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.5, "points": [
+        { "v": 54, "r": 0.24 }, { "v": 21, "r": 0.28 }, { "v": 162, "r": 0.26 }, { "v": 127, "r": 0.2 } ] },
+      "note": "Along the hairline at the temple: narrows a wide forehead and links the cheek contour to the hairline." },
+    { "id": "jaw-contour", "label": "Jawline contour", "product": "contour", "side": "both", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.45, "points": [
+        { "v": 172, "off": [0, -0.08, 0], "r": 0.26 }, { "v": 136, "off": [0, -0.1, 0], "r": 0.24 }, { "v": 150, "off": [0, -0.1, 0], "r": 0.22 }, { "v": 149, "off": [0, -0.1, 0], "r": 0.18 } ] },
+      "note": "Under the mandible from the jaw angle toward the chin: sharpens the jaw and separates it from the neck. Square faces soften the angle here." },
+    { "id": "nose-contour", "label": "Nose sides", "product": "contour", "side": "both", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.18, "points": [
+        { "v": 193, "r": 0.07 }, { "v": 122, "r": 0.06 }, { "v": 196, "r": 0.055 }, { "v": 3, "r": 0.05 }, { "v": 51, "r": 0.04 } ] },
+      "note": "Two fine shadows down the sides of the bridge from the brow head: narrow the nose. Professionally applied makeup made noses look smaller (Jones, Porcheron & Russell 2018)." },
+
+    { "id": "cheekbone-highlight", "label": "Cheekbone highlight", "product": "highlight", "side": "both", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.4, "points": [
+        { "a": "cheekbone-top", "r": 0.16 }, { "v": 116, "r": 0.16 }, { "v": 143, "off": [0.03, 0, 0], "r": 0.13 }, { "a": "temple", "r": 0.1 } ] },
+      "note": "The top of the cheekbone, curving up to the temple (the C shape round the outer eye): the plane that catches light above the contour." },
+    { "id": "nose-highlight", "label": "Nose bridge highlight", "product": "highlight", "side": "center", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.16, "points": [
+        { "v": 6, "r": 0.05 }, { "v": 197, "r": 0.05 }, { "v": 195, "r": 0.05 }, { "v": 5, "r": 0.04 } ] },
+      "note": "A thin line down the bridge, stopping before the tip so the nose does not look longer." },
+    { "id": "forehead-highlight", "label": "Forehead centre", "product": "highlight", "side": "center", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.45, "points": [
+        { "v": 9, "off": [0, 0.15, 0], "r": 0.22 }, { "v": 151, "r": 0.26 } ] },
+      "note": "The centre of the forehead between the brows and the hairline." },
+    { "id": "chin-highlight", "label": "Chin centre", "product": "highlight", "side": "center", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.3, "points": [ { "v": 199, "r": 0.16 }, { "v": 175, "r": 0.12 } ] },
+      "note": "The centre of the chin. Long faces skip it so the face does not look longer." },
+    { "id": "cupids-bow", "label": "Cupid's bow", "product": "highlight", "side": "center", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.08, "points": [
+        { "v": 37, "off": [0, 0.07, 0], "r": 0.025 }, { "v": 0, "off": [0, 0.07, 0], "r": 0.03 }, { "v": 267, "off": [0, 0.07, 0], "r": 0.025 } ] },
+      "note": "A fine light line just above the upper lip's peaks: sharpens the vermilion border so the lip looks fuller." },
+    { "id": "brow-bone", "label": "Brow bone", "product": "highlight", "side": "both", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.22, "points": [
+        { "v": 52, "off": [0, -0.1, 0], "r": 0.06 }, { "v": 53, "off": [0, -0.1, 0], "r": 0.08 }, { "v": 46, "off": [0, -0.08, 0], "r": 0.06 } ] },
+      "note": "Under the outer half of the brow arch: lifts the brow." },
+
+    { "id": "bronzer", "label": "Bronzer (sun planes)", "product": "bronzer", "side": "both", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.7, "points": [
+        { "v": 54, "r": 0.3 }, { "v": 139, "r": 0.3 }, { "v": 123, "r": 0.32 }, { "v": 213, "r": 0.28 } ] },
+      "note": "Where the sun lands: the forehead edge, the cheekbone and the jaw (a '3' on each side). Warm, not a shadow." },
+
+    { "id": "blush-apples", "label": "Blush on the apples", "product": "blush", "side": "both", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.75, "points": [ { "a": "cheek-apple", "r": 0.4 }, { "a": "cheek-apple", "off": [-0.18, 0.08, 0], "r": 0.36 } ] },
+      "note": "Round, on the most forward part of the cheek: youthful. A redder cheek reads healthier (Jones et al. 2016; Stephen et al. 2009)." },
+    { "id": "blush-lifted", "label": "Blush, lifted", "product": "blush", "side": "both", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.7, "points": [ { "a": "cheek-apple", "off": [0.05, -0.02, 0], "r": 0.34 }, { "v": 117, "off": [-0.15, -0.12, 0], "r": 0.3 }, { "v": 116, "off": [0, -0.05, 0], "r": 0.22 } ] },
+      "note": "From the apple up and back toward the top of the ear: lifts and lengthens a round face." },
+    { "id": "blush-draped", "label": "Blush, draped", "product": "blush", "side": "both", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.6, "points": [ { "a": "cheekbone-top", "off": [0.1, -0.08, 0], "r": 0.26 }, { "v": 143, "r": 0.24 }, { "a": "temple", "r": 0.2 } ] },
+      "note": "Along the cheekbone up to the temple, the 1970s-80s draping: sculpts without contour." },
+    { "id": "blush-igari", "label": "Blush, high under the eye (igari)", "product": "blush", "side": "both", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.6, "points": [ { "v": 118, "off": [0.05, -0.08, 0], "r": 0.28 }, { "v": 119, "off": [0.1, -0.1, 0], "r": 0.24 } ] },
+      "note": "High on the cheek just under the eye, toward the nose (a Japanese style named after makeup artist Shinobu Igari): a flushed, just-warm look." },
+    { "id": "blush-sunkissed", "label": "Blush across the nose", "product": "blush", "side": "both", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.6, "points": [ { "a": "cheek-apple", "off": [0.1, 0.12, 0], "r": 0.3 }, { "v": 195, "r": 0.14 } ] },
+      "note": "Over the apples and across the bridge of the nose, as the sun flushes a face." },
+
+    { "id": "lid", "label": "Eyelid (lid shade)", "product": "eyeshadow", "side": "both", "measure": true,
+      "shape": { "kind": "polygon", "soft": 0.14, "points": [
+        { "v": 133 }, { "v": 173 }, { "v": 157 }, { "v": 158 }, { "v": 159 }, { "v": 160 }, { "v": 161 }, { "v": 246 }, { "v": 33 },
+        { "v": 33, "off": [-0.04, 0.12, 0] }, { "v": 225, "off": [0.02, -0.03, 0] }, { "v": 224, "off": [0, -0.04, 0] }, { "v": 223, "off": [0, -0.05, 0] }, { "v": 222, "off": [0, -0.06, 0] }, { "v": 221, "off": [0, -0.06, 0] },
+        { "v": 189, "off": [0, -0.04, 0] }, { "v": 190 } ] },
+      "note": "From the lash line up to the crease: the lid colour." },
+    { "id": "crease", "label": "Crease (transition)", "product": "eyeshadow", "side": "both", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.3, "points": [
+        { "v": 221, "off": [0, 0.02, 0], "r": 0.04 }, { "v": 222, "off": [0, 0.03, 0], "r": 0.06 }, { "v": 223, "off": [0, 0.03, 0], "r": 0.08 }, { "v": 224, "off": [0, 0.02, 0], "r": 0.09 }, { "v": 225, "off": [-0.02, 0, 0], "r": 0.09 }, { "v": 113, "off": [-0.04, -0.02, 0], "r": 0.06 } ] },
+      "note": "Along the socket crease, deepest at the outer half and blended up: adds depth where the orbit recedes." },
+    { "id": "outer-v", "label": "Outer V", "product": "eyeshadow", "side": "both", "measure": true,
+      "shape": { "kind": "polygon", "soft": 0.18, "points": [
+        { "v": 161 }, { "v": 246 }, { "v": 33 }, { "v": 33, "off": [-0.2, 0.02, -0.04] }, { "v": 113, "off": [-0.06, 0.04, 0] }, { "v": 225 }, { "v": 224, "off": [0, -0.05, 0] } ] },
+      "note": "The outer third of the lid up into the crease: the darkest shade, elongates the eye." },
+    { "id": "inner-corner", "label": "Inner corner highlight", "product": "highlight", "side": "both", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.1, "points": [ { "v": 133, "off": [0.05, 0.01, 0], "r": 0.05 }, { "v": 173, "off": [0.03, 0.03, 0], "r": 0.03 } ] },
+      "note": "A point of light at the inner canthus: opens close-set eyes." },
+    { "id": "lower-lash", "label": "Lower lash line", "product": "eyeshadow", "side": "both", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.1, "points": [
+        { "v": 145, "off": [0, -0.03, 0], "r": 0.02 }, { "v": 144, "off": [0, -0.035, 0], "r": 0.03 }, { "v": 163, "off": [0, -0.035, 0], "r": 0.035 }, { "v": 7, "off": [0, -0.03, 0], "r": 0.04 }, { "v": 33, "off": [-0.03, -0.01, 0], "r": 0.035 } ] },
+      "note": "Smudged under the outer two thirds of the lower lashes." },
+    { "id": "liner", "label": "Upper liner", "product": "liner", "side": "both", "measure": true,
+      "shape": { "kind": "stroke", "soft": 0.035, "points": [
+        { "v": 173, "off": [0, 0.015, 0], "r": 0.008 }, { "v": 157, "off": [0, 0.02, 0], "r": 0.016 }, { "v": 158, "off": [0, 0.022, 0], "r": 0.022 }, { "v": 159, "off": [0, 0.025, 0], "r": 0.026 },
+        { "v": 160, "off": [0, 0.028, 0], "r": 0.03 }, { "v": 161, "off": [0, 0.03, 0], "r": 0.034 }, { "v": 246, "off": [0, 0.03, 0], "r": 0.036 }, { "v": 33, "off": [-0.01, 0.025, 0], "r": 0.034 } ] },
+      "note": "Along the upper lash line, thin at the inner corner and thicker outward. Eyeliner and mascara make eyes look up to 6% larger (Matsushita, Morikawa & Yamanami 2015)." },
+    { "id": "liner-wing", "label": "Liner wing", "product": "liner", "side": "both", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.03, "points": [ { "v": 33, "off": [-0.01, 0.025, 0], "r": 0.034 }, { "a": "wing-tip", "r": 0.004 } ] },
+      "note": "The flick beyond the outer corner, continuing the lower lash line up toward the brow tail." },
+    { "id": "brow", "label": "Brow fill", "product": "brow", "side": "both", "measure": true,
+      "shape": { "kind": "polygon", "soft": 0.1, "points": [
+        { "a": "brow-head", "off": [0, -0.06, 0] }, { "v": 107, "off": [0, -0.02, 0] }, { "v": 66, "off": [0, -0.02, 0] }, { "a": "brow-arch" }, { "v": 63, "off": [0, -0.03, 0] }, { "a": "brow-tail" },
+        { "v": 46, "off": [0, 0.03, 0] }, { "v": 53, "off": [0, 0.02, 0] }, { "v": 52, "off": [0, 0.02, 0] }, { "v": 65, "off": [0, 0.02, 0] }, { "v": 55, "off": [0, 0.03, 0] } ] },
+      "note": "The brow map: the head over the inner canthus, the peak on the vertical through the lateral limbus, the tail on the line from the nose wing through the outer canthus." },
+
+    { "id": "lips", "label": "Lips (lipstick)", "product": "lipstick", "side": "center", "measure": true,
+      "shape": { "kind": "polygon", "soft": 0.05, "points": [
+        { "v": 61 }, { "v": 185 }, { "v": 40 }, { "v": 39 }, { "v": 37 }, { "v": 0 }, { "v": 267 }, { "v": 269 }, { "v": 270 }, { "v": 409 }, { "v": 291 },
+        { "v": 375 }, { "v": 321 }, { "v": 405 }, { "v": 314 }, { "v": 17 }, { "v": 84 }, { "v": 181 }, { "v": 91 }, { "v": 146 } ] },
+      "note": "The vermilion. 'grow' overlines (about 1 mm at most reads natural)." },
+    { "id": "lip-liner", "label": "Lip liner", "product": "lip-liner", "side": "center", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.04, "points": [
+        { "v": 61, "r": 0.012 }, { "v": 185, "r": 0.018 }, { "v": 40, "r": 0.02 }, { "v": 39, "r": 0.02 }, { "v": 37, "r": 0.02 }, { "v": 0, "r": 0.02 }, { "v": 267, "r": 0.02 }, { "v": 269, "r": 0.02 }, { "v": 270, "r": 0.02 }, { "v": 409, "r": 0.018 }, { "v": 291, "r": 0.012 },
+        { "v": 375, "r": 0.018 }, { "v": 321, "r": 0.02 }, { "v": 405, "r": 0.02 }, { "v": 314, "r": 0.02 }, { "v": 17, "r": 0.02 }, { "v": 84, "r": 0.02 }, { "v": 181, "r": 0.02 }, { "v": 91, "r": 0.02 }, { "v": 146, "r": 0.018 }, { "v": 61, "r": 0.012 } ] },
+      "note": "A defined vermilion border." },
+    { "id": "lip-centre", "label": "Lip centre (gradient, gloss)", "product": "lipstick", "side": "center", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.3, "points": [
+        { "lerp": [{ "v": 13 }, { "v": 81 }, 0.9], "r": 0.12 }, { "lerp": [{ "v": 13 }, { "v": 14 }, 0.5], "r": 0.16 }, { "lerp": [{ "v": 13 }, { "v": 311 }, 0.9], "r": 0.12 } ] },
+      "minus": [], "note": "The inner lip, for a gradient (stained centre fading out) or gloss." },
+    { "id": "lip-gloss", "label": "Gloss point", "product": "gloss", "side": "center", "measure": false,
+      "shape": { "kind": "stroke", "soft": 0.14, "points": [ { "a": "lip-centre-lower", "off": [-0.12, 0, 0], "r": 0.05 }, { "a": "lip-centre-lower", "off": [0.12, 0, 0], "r": 0.05 } ] },
+      "note": "The fullest point of the lower lip, where gloss catches the light." }
+  ]
+}

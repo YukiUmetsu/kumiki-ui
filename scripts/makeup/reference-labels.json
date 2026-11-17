@@ -1,0 +1,208 @@
+{
+ "schema": "kumiki.makeup.reference-labels/1",
+ "about": "Visual review of the CC0/PDM Openverse references kept by 'ingest openverse' (2026-11-16): whether each wears makeup, its style, and what to leave out. The search query alone mislabels (a 'no makeup' photo, a filtered picture).",
+ "labels": {
+  "ov-58860fec-8884-4b3a-8b6d-dc7cff290526": {
+   "makeup": true,
+   "style": "everyday",
+   "exclude_zones": [
+    "lid",
+    "crease",
+    "outer-v",
+    "liner",
+    "lower-lash",
+    "under-eye",
+    "brow"
+   ],
+   "note": "Light everyday makeup (title); glasses over the eyes. Same woman as 13.",
+   "credit": "\"A picture of Sarah in her everyday look\" by Marquette654 (flickr)",
+   "licence": "cc0-1.0",
+   "url": "https://www.flickr.com/photos/199047989@N04/54370317366"
+  },
+  "ov-cd42d68b-ced2-4e96-89b5-8afed9adad90": {
+   "makeup": false,
+   "note": "No visible makeup.",
+   "credit": "\"Carrie Capri Portrait\" by Carrie Capri (flickr)",
+   "licence": "pdm-1.0",
+   "url": "https://www.flickr.com/photos/145856291@N08/54270830260"
+  },
+  "ov-9c562d33-740d-447d-8010-50c174e3f79a": {
+   "makeup": true,
+   "style": "classic-red",
+   "note": "Red lips, liner, filled brows.",
+   "credit": "\"Woman Model\" by Candace McDaniel (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/woman-model-TJHZP9PY4F"
+  },
+  "ov-50b371fd-037b-421f-bcfd-28b400edad67": {
+   "makeup": true,
+   "style": "sculpted-glam",
+   "note": "Berry lips, contour, highlight, defined brows.",
+   "credit": "\"Woman Model\" by Matt Moloney (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/woman-model-B5K7IFBRYK"
+  },
+  "ov-ea76450c-035c-4821-8792-428a122d243f": {
+   "makeup": true,
+   "style": "classic-red",
+   "note": "Red lips, winged liner.",
+   "credit": "\"Woman Portrait\" by Candace McDaniel (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/woman-portrait-I5FGYWDOH2"
+  },
+  "ov-c4847fa5-3fb3-4c4c-97cf-7677166d66a3": {
+   "makeup": true,
+   "style": "colour-eye",
+   "note": "Purple shadow, winged liner, mauve lips; deep skin, smiling.",
+   "credit": "\"Smiling Woman\" by Candace McDaniel (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/smiling-woman-TI7XCCOF5U"
+  },
+  "ov-e25d6a41-9315-4307-84c3-b844e074f1f1": {
+   "makeup": true,
+   "style": "smoky",
+   "note": "Smoky eye, mauve lips.",
+   "credit": "\"Woman Model\" by Candace McDaniel (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/woman-model-78YQNJCMVI"
+  },
+  "ov-45054528-c03b-4ad3-b3c7-c813b95c0189": {
+   "makeup": true,
+   "style": "vintage",
+   "note": "Very pale base, red lips, dark brows.",
+   "credit": "\"Woman Model\" by Candace McDaniel (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/woman-model-8EN1IYSZ8Y"
+  },
+  "ov-b4ff63ed-69fb-4b44-b8da-d43a4ffc7f6b": {
+   "makeup": true,
+   "style": "graphic-liner",
+   "note": "Pink graphic liner; deep skin.",
+   "credit": "\"Urban Woman\" by Matt Moloney (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/urban-woman-8RTGL25EL8"
+  },
+  "ov-8e19d461-57b3-409e-a7ef-0e0724f657dd": {
+   "makeup": true,
+   "style": "sculpted-glam",
+   "note": "Berry lips, brows, contour.",
+   "credit": "\"Woman Model\" by Matt Moloney (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/woman-model-P9WQKCJXCE"
+  },
+  "ov-513480c9-ce90-437f-876e-bc6d4414b1ad": {
+   "makeup": true,
+   "style": "graphic-liner",
+   "note": "Pink graphic liner; deep skin (same model as 8).",
+   "credit": "\"Urban Woman\" by Matt Moloney (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/urban-woman-XHPYLDM6GH"
+  },
+  "ov-1cd2fd03-94fa-4c79-869a-69704dcc41c8": {
+   "makeup": true,
+   "style": "classic-red",
+   "exclude_zones": [
+    "lips",
+    "chin-highlight"
+   ],
+   "note": "Winged liner, red lips; cigarette smoke over the mouth.",
+   "credit": "\"Woman Smoking\" by Candace McDaniel (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/woman-smoking-2OQ2FLVU8M"
+  },
+  "ov-0f3ae0f1-80e9-4223-a60a-e96fc7e700c5": {
+   "exclude": "A hand and a mascara wand cover the face; one eye half closed.",
+   "credit": "\"Woman Makeup\" by Matt Moloney (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/woman-makeup-AOLBB3P8AH"
+  },
+  "ov-64d81eba-d240-4d3e-8b27-da6d6ab66f61": {
+   "makeup": false,
+   "exclude_zones": [
+    "lid",
+    "crease",
+    "outer-v",
+    "liner",
+    "lower-lash",
+    "under-eye",
+    "brow"
+   ],
+   "note": "No makeup (title); glasses. Same woman as 0.",
+   "credit": "\"My wife Sarah this morning, no makeup or hair and wearing her PJs still\" by Marquette654 (flickr)",
+   "licence": "cc0-1.0",
+   "url": "https://www.flickr.com/photos/199047989@N04/55027549343"
+  },
+  "ov-812690f5-c862-48b2-9f5f-15a5dcb3377c": {
+   "exclude": "Stylised or heavily filtered picture.",
+   "credit": "\"Charles posing\" by cyndi5c (flickr)",
+   "licence": "cc0-1.0",
+   "url": "https://www.flickr.com/photos/195450237@N08/52221783875"
+  },
+  "ov-1a8b4f1b-8472-4f21-8fa0-07be48b08349": {
+   "makeup": true,
+   "style": "natural",
+   "note": "Fresh base, coral-red lips.",
+   "credit": "\"beauty serenity soul\" by elliepausnow (flickr)",
+   "licence": "pdm-1.0",
+   "url": "https://www.flickr.com/photos/194872641@N07/53914994523"
+  },
+  "ov-9205b054-4a41-4db4-a434-458a72477d2a": {
+   "makeup": true,
+   "style": "dark-lip",
+   "note": "Near-black plum lips.",
+   "credit": "\"Woman Model\" by Candace McDaniel (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/woman-model-WVGTRQXVDR"
+  },
+  "ov-10123186-5c74-4d03-98a8-5d9e3649a48e": {
+   "makeup": true,
+   "style": "fantasy",
+   "exclude_stats": true,
+   "note": "Costume face paint (blue lips, silver); kept out of beauty statistics.",
+   "credit": "\"Woman Model\" by Candace McDaniel (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/woman-model-RG9FRO0CLN"
+  },
+  "ov-c5d5e1dc-e007-4f57-839f-a4bfd4de7971": {
+   "makeup": true,
+   "style": "red-lip",
+   "note": "Red lips, light base.",
+   "credit": "\"Urban Woman\" by Joseph L. Etchingham (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/urban-woman-BWLQLFNTGZ"
+  },
+  "ov-b6af34f1-87a2-4ebf-8598-d2cac51affdd": {
+   "makeup": true,
+   "style": "red-lip",
+   "note": "Red lips, light base (same model as 18 and 20).",
+   "credit": "\"Urban Woman\" by Joseph L. Etchingham (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/urban-woman-Z62HPGMRRM"
+  },
+  "ov-5648fe5b-b520-438a-8126-a3f070c1fae7": {
+   "makeup": true,
+   "style": "red-lip",
+   "note": "Red lips, light base.",
+   "credit": "\"Urban Woman\" by Joseph L. Etchingham (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/urban-woman-H1DONX4WW2"
+  },
+  "ov-e2999f28-6e48-463e-acbf-4bb1a10814b4": {
+   "makeup": true,
+   "style": "dewy",
+   "exclude_zones": [
+    "jaw-contour"
+   ],
+   "note": "Dewy, glossy highlight, nude lips; a hand at the jaw.",
+   "credit": "\"Beauty Woman\" by Authentic Stock (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/beauty-woman-P1KLMCNBPU"
+  },
+  "ov-c74c2050-f1bc-4d1d-bda6-3570cbd3ce1f": {
+   "exclude": "A rose covers the nose and mouth.",
+   "credit": "\"Blonde Woman\" by Lisa Fotios (stocksnap)",
+   "licence": "cc0-1.0",
+   "url": "https://stocksnap.io/photo/blonde-woman-FHAAW4HQRI"
+  }
+ }
+}

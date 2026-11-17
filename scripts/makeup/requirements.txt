@@ -1,0 +1,6 @@
+# MAKEUP1 photo pipeline (scripts/makeup). Install into a scratch virtual environment, not the system Python:
+#   uv venv --python 3.12 .venv-makeup && uv pip install --python .venv-makeup/bin/python -r scripts/makeup/requirements.txt
+# Versions verified together on macOS arm64, Python 3.12, 2026-11-16. Licences: Apache-2.0, Apache-2.0, BSD-3-Clause.
+mediapipe==1.2.3
+opencv-python-headless==5.0.0.93
+numpy==2.5.5

@@ -231,9 +231,13 @@ Options:
 - hair: melanin, a `HAIRSTYLES` id ("long", "short" and "bob" are kept as aliases), and `fringe`, `parting`,
   `hairStrands`, `hairLength`, `hairCurl` and `hairGrey` to override the style;
 - expression, yaw (±25°), key light;
+- makeup: `makeup` ("none", "natural" or "glamour", by default "natural" for women) and `lipstick`. For a designed
+  look, give `paint: makeupPaint(plan)` from MAKEUP1 ([makeup](makeup.md)). The built-in makeup is then off by
+  default;
 - `debug` passes (normals, irradiance, occlusion, hair shadow).
 
-The result carries the groom and the head it was groomed on (`hair`). By default 12,000–40,000 strands are drawn,
+The result carries the groom and the head it was groomed on (`hair`), and the 468 face-mesh points in output pixels
+(`landmarks`). By default 12,000–40,000 strands are drawn,
 scaled with the picture's size, up to 120,000 on request.
 
 `FacePortrait` draws one in a canvas after paint, queued one at a time. `GoldenRatioTable` and `BeautyEvidence` show

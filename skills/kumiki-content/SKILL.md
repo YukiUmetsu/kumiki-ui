@@ -46,6 +46,8 @@ Write data, not TSX. Read [the film document](../../docs/component-specs/film-do
 
 **Clothing on screen:** every dressed person starts from the costume framework — [kumiki-costume](../kumiki-costume/SKILL.md) — so garments match the place, the time, the wearer and the occasion, found by tags rather than guessed.
 
+**Makeup:** a made-up face (any style, a portrait, a beauty or period look) starts from the makeup framework — [kumiki-makeup](../kumiki-makeup/SKILL.md) — so placement follows the face, colours suit the skin, and contour and highlight follow the light.
+
 **Expressions:** every emotional beat on a face starts from the facial expressions framework — [kumiki-facial-expressions](../kumiki-facial-expressions/SKILL.md) — so brows, lids, mouth and creases follow the muscles, and smiles that should be felt reach the eyes.
 
 **Stop and ask** if an asset has no clear rights, if a claim has no source, or if no recipe fits a beat. Do not change a recipe to fix one film. Fix an authoring rule or a component once, then use it.
