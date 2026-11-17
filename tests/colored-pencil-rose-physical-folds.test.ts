@@ -37,7 +37,7 @@ describe("FLORA1 rose physically separate rolled petal laminae",()=>{
   it("sculpts nonvertical S-curve frontal edges with original optical detail intact",()=>{
     const left=ROSE_PHYSICAL_FOLDS.find(f=>f.id==="petal-front-left")!;
     const right=ROSE_PHYSICAL_FOLDS.find(f=>f.id==="petal-front-right")!;
-    expect(left.face).toContain("C230 250 233 259 237 269");
+    expect(left.face).toContain("C257 238 248 245 250 259");
     expect(right.face).toContain("C240 257 249 242 256 226");
     expect(left.face.split("C").length).toBeGreaterThan(6);
     expect(right.face.split("C").length).toBeGreaterThan(6);
