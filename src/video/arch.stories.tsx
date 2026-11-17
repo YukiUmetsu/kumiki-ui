@@ -65,7 +65,7 @@ export const StyleGuideStory: Story = { name: "Illustration style guide", render
 
 /** Isolated architectural modules (classical to deconstructivist, European and Chinese) on a parchment studio cove, each a reusable building function. */
 export const ModularComponents: Story = {
-  name: "Modular components (37 modules)",
+  name: "Modular components (45 modules)",
   render: () => (
     <div style={page}>
       <h2 style={h2}>Modular architectural components</h2>

@@ -12,8 +12,10 @@
  */
 import type { ArchScene, CameraSpec } from "./arch-paint";
 import type { Node } from "./arch-sdf";
-import { boxDistance, leaf } from "./arch-sdf";
-import { SceneBuilder, beam, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, ellipsoid, gableRoof, gableWall, lanternParts, opening, openingTop, repeatAround, repeatWheel, repeatX, revolve, sphere, spire, tiltedBoard, windowParts } from "./arch-kit";
+import { boxDistance, leaf, sculpt } from "./arch-sdf";
+import type { SculptPrim } from "./arch-sdf";
+import { chineseHall, gardenWall, horseHeadWall, humpBridge, pagoda, paifang, pavilion, redLantern, roundHall } from "./arch-kit-chinese";
+import { SceneBuilder, beam, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, ellipsoid, gableRoof, gableWall, lanternParts, opening, openingTop, repeatAround, repeatWheel, repeatX, revolve, sphere, spire, windowParts } from "./arch-kit";
 import type { SurfaceSpec } from "./arch-surface";
 
 export type ModuleGroup = "classical" | "gothic" | "renaissance" | "chinese" | "vernacular" | "deco" | "modern" | "brutalist";
@@ -197,13 +199,9 @@ add({ id: "flying-buttress", label: "Flying buttress segment", group: "gothic", 
   note: "A stepped pier weighted by a pinnacle carries a quadrant arch that leans against the clerestory wall, catching the vault's outward thrust.",
   build: b => { const m = b.mat(M.granite); b.add(boxAt(-0.6, 0, 4, 0.6, 9.5, 5.6, m), boxAt(-0.7, 0, 3.8, 0.7, 4, 6.0, m), spire(0, 4.8, 9.5, 13.5, 0.55, 4, m, 0, Math.PI / 4), boxAt(-0.9, 0, -0.8, 0.9, 15, 0, m));
     b.add(cut(boxAt(-0.28, 7.2, 0, 0.28, 12.6, 4, m), [{ lo: [-1, 0, -1], hi: [1, 20, 6], f: (_x: number, y: number, z: number) => Math.hypot(z, y - 7.0) - 3.9 }, { lo: [-1, 0, -1], hi: [1, 20, 6], f: (_x: number, y: number, z: number) => -(((z) * 0.62 + (y - 13.2) * 1) / 1.18) }])); } });
-add({ id: "gargoyle", label: "Gargoyle downspout", group: "gothic", inspiration: ["Notre-Dame de Paris", "Mont-Saint-Michel"], materials: ["carved limestone", "lead gutter"], view: { yaw: 55, eye: 0.6 },
-  note: "A horned beast leaning out from the parapet, its open mouth the end of the gutter, throwing rainwater clear of the wall.",
-  build: b => { const m = b.mat({ kind: "ashlar", colour: "#b8ae9c", course: 0.4, age: 0.9, moss: 0.4 }); b.add(boxAt(-1.4, 0, -1.2, 1.4, 2.6, 0, m), boxAt(-1.6, 2.6, -1.3, 1.6, 2.9, 0.15, m));
-    b.add(capsule(0, 2.2, 0, 0, 2.05, 1.5, 0.36, m), ellipsoid(0, 2.12, 1.85, 0.34, 0.3, 0.38, m), coneY(0.2, 1.95, 2.3, 2.75, 0.07, 0.01, m), coneY(-0.2, 1.95, 2.3, 2.75, 0.07, 0.01, m));
-    b.add(cut(ellipsoid(0, 1.98, 2.15, 0.26, 0.16, 0.3, m), [boxAt(-0.3, 1.94, 2.0, 0.3, 2.02, 2.6, 0)]), sphere(0.17, 2.24, 2.08, 0.06, b.mat({ kind: "plain", colour: "#2a2622" })), sphere(-0.17, 2.24, 2.08, 0.06, b.mat({ kind: "plain", colour: "#2a2622" })));
-    for (const s of [-1, 1]) b.add(tiltedBoard(s * 0.55, 2.35, 0.7, 0.4, 0.28, 0.05, s * 0.5, m)); for (const s of [-1, 1]) b.add(capsule(s * 0.22, 1.9, 0.9, s * 0.25, 1.4, 0.95, 0.09, m)); } });
-
+add({ id: "gargoyle", label: "Gargoyle downspout", group: "gothic", inspiration: ["Notre-Dame de Paris", "Mont-Saint-Michel"], materials: ["weathered limestone, lichen on the back", "lead spout"], view: { yaw: 58, eye: 0.62, pad: 0.12 },
+  note: "A lean beast thrown far out from the buttress, as at Notre-Dame: haunches in the wall, an arched neck, ears laid back, wings folded along its flanks, forepaws clawing the cornice edge, and its open jaws the end of the gutter.",
+  build: b => gargoyle(b) });
 // Renaissance and Baroque
 add({ id: "octagonal-dome", label: "Octagonal ribbed dome", group: "renaissance", inspiration: ["Florence Cathedral"], materials: ["terracotta tiles", "white marble ribs", "marble lantern"], view: { yaw: 22, eye: 0.62 },
   note: "Eight curved faces of red tiles between eight white marble ribs on an octagonal drum with round windows, crowned by a marble lantern.",
@@ -246,12 +244,9 @@ add({ id: "upturned-eave", label: "Upturned eave corner with ridge beasts", grou
     for (let i = 0; i < 12; i++) { const [x0, y0] = hip(i / 12), [x1, y1] = hip((i + 1) / 12); b.add(capsule(x0, y0, x0, x1, y1, x1, 0.14, ridge)); }
     for (let i = 0; i < 7; i++) { const [x, y] = hip(0.9 - i * 0.075); b.add(ellipsoid(x, y + 0.2, x, 0.11, 0.13, 0.11, ridge), sphere(x + 0.05, y + 0.36, x + 0.05, 0.07, ridge)); if (i === 0) b.add(coneY(x + 0.03, x + 0.03, y + 0.4, y + 0.6, 0.05, 0.01, ridge)); }
     b.place({ yaw: -45 }); } });
-add({ id: "temple-heaven-roof", label: "Triple-eaved round roof", group: "chinese", inspiration: ["Temple of Heaven, Hall of Prayer for Good Harvests"], materials: ["blue glazed tiles", "red lacquered columns", "gilded finial", "white marble terrace"], view: { yaw: 0, eye: 0.55 },
-  note: "Three conical eaves of blue glazed tiles (the colour of heaven) over red drums, a gilded finial, on a three-tier white marble terrace.",
-  build: b => { const blue = b.mat(M.blueTile), red = b.mat(M.red), p = b.mat(M.poly), mar = b.mat(M.marble);
-    for (let i = 0; i < 3; i++) b.add(cylY(0, 0, i * 0.5, (i + 1) * 0.5, 7.2 - i * 1.0, mar));
-    let y = 1.5; for (let i = 0; i < 3; i++) { const r = 4.4 - i * 1.1; b.add(cylY(0, 0, y, y + 1.8, r - 0.9, red), cylY(0, 0, y + 1.5, y + 1.85, r - 0.75, p), coneY(0, 0, y + 1.8, y + 3.0, r + 0.6, r - 1.2, blue)); y += 2.6; }
-    b.add(coneY(0, 0, y - 0.8, y + 0.8, 1.6, 0.2, blue), sphere(0, y + 1.15, 0, 0.42, b.mat(M.gold)), coneY(0, 0, y + 1.4, y + 2.2, 0.15, 0.01, b.mat(M.gold))); } });
+add({ id: "temple-heaven-roof", label: "Triple-eaved round hall", group: "chinese", inspiration: ["Temple of Heaven, Hall of Prayer for Good Harvests"], materials: ["blue glazed tiles", "caihua brackets and drums", "red lattice doors and columns", "gilded finial", "white marble terraces"], view: { yaw: 0, eye: 0.42, pad: 0.08 },
+  note: "Three concave conical roofs of blue glazed tiles (eaves about 1.0, 0.79 and 0.64 of the lowest), each over a band of painted brackets and rafter ends; turquoise lattice drums between them; a red ring of lattice doors behind red columns; a gilded ball finial; three marble terraces ringed by balusters, with stairs.",
+  build: b => roundHall(b, { R: 9 }) });
 add({ id: "marble-balustrade", label: "Carved white marble balustrade", group: "chinese", inspiration: ["Forbidden City terraces"], materials: ["white marble (hanbaiyu)"], view: { yaw: 28, eye: 0.6 },
   note: "Posts with cloud-carved heads between panels with carved vase-shaped openings, on a plinth with dragon-head drain spouts below each post.",
   build: b => { const m = b.mat(M.marble); b.add(boxAt(-4.6, 0, -0.8, 4.6, 1.2, 0.6, m));
@@ -266,6 +261,31 @@ add({ id: "lattice-door", label: "Lattice screen door", group: "chinese", inspir
   build: b => { const wd = b.mat(M.lattice), pa = b.mat(M.paper); b.add(boxAt(-0.62, 1.05, -0.03, 0.62, 2.85, -0.01, pa));
     b.add(cut(boxAt(-0.75, 0, -0.06, 0.75, 3.0, 0.08, wd), [boxAt(-0.62, 1.05, -0.2, 0.62, 2.85, 0.2, 0)]), latticePanel(-0.62, 1.05, 0.62, 2.85, 0.03, 0.15, 0.022, 0.05, wd), cut(boxAt(-0.62, 0.15, 0.04, 0.62, 0.95, 0.08, wd), [boxAt(-0.5, 0.27, 0.06, 0.5, 0.83, 0.2, 0)]));
     b.add(boxAt(-0.9, 0, -0.1, -0.75, 3.15, 0.1, wd), boxAt(0.75, 0, -0.1, 0.9, 3.15, 0.1, wd), boxAt(-0.9, 3.0, -0.1, 0.9, 3.15, 0.1, wd)); } });
+
+add({ id: "imperial-hall", label: "Double-eaved imperial hall", group: "chinese", inspiration: ["Forbidden City, Hall of Supreme Harmony"], materials: ["yellow glazed tiles", "red columns and lattice doors", "caihua dougong", "white marble terrace"], view: { yaw: 28, eye: 0.35, pad: 0.08 },
+  note: "The highest rank: a double-eaved hip roof in imperial yellow, the most ridge beasts, a bracket band under each eave, red columns and lattice door bays on a marble terrace with balustrades and stairs.",
+  build: b => { chineseHall(b, { bays: 5, bayW: 3.4, depth: 11, roof: "hip", tiles: "yellow", beasts: 9, double: true, terrace: 1.8 }); } });
+add({ id: "temple-hall", label: "Hip-and-gable temple hall", group: "chinese", inspiration: ["Buddhist and Confucian temple halls"], materials: ["green glazed tiles", "red lattice doors", "painted gable boards"], view: { yaw: 32, eye: 0.4, pad: 0.1 },
+  note: "A single-eave xieshan roof: a hipped skirt with a gabled upper roof whose vertical triangular ends stand above it, in green tiles, five beasts on each hip.",
+  build: b => { chineseHall(b, { bays: 3, bayW: 3.6, depth: 9, roof: "hip-gable", tiles: "green", beasts: 5, terrace: 1.2, terraceSurface: { kind: "ashlar", colour: "#a9a59b", course: 0.35, age: 0.6 } }); } });
+add({ id: "garden-pavilion", label: "Hexagonal garden pavilion", group: "chinese", inspiration: ["Classical Gardens of Suzhou"], materials: ["red columns", "grey tiles", "stone base", "red lanterns"], view: { yaw: 18, eye: 0.45 },
+  note: "A ting of six columns with bench rails between them under a pyramidal roof whose corners sweep up sharply, the gardens' place to sit and look.",
+  build: b => { pavilion(b, { sides: 6, R: 2.6, h: 3.1, tiles: "grey" }); for (const a of [0.5, 2.6]) redLantern(b, Math.cos(a) * 2.9, 3.0, Math.sin(a) * 2.9, 0.3); } });
+add({ id: "pagoda", label: "Seven-storey pagoda", group: "chinese", inspiration: ["Jiangnan pagodas"], materials: ["whitewashed brick", "grey tile eaves", "red arched doors", "gilded finial of rings"], view: { yaw: 12, eye: 0.4, pad: 0.08 },
+  note: "Octagonal storeys narrowing upward, each under its own sweeping eave, with arched openings on alternate faces and a finial of rings.",
+  build: b => pagoda(b, { storeys: 7, R: 4 }) });
+add({ id: "paifang", label: "Memorial archway (paifang)", group: "chinese", inspiration: ["Ming tombs and temple approaches"], materials: ["red posts on stone plinths", "painted beams", "green glazed roofs", "inscribed plaque"], view: { yaw: 10, eye: 0.45, pad: 0.08 },
+  note: "Four posts and three bays, the middle highest, each bay under its own little hipped roof on brackets, a blue plaque at the centre.",
+  build: b => paifang(b, { W: 12, H: 6.4, tiles: "green" }) });
+add({ id: "garden-wall-openings", label: "Garden wall with moon gate and leak windows", group: "chinese", inspiration: ["Classical Gardens of Suzhou"], materials: ["whitewash", "grey tile coping", "stone ring", "lattice leak windows"], view: { yaw: 14, eye: 0.42, pad: 0.08 },
+  note: "A white wall under grey coping, pierced by a moon gate, a vase-shaped doorway and lattice leak windows, each framing a view of the garden.",
+  build: b => gardenWall(b, { L: 16, H: 3.6 }) });
+add({ id: "horse-head-gables", label: "Huizhou horse-head gables", group: "chinese", inspiration: ["Hongcun and Xidi villages, Anhui"], materials: ["whitewashed walls", "black tile coping", "stone door frame"], view: { yaw: 30, eye: 0.4, pad: 0.1 },
+  note: "Tall white walls whose gables step up in tiers, each capped in black tiles that lift at their ends like a horse's head; small high windows; a stone doorway under a little tiled hood.",
+  build: b => horseHeadWall(b, { W: 10, D: 9, H: 7 }) });
+add({ id: "hump-bridge", label: "Humpbacked stone bridge", group: "chinese", inspiration: ["Suzhou and Hangzhou canal bridges"], materials: ["granite blocks", "moss"], view: { yaw: 20, eye: 0.5, pad: 0.1 },
+  note: "A near-semicircular arch under a deck that humps steeply over it, so that its reflection completes the circle; low stone rails follow the hump.",
+  build: b => humpBridge(b, { span: 7, W: 3.2 }) });
 
 // European vernacular and craft details
 add({ id: "tudor-gable-peak", label: "Tudor half-timbered gable peak", group: "vernacular", inspiration: ["English Tudor houses"], materials: ["green oak frame, pegged mortise and tenon", "lime plaster", "clay tiles", "carved bargeboard"], view: { yaw: 24, eye: 0.55 },
@@ -351,6 +371,31 @@ add({ id: "twisting-glass", label: "Twisting glass facade fragment", group: "bru
     b.add(leaf((x, y, z) => { const t = Math.min(1, Math.max(0, y / 14)), lean = 0.12 * y - 0.6 * Math.sin(t * Math.PI), r = 2.6 - 1.1 * Math.sin(t * Math.PI) ** 1.4 + (t > 0.7 ? 0.5 * (t - 0.7) : 0); return Math.max((Math.hypot(x - lean, z) - r) * 0.8, -y + 2.4, y - 14); }, [-3, 2.4, -3.2], [4.5, 14, 3.2], g));
     for (const [x, z] of [[-1.6, 1.4], [1.6, 1.4], [0, -1.9]]) b.add(capsule(x * 1.1, 0, z * 1.1, x * 0.75, 2.6, z * 0.75, 0.13, st));
     b.add(boxAt(3.6, 0, -2.6, 8, 13, 2.6, b.mat({ kind: "plaster", colour: "#d8cdb6", flake: 0.03 }))); } });
+
+/** A Gothic gargoyle on its buttress: a lean beast sculpted from blended strokes, its jaws the spout (spout height `y`). Front toward +z. */
+export function gargoyle(b: SceneBuilder, o: { y?: number } = {}) {
+  const Y = o.y ?? 2.4, stone = b.mat({ kind: "rock", colour: "#b9b0a0" }), wall = b.mat({ kind: "ashlar", colour: "#b3aa98", course: 0.38, age: 0.9, moss: 0.45 });
+  b.add(boxAt(-0.9, 0, -1.3, 0.9, Y + 0.9, 0, wall), boxAt(-1.0, Y - 0.5, -1.4, 1.0, Y - 0.36, 1.3, wall), boxAt(-1.0, Y + 0.9, -1.4, 1.0, Y + 1.05, 0.25, wall));
+  const P = (x: number, y: number, z: number) => [x, Y + y, z] as const, prims: SculptPrim[] = [
+    { a: P(0, 0, -0.1), b: P(0, -0.02, 0.55), r1: 0.3, r2: 0.27 }, { a: P(0, -0.02, 0.55), b: P(0, 0, 1.02), r1: 0.27, r2: 0.21 }, { a: P(0, -0.04, 1.02), e: [0.23, 0.25, 0.24] },
+    { a: P(0, 0.03, 1.1), b: P(0, 0.16, 1.55), r1: 0.16, r2: 0.12 },
+    { a: P(0, 0.2, 1.67), e: [0.16, 0.15, 0.19] }, { a: P(0.08, 0.27, 1.77), e: [0.07, 0.05, 0.08] }, { a: P(-0.08, 0.27, 1.77), e: [0.07, 0.05, 0.08] },
+    { a: P(0, 0.17, 1.76), b: P(0, 0.12, 2.1), r1: 0.115, r2: 0.065 }, { a: P(0, 0.13, 2.09), e: [0.075, 0.06, 0.06] },
+    { a: P(0, 0.02, 1.7), b: P(0, -0.09, 2.0), r1: 0.09, r2: 0.05, k: 0.04 },
+    { a: P(0, 0.055, 1.98), e: [0.075, 0.042, 0.15], sub: true, k: 0.02 }, { a: P(0.085, 0.22, 1.86), r1: 0.045, sub: true, k: 0.015 }, { a: P(-0.085, 0.22, 1.86), r1: 0.045, sub: true, k: 0.015 },
+    { a: P(0.08, 0.3, 1.6), b: P(0.17, 0.42, 1.4), r1: 0.05, r2: 0.012, k: 0.03 }, { a: P(-0.08, 0.3, 1.6), b: P(-0.17, 0.42, 1.4), r1: 0.05, r2: 0.012, k: 0.03 },
+    ...[-1, 1].flatMap(s => [
+      { a: P(s * 0.17, -0.08, 0.95), b: P(s * 0.22, -0.3, 0.86), r1: 0.11, r2: 0.075 }, { a: P(s * 0.22, -0.3, 0.86), b: P(s * 0.2, -0.36, 1.12), r1: 0.075, r2: 0.055 }, { a: P(s * 0.2, -0.38, 1.16), e: [0.08, 0.05, 0.1] as const },
+      ...[-0.045, 0, 0.045].map(dx => ({ a: P(s * 0.2 + dx, -0.38, 1.22), b: P(s * 0.2 + dx, -0.47, 1.29), r1: 0.024, r2: 0.006, k: 0.02 })),
+      { a: P(s * 0.22, -0.1, 0.3), e: [0.12, 0.2, 0.22] as const }, { a: P(s * 0.24, -0.22, 0.32), b: P(s * 0.24, -0.36, 0.56), r1: 0.07, r2: 0.05 },
+      { a: P(s * 0.28, 0.14, 0.62), e: [0.045, 0.22, 0.46] as const, k: 0.04 }, { a: P(s * 0.27, 0.32, 0.98), b: P(s * 0.3, 0.42, 0.18), r1: 0.04, r2: 0.02, k: 0.03 },
+      { a: P(s * 0.3, 0.3, 0.75), b: P(s * 0.32, 0.05, 0.3), r1: 0.022, r2: 0.01, k: 0.02 },
+    ] as SculptPrim[]),
+    ...[0.2, 0.42, 0.64, 0.86].map(z => ({ a: P(0, 0.28 - z * 0.05, z), r1: 0.05, k: 0.05 })),
+  ];
+  b.add(sculpt(prims, 0.08, stone, 0.4));
+  b.add(sphere(0.085, Y + 0.22, 1.875, 0.028, b.mat({ kind: "plain", colour: "#1e1c1a" })), sphere(-0.085, Y + 0.22, 1.875, 0.028, b.mat({ kind: "plain", colour: "#1e1c1a" })), cylZ(0, Y + 0.055, 1.6, 2.02, 0.035, b.mat({ kind: "lead" })));
+}
 
 /** A cutter that removes everything outside an arched opening (used to trim tracery to its arch). */
 function outsideClip(cx: number, y0: number, w: number, hs: number): Node {
