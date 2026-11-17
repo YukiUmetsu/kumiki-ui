@@ -72,7 +72,7 @@ export function createRisoDrumContactGeometry({
     // Inequality across the sheet resembles individualized roller contact,
     // not a texture tile or evenly spaced scanline filter.
     const laneX=(lane+.18+.64*h(lane,1))*across/laneCount;
-    const score=h(lane,2),density=(.48+.52*h(lane,3));
+    const score=h(lane,2),density=(.48+.52*h(lane,3))*(.86+.14*score);
     const laneDryness=dryness*density;
     for(let filament=0;filament<7;filament++){
       const id="l"+lane+"-f"+filament;
