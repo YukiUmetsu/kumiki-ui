@@ -213,7 +213,7 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       <path d={character==="scholar"
         ?"M202 421 C163 424 131 439 116 470 Q98 506 83 612 L460 612 Q440 532 425 471 C412 443 372 428 328 420 Q263 451 202 421 Z"
         :"M184 419 C140 422 113 458 92 514 L59 612 L481 612 C469 554 443 458 394 426 Q356 410 324 422 Q250 471 184 419 Z"}
-        fill={preset.robe} fillOpacity=".46" stroke={preset.ink} strokeWidth="1.7"/>
+        fill={preset.robe} fillOpacity=".42" stroke={preset.ink} strokeWidth="1.08" strokeOpacity=".77"/>
       {/** Wet robe shadows bend across fabric drape, never the earlier
            triangular poster-like tone panels. Stroke pressure stays separate
            from the dry small folds and paper-reserved cloth underlayer. */}
@@ -230,22 +230,69 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
         fill="none" stroke={preset.ink} strokeWidth="14" opacity=".095"
         filter={"url(#"+uid+"-wash-feather)"}/>
       {character==="scholar"
-        ?<>
-          <path d="M209 425 Q261 489 344 422 Q332 483 267 528 Q231 502 209 425Z"
-            fill="#e8dac5" opacity=".92" stroke={preset.bone} strokeWidth="1"/>
-          <path d="M212 429 Q256 485 272 526 C291 557 291 580 280 613"
-            fill="none" stroke={preset.ink} strokeWidth="2.3" opacity=".68"/>
-          <path d="M338 426 C315 461 290 489 264 500"
-            fill="none" stroke={preset.bone} strokeWidth="1.4" opacity=".62"/>
-        </>
-        :<>
-          <path d="M191 425 Q261 491 341 425 L363 466 Q303 532 253 559 Q209 515 191 425Z"
-            fill="#cfc4b2" opacity=".86"/>
-          <path d="M199 432 C234 471 277 510 303 547 Q291 580 271 612"
-            fill="none" stroke={preset.ink} strokeWidth="2.4" opacity=".72"/>
-          <path d="M349 432 C315 482 284 514 257 558" fill="none"
-            stroke={preset.ink} strokeWidth="2.05" opacity=".67"/>
-        </>}
+        ?<g data-km-ink-collar="late-ming-scholar-crossed">
+          {/** Real folded undercollar, not a plunging rectangular V. The
+               asymmetrical left lapel wraps over right and settles as a
+               wet-loading, dry-ending stroke into the chest. */}
+          <path d="M211 431 C236 448 255 462 282 476
+            Q317 451 339 423 L350 447
+            Q314 479 282 505 C254 486 224 464 211 431 Z"
+            fill="#e3d9c7" fillOpacity=".86"/>
+          <path d="M213 437 C239 459 260 486 285 511
+            Q307 531 311 562"
+            fill="none" stroke={preset.ink} strokeWidth="1.65"
+            strokeLinecap="round" opacity=".66"/>
+          <path d="M341 435 C325 456 309 470 282 486
+            Q261 499 249 526"
+            fill="none" stroke={preset.bone} strokeWidth="1.11"
+            strokeLinecap="round" opacity=".61"/>
+          <path d="M224 450 Q250 481 278 497"
+            fill="none" stroke={preset.warm} strokeWidth="5.3"
+            filter={"url(#"+uid+"-wash-feather)"} opacity=".19"/>
+          <path d="M337 450 Q309 484 267 506"
+            fill="none" stroke={preset.bone} strokeWidth="4.5"
+            filter={"url(#"+uid+"-wash-feather)"} opacity=".13"/>
+          <path d="M291 509 C302 533 290 558 295 575"
+            fill="none" stroke={preset.bone} strokeWidth=".64"
+            opacity=".36"/>
+        </g>
+        :<g data-km-ink-collar="elder-overlapping-soft-wrap">
+          <path d="M192 427 C223 462 252 477 275 488
+            Q324 464 341 424 L361 460
+            Q307 495 264 529 C232 496 209 472 192 427 Z"
+            fill="#ddd2c0" fillOpacity=".78"/>
+          <path d="M200 435 C225 469 248 482 276 499
+            Q298 522 303 549"
+            stroke={preset.ink} strokeWidth="1.92"
+            opacity=".65" strokeLinecap="round" fill="none"/>
+          <path d="M348 431 C318 475 282 504 257 537"
+            stroke={preset.ink} strokeWidth="1.53"
+            opacity=".55" strokeLinecap="round" fill="none"/>
+          <path d="M210 456 Q259 498 289 519"
+            stroke={preset.warm} strokeWidth="5.9"
+            opacity=".15" filter={"url(#"+uid+"-wash-feather)"}
+            fill="none"/>
+          <path d="M331 445 Q306 479 265 517"
+            stroke={preset.bone} strokeWidth="6.7"
+            opacity=".14" filter={"url(#"+uid+"-wash-feather)"}
+            fill="none"/>
+        </g>}
+      {/** Rooted silk sleeve cascade: direct continuity from the upper
+           shoulder, broad circular weight at elbow and pressure lift before
+           a late-Ming hanging-fold tip. Two sleeves are never mirrors. */}
+      {Array.from({length:12},(_,i)=>{
+        const side=i<6?-1:1,k=i%6;
+        const sx=side<0?135+k*10:394-k*7;
+        const sy=462+k*6;
+        const control:Point=[sx+side*(20+k*2.7),505+k*6];
+        const tip:Point=[sx+side*(28+k*4.4),565+k*8];
+        return <path key={"sleeve"+i} data-km-ink-sleeve-loading={i}
+          d={"M"+fmt(sx)+" "+fmt(sy)+" Q"+xy(control)+" "+xy(tip)}
+          stroke={i%3===0?preset.ink:preset.bone}
+          strokeWidth={i%4===0?1.26:.48+(i%3)*.14}
+          opacity={(i%4===0?.36:.20)*detail}
+          strokeLinecap="round" fill="none"/>;
+      })}
       {Array.from({length:17},(_,i)=>{
         const side=i%2===0?-1:1,k=Math.floor(i/2);
         const twist=Math.sin(i*2.12)*8;
