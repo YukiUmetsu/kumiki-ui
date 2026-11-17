@@ -63,6 +63,15 @@ function ReaderFaceStudio(){
   const originalPlaneCount=volume.planes.length-
     Object.values(glazes).reduce((sum,shapes)=>sum+shapes.length,0);
   const originalPlanes=volume.planes.slice(0,originalPlaneCount);
+  // The comparative proof must use the ACTUAL pre-anatomy live face:
+  // not only the opaque head fill. Otherwise the masseter, jaw contour,
+  // philtrum and original ink fibres disappear from both proof panels,
+  // falsely presenting an easier/toy painting than the production asset.
+  // scrollReaderFacePortrait appends planes and nose after source face.
+  const sourceFaceBeforeAnatomy=parts.face.kind==="shapes"?
+    parts.face.shapes.filter((shape):shape is CharacterPathShape=>
+      shape.type==="path").slice(0,
+        -volume.planes.length-volume.nose.length):[];
   const faceBase=parts.face.kind==="shapes"?
     parts.face.shapes.filter((shape):shape is CharacterPathShape=>
       shape.type==="path"&&shape.fill==="$skin").slice(-1):[];
@@ -361,7 +370,7 @@ function ReaderFaceStudio(){
               style={{width:"100%",height:245,background:"#f7eedc"}}>
               <g transform={pose(fit.headRest,139,124)}>
                 <g data-km-ink-glaze-base="">
-                  {anatomyMarks(faceBase)}
+                  {anatomyMarks(sourceFaceBeforeAnatomy)}
                   {anatomyMarks(originalPlanes)}
                 </g>
                 {layered&&READER_INK_GLAZE_REGIONS.map(id=>
