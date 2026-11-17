@@ -115,10 +115,15 @@ export function risoTornPaperShape(
     const index=Math.max(0,Math.min(128,Math.round(f.secondary*128)));
     const p=centre+profile.serrations[index];
     const s=f.secondary*along;
-    const sign=pos?-1:1;
-    const u=point(p+f.offset,s);
-    const bend=point(p+f.offset+sign*f.reach*.52,s+f.sway*.46);
-    const end=point(p+f.offset+sign*f.reach,s+f.sway);
+    // The incoming sheet is on the LEFT/TOP for a forward reveal and
+    // RIGHT/BOTTOM for reverse. Anchor cellulose INSIDE that sheet then
+    // extend the strand OUT into the uncovered old-paper side. Reversing
+    // this orientation hides every delicate fibre under its parent page.
+    const sign=pos?1:-1;
+    const anchor=p-sign*(.65+Math.abs(f.offset));
+    const u=point(anchor,s);
+    const bend=point(p+sign*f.reach*.46,s+f.sway*.46);
+    const end=point(p+sign*f.reach,s+f.sway);
     return {id:f.id,d:`M${u.join(" ")} Q${bend.join(" ")} ${end.join(" ")}`,
       width:rounded(f.width*profile.roughness),
       opacity:rounded(f.opacity*Math.sqrt(profile.roughness))};
