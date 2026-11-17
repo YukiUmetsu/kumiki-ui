@@ -3764,6 +3764,21 @@
           "target": "components/anatomy/skin-texture-react.tsx"
         },
         {
+          "path": "registry/anatomy/hand-model.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/hand-model.ts"
+        },
+        {
+          "path": "registry/anatomy/hand-render.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/hand-render.ts"
+        },
+        {
+          "path": "registry/anatomy/hand-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/hand-react.tsx"
+        },
+        {
           "path": "registry/anatomy/anatomy-face.ts",
           "type": "registry:ui",
           "target": "components/anatomy/anatomy-face.ts"

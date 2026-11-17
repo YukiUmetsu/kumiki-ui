@@ -31,6 +31,9 @@ import { FRINGES, HAIRSTYLES, findHairStyle } from "../../registry/anatomy/hair-
 import { EYE_EVIDENCE, EYE_SHAPES, IRIS_TYPES, findEyeShape, findIris } from "../../registry/anatomy/eye-detail";
 import { SKIN_EVIDENCE } from "../../registry/anatomy/skin-texture";
 import { SkinRegionsSheet } from "../../registry/anatomy/skin-texture-react";
+import { GRASPS, HAND_ANIMATIONS, HAND_EVIDENCE, HAND_GESTURES, HAND_TYPES, findGrasp, findHandType } from "../../registry/anatomy/hand-model";
+import { HandFlipbook, HandView } from "../../registry/anatomy/hand-react";
+import type { HandRenderOptions } from "../../registry/anatomy/hand-render";
 import type { FringeKind, Parting } from "../../registry/anatomy/hair-groom";
 import { EMOTIONS } from "../../registry/anatomy/expression-facs";
 
@@ -780,6 +783,126 @@ function SkinTexture() {
   );
 }
 
+type HandViewName = NonNullable<HandRenderOptions["view"]>;
+const HAND_VIEWS: HandViewName[] = ["back", "palm", "thumb-side", "little-side", "three-quarter"];
+/** Hands in detail: any type, gesture or grasp, from any side, close up if you like. */
+function HandLab() {
+  const [type, setType] = useState("man"), [mode, setMode] = useState<"gesture" | "grasp">("gesture"), [gesture, setGesture] = useState("relaxed"), [grasp, setGrasp] = useState("medium-wrap");
+  const [view, setView] = useState<HandViewName>("three-quarter"), [yaw, setYaw] = useState(0), [pitch, setPitch] = useState(0), [side, setSide] = useState<"right" | "left">("right");
+  const [focus, setFocus] = useState<"" | "index" | "middle" | "thumb" | "palm">(""), [skin, setSkin] = useState(""), [nails, setNails] = useState("");
+  const t = findHandType(type), g = findGrasp(grasp), ge = HAND_GESTURES.find(x => x.id === gesture);
+  const options: HandRenderOptions = { width: 420, height: 420, view, yaw, pitch, focus: focus || undefined, zoom: focus ? 3.5 : 1, skin: skin || undefined, nailColour: nails || undefined };
+  return (
+    <div style={{ ...page, gridTemplateColumns: "minmax(250px, 330px) 1fr" }}>
+      <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Hand lab</h2>
+        <label style={label}>Hand<select style={field} value={type} onChange={e => setType(e.target.value)}>{HAND_TYPES.map(x => <option key={x.id} value={x.id}>{x.label}</option>)}</select></label>
+        <label style={label}>Which hand<select style={field} value={side} onChange={e => setSide(e.target.value as "right" | "left")}><option value="right">right</option><option value="left">left</option></select></label>
+        <div style={row}>{(["gesture", "grasp"] as const).map(m => <button key={m} type="button" style={mode === m ? active : button} aria-pressed={mode === m} onClick={() => setMode(m)}>{m}</button>)}</div>
+        {mode === "gesture"
+          ? <label style={label}>Gesture<select style={field} value={gesture} onChange={e => setGesture(e.target.value)}>{HAND_GESTURES.map(x => <option key={x.id} value={x.id}>{x.label}</option>)}</select></label>
+          : <label style={label}>Grasp<select style={field} value={grasp} onChange={e => setGrasp(e.target.value)}>{GRASPS.map(x => <option key={x.id} value={x.id}>{x.n}. {x.label}</option>)}</select></label>}
+        <label style={label}>View<select style={field} value={view} onChange={e => setView(e.target.value as HandViewName)}>{HAND_VIEWS.map(v => <option key={v} value={v}>{v}</option>)}</select></label>
+        <label style={label}>Turn: {yaw}°<input type="range" min={-90} max={90} step={5} value={yaw} onChange={e => setYaw(Number(e.target.value))} /></label>
+        <label style={label}>Tilt: {pitch}°<input type="range" min={-60} max={60} step={5} value={pitch} onChange={e => setPitch(Number(e.target.value))} /></label>
+        <label style={label}>Close-up<select style={field} value={focus} onChange={e => setFocus(e.target.value as typeof focus)}><option value="">whole hand</option><option value="index">index fingertip</option><option value="middle">middle fingertip</option><option value="thumb">thumb tip</option><option value="palm">palm</option></select></label>
+        <label style={label}>Skin<select style={field} value={skin} onChange={e => setSkin(e.target.value)}><option value="">the hand's ({t.skin})</option>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+        <label style={label}>Nails<select style={field} value={nails} onChange={e => setNails(e.target.value)}><option value="">natural</option><option value="#b0242c">red polish</option><option value="#e8c4c0">pale pink polish</option><option value="#2a2630">dark polish</option></select></label>
+      </div>
+      <div style={{ display: "grid", gap: 8, alignContent: "start", maxWidth: 520 }}>
+        <HandView hand={mode === "grasp" ? { type, side, grasp } : { type, side, gesture }} options={options} label={`${t.label} hand, ${mode === "grasp" ? g.label : ge?.label}`} />
+        <p style={muted}><b>{t.label}.</b> {t.note} Length {Math.round(t.length)} mm, breadth {Math.round(t.breadth)} mm, palm {Math.round(t.palmLength)} mm; index : ring {t.digitRatio}.</p>
+        {mode === "grasp"
+          ? <p style={muted}><b>{g.n}. {g.label}</b> — {g.kind}, {g.opposition} opposition, thumb {g.thumb}; {g.freq}% of grasps in housekeeping and machining work (Feix et al. 2016). The fingers close until they touch the object.</p>
+          : <p style={muted}><b>{ge?.label}.</b> {ge?.note}</p>}
+      </div>
+    </div>
+  );
+}
+
+/** Every hand type, side by side. */
+function HandTypes() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>All at one scale (each square is 300 mm across). Hands as they differ: sizes from ANSUR II (hand length, breadth and palm length by sex and percentile) and studies of children's fingers; shape traits (finger thickness, padding, muscle, knuckles, veins and tendons, taper, nails, digit ratio) from public-domain photographs (Reference board, hands).</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 230px), 1fr))" }}>
+        {HAND_TYPES.map(t => <figure key={t.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <HandView hand={{ type: t.id, gesture: "relaxed" }} options={{ width: 260, height: 260, view: "back", frameMm: 300, supersample: 1 }} label={`${t.label} hand from the back, at one scale`} />
+          <figcaption style={muted}><b>{t.label}</b> — {Math.round(t.length)} × {Math.round(t.breadth)} mm. {t.note}</figcaption></figure>)}
+      </div>
+    </div>
+  );
+}
+
+/** Gestures and everyday hand shapes. */
+function HandGestures() {
+  const views: Record<string, HandViewName> = { fist: "thumb-side", point: "thumb-side", ok: "palm", "thumbs-up": "thumb-side", peace: "palm", horns: "palm", call: "palm", pinch: "thumb-side", claw: "thumb-side", cupped: "thumb-side", beckon: "thumb-side", "count-3": "palm" };
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Joint angles within the clinical ranges; unspecified end joints follow the middle joints (about two-thirds); at rest the fingers flex more toward the little finger (the normal cascade); the thumb's pad is solved to land where the gesture puts it (on the index tip for OK, across the middle phalanges in a fist).</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+        {HAND_GESTURES.map(g => <figure key={g.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <HandView hand={{ type: "woman", gesture: g.id }} options={{ width: 240, height: 240, view: views[g.id] ?? "three-quarter", supersample: 1 }} label={`${g.label} gesture`} />
+          <figcaption style={muted}><b>{g.label}</b> — {g.note}</figcaption></figure>)}
+      </div>
+    </div>
+  );
+}
+
+/** The 33 grasps of the GRASP taxonomy. */
+function HandGrasps() {
+  const groups: ("power" | "intermediate" | "precision")[] = ["power", "intermediate", "precision"];
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>The 33 grasp types of the GRASP taxonomy (Feix, Romero, Schmiedmayer, Dollar &amp; Kragic 2016), numbered as in the paper, with the share of grasps observed in housekeeping and machining work. Each hand is shaped for the grasp, then each finger closes, joint by joint, until it touches the object, so any hand fits any object.</p>
+      {groups.map(k => <section key={k} style={{ display: "grid", gap: 10 }}>
+        <h3 style={{ margin: 0, textTransform: "capitalize" }}>{k}</h3>
+        <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))" }}>
+          {GRASPS.filter(g => g.kind === k).map(g => <figure key={g.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+            <HandView hand={{ type: "man", grasp: g.id }} options={{ width: 220, height: 220, view: g.opposition === "palm" ? "thumb-side" : "three-quarter", supersample: 1 }} label={`Grasp ${g.n}, ${g.label}`} />
+            <figcaption style={muted}><b>{g.n}. {g.label}</b> — {g.opposition}, thumb {g.thumb}, {g.freq}%</figcaption></figure>)}
+        </div>
+      </section>)}
+    </div>
+  );
+}
+
+/** Actions, played. */
+function HandAnimations() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Each action is keyframed and eased by the minimum-jerk profile of human point-to-point movement (Flash &amp; Hogan 1985); in a grasp the fingers start a few tens of milliseconds apart. Frames are rendered here (draft quality), then looped; with reduced motion they wait for Play.</p>
+      <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+        {HAND_ANIMATIONS.map((a, k) => <figure key={a.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <HandFlipbook type={["man", "woman", "woman", "man", "woman", "man", "man", "woman"][k] ?? "man"} animation={a.id} options={{ width: 220, height: 220, view: a.id === "wave" || a.id === "count" ? "back" : a.id === "beckon" ? "palm" : "thumb-side" }} />
+          <figcaption style={muted}><b>{a.label}</b> — {a.note}</figcaption></figure>)}
+      </div>
+      <ul style={{ ...muted, maxWidth: 900, paddingLeft: 18 }}>{HAND_EVIDENCE.map(x => <li key={x.id}>{x.finding} ({x.url ? <a href={x.url}>{x.source}</a> : x.source}; {x.grade})</li>)}</ul>
+    </div>
+  );
+}
+
+/** Close-ups: nails, knuckles, a child's dimples, the palm's creases. */
+function HandDetails() {
+  const items: { hand: Parameters<typeof HandView>[0]["hand"]; o: HandRenderOptions; caption: string }[] = [
+    { hand: { type: "man-strong", gesture: "open" }, o: { view: "back", focus: "middle", zoom: 3.5 }, caption: "Square nails, short, on thick fingers" },
+    { hand: { type: "woman-slender", gesture: "open" }, o: { view: "back", focus: "middle", zoom: 3.5 }, caption: "Long almond nails" },
+    { hand: { type: "woman", gesture: "open" }, o: { view: "back", focus: "middle", zoom: 3.5, nailColour: "#b0242c" }, caption: "Oval nails, red polish" },
+    { hand: { type: "child", gesture: "relaxed" }, o: { view: "back", focus: "palm", zoom: 2 }, caption: "A child's back of the hand: dimples over the knuckles" },
+    { hand: { type: "elder-man", gesture: "relaxed" }, o: { view: "back", focus: "palm", zoom: 2 }, caption: "An old man's: tendons, veins, big knuckles" },
+    { hand: { type: "man", gesture: "open" }, o: { view: "palm", focus: "palm", zoom: 1.8 }, caption: "The palm's creases: heart, head and life lines; the wrist creases" },
+  ];
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))" }}>
+        {items.map((x, k) => <figure key={k} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <HandView hand={x.hand} options={{ width: 300, height: 300, ...x.o }} label={x.caption} />
+          <figcaption style={muted}>{x.caption}</figcaption></figure>)}
+      </div>
+    </div>
+  );
+}
+
 /** Every hairstyle, groomed on the portrait head. */
 function Hairstyles() {
   return (
@@ -842,6 +965,12 @@ export const HairLabStory: Story = { name: "Hair lab", render: () => <HairLab />
 export const HairstylesStory: Story = { name: "Hairstyles", render: () => <Hairstyles /> };
 export const EyeLabStory: Story = { name: "Eye lab", render: () => <EyeLab /> };
 export const SkinTextureStory: Story = { name: "Skin texture by region", render: () => <SkinTexture /> };
+export const HandLabStory: Story = { name: "Hand lab", render: () => <HandLab /> };
+export const HandTypesStory: Story = { name: "Hand types", render: () => <HandTypes /> };
+export const HandGesturesStory: Story = { name: "Hand gestures", render: () => <HandGestures /> };
+export const HandGraspsStory: Story = { name: "Grasps (GRASP taxonomy)", render: () => <HandGrasps /> };
+export const HandAnimationsStory: Story = { name: "Hand animations", render: () => <HandAnimations /> };
+export const HandDetailsStory: Story = { name: "Hand details", render: () => <HandDetails /> };
 export const EyeShapesStory: Story = { name: "Eye shapes", render: () => <EyeShapes /> };
 export const IrisColoursStory: Story = { name: "Iris colours", render: () => <IrisColours /> };
 export const BangsStory: Story = { name: "Bangs (fringes)", render: () => <Bangs /> };

@@ -793,6 +793,80 @@
     "credit": "http://pixabay.com/en/hand-elderly-woman-wrinkles-351277/",
     "date": "2014-02-01 13:46:19"
    }
+  },
+  {
+   "id": "hand-baby-adult",
+   "file": "assets/photos/anatomy-references/hand-baby-adult.jpg",
+   "region": "hand",
+   "title": "A baby's hand gripping an adult's finger.",
+   "study": [
+    "A baby's hand: short plump fingers, deep creases at the wrist and knuckles, tiny round nails (HAND_TYPES toddler, child).",
+    "Against it, an adult's: longer fingers, visible knuckle folds."
+   ],
+   "source": {
+    "title": "File:Baby-Parenthood-Finger-Father-Hand-Love-Mother-1271742.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Baby-Parenthood-Finger-Father-Hand-Love-Mother-1271742.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Baby-Parenthood-Finger-Father-Hand-Love-Mother-1271742.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "trestletech from Pixabay",
+    "credit": "https://pixabay.com/photos/baby-parenthood-hand-finger-mother-1271742/",
+    "date": "2016-03-03"
+   }
+  },
+  {
+   "id": "hand-nails",
+   "file": "assets/photos/anatomy-references/hand-nails.jpg",
+   "region": "hand",
+   "title": "A woman's hand with painted nails (1950s).",
+   "study": [
+    "Long tapering fingers; oval nails with a free edge (HAND_TYPES woman-slender; nail shapes).",
+    "The fingers converge a little when held together."
+   ],
+   "source": {
+    "title": "File:Handen, nagels, Bestanddeelnr 919-7546.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Handen,_nagels,_Bestanddeelnr_919-7546.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/60/Handen%2C_nagels%2C_Bestanddeelnr_919-7546.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Anefo",
+    "credit": "http://proxy.handle.net/10648/ab03d186-d0b4-102d-bcf8-003048976d84",
+    "date": "1966-11-04"
+   }
+  },
+  {
+   "id": "hand-study-met",
+   "file": "assets/photos/anatomy-references/hand-study-met.jpg",
+   "region": "hand",
+   "title": "Federico Barocci, studies of hands (chalk).",
+   "study": [
+    "An artist's construction of hands in action: the thumb's mass, the finger pads, the cascade of curled fingers (HAND_GESTURES relaxed, pinch)."
+   ],
+   "source": {
+    "title": "File:Studies of a Man's Head and of His Hands MET DP800154.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Studies_of_a_Man%27s_Head_and_of_His_Hands_MET_DP800154.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Studies_of_a_Man%27s_Head_and_of_His_Hands_MET_DP800154.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Federico Barocci",
+    "credit": "This file was donated to Wikimedia Commons as part of a project by the Metropolitan Museum of Art. See the Image and Dat",
+    "date": "1592–99"
+   }
+  },
+  {
+   "id": "hand-washing",
+   "file": "assets/photos/anatomy-references/hand-washing.jpg",
+   "region": "hand",
+   "title": "An older man's hand.",
+   "study": [
+    "Veins and tendons on the back, big knuckles, spots (HAND_TYPES elder-man)."
+   ],
+   "source": {
+    "title": "File:Hand washing man.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Hand_washing_man.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/56/Hand_washing_man.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "MarkBuckawicki",
+    "credit": "Own work",
+    "date": "2020-07-02 11:47:23"
+   }
   }
  ]
 }

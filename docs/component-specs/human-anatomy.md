@@ -8,16 +8,18 @@ length/stature for age), `anatomy-measure.ts` (tape-measure sections, ANSUR-name
 `anatomy-face.ts` (3D face study, landmarks, feature loops, facial norms), `anatomy-hair.ts` (hair data, strand
 generator, hair rendering, brows and lashes), `hair-groom.ts` (groomed hairstyles and bangs, strand renderer),
 `eye-detail.ts` (eye shapes, iris colours and the iris's structure), `skin-texture.ts` and `skin-texture-react.tsx`
-(skin texture by region and age),
+(skin texture by region and age), `hand-model.ts`, `hand-render.ts` and `hand-react.tsx` (hands in detail: types,
+gestures, grasps, actions),
 `anatomy-color.ts` (skin, hair and iris colour; colour science), `anatomy-reference.ts` (ANSUR access,
 regressions, canon checks, surface forms, age changes, drawing recipe), `anatomy-react.tsx` (`HumanFigure` reference
 painter), `data/*` (baked tables and licences). Binary body model: `assets/models/anatomy/human-body-lattice.bin`
-(2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (38 public-domain/CC0 plates and
-photographs: 11 of eyes, 5 of skin).
+(2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (42 public-domain/CC0 plates and
+photographs: 11 of eyes, 5 of skin, 4 of hands).
 **Storybook:** Video production → Art Foundations → Human Anatomy → **Lab**, **Population line-up**, **Turnaround**,
 **Pose library** (+ front/side QA), **Hand poses**, **Face lab**, **Head angles**, **Range of motion**, **Any style**,
 **Proportions and ranges**, **Reference board**, **Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Hair on the
-posable body**, **Eye lab**, **Eye shapes**, **Iris colours**, **Skin texture by region**, **Hair types and colours**, **Skin, hair and eye colour**,
+posable body**, **Eye lab**, **Eye shapes**, **Iris colours**, **Skin texture by region**, **Hand lab**, **Hand types**,
+**Hand gestures**, **Grasps (GRASP taxonomy)**, **Hand animations**, **Hand details**, **Hair types and colours**, **Skin, hair and eye colour**,
 **Beautiful faces**, **Portrait lab**
 **Status:** implemented; agent review of Chromium screenshots only — **human visual review not recorded**. This is a
 construction and reference framework. It does **not** certify a finished realistic portrait or pencil drawing: those
@@ -297,6 +299,58 @@ Also:
 - `ageSpotsAt` and `frecklesAt`; `blendSkinRegions`;
 - `renderSkinSwatch` (a region at macro scale under a raking light, with near-surface and subsurface scattering, a
   sheen and vellus hairs), and `SkinSwatchView` / `SkinRegionsSheet` in React.
+
+## Hands in detail (`hand-model.ts`, `hand-render.ts`, `hand-react.tsx`)
+
+([research note](../research/hands-2026-11-16.md))
+
+**`HAND_TYPES`** (11), with sizes from ANSUR II (means and percentiles) or estimated for children:
+- adults: a large strong man's, an average man's, a slender long-fingered hand, an average, slender and small woman's;
+- younger: a teenager's, a six-year-old's, a toddler's;
+- older: an old woman's and an old man's.
+
+Each sets length, breadth, palm length, finger thickness, padding, muscle, knuckles, veins, tendons, taper, digit
+ratio, nails (shape, free edge) and skin.
+
+**`buildHand(type, side)`** gives bone lengths and radii:
+- the phalanges follow two reported rules: middle + distal ≈ proximal, and joint-to-tip ≈ 1.3 × the end segment;
+- finger widths come from the breadth;
+- the thumb sits at the base of the palm.
+
+**`poseHand(hand, pose)`** places every bone. `HandPose` gives MCP, PIP and DIP flexion and spread for each finger,
+and the thumb's CMC flexion, abduction and opposition with its MCP and IP; then the wrist. The pose is completed
+naturally:
+- end joints follow the middle joints (⅔);
+- neighbours follow a little;
+- a `thumbTo` or `thumbPoint` target solves the thumb's angles within its ranges.
+
+**`HAND_GESTURES`** (15): relaxed (the normal cascade), open, spread, fist, point, OK, thumbs up, V, horns, call me,
+pinch, claw, cupped, beckon, three.
+
+**`GRASPS`** (33): the GRASP taxonomy (Feix et al. 2016), numbered as in the paper, with kind, opposition, thumb
+position and observed frequency. **`graspHand(hand, id, close)`**:
+- places the grasp's object by contact;
+- opens each joint until the finger is clear, then closes it until it touches;
+- solves the thumb onto the object.
+
+So any hand fits any object.
+
+**`HAND_ANIMATIONS`** (8): wave, grasp and release, count to five, beckon, drum the fingers, pinch and let go, thumbs
+up, make an OK. **`animateHand(hand, anim, t)`** eases by the minimum-jerk profile (Flash & Hogan 1985), with
+per-finger delays and oscillations; actions loop.
+
+**`renderHand(posed, options)`** ray-marches a signed-distance hand:
+- **Surface:** rounded-cone phalanges with joint bulges and pads, a palm of metacarpals with thenar and hypothenar
+  masses, nails (square, oval, round, almond), veins, tendons, a child's dimples, the held object.
+- **Shading:** skin texture by region, palm and joint creases, a lighter palm, a traced shadow map read softly,
+  occlusion, subsurface scattering, glossy nails.
+- **Options:** views by the hand's own sides; `focus` and `zoom` for close-ups; `frameMm` for one scale across
+  hands; skin and nail colour; `quality: "draft"` for animation frames.
+
+`HandView` and `HandFlipbook` (frames rendered progressively, then looped; reduced motion waits for Play) show them in
+React.
+
+**Status:** agent review of renders only. Fingers blend rather than collide; there is no arm.
 
 ## Groomed hair (`hair-groom.ts`)
 
