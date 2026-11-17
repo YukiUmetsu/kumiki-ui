@@ -9,7 +9,7 @@ test("native CP-F1 rose central whorl A/B at 16:9 and 9:16 with truthful local z
   const svg=page.locator("svg[data-km-colored-pencil]");
   const scene=page.locator("[data-km-foundation-studio]");
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
-  await page.getByRole("button",{name:/6\\. Burnish and visual audit/}).click();
+  await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
   const whorl=page.getByRole("checkbox",{name:"Foundation rose nested inner whorl"});
   const focus=page.getByRole("combobox",{name:"Foundation inspection focus"});
   const zoom=page.getByRole("checkbox",{name:"Foundation inspect macro"});
@@ -61,7 +61,7 @@ test("native CP-F1 rose central whorl A/B at 16:9 and 9:16 with truthful local z
     expect(hash(restored)).toBe(hash(baseline));
   }
   await whorl.check();
-  await page.getByRole("button",{name:/3\\. Light value map/}).click();
+  await page.getByRole("button",{name:/3\. Light value map/}).click();
   const trace=svg.locator('[data-km-pencil-region="rose-whorl-scroll"] [data-km-pencil-details] path').first();
   await expect(trace).toHaveAttribute("stroke-dasharray","0.00000 1");
 });
@@ -71,7 +71,7 @@ test("each original inner lamina has bounded physical fill rather than line-only
   const svg=page.locator("svg[data-km-colored-pencil]");
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
   await page.getByRole("checkbox",{name:"Foundation rose nested inner whorl"}).check();
-  await page.getByRole("button",{name:/6\\. Burnish and visual audit/}).click();
+  await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
   const areas=await svg.evaluate((svg,partIds)=>{
     const out:{id:string;filled:number;minDimension:number}[]=[];
     for(const id of partIds){
