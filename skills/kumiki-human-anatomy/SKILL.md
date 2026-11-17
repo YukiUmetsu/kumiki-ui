@@ -38,7 +38,10 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
    gathers into locks, has a white highlight toward the root and a tinted one toward the tip, and keeps its colour on
    the shadow side. Skin:
    pick a `MONK_SKIN_TONES` swatch, shade with `skinShade`/`skinRamp` (warm band at the terminator), add
-   `skinZoneColor` for cheeks, nose, ears, lips, beard shadow and palms. Eyes: `IRIS_COLORS`, `EYE_NOTES`.
+   `skinZoneColor` for cheeks, nose, ears, lips, beard shadow and palms. Skin is not smooth: take each region's
+   texture from `SKIN_REGIONS` (`skinSurface`: crossing furrows, pores, wrinkles, ridges by age) and the face's age
+   lines from `faceWrinkles`. Show only what the picture's scale resolves (pores on a close-up, not on a full
+   figure); `renderPortrait` takes `age` and `freckles`. Eyes: `IRIS_COLORS`, `EYE_NOTES`.
 7. **Check before you claim realism** — `measureHumanBody` (headsTall, crotch, girths), `MODEL_TABLES.byAge`,
    `CANON_CHECKS` (no idealised 8-head bodies or equal face thirds unless the style asks), `SURFACE_FORMS` for the
    bony and muscle landmarks your medium should show. Study the plates in `data/anatomy-references.json`.

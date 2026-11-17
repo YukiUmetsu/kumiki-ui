@@ -29,6 +29,8 @@ import { BeautyEvidence, FacePortrait, GoldenRatioTable } from "../../registry/a
 import type { EyeColour, HairStyle, PortraitOptions } from "../../registry/anatomy/face-portrait";
 import { FRINGES, HAIRSTYLES, findHairStyle } from "../../registry/anatomy/hair-groom";
 import { EYE_EVIDENCE, EYE_SHAPES, IRIS_TYPES, findEyeShape, findIris } from "../../registry/anatomy/eye-detail";
+import { SKIN_EVIDENCE } from "../../registry/anatomy/skin-texture";
+import { SkinRegionsSheet } from "../../registry/anatomy/skin-texture-react";
 import type { FringeKind, Parting } from "../../registry/anatomy/hair-groom";
 import { EMOTIONS } from "../../registry/anatomy/expression-facs";
 
@@ -755,6 +757,29 @@ function IrisColours() {
   );
 }
 
+/** Skin is not smooth: its texture by body region and age, with what sets it. */
+function SkinTexture() {
+  return (
+    <div style={{ ...page, gap: 18 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>The skin's surface by region, at macro scale under a raking light: a network of furrows (primary lines crossing into triangles and rhombi, finer secondary lines between them, each plateau a little domed), pores where follicles open, fine wrinkles and folds, papillary ridges on the palm and fingertips, and fine vellus hairs. With age the furrows grow fewer, wider and deeper and the folds stronger. Reference photographs: Reference board, skin.</p>
+      <SkinRegionsSheet />
+      <h3 style={{ margin: 0 }}>The same face at 25, 45, 65 and 80</h3>
+      <p style={{ ...muted, maxWidth: 900 }}>Forehead lines, the lines between the brows, crow's feet, lines under the eyes, the nasolabial folds and marionette lines, neck lines and age spots come with age; the fine texture shows only as close as the camera can resolve it.</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+        {[25, 45, 65, 80].map((age, k) => <figure key={age} style={{ margin: 0, display: "grid", gap: 4 }}>
+          <FacePortrait options={{ sex: k % 2, age, hairStyle: k % 2 ? "short-crop" : "bun", hairGrey: Math.max(0, (age - 40) / 40), skin: SKINS[[1, 3, 2, 1][k]], width: 288, height: 360, seed: 9 + k, hairStrands: 16000 }} label={`Portrait at ${age}`} />
+          <figcaption style={muted}>{age} years</figcaption></figure>)}
+      </div>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))" }}>
+        {[[28, 0], [70, 0], [30, 0.85]].map(([age, fr], k) => <figure key={k} style={{ margin: 0, display: "grid", gap: 4 }}>
+          <FacePortrait options={{ sex: 0, age, freckles: fr, framing: "eyes", skin: fr ? "#f1d3bd" : SKINS[2], eyes: fr ? "green" : "brown", hair: fr ? { eumelanin: 0.25, pheomelanin: 1.6 } : undefined, hairStrands: 8000, width: 480, height: 206, seed: 3 + k }} label={`Eyes and skin at ${age}${fr ? " with freckles" : ""}`} />
+          <figcaption style={muted}>{age} years{fr ? ", freckles" : ""}, close</figcaption></figure>)}
+      </div>
+      <ul style={{ ...muted, maxWidth: 900, paddingLeft: 18 }}>{SKIN_EVIDENCE.map(x => <li key={x.id}>{x.finding} ({x.url ? <a href={x.url}>{x.source}</a> : x.source}; {x.grade})</li>)}</ul>
+    </div>
+  );
+}
+
 /** Every hairstyle, groomed on the portrait head. */
 function Hairstyles() {
   return (
@@ -785,7 +810,7 @@ function Bangs() {
 }
 /** One portrait with every control. */
 function PortraitLab() {
-  const [o, setO] = useState<PortraitOptions>({ sex: 0, beauty: 1, skin: "#d8a98a", eyes: "brown", hairStyle: "long-straight", expression: "", intensity: 1, yaw: 0, keyAzimuth: -22, keyElevation: 40 });
+  const [o, setO] = useState<PortraitOptions>({ sex: 0, beauty: 1, skin: "#d8a98a", eyes: "brown", hairStyle: "long-straight", expression: "", intensity: 1, yaw: 0, keyAzimuth: -22, keyElevation: 40, age: 30, freckles: 0 });
   const set = (k: keyof PortraitOptions, v: unknown) => setO(prev => ({ ...prev, [k]: v }));
   const num = (k: keyof PortraitOptions, min: number, max: number, step: number) => <label key={k} style={label}>{k}: {String(o[k])}
     <input type="range" min={min} max={max} step={step} value={Number(o[k] ?? 0)} onChange={e => set(k, Number(e.target.value))} /></label>;
@@ -798,6 +823,7 @@ function PortraitLab() {
         <label style={label}>Eye shape<select style={field} value={typeof o.eyeShape === "string" ? o.eyeShape : ""} onChange={e => set("eyeShape", e.target.value || undefined)}><option value="">measured average</option>{EYE_SHAPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
         <label style={label}>Hair<select style={field} value={o.hairStyle} onChange={e => set("hairStyle", e.target.value as HairStyle)}>{HAIRSTYLES.map(st => <option key={st.id} value={st.id}>{st.label}</option>)}</select></label>
         <label style={label}>Expression<select style={field} value={o.expression} onChange={e => set("expression", e.target.value)}><option value="">neutral</option>{EMOTIONS.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}</select></label>
+        {num("age", 18, 85, 1)}{num("freckles", 0, 1, 0.1)}
         {num("intensity", 0, 1, 0.1)}{num("yaw", -25, 25, 5)}{num("keyAzimuth", -70, 70, 5)}{num("keyElevation", 0, 70, 5)}
       </div>
       <div style={{ maxWidth: 480 }}><FacePortrait options={{ ...o, expression: o.expression || undefined, width: 384, height: 480 }} label="Portrait" /></div>
@@ -815,6 +841,7 @@ export const ReferenceBoardStory: Story = { name: "Reference board", render: () 
 export const HairLabStory: Story = { name: "Hair lab", render: () => <HairLab /> };
 export const HairstylesStory: Story = { name: "Hairstyles", render: () => <Hairstyles /> };
 export const EyeLabStory: Story = { name: "Eye lab", render: () => <EyeLab /> };
+export const SkinTextureStory: Story = { name: "Skin texture by region", render: () => <SkinTexture /> };
 export const EyeShapesStory: Story = { name: "Eye shapes", render: () => <EyeShapes /> };
 export const IrisColoursStory: Story = { name: "Iris colours", render: () => <IrisColours /> };
 export const BangsStory: Story = { name: "Bangs (fringes)", render: () => <Bangs /> };

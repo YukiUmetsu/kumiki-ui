@@ -38,6 +38,7 @@ import type { Raster, RGB3 } from "./foundation-raster";
 import ansur from "./data/ansur-ii-ranges.json";
 import { findHairStyle, groomHair, HAIR_PHYSICS, HAIR_SHADOW, hairDensityMap, partLine, renderHairStrands, rotateGroom, scalpCover } from "./hair-groom";
 import { EYE_SHAPES, findIris, irisAlbedo } from "./eye-detail";
+import { ageSpotsAt, blendSkinRegions, faceWrinkles, findSkinRegion, frecklesAt, skinSurface } from "./skin-texture";
 import type { EyeShapeSpec, IrisType } from "./eye-detail";
 import type { FringeKind, HairGroom, HairHead, Parting } from "./hair-groom";
 
@@ -56,6 +57,10 @@ export interface PortraitOptions extends BeautyOptions {
   eyesRight?: EyeColour;
   /** Pupil diameter, mm (2 in bright light … 8 in the dark; default 4). */
   pupil?: number;
+  /** Age in years (default 30): the skin's furrows grow fewer and deeper with age, its wrinkles stronger. */
+  age?: number;
+  /** Freckles across the nose and cheeks, 0 … 1. */
+  freckles?: number;
   /** "eyes" frames a close-up of both eyes and brows (the camera closer in, the same light). */
   framing?: "portrait" | "eyes";
   /** Hair melanin (eumelanin 0.3 blonde … 1.3 brown … 8 black; pheomelanin for red). */
@@ -357,6 +362,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const zoneIds: SkinZone[] = ["forehead", "cheeks", "nose", "eyelids", "under-eye", "beard-shadow"];
   const zoneCol = zoneIds.map(z => linearOf(skinZoneColor(skinHex, z))), baseLin = linearOf(skinHex);
   const zoneW = new Float32Array(nV * zoneIds.length), tzone = new Float32Array(nV);
+  // the skin-texture regions (skin-texture.ts) each face vertex belongs to
+  const texIds = ["forehead", "nose", "cheek", "chin", "eyelid", "crow", "upper-lip"] as const, texRegions = texIds.map(findSkinRegion), texW = new Float32Array(nV * texIds.length);
   {
     const cb = { L: LM("cheekbone.L", N0), R: LM("cheekbone.R", N0) }, pr = LM("pronasale", N0), browY = (LM("brow-mid.L", N0)[1] + LM("brow-mid.R", N0)[1]) / 2;
     const g = (d: number, r: number) => Math.exp(-(d * d) / (2 * r * r));
@@ -371,6 +378,11 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
       // a healthy flush reads as attractive (redness, Little et al. 2011): the cheeks a little stronger on women
       const ws = [forehead * 0.7, cheek * (1.05 - 0.3 * sex), nose * 0.8, lid * 0.85, under * 0.65, beard * 0.75];
       ws.forEach((v, k) => (zoneW[i * zoneIds.length + k] = v));
+      {
+        const pg = LM("pogonion", N0), st = LM("stomion", N0), crowW = Math.max(...(["L", "R"] as const).map(s2 => g(Math.hypot(Math.abs(x) - Math.abs(LM(`exocanthion.${s2}`, N0)[0]) - 6, y - ec[s2][1]), 6)));
+        const tw = [forehead, nose, Math.max(cheek, 0.25 * (1 - forehead)), g(Math.hypot(x * 0.8, y - pg[1]), 12), lid, crowW, g(Math.hypot(x * 0.6, y - (sn[1] + st[1]) / 2), 6)];
+        tw.forEach((v2, k) => (texW[i * texIds.length + k] = v2));
+      }
       tzone[i] = Math.max(forehead * 0.7 * (1 - smoothstep(10, 45, Math.abs(x))), g(Math.hypot(x, (y - (pr[1] + 12)) * 0.5), 9), g(Math.hypot(x * 1.5, y - LM("pogonion", N0)[1]), 10) * 0.6);
     }
   }
@@ -390,6 +402,9 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const hairEu = o.hair?.eumelanin ?? (sex > 0.5 ? 1.6 : 1.3), hairPheo = o.hair?.pheomelanin ?? 0.15, scalpHair = hairAlbedo(hairSigmaA(hairEu, hairPheo)) as unknown as RGB3;
   const rootCol: RGB3 = [scalpHair[0] * 0.8, scalpHair[1] * 0.8, scalpHair[2] * 0.8];
   // natural lip colour: rosier and deeper than the skin zone's average (women's a little more saturated)
+  const wrk = { browY: (LM("brow-mid.L", N0)[1] + LM("brow-mid.R", N0)[1]) / 2, hairlineY: face.hairlineY, eyeY: pupilY, outerCorner: Math.abs(LM("exocanthion.L", N0)[0]), neckTop: me[1] - 25,
+    alar: [Math.abs(LM("alare.L", N0)[0]), LM("alare.L", N0)[1]] as [number, number], mouth: [Math.abs(LM("cheilion.L", N0)[0]), LM("cheilion.L", N0)[1]] as [number, number] };
+  const neckRegion = findSkinRegion("neck"), frk = { noseY: LM("pronasale", N0)[1], cheekY: (LM("cheekbone.L", N0)[1] + LM("cheekbone.R", N0)[1]) / 2 + 2, halfWidth: zyHalf };
   const lipLin: RGB3 = [lipBase[0] * (1.02 - 0.06 * sex), lipBase[1] * (0.68 + 0.12 * sex), lipBase[2] * (0.72 + 0.1 * sex)];
   const ggx = (n: Vec3, v: Vec3, l: Vec3, a: number) => {
     const hv = norm3([v[0] + l[0], v[1] + l[1], v[2] + l[2]]), nh = Math.max(0, dot3(n, hv)), nl = Math.max(0, dot3(n, l)), nv = Math.max(1e-3, dot3(n, v)), vh = Math.max(0, dot3(v, hv));
@@ -404,11 +419,24 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     const a = tri3[t * 3], b = tri3[t * 3 + 1], c = tri3[t * 3 + 2], b1 = gbuf.b1[i], b2 = gbuf.b2[i], b0 = 1 - b1 - b2, mat = triMat[t];
     const p: Vec3 = [PX[a] * b0 + PX[b] * b1 + PX[c] * b2, PY[a] * b0 + PY[b] * b1 + PY[c] * b2, PZ[a] * b0 + PZ[b] * b1 + PZ[c] * b2];
     let n = norm3([NX[a] * b0 + NX[b] * b1 + NX[c] * b2, NY[a] * b0 + NY[b] * b1 + NY[c] * b2, NZ[a] * b0 + NZ[b] * b1 + NZ[c] * b2]);
-    if (mat === 0 || (mat === 1 && p[2] > czE)) {
-      // fine skin relief (about 1 mm and 0.4 mm scales): bends the normal slightly so highlights break up like real skin
-      const e2 = 0.25, f1 = (q: number, r: number) => 0.6 * fbm(seed + 21, q / 1.1, r / 1.1, 2) + 0.4 * fbm(seed + 29, q / 0.45, r / 0.45, 1);
-      const gx = (f1(p[0] + e2, p[1]) - f1(p[0] - e2, p[1])) / (2 * e2), gy = (f1(p[0], p[1] + e2) - f1(p[0], p[1] - e2)) / (2 * e2);
-      n = norm3([n[0] - gx * 0.035, n[1] - gy * 0.035, n[2]]);
+    // the skin's surface (skin-texture.ts): furrows, pores, fine wrinkles and sheen by region and age, bending the
+    // normal so light breaks up as it does on real skin; detail finer than about two pixels fades out
+    let skinDark = 0, skinRed = 0, skinSheen = 1;
+    if (mat === 0 || mat === 2 || (mat === 1 && p[2] > czE)) {
+      let reg = texRegions[0];
+      if (mat === 0) { const parts = texRegions.map((region, k) => ({ region, weight: texW[a * texIds.length + k] * b0 + texW[b * texIds.length + k] * b1 + texW[c * texIds.length + k] * b2 })); reg = blendSkinRegions(parts); }
+      else if (mat === 2) reg = neckRegion;
+      // the skin's own coordinates: across the face from the front, round the side from the side (no stretching)
+      const hx0 = P[a * 3] * b0 + P[b * 3] * b1 + P[c * 3] * b2, hy0 = P[a * 3 + 1] * b0 + P[b * 3 + 1] * b1 + P[c * 3 + 1] * b2, hz0 = P[a * 3 + 2] * b0 + P[b * 3 + 2] * b1 + P[c * 3 + 2] * b2;
+      const nx0 = Math.abs(Nn[a * 3] * b0 + Nn[b * 3] * b1 + Nn[c * 3] * b2), side = smoothstep(0.45, 0.8, nx0);
+      const sx = hx0 * (1 - side) + (Math.sign(hx0) * 90 - hz0) * side, sy = hy0;
+      const so = { age: o.age ?? 30, footprint: mmPerPx * SS, seed }, e2 = Math.max(0.03, mmPerPx * 0.6), age = o.age ?? 30;
+      // the microrelief in the skin's own coordinates; the face's wrinkles and folds where they are on the face (front view)
+      const s0 = skinSurface(reg, sx, sy, so), mh = (qx: number, qy: number) => skinSurface(reg, qx, qy, so).height;
+      const wh = (qx: number, qy: number) => (mat !== 1 ? faceWrinkles(qx, qy, age, wrk, seed) : 0), w0 = wh(hx0, hy0);
+      const gx2 = (mh(sx + e2, sy) - s0.height) / e2 + (wh(hx0 + e2, hy0) - w0) / e2, gy2 = (mh(sx, sy + e2) - s0.height) / e2 + (wh(hx0, hy0 + e2) - w0) / e2;
+      n = norm3([n[0] - gx2 * 0.8, n[1] - gy2 * 0.8, n[2]]);
+      skinDark = s0.darken + Math.min(0.25, Math.max(0, -w0 * 1.2)); skinRed = s0.redden; skinSheen = reg.sheen;
     }
     const v = norm3([camPos[0] - p[0], camPos[1] - p[1], camPos[2] - p[2]]), occ = ao[a] * b0 + ao[b] * b1 + ao[c] * b2;
     // the roots: where hair covers the scalp (and the skin above the hairline) it shows the hair's colour, lit like the
@@ -442,15 +470,19 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     if (mat === 1) { alb = mixC(baseLin, zoneCol[0], 0.7); tz = 0.25 + 0.75 * 0.7 * (1 - smoothstep(10, 45, Math.abs(ph[0]))) * (1 - cover); }
     if (cover > 0) alb = mixC(alb, rootCol, cover);
     if (partW > 0) alb = mixC(alb, [alb[0] * 0.62, alb[1] * 0.58, alb[2] * 0.56], partW);
-    const mott = 1 + 0.035 * fbm(seed, p[0] / 5, p[1] / 5, 3) + 0.012 * fbm(seed + 9, p[0] / 1.2, p[1] / 1.2, 2);
+    // uneven tone: broad blotches of redness and pigment (a few centimetres), finer mottling, more with age
+    const mott = 1 + (0.035 + 0.02 * Math.max(0, ((o.age ?? 30) - 30) / 40)) * fbm(seed, p[0] / 5, p[1] / 5, 3) + 0.012 * fbm(seed + 9, p[0] / 1.2, p[1] / 1.2, 2) + 0.025 * fbm(seed + 13, p[0] / 22, p[1] / 22, 2);
     const lipW = lipMask[i] * (1 - mouthMask[i]);
     // lip volume: the lower lip's upper half catches the light, the upper lip (facing down) is a shade deeper
     const stomY = V0[13][1], lipShade = lipW > 0 ? (p[1] > stomY ? 0.86 : 1 + 0.1 * smoothstep(stomY - 2, stomY - 6, p[1]) * (1 - smoothstep(stomY - 7, stomY - 11, p[1]))) : 1;
     // Lip lines: fine vertical furrows across the vermilion.
     const lines = lipW > 0 ? 1 - 0.09 * Math.pow(Math.abs(Math.sin(p[0] * 2.1 + fbm(seed + 3, p[0] / 3, p[1] / 3, 2) * 2)), 6) : 1;
-    for (let k = 0; k < 3; k++) Alb[i * 3 + k] = (alb[k] * (1 - lipW) + lipLin[k] * lipW * lipShade) * mott * lines;
+    // furrows and pores a little darker, the region's redness, freckles across the nose and cheeks
+    const frC = Math.max(mat === 0 && o.freckles ? frecklesAt(ph[0], ph[1], o.freckles, frk, seed) : 0, mat === 0 || mat === 1 ? ageSpotsAt(ph[0], ph[1], o.age ?? 30, seed) : 0);
+    const micro: RGB3 = [1 - skinDark * 0.8 + skinRed * 0.06, 1 - skinDark - skinRed * 0.05, 1 - skinDark * 1.05 - skinRed * 0.06];
+    for (let k = 0; k < 3; k++) Alb[i * 3 + k] = (alb[k] * (1 - lipW) + lipLin[k] * lipW * lipShade) * mott * lines * micro[k] * (1 - frC * [0.3, 0.42, 0.52][k] * (1 - lipW));
     // Specular: oilier T-zone, glossier lips; the key and rim lights and a soft sky reflection.
-    const rough = 0.42 - 0.12 * tz - 0.18 * lipW, sstr = (0.9 * (0.55 + 0.6 * tz) + 1.4 * lipW) * (1 - cover);
+    const rough = 0.42 - 0.12 * tz - 0.18 * lipW, sstr = (0.9 * (0.55 + 0.6 * tz) * skinSheen + 1.4 * lipW) * (1 - cover);
     const sk = ggx(n, v, Lkey, rough) * Math.max(0, nlKey) * sKey, sr = ggx(n, v, Lrim, rough) * Math.max(0, nlRim), sf = ggx(n, v, Lfill, rough + 0.1) * Math.max(0, nlFill);
     const fres = 0.028 + 0.972 * Math.pow(1 - Math.max(0, dot3(n, v)), 5);
     for (let k = 0; k < 3; k++) Spec[i * 3 + k] = (keyI[k] * sk + rimI[k] * sr + fillI[k] * sf) * sstr + skyI[k] * fres * occ * 0.35;
