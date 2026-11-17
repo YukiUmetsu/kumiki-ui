@@ -503,6 +503,47 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(()=>readerInkPortraitGlazes({...guide,
       sellion:[NaN,100]},1)).toThrow(RangeError);
   });
+  it("adds an asymmetrical source-anchored forehead-turn glaze under the cap without flattening the light",()=>{
+    const A=READER_FACE_ANAT1_POINTS;
+    const ink=readerInkPortraitGlazes({
+      nearCanthus:A["endocanthion.R"],
+      farCanthus:A["endocanthion.L"],sellion:A.sellion,
+      noseTip:A.pronasale,nearCheek:A["zygion.R"],
+      farCheek:A["zygion.L"],chin:A.menton,
+    },1);
+    const near=ink["orbital-near"];
+    const far=ink["orbital-far"];
+    // The first two original near-orbital shades and one original far
+    // shade remain untouched. Additional planes occupy the frontal
+    // head *above* either eye, not another diagonal cheek stripe.
+    expect(near.length).toBeGreaterThanOrEqual(5);
+    expect(far.length).toBeGreaterThanOrEqual(3);
+    const forehead=near[2],paper=near[3],receding=far[1];
+    for(const layer of [forehead,paper,receding]){
+      expect(layer.type).toBe("path");
+      expect(layer.d).toContain(" C");
+      expect((layer.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(2);
+      expect(layer.d).not.toMatch(/NaN|Infinity|undefined/);
+      expect(layer.opacity).toBeGreaterThan(0);
+      expect(layer.opacity).toBeLessThan(.055);
+    }
+    expect(forehead).toMatchObject({fill:"$skinshade",stroke:"none"});
+    expect(paper).toMatchObject({fill:"$paper",stroke:"none"});
+    expect(receding).toMatchObject({fill:"$skinshade",stroke:"none"});
+    expect(forehead.d).toContain("M119.5 88.5");
+    expect(receding.d).toContain("M150.8 88.4");
+    expect(near.map(x=>x.type==="path"?x.d:""))
+      .not.toEqual(far.map(x=>x.type==="path"?x.d:""));
+    const lower=readerInkPortraitGlazes({
+      nearCanthus:A["endocanthion.R"],
+      farCanthus:A["endocanthion.L"],sellion:A.sellion,
+      noseTip:A.pronasale,nearCheek:A["zygion.R"],
+      farCheek:A["zygion.L"],chin:A.menton,
+    },.1);
+    expect(lower["orbital-near"].length).toBeGreaterThanOrEqual(4);
+    expect(lower["orbital-far"].length).toBeGreaterThanOrEqual(2);
+  });
+
   it("builds convex ANAT1 malar pigment volumes rather than parallel cheek bands",()=>{
     const A=READER_FACE_ANAT1_POINTS;
     const glazes=readerInkPortraitGlazes({
