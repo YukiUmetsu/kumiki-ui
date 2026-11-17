@@ -40,3 +40,29 @@ test("rose five-sepal calyx native A/B proof for both film formats",async({page}
   await expect(svg.locator('[data-km-pencil-region^="calyx-"] [data-km-pencil-details] path').first())
     .toHaveAttribute("stroke-dasharray","0.00000 1");
 });
+
+
+/** Actual browser source geometry, not a disconnected star diagram:
+ * each of five native sepal beginnings must be planted within the same
+ * source receptacle fill. Inks cannot fake a missing physical joint. */
+test("five native sepal bases attach within the actual rose receptacle fill",async({page})=>{
+  await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
+  await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
+  await page.getByRole("checkbox",{name:"Foundation rose calyx anatomy"}).check();
+  await page.getByRole("button",{name:/6\\. Burnish and visual audit/}).click();
+  const proof=await page.locator("svg[data-km-colored-pencil]").evaluate(svg=>{
+    const receptor=svg.querySelector(
+      '[data-km-pencil-region="calyx-receptacle"] [data-km-pencil-support]') as SVGPathElement|null;
+    const ids=["calyx-sepal-far-left","calyx-sepal-far-right",
+      "calyx-sepal-near-left","calyx-sepal-near-right","calyx-sepal-axial"];
+    const detached:string[]=[];
+    for(const id of ids){
+      const organ=svg.querySelector(
+        '[data-km-pencil-region="'+id+'"] [data-km-pencil-support]') as SVGPathElement|null;
+      if(!receptor||!organ||
+        !receptor.isPointInFill(organ.getPointAtLength(0)))detached.push(id);
+    }
+    return {attached:ids.length-detached.length,detached};
+  });
+  expect(proof).toEqual({attached:5,detached:[]});
+});
