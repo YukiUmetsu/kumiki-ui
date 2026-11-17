@@ -7,6 +7,15 @@ depends on `three`; takes materials structurally, so it does not pull in the mat
 **Storybook:** Motion engine → Motion React → *Sculptural Type* (every look field, surface, entrance, and a keyed
 second look that the letters morph to); Video production → Title Sequence → *Sculpted Title*.
 
+**Demo fonts:** the lab offers 21 faces in six groups.
+- **Bundled (render the same on every machine):** Geist, Inter, Space Grotesk, Bricolage Grotesque, Rubik, Newsreader,
+  Playfair Display, Fraunces, Unbounded, Bebas Neue, Anton, Pacifico, JetBrains Mono, Noto Serif JP and Noto Sans JP.
+- **System:** Georgia, Helvetica, Impact, Courier, Hiragino Mincho and Hiragino Sans.
+- **Packaging:** the bundled faces are OFL-1.1 `@fontsource` packages, pinned as devDependencies. The lab imports them,
+  so they load only when it opens. Anton comes from the existing `collage-fonts.css`. No registry item ships a font;
+  the library takes any CSS font. Script faces (Pacifico) and joined scripts should sculpt each word (`unit: "word"`),
+  so their letters stay connected.
+
 ## Purpose
 
 Treat letters as dimensional, deformable, material-bearing animated objects. Each grapheme (or word) of any font the

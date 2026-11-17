@@ -1,3 +1,17 @@
+// Demo fonts (OFL-1.1, pinned @fontsource packages). They load only when this lab opens; the library itself takes any CSS font.
+import "@fontsource-variable/inter";
+import "@fontsource-variable/playfair-display";
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/bricolage-grotesque";
+import "@fontsource-variable/space-grotesk";
+import "@fontsource-variable/rubik";
+import "@fontsource-variable/unbounded";
+import "@fontsource-variable/jetbrains-mono";
+import "@fontsource-variable/noto-sans-jp";
+import "@fontsource-variable/noto-serif-jp";
+import "@fontsource/bebas-neue";
+import "@fontsource/pacifico";
+import "../styles/collage-fonts.css";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import type { Material, MeshPhysicalMaterial } from "three";
@@ -21,16 +35,31 @@ const RESOLUTION = 160;
 const inputClass = "min-h-11 w-full rounded-control border border-border bg-surface px-3 text-body-sm text-foreground";
 const colourClass = "h-11 w-full cursor-pointer rounded-control border border-border bg-surface p-1";
 
-const FONTS = [
-  { id: "geist", label: "Geist (sans)", family: '"Geist Variable", "Hiragino Sans", "Noto Sans JP", sans-serif' },
-  { id: "newsreader", label: "Newsreader (serif)", family: '"Newsreader Variable", "Hiragino Mincho ProN", "Noto Serif JP", serif' },
-  { id: "georgia", label: "Georgia", family: 'Georgia, "Hiragino Mincho ProN", serif' },
-  { id: "helvetica", label: "Helvetica / Arial", family: '"Helvetica Neue", Helvetica, Arial, "Hiragino Sans", sans-serif' },
-  { id: "impact", label: "Impact (condensed)", family: 'Impact, "Arial Narrow Bold", "Hiragino Sans", sans-serif' },
-  { id: "courier", label: "Courier (mono)", family: '"Courier New", Courier, "Hiragino Sans", monospace' },
-  { id: "mincho", label: "Mincho (Japanese serif)", family: '"Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif' },
-  { id: "gothic", label: "Gothic (Japanese sans)", family: '"Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif' },
-] as const;
+/** Bundled faces first (they render the same everywhere), then system faces. `weights` is the weight range a face has. */
+const FONTS: readonly { id: string; label: string; group: string; family: string; weights: readonly [number, number] }[] = [
+  { id: "geist", label: "Geist", group: "Sans", family: '"Geist Variable", "Noto Sans JP Variable", sans-serif', weights: [100, 900] },
+  { id: "inter", label: "Inter", group: "Sans", family: '"Inter Variable", "Noto Sans JP Variable", sans-serif', weights: [100, 900] },
+  { id: "space-grotesk", label: "Space Grotesk", group: "Sans", family: '"Space Grotesk Variable", "Noto Sans JP Variable", sans-serif', weights: [300, 700] },
+  { id: "bricolage", label: "Bricolage Grotesque", group: "Sans", family: '"Bricolage Grotesque Variable", "Noto Sans JP Variable", sans-serif', weights: [200, 800] },
+  { id: "rubik", label: "Rubik (rounded)", group: "Sans", family: '"Rubik Variable", "Noto Sans JP Variable", sans-serif', weights: [300, 900] },
+  { id: "newsreader", label: "Newsreader", group: "Serif", family: '"Newsreader Variable", "Noto Serif JP Variable", serif', weights: [200, 800] },
+  { id: "playfair", label: "Playfair Display", group: "Serif", family: '"Playfair Display Variable", "Noto Serif JP Variable", serif', weights: [400, 900] },
+  { id: "fraunces", label: "Fraunces (soft)", group: "Serif", family: '"Fraunces Variable", "Noto Serif JP Variable", serif', weights: [100, 900] },
+  { id: "unbounded", label: "Unbounded (wide)", group: "Display", family: '"Unbounded Variable", "Noto Sans JP Variable", sans-serif', weights: [200, 900] },
+  { id: "bebas", label: "Bebas Neue (condensed)", group: "Display", family: '"Bebas Neue", "Noto Sans JP Variable", sans-serif', weights: [400, 400] },
+  { id: "anton", label: "Anton (condensed)", group: "Display", family: 'Anton, "Noto Sans JP Variable", sans-serif', weights: [400, 400] },
+  { id: "pacifico", label: "Pacifico (script; sculpt words)", group: "Display", family: 'Pacifico, "Noto Sans JP Variable", cursive', weights: [400, 400] },
+  { id: "jetbrains", label: "JetBrains Mono", group: "Mono", family: '"JetBrains Mono Variable", "Noto Sans JP Variable", monospace', weights: [100, 800] },
+  { id: "noto-serif-jp", label: "Noto Serif JP (Mincho)", group: "Japanese", family: '"Noto Serif JP Variable", serif', weights: [200, 900] },
+  { id: "noto-sans-jp", label: "Noto Sans JP (Gothic)", group: "Japanese", family: '"Noto Sans JP Variable", sans-serif', weights: [100, 900] },
+  { id: "georgia", label: "Georgia", group: "System", family: 'Georgia, "Noto Serif JP Variable", serif', weights: [400, 700] },
+  { id: "helvetica", label: "Helvetica / Arial", group: "System", family: '"Helvetica Neue", Helvetica, Arial, "Noto Sans JP Variable", sans-serif', weights: [300, 700] },
+  { id: "impact", label: "Impact", group: "System", family: 'Impact, "Arial Narrow Bold", "Noto Sans JP Variable", sans-serif', weights: [400, 400] },
+  { id: "courier", label: "Courier", group: "System", family: '"Courier New", Courier, "Noto Sans JP Variable", monospace', weights: [400, 700] },
+  { id: "mincho", label: "Hiragino Mincho", group: "System", family: '"Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP Variable", serif', weights: [300, 600] },
+  { id: "gothic", label: "Hiragino Sans", group: "System", family: '"Hiragino Sans", "Yu Gothic", "Noto Sans JP Variable", sans-serif', weights: [100, 900] },
+];
+const FONT_GROUPS = [...new Set(FONTS.map((font) => font.group))];
 
 const PROFILE_KINDS: { id: ReliefProfile["kind"]; label: string }[] = [
   { id: "round", label: "Round bevel" }, { id: "chamfer", label: "Chamfer" }, { id: "pillow", label: "Pillow (inflated)" },
@@ -83,13 +112,14 @@ const LOOK_A: LookControls = {
   gradientSpace: "text", stops: ["#e4572e", "#f2a541", "#f6e27f"], sideOn: true, sideColor: "#7a2e1f",
 };
 const LOOK_B: LookControls = {
-  ...LOOK_A, text: "組木", fontId: "mincho", weight: 700, profileKind: "chisel", depth: 0.24, width: 1, height: 1,
+  ...LOOK_A, text: "組木", fontId: "noto-serif-jp", weight: 700, profileKind: "chisel", depth: 0.24, width: 1, height: 1,
   color: "#2ec4b6", stops: ["#1b3a4b", "#2ec4b6", "#cbf3f0"], sideColor: "#0b1f29",
 };
 
 function fontOf(look: LookControls): string {
-  const family = FONTS.find((font) => font.id === look.fontId)?.family ?? FONTS[0].family;
-  return `${look.italic ? "italic " : ""}${look.weight} ${RESOLUTION}px ${family}`;
+  const font = FONTS.find((candidate) => candidate.id === look.fontId) ?? FONTS[0];
+  const weight = Math.min(font.weights[1], Math.max(font.weights[0], look.weight));
+  return `${look.italic ? "italic " : ""}${weight} ${RESOLUTION}px ${font.family}`;
 }
 
 function profileOf(look: LookControls): ReliefProfile {
@@ -130,6 +160,12 @@ function NumberSlider({ label, value, min, max, step, unit, onChange }: {
     onValueChange={(v) => onChange(Array.isArray(v) ? v[0] ?? value : v)} />;
 }
 
+function WeightControl({ look, label, onChange }: { look: LookControls; label: string; onChange: (value: number) => void }) {
+  const [min, max] = (FONTS.find((font) => font.id === look.fontId) ?? FONTS[0]).weights;
+  if (min === max) return <p className="text-caption text-muted-foreground">{label}: this face has one weight ({min}).</p>;
+  return <NumberSlider label={label} value={Math.min(max, Math.max(min, look.weight))} min={min} max={max} step={100} onChange={onChange} />;
+}
+
 /** Controls for one look; `prefix` keeps labels unique when two looks are on screen. */
 function LookEditor({ look, onChange, prefix, compact = false }: { look: LookControls; onChange: (look: LookControls) => void; prefix: string; compact?: boolean }) {
   const set = <K extends keyof LookControls>(key: K, value: LookControls[K]) => onChange({ ...look, [key]: value });
@@ -142,10 +178,14 @@ function LookEditor({ look, onChange, prefix, compact = false }: { look: LookCon
         </label>
         <label className="flex flex-col gap-1.5 text-body-sm text-foreground">{label("Font")}
           <select className={inputClass} value={look.fontId} onChange={(event) => set("fontId", event.target.value)}>
-            {FONTS.map((font) => <option key={font.id} value={font.id}>{font.label}</option>)}
+            {FONT_GROUPS.map((group) => (
+              <optgroup key={group} label={group}>
+                {FONTS.filter((font) => font.group === group).map((font) => <option key={font.id} value={font.id}>{font.label}</option>)}
+              </optgroup>
+            ))}
           </select>
         </label>
-        <NumberSlider label={label("Weight")} value={look.weight} min={100} max={900} step={100} onChange={(v) => set("weight", v)} />
+        <WeightControl look={look} label={label("Weight")} onChange={(v) => set("weight", v)} />
         <Checkbox label={label("Italic")} checked={look.italic} onCheckedChange={(v) => set("italic", v)} />
       </Section>
       <Section title={label("Colour")}>
@@ -229,6 +269,7 @@ export function SculpturalTypeLab({ initialMorph = true, initialProgress = 0.3 }
   const [finish, setFinish] = useState<SculptFinishKind>("gloss");
   const [materialId, setMaterialId] = useState("marble");
   const [tint, setTint] = useState(true);
+  const [unit, setUnit] = useState<"grapheme" | "word">("grapheme");
   const [slab, setSlab] = useState(false);
   const [enter, setEnter] = useState<SculptEnter>("drop");
   const [idle, setIdle] = useState<SculptIdle>("none");
@@ -250,8 +291,8 @@ export function SculpturalTypeLab({ initialMorph = true, initialProgress = 0.3 }
   const tinted = surface === "finish" || tint;
 
   // One stable object per change of any setting; deferring it keeps sliders responsive while the letters rebuild.
-  const current = useMemo(() => ({ lookA, lookB, morphOn, morphStart, morphFrames, morphStagger, easingId, enter, idle, intensity, stagger, tinted }),
-    [lookA, lookB, morphOn, morphStart, morphFrames, morphStagger, easingId, enter, idle, intensity, stagger, tinted]);
+  const current = useMemo(() => ({ lookA, lookB, morphOn, morphStart, morphFrames, morphStagger, easingId, enter, idle, intensity, stagger, tinted, unit }),
+    [lookA, lookB, morphOn, morphStart, morphFrames, morphStagger, easingId, enter, idle, intensity, stagger, tinted, unit]);
   const settings = useDeferredValue(current);
   useEffect(() => {
     let cancelled = false;
@@ -268,7 +309,7 @@ export function SculpturalTypeLab({ initialMorph = true, initialProgress = 0.3 }
       if (cancelled) return;
       const started = performance.now();
       const next = planSculpturalText({
-        id: "lab", ...a, fps: { num: FPS, den: 1 }, stagger: settings.stagger,
+        id: "lab", ...a, unit: settings.unit, fps: { num: FPS, den: 1 }, stagger: settings.stagger,
         motion: { enter: settings.enter, idle: settings.idle, intensity: settings.intensity }, keys,
       });
       if (cancelled) return;
@@ -389,6 +430,11 @@ export function SculpturalTypeLab({ initialMorph = true, initialProgress = 0.3 }
         </section>
         <aside aria-label="Sculptural type configuration" className="flex min-w-0 flex-col gap-3 rounded-surface border border-border bg-surface p-4">
           <LookEditor look={lookA} onChange={setLookA} prefix="" />
+          <div className="grid grid-cols-2 gap-2" role="group" aria-label="Sculpt each">
+            <Button size="sm" variant={unit === "grapheme" ? "primary" : "outline"} aria-pressed={unit === "grapheme"} onClick={() => setUnit("grapheme")}>Each letter</Button>
+            <Button size="sm" variant={unit === "word" ? "primary" : "outline"} aria-pressed={unit === "word"} onClick={() => setUnit("word")}>Each word</Button>
+          </div>
+          <p className="-mt-1 text-caption text-muted-foreground">Sculpt words for script faces and joined scripts, so their letters stay connected.</p>
           <Section title="Surface">
             <div className="grid grid-cols-2 gap-2" role="group" aria-label="Surface type">
               <Button size="sm" variant={surface === "finish" ? "primary" : "outline"} aria-pressed={surface === "finish"} onClick={() => setSurface("finish")}>Finish</Button>
