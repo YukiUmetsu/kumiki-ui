@@ -1,14 +1,17 @@
 /**
- * CP-F1 × FLORA1 — asymmetrically nested rose centre knot.
+ * CP-F1 × FLORA1 — asymmetrically nested rose centre, rebuilt as overlapping
+ * petals rather than engraved concentric C-loops.
  *
- * Source study: close botanical rose buds (Dianne Sutherland, Bristle Studio,
- * UPOV Rosa petal reflex characteristics). A centre is a sequence of short,
- * overlapping *physical laminae* at unequal heights, not concentric engraved C
- * rings. This separate, still-unapproved art experiment keeps the canonical
- * inner whorl / heart IDs and their pigment hashes; only the explicit optical
- * study replaces their original paths and ADDS dry anatomy contacts.
+ * Reference-led morphology: an irregular rear cup, an off-axis shaded pocket,
+ * one lifted narrow left wall, one broader right shoulder, a foreground
+ * convex lamina and a small hooked curl with a real abaxial reverse. Their
+ * silhouettes have distinct centres, widths, shoulder heights and tangent
+ * directions. This is still a 2D projection, not a measured 3D specimen.
  *
- * All paths below are original source-space drawings, not traced images.
+ * The opt-in study preserves the existing six semantic region IDs and three
+ * pigment layers. Two legacy long centre strokes are re-authored as short
+ * local edge contacts; all other existing inner-whorl fibres are retained.
+ * Experimental: OFF by default, pending independent 1× art review.
  */
 import type {PencilTrace} from "../../registry/video/colored-pencil";
 
@@ -25,130 +28,143 @@ export interface RoseCenterKnotSurface {
   readonly palette:Palette;
   readonly direction:number;
   readonly flow:number;
-  /** First material is the already-mounted three-pass source petal. */
+  /** Original long base strokes replaced with short source-aligned contacts. */
+  readonly replacementBaseDetails?:readonly PencilTrace[];
+  /** Four new low-pressure dry-pencil contacts on this physical lamina. */
   readonly dryContours:readonly PencilTrace[];
 }
 const mark=(id:string,path:string,color:string,width:number,opacity:number,
   startFrame:number,durationFrames:number):PencilTrace=>
   ({id,path,color,width,opacity,startFrame,durationFrames});
-
+const dry=(id:RoseCenterKnotId,part:string,path:string,color:string,
+  width:number,opacity:number,startFrame:number):PencilTrace=>
+  mark("rk-"+id+"-"+part,path,color,width,opacity,startFrame,38);
 const contacts=(id:RoseCenterKnotId,paths:readonly [
-    string,string,string,string,
-  ]):readonly PencilTrace[]=>[
-  // No uniform smooth contour ring: secondary occlusion and reflected
-  // cuticle are discontinuous, narrower, and locally aligned to each organ.
-  mark("rk-"+id+"-contact",paths[0],"#6C284B",.48,.53,183,51),
-  mark("rk-"+id+"-dry-light",paths[1],"#F3B5BB",.37,.46,244,47),
-  mark("rk-"+id+"-lamina",paths[2],"#A84B68",.34,.39,217,52),
-  mark("rk-"+id+"-fibres",paths[3],"#E3A1A9",.26,.33,272,43),
+  string,string,string,string,
+]):readonly PencilTrace[]=>[
+  dry(id,"crease",paths[0],"#682641",.52,.56,183),
+  dry(id,"cuticle",paths[1],"#E3A5AA",.32,.42,245),
+  dry(id,"midtone",paths[2],"#A94C66",.36,.38,218),
+  dry(id,"fibres",paths[3],"#D99AA2",.24,.31,270),
 ];
 
-/** The six independent source surfaces are drawn at the original petal
- * depth and keep the original legacy four contacts on each whorl organ.
- * Bespoke curves create pinched/tilted shoulders rather than repeated rings.
+/** Explicit paint order: rear irregular crown, dark pocket, left turned wall,
+ * right overlapping shoulder, lower front lobe, then curled front lip.
  */
 export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
   {
     id:"inner-fold",
-    path:"M207 156 C213 146 224 143 234 147 C243 142 250 140 257 143 C268 136 278 141 286 149 C296 150 298 161 303 165 C288 166 282 177 266 179 C253 175 245 178 236 183 C226 174 215 171 207 156 Z",
-    bounds:[203,133,105,54],
-    palette:["#8D3651","#4D1F3A","#D17D92"],
-    direction:18,flow:22,
+    path:"M205 157 C201 151 205 143 213 140 C221 136 227 141 233 145 C237 137 245 131 254 132 C263 133 266 140 270 144 C278 138 287 141 292 149 C298 153 300 159 305 164 C295 163 290 168 283 174 C275 180 265 176 257 181 C248 185 239 179 232 174 C221 171 211 166 205 157 Z",
+    bounds:[200,129,109,58],
+    palette:["#8F354F","#4D1E37","#C16B80"],
+    direction:17,flow:23,
+    replacementBaseDetails:[
+      mark("rk-inner-fold-old-left-shoulder",
+        "M210 153 Q216 145 224 143","#D18C99",.48,.38,223,42),
+      mark("rk-inner-fold-old-right-shoulder",
+        "M277 146 Q284 147 288 153","#A95770",.4,.36,239,38),
+    ],
     dryContours:contacts("inner-fold",[
-      "M210 156 C219 147 228 148 235 152 M259 145 Q275 141 284 151",
-      "M215 153 Q223 148 228 148 M269 143 Q277 144 280 148",
-      "M225 165 Q236 176 248 171 M266 170 Q276 166 283 158",
-      "M224 153 L228 152 M240 149 L244 150 M275 146 L278 149",
+      "M230 145 Q235 139 241 137",
+      "M273 145 Q280 142 285 147",
+      "M212 161 Q219 168 227 169",
+      "M264 177 Q272 177 278 172",
     ]),
   },
   {
     id:"rose-whorl-recess",
-    path:"M219 158 C220 148 230 140 241 143 C249 137 259 138 268 144 C277 139 287 146 291 155 C286 161 278 162 270 169 C257 176 246 177 236 171 C228 169 225 164 219 158 Z",
-    bounds:[215,134,80,47],
-    palette:["#923751","#451733","#B65B70"],
-    direction:21,flow:19,
+    path:"M224 159 C221 153 225 146 233 143 C240 141 245 146 250 149 C258 148 265 143 272 146 C279 149 280 155 275 160 C269 165 260 169 251 168 C241 167 231 164 224 159 Z",
+    bounds:[219,140,62,30],
+    palette:["#743047","#3E1A31","#9D5267"],
+    direction:8,flow:13,
     dryContours:contacts("rose-whorl-recess",[
-      "M221 157 Q229 145 241 146 M266 146 Q281 143 288 155",
-      "M229 154 Q236 146 244 145 M271 146 Q278 147 282 151",
-      "M231 166 Q241 171 251 168 M268 166 Q274 162 277 159",
-      "M234 154 L236 152 M248 142 L252 142 M275 152 L277 154",
+      "M226 157 Q230 150 237 148",
+      "M263 150 Q269 147 274 150",
+      "M244 164 Q253 167 261 163",
+      "M231 153 L234 150 M237 148 L239 147",
     ]),
   },
   {
     id:"rose-whorl-left",
-    path:"M222 161 C217 155 221 145 231 143 C238 137 245 141 249 147 C251 154 243 157 239 163 C236 171 240 179 246 183 C231 180 225 172 222 161 Z",
-    bounds:[216,134,38,53],
-    palette:["#AA4B65","#55243F","#D18194"],
-    direction:54,flow:21,
+    path:"M220 163 C214 157 214 149 219 143 C223 138 230 137 235 141 C240 145 238 151 233 156 C228 162 227 168 231 174 C234 179 239 182 244 184 C234 183 226 176 222 168 C221 166 220 164 220 163 Z",
+    bounds:[212,135,34,51],
+    palette:["#A84B62","#55213D","#C9798B"],
+    direction:54,flow:27,
     dryContours:contacts("rose-whorl-left",[
-      "M224 159 C229 149 237 144 244 146",
-      "M225 153 Q230 146 236 144 M242 145 L244 147",
-      "M228 161 Q225 169 236 177 M238 161 Q234 168 241 177",
-      "M225 154 L227 151 M231 146 L233 145 M241 175 L243 178",
+      "M220 154 Q222 146 229 142",
+      "M222 163 Q223 171 231 177",
+      "M230 155 Q226 162 229 168",
+      "M222 151 L224 148 M228 143 L231 141",
     ]),
   },
   {
     id:"rose-whorl-right",
-    path:"M251 145 C260 135 272 135 283 143 C294 149 294 157 285 165 C279 169 271 173 260 171 C267 165 273 159 274 153 C269 147 260 149 253 154 Q249 153 251 145 Z",
-    bounds:[246,131,52,47],
-    palette:["#B65871","#602946","#D7899B"],
-    direction:-47,flow:-26,
+    path:"M254 145 C260 137 270 132 280 136 C289 140 294 148 291 156 C288 164 279 168 270 170 C263 171 256 167 252 162 C260 164 269 160 274 154 C271 148 264 147 258 152 C254 154 251 150 254 145 Z",
+    bounds:[250,130,45,43],
+    palette:["#B45169","#5B2340","#D17C8E"],
+    direction:-41,flow:-24,
     dryContours:contacts("rose-whorl-right",[
-      "M254 145 Q265 138 274 142 M280 145 Q291 152 287 159",
-      "M254 143 Q263 138 271 140 M281 144 Q287 147 290 152",
-      "M266 167 Q276 169 283 162 M259 152 Q267 149 274 154",
-      "M257 144 L259 143 M277 142 L279 144 M287 157 L285 160",
+      "M259 143 Q268 137 277 140",
+      "M285 158 Q280 165 271 167",
+      "M260 159 Q267 163 273 157",
+      "M283 146 L286 150 M280 160 L278 162",
     ]),
   },
   {
     id:"heart",
-    path:"M237 165 C233 157 239 149 247 151 C253 145 261 151 263 157 C268 165 265 171 259 175 C252 177 249 173 250 169 C257 167 260 164 255 161 C251 157 247 159 244 166 Q242 170 237 165 Z",
-    bounds:[232,143,38,36],
-    palette:["#A93657","#641B40","#E68794"],
-    direction:28,flow:16,
+    path:"M236 164 C241 155 250 151 259 154 C268 157 272 165 269 173 C266 181 257 185 249 181 C243 178 238 174 235 169 C234 167 235 165 236 164 Z",
+    bounds:[231,150,42,36],
+    palette:["#B64D66","#5E2140","#D27A89"],
+    direction:24,flow:15,
+    replacementBaseDetails:[
+      mark("rk-heart-old-upper-crease",
+        "M240 164 Q245 157 252 156","#E4A6AD",.39,.39,236,38),
+      mark("rk-heart-old-lower-return",
+        "M257 177 Q263 174 265 169","#722A47",.46,.43,249,38),
+    ],
     dryContours:contacts("heart",[
-      "M241 160 Q244 154 248 154 M260 159 Q263 164 260 169",
-      "M242 157 L245 154 M252 152 Q257 153 259 156",
-      "M244 165 Q248 162 252 162 M256 170 Q255 173 253 174",
-      "M240 161 L241 158 M257 160 L258 163 M254 172 L252 174",
+      "M239 163 Q243 157 249 156",
+      "M260 158 Q265 162 265 166",
+      "M243 174 Q250 181 257 178",
+      "M238 168 L240 165 M263 173 L261 176",
     ]),
   },
   {
     id:"rose-whorl-scroll",
-    path:"M234 175 C232 163 239 154 249 151 C255 148 263 153 266 160 C272 160 275 168 269 174 C263 183 251 188 243 183 C239 181 236 178 235 175 C244 178 252 180 258 175 C264 169 262 164 257 164 C250 161 244 169 241 174 Q238 177 234 175 Z",
-    bounds:[230,145,47,44],
-    palette:["#B65975","#58253F","#D98EA0"],
-    direction:33,flow:21,
+    path:"M234 175 C232 163 239 154 249 151 C257 148 266 152 269 160 C272 168 267 176 259 181 C251 186 241 182 236 176 C243 180 251 177 256 171 C260 166 258 161 253 160 C247 159 243 164 240 170 Q238 174 234 175 Z",
+    bounds:[230,147,43,40],
+    palette:["#A94C64","#55213D","#D27A8D"],
+    direction:31,flow:18,
     dryContours:contacts("rose-whorl-scroll",[
-      "M238 165 Q242 156 250 154 M263 159 Q270 166 268 171",
-      "M240 161 Q244 155 250 154 M262 156 L265 160",
-      "M242 175 Q246 181 255 179 M259 166 Q262 169 260 173",
-      "M237 171 L239 166 M250 153 L252 153 M267 166 L269 169",
+      "M241 163 Q246 156 253 157",
+      "M262 163 Q265 168 261 173",
+      "M243 174 Q250 179 257 175",
+      "M240 168 L242 164 M247 158 L250 157",
     ]),
   },
 ] as const;
 
-/** The tucked, *physical* reverse side of the front scroll is visible
- * outside its first lip segment. Same EXACT source face hinge; it cannot
- * float when the main scroll changes. This is a seventh actual SVG material.
+/** The tucked physical reverse of the front scroll. Its upper hinge is the
+ * exact first cubic of the front face; the exposed abaxial sliver is on its
+ * left, not a second concentric outline.
  */
 export const ROSE_CENTER_SCROLL_BACKFACE={
   id:"rose-center-scroll-underturn",
   hinge:"M234 175 C232 163 239 154 249 151",
-  path:"M234 175 C232 163 239 154 249 151 C243 146 236 149 231 157 C227 165 230 173 234 175 Z",
-  bounds:[225,145,29,34] as const,
-  palette:["#B87790","#652E4D","#E5A9B1"] as const,
-  direction:59,flow:18,
+  path:"M234 175 C232 163 239 154 249 151 C244 146 237 147 232 153 C227 159 227 167 231 173 C232 175 233 176 234 175 Z",
+  bounds:[226,146,27,32] as const,
+  palette:["#8F3B58","#4E1E39","#B96980"] as const,
+  direction:61,flow:19,
   details:[
-    mark("rk-underturn-crease","M232 168 Q235 157 243 152","#6A304B",.5,.48,192,56),
-    mark("rk-underturn-reflect","M233 164 Q237 154 245 151","#F4CBC5",.33,.5,247,46),
-    mark("rk-underturn-fibres","M233 161 L235 159 M237 154 L240 153","#9D5472",.27,.37,223,48),
-    mark("rk-underturn-tint","M231 169 Q232 174 234 175","#E3A5AC",.29,.38,271,40),
+    mark("rk-underturn-crease","M231 168 Q232 159 239 154","#6A304B",.48,.48,192,42),
+    mark("rk-underturn-reflect","M233 162 Q237 155 244 152","#E7B5B7",.31,.43,247,38),
+    mark("rk-underturn-fibres","M232 160 L235 156 M238 153 L241 152","#A85A74",.25,.34,223,40),
+    mark("rk-underturn-tint","M230 169 Q230 173 233 175","#DDA0A9",.27,.36,271,38),
   ] as readonly PencilTrace[],
 } as const;
 
-/** Input-safety source inspector. The renderer's formal bounds validator also
- * runs on every produced drawing, in both aspect ratios and high seeds.
+/** Structural inspector: distinct off-axis silhouettes, short local contacts,
+ * fixed source-space bounds, and an exact shared physical cuticle hinge.
  */
 export function inspectRoseCenterKnot():string[]{
   const issues:string[]=[];
@@ -158,6 +174,11 @@ export function inspectRoseCenterKnot():string[]{
     ROSE_CENTER_KNOT_SURFACES.some((x,i)=>x.id!==expected[i]))
     issues.push("Knot needs six independently sequenced corolla laminae");
   const seen=new Set<string>();
+  const centres=ROSE_CENTER_KNOT_SURFACES.map(s=>[
+    s.bounds[0]+s.bounds[2]/2,s.bounds[1]+s.bounds[3]/2,
+  ] as const);
+  if(new Set(centres.map(([x,y])=>x+","+y)).size!==6)
+    issues.push("Central laminae must have six distinct off-axis bounds centres");
   for(const shape of ROSE_CENTER_KNOT_SURFACES){
     if(seen.has(shape.id))issues.push("Duplicate center organ "+shape.id);
     seen.add(shape.id);
@@ -173,18 +194,25 @@ export function inspectRoseCenterKnot():string[]{
       !Number.isFinite(shape.direction)||!Number.isFinite(shape.flow))
       issues.push("Invalid material atlas "+shape.id);
     if(shape.dryContours.length!==4)
-      issues.push("Missing dry local contacts "+shape.id);
-    for(const trace of shape.dryContours){
-      if(!trace.id?.startsWith("rk-"+shape.id+"-")||
-        !trace.path.startsWith("M")||trace.path.length>12000||
+      issues.push("Four new local dry-pencil contacts required: "+shape.id);
+    if(shape.replacementBaseDetails&&shape.replacementBaseDetails.length!==2)
+      issues.push("Two re-authored base contacts required: "+shape.id);
+    for(const trace of [
+      ...(shape.replacementBaseDetails??[]),...shape.dryContours,
+    ]){
+      if(!trace.id?.startsWith("rk-"+shape.id+"-")&&
+        !trace.id?.startsWith("rk-inner-fold-")&&
+        !trace.id?.startsWith("rk-heart-"))
+        issues.push("Unkeyed center pencil contact "+shape.id);
+      if(!trace.path.startsWith("M")||trace.path.length>180||
         !/^#[0-9a-f]{6}$/i.test(trace.color)||
-        !Number.isFinite(trace.width)||trace.width<.2||trace.width>1||
+        !Number.isFinite(trace.width)||trace.width<.2||trace.width>.8||
         typeof trace.opacity!=="number"||!Number.isFinite(trace.opacity)||
-        trace.opacity<=0||trace.opacity>1||
+        trace.opacity<=0||trace.opacity>.65||
         !Number.isSafeInteger(trace.startFrame)||trace.startFrame<160||
         !Number.isSafeInteger(trace.durationFrames)||trace.durationFrames<8||
         trace.startFrame+trace.durationFrames>335)
-        issues.push("Invalid time-bound dry contact "+shape.id);
+        issues.push("Invalid source-local pencil contact "+shape.id);
     }
   }
   const scroll=ROSE_CENTER_KNOT_SURFACES.find(s=>s.id==="rose-whorl-scroll");
@@ -192,9 +220,9 @@ export function inspectRoseCenterKnot():string[]{
   if(!scroll?.path.startsWith(under.hinge)||
     !under.path.startsWith(under.hinge)||
     !/^M.+ Z$/.test(under.path)||
-    under.bounds[2]*under.bounds[3]<600||
+    under.bounds[2]*under.bounds[3]<500||
     under.details.length!==4||under.details.some(t=>!t.path.startsWith("M")||
-      typeof t.opacity!=="number"||!Number.isFinite(t.opacity)))
+      t.path.length>180||typeof t.opacity!=="number"||!Number.isFinite(t.opacity)))
     issues.push("Detached scroll rear-facing physical cuticle");
   return issues;
 }
