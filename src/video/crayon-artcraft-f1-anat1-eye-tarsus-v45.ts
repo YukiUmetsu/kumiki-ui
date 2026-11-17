@@ -121,7 +121,7 @@ function extraRootedLashes():string{
     const tipX=x+dx,tipY=base-length*.8;
     const c1x=tipX-dx*.18,c1y=tipY+length*.30;
     const c2x=x-dx*.1,c2y=base-length*.24;
-    if(tipX<223||tipX>317||tipY<520||base>548)
+    if(tipX<223||tipX>317||tipY<520||base>560)
       throw new RangeError("ANAT1 source lash escaped true upper lid");
     out.push("M"+r(tipX)+" "+r(tipY)+" C"+
       r(c1x)+" "+r(c1y)+" "+r(c2x)+" "+r(c2y)+" "+
