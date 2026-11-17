@@ -25,6 +25,7 @@ import { fbm, fbm3, gaussianStream, gradNoise, hash2, ridged, warpedFbm, worley,
 import type { Grade } from "../anatomy/foundation-shapes";
 import type { MaterialRecord } from "./materials-data";
 import { MATERIALS } from "./materials-data";
+import { agedCheeseSolid, bananaSolid, batterSolid, beefSolid, citrusSolid, crumbSolid, crustSolid, fishScaleSolid, flatbreadSolid, gratinSolid, injeraSolid, mushroomCapSolid, pepperSolid, potatoSolid, poultrySolid, riceSolid, salmonSolid, searSolid, tomatoSolid, tunaSolid } from "./food-textures";
 
 export type C3 = [number, number, number];
 export interface TexSample {
@@ -785,6 +786,29 @@ export function materialTexture(id: string, seed = 7, record?: MaterialRecord): 
     case "zinc": return surf("metal", 120, metalSurface(m, seed, "spangle"), "Galvanised spangle: crystals with feathery dendrites, each tilted a little.");
     case "iron": return surf("metal", 80, metalSurface(m, seed, "scale"), "Mill scale mottling.");
     case "lead": return surf("metal", 80, metalSurface(m, seed, "dull"), "Dull, with pale oxide patches.");
+    case "food-beef-raw": return solid("food", 40, beefSolid({ marbling: 0.35, axis: "z", seed }), "Fascicles end-on about 1.4 mm across, bound into bundles; marbling in the seams; knife drag on the cut.", [], { sss: 1.2 }, 60);
+    case "food-beef-wagyu": return solid("food", 40, beefSolid({ marbling: 0.95, axis: "z", muscle: "#b8343a", seed }), "A fine lace of fat through every seam.", [], { sss: 1.2 }, 60);
+    case "food-beef-seared": return solid("food", 30, searSolid({ bake: 0.72, seed }), "Fused protein beads, darkest on the peaks; fissures.", [], {}, 60);
+    case "food-salmon-raw": return solid("food", 60, salmonSolid({ seed }), "W-shaped myomeres about 8 mm apart between white myosepta.", [], { sss: 2 }, 70);
+    case "food-salmon-cooked": return solid("food", 60, salmonSolid({ cooked: 1, seed }), "Flakes parted along the septa, albumin beads.", [], { sss: 0.6 }, 70);
+    case "food-tuna-raw": return solid("food", 50, tunaSolid(seed), "Garnet loin, faint septa arcs.", [], { sss: 1 }, 60);
+    case "food-chicken-skin-raw": return solid("food", 30, poultrySolid({ seed }), "Follicles in tracts about 2.6 mm apart; fat and flesh showing through.", [], { sss: 1.5 }, 60);
+    case "food-chicken-skin-roast": return solid("food", 30, poultrySolid({ roast: 0.62, seed }), "Micro-blisters about 1 mm, browned by exposure.", [], { sss: 0.6 }, 60);
+    case "food-fish-skin": return solid("food", 30, fishScaleSolid({ seed }), "Cycloid scales about 2.2 mm in rows; silver belly to dark back.", [], {}, 50);
+    case "food-bread-crust": return solid("food", 40, crustSolid({ bake: 0.68, blisters: 0.5, flour: 0.3, seed }), "Blistered, fissured, flour-dusted crust.", [], {}, 60);
+    case "food-bread-crumb": return solid("food", 50, crumbSolid({ open: 0.8, seed }), "An open sourdough crumb.", [], { sss: 0.6 }, 60);
+    case "food-rice-cooked": return solid("food", 30, riceSolid({ seed }), "Cooked grains about 5.5 × 3 mm.", [], { sss: 1 }, 50);
+    case "food-cheese-aged": return solid("food", 30, agedCheeseSolid({ seed }), "Tyrosine crystals and fissures in a waxy paste.", [], { sss: 1 }, 50);
+    case "food-cheese-gratin": return solid("food", 60, gratinSolid({ seed }), "Blisters about 5 mm, scorched on the tallest.", [], { sss: 0.8 }, 60);
+    case "food-tomato-skin": return solid("food", 30, tomatoSolid({ seed }), "Glossy cuticle, micro-dimples, stretch lines.", [], { sss: 2 }, 60);
+    case "food-pepper-skin": return solid("food", 40, pepperSolid({ seed }), "Glossy, dented, folded.", [], { sss: 1.5 }, 60);
+    case "food-potato-skin": return solid("food", 40, potatoSolid({ seed }), "Russet net, lenticels, eyes, earth.", [], { sss: 0.5 }, 60);
+    case "food-citrus-peel": return solid("food", 25, citrusSolid({ seed }), "Oil glands about 1 mm as shallow pits.", [], { sss: 1.5 }, 60);
+    case "food-mushroom-cap": return solid("food", 50, mushroomCapSolid({ seed, cracks: 0.6 }), "Radial fibrils and scaly cracks.", [], {}, 60);
+    case "food-banana-skin": return solid("food", 40, bananaSolid({ ripe: 0.75, seed }), "Striations along the fruit, sugar spots in clusters.", [], { sss: 1 }, 60);
+    case "food-flatbread": return solid("food", 60, flatbreadSolid({ char: 0.6, toast: 0.35, seed }), "Leopard spots about 2–4 mm with brown halos.", [], {}, 60);
+    case "food-injera": return solid("food", 40, injeraSolid(seed), "Eyes about 1–3 mm.", [], {}, 60);
+    case "food-tempura-batter": return solid("food", 30, batterSolid({ bake: 0.35, seed }), "Craggy, bubbled, crisp.", [], {}, 50);
     default: return m.metal ? surf("metal", 80, metalSurface(m, seed, "polished"), "Polished, with faint swirl marks.") : solid("smooth", 80, smoothSolid(m, seed, { grain: 0.012, blotch: 0.02 }), "Smooth.");
   }
 }

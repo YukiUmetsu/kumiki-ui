@@ -1,6 +1,7 @@
 # MATL1 — materials framework for any art style
 
-**Registry item:** `materials` (needs `art-foundations`) · **Files:** `registry/materials/materials-*.ts(x)` ·
+**Registry item:** `materials` (needs `art-foundations`) · **Files:** `registry/materials/materials-*.ts(x)`,
+`registry/materials/food-textures.ts` ·
 **Storybook:** Video production → Art Foundations → Materials (Sheet, Material lab, Texture calibration) · **Skill:**
 [kumiki-materials](../../skills/kumiki-materials/SKILL.md) · **Research:**
 [materials framework, 2026-11-16](../research/materials-framework-2026-11-16.md),
@@ -78,6 +79,10 @@ regular detail (tatami rushes) fades to its average below a pixel instead of ali
 | Leather, grass, bone, charcoal, pearl | Pebble cells, creases and pores; blades in depth over soil; lamellae and pores; char cells along the grain; nacre bands | leather sizes estimated |
 | Stone, ceramic, earth | Granite crystals in measured mineral shares with mica; marble veins as zero-crossings of warped noise; slate cleavage; grains (sand, salt cubes, snow); concrete skin and air voids; asphalt aggregate; terracotta grog; clay drying cracks; brick in stretcher bond | brick 210 × 100 × 60 mm (reported, JIS R 1250); sand 0.25–0.5 mm (reported) |
 | Metals and coatings | Polished swirl marks, brushed streaks, sand-cast skin, galvanised spangle, mill scale; rust scale and blooms; cuprite and green patina; lacquer film | estimated |
+| Food (`food-textures.ts`, family `food`) | Beef: fascicles end-on, the perimysium seam network that marbling follows (streaks and flecks, lace in wagyu), a ribeye's eye, cap seam and kernel, knife drag. Seared crust: fused protein beads, char on the peaks. Salmon: W-shaped myomeres between white septa, flakes when cooked; tuna; poultry skin (follicles in tracts, blisters when roasted); fish scales; bread crust and crumb; cooked rice; aged cheese crystals; gratin; tomato, pepper, potato, citrus, mushroom and banana skins; flatbread char (leopard spots), injera eyes, tempura batter | fascicles about 1.4 mm, septa about 8 mm apart, rice grains about 5.5 × 3 mm, injera eyes 1–3 mm (estimated) |
+
+**Food.** The 23 `food-*` materials are the same recipes that FOOD1's still lifes use (`food-surfaces.ts` samples
+them with each dish's own settings: marbling, doneness, browning). `crustColour` (Maillard browning) lives here too.
 
 **Calibration.** `TEXTURE_CALIBRATION` holds statistics measured from 16 CC0 ambientCG colour maps (luminance
 p10/p50/p90 over the mean, structure-tensor coherence, a four-colour palette with shares, roughness). Palettes set the
@@ -129,6 +134,7 @@ lightElevation, seed })` renders on the CPU and returns 8-bit sRGBA.
   long-straw roof, so their grain directions differ.
 - **Relief on balls has no cast shadows**, only shading and cavity occlusion; tiles have soft cast shadows.
 - **No human visual review yet.**
+- **The food textures are estimated from photographs.** None are calibrated to a measured map.
 - **The database's metal colours are reflectance of a clean polished surface.** Roughness in use is estimated.
   Its "cast iron" is a seasoned (black) surface.
 - **The ambientCG maps are one sample per material.** White paper stands in for washi.
