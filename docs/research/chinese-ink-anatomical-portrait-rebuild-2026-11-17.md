@@ -76,6 +76,21 @@ Corrections made immediately from **specific native rendered failures** (not abs
 
 **Pending new visual gate:** all fixes need new exact-head native Chromium raster comparison. A rendered PNG and clean CI are not acceptance in themselves. Production Shanshui figures were never replaced.
 
+## 1× native rejection and source-proportioned face/robe remapping
+
+The [exact-head 44148624099 Chromium + 960×540 film run](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44148624099) (previous head b3d0bdc, successful typecheck/unit/browser/film) produced new face, 2×5 atlas, native robe and film frames. Inspected actual PNG raster, not just screenshot presence. Face still reads as **oversized cartoon mask**: head covers too much of the broad-sleeved body, eyes have evenly circular dark pupils, two cheek-to-nose streams look like drooping L/U shapes, brows read as unsupported high-contrast arches, and the yellow skin is too uniformly filled. The source painting's sitter has a comparatively small thin head relative to the open sleeves and calligraphic robe; its eye sockets/nose are modelled with very pale wash, not heavy continuous edges. The full-film optional actor looks more grounded after moving lower but the figure is *still only a bust*, not a historically proportioned standing scholar.
+
+**Museum source cross-check:** [University of Michigan Museum of Art, Zeng Jing, *Portrait of Pan Qintai*, 1621](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/). The museum specifically describes concentrated facial realism through graduated ink wash for eye sockets, nose and forehead, versus sparse garment detail. [Public-domain full portrait and authentic proportions](https://commons.wikimedia.org/wiki/File:Zeng_Jing_(Tseng_Ching)_-_Portrait_of_Pan_Qintai_-_Google_Art_Project.jpg) show a tall headcloth, comparatively narrow sitter head, loose folded cotton robe and large sleeves. The reconstruction **is not** a likeness of Pan or a tracing of this image. The code takes proportion and brushwork principles, not pixels.
+
+**Changes based on this actual comparison:**
+
+1. One reusable `headScale` control (range 0.38–0.75, default **0.48**) replaces the old fixed 0.69 larger-than-source head. Scale is one affine matrix around the **original neckline/collar contact (270,420)**. It is applied to all ANAT1/EXPR1 vertices and paint layers, *including* ear, hair, tall cap, neck glazes and beard: no microstrokes, geometry, expression action or individual bristle is dropped.
+2. The native face microscope computes an **inverse source-space viewBox** centred on that same contact anchor. Changing headScale never makes the face impossible to inspect; full-bust camera instead tightens its top empty space while retaining the 540-wide garment. The silk-only crop is independent. Both ratio bounds and museum A/B comparison are interactive in Storybook, with exact screenshots and finite-geometry regression gates.
+3. Existing three **still-visible unblurred cheek seams** (even after the wet malar polygon fix) are now filtered through the softer fixed-paper diffusion instead of forming hard L-shape under-eye contours.
+4. Nasal artwork no longer draws continuous ala→philtrum→ala "U". Two separate physical **alar pockets** hold lifted, thin local lines and blurred warm bone relief, separate from the softly glazed bridge. The 32 independently attached eyebrow hairs remain, but the heavy uniform curved brow's optical weight and the pupils' disk contrast are reduced.
+
+**Quality hold remains:** this is a hypothesis pending its own new exact-head native 1× frame and historical A/B evaluation, **not** an objectively validated painting. Bust-only film is not a production-ready full standing or walking scholar. Original geography/rocks/pines remain art-held.
+
 ## Actual acceptance gates
 
 1. Storybook **ANAT2 Independent Portrait Rebuild**: both character controls, five facial expressions, face microscope, 0–100% expression intensity, fibre detail and 24-fps motion slider work in Chromium. Check that eyebrows and mouth change from the *same* face, not cutout stickers; 0 and 96 return identical SVG geometry.
