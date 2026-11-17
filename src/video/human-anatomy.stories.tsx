@@ -28,6 +28,7 @@ import type { HumanCamera } from "../../registry/anatomy/anatomy-view";
 import { BeautyEvidence, FacePortrait, GoldenRatioTable } from "../../registry/anatomy/face-portrait-react";
 import type { EyeColour, HairStyle, PortraitOptions } from "../../registry/anatomy/face-portrait";
 import { FRINGES, HAIRSTYLES, findHairStyle } from "../../registry/anatomy/hair-groom";
+import { EYE_EVIDENCE, EYE_SHAPES, IRIS_TYPES, findEyeShape, findIris } from "../../registry/anatomy/eye-detail";
 import type { FringeKind, Parting } from "../../registry/anatomy/hair-groom";
 import { EMOTIONS } from "../../registry/anatomy/expression-facs";
 
@@ -694,6 +695,66 @@ function HairLab() {
   );
 }
 
+/** Eyes in detail: every eye shape and iris, each eye's colour, the pupil, a close-up or the whole portrait. */
+function EyeLab() {
+  const [o, setO] = useState<PortraitOptions>({ sex: 0, skin: "#e6c0a4", eyes: "hazel", eyeShape: "almond", pupil: 4, framing: "eyes", keyAzimuth: -22, keyElevation: 40, yaw: 0, hairStrands: 12000 });
+  const set = (k: keyof PortraitOptions, v: unknown) => setO(prev => ({ ...prev, [k]: v }));
+  const shape = findEyeShape(typeof o.eyeShape === "string" ? o.eyeShape : "almond"), iris = findIris(o.eyes ?? "brown");
+  const close = o.framing === "eyes";
+  const range = (k: keyof PortraitOptions, name: string, min: number, max: number, step: number, fmt = (v: number) => String(v), dflt = 0) => (
+    <label key={k} style={label}>{name}: {fmt(Number(o[k] ?? dflt))}<input type="range" min={min} max={max} step={step} value={Number(o[k] ?? dflt)} onChange={e => set(k, Number(e.target.value))} /></label>);
+  return (
+    <div style={{ ...page, gridTemplateColumns: "minmax(250px, 330px) 1fr" }}>
+      <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Eye lab</h2>
+        <label style={label}>Eye shape<select style={field} value={shape.id} onChange={e => set("eyeShape", e.target.value)}>{EYE_SHAPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        <label style={label}>Iris<select style={field} value={iris.id} onChange={e => set("eyes", e.target.value)}>{IRIS_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        <label style={label}>Right eye (heterochromia)<select style={field} value={o.eyesRight ?? ""} onChange={e => set("eyesRight", e.target.value || undefined)}><option value="">the same</option>{IRIS_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        {range("pupil", "Pupil", 2, 7, 0.5, v => `${v} mm`, 4)}
+        <label style={label}>Framing<select style={field} value={o.framing ?? "portrait"} onChange={e => set("framing", e.target.value)}><option value="eyes">eyes, close</option><option value="portrait">portrait</option></select></label>
+        {range("sex", "Woman → man", 0, 1, 1)}
+        <label style={label}>Skin<select style={field} value={o.skin} onChange={e => set("skin", e.target.value)}>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+        {range("yaw", "Head turn", -25, 25, 5, v => `${v}°`)}{range("keyAzimuth", "Key light from", -70, 70, 5, v => `${v}°`)}{range("keyElevation", "Key light height", 0, 70, 5, v => `${v}°`)}
+      </div>
+      <div style={{ display: "grid", gap: 8, alignContent: "start", maxWidth: close ? 760 : 520 }}>
+        <FacePortrait options={{ ...o, width: close ? 720 : 416, height: close ? 310 : 520 }} label={`${shape.label} eyes, ${iris.label} iris`} />
+        <p style={muted}><b>{shape.label}.</b> {shape.note} Opening {shape.height} mm, tilt {shape.tilt}°, crease {shape.crease ? `${shape.crease} mm` : "none"}{shape.epicanthal ? `, epicanthal fold ${shape.epicanthal}` : ""}{shape.hood ? `, hood ${shape.hood}` : ""} ({shape.grade}).</p>
+        <p style={muted}><b>{iris.label}.</b> Pupillary zone {iris.pupillary}, ciliary zone {iris.ciliary}; {iris.source} ({iris.grade}).</p>
+      </div>
+    </div>
+  );
+}
+
+/** Every eye shape, with what sets it. */
+function EyeShapes() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Eye shapes measured on real people: the lid opening (height, width, canthal tilt), the upper-lid crease (its height, or none in a single lid), a hood, an epicanthal fold, depth and spacing. Reference photographs are on the Reference board (eyes).</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))" }}>
+        {EYE_SHAPES.map((t, k) => <figure key={t.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <FacePortrait options={{ sex: 0, skin: SKINS[[1, 1, 2, 2, 1, 0, 3, 2, 1, 4, 0][k]], eyes: ["brown", "blue", "green", "dark-brown", "dark-brown", "hazel", "amber", "grey", "light-blue", "light-brown", "grey-green"][k], eyeShape: t.id, framing: "eyes", hairStrands: 8000, width: 480, height: 206, seed: 3 + k }} label={`${t.label} eyes`} />
+          <figcaption style={muted}><b>{t.label}</b> — {t.note}</figcaption></figure>)}
+      </div>
+      <ul style={{ ...muted, maxWidth: 900, paddingLeft: 18 }}>{EYE_EVIDENCE.filter(x => x.id !== "iris-zones" && x.id !== "iris-continuous").map(x => <li key={x.id}>{x.finding} ({x.url ? <a href={x.url}>{x.source}</a> : x.source}; {x.grade})</li>)}</ul>
+    </div>
+  );
+}
+
+/** Every iris colour, close up. */
+function IrisColours() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Fourteen irises. Each has a pupillary zone and a ciliary zone in their own colours, measured zone by zone in public-domain or CC0 photographs where one was available, and the structure of a real iris: the collarette, radial fibres, crypts, contraction furrows, the dark limbal ring and the pupillary ruff.</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))" }}>
+        {IRIS_TYPES.map((t, k) => <figure key={t.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <FacePortrait options={{ sex: 0, skin: SKINS[[3, 2, 1, 2, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0][k]], eyes: t.id, eyeShape: "almond", framing: "eyes", hairStrands: 8000, width: 480, height: 206, seed: 5 + k }} label={`${t.label} iris`} />
+          <figcaption style={muted}><b>{t.label}</b> — {t.source} ({t.grade})</figcaption></figure>)}
+      </div>
+      <ul style={{ ...muted, maxWidth: 900, paddingLeft: 18 }}>{EYE_EVIDENCE.filter(x => x.id === "iris-zones" || x.id === "iris-continuous").map(x => <li key={x.id}>{x.finding} ({x.source}; {x.grade})</li>)}</ul>
+    </div>
+  );
+}
+
 /** Every hairstyle, groomed on the portrait head. */
 function Hairstyles() {
   return (
@@ -733,7 +794,8 @@ function PortraitLab() {
       <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
         {num("sex", 0, 1, 1)}{num("beauty", 0, 1, 0.25)}
         <label style={label}>Skin<select style={field} value={o.skin} onChange={e => set("skin", e.target.value)}>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
-        <label style={label}>Eyes<select style={field} value={o.eyes} onChange={e => set("eyes", e.target.value as EyeColour)}>{(["dark-brown", "brown", "hazel", "green", "blue", "grey"] as const).map(c => <option key={c}>{c}</option>)}</select></label>
+        <label style={label}>Eyes<select style={field} value={o.eyes} onChange={e => set("eyes", e.target.value as EyeColour)}>{IRIS_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        <label style={label}>Eye shape<select style={field} value={typeof o.eyeShape === "string" ? o.eyeShape : ""} onChange={e => set("eyeShape", e.target.value || undefined)}><option value="">measured average</option>{EYE_SHAPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
         <label style={label}>Hair<select style={field} value={o.hairStyle} onChange={e => set("hairStyle", e.target.value as HairStyle)}>{HAIRSTYLES.map(st => <option key={st.id} value={st.id}>{st.label}</option>)}</select></label>
         <label style={label}>Expression<select style={field} value={o.expression} onChange={e => set("expression", e.target.value)}><option value="">neutral</option>{EMOTIONS.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}</select></label>
         {num("intensity", 0, 1, 0.1)}{num("yaw", -25, 25, 5)}{num("keyAzimuth", -70, 70, 5)}{num("keyElevation", 0, 70, 5)}
@@ -752,6 +814,9 @@ export const ProportionsStory: Story = { name: "Proportions and ranges", render:
 export const ReferenceBoardStory: Story = { name: "Reference board", render: () => <ReferenceBoard /> };
 export const HairLabStory: Story = { name: "Hair lab", render: () => <HairLab /> };
 export const HairstylesStory: Story = { name: "Hairstyles", render: () => <Hairstyles /> };
+export const EyeLabStory: Story = { name: "Eye lab", render: () => <EyeLab /> };
+export const EyeShapesStory: Story = { name: "Eye shapes", render: () => <EyeShapes /> };
+export const IrisColoursStory: Story = { name: "Iris colours", render: () => <IrisColours /> };
 export const BangsStory: Story = { name: "Bangs (fringes)", render: () => <Bangs /> };
 export const BodyHairLabStory: Story = { name: "Hair on the posable body", render: () => <BodyHairLab /> };
 export const HairTypesStory: Story = { name: "Hair types and colours", render: () => <HairTypes /> };

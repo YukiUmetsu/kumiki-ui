@@ -19,6 +19,8 @@
  */
 import type { Vec3 } from "./anatomy-body";
 import { createFace, eyeCentres, FACE_LANDMARKS } from "./anatomy-face";
+import { applyEyeShape, findEyeShape } from "./eye-detail";
+import type { EyeShapeSpec } from "./eye-detail";
 import type { FaceLandmark, FaceParams, FaceStudy } from "./anatomy-face";
 import ansur from "./data/ansur-ii-ranges.json";
 
@@ -101,11 +103,15 @@ export interface BeautyOptions extends FaceParams {
    * (above-average femininity is preferred), +0.15 for men (slight feminisation, Perrett 1998); both estimated amounts.
    */
   femininity?: number;
+  /** An eye shape (`EYE_SHAPES` id or a spec): almond, round, hooded, monolid, upturned, … Without one the eyes keep the measured average opening. */
+  eyeShape?: string | EyeShapeSpec;
 }
 export interface BeautifulFace extends FaceStudy {
   /** The hairline height (mm) that puts the eye-to-mouth distance at 36% of face length (Pallett 2010). */
   hairlineY: number;
   report: RatioRow[];
+  /** The eye shape applied, if one was asked for. */
+  eyeShape?: EyeShapeSpec;
   /** What was applied, for captions. */
   applied: { symmetry: number; faceWidth: number; jawWidth: number; palpebral: number; upperLip: number; lowerLip: number; canthalTilt: number; femininity: number };
 }
@@ -171,6 +177,9 @@ export function beautifulFace(o: BeautyOptions = {}): BeautifulFace {
     const en = L(`endocanthion.${s}` as FaceLandmark);
     v.forEach(p => { const d = Math.hypot(p[0] - en[0], p[1] - en[1]); if (d < 6) p[1] -= 0.7 * b * (1 - d / 6); });
   }
+  // 4b. An eye shape: the opening, crease skin, fold, depth and spacing of a real eye type (eye-detail.ts)
+  const eyeShape = o.eyeShape === undefined ? undefined : typeof o.eyeShape === "string" ? findEyeShape(o.eyeShape) : o.eyeShape;
+  if (eyeShape) applyEyeShape(v, eyeShape, sex);
   // 5. Lips: vermilion heights toward the measured attractive values (6.5 / 11.6 mm in young women; masculinising
   //    thins the lips, so men take about 0.85 of that, estimated).
   {
@@ -219,7 +228,7 @@ export function beautifulFace(o: BeautyOptions = {}): BeautifulFace {
   v.forEach((x, i) => { pts[i * 3] = x[0] / 1000; pts[i * 3 + 1] = x[1] / 1000; pts[i * 3 + 2] = x[2] / 1000; });
   const tilt = (s: "L" | "R") => Math.atan2(L(`exocanthion.${s}` as FaceLandmark)[1] - L(`endocanthion.${s}` as FaceLandmark)[1], Math.abs(L(`exocanthion.${s}` as FaceLandmark)[0] - L(`endocanthion.${s}` as FaceLandmark)[0])) * 180 / Math.PI;
   return {
-    ...base, vertices: v, mesh: { ...base.mesh, points: pts }, hairlineY, report: goldenRatioReport(v, hairlineY),
+    ...base, vertices: v, mesh: { ...base.mesh, points: pts }, hairlineY, report: goldenRatioReport(v, hairlineY), eyeShape,
     applied: { symmetry: b, faceWidth: 2 * Math.abs(L("zygion.L")[0]), jawWidth: 2 * Math.abs(L("gonion.L")[0]), palpebral: L("palpebrale-superius.L")[1] - L("palpebrale-inferius.L")[1],
       upperLip: L("labiale-superius")[1] - L("stomion")[1], lowerLip: L("stomion")[1] - L("labiale-inferius")[1], canthalTilt: (tilt("L") + tilt("R")) / 2, femininity: fem },
   };

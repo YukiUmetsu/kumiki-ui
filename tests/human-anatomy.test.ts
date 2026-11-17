@@ -91,6 +91,7 @@ import { beautifulFace, goldenRatioReport, PHI } from "../registry/anatomy/face-
 import { renderPortrait } from "../registry/anatomy/face-portrait";
 import { FRINGES, HAIRSTYLES, findHairStyle, groomHair, partLine, scalpCover } from "../registry/anatomy/hair-groom";
 import type { HairGroom } from "../registry/anatomy/hair-groom";
+import { EYE_SHAPES, IRIS_TYPES, findIris, irisAlbedo } from "../registry/anatomy/eye-detail";
 import { eyeCentres, FACE_LANDMARKS } from "../registry/anatomy/anatomy-face";
 import { createRaster, fft2, fillPolygon, gaussianBlur, strokePolyline } from "../registry/anatomy/foundation-raster";
 
@@ -159,6 +160,31 @@ describe("ANAT1 beautiful faces and portraits", () => {
     expect(partLine(head, st, over)).toBeGreaterThan(0.5);
     expect(FRINGES.map(f => f.id)).toEqual(["blunt", "wispy", "micro", "long", "curtain", "bottleneck", "side-swept"]);
     expect(HAIRSTYLES.length).toBeGreaterThanOrEqual(15);
+  });
+  it("eyes: shapes reach their measured opening, tilt and spacing; irises have zones and a dark rim; a close-up renders", () => {
+    const at = (v: readonly number[][], k: string) => v[(FACE_LANDMARKS as Record<string, number>)[k]];
+    const base = beautifulFace({ sex: 0 });
+    expect(base.eyeShape).toBeUndefined();
+    const ics = (v: readonly number[][]) => at(v, "endocanthion.L")[0] - at(v, "endocanthion.R")[0];
+    for (const shape of EYE_SHAPES) {
+      const v = beautifulFace({ sex: 0, eyeShape: shape.id }).vertices;
+      const opening = at(v, "palpebrale-superius.L")[1] - at(v, "palpebrale-inferius.L")[1];
+      const tilt = Math.atan2(at(v, "exocanthion.L")[1] - at(v, "endocanthion.L")[1], Math.abs(at(v, "exocanthion.L")[0] - at(v, "endocanthion.L")[0])) * 180 / Math.PI;
+      expect(Math.abs(opening - shape.height), `${shape.id} opening ${opening}`).toBeLessThan(1.6);
+      expect(Math.abs(tilt - shape.tilt), `${shape.id} tilt ${tilt}`).toBeLessThan(3);
+      if (shape.spacing) expect(Math.sign(ics(v) - ics(base.vertices))).toBe(Math.sign(shape.spacing));
+    }
+    expect(EYE_SHAPES.find(x => x.id === "monolid")!.crease).toBe(0);
+    // the zones differ (a hazel eye's centre is warmer than its outer zone), the limbal ring is darker, and it repeats
+    const hz = findIris("hazel"), warm = (c: number[]) => c[0] / Math.max(1e-6, c[1]);
+    const meanAt = (r: number) => { const acc = [0, 0, 0]; for (let k = 0; k < 64; k++) irisAlbedo(hz, r, (k / 64) * 2 * Math.PI, 3).forEach((x, i) => (acc[i] += x / 64)); return acc; };
+    expect(warm(meanAt(0.12))).toBeGreaterThan(warm(meanAt(0.7)) + 0.05);
+    expect(meanAt(0.98)[1]).toBeLessThan(meanAt(0.6)[1] * 0.75);
+    expect(irisAlbedo(hz, 0.5, 1, 3)).toEqual(irisAlbedo(hz, 0.5, 1, 3));
+    for (const id of ["dark-brown", "brown", "hazel", "green", "blue", "grey"]) expect(findIris(id).id).toBe(id);
+    expect(IRIS_TYPES.length).toBeGreaterThanOrEqual(14);
+    const p = renderPortrait({ sex: 0, width: 120, height: 52, supersample: 1, framing: "eyes", eyes: "blue", eyeShape: "round", hairStrands: 1500 });
+    expect(p.rgba.length).toBe(120 * 52 * 4);
   });
   it("raster foundation: polygon coverage, blur, strokes and FFT round trip", () => {
     let cov = 0;

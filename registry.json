@@ -3749,6 +3749,11 @@
           "target": "components/anatomy/hair-groom.ts"
         },
         {
+          "path": "registry/anatomy/eye-detail.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/eye-detail.ts"
+        },
+        {
           "path": "registry/anatomy/anatomy-face.ts",
           "type": "registry:ui",
           "target": "components/anatomy/anatomy-face.ts"
