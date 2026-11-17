@@ -175,6 +175,33 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
       {frame:48,character:"elder",reducedMotion:true})))
       .toContain('data-ink-cue="0.0000"');
   });
+  it("renders ANAT1 zygomatic wash as two soft curved wet deposits instead of hard polygon cheeks",()=>{
+    const s=renderToStaticMarkup(createElement(InkAnatomicalPortrait,{
+      character:"scholar",emotion:"neutral",detail:1,view:"face",
+    }));
+    expect(s).toContain('id="ink-a2-');
+    expect(s).toContain('-face-wet-diffusion');
+    expect((s.match(/data-km-ink-wet-malar=/g)||[])).toHaveLength(4);
+    expect((s.match(/data-km-ink-cheek=/g)||[])).toHaveLength(2);
+    const deposits=[...s.matchAll(/<path[^>]+data-km-ink-wet-malar="(?:bone|warm)"[^>]*>/g)];
+    expect(deposits.length).toBe(4);
+    for(const [path] of deposits){
+      expect(path).toContain('fill="none"');
+      expect(path).toContain('stroke-width=');
+      expect(path).toContain('-face-wet-diffusion)');
+    }
+    expect(s).not.toMatch(/(?:NaN|Infinity|undefined)/);
+  });
+  it("retains all 93 curled elder beard fibers, five locks and a soft non-triangular substrate",()=>{
+    const elder=renderToStaticMarkup(createElement(InkAnatomicalPortrait,{
+      character:"elder",emotion:"sad",detail:1,view:"face",
+    }));
+    expect((elder.match(/data-km-ink-beard-fibre=/g)||[])).toHaveLength(93);
+    expect((elder.match(/data-km-ink-beard-lock=/g)||[])).toHaveLength(5);
+    expect(elder).toContain('data-km-ink-beard-substrate="organic"');
+    expect(new Set([...elder.matchAll(/data-km-ink-beard-fibre="([0-4])"/g)]
+      .map(m=>m[1])).size).toBe(5);
+  });
   it("rejects invalid emotion and intensity instead of producing a broken SVG",()=>{
     expect(()=>inkPortraitAnatomy("scholar","surprise",NaN)).toThrow(RangeError);
     expect(()=>inkPortraitAnatomy("scholar","sad",-1)).toThrow(RangeError);
