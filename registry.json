@@ -4174,6 +4174,33 @@
       ]
     },
     {
+      "name": "small-creatures",
+      "type": "registry:ui",
+      "title": "Insects and Small Creatures Framework (BUG1)",
+      "description": "Insects, spiders and snails in any art style: body plans (an insect's three parts and six legs on the thorax, a spider's two parts and eight legs, a snail's foot and shell) with their common mistakes; wings by order and how they rest; wingbeat rates and whether a camera sees poses or a blur; the alternating tripod gait; fourteen species loved in Japanese art and seasons (Genji firefly with its 2 s and 4 s flashes, red dragonfly, swallowtail, cabbage white, cicada, honeybee, ant, ladybird, mantis, bell cricket, stag and rhinoceros beetles, Jorō spider, land snail) with sizes, colours, proportions, seasons, behaviour, sounds and sources. bugTopView builds top views by part; BugFigure paints them (glossy chitin, veined translucent wings, glowing lanterns), BugMotion animates walking, wingbeats and flashes, BugSheet shows the plans and species.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/bug-data.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/bug-data.ts"
+        },
+        {
+          "path": "registry/anatomy/bug-construct.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/bug-construct.ts"
+        },
+        {
+          "path": "registry/anatomy/bug-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/bug-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "food",
       "type": "registry:ui",
       "title": "Food Framework (FOOD1)",

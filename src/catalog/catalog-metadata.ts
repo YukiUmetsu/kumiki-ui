@@ -147,6 +147,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:plant-anatomy":{storyId:"video-plant-anatomy--sheet"},
   "pack:sky-weather":{storyId:"video-sky-weather--sheet"},
   "pack:water":{storyId:"video-water--sheet"},
+  "pack:small-creatures":{storyId:"video-bugs--sheet"},
   "pack:food":{storyId:"video-food--sheet"},
   "pack:architecture":{storyId:"video-arch--sheet"},
   "pack:terrain":{storyId:"video-geo--sheet"},
