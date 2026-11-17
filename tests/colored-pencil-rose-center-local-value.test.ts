@@ -15,7 +15,7 @@ const rose=(aspect:"landscape"|"portrait",value=false,full=false,seed=389)=>
   pencilObjectStudyDrawing({
     subject:"rose",aspect,seed,roseInnerWhorlStudy:true,roseCenterKnotStudy:true,
     roseCenterValueStudy:value,
-    rosePhysicalFolds:full,roseFrontLaminaVolumeStudy:full,
+    rosePhysicalFolds:full,roseOuterFormStudy:full,roseFrontLaminaVolumeStudy:full,
     roseFrontValueStudy:full,rosePetalRimStudy:full,
     roseBackCupReliefStudy:full,roseCalyxStudy:full,
     rosePinnateStudy:full,roseLaminaStudy:full,
