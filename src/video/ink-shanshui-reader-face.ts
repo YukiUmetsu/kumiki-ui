@@ -128,10 +128,10 @@ export function scrollReaderFacePortrait(detail=1):
     // Philtrum and lower lip are almost invisible in the teacher art.
     p("M144.5 119.6 Q144.9 121.4 145.3 122.1",
       "none","$skinshade",.35,.37),
-    // The dynamic lip line (mouth-rest/visemes) supplies the contour;
-    // this anatomical underside stays as quiet wet-paper reflected form.
-    p("M139.9 129.6 Q143.6 131.7 147.2 128.6",
-      "none","$skinshade",.46,.35),
+    // The lip underside was once stamped on the immobile head across
+    // EVERY active viseme; this made OH look like a small third eye at
+    // true 1×. Its identical original ink is retained below, now in the
+    // independent mouth cel, so it follows the singing/speaking lips.
   ];
   if(medium)face.push(
     pressure([116.3,108.5],[116.3,114.1],[117.1,118.4],[120.3,122.8],
@@ -210,7 +210,10 @@ export function scrollReaderFacePortrait(detail=1):
       // Deepest wet ink accumulates only in a tiny crescent under the
       // receding upper lip. $deep is the lighter ochre pigment, whereas
       // $ink holds the true dark line. Never fill the full oral oval.
-      p("M142.8 127.65 C143.05 127.43 143.52 127.55 143.62 127.92 C143.57 128.43 143.27 128.67 142.93 128.44 C142.73 128.21 142.7 127.9 142.8 127.65 Z",
+      // Centre-of-hole black dots read as a painted pupil. Shift the
+      // strongest ink to a small tilted *upper cavity shelf* rooted in
+      // the moving vermilion, leaving the lower mouth paper-translucent.
+      p("M142.73 127.56 C143.03 127.43 143.52 127.54 143.69 127.78 C143.46 127.98 143.04 127.93 142.73 127.56 Z",
         "$ink","none",0,.22),
       // Unequal sidewalls: near orbicularis has a broader lip roll,
       // far lip recedes toward the nose rather than mirroring the oval.
@@ -285,6 +288,16 @@ export function scrollReaderFacePortrait(detail=1):
       shape.type==="path"&&i<moved.length?
         {...shape,d:moved[i]}:shape);
   };
+  // Move the ACTUAL original lower-lip light off the immobile face
+  // and onto the speaking cel; preserve ink/material/weight/opacity in
+  // REST and let its 3/4 anatomical attachment bend with AA and OH.
+  const attachedLowerLip=(state:keyof typeof mouth)=>
+    p(state==="aa"?
+      "M138.5 132 Q142.8 134.1 146.3 130.8":
+      state==="oh"?
+      "M141.05 131.05 Q143.05 132.72 145.02 130.8":
+      "M139.9 129.6 Q143.6 131.7 147.2 128.6",
+    "none","$skinshade",.46,.35);
   const mouthAsset=(state:keyof typeof mouth)=>asset("mouth-"+state,[
     ...speechAnatomyLips(state),
     // The aperture is not a fully opaque cartoony dark badge. Pigment
@@ -296,6 +309,7 @@ export function scrollReaderFacePortrait(detail=1):
       // dark cavity values are layered centrally, not pasted in one fill.
       state==="aa"?.17:state==="oh"?.18:state==="rest"?.75:.9),
     ...speechLips(state),
+    attachedLowerLip(state),
     p(state==="aa"?"M139.2 130.8 Q143.4 132.4 146 129.9":
       "M138.2 128.9 Q143.6 129.5 147 127.6",
       "none","$skinshade",.55,.43),
