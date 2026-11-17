@@ -259,7 +259,7 @@ export function InkReferenceCharacterRedraw({
     data-km-ink-reference-redraw="ANAT3"
     data-km-ink-reference-character={character}
     data-km-ink-reference-source={g.source}
-    data-km-anat1-source="468-point-face-mesh" data-km-anat1-shape="source-adjusted-landmark-morph"
+    data-km-anat1-source="468-point-face-mesh" data-km-anat1-shape="source-informed-landmark-morph"
     data-km-anat1-landmarks={Object.keys(FACE_LANDMARKS).length}
     data-km-anat1-feature-count={g.features.length}
     data-km-anat1-face-width-mm={fmt(g.measures.zyZy)}
