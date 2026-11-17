@@ -5,10 +5,12 @@
  * squash about the right point. Geometry buffers are the plan's own arrays; a frame re-uploads only the units whose
  * deformers changed.
  *
- * `sculptMaterial(id)` makes a physical material from any MATL1 material (`registry/materials`): measured base colour,
- * metalness, roughness and index of refraction, plus maps baked from the material's own texture recipe at real size
- * (one em = `emMm` millimetres): colour, roughness and metalness, and a normal map from the surface height. Optics
- * carry over: brushed metals get anisotropy, clear materials transmit, nacre gets iridescence, lacquers a clear coat.
+ * `sculptMaterial(record, texture)` makes a physical material from a measured material: base colour, metalness,
+ * roughness and index of refraction, plus maps baked from the texture's recipe at real size (one em = `emMm` mm):
+ * colour, roughness and metalness, and a normal map from the surface height. Optics carry over: brushed metals get
+ * anisotropy, clear materials transmit, nacre gets iridescence, lacquers a clear coat. The inputs are structural, so
+ * MATL1's `findMaterial(id)` and `materialTexture(id)` (`registry/materials`) fit directly, without this item depending
+ * on the materials pack.
  */
 
 import {
@@ -19,12 +21,36 @@ import type { Material } from "three";
 
 import { SculpturalText } from "./sculptural-type";
 import type { SculptGlyph, SculpturalTextPlan, SculpturalTextSpec } from "./sculptural-type";
-import { findMaterial, toStandardMaterial, encodeSrgb } from "../materials/materials-physics";
-import { materialTexture } from "../materials/materials-texture";
 
 /* ------------------------------------------------------------------ *
  * Materials
  * ------------------------------------------------------------------ */
+
+/** A measured material: MATL1's `MaterialRecord` fits. Colours are linear-light RGB 0–1. */
+export interface SculptMaterialRecord {
+  name: string;
+  family: string;
+  /** Linear albedo, or a metal's reflectance at normal incidence. */
+  albedo: readonly [number, number, number];
+  metal: 0 | 1;
+  roughness: { typical: number };
+  ior?: number;
+}
+
+/** One point of a surface texture, in mm; MATL1's `TexSample` fits. */
+export interface SculptSurfaceSample {
+  a: readonly [number, number, number];
+  /** Height, mm. */
+  h: number;
+  r: number;
+  m?: number;
+}
+
+/** A surface texture at real size; MATL1's `MaterialTexture` fits. */
+export interface SculptMaterialTexture {
+  sample(x: number, y: number, footprint?: number): SculptSurfaceSample;
+  optics: { anisotropy?: number; transmit?: boolean; thinFilm?: number };
+}
 
 export interface SculptMaterialOptions {
   /** Physical size of one em, in millimetres; sets how large grain, fibres and veins appear. @default 120 */
@@ -35,9 +61,15 @@ export interface SculptMaterialOptions {
   seed?: number;
   /** Normal map strength. @default 1 */
   relief?: number;
+  /**
+   * How much of the material's surface variation to keep, 0–1: 1 is the measured texture (grain, veins, fibres,
+   * polishing marks), 0 a clean uniform surface. Wear and marks are storytelling, so lower it for pristine objects.
+   * @default 1
+   */
+  detail?: number;
 }
 
-/** MATL1 materials that read well as letters, for pickers. Any MATL1 id works. */
+/** MATL1 material ids that read well as letters, for pickers. Any MATL1 material works. */
 export const SCULPT_MATERIAL_PRESETS = [
   "gold", "brass", "copper", "chromium", "stainless-steel", "aluminium", "bronze-old",
   "porcelain", "terracotta", "marble", "granite", "slate", "concrete",
@@ -48,37 +80,58 @@ export const SCULPT_MATERIAL_PRESETS = [
 const MAP_SPAN_EM = 2;
 const MAP_START_EM = -0.5;
 
+const encodeSrgb = (value: number) => {
+  const x = Math.min(1, Math.max(0, value));
+  return x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055;
+};
+
 /**
- * A `MeshPhysicalMaterial` for a MATL1 material id. The caller owns the material and its textures; dispose them with
- * {@link disposeSculptMaterial}.
+ * A `MeshPhysicalMaterial` for a measured material. Without a texture the surface is uniform. With MATL1:
+ * `sculptMaterial(findMaterial("marble")!, materialTexture("marble"))`. The caller owns the material and its textures;
+ * dispose them with {@link disposeSculptMaterial}.
  */
-export function sculptMaterial(id: string, options: SculptMaterialOptions = {}): MeshPhysicalMaterial {
-  const record = findMaterial(id);
-  if (!record) throw new RangeError(`Unknown MATL1 material "${id}". Use an id from MATERIALS, for example "gold" or "marble".`);
-  const standard = toStandardMaterial(record);
-  const texture = materialTexture(id, options.seed ?? 7);
-  const size = Math.max(32, Math.min(2048, Math.round(options.textureSize ?? 512)));
+export function sculptMaterial(record: SculptMaterialRecord, texture?: SculptMaterialTexture, options: SculptMaterialOptions = {}): MeshPhysicalMaterial {
+  const standard = { roughness: Math.min(1, Math.max(0, record.roughness.typical)), ior: record.ior };
+  const surfaceOf: SculptMaterialTexture = texture ?? {
+    sample: () => ({ a: record.albedo, h: 0, r: standard.roughness, m: record.metal }),
+    optics: {},
+  };
+  // A uniform surface needs only a tiny map.
+  const size = texture ? Math.max(32, Math.min(2048, Math.round(options.textureSize ?? 512))) : 4;
   const emMm = options.emMm ?? 120;
   const spanMm = MAP_SPAN_EM * emMm;
   const pixelMm = spanMm / size;
+  const detail = Math.min(1, Math.max(0, options.detail ?? 1));
+  const samples = [];
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      samples.push(surfaceOf.sample(MAP_START_EM * emMm + (x + 0.5) * pixelMm, MAP_START_EM * emMm + (y + 0.5) * pixelMm, pixelMm));
+    }
+  }
+  // Blend each sample toward the map's mean by `detail`, so a clean surface keeps the material's measured average.
+  const mean = { a: [0, 0, 0], r: 0, m: 0 };
+  for (const s of samples) {
+    mean.a[0] += s.a[0] / samples.length;
+    mean.a[1] += s.a[1] / samples.length;
+    mean.a[2] += s.a[2] / samples.length;
+    mean.r += s.r / samples.length;
+    mean.m += (s.m ?? record.metal) / samples.length;
+  }
+  const mix = (average: number, value: number) => average + (value - average) * detail;
   const colour = new Uint8Array(size * size * 4);
   const surface = new Uint8Array(size * size * 4);
   const heights = new Float32Array(size * size);
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      const s = texture.sample(MAP_START_EM * emMm + (x + 0.5) * pixelMm, MAP_START_EM * emMm + (y + 0.5) * pixelMm, pixelMm);
-      const i = y * size + x;
-      colour[4 * i] = Math.round(encodeSrgb(s.a[0]) * 255);
-      colour[4 * i + 1] = Math.round(encodeSrgb(s.a[1]) * 255);
-      colour[4 * i + 2] = Math.round(encodeSrgb(s.a[2]) * 255);
-      colour[4 * i + 3] = 255;
-      // three reads roughness from green and metalness from blue.
-      surface[4 * i + 1] = Math.round(Math.min(1, Math.max(0, s.r)) * 255);
-      surface[4 * i + 2] = Math.round(Math.min(1, Math.max(0, s.m ?? record.metal)) * 255);
-      surface[4 * i + 3] = 255;
-      heights[i] = s.h;
-    }
-  }
+  samples.forEach((s, i) => {
+    colour[4 * i] = Math.round(encodeSrgb(mix(mean.a[0], s.a[0])) * 255);
+    colour[4 * i + 1] = Math.round(encodeSrgb(mix(mean.a[1], s.a[1])) * 255);
+    colour[4 * i + 2] = Math.round(encodeSrgb(mix(mean.a[2], s.a[2])) * 255);
+    colour[4 * i + 3] = 255;
+    // three reads roughness from green and metalness from blue.
+    surface[4 * i + 1] = Math.round(Math.min(1, Math.max(0, mix(mean.r, s.r))) * 255);
+    surface[4 * i + 2] = Math.round(Math.min(1, Math.max(0, mix(mean.m, s.m ?? record.metal))) * 255);
+    surface[4 * i + 3] = 255;
+    heights[i] = s.h * detail;
+  });
   const normal = new Uint8Array(size * size * 4);
   const strength = options.relief ?? 1;
   for (let y = 0; y < size; y += 1) {
@@ -110,9 +163,9 @@ export function sculptMaterial(id: string, options: SculptMaterialOptions = {}):
   };
   const colourMap = map(colour, true);
   const surfaceMap = map(surface, false);
-  const optics = texture.optics;
+  const optics = surfaceOf.optics;
   const material = new MeshPhysicalMaterial({
-    name: `sculpt:${id}`,
+    name: `sculpt:${record.name}`,
     color: 0xffffff,
     map: colourMap,
     roughness: 1,

@@ -14,7 +14,7 @@
  */
 
 import type { GlyphRaster, ReliefProfile } from "./sculptural-type-field";
-import { resolveProfile, thickestStroke } from "./sculptural-type-field";
+import { resolveProfile, smoothField, thickestStroke } from "./sculptural-type-field";
 
 export interface GlyphSolidOptions {
   profile: ReliefProfile;
@@ -78,9 +78,12 @@ export function buildGlyphSolid(glyph: GlyphRaster, field: Float32Array, options
   const ny = Math.floor((H - 1) / step) + 1;
   const sample = (px: number, py: number) => field[Math.min(H - 1, Math.max(0, py)) * W + Math.min(W - 1, Math.max(0, px))];
   const value = (a: number, b: number) => sample(a * step, b * step);
+  // Normals use gradients of a lightly smoothed field (heights stay exact), so ridges and bevels shade without ripples.
+  const smooth = smoothField(field, W, H, Math.max(1, size * 0.006));
+  const smoothSample = (px: number, py: number) => smooth[Math.min(H - 1, Math.max(0, py)) * W + Math.min(W - 1, Math.max(0, px))];
   const gradient = (px: number, py: number): [number, number] => [
-    (sample(px + 1, py) - sample(px - 1, py)) / 2,
-    (sample(px, py + 1) - sample(px, py - 1)) / 2,
+    (smoothSample(px + 1, py) - smoothSample(px - 1, py)) / 2,
+    (smoothSample(px, py + 1) - smoothSample(px, py - 1)) / 2,
   ];
 
   const pos: number[] = [];

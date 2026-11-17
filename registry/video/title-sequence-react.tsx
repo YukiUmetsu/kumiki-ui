@@ -37,9 +37,12 @@ function SculptedLine({ item, drawn, reducedMotion, fontPx, weight, boxWidth, bo
   }, [font, item.text]);
   const style: ReliefStyle = useMemo(() => ({ kind: item.sculpt?.style ?? "cut-card", depth: item.sculpt?.depth,
     color: item.sculpt?.color ?? (item.sculpt?.style === "embossed" ? undefined : item.color ?? "#1b1a17") }), [item]);
+  const cachedStyle = useRef(style);
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !prepared) return;
+    // Settled letters are cached per letter; a new style or colour shades them again.
+    if (cachedStyle.current !== style) { settled.current.clear(); cachedStyle.current = style; }
     const ss = SCULPT_SUPERSAMPLE, w = Math.max(1, Math.round(boxWidth * ss)), h = Math.max(1, Math.round(boxHeight * ss));
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
     const ctx = canvas.getContext("2d");

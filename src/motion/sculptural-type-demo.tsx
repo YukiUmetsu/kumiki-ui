@@ -5,6 +5,7 @@ import { planSculpturalText } from "../../registry/motion/sculptural-type";
 import type { ReliefProfile, SculptEnter, SculptIdle, SculpturalTextPlan } from "../../registry/motion/sculptural-type";
 import { SCULPT_MATERIAL_PRESETS, SculpturalTextObject, disposeSculptMaterial, sculptMaterial } from "../../registry/motion/sculptural-type-three";
 import { findMaterial } from "../../registry/materials/materials-physics";
+import { materialTexture } from "../../registry/materials/materials-texture";
 import type { MotionTimeline } from "../../registry/motion/types";
 import { Button } from "../ui/button";
 import { Slider } from "../ui/slider";
@@ -96,8 +97,7 @@ export function SculpturalTypeLab({ initialText = "Kumiki", initialMaterial = "g
     if (!host || !canvas) return;
     try {
       const stage = createStudioStage(host, canvas);
-      // Metals show only what they reflect: a brighter room, and a camera framed on letters standing on the floor.
-      stage.scene.environmentIntensity = 1.05;
+      // A camera framed on letters standing on the floor.
       stage.camera.position.set(0, STUDIO_FLOOR_Y + 1.35, 4.4);
       stage.controls.target.set(0, STUDIO_FLOOR_Y + 0.5, 0);
       stage.controls.update();
@@ -123,9 +123,17 @@ export function SculpturalTypeLab({ initialText = "Kumiki", initialMaterial = "g
     if (!stage || !plan) return;
     let material = materialRef.current.get(materialId);
     if (!material) {
-      material = sculptMaterial(materialId, { emMm: 140, relief: 0.6 });
+      // Polished metals stay clean; stone, wood, clay and paper keep their measured grain.
+      const metal = findMaterial(materialId)?.metal === 1;
+      const record = findMaterial(materialId);
+      if (!record) return;
+      material = sculptMaterial(record, materialTexture(materialId), { emMm: 140, relief: 0.6, detail: metal ? 0.35 : 1 });
       materialRef.current.set(materialId, material);
     }
+    // Metals show only what they reflect, so they get a brighter room; diffuse whites would blow out in it.
+    const metal = findMaterial(materialId)?.metal === 1;
+    stage.scene.environmentIntensity = metal ? 1.05 : 0.5;
+    stage.renderer.toneMappingExposure = metal ? 1 : 0.88;
     const object = new SculpturalTextObject(plan, { material });
     // Fit about 3.4 world units of width; the first line's baseline rests on the studio floor.
     const scale = Math.min(3.4 / Math.max(plan.block.width, 0.5), 1.9 / Math.max(plan.block.height, 0.5));

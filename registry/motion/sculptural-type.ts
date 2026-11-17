@@ -221,7 +221,8 @@ export function glyphPose(plan: SculpturalTextPlan, glyph: SculptGlyph, frame: n
         pose.offset[1] = 1.5 * (1 - u * u);
         pose.deformers.push({ kind: "squash", amount: 1 + 0.2 * intensity * u * u });
       } else {
-        const since = ((p - fall) * duration) / fps;
+        // Real time since contact, not the clamped entrance progress, so the spring always comes to rest.
+        const since = (t - fall * duration) / fps;
         const settle = springValue(since, SETTLE);
         pose.deformers.push({ kind: "squash", amount: 1 - 0.3 * intensity * (1 - settle) });
         pose.rotation[2] = 0.05 * intensity * (1 - settle) * (glyph.index % 2 ? 1 : -1);

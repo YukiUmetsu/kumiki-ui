@@ -345,6 +345,37 @@ export function resolveProfile(profile: ReliefProfile, size: number, thickest: n
   }
 }
 
+/**
+ * A copy of a field smoothed by a separable box filter, applied twice (close to a Gaussian). A raster distance
+ * transform carries small directional ripples; gradients taken from the smoothed copy shade without hatching, while
+ * heights still come from the exact field.
+ */
+export function smoothField(field: ArrayLike<number>, width: number, height: number, radius: number): Float32Array {
+  const out = Float32Array.from(field);
+  const r = Math.round(radius);
+  if (r < 1) return out;
+  const tmp = new Float32Array(out.length);
+  for (let pass = 0; pass < 2; pass += 1) {
+    for (let y = 0; y < height; y += 1) {
+      let sum = 0;
+      for (let x = -r; x <= r; x += 1) sum += out[y * width + Math.min(width - 1, Math.max(0, x))];
+      for (let x = 0; x < width; x += 1) {
+        tmp[y * width + x] = sum / (2 * r + 1);
+        sum += out[y * width + Math.min(width - 1, x + r + 1)] - out[y * width + Math.max(0, x - r)];
+      }
+    }
+    for (let x = 0; x < width; x += 1) {
+      let sum = 0;
+      for (let y = -r; y <= r; y += 1) sum += tmp[Math.min(height - 1, Math.max(0, y)) * width + x];
+      for (let y = 0; y < height; y += 1) {
+        out[y * width + x] = sum / (2 * r + 1);
+        sum += tmp[Math.min(height - 1, y + r + 1) * width + x] - tmp[Math.max(0, y - r) * width + x];
+      }
+    }
+  }
+  return out;
+}
+
 /** Largest inside distance of a field: half the thickest stroke, in pixels. */
 export function thickestStroke(field: ArrayLike<number>): number {
   let best = 0;

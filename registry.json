@@ -1271,6 +1271,65 @@
       ]
     },
     {
+      "name": "sculptural-type",
+      "type": "registry:ui",
+      "title": "Sculptural Type",
+      "description": "Sculptural typography: 3D letters as dimensional, deformable, material-bearing objects. Each grapheme or word of any font becomes a watertight solid built from its signed distance field, with flat, chamfer, round, pillow (inflated) or chisel (V-cut) relief. Barr bend, twist and taper, constant-volume squash and stretch, lean, wave and inflate deform it with exact normals, and drop, unfold, twist, inflate, swing and rise entrances stagger it like kinetic text. The same fields also shade 2D relief titles: cut card, letterpress, embossed foil and chiselled stone.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track",
+        "animated-text",
+        "shape-morph"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/sculptural-type.ts",
+          "type": "registry:ui",
+          "target": "components/motion/sculptural-type.ts"
+        },
+        {
+          "path": "registry/motion/sculptural-type-field.ts",
+          "type": "registry:ui",
+          "target": "components/motion/sculptural-type-field.ts"
+        },
+        {
+          "path": "registry/motion/sculptural-type-mesh.ts",
+          "type": "registry:ui",
+          "target": "components/motion/sculptural-type-mesh.ts"
+        },
+        {
+          "path": "registry/motion/sculptural-type-deform.ts",
+          "type": "registry:ui",
+          "target": "components/motion/sculptural-type-deform.ts"
+        },
+        {
+          "path": "registry/motion/sculptural-type-relief.ts",
+          "type": "registry:ui",
+          "target": "components/motion/sculptural-type-relief.ts"
+        }
+      ]
+    },
+    {
+      "name": "sculptural-type-three",
+      "type": "registry:ui",
+      "title": "Sculptural Type Three",
+      "description": "Three.js adapter for sculptural typography: 3D letters in real materials such as gold, brass, chrome, marble, stone, wood, lacquer, glass and paper. Each letter is one pivoted mesh, re-uploaded only while it deforms. Physical materials come from any measured material (MATL1 records and textures fit), with colour, roughness, metalness and normal maps baked at real size, plus anisotropy, transmission, iridescence or clear coat.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "sculptural-type"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/sculptural-type-three.ts",
+          "type": "registry:ui",
+          "target": "components/motion/sculptural-type-three.ts"
+        }
+      ]
+    },
+    {
       "name": "shared-element",
       "type": "registry:ui",
       "title": "Shared Element",
@@ -5598,10 +5657,11 @@
       "name": "title-sequence",
       "type": "registry:ui",
       "title": "Title Sequence",
-      "description": "A film's opening built on one symbol for its story, in cut paper: pieces with scissor-cut edges slide in or are set down one at a time and settle, each with a paper shadow that lengthens while it is in the air, animated on twos as stop motion is, over a grained paper ground; then the title is laid in word by word, with no fade, into a box set into the symbol, and the credits after it. Checks hold it to one symbol of up to a dozen pieces, built before the title arrives, and give the title and each credit their reading time; they project each line into each output and warn when it overflows its box or leaves the safe area.",
+      "description": "A film's opening built on one symbol for its story, in cut paper: pieces with scissor-cut edges slide in or are set down one at a time and settle, each with a paper shadow that lengthens while it is in the air, animated on twos as stop motion is, over a grained paper ground; then the title is laid in word by word, with no fade, into a box set into the symbol, and the credits after it. Checks hold it to one symbol of up to a dozen pieces, built before the title arrives, and give the title and each credit their reading time; they project each line into each output and warn when it overflows its box or leaves the safe area. The title can be made as physical letters: cut card, letterpress, embossed foil or chiselled.",
       "dependencies": [],
       "registryDependencies": [
-        "film-cards"
+        "film-cards",
+        "sculptural-type"
       ],
       "files": [
         {

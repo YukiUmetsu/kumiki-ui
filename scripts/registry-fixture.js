@@ -2618,6 +2618,46 @@ export function ShapeMorphExample() {
 }`,
     };
   },
+  "sculptural-type": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { SculpturalText, glyphPose } from "${specifier}";`,
+        `import { layoutGlyphs, signedDistanceField } from "${motionDir}/sculptural-type-field";`,
+        `import { shadeRelief } from "${motionDir}/sculptural-type-relief";`,
+      ],
+      componentName: "SculpturalTypeExample",
+      component: `export function SculpturalTypeExample() {
+  // Letters as solids: a chiselled profile, dropped in one by one, then a wave along the line.
+  const [text] = useState(() => new SculpturalText({ id: "title", text: "Kumiki", font: "800 120px sans-serif",
+    profile: { kind: "chisel", angle: 40 }, depth: 0.16, stagger: 3, motion: { enter: "drop", idle: "wave" } }));
+  const frames = text.update(12);
+  const pose = glyphPose(text.plan, text.plan.glyphs[0], 12);
+  // The same fields shaded in 2D: letterpress pressed into the paper.
+  const layout = layoutGlyphs("Ink", { font: "700 64px serif" });
+  const unit = layout.units[0];
+  const pixels = shadeRelief(unit, signedDistanceField(unit.alpha, unit.width, unit.height), { kind: "letterpress" }, layout.size);
+  return <span data-units={frames.length} data-visible={String(pose.visible)} data-pixels={pixels.data.length} />;
+}`,
+    };
+  },
+  "sculptural-type-three": (specifier) => {
+    return {
+      imports: [
+        `import { SculpturalTextObject, disposeSculptMaterial, sculptMaterial } from "${specifier}";`,
+      ],
+      componentName: "SculpturalTypeThreeExample",
+      component: `export function SculpturalTypeThreeExample() {
+  // Any measured material fits; MATL1's findMaterial(id) and materialTexture(id) can be passed as they are.
+  const gold = { name: "Gold", family: "metal", albedo: [1, 0.78, 0.34] as const, metal: 1 as const, roughness: { typical: 0.2 } };
+  const [object] = useState(() => new SculpturalTextObject({ id: "title", text: "Gold", font: "800 120px sans-serif",
+    motion: { enter: "inflate" } }, { material: sculptMaterial(gold, undefined, { emMm: 120 }) }));
+  object.update(20);
+  void disposeSculptMaterial;
+  return <span data-letters={object.children.length} />;
+}`,
+    };
+  },
   "shape-morph-three": (specifier) => {
     const motionDir = specifier.replace(/\/[^/]+$/, "");
     return {

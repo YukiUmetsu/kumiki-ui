@@ -14,7 +14,7 @@
  */
 
 import type { GlyphRaster, ReliefProfile } from "./sculptural-type-field";
-import { resolveProfile, thickestStroke } from "./sculptural-type-field";
+import { resolveProfile, smoothField, thickestStroke } from "./sculptural-type-field";
 
 export type ReliefStyleKind = "cut-card" | "letterpress" | "embossed" | "chiselled";
 
@@ -110,7 +110,9 @@ export function shadeRelief(unit: GlyphRaster, field: Float32Array, style: Relie
   const lx = Math.cos(azimuth) * Math.cos(elevation);
   const ly = -Math.sin(azimuth) * Math.cos(elevation);
   const lz = Math.sin(elevation);
-  const sample = (x: number, y: number) => field[Math.min(H - 1, Math.max(0, y)) * W + Math.min(W - 1, Math.max(0, x))];
+  // Gradients from a lightly smoothed field: shading without the distance transform's directional ripples.
+  const smooth = smoothField(field, W, H, 1);
+  const sample = (x: number, y: number) => smooth[Math.min(H - 1, Math.max(0, y)) * W + Math.min(W - 1, Math.max(0, x))];
   const sign = defaults.raised ? 1 : -1;
   const shade = new Float32Array(W * H);
   const coverage = new Float32Array(W * H);
@@ -176,13 +178,13 @@ export function shadeRelief(unit: GlyphRaster, field: Float32Array, style: Relie
     return out;
   }
   // Incised: ink or gilding in the cut, plus the light and dark the walls catch, over whatever ground is below.
-  const ink = style.kind === "letterpress" ? 0.88 * t : 0.25 * t;
+  const ink = style.kind === "letterpress" ? 0.8 * t : 0.25 * t;
   for (let i = 0; i < W * H; i += 1) {
     const a = coverage[i];
     if (a <= 0 && field[i] < -1) continue;
-    const s = shade[i] * 2.2;
-    const depthShade = style.kind === "chiselled" ? Math.min(0.45, (profile.height(Math.max(field[i], 0)) * scale) / Math.max(depthPx, 1) * 0.45) : 0;
-    const dark = Math.max(0, -s) + depthShade;
+    // Each wall of a cut is a plane: its tone is even, and the strokes' centre lines are crisp where the walls meet.
+    const s = shade[i] * (style.kind === "letterpress" ? 3 : 2.2);
+    const dark = Math.max(0, -s);
     const light = Math.max(0, s);
     // Layer ink, then darkening, then lightening, into one straight-alpha colour.
     let r = 0;
