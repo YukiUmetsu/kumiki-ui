@@ -112,11 +112,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pencil-rose-botanical-native-proof
-          path: |
-            test-results/colored-pencil-rose-lamina-*/
-            test-results/colored-pencil-rose-rolled-*/
-            test-results/colored-pencil-rose-calyx-*/
-            test-results/colored-pencil-rose-pinnate-*/
+          # Playwright truncates directory slugs for long test titles.
+          # Capture every image from this rose-only step before the next
+          # Playwright invocation clears test-results/, not guessed prefixes.
+          path: test-results/colored-pencil-rose-*/
           retention-days: 7
           if-no-files-found: warn
       - name: Check original drawing stages and 16:9 / 9:16 hero pixels
