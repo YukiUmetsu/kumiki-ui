@@ -578,18 +578,18 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       // Both forms are attached to the real ANAT1 forehead landmark.
       const crown=character==="scholar"?
         "M"+xy(shift(top,-85,9))
-        +" C"+xy(shift(top,-85,-13))+" "+xy(shift(top,-70,-67))
-        +" "+xy(shift(top,-60,-80))
-        +" L"+xy(shift(top,34,-88))
-        +" Q"+xy(shift(top,50,-81))+" "+xy(shift(top,59,-62))
+        +" C"+xy(shift(top,-85,-13))+" "+xy(shift(top,-70,-96))
+        +" "+xy(shift(top,-60,-111))
+        +" L"+xy(shift(top,34,-117))
+        +" Q"+xy(shift(top,50,-111))+" "+xy(shift(top,59,-83))
         +" L"+xy(shift(top,78,-4))
         +" C"+xy(shift(top,65,13))+" "+xy(shift(top,-43,21))
         +" "+xy(shift(top,-85,9))+" Z"
         :
         "M"+xy(shift(top,-82,12))
-        +" L"+xy(shift(top,-71,-59))
-        +" Q"+xy(shift(top,-33,-64))+" "+xy(shift(top,19,-62))
-        +" Q"+xy(shift(top,56,-59))+" "+xy(shift(top,66,-33))
+        +" L"+xy(shift(top,-71,-94))
+        +" Q"+xy(shift(top,-33,-97))+" "+xy(shift(top,19,-95))
+        +" Q"+xy(shift(top,56,-88))+" "+xy(shift(top,66,-45))
         +" L"+xy(shift(top,73,14))
         +" C"+xy(shift(top,46,10))+" "+xy(shift(top,-45,23))
         +" "+xy(shift(top,-82,12))+" Z";
@@ -602,8 +602,8 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           {Array.from({length:65},(_,i)=>{
             const t=i/64,edge=Math.abs(t-.5)*2;
             const x=top[0]-65+t*119;
-            const y=top[1]-15-58*(1-edge*.4)+2.1*Math.sin(i*1.87);
-            const length=9+25*(1-edge)+2.2*Math.sin(i*2.31);
+            const y=top[1]-24-79*(1-edge*.4)+2.1*Math.sin(i*1.87);
+            const length=12+38*(1-edge)+2.2*Math.sin(i*2.31);
             const bend=1.5+2.8*Math.cos(i*.93);
             return <path key={i}
               d={"M"+fmt(x)+" "+fmt(y)
@@ -633,14 +633,14 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           <path d={"M"+xy(shift(top,-73,9))
             +" Q"+xy(shift(top,-11,13))+" "+xy(shift(top,70,9))}
             fill="none" stroke="#cabca0" strokeWidth=".69" opacity=".37"/>
-          <path d={"M"+xy(shift(top,-64,-67))
-            +" Q"+xy(shift(top,-22,-71))+" "+xy(shift(top,35,-73))}
+          <path d={"M"+xy(shift(top,-64,-98))
+            +" Q"+xy(shift(top,-22,-101))+" "+xy(shift(top,35,-103))}
             fill="none" stroke="#c7b7a0" strokeWidth=".69" opacity=".28"/>
-          <path d={"M"+xy(shift(top,30,-82))
-            +" Q"+xy(shift(top,58,-53))+" "+xy(shift(top,75,7))}
+          <path d={"M"+xy(shift(top,30,-115))
+            +" Q"+xy(shift(top,58,-76))+" "+xy(shift(top,75,7))}
             fill="none" stroke="#b4a593" strokeWidth="1.04" opacity=".41"/>
           <path d={"M"+xy(shift(top,-75,-11))
-            +" Q"+xy(shift(top,-48,-26))+" "+xy(shift(top,-30,-65))}
+            +" Q"+xy(shift(top,-48,-26))+" "+xy(shift(top,-30,-94))}
             fill="none" stroke="#c7b7a0" strokeWidth="1.01" opacity=".24"/>
         </>:<>
           <path d={"M"+xy(shift(top,-53,12))
