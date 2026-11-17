@@ -7,9 +7,11 @@ import {serializeRisoSeparationPdf} from "../../registry/video/riso-press-pdf";
 import {rasterizeRisoSeparationTiff} from "../../registry/video/riso-press-raster";
 import {inspectRisoShopJob} from "../../registry/video/riso-shop-profile";
 import type {RisoShopProfile,RisoPressFormat} from "../../registry/video/riso-shop-profile";
-import {createRisoScanTemplate,inspectRisoScanProof,simulateRisoScanProof} from "../../registry/video/riso-scan-proof";
+import {createRisoScanTemplate,inspectRisoScanProof,simulateRisoScanProof,risoPrintRegistrationTargets} from "../../registry/video/riso-scan-proof";
 import type {RisoScanMeasurements} from "../../registry/video/riso-scan-proof";
 import {RisoScanImageAnnotator} from "./riso71-scan-image-annotator";
+import type {Riso71SourceImage} from "./riso71-scan-image-annotator";
+import {Riso72PaperPhotoComparator} from "./riso72-paper-photo-comparator";
 
 const control={display:"grid",gap:4,font:"600 13px system-ui",minWidth:155} as const;
 const button={border:"1px solid #847867",background:"#FFFAED",padding:"9px 13px",
@@ -44,6 +46,7 @@ export function RisoShopProofStudio(){
   const [redDy,setRedDy]=useState(-.7);
   const [inputType,setInputType]=useState<"synthetic"|"physical">("synthetic");
   const [scanJson,setScanJson]=useState("");
+  const [scanPhoto,setScanPhoto]=useState<Riso71SourceImage|null>(null);
   const [macro,setMacro]=useState(false);
   const [busy,setBusy]=useState(false);
   const [downloadError,setDownloadError]=useState("");
@@ -71,6 +74,12 @@ export function RisoShopProofStudio(){
       return {result:null,problem:e instanceof Error?e.message:String(e)};
     }
   },[spec,masters,layout,inputType,scanJson,redDx,redDy,tolerance]);
+  const photoReadings=useMemo(()=>{
+    if(inputType!=="physical"||!measured.result||!scanPhoto||
+      measured.result.evidence!=="operator-measured")return null;
+    try{return JSON.parse(scanJson) as RisoScanMeasurements;}
+    catch{return null;}
+  },[inputType,measured.result,scanJson,scanPhoto]);
   const exportPlate=async(id:string)=>{
     if(!shop.compatible||busy)return;
     setBusy(true);setDownloadError("");setLastDownload("");
@@ -238,7 +247,8 @@ export function RisoShopProofStudio(){
       <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end"}}>
         <label style={control}>Scan reading provenance
           <select aria-label="RISO70 scan evidence source"
-            value={inputType} onChange={e=>setInputType(e.target.value as typeof inputType)}>
+            value={inputType} onChange={e=>{setInputType(e.target.value as typeof inputType);
+              setScanPhoto(null);setScanJson("");}}>
             <option value="synthetic">Simulated, NOT physical</option>
             <option value="physical">Operator-entered actual scanned pixels</option>
           </select>
@@ -275,7 +285,15 @@ export function RisoShopProofStudio(){
         <RisoScanImageAnnotator
           plateIds={spec.plates.map(p=>p.id)}
           resetKey={[aspect,frame,seed,marks].join(":")}
-          onChange={reading=>setScanJson(reading?JSON.stringify(reading,null,2):"")}/>}
+          onChange={reading=>setScanJson(reading?JSON.stringify(reading,null,2):"")}
+          onImage={setScanPhoto}/>}
+      {inputType==="physical"&&photoReadings&&scanPhoto&&
+        shop.compatible&&marks==="crop-and-register"&&
+        <Riso72PaperPhotoComparator
+          photo={scanPhoto} measurements={photoReadings}
+          sheetMm={layout.sheetMm}
+          originalMasters={previews}
+          expectedMarksMm={risoPrintRegistrationTargets(spec,masters,layout)}/>}
       {inputType==="physical"&&<label style={{display:"grid",gap:6,
         font:"600 13px system-ui"}}>
         Actual observed scan pixels JSON (all 4 paper edges and 8 cross centers)
