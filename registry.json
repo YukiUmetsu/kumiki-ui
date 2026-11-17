@@ -4174,6 +4174,53 @@
       ]
     },
     {
+      "name": "food",
+      "type": "registry:ui",
+      "title": "Food Framework (FOOD1)",
+      "description": "Food that looks cooked the way it was cooked, in any art style: the temperatures where food changes (myosin, myoglobin, egg white and yolk, Maillard browning, caramelisation, starch), beef doneness by core temperature, thermal diffusivity, steam, gloss by food and dishes common in Japanese and everyday scenes (onigiri, nigiri, ramen, dango, tempura, persimmon, toast). Cooking by heat conduction: cookSteak (sear, flip, rest; moist meat capped at 100 C; Maillard crust), cookEgg (boiling then ice; runny, jammy, hard, green ring), toastBrowning; colours from peak temperatures. renderFood paints a cut steak, a halved boiled egg and toast from the physics; FoodView renders in the worker pool; Steam animates a rising, curling plume; FoodSheet. Every value graded reported or estimated with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/materials/food-data.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-data.ts"
+        },
+        {
+          "path": "registry/materials/food-physics.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-physics.ts"
+        },
+        {
+          "path": "registry/materials/food-render.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render.ts"
+        },
+        {
+          "path": "registry/materials/food-react.tsx",
+          "type": "registry:ui",
+          "target": "components/materials/food-react.tsx"
+        },
+        {
+          "path": "registry/materials/food-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render-pool.ts"
+        },
+        {
+          "path": "registry/materials/food-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render-jobs.ts"
+        },
+        {
+          "path": "registry/materials/food-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render-worker.ts"
+        }
+      ]
+    },
+    {
       "name": "architecture",
       "type": "registry:ui",
       "title": "Architecture Framework (ARCH1)",
