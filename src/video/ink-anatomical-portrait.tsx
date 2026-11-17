@@ -19,7 +19,7 @@ export const INK_PORTRAIT_CHARACTERS=["scholar","elder"] as const;
 export const INK_PORTRAIT_EMOTIONS=["neutral","smile","sad","angry","surprise"] as const;
 export type InkPortraitCharacter=typeof INK_PORTRAIT_CHARACTERS[number];
 export type InkPortraitEmotion=typeof INK_PORTRAIT_EMOTIONS[number];
-export type InkPortraitView="bust"|"face"|"robe";
+export type InkPortraitView="bust"|"face"|"robe"|"source";
 
 export interface InkAnatomicalPortraitProps extends Omit<SVGProps<SVGSVGElement>,"children"|"viewBox"> {
   character?:InkPortraitCharacter;
@@ -811,7 +811,7 @@ export function InkAnatomicalPortrait({character="scholar",emotion="neutral",int
   const faceBox=[270+(100-270)*scaleRatio,
     420+(112-420)*scaleRatio,345*scaleRatio,419*scaleRatio];
   const bustTop=420+(95-420)*scaleRatio;
-  const camera=view==="face"?faceBox.map(fmt).join(" "):
+  const camera=view==="source"?"0 0 540 620":view==="face"?faceBox.map(fmt).join(" "):
     view==="robe"?"55 410 430 202":"0 "+fmt(bustTop)+" 540 "+fmt(620-bustTop);
   return <svg {...svgProps} data-testid="ink-anat2-portrait" data-ink-character={character}
       data-ink-emotion={emotion} data-ink-view={view}
