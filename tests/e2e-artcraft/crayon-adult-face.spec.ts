@@ -1727,6 +1727,66 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
  * Protect same decoded-actual-PNG original green canopy & nasal tissue.
  */
 
+/** Original CC0 photo camera 608x1082, same true Chromium PNG:
+ * V53 photo-connected ocular topology vs original V52 negative control.
+ * No changes allowed to source hair masses or unrelated upper foliage.
+ */
+test("F1 V53 source-connected actual near-eye anatomy 1x and 2.85x V52 negative control",async({page},info)=>{
+  test.setTimeout(240_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const controls:number[][]=[];
+  const captures:Record<string,Uint8Array[]>={full:[],eye:[]};
+  for(const midfaceForm of [
+    "source-anat1-photo-hair-face-v52","source-anat1-palpebral-v53",
+  ] as const){
+    const base=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","eye"] as const){
+      const spec=view==="full"?base:{...base,camera:[
+        {frame:0,focusX:270,focusY:546,zoom:2.85},
+        {frame:299,focusX:270,focusY:546,zoom:2.85},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+        "</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["sclera-near","iris-near","pupil-near",
+        "upper-lid-near","lash-root-near","lower-lid-near"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-crayon-element^="hair-source-lock-"]')).toHaveCount(0);
+      await page.waitForTimeout(410);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v53-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      captures[view].push(png);
+      if(view==="full"){
+        controls.push(await page.evaluate(async(encoded:string)=>{
+          const i=new Image();i.src="data:image/png;base64,"+encoded;
+          await i.decode();
+          const c=document.createElement("canvas");
+          c.width=i.naturalWidth;c.height=i.naturalHeight;
+          const ctx=c.getContext("2d");
+          if(!ctx)throw new Error("Real native screenshot pixel inspector missing");
+          ctx.drawImage(i,0,0);
+          return Array.from(ctx.getImageData(0,0,80,75).data);
+        },Buffer.from(png).toString("base64")));
+      }
+    }
+  }
+  expect(controls).toHaveLength(2);
+  let changed=0;
+  for(let i=0;i<controls[0].length;i+=4)
+    if(Math.abs(controls[0][i]-controls[1][i])+
+       Math.abs(controls[0][i+1]-controls[1][i+1])+
+       Math.abs(controls[0][i+2]-controls[1][i+2])>5)changed++;
+  expect(changed/(controls[0].length/4)).toBeLessThanOrEqual(.003);
+  for(const view of ["full","eye"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
 /** Same-head original 608x1082 CC0 screenshot: composed native V49 face
  * pressure fields on original V50 hair. The rejected V51 fake roots are
  * excluded. Far eye and upper original background are protected pixels.
