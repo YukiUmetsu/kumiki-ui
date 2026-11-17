@@ -7,6 +7,10 @@ test("two real rounded frontal rose petal heels remain integrated with calyx, fr
   await page.goto(story);
   const studio=page.locator("[data-km-foundation-studio]");
   const svg=page.locator("svg[data-km-colored-pencil]");
+  // The SVG itself grows when zoomed; screenshot its clipped parent viewport
+  // for a true inspection crop, while full-frame parity remains SVG-native.
+  const paper=svg.locator("xpath=..");
+  await expect(paper).toHaveCSS("overflow","hidden");
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
   const folds=page.getByRole("checkbox",{name:"Foundation rose physical folds"});
   const calyx=page.getByRole("checkbox",{name:"Foundation rose calyx anatomy"});
@@ -35,13 +39,16 @@ test("two real rounded frontal rose petal heels remain integrated with calyx, fr
     const macro=page.getByRole("checkbox",{name:"Foundation inspect macro"});
     await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("rose-front-left");
     await macro.check();
-    const oldLeft=await svg.screenshot({animations:"disabled",
+    await expect(studio).toHaveAttribute("data-km-foundation-inspection-focus","petal-front-left");
+    const oldLeft=await paper.screenshot({animations:"disabled",
       path:info.outputPath("rose-proximal-"+aspect+"-old-left-215pct.png")});
     await macro.uncheck();
     await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("rose-front-right");
     await macro.check();
-    const oldRight=await svg.screenshot({animations:"disabled",
+    await expect(studio).toHaveAttribute("data-km-foundation-inspection-focus","petal-front-right");
+    const oldRight=await paper.screenshot({animations:"disabled",
       path:info.outputPath("rose-proximal-"+aspect+"-old-right-215pct.png")});
+    expect(digest(oldLeft)).not.toBe(digest(oldRight));
     await macro.uncheck();
     await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("default");
     await heel.check();
@@ -61,13 +68,15 @@ test("two real rounded frontal rose petal heels remain integrated with calyx, fr
     expect(digest(improved)).not.toBe(digest(before));
     await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("rose-front-left");
     await macro.check();
-    const newLeft=await svg.screenshot({animations:"disabled",
+    await expect(studio).toHaveAttribute("data-km-foundation-inspection-focus","petal-front-left");
+    const newLeft=await paper.screenshot({animations:"disabled",
       path:info.outputPath("rose-proximal-"+aspect+"-left-215pct.png")});
     expect(digest(newLeft)).not.toBe(digest(oldLeft));
     await macro.uncheck();
     await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("rose-front-right");
     await macro.check();
-    const newRight=await svg.screenshot({animations:"disabled",
+    await expect(studio).toHaveAttribute("data-km-foundation-inspection-focus","petal-front-right");
+    const newRight=await paper.screenshot({animations:"disabled",
       path:info.outputPath("rose-proximal-"+aspect+"-right-215pct.png")});
     expect(digest(newRight)).not.toBe(digest(oldRight));
     await macro.uncheck();
