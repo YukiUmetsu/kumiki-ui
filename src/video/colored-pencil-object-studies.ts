@@ -694,11 +694,6 @@ export function pencilObjectStudyDrawing({
         url:"https://www.life.illinois.edu/help/digitalflowers/Flowers/56.htm",
         rights:"technique-only" as const,
         observation:"The green receptacular cup physically supports petal bases, carries five sepals and joins the floral stalk. A broad continuous hypanthium is seen from behind the corolla, not two isolated green stickers separated from the rose by blank paper.",
-      },{
-        title:"The Science of Plants — flower morphology (University of Minnesota)",
-        url:"https://open.lib.umn.edu/horticulture/chapter/7-2-flower-morphology/",
-        rights:"technique-only" as const,
-        observation:"Calyx, corolla and androecium insertion belongs to a shared floral axis: changing one continuous source receptacle is more faithful than adding unrelated green patches or a painted outline to cover the paper gap.",
       }]:[]),
       ...(subject==="rose"&&roseContactShadowStudy?[{
         title:"Leyth and chuttersnap — CC0 rose closeup photographs (Wikimedia Commons)",
@@ -723,7 +718,11 @@ export function pencilObjectStudyDrawing({
         rights:"technique-only" as const,
         observation:"The broader petal margin is wavy and asymmetric; its curved distal edge develops slightly different scallop intervals on opposing petals. This is a separate cultivar and only a general shape observation, not a registered landmark match.",
       }]:[]),
-      ...(subject==="rose"&&roseOuterFormStudy?[{
+      // The same Evans original is already attributed by the middle cup.
+      // In the new combined experiment prefer unique morphological evidence:
+      // keep exactly one cited Evans URL (12-reference CP-F1 hard ceiling).
+      ...(subject==="rose"&&roseOuterFormStudy&&
+        !(roseHypanthiumAttachmentStudy&&roseMiddleCupStudy)?[{
         title:"Karen Elaine Evans — artist-original Pink Rose colored-pencil form",
         url:"https://www.artfinder.com/product/pink-rose-6a554/",
         rights:"technique-only" as const,
