@@ -95,7 +95,7 @@ export function inspectRoseMiddleLaminae():string[]{
     for(const d of o.details){
       if(!d.path.startsWith("M")||!/^#[0-9A-Fa-f]{6}$/.test(d.color)||
         !Number.isFinite(d.width)||d.width<.2||d.width>1.8||
-        !Number.isFinite(d.opacity)||d.opacity<=0||d.opacity>1||
+        (typeof d.opacity!=="number"||!Number.isFinite(d.opacity)||d.opacity<=0||d.opacity>1)||
         !Number.isSafeInteger(d.startFrame)||d.startFrame<160||
         !Number.isSafeInteger(d.durationFrames)||d.durationFrames<8)
         issues.push("Invalid middle lamina contact: "+o.id);
