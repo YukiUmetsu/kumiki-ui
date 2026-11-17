@@ -33,6 +33,7 @@ on:
       - src/video/crayon-artcraft-f1-anat1-photo-composition-v52.ts
       - src/video/crayon-artcraft-f1-anat1-palpebral-v53.ts
       - src/video/crayon-artcraft-f1-anat1-superior-tarsus-v54.ts
+      - tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
       - registry/anatomy/anatomy-face.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
       - playwright.artcraft.config.ts
@@ -41,6 +42,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: crayon-artcraft-portrait-${{ github.ref }}
@@ -59,12 +61,25 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Install browser runtime
         run: npx playwright install --with-deps chromium
+      - name: Restore frozen 608x1082 CC0 photo source (reference, NOT render)
+        uses: actions/download-artifact@v4
+        with:
+          name: artcraft-pencil-real-reference-pixel-evidence
+          run-id: 43682633614
+          repository: YukiUmetsu/kumiki-ui
+          github-token: ${{ github.token }}
+          path: .artcraft-original-photo
       - name: Capture changed anatomy and adjacent source-native negative controls (PR)
         if: github.event_name == 'pull_request'
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
           --grep "F1 V48|F1 V49|F1 V50|F1 V51|F1 V52|F1 V53|F1 V54"
+      - name: Score exact original CC0 against V52/V54 real native Chromium pixels
+        run: >-
+          npx playwright test -c playwright.artcraft.config.ts
+          tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
+          --grep "F1 V55 source-vs-native similarity"
       - name: Capture source-native material and registered portrait evidence (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-
