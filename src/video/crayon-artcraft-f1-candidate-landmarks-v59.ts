@@ -173,3 +173,98 @@ export function crayonF1NativeCaptureWorksheetV60(info:CrayonF1NativeCaptureInfo
     releaseApproved:false as const,
   };
 }
+
+
+/** Exact return shape of the V60 browser-generated provenance sidecar. */
+export type CrayonF1NativeCaptureWorksheetV60=
+  ReturnType<typeof crayonF1NativeCaptureWorksheetV60>;
+
+/** Parse the fixed-camera PNG IHDR; do not trust the filename or MIME type. */
+export function crayonF1NativePngDimensionsV61(
+  bytes:Uint8Array,
+):readonly [608,1082]{
+  const signature=[137,80,78,71,13,10,26,10];
+  if(bytes.byteLength<33||signature.some((value,index)=>bytes[index]!==value))
+    throw new RangeError("V61 screenshot is not a complete PNG");
+  const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+  if(view.getUint32(8,false)!==13||
+    String.fromCharCode(bytes[12],bytes[13],bytes[14],bytes[15])!=="IHDR")
+    throw new RangeError("V61 screenshot has no canonical PNG IHDR");
+  const width=view.getUint32(16,false),height=view.getUint32(20,false);
+  if(width!==608||height!==1082)
+    throw new RangeError("V61 screenshot must be the exact 608x1082 source camera");
+  return [608,1082] as const;
+}
+
+/** Browser-native SHA-256 over the PNG bytes; no metadata-only hash claims. */
+export async function crayonF1NativePngSha256V61(
+  bytes:ArrayBuffer,
+  cryptoProvider?:Pick<Crypto,"subtle">,
+):Promise<string>{
+  const subtle=cryptoProvider?.subtle??globalThis.crypto?.subtle;
+  if(!subtle)throw new RangeError("V61 requires Web Crypto SHA-256 in a secure context");
+  const digest=await subtle.digest("SHA-256",bytes);
+  return Array.from(new Uint8Array(digest),value=>
+    value.toString(16).padStart(2,"0")).join("");
+}
+
+const isRecord=(value:unknown):value is Record<string,unknown>=>
+  typeof value==="object"&&value!==null&&!Array.isArray(value);
+
+/**
+ * Validate the untrusted JSON sidecar against the independently computed
+ * PNG byte digest and the exact frozen source observations. A screenshot
+ * filename, JSON assertion or user-entered digest alone is never evidence.
+ */
+export function crayonF1ValidateNativePngManifestV61(
+  raw:unknown,fileName:string,actualPngSha256:string,
+  width:number,height:number,
+):CrayonF1NativeCaptureWorksheetV60{
+  const fail=():never=>{throw new RangeError(
+    "V61 PNG/manifest/source/camera provenance mismatch");};
+  if(!isRecord(raw)||!isRecord(raw.source)||!isRecord(raw.native)||
+    !isRecord(raw.evidence)||!isRecord(raw.audit))return fail();
+  const source=raw.source,native=raw.native,evidence=raw.evidence,audit=raw.audit;
+  const variant=native.variant;
+  if(!/^[a-z0-9][a-z0-9._-]*\\.png$/i.test(fileName)||fileName.includes("..")||
+    width!==608||height!==1082||
+    !HEX256.test(actualPngSha256)||actualPngSha256===CRAYON_F1_V59_SOURCE.sha256||
+    raw.schema!=="kumiki-crayon-artcraft-candidate-v60"||
+    source.sha256!==CRAYON_F1_V59_SOURCE.sha256||
+    source.url!==CRAYON_F1_V59_SOURCE.sourceUrl||
+    source.screenshotNotOriginalCameraJpeg!==true||
+    !isRecord(source.frozenPoints)||
+    native.fileName!==fileName||native.sha256!==actualPngSha256||
+    !HEX256.test(String(native.sha256??""))||
+    !/^[a-f0-9]{40}$/i.test(String(native.workflowCheckoutSha??""))||
+    !VARIANTS.includes(variant as CrayonF1CandidateVariant)||
+    native.detail!==1||native.frame!==299||native.fullSourceCamera!==true||
+    !Array.isArray(native.viewport)||native.viewport.length!==2||
+    native.viewport[0]!==608||native.viewport[1]!==1082||
+    evidence.sourceSha256!==CRAYON_F1_V59_SOURCE.sha256||
+    evidence.renderedPngSha256!==actualPngSha256||
+    evidence.variant!==variant||evidence.frame!==299||
+    evidence.width!==608||evidence.height!==1082||
+    !isRecord(evidence.marks)||Object.keys(evidence.marks).length!==0||
+    audit.status!=="INCOMPLETE"||audit.sourceSha256!==CRAYON_F1_V59_SOURCE.sha256||
+    audit.renderedPngSha256!==actualPngSha256||audit.sourcePoints!==18||
+    audit.measured!==0||audit.meanNormalizedError!==null||
+    audit.verifiedRender!==false||audit.approvedForRelease!==false||
+    !Array.isArray(audit.missing)||audit.missing.length!==18||
+    !audit.missing.every((name,index)=>name===CRAYON_F1_V59_NAMES[index])||
+    !Array.isArray(audit.outliers)||audit.outliers.length!==0||
+    raw.independentRenderedPointObservations!==0||
+    raw.facialValuePlanesApproved!==false||
+    raw.entire300FrameFilmReviewed!==false||
+    raw.artistApproved!==false||raw.releaseApproved!==false)
+    return fail();
+  const frozen=source.frozenPoints;
+  if(Object.keys(frozen).length!==CRAYON_F1_V59_NAMES.length)return fail();
+  for(const name of CRAYON_F1_V59_NAMES){
+    const observed=frozen[name];
+    const expected=CRAYON_PORTRAIT_AUDIT.sourcePoints[name];
+    if(!Array.isArray(observed)||observed.length!==2||
+      observed[0]!==expected[0]||observed[1]!==expected[1])return fail();
+  }
+  return raw as unknown as CrayonF1NativeCaptureWorksheetV60;
+}
