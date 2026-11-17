@@ -67,3 +67,35 @@ The original-photo source-native proof completed successfully on [Actions run 44
 | V57 | `59bf9923d0bdc83d00d13c4a5b362eaf2d1a4aaaafed8a5ffc9de3958d8e72bd` | `v60-native-candidate-V57-299.json` |
 
 Both artifact PNGs were SHA-256 checked against their matching sidecars after download; both are 608×1082, frame 299, and report **0/18 candidate landmarks measured**. They are now ready for manual annotation through the V61 Storybook workbench. This confirms exact byte provenance and handoff availability, **not** independent feature measurement or artistic acceptance.
+
+
+## V62 — paired source/candidate PNG review (17 Nov 2026)
+
+### Root-cause correction
+
+V61 displayed the immutable blue **source** landmarks over the uploaded **candidate** PNG because the workbench accepted only one image. Although the markers were labelled as source observations, placing them on the candidate image could visually imply that those positions had already been observed on the render. V62 removes that ambiguity.
+
+### V62 behavior
+
+- Requires three inputs: `artcraft-source/cc0-source-608x1082.png`, the native 608×1082 Chromium candidate PNG, and its matching V60 JSON sidecar.
+- Computes SHA-256 over the uploaded source bytes and requires the exact frozen CC0 screenshot hash `f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2`, exact filename and 608×1082 dimensions.
+- Retains V61's byte-level candidate hash and strict V60 sidecar validation.
+- Shows the original source and actual native candidate **side by side** at the same camera dimensions. Blue source landmarks appear only over the source image. Orange candidate landmarks can only be manually entered over the candidate image.
+- The exported observation record includes both PNG hashes and records reviewer independence, full-film review, facial-plane approval and artist approval as false.
+- The existing ArtCraft Source Lab story is updated in place; no new Storybook category or folder.
+
+### Artifact handoff
+
+The native-render workflow copies the exact CC0 source screenshot from the frozen reference artifact into `test-results/artcraft-source/cc0-source-608x1082.png`, verifies its SHA-256 with `sha256sum`, and uploads it beside the candidate screenshots and V60 JSON sidecars. The workflow now also runs when the paired-review test file changes.
+
+The first V62 artifact handoff verified the copied source screenshot as a 608×1082 PNG with the exact frozen hash. That run was cancelled during candidate capture after a subsequent test-only commit; its candidate PNGs matched the previously completed V57 artifact byte-for-byte, but it did not contain the matching JSON sidecars. A fresh source-native run on the current workflow head is required for a complete same-artifact handoff.
+
+### V62 checks
+
+- The new source-image validation test rejects a wrong filename, wrong dimensions and any source-byte hash other than the frozen CC0 hash.
+- The workbench test confirms source anchors exist only in the source camera and are absent from the candidate camera; candidate clicks still create candidate-only points.
+- Mismatched source images and candidate/manifest pairs remain quarantined.
+- Latest changed-contract run: **61 test files and 440 tests passed**; TypeScript and the 967-module Storybook source/import preflight passed.
+- The separate source-native Chromium capture must finish successfully before the artifact is considered ready for manual review.
+
+**Art status remains HOLD:** no new candidate landmarks have been independently measured; V57 whole-source SSIM remains ≈0.5155 against the ≈0.85 research target. The five connected facial value planes, independent reviewer, full normal-speed 300-frame review and professional artist acceptance remain outstanding. V62 corrects the review evidence layout; it does not claim improved artwork or release readiness.
