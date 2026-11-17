@@ -1,4 +1,4 @@
-name: RISO70–73 independent multi-copy print reference and paper-matched stencil proof
+name: RISO70–74 physical ink image evidence and native pixel sampling proof
 on:
   pull_request:
     paths:
@@ -8,6 +8,10 @@ on:
       - "registry/video/riso-scan-image-annotation.ts"
       - "registry/video/riso-paper-photo-affine.ts"
       - "registry/video/riso-two-print-run-audit.ts"
+      - "registry/video/riso-scan-native-pixel-evidence.ts"
+      - "src/video/riso74-native-pixel-evidence-studio.tsx"
+      - "tests/riso74-native-raster-microstructure-artcraft.test.tsx"
+      - "docs/research/riso74-native-print-scan-optical-evidence-artcraft.md"
       - "src/video/riso73-two-print-run-studio.tsx"
       - "tests/riso73-two-copy-print-repeatability.test.tsx"
       - "tests/e2e-storybook/riso73-two-original-print-copy-images.spec.ts"
@@ -46,7 +50,7 @@ jobs:
       - name: Strict TypeScript and original RISO70-RISO65 source QA
         run: |
           npm run typecheck
-          npm run test -- tests/riso73-two-copy-print-repeatability.test.tsx tests/riso72-paper-photo-affine-artcraft.test.tsx tests/riso71-scan-image-annotation-artcraft.test.tsx tests/riso70-shop-scan-proof.test.tsx tests/riso69-press-master-formats.test.tsx tests/riso68-master-separations.test.tsx tests/riso67-topology-guard.test.tsx tests/riso66-contact-trap.test.tsx tests/riso65-registration-preflight.test.tsx
+          npm run test -- tests/riso74-native-raster-microstructure-artcraft.test.tsx tests/riso73-two-copy-print-repeatability.test.tsx tests/riso72-paper-photo-affine-artcraft.test.tsx tests/riso71-scan-image-annotation-artcraft.test.tsx tests/riso70-shop-scan-proof.test.tsx tests/riso69-press-master-formats.test.tsx tests/riso68-master-separations.test.tsx tests/riso67-topology-guard.test.tsx tests/riso66-contact-trap.test.tsx tests/riso65-registration-preflight.test.tsx
       - name: Independent riso-print clean consumer installation and registry validation
         run: |
           npm run registry:validate
