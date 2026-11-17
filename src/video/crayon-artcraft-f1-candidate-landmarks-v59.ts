@@ -226,7 +226,7 @@ export function crayonF1ValidateNativePngManifestV61(
     !isRecord(raw.evidence)||!isRecord(raw.audit))return fail();
   const source=raw.source,native=raw.native,evidence=raw.evidence,audit=raw.audit;
   const variant=native.variant;
-  if(!/^[a-z0-9][a-z0-9._-]*\\.png$/i.test(fileName)||fileName.includes("..")||
+  if(!/^[a-z0-9][a-z0-9._-]*\.png$/i.test(fileName)||fileName.includes("..")||
     width!==608||height!==1082||
     !HEX256.test(actualPngSha256)||actualPngSha256===CRAYON_F1_V59_SOURCE.sha256||
     raw.schema!=="kumiki-crayon-artcraft-candidate-v60"||
