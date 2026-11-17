@@ -686,6 +686,36 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(scrollReaderFacePortrait(1)).toEqual(high);
   });
 
+  it("moves the original resting lower-lip wash off the fixed face and attaches a physical mouth light to all speech cels",()=>{
+    const portrait=scrollReaderFacePortrait(1);
+    const original="M139.9 129.6 Q143.6 131.7 147.2 128.6";
+    const fixed=paths(portrait,"face");
+    expect(fixed.some(s=>s.type==="path"&&s.d===original)).toBe(false);
+    const ids=["rest","aa","oh","mm","smile"] as const;
+    for(const id of ids){
+      const shapes=paths(portrait,"mouth-"+id);
+      const underline=shapes.find(s=>s.type==="path"&&
+        s.stroke==="$skinshade"&&s.strokeWidth===.46&&s.opacity===.35);
+      expect(underline).toBeDefined();
+      if(!underline||underline.type!=="path")
+        throw Error("Original lip reflection must remain vector ink");
+      expect(underline.fill).toBe("none");
+      expect(underline.d).toBe(id==="aa"?
+        "M138.5 132 Q142.8 134.1 146.3 130.8":id==="oh"?
+        "M141.05 131.05 Q143.05 132.72 145.02 130.8":original);
+    }
+    // OH no longer has a centered dark pupil-like disc; the deepest
+    // pigment lives in a tiny upper-lip crescent under the upper rim.
+    const oh=paths(portrait,"mouth-oh");
+    const core=oh.find(s=>s.type==="path"&&s.fill==="$ink"&&
+      s.stroke==="none"&&s.opacity===.22);
+    if(!core||core.type!=="path")throw Error("OH shadow shelf missing");
+    expect(core.d).toContain("M142.73 127.56");
+    expect((core.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(2);
+    expect(core.d).not.toContain("C143.57 128.43");
+    expect(paths(portrait,"mouth-aa")).not.toEqual(oh);
+  });
+
   it("routes preserved resting lip anatomy to attached AA/OH vermilion, not a third-eye horizontal mouth seam",()=>{
     const anatomy=readerFaceAnatomy(1);
     const old=anatomy.lips.slice(2,6).filter(s=>s.type==="path");
