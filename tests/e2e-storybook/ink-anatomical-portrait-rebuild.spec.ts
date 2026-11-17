@@ -86,3 +86,33 @@ test("ANAT2 ArtCraft source comparison only accepts local images and manually re
       buffer:Buffer.from("not an image")});
     await expect(page.getByRole("alert")).toContainText("Only PNG");
   });
+
+test("ANAT2 robe microscope reuses INK1 variable-pressure material and exposes matched 1x views",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-anat2-portrait-rebuild--robe-pressure-microscope&viewMode=story");
+    const desk=page.getByTestId("ink-anat2-robe-pressure-microscope");
+    await expect(desk).toBeVisible();
+    await expect(page.locator("[data-ink-robe-inspector]")).toHaveCount(2);
+    await expect(page.locator('[data-ink-robe-camera="robe"] svg')).toHaveCount(2);
+    await expect(page.locator('[data-ink-robe-camera="bust"] svg')).toHaveCount(2);
+    const scholar=page.locator('[data-ink-robe-inspector="scholar"]');
+    const elder=page.locator('[data-ink-robe-inspector="elder"]');
+    for(const figure of [scholar,elder]){
+      const crop=figure.locator('[data-ink-robe-camera="robe"]');
+      await expect(crop.locator('[data-km-ink-native-robe-brush]')).toHaveCount(4);
+      await expect(crop.locator('[data-km-ink-brush-pressure="INK1-variable-width"]')).toHaveCount(4);
+      await expect(crop.locator('mask[maskUnits="userSpaceOnUse"]')).toHaveCount(4);
+      await expect(crop.locator('svg')).toHaveAttribute("data-ink-view","robe");
+    }
+    await desk.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-native-ink1-robe-load-pressure-two-people-1x.png")});
+    const pressure=page.getByRole("slider",{name:"Ink robe pressure detail"});
+    await pressure.focus();await pressure.press("Home");
+    await expect(pressure).toHaveValue("0.25");
+    await page.getByRole("combobox",{name:"Ink robe pressure expression"})
+      .selectOption("surprise");
+    await expect(elder.locator('[data-ink-robe-camera="robe"] svg'))
+      .toHaveAttribute("data-ink-emotion","surprise");
+    await expect(elder.locator('[data-ink-robe-camera="robe"] [data-km-ink-native-robe-brush]'))
+      .toHaveCount(4);
+  });
