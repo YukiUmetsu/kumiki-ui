@@ -12,8 +12,8 @@ const sheet=[297,210] as const;
 const affine=(pxPerMm:number,rotation=0,asymmetry=1)=>{
   const a=rotation*Math.PI/180;
   const scan=([x,y]:readonly [number,number])=>[
-    700+pxPerMm*x*Math.cos(a)-pxPerMm*asymmetry*y*Math.sin(a),
-    800+pxPerMm*x*Math.sin(a)+pxPerMm*asymmetry*y*Math.cos(a),
+    5000+pxPerMm*x*Math.cos(a)-pxPerMm*asymmetry*y*Math.sin(a),
+    3200+pxPerMm*x*Math.sin(a)+pxPerMm*asymmetry*y*Math.cos(a),
   ] as const;
   const corners=(["top-left","top-right","bottom-right","bottom-left"] as const)
     .map((id,i)=>({id,scanPx:scan(
