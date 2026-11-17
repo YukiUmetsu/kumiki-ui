@@ -481,12 +481,18 @@ export function pencilObjectStudyDrawing({
       valueIndex>=0?38+valueIndex:i;
     const region = material(shape, (seed + materialIndex * 311) % 2147483647, transform);
     return { ...region,
-      // Glaze/cast-shadow supports have no paper matte. Avoid introducing
-      // a repeated grey contour around the new *area-based* pigment veil.
-      ...(valueIndex>=0?{contour:{...region.contour,opacity:0}}:{}),
+      // Fully dry transparent pigment: strengthen *local* deposition without
+      // installing another white matte or erasing any inherited front plane.
+      // Pale reflections need less body than the deep cool turning crease.
+      ...(valueIndex>=0?{
+        contour:{...region.contour,opacity:0},
+        underpaintOpacity:shape.surface==="cast-shadow"?.28:.13,
+      }:{}),
       layers:region.layers.map(layer => ({
-      ...layer, pressure:Math.min(1, layer.pressure * pressure),
-    })) };
+        ...layer,
+        pressure:Math.min(1,layer.pressure*pressure*(valueIndex>=0?1.28:1)),
+        spacing:valueIndex>=0?Math.max(3,layer.spacing*.8):layer.spacing,
+      })) };
   });
   const references={
     rose:{
