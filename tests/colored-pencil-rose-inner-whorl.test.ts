@@ -19,12 +19,17 @@ describe("ArtCraft CP-F1 rose independently nested and opaque central whorl",()=
       "rose-whorl-recess","rose-whorl-left","rose-whorl-right","rose-whorl-scroll",
     ]);
     expect(new Set(ROSE_INNER_WHORL_ORGANS.map(o=>o.path)).size).toBe(4);
+    const centres=ROSE_INNER_WHORL_ORGANS.map(o=>[
+      o.bounds[0]+o.bounds[2]/2,o.bounds[1]+o.bounds[3]/2,
+    ].join(","));
+    expect(new Set(centres).size).toBe(4);
     for(const organ of ROSE_INNER_WHORL_ORGANS){
       expect(organ.surface).toBe("petal");
       expect(organ.path).toMatch(/^M.* Z$/);
       expect(organ.path).toContain("C");
       expect(organ.bounds[2]*organ.bounds[3]).toBeGreaterThan(400);
       expect(organ.details).toHaveLength(4);
+      expect(organ.details.every(t=>t.path.length<=180)).toBe(true);
       expect(organ.details.map(t=>t.startFrame)).toEqual(expect.arrayContaining([expect.any(Number)]));
       expect(organ.details.map(t=>t.id)).toHaveLength(4);
       expect(new Set(organ.details.map(t=>t.id)).size).toBe(4);
