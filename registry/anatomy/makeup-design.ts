@@ -16,7 +16,7 @@ import { hairColorHex } from "./anatomy-color";
 import { createFace } from "./anatomy-face";
 import { basePalette, blushOn, BLUSH_FOR, browColour, deltaE2000, EYE_COMPLEMENTS, hexToLab, irisFamily, labToHex, labToLinear, lipColour, readSkin, RED_FOR } from "./makeup-color";
 import type { BlendMode, SkinReading, Undertone } from "./makeup-color";
-import { EYE_RULES, EYE_SHAPE_RULES, FACE_SHAPE_RULES, findLook, learnedR, MAKEUP_LEARNED } from "./makeup-data";
+import { BROW_RULES, EYE_RULES, EYE_SHAPE_RULES, FACE_SHAPE_RULES, findLook, learnedR, MAKEUP_LEARNED } from "./makeup-data";
 import type { ColourRule, FaceShape, Look, LookLayer } from "./makeup-data";
 import { eyeWidth, findZone, MAKEUP_ATLAS, resolveZone } from "./makeup-zones";
 import type { FinishId, ProductId, ZoneAdjust } from "./makeup-zones";
@@ -105,9 +105,10 @@ export interface MakeupPlan {
   skin: SkinReading; analysis?: FaceAnalysis;
   layers: MakeupLayer[];
   lashes: LashSpec;
-  /** A circle lens (linear-RGB tint) and double-eyelid tape 0-1. */
-  eyes: { lens?: LensSpec; tape: number };
-  brows: { colour: Lab; density: number; straight: number };
+  /** A circle lens (linear-RGB tint) and double-eyelid tape 0-1. Plans saved before the eye tools have none. */
+  eyes?: { lens?: LensSpec; tape: number };
+  /** `straight` 0-1 straightens the brow (plans saved before the eye tools have none). */
+  brows: { colour: Lab; density: number; straight?: number };
   rationale: string[];
 }
 export interface DesignOptions {
@@ -204,6 +205,10 @@ export function designMakeup(o: DesignOptions = {}): MakeupPlan {
       rationale.push(`Canthal tilt ${analysis.canthalTilt.toFixed(1)} deg: ${EYE_RULES.upturned.note}`);
       layers = layers.map(l => (l.zone === "liner-wing" ? { ...l, adjust: { ...l.adjust, rotate: (l.adjust?.rotate ?? 0) + 6 } } : l));
     }
+    if (analysis.browPeak < BROW_RULES.earlyPeak.below && layers.some(l => l.zone === "brow")) {
+      rationale.push(`Brow peak at ${(analysis.browPeak * 100).toFixed(0)}% of the eye width: ${BROW_RULES.earlyPeak.note}`);
+      layers = layers.map(l => (l.zone === "brow" ? { ...l, zone: "brow-straight", adjust: undefined } : l));
+    }
   }
   // the eye shape (ANAT1's EYE_SHAPES): placement for hooded, single and in-fold lids, tilts and depths
   const shapeRule = o.eyeShape ? EYE_SHAPE_RULES[o.eyeShape] : undefined;
@@ -228,12 +233,16 @@ export function designMakeup(o: DesignOptions = {}): MakeupPlan {
   const lash = look.lashes ?? { length: 1, thickness: 1, darkness: 0.5 }, k = Math.min(1.5, intensity), k1 = Math.min(1, k), ln = look.eyes?.lens;
   // the eye tools scale with intensity and go at 0; a lens grows from a natural 11.7 mm iris to its own size
   const lens: LensSpec | undefined = ln && k > 0 ? { diameter: 11.7 + (ln.diameter - 11.7) * k1, ring: ln.ring * k1, ...(ln.tint ? { tint: labToLinear(hexToLab(ln.tint)) } : {}) } : undefined;
-  const lower = lash.lower && k > 0 ? { length: 1 + (lash.lower.length - 1) * k, darkness: 0.5 + (lash.lower.darkness - 0.5) * k1, drawn: Math.round(lash.lower.drawn * k1) } : undefined;
+  // lower lashes drawn with liner take the liner's colour; mascara goes on curled lashes (a curler lifts them past a
+  // single lid's fold), so a look with mascara (longer lashes) curls them unless it says otherwise
+  const liner = out.find(l => l.zone === "liner" && "lab" in l.colour)?.colour as { lab: Lab } | undefined;
+  const lower = lash.lower && k > 0 ? { length: 1 + (lash.lower.length - 1) * k, darkness: 0.5 + (lash.lower.darkness - 0.5) * k1, drawn: Math.round(lash.lower.drawn * k1), ...(liner && lash.lower.drawn > 0 ? { colour: labToLinear(liner.lab) } : {}) } : undefined;
+  const curl = (lash.curl ?? (lash.length > 1 ? 1 : 0)) * k1;
   return {
     schema: "kumiki.makeup.plan/1", look: look.id, label: look.label, intensity, skin, analysis, layers: out,
-    lashes: { length: 1 + (lash.length - 1) * k, thickness: 1 + (lash.thickness - 1) * k, darkness: 0.5 + (lash.darkness - 0.5) * k1, ...(lash.style && k > 0 ? { style: lash.style, styleStrength: k1 } : {}), ...(lower ? { lower } : {}) },
+    lashes: { length: 1 + (lash.length - 1) * k, thickness: 1 + (lash.thickness - 1) * k, darkness: 0.5 + (lash.darkness - 0.5) * k1, ...(lash.style && k > 0 ? { style: lash.style, styleStrength: k1 } : {}), ...(curl > 0 ? { curl } : {}), ...(lower ? { lower } : {}) },
     eyes: { ...(lens ? { lens } : {}), tape: (look.eyes?.tape ?? 0) * k1 },
-    brows: { colour: browColour(hair), density: look.brows?.density ?? 1, straight: (look.brows?.straight ?? 0) * k1 },
+    brows: { colour: browColour(hair), density: 1 + ((look.brows?.density ?? 1) - 1) * k1, straight: (look.brows?.straight ?? 0) * k1 },
     rationale,
   };
 }
@@ -290,14 +299,14 @@ export function checkMakeup(plan: MakeupPlan, V: readonly Vec3[]): MakeupCheck[]
   const puppy = layer("puppy-wing");
   if (puppy) {
     const p = resolveZone("puppy-wing", V, puppy.adjust)[0].pts, tip = p[p.length - 1], ang = (Math.atan2(tip[1] - p[0][1], Math.abs(tip[0] - p[0][0])) * 180) / Math.PI;
-    out.push({ id: "wing-angle", ok: ang >= -25 && ang <= -3, rule: "A puppy wing follows the lower lash line out and down: about 3-25 degrees below level (convention).", message: `The wing falls at ${(-ang).toFixed(0)} degrees.` });
+    out.push({ id: "puppy-wing-angle", ok: ang >= -25 && ang <= -3, rule: "A puppy wing follows the lower lash line out and down: about 3-25 degrees below level (convention).", message: `The wing falls at ${(-ang).toFixed(0)} degrees.` });
   }
   const aegyo = layer("aegyo-sal");
   if (aegyo) {
     const part = resolveZone("aegyo-sal", V, aegyo.adjust)[0], height = 2 * Math.max(...part.r), opening = Math.hypot(V[159][0] - V[145][0], V[159][1] - V[145][1], V[159][2] - V[145][2]), ratio = height / opening;
     out.push({ id: "aegyo-sal-height", ok: ratio >= 0.35 && ratio <= 0.65, rule: "An aegyo-sal about half the eye opening's height: 5 mm and 0.5 were preferred (Aesthetic Surgery Journal 2024).", message: `The aegyo-sal is ${height.toFixed(1)} mm tall, ${ratio.toFixed(2)} of the opening.` });
   }
-  if (plan.eyes.lens) {
+  if (plan.eyes?.lens) {
     const d = plan.eyes.lens.diameter;
     out.push({ id: "lens-size", ok: d <= 14.5, rule: "A circle lens of at most 14.5 mm tinted diameter (12.5-14.5 mm is usual): a natural iris is about 11.7 mm, and larger reads as costume (convention). A 125% iris read as more attractive (Takehara & Tanijiri 2015).", message: `The lens is ${d.toFixed(1)} mm across.` });
   }
@@ -311,10 +320,13 @@ export function checkMakeup(plan: MakeupPlan, V: readonly Vec3[]): MakeupCheck[]
   const lips = layer("lips");
   if (lips) {
     const natural = lighten(plan.skin.lab, -10);
-    const lipL = "lab" in lips.colour ? lips.colour.lab[0] * lips.coverage + natural[0] * (1 - lips.coverage) : natural[0] + lips.colour.relative.dL * lips.coverage;
+    // a film lays its colour over the lips: a fixed colour, a colour relative to the skin, or a tint of the lips' own
+    const target = "lab" in lips.colour ? lips.colour.lab[0] : lips.colour.to === "skin" ? plan.skin.lab[0] + lips.colour.relative.dL : natural[0] + lips.colour.relative.dL;
+    const lipL = target * lips.coverage + natural[0] * (1 - lips.coverage);
+    // contrast is a difference either way: on deep skin a rose or pink lipstick is lighter than the skin
     const c = (plan.skin.lab[0] - lipL) / (plan.skin.lab[0] + lipL), made = MAKEUP_LEARNED.contrast.made_up.lips.L, bare = MAKEUP_LEARNED.contrast.bare.lips.L;
-    out.push({ id: "lip-contrast", ok: c >= bare.median - 0.02, rule: "Makeup raises lip contrast (Russell 2009; Jones et al. 2015).",
-      message: `Lip luminance contrast about ${c.toFixed(2)}; bare faces in the learned data ${bare.median.toFixed(2)}, made-up ${made.p25.toFixed(2)}-${made.p75.toFixed(2)}.` });
+    out.push({ id: "lip-contrast", ok: Math.abs(c) >= bare.median - 0.02, rule: "Makeup raises lip contrast (Russell 2009; Jones et al. 2015). The learned data is mostly light skin, so on deep skin a lighter lip counts too.",
+      message: `Lip luminance contrast about ${Math.abs(c).toFixed(2)}${c < 0 ? " (the lips lighter than the skin)" : ""}; bare faces in the learned data ${bare.median.toFixed(2)}, made-up ${made.p25.toFixed(2)}-${made.p75.toFixed(2)}.` });
   }
   const brow = layer("brow");
   if (brow) {

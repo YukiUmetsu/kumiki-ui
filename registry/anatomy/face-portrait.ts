@@ -133,7 +133,10 @@ export interface LashSpec {
   style?: "natural" | "wispy" | "spiky" | "doll";
   /** How much of the style shows, 0-1 (default 1): MAKEUP1 fades it in with the intensity. */
   styleStrength?: number;
-  lower?: { length: number; darkness: number; drawn: number };
+  /** 0-1: lashes curled (a lash curler under mascara) rise past a single lid's fold as false lashes do. */
+  curl?: number;
+  /** Lower lashes; `colour` (linear RGB) is the liner the drawn strokes use (default: the lashes' colour). */
+  lower?: { length: number; darkness: number; drawn: number; colour?: RGB3 };
 }
 /** A circle lens: its tinted diameter (mm; a natural iris is about 11.7), the limbal ring's darkness 0-1, and a tint
  * (linear RGB) laid over the iris pattern outside the pupil. */
@@ -1250,8 +1253,8 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
   const style = l.mascara?.style ?? "natural", lowerL = l.mascara?.lower, styled = style !== "natural";
   // how much of the style shows: it fades in, so a low intensity is not a full set of false lashes
   const sStr = styled ? Math.min(1, Math.max(0, l.mascara?.styleStrength ?? 1)) : 0, sf = (f: number) => 1 + (f - 1) * sStr;
-  // a single lid's fold presses bare lashes down; false lashes are curled and glued on, so they rise past it
-  const rise = single ? sStr : 1;
+  // a single lid's fold presses bare lashes down; false lashes and curled lashes rise past it
+  const rise = single ? Math.max(sStr, Math.min(1, Math.max(0, l.mascara?.curl ?? 0))) : 1;
   const lowD = lowerL ? Math.min(1, Math.max(0, lowerL.darkness)) : mD;
   // soft dark (or light) lines on the skin: creases, the fold of a single lid, a hood's shadow, an epicanthal fold
   const shadeLine = (pts: [number, number][], widthMm: number, blurMm: number, strength: number) => {
@@ -1314,7 +1317,7 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
       for (let i = 0; i < n; i++) {
         const f = (i + 0.5) / n, t = 0.36 + 0.58 * f, base = at(t), len = 2 + 2 * f, out1 = 0.18 + 0.38 * f, seg: [number, number][] = [];
         for (let q = 0; q <= 4; q++) { const u = q / 4, p = l.rot([base[0] + outward * out1 * len * u, base[1] - 0.45 - len * u * (1 - 0.15 * u), base[2] + 0.25 - 0.3 * u]); seg.push(l.proj(p[0], p[1], p[2])); }
-        for (let q = 1; q < seg.length; q++) strokePolyline(out, [seg[q - 1], seg[q]], (0.17 - 0.03 * q) / l.mmPerPx, 0.03 / l.mmPerPx, l.col, Math.min(1, 0.55 + 0.45 * lowD));
+        for (let q = 1; q < seg.length; q++) strokePolyline(out, [seg[q - 1], seg[q]], (0.17 - 0.03 * q) / l.mmPerPx, 0.03 / l.mmPerPx, lowerL.colour ?? l.col, Math.min(1, 0.55 + 0.45 * lowD));
       }
     }
     // the lash line: a soft dark margin along the upper lid

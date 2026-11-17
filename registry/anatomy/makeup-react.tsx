@@ -7,19 +7,22 @@
  *   LearnedEffects, BeautyCorrelations, MakeupEvidenceList   what the data and the studies say
  */
 import { forwardRef, useId, useMemo } from "react";
-import type { CSSProperties } from "react";
+import type { CanvasHTMLAttributes, CSSProperties } from "react";
 import type { Vec3 } from "./anatomy-body";
 import { MONK_SKIN_TONES } from "./anatomy-color";
 import { FACE_FEATURES, FACE_LANDMARKS } from "./anatomy-face";
 import { beautifulFace } from "./face-beauty";
 import type { PortraitOptions } from "./face-portrait";
-import { FacePortrait, portraitAffinity, portraitPreview } from "./face-portrait-react";
+import { ANATOMY_RENDER_POOL } from "./anatomy-render-pool";
+import { portraitAffinity, portraitPreview } from "./face-portrait-react";
 import { sheetList, sheetSmall, SwatchList } from "./foundation-react";
 import { RenderFrame } from "./foundation-render-react";
+import type { RenderJobSpec } from "./foundation-render-react";
 import { readSkin, UNDERTONE_REF } from "./makeup-color";
 import { MAKEUP_EVIDENCE, MAKEUP_LEARNED } from "./makeup-data";
 import { checkMakeup, designMakeup, planSwatches } from "./makeup-design";
 import type { DesignOptions, MakeupPlan } from "./makeup-design";
+import { wearsMakeup } from "./makeup-paint";
 import { MAKEUP_RENDER_POOL } from "./makeup-render-pool";
 import { findZone, MAKEUP_ATLAS, zoneOutline } from "./makeup-zones";
 import type { ProductId, ZoneAdjust } from "./makeup-zones";
@@ -30,7 +33,8 @@ export const PRODUCT_CHART_COLOURS: Record<ProductId, string> = {
   liner: "#262626", brow: "#7a4a24", lipstick: "#c8323c", "lip-liner": "#8e1f2a", gloss: "#e8a0b0", powder: "#b8b0a8",
 };
 
-export interface MakeupPortraitProps {
+/** Canvas props (`className`, `style`, `aria-*`, events) go to the canvas. */
+export interface MakeupPortraitProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> {
   /** Portrait options (sex, skin, eyes, hair, expression, light...). */
   portrait: PortraitOptions;
   /** The look and design choices; skin, face and eyes default to the portrait's. */
@@ -38,14 +42,13 @@ export interface MakeupPortraitProps {
   /** A ready plan instead of a design (it must be designed for this portrait's skin). */
   plan?: MakeupPlan;
   label: string;
-  style?: CSSProperties;
 }
 
 /**
  * An ANAT1 portrait wearing a look and no other makeup: the renderer's own makeup is off unless `portrait.makeup` asks
  * for it. Re-renders when the portrait, the design or the plan changes.
  */
-export const MakeupPortrait = forwardRef<HTMLCanvasElement, MakeupPortraitProps>(function MakeupPortrait({ portrait, design, plan, label, style }, ref) {
+export const MakeupPortrait = forwardRef<HTMLCanvasElement, MakeupPortraitProps>(function MakeupPortrait({ portrait, design, plan, label, ...rest }, ref) {
   const planKey = JSON.stringify([portrait, design, plan]);
   const designed = useMemo(() => {
     if (plan) return plan;
@@ -53,12 +56,13 @@ export const MakeupPortrait = forwardRef<HTMLCanvasElement, MakeupPortraitProps>
     const eyeShape = typeof portrait.eyeShape === "string" ? portrait.eyeShape : portrait.eyeShape?.id;
     return designMakeup({ skin: portrait.skin ?? "#d8a98a", eyes: portrait.eyes ?? "brown", eyeShape, hair: portrait.hair, ...design, face: face.vertices });
   }, [planKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!designed.layers.length && !designed.eyes.lens && !designed.eyes.tape) return <FacePortrait ref={ref} options={{ makeup: "none", ...portrait }} label={label} style={style} />;
-  // the plan goes to the worker as plain data and the worker builds its paint (functions cannot be sent to a worker)
-  const W = portrait.width ?? 384, H = portrait.height ?? 480, affinity = portraitAffinity(portrait);
-  return <RenderFrame ref={ref} width={W} height={H} label={label} style={style} placeholder="var(--km-surface-subtle, #e8e4df)"
-    job={{ pool: MAKEUP_RENDER_POOL, kind: "makeup-portrait", args: { portrait, plan: designed }, affinity }}
-    preview={{ pool: MAKEUP_RENDER_POOL, kind: "makeup-portrait", args: { portrait: portraitPreview(portrait), plan: designed }, affinity }} />;
+  // One frame for bare and made-up portraits, so a change of intensity keeps the last picture (no remount). A made-up
+  // portrait sends the plan to the makeup worker as data and the worker builds its paint (functions cannot be sent to a
+  // worker); a bare plan renders ANAT1's own portrait.
+  const W = portrait.width ?? 384, H = portrait.height ?? 480, affinity = portraitAffinity(portrait), worn = wearsMakeup(designed);
+  const job = (p: PortraitOptions): RenderJobSpec => (worn ? { pool: MAKEUP_RENDER_POOL, kind: "makeup-portrait", args: { portrait: p, plan: designed }, affinity }
+    : { pool: ANATOMY_RENDER_POOL, kind: "portrait", args: { makeup: "none", ...p }, affinity });
+  return <RenderFrame ref={ref} width={W} height={H} label={label} placeholder="var(--km-surface-subtle, #e8e4df)" job={job(portrait)} preview={job(portraitPreview(portrait))} {...rest} />;
 });
 
 // ---- Face chart ---------------------------------------------------------------------------------------------------------

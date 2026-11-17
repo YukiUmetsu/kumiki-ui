@@ -16,7 +16,6 @@
 import type { Vec3 } from "./anatomy-body";
 import type { Lab, RGB } from "./anatomy-color";
 import faceData from "./data/face-mesh-mediapipe.json";
-import { EYE_SHAPES } from "./eye-detail";
 import { beautifulFace } from "./face-beauty";
 import type { PortraitOptions, SkinPaint, SkinPaintSample } from "./face-portrait";
 import { gaussianBlur, hash2, rasterizeTriangles, srgbDecode, srgbEncode } from "./foundation-raster";
@@ -58,7 +57,7 @@ export function makeupPaint(plan: MakeupPlan): SkinPaint {
   return {
     key: JSON.stringify(["makeup1", plan.look, plan.intensity, plan.skin.hex, plan.layers, plan.lashes, plan.brows, plan.eyes]),
     lashes: plan.lashes,
-    eyes: plan.eyes.lens ? { lens: plan.eyes.lens } : undefined,
+    eyes: plan.eyes?.lens ? { lens: plan.eyes.lens } : undefined,
     brows: { colour: labToLinear(plan.brows.colour), density: plan.brows.density, straight: plan.brows.straight },
     prepare(neutral) {
       layers = plan.layers.map(L => {
@@ -91,13 +90,22 @@ export function makeupPaint(plan: MakeupPlan): SkinPaint {
   };
 }
 
+/** Whether a plan changes the face at all (layers, eye tools, lashes or brows). A bare plan renders the bare portrait. */
+export function wearsMakeup(plan: MakeupPlan): boolean {
+  const l = plan.lashes;
+  return plan.layers.length > 0 || !!plan.eyes?.lens || (plan.eyes?.tape ?? 0) > 0 || (plan.brows.straight ?? 0) > 0 || plan.brows.density !== 1
+    || l.length !== 1 || l.thickness !== 1 || l.darkness !== 0.5 || (l.style ?? "natural") !== "natural" || (l.curl ?? 0) > 0 || l.lower !== undefined;
+}
+
 /**
  * Portrait options that wear a plan: its paint, the eye shape with its tape, and none of the renderer's own makeup unless
  * `portrait.makeup` asks for it. For `renderPortrait` or `FacePortrait`.
  */
 export function makeupPortraitOptions(portrait: PortraitOptions, plan: MakeupPlan): PortraitOptions {
   const options: PortraitOptions = { makeup: "none", ...portrait, paint: makeupPaint(plan) };
-  if (plan.eyes.tape > 0) options.eyeShape = tapedEyeShape(beautifulFace(portrait).eyeShape ?? EYE_SHAPES[0], plan.eyes.tape);
+  // tape changes the face's own eye shape; a face with measured lids (no eye shape) is left as it is
+  const own = (plan.eyes?.tape ?? 0) > 0 ? beautifulFace(portrait).eyeShape : undefined;
+  if (own) options.eyeShape = tapedEyeShape(own, plan.eyes!.tape);
   return options;
 }
 
