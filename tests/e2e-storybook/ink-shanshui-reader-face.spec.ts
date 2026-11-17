@@ -507,3 +507,74 @@ test("Ming face ArtCraft microscope keeps live malar and nasal wash at matched s
     await studio.screenshot({animations:"disabled",
       path:info.outputPath("reader-native-malar-nose-low-detail-soft-lids-oh.png")});
   });
+
+test("ANAT1 Chinese-ink five visemes retain detailed live lip relief and visible source-fit cameras",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const atlas=page.getByTestId("reader-ink-native-viseme-atlas");
+    await expect(atlas).toBeVisible();
+    const mouthControl=page.getByRole("combobox",{name:"Face mouth"});
+    const originals:string[]=[];
+    for(const state of ["rest","aa","oh","mm","smile"] as const){
+      const figure=atlas.locator('[data-km-ink-viseme-study="'+state+'"]');
+      const svg=figure.locator("svg");
+      const ink=figure.locator('[data-km-ink-viseme-part="'+state+'"] path');
+      await expect(svg).toBeVisible();
+      expect(await ink.count()).toBeGreaterThan(7);
+      const originalMouth=await ink.evaluateAll(nodes=>
+        nodes.map(node=>node.getAttribute("d")??"").join("|"));
+      originals.push(originalMouth);
+      await figure.getByRole("button",
+        {name:"Inspect "+state.toUpperCase()+" mouth cel"}).click();
+      await expect(mouthControl).toHaveValue(state);
+      await expect(figure.getByRole("button",
+        {name:"Inspect "+state.toUpperCase()+" mouth cel"}))
+        .toHaveAttribute("aria-pressed","true");
+      const box=await svg.getAttribute("viewBox");
+      expect(box?.split(/\s+/).map(Number).every(Number.isFinite)).toBe(true);
+      if(state!=="aa"&&state!=="oh")continue;
+      // A paper-light lower vermilion and dark aperture must be
+      // independent paths: not one oversized fully opaque sticker.
+      const opening=await svg.evaluate((root,emotion)=>{
+        const group=root.querySelector(
+          '[data-km-ink-viseme-part="'+emotion+'"]');
+        if(!group)throw Error("Missing source speech cel");
+        const paths=Array.from(group.querySelectorAll("path"));
+        const color=emotion==="aa"?"0.54":"0.57";
+        const cavity=paths.find(p=>p.getAttribute("opacity")===color);
+        if(!cavity)throw Error("Cubic opening not drawn");
+        const b=(cavity as SVGPathElement).getBBox();
+        const matrix=(cavity as SVGPathElement).getScreenCTM();
+        if(!matrix)throw Error("Detached source mouth");
+        const point=new DOMPoint(b.x+b.width*.5,b.y+b.height*.5)
+          .matrixTransform(matrix);
+        const outer=root.getBoundingClientRect();
+        return {x:(point.x-outer.left)/outer.width,
+          y:(point.y-outer.top)/outer.height,
+          width:b.width,height:b.height,
+          fillCount:paths.filter(p=>p.getAttribute("fill")!=="none").length,
+          topOpacity:Math.max(...paths
+            .filter(p=>p.getAttribute("fill")!=="none")
+            .map(p=>Number(p.getAttribute("opacity"))))};
+      },state);
+      expect(opening.x).toBeGreaterThan(.15);
+      expect(opening.x).toBeLessThan(.85);
+      expect(opening.y).toBeGreaterThan(.15);
+      expect(opening.y).toBeLessThan(.85);
+      expect(opening.fillCount).toBeGreaterThanOrEqual(4);
+      expect(opening.topOpacity).toBeLessThan(.6);
+      expect(opening.width).toBeLessThan(state==="aa"?15:7);
+      expect(opening.height).toBeLessThan(8);
+    }
+    expect(new Set(originals).size).toBe(5);
+    await atlas.screenshot({animations:"disabled",
+      path:info.outputPath("reader-native-anat1-five-speaking-visemes-ink-lip-atlas.png")});
+    await mouthControl.selectOption("oh");
+    await expect(atlas.getByRole("button",{name:"Inspect OH mouth cel"}))
+      .toHaveAttribute("aria-pressed","true");
+    await page.getByRole("slider",{name:"Face craftsmanship"}).focus();
+    // All five original viseme assets, not separate dummy thumbnails,
+    // must remain drawn when the common detail control changes.
+    await expect(atlas.locator('[data-km-ink-viseme-part="oh"] path'))
+      .not.toHaveCount(0);
+  });
