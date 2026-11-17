@@ -3183,8 +3183,8 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     )];
     expect(sparseRoots.length).toBeGreaterThan(2);
     expect(sparseRoots.length).toBeLessThan(nested.length);
-    const roots=new Set(nested.map(m=>m[1]+"|"+m[2]));
-    expect(sparseRoots.every(m=>roots.has(m[1]+"|"+m[2]))).toBe(true);
+    const detailedCunfaRoots=new Set(nested.map(m=>m[1]+"|"+m[2]));
+    expect(sparseRoots.every(m=>detailedCunfaRoots.has(m[1]+"|"+m[2]))).toBe(true);
 
     for(const [,source,root,station,depth] of nested){
       expect(source.split(",").map(Number).every(Number.isFinite)).toBe(true);
