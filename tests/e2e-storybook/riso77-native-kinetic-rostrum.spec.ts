@@ -90,6 +90,14 @@ async({page},info)=>{
   // not only halfway arrivals where deliberately cut print text enters frame.
   await studio.getByRole("button",{name:"Finished collage"}).click();
   await expect(studio).toHaveAttribute("data-km-riso77-scene","completed");
+  // Actual source print microlettering is editorial content, not disposable
+  // decoration: authored cutter contours must contain its physical address.
+  const inside=(id:string,point:readonly [number,number])=>
+    studio.locator(`[data-km-riso77-original-paper-outline="${id}"]`)
+      .evaluate((el,p)=>(el as SVGGeometryElement).isPointInFill(
+        new DOMPoint(p[0],p[1])),point);
+  expect(await inside("river-ring-window",[909,131])).toBe(true);
+  expect(await inside("letterpress-footer",[70,393])).toBe(true);
   await studio.locator("[data-km-riso77-film]").screenshot({
     path:info.outputPath("riso77-finished-landscape-original-print-source-cutouts.png"),
     animations:"disabled",
@@ -118,6 +126,8 @@ async({page},info)=>{
   await expect(studio).toHaveAttribute("data-km-riso77-frame","251");
   await expect(studio).toHaveAttribute("data-km-riso77-scene","completed");
   await expect(studio.locator("[data-km-riso77-rostrum]")).toBeVisible();
+  expect(await inside("river-ring-window",[476,826])).toBe(true);
+  expect(await inside("letterpress-footer",[374,351])).toBe(true);
   await studio.locator("[data-km-riso77-film]").screenshot({
     path:info.outputPath("riso77-finished-portrait-original-print-source-cutouts.png"),
     animations:"disabled",
