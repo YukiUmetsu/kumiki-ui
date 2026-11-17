@@ -113,7 +113,7 @@ const PASS=[
 export function roseFrontValueDetails(petal:RoseFrontPetal,seed:number):PencilTrace[]{
   if(petal!=="petal-front-left"&&petal!=="petal-front-right")
     throw new RangeError("Unknown frontal rose value surface");
-  if(!Number.isSafeInteger(seed)||seed<0||seed>2147483000)
+  if(!Number.isSafeInteger(seed)||seed<0||seed>2147483647)
     throw new RangeError("Invalid frontal rose value seed");
   const result:PencilTrace[]=[];
   for(const [bandIndex,band] of ROSE_FRONT_VALUE_BANDS.entries()){
