@@ -12,6 +12,7 @@ import {ROSE_MIDDLE_LAMINAE,inspectRoseMiddleLaminae} from "./colored-pencil-ros
 import {roseFrontValueDetails,inspectRoseFrontValueBands} from "./colored-pencil-rose-front-value";
 import {ROSE_PETAL_RIM_SIDEWALLS,rosePetalRimContacts,inspectRosePetalRimSidewalls} from "./colored-pencil-rose-rim-thickness";
 import {ROSE_BACK_CUP_RELIEF,roseBackCupUndersideDetails,roseBackCupFaceDetails,inspectRoseBackCupRelief} from "./colored-pencil-rose-back-cup-relief";
+import {ROSE_FRONT_LAMINA_VOLUME,inspectRoseFrontLaminaVolume} from "./colored-pencil-rose-front-lamina-volume";
 
 /**
  * Four independent original subject studies. These are *authored* silhouettes,
@@ -56,7 +57,7 @@ function material(shape: ObjectShape, seed: number, transform: string): PencilRe
   return createPencilMaterialRegion(input);
 }
 
-function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false): ObjectShape[] {
+function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false,volumeStudy=false): ObjectShape[] {
   const shapes:ObjectShape[] = [
     {id:"stem",surface:"wood",palette:leaf,
       path:"M241 266 Q233 324 247 417 L254 417 Q251 331 250 268 Z",
@@ -160,6 +161,10 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
     const issues=inspectRoseBackCupRelief();
     if(issues.length)throw new Error("Rose rear cup physical relief: "+issues.join("; "));
   }
+  if(volumeStudy){
+    const issues=inspectRoseFrontLaminaVolume();
+    if(issues.length)throw new Error("Rose frontal lamina material shape: "+issues.join("; "));
+  }
   const anatomy:ObjectShape[]=shapes.flatMap(shape=>{
     if(leafStudy&&(shape.id==="leaf-left"||shape.id==="leaf-right")){
       const side=shape.id==="leaf-left"?"left":"right";
@@ -192,10 +197,15 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
       };
       const frontalContacts=source===ROSE_BACK_CUP_RELIEF?
         roseBackCupFaceDetails():physicalFoldFaceDetails(fold);
+      // Upper attachment remains byte-exact with both old turned underside
+      // and true original sidewall. Only the full front-facing lamina belly
+      // and its material-specific crease/vein contacts are reconstructed.
+      const volume=volumeStudy?ROSE_FRONT_LAMINA_VOLUME.find(v=>v.id===shape.id):undefined;
+      const contacts=[...frontalContacts,...(volume?.contacts??[])];
       const face:ObjectShape={
-        ...shape,path:source.face,bounds:source.faceBounds,
-        ...(frontalContacts.length?
-          {details:[...(shape.details??[]),...frontalContacts]}:{}),
+        ...shape,path:volume?.face??source.face,bounds:volume?.bounds??source.faceBounds,
+        ...(contacts.length?
+          {details:[...(shape.details??[]),...contacts]}:{}),
       };
       const rimSource=rimStudy?ROSE_PETAL_RIM_SIDEWALLS.find(r=>r.faceId===shape.id):undefined;
       const rim:ObjectShape|undefined=rimSource?{
@@ -424,6 +434,8 @@ export interface PencilObjectStudyOptions {
   rosePetalRimStudy?: boolean;
   /** Opt-in nonuniform rear cup scallop and thick individually drawn underside. */
   roseBackCupReliefStudy?: boolean;
+  /** Opt-in broad convex frontal lamina source reconstruction. Requires physical folds. */
+  roseFrontLaminaVolumeStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -435,7 +447,7 @@ export function pencilObjectStudyDrawing({
   rosePinnateStudy = false, rosePhysicalFolds = false,
   roseInnerWhorlStudy = false, roseMiddleCupStudy = false,
   roseFrontValueStudy = false, rosePetalRimStudy = false,
-  roseBackCupReliefStudy = false,
+  roseBackCupReliefStudy = false, roseFrontLaminaVolumeStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -465,6 +477,10 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose cuticle rim study flag must be boolean");
   if(typeof roseBackCupReliefStudy !== "boolean")
     throw new RangeError("Rose back-cup relief flag must be boolean");
+  if(typeof roseFrontLaminaVolumeStudy !== "boolean")
+    throw new RangeError("Rose front lamina volume flag must be boolean");
+  if(subject==="rose"&&roseFrontLaminaVolumeStudy&&!rosePhysicalFolds)
+    throw new RangeError("Rose front lamina volume requires physical fold anatomy");
   if(subject==="rose"&&roseBackCupReliefStudy&&!rosePhysicalFolds)
     throw new RangeError("Rose back-cup relief requires physical fold anatomy");
   if(subject==="rose"&&rosePetalRimStudy&&!rosePhysicalFolds)
@@ -475,7 +491,7 @@ export function pencilObjectStudyDrawing({
     const errors=inspectRoseFrontValueBands();
     if(errors.length)throw new RangeError("Rose frontal value axes: "+errors.join("; "));
   }
-  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy,roseBackCupReliefStudy) :
+  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
@@ -560,6 +576,12 @@ export function pencilObjectStudyDrawing({
         url:"https://www.artfinder.com/product/pink-rose-6a554/",
         rights:"technique-only" as const,
         observation:"Anatomical double-rose cup has separate intermediate hooked petal faces with asymmetrical shoulders, counterturning edges and dark fold attachment, rather than a single empty band.",
+      }]:[]),
+      ...(subject==="rose"&&roseFrontLaminaVolumeStudy?[{
+        title:"Plant Cell — ethylene-regulated asymmetric petal-base growth of hybrid roses",
+        url:"https://academic.oup.com/plcell/article/33/4/1229/6126472",
+        rights:"technique-only" as const,
+        observation:"Rose petal opening produces unequal proximal and distal curvature, outward asymmetric expansion, a rounded adaxial belly and tightly hinged overhang, so the front lamina cannot terminate in a simple triangular tip.",
       }]:[]),
       ...(subject==="rose"&&roseBackCupReliefStudy?[{
         title:"Draw Botanical — original rose petal and cup studies at NYBG",
