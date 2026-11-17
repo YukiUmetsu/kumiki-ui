@@ -155,6 +155,22 @@ Baroque, Chinese, European vernacular, Art Deco, Modernist and Brutalist or Deco
 | Chrysler crown | terraced arches with triangular windows in seven setbacks, clad in Nirosta (18-8 chromium-nickel) stainless steel | reported | [Wikipedia: Chrysler Building](https://en.wikipedia.org/wiki/Chrysler_Building), [MasterClass](https://www.masterclass.com/articles/chrysler-building-architecture-guide) |
 | Béton brut, titanium, diagrid | board grain printed in raw concrete; thin titanium shingles; diagonal steel grids on the face | estimated (common descriptions; not separately sourced here) | — |
 
+**Second round, after the owner's review.** The owner judged the round hall and the gargoyle too crude and asked for
+more reusable Chinese parts. Reference photographs were studied again:
+[Hall of Prayer for Good Harvests](https://commons.wikimedia.org/wiki/File:Hall_of_Prayer_for_Good_Harvest.JPG) (public
+domain) and [Temple of Heaven](https://commons.wikimedia.org/wiki/File:20200110_Temple_of_Heaven-1.jpg) (CC0), measured;
+[Notre-Dame gargoyles](https://commons.wikimedia.org/wiki/File:Notre-Dame_Rzygacze.JPG) (CC BY-SA 4.0), observation only.
+
+- Round hall, measured from the public-domain photograph: eave widths about 1.0, 0.76 and 0.63 of the lowest; the top
+  roof rises at about 34°; each roof is concave, its eave edge a thick dark band over a band of painted brackets; the
+  drums between the roofs are turquoise and gold lattice; the lowest wall is a red ring of lattice doors behind red
+  columns; a gilded ball finial; three marble terraces ringed by balusters, with stairs on the axis.
+- Gargoyles: lean beasts thrown far out from the buttress, with long arched necks, laid-back ears, wings folded along
+  the flanks, and open jaws that end the gutter. They are now sculpted from blended round cones (`sculpt`), not stacked
+  primitives.
+- The Chinese parts became a kit (`arch-kit-chinese.ts`) of roofs, halls, brackets, terraces, pavilions, pagodas,
+  archways, garden walls, Huizhou gables and bridges, shown as eight more modules.
+
 **Rules taken from the brief and the references.** A neutral parchment cove so the module's own colours read; a key
 light from the front left and a rim light from behind right that is not shadowed, so silhouettes separate from the
 backdrop; a longer lens (34°) and an eye at mid-height of the module, as product and model photographers frame a

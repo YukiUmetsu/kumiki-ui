@@ -12,7 +12,7 @@
   renders) and `arch-plate-react.tsx` (`StorybookPlate`, `ArchLibraryGallery`, `ArchStyleGuide`).
 
 **Storybook:** Video production → Art Foundations → Architecture → **Sheet**, **Streets**, **Measured elevation**,
-**Illustrated library (100 structures)**, **Illustration style guide**, **Modular components (37 modules)**.
+**Illustrated library (100 structures)**, **Illustration style guide**, **Modular components (45 modules)**.
 **Status:** implemented; agent review of renders only — **human visual review not recorded**.
 **Reference studies:** [elevations measured from photographs and drawings](../research/architecture-reference-study-2026-11-17.md)
 (Himeji, Morisada's machiya, Tōshōdai-ji, the Parthenon; observation of Bedford Square, Stein am Rhein and others);
@@ -158,7 +158,7 @@ Painted scenes of 100 structures and environments, for films, covers and backgro
 
 ## Module showcase
 
-`arch-modules.ts`: 37 isolated, hero-grade modules in eight families (`MODULE_GROUPS`): classical and neoclassical,
+`arch-modules.ts`: 45 isolated, hero-grade modules in eight families (`MODULE_GROUPS`): classical and neoclassical,
 Gothic, Renaissance and Baroque, Chinese imperial and vernacular, European vernacular details, Art Deco, Modernism,
 Brutalist and Deconstructivist. Each entry (`ARCH_MODULES`, `findModule`) has its landmarks, materials, a note on how it
 is built and `build(b)`, which adds the module to any `SceneBuilder` in local metres, so scenes and films can reuse it.
@@ -168,13 +168,27 @@ is built and `build(b)`, which adds the module to any `SceneBuilder` in local me
 (caihua), glazed-tube tiles, board-formed concrete, travertine, titanium, steel, curtain glass. `ModulePlate` renders
 one; `ArchModuleShowcase` is the Storybook page.
 
+**Chinese kit** (`arch-kit-chinese.ts`), reusable in any scene:
+
+- `chineseRoof`: hip (wudian), hip-and-gable (xieshan, with vertical triangular gable ends), gable (xuanshan) and
+  polygonal (zanjian) roofs with a concave slope, corners that sweep up, glazed tube tiles by rank (`yellow` imperial,
+  `green` princely and temple, `blue` heaven, `grey` and `black` for houses), chiwen or curled ridge ends, and hip
+  ridges with a file of beasts led by a rider (`beasts`, odd numbers); `open` makes an eave ring under a storey above.
+- `bracketBand` (dougong in caihua), `latticeScreen`, `marbleTerrace` (balusters, pierced rails, stairs).
+- `chineseHall` (single or double eaves), `roundHall` (the Hall of Prayer for Good Harvests), `pavilion`, `pagoda`,
+  `paifang`, `gardenWall` (moon gate, vase door, leak windows), `horseHeadWall` (Huizhou stepped gables), `humpBridge`,
+  `redLantern`.
+
+`sculpt` (in `arch-sdf.ts`) blends round cones and ellipsoids with a smooth union, and carves with a smooth
+subtraction, for organic forms; `gargoyle(b)` uses it.
+
 ## Limits
 
 - Front elevations only: no perspective views or plans.
 - Ornament is simplified: no carving, no pediment sculpture, generic acroteria; the keep's windows are evenly spaced.
 - The elevations have no interiors (see `home-interiors`); the storybook plates have ten rooms.
-- Modules: acanthus leaves are lumps, the gargoyle and ridge beasts are simple forms, and the Deco crown and dougong are
-  simplified; capitals have no carved detail below a few centimetres.
+- Modules: acanthus leaves are lumps, ridge beasts and chiwen are simple forms, the gargoyle has no carved fur or scales,
+  and the Deco crown and dougong are simplified; capitals have no carved detail below a few centimetres.
 - Plates: ornament is simplified (no carved capitals, tracery or painted figures); trees are leaf masses, not FLORA1
   species; only glasshouse glass is clear; the Gothic west front, the Kizhi church and the alpine peaks are the
   weakest entries.

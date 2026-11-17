@@ -26,7 +26,7 @@ export type SurfaceKind =
   | "oak" | "painted-wood" | "iron" | "gold" | "brass" | "glass" | "leaded" | "stained" | "greenhouse"
   | "cobbles" | "setts" | "flags" | "gravel" | "grass" | "dirt" | "water" | "sand" | "rock" | "snow"
   | "foliage" | "firewood" | "books" | "jars" | "bread" | "fabric" | "hay" | "fire" | "flame" | "floorboards" | "tile-floor" | "drawers" | "plain"
-  | "parchment" | "polychrome" | "glazed-tube" | "board-concrete" | "travertine" | "titanium" | "steel" | "curtain";
+  | "parchment" | "polychrome" | "glazed-tube" | "board-concrete" | "travertine" | "titanium" | "steel" | "curtain" | "chinese-screen";
 
 /** One surface in a scene. Colours are sRGB hex; sizes are metres. */
 export interface SurfaceSpec {
@@ -616,6 +616,21 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
         const med = Math.hypot((f - 0.5) * P, ((((v % 0.36) + 0.36) % 0.36) - 0.18)) < 0.06;
         if (med && k % 2) set(o, gold, 1.15); else if (med) set(o, red);
         o.h = line ? 0.0015 : 0; o.rough = 0.6; o.spec = 0.06; o.porous = 0.2;
+      };
+    }
+    case "chinese-screen": {
+      // a bay of lattice doors between columns: a solid lower panel, a fine lattice above set in a frame, gilt beads at the joints
+      const red = C(s.colour, "#962a1e"), lat = C(s.colour2, "#b2873c"), B = s.unit ?? 1.6, H = s.course ?? 3.2;
+      return (u, v, i, o) => {
+        const bay = Math.floor(u / B), fu = u / B - bay, fv = ((v % H) + H) % H / H, rr = resolve(i.fw, 0.06);
+        set(o, red, 0.95 + 0.08 * hash2(seed, bay, 1)); o.rough = 0.45; o.spec = 0.12; o.porous = 0.2;
+        const inFrame = Math.abs(fu - 0.5) < 0.43 && fv > 0.08 && fv < 0.94, panel = fv < 0.34;
+        if (inFrame && !panel) {
+          const gx = (u * 14) % 1, gy = (v * 14) % 1, d = Math.min(Math.abs(gx - 0.5), Math.abs(gy - 0.5), Math.abs(((gx + gy) % 1) - 0.5) * 0.7);
+          const bar = sst(0.12, 0.06, d) * rr; o.r = o.r * (1 - bar) * 0.35 + lat[0] * bar * 0.9 + o.r * 0.12; o.g = o.g * (1 - bar) * 0.35 + lat[1] * bar * 0.9 + o.g * 0.12; o.b = o.b * (1 - bar) * 0.35 + lat[2] * bar * 0.9 + o.b * 0.12;
+          o.h = 0.006 * bar; o.cav = 0.55 + 0.45 * bar;
+        } else if (inFrame && panel) { const edge = Math.min(Math.abs(fu - 0.5) - 0.36, Math.abs(fv - 0.21) - 0.1); o.h = edge < 0 ? -0.004 : 0; o.cav = edge < 0 ? 0.85 : 1; }
+        if (Math.abs(Math.abs(fu - 0.5) - 0.43) < 0.012 || Math.abs(fv - 0.34) < 0.008) set(o, lat, 1.05);
       };
     }
     case "glazed-tube": {

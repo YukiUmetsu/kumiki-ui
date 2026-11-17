@@ -429,3 +429,37 @@ export function dirToLocal(id: number, x: number, y: number, z: number): [number
 export function worldRoot(n: Node): Node {
   return { lo: n.lo, hi: n.hi, f: (x, y, z) => { FR = 0; return n.f(x, y, z); } };
 }
+
+// ---- Sculpting: organic forms from smoothly blended round cones and ellipsoids --------------------------------------------
+
+/** One stroke of a sculpture: a round cone from `a` (radius r1) to `b` (radius r2), a sphere (no `b`), or an ellipsoid (`e` radii at `a`); `sub` carves it away. */
+export interface SculptPrim { a: readonly [number, number, number]; b?: readonly [number, number, number]; r1?: number; r2?: number; e?: readonly [number, number, number]; sub?: boolean; k?: number }
+function roundCone(px: number, py: number, pz: number, a: readonly number[], b: readonly number[], r1: number, r2: number): number {
+  const bx = b[0] - a[0], by = b[1] - a[1], bz = b[2] - a[2], l2 = bx * bx + by * by + bz * bz, rr = r1 - r2, a2 = l2 - rr * rr, il2 = 1 / l2;
+  const qx = px - a[0], qy = py - a[1], qz = pz - a[2], y = qx * bx + qy * by + qz * bz, z = y - l2;
+  const wx = qx * l2 - bx * y, wy = qy * l2 - by * y, wz = qz * l2 - bz * y, x2 = wx * wx + wy * wy + wz * wz, y2 = y * y * l2, z2 = z * z * l2, k = Math.sign(rr) * rr * rr * x2;
+  if (Math.sign(z) * a2 * z2 > k) return Math.sqrt(x2 + z2) * il2 - r2;
+  if (Math.sign(y) * a2 * y2 < k) return Math.sqrt(x2 + y2) * il2 - r1;
+  return (Math.sqrt(x2 * a2 * il2) + y * rr) * il2 - r1;
+}
+const smin = (a: number, b: number, k: number) => { const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.min(a, b) - h * h * k * 0.25; };
+/** A sculpted form: strokes blended with a smooth union of radius `k` (carved strokes subtract smoothly). */
+export function sculpt(prims: readonly SculptPrim[], k: number, mat: number, tone = 0): Node {
+  const lo: [number, number, number] = [BIG, BIG, BIG], hi: [number, number, number] = [-BIG, -BIG, -BIG];
+  for (const p of prims) {
+    if (p.sub) continue;
+    const r = p.e ? Math.max(...p.e) : Math.max(p.r1 ?? 0, p.r2 ?? 0);
+    for (const q of [p.a, p.b ?? p.a]) for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], q[i] - r - k); hi[i] = Math.max(hi[i], q[i] + r + k); }
+  }
+  return leaf((x, y, z) => {
+    let d = BIG;
+    for (const p of prims) {
+      let e: number;
+      if (p.e) { const ex = (x - p.a[0]) / p.e[0], ey = (y - p.a[1]) / p.e[1], ez = (z - p.a[2]) / p.e[2]; e = (Math.hypot(ex, ey, ez) - 1) * Math.min(p.e[0], p.e[1], p.e[2]); }
+      else if (p.b) e = roundCone(x, y, z, p.a, p.b, p.r1 ?? 0.1, p.r2 ?? p.r1 ?? 0.1);
+      else e = Math.hypot(x - p.a[0], y - p.a[1], z - p.a[2]) - (p.r1 ?? 0.1);
+      d = p.sub ? -smin(-d, e, p.k ?? k * 0.5) : smin(d, e, p.k ?? k);
+    }
+    return d * 0.9;
+  }, lo, hi, mat, tone);
+}
