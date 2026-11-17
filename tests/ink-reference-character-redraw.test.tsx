@@ -5,7 +5,7 @@ import {
   InkReferenceCharacterRedraw,INK_REFERENCE_EXPRESSIONS,
 } from "../src/video/ink-reference-character-redraw";
 
-const render=(props:Record<string,unknown>)=>
+const render=(props:any)=>
   renderToStaticMarkup(createElement(InkReferenceCharacterRedraw,props));
 
 describe("ANAT3 reference-led Chinese ink character redraw",()=>{
