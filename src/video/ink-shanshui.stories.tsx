@@ -1125,7 +1125,7 @@ function FuchunSourceFidelityDesk(){
         Bank interior cunfa · {showInnerStrata?"hide":"show"}
       </button>
       <span style={{fontSize:12,color:"#675745"}}>
-        Optional 19-station near-ridge candidate; ordinary film unchanged.
+        Optional 22-station near-ridge candidate; ordinary film unchanged.
       </span>
     </div>
     <div role="group" aria-label="Fuchun fidelity cameras"
@@ -1218,7 +1218,7 @@ function FuchunSourceFidelityDesk(){
           style={{display:"grid",gap:8,minWidth:0}}>
           <h2 style={{font:"500 19px Georgia,serif",margin:0}}>
             {comparison==="near"
-              ?index===0?"Original untouched lower ridge":"19-station curved shoulder candidate"
+              ?index===0?"Original untouched lower ridge":"22-station curved shoulder candidate"
               :comparison==="pine"
                 ?index===0?"Original bough bones without new wood loads":
                   "Source-traced wet and dry woody bough pressure"
