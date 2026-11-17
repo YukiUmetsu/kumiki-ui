@@ -3298,6 +3298,37 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
         const boughCenterline="M"+f(origin[0])+" "+f(origin[1])+
           " Q"+f(control[0])+" "+f(control[1])+
           " "+f(tip[0])+" "+f(tip[1]);
+        // Huang Gongwang's old shoreline pines build their black crown
+        // on woody, pressure-loaded CONNECTED arms, not on hair-thin
+        // outlines supporting detached needle buns. Preserve all 20
+        // existing bough bones, 40 crowns and 310+ needle gestures.
+        // This additional source-faithful two-register wood anatomy is
+        // literally sampled along the SAME original bent quadratic arm.
+        // A stronger inner load fades through a broken outer wood lip;
+        // independent brush breaks leave raised dry fibre visible.
+        const woodLoads=school==="fuchun"?([
+          {from:.055,to:.53,load:2.55,role:"root-loaded" as const},
+          {from:.575,to:.93,load:1.62,role:"feathered-tail" as const},
+        ] as const).map((plan,k)=>{
+          const a=quadraticPoint(origin,control,tip,plan.from);
+          const b=quadraticPoint(origin,control,tip,plan.to);
+          const t1=plan.from+(plan.to-plan.from)*.3;
+          const t2=plan.from+(plan.to-plan.from)*.73;
+          const c1=quadraticPoint(origin,control,tip,t1);
+          const c2=quadraticPoint(origin,control,tip,t2);
+          const weight=plan.load*(.82+.31*s(seed+9779,i*83+j*23+k*17));
+          const body=rockLoadedCubicRibbon(a,c1,c2,b,weight,
+            seed+9791+i*113+j*29+k*19,plan.role);
+          const whiteFrom=quadraticPoint(origin,control,tip,
+            plan.from+(plan.to-plan.from)*.2);
+          const whiteEnd=quadraticPoint(origin,control,tip,
+            plan.from+(plan.to-plan.from)*.69);
+          const dry="M"+f(whiteFrom[0])+" "+f(whiteFrom[1])+
+            " Q"+f((whiteFrom[0]+whiteEnd[0])*.5)+" "+
+              f((whiteFrom[1]+whiteEnd[1])*.5-.36)+
+            " "+f(whiteEnd[0])+" "+f(whiteEnd[1]);
+          return {a,b,body,dry,role:plan.role,weight};
+        }):[];
         const touchCount=[13,18,14,17][j];
         const foliage=Array.from({length:touchCount},(_,k)=>{
           const at=clamp(.48+(k+.35)/(touchCount+.9)*.5+
@@ -3671,7 +3702,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             attach,cx1,cx2,tipClaw,k===0?1.1:.79,
             seed+6143+i*47+j*19+k*37),bend:k};
         }):[];
-        return {t,origin,bone,boughCenterline,connectedCanopy,
+        return {t,origin,bone,boughCenterline,woodLoads,connectedCanopy,
           armReach:arm?distance:undefined,armArch:arm?.arch,
           foliage,pads,inkIslands,canopyGrafts,wetClusters,crabClaws};
       });
@@ -3703,7 +3734,7 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
         <path data-km-cliff-pine-bark="" d={bark}
           stroke="#a18b70" fill="none" strokeWidth=".48"
           strokeLinecap="round" opacity={f(.47*shade)}/>
-        {boughs.map(({t,origin,bone,boughCenterline,connectedCanopy,armReach,armArch,
+        {boughs.map(({t,origin,bone,boughCenterline,woodLoads,connectedCanopy,armReach,armArch,
           foliage,pads,inkIslands,canopyGrafts,wetClusters,crabClaws},j)=>
           <g key={j} data-km-cliff-pine-bough=""
             data-km-cliff-pine-bough-root={f(origin[0])+","+f(origin[1])}
@@ -3717,6 +3748,21 @@ function CliffPineGrove({stations,scene,seed,detail,mist,school}:{
             <path data-km-cliff-pine-bough-bone="" d={bone}
               fill={j%2===0?"#3d352d":"#554638"}
               opacity={f(.88*shade)}/>
+            {woodLoads.map(({a,b,body,dry,role,weight},k)=>
+              <g key={"wood"+k} data-km-cliff-pine-wood-load=""
+                data-km-cliff-pine-wood-source={f(a[0])+","+f(a[1])}
+                data-km-cliff-pine-wood-tip={f(b[0])+","+f(b[1])}
+                data-km-cliff-pine-wood-role={role}
+                data-km-cliff-pine-wood-weight={f(weight)}>
+                <path data-km-cliff-pine-wood-body="" d={body}
+                  fill={k===0?"#342f29":"#554b3e"}
+                  opacity={f((k===0?.82:.57)*shade)}/>
+                <path data-km-cliff-pine-wood-dry-witness=""
+                  d={dry} fill="none" stroke="#9c8e78"
+                  strokeWidth={f(k===0?.34:.25)}
+                  strokeLinecap="round"
+                  opacity={f((k===0?.27:.23)*shade)}/>
+              </g>)}
             {connectedCanopy&&<>
               <defs><mask data-km-cliff-pine-bridge-paper-mask=""
                 data-km-cliff-pine-bridge-paper-mask-bough={i*4+j}
