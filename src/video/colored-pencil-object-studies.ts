@@ -9,6 +9,7 @@ import {ROSE_PINNATE_ORGANS,inspectRosePinnateOrgans} from "./colored-pencil-ros
 import {ROSE_PHYSICAL_FOLDS,physicalFoldUndersideDetails,physicalFoldFaceDetails,inspectRosePhysicalFolds} from "./colored-pencil-rose-physical-folds";
 import {ROSE_INNER_WHORL_ORGANS,inspectRoseInnerWhorl} from "./colored-pencil-rose-inner-whorl";
 import {ROSE_MIDDLE_LAMINAE,inspectRoseMiddleLaminae} from "./colored-pencil-rose-middle-lamina";
+import {ROSE_FRONT_VALUE_PLANES,inspectRoseFrontValuePlanes} from "./colored-pencil-rose-front-value-planes";
 
 /**
  * Four independent original subject studies. These are *authored* silhouettes,
@@ -53,7 +54,7 @@ function material(shape: ObjectShape, seed: number, transform: string): PencilRe
   return createPencilMaterialRegion(input);
 }
 
-function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false): ObjectShape[] {
+function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,valueStudy=false): ObjectShape[] {
   const shapes:ObjectShape[] = [
     {id:"stem",surface:"wood",palette:leaf,
       path:"M241 266 Q233 324 247 417 L254 417 Q251 331 250 268 Z",
@@ -149,6 +150,10 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
     const issues=inspectRoseMiddleLaminae();
     if(issues.length)throw new Error("Rose middle cup: "+issues.join("; "));
   }
+  if(valueStudy){
+    const issues=inspectRoseFrontValuePlanes();
+    if(issues.length)throw new Error("Rose dry-pencil value planes: "+issues.join("; "));
+  }
   const anatomy:ObjectShape[]=shapes.flatMap(shape=>{
     if(leafStudy&&(shape.id==="leaf-left"||shape.id==="leaf-right")){
       const side=shape.id==="leaf-left"?"left":"right";
@@ -183,8 +188,10 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
         ...(frontalContacts.length?
           {details:[...(shape.details??[]),...frontalContacts]}:{}),
       };
+      const valuePlanes=valueStudy&&shape.id.startsWith("petal-front-")?
+        ROSE_FRONT_VALUE_PLANES.filter(zone=>zone.parent===shape.id):[];
       return shape.id==="back-cup"&&middleStudy?
-        [underturn,face,...ROSE_MIDDLE_LAMINAE]:[underturn,face];
+        [underturn,face,...ROSE_MIDDLE_LAMINAE]:[underturn,face,...valuePlanes];
     }
     if(middleStudy&&shape.id==="back-cup")
       return [shape,...ROSE_MIDDLE_LAMINAE];
@@ -395,6 +402,10 @@ export interface PencilObjectStudyOptions {
   roseInnerWhorlStudy?: boolean;
   /** Opt-in three individually curved middle-whorl laminae; ART HOLD. */
   roseMiddleCupStudy?: boolean;
+  /** Optional paired transparent cool/warm front-lamina value areas.
+   * Requires the opt-in physical fold anatomy; never alters the default rose.
+   */
+  roseFrontValueStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -405,6 +416,7 @@ export function pencilObjectStudyDrawing({
   roseLaminaStudy = false, roseLipStudy = false, roseCalyxStudy = false,
   rosePinnateStudy = false, rosePhysicalFolds = false,
   roseInnerWhorlStudy = false, roseMiddleCupStudy = false,
+  roseFrontValueStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -428,7 +440,11 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose inner whorl flag must be boolean");
   if(typeof roseMiddleCupStudy !== "boolean")
     throw new RangeError("Rose middle cup flag must be boolean");
-  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy) :
+  if(typeof roseFrontValueStudy !== "boolean")
+    throw new RangeError("Rose frontal value study flag must be boolean");
+  if(subject==="rose"&&roseFrontValueStudy&&!rosePhysicalFolds)
+    throw new RangeError("Rose front value planes require physical fold anatomy");
+  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,roseFrontValueStudy) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
@@ -442,7 +458,7 @@ export function pencilObjectStudyDrawing({
   ] as const;
   const regions = shapes.map((shape, i) => {
     // Permit every valid UI seed while keeping each material pass in signed-31-bit range.
-    const original=subject==="rose"&&(roseCalyxStudy||rosePinnateStudy||rosePhysicalFolds||roseInnerWhorlStudy||roseMiddleCupStudy)?
+    const original=subject==="rose"&&(roseCalyxStudy||rosePinnateStudy||rosePhysicalFolds||roseInnerWhorlStudy||roseMiddleCupStudy||roseFrontValueStudy)?
       roseOriginalIds.findIndex(id=>id===shape.id):-1;
     // The original seven-petal material hashes never change. Calyx organ
     // material seeds also remain identical when foliage is simultaneously on;
@@ -455,13 +471,20 @@ export function pencilObjectStudyDrawing({
       ROSE_INNER_WHORL_ORGANS.findIndex(o=>o.id===shape.id):-1;
     const middleIndex=subject==="rose"&&roseMiddleCupStudy?
       ROSE_MIDDLE_LAMINAE.findIndex(o=>o.id===shape.id):-1;
+    const valueIndex=subject==="rose"&&roseFrontValueStudy?
+      ROSE_FRONT_VALUE_PLANES.findIndex(o=>o.id===shape.id):-1;
     const materialIndex=original>=0?original:
       calyxIndex>=0?3+calyxIndex:
       foldIndex>=0?22+foldIndex:
       whorlIndex>=0?31+whorlIndex:
-      middleIndex>=0?35+middleIndex:i;
+      middleIndex>=0?35+middleIndex:
+      valueIndex>=0?38+valueIndex:i;
     const region = material(shape, (seed + materialIndex * 311) % 2147483647, transform);
-    return { ...region, layers:region.layers.map(layer => ({
+    return { ...region,
+      // Glaze/cast-shadow supports have no paper matte. Avoid introducing
+      // a repeated grey contour around the new *area-based* pigment veil.
+      ...(valueIndex>=0?{contour:{...region.contour,opacity:0}}:{}),
+      layers:region.layers.map(layer => ({
       ...layer, pressure:Math.min(1, layer.pressure * pressure),
     })) };
   });
@@ -506,6 +529,12 @@ export function pencilObjectStudyDrawing({
         url:"https://www.artfinder.com/product/pink-rose-6a554/",
         rights:"technique-only" as const,
         observation:"Anatomical double-rose cup has separate intermediate hooked petal faces with asymmetrical shoulders, counterturning edges and dark fold attachment, rather than a single empty band.",
+      }]:[]),
+      ...(subject==="rose"&&roseFrontValueStudy?[{
+        title:"Ann Swan — botanical coloured-pencil layering and burnishing",
+        url:"https://annswan.co.uk/basic-coloured-pencil-1/",
+        rights:"technique-only" as const,
+        observation:"Deep cool shade develops along folded petal contact, and selective warm reflected colour must be built through pressure-separated pigment rather than hard-edged uniform light ribbons.",
       }]:[])],
     construction:subject==="rose"?
       "Author the stem, petal overlap, continuous attached leaf veins, shadow pockets and isolated curled lamina edges before pencil deposits.":
