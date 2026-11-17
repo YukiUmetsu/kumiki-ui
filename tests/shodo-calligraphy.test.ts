@@ -281,6 +281,17 @@ describe("SHO1 shodō calligraphy", () => {
     expect(shodoLayout(glyph)).toBe("enclosure");
   });
 
+  it("cuts a KanjiVG entry curl at its length, not at the next sparse sample (用 keeps its corner)", () => {
+    // 用's first two strokes from KanjiVG: the ㇒ opens with a pen curl, then one long cubic whose
+    // first sample (t = .1) lies 150 em down the stroke.
+    const glyph = parseKanjiVgSvg(`<svg viewBox="0 0 109 109"><g kvg:element="用">
+      <path d="M25.44,16.14c0.83,1.04,1.1,2.36,1.15,3.86C28.12,65.5,24.5,82,13.75,95"/>
+      <path d="M27.8,18.84C43.75,17,71.5,14,81.92,13.47c4.07-0.21,5.75,2.03,5.75,5.18c0,6.1-0.32,50.35-0.32,71.37c0,14.98-8.09,2.23-9.84,1.34"/></g></svg>`);
+    const [sweep, frame] = glyph.strokes.map(s => s.points[0]);
+    expect(sweep[1]).toBeLessThan(215);                      // KanjiVG starts it at 148 em; the curl is about 50 em
+    expect(Math.hypot(sweep[0] - frame[0], sweep[1] - frame[1])).toBeLessThan(60);
+  });
+
   it("does not pull a stroke of 旁 into 偏: joins across parts only where the ends already meet", () => {
     const glyph = parseKanjiVgSvg(`<svg viewBox="0 0 109 109"><g kvg:element="仁">
       <g kvg:element="亻" kvg:position="left"><path d="M30,20 L30,90"/></g>
