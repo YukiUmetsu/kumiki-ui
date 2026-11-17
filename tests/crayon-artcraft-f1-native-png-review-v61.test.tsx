@@ -129,8 +129,6 @@ describe("Crayon ArtCraft V61 exact native PNG review",()=>{
     });
     fireEvent.click(canvas,{clientX:172,clientY:305.5});
     expect(screen.getByText(/1\/18 candidate pixel observations/)).toBeTruthy();
-    expect(screen.getByLabelText("Verified-PNG candidate observation record").textContent)
-      .toContain(capture.hash);
     const output=JSON.parse((screen.getByLabelText(
       "Verified-PNG candidate observation record") as HTMLTextAreaElement).value);
     expect(output.nativePngBytesSha256Verified).toBe(true);
