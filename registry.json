@@ -4174,6 +4174,48 @@
       ]
     },
     {
+      "name": "fire-effects",
+      "type": "registry:ui",
+      "title": "Fire and Effects Framework (FX1)",
+      "description": "Fire, smoke, sparks, explosions and firelight in any art style from flame physics: flame height from heat release (Heskestad), flicker at about 1.5/sqrt(D) Hz, fires from candle to oil pool with soot and smoke, flame and ember temperatures, blackbody colour (Planck through the CIE observer), smoke plumes at about 7 degrees, sparks that cool as they rise, fireball sizes and durations, firelight colour and flicker. renderFire renders a fire as a volume (a puffing teardrop envelope, turbulence carried up with the plume, tongues and gaps, soot emission and absorption, a blue base for small flames, smoke billows lit from below, motion-blurred sparks, firelight on the ground or wax, bloom); FireView plays it from the worker pool; FlameColours and FireSheet.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/nature/fx-data.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-data.ts"
+        },
+        {
+          "path": "registry/nature/fx-render.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render.ts"
+        },
+        {
+          "path": "registry/nature/fx-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/fx-react.tsx"
+        },
+        {
+          "path": "registry/nature/fx-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/fx-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/fx-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render-worker.ts"
+        }
+      ]
+    },
+    {
       "name": "human-motion",
       "type": "registry:ui",
       "title": "Human Motion Framework (MOTION1)",
