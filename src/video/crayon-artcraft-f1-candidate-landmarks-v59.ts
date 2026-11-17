@@ -208,6 +208,17 @@ export async function crayonF1NativePngSha256V61(
     value.toString(16).padStart(2,"0")).join("");
 }
 
+/** Require the exact archived CC0 source screenshot before overlaying source landmarks. */
+export function crayonF1ValidateSourcePngV62(
+  fileName:string,actualPngSha256:string,width:number,height:number,
+):void{
+  if(fileName!=="cc0-source-608x1082.png"||
+    actualPngSha256!==CRAYON_F1_V59_SOURCE.sha256||
+    width!==CRAYON_F1_V59_SOURCE.width||
+    height!==CRAYON_F1_V59_SOURCE.height)
+    throw new RangeError("V62 source PNG does not match the frozen CC0 screenshot bytes/camera");
+}
+
 const isRecord=(value:unknown):value is Record<string,unknown>=>
   typeof value==="object"&&value!==null&&!Array.isArray(value);
 
