@@ -1,6 +1,6 @@
 name: Crayon ArtCraft adult face browser proof
 
-# PR checks exercise V40 hair silhouette/contact and its immediate V39 negative control.
+# PR checks exercise V41 photographed face/hair overlap and exact V40 negative control.
 # Earlier V29-V37 archival browser proofs remain available manually.
 # No video/FFmpeg/full Storybook/legacy tests or deleted test files.
 on:
@@ -19,6 +19,7 @@ on:
       - src/video/crayon-artcraft-f1-anat1-hair-value.ts
       - src/video/crayon-artcraft-f1-anat1-root-flow.ts
       - src/video/crayon-artcraft-f1-anat1-hair-contour-v40.ts
+      - src/video/crayon-artcraft-f1-anat1-hairline-v41.ts
       - registry/anatomy/anatomy-face.ts
       - tests/e2e-artcraft/crayon-expression-comparison.spec.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
@@ -51,7 +52,7 @@ jobs:
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
-          --grep "ArtCraft source-referenced portrait audit|F1 V(39|40)"
+          --grep "ArtCraft source-referenced portrait audit|F1 V(40|41)"
       - name: Capture complete portrait and expression archival evidence (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-
