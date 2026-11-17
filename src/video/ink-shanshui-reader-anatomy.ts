@@ -249,8 +249,12 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     line([148.1,104.5],[148.2,108],[148.95,111.4],[150.4,113.6],
       .34,631,"$skinshade",.26),
     // Connected alar cartilage, not the pointed S-hook of a beak.
-    ink("M150.9 114.2 C152.5 114.4 154.3 115 154.6 116.2 Q154.5 117 153.5 117.2",
-      "none","$shadow",.39,.38),
+    // Connected dorsal bulb/alar roll: the old tangent flipped into a
+    // narrow S at y116, masquerading as a hard cartilage incision.
+    // Preserve the original independent contour as a light ink line,
+    // but distribute curvature before it meets the nostril.
+    ink("M150.9 114.2 C152.2 113.9 153.6 114.3 154.5 115.6 C155.1 116.4 154.9 117.05 153.9 117.45",
+      "none","$shadow",.39,.31),
     ink("M149.2 116.4 Q149.8 117.7 151.5 118.4",
       "none","$shadow",.4,.4),
     ink("M154.2 116.8 Q154.8 117.9 155.8 117.4",
@@ -259,9 +263,13 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       "none","$ink",.32,.45),
     // Nasal tip relief is part of the nose/alar volume. The near nostril
     // is an oblique aperture, not a centered cartoon S or duplicate curve.
-    ink("M149.8 114.4 C151.3 114.7 153.1 115.2 154 116.7 "+
-      "C152.4 116.9 150.5 116.7 149.8 114.4 Z",
-      "$skinshade","none",0,.165),
+    // The tip is a rounded closed cartilage mass with a lower alar
+    // transition, not a triangular shaded beak. Its self-shadow stays
+    // translucent and still has three cubic contour turns.
+    ink("M149.8 114.4 C151.2 113.9 153 114.7 154 116.7 "+
+      "C154.2 117.9 152.5 118.4 151.3 117.6 "+
+      "C150 116.7 149.6 115.6 149.8 114.4 Z",
+      "$skinshade","none",0,.135),
     ink("M150.2 118.1 Q151.1 118.7 152.3 118.2",
       "none","$ink",.31,.46),
   ];
