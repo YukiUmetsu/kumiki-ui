@@ -17,6 +17,7 @@ import {ROSE_CENTER_KNOT_SURFACES,ROSE_CENTER_SCROLL_BACKFACE,inspectRoseCenterK
 import {ROSE_OUTER_FORM_FACE_PALETTES,roseOuterFormDeposits,inspectRoseOuterForm} from "./colored-pencil-rose-outer-form";
 import {ROSE_OUTER_RIPPLE_SURFACES,inspectRoseOuterRippleSurfaces} from "./colored-pencil-rose-outer-ripple";
 import {roseCenterValueDetails,inspectRoseCenterValueFields} from "./colored-pencil-rose-center-local-value";
+import {roseContactShadowDetails,inspectRoseContactShadows} from "./colored-pencil-rose-contact-shadows";
 
 /**
  * Four independent original subject studies. These are *authored* silhouettes,
@@ -485,6 +486,8 @@ export interface PencilObjectStudyOptions {
   roseOuterRippleStudy?: boolean;
   /** Original gently diffused pencil values for the six true center knot surfaces. */
   roseCenterValueStudy?: boolean;
+  /** Five independent between-petal physical source contact-shadow valleys; opt-in knot required. */
+  roseContactShadowStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -499,6 +502,7 @@ export function pencilObjectStudyDrawing({
   roseBackCupReliefStudy = false, roseFrontLaminaVolumeStudy = false,
   roseCenterKnotStudy = false, roseOuterFormStudy = false,
   roseCenterValueStudy = false, roseOuterRippleStudy = false,
+  roseContactShadowStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -540,6 +544,14 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose outer ripple requires physically attached underturned petals");
   if(typeof roseCenterValueStudy !== "boolean")
     throw new RangeError("Rose center value study flag must be boolean");
+  if(typeof roseContactShadowStudy !== "boolean")
+    throw new RangeError("Rose contact-shadow study flag must be boolean");
+  if(subject==="rose"&&roseContactShadowStudy&&!roseCenterKnotStudy)
+    throw new RangeError("Rose contact shadows require real source center knot");
+  if(subject==="rose"&&roseContactShadowStudy){
+    const issues=inspectRoseContactShadows();
+    if(issues.length)throw new RangeError("Rose physical contact shadows: "+issues.join("; "));
+  }
   if(subject==="rose"&&roseCenterValueStudy&&!roseCenterKnotStudy)
     throw new RangeError("Rose center values require independently authored source knot petals");
   if(subject==="rose"&&roseCenterValueStudy){
@@ -610,8 +622,11 @@ export function pencilObjectStudyDrawing({
     const center=subject==="rose"&&roseCenterValueStudy&&
       ROSE_CENTER_KNOT_SURFACES.some(s=>s.id===shape.id)?
       roseCenterValueDetails(shape.id as typeof ROSE_CENTER_KNOT_SURFACES[number]["id"],seed):undefined;
-    return { ...region, ...(frontal||outer||center?{
-      interiorDetails:[...(frontal??[]),...(outer??[]),...(center??[])]}:{}),
+    const contact=subject==="rose"&&roseContactShadowStudy&&
+      ROSE_CENTER_KNOT_SURFACES.some(s=>s.id===shape.id)?
+      roseContactShadowDetails(shape.id as typeof ROSE_CENTER_KNOT_SURFACES[number]["id"],seed):undefined;
+    return { ...region, ...(frontal||outer||center||(contact?.length)?{
+      interiorDetails:[...(frontal??[]),...(outer??[]),...(center??[]),...(contact??[])]}:{}),
       layers:region.layers.map(layer => ({
         ...layer, pressure:Math.min(1, layer.pressure * pressure),
       })) };
@@ -657,6 +672,12 @@ export function pencilObjectStudyDrawing({
         url:"https://www.artfinder.com/product/pink-rose-6a554/",
         rights:"technique-only" as const,
         observation:"Anatomical double-rose cup has separate intermediate hooked petal faces with asymmetrical shoulders, counterturning edges and dark fold attachment, rather than a single empty band.",
+      }]:[]),
+      ...(subject==="rose"&&roseContactShadowStudy?[{
+        title:"Leyth and chuttersnap — CC0 rose closeup photographs (Wikimedia Commons)",
+        url:"https://commons.wikimedia.org/wiki/File:Rose_Blossom_Closeup.jpg",
+        rights:"technique-only" as const,
+        observation:"Two original CC0 oblique pink and red closeup roses show independent petal overlaps and asymmetric cast shadows on exposed lower petals. References are separately documented, not digitally registered to this imagined rose.",
       }]:[]),
       ...(subject==="rose"&&roseCenterValueStudy?[{
         title:"CPSA ArtTopics — original colored-pencil rose value transitions",
