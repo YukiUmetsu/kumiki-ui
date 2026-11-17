@@ -69,6 +69,15 @@ describe("RISO65 original physical plate register preflight",()=>{
       expect(shapes(moved)).toEqual(shapes(nominal));
     }
   });
+  it("leaves existing RISO64 default output byte-identical to explicit legacy register",()=>{
+    const props={aspect:"landscape" as const,frame:155,printFrame:239,
+      animate:true,plate:"both" as const,dryness:.73,seed:62,
+      inkScale:1,registration:.25,grain:.58,layout:"film" as const};
+    const original=renderToStaticMarkup(<RisoBrushArt {...props}/>);
+    const explicit=renderToStaticMarkup(<RisoBrushArt {...props}
+      secondPlateRegistration={[.65,-.45]}/>);
+    expect(explicit).toBe(original);
+  });
   it("supports deterministic absolute source frames and an SSR interactive inspection story",()=>{
     const a=render([4,-3],"landscape",20),b=render([4,-3],"landscape",20);
     expect(a).toBe(b);
