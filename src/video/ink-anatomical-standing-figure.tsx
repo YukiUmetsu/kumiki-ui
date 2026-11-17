@@ -1,9 +1,9 @@
 /**
  * ANAT2 original standing Ming scholar; optional independent source-space
  * illustration, never a retrofit of the existing Shanshui walking rig.
- * A native body is layered beneath the original ANAT1+EXPR1 bust. The
- * feet, folded cotton robe, hand-held bamboo staff and five finger groups
- * remain separately authored, preserving the portrait's full microstructure.
+ * A complete figure and head are independently authored from period
+ * portrait studies. No ANAT1 face, prior Shanshui character or screenshot
+ * is reused. The face uses layered mogu wash, with separate anatomy/expressions.
  *
  * Reference language: Zeng Jing, Portrait of Pan Qintai, 1621, UMMA.
  * Study only, not a copied sitter or licensed source-image tracing.
@@ -28,7 +28,7 @@ export interface InkAnatomicalStandingFigureProps
   frame?:number;
   reducedMotion?:boolean;
   /** Reframe the same original SVG source-space geometry without resampling. */
-  camera?:"full"|"waist"|"grip"|"hem";
+  camera?:"full"|"face"|"waist"|"grip"|"hem";
   /** Transparent native film layer; no glued-on parchment/card. */
   transparentPaper?:boolean;
 }
@@ -89,6 +89,7 @@ export function InkAnatomicalStandingFigure({
   const robe=elder?"#e1d6c5":"#e9dfd0",under="#f0e7d8";
   const cameras={
     full:{viewBox:"0 0 540 1080",height:1080},
+    face:{viewBox:"215 183 110 260",height:1276},
     waist:{viewBox:"65 425 420 305",height:392},
     grip:{viewBox:"87 535 100 134",height:724},
     hem:{viewBox:"158 855 290 196",height:365},
