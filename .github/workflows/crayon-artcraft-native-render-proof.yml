@@ -29,6 +29,7 @@ on:
       - src/video/crayon-artcraft-f1-anat1-skin-underpaint-v48.ts
       - src/video/crayon-artcraft-f1-anat1-oblique-volume-v49.ts
       - src/video/crayon-artcraft-f1-anat1-photo-hair-v50.ts
+      - src/video/crayon-artcraft-f1-anat1-root-locks-v51.ts
       - registry/anatomy/anatomy-face.ts
       - tests/e2e-artcraft/crayon-expression-comparison.spec.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
@@ -61,7 +62,7 @@ jobs:
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
-          --grep "ArtCraft source-referenced portrait audit|F1 V48|F1 V49|F1 V50"
+          --grep "ArtCraft source-referenced portrait audit|F1 V48|F1 V49|F1 V50|F1 V51"
       - name: Capture complete portrait and expression archival evidence (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-
