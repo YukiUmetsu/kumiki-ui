@@ -7,6 +7,8 @@ import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy,portraitCriticalParts} from "../src/video/crayon-artcraft-adult-face-fixtures";
 import faceMeta,{AdultFaceThreeQuarter,AdultFacePortrait,AdultFaceArtcraftWorkbench}
   from "../src/video/crayon-artcraft-adult-face.stories";
+import * as artcraftStoryExports from "../src/video/crayon-artcraft-adult-face.stories";
+import {Cc0SourceRegisteredFaceWorkbench} from "../src/video/crayon-artcraft-adult-face.stories";
 import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit}
   from "../src/video/crayon-artcraft-portrait-audit";
 
@@ -278,6 +280,16 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>)).toBe(html);
     });
   }
+  it("does not expose the rejected blue-coat bust or its old Storybook states",()=>{
+    const removed=[
+      "AdultFaceThreeQuarter","AdultFacePortrait","AdultFaceConstruction",
+      "MatchedExpressionComparison","MatchedExpressionPortrait",
+      "EyeStructureMacro","LipAndNoseMacro","TailoredGarmentMacro","MatchedEyesMacro",
+    ];
+    for(const exportName of removed)
+      expect(artcraftStoryExports,exportName).not.toHaveProperty(exportName);
+    expect(faceMeta.component).toBe(Cc0SourceRegisteredFaceWorkbench);
+  });
   it("keeps unfinished face studies out of public Storybook",()=>{
     expect(faceMeta.tags).toContain("!dev");
     expect(faceMeta.title).toBe("Video production/Film Looks/Crayon/ArtCraft Adult Face Lab");
