@@ -567,6 +567,46 @@ test("Fuchun source-fidelity desk uses two real seeded stages at native 1x and c
   await samples.first().locator("[data-km-fidelity-viewport]").screenshot({
     animations:"disabled",path:info.outputPath("fuchun-fidelity-rooted-pine-2.8x.png")});
 
+  // Native old-pine anatomy before/after: the new 40 pressure boughs
+  // must remain in the SVG in BOTH exact same-seed canvases; CSS hides
+  // them only in the historical A side. No source tree, paper-white
+  // cut, fine needle or actual exported film path gets deleted.
+  await page.getByRole("button",{
+    name:"Old-pine wood · before vs source-loaded",
+  }).click();
+  await expect(desk).toHaveAttribute("data-km-fidelity-comparison","pine");
+  await expect(desk).toHaveAttribute("data-km-fidelity-lens","pine");
+  await expect(samples.first()).toHaveAttribute(
+    "data-km-fidelity-wood-study","before");
+  await expect(samples.last()).toHaveAttribute(
+    "data-km-fidelity-wood-study","loaded");
+  await expect(samples.first()).toHaveAttribute("data-km-fidelity-seed","71");
+  await expect(samples.last()).toHaveAttribute("data-km-fidelity-seed","71");
+  const beforeWood=samples.first().locator("[data-km-cliff-pine-wood-load]");
+  const afterWood=samples.last().locator("[data-km-cliff-pine-wood-load]");
+  await expect(beforeWood).toHaveCount(40);
+  await expect(afterWood).toHaveCount(40);
+  await expect(beforeWood.first()).toBeHidden();
+  await expect(afterWood.first()).toBeVisible();
+  expect(await beforeWood.first().locator("path").first().getAttribute("d"))
+    .toBe(await afterWood.first().locator("path").first().getAttribute("d"));
+  for(const sample of [samples.first(),samples.last()]){
+    await expect(sample.locator("[data-km-cliff-pine-bough-bone]"))
+      .toHaveCount(20);
+    await expect(sample.locator("[data-km-cliff-pine-ink-island]"))
+      .toHaveCount(40);
+    await expect(sample.locator("[data-km-cliff-pine-wood-dry-witness]"))
+      .toHaveCount(40);
+  }
+  await samples.first().locator("[data-km-fidelity-viewport]").screenshot({
+    animations:"disabled",
+    path:info.outputPath("fuchun-old-pine-original-wood-2.8x.png")});
+  await samples.last().locator("[data-km-fidelity-viewport]").screenshot({
+    animations:"disabled",
+    path:info.outputPath("fuchun-old-pine-loaded-wood-2.8x.png")});
+  await page.getByRole("button",{name:"Independent seed comparison"}).click();
+  await expect(desk).toHaveAttribute("data-km-fidelity-comparison","seeds");
+
   for(const [label,frame] of [["First painted layers",84],
     ["Late atmospheric pass",215]] as const){
     await page.getByRole("button",{name:new RegExp(label)}).click();
