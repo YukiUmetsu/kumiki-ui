@@ -358,9 +358,19 @@ export function pencilObjectStudyDrawing({
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
     "translate(24 246) scale(1.07)";
+  // Keep original material hashes byte-stable even when experimental calyx
+  // organs expand one botanical shape into six. Otherwise inserting the calyx
+  // silently re-seeds every original petal and destroys A/B fidelity.
+  const roseOriginalIds=[
+    "stem","leaf-left","leaf-right","sepal","outer-left","outer-right",
+    "back-cup","petal-front-left","petal-front-right","inner-fold","heart",
+  ] as const;
   const regions = shapes.map((shape, i) => {
     // Permit every valid UI seed while keeping each material pass in signed-31-bit range.
-    const region = material(shape, (seed + i * 311) % 2147483647, transform);
+    const original=subject==="rose"&&roseCalyxStudy?
+      roseOriginalIds.findIndex(id=>id===shape.id):-1;
+    const materialIndex=original<0?i:original;
+    const region = material(shape, (seed + materialIndex * 311) % 2147483647, transform);
     return { ...region, layers:region.layers.map(layer => ({
       ...layer, pressure:Math.min(1, layer.pressure * pressure),
     })) };
