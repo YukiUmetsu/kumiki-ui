@@ -11,10 +11,12 @@ import { MAKEUP_EVIDENCE, MAKEUP_LOOKS } from "../registry/anatomy/makeup-data";
 import type { Look } from "../registry/anatomy/makeup-data";
 import { EYE_SHAPES } from "../registry/anatomy/eye-detail";
 import { checkMakeup, designMakeup, tapedEyeShape } from "../registry/anatomy/makeup-design";
-import type { MakeupCheck } from "../registry/anatomy/makeup-design";
-import { makeupPaint, makeupPortraitOptions, paintPhoto } from "../registry/anatomy/makeup-paint";
+import type { MakeupCheck, MakeupPlan } from "../registry/anatomy/makeup-design";
+import { makeupPaint, makeupPortraitOptions, paintPhoto, wearsMakeup, wornFace } from "../registry/anatomy/makeup-paint";
 import { MAKEUP_RUNNERS } from "../registry/anatomy/makeup-render-jobs";
+import type { FacePortraitProps, PortraitInMotionProps } from "../registry/anatomy/face-portrait-react";
 import { MAKEUP_ZONES, resolveZone, zoneField } from "../registry/anatomy/makeup-zones";
+import type { ZoneAdjust } from "../registry/anatomy/makeup-zones";
 import parity from "./fixtures/makeup-zone-parity.json";
 
 const CANON = faceData.vertices as Vec3[];
@@ -38,6 +40,17 @@ describe("MAKEUP1 zone atlas", () => {
       parity.points.forEach((p, k) => expect(f(p as Vec3), `${id} at point ${k}`).toBeCloseTo(ws[k], 5));
     }
     expect(Object.keys(parity.weights).sort()).toEqual(MAKEUP_ZONES.map(z => z.id).sort());
+  });
+  it("weighs the same in both languages along every stroke and with every adjustment (probes on the zones themselves)", () => {
+    const probes = (parity as unknown as { probes?: { zone: string; adjust?: ZoneAdjust; points: number[][]; weights: number[] }[] }).probes ?? [];
+    const strokes = MAKEUP_ZONES.filter(z => z.shape.kind === "stroke").map(z => z.id);
+    expect(new Set(probes.filter(p => !p.adjust).map(p => p.zone))).toEqual(new Set(strokes));
+    for (const key of ["span", "rotate", "scale", "shift", "radius", "soft", "grow"]) expect(probes.some(p => p.adjust && key in p.adjust), key).toBe(true);
+    for (const p of probes) {
+      const f = zoneField(p.zone, CANON, p.adjust);
+      p.points.forEach((q, k) => expect(f(q as Vec3), `${p.zone} ${JSON.stringify(p.adjust ?? {})} probe ${k}`).toBeCloseTo(p.weights[k], 5));
+      expect(Math.max(...p.weights), `${p.zone} probes touch the zone`).toBeGreaterThan(0.5);
+    }
   });
   it("places the East Asian zones: aegyo-sal under the lower lid, the puppy wing down, the tear mole on one side", () => {
     const V = beautifulFace({ sex: 0, faceType: "east-asian" }).vertices;
@@ -159,17 +172,81 @@ describe("MAKEUP1 eye tools in the plan", () => {
     expect(designMakeup({ look, face, intensity: 0.1 }).lashes.styleStrength).toBeCloseTo(0.1, 6);
     const bare = designMakeup({ look, face, intensity: 0 });
     expect(bare.eyes.lens).toBeUndefined(); expect(bare.eyes.tape).toBe(0); expect(bare.brows.straight).toBe(0);
+    // a bare plan renders the bare portrait; a plan with only lashes is still made up
+    expect(wearsMakeup(bare)).toBe(false); expect(wearsMakeup(designMakeup({ look: "bare", face }))).toBe(false);
+    expect(wearsMakeup(designMakeup({ look: { id: "l", label: "l", summary: "", evidence: [], layers: [], lashes: { length: 1.3, thickness: 1, darkness: 0.5 } }, face }))).toBe(true);
   });
   it("checks the aegyo-sal height, a puppy wing's droop and the lens size", () => {
     const V = beautifulFace({ sex: 0, faceType: "east-asian" }).vertices;
     const look: Look = { id: "t2", label: "t2", summary: "", evidence: [], eyes: { lens: { diameter: 14.0, ring: 0.6 } }, layers: [
       { zone: "aegyo-sal", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.6 }, { zone: "puppy-wing", colour: { kind: "liner", tone: "brown" }, coverage: 0.9 }] };
     const good = checkMakeup(designMakeup({ look, face: V }), V);
-    expect(get(good, "aegyo-sal-height").ok).toBe(true); expect(get(good, "wing-angle").ok).toBe(true); expect(get(good, "lens-size").ok).toBe(true);
+    expect(get(good, "aegyo-sal-height").ok).toBe(true); expect(get(good, "puppy-wing-angle").ok).toBe(true); expect(get(good, "lens-size").ok).toBe(true);
+    // a look with both wings gets one check for each (ids are unique, as React keys need)
+    const both = checkMakeup(designMakeup({ look: { ...look, layers: [...look.layers, { zone: "liner-wing", colour: { kind: "liner", tone: "black" }, coverage: 0.9 }] }, face: V }), V);
+    expect(new Set(both.map(c => c.id)).size).toBe(both.length);
     // at a low intensity the lens is nearly natural: smaller than a circle lens is not a fault
     expect(get(checkMakeup(designMakeup({ look, face: V, intensity: 0.2 }), V), "lens-size").ok).toBe(true);
     const bad = checkMakeup(designMakeup({ look: { ...look, eyes: { lens: { diameter: 15.5, ring: 0.6 } } }, face: V, overrides: { "aegyo-sal": { adjust: { radius: 3 } } } }), V);
     expect(get(bad, "aegyo-sal-height").ok).toBe(false); expect(get(bad, "lens-size").ok).toBe(false);
+  });
+});
+
+describe("MAKEUP1 plans adapt and stay readable", () => {
+  const eastAsian = beautifulFace({ sex: 0, faceType: "east-asian" }).vertices;
+  it("reads a plan saved before the eye tools (no eyes, no brow straightening)", () => {
+    const old = JSON.parse(JSON.stringify(designMakeup({ look: "classic-red", face }))) as MakeupPlan & { eyes?: unknown; brows: { straight?: number } };
+    delete old.eyes; delete old.brows.straight;
+    expect(() => makeupPaint(old)).not.toThrow();
+    expect(() => makeupPortraitOptions({ width: 64, height: 80 }, old)).not.toThrow();
+    expect(() => checkMakeup(old, face)).not.toThrow();
+  });
+  it("tapes the face's own eye shape, and leaves measured lids (no eye shape) as they are", () => {
+    const plan = designMakeup({ look: "neo-gyaru", face: eastAsian });
+    expect(makeupPortraitOptions({ width: 64, height: 80 }, plan).eyeShape).toBeUndefined();
+    expect((makeupPortraitOptions({ faceType: "east-asian", eyeShape: "monolid", width: 64, height: 80 }, plan).eyeShape as { id: string }).id).toBe("monolid+tape");
+  });
+  it("checks a taped plan on the face it renders (wornFace): tape opens the eye", () => {
+    const portrait = { sex: 0, faceType: "east-asian" as const, eyeShape: "monolid" };
+    const V0 = beautifulFace(portrait).vertices, open = (V: readonly Vec3[]) => Math.hypot(V[159][0] - V[145][0], V[159][1] - V[145][1], V[159][2] - V[145][2]);
+    const taped = designMakeup({ look: "neo-gyaru", face: V0, eyeShape: "monolid" }), plain = designMakeup({ look: "k-idol", face: V0, eyeShape: "monolid" });
+    expect(open(wornFace(portrait, taped))).toBeGreaterThan(open(V0) + 0.5);
+    expect(open(wornFace(portrait, plain))).toBeCloseTo(open(V0), 6);
+  });
+  it("counts a lipstick lighter than deep skin as lip contrast, and a lipstick at the skin's own value as none", () => {
+    for (const look of ["k-idol", "igari", "c-glam", "monochrome-rose"]) {
+      const checks = checkMakeup(designMakeup({ look, face: eastAsian, skin: "#6b4430" }), eastAsian);
+      expect(checks.find(c => c.id === "lip-contrast")!.ok, look).toBe(true);
+    }
+    const flat: Look = { id: "flat", label: "flat", summary: "", evidence: [], layers: [{ zone: "lips", colour: { kind: "skin", dL: 0 }, coverage: 1 }] };
+    expect(checkMakeup(designMakeup({ look: flat, face: eastAsian, skin: "#6b4430" }), eastAsian).find(c => c.id === "lip-contrast")!.ok).toBe(false);
+  });
+  it("fills a brow that peaks early along its own line, and the brow-peak check accepts it", () => {
+    for (const V of [eastAsian, beautifulFace({ sex: 1 }).vertices, face]) {
+      const plan = designMakeup({ look: "classic-red", face: V });
+      expect(plan.layers.some(l => l.zone === "brow")).toBe(true);
+      expect(plan.layers.some(l => l.zone === "brow-straight")).toBe(false);
+      expect(checkMakeup(plan, V).find(c => c.id === "brow-peak")!.ok).toBe(true);
+      // the caller can still remove the brow
+      expect(designMakeup({ look: "classic-red", face: V, overrides: { brow: false } }).layers.some(l => l.zone.startsWith("brow"))).toBe(false);
+    }
+    // a fill pulled toward the brow head peaks neither at 71% nor where this brow does
+    const pulled = designMakeup({ look: "classic-red", face: eastAsian, overrides: { brow: { adjust: { scale: 0.45 } } } });
+    expect(checkMakeup(pulled, eastAsian).find(c => c.id === "brow-peak")!.ok).toBe(false);
+  });
+  it("scales brow density with the intensity, colours drawn lower lashes like the liner, and curls mascaraed lashes", () => {
+    expect(designMakeup({ look: "k-idol", face, intensity: 0 }).brows.density).toBe(1);
+    expect(designMakeup({ look: "k-idol", face, intensity: 1 }).brows.density).toBeCloseTo(1.15, 6);
+    const lower = designMakeup({ look: "ryousangata", face }).lashes.lower!.colour!;
+    expect(lower[0]).toBeGreaterThan(lower[2] * 1.3); // a brown liner, not the lashes' black
+    expect(designMakeup({ look: "classic-red", face }).lashes.curl).toBe(1);
+    expect(designMakeup({ look: "classic-red", face, intensity: 0.5 }).lashes.curl).toBeCloseTo(0.5, 6);
+    expect(designMakeup({ look: "bare", face }).lashes.curl ?? 0).toBe(0);
+    // a touch of mascara (no-makeup makeup, length 1.08) curls a little, not a full fan
+    expect(designMakeup({ look: "no-makeup", face }).lashes.curl).toBeCloseTo(0.32, 6);
+    // drawn lower lashes follow the lower liner when the look has one (c-glam: a brown lower liner, a black upper one)
+    const drawn = designMakeup({ look: "c-glam", face }).lashes.lower!.colour!;
+    expect(drawn[0]).toBeGreaterThan(drawn[2] * 1.3);
   });
 });
 
@@ -193,6 +270,15 @@ describe("MAKEUP1 East Asian looks", () => {
     const out = paintPhoto({ width: W, height: H, data, landmarks }, designMakeup({ look: "c-glam", face, skin: "#d8a98a" }));
     const lc = CANON[17].map((v, k) => (v + CANON[14][k]) / 2) as Vec3, x = Math.round(W / 2 + lc[0] * 1.1), y = Math.round(H / 2 - lc[1] * 1.1 + 6), i = (y * W + x) * 4;
     expect(out[i] - out[i + 1]).toBeGreaterThan(205 - 160 + 15);
+    // the eye zones too: the aegyo-sal under the lower lid is lighter, the liner over the upper lid darker
+    const luma = (o: Uint8ClampedArray, p: Vec3, dy: number, pick: (a: number[]) => number) => {
+      const cx = Math.round(W / 2 + p[0] * 1.1), cy = Math.round(H / 2 - (p[1] + dy) * 1.1 + 6), vals: number[] = [];
+      for (let yy = cy - 1; yy <= cy + 1; yy++) for (let xx = cx - 1; xx <= cx + 1; xx++) { const j = (yy * W + xx) * 4; vals.push(0.2126 * o[j] + 0.7152 * o[j + 1] + 0.0722 * o[j + 2]); }
+      return pick(vals);
+    };
+    const bare = 0.2126 * 205 + 0.7152 * 160 + 0.0722 * 135, mean = (a: number[]) => a.reduce((u, v) => u + v, 0) / a.length;
+    expect(luma(out, CANON[145], -2.5, mean)).toBeGreaterThan(bare + 4);
+    expect(luma(out, CANON[160], 0.8, a => Math.min(...a))).toBeLessThan(bare - 40);
   });
   it("lifts the wing on downturned eyes and flattens it on upturned eyes", () => {
     const angle = (eyeShape: string, named = true) => {
@@ -239,6 +325,30 @@ describe("MAKEUP1 eye tools in the renderer", () => {
       }
     }
   }, 120000);
+  it("clamps a lens to 15 mm and to just past the pupil, and tints only outside the pupil", () => {
+    const base = { framing: "eyes" as const, width: 96, height: 48, pupil: 8, makeup: "none" as const };
+    const lens = (diameter: number, tint?: [number, number, number]) => renderPortrait({ ...base, paint: { key: `lens-${diameter}-${tint}`, shade() {}, eyes: { lens: { diameter, ring: 0.5, ...(tint ? { tint } : {}) } } } }).rgba;
+    const same = (a: Uint8ClampedArray, b: Uint8ClampedArray) => a.length === b.length && a.every((v, i) => v === b[i]);
+    expect(same(lens(8), lens(9))).toBe(true);
+    expect(same(lens(20), lens(15))).toBe(true);
+    // along a row through the pupil: the pupil's edge stays where it is, and the first iris pixels take the tint
+    const plain = renderPortrait({ ...base, width: 192, height: 96, paint: { key: "lens-plain", shade() {}, eyes: { lens: { diameter: 13, ring: 0.5 } } } });
+    const red = renderPortrait({ ...base, width: 192, height: 96, paint: { key: "lens-red", shade() {}, eyes: { lens: { diameter: 13, ring: 0.5, tint: [0.45, 0.04, 0.03] } } } });
+    const lm = plain.landmarks, cy = Math.round((lm[159][1] + lm[145][1]) / 2), cx = Math.round((lm[33][0] + lm[133][0]) / 2);
+    const edge = (p: Portrait) => { let x = cx; while (Lstar(p, x, cy) < 15 && x < cx + 30) x++; return x; };
+    expect(Math.abs(edge(red) - edge(plain))).toBeLessThanOrEqual(1);
+    const at = (p: Portrait, x: number) => { const i = (cy * p.width + x) * 4; return [p.rgba[i], p.rgba[i + 1]]; };
+    const [rr, rg] = at(red, edge(plain) + 2), [pr, pg] = at(plain, edge(plain) + 2);
+    expect(rr - rg).toBeGreaterThan(pr - pg + 10);
+  }, 120000);
+  it("stops styled lashes at 14 mm above and 8 mm below", () => {
+    const base = { faceType: "east-asian" as const, eyeShape: "inner-double", framing: "eyes" as const, width: 96, height: 48, makeup: "none" as const };
+    const lashes = (up: number, low: number) => renderPortrait({ ...base, paint: { key: `cap-${up}-${low}`, shade() {}, lashes: { length: up, thickness: 1.2, darkness: 1, style: "spiky", lower: { length: low, darkness: 1, drawn: 0 } } } }).rgba;
+    const same = (a: Uint8ClampedArray, b: Uint8ClampedArray) => a.every((v, i) => v === b[i]);
+    const ref = lashes(3, 2.5);
+    expect(same(ref, lashes(5, 2.5))).toBe(true); // every upper lash and spike is past 14 mm
+    expect(same(ref, lashes(3, 4))).toBe(true); // every lower lash is past 8 mm
+  }, 120000);
   it("false lashes rise past a single lid's fold (bare lashes on it point at the camera) and fade in with their strength", () => {
     const base = { faceType: "east-asian" as const, eyeShape: "monolid", framing: "eyes" as const, width: 192, height: 96, makeup: "none" as const };
     const lashes = (style: "natural" | "spiky" | "doll") => renderPortrait({ ...base, paint: { key: `lashes-${style}`, shade() {}, lashes: { length: 1.25, thickness: 1.3, darkness: 1, style } } });
@@ -262,6 +372,14 @@ describe("MAKEUP1 eye tools in the renderer", () => {
 });
 
 describe("MAKEUP1 in a render worker", () => {
+  it("keeps a paint out of the worker-rendered portrait components (a paint's functions cannot be cloned)", () => {
+    const paint = makeupPaint(designMakeup({ look: "c-glam", face }));
+    // @ts-expect-error FacePortrait renders in a worker: use MakeupPortrait, or renderPortrait on the page's thread
+    const props: FacePortraitProps = { label: "x", options: { paint } };
+    // @ts-expect-error PortraitInMotion renders its frames in workers too
+    const motion: PortraitInMotionProps = { label: "x", options: { paint } };
+    expect([props.label, motion.label]).toEqual(["x", "x"]);
+  });
   it("renders a plan from plain data, as a worker gets it (a paint's functions cannot be cloned)", () => {
     const portrait = { faceType: "east-asian" as const, eyeShape: "monolid", framing: "eyes" as const, width: 96, height: 48, makeup: "none" as const };
     const plan = designMakeup({ look: "neo-gyaru", face: beautifulFace(portrait).vertices, eyeShape: "monolid", skin: "#d8a98a" });

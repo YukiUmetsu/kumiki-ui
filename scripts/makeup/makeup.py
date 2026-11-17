@@ -120,7 +120,7 @@ def cmd_parity(a):
     import numpy as np
 
     from kumiki_makeup.geometry import canonical
-    from kumiki_makeup.zones import atlas, weight
+    from kumiki_makeup.zones import atlas, resolve, weight
 
     V, _ = canonical()
     rng = np.random.default_rng(7)
@@ -128,9 +128,35 @@ def cmd_parity(a):
     pts = V[idx] + rng.normal(0, 2.0, (len(idx), 3))
     out = {"schema": "kumiki.makeup.zone-parity/1", "points": np.round(pts, 4).tolist(),
            "weights": {z["id"]: np.round(weight(z["id"], np.round(pts, 4), V), 6).tolist() for z in atlas()["zones"]}}
+
+    # Probes on the zones themselves: the sample points above miss thin strokes, and they use no adjustments.
+    def probe_points(zone_id: str, adjust: dict | None) -> np.ndarray:
+        found = []
+        for part in resolve(zone_id, V, adjust):
+            P = part.pts
+            if part.kind == "stroke":
+                segs = [(P[0], P[0], part.r[0], part.r[0])] if len(P) == 1 else list(zip(P[:-1], P[1:], part.r[:-1], part.r[1:]))
+                for pa, pb, ra, rb in segs:
+                    for t in (0.25, 0.5, 0.75):
+                        c, r = pa + (pb - pa) * t, ra + (rb - ra) * t
+                        found += [c, c + np.array([0.0, r + 0.25 * part.soft, 0.0])]  # on the line, and at its soft edge
+            else:
+                cen = P.mean(axis=0)
+                found += [cen] + [q for v in P for q in (v, (v + cen) / 2)]
+        return np.round(np.array(found), 4)
+
+    adjusted = [("liner-lower", {"span": 0.5}), ("puppy-wing", {"rotate": -6, "span": 0.6, "radius": 1.3}),
+                ("liner-wing", {"scale": 0.8, "shift": [0.02, 0.01]}), ("aegyo-sal", {"radius": 1.3, "soft": 0.8}),
+                ("lips", {"grow": -0.08}), ("brow-straight", {"shift": [0.0, 0.02], "rotate": 4})]
+    cases = [(z["id"], None) for z in atlas()["zones"] if z["shape"]["kind"] == "stroke"] + adjusted
+    out["probes"] = []
+    for zone_id, adjust in cases:
+        X = probe_points(zone_id, adjust)
+        entry = {"zone": zone_id, "points": X.tolist(), "weights": np.round(weight(zone_id, X, V, adjust), 6).tolist()}
+        out["probes"].append({**entry, "adjust": adjust} if adjust else entry)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text(json.dumps(out) + "\n")
-    print(f"wrote {a.out}: {len(pts)} points x {len(out['weights'])} zones")
+    print(f"wrote {a.out}: {len(pts)} points x {len(out['weights'])} zones, {sum(len(p['points']) for p in out['probes'])} probes in {len(out['probes'])} cases")
 
 
 def cmd_analyze(a):

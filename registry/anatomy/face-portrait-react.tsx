@@ -18,7 +18,9 @@ import type { BeautyOptions } from "./face-beauty";
 import { sheetList, sheetSmall } from "./foundation-react";
 
 export interface FacePortraitProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> {
-  options: PortraitOptions;
+  /** No `paint`: the portrait renders in a worker, and a paint's functions cannot go there. Use MAKEUP1's
+   * `MakeupPortrait`, or `renderPortrait` on the page's thread. */
+  options: Omit<PortraitOptions, "paint">;
   label: string;
   /** Called with each finished render (its time, and the groomed hair: strand count, groom time). */
   onRendered?: (portrait: Portrait) => void;
@@ -52,7 +54,8 @@ function toPortrait(r: RenderOutput): Portrait {
   return { width: r.width, height: r.height, rgba: r.rgba, ms: r.ms, face: m.face, landmarks: m.landmarks, stats: { strands: m.strands ?? 0, groomMs: m.groomMs ?? 0 } };
 }
 
-export interface PortraitInMotionProps { options: PortraitOptions; motion?: PortraitMotion; fps?: number; label: string }
+/** No `paint` in `options`: each frame renders in a worker (see `FacePortraitProps`). */
+export interface PortraitInMotionProps { options: Omit<PortraitOptions, "paint">; motion?: PortraitMotion; fps?: number; label: string }
 /**
  * A portrait that blinks, glances and has its hair moved by a breeze (`portraitFrame`): every frame rendered in the
  * workers (cached), then looped at its own speed. Until all frames are ready it shows the frames done and a progress

@@ -251,7 +251,8 @@ The result carries the groom and the head it was groomed on (`hair`), and the 46
 (`landmarks`). By default 12,000–40,000 strands are drawn,
 scaled with the picture's size, up to 120,000 on request.
 
-`FacePortrait` draws one in a canvas after paint, queued one at a time. `GoldenRatioTable` and `BeautyEvidence` show
+`FacePortrait` renders one in a worker, cached, with a quick preview first. Its options take no `paint`: a paint's
+functions cannot go to a worker. Use MAKEUP1's `MakeupPortrait`, or `renderPortrait` on the page's thread. `GoldenRatioTable` and `BeautyEvidence` show
 the checks and sources.
 
 **Status:** agent review of renders only. It reads as a lit CG portrait, not an approved realistic portrait (AGENTS.md
