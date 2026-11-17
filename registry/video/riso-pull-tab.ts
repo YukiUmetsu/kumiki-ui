@@ -32,6 +32,8 @@ export interface RisoPullWindowGeometry{
   readonly width:number;
   readonly height:number;
   readonly shape:"rounded-rect"|"organic-contour";
+  /** RISO80 requires clockwise winding in SVG's downward-positive coordinates. */
+  readonly winding:"clockwise";
   readonly fibres:readonly string[];
 }
 export interface RisoPullEvaluation{
@@ -67,15 +69,27 @@ function segmentsCross(a:Point,b:Point,c:Point,d:Point):boolean{
   const eps=1e-7;
   const o1=cross(a,b,c),o2=cross(a,b,d);
   const o3=cross(c,d,a),o4=cross(c,d,b);
-  return ((o1>eps&&o2< -eps)||(o1< -eps&&o2>eps))&&
-    ((o3>eps&&o4< -eps)||(o3< -eps&&o4>eps));
+  const between=(v:number,x:number,y:number)=>
+    v>=Math.min(x,y)-eps&&v<=Math.max(x,y)+eps;
+  const on=(p:Point,u:Point,v:Point)=>
+    Math.abs(cross(u,v,p))<=eps&&between(p.x,u.x,v.x)&&between(p.y,u.y,v.y);
+  if(((o1>eps&&o2< -eps)||(o1< -eps&&o2>eps))&&
+    ((o3>eps&&o4< -eps)||(o3< -eps&&o4>eps)))return true;
+  // Non-adjacent touches and collinear overlaps are also invalid apertures.
+  return (Math.abs(o1)<=eps&&on(c,a,b))||
+    (Math.abs(o2)<=eps&&on(d,a,b))||
+    (Math.abs(o3)<=eps&&on(a,c,d))||
+    (Math.abs(o4)<=eps&&on(b,c,d));
 }
 /** Parse only one closed, absolute M/L/C/Q/Z contour. Sampling is used for
  * topology, bounds and arc-length fibre placement; the original Bézier path
  * is preserved verbatim for the SVG mask and cut edge. */
 function parseOrganicContour(path:string,w:RisoPullWindow):ParsedContour{
-  if(typeof path!=="string"||path.length<20||path.length>4096)
+  if(!w||typeof path!=="string"||path.length<20||path.length>4096)
     throw new RangeError("RISO80 organic contour must be a 20–4096 character authored SVG path.");
+  const key=[path,w.x,w.y,w.width,w.height].join("|");
+  const cached=organicContourCache.get(w);
+  if(cached?.key===key)return cached.value;
   const tokens=path.match(PATH_TOKEN)??[];
   const residue=path.replace(PATH_TOKEN,"").replace(/[\s,]/g,"");
   if(residue||tokens.length<8||tokens.length>512||
@@ -167,9 +181,10 @@ function parseOrganicContour(path:string,w:RisoPullWindow):ParsedContour{
     perimeter+=dist(a,b);
   }
   const signedArea=twiceArea/2;
-  if(!finite(signedArea)||Math.abs(signedArea)<Math.max(180,w.width*w.height*.08)||
+  const minimumArea=Math.max(180,w.width*w.height*.08);
+  if(!finite(signedArea)||signedArea<minimumArea||
     !finite(perimeter)||perimeter<80)
-    throw new RangeError("RISO80 organic contour needs a substantial closed area and at least 80 source units of perimeter.");
+    throw new RangeError("RISO80 organic contour must have clockwise SVG winding, substantial area and at least 80 source units of perimeter.");
   // Reject self-crossing contours. Adjacent sampled segments and the closing
   // pair are expected to meet; every other intersection is an invalid aperture.
   const n=polygon.length;
@@ -178,7 +193,9 @@ function parseOrganicContour(path:string,w:RisoPullWindow):ParsedContour{
     if(segmentsCross(samples[i],samples[i+1],samples[j],samples[j+1]))
       throw new RangeError("RISO80 organic contour must be a simple non-self-intersecting closed silhouette.");
   }
-  return {samples,controls,signedArea,perimeter};
+  const parsed={samples,controls,signedArea,perimeter};
+  organicContourCache.set(w,{key,value:parsed});
+  return parsed;
 }
 function customContourFibres(parsed:ParsedContour,seed:number):readonly string[]{
   const points=parsed.samples;
@@ -186,7 +203,7 @@ function customContourFibres(parsed:ParsedContour,seed:number):readonly string[]
   for(let i=0;i<points.length-1;i++)
     cumulative.push(cumulative[i]+dist(points[i],points[i+1]));
   const total=cumulative[cumulative.length-1];
-  const outward=parsed.signedArea>0?1:-1;
+  const outward=1; // Positive signed area is the validated clockwise SVG winding.
   return Array.from({length:88},(_,i)=>{
     const jitter=.08+.84*printHash(seed,i+11,13);
     const target=(i+jitter)/88*total;
@@ -229,12 +246,13 @@ function check(s:RisoPullSpec):Map<string,ParsedContour>{
   const ids=new Set<string>();
   const parsed=new Map<string,ParsedContour>();
   for(const w of s.windows){
-    const r=w.radius??Math.min(w.width,w.height)*.065;
     if(!w||!/^[a-z][a-z0-9-]{0,35}$/.test(w.id)||ids.has(w.id)||
       ![w.x,w.y,w.width,w.height].every(finite)||
       w.width<35||w.height<35||w.width>s.width*.85||w.height>s.height*.85||
       w.x<10||w.y<10||w.x+w.width>s.width-10||w.y+w.height>s.height-10||
-      (w.contour===undefined&&(!finite(r)||r<0||r>Math.min(w.width,w.height)*.25)))
+      (w.contour===undefined&&(!finite(w.radius??Math.min(w.width,w.height)*.065)||
+        (w.radius??Math.min(w.width,w.height)*.065)<0||
+        (w.radius??Math.min(w.width,w.height)*.065)>Math.min(w.width,w.height)*.25)))
       throw new RangeError("RISO79 requires unique named source-paper openings, inset 10 units, minimum 35 units, and bounded corner cuts.");
     if(w.contour!==undefined)parsed.set(w.id,parseOrganicContour(w.contour,w));
     ids.add(w.id);
@@ -322,6 +340,7 @@ export function evaluateRisoPullTab(s:RisoPullSpec):RisoPullEvaluation{
       path:w.contour?.trim()??risoPullWindowContour(w),
       fibres:w.contour!==undefined?customContourFibres(parsed.get(w.id)!,s.seed):risoPullWindowFibres(w,s.seed),
       shape:w.contour!==undefined?"organic-contour":"rounded-rect",
+      winding:"clockwise",
     })),
     fixedCoverRegistration:true,fixedInsertRegistration:true,
   };
