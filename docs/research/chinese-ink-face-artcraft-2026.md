@@ -829,3 +829,55 @@ side by side at the true 1×/3× native screen and 960×540 film. The
 remaining head contour, cheek and nasal wash bands and surrounding
 Fuchun geology/pine/hemp art still lack independent artist-quality
 sign-off. A green visual-capture test is necessary but not sufficient.
+
+## Native speech-mouth rejection → optical-wash correction (2026-11-17)
+
+Source checks: [UMMA's Zeng Jing portrait](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/)
+describes *subtle washes and delicately drawn light lines*, notably
+concentrated around individual facial forms. The [Shanghai Museum's
+late-Ming overview](https://www.shanghaimuseum.net/mu/frontend/pg/article/id/RI00004055)
+documents Zeng Jing's "ink bones" and shading contribution to the Bochen
+school. These are painting-process benchmarks, not copied geometry or
+assets.
+
+**Baseline evidence inspected at native pixels:** [five original
+visemes, successful head
+73e113d5](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44041975567/artifacts/14309698889),
+`reader-native-anat1-five-speaking-visemes-ink-lip-atlas.png`.
+AA's triangular grey void and OH's symmetric shaded grey circle
+still looked like graphic stickers, disconnected from the underlying
+3/4 jaw and orbicularis muscle even though the first wet paint repair
+passed CI.
+
+**Bounded revision (source / ANAT1, not an external template):**
+- Retain distinct rest / AA / OH / MM / smile visemes, source pivot,
+  3/4 cheek/mouth projection, existing ink landmarks, 19-point iris
+  checks, all existing lip paint paths and the live animation controls.
+- Alter the *outer* AA/OH aperture into an **underpainting glaze**
+  (17–18% `$shadow`): this first impression has no continuous dark
+  border and cannot itself read as a solid stamp.
+- Curve irregular narrow cavities *inside* each source aperture
+  (29–32% `$shadow`), then a smaller warm ochre `$deep` pass
+  (18–24%). Production `$deep` is **lighter** than `$shadow`:
+  a genuinely small `$ink` core (22–26%) therefore lives only
+  in the deepest recess, not over the whole mouth area.
+- Preserve each expressive lower lip's convex wet plane, narrow
+  upper vermilion, asymmetrical recessed far corner and paper
+  reserves; add individually seeded width-sampled pressure fibres
+  (separate closed ink geometry, not uniform stroke/blur).
+- At 1×, AA remains wider and opens the jaw below the source
+  stomion; OH has a taller, narrower rounded oral opening. Each
+  must remain visible in the existing exact-head film crop.
+
+**New structural regression gates:** check graded outer/inner/deep/core
+opacities, two separate pressure fibres, rim and palatal detail;
+Playwright requires nested *actual rendered SVG bounding boxes*
+for the aperture, shadow, ochre and dark core, not only path
+presence. Native screenshots and film render still require an
+independent visual judgment after this revision.
+
+**Release status:** PR #466 stays **DRAFT / ART HOLD** regardless
+of automated success. Unresolved: contemporary facial structure
+vs reference teacher, flattened cheeks, historical pigment accuracy,
+asymmetrical mouth integration in live 960×540 motion and the
+independent Fuchun rock/hemp/pine photographic/material comparison.
