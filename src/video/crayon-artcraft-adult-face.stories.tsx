@@ -470,7 +470,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   initialEyeContact="source-shade",initialMidfaceForm="baseline",
 }:StudyProps & {
   initialLashFinish?:CrayonF1LashFinish;
-  initialInspection?:"full"|"face"|"near-eye"|"far-eye"|"mouth"|"nose"|"jaw-neck"|"hair-left"|"hair-right";
+  initialInspection?:"full"|"face"|"near-eye"|"far-eye"|"mouth"|"nose"|"jaw-neck"|"hair-crown"|"hair-left"|"hair-right";
   initialEyeContact?:Cc0EyeContact;
   initialMidfaceForm?:Cc0MidfaceForm;
 }){
@@ -484,7 +484,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [lashFinish,setLashFinish]=useState<CrayonF1LashFinish>(initialLashFinish);
   const [inspection,setInspection]=useState<
     "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
-    "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">(initialInspection);
+    "nose"|"mouth"|"jaw-neck"|"hair-crown"|"hair-left"|"hair-right">(initialInspection);
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
@@ -504,6 +504,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
       nose:{focusX:416,focusY:622,zoom:3},
       mouth:{focusX:417,focusY:734,zoom:3},
       "jaw-neck":{focusX:312,focusY:871,zoom:2.4},
+      "hair-crown":{focusX:300,focusY:270,zoom:2.85},
       "hair-left":{focusX:75,focusY:670,zoom:2.15},
       "hair-right":{focusX:513,focusY:670,zoom:2.15},
     }[inspection];
@@ -685,7 +686,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
         <select aria-label="CC0 source anatomy inspection" value={inspection}
           onChange={e=>setInspection(e.target.value as
             "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
-            "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right")}>
+            "nose"|"mouth"|"jaw-neck"|"hair-crown"|"hair-left"|"hair-right")}>
           <option value="full">Full portrait</option>
           <option value="face">Face planes (1.6×)</option>
           <option value="eyes">Both eyes (2.12×)</option>
@@ -695,6 +696,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
           <option value="nose">Asymmetric nostrils (3×)</option>
           <option value="mouth">Shadowed lips and incisors (3×)</option>
           <option value="jaw-neck">Jaw-to-neck attachment (2.4×)</option>
+          <option value="hair-crown">Crown root hair (2.85×)</option>
           <option value="hair-left">Left rooted hair (2.15×)</option>
           <option value="hair-right">Right rooted hair (2.15×)</option>
         </select>
@@ -810,6 +812,12 @@ export const Cc0Anat1RootFlowV39:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-anat1-rooted-hair-v39" initialInspection="full"/>,
+};
+export const Cc0Anat1RootFlowCrownV39:Story={
+  name:"CC0 crown parting / rooted wax underpainting 2.85× (!dev V39)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-rooted-hair-v39" initialInspection="hair-crown"/>,
 };
 export const Cc0Anat1RootFlowDetailV39:Story={
   name:"CC0 rooted dry-wax curtain and face contact 2.15× (!dev V39)",
