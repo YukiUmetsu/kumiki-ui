@@ -58,6 +58,7 @@ test("source-native rose center dry-value fields: 16:9 and 9:16 A/B, native 2.15
     await focus.selectOption("default");
     for(const name of [
       "Foundation rose physical folds",
+      "Foundation rose outer petal form colour",
       "Foundation rose frontal lamina volume",
       "Foundation rose frontal local values",
       "Foundation rose physical rim thickness",
@@ -67,7 +68,7 @@ test("source-native rose center dry-value fields: 16:9 and 9:16 A/B, native 2.15
       "Foundation rose pinnate leaves",
     ])await page.getByRole("checkbox",{name}).check();
     await expect(svg.locator("[data-km-pencil-region]")).toHaveCount(45);
-    await expect(svg.locator("[data-km-pencil-interior-details]")).toHaveCount(8);
+    await expect(svg.locator("[data-km-pencil-interior-details]")).toHaveCount(10);
     await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-central-values-"+aspect+"-complete45-native.png")});
     for(const name of [
@@ -78,6 +79,7 @@ test("source-native rose center dry-value fields: 16:9 and 9:16 A/B, native 2.15
       "Foundation rose physical rim thickness",
       "Foundation rose frontal local values",
       "Foundation rose frontal lamina volume",
+      "Foundation rose outer petal form colour",
       "Foundation rose physical folds",
     ])await page.getByRole("checkbox",{name}).uncheck();
     await value.uncheck();
