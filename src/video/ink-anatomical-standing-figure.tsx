@@ -249,30 +249,6 @@ export function InkAnatomicalStandingFigure({
           opacity={(i%6===0?.25:.11)*detail}/>;
       })}
     </g>
-    {/* Left sleeve continues from its shoulder to the real thumb and
-        staff-bearing fingers. The hand is intentionally not a mitten. */}
-    <g data-km-ink-sleeve-hand="near" transform={"translate("+pose.sleeve+" 0)"}>
-      <path d="M163 464 Q127 511 103 554 Q96 587 122 615
-        Q136 635 158 621 L171 597 Q156 562 182 532"
-        fill={robe} opacity=".64" stroke={ink} strokeWidth=".68" strokeOpacity=".38"/>
-      <path d="M122 596 Q130 581 151 586 Q167 598 157 612
-        Q154 629 142 633 Q125 628 121 613 Z"
-        fill="#e6cdb0" stroke={ink} strokeWidth=".74" strokeOpacity=".46"/>
-      <path d="M120 604 Q109 595 110 581 Q114 575 119 580
-        Q122 591 129 597 L138 604"
-        fill="#e6cdb0" stroke={ink} strokeWidth=".70" strokeOpacity=".47"/>
-      {Array.from({length:4},(_,i)=><path key={"finger"+i}
-        data-km-ink-hand-finger={i}
-        d={"M"+(129+i*5)+" "+(605+i*.8)
-          +" q"+ff(4+i*.3)+" 10 "+ff(4-i*.7)+" "+ff(18-i*1.3)}
-        stroke={ink} strokeWidth={.54+(i%2)*.12}
-        strokeLinecap="round" fill="none" opacity=".47"/>)}
-      <path data-km-ink-hand-opposed-thumb="true"
-        d="M123 606 Q129 599 133 607 Q139 616 146 618"
-        fill="none" stroke={ink} strokeWidth="1.0" opacity=".44"/>
-      <path d="M109 595 Q130 589 152 594" stroke={ink}
-        strokeWidth=".85" opacity=".39" fill="none"/>
-    </g>
     {/* A period bamboo staff anchored by finger grip, with irregular node
         collars and split bamboo fibres. All nodes use the same stem spline. */}
     <g data-km-ink-bamboo-staff="continuous" transform={"translate("+pose.staff+" 0)"}>
@@ -300,6 +276,30 @@ export function InkAnatomicalStandingFigure({
           stroke={i%5===0?"#ece1ca":ink} strokeWidth=".29"
           fill="none" opacity=".26"/>;
       })}
+    </g>
+    {/* Left sleeve continues from its shoulder to the real thumb and
+        staff-bearing fingers. The hand is intentionally not a mitten. */}
+    <g data-km-ink-sleeve-hand="near" transform={"translate("+pose.sleeve+" 0)"}>
+      <path d="M163 464 Q127 511 103 554 Q96 587 122 615
+        Q136 635 158 621 L171 597 Q156 562 182 532"
+        fill={robe} opacity=".64" stroke={ink} strokeWidth=".68" strokeOpacity=".38"/>
+      <path d="M122 596 Q130 581 151 586 Q167 598 157 612
+        Q154 629 142 633 Q125 628 121 613 Z"
+        fill="#e6cdb0" stroke={ink} strokeWidth=".74" strokeOpacity=".46"/>
+      <path d="M120 604 Q109 595 110 581 Q114 575 119 580
+        Q122 591 129 597 L138 604"
+        fill="#e6cdb0" stroke={ink} strokeWidth=".70" strokeOpacity=".47"/>
+      {Array.from({length:4},(_,i)=><path key={"finger"+i}
+        data-km-ink-hand-finger={i}
+        d={"M"+(129+i*5)+" "+(605+i*.8)
+          +" q"+ff(4+i*.3)+" 10 "+ff(4-i*.7)+" "+ff(18-i*1.3)}
+        stroke={ink} strokeWidth={.54+(i%2)*.12}
+        strokeLinecap="round" fill="none" opacity=".47"/>)}
+      <path data-km-ink-hand-opposed-thumb="true"
+        d="M123 606 Q129 599 133 607 Q139 616 146 618"
+        fill="none" stroke={ink} strokeWidth="1.0" opacity=".44"/>
+      <path d="M109 595 Q130 589 152 594" stroke={ink}
+        strokeWidth=".85" opacity=".39" fill="none"/>
     </g>
     <title>Independent source-built late Ming standing scholar; preserved full ANAT1 face and physical garments</title>
   </svg>;
