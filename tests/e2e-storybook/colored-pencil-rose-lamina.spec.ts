@@ -8,7 +8,7 @@ test("rose lamina native film: original source and four optical passes at both a
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
   await expect(checkbox).toBeVisible();
   await expect(checkbox).toBeChecked();
-  await expect(scene).toHaveAttribute("data-km-rose-lam-study","opt-in");
+  await expect(scene).toHaveAttribute("data-km-rose-lamina-study","opt-in");
   for(const aspect of ["landscape","portrait"] as const){
     await page.getByRole("combobox",{name:"Foundation aspect"}).selectOption(aspect);
     await expect(svg).toHaveAttribute("viewBox",
@@ -20,7 +20,7 @@ test("rose lamina native film: original source and four optical passes at both a
     const withFibres=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-"+aspect+"-lamina-original-native.png")});
     await checkbox.uncheck();
-    await expect(scene).toHaveAttribute("data-km-rose-lam-study","baseline");
+    await expect(scene).toHaveAttribute("data-km-rose-lamina-study","baseline");
     await expect(svg.locator('[data-km-pencil-trace^="rose-lam-"]'))
       .toHaveCount(0);
     const before=await svg.screenshot({animations:"disabled",
