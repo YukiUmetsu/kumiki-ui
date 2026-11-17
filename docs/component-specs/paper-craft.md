@@ -5,7 +5,7 @@
 - Core `registry/video/paper-craft.ts`; renderer `registry/video/paper-craft-react.tsx`.
 - Installable registry item `paper-craft` depends only on React.
 - Original fixtures: `src/video/paper-craft-demo.ts` and `examples/film/paper-craft-garden.film.json`.
-- Seven interactive pages live together in **Video production → Film Looks → Paper Craft**: Garden, Botanical & Butterfly, Kingfisher, Dragonfly, Canal Houses, Camera, Teacup & Citrus.
+- Interactive pages live together in **Video production → Film Looks → Paper Craft**, including eight subject studies, the four-chapter director and the experimental Moonlit Lantern story.
 
 ```tsx
 import { PaperCraftStage } from "./components/video/paper-craft-react";
@@ -29,7 +29,7 @@ const spec: PaperCraftSpec = {
 
 ## Storybook navigation and controls
 
-All Paper Craft demonstrations are organized under **Video production / Film Looks / Paper Craft**. There are eight pages, one per distinct subject group, not one per palette, medium, orientation, rig or revision:
+All Paper Craft demonstrations are organized under **Video production / Film Looks / Paper Craft**. The eight subject pages are grouped by artwork, not duplicated per palette, medium, orientation, rig or revision:
 
 | Storybook page | Source artwork | Controls that change the actual geometry/material |
 | --- | --- | --- |
@@ -42,7 +42,9 @@ All Paper Craft demonstrations are organized under **Video production / Film Loo
 | Camera | Layered camera | Stock, lens/finish detail, curvature, media, aspect and playback |
 | Teacup & Citrus | Paper table still life | Stock, citrus detail, napkin folds, media, aspect and playback |
 
-Storybook rendering uses a single `PaperCraftLab` component and one source file (`src/video/paper-craft.stories.tsx`). Subject identity is fixed per page; unused Storybook controls are hidden for Garden and Botanical. The retained gallery buttons switch all five media without changing page. The landscape/portrait and material variations remain accessible as Storybook controls and through Storybook URL `args`.
+The Film Director and experimental Moonlit Lantern story also live in this folder, with their own chapter controls. In reduced-motion mode the director and Moonlit Lantern show a still for the selected chapter, while the Garden and subject studies show an assembled still; playback and frame scrubbing are disabled in these modes.
+
+The subject studies use `PaperCraftLab` in `src/video/paper-craft.stories.tsx`. Subject identity is fixed per page; unused Storybook controls are hidden for Garden and Botanical. The retained gallery buttons switch all five media without changing page. The landscape/portrait and material variations remain accessible as Storybook controls and through Storybook URL `args`.
 
 `tests/e2e-storybook/paper-craft.spec.ts` and `paper-craft-objects.spec.ts` now exercise these variants on the consolidated pages, including 16:9, 9:16, material combinations, frame seeking, opacity and real cut geometry. This reorganizes Storybook navigation only; native FilmStage, exported object IDs and existing registry APIs remain unchanged.
 

@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'tests/e2e-storybook/paper-craft.spec.ts'
+      - 'tests/e2e-storybook/paper-reduced-motion.spec.ts'
       - 'registry/video/paper-botanical-kit.ts'
       - 'registry/video/paper-object-kit.ts'
       - 'registry/video/paper-scenery-kit.ts'
@@ -53,6 +54,8 @@ jobs:
         # Earlier paper modes have their own existing regression suite.
         # Only the current paper-object stories consume Chromium minutes.
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft-scenery.spec.ts tests/e2e-storybook/paper-director.spec.ts tests/e2e-storybook/paper-director-page-turn.spec.ts
+      - name: Paper Storybook reduced-motion controls
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-reduced-motion.spec.ts
       - name: Current kingfisher wing and anatomical paper browser proof
         # Two relevant captures; retain the other object suites for local work.
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/paper-craft-objects.spec.ts --grep "Reference-led anatomy persists"
