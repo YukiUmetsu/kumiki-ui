@@ -23,6 +23,18 @@ test("ANAT2 Chinese ink characters are genuinely different, expressive, and sour
     const metrics=page.getByTestId("ink-anat2-metrics");
     await expect(metrics).toContainText("EXPR1 cheek lift");
     await expect(metrics).toContainText("ANAT1 nose width");
+    const headRatio=page.getByRole("slider",{name:"Ink rebuilt head scale"});
+    await headRatio.focus();
+    await headRatio.press("Home");
+    await expect(headRatio).toHaveValue("0.38");
+    await expect(portrait).toHaveAttribute("data-ink-head-scale","0.38");
+    await preview.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-original-anatomical-low-head-period-ratio.png")});
+    await headRatio.press("End");
+    await expect(headRatio).toHaveValue("0.75");
+    await expect(portrait).toHaveAttribute("data-ink-head-scale","0.75");
+    await preview.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-original-anatomical-high-head-negative-control.png")});
     const box=await portrait.boundingBox();
     expect(box?.width).toBeGreaterThan(200);
     expect(box?.height).toBeGreaterThan(250);
@@ -73,6 +85,10 @@ test("ANAT2 ArtCraft source comparison only accepts local images and manually re
       .getByTestId("ink-anat2-portrait");
     await expect(live).toHaveAttribute("data-ink-character","elder");
     await expect(live).toHaveAttribute("data-ink-emotion","sad");
+    const originalRatio=page.getByRole("slider",{name:"Ink source head proportion"});
+    await originalRatio.focus();await originalRatio.press("End");
+    await expect(page.getByTestId("ink-anat2-paint-window")
+      .getByTestId("ink-anat2-portrait")).toHaveAttribute("data-ink-head-scale","0.75");
     const zoom=page.getByRole("slider",{name:"Ink original source zoom"});
     await zoom.focus();await zoom.press("End");
     await expect(zoom).toHaveValue("4");
