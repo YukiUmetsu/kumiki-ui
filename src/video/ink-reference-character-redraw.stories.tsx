@@ -132,6 +132,7 @@ function ReferenceAtelier(){
         <li>Style anchor: <a href="https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/" target="_blank" rel="noreferrer">Zeng Jing, Portrait of Pan Qintai (1621)</a>. The museum image is linked, not embedded or traced.</li>
         <li>Comparative composition: <a href="https://www.metmuseum.org/art/collection/search/48941" target="_blank" rel="noreferrer">The Met, Portrait of a Scholar (17th–18th century)</a>, Open Access / Public Domain.</li>
         <li>ANAT1 drives the facial topology and landmark placement; EXPR1 moves the actual feature mesh and supplies expression marks. The ink renderer translates those curves into soft mogu planes and sparse, tapered brush contours.</li>
+        <li>No demographic face norm is applied: ANAT1 has no validated East-Asian reference norm. The two shapes use provisional millimetre-space landmark morphs, pending source-pixel annotation.</li>
         <li>These are research redraws, not approved production assets. The formal ArtCraft portrait gate still requires a source-image hash, independently annotated landmarks/value planes and 1×/3× visual review.</li>
       </ul>
     </section>
