@@ -15,6 +15,20 @@ describe("V48 complete original photographic crayon facial underpaint",()=>{
     expect(CRAYON_F1_V48_WITNESSES).toHaveLength(8);
     expect(CRAYON_F1_V48_WITNESSES[0].source).toEqual([123,85,67]);
     expect(CRAYON_F1_V48_WITNESSES[0].nativeV46).toEqual([203,166,149]);
+    // V30 expanded the original source silhouette from obsolete V23 bounds.
+    // Normalizing to x=99/width=412 hides source registration errors, and
+    // the fail-closed builder MUST reject that earlier face volume.
+    const control=crayonCc0FaceStudy({
+      midfaceForm:"source-anat1-orbital-aperture-v46"});
+    const sourceFace=control.elements.find(x=>x.id==="face-outline");
+    expect(sourceFace?.kind).toBe("wax");
+    if(sourceFace?.kind!=="wax")throw new RangeError("Missing source face");
+    expect(sourceFace.bounds).toEqual({x:73,y:272,width:440,height:611});
+    CRAYON_F1_V48_FIELDS.forEach((field,i)=>{
+      const [x,y]=CRAYON_F1_V48_WITNESSES[i].at;
+      expect(field.x).toBeCloseTo((x-sourceFace.bounds.x)/sourceFace.bounds.width,4);
+      expect(field.y).toBeCloseTo((y-sourceFace.bounds.y)/sourceFace.bounds.height,4);
+    });
     expect(CRAYON_F1_V48_FIELDS.every(f=>f.x>=0&&f.x<=1&&
       f.y>=0&&f.y<=1&&f.strength>0)).toBe(true);
   });
