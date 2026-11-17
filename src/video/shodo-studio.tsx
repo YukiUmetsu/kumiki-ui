@@ -150,7 +150,7 @@ const PARAM_LABEL: Record<keyof ShodoTechniqueParams, string> = {
   tomePress: "press", tomeReach: "reach", tomeHold: "hold (s)", suiro: "垂露 scale",
   haneHold: "pause (s)", haneLength: "length", haneSpeed: "flick (s)",
   haraiLift: "lift starts", kenshinLift: "lift starts",
-  footPress: "foot press", footHold: "foot hold (s)", pullOut: "pull-out",
+  footPress: "foot press", footHold: "foot hold (s)", pullOut: "pull-out", footShare: "shortest pull-out",
   tenPress: "press", tenHold: "hold (s)",
   musubiLift: "lift in loops",
 };

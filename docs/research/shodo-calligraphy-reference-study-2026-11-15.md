@@ -641,6 +641,14 @@ Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/2
 
 **The foot's weight.** The flatter pull-out alone left 秋's stroke thin, ending in a small round press. Her 右払い are heavy: their weight is 1.44 times the rules' weight by length (median 1.49 against 1.03, 99 strokes), far more than any other kind (horizontals 1.09, verticals 1.14, dots 1.24, left sweeps 0.87). `shodoKaishoForm` multiplies a kanji 右払い's weight by 1.3 (`rightSweepWeight`). On her ink, the 98 kanji gain on both halves: overlap +0.0076 and +0.0099 (38/6 and 42/2 characters better/worse); 1.2 gives +0.0064 and +0.0071, 1.44 +0.0090 and +0.0114 with a worse centreline (+0.03 and +0.10 against +0.02 and +0.06 at 1.3).
 
+## 2.28 Twenty-fourth study round: a foot at the tip
+
+**What was wrong.** The owner saw 永's last stroke end with no 右払い. Her form of 永 and the engine code that draws it had not changed since the eleventh round; `footTurn` and `rightSweepWeight` change only KanjiVG forms. The renderer takes a 右払い's last point pair as the pull-out from the pressed foot. A rules form has three or four points, its last pair a quarter of the stroke. Her traced and fitted forms space their points along the stroke: 永's ends in nine points, its last pair 49 em (8 % of the stroke), so the brush pressed its foot at the tip and lifted there. 20 of her 102 右払い have a last pair under 15 % of the stroke (大 2 %, 天 3 %, 犬 3 %); her pull-outs measure 23 % (median).
+
+**Change.** A 右払い's pull-out is at least `technique.footShare` of the stroke (default 0.2). When the last pair is shorter, the foot moves back along the stroke to that share. On her ink, her 100 kanji with a 右払い gain on both halves: overlap +0.0023 and +0.0015 (7/3 and 8/5 characters better/worse); 0.16 gives +0.0018 and +0.0010, 0.24 +0.0020 and −0.0003. The rules forms of 98 of her kanji gain too (+0.0017 and +0.0015, none worse).
+
+**What is still different.** Her pull-out ends in a sharp point with a flat lower edge. Ours ends rounder: 70 of her 102 右払い and 70 of 138 rules 右払い fail the techniques board's tip check (≤ 0.55 of the middle width). The pressed foot's teardrop leads with its round belly, and the pull-out is about as long as that footprint. A softer press curve (−0.001 to −0.007) and a longer pull-out past the tip (`pullOut` 0.4: −0.0006 and −0.0023) both lose overlap with her ink, but her forms were fitted under the current brush, so a change to the foot's footprint needs a refit to be judged.
+
 ## 3. From observation to model
 
 | Observation | Model decision |

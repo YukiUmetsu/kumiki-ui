@@ -56,7 +56,7 @@ export const SHODO_BASICS: readonly ShodoBasic[] = [
   { id: "hidari-harai", term: "左払い", reading: "hidari-harai", phase: "shuhitsu", summary: "even press, lift along the arc",
     params: ["haraiLift"], demo: { kind: "left-sweep", points: [[720, 130], [640, 400], [450, 650], [150, 840]] } },
   { id: "migi-harai", term: "右払い", reading: "migi-harai", phase: "shuhitsu", summary: "swell to the foot, pull out flat",
-    params: ["footPress", "footHold", "pullOut"],
+    params: ["footPress", "footHold", "pullOut", "footShare"],
     demo: { kind: "right-sweep", points: [[160, 140], [380, 420], [600, 660], [700, 740], [900, 790]] } },
   { id: "ten", term: "点", reading: "ten", phase: "kihitsu", summary: "touch, press along 45°, gather",
     params: ["tenPress", "tenHold"], demo: { kind: "dot", points: [[410, 360], [580, 560]], weight: 1.25 } },
