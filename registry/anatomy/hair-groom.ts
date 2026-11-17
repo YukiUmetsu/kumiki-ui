@@ -826,6 +826,94 @@ export type HairDensityMap = ((rotated: Vec3) => number) & { total?: (rotated: V
 const lobe = (x: number, mu: number, beta: number) => Math.exp(-((x - mu) ** 2) / (2 * beta * beta)) / (beta * Math.sqrt(2 * Math.PI));
 
 /** Rotate a groom's points into the camera frame once (shared by the opacity maps and the renderer). */
+/** Moving air on hair, for a frame at time `t` (s). */
+export interface HairMotion {
+  /** Seconds into the motion; the same `t` gives the same frame. */
+  t: number;
+  /** Mean wind speed at the head, m/s (0 still air; 1 a light air; 3 a gentle breeze; 6 a fresh breeze). Default 2. */
+  wind?: number;
+  /** Where the wind blows toward, degrees about the vertical (0 toward the figure's back, 90 toward its left). Default 0. */
+  direction?: number;
+  /** Gustiness: how much the speed swings about its mean (0–0.8). Default 0.35. */
+  gust?: number;
+  /** Loop length (s): every rate is rounded to a whole number of cycles in it, so frame `period` matches frame 0. */
+  period?: number;
+}
+
+/**
+ * Hair in moving air, one frame (`moveHair`): each strand bends from its root like a light cantilever loaded by the
+ * wind's drag, so its sideways travel grows with the square of the distance from the root and with the square of the
+ * wind speed (a 25 cm lock moves its end about 3 cm in a 3 m/s breeze; a 5 cm crop barely moves). Gusts swing the
+ * speed at two slow rates (about 0.6 and 1.7 Hz); a wave runs down each lock (about 15 cm long, so ends lag their
+ * roots), and every lock has its own phase, so locks move together but not in step. Strands keep their lengths
+ * (each point is pulled back to its segment's length from the one before) and are pushed out of the head, the face,
+ * the neck, the shoulders and the chest. Deterministic for a time `t`.
+ */
+export function moveHair(groom: HairGroom, head: HairHead, m: HairMotion): HairGroom {
+  const U0 = Math.max(0, m.wind ?? 2), g = Math.min(0.8, Math.max(0, m.gust ?? 0.35)), t = m.t;
+  if (U0 <= 0) return groom;
+  const az = ((m.direction ?? 0) * Math.PI) / 180, W: Vec3 = nrm([Math.sin(az), 0.12, -Math.cos(az)]);
+  const hz = (f: number) => (m.period ? Math.max(1, Math.round(f * m.period)) / m.period : f);
+  const U = U0 * (1 + g * (0.65 * Math.sin(2 * Math.PI * hz(0.6) * t) + 0.35 * Math.sin(2 * Math.PI * hz(1.7) * t + 1.3)));
+  const fWave = hz(1.1), fLat = hz(0.8);
+  const K = 3e-5, LAMBDA = 150, P = groom.points, out = new Float32Array(P.length);
+  const side = nrm(cross([0, 1, 0], W));
+  for (let s = 0; s < groom.starts.length; s++) {
+    const st = groom.starts[s], n = groom.counts[s];
+    if (n < 2) { out.set(P.subarray(st * 3, (st + n) * 3), st * 3); continue; }
+    let L = 0;
+    for (let k = 1; k < n; k++) L += Math.hypot(P[(st + k) * 3] - P[(st + k - 1) * 3], P[(st + k) * 3 + 1] - P[(st + k - 1) * 3 + 1], P[(st + k) * 3 + 2] - P[(st + k - 1) * 3 + 2]);
+    const ph = 2 * Math.PI * ((groom.lock?.[s] ?? groom.jitter[s]) + 0.3 * groom.jitter[s]);
+    const tip = Math.min(0.25 * L, K * U * U * L * L);
+    out[st * 3] = P[st * 3]; out[st * 3 + 1] = P[st * 3 + 1]; out[st * 3 + 2] = P[st * 3 + 2];
+    let sArc = 0;
+    for (let k = 1; k < n; k++) {
+      const i = (st + k) * 3, j = (st + k - 1) * 3, seg = Math.hypot(P[i] - P[j], P[i + 1] - P[j + 1], P[i + 2] - P[j + 2]);
+      sArc += seg;
+      const u = sArc / Math.max(1, L), wave = Math.sin(2 * Math.PI * (fWave * t - sArc / LAMBDA) + ph);
+      // hair lying on the head, the shoulders or the chest is held there by friction: it moves much less
+      const rest: Vec3 = [P[i], P[i + 1], P[i + 2]], held = touching(head, rest) ? 0.3 : 1;
+      const d = held * tip * u * u * (0.82 + 0.18 * wave), lat = held * tip * u * u * 0.12 * Math.sin(2 * Math.PI * (fLat * t - sArc / LAMBDA) + ph * 1.7);
+      let q: Vec3 = [P[i] + W[0] * d + side[0] * lat, P[i + 1] + W[1] * d + side[1] * lat, P[i + 2] + W[2] * d + side[2] * lat];
+      // keep the segment's length from the point before (the hair does not stretch)
+      const a: Vec3 = [out[j], out[j + 1], out[j + 2]], v = sub(q, a), lv = len(v) || 1;
+      q = add(a, sc(v, seg / lv));
+      q = keepOut(head, q, rest);
+      out[i] = q[0]; out[i + 1] = q[1]; out[i + 2] = q[2];
+    }
+  }
+  return { ...groom, points: out };
+}
+
+/** Whether a resting hair point lies on the head, the shoulders or the chest (within a few millimetres). */
+function touching(H: HairHead, p: Vec3): boolean {
+  if (ellipsoidAt(H, p, 5).inside) return true;
+  if (H.shoulderTop) { const top = H.shoulderTop(p[0]); if (p[1] < top + 6 && p[1] > top - 4 && Math.abs(p[2] - H.neck.cz) < 70) return true; }
+  if (H.chestFront && p[1] < H.shoulderY) { const cf = H.chestFront(p[0]); if (p[2] < cf + 6 && p[2] > cf - 4) return true; }
+  return false;
+}
+
+/**
+ * A point pushed out of the head (2 mm off the scalp), the face and the neck, and back onto the shoulders or chest
+ * when its resting point lay on them (hair hanging in front of or behind the shoulders is not lifted onto them).
+ */
+function keepOut(H: HairHead, q0: Vec3, rest: Vec3): Vec3 {
+  let q = q0;
+  const e = ellipsoidAt(H, q, 2);
+  if (e.inside) q = e.surf;
+  if (H.faceFront && q[1] > H.chinY - 5 && q[1] < H.hairlineY + 20) {
+    const ff = H.faceFront(q[0], q[1]);
+    if (Number.isFinite(ff) && q[2] < ff + 1.5 && q[2] > ff - 30) q = [q[0], q[1], ff + 1.5];
+  }
+  if (q[1] < H.chinY + 10 && q[1] > H.shoulderY - 20) {
+    const dx = q[0] / H.neck.rx, dz = (q[2] - H.neck.cz) / H.neck.rz, r = Math.hypot(dx, dz);
+    if (r < 1.04) { const k = 1.04 / Math.max(1e-6, r); q = [q[0] * k, q[1], H.neck.cz + (q[2] - H.neck.cz) * k]; }
+  }
+  if (H.shoulderTop) { const top = H.shoulderTop(q[0]) + 1.5; if (rest[1] >= top + 0.5 && q[1] < top && q[1] > top - 25 && Math.abs(q[2] - H.neck.cz) < 70) q = [q[0], top, q[2]]; }
+  if (H.chestFront && q[1] < H.shoulderY) { const cf = H.chestFront(q[0]) + 1.5; if (rest[2] >= cf + 0.5 && q[2] < cf && q[2] > cf - 40) q = [q[0], q[1], cf]; }
+  return q;
+}
+
 export function rotateGroom(groom: HairGroom, rotate: (p: Vec3) => Vec3): Float32Array {
   const P = groom.points, n = P.length / 3, R = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) { const r = rotate([P[i * 3], P[i * 3 + 1], P[i * 3 + 2]]); R[i * 3] = r[0]; R[i * 3 + 1] = r[1]; R[i * 3 + 2] = r[2]; }

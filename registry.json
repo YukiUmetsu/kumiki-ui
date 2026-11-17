@@ -3779,6 +3779,11 @@
           "target": "components/anatomy/face-portrait-react.tsx"
         },
         {
+          "path": "registry/anatomy/portrait-motion.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/portrait-motion.ts"
+        },
+        {
           "path": "registry/anatomy/anatomy-render-pool.ts",
           "type": "registry:ui",
           "target": "components/anatomy/anatomy-render-pool.ts"

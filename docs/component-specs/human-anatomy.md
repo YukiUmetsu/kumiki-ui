@@ -17,7 +17,7 @@ painter), `data/*` (baked tables and licences). Binary body model: `assets/model
 photographs: 11 of eyes, 5 of skin, 4 of hands).
 **Storybook:** Video production → Art Foundations → Human Anatomy, in this order:
 body — **Lab**, **Population line-up**, **Turnaround**, **Pose library**, **Range of motion**, **Proportions and
-ranges**, **Any style**, **Reference board**; faces — **Face lab**, **Beautiful faces**, **Head angles**; eyes —
+ranges**, **Any style**, **Reference board**; faces — **Face lab**, **Beautiful faces**, **Head angles**, **Portrait in motion**; eyes —
 **Eye lab**, **Eye shapes**, **Iris colours**; skin — **Skin texture by region**, **Skin colour (Monk scale)**; hair —
 **Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Curl types and hair colours**, **Hair on the posable body**;
 hands — **Hand lab**, **Hand types**, **Hand gestures**, **Grasps (GRASP taxonomy)**, **Hand animations**, **Hand
@@ -466,6 +466,42 @@ behind the skin and ears. Each drawn strand is as wide as the real hairs it stan
 
 **Status:** agent review of renders only (Hair lab, Hairstyles, Bangs). It is a groom for portraits from the front
 (±25°), not a simulation in motion.
+
+## Portraits in motion, and hair in moving air (`portrait-motion.ts`, `moveHair`)
+
+`PortraitInMotion` (in `face-portrait-react.tsx`) renders a looping portrait frame by frame in the workers.
+`portraitFrame(base, t, motion)` gives each frame's options:
+
+- **Blinks** (AU43): the lid closes in about 100 ms, stays shut briefly and reopens in about 200 ms. This follows
+  high-speed video of spontaneous blinks (Kwon et al. 2013). People at rest blink about 17 times a minute
+  (Bentivoglio et al. 1997), so a 3 s loop holds one blink.
+- **Glances** (AU61–64): saccades take about 20–30 ms plus 2–3 ms per degree (the main sequence), so a glance is over
+  within one frame; the eyes then hold still.
+- **Hair** uses `moveHair(groom, head, { t, wind, direction, gust, period })`:
+  - Each strand bends from its root like a light cantilever loaded by drag. Its end moves with the square of the wind
+    speed and of the strand's length, up to a quarter of the length: a 25 cm lock moves about 2 cm in a 3 m/s breeze,
+    and a crop barely moves.
+  - Gusts swing the speed at about 0.6 and 1.7 Hz, a wave about 15 cm long runs down each lock, and each lock has its
+    own phase.
+  - Hair resting on the head, shoulders or chest moves at 30% (friction).
+  - Strands keep their segment lengths and are kept out of the head, face, neck, shoulders and chest.
+  - With `period`, every rate is rounded to whole cycles, so the loop has no seam.
+
+The groomed hair is cached, so only its pose changes per frame. Story: **Portrait in motion**.
+
+**Hair on the skin, the scalp and the hairline (portraits).**
+
+- **Shadows.** Hair shadows are gathered in four layers by the hair's distance from the skin, each blurred by the
+  softbox's penumbra (about 0.35 × the distance: hair on the skin is crisp, a curtain 3 cm off the cheek is soft).
+  Only skin the key light reaches takes a hair shadow. A cheek turned away from the light used to take the forehead's
+  hair coverage, which gave a hard dark edge down the face.
+- **Scalp.** Under the hair, the scalp shows streaks along the groom's own root directions. Straight hair gives long
+  streaks; curl types IV–VIII give round clumps about 2 mm across. The hairline breaks into those streaks instead of
+  fading smoothly.
+- **Scattering.** Hair-covered scalp takes no part in the skin's light scattering, so there is no red rim along the
+  hairline.
+- **Forehead strip.** The strip that joins the face mask to the cranium is pulled onto the ellipsoid along its radius.
+  It used to stand out past the skull at the temples as fins.
 
 ## Hair on the posable body (`growHair`, `renderHairSegments`, `faceHair`)
 
