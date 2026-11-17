@@ -1850,6 +1850,60 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
   expect(errors).toEqual([]);
 });
 
+/** V40 independently inspectable native 608x1082 source-space silhouette.
+ * Reuses every original V39 hair cubic, face and 300-frame material scene;
+ * negative controls share exact source camera, frame and deterministic seed.
+ * These native PNGs are evidence for ART REVIEW, not an approval or SSIM.
+ */
+test("F1 V40 source asymmetry and smaller dry-wax contact vs V39 at 1x, crown and curtain",async({page},info)=>{
+  test.setTimeout(200_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const results:Record<string,Uint8Array[]>={full:[],crown:[],right:[]};
+  for(const midfaceForm of [
+    "source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40"
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","crown","right"] as const){
+      const focus=view==="crown"?
+        {focusX:300,focusY:270,zoom:2.85}:
+        {focusX:513,focusY:670,zoom:2.15};
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,...focus},{frame:299,...focus},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface",
+        "hair-left-curtain","hair-right-curtain",
+        "hair-rooted-crown-0","hair-rooted-left-0","hair-rooted-right-0",
+        "source-brow-follicles-near","iris-near","lip-upper"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await expect(svg.locator(
+        '[data-km-crayon-element^="hair-rooted-"]')).toHaveCount(18);
+      const pixels=await svg.screenshot({
+        path:info.outputPath("crayon-v40-"+view+"-"+midfaceForm+"-299.png"),
+        animations:"disabled",
+      });
+      results[view].push(pixels);
+    }
+  }
+  for(const view of ["full","crown","right"] as const){
+    expect(results[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(results[view][0]),
+      Buffer.from(results[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+
 /** Root-to-shaft source-gesture ArtCraft study: actual native browser
  * pixels on a fixed CC0 camera. This does not certify appearance/likeness.
  * No photo raster is included in the native render.
