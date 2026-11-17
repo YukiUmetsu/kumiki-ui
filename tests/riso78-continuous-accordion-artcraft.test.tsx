@@ -72,7 +72,7 @@ describe("RISO78 real one-source continuous accordion print ArtCraft",()=>{
       drumContact={{dryness:.3,feed:"top-to-bottom"}}/>);
     // Unique React useId differ between renders; actual per-paper geometry,
     // ink paths and crease optics must not depend on a runtime random seed.
-    const stripIds=(value:string)=>value.replaceAll(/riso78-[\w-]+-p\d+/g,"PANEL");
+    const stripIds=(value:string)=>value.replace(/riso78-[\w-]+-p\d+/g,"PANEL");
     expect(stripIds(image).includes("THE")).toBe(true);
     expect(stripIds(repeat).includes("FLOW")).toBe(true);
   });
