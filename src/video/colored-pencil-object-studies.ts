@@ -6,7 +6,7 @@ import {ROSE_LAMINA_AXES,roseLaminaFibres} from "./colored-pencil-rose-lamina";
 import {ROSE_LIP_BANDS,roseRolledLipTraces} from "./colored-pencil-rose-rolled-lip";
 import {ROSE_CALYX_ORGANS,validateRoseCalyxOrgans} from "./colored-pencil-rose-calyx";
 import {ROSE_PINNATE_ORGANS,inspectRosePinnateOrgans} from "./colored-pencil-rose-pinnate";
-import {ROSE_PHYSICAL_FOLDS,physicalFoldUndersideDetails,inspectRosePhysicalFolds} from "./colored-pencil-rose-physical-folds";
+import {ROSE_PHYSICAL_FOLDS,physicalFoldUndersideDetails,physicalFoldFaceDetails,inspectRosePhysicalFolds} from "./colored-pencil-rose-physical-folds";
 import {ROSE_INNER_WHORL_ORGANS,inspectRoseInnerWhorl} from "./colored-pencil-rose-inner-whorl";
 import {ROSE_MIDDLE_LAMINAE,inspectRoseMiddleLaminae} from "./colored-pencil-rose-middle-lamina";
 
@@ -177,8 +177,11 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
         direction:fold.direction,flow:fold.flow,startFrame:shape.startFrame??25,
         details:physicalFoldUndersideDetails(fold),
       };
+      const frontalContacts=physicalFoldFaceDetails(fold);
       const face:ObjectShape={
         ...shape,path:fold.face,bounds:fold.faceBounds,
+        ...(frontalContacts.length?
+          {details:[...(shape.details??[]),...frontalContacts]}:{}),
       };
       return shape.id==="back-cup"&&middleStudy?
         [underturn,face,...ROSE_MIDDLE_LAMINAE]:[underturn,face];
