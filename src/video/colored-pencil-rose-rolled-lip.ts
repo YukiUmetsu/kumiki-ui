@@ -51,7 +51,7 @@ export const ROSE_LIP_BANDS:readonly RoseLipBand[]=[
   {id:"heart",
    pigments:["#451C37","#D27C95","#FFCEBD"],nibs:[0.55,0.48,0.26],
    occlusion:"M222 152 Q235 133 254 150 Q260 159 256 168",
-   returnLight:"M226 154 Q237 140 250 152 Q257 159 253 166",
+   returnLight:"M228 146 Q238 140 250 152 Q257 159 253 166",
    dryEdge:"M227 149 Q238 139 248 148"},
 ] as const;
 
