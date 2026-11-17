@@ -1,7 +1,6 @@
 import {describe,expect,it} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
-import faceMeta,{AdultFaceExpressionComparison,MatchedExpressionComparison,MatchedExpressionPortrait,
-  EyeStructureMacro,LipAndNoseMacro,TailoredGarmentMacro,MatchedEyesMacro,
+import faceMeta,{AdultFaceExpressionComparison,Cc0SourceRegisteredFaceWorkbench,
   crayonArtcraftInspectionSpec} from "../src/video/crayon-artcraft-adult-face.stories";
 import {crayonAdultFaceStudy} from "../src/video/crayon-artcraft-adult-face-fixtures";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
@@ -10,15 +9,10 @@ const args={aspect:"landscape" as const,detail:1,expression:"warm" as const,
   headScaleY:.82,startFrame:299,playbackRate:1,loop:false};
 
 describe("Crayon ArtCraft matched expression comparison",()=>{
-  it("stays in the existing hidden Crayon Storybook subtree",()=>{
-    expect(faceMeta.title).toBe("Video production/Film Looks/Crayon/Characters/ArtCraft Adult Face Lab");
+  it("keeps the rejected paired expression portrait out of the Storybook catalog",()=>{
+    expect(faceMeta.title).toBe("Video production/Film Looks/Crayon/ArtCraft Source Lab");
     expect(faceMeta.tags).toContain("!dev");
-    expect(MatchedExpressionComparison.render).toBeTypeOf("function");
-    expect(MatchedExpressionPortrait.args?.aspect).toBe("portrait");
-    expect(EyeStructureMacro.args?.inspection).toBe("eyes");
-    expect(LipAndNoseMacro.args?.inspection).toBe("nose-mouth");
-    expect(TailoredGarmentMacro.args?.inspection).toBe("garment");
-    expect(MatchedEyesMacro.args?.inspection).toBe("eyes");
+    expect(faceMeta.component).toBe(Cc0SourceRegisteredFaceWorkbench);
   });
   for(const aspect of ["landscape","portrait"] as const){
     it("uses original wax with valid native camera crops in "+aspect,()=>{
