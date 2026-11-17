@@ -18,6 +18,7 @@
  */
 import type { Node } from "./arch-sdf";
 import { boxDistance, leaf } from "./arch-sdf";
+import { worley } from "./foundation-raster";
 import type { SceneBuilder } from "./arch-kit";
 import { boxAt, capsule, coneY, cut, cylY, cylZ, ellipsoid, opening, repeatAround, repeatX, repeatZ, revolve, sphere } from "./arch-kit";
 import type { SurfaceSpec } from "./arch-surface";
@@ -297,4 +298,19 @@ export function humpBridge(b: SceneBuilder, o: { span?: number; W?: number } = {
 export function redLantern(b: SceneBuilder, x: number, y: number, z: number, r = 0.35) {
   b.add(revolve(x, z, y - r * 1.2, y + r * 0.2, t => r * Math.sin(Math.PI * t) ** 0.8 + 0.03, r + 0.05, b.mat({ kind: "fabric", colour: "#b8261c", colour2: "#a3221a", emit: 0.25 }), 0, 2), cylY(x, z, y + r * 0.2, y + r * 0.35, r * 0.3, b.mat(CN.gold)), cylY(x, z, y + r * 0.35, y + 1.2, 0.012, b.mat({ kind: "iron" })));
   b.light({ x, y: y - r * 0.5, z, kelvin: 1900, power: 0.25, lamp: true });
+}
+
+/**
+ * A round moon window set into the face of a wall that faces x (`xFace`, `face` = the direction into the room): a moulded
+ * ring holding an ice-ray lattice (bingliewen), straight bars meeting at odd angles like cracks in thawing ice, with
+ * paper behind them that glows (centre `cz`, `cy`, radius R).
+ */
+export function moonWindow(b: SceneBuilder, xFace: number, cz: number, cy: number, R: number, face: 1 | -1, wood: SurfaceSpec = CN.lattice, paper: SurfaceSpec = { kind: "washi", colour: "#f1e8d2", emit: 0.45 }): Node[] {
+  const w = b.mat(wood), p = b.mat(paper), cell = R * 0.42, xl = xFace + face * 0.05;
+  const lattice = leaf((x, y, z) => {
+    const r = Math.hypot(z - cz, y - cy), wv = worley(17, (z - cz) / cell, (y - cy) / cell, 0.85), edge = (wv.f2 - wv.f1) * 0.5 * cell;
+    return Math.max(Math.min(edge - 0.02, Math.abs(r - R) - 0.07), r - R - 0.07, Math.abs(x - xl) - 0.025) * 0.9;
+  }, [xl - 0.03, cy - R - 0.08, cz - R - 0.08], [xl + 0.03, cy + R + 0.08, cz + R + 0.08], w);
+  const sheet = leaf((x, y, z) => Math.max(Math.hypot(z - cz, y - cy) - R, Math.abs(x - (xFace + face * 0.01)) - 0.004), [xFace - 0.02, cy - R, cz - R], [xFace + 0.02, cy + R, cz + R], p);
+  return [lattice, sheet];
 }
