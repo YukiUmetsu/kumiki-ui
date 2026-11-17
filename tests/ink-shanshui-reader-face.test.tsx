@@ -686,6 +686,42 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(scrollReaderFacePortrait(1)).toEqual(high);
   });
 
+  it("routes preserved resting lip anatomy to attached AA/OH vermilion, not a third-eye horizontal mouth seam",()=>{
+    const anatomy=readerFaceAnatomy(1);
+    const old=anatomy.lips.slice(2,6).filter(s=>s.type==="path");
+    expect(old).toHaveLength(4);
+    const originalNeutralSeam=
+      "M135.2 125.9 Q138.9 125.6 142 126.7 Q145.9 127 148.7 126.6";
+    expect(old.some(s=>s.type==="path"&&
+      s.d===originalNeutralSeam)).toBe(true);
+    const rest=paths(scrollReaderFacePortrait(1),"mouth-rest");
+    expect(rest.some(s=>s.type==="path"&&
+      s.d===originalNeutralSeam)).toBe(true);
+    for(const state of ["aa","oh"] as const){
+      const active=paths(scrollReaderFacePortrait(1),"mouth-"+state);
+      // Preserve exactly the ANAT1 original four pigments/strokes and
+      // their order; change the *position of the lip contact* so the
+      // resting seam cannot cut horizontally through a speaking hole.
+      expect(active.some(s=>s.type==="path"&&
+        s.d===originalNeutralSeam)).toBe(false);
+      const warped=active.slice(0,4);
+      for(let i=0;i<4;i++){
+        expect(warped[i]).toMatchObject({
+          type:"path",fill:old[i].fill,stroke:old[i].stroke,
+          strokeWidth:old[i].strokeWidth,opacity:old[i].opacity,
+        });
+        expect(warped[i].d).not.toEqual(old[i].d);
+      }
+      // The long neutral 14px line must now lie ABOVE the speaking
+      // negative space, not bisecting its apparent opening.
+      const upper=warped[2].d;
+      expect(upper).toContain(state==="oh"?"M140.65 125.45":"M136.3 124.82");
+      const originalFace=scrollReaderFacePortrait(1);
+      expect(paths(originalFace,"mouth-"+state).length)
+        .toBe(active.length);
+    }
+  });
+
   it("keeps pre-existing reader face contour, lip cels, ear and paint while adding optically nested washes",()=>{
     const original=scrollReaderFacePortrait(1);
     const anatomy=readerFaceAnatomy(1);
