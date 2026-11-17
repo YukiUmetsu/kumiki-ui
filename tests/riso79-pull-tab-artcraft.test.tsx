@@ -27,6 +27,12 @@ expect(html.match(/data-km-riso-plate="blue"/g)).toHaveLength(2);
 expect(html.match(/data-km-riso-plate="red"/g)).toHaveLength(2);
 expect(html.match(/data-km-riso79-cut-rim=/g)).toHaveLength(3);
 expect(html.match(/data-km-riso79-cut-fibre=/g)).toHaveLength(264);
+expect(html.match(/data-km-riso79-paper-cross-section=/g)).toHaveLength(3);
+expect(html.match(/data-km-riso79-paper-wall=/g)).toHaveLength(3);
+expect(html.match(/data-km-riso79-edge-bevel=/g)).toHaveLength(3);
+expect(html.match(/data-km-riso79-cavity-occlusion=/g)).toHaveLength(3);
+expect(html.match(/data-km-riso79-cut-face-highlight=/g)).toHaveLength(3);
+expect(html).toContain('data-km-riso79-paper-depth-mm="0.32"');
 expect(html).toContain('data-km-riso79-stationary-original-cover=""');
 expect(html).toContain('data-km-riso79-printed-insert-window=""');
 expect(html).toContain('data-km-riso79-fixed-ink-master=""');
@@ -49,6 +55,19 @@ expect(end.fixedCoverRegistration).toBe(true);
 expect(end.fixedInsertRegistration).toBe(true);
 }
 });
+it("stock caliper and lamp direction change only the paper cross-section and shadow, never source ink or cut geometry",()=>{
+const base=evaluateRisoPullTab({...args,progress:.5});
+const thicker=evaluateRisoPullTab({...args,progress:.5,paperDepthMm:.82});
+const relit=evaluateRisoPullTab({...args,progress:.5,lightDirection:[.8,-.6]});
+expect(base.depthUnits).toBeCloseTo(.32*96/25.4,3);
+expect(thicker.depthUnits).toBeGreaterThan(base.depthUnits);
+expect(thicker.shadowOffset).not.toEqual(base.shadowOffset);
+expect(relit.shadowOffset).not.toEqual(base.shadowOffset);
+expect(thicker.windows.map(w=>w.path)).toEqual(base.windows.map(w=>w.path));
+expect(relit.windows.map(w=>w.path)).toEqual(base.windows.map(w=>w.path));
+expect(thicker.windows.map(w=>w.fibres)).toEqual(base.windows.map(w=>w.fibres));
+expect(relit.translation).toEqual(base.translation);
+});
 it("owns 88 different deterministic individually curved physical cellulose cuts per opening",()=>{
 for(const w of windows){
 const fibres=risoPullWindowFibres(w,79);
@@ -68,11 +87,15 @@ it("zero added rim relief preserves both source prints but hides incision fibres
 const html=image(.4,0);
 expect(html).not.toContain("data-km-riso79-cut-fibre=");
 expect(html).not.toContain("data-km-riso79-inside-contact-shadow=");
+expect(html).not.toContain("data-km-riso79-paper-wall=");
+expect(html).not.toContain("data-km-riso79-cut-face-highlight=");
 expect(html.match(/data-km-riso-print=/g)).toHaveLength(2);
 });
 it("rejects overlap, matching named openings, travel beyond stock and invalid film time",()=>{
 expect(()=>evaluateRisoPullTab({...args,travel:999})).toThrow(/bounded travel/);
 expect(()=>evaluateRisoPullTab({...args,progress:NaN})).toThrow(/progress/);
+expect(()=>evaluateRisoPullTab({...args,paperDepthMm:1.21})).toThrow(/paper depth/);
+expect(()=>evaluateRisoPullTab({...args,lightDirection:[0,0]})).toThrow(/light direction/);
 expect(()=>evaluateRisoPullTab({...args,windows:[windows[0],windows[0]]})).toThrow(/unique/);
 expect(()=>evaluateRisoPullTab({...args,windows:[windows[0],{...windows[1],x:490}]})).toThrow(/between cut edges/);
 expect(()=>risoPullProgress(-1,0,140)).toThrow(/absolute/);
