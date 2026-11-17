@@ -106,7 +106,7 @@ export function inspectRosePetalRimSidewalls():string[]{
       issues.push("Missing local rim pencil flow: "+side.id);
     const contacts=rosePetalRimContacts(side);
     if(contacts.length!==4||contacts.some(t=>!t.path.startsWith("M")||
-      !Number.isFinite(t.opacity)||t.opacity!<=0||
+      typeof t.opacity!=="number"||!Number.isFinite(t.opacity)||t.opacity<=0||
       !Number.isSafeInteger(t.startFrame)||t.startFrame<160||
       t.startFrame+t.durationFrames>335||t.path.length>12000))
       issues.push("Invalid time-addressed dry sidewall contacts: "+side.id);
