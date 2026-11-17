@@ -123,6 +123,42 @@ export function readerInkPortraitGlazes(
       " "+at(f,1.7,-15.3)+" Z",.038),
   );
 
+  // Native 1×/2.5× Chromium forehead audit after the first added
+  // 3.8–4.7%-alpha study still showed a nearly flat peach rectangle:
+  // those washes changed too few channel levels to survive production.
+  // Historical transparent ink is optically accumulated, not a single
+  // invisible layer or a blur. These next source-bound three-quarter
+  // frontal masses overlap at different pressures, then reopen the
+  // curved central highlight with an independent translucent paper.
+  passes["orbital-near"].push(
+    glaze("M"+at(n,-12,-18.5)+" C"+at(n,-7,-22.5)+
+      " "+at(s,-2,-20)+" "+at(s,5,-16)+
+      " C"+at(s,3,-10)+" "+at(n,4,-7)+
+      " "+at(n,-7,-11)+
+      " C"+at(n,-11,-13)+" "+at(n,-12,-16)+
+      " "+at(n,-12,-18.5)+" Z",.076),
+    glaze("M"+at(n,-9,-16)+" C"+at(n,-4,-19)+
+      " "+at(s,-4,-16)+" "+at(s,0,-13)+
+      " C"+at(s,-1,-10)+" "+at(n,-2,-8)+
+      " "+at(n,-9,-12)+
+      " C"+at(n,-11,-13)+" "+at(n,-10,-14)+
+      " "+at(n,-9,-16)+" Z",.062),
+    // The rest highlight stays paper-diluted, not a hard opaque strip.
+    // This last pass is inside and independent of the preceding rolls.
+    glaze("M"+at(n,-6,-17)+" C"+at(n,-2,-19)+
+      " "+at(s,-5,-17)+" "+at(s,-3,-14)+
+      " C"+at(s,-7,-15)+" "+at(n,-3,-14.7)+
+      " "+at(n,-6,-17)+" Z",.073,true),
+  );
+  passes["orbital-far"].push(
+    glaze("M"+at(f,1.2,-17)+" C"+at(f,5.4,-19)+
+      " "+at(f,11.9,-15.3)+" "+at(f,13,-9)+
+      " C"+at(f,13.1,-6)+" "+at(f,7.4,-6.8)+
+      " "+at(f,3.3,-10.5)+
+      " C"+at(f,1,-13.5)+" "+at(f,1,-15.4)+
+      " "+at(f,1.2,-17)+" Z",.069),
+  );
+
   // A convex nose comes from a restrained gradation beside the paper-
   // light dorsal ridge. Successive partly overlapping passes curve into
   // the alar cartilages rather than making an angular triangular slash.
