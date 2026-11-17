@@ -603,3 +603,66 @@ test("ANAT1 Chinese-ink five visemes retain detailed live lip relief and visible
     await expect(atlas.locator('[data-km-ink-viseme-part="oh"] path'))
       .not.toHaveCount(0);
   });
+
+test("original three-quarter forehead ink carries unequal near and far frontal relief without a painted-on mask",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const study=page.getByTestId("reader-ink-frontal-relief-microscope");
+    await expect(study).toBeVisible();
+    const focus=[
+      {id:"orbital-near",prefix:"M119.5 88.5"},
+      {id:"orbital-far",prefix:"M150.8 88.4"},
+    ] as const;
+    const cameras:string[]=[];
+    for(const {id,prefix} of focus){
+      const micro=study.locator('[data-km-ink-frontal-micro="'+id+'"]');
+      const svg=micro.locator("svg");
+      await expect(svg).toBeVisible();
+      const viewBox=await svg.getAttribute("viewBox");
+      expect(viewBox?.split(/\s+/).map(Number)
+        .every(Number.isFinite)).toBe(true);
+      cameras.push(viewBox??"");
+      await expect(micro.locator('[data-km-ink-frontal-face] path'))
+        .not.toHaveCount(0);
+      await expect(micro.locator('[data-ink-reader-part="hair"]')).toHaveCount(1);
+      await expect(micro.locator('[data-ink-reader-part="brows"]')).toHaveCount(1);
+      // Target only this source-space path, not a screenshot legend or
+      // decorative copy. It must truly be inside the native viewport.
+      const center=await svg.evaluate((root,starts)=>{
+        const paths=Array.from(root.querySelectorAll(
+          '[data-km-ink-frontal-face] path')) as SVGPathElement[];
+        const path=paths.find(p=>
+          (p.getAttribute("d")??"").startsWith(starts));
+        if(!path)throw Error("Native frontal source pigment missing");
+        const box=path.getBBox(),matrix=path.getScreenCTM();
+        if(!matrix)throw Error("Detached forehead paint");
+        const p=new DOMPoint(box.x+box.width/2,box.y+box.height/2)
+          .matrixTransform(matrix);
+        const screen=root.getBoundingClientRect();
+        return {x:(p.x-screen.left)/screen.width,
+          y:(p.y-screen.top)/screen.height,
+          width:box.width,height:box.height,
+          opacity:Number(path.getAttribute("opacity")),
+          fill:path.getAttribute("fill")};
+      },prefix);
+      expect(center.x).toBeGreaterThan(.07);
+      expect(center.x).toBeLessThan(.93);
+      expect(center.y).toBeGreaterThan(.07);
+      expect(center.y).toBeLessThan(.93);
+      expect(center.width).toBeGreaterThan(4);
+      expect(center.height).toBeGreaterThan(3);
+      expect(center.opacity).toBeLessThan(.06);
+      expect(center.fill).toBe("#ad8d70");
+    }
+    expect(new Set(cameras).size).toBe(2);
+    await study.screenshot({animations:"disabled",
+      path:info.outputPath("reader-native-near-far-frontal-ink-relief.png")});
+    await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("closed");
+    await expect(study.locator('[data-ink-reader-part="pupil-left"]')).toHaveCount(0);
+    await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("open");
+    await expect(study.locator('[data-ink-reader-part="pupil-left"]')).toHaveCount(2);
+    const detail=page.getByRole("slider",{name:"Face craftsmanship"});
+    await detail.fill("0.1");
+    await study.screenshot({animations:"disabled",
+      path:info.outputPath("reader-native-near-far-frontal-low-detail.png")});
+  });
