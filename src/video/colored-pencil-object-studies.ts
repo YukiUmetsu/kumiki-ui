@@ -213,7 +213,10 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
       const source=knotStudy?ROSE_CENTER_KNOT_SURFACES.find(o=>o.id===part.id):undefined;
       return source?{...part,path:source.path,bounds:source.bounds,
         palette:source.palette,direction:source.direction,flow:source.flow,
-        details:[...(part.details??[]),...source.dryContours]}:part;
+        // Long legacy centre arcs are re-authored as short local contacts;
+        // the four existing whorl fibres remain and are separately aligned.
+        details:[...(source.replacementBaseDetails??part.details??[]),
+          ...source.dryContours]}:part;
     };
     if(whorlStudy&&shape.id==="inner-fold")
       return [knot(shape),...ROSE_INNER_WHORL_ORGANS
