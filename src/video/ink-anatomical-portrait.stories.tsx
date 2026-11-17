@@ -1,6 +1,5 @@
 import {useEffect,useState} from "react";
 import {InkAnatomicalPortraitFilm,INK_ANAT2_PROOF_FRAMES} from "./ink-anatomical-portrait-film";
-import {InkAnatomicalStandingFigure} from "./ink-anatomical-standing-figure";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {InkAnatomicalPortrait,INK_PORTRAIT_CHARACTERS,INK_PORTRAIT_EMOTIONS,
   inkPortraitAnatomy} from "./ink-anatomical-portrait";
