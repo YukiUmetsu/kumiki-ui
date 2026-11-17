@@ -1,4 +1,6 @@
-import {describe,it,expect} from "vitest";
+import {describe,it,expect,afterEach} from "vitest";
+import {render,screen,fireEvent,cleanup} from "@testing-library/react";
+afterEach(cleanup);
 import {renderToStaticMarkup} from "react-dom/server";
 import {CRAYON_PORTRAIT_AUDIT} from "../src/video/crayon-artcraft-portrait-audit";
 import {CRAYON_F1_V59_NAMES,CRAYON_F1_V59_SOURCE,
@@ -75,6 +77,44 @@ describe("ArtCraft V59 actual rendered-landmark evidence quarantine",()=>{
     for(const [x,y] of [[324,575],[19,36],[21,576],[NaN,40]])
       expect(()=>crayonF1CandidatePointerPoint(x,y,rect)).toThrow(RangeError);
   });
+  it("uses real mouse/keyboard interactions; makes no candidate up, clears stages",()=>{
+    const view=render(<Cc0CandidateLandmarkWorksheetV59 detail={.2}/>);
+    const output=()=>screen.getByLabelText(
+      "Unverified candidate landmark observations") as HTMLTextAreaElement;
+    const source=()=>view.container.querySelectorAll(
+      "[data-km-crayon-f1-source-landmark]");
+    const candidates=()=>view.container.querySelectorAll(
+      "[data-km-crayon-f1-candidate-landmark]");
+    expect(candidates()).toHaveLength(0);
+    expect(source()).toHaveLength(18);
+    expect(JSON.parse(output().value).marks).toEqual({});
+    expect(screen.getByText(/0\/18 candidate observations/)).toBeTruthy();
+    const canvas=screen.getByRole("button",{
+      name:/Click the actual native render to mark/});
+    Object.defineProperty(canvas,"getBoundingClientRect",{
+      value:()=>({left:20,top:35,width:304,height:541}),configurable:true,
+    });
+    fireEvent.click(canvas,{clientX:172,clientY:305.5});
+    expect(candidates()).toHaveLength(1);
+    expect(JSON.parse(output().value).marks.face_top).toEqual([304,541]);
+    fireEvent.change(screen.getByLabelText("Candidate pixel X"),{
+      target:{value:"281"}});
+    fireEvent.change(screen.getByLabelText("Candidate pixel Y"),{
+      target:{value:"288"}});
+    fireEvent.click(screen.getByRole("button",{
+      name:"Record manual coordinates"}));
+    expect(JSON.parse(output().value).marks.face_top).toEqual([281,288]);
+    expect(screen.getByText(/1\/18 candidate observations/)).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Show blue source anchors"));
+    expect(source()).toHaveLength(0);
+    expect(candidates()).toHaveLength(1);
+    fireEvent.change(screen.getByLabelText("Candidate source stage"),{
+      target:{value:"source-anat1-hair-top-v56"}});
+    expect(candidates()).toHaveLength(0);
+    expect(JSON.parse(output().value).marks).toEqual({});
+    expect(screen.getByText(/0\/18 candidate observations/)).toBeTruthy();
+    expect(JSON.parse(output().value).releaseApproved).toBe(false);
+  },60_000);
   it("retains isolated interactive !dev Storybook tool without image tracing",()=>{
     expect(Cc0Anat1CandidateLandmarksV59.name).toContain("!dev");
     // Render the actual exported Storybook workbench at full source camera;
