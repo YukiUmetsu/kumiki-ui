@@ -43,8 +43,8 @@ const mouth={
   // unsupported flat cartoon "mouth sticker" is not a wet-ink mouth.
   // Preserve independently riggable cels; build continuous lip-rolling
   // cubic anatomy, asymmetrical lower vermilion and real ink relief.
-  aa:"M136.4 125.8 C139.1 125.1 144.9 125.5 148.3 125.1 C147.7 128.3 145.6 131.3 143.6 131.6 C140.9 131.8 138.8 129.7 136.4 125.8 Z",
-  oh:"M141.1 125.9 C142.4 125.2 144.2 125.4 145.1 126.6 C145.9 128.1 145.6 129.8 144.3 130.8 C143.1 131.4 141.4 130.6 140.9 129.4 C140.4 128.2 140.5 126.6 141.1 125.9 Z",
+  aa:"M136.4 125.8 C139.3 124.95 146.4 125.35 148.3 125.1 C147.6 126.9 146.6 128.9 144.8 130.55 C142.9 132.05 140.75 130.9 139.4 129.1 C138 127.45 137.1 126.45 136.4 125.8 Z",
+  oh:"M141.1 125.9 C142.6 125.2 144.1 125.42 144.9 126.52 C145.8 127.7 145.63 129.4 144.28 130.4 C143.18 131.08 141.65 130.44 141.12 129.2 C140.55 127.75 140.7 126.55 141.1 125.9 Z",
   mm:"M135.6 125.7 Q141 125.4 148.5 124.5",
   smile:"M135.1 124.9 Q142.4 129.3 149.2 123.4",
 } as const;
@@ -197,10 +197,24 @@ export function scrollReaderFacePortrait(detail=1):
         "none","$shadow",.42,.53),
       p("M141.05 130.05 C142.12 131.22 144.15 131.3 144.95 130.12",
         "none","$skinshade",.37,.56),
-      // Depth remains visible through two independently modulated inks,
-      // rather than a single opaque shadow fill.
-      p("M142.25 126.83 C143.35 126.35 144.42 127.04 144.6 128.17 C144.78 129.17 144.1 129.82 143.03 129.75 C142.28 128.98 141.96 127.87 142.25 126.83 Z",
-        "$deep","none",0,.2),
+      // A near-transparent outer cheek-to-vermilion transition wraps the
+      // oblique mouth surface; the central oral fissure is much smaller
+      // than its lip ring. Wet pigments accumulate in different directions
+      // instead of filling a mechanically flat oval.
+      p("M141.4 126.5 C142.38 125.86 144.11 126.14 144.7 127.22 C145.12 128.06 145 129.1 144.35 129.69 C143.37 130.35 142 129.87 141.56 128.95 C141.23 128.15 141.12 127.19 141.4 126.5 Z",
+        "$skinshade","none",0,.125),
+      p("M142.02 127.02 C142.84 126.43 144.04 126.74 144.3 127.63 C144.56 128.53 144.31 129.37 143.54 129.68 C142.63 129.77 141.89 129.06 141.92 128.21 C141.91 127.73 141.89 127.37 142.02 127.02 Z",
+        "$shadow","none",0,.32),
+      p("M142.55 127.36 C143.1 127.1 143.72 127.35 143.85 127.9 C143.97 128.61 143.62 129.16 143.05 129.13 C142.55 128.97 142.41 127.95 142.55 127.36 Z",
+        "$deep","none",0,.18),
+      // Unequal sidewalls: near orbicularis has a broader lip roll,
+      // far lip recedes toward the nose rather than mirroring the oval.
+      p("M141.08 126.85 C140.74 127.82 140.72 128.79 141.25 129.76",
+        "none","$skinshade",.34,.29),
+      p("M144.86 126.72 C145.36 127.59 145.27 128.56 144.84 129.44",
+        "none","$shadow",.23,.29),
+      pressure([141.38,125.98],[142.1,125.43],[143.73,125.58],
+        [144.73,126.36],.27,792,"$shadow",.31),
       // Source paper glimmers through the lower lip's wet edge;
       // a closed translucent wedge, not a white graphic highlight.
       p("M142.18 131.3 C142.98 131.6 144.02 131.32 144.68 130.86 C144.23 131.71 143.02 131.95 142.18 131.3 Z",
@@ -221,12 +235,19 @@ export function scrollReaderFacePortrait(detail=1):
         "$skinshade","none",0,.155),
       p("M138.55 129.82 C140.2 132.08 144.15 132.52 146.15 130.18",
         "none","$skinshade",.43,.53),
-      // Open AA throat has a localized shadow body. Retain the separate
-      // fine ink edge, but don't fake aperture depth with a uniformly
-      // opaque fill. This closed, perspective-tapered wet recess sits
-      // inside the original wide lip opening.
-      p("M139.45 127.2 C141.4 127.65 144.75 127.9 146.85 126.7 C145.85 129.55 143.35 131 141.42 129.85 C140.15 129 139.68 128.3 139.45 127.2 Z",
-        "$deep","none",0,.18),
+      // Mouth cavity grows below the lip seam. Preserve a soft outer
+      // vermilion brush wash; restrict the deeper recess to the central
+      // negative space, with no straight edge across the far cheek.
+      p("M137.8 126.3 C140.4 125.83 146.3 126.08 147.6 125.95 C146.8 127.64 145.4 130.2 143.95 130.75 C141.45 130.58 139.22 128.47 137.8 126.3 Z",
+        "$skinshade","none",0,.14),
+      p("M138.96 127.0 C141.2 126.64 145.1 127.15 146.96 126.6 C146.06 128.63 144.83 130.17 143.36 130.18 C141.62 129.93 140.13 128.62 138.96 127 Z",
+        "$shadow","none",0,.29),
+      p("M140.16 127.52 C141.92 127.5 144.7 127.9 145.72 127.44 C145.15 128.81 144.08 129.67 142.85 129.57 C141.53 129.24 140.76 128.43 140.16 127.52 Z",
+        "$deep","none",0,.24),
+      pressure([137.22,125.85],[139.72,125.45],[144.7,125.73],
+        [147.85,125.26],.3,793,"$shadow",.32),
+      pressure([139.1,129.44],[140.32,131.07],[143.65,131.76],
+        [145.58,130.35],.26,794,"$skinshade",.32),
       p("M140.25 130.2 C141.42 131.02 144.43 131.48 145.2 130.02",
         "none","$deep",.28,.38),
       p("M139.5 132.18 Q142.54 133.18 145.75 131.45",
@@ -241,7 +262,9 @@ export function scrollReaderFacePortrait(detail=1):
     p(mouth[state],state==="aa"||state==="oh"?"$shadow":"none",
       state==="aa"||state==="oh"?"none":"$shadow",
       state==="aa"||state==="oh"?0:state==="mm"?.84:state==="rest"?.74:.9,
-      state==="aa"?.54:state==="oh"?.57:state==="rest"?.75:.9),
+      // The source opening is the barely stained first wet impression:
+      // dark cavity values are layered centrally, not pasted in one fill.
+      state==="aa"?.17:state==="oh"?.18:state==="rest"?.75:.9),
     ...speechLips(state),
     p(state==="aa"?"M139.2 130.8 Q143.4 132.4 146 129.9":
       "M138.2 128.9 Q143.6 129.5 147 127.6",
