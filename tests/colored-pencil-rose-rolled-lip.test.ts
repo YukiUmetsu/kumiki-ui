@@ -10,8 +10,16 @@ describe("CP-F1 source-native rolled rose petal lips",()=>{
   it("has individually authored, stable and safely bounded curves",()=>{
     expect(ROSE_LIP_BANDS).toHaveLength(7);
     expect(new Set(ROSE_LIP_BANDS.map(x=>x.id)).size).toBe(7);
+    // Optical shadow and local highlight vary by real petal plane; a
+    // universally stamped three-colour outline would erase lamina depth.
+    expect(new Set(ROSE_LIP_BANDS.map(b=>b.pigments.join(":"))).size).toBe(7);
     for(const b of ROSE_LIP_BANDS){
+      expect(b.pigments).toHaveLength(3);
+      expect(b.nibs).toHaveLength(3);
+      expect(b.nibs.every(n=>Number.isFinite(n)&&n>0&&n<1.2)).toBe(true);
       const traces=roseRolledLipTraces(b.id);
+      expect(traces.map(t=>t.color)).toEqual(b.pigments);
+      expect(traces.map(t=>t.width)).toEqual(b.nibs);
       expect(traces).toHaveLength(3);
       expect(traces.map(t=>t.id)).toEqual([
         "rose-lip-"+b.id+"-occlusion",
