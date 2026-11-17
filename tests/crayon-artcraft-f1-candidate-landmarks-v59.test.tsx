@@ -42,9 +42,11 @@ describe("ArtCraft V59 actual rendered-landmark evidence quarantine",()=>{
     expect(report.status).toBe("INCOMPLETE");
   });
   it("never treats hand-entered source coordinates as an independently proved native render",()=>{
-    const marks=Object.fromEntries(CRAYON_F1_V59_NAMES.map(
-      name=>[name,[...CRAYON_PORTRAIT_AUDIT.sourcePoints[name]]]))
-      as CrayonF1CandidateMarks;
+    const marks=Object.fromEntries(
+      CRAYON_F1_V59_NAMES.map(name=>[
+        name,CRAYON_PORTRAIT_AUDIT.sourcePoints[name],
+      ]),
+    ) as CrayonF1CandidateMarks;
     const report=crayonF1CandidateLandmarkAudit(input(marks));
     expect(report.measured).toBe(18);
     expect(report.outliers).toEqual([]);
