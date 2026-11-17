@@ -41,7 +41,7 @@ export function riso66Source(aspect:RisoAspect,frame:number,seed:number){
     width:31,pressure,dryness:.74,seed:seed+31,steps:80,
   };
   const accent=(kind:"blue"|"red",i:number):RisoBrushOptions=>{
-    const isBlue=kind==="blue",top=isBlue?.17:.71;
+    const isBlue=kind==="blue",top=isBlue ? 0.17 : 0.71;
     const rise=isBlue?-.033:.035;
     const row=i*.058;
     return {
