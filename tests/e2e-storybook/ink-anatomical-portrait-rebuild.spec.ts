@@ -243,15 +243,15 @@ test("reference-redrawn ZJ1 face, continuous robe, bamboo grip and planted sanda
     await expect(figure.locator('[data-km-ink-zengjing-head="scholar"]')).toHaveCount(1);
     await expect(figure.locator('[data-km-ink-standing-head="independent-zj1-mogu"]')).toHaveCount(1);
     await camera.selectOption("face");
-    await expect(figure).toHaveAttribute("viewBox","215 183 110 260");
+    await expect(figure).toHaveAttribute("viewBox","215 340 110 175");
     await figure.screenshot({animations:"disabled",
-      path:info.outputPath("zj1-zengjing-mogu-face-anatomy-4.7x.png")});
+      path:info.outputPath("zj1-zengjing-mogu-face-anatomy-4.9x.png")});
     await camera.selectOption("waist");
-    await expect(figure).toHaveAttribute("viewBox","65 425 420 305");
+    await expect(figure).toHaveAttribute("viewBox","65 485 420 220");
     await figure.screenshot({animations:"disabled",
-      path:info.outputPath("zj1-continuous-cotton-cross-collar-and-waist-2.8x.png")});
+      path:info.outputPath("zj1-continuous-cotton-cross-collar-and-waist-1.3x.png")});
     await camera.selectOption("grip");
-    await expect(figure).toHaveAttribute("viewBox","87 535 100 134");
+    await expect(figure).toHaveAttribute("viewBox","87 585 100 80");
     await expect(figure.locator('[data-km-ink-bamboo-staff="continuous"]')).toHaveCount(1);
     await expect(figure.locator('[data-km-ink-grip-kinematics="opposed-thumb-on-source-bamboo"]')).toHaveCount(1);
     await expect(figure.locator('[data-km-ink-hand-finger]')).toHaveCount(4);
@@ -260,7 +260,7 @@ test("reference-redrawn ZJ1 face, continuous robe, bamboo grip and planted sanda
     await figure.screenshot({animations:"disabled",
       path:info.outputPath("zj1-ming-scholar-bamboo-grip-5.4x.png")});
     await camera.selectOption("hem");
-    await expect(figure).toHaveAttribute("viewBox","158 855 290 196");
+    await expect(figure).toHaveAttribute("viewBox","158 840 290 100");
     await expect(figure.locator('[data-km-ink-foot]')).toHaveCount(2);
     await figure.screenshot({animations:"disabled",
       path:info.outputPath("zj1-white-cotton-robe-and-visible-sandals-1.86x.png")});

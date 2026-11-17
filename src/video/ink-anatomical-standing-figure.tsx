@@ -98,10 +98,10 @@ export function InkAnatomicalStandingFigure({
   const robe=elder?"#e1d6c5":"#e9dfd0",under="#f0e7d8";
   const cameras={
     full:{viewBox:"0 0 540 1080",height:1080},
-    face:{viewBox:"215 183 110 260",height:1276},
-    waist:{viewBox:"65 425 420 305",height:392},
-    grip:{viewBox:"87 535 100 134",height:724},
-    hem:{viewBox:"158 855 290 196",height:365},
+    face:{viewBox:"215 340 110 175",height:859},
+    waist:{viewBox:"65 485 420 220",height:283},
+    grip:{viewBox:"87 585 100 80",height:432},
+    hem:{viewBox:"158 840 290 100",height:186},
   } as const;
   if(!(camera in cameras))throw new RangeError("Invalid standing ANAT2 camera");
   const filmCamera=cameras[camera];
@@ -120,8 +120,8 @@ export function InkAnatomicalStandingFigure({
       <clipPath id={uid+"-robe-boundary"}>
         <path d="M180 423 C158 434 144 464 140 505
           Q132 566 146 624 Q157 662 178 686
-          L194 666 C183 766 174 882 183 985
-          Q269 1001 357 985 C366 883 357 766 346 666
+          L194 666 C183 766 160 882 150 985
+          Q270 1001 390 985 C380 883 357 766 346 666
           L362 686 Q383 662 394 624 Q408 566 400 505
           C396 464 382 434 360 423
           Q326 431 294 447 L246 447
@@ -139,6 +139,10 @@ export function InkAnatomicalStandingFigure({
     </defs>
     {!transparentPaper&&<rect width="540" height="1080"
       fill="#f2e6d3" data-km-ink-standing-paper-ground="true"/>}
+    {/* The scroll source is portrait-proportioned: retain generous paper
+        margins rather than stretching the sitter to fill a tall video card. */}
+    <g data-km-ink-standing-scroll-proportion="zengjing-portrait-2.16"
+      transform="translate(0 220) scale(1 .66)">
     {/* The under-robe is one topologically continuous weight-bearing fabric
         surface; hem, cuffs and shoulder are not independent stickers. */}
     <g data-km-ink-garment-structure="overlapping-cotton-ankle-robe">
@@ -152,12 +156,12 @@ export function InkAnatomicalStandingFigure({
         Q214 431 180 423 Z"
         fill={under} stroke={ink} strokeWidth=".82" strokeOpacity=".30"/>
       <path d="M200 447 C181 501 182 571 193 645
-        Q202 710 195 789 Q184 884 190 984
-        Q232 994 270 991 Q270 806 270 646
+        Q202 710 195 789 Q174 884 170 984
+        Q220 994 270 991 Q270 806 270 646
         Q267 516 238 444 Z"
         fill={robe} opacity=".35"/>
       <path d="M300 444 C331 492 352 555 348 646
-        Q340 809 350 984 Q309 994 270 991
+        Q366 809 370 984 Q320 994 270 991
         Q272 808 270 646 Q272 516 300 444 Z"
         fill={robe} opacity=".29"/>
       <path d="M187 449 C160 476 145 523 145 579
@@ -179,7 +183,7 @@ export function InkAnatomicalStandingFigure({
       <path d="M270 497 Q265 560 271 635 T276 793 T270 977"
         fill="none" stroke={wash} strokeWidth="1.2"
         strokeLinecap="round" opacity=".25"/>
-      <path d="M190 984 Q227 995 270 990 Q317 996 350 984"
+      <path d="M150 984 Q210 997 270 990 Q330 997 390 984"
         fill="none" stroke={ink} strokeWidth=".94" opacity=".36"/>
       <path d="M186 948 Q181 970 184 987 M354 948 Q359 970 356 987"
         fill="none" stroke={ink} strokeWidth="2.2" opacity=".10"
@@ -254,8 +258,9 @@ export function InkAnatomicalStandingFigure({
       <ellipse cx="288" cy="1026" rx="119" ry="8" fill={ink} opacity=".08"
         filter={"url(#"+uid+"-paper-spread)"}/>
       {([0,1] as const).map((n)=>{
-        const cx=n?349:237;
-        return <g key={n} data-km-ink-foot={n} transform={"translate("+cx+" 0)"}>
+        const cx=n?352:220;
+        return <g key={n} data-km-ink-foot={n}
+          transform={"translate("+cx+" 0) scale(.68 .9)"}>
           <path d="M-27 985 Q-23 1001 -28 1011
             Q-34 1021 -23 1024 Q-4 1035 26 1023 Q32 1011 20 1004
             L13 982 Z" fill="#bead95" stroke={ink} strokeWidth=".78"
@@ -291,10 +296,10 @@ export function InkAnatomicalStandingFigure({
     {/* A period bamboo staff anchored by finger grip, with irregular node
         collars and split bamboo fibres. All nodes use the same stem spline. */}
     <g data-km-ink-bamboo-staff="continuous" transform={"translate("+pose.staff+" 0)"}>
-      <path d="M123 237 Q124 410 129 586 Q137 790 127 1043"
+      <path d="M123 190 Q124 410 129 586 Q137 790 127 1043"
         stroke="#8e866b" strokeWidth="5.9" strokeLinecap="round" fill="none"
         opacity=".48"/>
-      <path d="M122 237 Q126 410 129 586 Q136 790 126 1043"
+      <path d="M122 190 Q126 410 129 586 Q136 790 126 1043"
         stroke={ink} strokeWidth="1.1" strokeLinecap="round" fill="none"
         opacity=".59"/>
       {Array.from({length:10},(_,i)=>{
@@ -318,7 +323,8 @@ export function InkAnatomicalStandingFigure({
     </g>
     {/* Left sleeve continues from its shoulder to the real thumb and
         staff-bearing fingers. The hand is intentionally not a mitten. */}
-    <g data-km-ink-sleeve-hand="near" transform={"translate("+pose.sleeve+" 0)"}>
+    <g data-km-ink-sleeve-hand="near"
+      transform={"translate("+pose.sleeve+" 0) translate(130 600) scale(.72 .86) translate(-130 -600)"}>
       <path d="M163 464 Q127 511 103 554 Q96 587 122 615
         Q136 635 158 621 L171 597 Q156 562 182 532"
         fill={robe} opacity=".64" stroke={ink} strokeWidth=".68" strokeOpacity=".38"/>
@@ -387,6 +393,7 @@ export function InkAnatomicalStandingFigure({
         })}
       </g>
     </g>
-    <title>Independent source-built late Ming standing scholar; preserved full ANAT1 face and physical garments</title>
+    </g>
+    <title>Independent ZJ1 mogu portrait head and reference-proportioned Ming standing scholar</title>
   </svg>;
 }

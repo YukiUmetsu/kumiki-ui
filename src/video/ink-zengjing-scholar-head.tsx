@@ -132,7 +132,7 @@ export function InkZengJingScholarHead({
     data-km-ink-zengjing-method="mogu-aotufa"
     data-km-ink-face-source="independent-zj1-not-anat1"
     data-km-ink-face-emotion={emotion}
-    transform={`translate(270 315) scale(${n(scale)}) translate(-270 -315)`}>
+    transform={`translate(270 315) scale(${n(scale*.72)} ${n(scale)}) translate(-270 -315)`}>
     <defs>
       <radialGradient id={uid+"-skin"} cx="38%" cy="23%" r="78%">
         <stop offset="0" stopColor="#f6e9d5"/>

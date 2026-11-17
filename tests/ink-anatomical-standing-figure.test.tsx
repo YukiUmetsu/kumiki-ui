@@ -60,6 +60,7 @@ describe("Chinese ink ZJ1 reference-redrawn standing scholar",()=>{
       expect(sheet).toContain('viewBox="0 0 540 1080"');
       expect(sheet).toContain('data-km-ink-standing-figure="'+character+'"');
       expect(sheet).toContain('data-km-ink-standing-head="independent-zj1-mogu"');
+      expect(sheet).toContain('data-km-ink-standing-scroll-proportion="zengjing-portrait-2.16"');
       expect(sheet).toContain('data-km-ink-zengjing-head="'+character+'"');
       expect(sheet).toContain('data-km-ink-standing-physical="source-540x1080"');
       expect(sheet).toContain('data-km-ink-standing-ground="soles-fixed"');
@@ -91,8 +92,8 @@ describe("Chinese ink ZJ1 reference-redrawn standing scholar",()=>{
     const views=["full","face","waist","grip","hem"] as const;
     const images=views.map(camera=>renderToStaticMarkup(createElement(
       InkAnatomicalStandingFigure,{character:"elder",camera,frame:54,detail:1})));
-    const boxes=["0 0 540 1080","215 183 110 260","65 425 420 305",
-      "87 535 100 134","158 855 290 196"];
+    const boxes=["0 0 540 1080","215 340 110 175","65 485 420 220",
+      "87 585 100 80","158 840 290 100"];
     images.forEach((image,i)=>{
       expect(image).toContain('viewBox="'+boxes[i]+'"');
       expect(image).toContain('data-km-ink-standing-camera="'+views[i]+'"');

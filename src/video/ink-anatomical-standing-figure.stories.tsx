@@ -40,8 +40,8 @@ function StandingAtelier(){
         <select value={camera} aria-label="Ink standing camera" style={select}
           onChange={e=>setCamera(e.target.value as "full"|"face"|"waist"|"grip"|"hem")}>
           <option value="full">Whole standing figure · 1×</option>
-          <option value="face">Zeng Jing face anatomy and mogu wash · 4.7×</option>
-          <option value="waist">Wicked robe junction · 2.8×</option>
+          <option value="face">Zeng Jing face anatomy and mogu wash · 4.9×</option>
+          <option value="waist">Cotton collar and torso · 1.3×</option>
           <option value="grip">Bamboo finger opposition · 5.4×</option>
           <option value="hem">Sandals and hem contact · 1.86×</option>
         </select>
