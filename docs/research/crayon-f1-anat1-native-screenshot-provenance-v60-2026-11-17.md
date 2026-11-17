@@ -88,7 +88,14 @@ V61 displayed the immutable blue **source** landmarks over the uploaded **candid
 
 The native-render workflow copies the exact CC0 source screenshot from the frozen reference artifact into `test-results/artcraft-source/cc0-source-608x1082.png`, verifies its SHA-256 with `sha256sum`, and uploads it beside the candidate screenshots and V60 JSON sidecars. The workflow now also runs when the paired-review test file changes.
 
-The first V62 artifact handoff verified the copied source screenshot as a 608×1082 PNG with the exact frozen hash. That run was cancelled during candidate capture after a subsequent test-only commit; its candidate PNGs matched the previously completed V57 artifact byte-for-byte, but it did not contain the matching JSON sidecars. A fresh source-native run on the current workflow head is required for a complete same-artifact handoff.
+**Complete same-run V62 handoff passed:** [source-native browser proof run 44201111848](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44201111848), artifact **14381213872** (`crayon-artcraft-source-native-inspection`). The artifact contains the exact source PNG, both native candidate PNGs and both matching V60 sidecars. The source is 608×1082 and hashes to `f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2`. Candidate PNG byte hashes were independently recomputed after download and exactly match their V60 sidecars:
+
+| Candidate | Native PNG SHA-256 | V60 sidecar | Candidate landmarks |
+| --- | --- | --- | ---: |
+| V56 | `3211b3f46ceca3d5ff5cc5104e0265574f91614fb4b6b340f97d74c4743f2382` | `v60-native-candidate-V56-299.json` | 0/18 |
+| V57 | `59bf9923d0bdc83d00d13c4a5b362eaf2d1a4aaaafed8a5ffc9de3958d8e72bd` | `v60-native-candidate-V57-299.json` | 0/18 |
+
+Both sidecars retain the frozen 18 source-photo points and explicitly report `INCOMPLETE`, `verifiedRender:false` and `approvedForRelease:false`. The exact three-file V62 upload set (source PNG + selected candidate PNG + matching JSON) is now available from one successful Actions artifact.
 
 ### V62 checks
 
