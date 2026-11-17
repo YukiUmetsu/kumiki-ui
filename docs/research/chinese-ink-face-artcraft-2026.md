@@ -881,3 +881,60 @@ of automated success. Unresolved: contemporary facial structure
 vs reference teacher, flattened cheeks, historical pigment accuracy,
 asymmetrical mouth integration in live 960×540 motion and the
 independent Fuchun rock/hemp/pine photographic/material comparison.
+
+## Source-calibrated mobile lips and forehead relief / no-release review (2026-11-17)
+
+**Verified native input:** [1e612af exact-head Chromium and film](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44109769910),
+[raw browser captures](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44109769910/artifacts/14342150034).
+The original `reader-native-anat1-five-speaking-visemes-ink-lip-atlas.png`
+shows five actual production cels. The latest OH still resembles a
+tiny third eye: a central round dark core sits between a fixed concave
+lower-lip curve and the new lip opening. The tonal palette and anatomy
+are better than the old opaque sticker, but this fails portrait quality.
+The native full-head and 960×540 Fuchun film also reveal a visually
+flat forehead/temple that does not read as graded Ming portrait ink.
+
+**Anatomical cause:** Four original source ANAT1 lip strokes had been
+relocated for AA/OH, but the original fixed face asset still painted
+its **unchanging lower-lip reflected ink** below every speaking state.
+Shading a round mouth cannot remove a separate fixed arc, and an
+isolated dark circular cavity core reads as a pupil at small size.
+
+**Bounded correction:** move precisely that original
+`M139.9 129.6 Q143.6 131.7 147.2 128.6` reflection
+with all of its `$skinshade` pigment / 0.46 weight / 0.35 opacity
+into the existing independently rigged mouth cels. Neutral, MM and
+smile preserve its unchanged SVG path; AA and OH attach the same
+brush mark to their opened lower lip. OH's smallest black-dot core
+becomes a slanted **upper vermilion shadow shelf**, rather than a
+centred disc. No wash, paper reserve, anatomical landmark, cap, hair,
+eye or mouth-lattice element has been deleted or flattened.
+
+**Forehead:** the UMMA [Zeng Jing portrait of Pan
+Qintai](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/)
+remains a graded ink material benchmark. Added three *individual*
+translucent frontal planes to existing near/far orbital region groups
+without creating a generic "forehead" circle or changing six-region
+glaze APIs: an 8px temporalis source-anchored rolling shadow,
+independently curved paper reserve, and shorter far-side frontal
+recession. Pigment opacity is only 3.8–4.7%. The highlight remains
+unpainted through the middle and no side is mirrored. All existing
+facial pigments and micro-pressure contours remain in order.
+
+**Inspection evidence required before release:** the existing face
+Storybook now includes two extra, native-rig frontal microscopes
+driven by the shared eyelid and detail controls. Chromium asserts
+that near/far forehead pigment is actually visible inside each
+source-camera crop, that the two windows are different, and that
+closing eyes hides the irises. It saves native high/low-detail
+screenshots. Unit regression verifies no lower-lip static arc
+bisects open mouths, the original facial lip semantics survive,
+and forehead pigment is anatomically attached, asymmetric and
+paper-light. **Green tests are not art approval.** The reference
+teacher photo is not present in the repo and has not been compared
+directly in this pass; this remains a limitation.
+
+**ART HOLD / no merge** until original-painting side-by-side
+1×/3× reference fidelity and native-film hand review are acceptable.
+Next gate is Fuchun's materially under-contrasted near-rock
+brushwork, dry hemp, pine fans and source-aligned mountain silhouette.
