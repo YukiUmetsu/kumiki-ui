@@ -29,6 +29,8 @@ export interface InkAnatomicalPortraitProps extends Omit<SVGProps<SVGSVGElement>
   view?:InkPortraitView;
   /** Original period figure's face-to-broad-sleeve scale (0.38..0.75). */
   headScale?:number;
+  /** Original source plate or warm unbleached-cotton layer for a complete standing figure. */
+  garmentWash?:"silk"|"cotton";
   /** Transparent compositing into an existing FilmStage, not a paper sticker. */
   transparentPaper?:boolean;
   /** A calibrated paper color for standalone figure plates. */
@@ -133,8 +135,8 @@ const ROBE_PRESSURE_MARKS={
   elder:evaluateInkBrush(robeInkSpec("elder"),1,true),
 };
 
-interface PaintProps {posed:ExpressedFace; character:InkPortraitCharacter; detail:number; view:InkPortraitView; uid:string; headScale:number}
-function PaintedPortrait({posed,character,detail,view,uid,headScale}:PaintProps){
+interface PaintProps {posed:ExpressedFace; character:InkPortraitCharacter; detail:number; view:InkPortraitView; uid:string; headScale:number; garmentWash:"silk"|"cotton"}
+function PaintedPortrait({posed,character,detail,view,uid,headScale,garmentWash}:PaintProps){
   const preset=PERSONS[character], P=projection(preset.yaw),v=posed.vertices;
   const q=(k:keyof typeof FACE_LANDMARKS)=>P(v[FACE_LANDMARKS[k]]);
   const feature=(id:string)=>FACE_FEATURES[id].loop.map(i=>P(v[i]));
@@ -264,11 +266,16 @@ function PaintedPortrait({posed,character,detail,view,uid,headScale}:PaintProps)
         <feComponentTransfer><feFuncA type="linear" slope=".14"/></feComponentTransfer>
       </filter>
     </defs>
-    <g data-km-ink-costume={character}>
+    <g data-km-ink-costume={character}
+      data-km-ink-costume-material={garmentWash}
+      opacity={garmentWash==="cotton"?.89:1}>
       <path d={character==="scholar"
         ?"M202 421 C163 424 131 439 116 470 Q98 506 83 612 L460 612 Q440 532 425 471 C412 443 372 428 328 420 Q263 451 202 421 Z"
         :"M184 419 C140 422 113 458 92 514 L59 612 L481 612 C469 554 443 458 394 426 Q356 410 324 422 Q250 471 184 419 Z"}
-        fill={preset.robe} fillOpacity=".42" stroke={preset.ink} strokeWidth="1.08" strokeOpacity=".77"/>
+        fill={garmentWash==="cotton"?"#ece2d3":preset.robe}
+        fillOpacity={garmentWash==="cotton"?.28:.42}
+        stroke={preset.ink} strokeWidth="1.08"
+        strokeOpacity={garmentWash==="cotton"?.41:.77}/>
       {/** Wet robe shadows bend across fabric drape, never the earlier
            triangular poster-like tone panels. Stroke pressure stays separate
            from the dry small folds and paper-reserved cloth underlayer. */}
@@ -798,12 +805,14 @@ function PaintedPortrait({posed,character,detail,view,uid,headScale}:PaintProps)
 }
 /** Reusable live SVG layer for cinematics, independent of existing reader art. */
 export function InkAnatomicalPortrait({character="scholar",emotion="neutral",intensity=1,
-  detail=1,view="bust",headScale=.48,className,transparentPaper=false,
+  detail=1,view="bust",headScale=.48,garmentWash="silk",className,transparentPaper=false,
   paperColor="#f4ebd9",style, ...svgProps}:InkAnatomicalPortraitProps){
   const uid=useId().replace(/:/g,"");
   if(!/^#[0-9a-fA-F]{6}$/.test(paperColor))throw new RangeError("paperColor must be #RRGGBB");
   if(!Number.isFinite(headScale)||headScale<.38||headScale>.75)
     throw new RangeError("headScale must be finite and in [0.38,0.75]");
+  if(garmentWash!=="silk"&&garmentWash!=="cotton")
+    throw new RangeError("garmentWash must be silk or cotton");
   const study=useMemo(()=>inkPortraitAnatomy(character,emotion,intensity),
     [character,emotion,intensity]);
   const amount=clamp(detail,0,1);
@@ -824,6 +833,6 @@ export function InkAnatomicalPortrait({character="scholar",emotion="neutral",int
         width:"100%",height:"auto",...style}}>
     {!transparentPaper&&<rect data-km-ink-paper="true" width="540" height="620" fill={paperColor}/>}
     <g><PaintedPortrait posed={study.posed} character={character} detail={amount}
-      view={view} uid={"ink-a2-"+uid} headScale={headScale}/></g>
+      view={view} uid={"ink-a2-"+uid} headScale={headScale} garmentWash={garmentWash}/></g>
   </svg>;
 }
