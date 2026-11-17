@@ -1851,6 +1851,96 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
   expect(errors).toEqual([]);
 });
 
+/** F1 V45: independent source-measured photographed near-eye/crease proof.
+ * The whole original V43 source portrait is the untouched negative control
+ * (not the rejected V44 contact study). Both use exact same film frame 299,
+ * source 608x1082, photo hedge, ANAT1 camera and original authored seed.
+ */
+test("F1 V45 near-eye tarsus full 1x and 2.8x versus V43 source-negative control",async({page},info)=>{
+  test.setTimeout(215_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const captures:Record<string,Uint8Array[]>={full:[],eye:[]};
+  const protectedBackground:number[][]=[];
+  const protectedOriginalNose:number[][]=[];
+  for(const midfaceForm of [
+    "source-anat1-photo-foliage-v43","source-anat1-eye-tarsus-v45",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","eye"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:270,focusY:542,zoom:2.8},
+        {frame:299,focusX:270,focusY:542,zoom:2.8},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["sclera-near","sclera-inner-contact-near",
+        "iris-near","pupil-near","upper-lid-near","lash-root-near",
+        "lash-contact-near","lower-lid-near","lower-lid-margin-near",
+        "upper-lid-crease-near","source-brow-follicles-near",
+        "hair-crown-surface","face-outline","nose-dorsum",
+        "cc0-hedge-dark-underpaint"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await page.waitForTimeout(480);
+      const screenshot=await svg.screenshot({animations:"disabled"});
+      if(view==="full"){
+        // Check actual decoded, same-PNG source details not touched by
+        // V45. A fake DOM-only success can hide unpainted Chromium tiles.
+        const originalPixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();
+          image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=image.naturalWidth;
+          canvas.height=image.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw new Error("Missing photo pixel audit");
+          ctx.drawImage(image,0,0);
+          return [
+            Array.from(ctx.getImageData(0,0,70,70).data),
+            Array.from(ctx.getImageData(355,600,65,65).data),
+          ];
+        },Buffer.from(screenshot).toString("base64"));
+        protectedBackground.push(originalPixels[0]);
+        protectedOriginalNose.push(originalPixels[1]);
+      }
+      await writeFile(info.outputPath(
+        "crayon-v45-"+view+"-"+midfaceForm+"-299.png"),
+        Buffer.from(screenshot));
+      captures[view].push(screenshot);
+    }
+  }
+  const mismatch=(a:number[],b:number[])=>{
+    if(a.length!==b.length)return 1;
+    let different=0;
+    for(let i=0;i<a.length;i+=4)
+      if(Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+
+        Math.abs(a[i+2]-b[i+2])>5)different++;
+    return different/(a.length/4);
+  };
+  expect(protectedBackground).toHaveLength(2);
+  expect(protectedOriginalNose).toHaveLength(2);
+  expect(mismatch(protectedBackground[0],protectedBackground[1]))
+    .toBeLessThanOrEqual(.003);
+  expect(mismatch(protectedOriginalNose[0],protectedOriginalNose[1]))
+    .toBeLessThanOrEqual(.003);
+  for(const view of ["full","eye"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),
+      Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+
 /** F1 V44 real physical wax facial value proof, not likeness approval:
  * same complete V43 source photo environment, identical 18 rooted hair
  * groups, seed, paper and frame, but five native ANAT1 physical wax
