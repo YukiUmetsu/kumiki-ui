@@ -603,6 +603,30 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
     .toHaveCount(12);
   await expect(samples.first().locator("[data-km-fuchun-near-hemp]"))
     .toHaveCount(0);
+  // A second, wider geological ink pass joins the original 28
+  // longitudinal hemp strokes on twelve nonrepeating rock terraces.
+  // Both interrupted phrases of each terrace must be positive SVG
+  // pigment INSIDE a physically clipped parent bank.
+  const terraces=sourceBank.locator("[data-km-fuchun-near-terrace]");
+  await expect(terraces).toHaveCount(12);
+  await expect(sourceBank.locator(
+    "[data-km-fuchun-near-terrace-phrase]")).toHaveCount(24);
+  await expect(samples.first().locator(
+    "[data-km-fuchun-near-terrace]")).toHaveCount(0);
+  for(const bank of await sourceBank.all()){
+    await expect(bank.locator("[data-km-fuchun-near-terrace]"))
+      .toHaveCount(3);
+    await expect(bank.locator("[data-km-fuchun-near-terrace-phrase]"))
+      .toHaveCount(6);
+    for(const turn of await bank.locator(
+      "[data-km-fuchun-near-terrace]").all()){
+      const root=await turn.getAttribute("data-km-fuchun-near-terrace-root");
+      const axis=await turn.getAttribute("data-km-fuchun-near-terrace-axis");
+      expect(root).not.toBeNull();
+      expect(axis).toMatch(/^M[-0-9.]+ [-0-9.]+ C/);
+      expect(axis!.startsWith("M"+root!.replace(","," ")+" C")).toBe(true);
+    }
+  }
   // These are the original 17 near-band ink marks, not newly added
   // decorative texture. Every origin stays on a true source ridge;
   // all 17 former long hanging planes turn across the positive stone
