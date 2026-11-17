@@ -44,8 +44,8 @@ const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
 function createSourceFace(character:InkReferenceCharacter){
   const base=createFace({
     calibrate:false,sex:1,
-    faceWidth:character==="scholar"?.96:1.04,
-    mouthWidth:character==="scholar"?.92:.86,
+    faceWidth:character==="scholar" ? .96 : 1.04,
+    mouthWidth:character==="scholar" ? .92 : .86,
   });
   const vertices=base.vertices.map(v=>[v[0],v[1],v[2]] as [number,number,number]);
   const subnasaleY=vertices[FACE_LANDMARKS.subnasale][1];
@@ -53,7 +53,7 @@ function createSourceFace(character:InkReferenceCharacter){
   const sellionY=vertices[FACE_LANDMARKS.sellion][1];
   const lowerSpan=Math.max(1,Math.abs(subnasaleY-mentonY));
   for(const v of vertices){
-    const lower=clamp(Math.abs(subnasaleY-v[1])/lowerSpan,0,1);
+    const lower=clamp((subnasaleY-v[1])/lowerSpan,0,1);
     const nose=v[1]<=sellionY&&v[1]>=subnasaleY&&Math.abs(v[0])<22;
     if(character==="elder"){
       v[0]*=1+.045*lower;
