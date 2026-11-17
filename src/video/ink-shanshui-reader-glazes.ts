@@ -88,6 +88,41 @@ export function readerInkPortraitGlazes(
       " "+at(f,.4,1.9)+" Z",.095),
   );
 
+  // In the native full head the forehead between cap and brow was an
+  // unbroken peach rectangle. Ming Bochen work lays the quietest wash
+  // where the frontal eminence turns beneath the temple/cap, with
+  // stronger ink near the sockets and a central field left as paper.
+  // These passes are the SAME source-fitted three-quarter head: no
+  // mirrored forehead sticker, random stippling, CSS gradient or blur.
+  passes["orbital-near"].push(
+    // The near temporal recess rolls UP under the cap, then out of
+    // focus into frontal curvature before meeting the brow. The
+    // curved edge never draws a line across the forehead's light.
+    glaze("M"+at(n,-16,-15.6)+" C"+at(n,-12.4,-20.6)+
+      " "+at(n,-5.4,-22.5)+" "+at(n,1.6,-18.2)+
+      " C"+at(n,2.3,-14.4)+" "+at(n,-3.8,-12.8)+
+      " "+at(n,-9.7,-13.4)+
+      " C"+at(n,-13.4,-13.4)+" "+at(n,-15,-14.1)+
+      " "+at(n,-16,-15.6)+" Z",.044),
+    // Reserve the high curved forehead highlight as translucency,
+    // not an airbrushed luminous line or opaque pasted skin panel.
+    glaze("M"+at(n,-9,-17.4)+" C"+at(n,-5.6,-19.4)+
+      " "+at(n,-1.6,-18.1)+" "+at(n,.3,-15.3)+
+      " C"+at(n,-2.3,-16.7)+" "+at(n,-6.2,-16.4)+
+      " "+at(n,-9,-17.4)+" Z",.047,true),
+  );
+  passes["orbital-far"].push(
+    // Receding, smaller and more vertical far frontal turn:
+    // its shallow wash follows the far side's temporal taper and
+    // cannot be copied or reflected from the near convex lobe.
+    glaze("M"+at(f,1.7,-15.3)+" C"+at(f,5.5,-16.8)+
+      " "+at(f,10.4,-13.7)+" "+at(f,11.8,-9.3)+
+      " C"+at(f,11.2,-7.3)+" "+at(f,8.1,-7.9)+
+      " "+at(f,5.2,-9.1)+
+      " C"+at(f,3.4,-11.4)+" "+at(f,2.2,-13.5)+
+      " "+at(f,1.7,-15.3)+" Z",.038),
+  );
+
   // A convex nose comes from a restrained gradation beside the paper-
   // light dorsal ridge. Successive partly overlapping passes curve into
   // the alar cartilages rather than making an angular triangular slash.
