@@ -18,6 +18,10 @@ Status: opt-in cinematic illustration mechanism. **Not a physical print/die cali
 
 No source photo, animated GIF, source illustration, artist linework or original print master is included in the code. All RISO79 output visual examples use independently authored Kumiki source artworks (existing RISO1/RISO75 print samples).
 
+## Follow-on paper-edge study
+
+The next material iteration is documented in [RISO79 — Paper Edge Material Study](./riso79-paper-edge-material-study.md). It separates actual Risograph ink texture from precision die-cut edges and torn-paper negative controls, records image-source licensing, and defines the stock-caliper/lamp-driven 2.5D cut-wall construction. The new edge pass does not modify either original spot-ink master.
+
 ## Five-axis ArtCraft deconstruction → original library feature
 
 | Axis | Image-based observation | Library obligation |
