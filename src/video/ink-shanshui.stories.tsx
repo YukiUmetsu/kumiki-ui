@@ -1025,7 +1025,7 @@ function FuchunSourceFidelityDesk(){
   const [comparison,setComparison]=useState<"seeds"|"near"|"pine">("seeds");
   const [showTurning,setShowTurning]=useState(true);
   const [showInnerStrata,setShowInnerStrata]=useState(true);
-  const [lens,setLens]=useState<"native"|"rock"|"edge"|"pine"|"near">("native");
+  const [lens,setLens]=useState<"native"|"rock"|"edge"|"pine"|"near"|"fall">("native");
   const [layer,setLayer]=useState<"complete"|"stone"|"hemp"|"pine">("complete");
   const lenses={
     native:{width:960,height:540,zoom:1,x:480,y:270,
@@ -1038,6 +1038,8 @@ function FuchunSourceFidelityDesk(){
       title:"Pine root/crown · 2.8×"},
     near:{width:420,height:308,zoom:2.3,x:505,y:290,
       title:"Lower stone shoulder · 2.3×"},
+    fall:{width:420,height:308,zoom:3.1,x:355,y:371,
+      title:"Waterfall ravine · 3.1×"},
   } as const;
   const camera=lenses[lens];
   const transform=lens==="native"?"none":
@@ -1128,7 +1130,7 @@ function FuchunSourceFidelityDesk(){
     </div>
     <div role="group" aria-label="Fuchun fidelity cameras"
       style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
-      {(["native","rock","edge","pine","near"] as const).map(key=>
+      {(["native","rock","edge","pine","near","fall"] as const).map(key=>
         <button key={key} type="button" style={style.button}
           aria-pressed={lens===key} onClick={()=>setLens(key)}>
           {lenses[key].title}
