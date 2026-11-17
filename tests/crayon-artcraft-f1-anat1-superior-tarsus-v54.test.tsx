@@ -36,10 +36,9 @@ describe("ArtCraft V54 source measured tarsus-only from V52",()=>{
           expect(x.kind).toBe("wax");expect(y.kind).toBe("wax");
           if(x.kind!=="wax"||y.kind!=="wax")throw Error("Missing source tarsal wax");
           expect(x.d).not.toBe(y.d);
-          const {d,angle,bounds,...rest}=x;
-          const {d:oldD,angle:oldAngle,bounds:oldBounds,...original}=y;
-          expect(rest).toEqual(original);
-          expect(bounds.width).toBeGreaterThan(50);
+          // Only these three source-shape attributes may differ.
+          expect(x).toEqual({...y,d:x.d,angle:x.angle,bounds:x.bounds});
+          expect(x.bounds.width).toBeGreaterThan(50);
         }else expect(x).toEqual(y);
       });
       expect(study("source-anat1-superior-tarsus-v54",detail,finish).elements)
