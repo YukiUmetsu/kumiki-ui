@@ -1,6 +1,6 @@
 # ANAT2 — Chinese ink original human portrait redraw (2026-11-17)
 
-**Scope:** two entirely new code-painted characters in \`src/video/ink-anatomical-portrait.tsx\` and three new Storybook views. This study does NOT import, resize, trace, or patch the existing Shanshui character source shapes. The existing PR #466 landscape, river-scholar and its unfinished reference review remain unchanged. These are independent new candidate figures.
+**Scope:** two entirely new code-painted characters in `src/video/ink-anatomical-portrait.tsx` and three new Storybook views. This study does NOT import, resize, trace, or patch the existing Shanshui character source shapes. The existing PR #466 landscape, river-scholar and its unfinished reference review remain unchanged. These are independent new candidate figures.
 
 **Status: ART HOLD.** Code-authored anatomical plausibility is not equivalent to art-historical likeness or real dry-brush authenticity. A passing browser test or a frame screenshot alone is not artistic acceptance. Keep #466 draft until actual same-camera historical comparison and film-scale acceptance.
 
@@ -18,12 +18,12 @@ These photographs are **visual-study links only**, not redistributed, embedded, 
 
 ## Geometric construction from first principles
 
-- **ANAT1 base:** \`createFace\` and \`FACE_LANDMARKS\` from the repository's measured 468-vertex MediaPipe-mask scaffold. Each portrait begins with its *own* distinct eye spacing, nose width/length, lower-face length, and bizygomatic width. The skull-cap and ear are constructed separately because ANAT1's mask excludes skull, ears and hair. Source dataset licensing lives in the ANAT1 registry.
+- **ANAT1 base:** `createFace` and `FACE_LANDMARKS` from the repository's measured 468-vertex MediaPipe-mask scaffold. Each portrait begins with its *own* distinct eye spacing, nose width/length, lower-face length, and bizygomatic width. The skull-cap and ear are constructed separately because ANAT1's mask excludes skull, ears and hair. Source dataset licensing lives in the ANAT1 registry.
 - **3/4 projection:** 19° (scholar), 27° (elder). Project raw x/y/z millimetre points into a consistent local 540×620 SVG image plane rather than adjusting existing Shanshui paths. A Catmull–Rom-to-cubic interpreter retains vertices from actual ANAT1 features; upper/lower eyes and upper/lower lips are separate continuous loops.
-- **Vertex-native EXPR1:** \`expressEmotion\` directly modifies the fitted mask's vertices; actual projected ocular, brow, cheek and lip topology follows the action. \`expressionMarks\` adds low-opacity glabellar, nasolabial and orbital marks only from activated units. The canvas renders the same features at intensity 0, .25, .5, .75 and 1 and supports animation timeline playback at 24 fps.
+- **Vertex-native EXPR1:** `expressEmotion` directly modifies the fitted mask's vertices; actual projected ocular, brow, cheek and lip topology follows the action. `expressionMarks` adds low-opacity glabellar, nasolabial and orbital marks only from activated units. The canvas renders the same features at intensity 0, .25, .5, .75 and 1 and supports animation timeline playback at 24 fps.
 - **Real paper reserve:** the paper is exposed by a real clipped eye aperture, not an overpainted white eye sticker. Iris interiors are clipped by the *current* upper/lower eyelid polygons. Two overlapping forehead glazes, two independent cheeks (5 main fields + 9 microstrokes each), face-shadow contacts, beard strands, variable hat/hair fibers, garment folds, and a low-strength alpha paper-fiber pass are independent material deposits.
 - **Distinct identities:** the young scholar uses tight eye spacing, a narrower nose, shorter lower third, tied dark hair and black scholar cap; the elder has a broader nose, longer lower third, wider cheekbones, grey hair break-up and individual split beard hairs. Their robes have separately constructed neckline folds.
-- **Semantic SVG:** source-space \`data-km-ink-*\` groups expose anatomy, eyes, brows, mouth, robe, cheek layers and ear. Accessible Storybook controls switch live production components rather than swapping screenshots.
+- **Semantic SVG:** source-space `data-km-ink-*` groups expose anatomy, eyes, brows, mouth, robe, cheek layers and ear. Accessible Storybook controls switch live production components rather than swapping screenshots.
 
 ### Anatomical caution
 
