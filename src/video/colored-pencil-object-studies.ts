@@ -16,6 +16,7 @@ import {ROSE_FRONT_LAMINA_VOLUME,inspectRoseFrontLaminaVolume} from "./colored-p
 import {ROSE_CENTER_KNOT_SURFACES,ROSE_CENTER_SCROLL_BACKFACE,inspectRoseCenterKnot} from "./colored-pencil-rose-center-knot";
 import {ROSE_OUTER_FORM_FACE_PALETTES,roseOuterFormDeposits,inspectRoseOuterForm} from "./colored-pencil-rose-outer-form";
 import {ROSE_OUTER_RIPPLE_SURFACES,inspectRoseOuterRippleSurfaces} from "./colored-pencil-rose-outer-ripple";
+import {ROSE_HYPANTHIUM_ATTACHMENT,inspectRoseHypanthiumAttachment} from "./colored-pencil-rose-hypanthium";
 import {roseCenterValueDetails,inspectRoseCenterValueFields} from "./colored-pencil-rose-center-local-value";
 import {roseContactShadowDetails,inspectRoseContactShadows} from "./colored-pencil-rose-contact-shadows";
 
@@ -62,7 +63,7 @@ function material(shape: ObjectShape, seed: number, transform: string): PencilRe
   return createPencilMaterialRegion(input);
 }
 
-function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false,volumeStudy=false,knotStudy=false,outerFormStudy=false,outerRippleStudy=false): ObjectShape[] {
+function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false,volumeStudy=false,knotStudy=false,outerFormStudy=false,outerRippleStudy=false,hypanthiumStudy=false): ObjectShape[] {
   const shapes:ObjectShape[] = [
     {id:"stem",surface:"wood",palette:leaf,
       path:"M241 266 Q233 324 247 417 L254 417 Q251 331 250 268 Z",
@@ -182,6 +183,10 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
     const issues=inspectRoseOuterRippleSurfaces();
     if(issues.length)throw new Error("Rose outer petal actual edge topology: "+issues.join("; "));
   }
+  if(hypanthiumStudy){
+    const issues=inspectRoseHypanthiumAttachment();
+    if(issues.length)throw new Error("Rose source-rooted floral axis: "+issues.join("; "));
+  }
   const anatomy:ObjectShape[]=shapes.flatMap(shape=>{
     if(leafStudy&&(shape.id==="leaf-left"||shape.id==="leaf-right")){
       const side=shape.id==="leaf-left"?"left":"right";
@@ -189,9 +194,13 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
         organ.id.startsWith("rose-"+side+"-")).map(organ=>({...organ}));
     }
     if(calyxStudy&&shape.id==="sepal")
-      return ROSE_CALYX_ORGANS.map(organ=>({
-        ...organ,surface:"leaf" as const,startFrame:50,
-      }));
+      return ROSE_CALYX_ORGANS.map(organ=>{
+        const source=organ.id==="calyx-receptacle"&&hypanthiumStudy?
+          ROSE_HYPANTHIUM_ATTACHMENT:undefined;
+        return {...organ,surface:"leaf" as const,startFrame:50,
+          ...(source?{path:source.path,bounds:source.bounds,
+            details:[...organ.details,...source.details]}:{})};
+      });
     // The inner cup uses independently curved real material rather than a
     // generic spiral. Every keyed original pigment seed and pre-existing
     // contact remains; only opt-in lamina paths and additional dry marks change.
@@ -488,6 +497,8 @@ export interface PencilObjectStudyOptions {
   roseCenterValueStudy?: boolean;
   /** Five independent between-petal physical source contact-shadow valleys; opt-in knot required. */
   roseContactShadowStudy?: boolean;
+  /** Continuous calyx-receptacle wall rising to the real under-petal root (opt-in). */
+  roseHypanthiumAttachmentStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -502,7 +513,7 @@ export function pencilObjectStudyDrawing({
   roseBackCupReliefStudy = false, roseFrontLaminaVolumeStudy = false,
   roseCenterKnotStudy = false, roseOuterFormStudy = false,
   roseCenterValueStudy = false, roseOuterRippleStudy = false,
-  roseContactShadowStudy = false,
+  roseContactShadowStudy = false, roseHypanthiumAttachmentStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -546,6 +557,11 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose center value study flag must be boolean");
   if(typeof roseContactShadowStudy !== "boolean")
     throw new RangeError("Rose contact-shadow study flag must be boolean");
+  if(typeof roseHypanthiumAttachmentStudy !== "boolean")
+    throw new RangeError("Rose hypanthium attachment flag must be boolean");
+  if(subject==="rose"&&roseHypanthiumAttachmentStudy&&
+    (!roseCalyxStudy||!rosePhysicalFolds))
+    throw new RangeError("Rose hypanthium needs real calyx organs and folded front petals");
   if(subject==="rose"&&roseContactShadowStudy&&!roseCenterKnotStudy)
     throw new RangeError("Rose contact shadows require real source center knot");
   if(subject==="rose"&&roseContactShadowStudy){
@@ -574,7 +590,7 @@ export function pencilObjectStudyDrawing({
     const errors=inspectRoseFrontValueBands();
     if(errors.length)throw new RangeError("Rose frontal value axes: "+errors.join("; "));
   }
-  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseCenterKnotStudy,roseOuterFormStudy,roseOuterRippleStudy) :
+  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseCenterKnotStudy,roseOuterFormStudy,roseOuterRippleStudy,roseHypanthiumAttachmentStudy) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
@@ -673,6 +689,12 @@ export function pencilObjectStudyDrawing({
         rights:"technique-only" as const,
         observation:"Anatomical double-rose cup has separate intermediate hooked petal faces with asymmetrical shoulders, counterturning edges and dark fold attachment, rather than a single empty band.",
       }]:[]),
+      ...(subject==="rose"&&roseHypanthiumAttachmentStudy?[{
+        title:"K. R. Robertson / Illinois Natural History Survey — perigynous insertion in Rosa",
+        url:"https://www.life.illinois.edu/help/digitalflowers/Flowers/56.htm",
+        rights:"technique-only" as const,
+        observation:"The green receptacular cup physically supports petal bases, carries five sepals and joins the floral stalk. A broad continuous hypanthium is seen from behind the corolla, not two isolated green stickers separated from the rose by blank paper.",
+      }]:[]),
       ...(subject==="rose"&&roseContactShadowStudy?[{
         title:"Leyth and chuttersnap — CC0 rose closeup photographs (Wikimedia Commons)",
         url:"https://commons.wikimedia.org/wiki/File:Rose_Blossom_Closeup.jpg",
@@ -696,7 +718,11 @@ export function pencilObjectStudyDrawing({
         rights:"technique-only" as const,
         observation:"The broader petal margin is wavy and asymmetric; its curved distal edge develops slightly different scallop intervals on opposing petals. This is a separate cultivar and only a general shape observation, not a registered landmark match.",
       }]:[]),
-      ...(subject==="rose"&&roseOuterFormStudy?[{
+      // The same Evans original is already attributed by the middle cup.
+      // In the new combined experiment prefer unique morphological evidence:
+      // keep exactly one cited Evans URL (12-reference CP-F1 hard ceiling).
+      ...(subject==="rose"&&roseOuterFormStudy&&
+        !(roseHypanthiumAttachmentStudy&&roseMiddleCupStudy)?[{
         title:"Karen Elaine Evans — artist-original Pink Rose colored-pencil form",
         url:"https://www.artfinder.com/product/pink-rose-6a554/",
         rights:"technique-only" as const,
