@@ -6,6 +6,7 @@ import {riso72SvgMatrix}
 import type {RisoProofMark,RisoProofPoint,RisoScanMeasurements}
   from "../../registry/video/riso-scan-proof";
 import type {Riso71SourceImage} from "./riso71-scan-image-annotator";
+import {Riso74NativePixelEvidencePanel} from "./riso74-native-pixel-evidence-studio";
 
 const field={display:"grid",gap:5,font:"600 13px system-ui",minWidth:153} as const;
 const round=(n:number)=>Number(n.toFixed(4));
@@ -235,6 +236,10 @@ export function Riso73TwoCopyPrintStudy({
           each image's PAPER coordinates, not RGB-image pixel distances.
         </p>
       </div>
+      <Riso74NativePixelEvidencePanel
+        firstPhoto={firstPhoto} secondPhoto={secondPhoto}
+        firstPaper={report!.firstPaper} secondPaper={report!.secondPaper}
+        sheetMm={sheetMm}/>
     </>}
   </section>;
 }
