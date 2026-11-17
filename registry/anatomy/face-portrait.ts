@@ -710,7 +710,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   for (const s2 of ["L", "R"] as const) { const z = rotH([ec[s2][0], ec[s2][1], ec[s2][2] - 9.6])[2] + 11; for (let i = 0; i < w * h; i++) if (eyeMask[s2][i] > 0.05) hairSolid[i] = Math.max(hairSolid[i], z); }
   { const z = rotH(LM("stomion"))[2] - 6; for (let i = 0; i < w * h; i++) if (mouthMask[i] > 0.05) hairSolid[i] = Math.max(hairSolid[i], z); }
   drawEars(out, { proj: (q: Vec3) => { const r = rotH(q); return proj(r[0], r[1], r[2]); }, headHalfW, tragionY, browY: hairHead.browY, sn: sn[1], zEar: czE + az * 0.08, skinHex, Lkey, keyI, mmPerPx, yaw: o.yaw ?? 0,
-    depth: hairSolid, depthOf: (q: Vec3) => rotH(q)[2] });
+    depth: hairSolid, depthOf: (q: Vec3) => rotH(q)[2], rot: rotH, lit: (q: Vec3) => lit(q, 2) * underHair(q), fillI, skyI, Lfill });
   // mouth interior where the lips part
   drawMouth(out, mouthMask, gbuf.tri, { w, h, upper: INNER_UPPER_LIP.map(pv), lower: INNER_LOWER_LIP.map(pv), mmPerPx, keyI });
   // eyes
@@ -1278,23 +1278,77 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
 // ---- Ears ------------------------------------------------------------------------------------------------------------------------
 
 function drawEars(out: Raster, e: { proj: (p: Vec3) => [number, number]; headHalfW: number; tragionY: number; browY: number; sn: number; zEar: number; skinHex: string; Lkey: Vec3; keyI: RGB3; mmPerPx: number; yaw: number;
-  depth?: Float32Array; depthOf?: (p: Vec3) => number }) {
-  // the ear's colour: skin a little redder (thin, vascular), lit as a surface facing sideways and forward
-  const ear = mixC(linearOf(e.skinHex), linearOf(skinZoneColor(e.skinHex, "ears")), 0.55), top = e.browY - 2, bot = e.sn - 2, len = top - bot;
+  depth?: Float32Array; depthOf?: (p: Vec3) => number; rot?: (p: Vec3) => Vec3; lit?: (p: Vec3) => number; fillI?: RGB3; skyI?: RGB3; Lfill?: Vec3 }) {
+  // The ear as a relief, shaded per pixel: the helix rim rolling round the top and back, the Y of the antihelix inside
+  // it, the deep bowl of the concha, the tragus in front, a fleshy lobe; lit like the skin (with the key's shadow,
+  // hair included), darker in the folds, and red where light passes through the thin cartilage.
+  const ear = mixC(linearOf(e.skinHex), linearOf(skinZoneColor(e.skinHex, "ears")), 0.6), top = e.browY - 2, bot = e.sn - 2, len = top - bot;
+  const rot = e.rot ?? ((q: Vec3) => q), W = out.width, Hh = out.height;
+  const fillI = e.fillI ?? [0.17, 0.18, 0.2], skyI = e.skyI ?? [0.15, 0.16, 0.19], Lfill = e.Lfill ?? norm3([0.62, -0.05, 0.78]);
+  // the outline in ear coordinates (u outward from the head, mm; v up, mm from the ear's mid height)
+  const vm = (top + bot) / 2, V = (y: number) => y - vm;
+  // (an adult ear is about 60–65 mm long and 30–35 mm wide; u runs from the tragus back to the helix)
+  const K = 2.6, rough = ([[0, V(top - len * 0.05)], [5, V(top + 2)], [10, V(top - len * 0.06)], [12.5, V(top - len * 0.25)], [11.5, V(top - len * 0.5)], [9, V(top - len * 0.74)], [6.5, V(bot + 4)], [4.5, V(bot - 0.5)], [1.8, V(bot - 0.5)], [0, V(bot + 5)]] as [number, number][]).map(([u, v]) => [u * K, v] as [number, number]);
+  // a smooth outline through those points (Catmull-Rom, closed): no corners on the helix
+  const outline: [number, number][] = [];
+  for (let i = 0; i < rough.length; i++) {
+    const p0 = rough[(i - 1 + rough.length) % rough.length], p1 = rough[i], p2 = rough[(i + 1) % rough.length], p3 = rough[(i + 2) % rough.length];
+    for (let k = 0; k < 6; k++) { const t = k / 6, t2 = t * t, t3 = t2 * t; outline.push([0, 1].map(c => 0.5 * (2 * p1[c] + (-p0[c] + p2[c]) * t + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * t2 + (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * t3)) as [number, number]); }
+  }
+  const inside = (u: number, v: number) => { let c = false; for (let i = 0, j = outline.length - 1; i < outline.length; j = i++) { const [xi, yi] = outline[i], [xj, yj] = outline[j]; if ((yi > v) !== (yj > v) && u < ((xj - xi) * (v - yi)) / (yj - yi) + xi) c = !c; } return c; };
+  const edgeDist = (u: number, v: number) => { let d = Infinity; for (let i = 0, j = outline.length - 1; i < outline.length; j = i++) { const [x1, y1] = outline[j], [x2, y2] = outline[i], dx = x2 - x1, dy = y2 - y1, t = Math.max(0, Math.min(1, ((u - x1) * dx + (v - y1) * dy) / (dx * dx + dy * dy))); d = Math.min(d, Math.hypot(u - x1 - dx * t, v - y1 - dy * t)); } return d; };
+  const lobeV = V(bot + len * 0.18);
+  // the antihelix: a ridge from the upper inner ear curving down to the antitragus
+  const anti: [number, number][] = ([[4, V(top - len * 0.12)], [6.5, V(top - len * 0.3)], [7, V(top - len * 0.5)], [5.5, V(top - len * 0.68)], [3.2, V(bot + len * 0.26)]] as [number, number][]).map(([u, v]) => [u * K, v] as [number, number]);
+  const segD = (u: number, v: number, pts: [number, number][]) => { let d = Infinity; for (let i = 1; i < pts.length; i++) { const [x1, y1] = pts[i - 1], [x2, y2] = pts[i], dx = x2 - x1, dy = y2 - y1, t = Math.max(0, Math.min(1, ((u - x1) * dx + (v - y1) * dy) / (dx * dx + dy * dy))); d = Math.min(d, Math.hypot(u - x1 - dx * t, v - y1 - dy * t)); } return d; };
+  const height = (u: number, v: number) => {
+    if (!inside(u, v)) return NaN;
+    const ed = edgeDist(u, v), lobe = smoothstep(lobeV + 3, lobeV - 3, v), front = smoothstep(5, 1, u);
+    const helix = 2.2 * Math.exp(-((ed - 1.8) ** 2) / 1.6) * (1 - lobe) * (1 - front * 0.8);
+    const antihelix = 1.6 * Math.exp(-(segD(u, v, anti) ** 2) / 3) * (1 - lobe);
+    const concha = -3 * Math.exp(-(((u - 3.2 * K) / (2.6 * K)) ** 2 + ((v - V(top - len * 0.6)) / 5) ** 2));
+    const tragus = 1.4 * Math.exp(-(((u - 1.5) / 2.2) ** 2 + ((v - V(top - len * 0.62)) / 3) ** 2));
+    return helix + antihelix + concha + tragus + 0.9 * lobe * Math.sqrt(Math.max(0, 1 - (ed > 3 ? 0 : (3 - ed) / 3) ** 2));
+  };
   for (const s of [-1, 1]) {
-    const shape: [number, number][] = [[0, top - len * 0.05], [5, top + 2], [10, top - len * 0.06], [12.5, top - len * 0.25], [11, top - len * 0.55], [8, top - len * 0.78], [6, bot + 3], [2.5, bot - 1], [0, bot + 4]];
-    const inner: [number, number][] = [[1.5, top - len * 0.25], [6.5, top - len * 0.22], [7.5, top - len * 0.45], [5, top - len * 0.68], [1.5, top - len * 0.6]];
-    const toS = (pts: [number, number][]) => pts.map(([u, y]) => e.proj([s * (e.headHalfW - 4 + u), y, e.zEar - u * 0.8]));
-    const poly = toS(shape), concha = toS(inner);
-    const n = norm3([s * 0.75, 0.05, 0.66]), nl = dot3(n, e.Lkey), lit = 0.28 + 0.72 * Math.max(0, (nl + 0.2) / 1.2), glow = 0.12 * Math.max(0, -nl);
-    const base: RGB3 = [ear[0] * (lit * e.keyI[0] * 0.38 + 0.18) + glow * 0.6, ear[1] * (lit * e.keyI[1] * 0.36 + 0.17) + glow * 0.18, ear[2] * (lit * e.keyI[2] * 0.35 + 0.17) + glow * 0.12];
-    const zE = e.depthOf ? e.depthOf([s * (e.headHalfW + 2), (top + bot) / 2, e.zEar - 5]) : 0;
-    fillPolygon(out.width, out.height, poly, (i, c) => { for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] = out.rgb[i * 3 + k] * (1 - c) + base[k] * c; if (e.depth && c > 0.5) e.depth[i] = Math.max(e.depth[i], zE); });
-    const cmask = new Float32Array(out.width * out.height);
-    fillPolygon(out.width, out.height, concha, (i, c) => (cmask[i] = c));
-    const soft = gaussianBlur(cmask, out.width, out.height, 1, 1.2 / e.mmPerPx);
-    for (let i = 0; i < soft.length; i++) if (soft[i] > 0.01) for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] *= 1 - 0.42 * soft[i];
-    strokePolyline(out, poly.slice(1, 6), 1.4 / e.mmPerPx, 0.6 / e.mmPerPx, [base[0] * 1.25, base[1] * 1.2, base[2] * 1.18], 0.45);
+    const origin: Vec3 = [s * (e.headHalfW - 3), vm, e.zEar + 14];
+    // the ear's plane: back along the head, standing off it by about 30° (the helix furthest out), up; its face looks outward and forward
+    const U3: Vec3 = norm3([s * 0.5, 0, -0.866]), N3: Vec3 = norm3([s * 0.866, 0.05, 0.5]);
+    const at = (u: number, v: number, h = 0): Vec3 => [origin[0] + U3[0] * u + N3[0] * h * 0.3, origin[1] + v + N3[1] * h * 0.3, origin[2] + U3[2] * u + N3[2] * h * 0.3];
+    // an affine map from the ear's (u, v) to the screen, and back
+    const p0 = e.proj(at(0, 0)), pu = e.proj(at(1, 0)), pv = e.proj(at(0, 1));
+    const a11 = pu[0] - p0[0], a12 = pv[0] - p0[0], a21 = pu[1] - p0[1], a22 = pv[1] - p0[1], det = a11 * a22 - a12 * a21;
+    if (Math.abs(det) < 1e-6) continue;
+    const poly = outline.map(([u, v]) => e.proj(at(u, v)));
+    const x0 = Math.max(0, Math.floor(Math.min(...poly.map(q => q[0])) - 2)), x1 = Math.min(W - 1, Math.ceil(Math.max(...poly.map(q => q[0])) + 2));
+    const y0 = Math.max(0, Math.floor(Math.min(...poly.map(q => q[1])) - 2)), y1 = Math.min(Hh - 1, Math.ceil(Math.max(...poly.map(q => q[1])) + 2));
+    const zE = e.depthOf ? e.depthOf([s * (e.headHalfW + 2), vm, e.zEar - 5]) : 0;
+    const Uw = norm3(rot([origin[0] + U3[0], origin[1] + U3[1], origin[2] + U3[2]]).map((c, k) => c - rot(origin)[k]) as Vec3), Nw = norm3(rot([origin[0] + N3[0], origin[1] + N3[1], origin[2] + N3[2]]).map((c, k) => c - rot(origin)[k]) as Vec3), Vw = norm3([Nw[1] * Uw[2] - Nw[2] * Uw[1], Nw[2] * Uw[0] - Nw[0] * Uw[2], Nw[0] * Uw[1] - Nw[1] * Uw[0]]);
+    const sh = e.lit ? e.lit(rot(at(6, 0))) : 1, step = 0.25;
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const dx = x + 0.5 - p0[0], dy = y + 0.5 - p0[1], u = (a22 * dx - a12 * dy) / det, v = (-a21 * dx + a11 * dy) / det;
+      const h = height(u, v);
+      if (Number.isNaN(h)) continue;
+      // hidden where the head is nearer (the ear's root lies behind the cheek and the side of the head)
+      const pix = y * W + x;
+      if (e.depth && e.depthOf && e.depth[pix] > e.depthOf(at(u, v, h)) + 0.8) continue;
+      // edge coverage: soften the outline over about a pixel
+      const cov = Math.min(1, edgeDist(u, v) / Math.max(0.05, e.mmPerPx * 0.8));
+      const hh = (a: number, b: number) => { const q = height(a, b); return Number.isNaN(q) ? h : q; };
+      const hu = (hh(u + step, v) - hh(u - step, v)) / (2 * step), hv = (hh(u, v + step) - hh(u, v - step)) / (2 * step);
+      const nl3 = norm3([-hu * 0.6, -Math.max(-3, Math.min(3, hv)) * 0.6 * (s < 0 ? 1 : 1), 1]);
+      const n = norm3([Uw[0] * nl3[0] + Vw[0] * nl3[1] * -1 + Nw[0] * nl3[2], Uw[1] * nl3[0] + Vw[1] * nl3[1] * -1 + Nw[1] * nl3[2], Uw[2] * nl3[0] + Vw[2] * nl3[1] * -1 + Nw[2] * nl3[2]]);
+      const nlk = dot3(n, e.Lkey), nlf = dot3(n, Lfill);
+      // folds hold less light (occlusion follows the relief: the concha deepest)
+      const ao = Math.min(1, Math.max(0.5, 0.78 + 0.1 * h));
+      const thin = smoothstep(1.5, 0, edgeDist(u, v)) * (1 - smoothstep(lobeV + 3, lobeV - 3, v));
+      const trans = Math.max(0, -nlk) * 0.35 + thin * 0.25 * Math.max(0, 0.3 - nlk);
+      const c: RGB3 = [0, 1, 2].map(k => ear[k] * (e.keyI[k] * Math.max(0, (nlk + 0.1) / 1.1) * sh * 0.42 + fillI[k] * Math.max(0, (nlf + 0.2) / 1.2) * 0.9 * ao + skyI[k] * ao * (0.6 + 0.4 * n[1]) + 0.05 * ao)
+        + [0.9, 0.25, 0.12][k] * trans * ear[k] * e.keyI[k] * 0.25 * sh) as unknown as RGB3;
+      const i = y * W + x;
+      for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] = out.rgb[i * 3 + k] * (1 - cov) + c[k] * cov;
+      if (e.depth && cov > 0.5) e.depth[i] = Math.max(e.depth[i], zE);
+    }
   }
 }
 
