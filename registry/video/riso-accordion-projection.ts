@@ -66,7 +66,10 @@ export function createRisoAccordionProjection({
     ((i%2===1?1:-1)*amplitude*(.89+.11*printHash(seed,i+41,19)));
   const faces=Array.from({length:panels},(_,i):RisoAccordionFace=>{
     const lo=i*per,hi=(i+1)*per;
-    const v0=edgeShift(i),v1=edgeShift(i+1);
+    // The fully open sheet must be an exact mathematical identity, even
+    // under strict numerical equality (avoid signed negative zero).
+    const v0=openness===1?0:edgeShift(i);
+    const v1=openness===1?0:edgeShift(i+1);
     const slope=(v1-v0)/per;
     const matrix:RisoAccordionAffine=axis==="vertical"?
       [projectedScale,slope,0,1,offset,v0-slope*lo]:
