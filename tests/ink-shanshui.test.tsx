@@ -3176,7 +3176,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(a).not.toContain("data:image/");
   });
 
-  it("constructs a candidate Fuchun broad lower mountain from 19 original continuous stations without changing production or other schools",()=>{
+  it("constructs a candidate Fuchun broad lower mountain from 22 original continuous stations without changing production or other schools",()=>{
     const paint=(school:"fuchun"|"travelers",seed:number,rounded?:boolean,
       frame=145,scene:"mountain-trail"|"river-scholar"="mountain-trail")=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{
@@ -3193,11 +3193,33 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(candidate).toBe(paint("fuchun",71,true));
     expect(ridge(legacy,2)).not.toEqual(ridge(candidate,2));
     expect(ridge(candidate,2)).not.toEqual(ridge(candidate87,2));
-    // The new native source contour contains 18 spans * 9 sub-stations,
-    // not an ellipse, flat path or detached overlay in the lower sky.
-    expect((ridge(candidate,2)?.match(/L /g)??[])).toHaveLength(164);
+    // 21 source spans retain 9 independently inked microstations each.
+    // Three EXTRA positive left-bank stations round the former needle
+    // cliff without deleting the previous broad 488..586 shoulder.
+    expect((ridge(candidate,2)?.match(/L /g)??[])).toHaveLength(191);
     expect((ridge(legacy,2)?.match(/L /g)??[])).toHaveLength(92);
     expect(ridge(candidate,2)).toContain("512 258");
+    expect(ridge(candidate,2)).toContain("243 327");
+    expect(ridge(candidate,2)).toContain("271 319");
+    expect(ridge(candidate,2)).toContain("299 330");
+    expect(ridge(legacy,2)).toContain("275 298");
+    // A rounded stone brow, not a 107px isolated sharp apex.
+    const bankHeights=(html:string,targets:readonly number[])=>{
+      const contour=ridge(html,2)!;
+      const sampled=[...contour.matchAll(/[ML] (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)]
+        .map(x=>[Number(x[1]),Number(x[2])]);
+      return targets.map(x=>{
+        const point=sampled.reduce((nearest,p)=>
+          Math.abs(p[0]-x)<Math.abs(nearest[0]-x)?p:nearest);
+        return point[1];
+      });
+    };
+    const [valley,lead,crest,tail,down]=bankHeights(candidate,
+      [160,243,271,299,338]);
+    expect(valley-crest).toBeGreaterThan(70);
+    expect(Math.abs(crest-lead)).toBeLessThan(12);
+    expect(Math.abs(tail-crest)).toBeLessThan(13);
+    expect(down-crest).toBeGreaterThan(18);
     for(const band of [0,1])
       expect(ridge(candidate,band)).toEqual(ridge(legacy,band));
     // Same exact clip, ink and downstream ridge-derived features; changing
