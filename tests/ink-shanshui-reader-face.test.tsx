@@ -540,8 +540,11 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(base?.opacity).toBeLessThan(.08);
     const paper=all.planes.find(x=>x.d.startsWith("M126.6 112.8"));
     expect(paper).toMatchObject({fill:"$paper",opacity:.13});
-    const dorsal=all.nose.find(x=>x.d.includes("147.2 99.5"));
-    expect(dorsal?.opacity).toBeLessThan(.4);
+    // The primary dorsal shape is pressure-sampled into a many-point
+    // closed path, so it must not be matched to the unsampled seed pair.
+    const dorsal=all.nose[0];
+    expect(dorsal).toMatchObject({type:"path",opacity:.34});
+    expect((dorsal?.d.match(/L/g)??[]).length).toBeGreaterThan(20);
     expect(all.nose.some(x=>x.d.startsWith("M150.9 114.2"))).toBe(true);
     expect(all.nose.length).toBeGreaterThanOrEqual(8);
   });
