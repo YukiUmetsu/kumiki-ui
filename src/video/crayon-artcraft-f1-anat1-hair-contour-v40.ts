@@ -92,7 +92,7 @@ const regionParent:Readonly<Record<Region,Mass>>={
 // centerline cubics / root curves / pigment and opacity: only deposited width
 // and pressure change; hard rectangular wax pickups become smaller.
 const widths:Readonly<Record<Region,readonly number[]>>={
-  crown:[.31,.27,.34,.24,.29,.22],
+  crown:[.26,.27,.34,.24,.29,.22],
   left:[.26,.29,.31,.23,.27,.20],
   right:[.24,.27,.29,.23,.26,.19],
 };
