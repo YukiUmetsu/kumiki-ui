@@ -398,6 +398,25 @@ React.
 
 **Status:** agent review of renders only. Fingers blend rather than collide; there is no arm.
 
+**Natural nails and soft hands (2026-11-17).** Nails were studied on CC0 photographs (the Reference board's hands) and on
+CC BY-SA photographs and an anatomy diagram on Wikimedia Commons, used for observation only and not redistributed:
+"A woman's hands" by PetarM; "Short Nail Beds on the hand of a Girl" by Helveticablue; "Fingernail ku" after OpenStax;
+"Odyssey Sims fingernails closeup".
+
+- **Plate.** About four fifths of the fingertip's width, flatter than the finger. Its sides tuck under the lateral
+  folds, it starts at an arc-shaped proximal fold, and over the fingertip it follows the tip down, so a short nail does
+  not stand out as a ring.
+- **Colour.** The bed shows through as the skin a little pinker and lighter. The lunula is plain on the thumb, faint
+  on the index and rarely seen on the other fingers. A pinker onychodermal band lies behind a curved smile line, and
+  the free edge is a short translucent ivory band.
+- **Shading.** The cuticle fold shades the plate softly. Natural nails are moderately glossy (roughness 0.2);
+  `nailColour` polish is glossier (0.07).
+- **Fingers** are one smooth tube from joint to joint: a smooth minimum between phalanges used to swell every joint
+  into a ring. Joints swell only by the type's `knuckles`.
+- **Back of the hand.** Soft tissue covers the metacarpals on young and padded hands, and tendons and veins blend in
+  unless the hand is lean or old (`tendons`, `veins`).
+- **Known.** A crease across the back of the wrist, where the palm meets the wrist's cone, remains.
+
 ## Groomed hair (`hair-groom.ts`)
 
 The hair foundation for rendered heads ([research note](../research/hair-groom-2026-11-16.md)).
