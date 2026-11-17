@@ -1,0 +1,52 @@
+name: RISO78 original continuous printed accordion ArtCraft proof
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso78-continuous-accordion-artcraft.yml"
+      - "registry/video/riso-accordion-projection.ts"
+      - "registry/video/riso-accordion-react.tsx"
+      - "src/video/riso78-accordion-film.ts"
+      - "src/video/riso78-accordion-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "registry.json"
+      - "tests/riso78-continuous-accordion-artcraft.test.tsx"
+      - "tests/e2e-storybook/riso78-original-accordion-zine.spec.ts"
+      - "docs/research/riso78-continuous-printed-accordion-zine-artcraft.md"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: riso78-original-continuous-zine-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  original-continuous-printed-zine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Strict source-locked original spot-ink and paper fold matrix tests
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso78-continuous-accordion-artcraft.test.tsx tests/riso77-rostrum-kinetic-cutout-artcraft.test.tsx tests/riso76-torn-collage-artcraft.test.tsx
+      - name: Original physical print registry and clean consumer
+        run: |
+          npm run registry:validate
+          node scripts/registry-fixture.js --item=riso-print
+      - name: Production Storybook for original two-drum printed concertina film
+        run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - name: Real 1x/3x four-panel, five-panel, both axes, portrait and exact full source Chromium QA
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso78-original-accordion-zine.spec.ts
+      - name: Capture actual original paper ink and scored-fold screen images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso78-original-single-print-accordion-1x-3x-portrait
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 5
