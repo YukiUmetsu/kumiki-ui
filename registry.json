@@ -1274,7 +1274,7 @@
       "name": "sculptural-type",
       "type": "registry:ui",
       "title": "Sculptural Type",
-      "description": "Sculptural typography: 3D letters as dimensional, deformable, material-bearing objects. Each grapheme or word of any font becomes a watertight solid built from its signed distance field, with flat, chamfer, round, pillow (inflated) or chisel (V-cut) relief. Barr bend, twist and taper, constant-volume squash and stretch, lean, wave and inflate deform it with exact normals, and drop, unfold, twist, inflate, swing and rise entrances stagger it like kinetic text. The same fields also shade 2D relief titles: cut card, letterpress, embossed foil and chiselled stone.",
+      "description": "Sculptural typography: 3D letters as dimensional, deformable, material-bearing objects. Every look is configurable and animatable with keys: text, any font, profile (flat, chamfer, round, pillow, chisel), depth, width, height, tracking, colour, multi-stop linear or radial gradients and side colour. Changed text, font or profile morph through blended signed distance fields, so one word becomes another. Barr bend, twist and taper, constant-volume squash and stretch, lean, wave and inflate deform the letters with exact normals, and drop, unfold, twist, inflate, swing and rise entrances stagger them like kinetic text. The same fields shade 2D relief titles: cut card, letterpress, embossed foil and chiselled stone.",
       "dependencies": [],
       "registryDependencies": [
         "motion-track",
@@ -1306,6 +1306,11 @@
           "path": "registry/motion/sculptural-type-relief.ts",
           "type": "registry:ui",
           "target": "components/motion/sculptural-type-relief.ts"
+        },
+        {
+          "path": "registry/motion/sculptural-type-look.ts",
+          "type": "registry:ui",
+          "target": "components/motion/sculptural-type-look.ts"
         }
       ]
     },
@@ -1313,7 +1318,7 @@
       "name": "sculptural-type-three",
       "type": "registry:ui",
       "title": "Sculptural Type Three",
-      "description": "Three.js adapter for sculptural typography: 3D letters in real materials such as gold, brass, chrome, marble, stone, wood, lacquer, glass and paper. Each letter is one pivoted mesh, re-uploaded only while it deforms. Physical materials come from any measured material (MATL1 records and textures fit), with colour, roughness, metalness and normal maps baked at real size, plus anisotropy, transmission, iridescence or clear coat.",
+      "description": "Three.js adapter for sculptural typography: 3D letters with gradients and colours as vertex colours, finishes (gloss, satin, matte, clay, coloured metal, chrome, glass), or real materials such as gold, brass, marble, stone, wood, lacquer and paper. Textures run per letter or across the text like one slab. Each letter is one pivoted mesh, rebuilt only while it morphs and re-uploaded only while it deforms. Physical materials come from any measured material (MATL1 records and textures fit), with maps baked at real size.",
       "dependencies": [
         "three",
         "@types/three"

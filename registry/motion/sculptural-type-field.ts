@@ -376,6 +376,70 @@ export function smoothField(field: ArrayLike<number>, width: number, height: num
   return out;
 }
 
+/**
+ * A field placed in a shared pixel frame: its pixel (i, j) has its centre at (originX + i + 0.5, originY + j + 0.5).
+ * Morphs place both glyphs' fields in one frame anchored at each glyph's ink centre on the baseline.
+ */
+export interface PlacedField {
+  field: Float32Array;
+  width: number;
+  height: number;
+  originX: number;
+  originY: number;
+  /** Shared-frame pixels per field pixel, for fields drawn at another font size. @default 1 */
+  scale?: number;
+}
+
+/**
+ * The field's value at (x, y) in the shared frame, bilinearly interpolated. Beyond the raster it continues as the edge
+ * value minus the distance past the edge, which is exact far outside and close enough near it.
+ */
+export function sampleField(placed: PlacedField, x: number, y: number): number {
+  const { field, width, height } = placed;
+  const k = placed.scale ?? 1;
+  const fx = (x - placed.originX) / k - 0.5;
+  const fy = (y - placed.originY) / k - 0.5;
+  const cx = Math.min(width - 1, Math.max(0, fx));
+  const cy = Math.min(height - 1, Math.max(0, fy));
+  const x0 = Math.floor(cx);
+  const y0 = Math.floor(cy);
+  const x1 = Math.min(width - 1, x0 + 1);
+  const y1 = Math.min(height - 1, y0 + 1);
+  const tx = cx - x0;
+  const ty = cy - y0;
+  const top = field[y0 * width + x0] * (1 - tx) + field[y0 * width + x1] * tx;
+  const bottom = field[y1 * width + x0] * (1 - tx) + field[y1 * width + x1] * tx;
+  return (top * (1 - ty) + bottom * ty - Math.hypot(fx - cx, fy - cy)) * k;
+}
+
+/**
+ * Blend two placed fields: (1 − t) · a + t · b on a grid covering both. The zero line moves smoothly from one outline to
+ * the other; strokes thin, thicken, join and split, and counters open or close, with no correspondence to author. A
+ * missing side (a letter that appears or vanishes) is an empty field `emptyDepth` pixels outside everywhere, so the
+ * other glyph erodes away or grows in.
+ */
+export function blendFields(a: PlacedField | null, b: PlacedField | null, t: number, emptyDepth: number): PlacedField {
+  const first = a ?? b;
+  if (!first) return { field: new Float32Array(1).fill(-emptyDepth), width: 1, height: 1, originX: 0, originY: 0 };
+  const minX = Math.floor(Math.min(a?.originX ?? Infinity, b?.originX ?? Infinity));
+  const minY = Math.floor(Math.min(a?.originY ?? Infinity, b?.originY ?? Infinity));
+  const maxX = Math.ceil(Math.max(a ? a.originX + a.width * (a.scale ?? 1) : -Infinity, b ? b.originX + b.width * (b.scale ?? 1) : -Infinity));
+  const maxY = Math.ceil(Math.max(a ? a.originY + a.height * (a.scale ?? 1) : -Infinity, b ? b.originY + b.height * (b.scale ?? 1) : -Infinity));
+  const width = Math.max(1, maxX - minX);
+  const height = Math.max(1, maxY - minY);
+  const field = new Float32Array(width * height);
+  for (let j = 0; j < height; j += 1) {
+    for (let i = 0; i < width; i += 1) {
+      const x = minX + i + 0.5;
+      const y = minY + j + 0.5;
+      const va = a ? sampleField(a, x, y) : -emptyDepth;
+      const vb = b ? sampleField(b, x, y) : -emptyDepth;
+      field[j * width + i] = va + (vb - va) * t;
+    }
+  }
+  return { field, width, height, originX: minX, originY: minY };
+}
+
 /** Largest inside distance of a field: half the thickest stroke, in pixels. */
 export function thickestStroke(field: ArrayLike<number>): number {
   let best = 0;

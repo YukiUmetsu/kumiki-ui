@@ -13,11 +13,27 @@
  * The face sits at z ≥ 0 and the back at z = -depth. Front faces wind counter-clockwise.
  */
 
-import type { GlyphRaster, ReliefProfile } from "./sculptural-type-field";
+import type { ReliefProfile, ResolvedProfile } from "./sculptural-type-field";
 import { resolveProfile, smoothField, thickestStroke } from "./sculptural-type-field";
+
+/**
+ * Where a field's pixels sit: pixel (i, j) has its centre at block pixel (left + i + 0.5, top + j + 0.5), and output
+ * coordinates are taken relative to (penX, penY). A `GlyphRaster` fits; so does a blended morph field.
+ */
+export interface FieldGrid {
+  width: number;
+  height: number;
+  left: number;
+  top: number;
+  penX: number;
+  penY: number;
+  blank?: boolean;
+}
 
 export interface GlyphSolidOptions {
   profile: ReliefProfile;
+  /** A profile already resolved for this field (a morph blends two); overrides `profile` when given. */
+  resolvedProfile?: ResolvedProfile;
   /** Depth behind the face edge, in em. */
   depth: number;
   /** Pixels per em of the raster. */
@@ -65,15 +81,15 @@ export function emptySolid(): GlyphSolid {
   };
 }
 
-/** Build the solid for one glyph raster and its signed distance field. */
-export function buildGlyphSolid(glyph: GlyphRaster, field: Float32Array, options: GlyphSolidOptions): GlyphSolid {
+/** Build the solid for one glyph's signed distance field (a raster's own, or a blended morph field). */
+export function buildGlyphSolid(glyph: FieldGrid, field: Float32Array, options: GlyphSolidOptions): GlyphSolid {
   if (glyph.blank || glyph.width === 0) return emptySolid();
   const W = glyph.width;
   const H = glyph.height;
   const step = Math.max(1, Math.round(options.step ?? 1));
   const size = options.size;
   const depthPx = Math.max(options.depth, 0) * size;
-  const profile = resolveProfile(options.profile, size, thickestStroke(field));
+  const profile = options.resolvedProfile ?? resolveProfile(options.profile, size, thickestStroke(field));
   const nx = Math.floor((W - 1) / step) + 1;
   const ny = Math.floor((H - 1) / step) + 1;
   const sample = (px: number, py: number) => field[Math.min(H - 1, Math.max(0, py)) * W + Math.min(W - 1, Math.max(0, px))];

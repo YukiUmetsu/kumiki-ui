@@ -17,7 +17,7 @@ import {
   BufferAttribute, BufferGeometry, DataTexture, Group, Mesh, MeshPhysicalMaterial, MirroredRepeatWrapping, RGBAFormat,
   SRGBColorSpace, Sphere, Vector3, LinearMipmapLinearFilter, LinearFilter,
 } from "three";
-import type { Material } from "three";
+import type { Material, MeshPhysicalMaterialParameters, Texture } from "three";
 
 import { SculpturalText } from "./sculptural-type";
 import type { SculptGlyph, SculpturalTextPlan, SculpturalTextSpec } from "./sculptural-type";
@@ -207,12 +207,60 @@ export function disposeSculptMaterial(material: MeshPhysicalMaterial): void {
 }
 
 /* ------------------------------------------------------------------ *
+ * Finishes
+ * ------------------------------------------------------------------ */
+
+/**
+ * Surface finishes for coloured letters. The look's colour or gradient arrives as vertex colours, so one finish serves
+ * any palette: `gloss` (lacquer or car paint), `satin`, `matte`, `clay`, `metal` (coloured, like anodised aluminium),
+ * `chrome` and `glass` (tinted by the colour).
+ */
+export type SculptFinishKind = "gloss" | "satin" | "matte" | "clay" | "metal" | "chrome" | "glass";
+
+export interface SculptFinishOptions {
+  kind: SculptFinishKind;
+  /** Override the finish's roughness, 0–1. */
+  roughness?: number;
+  /** Override the finish's metalness, 0–1. */
+  metalness?: number;
+  /** An image or other texture, multiplied with the colour. Its UVs are em; see `uvSpace` on the object. */
+  map?: Texture;
+}
+
+const FINISHES: Record<SculptFinishKind, MeshPhysicalMaterialParameters> = {
+  gloss: { roughness: 0.22, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04 },
+  satin: { roughness: 0.48, metalness: 0, clearcoat: 0.25, clearcoatRoughness: 0.35 },
+  matte: { roughness: 0.88, metalness: 0 },
+  clay: { roughness: 0.96, metalness: 0, sheen: 0.4, sheenRoughness: 0.8 },
+  metal: { roughness: 0.3, metalness: 1 },
+  chrome: { roughness: 0.05, metalness: 1 },
+  glass: { roughness: 0.04, metalness: 0, transmission: 1, thickness: 0.35, ior: 1.5 },
+};
+
+/** A material for coloured letters with a finish. It uses vertex colours, so set the colour on the look. */
+export function finishMaterial(options: SculptFinishOptions): MeshPhysicalMaterial {
+  const material = new MeshPhysicalMaterial({ ...FINISHES[options.kind], color: 0xffffff, vertexColors: true, name: `finish:${options.kind}` });
+  if (options.roughness !== undefined) material.roughness = Math.min(1, Math.max(0, options.roughness));
+  if (options.metalness !== undefined) material.metalness = Math.min(1, Math.max(0, options.metalness));
+  if (options.map) material.map = options.map;
+  return material;
+}
+
+/* ------------------------------------------------------------------ *
  * Object
  * ------------------------------------------------------------------ */
 
 export interface SculpturalTextObjectOptions {
-  /** One material for every unit, or one per unit. */
+  /** One material for every letter, or one per letter. Materials are switched to vertex colours when `colors` is on. */
   material: Material | ((glyph: SculptGlyph, index: number) => Material);
+  /** Paint the look's colour or gradient as vertex colours (multiplied with the material and its maps). @default true */
+  colors?: boolean;
+  /**
+   * Texture coordinates: `letter` gives each letter its own em space (offset per letter, like pieces cut from different
+   * parts of a sheet); `text` runs one space across the whole text, as if the letters were cut from one slab.
+   * @default "letter"
+   */
+  uvSpace?: "letter" | "text";
   /** @default true */
   castShadow?: boolean;
   /** @default true */
@@ -222,71 +270,90 @@ export interface SculpturalTextObjectOptions {
 interface UnitView {
   holder: Group;
   mesh: Mesh<BufferGeometry, Material>;
-  position: BufferAttribute;
-  normal: BufferAttribute;
+  uvKey: string;
+  built: boolean;
 }
 
 /**
- * The plan's units as meshes. Call `update(frame)` each frame. Units are positioned in em; scale the object to place
- * the text in your scene.
+ * The plan's letters as meshes. Call `update(frame)` each frame. Letters are positioned in em; scale the object to
+ * place the text in your scene.
  */
 export class SculpturalTextObject extends Group {
   readonly text: SculpturalText;
   private readonly views: UnitView[];
+  private readonly options: SculpturalTextObjectOptions;
 
   constructor(source: SculpturalText | SculpturalTextSpec | SculpturalTextPlan, options: SculpturalTextObjectOptions) {
     super();
+    this.options = options;
     this.text = source instanceof SculpturalText ? source : new SculpturalText(source);
     this.views = this.text.glyphs.map((state, index) => {
-      const geometry = new BufferGeometry();
-      const position = new BufferAttribute(state.positions, 3);
-      const normal = new BufferAttribute(state.normals, 3);
-      geometry.setAttribute("position", position);
-      geometry.setAttribute("normal", normal);
-      // Each unit reads the maps at its own offset, as letters cut from different parts of one sheet or block.
-      const uv = Float32Array.from(state.glyph.solid.uvs);
-      for (let i = 0; i < uv.length; i += 2) {
-        uv[i] += 0.37 * index;
-        uv[i + 1] += 0.23 * index;
-      }
-      geometry.setAttribute("uv", new BufferAttribute(uv, 2));
-      geometry.setIndex(new BufferAttribute(state.glyph.solid.indices, 1));
-      const box = state.glyph.solid.box;
-      const centre = new Vector3((box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2, (box.front + box.back) / 2);
-      // Deformers stay within about half the unit's size; a generous sphere keeps culling valid.
-      geometry.boundingSphere = new Sphere(centre, 1.5 * Math.hypot(box.maxX - box.minX, box.maxY - box.minY, box.front - box.back) + 0.5);
       const material = typeof options.material === "function" ? options.material(state.glyph, index) : options.material;
-      const mesh = new Mesh(geometry, material);
+      if (options.colors !== false && "vertexColors" in material && !material.vertexColors) {
+        material.vertexColors = true;
+        material.needsUpdate = true;
+      }
+      const mesh = new Mesh(new BufferGeometry(), material);
       mesh.castShadow = options.castShadow ?? true;
       mesh.receiveShadow = options.receiveShadow ?? true;
-      const [px, py, pz] = state.glyph.pivot;
-      mesh.position.set(-px, -py, -pz);
       const holder = new Group();
-      holder.name = `glyph-${state.glyph.index}`;
+      holder.name = `glyph-${index}`;
       holder.add(mesh);
       this.add(holder);
-      return { holder, mesh, position, normal };
+      return { holder, mesh, uvKey: "", built: false };
     });
   }
 
-  /** Pose and deform every unit at `frame`. */
+  /** Pose, morph, deform and colour every letter at `frame`. */
   update(frame: number, reducedMotion = false): this {
     const frames = this.text.update(frame, reducedMotion);
     frames.forEach((state, i) => {
       const view = this.views[i];
-      const { pose, glyph } = state;
-      view.holder.visible = pose.visible;
+      const geometry = view.mesh.geometry;
+      if (state.geometryChanged || !view.built) {
+        view.built = true;
+        geometry.setAttribute("position", new BufferAttribute(state.positions, 3));
+        geometry.setAttribute("normal", new BufferAttribute(state.normals, 3));
+        geometry.setAttribute("color", new BufferAttribute(state.colors, 3));
+        geometry.setIndex(new BufferAttribute(state.solid.indices, 1));
+        const box = state.solid.box;
+        const centre = new Vector3((box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2, (box.front + box.back) / 2);
+        // Deformers stay within about half the letter's size; a generous sphere keeps culling valid.
+        geometry.boundingSphere = new Sphere(centre, 1.5 * Math.hypot(box.maxX - box.minX, box.maxY - box.minY, box.front - box.back) + 0.5);
+        view.uvKey = "";
+      } else {
+        if (state.changed) {
+          (geometry.getAttribute("position") as BufferAttribute).needsUpdate = true;
+          (geometry.getAttribute("normal") as BufferAttribute).needsUpdate = true;
+        }
+        if (state.colorsChanged) (geometry.getAttribute("color") as BufferAttribute).needsUpdate = true;
+      }
+      const text = this.options.uvSpace === "text";
+      const uvKey = text ? `${state.placement.join()}:${state.scale.join()}:${state.solid.positions.length}` : `${state.solid.positions.length}`;
+      if (uvKey !== view.uvKey && state.solid.uvs.length > 0) {
+        const uv = Float32Array.from(state.solid.uvs);
+        for (let k = 0; k < uv.length; k += 2) {
+          if (text) {
+            uv[k] = state.placement[0] + uv[k] * state.scale[0];
+            uv[k + 1] = state.placement[1] + uv[k + 1] * state.scale[1];
+          } else {
+            uv[k] += 0.37 * i;
+            uv[k + 1] += 0.23 * i;
+          }
+        }
+        geometry.setAttribute("uv", new BufferAttribute(uv, 2));
+        view.uvKey = uvKey;
+      }
+      const { pose, pivot, placement, scale } = state;
+      view.holder.visible = state.visible;
+      view.mesh.position.set(-pivot[0], -pivot[1], -pivot[2]);
       view.holder.position.set(
-        glyph.rest[0] + glyph.pivot[0] + pose.offset[0],
-        glyph.rest[1] + glyph.pivot[1] + pose.offset[1],
-        glyph.rest[2] + glyph.pivot[2] + pose.offset[2],
+        placement[0] + pivot[0] * scale[0] + pose.offset[0],
+        placement[1] + pivot[1] * scale[1] + pose.offset[1],
+        placement[2] + pivot[2] * scale[2] + pose.offset[2],
       );
       view.holder.rotation.set(pose.rotation[0], pose.rotation[1], pose.rotation[2]);
-      view.holder.scale.setScalar(pose.scale);
-      if (state.changed) {
-        view.position.needsUpdate = true;
-        view.normal.needsUpdate = true;
-      }
+      view.holder.scale.set(pose.scale * scale[0], pose.scale * scale[1], pose.scale * scale[2]);
     });
     return this;
   }

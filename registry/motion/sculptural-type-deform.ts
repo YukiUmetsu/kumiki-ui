@@ -23,7 +23,9 @@ export type Deformer =
   /** Displace along `axis` by amplitude · sin(2π · x / wavelength + phase). */
   | { kind: "wave"; amplitude: number; wavelength: number; phase: number; axis?: "y" | "z" }
   /** Scale the raised face (z > 0) by `amount`: 0 is flat paper, 1 the authored relief. */
-  | { kind: "inflate"; amount: number };
+  | { kind: "inflate"; amount: number }
+  /** Scale the depth behind the face edge (z < 0) by `amount`: a deeper or thinner slab. */
+  | { kind: "extrude"; amount: number };
 
 /** Row-major 3 × 3 Jacobian, reused. */
 type Matrix = Float64Array;
@@ -134,6 +136,12 @@ function applyDeformer(d: Deformer, p: Float64Array, j: Matrix): void {
         j[8] = d.amount;
       }
       return;
+    case "extrude":
+      if (z < 0) {
+        p[2] = z * d.amount;
+        j[8] = d.amount;
+      }
+      return;
   }
 }
 
@@ -143,7 +151,7 @@ export function isIdentityStack(stack: readonly Deformer[]): boolean {
     switch (d.kind) {
       case "bend": return Math.abs(d.angle) < 1e-9;
       case "twist": case "taper": case "lean": return Math.abs(d.rate) < 1e-12;
-      case "squash": case "inflate": return Math.abs(d.amount - 1) < 1e-9;
+      case "squash": case "inflate": case "extrude": return Math.abs(d.amount - 1) < 1e-9;
       case "wave": return Math.abs(d.amplitude) < 1e-12;
     }
   });

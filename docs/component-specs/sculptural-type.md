@@ -4,13 +4,42 @@
 **Registry items:** `sculptural-type` (core, no runtime dependency) and `sculptural-type-three` (Three.js adapter;
 depends on `three`; takes materials structurally, so it does not pull in the materials pack). `title-sequence` uses the core for sculpted titles.
 **Extends:** KineticText (`animated-text`: grapheme segmentation, stagger) and TitleSequence (`title.sculpt`).
-**Storybook:** Motion engine → Motion React → *Sculptural Type*; Video production → Title Sequence → *Sculpted Title*.
+**Storybook:** Motion engine → Motion React → *Sculptural Type* (every look field, surface, entrance, and a keyed
+second look that the letters morph to); Video production → Title Sequence → *Sculpted Title*.
 
 ## Purpose
 
 Treat letters as dimensional, deformable, material-bearing animated objects. Each grapheme (or word) of any font the
 page can draw becomes a solid with a sculpted face, carries a measured material, and moves with weight: it falls,
 squashes, unfolds, twists, inflates or swings, and settles.
+
+## Looks and keys
+
+A **look** (`SculptLook`) is everything about the letters that can be configured and animated:
+
+| Field | Meaning |
+|---|---|
+| `text`, `font` | Any text and any CSS font the page can draw (family, weight, italic; the px size is the raster resolution of one em) |
+| `profile` | Face cross-section: `flat`, `chamfer` / `round` (bevel `width`, `height`), `pillow` (`height`), `chisel` (`angle`) |
+| `depth` | Depth behind the face edge, em |
+| `width`, `height` | Scale of each letter; spacing and line spacing grow with them |
+| `tracking` | Extra space between units, em |
+| `color` | Face colour (`#rgb` / `#rrggbb`) |
+| `gradient` | `{ kind: "linear" \| "radial", stops: [{ at, color }…], angle, space: "text" \| "letter" }`; any number of stops |
+| `sideColor` | Colour of the walls and back (default: the face colour or gradient) |
+
+**Keys** (`SculpturalTextSpec.keys`) animate looks like a morph. Each key is `{ frame, look, easing?, stagger?, direction? }`; its look overrides any fields of the previous one.
+- **Keyframe semantics:** the look reaches each key on its frame, and changes over the gap from the previous key. A key with an empty look holds.
+- **Per-letter windows:** each letter's window starts `rank × stagger` frames later and is shorter by the total stagger, so every letter lands on the key frame.
+- **Numbers and colours** interpolate per letter. Colours interpolate in linear light, and gradients are evaluated per vertex at both ends and blended.
+- **A different outline** (text, font or profile shape) blends the two glyphs' signed distance fields, (1 − t)·d_a + t·d_b, and re-meshes every frame. One word becomes another, and a serif melts into a sans. Strokes thin, join and split, and counters open or close, with nothing to correspond. Letter *i* of one look becomes letter *i* of the next. Extra letters grow from their thickest strokes or erode from their thinnest.
+- **Height or depth only:** a change of profile height or depth with the same outline uses `inflate` and `extrude` deformers and does not re-mesh.
+- **Morph resolution:** morphs blend straight into a grid at `size / morphStep` (default 2), so blending, smoothing and meshing run at a quarter of the pixels. The lab's Kumiki → 組木 morph updates in 7.5 ms median (p90 9.5 ms) in Chromium.
+
+`lookPhase(plan, letter, frame)` reports which looks a letter is between and how far it has come. `SculpturalText.update` returns per letter:
+- `solid`, `positions`, `normals` and `colors` (linear RGB per vertex);
+- `placement`, `scale` and `pivot`;
+- the flags `geometryChanged`, `changed` and `colorsChanged`, so renderers upload only what changed.
 
 ## How it works
 
@@ -72,6 +101,12 @@ squashes, unfolds, twists, inflates or swings, and settles.
      lacquer.
    - `detail` (0–1) blends the surface variation toward the measured mean. Wear and marks are optional storytelling,
      per [docs/14](../14-3d-visual-fidelity.md).
+   - `finishMaterial({ kind })` gives finishes for coloured letters: `gloss`, `satin`, `matte`, `clay`, `metal`,
+     `chrome` and `glass`. The look's colour or gradient arrives as vertex colours, and an optional `map` texture
+     multiplies it. The object switches materials to vertex colours (`colors: true` by default), so MATL1 materials
+     can be tinted too.
+   - `uvSpace: "text"` runs one texture space across the whole text, as letters cut from one slab. `letter` (the
+     default) gives each letter its own offset piece.
 8. **Relief in 2D** (`sculptural-type-relief.ts`). `shadeRelief` shades a unit's field directly into pixels:
    - `cut-card`: an opaque card face over a soft shadow that falls further while the card is lifted;
    - `letterpress`: ink and impression walls as overlays;
@@ -92,6 +127,28 @@ squashes, unfolds, twists, inflates or swings, and settles.
 - Film documents accept it (`npm run film:schema` regenerated).
 
 ## Usage
+
+```ts
+import { SculpturalTextObject, finishMaterial } from "./components/motion/sculptural-type-three";
+
+await Promise.all(["800 160px Geist", "700 160px 'Hiragino Mincho ProN'"].map((font) => document.fonts.load(font)));
+const letters = new SculpturalTextObject({
+  id: "title", text: "Kumiki", font: "800 160px Geist",
+  profile: { kind: "round", width: 0.05, height: 0.035 }, depth: 0.18, width: 1, height: 1, tracking: 0,
+  gradient: { angle: 90, stops: [{ at: 0, color: "#e4572e" }, { at: 1, color: "#f6e27f" }] }, sideColor: "#7a2e1f",
+  motion: { enter: "drop" },
+  keys: [
+    { frame: 60, look: {} },                                   // hold
+    { frame: 120, stagger: 3, easing: "ease-in-out-cubic", look: {
+      text: "組木", font: "700 160px 'Hiragino Mincho ProN'", profile: { kind: "chisel", angle: 38 }, depth: 0.24,
+      gradient: { angle: 90, stops: [{ at: 0, color: "#1b3a4b" }, { at: 1, color: "#cbf3f0" }] }, sideColor: "#0b1f29" } },
+  ],
+}, { material: finishMaterial({ kind: "gloss" }) });
+scene.add(letters);
+letters.update(frame); // each frame; seek in any order
+```
+
+With a measured material instead of a finish:
 
 ```ts
 import { SculpturalTextObject, sculptMaterial } from "./components/motion/sculptural-type-three";
@@ -136,8 +193,13 @@ letters.update(frame); // each frame; seek in any order
 - Geometry probe on an antialiased "O": the field's peak is 12.65 px against about 12.5 expected. For all five
   profiles there are no triangles against their normals, no inward walls and no nonfinite values. The same holds
   after bend, twist, squash and a taper + lean + wave stack.
-- `tests/sculptural-type.test.ts` covers the field, solids, deformer normals, poses, stagger, relief and the
-  TitleSequence checks and timing.
+- `tests/sculptural-type.test.ts` (26 tests) covers the field, solids, deformer normals, poses, stagger, relief,
+  the TitleSequence checks and timing, and looks and keys:
+  - an outline morph in which a letter only in the new word grows;
+  - linear-light colour, landing exactly on the key's colour;
+  - a gradient across the text with sides in their own colour;
+  - depth by deformer without re-meshing, and width spreading;
+  - hold keys and key stagger.
 - Storybook screenshots were reviewed in Chromium: gold, terracotta round and chisel close-ups; a mid-drop frame;
   all four sculpted title styles. Found and fixed: beaded bevels, dull metal and framing, a stale tile cache, and
   hatched chisel shading.

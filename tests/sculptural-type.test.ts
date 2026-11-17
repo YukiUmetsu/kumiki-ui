@@ -5,7 +5,7 @@ import type { GlyphRaster } from "../registry/motion/sculptural-type-field";
 import { buildGlyphSolid } from "../registry/motion/sculptural-type-mesh";
 import { deformInto } from "../registry/motion/sculptural-type-deform";
 import type { Deformer } from "../registry/motion/sculptural-type-deform";
-import { SculpturalText, glyphPose, planSculpturalText } from "../registry/motion/sculptural-type";
+import { SculpturalText, glyphPose, lookPhase, planSculpturalText } from "../registry/motion/sculptural-type";
 import type { SculptEnter, SculpturalTextSpec } from "../registry/motion/sculptural-type";
 import { shadeRelief } from "../registry/motion/sculptural-type-relief";
 import { compileTitleSequence, sculptedLetters, SCULPT_LETTER_FRAMES, SCULPT_LETTER_STEP } from "../registry/video/title-sequence";
@@ -182,5 +182,71 @@ describe("sculptural type — relief and titles", () => {
     expect(letters.map((l) => l.visible)).toEqual([true, true, false, false, false]);
     const done = sculptedLetters(content.title, 30 + 4 * SCULPT_LETTER_STEP + SCULPT_LETTER_FRAMES);
     expect(done.every((l) => l.visible && Math.abs(l.amount - 1) < 1e-9)).toBe(true);
+  });
+});
+
+describe("sculptural type — looks and morphs", () => {
+  const faceColour = (frame: { colors: Float32Array; solid: { ranges: { face: [number, number] } } }) => {
+    const v = 0;
+    return [frame.colors[3 * v], frame.colors[3 * v + 1], frame.colors[3 * v + 2]];
+  };
+
+  it("morphs one word into another through blended fields, growing letters that only the new word has", () => {
+    const text = new SculpturalText(spec({ text: "ab", motion: { enter: "none" }, keys: [{ frame: 10, look: {} }, { frame: 40, look: { text: "cde" } }] }));
+    expect(text.plan.glyphs).toHaveLength(3);
+    const before = text.update(5);
+    expect(before[2].visible).toBe(false);
+    const middle = text.update(25);
+    expect(middle[0].geometryChanged).toBe(true);
+    expect(middle[0].solid).not.toBe(text.plan.states[0].units[0].solid);
+    expect(middle[0].solid).not.toBe(text.plan.states[2].units[0].solid);
+    expect(middle[2].visible).toBe(true);
+    const after = text.update(40);
+    expect(after[0].solid).toBe(text.plan.states[2].units[0].solid);
+    expect(after[2].solid).toBe(text.plan.states[2].units[2].solid);
+  });
+
+  it("interpolates colour in linear light and lands exactly on the key's colour", () => {
+    const text = new SculpturalText(spec({ text: "a", color: "#ff0000", motion: { enter: "none" }, keys: [{ frame: 20, look: { color: "#0000ff" }, easing: "linear" }] }));
+    const [middle] = text.update(10);
+    const [r, , b] = faceColour(middle);
+    expect(r).toBeCloseTo(0.5, 5);
+    expect(b).toBeCloseTo(0.5, 5);
+    const [end] = text.update(20);
+    expect(faceColour(end)).toEqual([0, 0, 1]);
+  });
+
+  it("spreads a gradient across the text and keeps the sides in their own colour", () => {
+    const text = new SculpturalText(spec({
+      text: "ab cd", motion: { enter: "none" }, sideColor: "#000000",
+      gradient: { angle: 0, stops: [{ at: 0, color: "#ff0000" }, { at: 1, color: "#0000ff" }] },
+    }));
+    const frames = text.update(0);
+    expect(frames[0].colors[0]).toBeGreaterThan(frames[0].colors[2]);
+    expect(frames[3].colors[2]).toBeGreaterThan(frames[3].colors[0]);
+    const wall = frames[0].solid.ranges.wall[0];
+    expect(Array.from(frames[0].colors.slice(3 * wall, 3 * wall + 3))).toEqual([0, 0, 0]);
+  });
+
+  it("animates depth with a deformer, without re-meshing, and spreads letters with width", () => {
+    const text = new SculpturalText(spec({ text: "ab", depth: 0.1, motion: { enter: "none" }, keys: [{ frame: 20, look: { depth: 0.3, width: 2 }, easing: "linear" }] }));
+    text.update(0);
+    const [first, second] = text.update(10);
+    expect(first.geometryChanged).toBe(false);
+    expect(Math.min(...Array.from(first.positions).filter((_, k) => k % 3 === 2))).toBeCloseTo(-0.2, 4);
+    expect(first.scale[0]).toBeCloseTo(1.5, 6);
+    const spread = second.placement[0] - first.placement[0];
+    const [a0, b0] = text.update(0);
+    expect(spread).toBeCloseTo((b0.placement[0] - a0.placement[0]) * 1.5, 4);
+  });
+
+  it("holds through an empty key and staggers letters within a change", () => {
+    const plan = planSculpturalText(spec({ text: "abc", motion: { enter: "none" }, keys: [{ frame: 30, look: {} }, { frame: 60, look: { color: "#00ff00" }, stagger: 5 }] }));
+    expect(lookPhase(plan, 0, 20)).toEqual({ from: 0, to: 0, t: 0 });
+    const early = lookPhase(plan, 0, 35);
+    const late = lookPhase(plan, 2, 35);
+    expect(early.t).toBeGreaterThan(0);
+    expect(late.t).toBe(0);
+    expect(lookPhase(plan, 2, 60)).toEqual({ from: 2, to: 2, t: 0 });
   });
 });

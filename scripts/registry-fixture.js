@@ -2630,7 +2630,11 @@ export function ShapeMorphExample() {
       component: `export function SculpturalTypeExample() {
   // Letters as solids: a chiselled profile, dropped in one by one, then a wave along the line.
   const [text] = useState(() => new SculpturalText({ id: "title", text: "Kumiki", font: "800 120px sans-serif",
-    profile: { kind: "chisel", angle: 40 }, depth: 0.16, stagger: 3, motion: { enter: "drop", idle: "wave" } }));
+    profile: { kind: "chisel", angle: 40 }, depth: 0.16, width: 1.1, height: 0.95, tracking: 0.02, sideColor: "#3a2a1a",
+    gradient: { kind: "linear", angle: 90, stops: [{ at: 0, color: "#e4572e" }, { at: 1, color: "#f6e27f" }] },
+    stagger: 3, motion: { enter: "drop", idle: "wave" },
+    // Morph to another word, font and colour: letters blend their distance fields.
+    keys: [{ frame: 60, look: {} }, { frame: 120, stagger: 3, look: { text: "Craft", font: "700 120px serif", color: "#2ec4b6", gradient: null } }] }));
   const frames = text.update(12);
   const pose = glyphPose(text.plan, text.plan.glyphs[0], 12);
   // The same fields shaded in 2D: letterpress pressed into the paper.
@@ -2644,7 +2648,7 @@ export function ShapeMorphExample() {
   "sculptural-type-three": (specifier) => {
     return {
       imports: [
-        `import { SculpturalTextObject, disposeSculptMaterial, sculptMaterial } from "${specifier}";`,
+        `import { SculpturalTextObject, disposeSculptMaterial, finishMaterial, sculptMaterial } from "${specifier}";`,
       ],
       componentName: "SculpturalTypeThreeExample",
       component: `export function SculpturalTypeThreeExample() {
@@ -2653,6 +2657,9 @@ export function ShapeMorphExample() {
   const [object] = useState(() => new SculpturalTextObject({ id: "title", text: "Gold", font: "800 120px sans-serif",
     motion: { enter: "inflate" } }, { material: sculptMaterial(gold, undefined, { emMm: 120 }) }));
   object.update(20);
+  const glossy = new SculpturalTextObject({ id: "glossy", text: "Hi", font: "800 120px sans-serif", color: "#e4572e" },
+    { material: finishMaterial({ kind: "gloss" }), uvSpace: "text" });
+  glossy.update(0);
   void disposeSculptMaterial;
   return <span data-letters={object.children.length} />;
 }`,
