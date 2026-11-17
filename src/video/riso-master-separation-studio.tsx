@@ -1,5 +1,6 @@
 import {useMemo,useState} from "react";
 import {createRisoBrushGeometry} from "../../registry/video/riso-dry-brush";
+import type {RisoBrushOptions,RisoBrushGeometry} from "../../registry/video/riso-dry-brush";
 import {createGuardedRisoContactTrap} from "../../registry/video/riso-stencil-topology";
 import {inspectRisoSeparation,serializeRisoSeparationMaster,risoSeparationFilename}
   from "../../registry/video/riso-separation-master";
@@ -10,8 +11,6 @@ import {risoExampleSpec} from "./riso-print-demo";
 import type {RisoAspect} from "./riso-print-demo";
 
 const label={display:"grid",gap:5,font:"600 13px system-ui",minWidth:166} as const;
-const paper="#F4F2EC";
-const inkBlue="#2362A0",inkRed="#DD593D";
 
 /** Original pressure source, original winding paper slots, and two independent
  * physical masters. The optional RISO67 safety guard chooses only unbroken ink.
@@ -27,7 +26,7 @@ export function riso68OriginalMasters(
   const guard=createGuardedRisoContactTrap(blue,red,{
     side:"positive",maximumGap:12,maximumExtension:6,overlap:.8,
   });
-  const source=(id:string,main:typeof blue,accents:readonly typeof art.blueAccents[number][]):RisoSeparationPlate=>{
+  const source=(id:string,main:RisoBrushGeometry,accents:readonly RisoBrushOptions[]):RisoSeparationPlate=>{
     const shapes:RisoSeparationShape[]=[
       {id:"main-pressure-ribbon",outerPath:main.outerPath,
         dryPaths:main.dryPaths,density:1,role:"critical"},
@@ -153,7 +152,8 @@ export function RisoMasterSeparationStudio(){
               <div data-km-riso68-zoom={zoom?"2":"1"} style={{
                 transform:zoom?"scale(2)":"none",
                 transformOrigin:"50% 50%"}} 
-                dangerouslySetInnerHTML={{__html:svg}}/>
+                dangerouslySetInnerHTML={{__html:svg.replace("<svg ",
+                  '<svg style="width:100%;height:auto;display:block" ')}}/>
               {guides&&<svg data-km-riso68-preview-guides=""
                 aria-label="Preview only trim, bleed and safe-area guides"
                 xmlns="http://www.w3.org/2000/svg"
@@ -218,7 +218,7 @@ export function RisoMasterSeparationStudio(){
       </label>
       <label style={label}>Safe detail inset / {safe.toFixed(1)} mm
         <input aria-label="RISO68 safe margin" type="range" min={0}
-          max={24} step={1} value={safe}
+          max={40} step={1} value={safe}
           onChange={e=>setSafe(Number(e.target.value))}/>
       </label>
       <label style={label}>Printable inset / {printable.toFixed(1)} mm
