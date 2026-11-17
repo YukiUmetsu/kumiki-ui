@@ -316,7 +316,7 @@ function eaLook(s: EaState): Look {
 function EastAsianLooks() {
   const [s, setS] = useState<EaState>({ look: "c-glam", intensity: 1, eyeShape: "monolid", variant: 0, skin: "#e8c6a8", sex: 0, lashes: true, lens: true, tape: true, aegyo: true, gallery: false });
   const set = <K extends keyof EaState>(k: K) => (v: EaState[K]) => setS(p => ({ ...p, [k]: v }));
-  const portrait: PortraitOptions = { sex: s.sex, faceType: "east-asian", faceVariant: s.variant, eyeShape: s.eyeShape, skin: s.skin, eyes: "dark-brown", hair: hairOf("black"), hairStyle: s.sex ? "short-crop" : "long", makeup: "none", seed: 11 };
+  const portrait: PortraitOptions = { sex: s.sex, faceType: "east-asian", faceVariant: s.variant, eyeShape: s.eyeShape, skin: s.skin, eyes: "dark-brown", hair: hairOf("black"), hairStyle: s.sex ? "short-crop" : "bun", keyAzimuth: -15, makeup: "none", seed: 11 };
   const face = useMemo(() => beautifulFace(portrait).vertices, [s.sex, s.variant, s.eyeShape]); // eslint-disable-line react-hooks/exhaustive-deps
   const plan = useMemo(() => designMakeup({ look: eaLook(s), face, eyeShape: s.eyeShape, skin: s.skin, hair: portrait.hair, eyes: "dark-brown", intensity: s.intensity }), [JSON.stringify(s), face]); // eslint-disable-line react-hooks/exhaustive-deps
   const look = findLook(s.look)!;

@@ -40,7 +40,7 @@ Python pipeline paints it on a photograph (`makeup.py apply --plan`).
 
 | Layer | File | What it holds |
 |---|---|---|
-| Atlas | `data/makeup-zones.json`, `makeup-zones.ts` | 37 zones (foundation, under-eye, tear trough, cheek, temple, jaw and nose contour, five highlights, bronzer, five blush placements, lid, crease, outer V, inner corner, lower lash line, liner, wing, puppy wing, inner-corner liner, aegyo-sal and its shadow, tear mole, brow, straight brow, lips, liner, lip centre, gloss). A point with `surface: true` sits on the face's skin under its (x, y); 14 products with film opacity and finish; 8 finishes with roughness, specular and sparkle. `zoneField`, `resolveZone`, `zoneOutline`, `eyeWidth`. |
+| Atlas | `data/makeup-zones.json`, `makeup-zones.ts` | 38 zones (foundation, under-eye, tear trough, cheek, temple, jaw and nose contour, five highlights, bronzer, five blush placements, lid, crease, outer V, inner corner, lower lash line, liner, wing, puppy wing, inner-corner liner, lower liner, aegyo-sal and its shadow, tear mole, brow, straight brow, lips, liner, lip centre, gloss). A point with `surface: true` sits on the face's skin under its (x, y); 14 products with film opacity and finish; 8 finishes with roughness, specular and sparkle. `zoneField`, `resolveZone`, `zoneOutline`, `eyeWidth`. |
 | Colour | `makeup-color.ts` | `deltaE2000`, `lch`, `readSkin` (ITA, undertone), `UNDERTONE_REF`, `filmStep`, `pigmentFor`, `basePalette` (foundation, concealer, corrector, contour, bronzer, highlight), `BLUSH_FAMILIES`, `blushOn`, `LIP_FAMILIES`, `lipColour`, `EYE_COMPLEMENTS`, `irisFamily`, `browColour`, `HEALTHY_SHIFT`. |
 | Knowledge | `makeup-data.ts` | `MAKEUP_EVIDENCE` (graded findings with sources), `FACE_SHAPE_RULES`, `EYE_RULES`, `EYE_SHAPE_RULES`, `MAKEUP_LOOKS` (17 looks, five of them East Asian), `MAKEUP_LEARNED`. |
 | Design | `makeup-design.ts` | `analyzeFace` (shape, eye spacing, tilt, lip ratio, brow peak), `designMakeup` (look + skin + face + iris + hair -> `MakeupPlan` with reasons and eye tools), `tapedEyeShape`, `checkMakeup`, `planSwatches`. |
@@ -79,7 +79,7 @@ reference photographs studied.
 
 | Look | Id | Its signature |
 | --- | --- | --- |
-| Chinese social-video glam ("Douyin makeup") | `c-glam` | A glittering aegyo-sal with a shadow under it, an inner-corner liner, a soft puppy wing, spiky lashes and drawn lower lashes, blush under the eyes and across the nose, a narrow nose, a coral-red gradient lip |
+| Chinese social-video glam ("Douyin makeup") | `c-glam` | A glittering aegyo-sal with a shadow under it, an inner-corner liner, a soft puppy wing, a brown lower liner on the outer half, spiky lashes and drawn lower lashes, blush under the eyes and across the nose, a narrow nose, a coral-red gradient lip |
 | Korean idol | `k-idol` | Glass skin, straight soft brows, a short puppy wing, a champagne aegyo-sal, wispy lashes, hazel lenses, a coral gradient lip |
 | Jirai-kei | `jirai` | A pale matte base, red-pink under the eyes, a strong rose blush right under them, a drooping red-brown wing, heavy lower lashes, a tear mole, a small deep-red lip |
 | Neo-gyaru | `neo-gyaru` | Taped double lids, doll lashes above and below, black liner round the eye, 14.5 mm dark lenses, strong contour, a sheer nude-pink gloss |
@@ -95,6 +95,8 @@ used at 0:
 - **Tape:** `eyes.tape` 0-1. `tapedEyeShape` gives a single lid a low crease, keeps an in-fold lid in-fold and opens
   the eye by up to 1.2 mm. `makeupPortraitOptions` applies it.
 - **Brows:** `brows.straight` 0-1 straightens the face's own brow shape. The `brow-straight` zone fills the same band.
+- **Lower liner:** the `liner-lower` zone starts at the outer corner. Its `adjust.scale` sets how far in it goes. At
+  0.35 it lines the outer third, at 1 the whole lower lash line (gyaru).
 
 New checks: `aegyo-sal-height` (0.35-0.65 of the eye opening, 0.5 preferred), `wing-angle` for a puppy wing (3-25
 degrees down) and `lens-size` (12.5-14.5 mm). Storybook: Makeup → East Asian looks.

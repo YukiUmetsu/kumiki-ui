@@ -18,6 +18,17 @@ import parity from "./fixtures/makeup-zone-parity.json";
 
 const CANON = faceData.vertices as Vec3[];
 const face = beautifulFace({ sex: 0 }).vertices;
+/** The face's front surface under (x, y), seen from the front. */
+const skinZ = (V: readonly Vec3[], x: number, y: number) => {
+  let best = -Infinity;
+  for (const [a, b, c] of faceData.triangles as number[][]) {
+    const A = V[a], B = V[b], C = V[c], d = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
+    if (Math.abs(d) < 1e-9) continue;
+    const w1 = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / d, w2 = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / d;
+    if (w1 >= 0 && w2 >= 0 && 1 - w1 - w2 >= 0) best = Math.max(best, w1 * A[2] + w2 * B[2] + (1 - w1 - w2) * C[2]);
+  }
+  return best;
+};
 
 describe("MAKEUP1 zone atlas", () => {
   it("weighs the same as the Python pipeline on the canonical face (one atlas, two languages)", () => {
@@ -42,17 +53,6 @@ describe("MAKEUP1 zone atlas", () => {
     for (const p of up) expect(off(p)).toBeLessThan(0.6);
   });
   it("paints thin strokes off the lid on the skin of every face (wing tips, aegyo-sal shadow, tear mole)", () => {
-    const tris = faceData.triangles as number[][];
-    const skinZ = (V: readonly Vec3[], x: number, y: number) => {
-      let best = -Infinity;
-      for (const [a, b, c] of tris) {
-        const A = V[a], B = V[b], C = V[c], d = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
-        if (Math.abs(d) < 1e-9) continue;
-        const w1 = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / d, w2 = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / d;
-        if (w1 >= 0 && w2 >= 0 && 1 - w1 - w2 >= 0) best = Math.max(best, w1 * A[2] + w2 * B[2] + (1 - w1 - w2) * C[2]);
-      }
-      return best;
-    };
     for (const V of [beautifulFace({ sex: 0, faceType: "east-asian" }).vertices, beautifulFace({ sex: 0 }).vertices, CANON]) {
       for (const id of ["puppy-wing", "liner-wing", "aegyo-sal-shadow", "tear-mole"]) {
         const pts = resolveZone(id, V)[0].pts, end = pts[Math.floor((pts.length - 1) * 0.75)];
@@ -60,6 +60,16 @@ describe("MAKEUP1 zone atlas", () => {
         const q: Vec3 = [end[0], end[1], skinZ(V, end[0], end[1])];
         expect(zoneField(id, V)(q), id).toBeGreaterThan(0.5);
       }
+    }
+  });
+  it("lines the whole lower lash line from the outer corner: a fine line on the skin, not a smudge", () => {
+    for (const V of [beautifulFace({ sex: 0, faceType: "east-asian" }).vertices, beautifulFace({ sex: 0 }).vertices, CANON]) {
+      const f = zoneField("liner-lower", V), pts = resolveZone("liner-lower", V)[0].pts;
+      // starts at the outer corner, so `scale` keeps the outer part of the line (outer third, half, two thirds)
+      expect(Math.hypot(pts[0][0] - V[33][0], pts[0][1] - V[33][1])).toBeLessThan(1);
+      // half a millimetre under each lower lid point, inner to outer, on the skin
+      for (const v of [154, 153, 145, 144, 163, 7]) expect(f([V[v][0], V[v][1] - 0.5, skinZ(V, V[v][0], V[v][1] - 0.5)]), `under ${v}`).toBeGreaterThan(0.5);
+      expect(f([V[145][0], V[145][1] - 2.5, skinZ(V, V[145][0], V[145][1] - 2.5)])).toBeLessThan(0.2);
     }
   });
   it("covers each stroke zone's own points on ANAT1's face, symmetrically on both sides", () => {
