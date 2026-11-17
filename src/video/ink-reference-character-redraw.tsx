@@ -38,17 +38,49 @@ export interface InkReferenceCharacterRedrawProps {
   style?:CSSProperties;
 }
 
-/** The two identities are independently measured raw-mesh studies, not ethnicity presets. */
+const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
+
+/** The two identities are independent landmark-morphed studies, not ethnicity presets. */
+function createSourceFace(character:InkReferenceCharacter){
+  const base=createFace({
+    calibrate:false,sex:1,
+    faceWidth:character==="scholar"?.96:1.04,
+    mouthWidth:character==="scholar"?.92:.86,
+  });
+  const vertices=base.vertices.map(v=>[v[0],v[1],v[2]] as [number,number,number]);
+  const subnasaleY=vertices[FACE_LANDMARKS.subnasale][1];
+  const mentonY=vertices[FACE_LANDMARKS.menton][1];
+  const sellionY=vertices[FACE_LANDMARKS.sellion][1];
+  const lowerSpan=Math.max(1,Math.abs(subnasaleY-mentonY));
+  for(const v of vertices){
+    const lower=clamp(Math.abs(subnasaleY-v[1])/lowerSpan,0,1);
+    const nose=v[1]<=sellionY&&v[1]>=subnasaleY&&Math.abs(v[0])<22;
+    if(character==="elder"){
+      v[0]*=1+.045*lower;
+      if(v[1]<subnasaleY)v[1]=subnasaleY+(v[1]-subnasaleY)*1.08;
+      if(nose)v[0]*=1.055;
+    }else{
+      v[0]*=1-.035*lower;
+      if(nose)v[0]*=.95;
+    }
+  }
+  const points=new Float32Array(vertices.length*3);
+  vertices.forEach((v,i)=>{
+    points[i*3]=v[0]/1000;
+    points[i*3+1]=v[1]/1000;
+    points[i*3+2]=v[2]/1000;
+  });
+  return {...base,vertices,mesh:{...base.mesh,points}};
+}
 const FACE_BASE={
-  scholar:createFace({calibrate:false,sex:1,faceWidth:.96,mouthWidth:.92}),
-  elder:createFace({calibrate:false,sex:1,faceWidth:1.04,mouthWidth:.86}),
+  scholar:createSourceFace("scholar"),
+  elder:createSourceFace("elder"),
 };
 const IDENTITY={
   scholar:{yaw:20,ink:"#37352f",skin:"#eadbc6",wash:"#9e8069",cap:"#353a39",robe:"#e9dfd0"},
   elder:{yaw:10,ink:"#403b34",skin:"#e4d1b8",wash:"#8f7561",cap:"#41413b",robe:"#e4d8c5"},
 } as const;
 const fmt=(v:number)=>Number(v.toFixed(2));
-const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
 
 function createReferenceGeometry(
   character:InkReferenceCharacter,emotion:InkReferenceExpression,intensity:number,
@@ -227,7 +259,7 @@ export function InkReferenceCharacterRedraw({
     data-km-ink-reference-redraw="ANAT3"
     data-km-ink-reference-character={character}
     data-km-ink-reference-source={g.source}
-    data-km-anat1-source="468-point-face-mesh"
+    data-km-anat1-source="468-point-face-mesh" data-km-anat1-shape="source-adjusted-landmark-morph"
     data-km-anat1-landmarks={Object.keys(FACE_LANDMARKS).length}
     data-km-anat1-feature-count={g.features.length}
     data-km-anat1-face-width-mm={fmt(g.measures.zyZy)}
