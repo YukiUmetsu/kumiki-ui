@@ -69,8 +69,8 @@ describe("Crayon ArtCraft V45 source tarsal form, scleral color and rooted nativ
           if(original.kind!=="contour"||candidate.kind!=="contour")
             throw new Error("Source lash component lost");
           expect(candidate.d.startsWith(original.d+" ")).toBe(true);
-          expect((original.d.match(/M/g)??[])).toHaveLength(10);
-          expect((candidate.d.match(/M/g)??[])).toHaveLength(33);
+          expect((original.d.match(/M/g)??[])).toHaveLength(33);
+          expect((candidate.d.match(/M/g)??[])).toHaveLength(56);
           const {d:a,...originalMeta}=original;
           const {d:b,...candidateMeta}=candidate;
           expect(candidateMeta).toEqual(originalMeta);
