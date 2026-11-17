@@ -751,7 +751,11 @@ export function pencilObjectStudyDrawing({
         url:"https://www.artistsnetwork.com/art-techniques/touchable-textures-in-colored-pencil/",
         rights:"technique-only" as const,
         observation:"The actual source rose shading builds distinct deep red shadow contacts first, lighter rose and reflected values later; local axes follow curling petal surfaces.",
-      }]:[])],
+      }]:[])].filter((ref,index,all)=>all.findIndex(x=>x.url===ref.url)===index)
+      // CP-F1 accepts at most 12 manifest citations. Preserve every source in
+      // the feature studies above, but collapse repeated artist URLs and keep
+      // the first 12 evidence records when multiple opt-in studies compose.
+      .slice(0,12),
     construction:subject==="rose"?
       "Author the stem, petal overlap, continuous attached leaf veins, shadow pockets and isolated curled lamina edges before pencil deposits.":
       subject==="glass"?
