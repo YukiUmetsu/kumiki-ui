@@ -74,7 +74,15 @@ async function startFilmServer() {
         serveFile(req, res, file);
       });
     },
-  }], server: { ...viteBase.server, host: "127.0.0.1", hmr: false, ws: false }, optimizeDeps: { entries: ["src/film/capture.tsx"] } });
+  }], server: { ...viteBase.server, host: "127.0.0.1", hmr: false, ws: false }, optimizeDeps: {
+    // Capture loads film-slots only after a successful document compile.
+    // Include that LAZY entry in the initial dependency scan: otherwise
+    // Vite can re-optimize the React singleton after react-dom/client has
+    // initialized, yielding "Invalid hook call" in original source ink art.
+    entries: ["src/film/capture.tsx", "src/film/film-slots.tsx"],
+    include: ["react", "react-dom", "react-dom/client",
+      "react/jsx-runtime", "react/jsx-dev-runtime"],
+  } });
   await server.listen();
   const base = server.resolvedUrls.local[0];
   return { pageUrl: outputId => new URL("src/film/capture.html?output=" + encodeURIComponent(outputId), base).toString(), close: () => server.close() };
