@@ -114,10 +114,16 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     // way to the mouth. Rotate this malar wash around the ANAT1 zygion:
     // softly convex upper cheek fades towards the buccal pocket and
     // keeps unpainted central paper. No layer is removed.
-    ink("M119.1 107.9 C121.1 111 123.2 115.9 126.9 119.2 C129.7 122.1 133.7 124.1 137.9 126.1 C132.6 124.8 128.8 123 125.8 120.8 C122.2 116.8 120 112.2 119.1 107.9 Z",
-      "$skinshade","none",0,.095),
-    ink("M152.8 100.8 C158.2 104.3 159.2 112.4 154.8 117.9 C161.1 114.1 162.2 107.7 160.8 101 Z",
-      "$skinshade","none",0,.17),
+    // The first wash formerly fell as one long diagonal dark ribbon
+    // from cheekbone to upper lip. Bend it around the near zygomatic
+    // eminence and let it taper *before* reaching the nasolabial fold.
+    // Four curved turns preserve this original pigment plane's topology.
+    ink("M119.1 107.9 C121.7 109.2 124 110.1 126.6 111.4 C130.6 113.2 134 116.5 137.9 119.4 C134.2 118.2 131.7 116 128.5 115.4 C124.3 114.8 121.3 111.5 119.1 107.9 Z",
+      "$skinshade","none",0,.088),
+    // Far cheek is a receding convex plane beneath the orbital turn,
+    // not a triangular value wedge pointing at the corner of the lip.
+    ink("M152.8 100.8 C155.9 102.4 158.9 105.4 159.3 109.6 C160.1 112.2 158.3 115.1 154.8 117.9 C158.4 114 160.4 109 160.1 105.5 C159.8 103.2 157.4 101.1 152.8 100.8 Z",
+      "$skinshade","none",0,.135),
     ink("M132.7 131.9 C139.3 136.9 145.4 138.7 149.8 132.8 C145.5 141.4 138.4 143.1 132.7 131.9 Z",
       "$skinshade","none",0,.13),
   ];
@@ -158,16 +164,20 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     // Wide malar transition gives the cheek its actual skull volume
     // without dark drawn stripes or the previous mask-like flatness.
     plane(
+      // The positive near malar dome has a rounded shoulder and two
+      // outward-directed returning curves. Preserve uninked central
+      // paper in the cheek instead of framing a hard diagonal stripe.
       "M"+num(cheek[0]+1.7)+" "+num(cheek[1]-2.1)+
-      " C125.6 110 132.9 113.4 137.2 116.3 "+
-      "C139.8 119 140.6 121 138.7 121.6 "+
-      "C134.6 119.4 129.7 116.8 126.3 114.2 "+
-      "C123.5 112.5 121.8 111.6 120.8 109.6 Z",.125),
+      " C124.9 108.7 131.7 112.7 135.2 115.7 "+
+      "C137.4 117.4 138.6 119.6 138.7 121.6 "+
+      "C136.4 119.9 134.1 117.9 131.6 117.3 "+
+      "C127.2 115.9 123.2 115.7 120.8 109.6 Z",.104),
     plane(
       "M"+num(farCheek[0]-6.3)+" "+num(farCheek[1]-4.7)+
-      " C159 108.2 161.5 110.8 161.4 114.2 "+
-      "C159.9 119.6 156.9 122.6 152.1 126.2 "+
-      "C156.7 119.1 158.7 113.6 155.2 107 Z",.165),
+      " C158.8 108.1 160.2 110.3 160.8 113.1 "+
+      "C161.2 116.7 157.4 121.9 152.1 126.2 "+
+      "C155.7 121.4 158.3 116.2 157.4 111.5 "+
+      "C157.1 109.3 156.1 107.9 155.2 107 Z",.122),
     plane(
       "M136 129.9 C139.1 131.9 145.5 132.8 150.3 129.6 "+
       "C149 134.1 146 138.1 142.9 138.1 "+
@@ -180,8 +190,10 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     ink("M146.7 100.8 C147.8 104.4 149.1 108.5 149 111.5 "+
       "C147.3 109.4 146.5 105.2 146.7 100.8 Z",
       "$paper","none",0,.32),
-    ink("M125.8 114.1 C129 113.3 134.2 114.9 137.7 117.4 "+
-      "C134.9 116.8 130.7 116.7 125.8 114.1 Z",
+    // Preserve a smaller convex paper core between the near malar wash
+    // and the nasolabial line; no straight white highlight banner.
+    ink("M125.8 113.1 C129.6 112.7 134.2 114.6 136.1 116.8 "+
+      "C132.7 115.7 129.2 115.2 125.8 113.1 Z",
       "$paper","none",0,.16),
     ink("M148.6 125.4 Q150.3 121.7 "+num(noseTip[0])+
       " "+num(noseTip[1])+" Q151.5 120.7 148.6 125.4 Z",
@@ -220,10 +232,13 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     // unpainted and describe alar cartilage with lighter separated
     // strokes, not a single black S. All positions derive from the
     // original ANAT1 3/4 nose bridge, tip and alare.
-    line([147.2,99.5],[148.4,104],[149.2,108.4],[151,112.9],
-      .62,630,"$shadow",.53),
-    line([148.1,104.5],[147.8,109.4],[148.3,112.4],[149.5,114.2],
-      .38,631,"$skinshade",.29),
+    // Both existing dorsal routes turn gradually into the nasal bulb.
+    // Shrink the hard terminal slash, rather than hiding the underlying
+    // fine pressure strokes with another opaque color polygon.
+    line([147.2,99.5],[147.9,103.5],[148.65,107.6],[150.2,111.9],
+      .52,630,"$shadow",.45),
+    line([148.1,104.5],[148.2,108],[148.95,111.4],[150.4,113.6],
+      .34,631,"$skinshade",.26),
     ink("M151.1 114 C153.2 113.9 154.3 114.6 154.9 115.8 Q155 116.8 153.8 117.2",
       "none","$shadow",.45,.43),
     ink("M149.2 116.4 Q149.8 117.7 151.5 118.4",
@@ -234,9 +249,9 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       "none","$ink",.32,.45),
     // Nasal tip relief is part of the nose/alar volume. The near nostril
     // is an oblique aperture, not a centered cartoon S or duplicate curve.
-    ink("M149.2 113.8 C151.2 114.5 153.5 116.1 154.3 117.6 "+
-      "C151.6 117.5 149.8 116.8 149.2 113.8 Z",
-      "$skinshade","none",0,.21),
+    ink("M149.8 114.4 C151.3 114.7 153.1 115.2 154 116.7 "+
+      "C152.4 116.9 150.5 116.7 149.8 114.4 Z",
+      "$skinshade","none",0,.165),
     ink("M150.2 118.1 Q151.1 118.7 152.3 118.2",
       "none","$ink",.31,.46),
   ];
