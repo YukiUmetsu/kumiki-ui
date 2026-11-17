@@ -59,7 +59,7 @@ export function riso71BuildScanMeasurements(
   }
   const corners=RISO71_CORNER_IDS.map(id=>points["paper:"+id]!);
   const signs=corners.map((a,i)=>cross(a,corners[(i+1)%4],corners[(i+2)%4]));
-  if(signs.some(v=>Math.abs(v)<8)||signs.some(v=>Math.sign(v)!==Math.sign(signs[0])))
+  if(signs.some(v=>v<=8))
     throw new RangeError("RISO71 paper corner order is crossed, collinear or too small.");
   return {kind:"physical-scan",
     corners:RISO71_CORNER_IDS.map(id=>({id,scanPx:points["paper:"+id]!})),
