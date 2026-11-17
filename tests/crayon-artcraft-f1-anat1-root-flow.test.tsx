@@ -6,7 +6,8 @@ import {crayonCc0FaceStudy} from "../src/video/crayon-artcraft-cc0-face";
 import {
   crayonF1AddRootedHairFlow,CRAYON_F1_V39_ROOT_REGIONS,
 } from "../src/video/crayon-artcraft-f1-anat1-root-flow";
-import {Cc0Anat1RootFlowV39,Cc0Anat1RootFlowDetailV39}
+import {Cc0Anat1RootFlowV39,Cc0Anat1RootFlowDetailV39,
+  Cc0Anat1RootFlowCrownV39}
   from "../src/video/crayon-artcraft-adult-face.stories";
 
 const parent={
@@ -44,7 +45,7 @@ describe("ArtCraft F1 V39 CC0 natural root-to-shaft crayon wax candidate",()=>{
           changed++;
         }else expect(revised).toEqual(original);
       }
-      expect(changed).toBe(detail===1?18:changed);
+      if(detail===1)expect(changed).toBe(18);
       expect(changed).toBeGreaterThanOrEqual(3);
       expect(after.durationFrames).toBe(300);
       for(const region of CRAYON_F1_V39_ROOT_REGIONS){
@@ -87,6 +88,7 @@ describe("ArtCraft F1 V39 CC0 natural root-to-shaft crayon wax candidate",()=>{
   it("renders native paper and clipped wax at 1x in experimental Storybook only",()=>{
     expect(Cc0Anat1RootFlowV39.name).toContain("!dev");
     expect(Cc0Anat1RootFlowDetailV39.name).toContain("!dev");
+    expect(Cc0Anat1RootFlowCrownV39.name).toContain("!dev");
     const scene=crayonCc0FaceStudy({detail:.2,
       midfaceForm:"source-anat1-rooted-hair-v39"});
     const markup=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
