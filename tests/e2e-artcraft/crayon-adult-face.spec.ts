@@ -1851,6 +1851,96 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
   expect(errors).toEqual([]);
 });
 
+/** F1 V44 real physical wax facial value proof, not likeness approval:
+ * same complete V43 source photo environment, identical 18 rooted hair
+ * groups, seed, paper and frame, but five native ANAT1 physical wax
+ * underplanes have new photographed pigment pressure and chroma.
+ */
+test("F1 V44 photographed five face value planes and V43 native negative control",async({page},info)=>{
+  test.setTimeout(220_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const captures:Record<string,Uint8Array[]>={full:[],face:[]};
+  const protectedBackground:number[][]=[];
+  for(const midfaceForm of [
+    "source-anat1-photo-foliage-v43","source-anat1-five-tone-v44",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","face"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:312,focusY:641,zoom:1.6},
+        {frame:299,focusX:312,focusY:641,zoom:1.6},
+      ]};
+      const markup=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        markup+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["face-outline","socket-near","cheek-malar-cast",
+        "cheek-malar-bounce","nose-root","chin-plane",
+        "iris-near","iris-far","hair-crown-surface","hair-right-curtain",
+        "cc0-hedge-dark-underpaint","cc0-hedge-leaf-near-left-broad"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await expect(svg.locator(
+        '[data-km-crayon-element^="hair-rooted-"]')).toHaveCount(18);
+      await page.waitForTimeout(450);
+      let png=await svg.screenshot({animations:"disabled"});
+      if(view==="full"){
+        const sample=async(pixels:Uint8Array):Promise<number[]>=>{
+          return page.evaluate(async(encoded:string)=>{
+            const image=new Image();
+            image.src="data:image/png;base64,"+encoded;
+            await image.decode();
+            const canvas=document.createElement("canvas");
+            canvas.width=image.naturalWidth;
+            canvas.height=image.naturalHeight;
+            const ctx=canvas.getContext("2d");
+            if(!ctx)throw new Error("No native crayon photo comparison canvas");
+            ctx.drawImage(image,0,0);
+            return Array.from(ctx.getImageData(0,0,82,72).data);
+          },Buffer.from(pixels).toString("base64"));
+        };
+        const diff=(a:number[],b:number[])=>{
+          if(a.length!==b.length)return 1;
+          let pixels=0;
+          for(let i=0;i<a.length;i+=4)
+            if(Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+
+              Math.abs(a[i+2]-b[i+2])>5)pixels++;
+          return pixels/(a.length/4);
+        };
+        let background=await sample(png);
+        if(protectedBackground.length===0){
+          protectedBackground.push(background);
+        }else{
+          const control=protectedBackground[0];
+          for(let attempt=0;attempt<6&&diff(control,background)>.003;attempt++){
+            await page.waitForTimeout(500);
+            png=await svg.screenshot({animations:"disabled"});
+            background=await sample(png);
+          }
+          expect(diff(control,background)).toBeLessThanOrEqual(.003);
+        }
+      }
+      await writeFile(info.outputPath(
+        "crayon-v44-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      captures[view].push(png);
+    }
+  }
+  for(const view of ["full","face"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),
+      Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(protectedBackground).toHaveLength(1);
+  expect(errors).toEqual([]);
+});
+
 /** Source photograph's measured asymmetrical green canopy, not a three-leaf icon.
  * The frame, scene authoring seed, 608x1082 camera, paper and complete face
  * are fixed for V42 negative control and native V43 source-traced candidate.
