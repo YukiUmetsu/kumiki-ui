@@ -192,3 +192,49 @@ test("reduced-motion disables autoplay without blocking deterministic facial and
     await expect(gaze).toHaveValue("1");
     await expect(page.getByTestId("reader-expr1-diagnostics")).toContainText("Cue frame 1");
   });
+
+test("EXPR1 source-equivalent emotion atlas compares five ANAT1 poses and exposes original landmark anchors",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--reader-expression-art-craft&viewMode=story");
+    const atlas=page.getByTestId("reader-expr1-emotion-atlas");
+    await expect(atlas).toBeVisible();
+    await expect(atlas.locator("[data-km-ink-expression-emotion]")).toHaveCount(5);
+    const neutral=atlas.locator('[data-km-ink-expression-emotion="neutral"]');
+    const sad=atlas.locator('[data-km-ink-expression-emotion="sad"]');
+    const smile=atlas.locator('[data-km-ink-expression-emotion="smile"]');
+    for(const card of [neutral,sad,smile]){
+      await expect(card.locator('[data-km-ink-expression-part="face"]')).toHaveCount(1);
+      await expect(card.locator('[data-km-ink-expression-part="reader-ear"]')).toHaveCount(1);
+      await expect(card.locator('[data-km-ink-expression-part="hair"]')).toHaveCount(1);
+      await expect(card.locator("[data-km-ink-iris-occlusion]")).toHaveCount(2);
+    }
+    const hairPath=(card:typeof neutral)=>card
+      .locator('[data-km-ink-expression-part="hair"] path').first().getAttribute("d");
+    expect(await hairPath(neutral)).toEqual(await hairPath(sad));
+    expect(await hairPath(neutral)).toEqual(await hairPath(smile));
+    const browPath=(card:typeof neutral)=>card
+      .locator('[data-km-ink-expression-part="brows"] path').first().getAttribute("d");
+    expect(await browPath(neutral)).not.toEqual(await browPath(sad));
+    await expect(sad.locator('[data-km-ink-expression-metrics="sad"]'))
+      .toContainText("cheek");
+    await page.getByRole("button",{name:"Select sad EXPR1 expression"}).click();
+    await expect(page.getByRole("combobox",{name:"EXPR1 emotion"})).toHaveValue("sad");
+    await expect(page.getByRole("button",{name:"Select sad EXPR1 expression"}))
+      .toHaveAttribute("aria-pressed","true");
+    await atlas.screenshot({animations:"disabled",
+      path:info.outputPath("reader-EXPR1-five-emotion-native-source-atlas.png")});
+    const micro=page.getByTestId("reader-expr1-micro");
+    await expect(micro.locator("[data-km-ink-anat1-anchor]")).toHaveCount(0);
+    await page.getByRole("checkbox",{name:"Show EXPR1 ANAT1 facial landmarks"}).check();
+    await expect(micro.locator("[data-km-ink-expression-anat1]")).toHaveCount(1);
+    await expect.poll(()=>micro.locator("[data-km-ink-anat1-anchor]").count())
+      .toBeGreaterThan(20);
+    await expect(micro.locator('[data-km-ink-anat1-anchor="pronasale"]'))
+      .toHaveCount(1);
+    await expect(micro.locator('[data-km-ink-anat1-anchor="zygion.R"]'))
+      .toHaveCount(1);
+    await micro.screenshot({animations:"disabled",
+      path:info.outputPath("reader-EXPR1-ANAT1-facial-anchor-overlay.png")});
+    await page.getByRole("checkbox",{name:"Show EXPR1 ANAT1 facial landmarks"}).uncheck();
+    await expect(micro.locator("[data-km-ink-anat1-anchor]")).toHaveCount(0);
+  });
