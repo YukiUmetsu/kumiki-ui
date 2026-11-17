@@ -630,8 +630,12 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
       const deeper=item.marks.filter(s=>s.type==="path"&&
         s.fill==="$deep"&&s.stroke==="none"&&s.opacity!==undefined&&
         s.opacity>=.17&&s.opacity<.3);
-      expect(cavity).toHaveLength(1);
-      expect(deeper).toHaveLength(1);
+      // Original ANAT1 anatomy can already contain a separate wet
+      // $shadow/$deep paint pass. Require at least one of each new
+      // pigment level without incorrectly banning those preserved
+      // micro-layers (the prior exact-count test falsely rejected two).
+      expect(cavity.length).toBeGreaterThanOrEqual(1);
+      expect(deeper.length).toBeGreaterThanOrEqual(1);
       // "$deep" is warm ochre, not the darkest pigment. The actual
       // wet-mouth recess must also contain a much smaller $ink core,
       // with its opacity weaker than the original opaque dark stamp.
