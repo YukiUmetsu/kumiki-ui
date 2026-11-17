@@ -28,10 +28,10 @@ import ansur from "./data/ansur-ii-ranges.json";
 export interface BeautyEvidence { id: string; finding: string; grade: "reported" | "estimated" | "measured"; source: string; url?: string }
 
 /**
- * The shape of real faces: per-vertex offsets (mm) from ANAT1's calibrated face to the composite of public-domain
- * portraits of film actors, measured with MediaPipe's face landmarker, aligned on the stable upper face, averaged by
- * sex (one photograph a person), symmetrised and smoothed. The mouth is left out and the nose wings damped (smiles
- * and shadows); the jaw comes only from closed mouths. A composite of many faces shows no one's likeness.
+ * The shape of beautiful real faces: per-vertex offsets (mm), by sex, applied after the other steps. They were fitted
+ * so that the rendered face, read by MediaPipe's face landmarker exactly as the photographs were, matches the average
+ * of public-domain portraits of film stars (frontalised, one photograph a person, the mouth from closed mouths only).
+ * Symmetric and smooth; a composite of many faces shows no one's likeness.
  */
 export const FACE_COMPOSITE = composite as unknown as { method: string; sources: { title: string; page: string; licence: string }[]; female: { n: number; offsets: number[][] }; male: { n: number; offsets: number[][] } };
 
@@ -39,8 +39,12 @@ export const FACE_COMPOSITE = composite as unknown as { method: string; sources:
 export const BEAUTY_EVIDENCE: readonly BeautyEvidence[] = [
   { id: "averageness", grade: "reported", finding: "Blends of many faces are more attractive than their constituent faces; the more faces in a composite, the more attractive it is.",
     source: "Little, Jones & DeBruine 2011, Phil. Trans. R. Soc. B 366:1638 (review; Galton; Langlois & Roggman 1990)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3130383/" },
-  { id: "real-faces", grade: "measured", finding: `The composite of public-domain portraits of film actors (${(composite as { female: { n: number } }).female.n} women, ${(composite as { male: { n: number } }).male.n} men; MediaPipe landmarks, one photograph a person) has cheekbone breadths of 133 and 138 mm, close to ANSUR II's 134 and 143 mm, more open eyes than the calibrated mask, and lower brows in men.`,
-    source: "ANAT1 face composite (data/face-composite.json; docs/research/face-composite-2026-11-16.md)" },
+  { id: "real-faces", grade: "measured", finding: `The shape of beautiful real faces: public-domain studio portraits of film stars (${(composite as { female: { n: number } }).female.n} actresses, ${(composite as { male: { n: number } }).male.n} actors), one a person, frontal, the mouth closed and unsmiling and the eyes open, measured with MediaPipe's face landmarker and averaged by sex. The face is fitted to that average in the landmark model's own measurement space: rendered, read the same way and corrected (residual about 1.1 mm for women and 1.8 mm for men, root mean square over the landmarks).`,
+    source: "ANAT1 face composite (data/face-composite.json; docs/research/beautiful-faces-2026-11-16.md)" },
+  { id: "mouth-corners", grade: "measured", finding: "On the same portraits the mouth's corners sit 0.74 mm (actresses) and 0.86 mm (actors) below the midline where the lips meet; a relaxed mouth with lower corners reads as downturned.",
+    source: "ANAT1 face composite (docs/research/beautiful-faces-2026-11-16.md)" },
+  { id: "vector", grade: "reported", finding: "In young adults the soft tissue over the supraorbital rim projects about 10 mm beyond the cornea, the infraorbital rim lies about 3 mm behind it and the cheek prominence about 2 mm beyond it (a positive vector); a cheek behind the cornea (a negative vector) goes with a tired, aged look.",
+    source: "Jelks & Jelks vector analysis, as summarised in Yaremchuk's infraorbital rim chapter (Plastic Surgery Key)", url: "https://plasticsurgerykey.com/infraorbital-rim/" },
   { id: "symmetry", grade: "reported", finding: "Increasing symmetry alone is sufficient to increase attractiveness.", source: "Little, Jones & DeBruine 2011 (review)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3130383/" },
   { id: "femininity", grade: "reported", finding: "Feminine features increase the attractiveness of female faces across cultures; the public prefers above-average femininity in women.",
     source: "Little, Jones & DeBruine 2011; Holland 2008, Aesthetic Plast. Surg. 32:200", url: "https://pubmed.ncbi.nlm.nih.gov/18175168/" },
@@ -52,8 +56,8 @@ export const BEAUTY_EVIDENCE: readonly BeautyEvidence[] = [
     source: "Pallett, Link & Lee 2010, Vision Research 50:149", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC2814183" },
   { id: "lips", grade: "reported", finding: "The most attractive upper-to-lower lip ratio was 1:2, with lip area 53.5% above the average (morphs of 20 white women, 18–25). Attractive young Caucasian women measured 6.47 ± 1.36 mm upper and 11.64 ± 1.46 mm lower vermilion.",
     source: "Popenko et al. 2017, JAMA Facial Plast. Surg. 19:261; The Concept of Ideal Lips of Caucasian Female (2024)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC5543334" },
-  { id: "eyes", grade: "reported", finding: "Adult palpebral fissure height is about 8–11.5 mm by population (8.5 mm women and 9 mm men in an Australian cohort; 9.7–9.9 mm Turkish; 8.0–8.2 mm Korean; about 11.5 mm South Indian).",
-    source: "Palpebral fissure anthropometry studies (Australia 2023; Nepal 2022; Malaysia; reviews therein)", url: "https://link.springer.com/article/10.1007/s10792-023-02669-3" },
+  { id: "eyes", grade: "reported", finding: "The upper lid margin sits MRD1 above the corneal light reflex (the pupil centre) and the lower margin MRD2 below it: MRD1 about 4.0 mm in adults in their twenties (3.7 ± 0.1 mm over 20–59 years, anterior-segment OCT), MRD2 about 5.2–5.5 mm. So the upper lid covers the top of the iris (11.7 mm across) by about 1.5–2 mm and the lower lid just meets it; white above the iris reads as a startled stare. Adult palpebral fissure height is about 8–11.5 mm by population.",
+    source: "Ogasawara et al. 2020, Clin. Ophthalmol. 14:745 (MRD1); Rana et al. 2023 (MRD1 3.5, MRD2 5.2 mm, 380 adults); Putterman via EyeWiki (MRD2 5.5 mm); palpebral fissure studies", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10371930" },
   { id: "canthal", grade: "reported", finding: "Female faces edited to exaggerate the medial canthal tilt were preferred 93% of the time.",
     source: "Bashour & Geist 2007, Ophthal. Plast. Reconstr. Surg.", url: "https://hsrc.himmelfarb.gwu.edu/smhs_ophthalm_facpubs/302" },
   { id: "skin", grade: "reported", finding: "Homogeneous skin colour is positively related to attractiveness; skin redness and yellowness (carotenoids) read as healthy.",
@@ -121,6 +125,12 @@ export interface BeautyOptions extends FaceParams {
    * portraits of film actors (`FACE_COMPOSITE`), measured by face landmarks and averaged by sex.
    */
   realFaces?: number;
+  /**
+   * How much to bring the face's depth to measured projections relative to the cornea (0 … 1, default 1): the brow
+   * ridge about 10 mm ahead, the rim below the eye about 3 mm behind and the cheek prominence about 2 mm ahead (a
+   * "positive vector"). The calibrated mask's eyes sit almost flush with its brows and cheeks.
+   */
+  form?: number;
 }
 export interface BeautifulFace extends FaceStudy {
   /** The hairline height (mm) that puts the eye-to-mouth distance at 36% of face length (Pallett 2010). */
@@ -147,19 +157,38 @@ function mirrorMap(v: readonly Vec3[]): Int32Array {
 
 const smooth = (t: number) => { const x = Math.min(1, Math.max(0, t)); return x * x * (3 - 2 * x); };
 
+const LID_LOOPS = { upper: { R: [246, 161, 160, 159, 158, 157, 173], L: [466, 388, 387, 386, 385, 384, 398] }, lower: { R: [7, 163, 144, 145, 153, 154, 155], L: [249, 390, 373, 374, 380, 381, 382] } };
+/**
+ * Move each eye's lids (and the skin above and below them, fading out) so the upper margin sits `mrd1` mm above the
+ * pupil and the lower margin `mrd2` mm below it, by `k` (0 … 1). The pupil is where the portrait puts the eyeball
+ * (`eyeCentres`: a quarter each of the corners' and the lid margins' heights), so the targets solve for it: with the
+ * corners' mid-height c, the pupil lands at c + (mrd1 − mrd2) / 2.
+ */
+function placeLids(v: Vec3[], mrd1: number, mrd2: number, k: number) {
+  if (k <= 0) return;
+  const L = (n: FaceLandmark) => v[FACE_LANDMARKS[n]];
+  const ecs = eyeCentres(v);
+  for (const s of ["L", "R"] as const) {
+    const ex = L(`exocanthion.${s}` as FaceLandmark), en = L(`endocanthion.${s}` as FaceLandmark), ps = L(`palpebrale-superius.${s}` as FaceLandmark), pi = L(`palpebrale-inferius.${s}` as FaceLandmark);
+    const c = ecs[s], halfW = Math.abs(ex[0] - en[0]) / 2, pupil = (ex[1] + en[1]) / 2 + (mrd1 - mrd2) / 2;
+    const addU = (pupil + mrd1 - ps[1]) * k, addD = (pupil - mrd2 - pi[1]) * k;
+    const upSet = new Set(LID_LOOPS.upper[s]), loSet = new Set(LID_LOOPS.lower[s]);
+    v.forEach((p, i) => {
+      const dx = (p[0] - c[0]) / (halfW * 1.15), along = Math.max(0, 1 - dx * dx);
+      if (along <= 0) return;
+      const above = p[1] - c[1];
+      if (upSet.has(i) || (above > 0 && above < 14)) p[1] += addU * along * (upSet.has(i) ? 1 : smooth(1 - (above - 2) / 12));
+      else if (loSet.has(i) || (above <= 0 && above > -9)) p[1] += addD * along * (loSet.has(i) ? 1 : smooth(1 + (above + 2) / 7));
+    });
+  }
+}
+
 /** A face built from the attractiveness findings (see the module note). */
 export function beautifulFace(o: BeautyOptions = {}): BeautifulFace {
   const b = Math.min(1, Math.max(0, o.beauty ?? 1)), sex = Math.min(1, Math.max(0, o.sex ?? 0.5));
   const base = createFace({ ...o, sex });
   const v: Vec3[] = base.vertices.map(p => [p[0], p[1], p[2]]);
   const L = (k: FaceLandmark) => v[FACE_LANDMARKS[k]];
-  // 0. The shape of real faces: the actors' composite (by sex), before the measured targets below, which then set the
-  //    breadths, the eyes' opening and the lips; the composite shapes what lies between (contours, cheeks, brow, nose).
-  const rf = Math.min(1, Math.max(0, o.realFaces ?? 1)) * b;
-  if (rf > 0) {
-    const fo = FACE_COMPOSITE.female.offsets, mo = FACE_COMPOSITE.male.offsets;
-    v.forEach((p, i) => { for (let k = 0; k < 3; k++) p[k] += rf * (fo[i][k] * (1 - sex) + mo[i][k] * sex); });
-  }
   // 1. Symmetry: average each vertex with its mirrored partner.
   const mir = mirrorMap(base.vertices);
   const snap = v.map(p => [p[0], p[1], p[2]] as Vec3);
@@ -180,23 +209,14 @@ export function beautifulFace(o: BeautyOptions = {}): BeautifulFace {
     const w = smooth((yStom + 6 - p[1]) / 22) * smooth((Math.abs(p[0]) - 8) / 30);
     if (w > 0) p[0] *= 1 + (kj - 1) * w;
   }
-  // 4. Eyes: open the lids to a measured palpebral height (about 9.5 mm for this face's women, 9 mm men; within the
-  //    reported 8–11.5 mm), and tilt the medial corner down a little (Bashour & Geist 2007).
-  const ecs = eyeCentres(v);
-  const palpTarget = 9 + 0.5 * (1 - sex) + 0.5 * fem;
-  const lidLoops = { upper: { R: [246, 161, 160, 159, 158, 157, 173], L: [466, 388, 387, 386, 385, 384, 398] }, lower: { R: [7, 163, 144, 145, 153, 154, 155], L: [249, 390, 373, 374, 380, 381, 382] } };
+  // 4. Eyes: the lids where real lids sit on the eye, measured from the pupil centre: the upper margin MRD1 above it
+  //    (about 4.0 mm in adults in their twenties, Ogasawara 2020), the lower margin MRD2 below it (5.2–5.5 mm, Rana 2023;
+  //    Putterman). So the upper lid covers the top of the iris by about 1.5 mm and the lower lid just meets it: no white
+  //    above the iris (a startled stare) and none below. Women a little more open (estimated). Then the medial corner
+  //    tilts down a little (Bashour & Geist 2007).
+  const mrd1 = 3.9 + 0.4 * (1 - sex) + 0.4 * fem, mrd2 = 5.3 + 0.1 * sex;
+  placeLids(v, mrd1, mrd2, b);
   for (const s of ["L", "R"] as const) {
-    const ps = L(`palpebrale-superius.${s}` as FaceLandmark), pi = L(`palpebrale-inferius.${s}` as FaceLandmark), cur = ps[1] - pi[1], add = (palpTarget - cur) * b;
-    const c = ecs[s], halfW = Math.abs(L(`exocanthion.${s}` as FaceLandmark)[0] - L(`endocanthion.${s}` as FaceLandmark)[0]) / 2;
-    const upSet = new Set(lidLoops.upper[s]), loSet = new Set(lidLoops.lower[s]);
-    v.forEach((p, i) => {
-      const dx = (p[0] - c[0]) / (halfW * 1.15), along = Math.max(0, 1 - dx * dx);
-      if (along <= 0) return;
-      // Upper lid and the skin above it rise (most at the middle), the lower lid drops a little.
-      const above = p[1] - c[1];
-      if (upSet.has(i) || (above > 0 && above < 14)) p[1] += add * 0.72 * along * (upSet.has(i) ? 1 : smooth(1 - (above - 2) / 12));
-      else if (loSet.has(i) || (above <= 0 && above > -9)) p[1] -= add * 0.28 * along * (loSet.has(i) ? 1 : smooth(1 + (above + 2) / 7));
-    });
     const en = L(`endocanthion.${s}` as FaceLandmark);
     v.forEach(p => { const d = Math.hypot(p[0] - en[0], p[1] - en[1]); if (d < 6) p[1] -= 0.7 * b * (1 - d / 6); });
   }
@@ -243,6 +263,53 @@ export function beautifulFace(o: BeautyOptions = {}): BeautifulFace {
       const dBrow = Math.hypot(p[0] * 0.5, p[1] - gl[1]); if (dBrow < 18 && p[2] > gl[2] - 12) p[2] -= 1.4 * fem * smooth(1 - dBrow / 18);
       const dChin = Math.hypot(p[0], p[1] - pg[1]); if (dChin < 20) { p[0] *= 1 - 0.06 * fem * smooth(1 - dChin / 20); p[1] += 1.2 * fem * smooth(1 - dChin / 20); }
     });
+  }
+  // 6b. Form: the brow ridge, the rim below the eye and the cheek prominence brought to their projections relative to
+  //     the cornea in young adults (soft tissue: the supraorbital rim about 10 mm ahead, the infraorbital rim about
+  //     3 mm behind, the cheek prominence about 2 mm ahead; Jelks & Jelks, Yaremchuk). Each is measured on this face and
+  //     only raised to its target, with smooth falloffs that leave the lids and the eye opening where they are.
+  const formK = b * Math.min(1, Math.max(0, o.form ?? 1));
+  if (formK > 0) {
+    const ecF = eyeCentres(v);
+    for (const s of ["L", "R"] as const) {
+      const c = ecF[s], cornea = c[2] + 2.9, lat = Math.sign(c[0]) || 1;
+      const maxZ = (x0: number, x1: number, y0: number, y1: number) => {
+        let m = -Infinity;
+        for (const p of v) { const dx = (p[0] - c[0]) * lat, dy = p[1] - c[1]; if (dx >= x0 && dx <= x1 && dy >= y0 && dy <= y1) m = Math.max(m, p[2]); }
+        return m;
+      };
+      const brow = maxZ(-4, 6, 15, 26) - cornea, cheek = maxZ(4, 22, -32, -16) - cornea, rim = maxZ(-4, 4, -15, -10) - cornea;
+      // targets: men's brow ridges stand further forward (estimated split of the reported 10 mm)
+      const dB = Math.min(6, Math.max(0, 9 + 1.5 * sex - brow)) * formK, dC = Math.min(6, Math.max(0, 2 - 0.5 * sex - cheek)) * formK, dR = Math.min(3, Math.max(0, -3 - rim)) * formK;
+      for (const p of v) {
+        const dx = (p[0] - c[0]) * lat, dy = p[1] - c[1];
+        const gB = Math.exp(-((dx - 1) ** 2) / (2 * 11 ** 2) - ((dy - 20) ** 2) / (2 * 5.5 ** 2));
+        const gC = Math.exp(-((dx - 12) ** 2) / (2 * 11 ** 2) - ((dy + 24) ** 2) / (2 * 8 ** 2));
+        const gR = Math.exp(-((dx - 2) ** 2) / (2 * 9 ** 2) - ((dy + 13) ** 2) / (2 * 3.5 ** 2));
+        p[2] += dB * gB + dC * gC + dR * gR;
+      }
+    }
+  }
+  // 6c. The shape of beautiful real faces: the last correction, fitted so that this face, rendered and read by the same
+  //     face-landmark model as the photographs, matches the average of public-domain portraits of film stars (by sex).
+  //     Up to 1.5 exaggerates it (moving further from the average face, as Perrett, May & Yoshikawa 1994 found raised
+  //     attractiveness).
+  const rf = Math.min(1.5, Math.max(0, o.realFaces ?? 1)) * b;
+  if (rf > 0) {
+    const fo = FACE_COMPOSITE.female.offsets, mo = FACE_COMPOSITE.male.offsets;
+    v.forEach((p, i) => { for (let k = 0; k < 3; k++) p[k] += rf * (fo[i][k] * (1 - sex) + mo[i][k] * sex); });
+  }
+  // 6d. The lids back on the iris (the composite's lids are left as measured on the eye, not as photographs read them:
+  //     lash lines, liner and wide-eyed poses make the lids look further apart). An eye shape keeps its own opening.
+  if (!eyeShape) placeLids(v, mrd1, mrd2, b);
+  // 6e. The mouth's corners at the height measured on the stars' closed, unsmiling mouths: 0.74 mm (women) and 0.86 mm
+  //     (men) below the midline where the lips meet. Left lower, a relaxed mouth reads as downturned and sad.
+  if (rf > 0) {
+    const st = L("stomion"), drop = 0.74 + 0.12 * sex;
+    for (const s of ["L", "R"] as const) {
+      const ch = L(`cheilion.${s}` as FaceLandmark), dy = (st[1] - drop - ch[1]) * Math.min(1, rf), cx = ch[0], cy = ch[1];
+      if (Math.abs(dy) > 0.05) v.forEach(p => { const d2 = (p[0] - cx) ** 2 + (p[1] - cy) ** 2; if (d2 < 400) p[1] += dy * Math.exp(-d2 / (2 * 4.5 ** 2)); });
+    }
   }
   // 7. The hairline where the eye-to-mouth distance is 36% of the face length (Pallett 2010).
   const ec2 = eyeCentres(v), pupilY = (ec2.L[1] + ec2.R[1]) / 2, stomY = L("stomion")[1], meY = L("menton")[1];
