@@ -69,6 +69,7 @@ export function PencilFoundationStudio(){
   const [rosePinnateStudy,setRosePinnateStudy]=useState(false);
   const [rosePhysicalFolds,setRosePhysicalFolds]=useState(false);
   const [roseOuterFormStudy,setRoseOuterFormStudy]=useState(false);
+  const [roseOuterRippleStudy,setRoseOuterRippleStudy]=useState(false);
   const [roseFrontValueStudy,setRoseFrontValueStudy]=useState(false);
   const [rosePetalRimStudy,setRosePetalRimStudy]=useState(false);
   const [roseBackCupReliefStudy,setRoseBackCupReliefStudy]=useState(false);
@@ -86,6 +87,7 @@ export function PencilFoundationStudio(){
         rosePinnateStudy:specimen==="rose"&&rosePinnateStudy,
         rosePhysicalFolds:specimen==="rose"&&rosePhysicalFolds,
         roseOuterFormStudy:specimen==="rose"&&roseOuterFormStudy,
+        roseOuterRippleStudy:specimen==="rose"&&roseOuterRippleStudy,
         roseFrontValueStudy:specimen==="rose"&&roseFrontValueStudy,
         rosePetalRimStudy:specimen==="rose"&&rosePetalRimStudy,
         roseBackCupReliefStudy:specimen==="rose"&&roseBackCupReliefStudy,
@@ -101,7 +103,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseOuterFormStudy,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseCenterKnotStudy,roseCenterValueStudy,roseMiddleCupStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseOuterFormStudy,roseOuterRippleStudy,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseCenterKnotStudy,roseCenterValueStudy,roseMiddleCupStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -138,8 +140,8 @@ export function PencilFoundationStudio(){
     "calyx-receptacle":inspectionFocus==="rose-fold-left"&&specimen==="rose"&&rosePhysicalFolds?
     "rose-turn-outer-left":inspectionFocus==="rose-fold-right"&&specimen==="rose"&&rosePhysicalFolds?
     "rose-turn-petal-front-right":inspectionFocus==="rose-fold-back"&&specimen==="rose"&&rosePhysicalFolds?
-    "rose-turn-back-cup":inspectionFocus==="rose-outer-left"&&specimen==="rose"&&roseOuterFormStudy?
-    "outer-left":inspectionFocus==="rose-outer-right"&&specimen==="rose"&&roseOuterFormStudy?
+    "rose-turn-back-cup":inspectionFocus==="rose-outer-left"&&specimen==="rose"&&(roseOuterFormStudy||roseOuterRippleStudy)?
+    "outer-left":inspectionFocus==="rose-outer-right"&&specimen==="rose"&&(roseOuterFormStudy||roseOuterRippleStudy)?
     "outer-right":inspectionFocus==="rose-front-left"&&specimen==="rose"&&rosePhysicalFolds?
     "petal-front-left":inspectionFocus==="rose-front-right"&&specimen==="rose"&&rosePhysicalFolds?
     "petal-front-right":inspectionFocus==="rose-rim-left"&&specimen==="rose"&&rosePetalRimStudy?
@@ -167,6 +169,7 @@ export function PencilFoundationStudio(){
       (headSilhouetteStudy?"oblique":"baseline"):"not-applicable"}
     data-km-rose-physical-folds={specimen==="rose"?(rosePhysicalFolds?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-outer-form={specimen==="rose"?(roseOuterFormStudy?"opt-in":"baseline"):"not-applicable"}
+    data-km-rose-outer-ripple={specimen==="rose"?(roseOuterRippleStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-front-value={specimen==="rose"?(roseFrontValueStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-petal-rim={specimen==="rose"?(rosePetalRimStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-back-cup-relief={specimen==="rose"?(roseBackCupReliefStudy?"opt-in":"baseline"):"not-applicable"}
@@ -335,10 +338,10 @@ export function PencilFoundationStudio(){
           <option value="rose-fold-back" disabled={specimen!=="rose"||!rosePhysicalFolds}>
             Rose back-cup underturn / near-center curl
           </option>
-          <option value="rose-outer-left" disabled={specimen!=="rose"||!roseOuterFormStudy}>
+          <option value="rose-outer-left" disabled={specimen!=="rose"||!(roseOuterFormStudy||roseOuterRippleStudy)}>
             Rose left outer lamina / cool fold to warm velvet to lifted edge
           </option>
-          <option value="rose-outer-right" disabled={specimen!=="rose"||!roseOuterFormStudy}>
+          <option value="rose-outer-right" disabled={specimen!=="rose"||!(roseOuterFormStudy||roseOuterRippleStudy)}>
             Rose right outer lamina / asymmetric pigment and returned light
           </option>
           <option value="rose-crown-face" disabled={specimen!=="rose"||!rosePhysicalFolds||!roseBackCupReliefStudy}>
@@ -417,7 +420,7 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose physical folds" type="checkbox"
           checked={rosePhysicalFolds} onChange={e=>{
             setRosePhysicalFolds(e.target.checked);
-            if(!e.target.checked){setRoseFrontValueStudy(false);setRosePetalRimStudy(false);setRoseBackCupReliefStudy(false);setRoseFrontLaminaVolumeStudy(false);setRoseOuterFormStudy(false);}
+            if(!e.target.checked){setRoseFrontValueStudy(false);setRosePetalRimStudy(false);setRoseBackCupReliefStudy(false);setRoseFrontLaminaVolumeStudy(false);setRoseOuterFormStudy(false);setRoseOuterRippleStudy(false);}
           }}/>
         FLORA1 five independent full-surface rolled underturns · geometric corolla A/B (unapproved)
       </label>}
@@ -429,6 +432,15 @@ export function PencilFoundationStudio(){
           checked={roseOuterFormStudy}
           onChange={e=>setRoseOuterFormStudy(e.target.checked)}/>
         FLORA1 outer rose laminae / independent dry pencil velvet midtone, cool infold and lifted return · A/B (unapproved)
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40,
+          opacity:rosePhysicalFolds?1:.65}}>
+        <input aria-label="Foundation rose outer petal edge relief" type="checkbox"
+          disabled={!rosePhysicalFolds}
+          checked={roseOuterRippleStudy}
+          onChange={e=>setRoseOuterRippleStudy(e.target.checked)}/>
+        FLORA1 outer rose / two nonmirrored, broad, irregular curved physical petal margins, 5 locally dry pencil edge features each · A/B (unapproved)
       </label>}
       {specimen==="rose"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40,
