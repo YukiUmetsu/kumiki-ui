@@ -1850,6 +1850,52 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
   expect(errors).toEqual([]);
 });
 
+/** Root-to-shaft source-gesture ArtCraft study: actual native browser
+ * pixels on a fixed CC0 camera. This does not certify appearance/likeness.
+ * No photo raster is included in the native render.
+ */
+test("F1 V39 root-to-shaft wax source native V38/V39 1x and curtain macro",async({page},info)=>{
+  test.setTimeout(180_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const full:Uint8Array[]=[];
+  const macro:Uint8Array[]=[];
+  for(const midfaceForm of [
+    "source-anat1-hair-values","source-anat1-rooted-hair-v39"
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","right-curtain"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:513,focusY:670,zoom:2.15},
+        {frame:299,focusX:513,focusY:670,zoom:2.15},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface","hair-left-curtain",
+        "hair-right-curtain","hair-rooted-left-0","hair-rooted-right-0",
+        "source-brow-follicles-near","iris-near","lip-upper"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      const screenshot=await svg.screenshot({
+        path:info.outputPath("crayon-v39-"+view+"-"+midfaceForm+"-299.png"),
+        animations:"disabled",
+      });
+      if(view==="full")full.push(screenshot);
+      else macro.push(screenshot);
+    }
+  }
+  expect(Buffer.compare(Buffer.from(full[0]),Buffer.from(full[1])))
+    .not.toBe(0);
+  expect(Buffer.compare(Buffer.from(macro[0]),Buffer.from(macro[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
 /** V38 source-conditioned hair: native 608×1082 exact-camera 1×/3×
  * source-photo vs V37 negative control. Only the hair pigment changes.
  * ArtCraft realism still needs independent photographic pixel review. */
