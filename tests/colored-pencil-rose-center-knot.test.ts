@@ -102,9 +102,15 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
       expect(current).toBeDefined();
       expect(current?.layers.map(l=>l.seed)).toEqual(previous.layers.map(l=>l.seed));
       if(!remodeled.has(previous.id))expect(current).toEqual(previous);
-      else expect(current?.details?.length).toBe(
-        (ROSE_CENTER_KNOT_SURFACES.find(x=>x.id===previous.id)!
-          .replacementBaseDetails??previous.details??[]).length+4);
+      else{
+        const source=ROSE_CENTER_KNOT_SURFACES.find(x=>x.id===previous.id)!;
+        const expected=[...(source.replacementBaseDetails??previous.details??[]),
+          ...source.dryContours];
+        expect(current?.details?.slice(0,expected.length)).toEqual(expected);
+        // Additional independent lamina/edge studies may append their own
+        // contacts later in the same composition; never discard those marks.
+        expect(current?.details?.length).toBeGreaterThanOrEqual(expected.length);
+      }
     }
     for(const id of ["rose-rim-front-left","rose-rim-front-right","back-cup",
                      "rose-turn-back-cup","rose-mid-right-tuck",
