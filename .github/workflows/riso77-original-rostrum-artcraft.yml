@@ -1,0 +1,52 @@
+name: RISO77 source-native kinetic cutout print rostrum ArtCraft proof
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso77-original-rostrum-artcraft.yml"
+      - "registry/video/riso-rostrum-paper.ts"
+      - "registry/video/riso-rostrum-react.tsx"
+      - "src/video/riso77-rostrum-film.ts"
+      - "src/video/riso77-rostrum-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "registry.json"
+      - "tests/riso77-rostrum-kinetic-cutout-artcraft.test.tsx"
+      - "tests/e2e-storybook/riso77-native-kinetic-rostrum.spec.ts"
+      - "docs/research/riso77-original-rostrum-cutout-motion-artcraft.md"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: riso77-source-ink-rostrum-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  actual-original-cut-paper-print:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Strict original paper/source per-drum geometry and FilmStage tests
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso77-rostrum-kinetic-cutout-artcraft.test.tsx tests/riso76-torn-collage-artcraft.test.tsx tests/riso75-drum-contact-artcraft.test.tsx
+      - name: Strict clean registry consumer without unregistered direct source imports
+        run: |
+          npm run registry:validate
+          node scripts/registry-fixture.js --item=riso-print
+      - name: Build original authored stop-motion cutout Storybook
+        run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - name: Original spot-ink rostrum 1x/3x, on-twos, 9x16, light, parallax and reduced motion visual QA
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso77-native-kinetic-rostrum.spec.ts
+      - name: Archive actually rendered source SVG cut-paper images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso77-original-cutout-rostrum-1x-3x-portrait-physical-art
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 5
