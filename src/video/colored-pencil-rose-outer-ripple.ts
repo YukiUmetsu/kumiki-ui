@@ -102,12 +102,19 @@ export function inspectRoseOuterRippleSurfaces():string[]{
     const hingeNumbers=shape.hinge.match(/-?\d+(?:\.\d+)?/g)??[];
     const hingeStart="M"+hingeNumbers[0]+" "+hingeNumbers[1];
     const hingeEnd=hingeNumbers.slice(-2).join(" ");
-    // The reverse side closes along the *opposite orientation* of the
-    // same Bézier cuticle. Its control points are therefore in reverse order.
+    // The rose's right outside face traverses this shared source cuticle
+    // backwards; reverse the *same cubic*, not a similar-looking new arc.
+    const reverse="C"+hingeNumbers[4]+" "+hingeNumbers[5]+
+      " "+hingeNumbers[2]+" "+hingeNumbers[3]+
+      " "+hingeNumbers[0]+" "+hingeNumbers[1];
+    const actual=shape.id==="outer-left"?
+      shape.face.includes(shape.hinge.slice(1)):
+      shape.face.includes(reverse);
+    // Both physical faces stay welded along identical control points,
+    // irrespective of their opposing contour direction.
     if(!old||shape.hinge!==old.hinge||
       !old.underside.startsWith(hingeStart)||
-      !old.underside.includes(hingeEnd)||
-      !shape.face.includes(shape.hinge.slice(1))||shape.face===old.face)
+      !old.underside.includes(hingeEnd)||!actual||shape.face===old.face)
       issues.push("Detached real rose outer cuticle hinge: "+shape.id);
     if(!/^M[\d\s.CQZ-]+Z$/.test(shape.face)||
       shape.face.split("C").length<10||
