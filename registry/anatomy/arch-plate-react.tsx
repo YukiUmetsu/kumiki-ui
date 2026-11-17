@@ -6,6 +6,7 @@
  * - `ArchLibraryGallery`: all 100 entries as cards, filtered by tradition, view, scale and text; choosing a card opens
  *   it large with its light and paint controls.
  * - `ArchStyleGuide`: what the plates are made of (surfaces at real size, light, age, paint), each shown rendered.
+ * - `ModulePlate`, `ArchModuleShowcase`: isolated architectural modules on a parchment studio cove, grouped by family.
  *
  * Text is HTML in token colours (`--km-*`), so themes and dark mode restyle it; the plates are pictures with labels.
  */
@@ -19,6 +20,8 @@ import { MOODS } from "./arch-paint";
 import type { MoodId } from "./arch-paint";
 import type { SurfaceSpec } from "./arch-surface";
 import { ARCH_RENDER_POOL } from "./arch-paint-pool";
+import { ARCH_MODULES, MODULE_GROUPS } from "./arch-modules";
+import type { ModuleEntry } from "./arch-modules";
 
 export interface StorybookPlateProps { id: string; width?: number; height?: number; mood?: MoodId; paint?: number; ink?: number; supersample?: number; label?: string; style?: CSSProperties }
 /** A library entry painted as a storybook plate (in a worker, cached; a smaller preview first). */
@@ -178,6 +181,68 @@ export function ArchStyleGuide() {
       <ul style={{ ...sheetGrid, listStyle: "none", margin: 0, padding: 0, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))" }}>
         {[0, 0.5, 1].map(p => <li key={p} style={{ display: "grid", gap: 4 }}><StorybookPlate id="tudor-jettied-house" width={384} height={216} paint={p} label={`Tudor house, paint ${p * 100}%`} /><span style={sheetSmall}>paint {p * 100}%{p === 0 ? " (plain render)" : ""}</span></li>)}
       </ul>
+    </div>
+  );
+}
+
+// ---- Module showcase ------------------------------------------------------------------------------------------------------
+
+export interface ModulePlateProps { id: string; width?: number; height?: number; paint?: number; supersample?: number; label?: string }
+/** One module alone on a parchment studio cove (in a worker, cached; a smaller preview first). */
+export function ModulePlate({ id, width = 480, height = 270, paint = 0.5, supersample = 1, label }: ModulePlateProps) {
+  const e = ARCH_MODULES.find(x => x.id === id), args = { module: id, width, height, paint, ink: 0.45, supersample };
+  return <RenderFrame width={width} height={height} label={label ?? `${e?.label ?? id}, isolated module on a studio backdrop`} placeholder="var(--km-surface-subtle, #ece5d8)"
+    job={{ pool: ARCH_RENDER_POOL, kind: "module", args, affinity: id }}
+    preview={{ pool: ARCH_RENDER_POOL, kind: "module", args: { ...args, width: Math.round(width / 2), height: Math.round(height / 2), supersample: 1, draft: true } }} />;
+}
+
+/** Every module, grouped by family in a grid; choose one to see it large with its notes. */
+export function ArchModuleShowcase({ initial = "corinthian-column" }: { initial?: string }) {
+  const [open, setOpen] = useState(initial), [paint, setPaint] = useState(0.5);
+  const sel = ARCH_MODULES.find(e => e.id === open) ?? ARCH_MODULES[0];
+  return (
+    <div style={{ display: "grid", gap: 20 }}>
+      <section aria-label="Selected module" style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))", alignItems: "start" }}>
+        <div style={{ gridColumn: "span 2", minWidth: 0 }}><ModulePlate id={sel.id} width={960} height={540} supersample={2} paint={paint} /></div>
+        <ModuleText e={sel} large>
+          <label style={field}>Paint {Math.round(paint * 100)}% (0 = crisp model render)
+            <input type="range" min={0} max={1} step={0.25} value={paint} onChange={ev => setPaint(Number(ev.target.value))} />
+          </label>
+        </ModuleText>
+      </section>
+      {MODULE_GROUPS.map(g => {
+        const list = ARCH_MODULES.filter(m => m.group === g.id);
+        return (
+          <section key={g.id} aria-labelledby={`mod-${g.id}`} style={{ display: "grid", gap: 10 }}>
+            <h3 id={`mod-${g.id}`} style={{ margin: 0, font: "600 17px var(--km-font-sans, system-ui)", color: "var(--km-text-primary, #26211d)" }}>{g.label} <span style={{ ...sheetSmall, fontWeight: 400 }}>({list.length})</span></h3>
+            <ul style={{ ...sheetGrid, listStyle: "none", margin: 0, padding: 0, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))" }}>
+              {list.map(m => (
+                <li key={m.id} style={{ display: "grid", gap: 6, alignContent: "start", minWidth: 0 }}>
+                  <button type="button" onClick={() => setOpen(m.id)} aria-pressed={open === m.id}
+                    style={{ display: "grid", gap: 6, padding: 0, border: open === m.id ? "2px solid var(--km-text-primary, #26211d)" : "2px solid transparent", borderRadius: 8, background: "none", color: "inherit", textAlign: "start", cursor: "pointer" }}>
+                    <ModulePlate id={m.id} width={384} height={216} />
+                    <span style={{ font: "600 15px/1.3 var(--km-font-sans, system-ui, sans-serif)", overflowWrap: "anywhere", padding: "0 2px 2px" }}>{m.label}</span>
+                  </button>
+                  <ModuleText e={m} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function ModuleText({ e, large, children }: { e: ModuleEntry; large?: boolean; children?: ReactNode }) {
+  return (
+    <div style={{ display: "grid", gap: 6, minWidth: 0, color: "var(--km-text-primary, #26211d)", font: "14px/1.45 var(--km-font-sans, system-ui, sans-serif)" }}>
+      {large ? <h3 style={{ margin: 0, font: "600 18px/1.3 var(--km-font-sans, system-ui, sans-serif)" }}>{e.label}</h3> : null}
+      <span style={sheetSmall}><strong>After:</strong> {e.inspiration.join("; ")}</span>
+      <span style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>{e.materials.map(s => <span key={s} style={tag}>{s}</span>)}</span>
+      {large ? <p style={{ ...sheetSmall, margin: 0 }}><strong>How it is built:</strong> {e.note}</p> : null}
+      {large ? <code style={{ ...sheetSmall, overflowWrap: "anywhere" }}>findModule("{e.id}")!.build(b)</code> : null}
+      {children}
     </div>
   );
 }

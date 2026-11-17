@@ -30,3 +30,12 @@ describe("ARCH1 storybook library", () => {
     expect(r.meta.hits).toBeGreaterThan(200);
   });
 });
+
+describe("ARCH1 module showcase", () => {
+  it("has distinct modules in every family, each building a studio scene", async () => {
+    const { ARCH_MODULES, MODULE_GROUPS, moduleScene } = await import("../registry/anatomy/arch-modules");
+    expect(new Set(ARCH_MODULES.map(m => m.id)).size).toBe(ARCH_MODULES.length);
+    for (const g of MODULE_GROUPS) expect(ARCH_MODULES.some(m => m.group === g.id), g.id).toBe(true);
+    for (const m of ARCH_MODULES) { const s = moduleScene(m.id); expect(s.mood, m.id).toBe("studio"); expect(s.camera.pitch ?? 0, m.id).toBe(0); }
+  });
+});
