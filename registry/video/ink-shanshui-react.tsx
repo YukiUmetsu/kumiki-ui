@@ -2552,7 +2552,8 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
   ] as const;
   const silhouette=id+"-source-clip";
   return <g data-km-fuchun-near-relief=""
-    data-km-fuchun-near-relief-source="19-station-ridge">
+    data-km-fuchun-near-relief-source="19-station-ridge"
+    data-km-fuchun-near-relief-pigment="cool-ink-five-value">
     <defs><clipPath id={silhouette} clipPathUnits="userSpaceOnUse">
       <path d={ridgePath(stations)}/>
     </clipPath></defs>
@@ -2800,31 +2801,31 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
               x1={f(left[0]+span*.27)} y1={f(left[1]-plan.crest)}
               x2={f(left[0]+span*.57)}
               y2={f(left[1]+drop*.84)}>
-              <stop offset="0" stopColor="#3e372f" stopOpacity=".65"/>
-              <stop offset=".19" stopColor="#534a3d" stopOpacity=".52"/>
-              <stop offset=".52" stopColor="#766652" stopOpacity=".32"/>
-              <stop offset=".84" stopColor="#a48d71" stopOpacity=".09"/>
-              <stop offset="1" stopColor="#aa967b" stopOpacity="0"/>
+              <stop offset="0" stopColor="#292e2c" stopOpacity=".84"/>
+              <stop offset=".19" stopColor="#424844" stopOpacity=".69"/>
+              <stop offset=".52" stopColor="#5d6259" stopOpacity=".42"/>
+              <stop offset=".84" stopColor="#909181" stopOpacity=".13"/>
+              <stop offset="1" stopColor="#a29d8c" stopOpacity="0"/>
             </linearGradient>
             {turning.map(({root,tip,gradient},k)=>
               <linearGradient key={gradient} id={gradient}
                 gradientUnits="userSpaceOnUse"
                 x1={f(root[0])} y1={f(root[1])}
                 x2={f(tip[0])} y2={f(tip[1])}>
-                <stop offset="0" stopColor="#413b31"
-                  stopOpacity={k===0?".57":".41"}/>
-                <stop offset=".28" stopColor="#4a4137"
-                  stopOpacity={k===0?".53":".37"}/>
-                <stop offset=".53" stopColor="#5f5448"
-                  stopOpacity={k===0?".37":".23"}/>
-                <stop offset=".82" stopColor="#877866"
-                  stopOpacity=".085"/>
-                <stop offset="1" stopColor="#998875" stopOpacity="0"/>
+                <stop offset="0" stopColor="#292e2b"
+                  stopOpacity={k===0?".79":".57"}/>
+                <stop offset=".28" stopColor="#3b423b"
+                  stopOpacity={k===0?".67":".48"}/>
+                <stop offset=".53" stopColor="#565e54"
+                  stopOpacity={k===0?".45":".29"}/>
+                <stop offset=".82" stopColor="#858a7c"
+                  stopOpacity=".12"/>
+                <stop offset="1" stopColor="#a59f8e" stopOpacity="0"/>
               </linearGradient>)}
           </defs>
           <path data-km-fuchun-near-bank-wash="" d={d}
             fill={"url(#"+wash+")"}
-            opacity={f((i===1?.61:i===3?.38:.49)*(1-.21*mist))}/>
+            opacity={f((i===1?.76:i===2?.68:i===3?.46:.57)*(1-.21*mist))}/>
           <g clipPath={"url(#"+clip+")"}>
             {turning.map(({root,tip,d,width,gradient,axis},k)=>
               <path key={k} data-km-fuchun-near-turning-wash=""
@@ -2835,7 +2836,7 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
                 data-km-fuchun-near-turning-axis={axis}
                 data-km-fuchun-near-turning-width={f(width)}
                 d={d} fill={"url(#"+gradient+")"}
-                opacity={f((i===1?.92:i===3?.67:.79)*
+                opacity={f((i===1?.98:i===2?.83:i===3?.7:.83)*
                   (k===0?1:.78)*(1-.22*mist))}/>)}
             {innerStrata.map(({source,root,t,depth,firstBody,secondBody},j)=>
               <g key={"interior"+j} data-km-fuchun-near-inner-stratum=""
@@ -2844,16 +2845,16 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
                 data-km-fuchun-near-inner-station={f(t)}
                 data-km-fuchun-near-inner-depth={f(depth)}>
                 <path data-km-fuchun-near-inner-phrase=""
-                  d={firstBody} fill={j%3===0?"#463e33":"#655744"}
-                  opacity={f((j%3===0?.52:.36)*(1-.17*mist))}/>
+                  d={firstBody} fill={j%3===0?"#303833":"#535a51"}
+                  opacity={f((j%3===0?.67:.43)*(1-.17*mist))}/>
                 <path data-km-fuchun-near-inner-phrase=""
-                  d={secondBody} fill={j%4===1?"#786950":"#504638"}
-                  opacity={f((j%4===1?.24:.37)*(1-.2*mist))}/>
+                  d={secondBody} fill={j%4===1?"#6b7166":"#3c433a"}
+                  opacity={f((j%4===1?.31:.45)*(1-.2*mist))}/>
               </g>)}
             <path data-km-fuchun-near-bank-broken-crest="" d={rim1}
-              fill="#4a3b30" opacity={f((i===1?.47:.35)*(1-.24*mist))}/>
+              fill="#30332f" opacity={f((i===1?.58:.43)*(1-.24*mist))}/>
             <path data-km-fuchun-near-bank-broken-crest="" d={rim2}
-              fill="#5b4b3c" opacity={f(.28*(1-.2*mist))}/>
+              fill="#4c524b" opacity={f(.34*(1-.2*mist))}/>
             {terraces.map(({root,tip,axis,near,far},k)=>
               <g key={"turn"+k} data-km-fuchun-near-terrace=""
                 data-km-fuchun-near-terrace-root={
@@ -2863,12 +2864,12 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
                 data-km-fuchun-near-terrace-axis={axis}
                 data-km-fuchun-near-terrace-level={k}>
                 <path data-km-fuchun-near-terrace-phrase=""
-                  d={near} fill="#4d4538"
-                  opacity={f((k===0?.55:k===1?.43:.32)*
+                  d={near} fill="#343b34"
+                  opacity={f((k===0?.66:k===1?.54:.37)*
                     (1-.18*mist))}/>
                 <path data-km-fuchun-near-terrace-phrase=""
-                  d={far} fill="#675743"
-                  opacity={f((k===0?.34:k===1?.3:.22)*
+                  d={far} fill="#596054"
+                  opacity={f((k===0?.39:k===1?.34:.26)*
                     (1-.18*mist))}/>
               </g>)}
             {strokes.map(({root,body,axis,kind},j)=>
@@ -2876,14 +2877,14 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
                 data-km-fuchun-near-hemp-root={f(root[0])+","+f(root[1])}
                 data-km-fuchun-near-hemp-axis={axis}
                 data-km-fuchun-near-hemp-kind={kind}
-                d={body} fill={j%4===2?"#514739":"#453b31"}
-                opacity={f((j%5===0?.66:.42)*(1-.24*mist))}/>)}
+                d={body} fill={j%4===2?"#4b534a":"#313b34"}
+                opacity={f((j%5===0?.77:.47)*(1-.24*mist))}/>)}
             {deposits.map(({root,body},j)=>
               <path key={j} data-km-fuchun-near-deposit=""
                 data-km-fuchun-near-deposit-root={
                   f(root[0])+","+f(root[1])}
-                d={body} fill="#493c31"
-                opacity={f((j===1?.56:.38)*(1-.18*mist))}/>)}
+                d={body} fill="#2b362f"
+                opacity={f((j===1?.65:.46)*(1-.18*mist))}/>)}
           </g>
         </g>;
       })}
