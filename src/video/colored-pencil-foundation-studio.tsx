@@ -23,7 +23,7 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx"|"rose-fold-left"|"rose-fold-right"|"rose-fold-back"|"rose-whorl-center"|"rose-whorl-recess"|"rose-mid-left"|"rose-mid-right";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx"|"rose-fold-left"|"rose-fold-right"|"rose-fold-back"|"rose-front-left"|"rose-front-right"|"rose-whorl-center"|"rose-whorl-recess"|"rose-mid-left"|"rose-mid-right";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
@@ -124,7 +124,9 @@ export function PencilFoundationStudio(){
     "calyx-receptacle":inspectionFocus==="rose-fold-left"&&specimen==="rose"&&rosePhysicalFolds?
     "rose-turn-outer-left":inspectionFocus==="rose-fold-right"&&specimen==="rose"&&rosePhysicalFolds?
     "rose-turn-petal-front-right":inspectionFocus==="rose-fold-back"&&specimen==="rose"&&rosePhysicalFolds?
-    "rose-turn-back-cup":inspectionFocus==="rose-whorl-center"&&specimen==="rose"&&roseInnerWhorlStudy?
+    "rose-turn-back-cup":inspectionFocus==="rose-front-left"&&specimen==="rose"&&rosePhysicalFolds?
+    "petal-front-left":inspectionFocus==="rose-front-right"&&specimen==="rose"&&rosePhysicalFolds?
+    "petal-front-right":inspectionFocus==="rose-whorl-center"&&specimen==="rose"&&roseInnerWhorlStudy?
     "rose-whorl-scroll":inspectionFocus==="rose-whorl-recess"&&specimen==="rose"&&roseInnerWhorlStudy?
     "rose-whorl-recess":inspectionFocus==="rose-mid-left"&&specimen==="rose"&&roseMiddleCupStudy?
     "rose-mid-left-shoulder":inspectionFocus==="rose-mid-right"&&specimen==="rose"&&roseMiddleCupStudy?
@@ -305,6 +307,12 @@ export function PencilFoundationStudio(){
           </option>
           <option value="rose-fold-back" disabled={specimen!=="rose"||!rosePhysicalFolds}>
             Rose back-cup underturn / near-center curl
+          </option>
+          <option value="rose-front-left" disabled={specimen!=="rose"||!rosePhysicalFolds}>
+            Rose front-left lamina / curved medial attachment
+          </option>
+          <option value="rose-front-right" disabled={specimen!=="rose"||!rosePhysicalFolds}>
+            Rose front-right lamina / S-curve medial seam
           </option>
           <option value="rose-whorl-center" disabled={specimen!=="rose"||!roseInnerWhorlStudy}>
             Rose inner whorl / front spiral roll
