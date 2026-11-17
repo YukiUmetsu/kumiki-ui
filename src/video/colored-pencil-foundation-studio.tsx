@@ -75,6 +75,7 @@ export function PencilFoundationStudio(){
   const [roseFrontLaminaVolumeStudy,setRoseFrontLaminaVolumeStudy]=useState(false);
   const [roseInnerWhorlStudy,setRoseInnerWhorlStudy]=useState(false);
   const [roseCenterKnotStudy,setRoseCenterKnotStudy]=useState(false);
+  const [roseCenterValueStudy,setRoseCenterValueStudy]=useState(false);
   const [roseMiddleCupStudy,setRoseMiddleCupStudy]=useState(false);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
@@ -91,6 +92,7 @@ export function PencilFoundationStudio(){
         roseFrontLaminaVolumeStudy:specimen==="rose"&&roseFrontLaminaVolumeStudy,
         roseInnerWhorlStudy:specimen==="rose"&&roseInnerWhorlStudy,
         roseCenterKnotStudy:specimen==="rose"&&roseCenterKnotStudy,
+        roseCenterValueStudy:specimen==="rose"&&roseCenterValueStudy,
         roseMiddleCupStudy:specimen==="rose"&&roseMiddleCupStudy}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
         specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,
@@ -99,7 +101,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseOuterFormStudy,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseCenterKnotStudy,roseMiddleCupStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseOuterFormStudy,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseCenterKnotStudy,roseCenterValueStudy,roseMiddleCupStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -171,6 +173,7 @@ export function PencilFoundationStudio(){
     data-km-rose-frontal-volume={specimen==="rose"?(roseFrontLaminaVolumeStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-inner-whorl={specimen==="rose"?(roseInnerWhorlStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-center-knot={specimen==="rose"?(roseCenterKnotStudy?"opt-in":"baseline"):"not-applicable"}
+    data-km-rose-center-value={specimen==="rose"?(roseCenterValueStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-middle-cup={specimen==="rose"?(roseMiddleCupStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-pinnate-study={specimen==="rose"?(rosePinnateStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-calyx-study={specimen==="rose"?(roseCalyxStudy?"opt-in":"baseline"):"not-applicable"}
@@ -467,7 +470,7 @@ export function PencilFoundationStudio(){
           checked={roseInnerWhorlStudy}
           onChange={e=>{
             setRoseInnerWhorlStudy(e.target.checked);
-            if(!e.target.checked)setRoseCenterKnotStudy(false);
+            if(!e.target.checked){setRoseCenterKnotStudy(false);setRoseCenterValueStudy(false);}
           }}/>
         FLORA1 inner rose / four separately shaded, overlapping curled petals · A/B (unapproved)
       </label>}
@@ -477,8 +480,20 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose center knot anatomy" type="checkbox"
           disabled={!roseInnerWhorlStudy}
           checked={roseCenterKnotStudy}
-          onChange={e=>setRoseCenterKnotStudy(e.target.checked)}/>
+          onChange={e=>{
+            setRoseCenterKnotStudy(e.target.checked);
+            if(!e.target.checked)setRoseCenterValueStudy(false);
+          }}/>
         FLORA1 compact rose centre / six differently curved physical petals and tucked underside · A/B (unapproved)
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40,
+          opacity:roseCenterKnotStudy?1:.65}}>
+        <input aria-label="Foundation rose central diffuse values" type="checkbox"
+          disabled={!roseCenterKnotStudy}
+          checked={roseCenterValueStudy}
+          onChange={e=>setRoseCenterValueStudy(e.target.checked)}/>
+        FLORA1 rose centre / twelve source-local curved shadow and reflected-light fibre fields · A/B (unapproved)
       </label>}
       {specimen==="rose"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>

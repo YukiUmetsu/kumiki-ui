@@ -15,6 +15,7 @@ import {ROSE_BACK_CUP_RELIEF,roseBackCupUndersideDetails,roseBackCupFaceDetails,
 import {ROSE_FRONT_LAMINA_VOLUME,inspectRoseFrontLaminaVolume} from "./colored-pencil-rose-front-lamina-volume";
 import {ROSE_CENTER_KNOT_SURFACES,ROSE_CENTER_SCROLL_BACKFACE,inspectRoseCenterKnot} from "./colored-pencil-rose-center-knot";
 import {ROSE_OUTER_FORM_FACE_PALETTES,roseOuterFormDeposits,inspectRoseOuterForm} from "./colored-pencil-rose-outer-form";
+import {roseCenterValueDetails,inspectRoseCenterValueFields} from "./colored-pencil-rose-center-local-value";
 
 /**
  * Four independent original subject studies. These are *authored* silhouettes,
@@ -473,6 +474,8 @@ export interface PencilObjectStudyOptions {
   roseCenterKnotStudy?: boolean;
   /** Opt-in source-curved dry-pencil color transitions on two outer adaxial rose petals. */
   roseOuterFormStudy?: boolean;
+  /** Original gently diffused pencil values for the six true center knot surfaces. */
+  roseCenterValueStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -486,6 +489,7 @@ export function pencilObjectStudyDrawing({
   roseFrontValueStudy = false, rosePetalRimStudy = false,
   roseBackCupReliefStudy = false, roseFrontLaminaVolumeStudy = false,
   roseCenterKnotStudy = false, roseOuterFormStudy = false,
+  roseCenterValueStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -521,6 +525,14 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose center knot study flag must be boolean");
   if(typeof roseOuterFormStudy !== "boolean")
     throw new RangeError("Rose outer form study flag must be boolean");
+  if(typeof roseCenterValueStudy !== "boolean")
+    throw new RangeError("Rose center value study flag must be boolean");
+  if(subject==="rose"&&roseCenterValueStudy&&!roseCenterKnotStudy)
+    throw new RangeError("Rose center values require independently authored source knot petals");
+  if(subject==="rose"&&roseCenterValueStudy){
+    const errors=inspectRoseCenterValueFields();
+    if(errors.length)throw new RangeError("Rose center value fields: "+errors.join("; "));
+  }
   if(subject==="rose"&&roseOuterFormStudy&&!rosePhysicalFolds)
     throw new RangeError("Rose outer form requires real physical fold anatomy");
   if(subject==="rose"&&roseCenterKnotStudy&&!roseInnerWhorlStudy)
@@ -582,8 +594,11 @@ export function pencilObjectStudyDrawing({
     const outer=subject==="rose"&&roseOuterFormStudy&&
       (shape.id==="outer-left"||shape.id==="outer-right")?
       roseOuterFormDeposits(shape.id,seed):undefined;
-    return { ...region, ...(frontal||outer?{
-      interiorDetails:[...(frontal??[]),...(outer??[])]}:{}),
+    const center=subject==="rose"&&roseCenterValueStudy&&
+      ROSE_CENTER_KNOT_SURFACES.some(s=>s.id===shape.id)?
+      roseCenterValueDetails(shape.id as typeof ROSE_CENTER_KNOT_SURFACES[number]["id"],seed):undefined;
+    return { ...region, ...(frontal||outer||center?{
+      interiorDetails:[...(frontal??[]),...(outer??[]),...(center??[])]}:{}),
       layers:region.layers.map(layer => ({
         ...layer, pressure:Math.min(1, layer.pressure * pressure),
       })) };
@@ -629,6 +644,12 @@ export function pencilObjectStudyDrawing({
         url:"https://www.artfinder.com/product/pink-rose-6a554/",
         rights:"technique-only" as const,
         observation:"Anatomical double-rose cup has separate intermediate hooked petal faces with asymmetrical shoulders, counterturning edges and dark fold attachment, rather than a single empty band.",
+      }]:[]),
+      ...(subject==="rose"&&roseCenterValueStudy?[{
+        title:"CPSA ArtTopics — original colored-pencil rose value transitions",
+        url:"https://cpsa.org/wp-content/uploads/ARTopics01_Maklowski_GoldLeaf.pdf",
+        rights:"technique-only" as const,
+        observation:"A hand-drawn rose shows sharp structural boundaries between central petals yet soft changes through cool shadow, mid-rose and returned warm light within each curved lamina; dry pencil fields are clipped to individually built source shapes.",
       }]:[]),
       ...(subject==="rose"&&roseOuterFormStudy?[{
         title:"Karen Elaine Evans — artist-original Pink Rose colored-pencil form",
