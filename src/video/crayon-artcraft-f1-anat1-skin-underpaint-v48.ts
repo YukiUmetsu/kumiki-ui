@@ -8,7 +8,10 @@ import {crayonF1RegisterAnat1Face} from "./crayon-artcraft-f1-anat1-malar";
  * seeds, paper, gradients and 300-frame motion are preserved.
  * The ANAT1 mesh is a structural guide, never a sitter-specific 3D scan.
  */
-const bounds={x:99,y:272,width:412,height:608} as const;
+// V30 rebuilt the actual continuous face outline to encompass the photographed
+// near cheek and chin. V41 only adjusted the hairline geometry, not the bounds.
+// Never normalize the source observations against the obsolete V23 412×608 box.
+const bounds={x:73,y:272,width:440,height:611} as const;
 const witnesses=[
   {id:"lateral-cast",at:[133,702],source:[123,85,67],nativeV46:[203,166,149]},
   {id:"jaw-undercut",at:[155,762],source:[129,92,75],nativeV46:[197,162,145]},
