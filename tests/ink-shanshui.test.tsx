@@ -3142,6 +3142,21 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     // the actual near ridge changes the child painter's root positions.
     expect(legacy).not.toContain('data-km-fuchun-near-relief=""');
     expect((candidate.match(/data-km-fuchun-near-relief=""/g)??[])).toHaveLength(1);
+    // The real 960×540 native capture exposed almost no value contrast
+    // despite rich source-linked geometry. Five translucent ink values
+    // now sit on the SAME four positive bank faces, not on fake masks.
+    expect(candidate).toContain(
+      'data-km-fuchun-near-relief-pigment="cool-ink-five-value"');
+    expect(legacy).not.toContain(
+      'data-km-fuchun-near-relief-pigment="cool-ink-five-value"');
+    expect((candidate.match(/stop-color="#292e2c" stop-opacity="0.84"/g)??[]))
+      .toHaveLength(4);
+    expect((candidate.match(/stop-color="#424844" stop-opacity="0.69"/g)??[]))
+      .toHaveLength(4);
+    expect((candidate.match(/stop-color="#5d6259" stop-opacity="0.42"/g)??[]))
+      .toHaveLength(4);
+    expect((candidate.match(/stop-color="#909181" stop-opacity="0.13"/g)??[]))
+      .toHaveLength(4);
     expect((candidate.match(/data-km-fuchun-near-bank=""/g)??[])).toHaveLength(4);
     expect((candidate.match(/data-km-fuchun-near-bank-wash=""/g)??[])).toHaveLength(4);
     const turns=[...candidate.matchAll(
