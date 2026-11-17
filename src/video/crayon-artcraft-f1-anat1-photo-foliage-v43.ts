@@ -149,28 +149,33 @@ export function crayonF1RebuildPhotoFoliageV43(
     const dx=Math.max(1,maxX-minX),dy=Math.max(1,maxY-minY);
     const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
     const base=trace.median;
-    // The foreground x>~500 has intentionally muted, dark green-black
-    // photosensitive pigment. No synthetic chartreuse leaves.
+    // Real CC0 far-upper x520..608,y180..355 is darker than V42:
+    // source mean RGB (45,65,26), V42 (57,80,39), first V43
+    // (72,93,49). The largest observed x412..607 canopy shape
+    // must be a DARK volume beneath six separate source light islands,
+    // not a pale wax sticker. Preserve all measured contour points.
+    const shadow=index===0?.52:1;
     const colors=[
-      toColor(base,.82),toColor(base,.42),toColor(base,1.12),
+      toColor(base,.82*shadow),toColor(base,.42*shadow),
+      toColor(base,1.12*shadow),
     ] as const;
     const wax:Wax={...old,d:cubicLoop(points),
       bounds:{x:minX-16,y:minY-16,width:dx+32,height:dy+32},
       colors,
       underpaintGradient:{
-        light:toColor(base,1.04),
-        shadow:toColor(base,.21),
+        light:toColor(base,1.04*shadow),
+        shadow:toColor(base,.21*shadow),
         focusX:.52,focusY:.43,radius:1.42,
       },
       // For the far hedge, wax-tooth and feather contacts should look
       // optically soft at 1x; retain fibers/microrelief, not vector leaves.
-      markStrength:.21,pressure:.67,spacing:9.7,
+      markStrength:.21,pressure:index===0?.89:.67,spacing:9.7,
       // Gaussian feather on 19 source patches must fit Chromium's SVG
       // raster budget; 18px blur corrupts adjacent artist-authored
       // foreground tiles on 608×1082 screenshot. 7px preserves the
       // photographic soft edge without huge overlapping filter extents.
       blendRadius:7,edgeRoughness:.39,underpaintTooth:.34,
-      opaqueBurnish:.61,featherContacts:true};
+      opaqueBurnish:index===0?.88:.61,featherContacts:true};
     changed.set(old.id,wax);
     const prev=laminae.get(old.id);
     if(!prev)throw new RangeError("Missing source wax-vein group for "+old.id);
