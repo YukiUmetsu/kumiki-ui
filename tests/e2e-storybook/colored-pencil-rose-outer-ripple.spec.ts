@@ -106,7 +106,7 @@ test("softly scalloped distal rim is source-fill, paper locked and its five dry 
   await expect(edges).toHaveCount(5);
   await page.getByRole("button",{name:/3\. Light value map/}).click();
   await expect(edges.first()).toHaveAttribute("stroke-dasharray","0.00000 1");
-  await page.getByRole("button",{name:/6\. Burnish and visual audit/"}).click();
+  await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
   await expect(edges.first()).toHaveAttribute("stroke-dasharray","1.00000 1");
   const areas=await svg.evaluate(root=>{
     const ids=["outer-left","outer-right"];
@@ -124,7 +124,7 @@ test("softly scalloped distal rim is source-fill, paper locked and its five dry 
     expect(a.area).toBeGreaterThan(17500);
   }
   const hash=digest(await svg.screenshot({animations:"disabled"}));
-  await page.getByRole("button",{name:/3\. Light value map/"}).click();
-  await page.getByRole("button",{name:/6\. Burnish and visual audit/"}).click();
+  await page.getByRole("button",{name:/3\. Light value map/}).click();
+  await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
   expect(digest(await svg.screenshot({animations:"disabled"}))).toBe(hash);
 });
