@@ -176,3 +176,59 @@ test("experimental 96-frame ANAT2 actor is transparent, motion-safe and foregrou
     await expect(actor.getByTestId("ink-anat2-portrait"))
       .toHaveAttribute("data-ink-transparent-paper","true");
   });
+
+test("ANAT2 original standing scholar preserves all planted supports at 1x while motion affects local cloth only",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-anat2-standing-figure--cotton-robe-and-staff&viewMode=story");
+    const studio=page.getByTestId("ink-anat2-standing-figure-studio");
+    const live=page.getByTestId("ink-anat2-standing-live");
+    const figure=live.locator("[data-km-ink-standing-figure]");
+    await expect(studio).toBeVisible();
+    await expect(figure).toHaveAttribute("data-km-ink-standing-figure","scholar");
+    await expect(figure).toHaveAttribute("data-km-ink-standing-ground","soles-fixed");
+    await expect(figure.locator('[data-km-ink-foot]')).toHaveCount(2);
+    await expect(figure.locator('[data-km-ink-bamboo-node]')).toHaveCount(10);
+    await expect(figure.locator('[data-km-ink-hand-finger]')).toHaveCount(4);
+    await expect(figure.locator('[data-km-ink-standing-pressure]')).toHaveCount(6);
+    await expect(figure.locator('[data-km-ink-native-robe-brush]')).toHaveCount(4);
+    const feet=figure.locator('[data-km-ink-foot]');
+    const original=await Promise.all([feet.nth(0).boundingBox(),feet.nth(1).boundingBox()]);
+    await live.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-standing-source-540x1080-scholar-frame12.png")});
+    const frame=page.getByRole("slider",{name:"Ink standing frame"});
+    await frame.focus();await frame.press("End");
+    await expect(figure).toHaveAttribute("data-km-ink-standing-frame","95");
+    const reversed=await Promise.all([feet.nth(0).boundingBox(),feet.nth(1).boundingBox()]);
+    for(let i=0;i<2;i++){
+      expect(reversed[i]).not.toBeNull();
+      expect(reversed[i]!.x).toBeCloseTo(original[i]!.x,2);
+      expect(reversed[i]!.y).toBeCloseTo(original[i]!.y,2);
+    }
+    await page.getByRole("combobox",{name:"Ink standing character"}).selectOption("elder");
+    await page.getByRole("combobox",{name:"Ink standing emotion"}).selectOption("sad");
+    await expect(figure).toHaveAttribute("data-km-ink-standing-figure","elder");
+    await expect(figure.locator('[data-km-ink-beard-fibre]')).toHaveCount(93);
+    await live.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-standing-source-540x1080-elder-frame95.png")});
+    await page.getByRole("checkbox",{name:"Ink standing reduced motion"}).check();
+    await expect(figure.locator('[data-km-ink-foot]')).toHaveCount(2);
+  });
+
+test("ANAT2 real Shanshui film switches between grounded full figure and original bust",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-anat2-portrait-rebuild--original-film-actor-proof&viewMode=story");
+    const film=page.getByTestId("ink-anat2-960-film");
+    const actor=film.getByTestId("ink-anat2-film-actor");
+    await expect(actor).toHaveAttribute("data-ink-actor-mode","standing");
+    await expect(actor.locator('[data-km-ink-standing-ground="soles-fixed"]')).toHaveCount(1);
+    await film.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-real-shanshui-standing-scholar-frame00.png")});
+    const framing=page.getByRole("combobox",{name:"Ink ANAT2 film framing"});
+    await framing.selectOption("bust");
+    await expect(actor).toHaveAttribute("data-ink-actor-mode","bust");
+    await expect(actor.locator('[data-km-ink-standing-figure]')).toHaveCount(0);
+    await film.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-real-shanshui-legacy-bust-comparison.png")});
+    await framing.selectOption("standing");
+    await expect(actor.locator('[data-km-ink-standing-figure]')).toHaveCount(1);
+  });
