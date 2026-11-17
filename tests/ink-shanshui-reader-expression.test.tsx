@@ -138,6 +138,42 @@ describe("EXPR1 anatomy-driven Chinese-ink reader",()=>{
     }
   });
 
+  it("uses ANAT1-compatible orbicularis lower-lid lift and levator upper-lid opening",()=>{
+    const original=scrollReaderFacePortrait(1);
+    const smile=inkReaderExpressionStudy("smile",.9,1);
+    const surprised=inkReaderExpressionStudy("surprise",.9,1);
+    const lids=(assets:ReturnType<typeof scrollReaderFacePortrait>)=>
+      shapes(assets,"eyes-soft").map(s=>s.type==="path"?s.d:"");
+    const baseline=lids(original),smiling=lids(smile.assets),wide=lids(surprised.assets);
+    expect(smiling).toHaveLength(baseline.length);
+    expect(wide).toHaveLength(baseline.length);
+    // The native lower tarsal crease at x126.3, y109 must travel
+    // toward the orbital center when AU6 raises the malar region.
+    const tarsal=baseline.findIndex(d=>d.includes("Q126.3 109 "));
+    expect(tarsal).toBeGreaterThanOrEqual(0);
+    const eyeY=(d:string)=>{
+      const match=d.match(/Q126\.3 ([0-9.]+)/);
+      if(!match)throw Error("Source ANAT1 lower eyelid not found");
+      return Number(match[1]);
+    };
+    expect(eyeY(smiling[tarsal])).toBeLessThan(eyeY(baseline[tarsal]));
+    const opening=baseline.findIndex(d=>d.includes("C123.7 103.7 "));
+    expect(opening).toBeGreaterThanOrEqual(0);
+    const upperY=(d:string)=>{
+      const match=d.match(/C123\.7 ([0-9.]+)/);
+      if(!match)throw Error("Source ANAT1 upper aperture missing");
+      return Number(match[1]);
+    };
+    expect(upperY(wide[opening])).toBeLessThan(upperY(baseline[opening]));
+    // No mirrored synthetic face: original lids and independent pupils
+    // remain exact assets whenever expression intensity reaches zero.
+    expect(inkReaderExpressionStudy("smile",0,1).assets).toEqual(original);
+    expect(smile.assets["eyes-open"]).toEqual(original["eyes-open"]);
+    expect(smile.assets["eyes-closed"]).toEqual(original["eyes-closed"]);
+    expect(smile.assets["pupil-left"]).toEqual(original["pupil-left"]);
+    expect(smile.assets["pupil-right"]).toEqual(original["pupil-right"]);
+  });
+
   it("keeps original near/far ANAT1 iris detail at neutral and bounds asymmetric gaze",()=>{
     const unchanged=scrollReaderFacePortrait(1);
     const neutral=readerInkGaze(0,0);
