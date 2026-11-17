@@ -73,6 +73,8 @@ export function InkZengJingScholarHead({
   const browInner=-anatomy.browInner*9.2;
   const browOuter=-anatomy.browOuter*8.0;
   const eyeOpen=5.2*clamp(anatomy.eyeOpen,.42,1.85);
+  const eyeSurprise=Math.max(0,anatomy.eyeOpen-1);
+  const smileStrength=Math.max(0,anatomy.mouthCorner);
   const cheekRaise=anatomy.cheekRaise*6.4;
   const noseWrinkle=anatomy.noseWrinkle;
   const mouthLift=anatomy.mouthCorner*8.6;
@@ -99,7 +101,7 @@ export function InkZengJingScholarHead({
       <path d={`M${n(cx-half+1)} ${n(y+.8)}
         Q${n(cx)} ${n(bottom+1.4)} ${n(cx+half-1)} ${n(y+.7)}`}
         fill="none" stroke={bone} strokeWidth=".48" opacity=".55"/>
-      <ellipse cx={cx+(far?1.1:-.4)} cy={y-.15} rx="2.05" ry={2.75+surprise*.65}
+      <ellipse cx={cx+(far?1.1:-.4)} cy={y-.15} rx="2.05" ry={2.75+eyeSurprise*.65}
         fill="#74604e" opacity=".72"/>
       <ellipse cx={cx+(far?1.1:-.4)} cy={y-.25} rx=".88" ry="2.0"
         fill="#292722" opacity=".86"/>
@@ -266,9 +268,9 @@ export function InkZengJingScholarHead({
     {/* Nasolabial folds are broken, low-contrast arcs, never drawn as triangles. */}
     <g data-km-zj1-facial-expression="nasolabial">
       <path d={emotion==="smile"?"M257 344 Q253 351 256 355":"M257 344 Q254 350 256 354"}
-        stroke={bone} strokeWidth={.55+smile*.2} opacity=".38" fill="none"/>
+        stroke={bone} strokeWidth={.55+smileStrength*.2} opacity=".38" fill="none"/>
       <path d={emotion==="smile"?"M283 344 Q287 351 284 355":"M283 344 Q286 350 284 354"}
-        stroke={bone} strokeWidth={.55+smile*.2} opacity=".34" fill="none"/>
+        stroke={bone} strokeWidth={.55+smileStrength*.2} opacity=".34" fill="none"/>
       <path d="M251 347 q-2 2 -2 4 M289 347 q2 2 2 4"
         stroke={warm} strokeWidth=".34" opacity=".24" fill="none"/>
     </g>
