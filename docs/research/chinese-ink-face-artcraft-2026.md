@@ -633,3 +633,57 @@ The atlas is a **diagnostic**, not evidence of historical facial likeness.
 Actual 1×/3× teacher-photo and 960×540 frame/film comparisons, malar/nose
 pigment quality, and the independent Fuchun rock/pine/hemp art holds still
 block merging PR #466.
+
+## Source-integrity iris/eyelid ArtCraft continuation · native Chromium visual review (2026-11-16)
+
+I inspected the **actual native Chromium outputs** in [successful workflow
+44011028256](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44011028256),
+[artifact 14296588765](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44011028256/artifacts/14296588765),
+especially `reader-EXPR1-five-emotion-native-source-atlas.png`,
+`reader-EXPR1-sad-face-micro.png`, `reader-EXPR1-smile-face-micro.png`,
+`reader-malar-nose-rounded-positive-ink-1x.png`, and the isolated
+`reader-source-Ming-ink-glazes-all-1x.png`.
+
+**Visible rejection, not a code failure:** the reader's flat upper face and
+strongly directional cheek bands remain too graphic for the individual
+wet-ink modeling of the cited Zeng Jing portraits. Although all five
+emotions are technically different, at native atlas scale anger/sorrow
+are under-articulated; a smile is mostly indicated by the lips, and
+the face/ear line weight is still heavy. On the near pupil, the original
+last hard ink stroke appears as a separate dark bead to the right of the
+iris, reading as **two pupils**; the smaller far iris also has a detached
+dark dash. Historical comparison: [UMMA Zeng Jing, *Portrait of Pan
+Qintai*, 1621](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/)
+uses individually observed, translucent orbital/nasal volume, not
+alternating diagonal face stickers. [Bochen-school technical
+analysis](https://fphil.uniba.sk/fileadmin/fif/katedry_pracoviska/kvas/SOS_10_2/02_39breuer-form120520.pdf)
+documents light-ink multi-stage wash modeling as a discrete historical
+method. These are **process references**; they are not licensed assets
+or likeness templates for the original young sitter.
+
+**This bounded iris correction:** preserve all original near/far iris
+positive shapes, scleral reserves, pressure fibres, separate pupil rig,
+two different eyelid clips and the five visemes, but reproject the final
+dark microstroke *inside each existing anatomically measured iris oval*.
+The near stroke now follows the far-side limbus at x128.02–128.34 and
+the far stroke at x157.92–158.20, within the original source ink
+envelopes. Each remains a separate fine brush line, not a deleted
+detail, newly mirrored pupil, circle or opacity mask.
+
+**Storybook:** the EXPR1 atelier now provides **near and far iris
+microscopes** with native head-transform-corrected viewboxes. They show
+the same live source face at two zoom positions; motion frame, gaze,
+eyelids and detail stay connected. The new Chromium test uses the
+actual SVG path geometry's `isPointInFill` at nineteen samples to
+catch future dark microstrokes that detach from the original iris, and
+saves both eye closeups for true visual QA. No new Storybook folder.
+
+**Further artistic priorities:** (1) evaluate the new exact-head
+microscope screenshots at 1×/macro and approve/reject the pupil
+contact; (2) rework the existing hard geometric malar/nasal pigment
+planes against the teacher image without hiding or dropping their
+original fibre evidence; (3) improve the small-scale
+emotion-specific brow/lid/cheek articulation and 960×540 production
+readability; (4) independently inspect native film and Fuchun's
+still-synthetic rock/hemp/pine geography. This is a **DRAFT / ART HOLD**:
+no source-relative visual approval or merge on CI green alone.
