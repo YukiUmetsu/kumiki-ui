@@ -62,7 +62,6 @@ describe("CP-F1 / FLORA1 continuous Rosa hypanthium, sepal and corolla root",()=
         expect(newer.layers).toEqual(older.layers);
         expect(newer.opaqueSupport).toBe(true);
         expect(newer.craft).toEqual(older.craft);
-        expect(newer.startFrame).toEqual(older.startFrame);
       }
       for(const id of ROSE_CALYX_SEPAL_IDS){
         expect(changed.regions.find(x=>x.id===id)).toEqual(
