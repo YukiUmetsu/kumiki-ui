@@ -4,6 +4,7 @@ import { createPencilFoundationDrawing } from "../../registry/video/colored-penc
 import type { PencilMaterialInput, PencilSurface } from "../../registry/video/colored-pencil-materials";
 import {ROSE_LAMINA_AXES,roseLaminaFibres} from "./colored-pencil-rose-lamina";
 import {ROSE_LIP_BANDS,roseRolledLipTraces} from "./colored-pencil-rose-rolled-lip";
+import {ROSE_CALYX_ORGANS,validateRoseCalyxOrgans} from "./colored-pencil-rose-calyx";
 
 /**
  * Four independent original subject studies. These are *authored* silhouettes,
@@ -48,7 +49,7 @@ function material(shape: ObjectShape, seed: number, transform: string): PencilRe
   return createPencilMaterialRegion(input);
 }
 
-function roseShapes(laminaStudy=false,seed=173,lipStudy=false): ObjectShape[] {
+function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false): ObjectShape[] {
   const shapes:ObjectShape[] = [
     {id:"stem",surface:"wood",palette:leaf,
       path:"M241 266 Q233 324 247 417 L254 417 Q251 331 250 268 Z",
@@ -121,7 +122,18 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false): ObjectShape[] {
   // Preserve all original petal supports, layers, geometry, local contours,
   // overlapping fold edges, palettes and timeline. This optical study is
   // additive, disabled in shipped default until independent art approval.
-  return !laminaStudy&&!lipStudy?shapes:shapes.map(shape=>({
+  // Only the explicitly selected anatomical study substitutes the old
+  // single, broad green polygon. Every original petal, its authored pigment
+  // and its source-native detail traces remain untouched and in z-order.
+  if(calyxStudy){
+    const errors=validateRoseCalyxOrgans();
+    if(errors.length)throw new Error("Rose calyx morphology: "+errors.join("; "));
+  }
+  const anatomy=calyxStudy?shapes.flatMap(shape=>shape.id==="sepal"?
+    ROSE_CALYX_ORGANS.map(organ=>({
+      ...organ,surface:"leaf" as const,startFrame:50,
+    })): [shape]):shapes;
+  return !laminaStudy&&!lipStudy?anatomy:anatomy.map(shape=>({
     ...shape,details:[...(shape.details??[]),
       ...(laminaStudy&&ROSE_LAMINA_AXES.some(a=>a.id===shape.id)?roseLaminaFibres(shape.id,seed):[]),
       ...(lipStudy&&ROSE_LIP_BANDS.some(a=>a.id===shape.id)?roseRolledLipTraces(shape.id):[])],
@@ -316,6 +328,8 @@ export interface PencilObjectStudyOptions {
   roseLaminaStudy?: boolean;
   /** Experimental source-native rose rolled-lip tonal edges; off by default. */
   roseLipStudy?: boolean;
+  /** Opt-in FLORA1: five anatomically attached sepals and a receptacle. */
+  roseCalyxStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -323,7 +337,7 @@ export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
 
 export function pencilObjectStudyDrawing({
   subject, aspect, paperTooth = .72, seed = 173, pressure = 1,
-  roseLaminaStudy = false, roseLipStudy = false,
+  roseLaminaStudy = false, roseLipStudy = false, roseCalyxStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -337,14 +351,26 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose lamina study flag must be boolean");
   if(typeof roseLipStudy !== "boolean")
     throw new RangeError("Rose lip study flag must be boolean");
-  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy) :
+  if(typeof roseCalyxStudy !== "boolean")
+    throw new RangeError("Rose calyx study flag must be boolean");
+  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
     "translate(24 246) scale(1.07)";
+  // Keep original material hashes byte-stable even when experimental calyx
+  // organs expand one botanical shape into six. Otherwise inserting the calyx
+  // silently re-seeds every original petal and destroys A/B fidelity.
+  const roseOriginalIds=[
+    "stem","leaf-left","leaf-right","sepal","outer-left","outer-right",
+    "back-cup","petal-front-left","petal-front-right","inner-fold","heart",
+  ] as const;
   const regions = shapes.map((shape, i) => {
     // Permit every valid UI seed while keeping each material pass in signed-31-bit range.
-    const region = material(shape, (seed + i * 311) % 2147483647, transform);
+    const original=subject==="rose"&&roseCalyxStudy?
+      roseOriginalIds.findIndex(id=>id===shape.id):-1;
+    const materialIndex=original<0?i:original;
+    const region = material(shape, (seed + materialIndex * 311) % 2147483647, transform);
     return { ...region, layers:region.layers.map(layer => ({
       ...layer, pressure:Math.min(1, layer.pressure * pressure),
     })) };

@@ -65,11 +65,13 @@ export function PencilFoundationStudio(){
   const [headSilhouetteStudy,setHeadSilhouetteStudy]=useState(false);
   const [roseLaminaStudy,setRoseLaminaStudy]=useState(true);
   const [roseLipStudy,setRoseLipStudy]=useState(false);
+  const [roseCalyxStudy,setRoseCalyxStudy]=useState(false);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
       pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,
         seed,roseLaminaStudy:specimen==="rose"&&roseLaminaStudy,
-        roseLipStudy:specimen==="rose"&&roseLipStudy}):
+        roseLipStudy:specimen==="rose"&&roseLipStudy,
+        roseCalyxStudy:specimen==="rose"&&roseCalyxStudy}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
         specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,
         seed,headContourCraft,headVolumeWeave,headSilhouetteStudy});
@@ -77,7 +79,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -124,6 +126,7 @@ export function PencilFoundationStudio(){
     data-km-head-cranial-volume={specimen==="portrait"?(headVolumeWeave?"on":"off"):"not-applicable"}
     data-km-skull-silhouette-study={specimen==="portrait"?
       (headSilhouetteStudy?"oblique":"baseline"):"not-applicable"}
+    data-km-rose-calyx-study={specimen==="rose"?(roseCalyxStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-rolled-lip={specimen==="rose"?(roseLipStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-lamina-study={specimen==="rose"?
       (roseLaminaStudy?"opt-in":"baseline"):"not-applicable"}
@@ -291,6 +294,12 @@ export function PencilFoundationStudio(){
           type="checkbox" checked={roseLipStudy}
           onChange={e=>setRoseLipStudy(e.target.checked)}/>
         Source-native petal curl shadow / reflected edge / dry highlight · A/B (experimental)
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation rose calyx anatomy" type="checkbox"
+          checked={roseCalyxStudy} onChange={e=>setRoseCalyxStudy(e.target.checked)}/>
+        FLORA1 calyx: five attached sepals / receptacle · anatomical A/B (unapproved)
       </label>}
       {specimen==="portrait"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
