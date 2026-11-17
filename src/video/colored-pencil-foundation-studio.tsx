@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { PencilDrawing } from "../../registry/video/colored-pencil-react";
 import { inspectPencilFoundationDrawing, PENCIL_FOUNDATION_STAGES } from "../../registry/video/colored-pencil-foundation";
-import type { PencilAspect } from "../../registry/video/colored-pencil";
+import type { PencilAspect, PencilDrawingSpec } from "../../registry/video/colored-pencil";
 import { pencilLivingStudyDrawing } from "./colored-pencil-living-studies";
 import {
   HEAD_FIDELITY_LANDMARK_IDS, HEAD_FIDELITY_TONES,
@@ -23,12 +23,12 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
 function projectedInspectionCenter(
-  drawing:ReturnType<typeof pencilLivingStudyDrawing>,
+  drawing:PencilDrawingSpec,
   partId:string,
 ):[number,number]|null{
   const part=drawing.regions.find(region=>region.id===partId);
@@ -112,10 +112,12 @@ export function PencilFoundationStudio(){
     "cheek-ruff":inspectionFocus==="fox-chest"&&specimen==="fox"?
     "chest":inspectionFocus==="fox-forepaw"&&specimen==="fox"?
     "foreleg-right":inspectionFocus==="fox-hock"&&specimen==="fox"?
-    "rear-leg":inspectionFocus==="portrait-head"&&specimen==="portrait"?
+    "rear-leg":inspectionFocus==="rose-left-leaf"&&specimen==="rose"&&rosePinnateStudy?
+    "rose-left-pair-far-down":inspectionFocus==="rose-right-leaf"&&specimen==="rose"&&rosePinnateStudy?
+    "rose-right-pair-near-down":inspectionFocus==="rose-calyx"&&specimen==="rose"&&roseCalyxStudy?
+    "calyx-receptacle":inspectionFocus==="portrait-head"&&specimen==="portrait"?
     "head-silhouette-01":null;
-  const focus=(focusPart?projectedInspectionCenter(
-    drawing as ReturnType<typeof pencilLivingStudyDrawing>,focusPart):null)??
+  const focus=(focusPart?projectedInspectionCenter(drawing,focusPart):null)??
     specimenMeta[specimen].focus;
   const zoomStyle=zoom?{
     transform:"scale(2.15)",
@@ -269,6 +271,15 @@ export function PencilFoundationStudio(){
           </option>
           <option value="portrait-head" disabled={specimen!=="portrait"}>
             New character #01 / head contour only
+          </option>
+          <option value="rose-left-leaf" disabled={specimen!=="rose"||!rosePinnateStudy}>
+            Rose left compound leaflet / actual serration
+          </option>
+          <option value="rose-right-leaf" disabled={specimen!=="rose"||!rosePinnateStudy}>
+            Rose right compound leaflet / actual vein contacts
+          </option>
+          <option value="rose-calyx" disabled={specimen!=="rose"||!roseCalyxStudy}>
+            Rose five-sepal receptacle / negative-space junction
           </option>
         </select>
       </label>
