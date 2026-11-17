@@ -26,6 +26,7 @@ describe("ANAT3 reference-led Chinese ink character redraw",()=>{
     expect(scholar).toContain('data-km-ink-reference-source="LOC-1903-cph-3a44343"');
     expect(elder).toContain('data-km-ink-reference-source="LOC-1860-LCCN2011660679"');
     expect(scholar).toContain('data-km-anat1-shape="source-informed-landmark-morph"');
+    expect(scholar).toContain("data-km-anat1-mouth-width-mm=");
     const width=(svg:string)=>Number(svg.match(/data-km-anat1-face-width-mm="([^"]+)"/)?.[1]);
     expect(Math.abs(width(scholar)-width(elder))).toBeGreaterThan(1);
     expect((scholar.match(/data-km-ink-moustache-fiber=/g)||[])).toHaveLength(22);
