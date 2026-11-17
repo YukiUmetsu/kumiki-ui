@@ -30,14 +30,16 @@ export const portraitPreview = (o: PortraitOptions): PortraitOptions => {
   return { ...o, width: Math.max(64, Math.round(W / 2)), height: Math.max(80, Math.round(H / 2)), supersample: 1, hairStrands: Math.round(Math.min(o.hairStrands ?? 40000, 9000)) };
 };
 
+/** The hair is groomed once per worker for the same hair and head: jobs with this key go to the same worker. */
+export const portraitAffinity = (o: PortraitOptions): string =>
+  JSON.stringify([o.sex, o.faceType, o.faceVariant, o.hairStyle, o.fringe, o.parting, o.hairStrands, o.hairLength, o.hairCurl, o.seed]);
+
 /**
  * A portrait rendered from the measured, attractiveness-calibrated face (see `renderPortrait`), in a worker, cached,
  * with a quick preview first and a visible "Rendering…" state while it works.
  */
 export const FacePortrait = forwardRef<HTMLCanvasElement, FacePortraitProps>(function FacePortrait({ options, label, onRendered, ...rest }, ref) {
-  const W = options.width ?? 384, H = options.height ?? 480;
-  // the hair is groomed once per worker for the same hair and head: send those jobs to the same worker
-  const affinity = JSON.stringify([options.sex, options.faceType, options.faceVariant, options.hairStyle, options.fringe, options.parting, options.hairStrands, options.hairLength, options.hairCurl, options.seed]);
+  const W = options.width ?? 384, H = options.height ?? 480, affinity = portraitAffinity(options);
   return <RenderFrame ref={ref} width={W} height={H} label={label} placeholder="var(--km-surface-subtle, #e8e4df)"
     job={{ pool: ANATOMY_RENDER_POOL, kind: "portrait", args: options, affinity }}
     preview={{ pool: ANATOMY_RENDER_POOL, kind: "portrait", args: portraitPreview(options), affinity }}

@@ -16,10 +16,13 @@
 import type { Vec3 } from "./anatomy-body";
 import type { Lab, RGB } from "./anatomy-color";
 import faceData from "./data/face-mesh-mediapipe.json";
-import type { SkinPaint, SkinPaintSample } from "./face-portrait";
+import { EYE_SHAPES } from "./eye-detail";
+import { beautifulFace } from "./face-beauty";
+import type { PortraitOptions, SkinPaint, SkinPaintSample } from "./face-portrait";
 import { gaussianBlur, hash2, rasterizeTriangles, srgbDecode, srgbEncode } from "./foundation-raster";
 import { filmStep, labToLinear, linearToLab, pigmentFor } from "./makeup-color";
 import type { BlendMode } from "./makeup-color";
+import { tapedEyeShape } from "./makeup-design";
 import type { MakeupPlan } from "./makeup-design";
 import { MAKEUP_ATLAS, zoneField } from "./makeup-zones";
 import type { FinishSpec } from "./makeup-zones";
@@ -53,9 +56,10 @@ export function makeupPaint(plan: MakeupPlan): SkinPaint {
   const skinLin = labToLinear(plan.skin.lab);
   let layers: Resolved[] = [];
   return {
-    key: JSON.stringify(["makeup1", plan.look, plan.intensity, plan.skin.hex, plan.layers, plan.lashes, plan.brows]),
+    key: JSON.stringify(["makeup1", plan.look, plan.intensity, plan.skin.hex, plan.layers, plan.lashes, plan.brows, plan.eyes]),
     lashes: plan.lashes,
-    brows: { colour: labToLinear(plan.brows.colour), density: plan.brows.density },
+    eyes: plan.eyes.lens ? { lens: plan.eyes.lens } : undefined,
+    brows: { colour: labToLinear(plan.brows.colour), density: plan.brows.density, straight: plan.brows.straight },
     prepare(neutral) {
       layers = plan.layers.map(L => {
         const r: Resolved = { field: zoneField(L.zone, neutral, L.adjust), coverage: L.coverage, hide: L.hide, blend: L.blend, finish: MAKEUP_ATLAS.finishes[L.finish] };
@@ -85,6 +89,16 @@ export function makeupPaint(plan: MakeupPlan): SkinPaint {
       }
     },
   };
+}
+
+/**
+ * Portrait options that wear a plan: its paint, the eye shape with its tape, and none of the renderer's own makeup unless
+ * `portrait.makeup` asks for it. For `renderPortrait` or `FacePortrait`.
+ */
+export function makeupPortraitOptions(portrait: PortraitOptions, plan: MakeupPlan): PortraitOptions {
+  const options: PortraitOptions = { makeup: "none", ...portrait, paint: makeupPaint(plan) };
+  if (plan.eyes.tape > 0) options.eyeShape = tapedEyeShape(beautifulFace(portrait).eyeShape ?? EYE_SHAPES[0], plan.eyes.tape);
+  return options;
 }
 
 // ---- Photographs -----------------------------------------------------------------------------------------------------

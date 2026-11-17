@@ -111,5 +111,6 @@ export function eggColours(peakC: number, inYolk: boolean): { colour: RGB3; set:
     return { colour: mix(linearOf("#f09a16"), linearOf("#f4cf5c"), ss(66, 80, peakC)), set };
   }
   const set = ss(T.eggWhiteSets.min - 1, T.eggWhiteFirm.typical, peakC);
-  return { colour: mix(linearOf("#e8dfa8"), linearOf("#fbfaf4"), set), set };
+  // (a set white is a bright, slightly cool white; underdone white stays glassy and faintly yellow)
+  return { colour: mix(linearOf("#ddd8b8"), linearOf("#fbfbf8"), set), set };
 }

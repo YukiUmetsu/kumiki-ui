@@ -2,17 +2,34 @@ import { describe, expect, it } from "vitest";
 import type { Vec3 } from "../registry/anatomy/anatomy-body";
 import faceData from "../registry/anatomy/data/face-mesh-mediapipe.json";
 import { beautifulFace } from "../registry/anatomy/face-beauty";
-import type { SkinPaintSample } from "../registry/anatomy/face-portrait";
-import { deltaE2000, filmStep, labToLinear, pigmentFor, readSkin } from "../registry/anatomy/makeup-color";
+import { renderPortrait } from "../registry/anatomy/face-portrait";
+import type { Portrait, SkinPaintSample } from "../registry/anatomy/face-portrait";
+import { srgbDecode } from "../registry/anatomy/foundation-raster";
+import { deltaE2000, filmStep, labToLinear, linearToLab, pigmentFor, readSkin } from "../registry/anatomy/makeup-color";
 import type { RGB } from "../registry/anatomy/anatomy-color";
-import { MAKEUP_LOOKS } from "../registry/anatomy/makeup-data";
-import { checkMakeup, designMakeup } from "../registry/anatomy/makeup-design";
-import { makeupPaint, paintPhoto } from "../registry/anatomy/makeup-paint";
+import { MAKEUP_EVIDENCE, MAKEUP_LOOKS } from "../registry/anatomy/makeup-data";
+import type { Look } from "../registry/anatomy/makeup-data";
+import { EYE_SHAPES } from "../registry/anatomy/eye-detail";
+import { checkMakeup, designMakeup, tapedEyeShape } from "../registry/anatomy/makeup-design";
+import type { MakeupCheck } from "../registry/anatomy/makeup-design";
+import { makeupPaint, makeupPortraitOptions, paintPhoto } from "../registry/anatomy/makeup-paint";
+import { MAKEUP_RUNNERS } from "../registry/anatomy/makeup-render-jobs";
 import { MAKEUP_ZONES, resolveZone, zoneField } from "../registry/anatomy/makeup-zones";
 import parity from "./fixtures/makeup-zone-parity.json";
 
 const CANON = faceData.vertices as Vec3[];
 const face = beautifulFace({ sex: 0 }).vertices;
+/** The face's front surface under (x, y), seen from the front. */
+const skinZ = (V: readonly Vec3[], x: number, y: number) => {
+  let best = -Infinity;
+  for (const [a, b, c] of faceData.triangles as number[][]) {
+    const A = V[a], B = V[b], C = V[c], d = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
+    if (Math.abs(d) < 1e-9) continue;
+    const w1 = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / d, w2 = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / d;
+    if (w1 >= 0 && w2 >= 0 && 1 - w1 - w2 >= 0) best = Math.max(best, w1 * A[2] + w2 * B[2] + (1 - w1 - w2) * C[2]);
+  }
+  return best;
+};
 
 describe("MAKEUP1 zone atlas", () => {
   it("weighs the same as the Python pipeline on the canonical face (one atlas, two languages)", () => {
@@ -21,6 +38,56 @@ describe("MAKEUP1 zone atlas", () => {
       parity.points.forEach((p, k) => expect(f(p as Vec3), `${id} at point ${k}`).toBeCloseTo(ws[k], 5));
     }
     expect(Object.keys(parity.weights).sort()).toEqual(MAKEUP_ZONES.map(z => z.id).sort());
+  });
+  it("places the East Asian zones: aegyo-sal under the lower lid, the puppy wing down, the tear mole on one side", () => {
+    const V = beautifulFace({ sex: 0, faceType: "east-asian" }).vertices;
+    const aegyo = zoneField("aegyo-sal", V);
+    expect(aegyo([V[145][0], V[145][1] - 2.5, V[145][2]])).toBeGreaterThan(0.5);
+    expect(aegyo(V[159])).toBeLessThan(0.1);
+    const wing = resolveZone("puppy-wing", V)[0].pts, tip = wing[wing.length - 1];
+    expect(tip[1]).toBeLessThan(wing[0][1]);
+    expect(Math.abs(tip[0])).toBeGreaterThan(Math.abs(wing[0][0]));
+    expect(resolveZone("tear-mole", V)).toHaveLength(1);
+    // the straight brow's upper edge: points 1-4 (head top to tail) on one line, seen from the front
+    const up = resolveZone("brow-straight", V)[0].pts.slice(1, 5), [a, b] = [up[0], up[up.length - 1]];
+    const off = (p: Vec3) => Math.abs((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])) / Math.hypot(b[0] - a[0], b[1] - a[1]);
+    for (const p of up) expect(off(p)).toBeLessThan(0.6);
+  });
+  it("paints thin strokes off the lid on the skin of every face (wing tips, aegyo-sal shadow, tear mole)", () => {
+    for (const V of [beautifulFace({ sex: 0, faceType: "east-asian" }).vertices, beautifulFace({ sex: 0 }).vertices, CANON]) {
+      for (const id of ["puppy-wing", "liner-wing", "aegyo-sal-shadow", "tear-mole"]) {
+        const pts = resolveZone(id, V)[0].pts, end = pts[Math.floor((pts.length - 1) * 0.75)];
+        // just inside the stroke's end, on the skin under it
+        const q: Vec3 = [end[0], end[1], skinZ(V, end[0], end[1])];
+        expect(zoneField(id, V)(q), id).toBeGreaterThan(0.5);
+      }
+    }
+  });
+  it("lines the whole lower lash line from the outer corner: a fine line on the skin, not a smudge", () => {
+    for (const V of [beautifulFace({ sex: 0, faceType: "east-asian" }).vertices, beautifulFace({ sex: 0 }).vertices, CANON]) {
+      const f = zoneField("liner-lower", V), pts = resolveZone("liner-lower", V)[0].pts;
+      // starts at the outer corner, so `scale` keeps the outer part of the line (outer third, half, two thirds)
+      expect(Math.hypot(pts[0][0] - V[33][0], pts[0][1] - V[33][1])).toBeLessThan(1);
+      // half a millimetre under each lower lid point, inner to outer, on the skin
+      for (const v of [154, 153, 145, 144, 163, 7]) expect(f([V[v][0], V[v][1] - 0.5, skinZ(V, V[v][0], V[v][1] - 0.5)]), `under ${v}`).toBeGreaterThan(0.5);
+      expect(f([V[145][0], V[145][1] - 2.5, skinZ(V, V[145][0], V[145][1] - 2.5)])).toBeLessThan(0.2);
+    }
+  });
+  it("shortens a stroke along its own line with span: a lower liner on the outer half stays on the lid", () => {
+    const toSeg = (p: Vec3, a: Vec3, b: Vec3) => {
+      const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], L2 = ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2;
+      const t = Math.min(1, Math.max(0, ((p[0] - a[0]) * ab[0] + (p[1] - a[1]) * ab[1] + (p[2] - a[2]) * ab[2]) / L2));
+      return Math.hypot(p[0] - a[0] - ab[0] * t, p[1] - a[1] - ab[1] * t, p[2] - a[2] - ab[2] * t);
+    };
+    for (const V of [beautifulFace({ sex: 0, faceType: "east-asian" }).vertices, CANON]) {
+      const f = zoneField("liner-lower", V, { span: 0.5 }), under = (v: number) => f([V[v][0], V[v][1] - 0.5, skinZ(V, V[v][0], V[v][1] - 0.5)]);
+      for (const v of [7, 163, 144]) expect(under(v), `under ${v}`).toBeGreaterThan(0.5);
+      for (const v of [153, 154]) expect(under(v), `under ${v}`).toBeLessThan(0.2);
+      // the cut end lies on the zone's own line (a scale would pull it off the lid)
+      const full = resolveZone("liner-lower", V)[0].pts, cut = resolveZone("liner-lower", V, { span: 0.5 })[0].pts, end = cut[cut.length - 1];
+      expect(cut.length).toBeLessThan(full.length);
+      expect(Math.min(...full.slice(1).map((b, i) => toSeg(end, full[i], b)))).toBeLessThan(1e-6);
+    }
   });
   it("covers each stroke zone's own points on ANAT1's face, symmetrically on both sides", () => {
     for (const z of MAKEUP_ZONES.filter(z => z.shape.kind === "stroke")) {
@@ -69,6 +136,141 @@ describe("MAKEUP1 design", () => {
     expect(hooded.layers.find(l => l.zone === "crease")?.adjust?.shift?.[1]).toBeGreaterThan(0);
     expect(designMakeup({ look: "soft-glam", face, overrides: { lips: false } }).layers.some(l => l.zone === "lips")).toBe(false);
   });
+});
+
+describe("MAKEUP1 eye tools in the plan", () => {
+  const shape = (id: string) => EYE_SHAPES.find(s => s.id === id)!;
+  const get = (cs: MakeupCheck[], id: string) => cs.find(c => c.id === id)!;
+  it("tape makes a single lid double without lowering a crease", () => {
+    const mono = tapedEyeShape(shape("monolid"), 1);
+    expect(mono.crease).toBeCloseTo(6.5, 6); expect(mono.height).toBeCloseTo(9.2, 6); expect(mono.hood).toBe(0);
+    const infold = tapedEyeShape(shape("inner-double"), 1);
+    expect(infold.crease).toBeCloseTo(6.5, 6); expect(infold.infold).toBe(true); expect(infold.height - shape("inner-double").height).toBeCloseTo(0.5, 6);
+    const almond = tapedEyeShape(shape("almond"), 1);
+    expect(almond.crease).toBeCloseTo(7.5, 6); expect(almond.height).toBeCloseTo(10.0, 6);
+    expect(tapedEyeShape(shape("almond"), 0)).toBe(shape("almond"));
+  });
+  it("scales the eye tools with intensity inside their caps", () => {
+    const look: Look = { id: "t", label: "t", summary: "", layers: [], evidence: [], lashes: { length: 1.3, thickness: 1.2, darkness: 1, style: "spiky" }, eyes: { lens: { diameter: 14.5, ring: 0.8 }, tape: 1 }, brows: { density: 1, straight: 0.8 } };
+    const strong = designMakeup({ look, face, intensity: 1.5 });
+    expect(strong.eyes.lens!.diameter).toBeLessThanOrEqual(14.5); expect(strong.eyes.tape).toBeLessThanOrEqual(1);
+    expect(strong.lashes.style).toBe("spiky"); expect(strong.brows.straight).toBeLessThanOrEqual(1);
+    expect(strong.lashes.styleStrength).toBe(1);
+    expect(designMakeup({ look, face, intensity: 0.1 }).lashes.styleStrength).toBeCloseTo(0.1, 6);
+    const bare = designMakeup({ look, face, intensity: 0 });
+    expect(bare.eyes.lens).toBeUndefined(); expect(bare.eyes.tape).toBe(0); expect(bare.brows.straight).toBe(0);
+  });
+  it("checks the aegyo-sal height, a puppy wing's droop and the lens size", () => {
+    const V = beautifulFace({ sex: 0, faceType: "east-asian" }).vertices;
+    const look: Look = { id: "t2", label: "t2", summary: "", evidence: [], eyes: { lens: { diameter: 14.0, ring: 0.6 } }, layers: [
+      { zone: "aegyo-sal", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.6 }, { zone: "puppy-wing", colour: { kind: "liner", tone: "brown" }, coverage: 0.9 }] };
+    const good = checkMakeup(designMakeup({ look, face: V }), V);
+    expect(get(good, "aegyo-sal-height").ok).toBe(true); expect(get(good, "wing-angle").ok).toBe(true); expect(get(good, "lens-size").ok).toBe(true);
+    // at a low intensity the lens is nearly natural: smaller than a circle lens is not a fault
+    expect(get(checkMakeup(designMakeup({ look, face: V, intensity: 0.2 }), V), "lens-size").ok).toBe(true);
+    const bad = checkMakeup(designMakeup({ look: { ...look, eyes: { lens: { diameter: 15.5, ring: 0.6 } } }, face: V, overrides: { "aegyo-sal": { adjust: { radius: 3 } } } }), V);
+    expect(get(bad, "aegyo-sal-height").ok).toBe(false); expect(get(bad, "lens-size").ok).toBe(false);
+  });
+});
+
+describe("MAKEUP1 East Asian looks", () => {
+  const EAST_ASIAN = ["c-glam", "k-idol", "jirai", "neo-gyaru", "ryousangata"];
+  it("designs the East Asian looks on single, in-fold and almond lids, for women and men", () => {
+    for (const id of EAST_ASIAN) {
+      for (const e of MAKEUP_LOOKS.find(l => l.id === id)!.evidence) expect(MAKEUP_EVIDENCE.some(x => x.id === e), `${id} cites ${e}`).toBe(true);
+      for (const eyeShape of ["monolid", "inner-double", "almond"] as const) for (const sex of [0, 1]) {
+        const V = beautifulFace({ sex, faceType: "east-asian", eyeShape }).vertices;
+        const plan = designMakeup({ look: id, face: V, eyeShape, skin: sex ? "#d9b08c" : "#e8c6a8" });
+        expect(plan.layers.length, id).toBeGreaterThan(6);
+        for (const c of checkMakeup(plan, V)) expect(c.ok, `${id} ${eyeShape} sex ${sex}: ${c.message}`).toBe(true);
+      }
+    }
+  });
+  it("paints a new look on a photograph without its eye tools", () => {
+    const W = 220, H = 260, data = new Uint8ClampedArray(W * H * 4);
+    for (let i = 0; i < W * H; i++) data.set([205, 160, 135, 255], i * 4);
+    const landmarks = CANON.map(([x, y, z]) => [W / 2 + x * 1.1, H / 2 - y * 1.1 + 6, -z * 1.1]);
+    const out = paintPhoto({ width: W, height: H, data, landmarks }, designMakeup({ look: "c-glam", face, skin: "#d8a98a" }));
+    const lc = CANON[17].map((v, k) => (v + CANON[14][k]) / 2) as Vec3, x = Math.round(W / 2 + lc[0] * 1.1), y = Math.round(H / 2 - lc[1] * 1.1 + 6), i = (y * W + x) * 4;
+    expect(out[i] - out[i + 1]).toBeGreaterThan(205 - 160 + 15);
+  });
+  it("lifts the wing on downturned eyes and flattens it on upturned eyes", () => {
+    const angle = (eyeShape: string, named = true) => {
+      const V = beautifulFace({ sex: 0, eyeShape }).vertices, plan = designMakeup({ look: "classic-red", face: V, ...(named ? { eyeShape } : {}) });
+      const p = resolveZone("liner-wing", V, plan.layers.find(l => l.zone === "liner-wing")!.adjust)[0].pts, tip = p[p.length - 1];
+      return Math.atan2(tip[1] - p[0][1], Math.abs(tip[0] - p[0][0])) * 180 / Math.PI;
+    };
+    expect(angle("downturned")).toBeGreaterThan(angle("almond"));
+    expect(angle("upturned")).toBeLessThan(angle("almond"));
+    expect(angle("round")).toBeLessThan(angle("almond"));
+    // a face whose tilt is measured, not named (a photograph): the same direction
+    expect(angle("downturned", false)).toBeGreaterThan(angle("almond", false));
+    expect(angle("upturned", false)).toBeLessThan(angle("almond", false));
+  });
+  it("keeps popular platform names out of the looks, the evidence text and the zone notes (spec: research note and search terms only)", () => {
+    const text = [...MAKEUP_LOOKS.flatMap(l => [l.label, l.summary]), ...MAKEUP_EVIDENCE.flatMap(e => [e.finding, e.appliedAs]), ...MAKEUP_ZONES.flatMap(z => [z.label, z.note ?? ""])].join(" ");
+    expect(text).not.toMatch(/douyin|tiktok|xiaohongshu|instagram/i);
+  });
+});
+
+describe("MAKEUP1 eye tools in the renderer", () => {
+  const Lstar = (p: Portrait, x: number, y: number) => {
+    const i = (Math.round(y) * p.width + Math.round(x)) * 4;
+    return linearToLab([srgbDecode(p.rgba[i] / 255), srgbDecode(p.rgba[i + 1] / 255), srgbDecode(p.rgba[i + 2] / 255)])[0];
+  };
+  it("a lens widens the iris and keeps a dilated pupil black", () => {
+    const base = { framing: "eyes" as const, width: 192, height: 96, pupil: 8, makeup: "none" as const };
+    const bare = renderPortrait(base);
+    const lens = renderPortrait({ ...base, paint: { key: "lens", shade() {}, eyes: { lens: { diameter: 14.5, ring: 0.6 } } } });
+    for (const [outer, inner, upper, lower] of [[33, 133, 159, 145], [263, 362, 386, 374]]) {
+      const lm = bare.landmarks, x0 = Math.min(lm[outer][0], lm[inner][0]), x1 = Math.max(lm[outer][0], lm[inner][0]), y0 = lm[upper][1], y1 = lm[lower][1];
+      // dark pixels (iris and pupil) inside the opening, away from the lash line
+      const dark = (p: Portrait) => {
+        let n = 0;
+        for (let y = Math.ceil(y0 + 1); y < y1 - 1; y++) for (let x = Math.ceil(x0 + 2); x < x1 - 2; x++) if (Lstar(p, x, y) < 35) n++;
+        return n;
+      };
+      expect(dark(lens)).toBeGreaterThan(1.2 * dark(bare));
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      for (const p of [bare, lens]) {
+        let m = 100;
+        for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) m = Math.min(m, Lstar(p, cx + dx, cy + dy));
+        expect(m).toBeLessThan(15);
+      }
+    }
+  }, 120000);
+  it("false lashes rise past a single lid's fold (bare lashes on it point at the camera) and fade in with their strength", () => {
+    const base = { faceType: "east-asian" as const, eyeShape: "monolid", framing: "eyes" as const, width: 192, height: 96, makeup: "none" as const };
+    const lashes = (style: "natural" | "spiky" | "doll") => renderPortrait({ ...base, paint: { key: `lashes-${style}`, shade() {}, lashes: { length: 1.25, thickness: 1.3, darkness: 1, style } } });
+    const natural = lashes("natural"), spiky = lashes("spiky"), doll = lashes("doll");
+    // mean L* in a band 1 to 4 px (about 0.4-1.5 mm) above the upper lid, across each eye: a lash is thinner than a
+    // pixel here, so the band's mean shows it, not a count of dark pixels
+    const above = (p: Portrait) => {
+      let sum = 0, n = 0;
+      for (const [outer, inner, upper] of [[33, 133, 159], [263, 362, 386]]) {
+        const lm = natural.landmarks, x0 = Math.min(lm[outer][0], lm[inner][0]), x1 = Math.max(lm[outer][0], lm[inner][0]), yl = lm[upper][1];
+        for (let y = Math.round(yl - 4); y <= Math.round(yl - 1); y++) for (let x = Math.ceil(x0); x < x1; x++) { sum += Lstar(p, x, y); n++; }
+      }
+      return sum / n;
+    };
+    expect(above(spiky)).toBeLessThan(above(natural) - 4);
+    expect(above(doll)).toBeLessThan(above(natural) - 4);
+    // a style fades in with its strength: a faint one is nearly the natural lashes, not a full set
+    const faint = renderPortrait({ ...base, paint: { key: "lashes-faint", shade() {}, lashes: { length: 1.25, thickness: 1.3, darkness: 1, style: "doll", styleStrength: 0.05 } } });
+    expect(Math.abs(above(faint) - above(natural))).toBeLessThan(1.5);
+  }, 120000);
+});
+
+describe("MAKEUP1 in a render worker", () => {
+  it("renders a plan from plain data, as a worker gets it (a paint's functions cannot be cloned)", () => {
+    const portrait = { faceType: "east-asian" as const, eyeShape: "monolid", framing: "eyes" as const, width: 96, height: 48, makeup: "none" as const };
+    const plan = designMakeup({ look: "neo-gyaru", face: beautifulFace(portrait).vertices, eyeShape: "monolid", skin: "#d8a98a" });
+    const args = structuredClone({ portrait, plan });
+    const out = (MAKEUP_RUNNERS["makeup-portrait"] as unknown as (a: typeof args) => { rgba: Uint8ClampedArray })(args);
+    const direct = renderPortrait(makeupPortraitOptions(portrait, plan));
+    expect(out.rgba.length).toBe(direct.rgba.length);
+    expect(out.rgba.every((v, i) => v === direct.rgba[i])).toBe(true);
+  }, 120000);
 });
 
 describe("MAKEUP1 paint", () => {

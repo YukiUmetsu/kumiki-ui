@@ -187,7 +187,10 @@ export function renderTerrain(o: TerrainRenderOptions = {}): TerrainRender {
       const skyAmb = atm.skyIrradiance, ambK = (0.55 + 0.45 * n[1]) / Math.PI;
       const bounce = 0.08 * (1 - n[1]);
       col = [0, 0, 0];
-      for (let c = 0; c < 3; c++) col[c] = alb[c] * (sun[c] * nl * (0.5 + 0.5 * canopyShade) + skyAmb[c] * ambK * canopyShade + sun[c] * bounce * 0.15);
+      // light bounced off the sunlit ground round about: strong over bright sand and snow (albedo 0.4–0.8), so their
+      // shaded faces are warm and fairly light, not near-black
+      const groundAlb = water ? 0.05 : (alb[0] + alb[1] + alb[2]) / 3, bounceK = groundAlb * Math.max(0, sunW[1]) * 0.5 * (1 - n[1]);
+      for (let c = 0; c < 3; c++) col[c] = alb[c] * (sun[c] * nl * (0.5 + 0.5 * canopyShade) + skyAmb[c] * ambK * canopyShade + sun[c] * (bounce * 0.15 + bounceK));
       if (water) {
         // the sea or a lake: sky reflection by Fresnel
         const v: V = [-d[0], -d[1], -d[2]], cosI = Math.max(0, dot(v, n)), F = 0.02 + 0.98 * Math.pow(1 - cosI, 5), dn = 2 * dot(d, n), rd: V = nrm([d[0] - dn * n[0], Math.abs(d[1] - dn * n[1]), d[2] - dn * n[2]]), sk = atm.sky(rd);

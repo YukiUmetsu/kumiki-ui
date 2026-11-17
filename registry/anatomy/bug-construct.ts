@@ -56,7 +56,9 @@ export function bugTopView(id: string, pose: BugPose = {}): BugDrawing {
     return { species: s, parts, size: L * (1 + 2 * s.legs) };
   }
   // insects: six legs from the thorax, one pair per segment, in tripod gait
-  const legL = L * s.legs, segY = [thoraxC[1] - tLen * 0.3, thoraxC[1], thoraxC[1] + tLen * 0.32];
+  // a mantis's prothorax is a long neck: the forelegs at its front, the middle and hind legs well behind it
+  const isMantis = s.id === "mantis", jumper = s.id === "bell-cricket";
+  const legL = L * s.legs, segY = isMantis ? [thoraxC[1] - tLen * 0.38, thoraxC[1] + tLen * 0.3, thoraxC[1] + tLen * 0.46] : [thoraxC[1] - tLen * 0.3, thoraxC[1], thoraxC[1] + tLen * 0.32];
   const restAngle = [-48, 12, 52], reach = [0.9, 0.95, 1.2];
   for (const side of [-1, 1]) for (let k = 0; k < 3; k++) {
     if (s.legs <= 0) break;
@@ -68,13 +70,30 @@ export function bugTopView(id: string, pose: BugPose = {}): BugDrawing {
     const knee: FPoint = [base[0] + dir[0] * len * 0.42 + side * len * 0.08, base[1] + dir[1] * len * 0.42 - len * 0.05];
     const foot: FPoint = [base[0] + dir[0] * len * 0.86, base[1] + dir[1] * len * 0.86];
     const tip: FPoint = [base[0] + dir[0] * len, base[1] + dir[1] * len + (k === 2 ? len * 0.05 : 0)];
-    if (s.id === "mantis" && k === 0) {
-      // raptorial forelegs folded in front of the face
-      add("leg", [base, [side * W * 0.9, base[1] - len * 0.35], [side * W * 0.5, base[1] - len * 0.62], [side * W * 0.25, base[1] - len * 0.45]], false, { width: L * 0.035 });
+    if (isMantis && k === 0) {
+      // raptorial forelegs held folded before the face: a long coxa forward, a thick spined femur back up alongside it,
+      // the tibia folded against the femur like a jackknife, a fine tarsus
+      const cx: FPoint = [side * W * 0.35, base[1] - len * 0.38], fe: FPoint = [side * W * 0.85, base[1] - len * 0.1], ti: FPoint = [side * W * 0.45, base[1] - len * 0.5];
+      add("leg", [base, cx], false, { width: L * 0.03 });
+      add("leg", [cx, fe], false, { width: L * 0.05 });
+      add("leg", [fe, ti], false, { width: L * 0.026 });
+      add("leg", [ti, [ti[0] - side * W * 0.15, ti[1] - len * 0.05]], false, { width: L * 0.012 });
+      // the femur's spines, pointing inward
+      for (let q = 1; q < 6; q++) { const a: FPoint = [cx[0] + (fe[0] - cx[0]) * (q / 6), cx[1] + (fe[1] - cx[1]) * (q / 6)]; add("leg", [a, [a[0] - side * L * 0.025, a[1] - L * 0.01]], false, { width: L * 0.006 }); }
       continue;
     }
+    // a cricket's hind legs are its jumping legs: a long, thick femur angled back, a slender spined tibia
+    const hindJump = jumper && k === 2;
     // the leg by segment: a stout femur, a slimmer tibia, then the fine tarsus of jointed tarsomeres ending in claws
     const w0 = L * (s.id === "rhino-beetle" || s.id === "stag-beetle" ? 0.045 : s.id === "honeybee" || s.id === "cicada" ? 0.034 : 0.03);
+    if (hindJump) {
+      const fk: FPoint = [base[0] + side * L * 0.28, base[1] + L * 0.55], ft: FPoint = [fk[0] + side * L * 0.05, fk[1] + L * 0.55];
+      add("leg", [base, [base[0] + side * L * 0.16, base[1] + L * 0.28], fk], false, { width: L * 0.085 });
+      add("leg", [fk, ft], false, { width: L * 0.025 });
+      for (let q = 1; q < 6; q++) { const a: FPoint = [fk[0] + (ft[0] - fk[0]) * (q / 6), fk[1] + (ft[1] - fk[1]) * (q / 6)]; add("leg", [a, [a[0] + side * L * 0.025, a[1] - L * 0.005]], false, { width: L * 0.006 }); }
+      add("leg", [ft, [ft[0], ft[1] + L * 0.12]], false, { width: L * 0.014 });
+      continue;
+    }
     add("leg", [base, knee], false, { width: w0 });
     add("leg", [knee, foot], false, { width: w0 * 0.68 });
     const nT = 4;
@@ -146,7 +165,10 @@ export function bugTopView(id: string, pose: BugPose = {}): BugDrawing {
   }
   if (s.id === "ant") add("body", ell(0, thoraxC[1] + tLen * 0.55, W * 0.12, tLen * 0.14, 12));
   // thorax (pronotum on top)
-  add("thorax", ell(thoraxC[0], thoraxC[1], W * (s.wings === "net" ? 0.5 : s.wings === "elytra" ? 0.52 : 0.48), tLen * 0.52));
+  if (isMantis) {
+    add("thorax", ell(0, thoraxC[1] - tLen * 0.12, W * 0.26, tLen * 0.4));
+    add("thorax", ell(0, thoraxC[1] + tLen * 0.36, W * 0.5, tLen * 0.18));
+  } else add("thorax", ell(thoraxC[0], thoraxC[1], W * (s.wings === "net" ? 0.5 : s.wings === "elytra" ? 0.52 : 0.48), tLen * 0.52));
   if (s.id === "firefly") { add("spot", ell(0, thoraxC[1] - tLen * 0.18, W * 0.42, tLen * 0.28), true, { colour: s.colours.accent }); add("segment", [[0, thoraxC[1] - tLen * 0.42], [0, thoraxC[1] + tLen * 0.05]], false, { width: L * 0.025 }); add("segment", [[-W * 0.15, thoraxC[1] - tLen * 0.2], [W * 0.15, thoraxC[1] - tLen * 0.2]], false, { width: L * 0.02 }); }
   // beetles: elytra cover the abdomen, meeting in a straight line
   if (s.wings === "elytra") {
@@ -169,9 +191,14 @@ export function bugTopView(id: string, pose: BugPose = {}): BugDrawing {
   parts.push(...closedWings);
   // head with eyes, antennae, mouthparts, horns
   const headW = s.wings === "net" ? W * 0.95 : s.id === "cicada" ? W * 1.05 : W * (s.id === "ant" || s.id === "honeybee" ? 0.7 : 0.6);
-  add("head", ell(headC[0], headC[1], headW / 2, hLen * 0.55));
+  if (isMantis) {
+    // a mantis's head: a triangle, broad at the top with the big compound eyes at its corners, narrowing to the mouth
+    const hw = W * 1.15;
+    add("head", [[-hw * 0.5, headC[1] - hLen * 0.35], [hw * 0.5, headC[1] - hLen * 0.35], [hw * 0.12, headC[1] + hLen * 0.6], [-hw * 0.12, headC[1] + hLen * 0.6]]);
+    for (const side of [-1, 1]) add("eye", ell(side * hw * 0.42, headC[1] - hLen * 0.28, hw * 0.16, hLen * 0.3, 14));
+  } else add("head", ell(headC[0], headC[1], headW / 2, hLen * 0.55));
   const eyeR = s.wings === "net" ? headW * 0.3 : headW * 0.16;
-  for (const side of [-1, 1]) add("eye", ell(side * headW * (s.wings === "net" ? 0.22 : 0.38), headC[1] - hLen * 0.05, eyeR, eyeR * (s.wings === "net" ? 1.1 : 1.2), 14));
+  if (!isMantis) for (const side of [-1, 1]) add("eye", ell(side * headW * (s.wings === "net" ? 0.22 : 0.38), headC[1] - hLen * 0.05, eyeR, eyeR * (s.wings === "net" ? 1.1 : 1.2), 14));
   const antL = L * s.antennae;
   if (antL > 0.3) for (const side of [-1, 1]) {
     const elbow = s.id === "ant" || s.id === "honeybee";

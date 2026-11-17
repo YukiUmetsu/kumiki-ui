@@ -45,7 +45,7 @@ roof curves, the eaves overhang, colours, and drawing notes with sources:
 - Kyoto machiya;
 - Japanese temple hall: an irimoya roof taller than the walls (a concave hipped skirt with lifted corners, a steeper gabled upper roof, a ridge with onigawara), bracket sets and deep eaves;
 - minka and gasshō farmhouses;
-- castle keep;
+- castle keep (an ishigaki stone base whose face curves out toward the foot, storeys stepping in, each skirted by a roof with lifted corners, chidori-hafu gables, lattice windows, an irimoya top with golden shachihoko);
 - Georgian town house (the piano nobile, sash windows twice as tall as wide, a parapet);
 - half-timbered house (jetties, braces, a steep gable);
 - Greek Doric temple (crepidoma, entasis, entablature, pediment);

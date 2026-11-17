@@ -211,7 +211,7 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "makeup":["makeup","make-up","cosmetics","beauty","beauty look","makeup look","glam","soft glam","no-makeup makeup","natural makeup","foundation","concealer","colour corrector","color corrector",
     "contour","contouring","sculpt","highlight","highlighter","strobing","bronzer","blush","blusher","flush","eyeshadow","eye shadow","smoky eye","smokey eye","eyeliner","winged liner","cat eye","mascara",
     "brows","brow map","brow shaping","lipstick","red lip","lip liner","gloss","lip gloss","gradient lip","dewy skin","matte","shimmer","glitter","finish","undertone","warm undertone","cool undertone",
-    "olive skin","skin undertone","shade match","face chart","face shape","round face","square face","heart face","oblong face","hooded eyes","monolid","eye shape","igari","k-beauty","maiko","oshiroi",
+    "olive skin","skin undertone","shade match","face chart","face shape","round face","square face","heart face","oblong face","hooded eyes","monolid","eye shape","igari","k-beauty","maiko","oshiroi","douyin makeup","c-beauty","aegyo-sal","tear bag","jirai","jirai-kei","gyaru","ulzzang","ryousangata","k-idol","circle lens","false lashes","manga lashes","puppy liner","lower liner","double eyelid tape","straight brows",
     "beni","stage makeup","makeup transfer","virtual makeup","beauty standards","facial contrast","chiaroscuro","any art style"],
   "art-foundations":["art foundations","shared geometry","scale figure","size comparison","person for scale","character sheet card","swatch list"],
   "casual-adult":[...PERSON_TERMS,"woman","female","adult","homeowner","customer","resident","presenter","host","everyday person","civilian"],
