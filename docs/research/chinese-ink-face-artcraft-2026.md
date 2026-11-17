@@ -533,3 +533,62 @@ sellion. At 1× the revised underpaint must neither create new sharp
 folds nor vanish beneath the opaque head; independently inspect open,
 soft and closed eyelids and OH/AA/rest mouth. The earlier unchanged
 Fuchun landscape ArtCraft hold remains in force.
+
+
+### 1× browser rejection: parallel malar ribbons → nested Bochen convex mass (2026-11-16)
+
+**Inspected actual Chromium artifact**, not just serialized SVG:
+[Chinese Ink Shanshui Film Quality, pass 43996000759](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43996000759).
+Screenshots checked: reader-malar-nose-rounded-positive-ink-1x.png,
+reader-artcraft-eye-nose-lips-open.png,
+reader-face-ANAT1-soft-wash-planes.png,
+reader-source-Ming-ink-glazes-all-1x.png and
+reader-face-three-quarter-rest.png. All were drawn at the actual
+same fitted source/face camera.
+
+**Visual finding:** despite passing the prior technical and browser
+checks, the face still resembled a simple stylized mask. The near
+zygomatic material was three or more approximately parallel tan
+diagonal bands, a long paper-bright sliver crossed their center and
+the nose's dark alar strokes closed as an S-hook. These errors were
+*visible* in the 1× render, so path presence and valid transforms are
+insufficient visual evidence.
+
+**New geometry technique:** in
+src/video/ink-shanshui-reader-glazes.ts the near zygion defines a
+wide curved, tear-shaped mass that expands inferiorly and turns under
+the high cheek before the buccal/lip region. There are now three
+separate closed, transparent pigment passes at the lowest level, a
+fourth turn on the middle detail tier and a fifth original pencil-dry
+ink remnant at high detail. This *increases*, rather than removes,
+independently editable painting topology. No gaussian blur, stock
+circle shading, gradient, or raster texture is used. The old
+heavy ribbon received a new broad original contour; the paper-bright
+core shrinks into a three-turn small oval, and the source nasal
+pressure line and secondary tip cartilage remain separate but
+less hook-like. Existing first-plane topology, independent underwash,
+historical far-cheek foreshortening and the visemes are retained.
+
+**Native browser gate:** the first malar SVG path must have
+vertical rendered extent >45% of its real browser bounding-box width
+and actual width >14 original portrait units, in addition to the
+source-ANAT1 coordinate/opacity/band bounds and a real rendered
+pixel difference against the unchanged-source panel. A narrow
+ruler-shaped band or disconnected flat decoration must fail.
+
+**Art quality remains DRAFT:** the strengthened gate proves a
+broad curved cheek volume exists, NOT that this synthetic portrait
+has source-photograph fidelity. In particular the original uploaded
+teacher image has not been reproduced/compared with an audited
+source SHA-256 in this pass; the ArtCraft v7 18-landmark/5-value
+source-fidelity review cannot honestly be marked as passing.
+Further manual 1×, 3×, 960×540, and motion review is required;
+the independent Fuchun landscape brush and old-pine holds persist.
+
+Technique verification references:
+- [UMMA, Zeng Jing, Portrait of Pan Qintai, 1621](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/):
+  painterly volume derives from the lightest semitransparent
+  ink washes, especially around eyes, nose and forehead.
+- [China Daily 2024, account of Zeng's multi-stage portrait practice](https://en.chinaculture.org/a/202406/13/WS666a2500a31082fc043cc2ab_2.html):
+  lightly outlined structure with ultra-thin colored ink washes
+  that leave the underlying shaded face perceptible.
