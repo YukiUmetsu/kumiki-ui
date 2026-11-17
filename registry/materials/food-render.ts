@@ -7,6 +7,9 @@
  *   the yolk runny and glossy, jammy or set and crumbly; a grey-green ring after a long boil.
  * - `toast`: a slice of shokupan toasted to a browning index, darker at the crust and where the crumb stands up, with
  *   its pores.
+ * - `onigiri`: a rice ball of a few hundred cooked short grains (about 5.5 × 3 mm, glossy and a little translucent), each
+ *   shaded on the ball's dome, darker in the gaps between grains, with a band of nori (fibrous, nearly black-green,
+ *   with a soft sheen) round its base.
  *
  * Soft studio light from the upper left; linear light, filmic tone mapping.
  */
@@ -16,7 +19,7 @@ import { cookEgg, cookSteak, crustColour, eggColours, meatColour, toastBrowning 
 import type { EggCook, SteakCook } from "./food-physics";
 
 export interface FoodRenderOptions extends SteakCook, EggCook {
-  dish: "steak" | "egg" | "toast";
+  dish: "steak" | "egg" | "toast" | "onigiri";
   /** Toasting time, s (default 180) and power (default 1). */
   toastSeconds?: number; toastPower?: number;
   width?: number; height?: number; supersample?: number; seed?: number;
@@ -110,6 +113,60 @@ export function renderFood(o: FoodRenderOptions): FoodRender {
           const lit = 0.9 + 0.12 * (-X / a - Y / b) * 0.5;
           c = c.map(v => v * lit) as unknown as RGB3;
         }
+      }
+      put(i, c);
+    }
+  } else if (o.dish === "onigiri") {
+    caption = "About 300 grains of cooked short-grain rice, each glossy and a little translucent; nori round the base.";
+    const Wmm = 88, s = (Wmm / 0.62) / w, cx = w / 2, cy = h * 0.55;
+    const board = linearOf("#b9a382"), boardD = linearOf("#8f7a5c"), rice = linearOf("#f3efe6"), nori = linearOf("#1d2419");
+    // the rounded triangle (a front view), mm from its centre, y down
+    // (inset by the rounding radius; the distance minus the radius rounds the corners)
+    const RAD = 10, tri: [number, number][] = [[0, -40 + RAD * 1.8], [42 - RAD * 1.6, 34 - RAD], [-42 + RAD * 1.6, 34 - RAD]];
+    const sdf = (x: number, y: number) => {
+      // distance to a triangle rounded by 9 mm (negative inside)
+      let d = Infinity, sign = 1;
+      for (let i = 0; i < 3; i++) { const a = tri[i], b = tri[(i + 1) % 3], ex = b[0] - a[0], ey = b[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * ex + (y - a[1]) * ey) / (ex * ex + ey * ey))); d = Math.min(d, Math.hypot(x - a[0] - ex * t, y - a[1] - ey * t)); if (ex * (y - a[1]) - ey * (x - a[0]) < 0) sign = -1; }
+      return (sign > 0 ? -d : d) - RAD;
+    };
+    // grains: jittered points about 3.4 mm apart, each a rotated ellipse with its own depth
+    let r = (seed * 9301 + 49297) % 233280; const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+    const grains: { x: number; y: number; a: number; z: number; tone: number }[] = [];
+    for (let gy = -46; gy < 40; gy += 2.6) for (let gx = -50; gx < 50; gx += 3.1) { const x = gx + (rnd() - 0.5) * 2.4, y = gy + (rnd() - 0.5) * 2.2; if (sdf(x, y) < 1) grains.push({ x, y, a: rnd() * Math.PI, z: rnd(), tone: rnd() }); }
+    const cell = 6, buckets = new Map<string, number[]>();
+    grains.forEach((g, k) => { const key = `${Math.floor(g.x / cell)},${Math.floor(g.y / cell)}`; (buckets.get(key) ?? buckets.set(key, []).get(key)!).push(k); });
+    const noriTop = 14;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x, X = (x - cx) * s, Y = (y - cy) * s;
+      let c: RGB3 = mix(board, boardD, 0.5 + 0.5 * fbm(seed, X / 30, Y / 2.5, 4));
+      const dIn = sdf(X, Y), sh = Math.exp(-Math.max(0, sdf(X - 3, Y - 5)) / 4) * 0.55;
+      c = c.map(v => v * (1 - sh)) as unknown as RGB3;
+      if (dIn < 0.3) {
+        // the ball's dome: a normal from the distance inside (the ball is about 30 mm thick)
+        const depth = Math.min(1, -dIn / 16), nz = Math.sqrt(Math.max(0.05, depth)), nx = -X / 90, ny = -Y / 110, lit = 0.85 + 0.3 * Math.max(0, (-nx * 0.6 - ny * 0.5 + nz * 0.6)) + 0.12 * nz;
+        if (Y > noriTop + 2 * fbm(seed + 3, X / 12, 0.3, 2)) {
+          // nori: nearly black-green, fibrous, with a soft sheen across it
+          const fib = fbm(seed + 5, X / 0.6, Y / 6, 3), sheen = Math.pow(Math.max(0, fbm(seed + 7, X / 18, Y / 7, 3) + 0.2), 2) * 0.5, crease = Math.abs(fbm(seed + 11, X / 9, Y / 3, 2)) < 0.05 ? 0.8 : 1;
+          c = nori.map((v, k) => v * (0.7 + 0.45 * fib) * lit * crease + sheen * [0.05, 0.06, 0.05][k]) as unknown as RGB3;
+        } else {
+          // the topmost grain under this pixel
+          let best = -1, bestZ = -1, bu = 0, bv = 0;
+          for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) for (const k of buckets.get(`${Math.floor(X / cell) + dx},${Math.floor(Y / cell) + dy}`) ?? []) {
+            const g = grains[k], ca = Math.cos(g.a), sa = Math.sin(g.a), u = ((X - g.x) * ca + (Y - g.y) * sa) / 2.75, v = (-(X - g.x) * sa + (Y - g.y) * ca) / 1.5;
+            const e = u * u + v * v;
+            if (e < 1 && g.z > bestZ) { best = k; bestZ = g.z; bu = u; bv = v; }
+          }
+          if (best < 0) c = rice.map(v => v * 0.62 * lit) as unknown as RGB3; // a gap between grains
+          else {
+            const g = grains[best], e = bu * bu + bv * bv, gz = Math.sqrt(Math.max(0, 1 - e));
+            // each grain: rounded, a little translucent (brighter body, soft edges), a small sharp highlight
+            const shadeG = 0.72 + 0.28 * gz, spec = Math.pow(Math.max(0, gz * 0.8 + bu * -0.25 + bv * -0.35), 18) * 0.9;
+            c = rice.map(v => v * 1.22 * (0.93 + 0.07 * g.tone) * shadeG * lit + spec) as unknown as RGB3;
+          }
+        }
+        // anti-aliased edge of the ball
+        const edge = Math.min(1, Math.max(0, -dIn / (s * 1.2) + 0.5));
+        if (edge < 1) { const b0 = mix(board, boardD, 0.5).map(v => v * (1 - sh)) as unknown as RGB3; c = mix(b0, c, edge); }
       }
       put(i, c);
     }
