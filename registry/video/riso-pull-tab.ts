@@ -20,6 +20,10 @@ export interface RisoPullSpec{
   readonly travel:number;
   readonly progress:number;
   readonly seed:number;
+  /** Stock thickness, in millimetres; converted to source-space CSS units. */
+  readonly paperDepthMm?:number;
+  /** Direction FROM the lamp toward the sheet; normalized before projection. */
+  readonly lightDirection?:readonly [number,number];
 }
 export interface RisoPullWindowGeometry{
   readonly id:string;
@@ -34,6 +38,10 @@ export interface RisoPullEvaluation{
   readonly translation:readonly [number,number];
   readonly easedProgress:number;
   readonly windows:readonly RisoPullWindowGeometry[];
+  readonly paperDepthMm:number;
+  readonly depthUnits:number;
+  readonly shadowOffset:readonly [number,number];
+  readonly shadowOpacity:number;
   readonly fixedCoverRegistration:true;
   readonly fixedInsertRegistration:true;
 }
@@ -49,6 +57,13 @@ function check(s:RisoPullSpec){
     !finite(s.travel)||s.travel<12||
     s.travel>(["left","right"].includes(s.direction)?s.width:s.height)*.34)
     throw new RangeError("RISO79 requires 240–8192 paper, 1–4 openings, a cardinal pull, bounded travel, progress 0..1 and a 31-bit seed.");
+  const depth=s.paperDepthMm??.32;
+  const light=s.lightDirection??[-.55,-.84];
+  const lightLength=Math.hypot(light[0],light[1]);
+  if(!finite(depth)||depth<.08||depth>1.2||
+    !Array.isArray(light)||light.length!==2||!light.every(finite)||
+    !finite(lightLength)||lightLength<.25||lightLength>1.5)
+    throw new RangeError("RISO79 paper depth must be .08–1.2mm and light direction must be a finite nonzero vector of length .25–1.5.");
   const ids=new Set<string>();
   for(const w of s.windows){
     const r=w.radius??Math.min(w.width,w.height)*.065;
@@ -90,9 +105,11 @@ export function risoPullWindowFibres(w:RisoPullWindow,seed:number):readonly stri
   const x=w.x,y=w.y,x2=x+w.width,y2=y+w.height;
   return Array.from({length:88},(_,i)=>{
     const side=Math.floor(i/22),index=i%22;
-    const t=.025+.95*((index+.3+.4*printHash(seed,i+11,13))/22);
-    const bend=(printHash(seed+37,i+3,19)-.5)*2.8;
-    const length=1.1+3.9*printHash(seed,i+31,23);
+    // A die-cut edge is clean, not deckled: short, irregularly spaced
+    // microfibrils remain attached to the cut face without long torn-paper hairs.
+    const t=.018+.964*((index+.08+.84*printHash(seed,i+11,13))/22);
+    const bend=(printHash(seed+37,i+3,19)-.5)*1.35;
+    const length=.28+1.52*printHash(seed,i+31,23);
     let px=0,py=0,nx=0,ny=0;
     if(side===0){px=x+r+(w.width-2*r)*t;py=y;ny=-1;}
     if(side===1){px=x2;py=y+r+(w.height-2*r)*t;nx=1;}
@@ -122,10 +139,23 @@ export function evaluateRisoPullTab(s:RisoPullSpec):RisoPullEvaluation{
   const offset=round(eased*s.travel);
   const shift:readonly [number,number]=s.direction==="right"?[offset,0]:
     s.direction==="left"?[-offset,0]:s.direction==="down"?[0,offset]:[0,-offset];
+  const paperDepthMm=s.paperDepthMm??.32;
+  const light=s.lightDirection??[-.55,-.84];
+  const lightLength=Math.hypot(light[0],light[1]);
+  const depthUnits=round(paperDepthMm*96/25.4);
+  // Light travels from the lamp toward the sheet; the visible cast shadow
+  // falls in the opposite direction. This is an art-directed 2.5D cue,
+  // not a claim to simulate the mechanical optics of a physical press.
+  const shadowOffset:readonly [number,number]=[
+    round(-light[0]/lightLength*depthUnits*1.85),
+    round(-light[1]/lightLength*depthUnits*1.85),
+  ];
   return {
     // Preserve SVG/serializable paper identity at the first frame: never -0.
     translation:[shift[0]===0?0:shift[0],shift[1]===0?0:shift[1]],
     easedProgress:round(eased),
+    paperDepthMm,depthUnits,shadowOffset,
+    shadowOpacity:round(Math.min(.32,.12+paperDepthMm*.14)),
     windows:s.windows.map(w=>({
       id:w.id,x:w.x,y:w.y,width:w.width,height:w.height,
       path:risoPullWindowContour(w),
