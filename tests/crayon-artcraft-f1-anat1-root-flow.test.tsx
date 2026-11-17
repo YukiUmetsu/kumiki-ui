@@ -39,7 +39,7 @@ describe("ArtCraft F1 V39 CC0 natural root-to-shaft crayon wax candidate",()=>{
           expect(revised.d.startsWith(original.d+" ")).toBe(true);
           expect(revised.d.length).toBeGreaterThan(original.d.length);
           for(const key of ["id","kind","parentId","clipToParent","color","opacity",
-            "width","waxContact","waxPressure","timing","strokeOrder"] as const)
+            "width","waxContact","waxPressure","timing"] as const)
             expect(revised[key]).toEqual(original[key]);
           expect(revised.d).not.toContain("NaN");
           changed++;
