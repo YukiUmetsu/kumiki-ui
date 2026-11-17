@@ -380,7 +380,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     // the garment's own front (as built above), so hanging hair lies on the shoulders and chest, not inside them
     chestFront: x => chestCz + (neckRz + 40) * Math.sqrt(Math.max(0, 1 - (x / shoulderHalf) ** 2)) - 20 };
   // strands drawn: as asked, or by the picture's size (a thumbnail needs fewer than a large portrait)
-  const hairStrands = Math.round(o.hairStrands ?? Math.min(40000, Math.max(12000, W * H * 0.25)));
+  // (a real head has about 100,000 hairs; at 600 px wide and up, 80,000 strands read as fine hair, not streaky blocks)
+  const hairStrands = Math.round(o.hairStrands ?? Math.min(W >= 600 ? 80000 : 40000, Math.max(12000, W * H * 0.25)));
   const groomKey = JSON.stringify([styleId, fringe, parting, hairStrands, hairLength, hairCurl, seed, hairHead.radii.map(Math.round), Math.round(hairHead.hairlineY), Math.round(hairHead.browY), Math.round(gl[2]), Math.round(zyHalf), Math.round(sex * 10)]);
   let groom = GROOMS.get(groomKey);
   if (!groom) {
