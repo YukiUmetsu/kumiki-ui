@@ -3764,6 +3764,21 @@
           "target": "components/anatomy/face-portrait-react.tsx"
         },
         {
+          "path": "registry/anatomy/anatomy-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-render-pool.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-render-jobs.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-render-worker.ts"
+        },
+        {
           "path": "registry/anatomy/hair-groom.ts",
           "type": "registry:ui",
           "target": "components/anatomy/hair-groom.ts"
@@ -3884,6 +3899,16 @@
           "path": "registry/anatomy/foundation-queue.ts",
           "type": "registry:ui",
           "target": "components/anatomy/foundation-queue.ts"
+        },
+        {
+          "path": "registry/anatomy/foundation-render.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-render.ts"
+        },
+        {
+          "path": "registry/anatomy/foundation-render-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-render-react.tsx"
         },
         {
           "path": "registry/anatomy/foundation-react.tsx",
@@ -4057,6 +4082,21 @@
           "path": "registry/nature/sky-volume-react.tsx",
           "type": "registry:ui",
           "target": "components/nature/sky-volume-react.tsx"
+        },
+        {
+          "path": "registry/nature/sky-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/sky-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/sky-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-render-worker.ts"
         }
       ]
     },
@@ -4095,6 +4135,21 @@
           "path": "registry/nature/water-ocean-react.tsx",
           "type": "registry:ui",
           "target": "components/nature/water-ocean-react.tsx"
+        },
+        {
+          "path": "registry/nature/water-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/water-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/water-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-render-worker.ts"
         }
       ]
     },
@@ -4132,6 +4187,21 @@
           "path": "registry/materials/materials-react.tsx",
           "type": "registry:ui",
           "target": "components/materials/materials-react.tsx"
+        },
+        {
+          "path": "registry/materials/materials-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render-pool.ts"
+        },
+        {
+          "path": "registry/materials/materials-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render-jobs.ts"
+        },
+        {
+          "path": "registry/materials/materials-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render-worker.ts"
         }
       ]
     },

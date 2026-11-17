@@ -3,23 +3,22 @@
  * material's procedural texture), a material study with its scale and sources, a flat SVG material ball, weathering
  * strips, wet-and-dry pairs, a value ladder and the reference sheet.
  *
- * Swatches render on the CPU after the page paints, one at a time (a shared queue), and are cached by their options.
+ * Swatches render on the CPU in workers (see `foundation-render.ts`) and are cached by their options.
  */
-import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useId } from "react";
 import type { CanvasHTMLAttributes, CSSProperties } from "react";
-import { enqueueRender } from "../anatomy/foundation-queue";
+import { RenderFrame } from "../anatomy/foundation-render-react";
+import { MATERIALS_RENDER_POOL } from "./materials-render-pool";
 import { SheetCard, sheetGrid, sheetList, sheetSmall } from "../anatomy/foundation-react";
 import type { MaterialFamily, MaterialRecord, WeatheringTrack } from "./materials-data";
 import { MATERIAL_SOURCES, MATERIALS, WEATHERING } from "./materials-data";
 import type { RGB } from "./materials-physics";
 import { f0, findMaterial, highlightSpread, lightness, toHex, valueLadder, weathered, wetMaterial } from "./materials-physics";
-import { renderMaterialSwatch } from "./materials-render";
-import type { MaterialSwatch as RenderedSwatch, SwatchOptions } from "./materials-render";
+import type { SwatchOptions } from "./materials-render";
 import { TEXTURE_FACTS, materialTexture } from "./materials-texture";
 
 const useMatId = () => `mat${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
-const swatchCache = new Map<string, RenderedSwatch>();
 export interface MaterialSwatchProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> {
   /** Material id (`MATERIALS`). */
   material: string;
@@ -28,34 +27,13 @@ export interface MaterialSwatchProps extends Omit<CanvasHTMLAttributes<HTMLCanva
 }
 /**
  * A material rendered from its texture: a ball in a studio (`view: "ball"`, the default) or a tile under raking light
- * (`view: "tile"`). Renders after paint, queued with other heavy renders, and cached.
+ * (`view: "tile"`). Renders in a worker, cached, with a visible working state.
  */
-export const MaterialSwatch = forwardRef<HTMLCanvasElement, MaterialSwatchProps>(function MaterialSwatch({ material, options = {}, label, style, ...rest }, ref) {
-  const canvas = useRef<HTMLCanvasElement>(null), [busy, setBusy] = useState(true);
-  useImperativeHandle(ref, () => canvas.current as HTMLCanvasElement, []);
-  const key = `${material}|${JSON.stringify(options)}`, size = Math.max(8, Math.round(options.size ?? 160)), m = findMaterial(material);
-  useEffect(() => {
-    let live = true;
-    const draw = (sw: RenderedSwatch) => {
-      const ctx = canvas.current?.getContext("2d");
-      if (ctx) ctx.putImageData(new ImageData(new Uint8ClampedArray(sw.rgba), sw.width, sw.height), 0, 0);
-      setBusy(false);
-    };
-    const hit = swatchCache.get(key);
-    if (hit) { draw(hit); return () => { live = false; }; }
-    setBusy(true);
-    void enqueueRender(() => {
-      if (!live) return;
-      const sw = renderMaterialSwatch(material, options);
-      if (swatchCache.size > 300) swatchCache.clear();
-      swatchCache.set(key, sw);
-      if (live) draw(sw);
-    });
-    return () => { live = false; };
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+export const MaterialSwatch = forwardRef<HTMLCanvasElement, MaterialSwatchProps>(function MaterialSwatch({ material, options = {}, label, ...rest }, ref) {
+  const size = Math.max(8, Math.round(options.size ?? 160)), m = findMaterial(material);
   const what = options.view === "tile" ? "tile under raking light" : "material ball";
-  return <canvas ref={canvas} width={size} height={size} role="img" aria-label={label ?? `${m?.name ?? material}, ${what}`} aria-busy={busy}
-    style={{ display: "block", width: "100%", height: "auto", aspectRatio: "1 / 1", borderRadius: 6, background: "var(--km-surface-subtle, #8d8c8b)", ...style }} {...rest} />;
+  return <RenderFrame ref={ref} width={size} height={size} label={label ?? `${m?.name ?? material}, ${what}`} placeholder="var(--km-surface-subtle, #8d8c8b)"
+    job={{ pool: MATERIALS_RENDER_POOL, kind: "material", args: { material, options } }} {...rest} />;
 });
 
 const NICE_MM = [1, 2, 5, 10, 20, 50, 100, 200];

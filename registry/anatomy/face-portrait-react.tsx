@@ -2,15 +2,16 @@
  * React pieces for ANAT1 portraits: `FacePortrait` (a rendered portrait in a canvas), `GoldenRatioTable` (the ratios
  * people check, against φ and against Pallett's average-face ratios) and `BeautyEvidence` (the findings applied).
  *
- * Portraits are rendered on the CPU after the page paints, one at a time, so a page of them stays responsive.
+ * Portraits render on the CPU in workers (see `foundation-render.ts`), cached, so a page of them stays responsive.
  */
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef } from "react";
 import type { CanvasHTMLAttributes, CSSProperties } from "react";
-import { renderPortrait } from "./face-portrait";
 import type { Portrait, PortraitOptions } from "./face-portrait";
+import { ANATOMY_RENDER_POOL } from "./anatomy-render-pool";
+import type { RenderOutput } from "./foundation-render";
+import { RenderFrame } from "./foundation-render-react";
 import { BEAUTY_EVIDENCE, GOLDEN_RATIO, beautifulFace } from "./face-beauty";
 import type { BeautyOptions } from "./face-beauty";
-import { enqueueRender as enqueue } from "./foundation-queue";
 import { sheetList, sheetSmall } from "./foundation-react";
 
 export interface FacePortraitProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> {
@@ -20,25 +21,31 @@ export interface FacePortraitProps extends Omit<CanvasHTMLAttributes<HTMLCanvasE
   onRendered?: (portrait: Portrait) => void;
 }
 
-/** A portrait rendered from the measured, attractiveness-calibrated face (see `renderPortrait`). */
-export const FacePortrait = forwardRef<HTMLCanvasElement, FacePortraitProps>(function FacePortrait({ options, label, style, onRendered, ...rest }, ref) {
-  const canvas = useRef<HTMLCanvasElement>(null), [busy, setBusy] = useState(true);
-  useImperativeHandle(ref, () => canvas.current as HTMLCanvasElement, []);
-  const key = JSON.stringify(options), W = options.width ?? 384, H = options.height ?? 480;
-  useEffect(() => {
-    let live = true;
-    setBusy(true);
-    void enqueue(() => {
-      if (!live || !canvas.current) return;
-      const p = renderPortrait(options), ctx = canvas.current.getContext("2d");
-      if (ctx) ctx.putImageData(new ImageData(new Uint8ClampedArray(p.rgba), p.width, p.height), 0, 0);
-      if (live) { setBusy(false); onRendered?.(p); }
-    });
-    return () => { live = false; };
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  return <canvas ref={canvas} width={W} height={H} role="img" aria-label={label} aria-busy={busy}
-    style={{ display: "block", width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, background: "var(--km-surface-subtle, #e8e4df)", borderRadius: 6, ...style }} {...rest} />;
+/** A quicker portrait of the same face for a first look: half size, one sample a pixel, fewer strands. */
+export const portraitPreview = (o: PortraitOptions): PortraitOptions => {
+  const W = o.width ?? 384, H = o.height ?? 480;
+  return { ...o, width: Math.max(64, Math.round(W / 2)), height: Math.max(80, Math.round(H / 2)), supersample: 1, hairStrands: Math.round(Math.min(o.hairStrands ?? 40000, 9000)) };
+};
+
+/**
+ * A portrait rendered from the measured, attractiveness-calibrated face (see `renderPortrait`), in a worker, cached,
+ * with a quick preview first and a visible "Rendering…" state while it works.
+ */
+export const FacePortrait = forwardRef<HTMLCanvasElement, FacePortraitProps>(function FacePortrait({ options, label, onRendered, ...rest }, ref) {
+  const W = options.width ?? 384, H = options.height ?? 480;
+  // the hair is groomed once per worker for the same hair and head: send those jobs to the same worker
+  const affinity = JSON.stringify([options.sex, options.faceType, options.faceVariant, options.hairStyle, options.fringe, options.parting, options.hairStrands, options.hairLength, options.hairCurl, options.seed]);
+  return <RenderFrame ref={ref} width={W} height={H} label={label} placeholder="var(--km-surface-subtle, #e8e4df)"
+    job={{ pool: ANATOMY_RENDER_POOL, kind: "portrait", args: options, affinity }}
+    preview={{ pool: ANATOMY_RENDER_POOL, kind: "portrait", args: portraitPreview(options), affinity }}
+    onResult={onRendered ? r => onRendered(toPortrait(r)) : undefined} {...rest} />;
 });
+
+/** A finished render as a `Portrait` (the face, landmarks and hair counts travel in `meta`). */
+function toPortrait(r: RenderOutput): Portrait {
+  const m = (r.meta ?? {}) as { face: Portrait["face"]; landmarks: Portrait["landmarks"]; strands?: number; groomMs?: number };
+  return { width: r.width, height: r.height, rgba: r.rgba, ms: r.ms, face: m.face, landmarks: m.landmarks, stats: { strands: m.strands ?? 0, groomMs: m.groomMs ?? 0 } };
+}
 
 const cell: CSSProperties = { padding: "4px 8px", borderBottom: "1px solid var(--km-border-subtle, #e2deda)", textAlign: "left", verticalAlign: "top" };
 

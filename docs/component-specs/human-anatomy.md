@@ -257,6 +257,26 @@ the checks and sources.
 rule 14 still applies to the pencil portrait style). The mask is one average face, so individuals differ only by the
 parameters above.
 
+## Rendering in pages: workers, caches, previews (`foundation-render.ts`, `foundation-render-react.tsx`)
+
+`FacePortrait`, `HandView`, `HandFlipbook`, `SkinSwatchView` (and MATL1's `MaterialSwatch`, SKY1's `CloudSky`, WATER1's
+`OceanView`) render in module workers, so pages stay responsive while pictures fill in:
+
+- Each pack has a pool (`anatomy-render-pool.ts`, `materials-render-pool.ts`, `sky-render-pool.ts`,
+  `water-render-pool.ts`). A pool runs up to four workers, one fewer than the machine's cores. Without workers (tests,
+  server rendering, a blocked worker URL), the same jobs run on the page's thread.
+- Renders start when a frame comes within 600 px of the screen, previews before full renders.
+- A job nobody waits for any more is dropped before it starts.
+- Portraits with the same hair go to the same worker, which keeps the groomed hair (about 1–5 s of work).
+- Results are cached in memory (about 256 MB) and in IndexedDB (`kumiki-render-cache`, the 600 most recent), so
+  returning to a page or reloading it draws at once. Cache keys include `RENDER_CACHE_VERSION`. Storybook defines
+  `__KUMIKI_RENDER_VERSION__` as a hash of `registry/{anatomy,nature,materials}` taken at start-up, so a changed
+  renderer never shows a stale picture; restart Storybook after editing a renderer, or call `clearRenderCache()`.
+- A portrait first draws a half-size preview (one sample a pixel, at most 9,000 strands), then the full render.
+- While a frame works, a badge reads "Rendering…" or "Preview · refining…". When options change, the last picture
+  stays, dimmed, until the new one is ready. The canvas carries `aria-busy`, and the badge's spinner stands still
+  under reduced motion.
+
 ## Eyes in detail (`eye-detail.ts`)
 
 ([research note](../research/eye-detail-2026-11-16.md))

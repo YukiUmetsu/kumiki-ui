@@ -718,7 +718,7 @@ function HairLab() {
         {range("yaw", "Head turn", -25, 25, 5, v => `${v}°`)}{range("keyAzimuth", "Key light from", -70, 70, 5, v => `${v}°`)}{range("keyElevation", "Key light height", 0, 70, 5, v => `${v}°`)}
       </div>
       <div style={{ display: "grid", gap: 8, alignContent: "start", maxWidth: 520 }}>
-        <FacePortrait options={{ ...o, width: 416, height: 520 }} label={`Portrait with ${style.label} hair`} onRendered={p => setInfo(`${(p.hair?.groom.starts.length ?? 0).toLocaleString("en")} strands · groomed in ${Math.round(p.hair?.groom.ms ?? 0)} ms · rendered in ${Math.round(p.ms)} ms`)} />
+        <FacePortrait options={{ ...o, width: 416, height: 520 }} label={`Portrait with ${style.label} hair`} onRendered={p => setInfo(`${(p.stats?.strands ?? 0).toLocaleString("en")} strands · groomed in ${Math.round(p.stats?.groomMs ?? 0)} ms · rendered in ${Math.round(p.ms)} ms`)} />
         <p style={muted} aria-live="polite">{info || "Rendering…"}</p>
         <p style={muted}><b>{style.label}.</b> {style.note}</p>
         {fringe ? <p style={muted}><b>{fringe.label} bangs.</b> {fringe.note}</p> : null}
