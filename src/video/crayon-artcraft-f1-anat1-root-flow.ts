@@ -129,8 +129,11 @@ export function crayonF1AddRootedHairFlow(
     // More guides only for high-detail inspection; low detail preserves
     // true source allocation with no assumed contiguous band indices.
     const guideCount=Math.max(1,Math.round(hairGuides[region].length*detail));
-    for(let i=0;i<guideCount;i++){
-      const g=hairGuides[region][i];
+    // Each pre-existing pigment band must retain an active rooted contact.
+    // Do not drop rare source bands merely because detail reduces guides.
+    const passes=Math.max(ids.length,guideCount);
+    for(let i=0;i<passes;i++){
+      const g=hairGuides[region][i%guideCount];
       const band=ids[i%ids.length];
       const id="hair-rooted-"+region+"-"+band;
       // Two unequal root-to-mid curves with a narrow native-wax offset,
