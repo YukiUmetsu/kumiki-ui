@@ -9,9 +9,13 @@ The pack `makeup` decides *where each product goes on this face, which colour su
 light and shadow are*. Your style decides how it looks. Read the [spec](../../docs/component-specs/makeup.md) for the
 API. This is the working order.
 
-1. **Start from a look, not from colours.** Pick one of `MAKEUP_LOOKS`. There are 12: bare, no-makeup, fresh dewy,
-   soft glam, sculpted, classic red, smoky eye, sun-kissed, igari, monochrome rose, grooming, maiko. A look is colour
-   rules and zones, so it adapts to any skin.
+1. **Start from a look, not from colours.** Pick one of the 17 `MAKEUP_LOOKS`:
+   - bare, no-makeup, fresh dewy, soft glam, sculpted, classic red, smoky eye, sun-kissed, igari, monochrome rose,
+     grooming, maiko.
+   - five East Asian looks that transform the eyes: `c-glam` (Chinese social-video glam, "Douyin makeup"), `k-idol`,
+     `jirai`, `neo-gyaru` and `ryousangata`.
+
+   A look is colour rules and zones, so it adapts to any skin.
 2. **Design for the face.** `designMakeup({ look, skin, face, eyes, eyeShape, hair, intensity })`:
    - `face` is a rest-frame landmark set: ANAT1's `beautifulFace(...).vertices`, or a photo's `restFrame(landmarks).rest`
      with `faceReference: "photo"`.
@@ -20,7 +24,11 @@ API. This is the working order.
    - contour that reaches the iris, or blush below the nose base.
    - a highlight under the contour, or a wing outside 10-45 degrees.
    - a foundation that does not match, or low lip contrast.
+   - an aegyo-sal out of proportion, a puppy wing that rises, or a lens larger than 14.5 mm.
 4. **Paint it.**
+   - Eye tools: a look's `lashes` (`style` wispy, spiky or doll, `lower` lashes), `eyes.lens` (a circle lens),
+     `eyes.tape` (double-eyelid tape) and `brows.straight` transform the eyes. Use
+     `renderPortrait(makeupPortraitOptions(portrait, plan))` so the tape reaches the face.
    - Rendered portrait: use `renderPortrait({ ...portrait, paint: makeupPaint(plan) })` or `<MakeupPortrait>`. The
      renderer's own makeup (`makeup: "natural"`) is then off. Set `makeup` only to combine the two.
    - Photograph: `paintPhoto({ width, height, data, landmarks, skinMask }, plan)`. Get the landmarks with

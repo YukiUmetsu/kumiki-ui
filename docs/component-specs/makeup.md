@@ -23,7 +23,7 @@ rendered portraits are ANAT1 constructions, not approved realistic portraits (AG
           geometry   MediaPipe 478 points -> rest frame,           makeup-color.ts   CIEDE2000, undertone, pigment films,
                      thirds, fifths, tilt, lips, brow map, shape                      palettes (base, blush, lips, eyes, brows)
  Phase 2  analyze    light model (AO * SH9 + shadowed key)          makeup-data.ts    evidence, face- and eye-shape rules,
-                     -> albedo -> zone dLab, placement, palettes,                     12 looks as colour rules
+                     -> albedo -> zone dLab, placement, palettes,                     17 looks as colour rules
                      contrast, finish -> blueprint.json             makeup-design.ts  analyzeFace, designMakeup -> plan,
           learn      bare prior, effects, beauty correlations                         checkMakeup
                      -> data/makeup-learned.json  ───────────────►  makeup-paint.ts   makeupPaint (renderer hook),
@@ -40,11 +40,11 @@ Python pipeline paints it on a photograph (`makeup.py apply --plan`).
 
 | Layer | File | What it holds |
 |---|---|---|
-| Atlas | `data/makeup-zones.json`, `makeup-zones.ts` | 31 zones (foundation, under-eye, tear trough, cheek, temple, jaw and nose contour, five highlights, bronzer, five blush placements, lid, crease, outer V, inner corner, lower lash line, liner, wing, brow, lips, liner, lip centre, gloss); 14 products with film opacity and finish; 8 finishes with roughness, specular and sparkle. `zoneField`, `resolveZone`, `zoneOutline`, `eyeWidth`. |
+| Atlas | `data/makeup-zones.json`, `makeup-zones.ts` | 37 zones (foundation, under-eye, tear trough, cheek, temple, jaw and nose contour, five highlights, bronzer, five blush placements, lid, crease, outer V, inner corner, lower lash line, liner, wing, puppy wing, inner-corner liner, aegyo-sal and its shadow, tear mole, brow, straight brow, lips, liner, lip centre, gloss). A point with `surface: true` sits on the face's skin under its (x, y); 14 products with film opacity and finish; 8 finishes with roughness, specular and sparkle. `zoneField`, `resolveZone`, `zoneOutline`, `eyeWidth`. |
 | Colour | `makeup-color.ts` | `deltaE2000`, `lch`, `readSkin` (ITA, undertone), `UNDERTONE_REF`, `filmStep`, `pigmentFor`, `basePalette` (foundation, concealer, corrector, contour, bronzer, highlight), `BLUSH_FAMILIES`, `blushOn`, `LIP_FAMILIES`, `lipColour`, `EYE_COMPLEMENTS`, `irisFamily`, `browColour`, `HEALTHY_SHIFT`. |
-| Knowledge | `makeup-data.ts` | `MAKEUP_EVIDENCE` (graded findings with sources), `FACE_SHAPE_RULES`, `EYE_RULES`, `EYE_SHAPE_RULES`, `MAKEUP_LOOKS` (12 looks), `MAKEUP_LEARNED`. |
-| Design | `makeup-design.ts` | `analyzeFace` (shape, eye spacing, tilt, lip ratio, brow peak), `designMakeup` (look + skin + face + iris + hair -> `MakeupPlan` with reasons), `checkMakeup`, `planSwatches`. |
-| Paint | `makeup-paint.ts` | `makeupPaint(plan)` (the `SkinPaint` that `renderPortrait` calls), `paintPhoto(photo, plan)`, `restFrame(landmarks)`. |
+| Knowledge | `makeup-data.ts` | `MAKEUP_EVIDENCE` (graded findings with sources), `FACE_SHAPE_RULES`, `EYE_RULES`, `EYE_SHAPE_RULES`, `MAKEUP_LOOKS` (17 looks, five of them East Asian), `MAKEUP_LEARNED`. |
+| Design | `makeup-design.ts` | `analyzeFace` (shape, eye spacing, tilt, lip ratio, brow peak), `designMakeup` (look + skin + face + iris + hair -> `MakeupPlan` with reasons and eye tools), `tapedEyeShape`, `checkMakeup`, `planSwatches`. |
+| Paint | `makeup-paint.ts` | `makeupPaint(plan)` (the `SkinPaint` that `renderPortrait` calls), `makeupPortraitOptions(portrait, plan)` (paint, tape and no built-in makeup), `paintPhoto(photo, plan)`, `restFrame(landmarks)`. |
 | React | `makeup-react.tsx` | `MakeupPortrait`, `FaceChart`, `MakeupSwatches`, `MakeupChecks`, `UndertonePlane`, `LearnedEffects`, `LearnedContrast`, `BeautyCorrelations`, `MakeupEvidenceList`. |
 
 ## Use it
@@ -53,7 +53,7 @@ Python pipeline paints it on a photograph (`makeup.py apply --plan`).
 import { beautifulFace } from "components/anatomy/face-beauty";
 import { renderPortrait } from "components/anatomy/face-portrait";
 import { designMakeup, checkMakeup } from "components/anatomy/makeup-design";
-import { makeupPaint, paintPhoto } from "components/anatomy/makeup-paint";
+import { makeupPaint, makeupPortraitOptions, paintPhoto } from "components/anatomy/makeup-paint";
 
 const portrait = { sex: 0, skin: "#c99a7e", eyes: "hazel", eyeShape: "hooded" };
 const face = beautifulFace(portrait).vertices;
@@ -61,6 +61,7 @@ const plan = designMakeup({ look: "soft-glam", skin: portrait.skin, face, eyes: 
 plan.rationale;             // why each choice: undertone, face shape, eye shape
 checkMakeup(plan, face);    // contour stops before the iris, blush above the nose base, brow peak, lip contrast...
 const image = renderPortrait({ ...portrait, paint: makeupPaint(plan) }); // the renderer's own makeup is then off
+const taped = renderPortrait(makeupPortraitOptions(portrait, plan));    // also applies the plan's eyelid tape
 
 // a photograph: 478 MediaPipe landmarks times [width, height, width]
 const rgba = paintPhoto({ width, height, data, landmarks, skinMask }, plan);
@@ -69,6 +70,34 @@ const rgba = paintPhoto({ width, height, data, landmarks, skinMask }, plan);
 Change any part of a look as data: `designMakeup({ look, overrides: { "cheek-contour": { coverage: 0.9 }, "lips": false } })`,
 or pass a whole `Look` object. Layers name a zone, a colour rule, a coverage, a finish and an optional
 `adjust` (`shift`, `rotate`, `scale`, `radius`, `soft`, `grow`).
+
+## East Asian looks and eye tools
+
+Five looks transform how the eyes read, not only their colour. The research note
+[makeup-east-asian-trends-2026-11-17.md](../research/makeup-east-asian-trends-2026-11-17.md) has the evidence and the
+reference photographs studied.
+
+| Look | Id | Its signature |
+| --- | --- | --- |
+| Chinese social-video glam ("Douyin makeup") | `c-glam` | A glittering aegyo-sal with a shadow under it, an inner-corner liner, a soft puppy wing, spiky lashes and drawn lower lashes, blush under the eyes and across the nose, a narrow nose, a coral-red gradient lip |
+| Korean idol | `k-idol` | Glass skin, straight soft brows, a short puppy wing, a champagne aegyo-sal, wispy lashes, hazel lenses, a coral gradient lip |
+| Jirai-kei | `jirai` | A pale matte base, red-pink under the eyes, a strong rose blush right under them, a drooping red-brown wing, heavy lower lashes, a tear mole, a small deep-red lip |
+| Neo-gyaru | `neo-gyaru` | Taped double lids, doll lashes above and below, black liner round the eye, 14.5 mm dark lenses, strong contour, a sheer nude-pink gloss |
+| Ryousangata (soft doll) | `ryousangata` | Rose lids, a pink aegyo-sal, a soft brown drooping wing, wispy lashes with drawn lower lashes, brown lenses, a high pink flush |
+
+A look's `lashes`, `eyes` and `brows` drive the renderer through `SkinPaint`. They scale with intensity and are not
+used at 0:
+
+- **Lashes:** `style` "wispy", "spiky" (manga: 5-7 spikes of 10-14 mm) or "doll", and `lower` (length, darkness,
+  strokes drawn with liner). No styled lash is longer than 14 mm.
+- **Lens:** `eyes.lens` with the tinted `diameter` (12.5-14.5 mm, a natural iris is about 11.7 mm), the limbal `ring`
+  and a `tint`.
+- **Tape:** `eyes.tape` 0-1. `tapedEyeShape` gives a single lid a low crease, keeps an in-fold lid in-fold and opens
+  the eye by up to 1.2 mm. `makeupPortraitOptions` applies it.
+- **Brows:** `brows.straight` 0-1 straightens the face's own brow shape. The `brow-straight` zone fills the same band.
+
+New checks: `aegyo-sal-height` (0.35-0.65 of the eye opening, 0.5 preferred), `wing-angle` for a puppy wing (3-25
+degrees down) and `lens-size` (12.5-14.5 mm). Storybook: Makeup → East Asian looks.
 
 ## The model
 

@@ -243,7 +243,8 @@ Options:
 - expression, yaw (±25°), key light;
 - makeup: `makeup` ("none", "natural" or "glamour", by default "natural" for women) and `lipstick`. For a designed
   look, give `paint: makeupPaint(plan)` from MAKEUP1 ([makeup](makeup.md)). The built-in makeup is then off by
-  default;
+  default. The paint can also carry lashes (`style` wispy, spiky or doll, lower lashes and drawn lower lashes), a
+  circle lens (`eyes.lens`: tinted diameter, ring, tint) and brow straightening (`brows.straight`);
 - `debug` passes (normals, irradiance, occlusion, hair shadow).
 
 The result carries the groom and the head it was groomed on (`hair`), and the 468 face-mesh points in output pixels

@@ -300,6 +300,73 @@ function OnAPhotograph() {
   );
 }
 
+// ---- East Asian looks ----------------------------------------------------------------------------------------------------
+
+const EAST_ASIAN_LOOKS = ["c-glam", "k-idol", "jirai", "neo-gyaru", "ryousangata"] as const;
+const EA_SKINS = ["#f1d3bd", "#e8c6a8", "#ddb594", "#c99a7e"] as const;
+interface EaState { look: string; intensity: number; eyeShape: string; variant: number; skin: string; sex: number; lashes: boolean; lens: boolean; tape: boolean; aegyo: boolean; gallery: boolean }
+
+/** The look with the story's tool switches applied: the same changes an agent can make as data. */
+function eaLook(s: EaState): Look {
+  const base = findLook(s.look)!;
+  return { ...base, layers: base.layers.filter(l => s.aegyo || !l.zone.startsWith("aegyo-sal")), lashes: s.lashes ? base.lashes : { length: 1, thickness: 1, darkness: 0.5 },
+    eyes: { lens: s.lens ? base.eyes?.lens : undefined, tape: s.tape ? base.eyes?.tape : 0 } };
+}
+
+function EastAsianLooks() {
+  const [s, setS] = useState<EaState>({ look: "c-glam", intensity: 1, eyeShape: "monolid", variant: 0, skin: "#e8c6a8", sex: 0, lashes: true, lens: true, tape: true, aegyo: true, gallery: false });
+  const set = <K extends keyof EaState>(k: K) => (v: EaState[K]) => setS(p => ({ ...p, [k]: v }));
+  const portrait: PortraitOptions = { sex: s.sex, faceType: "east-asian", faceVariant: s.variant, eyeShape: s.eyeShape, skin: s.skin, eyes: "dark-brown", hair: hairOf("black"), hairStyle: s.sex ? "short-crop" : "long", makeup: "none", seed: 11 };
+  const face = useMemo(() => beautifulFace(portrait).vertices, [s.sex, s.variant, s.eyeShape]); // eslint-disable-line react-hooks/exhaustive-deps
+  const plan = useMemo(() => designMakeup({ look: eaLook(s), face, eyeShape: s.eyeShape, skin: s.skin, hair: portrait.hair, eyes: "dark-brown", intensity: s.intensity }), [JSON.stringify(s), face]); // eslint-disable-line react-hooks/exhaustive-deps
+  const look = findLook(s.look)!;
+  const toggle = (k: "lashes" | "lens" | "tape" | "aegyo", text: string) =>
+    <label style={{ ...label, display: "flex", alignItems: "center", gap: 6, fontWeight: 500 }}><input type="checkbox" checked={s[k]} onChange={e => set(k)(e.target.checked)} />{text}</label>;
+  const fig = { margin: 0, display: "grid", gap: 4, alignContent: "start" } as const;
+  return (
+    <div style={{ ...page, gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))" }}>
+      <div style={{ display: "grid", gap: 10, alignContent: "start", maxWidth: 380 }}>
+        <h2 style={{ margin: 0, font: "700 20px var(--km-font-sans, system-ui, sans-serif)" }}>East Asian looks</h2>
+        <Section title="Look">
+          <Select name="Look" value={s.look} onChange={set("look")} options={EAST_ASIAN_LOOKS.map(id => [id, findLook(id)!.label] as const)} />
+          <Range name="Intensity" value={s.intensity} onChange={set("intensity")} min={0} max={1.5} step={0.05} fmt={v => `${Math.round(v * 100)}%`} />
+        </Section>
+        <Section title="Tools beyond paint">
+          {toggle("lashes", "False lashes and lower lashes")}{toggle("lens", "Circle lenses")}{toggle("tape", "Double-eyelid tape (where the look uses it)")}{toggle("aegyo", "Aegyo-sal and its shadow")}
+        </Section>
+        <Section title="Person">
+          <Select name="Sex" value={String(s.sex)} onChange={v => set("sex")(Number(v))} options={[["0", "Woman"], ["1", "Man"]]} />
+          <Select name="Eye shape" value={s.eyeShape} onChange={set("eyeShape")} options={[["monolid", "Single lid"], ["inner-double", "In-fold double lid"], ["almond", "Almond"]]} />
+          <Select name="Face variant" value={String(s.variant)} onChange={v => set("variant")(Number(v))} options={[["0", "The type's average"], ["1", "Variant 1"], ["2", "Variant 2"]]} />
+          <Select name="Skin" value={s.skin} onChange={set("skin")} options={EA_SKINS.map(h => [h, skinLabel(h)] as const)} />
+        </Section>
+        <label style={{ ...label, display: "flex", alignItems: "center", gap: 6, fontWeight: 500 }}><input type="checkbox" checked={s.gallery} onChange={e => set("gallery")(e.target.checked)} />Show all five looks on this face</label>
+      </div>
+      <div style={{ display: "grid", gap: 14, alignContent: "start" }}>
+        <p style={{ ...muted, maxWidth: 860 }}><b>{look.label}.</b> {look.summary}</p>
+        <div style={grid(240)}>
+          <figure style={fig}><FacePortrait options={{ ...portrait, width: 256, height: 320 }} label="Bare face" /><figcaption style={muted}>Bare</figcaption></figure>
+          <figure style={fig}><MakeupPortrait portrait={{ ...portrait, width: 256, height: 320 }} plan={plan} label={`${plan.label} on this face`} /><figcaption style={muted}>{plan.label}, {Math.round(s.intensity * 100)}%</figcaption></figure>
+        </div>
+        <div style={grid(360)}>
+          <figure style={fig}><FacePortrait options={{ ...portrait, framing: "eyes", width: 384, height: 192 }} label="Bare eyes" /><figcaption style={muted}>Bare eyes</figcaption></figure>
+          <figure style={fig}><MakeupPortrait portrait={{ ...portrait, framing: "eyes", width: 384, height: 192 }} plan={plan} label={`The eyes in ${plan.label}`} /><figcaption style={muted}>The eyes in this look</figcaption></figure>
+        </div>
+        <h3 style={h3}>Why these choices</h3>
+        <ul style={{ ...muted, paddingLeft: 18, display: "grid", gap: 4 }}>{plan.rationale.map((r, k) => <li key={k}>{r}</li>)}</ul>
+        <h3 style={h3}>Checks</h3>
+        <MakeupChecks plan={plan} face={face} />
+        <div style={{ maxWidth: 560 }}><FaceChart face={face} plan={plan} title={`${plan.label}: where each product goes on this face`} /></div>
+        {s.gallery ? <div style={grid(200)}>
+          {EAST_ASIAN_LOOKS.map((id, k) => <figure key={id} style={fig}>
+            <MakeupPortrait portrait={{ ...portrait, width: 224, height: 280, seed: 11 + k }} design={{ look: id }} label={`${findLook(id)!.label} on this face`} />
+            <figcaption style={muted}>{findLook(id)!.label}</figcaption></figure>)}
+        </div> : null}
+      </div>
+    </div>
+  );
+}
+
 const meta = { title: "Video production/Art Foundations/Makeup", id: "video-makeup", component: Lab, parameters: { layout: "fullscreen" } } satisfies Meta<typeof Lab>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -309,3 +376,4 @@ export const FaceChartsStory: Story = { name: "Face charts by face shape", rende
 export const SkinAndColourStory: Story = { name: "Skin and colour", render: () => <SkinAndColour /> };
 export const LearnedStory: Story = { name: "Learned from photographs", render: () => <Learned /> };
 export const OnAPhotographStory: Story = { name: "On a photograph", render: () => <OnAPhotograph /> };
+export const EastAsianLooksStory: Story = { name: "East Asian looks", render: () => <EastAsianLooks /> };
