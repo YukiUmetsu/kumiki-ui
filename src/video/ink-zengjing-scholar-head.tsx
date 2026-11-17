@@ -82,7 +82,7 @@ export function InkZengJingScholarHead({
     </g>;
   };
   const brow=(side:"L"|"R")=>{
-    const cx=side==="L"?255:285,near=side==="L";
+    const near=side==="L";
     const innerY=300+browInner,outerY=299+browOuter;
     const d=near
       ?`M244 ${n(outerY+1)} Q251 ${n(innerY-1.2)} 264 ${n(innerY+.8)}`
