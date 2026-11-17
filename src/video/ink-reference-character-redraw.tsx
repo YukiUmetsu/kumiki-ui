@@ -40,21 +40,29 @@ export interface InkReferenceCharacterRedrawProps {
 
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
 
-/** The two identities are independent landmark-morphed studies, not ethnicity presets. */
+/**
+ * No validated East-Asian population norm is currently present in FACE_NORMS.
+ * Start from the raw ANAT1 topology and apply explicit millimetre-space
+ * landmark morphs from the observed references; never borrow an unrelated
+ * demographic norm as a proxy.
+ */
 function createSourceFace(character:InkReferenceCharacter){
-  const base=createFace({
-    calibrate:false,sex:1,
-    faceWidth:character==="scholar" ? .96 : 1.04,
-    mouthWidth:character==="scholar" ? .92 : .86,
-  });
+  const base=createFace({calibrate:false,sex:1});
   const vertices=base.vertices.map(v=>[v[0],v[1],v[2]] as [number,number,number]);
   const subnasaleY=vertices[FACE_LANDMARKS.subnasale][1];
   const mentonY=vertices[FACE_LANDMARKS.menton][1];
   const sellionY=vertices[FACE_LANDMARKS.sellion][1];
+  const mouthY=(
+    vertices[FACE_LANDMARKS.subnasale][1]+vertices[FACE_LANDMARKS.stomion][1]
+  )/2;
   const lowerSpan=Math.max(1,Math.abs(subnasaleY-mentonY));
+  const globalWidth=character==="scholar" ? .96 : 1.04;
+  const mouthWidth=character==="scholar" ? .97 : .89;
   for(const v of vertices){
     const lower=clamp((subnasaleY-v[1])/lowerSpan,0,1);
     const nose=v[1]<=sellionY&&v[1]>=subnasaleY&&Math.abs(v[0])<22;
+    const mouthFalloff=clamp(1-Math.abs(v[1]-mouthY)/12,0,1);
+    v[0]*=globalWidth;
     if(character==="elder"){
       v[0]*=1+.045*lower;
       if(v[1]<subnasaleY)v[1]=subnasaleY+(v[1]-subnasaleY)*1.08;
@@ -63,6 +71,7 @@ function createSourceFace(character:InkReferenceCharacter){
       v[0]*=1-.035*lower;
       if(nose)v[0]*=.95;
     }
+    v[0]*=1+(mouthWidth-1)*mouthFalloff;
   }
   const points=new Float32Array(vertices.length*3);
   vertices.forEach((v,i)=>{
@@ -265,6 +274,7 @@ export function InkReferenceCharacterRedraw({
     data-km-anat1-landmarks={Object.keys(FACE_LANDMARKS).length}
     data-km-anat1-feature-count={g.features.length}
     data-km-anat1-face-width-mm={fmt(g.measures.zyZy)}
+    data-km-anat1-mouth-width-mm={fmt(g.measures.chCh)}
     data-km-expr1-emotion={emotion}
     data-km-expr1-nearest={g.nearest}
     data-km-expr1-mark-count={g.marks.length}>
