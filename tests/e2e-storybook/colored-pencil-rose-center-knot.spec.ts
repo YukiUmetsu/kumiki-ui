@@ -67,6 +67,26 @@ test("native 16:9 + 9:16: real six-source central knot with a visible curled bac
         expect(await path.getAttribute("d")).toBe(previousPaths[id]);
       const details=region.locator("[data-km-pencil-details] path");
       expect(await details.count()).toBeGreaterThanOrEqual(5);
+      if(id.startsWith("rose-whorl-")){
+        const localContacts=await region.evaluate(node=>{
+          const support=node.querySelector("path[data-km-pencil-support]") as SVGPathElement|null;
+          if(!support)return [];
+          const paths=[...node.querySelectorAll(
+            'path[data-km-pencil-trace^="rw-"],path[data-km-pencil-trace^="rk-rose-whorl-"]',
+          )] as SVGPathElement[];
+          return paths.map(path=>{
+            const length=path.getTotalLength();let inside=0;
+            for(let i=1;i<=9;i++){
+              const point=path.getPointAtLength(length*i/10);
+              if(support.isPointInFill(new DOMPoint(point.x,point.y)))inside++;
+            }
+            return {id:path.getAttribute("data-km-pencil-trace"),inside};
+          });
+        });
+        expect(localContacts.length).toBeGreaterThanOrEqual(8);
+        for(const contact of localContacts)
+          expect(contact.inside,contact.id+" stays on its own filled lamina").toBeGreaterThanOrEqual(5);
+      }
       await expect(region.locator("[data-km-pigment-layer]")).toHaveCount(3);
     }
     const physical=svg.locator('[data-km-pencil-region="rose-center-scroll-underturn"]');
