@@ -15,7 +15,7 @@ These are source photographs, not a cultivar-matched multi-view capture. Their c
 4. **Vatadoshu Phyto, Red rose close-up.jpg** — 2,160 × 1,440 px, original photograph, 18 September 2003, author-uploaded CC0 1.0. https://commons.wikimedia.org/wiki/File:Red_rose_close-up.jpg  
    Negative morphology control: an open single rose exposes stamens instead of a compact double-flower whorl. It prevents treating every red-rose centre as the same spiral motif; it is not a geometry target for this double rose.
 
-The Commons file pages state CC0 1.0 for all three source photographs. Artist names, original dimensions and license pages are retained above. No reference pixels, masks, crops, textures, color samples, SVG paths or derivatives are committed. No source-image download is part of the runtime package.
+The Commons file pages state CC0 1.0 for all four source photographs. Artist names, original dimensions and license pages are retained above. No reference pixels, masks, crops, textures, color samples, SVG paths or derivatives are committed. No source-image download is part of the runtime package.
 
 ## Native visual diagnosis
 
