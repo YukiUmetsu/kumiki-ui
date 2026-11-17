@@ -97,7 +97,8 @@ export function inspectRoseHypanthiumAttachment():string[]{
       contact.path.length>12000||
       !/^#[0-9a-f]{6}$/i.test(contact.color)||
       !Number.isFinite(contact.width)||contact.width<.2||contact.width>.65||
-      !Number.isFinite(contact.opacity)||contact.opacity<=.2||contact.opacity>.7||
+      typeof contact.opacity!=="number"||!Number.isFinite(contact.opacity)||
+      contact.opacity<=.2||contact.opacity>.7||
       !Number.isSafeInteger(contact.startFrame)||contact.startFrame<185||
       !Number.isSafeInteger(contact.durationFrames)||contact.durationFrames<8||
       contact.startFrame+contact.durationFrames>335)
