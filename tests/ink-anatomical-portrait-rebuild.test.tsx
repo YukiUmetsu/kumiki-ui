@@ -214,6 +214,8 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
       expect(path).toContain('-face-wet-diffusion)');
     }
     expect(s).not.toMatch(/(?:NaN|Infinity|undefined)/);
+    expect((s.match(/data-km-ink-alar-pocket=/g)||[])).toHaveLength(2);
+    expect(s).toContain('-face-wet-diffusion');
   });
   it("retains all 93 curled elder beard fibers, five locks and a soft non-triangular substrate",()=>{
     const elder=renderToStaticMarkup(createElement(InkAnatomicalPortrait,{
