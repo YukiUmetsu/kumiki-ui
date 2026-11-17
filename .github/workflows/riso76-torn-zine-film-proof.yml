@@ -1,0 +1,52 @@
+name: RISO76 original zine cut-paper source-native film proof
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso76-torn-zine-film-proof.yml"
+      - "registry/video/riso-torn-paper.ts"
+      - "registry/video/riso-torn-paper-react.tsx"
+      - "src/video/riso76-collage-film.ts"
+      - "src/video/riso76-paper-collage-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "registry.json"
+      - "tests/riso76-torn-collage-artcraft.test.tsx"
+      - "tests/e2e-storybook/riso76-native-paper-collage-film.spec.ts"
+      - "docs/research/riso76-native-zine-paper-collage-artcraft.md"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: riso76-zine-paper-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-collage-film:
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Source art, physical paper and FD1 film strict type and unit proof
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso76-torn-collage-artcraft.test.tsx
+      - name: Clean consumer and source-native portfolio registration
+        run: |
+          npm run registry:validate
+          node scripts/registry-fixture.js --item=riso-print
+      - name: Build actual original Risograph FilmStage Storybook
+        run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - name: Chromium 1x/3x 144-paper-fibre press overprint, four-way, 9x16 and reduced QA
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso76-native-paper-collage-film.spec.ts
+      - name: Save real 24fps source printed collage frames for visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso76-native-printed-zine-cellulose-collage-film
+          path: test-results/
+          retention-days: 5
+          if-no-files-found: warn
