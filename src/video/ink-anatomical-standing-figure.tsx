@@ -12,6 +12,7 @@ import {useId} from "react";
 import type {CSSProperties,SVGProps} from "react";
 import {evaluateInkBrush,inkHash} from "../../registry/video/ink-brush";
 import type {InkBrushSpec} from "../../registry/video/ink-brush";
+import {INK_PORTRAIT_CHARACTERS,INK_PORTRAIT_EMOTIONS} from "./ink-anatomical-portrait";
 import type {InkPortraitCharacter,InkPortraitEmotion} from "./ink-anatomical-portrait";
 import {InkZengJingScholarHead} from "./ink-zengjing-scholar-head";
 
@@ -80,6 +81,14 @@ export function InkAnatomicalStandingFigure({
   character="scholar",emotion="neutral",intensity=1,detail=1,headScale=.48,
   frame=0,reducedMotion=false,camera="full",transparentPaper=false,style,...svgProps
 }:InkAnatomicalStandingFigureProps) {
+  if(!INK_PORTRAIT_CHARACTERS.includes(character))
+    throw new RangeError("Unknown standing scholar identity");
+  if(!INK_PORTRAIT_EMOTIONS.includes(emotion))
+    throw new RangeError("Unknown standing scholar expression");
+  if(!Number.isFinite(intensity)||intensity<0||intensity>1)
+    throw new RangeError("Standing ANAT2 intensity must be in [0,1]");
+  if(!Number.isFinite(headScale)||headScale<.38||headScale>.75)
+    throw new RangeError("Standing ANAT2 headScale must be .38..75");
   if(!Number.isFinite(detail)||detail<.25||detail>1)
     throw new RangeError("Standing ANAT2 detail must be .25..1");
   const pose=inkStandingPoseAt(frame,reducedMotion);
