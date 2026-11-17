@@ -72,7 +72,7 @@ These are original demonstration paths, not traced versions of the reference pho
 The focused CI captures real Chromium images for:
 
 - Rounded RISO79 negative control.
-- Organic landscape at 1× and 3×.
+- Organic landscape at 1× plus separate 3× macro crops for the leaf, S-curve and flame apertures.
 - Organic portrait at 9:16.
 - Reverse seek from the first to final FilmStage frame.
 - Source-path, fibre-path and both original print-master signatures before and after the seek.
