@@ -23,6 +23,9 @@ export interface PointSpec {
   off?: [number, number, number];
   /** Stroke points: half-width of the full-strength core, eye widths. */
   r?: number;
+  /** Put the point on the skin: after the offset, its depth is the face's front surface under its (x, y). Thin strokes
+   * off the lid (a wing tip, a shadow line, a beauty mark) then touch the skin of every face. */
+  surface?: boolean;
   note?: string;
 }
 export type FinishId = "matte" | "velvet" | "satin" | "dewy" | "glossy" | "shimmer" | "metallic" | "glitter";
@@ -53,6 +56,8 @@ export interface ZoneAdjust {
   /** Move, eye widths [x (outward on each side is negative x on the right), y up]. */
   shift?: [number, number];
   rotate?: number; scale?: number; radius?: number; soft?: number; grow?: number;
+  /** Strokes: keep the first part, 0-1 of the stroke's length from its first point (a lower liner on the outer half). */
+  span?: number;
 }
 export interface ZonePart { kind: "stroke" | "polygon"; pts: Vec3[]; r: number[]; soft: number; grow: number; lo: Vec3; hi: Vec3 }
 
@@ -76,7 +81,37 @@ export function resolvePoint(spec: PointSpec, V: readonly Vec3[], ew: number, mi
   } else if (spec.a) p = resolvePoint(MAKEUP_ATLAS.anchors[spec.a], V, ew, mirrored);
   else throw new Error(`MAKEUP1: bad point ${JSON.stringify(spec)}`);
   if (spec.off) p = [p[0] + (mirrored ? -spec.off[0] : spec.off[0]) * ew, p[1] + spec.off[1] * ew, p[2] + spec.off[2] * ew];
+  if (spec.surface) p = [p[0], p[1], skinDepth(V, p[0], p[1]) ?? p[2]];
   return p;
+}
+
+/** The face's front surface under (x, y): the depth of the nearest mesh triangle that covers it, seen from the front. */
+function skinDepth(V: readonly Vec3[], x: number, y: number): number | null {
+  let best: number | null = null;
+  for (let t = 0; t < MESH_TRIS.length; t += 3) {
+    const A = V[MESH_TRIS[t]], B = V[MESH_TRIS[t + 1]], C = V[MESH_TRIS[t + 2]];
+    const d = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
+    if (Math.abs(d) < 1e-9) continue;
+    const w1 = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / d, w2 = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / d, w3 = 1 - w1 - w2;
+    if (w1 < 0 || w2 < 0 || w3 < 0) continue;
+    const z = w1 * A[2] + w2 * B[2] + w3 * C[2];
+    if (best === null || z > best) best = z;
+  }
+  return best;
+}
+
+/** The first `span` (0-1) of a stroke's length: its points up to the cut, then the cut point with its radius. */
+function cutStroke(P: Vec3[], R: number[], span: number): [Vec3[], number[]] {
+  const seg = P.slice(1).map((b, i) => Math.hypot(b[0] - P[i][0], b[1] - P[i][1], b[2] - P[i][2]));
+  let left = span * seg.reduce((a, b) => a + b, 0);
+  const outP: Vec3[] = [P[0]], outR = [R[0]];
+  for (let i = 0; i < seg.length; i++) {
+    if (left >= seg[i]) { outP.push(P[i + 1]); outR.push(R[i + 1]); left -= seg[i]; continue; }
+    const t = seg[i] > 0 ? left / seg[i] : 0, a = P[i], b = P[i + 1];
+    outP.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]); outR.push(R[i] + (R[i + 1] - R[i]) * t);
+    break;
+  }
+  return [outP, outR];
 }
 
 /** A zone's parts on a face: one per side, or one for a centre zone. */
@@ -84,14 +119,14 @@ export function resolveZone(id: string, V: readonly Vec3[], adjust: ZoneAdjust =
   const z = findZone(id), ew = eyeWidth(V), sh = z.shape;
   const parts: ZonePart[] = [];
   for (const mirrored of z.side === "both" ? [false, true] : [false]) {
-    let pts = sh.points.map(p => resolvePoint(p, V, ew, mirrored));
+    let pts = sh.points.map(p => resolvePoint(p, V, ew, mirrored)), r = sh.points.map(p => (p.r ?? 0) * ew * (adjust.radius ?? 1));
+    if (sh.kind === "stroke" && adjust.span !== undefined && adjust.span < 1) [pts, r] = cutStroke(pts, r, Math.max(0, adjust.span));
     const sx = mirrored ? -1 : 1;
     if (adjust.scale !== undefined || adjust.rotate !== undefined) {
       const piv = pts[0], k = adjust.scale ?? 1, a = ((adjust.rotate ?? 0) * Math.PI / 180) * sx, c = Math.cos(a), s = Math.sin(a);
       pts = pts.map(p => { const dx = p[0] - piv[0], dy = p[1] - piv[1], dz = p[2] - piv[2]; return [piv[0] + (dx * c - dy * s) * k, piv[1] + (dx * s + dy * c) * k, piv[2] + dz * k] as Vec3; });
     }
     if (adjust.shift) pts = pts.map(p => [p[0] + adjust.shift![0] * sx * ew, p[1] + adjust.shift![1] * ew, p[2]] as Vec3);
-    const r = sh.points.map(p => (p.r ?? 0) * ew * (adjust.radius ?? 1));
     const soft = (sh.soft ?? 0.3) * ew * (adjust.soft ?? 1), grow = ((sh.grow ?? 0) + (adjust.grow ?? 0)) * ew;
     const m = Math.max(...r, 0) + soft + Math.max(0, grow);
     const lo: Vec3 = [Math.min(...pts.map(p => p[0])) - m, Math.min(...pts.map(p => p[1])) - m, Math.min(...pts.map(p => p[2])) - m];

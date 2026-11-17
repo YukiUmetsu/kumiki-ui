@@ -13,13 +13,14 @@ import { MONK_SKIN_TONES } from "./anatomy-color";
 import { FACE_FEATURES, FACE_LANDMARKS } from "./anatomy-face";
 import { beautifulFace } from "./face-beauty";
 import type { PortraitOptions } from "./face-portrait";
-import { FacePortrait } from "./face-portrait-react";
+import { FacePortrait, portraitAffinity, portraitPreview } from "./face-portrait-react";
 import { sheetList, sheetSmall, SwatchList } from "./foundation-react";
+import { RenderFrame } from "./foundation-render-react";
 import { readSkin, UNDERTONE_REF } from "./makeup-color";
 import { MAKEUP_EVIDENCE, MAKEUP_LEARNED } from "./makeup-data";
 import { checkMakeup, designMakeup, planSwatches } from "./makeup-design";
 import type { DesignOptions, MakeupPlan } from "./makeup-design";
-import { makeupPaint } from "./makeup-paint";
+import { MAKEUP_RENDER_POOL } from "./makeup-render-pool";
 import { findZone, MAKEUP_ATLAS, zoneOutline } from "./makeup-zones";
 import type { ProductId, ZoneAdjust } from "./makeup-zones";
 
@@ -52,8 +53,12 @@ export const MakeupPortrait = forwardRef<HTMLCanvasElement, MakeupPortraitProps>
     const eyeShape = typeof portrait.eyeShape === "string" ? portrait.eyeShape : portrait.eyeShape?.id;
     return designMakeup({ skin: portrait.skin ?? "#d8a98a", eyes: portrait.eyes ?? "brown", eyeShape, hair: portrait.hair, ...design, face: face.vertices });
   }, [planKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  const paint = useMemo(() => (designed.layers.length ? makeupPaint(designed) : undefined), [designed]);
-  return <FacePortrait ref={ref} options={{ makeup: "none", ...portrait, paint }} label={label} style={style} />;
+  if (!designed.layers.length && !designed.eyes.lens && !designed.eyes.tape) return <FacePortrait ref={ref} options={{ makeup: "none", ...portrait }} label={label} style={style} />;
+  // the plan goes to the worker as plain data and the worker builds its paint (functions cannot be sent to a worker)
+  const W = portrait.width ?? 384, H = portrait.height ?? 480, affinity = portraitAffinity(portrait);
+  return <RenderFrame ref={ref} width={W} height={H} label={label} style={style} placeholder="var(--km-surface-subtle, #e8e4df)"
+    job={{ pool: MAKEUP_RENDER_POOL, kind: "makeup-portrait", args: { portrait, plan: designed }, affinity }}
+    preview={{ pool: MAKEUP_RENDER_POOL, kind: "makeup-portrait", args: { portrait: portraitPreview(portrait), plan: designed }, affinity }} />;
 });
 
 // ---- Face chart ---------------------------------------------------------------------------------------------------------

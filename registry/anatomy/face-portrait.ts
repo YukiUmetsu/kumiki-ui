@@ -116,11 +116,28 @@ export interface SkinPaint {
   key: string;
   prepare?(neutral: readonly Vec3[]): void;
   shade(rest: Vec3, s: SkinPaintSample): void;
-  /** Mascara: lash length and thickness factors, darkness 0-1 (0.5 = bare lashes). */
-  lashes?: { length: number; thickness: number; darkness: number };
-  /** Brow hair colour (linear RGB) and density factor. */
-  brows?: { colour: RGB3; density: number };
+  /** Mascara or false lashes. */
+  lashes?: LashSpec;
+  /** Eyes: a circle lens. */
+  eyes?: { lens?: LensSpec };
+  /** Brow hair colour (linear RGB), density factor, and how far to straighten the brow's own shape (0-1). */
+  brows?: { colour: RGB3; density: number; straight?: number };
 }
+/**
+ * Mascara or false lashes: length and thickness factors and darkness 0-1 (0.5 = bare lashes). `style`: "wispy" (fine,
+ * uneven lengths), "spiky" (manga: 5-7 long spikes over a short base) or "doll" (dense, long, flared). `lower`: the lower
+ * lashes' length factor and darkness, and how many strokes are drawn below the lower lash line with liner.
+ */
+export interface LashSpec {
+  length: number; thickness: number; darkness: number;
+  style?: "natural" | "wispy" | "spiky" | "doll";
+  /** How much of the style shows, 0-1 (default 1): MAKEUP1 fades it in with the intensity. */
+  styleStrength?: number;
+  lower?: { length: number; darkness: number; drawn: number };
+}
+/** A circle lens: its tinted diameter (mm; a natural iris is about 11.7), the limbal ring's darkness 0-1, and a tint
+ * (linear RGB) laid over the iris pattern outside the pupil. */
+export interface LensSpec { diameter: number; ring: number; tint?: RGB3 }
 export interface Portrait { width: number; height: number; rgba: Uint8ClampedArray; face: BeautifulFace; expressed?: ExpressedFace; ms: number;
   /** The 468 face-mesh points in output pixels as a landmark detector reports them: x right, y down, z away from the
    * camera in pixels (MediaPipe's convention times [width, height, width]), for overlays and photo tools. */
@@ -743,7 +760,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const gaze = expressed?.gaze ?? { x: 0, y: 0, cross: 0 };
   const shape = face.eyeShape ?? EYE_SHAPES[0], pupilR = Math.min(4, Math.max(1, (o.pupil ?? 4) / 2));
   for (const s of ["L", "R"] as const) drawEye(out, eyeMask[s], { w, h, side: s, centre: rotH([ec[s][0], ec[s][1], ec[s][2] - 9.6]), camPos, f, D, yc, Lkey, keyI, skyI, fillI, Lfill,
-    iris: findIris((s === "R" ? o.eyesRight : undefined) ?? o.eyes ?? look?.eyes ?? "brown"), pupilR, epicanthal: shape.epicanthal, seed: seed + (s === "L" ? 1 : 2),
+    iris: findIris((s === "R" ? o.eyesRight : undefined) ?? o.eyes ?? look?.eyes ?? "brown"), pupilR, epicanthal: shape.epicanthal, seed: seed + (s === "L" ? 1 : 2), lens: o.paint?.eyes?.lens,
     upper: expand(LOOP(`eye-upper.${s}`)).map(pv), lower: expand(LOOP(`eye-lower.${s}`)).map(pv), mmPerPx, gaze, yawR, pitchR });
   // nostrils
   for (const s of ["L", "R"] as const) {
@@ -800,7 +817,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   // brows and lashes
   const browCol: RGB3 = paint?.brows?.colour ?? [hairCol[0] * 0.32, hairCol[1] * 0.28, hairCol[2] * 0.26];
   const VS: Vec3[] = Array.from({ length: nFace }, (_, i) => [FV[i * 3], FV[i * 3 + 1], FV[i * 3 + 2]] as Vec3);
-  drawBrows(out, { V: VS, rot: rotH, proj, mmPerPx, sex, col: browCol, seed, filled: mk, density: paint?.brows?.density ?? 1 });
+  drawBrows(out, { V: VS, rot: rotH, proj, mmPerPx, sex, col: browCol, seed, filled: mk, density: paint?.brows?.density ?? 1, straight: paint?.brows?.straight });
   drawLashes(out, { V: VS, rot: rotH, proj, mmPerPx, seed, col: [0.012, 0.009, 0.008], shape: face.eyeShape ?? EYE_SHAPES[0], skinM, sex, mk, makeup, mascara: paint?.lashes });
   // the hair, strand by strand, over everything it is in front of
   renderHairStrands(out, groom, { project: (q: Vec3) => { const r = rotH(q), [sx, sy] = proj(r[0], r[1], r[2]); return [sx, sy, r[2]]; }, rotate: rotH, camera: camPos, pxPerMm: 1 / mmPerPx, solidDepth: hairSolid },
@@ -999,9 +1016,9 @@ function catmullRom(pts: [number, number][], n = 6): [number, number][] {
 }
 
 function drawEye(out: Raster, mask: Float32Array, e: { w: number; h: number; side: "L" | "R"; centre: Vec3; camPos: Vec3; f: number; D: number; yc: number; Lkey: Vec3; keyI: RGB3; skyI: RGB3; fillI: RGB3; Lfill: Vec3;
-  iris: IrisType; pupilR: number; epicanthal: number; seed: number;
+  iris: IrisType; pupilR: number; epicanthal: number; seed: number; lens?: LensSpec;
   upper: [number, number][]; lower: [number, number][]; mmPerPx: number; gaze: { x: number; y: number; cross: number }; yawR: number; pitchR: number }) {
-  const R = 12, irisR = 5.85, pupilR = e.pupilR, C = e.centre;
+  const R = 12, irisR = (e.lens?.diameter ?? 11.7) / 2, pupilR = e.pupilR, C = e.centre;
   // Gaze: toward the camera, turned by the expression's gaze (about 15° at full) and convergence.
   const toCam = norm3([e.camPos[0] - C[0], e.camPos[1] - C[1], e.camPos[2] - C[2]]);
   const gz = norm3([toCam[0] + e.gaze.x * 0.26 - Math.sign(C[0]) * e.gaze.cross * 0.2, toCam[1] + e.gaze.y * 0.2, toCam[2]]);
@@ -1034,7 +1051,12 @@ function drawEye(out: Raster, mask: Float32Array, e: { w: number; h: number; sid
         const ang = Math.atan2(dot3(n, uy), dot3(n, ux)), r = (rr * irisR - pupilR) / (irisR - pupilR);
         if (r < 0) col = [0.004, 0.0035, 0.003];
         else {
-          const alb = irisAlbedo(e.iris, r, e.side === "L" ? ang : Math.PI - ang, e.seed);
+          let alb = irisAlbedo(e.iris, r, e.side === "L" ? ang : Math.PI - ang, e.seed);
+          if (e.lens) {
+            // a circle lens: its tint over the iris pattern (clear over the pupil), its printed ring darker at the edge
+            const lt = e.lens.tint, k = 0.75 * smoothstep(0.02, 0.18, r), ringK = 1 - 0.85 * e.lens.ring * smoothstep(1 - Math.min(1, 0.9 / (irisR - pupilR)), 1, r);
+            alb = [0, 1, 2].map(q => (lt ? alb[q] + (lt[q] - alb[q]) * k : alb[q]) * ringK) as typeof alb;
+          }
           const side = dot3([Math.cos(ang), Math.sin(ang), 0], lightInPlane), caustic = 0.8 + 0.6 * Math.max(0, -side) * smoothstep(0.2, 0.9, rr);
           col = [0, 1, 2].map(k => alb[k] * (e.keyI[k] * 0.5 * keyOn * caustic + e.fillI[k] * 0.6 * fillOn + e.skyI[k] * 1.3)) as unknown as RGB3;
         }
@@ -1156,7 +1178,7 @@ function applyFaceMakeup(m: { w: number; h: number; Alb: Float32Array; Spec: Flo
 /** The lower edge of each brow on the canonical mesh, lateral to medial (the upper edge is FACE_FEATURES' brow loop). */
 const BROW_LOWER = { R: [46, 53, 52, 65, 55], L: [276, 283, 282, 295, 285] } as const;
 
-function drawBrows(out: Raster, b: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3; proj: (x: number, y: number, z: number) => [number, number]; mmPerPx: number; sex: number; col: RGB3; seed: number; filled?: number; density: number }) {
+function drawBrows(out: Raster, b: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3; proj: (x: number, y: number, z: number) => [number, number]; mmPerPx: number; sex: number; col: RGB3; seed: number; filled?: number; density: number; straight?: number }) {
   // A groomed brow, as in portraits: its head above the inner corner of the eye, its arch peaking about two-thirds of
   // the way out (above the outer edge of the iris) and its tail ending a little above the head's lower edge. Women's are
   // arched and taper to a fine tail; men's are thicker, flatter and straighter. Dense hairs read as a soft mass of tone
@@ -1176,7 +1198,10 @@ function drawBrows(out: Raster, b: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3;
       const y0 = P[Math.max(0, i - 1)][1], y1 = P[i][1], y2 = P[i + 1][1], y3 = P[Math.min(P.length - 1, i + 2)][1];
       return 0.5 * (2 * y1 + (-y0 + y2) * f + (2 * y0 - 5 * y1 + 4 * y2 - y3) * f * f + (-y0 + 3 * y1 - 3 * y2 + y3) * f * f * f);
     };
-    const topY = (t: number) => curve(pts, t) - 0.3, botY = (t: number) => Math.min(curve(lo, t) + 0.3, topY(t) - 1.0 - 1.5 * (1 - t));
+    // makeup can straighten the brow (MAKEUP1): both edges move toward their straight head-to-tail lines
+    const st = Math.min(1, Math.max(0, b.straight ?? 0));
+    const straighten = (g: (t: number) => number) => (st > 0 ? (t: number) => g(t) + (g(0) + (g(1) - g(0)) * t - g(t)) * st : g);
+    const topY = straighten((t: number) => curve(pts, t) - 0.3), botY = straighten((t: number) => Math.min(curve(lo, t) + 0.3, topY(t) - 1.0 - 1.5 * (1 - t)));
     const at = (t: number): Vec3 => { const q = onLoop(t); return [q[0], (topY(t) + botY(t)) / 2, q[2] + 0.6]; };
     const outward = Math.sign(pts[pts.length - 1][0] - pts[0][0]) || 1;
     // full height (mm) along the brow: the band, the tail drawn finer than the meeting edges
@@ -1215,12 +1240,19 @@ function drawBrows(out: Raster, b: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3;
 }
 
 function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3; proj: (x: number, y: number, z: number) => [number, number]; mmPerPx: number; seed: number; col: RGB3; shape: EyeShapeSpec; skinM: Float32Array;
-  sex?: number; mk?: number; makeup?: string; mascara?: { length: number; thickness: number; darkness: number } }) {
+  sex?: number; mk?: number; makeup?: string; mascara?: LashSpec }) {
   const sh = l.shape, single = sh.crease <= 0, sex = l.sex ?? 0, mk = l.mk ?? 0, glam = l.makeup === "glamour";
   // mascara lengthens, thickens and darkens the lashes; men's lashes are a little shorter and sparser
   const lashLen = (1 - 0.12 * sex) * (1 + 0.22 * mk), lashW = (1 - 0.15 * sex) * (1 + 0.45 * mk);
   // MAKEUP1's mascara on top (bare lashes: length 1, thickness 1, darkness 0.5)
   const mL = l.mascara?.length ?? 1, mT = l.mascara?.thickness ?? 1, mD = Math.min(1, Math.max(0, l.mascara?.darkness ?? 0.5));
+  // false-lash styles and lower lashes (MAKEUP1); without them every factor below is 1
+  const style = l.mascara?.style ?? "natural", lowerL = l.mascara?.lower, styled = style !== "natural";
+  // how much of the style shows: it fades in, so a low intensity is not a full set of false lashes
+  const sStr = styled ? Math.min(1, Math.max(0, l.mascara?.styleStrength ?? 1)) : 0, sf = (f: number) => 1 + (f - 1) * sStr;
+  // a single lid's fold presses bare lashes down; false lashes are curled and glued on, so they rise past it
+  const rise = single ? sStr : 1;
+  const lowD = lowerL ? Math.min(1, Math.max(0, lowerL.darkness)) : mD;
   // soft dark (or light) lines on the skin: creases, the fold of a single lid, a hood's shadow, an epicanthal fold
   const shadeLine = (pts: [number, number][], widthMm: number, blurMm: number, strength: number) => {
     const cr = createRaster(out.width, out.height);
@@ -1237,24 +1269,52 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
     // bolder). Upper: 8–11 mm, longest in the outer third, growing forward and curling up, so from the front they rise
     // only a few millimetres; lower: 4–6 mm, sparse and pale, down and out. A single lid's fold presses the upper
     // lashes down and hides their roots.
-    const clumps = upper ? Math.round(38 + 8 * (1 - sex)) : 18;
+    const clumps = upper ? Math.round((38 + 8 * (1 - sex)) * sf(style === "doll" ? 1.3 : style === "wispy" ? 1.2 : style === "spiky" ? 0.7 : 1)) : Math.round(18 * sf(style === "doll" ? 1.3 : 1));
     for (let cI = 0; cI < clumps; cI++) {
       const tc = 0.05 + 0.92 * ((cI + 0.5 + 0.4 * (hash2(l.seed + 61, cI, upper ? 1 : 2) - 0.5)) / clumps), nIn = 2 + Math.floor(hash2(l.seed + 67, cI, 3) * 3);
-      const cLen = upper ? (6.8 + 4.4 * Math.sin(Math.PI * Math.pow(tc, 0.7))) * (0.85 + 0.3 * hash2(l.seed + 53, cI, 1)) * (single ? 0.6 : 1 - 0.15 * sh.hood) * mL : (2.6 + 2.6 * Math.sin(Math.PI * tc)) * (0.8 + 0.3 * hash2(l.seed + 59, cI, 2)) * (1 + (mL - 1) * 0.5);
-      const cFan = (tc - 0.42) * (upper ? 1.0 : 0.7) + (hash2(l.seed + 71, cI, 4) - 0.5) * 0.15;
+      const cLen = (upper ? (6.8 + 4.4 * Math.sin(Math.PI * Math.pow(tc, 0.7))) * (0.85 + 0.3 * hash2(l.seed + 53, cI, 1)) * (single ? 0.6 + (1 - 0.15 * sh.hood - 0.6) * rise : 1 - 0.15 * sh.hood) * mL : (2.6 + 2.6 * Math.sin(Math.PI * tc)) * (0.8 + 0.3 * hash2(l.seed + 59, cI, 2)) * (1 + (mL - 1) * 0.5) * (lowerL?.length ?? 1))
+        * sf(style === "doll" ? 1.35 : upper && style === "spiky" ? 0.75 : 1);
+      const cFan = ((tc - 0.42) * (upper ? 1.0 : 0.7) + (hash2(l.seed + 71, cI, 4) - 0.5) * 0.15) * sf(style === "doll" ? 1.25 : 1);
       for (let k = 0; k < (upper ? nIn : 1 + (nIn > 3 ? 1 : 0)); k++) {
         const t = tc + (hash2(l.seed + 73, cI * 7 + k, 5) - 0.5) * (0.9 / clumps), base = at(Math.min(0.99, Math.max(0.01, t)));
-        const len = cLen * (0.85 + 0.25 * hash2(l.seed + 79, cI * 7 + k, 6)) * (upper ? lashLen : 1 + 0.1 * mk), fan = cFan + (hash2(l.seed + 83, cI * 7 + k, 7) - 0.5) * 0.12;
-        const lift = upper ? (single ? 0.12 : 0.55) : -0.3;
+        const rnd = hash2(l.seed + 79, cI * 7 + k, 6), lenRaw = cLen * (style === "wispy" ? 0.85 + 0.25 * rnd + (0.45 * rnd - 0.2) * sStr : 0.85 + 0.25 * rnd) * (upper ? lashLen : 1 + 0.1 * mk);
+        const len = styled ? Math.min(14, lenRaw) : lenRaw, fan = cFan + (hash2(l.seed + 83, cI * 7 + k, 7) - 0.5) * 0.12;
+        const lift = upper ? (single ? 0.12 + 0.43 * rise : 0.55) : -0.3;
         const ptsS: [number, number][] = [];
         for (let q = 0; q <= 6; q++) {
           const u = q / 6, curl = lift * u * u;
           // the tips of a clump draw together
           const conv = upper ? -0.06 * u * u * (k - (nIn - 1) / 2) : 0;
-          const p = l.rot([base[0] + outward * (fan * len * u + conv), base[1] + (upper ? (single ? -0.05 : 0.08) * u + curl * 0.42 : -0.2 * u + curl * 0.4) * len, base[2] + 0.85 * len * u]);
+          const p = l.rot([base[0] + outward * (fan * len * u + conv), base[1] + (upper ? (single ? -0.05 + 0.13 * rise : 0.08) * u + curl * 0.42 : -0.2 * u + curl * 0.4) * len, base[2] + 0.85 * len * u]);
           ptsS.push(l.proj(p[0], p[1], p[2]));
         }
-        strokePolyline(out, ptsS, (upper ? 0.17 * lashW : 0.08 * (1 + 0.3 * mk)) * mT / l.mmPerPx, 0.02 * mT / l.mmPerPx, l.col, Math.min(1, (upper ? 0.94 : 0.42 + 0.2 * mk) * (0.6 + 0.8 * mD)));
+        strokePolyline(out, ptsS, (upper ? 0.17 * lashW : 0.08 * (1 + 0.3 * mk)) * mT * sf(style === "wispy" || (upper && style === "spiky") ? 0.8 : 1) / l.mmPerPx, 0.02 * mT / l.mmPerPx, l.col, Math.min(1, (upper ? 0.94 : 0.42 + 0.2 * mk) * (0.6 + 0.8 * (upper ? mD : lowD))));
+      }
+    }
+    // manga (spiky) false lashes: 5-7 spikes, 10-14 mm, longest in the outer third, each a few lashes drawn to one tip
+    if (upper && style === "spiky") {
+      const nSp = 5 + Math.floor(hash2(l.seed + 101, s === "L" ? 1 : 2, 0) * 3);
+      for (let i = 0; i < nSp; i++) {
+        const t = 0.16 + 0.78 * ((i + 0.5) / nSp), spikeLen = Math.min(14, (10.2 + 3.6 * Math.sin(Math.PI * Math.pow(t, 0.8))) * mL) * (0.5 + 0.5 * sStr);
+        const lift = single ? 0.12 + 0.43 * rise : 0.55, fan0 = (t - 0.42) * 1.05;
+        for (let k = 0; k < 4; k++) {
+          const base = at(Math.min(0.99, Math.max(0.01, t + (k - 1.5) * 0.012))), ptsS: [number, number][] = [];
+          for (let q = 0; q <= 6; q++) {
+            const u = q / 6, curl = lift * u * u, conv = -0.28 * u * u * (k - 1.5);
+            const p = l.rot([base[0] + outward * (fan0 * spikeLen * u + conv), base[1] + ((single ? -0.05 + 0.13 * rise : 0.08) * u + curl * 0.42) * spikeLen, base[2] + 0.85 * spikeLen * u]);
+            ptsS.push(l.proj(p[0], p[1], p[2]));
+          }
+          strokePolyline(out, ptsS, 0.18 * mT / l.mmPerPx, 0.02 / l.mmPerPx, l.col, 0.97 * sStr);
+        }
+      }
+    }
+    // lower lashes drawn with liner: tapered strokes 2-4 mm down from the lower lash line, on its outer two thirds
+    if (!upper && lowerL && lowerL.drawn > 0) {
+      const n = Math.round(lowerL.drawn);
+      for (let i = 0; i < n; i++) {
+        const f = (i + 0.5) / n, t = 0.36 + 0.58 * f, base = at(t), len = 2 + 2 * f, out1 = 0.18 + 0.38 * f, seg: [number, number][] = [];
+        for (let q = 0; q <= 4; q++) { const u = q / 4, p = l.rot([base[0] + outward * out1 * len * u, base[1] - 0.45 - len * u * (1 - 0.15 * u), base[2] + 0.25 - 0.3 * u]); seg.push(l.proj(p[0], p[1], p[2])); }
+        for (let q = 1; q < seg.length; q++) strokePolyline(out, [seg[q - 1], seg[q]], (0.17 - 0.03 * q) / l.mmPerPx, 0.03 / l.mmPerPx, l.col, Math.min(1, 0.55 + 0.45 * lowD));
       }
     }
     // the lash line: a soft dark margin along the upper lid

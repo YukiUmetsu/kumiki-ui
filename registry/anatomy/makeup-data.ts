@@ -9,6 +9,7 @@
  */
 import type { BlendMode, BlushFamily, LipFamily } from "./makeup-color";
 import type { FinishId, ProductId, ZoneAdjust } from "./makeup-zones";
+import type { LashSpec } from "./face-portrait";
 import learnedJson from "./data/makeup-learned.json";
 
 export interface MakeupEvidence { id: string; grade: "reported" | "learned" | "convention" | "estimated"; finding: string; appliedAs: string; source: string; url: string }
@@ -71,6 +72,28 @@ export const MAKEUP_EVIDENCE: readonly MakeupEvidence[] = [
     appliedAs: "Foundation's job is evenness, not a mask: it evens colour and keeps relief.", source: "Matts, Fink, Grammer & Burquest 2007, J. Am. Acad. Dermatol. 57:977", url: "https://doi.org/10.1016/j.jaad.2007.07.040" },
   { id: "brow-peak", grade: "reported", finding: "Observers preferred the brow peak at 71% of the eye width from the inner corner, roughly the lateral limbus (a study with many raters but fewer than 10 photographs). Makeup artist Westmore put the peak above the lateral limbus; Byrd on the line from the nose wing through it; Cook et al. 1989 above the lateral canthus, as a more medial peak looks surprised.",
     appliedAs: "The atlas puts the brow peak at 71% of the eye width and the tail on the line from the nose wing through the outer canthus.", source: "Griffin & Kim, Ideal Female Brow Aesthetics, Clin. Plast. Surg. (review)", url: "https://doi.org/10.1016/j.cps.2012.07.003" },
+  { id: "aegyo-sal", grade: "reported", finding: "Pretarsal rolls (aegyo-sal) 5 mm wide, at 0.5 of the eye opening's height and crescent-shaped were the most attractive; 385 respondents (80 specialists) preferred images with a roll to images without one.",
+    appliedAs: "The aegyo-sal zone is a crescent about half the opening's height; checkMakeup keeps it within 0.35-0.65.", source: "Defining Ideal Pretarsal Rolls Through a Morphometric Analysis in Asians, Aesthet. Surg. J. 2024 (abstract)", url: "https://aminer.org/pub/64ddb75a3fda6d7f06385343" },
+  { id: "iris-size", grade: "reported", finding: "On average female faces with single lids, an iris at 125% of normal size was judged more attractive and more natural than double eyelids.",
+    appliedAs: "Circle lenses up to 14.5 mm tinted diameter (about 124% of an 11.7 mm iris); checkMakeup keeps them within 12.5-14.5 mm.", source: "Takehara & Tanijiri 2015, Jpn. J. Kansei Eng. 14:491", url: "https://www.jstage.jst.go.jp/article/jjske/advpub/0/advpub_TJSKE-D-15-00018/_article/-char/ja/" },
+  { id: "eyelid-height", grade: "reported", finding: "Young Korean women's eyes open 8.0 mm with single lids and 9.9 mm with inborn double lids (120 women). Double-eyelid surgery opened the eye about 28% taller (Chen et al. 2016). Chinese respondents preferred an in-fold double eyelid with about 2 mm of visible lid (Chi et al. 2024).",
+    appliedAs: "Tape gives a single lid a low crease and opens it by up to 1.2 mm; an in-fold lid stays in-fold.", source: "Jung et al. 2020, Arch. Aesthetic Plast. Surg. 26:7; Chen, Tai & Huang 2016, PRS Glob. Open 4:e681; Chi et al. 2024, Aesthet. Surg. J. 44:482", url: "https://e-aaps.org/journal/view.php?number=691" },
+  { id: "brow-distance", grade: "reported", finding: "Eye shadow made eyes look about 5% larger, and lower brows (nearer the eyes) about 2% larger; the effect shares its mechanism with the Delboeuf illusion.",
+    appliedAs: "Straight, slightly lower brows and shadow round the eye in the Korean and Japanese looks.", source: "Morikawa, Matsushita, Tomita & Yamanami 2015, Front. Hum. Neurosci. 9:139", url: "https://doi.org/10.3389/fnhum.2015.00139" },
+  { id: "liner-colour", grade: "reported", finding: "Dark eyeliner enlarged the eye about 4%, light eyeliner about 2%.",
+    appliedAs: "Black or dark-brown liner where a look wants the most enlargement; brown where it wants softness.", source: "Differential effects of eyeliner color and thickness, J. Cosmet. Sci. 2022, 73:374", url: "https://library.scconline.org/v073n06/38" },
+  { id: "limbal-ring", grade: "reported", finding: "Faces with a dark, distinct limbal ring were rated more attractive; later work found the effect for health more than attractiveness, and mostly in men's faces.",
+    appliedAs: "A lens ring darkens the iris edge. The evidence is mixed.", source: "Peshek, Semmaknejad, Hoffman & Foley 2011, Evol. Psychol. 9:137", url: "https://doi.org/10.1177/147470491100900201" },
+  { id: "baby-schema", grade: "reported", finding: "Infant faces with large eyes, a round face and a small nose and mouth were rated cuter.",
+    appliedAs: "The reason the East Asian looks enlarge the eyes and keep the nose and lips small.", source: "Glocker et al. 2009, Ethology 115:257", url: "https://doi.org/10.1111/j.1439-0310.2008.01603.x" },
+  { id: "lash-maps", grade: "convention", finding: "Manga (spiky) lash maps set 5-7 spikes on each eye, 10-14 mm long, over a shorter wispy base of 6-10 mm.",
+    appliedAs: "The spiky lash style (spikes at 14 mm at most).", source: "Lash-mapping guides (Stacy Lash, Swaniya Lashes)", url: "https://stacylash.com/blogs/lash-news/manga-lash-spikes-placement-guide" },
+  { id: "trend-cn", grade: "convention", finding: "Chinese social-video glam: an aegyo-sal highlight with a shadow under it, an inner-corner liner, drawn lower lashes, a puppy wing, blush under the eyes and across the nose, a narrow nose contour, a porcelain base and gradient lips.",
+    appliedAs: "The c-glam look.", source: "makeup.com, Vogue Singapore, Refinery29, Daily Vanity (beauty media)", url: "https://www.makeup.com/makeup-tutorials/makeup-tutorials/douyin-makeup" },
+  { id: "trend-kr", grade: "convention", finding: "Korean idol and ulzzang makeup: straight brows, a downward puppy liner, an aegyo-sal highlight, glowing skin and a gradient lip that is darker at the inner centre.",
+    appliedAs: "The k-idol look.", source: "L'Oréal Paris, Time Out, Pinkvilla (beauty media)", url: "https://www.lorealparisusa.com/beauty-magazine/makeup/makeup-looks/ulzzang-makeup-for-beginners" },
+  { id: "trend-jp", grade: "convention", finding: "Japanese styles: jirai-kei (a drooping liner, red-pink under the eyes, blush high under the eyes, a pale base), gyaru (false lashes, lenses, black liner round the eye) and the tear-bag (namida-bukuro) and drooping-eye (tareme) makeup of idol and ryousangata looks.",
+    appliedAs: "The jirai, neo-gyaru and ryousangata looks.", source: "FUN! JAPAN, Galture, biteki, onecosme (beauty media)", url: "https://www.fun-japan.jp/en/articles/14491" },
   { id: "undertone", grade: "estimated", finding: "Cheek hue angle 53.6 +/- 7.7 degrees across four populations (spectrophotometer, 960 adults); its terciles split cool, neutral and warm.",
     appliedAs: "readSkin classifies undertone; blush, lip red and highlight follow it.", source: "Xiao et al. 2017, Skin Res. Technol. 23:21 (data); split estimated", url: "https://eprints.whiterose.ac.uk/id/eprint/100718/" },
   { id: "light-shadow", grade: "convention", finding: "Light advances and shadow recedes: contour (a cool, greyed shade) goes in the hollows that should recede, highlight (light, reflective) on the planes that should come forward.",
@@ -101,12 +124,12 @@ export const EYE_RULES = {
  * coverage factor and an adjustment. */
 export const EYE_SHAPE_RULES: Record<string, { note: string; zones: Record<string, { coverage?: number; adjust?: ZoneAdjust }> }> = {
   almond: { note: "Almond eyes take most placements; follow the shape.", zones: {} },
-  round: { note: "Elongate: a longer, flatter wing and more depth at the outer corner.", zones: { "liner-wing": { adjust: { scale: 1.25, rotate: -4 } }, "outer-v": { coverage: 1.15 } } },
+  round: { note: "Elongate: a longer, flatter wing and more depth at the outer corner.", zones: { "liner-wing": { adjust: { scale: 1.25, rotate: 4 } }, "outer-v": { coverage: 1.15 } } },
   hooded: { note: "Place the crease shade above the natural crease, where it shows with the eyes open; keep the lid light and the liner thin.", zones: { crease: { adjust: { shift: [0, 0.12], scale: 1.08 } }, lid: { coverage: 0.7 }, liner: { adjust: { radius: 0.8 } } } },
   monolid: { note: "No crease to follow: a gradient from the lash line fading upward, and a slightly thicker liner so it shows past the fold.", zones: { lid: { adjust: { grow: 0.06 } }, crease: { coverage: 0.5 }, liner: { adjust: { radius: 1.35 } }, "liner-wing": { adjust: { scale: 1.1 } } } },
   "inner-double": { note: "A low in-fold crease: keep shade on the outer lid and taper the liner toward the inner corner.", zones: { crease: { coverage: 0.7 }, "outer-v": { coverage: 1.1 } } },
-  downturned: { note: "Lift the outer corner: an upswept wing, little shade under the outer lower lashes.", zones: { "liner-wing": { adjust: { rotate: 10 } }, "lower-lash": { coverage: 0.6 } } },
-  upturned: { note: "Balance the tilt: a flatter wing, a little shade under the outer lower lashes.", zones: { "liner-wing": { adjust: { rotate: -6 } }, "lower-lash": { coverage: 1.2 } } },
+  downturned: { note: "Lift the outer corner: an upswept wing, little shade under the outer lower lashes.", zones: { "liner-wing": { adjust: { rotate: -10 } }, "lower-lash": { coverage: 0.6 } } },
+  upturned: { note: "Balance the tilt: a flatter wing, a little shade under the outer lower lashes.", zones: { "liner-wing": { adjust: { rotate: 6 } }, "lower-lash": { coverage: 1.2 } } },
   "deep-set": { note: "Bring the lid forward: a light lid and a softer crease (dark lids sink further).", zones: { lid: { coverage: 0.6 }, crease: { coverage: 0.75 } } },
   prominent: { note: "Recede the lid: deeper, matte lid and crease shades.", zones: { lid: { coverage: 1.2 }, crease: { coverage: 1.2 } } },
   "close-set": { note: "Depth on the outer half, light at the inner corners.", zones: { "outer-v": { coverage: 1.15 }, "inner-corner": { coverage: 1.2 } } },
@@ -129,10 +152,12 @@ export type ColourRule =
 export interface LookLayer { zone: string; product?: ProductId; colour: ColourRule; coverage: number; finish?: FinishId; blend?: BlendMode; adjust?: ZoneAdjust; why?: string }
 export interface Look {
   id: string; label: string; summary: string; layers: LookLayer[];
-  /** Mascara: lash length and thickness factors, darkness 0-1. */
-  lashes?: { length: number; thickness: number; darkness: number };
-  /** Hair density of the brows drawn over the fill (1 = natural). */
-  brows?: { density: number };
+  /** Mascara or false lashes: length and thickness factors, darkness 0-1, a style and lower lashes. */
+  lashes?: LashSpec;
+  /** Eye tools beyond paint: a circle lens (tinted diameter in mm, ring 0-1, tint as sRGB hex) and double-eyelid tape 0-1. */
+  eyes?: { lens?: { diameter: number; ring: number; tint?: string }; tape?: number };
+  /** Brows: hair density over the fill (1 = natural) and how far to straighten their shape (0-1). */
+  brows?: { density: number; straight?: number };
   /** Apply the face-shape and eye placement rules (default true). */
   adapt?: boolean;
   evidence: string[];
@@ -218,5 +243,64 @@ export const MAKEUP_LOOKS: readonly Look[] = [
       { zone: "liner", colour: { kind: "liner", tone: "black" }, coverage: 0.95 }, { zone: "liner-wing", colour: { kind: "liner", tone: "black" }, coverage: 0.85, adjust: { scale: 0.8 } },
       { zone: "brow", colour: { kind: "lab", lab: [26, 14, 8] }, coverage: 0.7 }, { zone: "lips", colour: { kind: "lab", lab: [42, 62, 38] }, coverage: 0.95, finish: "glossy", adjust: { grow: -0.08 } }],
     lashes: { length: 1, thickness: 1.1, darkness: 1 }, adapt: false, evidence: [] },
+  // ---- East Asian transformation looks (research: docs/research/makeup-east-asian-trends-2026-11-17.md) ----------------
+  // The aegyo-sal goes on before the liners: its highlight sits under the lash line, and the liner on it.
+  { id: "c-glam", label: "Chinese social-video glam", summary: "Porcelain skin, a glittering aegyo-sal with a shadow under it, a lengthened inner corner, a soft puppy wing, spiky lashes and drawn lower lashes, big dark lenses, blush under the eyes and across the nose, a narrow nose and a coral-red gradient lip.",
+    layers: [{ zone: "foundation", colour: { kind: "skin", dL: 2, da: -0.5, db: -1.5 }, coverage: 0.6, finish: "satin" }, { zone: "under-eye", colour: { kind: "palette", swatch: "concealer" }, coverage: 0.35 },
+      { zone: "lid", colour: { kind: "eye", tone: "peach-gold" }, coverage: 0.65, finish: "shimmer" }, { zone: "crease", colour: { kind: "eye", tone: "brown" }, coverage: 0.5 },
+      { zone: "aegyo-sal", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.45, finish: "glitter" }, { zone: "aegyo-sal-shadow", colour: { kind: "eye", tone: "taupe" }, coverage: 0.35 },
+      { zone: "lower-lash", colour: { kind: "eye", tone: "brown" }, coverage: 0.6, adjust: { radius: 1.5, soft: 1.5 } }, { zone: "liner-lower", colour: { kind: "liner", tone: "brown" }, coverage: 0.8, adjust: { span: 0.5 } },
+      { zone: "liner", colour: { kind: "liner", tone: "black" }, coverage: 0.95, adjust: { radius: 1.15 } }, { zone: "puppy-wing", colour: { kind: "liner", tone: "black" }, coverage: 0.95, adjust: { rotate: -6, radius: 1.3 } },
+      { zone: "liner-inner", colour: { kind: "liner", tone: "black" }, coverage: 0.95 },
+      { zone: "blush-igari", colour: { kind: "blush" }, coverage: 0.75 }, { zone: "blush-sunkissed", colour: { kind: "blush" }, coverage: 0.35 },
+      { zone: "nose-contour", colour: { kind: "palette", swatch: "contour" }, coverage: 0.5, adjust: { radius: 0.8 } }, { zone: "nose-highlight", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.45, finish: "dewy" },
+      { zone: "brow-straight", colour: { kind: "brow" }, coverage: 0.4 }, { zone: "lips", colour: { kind: "lip", family: "coral" }, coverage: 0.7, finish: "glossy" }, { zone: "lip-centre", colour: { kind: "lip", family: "red" }, coverage: 0.8, finish: "glossy" }],
+    lashes: { length: 1.25, thickness: 1.3, darkness: 1, style: "spiky", lower: { length: 1.35, darkness: 0.95, drawn: 5 } }, eyes: { lens: { diameter: 14, ring: 0.65, tint: "#3b2416" } }, brows: { density: 1, straight: 0.5 },
+    evidence: ["trend-cn", "aegyo-sal", "iris-size", "eye-size", "liner-colour", "lash-maps", "baby-schema", "cheeks-periorbital"] },
+  { id: "k-idol", label: "Korean idol", summary: "Glass skin, straight soft brows, a short puppy wing, a shimmering aegyo-sal, wispy lashes with defined lower lashes, hazel lenses, a pink flush under the eyes and a coral gradient lip.",
+    layers: [{ zone: "foundation", colour: { kind: "palette", swatch: "foundation" }, coverage: 0.45, finish: "dewy" }, { zone: "under-eye", colour: { kind: "palette", swatch: "concealer" }, coverage: 0.35 },
+      { zone: "cheekbone-highlight", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.45, finish: "dewy" }, { zone: "nose-highlight", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.5, finish: "dewy" },
+      { zone: "lid", colour: { kind: "eye", tone: "rose" }, coverage: 0.45, finish: "satin" },
+      { zone: "aegyo-sal", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.5, finish: "shimmer" }, { zone: "aegyo-sal-shadow", colour: { kind: "eye", tone: "taupe" }, coverage: 0.3 },
+      { zone: "lower-lash", colour: { kind: "eye", tone: "brown" }, coverage: 0.35 },
+      { zone: "liner", colour: { kind: "liner", tone: "brown" }, coverage: 0.8 }, { zone: "puppy-wing", colour: { kind: "liner", tone: "brown" }, coverage: 0.85, adjust: { scale: 0.75, rotate: -4 } },
+      { zone: "blush-igari", colour: { kind: "blush", family: "rose" }, coverage: 0.6 }, { zone: "blush-apples", colour: { kind: "blush", family: "rose" }, coverage: 0.25 }, { zone: "brow-straight", colour: { kind: "brow" }, coverage: 0.45 },
+      { zone: "lips", colour: { kind: "lip", family: "coral" }, coverage: 0.65, finish: "glossy" }, { zone: "lip-centre", colour: { kind: "lip", family: "red" }, coverage: 0.75, finish: "glossy" }],
+    lashes: { length: 1.3, thickness: 1.2, darkness: 0.9, style: "wispy", lower: { length: 1.45, darkness: 0.85, drawn: 0 } }, eyes: { lens: { diameter: 13.4, ring: 0.5, tint: "#5a4127" } }, brows: { density: 1.15, straight: 0.8 },
+    evidence: ["trend-kr", "aegyo-sal", "brow-distance", "iris-size", "limbal-ring", "health-colour"] },
+  { id: "jirai", label: "Jirai-kei", summary: "A pale matte base, red-pink under the eyes, a strong rose blush right under them, a drooping red-brown wing, wispy upper and heavy lower lashes, dark lenses, a tear mole and a small deep-red lip (Japanese subculture).",
+    layers: [{ zone: "foundation", colour: { kind: "skin", dL: 2.5, da: -0.5, db: -2 }, coverage: 0.65, finish: "matte" },
+      { zone: "lid", colour: { kind: "eye", tone: "rose" }, coverage: 0.5, finish: "satin" },
+      { zone: "aegyo-sal", colour: { kind: "eye", tone: "pink" }, coverage: 0.45, finish: "shimmer" }, { zone: "aegyo-sal-shadow", colour: { kind: "eye", tone: "brown" }, coverage: 0.3 },
+      { zone: "lower-lash", colour: { kind: "eye", tone: "red" }, coverage: 0.8, adjust: { radius: 1.9, soft: 1.7 } },
+      { zone: "liner", colour: { kind: "lab", lab: [30, 26, 18] }, coverage: 0.9 }, { zone: "puppy-wing", colour: { kind: "lab", lab: [30, 26, 18] }, coverage: 0.95, adjust: { rotate: 8, radius: 1.2 } },
+      { zone: "tear-mole", colour: { kind: "lab", lab: [28, 12, 14] }, coverage: 1, adjust: { radius: 1.6 } },
+      { zone: "blush-igari", colour: { kind: "blush", family: "rose" }, coverage: 1, adjust: { radius: 1.15 } }, { zone: "brow-straight", colour: { kind: "brow" }, coverage: 0.35 },
+      { zone: "lips", colour: { kind: "lip", family: "red" }, coverage: 0.7, finish: "glossy" }, { zone: "lip-centre", colour: { kind: "lip", family: "berry" }, coverage: 0.85, finish: "glossy" }],
+    lashes: { length: 1.25, thickness: 1.35, darkness: 0.95, style: "wispy", lower: { length: 1.7, darkness: 1, drawn: 6 } }, eyes: { lens: { diameter: 14.2, ring: 0.85, tint: "#2a1a12" } }, brows: { density: 1, straight: 0.6 },
+    evidence: ["trend-jp", "aegyo-sal", "iris-size", "baby-schema", "cheeks-periorbital"] },
+  { id: "neo-gyaru", label: "Neo-gyaru", summary: "Taped double lids, dense doll lashes above and below, black liner round the eye with a drooping wing, the largest dark lenses, a heavy aegyo-sal, strong contour and highlight and a sheer nude-pink gloss (Japanese gyaru, revived).",
+    layers: [{ zone: "foundation", colour: { kind: "palette", swatch: "foundation" }, coverage: 0.6, finish: "satin" }, { zone: "under-eye", colour: { kind: "palette", swatch: "concealer" }, coverage: 0.45 },
+      { zone: "cheek-contour", colour: { kind: "palette", swatch: "contour" }, coverage: 0.65, finish: "matte" }, { zone: "nose-contour", colour: { kind: "palette", swatch: "contour" }, coverage: 0.55 },
+      { zone: "cheekbone-highlight", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.35, finish: "dewy" }, { zone: "nose-highlight", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.5, finish: "shimmer" },
+      { zone: "lid", colour: { kind: "eye", tone: "brown" }, coverage: 0.65, finish: "shimmer" }, { zone: "crease", colour: { kind: "eye", tone: "espresso" }, coverage: 0.6 }, { zone: "outer-v", colour: { kind: "eye", tone: "charcoal" }, coverage: 0.65 },
+      { zone: "aegyo-sal", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.5, finish: "shimmer" }, { zone: "aegyo-sal-shadow", colour: { kind: "eye", tone: "brown" }, coverage: 0.35 },
+      { zone: "lower-lash", colour: { kind: "eye", tone: "espresso" }, coverage: 0.55 }, { zone: "liner-lower", colour: { kind: "liner", tone: "black" }, coverage: 0.95, adjust: { radius: 1.3 } },
+      { zone: "liner", colour: { kind: "liner", tone: "black" }, coverage: 1, adjust: { radius: 1.5 } }, { zone: "liner-inner", colour: { kind: "liner", tone: "black" }, coverage: 1, adjust: { radius: 1.3 } },
+      { zone: "puppy-wing", colour: { kind: "liner", tone: "black" }, coverage: 1, adjust: { radius: 1.4 } },
+      { zone: "inner-corner", colour: { kind: "eye", tone: "champagne" }, coverage: 0.7, finish: "shimmer" },
+      { zone: "blush-apples", colour: { kind: "blush" }, coverage: 0.5 }, { zone: "brow-straight", colour: { kind: "brow" }, coverage: 0.4 }, { zone: "lips", colour: { kind: "lip", family: "rose" }, coverage: 0.45, finish: "glossy" }],
+    lashes: { length: 1.3, thickness: 1.55, darkness: 1, style: "doll", lower: { length: 1.85, darkness: 1, drawn: 6 } }, eyes: { lens: { diameter: 14.5, ring: 1, tint: "#1e140f" }, tape: 1 }, brows: { density: 1, straight: 0.3 },
+    evidence: ["trend-jp", "eyelid-height", "iris-size", "eye-size", "liner-colour", "baby-schema", "light-shadow"] },
+  { id: "ryousangata", label: "Ryousangata (soft doll)", summary: "Rose lids, a pink shimmering aegyo-sal, a soft brown drooping wing, wispy lashes with a few drawn lower lashes, brown lenses, a pink flush high on the cheeks and a glossy pink gradient lip (Japanese idol style).",
+    layers: [{ zone: "foundation", colour: { kind: "palette", swatch: "foundation" }, coverage: 0.45, finish: "satin" }, { zone: "under-eye", colour: { kind: "palette", swatch: "concealer" }, coverage: 0.3 },
+      { zone: "lid", colour: { kind: "eye", tone: "rose" }, coverage: 0.55, finish: "shimmer" }, { zone: "crease", colour: { kind: "eye", tone: "rose" }, coverage: 0.35 },
+      { zone: "aegyo-sal", colour: { kind: "eye", tone: "pink" }, coverage: 0.45, finish: "shimmer" }, { zone: "aegyo-sal-shadow", colour: { kind: "eye", tone: "taupe" }, coverage: 0.3 },
+      { zone: "lower-lash", colour: { kind: "eye", tone: "rose" }, coverage: 0.45 },
+      { zone: "liner", colour: { kind: "liner", tone: "brown" }, coverage: 0.8 }, { zone: "puppy-wing", colour: { kind: "liner", tone: "brown" }, coverage: 0.85, adjust: { scale: 0.85 } },
+      { zone: "blush-lifted", colour: { kind: "blush", family: "rose" }, coverage: 0.45 }, { zone: "blush-igari", colour: { kind: "blush", family: "rose" }, coverage: 0.45 }, { zone: "brow-straight", colour: { kind: "brow" }, coverage: 0.3 },
+      { zone: "lips", colour: { kind: "lip", family: "rose" }, coverage: 0.5, finish: "glossy" }, { zone: "lip-centre", colour: { kind: "lip", family: "rose" }, coverage: 0.55, finish: "glossy" }],
+    lashes: { length: 1.2, thickness: 1.2, darkness: 0.9, style: "wispy", lower: { length: 1.3, darkness: 0.75, drawn: 4 } }, eyes: { lens: { diameter: 13.8, ring: 0.55, tint: "#4a3324" } }, brows: { density: 1, straight: 0.5 },
+    evidence: ["trend-jp", "aegyo-sal", "iris-size", "brow-distance", "baby-schema"] },
 ];
 export const findLook = (id: string): Look | undefined => MAKEUP_LOOKS.find(l => l.id === id);

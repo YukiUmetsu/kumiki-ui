@@ -9,9 +9,13 @@ The pack `makeup` decides *where each product goes on this face, which colour su
 light and shadow are*. Your style decides how it looks. Read the [spec](../../docs/component-specs/makeup.md) for the
 API. This is the working order.
 
-1. **Start from a look, not from colours.** Pick one of `MAKEUP_LOOKS`. There are 12: bare, no-makeup, fresh dewy,
-   soft glam, sculpted, classic red, smoky eye, sun-kissed, igari, monochrome rose, grooming, maiko. A look is colour
-   rules and zones, so it adapts to any skin.
+1. **Start from a look, not from colours.** Pick one of the 17 `MAKEUP_LOOKS`:
+   - bare, no-makeup, fresh dewy, soft glam, sculpted, classic red, smoky eye, sun-kissed, igari, monochrome rose,
+     grooming, maiko.
+   - five East Asian looks that transform the eyes: `c-glam` (Chinese social-video glam), `k-idol`,
+     `jirai`, `neo-gyaru` and `ryousangata`.
+
+   A look is colour rules and zones, so it adapts to any skin.
 2. **Design for the face.** `designMakeup({ look, skin, face, eyes, eyeShape, hair, intensity })`:
    - `face` is a rest-frame landmark set: ANAT1's `beautifulFace(...).vertices`, or a photo's `restFrame(landmarks).rest`
      with `faceReference: "photo"`.
@@ -20,7 +24,11 @@ API. This is the working order.
    - contour that reaches the iris, or blush below the nose base.
    - a highlight under the contour, or a wing outside 10-45 degrees.
    - a foundation that does not match, or low lip contrast.
+   - an aegyo-sal out of proportion, a puppy wing that rises, or a lens larger than 14.5 mm.
 4. **Paint it.**
+   - Eye tools: a look's `lashes` (`style` wispy, spiky or doll, `lower` lashes), `eyes.lens` (a circle lens),
+     `eyes.tape` (double-eyelid tape) and `brows.straight` transform the eyes. Use
+     `renderPortrait(makeupPortraitOptions(portrait, plan))` so the tape reaches the face.
    - Rendered portrait: use `renderPortrait({ ...portrait, paint: makeupPaint(plan) })` or `<MakeupPortrait>`. The
      renderer's own makeup (`makeup: "natural"`) is then off. Set `makeup` only to combine the two.
    - Photograph: `paintPhoto({ width, height, data, landmarks, skinMask }, plan)`. Get the landmarks with
@@ -28,7 +36,7 @@ API. This is the working order.
    - Another style: draw `zoneOutline(zone, face)` in your medium (the face chart), and use `planSwatches(plan)` for
      the colours. Keep contour cool and greyed, highlight on the planes that face the light.
 5. **Change things as data.** Use `overrides: { "cheek-contour": { coverage: 0.9 }, lips: false }` (a new zone with a
-   colour adds a layer), or a whole `Look`. Zones take `adjust` (`shift`, `rotate`, `scale`, `radius`, `soft`, `grow`) in eye widths.
+   colour adds a layer), or a whole `Look`. Zones take `adjust` (`shift`, `rotate`, `scale`, `radius`, `soft`, `grow`) in eye widths, and `span` (0-1) keeps the first part of a stroke.
 6. **Learn from a photograph.** Use the Python pipeline (`scripts/makeup/README.md`): `ingest` (licence gate), `analyze`
    (blueprint), `learn`, then `apply --blueprint` for a parametric transfer. Do not commit photographs of people. Ship
    only aggregates from CC0, PDM, US-Gov or CC BY sources (`learn --ship`).

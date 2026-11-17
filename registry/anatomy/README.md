@@ -69,12 +69,13 @@ Foundations → Makeup · photo pipeline (Python): [`scripts/makeup`](../../scri
 
 | I need… | File | Start with |
 |---|---|---|
-| A look designed for a face, skin, iris and hair; checks | `makeup-design.ts` | `designMakeup`, `checkMakeup`, `analyzeFace`, `planSwatches` |
+| A look designed for a face, skin, iris and hair; checks | `makeup-design.ts` | `designMakeup`, `checkMakeup`, `analyzeFace`, `planSwatches`, `tapedEyeShape` |
 | Looks, evidence, face- and eye-shape rules, learned data | `makeup-data.ts` | `MAKEUP_LOOKS`, `MAKEUP_EVIDENCE`, `FACE_SHAPE_RULES`, `EYE_SHAPE_RULES`, `MAKEUP_LEARNED` |
 | Where a product goes on a face (any face on the 468-point mesh) | `makeup-zones.ts`, `data/makeup-zones.json` | `zoneField`, `resolveZone`, `zoneOutline`, `MAKEUP_ZONES`, `MAKEUP_ATLAS` |
 | Colour: undertone, palettes, films, colour difference | `makeup-color.ts` | `readSkin`, `basePalette`, `blushOn`, `lipColour`, `EYE_COMPLEMENTS`, `pigmentFor`, `filmStep`, `deltaE2000` |
-| Paint: the portrait renderer, a photograph | `makeup-paint.ts` | `makeupPaint`, `paintPhoto`, `restFrame` |
+| Paint: the portrait renderer, a photograph | `makeup-paint.ts` | `makeupPaint`, `makeupPortraitOptions`, `paintPhoto`, `restFrame` |
 | Painters (React) | `makeup-react.tsx` | `MakeupPortrait`, `FaceChart`, `MakeupSwatches`, `MakeupChecks`, `UndertonePlane`, `LearnedEffects` |
+| Made-up portraits in workers (the plan goes as data, the worker builds the paint) | `makeup-render-pool.ts`, `makeup-render-jobs.ts`, `makeup-render-worker.ts` | `MAKEUP_RENDER_POOL`, `MAKEUP_RUNNERS` |
 | Learned aggregates (Python pipeline, openly licensed photos) | `data/makeup-learned.json` | prior, effects, placement, contrast, beauty correlations, sources |
 
 # EXPR1 — facial expressions (file map)

@@ -15,7 +15,7 @@ from functools import lru_cache
 import numpy as np
 
 from . import DATA
-from .geometry import eye_width, mirror_map
+from .geometry import canonical, eye_width, mirror_map
 
 
 @dataclass
@@ -59,13 +59,49 @@ def point(spec: dict, P: np.ndarray, ew: float, mirrored: bool) -> np.ndarray:
     off = spec.get("off")
     if off:
         p = p + np.array([-off[0] if mirrored else off[0], off[1], off[2]]) * ew
+    if spec.get("surface"):
+        z = _skin_depth(P, float(p[0]), float(p[1]))
+        if z is not None:
+            p = np.array([p[0], p[1], z])
     return p
+
+
+def _skin_depth(P: np.ndarray, x: float, y: float) -> float | None:
+    """The face's front surface under (x, y): the depth of the nearest mesh triangle that covers it, seen from the front
+    (makeup-zones.ts skinDepth does the same)."""
+    T = canonical()[1]
+    A, B, C = P[T[:, 0]], P[T[:, 1]], P[T[:, 2]]
+    d = (B[:, 1] - C[:, 1]) * (A[:, 0] - C[:, 0]) + (C[:, 0] - B[:, 0]) * (A[:, 1] - C[:, 1])
+    ok = np.abs(d) >= 1e-9
+    dd = np.where(ok, d, 1.0)
+    w1 = ((B[:, 1] - C[:, 1]) * (x - C[:, 0]) + (C[:, 0] - B[:, 0]) * (y - C[:, 1])) / dd
+    w2 = ((C[:, 1] - A[:, 1]) * (x - C[:, 0]) + (A[:, 0] - C[:, 0]) * (y - C[:, 1])) / dd
+    w3 = 1 - w1 - w2
+    inside = ok & (w1 >= 0) & (w2 >= 0) & (w3 >= 0)
+    if not inside.any():
+        return None
+    return float((w1 * A[:, 2] + w2 * B[:, 2] + w3 * C[:, 2])[inside].max())
+
+
+def _cut_stroke(P: np.ndarray, R: np.ndarray, span: float) -> tuple[np.ndarray, np.ndarray]:
+    """The first `span` (0-1) of a stroke's length: its points up to the cut, then the cut point with its radius."""
+    seg = [math.hypot(*(P[i + 1] - P[i])) for i in range(len(P) - 1)]
+    left = span * sum(seg)
+    out_p, out_r = [P[0]], [R[0]]
+    for i, length in enumerate(seg):
+        if left >= length:
+            out_p.append(P[i + 1]); out_r.append(R[i + 1]); left -= length
+            continue
+        t = left / length if length > 0 else 0.0
+        out_p.append(P[i] + (P[i + 1] - P[i]) * t); out_r.append(R[i] + (R[i + 1] - R[i]) * t)
+        break
+    return np.stack(out_p), np.array(out_r, dtype=np.float64)
 
 
 def resolve(zone_id: str, P: np.ndarray, adjust: dict | None = None) -> list[Part]:
     """The zone's parts on this face: one per side ('both') or one ('center'), after an optional adjustment
-    {shift: [dx, dy] ew, rotate: deg, scale, radius: x, soft: x, grow: ew} (rotation and scale about the first point;
-    on the mirrored side the shift's x and the rotation flip)."""
+    {shift: [dx, dy] ew, rotate: deg, scale, radius: x, soft: x, grow: ew, span: 0-1} (rotation and scale about the first
+    point; on the mirrored side the shift's x and the rotation flip; span keeps the first part of a stroke's length)."""
     z = atlas()["by_id"][zone_id]
     ew = eye_width(P)
     sh = z["shape"]
@@ -74,6 +110,8 @@ def resolve(zone_id: str, P: np.ndarray, adjust: dict | None = None) -> list[Par
     for mirrored in ((False, True) if z.get("side", "both") == "both" else (False,)):
         pts = np.stack([point(p, P, ew, mirrored) for p in sh["points"]])
         r = np.array([p.get("r", 0.0) for p in sh["points"]], dtype=np.float64) * ew * adj.get("radius", 1.0)
+        if sh["kind"] == "stroke" and adj.get("span") is not None and adj["span"] < 1:
+            pts, r = _cut_stroke(pts, r, max(0.0, adj["span"]))
         sx = -1.0 if mirrored else 1.0
         if adj.get("scale") or adj.get("rotate"):
             piv = pts[0].copy()
