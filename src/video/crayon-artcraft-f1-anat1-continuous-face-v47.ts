@@ -183,9 +183,14 @@ export function crayonF1AddContinuousFaceWaxV47(
   const frame=renderMeshFrame(mesh.mesh,{yaw:fit.yaw,pitch:fit.pitch},
     {width:608,height:1082});
   const appended:Contour[]=regions.map(region=>{
-    const light=frame.vertexLight[FACE_LANDMARKS[region.vertex]];
-    if(!Number.isFinite(light)||light<0||light>1)
-      throw new RangeError("Invalid ANAT1 vertex normal for "+region.id);
+    // ANAT1 HumanFrame.vertexLight is the SIGNED n·L cosine in
+    // [-1,+1], not normalized luminance. In particular the underside
+    // of the jaw/menton can correctly have negative directional light.
+    // Normalize exactly once to [0,1] for wax-pressure interpolation.
+    const signedLight=frame.vertexLight[FACE_LANDMARKS[region.vertex]];
+    if(!Number.isFinite(signedLight)||signedLight< -1||signedLight>1)
+      throw new RangeError("Invalid ANAT1 signed vertex normal for "+region.id);
+    const light=(signedLight+1)/2;
     const d=formScumble(region,light);
     if(d.length>=25000||(d.match(/M/g)??[]).length!==region.count)
       throw new RangeError("Non-continuous source wax flow for "+region.id);
