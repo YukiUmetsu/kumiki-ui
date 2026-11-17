@@ -1,5 +1,6 @@
 import {describe,expect,it} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
+import type {RisoPullWindow} from "../registry/video/riso-pull-tab";
 import {
   evaluateRisoPullTab,risoPullWindowContour,risoPullWindowFibres,
 } from "../registry/video/riso-pull-tab";
@@ -144,4 +145,3 @@ describe("RISO80 authored organic die-cut contours",()=>{
   });
 });
 
-import type {RisoPullWindow} from "../registry/video/riso-pull-tab";
