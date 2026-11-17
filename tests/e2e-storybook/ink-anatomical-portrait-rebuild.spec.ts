@@ -51,3 +51,38 @@ test("independent ANAT2 expression atlas and 24fps motion share the production r
     const recovered=await film.locator('[data-km-ink-mouth-line="true"]').getAttribute("d");
     expect(recovered).toEqual(neutral);
   });
+
+test("ANAT2 ArtCraft source comparison only accepts local images and manually registered camera crops",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-anat2-portrait-rebuild--historical-painting-review&viewMode=story");
+    const desk=page.getByTestId("ink-anat2-historical-source-desk");
+    await expect(desk).toBeVisible();
+    await expect(page.getByTestId("ink-anat2-source-image")).toHaveCount(0);
+    await expect(page.getByTestId("ink-anat2-paint-window")
+      .getByTestId("ink-anat2-portrait")).toBeVisible();
+    const upload=page.getByLabel("Ink original source image");
+    await upload.setInputFiles({
+      name:"interaction-fixture.png",mimeType:"image/png",
+      // A synthetic 1×1 transparent PNG tests upload mechanics ONLY, not art.
+      buffer:Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==","base64"),
+    });
+    await expect(page.getByTestId("ink-anat2-source-image")).toBeVisible();
+    await page.getByRole("combobox",{name:"Ink source review character"}).selectOption("elder");
+    await page.getByRole("combobox",{name:"Ink source review expression"}).selectOption("sad");
+    const live=page.getByTestId("ink-anat2-paint-window")
+      .getByTestId("ink-anat2-portrait");
+    await expect(live).toHaveAttribute("data-ink-character","elder");
+    await expect(live).toHaveAttribute("data-ink-emotion","sad");
+    const zoom=page.getByRole("slider",{name:"Ink original source zoom"});
+    await zoom.focus();await zoom.press("End");
+    await expect(zoom).toHaveValue("4");
+    await page.getByRole("checkbox",{name:"Ink source overlay"}).check();
+    await expect(page.getByTestId("ink-anat2-registration-overlay")).toBeVisible();
+    await desk.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-local-source-input-mechanics-NOT-art-evidence.png")});
+    await page.getByRole("checkbox",{name:"Ink source overlay"}).uncheck();
+    await expect(page.getByTestId("ink-anat2-registration-overlay")).toHaveCount(0);
+    await upload.setInputFiles({name:"invalid.txt",mimeType:"text/plain",
+      buffer:Buffer.from("not an image")});
+    await expect(page.getByRole("alert")).toContainText("Only PNG");
+  });
