@@ -92,7 +92,7 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
     direction:54,flow:27,
     dryContours:contacts("rose-whorl-left",[
       "M220 154 Q222 146 229 142",
-      "M222 163 Q223 171 231 177",
+      "M224 163 Q225 170 230 174",
       "M250 181 Q254 184 258 182",
       "M222 151 L224 148 M228 143 L231 141",
     ]),
