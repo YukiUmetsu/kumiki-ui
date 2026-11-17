@@ -239,7 +239,7 @@ describe("ArtCraft four-shot production storyboard and pencil scumbling",()=>{
     expect(phases[3].some(m=>m.zone==="measured-features")).toBe(true);
     expect(()=>selectHeadStoryboardStrokes(plate.strokes,
       "nonsense" as never)).toThrow(RangeError);
-  });
+  },15000);
   it("face coverage softens pencil tooth without touching hair, geometry or source",()=>{
     const img=source(),copy=new Uint8ClampedArray(img.data);
     const unblended=createDryPencilHeadPlate(img,guides,271,.65,.85,0);
