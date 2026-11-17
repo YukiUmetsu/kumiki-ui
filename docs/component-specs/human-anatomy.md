@@ -17,7 +17,7 @@ painter), `data/*` (baked tables and licences). Binary body model: `assets/model
 photographs: 11 of eyes, 5 of skin, 4 of hands).
 **Storybook:** Video production → Art Foundations → Human Anatomy, in this order:
 body — **Lab**, **Population line-up**, **Turnaround**, **Pose library**, **Range of motion**, **Proportions and
-ranges**, **Any style**, **Reference board**; faces — **Face lab**, **Beautiful faces**, **Head angles**; eyes —
+ranges**, **Any style**, **Reference board**; faces — **Face lab**, **Beautiful faces**, **Head angles**, **Portrait in motion**; eyes —
 **Eye lab**, **Eye shapes**, **Iris colours**; skin — **Skin texture by region**, **Skin colour (Monk scale)**; hair —
 **Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Curl types and hair colours**, **Hair on the posable body**;
 hands — **Hand lab**, **Hand types**, **Hand gestures**, **Grasps (GRASP taxonomy)**, **Hand animations**, **Hand
@@ -257,6 +257,26 @@ the checks and sources.
 rule 14 still applies to the pencil portrait style). The mask is one average face, so individuals differ only by the
 parameters above.
 
+## Rendering in pages: workers, caches, previews (`foundation-render.ts`, `foundation-render-react.tsx`)
+
+`FacePortrait`, `HandView`, `HandFlipbook`, `SkinSwatchView` (and MATL1's `MaterialSwatch`, SKY1's `CloudSky`, WATER1's
+`OceanView`) render in module workers, so pages stay responsive while pictures fill in:
+
+- Each pack has a pool (`anatomy-render-pool.ts`, `materials-render-pool.ts`, `sky-render-pool.ts`,
+  `water-render-pool.ts`). A pool runs up to four workers, one fewer than the machine's cores. Without workers (tests,
+  server rendering, a blocked worker URL), the same jobs run on the page's thread.
+- Renders start when a frame comes within 600 px of the screen, previews before full renders.
+- A job nobody waits for any more is dropped before it starts.
+- Portraits with the same hair go to the same worker, which keeps the groomed hair (about 1–5 s of work).
+- Results are cached in memory (about 256 MB) and in IndexedDB (`kumiki-render-cache`, the 600 most recent), so
+  returning to a page or reloading it draws at once. Cache keys include `RENDER_CACHE_VERSION`. Storybook defines
+  `__KUMIKI_RENDER_VERSION__` as a hash of `registry/{anatomy,nature,materials}` taken at start-up, so a changed
+  renderer never shows a stale picture; restart Storybook after editing a renderer, or call `clearRenderCache()`.
+- A portrait first draws a half-size preview (one sample a pixel, at most 9,000 strands), then the full render.
+- While a frame works, a badge reads "Rendering…" or "Preview · refining…". When options change, the last picture
+  stays, dimmed, until the new one is ready. The canvas carries `aria-busy`, and the badge's spinner stands still
+  under reduced motion.
+
 ## Eyes in detail (`eye-detail.ts`)
 
 ([research note](../research/eye-detail-2026-11-16.md))
@@ -378,6 +398,25 @@ React.
 
 **Status:** agent review of renders only. Fingers blend rather than collide; there is no arm.
 
+**Natural nails and soft hands (2026-11-17).** Nails were studied on CC0 photographs (the Reference board's hands) and on
+CC BY-SA photographs and an anatomy diagram on Wikimedia Commons, used for observation only and not redistributed:
+"A woman's hands" by PetarM; "Short Nail Beds on the hand of a Girl" by Helveticablue; "Fingernail ku" after OpenStax;
+"Odyssey Sims fingernails closeup".
+
+- **Plate.** About four fifths of the fingertip's width, flatter than the finger. Its sides tuck under the lateral
+  folds, it starts at an arc-shaped proximal fold, and over the fingertip it follows the tip down, so a short nail does
+  not stand out as a ring.
+- **Colour.** The bed shows through as the skin a little pinker and lighter. The lunula is plain on the thumb, faint
+  on the index and rarely seen on the other fingers. A pinker onychodermal band lies behind a curved smile line, and
+  the free edge is a short translucent ivory band.
+- **Shading.** The cuticle fold shades the plate softly. Natural nails are moderately glossy (roughness 0.2);
+  `nailColour` polish is glossier (0.07).
+- **Fingers** are one smooth tube from joint to joint: a smooth minimum between phalanges used to swell every joint
+  into a ring. Joints swell only by the type's `knuckles`.
+- **Back of the hand.** Soft tissue covers the metacarpals on young and padded hands, and tendons and veins blend in
+  unless the hand is lean or old (`tendons`, `veins`).
+- **Known.** A crease across the back of the wrist, where the palm meets the wrist's cone, remains.
+
 ## Groomed hair (`hair-groom.ts`)
 
 The hair foundation for rendered heads ([research note](../research/hair-groom-2026-11-16.md)).
@@ -446,6 +485,42 @@ behind the skin and ears. Each drawn strand is as wide as the real hairs it stan
 
 **Status:** agent review of renders only (Hair lab, Hairstyles, Bangs). It is a groom for portraits from the front
 (±25°), not a simulation in motion.
+
+## Portraits in motion, and hair in moving air (`portrait-motion.ts`, `moveHair`)
+
+`PortraitInMotion` (in `face-portrait-react.tsx`) renders a looping portrait frame by frame in the workers.
+`portraitFrame(base, t, motion)` gives each frame's options:
+
+- **Blinks** (AU43): the lid closes in about 100 ms, stays shut briefly and reopens in about 200 ms. This follows
+  high-speed video of spontaneous blinks (Kwon et al. 2013). People at rest blink about 17 times a minute
+  (Bentivoglio et al. 1997), so a 3 s loop holds one blink.
+- **Glances** (AU61–64): saccades take about 20–30 ms plus 2–3 ms per degree (the main sequence), so a glance is over
+  within one frame; the eyes then hold still.
+- **Hair** uses `moveHair(groom, head, { t, wind, direction, gust, period })`:
+  - Each strand bends from its root like a light cantilever loaded by drag. Its end moves with the square of the wind
+    speed and of the strand's length, up to a quarter of the length: a 25 cm lock moves about 2 cm in a 3 m/s breeze,
+    and a crop barely moves.
+  - Gusts swing the speed at about 0.6 and 1.7 Hz, a wave about 15 cm long runs down each lock, and each lock has its
+    own phase.
+  - Hair resting on the head, shoulders or chest moves at 30% (friction).
+  - Strands keep their segment lengths and are kept out of the head, face, neck, shoulders and chest.
+  - With `period`, every rate is rounded to whole cycles, so the loop has no seam.
+
+The groomed hair is cached, so only its pose changes per frame. Story: **Portrait in motion**.
+
+**Hair on the skin, the scalp and the hairline (portraits).**
+
+- **Shadows.** Hair shadows are gathered in four layers by the hair's distance from the skin, each blurred by the
+  softbox's penumbra (about 0.35 × the distance: hair on the skin is crisp, a curtain 3 cm off the cheek is soft).
+  Only skin the key light reaches takes a hair shadow. A cheek turned away from the light used to take the forehead's
+  hair coverage, which gave a hard dark edge down the face.
+- **Scalp.** Under the hair, the scalp shows streaks along the groom's own root directions. Straight hair gives long
+  streaks; curl types IV–VIII give round clumps about 2 mm across. The hairline breaks into those streaks instead of
+  fading smoothly.
+- **Scattering.** Hair-covered scalp takes no part in the skin's light scattering, so there is no red rim along the
+  hairline.
+- **Forehead strip.** The strip that joins the face mask to the cranium is pulled onto the ellipsoid along its radius.
+  It used to stand out past the skull at the temples as fins.
 
 ## Hair on the posable body (`growHair`, `renderHairSegments`, `faceHair`)
 

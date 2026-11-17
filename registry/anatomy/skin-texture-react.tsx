@@ -3,41 +3,22 @@
  * by `renderSkinSwatch` into a canvas after paint, queued and cached) and `SkinRegionsSheet` (every region young and
  * old, with what sets it).
  */
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef } from "react";
 import type { CanvasHTMLAttributes } from "react";
-import { enqueueRender } from "./foundation-queue";
+import { ANATOMY_RENDER_POOL } from "./anatomy-render-pool";
+import { RenderFrame } from "./foundation-render-react";
 import { sheetSmall } from "./foundation-react";
-import { renderSkinSwatch, SKIN_REGIONS } from "./skin-texture";
-import type { SkinSwatch, SkinSwatchOptions } from "./skin-texture";
-
-const cache = new Map<string, SkinSwatch>();
+import { SKIN_REGIONS } from "./skin-texture";
+import type { SkinSwatchOptions } from "./skin-texture";
 
 export interface SkinSwatchViewProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> {
   options: SkinSwatchOptions;
   label: string;
 }
-/** A region's skin at macro scale, rendered after paint and cached. */
-export const SkinSwatchView = forwardRef<HTMLCanvasElement, SkinSwatchViewProps>(function SkinSwatchView({ options, label, style, ...rest }, ref) {
-  const canvas = useRef<HTMLCanvasElement>(null), [busy, setBusy] = useState(true);
-  useImperativeHandle(ref, () => canvas.current as HTMLCanvasElement, []);
-  const key = JSON.stringify(options), W = Math.round(options.width ?? 320), H = Math.round(options.height ?? 240);
-  useEffect(() => {
-    let live = true;
-    const draw = (r: SkinSwatch) => { const ctx = canvas.current?.getContext("2d"); if (ctx) ctx.putImageData(new ImageData(new Uint8ClampedArray(r.rgba), r.width, r.height), 0, 0); setBusy(false); };
-    const hit = cache.get(key);
-    if (hit) { draw(hit); return () => { live = false; }; }
-    setBusy(true);
-    void enqueueRender(() => {
-      if (!live) return;
-      const r = renderSkinSwatch(options);
-      if (cache.size > 60) cache.clear();
-      cache.set(key, r);
-      if (live) draw(r);
-    });
-    return () => { live = false; };
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  return <canvas ref={canvas} width={W} height={H} role="img" aria-label={label} aria-busy={busy}
-    style={{ display: "block", width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, borderRadius: 6, background: "var(--km-surface-subtle, #d8b8a0)", ...style }} {...rest} />;
+/** A region's skin at macro scale, rendered in a worker and cached, with a visible working state. */
+export const SkinSwatchView = forwardRef<HTMLCanvasElement, SkinSwatchViewProps>(function SkinSwatchView({ options, label, ...rest }, ref) {
+  const W = Math.round(options.width ?? 320), H = Math.round(options.height ?? 240);
+  return <RenderFrame ref={ref} width={W} height={H} label={label} placeholder="var(--km-surface-subtle, #d8b8a0)" job={{ pool: ANATOMY_RENDER_POOL, kind: "skin", args: options }} {...rest} />;
 });
 
 /** Every skin region at two ages, at macro scale (the width of skin shown is given), with its pores, network and folds. */

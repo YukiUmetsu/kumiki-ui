@@ -44,6 +44,18 @@ Write data, not TSX. Read [the film document](../../docs/component-specs/film-do
 
 **Materials on screen:** what any object is made of starts from the materials framework — [kumiki-materials](../kumiki-materials/SKILL.md) — so colour, value, gloss, wetness and age are sourced, not guessed.
 
+**Land on screen:** any mountain, valley, volcano, desert or coast starts from the terrain framework — [kumiki-terrain](../kumiki-terrain/SKILL.md) — so slopes, snowlines, treelines and distance fading match the place.
+
+**Buildings on screen:** any house, street, temple or castle starts from the architecture framework — [kumiki-architecture](../kumiki-architecture/SKILL.md) — so doors, storeys and roofs are the right size for the people and the place.
+
+**Small creatures on screen:** any insect, spider or snail starts from the small-creatures framework — [kumiki-small-creatures](../kumiki-small-creatures/SKILL.md) — so legs, wings, sizes and motion are right.
+
+**Food on screen:** any cooked dish starts from the food framework — [kumiki-food](../kumiki-food/SKILL.md) — so doneness, browning, steam and gloss follow the cooking.
+
+**People moving on screen:** any walk or run starts from the human motion framework — [kumiki-motion](../kumiki-motion/SKILL.md) — so the knees, arms, cadence and planted feet are right.
+
+**Fire on screen:** any flame, smoke or explosion starts from the fire framework — [kumiki-fx](../kumiki-fx/SKILL.md) — so size, flicker and colour come from the fire's power and temperature.
+
 **Clothing on screen:** every dressed person starts from the costume framework — [kumiki-costume](../kumiki-costume/SKILL.md) — so garments match the place, the time, the wearer and the occasion, found by tags rather than guessed.
 
 **Makeup:** a made-up face (any style, a portrait, a beauty or period look) starts from the makeup framework — [kumiki-makeup](../kumiki-makeup/SKILL.md) — so placement follows the face, colours suit the skin, and contour and highlight follow the light.

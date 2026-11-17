@@ -89,7 +89,8 @@ function buildScene(ph: PosedHand) {
       const Lb = len(sub(b.b, b.a)), bEnd = b.seg === 2 ? add(b.a, sc(sub(b.b, b.a), (Lb - b.rb * 0.85) / Lb)) : b.b;
       fsdf.bones.push({ a: b.a, b: bEnd, ra: b.ra, rb: b.rb, up: b.up, side: b.side, seg: b.seg });
       // joints bulge a little, mostly toward the back (the knuckles)
-      if (!isMeta) fsdf.joints.push({ c: add(b.a, sc(b.up, b.ra * 0.14)), r: b.ra * (0.88 + 0.1 * kn - 0.03 * fat) });
+      // (knobbly only on lean or old hands: soft tissue fills round a young joint)
+      if (!isMeta) fsdf.joints.push({ c: add(b.a, sc(b.up, b.ra * (0.04 + 0.1 * kn))), r: b.ra * (0.82 + 0.16 * kn - 0.03 * fat) });
       // the fleshy pad on the palmar side of each phalanx (the fingertip's is the largest)
       const L = len(sub(b.b, b.a)), d = sc(sub(b.b, b.a), 1 / L), last = b.seg === 2;
       if (!isMeta) {
@@ -116,14 +117,17 @@ function buildScene(ph: PosedHand) {
   const pz = W([0, 0, 1]), py = W([0, 1, 0]), pxv = W([1, 0, 0]);
   const thenar: Ellip = { c: add(add(tm, sc(pz, -P.thick * 0.18)), sc(pxv, -t.breadth * 0.05)), e1: tmd, e2: nrm(cross(pz, tmd)), e3: pz, r: [len(sub(thumbMeta.b, thumbMeta.a)) * 0.62, t.breadth * (0.15 + 0.04 * t.muscle + 0.03 * fat), P.thick * (0.34 + 0.08 * t.muscle + 0.06 * fat)] };
   const hypo: Ellip = { c: W([-0.33 * t.breadth, 0.4 * P.mcpY, -P.thick * 0.12]), e1: py, e2: pxv, e3: pz, r: [P.mcpY * 0.36, t.breadth * (0.12 + 0.03 * t.muscle + 0.03 * fat), P.thick * (0.3 + 0.06 * t.muscle + 0.06 * fat)] };
+  // the back of the hand's soft tissue over the metacarpals (fills the valleys between them; thin on lean, old hands)
+  // (it ends below the knuckles and blends wide, so no ledge forms where it stops)
+  const dorsal: Ellip = { c: W([0.0, 0.45 * P.mcpY, P.thick * (0.14 - 0.1 * kn)]), e1: py, e2: pxv, e3: pz, r: [P.mcpY * 0.42, P.mcpHalf * 0.84, P.thick * (0.28 + 0.08 * fat - 0.12 * kn)] };
   const palmCore: Ellip = { c: W([0.02 * t.breadth, 0.55 * P.mcpY, -P.thick * 0.08]), e1: py, e2: pxv, e3: pz, r: [P.mcpY * 0.5, P.mcpHalf * 0.92, P.thick * 0.42] };
   const wrist = { a: W([0, 0.16 * t.length, -P.thick * 0.05]), b: [0, -0.26 * t.length, 0] as Vec3, rx: P.wristHalf * 0.95, rz: P.wristThick * 0.48 };
   // dimples over a child's knuckles; tendons and veins on the back of lean or old hands
   const dimples = fat > 0.55 ? h.knuckles.map(k => W(add(k, [0, -2, P.thick * 0.1 + 2.5]))) : [];
   const tendons: Tube[] = [], veins: Tube[] = [];
-  if (t.tendons > 0.05) fl.forEach((_, i) => { const k = h.knuckles[i]; tendons.push({ a: W([k[0] * 0.25, 0.05 * t.length, P.thick * 0.22]), b: W([k[0], k[1] - 4, P.thick * 0.24]), r: 1.4 + 0.5 * t.tendons }); });
+  if (t.tendons > 0.05) fl.forEach((_, i) => { const k = h.knuckles[i]; tendons.push({ a: W([k[0] * 0.25, 0.05 * t.length, P.thick * 0.22]), b: W([k[0], k[1] - 4, P.thick * 0.24]), r: 0.5 + 1.4 * t.tendons }); });
   if (t.veins > 0.05) {
-    const B = t.breadth, Ly = P.mcpY, zt = P.thick * 0.25, rv = 1.0 + 0.7 * t.veins;
+    const B = t.breadth, Ly = P.mcpY, zt = P.thick * 0.25, rv = 0.45 + 1.25 * t.veins;
     const path = (pts: [number, number][]) => { for (let i = 1; i < pts.length; i++) veins.push({ a: W([pts[i - 1][0] * B, pts[i - 1][1] * Ly, zt]), b: W([pts[i][0] * B, pts[i][1] * Ly, zt]), r: rv }); };
     path([[0.18, -0.05], [0.2, 0.25], [0.12, 0.5], [0.05, 0.7], [-0.02, 0.85]]);
     path([[-0.25, -0.05], [-0.22, 0.3], [-0.12, 0.55], [-0.02, 0.7]]);
@@ -134,7 +138,7 @@ function buildScene(ph: PosedHand) {
   const allPts = [...ph.bones.flatMap(b => [b.a, b.b]), wrist.a, wrist.b];
   const bc = sc(allPts.reduce((a, b) => add(a, b), [0, 0, 0] as Vec3), 1 / allPts.length);
   const br = Math.max(...allPts.map(q => len(sub(q, bc)))) + 25;
-  return { fingers, metas, thenar, hypo, palmCore, wrist, dimples, tendons, veins, pz, bc, br, prop: ph.prop, fat, kn, t };
+  return { fingers, metas, thenar, hypo, palmCore, dorsal, wrist, dimples, tendons, veins, pz, bc, br, prop: ph.prop, fat, kn, t };
 }
 type Scene = ReturnType<typeof buildScene>;
 
@@ -143,43 +147,58 @@ function palmSDF(s: Scene, p: Vec3): number {
   // the metacarpals as flattened cones: squash the depth toward the palm plane
   const pz = s.pz, dz = dot(sub(p, s.palmCore.c), pz), q = sub(p, sc(pz, dz * 0.28));
   let d = Infinity;
-  for (const m of s.metas) d = smin(d, roundCone(q, m.a, m.b, m.ra, m.rb), 9);
+  // soft tissue blurs the metacarpals on young and padded hands; lean and old hands show them
+  const kMeta = 9 + 9 * (1 - s.kn) * (0.6 + 0.4 * Math.min(1, s.fat * 2));
+  for (const m of s.metas) d = smin(d, roundCone(q, m.a, m.b, m.ra, m.rb), kMeta);
   d = smin(d, ellipsoid(p, s.palmCore.c, s.palmCore.e1, s.palmCore.e2, s.palmCore.e3, s.palmCore.r), 8);
+  d = smin(d, ellipsoid(p, s.dorsal.c, s.dorsal.e1, s.dorsal.e2, s.dorsal.e3, s.dorsal.r), 18);
   d = smin(d, ellipsoid(p, s.thenar.c, s.thenar.e1, s.thenar.e2, s.thenar.e3, s.thenar.r), 7);
   d = smin(d, ellipsoid(p, s.hypo.c, s.hypo.e1, s.hypo.e2, s.hypo.e3, s.hypo.r), 7);
   // the wrist: an elliptic round cone toward the forearm
   {
     const w = s.wrist, ax = nrm(sub(w.b, w.a)), rel = sub(p, w.a), along = dot(rel, ax), perp = sub(rel, sc(ax, along));
     const xz = dot(perp, nrm(cross(ax, pz))), zz = dot(perp, pz), rr = Math.hypot(xz / w.rx, zz / w.rz) * Math.min(w.rx, w.rz) - Math.min(w.rx, w.rz);
-    const L = len(sub(w.b, w.a)), dw = Math.max(rr, along - L);
-    d = smin(d, Math.max(dw, -along - 6), 12);
+    // above its start the wrist narrows into the palm (half a millimetre per millimetre) and ends inside it: no cap edge
+    // (a smooth ramp, not max(0, …): a kink in the radius shades as a line round the wrist)
+    const ramp = 0.5 * (Math.sqrt(along * along + 100) - along) - 5, L = len(sub(w.b, w.a)), dw = Math.max(rr + Math.max(0, ramp) * 0.5, along - L);
+    d = smin(d, Math.max(dw, -along - 40), 14);
   }
-  for (const tdn of s.tendons) d = smin(d, capsule(p, tdn.a, tdn.b, tdn.r), 2.5);
-  for (const v of s.veins) d = smin(d, capsule(p, v.a, v.b, v.r), 1.8);
+  // tendons and veins lie under the skin: their ridges are blended wide unless the hand is lean or old
+  for (const tdn of s.tendons) d = smin(d, capsule(p, tdn.a, tdn.b, tdn.r), 2.5 + 3 * (1 - s.t.tendons));
+  for (const v of s.veins) d = smin(d, capsule(p, v.a, v.b, v.r), 1.8 + 2.5 * (1 - s.t.veins));
   for (const dm of s.dimples) d = Math.max(d, -(len(sub(p, dm)) - 3.2) * 0.6 + 0.0 * d);
   return d;
 }
 /** A finger's distance (bones, joints and pads blended). */
 function fingerSDF(f: FingerSDF, p: Vec3): number {
   let d = Infinity;
-  for (const b of f.bones) d = smin(d, roundCone(p, b.a, b.b, b.ra, b.rb), 2.2);
-  for (const j of f.joints) d = smin(d, len(sub(p, j.c)) - j.r, 2.5);
-  for (const e of f.pads) d = smin(d, ellipsoid(p, e.c, e.e1, e.e2, e.e3, e.r), 2.5);
+  // consecutive phalanges share their radius at the joint, so a plain union is one smooth tube (a smooth minimum here
+  // swelled every joint into a ring); the joints' own swelling comes from `joints`, by how knobbly the hand is
+  for (const b of f.bones) d = Math.min(d, roundCone(p, b.a, b.b, b.ra, b.rb));
+  for (const j of f.joints) d = smin(d, len(sub(p, j.c)) - j.r, 2.4);
+  for (const e of f.pads) d = smin(d, ellipsoid(p, e.c, e.e1, e.e2, e.e3, e.r), 3.4);
   return d;
 }
 /** The nail plate's distance. */
 function nailSDF(n: NailSDF, p: Vec3): number {
   const rel = sub(p, n.a), t = dot(rel, n.d), x = dot(rel, n.side), z = dot(rel, n.up), rho = Math.hypot(x, z);
-  const r = n.ra + (n.rb - n.ra) * clamp(t / n.L, 0, 1), phiMax = Math.asin(clamp((0.74 * r) / Math.max(1, r), 0.2, 0.9)), phi = Math.atan2(x, z);
+  // the plate spans about four fifths of the fingertip's width (natural nails, Commons and CC0 reference photographs),
+  // flatter than the finger: its sides sink under the lateral nail folds
+  const r = n.ra + (n.rb - n.ra) * clamp(t / n.L, 0, 1), phiMax = Math.asin(0.8), phi = Math.atan2(x, z);
   const u = clamp(Math.abs(phi) / phiMax, 0, 1.5);
-  const t0 = n.L * 0.42 + n.L * 0.1 * u * u;
+  // the proximal fold's edge is an arc, furthest back in the middle
+  const t0 = n.L * 0.4 + n.L * 0.09 * u * u;
   let tEnd = n.L + n.free - 0.3;
   if (n.shape === "oval") tEnd -= (n.free + 1.2) * u * u * 0.6;
   else if (n.shape === "round") tEnd -= (n.free + 1.8) * u * u * 0.8;
-  else if (n.shape === "almond") tEnd -= (n.free + 1.5) * Math.pow(u, 1.4) * 0.95;
+  else if (n.shape === "almond") tEnd -= (n.free + 1.5) * Math.pow(u, 1.8) * 0.75;
   else tEnd -= 0.6 * Math.pow(u, 6);
   // the plate rides just proud of the blended skin (the joints and pads swell the surface by up to a millimetre)
-  const shell = Math.abs(rho - (r + 0.75)) - 0.38, sector = (Math.abs(phi) - phiMax) * rho, along = Math.max(t0 - t, t - tEnd);
+  // over the rounded fingertip the plate follows the tip down (to about 60% of the radius), then runs straight on as
+  // the free edge: a short nail does not stand out past the fingertip as a ring
+  const tb = n.L - n.rb * 0.85, dt = Math.max(0, t - tb), skinR = Math.sqrt(Math.max(0, r * r - dt * dt));
+  const lift = Math.max(skinR, r * 0.6);
+  const shell = Math.abs(rho - (lift + 0.75 - 0.65 * u * u)) - 0.38, sector = (Math.abs(phi) - phiMax) * rho, along = Math.max(t0 - t, t - tEnd);
   return Math.max(shell, sector, along);
 }
 
@@ -233,7 +252,10 @@ export function renderHand(ph: PosedHand, o: HandRenderOptions = {}): HandRender
   const Lf = nrm(add(add(sc(right, 0.6), sc(up, -0.05)), sc(fwd, -0.8))), Lr = nrm(add(add(sc(right, 0.4), sc(up, 0.5)), sc(fwd, 0.75)));
   const keyI = [3.0, 2.86, 2.72], fillI = [0.34, 0.36, 0.4], rimI = [0.8, 0.8, 0.85], skyI = [0.22, 0.235, 0.27];
   const skin = linearOf(o.skin ?? t.skin), palmSkin = linearOf(skinZoneColor(o.skin ?? t.skin, "palms-soles")), knuckleTint = linearOf(skinZoneColor(o.skin ?? t.skin, "knuckles-elbows-knees"));
-  const nailBed: Vec3 = o.nailColour ? linearOf(o.nailColour) as Vec3 : [skin[0] * 0.95 + 0.06, skin[1] * 0.78, skin[2] * 0.8];
+  // a natural nail shows the bed through the plate: the skin's colour a little pinker and lighter (low contrast in the
+  // reference photographs); polish (`nailColour`) replaces it
+  const polish = !!o.nailColour;
+  const nailBed: Vec3 = polish ? linearOf(o.nailColour!) as Vec3 : [skin[0] * 0.97 + 0.035, skin[1] * 0.86 + 0.01, skin[2] * 0.88 + 0.012];
   const bgc = linearOf(o.background ?? "#8a8784");
   const S = (p: Vec3) => sceneSDF(s, mirror < 0 ? [-p[0], p[1], p[2]] : p);
   const SI = (p: Vec3) => sceneSDF(s, mirror < 0 ? [-p[0], p[1], p[2]] : p, true);
@@ -338,19 +360,53 @@ export function renderHand(ph: PosedHand, o: HandRenderOptions = {}): HandRender
         crease = b.seg === 0 && !s.fingers[fid].thumb ? Math.max(at(L * 0.38), at(L * 0.38 - 1.6) * 0.7) : b.seg === 1 ? Math.max(at(0.6), at(-0.9) * 0.7) : b.seg === 2 ? at(0.5) : 0;
         if (s.fingers[fid].thumb && b.seg === 1) crease = Math.max(at(0.8), at(-1) * 0.6);
       }
+      // On the back of each finger joint the skin lies in folds when the finger is straight: a cluster of curved
+      // wrinkles over the middle knuckle (PIP, the deepest), fewer and finer over the end knuckle (DIP); they smooth out
+      // as the joint bends and the skin stretches. Curved toward the fingertip, deeper with age.
+      if (fid >= 0 && palmar < 0.45 && nearestBone && !s.fingers[fid].thumb && nearestBone.seg >= 1) {
+        const b = nearestBone, L = len(sub(b.b, b.a)), mm = segAlong * L, rel = sub(pl, b.a), side = dot(rel, b.side) / Math.max(1, (b.ra + b.rb) / 2);
+        const isPip = b.seg === 1, fpose = (ph.pose as unknown as Record<string, { pip?: number; dip?: number }>)[(["thumb", "index", "middle", "ring", "little"] as const)[fid]], bend = (isPip ? fpose?.pip : fpose?.dip) ?? 0, stretch = 1 - smooth(10, 70, bend);
+        const age = 0.6 + 0.6 * Math.min(1, Math.max(0, (t.skinAge - 20) / 50));
+        const n = isPip ? 5 : 3, spacing = isPip ? 0.95 : 0.75, bow = 1.8 * side * side;
+        let w2 = 0;
+        for (let k = 0; k < n; k++) {
+          // each wrinkle a short arc: bowed toward the fingertip at its ends, wandering, broken where the noise is low
+          const at0 = (isPip ? -0.2 : 0) + k * spacing - bow + 0.18 * Math.sin(k * 2.3 + side * 3.4), d = mm - at0;
+          const len2 = 0.55 - 0.08 * k + 0.25 * Math.sin(k * 1.7 + 0.9), keep = 1 - smooth(len2, len2 + 0.2, Math.abs(side + 0.15 * Math.sin(k * 3.1)));
+          w2 = Math.max(w2, Math.exp(-(d * d) / (0.035 + 0.012 * k)) * (1 - 0.12 * k) * keep);
+        }
+        crease = Math.max(crease, w2 * stretch * age * (isPip ? 1.25 : 0.85));
+      }
       if (crease > 0.01) alb = [alb[0] * (1 - 0.35 * crease), alb[1] * (1 - 0.42 * crease), alb[2] * (1 - 0.44 * crease)];
       rough = 0.42 - 0.08 * (1 - palmar); sstr = 0.6 * (1 - 0.5 * palmar);
     } else if (mat === 1) {
       // nail: the bed's pink through the plate, a white lunula at the cuticle, a white free edge beyond the tip
       const f = s.fingers.find(q => q.nail && nailSDF(q.nail, pl) < 0.6);
       if (f?.nail) {
-        const nn = f.nail, tq = dot(sub(pl, nn.a), nn.d) / nn.L;
-        const lun = smooth(0.62, 0.5, tq) * (f.thumb ? 0.9 : 0.5), edge = smooth(0.97, 1.03, tq);
-        alb = [nailBed[0] + (0.85 - nailBed[0]) * Math.max(lun, edge), nailBed[1] + (0.82 - nailBed[1]) * Math.max(lun, edge), nailBed[2] + (0.78 - nailBed[2]) * Math.max(lun, edge)];
+        const nn = f.nail, rel = sub(pl, nn.a), tq = dot(rel, nn.d) / nn.L, x = dot(rel, nn.side), zz = dot(rel, nn.up);
+        const r0 = nn.ra + (nn.rb - nn.ra) * clamp(tq, 0, 1), uq = clamp(Math.abs(Math.atan2(x, zz)) / Math.asin(0.8), 0, 1);
+        const fi = s.fingers.indexOf(f), start = 0.4 + 0.09 * uq * uq;
+        // the lunula: a pale arc at the base, plain on the thumb, faint on the index, rarely seen on the others
+        const lunK = f.thumb ? 0.42 : fi === 1 ? 0.2 : 0.07, lunEdge = start + 0.13 * (1 - uq * uq);
+        const lun = smooth(lunEdge + 0.02, lunEdge - 0.02, tq) * lunK;
+        // the smile line: the bed ends in a curve (furthest forward in the middle); beyond it the free edge is ivory
+        // and partly clear, so it takes some of the colour behind it
+        const smile = 1 + (nn.free > 0 ? -0.02 : 0.02) - 0.06 * uq * uq, edge = polish ? 0 : smooth(smile - 0.015, smile + 0.015, tq);
+        const ivory: Vec3 = [0.86, 0.82, 0.74], under: Vec3 = [bgc[0] * 0.6, bgc[1] * 0.6, bgc[2] * 0.6];
+        const free: Vec3 = [ivory[0] * 0.9 + under[0] * 0.1, ivory[1] * 0.9 + under[1] * 0.1, ivory[2] * 0.9 + under[2] * 0.1];
+        // just behind the smile line the bed is a shade pinker (the onychodermal band)
+        const band = polish ? 0 : Math.exp(-((tq - (smile - 0.05)) ** 2) / 0.0012) * 0.5;
+        let c: Vec3 = [nailBed[0] * (1 + 0.06 * band), nailBed[1] * (1 - 0.08 * band), nailBed[2] * (1 - 0.06 * band)];
+        c = [c[0] + (0.86 - c[0]) * lun, c[1] + (0.82 - c[1]) * lun, c[2] + (0.8 - c[2]) * lun];
+        c = [c[0] + (free[0] - c[0]) * edge, c[1] + (free[1] - c[1]) * edge, c[2] + (free[2] - c[2]) * edge];
+        // the folds shade the plate where they overlap it: a soft dark rim at the cuticle and along the sides
+        const fold = 1 - 0.22 * smooth(start + 0.06, start, tq) - 0.08 * smooth(0.85, 1, uq) * (1 - edge);
         // faint lengthwise ridges
-        alb = sc(alb, 0.96 + 0.04 * Math.sin(dot(sub(pl, nn.a), nn.side) * 6.5));
+        c = sc(c, fold * (0.975 + 0.025 * Math.sin(x * 6.5 + 0.7 * Math.sin(tq * 9))));
+        alb = c;
+        void r0;
       }
-      rough = 0.16; sstr = 1.8;
+      rough = polish ? 0.07 : 0.2; sstr = polish ? 2.2 : 1.4;
     } else {
       alb = [0.55, 0.45, 0.33]; rough = 0.45; sstr = 0.5;
       if (s.prop.kind === "sphere") alb = [0.62, 0.2, 0.16];

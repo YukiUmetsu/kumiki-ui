@@ -3368,6 +3368,26 @@
           "target": "components/video/riso-stencil-topology.ts"
         },
         {
+          "path": "registry/video/riso-separation-master.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-separation-master.ts"
+        },
+        {
+          "path": "registry/video/riso-press-pdf.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-press-pdf.ts"
+        },
+        {
+          "path": "registry/video/riso-press-tiff.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-press-tiff.ts"
+        },
+        {
+          "path": "registry/video/riso-press-raster.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-press-raster.ts"
+        },
+        {
           "path": "registry/video/riso-path-geometry.ts",
           "type": "registry:ui",
           "target": "components/video/riso-path-geometry.ts"
@@ -3759,6 +3779,26 @@
           "target": "components/anatomy/face-portrait-react.tsx"
         },
         {
+          "path": "registry/anatomy/portrait-motion.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/portrait-motion.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-render-pool.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-render-jobs.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-render-worker.ts"
+        },
+        {
           "path": "registry/anatomy/hair-groom.ts",
           "type": "registry:ui",
           "target": "components/anatomy/hair-groom.ts"
@@ -3879,6 +3919,16 @@
           "path": "registry/anatomy/foundation-queue.ts",
           "type": "registry:ui",
           "target": "components/anatomy/foundation-queue.ts"
+        },
+        {
+          "path": "registry/anatomy/foundation-render.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-render.ts"
+        },
+        {
+          "path": "registry/anatomy/foundation-render-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-render-react.tsx"
         },
         {
           "path": "registry/anatomy/foundation-react.tsx",
@@ -4052,6 +4102,21 @@
           "path": "registry/nature/sky-volume-react.tsx",
           "type": "registry:ui",
           "target": "components/nature/sky-volume-react.tsx"
+        },
+        {
+          "path": "registry/nature/sky-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/sky-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/sky-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-render-worker.ts"
         }
       ]
     },
@@ -4090,6 +4155,235 @@
           "path": "registry/nature/water-ocean-react.tsx",
           "type": "registry:ui",
           "target": "components/nature/water-ocean-react.tsx"
+        },
+        {
+          "path": "registry/nature/water-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/water-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/water-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-render-worker.ts"
+        }
+      ]
+    },
+    {
+      "name": "fire-effects",
+      "type": "registry:ui",
+      "title": "Fire and Effects Framework (FX1)",
+      "description": "Fire, smoke, sparks, explosions and firelight in any art style from flame physics: flame height from heat release (Heskestad), flicker at about 1.5/sqrt(D) Hz, fires from candle to oil pool with soot and smoke, flame and ember temperatures, blackbody colour (Planck through the CIE observer), smoke plumes at about 7 degrees, sparks that cool as they rise, fireball sizes and durations, firelight colour and flicker. renderFire renders a fire as a volume (a puffing teardrop envelope, turbulence carried up with the plume, tongues and gaps, soot emission and absorption, a blue base for small flames, smoke billows lit from below, motion-blurred sparks, firelight on the ground or wax, bloom); FireView plays it from the worker pool; FlameColours and FireSheet.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/nature/fx-data.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-data.ts"
+        },
+        {
+          "path": "registry/nature/fx-render.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render.ts"
+        },
+        {
+          "path": "registry/nature/fx-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/fx-react.tsx"
+        },
+        {
+          "path": "registry/nature/fx-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/fx-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/fx-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render-worker.ts"
+        }
+      ]
+    },
+    {
+      "name": "human-motion",
+      "type": "registry:ui",
+      "title": "Human Motion Framework (MOTION1)",
+      "description": "Human movement on ANAT1's posable body: walking and running as joint-angle curves through the gait cycle (hip, knee, ankle, toes, arm swing, trunk) after the normative data (Winter 1991; Perry and Burnfield; Novacheck 1998), with speeds, cadences, strides, stance shares and events; how mood shows in a walk (Roether et al. 2009); gaitPose and gaitCycle, which place every frame on the floor and hold the stance foot's rolling point (heel, ball, toe) still so feet never slide, with a ballistic flight phase in running; sit-to-stand phases. GaitStrip (a chronophotograph at true distances), GaitPlayer (real cadence, tracking camera, planted-foot mark) and MotionSheet.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy",
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/motion-gait.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/motion-gait.ts"
+        },
+        {
+          "path": "registry/anatomy/motion-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/motion-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "small-creatures",
+      "type": "registry:ui",
+      "title": "Insects and Small Creatures Framework (BUG1)",
+      "description": "Insects, spiders and snails in any art style: body plans (an insect's three parts and six legs on the thorax, a spider's two parts and eight legs, a snail's foot and shell) with their common mistakes; wings by order and how they rest; wingbeat rates and whether a camera sees poses or a blur; the alternating tripod gait; fourteen species loved in Japanese art and seasons (Genji firefly with its 2 s and 4 s flashes, red dragonfly, swallowtail, cabbage white, cicada, honeybee, ant, ladybird, mantis, bell cricket, stag and rhinoceros beetles, Jorō spider, land snail) with sizes, colours, proportions, seasons, behaviour, sounds and sources. bugTopView builds top views by part; BugFigure paints them (glossy chitin, veined translucent wings, glowing lanterns), BugMotion animates walking, wingbeats and flashes, BugSheet shows the plans and species.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/bug-data.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/bug-data.ts"
+        },
+        {
+          "path": "registry/anatomy/bug-construct.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/bug-construct.ts"
+        },
+        {
+          "path": "registry/anatomy/bug-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/bug-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "food",
+      "type": "registry:ui",
+      "title": "Food Framework (FOOD1)",
+      "description": "Food that looks cooked the way it was cooked, in any art style: the temperatures where food changes (myosin, myoglobin, egg white and yolk, Maillard browning, caramelisation, starch), beef doneness by core temperature, thermal diffusivity, steam, gloss by food and dishes common in Japanese and everyday scenes (onigiri, nigiri, ramen, dango, tempura, persimmon, toast). Cooking by heat conduction: cookSteak (sear, flip, rest; moist meat capped at 100 C; Maillard crust), cookEgg (boiling then ice; runny, jammy, hard, green ring), toastBrowning; colours from peak temperatures. renderFood paints a cut steak, a halved boiled egg and toast from the physics; FoodView renders in the worker pool; Steam animates a rising, curling plume; FoodSheet. Every value graded reported or estimated with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/materials/food-data.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-data.ts"
+        },
+        {
+          "path": "registry/materials/food-physics.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-physics.ts"
+        },
+        {
+          "path": "registry/materials/food-render.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render.ts"
+        },
+        {
+          "path": "registry/materials/food-react.tsx",
+          "type": "registry:ui",
+          "target": "components/materials/food-react.tsx"
+        },
+        {
+          "path": "registry/materials/food-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render-pool.ts"
+        },
+        {
+          "path": "registry/materials/food-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render-jobs.ts"
+        },
+        {
+          "path": "registry/materials/food-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render-worker.ts"
+        }
+      ]
+    },
+    {
+      "name": "architecture",
+      "type": "registry:ui",
+      "title": "Architecture Framework (ARCH1)",
+      "description": "Buildings in any art style, built round people: the human scale (doors, ceilings, storeys, sills, stairs and Blondel's rule), roof pitch by covering and climate, the classical orders and intercolumniation, the Japanese modules (shaku, ken, tatami), and nine building types by place and period (Kyoto machiya, Japanese temple hall, minka and gassho farmhouse, castle keep, Georgian town house, half-timbered house, Greek Doric temple, modern apartment block, adobe) with storeys, bays, roofs (straight in towns, curved only on temples and keeps), eaves and drawing notes. buildingElevation builds measured front elevations as parts by role for any painter; BuildingElevation, StreetElevation and ArchSheet draw them with a person for scale and dimension lines. Every value graded reported or estimated with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/arch-data.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-data.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-construct.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-construct.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "terrain",
+      "type": "registry:ui",
+      "title": "Terrain and Landforms Framework (GEO1)",
+      "description": "The ground in any art style: twelve landforms by how they formed (fold ranges, glacial horns, U- and V-valleys, strato-, shield and cinder volcanoes, mesas and buttes, barchan dunes, scree, sea cliffs, rolling hills) with their reported slopes, reliefs, profiles and drawing notes; the angle of repose of loose material; snowlines and treelines by latitude; ground-cover albedo; the rules of distance. Heightfields for each landform worn by hydraulic erosion (droplets cutting gullies and laying fans) and thermal erosion (scree at its angle of repose), and a renderer: snow above the snowline (lower on shaded slopes, only where it can hold), rock on steep faces, scree, meadow and forest by the treeline, sand, ash and water, under SKY1's physical atmosphere with terrain shadows, aerial perspective and camera metering. TerrainView (worker, cached), LandformProfile and GeoSheet; every value graded reported, measured or estimated with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations",
+        "sky-weather"
+      ],
+      "files": [
+        {
+          "path": "registry/nature/geo-data.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-data.ts"
+        },
+        {
+          "path": "registry/nature/geo-terrain.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-terrain.ts"
+        },
+        {
+          "path": "registry/nature/geo-render.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render.ts"
+        },
+        {
+          "path": "registry/nature/geo-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/geo-react.tsx"
+        },
+        {
+          "path": "registry/nature/geo-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/geo-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/geo-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render-worker.ts"
         }
       ]
     },
@@ -4127,6 +4421,21 @@
           "path": "registry/materials/materials-react.tsx",
           "type": "registry:ui",
           "target": "components/materials/materials-react.tsx"
+        },
+        {
+          "path": "registry/materials/materials-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render-pool.ts"
+        },
+        {
+          "path": "registry/materials/materials-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render-jobs.ts"
+        },
+        {
+          "path": "registry/materials/materials-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render-worker.ts"
         }
       ]
     },
