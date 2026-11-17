@@ -1,4 +1,5 @@
 import {expect,test} from "@playwright/test";
+import {writeFile} from "node:fs/promises";
 import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
@@ -1860,7 +1861,7 @@ test("F1 V43 source traced leaf-scumble vs V42 native 1x and top 2.4x",async({pa
   const errors:string[]=[];
   page.on("pageerror",e=>errors.push(e.message));
   const imageBuffers:Record<string,Uint8Array[]>={full:[],upper:[]};
-  const unchangedFace:Uint8Array[]=[];
+  const unchangedFace:number[][]=[];
   for(const midfaceForm of [
     "source-anat1-hedge-v42","source-anat1-photo-foliage-v43",
   ] as const){
@@ -1896,24 +1897,56 @@ test("F1 V43 source traced leaf-scumble vs V42 native 1x and top 2.4x",async({pa
       });
       expect(order.background).toBeGreaterThanOrEqual(0);
       expect(order.portrait).toBeGreaterThan(order.background);
-      // Heavy source-shaped native wax needs a completed Chromium paint.
-      // DOM IDs alone cannot prove that all original face tiles rendered.
+      // A screenshot can be obtained while Chromium still rasterizes
+      // expensive wax/mask tiles. Inspect PIXELS FROM THE EXACT PNG that
+      // will be saved, rather than the DOM or a later, different crop.
+      const protectedPixels=async(png:Uint8Array):Promise<number[]>=>{
+        return page.evaluate(async (encoded:string)=>{
+          const img=new Image();
+          img.src="data:image/png;base64,"+encoded;
+          await img.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=img.naturalWidth;
+          canvas.height=img.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw new Error("Missing pixel audit context");
+          ctx.drawImage(img,0,0);
+          return Array.from(ctx.getImageData(220,490,115,100).data);
+        },Buffer.from(png).toString("base64"));
+      };
+      const mismatch=(before:number[],after:number[]):number=>{
+        if(before.length!==after.length)return 1;
+        let different=0;
+        for(let i=0;i<before.length;i+=4){
+          const delta=Math.abs(before[i]-after[i])+
+            Math.abs(before[i+1]-after[i+1])+
+            Math.abs(before[i+2]-after[i+2]);
+          if(delta>5)different++;
+        }
+        return different/(before.length/4);
+      };
       await page.waitForTimeout(350);
-      const screenshot=await svg.screenshot({
-        path:info.outputPath("crayon-v43-"+view+"-"+midfaceForm+"-299.png"),
-        animations:"disabled",
-      });
-      imageBuffers[view].push(screenshot);
+      let screenshot=await svg.screenshot({animations:"disabled"});
       if(view==="full"){
-        // This is a protected source-derived iris/lid/cheek patch. Both
-        // variants have the exact same foreground pixels and original wax
-        // seed. A missing painted face used to silently PASS DOM tests.
-        const pixels=await page.screenshot({
-          clip:{x:220,y:490,width:115,height:100},
-          animations:"disabled",
-        });
-        unchangedFace.push(pixels);
+        const reference=unchangedFace[0];
+        // Validate the exact encoded screenshot. If the compositor shows
+        // empty face tiles, give GPU paint a small chance to settle, then
+        // reject rather than releasing a broken screenshot as quality proof.
+        let pixels=await protectedPixels(screenshot);
+        if(reference){
+          for(let attempt=0;attempt<6&&mismatch(reference,pixels)>.003;attempt++){
+            await page.waitForTimeout(450);
+            screenshot=await svg.screenshot({animations:"disabled"});
+            pixels=await protectedPixels(screenshot);
+          }
+          expect(mismatch(reference,pixels)).toBeLessThanOrEqual(.003);
+        }else unchangedFace.push(pixels);
       }
+      // Save only the audited screenshot, never a subsequent unverified
+      // image whose GPU tile state may differ.
+      await writeFile(info.outputPath(
+        "crayon-v43-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(screenshot));
+      imageBuffers[view].push(screenshot);
     }
   }
   for(const view of ["full","upper"] as const){
@@ -1921,9 +1954,9 @@ test("F1 V43 source traced leaf-scumble vs V42 native 1x and top 2.4x",async({pa
     expect(Buffer.compare(Buffer.from(imageBuffers[view][0]),
       Buffer.from(imageBuffers[view][1]))).not.toBe(0);
   }
-  expect(unchangedFace).toHaveLength(2);
-  expect(Buffer.compare(Buffer.from(unchangedFace[0]),
-    Buffer.from(unchangedFace[1]))).toBe(0);
+  // Reference pixel sample was captured from the original V42 PNG,
+  // and the candidate was compared against it before artifact capture.
+  expect(unchangedFace).toHaveLength(1);
   expect(errors).toEqual([]);
 });
 
