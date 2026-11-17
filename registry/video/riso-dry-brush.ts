@@ -26,6 +26,9 @@ export interface RisoBrushGeometry {
   readonly centerline:readonly RisoBrushPoint[];
   readonly widthProfile:readonly number[];
   readonly count:number;
+  /** Exact original source edge stations, before trap. No decimation. */
+  readonly edgePositive:readonly RisoBrushPoint[];
+  readonly edgeNegative:readonly RisoBrushPoint[];
 }
 const n=(v:number)=>Number(v.toFixed(3));
 const coord=(p:RisoBrushPoint)=>n(p.x)+" "+n(p.y);
@@ -83,7 +86,7 @@ export function risoBrushPressureAt(stops:readonly RisoBrushPressure[],t:number)
 }
 /** Smooth each original edge by quadratic points, including a closed
  * tangent-aware cap. Holes remain independent editable subpaths. */
-function smoothClosed(points:readonly RisoBrushPoint[]):string{
+export function risoBrushClosedPath(points:readonly RisoBrushPoint[]):string{
   if(points.length<3)throw new RangeError("RISO62 closed ribbon needs 3+ points");
   const mid=(a:RisoBrushPoint,b:RisoBrushPoint):RisoBrushPoint=>({
     x:(a.x+b.x)/2,y:(a.y+b.y)/2,
@@ -118,8 +121,9 @@ export function createRisoBrushGeometry(o:RisoBrushOptions):RisoBrushGeometry{
     const w=widthProfile[i]*(1+grain)*.5*side;
     return {x:p.x+normals[i].x*w,y:p.y+normals[i].y*w};
   });
-  const outside=[...edge(1),...edge(-1).reverse()];
-  const outerPath=smoothClosed(outside);
+  const edgePositive=edge(1),edgeNegative=edge(-1);
+  const outside=[...edgePositive,...edgeNegative.slice().reverse()];
+  const outerPath=risoBrushClosedPath(outside);
   // Physically unprinted substrate: long tapered bristle streaks and
   // irregular paper-tooth pinholes are independent source-native cutouts.
   // Seven offset lanes stop parallel streaks from becoming one giant
@@ -146,7 +150,7 @@ export function createRisoBrushGeometry(o:RisoBrushOptions):RisoBrushGeometry{
         slit.push({x:p.x+normal.x*(center+half),y:p.y+normal.y*(center+half)});
         other.push({x:p.x+normal.x*(center-half),y:p.y+normal.y*(center-half)});
       }
-      dryPaths.push(smoothClosed([...slit,...other.reverse()]));
+      dryPaths.push(risoBrushClosedPath([...slit,...other.reverse()]));
     }
     // Micro-pores are grain-sized distinct imperfect droplets where the
     // master has no pigment; shape and distribution remain editable SVG.
@@ -167,11 +171,11 @@ export function createRisoBrushGeometry(o:RisoBrushOptions):RisoBrushGeometry{
           y:cy+scatter*(Math.cos(theta)*axial*tangent.y+
           Math.sin(theta)*rad*normal.y)};
       });
-      dryPaths.push(smoothClosed(points));
+      dryPaths.push(risoBrushClosedPath(points));
     }
   }
   return {outerPath,dryPaths,centerline:nodes.map(p=>({x:n(p.x),y:n(p.y)})),
-    widthProfile,count:dryPaths.length};
+    widthProfile,count:dryPaths.length,edgePositive,edgeNegative};
 }
 /** Source-native combined fill: SVG evenodd reveals true stock through
  * all nested dry splinters while retaining original edge controls. */
