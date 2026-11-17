@@ -118,8 +118,11 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     // from cheekbone to upper lip. Bend it around the near zygomatic
     // eminence and let it taper *before* reaching the nasolabial fold.
     // Four curved turns preserve this original pigment plane's topology.
-    ink("M119.1 107.9 C121.7 109.2 124 110.1 126.6 111.4 C130.6 113.2 134 116.5 137.9 119.4 C134.2 118.2 131.7 116 128.5 115.4 C124.3 114.8 121.3 111.5 119.1 107.9 Z",
-      "$skinshade","none",0,.088),
+    // Chromatically lighter, broader source mass: the old path was a
+    // long ~3px-wide line ending by the lip. Keep four cubic turns,
+    // but the bottom now rounds across the raised zygomatic cheek.
+    ink("M119.1 107.9 C122.5 108.5 127 109.2 131.1 112.2 C134.7 114.5 137.4 117.5 137.9 119.4 C134.6 121.5 130.5 120 127.1 117.9 C123.1 115.6 120.2 112.2 119.1 107.9 Z",
+      "$skinshade","none",0,.067),
     // Far cheek is a receding convex plane beneath the orbital turn,
     // not a triangular value wedge pointing at the corner of the lip.
     ink("M152.8 100.8 C155.9 102.4 158.9 105.4 159.3 109.6 C160.1 112.2 158.3 115.1 154.8 117.9 C158.4 114 160.4 109 160.1 105.5 C159.8 103.2 157.4 101.1 152.8 100.8 Z",
@@ -192,9 +195,13 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
       "$paper","none",0,.32),
     // Preserve a smaller convex paper core between the near malar wash
     // and the nasolabial line; no straight white highlight banner.
-    ink("M125.8 113.1 C129.6 112.7 134.2 114.6 136.1 116.8 "+
-      "C132.7 115.7 129.2 115.2 125.8 113.1 Z",
-      "$paper","none",0,.16),
+    // A restrained elliptical unpainted core replaces the conspicuous
+    // straight paper-white banner. Four linked cubic turns describe
+    // the cheek's convex high spot without erasing fine pigment fibres.
+    ink("M126.6 112.8 C129 112.2 132.1 112.8 134.6 115.4 "+
+      "C131.8 114.6 129.1 114.5 127.5 114.4 "+
+      "C126.7 114 126.2 113.4 126.6 112.8 Z",
+      "$paper","none",0,.13),
     ink("M148.6 125.4 Q150.3 121.7 "+num(noseTip[0])+
       " "+num(noseTip[1])+" Q151.5 120.7 148.6 125.4 Z",
       "$paper","none",0,.13),
@@ -235,14 +242,17 @@ export function readerFaceAnatomy(detail=1):ReaderFacialAnatomy {
     // Both existing dorsal routes turn gradually into the nasal bulb.
     // Shrink the hard terminal slash, rather than hiding the underlying
     // fine pressure strokes with another opaque color polygon.
-    line([147.2,99.5],[147.9,103.5],[148.65,107.6],[150.2,111.9],
-      .52,630,"$shadow",.45),
+    // Original sellion-to-pronasale pressure line remains intact as a
+    // unique sampled brush, but stops reading as a dark mask incision.
+    line([147.2,99.5],[147.5,103.2],[148.5,108.2],[150.1,112.4],
+      .46,630,"$shadow",.34),
     line([148.1,104.5],[148.2,108],[148.95,111.4],[150.4,113.6],
       .34,631,"$skinshade",.26),
-    ink("M151.1 114 C153.2 113.9 154.3 114.6 154.9 115.8 Q155 116.8 153.8 117.2",
-      "none","$shadow",.45,.43),
+    // Connected alar cartilage, not the pointed S-hook of a beak.
+    ink("M150.9 114.2 C152.5 114.4 154.3 115 154.6 116.2 Q154.5 117 153.5 117.2",
+      "none","$shadow",.39,.38),
     ink("M149.2 116.4 Q149.8 117.7 151.5 118.4",
-      "none","$shadow",.42,.52),
+      "none","$shadow",.4,.4),
     ink("M154.2 116.8 Q154.8 117.9 155.8 117.4",
       "none","$ink",.39,.46),
     ink("M149.9 117.7 Q150.6 118.4 151.3 118.4",
