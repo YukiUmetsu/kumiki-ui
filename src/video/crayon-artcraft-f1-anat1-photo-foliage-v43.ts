@@ -165,7 +165,11 @@ export function crayonF1RebuildPhotoFoliageV43(
       // For the far hedge, wax-tooth and feather contacts should look
       // optically soft at 1x; retain fibers/microrelief, not vector leaves.
       markStrength:.21,pressure:.67,spacing:9.7,
-      blendRadius:18,edgeRoughness:.39,underpaintTooth:.34,
+      // Gaussian feather on 19 source patches must fit Chromium's SVG
+      // raster budget; 18px blur corrupts adjacent artist-authored
+      // foreground tiles on 608×1082 screenshot. 7px preserves the
+      // photographic soft edge without huge overlapping filter extents.
+      blendRadius:7,edgeRoughness:.39,underpaintTooth:.34,
       opaqueBurnish:.61,featherContacts:true};
     changed.set(old.id,wax);
     const prev=laminae.get(old.id);
