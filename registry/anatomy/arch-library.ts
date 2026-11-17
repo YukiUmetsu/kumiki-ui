@@ -9,10 +9,11 @@
  * vertical) and a light that suits it. What each entry learned from its references is in `note`; the sources are in
  * `docs/research/architecture-storybook-reference-study-2026-11-17.md`.
  */
-import type { ArchScene, CameraSpec, MoodId } from "./arch-paint";
+import type { ArchScene, CameraSpec, Mood, MoodId } from "./arch-paint";
+import { MOODS } from "./arch-paint";
 import type { HouseSpec, WindowSpec } from "./arch-kit";
 import { SceneBuilder, barrel, beam, bench, box, boxAt, capsule, clump, coneY, cut, cylY, cypress, dome, ellipsoid, firewood, gableRoof, gableWall, gardenWall, ground, hills, hipRoof, house, lamppost, onionDome, opening, pentRoof, revolve, sphere, spire, street, tower, tree, water } from "./arch-kit";
-import { arcade, bridge, candle, church, curtainWall, domeChurch, gatehouse, glasshouse, hearth, kasbahTower, keep, lighthouse, room, shelves, staveChurch, table, trullo, waterWheel, windmill } from "./arch-kit-civic";
+import { arcade, bridge, candle, chairRows, church, curtainWall, domeChurch, gatehouse, glasshouse, gothicNave, hearth, kasbahTower, keep, lighthouse, room, shelves, staveChurch, table, trullo, waterWheel, windmill } from "./arch-kit-civic";
 import type { SurfaceSpec } from "./arch-surface";
 
 export type LibraryGroup = "british" | "french" | "alpine" | "low-countries" | "italian" | "mediterranean" | "nordic" | "middle-east" | "historic" | "rural" | "interior";
@@ -115,7 +116,7 @@ function town(b: SceneBuilder, kerbA = 6, kerbB = 12, cobble: SurfaceSpec = { ki
   ground(b, -400, 400, -400, 200, { kind: "flags", colour: "#8d877b" }, 0.02);
   street(b, -80, 80, kerbA, kerbB, cobble);
 }
-const done = (b: SceneBuilder, cam: CameraSpec, mood: MoodId, extra: Partial<ArchScene> = {}) => b.scene(cam, mood, extra);
+const done = (b: SceneBuilder, cam: CameraSpec, mood: MoodId | Mood, extra: Partial<ArchScene> = {}) => b.scene(cam, mood, extra);
 /** A house placed at (x, z) turned `yaw`°, with props added after it. */
 function placeHouse(b: SceneBuilder, s: HouseSpec, x = 0, z = 0, yaw = 0, lean = 0, props?: () => void) {
   house(b, s); props?.(); b.place({ x, z, yaw, leanX: lean * 0.6, leanZ: lean });
@@ -686,18 +687,16 @@ add({ id: "gothic-flying-buttresses", label: "Gothic choir with flying buttresse
     b.place({ yaw: -8 });
     return done(b, frameSubject(b, 14, { fov: 62 }), "noon"); } });
 add({ id: "gothic-nave-interior", label: "Gothic nave interior", group: "historic", region: "France", era: "13th century", setting: "city", view: "interior", scale: "monumental", mood: "interior-day",
-  materials: ["limestone piers", "rib vaults", "stained glass"], story: ["coloured light on the floor", "rows of chairs", "candles at a side altar"],
-  note: "Piers rise in shafts to the vault ribs; the clerestory windows fill the bays between them.",
+  materials: ["limestone piers", "quadripartite rib vaults", "stained glass"], story: ["coloured light on the piers", "rows of rush chairs", "candles at a side altar"],
+  note: "Three storeys after Chartres: compound piers carry the arcade, a triforium passage, and a clerestory of two lancets under a rose in each lunette of the rib vault; seen across the nave from its north side.",
   build: (seed = 67) => { const b = new SceneBuilder(seed);
-    const st = S.ashlar("#cfc6b2", 0.4), sm = b.mat(st);
-    room(b, { w: 14, d: 60, h: 34, wall: st, floor: { kind: "tile-floor", colour: "#b8ae9a", colour2: "#8a8070", unit: 0.6 }, ceiling: st, windows: [0, 1, 2, 3, 4].flatMap(k => [{ wall: "left" as const, at: -20 + k * 9, sill: 15, w: 4, h: 10, shape: "pointed" as const, glass: { kind: "stained", emit: 1.2 } as SurfaceSpec }, { wall: "right" as const, at: -20 + k * 9, sill: 15, w: 4, h: 10, shape: "pointed" as const, glass: { kind: "stained", emit: 1.2 } as SurfaceSpec }]) });
-    for (let k = 0; k < 7; k++) for (const s of [-1, 1]) { b.add(cylY(s * 5.5, -24 + k * 9 - 4.5, 0, 24, 0.8, sm)); }
-    // a pointed barrel vault over the nave, springing from the piers
-    b.add(cut(boxAt(-7.5, 18, -32, 7.5, 34, 24, sm), [opening(0, 0, 14, 18, "pointed", -33, 25, "z")]));
-    for (let k = 0; k < 12; k++) for (const s of [-1, 1]) b.add(boxAt(s * 1.2, 0, 8 - k * 1.6, s * 4.4, 0.85, 8.4 - k * 1.6, b.mat({ kind: "oak", colour: "#5a3e2a" })));
-    candle(b, 4.8, 1.1, -20, 0.03); candle(b, 4.6, 1.1, -19.6, 0.03);
+    const nv = gothicNave(b, { bays: 6 }), B = nv.length / 6;
+    chairRows(b, 4.9, -5.2, 8, 22); chairRows(b, -1.3, -5.2, 8, 22); b.place();
+    // a side altar in the south aisle: a stone table with candles burning
+    table(b, nv.span / 2 + 4.6, -B * 2.6, 1.6, 0.7, 1.0, { kind: "ashlar", colour: "#cbbd9e", course: 0.3 }, true);
+    for (const dz of [-0.5, -0.2, 0.15, 0.45]) candle(b, nv.span / 2 + 4.5, 1.0, -B * 2.6 + dz, 0.04);
     b.place();
-    return done(b, { x: 1.2, y: 1.6, z: 24, fov: 58, shift: 0.78 }, "interior-day", { dust: 0.5 }); } });
+    return done(b, { x: -4.2, y: 1.6, z: -3.0, yaw: 26, fov: 70, shift: 0.62 }, { ...MOODS["interior-day"], sunElevation: 46, sunAzimuth: -62, sunPower: 4.6, ambient: 0.22, key: 0.1, burn: 0.9 }, { dust: 0.12, interior: true }); } });
 add({ id: "norman-keep", label: "Norman stone keep", group: "historic", region: "England and Normandy", era: "1070–1180", setting: "rural", view: "exterior", scale: "monumental", mood: "overcast",
   materials: ["Caen limestone and flint rubble", "pilaster buttresses", "battlements"], story: ["a forebuilding stair to the first-floor door", "corner turrets"],
   note: "Square donjons (the White Tower is about 27 m high) with walls several metres thick at the base, entered at first floor.",
@@ -742,10 +741,10 @@ add({ id: "roman-aqueduct", label: "Roman aqueduct", group: "historic", region: 
 add({ id: "medieval-stone-bridge", label: "Medieval multi-arch stone bridge", group: "historic", region: "England", era: "14th–15th century", setting: "riverside", view: "exterior", scale: "civic", mood: "morning",
   materials: ["rubble with ashlar voussoirs", "pointed arches", "cutwaters and refuges"], story: ["pedestrian refuges over the cutwaters", "reflections in the river", "moss on the cutwaters"],
   note: "Piers about 1/5–1/10 of the span with pointed cutwaters upstream; refuges let people step aside for carts.",
-  build: (seed = 73) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, trees: [[-30, -14, 12], [32, -16, 13]] }); water(b, -400, 400, -12, 12, -1.5, "#4a6264");
+  build: (seed = 73) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, trees: [[-30, -14, 12], [32, -16, 13]] }); water(b, -16, 16, -300, 300, -1.5, "#4a6264");
     bridge(b, { arches: 5, span: 7, shape: "pointed", h: 6.5, w: 5, wall: S.rubble("#a29680", 0.4), ring: S.ashlar("#b8aa8e", 0.35), cutwaters: true, refuges: true });
     b.place();
-    return done(b, frameSubject(b, -30), "morning"); } });
+    return done(b, frameSubject(b, -8, { eye: 1.2 }), "morning"); } });
 add({ id: "inhabited-bridge", label: "Bridge lined with houses", group: "historic", region: "Italy, Florence", era: "1345", setting: "riverside", view: "exterior", scale: "civic", mood: "golden",
   materials: ["segmental stone arches", "shops cantilevered over the river on brackets"], story: ["back rooms hanging over the water", "shutters and awnings"],
   note: "Low segmental arches leave room for a street of shops above; their back rooms hang over the river on timber brackets.",

@@ -1,0 +1,50 @@
+name: RISO79 source-printed paper pull-tab ArtCraft proof
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso79-original-pull-tab-artcraft.yml"
+      - "registry/video/riso-pull-tab.ts"
+      - "registry/video/riso-pull-tab-react.tsx"
+      - "src/video/riso79-pull-tab-film.ts"
+      - "src/video/riso79-pull-tab-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "registry.json"
+      - "tests/riso79-pull-tab-artcraft.test.tsx"
+      - "tests/e2e-storybook/riso79-pull-tab-artcraft.spec.ts"
+      - "docs/research/riso79-original-window-pull-tab-artcraft.md"
+      - "docs/research/riso79-paper-edge-material-study.md"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-paper-two-spot-sliding-window:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Paper geometry, source ink, FilmStage and TypeScript
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso79-pull-tab-artcraft.test.tsx tests/riso78-continuous-accordion-artcraft.test.tsx tests/riso77-rostrum-kinetic-cutout-artcraft.test.tsx
+      - name: Original native physical print clean consumer
+        run: |
+          npm run registry:validate
+          node scripts/registry-fixture.js --item=riso-print
+      - name: Production Storybook build
+        run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - name: Actual Chromium 1x 3x 9x16 and reverse-source print screenshots
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso79-pull-tab-artcraft.spec.ts
+      - name: Preserve actual ArtCraft screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso79-original-spot-ink-physical-window-1x-3x-portrait
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 5

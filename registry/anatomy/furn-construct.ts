@@ -13,6 +13,7 @@ import type { SceneBuilder } from "./arch-kit";
 import { beam, boxAt, capsule, cut, cylX, cylY, cylZ, dome, ellipsoid, opening, repeatAround, repeatX, revolve, sphere } from "./arch-kit";
 import type { SurfaceSpec } from "./arch-surface";
 import { findFurnitureType } from "./furn-data";
+import { MORE } from "./furn-construct-more";
 
 export const FM = {
   oak: { kind: "oak", colour: "#6b4e33", age: 0.4 } as SurfaceSpec,
@@ -198,9 +199,9 @@ const B: Record<string, Builder> = {
   "longcase-clock": b => { const oak = b.mat(FM.mahogany), br = b.mat(FM.brass), face = b.mat({ kind: "plain", colour: "#efe6cf" });
     b.add(boxAt(-0.25, 0, -0.14, 0.25, 0.35, 0.14, oak), boxAt(-0.19, 0.35, -0.11, 0.19, 1.5, 0.11, oak), boxAt(-0.26, 1.5, -0.14, 0.26, 2.0, 0.15, oak), boxAt(-0.28, 2.0, -0.16, 0.28, 2.06, 0.17, oak));
     b.add(cylZ(0, 1.75, 0.15, 0.16, 0.17, br), cylZ(0, 1.75, 0.16, 0.165, 0.14, face), beam(0, 1.75, 0.168, 0.07, 1.82, 0.168, 0.008, b.mat(FM.iron)), beam(0, 1.75, 0.17, -0.02, 1.86, 0.17, 0.006, b.mat(FM.iron)), boxAt(-0.13, 0.5, 0.11, 0.13, 1.35, 0.12, oak), cylY(-0.22, 0.12, 2.06, 2.18, 0.03, br), cylY(0.22, 0.12, 2.06, 2.18, 0.03, br), sphere(0, 2.14, 0.14, 0.05, br)); },
-  "fireplace": b => { const mar = b.mat({ kind: "marble", colour: "#ebe5da" }), ir = b.mat(FM.iron), fire = b.mat({ kind: "fire", emit: 4 });
+  "fireplace": b => { const mar = b.mat({ kind: "marble", colour: "#ebe5da" }), ir = b.mat(FM.iron), fire = b.mat({ kind: "fire", emit: 2.6 });
     b.add(cut(boxAt(-0.9, 0, -0.35, 0.9, 1.25, 0.0, mar), [boxAt(-0.5, 0, -0.5, 0.5, 0.85, 0.2, 0)]), boxAt(-0.98, 1.25, -0.4, 0.98, 1.32, 0.12, mar), boxAt(-0.5, 0, -0.35, 0.5, 0.85, -0.3, b.mat({ kind: "brick", colour: "#3a2a22", soot: 0.9 })), boxAt(-1.0, 0, 0.0, 1.0, 0.04, 0.45, mar));
-    b.add(boxAt(-0.3, 0.12, -0.25, 0.3, 0.16, -0.05, ir), repeatX(boxAt(-0.28, 0.16, -0.06, -0.26, 0.35, -0.04, ir), 0.08, 8), ellipsoid(0, 0.25, -0.17, 0.22, 0.1, 0.1, fire)); b.light({ x: 0, y: 0.35, z: 0.1, kelvin: 1700, power: 0.5 }); },
+    b.add(boxAt(-0.3, 0.12, -0.25, 0.3, 0.16, -0.05, ir), repeatX(boxAt(-0.28, 0.16, -0.06, -0.26, 0.35, -0.04, ir), 0.08, 8), ellipsoid(0, 0.25, -0.17, 0.22, 0.1, 0.1, fire)); b.light({ x: 0, y: 0.35, z: 0.1, kelvin: 1700, power: 0.26 }); },
   "tiled-stove": b => { const tl = b.mat(FM.tiles), cr = b.mat({ kind: "plain", colour: "#efe8d8" }), oak = b.mat(FM.pine);
     b.add(boxAt(-0.6, 0.35, -0.4, 0.6, 1.5, 0.4, tl, 0, 0.02), boxAt(-0.66, 1.5, -0.46, 0.66, 1.62, 0.46, cr), boxAt(-0.45, 1.62, -0.3, 0.45, 2.15, 0.3, tl, 0, 0.02), boxAt(-0.5, 2.15, -0.35, 0.5, 2.25, 0.35, cr), boxAt(-0.62, 0, -0.42, 0.62, 0.35, 0.42, cr));
     b.add(boxAt(-1.2, 0.42, 0.42, 1.2, 0.47, 0.8, oak), boxAt(-1.2, 0, 0.45, -1.1, 0.42, 0.75, oak), boxAt(1.1, 0, 0.45, 1.2, 0.42, 0.75, oak)); },
@@ -220,9 +221,9 @@ function chairWithCabriole(b: SceneBuilder, wood: SurfaceSpec, foot: "pad" | "cl
 
 /** Build one furniture type into the builder (local metres, front toward +z, on the floor). */
 export function buildFurniture(b: SceneBuilder, id: string) {
-  const f = B[id];
+  const f = B[id] ?? MORE[id];
   if (!f) throw new Error(`No construction for furniture ${id}`);
   f(b);
 }
 /** The furniture types that have a construction. */
-export const BUILT_FURNITURE = Object.keys(B);
+export const BUILT_FURNITURE = [...Object.keys(B), ...Object.keys(MORE)];

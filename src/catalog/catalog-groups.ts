@@ -137,6 +137,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "animated-text": "Motion engine",
   "mask-reveal": "Motion engine",
   "shape-morph": "Motion engine",
+  "shape-morph-three": "Motion engine",
   "shared-element": "Motion engine",
   "motion-react": "Motion engine",
   "motion-director": "Motion engine",

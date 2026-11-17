@@ -2568,9 +2568,30 @@ export function ArtboardExample() {
       imports: [
         `import { morphShapes, validateMorph } from "${motionDir}/morph";`,
         `import type { ContourShape } from "${motionDir}/morph";`,
+        `import { AdvancedShapeMorph, morphFrameToSvgPaths, traceMorphFrame } from "${motionDir}/advanced-morph";`,
+        `import { traceTextOutline } from "${motionDir}/advanced-morph-text";`,
       ],
       componentName: "ShapeMorphExample",
-      component: `export function ShapeMorphExample() {
+      component: `// Any two shapes: a disc (SVG arcs) into a square ring (point rings; the inner ring nests as a hole).
+const advanced = new AdvancedShapeMorph(
+  "M10 50 A40 40 0 1 0 90 50 A40 40 0 1 0 10 50 Z",
+  [[[10, 10], [90, 10], [90, 90], [10, 90]], [[35, 35], [65, 35], [65, 65], [35, 65]]],
+  { topologyStrategy: "split-merge", easing: { elastic: { direction: "out" } }, alignment: { mode: "centroid", rotation: "auto" } },
+);
+function drawText(canvas: HTMLCanvasElement, word: string) {
+  const outline = traceTextOutline(word, { font: "700 96px sans-serif" });
+  const morph = new AdvancedShapeMorph(outline.rings, "M0 0 H120 V60 H0 Z");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.beginPath();
+  traceMorphFrame(ctx, morph.update(0.5));
+  ctx.fill("nonzero");
+  morph.dispose();
+}
+export function ShapeMorphExample() {
+  const [t, setT] = useState(0.5);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const paths = morphFrameToSvgPaths(advanced.update(t));
   const from: ContourShape = {
     contours: [
       { closed: true, points: [{ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 40, y: 40 }, { x: 0, y: 40 }] },
@@ -2589,8 +2610,30 @@ export function ArtboardExample() {
       <span data-testid="shape-morph-diagnostics">{String(diagnostics.length)}</span>
       <span data-testid="shape-morph-mode">{result.mode}</span>
       <span data-testid="shape-morph-contours">{String(result.contours.length)}</span>
+      <svg viewBox="0 0 100 100">{paths.map((path, i) => <path key={i} d={path.d} opacity={path.opacity} fillRule="nonzero" />)}</svg>
+      <input type="range" min={0} max={1} step={0.01} value={t} onChange={(event) => setT(Number(event.target.value))} />
+      <canvas ref={canvas} onClick={() => canvas.current && drawText(canvas.current, "Hi")} />
     </div>
   );
+}`,
+    };
+  },
+  "shape-morph-three": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { AdvancedShapeMorphMesh } from "${specifier}";`,
+        `import { AdvancedShapeMorph } from "${motionDir}/advanced-morph";`,
+        `import { MeshStandardMaterial } from "three";`,
+      ],
+      componentName: "ShapeMorphThreeExample",
+      component: `export function ShapeMorphThreeExample() {
+  const [mesh] = useState(() => new AdvancedShapeMorphMesh(new AdvancedShapeMorph("M0 0 H100 V100 H0 Z", "M50 0 L100 100 L0 100 Z"), {
+    material: new MeshStandardMaterial(), depth: [10, 30], unitsPerWorld: 50,
+    pose: { from: { rotation: [0, -0.5, 0] }, to: { position: [0, 0.5, 0], rotation: [0, 0.5, 0], scale: 1.2 } },
+  }));
+  mesh.update(0.5);
+  return <span data-testid="shape-morph-three-groups">{String(mesh.geometry.groups.length)}</span>;
 }`,
     };
   },
@@ -2820,6 +2863,7 @@ export function DirectorReactExample() {
         `import { VisualTransformation } from "${motionDir}/visual-transformation-react";`,
         `import { createSharedSceneTransformation } from "${motionDir}/transformation-recipes";`,
         `import type { VisualScene } from "${motionDir}/visual-transformation-types";`,
+        `import { toContourShape } from "${motionDir}/advanced-morph";`,
       ],
       componentName: "VisualTransformationExample",
       component: `export function VisualTransformationExample() {
@@ -2829,7 +2873,18 @@ export function DirectorReactExample() {
   const compiled = compileVisualTransformation(spec);
   const sample = evaluateVisualTransformation(compiled, 30);
   const retargeted = retargetVisualTransformation(createVisualTransformationProgram([spec]), { frame: 30, to: from, durationFrames: 30 });
-  return <div data-sample-count={sample.layers.length}><VisualTransformation transformation={retargeted} frame={40} width={400} height={200} label="An idea changes position" /></div>;
+  // Topology changes: auto selects topology-morph (AdvancedShapeMorph) for closed contours that differ.
+  const disc = toContourShape("M0 50 A50 50 0 1 0 100 50 A50 50 0 1 0 0 50 Z").shape;
+  const dots = toContourShape("M10 50 a15 15 0 1 0 30 0 a15 15 0 1 0 -30 0 Z M60 50 a15 15 0 1 0 30 0 a15 15 0 1 0 -30 0 Z").shape;
+  const bounds = { x: 0, y: 0, width: 100, height: 100 };
+  const morphing = compileVisualTransformation({ schemaVersion: 1, id: "split", fps: { num: 30, den: 1 }, durationFrames: 61, range: { startFrame: 0, endFrame: 60 },
+    morph: { topologyStrategy: "partition", interpolation: "auto" },
+    from: { id: "one", elements: [{ id: "mark", semanticId: "mark", content: { kind: "shape", bounds, shape: disc } }] },
+    to: { id: "two", elements: [{ id: "mark", semanticId: "mark", content: { kind: "shape", bounds, shape: dots } }] } });
+  return <div data-sample-count={sample.layers.length} data-strategy={morphing.decisions[0].selected}>
+    <VisualTransformation transformation={retargeted} frame={40} width={400} height={200} label="An idea changes position" />
+    <VisualTransformation transformation={morphing} frame={30} width={100} height={100} label="One mark splits into two" />
+  </div>;
 }`,
     };
   },

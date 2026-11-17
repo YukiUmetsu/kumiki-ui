@@ -222,6 +222,29 @@ Video renders wait for the owner.
 
 Treat the gods, ghosts and religious places with respect: no mockery of living faiths.
 
+### Motion craft queue (MC1) — owner request 2026-11-17
+
+The owner set four slices. Take **one slice at a time** and finish it to a meticulous standard before the next one
+starts. Each slice extends the components named in its row; it does not add a parallel engine.
+
+Rules for every slice:
+
+- Code is modular, configurable and general: typed options with documented defaults, no one-off scenes, no
+  consumer-specific names. A renderer adapter stays in its own registry item, so a 2D install never pulls a 3D
+  renderer.
+- Agents must find the work: a spec section with contract, limits and evidence; registry metadata and a catalog
+  preview story (`npm run catalog:find`); source-backed exports (`npm run catalog:api`); stories in the existing
+  Storybook section of the components that the slice extends, not a new folder.
+- Evidence follows "Within each component slice" below: related tests, clean registry install, rendered review in
+  light, dark and narrow widths, and owner visual review.
+
+| Slice | Extends | Deliverable | State |
+|---|---|---|---|
+| **MC1.1 — AdvancedShapeMorph** | `shape-morph` (ShapeMorph), VisualTransformation | High-fidelity morphs across different geometries: complex contours, holes and topology changes. | Built 2026-11-17, uncommitted; owner visual review pending. `AdvancedShapeMorph` core, traced text, the `shape-morph-three` 3D adapter ([spec](component-specs/motion-geometry.md#advancedshapemorph-any-two-shapes-text-and-3d)) and the VT1 strategy `topology-morph`, which `auto` selects for closed contours whose topology differs ([spec](component-specs/visual-transformation.md)). |
+| **MC1.2 — SculpturalTypography** | KineticText (`animated-text`, `kinetic-text.ts`), TitleSequence | Letters as dimensional, deformable, material-bearing animated objects. | Not started. |
+| **MC1.3 — PhysicalPaperMotion** | PaperCraft, EditorialCollage | True dimensional folds, paper bending, tearing, peeling, thickness and material-responsive shadows. | Not started. |
+| **MC1.4 — MaterialAwareTransitions** | FilmMatte (`film-matte.ts`), FilmShapeWipe (`film-shape-wipe.ts`) | Transitions driven by the real behaviour of ink, paper, paint, glass and other materials. | Not started. |
+
 ## Within each component slice
 
 1. Write the spec from [template](../templates/component-spec.md), including acceptance cases; check whether existing component/spec already covers it.

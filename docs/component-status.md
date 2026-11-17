@@ -259,7 +259,8 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `shader-fx` | video | dom | [spec](component-specs/shader-fx.md) | `video-shader-fx-craft--title-sequence` | — |
 | `shader-fx-model` | video | data | [spec](component-specs/shader-fx.md) | — | — |
 | `shader-fx-moments` | video | dom | [spec](component-specs/shader-fx.md) | `video-shader-fx-moments--choose-an-effect` | — |
-| `shape-morph` | motion | data | — | — | — |
+| `shape-morph` | motion | data | [spec](component-specs/motion-geometry.md) | `motion-react--advanced-shape-morph-lab-story` | — |
+| `shape-morph-three` | motion | data | [spec](component-specs/motion-geometry.md) | `motion-react--advanced-shape-morph-3-d` | — |
 | `shared-element` | motion | data | — | — | — |
 | `sheet` | ui | dom | [spec](component-specs/sheet-spec.md) | `components-sheet--default` | — |
 | `shodo-calligraphy` | video | dom | — | `video-shodo--studio` | — |
@@ -392,7 +393,6 @@ A pack in this table is installable. That does not mean that it is visually appr
 - [Component: Layer Stack](component-specs/media-layer-stack.md)
 - [Component: Media Frame](component-specs/media-media-frame.md)
 - [MotionDirector — declarative choreography](component-specs/motion-director.md)
-- [Component: Motion Geometry (slice)](component-specs/motion-geometry.md)
 - [Component: Motion Preset (slice)](component-specs/motion-preset.md)
 - [Component: Motion React (slice)](component-specs/motion-react.md)
 - [Component: Motion Track (slice)](component-specs/motion-track.md)

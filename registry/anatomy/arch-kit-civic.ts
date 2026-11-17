@@ -14,9 +14,9 @@
  * - Rooms are lit by their windows: a sun shaft with dust, and the warm light of an oven, a hearth or a candle.
  */
 import type { ArchShape, Node } from "./arch-sdf";
-import { leaf } from "./arch-sdf";
+import { archRoll, boxDistance, frame, leaf, sculpt, union } from "./arch-sdf";
 import type { SceneBuilder } from "./arch-kit";
-import { beam, box, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, gableRoof, gableWall, hipRoof, lanternParts, opening, openingTop, pentRoof, repeatAround, repeatWheel, repeatX, repeatZ, revolve, sphere, spire, tower, windowParts } from "./arch-kit";
+import { beam, box, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, gableRoof, gableWall, hills, hipRoof, lanternParts, opening, openingTop, pentRoof, repeatAround, repeatWheel, repeatX, repeatZ, revolve, sphere, spire, tower, tree, windowParts } from "./arch-kit";
 import type { SurfaceSpec } from "./arch-surface";
 
 // ---- Churches and cathedrals ------------------------------------------------------------------------------------------------
@@ -433,22 +433,52 @@ export interface RoomSpec {
   windows?: { wall: "left" | "back" | "right"; at: number; sill: number; w: number; h: number; shape?: ArchShape; glass?: SurfaceSpec }[];
   /** A sloping attic ceiling (the roof's underside) instead of a flat one: the pitch. */
   attic?: number;
+  /** Joinery and finishes that make a room read as built: skirting, cornice, rails, panelling, sills, curtains, a door, pictures. */
+  trim?: RoomTrim;
+  /** What the windows look out on: "garden" makes clear and leaded panes see-through onto a lawn, a hedge, trees and far hills, lit as outdoors. */
+  view?: "garden";
 }
+type Wall = "left" | "back" | "right";
+export interface RoomTrim {
+  /** Paint or wood of the mouldings. */
+  mould?: SurfaceSpec;
+  /** Skirting board height, m (about 0.15–0.25 in period rooms). */
+  skirting?: number;
+  /** Cornice depth, m: a cove where walls meet the ceiling. */
+  cornice?: number;
+  /** Dado (chair) rail height, m, with framed panelling below it in `dadoMat`. */
+  dado?: number;
+  dadoMat?: SurfaceSpec;
+  /** Picture rail height, m. */
+  pictureRail?: number;
+  /** Curtains at every window, hung from a pole above it. */
+  curtains?: SurfaceSpec;
+  /** Glazing bars across each window's glass (columns, rows), as in sash and casement windows. */
+  bars?: readonly [number, number];
+  /** A panelled door in its architrave. */
+  door?: { wall: Wall; at: number; w?: number; h?: number; mat?: SurfaceSpec };
+  /** A plaster ceiling rose (centre x, z and radius) round the pendant: beaded rings, a boss and radiating leaves. */
+  rose?: { x: number; z: number; r: number };
+  /** Framed oil paintings: wall, centre along it, centre height, size. */
+  pictures?: readonly { wall: Wall; at: number; y: number; w: number; h: number; frame?: SurfaceSpec }[];
+}
+/** How a window's glass passes sunlight: stained glass colours it, paper (shoji) only glows. */
+const tintOf = (g?: SurfaceSpec): "clear" | "stained" | "paper" => (g?.kind === "stained" ? "stained" : g?.kind === "plain" || g?.kind === "parchment" ? "paper" : "clear");
 /** A room seen from inside: x from −w/2 to w/2, z from −d/2 (back wall) to d/2 (where the camera stands), floor at 0. */
 export function room(b: SceneBuilder, r: RoomSpec) {
   const wm = b.mat(r.wall), t = 0.5, cutsL: Node[] = [], cutsB: Node[] = [], cutsR: Node[] = [];
   for (const win of r.windows ?? []) {
     const shape = win.shape ?? "flat", hs = Math.max(0.3, win.h - openingTop(win.w, 0, shape));
-    const glass = b.mat(win.glass ?? { kind: "leaded" });
+    const gs = win.glass ?? { kind: "leaded" }, glass = b.mat(r.view && (gs.kind === "glass" || gs.kind === "leaded") ? { ...gs, clear: gs.clear ?? (gs.kind === "glass" ? 0.85 : 0.6), colour: gs.colour ?? "#5a6a70" } : gs);
     if (win.wall === "back") {
       cutsB.push(opening(win.at, win.sill, win.w, hs, shape, -r.d / 2 - t - 0.1, -r.d / 2 + 0.1, "z"));
       const g = opening(win.at, win.sill, win.w + 0.02, hs, shape, -r.d / 2 - t * 0.6, -r.d / 2 - t * 0.55, "z"); b.add(leaf(g.f, g.lo, g.hi, glass));
-      b.portals.push({ x: win.at, y: win.sill + win.h / 2, z: -r.d / 2 - t * 0.5, axis: "z", hw: win.w / 2, hh: win.h / 2 });
+      b.portals.push({ x: win.at, y: win.sill + win.h / 2, z: -r.d / 2 - t * 0.5, axis: "z", hw: win.w / 2, hh: win.h / 2, tint: tintOf(win.glass) });
     } else {
       const xw = win.wall === "left" ? -r.w / 2 : r.w / 2, s = win.wall === "left" ? -1 : 1;
       (win.wall === "left" ? cutsL : cutsR).push(opening(win.at, win.sill, win.w, hs, shape, xw - 0.1 * -s, xw + (t + 0.1) * s, "x"));
       const g = opening(win.at, win.sill, win.w + 0.02, hs, shape, xw + t * 0.55 * s, xw + t * 0.6 * s, "x"); b.add(leaf(g.f, g.lo, g.hi, glass));
-      b.portals.push({ x: xw + t * 0.5 * s, y: win.sill + win.h / 2, z: win.at, axis: "x", hw: win.w / 2, hh: win.h / 2 });
+      b.portals.push({ x: xw + t * 0.5 * s, y: win.sill + win.h / 2, z: win.at, axis: "x", hw: win.w / 2, hh: win.h / 2, tint: tintOf(win.glass) });
     }
   }
   b.add(cut(boxAt(-r.w / 2 - t, 0, -r.d / 2 - t, r.w / 2 + t, r.h, -r.d / 2, wm, b.r()), cutsB));
@@ -464,8 +494,105 @@ export function room(b: SceneBuilder, r: RoomSpec) {
     b.add(boxAt(-r.w / 2 - t, r.h, -r.d / 2 - t, r.w / 2 + t, r.h + 0.4, r.d / 2 + 4, b.mat(r.ceiling ?? { kind: "plaster", colour: "#e9dfc9" })));
     if (r.beams) b.add(repeatZ3(boxAt(-r.w / 2, r.h - 0.28, -r.d / 2 + 0.6, r.w / 2, r.h, -r.d / 2 + 0.85, b.mat({ kind: "oak", colour: "#4a382a" })), r.beams, Math.floor((r.d + 4) / r.beams)));
   }
+  if (r.trim) roomTrim(b, r);
   // the room's windows are registered in world coordinates, so the room is placed where it was built
   b.place();
+  if (r.view === "garden") { b.interiorBox = { lo: [-r.w / 2 - t, -0.35, -r.d / 2 - t], hi: [r.w / 2 + t, r.h + 0.45, r.d / 2 + 4] }; gardenView(b, r); }
+}
+/** A garden round a room: lawn, a gravel terrace under the windows, a clipped hedge, trees at varied distances, far hills. */
+function gardenView(b: SceneBuilder, r: RoomSpec) {
+  const W = r.w / 2 + 0.5, D = r.d / 2 + 0.5;
+  b.grounds.push({ x0: -W - 1.6, x1: W + 1.6, z0: -D - 1.6, z1: r.d / 2 + 4, y: -0.3, mat: b.mat({ kind: "gravel", colour: "#a39886" }) });
+  b.grounds.push({ x0: -200, x1: 200, z0: -200, z1: 200, y: -0.32, mat: b.mat({ kind: "grass", colour: "#5f7a3c" }) });
+  const hedge = b.mat({ kind: "foliage", colour: "#3c5a2a" });
+  b.add(boxAt(-W - 9, -0.3, -D - 9, W + 9, 1.5, -D - 8.2, hedge, 0, 0.25), boxAt(-W - 9, -0.3, -D - 9, -W - 8.2, 1.5, r.d / 2 + 6, hedge, 0, 0.25), boxAt(W + 8.2, -0.3, -D - 9, W + 9, 1.5, r.d / 2 + 6, hedge, 0, 0.25));
+  b.place();
+  for (let k = 0; k < 9; k++) {
+    const a = Math.PI * (0.9 + 1.2 * (k / 8)) + b.r(-0.15, 0.15), dist = 13 + b.r(0, 16), x = Math.cos(a) * dist * (W / Math.max(W, D)) * 1.3, z = Math.sin(a) * dist;
+    tree(b, x, z - D * 0.3, b.r(7, 13), b.r(2.4, 4.2), { kind: "foliage", colour: k % 3 === 0 ? "#556b32" : "#4a6230" });
+  }
+  // trees add world-space parts: place them now, or they would move with the next piece placed
+  b.place();
+  hills(b, -160, 4, 30);
+}
+/** Inner face of a wall, and a box builder along it: `u` along the wall, `n` out from its face into the room. */
+function wallFrame(r: RoomSpec, wall: Wall | "front") {
+  const W = r.w / 2, D = r.d / 2;
+  const B = (u0: number, y0: number, u1: number, y1: number, n0: number, n1: number, m: number, tone = 0, rr = 0): Node =>
+    wall === "back" ? boxAt(u0, y0, -D + n0, u1, y1, -D + n1, m, tone, rr) : wall === "left" ? boxAt(-W + n0, y0, u0, -W + n1, y1, u1, m, tone, rr) : boxAt(W - n1, y0, u0, W - n0, y1, u1, m, tone, rr);
+  const span: [number, number] = wall === "back" ? [-W, W] : [-D, D];
+  return { B, span };
+}
+/** Skirting, cornice, dado panelling and rails, window boards, glazing bars and curtains, a door and pictures. */
+function roomTrim(b: SceneBuilder, r: RoomSpec) {
+  const t = r.trim!, mould = b.mat(t.mould ?? { kind: "painted-wood", colour: "#ece6d6", flake: 0.01 }), walls: Wall[] = ["left", "back", "right"];
+  const door = t.door, dw = door?.w ?? 0.9, dh = door?.h ?? 2.1;
+  const gaps = (wall: Wall): [number, number][] => door && door.wall === wall ? [[door.at - dw / 2 - 0.12, door.at + dw / 2 + 0.12]] : [];
+  const runs = (wall: Wall, a: number, c: number) => { let segs: [number, number][] = [[a, c]]; for (const [g0, g1] of gaps(wall)) segs = segs.flatMap(([s0, s1]) => [[s0, Math.min(s1, g0)], [Math.max(s0, g1), s1]] as [number, number][]).filter(([s0, s1]) => s1 - s0 > 0.02); return segs; };
+  for (const wall of walls) {
+    const { B, span } = wallFrame(r, wall), [a, c] = span;
+    for (const [u0, u1] of runs(wall, a, c)) {
+      if (t.skirting) b.add(B(u0, 0, u1, t.skirting, 0, 0.022, mould), B(u0, t.skirting - 0.02, u1, t.skirting, 0, 0.03, mould, 0, 0.008));
+      if (t.dado) {
+        b.add(B(u0, t.dado - 0.03, u1, t.dado + 0.03, 0, 0.035, mould, 0, 0.012));
+        if (t.dadoMat) {
+          const pm = b.mat(t.dadoMat), y0 = (t.skirting ?? 0) + 0.06, y1 = t.dado - 0.08, n = Math.max(1, Math.round((u1 - u0) / 0.7)), pw = (u1 - u0) / n;
+          b.add(B(u0, t.skirting ?? 0, u1, t.dado - 0.03, 0, 0.012, pm));
+          for (let k = 0; k < n; k++) { const p0 = u0 + k * pw + 0.07, p1 = u0 + (k + 1) * pw - 0.07; b.add(B(p0, y0, p1, y1, 0.012, 0.022, pm, 0, 0.012), B(p0 - 0.012, y0 - 0.012, p1 + 0.012, y0, 0.012, 0.018, mould), B(p0 - 0.012, y1, p1 + 0.012, y1 + 0.012, 0.012, 0.018, mould)); }
+        }
+      }
+    }
+    if (t.pictureRail) b.add(B(a, t.pictureRail - 0.02, c, t.pictureRail + 0.02, 0, 0.025, mould, 0, 0.01));
+    if (t.cornice && !r.attic) {
+      const cc = t.cornice, yc = r.h - cc;
+      const nf = (x: number, y: number, z: number) => wall === "back" ? [x, y, z + r.d / 2] : wall === "left" ? [z, y, x + r.w / 2] : [z, y, r.w / 2 - x];
+      const lo: [number, number, number] = wall === "back" ? [a, yc, -r.d / 2] : wall === "left" ? [-r.w / 2, yc, a] : [r.w / 2 - cc, yc, a], hi: [number, number, number] = wall === "back" ? [c, r.h, -r.d / 2 + cc] : wall === "left" ? [-r.w / 2 + cc, r.h, c] : [r.w / 2, r.h, c];
+      b.add(leaf((x, y, z) => { const [, yy, n] = nf(x, y, z); return Math.max(boxDistance(lo, hi, x, y, z), cc - Math.hypot(n - cc, yy - yc)); }, lo, hi, mould), B(a, yc - 0.035, c, yc, 0, 0.03, mould, 0, 0.01));
+    }
+  }
+  // window boards, architraves, glazing bars and curtains
+  for (const win of r.windows ?? []) {
+    const { B } = wallFrame(r, win.wall), top = win.sill + win.h, ww = win.w;
+    b.add(B(win.at - ww / 2 - 0.08, win.sill - 0.04, win.at + ww / 2 + 0.08, win.sill, -0.3, 0.06, mould, 0, 0.008));
+    if ((win.shape ?? "flat") === "flat") b.add(B(win.at - ww / 2 - 0.09, win.sill, win.at - ww / 2, top + 0.09, 0, 0.025, mould), B(win.at + ww / 2, win.sill, win.at + ww / 2 + 0.09, top + 0.09, 0, 0.025, mould), B(win.at - ww / 2 - 0.09, top, win.at + ww / 2 + 0.09, top + 0.09, 0, 0.025, mould));
+    if (t.bars && (win.shape ?? "flat") === "flat" && win.glass?.kind === "glass") {
+      const [cols, rows] = t.bars, bar = b.mat(t.mould ?? { kind: "painted-wood", colour: "#ece6d6" });
+      for (let k = 1; k < cols; k++) { const u = win.at - ww / 2 + (ww * k) / cols; b.add(B(u - 0.015, win.sill, u + 0.015, top, -0.32, -0.26, bar)); }
+      for (let k = 1; k < rows; k++) { const y = win.sill + (win.h * k) / rows; b.add(B(win.at - ww / 2, y - 0.015, win.at + ww / 2, y + 0.015, -0.32, -0.26, bar)); }
+      b.add(B(win.at - ww / 2, win.sill + win.h / 2 - 0.03, win.at + ww / 2, win.sill + win.h / 2 + 0.03, -0.33, -0.25, bar));
+    }
+    if (t.curtains) {
+      const cm = b.mat(t.curtains), pole = b.mat({ kind: "brass", colour: "#8a6a3a" }), yp = Math.min(r.h - 0.1, top + 0.25);
+      b.add(B(win.at - ww / 2 - 0.55, yp - 0.018, win.at + ww / 2 + 0.55, yp + 0.018, 0.1, 0.136, pole));
+      for (const sd of [-1, 1]) {
+        const u0 = sd < 0 ? win.at - ww / 2 - 0.5 : win.at + ww / 2 - 0.08, u1 = u0 + 0.58;
+        // the pleats: a hanging slab rippling across its width, a little fuller toward the floor
+        const fold = (u: number, y: number) => 0.035 * Math.sin((u - u0) * 26) * (1 + 0.4 * (1 - y / yp));
+        const loB = wallFrame(r, win.wall);
+        b.add(leaf((x, y, z) => { const [u, n] = win.wall === "back" ? [x, z + r.d / 2] : win.wall === "left" ? [z, x + r.w / 2] : [z, r.w / 2 - x]; return Math.max(Math.abs(n - 0.12 - fold(u, y)) - 0.018, u0 - u, u - u1, -y + 0.01, y - yp) * 0.7; },
+          win.wall === "back" ? [u0, 0, -r.d / 2] : win.wall === "left" ? [-r.w / 2, 0, u0] : [r.w / 2 - 0.25, 0, u0], win.wall === "back" ? [u1, yp, -r.d / 2 + 0.25] : win.wall === "left" ? [-r.w / 2 + 0.25, yp, u1] : [r.w / 2, yp, u1], cm));
+        void loB;
+      }
+    }
+  }
+  if (door) {
+    // a six-panel door in a moulded architrave
+    const { B } = wallFrame(r, door.wall), dm = b.mat(door.mat ?? { kind: "painted-wood", colour: "#e4ddcc", flake: 0.01 }), knob = b.mat({ kind: "brass", colour: "#c09a50" });
+    b.add(B(door.at - dw / 2, 0, door.at + dw / 2, dh, -0.02, 0.0, dm));
+    for (const [c0, c1] of [[0.08, 0.42], [0.48, 0.82]]) for (const [y0, y1] of [[0.12, 0.72], [0.82, 1.52], [1.62, dh - 0.1]]) b.add(B(door.at - dw / 2 + dw * c0, y0, door.at - dw / 2 + dw * c1, y1, 0.0, 0.012, dm, 0, 0.006));
+    b.add(B(door.at - dw / 2 - 0.1, 0, door.at - dw / 2, dh + 0.1, 0, 0.03, mould, 0, 0.008), B(door.at + dw / 2, 0, door.at + dw / 2 + 0.1, dh + 0.1, 0, 0.03, mould, 0, 0.008), B(door.at - dw / 2 - 0.1, dh, door.at + dw / 2 + 0.1, dh + 0.1, 0, 0.03, mould, 0, 0.008));
+    const ku = door.at + dw / 2 - 0.08; b.add(door.wall === "back" ? sphere(ku, 1.0, -r.d / 2 + 0.05, 0.028, knob) : door.wall === "left" ? sphere(-r.w / 2 + 0.05, 1.0, ku, 0.028, knob) : sphere(r.w / 2 - 0.05, 1.0, ku, 0.028, knob));
+  }
+  if (t.rose && !r.attic) {
+    const { x, z, r: R } = t.rose, h = r.h, mould = b.mat(r.ceiling ?? { kind: "plaster", colour: "#e9dfc9" });
+    b.add(revolve(x, z, h - 0.075, h, tt => tt > 0.85 ? R : tt > 0.7 ? R * 0.9 : tt > 0.55 ? R * (0.62 + 0.06 * Math.sin(tt * 90)) : tt > 0.3 ? R * 0.42 : R * (0.12 + 0.2 * tt), R * 1.01, mould, 0, 4));
+    b.add(repeatAround(sculpt([{ a: [x + R * 0.45, h - 0.025, z], b: [x + R * 0.86, h - 0.012, z], r1: R * 0.07, r2: R * 0.03 }, { a: [x + R * 0.62, h - 0.03, z], e: [R * 0.13, R * 0.03, R * 0.06] }], R * 0.03, mould), x, z, 16, R * 0.9));
+  }
+  for (const p of t.pictures ?? []) {
+    const { B } = wallFrame(r, p.wall), fm = b.mat(p.frame ?? { kind: "gold" }), cv = b.mat({ kind: "canvas", unit: p.w, course: p.h, offset: p.wall === "left" ? [-p.at, -p.y] : [p.at, -p.y] });
+    b.add(B(p.at - p.w / 2, p.y - p.h / 2, p.at + p.w / 2, p.y + p.h / 2, 0.02, 0.035, cv));
+    for (const [u0, y0, u1, y1] of [[p.at - p.w / 2 - 0.07, p.y - p.h / 2 - 0.07, p.at + p.w / 2 + 0.07, p.y - p.h / 2], [p.at - p.w / 2 - 0.07, p.y + p.h / 2, p.at + p.w / 2 + 0.07, p.y + p.h / 2 + 0.07], [p.at - p.w / 2 - 0.07, p.y - p.h / 2, p.at - p.w / 2, p.y + p.h / 2], [p.at + p.w / 2, p.y - p.h / 2, p.at + p.w / 2 + 0.07, p.y + p.h / 2]] as const) b.add(B(u0, y0, u1, y1, 0.015, 0.06, fm, 0, 0.012));
+  }
 }
 const repeatZ3 = (n: Node, step: number, count: number): Node => {
   const z0 = (n.lo[2] + n.hi[2]) / 2;
@@ -500,3 +627,266 @@ export function hearth(b: SceneBuilder, x: number, zf: number, w = 1.6, h = 1.3,
 }
 
 export { lanternParts };
+
+// ---- Gothic interiors: rib vaults, compound piers, a three-storey nave ------------------------------------------------------
+
+/** Height above the springing of a pointed arch of span `S` whose two arcs have radius k·S (k = 1 equilateral, 0.5 round), at offset `u` from its centre. */
+export function archRise(u: number, S: number, k = 1) { const R = k * S, a = Math.abs(u) + R - S / 2; return a >= R ? 0 : Math.sqrt(R * R - a * a); }
+
+export interface RibVault { x0: number; x1: number; zs: number; bays: number; bay: number; ys: number; k?: number; apse?: boolean; /** Inner width of each of the apse's five faces (each gets its own cell over its window). */ apseFace?: number }
+/**
+ * The webs of a quadripartite rib vault over x0–x1, in bays of length `bay` from z = zs toward −z, springing at `ys`.
+ * Each bay is two pointed tunnels crossing; the cross tunnel is the main profile stretched to the bay, so the groins
+ * fall exactly on the diagonals (where the ribs run). `apse` closes the east end with a pointed half-dome of the same
+ * profile. The distance is exact for the main tunnel (radius minus hypotenuse) and conservative under the stretch.
+ */
+export function ribVaultWebs(v: RibVault, mat: number): Node {
+  const k = v.k ?? 1, S = v.x1 - v.x0, xc = (v.x0 + v.x1) / 2, R = k * S, c = R - S / 2, top = v.ys + archRise(0, S, k) + 0.9, ze = v.zs - v.bays * v.bay, sx = S / v.bay;
+  const lo: [number, number, number] = [v.x0, v.ys, v.apse ? ze - S / 2 - 0.2 : ze], hi: [number, number, number] = [v.x1, top, v.zs];
+  return leaf((x, y, z) => {
+    const yy = Math.max(0, y - v.ys);
+    let cav: number;
+    if (v.apse && z < ze) {
+      // a chevet: a half-dome cut by one cell per face, each the main profile stretched to its face, so every window has its lunette and the groins are the radial ribs
+      const px = x - xc, pz = ze - z, r = Math.hypot(px, pz), phi = Math.atan2(pz, px), j = Math.min(4, Math.max(0, Math.floor(phi / (Math.PI / 5)))), t = r * Math.sin(phi - (j + 0.5) * (Math.PI / 5)), sa = S / (v.apseFace ?? S * 0.31);
+      cav = Math.max(R - Math.hypot(r + c, yy), (R - Math.hypot(Math.abs(t) * sa + c, yy)) / sa);
+    }
+    else {
+      const i = Math.min(v.bays - 1, Math.max(0, Math.floor((v.zs - z) / v.bay))), dz = z - (v.zs - v.bay * (i + 0.5));
+      cav = Math.max(R - Math.hypot(Math.abs(x - xc) + c, yy), (R - Math.hypot(Math.abs(dz) * sx + c, yy)) / sx);
+    }
+    return Math.max(cav, boxDistance(lo, hi, x, y, z));
+  }, lo, hi, mat);
+}
+/**
+ * One rib: a pointed arc in the vertical plane through (ox, oz) along (dx, dz), its half-span `S`/2 stretched by `st`
+ * along the plane (1 for a transverse rib, the diagonal's length ratio for a diagonal rib), round section radius `r`.
+ */
+function ribArc(ox: number, oz: number, dx: number, dz: number, st: number, S: number, k: number, ys: number, r: number, mat: number, half = false): Node {
+  const R = k * S - r * 0.55, c = k * S - S / 2, L = (S / 2) * st + r, rise = archRise(0, S, k), sc = Math.min(1, st);
+  const ends = half ? [[ox, oz], [ox + dx * L, oz + dz * L]] : [[ox - dx * L, oz - dz * L], [ox + dx * L, oz + dz * L]];
+  const lo: [number, number, number] = [Math.min(ends[0][0], ends[1][0]) - r, ys - r, Math.min(ends[0][1], ends[1][1]) - r], hi: [number, number, number] = [Math.max(ends[0][0], ends[1][0]) + r, ys + rise + r, Math.max(ends[0][1], ends[1][1]) + r];
+  return leaf((x, y, z) => {
+    const px = x - ox, pz = z - oz, al = px * dx + pz * dz, along = (half ? Math.max(0, al) : Math.abs(al)) / st, perp = -px * dz + pz * dx;
+    const a = along + c, yy = y - ys;
+    const din = yy >= 0 ? Math.hypot(a, yy) - R : Math.hypot(a - R, yy);
+    return Math.hypot(din * sc, perp) - r;
+  }, lo, hi, mat, 0.3);
+}
+/**
+ * The ribs and bosses of a `ribVaultWebs` vault: transverse ribs on the bay lines, diagonal ribs on the groins, wall ribs
+ * (formerets) round each lunette, carved bosses at the crowns, radial ribs in the apse; `ridge` adds the English ridge rib.
+ */
+export function ribVaultRibs(v: RibVault, r: number, mat: number, boss: number, ridge = false): Node[] {
+  const k = v.k ?? 1, S = v.x1 - v.x0, xc = (v.x0 + v.x1) / 2, B = v.bay, rise = archRise(0, S, k), ze = v.zs - v.bays * B, out: Node[] = [];
+  const diag = Math.hypot(S / 2, B / 2), st = diag / (S / 2), dx = (S / 2) / diag, dz = (B / 2) / diag;
+  for (let i = 1; i <= v.bays - (v.apse ? 0 : 1); i++) out.push(ribArc(xc, v.zs - i * B, 1, 0, 1, S, k, v.ys, r, mat));
+  for (let i = 0; i < v.bays; i++) {
+    const zc = v.zs - B * (i + 0.5);
+    out.push(ribArc(xc, zc, dx, dz, st, S, k, v.ys, r * 0.85, mat), ribArc(xc, zc, dx, -dz, st, S, k, v.ys, r * 0.85, mat));
+    for (const xw of [v.x0 + r * 0.5, v.x1 - r * 0.5]) out.push(ribArc(xw, zc, 0, 1, B / S, S, k, v.ys, r * 0.6, mat));
+    out.push(sphere(xc, v.ys + rise - r * 0.4, zc, r * 1.9, boss), repeatAround(sphere(xc + r * 1.7, v.ys + rise - r * 0.9, zc, r * 0.7, boss), xc, zc, 6, r * 2.6));
+    if (ridge) out.push(capsule(xc, v.ys + rise - r * 0.5, zc - B / 2, xc, v.ys + rise - r * 0.5, zc + B / 2, r * 0.7, mat));
+  }
+  if (v.apse) {
+    for (let j = 1; j < 5; j++) { const a = (j * Math.PI) / 5; out.push(ribArc(xc, ze, Math.cos(a), -Math.sin(a), 1, S, k, v.ys, r * 0.85, mat, true)); }
+    out.push(sphere(xc, v.ys + rise - r * 0.4, ze, r * 2.2, boss));
+  }
+  return out;
+}
+
+/** A moulded pier base or capital profile, as a solid of revolution (plinth, torus, scotia, torus; or bell and abacus). */
+/** Distance to the side of an octagonal prism of apothem r, turned by `rot` radians. */
+const octSide = (x: number, z: number, r: number, rot = 0) => { const c = Math.cos(rot), sn = Math.sin(rot), ax = Math.abs(x * c + z * sn), az = Math.abs(-x * sn + z * c); return Math.max(ax, az, (ax + az) * Math.SQRT1_2) - r; };
+/** An octagonal shaft or slab from y0 to y1. */
+export const octShaft = (x: number, z: number, y0: number, y1: number, r: number, mat: number, rot = 0) => leaf((px, py, pz) => Math.max(octSide(px - x, pz - z, r, rot), y0 - py, py - y1), [x - r * 1.09, y0, z - r * 1.09], [x + r * 1.09, y1, z + r * 1.09], mat);
+/** An attic base from y0 under a shaft of radius R: a broad lower torus, the hollow scotia, a fillet, the upper torus. */
+export function atticBase(x: number, z: number, y0: number, R: number, mat: number): Node {
+  return revolve(x, z, y0, y0 + R * 0.8, t => {
+    // lower torus, fillet, scotia, fillet, upper torus: continuous, so no edge stands proud of the tori
+    if (t < 0.36) return R * (1.06 + 0.26 * Math.sin((t / 0.36) * Math.PI) ** 0.7);
+    if (t < 0.4) return R * 1.06;
+    if (t < 0.62) return R * (1.06 - 0.12 * Math.sin(((t - 0.4) / 0.22) * Math.PI));
+    if (t < 0.66) return R * 1.04;
+    return R * (1.0 + 0.04 * (1 - (t - 0.66) / 0.34) + 0.12 * Math.sin(((t - 0.66) / 0.34) * Math.PI) ** 0.8);
+  }, R * 1.33, mat, 0, 3);
+}
+/**
+ * A crocket capital whose abacus top is at y: a necking ring, a concave bell with stiff leaves on its lower half, crockets
+ * rising from it and curling out under the corners of a moulded octagonal abacus (`n` crockets, 8 or 4).
+ */
+export function crocketCapital(x: number, y: number, z: number, R: number, h: number, mat: number, n = 8): Node[] {
+  const yb = y - h, ya = y - h * 0.16, step = (Math.PI * 2) / n;
+  const out: Node[] = [
+    revolve(x, z, yb, ya, t => (t < 0.06 ? R * 1.08 : R * (1 + 0.3 * ((t - 0.06) / 0.94) ** 2)), R * 1.32, mat, 0, 3),
+    leaf((px, py, pz) => Math.hypot(Math.hypot(px - x, pz - z) - R * 1.0, py - yb - R * 0.06) - R * 0.07, [x - R * 1.1, yb, z - R * 1.1], [x + R * 1.1, yb + R * 0.14, z + R * 1.1], mat),
+    octShaft(x, z, ya, ya + h * 0.07, R * 1.4, mat, Math.PI / 8), octShaft(x, z, ya + h * 0.07, y, R * 1.5, mat, Math.PI / 8),
+  ];
+  const P = (rad: number, yy: number): [number, number, number] => [x + rad, yy, z];
+  // one crocket built on the +x axis and repeated round: a stalk off the bell, then a bud curling out and down
+  out.push(repeatAround(sculpt([{ a: P(R * 0.98, yb + h * 0.18), b: P(R * 1.16, yb + h * 0.66), r1: R * 0.075, r2: R * 0.06 }, { a: P(R * 1.16, yb + h * 0.66), b: P(R * 1.36, yb + h * 0.8), r1: R * 0.06, r2: R * 0.07 }, { a: P(R * 1.42, yb + h * 0.74), e: [R * 0.12, R * 0.1, R * 0.11] }, { a: P(R * 1.47, yb + h * 0.64), e: [R * 0.06, R * 0.07, R * 0.07] }], R * 0.05, mat), x, z, n, R * 1.62));
+  // stiff leaves between the crockets on the lower bell
+  out.push(repeatAround(sculpt([{ a: [x + R * 0.98 * Math.cos(step / 2), yb + h * 0.1, z + R * 0.98 * Math.sin(step / 2)], b: [x + R * 1.1 * Math.cos(step / 2), yb + h * 0.42, z + R * 1.1 * Math.sin(step / 2)], r1: R * 0.06, r2: R * 0.1 }], R * 0.04, mat), x, z, n, R * 1.3));
+  return out;
+}
+
+/**
+ * A compound pier (pilier cantonné) after Chartres: a core with four attached colonnettes, round core and octagonal
+ * colonnettes or the reverse by turns (`alt`); a square plinth on an octagonal socle with leaf spurs at its corners, attic
+ * bases round core and colonnettes, crocket capitals, and one octagonal abacus over all whose top is at h.
+ */
+export function compoundPier(x: number, z: number, h: number, R: number, mat: number, alt = false): Node[] {
+  const cr = R * 0.24, cd = R * 1.08, y0 = 0.62, hc = R * 1.6, ys = h - hc;
+  const out: Node[] = [octShaft(x, z, 0, 0.22, R * 1.7, mat, Math.PI / 8), boxAt(x - R * 1.42, 0.22, z - R * 1.42, x + R * 1.42, y0 - 0.04, z + R * 1.42, mat, 0, 0.02), boxAt(x - R * 1.36, y0 - 0.04, z - R * 1.36, x + R * 1.36, y0, z + R * 1.36, mat)];
+  // the spurs: leaves reaching from the round base down over the plinth's corners
+  out.push(repeatAround(sculpt([{ a: [x + R * 1.12 * Math.SQRT1_2, y0 + 0.06, z + R * 1.12 * Math.SQRT1_2], b: [x + R * 1.36 * Math.SQRT1_2, y0 + 0.01, z + R * 1.36 * Math.SQRT1_2], r1: R * 0.09, r2: R * 0.04 }], R * 0.03, mat), x, z, 4, R * 1.5));
+  out.push(alt ? octShaft(x, z, y0 + R * 0.75, ys + 0.05, R * 0.98, mat) : cylY(x, z, y0 + R * 0.75, ys + 0.05, R, mat), atticBase(x, z, y0, R, mat));
+  for (let k = 0; k < 4; k++) {
+    const a = (k * Math.PI) / 2, cx = x + Math.cos(a) * cd, cz = z + Math.sin(a) * cd;
+    out.push(alt ? cylY(cx, cz, y0 + cr * 0.75, ys + hc * 0.35, cr, mat) : octShaft(cx, cz, y0 + cr * 0.75, ys + hc * 0.35, cr * 0.98, mat), atticBase(cx, cz, y0, cr, mat), ...crocketCapital(cx, ys + hc * 0.35 + cr * 2.4, cz, cr, cr * 2.4, mat, 4));
+  }
+  out.push(...crocketCapital(x, h - 0.12, z, R, hc - 0.12, mat), octShaft(x, z, h - 0.12, h, R * 1.62, mat, Math.PI / 8));
+  return out;
+}
+/** A bundle of vaulting shafts (a major and two minors) from y0 to y1 with shaft rings, each under its own small capital. */
+function shaftBundle(x: number, z: number, nx: number, y0: number, y1: number, rings: readonly number[], mat: number): Node[] {
+  const out: Node[] = [];
+  for (const [dx, dz, r] of [[0, 0, 0.19], [0.07, -0.27, 0.11], [0.07, 0.27, 0.11]] as const) {
+    const sx = x + nx * dx, sz = z + dz;
+    out.push(cylY(sx, sz, y0, y1 - r * 2.6, r, mat), ...crocketCapital(sx, y1, sz, r, r * 2.6, mat, 4));
+    for (const ry of rings) out.push(cylY(sx, sz, ry - 0.045, ry + 0.045, r + 0.035, mat));
+  }
+  return out;
+}
+
+/** A stained-glass panel built at the origin (sill at y = 0, centred on x = 0, facing ±z), placed by its frame so its pattern centres on the window. */
+function glassPanel(b: SceneBuilder, spec: SurfaceSpec, x: number, y: number, z: number, yaw: number, w: number, hs: number, shape: ArchShape = "pointed") {
+  const g = opening(0, 0, w, hs, shape, -0.03, 0.03, "z"), m = b.mat({ ...spec, unit: w, course: openingTop(w, hs, shape) });
+  b.add(frame(leaf(g.f, g.lo, g.hi, m), { x, y, z, yaw }));
+}
+/** A rose window's glass: a disc built at the origin facing ±z. */
+function roseGlass(b: SceneBuilder, spec: SurfaceSpec, x: number, y: number, z: number, yaw: number, R: number) {
+  const m = b.mat({ ...spec, pattern: "rose", unit: R * 2, course: R * 2 });
+  b.add(frame(cylZ(0, 0, -0.03, 0.03, R, m), { x, y, z, yaw }));
+}
+
+export interface NaveSpec { bays?: number; bay?: number; span?: number; aisle?: number; arcade?: number; stone?: SurfaceSpec; web?: SurfaceSpec; floor?: SurfaceSpec; glass?: SurfaceSpec }
+/** Heights of a nave's storeys, for placing furniture and cameras. */
+export interface NaveLevels { arcade: number; arcadeTop: number; springing: number; crown: number; length: number; span: number; aisle: number }
+/**
+ * The inside of a Gothic cathedral nave after the three-storey Chartres elevation: compound piers with foliage capitals
+ * carry a pointed arcade in two stepped orders onto vaulted aisles; above it a string course and a triforium passage of
+ * small arches; above that, from the vault's springing, a clerestory in plate tracery (two lancets under a rose) in each
+ * lunette of a quadripartite rib vault, its ribs carried down by vaulting shafts to the pier capitals. The east end is a
+ * five-sided apse with tall lancets under a ribbed half-dome. The nave runs from z = 0 (west) toward −z; x = 0 is its
+ * axis. All windows are stained glass (medallions, borders, lead and iron armature) and registered as tinted portals.
+ */
+export function gothicNave(b: SceneBuilder, o: NaveSpec = {}): NaveLevels {
+  const n = o.bays ?? 6, B = o.bay ?? 6.8, S = o.span ?? 12, A = o.aisle ?? 6, Ha = o.arcade ?? 9, T = 1.0, half = S / 2 + T / 2, L = n * B;
+  const st = b.mat(o.stone ?? { kind: "ashlar", colour: "#c4ae88", course: 0.38, age: 0.65 }), web = b.mat(o.web ?? { kind: "plaster", colour: "#c9b998", flake: 0.01 });
+  const fl = b.mat(o.floor ?? { kind: "flags", colour: "#a29a88", unit: 0.9, age: 0.6 }), rib = b.mat({ kind: "ashlar", colour: "#b8a27c", course: 0.5, age: 0.5 }), gilt = b.mat({ kind: "gold" });
+  const pierSt = b.mat(o.stone ? { ...o.stone, course: 0.46, unit: 1.5 } : { kind: "ashlar", colour: "#c4ae88", course: 0.46, unit: 1.5, age: 0.65 }), shadow = b.mat({ kind: "ashlar", colour: "#8f8470", course: 0.38 }), glassSpec: SurfaceSpec = o.glass ?? { kind: "stained", pattern: "medallion", emit: 0.55 };
+  const wArc = B - 1.6, arcTop = Ha + 0.3 + archRise(0, wArc, 1), triB = arcTop + 0.5, triT = triB + 2.6, ys = triT + 0.6, rise = archRise(0, S, 1), crown = ys + rise, Sa = A - T / 2 - 0.4 - T / 2;
+  // floor, west wall (behind the viewer) and the outer walls
+  b.add(boxAt(-half - A - 1, -0.4, -L - S, half + A + 1, 0, 1.5, fl));
+  b.add(boxAt(-half - A - 1, 0, 0, half + A + 1, crown + 2, 1.2, st));
+  for (const s of [-1, 1]) {
+    const xi = s * (S / 2), xo = s * (S / 2 + T), cuts: Node[] = [];
+    // the arcade wall above the piers: two stepped orders, a triforium passage, the clerestory's lancets and rose
+    for (let i = 0; i < n; i++) {
+      const zc = -B * (i + 0.5);
+      cuts.push(opening(zc, Ha - 1, wArc, 1.3, "pointed", xi - s, xo + s, "x"));
+      cuts.push(opening(zc, Ha - 1, wArc + 0.7, 1.3, "pointed", xi - s, xi + s * 0.28, "x"), opening(zc, Ha - 1, wArc + 0.7, 1.3, "pointed", xo - s * 0.28, xo + s, "x"));
+      for (let k = 0; k < 4; k++) cuts.push(opening(zc - B * 0.33 + k * B * 0.22, triB + 0.25, B * 0.16, 1.55, "pointed", xi - s, xi + s * 0.62, "x"));
+      cuts.push(boxAt(Math.min(xi + s * 0.62, xi + s * 0.3), triB + 0.25, zc - B / 2 + 0.55, Math.max(xi + s * 0.62, xi + s * 0.3), triT, zc + B / 2 - 0.55, 0));
+      for (const lz of [-1.05, 1.05]) { cuts.push(opening(zc + lz, ys + 0.4, 1.5, 4.8, "pointed", xi - s, xo + s, "x"), opening(zc + lz, ys + 0.3, 1.95, 4.75, "pointed", xi - s, xi + s * 0.45, "x")); glassPanel(b, glassSpec, xi + s * 0.62, ys + 0.4, zc + lz, s > 0 ? 90 : -90, 1.5, 4.8); }
+      cuts.push(cylX(ys + 8.05, zc, xi - s, xo + s, 1.15, 0), cylX(ys + 8.05, zc, xi - s, xi + s * 0.45, 1.4, 0));
+      roseGlass(b, glassSpec, xi + s * 0.62, ys + 8.05, zc, s > 0 ? 90 : -90, 1.18);
+      for (const lz of [-1.05, 1.05]) b.portals.push({ x: xi + s * 0.62, y: ys + 3.2, z: zc + lz, axis: "x", hw: 0.75, hh: 2.9, tint: "stained" });
+      b.portals.push({ x: xi + s * 0.62, y: ys + 8.05, z: zc, axis: "x", hw: 0.9, hh: 0.9, tint: "stained" });
+    }
+    b.add(cut(boxAt(Math.min(xi, xo), Ha + 0.3, -L, Math.max(xi, xo), crown + 2, 0, st), cuts));
+    // the triforium's back wall in shadow, and string courses under the triforium and the clerestory
+    b.add(boxAt(Math.min(xi + s * 0.62, xo), triB + 0.2, -L, Math.max(xi + s * 0.62, xo), triT + 0.05, 0, shadow));
+    for (const [y, h] of [[triB, 0.22], [ys - 0.05, 0.2]] as const) b.add(boxAt(Math.min(xi, xi - s * 0.16), y, -L, Math.max(xi, xi - s * 0.16), y + h, 0, st));
+    // piers at every bay line, a vaulting shaft rising from each capital to the springing
+    for (let i = 1; i < n; i++) {
+      const zp = -B * i;
+      b.add(...compoundPier(s * half, zp, Ha + 0.3, 0.72, pierSt, i % 2 === 1));
+      b.add(...shaftBundle(xi - s * 0.2, zp, -s, Ha + 0.3, ys, [triB + 0.11, (triT + ys) / 2], pierSt));
+    }
+    // responds against the west wall and at the apse: half piers with the same base and capital
+    for (const zp of [-0.5, -L]) b.add(cylY(s * half, zp, 0.62 + 0.45, Ha + 0.3 - 1.0, 0.62, pierSt), atticBase(s * half, zp, 0.62, 0.62, pierSt), boxAt(s * half - 0.85, 0, zp - 0.85, s * half + 0.85, 0.62, zp + 0.85, pierSt, 0, 0.02), ...crocketCapital(s * half, Ha + 0.3, zp, 0.62, 1.0, pierSt), ...shaftBundle(xi - s * 0.2, zp, -s, Ha + 0.3, ys, [triB + 0.11, (triT + ys) / 2], pierSt));
+    // the arcade's mouldings: a roll on each order's arris, a keel roll down the soffit, a hood mould over all
+    for (let i = 0; i < n; i++) {
+      const zc = -B * (i + 0.5);
+      b.add(archRoll(zc, Ha - 1, wArc, 1.3, "pointed", s * half, -0.04, 0.13, pierSt, "x"), archRoll(zc, Ha - 1, wArc, 1.3, "pointed", xi + s * 0.28, 0, 0.09, pierSt, "x"), archRoll(zc, Ha - 1, wArc, 1.3, "pointed", xo - s * 0.28, 0, 0.09, pierSt, "x"));
+      b.add(archRoll(zc, Ha - 1, wArc + 0.7, 1.3, "pointed", xi, 0, 0.085, pierSt, "x"), archRoll(zc, Ha - 1, wArc + 0.7, 1.3, "pointed", xi - s * 0.03, 0.24, 0.065, pierSt, "x"));
+      // triforium: colonnettes with bases and capitals between its arches, a roll round each arch
+      for (let k = 0; k < 4; k++) b.add(archRoll(zc - B * 0.33 + k * B * 0.22, triB + 0.25, B * 0.16, 1.55, "pointed", xi, 0, 0.035, pierSt, "x"));
+      for (let k = 0; k < 3; k++) { const cz = zc - B * 0.33 + (k + 0.5) * B * 0.22, cx = xi - s * 0.07; b.add(cylY(cx, cz, triB + 0.33, triB + 1.62, 0.06, pierSt), atticBase(cx, cz, triB + 0.25, 0.06, pierSt), ...crocketCapital(cx, triB + 1.8, cz, 0.06, 0.18, pierSt, 4)); }
+      // clerestory: a roll round each lancet's splay and round the rose
+      for (const lz of [-1.05, 1.05]) b.add(archRoll(zc + lz, ys + 0.3, 1.95, 4.75, "pointed", xi, 0, 0.06, pierSt, "x"));
+      b.add(leaf((x, y, z) => Math.hypot(Math.hypot(y - ys - 8.05, z - zc) - 1.42, x - xi) - 0.07, [xi - 0.08, ys + 6.5, zc - 1.6], [xi + 0.08, ys + 9.6, zc + 1.6], pierSt));
+    }
+    // the aisle: vaulted bays against an outer wall of windows, wall shafts between them
+    const xa0 = s > 0 ? half + T / 2 : -half - T / 2 - Sa, va: RibVault = { x0: xa0, x1: xa0 + Sa, zs: 0, bays: n, bay: B, ys: Ha + 0.3 };
+    b.add(ribVaultWebs(va, web), ...ribVaultRibs(va, 0.15, rib, gilt));
+    const xw = s * (half + A), wc: Node[] = [];
+    for (let i = 0; i < n; i++) {
+      const zc = -B * (i + 0.5);
+      wc.push(opening(zc, 2.6, 2.3, 4.4, "pointed", xw - s * 2, xw + s * 2, "x"), opening(zc, 2.5, 2.9, 4.4, "pointed", xw - s * 2, xw - s * 0.15, "x"));
+      glassPanel(b, glassSpec, xw - s * 0.1, 2.6, zc, s > 0 ? 90 : -90, 2.3, 4.4);
+      b.portals.push({ x: xw - s * 0.1, y: 5.0, z: zc, axis: "x", hw: 1.15, hh: 2.6, tint: "stained" });
+    }
+    b.add(cut(boxAt(xw - T / 2 + 0.1, 0, -L - 0.5, xw + T / 2 + 0.1, Ha + archRise(0, Sa, 1) + 1.5, 0, st), wc));
+    for (let i = 0; i <= n; i++) b.add(cylY(xw - s * 0.55, -B * i, 0.62, Ha - 0.27, 0.22, pierSt), atticBase(xw - s * 0.55, -B * i, 0.45, 0.22, pierSt), ...crocketCapital(xw - s * 0.55, Ha + 0.3, -B * i, 0.22, 0.57, pierSt, 4));
+    b.add(boxAt(Math.min(xw - s * 0.4, xw - s * 0.75), 0, -L, Math.max(xw - s * 0.4, xw - s * 0.75), 0.45, 0, st));
+    // the aisle's east wall, with a window toward the morning
+    const xm = s * (half + T / 2 + Sa / 2);
+    b.add(cut(boxAt(Math.min(s * (half - 0.3), xw), 0, -L - 0.9, Math.max(s * (half - 0.3), xw), Ha + archRise(0, Sa, 1) + 1.5, -L, st), [opening(xm, 2.6, 2.3, 4.4, "pointed", -L - 2, -L + 1), opening(xm, 2.5, 2.9, 4.4, "pointed", -L - 0.3, -L + 1)]));
+    glassPanel(b, glassSpec, xm, 2.6, -L - 0.45, 0, 2.3, 4.4);
+    b.portals.push({ x: xm, y: 5.0, z: -L - 0.45, axis: "z", hw: 1.15, hh: 2.6, tint: "stained" });
+  }
+  // the high vault, its ribs and bosses, closing in the apse's half-dome
+  const apo = half * Math.cos(Math.PI / 10), fw = 2 * half * Math.sin(Math.PI / 10), v: RibVault = { x0: -S / 2, x1: S / 2, zs: 0, bays: n, bay: B, ys, apse: true, apseFace: 2 * (apo - T / 2) * Math.tan(Math.PI / 10) };
+  b.add(ribVaultWebs(v, web), ...ribVaultRibs(v, 0.22, rib, gilt));
+  // the apse: five faces of a decagon round (0, −L), each with blind arcading, the triforium and a tall lancet
+  for (let j = 0; j < 5; j++) {
+    const th = (j + 0.5) * (Math.PI / 5), x = apo * Math.cos(th), z = -L - apo * Math.sin(th), yaw = -(90 + (th * 180) / Math.PI);
+    const face = cut(boxAt(-fw / 2 - 0.35, 0, -T / 2, fw / 2 + 0.35, crown + 2, T / 2, st), [
+      opening(0, 0.9, fw * 0.62, 3.2, "pointed", -T, -T / 2 + 0.16), opening(-fw * 0.2, triB + 0.25, fw * 0.22, 1.55, "pointed", -T, 0.1), opening(fw * 0.2, triB + 0.25, fw * 0.22, 1.55, "pointed", -T, 0.1),
+      opening(0, ys - 1.4, 2.1, 7.6, "pointed", -T, T), opening(0, ys - 1.5, 2.6, 7.6, "pointed", -T, -0.1)]);
+    b.add(frame(face, { x, z, yaw }));
+    const gx = x + Math.cos(th) * 0.1, gz = z - Math.sin(th) * 0.1;
+    glassPanel(b, { ...glassSpec, emit: (glassSpec.emit ?? 1.2) * 1.15 }, gx, ys - 1.4, gz, yaw, 2.1, 7.6);
+    b.portals.push(Math.abs(Math.cos(th)) > 0.7 ? { x: gx, y: ys + 3, z: gz, axis: "x", hw: 1.05, hh: 4.6, tint: "stained" } : { x: gx, y: ys + 3, z: gz, axis: "z", hw: 1.05, hh: 4.6, tint: "stained" });
+    // a vaulting shaft at each corner of the apse
+    const ca = (j * Math.PI) / 5; if (j > 0) { const sx = (S / 2 - 0.15) * Math.cos(ca), sz = -L - (S / 2 - 0.15) * Math.sin(ca); b.add(cylY(sx, sz, 0.62, ys - 0.5, 0.21, pierSt), atticBase(sx, sz, 0.45, 0.21, pierSt), ...crocketCapital(sx, ys, sz, 0.21, 0.55, pierSt, 4)); }
+  }
+  b.place();
+  return { arcade: Ha, arcadeTop: arcTop, springing: ys, crown, length: L, span: S, aisle: A };
+}
+
+// ---- Church seating ---------------------------------------------------------------------------------------------------------
+
+/** One rush-seated church chair (chaise paillée) with a book ledge on its back, as nodes (rows repeat it). */
+export function churchChairNodes(b: SceneBuilder, rushGrid?: [number, number]): Node[] {
+  const wd = b.mat({ kind: "oak", colour: "#6a4a2c", age: 0.3 }), rush = b.mat({ kind: "rush", unit: rushGrid?.[0], course: rushGrid?.[1] });
+  const out: Node[] = [];
+  for (const s of [-1, 1]) {
+    out.push(revolve(s * 0.19, 0.18, 0, 0.42, t => 0.017 * (1 - 0.25 * t) + 0.004 * Math.exp(-((t - 0.55) ** 2) / 0.002), 0.024, wd, 0, 3));
+    out.push(capsule(s * 0.18, 0, -0.17, s * 0.18, 0.88, -0.24, 0.017, wd), sphere(s * 0.18, 0.9, -0.243, 0.022, wd));
+    out.push(capsule(s * 0.19, 0.13, 0.18, s * 0.18, 0.13, -0.18, 0.009, wd), capsule(s * 0.19, 0.24, 0.18, s * 0.18, 0.24, -0.18, 0.009, wd));
+  }
+  out.push(capsule(-0.19, 0.11, 0.18, 0.19, 0.11, 0.18, 0.01, wd), capsule(-0.19, 0.22, 0.18, 0.19, 0.22, 0.18, 0.01, wd), capsule(-0.18, 0.18, -0.18, 0.18, 0.18, -0.18, 0.009, wd));
+  // the rush seat wound over its rails, then two curved back slats and the book ledge behind
+  out.push(boxAt(-0.2, 0.395, -0.19, 0.2, 0.43, 0.19, rush, 0, 0.012));
+  for (const [y, h] of [[0.6, 0.05], [0.76, 0.07]] as const) out.push(leaf((x, yy, z) => Math.max(Math.abs(x) - 0.18, Math.abs(yy - y) - h / 2, Math.abs(z - (-0.2 - (y - 0.4) * 0.07) - 0.03 * (x / 0.18) ** 2 + 0.03) - 0.008), [-0.19, y - h, -0.3], [0.19, y + h, -0.15], wd));
+  out.push(boxAt(-0.18, 0.69, -0.36, 0.18, 0.705, -0.23, wd), boxAt(-0.18, 0.705, -0.365, 0.18, 0.74, -0.35, wd));
+  return out;
+}
+/** Rows of church chairs (cols across, rows deep) as one repeated node, however many there are; `yaw` 180 faces them toward −z. */
+export function chairRows(b: SceneBuilder, x: number, z: number, cols: number, rows: number, yaw = 180, dx = 0.5, dz = 0.92) {
+  b.add(frame(repeatZ(repeatX(union(churchChairNodes(b, [dx, dz])), dx, cols), dz, rows), { x, z, yaw }));
+}

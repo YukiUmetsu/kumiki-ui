@@ -1222,7 +1222,7 @@
       "name": "shape-morph",
       "type": "registry:ui",
       "title": "Shape Morph",
-      "description": "Contour shape morphing that validates compatibility, resamples rings deterministically and interpolates between two shapes, with explicit dissolve and cut fallbacks when contours cannot morph.",
+      "description": "Contour shape morphing. morphShapes validates compatible contours and falls back to a dissolve or cut. AdvancedShapeMorph morphs any two shapes (SVG paths, point rings or traced text in any font) with different vertex counts, parts and holes through split, merge, partition, emerge or cross-dissolve strategies, plans once and writes each frame into typed arrays.",
       "dependencies": [],
       "registryDependencies": [
         "motion-track"
@@ -1232,6 +1232,41 @@
           "path": "registry/motion/morph.ts",
           "type": "registry:ui",
           "target": "components/motion/morph.ts"
+        },
+        {
+          "path": "registry/motion/advanced-morph-geometry.ts",
+          "type": "registry:ui",
+          "target": "components/motion/advanced-morph-geometry.ts"
+        },
+        {
+          "path": "registry/motion/advanced-morph.ts",
+          "type": "registry:ui",
+          "target": "components/motion/advanced-morph.ts"
+        },
+        {
+          "path": "registry/motion/advanced-morph-text.ts",
+          "type": "registry:ui",
+          "target": "components/motion/advanced-morph-text.ts"
+        }
+      ]
+    },
+    {
+      "name": "shape-morph-three",
+      "type": "registry:ui",
+      "title": "Shape Morph Three",
+      "description": "Three.js adapter for AdvancedShapeMorph: an extruded solid with crease-aware side walls and per-frame cap triangulation that follows any 2D morph, plus a mesh whose pose travels through 3D space and whose fading parts keep their own opacity.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "shape-morph"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/advanced-morph-three.ts",
+          "type": "registry:ui",
+          "target": "components/motion/advanced-morph-three.ts"
         }
       ]
     },
@@ -1653,7 +1688,7 @@
       "name": "visual-transformation",
       "type": "registry:ui",
       "title": "Visual Transformation",
-      "description": "Semantic 2D scene transformations compiled to MG1 tracks, explicit strategy fallbacks, immutable interruption history, seven reusable recipes and a frame-driven SVG adapter.",
+      "description": "Semantic 2D scene transformations compiled to MG1 tracks: geometric and topology morphs (parts, holes and topology changes through AdvancedShapeMorph), shared elements, masks and particles, explicit strategy fallbacks, immutable interruption history, seven reusable recipes and a frame-driven SVG adapter.",
       "dependencies": [],
       "registryDependencies": [
         "motion-react"
@@ -3308,7 +3343,7 @@
       "name": "riso-print",
       "type": "registry:ui",
       "title": "Risograph Spot-Ink Printing",
-      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, native per-drum paper-locked ink contact fissures/pinholes, authored registration and halftone screening, paper-grain, source-native dry-brush gradients, sheet-feed transition, and native spot-ink overprint. Independent original vector masters and FilmStage motion remain intact; optional zero-effect contact cannot replace physical press measurements. Adds an original-frame print-to-print paper collage transition with four physically oriented tear directions, source-native SVG cellulose fibres, paper-lip relief and synchronized independent ink drums. RISO77 adds a full-vector independent spot-ink paper rostrum with depth-sorted original contour masks, stop-motion exposure cadence, shared camera/lamp, and stable physical ink registration. Original single-continuous-source accordion zine print unfolds through alternating 3–8 connected scored panels, paper-native cellulose scuffs, preserved vector inks, optional physical page relief and exact original fully open frame.",
+      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, native per-drum paper-locked ink contact fissures/pinholes, authored registration and halftone screening, paper-grain, source-native dry-brush gradients, sheet-feed transition, and native spot-ink overprint. Independent original vector masters and FilmStage motion remain intact; optional zero-effect contact cannot replace physical press measurements. Adds an original-frame print-to-print paper collage transition with four physically oriented tear directions, source-native SVG cellulose fibres, paper-lip relief and synchronized independent ink drums. RISO77 adds a full-vector independent spot-ink paper rostrum with depth-sorted original contour masks, stop-motion exposure cadence, shared camera/lamp, and stable physical ink registration. Original single-continuous-source accordion zine print unfolds through alternating 3–8 connected scored panels, paper-native cellulose scuffs, preserved vector inks, optional physical page relief and exact original fully open frame. RISO79 composes separately printed complete cover and underlay masters as native cut-paper windows: fixed 88-fibre paper rims, true source-locked slider translation, and 24fps seek-safe kinetic reveal.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3371,6 +3406,16 @@
           "path": "registry/video/riso-accordion-react.tsx",
           "type": "registry:ui",
           "target": "components/video/riso-accordion-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-pull-tab.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-pull-tab.ts"
+        },
+        {
+          "path": "registry/video/riso-pull-tab-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-pull-tab-react.tsx"
         },
         {
           "path": "registry/video/riso-gradient-ink.ts",
@@ -4550,7 +4595,7 @@
       "name": "interiors-furniture",
       "type": "registry:ui",
       "title": "Interiors and Furniture Framework (INTERIOR1)",
-      "description": "Rooms and furniture in any art style, built round the body: seat, table, counter, shelf and bed heights and depths with the seat-to-table gap, room clearances and mattress sizes (graded reported or estimated with sources); 32 furniture types by period and culture (oak settle, Windsor, Shaker ladder-back, Queen Anne and Chippendale chairs on cabriole legs with pad or ball-and-claw feet, Thonet No. 14, Ming horseshoe and official's hat chairs, Bauhaus tubular steel, moulded plywood lounge chair, buttoned Chesterfield, floor cushions; refectory, gateleg, everted-end altar and chabudai tables; pedestal desk; sideboard, Welsh dresser, bookcase, staircase tansu, round-corner cabinet, dowry chest; four-poster and futon; chandelier and leaded-glass lamp; longcase clock, fireplace, tiled stove, folding screen) with construction notes and checks; each built at its measured size from the ARCH1 kit (buildFurniture) and shown on a parchment studio cove; ten period rooms (Tudor hall, Georgian drawing room, Victorian parlour, Shaker room, Alpine Stube, Art Deco lounge, mid-century living room, Japanese washitsu, Chinese scholar's studio, Moroccan salon) painted with window-driven light, fires, candles and lamps. FurniturePlate, RoomPlate, FurnitureSheet, FurnitureShowcase, RoomLibrary; renders in workers, cached.",
+      "description": "Rooms and furniture in any art style, built round the body: seat, table, counter, shelf and bed heights and depths with the seat-to-table gap, room clearances and mattress sizes (graded reported or estimated with sources); 53 furniture types by period and culture (oak settle, Windsor, Shaker ladder-back, Queen Anne and Chippendale chairs on cabriole legs, Thonet No. 14, Ming horseshoe and official's hat chairs, Bauhaus tubular steel, moulded plywood lounge chair, Chesterfield, wing chair; refectory, gateleg, altar and chabudai tables; pedestal desk; sideboard, Welsh dresser, bookcase, tansu, round-corner cabinet, dowry chest; four-poster and futon; chandelier, leaded-glass and banker's lamps, paper pendant; longcase clock, fireplace, tiled stove, folding screen, range cooker, Belfast sink, globe, olive tree; church furnishings: rush-seated chairs in rows, carved pew, pulpit with sounding board, altar with gilded reredos of niches and saints, octagonal font, brass eagle lectern, corona, votive stand; Japanese pieces: andon, hibachi with tetsubin, kotatsu, zataku, six-panel gold byobu) with construction notes and checks, built at measured size from the ARCH1 kit (buildFurniture) on a parchment studio cove; 16 painted rooms with joinery (skirting, cove cornice, dado panelling, picture rail, window boards and glazing bars, curtains, six-panel door, oil paintings, chimney breasts): period rooms (Tudor hall, Georgian drawing room, Victorian parlour, Shaker room, Alpine Stube, Art Deco lounge, mid-century living room, Chinese scholar's studio with an ice-ray moon window, Moroccan salon), a Gothic nave after Chartres (compound piers, stepped arcade, triforium, clerestory in plate tracery, exact quadripartite rib vaults and a chevet apse, medallion stained glass with coloured light pools), Japanese shoin, tea (chashitsu) and farmhouse irori rooms (tatami laid so no four corners meet, shoji, fusuma, ranma, tokonoma, chigaidana, an engawa onto a garden), and Japandi, dark-academia library and Cotswold cottage-kitchen rooms; lit by windows, sun through glass and paper, fires, candles and lamps. FurniturePlate, RoomPlate, FurnitureSheet, FurnitureShowcase, RoomLibrary; renders in workers, cached.",
       "dependencies": [],
       "registryDependencies": [
         "art-foundations",
@@ -4566,6 +4611,16 @@
           "path": "registry/anatomy/furn-construct.ts",
           "type": "registry:ui",
           "target": "components/anatomy/furn-construct.ts"
+        },
+        {
+          "path": "registry/anatomy/furn-construct-more.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/furn-construct-more.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-kit-japan.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-kit-japan.ts"
         },
         {
           "path": "registry/anatomy/furn-library.ts",

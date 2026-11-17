@@ -121,6 +121,118 @@ the geometry lane of `registry/motion`. `src/motion/index.ts` re-exports them fo
     `sharedElementContacts` returns only `handoff`-phase samples, sorted by `semanticId` with a plain
     code-unit comparison (never `localeCompare`).
 
+## AdvancedShapeMorph: any two shapes, text and 3D
+
+`morphShapes` refuses a pair whose contour structure differs. `AdvancedShapeMorph` accepts any two shapes:
+different vertex counts, several disjoint parts, different numbers of holes, concave outlines and text.
+
+**Source:** [`advanced-morph.ts`](../../registry/motion/advanced-morph.ts) (class, configuration, adapters),
+[`advanced-morph-geometry.ts`](../../registry/motion/advanced-morph-geometry.ts) (kernel),
+[`advanced-morph-text.ts`](../../registry/motion/advanced-morph-text.ts) (text outlines) in `shape-morph`;
+[`advanced-morph-three.ts`](../../registry/motion/advanced-morph-three.ts) in the separate item `shape-morph-three`
+(depends on `three`, so a 2D install never pulls a 3D renderer).
+
+**Storybook:** Motion engine → Motion React → *Advanced Shape Morph Lab*, *Advanced Shape Morph Strategies*,
+*Advanced Shape Morph Text* and *Advanced Shape Morph 3D*; Motion engine → Visual Transformation → *Topology Morph*.
+
+**VisualTransformation:** the VT1 strategy `topology-morph` runs this class. `auto` selects it for closed contours
+whose topology differs. See [Visual Transformation](visual-transformation.md). `toContourShape(input)` converts SVG
+path data or point rings into the `ContourShape` model that VT1 and `morphShapes` use.
+
+### Open-source review (2026-11-17)
+
+| Library | Licence | Why it is not used |
+|---|---|---|
+| flubber | MIT | Uses only the first outer ring of a path: no holes, no extra subpaths. No release since 2017. |
+| polymorph-js | MIT | Pads subpaths but has no part or hole matching; outputs SVG strings only; no longer maintained. |
+| KUTE.js `svgMorph` | MIT | Morphs only the first subpath; tied to its animation engine. |
+| GSAP MorphSVG | GSAP standard licence (not OSI) | Repo decision: GSAP stays out of the library. |
+| earcut | ISC | Reused through three's `ShapeUtils` in the 3D adapter only; the 2D core needs no triangulator. |
+
+Decision: build on the repo's own `easing.ts`, `diagnostics.ts` and `ContourShape` types. The 2D items add no
+dependency. The SVG parser in `editorial-collage` sits behind a large pack, so the kernel has its own parser with
+adaptive (Wang's formula) curve flattening.
+
+### Contract
+
+- **Input:** SVG path data (every command, relative forms, compact arc flags, several subpaths), a `ContourShape`,
+  one point ring, or several point rings. Rings without explicit holes nest by containment with `fillRule`
+  (`evenodd` default, or `nonzero`). Outer rings are normalized to clockwise on screen and holes to
+  counter-clockwise.
+- **Text:** `traceTextOutline(text, { font })` draws the string with any font the page can render (Latin, CJK)
+  and traces the antialiasing coverage with marching squares at sub-pixel accuracy (0.1 px on a test annulus).
+  Saddle cells resolve by their mean. The rings go straight into the morph. For exact vector outlines, pass
+  SVG path data from a font parser instead.
+- **Plan (once):** parse → clean (nonfinite points, zero-area rings) → nest → register the two shapes
+  (`alignment.mode`) → match parts with the Hungarian method (centroid distance and log area ratio) → match
+  holes inside each matched pair → ring correspondence → crossing check → typed buffers.
+- **Ring correspondence:** a start offset from a cyclic least-squares search over 96 samples (optionally with a
+  best-fit turn), refined to 1/8 sample. The common parameter set holds every vertex of both rings, so corners
+  are exact at both ends. Extra samples fill gaps up to `resampleDensity`. `alignment.anchors` pins chosen
+  points with a piecewise arc-length map.
+- **Topology strategies** (`topologyStrategy`): `split-merge` (default; extra parts leave or join a copy of the
+  nearest part), `partition` (area-balanced straight cuts, perpendicular to the direction in which the partners
+  spread; pieces overlap by 0.1 % of the part diagonal along cuts so no renderer shows a seam; parts with holes
+  fall back to `split-merge`), `emerge` (grow from or shrink into an interior point) and `cross-dissolve` (fade
+  and shrink to `dissolveScale`). Unmatched holes always grow from or shrink into a point inside the fill, because
+  one fill cannot fade a hole on its own.
+- **Point paths** (`interpolation`): `linear`, or `intrinsic` blending of edge lengths and turning angles with
+  the smallest weighted length correction that closes the ring (Sederberg et al. 1993). `auto` tries linear
+  first. Rotation (`alignment.rotation`) and hole transport (`holeTransport`: `cage` binds holes to the outer
+  ring with mean value coordinates) also have `auto`. In `auto`, the planner tries offset candidates, turns,
+  intrinsic blending and the hole cage, checks 31 sampled frames for edge crossings, and keeps the first
+  candidate without crossings, or the one with the fewest.
+- **Frames:** `update(t)` clamps `t`, applies the easing (`EasingSpec`, `{ elastic }` or any function), and
+  writes `Float32Array` rings in place. It allocates nothing and returns the same frame object every time.
+  `configure()` changes settings at run time (an easing change keeps the plan). `dispose()` drops every buffer.
+- **Output:** `traceMorphFrame` (Canvas 2D, `Path2D`, any `moveTo`/`lineTo`/`closePath` sink),
+  `morphFrameToSvgPaths` (opaque parts in one path), the raw buffers, and `correspondence()` for overlays.
+  Fill with `nonzero`; overlapping parts then form one union.
+- **3D** (`shape-morph-three`): `MorphExtrusionGeometry` extrudes every frame (depth can morph). Side walls
+  use crease-aware normals; caps are triangulated per frame because a triangulation from one end can fold in
+  transit. `AdvancedShapeMorphMesh` interpolates a pose through 3D space (position linear, rotation spherical,
+  scale logarithmic) with the morph's easing, gives fading parts transparent material clones, and steps each
+  part's depth by 0.4 % so overlapping caps do not z-fight. The layout rebuilds by itself after a new plan.
+- **Diagnostics** (all warnings; the morph still runs): `morph-parse-error`, `morph-invalid-input`,
+  `morph-nonfinite-point`, `morph-degenerate-ring`, `morph-input-self-intersection`, `morph-empty-shapes`,
+  `morph-config-density`, `morph-config-tolerance`, `morph-anchor-missing`, `morph-anchor-unused`,
+  `morph-partition-fallback`, `morph-resample-capped`, `morph-transit-crossing`. An unknown enum value in the
+  configuration throws a `RangeError`.
+
+### Measured performance
+
+Node 24, Apple silicon, six demo pairs × four strategies: setup 0.9–11.3 ms, `update(t)` 0.3–2.1 µs, 0 edge
+crossings over 39 sampled frames each. Text in Chromium: setup 2–26 ms, `update(t)` 3–7 µs.
+
+### Limits
+
+- The crossing check samples 31 frames; a crossing that lives between two samples can remain. Very unlike glyph
+  pairs (for example M → S) keep a few transient crossings; the diagnostic reports them.
+- `partition` uses straight cuts, so a strongly concave part can give a narrow piece. It does not cut parts
+  with holes.
+- Traced text follows the font that the browser draws; load the font first. The trace needs a canvas
+  (`OffscreenCanvas`, DOM, or `createCanvas` on a server).
+- 3D caps can contain sub-pixel sliver triangles whose winding flips under float rounding; they have no visible
+  area. The adapter allocates small arrays per frame inside the triangulator.
+
+### Acceptance evidence (AdvancedShapeMorph)
+
+- `npx vitest run --project unit tests/motion-advanced-morph.test.ts tests/motion-morph-hardening.test.ts
+  tests/motion-geometry.test.ts` → **3 files, 72 tests passed** (parser, corner exactness, buffer reuse,
+  anchors, four strategies without transit crossings, partition tiling, fades, hole growth and closure,
+  resilience, easing, configure, dispose, adapters, intrinsic blending, outline tracing, saddles, 3D geometry
+  and pose).
+- `npm run registry:validate` → OK, 305 items. `npm run registry:smoke` → OK, 305 items, 6652 files.
+  `node scripts/registry-fixture.js --item=shape-morph` → OK, 2 items, 17 files;
+  `--item=shape-morph-three` → OK, 3 items, 18 files. Both compile a consumer usage example.
+- `npm run catalog:check` fails on nine `src/video` story files without catalog story ids. The same nine errors
+  exist on the base commit `aa0c0931`; this change adds none.
+- axe-core 4 in Chromium on the four stories, light and dark: **0 violations**, no horizontal overflow, no
+  console errors.
+- Screenshots reviewed in Chromium (light, dark, 375 px): all six pairs under every strategy, the text lab and
+  the 3D lab with each pose and finish. Partition seams and 3D z-fighting were found and fixed. Human visual
+  review by the owner is **pending**.
+
 ## Acceptance evidence
 
 - [x] **Behavior and keyboard tests executed; commands/results recorded** —
