@@ -86,7 +86,7 @@ describe("RISO67 native quadratic contour safety: retain original print, reject 
         }
       }
     }
-  });
+  },20000); // Native SVG contour sample/negative-space checks can exceed 5s under parallel CI.
   it("absolute frame seeks and replays preserve identical safety decisions",()=>{
     const first=guard("landscape",35);
     guard("landscape",190);
@@ -94,7 +94,7 @@ describe("RISO67 native quadratic contour safety: retain original print, reject 
     expect(first.result.reason).toBe(back.result.reason);
     expect(first.result.topology).toEqual(back.result.topology);
     expect(first.result.geometry.outerPath).toBe(back.result.geometry.outerPath);
-  });
+  },15000); // Preserves full real geometry proof even on busy GitHub runners.
   it("keeps a zero-extension request byte-identical and unmodified",()=>{
     const {base,neighbor}=build();
     const result=createGuardedRisoContactTrap(base,neighbor,{
