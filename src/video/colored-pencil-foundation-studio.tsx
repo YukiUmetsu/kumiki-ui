@@ -71,6 +71,7 @@ export function PencilFoundationStudio(){
   const [roseFrontValueStudy,setRoseFrontValueStudy]=useState(false);
   const [rosePetalRimStudy,setRosePetalRimStudy]=useState(false);
   const [roseBackCupReliefStudy,setRoseBackCupReliefStudy]=useState(false);
+  const [roseFrontLaminaVolumeStudy,setRoseFrontLaminaVolumeStudy]=useState(false);
   const [roseInnerWhorlStudy,setRoseInnerWhorlStudy]=useState(false);
   const [roseMiddleCupStudy,setRoseMiddleCupStudy]=useState(false);
   const drawing=useMemo(()=>{
@@ -84,6 +85,7 @@ export function PencilFoundationStudio(){
         roseFrontValueStudy:specimen==="rose"&&roseFrontValueStudy,
         rosePetalRimStudy:specimen==="rose"&&rosePetalRimStudy,
         roseBackCupReliefStudy:specimen==="rose"&&roseBackCupReliefStudy,
+        roseFrontLaminaVolumeStudy:specimen==="rose"&&roseFrontLaminaVolumeStudy,
         roseInnerWhorlStudy:specimen==="rose"&&roseInnerWhorlStudy,
         roseMiddleCupStudy:specimen==="rose"&&roseMiddleCupStudy}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
@@ -93,7 +95,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseInnerWhorlStudy,roseMiddleCupStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseMiddleCupStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -158,6 +160,7 @@ export function PencilFoundationStudio(){
     data-km-rose-front-value={specimen==="rose"?(roseFrontValueStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-petal-rim={specimen==="rose"?(rosePetalRimStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-back-cup-relief={specimen==="rose"?(roseBackCupReliefStudy?"opt-in":"baseline"):"not-applicable"}
+    data-km-rose-frontal-volume={specimen==="rose"?(roseFrontLaminaVolumeStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-inner-whorl={specimen==="rose"?(roseInnerWhorlStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-middle-cup={specimen==="rose"?(roseMiddleCupStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-pinnate-study={specimen==="rose"?(rosePinnateStudy?"opt-in":"baseline"):"not-applicable"}
@@ -393,7 +396,7 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose physical folds" type="checkbox"
           checked={rosePhysicalFolds} onChange={e=>{
             setRosePhysicalFolds(e.target.checked);
-            if(!e.target.checked){setRoseFrontValueStudy(false);setRosePetalRimStudy(false);setRoseBackCupReliefStudy(false);}
+            if(!e.target.checked){setRoseFrontValueStudy(false);setRosePetalRimStudy(false);setRoseBackCupReliefStudy(false);setRoseFrontLaminaVolumeStudy(false);}
           }}/>
         FLORA1 five independent full-surface rolled underturns · geometric corolla A/B (unapproved)
       </label>}
@@ -405,6 +408,15 @@ export function PencilFoundationStudio(){
           checked={roseBackCupReliefStudy}
           onChange={e=>setRoseBackCupReliefStudy(e.target.checked)}/>
         FLORA1 irregular back-cup crest, physical underturn and selective dry-pencil rim · A/B (unapproved)
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40,
+          opacity:rosePhysicalFolds?1:.65}}>
+        <input aria-label="Foundation rose frontal lamina volume" type="checkbox"
+          disabled={!rosePhysicalFolds}
+          checked={roseFrontLaminaVolumeStudy}
+          onChange={e=>setRoseFrontLaminaVolumeStudy(e.target.checked)}/>
+        FLORA1 separate rounded front-facing lamina masses, coherent hinge and delicate dry pencil · anatomical A/B (unapproved)
       </label>}
       {specimen==="rose"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
