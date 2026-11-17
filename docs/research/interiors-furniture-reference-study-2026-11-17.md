@@ -109,6 +109,20 @@ The owner: "In general, need a little bit more realism, e.g. textures, details o
 - ARCH1's medieval bridge stood on dry grass: its river ran along the bridge and lay below the camera's line over the
   bank. The river now crosses under the arches and the view looks down it.
 
+## Fourth round: weak spots
+
+The owner: "continue iterate on weak spots." A critical pass over every room and every ARCH1 interior found:
+
+- Side windows were never cut through their walls (a sign error in `room()`); fixed.
+- The ARCH1 working interiors were boxes with one or two primitives each; they now carry the tools of their trade
+  (`arch-kit-props.ts`), built at real size: a London-pattern anvil on a stump, a forge with a hood and leather bellows,
+  slatted bread racks and a peel, faience albarelli, a scriptorium desk with exemplar lectern and manuscript, wall
+  clocks of three kinds.
+- Strong haze (dust 0.6–0.9) washed several plates out; it is now 0.05–0.4.
+- The attic workshop showed sky through its open back gable; the gable is now closed round its window.
+- Hearth fires read as a yellow blob; they are now ember beds with flame tongues.
+- Vault webs were plain plaster; they are now coursed stone.
+
 ## Limits
 
 See the spec. Human visual review is not recorded.

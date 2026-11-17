@@ -121,6 +121,17 @@ trellis, a jewelled border, lead cames and iron saddle bars; roses have twelve p
   `star`) in the Moroccan salon.
 - **Room plates** paint with a lighter wash and ink (paint 0.55, ink 0.5), so the textures stay readable.
 
+## Weak spots fixed (third pass)
+
+- `room()` cut its side-wall windows 10 cm short of the inner face, so every left and right window was a blank wall
+  (light still entered, because portals are analytic). Side windows now open, and with `view: "garden"` show the
+  garden.
+- ARCH1's working interiors (bakery, apothecary, old library, attic workshop, forge, tavern, scriptorium, cottage
+  kitchen, clockmaker) are furnished from `arch-kit-props.ts` and lit as daylight interiors with lighter haze.
+- The attic room's back gable is closed; the hearth fire is a bed of embers with flames, not a glowing mass.
+- Gothic vault webs are coursed stone. The Shaker room has its built-in wall of drawers, a braided rug and a rocker;
+  the mid-century room a teak sofa, a coffee table with records, an arc lamp, a rubber plant and a record player.
+
 ## Light indoors
 
 - Sun indoors arrives only through a window: the renderer finds the window the sun ray passes through and shadows the

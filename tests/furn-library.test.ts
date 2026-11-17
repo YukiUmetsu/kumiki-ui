@@ -3,7 +3,8 @@ import { FURNITURE_TYPES, checkFurniture } from "../registry/anatomy/furn-data";
 import { BUILT_FURNITURE } from "../registry/anatomy/furn-construct";
 import { ROOMS, pieceScene, roomScene } from "../registry/anatomy/furn-library";
 import { TATAMI_LAYOUTS } from "../registry/anatomy/arch-kit-japan";
-import { archRise } from "../registry/anatomy/arch-kit-civic";
+import { archRise, room } from "../registry/anatomy/arch-kit-civic";
+import { SceneBuilder } from "../registry/anatomy/arch-kit";
 
 describe("INTERIOR1 interiors and furniture", () => {
   it("builds every furniture type at a sensible seat or table height", () => {
@@ -30,6 +31,15 @@ describe("INTERIOR1 interiors and furniture", () => {
     expect(archRise(0, S, 0.5)).toBeCloseTo(S / 2, 6);
     // on the diagonal the main tunnel and the stretched cross tunnel stand at the same height
     for (const f of [0.1, 0.4, 0.7, 0.95]) expect(archRise((f * S) / 2, S)).toBeCloseTo(archRise(((f * B) / 2) * (S / B), S), 9);
+  });
+  it("cuts side-wall windows right through the wall", () => {
+    const b = new SceneBuilder(1);
+    room(b, { w: 6, d: 6, h: 3, wall: { kind: "plaster" }, floor: { kind: "floorboards" }, windows: [{ wall: "left", at: 0, sill: 1, w: 1, h: 1.2, glass: { kind: "glass" } }, { wall: "right", at: 0, sill: 1, w: 1, h: 1.2, glass: { kind: "glass" } }] });
+    const root = b.scene({ x: 0, y: 1.5, z: 2 }, "interior-day").root;
+    // 3 cm into each wall's thickness at the window's centre there is air (the cut once stopped 10 cm short); beside it, wall
+    expect(root.f(-3 - 0.03, 1.6, 0)).toBeGreaterThan(0);
+    expect(root.f(3 + 0.03, 1.6, 0)).toBeGreaterThan(0);
+    expect(root.f(-3 - 0.02, 1.6, 1.5)).toBeLessThan(0);
   });
   it("paints every room as a lit interior", () => {
     for (const r of ROOMS) { const s = roomScene(r.id); expect(s.interior, r.id).toBe(true); expect(s.surfaces.length, r.id).toBeGreaterThan(3); }

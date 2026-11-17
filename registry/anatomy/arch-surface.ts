@@ -50,7 +50,7 @@ export interface SurfaceSpec {
   /** What a flaking coat shows beneath it. */
   under?: SurfaceKind;
   /** Timber-frame pattern. */
-  pattern?: "close" | "square" | "cross" | "colombage" | "fachwerk" | "herringbone" | "english" | "flemish" | "diamond" | "fish" | "star" | "medallion" | "rose" | "byobu" | "fusuma" | "plain" | "check" | "globe";
+  pattern?: "close" | "square" | "cross" | "colombage" | "fachwerk" | "herringbone" | "english" | "flemish" | "diamond" | "fish" | "star" | "medallion" | "rose" | "byobu" | "fusuma" | "plain" | "check" | "globe" | "text";
   /** Storey height for a frame's rails, and the sill height of its middle rail. */
   storey?: number;
   sill?: number;
@@ -834,11 +834,23 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
     }
     // ---- the module showcase: studio paper, Chinese and modern materials ----
     case "parchment": {
-      const paper = C(s.colour, "#eee7d9");
-      return (u, v, _i, o) => {
+      // pattern "text": a written page (unit wide, centred on u = 0): two columns of script in brown-black ink, paragraphs
+      // opened by red and blue initials (a manuscript, a ledger, an open book)
+      const paper = C(s.colour, "#eee7d9"), inkC = linearOf("#2a1e16"), red = linearOf("#a8241e"), blue = linearOf("#22408a"), W = s.unit ?? 0.3;
+      return (u, v, i, o) => {
         const m = fbm(seed, u * 0.05, v * 0.05, 3), fib = fbm(seed + 1, u * 3, v * 0.6, 2), tooth = gradNoise(seed + 2, u * 40, v * 40);
         set(o, paper, 1 + 0.035 * m + 0.012 * fib + 0.008 * tooth); mixInto(o, [0.72, 0.6, 0.42], sst(0.3, 0.9, m) * 0.06);
         o.h = 0.0003 * tooth; o.rough = 0.95; o.spec = 0.01; o.porous = 0.3;
+        if (s.pattern !== "text") return;
+        const au = Math.abs(u), edge = W / 2 - W * 0.12;
+        if (au < W * 0.03 || au > edge) return;
+        const rr = resolve(i.fw, 0.006), para = Math.floor(v / 0.085), pv = v - para * 0.085, lv = v / 0.0105, row = Math.floor(lv), fr = lv - row;
+        const colStart = u < 0 ? -edge : W * 0.03, initial = pv > 0.012 && pv < 0.036 && u - colStart < 0.024 && u - colStart > 0;
+        if (initial) { mixInto(o, hash2(seed, para, u < 0 ? 1 : 2) > 0.5 ? red : blue, 0.85); return; }
+        const word = hash2(seed + 3, Math.floor((u + row * 0.37) / 0.02), row), lineEnd = hash2(seed + 4, row, para) * 0.6;
+        const written = pv > 0.012 && fr > 0.28 && fr < 0.72 && word > 0.2 && !(Math.floor((v + 0.0105) / 0.085) !== para && (u - colStart) / (edge - W * 0.03) > lineEnd);
+        const letters = 0.55 + 0.45 * Math.abs(Math.sin(u * 900 + row));
+        mixInto(o, inkC, written ? 0.8 * letters * rr + 0.3 * (1 - rr) : 0.12 * (1 - rr));
       };
     }
     case "polychrome": {
