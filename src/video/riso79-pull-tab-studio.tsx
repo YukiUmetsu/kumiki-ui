@@ -55,12 +55,12 @@ export function RisoPullTabFilmStudio(){
       {id:"centre-slit",x:710,y:170,width:95,height:206,radius:9},
       {id:"right-slit",x:820,y:170,width:95,height:206,radius:9},
     ]:[
-      // In the final down-pull frame the printed insert's editorial
-      // subtitle crosses y=538. Keep all real diecuts below that type
-      // and within the original full-detail river halftone field.
-      {id:"left-slit",x:54,y:595,width:120,height:228,radius:10},
-      {id:"centre-slit",x:203,y:595,width:120,height:228,radius:10},
-      {id:"right-slit",x:352,y:595,width:120,height:228,radius:10},
+      // The portrait insert travels down 182 source units. At the end
+      // these three narrow slits expose the original circular two-ink
+      // halftone (source y=468..648), below the subtitle and above footer.
+      {id:"left-slit",x:195,y:650,width:40,height:180,radius:8},
+      {id:"centre-slit",x:244,y:650,width:40,height:180,radius:8},
+      {id:"right-slit",x:293,y:650,width:40,height:180,radius:8},
     ];
     return candidates.slice(0,windowCount);
   },[aspect,windowCount]);
