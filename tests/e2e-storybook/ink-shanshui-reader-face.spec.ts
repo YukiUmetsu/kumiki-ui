@@ -662,7 +662,11 @@ test("original three-quarter forehead ink carries unequal near and far frontal r
     await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("open");
     await expect(study.locator('[data-ink-reader-part="pupil-left"]')).toHaveCount(2);
     const detail=page.getByRole("slider",{name:"Face craftsmanship"});
-    await detail.fill("0.1");
+    await detail.focus();
+    await detail.press("Home");
+    await detail.press("ArrowRight");
+    await detail.press("ArrowRight");
+    await expect(detail).toHaveValue("0.1");
     await study.screenshot({animations:"disabled",
       path:info.outputPath("reader-native-near-far-frontal-low-detail.png")});
   });
