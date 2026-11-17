@@ -76,6 +76,7 @@ export function PencilFoundationStudio(){
   const [roseInnerWhorlStudy,setRoseInnerWhorlStudy]=useState(false);
   const [roseCenterKnotStudy,setRoseCenterKnotStudy]=useState(false);
   const [roseCenterValueStudy,setRoseCenterValueStudy]=useState(false);
+  const [roseContactShadowStudy,setRoseContactShadowStudy]=useState(false);
   const [roseMiddleCupStudy,setRoseMiddleCupStudy]=useState(false);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
@@ -93,6 +94,7 @@ export function PencilFoundationStudio(){
         roseInnerWhorlStudy:specimen==="rose"&&roseInnerWhorlStudy,
         roseCenterKnotStudy:specimen==="rose"&&roseCenterKnotStudy,
         roseCenterValueStudy:specimen==="rose"&&roseCenterValueStudy,
+        roseContactShadowStudy:specimen==="rose"&&roseContactShadowStudy,
         roseMiddleCupStudy:specimen==="rose"&&roseMiddleCupStudy}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
         specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,
@@ -101,7 +103,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseOuterFormStudy,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseCenterKnotStudy,roseCenterValueStudy,roseMiddleCupStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseOuterFormStudy,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseCenterKnotStudy,roseCenterValueStudy,roseContactShadowStudy,roseMiddleCupStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -174,6 +176,7 @@ export function PencilFoundationStudio(){
     data-km-rose-inner-whorl={specimen==="rose"?(roseInnerWhorlStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-center-knot={specimen==="rose"?(roseCenterKnotStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-center-value={specimen==="rose"?(roseCenterValueStudy?"opt-in":"baseline"):"not-applicable"}
+    data-km-rose-contact-shadow={specimen==="rose"?(roseContactShadowStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-middle-cup={specimen==="rose"?(roseMiddleCupStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-pinnate-study={specimen==="rose"?(rosePinnateStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-calyx-study={specimen==="rose"?(roseCalyxStudy?"opt-in":"baseline"):"not-applicable"}
@@ -470,7 +473,7 @@ export function PencilFoundationStudio(){
           checked={roseInnerWhorlStudy}
           onChange={e=>{
             setRoseInnerWhorlStudy(e.target.checked);
-            if(!e.target.checked){setRoseCenterKnotStudy(false);setRoseCenterValueStudy(false);}
+            if(!e.target.checked){setRoseCenterKnotStudy(false);setRoseCenterValueStudy(false);setRoseContactShadowStudy(false);}
           }}/>
         FLORA1 inner rose / four separately shaded, overlapping curled petals · A/B (unapproved)
       </label>}
@@ -482,7 +485,7 @@ export function PencilFoundationStudio(){
           checked={roseCenterKnotStudy}
           onChange={e=>{
             setRoseCenterKnotStudy(e.target.checked);
-            if(!e.target.checked)setRoseCenterValueStudy(false);
+            if(!e.target.checked){setRoseCenterValueStudy(false);setRoseContactShadowStudy(false);}
           }}/>
         FLORA1 compact rose centre / six differently curved physical petals and tucked underside · A/B (unapproved)
       </label>}
@@ -495,6 +498,20 @@ export function PencilFoundationStudio(){
           onChange={e=>setRoseCenterValueStudy(e.target.checked)}/>
         FLORA1 rose centre / twelve source-local curved shadow and reflected-light fibre fields · A/B (unapproved)
       </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40,
+          opacity:roseCenterKnotStudy?1:.65}}>
+        <input aria-label="Foundation rose interpetal contact shadows" type="checkbox"
+          disabled={!roseCenterKnotStudy}
+          checked={roseContactShadowStudy}
+          onChange={e=>setRoseContactShadowStudy(e.target.checked)}/>
+        FLORA1 five nested rose petal contacts / source-clipped color and shadow A/B (unapproved)
+      </label>}
+      {specimen==="rose"&&roseContactShadowStudy&&<a
+        href="https://commons.wikimedia.org/wiki/File:Rose_Blossom_Closeup.jpg"
+        target="_blank" rel="noreferrer" style={{fontSize:12}}>
+        CC0 botanical photo reference (Leyth) — qualitative comparison, not a photograph-matched cultivar
+      </a>}
       {specimen==="rose"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
         <input aria-label="Foundation rose middle cup" type="checkbox"
