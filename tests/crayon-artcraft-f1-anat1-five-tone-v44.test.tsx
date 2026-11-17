@@ -58,6 +58,9 @@ describe("ArtCraft F1 V44 source-measured native connected facial value planes",
           blendRadius:afterBlend,featherContacts:afterFeather,
           ...afterEverything}=after;
         expect(afterEverything).toEqual(beforeEverything);
+        expect(beforeSpacing).toBeGreaterThan(0);
+        expect(beforeBlend).toBeGreaterThan(0);
+        expect(beforeFeather===undefined||typeof beforeFeather==="boolean").toBe(true);
         expect(afterColors).not.toEqual(beforeColors);
         expect(afterPressure).not.toBe(beforePressure);
         expect(afterStrength).not.toBe(beforeStrength);
