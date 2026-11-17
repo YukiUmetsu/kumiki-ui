@@ -72,22 +72,22 @@ jobs:
           repository: YukiUmetsu/kumiki-ui
           github-token: ${{ github.token }}
           path: .artcraft-original-photo
-      - name: Capture changed anatomy and adjacent source-native negative controls (PR)
+      # One Playwright invocation per job: a second test command clears
+      # test-results/ and silently destroys the first set of native PNGs.
+      # Keep actual 1x/3x V54/V56 A/B and original-photo SSIM together.
+      - name: Capture source-native geometry and exact CC0 original-photo pixel audit (PR)
         if: github.event_name == 'pull_request'
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
-          --grep "F1 V52|F1 V54|F1 V56"
-      - name: Score exact original CC0 against V52/V54 real native Chromium pixels
-        run: >-
-          npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
-          --grep "F1 V55 source-vs-native similarity"
-      - name: Capture source-native material and registered portrait evidence (manual)
+          --grep "F1 V52|F1 V54|F1 V55|F1 V56"
+      - name: Capture full source-native archive and original-photo QA (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
+          tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
       - name: Save native screenshots and failures
         if: always()
         uses: actions/upload-artifact@v4
