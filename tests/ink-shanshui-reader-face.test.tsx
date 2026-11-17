@@ -516,9 +516,25 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     // The first two original near-orbital shades and one original far
     // shade remain untouched. Additional planes occupy the frontal
     // head *above* either eye, not another diagonal cheek stripe.
-    expect(near.length).toBeGreaterThanOrEqual(5);
-    expect(far.length).toBeGreaterThanOrEqual(3);
+    expect(near.length).toBeGreaterThanOrEqual(8);
+    expect(far.length).toBeGreaterThanOrEqual(4);
     const forehead=near[2],paper=near[3],receding=far[1];
+    // Optical accumulation must deposit more than an invisible single
+    // 4%-alpha overlay in native face crops. Each separate wet plane
+    // curves around the frontal eminence and preserves paper light.
+    const stronger=near.slice(4,7),farStrong=far[2];
+    expect(stronger).toHaveLength(3);
+    for(const pass of [stronger[0],stronger[1],farStrong]){
+      expect(pass).toMatchObject({type:"path",fill:"$skinshade",
+        stroke:"none",strokeWidth:0});
+      expect(pass.opacity).toBeGreaterThan(.06);
+      expect(pass.opacity).toBeLessThan(.09);
+      expect((pass.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+    }
+    expect(stronger[2]).toMatchObject({type:"path",fill:"$paper",
+      stroke:"none",opacity:.073});
+    expect(stronger[0].d).toContain("M123.5 85.6");
+    expect(farStrong.d).toContain("M150.3 86.7");
     for(const layer of [forehead,paper,receding]){
       expect(layer.type).toBe("path");
       expect(layer.d).toContain(" C");
