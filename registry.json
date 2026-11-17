@@ -3356,6 +3356,11 @@
           "path": "registry/video/riso-dry-brush-react.tsx",
           "type": "registry:ui",
           "target": "components/video/riso-dry-brush-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-contact-trap.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-contact-trap.ts"
         }
       ]
     },
