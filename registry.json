@@ -3388,6 +3388,16 @@
           "target": "components/video/riso-press-raster.ts"
         },
         {
+          "path": "registry/video/riso-shop-profile.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-shop-profile.ts"
+        },
+        {
+          "path": "registry/video/riso-scan-proof.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-scan-proof.ts"
+        },
+        {
           "path": "registry/video/riso-path-geometry.ts",
           "type": "registry:ui",
           "target": "components/video/riso-path-geometry.ts"

@@ -13,6 +13,7 @@ import {RisoContactTrapStudio} from "./riso-contact-trap-studio";
 import {RisoTopologyGuardStudio} from "./riso-topology-guard-studio";
 import {RisoMasterSeparationStudio} from "./riso-master-separation-studio";
 import {RisoPressDeliveryStudio} from "./riso-press-delivery-studio";
+import {RisoShopProofStudio} from "./riso-shop-proof-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -428,6 +429,12 @@ export const RisographMasterSeparation:StoryObj<typeof RisoMasterSeparationStudi
 export const RisographPressDelivery:StoryObj<typeof RisoPressDeliveryStudio>={
   name:"Risograph · Physical PDF and TIFF Master Delivery",
   render:()=> <RisoPressDeliveryStudio/>,
+};
+
+/** Physical paper margins and actual/manual vs simulated drum proof, no hand art. */
+export const RisographShopScanProof:StoryObj<typeof RisoShopProofStudio>={
+  name:"Risograph · Printer Profile and Scan Registration Lab",
+  render:()=> <RisoShopProofStudio/>,
 };
 
 const meta = {

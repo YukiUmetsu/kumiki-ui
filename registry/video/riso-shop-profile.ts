@@ -119,8 +119,8 @@ export function inspectRisoShopJob(
     const scale=parent.scaleMmPerSourceUnit;
     for(const plate of masters)for(const shape of plate.shapes){
       const source=flattenRisoSvgPath(shape.outerPath,.5)[0];
+      contours++;
       for(const [x,y] of source.points){
-        contours++;
         if(!inRect(printable,t.x+x*scale,t.y+y*scale)){
           error("ink-outside-press","Actual native ink path extends into a printer's unavailable physical margin.",plate.id,shape.id);
           break;
