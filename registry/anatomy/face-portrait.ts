@@ -648,7 +648,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     if (mat === 1) { alb = mixC(baseLin, zoneCol[0], 0.7); tz = 0.25 + 0.75 * 0.7 * (1 - smoothstep(10, 45, Math.abs(ph[0]))) * (1 - cover); }
     if (cover > 0) alb = mixC(alb, [rootCol[0] * streak, rootCol[1] * streak, rootCol[2] * streak], cover);
     // the scalp in a parting lies in the shade of the hair on both sides of it: a thin, dull line, not a bright seam
-    if (partW > 0) alb = mixC(alb, [alb[0] * 0.42, alb[1] * 0.38, alb[2] * 0.36], partW);
+    // (where the strands part, the scalp lies deep in the hair's shade on both sides: dull and dark, not a bright stripe)
+    if (partW > 0) alb = mixC(alb, [alb[0] * 0.3, alb[1] * 0.26, alb[2] * 0.25], Math.min(1, partW * 1.3));
     // uneven tone: broad blotches of redness and pigment (a few centimetres), finer mottling, more with age
     const mott = 1 + (0.035 + 0.02 * Math.max(0, ((o.age ?? 30) - 30) / 40)) * fbm(seed, p[0] / 5, p[1] / 5, 3) + 0.012 * fbm(seed + 9, p[0] / 1.2, p[1] / 1.2, 2) + 0.025 * fbm(seed + 13, p[0] / 22, p[1] / 22, 2);
     const lipW = lipMask[i] * (1 - mouthMask[i]);
