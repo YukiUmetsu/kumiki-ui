@@ -3149,13 +3149,13 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       'data-km-fuchun-near-relief-pigment="cool-ink-five-value"');
     expect(legacy).not.toContain(
       'data-km-fuchun-near-relief-pigment="cool-ink-five-value"');
-    expect((candidate.match(/stop-color="#292e2c" stop-opacity="0.84"/g)??[]))
+    expect((candidate.match(/stop-color="#292e2c" stop-opacity="(?:0)?\.84"/g)??[]))
       .toHaveLength(4);
-    expect((candidate.match(/stop-color="#424844" stop-opacity="0.69"/g)??[]))
+    expect((candidate.match(/stop-color="#424844" stop-opacity="(?:0)?\.69"/g)??[]))
       .toHaveLength(4);
-    expect((candidate.match(/stop-color="#5d6259" stop-opacity="0.42"/g)??[]))
+    expect((candidate.match(/stop-color="#5d6259" stop-opacity="(?:0)?\.42"/g)??[]))
       .toHaveLength(4);
-    expect((candidate.match(/stop-color="#909181" stop-opacity="0.13"/g)??[]))
+    expect((candidate.match(/stop-color="#909181" stop-opacity="(?:0)?\.13"/g)??[]))
       .toHaveLength(4);
     expect((candidate.match(/data-km-fuchun-near-bank=""/g)??[])).toHaveLength(4);
     expect((candidate.match(/data-km-fuchun-near-bank-wash=""/g)??[])).toHaveLength(4);
