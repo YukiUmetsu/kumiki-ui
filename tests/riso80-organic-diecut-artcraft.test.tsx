@@ -86,7 +86,10 @@ describe("RISO80 authored organic die-cut contours",()=>{
       .not.toEqual(middle.fibres);
   });
 
-  it("renders true organic SVG apertures and exposes validated winding without changing either ink master",()=>{
+  it("renders three distinct organic SVG apertures with validated winding and unchanged ink masters",()=>{
+    const silhouettes=evaluateRisoPullTab({...args,windows:landscapeWindows}).windows;
+    expect(new Set(silhouettes.map(w=>w.path)).size).toBe(3);
+    expect(new Set(silhouettes.map(w=>w.fibres.join("|"))).size).toBe(3);
     const html=renderToStaticMarkup(<RisoPullTabTheatre
       cover={cover} insert={insert} windows={landscapeWindows}
       travel={182.4} progress={.5}/>);
