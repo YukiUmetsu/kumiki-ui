@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SHODO_GLYPHS, inspectShodoGlyph, parseKanjiVgSvg, shodoKaishoForm } from "../registry/video/shodo/shodo-glyphs";
+import { SHODO_GLYPHS, inspectShodoGlyph, parseKanjiVgSvg, shodoJoinStrokes, shodoKaishoForm } from "../registry/video/shodo/shodo-glyphs";
 import type { ShodoGlyph } from "../registry/video/shodo/shodo-glyphs";
 import { loadShodoGlyph, shodoTeacherFor } from "../registry/video/shodo/shodo-glyph-source";
 import { shodoKankaRulesFor, shodoLayout, shodoStructure } from "../registry/video/shodo/shodo-structure";
@@ -41,6 +41,35 @@ describe("SHO1 shodō calligraphy", () => {
     const { checks, failures } = auditShodoTechniques(new ShodoInkSurface(plan, { x: 0, y: 0, width: 1100, height: 600, scale: 1 }));
     expect(checks.length).toBeGreaterThanOrEqual(SHODO_BASICS.length);
     expect(failures).toEqual([]);
+  });
+
+  it("leaves a stroke that crosses an earlier line standing free, and still closes a near join", () => {
+    // 青's top vertical and 艹's verticals start above the horizontal they cross.
+    const glyph = (start: number): ShodoGlyph => ({ char: "・", source: "kanjivg", strokes: [
+      { kind: "horizontal", points: [[200, 300], [800, 300]] },
+      { kind: "vertical", points: [[500, start], [500, 700]] },
+    ] });
+    const crossing = shodoJoinStrokes(glyph(250)).strokes[1];
+    expect(crossing.points[0]).toEqual([500, 250]);
+    expect(crossing.joinStart).toBeUndefined();
+    // A start a little past the line (KanjiVG's overlap at a join) or short of it still joins.
+    for (const start of [285, 330]) {
+      const joined = shodoJoinStrokes(glyph(start)).strokes[1];
+      expect(joined.joinStart).toBe(true);
+      expect(joined.points[0][1]).toBe(300);
+    }
+  });
+
+  it("writes a dot that falls steeply to the left as a short ノ, and a dot to the right as a dot", () => {
+    const plan = planShodoWriting({
+      items: [{ glyph: { char: "・", source: "original", strokes: [
+        { kind: "dot", points: [[500, 200], [440, 300]] },
+        { kind: "dot", points: [[500, 500], [560, 600]] },
+      ] }, x: 0, y: 0, size: 300 }],
+      style: DEFAULT_SHODO_STYLE,
+    });
+    const kinds = plan.strokes.filter(s => s.kind !== "link").map(s => s.kind);
+    expect(kinds).toEqual(["left-sweep", "dot"]);
   });
 
   it("keeps a 右払い's foot and flat point when its points are spaced evenly (a traced form)", () => {

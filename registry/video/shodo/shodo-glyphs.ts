@@ -496,6 +496,22 @@ const polyDistance = (points: readonly ShodoPoint[], q: ShodoPoint): { d: number
 };
 
 /**
+ * Degrees below the horizontal past which a dot falls to the left steeply enough to be written as
+ * a short ノ (泉's first stroke, the left dot of ⺣). Measured on a teacher's ink: 110.
+ */
+const SHODO_LEFT_DOT = 110;
+
+/** A dot that falls to the left past SHODO_LEFT_DOT: the brush writes it as a short ノ. */
+export function isShodoLeftDot(st: Pick<ShodoStrokeSpec, "kind" | "points">): boolean {
+  if (st.kind !== "dot" || st.points.length < 2) return false;
+  const a = st.points[0], b = st.points[st.points.length - 1];
+  return Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI > SHODO_LEFT_DOT;
+}
+
+/** How far (em) an end may reach past an earlier line and still join it; further, the stroke crosses that line. */
+const CROSS_REACH = 40;
+
+/**
  * Find stroke ends that meet an earlier stroke (closer than `reach` em) and mark them as joins.
  * With `snap`, a horizontal, vertical or turn end is also moved along its own line onto the
  * other stroke's centreline, so the inner lines of boxes close cleanly.
@@ -515,10 +531,16 @@ export function shodoJoinStrokes(glyph: ShodoGlyph, reach = 70, snap = true): Sh
       const e = points[index];
       let best: { d: number; at: ShodoPoint } | null = null;
       // Only a line already on the paper can take the join (earlier in stroke order).
+      const nb0 = points[index === 0 ? 1 : index - 1];
+      const ox = e[0] - nb0[0], oy = e[1] - nb0[1], ol = Math.hypot(ox, oy) || 1;
       glyph.strokes.forEach((other, j) => {
         if (j >= i || other.kind === "dot") return;
         const limit = partOf.has(i) && partOf.has(j) && partOf.get(i) !== partOf.get(j) ? across : reach;
         const hit = polyDistance(other.points, e);
+        // An end that already passes through the other line and reaches well beyond it crosses that
+        // line (青's top vertical, the verticals of 艹): it stands free, so it is not pulled back.
+        const beyond = -((hit.at[0] - e[0]) * ox + (hit.at[1] - e[1]) * oy) / ol;
+        if (beyond > CROSS_REACH) return;
         if (hit.d < limit && (!best || hit.d < best.d)) best = hit;
       });
       if (!best) continue;

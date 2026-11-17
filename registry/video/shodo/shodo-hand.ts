@@ -9,7 +9,7 @@
  * Pure: the plan depends only on its input. Sample `shodoBrushPose(plan, seconds)` in any
  * order. Units: design pixels and seconds.
  */
-import { resolveEnd, resolveStart, shodoJoinStrokes } from "./shodo-glyphs";
+import { isShodoLeftDot, resolveEnd, resolveStart, shodoJoinStrokes } from "./shodo-glyphs";
 import type { ShodoEnd, ShodoGlyph, ShodoPoint, ShodoStart, ShodoStrokeKind, ShodoStrokeSpec } from "./shodo-glyphs";
 import { assertShodoStyle, shodoNoise } from "./shodo-style";
 import type { ShodoInk, ShodoStyle } from "./shodo-style";
@@ -522,6 +522,14 @@ function applyPressProfile(segs: Segment[], points: readonly ShodoPoint[], press
   }
 }
 
+/**
+ * A dot that falls steeply to the left (泉's first stroke, the left dot of ⺣) is written as a short
+ * ノ: the dot's pressed footprint points down-right, across such a path, and reads as a blob.
+ */
+function writtenAs(spec: ShodoStrokeSpec): ShodoStrokeSpec {
+  return isShodoLeftDot(spec) ? { ...spec, kind: "left-sweep" } : spec;
+}
+
 /** The full program of one stroke, in em units. */
 function strokeProgram(spec: ShodoStrokeSpec, base: ShodoStyle, seed: number, strokeCount: number): { segs: Segment[]; land: V; start: ShodoStart; end: ShodoEnd } {
   // A stroke's own technique settings (a teacher's head, stop or lift) override the style's.
@@ -859,7 +867,8 @@ export function planShodoWriting(input: ShodoWritingInput): ShodoPlan {
     const placed: Placed = { item, scale };
     // Joins (接筆) are part of how a stroke is written; mark them when the glyph has none.
     const marked = item.glyph.strokes.some(st => st.joinStart || st.joinEnd) ? item.glyph : shodoJoinStrokes(item.glyph, 70, false);
-    marked.strokes.forEach((spec, strokeIndex) => {
+    marked.strokes.forEach((given, strokeIndex) => {
+      const spec = writtenAs(given);
       const seed = style.seed + itemIndex * 977 + strokeIndex * 131;
       const program = strokeProgram(spec, style, seed, marked.strokes.length);
       const land = toPx(placed, program.land);
