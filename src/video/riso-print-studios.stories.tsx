@@ -16,6 +16,7 @@ import {RisoPressDeliveryStudio} from "./riso-press-delivery-studio";
 import {RisoShopProofStudio} from "./riso-shop-proof-studio";
 import {RisoDrumPressureArtStudio} from "./riso75-drum-pressure-art-studio";
 import {RisoTornCollageStudio} from "./riso76-paper-collage-studio";
+import {RisoRostrumCollageStudio} from "./riso77-rostrum-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -449,6 +450,12 @@ export const RisographDrumContact:StoryObj<typeof RisoDrumPressureArtStudio>={
 export const RisographTornPaperCollage:StoryObj<typeof RisoTornCollageStudio>={
   name:"Risograph · Torn-Print Fibre Collage Film",
   render:()=> <RisoTornCollageStudio/>,
+};
+
+/** RISO77: original independently mounted, animated spot-ink paper cutouts. */
+export const RisographKineticRostrum:StoryObj<typeof RisoRostrumCollageStudio>={
+  name:"Risograph · Kinetic Printed Paper Cutouts",
+  render:()=> <RisoRostrumCollageStudio/>,
 };
 
 const meta = {
