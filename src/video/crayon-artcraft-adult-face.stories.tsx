@@ -488,7 +488,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
-  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46"].includes(midfaceForm)?
+  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47"].includes(midfaceForm)?
     crayonF1RegisterAnat1Face():null,[midfaceForm]);
   const lashRootAudit=useMemo(()=>lashFinish!=="sparse"&&eyeContact!=="baseline"
     ?auditCrayonF1LashRootContinuity(spec.elements):null,
@@ -672,6 +672,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-anat1-five-tone-v44">CC0 five source-measured connected skin value planes (V44 !dev)</option>
            <option value="source-anat1-eye-tarsus-v45">CC0 source-fitted near-eye sulcus, lacrimal wax and micro-lashes (V45 !dev)</option>
            <option value="source-anat1-orbital-aperture-v46">CC0 source-registered 3D orbital aperture and continuous eyelid curvature (V46 !dev)</option>
+           <option value="source-anat1-continuous-face-v47">CC0 source-measured normal-weighted continuous facial wax flow (V47 !dev)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -813,6 +814,24 @@ export const Cc0HairValueABV38:Story={
   name:"CC0 dark hair · synced V37/V38 1× + 2.85× A/B (!dev)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0HairValueComparisonV38 {...args}/>,
+};
+export const Cc0Anat1ContinuousFaceV47:Story={
+  name:"CC0 source-registered ANAT1 normal-weighted continuous facial wax (!dev V47)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-continuous-face-v47" initialInspection="full"/>,
+};
+export const Cc0Anat1CheekFormV47:Story={
+  name:"CC0 cheekbone, undercheek and jaw dry-wax curvature at 1.6× (!dev V47)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-continuous-face-v47" initialInspection="face"/>,
+};
+export const Cc0Anat1OrbitMalarV47:Story={
+  name:"CC0 upper eye and malar continuity, native wax macro (!dev V47)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-continuous-face-v47" initialInspection="near-eye"/>,
 };
 export const Cc0Anat1OrbitalApertureV46:Story={
   name:"CC0 continuous 3D ANAT1 eye aperture / complete crayon scene (!dev V46)",
