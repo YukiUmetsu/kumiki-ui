@@ -1861,6 +1861,68 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
  * 1× and 2.8× actual Chromium PNGs, original f299, no pixel overlays.
  * Protect same decoded-actual-PNG original green canopy & nasal tissue.
  */
+
+/** Native frame-299 browser image V48 compared with exact original V46.
+ * Protected far eye and foliage MUST remain identical when changing wax skin.
+ */
+test("F1 V48 native photo-measured wax underpaint 1x and 2.1x V46 negative control",async({page},info)=>{
+  test.setTimeout(215_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const controls:Record<string,number[][]>={foliage:[],farEye:[]};
+  const shots:Record<string,Uint8Array[]>={full:[],cheek:[]};
+  for(const midfaceForm of [
+    "source-anat1-orbital-aperture-v46","source-anat1-photometric-underpaint-v48",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","cheek"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:255,focusY:690,zoom:2.1},
+        {frame:299,focusX:255,focusY:690,zoom:2.1}]};
+      await page.setContent("<!doctype html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+"</body>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      await expect(svg.locator('[data-km-crayon-element="face-outline"] [data-km-crayon-underpaint-field]'))
+        .toHaveCount(midfaceForm==="source-anat1-photometric-underpaint-v48"?8:0);
+      await page.waitForTimeout(350);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v48-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      shots[view].push(png);
+      if(view==="full"){
+        const pixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw Error("Missing Chromium pixel inspector");
+          ctx.drawImage(image,0,0);
+          return {foliage:Array.from(ctx.getImageData(0,0,70,70).data),
+            farEye:Array.from(ctx.getImageData(415,475,55,60).data)};
+        },Buffer.from(png).toString("base64"));
+        controls.foliage.push(pixels.foliage);
+        controls.farEye.push(pixels.farEye);
+      }
+    }
+  }
+  for(const pairs of Object.values(controls)){
+    expect(pairs).toHaveLength(2);
+    let different=0;
+    for(let i=0;i<pairs[0].length;i+=4){
+      if(Math.abs(pairs[0][i]-pairs[1][i])+
+         Math.abs(pairs[0][i+1]-pairs[1][i+1])+
+         Math.abs(pairs[0][i+2]-pairs[1][i+2])>5)different++;
+    }
+    expect(different/(pairs[0].length/4)).toBeLessThanOrEqual(.003);
+  }
+  for(const view of ["full","cheek"] as const){
+    expect(shots[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(shots[view][0]),Buffer.from(shots[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
 /** Same-commit V46/V47 physical wax proof, source CC0 camera and time.
  * Source-matched original negative controls preserve protected far-eye
  * and foliage pixels; no screenshot merely judged by presence of DOM IDs.

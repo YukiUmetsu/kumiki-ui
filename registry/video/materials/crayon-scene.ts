@@ -71,6 +71,13 @@ export interface CrayonVolumeGradient {
   /** Radius as proportion of the silhouette bounding-box, 0.2..1.5. */
   radius:number;
 }
+/** Smooth, source-observed local color deposition under physical wax grain.
+ * Coordinates and radii are fractions of the SAME original silhouette bounds.
+ */
+export interface CrayonUnderpaintField {
+  x:number;y:number;radiusX:number;radiusY:number;
+  color:CrayonColor;strength:number;
+}
 export interface CrayonWaxElement extends CrayonBase {
   kind: "wax";
   /** Original drawings selected at absolute frames. */
@@ -117,6 +124,8 @@ export interface CrayonWaxElement extends CrayonBase {
   /** Smooth underlying side-nib mass, combined with full-opacity silhouette
    * and explicit pressure-shaped wax scratches; never a global object blur. */
   underpaintGradient?:CrayonVolumeGradient;
+  /** Optional opt-in wax color contacts, below the physical tooth. */
+  underpaintFields?:readonly CrayonUnderpaintField[];
   /** Confine a tonal glaze to the animated parent wax silhouette. */
   clipToParent?: boolean;
   /** Held, small-patch reworking of wax pigment; frame-deterministic. */
@@ -377,6 +386,21 @@ export function inspectCrayonScene(input: unknown): string[] {
             checkColor(String(g.light??""),p+".underpaintGradient.light",errors);
             checkColor(String(g.shadow??""),p+".underpaintGradient.shadow",errors);
           }
+        }
+        if(node.underpaintFields!==undefined){
+          const fields=node.underpaintFields;
+          if(node.coverage!=="opaque"||!Array.isArray(fields)||
+             fields.length===0||fields.length>12)
+            errors.push(p+".underpaintFields require 1..12 opaque wax regions");
+          if(Array.isArray(fields))fields.forEach((f,i)=>{
+            const q=p+".underpaintFields["+i+"]";
+            if(!f||![f.x,f.y,f.radiusX,f.radiusY,f.strength].every(finite)||
+               f.x<0||f.x>1||f.y<0||f.y>1||
+               f.radiusX<=0||f.radiusX>1||f.radiusY<=0||f.radiusY>1||
+               f.strength<=0||f.strength>1)
+              errors.push(q+" require normalized finite geometry");
+            checkColor(String(f?.color??""),q+".color",errors);
+          });
         }
         if (node.markStrength !== undefined && (!finite(node.markStrength)||
           node.markStrength<0||node.markStrength>1))

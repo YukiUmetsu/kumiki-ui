@@ -80,6 +80,7 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
             markStrength={node.markStrength}
             underpaintTooth={node.underpaintTooth} opaqueBurnish={node.opaqueBurnish}
             underpaintGradient={node.underpaintGradient}
+            underpaintFields={node.underpaintFields}
             nibStyle={node.nibStyle} deposition={node.deposition}
             strokeOrder={node.strokeOrder} markLength={node.markLength}
             redraw={node.redraw} edgeRoughness={node.edgeRoughness}
