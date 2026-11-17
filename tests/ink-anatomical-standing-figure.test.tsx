@@ -125,5 +125,11 @@ describe("Chinese ink ZJ1 reference-redrawn standing scholar",()=>{
     for(const detail of [-1,.2,NaN,Infinity])
       expect(()=>renderToStaticMarkup(createElement(InkAnatomicalStandingFigure,
         {detail}))).toThrow(RangeError);
+    for(const intensity of [-.1,1.1,NaN,Infinity])
+      expect(()=>renderToStaticMarkup(createElement(InkAnatomicalStandingFigure,
+        {intensity}))).toThrow(RangeError);
+    for(const headScale of [.2,.9,NaN,Infinity])
+      expect(()=>renderToStaticMarkup(createElement(InkAnatomicalStandingFigure,
+        {headScale}))).toThrow(RangeError);
   });
 });
