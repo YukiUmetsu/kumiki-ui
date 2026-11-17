@@ -685,11 +685,13 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
   const out: number[] = [], starts: number[] = [], counts: number[] = [], jit: number[] = [], lay: number[] = [], edge: number[] = [], lockR: number[] = [];
   const wid: number[] = [];
   // a strand in the fringe is drawn as FRINGE_STRANDS finer ones beside one another
+  // (the short standing hairs below come out of the same strand budget)
+  const nShort = style.length.top >= 60 ? Math.round(nStrands * (0.0025 + 0.012 * style.frizz) * (style.gather ? 0.5 : 1) * (style.comb === "back" && (style.hold ?? 0.6) > 1.5 ? 0.2 : 1)) : 0;
   let pendBase: { p: Vec3; n: Vec3; layer: number } | null = null, pendLeft = 0, sampled = 0;
   for (;;) {
     let s: { p: Vec3; n: Vec3; layer: number }, isExtra = false;
     if (pendLeft > 0 && pendBase) { pendLeft--; isExtra = true; s = { p: add(pendBase.p, [gaussR(rnd) * 0.9, gaussR(rnd) * 0.9, 0]), n: pendBase.n, layer: pendBase.layer }; }
-    else { if (sampled >= nStrands) break; sampled++; s = sample(); }
+    else { if (sampled >= nStrands - nShort) break; sampled++; s = sample(); }
     const c = childCurve(s.p);
     if (c.fringe && fr && !isExtra) {
       if (rnd() > fr.density) continue;
@@ -790,6 +792,31 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
       counts[counts.length - 1] = cp.length;
     }
     for (const q of cp) out.push(q[0], q[1], q[2]);
+  }
+  // Short new-growth and broken hairs (a few cm long) standing off the scalp and arcing over under their weight: they,
+  // more than anything, break a head of hair's outline against the light. About 0.8% of the strands (more with frizz),
+  // on the top and back of the head; none on a buzz cut, slicked hair or gathered styles' smooth crowns get fewer.
+  {
+    for (let q = 0; q < nShort; q++) {
+      let smp = sample();
+      for (let tries = 0; tries < 30 && smp.p[1] < H.tragionY + 30; tries++) smp = sample();
+      const L = 15 + 45 * rnd() * rnd(), stepL = 3, n0 = smp.n, droop = 0.05 + 0.12 * rnd();
+      // leave the scalp steeply, leaning a little, then droop: a light rod's arc; it starts inside the mass (its first
+      // centimetre lies among the other hairs), so only the part beyond the mass shows
+      let d: Vec3 = nrm(add(sc(n0, 0.8), [(rnd() - 0.5) * 0.9, 0.1, (rnd() - 0.5) * 0.9]));
+      let pt: Vec3 = add(smp.p, sc(n0, Math.max(0.5, style.volume * 0.6)));
+      starts.push(out.length / 3);
+      const pts: Vec3[] = [pt];
+      for (let k = 1; k * stepL <= L; k++) {
+        d = nrm(add(d, [(rnd() - 0.5) * 0.08, -droop * (k * stepL) / 30, (rnd() - 0.5) * 0.08]));
+        pt = add(pt, sc(d, stepL));
+        const e = ellipsoidAt(H, pt, 1);
+        if (e.inside) pt = e.surf;
+        pts.push(pt);
+      }
+      for (const v of pts) out.push(v[0], v[1], v[2]);
+      counts.push(pts.length); jit.push(rnd()); lay.push(smp.layer); edge.push(20); lockR.push(rnd()); wid.push(0.38);
+    }
   }
   return {
     points: Float32Array.from(out), starts: Uint32Array.from(starts), counts: Uint16Array.from(counts), jitter: Float32Array.from(jit), layer: Float32Array.from(lay), edge: Float32Array.from(edge), lock: Float32Array.from(lockR), width: Float32Array.from(wid),
