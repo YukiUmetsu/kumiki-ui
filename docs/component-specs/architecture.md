@@ -8,8 +8,10 @@
 - `arch-react.tsx`: `BuildingElevation`, `StreetElevation`, `ArchSheet`.
 - Storybook plates: `arch-sdf.ts` (signed-distance parts), `arch-surface.ts` (materials at real size),
   `arch-kit.ts` and `arch-kit-civic.ts` (modular building parts; also the Gothic nave `gothicNave` with exact
-  quadripartite rib vaults `ribVaultWebs` and `ribVaultRibs`, `compoundPier`, `archRise`, church `chairRows`, and room
-  joinery `RoomSpec.trim`), `arch-library.ts` (100 entries), `arch-paint.ts`
+  quadripartite rib vaults `ribVaultWebs` and `ribVaultRibs`, `compoundPier`, `crocketCapital`, `atticBase`, `octShaft`,
+  `archRise`, church `chairRows`, room joinery `RoomSpec.trim` and garden views `RoomSpec.view`; in `arch-sdf.ts`
+  `archRoll` runs a roll moulding round any opening's arch, using `openingProfile`), `arch-library.ts` (100 entries),
+  `arch-paint.ts`
   (light and the watercolour pass), `arch-paint-jobs.ts`, `arch-paint-pool.ts`, `arch-paint-worker.ts` (worker
   renders) and `arch-plate-react.tsx` (`StorybookPlate`, `ArchLibraryGallery`, `ArchStyleGuide`).
 

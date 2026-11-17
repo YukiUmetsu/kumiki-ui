@@ -696,7 +696,7 @@ add({ id: "gothic-nave-interior", label: "Gothic nave interior", group: "histori
     table(b, nv.span / 2 + 4.6, -B * 2.6, 1.6, 0.7, 1.0, { kind: "ashlar", colour: "#cbbd9e", course: 0.3 }, true);
     for (const dz of [-0.5, -0.2, 0.15, 0.45]) candle(b, nv.span / 2 + 4.5, 1.0, -B * 2.6 + dz, 0.04);
     b.place();
-    return done(b, { x: -4.2, y: 1.6, z: -3.0, yaw: 26, fov: 70, shift: 0.62 }, { ...MOODS["interior-day"], sunElevation: 46, sunAzimuth: -62, sunPower: 4.6, ambient: 0.22, key: 0.1 }, { dust: 0.12, interior: true }); } });
+    return done(b, { x: -4.2, y: 1.6, z: -3.0, yaw: 26, fov: 70, shift: 0.62 }, { ...MOODS["interior-day"], sunElevation: 46, sunAzimuth: -62, sunPower: 4.6, ambient: 0.22, key: 0.1, burn: 0.9 }, { dust: 0.12, interior: true }); } });
 add({ id: "norman-keep", label: "Norman stone keep", group: "historic", region: "England and Normandy", era: "1070–1180", setting: "rural", view: "exterior", scale: "monumental", mood: "overcast",
   materials: ["Caen limestone and flint rubble", "pilaster buttresses", "battlements"], story: ["a forebuilding stair to the first-floor door", "corner turrets"],
   note: "Square donjons (the White Tower is about 27 m high) with walls several metres thick at the base, entered at first floor.",
@@ -741,10 +741,10 @@ add({ id: "roman-aqueduct", label: "Roman aqueduct", group: "historic", region: 
 add({ id: "medieval-stone-bridge", label: "Medieval multi-arch stone bridge", group: "historic", region: "England", era: "14th–15th century", setting: "riverside", view: "exterior", scale: "civic", mood: "morning",
   materials: ["rubble with ashlar voussoirs", "pointed arches", "cutwaters and refuges"], story: ["pedestrian refuges over the cutwaters", "reflections in the river", "moss on the cutwaters"],
   note: "Piers about 1/5–1/10 of the span with pointed cutwaters upstream; refuges let people step aside for carts.",
-  build: (seed = 73) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, trees: [[-30, -14, 12], [32, -16, 13]] }); water(b, -400, 400, -12, 12, -1.5, "#4a6264");
+  build: (seed = 73) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, trees: [[-30, -14, 12], [32, -16, 13]] }); water(b, -16, 16, -300, 300, -1.5, "#4a6264");
     bridge(b, { arches: 5, span: 7, shape: "pointed", h: 6.5, w: 5, wall: S.rubble("#a29680", 0.4), ring: S.ashlar("#b8aa8e", 0.35), cutwaters: true, refuges: true });
     b.place();
-    return done(b, frameSubject(b, -30), "morning"); } });
+    return done(b, frameSubject(b, -8, { eye: 1.2 }), "morning"); } });
 add({ id: "inhabited-bridge", label: "Bridge lined with houses", group: "historic", region: "Italy, Florence", era: "1345", setting: "riverside", view: "exterior", scale: "civic", mood: "golden",
   materials: ["segmental stone arches", "shops cantilevered over the river on brackets"], story: ["back rooms hanging over the water", "shutters and awnings"],
   note: "Low segmental arches leave room for a street of shops above; their back rooms hang over the river on timber brackets.",

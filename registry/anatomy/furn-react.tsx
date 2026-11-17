@@ -18,8 +18,9 @@ export function FurniturePlate({ id, width = 384, height = 216, paint = 0.5, sup
   return <RenderFrame width={width} height={height} label={`${t?.label ?? id}, on a studio backdrop`} placeholder="var(--km-surface-subtle, #ece5d8)"
     job={{ pool: FURN_RENDER_POOL, kind: "piece", args, affinity: id }} preview={{ pool: FURN_RENDER_POOL, kind: "piece", args: { ...args, width: Math.round(width / 2), height: Math.round(height / 2), supersample: 1, draft: true } }} />;
 }
-export function RoomPlate({ id, width = 384, height = 216, paint = 1, supersample = 1 }: { id: string; width?: number; height?: number; paint?: number; supersample?: number }) {
-  const r = ROOMS.find(x => x.id === id), args = { room: id, width, height, paint, supersample };
+export function RoomPlate({ id, width = 384, height = 216, paint = 0.55, supersample = 1 }: { id: string; width?: number; height?: number; paint?: number; supersample?: number }) {
+  // a light wash and ink keep the materials' texture (stone tooling, wood figure, weave) readable
+  const r = ROOMS.find(x => x.id === id), args = { room: id, width, height, paint, ink: 0.5, supersample };
   return <RenderFrame width={width} height={height} label={`${r?.label ?? id}, painted room`} placeholder="var(--km-surface-subtle, #8a7a68)"
     job={{ pool: FURN_RENDER_POOL, kind: "room", args, affinity: id }} preview={{ pool: FURN_RENDER_POOL, kind: "room", args: { ...args, width: Math.round(width / 2), height: Math.round(height / 2), supersample: 1, draft: true } }} />;
 }

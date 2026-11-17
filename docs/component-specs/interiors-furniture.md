@@ -101,6 +101,26 @@ Stained glass (`stained` with pattern `medallion` or `rose`) is drawn in each pa
 (circles and quatrefoils, a pearl fillet and a ruby band round a robed, haloed figure) on a blue mosaic with a ruby
 trellis, a jewelled border, lead cames and iron saddle bars; roses have twelve petals with roundels.
 
+## Realism pass (materials, piers, views)
+
+- **Wood** has a flat-sawn figure: growth rings cut by the face at a slight angle arch along each board; latewood is
+  darker; oak shows its pores and ray flecks; each board has its own pith, depth, growth rate and tone. Floorboards cup a
+  little, are face-nailed at their ends and lose their finish along paths. Paint shows its brush strokes along the grain.
+- **Stone** blocks differ in brightness and warmth; they carry bedding layers, shell fragments and voids, the mason's
+  tooling and chipped arrises. Plaster has hairline cracks and patches made good, in proportion to its wear (`flake`).
+- **Gothic piers** (`compoundPier`): an octagonal socle and a square plinth with leaf spurs at its corners, attic bases
+  (torus, scotia, torus) round core and colonnettes, round and octagonal cores by turns, crocket capitals
+  (`crocketCapital`: a bell with stiff leaves, crockets curling out under a moulded octagonal abacus). Vaulting shafts
+  rise in bundles of three with shaft rings. Arches carry roll mouldings on each order's arris, a keel roll down the
+  soffit and a hood mould (`archRoll`); the triforium has colonnettes with their own bases and capitals.
+- **Rugs** are knotted designs: a lattice field of small rosettes, an eight-lobed medallion with palmettes and
+  pendants, corner spandrels, a border of rosettes on a vine between guard stripes, abrash bands, knots and wear.
+- **Windows with a view** (`RoomSpec.view: "garden"`): clear and leaded panes show a lawn, a clipped hedge, trees and
+  far hills, lit as outdoors; rooms are exposed for the interior (`Mood.burn` 2.4 by day), so the view may burn out.
+- **Ceiling roses** (`trim.rose`) in the Georgian and Victorian rooms; geometric star glass (`stained`, pattern
+  `star`) in the Moroccan salon.
+- **Room plates** paint with a lighter wash and ink (paint 0.55, ink 0.5), so the textures stay readable.
+
 ## Light indoors
 
 - Sun indoors arrives only through a window: the renderer finds the window the sun ray passes through and shadows the
@@ -125,6 +145,7 @@ antique globe, jute.
   sculpted blocks, not portraits.
 - Upholstery is smooth shapes with a surface pattern, not sewn panels; curtains hang in regular folds.
 - Room trim runs along whole walls: it does not wrap round a chimney breast or stop at furniture.
+- Vault webs are plastered, without stone coursing; crockets and spurs are simplified leaves, not carved foliage.
 - The nave has no ambulatory, crossing or transepts; the apse's ground storey is blind arcading.
 - Fusuma, byōbu and scroll paintings are generated landscapes, not copies of known works.
 - For modern house explainers with plans, electrical and yards, use `domain-home-model` and `domain-home-3d`.

@@ -22,5 +22,8 @@ The pack `interiors-furniture` decides *how big, how made and from when*. Your s
    `chairRows`, pulpit, lectern, altar and reredos, coronas.
 7. **Japanese rooms:** lay `tatami` from `TATAMI_LAYOUTS` (no four corners meet) and build from the mat
    (`washitsu`, `chashitsu`, `minkaIrori`, or their parts); open shoji onto a garden with `interiorBox` and `Mood.burn`.
-8. **Review.** Render the pieces and rooms (`FurnitureShowcase`, `RoomLibrary`) and look at seat heights, legs and
+8. **Make materials read as real:** paint room plates with a light wash (paint about 0.55, ink 0.5); give windows a
+   view (`view: "garden"`) and expose for the room; use the knotted `rug`, wood that shows its figure, stone with its
+   tooling. Look at a close-up of the hero element (a pier, a capital, a rug, a board) before calling it done.
+9. **Review.** Render the pieces and rooms (`FurnitureShowcase`, `RoomLibrary`) and look at seat heights, legs and
    period details before calling it done.

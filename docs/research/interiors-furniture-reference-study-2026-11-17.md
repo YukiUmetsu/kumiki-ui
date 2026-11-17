@@ -83,6 +83,32 @@ any one pinned image.
 - Fireplaces sat inside the wall once panelling was added; they now stand in chimney breasts.
 - Copper pans mirrored the room and read as white plates; banker's lamp shade and globe were wrong shapes.
 
+## Third round: realism
+
+The owner: "In general, need a little bit more realism, e.g. textures, details of church pillars etc."
+
+- **Piers.** Chartres' piers (piliers cantonnés) alternate round cores with octagonal colonnettes and the reverse
+  (sources above). Gothic bases follow the attic profile (lower torus, scotia, upper torus) on a plinth, often with
+  leaf spurs at the plinth's corners; capitals of the period are crocket capitals under square or octagonal abaci
+  (estimated from the same sources and common architectural glossaries; not measured here).
+- **Wood.** Flat-sawn boards show arched ("cathedral") figure where the face cuts the growth rings at a slight angle;
+  ring-porous oak shows its earlywood pores and rays (estimated; common woodworking knowledge).
+- **Rugs.** Hand-knotted rugs are built from a field (often a lattice of small motifs), a medallion with pendants,
+  corner spandrels and a main border between guard stripes; abrash is the banding left by wool dyed in different lots
+  (estimated; common rug-collecting knowledge).
+- **Interiors with a view.** Interior photographers expose for the room and let the window burn out; the plates do
+  the same.
+
+### Faults found in review and fixed
+
+- `revolve` closed its ends with a disc of its widest radius, so every turned part whose end was narrower grew a thin
+  phantom disc (seen above a pier base; also on turned legs and candlesticks). Ends are now closed at their own radius.
+- The attic base's fillet stood proud of its tori.
+- The full-strength paint wash erased the stone tooling and wood figure; room plates now use a lighter wash.
+- The medallion glass held haloed saints, wrong for a Moroccan salon; it now has geometric star glass.
+- ARCH1's medieval bridge stood on dry grass: its river ran along the bridge and lay below the camera's line over the
+  bank. The river now crosses under the arches and the view looks down it.
+
 ## Limits
 
 See the spec. Human visual review is not recorded.
