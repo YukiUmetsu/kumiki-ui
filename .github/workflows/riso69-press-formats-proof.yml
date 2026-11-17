@@ -45,6 +45,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Real browser output and physically sized grayscale file downloads
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso69-press-master-formats.spec.ts
+      - name: Install PDF proof inspector on clean runner
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
       - name: Independent Poppler render and TIFF file type validation
         run: |
           command -v pdfinfo
