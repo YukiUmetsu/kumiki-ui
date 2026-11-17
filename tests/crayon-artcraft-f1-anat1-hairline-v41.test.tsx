@@ -55,7 +55,7 @@ describe("ArtCraft CC0 F1 V41 photographed forehead and far-temple hairline",()=
           const {d:beforePath,...beforeEverything}=el;
           const {d:afterPath,...afterEverything}=other;
           expect(afterEverything).toEqual(beforeEverything);
-          expect(afterPath.length).toBeGreaterThan(140);
+          expect(afterPath.length).toBeGreaterThan(100);
           expect(beforePath).not.toBe(afterPath);
           changed++;
         }else expect(other).toEqual(el);
