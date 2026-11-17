@@ -335,6 +335,45 @@ test("source-linked Bochen multiglaze survives native 1x, isolated six-region an
     await expect(regions).toHaveCount(6);
     const before=await layered.locator("[data-km-ink-glaze-region] path").count();
     expect(before).toBeGreaterThanOrEqual(14);
+    // Real Chromium pixels, not just path counters: invisible source paint
+    // must FAIL the ArtCraft proof. Rasterize the original-vs-layered
+    // comparison at a fixed size, with identical source camera and palette.
+    const pixelDelta=await proof.evaluate(async section=>{
+      const svgs=Array.from(section.querySelectorAll(
+        'svg[data-km-ink-glaze-variant]')) as SVGSVGElement[];
+      const render=async(svg:SVGSVGElement)=>{
+        const clone=svg.cloneNode(true) as SVGSVGElement;
+        clone.setAttribute("xmlns","http://www.w3.org/2000/svg");
+        clone.setAttribute("width","460");
+        clone.setAttribute("height","245");
+        const markup=new XMLSerializer().serializeToString(clone);
+        const url=URL.createObjectURL(new Blob([markup],
+          {type:"image/svg+xml"}));
+        try{
+          const image=new Image();image.src=url;await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=460;canvas.height=245;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw Error("Missing Chromium canvas");
+          ctx.drawImage(image,0,0,460,245);
+          return ctx.getImageData(0,0,460,245).data;
+        }finally{URL.revokeObjectURL(url);}
+      };
+      const [oldPixels,newPixels]=await Promise.all(svgs.map(render));
+      let changed=0,distance=0;
+      for(let i=0;i<oldPixels.length;i+=4){
+        const rgb=Math.abs(oldPixels[i]-newPixels[i])+
+          Math.abs(oldPixels[i+1]-newPixels[i+1])+
+          Math.abs(oldPixels[i+2]-newPixels[i+2]);
+        if(rgb>12)changed++;
+        distance+=rgb;
+      }
+      return {changed,mean:distance/(460*245*3)};
+    });
+    expect(pixelDelta.changed,"New washes must be visible in real SVG pixels")
+      .toBeGreaterThan(40);
+    expect(pixelDelta.mean,"Paint must stay translucent and locally bounded")
+      .toBeLessThan(12);
     for(const id of ["orbital-near","orbital-far","nose-bridge",
       "malar-near","malar-far","sublabial"]){
       expect(await layered.locator('[data-km-ink-glaze-region="'+id+'"] path')
