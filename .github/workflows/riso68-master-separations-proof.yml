@@ -1,0 +1,54 @@
+name: RISO68 native grayscale spot-ink master exports and print-shop marks proof
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso68-master-separations-proof.yml"
+      - "registry/video/riso-separation-master.ts"
+      - "registry/video/riso-path-geometry.ts"
+      - "registry.json"
+      - "src/video/riso-master-separation-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "tests/riso68-master-separations.test.tsx"
+      - "tests/e2e-storybook/riso68-master-separations.spec.ts"
+      - "docs/research/riso68-grayscale-print-separation-artcraft.md"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: riso68-native-\${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  independent-print-masters:
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Full typecheck and exact native regressions
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso68-master-separations.test.tsx tests/riso67-topology-guard.test.tsx tests/riso66-contact-trap.test.tsx tests/riso65-registration-preflight.test.tsx tests/riso62-dry-brush-artcraft.test.tsx
+      - name: Registry validation and independent consumer compilation
+        run: |
+          npm run registry:validate
+          node scripts/registry-fixture.js --item=riso-print
+      - name: Repository-wide catalog parity (pre-existing unrelated issues)
+        continue-on-error: true
+        run: npm run catalog:check
+      - name: Source-native Storybook build
+        run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - name: Chromium 16:9 and 9:16 real SVG download, 1x/2x and negative cases
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso68-master-separations.spec.ts
+      - name: Preserve independent source screenshots and exported SVG
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso68-real-master-separation-source-proof
+          path: test-results/
+          retention-days: 5
+          if-no-files-found: warn
