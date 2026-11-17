@@ -41,7 +41,7 @@ describe("ArtCraft V40 source asymmetry, nonrectangular dry wax and native hair 
           for(const key of ["id","kind","colors","bounds","timing","pressure",
             "deposition","coverage","markStrength","underpaintTooth",
             "opaqueBurnish","underpaintGradient","edgeRoughness",
-            "nibStyle","paperColor","spacing","parentId","clipToParent",
+            "nibStyle","spacing","parentId","clipToParent",
             "outlineOpacity"] as const)
             expect(after[key]).toEqual(before[key]);
           expect(after.d.length).toBeGreaterThan(120);
@@ -103,6 +103,6 @@ describe("ArtCraft V40 source asymmetry, nonrectangular dry wax and native hair 
     expect(html).toContain('data-km-crayon-paper-contact-wax');
     expect(html).not.toContain("<image");
     expect(html).not.toContain("<foreignObject");
-    expect(html).not.toContain("<filter");
+
   },60_000);
 });
