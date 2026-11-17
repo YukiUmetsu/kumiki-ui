@@ -80,8 +80,8 @@ export function RisoRostrumCollageStudio(){
   const [lightX,setLightX]=useState(.9);
   const [lightY,setLightY]=useState(1.3);
   const [zoom,setZoom]=useState(1);
-  const [focalX,setFocalX]=useState(50);
-  const [focalY,setFocalY]=useState(50);
+  const [focalX,setFocalX]=useState(24);
+  const [focalY,setFocalY]=useState(40);
   const [reduce,setReduce]=useState(false);
   const [playing,setPlaying]=useState(false);
   const frameAtStart=useRef(frame);
