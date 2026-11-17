@@ -20,10 +20,10 @@ type Cluster={
   family:"shadow"|"olive"|"fern"|"moss";bend:number;spread:number;
 };
 const palette={
-  shadow:["#10200a","#061007","#223b16"],
-  olive:["#294a1b","#11220e","#607c33"],
-  fern:["#37682a","#143216","#7f9c43"],
-  moss:["#284419","#0c200e","#5d7d2b"],
+  shadow:["#0c1909","#040b05","#1c3012"],
+  olive:["#203c17","#0b1a0b","#49682a"],
+  fern:["#294f1b","#0e260f","#647f35"],
+  moss:["#1e3713","#081b0b","#4c7027"],
 } as const satisfies Record<string,readonly [CrayonColor,CrayonColor,CrayonColor]>;
 /** Analyzed from the spatial layout of the photographed source foliage.
  * Actual photo foliage is soft/distant; angles describe natural stem
@@ -109,10 +109,10 @@ export function crayonF1AddSourceHedgeV42(
   // Full dark wax foundation: source median ≈ (19,33,10), not paper beige.
   mass("cc0-hedge-dark-underpaint",
     "M-9 -9L617 -9L617 1091L-9 1091Z",
-    rect(-9,-9,626,1100),["#14210b","#050c06","#233714"],
+    rect(-9,-9,626,1100),["#0e1907","#030804","#1a2d11"],
     {start:0,end:8},{pressure:1,spacing:9,markStrength:.12,
       underpaintTooth:.12,opaqueBurnish:1,
-      underpaintGradient:{light:"#23411b",shadow:"#050b05",
+      underpaintGradient:{light:"#1b3614",shadow:"#030804",
         focusX:.83,focusY:.22,radius:1.18}});
   // Shadow and oblique plant silhouettes behind source greenery.
   mass("cc0-hedge-top-cast",
@@ -127,17 +127,17 @@ export function crayonF1AddSourceHedgeV42(
     "M491 106Q562 84 620 127L620 710"+
     "Q597 680 579 644Q554 582 576 537"+
     "Q600 464 555 390Q524 322 512 260Z",
-    rect(491,102,133,622),["#233c13","#091b0a","#456323"],
-    {start:9,end:45},{pressure:.83,markStrength:.32,
+    rect(491,102,133,622),["#162c0f","#051407","#304b19"],
+    {start:9,end:45},{pressure:.89,markStrength:.24,opaqueBurnish:.88,
       featherContacts:true,blendRadius:11,
-      underpaintGradient:{light:"#53752c",shadow:"#071406",
+      underpaintGradient:{light:"#3e6021",shadow:"#030d04",
         focusX:.73,focusY:.26,radius:1.16}});
   mass("cc0-hedge-left-pocket",
     "M-9 67Q58 53 105 92Q152 135 117 204"+
     "Q74 273 -9 325Z",
-    rect(-9,49,165,284),["#26461c","#09230c","#66843b"],
+    rect(-9,49,165,284),["#1e3914","#071c09","#577632"],
     {start:10,end:52},{pressure:.79,featherContacts:true,blendRadius:12,
-      underpaintGradient:{light:"#719145",shadow:"#0c210c",
+      underpaintGradient:{light:"#547a2c",shadow:"#081b08",
         focusX:.32,focusY:.55,radius:1.2}});
   // The backplane is deliberate brushwork, not a photographic filter.
   // Each distant cluster has 3 nonidentical cupped lobes, diverging stem
@@ -145,7 +145,7 @@ export function crayonF1AddSourceHedgeV42(
   const count=Math.round(clusters.length*detail);
   for(const cluster of clusters.slice(0,Math.max(4,count))){
     const parts:string[]=[],roots:string[]=[];
-    const factor=[.81,1.08,.65] as const;
+    const factor=[.72,.96,.57] as const;
     for(let i=0;i<3;i++){
       const angle=cluster.angle+(i-1)*cluster.spread+
         (i===1?cluster.bend:cluster.bend*.45);
@@ -158,11 +158,15 @@ export function crayonF1AddSourceHedgeV42(
     const colorSet=palette[cluster.family];
     const radius=cluster.length+cluster.width*3+18;
     const leafId="cc0-hedge-leaf-"+cluster.id;
+    // Convert the photographed lamina axis into CRAYON1's [-89,89]
+    // material hatch angle modulo 180, rather than painting every leaf
+    // with an identical horizontal digital stripe.
+    const grainAngle=((cluster.angle*180/Math.PI+810)%180)-90;
     mass(leafId,parts.join(" "),
       rect(cluster.x-radius,cluster.y-radius,radius*2,radius*2),
-      colorSet,{start:18,end:74},{pressure:.73,spacing:7.8,
-        markStrength:.35,featherContacts:true,blendRadius:12,
-        underpaintTooth:.27,opaqueBurnish:.65,
+      colorSet,{start:18,end:74},{pressure:.72,spacing:8.7,
+        angle:grainAngle,markStrength:.28,featherContacts:true,
+        blendRadius:14,underpaintTooth:.31,opaqueBurnish:.72,
         underpaintGradient:{light:colorSet[2],shadow:colorSet[1],
           focusX:.28,focusY:.18,radius:1.12}});
     add({id:"cc0-hedge-lamina-"+cluster.id,kind:"contour",
