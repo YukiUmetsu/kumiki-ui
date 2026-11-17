@@ -29,6 +29,16 @@ These photographs are **visual-study links only**, not redistributed, embedded, 
 
 The ANAT1 face dataset is a generic scaffold, not proof of any specific ancestry, individual likeness, attractive-face norm, or historical sitter. No preset should be used to imply an identity. The ANAT1 mask omits the outer ear, cranium, and shoulders; new contours for those parts are an **artist-authored approximation** and must undergo manual image reference review. EXPR1 action units are also illustrative estimates, not calibrated motion-capture displacements.
 
+## Native one-to-one ArtCraft visual findings (2026-11-17 follow-up)
+
+Real Chromium portrait PNGs reviewed from workflow [44131278583](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44131278583) and subsequent exact-head screenshots. Technical passing checks do NOT establish quality. The previous camera yielded a visually implausible oversized balloon-shaped head, tiny modern beret, incoherent outer-eye-to-nose wedge, nearly absent beard at 1×, deep business-suit V neckline, and mouth shading too geometrically regular. The face occupied most of the shoulder width while a documented late-Ming hanging-scroll sitter's face is much smaller relative to robe and broad sleeves. This is the reason for the subsequent art-only corrections rather than shipping the images.
+
+**Primary documented painting:** Zeng Jing, *Portrait of Pan Qintai* (1621), University of Michigan Museum of Art. The public-domain high-resolution faithful photographic reproduction (1,997×2,929) is at https://commons.wikimedia.org/wiki/File:Zeng_Jing_(Tseng_Ching)_-_Portrait_of_Pan_Qintai_-_Google_Art_Project.jpg (Public Domain Mark 1.0). In this full painting, headcloth rises in an upright taper, malar/ocular relief is translucent, the robe shoulders are many head-widths across, facial ink is much finer than the sparse confident garment contours, and facial hair consists of narrow individual tapered strokes. The component is an original illustrated candidate, **not a reconstruction of Pan Qintai**.
+
+**Corrections applied:** perceptually measured head-to-robe ratio uses a 0.69 face/cap/beard scale around a fixed collar contact rather than flattening ANAT1; smooth millimetre-mask lower-third squeeze corrects the previous extended chin; scholar and elder caps are cut as separate folded Ming silhouettes rather than semicircular berets; 93 individually flowing hairs plus five separate tapering locks replace the elder's faint chin stamp; age-related orbital creases attach to canthi and cheekbones; lower-lid break, nose wash and brow pressure are softened. All previous independent paint passes, observed paper fibre and EXPR1 facial motion remain live. Synthetic A/B upload fixtures remain interaction tests **only**.
+
+**Still not passed:** original PD portrait matching at common face-to-body crop and true film-scale image quality. Old Shanshui cast is not replaced. Do not merge while the visual hold remains.
+
 ## Actual acceptance gates
 
 1. Storybook **ANAT2 Independent Portrait Rebuild**: both character controls, five facial expressions, face microscope, 0–100% expression intensity, fibre detail and 24-fps motion slider work in Chromium. Check that eyebrows and mouth change from the *same* face, not cutout stickers; 0 and 96 return identical SVG geometry.
