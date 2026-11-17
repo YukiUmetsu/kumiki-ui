@@ -38,8 +38,13 @@ const mouth={
   // slight perspective asymmetry preserves soft mouth-corner volume.
   // Other AA/OH/MM/smile paths remain independently animated visemes.
   rest:"M135.4 125.9 C137.1 125.6 139.1 126.2 141.6 126.8 C143.2 127.2 145.7 127.1 148.7 126.2",
-  aa:"M135.5 124.8 Q141.7 127.3 147.9 124.4 Q144.2 133.8 139.9 131.4 Q136.2 129.1 135.5 124.8 Z",
-  oh:"M141.3 125.2 Q145.2 125.1 145.8 128.5 Q145.5 132.1 142 131.7 Q139.4 129.5 141.3 125.2 Z",
+  // The historical native OH preview read as an unbroken dark lozenge
+  // on the lower cheek. A 3/4 /a/ opening is wider than /o/ but the
+  // unsupported flat cartoon "mouth sticker" is not a wet-ink mouth.
+  // Preserve independently riggable cels; build continuous lip-rolling
+  // cubic anatomy, asymmetrical lower vermilion and real ink relief.
+  aa:"M136.4 125.8 C139.1 125.1 144.9 125.5 148.3 125.1 C147.7 128.3 145.6 131.3 143.6 131.6 C140.9 131.8 138.8 129.7 136.4 125.8 Z",
+  oh:"M141.1 125.9 C142.4 125.2 144.2 125.4 145.1 126.6 C145.9 128.1 145.6 129.8 144.3 130.8 C143.1 131.4 141.4 130.6 140.9 129.4 C140.4 128.2 140.5 126.6 141.1 125.9 Z",
   mm:"M135.6 125.7 Q141 125.4 148.5 124.5",
   smile:"M135.1 124.9 Q142.4 129.3 149.2 123.4",
 } as const;
@@ -178,11 +183,52 @@ export function scrollReaderFacePortrait(detail=1):
   const eyesOpen:CharacterPathShape[]=[...anatomy.eyesOpen];
   const eyesSoft:CharacterPathShape[]=[...anatomy.eyesSoft];
   const eyesClosed:CharacterPathShape[]=[...anatomy.eyesClosed];
+  // Independent speech lip planes in original 260x340 head space.
+  // The AA and OH dark apertures are translucent pigment separated
+  // from the 3/4 orbicularis lip rim and reflected paper-light.
+  // Retain the original five viseme identity/rig contracts and all
+  // mouth/jaw source-space anatomy; add living shape detail, not an icon.
+  const speechLips=(state:keyof typeof mouth):CharacterPathShape[]=>{
+    if(state==="oh")return [
+      // Lower vermilion: an irregular convex wet edge, not a badge oval.
+      p("M141 130.15 C141.9 131.5 144.45 131.85 145.35 129.9 C144.65 132.35 141.95 132.8 140.95 130.85 Z",
+        "$skinshade","none",0,.18),
+      p("M141.15 125.82 C142.35 125.13 144.22 125.4 145.14 126.56",
+        "none","$shadow",.42,.53),
+      p("M141.05 130.05 C142.12 131.22 144.15 131.3 144.95 130.12",
+        "none","$skinshade",.37,.56),
+      // Depth remains visible through two independently modulated inks,
+      // rather than a single opaque shadow fill.
+      p("M142.25 126.83 C143.35 126.35 144.42 127.04 144.6 128.17 C144.78 129.17 144.1 129.82 143.03 129.75 C142.28 128.98 141.96 127.87 142.25 126.83 Z",
+        "$deep","none",0,.2),
+      p("M142.3 131.85 Q143.55 132.17 144.5 131.43",
+        "none","$paper",.28,.24),
+    ];
+    if(state==="aa")return [
+      p("M136.55 125.85 C140.15 124.95 145.1 125.8 148.15 125.15",
+        "none","$shadow",.49,.53),
+      // A small roof of paper tone indicates a receding upper dental
+      // plane without a modern white smile-sticker.
+      p("M138.2 126.3 C140.9 125.8 143.9 126.3 146.35 126.2 C144.6 127.15 140.75 127.5 138.2 126.3 Z",
+        "$paper","none",0,.3),
+      p("M138.55 129.82 C140.2 132.08 144.15 132.52 146.15 130.18",
+        "none","$skinshade",.43,.53),
+      p("M140.25 130.2 C141.42 131.02 144.43 131.48 145.2 130.02",
+        "none","$deep",.28,.38),
+      p("M139.5 132.18 Q142.54 133.18 145.75 131.45",
+        "none","$paper",.31,.24),
+    ];
+    return [];
+  };
   const mouthAsset=(state:keyof typeof mouth)=>asset("mouth-"+state,[
     ...(state==="aa"||state==="oh"?anatomy.lips.slice(2):anatomy.lips),
+    // The aperture is not a fully opaque cartoony dark badge. Pigment
+    // optically builds via multiple independent lip and cavity passes.
     p(mouth[state],state==="aa"||state==="oh"?"$shadow":"none",
-      "$shadow",state==="mm"?.84:state==="rest"?.74:.9,
-      state==="aa"?.85:state==="rest"?.75:.9),
+      state==="aa"||state==="oh"?"none":"$shadow",
+      state==="aa"||state==="oh"?0:state==="mm"?.84:state==="rest"?.74:.9,
+      state==="aa"?.54:state==="oh"?.57:state==="rest"?.75:.9),
+    ...speechLips(state),
     p(state==="aa"?"M139.2 130.8 Q143.4 132.4 146 129.9":
       "M138.2 128.9 Q143.6 129.5 147 127.6",
       "none","$skinshade",.55,.43),
