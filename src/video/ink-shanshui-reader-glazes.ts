@@ -110,17 +110,26 @@ export function readerInkPortraitGlazes(
       " "+at(s,-.5,2.9)+" Z",.11,true),
   );
 
-  // Broad near cheek is a curved positive zygomatic mass; the far cheek
-  // contracts in the three-quarter turn. Neither is a decorative stripe.
+  // Native 1x Chromium review exposed two parallel brown cheek ribbons.
+  // A true cheekbone is not a narrow painted diagonal: follow the zygion
+  // into a convex tear-shaped orbital/malar mass, then return beneath the
+  // high point into the buccal transition. Use three nested broad, very
+  // faint washes; each remains an individually editable cubic ink pass.
   passes["malar-near"].push(
-    glaze("M"+at(c,2,-.75)+" C"+at(c,5.1,-2.1)+
-      " "+at(c,13.8,-.3)+" "+at(c,18.6,5.3)+
-      " C"+at(c,12.3,3.2)+" "+at(c,7.2,4.9)+
-      " "+at(c,2,-.75)+" Z",.12),
-    glaze("M"+at(c,3.9,.5)+" C"+at(c,8.2,.2)+
-      " "+at(c,12.6,1.5)+" "+at(c,16.2,4.8)+
-      " C"+at(c,10.1,3.4)+" "+at(c,6.7,4.1)+
-      " "+at(c,3.9,.5)+" Z",.065),
+    glaze("M"+at(c,2,-1.7)+" C"+at(c,6.8,-4.4)+
+      " "+at(c,13.2,-1.1)+" "+at(c,17.4,4.6)+
+      " C"+at(c,19.5,7.6)+" "+at(c,16.5,10.3)+
+      " "+at(c,12.1,9.2)+
+      " C"+at(c,7.5,8)+" "+at(c,4.1,4.6)+
+      " "+at(c,2,-1.7)+" Z",.067),
+    glaze("M"+at(c,3.1,.8)+" C"+at(c,7.5,-.6)+
+      " "+at(c,13.5,2.5)+" "+at(c,16,6.4)+
+      " C"+at(c,12.8,7.8)+" "+at(c,8.6,6.7)+
+      " "+at(c,3.1,.8)+" Z",.074),
+    glaze("M"+at(c,4.6,2.6)+" C"+at(c,8.3,3.6)+
+      " "+at(c,11.3,5.3)+" "+at(c,13.1,6.1)+
+      " C"+at(c,10.1,5.7)+" "+at(c,7.7,5.5)+
+      " "+at(c,4.6,2.6)+" Z",.044),
   );
   passes["malar-far"].push(
     glaze("M"+at(r,-6.1,-1.6)+" C"+at(r,-2.4,-2.4)+
@@ -151,10 +160,12 @@ export function readerInkPortraitGlazes(
         " "+at(f,2.1,2.8)+" Z",.042),
     );
     passes["malar-near"].push(
-      glaze("M"+at(c,4.1,2.2)+" C"+at(c,9.2,1.9)+
-        " "+at(c,13.5,4.2)+" "+at(c,15.1,5.4)+
-        " C"+at(c,10.3,4.6)+" "+at(c,6.9,4.8)+
-        " "+at(c,4.1,2.2)+" Z",.055),
+      // Mid-tone hugs the *inferior* zygomatic relief instead of
+      // drawing a third straight slash toward the mouth.
+      glaze("M"+at(c,3.8,3)+" C"+at(c,7.8,4.4)+
+        " "+at(c,12.7,7.3)+" "+at(c,14.2,8.3)+
+        " C"+at(c,11.2,8.8)+" "+at(c,6.4,7.4)+
+        " "+at(c,3.8,3)+" Z",.046),
     );
     passes["malar-far"].push(
       glaze("M"+at(r,-5,-.1)+" C"+at(r,-2.3,.7)+
@@ -177,8 +188,8 @@ export function readerInkPortraitGlazes(
         " "+at(t,-1.3,-.5),.235),
     );
     passes["malar-near"].push(
-      fibre("M"+at(c,4.6,1.5)+" Q"+at(c,8.4,3.2)+
-        " "+at(c,12.4,3.6),.21),
+      fibre("M"+at(c,3.9,5.2)+" Q"+at(c,7.4,8.3)+
+        " "+at(c,11.4,8.8),.18),
     );
     passes["malar-far"].push(
       fibre("M"+at(r,-3.9,.7)+" Q"+at(r,-2,3)+
