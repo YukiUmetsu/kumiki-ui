@@ -1,0 +1,52 @@
+name: RISO75 original press-contact visual ArtCraft proof
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso75-drum-contact-artcraft.yml"
+      - "registry/video/riso-drum-contact.ts"
+      - "registry/video/print-plates-react.tsx"
+      - "src/video/riso-brush-studio.tsx"
+      - "src/video/riso75-drum-pressure-art-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "registry.json"
+      - "tests/riso75-drum-contact-artcraft.test.tsx"
+      - "tests/e2e-storybook/riso75-native-drum-contact-motion.spec.ts"
+      - "docs/research/riso75-native-drum-contact-artcraft.md"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: riso75-drum-contact-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  riso-original-pressure-material:
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Strict original-film source validation and native per-drum microdetail tests
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso75-drum-contact-artcraft.test.tsx tests/riso68-master-separations.test.tsx tests/riso67-topology-guard.test.tsx
+      - name: Distributable contact module and clean consumer installation
+        run: |
+          npm run registry:validate
+          node scripts/registry-fixture.js --item=riso-print
+      - name: Actual Storybook original Risograph animation build
+        run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - name: 1x/3x original-vs-pressure hand-crafted ink, frame/paper/plate and portrait proof
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso75-native-drum-contact-motion.spec.ts
+      - name: Archive real Storybook 1x, 3x, portrait and zero-contact frames
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso75-source-native-two-drum-pressure-screen-and-film
+          path: test-results/
+          retention-days: 5
+          if-no-files-found: warn
