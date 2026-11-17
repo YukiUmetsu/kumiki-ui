@@ -142,9 +142,10 @@ const FUCHUN_TRAIL_FAR:readonly P[]=RIDGES["mountain-trail"][0].map(
 /** Optional native contour-reconstruction study for the prominent PALE
  * lower Fuchun hill. Its old one-station x530/y235 needle apex and long
  * x427/y304-to-x586/y274 diagonals left an isolated triangular wedge
- * across the 1× film. This new original 19-station profile holds a
- * broad irregular 488–586 rock shoulder with two unequal descending
- * saddles. The shared original ridge and every other school remain
+ * across the 1× film. The current original 22-station profile
+ * preserves the broad irregular 488–586 rock shoulder, while three
+ * added source points form a second 243–299 rock brow beside the
+ * waterfall without leaving an angular needle-like x275 summit. The shared original ridge and every other school remain
  * byte-identical in normal output. All generated child ink, rock planes
  * and the 9× per span edge stations sample this SAME positive geology;
  * no triangle is covered by a decorative sticker.
@@ -152,7 +153,13 @@ const FUCHUN_TRAIL_FAR:readonly P[]=RIDGES["mountain-trail"][0].map(
  * Source topology: Huang Gongwang, Fuchun Mountains; NPM 1194.
  * Experimental, opt-in until exact 1× and frame-sequence art approval. */
 const FUCHUN_TRAIL_NEAR_ROUNDED:readonly P[]=[
-  [-60,430],[78,359],[160,405],[275,298],[338,345],
+  [-60,430],[78,359],[160,405],
+  // Source-coherent left-bank cheek around the ravine, not the old
+  // 115px-wide triangle ending at the x275/y298 isolated apex.
+  // Preserve the actual x160 valley and x338 bank seam; the natural
+  // rock shoulder now transitions through two continuously held
+  // crown stations 243/327 and 271/319 with a softer x299 saddle.
+  [210,359],[243,327],[271,319],[299,330],[338,345],
   [401,306],[427,288],[457,272],[488,262],[512,258],
   [530,259],[552,261],[573,265],[586,268],[618,280],
   [655,302],[713,334],[812,295],[1050,383],
@@ -2562,7 +2569,7 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
   ] as const;
   const silhouette=id+"-source-clip";
   return <g data-km-fuchun-near-relief=""
-    data-km-fuchun-near-relief-source="19-station-ridge"
+    data-km-fuchun-near-relief-source="22-station-ridge"
     data-km-fuchun-near-relief-pigment="cool-ink-five-value">
     <defs><clipPath id={silhouette} clipPathUnits="userSpaceOnUse">
       <path d={ridgePath(stations)}/>
