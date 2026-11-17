@@ -159,7 +159,8 @@ function palmSDF(s: Scene, p: Vec3): number {
     const w = s.wrist, ax = nrm(sub(w.b, w.a)), rel = sub(p, w.a), along = dot(rel, ax), perp = sub(rel, sc(ax, along));
     const xz = dot(perp, nrm(cross(ax, pz))), zz = dot(perp, pz), rr = Math.hypot(xz / w.rx, zz / w.rz) * Math.min(w.rx, w.rz) - Math.min(w.rx, w.rz);
     // above its start the wrist narrows into the palm (half a millimetre per millimetre) and ends inside it: no cap edge
-    const L = len(sub(w.b, w.a)), dw = Math.max(rr + Math.max(0, -along) * 0.5, along - L);
+    // (a smooth ramp, not max(0, …): a kink in the radius shades as a line round the wrist)
+    const ramp = 0.5 * (Math.sqrt(along * along + 100) - along) - 5, L = len(sub(w.b, w.a)), dw = Math.max(rr + Math.max(0, ramp) * 0.5, along - L);
     d = smin(d, Math.max(dw, -along - 40), 14);
   }
   // tendons and veins lie under the skin: their ridges are blended wide unless the hand is lean or old
