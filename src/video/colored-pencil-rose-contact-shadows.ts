@@ -68,8 +68,8 @@ export const ROSE_CONTACT_SHADOWS:readonly RoseContactShadow[]=[
     nibs:[.47,.37,.29],opacity:[.37,.31,.24],
   },
   {
-    id:"right-under-heart",lower:"rose-whorl-right",upper:"heart",
-    axis:[[255,160],[264,162],[271,169],[278,170]],
+    id:"right-under-scroll",lower:"rose-whorl-right",upper:"rose-whorl-scroll",
+    axis:[[251,150],[259,152],[267,162],[274,168]],
     halfWidth:3,contacts:56,
     pigments:["#622842","#944B64","#BC7887"],
     nibs:[.42,.34,.28],opacity:[.34,.28,.22],
