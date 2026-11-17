@@ -249,7 +249,10 @@ test("original standing cotton color and source-space 2.8x robe seam, 5.4x grip 
     await camera.selectOption("grip");
     await expect(figure).toHaveAttribute("viewBox","87 535 100 134");
     await expect(figure.locator('[data-km-ink-bamboo-staff="continuous"]')).toHaveCount(1);
+    await expect(figure.locator('[data-km-ink-grip-kinematics="opposed-thumb-on-source-bamboo"]')).toHaveCount(1);
     await expect(figure.locator('[data-km-ink-hand-finger]')).toHaveCount(4);
+    await expect(figure.locator('[data-km-ink-grip-nail]')).toHaveCount(4);
+    await expect(figure.locator('[data-km-ink-hand-skin-fibre]')).toHaveCount(14);
     await figure.screenshot({animations:"disabled",
       path:info.outputPath("anat2-standing-real-bamboo-opposed-grip-5.4x.png")});
     await camera.selectOption("hem");
