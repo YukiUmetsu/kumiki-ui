@@ -81,7 +81,7 @@ reference photographs studied.
 | --- | --- | --- |
 | Chinese social-video glam ("Douyin makeup") | `c-glam` | A glittering aegyo-sal with a shadow under it, an inner-corner liner, a soft puppy wing, a brown lower liner on the outer half, spiky lashes and drawn lower lashes, blush under the eyes and across the nose, a narrow nose, a coral-red gradient lip |
 | Korean idol | `k-idol` | Glass skin, straight soft brows, a short puppy wing, a champagne aegyo-sal, wispy lashes, hazel lenses, a coral gradient lip |
-| Jirai-kei | `jirai` | A pale matte base, red-pink under the eyes, a strong rose blush right under them, a drooping red-brown wing, heavy lower lashes, a tear mole, a small deep-red lip |
+| Jirai-kei | `jirai` | A pale matte base, red-pink under the eyes, a strong rose blush right under them, a drooping red-brown wing, wispy upper lashes, heavy lower lashes, a tear mole, a small deep-red lip |
 | Neo-gyaru | `neo-gyaru` | Taped double lids, doll lashes above and below, black liner round the eye, 14.5 mm dark lenses, strong contour, a sheer nude-pink gloss |
 | Ryousangata (soft doll) | `ryousangata` | Rose lids, a pink aegyo-sal, a soft brown drooping wing, wispy lashes with drawn lower lashes, brown lenses, a high pink flush |
 
@@ -89,7 +89,8 @@ A look's `lashes`, `eyes` and `brows` drive the renderer through `SkinPaint`. Th
 used at 0:
 
 - **Lashes:** `style` "wispy", "spiky" (manga: 5-7 spikes of 10-14 mm) or "doll", and `lower` (length, darkness,
-  strokes drawn with liner). No styled lash is longer than 14 mm.
+  strokes drawn with liner). No styled lash is longer than 14 mm. A single lid's fold presses bare lashes down, so from
+  the front they hardly show. Styled (false) lashes are curled and glued on, so they rise past the fold.
 - **Lens:** `eyes.lens` with the tinted `diameter` (12.5-14.5 mm, a natural iris is about 11.7 mm), the limbal `ring`
   and a `tint`.
 - **Tape:** `eyes.tape` 0-1. `tapedEyeShape` gives a single lid a low crease, keeps an in-fold lid in-fold and opens

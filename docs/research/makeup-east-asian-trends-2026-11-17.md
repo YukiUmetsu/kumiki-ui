@@ -154,6 +154,7 @@ All are openly licensed. They were viewed in the scratchpad and were not committ
 | The gyaru cheekbone highlight showed as pale patches at the sides of the face. | Coverage 0.35 with a dewy finish instead of 0.6 shimmer. |
 | The Korean idol and ryousangata blush sat at the outer cheeks; the references show it under the eyes. | More `blush-igari` (under the eyes) and less of the apple or lifted placements. |
 | The Chinese glam eye had no line under its outer half. | A brown `liner-lower` on the outer half (scale 0.45). |
+| On single lids (the story's first face) four looks showed no upper lashes. The renderer pressed every lash under the fold, so from the front each pointed at the camera. | Styled (false) lashes rise past a single lid's fold. Bare lashes stay pressed down. The jirai-kei look wears wispy false lashes. |
 
 ## Limits
 

@@ -211,6 +211,23 @@ describe("MAKEUP1 eye tools in the renderer", () => {
       }
     }
   }, 120000);
+  it("false lashes rise past a single lid's fold (bare lashes on it point at the camera)", () => {
+    const base = { faceType: "east-asian" as const, eyeShape: "monolid", framing: "eyes" as const, width: 192, height: 96, makeup: "none" as const };
+    const lashes = (style: "natural" | "spiky" | "doll") => renderPortrait({ ...base, paint: { key: `lashes-${style}`, shade() {}, lashes: { length: 1.25, thickness: 1.3, darkness: 1, style } } });
+    const natural = lashes("natural"), spiky = lashes("spiky"), doll = lashes("doll");
+    // mean L* in a band 1 to 4 px (about 0.4-1.5 mm) above the upper lid, across each eye: a lash is thinner than a
+    // pixel here, so the band's mean shows it, not a count of dark pixels
+    const above = (p: Portrait) => {
+      let sum = 0, n = 0;
+      for (const [outer, inner, upper] of [[33, 133, 159], [263, 362, 386]]) {
+        const lm = natural.landmarks, x0 = Math.min(lm[outer][0], lm[inner][0]), x1 = Math.max(lm[outer][0], lm[inner][0]), yl = lm[upper][1];
+        for (let y = Math.round(yl - 4); y <= Math.round(yl - 1); y++) for (let x = Math.ceil(x0); x < x1; x++) { sum += Lstar(p, x, y); n++; }
+      }
+      return sum / n;
+    };
+    expect(above(spiky)).toBeLessThan(above(natural) - 4);
+    expect(above(doll)).toBeLessThan(above(natural) - 4);
+  }, 120000);
 });
 
 describe("MAKEUP1 paint", () => {
