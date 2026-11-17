@@ -651,6 +651,20 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
   // individually rooted 28 dry-brush fibres / 12 deposited moss marks.
   await expect(legacyBank).toHaveCount(0);
   await expect(sourceBank).toHaveCount(4);
+  // ArtCraft contrast gate: true five-value pigment on the same
+  // 19-station candidate; untouched production baseline does not gain
+  // washes or lose source-rooted fine details.
+  await expect(samples.first().locator(
+    '[data-km-fuchun-near-relief-pigment]')).toHaveCount(0);
+  const newPigment=samples.last().locator(
+    '[data-km-fuchun-near-relief-pigment]');
+  await expect(newPigment).toHaveCount(1);
+  await expect(newPigment).toHaveAttribute(
+    "data-km-fuchun-near-relief-pigment","cool-ink-five-value");
+  await expect(newPigment.locator(
+    'linearGradient stop[stop-color="#292e2c"]')).toHaveCount(4);
+  await expect(newPigment.locator(
+    'linearGradient stop[stop-color="#424844"]')).toHaveCount(4);
   const inner=samples.last().locator("[data-km-fuchun-near-inner-stratum]");
   await expect(inner).toHaveCount(26);
   await expect(samples.last().locator("[data-km-fuchun-near-inner-phrase]"))
