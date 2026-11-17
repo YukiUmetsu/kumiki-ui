@@ -12,8 +12,8 @@ import {useId} from "react";
 import type {CSSProperties,SVGProps} from "react";
 import {evaluateInkBrush,inkHash} from "../../registry/video/ink-brush";
 import type {InkBrushSpec} from "../../registry/video/ink-brush";
-import {InkAnatomicalPortrait} from "./ink-anatomical-portrait";
 import type {InkPortraitCharacter,InkPortraitEmotion} from "./ink-anatomical-portrait";
+import {InkZengJingScholarHead} from "./ink-zengjing-scholar-head";
 
 export const INK_STANDING_FIGURE_WIDTH=540;
 export const INK_STANDING_FIGURE_HEIGHT=1080;
@@ -86,7 +86,7 @@ export function InkAnatomicalStandingFigure({
   const uid="km-standing-"+useId().replace(/[^a-zA-Z0-9_-]/g,"");
   const elder=character==="elder";
   const ink=elder?"#4b514b":"#494a46",wash=elder?"#9c9a8e":"#a7a49b";
-  const robe=elder?"#e0d6c8":"#e6dccd",under="#f0e7d9";
+  const robe=elder?"#e1d6c5":"#e9dfd0",under="#f0e7d8";
   const cameras={
     full:{viewBox:"0 0 540 1080",height:1080},
     waist:{viewBox:"65 425 420 305",height:392},
@@ -115,19 +115,6 @@ export function InkAnatomicalStandingFigure({
           Q473 528 406 462 Q366 426 312 436
           L243 450 Q201 431 166 458 Z"/>
       </clipPath>
-      <linearGradient id={uid+"-upper-robe-release"} x1="0" y1="0"
-        x2="0" y2="620" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stopColor="#fff"/>
-        <stop offset=".79" stopColor="#fff"/>
-        <stop offset=".86" stopColor="#fff" stopOpacity=".96"/>
-        <stop offset=".96" stopColor="#fff" stopOpacity=".18"/>
-        <stop offset="1" stopColor="#000"/>
-      </linearGradient>
-      <mask id={uid+"-upper-robe-contact"} maskUnits="userSpaceOnUse"
-        maskContentUnits="userSpaceOnUse" x="0" y="0" width="540" height="620">
-        <rect x="0" y="0" width="540" height="620"
-          fill={"url(#"+uid+"-upper-robe-release)"}/>
-      </mask>
       <filter id={uid+"-paper-spread"} x="-30%" y="-30%" width="160%" height="160%">
         <feGaussianBlur stdDeviation="5.7"/>
       </filter>
@@ -140,68 +127,61 @@ export function InkAnatomicalStandingFigure({
     </defs>
     {!transparentPaper&&<rect width="540" height="1080"
       fill="#f2e6d3" data-km-ink-standing-paper-ground="true"/>}
-    {/* Soles precede the outer garment. The ground contact points do not move. */}
-    <g data-km-ink-fixed-feet="true">
-      <ellipse cx="288" cy="1026" rx="119" ry="8" fill={ink} opacity=".08"
-        filter={"url(#"+uid+"-paper-spread)"}/>
-      {([0,1] as const).map((n)=>{
-        const cx=n?349:237;
-        return <g key={n} data-km-ink-foot={n} transform={"translate("+cx+" 0)"}>
-          <path d="M-27 985 Q-23 1001 -28 1011
-            Q-34 1021 -23 1024 Q-4 1035 26 1023 Q32 1011 20 1004
-            L13 982 Z" fill="#bead95" stroke={ink} strokeWidth=".78"
-            strokeOpacity=".46"/>
-          <path d="M-28 1017 Q-4 1026 28 1018 Q32 1024 23 1029
-            Q-11 1035 -27 1026 Z" fill={ink} opacity=".43"/>
-          <path d="M-13 1000 Q1 1007 15 1011 M-24 1010 Q3 1011 25 1016"
-            stroke={ink} opacity=".43" strokeWidth="1.1" fill="none"/>
-          {Array.from({length:5},(_,i)=><path key={i}
-            d={"M"+(-21+i*7)+" 1017 q3 -"+(2+i%3)+" 7 -1"}
-            stroke={ink} strokeWidth=".38" opacity=".32" fill="none"/>)}
-        </g>;
-      })}
-    </g>
     {/* The under-robe is one topologically continuous weight-bearing fabric
         surface; hem, cuffs and shoulder are not independent stickers. */}
     <g data-km-ink-garment-structure="overlapping-cotton-ankle-robe">
-      <path d="M166 458 C127 470 91 500 80 560 Q64 625 89 691
-        Q108 723 151 739 L167 714 C165 805 159 875 179 1008
-        Q226 1024 279 1016 Q357 1035 424 1010
-        Q420 907 409 806 L431 780 Q477 737 478 654
-        Q473 528 406 462 Q366 426 312 436
-        L243 450 Q201 431 166 458 Z"
-        fill={under} stroke={ink} strokeWidth="1.5" strokeOpacity=".40"/>
-      <path d="M165 476 C136 575 153 656 177 736
-        Q194 848 179 1009 Q224 1014 275 1014
-        Q278 861 279 690 Q267 552 231 464 Z"
-        fill={robe} opacity=".66"/>
-      <path d="M316 455 C358 471 397 522 410 616
-        Q389 785 422 1008 Q367 1016 279 1014
-        Q272 830 288 662 Q296 546 316 455 Z"
-        fill={robe} opacity=".57"/>
-      <path d="M178 551 Q145 647 153 737 Q110 766 88 680
-        Q80 622 99 557 Q117 509 164 470"
-        fill={robe} stroke={ink} strokeWidth=".96" strokeOpacity=".36"/>
-      <path d="M390 478 Q434 520 453 593 Q489 668 453 739
-        Q424 784 386 777 Q408 684 408 596"
-        fill={robe} stroke={ink} strokeWidth=".83" strokeOpacity=".39"/>
-      <path d="M199 1002 Q230 996 254 1007
-        Q286 1018 311 1004 Q360 1008 401 999"
-        fill="none" stroke={ink} strokeWidth="1.34" opacity=".43"/>
-      <path d="M178 953 Q176 985 182 1010
-        M420 956 Q420 983 425 1008"
-        fill="none" stroke={ink} strokeWidth="3.3" opacity=".18"
+      <path d="M180 423 C158 434 144 464 140 505
+        Q132 566 146 624 Q157 662 178 686
+        L194 666 C183 766 174 882 183 985
+        Q269 1001 357 985 C366 883 357 766 346 666
+        L362 686 Q383 662 394 624 Q408 566 400 505
+        C396 464 382 434 360 423
+        Q326 431 294 447 L246 447
+        Q214 431 180 423 Z"
+        fill={under} stroke={ink} strokeWidth=".82" strokeOpacity=".30"/>
+      <path d="M200 447 C181 501 182 571 193 645
+        Q202 710 195 789 Q184 884 190 984
+        Q232 994 270 991 Q270 806 270 646
+        Q267 516 238 444 Z"
+        fill={robe} opacity=".35"/>
+      <path d="M300 444 C331 492 352 555 348 646
+        Q340 809 350 984 Q309 994 270 991
+        Q272 808 270 646 Q272 516 300 444 Z"
+        fill={robe} opacity=".29"/>
+      <path d="M187 449 C160 476 145 523 145 579
+        Q142 632 161 658 Q171 672 187 674
+        Q179 621 181 567 Q182 502 214 455 Z"
+        fill={robe} opacity=".42" stroke={ink} strokeWidth=".68" strokeOpacity=".25"/>
+      <path d="M353 449 C380 476 395 523 395 579
+        Q398 632 379 658 Q369 672 353 674
+        Q361 621 359 567 Q358 502 326 455 Z"
+        fill={robe} opacity=".38" stroke={ink} strokeWidth=".68" strokeOpacity=".25"/>
+      <path d="M207 430 Q239 466 270 492 Q301 466 333 430
+        L322 448 Q294 480 270 500 Q245 480 218 448 Z"
+        fill="#f3eadc" fillOpacity=".74" stroke={ink}
+        strokeWidth=".62" strokeOpacity=".24"/>
+      <path d="M211 432 C233 460 251 479 270 495
+        M330 432 C309 461 289 480 270 495"
+        fill="none" stroke={ink} strokeWidth="1.12"
+        strokeLinecap="round" opacity=".42"/>
+      <path d="M270 497 Q265 560 271 635 T276 793 T270 977"
+        fill="none" stroke={wash} strokeWidth="1.2"
+        strokeLinecap="round" opacity=".25"/>
+      <path d="M190 984 Q227 995 270 990 Q317 996 350 984"
+        fill="none" stroke={ink} strokeWidth=".94" opacity=".36"/>
+      <path d="M186 948 Q181 970 184 987 M354 948 Q359 970 356 987"
+        fill="none" stroke={ink} strokeWidth="2.2" opacity=".10"
         filter={"url(#"+uid+"-paper-spread)"}/>
       <g clipPath={"url(#"+uid+"-robe-boundary)"}>
         {/* Each fine hemp-like fiber descends along the local fabric's
             gravity flow, with individually varying load and release. */}
         {Array.from({length:82},(_,i)=>{
           const left=i<41,k=i%41,ratio=k/40;
-          const startX=left?120+ratio*155:290+ratio*167;
-          const startY=560+14*Math.sin(i*1.43)+((i*11)%41);
-          const endY=875+((i*37)%160);
-          const endX=startX+(left?-1:1)*(3+18*Math.sin(i*.37));
-          const bend=Math.sin(i*.72)*21;
+          const startX=left?164+ratio*94:270+ratio*92;
+          const startY=520+18*Math.sin(i*1.43)+((i*11)%73);
+          const endY=858+((i*37)%112);
+          const endX=startX+(left?-1:1)*(2+13*Math.sin(i*.37));
+          const bend=Math.sin(i*.72)*13;
           const op=(.07+(i%7)*.016)*detail;
           return <path key={"fiber"+i} data-km-ink-garment-flow={i}
             d={"M"+ff(startX)+" "+ff(startY)
@@ -213,7 +193,7 @@ export function InkAnatomicalStandingFigure({
             strokeLinecap="round"/>;
         })}
         {Array.from({length:46},(_,i)=>{
-          const x=175+inkHash(901,i,1)*241,y=625+inkHash(901,i,2)*350;
+          const x=183+inkHash(901,i,1)*174,y=625+inkHash(901,i,2)*334;
           const len=10+inkHash(901,i,3)*27;
           return <path key={"sweep"+i} data-km-ink-garment-dry-lift={i}
             d={"M"+ff(x)+" "+ff(y)+" q"+ff((inkHash(901,i,4)-.5)*15)
@@ -250,15 +230,33 @@ export function InkAnatomicalStandingFigure({
         microgeometry and dissolve its lower hem across >120 paper units
         into the continuous standing cotton substrate. The mask stays in
         source coordinates, not in screen space or an animated CSS texture. */}
-    <g data-km-ink-standing-seam="paper-wicked-continuous"
-      mask={"url(#"+uid+"-upper-robe-contact)"}>
-      <g transform={"translate(0 "+pose.breathe+")"}>
-        <InkAnatomicalPortrait character={character} emotion={emotion}
-          intensity={intensity} detail={detail} headScale={headScale}
-          view="source" garmentWash="cotton" transparentPaper={true}
-          x={0} y={0} width={540} height={620}
-          style={{width:540,height:620,overflow:"visible"}}/>
-      </g>
+    {/* Independently redrawn Zeng Jing / Bochen-school head study.
+        No ANAT1 face, old portrait screenshot, or walking-rig geometry is reused. */}
+    <g data-km-ink-standing-head="independent-zj1-mogu"
+      transform={"translate(0 "+pose.breathe+")"}>
+      <InkZengJingScholarHead character={character} emotion={emotion}
+        intensity={intensity} detail={detail} headScale={headScale}/>
+    </g>
+    {/* Two visible sandals sit in front of the ankle hem; soles remain fixed. */}
+    <g data-km-ink-fixed-feet="true">
+      <ellipse cx="288" cy="1026" rx="119" ry="8" fill={ink} opacity=".08"
+        filter={"url(#"+uid+"-paper-spread)"}/>
+      {([0,1] as const).map((n)=>{
+        const cx=n?349:237;
+        return <g key={n} data-km-ink-foot={n} transform={"translate("+cx+" 0)"}>
+          <path d="M-27 985 Q-23 1001 -28 1011
+            Q-34 1021 -23 1024 Q-4 1035 26 1023 Q32 1011 20 1004
+            L13 982 Z" fill="#bead95" stroke={ink} strokeWidth=".78"
+            strokeOpacity=".46"/>
+          <path d="M-28 1017 Q-4 1026 28 1018 Q32 1024 23 1029
+            Q-11 1035 -27 1026 Z" fill={ink} opacity=".43"/>
+          <path d="M-13 1000 Q1 1007 15 1011 M-24 1010 Q3 1011 25 1016"
+            stroke={ink} opacity=".43" strokeWidth="1.1" fill="none"/>
+          {Array.from({length:5},(_,i)=><path key={i}
+            d={"M"+(-21+i*7)+" 1017 q3 -"+(2+i%3)+" 7 -1"}
+            stroke={ink} strokeWidth=".38" opacity=".32" fill="none"/>)}
+        </g>;
+      })}
     </g>
     {/* A continuous waist-to-ankle set of satin-lit folds obscures the
         temporal edge where the upper and lower robes cross. */}
