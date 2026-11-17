@@ -18,7 +18,7 @@ export const INK_PORTRAIT_CHARACTERS=["scholar","elder"] as const;
 export const INK_PORTRAIT_EMOTIONS=["neutral","smile","sad","angry","surprise"] as const;
 export type InkPortraitCharacter=typeof INK_PORTRAIT_CHARACTERS[number];
 export type InkPortraitEmotion=typeof INK_PORTRAIT_EMOTIONS[number];
-export type InkPortraitView="bust"|"face";
+export type InkPortraitView="bust"|"face"|"robe";
 
 export interface InkAnatomicalPortraitProps {
   character?:InkPortraitCharacter;
@@ -730,7 +730,7 @@ export function InkAnatomicalPortrait({character="scholar",emotion="neutral",int
       data-ink-emotion={emotion} data-ink-view={view}
       className={className} xmlns="http://www.w3.org/2000/svg"
       role="img" aria-label={character+" ink portrait, "+emotion+" expression"}
-      viewBox={view==="face"?"100 112 345 419":"0 95 540 525"}
+      viewBox={view==="face"?"100 112 345 419":view==="robe"?"55 410 430 202":"0 95 540 525"}
       style={{display:"block",background:"#f3ead9",width:"100%",height:"auto"}}>
     <rect width="540" height="620" fill="#f4ebd9"/>
     <g><PaintedPortrait posed={study.posed} character={character} detail={amount}
