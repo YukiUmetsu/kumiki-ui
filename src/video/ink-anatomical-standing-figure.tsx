@@ -32,7 +32,6 @@ export interface InkAnatomicalStandingFigureProps
 }
 const ff=(x:number)=>Number(x.toFixed(3));
 const pt=(x:number,y:number,pressure:number,pace:number)=>({x,y,pressure,pace});
-const clamp=(n:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,n));
 
 /** Registered INK1 native trajectories on the *lower cotton robe* only. */
 function lowerRobeInkSpec(character:InkPortraitCharacter):InkBrushSpec {
