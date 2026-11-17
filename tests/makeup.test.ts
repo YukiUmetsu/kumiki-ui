@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { Vec3 } from "../registry/anatomy/anatomy-body";
 import faceData from "../registry/anatomy/data/face-mesh-mediapipe.json";
 import { beautifulFace } from "../registry/anatomy/face-beauty";
-import type { SkinPaintSample } from "../registry/anatomy/face-portrait";
-import { deltaE2000, filmStep, labToLinear, pigmentFor, readSkin } from "../registry/anatomy/makeup-color";
+import { renderPortrait } from "../registry/anatomy/face-portrait";
+import type { Portrait, SkinPaintSample } from "../registry/anatomy/face-portrait";
+import { srgbDecode } from "../registry/anatomy/foundation-raster";
+import { deltaE2000, filmStep, labToLinear, linearToLab, pigmentFor, readSkin } from "../registry/anatomy/makeup-color";
 import type { RGB } from "../registry/anatomy/anatomy-color";
 import { MAKEUP_LOOKS } from "../registry/anatomy/makeup-data";
 import { checkMakeup, designMakeup } from "../registry/anatomy/makeup-design";
@@ -104,6 +106,34 @@ describe("MAKEUP1 design", () => {
     expect(hooded.layers.find(l => l.zone === "crease")?.adjust?.shift?.[1]).toBeGreaterThan(0);
     expect(designMakeup({ look: "soft-glam", face, overrides: { lips: false } }).layers.some(l => l.zone === "lips")).toBe(false);
   });
+});
+
+describe("MAKEUP1 eye tools in the renderer", () => {
+  const Lstar = (p: Portrait, x: number, y: number) => {
+    const i = (Math.round(y) * p.width + Math.round(x)) * 4;
+    return linearToLab([srgbDecode(p.rgba[i] / 255), srgbDecode(p.rgba[i + 1] / 255), srgbDecode(p.rgba[i + 2] / 255)])[0];
+  };
+  it("a lens widens the iris and keeps a dilated pupil black", () => {
+    const base = { framing: "eyes" as const, width: 192, height: 96, pupil: 8, makeup: "none" as const };
+    const bare = renderPortrait(base);
+    const lens = renderPortrait({ ...base, paint: { key: "lens", shade() {}, eyes: { lens: { diameter: 14.5, ring: 0.6 } } } });
+    for (const [outer, inner, upper, lower] of [[33, 133, 159, 145], [263, 362, 386, 374]]) {
+      const lm = bare.landmarks, x0 = Math.min(lm[outer][0], lm[inner][0]), x1 = Math.max(lm[outer][0], lm[inner][0]), y0 = lm[upper][1], y1 = lm[lower][1];
+      // dark pixels (iris and pupil) inside the opening, away from the lash line
+      const dark = (p: Portrait) => {
+        let n = 0;
+        for (let y = Math.ceil(y0 + 1); y < y1 - 1; y++) for (let x = Math.ceil(x0 + 2); x < x1 - 2; x++) if (Lstar(p, x, y) < 35) n++;
+        return n;
+      };
+      expect(dark(lens)).toBeGreaterThan(1.2 * dark(bare));
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      for (const p of [bare, lens]) {
+        let m = 100;
+        for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) m = Math.min(m, Lstar(p, cx + dx, cy + dy));
+        expect(m).toBeLessThan(15);
+      }
+    }
+  }, 120000);
 });
 
 describe("MAKEUP1 paint", () => {
