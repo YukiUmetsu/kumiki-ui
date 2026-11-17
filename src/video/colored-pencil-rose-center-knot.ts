@@ -86,8 +86,8 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
   },
   {
     id:"rose-whorl-left",
-    path:"M220 163 C214 157 214 149 219 143 C223 138 230 137 235 141 C240 145 238 151 233 156 C228 162 227 168 231 174 C235 180 244 183 252 184 C241 185 229 178 222 168 C221 166 220 164 220 163 Z",
-    bounds:[212,135,42,51],
+    path:"M220 163 C214 157 214 149 219 143 C223 138 230 137 235 141 C240 145 238 151 233 156 C228 162 227 168 231 174 C235 180 250 184 266 179 C253 191 233 181 222 168 C221 166 220 164 220 163 Z",
+    bounds:[212,135,55,57],
     palette:["#A84B62","#55213D","#C9798B"],
     direction:54,flow:27,
     dryContours:contacts("rose-whorl-left",[
@@ -131,8 +131,8 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
   },
   {
     id:"rose-whorl-scroll",
-    path:"M235 174 C229 167 230 158 236 151 C242 144 250 143 257 147 C263 151 265 158 260 164 C255 170 246 176 238 178 C236 177 235 175 235 174 Z",
-    bounds:[226,143,39,36],
+    path:"M235 174 C229 167 230 158 236 151 C242 144 250 143 257 147 C263 151 265 158 260 164 C257 169 252 173 247 176 C251 180 258 182 265 179 C261 186 248 187 240 182 C236 180 235 176 235 174 Z",
+    bounds:[226,143,40,45],
     palette:["#A94C64","#55213D","#D27A8D"],
     direction:35,flow:22,
     dryContours:contacts("rose-whorl-scroll",[
