@@ -57,6 +57,25 @@ New Storybook: **96-frame real Shanshui composition · new ANAT2 actor (ART HOLD
 
 **Unresolved artistic acceptance:** This is *only* a medium-scale compositing comparison. The historical 1× and 3× silhouette fidelity, cloth-to-landscape optical contact, actual performer rig adaptation (head turn, blink, gait and explicit syllable visemes) and normal-speed 96-frame encoded film review are **not yet approved**. A passing Storybook or unit test does not clear the ART HOLD. An actual independent photo reference crop must be compared to the latest exact-head native screenshots before replacing an existing film character.
 
+## Exact native optical QA: newly composed actor still rejected
+
+Re-inspected **actual Playwright 1× face and full-film PNGs** from [workflow run 44144504247](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44144504247) ([browser screenshot artifact 14356603079](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44144504247/artifacts/14356603079)). The contact sheet included both characters' five expressions, true face microscope, native fold microscope and **three 960×540 Shanshui actor frames**. The browser and unit checks passed for that prior head; **art quality still failed**.
+
+Concrete visible issues:
+- The old figure was a billboard-sized **disembodied face floating in the upper-right sky** behind pine branches; the original figure's shoulders did not resolve into the lower bank.
+- Midface contained **two conspicuously polygonal under-eye-to-alar wedges** giving an exaggerated swollen nose; the reference Zeng Jing near-transparent facial washes have no such crisp triangular boundaries.
+- Elder beard read as a **mouth-to-chin triangular decal / barcode of similarly vertical hairs**. Several beard roots did not visually follow the chin and lower lip. Its color and edges were much too hard at 1×.
+- The scholar headcloth was still a **short modern trapezoid/beret** rather than the relatively tall, squared, softly folded headpiece in the 1621 portrait.
+- Eyelid, gaze and oral-fissure action are different between emotions, but the expression atlas still reads as conventional flat vector character art rather than real brushed figure painting. Garment and landscape are also not at period source standard.
+
+Corrections made immediately from **specific native rendered failures** (not abstract structural test passing):
+1. The ANAT1 zygomatic wet-bone and warm maxillary washes were redrawn as **curved orbital-malared brush-pressure deposits**, feathered separately; the hard cheek fill polygons were removed without dropping nine detailed microstrokes per cheek.
+2. The elder's under-chin pigment is now a **localized porous foundation** rather than a mouth-to-chin filled triangle, with **93 independently attached curving hairs arranged across five tapered beard families**. All five separate lock silhouettes and 18 oral-root moustache fibers remain.
+3. The scholar's fabric cap and the elder's headcloth rise farther above the forehead, with full-height, nonuniform ink-fiber contacts; no photographic outlines were traced.
+4. Reframed the optional 96-frame 960×540 actor from **left 566/top 160/width 350** to **left 611/top 253/width 259**, bringing the upper body lower into the near riverbank and preventing a monumental forehead occluding the sky. Foreground occlusion and deterministic 24-fps cue remain untouched.
+
+**Pending new visual gate:** all fixes need new exact-head native Chromium raster comparison. A rendered PNG and clean CI are not acceptance in themselves. Production Shanshui figures were never replaced.
+
 ## Actual acceptance gates
 
 1. Storybook **ANAT2 Independent Portrait Rebuild**: both character controls, five facial expressions, face microscope, 0–100% expression intensity, fibre detail and 24-fps motion slider work in Chromium. Check that eyebrows and mouth change from the *same* face, not cutout stickers; 0 and 96 return identical SVG geometry.
