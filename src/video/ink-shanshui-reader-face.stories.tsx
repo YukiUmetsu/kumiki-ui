@@ -14,6 +14,9 @@ import type {ReaderInkEmotion,ReaderInkLids,ReaderInkMouth,
   ReaderInkExpressionStudy} from "./ink-shanshui-reader-expression";
 import {readerFaceAnatomy,READER_FACE_ANAT1_POINTS} from
   "./ink-shanshui-reader-anatomy";
+import {readerInkPortraitGlazes,READER_INK_GLAZE_REGIONS} from
+  "./ink-shanshui-reader-glazes";
+import type {ReaderInkGlazeRegion} from "./ink-shanshui-reader-glazes";
 import type {CharacterPathShape} from "../../registry/character/definition";
 import {READER_CROWN_STRUCTURE,readerCrownRegions} from "./ink-shanshui-reader-crown";
 type Eyes="open"|"soft"|"closed";
@@ -32,6 +35,7 @@ function ReaderFaceStudio(){
   const [showPoints,setShowPoints]=useState(false);
   const [crownRegion,setCrownRegion]=useState("all");
   const [anatomyReview,setAnatomyReview]=useState<AnatomyReview>("full");
+  const [glazeRegion,setGlazeRegion]=useState<ReaderInkGlazeRegion|"all">("all");
   const [source,setSource]=useState<string|undefined>();
   const [error,setError]=useState<string|undefined>();
   useEffect(()=>()=>{if(source)URL.revokeObjectURL(source)},[source]);
@@ -45,6 +49,20 @@ function ReaderFaceStudio(){
   const parts=shanshuiFaceAssets("river-scholar",detail);
   const crown=readerCrownRegions(detail);
   const volume=readerFaceAnatomy(detail);
+  const glazes=readerInkPortraitGlazes({
+    nearCanthus:READER_FACE_ANAT1_POINTS["endocanthion.R"],
+    farCanthus:READER_FACE_ANAT1_POINTS["endocanthion.L"],
+    sellion:READER_FACE_ANAT1_POINTS.sellion,
+    noseTip:READER_FACE_ANAT1_POINTS.pronasale,
+    nearCheek:READER_FACE_ANAT1_POINTS["zygion.R"],
+    farCheek:READER_FACE_ANAT1_POINTS["zygion.L"],
+    chin:READER_FACE_ANAT1_POINTS.menton,
+  },detail);
+  // The original ANAT1 planes are unchanged in path count and drawing
+  // order. The additional source glaze passes are appended to that array.
+  const originalPlaneCount=volume.planes.length-
+    Object.values(glazes).reduce((sum,shapes)=>sum+shapes.length,0);
+  const originalPlanes=volume.planes.slice(0,originalPlaneCount);
   const faceBase=parts.face.kind==="shapes"?
     parts.face.shapes.filter((shape):shape is CharacterPathShape=>
       shape.type==="path"&&shape.fill==="$skin").slice(-1):[];
@@ -166,6 +184,15 @@ function ReaderFaceStudio(){
           <option value="full">Skin planes + facial features</option>
           <option value="wash">Soft ink planes only</option>
           <option value="bones">ANAT1 eyes, nose, mouth only</option>
+        </select>
+      </label>
+      <label style={{display:"grid",gap:5}}>Historic face glaze inspection
+        <select aria-label="Face glaze region" value={glazeRegion}
+          style={style} onChange={e=>setGlazeRegion(
+            e.target.value as ReaderInkGlazeRegion|"all")}>
+          <option value="all">All six original-source regions</option>
+          {READER_INK_GLAZE_REGIONS.map(id=><option key={id} value={id}>
+            {id}</option>)}
         </select>
       </label>
       <label style={{display:"grid",gap:5}}>Crown structural region
@@ -311,6 +338,53 @@ function ReaderFaceStudio(){
           foreshortening; this is not a generic mirrored frontal mask.
           All guide landmarks use Kumiki ANAT1 anatomical naming.
         </p>
+      </section>
+      <section data-testid="reader-ink-glaze-comparison">
+        <h2 style={{font:"500 18px Georgia,serif"}}>
+          ArtCraft · Ming portrait orbital and cheek glaze proof
+        </h2>
+        <p style={{fontSize:12,lineHeight:1.5,color:"#715d48"}}>
+          Two views of the SAME source-fitted ANAT1 portrait. Original
+          structural washes on the left; translucent Zeng Jing-inspired
+          multi-pass paper-value glazes on the right. Select a source region
+          to inspect optical depth, not an invented smooth gradient.
+        </p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",
+          gap:8}}>
+          {([false,true] as const).map(layered=><figure key={String(layered)}
+            style={{margin:0,minWidth:0}}>
+            <svg data-km-ink-glaze-variant={layered?"layered":"original"}
+              role="img"
+              aria-label={layered?"Reader with live original-source ink glazes":
+                "Reader with retained ANAT1 structural ink washes"}
+              viewBox={fittedFaceWindow([108,78,168,147],3.6,3.5)}
+              style={{width:"100%",height:245,background:"#f7eedc"}}>
+              <g transform={pose(fit.headRest,139,124)}>
+                <g data-km-ink-glaze-base="">
+                  {anatomyMarks(faceBase)}
+                  {anatomyMarks(originalPlanes)}
+                </g>
+                {layered&&READER_INK_GLAZE_REGIONS.map(id=>
+                  <g key={id} data-km-ink-glaze-region={id}
+                    opacity={glazeRegion==="all"||glazeRegion===id?1:.09}>
+                    {anatomyMarks(glazes[id])}
+                  </g>)}
+                {anatomyMarks(volume.nose)}
+                {facePart("brows","brow",[140,94])}
+                {facePart("eyes","eyes-"+eyes,[140,102])}
+                {eyes!=="closed"&&<>
+                  {facePart("pupil-left","pupil-left",[128,102])}
+                  {facePart("pupil-right","pupil-right",[156,102])}
+                </>}
+                {facePart("mouth","mouth-"+mouth,[142,124])}
+              </g>
+            </svg>
+            <figcaption style={{fontSize:12,color:"#725b44",marginTop:4}}>
+              {layered?"Layered · six anatomical regions":
+                "Original · preserved source planes"}
+            </figcaption>
+          </figure>)}
+        </div>
       </section>
       <section>
         <h2 style={{font:"500 18px Georgia,serif"}}>
