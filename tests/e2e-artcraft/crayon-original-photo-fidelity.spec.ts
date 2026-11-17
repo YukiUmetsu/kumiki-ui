@@ -6,6 +6,9 @@ import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import {crayonCc0FaceStudy} from "../../src/video/crayon-artcraft-cc0-face";
+import {crayonF1NativeCaptureWorksheetV60}
+  from "../../src/video/crayon-artcraft-f1-candidate-landmarks-v59";
+import {execFileSync} from "node:child_process";
 
 /** ArtCraft V55: source-photograph proof is an INDEPENDENT real pixel
  * measurement, not a synthetic portrait or a V54 screenshot compared to
@@ -199,6 +202,38 @@ test("F1 V58 original CC0 22-station hair silhouette source image and V56 V57",a
     writeFileSync(info.outputPath("v58-photo-native-"+label+"-299.png"),image);
     captures[label]=Buffer.from(image).toString("base64");
   }
+  // V60: attach a byte-authenticated actual native screenshot to the
+  // previously blank independent 18-landmark observation worksheet.
+  // This is NOT the 18 independently observed landmarks themselves.
+  const checkoutSha=process.env.GITHUB_SHA??
+    execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
+  const nativeCaptures=Object.fromEntries(
+    (["V56","V57"] as const).map(label=>{
+      const png=Buffer.from(captures[label],"base64");
+      const variant=label==="V56"?"source-anat1-hair-top-v56" as const:
+        "source-anat1-hair-edge-v57" as const;
+      const record=crayonF1NativeCaptureWorksheetV60({
+        variant,
+        nativePngSha256:createHash("sha256").update(png).digest("hex"),
+        checkoutCommitSha:checkoutSha,
+        pngFileName:"v58-photo-native-"+label+"-299.png",
+      });
+      // Unlike an unverified hand-entered hash, this manifest is constructed
+      // from the exact captured Chromium PNG bytes written above.
+      expect(record.native.sha256)
+        .toBe(createHash("sha256").update(png).digest("hex"));
+      expect(record.source.sha256).toBe(REFERENCE_SHA);
+      expect(record.audit.measured).toBe(0);
+      expect(record.audit.missing).toHaveLength(18);
+      expect(record.releaseApproved).toBe(false);
+      writeFileSync(info.outputPath(
+        "v60-native-candidate-"+label+"-299.json"),
+        JSON.stringify(record,null,2)+"\n");
+      return [label,{sha256:record.native.sha256,
+        pngFileName:record.native.fileName,
+        manifestFileName:"v60-native-candidate-"+label+"-299.json"}];
+    }),
+  );
   const stations=[10,25,40,60,80,100,125,150,175,200,225,250,275,
     300,325,350,375,400,425,450,475,500] as const;
   const knownOriginal=[288,272,261,243,232,215,211,191,185,189,198,197,
@@ -339,6 +374,7 @@ test("F1 V58 original CC0 22-station hair silhouette source image and V56 V57",a
     metricsVersion:"uniform7x7-rgb-local-ssim-stride3-unbiased-covariance",
     silhouetteVersion:"9px-column-22row-brown-vs-green-sustained-70pct",
     topMaeV56,topMaeV57,edge,metrics,
+    v60NativeCaptureProvenance:nativeCaptures,
   };
   writeFileSync(info.outputPath("v58-original-photo-hair-top-audit.json"),
     JSON.stringify(report,null,2)+"\n");
