@@ -16,7 +16,6 @@ test("native 16:9 and 9:16 rose corolla: five source contour changes and opaque 
   for(const aspect of ["landscape","portrait"] as const){
     await page.getByRole("combobox",{name:"Foundation aspect"}).selectOption(aspect);
     await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
-    const baselineHtml=await svg.evaluate(node=>node.outerHTML);
     const baseline=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-"+aspect+"-pre-fold-source.png")});
     await volume.check();
@@ -53,7 +52,11 @@ test("native 16:9 and 9:16 rose corolla: five source contour changes and opaque 
     await page.getByRole("checkbox",{name:"Foundation rose calyx anatomy"}).uncheck();
     await volume.uncheck();
     await expect(scene).toHaveAttribute("data-km-rose-physical-folds","baseline");
-    expect(await svg.evaluate(node=>node.outerHTML)).toBe(baselineHtml);
+    // React may reorder equivalent SVG attributes on a re-render.
+    // Verify actual original film output instead of attribute serialization.
+    const restored=await svg.screenshot({animations:"disabled",
+      path:info.outputPath("rose-"+aspect+"-restored-source.png")});
+    expect(digest(restored)).toBe(digest(baseline));
   }
   await volume.check();
   await page.getByRole("button",{name:/3\. Light value map/}).click();
