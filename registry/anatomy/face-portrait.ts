@@ -61,6 +61,16 @@ export interface PortraitOptions extends BeautyOptions {
   age?: number;
   /** Freckles across the nose and cheeks, 0 … 1. */
   freckles?: number;
+  /** Exposure multiplier before tone mapping (1 by default). */
+  exposure?: number;
+  /**
+   * Makeup as in portrait photography: "natural" (soft eyeshadow, a fine liner, mascara, a little blush, contour and
+   * highlight, rosy lips, filled brows), "glamour" (a winged liner, deeper shadow, stronger contour, red lips) or
+   * "none". Default: "natural" for women, "none" for men (whose brows are still groomed).
+   */
+  makeup?: "none" | "natural" | "glamour";
+  /** Lipstick colour (sRGB hex) instead of the makeup's. */
+  lipstick?: string;
   /** "eyes" frames a close-up of both eyes and brows (the camera closer in, the same light). */
   framing?: "portrait" | "eyes";
   /** Hair melanin (eumelanin 0.3 blonde … 1.3 brown … 8 black; pheomelanin for red). */
@@ -196,7 +206,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   }
   // neck: an elliptic cylinder behind the jaw
   // The throat sits about 34 mm behind the chin; the neck's sides lie behind the jaw angles.
-  const neckRx = 45 + 9 * sex, neckRz = 42 + 7 * sex, neckCz = me[2] - 34 - neckRz, neckTop = tragionY - 10, neckBot = me[1] - 175;
+  const neckRx = 45 + 9 * sex, neckRz = 42 + 7 * sex, neckCz = me[2] - 34 - neckRz, neckTop = tragionY - 10, neckBot = me[1] - 105;
   {
     const NU = 48, NV = 14, base = P.length / 3;
     for (let j = 0; j <= NV; j++) for (let i = 0; i < NU; i++) {
@@ -217,7 +227,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
       // the trapezius slopes from the side of the neck to the shoulder; the garment's neckline dips in front
       const u = i / NU * 2 - 1, x = u * shoulderHalf, ax2 = Math.abs(x), trap = ax2 < neckRx ? 0 : 0.22 * (ax2 - neckRx) + 0.0009 * Math.max(0, ax2 - neckRx - 60) ** 2;
       const neckline = ax2 < neckRx * 1.5 ? scoop * Math.cos((x / (neckRx * 1.5)) * Math.PI / 2) ** 2 : 0;
-      const yTop = shoulderY + 18 - trap - neckline, y = yTop - (j / NV) * 160, zc = chestCz + 70 * Math.sqrt(Math.max(0, 1 - u * u)) - 20;
+      // the chest comes forward of the neck below the neckline (the neck ends under the garment, not in front of it)
+      const yTop = shoulderY + 18 - trap - neckline, y = yTop - (j / NV) * 160, zc = chestCz + (neckRz + 40) * Math.sqrt(Math.max(0, 1 - u * u)) - 20;
       addVert(x, y, zc, norm3([u * 0.9, j === 0 ? 0.6 : 0.05, Math.sqrt(Math.max(0.05, 1 - u * u))]));
     }
     for (let j = 0; j < NV; j++) for (let i = 0; i < NU; i++) {
@@ -260,11 +271,13 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const gbuf = rasterizeTriangles(w, h, SX, SY, SZ, tris);
   // ---- Lights (toward the light, camera space) ----------------------------------------------------------------------------------
   // Default keys from portrait practice: Paramount/loop (high, near the camera axis) for women, loop/Rembrandt for men.
-  const kaz = ((o.keyAzimuth ?? (-22 - 16 * sex)) * Math.PI) / 180, kel = ((o.keyElevation ?? (40 - 6 * sex)) * Math.PI) / 180;
+  // (the key a little to the side models the face's planes: the cheekbone lit, the far cheek and the jaw in shadow)
+  const kaz = ((o.keyAzimuth ?? (-30 - 12 * sex)) * Math.PI) / 180, kel = ((o.keyElevation ?? (42 - 6 * sex)) * Math.PI) / 180;
   const Lkey = norm3([Math.sin(kaz) * Math.cos(kel), Math.sin(kel), Math.cos(kaz) * Math.cos(kel)]);
   const Lfill = norm3([0.62, -0.05, 0.78]), Lrim = norm3([0.75, 0.35, -0.55]), Lsky: Vec3 = [0, 1, 0];
-  // A portrait ratio: fill about a fifth of the key, a cool sky, a warm bounce from below, a rim from behind.
-  const keyI: RGB3 = [3.0, 2.86, 2.72], fillI: RGB3 = [0.3, 0.32, 0.36], rimI: RGB3 = [0.95, 0.94, 0.98], skyI: RGB3 = [0.2, 0.215, 0.25], bounceI: RGB3 = [0.1, 0.085, 0.07];
+  // A studio portrait's ratio: a soft key, a fill about a tenth of it so the shadow side keeps its shape, a cool sky, a
+  // warm bounce from below, a rim from behind.
+  const keyI: RGB3 = [3.0, 2.86, 2.72], fillI: RGB3 = [0.17, 0.18, 0.205], rimI: RGB3 = [0.95, 0.94, 0.98], skyI: RGB3 = [0.15, 0.16, 0.19], bounceI: RGB3 = [0.1, 0.085, 0.07];
   const camPos: Vec3 = [0, yc, D];
   // ---- Depth maps along directions: the key light's shadow and ambient occlusion ------------------------------------------------
   const occluderTris = tris.filter((_, i) => triMat[Math.floor(i / 3)] !== 1 || true), shadowHalf = Math.max(headTop - me[1] + 120, 2 * shoulderHalf) / 2 + 10;
@@ -284,15 +297,29 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   }
   // the key's shadow map: finer for a close-up (about 0.25 mm per texel on the face) than for a portrait
   const shadow = depthMap(Lkey, o.framing === "eyes" ? 1600 : 900);
-  // The key is a softbox: its shadows have soft edges. Sixteen Poisson-disc taps over about 1 mm of the face.
+  // The key is a softbox of about 20° seen from the face: a shadow's edge widens with the distance from the surface
+  // that casts it (about 0.35 of it), sharp where the shadow touches its caster and soft at the end of the nose's
+  // shadow (percentage-closer soft shadows: a blocker search, then sixteen Poisson-disc taps, turned per point).
   const POISSON: [number, number][] = [[-0.94, -0.4], [0.95, -0.77], [-0.09, -0.93], [0.34, 0.29], [-0.92, 0.46], [-0.82, 0.15], [0.97, 0.76], [0.44, -0.25], [0.53, 0.6], [-0.26, 0.6], [0.66, -0.44], [-0.48, -0.75], [0.2, -0.53], [-0.33, -0.05], [-0.06, 0.94], [0.27, 0.86]];
   const penumbra = 1.0 / ((2 * shadowHalf) / shadow.res);
+  const texMm = (2 * shadowHalf) / shadow.res, search = 6 / texMm;
   const lit = (p: Vec3, bias: number) => {
-    const [x, y, z] = shadow.lookup(p); let s = 0;
-    for (const [u, v] of POISSON) {
-      const xi = Math.floor(x + u * penumbra), yi = Math.floor(y + v * penumbra);
-      if (xi < 0 || yi < 0 || xi >= shadow.res || yi >= shadow.res) { s++; continue; }
-      if (!(shadow.buf.depth[yi * shadow.res + xi] > z + bias)) s++;
+    const [x, y, z] = shadow.lookup(p), res = shadow.res, dep = shadow.buf.depth;
+    const a = (Math.sin(p[0] * 12.9898 + p[1] * 78.233 + p[2] * 37.719) * 43758.5453) % 1 * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
+    let nb = 0, sumD = 0;
+    for (const [u0, v0] of POISSON) {
+      const u = u0 * ca - v0 * sa, v = u0 * sa + v0 * ca, xi = Math.floor(x + u * search), yi = Math.floor(y + v * search);
+      if (xi < 0 || yi < 0 || xi >= res || yi >= res) continue;
+      const d = dep[yi * res + xi];
+      if (d > z + bias) { nb++; sumD += d - z; }
+    }
+    if (nb === 0) return 1;
+    const pen = Math.min(7, Math.max(penumbra * texMm, (0.35 * sumD) / nb)) / texMm;
+    let s = 0;
+    for (const [u0, v0] of POISSON) {
+      const u = u0 * ca - v0 * sa, v = u0 * sa + v0 * ca, xi = Math.floor(x + u * pen), yi = Math.floor(y + v * pen);
+      if (xi < 0 || yi < 0 || xi >= res || yi >= res) { s++; continue; }
+      if (!(dep[yi * res + xi] > z + bias)) s++;
     }
     return s / POISSON.length;
   };
@@ -355,7 +382,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
         acc[i] += vis * c; wsum[i] += c;
       }
     }
-    for (let i = 0; i < nV; i++) ao[i] = wsum[i] > 0 ? 0.3 + 0.7 * Math.pow(acc[i] / wsum[i], 1.3) : 1;
+    for (let i = 0; i < nV; i++) ao[i] = wsum[i] > 0 ? 0.16 + 0.84 * Math.pow(acc[i] / wsum[i], 1.6) : 1;
   }
   // ---- Skin colour zones per face vertex (neutral face, so they move with the expression) --------------------------------------
   const skinHex = o.skin ?? "#d8a98a";
@@ -388,9 +415,12 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   }
   // ---- Screen-space masks: lips, eye openings, mouth opening ---------------------------------------------------------------------
   const pv = (i: number): [number, number] => [SX[i], SY[i]];
-  const lipPoly = [...LOOP("lips-upper").map(pv), ...LOOP("lips-lower").slice().reverse().map(pv)];
+  // the lips' outline: a smooth curve through the mesh's lip points, the upper and the lower lip each from corner to
+  // corner (so the corners stay sharp and the lower lip is round, not a polygon), with a soft edge
+  const lipPoly = [...catmullRom(LOOP("lips-upper").map(pv)), ...catmullRom(LOOP("lips-lower").slice().reverse().map(pv))];
   const lipMask = new Float32Array(w * h);
   fillPolygon(w, h, lipPoly, (i, c) => (lipMask[i] = c));
+  lipMask.set(gaussianBlur(lipMask, w, h, 1, 0.22 / mmPerPx));
   // remove the mouth opening from the lip mask
   const mouthPoly = [...expand(INNER_UPPER_LIP).map(pv), ...expand(INNER_LOWER_LIP).slice().reverse().map(pv)], mouthMask = new Float32Array(w * h);
   fillPolygon(w, h, mouthPoly, (i, c) => (mouthMask[i] = c));
@@ -405,7 +435,14 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const wrk = { browY: (LM("brow-mid.L", N0)[1] + LM("brow-mid.R", N0)[1]) / 2, hairlineY: face.hairlineY, eyeY: pupilY, outerCorner: Math.abs(LM("exocanthion.L", N0)[0]), neckTop: me[1] - 25,
     alar: [Math.abs(LM("alare.L", N0)[0]), LM("alare.L", N0)[1]] as [number, number], mouth: [Math.abs(LM("cheilion.L", N0)[0]), LM("cheilion.L", N0)[1]] as [number, number] };
   const neckRegion = findSkinRegion("neck"), frk = { noseY: LM("pronasale", N0)[1], cheekY: (LM("cheekbone.L", N0)[1] + LM("cheekbone.R", N0)[1]) / 2 + 2, halfWidth: zyHalf };
-  const lipLin: RGB3 = [lipBase[0] * (1.02 - 0.06 * sex), lipBase[1] * (0.68 + 0.12 * sex), lipBase[2] * (0.72 + 0.1 * sex)];
+  const makeup = o.makeup ?? (sex < 0.5 ? "natural" : "none"), mk = makeup === "glamour" ? 1 : makeup === "natural" ? 0.55 : 0;
+  // natural lips: rosier and deeper than the skin round them; lipstick mixed over them
+  //   (men's lips nearer the skin's colour, and darker skin's lips browner: they carry its melanin too)
+  const skinLum = 0.2126 * baseLin[0] + 0.7152 * baseLin[1] + 0.0722 * baseLin[2], rosy = (1 - 0.55 * sex) * (0.5 + 0.5 * smoothstep(0.04, 0.25, skinLum));
+  const lipMel = mixC(lipBase, [baseLin[0] * 0.8, baseLin[1] * 0.62, baseLin[2] * 0.68], 0.75 * (1 - smoothstep(0.04, 0.25, skinLum)));
+  const lipNat: RGB3 = mixC(lipMel, [lipMel[0], lipMel[1] * 0.6, lipMel[2] * 0.66], rosy);
+  const stick = linearOf(o.lipstick ?? (makeup === "glamour" ? "#9e1c26" : "#b0545c"));
+  const lipLin: RGB3 = mixC(lipNat, stick, o.lipstick ? 0.85 : makeup === "glamour" ? 0.85 : makeup === "natural" ? 0.45 : 0);
   const ggx = (n: Vec3, v: Vec3, l: Vec3, a: number) => {
     const hv = norm3([v[0] + l[0], v[1] + l[1], v[2] + l[2]]), nh = Math.max(0, dot3(n, hv)), nl = Math.max(0, dot3(n, l)), nv = Math.max(1e-3, dot3(n, v)), vh = Math.max(0, dot3(v, hv));
     const a2 = a * a, dd = nh * nh * (a2 - 1) + 1, Dd = a2 / (Math.PI * dd * dd), k = a / 2, G = (nl / (nl * (1 - k) + k)) * (nv / (nv * (1 - k) + k)), F = 0.028 + (1 - 0.028) * Math.pow(1 - vh, 5);
@@ -469,7 +506,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     } else if (mat === 2) alb = mixC(baseLin, linearOf(skinZoneColor(skinHex, "cheeks")), 0.12);
     if (mat === 1) { alb = mixC(baseLin, zoneCol[0], 0.7); tz = 0.25 + 0.75 * 0.7 * (1 - smoothstep(10, 45, Math.abs(ph[0]))) * (1 - cover); }
     if (cover > 0) alb = mixC(alb, rootCol, cover);
-    if (partW > 0) alb = mixC(alb, [alb[0] * 0.62, alb[1] * 0.58, alb[2] * 0.56], partW);
+    // the scalp in a parting lies in the shade of the hair on both sides of it: a thin, dull line, not a bright seam
+    if (partW > 0) alb = mixC(alb, [alb[0] * 0.42, alb[1] * 0.38, alb[2] * 0.36], partW);
     // uneven tone: broad blotches of redness and pigment (a few centimetres), finer mottling, more with age
     const mott = 1 + (0.035 + 0.02 * Math.max(0, ((o.age ?? 30) - 30) / 40)) * fbm(seed, p[0] / 5, p[1] / 5, 3) + 0.012 * fbm(seed + 9, p[0] / 1.2, p[1] / 1.2, 2) + 0.025 * fbm(seed + 13, p[0] / 22, p[1] / 22, 2);
     const lipW = lipMask[i] * (1 - mouthMask[i]);
@@ -482,11 +520,12 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     const micro: RGB3 = [1 - skinDark * 0.8 + skinRed * 0.06, 1 - skinDark - skinRed * 0.05, 1 - skinDark * 1.05 - skinRed * 0.06];
     for (let k = 0; k < 3; k++) Alb[i * 3 + k] = (alb[k] * (1 - lipW) + lipLin[k] * lipW * lipShade) * mott * lines * micro[k] * (1 - frC * [0.3, 0.42, 0.52][k] * (1 - lipW));
     // Specular: oilier T-zone, glossier lips; the key and rim lights and a soft sky reflection.
-    const rough = 0.42 - 0.12 * tz - 0.18 * lipW, sstr = (0.9 * (0.55 + 0.6 * tz) * skinSheen + 1.4 * lipW) * (1 - cover);
+    const rough = 0.42 - 0.12 * tz - (0.18 + 0.08 * mk) * lipW, sstr = (0.9 * (0.55 + 0.6 * tz) * skinSheen * (1 - 0.25 * mk) + (1.4 + 1.2 * mk) * lipW) * (1 - cover);
     const sk = ggx(n, v, Lkey, rough) * Math.max(0, nlKey) * sKey, sr = ggx(n, v, Lrim, rough) * Math.max(0, nlRim), sf = ggx(n, v, Lfill, rough + 0.1) * Math.max(0, nlFill);
     const fres = 0.028 + 0.972 * Math.pow(1 - Math.max(0, dot3(n, v)), 5);
     for (let k = 0; k < 3; k++) Spec[i * 3 + k] = (keyI[k] * sk + rimI[k] * sr + fillI[k] * sf) * sstr + skyI[k] * fres * occ * 0.35;
   }
+  if (mk > 0 || sex < 0.5) applyFaceMakeup({ w, h, Alb, Spec, skinM, mk, sex, mmPerPx, pv, LMi: (k: FaceLandmark) => FACE_LANDMARKS[k], LOOP, expand, seed, eyeShape: face.eyeShape ?? EYE_SHAPES[0] });
   if (o.debug) {
     const dbg = createRaster(w, h, [0, 0, 0], 1);
     for (let i = 0; i < w * h; i++) {
@@ -549,20 +588,35 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   for (const s of ["L", "R"] as const) {
     // Seen from the front the nostrils are small dark crescents beside the columella, partly hidden by the tip.
     const al = LM(`alare.${s}` as FaceLandmark), sub = LM("subnasale"), c = rotH([(al[0] * 0.42 + sub[0] * 0.58), sn[1] + 2.2, (al[2] + sub[2]) / 2 + 2]);
-    const [cx, cy] = proj(c[0], c[1], c[2]), rx = 2.6 / mmPerPx, ry = 1.1 / mmPerPx;
+    const [cx, cy] = proj(c[0], c[1], c[2]), rx = 2.1 / mmPerPx, ry = 0.85 / mmPerPx;
     for (let y = Math.floor(cy - ry * 2); y <= cy + ry * 2; y++) for (let x = Math.floor(cx - rx * 2); x <= cx + rx * 2; x++) {
       if (x < 0 || y < 0 || x >= w || y >= h) continue;
-      const d = Math.hypot((x - cx) / rx, (y - cy + Math.abs(x - cx) * 0.25) / ry), k = 1 - 0.45 * smoothstep(1.2, 0.5, d);
+      const d = Math.hypot((x - cx) / rx, (y - cy + Math.abs(x - cx) * 0.25) / ry), k = 1 - 0.3 * smoothstep(1.2, 0.5, d);
       const i = y * w + x; for (let q = 0; q < 3; q++) out.rgb[i * 3 + q] *= k;
     }
   }
-  // the vermilion border: a fine light line above the upper lip (the "white roll") and a soft edge to the lips
+  // where closed lips meet: a dark line (the shadow inside the mouth), darkest in the middle
   {
-    const border: [number, number][] = LOOP("lips-upper").map(i => { const r = rotH([V0[i][0], V0[i][1] + 0.5, V0[i][2] + 0.2]); return proj(r[0], r[1], r[2]); });
-    strokePolyline(out, border, 0.7 / mmPerPx, 0.5 / mmPerPx, [out.rgb[0] * 0 + 0.9, 0.78, 0.7], 0.12);
-    // the philtrum: two faint columns from the nose to the cupid's bow, with a soft groove between
+    const inner = expand(INNER_UPPER_LIP).map(pv), lower = expand(INNER_LOWER_LIP).map(pv);
+    const gap = Math.max(...inner.map((q, k) => Math.abs((lower[Math.min(k, lower.length - 1)] ?? q)[1] - q[1]))) * mmPerPx;
+    if (gap < 2.5) {
+      const ml = createRaster(w, h);
+      strokePolyline(ml, inner, 0.55 / mmPerPx, 0.4 / mmPerPx, [0, 0, 0], 1);
+      const soft = gaussianBlur(ml.alpha, w, h, 1, 0.35 / mmPerPx);
+      const cx = (inner[0][0] + inner[inner.length - 1][0]) / 2, half = Math.abs(inner[inner.length - 1][0] - inner[0][0]) / 2 || 1;
+      for (let i = 0; i < w * h; i++) if (soft[i] > 0.01) { const x = i % w, k = 1 - 0.62 * soft[i] * (1 - 0.45 * ((x - cx) / half) ** 2); out.rgb[i * 3] *= k + 0.08 * (1 - k); out.rgb[i * 3 + 1] *= k; out.rgb[i * 3 + 2] *= k; }
+    }
+  }
+  // the vermilion border: a fine light line above the upper lip (the "white roll"), and the philtrum: two faint
+  // columns from the nose to the cupid's bow; both catch a little more light than the skin beside them
+  {
+    const hl = createRaster(w, h);
+    const border: [number, number][] = catmullRom(LOOP("lips-upper").map(i => { const r = rotH([V0[i][0], V0[i][1] + 0.5, V0[i][2] + 0.2]); return proj(r[0], r[1], r[2]); }));
+    strokePolyline(hl, border, 0.7 / mmPerPx, 0.5 / mmPerPx, [1, 1, 1], 1);
     const ls = LM("labiale-superius"), sub = LM("subnasale");
-    for (const dx of [-3.2, 3.2]) { const a1 = rotH([sub[0] + dx * 0.7, sub[1] - 1.5, sub[2] - 1]), b1 = rotH([ls[0] + dx, ls[1] + 1, ls[2] + 0.5]); strokePolyline(out, [proj(a1[0], a1[1], a1[2]), proj(b1[0], b1[1], b1[2])], 1.6 / mmPerPx, 2.2 / mmPerPx, [0.95, 0.8, 0.72], 0.08); }
+    for (const dx of [-3.2, 3.2]) { const a1 = rotH([sub[0] + dx * 0.7, sub[1] - 1.5, sub[2] - 1]), b1 = rotH([ls[0] + dx, ls[1] + 1, ls[2] + 0.5]); strokePolyline(hl, [proj(a1[0], a1[1], a1[2]), proj(b1[0], b1[1], b1[2])], 1.6 / mmPerPx, 2.2 / mmPerPx, [1, 1, 1], 0.5); }
+    const soft = gaussianBlur(hl.alpha, w, h, 1, 0.35 / mmPerPx);
+    for (let i = 0; i < w * h; i++) if (soft[i] > 0.01 && skinM[i]) { const k = 1 + 0.07 * soft[i]; for (let q = 0; q < 3; q++) out.rgb[i * 3 + q] *= k; }
   }
   // the alar crease round each nose wing, where the nose meets the cheek
   for (const s2 of ["L", "R"] as const) {
@@ -584,12 +638,12 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   // brows and lashes
   const browCol: RGB3 = [hairCol[0] * 0.32, hairCol[1] * 0.28, hairCol[2] * 0.26];
   const VS: Vec3[] = Array.from({ length: nFace }, (_, i) => [FV[i * 3], FV[i * 3 + 1], FV[i * 3 + 2]] as Vec3);
-  drawBrows(out, { V: VS, rot: rotH, proj, mmPerPx, sex, col: browCol, seed });
-  drawLashes(out, { V: VS, rot: rotH, proj, mmPerPx, seed, col: [0.012, 0.009, 0.008], shape: face.eyeShape ?? EYE_SHAPES[0], skinM });
+  drawBrows(out, { V: VS, rot: rotH, proj, mmPerPx, sex, col: browCol, seed, filled: mk });
+  drawLashes(out, { V: VS, rot: rotH, proj, mmPerPx, seed, col: [0.012, 0.009, 0.008], shape: face.eyeShape ?? EYE_SHAPES[0], skinM, sex, mk, makeup });
   // the hair, strand by strand, over everything it is in front of
   renderHairStrands(out, groom, { project: (q: Vec3) => { const r = rotH(q), [sx, sy] = proj(r[0], r[1], r[2]); return [sx, sy, r[2]]; }, rotate: rotH, camera: camPos, pxPerMm: 1 / mmPerPx, solidDepth: hairSolid },
     { eumelanin: hairEu, pheomelanin: hairPheo, grey: o.hairGrey, key: { dir: Lkey, colour: keyI }, fill: { dir: Lfill, colour: fillI }, rim: { dir: Lrim, colour: rimI }, sky: skyI, headShadow: (q: Vec3) => lit(q, 2.5), rotated: hairRot, keyMap: hairKeyMap });
-  const fin = downsample(out, SS), rgba = encodeSrgb(fin, { toneMap: "filmic", exposure: 0.88, white: 3.6 });
+  const fin = downsample(out, SS), rgba = encodeSrgb(fin, { toneMap: "filmic", exposure: o.exposure ?? 1.0, white: 3.2 });
   const t1 = typeof performance !== "undefined" ? performance.now() : Date.now();
   return { width: W, height: H, rgba, face, expressed, ms: t1 - t0, hair: { groom, head: hairHead } };
 }
@@ -764,6 +818,20 @@ function nearestZ(v: readonly Vec3[], x: number, y: number): number {
 
 // ---- Eyes ------------------------------------------------------------------------------------------------------------------------
 
+/** A Catmull-Rom curve through screen points (end points kept), `n` points a span. */
+function catmullRom(pts: [number, number][], n = 6): [number, number][] {
+  const out: [number, number][] = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+    for (let k = 0; k < n; k++) {
+      const t = k / n, t2 = t * t, t3 = t2 * t;
+      out.push([0, 1].map(c => 0.5 * (2 * p1[c] + (-p0[c] + p2[c]) * t + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * t2 + (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * t3)) as [number, number]);
+    }
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+
 function drawEye(out: Raster, mask: Float32Array, e: { w: number; h: number; side: "L" | "R"; centre: Vec3; camPos: Vec3; f: number; D: number; yc: number; Lkey: Vec3; keyI: RGB3; skyI: RGB3; fillI: RGB3; Lfill: Vec3;
   iris: IrisType; pupilR: number; epicanthal: number; seed: number;
   upper: [number, number][]; lower: [number, number][]; mmPerPx: number; gaze: { x: number; y: number; cross: number }; yawR: number; pitchR: number }) {
@@ -774,7 +842,8 @@ function drawEye(out: Raster, mask: Float32Array, e: { w: number; h: number; sid
   const up0: Vec3 = [0, 1, 0], ux = norm3([up0[1] * gz[2] - up0[2] * gz[1], up0[2] * gz[0] - up0[0] * gz[2], up0[0] * gz[1] - up0[1] * gz[0]]), uy = norm3([gz[1] * ux[2] - gz[2] * ux[1], gz[2] * ux[0] - gz[0] * ux[2], gz[0] * ux[1] - gz[1] * ux[0]]);
   const cornea: Vec3 = [C[0] + gz[0] * 4.7, C[1] + gz[1] * 4.7, C[2] + gz[2] * 4.7], corneaR = 7.8;
   // the sclera is never paper white in a portrait: shaded by the lids and the socket, pinker toward the corners
-  const sclera: RGB3 = [0.72, 0.69, 0.655], vessel: RGB3 = [0.58, 0.36, 0.33];
+  // (in photographs the whites read a little darker than the lit skin beside them)
+  const sclera: RGB3 = [0.6, 0.575, 0.55], vessel: RGB3 = [0.56, 0.36, 0.33];
   // the light reaching the eye in its socket: the key (as it faces the eye), the fill and the sky; the iris is lit like
   // the face around it, so its colour reads at its true strength
   const keyOn = 0.35 + 0.65 * Math.max(0, dot3(gz, e.Lkey)), fillOn = 0.5 + 0.5 * Math.max(0, dot3(gz, e.Lfill));
@@ -854,32 +923,111 @@ function drawMouth(out: Raster, mask: Float32Array, tri: Int32Array, m: { w: num
   }
 }
 
+// ---- Makeup ------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Makeup on the skin's albedo (before light and scattering), in screen space from the face's landmarks: eyeshadow on
+ * the upper lid deepening toward the outer corner, blush on the cheek apples, contour under the cheekbones, at the
+ * temples and along the jaw, and highlight on the cheekbones, the bridge of the nose and the cupid's bow. Women get a
+ * faint flush of colour even without makeup.
+ */
+function applyFaceMakeup(m: { w: number; h: number; Alb: Float32Array; Spec: Float32Array; skinM: Float32Array; mk: number; sex: number; mmPerPx: number;
+  pv: (i: number) => [number, number]; LMi: (k: FaceLandmark) => number; LOOP: (k: string) => readonly number[]; expand: (c: readonly number[]) => number[]; seed: number; eyeShape: EyeShapeSpec }) {
+  const { w, h, Alb, Spec, skinM, mk, sex, mmPerPx } = m, P = (k: FaceLandmark) => m.pv(m.LMi(k)), px = (mm: number) => mm / mmPerPx;
+  const blob = (cx: number, cy: number, rx: number, ry: number, rot: number, f: (i: number, a: number) => void) => {
+    const R = Math.max(rx, ry) * 2.2, c = Math.cos(rot), s2 = Math.sin(rot);
+    for (let y = Math.max(0, Math.floor(cy - R)); y <= Math.min(h - 1, Math.ceil(cy + R)); y++) for (let x = Math.max(0, Math.floor(cx - R)); x <= Math.min(w - 1, Math.ceil(cx + R)); x++) {
+      const i = y * w + x; if (!skinM[i]) continue;
+      const dx = x - cx, dy = y - cy, u = (dx * c + dy * s2) / rx, v = (-dx * s2 + dy * c) / ry, a = Math.exp(-(u * u + v * v) / 2);
+      if (a > 0.01) f(i, a);
+    }
+  };
+  const tint = (col: RGB3, amt: number) => (i: number, a: number) => { const k = amt * a; for (let q = 0; q < 3; q++) Alb[i * 3 + q] = Alb[i * 3 + q] * (1 - k) + Alb[i * 3 + q] * col[q] * k; };
+  const blushAmt = 0.06 * (1 - sex) + 0.16 * mk, contour = 0.1 * mk, shadow = 0.26 * mk, highlight = 0.1 * mk;
+  for (const s of ["L", "R"] as const) {
+    const cb = P(`cheekbone.${s}` as FaceLandmark), ch = P(`cheilion.${s}` as FaceLandmark), zy = P(`zygion.${s}` as FaceLandmark), ex = P(`exocanthion.${s}` as FaceLandmark), go = P(`gonion.${s}` as FaceLandmark);
+    const sg = Math.sign(cb[0] - P("pronasale")[0]) || 1;
+    // blush: the apple of the cheek, a little below and inside the cheekbone, swept up toward the temple
+    if (blushAmt > 0) blob(cb[0] * 0.72 + ch[0] * 0.28, cb[1] * 0.62 + ch[1] * 0.38, px(15), px(9), -0.35 * sg, tint([1.06, 0.8, 0.82], blushAmt));
+    if (contour > 0) {
+      // under the cheekbone, from near the ear toward the mouth's corner (stopping well short of it)
+      const ux = zy[0] * 0.55 + ch[0] * 0.45, uy = (zy[1] * 0.55 + ch[1] * 0.45) + px(6);
+      blob(ux * 0.7 + zy[0] * 0.3, uy, px(17), px(5.5), Math.atan2(ch[1] - zy[1], ch[0] - zy[0]), tint([0.82, 0.78, 0.76], contour));
+      // the temple and the jaw's edge
+      blob(ex[0] + sg * px(14), ex[1] - px(16), px(8), px(13), 0, tint([0.86, 0.82, 0.8], contour * 0.8));
+      blob(go[0] * 0.8 + P("pogonion")[0] * 0.2, go[1] * 0.8 + P("pogonion")[1] * 0.2 + px(2), px(16), px(4.5), Math.atan2(P("pogonion")[1] - go[1], P("pogonion")[0] - go[0]), tint([0.86, 0.82, 0.8], contour * 0.8));
+    }
+    if (highlight > 0) {
+      // the top of the cheekbone: a soft sheen and a touch of brightness
+      blob(cb[0] * 0.85 + ex[0] * 0.15, cb[1] - px(5), px(10), px(4.5), -0.3 * sg, (i, a) => { for (let q = 0; q < 3; q++) { Alb[i * 3 + q] *= 1 + highlight * a; Spec[i * 3 + q] *= 1 + 1.2 * highlight * a; } });
+    }
+    // eyeshadow: on the lid from the lash line to just above the crease, deepest toward the outer corner
+    if (shadow > 0) {
+      const lid = m.expand(m.LOOP(`eye-upper.${s}`)).map(m.pv), crease = m.eyeShape.crease > 0 ? m.eyeShape.crease : 6;
+      const inner = lid[0], outer = lid[lid.length - 1], medialFirst = Math.abs(inner[0] - P("pronasale")[0]) < Math.abs(outer[0] - P("pronasale")[0]);
+      const ordered = medialFirst ? lid : lid.slice().reverse();
+      const top = ordered.map(([x, y], k) => { const t = k / (ordered.length - 1); return [x + sg * px(1.5) * t, y - px(crease + 2.5) * Math.sin(Math.PI * Math.min(1, 0.15 + 0.85 * t)) ** 0.6 - px(1.5) * t] as [number, number]; });
+      const mask = new Float32Array(w * h);
+      fillPolygon(w, h, [...ordered, ...top.reverse()], (i, c) => (mask[i] = c));
+      const soft = gaussianBlur(mask, w, h, 1, px(1.6));
+      const ox = ordered[ordered.length - 1][0], ix = ordered[0][0];
+      for (let i = 0; i < w * h; i++) if (soft[i] > 0.01 && skinM[i]) {
+        const x = i % w, t = Math.min(1, Math.max(0, (x - ix) / ((ox - ix) || 1))), a = shadow * soft[i] * (0.45 + 0.55 * t);
+        Alb[i * 3] *= 1 - a * 0.42; Alb[i * 3 + 1] *= 1 - a * 0.52; Alb[i * 3 + 2] *= 1 - a * 0.55;
+      }
+    }
+  }
+  if (highlight > 0) {
+    // the bridge of the nose and the cupid's bow
+    const se = P("sellion"), pr = P("pronasale"), ls = P("labiale-superius");
+    blob((se[0] + pr[0]) / 2, (se[1] + pr[1]) / 2, px(2.2), Math.abs(pr[1] - se[1]) * 0.42, 0, (i, a) => { for (let q = 0; q < 3; q++) { Alb[i * 3 + q] *= 1 + 0.8 * highlight * a; Spec[i * 3 + q] *= 1 + 1.5 * highlight * a; } });
+    blob(ls[0], ls[1] - px(1.6), px(3.5), px(1.1), 0, (i, a) => { for (let q = 0; q < 3; q++) Alb[i * 3 + q] *= 1 + 0.9 * highlight * a; });
+  }
+}
+
 // ---- Brows and lashes ------------------------------------------------------------------------------------------------------------
 
-function drawBrows(out: Raster, b: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3; proj: (x: number, y: number, z: number) => [number, number]; mmPerPx: number; sex: number; col: RGB3; seed: number }) {
+function drawBrows(out: Raster, b: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3; proj: (x: number, y: number, z: number) => [number, number]; mmPerPx: number; sex: number; col: RGB3; seed: number; filled?: number }) {
+  // A groomed brow, as in portraits: its head above the inner corner of the eye, its arch peaking about two-thirds of
+  // the way out (above the outer edge of the iris) and its tail ending a little above the head's lower edge. Women's are
+  // arched and taper to a fine tail; men's are thicker, flatter and straighter. Dense hairs read as a soft mass of tone
+  // with the hairs' strokes over it; filled brows (makeup) are darker and crisper.
+  const sex = b.sex, fill = b.filled ?? 0;
   for (const s of ["L", "R"] as const) {
     const loop = LOOP(`brow.${s}`).map(i => b.V[i]);
-    // order from the inner (medial) end to the outer end
-    const pts = Math.abs(loop[0][0]) > Math.abs(loop[loop.length - 1][0]) ? loop.slice().reverse() : loop.slice();
-    const at = (t: number): Vec3 => { const x = t * (pts.length - 1), i = Math.min(pts.length - 2, Math.floor(x)), f = x - i; return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f - 2.2, pts[i][2] + (pts[i + 1][2] - pts[i][2]) * f + 0.6]; };
-    const outward = Math.sign(pts[pts.length - 1][0] - pts[0][0]) || 1, n = Math.round(620 + 200 * b.sex);
-    // the brow's tone first (dense hairs read as a soft mass), then the hairs over it
-    const thickAt = (t: number) => (t < 0.15 ? 7.5 : t < 0.65 ? 7.5 - (t - 0.15) * 4 : 5.5 - (t - 0.65) * 10) * (0.75 + 0.3 * b.sex);
+    const pts = Math.abs(loop[0][0]) > Math.abs(loop[loop.length - 1][0]) ? loop.slice().reverse() : loop.slice(); // medial → lateral
+    const onLoop = (t: number): Vec3 => { const x = t * (pts.length - 1), i = Math.min(pts.length - 2, Math.floor(x)), f = x - i; return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f, pts[i][2] + (pts[i + 1][2] - pts[i][2]) * f]; };
+    // the loop runs round the brow: its mid-height line, then the shape's own arch over a straight base from head to tail
+    const head = onLoop(0.04), tail = onLoop(0.97), peakT = 0.6 + 0.08 * sex, archH = 2.4 - 1.7 * sex;
+    const arch = (t: number) => (t < peakT ? Math.sin((t / peakT) * Math.PI / 2) : Math.cos(((t - peakT) / (1 - peakT)) * Math.PI / 2) ** 1.4);
+    const at = (t: number): Vec3 => { const q = onLoop(t); return [q[0], head[1] + (tail[1] + 0.8 - head[1]) * t + archH * arch(t) - 2.0, q[2] + 0.6]; };
+    const outward = Math.sign(pts[pts.length - 1][0] - pts[0][0]) || 1;
+    // full height (mm) along the brow
+    const thickAt = (t: number) => {
+      const hd = 5.6 + 3.2 * sex, body = 4.6 + 3.0 * sex, tl = 1.1 + 2.6 * sex;
+      return t < 0.15 ? hd : t < peakT ? hd + (body - hd) * ((t - 0.15) / (peakT - 0.15)) : body + (tl - body) * ((t - peakT) / (1 - peakT)) ** 1.2;
+    };
     const upperE: [number, number][] = [], lowerE: [number, number][] = [];
-    for (let q = 0; q <= 20; q++) { const t = q / 20, c = at(t), th = thickAt(t) * 0.42; const pu = b.rot([c[0], c[1] + th, c[2]]), pl = b.rot([c[0], c[1] - th, c[2]]); upperE.push(b.proj(pu[0], pu[1], pu[2])); lowerE.push(b.proj(pl[0], pl[1], pl[2])); }
+    for (let q = 0; q <= 30; q++) { const t = q / 30, c = at(t), th = thickAt(t) / 2; const pu = b.rot([c[0], c[1] + th * 1.05, c[2]]), pl = b.rot([c[0], c[1] - th * 0.95, c[2]]); upperE.push(b.proj(pu[0], pu[1], pu[2])); lowerE.push(b.proj(pl[0], pl[1], pl[2])); }
     const tone = new Float32Array(out.width * out.height);
     fillPolygon(out.width, out.height, [...upperE, ...lowerE.reverse()], (i, c) => (tone[i] = c));
-    const toneS = gaussianBlur(tone, out.width, out.height, 1, 0.9 / b.mmPerPx);
-    for (let i = 0; i < toneS.length; i++) if (toneS[i] > 0.01) { const a = 0.32 * toneS[i]; for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] = out.rgb[i * 3 + k] * (1 - a) + b.col[k] * a; }
+    const toneS = gaussianBlur(tone, out.width, out.height, 1, (0.7 - 0.25 * fill) / b.mmPerPx);
+    // the head is softer and lighter than the body (hairs grow up and apart there)
+    const headX = b.proj(...(b.rot(at(0)) as [number, number, number]))[0], bodyX = b.proj(...(b.rot(at(0.2)) as [number, number, number]))[0];
+    const baseA = 0.5 + 0.12 * sex + 0.22 * fill;
+    for (let i = 0; i < toneS.length; i++) if (toneS[i] > 0.01) {
+      const x = i % out.width, f = Math.min(1, Math.max(0, (x - headX) / ((bodyX - headX) || 1)));
+      const a = baseA * toneS[i] * (0.55 + 0.45 * f);
+      for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] = out.rgb[i * 3 + k] * (1 - a) + b.col[k] * a;
+    }
+    const n = Math.round(950 + 450 * sex);
     for (let k = 0; k < n; k++) {
-      const t = Math.pow(hash2(b.seed + 31, k, s === "L" ? 1 : 2), 0.9), across = hash2(b.seed + 37, k, 3) * 2 - 1;
-      // brow height: full at the head, tapering to a fine tail (women finer)
-      const thick = thickAt(t);
-      const c = at(t), root: Vec3 = [c[0], c[1] + across * thick * 0.5, c[2]];
-      // growth direction: up at the head, up-and-out along the body, down-and-out in the tail; upper hairs lie down, lower hairs up
-      let ang = t < 0.12 ? 78 - t * 180 : t < 0.62 ? 32 - (t - 0.12) * 40 : -12 - (t - 0.62) * 30;
-      ang -= across * 14;
-      const len = (t < 0.12 ? 5.5 : 7.5 - t * 3) * (0.8 + 0.4 * hash2(b.seed + 41, k, 5)), rad = (ang * Math.PI) / 180;
+      const t = Math.pow(hash2(b.seed + 31, k, s === "L" ? 1 : 2), 0.85), across = hash2(b.seed + 37, k, 3) * 2 - 1;
+      const thick = thickAt(t), c = at(t), root: Vec3 = [c[0], c[1] + across * thick * 0.45, c[2]];
+      // growth: up at the head, up-and-out along the body, down-and-out in the tail; upper hairs lie down, lower hairs up
+      let ang = t < 0.12 ? 80 - t * 200 : t < peakT ? 34 - (t - 0.12) * 45 : -10 - (t - peakT) * 40;
+      ang -= across * 16;
+      const len = (t < 0.12 ? 5 : 7 - t * 2.5) * (0.8 + 0.4 * hash2(b.seed + 41, k, 5)) * (1 + 0.15 * sex), rad = (ang * Math.PI) / 180;
       const dx = Math.cos(rad) * outward, dy = Math.sin(rad);
       const ptsS: [number, number][] = [];
       for (let q = 0; q <= 3; q++) {
@@ -887,13 +1035,16 @@ function drawBrows(out: Raster, b: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3;
         const p = b.rot([root[0] + dx * len * u, root[1] + dy * len * u + bend * 0.3, root[2] + 0.4 * u]);
         ptsS.push(b.proj(p[0], p[1], p[2]));
       }
-      strokePolyline(out, ptsS, 0.11 / b.mmPerPx, 0.035 / b.mmPerPx, b.col, 0.7);
+      strokePolyline(out, ptsS, (0.12 + 0.03 * sex) / b.mmPerPx, 0.035 / b.mmPerPx, b.col, 0.82);
     }
   }
 }
 
-function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3; proj: (x: number, y: number, z: number) => [number, number]; mmPerPx: number; seed: number; col: RGB3; shape: EyeShapeSpec; skinM: Float32Array }) {
-  const sh = l.shape, single = sh.crease <= 0;
+function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3; proj: (x: number, y: number, z: number) => [number, number]; mmPerPx: number; seed: number; col: RGB3; shape: EyeShapeSpec; skinM: Float32Array;
+  sex?: number; mk?: number; makeup?: string }) {
+  const sh = l.shape, single = sh.crease <= 0, sex = l.sex ?? 0, mk = l.mk ?? 0, glam = l.makeup === "glamour";
+  // mascara lengthens, thickens and darkens the lashes; men's lashes are a little shorter and sparser
+  const lashLen = (1 - 0.12 * sex) * (1 + 0.22 * mk), lashW = (1 - 0.15 * sex) * (1 + 0.45 * mk);
   // soft dark (or light) lines on the skin: creases, the fold of a single lid, a hood's shadow, an epicanthal fold
   const shadeLine = (pts: [number, number][], widthMm: number, blurMm: number, strength: number) => {
     const cr = createRaster(out.width, out.height);
@@ -910,14 +1061,14 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
     // bolder). Upper: 8–11 mm, longest in the outer third, growing forward and curling up, so from the front they rise
     // only a few millimetres; lower: 4–6 mm, sparse and pale, down and out. A single lid's fold presses the upper
     // lashes down and hides their roots.
-    const clumps = upper ? 34 : 18;
+    const clumps = upper ? Math.round(38 + 8 * (1 - sex)) : 18;
     for (let cI = 0; cI < clumps; cI++) {
       const tc = 0.05 + 0.92 * ((cI + 0.5 + 0.4 * (hash2(l.seed + 61, cI, upper ? 1 : 2) - 0.5)) / clumps), nIn = 2 + Math.floor(hash2(l.seed + 67, cI, 3) * 3);
       const cLen = upper ? (6.8 + 4.4 * Math.sin(Math.PI * Math.pow(tc, 0.7))) * (0.85 + 0.3 * hash2(l.seed + 53, cI, 1)) * (single ? 0.6 : 1 - 0.15 * sh.hood) : (2.6 + 2.6 * Math.sin(Math.PI * tc)) * (0.8 + 0.3 * hash2(l.seed + 59, cI, 2));
       const cFan = (tc - 0.42) * (upper ? 1.0 : 0.7) + (hash2(l.seed + 71, cI, 4) - 0.5) * 0.15;
       for (let k = 0; k < (upper ? nIn : 1 + (nIn > 3 ? 1 : 0)); k++) {
         const t = tc + (hash2(l.seed + 73, cI * 7 + k, 5) - 0.5) * (0.9 / clumps), base = at(Math.min(0.99, Math.max(0.01, t)));
-        const len = cLen * (0.85 + 0.25 * hash2(l.seed + 79, cI * 7 + k, 6)), fan = cFan + (hash2(l.seed + 83, cI * 7 + k, 7) - 0.5) * 0.12;
+        const len = cLen * (0.85 + 0.25 * hash2(l.seed + 79, cI * 7 + k, 6)) * (upper ? lashLen : 1 + 0.1 * mk), fan = cFan + (hash2(l.seed + 83, cI * 7 + k, 7) - 0.5) * 0.12;
         const lift = upper ? (single ? 0.12 : 0.55) : -0.3;
         const ptsS: [number, number][] = [];
         for (let q = 0; q <= 6; q++) {
@@ -927,15 +1078,24 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
           const p = l.rot([base[0] + outward * (fan * len * u + conv), base[1] + (upper ? (single ? -0.05 : 0.08) * u + curl * 0.42 : -0.2 * u + curl * 0.4) * len, base[2] + 0.85 * len * u]);
           ptsS.push(l.proj(p[0], p[1], p[2]));
         }
-        strokePolyline(out, ptsS, (upper ? 0.16 : 0.08) / l.mmPerPx, 0.02 / l.mmPerPx, l.col, upper ? 0.92 : 0.4);
+        strokePolyline(out, ptsS, (upper ? 0.17 * lashW : 0.08 * (1 + 0.3 * mk)) / l.mmPerPx, 0.02 / l.mmPerPx, l.col, upper ? 0.94 : 0.42 + 0.2 * mk);
       }
     }
     // the lash line: a soft dark margin along the upper lid
     if (upper) {
       const line: [number, number][] = [];
       for (let q = 0; q <= 20; q++) { const p = l.rot(at(q / 20)); line.push(l.proj(p[0], p[1] + 0.2, p[2] + 0.2)); }
-      // the lash roots and the lid margin's shadow: thinner toward the inner corner
-      strokePolyline(out, line, 0.6 / l.mmPerPx, 0.45 / l.mmPerPx, [0.03, 0.022, 0.02], 0.7);
+      // the lash roots and the lid margin's shadow, thinner toward the inner corner; with makeup a liner along it,
+      // widening outward (glamour: winged past the outer corner)
+      const liner: [number, number][] = [], widths: number[] = [];
+      for (let q = 0; q <= 24; q++) { const t = q / 24, p = l.rot(at(t)); liner.push(l.proj(p[0], p[1] + 0.25, p[2] + 0.2)); widths.push(0.55 + (0.35 + 0.9 * mk) * t ** 1.5); }
+      for (let q = 1; q < liner.length; q++) strokePolyline(out, [liner[q - 1], liner[q]], ((widths[q - 1] + widths[q]) / 2) / l.mmPerPx, 0.35 / l.mmPerPx, [0.02, 0.015, 0.014], 0.8 + 0.15 * Math.min(1, mk * 2));
+      if (glam) {
+        const p0 = at(1), ax = outward;
+        const wing: [number, number][] = [0, 1, 2, 3, 4, 5].map(q => { const u = q / 5, p = l.rot([p0[0] + ax * 6 * u, p0[1] + 0.3 + 2.4 * u, p0[2] - 1.2 * u]); return l.proj(p[0], p[1], p[2]); });
+        for (let q = 1; q < wing.length; q++) strokePolyline(out, [wing[q - 1], wing[q]], (1.3 * (1 - (q - 0.5) / 5) + 0.1) / l.mmPerPx, 0.25 / l.mmPerPx, [0.015, 0.012, 0.012], 0.92);
+      }
+      void line;
       if (!single) {
         // the upper-lid crease at the shape's height (highest near the middle); an in-fold crease starts low, in the
         // epicanthal fold at the inner corner; a hood hangs over it and brings the visible fold down

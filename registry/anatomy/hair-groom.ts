@@ -204,7 +204,8 @@ export function scalpCover(head: HairHead, style: HairStyleSpec | string, p: Vec
   const st = typeof style === "string" ? findHairStyle(style) : style;
   const c = sst(-1.5, 7, p[1] - hairlineAt(head, azimuth(head, p)));
   const ear = Math.hypot(Math.abs(p[0]) - head.earX, p[1] - head.tragionY - 6, p[2] - head.earZ);
-  return c * sst(24, 30, ear) * (1 - 0.6 * partLine(head, st, p));
+  // hairs from both sides lie across a parting, so even its bare line keeps most of its cover
+  return c * sst(24, 30, ear) * (1 - 0.35 * partLine(head, st, p));
 }
 /**
  * The parting's bare line at a point (0 … 1): about a millimetre and a half wide with uneven edges where hairs cross

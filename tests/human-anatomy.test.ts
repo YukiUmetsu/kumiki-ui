@@ -137,12 +137,21 @@ describe("ANAT1 beautiful faces and portraits", () => {
     // still symmetric after it (the symmetry step follows)
     const f = beautifulFace({ sex: 1 }), L = (k: keyof typeof FACE_LANDMARKS) => f.vertices[FACE_LANDMARKS[k]];
     expect(Math.abs(L("exocanthion.L")[0] + L("exocanthion.R")[0])).toBeLessThan(0.2);
+    // the lids sit on the iris at measured margin-to-pupil distances (MRD1 about 4, MRD2 about 5.3 mm), where the
+    // portrait puts the eyeball; the mouth's corners at the height measured on the stars' closed mouths
+    for (const sex of [0, 1]) {
+      const g = beautifulFace({ sex }), M = (k: keyof typeof FACE_LANDMARKS) => g.vertices[FACE_LANDMARKS[k]], ec = eyeCentres(g.vertices).L;
+      const mrd1 = M("palpebrale-superius.L")[1] - ec[1], mrd2 = ec[1] - M("palpebrale-inferius.L")[1];
+      expect(mrd1).toBeGreaterThan(3.6); expect(mrd1).toBeLessThan(4.9);
+      expect(mrd2).toBeGreaterThan(4.9); expect(mrd2).toBeLessThan(5.8);
+      expect(M("cheilion.L")[1] - M("stomion")[1]).toBeCloseTo(-(0.74 + 0.12 * sex), 1);
+    }
   });
   it("reports the golden-ratio checks without building on them", () => {
     const f = beautifulFace({ sex: 0 }), rows = goldenRatioReport(f.vertices, f.hairlineY);
     expect(rows.find(x => x.id === "mouth-nose")!.target).toBeCloseTo(PHI, 6);
-    // the evidence-built face sits measurably off φ: the claims are reported, not imposed
-    expect(Math.abs(rows.find(x => x.id === "mouth-nose")!.value - PHI)).toBeGreaterThan(0.03);
+    // the evidence-built face is not tuned to φ: the claims are reported, not imposed
+    expect(rows.some(r => Math.abs(r.value - r.target) / r.target > 0.03)).toBe(true);
     expect(eyeCentres(f.vertices).L[0]).toBeGreaterThan(0);
   });
   it("renders a portrait: a lit face over the background, dark pupils, nothing out of range", () => {

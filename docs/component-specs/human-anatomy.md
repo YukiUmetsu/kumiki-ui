@@ -162,19 +162,25 @@ The mask has no ears, cranium or hairline.
 **`beautifulFace(options)`.** Applies what the research on facial attractiveness supports
 ([research note](../research/face-beauty-portrait-2026-11-16.md)), each step scaled by `beauty` (0 = the calibrated
 average face, 1 = everything applied):
-- **Real faces** (`realFaces`, default 1): starts from the shape of a composite of public-domain portraits of film
-  actors (`FACE_COMPOSITE`, [research note](../research/face-composite-2026-11-16.md)): 11 women and 12 men, measured
-  with face landmarks, one photograph a person, averaged by sex. The mouth is left out (smiles) and the nose wings
-  damped. The composite's cheekbone breadths land on ANSUR II's. The steps below then set the measured breadths, eye
-  opening and lips; the composite shapes what lies between.
 - **Averageness:** starts from population means.
 - **Symmetry:** every vertex is averaged with its mirror.
 - **Breadths:** cheekbone breadth set to ANSUR II (133.8 mm women, 142.6 mm men), which gives Pallett's 46% pupil ratio
   by itself.
 - **Jaw:** a narrower jaw.
 - **Femininity:** above-average femininity for women; slight feminisation for men (Perrett 1998).
-- **Eyes:** the opening set to a measured palpebral height (8–11.5 mm reported) with a slight canthal tilt.
+- **Eyes:** a slight canthal tilt (the opening: see lids on the iris).
 - **Lips:** vermilion heights from attractive young women (6.5 / 11.6 mm, Popenko's 1:2); the lips closed.
+- **Form:** brow ridge about 10 mm ahead of the cornea, the rim below the eye about 3 mm behind it, the cheek about
+  2 mm ahead (Jelks vector).
+- **Real faces** (`realFaces`, default 1, up to 1.5 to exaggerate): fitted last to the shape of beautiful real faces
+  (`FACE_COMPOSITE`, [research note](../research/beautiful-faces-2026-11-16.md)): public-domain studio portraits of
+  29 actresses and 23 actors, one a person, frontal, mouth closed and unsmiling, eyes open, averaged by sex in
+  MediaPipe's landmark space. The face is rendered, read by the same landmark model and corrected until it matches
+  (about 1.1 mm residual for women, 1.8 mm for men). Lid margins and the inner lip line are left out of the fit.
+- **Lids on the iris:** the upper margin MRD1 above the pupil (about 4 mm), the lower MRD2 below it (about 5.3 mm),
+  where the portrait puts the eyeball, so no white shows above or below the iris. An eye shape keeps its own opening.
+- **Mouth corners:** at the height measured on the stars' closed mouths (0.74 mm below the lips' midline for women,
+  0.86 mm for men), not drooping.
 - **Hairline:** placed where the eye-to-mouth distance is 36% of face length.
 
 **The golden ratio.** `goldenRatioReport` lists the claims beside the face's values (`GOLDEN_RATIO`): Marquardt's
@@ -188,11 +194,12 @@ supersampling, most of it the hair. Geometry:
 - a strip of skin grown from the face mask's top edge up and round to the cranium, so the forehead is one surface up
   to the hairline;
 - a cranium from ANSUR head measures;
-- a neck behind the jaw, and shoulders.
+- a neck behind the jaw that ends under the garment, and shoulders with a scoop or crew neckline.
 
 Shading:
-- **Key light:** shadow-mapped with a softbox's soft edge (16 Poisson taps over about 1 mm), finer in close-ups,
-  with a bias that grows where the light grazes the skin.
+- **Key light:** a softbox of about 20°: shadow-mapped, the shadow's edge widening with the distance to what casts
+  it (percentage-closer soft shadows: a blocker search, then 16 Poisson taps turned per point), so the nose's shadow
+  is soft at its end; finer in close-ups, with a bias that grows where the light grazes the skin.
 - **Fill, rim, sky and bounce lights.**
 - **Ambient occlusion** from 22 directions.
 - **Subsurface scattering:** the d'Eon & Luebke six-Gaussian skin profile.

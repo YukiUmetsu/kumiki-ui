@@ -1,5 +1,8 @@
 # The shape of real faces: an actor composite (ANAT1) — research, 2026-11-16
 
+> **Superseded** by [Beautiful faces from film stars' portraits](beautiful-faces-2026-11-16.md): more portraits, and a fit
+> in the landmark model's own measurement space. Kept for the record.
+
 The owner asked for faces with more sophistication, based on real faces, using famous actors' faces as references.
 `beautifulFace` now starts from the shape of a composite of real faces: public-domain portraits of film actors,
 measured with face landmarks and averaged by sex. The measured targets that follow (breadths, the eyes' opening, lips,
