@@ -52,9 +52,9 @@ export function InkAnatomicalPortraitFilm({
         mist:.66,wind:.3,ink:.67}}>
       <div data-testid="ink-anat2-film-actor"
         data-ink-cue={amount.toFixed(4)} data-ink-actor-mode={figureMode}
-        style={{position:"absolute",left:figureMode==="standing"?623:611+drift,
-          top:figureMode==="standing"?143:253+breathing,
-          width:figureMode==="standing"?183:259,
+        style={{position:"absolute",left:figureMode==="standing"?635:611+drift,
+          top:figureMode==="standing"?184:253+breathing,
+          width:figureMode==="standing"?150:259,
           transform:figureMode==="standing"?"none":
             "rotate("+(.38*sway).toFixed(3)+"deg)",
           transformOrigin:"50% 93%",pointerEvents:"none",
