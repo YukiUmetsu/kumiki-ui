@@ -158,8 +158,6 @@ export interface ShodoKanjiCardProps extends KanjiCardContent {
    * setting. Give true or false for a video export, so that every export is the same.
    */
   reducedMotion?: boolean;
-  /** An extra credit line under the stroke-data credit, for example for the source of the card data. */
-  dataCredit?: string;
 }
 
 const MICHI_WORDS: readonly KanjiCardWord[] = [
@@ -194,23 +192,18 @@ export function resolveKanjiCardContent(char: string, props: KanjiCardContent): 
 /**
  * Fills the card fields that the host left unset from `data` (for example a kanji dataset).
  * A field is unset when it is undefined or empty, or when a text or the words are still the
- * 道 sample. Fields that the host set win, and `jlpt: null` (no badge) also wins. `filled`
- * tells whether any field came from `data`.
+ * 道 sample. Fields that the host set win, and `jlpt: null` (no badge) also wins.
  */
-export function fillKanjiCardContent(typed: KanjiCardContent, data: KanjiCardContent | undefined): { content: KanjiCardContent; filled: boolean } {
-  if (!data) return { content: typed, filled: false };
+export function fillKanjiCardContent(typed: KanjiCardContent, data: KanjiCardContent | undefined): KanjiCardContent {
+  if (!data) return typed;
   const sample = KANJI_CARD_SAMPLES["道"] ?? {};
-  let filled = false;
   const pick = <K extends "meanings" | "onyomi" | "kunyomi" | "jlpt" | "words">(key: K): KanjiCardContent[K] => {
     const value = typed[key];
     const unset = value === undefined || value === "" || (Array.isArray(value) && value.length === 0)
       || (key !== "jlpt" && JSON.stringify(value) === JSON.stringify(sample[key]));
-    if (!unset || data[key] === undefined) return value;
-    filled = true;
-    return data[key];
+    return !unset || data[key] === undefined ? value : data[key];
   };
-  const content = { ...typed, meanings: pick("meanings"), onyomi: pick("onyomi"), kunyomi: pick("kunyomi"), jlpt: pick("jlpt"), words: pick("words") };
-  return { content, filled };
+  return { ...typed, meanings: pick("meanings"), onyomi: pick("onyomi"), kunyomi: pick("kunyomi"), jlpt: pick("jlpt"), words: pick("words") };
 }
 
 export interface KanjiCardTimeline {
@@ -574,7 +567,7 @@ const KANJI_PHASE_TEXT: Record<KanjiCardPhase, string> = {
  */
 export function ShodoKanjiCard({
   char = "道", heading = "Kanji study", layout = "landscape", timing, sections, cardFrom = "write", ink = "sumi",
-  speed = KANJI_CARD_SPEED, strokeNumbers = true, wordHighlights, reducedMotion, dataCredit, ...data
+  speed = KANJI_CARD_SPEED, strokeNumbers = true, wordHighlights, reducedMotion, ...data
 }: ShodoKanjiCardProps) {
   const prefersReduced = usePrefersReducedMotion();
   const content = resolveKanjiCardContent(char, data);
@@ -641,7 +634,6 @@ export function ShodoKanjiCard({
       {KANJI_PHASE_TEXT[at.phase]}{at.phase === "review" && strokeNumbers ? ", with the order number of each stroke" : ""}
     </div>
     {glyph.source === "kanjivg" ? <p style={{ margin: 0, fontSize: 12.5 }}>{SHODO_KANJIVG_CREDIT}.</p> : null}
-    {dataCredit ? <p style={{ margin: 0, fontSize: 12.5 }}>{dataCredit}</p> : null}
   </div>;
 }
 
