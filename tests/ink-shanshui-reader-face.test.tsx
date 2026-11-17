@@ -608,7 +608,8 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     const aperture=(name:"mouth-aa"|"mouth-oh")=>{
       const marks=paths(high,name);
       const ink=marks.find(s=>s.type==="path"&&s.fill==="$shadow"&&
-        s.stroke==="none"&&s.opacity!==undefined&&s.opacity>.5);
+        s.stroke==="none"&&s.opacity!==undefined&&
+        s.opacity>=.16&&s.opacity<=.19);
       if(!ink||ink.type!=="path")throw Error("Native speech opening missing");
       return {marks,ink};
     };
@@ -619,7 +620,22 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     for(const [name,item] of [["mouth-aa",aa],["mouth-oh",oh]] as const){
       expect(item.marks.length).toBeGreaterThanOrEqual(
         paths(low,name).length);
-      expect(item.ink.opacity).toBeLessThan(.6);
+      expect(item.ink.opacity).toBeLessThan(.2);
+      // An optically layered mouth is not a single flat sticker:
+      // reserve the light external silhouette for underpainting, then
+      // paint at least two smaller recessed cavity masses on top.
+      const cavity=item.marks.filter(s=>s.type==="path"&&
+        s.fill==="$shadow"&&s.stroke==="none"&&s.opacity!==undefined&&
+        s.opacity>=.25&&s.opacity<.4);
+      const deeper=item.marks.filter(s=>s.type==="path"&&
+        s.fill==="$deep"&&s.stroke==="none"&&s.opacity!==undefined&&
+        s.opacity>=.17&&s.opacity<.3);
+      expect(cavity).toHaveLength(1);
+      expect(deeper).toHaveLength(1);
+      const pressureFibres=item.marks.filter(s=>s.type==="path"&&
+        s.stroke==="none"&&s.d.includes(" L")&&
+        (s.fill==="$shadow"||s.fill==="$skinshade"));
+      expect(pressureFibres.length).toBeGreaterThanOrEqual(1);
       expect((item.ink.d.match(/C/g)??[]).length)
         .toBeGreaterThanOrEqual(3);
       expect(item.marks.filter(s=>s.type==="path"&&
