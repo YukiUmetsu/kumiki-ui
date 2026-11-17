@@ -48,6 +48,7 @@ function RebuildAtelier(){
           onChange={e=>setView(e.target.value as InkPortraitView)}>
           <option value="bust">Head and shoulders</option>
           <option value="face">Native face microscope</option>
+          <option value="robe">Native robe and sleeve microscope</option>
         </select>
       </label>
       <label style={field}>EXPR1 intensity · {Math.round(intensity*100)}%
@@ -215,7 +216,7 @@ function HistoricalSourceDesk(){
     </p>;
   const drawing=<InkAnatomicalPortrait character={character} emotion={emotion}
     view={view} detail={1} intensity={.9}/>;
-  const panel={...framed,aspectRatio:view==="face"?"345 / 476":"540 / 620",
+  const panel={...framed,aspectRatio:view==="face"?"345 / 419":view==="robe"?"430 / 202":"540 / 525",
     width:"min(100%,470px)",position:"relative",overflow:"hidden",
     display:"grid",placeItems:"center"} as const;
   return <main data-testid="ink-anat2-historical-source-desk" style={inkPage}>
@@ -327,6 +328,72 @@ function HistoricalSourceDesk(){
   </main>;
 }
 
+/**
+ * Dedicated INK1 pigment-contact test bed: from the original stroke geometry,
+ * not a screen-aligned animated texture. All 4 separate authored INK1
+ * gestures and their multiple bristles remain live at every microscope zoom.
+ */
+function RobePressureMicroscope(){
+  const [detail,setDetail]=useState(1);
+  const [emotion,setEmotion]=useState<InkPortraitEmotion>("neutral");
+  return <main data-testid="ink-anat2-robe-pressure-microscope" style={inkPage}>
+    <p style={{letterSpacing:2,fontSize:11,fontWeight:700}}>CHINESE INK / ANAT2 / INK1 NATIVE BRUSH</p>
+    <h1 style={{font:"normal 34px Georgia,serif",margin:"6px 0"}}>
+      Ming folded-silk brushwork · dynamic INK1 microscope
+    </h1>
+    <p style={{maxWidth:1080,lineHeight:1.65}}>
+      Four independent native INK1 pigment gestures per figure:
+      unequal loaded and lifted brush widths, pace, opaque core, dry paper pores,
+      feathering bristles and transparent underglazes. This is the registered INK1
+      implementation, not a newly invented uniform-stroke substitute.
+      Compare 1× silhouette coherence with an optically enlarged robe crop.
+      Experimental material, NOT approved art.
+    </p>
+    <div style={{display:"flex",gap:20,flexWrap:"wrap",margin:"16px 0 26px"}}>
+      <label style={field}>Paper-fibre and pressure detail · {Math.round(detail*100)}%
+        <input aria-label="Ink robe pressure detail" type="range" min=".25"
+          max="1" step=".05" value={detail}
+          onChange={e=>setDetail(Number(e.target.value))}/>
+      </label>
+      <label style={field}>Same-person FACS action
+        <select aria-label="Ink robe pressure expression" style={selectStyle}
+          value={emotion} onChange={e=>setEmotion(e.target.value as InkPortraitEmotion)}>
+          {INK_PORTRAIT_EMOTIONS.map(e=><option key={e}>{e}</option>)}
+        </select>
+      </label>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(220px,540px))",
+      columnGap:20,rowGap:30,maxWidth:1100}}>
+      {INK_PORTRAIT_CHARACTERS.map(character=><section key={character}
+        data-ink-robe-inspector={character} style={{...framed,overflow:"hidden"}}>
+        <h2 style={{font:"normal 23px Georgia,serif",margin:"14px 18px"}}>
+          {character==="scholar"?"Young scholar":"Elder scholar"} · cloth microscopy
+        </h2>
+        <div data-ink-robe-camera="robe">
+          <InkAnatomicalPortrait character={character} emotion={emotion}
+            intensity={.8} detail={detail} view="robe"/>
+        </div>
+        <div style={{padding:18,background:"#ede4d5"}}>
+          <h3 style={{font:"normal 17px Georgia,serif",margin:"0 0 8px"}}>
+            Same drawing · full bust and cap contact
+          </h3>
+          <div data-ink-robe-camera="bust" style={{maxWidth:330,margin:"auto"}}>
+            <InkAnatomicalPortrait character={character} emotion={emotion}
+              intensity={.8} detail={detail} view="bust"/>
+          </div>
+        </div>
+      </section>)}
+    </div>
+    <p style={{fontSize:13,maxWidth:1000,lineHeight:1.6}}>
+      Compare the slender crossing lapels, irregular sleeve strokes,
+      feathered wash, fresh head-to-shoulder proportions and cap shape
+      with high-resolution public-domain Chinese figure paintings.
+      The physical bristle stroke model is an approximation and may not
+      match an original brush's wet-paper response.
+    </p>
+  </main>;
+}
+
 const meta={title:"Video production/Film Looks/Chinese Ink/ANAT2 Independent Portrait Rebuild",
   id:"video-ink-anat2-portrait-rebuild",component:RebuildAtelier,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof RebuildAtelier>;
@@ -339,6 +406,10 @@ export const TwoCharactersAndFiveExpressions:StoryObj<typeof meta>={
 export const HistoricalPaintingReview:StoryObj<typeof meta>={
   name:"Authentic portrait reference · local-image A/B and optical overlay (ART HOLD)",
   render:()=> <HistoricalSourceDesk/>,
+};
+export const RobePressureMicroscope:StoryObj<typeof meta>={
+  name:"INK1 loaded silk lapels · sleeve pressure and paper-fibre microscope",
+  render:()=> <RobePressureMicroscope/>,
 };
 export const FilmTimeFaceMotion:StoryObj<typeof meta>={
   name:"24 fps facial acting and source-space microscopes",
