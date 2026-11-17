@@ -4,6 +4,12 @@ import {riso71BuildScanMeasurements,
   riso71DisplayToSourcePixel,riso71TargetKeys}
   from "../../registry/video/riso-scan-image-annotation";
 
+export interface Riso71SourceImage {
+  /** Current browser-only object URL of the user-provided raster photograph. */
+  readonly url:string;
+  readonly width:number;
+  readonly height:number;
+}
 const field={display:"grid",gap:4,font:"600 13px system-ui"} as const;
 const button={border:"1px solid #988575",background:"#FFFAED",
   padding:"7px 10px",borderRadius:3,minHeight:38,color:"#293E50",
@@ -15,10 +21,11 @@ const label=(key:string)=>key.startsWith("paper:")?
 /** RISO71: operator places actual points on a local scanned proof. Original
  * image pixels never leave the browser; no synthetic image is auto-created.
  * This is an optional diagnostic, not a scanner or printer certification. */
-export function RisoScanImageAnnotator({plateIds,resetKey,onChange}:{
+export function RisoScanImageAnnotator({plateIds,resetKey,onChange,onImage}:{
   plateIds:readonly string[];
   resetKey:string;
   onChange:(value:RisoScanMeasurements|null)=>void;
+  onImage?:(value:Riso71SourceImage|null)=>void;
 }){
   const keys=useMemo(()=>riso71TargetKeys(plateIds),[plateIds]);
   const [url,setUrl]=useState("");
@@ -63,7 +70,7 @@ export function RisoScanImageAnnotator({plateIds,resetKey,onChange}:{
   }
   function load(file:File|undefined){
     setError("");setPicked({});setSelected(0);setSize([0,0]);
-    setXText("");setYText("");onChange(null);
+    setXText("");setYText("");onChange(null);onImage?.(null);
     if(!file){setUrl("");return;}
     if(!["image/png","image/jpeg","image/webp"].includes(file.type)||
       file.size<=0||file.size>30*1024*1024){
@@ -119,9 +126,10 @@ export function RisoScanImageAnnotator({plateIds,resetKey,onChange}:{
               const image=e.currentTarget,w=image.naturalWidth,h=image.naturalHeight;
               if(w<16||h<16||w>16000||h>16000){
                 setSize([0,0]);setError("Image dimensions must be 16–16000 pixels.");
-                onChange(null);return;
+                onChange(null);onImage?.(null);return;
               }
               setSize([w,h]);setPicked({});onChange(null);
+              onImage?.({url,width:w,height:h});
             }}
             style={{display:"block",width:"100%",height:"auto"}}/>
           {size[0]>0&&<>
