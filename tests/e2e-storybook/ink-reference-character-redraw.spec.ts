@@ -12,7 +12,7 @@ test("ANAT3 Chinese ink character redraw uses new archival references and ANAT1/
       .locator('[data-km-ink-reference-redraw="ANAT3"]');
     await expect(scholar).toHaveAttribute("data-km-ink-reference-source","LOC-1903-cph-3a44343");
     await expect(elder).toHaveAttribute("data-km-ink-reference-source","LOC-1860-LCCN2011660679");
-    await expect(scholar.locator("[data-km-anat1-feature]")).toHaveCountGreaterThan(6);
+    expect(await scholar.locator("[data-km-anat1-feature]").count()).toBeGreaterThan(6);
     await expect(elder.locator("[data-km-anat1-iris]")).toHaveCount(2);
     await expect(elder.locator("[data-km-ink-beard-fiber]")).toHaveCount(72);
     await page.screenshot({fullPage:true,animations:"disabled",
