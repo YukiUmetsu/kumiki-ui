@@ -8,7 +8,10 @@ import { srgbDecode } from "../registry/anatomy/foundation-raster";
 import { deltaE2000, filmStep, labToLinear, linearToLab, pigmentFor, readSkin } from "../registry/anatomy/makeup-color";
 import type { RGB } from "../registry/anatomy/anatomy-color";
 import { MAKEUP_LOOKS } from "../registry/anatomy/makeup-data";
-import { checkMakeup, designMakeup } from "../registry/anatomy/makeup-design";
+import type { Look } from "../registry/anatomy/makeup-data";
+import { EYE_SHAPES } from "../registry/anatomy/eye-detail";
+import { checkMakeup, designMakeup, tapedEyeShape } from "../registry/anatomy/makeup-design";
+import type { MakeupCheck } from "../registry/anatomy/makeup-design";
 import { makeupPaint, paintPhoto } from "../registry/anatomy/makeup-paint";
 import { MAKEUP_ZONES, resolveZone, zoneField } from "../registry/anatomy/makeup-zones";
 import parity from "./fixtures/makeup-zone-parity.json";
@@ -105,6 +108,37 @@ describe("MAKEUP1 design", () => {
     const hooded = designMakeup({ look: "soft-glam", face, eyeShape: "hooded" });
     expect(hooded.layers.find(l => l.zone === "crease")?.adjust?.shift?.[1]).toBeGreaterThan(0);
     expect(designMakeup({ look: "soft-glam", face, overrides: { lips: false } }).layers.some(l => l.zone === "lips")).toBe(false);
+  });
+});
+
+describe("MAKEUP1 eye tools in the plan", () => {
+  const shape = (id: string) => EYE_SHAPES.find(s => s.id === id)!;
+  const get = (cs: MakeupCheck[], id: string) => cs.find(c => c.id === id)!;
+  it("tape makes a single lid double without lowering a crease", () => {
+    const mono = tapedEyeShape(shape("monolid"), 1);
+    expect(mono.crease).toBeCloseTo(6.5, 6); expect(mono.height).toBeCloseTo(9.2, 6); expect(mono.hood).toBe(0);
+    const infold = tapedEyeShape(shape("inner-double"), 1);
+    expect(infold.crease).toBeCloseTo(6.5, 6); expect(infold.infold).toBe(true); expect(infold.height).toBeCloseTo(10.0, 6);
+    const almond = tapedEyeShape(shape("almond"), 1);
+    expect(almond.crease).toBeCloseTo(7.5, 6); expect(almond.height).toBeCloseTo(10.0, 6);
+    expect(tapedEyeShape(shape("almond"), 0)).toBe(shape("almond"));
+  });
+  it("scales the eye tools with intensity inside their caps", () => {
+    const look: Look = { id: "t", label: "t", summary: "", layers: [], evidence: [], lashes: { length: 1.3, thickness: 1.2, darkness: 1, style: "spiky" }, eyes: { lens: { diameter: 14.5, ring: 0.8 }, tape: 1 }, brows: { density: 1, straight: 0.8 } };
+    const strong = designMakeup({ look, face, intensity: 1.5 });
+    expect(strong.eyes.lens!.diameter).toBeLessThanOrEqual(14.5); expect(strong.eyes.tape).toBeLessThanOrEqual(1);
+    expect(strong.lashes.style).toBe("spiky"); expect(strong.brows.straight).toBeLessThanOrEqual(1);
+    const bare = designMakeup({ look, face, intensity: 0 });
+    expect(bare.eyes.lens).toBeUndefined(); expect(bare.eyes.tape).toBe(0); expect(bare.brows.straight).toBe(0);
+  });
+  it("checks the aegyo-sal height, a puppy wing's droop and the lens size", () => {
+    const V = beautifulFace({ sex: 0, faceType: "east-asian" }).vertices;
+    const look: Look = { id: "t2", label: "t2", summary: "", evidence: [], eyes: { lens: { diameter: 14.0, ring: 0.6 } }, layers: [
+      { zone: "aegyo-sal", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.6 }, { zone: "puppy-wing", colour: { kind: "liner", tone: "brown" }, coverage: 0.9 }] };
+    const good = checkMakeup(designMakeup({ look, face: V }), V);
+    expect(get(good, "aegyo-sal-height").ok).toBe(true); expect(get(good, "wing-angle").ok).toBe(true); expect(get(good, "lens-size").ok).toBe(true);
+    const bad = checkMakeup(designMakeup({ look: { ...look, eyes: { lens: { diameter: 15.5, ring: 0.6 } } }, face: V, overrides: { "aegyo-sal": { adjust: { radius: 3 } } } }), V);
+    expect(get(bad, "aegyo-sal-height").ok).toBe(false); expect(get(bad, "lens-size").ok).toBe(false);
   });
 });
 

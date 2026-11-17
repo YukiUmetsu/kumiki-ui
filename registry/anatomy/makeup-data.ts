@@ -9,6 +9,7 @@
  */
 import type { BlendMode, BlushFamily, LipFamily } from "./makeup-color";
 import type { FinishId, ProductId, ZoneAdjust } from "./makeup-zones";
+import type { LashSpec } from "./face-portrait";
 import learnedJson from "./data/makeup-learned.json";
 
 export interface MakeupEvidence { id: string; grade: "reported" | "learned" | "convention" | "estimated"; finding: string; appliedAs: string; source: string; url: string }
@@ -151,10 +152,12 @@ export type ColourRule =
 export interface LookLayer { zone: string; product?: ProductId; colour: ColourRule; coverage: number; finish?: FinishId; blend?: BlendMode; adjust?: ZoneAdjust; why?: string }
 export interface Look {
   id: string; label: string; summary: string; layers: LookLayer[];
-  /** Mascara: lash length and thickness factors, darkness 0-1. */
-  lashes?: { length: number; thickness: number; darkness: number };
-  /** Hair density of the brows drawn over the fill (1 = natural). */
-  brows?: { density: number };
+  /** Mascara or false lashes: length and thickness factors, darkness 0-1, a style and lower lashes. */
+  lashes?: LashSpec;
+  /** Eye tools beyond paint: a circle lens (tinted diameter in mm, ring 0-1, tint as sRGB hex) and double-eyelid tape 0-1. */
+  eyes?: { lens?: { diameter: number; ring: number; tint?: string }; tape?: number };
+  /** Brows: hair density over the fill (1 = natural) and how far to straighten their shape (0-1). */
+  brows?: { density: number; straight?: number };
   /** Apply the face-shape and eye placement rules (default true). */
   adapt?: boolean;
   evidence: string[];

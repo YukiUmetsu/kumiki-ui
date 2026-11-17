@@ -19,7 +19,7 @@ import { readSkin, UNDERTONE_REF } from "./makeup-color";
 import { MAKEUP_EVIDENCE, MAKEUP_LEARNED } from "./makeup-data";
 import { checkMakeup, designMakeup, planSwatches } from "./makeup-design";
 import type { DesignOptions, MakeupPlan } from "./makeup-design";
-import { makeupPaint } from "./makeup-paint";
+import { makeupPortraitOptions } from "./makeup-paint";
 import { findZone, MAKEUP_ATLAS, zoneOutline } from "./makeup-zones";
 import type { ProductId, ZoneAdjust } from "./makeup-zones";
 
@@ -52,8 +52,8 @@ export const MakeupPortrait = forwardRef<HTMLCanvasElement, MakeupPortraitProps>
     const eyeShape = typeof portrait.eyeShape === "string" ? portrait.eyeShape : portrait.eyeShape?.id;
     return designMakeup({ skin: portrait.skin ?? "#d8a98a", eyes: portrait.eyes ?? "brown", eyeShape, hair: portrait.hair, ...design, face: face.vertices });
   }, [planKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  const paint = useMemo(() => (designed.layers.length ? makeupPaint(designed) : undefined), [designed]);
-  return <FacePortrait ref={ref} options={{ makeup: "none", ...portrait, paint }} label={label} style={style} />;
+  const options = useMemo(() => (designed.layers.length || designed.eyes.lens || designed.eyes.tape ? makeupPortraitOptions(portrait, designed) : { makeup: "none" as const, ...portrait }), [designed]); // eslint-disable-line react-hooks/exhaustive-deps
+  return <FacePortrait ref={ref} options={options} label={label} style={style} />;
 });
 
 // ---- Face chart ---------------------------------------------------------------------------------------------------------
