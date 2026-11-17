@@ -8,7 +8,9 @@ const sourceIds=["inner-fold","heart","rose-whorl-recess",
 test("native 16:9 + 9:16: real six-source central knot with a visible curled backside, reversible A/B and full 45 regions",async({page},info)=>{
   await page.goto(story);
   const svg=page.locator("svg[data-km-colored-pencil]");
+  const paper=svg.locator("xpath=..");
   const studio=page.locator("[data-km-foundation-studio]");
+  await expect(paper).toHaveCSS("overflow","hidden");
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
   const knot=page.getByRole("checkbox",{name:"Foundation rose center knot anatomy"});
   const whorl=page.getByRole("checkbox",{name:"Foundation rose nested inner whorl"});
@@ -23,6 +25,21 @@ test("native 16:9 + 9:16: real six-source central knot with a visible curled bac
     await expect(svg.locator("[data-km-pencil-region]")).toHaveCount(15);
     const before=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-knot-"+aspect+"-legacy-whorl.png")});
+    const baselineMacros=new Map<string,Buffer>();
+    for(const [focusValue,part,name] of [
+      ["rose-whorl-center","rose-whorl-scroll","foreground-curl"],
+      ["rose-whorl-recess","rose-whorl-recess","recess"],
+      ["rose-whorl-left","rose-whorl-left","left-wall"],
+      ["rose-whorl-right","rose-whorl-right","right-shoulder"],
+    ] as const){
+      await focus.selectOption(focusValue);
+      await expect(studio).toHaveAttribute("data-km-foundation-inspection-focus",part);
+      await macro.check();
+      baselineMacros.set(name,await paper.screenshot({animations:"disabled",
+        path:info.outputPath("rose-knot-"+aspect+"-old-"+name+"-215pct.png")}));
+      await macro.uncheck();
+    }
+    await focus.selectOption("default");
     const previousPaths=await svg.evaluate((root,ids)=>{
       const result:Record<string,string|null>={};
       for(const id of ids){
@@ -69,15 +86,21 @@ test("native 16:9 + 9:16: real six-source central knot with a visible curled bac
       path:info.outputPath("rose-knot-"+aspect+"-original-central-physical-relief.png")});
     expect(hash(native)).not.toBe(hash(before));
     for(const [focusValue,part,name] of [
-      ["rose-whorl-center","rose-whorl-scroll","scrolled-face"],
+      ["rose-whorl-center","rose-whorl-scroll","foreground-curl"],
       ["rose-whorl-recess","rose-whorl-recess","occlusion-pocket"],
+      ["rose-whorl-left","rose-whorl-left","left-wall"],
+      ["rose-whorl-right","rose-whorl-right","right-shoulder"],
+      ["rose-whorl-heart","heart","front-lamina"],
+      ["rose-whorl-back-crown","inner-fold","rear-crown"],
       ["rose-whorl-underturn","rose-center-scroll-underturn","physical-backface"],
     ] as const){
       await focus.selectOption(focusValue);
       await expect(studio).toHaveAttribute("data-km-foundation-inspection-focus",part);
       await macro.check();
-      await svg.screenshot({animations:"disabled",
+      const current=await paper.screenshot({animations:"disabled",
         path:info.outputPath("rose-knot-"+aspect+"-"+name+"-215pct.png")});
+      const previous=baselineMacros.get(name);
+      if(previous)expect(hash(current),name).not.toBe(hash(previous));
       await macro.uncheck();
     }
     await focus.selectOption("default");
