@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { BUILDING_TYPES } from "../../registry/anatomy/arch-data";
 import { ArchSheet, BuildingElevation, StreetElevation } from "../../registry/anatomy/arch-react";
-import { ArchLibraryGallery, ArchStyleGuide } from "../../registry/anatomy/arch-plate-react";
+import { ArchLibraryGallery, ArchModuleShowcase, ArchStyleGuide } from "../../registry/anatomy/arch-plate-react";
 
 const page: CSSProperties = { display: "grid", gap: 16, alignContent: "start", padding: 24, minHeight: "100vh", background: "#f3efe8", color: "#26211d", font: "15px/1.45 system-ui, sans-serif" };
 const muted: CSSProperties = { margin: 0, color: "#5b524b", font: "13px/1.5 system-ui" };
@@ -62,3 +62,15 @@ export const StorybookLibrary: Story = {
 };
 /** The materials, light, age and paint that the plates are made of, each rendered. */
 export const StyleGuideStory: Story = { name: "Illustration style guide", render: () => <div style={page}><h2 style={h2}>Illustrated architecture — style guide</h2><ArchStyleGuide /></div> };
+
+/** Isolated architectural modules (classical to deconstructivist, European and Chinese) on a parchment studio cove, each a reusable building function. */
+export const ModularComponents: Story = {
+  name: "Modular components (37 modules)",
+  render: () => (
+    <div style={page}>
+      <h2 style={h2}>Modular architectural components</h2>
+      <p style={{ ...muted, maxWidth: 900 }}>Hero-grade building blocks across eras, from Greek orders and Gothic tracery to Chinese dougong, Art Deco crowns and deconstructivist titanium, each shown alone on a warm parchment cove in a golden key light and a warm rim light, with contact shadows. Each is a function you can build into a scene (<code>findModule(id).build(b)</code>).</p>
+      <ArchModuleShowcase />
+    </div>
+  ),
+};

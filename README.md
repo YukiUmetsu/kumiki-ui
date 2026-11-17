@@ -108,6 +108,7 @@ Open **http://localhost:6006**, then try these real Storybook stories (links wor
 | Exact 3D signage and crisp device labels | [3D asset toolkit → Precise World Text → Wayfinding](http://localhost:6006/?path=/story/craft-text-label--wayfinding) |
 | Procedural architecture and trees for a street | [3D asset toolkit → Procedural Environments → Street Corner](http://localhost:6006/?path=/story/craft-procedural-environments--street-corner) |
 | Painted storybook buildings, streets and rooms (100 structures) | [Video production → Art Foundations → Architecture → Illustrated library](http://localhost:6006/?path=/story/video-arch--storybook-library) |
+| Isolated architectural modules: columns, tracery, dougong, Deco crowns, diagrid (37) | [Video production → Art Foundations → Architecture → Modular components](http://localhost:6006/?path=/story/video-arch--modular-components) |
 | Terrain-based scatter and woodland | [3D asset toolkit → Procedural Environments → Hillside](http://localhost:6006/?path=/story/craft-procedural-environments--hillside) |
 | Grass, ferns, wildflowers and UV-mapped ground materials | [3D asset toolkit → Natural Environments → Ground Vegetation](http://localhost:6006/?path=/story/craft-natural-environments--ground-vegetation) |
 | Seeded soil, moss, stone, sand, bark and leaf finishes | [3D asset toolkit → Natural Environments → Natural Materials](http://localhost:6006/?path=/story/craft-natural-environments--natural-materials) |

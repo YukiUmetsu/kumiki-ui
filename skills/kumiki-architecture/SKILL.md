@@ -26,6 +26,8 @@ The pack `architecture` decides *how big and how built*. Your style decides *how
    weather the surfaces (`age`, `moss`, `flake`, `soot`, ivy), choose a light from `MOODS`, and frame with
    `frameSubject` so verticals stay vertical. Keep the darkest darks in the openings and the shadows cool. Read the
    [storybook study](../../docs/research/architecture-storybook-reference-study-2026-11-17.md).
-8. **Render a contact sheet before you call it done.** Look at every plate for framing, silhouette, scale and moiré;
+8. **Modules.** For one isolated element (a capital, a rose window, a dougong, a Deco crown, a diagrid), start from
+   `ARCH_MODULES` (`findModule(id).build(b)` adds it to any scene; `ModulePlate` shows it on the studio cove).
+9. **Render a contact sheet before you call it done.** Look at every plate for framing, silhouette, scale and moiré;
    faults the study lists (inherited surface fields, scenery merged into a house's group, hidden water) are easy to
    repeat.

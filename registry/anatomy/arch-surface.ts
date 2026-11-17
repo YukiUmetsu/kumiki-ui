@@ -25,7 +25,8 @@ export type SurfaceKind =
   | "slate" | "stone-slate" | "plain-tile" | "pantile" | "thatch" | "shingle" | "copper" | "zinc" | "lead" | "glazed-tile" | "turf"
   | "oak" | "painted-wood" | "iron" | "gold" | "brass" | "glass" | "leaded" | "stained" | "greenhouse"
   | "cobbles" | "setts" | "flags" | "gravel" | "grass" | "dirt" | "water" | "sand" | "rock" | "snow"
-  | "foliage" | "firewood" | "books" | "jars" | "bread" | "fabric" | "hay" | "fire" | "flame" | "floorboards" | "tile-floor" | "drawers" | "plain";
+  | "foliage" | "firewood" | "books" | "jars" | "bread" | "fabric" | "hay" | "fire" | "flame" | "floorboards" | "tile-floor" | "drawers" | "plain"
+  | "parchment" | "polychrome" | "glazed-tube" | "board-concrete" | "travertine" | "titanium" | "steel" | "curtain";
 
 /** One surface in a scene. Colours are sRGB hex; sizes are metres. */
 export interface SurfaceSpec {
@@ -592,6 +593,77 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
         const cu = Math.floor(u / T), cv = Math.floor(v / T), fu = u / T - cu, fv = v / T - cv, d = Math.min(fu, 1 - fu, fv, 1 - fv) * T;
         set(o, vary((cu + cv) % 2 ? a : b, hash2(seed, cu, cv), 0.1)); const g = sst(0.008, 0.003, d); mixInto(o, [0.35, 0.32, 0.28], g * 0.8);
         o.h = -0.002 * g; o.cav = 1 - 0.4 * g; o.rough = 0.5; o.spec = 0.08; o.porous = 0.3;
+      };
+    }
+    // ---- the module showcase: studio paper, Chinese and modern materials ----
+    case "parchment": {
+      const paper = C(s.colour, "#eee7d9");
+      return (u, v, _i, o) => {
+        const m = fbm(seed, u * 0.05, v * 0.05, 3), fib = fbm(seed + 1, u * 3, v * 0.6, 2), tooth = gradNoise(seed + 2, u * 40, v * 40);
+        set(o, paper, 1 + 0.035 * m + 0.012 * fib + 0.008 * tooth); mixInto(o, [0.72, 0.6, 0.42], sst(0.3, 0.9, m) * 0.06);
+        o.h = 0.0003 * tooth; o.rough = 0.95; o.spec = 0.01; o.porous = 0.3;
+      };
+    }
+    case "polychrome": {
+      // caihua: blue and green bands along each member, red ground, gold and white lines, a medallion in each panel
+      const blue = linearOf("#2d5d8c"), green = linearOf("#3d7a5c"), red = C(s.colour, "#9b2f22"), gold = linearOf("#c9a24a"), white = linearOf("#e9e2d0");
+      const P = s.unit ?? 0.5;
+      return (u, v, _i, o) => {
+        const k = Math.floor(u / P), f = u / P - k, band = Math.floor(((v % 0.36) + 0.36) % 0.36 / 0.12);
+        set(o, (k + band) % 2 ? blue : green, 0.95 + 0.1 * hash2(seed, k, band));
+        const line = Math.min(Math.abs(f - 0.06), Math.abs(f - 0.94)) < 0.025, rim = Math.abs(((v % 0.12) + 0.12) % 0.12 - 0.06) > 0.052;
+        if (rim) set(o, white); if (line) set(o, gold, 1.1);
+        const med = Math.hypot((f - 0.5) * P, ((((v % 0.36) + 0.36) % 0.36) - 0.18)) < 0.06;
+        if (med && k % 2) set(o, gold, 1.15); else if (med) set(o, red);
+        o.h = line ? 0.0015 : 0; o.rough = 0.6; o.spec = 0.06; o.porous = 0.2;
+      };
+    }
+    case "glazed-tube": {
+      // imperial glazed tiles: convex covering tiles in ribs down the slope, a round end tile at each eave, glossy
+      const base = C(s.colour, "#d4a52a"), P = s.unit ?? 0.22, L = s.course ?? 0.32;
+      return (u, v, i, o) => {
+        const cu = Math.floor(u / P), fu = u / P - cu, row = Math.floor(v / L), fv = v / L - row, rp = resolve(i.fw, P);
+        const rib = 0.6 + (Math.cos((fu - 0.5) * Math.PI) - 0.6) * rp;
+        set(o, vary(base, hash2(seed, cu, row), 0.07, 0.04), 0.8 + 0.25 * rib);
+        o.h = (0.045 * rib + 0.01 * fv) * rp; o.cav = 0.5 + 0.5 * rib; o.rough = 0.18; o.spec = 0.55; o.porous = 0.05;
+      };
+    }
+    case "board-concrete": {
+      // béton brut: each board's grain printed in the concrete, joints between boards, form-tie holes, water stains and moss below ledges
+      const cg = C(s.colour, "#9b978f"), H = s.course ?? 0.15;
+      return (u, v, i, o) => {
+        const row = Math.floor(v / H), fv = v / H - row, off = hash2(seed, row, 1) * 3, seg = Math.floor((u + off) / 2.4);
+        const grain = Math.sin((u + off) * 30 + fbm(seed + 2, u * 0.5, v * 6 + row, 3) * 9) * 0.5 + 0.5, joint = sst(0.06, 0.0, Math.min(fv, 1 - fv)) * resolve(i.fw, H);
+        set(o, cg, 0.9 + 0.12 * hash2(seed + 3, row, seg) + 0.05 * grain * resolve(i.fw, 0.03));
+        const tu = ((u % 0.6) + 0.6) % 0.6 - 0.3, tv = ((v % 0.9) + 0.9) % 0.9 - 0.45, tie = sst(0.018, 0.01, Math.hypot(tu, tv));
+        const stain = sst(0.1, 0.8, fbm(seed + 4, u * 1.4, v * 0.18, 3) * 0.5 + 0.5) * (s.age ?? 0.6) * 0.35;
+        o.r *= 1 - 0.18 * joint - 0.45 * tie - stain; o.g *= 1 - 0.18 * joint - 0.45 * tie - stain; o.b *= 1 - 0.16 * joint - 0.42 * tie - stain * 0.9;
+        o.h = 0.002 * grain - 0.004 * joint - 0.01 * tie; o.cav = 1 - 0.4 * joint - 0.6 * tie; o.rough = 0.92; o.spec = 0.02; o.porous = 0.6;
+        mossOver(o, u, v, moss, i, joint);
+      };
+    }
+    case "travertine": {
+      const st = C(s.colour, "#e0d3b6"), H = s.course ?? 0.4;
+      return (u, v, i, o) => {
+        const c = courses(u, v, H, H * 2.2, seed, 0.25), band = Math.sin(v * 28 + fbm(seed + 1, u * 0.8, v * 2, 3) * 4) * 0.5 + 0.5;
+        const pit = worley(seed + 2, u * 22, v * 40, 1), hole = pit.id < 0.18 ? sst(0.32, 0.15, pit.f1) : 0;
+        set(o, vary(st, c.id, 0.06), 0.94 + 0.08 * band); o.r *= 1 - 0.45 * hole; o.g *= 1 - 0.47 * hole; o.b *= 1 - 0.5 * hole;
+        const j = sst(0.006, 0.002, c.dj) * resolve(i.fw, H);
+        o.h = -0.004 * hole - 0.002 * j; o.cav = 1 - 0.5 * hole - 0.3 * j; o.rough = 0.7; o.spec = 0.04; o.porous = 0.5;
+        grime(o, u, v, age * 0.5, i);
+      };
+    }
+    case "titanium": case "steel": case "curtain": {
+      const ti = s.kind === "titanium", glass = s.kind === "curtain", base = C(s.colour, ti ? "#b5b2ac" : glass ? "#3d5566" : "#c9ccd0");
+      const PW = s.unit ?? (ti ? 0.7 : 1.5), PH = s.course ?? (ti ? 1.0 : 1.2), mull = linearOf(s.colour2 ?? "#2a2c2e");
+      return (u, v, i, o) => {
+        const row = Math.floor(v / PH), uu = u + (ti ? (row % 2) * PW * 0.5 : 0), col = Math.floor(uu / PW), fu = uu / PW - col, fv = v / PH - row;
+        const id = hash2(seed, col, row), d = Math.min(fu, 1 - fu, fv, 1 - fv) * Math.min(PW, PH), rr = resolve(i.fw, Math.min(PW, PH));
+        set(o, base, (ti ? 0.88 + 0.22 * id : 1) + (s.kind === "steel" ? 0.05 * fbm(seed, u * 30, v * 2, 2) : 0));
+        o.metal = glass ? 0 : 1; o.rough = ti ? 0.28 + 0.12 * id : glass ? 0.05 : 0.14; o.spec = glass ? 1 : 0.9; o.glass = glass ? 1 : 0; o.porous = 0;
+        // titanium panels pillow a little between their seams; curtain glass sits in dark mullions
+        o.h = ti ? 0.004 * Math.sin(fu * Math.PI) * Math.sin(fv * Math.PI) * rr : 0;
+        if (glass || ti) { const seam = sst(glass ? 0.04 : 0.008, 0, d) * rr; if (glass) { mixInto(o, mull, seam); o.glass *= 1 - seam; o.metal = seam * 0.6; } else { o.r *= 1 - 0.3 * seam; o.g *= 1 - 0.3 * seam; o.b *= 1 - 0.3 * seam; } o.cav = 1 - 0.3 * seam; }
       };
     }
     default: {

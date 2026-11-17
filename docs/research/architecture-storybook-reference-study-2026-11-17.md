@@ -140,6 +140,27 @@ setting, view, scale, materials, story details and what its references taught (`
 - Lone far hits at grazing range made specks along the horizon; a lone hit with sky nearly all round takes the sky's
   colour.
 
+## Module showcase (added 2026-11-17)
+
+A second brief asked for isolated modules on a parchment studio backdrop, across classical, Gothic, Renaissance and
+Baroque, Chinese, European vernacular, Art Deco, Modernist and Brutalist or Deconstructivist work.
+
+| Subject | Fact used | Grade | Source |
+| --- | --- | --- | --- |
+| Classical orders | column heights in lower diameters (Doric about 5½ at the Parthenon, Ionic about 9, Corinthian about 10); Doric has no base and 20 flutes, Ionic and Corinthian 24 | reported | ARCH1 `CLASSICAL_ORDERS` (Vitruvius); [Wikipedia: Classical order](https://en.wikipedia.org/wiki/Classical_order) |
+| Pantheon | five rings of 28 coffers stepping back toward the oculus | reported | [Wikipedia: Pantheon, Rome](https://en.wikipedia.org/wiki/Pantheon,_Rome) |
+| Dougong | a cap block (ludou) on the column, arms (gong) and cantilevers (ang); described in the Yingzao Fashi (1103) | reported | [Wikipedia: Dougong](https://en.wikipedia.org/wiki/Dougong), [BioResources study of the Taihe Hall brackets](https://bioresources.cnr.ncsu.edu/resources/mechanical-behavior-of-dou-gong-brackets-in-chinese-traditional-timber-structures-an-experimental-study/) |
+| Ridge beasts | the more important the hall, the more figures; a heavenly rider leads a dragon, a phoenix, a lion; in odd numbers | reported | [SCMP: the architecture of the Forbidden City](https://multimedia.scmp.com/culture/article/forbidden-city/architecture/chapter_02.html) |
+| Villa Savoye | Le Corbusier's points: pilotis, roof terrace, free plan, ribbon windows, free facade; slender white concrete pilotis | reported | [99% Invisible](https://99percentinvisible.org/article/machines-living-le-cobusiers-pivotal-five-points-architecture/), [Sonneveld House](https://www.sonneveldhouse.com/node/115) |
+| Chrysler crown | terraced arches with triangular windows in seven setbacks, clad in Nirosta (18-8 chromium-nickel) stainless steel | reported | [Wikipedia: Chrysler Building](https://en.wikipedia.org/wiki/Chrysler_Building), [MasterClass](https://www.masterclass.com/articles/chrysler-building-architecture-guide) |
+| Béton brut, titanium, diagrid | board grain printed in raw concrete; thin titanium shingles; diagonal steel grids on the face | estimated (common descriptions; not separately sourced here) | — |
+
+**Rules taken from the brief and the references.** A neutral parchment cove so the module's own colours read; a key
+light from the front left and a rim light from behind right that is not shadowed, so silhouettes separate from the
+backdrop; a longer lens (34°) and an eye at mid-height of the module, as product and model photographers frame a
+single object; contact shadow from ambient occlusion where the module meets the floor; the paint pass at half strength
+so the modules stay crisp enough to study.
+
 ## Limits
 
 - Ornament is simplified: no carved capitals, tracery inside windows, statues or Lüftlmalerei figures.

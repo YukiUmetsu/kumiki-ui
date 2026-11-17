@@ -12,7 +12,7 @@
   renders) and `arch-plate-react.tsx` (`StorybookPlate`, `ArchLibraryGallery`, `ArchStyleGuide`).
 
 **Storybook:** Video production → Art Foundations → Architecture → **Sheet**, **Streets**, **Measured elevation**,
-**Illustrated library (100 structures)**, **Illustration style guide**.
+**Illustrated library (100 structures)**, **Illustration style guide**, **Modular components (37 modules)**.
 **Status:** implemented; agent review of renders only — **human visual review not recorded**.
 **Reference studies:** [elevations measured from photographs and drawings](../research/architecture-reference-study-2026-11-17.md)
 (Himeji, Morisada's machiya, Tōshōdai-ji, the Parthenon; observation of Bedford Square, Stein am Rhein and others);
@@ -156,11 +156,25 @@ Painted scenes of 100 structures and environments, for films, covers and backgro
 - **React:** `StorybookPlate` renders an entry in a worker (cached, with a preview); `ArchLibraryGallery` and
   `ArchStyleGuide` are the Storybook pages.
 
+## Module showcase
+
+`arch-modules.ts`: 37 isolated, hero-grade modules in eight families (`MODULE_GROUPS`): classical and neoclassical,
+Gothic, Renaissance and Baroque, Chinese imperial and vernacular, European vernacular details, Art Deco, Modernism,
+Brutalist and Deconstructivist. Each entry (`ARCH_MODULES`, `findModule`) has its landmarks, materials, a note on how it
+is built and `build(b)`, which adds the module to any `SceneBuilder` in local metres, so scenes and films can reuse it.
+`moduleScene(id)` shows one alone on a parchment studio cove (a floor curving into a wall that faces the camera) in the
+`studio` light: a golden key, a warm unshadowed rim from behind, soft parchment fill, contact shadows. Shared shapes:
+`flutedShaft` (flutes and entasis) and `volute` (a disc with a spiral groove). New surfaces: parchment, polychrome
+(caihua), glazed-tube tiles, board-formed concrete, travertine, titanium, steel, curtain glass. `ModulePlate` renders
+one; `ArchModuleShowcase` is the Storybook page.
+
 ## Limits
 
 - Front elevations only: no perspective views or plans.
 - Ornament is simplified: no carving, no pediment sculpture, generic acroteria; the keep's windows are evenly spaced.
 - The elevations have no interiors (see `home-interiors`); the storybook plates have ten rooms.
+- Modules: acanthus leaves are lumps, the gargoyle and ridge beasts are simple forms, and the Deco crown and dougong are
+  simplified; capitals have no carved detail below a few centimetres.
 - Plates: ornament is simplified (no carved capitals, tracery or painted figures); trees are leaf masses, not FLORA1
   species; only glasshouse glass is clear; the Gothic west front, the Kizhi church and the alpine peaks are the
   weakest entries.

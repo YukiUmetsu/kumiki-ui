@@ -44,13 +44,15 @@ export interface CameraSpec {
   /** Lens shift: raise (+) or lower the frame without tilting, as a share of the half-height. */
   shift?: number;
 }
-export type MoodId = "morning" | "noon" | "golden" | "dusk" | "night" | "rain" | "rain-night" | "overcast" | "winter" | "interior-day" | "candle";
+export type MoodId = "morning" | "noon" | "golden" | "dusk" | "night" | "rain" | "rain-night" | "overcast" | "winter" | "interior-day" | "candle" | "studio";
 export interface Mood {
   sunElevation: number; sunAzimuth: number; sunKelvin: number; sunPower: number;
   skyTop: string; skyHorizon: string; ambient: number; haze: string; visibility: number;
   wet: number; snow: number; night: number; cloud: number;
   /** White balance, K: the light a painter treats as white (a candlelit room is painted warm, not orange). */
   white?: number;
+  /** A second, unshadowed light from behind that rims the silhouette: elevation°, azimuth°, K, strength. */
+  rim?: readonly [number, number, number, number];
 }
 export const MOODS: Readonly<Record<MoodId, Mood>> = {
   morning: { sunElevation: 24, sunAzimuth: -58, sunKelvin: 4300, sunPower: 3.0, skyTop: "#5f8fc8", skyHorizon: "#f1e7d2", ambient: 1.15, haze: "#d9dde0", visibility: 1400, wet: 0, snow: 0, night: 0, cloud: 0.35 },
@@ -63,6 +65,8 @@ export const MOODS: Readonly<Record<MoodId, Mood>> = {
   overcast: { sunElevation: 35, sunAzimuth: -40, sunKelvin: 6500, sunPower: 0.35, skyTop: "#9aa5ae", skyHorizon: "#d6d6d0", ambient: 1.1, haze: "#c9cbc8", visibility: 900, wet: 0.15, snow: 0, night: 0, cloud: 0.8 },
   winter: { sunElevation: 14, sunAzimuth: -55, sunKelvin: 3800, sunPower: 2.6, skyTop: "#7aa0cc", skyHorizon: "#efe4d6", ambient: 1.2, haze: "#dfe3e8", visibility: 1200, wet: 0, snow: 1, night: 0.2, cloud: 0.4 },
   "interior-day": { sunElevation: 28, sunAzimuth: -60, sunKelvin: 4800, sunPower: 4.2, skyTop: "#7aa0cc", skyHorizon: "#f1e9d8", ambient: 0.32, haze: "#e8dfcf", visibility: 3000, wet: 0, snow: 0, night: 0, cloud: 0.3 },
+  // a model-maker's studio: a warm golden key from the front left, a warm rim from behind right, a parchment cove for fill
+  studio: { sunElevation: 30, sunAzimuth: -48, sunKelvin: 3900, sunPower: 2.4, skyTop: "#dcd6cc", skyHorizon: "#f0ebe2", ambient: 1.25, haze: "#efe6d3", visibility: 1e6, wet: 0, snow: 0, night: 0, cloud: 0, rim: [24, 150, 3000, 1.6] },
   candle: { sunElevation: 10, sunAzimuth: -60, sunKelvin: 3000, sunPower: 0.05, skyTop: "#1b2540", skyHorizon: "#3a4766", ambient: 0.07, haze: "#3b3030", visibility: 3000, wet: 0, snow: 0, night: 1, cloud: 0.3, white: 2500 },
 };
 
@@ -138,6 +142,8 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
   const lights = (scene.lights ?? []).map(l => ({ ...l, power: l.lamp ? l.power * lampOn : l.power })).filter(l => l.power > 0.01);
   const lightC = lights.map(l => { const c = kelvinRgb(l.kelvin); return [c[0] * l.power, c[1] * l.power, c[2] * l.power]; });
   const grounds = scene.grounds ?? [];
+  const rim = mood.rim, rimC = rim ? kelvinRgb(rim[2]).map(c => c * rim[3]) : null;
+  const rimD = rim ? [Math.sin((rim[1] * Math.PI) / 180) * Math.cos((rim[0] * Math.PI) / 180), Math.sin((rim[0] * Math.PI) / 180), Math.cos((rim[1] * Math.PI) / 180) * Math.cos((rim[0] * Math.PI) / 180)] : [0, 1, 0];
 
   const sky = (dx: number, dy: number, dz: number, out: Float32Array, k: number) => {
     const up = Math.max(0, dy), tH = Math.pow(1 - up, 2.4);
@@ -357,6 +363,8 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
       const skyK = amb * occ * (0.55 + 0.45 * bny), bounce = amb * occ * 0.35 * Math.max(0, -bny + 0.25) * sunP * 0.3;
       const skyR = skyTop[0] * 0.55 + skyHor[0] * 0.45, skyG = skyTop[1] * 0.55 + skyHor[1] * 0.45, skyB = skyTop[2] * 0.55 + skyHor[2] * 0.45;
       let lr = sunC[0] * dsun + skyR * skyK + 0.55 * bounce, lg = sunC[1] * dsun + skyG * skyK + 0.45 * bounce, lb = sunC[2] * dsun + skyB * skyK + 0.32 * bounce;
+      // the rim light: catches edges that turn away from the camera, as a back light does in a studio
+      if (rimC) { const nd = bnx * rimD[0] + bny * rimD[1] + bnz * rimD[2]; if (nd > 0) { const edge = 0.35 + 0.65 * Math.pow(1 - Math.max(0, -(dx * bnx + dy * bny + dz * bnz)), 2); const f = nd * edge * (0.5 + 0.5 * occ); lr += rimC[0] * f; lg += rimC[1] * f; lb += rimC[2] * f; } }
       // lamps, candles, fires
       for (let k = 0; k < lights.length; k++) {
         const L = lights[k], ddx = L.x - hx, ddy = L.y - hy, ddz = L.z - hz, d2 = ddx * ddx + ddy * ddy + ddz * ddz, dl2 = Math.sqrt(d2);
