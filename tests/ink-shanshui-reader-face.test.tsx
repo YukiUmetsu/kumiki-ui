@@ -504,7 +504,12 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(anatomy.planes.length).toBeGreaterThan(low.planes.length+4);
     // The source-fitted paper-skin base and independent film visemes
     // cannot be replaced with a new facial sticker for the glaze effect.
-    expect(paths(original,"face")[1]).toMatchObject({
+    // Source paintings may add individual ear/cheek paths ahead of
+    // the untouched head. Find its opaque ANAT1 jaw silhouette by
+    // semantic geometry, never a brittle array index.
+    const originalHead=paths(original,"face").find(s=>
+      s.type==="path"&&s.fill==="$skin"&&s.d.includes("143.3 143.7"));
+    expect(originalHead).toMatchObject({
       type:"path",fill:"$skin",opacity:1,
     });
     for(const name of ["reader-ear","brow","eyes-open","eyes-soft",
