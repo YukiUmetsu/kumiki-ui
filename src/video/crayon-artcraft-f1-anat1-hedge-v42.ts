@@ -14,7 +14,6 @@ import type {CrayonColor,CrayonElement} from "../../registry/video/materials/cra
  * flattened fill, or duplicated face/rig components. Not art-approved.
  */
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
-type Contour=Extract<CrayonElement,{kind:"contour"}>;
 type Point=readonly [number,number];
 type Cluster={
   id:string;x:number;y:number;angle:number;length:number;width:number;
