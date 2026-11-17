@@ -1022,7 +1022,7 @@ function FuchunSourceFidelityDesk(){
   const [detail,setDetail]=useState(1);
   const [mist,setMist]=useState(.35);
   const [ink,setInk]=useState(.9);
-  const [comparison,setComparison]=useState<"seeds"|"near">("seeds");
+  const [comparison,setComparison]=useState<"seeds"|"near"|"pine">("seeds");
   const [showTurning,setShowTurning]=useState(true);
   const [showInnerStrata,setShowInnerStrata]=useState(true);
   const [lens,setLens]=useState<"native"|"rock"|"edge"|"pine"|"near">("native");
@@ -1106,6 +1106,13 @@ function FuchunSourceFidelityDesk(){
         Near mountain · original vs rounded anatomy (EXPERIMENT)
       </button>
       <button type="button" style={style.button}
+        aria-pressed={comparison==="pine"}
+        onClick={()=>{
+          setComparison("pine");setLens("pine");setLayer("pine");
+        }}>
+        Old-pine wood · before vs source-loaded
+      </button>
+      <button type="button" style={style.button}
         aria-pressed={!showTurning}
         onClick={()=>setShowTurning(value=>!value)}>
         Turning-cheek wash · {showTurning?"hide":"show"}
@@ -1157,6 +1164,13 @@ function FuchunSourceFidelityDesk(){
       }}>Reset native source-fidelity review</button>
     </div>
     <style>{`
+      /* Before view hides only the 40 optional wood-pressure loads.
+         All original 20 bone arms, canopy islands, fan-edge paper
+         windows, fine needles and rooted source painting remain LIVE. */
+      [data-km-fidelity-comparison="pine"]
+      [data-km-fidelity-wood-study="before"]
+      [data-km-cliff-pine-wood-load] {visibility:hidden;}
+
       [data-km-fidelity-inner-strata="off"]
       [data-km-fuchun-near-inner-stratum] {visibility:hidden;}
       [data-km-fidelity-turning="off"]
@@ -1187,7 +1201,7 @@ function FuchunSourceFidelityDesk(){
       gridTemplateColumns:lens==="native"?"minmax(0,1fr)":
         "repeat(auto-fit,minmax(min(100%,510px),1fr))",
       gap:16,alignItems:"start"}}>
-      {([firstSeed,comparison==="near"?firstSeed:secondSeed] as const).map((seed,index)=>{
+      {([firstSeed,comparison==="seeds"?secondSeed:firstSeed] as const).map((seed,index)=>{
         const nearStudy=comparison==="near"&&index===1;
         const controls:ShanshuiControls={
           ...DEFAULT_SHANSHUI,scene:"mountain-trail",
@@ -1196,12 +1210,17 @@ function FuchunSourceFidelityDesk(){
         };
         return <section key={index} data-km-fidelity-sample={index}
           data-km-fidelity-near-study={nearStudy?"rounded":"legacy"}
+          data-km-fidelity-wood-study={comparison==="pine"
+            ?index===0?"before":"loaded":"base"}
           data-km-fidelity-seed={seed} data-km-fidelity-frame={frame}
           style={{display:"grid",gap:8,minWidth:0}}>
           <h2 style={{font:"500 19px Georgia,serif",margin:0}}>
             {comparison==="near"
               ?index===0?"Original untouched lower ridge":"19-station curved shoulder candidate"
-              :index===0?"Original run A":"Independent run B"} · seed {seed}
+              :comparison==="pine"
+                ?index===0?"Original bough bones without new wood loads":
+                  "Source-traced wet and dry woody bough pressure"
+                :index===0?"Original run A":"Independent run B"} · seed {seed}
             {" · frame "}{frame}
           </h2>
           <div data-km-fidelity-camera={lens}
