@@ -140,7 +140,7 @@ describe("RISO80 authored organic die-cut contours",()=>{
     expect(rounded.shape).toBe("rounded-rect");
     expect(rounded.winding).toBe("clockwise");
     expect(()=>evaluateRisoPullTab({...args,windows:[
-      organic,{...organic,id:"overlap",x:500,y:170},
+      organic,{id:"overlap",x:500,y:170,width:110,height:218,radius:10},
     ]})).toThrow(/seven source-paper units/);
   });
 });
