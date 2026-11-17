@@ -4326,7 +4326,7 @@
       "name": "architecture",
       "type": "registry:ui",
       "title": "Architecture Framework (ARCH1)",
-      "description": "Buildings in any art style, built round people: the human scale (doors, ceilings, storeys, sills, stairs and Blondel's rule), roof pitch by covering and climate, the classical orders and intercolumniation, the Japanese modules (shaku, ken, tatami), and nine building types by place and period (Kyoto machiya, Japanese temple hall, minka and gassho farmhouse, castle keep, Georgian town house, half-timbered house, Greek Doric temple, modern apartment block, adobe) with storeys, bays, roofs (straight in towns, curved only on temples and keeps), eaves and drawing notes. buildingElevation builds measured front elevations as parts by role for any painter; BuildingElevation, StreetElevation and ArchSheet draw them with a person for scale and dimension lines. Every value graded reported or estimated with sources.",
+      "description": "Buildings in any art style, built round people: the human scale (doors, ceilings, storeys, sills, stairs and Blondel's rule), roof pitch by covering and climate, the classical orders and intercolumniation, the Japanese modules (shaku, ken, tatami), and nine building types by place and period (Kyoto machiya, Japanese temple hall, minka and gassho farmhouse, castle keep, Georgian town house, half-timbered house, Greek Doric temple, modern apartment block, adobe) with storeys, bays, roofs (straight in towns, curved only on temples and keeps), eaves and drawing notes. buildingElevation builds measured front elevations as parts by role for any painter; BuildingElevation, StreetElevation and ArchSheet draw them with a person for scale and dimension lines. Every value graded reported or estimated with sources. Storybook plates: a library of 100 structures and environments (British, French, Alpine, Low Countries, Italian, Iberian and Mediterranean, Nordic, a few North African and Middle Eastern, Romanesque and Gothic engineering, castles, Baroque, Victorian iron and glass, barns and mills, lived-in interiors), each built from modular signed-distance parts at real size (walls per storey, jetties, openings with reveals, sashes, shutters, chimneys, dormers, every roof form, churches with flying buttresses, bridges with cutwaters, water wheels, windmills, glasshouses, keeps, domes, rooms), surfaces built from their structure (ashlar, rubble, brick bonds, flaking limewash, pegged oak frames, slates, diminishing stone slates, clay tiles, coppi, thatch, copper patina, cobbles, ivy, moss, soot), lit by sun, sky, lamps and candles by colour temperature, and painted as classic architectural watercolour (cool shadows, washes, broken sepia line, granulation, paper). StorybookPlate, ArchLibraryGallery, ArchStyleGuide; renders in workers, cached.",
       "dependencies": [],
       "registryDependencies": [
         "art-foundations"
@@ -4346,6 +4346,56 @@
           "path": "registry/anatomy/arch-react.tsx",
           "type": "registry:ui",
           "target": "components/anatomy/arch-react.tsx"
+        },
+        {
+          "path": "registry/anatomy/arch-sdf.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-sdf.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-surface.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-surface.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-paint.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-paint.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-kit.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-kit.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-kit-civic.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-kit-civic.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-library.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-library.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-paint-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-paint-jobs.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-paint-pool.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-paint-pool.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-paint-worker.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-paint-worker.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-plate-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-plate-react.tsx"
         }
       ]
     },
