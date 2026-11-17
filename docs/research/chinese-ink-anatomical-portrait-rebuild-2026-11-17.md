@@ -1,6 +1,6 @@
 # ANAT2 — Chinese ink original human portrait redraw (2026-11-17)
 
-**Scope:** two entirely new code-painted characters in `src/video/ink-anatomical-portrait.tsx` and five Storybook views. This study does NOT import, resize, trace, or patch the existing Shanshui character source shapes. The existing PR #466 landscape, river-scholar and its unfinished reference review remain unchanged. These are independent new candidate figures.
+**Scope:** two entirely new code-painted characters in `src/video/ink-anatomical-portrait.tsx` and six Storybook views. This study does NOT import, resize, trace, or patch the existing Shanshui character source shapes. The existing PR #466 landscape, river-scholar and its unfinished reference review remain unchanged. These are independent new candidate figures.
 
 **Status: ART HOLD.** Code-authored anatomical plausibility is not equivalent to art-historical likeness or real dry-brush authenticity. A passing browser test or a frame screenshot alone is not artistic acceptance. Keep #466 draft until actual same-camera historical comparison and film-scale acceptance.
 
@@ -46,6 +46,16 @@ Actual 1× Chromium screenshots still showed broad uniform-width synthetic robe 
 **Video/Storybook acceptance:** the added "INK1 loaded silk lapels · sleeve pressure and paper-fibre microscope" presents both original figures with native robe camera crop 55 410 430 202 and a matching full-bust view. It exposes detail and EXPR1 emotion controls, and Playwright validates four separate INK1 pressure-brush marks and fixed paper-coordinate masks for each identity. Cross-reference the standalone Ink Brush Storybook; this is code reuse, not a new brush variant.
 
 **Art status unchanged:** code-controlled bristles and 1× browser captures do not prove that garment weight, color, volume or wet-paper response matches Zeng Jing, Ren Yi or any particular period painting. The source painting remains the reference for independent visual acceptance.
+
+## Native 960×540 experimental film actor (isolated from production)
+
+The new `src/video/ink-anatomical-portrait-film.tsx` provides a reusable, absolute-frame 96-frame / 24 fps **optional proof**, without changing the canonical Shanshui scholar character rig. It uses the actual `InkShanshuiStage` and registers an original transparent-paper ANAT2 figure in the existing painter's `children` insertion point **behind the original foreground and above the atmospheric mountain stage**. No bitmap stage, hidden paper rectangle, screen overlay pretending to be film geometry, or new background image is introduced.
+
+The original ANAT2 `InkAnatomicalPortrait` accepts `transparentPaper`, a hex `paperColor`, native SVG props (including an accessible label), independently sampled ANAT1/EXPR1 expression intensity and detail. At 960×540 the 96-frame deterministic facial cue animates the chosen scholar or elder with subtle head-and-body sway and breathing. All figure parts remain attached through one pose transform. Arbitrary forward and reverse seeking samples the same source frame. Reduced motion presents a still final ink wash and neutral actor.
+
+New Storybook: **96-frame real Shanshui composition · new ANAT2 actor (ART HOLD)** includes actor/emotion choice, 24 fps play/pause, frame scrub, and reduced-motion control. Playwright captures native film frames 0 and 12, elder actor at frame 12, and checks end/reduced-motion cue recovery. The original film export keeps its existing actors untouched.
+
+**Unresolved artistic acceptance:** This is *only* a medium-scale compositing comparison. The historical 1× and 3× silhouette fidelity, cloth-to-landscape optical contact, actual performer rig adaptation (head turn, blink, gait and explicit syllable visemes) and normal-speed 96-frame encoded film review are **not yet approved**. A passing Storybook or unit test does not clear the ART HOLD. An actual independent photo reference crop must be compared to the latest exact-head native screenshots before replacing an existing film character.
 
 ## Actual acceptance gates
 
