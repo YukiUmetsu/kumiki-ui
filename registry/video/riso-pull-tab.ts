@@ -123,7 +123,9 @@ export function evaluateRisoPullTab(s:RisoPullSpec):RisoPullEvaluation{
   const shift:readonly [number,number]=s.direction==="right"?[offset,0]:
     s.direction==="left"?[-offset,0]:s.direction==="down"?[0,offset]:[0,-offset];
   return {
-    translation:shift,easedProgress:round(eased),
+    // Preserve SVG/serializable paper identity at the first frame: never -0.
+    translation:[shift[0]===0?0:shift[0],shift[1]===0?0:shift[1]],
+    easedProgress:round(eased),
     windows:s.windows.map(w=>({
       id:w.id,x:w.x,y:w.y,width:w.width,height:w.height,
       path:risoPullWindowContour(w),
