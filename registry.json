@@ -4174,6 +4174,29 @@
       ]
     },
     {
+      "name": "human-motion",
+      "type": "registry:ui",
+      "title": "Human Motion Framework (MOTION1)",
+      "description": "Human movement on ANAT1's posable body: walking and running as joint-angle curves through the gait cycle (hip, knee, ankle, toes, arm swing, trunk) after the normative data (Winter 1991; Perry and Burnfield; Novacheck 1998), with speeds, cadences, strides, stance shares and events; how mood shows in a walk (Roether et al. 2009); gaitPose and gaitCycle, which place every frame on the floor and hold the stance foot's rolling point (heel, ball, toe) still so feet never slide, with a ballistic flight phase in running; sit-to-stand phases. GaitStrip (a chronophotograph at true distances), GaitPlayer (real cadence, tracking camera, planted-foot mark) and MotionSheet.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy",
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/motion-gait.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/motion-gait.ts"
+        },
+        {
+          "path": "registry/anatomy/motion-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/motion-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "small-creatures",
       "type": "registry:ui",
       "title": "Insects and Small Creatures Framework (BUG1)",
