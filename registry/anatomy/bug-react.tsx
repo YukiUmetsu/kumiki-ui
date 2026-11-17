@@ -47,7 +47,7 @@ export function BugFigure({ species, pose, size = 220, label, style, blurWings =
         <filter id={`${uid}-blur`}><feGaussianBlur stdDeviation={s.length.typical * 0.06} /></filter>
         <filter id={`${uid}-shadow`} x="-0.3" y="-0.3" width="1.6" height="1.6"><feGaussianBlur stdDeviation={s.length.typical * 0.035} /></filter>
         {/* compound eyes: a fine faceted texture and a glint */}
-        <pattern id={`${uid}-facets`} width={s.length.typical * 0.018} height={s.length.typical * 0.0156} patternUnits="userSpaceOnUse"><rect width="100%" height="100%" fill={s.wings === "net" ? "#5b2a1f" : "#141414"} /><circle cx={s.length.typical * 0.009} cy={s.length.typical * 0.0078} r={s.length.typical * 0.0062} fill={s.wings === "net" ? "#7a3a2a" : "#2a2a2a"} /></pattern>
+        <pattern id={`${uid}-facets`} width={s.length.typical * 0.018} height={s.length.typical * 0.0156} patternUnits="userSpaceOnUse"><rect width="100%" height="100%" fill={s.id === "mantis" ? "#7f9c4c" : s.wings === "net" ? "#5b2a1f" : "#141414"} /><circle cx={s.length.typical * 0.009} cy={s.length.typical * 0.0078} r={s.length.typical * 0.0062} fill={s.id === "mantis" ? "#9ab865" : s.wings === "net" ? "#7a3a2a" : "#2a2a2a"} /></pattern>
         <radialGradient id={`${uid}-eyeglint`} cx="0.32" cy="0.3" r="0.6"><stop offset="0" stopColor="#ffffff" stopOpacity="0.75" /><stop offset="0.25" stopColor="#ffffff" stopOpacity="0" /></radialGradient>
       </defs>
       {/* a soft contact shadow under the body */}
