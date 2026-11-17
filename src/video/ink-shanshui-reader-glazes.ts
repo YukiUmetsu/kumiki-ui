@@ -122,20 +122,33 @@ export function readerInkPortraitGlazes(
       " "+at(c,12.1,9.2)+
       " C"+at(c,7.5,8)+" "+at(c,4.1,4.6)+
       " "+at(c,2,-1.7)+" Z",.067),
-    glaze("M"+at(c,3.1,.8)+" C"+at(c,7.5,-.6)+
-      " "+at(c,13.5,2.5)+" "+at(c,16,6.4)+
-      " C"+at(c,12.8,7.8)+" "+at(c,8.6,6.7)+
-      " "+at(c,3.1,.8)+" Z",.074),
-    glaze("M"+at(c,4.6,2.6)+" C"+at(c,8.3,3.6)+
-      " "+at(c,11.3,5.3)+" "+at(c,13.1,6.1)+
-      " C"+at(c,10.1,5.7)+" "+at(c,7.7,5.5)+
-      " "+at(c,4.6,2.6)+" Z",.044),
+    // The prior two long ochre ribbons repeated the wide base's
+    // diagonals and read as stripes at the actual 1× head. Sculpt one
+    // interior malar swelling, then a distinct small, down-turning
+    // nasojugal transition. Both are closed convex cubic wash masses;
+    // no old source plane or fibre is dropped.
+    glaze("M"+at(c,4,-1)+" C"+at(c,8.7,-2.3)+
+      " "+at(c,13,1.7)+" "+at(c,14.7,5.5)+
+      " C"+at(c,14.1,7.3)+" "+at(c,10.6,7.4)+
+      " "+at(c,7.6,5.1)+
+      " C"+at(c,5.4,3.4)+" "+at(c,4,1.3)+
+      " "+at(c,4,-1)+" Z",.068),
+    glaze("M"+at(c,6.3,1.7)+" C"+at(c,8.5,.6)+
+      " "+at(c,11.8,1.8)+" "+at(c,12.8,4)+
+      " C"+at(c,13.7,6)+" "+at(c,11.4,7.9)+
+      " "+at(c,9.2,6.4)+
+      " C"+at(c,7.2,5.2)+" "+at(c,6.3,3.5)+
+      " "+at(c,6.3,1.7)+" Z",.044),
   );
   passes["malar-far"].push(
-    glaze("M"+at(r,-6.1,-1.6)+" C"+at(r,-2.4,-2.4)+
-      " "+at(r,1.1,1.3)+" "+at(r,-.1,5.4)+
-      " C"+at(r,-1.6,7.1)+" "+at(r,-4.1,7.2)+
-      " "+at(r,-6.1,-1.6)+" Z",.095),
+    // The foreshortened orbital side needs one small receding cheek
+    // bulb, not a vertical makeup stripe pointed at the far lip.
+    glaze("M"+at(r,-5.9,-3.6)+" C"+at(r,-1.8,-2.3)+
+      " "+at(r,.8,.3)+" "+at(r,.5,3.6)+
+      " C"+at(r,.1,7.3)+" "+at(r,-3,8.7)+
+      " "+at(r,-5.5,5.8)+
+      " C"+at(r,-6.5,3.9)+" "+at(r,-6.9,.6)+
+      " "+at(r,-5.9,-3.6)+" Z",.081),
   );
 
   // The underside of the young lip/chin is nearly paper-bright. Use
@@ -162,16 +175,20 @@ export function readerInkPortraitGlazes(
     passes["malar-near"].push(
       // Mid-tone hugs the *inferior* zygomatic relief instead of
       // drawing a third straight slash toward the mouth.
-      glaze("M"+at(c,3.8,3)+" C"+at(c,7.8,4.4)+
-        " "+at(c,12.7,7.3)+" "+at(c,14.2,8.3)+
-        " C"+at(c,11.2,8.8)+" "+at(c,6.4,7.4)+
-        " "+at(c,3.8,3)+" Z",.046),
+      glaze("M"+at(c,4.7,3.3)+" C"+at(c,7.5,2.2)+
+        " "+at(c,10.4,4.3)+" "+at(c,11.2,6.4)+
+        " C"+at(c,11.9,7.7)+" "+at(c,9.2,8.6)+
+        " "+at(c,7.2,7.1)+
+        " C"+at(c,5.5,6)+" "+at(c,4.3,4.4)+
+        " "+at(c,4.7,3.3)+" Z",.039),
     );
     passes["malar-far"].push(
-      glaze("M"+at(r,-5,-.1)+" C"+at(r,-2.3,.7)+
-        " "+at(r,-.7,3.2)+" "+at(r,-1.1,5.7)+
-        " C"+at(r,-2.6,5.3)+" "+at(r,-4,2.7)+
-        " "+at(r,-5,-.1)+" Z",.038),
+      glaze("M"+at(r,-4.2,-1.6)+" C"+at(r,-1.5,-1.2)+
+        " "+at(r,-.3,.9)+" "+at(r,-.6,3.3)+
+        " C"+at(r,-1.1,5.4)+" "+at(r,-3.2,4.8)+
+        " "+at(r,-3.7,2.5)+
+        " C"+at(r,-4.5,.3)+" "+at(r,-4.6,-.6)+
+        " "+at(r,-4.2,-1.6)+" Z",.032),
     );
     passes.sublabial.push(
       glaze("M"+at(chin,-6.1,-12.9)+" C"+at(chin,-2.5,-11)+
@@ -188,8 +205,10 @@ export function readerInkPortraitGlazes(
         " "+at(t,-1.3,-.5),.235),
     );
     passes["malar-near"].push(
-      fibre("M"+at(c,3.9,5.2)+" Q"+at(c,7.4,8.3)+
-        " "+at(c,11.4,8.8),.18),
+      // The sole dry remnant curls over the cheek's convex contour
+      // instead of reinforcing the same diagonal as every wash.
+      fibre("M"+at(c,7,3.8)+" Q"+at(c,9.3,6.1)+
+        " "+at(c,8.3,8.2),.18),
     );
     passes["malar-far"].push(
       fibre("M"+at(r,-3.9,.7)+" Q"+at(r,-2,3)+
