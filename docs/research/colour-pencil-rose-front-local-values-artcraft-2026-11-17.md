@@ -29,6 +29,13 @@ No downloaded reference art, sampled pixels, traced path, photo filter, blur, CS
 - Native Chromium: 1× A/B and restored identical output in both aspect ratios, both actual source-attached 2.15× petal macros, 42-region all-options composition, six film stages, scrubbing proof and auto-reset state.
 - **Artistic hold, not a production-grade rose:** the existing 3D topology is still not validated against a rights-cleared photographed specimen. If screenshot reveals a flat dark wedge, too mechanical evenly distributed shading, a bright plastic contour, loss of existing micro-strokes, or a visible paper-through overlap, reject and revise **geometry/field axes**, not only add extra random hatch. Do not promote to default until independent 1×/3× fidelity assessment accepts.
 
+## Native first-pass visual REJECTION and immediate correction
+
+- Reviewed **actual Chromium source pixels** from [run 44124083443, artifact 14347755383](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44124083443/artifacts/14347755383) at film-native 960×540 and independently at 2.15× in the existing Storybook.
+- **Rejected v1:** although the six source-local fields were correctly clipped and all source anatomy preserved, narrow high-pressure cool fold marks accumulated like **two dark vertical fur/hair tufts** through the center of the two bright frontal rose petals. This is wrong medium/density/lighting, not rose petal value; technical A/B verification alone would have accepted a poor image.
+- **v2 adjustment:** widened physical fold-local transverse envelopes from 9/10 to 16/17 paper units, reduced high-value pressure from 0.86/0.89 to 0.46/0.50, reduced core opacity from 0.71 to 0.32/0.35, reduced fold contact counts from 112/118 to 82/85, and made every short scumble contact vary its tangent by a seeded bounded small angle. Kept original front masks, contour, all CP-F1 layers/old details, other four shade families and base/legacy output untouched.
+- Added a shape-density unit regression explicitly prohibiting narrowly packed highly opaque fold strips. This is a physical-source pressure/coverage repair, **not an art certification**. Re-inspect exact-head v2 native 1× and 2.15× before accepting.
+
 ## Further priorities
 
 After genuine visual review: local cuticle thickness and selective irregular rim edges need source-faithful reconstruction; reconcile rose front/inner-middle occlusion order; verify petal axes and cross-view physical depth against an actual rights-approved specimen. Only THEN add root-connected wind animation. This is a still-anatomy/medium task, not an FX task.
