@@ -1,48 +1,28 @@
 /**
- * React pieces for ANAT1 hands: `HandView` (a posed or grasping hand rendered by `renderHand` into a canvas after
- * paint, queued and cached) and `HandFlipbook` (an action rendered frame by frame, then played at its own speed; with
+ * React pieces for ANAT1 hands: `HandView` (a posed or grasping hand rendered by `renderHand` in a worker and
+ * cached) and `HandFlipbook` (an action rendered frame by frame in workers, then played at its own speed; with
  * reduced motion it waits for Play).
  */
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import type { CanvasHTMLAttributes, CSSProperties } from "react";
-import { enqueueRender } from "./foundation-queue";
+import { ANATOMY_RENDER_POOL } from "./anatomy-render-pool";
+import { requestRender } from "./foundation-render";
+import { RenderFrame } from "./foundation-render-react";
 import { sheetSmall } from "./foundation-react";
-import { animateHand, buildHand, findAnimation, graspHand, HAND_GESTURES, poseHand } from "./hand-model";
-import type { HandPose } from "./hand-model";
-import { renderHand } from "./hand-render";
-import type { HandRender, HandRenderOptions } from "./hand-render";
+import { findAnimation } from "./hand-model";
+import type { HandRenderOptions } from "./hand-render";
 
-export interface HandSpec { type: string; side?: "right" | "left"; gesture?: string; pose?: HandPose; grasp?: string; close?: number }
-const cache = new Map<string, HandRender>();
-const posed = (h: HandSpec) => {
-  const hand = buildHand(h.type, h.side ?? "right");
-  if (h.grasp) return graspHand(hand, h.grasp, h.close ?? 1);
-  return poseHand(hand, h.pose ?? HAND_GESTURES.find(g => g.id === (h.gesture ?? "relaxed"))?.pose ?? HAND_GESTURES[0].pose);
-};
+import type { HandSpec } from "./anatomy-render-jobs";
+
+export type { HandSpec };
 const canvasStyle = (W: number, H: number, style?: CSSProperties): CSSProperties => ({ display: "block", width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, borderRadius: 6, background: "var(--km-surface-subtle, #8a8784)", ...style });
 
 export interface HandViewProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> { hand: HandSpec; options?: HandRenderOptions; label: string }
-/** A hand in a gesture or grasp, rendered after paint and cached. */
+/** A hand in a gesture or grasp, rendered in a worker and cached, with a visible working state. */
 export const HandView = forwardRef<HTMLCanvasElement, HandViewProps>(function HandView({ hand, options = {}, label, style, ...rest }, ref) {
-  const canvas = useRef<HTMLCanvasElement>(null), [busy, setBusy] = useState(true);
-  useImperativeHandle(ref, () => canvas.current as HTMLCanvasElement, []);
-  const key = JSON.stringify([hand, options]), W = Math.round(options.width ?? 320), H = Math.round(options.height ?? 320);
-  useEffect(() => {
-    let live = true;
-    const draw = (r: HandRender) => { const ctx = canvas.current?.getContext("2d"); if (ctx) ctx.putImageData(new ImageData(new Uint8ClampedArray(r.rgba), r.width, r.height), 0, 0); setBusy(false); };
-    const hit = cache.get(key);
-    if (hit) { draw(hit); return () => { live = false; }; }
-    setBusy(true);
-    void enqueueRender(() => {
-      if (!live) return;
-      const r = renderHand(posed(hand), options);
-      if (cache.size > 80) cache.clear();
-      cache.set(key, r);
-      if (live) draw(r);
-    });
-    return () => { live = false; };
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  return <canvas ref={canvas} width={W} height={H} role="img" aria-label={label} aria-busy={busy} style={canvasStyle(W, H, style)} {...rest} />;
+  const W = Math.round(options.width ?? 320), H = Math.round(options.height ?? 320);
+  return <RenderFrame ref={ref} width={W} height={H} label={label} placeholder="var(--km-surface-subtle, #8a8784)" style={style}
+    job={{ pool: ANATOMY_RENDER_POOL, kind: "hand", args: { hand, options } }} {...rest} />;
 });
 
 export interface HandFlipbookProps { type: string; animation: string; side?: "right" | "left"; options?: HandRenderOptions; fps?: number; label?: string }
@@ -58,14 +38,12 @@ export function HandFlipbook({ type, animation, side = "right", options = {}, fp
     setFrames([]);
     const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     setPlaying(!reduce);
-    const hand = buildHand(type, side), out: ImageData[] = [];
-    for (let k = 0; k < n; k++) void enqueueRender(() => {
-      if (!live) return;
-      const r = renderHand(animateHand(hand, anim, (k / n) * anim.duration), { quality: "draft", supersample: 1, ...options, width: W, height: H });
-      out.push(new ImageData(new Uint8ClampedArray(r.rgba), r.width, r.height));
-      if (live) setFrames(out.slice());
-    });
-    return () => { live = false; };
+    const ac = new AbortController(), out: (ImageData | undefined)[] = new Array(n).fill(undefined);
+    let count = 0;
+    for (let k = 0; k < n; k++) void requestRender({ pool: ANATOMY_RENDER_POOL, kind: "hand-frame", args: { type, side, animation, t: (k / n) * anim.duration, options: { quality: "draft", supersample: 1, ...options, width: W, height: H } }, priority: 1 + k / n, signal: ac.signal })
+      .then(r => { if (!live) return; out[k] = new ImageData(new Uint8ClampedArray(r.rgba), r.width, r.height); count++; if (count === n) setFrames(out as ImageData[]); else setFrames(out.filter((f): f is ImageData => !!f)); }, () => {});
+    const stop = () => ac.abort();
+    return () => { live = false; stop(); };
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   const ready = frames.length === n;
   useEffect(() => {

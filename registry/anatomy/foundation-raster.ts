@@ -174,21 +174,19 @@ export function worley3(seed: number, x: number, y: number, z: number, jitter = 
 /** Separable Gaussian blur of an interleaved Float32 image with `ch` channels; σ in pixels. Edges clamp. */
 export function gaussianBlur(src: Float32Array, w: number, h: number, ch: number, sigma: number): Float32Array {
   if (sigma < 0.3) return src.slice();
-  const r = Math.max(1, Math.ceil(sigma * 3)), k = new Float32Array(2 * r + 1);
+  const r = Math.max(1, Math.ceil(sigma * 3)), K = 2 * r + 1, k = new Float32Array(K);
   let s = 0;
   for (let i = -r; i <= r; i++) { k[i + r] = Math.exp(-(i * i) / (2 * sigma * sigma)); s += k[i + r]; }
-  for (let i = 0; i < k.length; i++) k[i] /= s;
+  for (let i = 0; i < K; i++) k[i] /= s;
   const tmp = new Float32Array(src.length), out = new Float32Array(src.length);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) for (let c = 0; c < ch; c++) {
-    let acc = 0;
-    for (let i = -r; i <= r; i++) { const xx = Math.min(w - 1, Math.max(0, x + i)); acc += src[(y * w + xx) * ch + c] * k[i + r]; }
-    tmp[(y * w + x) * ch + c] = acc;
-  }
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) for (let c = 0; c < ch; c++) {
-    let acc = 0;
-    for (let i = -r; i <= r; i++) { const yy = Math.min(h - 1, Math.max(0, y + i)); acc += tmp[(yy * w + x) * ch + c] * k[i + r]; }
-    out[(y * w + x) * ch + c] = acc;
-  }
+  // one clamped line (stride `st` between samples, `n` samples) through the kernel, edges clamped
+  const pass = (from: Float32Array, to: Float32Array, base: number, st: number, n: number, line: Float32Array) => {
+    for (let i = 0; i < n + 2 * r; i++) line[i] = from[base + Math.min(n - 1, Math.max(0, i - r)) * st];
+    for (let i = 0; i < n; i++) { let acc = 0; for (let j = 0; j < K; j++) acc += line[i + j] * k[j]; to[base + i * st] = acc; }
+  };
+  const lineX = new Float32Array(w + 2 * r), lineY = new Float32Array(h + 2 * r);
+  for (let y = 0; y < h; y++) for (let c = 0; c < ch; c++) pass(src, tmp, y * w * ch + c, ch, w, lineX);
+  for (let x = 0; x < w; x++) for (let c = 0; c < ch; c++) pass(tmp, out, x * ch + c, w * ch, h, lineY);
   return out;
 }
 

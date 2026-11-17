@@ -6,47 +6,24 @@
  * Seas render on the CPU after the page paints, one at a time (the queue shared with other heavy renders), and are
  * cached by their options.
  */
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef } from "react";
 import type { CanvasHTMLAttributes } from "react";
-import { enqueueRender } from "../anatomy/foundation-queue";
+import { RenderFrame } from "../anatomy/foundation-render-react";
+import { WATER_RENDER_POOL } from "./water-render-pool";
 import { sheetSmall } from "../anatomy/foundation-react";
 import { beaufortSpeed } from "./sky-physics";
-import { renderOcean, seaSpectrum } from "./water-ocean";
-import type { OceanRender, OceanRenderOptions } from "./water-ocean";
+import { seaSpectrum } from "./water-ocean";
+import type { OceanRenderOptions } from "./water-ocean";
 import { whitecapCoverage } from "./water-physics";
-
-const cache = new Map<string, OceanRender>();
 
 export interface OceanViewProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> {
   options: OceanRenderOptions;
   label: string;
 }
-/** The open sea for a wind under a sky, rendered after paint and cached. */
-export const OceanView = forwardRef<HTMLCanvasElement, OceanViewProps>(function OceanView({ options, label, style, ...rest }, ref) {
-  const canvas = useRef<HTMLCanvasElement>(null), [busy, setBusy] = useState(true);
-  useImperativeHandle(ref, () => canvas.current as HTMLCanvasElement, []);
-  const key = JSON.stringify(options), W = Math.round(options.width ?? 480), H = Math.round(options.height ?? 270);
-  useEffect(() => {
-    let live = true;
-    const draw = (r: OceanRender) => {
-      const ctx = canvas.current?.getContext("2d");
-      if (ctx) ctx.putImageData(new ImageData(new Uint8ClampedArray(r.rgba), r.width, r.height), 0, 0);
-      setBusy(false);
-    };
-    const hit = cache.get(key);
-    if (hit) { draw(hit); return () => { live = false; }; }
-    setBusy(true);
-    void enqueueRender(() => {
-      if (!live) return;
-      const r = renderOcean(options);
-      if (cache.size > 40) cache.clear();
-      cache.set(key, r);
-      if (live) draw(r);
-    });
-    return () => { live = false; };
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  return <canvas ref={canvas} width={W} height={H} role="img" aria-label={label} aria-busy={busy}
-    style={{ display: "block", width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, borderRadius: 6, background: "var(--km-surface-subtle, #2e4a6b)", ...style }} {...rest} />;
+/** The open sea for a wind under a sky, rendered in a worker and cached, with a visible working state. */
+export const OceanView = forwardRef<HTMLCanvasElement, OceanViewProps>(function OceanView({ options, label, ...rest }, ref) {
+  const W = Math.round(options.width ?? 480), H = Math.round(options.height ?? 270);
+  return <RenderFrame ref={ref} width={W} height={H} label={label} placeholder="var(--km-surface-subtle, #7d93a6)" job={{ pool: WATER_RENDER_POOL, kind: "ocean", args: options }} {...rest} />;
 });
 
 /** The sea by Beaufort force, from a light air to a gale, with the numbers that set it. */

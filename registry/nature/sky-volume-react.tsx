@@ -6,47 +6,24 @@
  * Skies render on the CPU after the page paints, one at a time (the queue shared with other heavy renders), and are
  * cached by their options.
  */
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef } from "react";
 import type { CanvasHTMLAttributes } from "react";
-import { enqueueRender } from "../anatomy/foundation-queue";
+import { RenderFrame } from "../anatomy/foundation-render-react";
+import { SKY_RENDER_POOL } from "./sky-render-pool";
 import { sheetSmall } from "../anatomy/foundation-react";
 import type { CloudGenus } from "./sky-data";
 import { CLOUD_GENERA } from "./sky-data";
-import { CLOUD_SCENES, CLOUD_VOLUMES, extinction, renderCloudSky } from "./sky-volume";
-import type { SkyRender, SkyRenderOptions } from "./sky-volume";
-
-const cache = new Map<string, SkyRender>();
+import { CLOUD_SCENES, CLOUD_VOLUMES, extinction } from "./sky-volume";
+import type { SkyRenderOptions } from "./sky-volume";
 
 export interface CloudSkyProps extends Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "width" | "height"> {
   options: SkyRenderOptions;
   label: string;
 }
-/** A sky with cloud layers seen from the ground, rendered after paint and cached. */
-export const CloudSky = forwardRef<HTMLCanvasElement, CloudSkyProps>(function CloudSky({ options, label, style, ...rest }, ref) {
-  const canvas = useRef<HTMLCanvasElement>(null), [busy, setBusy] = useState(true);
-  useImperativeHandle(ref, () => canvas.current as HTMLCanvasElement, []);
-  const key = JSON.stringify(options), W = Math.round(options.width ?? 480), H = Math.round(options.height ?? 270);
-  useEffect(() => {
-    let live = true;
-    const draw = (r: SkyRender) => {
-      const ctx = canvas.current?.getContext("2d");
-      if (ctx) ctx.putImageData(new ImageData(new Uint8ClampedArray(r.rgba), r.width, r.height), 0, 0);
-      setBusy(false);
-    };
-    const hit = cache.get(key);
-    if (hit) { draw(hit); return () => { live = false; }; }
-    setBusy(true);
-    void enqueueRender(() => {
-      if (!live) return;
-      const r = renderCloudSky(options);
-      if (cache.size > 60) cache.clear();
-      cache.set(key, r);
-      if (live) draw(r);
-    });
-    return () => { live = false; };
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  return <canvas ref={canvas} width={W} height={H} role="img" aria-label={label} aria-busy={busy}
-    style={{ display: "block", width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, borderRadius: 6, background: "var(--km-surface-subtle, #9aa7b4)", ...style }} {...rest} />;
+/** A sky with cloud layers seen from the ground, rendered in a worker and cached, with a visible working state. */
+export const CloudSky = forwardRef<HTMLCanvasElement, CloudSkyProps>(function CloudSky({ options, label, ...rest }, ref) {
+  const W = Math.round(options.width ?? 480), H = Math.round(options.height ?? 270);
+  return <RenderFrame ref={ref} width={W} height={H} label={label} placeholder="var(--km-surface-subtle, #9aa7b4)" job={{ pool: SKY_RENDER_POOL, kind: "sky", args: options }} {...rest} />;
 });
 
 /** The genus's numbers: heights, water content, droplet size, extinction and the optical depth of its thickness. */

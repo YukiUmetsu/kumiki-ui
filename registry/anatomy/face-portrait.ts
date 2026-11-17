@@ -123,7 +123,9 @@ export interface Portrait { width: number; height: number; rgba: Uint8ClampedArr
    * camera in pixels (MediaPipe's convention times [width, height, width]), for overlays and photo tools. */
   landmarks: [number, number, number][];
   /** The groomed hair and the head it was groomed on. */
-  hair?: { groom: HairGroom; head: HairHead } }
+  hair?: { groom: HairGroom; head: HairHead };
+  /** Counts for captions: strands drawn and the groom's time (ms). Rendered in a worker, a portrait keeps these and drops `hair`. */
+  stats?: { strands: number; groomMs: number } }
 
 /** The six-Gaussian skin diffusion profile (variance mm², RGB weight), d'Eon & Luebke 2007 (GPU Gems 3, ch. 14). */
 export const SKIN_PROFILE: readonly { variance: number; weight: RGB3 }[] = [
@@ -379,7 +381,9 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     if (GROOMS.size > 6) GROOMS.clear();
     GROOMS.set(groomKey, groom);
   }
-  const hairRot = rotateGroom(groom, rotH), hairKeyMap = hairDensityMap(groom, hairRot, Lkey, 320, 3.5);
+  // the hair's density map toward the key light: 320 cells, fewer only for small previews
+  const densityRes = Math.min(320, Math.max(128, Math.round(Math.max(w, h) * 0.8)));
+  const hairRot = rotateGroom(groom, rotH), hairKeyMap = hairDensityMap(groom, hairRot, Lkey, densityRes, 3.5);
   // The hair's shadow on the skin: fibre coverage between the first skin along the key and the light, in the shadow
   // map's frame, blurred by about 2 mm (a soft key).
   const hairOnSkin = new Float32Array(shadow.res * shadow.res);
@@ -603,7 +607,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
       else for (let k = 0; k < 3; k++) dbg.rgb[i * 3 + k] = E[i * 3 + k] / 4;
     }
     const fin2 = downsample(dbg, SS), rgba2 = encodeSrgb(fin2);
-    return { width: W, height: H, rgba: rgba2, face, expressed, ms: 0, hair: { groom, head: hairHead }, landmarks: [] };
+    return { width: W, height: H, rgba: rgba2, face, expressed, ms: 0, hair: { groom, head: hairHead }, landmarks: [], stats: { strands: groom.starts.length, groomMs: groom.ms } };
   }
   // ---- Subsurface scattering: blur the irradiance with the six-Gaussian skin profile (mm → pixels) ------------------------------
   const Es = new Float32Array(w * h * 3);
@@ -712,7 +716,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const fin = downsample(out, SS), rgba = encodeSrgb(fin, { toneMap: "filmic", exposure: o.exposure ?? 1.0, white: 3.2 });
   const landmarks = Array.from({ length: 468 }, (_, i) => [SX[i] / SS, SY[i] / SS, -(SZ[i] - SZ[4]) / (mmPerPx * SS)] as [number, number, number]);
   const t1 = typeof performance !== "undefined" ? performance.now() : Date.now();
-  return { width: W, height: H, rgba, face, expressed, ms: t1 - t0, hair: { groom, head: hairHead }, landmarks };
+  return { width: W, height: H, rgba, face, expressed, ms: t1 - t0, hair: { groom, head: hairHead }, landmarks, stats: { strands: groom.starts.length, groomMs: groom.ms } };
 }
 
 /**
