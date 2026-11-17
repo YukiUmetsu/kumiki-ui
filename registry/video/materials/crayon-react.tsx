@@ -115,6 +115,8 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
       f.x<0||f.x>1||f.y<0||f.y>1||
       f.radiusX<=0||f.radiusX>1||f.radiusY<=0||f.radiusY>1||
       f.strength<=0||f.strength>1||
+      (f.rotationDeg!==undefined&&
+       (!Number.isFinite(f.rotationDeg)||Math.abs(f.rotationDeg)>89))||
       !/^#[0-9a-fA-F]{6}$/.test(f.color))
   ))throw new RangeError("crayon underpaintFields require normalized opaque wax");
   if (!Number.isFinite(markStrength)||markStrength<0||markStrength>1)
@@ -364,12 +366,18 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
           paint above; nothing becomes a cut-out graphic cheek sticker. */}
       {underpaintFields && <g clipPath={"url(#"+clip+")"} mask={solidMask}
         data-km-crayon-underpaint-fields={underpaintFields.length}>
-        {underpaintFields.map((f,i)=><ellipse key={i}
-          cx={bounds.x+f.x*bounds.width} cy={bounds.y+f.y*bounds.height}
-          rx={f.radiusX*bounds.width} ry={f.radiusY*bounds.height}
-          fill={"url(#"+volumeId+"-field-"+i+")"}
-          opacity={f.strength*pigmentProgress}
-          data-km-crayon-underpaint-field={i}/>)}
+        {underpaintFields.map((f,i)=>{
+          const cx=bounds.x+f.x*bounds.width;
+          const cy=bounds.y+f.y*bounds.height;
+          return <ellipse key={i} cx={cx} cy={cy}
+            rx={f.radiusX*bounds.width} ry={f.radiusY*bounds.height}
+            transform={f.rotationDeg===undefined||f.rotationDeg===0?undefined:
+              "rotate("+f.rotationDeg+" "+Number(cx.toFixed(3))+" "+
+              Number(cy.toFixed(3))+")"}
+            fill={"url(#"+volumeId+"-field-"+i+")"}
+            opacity={f.strength*pigmentProgress}
+            data-km-crayon-underpaint-field={i}/>;
+        })}
       </g>}
       {/* Luminance-masked pigment shows undercoat paper-contact variation
           without cutting see-through holes in the solid wax mass.

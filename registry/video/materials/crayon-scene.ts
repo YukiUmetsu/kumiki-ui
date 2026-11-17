@@ -77,6 +77,9 @@ export interface CrayonVolumeGradient {
 export interface CrayonUnderpaintField {
   x:number;y:number;radiusX:number;radiusY:number;
   color:CrayonColor;strength:number;
+  /** Signed source-observed 2D pigment flow (degrees, -89..89).
+   * Omitted leaves every historic wax spot pixel identical. */
+  rotationDeg?:number;
 }
 export interface CrayonWaxElement extends CrayonBase {
   kind: "wax";
@@ -397,7 +400,9 @@ export function inspectCrayonScene(input: unknown): string[] {
             if(!f||![f.x,f.y,f.radiusX,f.radiusY,f.strength].every(finite)||
                f.x<0||f.x>1||f.y<0||f.y>1||
                f.radiusX<=0||f.radiusX>1||f.radiusY<=0||f.radiusY>1||
-               f.strength<=0||f.strength>1)
+               f.strength<=0||f.strength>1||
+               (f.rotationDeg!==undefined&&
+                (!finite(f.rotationDeg)||Math.abs(f.rotationDeg)>89)))
               errors.push(q+" require normalized finite geometry");
             checkColor(String(f?.color??""),q+".color",errors);
           });

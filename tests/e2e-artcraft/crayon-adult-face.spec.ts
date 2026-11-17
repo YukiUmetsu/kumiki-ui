@@ -2634,3 +2634,78 @@ test("F1 V38 ANAT1 photographed three volume hair light values source 1x/3x vs V
   expect(Buffer.compare(Buffer.from(pngs[1]),Buffer.from(pngs[3]))).not.toBe(0);
   expect(errors).toEqual([]);
 });
+
+/** Native real-browser visual negative control: exact V48 is retained as-is.
+ * Every PNG is from the existing physical CRAYON1 SVG, never imported photo.
+ * Screenshots must still undergo independent photo/artist review.
+ */
+test("F1 V49 photographic oblique native wax fields 1x/2.1x and V48 negative control",async({page},info)=>{
+  test.setTimeout(245_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",err=>errors.push(err.message));
+  const views=["full","cheek"] as const;
+  const shots:Record<string,Uint8Array[]>={full:[],cheek:[]};
+  const controls:Record<string,number[][]>={foliage:[],farEye:[]};
+  for(const midfaceForm of [
+    "source-anat1-photometric-underpaint-v48",
+    "source-anat1-oblique-volume-v49",
+  ] as const){
+    const base=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of views){
+      const spec=view==="full"?base:{...base,camera:[
+        {frame:0,focusX:255,focusY:690,zoom:2.1},
+        {frame:299,focusX:255,focusY:690,zoom:2.1},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+"</body>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      const count=midfaceForm==="source-anat1-oblique-volume-v49"?12:8;
+      await expect(svg.locator('[data-km-crayon-element="face-outline"] [data-km-crayon-underpaint-field]'))
+        .toHaveCount(count);
+      await expect(svg.locator('[data-km-crayon-element="iris-near"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-crayon-element="cc0-hedge-dark-underpaint"]')).toHaveCount(1);
+      const rotated=svg.locator('[data-km-crayon-element="face-outline"] ellipse[transform^="rotate("]');
+      await expect(rotated).toHaveCount(count===12?4:0);
+      await page.waitForTimeout(370);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v49-"+view+"-"+midfaceForm+"-299.png"),
+        Buffer.from(png));
+      shots[view].push(png);
+      if(view==="full"){
+        const pixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw Error("No browser pixel inspector");
+          ctx.drawImage(image,0,0);
+          const sample=(x:number,y:number,w:number,h:number)=>
+            Array.from(ctx.getImageData(x,y,w,h).data);
+          return {foliage:sample(0,0,70,70),farEye:sample(415,475,55,60)};
+        },Buffer.from(png).toString("base64"));
+        controls.foliage.push(pixels.foliage);
+        controls.farEye.push(pixels.farEye);
+      }
+    }
+  }
+  for(const [id,pairs] of Object.entries(controls)){
+    expect(pairs).toHaveLength(2);
+    let difference=0;
+    for(let i=0;i<pairs[0].length;i+=4){
+      const rgb=Math.abs(pairs[0][i]-pairs[1][i])+
+        Math.abs(pairs[0][i+1]-pairs[1][i+1])+
+        Math.abs(pairs[0][i+2]-pairs[1][i+2]);
+      if(rgb>5)difference++;
+    }
+    expect(difference/(pairs[0].length/4),id).toBeLessThanOrEqual(.003);
+  }
+  for(const view of views){
+    expect(shots[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(shots[view][0]),
+      Buffer.from(shots[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
