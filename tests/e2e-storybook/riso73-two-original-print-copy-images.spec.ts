@@ -143,7 +143,9 @@ async({page},info)=>{
   await study.getByRole("checkbox",{
     name:"RISO73 show independent print mark vectors"}).uncheck();
   await expect(study.locator("[data-km-riso73-mark]")).toHaveCount(0);
-  await study.getByRole("slider",{name:"RISO73 copy-to-copy mm budget"}).fill(".25");
+  // A native range input is keyboard-operated (fill() is not valid for range).
+  await study.getByRole("slider",{name:"RISO73 copy-to-copy mm budget"}).focus();
+  await study.getByRole("slider",{name:"RISO73 copy-to-copy mm budget"}).press("Home");
   await expect(study).toHaveAttribute("data-km-riso73-within","false");
   await study.getByRole("combobox",{name:"RISO73 inspection mode"})
     .selectOption("second");
