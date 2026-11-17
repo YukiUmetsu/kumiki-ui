@@ -32,6 +32,18 @@ test("two real rounded frontal rose petal heels remain integrated with calyx, fr
     const beforePaths=await paths();
     const before=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-proximal-"+aspect+"-old-front.png")});
+    const macro=page.getByRole("checkbox",{name:"Foundation inspect macro"});
+    await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("rose-front-left");
+    await macro.check();
+    const oldLeft=await svg.screenshot({animations:"disabled",
+      path:info.outputPath("rose-proximal-"+aspect+"-old-left-215pct.png")});
+    await macro.uncheck();
+    await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("rose-front-right");
+    await macro.check();
+    const oldRight=await svg.screenshot({animations:"disabled",
+      path:info.outputPath("rose-proximal-"+aspect+"-old-right-215pct.png")});
+    await macro.uncheck();
+    await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("default");
     await heel.check();
     await expect(studio).toHaveAttribute("data-km-rose-proximal-heel","opt-in");
     await expect(svg).toHaveAttribute("viewBox",
@@ -47,11 +59,18 @@ test("two real rounded frontal rose petal heels remain integrated with calyx, fr
     const improved=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-proximal-"+aspect+"-rounded-root.png")});
     expect(digest(improved)).not.toBe(digest(before));
+    await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("rose-front-left");
+    await macro.check();
+    const newLeft=await svg.screenshot({animations:"disabled",
+      path:info.outputPath("rose-proximal-"+aspect+"-left-215pct.png")});
+    expect(digest(newLeft)).not.toBe(digest(oldLeft));
+    await macro.uncheck();
     await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("rose-front-right");
-    await page.getByRole("checkbox",{name:"Foundation inspect macro"}).check();
-    await svg.screenshot({animations:"disabled",
+    await macro.check();
+    const newRight=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-proximal-"+aspect+"-right-215pct.png")});
-    await page.getByRole("checkbox",{name:"Foundation inspect macro"}).uncheck();
+    expect(digest(newRight)).not.toBe(digest(oldRight));
+    await macro.uncheck();
     await page.getByRole("combobox",{name:"Foundation inspection focus"}).selectOption("default");
     const extras=[
       "Foundation rose outer petal edge relief",
