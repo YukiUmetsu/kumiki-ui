@@ -60,16 +60,15 @@ describe("SHO1 shodō calligraphy", () => {
     }
   });
 
-  it("writes a dot that falls steeply to the left as a short ノ, and a dot to the right as a dot", () => {
-    const plan = planShodoWriting({
-      items: [{ glyph: { char: "・", source: "original", strokes: [
-        { kind: "dot", points: [[500, 200], [440, 300]] },
-        { kind: "dot", points: [[500, 500], [560, 600]] },
-      ] }, x: 0, y: 0, size: 300 }],
-      style: DEFAULT_SHODO_STYLE,
-    });
-    const kinds = plan.strokes.filter(s => s.kind !== "link").map(s => s.kind);
-    expect(kinds).toEqual(["left-sweep", "dot"]);
+  it("writes a KanjiVG dot that falls steeply to the left as a short ノ, and a dot to the right as a dot", () => {
+    const formed = shodoKaishoForm({ char: "点", source: "kanjivg", strokes: [
+      { kind: "dot", points: [[500, 200], [440, 300]] },
+      { kind: "dot", points: [[500, 500], [560, 600]] },
+    ] });
+    expect(formed.strokes.map(s => s.kind)).toEqual(["left-sweep", "dot"]);
+    // A teacher's dots stay dots: they were fitted to the teacher's ink as dots.
+    const taught = shodoKaishoForm({ char: "点", source: "teacher", strokes: [{ kind: "dot", points: [[500, 200], [440, 300]] }] });
+    expect(taught.strokes[0].kind).toBe("dot");
   });
 
   it("keeps a 右払い's foot and flat point when its points are spaced evenly (a traced form)", () => {

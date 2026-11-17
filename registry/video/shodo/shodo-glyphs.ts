@@ -496,17 +496,13 @@ const polyDistance = (points: readonly ShodoPoint[], q: ShodoPoint): { d: number
 };
 
 /**
- * Degrees below the horizontal past which a dot falls to the left steeply enough to be written as
- * a short ノ (泉's first stroke, the left dot of ⺣). Measured on a teacher's ink: 110.
+ * Degrees below the horizontal past which a KanjiVG dot falls to the left steeply enough to be
+ * written as a short ノ (泉's first stroke, the left dot of ⺣). Measured on a teacher's ink: 110.
  */
-const SHODO_LEFT_DOT = 110;
+const LEFT_DOT = 110;
 
-/** A dot that falls to the left past SHODO_LEFT_DOT: the brush writes it as a short ノ. */
-export function isShodoLeftDot(st: Pick<ShodoStrokeSpec, "kind" | "points">): boolean {
-  if (st.kind !== "dot" || st.points.length < 2) return false;
-  const a = st.points[0], b = st.points[st.points.length - 1];
-  return Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI > SHODO_LEFT_DOT;
-}
+const isLeftDot = (st: ShodoStrokeSpec) => st.kind === "dot" && st.points.length >= 2
+  && Math.atan2(st.points[st.points.length - 1][1] - st.points[0][1], st.points[st.points.length - 1][0] - st.points[0][0]) * 180 / Math.PI > LEFT_DOT;
 
 /** How far (em) an end may reach past an earlier line and still join it; further, the stroke crosses that line. */
 const CROSS_REACH = 40;
@@ -709,6 +705,10 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
     const fx = (Math.min(...pts.map(p => p[0])) + Math.max(...pts.map(p => p[0]))) / 2, fy = Math.max(...pts.map(p => p[1]));
     formed = { ...formed, strokes: formed.strokes.map(st => ({ ...st, points: st.points.map(([x, y]) => [Math.round(fx + (x - fx) * small), Math.round(fy + (y - fy) * small)] as const) })) };
   }
+  // A dot that falls steeply to the left (泉's first stroke, the left dot of ⺣) is written as a short
+  // ノ: the dot's pressed footprint points down-right, across such a path, and reads as a blob. Not
+  // for a teacher's forms: their dots were fitted to that teacher's ink as dots.
+  if (measured) formed = { ...formed, strokes: formed.strokes.map(st => isLeftDot(st) ? { ...st, kind: "left-sweep" as const } : st) };
   return formed;
 }
 
