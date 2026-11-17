@@ -403,3 +403,49 @@ test("source-linked Bochen multiglaze survives native 1x, isolated six-region an
     await proof.screenshot({animations:"disabled",
       path:info.outputPath("reader-source-Ming-ink-minimum-detail-blink-oh.png")});
   });
+
+
+test("native source malar dome and attached rounded nasal turn remain visible with live eyelid and mouth overrides",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const plane=page.getByTestId("reader-face-plane-study");
+    const face=page.getByTestId("reader-coded-face");
+    await expect(plane).toBeVisible();
+    const wash=plane.locator('[data-km-reader-anatomy-region="wash"]');
+    const paths=await wash.locator("path").evaluateAll(nodes=>
+      nodes.map(node=>({
+        d:node.getAttribute("d")??"",
+        opacity:Number(node.getAttribute("opacity")??1),
+      })));
+    const malar=paths.find(x=>x.d.includes(
+      "C124.9 108.7 131.7 112.7 135.2 115.7"));
+    expect(malar,"original ANAT1 malar dome must retain the rounded return")
+      .toBeDefined();
+    expect(malar?.d).toContain(
+      "C127.2 115.9 123.2 115.7 120.8 109.6 Z");
+    expect(malar?.opacity).toBeLessThan(.14);
+    const nose=paths.find(x=>x.d.includes(
+      "C149.1 103.8 150.4 109.1 152.2 112.5"));
+    expect(nose,"nose bridge belongs to the same continuous source head")
+      .toBeDefined();
+    expect(nose?.opacity).toBeLessThan(.2);
+    expect(paths.some(x=>x.d.includes(
+      "C125.6 110 132.9 113.4"))).toBe(false);
+    const masseter=await face.locator('[data-ink-reader-part="face"] path')
+      .evaluateAll(nodes=>nodes.find(node=>(
+        node.getAttribute("d")??"").startsWith(
+          "M119.2 116 C121.4 120.5 124.8 123.5"))?.getAttribute("d"));
+    expect(masseter).toContain("C122 122.6 120.4 119.6 119.2 116 Z");
+    await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("open");
+    await page.getByRole("combobox",{name:"Face mouth"}).selectOption("rest");
+    await plane.screenshot({animations:"disabled",
+      path:info.outputPath("reader-malar-nose-rounded-positive-ink-1x.png")});
+    await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("soft");
+    await page.getByRole("combobox",{name:"Face mouth"}).selectOption("oh");
+    await face.screenshot({animations:"disabled",
+      path:info.outputPath("reader-malar-nose-soft-lids-oh-1x.png")});
+    // Shape identity and anatomical relief do not depend on film viseme.
+    await expect(plane.locator('[data-km-reader-anatomy-region="nose"] path'))
+      .not.toHaveCount(0);
+    await expect(face.locator('[data-ink-reader-part="face"] path')).not.toHaveCount(0);
+  });
