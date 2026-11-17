@@ -360,6 +360,23 @@ export function renderHand(ph: PosedHand, o: HandRenderOptions = {}): HandRender
         crease = b.seg === 0 && !s.fingers[fid].thumb ? Math.max(at(L * 0.38), at(L * 0.38 - 1.6) * 0.7) : b.seg === 1 ? Math.max(at(0.6), at(-0.9) * 0.7) : b.seg === 2 ? at(0.5) : 0;
         if (s.fingers[fid].thumb && b.seg === 1) crease = Math.max(at(0.8), at(-1) * 0.6);
       }
+      // On the back of each finger joint the skin lies in folds when the finger is straight: a cluster of curved
+      // wrinkles over the middle knuckle (PIP, the deepest), fewer and finer over the end knuckle (DIP); they smooth out
+      // as the joint bends and the skin stretches. Curved toward the fingertip, deeper with age.
+      if (fid >= 0 && palmar < 0.45 && nearestBone && !s.fingers[fid].thumb && nearestBone.seg >= 1) {
+        const b = nearestBone, L = len(sub(b.b, b.a)), mm = segAlong * L, rel = sub(pl, b.a), side = dot(rel, b.side) / Math.max(1, (b.ra + b.rb) / 2);
+        const isPip = b.seg === 1, fpose = (ph.pose as unknown as Record<string, { pip?: number; dip?: number }>)[(["thumb", "index", "middle", "ring", "little"] as const)[fid]], bend = (isPip ? fpose?.pip : fpose?.dip) ?? 0, stretch = 1 - smooth(10, 70, bend);
+        const age = 0.6 + 0.6 * Math.min(1, Math.max(0, (t.skinAge - 20) / 50));
+        const n = isPip ? 5 : 3, spacing = isPip ? 0.95 : 0.75, bow = 1.8 * side * side;
+        let w2 = 0;
+        for (let k = 0; k < n; k++) {
+          // each wrinkle a short arc: bowed toward the fingertip at its ends, wandering, broken where the noise is low
+          const at0 = (isPip ? -0.2 : 0) + k * spacing - bow + 0.18 * Math.sin(k * 2.3 + side * 3.4), d = mm - at0;
+          const len2 = 0.55 - 0.08 * k + 0.25 * Math.sin(k * 1.7 + 0.9), keep = 1 - smooth(len2, len2 + 0.2, Math.abs(side + 0.15 * Math.sin(k * 3.1)));
+          w2 = Math.max(w2, Math.exp(-(d * d) / (0.035 + 0.012 * k)) * (1 - 0.12 * k) * keep);
+        }
+        crease = Math.max(crease, w2 * stretch * age * (isPip ? 1.25 : 0.85));
+      }
       if (crease > 0.01) alb = [alb[0] * (1 - 0.35 * crease), alb[1] * (1 - 0.42 * crease), alb[2] * (1 - 0.44 * crease)];
       rough = 0.42 - 0.08 * (1 - palmar); sstr = 0.6 * (1 - 0.5 * palmar);
     } else if (mat === 1) {
