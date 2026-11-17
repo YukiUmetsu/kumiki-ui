@@ -181,3 +181,62 @@ The earlier ANAT2 full figure looked like a vector costume mannequin, with a car
 ### Next priority
 
 Manual source-matched face and garment review with an authentic higher-resolution licensed or PD artwork crop. If visually approved, build a dedicated actor rig adapter (head turn, blink, explicit visemes, robe folds), then compare independently against old film characters and *only then* consider replacing a production slot. Keep current character data intact until that gate is passed.
+
+
+## ZJ2 — independent character redraw from expanded archival references (2026-11-17)
+
+The next character pass deliberately does **not** edit or trace the previous
+Shanshui reader, ANAT2 standing figure, ZJ1 head, or any rendered screenshot.
+It starts from a new reference set and a new ANAT1/EXPR1-driven source-space
+head renderer in `src/video/ink-reference-character-redraw.tsx`.
+
+### New reference set and what each source contributes
+
+1. **Chentung Liang Cheng, three-quarter seated portrait (1903), Library of Congress cph.3a44343.**
+   - Record: https://commons.wikimedia.org/wiki/File:Chentung_Liang_Cheng_cph.3a44343.jpg
+   - Full image: https://upload.wikimedia.org/wikipedia/commons/a/a8/Chentung_Liang_Cheng_cph.3a44343.jpg
+   - The Commons/LOC record lists no known restrictions on publication and identifies the photograph as a 1903 LOC item.
+   - Study observations: asymmetric eye visibility from the head turn; the far eye is narrower and sits differently against the nose bridge; the nose-to-malar transition is not mirrored; the moustache has distinct root direction and a soft upper-lip boundary; the neck, high collar and shoulder mass form one continuous load-bearing transition.
+   - Used for the scholar's three-quarter anatomy, gaze, moustache root flow and neck/collar relationship only. Do not reproduce the sitter's identity or copy the late-Qing/early-modern costume.
+
+2. **Elderly Chinese man, possibly a scholar, seated with a pipe (1860), Library of Congress LCCN 2011660679.**
+   - Record: https://commons.wikimedia.org/wiki/File:Elderly_Chinese_man,_possibly_a_scholar,_three-quarter_length_portrait,_seated,_facing_front,_holding_pipe_in_right_hand;_includes_Chinese_language_characters_on_back_LCCN2011660679.jpg
+   - Full image: https://cdn.loc.gov/service/pnp/cph/3b30000/3b32000/3b32400/3b32425r.jpg
+   - The LOC record says no known restrictions on publication; the work is a charcoal drawing on brown paper.
+   - Study observations: broader age-related orbital and cheek planes; a longer beard mass that resolves into separate locks rather than a triangular decal; a relaxed seated shoulder line; sleeve weight follows gravity; the pipe hand shows thumb opposition, curled finger contact and a wrist that remains connected to the forearm.
+   - Used for elder age structure, beard silhouette, seated gesture, sleeve gravity and hand-contact study. The drawing is not traced.
+
+3. **Three-quarter face portrait of an unidentified bearded man (1860), Library of Congress LCCN 2006688331.**
+   - Record: https://commons.wikimedia.org/wiki/File:Three-quarter_face_portrait_of_man_with_beard_LCCN2006688331.jpg
+   - Full image: https://cdn.loc.gov/service/pnp/cph/3c30000/3c36000/3c36900/3c36970v.jpg
+   - The record marks the work Public Domain Mark 1.0 and states no known restrictions on publication.
+   - Study observations: beard direction begins at the upper lip and jaw rather than from one central triangular root; the moustache-to-cheek transition is broken into smaller masses; the three-quarter light reveals the orbital, cheek and nose planes without a heavy outline.
+   - Used only for beard-root direction, facial-hair texture and light-plane study. The sitter's identity and ethnicity are not asserted.
+
+4. **Style anchor — Zeng Jing, Portrait of Pan Qintai (1621), UMMA.**
+   - Record: https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/
+   - Retained as the historical ink/portrait-language anchor: economical contour, layered bone-immersing washes, restrained facial marks, and the relationship between head scale and robe. The museum image is linked only; no reference pixels or traced paths are embedded.
+
+5. **Comparative full-figure reference — The Metropolitan Museum of Art, Portrait of a Scholar (17th–18th century), object 29.20.1.**
+   - Record: https://www.metmuseum.org/art/collection/search/48941
+   - Used for figure-to-robe proportion and the low-contrast treatment of a seated scholar; Open Access / Public Domain.
+
+### New redraw construction
+
+- New Storybook route: **Video production / Film Looks / Chinese Ink / ANAT3 Reference-led Character Redraw**.
+- Scholar and elder are separate identities with different head widths, mouth proportions, yaw, cap silhouette, facial hair and value palette. They are not one face recolored.
+- ANAT1 `createFace` supplies the raw 468-point face topology. `FACE_LANDMARKS` and `FACE_FEATURES` define the anatomical anchors and ordered feature loops. `renderMeshFrame` projects the expressed mesh into source space; `faceFeatureLines`, `projectPoint` and `smoothPath` retain the original feature topology.
+- EXPR1 `expressEmotion` deforms the same feature mesh. `expressionFeatures`, `expressionMarks`, `irisPositions` and `nearestEmotion` drive eye opening, brow position, gaze, mouth shape and expression creases. The ink renderer translates those curves into soft forehead/orbit/malar/nose/jaw washes and sparse tapered contours.
+- The elder beard is drawn as individually rooted, directionally varied fibers over a soft organic substrate. The scholar moustache is separate from the lip contour and built from short directional hairs.
+- The Storybook reference board displays the three archival sources with credits and notes. They remain external reference links/images; no reference bitmap is added to the production registry.
+
+### Acceptance status
+
+This is a new source-led research redraw, **not a production approval**. The formal
+ArtCraft portrait gate remains open: the source files have not been staged in the
+repository, so no local SHA-256 evidence or independently annotated 18-point
+landmark/value-plane package has been produced. The new Storybook story still
+requires 1× and 3× visual review for facial likeness separation, ear/neck
+attachment, expression readability, beard edge quality and crop stability.
+Keep the Chinese Ink portrait work on **ART HOLD / DO NOT MERGE** until that
+review is complete. CI success is necessary but is not artistic acceptance.
