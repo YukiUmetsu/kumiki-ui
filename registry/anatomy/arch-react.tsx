@@ -15,10 +15,10 @@ import type { Elevation, ElevationPart, PartRole } from "./arch-construct";
 const shade = (hex: string, k: number) => { const n = parseInt(hex.slice(1), 16), c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(v => Math.round(Math.min(255, Math.max(0, k > 0 ? v + (255 - v) * k : v * (1 + k))))); return `rgb(${c.join(",")})`; };
 
 function palette(e: Elevation, ids: { glass: string; roof: string; wall: string }): Record<PartRole, string> {
-  const t = e.type;
+  const t = e.type, brick = t.id === "georgian-townhouse";
   return {
-    wall: `url(#${ids.wall})`, shade: "rgba(20,16,12,0.45)", roof: `url(#${ids.roof})`, "roof-line": shade(t.roofColour, -0.35), window: shade(t.trim, -0.2), glass: `url(#${ids.glass})`,
-    frame: t.id === "georgian-townhouse" ? "#f1ece2" : shade(t.trim, 0.05), door: t.id === "georgian-townhouse" ? "#22303a" : shade(t.trim, -0.15), timber: t.trim, lattice: shade(t.trim, -0.35),
+    wall: brick ? `url(#${ids.wall}-brick)` : `url(#${ids.wall})`, shade: "rgba(20,16,12,0.45)", roof: `url(#${ids.roof})`, "roof-line": shade(t.roofColour, -0.35), window: shade(t.trim, -0.2), glass: `url(#${ids.glass})`,
+    frame: t.id === "georgian-townhouse" ? "#f1ece2" : shade(t.trim, 0.05), door: t.id === "georgian-townhouse" ? "#22303a" : `url(#${ids.wall}-grain)`, timber: `url(#${ids.wall}-grain)`, lattice: shade(t.trim, -0.35),
     column: t.id === "greek-temple" ? "#e9e3d6" : "#9b3b28", step: "#d9d2c3", base: "#8f8a80", bracket: shade(t.trim, 0.1), plaster: shade(t.wall, 0.45), beam: t.id === "greek-temple" ? "#ddd6c7" : shade(t.trim, -0.05), cloth: "#2c3a5a",
   };
 }
@@ -63,6 +63,17 @@ function ElevationSvg({ items, dims, person, height, label, style }: { items: { 
                 {t.roof === "thatch-hip" ? <path d="M0 0.2 L0.6 0.15" stroke={shade(t.roofColour, -0.25)} strokeWidth={0.04} /> : <path d="M0.15 0 V0.35 M0 0.33 H0.3" stroke={shade(t.roofColour, -0.3)} strokeWidth={0.035} />}
               </pattern>
               <linearGradient id={ids.wall} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={shade(t.wall, -0.08)} /><stop offset="1" stopColor={shade(t.wall, 0.06)} /></linearGradient>
+              {/* brick at its real size: 215 × 65 mm with 10 mm joints (courses 75 mm), Flemish bond (stretcher, header) */}
+              <pattern id={`${ids.wall}-brick`} width={0.68} height={0.15} patternUnits="userSpaceOnUse">
+                <rect width="0.68" height="0.15" fill={shade(t.wall, 0.25)} />
+                {[[0, 0, 0.215], [0.225, 0, 0.1025], [0.3375, 0, 0.215], [0.5625, 0, 0.1025], [-0.05, 0.075, 0.1025], [0.0625, 0.075, 0.215], [0.2875, 0.075, 0.1025], [0.4, 0.075, 0.215], [0.625, 0.075, 0.1025]].map(([x, y, bw], k) =>
+                  <rect key={k} x={x} y={y} width={bw} height={0.065} fill={shade(t.wall, [-0.06, 0.04, -0.02, 0.08, 0.02, -0.08, 0.06, 0, -0.04][k])} />)}
+              </pattern>
+              {/* timber with its grain running along it */}
+              <pattern id={`${ids.wall}-grain`} width={0.6} height={0.05} patternUnits="userSpaceOnUse">
+                <rect width="0.6" height="0.05" fill={t.trim} />
+                <path d="M0 0.012 Q0.3 0.02 0.6 0.01 M0 0.034 Q0.25 0.026 0.6 0.038" stroke={shade(t.trim, 0.18)} strokeWidth={0.006} fill="none" />
+              </pattern>
             </defs>
             <g filter={`url(#${uid}-tex)`}>
               {e.parts.map((p, i) => p.closed
