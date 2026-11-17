@@ -29,7 +29,11 @@ describe("CP-F1 × FLORA1 source-native outer petal physical edge relief",()=>{
       const original=ROSE_PHYSICAL_FOLDS.find(o=>o.id===face.id)!;
       expect(face.hinge).toEqual(original.hinge);
       expect(face.face).not.toBe(original.face);
-      expect(face.face.includes(original.hinge.slice(1))).toBe(true);
+      const coords=(face.hinge.match(/-?\d+(?:\.\d+)?/g)??[]);
+      const reverse="C"+coords[4]+" "+coords[5]+" "+
+        coords[2]+" "+coords[3]+" "+coords[0]+" "+coords[1];
+      expect(face.face.includes(face.id==="outer-left"?
+        original.hinge.slice(1):reverse)).toBe(true);
       expect(face.face).toMatch(/^M.+ Z$/);
       expect(face.face.split("C").length).toBeGreaterThanOrEqual(11);
       expect(face.contacts).toHaveLength(5);
