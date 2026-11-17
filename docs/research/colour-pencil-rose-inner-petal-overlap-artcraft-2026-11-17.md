@@ -49,6 +49,17 @@ The four legacy whorl organs keep their four existing timed pencil contacts, but
 - Unit and native browser tests cover 16:9 and 9:16, 15→16 central regions, 44→45 complete anatomy, the shared underside hinge, deterministic frame seeking, non-rose isolation and byte-identical restoration with the option OFF.
 - No new dependency, raster image, blur, foreignObject, filter, CSS overlay or generated bitmap is introduced.
 
+## Native overlap correction after first Chromium audit
+
+The first full native run rejected two of the five contact-shadow axes: the old left-cup axis sampled no filled overlap with the reprofiled left wall, and the old heart axis sat above the actual foreground-scroll/heart boundary. The test was correct; the shadow must follow real intersecting opaque supports, not a visually plausible guessed curve.
+
+- The left wall now has an extended lower heel, contained by bounds `[212,135,55,57]`, crossing the recess lower edge. Its contact axis is `(251,179) → (269,180)`.
+- The foreground scroll now has a convex lower-right return, contained by bounds `[226,143,40,45]`, that physically covers the heart's lower-left shoulder. Its contact axis is `(246,178) → (265,179)`.
+- The same path and bounds are kept byte-identical between the four-organ whorl definition and six-surface center definition. The scroll's first cubic and the separate underturn hinge remain identical.
+- Chromium emits the actual five source-pair `isPointInFill` exposure/coverage counts for both aspect ratios. The native proof must show both exposed lower-petal pigment and upper-petal coverage for every field; no assertion threshold was reduced.
+
+This correction changes the silhouette and painterly contact, not the CP-F1 material contract or the production default. It is not yet an artistic approval.
+
 ## Acceptance gate
 
 Passing source and browser tests proves deterministic geometry and material integration, not artistic realism. Inspect the actual full-frame 1×, all 4 directional macro crops and complete 45-region plate. Reject the result if the centre still reads as a radial fan, a screw, a button pasted on top, a set of outlined tubes, or a flat dark hole.
