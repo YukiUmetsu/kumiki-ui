@@ -83,7 +83,7 @@ export const ROSE_OUTER_FORM_ENVELOPES:readonly RoseOuterValueEnvelope[]=[
  * Both opaque reverses and all other rose organs retain their original
  * three colours and exact material-seed slots. No hue sampled from artwork.
  */
-export const ROSE_OUTER_FORM_FACE_PALETTES:ReadOnly<Record<RoseOuterPetal,Pigments>>={
+export const ROSE_OUTER_FORM_FACE_PALETTES:Readonly<Record<RoseOuterPetal,Pigments>>={
   "outer-left":["#BB5D76","#6C2A49","#F0A5AD"],
   "outer-right":["#C96B7D","#793251","#F1A6B2"],
 };
