@@ -193,12 +193,20 @@ export function scrollReaderFacePortrait(detail=1):
   // are tiny ink lashes BELOW the upper lids, not centred round eyes.
   const pupilLeft=asset("near-pupil",[
     ...anatomy.nearPupil,
-    p("M129 105.4 Q129.3 106.1 129.2 106.8",
-      "none","$ink",.86,.8),
+    // Real 1× Chromium review showed a second isolated dark dot just
+    // outside the near iris. Preserve its separate pressure mark, but
+    // bring it INSIDE the original ANAT1 limbal envelope (125.2..129.4)
+    // as the broken far-side iris rim, not an extra pupil.
+    p("M128.15 105.18 Q128.58 105.92 128.02 107.2",
+      "none","$ink",.36,.51),
   ]);
   const pupilRight=asset("far-pupil",[
     ...anatomy.farPupil,
-    p("M156.3 105.1 l.2 1.1","none","$ink",.66,.64),
+    // A projected far-eye iris is a single oval under the upper tarsus.
+    // Retain this micro-stroke, following the inside of its distal edge
+    // instead of an unrelated heavy dash beside the pupil.
+    p("M158.02 104.57 Q158.42 105.38 157.92 106.13",
+      "none","$ink",.28,.49),
   ]);
   // The near ear needs its own OVER-HAIR plane. In the source painting
   // the ear is outlined *in front of* the sideburn; putting both marks
