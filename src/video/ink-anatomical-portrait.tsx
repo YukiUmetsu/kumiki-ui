@@ -111,9 +111,18 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           fill="none" stroke="#ecddc5" strokeWidth=".55" opacity=".64"/>
       </g>
       <path d={spline(upper(side))} fill="none" stroke={preset.ink}
-        strokeWidth={side==="L"?1.65:1.3} strokeLinecap="round" opacity=".86"/>
+        strokeWidth={side==="L"?1.26:1.03} strokeLinecap="round" opacity=".78"/>
       <path d={spline(lower(side))} fill="none" stroke={preset.bone}
-        strokeWidth=".76" strokeLinecap="round" opacity=".62"/>
+        strokeWidth=".61" strokeLinecap="round" opacity=".46"/>
+      <path d={pathBetween(shift(ex,side==="L"?-2:2,-3.9),
+        shift(center,0,-radius*2.0),shift(en,side==="L"?2:-2,-3.6))}
+        fill="none" stroke={preset.bone} strokeWidth=".61" opacity=".32"/>
+      <path d={pathBetween(shift(ex,side==="L"?-1:1,4.8),
+        shift(center,1,radius*2.2),shift(en,0,4.1))}
+        fill="none" stroke={preset.warm} strokeWidth="1.15"
+        filter={"url(#"+uid+"-wash-feather)"} opacity=".19"/>
+      <circle cx={en[0]} cy={en[1]+.6} r=".85"
+        fill={preset.warm} opacity=".28"/>
       {Array.from({length:5},(_,i)=>{
         const t=(i+1)/6,a=upper(side),j=Math.max(0,Math.min(a.length-2,Math.floor(t*(a.length-1))));
         const pos=a[j];return <path key={i} d={"M"+xy(pos)+" l"+fmt((side==="L"?1:-1)*(1.0+i*.08))+" -"+fmt(.7+i*.09)}
@@ -302,7 +311,8 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
         filter={"url(#"+uid+"-wash-feather)"} fill="none"/>
       {washes("R")}{washes("L")}
       <path d={spline(feature("nose-bridge"))} stroke={preset.bone}
-        strokeWidth="9" strokeOpacity=".15" fill="none"/>
+        strokeWidth="9" strokeOpacity=".17" filter={"url(#"+uid+"-wash-feather)"}
+        fill="none"/>
       <path d={pathBetween(shift(q("alare.R"),-3,2),
         shift(q("subnasale"),-12,6),shift(q("subnasale"),-4,7))}
         stroke={preset.warm} strokeWidth="5.3" strokeOpacity=".12"
@@ -321,7 +331,7 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
     <g data-km-ink-facial-structures="true">
       {/** Nose and orbital canthi come from pose-dependent ANAT1 vertex loops. */}
       <path d={spline(feature("nose-bridge"))} fill="none" stroke={preset.bone}
-        strokeWidth=".61" strokeLinecap="round" opacity=".36"/>
+        strokeWidth=".51" strokeLinecap="round" opacity=".25"/>
       {/** Interrupt the nasal-base line at the tissue planes: no U-shaped decal. */}
       <path d={pathBetween(shift(q("alare.R"),-1,2),
         shift(q("subnasale"),-13,2),shift(q("subnasale"),-3,3))}
@@ -332,8 +342,9 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       <path d={pathBetween(shift(nose,-8,8),shift(nose,-2,11),shift(nose,7,8))}
         fill="none" stroke={preset.warm} strokeWidth="2.3" opacity=".12"/>
       {(["R","L"] as const).map(side=><g key={side} data-km-ink-brow={side}>
-        <path d={spline(brow(side))} stroke={preset.ink} strokeWidth={side==="L"?2.05:1.55}
-          fill="none" opacity=".75" strokeLinecap="round"/>
+        <path d={spline(brow(side))} stroke={preset.ink}
+          strokeWidth={side==="L"?1.43:1.13} fill="none"
+          opacity={character==="scholar"?.68:.49} strokeLinecap="round"/>
         {Array.from({length:16},(_,i)=>{
           const raw=brow(side),t=i/15,j=Math.min(raw.length-2,Math.floor(t*(raw.length-1)));
           const a=raw[j],b=raw[j+1],r=t*(raw.length-1)-j;
@@ -362,6 +373,38 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
         strokeLinecap="round" fill="none"/>
       <path d={"M"+xy(shift(q("sublabiale"),-12,4))+" Q"+xy(shift(q("sublabiale"),1,8))+" "+xy(shift(q("sublabiale"),13,1))}
         stroke={preset.bone} fill="none" strokeWidth=".64" opacity=".46"/>
+      {character==="elder"&&<g data-km-ink-age-anatomy="orbital-temporal-volume">
+        {(["R","L"] as const).map(side=>{
+          const sign=side==="R"?-1:1;
+          const outer=q(("exocanthion."+side) as keyof typeof FACE_LANDMARKS);
+          const under=q(("palpebrale-inferius."+side) as keyof typeof FACE_LANDMARKS);
+          const z=q(("cheekbone."+side) as keyof typeof FACE_LANDMARKS);
+          return <g key={side} data-km-ink-age-eye={side}>
+            {Array.from({length:4},(_,i)=><path key={i}
+              d={pathBetween(shift(outer,sign*(2+i*2),1+i*2.2),
+                shift(outer,sign*(8+i*2),-1+i*3),
+                shift(outer,sign*(15+i*2),-4+i*3.7))}
+              fill="none" stroke={i%2===0?preset.bone:preset.warm}
+              strokeWidth={.31+(i%3)*.13} opacity={.17+detail*.08}/>)}
+            {Array.from({length:3},(_,i)=><path key={"bag"+i}
+              d={pathBetween(shift(under,sign*1,6+i*2.7),
+                shift(z,sign*2,-6+i*2),shift(z,sign*7,6+i*2))}
+              fill="none" stroke={preset.bone}
+              strokeWidth={1.45+i*.4} strokeLinecap="round"
+              filter={"url(#"+uid+"-wash-feather)"}
+              opacity={.18+(2-i)*.032}/>)}
+          </g>;
+        })}
+        {Array.from({length:4},(_,i)=>{
+          const a=shift(q("forehead"),-38+i*6,-2+i*3.3);
+          const b=shift(q("forehead"),-5+i*5,-1+i*3.1);
+          const c=shift(q("forehead"),27+i*3,2+i*3.2);
+          return <path key={i} data-km-ink-age-frontal={i}
+            d={pathBetween(a,b,c)} stroke={preset.bone}
+            strokeWidth={.35+(i%3)*.12} fill="none"
+            opacity={(i%2===0?.33:.22)*detail}/>;
+        })}
+      </g>}
       {marks.map(m=><g key={m.id} data-km-ink-action-mark={m.id}>
         <path d={spline(m.points.map(([x,y])=>P([x,y,42])))} fill="none"
           stroke={preset.bone} strokeWidth={.38+(.3*m.strength)}
@@ -374,13 +417,13 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
         +" "+xy(shift(templeL,31,-12))+" "+xy(shift(templeL,28,12))
         +" C"+xy(shift(templeL,25,28))+" "+xy(shift(templeL,8,34))
         +" "+xy(shift(templeL,6,21))} fill={preset.complexion} stroke={preset.bone}
-        strokeWidth="1.5" opacity=".95"/>
+        strokeWidth=".9" opacity=".76"/>
       <path d={"M"+xy(shift(templeL,10,-7))+" Q"+xy(shift(templeL,26,-3))
         +" "+xy(shift(templeL,22,17))+" M"+xy(shift(templeL,20,1))
         +" Q"+xy(shift(templeL,10,5))+" "+xy(shift(templeL,17,12))}
-        stroke={preset.ink} opacity=".51" strokeWidth=".88" fill="none"/>
+        stroke={preset.ink} opacity=".37" strokeWidth=".72" fill="none"/>
       <path d={"M"+xy(shift(templeL,18,8))+" q6 6 2 10"}
-        fill="none" stroke={preset.ink} strokeWidth="2" opacity=".27"/>
+        fill="none" stroke={preset.ink} strokeWidth="1.2" opacity=".23"/>
     </g>
 
     {/** Unlike the rejected earlier crown, no exposed vertical hair comb or
@@ -464,6 +507,32 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
               +" q"+fmt(1.1+(i%3))+" 6 "+fmt(3+(i%3))+" "+fmt(10+(i%4))}
             stroke={i%3===0?"#bdb5a6":preset.ink}
             strokeWidth=".53" opacity=".37" fill="none"/>)}
+          {/** Individual late-Ming oral-root whisker clusters; a feathered
+               underpaint follows the mandibular volume into five separate
+               tapering locks and does not flatten the robe into a stamp. */}
+          <path data-km-ink-beard-substrate="organic"
+            d={"M"+xy(shift(q("stomion"),-26,-1))
+              +" C"+xy(shift(q("stomion"),-31,24))
+              +" "+xy(shift(menton,-47,17))
+              +" "+xy(shift(menton,-34,62))
+              +" Q"+xy(shift(menton,-21,100))
+              +" "+xy(shift(menton,-1,92))
+              +" Q"+xy(shift(menton,18,101))
+              +" "+xy(shift(menton,35,61))
+              +" C"+xy(shift(menton,48,18))
+              +" "+xy(shift(q("stomion"),36,26))
+              +" "+xy(shift(q("stomion"),23,-3))
+              +" Q"+xy(shift(q("stomion"),2,12))
+              +" "+xy(shift(q("stomion"),-26,-1))+" Z"}
+            fill={preset.ink} opacity=".16"/>
+          <path d={pathBetween(shift(q("stomion"),-24,-2),
+            shift(q("stomion"),-16,0),shift(q("stomion"),-5,3))}
+            stroke={preset.ink} strokeWidth="4.2" opacity=".30" fill="none"
+            strokeLinecap="round" filter={"url(#"+uid+"-wash-feather)"}/>
+          <path d={pathBetween(shift(q("stomion"),6,3),
+            shift(q("stomion"),16,-2),shift(q("stomion"),22,-2))}
+            stroke={preset.ink} strokeWidth="4.4" opacity=".28" fill="none"
+            strokeLinecap="round" filter={"url(#"+uid+"-wash-feather)"}/>
           {/** Isolated moustache-root clusters with actual hairline directions. */}
           {Array.from({length:18},(_,i)=>{
             const near=i<9,side=near?-1:1,k=i%9;
@@ -477,27 +546,27 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           })}
           {/** Five separate tapering chin locks, never one rectangular beard. */}
           {Array.from({length:5},(_,i)=>{
-            const offset=i-2,root=shift(menton,offset*13,-1+Math.abs(offset)*4);
-            const end=shift(menton,offset*8,52+Math.cos(offset*1.8)*15);
-            const mid:Point=shift(menton,offset*10,28+Math.abs(offset)*2);
+            const offset=i-2,root=shift(menton,offset*11,-24+Math.abs(offset)*5);
+            const end=shift(menton,offset*9,83+Math.cos(offset*1.8)*18);
+            const mid:Point=shift(menton,offset*11,28+Math.abs(offset)*2);
             return <path key={"lock"+i} data-km-ink-beard-lock={i}
               d={"M"+xy(shift(root,-4,-1))
                 +" Q"+xy(shift(mid,-5,-1))+" "+xy(end)
                 +" Q"+xy(shift(mid,4,3))+" "+xy(shift(root,3,2))+" Z"}
-              fill={preset.ink} opacity={.08+(i===2?.13:.04)}/>;
+              fill={preset.ink} opacity={.11+(i===2?.21:.065)}/>;
           })}
-          {Array.from({length:55},(_,i)=>{
-            const t=i/54,x=menton[0]+(t-.5)*66;
+          {Array.from({length:93},(_,i)=>{
+            const t=i/92,x=menton[0]+(t-.5)*75;
             const offset=Math.abs(t-.5)*2;
-            const topY=menton[1]-5+offset*10+1.2*Math.sin(i*1.83);
-            const len=(1-offset*.53)*(30+28*Math.abs(Math.sin(i*2.77)));
-            const drift=(t-.5)*13;
+            const topY=menton[1]-31+offset*20+1.2*Math.sin(i*1.83);
+            const len=(1-offset*.44)*(76+35*Math.abs(Math.sin(i*2.77)));
+            const drift=(t-.5)*16;
             return <path key={i} d={"M"+fmt(x)+" "+fmt(topY)
               +" Q"+fmt(x+drift*.4)+" "+fmt(topY+len*.51)
               +" "+fmt(x+drift)+" "+fmt(topY+len)}
               fill="none" stroke={i%7===0?"#bfb3a1":preset.ink}
               strokeWidth={i%4===0?.83:.32+(i%3)*.09}
-              opacity={(i%7===0?.38:.30)*detail}/>;
+              opacity={(i%7===0?.48:.38)*detail}/>;
           })}
         </>}
       </g>;
