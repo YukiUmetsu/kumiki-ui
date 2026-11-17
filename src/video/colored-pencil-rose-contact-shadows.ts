@@ -55,7 +55,7 @@ export const ROSE_CONTACT_SHADOWS:readonly RoseContactShadow[]=[
   },
   {
     id:"cup-under-left",lower:"rose-whorl-recess",upper:"rose-whorl-left",
-    axis:[[240,156],[242,162],[247,167],[254,171]],
+    axis:[[251,179],[256,181],[263,182],[269,180]],
     halfWidth:3,contacts:58,
     pigments:["#56263F","#823D55","#B46A7D"],
     nibs:[.47,.39,.29],opacity:[.36,.30,.23],
@@ -76,7 +76,7 @@ export const ROSE_CONTACT_SHADOWS:readonly RoseContactShadow[]=[
   },
   {
     id:"heart-under-scroll",lower:"heart",upper:"rose-whorl-scroll",
-    axis:[[240,165],[246,169],[254,172],[261,170]],
+    axis:[[246,178],[251,181],[258,182],[265,179]],
     halfWidth:2.5,contacts:49,
     pigments:["#54233C","#8A405B","#BB7182"],
     nibs:[.41,.35,.25],opacity:[.36,.28,.21],
