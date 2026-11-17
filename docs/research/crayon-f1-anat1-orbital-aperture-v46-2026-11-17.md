@@ -39,3 +39,40 @@ All **nine** existing paths use **four cubic Bézier segments each** with photog
 4. **Art hold**: Source whole-image **≥0.85 SSIM** required by existing PR; all 18 final native-render ANAT1 anatomical landmarks, five full source human value planes, complete actual 300-frame video inspection, and independent artist approval remain missing. Do not merge or promote by merely passing renderer tests.
 
 **Initial verdict: experimental, unapproved, PR #461 DRAFT.** The goal is to test real source-fitted ocular geometry instead of repeating pigment-only V44 and extra-lash-only V45 studies.
+
+## Exact-source V43→V46 independent native Chromium review
+
+**Authentic pixels, not synthetic contour assertions.** Pixel head `6a4e73602dde4b14eb5f850b13b62f54e8cc9e68`, same protected licensed CC0 608×1082 RGB photograph, original `seed=441501`, source `focusX=304,focusY=541,zoom=1`, absolute frame 299. V43 and V46 are two independent renderer invocations from **the same commit**, not screenshots from disparate branches. No visual contrast alignment, retouch or RGB transforms applied. 2.8× zoom screenshot used only for artistic texture review, not source SSIM computation.
+
+- [GitHub Actions native 1× portrait and 2.8× near-eye evidence, artifact **14310999761**](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44045846628/artifacts/14310999761)
+- [Actual Chromium test PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44045846628), [strict TypeScript and 70 changed test suites PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44045846761), [native CRAYON1 four-pass drawing grammar PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44045846743).
+- Independently decoded the artifact's original V43 and candidate V46 **actual** source-camera RGB frames; calculated `skimage.metrics.structural_similarity(photo,candidate,channel_axis=2,data_range=255)`, and mean absolute RGB error (**MAE**) on exact matching source pixels.
+
+| ROI (x0,y0,x1,y1; CC0 608×1082) | V43 source SSIM | V46 source SSIM | Δ |
+| --- | ---: | ---: | ---: |
+| Whole original source (0,0,608,1082) | 0.496979 | **0.497072** | **+0.000093** |
+| Full face (108,282,502,862) | 0.622734 | **0.623006** | +0.000271 |
+| Full near eye (175,450,360,625) | 0.574376 | **0.576375** | +0.001999 |
+| Upper + lower eye anatomy (216,513,325,593) | 0.394864 | **0.414968** | **+0.020104** |
+| Iris (239,531,292,570) | 0.457611 | **0.512308** | **+0.054697** |
+| Medial canthus (285,530,320,565) | 0.326379 | **0.340666** | +0.014287 |
+| Lower tarsal roll (215,558,322,595) | 0.518274 | **0.535934** | +0.017660 |
+| Upper sulcus (202,493,326,540) | 0.418637 | **0.420936** | +0.002299 |
+| Far eye (395,450,477,555) | 0.390650 | 0.390650 | 0 |
+| Forehead (105,285,455,440) | 0.695480 | 0.695480 | 0 |
+| Source tree canopy (0,0,608,163) | 0.534956 | 0.534956 | 0 |
+| Nasal control (355,600,420,665) | 0.510049 | 0.510049 | 0 |
+
+**Caution:** The absolute mean RGB error *worsens* slightly: full original 27.72→27.79, full face 27.41→27.60, near-eye 32.48→33.84, iris 26.95→28.87, lower lid 42.41→51.09. The photographed geometry's **structural** SSIM improvement does not translate into better RGB values. The initial V43 → V46 near-eye 2.8× qualitative comparison shows a rounder aperture, more natural upper lid taper and a less triangular inner white; but the iris is still a simple circular wax disc, the pale skin lacks a believable corneal/zygomatic volume roll, the eyebrow remains sparse/low definition and the hair/face read as stiff, flat cutouts against large stylized foliage.
+
+V46 makes a *small verified source-geometry improvement*, especially the photographed iris and connected lower tarsus, unlike failed V44/V45 contact-only changes. The whole-image gain is extremely small. **It is not an artist-approved or production-ready human face.** Do not equate positive source SSIM at this resolution with realistic physical hand-drawn art.
+
+### Updated priorities and CI resource policy
+
+1. **Highest:** Reconstruct **continuous 3D human facial material field**, not five extra standalone shadow patches: project ANAT1 mesh normals into source camera and build source-observed photo-tonal underpainting along forehead→brow root→infraorbital→malar crest→nasolabial fold→jaw with native dry-wax strokes and all original fine detail retained. Do not substitute flat color planes or a PNG source photo.
+2. Rework **iris and tearfilm realism**: source eye still too icon-like at 2.8×. Need physically rim-clipped corneal highlights, limbal shadow and better wet sclera curvature, with original source measured landmarks and no new generic clip-art. Preserve individual lash roots and source expression.
+3. Resolve **large helmet-like hair masses and repeated greenery** by increased photographed spatial frequency and paper-pigment granularity without raster textures or simplified shapes. Background style remains stylized even where SSIM increased.
+4. Independently audit all **18 actual final-render** anatomical landmarks and **five fully connected source-relative skin value planes**, all **300 complete frames at actual playback speed**, and separate professional artist signoff. Current tests cannot substitute.
+5. **CI efficiency:** Keep historical native V43, V44 and V45 e2e scenarios in source for opt-in/manual regression. In the PR's fast native browser workflow run only the **latest V46 with its same-head V43 comparison** plus the baseline reference audit, avoiding duplicated heavyweight historical screenshot exports on every subsequent documentation/implementation commit. Source/contract/unit and native drawing workflows remain enabled. Restore broader matrix for final release review when genuine art approval is achievable.
+
+**Final decision for V46: continue experimental !dev, ART HOLD, leave #461 DRAFT / DO NOT MERGE.** Current whole-photograph SSIM **0.497072 << required 0.85**. Geometry moved in the right source-observed direction, but neither the drawing nor full video meets the professional realism criteria.
