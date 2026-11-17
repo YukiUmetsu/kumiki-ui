@@ -33,7 +33,7 @@ The landforms:
 - **U-valleys and V-valleys.** A flat floor and steep walls with hanging valleys, against interlocking spurs.
 - **Stratovolcanoes.** A concave profile, 30–35° near the top and about 10° at the foot.
 - **Shield volcanoes** (under 10°) and **cinder cones** (straight sides at the angle of repose).
-- **Mesas and buttes.** A cap-rock cliff over a talus apron.
+- **Mesas and buttes.** A cap-rock cliff over a talus apron (built from a distance-to-edge field: a flat table, a near-vertical cliff band, then talus at 33°).
 - **Barchan dunes.** A windward back of 5–15° and a slip face of about 32–34°.
 - **Scree, sea cliffs and rolling hills.**
 

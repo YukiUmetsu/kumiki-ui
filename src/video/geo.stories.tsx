@@ -18,7 +18,7 @@ const KINDS: { kind: TerrainKind; label: string; o?: Partial<TerrainRenderOption
   { kind: "u-valley", label: "Glacial U-valley" },
   { kind: "volcano", label: "Stratovolcano" },
   { kind: "v-valley", label: "River V-valley" },
-  { kind: "mesa", label: "Mesas and buttes", o: { sunAzimuth: 70, sunElevation: 25 } },
+  { kind: "mesa", label: "Mesas and buttes", o: { seed: 3, sunAzimuth: 100, sunElevation: 18 } },
   { kind: "dunes", label: "Dunes (slip faces toward us)", o: { sunAzimuth: 70, sunElevation: 16 } },
   { kind: "coast", label: "Cliffed coast", o: { sunAzimuth: 40, sunElevation: 30 } },
   { kind: "hills", label: "Rolling hills", o: { sunAzimuth: 80, sunElevation: 22 } },
