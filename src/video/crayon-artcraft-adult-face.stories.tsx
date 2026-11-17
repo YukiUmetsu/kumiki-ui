@@ -1,4 +1,4 @@
-import {useMemo,useState} from "react";
+import {useEffect,useMemo,useState} from "react";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import {crayonCamera} from "../../registry/video/materials/crayon-scene";
@@ -16,8 +16,10 @@ import {auditCrayonF1LashRootContinuity,type CrayonF1LashFinish}
 import {crayonF1RegisterAnat1Face} from "./crayon-artcraft-f1-anat1-malar";
 import {CRAYON_F1_V59_NAMES,CRAYON_F1_V59_SOURCE,
   crayonF1CandidateLandmarkAudit,crayonF1CandidatePointerPoint,
+  crayonF1NativePngDimensionsV61,crayonF1NativePngSha256V61,
+  crayonF1ValidateNativePngManifestV61,
   type CrayonF1CandidateLandmark,type CrayonF1CandidateMarks,
-  type CrayonF1CandidateVariant}
+  type CrayonF1CandidateVariant,type CrayonF1NativeCaptureWorksheetV60}
   from "./crayon-artcraft-f1-candidate-landmarks-v59";
 
 /** ArtCraft reference crops use only the native CRAYON1 camera; source marks remain unchanged. */
@@ -183,7 +185,7 @@ const meta={
   title:"Video production/Film Looks/Crayon/ArtCraft Source Lab",
   id:"video-crayon-artcraft-adult-face",
   tags:["!dev"],
-  excludeStories:["Cc0CandidateLandmarkWorksheetV59",
+  excludeStories:["Cc0CandidateLandmarkWorksheetV59","Cc0NativePngReviewWorkbenchV61",
     "AdultFaceArtcraftWorkbench","AdultFaceExpressionComparison",
     "crayonArtcraftInspectionSpec"],
   component:Cc0SourceRegisteredFaceWorkbench,
@@ -1538,6 +1540,260 @@ export function Cc0CandidateLandmarkWorksheetV59({detail}:{detail:number}){
     </label>
   </section>;
 }
+
+/** Read a user-selected file without trusting its MIME type or filename. */
+function readCrayonFileV61(
+  file:File,mode:"arrayBuffer"|"dataURL"|"text",
+):Promise<ArrayBuffer|string>{
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(reader.error??new Error("Unable to read selected file"));
+    reader.onload=()=>{
+      const value=reader.result;
+      if(mode==="arrayBuffer"&&value instanceof ArrayBuffer)resolve(value);
+      else if(mode!=="arrayBuffer"&&typeof value==="string")resolve(value);
+      else reject(new Error("Selected file returned an unexpected representation"));
+    };
+    if(mode==="arrayBuffer")reader.readAsArrayBuffer(file);
+    else if(mode==="dataURL")reader.readAsDataURL(file);
+    else reader.readAsText(file);
+  });
+}
+
+/**
+ * V61 review happens on the exact browser PNG that was hashed by the
+ * V60 Playwright run. The live SVG is intentionally not substituted here.
+ */
+export function Cc0NativePngReviewWorkbenchV61(){
+  const [pngFile,setPngFile]=useState<File|null>(null);
+  const [manifestFile,setManifestFile]=useState<File|null>(null);
+  const [capture,setCapture]=useState<{
+    fileName:string;sha256:string;dataUrl:string;
+    manifest:CrayonF1NativeCaptureWorksheetV60;
+  }|null>(null);
+  const [status,setStatus]=useState<
+    "UPLOAD_REQUIRED"|"VERIFYING"|"VERIFIED_CAPTURE"|"REJECTED"
+  >("UPLOAD_REQUIRED");
+  const [error,setError]=useState("");
+  const [selected,setSelected]=useState<CrayonF1CandidateLandmark>(
+    CRAYON_F1_V59_NAMES[0]);
+  const [marks,setMarks]=useState<CrayonF1CandidateMarks>({});
+  const [draftX,setDraftX]=useState("");
+  const [draftY,setDraftY]=useState("");
+  const [sourceVisible,setSourceVisible]=useState(true);
+
+  useEffect(()=>{
+    let cancelled=false;
+    if(!pngFile||!manifestFile){
+      setCapture(null);setError("");setStatus("UPLOAD_REQUIRED");
+      return ()=>{cancelled=true;};
+    }
+    setCapture(null);setError("");setMarks({});
+    setDraftX("");setDraftY("");setStatus("VERIFYING");
+    void (async()=>{
+      try{
+        if(!manifestFile.name.toLowerCase().endsWith(".json"))
+          throw new RangeError("The matching V60 sidecar must be a .json file");
+        const [buffer,dataUrl,manifestText]=await Promise.all([
+          readCrayonFileV61(pngFile,"arrayBuffer"),
+          readCrayonFileV61(pngFile,"dataURL"),
+          readCrayonFileV61(manifestFile,"text"),
+        ]);
+        if(typeof buffer==="string"||typeof dataUrl!=="string"||
+          typeof manifestText!=="string")
+          throw new RangeError("V61 file reader returned an invalid value");
+        const [width,height]=crayonF1NativePngDimensionsV61(
+          new Uint8Array(buffer));
+        const sha256=await crayonF1NativePngSha256V61(buffer);
+        const parsed:unknown=JSON.parse(manifestText);
+        const verified=crayonF1ValidateNativePngManifestV61(
+          parsed,pngFile.name,sha256,width,height);
+        if(cancelled)return;
+        setCapture({fileName:pngFile.name,sha256,dataUrl,manifest:verified});
+        setStatus("VERIFIED_CAPTURE");
+      }catch(cause){
+        if(cancelled)return;
+        setCapture(null);setStatus("REJECTED");
+        setError(cause instanceof Error?cause.message:String(cause));
+      }
+    })();
+    return ()=>{cancelled=true;};
+  },[pngFile,manifestFile]);
+
+  const audit=capture?crayonF1CandidateLandmarkAudit({
+    ...capture.manifest.evidence,marks,
+    renderedPngSha256:capture.sha256,
+  }):null;
+  const setCandidate=(point:readonly [number,number])=>{
+    setMarks(previous=>({...previous,[selected]:point}));
+    setDraftX(String(point[0]));setDraftY(String(point[1]));
+  };
+  const choose=(name:CrayonF1CandidateLandmark)=>{
+    setSelected(name);
+    setDraftX(marks[name]===undefined?"":String(marks[name]?.[0]));
+    setDraftY(marks[name]===undefined?"":String(marks[name]?.[1]));
+  };
+  const valid=draftX.trim()!==""&&draftY.trim()!==""&&
+    [Number(draftX),Number(draftY)].every(Number.isInteger)&&
+    Number(draftX)>=0&&Number(draftX)<608&&
+    Number(draftY)>=0&&Number(draftY)<1082;
+  const record=capture&&audit?JSON.stringify({
+    schema:"kumiki-crayon-artcraft-candidate-review-v61",
+    source:capture.manifest.source,native:capture.manifest.native,
+    evidence:{...capture.manifest.evidence,marks,
+      renderedPngSha256:capture.sha256},
+    audit,
+    nativePngBytesSha256Verified:true,
+    candidateMarksManuallyEntered:Object.keys(marks).length>0,
+    sourcePointsCopiedToCandidate:false,
+    reviewerIndependenceVerified:false,
+    facialValuePlanesApproved:false,
+    entire300FrameFilmReviewed:false,
+    artistApproved:false,releaseApproved:false,
+  },null,2):"";
+  return <section data-km-crayon-f1-native-review={status} style={{
+    maxWidth:1050,margin:"auto",padding:18,color:"#292a31",
+    background:"#f4e9dc",fontFamily:"system-ui",boxSizing:"border-box"}}>
+    <h2 style={{fontSize:20,margin:"0 0 8px"}}>
+      CC0 ArtCraft — exact native PNG review and 18-point annotation (!dev V61)
+    </h2>
+    <p style={{fontSize:13,lineHeight:1.5,maxWidth:850}}>
+      Upload the exact Chromium PNG and its matching V60 JSON sidecar from one
+      GitHub Actions artifact. V61 checks the PNG signature, 608×1082 IHDR,
+      SHA-256 bytes, source hash, native variant and all 18 frozen source points
+      before enabling annotation. The blue marks belong to the photograph;
+      orange marks are manually entered on the uploaded candidate PNG.
+      Measurements do not certify artist independence or release quality.
+    </p>
+    <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end",marginBottom:12}}>
+      <label>Native screenshot PNG
+        <input type="file" accept="image/png,.png"
+          aria-label="Native Chromium screenshot PNG"
+          onChange={event=>{
+            setPngFile(event.target.files?.[0]??null);
+            setMarks({});setDraftX("");setDraftY("");
+          }} style={{display:"block",maxWidth:"100%"}}/>
+      </label>
+      <label>Matching V60 provenance JSON
+        <input type="file" accept="application/json,.json"
+          aria-label="Matching V60 capture manifest JSON"
+          onChange={event=>{
+            setManifestFile(event.target.files?.[0]??null);
+            setMarks({});setDraftX("");setDraftY("");
+          }} style={{display:"block",maxWidth:"100%"}}/>
+      </label>
+      <output aria-live="polite">{audit?.measured??0}/18 candidate pixel observations ·
+        {" "+(audit?.status??status)}</output>
+    </div>
+    {status==="UPLOAD_REQUIRED"&&<p>
+      Upload both the native PNG and its V60 JSON sidecar to unlock annotation.
+    </p>}
+    {status==="VERIFYING"&&<p aria-live="polite">
+      Verifying actual PNG bytes against the V60 manifest…
+    </p>}
+    {status==="REJECTED"&&<p role="alert">
+      Capture verification failed: {error}
+    </p>}
+    {capture&&audit&&<>
+      <p data-km-crayon-f1-native-png-verified="" style={{fontSize:13,lineHeight:1.5}}>
+        <strong>Verified native screenshot bytes</strong>
+        {" · "+capture.manifest.native.variant+" · SHA-256 "}
+        <code>{capture.sha256}</code>
+      </p>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end",marginBottom:12}}>
+        <label>Candidate feature
+          <select aria-label="Verified PNG anatomical landmark" value={selected}
+            onChange={event=>choose(event.target.value as CrayonF1CandidateLandmark)}
+            style={{display:"block"}}>
+            {CRAYON_F1_V59_NAMES.map(name=>
+              <option value={name} key={name}>{name}</option>)}
+          </select>
+        </label>
+        <label><input type="checkbox" checked={sourceVisible}
+          onChange={event=>setSourceVisible(event.target.checked)}/>
+          Show blue source anchors</label>
+        <span style={{fontSize:12}}>Camera: 608×1082 · frame 299 · detail 1</span>
+      </div>
+      <div data-km-crayon-f1-verified-png-camera="608x1082-f299"
+        style={{width:"min(100%,420px)",margin:"0 auto",position:"relative",
+          aspectRatio:"608 / 1082",background:"#e2d7c8",outline:"1px solid #a8998d"}}>
+        <img src={capture.dataUrl} alt="Verified native crayon candidate screenshot"
+          draggable={false} style={{display:"block",width:"100%",height:"100%",
+            objectFit:"fill"}}/>
+        <button type="button"
+          aria-label={"Click the verified native PNG to mark "+selected}
+          onClick={event=>setCandidate(crayonF1CandidatePointerPoint(
+            event.clientX,event.clientY,event.currentTarget.getBoundingClientRect()))}
+          style={{position:"absolute",inset:0,width:"100%",height:"100%",
+            zIndex:2,cursor:"crosshair",border:0,padding:0,background:"transparent"}}/>
+        <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:3,
+          pointerEvents:"none"}}>
+          {sourceVisible&&CRAYON_F1_V59_NAMES.map(name=>{
+            const [x,y]=CRAYON_PORTRAIT_AUDIT.sourcePoints[name];
+            return <span key={"source-"+name} title={"Original source: "+name}
+              data-km-crayon-f1-source-landmark={name}
+              style={{position:"absolute",left:(x/608*100)+"%",
+                top:(y/1082*100)+"%",width:name===selected?10:6,
+                height:name===selected?10:6,transform:"translate(-50%,-50%)",
+                borderRadius:"50%",border:"1px solid white",background:"#246ddb",
+                boxShadow:"0 0 0 1px #0a2856"}}/>;
+          })}
+          {CRAYON_F1_V59_NAMES.map(name=>{
+            const point=marks[name];if(!point)return null;
+            return <span key={"candidate-"+name} title={"Candidate PNG: "+name}
+              data-km-crayon-f1-candidate-landmark={name}
+              style={{position:"absolute",left:(point[0]/608*100)+"%",
+                top:(point[1]/1082*100)+"%",width:11,height:11,
+                transform:"translate(-50%,-50%) rotate(45deg)",
+                background:name===selected?"#f69f2e":"#e66e26",
+                border:"1px solid #331e0d",boxShadow:"0 0 0 1px #fff"}}/>;
+          })}
+        </div>
+      </div>
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"end",marginTop:14}}>
+        <label>Native pixel X
+          <input aria-label="Candidate pixel X" type="number" min={0} max={607}
+            step={1} style={{display:"block",width:100}} value={draftX}
+            onChange={event=>setDraftX(event.target.value)}/>
+        </label>
+        <label>Native pixel Y
+          <input aria-label="Candidate pixel Y" type="number" min={0} max={1081}
+            step={1} style={{display:"block",width:100}} value={draftY}
+            onChange={event=>setDraftY(event.target.value)}/>
+        </label>
+        <button type="button" disabled={!valid}
+          onClick={()=>setCandidate([Number(draftX),Number(draftY)])}>
+          Record manual coordinates</button>
+        <button type="button" disabled={!marks[selected]} onClick={()=>{
+          setMarks(previous=>{
+            const copy={...previous};delete copy[selected];return copy;
+          });setDraftX("");setDraftY("");
+        }}>Clear selected</button>
+        <button type="button" disabled={audit.measured===0} onClick={()=>{
+          setMarks({});setDraftX("");setDraftY("");
+        }}>Clear all</button>
+      </div>
+      <p style={{fontSize:13,lineHeight:1.5,margin:"10px 0"}}>
+        The SHA-256 is computed from the uploaded PNG bytes, not copied from
+        the JSON. Source points are immutable and never become candidate points.
+        Candidate coordinates are manual observations; an independent reviewer
+        and artist must still assess the image and all 300 frames.
+      </p>
+      <label style={{display:"block",fontSize:13}}>
+        Copy byte-verified candidate observation record (not release approval)
+        <textarea aria-label="Verified-PNG candidate observation record" readOnly
+          value={record} style={{display:"block",width:"100%",height:180,
+            resize:"vertical",boxSizing:"border-box",fontFamily:"monospace",
+            fontSize:11}}/>
+      </label>
+    </>}
+  </section>;
+}
+export const Cc0NativePngReviewV61:Story={
+  name:"CC0 exact native PNG · manual 18-point review (ArtCraft experiment, !dev V61)",
+  render:()=> <Cc0NativePngReviewWorkbenchV61/>,
+};
+
 export const Cc0Anat1CandidateLandmarksV59:Story={
   name:"CC0 18 native candidate landmarks · manual source-relative audit (!dev V59)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
