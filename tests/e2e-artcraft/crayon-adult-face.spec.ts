@@ -1861,7 +1861,101 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
  * 1× and 2.8× actual Chromium PNGs, original f299, no pixel overlays.
  * Protect same decoded-actual-PNG original green canopy & nasal tissue.
  */
-test("F1 V46 source-registered orbital 3D cubic anatomy full 1x and 2.8x versus V43",async({page},info)=>{
+/** Same-commit V46/V47 physical wax proof, source CC0 camera and time.
+ * Source-matched original negative controls preserve protected far-eye
+ * and foliage pixels; no screenshot merely judged by presence of DOM IDs.
+ */
+test("F1 V47 continuous 3D ANAT1 source skin wax 1x and 2.1x versus V46",async({page},info)=>{
+  test.setTimeout(215_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const captures:Record<string,Uint8Array[]>={full:[],cheek:[]};
+  const protectedBackground:number[][]=[];
+  const protectedOriginalFarEye:number[][]=[];
+  for(const midfaceForm of [
+    "source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","cheek"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:255,focusY:690,zoom:2.1},
+        {frame:299,focusX:270,focusY:542,zoom:2.8},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["sclera-near","sclera-inner-contact-near",
+        "iris-near","pupil-near","upper-lid-near","lash-root-near",
+        "lash-contact-near","lower-lid-near","lower-lid-margin-near",
+        "upper-lid-crease-near","source-brow-follicles-near",
+        "hair-crown-surface","face-outline","nose-dorsum",
+        "cc0-hedge-dark-underpaint"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      if(midfaceForm==="source-anat1-continuous-face-v47"){
+        await expect(svg.locator(
+          '[data-km-crayon-element^="cc0-anat1-form-"]')).toHaveCount(5);
+      }else{
+        await expect(svg.locator(
+          '[data-km-crayon-element^="cc0-anat1-form-"]')).toHaveCount(0);
+      }
+      await page.waitForTimeout(480);
+      const screenshot=await svg.screenshot({animations:"disabled"});
+      if(view==="full"){
+        // Check actual decoded, same-PNG source details not touched by
+        // V45. A fake DOM-only success can hide unpainted Chromium tiles.
+        const originalPixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();
+          image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=image.naturalWidth;
+          canvas.height=image.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw new Error("Missing photo pixel audit");
+          ctx.drawImage(image,0,0);
+          return [
+            Array.from(ctx.getImageData(0,0,70,70).data),
+            Array.from(ctx.getImageData(415,475,55,60).data),
+          ];
+        },Buffer.from(screenshot).toString("base64"));
+        protectedBackground.push(originalPixels[0]);
+        protectedOriginalFarEye.push(originalPixels[1]);
+      }
+      await writeFile(info.outputPath(
+        "crayon-v47-"+view+"-"+midfaceForm+"-299.png"),
+        Buffer.from(screenshot));
+      captures[view].push(screenshot);
+    }
+  }
+  const mismatch=(a:number[],b:number[])=>{
+    if(a.length!==b.length)return 1;
+    let different=0;
+    for(let i=0;i<a.length;i+=4)
+      if(Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+
+        Math.abs(a[i+2]-b[i+2])>5)different++;
+    return different/(a.length/4);
+  };
+  expect(protectedBackground).toHaveLength(2);
+  expect(protectedOriginalFarEye).toHaveLength(2);
+  expect(mismatch(protectedBackground[0],protectedBackground[1]))
+    .toBeLessThanOrEqual(.003);
+  expect(mismatch(protectedOriginalFarEye[0],protectedOriginalFarEye[1]))
+    .toBeLessThanOrEqual(.003);
+  for(const view of ["full","cheek"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),
+      Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});test("F1 V46 source-registered orbital 3D cubic anatomy full 1x and 2.8x versus V43",async({page},info)=>{
   test.setTimeout(215_000);
   await page.setViewportSize({width:608,height:1082});
   const errors:string[]=[];
