@@ -215,6 +215,10 @@ export function scrollReaderFacePortrait(detail=1):
       // plane without a modern white smile-sticker.
       p("M138.2 126.3 C140.9 125.8 143.9 126.3 146.35 126.2 C144.6 127.15 140.75 127.5 138.2 126.3 Z",
         "$paper","none",0,.3),
+      // AA lower lip follows the jaw-opening displacement as an
+      // asymmetrical convex wet plane (larger near lip, shortened far).
+      p("M138.8 129.35 C140.75 130.94 144.15 131.52 147.07 128.75 C145.6 131.84 141.4 132.78 138.8 129.35 Z",
+        "$skinshade","none",0,.155),
       p("M138.55 129.82 C140.2 132.08 144.15 132.52 146.15 130.18",
         "none","$skinshade",.43,.53),
       p("M140.25 130.2 C141.42 131.02 144.43 131.48 145.2 130.02",
