@@ -201,6 +201,10 @@ export function scrollReaderFacePortrait(detail=1):
       // rather than a single opaque shadow fill.
       p("M142.25 126.83 C143.35 126.35 144.42 127.04 144.6 128.17 C144.78 129.17 144.1 129.82 143.03 129.75 C142.28 128.98 141.96 127.87 142.25 126.83 Z",
         "$deep","none",0,.2),
+      // Source paper glimmers through the lower lip's wet edge;
+      // a closed translucent wedge, not a white graphic highlight.
+      p("M142.18 131.3 C142.98 131.6 144.02 131.32 144.68 130.86 C144.23 131.71 143.02 131.95 142.18 131.3 Z",
+        "$paper","none",0,.21),
       p("M142.3 131.85 Q143.55 132.17 144.5 131.43",
         "none","$paper",.28,.24),
     ];
