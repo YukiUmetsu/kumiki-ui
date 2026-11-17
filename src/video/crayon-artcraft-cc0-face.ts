@@ -47,6 +47,7 @@ import {crayonF1AddPhotometricHairWaxV50} from "./crayon-artcraft-f1-anat1-photo
 import {crayonF1AddPhotoRootLocksV51} from "./crayon-artcraft-f1-anat1-root-locks-v51";
 import {crayonF1CombinePhotoWaxV52} from "./crayon-artcraft-f1-anat1-photo-composition-v52";
 import {crayonF1RebuildSourcePalpebralV53} from "./crayon-artcraft-f1-anat1-palpebral-v53";
+import {crayonF1SourceSuperiorTarsusV54} from "./crayon-artcraft-f1-anat1-superior-tarsus-v54";
 import {crayonF1ReconstructBrows} from "./crayon-artcraft-f1-brow-geometry";
 import {crayonF1ReconstructJawNeck} from "./crayon-artcraft-f1-jaw-neck-geometry";
 import {crayonF1AddRootedLashes,type CrayonF1LashFinish}
@@ -84,7 +85,7 @@ export type Cc0FaceView="wax"|"anatomy";
 /** Source-registered ocular pigment experiment; baseline is an unchanged negative control. */
 export type Cc0EyeContact="baseline"|"source-shade"|"source-value"|"source-sculpt";
 export type Cc0BrowForm="baseline"|"source-rooted";
-export type Cc0MidfaceForm="baseline"|"source-volume"|"source-alar"|"source-oral"|"source-oral-sculpt"|"source-nose-sculpt"|"source-nasal-depth"|"source-contour-joined"|"source-nasal-volume"|"source-nasal-value"|"source-naris-occlusion"|"source-nasal-relief"|"source-solid-relief"|"source-carved-naris"|"source-fused-naris"|"source-face-values"|"source-orbital-hood"|"source-mandibular-turn"|"source-anat1-malar"|"source-anat1-midface-bridge"|"source-anat1-nasal-volume"|"source-anat1-alar-recess"|"source-anat1-orbit-malar"|"source-anat1-near-eye"|"source-anat1-brow-follicles"|"source-anat1-hair-values"|"source-anat1-rooted-hair-v39"|"source-anat1-hair-contour-v40"|"source-anat1-hairline-v41"|"source-anat1-hedge-v42"|"source-anat1-photo-foliage-v43"|"source-anat1-five-tone-v44"|"source-anat1-eye-tarsus-v45"|"source-anat1-orbital-aperture-v46"|"source-anat1-continuous-face-v47"|"source-anat1-photometric-underpaint-v48"|"source-anat1-oblique-volume-v49"|"source-anat1-photometric-hair-v50"|"source-anat1-rooted-hair-v51"|"source-anat1-photo-hair-face-v52"|"source-anat1-palpebral-v53";
+export type Cc0MidfaceForm="baseline"|"source-volume"|"source-alar"|"source-oral"|"source-oral-sculpt"|"source-nose-sculpt"|"source-nasal-depth"|"source-contour-joined"|"source-nasal-volume"|"source-nasal-value"|"source-naris-occlusion"|"source-nasal-relief"|"source-solid-relief"|"source-carved-naris"|"source-fused-naris"|"source-face-values"|"source-orbital-hood"|"source-mandibular-turn"|"source-anat1-malar"|"source-anat1-midface-bridge"|"source-anat1-nasal-volume"|"source-anat1-alar-recess"|"source-anat1-orbit-malar"|"source-anat1-near-eye"|"source-anat1-brow-follicles"|"source-anat1-hair-values"|"source-anat1-rooted-hair-v39"|"source-anat1-hair-contour-v40"|"source-anat1-hairline-v41"|"source-anat1-hedge-v42"|"source-anat1-photo-foliage-v43"|"source-anat1-five-tone-v44"|"source-anat1-eye-tarsus-v45"|"source-anat1-orbital-aperture-v46"|"source-anat1-continuous-face-v47"|"source-anat1-photometric-underpaint-v48"|"source-anat1-oblique-volume-v49"|"source-anat1-photometric-hair-v50"|"source-anat1-rooted-hair-v51"|"source-anat1-photo-hair-face-v52"|"source-anat1-palpebral-v53"|"source-anat1-superior-tarsus-v54";
 export type Cc0JawNeckForm="baseline"|"source-contour";
 export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact;midfaceForm?:Cc0MidfaceForm;browForm?:Cc0BrowForm;jawNeckForm?:Cc0JawNeckForm;lashFinish?:CrayonF1LashFinish}
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
@@ -151,6 +152,14 @@ export const CRAYON_F1_EYE_INSPECTION={
 } as const;
 
 export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
+  // V54 isolates only the upper lid source-positive V53 local change.
+  // All remaining geometry/material is exactly original photo-positive V52.
+  if(options.midfaceForm==="source-anat1-superior-tarsus-v54"){
+    const original=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-photo-hair-face-v52",
+    });
+    return {...original,elements:crayonF1SourceSuperiorTarsusV54(original.elements)};
+  }
   // V53 is an isolated true native anatomical 3D/photo eye hypothesis.
   // Never rework default face or photographically proven V52 unconditionally.
   if(options.midfaceForm==="source-anat1-palpebral-v53"){

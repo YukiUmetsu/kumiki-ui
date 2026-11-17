@@ -32,6 +32,7 @@ on:
       - src/video/crayon-artcraft-f1-anat1-root-locks-v51.ts
       - src/video/crayon-artcraft-f1-anat1-photo-composition-v52.ts
       - src/video/crayon-artcraft-f1-anat1-palpebral-v53.ts
+      - src/video/crayon-artcraft-f1-anat1-superior-tarsus-v54.ts
       - registry/anatomy/anatomy-face.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
       - playwright.artcraft.config.ts
@@ -63,7 +64,7 @@ jobs:
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
-          --grep "F1 V48|F1 V49|F1 V50|F1 V51|F1 V52|F1 V53"
+          --grep "F1 V48|F1 V49|F1 V50|F1 V51|F1 V52|F1 V53|F1 V54"
       - name: Capture source-native material and registered portrait evidence (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-
