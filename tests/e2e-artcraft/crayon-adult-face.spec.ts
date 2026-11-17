@@ -1850,6 +1850,67 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
   expect(errors).toEqual([]);
 });
 
+/** Native photographic evergreen backdrop negative control: same V41 face
+ * remains source registered, same paper/film, identical seeded wax index.
+ * Full browser pixels are evidence, not art acceptance.
+ */
+test("F1 V42 photographed CC0 evergreen hedge native 1x and upper-source 2.4x vs V41",async({page},info)=>{
+  test.setTimeout(220_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const images:Record<string,Uint8Array[]>={full:[],upper:[],right:[]};
+  for(const midfaceForm of [
+    "source-anat1-hairline-v41","source-anat1-hedge-v42",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","upper","right"] as const){
+      const focus=view==="upper"?
+        {focusX:302,focusY:120,zoom:2.4}:
+        {focusX:546,focusY:410,zoom:2.4};
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,...focus},{frame:299,...focus},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface","face-outline",
+        "forehead-light","hair-right-curtain","iris-near","iris-far",
+        "source-brow-follicles-near","lip-upper"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      const hedge=svg.locator('[data-km-crayon-element^="cc0-hedge-"]');
+      if(midfaceForm==="source-anat1-hedge-v42"){
+        await expect(hedge).toHaveCount(42);
+        const order=await page.evaluate(()=>{
+          const ids=[...document.querySelectorAll(
+            "svg[data-km-crayon-scene] [data-km-crayon-element]")].
+            map(n=>n.getAttribute("data-km-crayon-element"));
+          return {background:ids.indexOf("cc0-hedge-dark-underpaint"),
+            portrait:ids.indexOf("hair-back")};
+        });
+        expect(order.background).toBeGreaterThanOrEqual(0);
+        expect(order.portrait).toBeGreaterThan(order.background);
+      } else await expect(hedge).toHaveCount(0);
+      const bytes=await svg.screenshot({
+        path:info.outputPath("crayon-v42-"+view+"-"+midfaceForm+"-299.png"),
+        animations:"disabled",
+      });
+      images[view].push(bytes);
+    }
+  }
+  for(const view of ["full","upper","right"] as const){
+    expect(images[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(images[view][0]),
+      Buffer.from(images[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+
 /** Source-pixel-observed V41 forehead boundary and right temple overlap.
  * Browser proof deliberately captures the SAME original V40 and candidate
  * at identical absolute time, camera, seed, paper and native material.
