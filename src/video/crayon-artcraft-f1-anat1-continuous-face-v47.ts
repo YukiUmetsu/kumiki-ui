@@ -167,11 +167,14 @@ export function crayonF1AddContinuousFaceWaxV47(
   for(const id of ["face-outline","cheek-malar-bounce","malar-cheek-near",
     "cheek-malar-cast","nose-root","chin-plane",
     "iris-near","iris-far","hair-crown-surface",
-    "cc0-hedge-dark-underpaint","source-brow-follicles-near"]){
+    "cc0-hedge-dark-underpaint"]){
     const el=elements.find(x=>x.id===id);
     if(!el||el.kind!=="wax")
       throw new RangeError("Missing original ANAT1 source surface: "+id);
   }
+  const brow=elements.find(x=>x.id==="source-brow-follicles-near");
+  if(!brow||brow.kind!=="contour"||brow.parentId!=="face-outline")
+    throw new RangeError("Missing original source-registered eyebrow follicles");
   if(CRAYON_F1_V47_SOURCE_SHA!==
      "f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2")
     throw new RangeError("Original photographed CC0 benchmark changed");
