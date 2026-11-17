@@ -107,13 +107,13 @@ export function RisoTornPaperTransition({
         frame={completedRisoFrame(incoming.spec)} {...common}/>
     </g>}
     {progress>0&&progress<1&&<g pointerEvents="none"
-      data-km-riso76-edge-material=""
-      style={{mixBlendMode:"multiply"}}>
+      data-km-riso76-edge-material="">
       {/* A deep, wide contact shade lies on the *unprinted outgoing stock*,
           then an offset pale paper shoulder catches light along every notch.
           These layers convey physical cut-sheet thickness instead of a
           generic UI-gradient border. The individual splinter lines are
           ink-free paper, not a shader on either spot-ink master. */}
+      <g style={{mixBlendMode:"multiply"}} data-km-riso76-shadow-only="">
       <path d={tear.edgePath} stroke={softShadow} opacity={.18*paperThickness}
         strokeWidth={7+paperThickness*8} fill="none"
         strokeLinecap="round" strokeLinejoin="round"
@@ -122,6 +122,9 @@ export function RisoTornPaperTransition({
         strokeWidth={1.2+paperThickness*2.2} fill="none"
         strokeLinecap="round" strokeLinejoin="round"
         data-km-riso76-inner-shadow=""/>
+      </g>
+      {/* Pale exposed cellulose must sit ABOVE printed pigment normally:
+          white fibres cannot be visible when multiplied into dark ink. */}
       <path d={tear.edgePath} stroke={underside}
         opacity={.45+.25*paperThickness}
         strokeWidth={.58+paperThickness*1.5} fill="none"
