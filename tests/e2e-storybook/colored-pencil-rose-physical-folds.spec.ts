@@ -104,7 +104,10 @@ test("medial S-seam remains physically filled — no paper-through gap between f
   // These source-space x/y samples were picked from the real 960×540
   // screenshot's formerly naked paper gap, not from invented mock paths.
   // Both faces share the same authored paper transform and z-order.
-  const samples=[[244,212],[244,219],[244,226],[244,233],[244,240],
+  // The upper right-to-left cusp also produced a separate 1–3px white
+  // pinhole at source (252,203)–(256,211), outside the original x=244 sweep.
+  const samples=[[252,203],[254,207],[256,211],
+                 [244,212],[244,219],[244,226],[244,233],[244,240],
                  [244,247],[244,254]] as const;
   const exposed=await svg.evaluate((root,points)=>{
     const left=root.querySelector('[data-km-pencil-region="petal-front-left"] path[data-km-pencil-support]') as SVGPathElement|null;
