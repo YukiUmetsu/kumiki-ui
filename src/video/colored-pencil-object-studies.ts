@@ -5,6 +5,7 @@ import type { PencilMaterialInput, PencilSurface } from "../../registry/video/co
 import {ROSE_LAMINA_AXES,roseLaminaFibres} from "./colored-pencil-rose-lamina";
 import {ROSE_LIP_BANDS,roseRolledLipTraces} from "./colored-pencil-rose-rolled-lip";
 import {ROSE_CALYX_ORGANS,validateRoseCalyxOrgans} from "./colored-pencil-rose-calyx";
+import {ROSE_PINNATE_ORGANS,inspectRosePinnateOrgans} from "./colored-pencil-rose-pinnate";
 
 /**
  * Four independent original subject studies. These are *authored* silhouettes,
@@ -49,7 +50,7 @@ function material(shape: ObjectShape, seed: number, transform: string): PencilRe
   return createPencilMaterialRegion(input);
 }
 
-function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false): ObjectShape[] {
+function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false): ObjectShape[] {
   const shapes:ObjectShape[] = [
     {id:"stem",surface:"wood",palette:leaf,
       path:"M241 266 Q233 324 247 417 L254 417 Q251 331 250 268 Z",
@@ -129,10 +130,22 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false):
     const errors=validateRoseCalyxOrgans();
     if(errors.length)throw new Error("Rose calyx morphology: "+errors.join("; "));
   }
-  const anatomy=calyxStudy?shapes.flatMap(shape=>shape.id==="sepal"?
-    ROSE_CALYX_ORGANS.map(organ=>({
-      ...organ,surface:"leaf" as const,startFrame:50,
-    })): [shape]):shapes;
+  if(leafStudy){
+    const issues=inspectRosePinnateOrgans();
+    if(issues.length)throw new Error("Rose odd-pinnate foliage: "+issues.join("; "));
+  }
+  const anatomy:ObjectShape[]=shapes.flatMap(shape=>{
+    if(leafStudy&&(shape.id==="leaf-left"||shape.id==="leaf-right")){
+      const side=shape.id==="leaf-left"?"left":"right";
+      return ROSE_PINNATE_ORGANS.filter(organ=>
+        organ.id.startsWith("rose-"+side+"-")).map(organ=>({...organ}));
+    }
+    if(calyxStudy&&shape.id==="sepal")
+      return ROSE_CALYX_ORGANS.map(organ=>({
+        ...organ,surface:"leaf" as const,startFrame:50,
+      }));
+    return [shape];
+  });
   return !laminaStudy&&!lipStudy?anatomy:anatomy.map(shape=>({
     ...shape,details:[...(shape.details??[]),
       ...(laminaStudy&&ROSE_LAMINA_AXES.some(a=>a.id===shape.id)?roseLaminaFibres(shape.id,seed):[]),
@@ -330,6 +343,8 @@ export interface PencilObjectStudyOptions {
   roseLipStudy?: boolean;
   /** Opt-in FLORA1: five anatomically attached sepals and a receptacle. */
   roseCalyxStudy?: boolean;
+  /** Opt-in FLORA1 five-leaflet rose foliage, serrations and stipules. */
+  rosePinnateStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -338,6 +353,7 @@ export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
 export function pencilObjectStudyDrawing({
   subject, aspect, paperTooth = .72, seed = 173, pressure = 1,
   roseLaminaStudy = false, roseLipStudy = false, roseCalyxStudy = false,
+  rosePinnateStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -353,7 +369,9 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose lip study flag must be boolean");
   if(typeof roseCalyxStudy !== "boolean")
     throw new RangeError("Rose calyx study flag must be boolean");
-  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy) :
+  if(typeof rosePinnateStudy !== "boolean")
+    throw new RangeError("Rose pinnate study flag must be boolean");
+  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
@@ -367,9 +385,15 @@ export function pencilObjectStudyDrawing({
   ] as const;
   const regions = shapes.map((shape, i) => {
     // Permit every valid UI seed while keeping each material pass in signed-31-bit range.
-    const original=subject==="rose"&&roseCalyxStudy?
+    const original=subject==="rose"&&(roseCalyxStudy||rosePinnateStudy)?
       roseOriginalIds.findIndex(id=>id===shape.id):-1;
-    const materialIndex=original<0?i:original;
+    // The original seven-petal material hashes never change. Calyx organ
+    // material seeds also remain identical when foliage is simultaneously on;
+    // the new leaf organs precede the calyx in the authored z-order.
+    const calyxIndex=subject==="rose"&&roseCalyxStudy?
+      ROSE_CALYX_ORGANS.findIndex(organ=>organ.id===shape.id):-1;
+    const materialIndex=original>=0?original:
+      calyxIndex>=0?3+calyxIndex:i;
     const region = material(shape, (seed + materialIndex * 311) % 2147483647, transform);
     return { ...region, layers:region.layers.map(layer => ({
       ...layer, pressure:Math.min(1, layer.pressure * pressure),
