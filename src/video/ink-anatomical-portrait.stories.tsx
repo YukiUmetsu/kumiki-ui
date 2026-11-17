@@ -254,6 +254,7 @@ function HistoricalSourceDesk(){
           style={selectStyle} onChange={e=>setView(e.target.value as InkPortraitView)}>
           <option value="bust">Figure and garment</option>
           <option value="face">Native face microscope</option>
+          <option value="robe">Native robe and sleeves</option>
         </select>
       </label>
       <label style={field}>Reference zoom · {zoom.toFixed(2)}×
