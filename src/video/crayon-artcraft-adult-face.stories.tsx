@@ -488,7 +488,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
-  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40"].includes(midfaceForm)?
+  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41"].includes(midfaceForm)?
     crayonF1RegisterAnat1Face():null,[midfaceForm]);
   const lashRootAudit=useMemo(()=>lashFinish!=="sparse"&&eyeContact!=="baseline"
     ?auditCrayonF1LashRootContinuity(spec.elements):null,
@@ -666,6 +666,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-anat1-hair-values">CC0 original photographed dark hair source-value calibration (V38 !dev, from V37)</option>
            <option value="source-anat1-rooted-hair-v39">CC0 native source-root to shaft wax gestures (V39 !dev, from V38)</option>
            <option value="source-anat1-hair-contour-v40">CC0 source asymmetrical hair masses and fine wax contact (V40 !dev)</option>
+           <option value="source-anat1-hairline-v41">CC0 source-observed forehead / far-temple hair overlap (V41 !dev)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -807,6 +808,24 @@ export const Cc0HairValueABV38:Story={
   name:"CC0 dark hair · synced V37/V38 1× + 2.85× A/B (!dev)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0HairValueComparisonV38 {...args}/>,
+};
+export const Cc0Anat1MeasuredHairlineV41:Story={
+  name:"CC0 source-observed scalp/forehead hair transition (!dev V41)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hairline-v41" initialInspection="full"/>,
+};
+export const Cc0Anat1MeasuredForeheadV41:Story={
+  name:"CC0 source upper-face vs hairline 1.6× (!dev V41)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hairline-v41" initialInspection="face"/>,
+};
+export const Cc0Anat1MeasuredTempleV41:Story={
+  name:"CC0 photographed right temple/far curtain overlap 2.15× (!dev V41)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hairline-v41" initialInspection="hair-right"/>,
 };
 export const Cc0Anat1HairSilhouetteV40:Story={
   name:"CC0 asymmetric physical hair silhouette and fine dry-wax (!dev V40)",
