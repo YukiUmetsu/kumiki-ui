@@ -277,6 +277,32 @@ test("Native ANAT1 near/far pupil rim fibres stay within their own painted irise
   };
   await assertRimInside(near,"pupil-left");
   await assertRimInside(far,"pupil-right");
+  // DOM presence / clip existence did not guarantee a useful
+  // microscope: native Chromium rendered the ear and cheek while
+  // the original pupil rig's y-offset moved the iris offscreen.
+  // Validate true screen-space iris centers against the cropped SVG.
+  const irisCameraPosition=async(svg:typeof near,part:string)=>
+    svg.evaluate((root,partId)=>{
+      const iris=root.querySelector(
+        '[data-km-ink-expression-part="'+partId+'"] path') as SVGPathElement|null;
+      if(!iris)throw Error("Original pupil geometry absent");
+      const b=iris.getBBox(),matrix=iris.getScreenCTM();
+      if(!matrix)throw Error("Pupil lost native render transform");
+      const center=new DOMPoint(b.x+b.width*.5,b.y+b.height*.5)
+        .matrixTransform(matrix);
+      const image=root.getBoundingClientRect();
+      return {x:(center.x-image.left)/image.width,
+        y:(center.y-image.top)/image.height};
+    },part);
+  for(const [svg,part] of [
+    [near,"pupil-left"],[far,"pupil-right"],
+  ] as const){
+    const pos=await irisCameraPosition(svg,part);
+    expect(pos.x).toBeGreaterThan(.1);
+    expect(pos.x).toBeLessThan(.9);
+    expect(pos.y).toBeGreaterThan(.1);
+    expect(pos.y).toBeLessThan(.9);
+  }
   await near.screenshot({animations:"disabled",
     path:info.outputPath("reader-EXPR1-native-near-limbal-iris-microscope.png")});
   await far.screenshot({animations:"disabled",
