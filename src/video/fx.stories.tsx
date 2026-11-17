@@ -17,6 +17,7 @@ function Fires() {
         <figure style={{ margin: 0 }}><FireView options={{ fire: "campfire" }} label="A campfire, animated" /><figcaption style={muted}>Campfire: about 120 kW, flames about 1 m, puffing about 2 Hz.</figcaption></figure>
         <figure style={{ margin: 0 }}><FireView options={{ fire: "bonfire" }} label="A bonfire, animated" /><figcaption style={muted}>Bonfire: about 2 MW, flames over 2 m, slow puffs about 1 Hz, columns of sparks.</figcaption></figure>
         <figure style={{ margin: 0 }}><FireView options={{ fire: "torch", wind: 1.5 }} label="A torch in the wind, animated" /><figcaption style={muted}>Torch in a 1.5 m/s wind: the flame and its sooty smoke lean downwind.</figcaption></figure>
+        <figure style={{ margin: 0 }}><FireView fireball options={{ mass: 100 }} seconds={2.4} label="A fireball, animated" /><figcaption style={muted}>A 100 kg fuel-air fireball: about 27 m across, burning about 2 s (CCPS); yellow-white, then orange as it lifts, ending in a rising cloud of smoke on its stem.</figcaption></figure>
       </div>
     </div>
   );

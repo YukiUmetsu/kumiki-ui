@@ -49,9 +49,16 @@ The flame is rendered as a volume:
 
 `FireView` renders the frames in workers (cached) and loops them, with a still frame under reduced motion.
 
+**Fireballs** (`renderFireball({ mass, t })`, `FireView fireball`):
+
+- Size and burn time follow `fireball(M)`.
+- The ball grows to full size in about a fifth of the burn, then lifts on buoyancy (about 0.55 √(g D)) over a stem.
+- The burning gas cools from about 2200 K (yellow-white) toward orange and dull red, while soot thickens into a
+  dark rising cloud.
+
 ## Limits
 
 - Side views only.
-- No explosions rendered: `fireball` gives sizes only.
+- Fireballs are procedural: no shock wave and no debris.
 - Smoke is lit simply.
 - The flicker is procedural turbulence, not a fluid simulation.
