@@ -5,7 +5,7 @@ import {CRAYON_F1_V59_NAMES,CRAYON_F1_V59_SOURCE,
   crayonF1CandidateLandmarkAudit,crayonF1CandidatePointerPoint,
   type CrayonF1CandidateEvidence,type CrayonF1CandidateMarks}
   from "../src/video/crayon-artcraft-f1-candidate-landmarks-v59";
-import {Cc0Anat1CandidateLandmarksV59}
+import {Cc0Anat1CandidateLandmarksV59,Cc0CandidateLandmarkWorksheetV59}
   from "../src/video/crayon-artcraft-adult-face.stories";
 
 const input=(marks:CrayonF1CandidateMarks={}):CrayonF1CandidateEvidence=>({
@@ -77,14 +77,10 @@ describe("ArtCraft V59 actual rendered-landmark evidence quarantine",()=>{
   });
   it("retains isolated interactive !dev Storybook tool without image tracing",()=>{
     expect(Cc0Anat1CandidateLandmarksV59.name).toContain("!dev");
-    const node=Cc0Anat1CandidateLandmarksV59.render?.(
-      {aspect:"portrait",detail:.2,expression:"neutral",headScaleY:.82,
-        startFrame:299,playbackRate:1,loop:false,inspection:"full",
-        referenceReview:false,showCandidateLandmarks:false},{} as never);
-    expect(node).toBeDefined();
-    // The render function returns a React element; its unapproved
-    // visual artwork must remain under the established Storybook section.
-    const html=renderToStaticMarkup(node);
+    // Render the actual exported Storybook workbench at full source camera;
+    // the unapproved artwork remains under the existing !dev folder.
+    const html=renderToStaticMarkup(
+      <Cc0CandidateLandmarkWorksheetV59 detail={.2}/>);
     expect(html).toContain("data-km-crayon-f1-landmark-audit");
     expect(html).toContain("18");
     expect(html).toContain("INCOMPLETE");
