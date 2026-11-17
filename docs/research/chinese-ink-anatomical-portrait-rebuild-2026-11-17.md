@@ -1,6 +1,6 @@
 # ANAT2 — Chinese ink original human portrait redraw (2026-11-17)
 
-**Scope:** two entirely new code-painted characters in `src/video/ink-anatomical-portrait.tsx` and three new Storybook views. This study does NOT import, resize, trace, or patch the existing Shanshui character source shapes. The existing PR #466 landscape, river-scholar and its unfinished reference review remain unchanged. These are independent new candidate figures.
+**Scope:** two entirely new code-painted characters in `src/video/ink-anatomical-portrait.tsx` and five Storybook views. This study does NOT import, resize, trace, or patch the existing Shanshui character source shapes. The existing PR #466 landscape, river-scholar and its unfinished reference review remain unchanged. These are independent new candidate figures.
 
 **Status: ART HOLD.** Code-authored anatomical plausibility is not equivalent to art-historical likeness or real dry-brush authenticity. A passing browser test or a frame screenshot alone is not artistic acceptance. Keep #466 draft until actual same-camera historical comparison and film-scale acceptance.
 
@@ -38,6 +38,14 @@ Real Chromium portrait PNGs reviewed from workflow [44131278583](https://github.
 **Corrections applied:** perceptually measured head-to-robe ratio uses a 0.69 face/cap/beard scale around a fixed collar contact rather than flattening ANAT1; smooth millimetre-mask lower-third squeeze corrects the previous extended chin; scholar and elder caps are cut as separate folded Ming silhouettes rather than semicircular berets; 93 individually flowing hairs plus five separate tapering locks replace the elder's faint chin stamp; age-related orbital creases attach to canthi and cheekbones; lower-lid break, nose wash and brow pressure are softened. All previous independent paint passes, observed paper fibre and EXPR1 facial motion remain live. Synthetic A/B upload fixtures remain interaction tests **only**.
 
 **Still not passed:** original PD portrait matching at common face-to-body crop and true film-scale image quality. Old Shanshui cast is not replaced. Do not merge while the visual hold remains.
+
+## Reused registered INK1 pressure geometry for period silk folds
+
+Actual 1× Chromium screenshots still showed broad uniform-width synthetic robe paths. Rather than introducing an unrelated custom SVG calligraphy system, ANAT2 now reuses the repository's existing registered [INK1 brush](../../component-specs/ink-brush.md), via the evaluateInkBrush API, for **four individually authored brush gestures per figure**: left and right wraps and left and right sleeve contact. Each has separate paper-space control points, actual physical width (not merely SVG strokeWidth), nib pressure, pace, pigment load, dry contact and fixed seed. The output has a true curved filled outline with independently deposited richer inner ink, a paper-hole mask, bristle hairs and flying-white cuts. The sculpted younger/elder cloth geometry remains independent; previous garment folds and loose paper-lift lines are retained. The brush textures are attached to the cloth and rendered live inside the same FilmStage SVG.
+
+**Video/Storybook acceptance:** the added "INK1 loaded silk lapels · sleeve pressure and paper-fibre microscope" presents both original figures with native robe camera crop 55 410 430 202 and a matching full-bust view. It exposes detail and EXPR1 emotion controls, and Playwright validates four separate INK1 pressure-brush marks and fixed paper-coordinate masks for each identity. Cross-reference the standalone Ink Brush Storybook; this is code reuse, not a new brush variant.
+
+**Art status unchanged:** code-controlled bristles and 1× browser captures do not prove that garment weight, color, volume or wet-paper response matches Zeng Jing, Ren Yi or any particular period painting. The source painting remains the reference for independent visual acceptance.
 
 ## Actual acceptance gates
 
