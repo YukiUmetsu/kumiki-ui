@@ -100,6 +100,11 @@ describe("F1 V38 ANAT1/CC0 photographed crown + face-occluding curtain native wa
       .toThrow(RangeError);
     expect(()=>crayonF1CalibrateAnat1HairValues(native.elements.filter(e=>
       !e.id.startsWith("hair-rooted-right-")))).toThrow(RangeError);
+    for(const id of ["hair-rooted-left-10","hair-rooted-unknown-0",
+      "hair-rooted-crown-x","hair-rooted-right--1"]){
+      expect(()=>crayonF1CalibrateAnat1HairValues(native.elements.map(e=>
+        e.id==="hair-rooted-left-0"?{...e,id}:e))).toThrow(RangeError);
+    }
   });
 
   it("offers a true source-matched V37/V38 A/B without changing either scene",()=>{
