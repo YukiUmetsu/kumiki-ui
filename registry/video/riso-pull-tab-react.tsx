@@ -70,6 +70,11 @@ export function RisoPullTabTheatre({
   const id="riso79-"+raw;
   const [dx,dy]=pose.translation;
   const [shadowX,shadowY]=pose.shadowOffset;
+  const lightLength=Math.hypot(lightDirection[0],lightDirection[1]);
+  const lightStartX=.5+lightDirection[0]/lightLength*.5;
+  const lightStartY=.5+lightDirection[1]/lightLength*.5;
+  const lightEndX=.5-lightDirection[0]/lightLength*.5;
+  const lightEndY=.5-lightDirection[1]/lightLength*.5;
   const paper=cover.spec.paper;
   const edgeWall=mixPaperColor(paper,"#6C5946",.31);
   const cavity=mixPaperColor(paper,"#30251F",.58);
@@ -111,13 +116,15 @@ export function RisoPullTabTheatre({
         {pose.windows.map(w=><path key={w.id} d={w.path} fill="black"/>)}
       </mask>
       {pose.windows.map(w=><linearGradient key={w.id}
-        id={id+"-rim-"+w.id} x1="0" y1="0" x2="1" y2="1"
+        id={id+"-rim-"+w.id}
+        x1={lightStartX} y1={lightStartY}
+        x2={lightEndX} y2={lightEndY}
         gradientUnits="objectBoundingBox">
-        <stop offset="0" stopColor={cavity} stopOpacity=".82"/>
+        <stop offset="0" stopColor={bevel} stopOpacity=".98"/>
         <stop offset=".19" stopColor={edgeWall} stopOpacity=".96"/>
         <stop offset=".47" stopColor={paper} stopOpacity=".98"/>
         <stop offset=".73" stopColor={edgeWall} stopOpacity=".86"/>
-        <stop offset="1" stopColor={bevel} stopOpacity=".98"/>
+        <stop offset="1" stopColor={cavity} stopOpacity=".82"/>
       </linearGradient>)}
     </defs>
     <g data-km-riso79-printed-insert-window=""
