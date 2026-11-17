@@ -144,12 +144,21 @@ export function crayonF1RefineNearTarsusV45(
     if(seen.has(el.id))throw new RangeError("Duplicate CC0 face ID "+el.id);
     seen.add(el.id);
     if(el.id==="lash-contact-near"){
+      const sourceCount=(el.d.match(/M/g)??[]).length;
+      const newMicroContacts=extraRootedLashes();
+      // Some Storybook controls use the original 10 sparse lashes,
+      // others the photographed 33-lash rooted-flow option. Both are
+      // authentic existing source controls; never silently force one.
+      // Appending 23 gives counts 33 and 56, respectively. A 33-count
+      // *already applied V45* is distinguished by its exact terminal
+      // micro-contact geometry to prevent destructive double re-ink.
       if(hasLashes||el.kind!=="contour"||el.parentId!=="face-outline"||
          el.clipToParent!==true||el.waxContact!=="dry-wax"||
-         (el.d.match(/M/g)??[]).length!==33)
-        throw new RangeError("Missing original 33 source-rooted upper eyelashes");
+         (sourceCount!==10&&sourceCount!==33)||
+         el.d.endsWith(" "+newMicroContacts))
+        throw new RangeError("Missing original sparse/rooted source eye lashes or V45 already applied");
       hasLashes=true;
-      return {...el,d:el.d+" "+extraRootedLashes()} satisfies Contour;
+      return {...el,d:el.d+" "+newMicroContacts} satisfies Contour;
     }
     if(!Object.prototype.hasOwnProperty.call(material,el.id))return el;
     const id=el.id as ChangedId;
