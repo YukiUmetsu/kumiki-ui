@@ -197,6 +197,30 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   };
   const strip = foreheadStrip(sub2.pos[0], sub2.pos[1], sub2.tris, Math.max(ec.L[1], ec.R[1]) + 6, onCranium);
   const FV = strip.E, FN0 = strip.N, faceTris = strip.tris, nFace = FV.length / 3;
+  // The nasal base: the fitted face leaves two round cups facing forward where the nostrils are (real nostrils open
+  // downward and barely show from the front). Smooth the vertices round the alar wings and the nostrils (a local
+  // Laplacian, faded out at the region's edge) so the nose base is one soft form.
+  {
+    const al = LM("alare.L", N0), snb = LM("subnasale", N0), halfW = Math.abs(al[0]) + 3, nbr: number[][] = Array.from({ length: nFace }, () => []);
+    for (let t = 0; t < faceTris.length / 3; t++) for (let e2 = 0; e2 < 3; e2++) { const a = faceTris[t * 3 + e2], b = faceTris[t * 3 + ((e2 + 1) % 3)]; if (a < nFace && b < nFace) { nbr[a].push(b); nbr[b].push(a); } }
+    const wgt = new Float64Array(nFace);
+    for (let i = 0; i < nFace; i++) {
+      const x = FV[i * 3], y = FV[i * 3 + 1], z = FV[i * 3 + 2];
+      const inX = 1 - smoothstep(halfW - 3, halfW, Math.abs(x)), inY = smoothstep(snb[1] - 4, snb[1] - 1, y) * (1 - smoothstep(snb[1] + 8, snb[1] + 11, y)), front = smoothstep(snb[2] - 14, snb[2] - 8, z);
+      wgt[i] = inX * inY * front;
+    }
+    for (let it = 0; it < 30; it++) {
+      const next = Float64Array.from(FV);
+      for (let i = 0; i < nFace; i++) {
+        if (wgt[i] < 0.01 || !nbr[i].length) continue;
+        let sx = 0, sy = 0, sz = 0;
+        for (const j of nbr[i]) { sx += FV[j * 3]; sy += FV[j * 3 + 1]; sz += FV[j * 3 + 2]; }
+        const k = nbr[i].length, lam = 0.6 * wgt[i];
+        next[i * 3] += (sx / k - FV[i * 3]) * lam; next[i * 3 + 1] += (sy / k - FV[i * 3 + 1]) * lam; next[i * 3 + 2] += (sz / k - FV[i * 3 + 2]) * lam;
+      }
+      FV.set(next);
+    }
+  }
   /** A chain of original vertices expanded through both levels' edge midpoints (exact opening boundaries). */
   const expand = (chain: readonly number[]) => { const c1: number[] = [chain[0]]; for (let k = 1; k < chain.length; k++) { const m = sub1.mid.get(ekey(chain[k - 1], chain[k])); if (m !== undefined) c1.push(m); c1.push(chain[k]); }
     const c2: number[] = [c1[0]]; for (let k = 1; k < c1.length; k++) { const m = sub2.mid.get(ekey(c1[k - 1], c1[k])); if (m !== undefined) c2.push(m); c2.push(c1[k]); } return c2; };
@@ -727,7 +751,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     for (let y = Math.floor(cy - ry * 2); y <= cy + ry * 2; y++) for (let x = Math.floor(cx - rx * 2); x <= cx + rx * 2; x++) {
       if (x < 0 || y < 0 || x >= w || y >= h) continue;
       const d = Math.hypot((x - cx) / rx, (y - cy + Math.abs(x - cx) * 0.25) / ry), k = 1 - 0.3 * smoothstep(1.2, 0.5, d);
-      const i = y * w + x; for (let q = 0; q < 3; q++) out.rgb[i * 3 + q] *= k;
+      // the inside of a nostril is warm and dark (light reaching it passes through skin), not grey
+      const i = y * w + x; out.rgb[i * 3] *= k + (1 - k) * 0.35; out.rgb[i * 3 + 1] *= k; out.rgb[i * 3 + 2] *= k * 0.97;
     }
   }
   // where closed lips meet: a dark line (the shadow inside the mouth), darkest in the middle
