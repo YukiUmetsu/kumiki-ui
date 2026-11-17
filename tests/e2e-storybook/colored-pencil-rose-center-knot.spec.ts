@@ -58,7 +58,13 @@ test("native 16:9 + 9:16: real six-source central knot with a visible curled bac
       const region=svg.locator('[data-km-pencil-region="'+id+'"]');
       const path=region.locator("path[data-km-pencil-support]");
       await expect(path).toHaveCount(1);
-      expect(await path.getAttribute("d")).not.toBe(previousPaths[id]);
+      // The whorl study already owns the four independently reprofiled
+      // recess/side/scroll silhouettes. The deeper knot pass changes the
+      // rear crown and front convex lobe, and adds local contacts to all six.
+      if(id==="inner-fold"||id==="heart")
+        expect(await path.getAttribute("d")).not.toBe(previousPaths[id]);
+      else
+        expect(await path.getAttribute("d")).toBe(previousPaths[id]);
       const details=region.locator("[data-km-pencil-details] path");
       expect(await details.count()).toBeGreaterThanOrEqual(5);
       await expect(region.locator("[data-km-pigment-layer]")).toHaveCount(3);
