@@ -3180,6 +3180,19 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     )];
     expect(nested).toHaveLength(26);
     expect((candidate.match(/data-km-fuchun-near-inner-phrase=""/g)??[])).toHaveLength(52);
+    const loaded=[...candidate.matchAll(
+      /data-km-fuchun-near-inner-load="(wet|dry)" data-km-fuchun-near-inner-width="([^"]+)"/g,
+    )];
+    expect(loaded).toHaveLength(52);
+    expect(loaded.filter(m=>m[1]==="wet")).toHaveLength(26);
+    expect(loaded.filter(m=>m[1]==="dry")).toHaveLength(26);
+    const wetWidths=loaded.filter(m=>m[1]==="wet").map(m=>Number(m[2]));
+    const dryWidths=loaded.filter(m=>m[1]==="dry").map(m=>Number(m[2]));
+    expect(Math.min(...wetWidths)).toBeGreaterThan(1.6);
+    expect(Math.max(...wetWidths)).toBeLessThan(5.3);
+    expect(Math.min(...dryWidths)).toBeGreaterThan(1);
+    expect(Math.max(...dryWidths)).toBeLessThan(2.9);
+    expect(new Set(loaded.map(m=>m[2])).size).toBeGreaterThan(36);
     expect(legacy).not.toContain('data-km-fuchun-near-inner-stratum=""');
     expect(new Set(nested.map(m=>m[3])).size).toBeGreaterThan(17);
     // Material detail controls must not leave full-complexity interior

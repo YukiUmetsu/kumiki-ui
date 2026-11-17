@@ -675,14 +675,42 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
   await expect(lab).toHaveAttribute("data-km-fidelity-inner-strata","off");
   expect(await inner.evaluateAll(nodes=>nodes.map(node=>
     getComputedStyle(node).visibility))).toEqual(Array(26).fill("hidden"));
-  await samples.last().screenshot({animations:"disabled",
+  const withoutCunfa=await samples.last().screenshot({animations:"disabled",
     path:info.outputPath("fuchun-bank-interior-cunfa-before.png")});
   await page.getByRole("button",{name:"Bank interior cunfa · show"}).click();
   await expect(lab).toHaveAttribute("data-km-fidelity-inner-strata","on");
   expect(await inner.evaluateAll(nodes=>nodes.map(node=>
     getComputedStyle(node).visibility))).toEqual(Array(26).fill("visible"));
-  await samples.last().screenshot({animations:"disabled",
+  const withCunfa=await samples.last().screenshot({animations:"disabled",
     path:info.outputPath("fuchun-bank-interior-cunfa-after.png")});
+  // Previous structural tests accepted 52 SVG paths while the native
+  // source-size A/B changed just 47 pixels by >10 RGB levels. Demand
+  // measurable actual ink deposition, not merely correct DOM geometry.
+  const inkDifference=await page.evaluate(async({off,on})=>{
+    const pixels=async(base64:string)=>{
+      const bytes=Uint8Array.from(atob(base64),v=>v.charCodeAt(0));
+      const bitmap=await createImageBitmap(new Blob([bytes],{type:"image/png"}));
+      const canvas=document.createElement("canvas");
+      canvas.width=bitmap.width;canvas.height=bitmap.height;
+      const context=canvas.getContext("2d",{willReadFrequently:true});
+      if(!context)throw new Error("Missing canvas for ink fidelity comparison");
+      context.drawImage(bitmap,0,0);
+      bitmap.close();
+      return context.getImageData(0,0,canvas.width,canvas.height).data;
+    };
+    const a=await pixels(off),b=await pixels(on);
+    if(a.length!==b.length)throw new Error("A/B screenshot sizes differ");
+    let visible=0,material=0;
+    for(let i=0;i<a.length;i+=4){
+      const delta=Math.max(Math.abs(a[i]-b[i]),
+        Math.abs(a[i+1]-b[i+1]),Math.abs(a[i+2]-b[i+2]));
+      if(delta>10)visible++;
+      if(delta>20)material++;
+    }
+    return {visible,material};
+  },{off:withoutCunfa.toString("base64"),on:withCunfa.toString("base64")});
+  expect(inkDifference.visible).toBeGreaterThan(130);
+  expect(inkDifference.material).toBeGreaterThan(25);
   const turns=samples.last().locator("[data-km-fuchun-near-turning-wash]");
   await expect(turns).toHaveCount(8);
   await expect(samples.first().locator("[data-km-fuchun-near-turning-wash]"))

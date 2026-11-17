@@ -2776,17 +2776,25 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
             ];
             const a=cubicPoint(root,controls[0],controls[1],end,.44);
             const b=cubicPoint(root,controls[0],controls[1],end,.61);
+            // Source-art pixel audit at 960×540 found that the former
+            // 0.6–2px, low-alpha micro-ribbons barely deposited ink:
+            // only 47 pixels changed by >10 levels in the full native
+            // A/B Storybook capture. This is visible brush *material*,
+            // not more decorative geometry: preserve all original 26
+            // roots, 52 pressure contours and their separated paper gaps.
+            const firstWidth=(1.95+2.6*s(seed+9461,i*73+j*19))*
+              (j%3===0?1.13:.86);
+            const dryWidth=1.05+1.7*s(seed+9487,i*61+j*17);
             const firstBody=rockLoadedCubicRibbon(root,
               cubicPoint(root,controls[0],controls[1],end,.11),
               cubicPoint(root,controls[0],controls[1],end,.32),a,
-              (.68+1.17*s(seed+9461,i*73+j*19))*(j%3===0?1.1:.88),
-              seed+9473+i*71+j*29,"root-loaded");
+              firstWidth,seed+9473+i*71+j*29,"root-loaded");
             const secondBody=rockLoadedCubicRibbon(b,
               cubicPoint(root,controls[0],controls[1],end,.73),
               cubicPoint(root,controls[0],controls[1],end,.88),end,
-              (.44+.83*s(seed+9487,i*61+j*17)),
-              seed+9497+i*97+j*37,"feathered-tail");
-            return {source,root,t,depth,firstBody,secondBody};
+              dryWidth,seed+9497+i*97+j*37,"feathered-tail");
+            return {source,root,t,depth,firstBody,secondBody,
+              firstWidth,dryWidth};
           });
         return <g key={i} data-km-fuchun-near-bank=""
           data-km-fuchun-near-bank-source={
@@ -2838,18 +2846,23 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
                 d={d} fill={"url(#"+gradient+")"}
                 opacity={f((i===1?.98:i===2?.83:i===3?.7:.83)*
                   (k===0?1:.78)*(1-.22*mist))}/>)}
-            {innerStrata.map(({source,root,t,depth,firstBody,secondBody},j)=>
+            {innerStrata.map(({source,root,t,depth,firstBody,secondBody,
+              firstWidth,dryWidth},j)=>
               <g key={"interior"+j} data-km-fuchun-near-inner-stratum=""
                 data-km-fuchun-near-inner-source={f(source[0])+","+f(source[1])}
                 data-km-fuchun-near-inner-root={f(root[0])+","+f(root[1])}
                 data-km-fuchun-near-inner-station={f(t)}
                 data-km-fuchun-near-inner-depth={f(depth)}>
                 <path data-km-fuchun-near-inner-phrase=""
+                  data-km-fuchun-near-inner-load="wet"
+                  data-km-fuchun-near-inner-width={f(firstWidth)}
                   d={firstBody} fill={j%3===0?"#303833":"#535a51"}
-                  opacity={f((j%3===0?.67:.43)*(1-.17*mist))}/>
+                  opacity={f((j%3===0?.82:.62)*(1-.17*mist))}/>
                 <path data-km-fuchun-near-inner-phrase=""
+                  data-km-fuchun-near-inner-load="dry"
+                  data-km-fuchun-near-inner-width={f(dryWidth)}
                   d={secondBody} fill={j%4===1?"#6b7166":"#3c433a"}
-                  opacity={f((j%4===1?.31:.45)*(1-.2*mist))}/>
+                  opacity={f((j%4===1?.42:.56)*(1-.2*mist))}/>
               </g>)}
             <path data-km-fuchun-near-bank-broken-crest="" d={rim1}
               fill="#30332f" opacity={f((i===1?.58:.43)*(1-.24*mist))}/>
