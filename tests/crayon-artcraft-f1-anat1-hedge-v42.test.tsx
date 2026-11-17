@@ -68,6 +68,12 @@ describe("ArtCraft F1 V42 photographed green-black hedge and native physical lea
     ]};
     expect(inspectCrayonScene(bad).some(x=>x.includes("renderLayer")))
       .toBe(true);
+    const bg=crayonCc0FaceStudy({detail:.2,midfaceForm:"source-anat1-hedge-v42"});
+    const detached={...bg,elements:bg.elements.map(el=>
+      el.id==="cc0-hedge-lamina-near-left-broad"?
+        {...el,renderLayer:"normal" as const}:el)};
+    expect(inspectCrayonScene(detached).some(x=>
+      x.includes("crosses renderLayer boundary"))).toBe(true);
   });
 
   it("has actual source-depth wax and grain, no PNGs, filters or external graphics",()=>{
