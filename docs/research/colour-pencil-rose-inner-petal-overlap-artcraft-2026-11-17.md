@@ -46,7 +46,7 @@ The four legacy whorl organs keep their four existing timed pencil contacts, but
 - The existing source-coordinate system, stable material seeds, original layer order and absolute frame clock are preserved.
 - New Storybook inspection foci expose the left wall, right shoulder, foreground lamina and rear crown independently.
 - Browser evidence captures the **clipped parent paper viewport** at 2.15×. A screenshot of the enlarged SVG alone is not accepted as a true macro crop.
-- Unit and native browser tests cover 16:9 and 9:16, 15→16 central regions, 44→45 complete anatomy, the shared underside hinge, deterministic frame seeking, non-rose isolation and byte-identical restoration with the option OFF.
+- Unit and native browser tests cover 16:9 and 9:16, 15→16 central regions, 44→45 complete anatomy, the shared underside hinge, deterministic frame seeking, non-rose isolation and byte-identical restoration with the option OFF. Chromium also samples each new whorl dry-contact trace against its own opaque SVG support so detached, clipped-away pencil marks fail the proof.
 - No new dependency, raster image, blur, foreignObject, filter, CSS overlay or generated bitmap is introduced.
 
 ## Native overlap correction after first Chromium audit
