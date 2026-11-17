@@ -391,7 +391,8 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           mask={"url(#"+uid+"-ink1-robe-"+i+")"}/>
         <path d={mark.core} fill={preset.ink} opacity=".15"
           mask={"url(#"+uid+"-ink1-robe-"+i+")"}/>
-        {mark.hairs.filter((_,j)=>j%4===0).map((hair,j)=><path key={"hair"+j}
+        {mark.hairs.map((hair,j)=><path key={"hair"+j}
+          data-km-ink-robe-bristle={mark.id}
           d={hair.d} fill="none" stroke={preset.ink}
           strokeWidth={hair.width} opacity={hair.opacity*.78}/>)}
       </g>)}
