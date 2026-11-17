@@ -67,6 +67,7 @@ export function PencilFoundationStudio(){
   const [roseLipStudy,setRoseLipStudy]=useState(false);
   const [roseCalyxStudy,setRoseCalyxStudy]=useState(false);
   const [roseHypanthiumAttachmentStudy,setRoseHypanthiumAttachmentStudy]=useState(false);
+  const [roseProximalHeelStudy,setRoseProximalHeelStudy]=useState(false);
   const [rosePinnateStudy,setRosePinnateStudy]=useState(false);
   const [rosePhysicalFolds,setRosePhysicalFolds]=useState(false);
   const [roseOuterFormStudy,setRoseOuterFormStudy]=useState(false);
@@ -87,6 +88,7 @@ export function PencilFoundationStudio(){
         roseLipStudy:specimen==="rose"&&roseLipStudy,
         roseCalyxStudy:specimen==="rose"&&roseCalyxStudy,
         roseHypanthiumAttachmentStudy:specimen==="rose"&&roseHypanthiumAttachmentStudy,
+        roseProximalHeelStudy:specimen==="rose"&&roseProximalHeelStudy,
         rosePinnateStudy:specimen==="rose"&&rosePinnateStudy,
         rosePhysicalFolds:specimen==="rose"&&rosePhysicalFolds,
         roseOuterFormStudy:specimen==="rose"&&roseOuterFormStudy,
@@ -107,7 +109,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,roseHypanthiumAttachmentStudy,rosePinnateStudy,rosePhysicalFolds,roseOuterFormStudy,roseOuterRippleStudy,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseCenterKnotStudy,roseCenterValueStudy,roseContactShadowStudy,roseMiddleCupStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,roseHypanthiumAttachmentStudy,roseProximalHeelStudy,rosePinnateStudy,rosePhysicalFolds,roseOuterFormStudy,roseOuterRippleStudy,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseCenterKnotStudy,roseCenterValueStudy,roseContactShadowStudy,roseMiddleCupStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -186,6 +188,7 @@ export function PencilFoundationStudio(){
     data-km-rose-pinnate-study={specimen==="rose"?(rosePinnateStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-calyx-study={specimen==="rose"?(roseCalyxStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-hypanthium-attachment={specimen==="rose"?(roseHypanthiumAttachmentStudy?"opt-in":"baseline"):"not-applicable"}
+    data-km-rose-proximal-heel={specimen==="rose"?(roseProximalHeelStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-rolled-lip={specimen==="rose"?(roseLipStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-lamina-study={specimen==="rose"?
       (roseLaminaStudy?"opt-in":"baseline"):"not-applicable"}
@@ -413,7 +416,7 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose calyx anatomy" type="checkbox"
           checked={roseCalyxStudy} onChange={e=>{
             setRoseCalyxStudy(e.target.checked);
-            if(!e.target.checked)setRoseHypanthiumAttachmentStudy(false);
+            if(!e.target.checked){setRoseHypanthiumAttachmentStudy(false);setRoseProximalHeelStudy(false);}
           }}/>
         FLORA1 calyx: five attached sepals / receptacle · anatomical A/B (unapproved)
       </label>}
@@ -423,7 +426,10 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose hypanthium attachment" type="checkbox"
           disabled={!roseCalyxStudy||!rosePhysicalFolds}
           checked={roseHypanthiumAttachmentStudy}
-          onChange={e=>setRoseHypanthiumAttachmentStudy(e.target.checked)}/>
+          onChange={e=>{
+            setRoseHypanthiumAttachmentStudy(e.target.checked);
+            if(!e.target.checked)setRoseProximalHeelStudy(false);
+          }}/>
         FLORA1 petal-to-receptacle transition / one continuous rising floral cup behind front petals · A/B (unapproved)
       </label>}
       {specimen==="rose"&&<label
@@ -438,7 +444,7 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose physical folds" type="checkbox"
           checked={rosePhysicalFolds} onChange={e=>{
             setRosePhysicalFolds(e.target.checked);
-            if(!e.target.checked){setRoseFrontValueStudy(false);setRosePetalRimStudy(false);setRoseBackCupReliefStudy(false);setRoseFrontLaminaVolumeStudy(false);setRoseOuterFormStudy(false);setRoseOuterRippleStudy(false);setRoseHypanthiumAttachmentStudy(false);}
+            if(!e.target.checked){setRoseFrontValueStudy(false);setRosePetalRimStudy(false);setRoseBackCupReliefStudy(false);setRoseFrontLaminaVolumeStudy(false);setRoseOuterFormStudy(false);setRoseOuterRippleStudy(false);setRoseHypanthiumAttachmentStudy(false);setRoseProximalHeelStudy(false);}
           }}/>
         FLORA1 five independent full-surface rolled underturns · geometric corolla A/B (unapproved)
       </label>}
@@ -475,8 +481,20 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose frontal lamina volume" type="checkbox"
           disabled={!rosePhysicalFolds}
           checked={roseFrontLaminaVolumeStudy}
-          onChange={e=>setRoseFrontLaminaVolumeStudy(e.target.checked)}/>
+          onChange={e=>{
+            setRoseFrontLaminaVolumeStudy(e.target.checked);
+            if(!e.target.checked)setRoseProximalHeelStudy(false);
+          }}/>
         FLORA1 separate rounded front-facing lamina masses, coherent hinge and delicate dry pencil · anatomical A/B (unapproved)
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40,
+          opacity:rosePhysicalFolds&&roseCalyxStudy&&roseHypanthiumAttachmentStudy&&roseFrontLaminaVolumeStudy?1:.65}}>
+        <input aria-label="Foundation rose proximal petal heels" type="checkbox"
+          disabled={!rosePhysicalFolds||!roseCalyxStudy||!roseHypanthiumAttachmentStudy||!roseFrontLaminaVolumeStudy}
+          checked={roseProximalHeelStudy}
+          onChange={e=>setRoseProximalHeelStudy(e.target.checked)}/>
+        FLORA1 two rounded petal-to-calyx heels · source-connected asymmetric laminae / experimental A/B (unapproved)
       </label>}
       {specimen==="rose"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>

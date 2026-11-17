@@ -13,6 +13,7 @@ import {roseFrontValueDetails,inspectRoseFrontValueBands} from "./colored-pencil
 import {ROSE_PETAL_RIM_SIDEWALLS,rosePetalRimContacts,inspectRosePetalRimSidewalls} from "./colored-pencil-rose-rim-thickness";
 import {ROSE_BACK_CUP_RELIEF,roseBackCupUndersideDetails,roseBackCupFaceDetails,inspectRoseBackCupRelief} from "./colored-pencil-rose-back-cup-relief";
 import {ROSE_FRONT_LAMINA_VOLUME,inspectRoseFrontLaminaVolume} from "./colored-pencil-rose-front-lamina-volume";
+import {ROSE_PROXIMAL_HEELS,inspectRoseProximalHeels} from "./colored-pencil-rose-proximal-heels";
 import {ROSE_CENTER_KNOT_SURFACES,ROSE_CENTER_SCROLL_BACKFACE,inspectRoseCenterKnot} from "./colored-pencil-rose-center-knot";
 import {ROSE_OUTER_FORM_FACE_PALETTES,roseOuterFormDeposits,inspectRoseOuterForm} from "./colored-pencil-rose-outer-form";
 import {ROSE_OUTER_RIPPLE_SURFACES,inspectRoseOuterRippleSurfaces} from "./colored-pencil-rose-outer-ripple";
@@ -63,7 +64,7 @@ function material(shape: ObjectShape, seed: number, transform: string): PencilRe
   return createPencilMaterialRegion(input);
 }
 
-function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false,volumeStudy=false,knotStudy=false,outerFormStudy=false,outerRippleStudy=false,hypanthiumStudy=false): ObjectShape[] {
+function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false,volumeStudy=false,knotStudy=false,outerFormStudy=false,outerRippleStudy=false,hypanthiumStudy=false,heelStudy=false): ObjectShape[] {
   const shapes:ObjectShape[] = [
     {id:"stem",surface:"wood",palette:leaf,
       path:"M241 266 Q233 324 247 417 L254 417 Q251 331 250 268 Z",
@@ -187,6 +188,10 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
     const issues=inspectRoseHypanthiumAttachment();
     if(issues.length)throw new Error("Rose source-rooted floral axis: "+issues.join("; "));
   }
+  if(heelStudy){
+    const issues=inspectRoseProximalHeels();
+    if(issues.length)throw new Error("Rose source-attached petal heels: "+issues.join("; "));
+  }
   const anatomy:ObjectShape[]=shapes.flatMap(shape=>{
     if(leafStudy&&(shape.id==="leaf-left"||shape.id==="leaf-right")){
       const side=shape.id==="leaf-left"?"left":"right";
@@ -243,13 +248,14 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
       // and true original sidewall. Only the full front-facing lamina belly
       // and its material-specific crease/vein contacts are reconstructed.
       const volume=volumeStudy?ROSE_FRONT_LAMINA_VOLUME.find(v=>v.id===shape.id):undefined;
+      const heel=heelStudy?ROSE_PROXIMAL_HEELS.find(v=>v.id===shape.id):undefined;
       const ripple=outerRippleStudy?ROSE_OUTER_RIPPLE_SURFACES.find(v=>v.id===shape.id):undefined;
-      const contacts=[...frontalContacts,...(volume?.contacts??[]),...(ripple?.contacts??[])];
+      const contacts=[...frontalContacts,...(volume?.contacts??[]),...(heel?.contacts??[]),...(ripple?.contacts??[])];
       const outerPetal=shape.id==="outer-left"||shape.id==="outer-right"?
         shape.id:undefined;
       const face:ObjectShape={
-        ...shape,path:volume?.face??ripple?.face??source.face,
-        bounds:volume?.bounds??ripple?.bounds??source.faceBounds,
+        ...shape,path:heel?.face??volume?.face??ripple?.face??source.face,
+        bounds:heel?.bounds??volume?.bounds??ripple?.bounds??source.faceBounds,
         // Only the explicitly requested facing lamina receives a warmer
         // middle-value material palette; the cool physically turned underside,
         // original flowers, and all material seeds are left untouched.
@@ -499,6 +505,8 @@ export interface PencilObjectStudyOptions {
   roseContactShadowStudy?: boolean;
   /** Continuous calyx-receptacle wall rising to the real under-petal root (opt-in). */
   roseHypanthiumAttachmentStudy?: boolean;
+  /** Two continuous rounded proximal front-petal heels, preserving old upper cuticle hinge. */
+  roseProximalHeelStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -514,6 +522,7 @@ export function pencilObjectStudyDrawing({
   roseCenterKnotStudy = false, roseOuterFormStudy = false,
   roseCenterValueStudy = false, roseOuterRippleStudy = false,
   roseContactShadowStudy = false, roseHypanthiumAttachmentStudy = false,
+  roseProximalHeelStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -559,6 +568,11 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose contact-shadow study flag must be boolean");
   if(typeof roseHypanthiumAttachmentStudy !== "boolean")
     throw new RangeError("Rose hypanthium attachment flag must be boolean");
+  if(typeof roseProximalHeelStudy !== "boolean")
+    throw new RangeError("Rose proximal heel flag must be boolean");
+  if(subject==="rose"&&roseProximalHeelStudy&&
+    (!rosePhysicalFolds||!roseFrontLaminaVolumeStudy||!roseCalyxStudy||!roseHypanthiumAttachmentStudy))
+    throw new RangeError("Rose proximal heels need real folded frontal laminae, calyx and hypanthium");
   if(subject==="rose"&&roseHypanthiumAttachmentStudy&&
     (!roseCalyxStudy||!rosePhysicalFolds))
     throw new RangeError("Rose hypanthium needs real calyx organs and folded front petals");
@@ -590,7 +604,7 @@ export function pencilObjectStudyDrawing({
     const errors=inspectRoseFrontValueBands();
     if(errors.length)throw new RangeError("Rose frontal value axes: "+errors.join("; "));
   }
-  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseCenterKnotStudy,roseOuterFormStudy,roseOuterRippleStudy,roseHypanthiumAttachmentStudy) :
+  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseCenterKnotStudy,roseOuterFormStudy,roseOuterRippleStudy,roseHypanthiumAttachmentStudy,roseProximalHeelStudy) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
