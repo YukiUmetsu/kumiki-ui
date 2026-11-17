@@ -1,0 +1,31 @@
+# CP-F1 × FLORA1 | Original source-native outer rose scallops (ART HOLD)
+
+**Date:** 2026-11-17. **State:** experimental, independently opted-in `roseOuterRippleStudy=false`. **The artwork is not yet a specimen-accurate rose** and must not be promoted or animated as a finished illustration.
+
+## Source image rights and botanical deconstruction
+
+The first original source is **Sakurai Midori, *Rosa chinensis petals*, 28 May 2006**, Wikimedia Commons (original photographer, CC BY-SA 2.0/3.0). https://commons.wikimedia.org/wiki/File:Rosa_chinensis_petals.jpg . The photo shows multiple broad, shallowly notched **outer** pink laminae surrounding a tighter, partly curled inner cup. The large left and right outer petals do not mirror each other and their margins change curvature several times rather than forming single perfect wedges. Their full faces continue underneath neighboring petals and must not terminate in a detached outline. The original was viewed for structural technique, never copied or bundled.
+
+The second actual-source reference is **Riboim, *Rosa Centifolia*, 22 May 2024**, CC0 (Public Domain Dedication). https://commons.wikimedia.org/wiki/File:Rosa_Centifolia.jpg . This is a *different cultivar* with more densely packed petals. Use it to study variable edge lobes, parent/child overlap and nonuniform changing reflex, **not** to assert exact source correspondence or a measured material color for the library's currently imagined corolla.
+
+Technical morphology: **UPOV TG/11/8 Rosa** https://www.upov.int/documents/d/upov/tg-documents-en-tg011.pdf distinguishes rounded, notched and reflexed forms; its descriptions support separating `petal face` from the *abaxial reverse*. Original color-pencil fine-detail practice: Gary Greene https://www.artistsnetwork.com/art-techniques/touchable-textures-in-colored-pencil/ (technique only; source not traced).
+
+The still-art reference is our own true Chromium 960×540 45-region painting after #608/#609. It is a coherent original illustration but its outer-left/outer-right margins form broad **smooth wedges** and the center looks diagrammatic. More pigment strokes alone cannot fix the wrong exterior topology.
+
+## Macro → meso → micro original art plan
+
+**Macro (silhouette and continuity):** Change exactly two named **fully opaque** `outer-left` and `outer-right` source petal *faces*. Retain the original `ROSE_PHYSICAL_FOLDS` opposite abaxial surfaces and their original material colors, exact ends, seed hashes, body order, and discrete contact marks. Leave the genuine original upper hinge as the same exact Bézier segment, including both control points, with the reverse side traversing that segment in opposite winding. Each new source lamina has a broad convex body, gentle uneven heel, and shallow individually varied scallops (not random fractal noise). L/R differ in distance between lobes, shoulder overhang and notch rhythm.
+
+**Meso (vector flow):** The left external margin (approximately x121–136 / y170–239) is more folded, with a short interruption near y220 and a long returning heel x150–222 / y256–270. The right margin (x354–368 / y182–239) extends further down then turns faster toward the bottom (x249–338 / y254–268). Petal top folds are completely unchanged. The new full faces use original cubic drafting, not a gradient, ribbon overlay or image masking trick.
+
+**Micro (medium):** Five original dry-pencil micro contacts per face: broken intermittent pink cuticle light, narrow cool shadow immediately within the bent rim, deeper central vein/form-turn contact, reflected warm lamina line, and 4–5 small nonparallel fibre fragments. Keep their pressure widths ~.27–.48 and individual frame timing (f198–321). Existing CP-F1 paper tooth, three native pigment passes, filled physical sides, old fine details, 9 independently curved tonal paths per outer petal from #609, and 6 center optical paths per knot source remain *exactly* preserved. The new 5 contacts sit inside their original owning closed physical face, clipping at all edges.
+
+## Engineering and safety constraints
+
+- `roseOuterRippleStudy` is a boolean default OFF and valid only when `rosePhysicalFolds=true`; the latter off removes its checkbox state. No independent position/animation, CSS particle masks, downloaded photo in the repository, new npm dependency, or change in non-rose object studies.
+- The only altered built regions are the **two original facing petals** (path, bounds, 5 extra micro traces). The two physical reverse faces are kept byte-for-byte, including the original hinge in reverse Bézier order. Unaffected 14/43 other regions and the original 11-region default remain unchanged.
+- Compose seamlessly with #609 outer form's 18 source-clipped optical detail paths, #608 six central diffuse fields, #604 broad front faces, #601 true cuticle rims, #602 rear cup and original botanical foliage. The *complete* material scene contains **45 real source regions**, 10 optional optical-value recipients, and 10 additional tiny bound micro contacts rather than overlays.
+- Storybook remains **Video Production → Film Looks → Colour-pencil → Drawing Foundation**. The existing `rose-outer-left/right` source-native 2.15× macro controls work for either previous color values OR new morphology. Capture **16:9 and 9:16** full A/B/restored, individual macros, complete 45-region drawing at 1×, actual same-frame physical reverse paths and absolute film clock f3/f6.
+- **ART HOLD**: The new independently authored contours are informed by authentic source morphology, but not measured or photo-registered to a single real specimen, and the illustrated flower is still much more stylized than a botanical painting. Reject (1) detached/mismatched cuticle seam, (2) brown paper pinholes under folds, (3) scallops too rounded and repetitive, (4) long uniform traced highlights, (5) continuity loss at overlapping front petals. Do not call passing type/DOM tests an artistic certification.
+
+**Next priority:** Rights-cleared, single-source registered macro/mid field studies with actual independently observed contour landmarks, tonal reference plane ratios, cultivar/stage and source/image hash, rather than another broad generic pigment overlay. Actual specimen registration is necessary before authorizing high-fidelity flower deformation.
