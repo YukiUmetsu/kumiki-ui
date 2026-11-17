@@ -19,7 +19,7 @@ function palette(e: Elevation, ids: { glass: string; roof: string; wall: string 
   return {
     wall: brick ? `url(#${ids.wall}-brick)` : `url(#${ids.wall})`, shade: "rgba(20,16,12,0.45)", roof: `url(#${ids.roof})`, "roof-line": shade(t.roofColour, -0.35), window: shade(t.trim, -0.2), glass: `url(#${ids.glass})`,
     frame: t.id === "georgian-townhouse" ? "#f1ece2" : shade(t.trim, 0.05), door: t.id === "georgian-townhouse" ? "#22303a" : `url(#${ids.wall}-grain)`, timber: `url(#${ids.wall}-grain)`, lattice: shade(t.trim, -0.35),
-    column: t.id === "greek-temple" ? "#e9e3d6" : "#9b3b28", step: "#d9d2c3", base: "#8f8a80", bracket: shade(t.trim, 0.1), plaster: shade(t.wall, 0.45), beam: t.id === "greek-temple" ? "#ddd6c7" : shade(t.trim, -0.05), cloth: "#2c3a5a",
+    column: t.id === "greek-temple" ? "#e9e3d6" : "#9b3b28", ornament: "#c9a23a", step: "#d9d2c3", base: t.id === "castle-keep" ? "#9a958b" : "#8f8a80", bracket: shade(t.trim, 0.1), plaster: shade(t.wall, 0.45), beam: t.id === "greek-temple" ? "#ddd6c7" : shade(t.trim, -0.05), cloth: "#2c3a5a",
   };
 }
 
