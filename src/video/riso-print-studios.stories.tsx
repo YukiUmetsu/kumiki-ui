@@ -8,6 +8,7 @@ import {RisoGradientStudio} from "./riso-gradient-studio";
 import {RisoBrushStudio} from "./riso-brush-studio";
 import {RisoDryBrushFilmStudio} from "./riso-dry-brush-film-studio";
 import {RisoCinematicStudio} from "./riso-cinematic-studio";
+import {RisoRegistrationPreflightStudio} from "./riso-registration-proof-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -393,6 +394,12 @@ export const RisographDryBrushFilm:StoryObj<typeof RisoDryBrushFilmStudio>={
 export const RisographCinematicJourney:StoryObj<typeof RisoCinematicStudio>={
   name:"Risograph · Two-Drum Cinematic Journey",
   render:()=> <RisoCinematicStudio/>,
+};
+
+/** Interactive A/B original native stencil registration and numeric trap budget; no hands. */
+export const RisographRegistrationPreflight:StoryObj<typeof RisoRegistrationPreflightStudio>={
+  name:"Risograph · Registration Preflight",
+  render:()=> <RisoRegistrationPreflightStudio/>,
 };
 
 const meta = {
