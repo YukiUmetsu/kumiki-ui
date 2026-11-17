@@ -938,3 +938,54 @@ directly in this pass; this remains a limitation.
 1×/3× reference fidelity and native-film hand review are acceptable.
 Next gate is Fuchun's materially under-contrasted near-rock
 brushwork, dry hemp, pine fans and source-aligned mountain silhouette.
+
+## Second native artist QA after 130a1d3 — OH remains an eye, forehead wash still invisible (2026-11-17)
+
+[Successful exact-head TypeScript/unit checks](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44114648956)
+and [full native Storybook/960×540 film check](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44114648865)
+provide actual evidence [artifact 14342114655](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44114648865/artifacts/14342114655).
+Inspected the true original-source five-cel PNG and separate
+near/far frontal-mass crop, not just screenshot existence.
+
+**Artistic rejection:** OH still resembled a tiny **round ink eye**,
+even after the fixed neutral lower-lip line was moved to the actual
+viseme. The opening and its nested dark core were both nearly round,
+so the correct array counts and visible aperture did not imply lips.
+Across the 376×471 1× head capture, the source/after delta showed
+only 14 pixels with maximum RGB channel change >10, though 280
+pixels changed >2; the newly added frontal washes at ~4% opacity
+barely registered. The lower face and brow stayed almost flat. The
+five-cel 1160×351 crop showed a larger visible change (1,282 pixels
+>10) yet still failed qualitative OH lip realism. This is a valid
+release blocker, not a visual-equivalence pass.
+
+**Surgical OH geometry rework:** make the original opening a tall,
+**narrow 3/4 lip aperture**, not a centered circular decal.
+Preserve exactly its twelve separate original hand-authored mouth
+wet/underpaint/paper/pressure forms, their materials and their
+order; reshape the layers into a longer slit (~1.7:1 height/width)
+with smaller genuinely nested vertically oriented wash/body/core
+shapes. Retain near/far perspective, separate upper lip load,
+paper-bright lower vermilion and the original source animation.
+Redirect the four remaining inherited ANAT1 lip cues and the
+source lower-lip reflection to the smaller speaking mouth; no
+neutral seam or extra wide eyelid-like lines should cross it.
+Unit + Chromium assert the actual OH opening aspect >1.55 and
+true-dark core height >2x its width, beyond simple path counts.
+
+**Optical ink on brow/temple:** UMMA's [Zeng Jing/Pan Qintai source](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/)
+describes transparent washes used to model the forehead, nose and
+deep eye sockets. Instead of raising the opacity of a single patch,
+added three more near-temple/central-frontal transparent passages
+(6.2–7.6% each) with a distinct 7.3% curved paper reserve, plus one
+additional far-temple passage (6.9%). The existing 3.8–4.7% ink/paper
+and all original ANAT1 planes remain intact. This makes optical
+accumulation plausibly visible at 1× while retaining natural
+near/far asymmetry and curved ink boundaries.
+
+**Next visual gate:** execute the *new exact head* (after the above
+two source patches) and inspect browser-saved five-viseme, near/far
+forehead, low-detail mouth and actual 960×540 moving film PNG/MP4.
+Do not claim realism, promotion or merge until those native screenshots
+are independently judged against the source methods and (if available)
+the user's matching teacher painting.
