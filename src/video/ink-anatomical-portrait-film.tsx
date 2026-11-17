@@ -47,9 +47,9 @@ export function InkAnatomicalPortraitFilm({
         mist:.66,wind:.3,ink:.67}}>
       <div data-testid="ink-anat2-film-actor"
         data-ink-cue={amount.toFixed(4)}
-        style={{position:"absolute",left:566+drift,top:160+breathing,
-          width:350,transform:"rotate("+sway.toFixed(3)+"deg)",
-          transformOrigin:"50% 90%",pointerEvents:"none",
+        style={{position:"absolute",left:611+drift,top:253+breathing,
+          width:259,transform:"rotate("+(.38*sway).toFixed(3)+"deg)",
+          transformOrigin:"50% 93%",pointerEvents:"none",
           mixBlendMode:"multiply"}}>
         <InkAnatomicalPortrait transparentPaper={true}
           character={character} emotion={emotion}
