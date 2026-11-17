@@ -3148,6 +3148,37 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       .toHaveLength(8);
     expect((candidate.match(/data-km-fuchun-near-hemp=""/g)??[])).toHaveLength(28);
     expect((candidate.match(/data-km-fuchun-near-deposit=""/g)??[])).toHaveLength(12);
+    // The original museum's long pima is deposited OVER curved rock
+    // cheeks, not isolated as regular vertical wires against a bare
+    // foreground wash. Preserve four original courses and 28 hemp,
+    // but add three independent curved, two-phrase value ledges per
+    // course (12 surfaces, 24 naturally interrupted loaded marks).
+    expect(legacy).not.toContain('data-km-fuchun-near-terrace=""');
+    expect((candidate.match(/data-km-fuchun-near-terrace=""/g)??[]))
+      .toHaveLength(12);
+    expect((candidate.match(/data-km-fuchun-near-terrace-phrase=""/g)??[]))
+      .toHaveLength(24);
+    const folds=[...candidate.matchAll(
+      /data-km-fuchun-near-terrace-root="([^"]+)" data-km-fuchun-near-terrace-tip="([^"]+)" data-km-fuchun-near-terrace-axis="([^"]+)" data-km-fuchun-near-terrace-level="(\d+)"/g,
+    )];
+    expect(folds).toHaveLength(12);
+    const counts=new Map<number,number>();
+    for(const [,root,tip,axis,index] of folds){
+      const k=Number(index);
+      counts.set(k,(counts.get(k)??0)+1);
+      const origin=root.split(",").map(Number);
+      const end=tip.split(",").map(Number);
+      expect(origin.every(Number.isFinite)).toBe(true);
+      expect(end.every(Number.isFinite)).toBe(true);
+      expect(axis.startsWith("M"+origin.join(" ")+" C")).toBe(true);
+      expect(axis.endsWith(end.join(" "))).toBe(true);
+      expect(end[0]).toBeGreaterThan(origin[0]+28);
+    }
+    expect([...counts.entries()].sort((a,b)=>a[0]-b[0]))
+      .toEqual([[0,4],[1,4],[2,4]]);
+    expect([...candidate87.matchAll(
+      /data-km-fuchun-near-terrace-axis="([^"]+)"/g,
+    )].map(m=>m[1])).not.toEqual(folds.map(a=>a[3]));
     const banks=[...candidate.matchAll(
       /data-km-fuchun-near-bank-source="([^"]+)" data-km-fuchun-near-bank-order="(\d+)" data-km-fuchun-near-bank-contour="([^"]+)"/g,
     )];
