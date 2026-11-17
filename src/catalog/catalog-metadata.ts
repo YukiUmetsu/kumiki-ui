@@ -152,6 +152,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:small-creatures":{storyId:"video-bugs--sheet"},
   "pack:food":{storyId:"video-food--sheet"},
   "pack:architecture":{storyId:"video-arch--storybook-library"},
+  "pack:interiors-furniture":{storyId:"video-furniture--furniture"},
   "pack:terrain":{storyId:"video-geo--sheet"},
   "pack:costume":{storyId:"video-costume--sheet"},
   "pack:materials":{storyId:"video-materials--sheet"},

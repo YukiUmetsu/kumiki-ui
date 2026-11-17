@@ -464,6 +464,8 @@ export function room(b: SceneBuilder, r: RoomSpec) {
     b.add(boxAt(-r.w / 2 - t, r.h, -r.d / 2 - t, r.w / 2 + t, r.h + 0.4, r.d / 2 + 4, b.mat(r.ceiling ?? { kind: "plaster", colour: "#e9dfc9" })));
     if (r.beams) b.add(repeatZ3(boxAt(-r.w / 2, r.h - 0.28, -r.d / 2 + 0.6, r.w / 2, r.h, -r.d / 2 + 0.85, b.mat({ kind: "oak", colour: "#4a382a" })), r.beams, Math.floor((r.d + 4) / r.beams)));
   }
+  // the room's windows are registered in world coordinates, so the room is placed where it was built
+  b.place();
 }
 const repeatZ3 = (n: Node, step: number, count: number): Node => {
   const z0 = (n.lo[2] + n.hi[2]) / 2;

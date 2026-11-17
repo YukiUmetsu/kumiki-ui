@@ -262,6 +262,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "small-creatures": "Video production",
   "food": "Video production",
   "architecture": "Video production",
+  "interiors-furniture": "Video production",
   "terrain": "Video production",
   "costume": "Video production",
   "materials": "Video production",

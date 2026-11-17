@@ -26,7 +26,8 @@ export type SurfaceKind =
   | "oak" | "painted-wood" | "iron" | "gold" | "brass" | "glass" | "leaded" | "stained" | "greenhouse"
   | "cobbles" | "setts" | "flags" | "gravel" | "grass" | "dirt" | "water" | "sand" | "rock" | "snow"
   | "foliage" | "firewood" | "books" | "jars" | "bread" | "fabric" | "hay" | "fire" | "flame" | "floorboards" | "tile-floor" | "drawers" | "plain"
-  | "parchment" | "polychrome" | "glazed-tube" | "board-concrete" | "travertine" | "titanium" | "steel" | "curtain" | "chinese-screen";
+  | "parchment" | "polychrome" | "glazed-tube" | "board-concrete" | "travertine" | "titanium" | "steel" | "curtain" | "chinese-screen"
+  | "cane" | "leather" | "velvet" | "rug" | "tatami-mat" | "veneer";
 
 /** One surface in a scene. Colours are sRGB hex; sizes are metres. */
 export interface SurfaceSpec {
@@ -631,6 +632,64 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
           o.h = 0.006 * bar; o.cav = 0.55 + 0.45 * bar;
         } else if (inFrame && panel) { const edge = Math.min(Math.abs(fu - 0.5) - 0.36, Math.abs(fv - 0.21) - 0.1); o.h = edge < 0 ? -0.004 : 0; o.cav = edge < 0 ? 0.85 : 1; }
         if (Math.abs(Math.abs(fu - 0.5) - 0.43) < 0.012 || Math.abs(fv - 0.34) < 0.008) set(o, lat, 1.05);
+      };
+    }
+    // ---- furniture and rooms ----
+    case "cane": {
+      // hand-caned seat: the six-way weave, strands crossing in three directions round octagonal holes
+      const c = C(s.colour, "#c9a46a");
+      return (u, v, i, o) => {
+        const P = 0.012, rr = resolve(i.fw, P * 2), a = Math.abs(((u / P) % 1 + 1) % 1 - 0.5), b2 = Math.abs(((v / P) % 1 + 1) % 1 - 0.5), d1 = Math.abs((((u + v) / P / 1.41) % 1 + 1) % 1 - 0.5);
+        const strand = Math.max(sst(0.22, 0.1, a), sst(0.22, 0.1, b2), sst(0.18, 0.08, d1)), hole = 1 - strand;
+        set(o, c, 0.9 + 0.12 * strand); o.r *= 1 - 0.75 * hole * rr; o.g *= 1 - 0.75 * hole * rr; o.b *= 1 - 0.75 * hole * rr;
+        o.h = 0.0008 * strand * rr; o.cav = 1 - 0.5 * hole * rr; o.rough = 0.45; o.spec = 0.15; o.porous = 0.2;
+      };
+    }
+    case "leather": case "velvet": {
+      // leather: pebbled grain, a sheen, deep buttons in a diamond grid (pattern "diamond"); velvet: a soft pile that brightens at grazing light
+      const c = C(s.colour, s.kind === "leather" ? "#6a2e1e" : "#5a1f2e"), buttons = s.pattern === "diamond", P = s.unit ?? 0.16;
+      return (u, v, i, o) => {
+        const g = fbm(seed, u * 120, v * 120, 2), w = fbm(seed + 1, u * 3, v * 3, 3);
+        set(o, c, 0.92 + 0.06 * g + 0.08 * w); o.rough = s.kind === "leather" ? 0.45 : 0.95; o.spec = s.kind === "leather" ? 0.18 : 0.02; o.porous = 0.3; o.h = 0.0006 * g;
+        if (buttons) {
+          const a = (u + v) / P, b2 = (u - v) / P, fa = a - Math.round(a), fb = b2 - Math.round(b2), r = Math.hypot(fa, fb) * P * 0.7;
+          const tuft = Math.exp(-r * r / (P * P * 0.05)), crease = sst(0.008, 0, Math.min(Math.abs(fa), Math.abs(fb)) * P * 0.7) * (1 - tuft);
+          o.h += 0.02 * (1 - tuft) - 0.004 * crease; o.cav = 1 - 0.5 * tuft - 0.3 * crease; o.r *= 1 - 0.4 * tuft; o.g *= 1 - 0.4 * tuft; o.b *= 1 - 0.4 * tuft;
+        }
+        if (s.kind === "velvet") { const pile = 0.85 + 0.3 * Math.max(0, 1 - Math.abs(i.ny)) ; o.r *= pile; o.g *= pile; o.b *= pile; }
+      };
+    }
+    case "rug": {
+      // a knotted rug: a field with a central medallion, guard stripes and a main border, knots and wear
+      const field = C(s.colour, "#8e2a22"), ink = C(s.colour2, "#1f2c4a"), cream = linearOf("#e2d3ae"), gold = linearOf("#c9993e");
+      const W = s.unit ?? 2.4, L = s.course ?? 3.4;
+      return (u, v, _i, o) => {
+        const x = u / W + 0.5, y = v / L + 0.5, bx = Math.min(x, 1 - x) * W, by = Math.min(y, 1 - y) * L, edge = Math.min(bx, by);
+        const knot = hash2(seed, Math.floor(u * 400), Math.floor(v * 400));
+        let col = field;
+        if (edge < 0.04) col = cream; else if (edge < 0.08) col = ink; else if (edge < 0.3) { const m = Math.sin((Math.max(bx, by) * 9) + Math.sin(Math.min(bx, by) * 30) * 1.5); col = m > 0.3 ? gold : m > -0.4 ? ink : cream; } else if (edge < 0.34) col = gold;
+        else { const cx = (x - 0.5) * W, cy = (y - 0.5) * L, rr = Math.hypot(cx * 1.1, cy * 0.75), ang = Math.atan2(cy, cx); const med = rr < 0.55 + 0.08 * Math.cos(ang * 8); if (med) col = rr < 0.22 ? gold : ink; else { const f = Math.sin(cx * 11) * Math.sin(cy * 9); if (f > 0.75) col = cream; else if (f < -0.8) col = ink; } }
+        set(o, col, 0.88 + 0.16 * knot); const wear = sst(0.4, 0.9, fbm(seed + 3, u * 1.2, v * 1.2, 2) * 0.5 + 0.5) * 0.25; mixInto(o, [0.55, 0.45, 0.35], wear);
+        o.h = 0.002 * knot; o.rough = 0.95; o.spec = 0.01; o.porous = 0.7;
+      };
+    }
+    case "tatami-mat": {
+      // mats about 0.9 × 1.8 m in a staggered layout, rush wales along the long side, cloth borders on the long edges
+      const rush = C(s.colour, "#b8a86a"), border = C(s.colour2, "#2a2f2a");
+      return (u, v, i, o) => {
+        const rowW = 1.82, row = Math.floor(v / 0.91), off = (row % 2) * 0.91, cu = ((u + off) % rowW + rowW) % rowW, fv = v - row * 0.91;
+        const wale = sst(0.3, 0.1, Math.abs(((cu / 0.015) % 1) - 0.5)) * resolve(i.fw, 0.03), edgeV = Math.min(fv, 0.91 - fv), edgeU = Math.min(cu, rowW - cu);
+        set(o, rush, 0.92 + 0.1 * wale + 0.05 * fbm(seed, u * 2, v * 2, 2)); o.h = 0.0006 * wale; o.rough = 0.8; o.spec = 0.04; o.porous = 0.5;
+        if (edgeV < 0.03) set(o, border, 0.9); if (edgeU < 0.004 || edgeV < 0.003) { o.r *= 0.5; o.g *= 0.5; o.b *= 0.5; o.cav = 0.6; }
+      };
+    }
+    case "veneer": {
+      // figured veneer: book-matched leaves mirrored about a centre line (a sunburst when pattern "star")
+      const c = C(s.colour, "#7a4a2a"), star = s.pattern === "star";
+      return (u, v, _i, o) => {
+        const a = star ? Math.atan2(v, u) * 6 : Math.abs(u) * 30, r = star ? Math.hypot(u, v) * 30 : v * 4;
+        const fig = Math.sin(a + fbm(seed, Math.abs(u) * 2, v * 0.6, 3) * 4 + Math.sin(r) * 0.3) * 0.5 + 0.5;
+        set(o, c, 0.8 + 0.3 * fig); o.rough = 0.2; o.spec = 0.35; o.porous = 0.1; o.h = 0;
       };
     }
     case "glazed-tube": {
