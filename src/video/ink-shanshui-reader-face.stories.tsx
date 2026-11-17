@@ -945,7 +945,12 @@ function ReaderExpressionLab(){
         <figure style={{margin:0}}>
           <svg data-testid="reader-expr1-iris-near" role="img"
             aria-label="ANAT1 original near eye with iris ink-rim and occluding eyelid"
-            viewBox={fittedCamera(116,99,139,111,1.3,1.3)}
+            // ANAT1 pupil rig has its OWN source-space y correction.
+            // Do not frame the unposed raw eye: native Chromium showed
+            // only ear/cheek wash, with the actual iris out of shot.
+            viewBox={fittedCamera(118,
+              99.4+(fit.facialRest["pupil-left"].y??0),
+              137,111.2+(fit.facialRest["pupil-left"].y??0),1.2,1.1)}
             style={{display:"block",width:"100%",height:235,background:"#f7eedc"}}>
             {brush(main,eyes,mouth,"iris-near")}
           </svg>
@@ -956,7 +961,9 @@ function ReaderExpressionLab(){
         <figure style={{margin:0}}>
           <svg data-testid="reader-expr1-iris-far" role="img"
             aria-label="ANAT1 original foreshortened far eye with iris ink-rim and occluding eyelid"
-            viewBox={fittedCamera(146,99,168,110,1.3,1.3)}
+            viewBox={fittedCamera(147.5,
+              98.8+(fit.facialRest["pupil-right"].y??0),
+              166.7,110.6+(fit.facialRest["pupil-right"].y??0),1.2,1.1)}
             style={{display:"block",width:"100%",height:235,background:"#f7eedc"}}>
             {brush(main,eyes,mouth,"iris-far")}
           </svg>
