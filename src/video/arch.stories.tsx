@@ -51,14 +51,14 @@ export const MeasuredStory: Story = { name: "Measured elevation", render: () => 
 
 /** 100 structures and environments painted as storybook plates: filter by tradition, view, scale or detail; open one large and change its light. */
 export const StorybookLibrary: Story = {
-  name: "Storybook library",
+  name: "Illustrated library (100 structures)",
   render: () => (
     <div style={page}>
-      <h2 style={h2}>Storybook architecture — 100 structures</h2>
+      <h2 style={h2}>Illustrated architecture — 100 structures</h2>
       <p style={{ ...muted, maxWidth: 900 }}>European vernacular from Cotswold cottages to Dutch canal houses, a select few from North Africa and the Middle East, Romanesque and Gothic engineering, castles, Baroque and Victorian iron and glass, barns and mills, and lived-in rooms. Each is built from modular parts at real size, lit, and painted in the manner of classic architectural watercolours. Plates render in the background and are cached.</p>
       <ArchLibraryGallery />
     </div>
   ),
 };
 /** The materials, light, age and paint that the plates are made of, each rendered. */
-export const StyleGuideStory: Story = { name: "Storybook style guide", render: () => <div style={page}><h2 style={h2}>Storybook architecture — style guide</h2><ArchStyleGuide /></div> };
+export const StyleGuideStory: Story = { name: "Illustration style guide", render: () => <div style={page}><h2 style={h2}>Illustrated architecture — style guide</h2><ArchStyleGuide /></div> };
