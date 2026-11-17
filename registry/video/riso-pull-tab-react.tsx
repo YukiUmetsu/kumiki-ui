@@ -163,7 +163,8 @@ export function RisoPullTabTheatre({
       <RisoPrint {...common} spec={cover.spec} artworks={cover.artworks}/>
     </g>
     {pose.windows.map(w=><g key={w.id}
-      pointerEvents="none" data-km-riso79-cut-rim={w.id}>
+      pointerEvents="none" data-km-riso79-cut-rim={w.id}
+      data-km-riso79-cut-contour-kind={w.shape}>
       {paperRelief>0&&<Fragment>
         {/* The stock's cut cross-section occupies the inner half of the
             contour stroke. Its width follows measured paper caliper. */}
