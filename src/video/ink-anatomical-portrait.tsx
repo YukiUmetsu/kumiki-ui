@@ -29,10 +29,10 @@ export interface InkAnatomicalPortraitProps {
 }
 
 const PERSONS={
-  scholar:{yaw:19,face:{sex:.9,calibrate:false,eyeSpacing:-.25,eyeWidth:.12,
+  scholar:{yaw:19,face:{sex:.9,eyeSpacing:-.25,eyeWidth:.12,
     noseWidth:-.2,noseLength:.16,lowerFace:-.28,faceWidth:.94,mouthWidth:.98} satisfies FaceParams,
     complexion:"#ddc4a4",bone:"#937a64",ink:"#2c2826",warm:"#ac7864",robe:"#a8a299"},
-  elder:{yaw:27,face:{sex:1,calibrate:false,eyeSpacing:.18,eyeWidth:-.23,
+  elder:{yaw:27,face:{sex:1,eyeSpacing:.18,eyeWidth:-.23,
     noseWidth:.38,noseLength:.48,lowerFace:.44,faceWidth:1.1,mouthWidth:.91} satisfies FaceParams,
     complexion:"#ccb296",bone:"#826d59",ink:"#312f2c",warm:"#936f59",robe:"#777c77"},
 } as const;
@@ -89,7 +89,7 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
   const marks=expressionMarks(posed);
   const features=expressionFeatures(posed);
   const eyeInk=(side:"L"|"R")=>{
-    const ex=q("exocanthion."+side),en=q("endocanthion."+side);
+    const ex=q(("exocanthion."+side) as keyof typeof FACE_LANDMARKS),en=q(("endocanthion."+side) as keyof typeof FACE_LANDMARKS);
     const center:Point=[(ex[0]+en[0])/2,(ex[1]+en[1])/2+.8];
     const radius=Math.hypot(ex[0]-en[0],ex[1]-en[1])*.15;
     return <g key={side} data-km-ink-eye={side}>
@@ -115,8 +115,8 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
     </g>;
   };
   const washes=(side:"L"|"R")=>{
-    const cheek=q("cheekbone."+side),zy=q("zygion."+side),al=q("alare."+side);
-    const gon=q("gonion."+side),eye=q("palpebrale-inferius."+side);
+    const cheek=q(("cheekbone."+side) as keyof typeof FACE_LANDMARKS),zy=q(("zygion."+side) as keyof typeof FACE_LANDMARKS),al=q(("alare."+side) as keyof typeof FACE_LANDMARKS);
+    const gon=q(("gonion."+side) as keyof typeof FACE_LANDMARKS),eye=q(("palpebrale-inferius."+side) as keyof typeof FACE_LANDMARKS);
     const near=side==="L"?1:.72;
     const cheekVolume="M"+xy(shift(eye,0,3))+" C"+xy(shift(cheek,-3,0))
       +" "+xy(shift(zy,side==="L"?3:-3,12))+" "+xy(shift(gon,side==="L"?-7:7,-11))
@@ -131,7 +131,7 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       <path d={"M"+xy(shift(zy,side==="L"?-7:7,8))+" Q"+xy(shift(gon,side==="L"?7:-7,-6))+" "+xy(shift(gon,0,8))}
         stroke={preset.bone} strokeWidth="3.8" opacity={.12*near} fill="none"/>
       {detail>.42&&Array.from({length:9},(_,i)=>{
-        const t=i/9;const a=shift(eye,(side==="L"?-1:1)*(i*.8),8+i*.72);
+        const a=shift(eye,(side==="L"?-1:1)*(i*.8),8+i*.72);
         const b=shift(cheek,(side==="L"?1:-1)*(8+i*.25),4+i*1.22);
         return <path key={i} d={pathBetween(a,shift(b,0,-2.1-i*.14),b)}
           fill="none" stroke={i%3===0?preset.warm:preset.bone}
@@ -143,7 +143,7 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
   const templeL=q("zygion.L"),templeR=q("zygion.R");
   const hatTop=shift(top,-11,-24);
   const browPoints=[...brow("L"),...brow("R")];
-  const foreheadLeft=shift(browPoints[1],-5,-17),foreheadRight=shift(browPoints.at(-2)!,5,-17);
+  const foreheadLeft=shift(browPoints[1],-5,-17),foreheadRight=shift(browPoints[browPoints.length-2],5,-17);
   const upperLip=feature("lips-upper"),lowerLip=feature("lips-lower");
   const mouthLine=feature("mouth-line");
   // A genuinely independently sculpted garment: elder open cross-lapel versus
