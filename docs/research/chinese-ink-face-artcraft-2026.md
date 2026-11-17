@@ -779,3 +779,53 @@ ArtCraft approval:
 
 The prior source geometry, all hair/microtexture, expressions and
 native frame clock remain. **ART HOLD continues** independently of CI.
+
+
+## ANAT1 mouth-cel ink relief / final native reader study (November 17, 2026)
+
+**Reference method.** The [UMMA Zeng Jing portrait](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/)
+describes light contour work and transparent accumulative washes
+localized to facial features. The Berlin *Faces of China* collection
+describes contours and red/ochre pigments being modulated around nostrils
+and lips in Bochen technique; these paintings are historical method
+references, not copied source artwork.
+
+**Native evidence:** [successful original-film Storybook run
+44028544967](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44028544967),
+[PNG evidence 14304383375](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44028544967/artifacts/14304383375).
+The fixed pupil microscopes now **truly show their different original
+near and far irises**, with separate partial limbal fibres attached
+below the lids; the exact-head original film and 1× cheek paintings
+still exhibit simplistic pale ochre skin terraces. The existing
+low-detail OH screenshot, in particular, shows a disproportionate
+opaque-dark lozenge against the cheek, with no layered lip contact.
+That is an *artistic failure*, despite all TypeScript and browser
+checks being green.
+
+**Bounded mouth anatomy repaint:** preserve the original three-quarter
+head pivot, independent speech and facial-expression rigs, source lip
+relief, visible chin and philtrum. Author the AA and OH **original
+open-mouth cel geometry** as multiple cubic bevels: wide /a/ aperture
+with a bowed lower vermilion, smaller and narrower /o/ aperture with
+a foreshortened far corner. Rather than one large solid dark sticker
+at >85% opacity, each new cavity is translucent dark watercolor with
+independent cap/upper lip contour, lower reflected edge, thin
+underpaint/mouth depth and tiny paper-reserve pigment, all as separate
+retained SVG paths. Their source shapes are still independent from
+the continuously warped EXPR1 emotion-rest lip path.
+
+**Inspection:** existing Shanshui Reader Face Studio now renders the
+five real lip assets (rest, AA, OH, MM, smile) with a shared film head
+camera and mouth part y offset. Buttons select the actual live
+film-face viseme; no detached mock art or new Storybook navigation.
+Chromium must verify each source mouth remains onscreen at the native
+fitted transform and reject fully opaque AA/OH, missing lip planes,
+wrong shape sizes, identical visemes or changes in source-detail
+control. Unit tests check convex cubic contours, width disparity,
+graded pigment transparency and retained source path density.
+
+**ART HOLD persists:** the original teacher painting must be compared
+side by side at the true 1×/3× native screen and 960×540 film. The
+remaining head contour, cheek and nasal wash bands and surrounding
+Fuchun geology/pine/hemp art still lack independent artist-quality
+sign-off. A green visual-capture test is necessary but not sufficient.
