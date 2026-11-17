@@ -4098,6 +4098,67 @@
       ]
     },
     {
+      "name": "flora-engine",
+      "type": "registry:ui",
+      "title": "Reference-guided Flora Engine (FLORA2)",
+      "description": "Procedural 3D plants of any species from a SpeciesMorphologyProfile: pure data measured from studied references (sizes and ratios graded reported, measured or estimated with sources; colour stops sampled from photo luma ladders). Axis rules bend by a heavy-elastica solver (droop, arching boughs, hanging willow strands), branch by phyllotaxis or by dichotomous forking that fills a crown dome (Leonardo radii), climb a support pole, or grow as a colony cushion. Organs: leaf blades cut from an implicit outline with marching triangles (cordate lobes and sinus, serration, mucro, Monstera splits and hole rows laid out between the lateral veins and sized to the measured hole fraction), fleshy keeled leaves, palmate compound leaves, sunflower heads with disc florets in Vogel's spiral, maize ears and spikelets. Growth stage 0-1 (height, branching orders, heteroblastic leaves, flowering), three fidelity levels with a triangle budget per plant, and a layout manager for a hero specimen, crop rows (pitch, stagger, jitter, gaps), clumped groves and Poisson ground cover. ReferenceGuidedFloraEngine registers profiles at run time; ProceduralMeshBuilder makes renderer-neutral meshes and instanced organ batches; flora-three turns scenes into InstancedMesh draw groups with procedural bark, vein, normal and roughness maps inside a HeroAsset for the studio viewer. Eight reference profiles: Monstera deliciosa, Adansonia digitata, Dracaena cinnabari, Salix babylonica, Helianthus annuus, Zea mays, Echeveria and Polytrichum commune.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "art-foundations",
+        "crafted-3d-hero"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/flora-math.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/flora-math.ts"
+        },
+        {
+          "path": "registry/anatomy/flora-profile.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/flora-profile.ts"
+        },
+        {
+          "path": "registry/anatomy/flora-profiles.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/flora-profiles.ts"
+        },
+        {
+          "path": "registry/anatomy/flora-leaf.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/flora-leaf.ts"
+        },
+        {
+          "path": "registry/anatomy/flora-skeleton.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/flora-skeleton.ts"
+        },
+        {
+          "path": "registry/anatomy/flora-mesh.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/flora-mesh.ts"
+        },
+        {
+          "path": "registry/anatomy/flora-layout.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/flora-layout.ts"
+        },
+        {
+          "path": "registry/anatomy/flora-engine.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/flora-engine.ts"
+        },
+        {
+          "path": "registry/anatomy/flora-three.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/flora-three.ts"
+        }
+      ]
+    },
+    {
       "name": "sky-weather",
       "type": "registry:ui",
       "title": "Sky and Weather Framework (SKY1)",

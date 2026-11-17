@@ -1,6 +1,6 @@
 ---
 name: kumiki-plant-anatomy
-description: Use when drawing, painting, animating or reviewing any tree, bamboo, flower, grass, water plant or scenery vegetation in Kumiki in any art style (woodblock, ink, pencil, crayon, paper, watercolour, 3D), especially when re-making a plant already drawn in another style, when trees look like lollipops or clip art, branches are straight spokes, blossom or autumn colour is in the wrong month, or a new plant species needs adding.
+description: Use when drawing, painting, animating, modelling or reviewing any tree, bamboo, flower, grass, crop, succulent, moss, water plant or scenery vegetation in Kumiki in any art style (woodblock, ink, pencil, crayon, paper, watercolour, 3D), especially when re-making a plant already drawn in another style, when trees look like lollipops or clip art, branches are straight spokes, blossom or autumn colour is in the wrong month, a new plant species needs adding, or a 3D plant, field, grove or ground cover is needed.
 ---
 
 # Kumiki plant anatomy (FLORA1)
@@ -51,3 +51,16 @@ API; this is the working order.
    - Choose a growth form, then record sizes with sources (grade "reported" only with a quoted figure), leaf, flower,
      fruit, bark, calendar, colours, culture and PD/CC0 references.
    - `checkPlantData()` must stay empty, and `tests/plant-anatomy.test.tsx` must pass.
+11. **3D plants of any species (FLORA2).** Use `ReferenceGuidedFloraEngine` from `registry/anatomy/flora-engine.ts` and
+   `createFloraAsset` from `flora-three.ts` ([spec](../../docs/component-specs/flora-engine.md)).
+   - Look for a profile first: `engine.profiles`, or the "Reference blueprints" story.
+   - For a new species, study references first: a full silhouette, a leaf or organ close-up, the bark, and a text with
+     sizes. Measure ratios and colour ladders as in the
+     [reference study](../../docs/research/flora-engine-reference-study-2026-11-17.md). Grade every number and record each
+     source with its licence.
+   - Write the profile as data (axes, organs, placements, surfaces), then `engine.register(profile)`. Do not add species
+     code.
+   - Render the hero view and an organ close-up, and compare them with the photos. Fix what differs, and keep a review
+     log.
+   - Use `preview` for fields and groves, `high_def` for a hero, and `macro_ultra` for close-ups.
+
