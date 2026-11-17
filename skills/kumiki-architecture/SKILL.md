@@ -1,6 +1,6 @@
 ---
 name: kumiki-architecture
-description: Use when drawing, painting, animating or reviewing buildings in Kumiki in any art style (houses, town streets, temples, castles, farmhouses, classical columns, apartment blocks), especially when doors are the wrong size for the people, storeys are too tall or short, roofs have the wrong pitch for their covering or climate, ordinary town roofs curve like temples, columns are too fat or thin, or a street of houses is all copies.
+description: Use when drawing, painting, animating or reviewing buildings in Kumiki in any art style (houses, town streets, temples, castles, farmhouses, classical columns, apartment blocks, storybook and watercolour backgrounds, cottages, cathedrals, mills, interiors), especially when doors are the wrong size for the people, storeys are too tall or short, roofs have the wrong pitch for their covering or climate, ordinary town roofs curve like temples, columns are too fat or thin, or a street of houses is all copies.
 ---
 
 # Kumiki architecture (ARCH1)
@@ -21,3 +21,11 @@ The pack `architecture` decides *how big and how built*. Your style decides *how
    copy one facade.
 6. **Review.** Put a person beside the door and compare storey heights and the roof pitch with the type. Record what
    you checked.
+7. **Storybook plates.** For a painted building or room, start from `ARCH_LIBRARY` (100 entries; `StorybookPlate`
+   draws one). To make a new one, build with `SceneBuilder` and the parts in `arch-kit.ts` and `arch-kit-civic.ts`,
+   weather the surfaces (`age`, `moss`, `flake`, `soot`, ivy), choose a light from `MOODS`, and frame with
+   `frameSubject` so verticals stay vertical. Keep the darkest darks in the openings and the shadows cool. Read the
+   [storybook study](../../docs/research/architecture-storybook-reference-study-2026-11-17.md).
+8. **Render a contact sheet before you call it done.** Look at every plate for framing, silhouette, scale and moiré;
+   faults the study lists (inherited surface fields, scenery merged into a house's group, hidden water) are easy to
+   repeat.

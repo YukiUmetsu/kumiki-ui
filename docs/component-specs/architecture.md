@@ -6,11 +6,19 @@
 - `registry/anatomy/arch-data.ts`: human scale, stairs, roof pitches, orders, Japanese modules, building types.
 - `arch-construct.ts`: measured elevations (`buildingElevation`) and `checkStair`.
 - `arch-react.tsx`: `BuildingElevation`, `StreetElevation`, `ArchSheet`.
+- Storybook plates: `arch-sdf.ts` (signed-distance parts), `arch-surface.ts` (materials at real size),
+  `arch-kit.ts` and `arch-kit-civic.ts` (modular building parts), `arch-library.ts` (100 entries), `arch-paint.ts`
+  (light and the watercolour pass), `arch-paint-jobs.ts`, `arch-paint-pool.ts`, `arch-paint-worker.ts` (worker
+  renders) and `arch-plate-react.tsx` (`StorybookPlate`, `ArchLibraryGallery`, `ArchStyleGuide`).
 
-**Storybook:** Video production → Art Foundations → Architecture → **Sheet**, **Streets**, **Measured elevation**.
+**Storybook:** Video production → Art Foundations → Architecture → **Sheet**, **Streets**, **Measured elevation**,
+**Storybook library**, **Storybook style guide**.
 **Status:** implemented; agent review of renders only — **human visual review not recorded**.
-**Reference study:** [elevations measured from photographs and drawings](../research/architecture-reference-study-2026-11-17.md)
-(Himeji, Morisada's machiya, Tōshōdai-ji, the Parthenon; observation of Bedford Square, Stein am Rhein and others).
+**Reference studies:** [elevations measured from photographs and drawings](../research/architecture-reference-study-2026-11-17.md)
+(Himeji, Morisada's machiya, Tōshōdai-ji, the Parthenon; observation of Bedford Square, Stein am Rhein and others);
+[storybook plates: what the painters and builders taught](../research/architecture-storybook-reference-study-2026-11-17.md)
+(Prout, Rudolf von Alt, Cotman, the Limbourg brothers; Haussmann, canal houses, stone slates, stave churches, Gothic
+thrust, limewash, patina, candlelight).
 
 ## What it is for
 
@@ -122,8 +130,37 @@ scale, varied a little by the seed.
 `BuildingElevation` paints an SVG with a person 1.75 m tall for scale (`dims` adds the measured storeys).
 `StreetElevation` sets buildings on one ground line at one scale, spaced by their party walls.
 
+## Storybook plates
+
+Painted scenes of 100 structures and environments, for films, covers and backgrounds in a storybook style.
+
+- **The library** (`ARCH_LIBRARY`, `findLibraryEntry`): each entry has a region, period, setting, view (exterior or
+  interior), scale (humble, domestic, civic, monumental), materials, story details, what its references taught, a
+  default light and `build(seed)`, which returns an `ArchScene`. Eleven traditions (`LIBRARY_GROUPS`).
+- **Build your own** with `SceneBuilder` and the parts: `house` (walls per storey, jetties, every roof form, windows,
+  doors, chimneys, dormers, balconies, shop fronts, ivy), `tower`, `church`, `bridge`, `waterWheel`, `windmill`,
+  `staveChurch`, `glasshouse`, `keep`, `curtainWall`, `gatehouse`, `domeChurch`, `kasbahTower`, `trullo`,
+  `lighthouse`, `arcade`, `room` with `shelves`, `table`, `hearth`, `candle`; scenery with `ground`, `street`,
+  `water`, `tree`, `cypress`, `hills`, `gardenWall`, `firewood`, `barrel`, `bench`, `lamppost`. Place each group
+  with `b.place({ x, z, yaw, leanX, leanZ })`; give old roofs a `sag`. Frame with `frameSubject` (a level camera at
+  eye height with a shifted lens, so verticals stay vertical).
+- **Surfaces** (`SurfaceSpec`): ashlar, rustication, marble, rubble, coursed rubble, flint, brick (English or Flemish
+  bond), limewash and plaster that flake to what is `under`, timber frames (close studding, square panels, crosses,
+  colombage, Fachwerk) with pegs, logs, boards, mud brick, zellige and glazed tiles; slate, stone slate, plain tile,
+  shingle, coppi, thatch, copper, zinc, lead, turf; oak, painted wood, iron, gold, brass; glass, leaded, stained and
+  greenhouse glass; cobbles, setts, flags, gravel, grass, dirt, sand, rock, snow, water; foliage, firewood, books,
+  jars, drawers, bread, fabric, hay, fire. `age`, `moss`, `flake` and `soot` weather them.
+- **Light** (`MOODS`): morning, noon, golden, dusk, night, rain, rain at night, overcast, winter, interior day,
+  candlelight. Lamps (`lamp: true`) burn only at dusk and night.
+- **Paint** (`paintArchScene(scene, { paint, ink })`): `paint` 0 gives a plain render, 1 the full watercolour.
+- **React:** `StorybookPlate` renders an entry in a worker (cached, with a preview); `ArchLibraryGallery` and
+  `ArchStyleGuide` are the Storybook pages.
+
 ## Limits
 
 - Front elevations only: no perspective views or plans.
 - Ornament is simplified: no carving, no pediment sculpture, generic acroteria; the keep's windows are evenly spaced.
-- No interiors (see `home-interiors`).
+- The elevations have no interiors (see `home-interiors`); the storybook plates have ten rooms.
+- Plates: ornament is simplified (no carved capitals, tracery or painted figures); trees are leaf masses, not FLORA1
+  species; only glasshouse glass is clear; the Gothic west front, the Kizhi church and the alpine peaks are the
+  weakest entries.
