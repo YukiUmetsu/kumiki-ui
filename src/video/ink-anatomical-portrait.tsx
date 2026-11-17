@@ -655,21 +655,24 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           {/** Individual late-Ming oral-root whisker clusters; a feathered
                underpaint follows the mandibular volume into five separate
                tapering locks and does not flatten the robe into a stamp. */}
+          {/** Under-chin contact only: no mouth-to-chin triangular bib. The
+               observed previous output read as a pasted geometric goatee.
+               Preserve a single tinted foundation but spread it through
+               absorbent-paper blur beneath separate fine physical hairs. */}
           <path data-km-ink-beard-substrate="organic"
-            d={"M"+xy(shift(q("stomion"),-26,-1))
-              +" C"+xy(shift(q("stomion"),-31,24))
-              +" "+xy(shift(menton,-47,17))
-              +" "+xy(shift(menton,-34,62))
-              +" Q"+xy(shift(menton,-21,100))
-              +" "+xy(shift(menton,-1,92))
-              +" Q"+xy(shift(menton,18,101))
-              +" "+xy(shift(menton,35,61))
-              +" C"+xy(shift(menton,48,18))
-              +" "+xy(shift(q("stomion"),36,26))
-              +" "+xy(shift(q("stomion"),23,-3))
-              +" Q"+xy(shift(q("stomion"),2,12))
-              +" "+xy(shift(q("stomion"),-26,-1))+" Z"}
-            fill={preset.ink} opacity=".16"/>
+            d={"M"+xy(shift(menton,-34,-19))
+              +" C"+xy(shift(menton,-40,20))
+              +" "+xy(shift(menton,-28,50))
+              +" "+xy(shift(menton,-12,77))
+              +" Q"+xy(shift(menton,3,88))
+              +" "+xy(shift(menton,11,70))
+              +" C"+xy(shift(menton,29,42))
+              +" "+xy(shift(menton,36,21))
+              +" "+xy(shift(menton,34,-19))
+              +" Q"+xy(shift(menton,0,-9))
+              +" "+xy(shift(menton,-34,-19))+" Z"}
+            fill={preset.ink} opacity=".13"
+            filter={"url(#"+uid+"-face-wet-diffusion)"}/>
           <path d={pathBetween(shift(q("stomion"),-24,-2),
             shift(q("stomion"),-16,0),shift(q("stomion"),-5,3))}
             stroke={preset.ink} strokeWidth="4.2" opacity=".30" fill="none"
@@ -701,17 +704,28 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
               fill={preset.ink} opacity={.11+(i===2?.21:.065)}/>;
           })}
           {Array.from({length:93},(_,i)=>{
-            const t=i/92,x=menton[0]+(t-.5)*75;
-            const offset=Math.abs(t-.5)*2;
-            const topY=menton[1]-31+offset*20+1.2*Math.sin(i*1.83);
-            const len=(1-offset*.44)*(76+35*Math.abs(Math.sin(i*2.77)));
-            const drift=(t-.5)*16;
-            return <path key={i} d={"M"+fmt(x)+" "+fmt(topY)
-              +" Q"+fmt(x+drift*.4)+" "+fmt(topY+len*.51)
-              +" "+fmt(x+drift)+" "+fmt(topY+len)}
+            // Five tapering families; preserve *all* 93 independent bristles,
+            // but cluster roots and differentiate each hair's trajectory.
+            // No equal-length vertical barcode lines.
+            const lock=Math.min(4,Math.floor(i*5/93)),local=(i%19)/18-.5;
+            const sweep=lock-2,noise=Math.sin(i*2.78),wave=Math.sin(i*.71);
+            const rootX=menton[0]+sweep*12+local*12;
+            const rootY=menton[1]-22+Math.abs(sweep)*4.2+
+              2.7*Math.sin(i*1.83);
+            const len=(1-Math.abs(local)*.42)*(
+              40+Math.abs(sweep)*8+30*Math.abs(noise)+11*wave);
+            const drift=sweep*(4+len*.075)+local*10+
+              4.7*Math.sin(i*1.29);
+            const tipX=rootX+drift,tipY=rootY+len;
+            return <path key={i} data-km-ink-beard-fibre={lock}
+              d={"M"+fmt(rootX)+" "+fmt(rootY)
+                +" C"+fmt(rootX+drift*.08+3*wave)+" "+fmt(rootY+len*.28)
+                +" "+fmt(tipX-5*wave)+" "+fmt(rootY+len*.73)
+                +" "+fmt(tipX)+" "+fmt(tipY)}
               fill="none" stroke={i%7===0?"#bfb3a1":preset.ink}
-              strokeWidth={i%4===0?.83:.32+(i%3)*.09}
-              opacity={(i%7===0?.48:.38)*detail}/>;
+              strokeLinecap="round"
+              strokeWidth={i%4===0?.69:.27+(i%3)*.085}
+              opacity={(i%7===0?.53:.31+(i%4)*.035)*detail}/>;
           })}
         </>}
       </g>;
