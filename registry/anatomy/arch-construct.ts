@@ -12,7 +12,7 @@ import type { FPoint } from "./foundation-shapes";
 import { findBuildingType, HUMAN_SCALE } from "./arch-data";
 import type { BuildingType } from "./arch-data";
 
-export type PartRole = "wall" | "shade" | "roof" | "roof-line" | "window" | "glass" | "frame" | "door" | "timber" | "lattice" | "column" | "step" | "base" | "bracket" | "plaster" | "beam" | "cloth";
+export type PartRole = "wall" | "shade" | "roof" | "roof-line" | "window" | "glass" | "frame" | "door" | "timber" | "lattice" | "column" | "step" | "base" | "bracket" | "plaster" | "beam" | "cloth" | "ornament";
 export interface ElevationPart { role: PartRole; pts: FPoint[]; closed: boolean; width?: number }
 export interface Elevation { type: BuildingType; width: number; height: number; parts: ElevationPart[]; dims: { label: string; y0: number; y1: number; x: number }[] }
 
@@ -95,8 +95,62 @@ export function buildingElevation(typeId: string, o: ElevationOptions = {}): Ele
       dims.push({ label: `ground floor ${h1.toFixed(1)} m`, y0: 0, y1: h1, x: W / 2 + eaves + 0.4 }, { label: `upper (mushiko) ${h2.toFixed(1)} m`, y0: h1, y1: h1 + h2, x: W / 2 + eaves + 0.4 });
       break;
     }
-    case "japanese-temple": case "castle-keep": {
-      const keep = t.id === "castle-keep";
+    case "castle-keep": {
+      // A tenshu on its ishigaki: the stone base's face curves out toward the foot (the "fan slope"), coursed stones;
+      // storeys stepping in, each skirted by a roof with lifted corners; triangular chidori-hafu gables on alternate
+      // roofs; white plaster with lattice windows; an irimoya top crowned by golden shachihoko.
+      const baseH = 7.5 * jit(0.05), bw = W / 2 + 0.6 + 2.6;
+      const b: FPoint[] = [];
+      for (let k = 0; k <= 16; k++) { const u = k / 16; b.push([-(bw - 2.6 * (1 - Math.pow(1 - u, 2.4))), baseH * u]); }
+      poly("base", [...b, ...b.map(([x, y]) => [-x, y] as FPoint).reverse()]);
+      for (let yy = 0.55; yy < baseH; yy += 0.6) {
+        const u = yy / baseH, half = bw - 2.6 * (1 - Math.pow(1 - u, 2.4));
+        line("shade", [-half, yy], [half, yy], 0.03);
+        for (let x = -half + ((yy * 7.3) % 1.1); x < half; x += 0.9 + ((x * 3.1 + yy) % 0.5)) line("shade", [x, yy], [x, yy - 0.6], 0.025);
+      }
+      let y = baseH, w = W + 0.4;
+      const nSt = Math.max(3, storeys);
+      for (let st = 0; st < nSt; st++) {
+        const last = st === nSt - 1, sh = (last ? 0.8 : 1) * H0 * 0.85;
+        rect("plaster", -w / 2, y, w / 2, y + sh);
+        rect("beam", -w / 2, y, w / 2, y + 0.25);
+        // lattice windows (bars of dark wood) in white walls
+        const nw = Math.max(1, Math.round(w / 3.2));
+        for (let k = 0; k < nw; k++) {
+          const cx = -w / 2 + (w * (k + 0.5)) / nw, ww = 0.9, wy = y + sh * 0.35;
+          rect("window", cx - ww / 2, wy, cx + ww / 2, wy + sh * 0.38);
+          for (let q = 1; q < 5; q++) line("plaster", [cx - ww / 2 + (ww * q) / 5, wy], [cx - ww / 2 + (ww * q) / 5, wy + sh * 0.38], 0.05);
+        }
+        const roofY = y + sh, e = 1.3;
+        if (last) { top = irimoya(-w / 2 - e, w / 2 + e, roofY + 0.1, sh * 0.95, 0.7); break; }
+        // a skirt roof with lifted corners round each storey
+        const run = 1.6, n = 20, eave: FPoint[] = [];
+        for (let k = 0; k <= n; k++) { const uu = k / n, ee = (uu * 2 - 1) ** 2; eave.push([-w / 2 - e + (w + 2 * e) * uu, roofY - 0.15 * (1 - ee) + 0.55 * Math.pow(ee, 4)]); }
+        const rise = run * Math.tan(pitch) + 0.4;
+        poly("roof", [...eave, [w / 2 * 0.95, roofY + rise], [-w / 2 * 0.95, roofY + rise]]);
+        poly("roof-line", eave, false, 0.18);
+        // a chidori-hafu (a triangular gable) on alternate roofs
+        if (st % 2 === 0) {
+          const gw = Math.min(w * 0.55, 7.5), gy = roofY + 0.05, gh = gw * 0.42;
+          poly("plaster", [[-gw / 2, gy], [gw / 2, gy], [0, gy + gh]]);
+          poly("roof-line", [[-gw / 2 - 0.4, gy - 0.1], [0, gy + gh + 0.35], [gw / 2 + 0.4, gy - 0.1]], false, 0.28);
+          line("timber", [-gw * 0.3, gy + gh * 0.25], [gw * 0.3, gy + gh * 0.25], 0.06);
+        }
+        dims.push({ label: `storey ${st + 1} ${sh.toFixed(1)} m`, y0: y, y1: y + sh, x: W / 2 + eaves + 1.5 });
+        y = roofY + rise * 0.55;
+        w *= 0.86;
+      }
+      // shachihoko at the ridge ends: golden fish with their tails up
+      for (const sg of [-1, 1]) {
+        const x0 = sg * (w + 2.6) * 0.4, yb = top - 1.1;
+        poly("ornament", [[x0, yb], [x0 + sg * 0.25, yb + 0.5], [x0 + sg * 0.1, yb + 1.1], [x0 - sg * 0.25, yb + 1.45], [x0 - sg * 0.05, yb + 0.95], [x0 - sg * 0.3, yb + 0.35]]);
+      }
+      top += 0.4;
+      dims.push({ label: `ishigaki ${baseH.toFixed(1)} m`, y0: 0, y1: baseH, x: W / 2 + eaves + 1.5 });
+      break;
+    }
+    case "japanese-temple": {
+      const keep = false;
       // stone base: a raised plinth (temple) or a curving stone wall (keep)
       const baseH = keep ? 4.5 : 0.9;
       if (keep) { const b: FPoint[] = []; for (let k = 0; k <= 12; k++) { const u = k / 12; b.push([-W / 2 - 3 * Math.pow(1 - u, 2.2), baseH * u]); } poly("base", [...b, ...b.map(([x, y]) => [-x, y] as FPoint).reverse()]); }
