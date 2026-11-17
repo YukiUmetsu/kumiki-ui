@@ -125,6 +125,7 @@ export function RisoPullTabFilmStudio(){
     data-km-riso79-phase={phase}
     data-km-riso79-windows={windowCount}
     data-km-riso79-shape-preset={windowShape}
+    data-km-riso80-shape-preset={windowShape}
     data-km-riso79-direction={direction}
     data-km-riso79-aspect={aspect}
     data-km-riso79-zoom={zoom}
@@ -134,7 +135,7 @@ export function RisoPullTabFilmStudio(){
       font:"14px/1.5 system-ui"}}>
     <header style={{maxWidth:970}}>
       <div style={{font:"800 12px system-ui",letterSpacing:2}}>
-        RISOGRAPH / RISO79 / KINETIC ORIGINAL PAPER PRINTS
+        RISOGRAPH / RISO79–80 / KINETIC ORIGINAL PAPER PRINTS
       </div>
       <h1 style={{font:"700 clamp(24px,3vw,37px)/1.14 Georgia,serif",
         margin:"7px 0"}}>Cut-paper windows · moving printed underlay</h1>
@@ -180,7 +181,7 @@ export function RisoPullTabFilmStudio(){
         </select>
       </label>
       <label style={label}>Window contour
-        <select aria-label="RISO79 window shape" value={windowShape}
+        <select aria-label="RISO80 window shape" value={windowShape}
           onChange={e=>setWindowShape(e.target.value as "rounded"|"organic")}>
           <option value="rounded">Rounded die-cut</option>
           <option value="organic">Organic contour</option>
@@ -268,13 +269,13 @@ export function RisoPullTabFilmStudio(){
         transformOrigin:focusX+"% "+focusY+"%"}}>{stage}</div>
     </section>
     <p style={{fontSize:13,maxWidth:960,margin:0}}>
-      Separate original printed cover and insert. Four-sided vector die-cuts
-      have 88 short, individually seeded cut-face microfibrils each. The
-      wall and directional cavity shadow follow the stock caliper and lamp.
-      Only
-      the hidden paper insert and its grip move; native spot-ink paths never
-      repaint or lose registration. This overhead artist's paper mechanism is
-      not an empirical friction, cut-die or Risograph calibration model.
+      Separate original printed cover and insert. Choose rounded precision
+      cuts or source-authored organic silhouettes. Every organic contour is
+      one clockwise, closed, non-self-intersecting path; its 88 seeded
+      microfibrils follow the full contour by arc length. The cut wall and
+      directional cavity shadow follow stock caliper and lamp. Only the
+      hidden paper insert and grip move; spot-ink paths never repaint or lose
+      registration. This is a 2.5D art model, not a physical cut-die solver.
     </p>
   </main>;
 }
