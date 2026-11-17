@@ -128,6 +128,13 @@ export function RisoAccordionPrintedFilmStudio(){
             setPlaying(false);setFrame(Number(e.target.value));
           }}/>
       </label>
+      <label style={label}>Paper composition
+        <select aria-label="RISO78 film aspect" value={aspect}
+          onChange={e=>setAspect(e.target.value as RisoAspect)}>
+          <option value="landscape">16:9 landscape</option>
+          <option value="portrait">9:16 portrait</option>
+        </select>
+      </label>
       <label style={label}>Physical accordion score
         <select aria-label="RISO78 fold direction" value={axis}
           onChange={e=>setAxis(e.target.value as RisoAccordionAxis)}>
