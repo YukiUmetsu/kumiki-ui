@@ -37,8 +37,12 @@ test("rose lamina native film: original source and four optical passes at both a
   }
   // Frame-addressed pigment cannot jump ahead of the pencil layering process.
   await page.getByRole("button",{name:/3\. Light value map/}).click();
+  // SVG geometry remains in the DOM for deterministic seek; at frame 106
+  // the real dash deposition is zero, not deleted source microgeometry.
   await expect(svg.locator('[data-km-pencil-trace^="rose-lam-"]'))
-    .toHaveCount(0);
+    .toHaveCount(28);
+  await expect(svg.locator('[data-km-pencil-trace^="rose-lam-"]').first())
+    .toHaveAttribute("stroke-dasharray","0.00000 1");
   await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
   await expect(svg.locator('[data-km-pencil-trace^="rose-lam-"]'))
     .toHaveCount(28);
