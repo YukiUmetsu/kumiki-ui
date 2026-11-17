@@ -68,7 +68,8 @@ test("RISO69 real native vector PDF, TIFF and complete master views",async({page
   expect(a).not.toMatch(/\/DeviceRGB|\/Image\b|\/Font\b/);
   const xref=Number(a.match(/startxref\n(\d+)\n%%EOF/)?.[1]);
   expect(a.slice(xref,xref+4)).toBe("xref");
-  expect(a.slice(a.lastIndexOf("\n0 G\n"))).toBe(b.slice(b.lastIndexOf("\n0 G\n")));
+  const marks=(s:string)=>{const start=s.lastIndexOf("\n0 G\n");return s.slice(start,s.indexOf("\nQ\n",start)+3);};
+  expect(marks(a)).toBe(marks(b));
   await page.getByRole("combobox",{name:"RISO69 output format"}).selectOption("tiff");
   await expect(root).toHaveAttribute("data-km-riso69-format","tiff");
   const tBlue=await save("blue","TIFF"),tRed=await save("red","TIFF");

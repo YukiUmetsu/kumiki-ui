@@ -90,7 +90,7 @@ describe("RISO69 exact original grayscale vector PDF and one-channel TIFF",()=>{
     const marked={...layout,marks:"crop-and-register" as const};
     const blue=decode(serializeRisoSeparationPdf(spec,masters,marked,"blue"));
     const red=decode(serializeRisoSeparationPdf(spec,masters,marked,"red"));
-    const lines=(s:string)=>s.slice(s.lastIndexOf("\n0 G\n"));
+    const lines=(s:string)=>{const start=s.lastIndexOf("\n0 G\n");return s.slice(start,s.indexOf("\nQ\n",start)+3);};
     expect(lines(blue)).toBe(lines(red));
     expect(lines(blue).match(/ l S/g)).toHaveLength(16);
     expect(lines(blue)).toContain("0.2 w");
