@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useRef,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import {RisoPrint} from "../../registry/video/print-plates-react";
 import {RisoDryBrushInk} from "../../registry/video/riso-dry-brush-react";
 import type {RisoBrushOptions,RisoBrushPoint} from "../../registry/video/riso-dry-brush";
@@ -111,13 +111,13 @@ export function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registrat
     typeof animate!=="boolean"||(layout!=="studio"&&layout!=="film"))
     throw new RangeError("RISO63 requires valid physical spot masters and bounded source controls.");
   const portrait=aspect==="portrait",w=portrait?540:960,h=portrait?960:540;
-  const spec=useMemo(()=>{
-    const source=risoExampleSpec(aspect,seed);
-    return {...source,plates:source.plates.map(p=>({...p,
-      color:p.id==="blue"?cobalt:vermilion,
-      registration:p.id==="blue"?[0,0] as const:[.65,-.45] as const,
-    }))};
-  },[aspect,seed]);
+  // Source spec is small and deterministic. Explicitly pure evaluation
+  // avoids a separate React dispatcher in lazy-loaded production captures.
+  const source=risoExampleSpec(aspect,seed);
+  const spec={...source,plates:source.plates.map(p=>({...p,
+    color:p.id==="blue"?cobalt:vermilion,
+    registration:p.id==="blue"?[0,0] as const:[.65,-.45] as const,
+  }))};
   const phase=animate?frame/239:0.52;
   const isPaperSeed=seed;
   const brushes=(ink:"blue"|"red")=>{

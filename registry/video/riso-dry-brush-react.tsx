@@ -1,4 +1,3 @@
-import {useMemo} from "react";
 import type {SVGProps} from "react";
 import {createRisoBrushGeometry,risoBrushInkPath}
   from "./riso-dry-brush";
@@ -18,9 +17,12 @@ export function RisoDryBrushInk({
 }:RisoDryBrushInkProps){
   if(!/^#[0-9a-f]{6}$/i.test(color))
     throw new RangeError("RISO62 dry brush needs a six-digit physical spot ink");
-  const geometry=useMemo(()=>createRisoBrushGeometry({
+  // Authored cubic points are rebuilt per film frame, so useMemo on each
+  // transient point object cannot cache geometry. Pure evaluation avoids
+  // duplicate React dispatcher hazards in native lazy-loaded capture pages.
+  const geometry=createRisoBrushGeometry({
     start,control1,control2,end,width,pressure,dryness,seed,steps,
-  }),[start,control1,control2,end,width,pressure,dryness,seed,steps]);
+  });
   return <g {...groupProps} data-km-riso62-brush=""
     data-km-riso62-fibres={geometry.count}
     data-km-riso62-ink-seed={seed}>
