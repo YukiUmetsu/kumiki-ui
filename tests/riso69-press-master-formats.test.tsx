@@ -173,7 +173,7 @@ describe("RISO69 exact original grayscale vector PDF and one-channel TIFF",()=>{
     expect(serializeRisoSeparationPdf(b.spec,b.masters,b.layout,"blue")).toEqual(first);
     const c=setup("portrait",190,66);
     expect(serializeRisoSeparationPdf(c.spec,c.masters,c.layout,"blue")).not.toEqual(first);
-  });
+  },20000); // RISO69 source reconstruction on busy native-render CI can exceed Vitest's 5s default.
   it("Storybook renders original independent masters, format and safe margins",()=>{
     const html=renderToStaticMarkup(<RisoPressDeliveryStudio/>);
     expect(html).toContain('data-km-riso69-studio=""');
