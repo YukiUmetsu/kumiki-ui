@@ -23,6 +23,8 @@ import { fixtureById } from "./motion-fixtures";
 import { CameraDemo } from "./camera-demo";
 import { RevealDemo } from "./reveal-demo";
 import { DiagramDemo } from "./diagram-demo";
+import { AdvancedShapeMorphFilmstrips, AdvancedShapeMorphLab, AdvancedShapeMorphTextLab } from "./advanced-shape-morph-demo";
+import { AdvancedShapeMorph3DLab } from "./advanced-shape-morph-3d-demo";
 
 const FPS_30: RationalFps = { num: 30, den: 1 };
 
@@ -383,6 +385,28 @@ export const ShapeMorphIncompatible: Story = {
       </div>
     </div>
   ),
+};
+
+/** Any two shapes: different vertex counts, several parts, holes that appear or close (`AdvancedShapeMorph`). */
+export const AdvancedShapeMorphLabStory: Story = {
+  name: "Advanced Shape Morph Lab",
+  render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><AdvancedShapeMorphLab /></div>,
+};
+
+/** Every demo pair at five moments for one topology strategy, drawn with the SVG adapter. */
+export const AdvancedShapeMorphStrategies: Story = {
+  render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><AdvancedShapeMorphFilmstrips /></div>,
+};
+
+/** Any two strings in any font the page can draw, traced into rings and morphed letter by letter. */
+export const AdvancedShapeMorphText: Story = {
+  render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><AdvancedShapeMorphTextLab /></div>,
+};
+
+/** The morph as an extruded Three.js solid that travels, turns and scales through a lit scene. */
+export const AdvancedShapeMorph3D: Story = {
+  name: "Advanced Shape Morph 3D",
+  render: () => <div className="min-h-screen bg-canvas p-6 text-foreground"><AdvancedShapeMorph3DLab /></div>,
 };
 
 /* -------------------------------------------------------------------------- */

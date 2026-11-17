@@ -1222,7 +1222,7 @@
       "name": "shape-morph",
       "type": "registry:ui",
       "title": "Shape Morph",
-      "description": "Contour shape morphing that validates compatibility, resamples rings deterministically and interpolates between two shapes, with explicit dissolve and cut fallbacks when contours cannot morph.",
+      "description": "Contour shape morphing. morphShapes validates compatible contours and falls back to a dissolve or cut. AdvancedShapeMorph morphs any two shapes (SVG paths, point rings or traced text in any font) with different vertex counts, parts and holes through split, merge, partition, emerge or cross-dissolve strategies, plans once and writes each frame into typed arrays.",
       "dependencies": [],
       "registryDependencies": [
         "motion-track"
@@ -1232,6 +1232,41 @@
           "path": "registry/motion/morph.ts",
           "type": "registry:ui",
           "target": "components/motion/morph.ts"
+        },
+        {
+          "path": "registry/motion/advanced-morph-geometry.ts",
+          "type": "registry:ui",
+          "target": "components/motion/advanced-morph-geometry.ts"
+        },
+        {
+          "path": "registry/motion/advanced-morph.ts",
+          "type": "registry:ui",
+          "target": "components/motion/advanced-morph.ts"
+        },
+        {
+          "path": "registry/motion/advanced-morph-text.ts",
+          "type": "registry:ui",
+          "target": "components/motion/advanced-morph-text.ts"
+        }
+      ]
+    },
+    {
+      "name": "shape-morph-three",
+      "type": "registry:ui",
+      "title": "Shape Morph Three",
+      "description": "Three.js adapter for AdvancedShapeMorph: an extruded solid with crease-aware side walls and per-frame cap triangulation that follows any 2D morph, plus a mesh whose pose travels through 3D space and whose fading parts keep their own opacity.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "shape-morph"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/advanced-morph-three.ts",
+          "type": "registry:ui",
+          "target": "components/motion/advanced-morph-three.ts"
         }
       ]
     },
@@ -1653,7 +1688,7 @@
       "name": "visual-transformation",
       "type": "registry:ui",
       "title": "Visual Transformation",
-      "description": "Semantic 2D scene transformations compiled to MG1 tracks, explicit strategy fallbacks, immutable interruption history, seven reusable recipes and a frame-driven SVG adapter.",
+      "description": "Semantic 2D scene transformations compiled to MG1 tracks: geometric and topology morphs (parts, holes and topology changes through AdvancedShapeMorph), shared elements, masks and particles, explicit strategy fallbacks, immutable interruption history, seven reusable recipes and a frame-driven SVG adapter.",
       "dependencies": [],
       "registryDependencies": [
         "motion-react"

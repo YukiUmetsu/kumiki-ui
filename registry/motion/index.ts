@@ -25,6 +25,7 @@ export * from "./validate";
 export * from "./paths";
 export * from "./trim";
 export * from "./morph";
+export * from "./advanced-morph";
 export * from "./masks";
 export * from "./shared-element";
 export * from "./presets";
