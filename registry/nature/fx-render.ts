@@ -12,7 +12,7 @@
  * - Firelight lights the ground (or a candle's wax) with an inverse-square falloff; a soft bloom round the flame.
  */
 import { createRaster, downsample, encodeSrgb, fbm, fbm3, linearOf } from "../anatomy/foundation-raster";
-import { blackbodyRGB, blackbodyRadiance, findFire, flameHeight, flickerHz, SMOKE } from "./fx-data";
+import { blackbodyRGB, blackbodyRadiance, findFire, fireball, flameHeight, flickerHz, SMOKE } from "./fx-data";
 import type { FireId } from "./fx-data";
 
 export interface FireRenderOptions {
@@ -30,6 +30,55 @@ export interface FireRenderOptions {
 export interface FireRender { width: number; height: number; rgba: Uint8ClampedArray; ms: number; flameHeight: number; flickerHz: number }
 
 const ss = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+/** A fuel-air fireball at time `t` (s) after ignition, for a fuel mass (kg): see `renderFireball`. */
+export interface FireballRenderOptions { mass?: number; t?: number; width?: number; height?: number; supersample?: number; seed?: number }
+
+/**
+ * A fireball (a burning fuel-air cloud) at a moment after ignition. Its full diameter and burn time follow the CCPS
+ * relations for hydrocarbon fireballs (`fireball`: D ≈ 5.8 M^(1/3) m, t ≈ 0.45 M^(1/3) s). It grows fast (full size by
+ * about a fifth of the burn), then lifts on its own buoyancy into a rising, rolling ball over a stem; the burning gas
+ * cools from yellow-white through orange to dull red while soot thickens into dark smoke from the edges inward.
+ */
+export function renderFireball(o: FireballRenderOptions = {}): FireRender {
+  const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
+  const M = o.mass ?? 100, fb = fireball(M), seed = o.seed ?? 9, T = fb.seconds, t = Math.max(0, o.t ?? T * 0.35);
+  const W = o.width ?? 360, H = o.height ?? 300, SS = Math.max(1, Math.round(o.supersample ?? 2)), w = W * SS, h = H * SS;
+  const D = fb.diameter, grow = Math.min(1, Math.pow(t / (T * 0.2), 0.45)), R = (D / 2) * (0.25 + 0.75 * grow);
+  // buoyant rise: the ball's centre lifts from about R off the ground at about 0.3 √(g D)
+  const rise = R + Math.max(0, t - T * 0.12) * 0.55 * Math.sqrt(9.81 * D), burn = Math.min(1, t / T);
+  const sceneH = D * 1.9, mpp = sceneH / (h * 0.9), yBase = h * 0.92, x0 = -w / 2 * mpp;
+  const out = createRaster(w, h);
+  const Thot = 2200 - 1150 * Math.pow(burn, 0.8), eddy = R * 0.35, steps = 40;
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const X = x0 + (i + 0.5) * mpp, Y = (yBase - j - 0.5) * mpp, k0 = j * w + i;
+    let c: [number, number, number] = [0.02, 0.025, 0.035];
+    if (Y < 0) { const gl = Math.min(2, 0.6 * (1 - burn) * Math.exp(-(X * X) / (D * D))); c = [0.05 + gl * 0.9, 0.04 + gl * 0.5, 0.03 + gl * 0.2]; }
+    else {
+      const half = R * 1.25, dz = (2 * half) / steps;
+      let tr = 1, er = 0, eg = 0, eb = 0;
+      for (let st = 0; st < steps && tr > 0.004; st++) {
+        const Z = -half + (st + 0.5) * dz, dy = Y - rise, k = 1 / eddy, yt = Y - t * Math.sqrt(9.81 * D) * 0.25;
+        const n1 = fbm3(seed, X * k, yt * k, Z * k, 4), r = Math.hypot(X, dy * 1.1, Z) / R + 0.35 * n1;
+        // the stem: a narrower column from the ground up into the ball as it rises
+        const stem = Math.hypot(X, Z) / (R * 0.35 + 0.05 * Y) + 0.4 * n1;
+        const inBall = 1 - r, inStem = Y < rise ? 1 - stem : -1;
+        const d = Math.max(inBall, inStem * 0.8);
+        if (d <= 0) continue;
+        // hot, burning gas inside; soot toward the outside and later in the burn
+        const core = Math.min(1, d * 2.2), Tg = 900 + (Thot - 900) * core * (0.85 + 0.15 * fbm3(seed + 3, X * k * 2, yt * k * 2, Z * k * 2, 2));
+        const soot = Math.min(1, (1 - core) * 0.9 + burn * burn * 0.9);
+        const bb = blackbodyRGB(Tg), rad = blackbodyRadiance(Tg) * (16 / R) * (1 - soot * 0.75) * d;
+        er += tr * bb[0] * rad * dz; eg += tr * bb[1] * rad * dz; eb += tr * bb[2] * rad * dz;
+        tr *= Math.exp(-soot * dz / R * 3.2);
+      }
+      c = [c[0] * tr + er, c[1] * tr + eg, c[2] * tr + eb];
+    }
+    out.rgb[k0 * 3] = c[0]; out.rgb[k0 * 3 + 1] = c[1]; out.rgb[k0 * 3 + 2] = c[2]; out.alpha[k0] = 1;
+  }
+  const fin = downsample(out, SS), rgba = encodeSrgb(fin, { toneMap: "filmic", exposure: 0.9, white: 6 });
+  return { width: W, height: H, rgba, ms: (typeof performance !== "undefined" ? performance.now() : Date.now()) - t0, flameHeight: D, flickerHz: 1 / T };
+}
 
 export function renderFire(o: FireRenderOptions = {}): FireRender {
   const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();

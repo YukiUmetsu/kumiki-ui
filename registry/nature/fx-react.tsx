@@ -10,17 +10,17 @@ import { FIRELIGHT, FIRES, FLAME_TEMPERATURES, SMOKE, SPARKS, blackbodyRGB, fire
 import type { FireRenderOptions } from "./fx-render";
 import { FX_RENDER_POOL } from "./fx-render-pool";
 
-export interface FireViewProps { options: FireRenderOptions; seconds?: number; fps?: number; label: string }
+export interface FireViewProps { options: FireRenderOptions & { mass?: number }; seconds?: number; fps?: number; label: string; /** Render a fireball (`renderFireball`, `options.mass` kg) instead of a fire. */ fireball?: boolean }
 /** A fire, `seconds` long at `fps`, rendered in workers (cached) then looped. Reduced motion: the first frame and Play. */
-export function FireView({ options, seconds = 2, fps = 12, label }: FireViewProps) {
+export function FireView({ options, seconds = 2, fps = 12, label, fireball: isBall = false }: FireViewProps) {
   const canvas = useRef<HTMLCanvasElement>(null), n = Math.max(2, Math.round(seconds * fps)), W = options.width ?? 320, H = options.height ?? 300;
   const [frames, setFrames] = useState<ImageData[]>([]), [done, setDone] = useState(0), [playing, setPlaying] = useState(() => !(typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches));
-  const key = JSON.stringify([options, seconds, fps]);
+  const key = JSON.stringify([options, seconds, fps, isBall]);
   useEffect(() => {
     let live = true, count = 0;
     const ac = new AbortController(), out: (ImageData | undefined)[] = new Array(n).fill(undefined);
     setFrames([]); setDone(0);
-    for (let k = 0; k < n; k++) void requestRender({ pool: FX_RENDER_POOL, kind: "fire", args: { ...options, t: (options.t ?? 0) + k / fps, supersample: options.supersample ?? 1 }, priority: 1 + k / n, signal: ac.signal })
+    for (let k = 0; k < n; k++) void requestRender({ pool: FX_RENDER_POOL, kind: isBall ? "fireball" : "fire", args: { ...options, t: (options.t ?? 0) + k / fps, supersample: options.supersample ?? 1 }, priority: 1 + k / n, signal: ac.signal })
       .then(r => { if (!live) return; out[k] = new ImageData(new Uint8ClampedArray(r.rgba), r.width, r.height); count++; setDone(count); if (k === 0) canvas.current?.getContext("2d")?.putImageData(out[0]!, 0, 0); if (count === n) setFrames(out as ImageData[]); }, () => {});
     return () => { live = false; ac.abort(); };
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
