@@ -18,6 +18,7 @@ function RebuildAtelier(){
   const [emotion,setEmotion]=useState<InkPortraitEmotion>("neutral");
   const [intensity,setIntensity]=useState(.85);
   const [detail,setDetail]=useState(1);
+  const [headScale,setHeadScale]=useState(.48);
   const [view,setView]=useState<InkPortraitView>("bust");
   const study=inkPortraitAnatomy(character,emotion,intensity);
   return <main style={inkPage}>
@@ -52,6 +53,11 @@ function RebuildAtelier(){
           <option value="robe">Native robe and sleeve microscope</option>
         </select>
       </label>
+      <label style={field}>Head-to-silk anatomy ratio · {headScale.toFixed(2)}
+        <input aria-label="Ink rebuilt head scale" type="range"
+          min=".38" max=".75" step=".01" value={headScale}
+          onChange={e=>setHeadScale(Number(e.target.value))}/>
+      </label>
       <label style={field}>EXPR1 intensity · {Math.round(intensity*100)}%
         <input aria-label="Ink rebuilt expression intensity" type="range"
           min="0" max="1" step=".05" value={intensity}
@@ -67,7 +73,7 @@ function RebuildAtelier(){
       alignItems:"start",gap:24,maxWidth:1120}}>
       <div data-testid="ink-anat2-live" style={framed}>
         <InkAnatomicalPortrait character={character} emotion={emotion}
-          intensity={intensity} detail={detail} view={view}/>
+          intensity={intensity} detail={detail} view={view} headScale={headScale}/>
       </div>
       <div style={{display:"grid",gap:14}}>
         <div style={{...framed,padding:16}}>
@@ -190,6 +196,7 @@ function HistoricalSourceDesk(){
   const [character,setCharacter]=useState<InkPortraitCharacter>("scholar");
   const [emotion,setEmotion]=useState<InkPortraitEmotion>("neutral");
   const [view,setView]=useState<InkPortraitView>("face");
+  const [headScale,setHeadScale]=useState(.48);
   const [zoom,setZoom]=useState(1);
   const [panX,setPanX]=useState(0);
   const [panY,setPanY]=useState(0);
@@ -216,8 +223,10 @@ function HistoricalSourceDesk(){
       comparison. No photograph is embedded or transmitted by this story.
     </p>;
   const drawing=<InkAnatomicalPortrait character={character} emotion={emotion}
-    view={view} detail={1} intensity={.9}/>;
-  const panel={...framed,aspectRatio:view==="face"?"345 / 419":view==="robe"?"430 / 202":"540 / 525",
+    view={view} detail={1} intensity={.9} headScale={headScale}/>;
+  const bustHeight=620-(420+(95-420)*headScale/.69);
+  const panel={...framed,aspectRatio:view==="face"?"345 / 419":
+    view==="robe"?"430 / 202":"540 / "+bustHeight.toFixed(2),
     width:"min(100%,470px)",position:"relative",overflow:"hidden",
     display:"grid",placeItems:"center"} as const;
   return <main data-testid="ink-anat2-historical-source-desk" style={inkPage}>
@@ -257,6 +266,11 @@ function HistoricalSourceDesk(){
           <option value="face">Native face microscope</option>
           <option value="robe">Native robe and sleeves</option>
         </select>
+      </label>
+      <label style={field}>ANAT2 head/robe proportion · {headScale.toFixed(2)}
+        <input type="range" aria-label="Ink source head proportion"
+          min=".38" max=".75" step=".01" value={headScale}
+          onChange={e=>setHeadScale(Number(e.target.value))}/>
       </label>
       <label style={field}>Reference zoom · {zoom.toFixed(2)}×
         <input aria-label="Ink original source zoom" type="range" min="1" max="4"
