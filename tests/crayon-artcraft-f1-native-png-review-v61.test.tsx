@@ -160,7 +160,7 @@ describe("Crayon ArtCraft V61 exact native PNG review",()=>{
     fireEvent.change(screen.getByLabelText("Matching V60 capture manifest JSON"),{
       target:{files:[json]},
     });
-    await waitFor(()=>expect(screen.getByText(/verified native screenshot bytes/i)).toBeTruthy());
+    await waitFor(()=>expect(screen.getByText(/verified native candidate bytes/i)).toBeTruthy());
     expect(screen.getByAltText("Verified CC0 original source photo")).toBeTruthy();
     expect(screen.getByAltText("Verified native crayon candidate screenshot")).toBeTruthy();
     expect(screen.getByText(/0\/18 candidate pixel observations/)).toBeTruthy();
