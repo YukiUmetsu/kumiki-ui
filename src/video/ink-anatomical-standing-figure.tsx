@@ -50,10 +50,10 @@ function lowerRobeInkSpec(character:InkPortraitCharacter):InkBrushSpec {
         points:[pt(311,570,.07,1.7),pt(298,714,.9,.59),pt(306,883,.48,.94),pt(319,1013,.02,2)]},
       {id:"right-bias-fold",width:4.25,load:.74,dryness:.59,tone:1,startFrame:0,durationFrames:1,
         points:[pt(369,559,.06,1.9),pt(365,704,.82,.62),pt(390,877,.60,1.12),pt(394,1009,.03,2.1)]},
-      {id:"hanging-sleeve-dry-release",width:5.1,load:.57,dryness:.89,tone:1,startFrame:0,durationFrames:1,
-        points:[pt(437,501,.05,1.7),pt(468,625,.85,.65),pt(447,727+adjust,.55,1.15),pt(417,762+adjust,.03,2.2)]},
-      {id:"bamboo-hand-sleeve",width:3.15,load:.62,dryness:.70,tone:1,startFrame:0,durationFrames:1,
-        points:[pt(142,487,.07,1.8),pt(111,561,.77,.74),pt(126,620,.37,1.3),pt(151,642,.03,2.1)]},
+      {id:"hanging-sleeve-dry-release",width:4.1,load:.57,dryness:.89,tone:1,startFrame:0,durationFrames:1,
+        points:[pt(354,472,.05,1.7),pt(390,565,.85,.65),pt(385,646+adjust,.55,1.15),pt(360,680+adjust,.03,2.2)]},
+      {id:"bamboo-hand-sleeve",width:2.75,load:.62,dryness:.70,tone:1,startFrame:0,durationFrames:1,
+        points:[pt(178,477,.07,1.8),pt(145,546,.77,.74),pt(149,607,.37,1.3),pt(178,650,.03,2.1)]},
     ],
   };
 }
