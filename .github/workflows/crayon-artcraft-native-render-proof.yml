@@ -36,6 +36,7 @@ on:
       - src/video/crayon-artcraft-f1-anat1-palpebral-v53.ts
       - src/video/crayon-artcraft-f1-anat1-superior-tarsus-v54.ts
       - src/video/crayon-artcraft-f1-anat1-outer-hair-v56.ts
+      - src/video/crayon-artcraft-f1-anat1-photo-hair-edge-v57.ts
       - tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
       - registry/anatomy/anatomy-face.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
@@ -81,7 +82,7 @@ jobs:
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
           tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
-          --grep "F1 V52|F1 V54|F1 V55|F1 V56"
+          --grep "F1 V52|F1 V54|F1 V55|F1 V56|F1 V57|F1 V58"
       - name: Capture full source-native archive and original-photo QA (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-
