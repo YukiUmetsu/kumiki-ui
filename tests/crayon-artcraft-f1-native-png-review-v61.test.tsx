@@ -62,7 +62,7 @@ describe("Crayon ArtCraft V61 exact native PNG review",()=>{
   it("reads PNG dimensions and computes the actual byte SHA-256",async()=>{
     const bytes=nativePng();
     expect(crayonF1NativePngDimensionsV61(new Uint8Array(bytes))).toEqual([608,1082]);
-    expect(await crayonF1NativePngSha256V61(asArrayBuffer(bytes),webcrypto))
+    expect(await crayonF1NativePngSha256V61(asArrayBuffer(bytes),webcrypto as unknown as Crypto))
       .toBe(await sha256(bytes));
     expect(()=>crayonF1NativePngDimensionsV61(new Uint8Array(nativePng(540,960))))
       .toThrow(RangeError);
