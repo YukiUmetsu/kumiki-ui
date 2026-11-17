@@ -681,7 +681,12 @@ function ReaderExpressionLab(){
     "translate("+pivot.join(" ")+") rotate("+(offset.rotation??0)+") "+
     "scale("+(offset.scaleX??1)+" "+(offset.scaleY??1)+") "+
     "translate("+(-pivot[0])+" "+(-pivot[1])+")";
-  const faceCamera=()=>{
+  // Match every close-up to the actual film's head rest transform.
+  // A raw source-space viewBox can silently crop out the irises or cap.
+  // This shared projector gives face, near and far orbital studies the
+  // same rotation, anisotropic scale, and 139,124 native rig pivot.
+  const fittedCamera=(x0:number,y0:number,x1:number,y1:number,
+    marginX=3.5,marginY=4)=>{
     const angle=(fit.headRest.rotation??0)*Math.PI/180;
     const cs=Math.cos(angle),sn=Math.sin(angle);
     const sx=fit.headRest.scaleX??1,sy=fit.headRest.scaleY??1;
@@ -690,14 +695,15 @@ function ReaderExpressionLab(){
       return [139+(fit.headRest.x??0)+cs*dx-sn*dy,
         124+(fit.headRest.y??0)+sn*dx+cs*dy];
     };
-    const pts=[project(108,87),project(169,87),
-      project(108,143),project(169,143)];
+    const pts=[project(x0,y0),project(x1,y0),
+      project(x0,y1),project(x1,y1)];
     const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
-    const x=Math.min(...xs)-3.5,y=Math.min(...ys)-4;
-    return [x,y,Math.max(...xs)-Math.min(...xs)+7,
-      Math.max(...ys)-Math.min(...ys)+8]
+    const x=Math.min(...xs)-marginX,y=Math.min(...ys)-marginY;
+    return [x,y,Math.max(...xs)-Math.min(...xs)+marginX*2,
+      Math.max(...ys)-Math.min(...ys)+marginY*2]
       .map(v=>Number(v.toFixed(3))).join(" ");
   };
+  const faceCamera=()=>fittedCamera(108,87,169,143);
   const cueWeight=readerInkCueWeight(cueFrame);
   const main=inkReaderCueFrame(emotion,intensity,cueFrame,detail);
   const brush=(study:ReaderInkExpressionStudy,eyes:ReaderInkLids,
@@ -873,6 +879,45 @@ function ReaderExpressionLab(){
         </svg>
       </section>
     </div>
+    <section data-testid="reader-expr1-iris-microscope"
+      aria-label="Native ANAT1 individual iris and upper-lid closeups"
+      style={{maxWidth:1050,marginTop:22}}>
+      <h2 style={{font:"500 21px Georgia,serif"}}>
+        Native ANAT1 iris / eyelid microscopy · separate near and far orbits
+      </h2>
+      <p style={{fontSize:12,maxWidth:900,color:"#715b46"}}>
+        Original ink, not a detached icon: each iris remains source-painted,
+        bounded by its unequal open/soft-lid aperture and linked to its own
+        gaze rig. The limbal dry-brush strokes remain inside each iris,
+        never becoming a second dark pupil. Blink and gaze controls above
+        also apply here at the same frame.
+      </p>
+      <div style={{display:"grid",gap:14,
+        gridTemplateColumns:"repeat(auto-fit,minmax(255px,1fr))"}}>
+        <figure style={{margin:0}}>
+          <svg data-testid="reader-expr1-iris-near" role="img"
+            aria-label="ANAT1 original near eye with iris ink-rim and occluding eyelid"
+            viewBox={fittedCamera(116,99,139,111,1.3,1.3)}
+            style={{display:"block",width:"100%",height:235,background:"#f7eedc"}}>
+            {brush(main,eyes,mouth,"iris-near")}
+          </svg>
+          <figcaption style={{fontSize:12,marginTop:5}}>
+            Near orbit · larger source eye, stronger lid/iris contact
+          </figcaption>
+        </figure>
+        <figure style={{margin:0}}>
+          <svg data-testid="reader-expr1-iris-far" role="img"
+            aria-label="ANAT1 original foreshortened far eye with iris ink-rim and occluding eyelid"
+            viewBox={fittedCamera(146,99,168,110,1.3,1.3)}
+            style={{display:"block",width:"100%",height:235,background:"#f7eedc"}}>
+            {brush(main,eyes,mouth,"iris-far")}
+          </svg>
+          <figcaption style={{fontSize:12,marginTop:5}}>
+            Far orbit · narrower perspective, lighter secondary limbus
+          </figcaption>
+        </figure>
+      </div>
+    </section>
     <h2 style={{font:"500 21px Georgia,serif",marginTop:24}}>
       Action-unit motion keyframes · same face and lighting
     </h2>
