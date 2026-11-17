@@ -403,7 +403,7 @@ function ReaderFaceStudio(){
       </section>
       <section data-testid="reader-ink-glaze-comparison">
         <h2 style={{font:"500 18px Georgia,serif"}}>
-          ArtCraft · Ming portrait orbital and cheek glaze proof
+          ArtCraft · Ming portrait temporal, orbital and cheek glaze proof
         </h2>
         <p style={{fontSize:12,lineHeight:1.5,color:"#715d48"}}>
           Two views of the SAME source-fitted ANAT1 portrait. Original
@@ -446,6 +446,53 @@ function ReaderFaceStudio(){
                 "Original · preserved source planes"}
             </figcaption>
           </figure>)}
+        </div>
+      </section>
+      <section data-testid="reader-ink-frontal-relief-microscope"
+        style={{gridColumn:"1 / -1"}}>
+        <h2 style={{font:"500 18px Georgia,serif"}}>
+          ArtCraft · source-fitted forehead and temporal ink-bone relief
+        </h2>
+        <p style={{fontSize:12,lineHeight:1.6,color:"#715d48",maxWidth:980}}>
+          Near frontal eminence and foreshortened far temple in two
+          separate native film-source windows. The darkened frontal
+          turning volume remains translucent, and the curved brow
+          highlight stays as quiet paper: it is not a smooth airbrush,
+          flat peach rectangle, stamped crease or mirrored mask.
+          The production head, cap, eyes and source rig are unchanged.
+        </p>
+        <div style={{display:"grid",gap:12,
+          gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))"}}>
+          {([
+            {id:"orbital-near",label:"Near temple · frontal convexity",
+              bounds:[112,73,146,111]},
+            {id:"orbital-far",label:"Far temple · receding frontal turn",
+              bounds:[144,75,170,111]},
+          ] as const).map(({id,label,bounds})=>
+            <figure key={id} data-km-ink-frontal-micro={id}
+              style={{margin:0,padding:10,background:"#f7eedc",
+                border:"1px solid #cdb899",minWidth:0}}>
+              <svg role="img"
+                aria-label={"Original reader "+label}
+                data-km-ink-frontal-camera={id}
+                viewBox={fittedFaceWindow(bounds,3,2)}
+                style={{display:"block",width:"100%",height:280,
+                  background:"#f7eedc"}}>
+                <g transform={pose(fit.headRest,139,124)}>
+                  <g data-km-ink-frontal-face="">{shapes("face")}</g>
+                  {facePart("hair","hair",[140,74])}
+                  {facePart("brows","brow",[140,94])}
+                  {facePart("eyes","eyes-"+eyes,[140,102])}
+                  {eyes!=="closed"&&<>
+                    {facePart("pupil-left","pupil-left",[128,102])}
+                    {facePart("pupil-right","pupil-right",[156,102])}
+                  </>}
+                </g>
+              </svg>
+              <figcaption style={{fontSize:12,color:"#715d48",marginTop:8}}>
+                {label} · {glazes[id].length} native wet and paper passes
+              </figcaption>
+            </figure>)}
         </div>
       </section>
       <section data-testid="reader-ink-malar-nose-microscope"
