@@ -1,7 +1,7 @@
 {
  "schema": "kumiki.anatomy.references/1",
  "acquiredOn": "2026-11-15",
- "note": "Public-domain or CC0 files from Wikimedia Commons, licence read per file from the Commons API; downscaled to 1400 px.",
+ "note": "Public-domain or CC0 files from Wikimedia Commons, licence read per file from the Commons API; downscaled to 1400 px; eye photographs downscaled to 900 px.",
  "references": [
   {
    "id": "proportions-richer-canon",
@@ -490,6 +490,383 @@
    "height": 806,
    "sha256": "ef8c000ed37a21ebd4f38c8fe5efa59f0e8c311f332bfb8ca390112bcce458ad",
    "bytes": 174489
+  },
+  {
+   "id": "eye-green",
+   "file": "assets/photos/anatomy-references/eye-green.jpg",
+   "region": "eyes",
+   "title": "A green iris and an almond opening.",
+   "study": [
+    "A golden-brown zone round the pupil runs out along the fibres into yellow-green (central heterochromia).",
+    "The dark limbal ring; the crease about 7–8 mm above the lashes.",
+    "Measured zones: pupillary #5c624c, middle #7a7e5d, outer #74794d (IRIS_TYPES green)."
+   ],
+   "source": {
+    "title": "File:GreenEye3.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:GreenEye3.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/4/42/GreenEye3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Skitterphoto",
+    "credit": "https://pixabay.com/photos/eye-iris-look-focus-green-1132531/",
+    "date": "2016-01-02"
+   }
+  },
+  {
+   "id": "eye-pupil-blue",
+   "file": "assets/photos/anatomy-references/eye-pupil-blue.jpg",
+   "region": "eyes",
+   "title": "A hazel-green iris and a round opening.",
+   "study": [
+    "The golden-brown pupillary zone (#533d1f) against a grey-green ciliary zone (#746e68).",
+    "White shows below the iris: a round eye's lower lid curves down."
+   ],
+   "source": {
+    "title": "File:030608 Pupil.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:030608_Pupil.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/09/030608_Pupil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Ylem",
+    "credit": "Own work",
+    "date": "2008-03-06"
+   }
+  },
+  {
+   "id": "eye-brown",
+   "file": "assets/photos/anatomy-references/eye-brown.jpg",
+   "region": "eyes",
+   "title": "A chestnut-brown iris.",
+   "study": [
+    "Red-brown stroma (L* 29–35, a* +29 to +32), radial fibres a little lighter.",
+    "The dark pupillary ruff at the pupil's edge."
+   ],
+   "source": {
+    "title": "File:A human male brown eye.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:A_human_male_brown_eye.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/3e/A_human_male_brown_eye.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Bobbyphotographer",
+    "credit": "Own work",
+    "date": "2025-06-05 23:09:09"
+   }
+  },
+  {
+   "id": "eye-amber",
+   "file": "assets/photos/anatomy-references/eye-amber.jpg",
+   "region": "eyes",
+   "title": "A copper-amber iris.",
+   "study": [
+    "Golden-copper fibres (b* about +30) and a dark limbal ring.",
+    "Crypts as dark lozenges round the collarette."
+   ],
+   "source": {
+    "title": "File:AmberEye.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:AmberEye.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/85/AmberEye.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Samb7293",
+    "credit": "https://pt.m.wikipedia.org/wiki/Ficheiro:Light_brown_amber_eye.JPG",
+    "date": "2014-02-10"
+   }
+  },
+  {
+   "id": "eye-grey",
+   "file": "assets/photos/anatomy-references/eye-grey.jpg",
+   "region": "eyes",
+   "title": "A grey iris in a round, open eye.",
+   "study": [
+    "White fibres over a neutral grey; a crisp dark limbal ring.",
+    "A high crease and a full upper lid."
+   ],
+   "source": {
+    "title": "File:Grey eye G5wCD.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Grey_eye_G5wCD.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Grey_eye_G5wCD.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Nether Animal",
+    "credit": "Own work",
+    "date": "2010-02-13 05:30:02"
+   }
+  },
+  {
+   "id": "eye-blue-grey",
+   "file": "assets/photos/anatomy-references/eye-blue-grey.jpg",
+   "region": "eyes",
+   "title": "A blue-grey iris close up.",
+   "study": [
+    "White radial fibres and contraction furrows; a brown ruff at the pupil.",
+    "The limbal ring darker than the stroma."
+   ],
+   "source": {
+    "title": "File:Mybluishgrayeye.JPG",
+    "page": "https://commons.wikimedia.org/wiki/File:Mybluishgrayeye.JPG",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Mybluishgrayeye.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "en:user:Nick4gwen",
+    "credit": "en.wiki",
+    "date": "Unknown date"
+   }
+  },
+  {
+   "id": "eye-chartreuse",
+   "file": "assets/photos/anatomy-references/eye-chartreuse.jpg",
+   "region": "eyes",
+   "title": "A yellow-green iris.",
+   "study": [
+    "A yellow-olive centre (b* +15) and a dark limbal ring (#47433a)."
+   ],
+   "source": {
+    "title": "File:Chartreuse eye color (human).jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Chartreuse_eye_color_(human).jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/2/22/Chartreuse_eye_color_%28human%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Squeaks 41",
+    "credit": "Own work",
+    "date": "2026-02-08 01:29:44"
+   }
+  },
+  {
+   "id": "eye-central-het",
+   "file": "assets/photos/anatomy-references/eye-central-het.jpg",
+   "region": "eyes",
+   "title": "Green irises with brown centres; hooded upper lids.",
+   "study": [
+    "The fold of skin above the crease hangs over it and hides most of the lid (EYE_SHAPES hooded).",
+    "The brown centre fades out along the fibres."
+   ],
+   "source": {
+    "title": "File:Green eyes with brown central heterochromia.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Green_eyes_with_brown_central_heterochromia.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/7/77/Green_eyes_with_brown_central_heterochromia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Hasa59",
+    "credit": "Own work",
+    "date": "2024-03-24"
+   }
+  },
+  {
+   "id": "eye-epicanthic-01",
+   "file": "assets/photos/anatomy-references/eye-epicanthic-01.jpg",
+   "region": "eyes",
+   "title": "A single (mono) lid close up.",
+   "study": [
+    "No crease: the lid is smooth from the brow to the lashes, which point down and show little.",
+    "An epicanthal fold covers the inner corner (EYE_SHAPES monolid)."
+   ],
+   "source": {
+    "title": "File:Epicanthic KR01.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Epicanthic_KR01.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/3b/Epicanthic_KR01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Sarang",
+    "credit": "Own work",
+    "date": "2009-07-26"
+   }
+  },
+  {
+   "id": "eye-epicanthic-08",
+   "file": "assets/photos/anatomy-references/eye-epicanthic-08.jpg",
+   "region": "eyes",
+   "title": "In-fold double lids.",
+   "study": [
+    "A low crease that starts at the epicanthal fold at the inner corner and runs out to the outer corner (EYE_SHAPES inner-double).",
+    "An upward canthal tilt."
+   ],
+   "source": {
+    "title": "File:Epicanthic KR08.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Epicanthic_KR08.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/9/9d/Epicanthic_KR08.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "Public domain",
+    "artist": "Sarang",
+    "credit": "Own work",
+    "date": "2009-12-13"
+   }
+  },
+  {
+   "id": "eye-epicanthic-cc0",
+   "file": "assets/photos/anatomy-references/eye-epicanthic-cc0.jpg",
+   "region": "eyes",
+   "title": "An epicanthal fold over the inner corner.",
+   "study": [
+    "The fold covers the caruncle; a low double-lid crease above."
+   ],
+   "source": {
+    "title": "File:Epicanthic Fold.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Epicanthic_Fold.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/3/33/Epicanthic_Fold.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "RebeccaLi292",
+    "credit": "Own work",
+    "date": "1/1/25"
+   }
+  },
+  {
+   "id": "skin-closeup",
+   "file": "assets/photos/anatomy-references/skin-closeup.jpg",
+   "region": "skin",
+   "title": "Young skin close up under a raking light.",
+   "study": [
+    "Primary furrows crossing in three directions into triangles and rhombi, finer secondary lines between them (SKIN_REGIONS: three primary families, three secondary).",
+    "Each plateau is a little domed and catches the light; a fine vellus hair lies along the skin."
+   ],
+   "source": {
+    "title": "File:Human skin close-up.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Human_skin_close-up.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Human_skin_close-up.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Montavius Howard (TongCreator), from Pixabay",
+    "credit": "Pixabay archive copy at the Wayback Machine",
+    "date": "2017-01-18 22:11:18"
+   }
+  },
+  {
+   "id": "skin-hand-macro",
+   "file": "assets/photos/anatomy-references/skin-hand-macro.jpg",
+   "region": "skin",
+   "title": "The back of a hand at macro scale.",
+   "study": [
+    "A coarser, deeper network than the face's, crossed by folds over the bones and tendons.",
+    "A glossy sheen on the plateaus."
+   ],
+   "source": {
+    "title": "File:Hand skin closeup.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Hand_skin_closeup.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Hand_skin_closeup.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Clump",
+    "credit": "Own work",
+    "date": "2020-12-06"
+   }
+  },
+  {
+   "id": "skin-old",
+   "file": "assets/photos/anatomy-references/skin-old.jpg",
+   "region": "skin",
+   "title": "Old skin: deep furrows and crêpe.",
+   "study": [
+    "With age the primary furrows deepen and widen while the secondary lines thin out (reported in replica studies): the network becomes coarse cushions.",
+    "Larger folds cross the network."
+   ],
+   "source": {
+    "title": "File:OldSkin.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:OldSkin.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/07/OldSkin.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "https://commons.wikimedia.org/wiki/User:F%C3%A6",
+    "credit": "https://www.flickr.com/photos/cogdog/5227755871/",
+    "date": "2023-06-10"
+   }
+  },
+  {
+   "id": "skin-freckles",
+   "file": "assets/photos/anatomy-references/skin-freckles.jpg",
+   "region": "skin",
+   "title": "Freckles across the nose and cheeks.",
+   "study": [
+    "Many small irregular tan spots of uneven strength, densest across the cheekbones and the nose where the sun falls (frecklesAt).",
+    "Pores show on the nose."
+   ],
+   "source": {
+    "title": "File:Freckles on dutch girl face (Unsplash).jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Freckles_on_dutch_girl_face_(Unsplash).jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/64/Freckles_on_dutch_girl_face_%28Unsplash%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Lotte Meijer lottemeijer",
+    "credit": "https://unsplash.com/photos/bZxvkmfoVDY\n\narchive copy at the Wayback Machine",
+    "date": "2016-09-13"
+   }
+  },
+  {
+   "id": "skin-old-hand",
+   "file": "assets/photos/anatomy-references/skin-old-hand.jpg",
+   "region": "skin",
+   "title": "An old hand.",
+   "study": [
+    "Knuckle folds, raised veins and the crêpe of thin skin over the back of the hand.",
+    "Wrinkles concentric over the finger joints (SKIN_REGIONS knuckle)."
+   ],
+   "source": {
+    "title": "File:Hand-351277.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Hand-351277.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/88/Hand-351277.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Witizia (original picture), modification: Mielon",
+    "credit": "http://pixabay.com/en/hand-elderly-woman-wrinkles-351277/",
+    "date": "2014-02-01 13:46:19"
+   }
+  },
+  {
+   "id": "hand-baby-adult",
+   "file": "assets/photos/anatomy-references/hand-baby-adult.jpg",
+   "region": "hand",
+   "title": "A baby's hand gripping an adult's finger.",
+   "study": [
+    "A baby's hand: short plump fingers, deep creases at the wrist and knuckles, tiny round nails (HAND_TYPES toddler, child).",
+    "Against it, an adult's: longer fingers, visible knuckle folds."
+   ],
+   "source": {
+    "title": "File:Baby-Parenthood-Finger-Father-Hand-Love-Mother-1271742.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Baby-Parenthood-Finger-Father-Hand-Love-Mother-1271742.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Baby-Parenthood-Finger-Father-Hand-Love-Mother-1271742.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "trestletech from Pixabay",
+    "credit": "https://pixabay.com/photos/baby-parenthood-hand-finger-mother-1271742/",
+    "date": "2016-03-03"
+   }
+  },
+  {
+   "id": "hand-nails",
+   "file": "assets/photos/anatomy-references/hand-nails.jpg",
+   "region": "hand",
+   "title": "A woman's hand with painted nails (1950s).",
+   "study": [
+    "Long tapering fingers; oval nails with a free edge (HAND_TYPES woman-slender; nail shapes).",
+    "The fingers converge a little when held together."
+   ],
+   "source": {
+    "title": "File:Handen, nagels, Bestanddeelnr 919-7546.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Handen,_nagels,_Bestanddeelnr_919-7546.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/60/Handen%2C_nagels%2C_Bestanddeelnr_919-7546.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Anefo",
+    "credit": "http://proxy.handle.net/10648/ab03d186-d0b4-102d-bcf8-003048976d84",
+    "date": "1966-11-04"
+   }
+  },
+  {
+   "id": "hand-study-met",
+   "file": "assets/photos/anatomy-references/hand-study-met.jpg",
+   "region": "hand",
+   "title": "Federico Barocci, studies of hands (chalk).",
+   "study": [
+    "An artist's construction of hands in action: the thumb's mass, the finger pads, the cascade of curled fingers (HAND_GESTURES relaxed, pinch)."
+   ],
+   "source": {
+    "title": "File:Studies of a Man's Head and of His Hands MET DP800154.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Studies_of_a_Man%27s_Head_and_of_His_Hands_MET_DP800154.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Studies_of_a_Man%27s_Head_and_of_His_Hands_MET_DP800154.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Federico Barocci",
+    "credit": "This file was donated to Wikimedia Commons as part of a project by the Metropolitan Museum of Art. See the Image and Dat",
+    "date": "1592–99"
+   }
+  },
+  {
+   "id": "hand-washing",
+   "file": "assets/photos/anatomy-references/hand-washing.jpg",
+   "region": "hand",
+   "title": "An older man's hand.",
+   "study": [
+    "Veins and tendons on the back, big knuckles, spots (HAND_TYPES elder-man)."
+   ],
+   "source": {
+    "title": "File:Hand washing man.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Hand_washing_man.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/56/Hand_washing_man.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "MarkBuckawicki",
+    "credit": "Own work",
+    "date": "2020-07-02 11:47:23"
+   }
   }
  ]
 }

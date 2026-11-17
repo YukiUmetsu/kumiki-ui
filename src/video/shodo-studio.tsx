@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { SHODO_GLYPHS } from "../../registry/video/shodo/shodo-glyphs";
 import type { ShodoFormOptions } from "../../registry/video/shodo/shodo-glyphs";
 import { SHODO_KANJIVG_CREDIT, loadShodoGlyph } from "../../registry/video/shodo/shodo-glyph-source";
-import type { ShodoTeacher } from "../../registry/video/shodo/shodo-glyph-source";
+import { shodoTeacherFor, type ShodoTeacher } from "../../registry/video/shodo/shodo-glyph-source";
 import type { ShodoGlyph } from "../../registry/video/shodo/shodo-glyphs";
 import { planShodoWriting, shodoBrushPose } from "../../registry/video/shodo/shodo-hand";
 import { kenteiSheet } from "../../registry/video/shodo/shodo-paper";
@@ -20,20 +20,93 @@ const W = 1280, H = 720;
 export type ShodoGlyphMode = "teacher" | "kanjivg" | "bundled";
 
 /**
- * The teacher's fitted forms, when the owner keeps them in `local-assets/shodo-teachers/`
- * (served by Storybook only when the folder exists; never committed). Null otherwise.
+ * The teachers' fitted forms, when the owner keeps them in `local-assets/shodo-teachers/`
+ * (served by Storybook only when the folder exists; never committed): the files listed in
+ * `teachers.json`, in order of preference, or `teacher.json` alone. Empty otherwise.
  */
-export function useShodoTeacher(): ShodoTeacher | null {
-  const [teacher, setTeacher] = useState<ShodoTeacher | null>(null);
+export function useShodoTeachers(): readonly ShodoTeacher[] {
+  const [teachers, setTeachers] = useState<readonly ShodoTeacher[]>([]);
   useEffect(() => {
     let live = true;
-    fetch("/shodo-teachers/teacher.json")
-      .then(res => res.ok ? res.json() : null)
-      .then((data: ShodoTeacher | null) => { if (live && data && typeof data.label === "string" && data.glyphs) setTeacher(data); })
-      .catch(() => undefined);
+    const get = (name: string) => fetch("/shodo-teachers/" + name).then(res => res.ok ? res.json() : null).catch(() => null);
+    get("teachers.json")
+      .then((list: unknown) => Promise.all((Array.isArray(list) ? list.filter((n): n is string => typeof n === "string") : ["teacher.json"]).map(get)))
+      .then((found: (ShodoTeacher | null)[]) => {
+        if (live) setTeachers(found.filter((t): t is ShodoTeacher => !!t && typeof t.label === "string" && !!t.glyphs));
+      });
     return () => { live = false; };
   }, []);
-  return teacher;
+  return teachers;
+}
+
+type KanjiLevel = "N5" | "N4" | "N3" | "N2" | "N1";
+const KANJI_LEVELS: readonly KanjiLevel[] = ["N5", "N4", "N3", "N2", "N1"];
+
+/** One kanji of the owner's study-card data: its level and the props of its card. */
+export interface ShodoKanjiDatasetEntry {
+  char: string;
+  level?: KanjiLevel;
+  card: {
+    meanings?: string; onyomi?: string; kunyomi?: string; jlpt?: KanjiLevel;
+    words?: { word: string; ruby: string; romaji: string; meaning: string }[];
+  };
+}
+
+/** Where Storybook serves the owner's study-card data (from `local-assets/shodo-teachers/kanji-cards/`). */
+export const KANJI_DATASET_URL = "/shodo-teachers/kanji-cards/jlpt-n5-n3.json";
+
+/**
+ * Reads the study-card file `{ about, kanji: [{ char, jlpt, card: { meanings, onyomi, kunyomi,
+ * jlpt, words } }] }` into a map by character. Entries and fields of the wrong type are left out.
+ * Null when nothing usable is in the file.
+ */
+export function readKanjiCardDataset(json: unknown): ReadonlyMap<string, ShodoKanjiDatasetEntry> | null {
+  const list = json && typeof json === "object" ? (json as { kanji?: unknown }).kanji : undefined;
+  if (!Array.isArray(list)) return null;
+  const text = (v: unknown) => typeof v === "string" && v.trim() ? v : undefined;
+  const level = (v: unknown) => KANJI_LEVELS.find(l => l === v);
+  const out = new Map<string, ShodoKanjiDatasetEntry>();
+  for (const item of list as unknown[]) {
+    if (!item || typeof item !== "object") continue;
+    const e = item as { char?: unknown; jlpt?: unknown; card?: unknown };
+    if (typeof e.char !== "string" || !e.char || !e.card || typeof e.card !== "object") continue;
+    const c = e.card as Record<string, unknown>;
+    const words = Array.isArray(c.words) ? (c.words as unknown[]).flatMap(w => {
+      const x = w as Record<string, unknown> | null;
+      return x && ["word", "ruby", "romaji", "meaning"].every(k => typeof x[k] === "string")
+        ? [{ word: x.word as string, ruby: x.ruby as string, romaji: x.romaji as string, meaning: x.meaning as string }] : [];
+    }) : undefined;
+    out.set(e.char, {
+      char: e.char, level: level(e.jlpt),
+      card: { meanings: text(c.meanings), onyomi: text(c.onyomi), kunyomi: text(c.kunyomi), jlpt: level(c.jlpt), words: words?.length ? words : undefined },
+    });
+  }
+  return out.size ? out : null;
+}
+
+let kanjiDatasetLoad: Promise<ReadonlyMap<string, ShodoKanjiDatasetEntry> | null> | null = null;
+
+/**
+ * The owner's study-card data for the JLPT N5–N3 kanji, when it is kept in
+ * `local-assets/shodo-teachers/kanji-cards/jlpt-n5-n3.json` (served by Storybook only when the
+ * folder exists; never committed). Loaded once per page. Null while it loads, and on every
+ * other machine.
+ */
+export function useKanjiCardDataset(): ReadonlyMap<string, ShodoKanjiDatasetEntry> | null {
+  const [data, setData] = useState<ReadonlyMap<string, ShodoKanjiDatasetEntry> | null>(null);
+  useEffect(() => {
+    let live = true;
+    kanjiDatasetLoad ??= fetch(KANJI_DATASET_URL).then(res => res.ok ? res.json() : null).then(readKanjiCardDataset).catch(() => null);
+    kanjiDatasetLoad.then(d => { if (live) setData(d); }).catch(() => undefined);
+    return () => { live = false; };
+  }, []);
+  return data;
+}
+
+/** The labels of the teachers whose forms write these characters, for the credit line. */
+export function shodoTeacherLabels(chars: readonly string[], teachers: readonly ShodoTeacher[]): string[] {
+  const used = new Set(chars.map(c => shodoTeacherFor(c, teachers)).filter((t): t is ShodoTeacher => !!t));
+  return teachers.filter(t => used.has(t)).map(t => t.label);
 }
 
 /**
@@ -42,10 +115,10 @@ export function useShodoTeacher(): ShodoTeacher | null {
  * rules (any character); "bundled": the original offline set first. Falls back to a bundled
  * glyph when stroke data cannot be loaded.
  */
-export function useShodoGlyphs(chars: readonly string[], mode: ShodoGlyphMode, form: ShodoFormOptions = {}, teacher: ShodoTeacher | null = null) {
+export function useShodoGlyphs(chars: readonly string[], mode: ShodoGlyphMode, form: ShodoFormOptions = {}, teachers: readonly ShodoTeacher[] = []) {
   const [state, setState] = useState<{ key: string; glyphs: ShodoGlyph[]; error: string | null } | null>(null);
-  const taught = mode === "teacher" ? teacher : null;
-  const key = chars.join("") + "|" + mode + "|" + JSON.stringify(form) + "|" + (taught?.id ?? "");
+  const taught = mode === "teacher" ? teachers : [];
+  const key = chars.join("") + "|" + mode + "|" + JSON.stringify(form) + "|" + taught.map(t => t.id).join(",");
   useEffect(() => {
     let live = true;
     Promise.all(chars.map(c => loadShodoGlyph(c, { ...form, preferBundled: mode === "bundled", teacher: taught }).catch((e: unknown) => {
@@ -77,8 +150,9 @@ const PARAM_LABEL: Record<keyof ShodoTechniqueParams, string> = {
   tomePress: "press", tomeReach: "reach", tomeHold: "hold (s)", suiro: "垂露 scale",
   haneHold: "pause (s)", haneLength: "length", haneSpeed: "flick (s)",
   haraiLift: "lift starts", kenshinLift: "lift starts",
-  footPress: "foot press", footHold: "foot hold (s)", pullOut: "pull-out",
+  footPress: "foot press", footHold: "foot hold (s)", pullOut: "pull-out", footShare: "shortest pull-out",
   tenPress: "press", tenHold: "hold (s)",
+  musubiLift: "lift in loops",
 };
 
 const page: CSSProperties = {
@@ -159,15 +233,15 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
   const [grid, setGrid] = useState(true);
   const [guide, setGuide] = useState<"none" | "current" | "all">("current");
   const [showBrush, setShowBrush] = useState(true);
-  const teacher = useShodoTeacher();
+  const teachers = useShodoTeachers();
   const [chosenMode, setGlyphMode] = useState<ShodoGlyphMode | null>(null);
   // A teacher's forms are the default whenever they are available.
-  const glyphMode = chosenMode ?? (teacher ? "teacher" : "kanjivg");
+  const glyphMode = chosenMode ?? (teachers.length ? "teacher" : "kanjivg");
   const set = <K extends keyof ShodoStyle>(group: K, patch: Partial<ShodoStyle[K]>) =>
     setStyle(s => ({ ...s, [group]: { ...(s[group] as object), ...patch } }));
 
   const chars = [...text].filter(c => c.trim()).slice(0, 4);
-  const loaded = useShodoGlyphs(chars, glyphMode, {}, teacher);
+  const loaded = useShodoGlyphs(chars, glyphMode, {}, teachers);
   const glyphs = loaded?.glyphs ?? [];
   const loadError = loaded?.error ?? null;
   const paper = useMemo(() => {
@@ -223,13 +297,13 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
     <div style={{ display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center", fontSize: 12.5 }}>
       <label style={label}>Character shapes
         <select aria-label="Character shapes" value={glyphMode} onChange={e => setGlyphMode(e.target.value as ShodoGlyphMode)}>
-          {teacher ? <option value="teacher">Teacher's own forms (local)</option> : null}
+          {teachers.length ? <option value="teacher">Teacher's own forms (local)</option> : null}
           <option value="kanjivg">KanjiVG strokes and layout rules (any character)</option>
           <option value="bundled">Bundled originals (offline)</option>
         </select>
       </label>
       <span>
-        {glyphs.some(g => g.source === "teacher") && teacher ? <>{teacher.label}. </> : null}
+        {glyphMode === "teacher" ? shodoTeacherLabels(chars, teachers).map(l => <span key={l}>{l}. </span>) : null}
         {usesKanjiVg ? <>{SHODO_KANJIVG_CREDIT}. Credit KanjiVG in any film made from it.</> : null}
       </span>
     </div>
@@ -255,6 +329,8 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
         return <Slider key={key} name={`${basic.term} ${PARAM_LABEL[key]}`} value={style.technique[key]} min={min} max={max}
           step={(max - min) / 100} onChange={v => set("technique", { [key]: v } as Partial<ShodoTechniqueParams>)} />;
       }))}
+      <Slider name={`結び (かな) ${PARAM_LABEL.musubiLift}`} value={style.technique.musubiLift} min={SHODO_TECHNIQUE_RANGES.musubiLift[0]}
+        max={SHODO_TECHNIQUE_RANGES.musubiLift[1]} step={.01} onChange={v => set("technique", { musubiLift: v })} />
     </Group>
     <Group title="Ink · 墨">
       <label style={label}>Ink

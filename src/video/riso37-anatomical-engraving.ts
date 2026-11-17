@@ -1,5 +1,6 @@
 import type {RisoCharacterPart} from "../../registry/video/riso-character";
 import {RISO31_GEOMETRY} from "./riso31-finger-phalanges";
+import {riso46ThenarSource} from "./riso46-thenar-source";
 
 /**
  * RISO37 / ArtCraft v9 — native source-drawn cobalt incisions on vermilion
@@ -20,21 +21,54 @@ const digits:readonly Digit[]=["index","middle","ring","pinky"];
 /** The MCP arc is four *individual* soft crests following the staggered
  * metacarpal fan, leaving breathing space at actual valleys. Front vs back
  * curvature stays on the same existing palm-surface joint. */
+/**
+ * RISO50: replace four repeated smiling cartoon-knuckle arcs with actual
+ * asymmetrical dorsopalmar MCP ridge **planes**. The old 3.5-4.5-unit
+ * identical high arched curves read as eyebrows on a red mitten in exact
+ * 6.2x native Chromium, not four knuckles.
+ *
+ * Four independent source-authored oblique/tapered positive COBALT marks,
+ * left-to-right adjusted by proximal 2D metacarpal fan. This is still four
+ * *real* closed cobalt print contours, with extra Bézier details and distinct
+ * x/y landmark axes, not deleting prior micro-engraving or flattening.
+ */
+export const RISO50_MCP_PLANES={
+  courier:[
+    [-7.95,-5.25,4.18,0.54],
+    [-3.58,-1.66,4.73,-0.29],
+    [0.20,2.55,4.52,0.41],
+    [4.63,6.84,4.03,-0.25],
+  ],
+  "paper-artist":[
+    [-7.77,-5.12,4.14,0.48],
+    [-3.50,-1.61,4.66,-0.33],
+    [0.22,2.69,4.59,0.38],
+    [4.72,6.92,4.07,-0.30],
+  ],
+  reference:"Proko authentic MCP knuckle planes / hand side-pinch anatomy",
+} as const;
+
 function mcpContours(actor:Riso37Actor):string{
-  const back=actor==="courier";
-  const seeds=back
-    ?[[-7.8,-4.35,4.76,3.98],[-3.85,-.15,4.49,3.77],
-      [.3,3.9,4.36,3.83],[4.1,7.83,4.91,4.17]]
-    :[[-7.7,-4.35,4.82,4.15],[-3.85,-.15,4.52,3.94],
-      [.3,3.85,4.5,3.96],[4.05,7.77,4.97,4.34]];
-  return seeds.map(([x0,x1,y,crest],i)=>{
-    const n=(v:number)=>Number(v.toFixed(2));
-    const mid=(x0+x1)/2,step=i%2===0?.36:.28;
-    return `M${x0} ${y} C${n(x0+.9)} ${crest} ${n(mid-.9)} ${n(crest-.15)} ${n(mid)} ${n(crest+.15)}
-C${n(mid+.85)} ${n(crest+.25)} ${n(x1-.8)} ${n(y-.48)} ${x1} ${n(y+.08)}
-L${n(x1-.15)} ${n(y+.3)}
-C${n(x1-.65)} ${n(y-.14)} ${n(mid+.68)} ${n(crest+step+.34)} ${n(mid)} ${n(crest+step+.29)}
-C${n(mid-1.0)} ${n(crest+step+.07)} ${n(x0+.7)} ${n(y+.05)} ${n(x0+.05)} ${n(y+.27)} Z`;
+  const seeds=RISO50_MCP_PLANES[actor];
+  const n=(v:number)=>Number(v.toFixed(3));
+  return seeds.map(([x0,x1,y,slope],i)=>{
+    const span=x1-x0,up=i%2===0?-.32:.19,thickness=i%2===0?.30:.26;
+    // The ridge turns diagonally toward its own phalanx rather than
+    // a fixed symmetric rainbow peak. 3 + 3 original positive edge flow
+    // segments retain tactile tapered engraved source and paper-white void.
+    const top=[x0,y,x0+span*.18,y+up*.33,
+      x0+span*.40,y+slope*.27+up,
+      x0+span*.57,y+slope*.54+up*.65,
+      x0+span*.78,y+slope*.84+up*.34,
+      x1-span*.09,y+slope*.91,
+      x1,y+slope];
+    return `M${n(top[0])} ${n(top[1])}
+C${n(top[2])} ${n(top[3])} ${n(top[4])} ${n(top[5])} ${n(top[6])} ${n(top[7])}
+C${n(top[8])} ${n(top[9])} ${n(top[10])} ${n(top[11])} ${n(top[12])} ${n(top[13])}
+L${n(x1-span*.14)} ${n(y+slope+thickness)}
+C${n(x1-span*.28)} ${n(y+slope*.85+thickness)} ${n(x0+span*.69)} ${n(y+slope*.55+up*.53+thickness)} ${n(x0+span*.56)} ${n(y+slope*.47+up*.56+thickness)}
+C${n(x0+span*.39)} ${n(y+slope*.29+up+thickness)} ${n(x0+span*.17)} ${n(y+up*.35+thickness)} ${n(x0+span*.035)} ${n(y+thickness*.72)}
+Q${n(x0-span*.03)} ${n(y+thickness*.44)} ${n(x0)} ${n(y)} Z`;
   }).join("\n");
 }
 function wristContours(actor:Riso37Actor):string{
@@ -118,7 +152,9 @@ export function refineRiso37SourceEngraving(
   }
   if(name==="knuckle-arc")return {...part,d:mcpContours(actor),paint:"solid"};
   if(name==="wrist-crease")return {...part,d:wristContours(actor),paint:"screen",screenTone:"mid"};
-  if(name==="thenar-fold")return {...part,d:thenarContours(side,actor),paint:"screen",screenTone:"mid"};
+  if(name==="thenar-fold")return {...part,
+    d:thenarContours(side,actor)+"\n"+riso46ThenarSource(actor,side).blue,
+    paint:"screen",screenTone:"mid"};
   const folds=/^(index|middle|ring|pinky)-(joint-crease|dip-crease)$/.exec(name);
   if(folds){
     const digit=folds[1] as Digit;

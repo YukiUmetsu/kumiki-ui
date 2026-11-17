@@ -955,9 +955,7 @@ describe("UKIYO1 boats, boarding and riding a wave", () => {
     expect(travelAt(actions, 100).dist).toBeCloseTo(140, 3);
   });
   // 210 full SVG frames plus 7,200 wave samples exceed Vitest\'s 5 s
-  // shared runners sometimes need 20–40 seconds here (two consecutive
-  // exact-head CI timeouts occurred after 49 other files passed).
-  // Keep all 210 frames, 7200 wave samples and original assertions.
+  // default on shared CI runners; retain every frame and assertion.
   it("keeps the wave surface continuous and lifts a rider smoothly as the wave rises and breaks", () => {
     for (const frame of [0, 110, 125, 140]) {
       const c = { frame, wind: 0, seed: 3, progress: 1 };
@@ -1066,6 +1064,23 @@ describe("UKIYO1 Kaguya-hime", () => {
     const stalk = (progress: number) => JSON.stringify(drawMotif("takegiri", { rises: 1 }, { frame: 0, wind: 0, seed: 1, progress }));
     expect(stalk(0)).not.toContain("takegiri-girl");
     expect(stalk(1)).toContain("takegiri-girl");
+  });
+});
+
+describe("UKIYO1 young animals", () => {
+  it("grows a four-legged animal's young from ANIM1 (look.age): smaller, no antlers or tusks, the piglet striped", () => {
+    const extent = (spec: Parameters<typeof drawCreature>[0]) => {
+      const nums = JSON.stringify(drawCreature(spec, 30, 0, 3).prims).match(/-?\d+(\.\d+)?/g)!.map(Number).filter(v => Math.abs(v) < 2000);
+      return Math.max(...nums) - Math.min(...nums);
+    };
+    for (const species of ["deer", "boar", "dog", "horse", "bear"] as const) {
+      expect(extent({ species, look: { age: 0 } }), species).toBeLessThan(extent({ species }));
+      for (const view of ["front", "back"] as const) expect(drawCreature({ species, look: { age: 0, view } }, 30, 0, 3).prims.length, `${species} ${view}`).toBeGreaterThan(3);
+    }
+    // The uribō's stripes, and no antlers on the fawn.
+    expect(JSON.stringify(drawCreature({ species: "boar", look: { age: 0 } }, 30, 0, 3).prims)).toContain('"key":"melon"');
+    expect(JSON.stringify(drawCreature({ species: "boar" }, 30, 0, 3).prims)).not.toContain('"key":"melon"');
+    expect(inspectUkiyoeScene(scene({ nodes: [{ id: "c", kind: "creature", species: "deer", look: { age: 2 } } as never] })).map(i => i.path)).toContain("$.nodes[0].look.age");
   });
 });
 

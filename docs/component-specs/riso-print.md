@@ -100,3 +100,84 @@ A character source part may set `screenTone:"light"|"mid"` only when `paint:"scr
 Original Courier/Paper Artist cheeks, orbital sockets, temples and jaw shadows have **distinct authored local tonal masters** while their original face/eye/lip geometry, rig, color palette and film frames are unchanged. The existing Risograph `OcularPrintCraft` story contains a reversible `RISO26 tonal master comparison` using the unchanged prior facial stencils as baseline; AM/FM, red-only/blue-only, pose, 16:9/9:16, physical pitch and gain all remain interactive.
 
 Technical checks: `tests/riso26-tonal-press-artcraft.test.tsx` and actual `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. This is a **digital-print simulation**, not empirical calibration of a Riso drum or independent human-likeness certification.
+
+
+## RISO61 — continuous spot-ink dot gradients (original non-character scene)
+
+Native helper files: registry/video/riso-gradient-ink.ts and registry/video/riso-gradient-ink-react.tsx. Installed by the same riso-print registry item, together with the preexisting required riso-screening.ts that the print renderer imports.
+
+- createRisoGradientGeometry: pure generator with user-defined coverage stops (2..12; first 0, last 1), horizontal/vertical/radial spatial profiles, bounded AM lattice angle (per plate), 2..36 unit screen cell, optional 0..1 ink gain, irregularity and 0..0.2 low-coverage dropout. The generated dot sites, paper seed, per-plate offsets and sizes are source-space values. A maximum 40,000 candidate grid sites protects the renderer; split larger 4K fields into distinct bounded regions.
+- risoGradientCoverage: inspect arbitrary profile values without a screenshot.
+- risoGradientDotPath: combine every dot as two native elliptical SVG arcs, preserving exact small-radius physical detail without thousands of standalone DOM elements.
+- RisoGradientInk: drop the component directly inside the existing RisoPrint artworks.blue / artworks.red callback, pass the matching paint.solid as color, plus its paper-space coordinate box and optionally a valid SVG shape contour. It clips to the source shape without reducing the contour's topological detail. All original background paper fiber, ink tooth, press order and full-frame clocks remain RisoPrint-owned.
+
+The same Storybook folder now includes **Continuous Spot-Ink Gradient**: entirely original two-plate tidal contours in landscape/portrait, separate ink masters, absolute animation seek, independently adjustable registration, source tone direction, pickup and dropout. No anatomy changes or bundled external visual assets. Strict unit tests and native Chromium evidence are in tests/riso61-ink-gradient-artcraft.test.tsx and tests/e2e-storybook/riso61-ink-gradient.spec.ts. Read docs/research/riso61-variable-tone-gradient-artcraft.md for authentic printing references, exact topology, art gate and limitations. RISO61 is not a calibrated physical Riso press profile; do not claim print-color fidelity without a real test press.
+
+
+## RISO62 — calligraphic dry-brush physical-stencil ink
+
+The riso-print item also installs `riso-dry-brush.ts` and `riso-dry-brush-react.tsx`. `createRisoBrushGeometry` constructs a variable-pressure ribbon from an original 4-point cubic with 2–12 width stops, each source direction following the cubic's local tangents. `risoBrushInkPath` exposes the original closed SVG ribbon plus separate paper-white dry splinter channels; use `fillRule="evenodd"`. `RisoDryBrushInk` places it inside one existing `RisoPrint` spot-master artwork callback and uses the matching `paint.solid` color. No extra master, opacity-based brush, raster asset, screen filter or parallel clock.
+
+Interactive Storybook: **Dry-Brush Ink Atelier**, same Risograph sidebar, non-human two-plate poster with physical registration, both separations, 16:9/9:16, an original 240-frame source gesture, pressure width, dried fibres and paper stock; strict pure unit, native Playwright and clean registry consumer tests. Reference provenance, topology, rights and limited/non-calibrated press fidelity: [RISO62 research](../research/riso62-dry-brush-artcraft.md). Any physical edition still requires press proof and normal-speed visual review.
+
+
+## RISO63 — the original dry-brush artwork in production FilmStage
+
+The reusable `RisoBrushArt` has an explicit `layout="film"` mode, which preserves the original 20 original-source stroke shapes, true evenodd paper channels and all other separate spot masters while filling the entire native film output. It remains the exact same drawing used by the existing **Dry-Brush Ink Atelier**, with no rasterized copies. Production `renderRisoBrushFilmSlot` connects this to `loadFilmSlots` as the `riso-dry-brush` recipe slot. The same render function is used by **Risograph → Dry-Brush Production Film** in Storybook.
+
+The portable [10-second, 24fps Film Document](../../examples/film/riso-dry-brush-native.film.json) renders 240 frames to both 960×540 and 540×960. A clean CI job checks the doc, inspects exact source path/time parity and preview plate isolation, captures real Chromium Storybook views and invokes `npm run film:render` to produce actual MP4 files. See [source provenance, technical quality gates, commands and limits](../research/riso63-native-film-artcraft.md). Finished video is silent, no real press calibration is claimed, and no RISO60 human-hand study was changed.
+
+
+## RISO64 — real source-native press / camera cinematic shots
+
+The `RisoBrushArt.printFrame` optional prop defaults to **239**, preserving fully printed RISO62/63 visual/registry consumers. RISO64 composes the exact original source with the existing RisoPrint master-reveal clock and a separate deterministic paper-space camera matrix, evaluated from the FilmStage local scene frame. No new ink renderer or registry dependency.
+
+`RISO_CINEMATIC_BEATS` defines five original 24fps shots: `cobalt-macro` (48f), `cobalt-pullback` (52f), `vermilion-pass` (74f), `overprint-macro` (48f), `original-hold` (66f). The final 288-frame / 12-second film prints to 960×540 and 540×960. `evaluateRisoCinematic` and `risoCinematicCamera` are pure, independently testable functions; `renderRisoCinematicFilmSlot` is shared by the native production FilmStage and the Storybook **Two-Drum Cinematic Journey**. Source strokes, paper-open fibre paths, 2 spot masters, text and registration remain unchanged.
+
+`examples/film/riso-cinematic-two-plate.film.json` is the portable film. See [RISO64 research and source-deconstruction, guardrails, cinema shot list and actual video proof commands](../research/riso64-cinematic-press-artcraft.md). Reduced motion resolves to a stationary fully printed sheet. No video sound or physical Riso calibration is implied.
+
+## RISO65 — original master registration displacement preflight (experimental)
+
+RISO65 adds a reusable numerical `evaluateRisoRegistration` preflight in `registry/video/riso-registration-preflight.ts` for two/three plate RISO1 specs. It reports actual deterministic per-master transforms, all pairwise second-minus-first displacement vectors, magnitude and excess above a user-declared design allowance. Registration is a **paper-space plate transform**, not a deformation of original ink geometry. Source-native RISO62/63/64 remain byte-equivalent at default register.
+
+Storybook **Risograph · Registration Preflight** provides original vs offset native ink panels, two aspect ratios, individual spot master isolation, source-frame seeking, paper tooth, register x/y and shared 1×/3× optical inspection. It never claims physical press colorimetry or true stencil trapping: budget numbers cannot certify adjacency, paper seam absence or real press repeatability. Source and release criteria: [RISO65 research](../research/riso65-registration-preflight-artcraft.md).
+
+## RISO66 — opt-in native shared-edge trapping
+
+Source-native, explicit edge-only geometry: `createRisoContactTrap(base,neighbor,{side,maximumGap,maximumExtension,overlap,minimumRun})` in `registry/video/riso-contact-trap.ts`. Only sustained near-parallel, opposite-facing physically adjacent outer edge segments qualify. The selected source outer path grows under a bounded locally eased ink extension. Every original dry-fibre cutout and paper pore, pressure stop, centerline, opposite edge and ink registration remain unchanged.
+
+The `riso-print` registry item includes this module for consumer access. Full interactive source, two master isolation and original vs trapped A/B visual evidence live in the **Risograph · Native Shared-Edge Trapping** Storybook study. See [RISO66 source research and release caveats](../research/riso66-native-contact-trap-artcraft.md). Not a generic path Boolean/trapping solution or printer-approved output; printed register must be proven physically.
+
+## RISO67 — source-native stencil topology safety (opt-in)
+
+`auditRisoTrapTopology(original,candidate,flatness=.35)` inspects actual Q-curve SVG boundaries with bounded adaptive sampling. It measures newly introduced nonadjacent perimeter contacts, outer border–paper-hole cuts, newly outside holes, missing contours, and orientation flips. Existing baseline weaknesses remain visible in `inheritedDefects`; `noNewDefects` is a **differential** condition, not certification of zero holes or accurate real press alignment.
+
+`createGuardedRisoContactTrap(base,neighbor,options,flatness)` wraps RISO66 and returns `accepted`, `reason`, `topology`, and `proposed`. If a candidate introduces modeled damage, it returns the untouched original `base` geometry for ink rendering, preserving every original pressure stop and source dry-brush paper opening. The existing non-guarded API is unchanged. For interactive full-sheet, 3× macro and rejection-proof review use Storybook **Risograph · Native Stencil Topology Guard**. Full source and limitations: [RISO67 ArtCraft](../research/riso67-stencil-topology-artcraft.md).
+
+
+## RISO68 — grayscale press master SVG and print-shop setup
+
+Independent physical master export is opt-in through the pure TypeScript registry module registry/video/riso-separation-master.ts. inspectRisoSeparation(spec,plates,layout) checks two or three declared ink-master files, exact original positive and paper-open winding paths, sheet vs trim aspect, physical bleed and printable area, critical-detail safe inset and optional crop/registration marks. All layout dimensions are in millimeters. The returned ready and issues values gate export.
+
+serializeRisoSeparationMaster(spec,plates,layout,plateId) emits a standalone K-only vector SVG for one physical drum with original source paths, evenodd true unprinted dry holes, white sheet and physically aligned optional black print marks. Digital colored preview opacity, RGB compositing, paper filters and intentional registration shift are never baked into an independent production master. Grayscale coverage comes only from the individual source shape's density (1 is K100, .5 is K50). The ink ID and intended color are encoded in its filename.
+
+See Storybook **Risograph · Native Grayscale Master Separation** and the [RISO68 original ArtCraft prepress research](../research/riso68-grayscale-print-separation-artcraft.md). The A4 layout is a declared demonstration profile, not a universal printer spec. SVG file delivery is not equivalent to a print-shop-approved PDF/TIFF, or proof of actual physical drum registration.
+
+
+## RISO69 — truly grayscale vector PDF and measured TIFF from original ink masters
+
+The \`riso-print\` registry now includes opt-in, dependency-free output format modules:
+- \`serializeRisoSeparationPdf(spec,masters,layout,plateId)\` emits exactly one self-contained vector PDF in true DeviceGray. Every source SVG quadratic is mathematically identical after conversion into a PDF cubic, and all original unprinted paper channels remain as nested evenodd closed contours. No RGB preview, flat composite, pre-applied register drift, font, raster image or layer transparency.
+- \`measureRisoTiffRaster(layout,dpi)\` accepts only explicit 300/600 PPI and bounds sheet/pixel memory. \`encodeRisoGrayscaleTiff(gray,dimensions)\` emits real Baseline TIFF 6.0 (8-bit grayscale, BlackIsZero, uncompressed, one plane, proper rational resolution fields and physical pixel dimensions); it cannot be mistaken for an RGB PNG wrapper.
+- \`rasterizeRisoSeparationTiff(spec,masters,layout,plateId,dpi)\` is the opt-in browser adapter that rasterizes the **source grayscale master** rather than color-proof imagery. It rejects any unexpected RGB channels.
+
+Storybook **Risograph · Physical PDF and TIFF Master Delivery** exposes two real downloadable named masters, sheet, ratio, source frame/seed, density, bleed, crop/registration policy, millimeter safe/printable bounds, 300/600 PPI TIFF selection and original source 1×/2× inspection. PDF retains exact native vector detail; TIFF necessarily quantizes fine holes at DPI. Passing file/geometry checks is not proof of shop-approved PDF/X, full printing accuracy or physical press registration. See [RISO69 press format ArtCraft contract](../research/riso69-physical-press-formats-artcraft.md).
+
+
+## RISO70 — operator-supplied paper-feed limits and scanner cross registration
+
+New opt-in registry modules registry/video/riso-shop-profile.ts and registry/video/riso-scan-proof.ts add independently configured vendor-specific print settings and a read-only physical registration measurement step. RisoShopProfile contains physical sheet orientations, per-side asymmetric millimeter unprintable margins, feed edge, permitted PDF/TIFF and DPI formats, bleed range, print mark policy and profile provenance. inspectRisoShopJob combines RISO68 native source geometry with these printer limits, and blocks files with any ink, mark or trim/bleed that extends beyond the operator's declared printable area.
+
+For actual press QA, risoPrintRegistrationTargets reads four original top/bottom/left/right cross centers from the same source master sheet. createRisoScanTemplate returns unfilled, explicitly null scan-pixel coordinates for all four PAPER corners and four cross centers for each ink drum. inspectRisoScanProof calibrates scanner pixel geometry using independent PAPER corner coordinates ONLY, reports individual and relative signed ink displacement, RMS and worst error in physical millimeters, and compares them with an operator-declared tolerance. Missing measurements, malformed markings or scanner distortion beyond declared residuals fail closed. Synthetic examples are always tagged simulation-only. Operator-entered measured pixel data is not independently authenticated or physical printer certification.
+
+Storybook: Risograph · Printer Profile and Scan Registration Lab. It preserves full original spot-ink vector geometry, bristle paper openings, source frame seek and independent grayscale PDF/TIFF master files at both 16:9 and 9:16; adds visual inspection of physical printable bounds, interactive per-side margins, 1×/2× macro, measured scan JSON ingestion and explicit uncertainty. Reference research: ../research/riso70-shop-scan-artcraft.md .

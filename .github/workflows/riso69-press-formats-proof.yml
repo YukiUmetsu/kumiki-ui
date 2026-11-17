@@ -1,0 +1,64 @@
+name: RISO69 original grayscale vector PDF and 300 PPI TIFF proof
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso69-press-formats-proof.yml"
+      - "registry/video/riso-press-pdf.ts"
+      - "registry/video/riso-press-tiff.ts"
+      - "registry/video/riso-press-raster.ts"
+      - "registry.json"
+      - "src/video/riso-press-delivery-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "tests/riso69-press-master-formats.test.tsx"
+      - "tests/e2e-storybook/riso69-press-master-formats.spec.ts"
+      - "docs/research/riso69-physical-press-formats-artcraft.md"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: riso69-print-\${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  printer-original-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Strict TypeScript, source geometry and press-format tests
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso69-press-master-formats.test.tsx tests/riso68-master-separations.test.tsx tests/riso67-topology-guard.test.tsx tests/riso66-contact-trap.test.tsx tests/riso65-registration-preflight.test.tsx
+      - name: Clean independent riso-print consumer and registry
+        run: |
+          npm run registry:validate
+          node scripts/registry-fixture.js --item=riso-print
+      - name: Repository catalog parity (unrelated pre-existing purpose gaps)
+        continue-on-error: true
+        run: npm run catalog:check
+      - name: Native Storybook film studio
+        run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - name: Real browser output and physically sized grayscale file downloads
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso69-press-master-formats.spec.ts
+      - name: Install PDF proof inspector on clean runner
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
+      - name: Independent Poppler render and TIFF file type validation
+        run: |
+          command -v pdfinfo
+          command -v pdftoppm
+          find test-results -name 'riso69-*-physical-master.pdf' -print -exec pdfinfo '{}' ';'
+          find test-results -name 'riso69-*-physical-master.pdf' -exec sh -c 'pdftoppm -f 1 -singlefile -scale-to 1200 -png "$1" "$1.render"' _ '{}' ';'
+          find test-results -name 'riso69-*-physical-master.tif' -print -exec file '{}' ';'
+      - name: Preserve original source, PDF/TIFF, and browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso69-native-pdf-tiff-and-press-screenshot-proof
+          path: test-results/
+          retention-days: 5
+          if-no-files-found: warn

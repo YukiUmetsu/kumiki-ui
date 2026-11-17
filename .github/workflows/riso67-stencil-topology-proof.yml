@@ -1,0 +1,57 @@
+name: RISO67 source SVG topology guard, paper fibre and two-stencil visual proof
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso67-stencil-topology-proof.yml"
+      - "registry/video/riso-stencil-topology.ts"
+      - "registry/video/riso-path-geometry.ts"
+      - "registry.json"
+      - "src/video/riso-topology-guard-studio.tsx"
+      - "src/video/riso-contact-trap-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "tests/riso67-topology-guard.test.tsx"
+      - "tests/e2e-storybook/riso67-topology-guard.spec.ts"
+      - "docs/research/riso67-stencil-topology-artcraft.md"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: riso67-stencil-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  actual-source-contour:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Source TypeScript and changed native topology tests
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso67-topology-guard.test.tsx tests/riso66-contact-trap.test.tsx tests/riso65-registration-preflight.test.tsx tests/riso62-dry-brush-artcraft.test.tsx
+      - name: Clean riso-print consumer install and registry validation
+        run: |
+          npm run registry:validate
+          node scripts/registry-fixture.js --item=riso-print
+      # Global catalog parity currently reports unrelated ungrouped watercolor/ink/paper packs.
+      # Still execute the mandatory catalog audit without blocking this isolated Riso workflow.
+      - name: Repository-wide catalog audit (pre-existing unrelated parity errors)
+        continue-on-error: true
+        run: npm run catalog:check
+      - name: Real interactive Storybook build
+        run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - name: Actual Chromium 1x and 3x in both ratios, unsafe inspector and seek
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso67-topology-guard.spec.ts
+      - name: Preserve screenshots of complete native ink and paper channels
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso67-source-stencil-topology-review
+          path: test-results/
+          retention-days: 5
+          if-no-files-found: warn

@@ -14,6 +14,11 @@ find it: `npm run catalog:find -- --query="hair"` (or "skin colour", "pose", "fa
 | A drawing from any camera | `anatomy-view.ts` | `renderHumanFrame`, `renderMeshFrame`, `rasterizeHumanFrame`, `projectPoint`, `smoothPath` |
 | A face: landmarks, norms, variation | `anatomy-face.ts` | `createFace`, `measureFace`, `FACE_LANDMARKS`, `FACE_FEATURES`, `FACE_NORMS`, `eyeCentres` |
 | Hair, brows, lashes | `anatomy-hair.ts` | `growHair`, `renderHairSegments`, `faceHair`, `CURL_TYPES`, `HAIR_GROUPS`, `HAIR_FACTS` |
+| Groomed hairstyles and bangs, rendered strands | `hair-groom.ts` | `groomHair`, `HAIRSTYLES`, `FRINGES`, `renderHairStrands`, `hairDensityMap`, `scalpCover`, `partLine`, `HAIR_PHYSICS` |
+| Eye shapes and iris colours | `eye-detail.ts` | `EYE_SHAPES`, `applyEyeShape`, `IRIS_TYPES`, `irisAlbedo`, `EYE_EVIDENCE`, `EYE_REFERENCES` |
+| Skin texture by region and age | `skin-texture.ts`, `skin-texture-react.tsx` | `SKIN_REGIONS`, `skinSurface`, `faceWrinkles`, `frecklesAt`, `ageSpotsAt`, `renderSkinSwatch`, `SkinSwatchView`, `SkinRegionsSheet` |
+| Hands in detail: types, gestures, grasps, actions | `hand-model.ts`, `hand-render.ts`, `hand-react.tsx` | `HAND_TYPES`, `buildHand`, `poseHand`, `HAND_GESTURES`, `GRASPS`, `graspHand`, `HAND_ANIMATIONS`, `animateHand`, `renderHand`, `HandView`, `HandFlipbook` |
+| A rendered portrait | `face-portrait.ts`, `face-portrait-react.tsx` | `renderPortrait`, `FacePortrait`, `beautifulFace` (`face-beauty.ts`) |
 | Skin, hair and eye colour | `anatomy-color.ts` | `MONK_SKIN_TONES`, `skinShade`, `skinRamp`, `skinZoneColor`, `SKIN_SCATTERING`, `hairColorHex`, `HAIR_COLOR_PRESETS`, `IRIS_COLORS` |
 | Measured ranges, canon checks, surface anatomy | `anatomy-reference.ts` | `ANSUR`, `predictFromStature`, `CANON_CHECKS`, `SURFACE_FORMS`, `AGE_CHANGES`, `DRAWING_RECIPE`, `MODEL_TABLES` |
 | A reference painter (React) | `anatomy-react.tsx` | `HumanFigure` (clay, tonal, cel, silhouette; contours, terminators, skeleton, landmarks, head grid, hair) |
@@ -54,6 +59,24 @@ Trees, bamboo, flowers and grasses in any art style. Full guide: [spec](../../do
 
 Shared by ANIM1 and FLORA1 (`art-foundations`): `foundation-shapes.ts` (geometry, record types, the scale person) and
 `foundation-react.tsx` (sheet cards, swatches, the to-scale chart).
+
+# MAKEUP1 — makeup and beauty (file map)
+
+Makeup on any face in any style: where each product goes, which colour suits the skin, light and shadow, finish.
+Guide: [spec](../../docs/component-specs/makeup.md) · [skill](../../skills/kumiki-makeup/SKILL.md) · Storybook: Art
+Foundations → Makeup · photo pipeline (Python): [`scripts/makeup`](../../scripts/makeup/README.md) · find it:
+`npm run catalog:find -- --query="contour"` · exact exports: `npm run catalog:api -- --id=makeup --format=json`.
+
+| I need… | File | Start with |
+|---|---|---|
+| A look designed for a face, skin, iris and hair; checks | `makeup-design.ts` | `designMakeup`, `checkMakeup`, `analyzeFace`, `planSwatches`, `tapedEyeShape` |
+| Looks, evidence, face- and eye-shape rules, learned data | `makeup-data.ts` | `MAKEUP_LOOKS`, `MAKEUP_EVIDENCE`, `FACE_SHAPE_RULES`, `EYE_SHAPE_RULES`, `MAKEUP_LEARNED` |
+| Where a product goes on a face (any face on the 468-point mesh) | `makeup-zones.ts`, `data/makeup-zones.json` | `zoneField`, `resolveZone`, `zoneOutline`, `MAKEUP_ZONES`, `MAKEUP_ATLAS` |
+| Colour: undertone, palettes, films, colour difference | `makeup-color.ts` | `readSkin`, `basePalette`, `blushOn`, `lipColour`, `EYE_COMPLEMENTS`, `pigmentFor`, `filmStep`, `deltaE2000` |
+| Paint: the portrait renderer, a photograph | `makeup-paint.ts` | `makeupPaint`, `makeupPortraitOptions`, `paintPhoto`, `restFrame` |
+| Painters (React) | `makeup-react.tsx` | `MakeupPortrait`, `FaceChart`, `MakeupSwatches`, `MakeupChecks`, `UndertonePlane`, `LearnedEffects` |
+| Made-up portraits in workers (the plan goes as data, the worker builds the paint) | `makeup-render-pool.ts`, `makeup-render-jobs.ts`, `makeup-render-worker.ts` | `MAKEUP_RENDER_POOL`, `MAKEUP_RUNNERS` |
+| Learned aggregates (Python pipeline, openly licensed photos) | `data/makeup-learned.json` | prior, effects, placement, contrast, beauty correlations, sources |
 
 # EXPR1 — facial expressions (file map)
 

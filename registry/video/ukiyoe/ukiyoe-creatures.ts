@@ -16,6 +16,9 @@ import { drawYokai, UKIYOE_YOKAI } from "./ukiyoe-yokai";
 import type { UkiyoeCritter } from "./ukiyoe-critters";
 import { drawCritter, UKIYOE_CRITTERS } from "./ukiyoe-critters";
 import type { UkiyoeFill, UkiyoePaint } from "./ukiyoe-pigments";
+import { birdFlight, flightAt, glideStroke, wingStroke } from "../../anatomy/animal-flight";
+import { growthRule } from "../../anatomy/animal-growth";
+import type { BodyPlanId } from "../../anatomy/animal-plans";
 
 export type UkiyoeSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue" | "bear" | "boar" | "deer" | "ox" | "wolf" | "mouse" | "weasel" | "baku" | "ape" | "crane" | "heron" | "crow" | "pheasant" | "sparrow" | "hawk" | "oshidori" | "dragon" | UkiyoeYokai | UkiyoeCritter;
 export const UKIYOE_SPECIES: readonly UkiyoeSpecies[] = ["fox", "tanuki", "dog", "cat", "rabbit", "monkey", "horse", "nue", "bear", "boar", "deer", "ox", "wolf", "mouse", "weasel", "baku", "ape", "crane", "heron", "crow", "pheasant", "sparrow", "hawk", "oshidori", "dragon", ...UKIYOE_YOKAI, ...UKIYOE_CRITTERS];
@@ -53,6 +56,19 @@ export interface UkiyoeCreatureLook {
   /** Turned three-quarters toward the viewer: a foreshortened body, the far legs (and wing) set back and higher, the
    * head turned to us with a shorter muzzle and the far eye showing. Four-legged animals and birds. */
   view?: "profile" | "three-quarter" | "front" | "back";
+  /**
+   * Four-legged animals: 0 the youngest that stands (a foal, a fawn, a calf, a piglet, a puppy, a kit) … 1 adult
+   * (default). Grown by ANIM1's growth rules, drawn to scale beside its parent: the long-legged foal, the big-headed
+   * puppy; no horns, antlers or tusks before half grown. `size` still sets the body length when given.
+   */
+  age?: number;
+  /**
+   * The tanuki, the hare and the mouse come in two builds: `"print"` (default) is the stout folk tanuki and the low,
+   * crouching hare and mouse of the prints; `"natural"` stands them on the legs ANIM1 measures for the real animals
+   * (leg clearance 0.40, 0.33 and 0.26 of the shoulder height, against 0.15, 0.14 and 0.08). Other animals already
+   * stand inside their ranges, so both builds are the same for them.
+   */
+  proportions?: "print" | "natural";
 }
 export interface UkiyoeCreatureAction { type: UkiyoeCreatureActionType; start: number; end: number; to?: number; toY?: number; via?: readonly (readonly [number, number])[]; angle?: number; amount?: number; blend?: number }
 export interface UkiyoeCreatureSpec { species: UkiyoeSpecies; look?: UkiyoeCreatureLook; actions?: readonly UkiyoeCreatureAction[]; facing?: "left" | "right" }
@@ -116,6 +132,8 @@ interface Beast {
   neck?: number; headTilt?: number; mane?: UkiyoePaint; hoof?: boolean; face?: UkiyoePaint;
   /** Tiger stripes over the coat and legs. */
   stripes?: boolean;
+  /** The wild boar piglet's (uribō's) pale stripes running along the body, from the neck to the rump. */
+  melon?: boolean;
   /** Belly tuck (+ up at the waist, − sagging), chest depth, fur length (fraction of body height), hairline density. */
   tuck: number; chest: number; fur: number; hairs: number;
   /** Long-coat colour for ruff, cheeks and belly fringe; lower-leg colour ("stockings"); eye iris; slit pupil. */
@@ -135,13 +153,13 @@ interface Beast {
 }
 type QuadSpecies = "fox" | "tanuki" | "dog" | "cat" | "rabbit" | "monkey" | "horse" | "nue" | "bear" | "boar" | "deer" | "ox" | "wolf" | "mouse" | "weasel" | "baku" | "ape";
 const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
-  fox: { L: 150, bh: 46, leg: 54, color: "tan", belly: "gofun", dark: "kogecha", head: 34, tail: 118, tailW: 36, ears: "fox", snout: 1.25,
+  fox: { L: 90, bh: 44, leg: 63, color: "tan", belly: "gofun", dark: "kogecha", head: 34, tail: 88, tailW: 36, ears: "fox", snout: 1.25,
     tuck: .2, chest: .14, fur: .2, hairs: 1, ruff: "gofun", stocking: "sumi", iris: "ki", slit: true, tailTip: "gofun" },
   tanuki: { L: 128, bh: 60, leg: 34, color: "cha", belly: "kincha", dark: "kogecha", head: 32, tail: 70, tailW: 32, ears: "round", snout: .75,
     tuck: -.12, chest: .06, fur: .26, hairs: 1.2, ruff: "kincha", stocking: "kogecha", iris: "kogecha", slit: false },
-  dog: { L: 138, bh: 50, leg: 52, color: "kincha", belly: "gofun", dark: "cha", head: 30, tail: 48, tailW: 16, ears: "dog", snout: 1,
+  dog: { L: 94, bh: 38, leg: 60, color: "kincha", belly: "gofun", dark: "cha", head: 30, tail: 38, tailW: 16, ears: "dog", snout: 1,
     tuck: .16, chest: .14, fur: .12, hairs: .8, ruff: "gofun", iris: "cha", slit: false },
-  cat: { L: 112, bh: 40, leg: 40, color: "gofun", belly: "gofun", dark: "sumi", head: 27, tail: 92, tailW: 10, ears: "cat", snout: .6,
+  cat: { L: 94, bh: 32, leg: 46, color: "gofun", belly: "gofun", dark: "sumi", head: 27, tail: 80, tailW: 10, ears: "cat", snout: .6,
     tuck: .1, chest: .08, fur: .07, hairs: .6, ruff: "gofun", iris: "ki", slit: true },
   rabbit: { L: 86, bh: 48, leg: 26, color: "gofun", belly: "gofun", dark: "usuzumi", head: 26, tail: 14, tailW: 14, ears: "rabbit", snout: .6,
     tuck: 0, chest: .04, fur: .14, hairs: .8, ruff: "gofun", iris: "beni", slit: false },
@@ -155,7 +173,10 @@ const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
   nue: { L: 150, bh: 56, leg: 56, head: 32, tail: 170, tailW: 15, ears: "monkey", snout: .3, tuck: .14, chest: .12, fur: .1, hairs: 1,
     color: "ki", belly: "gofun", dark: "kogecha", ruff: "ki", iris: "ki", slit: false, face: "beni", neck: .35, headTilt: 4, stripes: true },
   // Legs and strides are set so the standing profile meets ANIM1's measured ranges (clearance under the chest about a
-  // third of the shoulder height for the bear, nearly half for the boar; see `ukiyoeBeastLandmarks`).
+  // third of the shoulder height for the bear, nearly half for the boar; see `ukiyoeBeastLandmarks`). The fox, dog,
+  // cat, wolf and ox were fitted the same way, toward the stylised edge of each range: they had been drawn long and low,
+  // the ox nearly on the ground. The tanuki, the rabbit and the mouse are left as drawn: the folk tanuki's stoutness
+  // and the crouching rabbit and mouse are deliberate.
   // The Asian black bear (tsukinowaguma) Kintarō rides, after Tanaka Yoshio's 1875 plate, Hokusai and Kuniyoshi: a heavy
   // barrel of a body on thick legs, the head carried low, a broad skull with big round ears and a short tan muzzle, a
   // shaggy ruff round the neck, the white crescent on the chest, flat broad paws with long curved claws.
@@ -171,10 +192,10 @@ const BEASTS: Readonly<Record<QuadSpecies, Beast>> = {
   deer: { L: 140, bh: 46, leg: 86, color: "kincha", belly: "gofun", dark: "cha", head: 28, tail: 14, tailW: 10, ears: "horse", snout: 1.1, tuck: .18, chest: .12, fur: .05, hairs: .5,
     ruff: "gofun", iris: "kogecha", slit: false, horns: "antler", spots: true, hoof: true, neck: 1.6, headTilt: 22 },
   // The black ox of Tenjin's shrines and the cowherd's tale: massive, a deep dewlap, short curved horns, hooves.
-  ox: { L: 196, bh: 88, leg: 70, color: "sumi", belly: "sumi", dark: "sumi", head: 46, tail: 74, tailW: 8, ears: "horse", snout: .72, tuck: 0, chest: .3, fur: .03, hairs: .4,
-    ruff: "sumi", iris: "kogecha", slit: false, horns: "ox", hoof: true, neck: .9, headTilt: 46 },
+  ox: { L: 157, bh: 57, leg: 90, color: "sumi", belly: "sumi", dark: "sumi", head: 46, tail: 64, tailW: 8, ears: "horse", snout: .72, tuck: 0, chest: .3, fur: .03, hairs: .4,
+    ruff: "sumi", iris: "kogecha", slit: false, horns: "ox", hoof: true, neck: -.25, headTilt: 50, paw: 1.5 },
   // The Japanese wolf (the okuri-inu): leaner and longer-legged than the dog, grey with a pale belly and a thick tail.
-  wolf: { L: 152, bh: 50, leg: 60, color: "usuzumi", belly: "gofun", dark: "sumi", head: 32, tail: 72, tailW: 22, ears: "dog", snout: 1.3, tuck: .22, chest: .16, fur: .18, hairs: 1.1,
+  wolf: { L: 109, bh: 40, leg: 67, color: "usuzumi", belly: "gofun", dark: "sumi", head: 32, tail: 56, tailW: 22, ears: "dog", snout: 1.3, tuck: .22, chest: .16, fur: .18, hairs: 1.1,
     ruff: "gofun", iris: "ki", slit: false },
   // The mouse of the rolling rice ball and the mouse's wedding: small, round-bodied, big thin ears, a long bare tail.
   // The weasel (itachi) of the kamaitachi: long and low, a slim neck, short legs, a bushy tail.
@@ -319,7 +340,7 @@ function hornsSide(b: Beast, hs: number): Prim[] {
     };
     return [{ t: "fill", d: beam(-.3, -.05) + beam(-.05, .15), fill: { type: "linear", angle: 90, stops: [[0, "kincha", 1], [1, "paper", 1]] }, outline: .9 }];
   }
-  if (b.horns === "ox") return [{ t: "fill", d: smoothD([P(-.5, -.5), P(-.45, -1.0), P(-.1, -1.35), P(.28, -1.38), P(.3, -1.25), P(-.02, -1.1), P(-.22, -.85), P(-.18, -.48)], true, .35), fill: { type: "linear", angle: 90, stops: [[0, "ki", 1], [1, "gofun", 1]] }, outline: 1 }];
+  if (b.horns === "ox") return [{ t: "fill", d: smoothD([P(-.46, -.52), P(-.5, -.82), P(-.3, -1.05), P(.02, -1.1), P(.06, -1.0), P(-.18, -.92), P(-.28, -.74), P(-.22, -.5)], true, .35), fill: { type: "linear", angle: 90, stops: [[0, "ki", 1], [1, "gofun", 1]] }, outline: 1 }];
   return [];
 }
 /** Antlers or horns seen square on (head units). */
@@ -431,6 +452,61 @@ function bearHead(b: Beast, hs: number, open: number, blink: boolean, look: Ukiy
   // The near ear, big and round, set high on the back of the skull.
   out.push(...ear(-.44, -.64, .27));
   out.push(...headExtras({ ...look, glowEyes: false }, P, hs, .36, -.32, sn, blink));
+  return out;
+}
+/**
+ * The ox's head, after a bull in profile and ANIM1's cattle face (eye 0.6 of the head back from the nose, ears held out
+ * sideways below the horns). A broad, flat forehead and a straight face down to a deep, square muzzle with a wide moist
+ * nose pad; a large dark eye under a bony orbit; a deep jaw with the round cheek muscle; the curly poll between the
+ * horns; broad ears out to the side, fringed inside. Head units: x forward to the nose, y down, the face carried
+ * steeply downward by the head tilt.
+ */
+function oxHead(b: Beast, hs: number, open: number, blink: boolean, look: UkiyoeCreatureLook, seed: number): Prim[] {
+  const tq = look.view === "three-quarter", color = look.color ?? b.color, dark = look.dark ?? b.dark;
+  const sn = tq ? .8 : 1, X = (x: number) => x > .2 ? .2 + (x - .2) * sn : x, P = (x: number, y: number): Pt => [X(x) * hs, y * hs];
+  const out: Prim[] = [];
+  // The far ear, held out sideways behind the poll.
+  // The ear points straight back in the world, whatever the head's own tilt: in head units that is back and down by the
+  // tilt (the face is carried about 50° down).
+  const tilt = (b.headTilt ?? 0) * Math.PI / 180, bx = -Math.cos(tilt), by = Math.sin(tilt), nx = -by, ny = bx;
+  const ear = (dx: number, dy: number, far: boolean): Prim[] => {
+    const at = (u: number, w: number) => P(dx + bx * u + nx * w, dy + by * u + ny * w);
+    const e: Pt[] = [at(0, -.1), at(.3, -.13), at(.52, -.04), at(.5, .07), at(.24, .11), at(0, .09)];
+    // The inner ear, its pale fringe of hair, shows the ear against the dark head and neck.
+    const inner: Pt[] = [at(.06, -.04), at(.3, -.07), at(.46, -.01), at(.3, .05), at(.06, .04)];
+    return [{ t: "fill", d: smoothD(e, true, .35), fill: color, outline: 1.1, ...(far ? { opacity: .95 } : {}) },
+      { t: "fill", d: smoothD(inner, true, .35), fill: "usuzumi", opacity: far ? .35 : .55, noPrint: true },
+      { t: "stroke", d: furAlong([at(.05, 0), at(.45, 0)], hs * .1, 7, hs * .1, seed + (far ? 91 : 92)), color: "usuzumi", width: .6, opacity: .55 }];
+  };
+  out.push(...ear(-.42, -.42, true));
+  out.push(...hornsSide(b, hs));
+  // The skull: poll and crown, the flat forehead and straight face, the square muzzle, the deep lower jaw, the throat.
+  const skull: Pt[] = [P(-.62, .1), P(-.6, -.38), P(-.42, -.58), P(-.1, -.62), P(.4, -.5), P(.9, -.36), P(1.12, -.28), P(1.22, -.14), P(1.24, .08), P(1.16, .24),
+    P(.95, .3), P(.6, .36), P(.2, .5), P(-.2, .56), P(-.5, .42)];
+  out.push({ t: "fill", d: smoothD(skull, true, .28), fill: color, grain: .25 });
+  out.push({ t: "line", d: carvedLine(smoothPts(skull.slice(1, 11), 5, false), hs * .05, { taper: "both", minRatio: .25, smooth: true }), color: "sumi" });
+  // The round cheek muscle and the bony ridge of the face.
+  out.push({ t: "line", d: carvedLine(smoothPts([P(-.32, -.08), P(-.18, .28), P(.15, .42), P(.42, .3)], 5, false), hs * .03, { taper: "both", minRatio: .2, smooth: true }), color: "sumi", opacity: .55 });
+  out.push({ t: "line", d: carvedLine([P(.2, -.42), P(.75, -.3), P(1.02, -.22)], hs * .02, { taper: "both", minRatio: .3, smooth: true }), color: "usuzumi", opacity: .5 });
+  // The curly poll: tight curls of hair between and in front of the horns (the Japanese Black's topknot).
+  const curls = [0, 1, 2, 3, 4].map(i => { const c = P(-.38 + i * .1, -.58 + Math.abs(i - 2) * .02); const r = hs * .045; return `M${(c[0] - r).toFixed(1)} ${c[1].toFixed(1)}a${r.toFixed(1)} ${r.toFixed(1)} 0 1 1 ${(r * 1.4).toFixed(1)} ${(r * .6).toFixed(1)}`; }).join("");
+  out.push({ t: "stroke", d: curls, color: "usuzumi", width: .8, opacity: .7 });
+  // The moist nose pad across the front of the muzzle, the comma nostril; the mouth line; open when it lows.
+  out.push({ t: "fill", d: smoothD([P(1.02, -.24), P(1.2, -.18), P(1.25, .02), P(1.2, .14), P(1.04, .1), P(.98, -.06)], true, .35), fill: dark === "sumi" ? "usuzumi" : dark, outline: .8, opacity: .95 });
+  out.push({ t: "line", d: carvedLine([P(1.12, -.12), P(1.18, -.06), P(1.13, .02)], hs * .04, { taper: "both", minRatio: .3, smooth: true }), color: "sumi" });
+  if (open > .05) out.push({ t: "fill", d: smoothD([P(1.18, .16), P(.82, .26), P(.95, .34 + .3 * open), P(1.16, .22 + .2 * open)], true, .3), fill: "shu", outline: .9 });
+  out.push({ t: "line", d: carvedLine([P(1.18, .17), P(1.0, .22), P(.78, .28)], hs * .035, { taper: "end", minRatio: .3, smooth: true }), color: "sumi" });
+  // The large dark eye high on the head under a bony orbit, about 0.6 of the head back from the nose.
+  const ex = .12, ey = -.3;
+  out.push({ t: "line", d: carvedLine([P(ex - .14, ey - .04), P(ex, ey - .15), P(ex + .16, ey - .06)], hs * .035, { taper: "both", minRatio: .3, smooth: true }), color: "sumi", opacity: .75 });
+  // On a black coat the eye needs its pale rim of bare lid to read.
+  if (!blink) out.push({ t: "fill", d: ellipseD(X(ex) * hs, ey * hs, .14 * hs, .1 * hs), fill: "usuzumi", opacity: .7, noPrint: true });
+  out.push(...smallEye(P, hs, ex, ey, .1, .07, look.accent ?? b.iris, blink));
+  // Short coat: a few hairlines along the face and over the crown.
+  out.push({ t: "stroke", d: furField([P(-.55, -.4), P(.1, -.52), P(.7, -.34)], [P(-.55, .3), P(.1, .1), P(.7, .1)], 18, hs * .14, seed + 93), color: "usuzumi", width: .5, opacity: .4 });
+  // The near ear, out to the side below the horn.
+  out.push(...ear(-.36, -.34, false));
+  out.push(...headExtras(look, P, hs, ex, ey, sn, blink));
   return out;
 }
 /** A glossy black eye with no iris showing (mouse, weasel): a dark ball, a thin rim, a bright catchlight. */
@@ -608,6 +684,7 @@ function tanukiFace(b: Beast, hs: number, look: UkiyoeCreatureLook, blink: boole
 function beastHead(b: Beast, species: string, hs: number, open: number, blink: boolean, look: UkiyoeCreatureLook, seed: number): Prim[] {
   if (species === "boar") return boarHead(b, hs, open, blink, look, seed);
   if (species === "bear") return bearHead(b, hs, open, blink, look, seed);
+  if (species === "ox") return oxHead(b, hs, open, blink, look, seed);
   if (species === "mouse") return mouseHead(b, hs, open, blink, look, seed);
   if (species === "weasel") return weaselHead(b, hs, open, blink, look, seed);
   if (species === "tanuki") return tanukiHead(b, hs, open, blink, look, seed);
@@ -749,8 +826,45 @@ function beastHead(b: Beast, species: string, hs: number, open: number, blink: b
  * at its tip, the species' markings), the chest ruff, the front legs side by side and the hind legs peeking behind.
  * From behind: the backs of the ears over the shoulders, the rump with the tail down its middle, the hind legs side by side.
  */
+/**
+ * The natural builds (`look.proportions: "natural"`): leg length, body depth and length fitted to ANIM1's typical
+ * values by a small search, keeping the withers height; tails scaled with the body.
+ */
+const NATURAL: Partial<Record<QuadSpecies, Partial<Beast>>> = {
+  tanuki: { L: 100, bh: 43, leg: 46, tail: 52, tailW: 26, tuck: -.04 },
+  rabbit: { L: 81, bh: 38, leg: 33, tail: 13 },
+  mouse: { L: 71, bh: 23, leg: 17, tail: 85 },
+};
+/** The beast in the requested build. */
+const builtBeast = (species: QuadSpecies, proportions: UkiyoeCreatureLook["proportions"]): Beast =>
+  proportions === "natural" && NATURAL[species] ? { ...BEASTS[species], ...NATURAL[species] } : BEASTS[species];
+
+/** Each UKIYO1 four-legged animal's ANIM1 body plan, for growing its young (the mythic nue, baku and ape have none). */
+const BEAST_PLANS: Partial<Record<QuadSpecies, BodyPlanId>> = {
+  fox: "canid", tanuki: "canid", dog: "canid", wolf: "canid", cat: "felid", rabbit: "leporid", monkey: "primate", horse: "equid",
+  bear: "ursid", boar: "suid", deer: "ruminant", ox: "ruminant", mouse: "rodent", weasel: "mustelid",
+};
+/**
+ * The beast at `age` (0 youngest … 1 adult), grown by ANIM1's rule for its plan. The body grows like the trunk; the legs
+ * by their segments' average (an ungulate's near-grown cannons give the long-legged young); the head, the muzzle, the
+ * neck and the tail by their own shares.
+ */
+function youngBeast(b: Beast, species: QuadSpecies, age: number | undefined): Beast {
+  const plan = BEAST_PLANS[species], rule = plan && growthRule(plan, "mammal");
+  if (age === undefined || age >= 1 || !rule) return b;
+  const k = 1 - (1 - clamp01(age)) ** 2, mix = (young: number) => young + (1 - young) * k, g = rule.legSegments;
+  const legs = mix(g[0] * .28 + g[1] * .32 + g[2] * .28 + g[3] * .12), body = mix(rule.trunk);
+  return {
+    ...b, L: b.L * body, bh: b.bh * body, leg: b.leg * legs, head: b.head * mix(rule.head), snout: b.snout * mix(rule.muzzle),
+    tail: b.tail * mix(rule.tail), tailW: b.tailW * mix(rule.tail), ...(b.neck !== undefined ? { neck: b.neck * (b.neck > 0 ? mix(rule.neck) : 1) } : {}),
+    // Horns, antlers and tusks come with age; the boar piglet wears its stripes for its first months (ANIM1's coat).
+    ...(age < .5 ? { horns: undefined, tusks: false } : {}),
+    ...(species === "boar" && age < .4 ? { melon: true, bristles: undefined, withers: (b.withers ?? 0) * .3 } : {}),
+  };
+}
+
 function quadFrontBack(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number, wind: number, seed: number, back: boolean): Prim[] {
-  const b = BEASTS[species], look = spec.look ?? {}, k = (look.size ?? b.L) / b.L, out: Prim[] = [];
+  const look = spec.look ?? {}, b = youngBeast(builtBeast(species, look.proportions), species, look.age), k = (look.size ?? b.L) / b.L, out: Prim[] = [];
   // Square on, the boar's great wedge of a head is nearly as wide as its chest and is carried low.
   const leg = b.leg * k, bh = b.bh * k, hs = b.head * k * (species === "boar" ? 1.3 : 1), W = bh * (species === "horse" ? .72 : .85);
   const color = look.color ?? b.color, belly = look.belly ?? b.belly, dark = look.dark ?? b.dark, stocking = look.color ? undefined : b.stocking;
@@ -930,10 +1044,17 @@ function beastEars(b: Beast, species: string, hs: number, color: UkiyoePaint, da
     else if (b.ears === "boar") { outer = [P(s * .26, -.46), P(s * .4, -.74), P(s * .76, -.96), P(s * .82, -.62), P(s * .7, -.36)]; inner = [P(s * .36, -.5), P(s * .48, -.72), P(s * .72, -.86), P(s * .74, -.6), P(s * .64, -.44)]; }
     else if (b.ears === "mouse") { out.push({ t: "fill", d: ellipseD(s * .62 * hs, -.62 * hs, .44 * hs, .46 * hs), fill: color, outline: 1 }, ...(backs ? [] : [{ t: "fill" as const, d: ellipseD(s * .62 * hs, -.6 * hs, .31 * hs, .33 * hs), fill: "sakura" as UkiyoePaint, opacity: .75, noPrint: true }])); continue; }
     else if (b.ears === "rabbit") { outer = [P(s * .15, -.5), P(s * .2, -1.9), P(s * .45, -2.05), P(s * .5, -.5)]; inner = [P(s * .22, -.6), P(s * .26, -1.8), P(s * .4, -1.9), P(s * .43, -.6)]; }
+    // Cattle hold their broad ears out sideways from the sides of the poll, below the horns.
+    else if (species === "ox") {
+      // Seen from behind, the poll is lower in the drawing; the ears come out from its sides there.
+      const dy = backs ? .22 : 0;
+      outer = [P(s * .36, -.5 + dy), P(s * .72, -.62 + dy), P(s * 1.02, -.56 + dy), P(s * 1.0, -.44 + dy), P(s * .7, -.36 + dy), P(s * .36, -.34 + dy)];
+      inner = [P(s * .46, -.48 + dy), P(s * .74, -.56 + dy), P(s * .94, -.52 + dy), P(s * .72, -.42 + dy), P(s * .48, -.42 + dy)];
+    }
     else if (b.ears === "horse") { outer = [P(s * .25, -1.25), P(s * .32, -1.75), P(s * .45, -1.25)]; inner = [P(s * .29, -1.3), P(s * .33, -1.65), P(s * .41, -1.3)]; }
     else if (b.ears === "monkey") { out.push({ t: "fill", d: ellipseD(s * .85 * hs, -.15 * hs, .2 * hs, .25 * hs), fill: b.face ?? "hada", outline: 1 }); continue; }
     out.push({ t: "fill", d: smoothD(outer, true, .25), fill: backs && species === "fox" ? dark : color, outline: 1.1 });
-    if (!backs) out.push({ t: "fill", d: smoothD(inner, true, .25), fill: species === "rabbit" ? "sakura" : species === "fox" || species === "dog" ? "gofun" : dark, opacity: .85, noPrint: true });
+    if (!backs) out.push({ t: "fill", d: smoothD(inner, true, .25), fill: species === "rabbit" ? "sakura" : species === "fox" || species === "dog" ? "gofun" : species === "ox" ? "usuzumi" : dark, opacity: species === "ox" ? .55 : .85, noPrint: true });
   }
   return out;
 }
@@ -1067,15 +1188,15 @@ function beastContour(b: Beast, L: number, bh: number, hipY: number) {
  * contour `quadruped` draws: give them to ANIM1's `measureAnimal(…, false)` and `checkAnimalProportions` to compare
  * the drawing with the real animal.
  */
-export function ukiyoeBeastLandmarks(species: UkiyoeSpecies) {
-  const b = (BEASTS as Partial<Record<UkiyoeSpecies, Beast>>)[species];
-  if (!b) return undefined;
+export function ukiyoeBeastLandmarks(species: UkiyoeSpecies, proportions: UkiyoeCreatureLook["proportions"] = "print") {
+  if (!(species in BEASTS)) return undefined;
+  const b = builtBeast(species as QuadSpecies, proportions);
   const c = beastContour(b, b.L, b.bh, beastHipStand(b.leg, b.bh));
   return { ground: 0, withers: c.back[5], brisket: c.chest[3], pointOfShoulder: c.chest[1], pointOfButtock: c.back[0] };
 }
 
 function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number, wind: number, seed: number): Prim[] {
-  const b = BEASTS[species], look = spec.look ?? {}, k = (look.size ?? b.L) / b.L;
+  const look = spec.look ?? {}, b = youngBeast(builtBeast(species, look.proportions), species, look.age), k = (look.size ?? b.L) / b.L;
   if (look.view === "front" || look.view === "back") return quadFrontBack(species, spec, frame, wind, seed, look.view === "back");
   // Three-quarter: the body foreshortens along its length; the far legs stand back and higher (see below).
   const tq = look.view === "three-quarter";
@@ -1085,17 +1206,20 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
   const st = actionState(spec.actions ?? [], frame), tr = creatureTravel(spec.actions ?? [], frame);
   // Hooved animals (deer, ox, boar, horse) do not rear up: "stand" leaves them standing on all four legs.
   const run = st("run").w, hop = st("hop").w, sit = Math.max(st("sit").w, st("sleep").w), stand = b.hoof ? 0 : Math.max(st("stand").w, st("drum").w), sleep = st("sleep").w;
+  // Hooved animals never sit on their haunches (ANIM1's postures): "sit" lays them down on folded legs as sleep does,
+  // with the head up and the eyes open. `lie` is the lying body; `sleep` still closes the eyes and lowers the head.
+  const lie = b.hoof ? sit : sleep;
   const gaitLen = L * (run > .5 ? 1.6 : hop > .5 ? 1.2 : .9) * (b.stride ?? 1);
   const ph = tr.dist / gaitLen * Math.PI * 2, moving = tr.moving ? 1 : 0;
   // Body pitch: sitting raises the chest just enough for straight front legs to reach the ground; standing (tanuki)
   // turns the body upright on its hind legs; sleeping lays it flat.
   const sitPitch = species === "rabbit" ? -22 : -46;
-  const pitch = sitPitch * sit * (1 - sleep) - 80 * stand + (hop > 0 ? -Math.sin(ph) * 14 * hop * moving : 0);
+  const pitch = sitPitch * sit * (1 - lie) - 80 * stand + (hop > 0 ? -Math.sin(ph) * 14 * hop * moving : 0);
   const bob = moving * (run > .5 ? Math.abs(Math.sin(ph)) * leg * .18 : Math.abs(Math.sin(ph * 2)) * leg * .04) + (hop > 0 ? Math.max(0, Math.sin(ph)) * leg * 1.2 * hop * moving : 0);
   const leap = st("leap"), leapT = leap.w > 0 && leap.a ? span(leap.t, 0, leap.a.end - leap.a.start) : 0, leapH = leap.w * Math.sin(Math.PI * leapT) * leg * 2.4;
   // Standing, the legs reach the ground exactly (hind: upper .52 at 78°, lower .58 at 112° from a root .1·bh below the hip).
   const hipStand = beastHipStand(leg, bh), hipLow = -bh * .45;
-  const hipY = lerp(lerp(lerp(hipStand, hipLow, sit), -leg * 1.02, stand), hipLow * .9, sleep) - bob - leapH;
+  const hipY = lerp(lerp(lerp(hipStand, hipLow, sit), -leg * 1.02, stand), hipLow * .9, lie) - bob - leapH;
   const hip: Pt = [-L * .34, hipY], pivot = hip;
   const R = (p: Pt) => rot(p, pitch, pivot);
   const shoulder = R([L * .3, hip[1] + bh * .06]);
@@ -1124,17 +1248,19 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
       const swing = Math.sin(p * Math.PI * 2) * (run > .5 ? 38 : hop > .5 ? 30 : 22) * moving * (hind ? 1 : 1 + ((b.reach ?? 1) - 1) * run);
       const lift = Math.max(0, Math.cos(p * Math.PI * 2)) * moving;
       const root = hind ? R([-L * .33, hip[1] + bh * .1]) : shoulder;
-      const reach = !hind && sit > 0 ? lerp(1, clamp((-root[1]) / (leg * 1.06), 1, 2.4), sit * (1 - sleep)) : 1;
+      const reach = !hind && sit > 0 ? lerp(1, clamp((-root[1]) / (leg * 1.06), 1, 2.4), sit * (1 - lie)) : 1;
       const seg1 = leg * (hind ? .52 : .5) * reach, seg2 = leg * (hind ? .58 : .56) * reach;
       let a1 = hind ? 78 - swing : 92 - swing, a2 = hind ? 112 - swing * .3 + lift * 25 : 88 - swing * .2 - lift * 45;
       // Galloping, a leg on the ground or reaching for it is nearly straight (the fore leg flung ahead, the hind leg
       // driving back, as in Muybridge's plates); it folds only while it is carried forward off the ground.
       if (run > 0 && moving) { const plant = run * (1 - lift); a2 = lerp(a2, hind ? a1 + 28 : a1 + 6, plant * (hind ? .6 : .85)); }
       const mix = (w: number, t1: number, t2: number) => { if (w > 0) { a1 = lerp(a1, t1, w); a2 = lerp(a2, t2, w); } };
-      mix(sit * (1 - sleep), hind ? 6 : 90, hind ? 168 : 90);
+      mix(sit * (1 - lie), hind ? 6 : 90, hind ? 168 : 90);
       if (!hind) mix(stand, 30 + Math.sin(frame / (st("drum").w > .5 ? 2.4 : 22)) * 35 * Math.max(st("drum").w, .2), 110);
       else mix(stand, near ? 84 : 96, near ? 96 : 84);
-      mix(sleep, hind ? 8 : 12, hind ? 170 : 4);
+      // Lying, hooved animals fold the forelegs under the chest (the forearm forward and down, the cannon tucked back);
+      // the others stretch them out in front.
+      mix(lie, hind ? 8 : b.hoof ? 40 : 12, hind ? 170 : b.hoof ? 172 : 4);
       if (leap.w > 0) { const k2 = leap.w * Math.sin(Math.PI * leapT); a1 = lerp(a1, hind ? 160 : 25, k2); a2 = lerp(a2, hind ? 175 : 15, k2); }
       const knee = polar(root, a1, seg1), paw = polar(knee, a2, seg2);
       // The hock bends back from the line knee → paw; the wrist sits low on the fore leg with the pastern angled forward.
@@ -1277,7 +1403,7 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
   }
   // Head on the neck: pitch for howl/look, lowered for sleep.
   const howl = st("howl").w, lk = st("look"), roar = st("roar").w;
-  const headPitch = -55 * howl + (lk.a?.angle ?? -10) * lk.w + 30 * sleep + 10 * sit - pitch * .55;
+  const headPitch = -55 * howl + (lk.a?.angle ?? -10) * lk.w + 30 * sleep + 10 * sit * (b.hoof ? 0 : 1) - pitch * .55;
   const neck = R([L * .44, top + bh * .05]), nl = b.neck ?? 1, headRot = headPitch + (b.headTilt ?? 0) * (1 - .6 * sleep);
   // A long neck (the horse's) rises steeply from the withers; the head hangs from its end, tilted face-down.
   const headC = add(neck, rot([hs * .9 * (nl > 1 ? .55 * nl : 1), -hs * (.55 - .8 * sleep) * (nl > 1 ? 1.25 * nl : nl)], -headPitch * .3 + pitch * .45, [0, 0]));
@@ -1327,6 +1453,11 @@ function quadruped(species: QuadSpecies, spec: UkiyoeCreatureSpec, frame: number
       if (hash01(seed, i, 404) < .4) stripesD.push(carvedLine([m3, add(m3, [dn[0] * len * .35 - t2[0] * bh * .12, dn[1] * len * .35 - t2[1] * bh * .12])], bh * .06, { taper: "end", minRatio: .05 }));
     }
     out.push({ t: "clip", d: coatD + neckD, union: true, key: "stripes", prims: [{ t: "fill", d: stripesD.join(""), fill: "sumi", opacity: .85 }] });
+  }
+  if (b.melon && !look.color) {
+    // The uribō's 'melon' stripes: pale bands along the body, following the back from the neck to the rump.
+    const bands = [.18, .34, .5, .66].map((v, i) => carvedLine([R([-L * .5, top + bh * v]), R([-L * .1, top + bh * (v - .03)]), R([L * .3, top + bh * (v + .02)]), R([L * .48, top + bh * (v + .06)])], bh * (.055 - i * .006), { taper: "both", minRatio: .4, smooth: true }));
+    out.push({ t: "clip", d: coatD, key: "melon", prims: [{ t: "fill", d: bands.join(""), fill: "gofun", opacity: .6 }] });
   }
   if (b.spots && !look.color) {
     // A sika's white spots in loose rows along the flank.
@@ -1397,6 +1528,10 @@ interface Bird {
   primary: UkiyoePaint; secondary: UkiyoePaint; covert: UkiyoePaint; tailColor: UkiyoePaint; eye: UkiyoePaint;
   crown?: UkiyoePaint; cheek?: UkiyoePaint; bib?: UkiyoePaint; slim: number; beakLen: number; beakDepth: number; headR: number; scallop: number; sheen?: UkiyoePaint; plume?: boolean; bustle?: boolean; bars?: UkiyoePaint;
 }
+/** Each UKIYO1 bird's species in ANIM1, for its flight. */
+const ANIM1_BIRDS: Readonly<Record<"crane" | "heron" | "crow" | "pheasant" | "sparrow" | "hawk" | "oshidori", string>> = {
+  crane: "red-crowned-crane", heron: "grey-heron", crow: "large-billed-crow", pheasant: "green-pheasant", sparrow: "eurasian-tree-sparrow", hawk: "eurasian-goshawk", oshidori: "mandarin-duck",
+};
 const BIRDS: Readonly<Record<"crane" | "heron" | "crow" | "pheasant" | "sparrow" | "hawk" | "oshidori", Bird>> = {
   // The goshawk of the falconry prints: barred pale breast, brown back, yellow eye and feet, the hooked beak.
   hawk: { body: 56, neck: 12, leg: 30, tail: 42, color: "gofun", back: "cha", neckColor: "gofun", head: "cha", beak: "sumi", legColor: "ki", primary: "kogecha", secondary: "cha", covert: "cha",
@@ -1453,9 +1588,23 @@ function bird(species: keyof typeof BIRDS, spec: UkiyoeCreatureSpec, frame: numb
   const fly = st("fly").w, dance = st("dance").w, peck = st("peck"), walk = Math.max(st("walk").w, st("run").w) * (tr.moving ? 1 : 0);
   const B = b.body * k, N = b.neck * k, Lg = b.leg * k, out: Prim[] = [];
   const color = look.color ?? b.color, back = look.color ?? b.back, line = Math.max(.8, Math.min(1.3, B * .02));
-  const flapRate = species === "sparrow" ? 2.2 : species === "crow" ? 4.5 : 6.5;
-  const beat = (frame / flapRate + seed) % (Math.PI * 2), down = .5 - .5 * Math.cos(beat);   // 0 top of stroke … 1 bottom
-  const lift = fly * (Lg * .9 + Math.sin(frame / (flapRate * 2)) * B * .08);
+  // The wingbeat comes from ANIM1's flight table: the species' predicted cruising rate (drawn at no more than 7.5 beats a
+  // second, four frames a beat at 30 fps) and its style: a crane rows on steadily, a goshawk flaps and glides, a pheasant
+  // bursts then glides on bowed wings, a sparrow bounds with its wings closed between bursts.
+  const fl = birdFlight(ANIM1_BIRDS[species]), at = fl ? flightAt(ANIM1_BIRDS[species], frame / 30, seed, 7.5) : undefined;
+  let down: number, closed = 0, flex = 0;
+  if (fl && at) {
+    const { top, bottom } = fl.stroke, share = (e: number) => clamp01((top - e) / (top - bottom));
+    // On the upstroke the wrist flexes and the wing comes up narrow; it opens again for the downstroke.
+    if (at.flight === "flap") { const ws = wingStroke(fl, at.t); down = share(ws.elevation); flex = ws.fold; }
+    else if (at.flight === "glide") down = share(glideStroke(fl).elevation) * at.amount;
+    else { down = 0; closed = at.amount; }
+  } else {
+    const beat = (frame / 6.5 + seed) % (Math.PI * 2);
+    down = .5 - .5 * Math.cos(beat);   // 0 top of stroke … 1 bottom
+  }
+  // The body rises on each downstroke (and sinks a little through a closed-wing bound).
+  const lift = fly * (Lg * .9 + (1 - down) * B * .06 - closed * B * .05);
   const bodyC: Pt = [0, -Lg * (1 - fly) - B * .42 - lift + dance * Math.abs(Math.sin(frame / 10)) * B * .3];
   const tilt = fly * 6 - (1 - fly) * (species === "crane" || species === "heron" ? 6 : 16);
   const T = (x: number, y: number): Pt => rot(add(bodyC, [x * B, y * B]), tilt, bodyC);
@@ -1500,7 +1649,7 @@ function bird(species: keyof typeof BIRDS, spec: UkiyoeCreatureSpec, frame: numb
   // falls with the stroke; the hand lags behind the wrist; the primaries fan from the hand, the secondaries hang from
   // the forearm along the trailing edge.
   const wingPrims = (near: boolean): Prim[] => {
-    const open = Math.max(fly, dance * .9), res: Prim[] = [];
+    const open = Math.max(fly * (1 - closed) * (1 - .55 * flex), dance * .9), res: Prim[] = [];
     const shoulder = T(.16, -.2 * sl), span2 = B * (longNeck ? 1.25 : species === "sparrow" ? .9 : 1.05);
     // In flight the arm sweeps from up-and-back at the top of the stroke to down at the bottom; dancing, it waves.
     const strokeA = dance > fly ? -95 + Math.sin(frame / 7) * 50 : lerp(-112, 78, down) + (near ? 0 : -8);

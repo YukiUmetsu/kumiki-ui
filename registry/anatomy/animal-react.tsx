@@ -28,6 +28,8 @@ import { CONSTRUCTION_KEYS, animalConstruction, headBodyLength, poseAnimal, skel
 import type { AnimalPoint, AnimalSkeleton } from "./animal-construct";
 import { proportionRange } from "./animal-check";
 import { ACCENT, INK, MUTED, PAPER, ScaleChart, SheetCard, SwatchList, sheetGrid, sheetSmall } from "./foundation-react";
+import { furStrands, furStreamlines } from "./animal-fur";
+import { frontFace, frontFaceShapes } from "./animal-front";
 
 export type AnimalFigureMode = "silhouette" | "construction" | "colour" | "fur";
 
@@ -73,6 +75,9 @@ export const AnimalFigure = forwardRef<SVGSVGElement, AnimalFigureProps>(functio
   const eyeColour = pal.find(p => p.region === "eyes")?.hex ?? s.c.species?.eyes.iris ?? "#1c1a18";
   const long = mode === "fur" ? (longCoat ?? s.c.species?.coat.long ?? []) : [];
   const flow = mode === "fur" ? furFlow(s) : [];
+  // Strands of hair along the coat's direction (after Kidd): drawn for four-legged animals; birds and fish keep the
+  // hatched long-coat regions.
+  const strands = useMemo(() => (mode === "fur" ? furStrands(s, { seed: 11, long: longCoat }) : []), [mode, s, longCoat]);
   return (
     <svg ref={ref} role="img" aria-label={label} viewBox={`${x0} ${-y1} ${w} ${h}`} preserveAspectRatio="xMidYMax meet" style={{ display: "block", width: "100%", height: "auto", ...style }} {...rest}>
       <defs>
@@ -98,11 +103,18 @@ export const AnimalFigure = forwardRef<SVGSVGElement, AnimalFigureProps>(functio
           <path d={sh.body + sh.near} fill="none" stroke={MUTED} strokeWidth={lw * 1.6} /><path d={sh.body + sh.near} fill={PAPER} />
         </>}
         {mode === "fur" && <>
-          <g clipPath={`url(#${id}-sil)`}>{long.map(r => sh.regions[r] && <path key={r} d={sh.regions[r]} fill={`url(#${id}-hair)`} />)}</g>
-          {flow.map((line, i) => <polyline key={i} points={pts(line)} fill="none" stroke={ACCENT} strokeWidth={lw * 1.4} markerEnd={`url(#${id}-arrow)`} opacity=".9" />)}
+          {strands.length ? <g fill="none" stroke={INK} strokeLinecap="round">
+            {strands.map((st, i) => <polyline key={i} points={pts(st.points)} strokeWidth={st.width} opacity={st.long ? .75 : .55} />)}
+          </g> : <g clipPath={`url(#${id}-sil)`}>{long.map(r => sh.regions[r] && <path key={r} d={sh.regions[r]} fill={`url(#${id}-hair)`} />)}</g>}
+          {flow.map((line, i) => <polyline key={i} points={pts(line)} fill="none" stroke={ACCENT} strokeWidth={lw * 1.4} markerEnd={`url(#${id}-arrow)`} opacity={strands.length ? .55 : .9} />)}
         </>}
         {mode === "construction" && <Construction s={s} lw={lw} />}
-        {(mode === "colour" || mode === "construction" || mode === "fur") && <circle cx={s.head.eye[0]} cy={s.head.eye[1]} r={s.head.eyeR} fill={mode === "colour" ? eyeColour : INK} />}
+        {(mode === "colour" || mode === "construction" || mode === "fur") && (s.head.eyeClosed
+          ? <line x1={s.head.eye[0] - s.head.eyeR} x2={s.head.eye[0] + s.head.eyeR} y1={s.head.eye[1]} y2={s.head.eye[1]} stroke={INK} strokeWidth={lw * 1.4} strokeLinecap="round" />
+          : <circle cx={s.head.eye[0]} cy={s.head.eye[1]} r={s.head.eyeR} fill={mode === "colour" ? eyeColour : INK} />)}
+        {/* Water over a floating bird: what is below the surface reads as under it. */}
+        {s.joints.waterline && <g><rect x={x0} y={y0} width={w} height={s.joints.waterline[1] - y0} fill={PAPER} opacity=".72" />
+          <line x1={x0} x2={x1} y1={s.joints.waterline[1]} y2={s.joints.waterline[1]} stroke={MUTED} strokeWidth={lw * 1.2} /></g>}
       </g>
     </svg>
   );
@@ -117,6 +129,8 @@ function Construction({ s, lw }: { s: AnimalSkeleton; lw: number }) {
       {s.neck.points.length > 0 && <polyline points={pts(s.neck.points)} />}
       {j.occiput && <line x1={j.occiput[0]} y1={j.occiput[1]} x2={s.head.nose[0]} y2={s.head.nose[1]} />}
       <polyline points={pts(s.topLine)} stroke={INK} strokeWidth={lw * .9} />
+      {s.wings && [s.wings.far, s.wings.near].map((w, i) => <g key={`w${i}`} opacity={i ? 1 : .5}><polyline points={pts(w.bones)} stroke={INK} strokeWidth={lw * 1.6} />
+        {w.bones.slice(0, 3).map((p, k) => <circle key={k} cx={p[0]} cy={p[1]} r={lw * 2.4} fill={PAPER} stroke={INK} strokeWidth={lw} />)}</g>)}
       {s.limbs.map((l, i) => <g key={i} opacity={l.far ? .5 : 1}><polyline points={pts(l.points)} stroke={INK} strokeWidth={lw * 1.6} />
         {l.points.slice(0, 4).map((p, k) => <circle key={k} cx={p[0]} cy={p[1]} r={lw * 2.4} fill={PAPER} stroke={INK} strokeWidth={lw} />)}</g>)}
       {s.kind === "quadruped" && j.withers && j.brisket && <g stroke={MUTED} strokeWidth={lw}>
@@ -130,12 +144,37 @@ function Construction({ s, lw }: { s: AnimalSkeleton; lw: number }) {
 /** Lines showing how the coat lies: from the nape back along the body, and down each near leg and the tail. */
 function furFlow(s: AnimalSkeleton): AnimalPoint[][] {
   if (s.kind !== "quadruped") return s.topLine.length ? [s.topLine.slice().reverse().slice(0, -1)] : [];
+  // Four-legged animals: streamlines of the same direction field the strands follow (after Kidd).
+  const traced = furStreamlines(s);
+  if (traced.length) return traced;
   // The top line runs tail → nape: reversed and dropped below the back, it runs nape → croup, the way the hair lies.
   const fromNape = s.topLine.slice().reverse().slice(0, -1), D = s.c.chestDepth;
   const lines = [.3, .62].map(k => fromNape.map(p => [p[0], p[1] - D * k] as AnimalPoint));
   for (const l of s.limbs.filter(x => !x.far)) lines.push([l.points[0], l.points[1], l.points[2]].map(p => [p[0] + .015, p[1]] as AnimalPoint));
   if (s.tail.points.length > 2) lines.push(s.tail.points.slice(1, -1));
   return lines;
+}
+
+/** The face square on, from `animal-front.ts` (measured or the plan's), in the species' colours. */
+export function FrontFaceFigure({ species }: { species: AnimalSpecies }) {
+  const sh = frontFaceShapes(species), f = frontFace(species);
+  if (!sh || !f) return null;
+  const [x0, y0, x1, y1] = sh.bounds, W = Math.max(x1 - x0, y1 - y0), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, lw = W / 160;
+  const pal = species.coat.palette, base = pal.find(p => p.region === "back" && p.fill !== "accent")?.hex ?? "#8a7a68";
+  const face = pal.find(p => (p.region === "face" || p.region === "head") && (p.fill ?? "area") === "area")?.hex ?? base;
+  const muzzle = pal.find(p => (p.region === "muzzle" || p.region === "throat") && (p.fill ?? "area") === "area")?.hex;
+  return (
+    <figure style={{ margin: 0, display: "grid", gap: 4, justifyItems: "start" }}>
+      <svg role="img" aria-label={`${species.name}, face square on`} viewBox={`${cx - W / 2} ${-(cy + W / 2)} ${W} ${W}`} style={{ width: 140, height: 140 }}>
+        <g transform="scale(1 -1)" stroke={INK} strokeWidth={lw}>
+          <path d={sh.ears} fill={base} /><path d={sh.earsInner} fill={PAPER} stroke="none" opacity={.8} />
+          <path d={sh.head} fill={face} />{muzzle && <path d={sh.muzzle} fill={muzzle} stroke="none" />}
+          <path d={sh.nose} fill={INK} /><path d={sh.eyes} fill={species.eyes.iris} />
+        </g>
+      </svg>
+      <figcaption style={{ ...sheetSmall, margin: 0 }}>Square on ({f.grade}: {f.source}).</figcaption>
+    </figure>
+  );
 }
 
 // ---- The character sheet -------------------------------------------------------------------------------------------------------
@@ -223,6 +262,7 @@ export const AnimalSheet = forwardRef<HTMLDivElement, AnimalSheetProps>(function
           {sp.face.features.map(f => <li key={f}>{f}</li>)}
         </ul>
         <p style={{ ...small, margin: 0 }}>{sp.face.grade}: {sp.face.source}.</p>
+        <FrontFaceFigure species={sp} />
       </Card>}
       <Card title="Parts">
         <ul style={{ margin: 0, paddingLeft: 18, columns: "2 160px" }}>

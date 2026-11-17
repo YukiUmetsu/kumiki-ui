@@ -6,6 +6,7 @@ import { GROWTH_FORMS } from "../../registry/anatomy/plant-forms";
 import type { GrowthFormId } from "../../registry/anatomy/plant-forms";
 import { growPlant, plantConstruction, plantShapes } from "../../registry/anatomy/plant-construct";
 import { PlantFigure, PlantSheet } from "../../registry/anatomy/plant-react";
+import { CROWN_DRAWING } from "../../registry/anatomy/plant-crown";
 import type { PlantFigureMode } from "../../registry/anatomy/plant-react";
 
 const page = { display: "grid", gap: 16, alignContent: "start", padding: 24, minHeight: "100vh", background: "var(--km-surface-canvas, #f6f3f1)", color: "var(--km-text-primary, #242424)",
@@ -51,7 +52,7 @@ function usePrefersReducedMotion() {
 function SeasonsLab() {
   const [id, setId] = useState("japanese-maple");
   const [month, setMonth] = useState<Month>(11);
-  const [wind, setWind] = useState(.6);
+  const [wind, setWind] = useState(0);
   const [seed, setSeed] = useState(11);
   const [mode, setMode] = useState<PlantFigureMode>("colour");
   const reduced = usePrefersReducedMotion();
@@ -65,7 +66,7 @@ function SeasonsLab() {
   }, [reduced, wind]);
   const sp = findPlant(id)!, c = useMemo(() => plantConstruction(sp), [sp]);
   const still = useMemo(() => growPlant(c, { month, seed }), [c, month, seed]);
-  const sk = useMemo(() => (wind && !reduced ? growPlant(c, { month, seed, wind, t }) : still), [c, month, seed, wind, t, reduced, still]);
+  const moving = !!wind && !reduced;
   const bounds = useMemo(() => { const b = plantShapes(still).bounds; return [b[0] - .1, b[1], b[2] + .1, b[3] + .05] as const; }, [still]);
   return (
     <div style={page}>
@@ -82,7 +83,8 @@ function SeasonsLab() {
         </label>
         <button type="button" style={field} onClick={() => setSeed(s => s + 1)}>Another one ({seed})</button>
       </div>
-      <div style={{ maxWidth: 760, width: "100%" }}><PlantFigure skeleton={sk} mode={mode} bounds={bounds} label={`${sp.name} in ${MONTHS[month - 1]}`} /></div>
+      {/* The crown is grown once on the still plant and moved by the sway (its physical rate); medium detail while it moves. */}
+      <div style={{ maxWidth: 760, width: "100%" }}><PlantFigure skeleton={still} wind={moving ? wind : 0} t={t} swayHz="species" detail={moving ? "medium" : "full"} mode={mode} bounds={bounds} label={`${sp.name} in ${MONTHS[month - 1]}`} /></div>
       <p style={muted}>{sp.name} · {GROWTH_FORMS[sp.form].wind.moves}</p>
     </div>
   );
@@ -136,7 +138,27 @@ function Calendar() {
 const meta = { title: "Video production/Art Foundations/Plant Anatomy", id: "video-plant-anatomy", component: SheetStory, parameters: { layout: "fullscreen" } } satisfies Meta<typeof SheetStory>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+/** The crown and trunk in detail (plant-crown.ts): the same trees flat and detailed, and trunks up close. */
+function CrownDetail() {
+  const trees: [string, Month][] = [["zelkova", 7], ["camphor", 7], ["mountain-cherry", 4], ["japanese-black-pine", 7], ["japanese-cedar", 7], ["ginkgo", 11], ["weeping-willow", 6], ["japanese-maple", 11]];
+  const card = { display: "grid", gap: 4, alignContent: "start", alignSelf: "start", margin: 0, padding: 8, borderRadius: 8, background: "var(--km-surface-default, #fff)", border: "1px solid var(--km-border-subtle, #cecac8)" } as const;
+  const grid = { display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" } as const;
+  return (
+    <div style={page}>
+      <p style={muted}>Foliage tufts lit by light filtered through the crown, sky holes at the measured gap, edge leaves, and shaded trunks with bark. Painter's rules (Needham): {CROWN_DRAWING.slice(0, 3).join(" ")}</p>
+      <div style={grid}>{trees.map(([id, m]) => { const sk = growPlant(plantConstruction(id), { month: m, seed: 11 }); return (
+        <figure key={id} style={card}><PlantFigure skeleton={sk} label={`${findPlant(id)!.name}, ${MONTHS[m - 1]}`} /><figcaption style={muted}>{findPlant(id)!.name} · {MONTHS[m - 1]}</figcaption></figure>); })}</div>
+      <h3 style={{ margin: 0, font: "600 15px var(--km-font-sans, system-ui, sans-serif)" }}>Flat masses (detail="flat") against the detailed crown</h3>
+      <div style={grid}>{(["flat", "full"] as const).map(d => <figure key={d} style={card}><PlantFigure skeleton={growPlant(plantConstruction("zelkova"), { month: 7, seed: 11 })} detail={d} label={`Zelkova, ${d}`} /><figcaption style={muted}>detail = {d}</figcaption></figure>)}</div>
+      <h3 style={{ margin: 0, font: "600 15px var(--km-font-sans, system-ui, sans-serif)" }}>Trunks: cylinder shading, bark, root flare, limbs growing out of the trunk</h3>
+      <div style={grid}>{(["zelkova", "japanese-black-pine", "mountain-cherry", "camphor"] as const).map(id => { const sk = growPlant(plantConstruction(id), { month: id === "mountain-cherry" ? 1 : 7, seed: 11 }), x = sk.branches.find(b => b.order === 0)!.points[0][0]; return (
+        <figure key={id} style={card}><PlantFigure skeleton={sk} bounds={[x - .18, -.01, x + .18, .45]} label={`${findPlant(id)!.name} trunk`} /><figcaption style={muted}>{findPlant(id)!.name}: {findPlant(id)!.bark.kind} bark</figcaption></figure>); })}</div>
+    </div>
+  );
+}
+
 export const Sheet: Story = { render: () => <SheetStory /> };
 export const Seasons: Story = { render: () => <SeasonsLab /> };
 export const Forms: Story = { name: "Growth forms", render: () => <GrowthForms /> };
 export const InSeason: Story = { name: "In season", render: () => <Calendar /> };
+export const Crowns: Story = { name: "Crown and bark detail", render: () => <CrownDetail /> };

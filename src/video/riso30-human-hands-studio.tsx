@@ -7,6 +7,8 @@ import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import {COURIER} from "./riso-character-demo";
 import {PAPER_ARTIST} from "./riso-human-ensemble";
 import {RISO30_ANAT1_HAND,inspectRisoHandArtcraft,layoutRisoHandArtcraft} from "./riso-hand-artcraft";
+import {riso53InspectSourceDepth} from "./riso53-palmar-depth-composition";
+import {inspectRiso54WebReserves} from "./riso54-interdigital-paper-reserve";
 import type {RisoHandSide} from "./riso-hand-artcraft";
 import {RISO31_ANAT1_REFERENCE,riso31Inspect} from "./riso31-finger-phalanges";
 import {inspectRiso32ThumbIp,RISO32_THUMB_ANAT1} from "./riso32-thumb-ip";
@@ -15,14 +17,21 @@ import {inspectRiso36RedFingerSilhouettes} from "./riso36-red-silhouette-gate";
 import {inspectRiso39OpposedPaperPinch} from "./riso39-opposed-paper-pinch";
 import {inspectRiso41InkPressure} from "./riso41-contact-pressure";
 import {inspectRiso42SupportingDigits} from "./riso42-support-digits-gesture";
+import {riso52ExpectedOriginalSourceIds} from "./riso52-folded-terminal-source";
+import {riso57PalmLandmarks,riso57PositivePalmContour} from "./riso57-palm-contact-silhouette";
+import {riso58ContactSkin} from "./riso58-anat1-volume-skin";
+import {riso59PreviewContact} from "./riso59-continuous-hand-envelope";
+import {inspectRiso60NegativeSpace} from "./riso60-native-hand-negative-space";
 
 type PlateMode="both"|"blue"|"red";
-type GestureFrame=0|46|126|144|160|166|178|186|198|239;
+type GestureFrame=0|46|126|144|154|156|160|166|178|186|198|239;
 const FRAME_OPTIONS:readonly {frame:GestureFrame;label:string}[]=[
   {frame:0,label:"Opening · anatomical rest"},
   {frame:46,label:"Relaxed fingers"},
   {frame:126,label:"Prepare to receive"},
   {frame:144,label:"Hand approaches"},
+  {frame:154,label:"Thenar web approaches paper"},
+  {frame:156,label:"Thumb/index web compression"},
   {frame:160,label:"Pinch / paper contact"},
   {frame:166,label:"Receiver peak PIP flexion"},
   {frame:178,label:"Fingertip release"},
@@ -48,6 +57,11 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   plate:PlateMode;zoom:number;showRig:boolean;density:number;
 }){
   const pose=useMemo(()=>evaluateRisoCharacter(actor,frame),[actor,frame]);
+  const activeSource=(actor.id==="courier"&&side==="right")||
+    (actor.id==="paper-artist"&&side==="left");
+  const negativeSpace=useMemo(()=>activeSource
+    ? inspectRiso60NegativeSpace(actor,actor.id as "courier"|"paper-artist",frame)
+    :null,[actor,frame,activeSource]);
   const palm=pose.joints.find(j=>j.id===side+"-hand");
   if(!palm)throw new Error("RISO30 missing original hand "+actor.id+" "+side);
   const inkPartIds=useMemo(()=>actor.parts.filter(p=>
@@ -56,6 +70,59 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
     p.id===side+"-wrist-underprint-clearance").map(p=>p.id),[actor,side]);
   const region=inspectRisoHandArtcraft(actor,frame,side);
   const bones=riso31Inspect(actor,frame,side);
+  const riso53Overlap=riso53InspectSourceDepth(actor.parts,
+    actor.id as "courier"|"paper-artist");
+  const riso53VisibleSourceOrder=side===riso53Overlap.side?
+    riso53Overlap.farRedBehind:0;
+  const riso54Web=(actor.id==="courier"&&side==="right")||
+    (actor.id==="paper-artist"&&side==="left")?
+    inspectRiso54WebReserves(actor,frame):null;
+  // Source 3D inverse-kinematic reconstruction is independent of live
+  // film frame/ink-density; cache its actual ANAT1 joints once per actor.
+  const realVolume=useMemo(()=>(
+    (actor.id==="courier"&&side==="right")||
+    (actor.id==="paper-artist"&&side==="left")?
+      riso58ContactSkin(actor,actor.id as "courier"|"paper-artist",side,160):null
+  ),[actor,side]);
+  const mainPalmSource=pose.parts.find(p=>p.id===side+"-glove");
+  const mcpPlateSource=pose.parts.find(p=>p.id===side+"-glove-knuckle-arc");
+  const riso51MorphParts=actor.parts.filter(p=>
+    p.id.startsWith(side+"-glove")&&p.pathKeys?.length&&!p.knockoutOnly).length;
+  const riso51PalmChanged=mainPalmSource?.d!==actor.parts.find(p=>p.id===side+"-glove")?.d;
+  const riso52TerminalPairs=riso52ExpectedOriginalSourceIds(side).filter(id=>
+    actor.parts.some(p=>p.id===id&&p.pathKeys?.length)).length/2;
+  // Actual evaluated RED distal source (not a hand-wavy artist flag).
+  // A true curl returns the DIP positive-ink tip toward the palm,
+  // instead of leaving RISO54's three linear red printed rakes.
+  const riso55TerminalCount=["middle","ring","pinky"].filter(digit=>{
+    const id=side+"-glove-"+digit+"-distal-phalanx";
+    const original=actor.parts.find(p=>p.id===id);
+    const sample=pose.parts.find(p=>p.id===id);
+    return Boolean(original?.pathKeys?.length&&sample&&
+      sample.d!==original.d&&
+      (sample.d.match(/[Cc]/g)??[]).length===
+        (original.d.match(/[Cc]/g)??[]).length);
+  }).length;
+  const riso57Knots=riso57PalmLandmarks(actor.id as "courier"|"paper-artist",side);
+  const riso57At=(name:string)=>riso57Knots.find(p=>p.landmark===name)!;
+  const riso57Handed=side==="right"?1:-1;
+  const riso57FirstWebRelief=riso57Handed*
+    (riso57At("index-mcp").x-riso57At("first-web-inset").x);
+  const riso57OriginalPositiveSource=actor.parts.find(p=>p.id===side+"-glove")?.d===
+    riso57PositivePalmContour(actor.id as "courier"|"paper-artist",side);
+  const mcpSourcePlaneCount=(mcpPlateSource?.d.match(/[Mm]/g)??[]).length;
+  const palmSourceCubicCount=(mainPalmSource?.d.match(/[Cc]/g)??[]).length;
+  // Exact live anatomical source stations, not a visual proxy or an
+  // after-render pixel measurement. 1.0 = unprojected ANAT1 source.
+  const supportProjectionRatio=bones.filter(b=>b.digit!=="index").reduce((sum,b)=>
+    sum+b.rootLength/b.expectedProximal+
+      b.intermediateLength/b.expectedIntermediate,0)/6;
+  // RISO54: the camera incidence estimate is a *derived* 2D projection
+  // angle from each live moving ANAT1 segment, not a calibrated 3D camera.
+  const riso54MeanRayAngle=bones.filter(b=>b.digit!=="index")
+    .flatMap(b=>[b.rootLength/b.expectedProximal,
+      b.intermediateLength/b.expectedIntermediate])
+    .reduce((sum,ratio)=>sum+Math.acos(Math.max(-1,Math.min(1,ratio)))*180/Math.PI,0)/6;
   const thumb=inspectRiso32ThumbIp(actor,frame,side);
   const spacing=inspectRiso33HandFan(actor,frame,side);
   const redInk=useMemo(()=>inspectRiso36RedFingerSilhouettes(actor,frame,side),[actor,frame,side]);
@@ -68,11 +135,32 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
   const camera=layoutRisoHandArtcraft(pose,side,zoom,aspect.width,aspect.height);
   const {x,y}=camera;
   return <article data-km-riso30-hand={actor.id+"-"+side}
+    data-km-riso60-web-count={negativeSpace?.webs.length??0}
+    data-km-riso60-web-states={negativeSpace?.webs.map(w=>w.state).join(",")??"inactive-hand"}
+    data-km-riso60-positive-area={negativeSpace?.positiveArea??""}
     data-km-riso30-hand-frame={frame}
     data-km-riso30-hand-parts={region.sourceCount}
     data-km-riso30-hand-artcraft={String(region.actuallyEngraved)}
     data-km-riso31-segments={bones.reduce((n,j)=>n+j.phalanxPathCount,0)}
     data-km-riso31-actual-flexion={String(bones.every(j=>j.exactRedSource))}
+    data-km-riso49-support-projection-ratio={supportProjectionRatio.toFixed(3)}
+    data-km-riso54-mean-source-camera-ray-deg={riso54MeanRayAngle.toFixed(2)}
+    data-km-riso50-source-mcp-planes={mcpSourcePlaneCount}
+    data-km-riso50-palm-cubics={palmSourceCubicCount}
+    data-km-riso57-source-landmarks={riso57Knots.length}
+    data-km-riso57-first-web-inset={riso57FirstWebRelief.toFixed(3)}
+    data-km-riso57-original-positive-contour={String(riso57OriginalPositiveSource)}
+    data-km-riso58-reconstructed-bone-rays={realVolume?.bones.length??0}
+    data-km-riso58-source-surface-z={realVolume?.maxSurfaceDepth.toFixed(3)??"0.000"}
+    data-km-riso58-source-contact-volume={String(Boolean(
+      realVolume&&frame===160&&mainPalmSource?.d===realVolume.path))}
+    data-km-riso51-live-source-morph-parts={riso51MorphParts}
+    data-km-riso52-cobalt-red-terminal-pairs={riso52TerminalPairs}
+    data-km-riso55-folded-source-tip-count={riso55TerminalCount}
+    data-km-riso51-palm-projected={String(riso51PalmChanged)}
+    data-km-riso53-original-red-support-behind-palm={riso53VisibleSourceOrder}
+    data-km-riso54-native-web-reserves={riso54Web?.sourceCount??0}
+    data-km-riso54-moving-web-cubics={riso54Web?.reserves.reduce((n,p)=>n+p.curveCount,0)??0}
     data-km-riso32-ip-articulated={String(thumb.independentRedSegments)}
     data-km-riso32-ip-flexion={thumb.ipLocalAngle.toFixed(2)}
     data-km-riso33-minimum-axis-gap={spacing.minimumAxisGap.toFixed(3)}
@@ -116,7 +204,34 @@ function HandPrintPanel({actor,side,frame,plate,zoom,showRig,density}:{
         }]}
         style={{display:"block",width:"100%",height:"auto"}}/>
     </div>
-    <p style={{fontSize:12,margin:"9px 0 0",color:"#55727E",lineHeight:1.5}}>
+    {negativeSpace&&<details data-km-riso60-report=""
+      style={{marginTop:11,padding:"9px 10px",border:"1px solid #C6B59C",
+        borderRadius:4,background:"#FCF3E6",fontSize:12,lineHeight:1.5}}>
+      <summary style={{cursor:"pointer",fontWeight:700}}>
+        RISO60 · inspect actual RED stencil and paper-negative webs
+      </summary>
+      <p style={{margin:"8px 0"}}>
+        Original physical source, not image sampling. RED positive palm:
+        {" "}{negativeSpace.positiveArea.toFixed(2)} source units²;
+        {" "}{negativeSpace.positiveCubicCount} continuous cubic strokes.
+        Artist review required: a geometrically open notch does not establish
+        believable anatomy or physical press registration.
+      </p>
+      <table style={{width:"100%",borderCollapse:"collapse",textAlign:"left"}}>
+        <thead><tr><th scope="col">Original cutter</th><th scope="col">Ink edge crossings</th>
+          <th scope="col">Paper result</th></tr></thead>
+        <tbody>{negativeSpace.webs.map(web=><tr data-km-riso60-web={web.id} key={web.id}>
+          <th scope="row">{web.id.endsWith("middle-ring")?"Middle / ring":"Ring / little"}</th>
+          <td>{web.boundaryCrossings}</td><td>{web.state} · {web.cubicCount}C ·
+            {" "}{web.cutterArea.toFixed(2)} area</td>
+        </tr>)}</tbody>
+      </table>
+      <p style={{margin:"7px 0 0"}}>
+        Flag interior-hole, outside-miss or boundary-uncertain before film release.
+        Verify two physical ink plates and a matched 1× human-hand reference.
+      </p>
+    </details>}
+    <p style={{fontSize:12,margin:"9px 0 0",color:"#55727E",lineHeight:1.5}}> 
       {region.sourceCount} original hand source paths; five authentic digits,
       12 source-red anatomical phalanges with asymmetric pad/plane/tip silhouettes, a separate opposed moving thumb IP pad,\n      four distinct MCP cobalt crests, screened anatomical tendon pressure,
       joint-local engraved creases and attached nail rims. Every mark remains a spot-colour print master.
@@ -142,15 +257,26 @@ export function Riso30HumanHandsWorkbench(){
   const [density,setDensity]=useState(.40);
   const [rig,setRig]=useState(false);
   const [swap,setSwap]=useState(false);
+  const [riso59Preview,setRiso59Preview]=useState(false);
+  // An explicit A/B review candidate; do not silently promote it into the
+  // two published actors or replace their approved original source parts.
+  const riso59Models=useMemo(()=>({
+    courier:riso59PreviewContact(COURIER,"courier"),
+    artist:riso59PreviewContact(PAPER_ARTIST,"paper-artist"),
+  }),[]);
+  const courier=riso59Preview?riso59Models.courier.spec:COURIER;
+  const artist=riso59Preview?riso59Models.artist.spec:PAPER_ARTIST;
   const subjects=swap
-    ? [{actor:COURIER,side:"left" as const},{actor:PAPER_ARTIST,side:"right" as const}]
-    : [{actor:COURIER,side:"right" as const},{actor:PAPER_ARTIST,side:"left" as const}];
+    ? [{actor:courier,side:"left" as const},{actor:artist,side:"right" as const}]
+    : [{actor:courier,side:"right" as const},{actor:artist,side:"left" as const}];
   return <main data-km-riso30-hands-story="" data-km-riso30-frame={frame}
-    data-km-riso30-ink={plate} style={{background:"#EFE4D1",color:"#284A60",
+    data-km-riso30-ink={plate} data-km-riso59-preview={riso59Preview}
+    data-km-riso59-joint-crests={riso59Preview?6:0}
+    data-km-riso59-mcp-move={riso59Models.courier.crestShifts.map(s=>s.distance).join(",")} style={{background:"#EFE4D1",color:"#284A60",
       font:"14px system-ui,sans-serif",minHeight:"100vh",padding:20}}>
     <div style={{maxWidth:1100,margin:"0 auto"}}>
       <header style={{padding:"6px 0 16px"}}>
-        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO45</div>
+        <div style={{letterSpacing:2,fontSize:12,fontWeight:800}}>RISOGRAPH · ARTCRAFT / ANAT1 · RISO59 A/B</div>
         <h1 style={{font:"700 28px Georgia,serif",margin:"7px 0 8px"}}>
           Human hands / ink-carved gesture & paper contact</h1>
         <p style={{maxWidth:930,margin:0,lineHeight:1.55}}>
@@ -188,6 +314,10 @@ export function Riso30HumanHandsWorkbench(){
         <label style={{display:"flex",gap:5,alignItems:"center"}}>
           <input type="checkbox" aria-label="RISO30 compare opposite hands" checked={swap}
             onChange={e=>setSwap(e.target.checked)}/> Compare opposite hands</label>
+        <label style={{display:"flex",gap:5,alignItems:"center"}}>
+          <input type="checkbox" aria-label="RISO59 preview original joined skin" checked={riso59Preview}
+            onChange={e=>setRiso59Preview(e.target.checked)}/>
+          RISO59 experimental continuous three-quarter skin A/B</label>
       </section>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(310px,1fr))",gap:18}}>
         {subjects.map(({actor,side})=><HandPrintPanel key={actor.id+"-"+side}
@@ -195,6 +325,8 @@ export function Riso30HumanHandsWorkbench(){
           showRig={rig} density={density}/>)}
       </div>
       <footer style={{padding:"14px 0",fontSize:12,lineHeight:1.5}}>
+        RISO59 is a review-only original-vector silhouette hypothesis, not verified realistic anatomy.
+        Switch off to restore every original production ink source.
         Anatomical basis: Kumiki ANAT1 hand surface form ({RISO30_ANAT1_HAND.anatomicalKnuckleIds.join(", ")});
         source grade S + measured ANSUR median hand length {RISO30_ANAT1_HAND.handLengthMedianMm} mm
         (population reference, NOT this stylized figure's identity).

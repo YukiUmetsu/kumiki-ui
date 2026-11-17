@@ -70,6 +70,140 @@ function newHeadValuePencil(
   });
 }
 
+/**
+ * Stage-1 anatomy-CONNECTED dry pigment at the actual outer cranium.
+ *
+ * Existing pigment fields remain intact. This adds separate short, real
+ * pencil contacts just INSIDE the 23-point ANAT1 facial perimeter and the
+ * independently constructed cranial vault. Unlike offset ellipses or a
+ * screen-space shadow filter, every fibre follows the contour's local
+ * Catmull-Rom tangent. Positive SVG polygon winding determines the inward
+ * normal; edge-distance pressure and skipped marks leave visible paper
+ * tooth. This is an artist's material construction, not photo evidence.
+ */
+function newHeadContourContacts(
+  perimeter:readonly Point[],seed:number,
+):PencilTrace[]{
+  if(perimeter.length<30||perimeter.some(p=>
+    p.length!==2||!p.every(Number.isFinite)))
+    throw new Error("An intact, finite cranial plus ANAT1 jaw perimeter is required");
+  let signedArea=0;
+  for(let i=0;i<perimeter.length;i++){
+    const a=perimeter[i],b=perimeter[(i+1)%perimeter.length];
+    signedArea+=a[0]*b[1]-b[0]*a[1];
+  }
+  if(Math.abs(signedArea)<100)
+    throw new Error("Cranial perimeter is degenerate");
+  const inward=signedArea>0?1:-1;
+  // Ordered value planes build from the boundary INWARD; do not replace the
+  // source-authored paper skin, coloured transitions, five ANAT1 value
+  // bands or the original silhouette. All 3 layers remain editable.
+  const layers=[
+    {id:"cold-turn",color:"#735E69",width:.27,opacity:.31,inset:1.5,spread:3.2,start:169},
+    {id:"warm-scumble",color:"#B88F84",width:.31,opacity:.24,inset:4.3,spread:4.6,start:194},
+    {id:"lit-tooth",color:"#E3BEA9",width:.22,opacity:.20,inset:7.1,spread:4.5,start:226},
+  ] as const;
+  const n=perimeter.length;
+  // Cubic Catmull-Rom point + derivative; C1-continuous between stored
+  // cranial/mandibular vertices. Never turn 23 jaw anchors into a 2D oval.
+  const segment=(index:number,t:number)=>{
+    const p0=perimeter[(index+n-1)%n],p1=perimeter[index];
+    const p2=perimeter[(index+1)%n],p3=perimeter[(index+2)%n];
+    const sample=(axis:0|1)=>{
+      const a=-p0[axis]+p2[axis],b=2*p0[axis]-5*p1[axis]+
+        4*p2[axis]-p3[axis];
+      const c=-p0[axis]+3*p1[axis]-3*p2[axis]+p3[axis];
+      return {
+        position:.5*(2*p1[axis]+a*t+b*t*t+c*t*t*t),
+        derivative:.5*(a+2*b*t+3*c*t*t),
+      };
+    };
+    const x=sample(0),y=sample(1);
+    return {x:x.position,y:y.position,dx:x.derivative,dy:y.derivative};
+  };
+  const out:PencilTrace[]=[];
+  for(let layer=0;layer<layers.length;layer++){
+    const material=layers[layer];
+    for(let group=0;group<2;group++){
+      const marks:string[]=[];
+      for(let edge=0;edge<n;edge++){
+        const a=perimeter[edge],b=perimeter[(edge+1)%n];
+        const length=Math.hypot(b[0]-a[0],b[1]-a[1]);
+        const count=Math.max(2,Math.ceil(length/3.8));
+        for(let k=0;k<count;k++){
+          const key=edge*7193+group*917+layer*11971+k;
+          if(pencilHash(seed,key,97)>.82)continue;
+          const t=(k+.18+.64*pencilHash(seed,key,91))/count;
+          const p=segment(edge,Math.min(.999,Math.max(.001,t)));
+          const magnitude=Math.hypot(p.dx,p.dy);
+          if(magnitude<1e-4)continue;
+          const tx=p.dx/magnitude,ty=p.dy/magnitude;
+          const nx=-ty*inward,ny=tx*inward;
+          const inset=material.inset+material.spread*pencilHash(seed,key,92);
+          const x=p.x+nx*inset,y=p.y+ny*inset;
+          const span=(1.1+2.6*pencilHash(seed,key,93))*
+            (layer===2?.74:1);
+          const bend=(pencilHash(seed,key,94)-.5)*.56;
+          marks.push(line(
+            [x-tx*span*.44,y-ty*span*.44],
+            [x+nx*bend,y+ny*bend],
+            [x+tx*span*.56+nx*bend*.21,
+             y+ty*span*.56+ny*bend*.21],
+          ));
+        }
+      }
+      out.push(drawn("newhead-contour-contact-"+material.id+"-"+group,
+        marks.join(" "),material.color,material.width,
+        material.opacity,material.start+group*5));
+    }
+  }
+  return out;
+}
+
+/**
+ * Add every curved contact as an SVG path subcommand inside the established
+ * 54 coloured plane traces; the renderer limits each editable trace's path
+ * to 12k characters and each anatomical region to 80 traces.
+ *
+ * The source 77 traces retain their original order/IDs/material attributes,
+ * each unchanged path as its prefix, and the three ANAT1 guide fans retain
+ * exactly 114 native marks each. Never silently truncate a source stroke:
+ * fail closed if one new contact cannot fit an existing same-value trace.
+ */
+function embedHeadContourContacts(
+  base:readonly PencilTrace[],contour:readonly PencilTrace[],
+):PencilTrace[]{
+  if(contour.length!==6)throw new Error("Expected six independently drawn contour-contact passes");
+  const paths=base.map(trace=>trace.path);
+  for(let layer=0;layer<3;layer++){
+    const candidates=base.flatMap((trace,index)=>
+      trace.id?.startsWith("newhead-plane-")&&
+        trace.id.match(/-[0-2]-[0-2]$/)?.[0].startsWith("-"+layer+"-")?
+        [index]:[]);
+    if(candidates.length!==18)
+      throw new Error("Expected all 18 existing painted field traces for one cranial value");
+    const tokens=contour.slice(layer*2,layer*2+2)
+      .flatMap(trace=>(trace.path.match(/M[^M]+/g)??[])
+        .map(stroke=>stroke.trim()).filter(Boolean));
+    if(tokens.length<40)throw new Error("Source-connected pigment produced too few genuine contacts");
+    let cursor=0;
+    for(const stroke of tokens){
+      let assigned=false;
+      for(let attempt=0;attempt<candidates.length;attempt++){
+        const index=candidates[(cursor+attempt)%candidates.length];
+        if(paths[index].length+stroke.length+1<12000){
+          paths[index]+=" "+stroke;
+          cursor=(cursor+attempt+1)%candidates.length;
+          assigned=true;break;
+        }
+      }
+      if(!assigned)throw new RangeError("Contour material exceeds the existing 12k pigment-path budget");
+    }
+  }
+  return base.map((trace,i)=>paths[i]===trace.path?trace:
+    {...trace,path:paths[i]});
+}
+
 /** Stage 1-only head value fields. Pencil touches follow the cranial turn,
  * temporal recession, zygomatic wedge and mandibular fold. Unlike an
  * all-head Cartesian hatch these marks have independent local growth angles
@@ -151,6 +285,117 @@ function newHeadPlanePigment(
   return traces;
 }
 
+/**
+ * Stage-1 art iteration: three crossed DRY-PENCIL contact passes, sampled on
+ * a shaded cranial ellipsoid in the same projected ANAT1 head coordinates.
+ * Actual head material remains individually authored vector pigment: there
+ * is no bitmap, SVG gradient, blurred mask or broad flat-color fill here.
+ *
+ * The previous native 960x540 capture was almost white inside a pencil
+ * outline: a handful of 0.3px marks cannot build photographed skin mass.
+ * Add warm/cool interleaving, a soft side-plane terminator and a localized
+ * reflected-light edge with thousands of short pressure-sensitive strokes.
+ *
+ * This ellipsoid is an ORIGINAL approximation of skull volume. It is not
+ * a likeness/reconstruction, nor a measured real-photo tonal map; the
+ * independent exact-byte 18-point/five-ROI ArtCraft gate remains blocked.
+ */
+export function newHeadCranialTonalVolume(
+  bounds:readonly [number,number,number,number],
+  seed:number,
+):PencilTrace[]{
+  if(bounds.length!==4||bounds.some(v=>!Number.isFinite(v))||
+    bounds[2]<40||bounds[3]<40||
+    !Number.isSafeInteger(seed)||seed<0||seed>2147483000)
+    throw new RangeError("Stage-1 cranial volume needs finite head bounds and seed");
+  const [left,top,width,height]=bounds;
+  const cx=left+width*.505,cy=top+height*.47;
+  const rx=width*.535,ry=height*.61;
+  // Optical layers are colored-pencils, not five solid painted stripes.
+  // Keep paper in highlights: semi-transparent warm, neutral and cool
+  // touches read differently when layered on the tooth of the same sheet.
+  const palette=[
+    ["#EED1B7","#F6DABE","#C8B1AE"], // paper-reserved highlight
+    ["#D6AD98","#E6BFA2","#BC9C9E"], // frontal light
+    ["#B98782","#C39B8B","#9F7985"], // warm/cool halftone
+    ["#805C68","#996C72","#745F70"], // deep far temporal terminator
+    ["#B18B90","#D0ABA0","#8D7A82"], // narrow cool bounce
+  ] as const;
+  const opacities=[.28,.43,.58,.73,.48] as const;
+  const weights=[2.40,1.75,1.05] as const;
+  const strokes:string[][][]=Array.from({length:5},()=>
+    Array.from({length:3},()=>[] as string[]));
+  // Fill each of 5 values with an exact, independently preserved count.
+  // Keep all planned marks and all 15 editable value-specific colour
+  // passes. The bounded CP-F1 detail cap is now 96 traces with max 12k
+  // characters per trace; never truncate prior 77 head details.
+  for(let pass=0;pass<3;pass++){
+    const budgets=[134,170,176,184,105] as const;
+    const collected=budgets.map(()=>0);
+    let i=0;
+    while(collected.some((n,band)=>n<budgets[band])&&i<150000){
+      const key=pass*523991+i++;
+      // Independent 2D spatial sampling is essential: adjacent salts on
+      // pencilHash are correlated along diagonal lattices. Actual 1×
+      // Chromium evidence showed TWO unnatural dark slashes across the
+      // cranium despite passing all scalar/trace-budget tests.
+      // Decouple axis index strides and seeds, preserving determinism.
+      const x=left+width*pencilHash(seed,Math.imul(key,2),401);
+      const y=top+height*pencilHash(
+        seed^0x9e3779b9,Math.imul(key,3)+106113,402);
+      const u=(x-cx)/rx,v=(y-cy)/ry;
+      const r2=u*u+v*v;
+      if(r2>=.965)continue;
+      // Ellipsoid z supplies the missing vault shading (ANAT1 ends at
+      // hairline). Side light comes from viewer upper-left with a dark,
+      // gently curved far-temporal plane, not five horizontal bands.
+      const z=Math.sqrt(1-r2);
+      const light=.62*z-.63*u-.21*v;
+      const bounce=u>.57&&v>-.43&&v<.66&&z<.59;
+      const band=bounce?4:light>.68?0:light>.39?1:
+        light>.12?2:3;
+      if(collected[band]>=budgets[band])continue;
+      const edge=Math.pow(1-r2,.28);
+      // Sparse reserves reveal paper tooth; avoid a rigid ellipse edge.
+      if(pencilHash(seed,key,403)>.64+.36*edge)continue;
+      const pressure=(.56+.44*pencilHash(seed,key,404))*edge;
+      const angle=-.21+.46*v-.32*u+
+        [0,.43,-.51][pass]+
+        (pencilHash(seed,key,405)-.5)*.19;
+      const ux=Math.cos(angle),uy=Math.sin(angle);
+      const orthoX=-uy,orthoY=ux;
+      const span=(5.1+6.7*pencilHash(seed,key,406))*
+        (.58+.42*edge)*(.77+.23*pressure)*(pass===2?.78:1);
+      const deflect=(pencilHash(seed,key,407)-.5)*.54;
+      strokes[band][pass].push(line(
+        [x-ux*span*.51,y-uy*span*.51],
+        [x+orthoX*deflect,y+orthoY*deflect],
+        [x+ux*span*.49+orthoX*deflect*.27,
+         y+uy*span*.49+orthoY*deflect*.27],
+      ));
+      collected[band]++;
+    }
+    if(collected.some((n,band)=>n!==budgets[band]))
+      throw new Error("Cranial ellipsoid failed to cover all five values");
+  }
+  const out:PencilTrace[]=[];
+  for(let band=0;band<5;band++)for(let pass=0;pass<3;pass++){
+    if(strokes[band][pass].length<12)
+      throw new Error("Stage-1 ellipsoid missing a pencil value region");
+    const id=["highlight","light","halftone",
+      "core-shadow","reflected-light"][band];
+    const strokePath=strokes[band][pass].join(" ");
+    if(strokePath.length>12000)
+      throw new Error("Cranial tonal-pigment trace exceeds CP-F1 12kB bound");
+    out.push(drawn("newhead-cranium-"+id+"-cross"+pass,
+      strokePath,
+      palette[band][pass],weights[pass],
+      opacities[band]*[.93,1,.84][pass],
+      173+band*4+pass*7));
+  }
+  return out;
+}
+
 export const NEW_CHARACTER_01_ID="head-silhouette-01" as const;
 export const NEW_CHARACTER_01_STAGE="head-outline" as const;
 
@@ -164,9 +409,13 @@ const NEW_HEAD_FACE={
   noseWidth:.02,noseLength:.10,lowerFace:.23,faceWidth:1.035,
 };
 const NEW_HEAD_YAW=17*Math.PI/180;
-const projectNewHeadPoint=(vertex:readonly number[]):Point=>[
-  r(224+1.36*(vertex[0]*Math.cos(NEW_HEAD_YAW)+
-    (vertex[2]-50)*Math.sin(NEW_HEAD_YAW))),
+// Source-led *study*, not a source-image pixel match. At a stronger
+// oblique turn the far forehead recedes and the near temple/zygion read
+// as separately connected masses. Baseline remains 17 degrees.
+const STUDY_HEAD_YAW=24*Math.PI/180;
+const projectNewHeadPoint=(vertex:readonly number[],yaw=NEW_HEAD_YAW):Point=>[
+  r(224+1.36*(vertex[0]*Math.cos(yaw)+
+    (vertex[2]-50)*Math.sin(yaw))),
   r(227-1.44*vertex[1]+.03*(vertex[2]-50)),
 ];
 /**
@@ -184,7 +433,7 @@ const projectNewHeadPoint=(vertex:readonly number[]):Point=>[
  * We add only paper pigment, never facial-feature stickers or an image.
  */
 function newHeadAnat1ValuePigment(
-  face:ReturnType<typeof createFace>,seed:number,
+  face:ReturnType<typeof createFace>,seed:number,yaw=NEW_HEAD_YAW,
 ):PencilTrace[]{
   const verts=face.vertices,triangles=face.mesh.faces;
   const normals:Point3[]=verts.map(()=>[0,0,0]);
@@ -212,10 +461,10 @@ function newHeadAnat1ValuePigment(
     }
   }
   const light=norm([-.62,.58,.52]);
-  const camera:Point3=[Math.sin(NEW_HEAD_YAW),0,Math.cos(NEW_HEAD_YAW)];
+  const camera:Point3=[Math.sin(yaw),0,Math.cos(yaw)];
   const lit=normals.map(nrm=>dot(norm(nrm),light));
   const facing=normals.map(nrm=>dot(norm(nrm),camera));
-  const screen=verts.map(projectNewHeadPoint);
+  const screen=verts.map(v=>projectNewHeadPoint(v,yaw));
   const values=[
     {name:"highlight",min:.72,color:"#F4D9BD",width:.25,opacity:.20},
     {name:"light",min:.47,color:"#DBB299",width:.30,opacity:.29},
@@ -306,29 +555,41 @@ export const NEW_CHARACTER_01_INSPECTION_KEYS=[
   "cheekbone.R","cheekbone.L","gonion.R","gonion.L","menton",
 ] as const satisfies readonly (keyof typeof FACE_LANDMARKS)[];
 
-export function newCharacterHeadInspectionAnchors(){
+export function newCharacterHeadInspectionAnchors(silhouetteStudy=false){
+  if(typeof silhouetteStudy!=="boolean")
+    throw new TypeError("Head silhouette inspection mode must be boolean");
+  const yaw=silhouetteStudy?STUDY_HEAD_YAW:NEW_HEAD_YAW;
   const face=createFace(NEW_HEAD_FACE);
   return NEW_CHARACTER_01_INSPECTION_KEYS.map(id=>({
-    id,point:projectNewHeadPoint(face.vertices[FACE_LANDMARKS[id]]),
+    id,point:projectNewHeadPoint(face.vertices[FACE_LANDMARKS[id]],yaw),
   }));
 }
 
 /** Fresh original skull/vault blockout: measured lower face plus newly
  * authored parietal and frontal arch; NO previous woman silhouette. */
-export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
+export function newCharacterHeadStageOne(
+  seed=271,contourCraft=true,cranialVolume=false,silhouetteStudy=false,
+):PencilSubjectPart[]{
   if(!Number.isSafeInteger(seed)||seed<0||seed>2147483000)
     throw new RangeError("New character study requires a valid drawing seed");
+  if(typeof contourCraft!=="boolean")
+    throw new TypeError("Head contour craftsmanship toggle must be boolean");
+  if(typeof cranialVolume!=="boolean")
+    throw new TypeError("Head cranial optical-volume toggle must be boolean");
+  if(typeof silhouetteStudy!=="boolean")
+    throw new TypeError("Head silhouette reconstruction study toggle must be boolean");
+  const yaw=silhouetteStudy?STUDY_HEAD_YAW:NEW_HEAD_YAW;
   // Fresh proportions, camera yaw, outline and local marks are independent
   // of pencilPortraitAnatomy() and the retired woman face() factory.
   const face=createFace(NEW_HEAD_FACE);
   const at=(key:keyof typeof FACE_LANDMARKS):Point=>
-    projectNewHeadPoint(face.vertices[FACE_LANDMARKS[key]]);
+    projectNewHeadPoint(face.vertices[FACE_LANDMARKS[key]],yaw);
   // Browser 960×540 review rejected the unmodified face MASK: it was a
   // flat-topped salmon shield, not a skull. MediaPipe deliberately STOPS at
   // the hairline and lacks the cranial vault. Keep the mesh's measured lower
   // face/jaw points, but lift an independently drafted vault from observed
   // head/skull construction ratios. This is still a FIRST-STAGE outline.
-  const faceRing=FACE_FEATURES.oval.loop.map(i=>projectNewHeadPoint(face.vertices[i]));
+  const faceRing=FACE_FEATURES.oval.loop.map(i=>projectNewHeadPoint(face.vertices[i],yaw));
   if(faceRing.length<30||faceRing.some(p=>p.some(v=>!Number.isFinite(v))))
     throw new Error("Missing ANAT1 facial outline anchor points");
   const faceTop=Math.min(...faceRing.map(p=>p[1]));
@@ -368,9 +629,16 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
       // though the earlier browser geometry gate was green. In a
       // slight 3/4 turn, the near temporal inset is visible; the far
       // contour remains mostly straight until its cheekbone turn.
-      const recession=faceWidth*.042*temporal*(side===-1?1:.45);
-      const cheekLift=faceWidth*.009*malar*(side===-1?1:.78);
-      return [r(x-side*(recession-cheekLift)),y];
+      const recession=faceWidth*(silhouetteStudy?.015:.042)*temporal*
+        (side===-1?1:(silhouetteStudy?.34:.45));
+      const cheekLift=faceWidth*(silhouetteStudy?.008:.009)*malar*
+        (side===-1?1:(silhouetteStudy?.68:.78));
+      // The mandibular corner is NOT a straight descent from cheek to
+      // chin. Only the oblique anatomy study raises a bounded soft
+      // gonial turn, preserving every source ANAT1 vertex in order.
+      const gonial=Math.exp(-Math.pow((t-.78)/.080,2))*
+        (silhouetteStudy?faceWidth*.006:0)*(side===-1?1:.62);
+      return [r(x-side*(recession-cheekLift-gonial)),y];
     });
   // A complete adult CRANIUM is a high convex parietal dome that flows
   // into a temporal narrowing, then flares over the cheekbones. The
@@ -383,7 +651,7 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
   // plus OpenStax 7.3 skull anatomy and ANAT1's independent face mask.
   // These 11 separately authored frontal/parietal points retain a
   // continuous contour and a mild off-axis dome apex at 17° yaw.
-  const vault:Point[]=[
+  const legacyVault:Point[]=[
     [r(lo-faceWidth*.018),r(faceTop+faceWidth*.26)],
     [r(lo-faceWidth*.010),r(faceTop+faceWidth*.12)],
     [r(lo+faceWidth*.11),r(faceTop-faceWidth*.055)],
@@ -396,6 +664,35 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
     [r(hi+faceWidth*.005),r(faceTop+faceWidth*.095)],
     [r(hi+faceWidth*.025),r(faceTop+faceWidth*.26)],
   ];
+  // 3/4 skull structural study based on the photographed, muscle-marked
+  // skull by Circa24 / Marijo Readey (CC BY-SA 3.0), plus ANAT1 lower
+  // facial anatomy. Visual observation, NOT 18 independently measured
+  // photo landmarks: posterior parietal width persists down into the
+  // temporal bridge; frontal arc is shorter than the braincase; malar
+  // wedge changes tangent before the gonial angle, not an egg/oval mask.
+  //
+  // Fifteen separately editable vault anchors (vs original eleven):
+  // a lower posterior junction, occipital wing, continuous high parietal
+  // arch, and forward frontal fall. More samples, never a simplified
+  // ellipse; all lower ANAT1 contour vertices are still preserved.
+  const studyVault:Point[]=[
+    [r(lo-faceWidth*.012),r(faceTop+faceWidth*.240)],
+    [r(lo-faceWidth*.060),r(faceTop+faceWidth*.120)],
+    [r(lo-faceWidth*.058),r(faceTop+faceWidth*.017)],
+    [r(lo+faceWidth*.030),r(faceTop-faceWidth*.085)],
+    [r(lo+faceWidth*.095),r(faceTop-faceWidth*.160)],
+    [r(lo+faceWidth*.175),r(faceTop-faceWidth*.210)],
+    [r(lo+faceWidth*.285),r(faceTop-faceWidth*.246)],
+    [r(lo+faceWidth*.410),r(faceTop-faceWidth*.265)],
+    [r(lo+faceWidth*.540),r(faceTop-faceWidth*.262)],
+    [r(lo+faceWidth*.670),r(faceTop-faceWidth*.230)],
+    [r(lo+faceWidth*.800),r(faceTop-faceWidth*.180)],
+    [r(lo+faceWidth*.915),r(faceTop-faceWidth*.085)],
+    [r(hi+faceWidth*.035),r(faceTop+faceWidth*.025)],
+    [r(hi+faceWidth*.048),r(faceTop+faceWidth*.130)],
+    [r(hi+faceWidth*.018),r(faceTop+faceWidth*.250)],
+  ];
+  const vault=silhouetteStudy?studyVault:legacyVault;
   const perimeter=[...lower,...vault];
   const contour=smoothPath(perimeter,true);
   const xs=perimeter.map(p=>p[0]),ys=perimeter.map(p=>p[1]);
@@ -417,12 +714,21 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
   // Stage 1 is PENCIL CONSTRUCTION on paper, not fully opaque dermal
   // paint. The previous flat salmon wax mask was rejected in native proof.
   const palette:PencilPalette=["#B1978A","#82707A","#E0C3A6"];
+  // Blend all six true contour contact curves into the existing 54
+  // same-value plane traces, respecting BOTH the 80-region trace count and
+  // 12k/path budget. Do not modify the original three 114-mark value
+  // fans or even one original stroke, hue, construction guide or layer.
+  const fieldTraces=newHeadPlanePigment(bounds,(seed+1831)%2147483647);
+  const connectedPlanes=contourCraft?embedHeadContourContacts(fieldTraces,
+    newHeadContourContacts(perimeter,(seed+3491)%2147483647)):fieldTraces;
   return [{
     id:NEW_CHARACTER_01_ID,material:"glaze",palette,path:contour,
     bounds,direction:64,flow:11,start:73,
     details:[
-      ...newHeadPlanePigment(bounds,(seed+1831)%2147483647),
-      ...newHeadAnat1ValuePigment(face,(seed+2393)%2147483647),
+      ...connectedPlanes,
+      ...(cranialVolume?newHeadCranialTonalVolume(
+        bounds,(seed+1957)%2147483647):[]),
+      ...newHeadAnat1ValuePigment(face,(seed+2393)%2147483647,yaw),
       ...newHeadValuePencil(guides,(seed+1001)%2147483647),
       drawn("newhead-sagittal-guide",line(forehead,glabella,chin),
         "#90777C",.32,.31,103),
@@ -437,8 +743,10 @@ export function newCharacterHeadStageOne(seed=271):PencilSubjectPart[]{
       // Partial nested skull vault line is observed construction, NOT hair.
       drawn("newhead-cranial-vault-turn",
         line([vault[2][0]+8,vault[2][1]+20],
-          [vault[5][0],vault[5][1]+31],
-          [vault[8][0]-9,vault[8][1]+25]),
+          [vault[silhouetteStudy?7:5][0],
+           vault[silhouetteStudy?7:5][1]+31],
+          [vault[silhouetteStudy?11:8][0]-9,
+           vault[silhouetteStudy?11:8][1]+25]),
         "#A58C85",.33,.35,153),
     ],
   }];

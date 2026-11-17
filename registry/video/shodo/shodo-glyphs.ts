@@ -53,6 +53,12 @@ export interface ShodoStrokeSpec {
   /** Thickness multiplier for this stroke, 0.4..1.8. */
   weight?: number;
   /**
+   * Press along the stroke: one multiplier per point of `points`, 0.4..1.8, applied where the
+   * brush passes nearest that part of the centreline. A teacher's form uses it for that
+   * teacher's swelling and thinning inside one stroke (the thick turn of a かな loop).
+   */
+  press?: readonly number[];
+  /**
    * Speed of this stroke relative to the hand, 0.25..4 (default 1). A teacher's form uses it
    * to give each stroke that teacher's share of the writing time.
    */
@@ -212,6 +218,9 @@ export function inspectShodoGlyph(glyph: ShodoGlyph): ShodoGlyphIssue[] {
       issues.push({ path: at + "/hook", message: "Hook must be a nonzero [dx, dy]." });
     if (s.pace !== undefined && (!Number.isFinite(s.pace) || s.pace < .25 || s.pace > 4))
       issues.push({ path: at + "/pace", message: "Pace must be 0.25..4." });
+    if (s.press !== undefined && (!Array.isArray(s.press) || s.press.length !== points?.length
+        || s.press.some((v: number) => !Number.isFinite(v) || v < .4 || v > 1.8)))
+      issues.push({ path: at + "/press", message: "Press needs one value per point, each 0.4..1.8." });
     for (const [key, v] of Object.entries(s.technique ?? {})) {
       const range = SHODO_TECHNIQUE_RANGES[key as keyof ShodoTechniqueParams];
       if (!range || typeof v !== "number" || !Number.isFinite(v) || v < range[0] || v > range[1])
@@ -292,9 +301,11 @@ function simplify(points: Vec[], tolerance: number): Vec[] {
   if (points.length < 3) return points;
   const [a, b] = [points[0], points[points.length - 1]];
   const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
+  // A closed loop has no chord to measure from: its farthest point from the start splits it.
+  const closed = len < tolerance;
   let worst = 0, index = 0;
   for (let i = 1; i < points.length - 1; i++) {
-    const dist = Math.abs((points[i][0] - a[0]) * dy - (points[i][1] - a[1]) * dx) / len;
+    const dist = closed ? Math.hypot(points[i][0] - a[0], points[i][1] - a[1]) : Math.abs((points[i][0] - a[0]) * dy - (points[i][1] - a[1]) * dx) / len;
     if (dist > worst) { worst = dist; index = i; }
   }
   if (worst <= tolerance) return [a, b];
@@ -323,17 +334,38 @@ function trimFlourish(raw: Vec[]): Vec[] {
   // KanjiVG's pen-style entry and exit curls span up to ~5 of its 109 units (≈ 50 em).
   const lead = Math.min(55, total * .12);
   let from = 0, to = raw.length - 1;
-  if (turn(dir(raw[0], at(lead)), dir(at(lead), at(lead * 2.5))) > .26) from = Math.max(0, arc.findIndex(a => a >= lead));
+  let start: Vec | null = null;
+  if (turn(dir(raw[0], at(lead)), dir(at(lead), at(lead * 2.5))) > .26) {
+    // Cut the entry curl at that length, between samples: a long cubic is sampled sparsely, and
+    // its next sample can lie far past the curl (用's first stroke lost 150 em and left its corner
+    // open; 夫's ノ started below its top line). The exit cut keeps the next sample, as before.
+    from = Math.max(1, arc.findIndex(a => a >= lead));
+    const t = (lead - arc[from - 1]) / ((arc[from] - arc[from - 1]) || 1);
+    start = [raw[from - 1][0] + (raw[from][0] - raw[from - 1][0]) * t, raw[from - 1][1] + (raw[from][1] - raw[from - 1][1]) * t];
+  }
   if (turn(dir(at(total - lead), raw[raw.length - 1]), dir(at(total - lead * 2.5), at(total - lead))) > .26)
     to = Math.max(from + 1, arc.findIndex(a => a >= total - lead));
-  return raw.slice(from, to + 1);
+  const kept = raw.slice(from, to + 1);
+  return start && Math.hypot(start[0] - kept[0][0], start[1] - kept[0][1]) > 1e-6 ? [start, ...kept] : kept;
 }
+
+/** Small かな: the 拗音 and 促音 marks. */
+const SMALL_KANA = new Set([..."ぁぃぅぇぉっゃゅょゎゕゖァィゥェォッャュョヮヵヶ"]);
+/** The ring of ゜ is written light and quick, so its hole stays open. */
+const LOOP_WEIGHT = .75;
+/** かな strokes carry the teacher's weight: her かな are bolder than the kanji skeleton's default (research note §2.24). */
+const KANA_WEIGHT = 1.1;
 
 /** Convert one sampled centreline (em units) and its stroke class into a SHO1 stroke. */
 export function strokeFromCentreline(raw: Vec[], kvgType = "", kana = false): ShodoStrokeSpec {
   const typed = KVG_TYPES[[...kvgType.split("/")[0]][0] ?? ""];
   const hooked = typed?.end === "hane";
-  if (!hooked) raw = trimFlourish(raw);
+  // A closed loop (the circle of ゜ in ぱ, パ) ends near its start but is long: a curve, not a dot,
+  // and its ends are not trimmed as pen curls, so the ring stays closed.
+  const chord = Math.hypot(raw[raw.length - 1][0] - raw[0][0], raw[raw.length - 1][1] - raw[0][1]);
+  const path = raw.reduce((s, p, i) => i ? s + Math.hypot(p[0] - raw[i - 1][0], p[1] - raw[i - 1][1]) : 0, 0);
+  const loop = !typed && chord < 140 && path > 150 && path > 2.5 * chord;
+  if (!hooked && !loop) raw = trimFlourish(raw);
   let points = simplify(raw, 9);
   if (points.length > 24) points = points.filter((_, i) => i % Math.ceil(points.length / 24) === 0 || i === points.length - 1);
   // Corners sharper than ~55° become 転折; gentle bends stay curves.
@@ -358,7 +390,8 @@ export function strokeFromCentreline(raw: Vec[], kvgType = "", kana = false): Sh
     const a = points[0], b = points[points.length - 1];
     const dx = b[0] - a[0], dy = b[1] - a[1];
     const length = Math.hypot(dx, dy);
-    if (turns.length) kind = "turn";
+    if (turns.length && !loop) kind = "turn";
+    else if (loop) kind = "curve";
     else if (length < 140) kind = "dot";
     else if (Math.abs(dy) < Math.abs(dx) * .35) kind = "horizontal";
     else if (Math.abs(dx) < Math.abs(dy) * .25) kind = "vertical";
@@ -374,7 +407,7 @@ export function strokeFromCentreline(raw: Vec[], kvgType = "", kana = false): Sh
     // presses, and an end that lifts while moving unless the stroke is a dot or a hook.
     const dot = kind === "dot";
     return { kind: dot ? "dot" : turns.length || points.length > 3 ? "curve" : kind, points: rounded,
-      start: dot ? "uchikomi" : "roho", ...(dot ? {} : { end: hook ? "hane" : "nuki" }), ...(hook ? { hook } : {}), weight: .96 };
+      start: dot ? "uchikomi" : "roho", ...(dot ? {} : { end: hook ? "hane" : "nuki" }), ...(hook ? { hook } : {}), weight: loop ? LOOP_WEIGHT : dot ? .96 : KANA_WEIGHT };
   }
   return { kind, points: rounded, ...(flatSweep ? { start: "uchikomi" as const } : {}),
     ...(turns.length ? { turns } : {}), ...(end ? { end } : {}), ...(hook ? { hook } : {}) };
@@ -463,12 +496,30 @@ const polyDistance = (points: readonly ShodoPoint[], q: ShodoPoint): { d: number
 };
 
 /**
+ * Degrees below the horizontal past which a KanjiVG dot falls to the left steeply enough to be
+ * written as a short ノ (泉's first stroke, the left dot of ⺣). Measured on a teacher's ink: 110.
+ */
+const LEFT_DOT = 110;
+
+const isLeftDot = (st: ShodoStrokeSpec) => st.kind === "dot" && st.points.length >= 2
+  && Math.atan2(st.points[st.points.length - 1][1] - st.points[0][1], st.points[st.points.length - 1][0] - st.points[0][0]) * 180 / Math.PI > LEFT_DOT;
+
+/** How far (em) an end may reach past an earlier line and still join it; further, the stroke crosses that line. */
+const CROSS_REACH = 40;
+
+/**
  * Find stroke ends that meet an earlier stroke (closer than `reach` em) and mark them as joins.
  * With `snap`, a horizontal, vertical or turn end is also moved along its own line onto the
  * other stroke's centreline, so the inner lines of boxes close cleanly.
  */
 export function shodoJoinStrokes(glyph: ShodoGlyph, reach = 70, snap = true): ShodoGlyph {
   const strokes: ShodoStrokeSpec[] = glyph.strokes.map(st => ({ ...st, points: st.points.map(p => [p[0], p[1]] as ShodoPoint) }));
+  // The top-level part of each stroke (偏 and 旁, 冠 and 脚 …). Within a part the full reach closes
+  // the gaps left by trimming KanjiVG's pen curls; across parts only ends that already nearly meet
+  // join, so a horizontal of 旁 is not pulled into 偏 (校, 持, 働).
+  const partOf = new Map<number, number>();
+  (glyph.parts?.children ?? []).forEach((part, p) => part.strokes.forEach(i => partOf.set(i, p)));
+  const across = Math.min(reach, 15);
   strokes.forEach((st, i) => {
     if (st.kind === "dot") return;
     const points = st.points as ShodoPoint[];
@@ -476,10 +527,17 @@ export function shodoJoinStrokes(glyph: ShodoGlyph, reach = 70, snap = true): Sh
       const e = points[index];
       let best: { d: number; at: ShodoPoint } | null = null;
       // Only a line already on the paper can take the join (earlier in stroke order).
+      const nb0 = points[index === 0 ? 1 : index - 1];
+      const ox = e[0] - nb0[0], oy = e[1] - nb0[1], ol = Math.hypot(ox, oy) || 1;
       glyph.strokes.forEach((other, j) => {
         if (j >= i || other.kind === "dot") return;
+        const limit = partOf.has(i) && partOf.has(j) && partOf.get(i) !== partOf.get(j) ? across : reach;
         const hit = polyDistance(other.points, e);
-        if (hit.d < reach && (!best || hit.d < best.d)) best = hit;
+        // An end that already passes through the other line and reaches well beyond it crosses that
+        // line (青's top vertical, the verticals of 艹): it stands free, so it is not pulled back.
+        const beyond = -((hit.at[0] - e[0]) * ox + (hit.at[1] - e[1]) * oy) / ol;
+        if (beyond > CROSS_REACH) return;
+        if (hit.d < limit && (!best || hit.d < best.d)) best = hit;
       });
       if (!best) continue;
       const hit: { d: number; at: ShodoPoint } = best;
@@ -497,12 +555,42 @@ export function shodoJoinStrokes(glyph: ShodoGlyph, reach = 70, snap = true): Sh
 }
 
 export interface ShodoFormOptions {
-  /** 右上がり: horizontals rise to the right by this angle, in degrees. 0..8. */
+  /**
+   * 右上がり: horizontals rise to the right by this angle, in degrees, over the skeleton's own
+   * slope. 0..8. KanjiVG kanji: 1 (measured on a teacher's forms); kana and bundled originals: 3.5.
+   * Kana take half of it.
+   */
   rise?: number;
   /** Length factor for 払い strokes, measured from their start (brush kaisho extends sweeps). 1..1.4. */
   sweep?: number;
   /** Length factor for the main horizontal (主画), about its centre. 1..1.3. */
   main?: number;
+  /**
+   * Length factor for a kanji horizontal whose end is free (not on an earlier stroke), toward its
+   * joined start or about its centre. 0.8..1. KanjiVG kanji: 0.88 (measured); otherwise 1.
+   */
+  freeEnd?: number;
+  /** Length factor for a kanji dot, from its start. 0.6..1. KanjiVG kanji: 0.8 (measured); otherwise 1. */
+  dotLength?: number;
+  /** Length factor for a kanji 提 (rising stroke ㇀), from its start. 1..1.4. KanjiVG kanji: 1.2 (measured); otherwise 1. */
+  riseStrokeLength?: number;
+  /**
+   * Degrees by which a kanji 右払い's pull-out (its last segment, from the pressed foot) turns
+   * flatter than KanjiVG's, never above the horizontal. 0..20. KanjiVG kanji: 12 (measured: her
+   * pull-outs run 21° below the horizontal, KanjiVG's 34°); otherwise 0.
+   */
+  footTurn?: number;
+  /**
+   * Weight factor for a kanji 右払い. 1..1.5. KanjiVG kanji: 1.3 (measured: her 右払い are 1.44 times as
+   * heavy as the rules' weight by length; the other stroke kinds 0.87 to 1.24); otherwise 1.
+   */
+  rightSweepWeight?: number;
+  /**
+   * Size factor for a small かな (ぁ っ ゃ ァ ッ ャ …) from KanjiVG, about the foot of its box. 0.6..1.
+   * Default 0.76: KanjiVG draws them at 0.79 of a full かな, too large to read beside one (ゃ
+   * next to し reads as や); 0.76 gives about 0.6, as handwriting is taught.
+   */
+  smallKana?: number;
   /**
    * Component layout (結構法) measured on a teacher's models, see `shodoStructure`. Pass
    * `false` to keep KanjiVG's layout, or override single rules.
@@ -514,6 +602,7 @@ export interface ShodoFormOptions {
  * Give a typeface-like skeleton (for example KanjiVG) the habits of brush kaisho:
  * - the teacher-measured layout (結構法, `shodoStructure`), for KanjiVG glyphs only;
  * - 右上がり as a gentle shear, so verticals stay vertical and joints stay closed;
+ * - a free horizontal end that stops short of the skeleton's, compact dots and a longer 提 (kanji);
  * - weight from length, so main strokes carry the character and short ones stay light;
  * - 懸針 for a final vertical that hangs below the rest of the character;
  * - a pressed foot on every 右払い.
@@ -526,7 +615,17 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
   // Bundled originals were drawn with their own proportions; only KanjiVG skeletons get the layout rules.
   const glyph = options.structure === false || source.source !== "kanjivg" ? source : shodoStructure(source, options.structure ?? {});
   const length = (st: ShodoStrokeSpec) => st.points.reduce((a, p, i) => i ? a + Math.hypot(p[0] - st.points[i - 1][0], p[1] - st.points[i - 1][1]) : 0, 0);
-  const rise = Math.tan((options.rise ?? 3.5) * (kana ? .5 : 1) * Math.PI / 180);
+  // Measured on a teacher's 389 kanji forms against our KanjiVG forms (research note §2.22):
+  // her horizontals rise 1° over KanjiVG's slope, and a free horizontal end stops short.
+  const measured = !kana && source.source === "kanjivg";
+  const rise = Math.tan((options.rise ?? (measured ? 1 : 3.5)) * (kana ? .5 : 1) * Math.PI / 180);
+  const freeEnd = kana ? 1 : options.freeEnd ?? (measured ? .88 : 1);
+  // Her dots are shorter and her 提 strokes longer than KanjiVG's (§2.23).
+  const dotLength = kana ? 1 : options.dotLength ?? (measured ? .8 : 1);
+  const riseStrokeLength = kana ? 1 : options.riseStrokeLength ?? (measured ? 1.2 : 1);
+  const footTurn = kana ? 0 : options.footTurn ?? (measured ? 12 : 0);
+  const rightSweepWeight = kana ? 1 : options.rightSweepWeight ?? (measured ? 1.3 : 1);
+  const small = source.source === "kanjivg" && SMALL_KANA.has(source.char) ? options.smallKana ?? .76 : 1;
   const sweep = kana ? 1 : options.sweep ?? 1.16;
   // 主画: one horizontal carries the character; it is written longer than the rest.
   const mainFactor = kana ? 1 : options.main ?? 1.1;
@@ -536,10 +635,13 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
   const cx = (Math.min(...all.map(p => p[0])) + Math.max(...all.map(p => p[0]))) / 2;
   const bottom = Math.max(...all.map(p => p[1]));
   const longest = Math.max(...glyph.strokes.map(length));
+  const sheared = glyph.strokes.map(st => st.points.map(([x, y]) => [x, Math.round(y - (x - cx) * rise)] as ShodoPoint));
   const strokes = glyph.strokes.map((st, i): ShodoStrokeSpec => {
-    let points: ShodoPoint[] = st.points.map(([x, y]) => [x, Math.round(y - (x - cx) * rise)] as const);
+    let points: ShodoPoint[] = sheared[i];
     const out: ShodoStrokeSpec = { ...st, points };
     if (st.weight === undefined) out.weight = Math.round(Math.min(1.1, Math.max(.84, .86 + .26 * length(st) / longest)) * 100) / 100;
+    // Her 右払い press down to a heavy foot; a thin one reads as a long dot (秋's 火).
+    if (st.weight === undefined && st.kind === "right-sweep" && rightSweepWeight !== 1) out.weight = Math.round((out.weight ?? 1) * rightSweepWeight * 100) / 100;
     const last = i === glyph.strokes.length - 1, end = st.points[st.points.length - 1];
     if (!kana && last && st.kind === "vertical" && !st.end && end[1] >= bottom - 2 && length(st) > 450) out.end = "nuki";
     // Teachers' kaisho carries its sweeps further than a typeface skeleton: extend 払い
@@ -555,14 +657,92 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
       points = points.map(([x, y], k) => k === 0 ? [x, y] as const : [Math.round(x0 + (x - x0) * sweep), Math.round(y0 + (y - y0) * sweep)] as const);
       out.points = points;
     }
-    if (st.kind === "right-sweep" && points.length < 3) {
-      const [a, b] = [points[0], points[points.length - 1]];
-      points = [a, [Math.round(a[0] + (b[0] - a[0]) * .72), Math.round(a[1] + (b[1] - a[1]) * .74)], b];
-      out.points = points;
-    }
     return out;
   });
-  return shodoJoinStrokes({ ...glyph, strokes });
+  // A longer 主画 or 払い stops before it reaches a stroke that the skeleton keeps apart
+  // (体: 本's horizontal into 亻; 病: 疒's sweep into 丙).
+  limitReach(strokes, sheared, glyph.parts);
+  strokes.forEach((st, i) => {
+    if (st.kind === "right-sweep" && st.points.length < 3) {
+      const [a, b] = [st.points[0], st.points[st.points.length - 1]];
+      strokes[i] = { ...st, points: [a, [Math.round(a[0] + (b[0] - a[0]) * .72), Math.round(a[1] + (b[1] - a[1]) * .74)], b] };
+    }
+    // 右払い: the pull-out leaves the foot flatter than KanjiVG draws it (秋's 火 read as a long dot).
+    // Only a real pull-out turns: the last segment of 辶's sweep is its whole tail.
+    const sweep = strokes[i];
+    if (footTurn && sweep.kind === "right-sweep" && resolveEnd(sweep) === "harai" && sweep.points.length >= 3) {
+      const P = sweep.points, foot = P[P.length - 2], tip = P[P.length - 1];
+      const len = Math.hypot(tip[0] - foot[0], tip[1] - foot[1]);
+      if (len > .5 * length(sweep)) return;
+      const angle = Math.max(0, Math.atan2(tip[1] - foot[1], tip[0] - foot[0]) - footTurn * Math.PI / 180);
+      strokes[i] = { ...sweep, points: [...P.slice(0, -1), [Math.round(foot[0] + Math.cos(angle) * len), Math.round(foot[1] + Math.sin(angle) * len)]] };
+    }
+  });
+  let formed = shodoJoinStrokes({ ...glyph, strokes });
+  // A horizontal that does not end on an earlier stroke shortens toward its joined start (or
+  // about its centre); joins are then closed again.
+  if (freeEnd !== 1) formed = shodoJoinStrokes({ ...formed, strokes: formed.strokes.map(st => {
+    if (st.kind !== "horizontal" || st.joinEnd) return st;
+    const p = st.points, q = p[p.length - 1];
+    const [ax, ay] = st.joinStart ? p[0] : [(p[0][0] + q[0]) / 2, (p[0][1] + q[1]) / 2];
+    return { ...st, points: p.map(([x, y]) => [Math.round(ax + (x - ax) * freeEnd), Math.round(ay + (y - ay) * freeEnd)] as const) };
+  }) });
+  // Dots are written compact, and 提 (the rising stroke ㇀) reaches further, both from their start.
+  if (dotLength !== 1 || riseStrokeLength !== 1) {
+    const before = formed.strokes.map(st => st.points);
+    const scaled = formed.strokes.map(st => {
+      const k = st.kind === "dot" && st.points.length >= 2 ? dotLength : st.kind === "rise" ? riseStrokeLength : 1;
+      if (k === 1) return st;
+      const [ax, ay] = st.points[0];
+      return { ...st, points: st.points.map(([x, y]) => [Math.round(ax + (x - ax) * k), Math.round(ay + (y - ay) * k)] as const) };
+    });
+    limitReach(scaled, before, glyph.parts);     // a longer 提 stops before the next part (野: 里 and 予)
+    formed = shodoJoinStrokes({ ...formed, strokes: scaled });
+  }
+  // A small かな is written smaller still, on the foot of its box.
+  if (small !== 1) {
+    const pts = formed.strokes.flatMap(st => st.points);
+    const fx = (Math.min(...pts.map(p => p[0])) + Math.max(...pts.map(p => p[0]))) / 2, fy = Math.max(...pts.map(p => p[1]));
+    formed = { ...formed, strokes: formed.strokes.map(st => ({ ...st, points: st.points.map(([x, y]) => [Math.round(fx + (x - fx) * small), Math.round(fy + (y - fy) * small)] as const) })) };
+  }
+  // A dot that falls steeply to the left (泉's first stroke, the left dot of ⺣) is written as a short
+  // ノ: the dot's pressed footprint points down-right, across such a path, and reads as a blob. Not
+  // for a teacher's forms: their dots were fitted to that teacher's ink as dots.
+  if (measured) formed = { ...formed, strokes: formed.strokes.map(st => isLeftDot(st) ? { ...st, kind: "left-sweep" as const } : st) };
+  return formed;
+}
+
+/** Clear paper (em, centreline to centreline) that a lengthened stroke keeps from strokes of another part. */
+const REACH_CLEAR = 50;
+
+/**
+ * Where a stroke was lengthened (from `before` to its current points, same point count), shorten
+ * the lengthening so the stroke keeps REACH_CLEAR from the strokes of the other top-level parts
+ * (偏 and 旁, 冠 and 脚 …), or the distance it had before when that was already smaller. Inside one
+ * part strokes are meant to sit close. Changes `strokes` in place.
+ */
+function limitReach(strokes: ShodoStrokeSpec[], before: readonly (readonly ShodoPoint[])[], parts: ShodoGlyph["parts"], clear = REACH_CLEAR): void {
+  const partOf = new Map<number, number>();
+  (parts?.children ?? []).forEach((part, p) => part.strokes.forEach(i => partOf.set(i, p)));
+  const dense = (P: readonly ShodoPoint[]): ShodoPoint[] => P.flatMap((p, k) => {
+    if (k === 0) return [p];
+    const q = P[k - 1], n = Math.max(1, Math.ceil(Math.hypot(p[0] - q[0], p[1] - q[1]) / 8));
+    return Array.from({ length: n }, (_, m) => [q[0] + (p[0] - q[0]) * (m + 1) / n, q[1] + (p[1] - q[1]) * (m + 1) / n] as ShodoPoint);
+  });
+  strokes.forEach((st, i) => {
+    const P0 = before[i], P1 = st.points;
+    if (P0.length !== P1.length || P1.every((p, k) => p[0] === P0[k][0] && p[1] === P0[k][1])) return;
+    if (!partOf.has(i)) return;
+    const others = strokes.flatMap((o, j) => j === i || !partOf.has(j) || partOf.get(j) === partOf.get(i) ? [] : dense(o.points));
+    if (!others.length) return;
+    const gap = (P: readonly ShodoPoint[]) => Math.min(...dense(P).map(a => Math.min(...others.map(b => Math.hypot(a[0] - b[0], a[1] - b[1])))));
+    const lerp = (t: number) => P0.map((p, k) => [Math.round(p[0] + (P1[k][0] - p[0]) * t), Math.round(p[1] + (P1[k][1] - p[1]) * t)] as const);
+    const need = Math.min(clear, gap(P0));
+    if (gap(P1) >= need) return;
+    let lo = 0, hi = 1;
+    for (let it = 0; it < 7; it++) { const t = (lo + hi) / 2; if (gap(lerp(t)) >= need) lo = t; else hi = t; }
+    strokes[i] = { ...st, points: lerp(lo) };
+  });
 }
 
 /** KanjiVG file name for a character, for example 道 → "09053.svg". */

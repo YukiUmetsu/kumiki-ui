@@ -3308,7 +3308,7 @@
       "name": "riso-print",
       "type": "registry:ui",
       "title": "Risograph Spot-Ink Printing",
-      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, fixed registration, halftone screens, paper grain, a sheet-feed transition, and a native incoming spot-ink overprint scene bridge. Authored original SVG plates render through existing FilmStage slots; no alternate renderer or clock.",
+      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, fixed registration, halftone screens, paper grain, a sheet-feed transition, and a native incoming spot-ink overprint scene bridge. Authored original SVG plates render through existing FilmStage slots; no alternate renderer or clock. Adds source-native continuously graded AM ink dots, paper-fixed micro-irregularity, and optional custom SVG contour clipping.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3331,6 +3331,76 @@
           "path": "registry/video/riso-overprint.tsx",
           "type": "registry:ui",
           "target": "components/video/riso-overprint.tsx"
+        },
+        {
+          "path": "registry/video/riso-screening.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-screening.ts"
+        },
+        {
+          "path": "registry/video/riso-gradient-ink.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-gradient-ink.ts"
+        },
+        {
+          "path": "registry/video/riso-gradient-ink-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-gradient-ink-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-dry-brush.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-dry-brush.ts"
+        },
+        {
+          "path": "registry/video/riso-dry-brush-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-dry-brush-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-contact-trap.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-contact-trap.ts"
+        },
+        {
+          "path": "registry/video/riso-stencil-topology.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-stencil-topology.ts"
+        },
+        {
+          "path": "registry/video/riso-separation-master.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-separation-master.ts"
+        },
+        {
+          "path": "registry/video/riso-press-pdf.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-press-pdf.ts"
+        },
+        {
+          "path": "registry/video/riso-press-tiff.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-press-tiff.ts"
+        },
+        {
+          "path": "registry/video/riso-press-raster.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-press-raster.ts"
+        },
+        {
+          "path": "registry/video/riso-shop-profile.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-shop-profile.ts"
+        },
+        {
+          "path": "registry/video/riso-scan-proof.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-scan-proof.ts"
+        },
+        {
+          "path": "registry/video/riso-path-geometry.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-path-geometry.ts"
         }
       ]
     },
@@ -3674,7 +3744,7 @@
       "name": "human-anatomy",
       "type": "registry:ui",
       "title": "Human Anatomy Framework (ANAT1)",
-      "description": "Style-neutral, measured human for drawing realistic people in any art style (proportions, poses, faces, hands, depth, shading): a morphable, posable 3D body (CC0 MakeHuman lattice: sex, age 1–90, muscle, weight, height, ancestry; 57-bone skeleton; 47 named anthropometric landmarks) calibrated against ANSUR II adult measurements and CDC growth curves; clinical joint angles clamped to AAOS/CDC ranges with a pose and hand-pose library; tape-measure sections and ANSUR-named measurements; a camera that renders a HumanFrame (depth-sorted shaded triangles, visible contours with weight hints, light/shadow terminators, landmarks, joints) plus a software rasteriser for clay, five-band value, cel and silhouette surfaces; a MediaPipe-based 3D face study fitted to published facial norms with feature loops and lid-clipped irises; hair (measured fibre, density, growth and whorl data; a strand generator with anatomical hairline, parting, flow, eight curl types, clumping and collision; melanin-based hair colour, greying and Marschner highlights; brows and lashes); skin colour (Monk Skin Tone scale, ITA°, measured skin scattering, shade ramps with subsurface red at the terminator, regional colour zones) and iris colour; canon checks, surface-anatomy notes, age changes and a curated public-domain reference board.",
+      "description": "Style-neutral, measured human for drawing realistic people in any art style (proportions, poses, faces, hands, depth, shading): a morphable, posable 3D body (CC0 MakeHuman lattice: sex, age 1–90, muscle, weight, height, ancestry; 57-bone skeleton; 47 named anthropometric landmarks) calibrated against ANSUR II adult measurements and CDC growth curves; clinical joint angles clamped to AAOS/CDC ranges with a pose and hand-pose library; tape-measure sections and ANSUR-named measurements; a camera that renders a HumanFrame (depth-sorted shaded triangles, visible contours with weight hints, light/shadow terminators, landmarks, joints) plus a software rasteriser for clay, five-band value, cel and silhouette surfaces; a MediaPipe-based 3D face study fitted to published facial norms with feature loops and lid-clipped irises; hair (measured fibre, density, growth and whorl data; a strand generator with anatomical hairline, parting, flow, eight curl types, clumping and collision; melanin-based hair colour, greying and Marschner highlights; brows and lashes); skin colour (Monk Skin Tone scale, ITA°, measured skin scattering, shade ramps with subsurface red at the terminator, regional colour zones) and iris colour; canon checks, surface-anatomy notes, age changes and a curated public-domain reference board. Beautiful faces from the attractiveness research (averageness, symmetry, femininity, measured eye, lip and face-breadth values, Pallett's 36% and 46% ratios; the golden ratio face claims checked and reported, not used) and a CPU portrait renderer (subsurface skin scattering, shadowed key light, occlusion, ray-traced eyes with iris and catchlight, lashes, brows, strand hair, expressions).",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3702,6 +3772,76 @@
           "path": "registry/anatomy/anatomy-view.ts",
           "type": "registry:ui",
           "target": "components/anatomy/anatomy-view.ts"
+        },
+        {
+          "path": "registry/anatomy/face-beauty.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/face-beauty.ts"
+        },
+        {
+          "path": "registry/anatomy/face-portrait.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/face-portrait.ts"
+        },
+        {
+          "path": "registry/anatomy/face-portrait-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/face-portrait-react.tsx"
+        },
+        {
+          "path": "registry/anatomy/portrait-motion.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/portrait-motion.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-render-pool.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-render-jobs.ts"
+        },
+        {
+          "path": "registry/anatomy/anatomy-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/anatomy-render-worker.ts"
+        },
+        {
+          "path": "registry/anatomy/hair-groom.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/hair-groom.ts"
+        },
+        {
+          "path": "registry/anatomy/eye-detail.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/eye-detail.ts"
+        },
+        {
+          "path": "registry/anatomy/skin-texture.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/skin-texture.ts"
+        },
+        {
+          "path": "registry/anatomy/skin-texture-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/skin-texture-react.tsx"
+        },
+        {
+          "path": "registry/anatomy/hand-model.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/hand-model.ts"
+        },
+        {
+          "path": "registry/anatomy/hand-render.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/hand-render.ts"
+        },
+        {
+          "path": "registry/anatomy/hand-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/hand-react.tsx"
         },
         {
           "path": "registry/anatomy/anatomy-face.ts",
@@ -3749,6 +3889,11 @@
           "target": "components/anatomy/data/model-tables.json"
         },
         {
+          "path": "registry/anatomy/data/face-types.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/face-types.json"
+        },
+        {
           "path": "registry/anatomy/data/anatomy-references.json",
           "type": "registry:ui",
           "target": "components/anatomy/data/anatomy-references.json"
@@ -3774,6 +3919,26 @@
           "path": "registry/anatomy/foundation-shapes.ts",
           "type": "registry:ui",
           "target": "components/anatomy/foundation-shapes.ts"
+        },
+        {
+          "path": "registry/anatomy/foundation-raster.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-raster.ts"
+        },
+        {
+          "path": "registry/anatomy/foundation-queue.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-queue.ts"
+        },
+        {
+          "path": "registry/anatomy/foundation-render.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-render.ts"
+        },
+        {
+          "path": "registry/anatomy/foundation-render-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/foundation-render-react.tsx"
         },
         {
           "path": "registry/anatomy/foundation-react.tsx",
@@ -3802,6 +3967,26 @@
           "type": "registry:ui",
           "target": "components/anatomy/animal-postures.ts",
           "path": "registry/anatomy/animal-postures.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-flight.ts",
+          "path": "registry/anatomy/animal-flight.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-growth.ts",
+          "path": "registry/anatomy/animal-growth.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-fur.ts",
+          "path": "registry/anatomy/animal-fur.ts"
+        },
+        {
+          "type": "registry:ui",
+          "target": "components/anatomy/animal-front.ts",
+          "path": "registry/anatomy/animal-front.ts"
         },
         {
           "type": "registry:ui",
@@ -3834,7 +4019,7 @@
       "name": "plant-anatomy",
       "type": "registry:ui",
       "title": "Plant Anatomy Framework (FLORA1)",
-      "description": "Style-neutral plants for drawing the same tree, bamboo, flower or grass in any art style. Thirteen growth forms (spire conifers, pines, broadleaf, blossom trees, weeping, layered, bamboo, shrubs, climbers, herbs, irises, water plants, grasses) built after Rex Vicat Cole's The Artistic Anatomy of Trees (1915): bud plans (opposite, alternate, spiral, whorled), excurrent, sympodial and forking leaders, crown envelopes, branch angles, droop and upturned tips, foliage manners (needle pads, scale sprays, clouds, hanging strands, layered sprays, leaf fans, blades, swords, floating leaves) and widths by Leonardo's rule. 24 Japanese plants (black and red pine, cedar, hinoki, mountain cherry, plum, willow, maple, madake bamboo, ginkgo, zelkova, camphor, persimmon, peach, wisteria, camellia, chrysanthemum, kakitsubata iris, lotus, susuki, reed, paulownia, morning glory, rice) with graded sizes and sources, leaves, flowers, fruit and bark, a calendar of leaf, bloom, autumn colour and fruit, seasonal colours, sounds, culture, public-domain and CC0 references (Flora Japonica, Hokusai, Hiroshige, Kōrin) and where each is already drawn. A seeded generator grows any plant for any month and wind; leaf, flower, fruit and bark shape generators; silhouette, construction and colour painters; data and proportion checks; and a character sheet with the four seasons and size against a person.",
+      "description": "Style-neutral plants for drawing the same tree, bamboo, flower or grass in any art style. Thirteen growth forms (spire conifers, pines, broadleaf, blossom trees, weeping, layered, bamboo, shrubs, climbers, herbs, irises, water plants, grasses) built after Rex Vicat Cole's The Artistic Anatomy of Trees (1915): bud plans (opposite, alternate, spiral, whorled), excurrent, sympodial and forking leaders, crown envelopes, branch angles, droop and upturned tips, foliage manners (needle pads, scale sprays, clouds, hanging strands, layered sprays, leaf fans, blades, swords, floating leaves) and widths by Leonardo's rule. 24 Japanese plants (black and red pine, cedar, hinoki, mountain cherry, plum, willow, maple, madake bamboo, ginkgo, zelkova, camphor, persimmon, peach, wisteria, camellia, chrysanthemum, kakitsubata iris, lotus, susuki, reed, paulownia, morning glory, rice) with graded sizes and sources, leaves, flowers, fruit and bark, a calendar of leaf, bloom, autumn colour and fruit, seasonal colours, sounds, culture, public-domain and CC0 references (Flora Japonica, Hokusai, Hiroshige, Kōrin) and where each is already drawn. A seeded generator grows any plant for any month and wind; leaf, flower, fruit and bark shape generators; silhouette, construction and colour painters; data and proportion checks; and a character sheet with the four seasons and size against a person. Crown and trunk in detail (plant-crown.ts, TreePaint): foliage tufts built from the species' leaf shapes, lit on the sun side and dark beneath; light filtered through the crown (Beer–Lambert); a foliage colour ladder measured on CC0/PD tree photos; sky holes at the measured gap fraction, fringed by leaves; edge leaves, needle bursts and blossom petals; willow strand leaves; cylinder-shaded trunks and limbs with bark wrapped round them, root flare and limbs swelling into the trunk; wet bark; detail levels for scenes; physical wind sway (cantilever frequency, hanging-chain willow twigs).",
       "dependencies": [],
       "registryDependencies": [
         "art-foundations"
@@ -3861,6 +4046,11 @@
           "target": "components/anatomy/plant-construct.ts"
         },
         {
+          "path": "registry/anatomy/plant-crown.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/plant-crown.ts"
+        },
+        {
           "path": "registry/anatomy/plant-check.ts",
           "type": "registry:ui",
           "target": "components/anatomy/plant-check.ts"
@@ -3869,6 +4059,430 @@
           "path": "registry/anatomy/plant-react.tsx",
           "type": "registry:ui",
           "target": "components/anatomy/plant-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "sky-weather",
+      "type": "registry:ui",
+      "title": "Sky and Weather Framework (SKY1)",
+      "description": "Style-neutral weather and sky for any art style: the Beaufort scale with sea and land signs; rain, snow, hail, fog, mist and haze classes; drop size spectra (Marshall-Palmer), fall speeds (Atlas 1973), drop shapes (Brandes 2002), slant in wind, streak length at a shutter, visibility and Koschmieder distance fading; the ten WMO cloud genera with heights, looks, WMO element widths and 1896 Cloud Atlas plates, drawn as layered shapes (cauliflower cumulus, anvil cumulonimbus, cirrus wisps, rows of altocumulus, rolls, layers with rain curtains) and set in perspective as cloud decks; sky phases by sun elevation with sampled palettes and the CIE overcast sky; sun elevation and shadow length; lightning stroke timing and branching channels, thunder delay and rainbow geometry. One weather state feeds the environmental-effects renderers at real speeds. A weather scene, cloud atlas and reference sheet; every value graded reported, measured or estimated with sources. Cumulus in detail (sky-cumulus.ts): a tree of rising thermals, lumps on lumps (cauliflower), light by sun azimuth per mass, shading ladders measured from CC0/PD cloud photos, backlit silver linings on the true silhouette, and turrets that rise and fade at measured updraft speeds. Rendered skies: a single-scattering atmosphere (Rayleigh, Mie from visibility, ozone; Hillaire 2020 constants) and all ten genera as volumes of cloud water or ice built from their physics (extinction from water content and effective radius, WMO element widths, Kelvin-Helmholtz billow rows, cirrus fall streaks bent by shear, 22 and 46 degree ice halos, translucent altostratus, ragged nimbostratus with scud and rain, cumulonimbus towers, anvil, overshooting top and mammatus), lit by marched sunlight, multiple-scattering octaves and two-stream diffusion, with aerial perspective, cloud shadows and camera metering; CloudSky and RenderedCloudAtlas.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations",
+        "plant-anatomy"
+      ],
+      "files": [
+        {
+          "path": "registry/nature/sky-data.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-data.ts"
+        },
+        {
+          "path": "registry/nature/sky-physics.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-physics.ts"
+        },
+        {
+          "path": "registry/nature/sky-cumulus.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-cumulus.ts"
+        },
+        {
+          "path": "registry/nature/sky-clouds.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-clouds.ts"
+        },
+        {
+          "path": "registry/nature/sky-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/sky-react.tsx"
+        },
+        {
+          "path": "registry/nature/sky-atmosphere.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-atmosphere.ts"
+        },
+        {
+          "path": "registry/nature/sky-volume.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-volume.ts"
+        },
+        {
+          "path": "registry/nature/sky-volume-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/sky-volume-react.tsx"
+        },
+        {
+          "path": "registry/nature/sky-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/sky-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/sky-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-render-worker.ts"
+        }
+      ]
+    },
+    {
+      "name": "water",
+      "type": "registry:ui",
+      "title": "Water Framework (WATER1)",
+      "description": "Style-neutral water for any art style: the WMO sea state code; the fully developed sea a wind raises (Pierson-Moskowitz: significant height, peak period, wavelength, crest speed) with whitecap cover (Monahan & O'Muircheartaigh); dispersion in deep and shallow water; a seeded sea surface of short-crested third-order Stokes waves to sample anywhere and any time, float heave and pitch, and particle orbits; wave limits (H/L 0.142, 120 degree crest, breaking at 0.8 depth); breakers by the Iribarren number (spilling, plunging, collapsing, surging) drawn in cross-section at any stage with foam, a plunging lip on its ballistic arc and the air of the tube; Kelvin wakes (19.47 degrees, transverse spacing 2 pi V^2/g) and ripple rings; Fresnel reflectance, the mirror rule, sun glitter from Cox-Munk slopes and colour through depth; sine-generated meanders 11 widths long; water colours measured off CC0 and public-domain photographs. A sea scene (colours from Fresnel and the sky, glints only where a facet mirrors the sun), true-scale seas by wind, breaker, wake, ripple, reflection and meander figures and a reference sheet; every value graded with sources. Breakers and foam in detail (breakerDetail): flow lines in the face, a translucent teal lip from water's absorption, a lit tube, whitewater with bubbles over an aerated plume, foam lace, spray and spindrift blown off the crest, with colours measured from surf photos; the sea scene leaves foam lace that fades at a rate measured from surf video, streaked along the wind in gales. A rendered open sea (water-ocean.ts): JONSWAP and Pierson-Moskowitz spectra with Hasselmann spreading summed by FFT in three cascades (Tessendorf), choppy crests, whitecaps where the surface folds at Monahan's measured cover with fading foam, slopes calibrated to Cox-Munk, Fresnel reflection of SKY1's sky and clouds, Cox-Munk sun glitter, the blue light back out of deep water from absorption and Morel's backscatter, turquoise backlit crests and haze; OceanView and SeaByBeaufort.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations",
+        "sky-weather"
+      ],
+      "files": [
+        {
+          "path": "registry/nature/water-data.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-data.ts"
+        },
+        {
+          "path": "registry/nature/water-physics.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-physics.ts"
+        },
+        {
+          "path": "registry/nature/water-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/water-react.tsx"
+        },
+        {
+          "path": "registry/nature/water-ocean.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-ocean.ts"
+        },
+        {
+          "path": "registry/nature/water-ocean-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/water-ocean-react.tsx"
+        },
+        {
+          "path": "registry/nature/water-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/water-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/water-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-render-worker.ts"
+        }
+      ]
+    },
+    {
+      "name": "fire-effects",
+      "type": "registry:ui",
+      "title": "Fire and Effects Framework (FX1)",
+      "description": "Fire, smoke, sparks, explosions and firelight in any art style from flame physics: flame height from heat release (Heskestad), flicker at about 1.5/sqrt(D) Hz, fires from candle to oil pool with soot and smoke, flame and ember temperatures, blackbody colour (Planck through the CIE observer), smoke plumes at about 7 degrees, sparks that cool as they rise, fireball sizes and durations, firelight colour and flicker. renderFire renders a fire as a volume (a puffing teardrop envelope, turbulence carried up with the plume, tongues and gaps, soot emission and absorption, a blue base for small flames, smoke billows lit from below, motion-blurred sparks, firelight on the ground or wax, bloom); FireView plays it from the worker pool; FlameColours and FireSheet.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/nature/fx-data.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-data.ts"
+        },
+        {
+          "path": "registry/nature/fx-render.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render.ts"
+        },
+        {
+          "path": "registry/nature/fx-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/fx-react.tsx"
+        },
+        {
+          "path": "registry/nature/fx-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/fx-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/fx-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/fx-render-worker.ts"
+        }
+      ]
+    },
+    {
+      "name": "human-motion",
+      "type": "registry:ui",
+      "title": "Human Motion Framework (MOTION1)",
+      "description": "Human movement on ANAT1's posable body: walking and running as joint-angle curves through the gait cycle (hip, knee, ankle, toes, arm swing, trunk) after the normative data (Winter 1991; Perry and Burnfield; Novacheck 1998), with speeds, cadences, strides, stance shares and events; how mood shows in a walk (Roether et al. 2009); gaitPose and gaitCycle, which place every frame on the floor and hold the stance foot's rolling point (heel, ball, toe) still so feet never slide, with a ballistic flight phase in running; sit-to-stand phases. GaitStrip (a chronophotograph at true distances), GaitPlayer (real cadence, tracking camera, planted-foot mark) and MotionSheet.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy",
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/motion-gait.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/motion-gait.ts"
+        },
+        {
+          "path": "registry/anatomy/motion-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/motion-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "small-creatures",
+      "type": "registry:ui",
+      "title": "Insects and Small Creatures Framework (BUG1)",
+      "description": "Insects, spiders and snails in any art style: body plans (an insect's three parts and six legs on the thorax, a spider's two parts and eight legs, a snail's foot and shell) with their common mistakes; wings by order and how they rest; wingbeat rates and whether a camera sees poses or a blur; the alternating tripod gait; fourteen species loved in Japanese art and seasons (Genji firefly with its 2 s and 4 s flashes, red dragonfly, swallowtail, cabbage white, cicada, honeybee, ant, ladybird, mantis, bell cricket, stag and rhinoceros beetles, Jorō spider, land snail) with sizes, colours, proportions, seasons, behaviour, sounds and sources. bugTopView builds top views by part; BugFigure paints them (glossy chitin, veined translucent wings, glowing lanterns), BugMotion animates walking, wingbeats and flashes, BugSheet shows the plans and species.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/bug-data.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/bug-data.ts"
+        },
+        {
+          "path": "registry/anatomy/bug-construct.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/bug-construct.ts"
+        },
+        {
+          "path": "registry/anatomy/bug-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/bug-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "food",
+      "type": "registry:ui",
+      "title": "Food Framework (FOOD1)",
+      "description": "Food that looks cooked the way it was cooked, in any art style: the temperatures where food changes (myosin, myoglobin, egg white and yolk, Maillard browning, caramelisation, starch), beef doneness by core temperature, thermal diffusivity, steam, gloss by food and dishes common in Japanese and everyday scenes (onigiri, nigiri, ramen, dango, tempura, persimmon, toast). Cooking by heat conduction: cookSteak (sear, flip, rest; moist meat capped at 100 C; Maillard crust), cookEgg (boiling then ice; runny, jammy, hard, green ring), toastBrowning; colours from peak temperatures. renderFood paints a cut steak, a halved boiled egg and toast from the physics; FoodView renders in the worker pool; Steam animates a rising, curling plume; FoodSheet. Every value graded reported or estimated with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/materials/food-data.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-data.ts"
+        },
+        {
+          "path": "registry/materials/food-physics.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-physics.ts"
+        },
+        {
+          "path": "registry/materials/food-render.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render.ts"
+        },
+        {
+          "path": "registry/materials/food-react.tsx",
+          "type": "registry:ui",
+          "target": "components/materials/food-react.tsx"
+        },
+        {
+          "path": "registry/materials/food-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render-pool.ts"
+        },
+        {
+          "path": "registry/materials/food-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render-jobs.ts"
+        },
+        {
+          "path": "registry/materials/food-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-render-worker.ts"
+        }
+      ]
+    },
+    {
+      "name": "architecture",
+      "type": "registry:ui",
+      "title": "Architecture Framework (ARCH1)",
+      "description": "Buildings in any art style, built round people: the human scale (doors, ceilings, storeys, sills, stairs and Blondel's rule), roof pitch by covering and climate, the classical orders and intercolumniation, the Japanese modules (shaku, ken, tatami), and nine building types by place and period (Kyoto machiya, Japanese temple hall, minka and gassho farmhouse, castle keep, Georgian town house, half-timbered house, Greek Doric temple, modern apartment block, adobe) with storeys, bays, roofs (straight in towns, curved only on temples and keeps), eaves and drawing notes. buildingElevation builds measured front elevations as parts by role for any painter; BuildingElevation, StreetElevation and ArchSheet draw them with a person for scale and dimension lines. Every value graded reported or estimated with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/arch-data.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-data.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-construct.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-construct.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "terrain",
+      "type": "registry:ui",
+      "title": "Terrain and Landforms Framework (GEO1)",
+      "description": "The ground in any art style: twelve landforms by how they formed (fold ranges, glacial horns, U- and V-valleys, strato-, shield and cinder volcanoes, mesas and buttes, barchan dunes, scree, sea cliffs, rolling hills) with their reported slopes, reliefs, profiles and drawing notes; the angle of repose of loose material; snowlines and treelines by latitude; ground-cover albedo; the rules of distance. Heightfields for each landform worn by hydraulic erosion (droplets cutting gullies and laying fans) and thermal erosion (scree at its angle of repose), and a renderer: snow above the snowline (lower on shaded slopes, only where it can hold), rock on steep faces, scree, meadow and forest by the treeline, sand, ash and water, under SKY1's physical atmosphere with terrain shadows, aerial perspective and camera metering. TerrainView (worker, cached), LandformProfile and GeoSheet; every value graded reported, measured or estimated with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations",
+        "sky-weather"
+      ],
+      "files": [
+        {
+          "path": "registry/nature/geo-data.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-data.ts"
+        },
+        {
+          "path": "registry/nature/geo-terrain.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-terrain.ts"
+        },
+        {
+          "path": "registry/nature/geo-render.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render.ts"
+        },
+        {
+          "path": "registry/nature/geo-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/geo-react.tsx"
+        },
+        {
+          "path": "registry/nature/geo-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/geo-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/geo-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render-worker.ts"
+        }
+      ]
+    },
+    {
+      "name": "materials",
+      "type": "registry:ui",
+      "title": "Materials Framework (MATL1)",
+      "description": "Style-neutral materials for any art style and any renderer: 56 materials (metals, rust and patina, lacquer, wood, bamboo, tatami, thatch, paper, plaster, ceramics and roof tile, stone, earth, organic, glass, ice, liquids) with linear-light albedo or metal reflectance, metalness, roughness, refractive index, surface variation and painting notes; 36 from the CC0 Physically Based database with its cited measurements, 18 measured off CC0 ambientCG colour maps, red and black lacquer off a CC0 Met photograph. Value (CIE L*) and a value ladder, F0 and highlight spread, standard PBR parameters for three.js, glTF or Blender, wet darkening after Angstrom and Lekner-Dorf, and weathering tracks (copper to verdigris by air, iron to rust, wood to grey, bamboo, tatami, paper, Negoro lacquer wear). Textures (materials-texture.ts) built from each material's structure at real size and calibrated to measured CC0 ambientCG statistics: wood as a log cut into boards (rings with year-to-year widths, earlywood and latewood, flat-sawn arches, knots with bark rings, weathered earlywood eroding at the reported rates), bamboo culms with nodes, bloom and smoke staining, tatami rushes in 1.5 cm wales between warp grooves (JAS, JAANUS), trimmed thatch stalk ends, washi and kraft fibres, cardboard flutes, leather grain, grass, granite crystals in measured mineral shares, marble veins, slate, sand, salt and snow grains, concrete voids, asphalt aggregate, clay cracks, JIS brick walls, plaster, ibushi tile, rust, patina, lacquer and metal finishes. A CPU renderer (materials-render.ts) shows each as a ball in a studio or a tile under raking light, with soft shadows, cavity occlusion, subsurface scattering, refraction through clear materials, nacre interference, glints, brushed anisotropy and wet looks. Rendered swatches (MaterialSwatch, MaterialStudy with a scale bar), flat material balls, weathering strips, wet-and-dry tiles and a reference sheet; every value graded with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/materials/materials-data.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-data.ts"
+        },
+        {
+          "path": "registry/materials/materials-physics.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-physics.ts"
+        },
+        {
+          "path": "registry/materials/materials-texture.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-texture.ts"
+        },
+        {
+          "path": "registry/materials/materials-render.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render.ts"
+        },
+        {
+          "path": "registry/materials/materials-react.tsx",
+          "type": "registry:ui",
+          "target": "components/materials/materials-react.tsx"
+        },
+        {
+          "path": "registry/materials/materials-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render-pool.ts"
+        },
+        {
+          "path": "registry/materials/materials-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render-jobs.ts"
+        },
+        {
+          "path": "registry/materials/materials-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/materials/materials-render-worker.ts"
+        }
+      ]
+    },
+    {
+      "name": "costume",
+      "type": "registry:ui",
+      "title": "Clothing and Costume Framework (COSTUME1)",
+      "description": "Clothing and costume of the whole world found by tags, not by period alone: UN M49 regions (hierarchical), ISO 3166 countries and cultures, year ranges and named eras (Heian, Edo, Joseon, Ming, Qing, Victorian and more), worn by women, men or all, roles, occasions, body slot, cut, fabrics and climate. 74 garments across East, South and South-east Asia, Western Asia, Africa, Europe, the Americas and Oceania, each with local names, a sourced description, graded period, drawing notes and where the library already draws it; 33 outfits for a place, year and wearer; a query engine (findGarments, findOutfits, tag strings), facet counts, a world-by-time matrix, front-view garment constructions on the measured ANAT1 person (sleeves, skirts, trousers, bands, drapes, hats) and a reference sheet. Drape and detail (costume-drape.ts): fabric folds from each cloth's stiffness (bending lengths within Peirce's measured range), pipe folds from obi, sash and waistband, waved hems, catenary swags on draped cloth, elbow and sleeve folds, hooped skirts; necklines and collars (crossed collar left over right, mandarin collar with knot buttons, lapels with shirt, tie and buttons, placket, square neck), kimono obiage, obijime, lining and hanging sleeves, hakama pleats, kilt apron, sari pleats; tartan, stripe, kente and dyed-motif patterns.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/costume/costume-data.ts",
+          "type": "registry:ui",
+          "target": "components/costume/costume-data.ts"
+        },
+        {
+          "path": "registry/costume/costume-query.ts",
+          "type": "registry:ui",
+          "target": "components/costume/costume-query.ts"
+        },
+        {
+          "path": "registry/costume/costume-drape.ts",
+          "type": "registry:ui",
+          "target": "components/costume/costume-drape.ts"
+        },
+        {
+          "path": "registry/costume/costume-shapes.ts",
+          "type": "registry:ui",
+          "target": "components/costume/costume-shapes.ts"
+        },
+        {
+          "path": "registry/costume/costume-react.tsx",
+          "type": "registry:ui",
+          "target": "components/costume/costume-react.tsx"
         }
       ]
     },
@@ -3897,6 +4511,75 @@
           "path": "registry/anatomy/expression-react.tsx",
           "type": "registry:ui",
           "target": "components/anatomy/expression-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "makeup",
+      "type": "registry:ui",
+      "title": "Makeup and Beauty Framework (MAKEUP1)",
+      "description": "Makeup and beauty for any face in any art style, grounded in graded evidence and learned from openly licensed photographs. A 31-zone atlas on the 468-point face mesh (shared with a Python photo pipeline): foundation, concealer, corrector, cheek, temple, jaw and nose contour, five highlights, bronzer, five blush placements, lid, crease, outer V, inner corner, lower lash line, liner and wing, brow fill on the brow map (peak at 71% of the eye width), lips, liner, gradient and gloss, anchored to vertices and sized in eye widths so it follows each face. 14 products as pigment films (stain to opaque paint, Kubelka-Munk simplified) and 8 finishes (matte to glitter). Colour: CIEDE2000, ITA and an undertone split from measured cheek hue (Xiao et al. 2017), foundation matching with the measured healthy shift (Stephen et al. 2009), concealer and correctors, contour, bronzer and highlight by depth and undertone, blush and lip families, eyeshadow complements by iris, brows from hair. 12 looks as colour rules (no-makeup, fresh dewy, soft glam, sculpted, classic red, smoky eye, sun-kissed, igari, monochrome rose, grooming, maiko); face-shape and eye-shape placement rules; designMakeup with reasons, checkMakeup (contour stops before the iris, blush above the nose base, light above shadow, wing angle, foundation match, lip contrast against learned ranges, brow peak); makeupPaint for ANAT1 portraits (films lit without subsurface scattering, finish, shimmer flakes, mascara, brow colour) and paintPhoto for any photograph with MediaPipe landmarks (frequency separation keeps the skin's texture); face charts, undertone plane, evidence and learned-data tables. Learned data: bare-skin prior, makeup effects, placement, facial contrast and beauty correlations from the Face Research Lab London Set (CC BY 4.0) and CC0 portraits.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy",
+        "facial-expressions",
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/makeup-zones.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-zones.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-color.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-color.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-data.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-data.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-design.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-design.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-paint.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-paint.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-react.tsx"
+        },
+        {
+          "path": "registry/anatomy/makeup-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-render-pool.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-render-jobs.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-render-worker.ts"
+        },
+        {
+          "path": "registry/anatomy/data/makeup-zones.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/makeup-zones.json"
+        },
+        {
+          "path": "registry/anatomy/data/makeup-learned.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/makeup-learned.json"
         }
       ]
     },
@@ -3980,7 +4663,8 @@
       "dependencies": [],
       "registryDependencies": [
         "plant-anatomy",
-        "facial-expressions"
+        "facial-expressions",
+        "animal-anatomy"
       ],
       "files": [
         {

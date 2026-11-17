@@ -10,9 +10,17 @@ import type {RisoHandoffSchedule} from "../../registry/video/riso-prop-handoff";
 import type {RisoForegroundLayer} from "../../registry/video/print-plates-react";
 import type {RisoPrintSpec} from "../../registry/video/print-plates";
 import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
-import {COURIER} from "./riso-character-demo";
+import {COURIER,COURIER_BASE_JOINTS} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
+import {riso47PalmContour} from "./riso47-palmar-cup";
+import {riso48ProjectedPivot} from "./riso48-projected-support";
+import {riso51MorphSourcePart} from "./riso51-view-conditioned-source";
+import {riso53ReorderPalmarInk} from "./riso53-palmar-depth-composition";
+import {riso54ApplyWebReserves} from "./riso54-interdigital-paper-reserve";
+import {riso58ApplyContactSkin} from "./riso58-anat1-volume-skin";
+import {riso59PreviewContact} from "./riso59-continuous-hand-envelope";
+import {evaluateRiso56HandoffCamera,riso56ProjectPlacement,riso56ProjectPoint,riso56CameraMatrix} from "./riso56-handoff-camera";
 import {riso43FrontIndexIds} from "./riso43-physical-paper-depth";
 import {inspectRiso44PrintedIndexContact} from "./riso44-source-index-paper-contact";
 import {evaluateRiso40PaperGrip} from "./riso40-paper-fingertip-contact";
@@ -28,9 +36,16 @@ import {riso32ThumbDistalId} from "./riso32-thumb-ip";
 const take=(id:string,ink?: "blue"|"red"):RisoCharacterPart=>{
   const p=COURIER.parts.find(part=>part.id===id);
   if(!p)throw new Error("RISO14: missing shared articulated contour "+id);
-  return {...p,plate:ink??p.plate};
+  // RISO51: the Paper Artist shares unprojected anatomical source contours,
+  // not the Courier donor's actor-only *animated view keys*. Never inherit
+  // his right-hand contact projection into her independently active left.
+  return {...p,pathKeys:undefined,plate:ink??p.plate};
 };
 const staticLeg=(j:RisoJoint):RisoJoint=>{
+  // The receiver alone foreshortens real supporting PIP/DIP stations in the
+  // source 2D plane; all original parts, paint and index pinch stay live.
+  const projected=riso48ProjectedPivot(j);
+  if(projected)return projected;
   // RISO45 / Paper Artist original source: 3 supporting MCP digits must
   // fold *behind* the sheet's upper edge, not point to the upper-right
   // like red rake tines while index alone pinches. Preserve original
@@ -292,24 +307,27 @@ const arms=sharedLimbs.slice(8).map(id=>{
   // Paper Artist preserves the exact inherited source wrist anchors and
   // structural body outline, but gets independently authored contour rhythm
   // for the cobalt glove landmarks instead of a duplicate Courier stamp.
+  const palm=/^(left|right)-glove$/.exec(id);
+  if(palm)return {...original,d:riso47PalmContour("paper-artist",palm[1] as "left"|"right")};
   return originalPalmInk?
     refineRiso37SourceEngraving(original,"paper-artist",originalPalmInk[1] as "left"|"right"):
     original;
 });
-export const PAPER_ARTIST:RisoCharacterSpec={
+export const PAPER_ARTIST:RisoCharacterSpec=riso58ApplyContactSkin({
   version:1,id:"paper-artist",durationFrames:240,cadence:2,
-  joints:COURIER.joints.map(staticLeg),
+  joints:COURIER_BASE_JOINTS.map(staticLeg),
   // Original full-body rest and gestures; no fake cross-person IK. Every hand
   // remains a child of a stable arm with independent articulated digits.
   ik:[],
   expressions:[{frame:0,name:"neutral"},{frame:76,name:"blink"},
     {frame:81,name:"neutral"},{frame:156,name:"speak"},
     {frame:180,name:"neutral"},{frame:198,name:"smile"}],
-  parts:[...legs,...coatPieces,...arms,
+  parts:riso54ApplyWebReserves(riso53ReorderPalmarInk([...legs,...coatPieces,...arms,
     ...risoHandArtcraftParts("paper-artist","left"),
     ...risoHandArtcraftParts("paper-artist","right"),
-    ...facePieces],
-};
+    ...facePieces].map(p=>riso51MorphSourcePart(p,"paper-artist")),
+    "paper-artist"),"paper-artist"),
+},"paper-artist");
 function category(part:RisoCharacterPart):RisoMeshCategory{
   if(part.id.startsWith("hair"))return "hair";
   if(part.joint==="head")return "face";
@@ -336,7 +354,12 @@ export const RISO_PAPER_ARTIST_SHEET:RisoCharacterMeshSheet={
   ],
   // Each region follows the actual named SVG contour and joint transform,
   // never a fabricated proportional rectangle or invented alternate view.
-  regions:PAPER_ARTIST.parts.map(part=>({
+  // RISO54 moving PAPER-ONLY reserves are zero-area until a hand grips.
+  // They are legitimate negative ink-masks, NOT positive 2D meshes.
+  // Keep them in the original actor/print rig; exclude only these two
+  // nondrawable source paths from the positive source-mesh catalog.
+  regions:PAPER_ARTIST.parts.filter(part=>
+    !part.id.includes("-glove-web-reserve-")).map(part=>({
     id:part.id,label:part.id.replace(/-/g," "),category:category(part),
     joint:part.joint,parts:[part.id],...(part.skin?{tipJoint:part.skin.tipJoint}:{}),
   })),
@@ -455,6 +478,8 @@ export function RisoHumanEnsembleStudio(){
   const [aspect,setAspect]=useState<EnsembleAspect>("landscape");
   const [plate,setPlate]=useState<EnsemblePlate>("both");
   const [anchors,setAnchors]=useState(false);
+  const [editorialCamera,setEditorialCamera]=useState(true);
+  const [riso59Preview,setRiso59Preview]=useState(false);
   const [grain,setGrain]=useState(.45);
   const [misregistration,setMisregistration]=useState(.25);
   const [dotCell,setDotCell]=useState(6);
@@ -500,6 +525,14 @@ export function RisoHumanEnsembleStudio(){
     curl:paperCurl,gripPinch,imprintDepth,
   },handoffSchedule),[frame,aspect,paperCurl,gripPinch,imprintDepth,
     releaseStart,releaseDuration,settleDegrees]);
+  // The source handoff, index pressure, sheet and both inks are still
+  // authored in their exact original WORLD paper coordinate system.
+  // RISO56 changes only their common screen camera in the final print
+  // presentation, like physically moving the lens closer to the scene.
+  const camera=useMemo(()=>evaluateRiso56HandoffCamera(
+    frame,aspect,state.source,state.receiver,editorialCamera,
+  ),[frame,aspect,state.source,state.receiver,editorialCamera]);
+  const cameraMatrix=riso56CameraMatrix(camera);
   const printSpec:RisoPrintSpec={
     version:1,width:state.width,height:state.height,paper,seed:38,
     startFrame:0,passFrames:1,gapFrames:0,
@@ -508,9 +541,24 @@ export function RisoHumanEnsembleStudio(){
       {id:"red",color:red,opacity:1,dotCell,dotAngle:17,registration:[.5,-.4]},
     ],
   };
-  const people=[{spec:COURIER,stage:state.first},{spec:PAPER_ARTIST,stage:state.second}] as const;
-  const footContacts=people.flatMap(({spec,stage})=>["left-ankle","right-ankle"].map(joint=>
-    personPoint(spec,frame,joint,stage.x,stage.y,stage.scale)));
+  // Contact joint transforms, paper handoff, camera and both original
+  // pressure models are unchanged: only four physical source paths per
+  // actor are compared at the same 1x / 9:16 source frame. Opt-in review.
+  const riso59Spec=useMemo(()=>({
+    donor:riso59PreviewContact(COURIER,"courier").spec,
+    receiver:riso59PreviewContact(PAPER_ARTIST,"paper-artist").spec,
+  }),[]);
+  const people=[
+    {spec:riso59Preview?riso59Spec.donor:COURIER,
+      stage:riso56ProjectPlacement(state.first,camera)},
+    {spec:riso59Preview?riso59Spec.receiver:PAPER_ARTIST,
+      stage:riso56ProjectPlacement(state.second,camera)},
+  ] as const;
+  const footContacts=([
+    {spec:COURIER,stage:state.first},
+    {spec:PAPER_ARTIST,stage:state.second},
+  ] as const).flatMap(({spec,stage})=>["left-ankle","right-ankle"].map(joint=>
+    riso56ProjectPoint(personPoint(spec,frame,joint,stage.x,stage.y,stage.scale),camera)));
   const gripLayer=(spec:RisoCharacterSpec,stage:{x:number;y:number;scale:number},
     side:"left"|"right",id:string):RisoForegroundLayer=>{
     const onlyPartIds=riso43FrontIndexIds(side);
@@ -550,13 +598,13 @@ export function RisoHumanEnsembleStudio(){
     })),
     {
       id:"shared-letter",
-      knockout:state.sheet?<path d={state.sheet}
-        data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}/>:undefined,
+      knockout:state.sheet?<g transform={cameraMatrix}><path d={state.sheet}
+        data-km-riso-human-ensemble-sheet={state.progress.toFixed(3)}/></g>:undefined,
       artworks:{
-        blue:paint=><RisoTransferSheetPlate outline={state.sheet}
-          geometry={state.printDetails} paint={paint} plateId="blue" detail={sheetDetail}/>,
-        red:paint=><RisoTransferSheetPlate outline={state.sheet}
-          geometry={state.printDetails} paint={paint} plateId="red" detail={sheetDetail}/>,
+        blue:paint=><g transform={cameraMatrix}><RisoTransferSheetPlate outline={state.sheet}
+          geometry={state.printDetails} paint={paint} plateId="blue" detail={sheetDetail}/></g>,
+        red:paint=><g transform={cameraMatrix}><RisoTransferSheetPlate outline={state.sheet}
+          geometry={state.printDetails} paint={paint} plateId="red" detail={sheetDetail}/></g>,
       },
     },
     ...(fingertipOcclusion&&state.sheet
@@ -564,9 +612,9 @@ export function RisoHumanEnsembleStudio(){
         // Once the physical paper has moved away from the source finger root,
         // never leave that original rigged finger floating over its surface.
         ...(state.sourceTouching
-          ? [gripLayer(COURIER,state.first,"right","courier-grip")]:[]),
+          ? [gripLayer(people[0].spec,people[0].stage,"right","courier-grip")]:[]),
         ...(state.receiverTouching
-          ? [gripLayer(PAPER_ARTIST,state.second,"left","artist-grip")]:[]),
+          ? [gripLayer(people[1].spec,people[1].stage,"left","artist-grip")]:[]),
       ]
       : []),
   ];
@@ -656,6 +704,14 @@ export function RisoHumanEnsembleStudio(){
         <label><input type="checkbox" checked={sheetDetail}
           aria-label="RISO ensemble fine printed-sheet detail"
           onChange={e=>setSheetDetail(e.target.checked)}/> Fine printed-sheet detail</label>
+        <label><input type="checkbox" checked={editorialCamera}
+          aria-label="RISO ensemble handoff closeup camera"
+          onChange={e=>setEditorialCamera(e.target.checked)}/>
+          Cinematic paper-handoff camera (RISO56)</label>
+        <label><input type="checkbox" checked={riso59Preview}
+          aria-label="RISO59 film three-quarter skin A/B"
+          onChange={e=>setRiso59Preview(e.target.checked)}/>
+          RISO59 unapproved skin envelope · original film A/B</label>
         <label><input type="checkbox" checked={anchors} aria-label="RISO ensemble contact anchors"
           onChange={e=>setAnchors(e.target.checked)}/> Show contact anchors</label>
         <label>Screen cell · {dotCell}px <input type="range" min={3} max={12} step={1}
@@ -693,22 +749,27 @@ export function RisoHumanEnsembleStudio(){
               {/* Registration-locked floor contact: paper shadows follow real ankle roots. */}
               {footContacts.map((pos,i)=><ellipse key={i} cx={pos.x} cy={pos.y+14}
                 rx={13} ry={3.8} fill={paint.dots} data-km-riso-foot-contact={i}/>)}
-              <text x={state.width/2} y={aspect==="portrait"?178:76}
+              {camera.zoom<=1.22&&<text x={state.width/2} y={aspect==="portrait"?178:76}
                 textAnchor="middle" fontFamily="Georgia,serif"
-                fontWeight={700} fontSize={35}>A PRINT TO SHARE</text>
-              {anchors&&<g fill="none" stroke={paint.solid} strokeWidth={1.5}
+                fontWeight={700} fontSize={35}>A PRINT TO SHARE</text>}
+              {anchors&&<g transform={cameraMatrix} fill="none" stroke={paint.solid} strokeWidth={1.5}
                 data-km-riso-ensemble-debug-anchors="">
                 {([state.source,state.receiver] as const).map((pos,i)=>
                   <g key={i}><circle cx={pos.x} cy={pos.y} r={5}/>
                     <path d={`M${pos.x-10} ${pos.y}h20 M${pos.x} ${pos.y-10}v20`}/></g>)}
               </g>}
             </g>,
-            red:paint=><text x={state.width/2} y={aspect==="portrait"?210:99}
+            red:paint=><g>{camera.zoom<=1.22&&<text x={state.width/2} y={aspect==="portrait"?210:99}
               textAnchor="middle" fontFamily="system-ui,sans-serif" fontWeight={700}
               letterSpacing={3} fontSize={aspect==="portrait"?12:11}
-              fill={paint.solid}>TWO MAKERS · TWO INKS</text>,
+              fill={paint.solid}>TWO MAKERS · TWO INKS</text>}</g>,
           }}
           foregroundLayers={layers}
+          data-km-riso56-handoff-camera-zoom={camera.zoom.toFixed(3)}
+          data-km-riso56-handoff-camera-beat={camera.beat.toFixed(3)}
+          data-km-riso56-handoff-camera-matrix={cameraMatrix}
+          data-km-riso56-editorial-camera={String(editorialCamera)}
+          data-km-riso59-film-preview={String(riso59Preview)}
           data-km-riso-human-ensemble-frame={frame}
           data-km-riso-human-ensemble-aspect={aspect}
           data-km-riso-human-ensemble-paper-curl={paperCurl}
@@ -741,8 +802,9 @@ export function RisoHumanEnsembleStudio(){
       <p style={{fontSize:12,color:"#63727A"}}>
         All frames are deterministic. The letter begins at the Courier's hand,
         reaches the Paper Artist by frame 160, then releases from the Courier at the
-        configured moment. The print follows the recipient afterward. No alpha-transparent
-        bodies, synthetic mitten shapes or playback-history-dependent transforms.
+        configured moment. The print follows the recipient afterward. RISO59 is an
+        unapproved, reversible source-shape comparison; original print is the default.
+        No alpha-transparent bodies, synthetic mitten shapes or playback-history-dependent transforms.
       </p>
     </div>
   </main>;

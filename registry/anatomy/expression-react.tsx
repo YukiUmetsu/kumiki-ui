@@ -15,6 +15,8 @@
  * Text is HTML; colours come from the tokens and the foundation variables.
  */
 import { forwardRef, useMemo } from "react";
+import { FacePortrait } from "./face-portrait-react";
+import type { PortraitOptions } from "./face-portrait";
 import type { HTMLAttributes, SVGAttributes } from "react";
 import { FACE_FEATURES } from "./anatomy-face";
 import { ACTION_UNITS, EMOTIONS, KUMADORI, NOH_TILT } from "./expression-facs";
@@ -66,13 +68,24 @@ const FEATURE_LABEL: Record<keyof ExpressionFeatures, string> = {
 };
 const signed = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(2)}`;
 
-/** Every prototype as a line study. */
-export const ExpressionAtlas = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(function ExpressionAtlas({ style, ...rest }, ref) {
+export interface ExpressionAtlasProps extends HTMLAttributes<HTMLDivElement> {
+  /** "portrait": rendered faces (ANAT1 portrait renderer, varied people); "construction": the line study with creases. */
+  look?: "portrait" | "construction";
+}
+/** The varied people the portrait atlas shows: sex, Monk-scale skin tone, hair style and colour, eye colour (cycled). */
+const ATLAS_PEOPLE: readonly PortraitOptions[] = [
+  { sex: 0, skin: "#e6c0a4", hairStyle: "long", eyes: "brown" }, { sex: 1, skin: "#c99a7e", hairStyle: "short", eyes: "hazel" }, { sex: 0, skin: "#9a6748", hairStyle: "bob", eyes: "dark-brown", hair: { eumelanin: 6 } },
+  { sex: 1, skin: "#6d452f", hairStyle: "short", eyes: "dark-brown", hair: { eumelanin: 8 } }, { sex: 0, skin: "#f1d3bd", hairStyle: "bob", eyes: "blue", hair: { eumelanin: 0.5, pheomelanin: 0.3 } }, { sex: 1, skin: "#b3825f", hairStyle: "short", eyes: "brown", hair: { eumelanin: 5 } },
+];
+/** Every prototype, as rendered portraits of varied people (default) or as line studies. */
+export const ExpressionAtlas = forwardRef<HTMLDivElement, ExpressionAtlasProps>(function ExpressionAtlas({ look = "portrait", style, ...rest }, ref) {
   const faces = useMemo(() => EMOTIONS.map(e => ({ e, face: expressEmotion(e.id) })), []);
   return (
     <div ref={ref} style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 170px), 1fr))", ...style }} {...rest}>
-      {faces.map(({ e, face }) => <figure key={e.id} style={{ margin: 0, display: "grid", gap: 4 }}>
-        <ExpressionFace face={face} label={`${e.name}: ${Object.keys(e.aus).map(a => `AU ${a}`).join(" + ")}`} />
+      {faces.map(({ e, face }, k) => <figure key={e.id} style={{ margin: 0, display: "grid", gap: 4 }}>
+        {look === "portrait"
+          ? <FacePortrait options={{ ...ATLAS_PEOPLE[k % ATLAS_PEOPLE.length], expression: e.id, width: 220, height: 275, supersample: 1, seed: 11 + k }} label={`${e.name}: ${Object.keys(e.aus).map(a => `AU ${a}`).join(" + ")}`} />
+          : <ExpressionFace face={face} label={`${e.name}: ${Object.keys(e.aus).map(a => `AU ${a}`).join(" + ")}`} />}
         <figcaption style={{ ...sheetSmall, textAlign: "center" }}><b style={{ color: "var(--km-text-primary, #242424)" }}>{e.name}</b>{e.ja ? <span lang="ja"> · {e.ja}</span> : null}<br />{Object.keys(e.aus).join(" + ")} · {e.grade}</figcaption>
       </figure>)}
     </div>

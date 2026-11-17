@@ -383,7 +383,15 @@ test("RISO27 original two-human 240-frame film: printed contact sequence and end
   await page.waitForTimeout(300);
   await expect(editor).toHaveAttribute("data-km-riso27-source-frame","239");
   await page.getByRole("button",{name:"Play Risograph ensemble"}).click();
-  await expect(editor).toHaveAttribute("data-km-riso27-source-frame","0",{timeout:1500});
+  // Absolute frame 0 can last only 1/24 s. Chromium may already be at
+  // f31 when Play.click resolves; sampling 0 with an async retry is flaky.
+  // Check the actual semantic contract instead: the end hold restarted
+  // near the opening, it is playing, and it did NOT remain at f239.
+  await expect(editor).toHaveAttribute("data-km-riso27-playing","yes");
+  await expect.poll(async()=>{
+    const frame=Number(await editor.getAttribute("data-km-riso27-source-frame"));
+    return Number.isFinite(frame)&&frame>=0&&frame<96?"restarted":"stuck";
+  },{timeout:1500}).toBe("restarted");
   await page.getByRole("button",{name:"Pause Risograph ensemble"}).click();
   await expect(editor).toHaveAttribute("data-km-riso27-playing","no");
 

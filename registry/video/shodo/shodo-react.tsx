@@ -2,8 +2,8 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState }
 import type { CanvasHTMLAttributes } from "react";
 import { DEFAULT_BRUSH_LOOK, drawShodoBrush, drawShodoBrushShadow } from "./shodo-brush";
 import type { ShodoBrushLook, ShodoCamera } from "./shodo-brush";
-import { shodoBrushPose } from "./shodo-hand";
-import type { ShodoPlan } from "./shodo-hand";
+import { shodoBrushPose, shodoStrokeNumbers } from "./shodo-hand";
+import type { ShodoPlan, ShodoStrokeNumber } from "./shodo-hand";
 import { ShodoInkSurface } from "./shodo-ink";
 import { renderShodoPaper } from "./shodo-paper";
 import type { ShodoSheet } from "./shodo-paper";
@@ -39,11 +39,21 @@ export interface ShodoCanvasProps extends Omit<CanvasHTMLAttributes<HTMLCanvasEl
   inkScale?: number;
   /** Device pixel ratio for the backing store; defaults to the window's, capped at 2. */
   pixelRatio?: number;
-  /** Stroke-order guide in red teaching ink (朱): none, the stroke being written, or all written strokes. */
-  orderGuide?: "none" | "current" | "all";
+  /**
+   * Stroke-order guide in red teaching ink (朱): none, a number and an arrow for the stroke
+   * being written ("current") or for all written strokes ("all"), or a small number next to
+   * the start of each stroke when the brush lands for it ("numbers"; see `shodoStrokeNumbers`).
+   */
+  orderGuide?: "none" | "current" | "all" | "numbers";
   /** Limit the guide to these stroke numbers (1-based writing order). */
   guideStrokes?: readonly number[];
+  /**
+   * Colour of the guide. Default "#D8432A" for the arrows and "#B3301A" for "numbers": the
+   * darker vermilion gives small text a contrast of 5.6:1 on hanshi.
+   */
   guideColor?: string;
+  /** Text size of the "numbers" guide, design px. Default: 0.42 of the brush diameter. */
+  guideSize?: number;
   /** Show the finished writing with no motion and no brush. */
   reducedMotion?: boolean;
   /** Accessible description of the writing. */
@@ -72,9 +82,10 @@ function feltTile(seed: number): HTMLCanvasElement | null {
  */
 export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(function ShodoCanvas({
   plan, frame, fps = 30, width, height, paper, sheet = null, underlay = "felt", paperweight = "wood", motionBlur = true,
-  showBrush = true, brushLook, cameraHeight, inkScale = 1, pixelRatio, orderGuide = "none", guideStrokes, guideColor = "#D8432A",
+  showBrush = true, brushLook, cameraHeight, inkScale = 1, pixelRatio, orderGuide = "none", guideStrokes, guideColor, guideSize,
   reducedMotion = false, label, style, ...props
 }, ref) {
+  const guideInk = guideColor ?? (orderGuide === "numbers" ? "#B3301A" : "#D8432A");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useImperativeHandle(ref, () => canvasRef.current as HTMLCanvasElement);
   const dpr = pixelRatio ?? (typeof window === "undefined" ? 1 : Math.min(2, window.devicePixelRatio || 1));
@@ -99,6 +110,9 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
     return () => { live = false; };
   }, []);
   const blurLayers = useMemo(() => typeof document === "undefined" ? null : [document.createElement("canvas"), document.createElement("canvas")], []);
+  // Placed once per plan against the finished writing, so a number never moves or lands on later ink.
+  const numbers = useMemo(() => orderGuide === "numbers" ? shodoStrokeNumbers(plan, { size: guideSize, bounds: paper, only: guideStrokes }) : null,
+    [orderGuide, plan, guideSize, paper, guideStrokes]);
 
   useEffect(() => {
     const canvas = canvasRef.current, ctx = canvas?.getContext("2d");
@@ -127,12 +141,13 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
     ctx.drawImage(inkCanvas, paper.x, paper.y, paper.width, paper.height);
     if (paperweight !== "none") drawPaperweight(ctx, paper, paperweight, textures);
     const pose = shodoBrushPose(plan, seconds);
-    if (orderGuide !== "none" && !reducedMotion) {
+    if (numbers) drawStrokeNumbers(ctx, numbers, seconds, guideInk, plan.style.paper.color);
+    else if (orderGuide !== "none" && orderGuide !== "numbers" && !reducedMotion) {
       const inkAt = (x: number, y: number) => {
         const ix = Math.round((x - paper.x) * surface.region.scale), iy = Math.round((y - paper.y) * surface.region.scale);
         return ix < 0 || iy < 0 || ix >= ink.width || iy >= ink.height ? 0 : ink.rgba[(iy * ink.width + ix) * 4 + 3] / 255;
       };
-      drawOrderGuide(ctx, plan, seconds, orderGuide, guideColor, width, inkAt, guideStrokes);
+      drawOrderGuide(ctx, plan, seconds, orderGuide, guideInk, width, inkAt, guideStrokes);
     }
     if (showBrush && !reducedMotion) {
       const cam: ShodoCamera = { x: width / 2, y: height / 2, height: cameraHeight ?? Math.max(width, height) * 2.2 };
@@ -140,9 +155,14 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
         drawShodoBrushShadow(c, cam, p, plan.style.brush, plan.brush.diameter, look);
         drawShodoBrush(c, cam, p, plan.style.brush, plan.style.ink, plan.brush.diameter, look, plan.style.seed, textures);
       };
-      // A 180° shutter at the film rate: fast moves are averaged over several sub-poses.
+      // A 180° shutter at the film rate: fast moves are averaged over several sub-poses. The
+      // travel is measured over the shutter: the tip in 3D, and the top of the handle, which
+      // swings with the lean. Sub-poses are spaced closely enough to read as one smear.
       const shutter = .5 / fps;
-      const travel = pose.speed * shutter;
+      const p0 = shodoBrushPose(plan, seconds - shutter / 2), p1 = shodoBrushPose(plan, seconds + shutter / 2);
+      const handle = plan.brush.tuftLength * (1 + plan.style.brush.handleLength);
+      const swing = Math.hypot(p1.leanX - p0.leanX, p1.leanY - p0.leanY) * Math.PI / 180 * handle;
+      const travel = Math.max(Math.hypot(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z), swing);
       if (motionBlur && blurLayers && travel > plan.brush.diameter * .12) {
         const [acc, one] = blurLayers;
         for (const c of [acc, one]) if (c.width !== canvas.width || c.height !== canvas.height) { c.width = canvas.width; c.height = canvas.height; }
@@ -151,7 +171,7 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
           a.setTransform(1, 0, 0, 1, 0, 0); a.clearRect(0, 0, acc.width, acc.height);
           a.globalCompositeOperation = "lighter";
           // Enough sub-poses that the blur reads as a smear, not as separate ghosts.
-          const n = Math.max(3, Math.min(7, Math.ceil(travel / (plan.brush.diameter * .2))));
+          const n = Math.max(3, Math.min(16, Math.ceil(travel / (plan.brush.diameter * .12))));
           for (let k = 0; k < n; k++) {
             o.setTransform(1, 0, 0, 1, 0, 0); o.clearRect(0, 0, one.width, one.height);
             o.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -165,7 +185,7 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
       } else drawAt(ctx, pose);
     }
   }, [frame, fps, plan, surface, paperCanvas, inkCanvas, felt, width, height, paper, dpr, underlay, paperweight, showBrush, look, textures, blurLayers, motionBlur,
-    cameraHeight, orderGuide, guideStrokes, guideColor, reducedMotion]);
+    cameraHeight, orderGuide, guideStrokes, guideInk, numbers, reducedMotion]);
 
   return <canvas {...props} ref={canvasRef} role="img" aria-label={label ?? "Brush calligraphy being written"}
     data-km-shodo="" data-km-shodo-frame={frame} data-km-shodo-ready={textures ? "true" : "false"}
@@ -209,6 +229,32 @@ function drawPaperweight(ctx: CanvasRenderingContext2D, paper: ShodoRect, kind: 
   const ends = ctx.createLinearGradient(x, 0, x + w, 0);
   ends.addColorStop(0, "rgba(20,10,4,.3)"); ends.addColorStop(.04, "rgba(20,10,4,0)"); ends.addColorStop(.96, "rgba(20,10,4,0)"); ends.addColorStop(1, "rgba(20,10,4,.35)");
   ctx.fillStyle = ends; ctx.fillRect(x, y, w, h);
+  ctx.restore();
+}
+
+/**
+ * Small stroke-order numbers. Each number fades in when the brush lands for its stroke and
+ * then stays. A thin paper-coloured halo keeps it legible where it crosses the printed grid.
+ */
+function drawStrokeNumbers(ctx: CanvasRenderingContext2D, numbers: readonly ShodoStrokeNumber[], seconds: number, color: string, paper: string): void {
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  ctx.lineJoin = "round";
+  for (const n of numbers) {
+    const alpha = Math.min(1, Math.max(0, (seconds - n.t0) / .18));
+    if (alpha <= 0) continue;
+    ctx.globalAlpha = alpha;
+    ctx.font = `600 ${n.size.toFixed(1)}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+    // Digits are about 0.72 of the font size tall: put their middle on the placed centre.
+    const text = String(n.number), y = n.y + n.size * .36;
+    // On ink the halo is wider, so the number reads as a label on a small patch of paper.
+    ctx.lineWidth = n.size * (n.onInk ? .38 : .28);
+    ctx.strokeStyle = paper;
+    ctx.strokeText(text, n.x, y);
+    ctx.fillStyle = color;
+    ctx.fillText(text, n.x, y);
+  }
   ctx.restore();
 }
 

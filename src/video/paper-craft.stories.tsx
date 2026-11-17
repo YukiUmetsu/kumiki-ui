@@ -56,6 +56,7 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
   const [wingFibreIntensity, setWingFibreIntensity] = useState(1);
   useEffect(() => setSelected(medium), [medium]);
   const anchor = useRef<{ time: number; frame: number } | null>(null);
+  useEffect(() => { if (reducedMotion) { setPlaying(false); anchor.current = null; } }, [reducedMotion]);
   useEffect(() => { setLiveFrame(frame); anchor.current = null; }, [frame, selected, aspect, artwork, scenery, sceneryPalette, breeze, treeVariety, object, objectPalette, palette, detail, colorLayers, curl, motion, relief, seed]);
   useEffect(() => {
     if (!playing || reducedMotion) return;
@@ -123,16 +124,16 @@ function PaperCraftLab({ artwork, scenery, sceneryPalette, breeze, treeVariety, 
           </div>
           <div style={{borderTop:"1px solid #534e4a",paddingTop:16,display:"grid",gap:13}}>
             <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-              <button type="button" style={button} onClick={()=>{ anchor.current=null; setPlaying(x=>!x); }} disabled={reducedMotion}>
+              <button type="button" style={{...button,...(reducedMotion?{opacity:.55,cursor:"not-allowed"}:{})}} onClick={()=>{ anchor.current=null; setPlaying(x=>!x); }} disabled={reducedMotion}>
                 {playing ? "Pause motion" : "Play 8s film"}
               </button>
-              <button type="button" style={{...button,background:"transparent",color:"#f0ddba"}}
-                onClick={()=>{setPlaying(false);setLiveFrame(0); anchor.current=null;}}>Restart</button>
+              <button type="button" style={{...button,background:"transparent",color:"#f0ddba",...(reducedMotion?{opacity:.55,cursor:"not-allowed"}:{})}}
+                disabled={reducedMotion} onClick={()=>{setPlaying(false);setLiveFrame(0); anchor.current=null;}}>Restart</button>
             </div>
-            <label style={small}>Frame {current} / 240
+            <label style={small}>{reducedMotion ? "Still assembled composition" : `Frame ${current} / 239`}
               <input type="range" min={0} max={239} step={1} value={Math.min(current,239)}
                 onChange={e=>{setPlaying(false);setLiveFrame(Number(e.currentTarget.value)); anchor.current=null;}}
-                aria-label="Scrub film frame" style={{display:"block",width:"100%",marginTop:10,accentColor:"#edd2ab"}} />
+                aria-label="Scrub film frame" disabled={reducedMotion} style={{display:"block",width:"100%",marginTop:10,accentColor:"#edd2ab"}} />
             </label>
             {artwork === "garden" && <label style={small}>Wing cut edge {Math.round(wingEdge*100)}%
               <input type="range" min={0} max={1} step={.05} value={wingEdge}
@@ -178,6 +179,7 @@ function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMo
   const [playhead,setPlayhead]=useState(frame),[playing,setPlaying]=useState(false);
   const anchor=useRef<{time:number;frame:number}|null>(null);
   useEffect(()=>{setPlayhead(frame);setPlaying(false);anchor.current=null;},[film,aspect,frame]);
+  useEffect(()=>{if(reducedMotion){setPlaying(false);anchor.current=null;}},[reducedMotion]);
   useEffect(()=>{
     if(!playing||reducedMotion)return;
     let request=0;
@@ -190,7 +192,7 @@ function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMo
     request=requestAnimationFrame(tick);
     return ()=>cancelAnimationFrame(request);
   },[playing,reducedMotion,plan]);
-  const currentFrame=reducedMotion?plan.durationFrames-1:playhead;
+  const currentFrame=playhead;
   const current=resolvePaperDirector(plan,currentFrame,aspect);
   const chapter=(start:number)=>{setPlaying(false);anchor.current=null;setPlayhead(start);};
   const control:CSSProperties={border:"1px solid #bea889",background:"#2f3437",color:"#f5ead6",
@@ -217,7 +219,7 @@ function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMo
         </button>)}
       </div>
       <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap",padding:"10px 0"}}>
-        <button type="button" style={control} disabled={reducedMotion}
+        <button type="button" style={{...control,...(reducedMotion?{opacity:.55,cursor:"not-allowed"}:{})}} disabled={reducedMotion}
           onClick={()=>{anchor.current=null;setPlaying(v=>!v);}}>
           {playing?"Pause":"Play film"}
         </button>
@@ -225,14 +227,15 @@ function PaperDirectorLab({medium,aspect,seed,motion,tooth,shadow,edge,reducedMo
           onClick={()=>{setPlaying(false);anchor.current=null;setPlayhead(0);}}>
           Restart
         </button>
-        <span style={{fontSize:12,color:"#d1b998"}}>{String(playhead).padStart(3,"0")} / {plan.durationFrames-1} · 30 FPS · {current.shotId}</span>
+        <span style={{fontSize:12,color:"#d1b998"}}>{reducedMotion?"Still chapter":`${String(playhead).padStart(3,"0")} / ${plan.durationFrames-1} · 30 FPS`} · {current.shotId}</span>
       </div>
       <label style={{display:"block",paddingBottom:16,fontSize:12,color:"#c9b9aa"}}>
         Scrub complete paper film
         <input type="range" min={0} max={plan.durationFrames-1} step={1}
-          value={playhead} aria-label="Scrub complete paper film"
+          value={playhead} aria-label="Scrub complete paper film" disabled={reducedMotion}
           onChange={e=>{setPlaying(false);anchor.current=null;setPlayhead(Number(e.currentTarget.value));}}
           style={{display:"block",width:"100%",accentColor:"#d7a16e",marginTop:9}}/>
+        {reducedMotion&&<span>Choose a chapter to view its still pose.</span>}
       </label>
       <div style={{display:"flex",justifyContent:"center"}}>
         <div style={{width:"100%",maxWidth:aspect==="portrait"?440:960,
@@ -260,6 +263,7 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
   const [playing,setPlaying]=useState(false);
   const anchor=useRef<{time:number;frame:number}|null>(null);
   useEffect(()=>{setPlayhead(130);setPlaying(false);anchor.current=null;},[film,aspect]);
+  useEffect(()=>{if(reducedMotion){setPlaying(false);anchor.current=null;}},[reducedMotion]);
   useEffect(()=>{
     if(!playing||reducedMotion)return;
     let request=0;
@@ -272,7 +276,7 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
     request=requestAnimationFrame(tick);
     return ()=>cancelAnimationFrame(request);
   },[playing,reducedMotion,plan]);
-  const frame=reducedMotion?plan.durationFrames-1:playhead;
+  const frame=playhead;
   const shot=resolvePaperDirector(plan,frame,aspect);
   const beat=ROYAL_STORY_BEATS[shot.shotIndex];
   const selectBeat=(start:number)=>{setPlaying(false);anchor.current=null;setPlayhead(start);};
@@ -308,15 +312,16 @@ function PaperRoyalStoryLab({medium,aspect,seed,motion,tooth,shadow,edge,reduced
         <button type="button" style={control}
           onClick={()=>selectBeat(0)}>Restart</button>
         <span style={{fontSize:12,color:"#DFC8B3"}}>
-          {(frame/30).toFixed(1)}s / 24.0s · {aspect==="portrait"?"9:16":"16:9"} · {medium}
+          {reducedMotion?"Still chapter":`${(frame/30).toFixed(1)}s / 24.0s`} · {aspect==="portrait"?"9:16":"16:9"} · {medium}
         </span>
       </div>
       <label style={{display:"block",fontSize:12,color:"#D8C4B7",marginBottom:18}}>
         Scrub fairy tale
         <input type="range" min={0} max={plan.durationFrames-1} step={1}
-          value={Math.min(plan.durationFrames-1,frame)} aria-label="Scrub fairy tale"
+          value={Math.min(plan.durationFrames-1,frame)} aria-label="Scrub fairy tale" disabled={reducedMotion}
           style={{display:"block",marginTop:9,width:"100%",accentColor:"#E0B78B"}}
           onChange={e=>selectBeat(Number(e.currentTarget.value))}/>
+        {reducedMotion&&<span>Choose a chapter to view its still pose.</span>}
       </label>
       <div style={{display:"grid",justifyItems:"center"}}>
         <div style={{width:"100%",maxWidth:aspect==="portrait"?440:960,

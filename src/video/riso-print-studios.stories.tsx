@@ -4,6 +4,16 @@ import { risoSecondSheetArtworks, risoSecondSheetImprintArt } from "./riso-print
 import { RISO_SHEET_FEED_FILM, RISO_OVERPRINT_FILM, RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "./riso-print-film";
 import { useEffect, useMemo, useState } from "react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
+import {RisoGradientStudio} from "./riso-gradient-studio";
+import {RisoBrushStudio} from "./riso-brush-studio";
+import {RisoDryBrushFilmStudio} from "./riso-dry-brush-film-studio";
+import {RisoCinematicStudio} from "./riso-cinematic-studio";
+import {RisoRegistrationPreflightStudio} from "./riso-registration-proof-studio";
+import {RisoContactTrapStudio} from "./riso-contact-trap-studio";
+import {RisoTopologyGuardStudio} from "./riso-topology-guard-studio";
+import {RisoMasterSeparationStudio} from "./riso-master-separation-studio";
+import {RisoPressDeliveryStudio} from "./riso-press-delivery-studio";
+import {RisoShopProofStudio} from "./riso-shop-proof-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -365,6 +375,66 @@ function RisoOverprintLab() {
 export const RisographOverprint: StoryObj<typeof RisoOverprintLab> = {
   name: "Risograph · Native Overprint Transition",
   render: () => <RisoOverprintLab />,
+};
+
+/** Native paper-space tonal gradient proof; no human actors or hand studies. */
+export const RisographGradientInk:StoryObj<typeof RisoGradientStudio>={
+  name:"Risograph · Continuous Spot-Ink Gradient",
+  render:()=> <RisoGradientStudio/>,
+};
+
+/** Independent source-native dry-ink pressure and splintering, non-human. */
+export const RisographDryBrush:StoryObj<typeof RisoBrushStudio>={
+  name:"Risograph · Dry-Brush Ink Atelier",
+  render:()=> <RisoBrushStudio/>,
+};
+
+/** Existing FD1 production capture and MP4 proof of the exact RISO62 artist's ink. */
+export const RisographDryBrushFilm:StoryObj<typeof RisoDryBrushFilmStudio>={
+  name:"Risograph · Dry-Brush Production Film",
+  render:()=> <RisoDryBrushFilmStudio/>,
+};
+
+/** Existing FilmStage and original RISO62 materials, now with five authored camera/press beats. */
+export const RisographCinematicJourney:StoryObj<typeof RisoCinematicStudio>={
+  name:"Risograph · Two-Drum Cinematic Journey",
+  render:()=> <RisoCinematicStudio/>,
+};
+
+/** Interactive A/B original native stencil registration and numeric trap budget; no hands. */
+export const RisographRegistrationPreflight:StoryObj<typeof RisoRegistrationPreflightStudio>={
+  name:"Risograph · Registration Preflight",
+  render:()=> <RisoRegistrationPreflightStudio/>,
+};
+
+/** Physical two-master ArtCraft contact-edge source proof; no human hands. */
+export const RisographContactEdgeTrap:StoryObj<typeof RisoContactTrapStudio>={
+  name:"Risograph · Native Shared-Edge Trapping",
+  render:()=> <RisoContactTrapStudio/>,
+};
+
+/** RISO67 actual SVG quadratic self-contact & paper-opening safety demo. */
+export const RisographTopologySafety:StoryObj<typeof RisoTopologyGuardStudio>={
+  name:"Risograph · Native Stencil Topology Guard",
+  render:()=> <RisoTopologyGuardStudio/>,
+};
+
+/** Two complete original K-only physical ink masters with measured print-shop controls. */
+export const RisographMasterSeparation:StoryObj<typeof RisoMasterSeparationStudio>={
+  name:"Risograph · Native Grayscale Master Separation",
+  render:()=> <RisoMasterSeparationStudio/>,
+};
+
+/** Real grayscale PDF and TIFF per-ink print deliverables; no human hands. */
+export const RisographPressDelivery:StoryObj<typeof RisoPressDeliveryStudio>={
+  name:"Risograph · Physical PDF and TIFF Master Delivery",
+  render:()=> <RisoPressDeliveryStudio/>,
+};
+
+/** Physical paper margins and actual/manual vs simulated drum proof, no hand art. */
+export const RisographShopScanProof:StoryObj<typeof RisoShopProofStudio>={
+  name:"Risograph · Printer Profile and Scan Registration Lab",
+  render:()=> <RisoShopProofStudio/>,
 };
 
 const meta = {

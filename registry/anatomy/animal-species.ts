@@ -37,7 +37,8 @@ export type ConstructionKey = "trunk" | "chestDepth" | "legClearance" | "head" |
  */
 export interface Swatch { region: AnimalRegion; name: string; hex: string; fill?: "area" | "tip" | "band" | "eye-patch" | "accent" }
 export interface Marking { name: string; region: AnimalRegion; shape: string }
-export interface CoatVariant { name: string; when: string; palette: readonly Swatch[] }
+/** A coat for a season, sex or age. `age` marks a young coat: the span of growth (0 youngest … 1 adult, as `animal-growth.ts`) it is worn for. */
+export interface CoatVariant { name: string; when: string; palette: readonly Swatch[]; age?: readonly [number, number] }
 /**
  * The face, in any style. Profile values are shares of the head length: occiput to nose for mammals, the back of the
  * skull to the bill tip for birds, the snout to the back of the gill cover for fish. `eyeSpacing` is the gap between the
@@ -55,6 +56,29 @@ export interface AnimalFace {
   ears: string;
   /** What makes the face: masks, stripes, muzzle shape, what not to draw. */
   features: readonly string[];
+  grade: Grade;
+  source: string;
+  /** The face square on, where it was measured off a reference (otherwise `frontFace` uses the body plan's). */
+  front?: FrontFace;
+}
+
+/**
+ * A face square on, in units of the head's width at the eyes (cheek to cheek), measured from the eye line (+ up, −
+ * down) and the centre line. `animal-front.ts` draws it; `frontFace(species)` falls back to the body plan's.
+ */
+export interface FrontFace {
+  /** Top of the skull between the ears, above the eye line. */
+  crown: number;
+  /** Chin (or the lower lip) below the eye line. */
+  chin: number;
+  /** The nose's centre below the eye line, its width, and the muzzle's width at the whisker pads (or lips). */
+  nose: number; noseWidth: number; muzzleWidth: number;
+  /** Eye width. */
+  eye: number;
+  /** The ear tip: out from the centre line, and above the eye line (negative: below, a cow's ears out sideways). */
+  earTip: readonly [number, number];
+  /** The ear's base: its width, and how far out from the centre line its middle sits. */
+  earBase: number; earBaseX: number;
   grade: Grade;
   source: string;
 }
@@ -107,7 +131,7 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
         { region: "chest", name: "crescent", hex: "#f1ede2", fill: "band" }, { region: "eyes", name: "iris", hex: "#4a3020" }, { region: "feet", name: "claws", hex: "#bdb3a4", fill: "accent" }],
       markings: [{ name: "crescent (tsukinowa)", region: "chest", shape: "A white V or crescent across the throat and upper chest; its size varies and it can be absent." },
         { name: "tan muzzle", region: "muzzle", shape: "Brown to tan from the stop to the nose and under the chin." }],
-      variants: [{ name: "cub", when: "first year", palette: [{ region: "back", name: "coat", hex: "#232020" }, { region: "chest", name: "crescent", hex: "#f1ede2", fill: "band" }] }] },
+      variants: [{ name: "cub", when: "first year", age: [0, .6], palette: [{ region: "back", name: "coat", hex: "#232020" }, { region: "chest", name: "crescent", hex: "#f1ede2", fill: "band" }] }] },
     eyes: { pupil: "round", iris: "#4a3020", note: "Small, set forward." },
     face: { eyeFromNose: .45, eye: .05, ear: .3, depth: .5, eyeSpacing: .4, eyeLook: "iris", ears: "Large, round, set high and wide at the top corners of the skull.",
       features: ["A long, tapering tan muzzle: narrow at the bridge between the eyes, broad at the big black nose.", "The forehead slopes into the muzzle with little stop.", "Small eyes, set wide; a short straight mouth (no smile).", "Broad cheeks framed by the shaggy ruff."],
@@ -131,7 +155,7 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
       palette: [{ region: "back", name: "coat", hex: "#4f3626" }, { region: "back", name: "crest", hex: "#2e2018", fill: "band" }, { region: "face", name: "jaw stripe", hex: "#d9d0c2", fill: "band" },
         { region: "feet", name: "lower legs", hex: "#6b5a4a" }, { region: "feet", name: "hooves", hex: "#1f1a17" }, { region: "muzzle", name: "snout disc", hex: "#4a3b36", fill: "tip" }],
       markings: [{ name: "white jaw stripe (leucomystax, 'white whiskers')", region: "face", shape: "A pale band from the corner of the mouth back along the jaw to the throat." }],
-      variants: [{ name: "piglet (uribō, 'melon')", when: "first months", palette: [{ region: "back", name: "base", hex: "#8a6a4a" }, { region: "back", name: "stripes", hex: "#e4d3b4", fill: "band" }] }] },
+      variants: [{ name: "piglet (uribō, 'melon')", when: "first months", age: [0, .4], palette: [{ region: "back", name: "base", hex: "#8a6a4a" }, { region: "back", name: "stripes", hex: "#e4d3b4", fill: "band" }] }] },
     eyes: { pupil: "round", iris: "#3b2a1e", note: "Small, set high and well back on the head." },
     face: { eyeFromNose: .6, eye: .04, ear: .3, depth: .5, eyeSpacing: .5, eyeLook: "iris", ears: "Broad, hairy, pointed; laid back on the crown just behind the eye.",
       features: ["A long deep wedge: forehead and snout one straight line, ending in the flat snout disc.", "The small eye is set far back, about three-fifths of the way from the snout to the ear.", "Heavy jaw and jowl; the lower tusk curving up out of the lip.", "Square on, the head is nearly as wide as the chest and carried low."],
@@ -153,11 +177,13 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
       palette: [{ region: "back", name: "coat", hex: "#c8642a" }, { region: "throat", name: "white bib", hex: "#f3ece0" }, { region: "feet", name: "black stockings", hex: "#2a1e18" },
         { region: "ears", name: "ear backs", hex: "#2a1e18" }, { region: "tail", name: "tail tip", hex: "#f5f1ea", fill: "tip" }],
       markings: [{ name: "white tail tip", region: "tail", shape: "The last few centimetres of the brush." }, { name: "black stockings and ear backs", region: "feet", shape: "Black from the elbows and hocks down." }],
-      variants: [{ name: "winter coat", when: "winter", palette: [{ region: "back", name: "coat", hex: "#d17a3a" }] }] },
+      variants: [{ name: "winter coat", when: "winter", palette: [{ region: "back", name: "coat", hex: "#d17a3a" }] },
+        { name: "kit", when: "first weeks: dark brown fluffy fur, the eyes blue (reported: Wikipedia, Red fox); the coat changes from three weeks, red and white on the face by a month, so only the very youngest drawn age wears it", age: [0, .08], palette: [{ region: "back", name: "dark brown", hex: "#4a3a30" }, { region: "throat", name: "dark brown", hex: "#4a3a30" }, { region: "tail", name: "dark brown", hex: "#4a3a30", fill: "tip" }, { region: "eyes", name: "blue", hex: "#6f8fae" }] }] },
     eyes: { pupil: "vertical-slit", iris: "#d9a43a" },
     face: { eyeFromNose: .56, eye: .1, ear: .5, depth: .45, eyeSpacing: .36, eyeLook: "slit", ears: "Large pointed triangles, black-backed, set high and close together; pale fur inside.",
       features: ["A long, slender muzzle tapering to a small black nose; the eye sits well back, just behind the stop.", "Amber eyes with slit pupils, set obliquely.", "White upper lip, cheeks and chin; dark patches on the sides of the muzzle.", "Square on, a narrow wedge of a face under wide ears."],
-      grade: "estimated", source: "Read off a near-profile and two frontal photographs (iNaturalist 338352584, CC0; Commons, public domain)" },
+      grade: "estimated", source: "Read off a near-profile and two frontal photographs (iNaturalist 338352584, CC0; Commons, public domain)",
+      front: { crown: .49, chin: .6, nose: .48, noseWidth: .19, muzzleWidth: .33, eye: .14, earTip: [.5, .77], earBase: .33, earBaseX: .32, grade: "measured", source: "Red fox face (Commons, public domain); the chin is below the frame, estimated" } },
     parts: [{ id: "brush", name: "brush (tail)", region: "tail" }],
     behaviour: { gaits: ["walk", "trot", "rotary"], canRear: false, notes: ["Pounces on prey under snow with a high arching leap."] },
     sounds: [{ kind: "vocal", label: "scream and bark", query: "fox scream" }, { kind: "vocal", label: "gekkering", query: "fox gekkering" }],
@@ -193,7 +219,8 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     eyes: { pupil: "round", iris: "#c9a23a" },
     face: { eyeFromNose: .45, eye: .09, ear: .25, depth: .52, eyeSpacing: .4, eyeLook: "iris", ears: "Short and pointed, set wide on the crown and leaning back; shorter than a grey wolf's.",
       features: ["A long, straight muzzle with a shallow stop; the eye just behind the stop.", "Small oblique eyes with dark-lined lids.", "Grey-brown face, paler on the muzzle, lips and cheeks."],
-      grade: "estimated", source: "Measured off Siebold's Fauna Japonica plate (profile); spacing from a grey wolf photographed square on" },
+      grade: "estimated", source: "Measured off Siebold's Fauna Japonica plate (profile); spacing from a grey wolf photographed square on",
+      front: { crown: .37, chin: .55, nose: .41, noseWidth: .2, muzzleWidth: .39, eye: .12, earTip: [.4, .54], earBase: .3, earBaseX: .3, grade: "measured", source: "Grey wolf portrait square on (Commons, public domain); the Japanese wolf was not photographed square on" } },
     parts: [],
     behaviour: { gaits: ["walk", "trot", "rotary"], canRear: false, notes: ["Last confirmed in 1905; smaller than other grey wolves, about the size of a large dog."] },
     sounds: [{ kind: "vocal", label: "howl", catalog: "howl-dog", query: "wolf howl" }],
@@ -213,7 +240,8 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     eyes: { pupil: "round", iris: "#3a2a1c" },
     face: { eyeFromNose: .43, eye: .08, ear: .33, depth: .55, eyeSpacing: .37, eyeLook: "iris", ears: "Small, triangular and firmly pricked, set well apart and tilted forward (AKC).",
       features: ["Muzzle 40% of the head from occiput to nose (AKC), straight-bridged and tapering slightly; a moderate stop.", "Deep-set, somewhat triangular dark eyes slanting up toward the ears, black-rimmed.", "Broad flat forehead; full cheeks: square on, a rounded triangle.", "White (urajiro) on the muzzle sides, cheeks and throat; black nose and lips."],
-      grade: "estimated", source: "Muzzle share reported by the AKC standard; eye, ear and spacing read off Shiba photographs (Commons, public domain)" },
+      grade: "estimated", source: "Muzzle share reported by the AKC standard; eye, ear and spacing read off Shiba photographs (Commons, public domain)",
+      front: { crown: .43, chin: .56, nose: .25, noseWidth: .14, muzzleWidth: .34, eye: .09, earTip: [.44, .54], earBase: .24, earBaseX: .3, grade: "measured", source: "Shiba Inu square on (Commons, public domain)" } },
     parts: [{ id: "curled-tail", name: "curled tail", region: "tail" }],
     behaviour: { gaits: ["walk", "trot", "rotary"], canRear: false, notes: [] },
     sounds: [{ kind: "vocal", label: "bark", catalog: "bark-dog-1", query: "dog bark" }, { kind: "vocal", label: "double bark", catalog: "bark-dog-2" }, { kind: "vocal", label: "howl", catalog: "howl-dog" }],
@@ -230,9 +258,10 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
       markings: [{ name: "calico (mike-neko)", region: "back", shape: "White with orange and black patches." }],
       variants: [{ name: "grey tabby", when: "colour variety", palette: [{ region: "back", name: "grey", hex: "#8b8f97" }, { region: "back", name: "stripes", hex: "#4e5158", fill: "accent" }] }] },
     eyes: { pupil: "vertical-slit", iris: "#c9a227" },
-    face: { eyeFromNose: .42, eye: .16, ear: .4, depth: .7, eyeSpacing: .4, eyeLook: "slit", ears: "Large upright triangles, broad at the base, set on the top corners of a round head.",
+    face: { eyeFromNose: .42, eye: .16, ear: .4, depth: .7, eyeSpacing: .45, eyeLook: "slit", ears: "Large upright triangles, broad at the base, set on the top corners of a round head.",
       features: ["A short face: big eyes close behind a short muzzle and a small nose leather.", "Slit pupils that open round in the dark.", "Whisker pads either side of the split upper lip; square on, a round head with the ears as its corners."],
-      grade: "estimated", source: "Read off profile and frontal photographs (iNaturalist 350287666 and 234370227, CC0; Commons CC0)" },
+      grade: "estimated", source: "Read off profile and frontal photographs (iNaturalist 350287666 and 234370227, CC0; Commons CC0)",
+      front: { crown: .41, chin: .45, nose: .29, noseWidth: .13, muzzleWidth: .35, eye: .17, earTip: [.42, .62], earBase: .35, earBaseX: .3, grade: "measured", source: "Adult cat (Hauskatze, Commons CC0) for the eyes, nose and muzzle; the ears and crown off a kitten (Commons CC0), its ears scaled down" } },
     parts: [{ id: "bobtail", name: "Japanese bobtail", region: "tail", note: "A short pom-pom tail is the traditional Japanese cat." }],
     behaviour: { gaits: ["walk", "trot", "rotary"], canRear: true, climbs: true, notes: ["Direct register: the hind feet land in the fore feet's prints."] },
     sounds: [{ kind: "vocal", label: "meow", query: "cat meow" }, { kind: "vocal", label: "purr", query: "cat purr" }],
@@ -265,7 +294,8 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     proportions: { tail: r(.13, .16, .19, "reported", "tail ÷ length") },
     coat: { type: "dense", long: ["back", "neck", "face"], lay: "A thick grey-brown coat, longer in winter; the face, hands and rump are bare.",
       palette: [{ region: "back", name: "grey-brown", hex: "#8c8278" }, { region: "face", name: "red face", hex: "#d0675a" }, { region: "rump", name: "red rump", hex: "#c95a4e" }],
-      markings: [{ name: "red face and rump", region: "face", shape: "Bare red skin, redder in adults and in the breeding season." }], variants: [] },
+      markings: [{ name: "red face and rump", region: "face", shape: "Bare red skin, redder in adults and in the breeding season." }],
+      variants: [{ name: "infant", when: "born with dark brown hair (reported: Wikipedia, Japanese macaque)", age: [0, .35], palette: [{ region: "back", name: "dark brown", hex: "#4a3a2e" }, { region: "face", name: "pale face", hex: "#d9a8a0" }] }] },
     eyes: { pupil: "round", iris: "#6a4a2a", note: "Forward-facing under a heavy brow." },
     face: { eyeFromNose: .37, eye: .07, ear: .27, depth: .85, eyeSpacing: .33, eyeLook: "iris", ears: "Small, round and naked, set low on the sides of the head, half hidden in the fur.",
       features: ["A flat red face, red around the eyes, under a heavy brow ridge; framed by a thick grey ruff.", "Eyes close together and facing forward.", "A short muzzle, a flat nose and a wide thin-lipped mouth; cheek pouches."],
@@ -301,9 +331,10 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     coat: { type: "sleek", long: [], lay: "Short and smooth.",
       palette: [{ region: "back", name: "black", hex: "#1e1b1a" }, { region: "muzzle", name: "muzzle", hex: "#3a3634" }, { region: "head", name: "horns", hex: "#e3d6b8", fill: "accent" }], markings: [], variants: [] },
     eyes: { pupil: "horizontal", iris: "#3a2a1c" },
-    face: { eyeFromNose: .6, eye: .1, ear: .3, depth: .55, eyeSpacing: .5, eyeLook: "bead", ears: "Broad and held out sideways below the horns, fringed inside.",
+    face: { eyeFromNose: .6, eye: .1, ear: .3, depth: .55, eyeSpacing: .75, eyeLook: "bead", ears: "Broad and held out sideways below the horns, fringed inside.",
       features: ["A broad flat forehead with a curly poll between short horns.", "A wide wet nose pad with flared nostrils.", "Large dark eyes at the sides of the face; square on, the cheeks bulge past them."],
-      grade: "estimated", source: "Read off a bull in profile and a Japanese Black square on (Commons, public domain)" },
+      grade: "estimated", source: "Read off a bull in profile and a Japanese Black square on (Commons, public domain)",
+      front: { crown: .62, chin: .95, nose: .76, noseWidth: .57, muzzleWidth: .7, eye: .13, earTip: [1.1, .14], earBase: .3, earBaseX: .55, grade: "measured", source: "Japanese Black (Akita) square on (Commons, public domain); the chin is estimated" } },
     parts: [{ id: "horns", name: "short curved horns", region: "head" }, { id: "dewlap", name: "dewlap", region: "throat" }],
     behaviour: { gaits: ["walk", "trot"], canRear: false, notes: [] },
     sounds: [{ kind: "vocal", label: "low", query: "cow moo" }],
@@ -366,7 +397,11 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
     coat: { type: "feathers", long: ["tail"], lay: "Smooth white body; the black secondaries droop over the tail like a bustle.",
       palette: [{ region: "back", name: "white", hex: "#f6f4ef" }, { region: "neck", name: "black neck", hex: "#1c1b1b" }, { region: "wings", name: "black secondaries", hex: "#1c1b1b", fill: "tip" },
         { region: "crown", name: "red crown", hex: "#c1272d" }, { region: "muzzle", name: "bill", hex: "#8a9a6a" }, { region: "hind-leg", name: "legs", hex: "#2a2a2a" }],
-      markings: [{ name: "red crown", region: "crown", shape: "A patch of bare red skin on top of the head." }, { name: "black 'tail'", region: "wings", shape: "The black secondaries fall over the white tail." }], variants: [] },
+      markings: [{ name: "red crown", region: "crown", shape: "A patch of bare red skin on top of the head." }, { name: "black 'tail'", region: "wings", shape: "The black secondaries fall over the white tail." }],
+      variants: [
+        { name: "chick (natal down)", when: "first two weeks (reported: Wikipedia, Red-crowned crane)", age: [0, .3], palette: [{ region: "back", name: "yellow down", hex: "#d6b75e" }, { region: "neck", name: "yellow down", hex: "#d6b75e" }, { region: "crown", name: "yellow down", hex: "#d6b75e" }, { region: "wings", name: "yellow down", hex: "#cdae58", fill: "tip" }] },
+        { name: "juvenile", when: "first year: white with tawny and cinnamon brown, the crown grey and tawny, the neck coffee brown (reported: Wikipedia)", age: [.3, .8], palette: [{ region: "neck", name: "coffee brown", hex: "#8a6448" }, { region: "crown", name: "grey and tawny", hex: "#9c8a72" }, { region: "wings", name: "cinnamon", hex: "#a8774a", fill: "tip" }] },
+      ] },
     eyes: { pupil: "round", iris: "#4a3a2a" },
     face: { eyeFromNose: .74, eye: .05, depth: .25, eyeSpacing: .85, eyeLook: "bead", ears: "None visible: the ear opening is hidden under the feathers behind the eye.",
       features: ["A long straight greenish-horn bill, more than half the head.", "Bare red skin on the crown (the tanchō, red cap); a black face and throat; white from behind the eye round the nape.", "A small dark eye at the edge of the black face, close to the white."],
@@ -393,7 +428,7 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
   },
   {
     id: "large-billed-crow", name: "Large-billed crow", ja: { kana: "ハシブトガラス", kanji: "烏", romaji: "karasu" }, scientific: "Corvus macrorhynchos", plan: "bird-perching",
-    size: { length: r(46, 52, 59, "reported", "Large-billed crow"), mass: r(.45, .7, 1.0, "reported", "Large-billed crow") },
+    size: { length: r(46, 52, 59, "reported", "Large-billed crow"), wingspan: r(95, 110, 125, "estimated", "scaled from the carrion crow's reported 84–100 cm; the large-billed crow is heavier (450–1,000 g against 400–600 g)"), mass: r(.45, .7, 1.0, "reported", "Large-billed crow") },
     proportions: { muzzle: r(.43, .47, .5, "estimated", "read off a large-billed crow's head in profile") },
     coat: { type: "feathers", long: [], lay: "Glossy black, a blue-purple sheen.",
       palette: [{ region: "back", name: "black", hex: "#141416" }, { region: "back", name: "sheen", hex: "#2c3a5a", fill: "accent" }], markings: [], variants: [] },
@@ -408,7 +443,7 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
   },
   {
     id: "green-pheasant", name: "Green pheasant", ja: { kana: "キジ", kanji: "雉", romaji: "kiji" }, scientific: "Phasianus versicolor", plan: "bird-galliform",
-    size: { length: r(60, 75, 89, "reported", "Common pheasant (close relative): males, including tail"), mass: r(.5, 1.0, 1.4, "reported", "Common pheasant (close relative)") },
+    size: { length: r(60, 75, 89, "reported", "Common pheasant (close relative): males, including tail"), wingspan: r(56, 71, 86, "reported", "Common pheasant (close relative)"), mass: r(.5, 1.0, 1.4, "reported", "Common pheasant (close relative)") },
     proportions: { muzzle: r(.33, .37, .4, "estimated", "read off Huet's Phasianus versicolor"), tail: r(.5, .55, .6, "reported", "Common pheasant: tail ~50 cm of the male's length") },
     coat: { type: "feathers", long: ["tail"], lay: "Scaled iridescent breast; a long barred tail.",
       palette: [{ region: "breast", name: "dark green", hex: "#2f5d3a" }, { region: "face", name: "red wattle", hex: "#c0302b", fill: "eye-patch" }, { region: "back", name: "bronze back", hex: "#7a5a3a" }, { region: "tail", name: "barred tail", hex: "#a4865e" }],
@@ -462,7 +497,9 @@ export const ANIMAL_SPECIES: readonly AnimalSpecies[] = [
       palette: [{ region: "back", name: "dark back", hex: "#4a4436" }, { region: "wings", name: "orange sails", hex: "#e07b28" }, { region: "face", name: "white eye stripe", hex: "#f4f1ea", fill: "band" }, { region: "breast", name: "purple breast", hex: "#5a3a6a" },
         { region: "crown", name: "green crest", hex: "#3a6a4a" }, { region: "muzzle", name: "red bill", hex: "#c8473a" }],
       markings: [{ name: "white crescent over the eye", region: "face", shape: "A broad white stripe from the eye to the nape." }],
-      variants: [{ name: "duck (female)", when: "female", palette: [{ region: "back", name: "grey-brown", hex: "#8a7f72" }, { region: "face", name: "white eye ring", hex: "#f4f1ea", fill: "eye-patch" }] }] },
+      variants: [{ name: "duck (female)", when: "female", palette: [{ region: "back", name: "grey-brown", hex: "#8a7f72" }, { region: "face", name: "white eye ring", hex: "#f4f1ea", fill: "eye-patch" }] },
+        { name: "duckling", when: "very like a mallard duckling (reported: Wikipedia, Mandarin duck): dark above, yellow below and on the face (Wikipedia, Mallard)", age: [0, .4],
+          palette: [{ region: "back", name: "dark brown down", hex: "#4a3e2c" }, { region: "breast", name: "yellow", hex: "#dcc062" }, { region: "face", name: "yellow", hex: "#dcc062", fill: "band" }, { region: "wings", name: "dark brown down", hex: "#4a3e2c" }, { region: "muzzle", name: "dark bill", hex: "#3a3430" }] }] },
     eyes: { pupil: "round", iris: "#2a1e18" },
     face: { eyeFromNose: .48, eye: .06, depth: .7, eyeSpacing: .85, eyeLook: "bead", ears: "None visible.",
       features: ["A short red bill with a pale nail at the tip (the drake's).", "A dark eye in a broad white eyebrow that sweeps back into the crest.", "Orange 'whiskers' fanning down the cheek; a full crest at the back."],

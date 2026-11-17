@@ -20,9 +20,13 @@ function EmotionSelect({ value, onChange }: { value: string; onChange: (id: stri
 }
 
 function AtlasStory() {
+  const [look, setLook] = useState<"portrait" | "construction">("portrait");
   return <div style={page}>
-    <p style={muted}>EMFACS prototypes (reported) and drawing extras (estimated), as action units applied to ANAT1's measured face. Red lines are the creases each unit makes.</p>
-    <ExpressionAtlas />
+    <label style={{ ...label, maxWidth: 320 }}>View
+      <select style={field} value={look} onChange={e => setLook(e.target.value as "portrait" | "construction")}><option value="portrait">Rendered portraits</option><option value="construction">Construction (line study with creases)</option></select>
+    </label>
+    <p style={muted}>EMFACS prototypes (reported) and drawing extras (estimated), as action units applied to ANAT1's measured face{look === "portrait" ? ", rendered as portraits of varied people (ANAT1 portrait renderer, faces built from the attractiveness research)." : ". Red lines are the creases each unit makes."}</p>
+    <ExpressionAtlas look={look} />
   </div>;
 }
 

@@ -17,7 +17,8 @@ The pack `animal-anatomy` decides *what the animal is*: its build, face, coat, g
    coat region. Draw over it in your medium; do not invent proportions.
 3. **Face.** Take the eye position and size, ear size and placement, head depth and the defining features from
    `species.face`. Keep its "do not" notes ("a bear does not smile", "not a fox's long snout").
-4. **Colour and fur.** Use `species.coat`:
+4. **Colour and fur.** For fur drawn stroke by stroke, lay strokes along `furDirection` or draw `furStrands` (after
+   Kidd: snout to tail, down the limbs, back and down the flank). Use `species.coat`:
    - `palette` swatches are painted by `fill` (area, tip, band, eye-patch; accents are palette only);
    - `long` lists the long-coated regions, `lay` says how the coat lies;
    - `markings` and `variants` give the seasonal and juvenile coats.
@@ -31,6 +32,17 @@ The pack `animal-anatomy` decides *what the animal is*: its build, face, coat, g
    - Animate with `poseAnimal(c, { posture, amount })` over the posture's `frames`. Cattle and horses kneel first;
      dogs and cats sit first.
    - Check every frame: nothing through the ground, the planted feet still.
+
+   **Flight:** birds fly with `poseAnimal(c, { flight, t, amount })`; `flightAt(id, seconds, seed, maxHz)` gives the
+   beat, glide or closed wings for the species' style.
+   - Herons draw the neck in and cranes stretch it out.
+   - For drawn animation keep at least four frames per beat (`maxHz` 7.5 at 30 fps).
+   - Faces square on: `frontFace(species)` and `frontFaceShapes` (measured for the Shiba, fox, wolf, cat and cattle;
+     the body plan's otherwise).
+   - The young: `juvenileConstruction(c, age)`, drawn at `heightAt(rule, age)` of the parent and painted with
+     `coatAt(species, age)` (a kit's dark fur, a chick's down, a piglet's stripes).
+   - Birds rest with `birdPosture` (one-leg, roost, swim, upend). Ducks float at a third of their depth, and a
+     sleeping bird's eye is shut (`head.eyeClosed`).
 6. **Sound.** Use the catalog ids in `species.sounds`. For the rest, source a CC0 recording with the search term given,
    and add it to the sound catalog.
 7. **Check.** Read your drawing's or rig's landmarks: withers, brisket, point of shoulder, point of buttock and ground.

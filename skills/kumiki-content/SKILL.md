@@ -38,6 +38,28 @@ Write data, not TSX. Read [the film document](../../docs/component-specs/film-do
 
 **Plants on screen:** any tree, bamboo, flower or grass starts from the plant anatomy framework — [kumiki-plant-anatomy](../kumiki-plant-anatomy/SKILL.md) — so its architecture, season (blossom, leaves, autumn colour) and sway come from the species record.
 
+**Weather and sky on screen:** any rain, snow, fog, cloud, storm or time-of-day sky starts from the sky and weather framework — [kumiki-sky-weather](../kumiki-sky-weather/SKILL.md) — so fall speeds, slants, cloud heights and distance fading are real, and the particle renderers get real speeds.
+
+**Water on screen:** any sea, surf, river, lake or reflection starts from the water framework — [kumiki-water](../kumiki-water/SKILL.md) — so wave size and timing follow the wind, breakers follow the beach, and reflections and colours follow the light.
+
+**Materials on screen:** what any object is made of starts from the materials framework — [kumiki-materials](../kumiki-materials/SKILL.md) — so colour, value, gloss, wetness and age are sourced, not guessed.
+
+**Land on screen:** any mountain, valley, volcano, desert or coast starts from the terrain framework — [kumiki-terrain](../kumiki-terrain/SKILL.md) — so slopes, snowlines, treelines and distance fading match the place.
+
+**Buildings on screen:** any house, street, temple or castle starts from the architecture framework — [kumiki-architecture](../kumiki-architecture/SKILL.md) — so doors, storeys and roofs are the right size for the people and the place.
+
+**Small creatures on screen:** any insect, spider or snail starts from the small-creatures framework — [kumiki-small-creatures](../kumiki-small-creatures/SKILL.md) — so legs, wings, sizes and motion are right.
+
+**Food on screen:** any cooked dish starts from the food framework — [kumiki-food](../kumiki-food/SKILL.md) — so doneness, browning, steam and gloss follow the cooking.
+
+**People moving on screen:** any walk or run starts from the human motion framework — [kumiki-motion](../kumiki-motion/SKILL.md) — so the knees, arms, cadence and planted feet are right.
+
+**Fire on screen:** any flame, smoke or explosion starts from the fire framework — [kumiki-fx](../kumiki-fx/SKILL.md) — so size, flicker and colour come from the fire's power and temperature.
+
+**Clothing on screen:** every dressed person starts from the costume framework — [kumiki-costume](../kumiki-costume/SKILL.md) — so garments match the place, the time, the wearer and the occasion, found by tags rather than guessed.
+
+**Makeup:** a made-up face (any style, a portrait, a beauty or period look) starts from the makeup framework — [kumiki-makeup](../kumiki-makeup/SKILL.md) — so placement follows the face, colours suit the skin, and contour and highlight follow the light.
+
 **Expressions:** every emotional beat on a face starts from the facial expressions framework — [kumiki-facial-expressions](../kumiki-facial-expressions/SKILL.md) — so brows, lids, mouth and creases follow the muscles, and smiles that should be felt reach the eyes.
 
 **Stop and ask** if an asset has no clear rights, if a claim has no source, or if no recipe fits a beat. Do not change a recipe to fix one film. Fix an authoring rule or a component once, then use it.
