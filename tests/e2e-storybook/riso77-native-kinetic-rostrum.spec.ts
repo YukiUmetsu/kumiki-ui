@@ -29,11 +29,27 @@ async({page},info)=>{
     path:info.outputPath("riso77-1x-authored-print-cutout-rostrum-with-paper-lift.png"),
     animations:"disabled",
   });
+  await studio.locator("[data-km-riso77-film]").screenshot({
+    path:info.outputPath("riso77-artboard-only-original-mounting-with-source-contours.png"),
+    animations:"disabled",
+  });
   await studio.getByRole("combobox",{name:"RISO77 paper microscope zoom"})
     .selectOption("3");
   await expect(studio).toHaveAttribute("data-km-riso77-zoom","3");
   await studio.screenshot({
     path:info.outputPath("riso77-3x-scissor-edge-light-rostrum-shadow-and-original-ink.png"),
+    animations:"disabled",
+  });
+  const stageBox=await studio.locator("[data-km-riso77-film]").boundingBox();
+  const seamBox=await rostrum.locator('[data-km-riso77-paper-edge="typographic-arch"]').boundingBox();
+  expect(stageBox).toBeTruthy();
+  expect(seamBox).toBeTruthy();
+  expect(Math.min(stageBox!.x+stageBox!.width,seamBox!.x+seamBox!.width)-
+    Math.max(stageBox!.x,seamBox!.x)).toBeGreaterThan(6);
+  expect(Math.min(stageBox!.y+stageBox!.height,seamBox!.y+seamBox!.height)-
+    Math.max(stageBox!.y,seamBox!.y)).toBeGreaterThan(6);
+  await studio.locator("[data-km-riso77-film]").screenshot({
+    path:info.outputPath("riso77-artboard-only-3x-visible-original-paper-cut-seam.png"),
     animations:"disabled",
   });
   // Camera magnification never reprints ink dots or paper fibres.
@@ -70,6 +86,15 @@ async({page},info)=>{
   await studio.getByRole("slider",{name:"RISO77 camera track X"}).focus();
   await studio.getByRole("slider",{name:"RISO77 camera track X"}).press("End");
   expect(await mount.getAttribute("transform")).not.toBe(beforeCamera);
+  // The ART sign-off must review the FULL finished landscape composition,
+  // not only halfway arrivals where deliberately cut print text enters frame.
+  await studio.getByRole("button",{name:"Finished collage"}).click();
+  await expect(studio).toHaveAttribute("data-km-riso77-scene","completed");
+  await studio.locator("[data-km-riso77-film]").screenshot({
+    path:info.outputPath("riso77-finished-landscape-original-print-source-cutouts.png"),
+    animations:"disabled",
+  });
+  await studio.getByRole("button",{name:"Rostrum midpoint"}).click();
   await studio.getByRole("combobox",{name:"RISO77 stop motion exposure"})
     .selectOption("4");
   await expect(studio).toHaveAttribute("data-km-riso77-exposure","4");
@@ -93,6 +118,10 @@ async({page},info)=>{
   await expect(studio).toHaveAttribute("data-km-riso77-frame","251");
   await expect(studio).toHaveAttribute("data-km-riso77-scene","completed");
   await expect(studio.locator("[data-km-riso77-rostrum]")).toBeVisible();
+  await studio.locator("[data-km-riso77-film]").screenshot({
+    path:info.outputPath("riso77-finished-portrait-original-print-source-cutouts.png"),
+    animations:"disabled",
+  });
   for(const layer of await studio.locator("[data-km-riso77-plane]").all())
     await expect(layer).toHaveAttribute("data-km-riso77-layer-progress","1");
   await studio.getByRole("button",{name:"Rostrum midpoint"}).click();
