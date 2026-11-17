@@ -1860,6 +1860,7 @@ test("F1 V43 source traced leaf-scumble vs V42 native 1x and top 2.4x",async({pa
   const errors:string[]=[];
   page.on("pageerror",e=>errors.push(e.message));
   const imageBuffers:Record<string,Uint8Array[]>={full:[],upper:[]};
+  const unchangedFace:Uint8Array[]=[];
   for(const midfaceForm of [
     "source-anat1-hedge-v42","source-anat1-photo-foliage-v43",
   ] as const){
@@ -1895,11 +1896,24 @@ test("F1 V43 source traced leaf-scumble vs V42 native 1x and top 2.4x",async({pa
       });
       expect(order.background).toBeGreaterThanOrEqual(0);
       expect(order.portrait).toBeGreaterThan(order.background);
+      // Heavy source-shaped native wax needs a completed Chromium paint.
+      // DOM IDs alone cannot prove that all original face tiles rendered.
+      await page.waitForTimeout(350);
       const screenshot=await svg.screenshot({
         path:info.outputPath("crayon-v43-"+view+"-"+midfaceForm+"-299.png"),
         animations:"disabled",
       });
       imageBuffers[view].push(screenshot);
+      if(view==="full"){
+        // This is a protected source-derived iris/lid/cheek patch. Both
+        // variants have the exact same foreground pixels and original wax
+        // seed. A missing painted face used to silently PASS DOM tests.
+        const pixels=await page.screenshot({
+          clip:{x:220,y:490,width:115,height:100},
+          animations:"disabled",
+        });
+        unchangedFace.push(pixels);
+      }
     }
   }
   for(const view of ["full","upper"] as const){
@@ -1907,6 +1921,9 @@ test("F1 V43 source traced leaf-scumble vs V42 native 1x and top 2.4x",async({pa
     expect(Buffer.compare(Buffer.from(imageBuffers[view][0]),
       Buffer.from(imageBuffers[view][1]))).not.toBe(0);
   }
+  expect(unchangedFace).toHaveLength(2);
+  expect(Buffer.compare(Buffer.from(unchangedFace[0]),
+    Buffer.from(unchangedFace[1]))).toBe(0);
   expect(errors).toEqual([]);
 });
 
