@@ -10,8 +10,9 @@ import type {CrayonColor,CrayonElement} from "../../registry/video/materials/cra
  * while x520..608, y180..355 varies toward (37,61,17). Native wax builds
  * an opaque green-black underlayer, broad organic scumbles, specifically
  * placed out-of-focus leaf bunches and source-directed lamina/vein marks.
- * No SVG filters, external images, CSS masks, drawn leaves as smooth stamps,
- * flattened fill, or duplicated face/rig components. Not art-approved.
+ * No custom filters or raster media: native CRAYON1 feather-contact SVG
+ * filters remain deliberately in use for physical wax. No CSS masks,
+ * flattened photographic colors or duplicated face rigs. Not art-approved.
  */
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type Point=readonly [number,number];
