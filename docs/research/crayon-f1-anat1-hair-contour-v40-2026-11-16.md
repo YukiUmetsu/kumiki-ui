@@ -24,6 +24,26 @@
 - Prior V38 whole-photo SSIM **0.405919** vs ArtCraft release threshold **≥0.85**. **V40 photographic SSIM is unmeasured.** A positive screenshot difference or native pixel quality does not imply better source resemblance.
 - 18 source vs *V40 final native-render* anatomical landmarks and five matched tonal regions have not been audited. Full 300-frame artist view, CC0 silhouette source registration and artist approval are outstanding. **Do not merge PR #461 or remove !dev** regardless of CI green.
 
+## Exact-head native Chromium / original-source actual-pixel review
+
+**Evidence:** [GitHub Actions run 43995910093](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43995910093), [native V39/V40 1×, 2.85× crown, 2.15× right PNGs — artifact 14290426118](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43995910093/artifacts/14290426118), commit `d58e36237274aa0116a1039237f6c6ce166ecb0a`. [Changed typecheck + unit suite](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43995910737) PASS, [native drawing grammar](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43995910098) PASS, and real Chromium browser screenshot proof PASS.
+
+**Verified source:** The source image `artcraft-portrait-woman-portrait-source.png`, obtained from [archived CC0 browser proof artifact 14148787169](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/43682633614/artifacts/14148787169), is **exactly 608×1082** and SHA256 `f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2`. This matches the independently recorded original source screenshot and all seven V38 photographed hair medians. It is still a cropped browser capture, **not** the photographer's original 5184×3456 camera JPEG.
+
+Using identical-head V39 and V40 native RGB PNGs and the same unmodified CC0-source PNG, computed `skimage.metrics.structural_similarity(src,render,data_range=255,channel_axis=2)` for the following source-space ROIs. Pixel differences represent **physical rendered changes**, not source tracing guarantees:
+
+| Exact source-space region (x1,y1,x2,y2) | V39 SSIM | V40 SSIM | Δ |
+| --- | ---: | ---: | ---: |
+| Whole 0,0,608,1082 | 0.403171 | **0.412048** | **+0.008877** |
+| Crown 110,170,450,390 | 0.415008 | **0.429035** | **+0.014027** |
+| Near left hair 0,310,115,1080 | 0.278877 | **0.315807** | **+0.036929** |
+| Right curtain 475,320,607,1080 | 0.328165 | **0.341890** | **+0.013725** |
+| Whole face 108,282,502,862 | 0.614954 | **0.615095** | +0.000142 |
+| Near eye 174,430,346,609 | 0.563332 | 0.563332 | 0.000000 |
+| Nose and mouth 323,500,498,770 | **0.533475** | 0.532602 | **−0.000872** |
+
+**Independent rendering critique:** At 2.15× right-curtain macro, V40 replaces broad pale rectangular hair-contact blocks with much narrower, interrupted deposited streaks and keeps the full original underlying fine-source cubic geometry. At 1×, its crown/temple outline is more asymmetric but the hair still reads partly like a too-solid helmet; the natural source shoulder locks, green hedge background, and photographic three-dimensional facial likeness are still absent. Near-eye pixels are byte-identical, which is expected because no ocular source geometry was changed. Slight nose/mouth SSIM regression indicates the newly shaped occluding edge needs further source alignment, not silent promotion.
+
 ## Visual decision
 
-**Pending capture and independent visual review.** Production approval is explicitly blocked. If V40 still looks like a hard-edged helmet or the fine wax strokes disappear, rework the geometry/pressure rather than multiplying digital strands or sacrificing the reference's minute details.
+**Positive measurable partial improvement, still ART HOLD.** Whole-frame SSIM increased from 0.403171 to 0.412048; none of these source-referenced scores approaches the **≥0.85** release requirement. The new candidate is not realistic or source-identical. Keep `!dev` and PR #461 **DRAFT, UNMERGED**. The next artistic tasks are source-aligned face/hair occlusion, cohesive physical hair masses, environmental background and facial anatomy rather than another layer of microfibers. Final 18 output-render landmarks, five tonal planes, full real-time 300-frame review and independent artist signoff remain missing.
