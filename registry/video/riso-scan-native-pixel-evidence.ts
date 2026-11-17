@@ -15,7 +15,8 @@ export interface Riso74NaturalPixelEvidence{
   readonly microdetail: "insufficient-under-300ppi"|"limited-300-to-599ppi"|"600ppi-or-greater";
 }
 export interface Riso74RasterPatchStatistics{
-  readonly originalSamplePixelCount:number;
+  /** Count of the diagnostic sample grid (nearest-neighbor repeats possible). */
+  readonly sampleGridPoints:number;
   readonly meanRgb:readonly [number,number,number];
   readonly meanLuma:number;
   readonly lumaStandardDeviation:number;
@@ -112,7 +113,7 @@ export function inspectRiso74RasterPatch(
     if(x+1<width)horiz+=Math.abs(luma[i]-luma[i+1]);
     if(y+1<height)vert+=Math.abs(luma[i]-luma[i+width]);
   }
-  return {originalSamplePixelCount:count,
+  return {sampleGridPoints:count,
     meanRgb:[round(red/count),round(green/count),round(blue/count)],
     meanLuma:round(lum/count),
     lumaStandardDeviation:round(Math.sqrt(Math.max(0,
