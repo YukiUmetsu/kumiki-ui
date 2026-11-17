@@ -23,7 +23,7 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx"|"rose-fold-left"|"rose-fold-right"|"rose-fold-back"|"rose-front-left"|"rose-front-right"|"rose-whorl-center"|"rose-whorl-recess"|"rose-mid-left"|"rose-mid-right";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx"|"rose-fold-left"|"rose-fold-right"|"rose-fold-back"|"rose-front-left"|"rose-front-right"|"rose-whorl-center"|"rose-whorl-recess"|"rose-mid-left"|"rose-mid-right"|"rose-value-left"|"rose-value-right";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
@@ -70,6 +70,7 @@ export function PencilFoundationStudio(){
   const [rosePhysicalFolds,setRosePhysicalFolds]=useState(false);
   const [roseInnerWhorlStudy,setRoseInnerWhorlStudy]=useState(false);
   const [roseMiddleCupStudy,setRoseMiddleCupStudy]=useState(false);
+  const [roseFrontValueStudy,setRoseFrontValueStudy]=useState(false);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
       pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,
@@ -79,7 +80,8 @@ export function PencilFoundationStudio(){
         rosePinnateStudy:specimen==="rose"&&rosePinnateStudy,
         rosePhysicalFolds:specimen==="rose"&&rosePhysicalFolds,
         roseInnerWhorlStudy:specimen==="rose"&&roseInnerWhorlStudy,
-        roseMiddleCupStudy:specimen==="rose"&&roseMiddleCupStudy}):
+        roseMiddleCupStudy:specimen==="rose"&&roseMiddleCupStudy,
+        roseFrontValueStudy:specimen==="rose"&&rosePhysicalFolds&&roseFrontValueStudy}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
         specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,
         seed,headContourCraft,headVolumeWeave,headSilhouetteStudy});
@@ -87,7 +89,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,roseFrontValueStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -130,7 +132,9 @@ export function PencilFoundationStudio(){
     "rose-whorl-scroll":inspectionFocus==="rose-whorl-recess"&&specimen==="rose"&&roseInnerWhorlStudy?
     "rose-whorl-recess":inspectionFocus==="rose-mid-left"&&specimen==="rose"&&roseMiddleCupStudy?
     "rose-mid-left-shoulder":inspectionFocus==="rose-mid-right"&&specimen==="rose"&&roseMiddleCupStudy?
-    "rose-mid-right-tuck":inspectionFocus==="portrait-head"&&specimen==="portrait"?
+    "rose-mid-right-tuck":inspectionFocus==="rose-value-left"&&specimen==="rose"&&rosePhysicalFolds&&roseFrontValueStudy?
+    "rose-front-left-cool-core":inspectionFocus==="rose-value-right"&&specimen==="rose"&&rosePhysicalFolds&&roseFrontValueStudy?
+    "rose-front-right-cool-core":inspectionFocus==="portrait-head"&&specimen==="portrait"?
     "head-silhouette-01":null;
   const focus=(focusPart?projectedInspectionCenter(drawing,focusPart):null)??
     specimenMeta[specimen].focus;
@@ -148,6 +152,7 @@ export function PencilFoundationStudio(){
     data-km-rose-physical-folds={specimen==="rose"?(rosePhysicalFolds?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-inner-whorl={specimen==="rose"?(roseInnerWhorlStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-middle-cup={specimen==="rose"?(roseMiddleCupStudy?"opt-in":"baseline"):"not-applicable"}
+    data-km-rose-front-value={specimen==="rose"?(rosePhysicalFolds&&roseFrontValueStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-pinnate-study={specimen==="rose"?(rosePinnateStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-calyx-study={specimen==="rose"?(roseCalyxStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-rolled-lip={specimen==="rose"?(roseLipStudy?"opt-in":"baseline"):"not-applicable"}
@@ -326,6 +331,12 @@ export function PencilFoundationStudio(){
           <option value="rose-mid-right" disabled={specimen!=="rose"||!roseMiddleCupStudy}>
             Rose middle cup / right tucked wall
           </option>
+          <option value="rose-value-left" disabled={specimen!=="rose"||!rosePhysicalFolds||!roseFrontValueStudy}>
+            Rose left frontal petal / cool core at 2.15×
+          </option>
+          <option value="rose-value-right" disabled={specimen!=="rose"||!rosePhysicalFolds||!roseFrontValueStudy}>
+            Rose right frontal petal / cool core at 2.15×
+          </option>
         </select>
       </label>
       {specimen==="portrait"&&<label style={caption}>ANAT1 surface value · inspected
@@ -372,6 +383,14 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose physical folds" type="checkbox"
           checked={rosePhysicalFolds} onChange={e=>setRosePhysicalFolds(e.target.checked)}/>
         FLORA1 five independent full-surface rolled underturns · geometric corolla A/B (unapproved)
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40,
+          opacity:rosePhysicalFolds?1:.65}}>
+        <input aria-label="Foundation rose front value planes" type="checkbox"
+          disabled={!rosePhysicalFolds} checked={roseFrontValueStudy}
+          onChange={e=>setRoseFrontValueStudy(e.target.checked)}/>
+        FLORA1 paired translucent cool-shadow / warm-light pencil planes · physical-fold A/B (unapproved)
       </label>}
       {specimen==="rose"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
