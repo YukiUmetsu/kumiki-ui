@@ -53,7 +53,7 @@ export function Riso74NativePixelEvidencePanel({firstPhoto,secondPhoto,
   sheetMm:readonly [number,number];
 }){
   const [xPercent,setXPercent]=useState(50);
-  const [yPercent,setYPercent]=useState(50);
+  const [yPercent,setYPercent]=useState(44);
   const [diameter,setDiameter]=useState(4);
   const [data,setData]=useState<MeasurementState>(null);
   const [error,setError]=useState("");
@@ -85,8 +85,27 @@ export function Riso74NativePixelEvidencePanel({firstPhoto,secondPhoto,
     index:1|2)=><article key={index} data-km-riso74-swatch={index}
       style={{display:"grid",gap:7}}>
       <strong style={{font:"700 13px system-ui"}}>
-        Original sheet {index} · sampled physical 4-mm-class micro-area
+        Original sheet {index} · {diameter} mm physical micro-area
       </strong>
+      <div style={{display:"grid",gap:4}}>
+        <small>Full original photograph · selected paper location</small>
+        <svg viewBox={`0 0 ${sw} ${sh}`}
+          data-km-riso74-paper-locator={index}
+          aria-label={`Sheet ${index} physical paper overview with selected sample marked`}
+          style={{width:"min(100%,240px)",height:"auto",
+            border:"1px solid #8F8579",background:"#fff"}}>
+          <image href={photo.url} x={0} y={0}
+            width={photo.width} height={photo.height}
+            preserveAspectRatio="none"
+            transform={riso72SvgMatrix(paper.pixelToSheet)}/>
+          <circle cx={center[0]} cy={center[1]} r={6}
+            fill="none" stroke="#A5332D" strokeWidth={1.1}
+            strokeDasharray="1.5 1.2"/>
+          <rect x={center[0]-diameter/2} y={center[1]-diameter/2}
+            width={diameter} height={diameter}
+            fill="none" stroke="#A5332D" strokeWidth={.65}/>
+        </svg>
+      </div>
       <svg viewBox={`${center[0]-diameter/2} ${center[1]-diameter/2} ${diameter} ${diameter}`}
         aria-label={`Sheet ${index} native-photo physical crop with original scanner pixels`}
         width={210} height={210}
@@ -198,7 +217,7 @@ export function Riso74NativePixelEvidencePanel({firstPhoto,secondPhoto,
     <p style={{fontSize:12,margin:0,maxWidth:1030}}>
       Image information only: adjacent-pixel variation can also come from JPEG
       compression, noise, sensor moiré or camera focus. Effective PPI is a
-      geometric **upper bound** on source sampling, not proof of sharp
+      geometric upper bound on source sampling, not proof of sharp
       capture. RGB here is NOT spectrally calibrated RISO ink, coverage,
       printing pressure or ICC color. The browser samples a ≤128×128
       nearest-neighbor local pixel window (low-resolution native pixels may repeat); source images remain unchanged,
