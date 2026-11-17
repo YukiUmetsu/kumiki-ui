@@ -185,12 +185,16 @@ export function Riso74NativePixelEvidencePanel({firstPhoto,secondPhoto,
     </p>}
     {data&&<div data-km-riso74-measured-stats=""
       style={{overflowX:"auto"}}>
-      <table style={{borderCollapse:"collapse",minWidth:510,
-        font:"13px/1.55 system-ui"}}>
+      <table style={{borderCollapse:"collapse",width:"min(100%,800px)",
+        minWidth:690,font:"13px/1.55 system-ui"}}>
         <thead><tr style={{textAlign:"left",
           borderBottom:"1px solid #9F9584"}}>
-          <th scope="col">Uncalibrated, browser-decoded RGBA sample</th>
-          <th scope="col">Sheet 1</th><th scope="col">Sheet 2</th>
+          <th scope="col" style={{minWidth:310,padding:"4px 20px 4px 0"}}>
+            Uncalibrated browser RGBA sample</th>
+          <th scope="col" style={{minWidth:175,padding:"4px 20px 4px 0"}}>
+            Sheet 1</th>
+          <th scope="col" style={{minWidth:175,padding:"4px 20px 4px 0"}}>
+            Sheet 2</th>
         </tr></thead>
         <tbody>
           {([
@@ -208,8 +212,10 @@ export function Riso74NativePixelEvidencePanel({firstPhoto,secondPhoto,
               data.second.sampleGridPoints],
           ] as const).map(row=><tr key={row[0]}
             style={{borderBottom:"1px solid #D5C9BC"}}>
-            <th scope="row" style={{textAlign:"left"}}>{row[0]}</th>
-            <td>{row[1]}</td><td>{row[2]}</td>
+            <th scope="row" style={{textAlign:"left",
+              padding:"3px 20px 3px 0"}}>{row[0]}</th>
+            <td style={{padding:"3px 20px 3px 0",whiteSpace:"nowrap"}}>{row[1]}</td>
+            <td style={{padding:"3px 20px 3px 0",whiteSpace:"nowrap"}}>{row[2]}</td>
           </tr>)}
         </tbody>
       </table>
