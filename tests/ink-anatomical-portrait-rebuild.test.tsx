@@ -114,6 +114,26 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
     expect(scholar).toContain('viewBox="0 95 540 525"');
     expect(elder).toContain('viewBox="100 112 345 419"');
   });
+  it("draws 4 physically variable-width INK1 calligraphy gestures on independently wrapped robes",()=>{
+    const a=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"scholar",emotion:"neutral",detail:1}));
+    const b=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"elder",emotion:"smile",detail:1}));
+    for(const svg of [a,b]){
+      expect((svg.match(/data-km-ink-native-robe-brush=/g)||[])).toHaveLength(4);
+      expect((svg.match(/data-km-ink-brush-pressure="INK1-variable-width"/g)||[]))
+        .toHaveLength(4);
+      expect(svg).toContain('data-km-ink-native-robe-brush="left-wrap"');
+      expect(svg).toContain('data-km-ink-native-robe-brush="right-wrap"');
+      expect(svg).toContain('data-km-ink-native-robe-brush="sleeve-left"');
+      expect(svg).toContain('data-km-ink-native-robe-brush="sleeve-right"');
+      expect((svg.match(/maskUnits="userSpaceOnUse"/g)||[])).toHaveLength(4);
+      expect(svg).not.toMatch(/(?:NaN|Infinity|undefined)/);
+    }
+    expect(a).toContain('data-km-ink-collar="late-ming-scholar-crossed"');
+    expect(b).toContain('data-km-ink-collar="elder-overlapping-soft-wrap"');
+    expect(a).not.toEqual(b);
+  });
   it("rejects invalid emotion and intensity instead of producing a broken SVG",()=>{
     expect(()=>inkPortraitAnatomy("scholar","surprise",NaN)).toThrow(RangeError);
     expect(()=>inkPortraitAnatomy("scholar","sad",-1)).toThrow(RangeError);
