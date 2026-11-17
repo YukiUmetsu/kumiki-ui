@@ -188,6 +188,15 @@ The exact-head Chromium A/B images showed a quantitative defect: enabling the pr
 **Release measurement:** The Fuchun native Storybook A/B now rasterizes two exact same-camera screenshots with and without interior cunfa, counts visible pixels using an explicit RGB threshold, and rejects visual no-ops. Capture the unchanged source/after pair as artifacts, and manually compare at 1× and 2.3× to the museum original for over-regular dark strips. CI passing a numeric threshold is necessary but never sufficient for historical similarity.
 
 
+## Native-ridge tangential pima instead of uniform drooping ribbons — Nov 16
+
+**Rejected image evidence:** The successful exact-head Chromium output from run 43996000759 (Fuchun rounded near shoulder at 2.3×) still shows long near-vertical near-bank grooves. The original National Palace Museum Huang Gongwang handscroll instead uses varying, hillside-following mapi (hemp-fibre) lines, slight dry pressure interruptions, and sparse curving alder/alum heads; uniformly hanging ink rain is an optical failure (museum: https://digitalarchive.npm.gov.tw/Collection/Detail/1194?dep=P ; methods: https://smarthistory.org/huang-gongwang-dwelling-in-the-fuchun-mountains/).
+
+**Correction scoped to the opt-in 19-station Fuchun bank:** Retain all 17 pre-existing near-ridge source roots, six long hemp, two alum head and nine rolling-cheek branches; all 17 loaded wet paths, 17 dry paper-lift witnesses, shelves and moss pockets remain. Reorient their terminal x run according to the *actual sampled down-slope tangent* (rather than random side on noticeable slope) and increase lateral reach in the long/hemp and cheek registers while reducing the added downward drop. At the flat skyline the artist's seeded bidirectional pressure still applies. This improves geographic continuity and prevents former near-vertical ruler strokes from dominating the rock without removing any microtexture. All paths stay within the **original same-source ridge clip**. Ordinary film and other historical schools remain identical.
+
+**Regression:** Unit and Chromium preserve 6/2/9 register inventory, source-root and tip connection, and enforce long/short/rolling lateral distances without pretending to judge museum similarity. The browser A/B still captures exact-frame original vs experimental rock at 1× and 2.3×; inspect source continuity, wet/dry load and negative-paper pockets. **Draft / ART HOLD** until actual screenshots approve; do not merge just because tests pass.
+
+
 ## Ravine-waterfall original vs eroded-source anatomy (Fuchun opt-in)
 
 **Native art defect:** The historical unaltered 960×540 / 2.3× browser comparison after the positive rock/five-value work showed a visually rigid, high-opacity pale double-tube cascade around source coordinate x340–380, y310–445. Its two uniformly white strips cross the painted middle ridge, end abruptly at the flat splash, and do not adequately show physical eroded rock purchase. The user's quality constraints require intact brush, granulation, paper reserves, and depth—not a simpler vertical patch or translucent rectangular gradient.

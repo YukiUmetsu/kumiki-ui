@@ -769,13 +769,18 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
     root:el.getAttribute("data-km-rock-plane-root"),
     axis:el.getAttribute("data-km-rock-plane-bank-axis"),
     tip:el.getAttribute("data-km-rock-plane-bank-end"),
+    register:el.getAttribute("data-km-rock-plane-bank-register"),
   })));
-  for(const {root,axis,tip} of origins){
+  expect(origins.filter(item=>item.register==="descending-hemp")).toHaveLength(6);
+  expect(origins.filter(item=>item.register==="short-head")).toHaveLength(2);
+  expect(origins.filter(item=>item.register==="rolled-cheek")).toHaveLength(9);
+  for(const {root,axis,tip,register} of origins){
     expect(root).not.toBeNull();
     expect(tip).not.toBeNull();
     const start=root!.split(",").map(Number),end=tip!.split(",").map(Number);
     expect(axis).toContain("M"+start.join(" ")+" C");
-    expect(Math.abs(end[0]-start[0])).toBeGreaterThan(16);
+    expect(Math.abs(end[0]-start[0])).toBeGreaterThan(
+      register==="descending-hemp"?35:register==="short-head"?22:37);
   }
   for(const [i,bank] of (await sourceBank.evaluateAll(nodes=>
     nodes.map(el=>({

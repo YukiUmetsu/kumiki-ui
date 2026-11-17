@@ -3347,6 +3347,25 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       /data-km-rock-plane-flow="source-following" data-km-rock-plane-bank-register="[^"]+" data-km-rock-plane-bank-axis="([^"]+)" data-km-rock-plane-bank-end="([^"]+)"/g,
     )];
     expect(nearFlow).toHaveLength(17);
+    const registers=[...candidate.matchAll(
+      /data-km-rock-plane-bank-register="([^"]+)"/g,
+    )].map(match=>match[1]);
+    expect(registers).toHaveLength(17);
+    // Native 2.3x optical review rejected 6 near-vertical long hemp
+    // contacts: every root must cross the supporting positive shoulder
+    // before releasing, and short alum-heads stay distinctly shorter.
+    const travel=nearFlow.map((mark,j)=>{
+      const root=mark[1].split(" C")[0].slice(1).split(" ").map(Number);
+      expect(root).toHaveLength(2);
+      expect(root.every(Number.isFinite)).toBe(true);
+      const tip=mark[2].split(",").map(Number);
+      return Math.abs(tip[0]-root[0]);
+    });
+    for(const [j,dx] of travel.entries()){
+      const minimum=registers[j]==="descending-hemp"?35:
+        registers[j]==="short-head"?22:37;
+      expect(dx).toBeGreaterThan(minimum);
+    }
     // Huang's upper-to-lower long pima remains distinct from the
     // rounded alum-head presses and cheek-following middle ink.
     expect((candidate.match(/data-km-rock-plane-bank-register="descending-hemp"/g)??[]))
