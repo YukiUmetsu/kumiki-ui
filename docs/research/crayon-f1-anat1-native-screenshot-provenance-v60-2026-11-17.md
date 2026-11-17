@@ -37,3 +37,21 @@ Each sidecar includes screenshot filename, actual byte SHA, Git checkout SHA (no
 4. Keep draft PR #461, and all unapproved V54/V56/V57 experiments, **unmerged** until original-photo whole SSIM ≥0.85, independently verified candidate 18 landmarks, five value planes and artistic acceptance pass.
 
 No V60 code changes the painted anatomy, wax material, CRAYON1 renderer, animation, seed, paper tooth, or photographic similarity. Green engineering checks **do not** promote an art-study into the public library.
+
+
+## V61 — annotate the exact PNG bytes, not a re-rendered Storybook SVG
+
+**Implementation:** hidden story `Video production / Film Looks / Crayon / ArtCraft Source Lab / CC0 exact native PNG · manual 18-point review (ArtCraft experiment, !dev V61)`.
+
+1. Download `v58-photo-native-V56-299.png` (or V57) **and its matching** `v60-native-candidate-V56-299.json` (or V57) from the same successful GitHub Actions artifact.
+2. Upload both to V61. The browser verifies PNG signature, IHDR 608×1082, actual uploaded-byte Web Crypto SHA-256, exact filename and digest match, native variant, detail 1, full camera, frame 299, checkout SHA format, CC0 source SHA/URL, and every one of the 18 frozen source points. A manifest with pre-filled candidate marks, modified source coordinates, release flags, or inconsistent capture identity is rejected.
+3. The displayed picture is the **uploaded native PNG itself**. Blue dots are immutable original-photo observations; orange diamonds are manual candidate-image observations. Click to place a point, use the exact pixel inputs to refine, or clear points. Export contains the verified image digest and newly measured candidate points with source-relative residuals.
+4. V61 does not calculate candidate features, copy source coordinates into candidate slots, authenticate the annotator, certify the GitHub run or artistically accept the result. The V60 sidecar is an **unsigned consistency manifest**; use the trusted same-run Actions artifact pair. The export explicitly records `reviewerIndependenceVerified:false`, `artistApproved:false`, and `releaseApproved:false`.
+
+### V61 engineering checks
+
+- `tests/crayon-artcraft-f1-native-png-review-v61.test.tsx`: valid 608×1082 PNG parsing, actual SHA-256, exact V60 manifest validation, rejection of altered bytes/name/dimensions/source landmarks/prefilled candidate marks/approval flags, file-upload state, direct PNG annotation and quarantine of mismatched pairs.
+- On head `a1c7407`, typecheck and Storybook source/import guard passed; all **353 changed-contract tests passed** (56 test files); native CRAYON1 drawing grammar proof passed.
+- The separate original-photo Chromium proof was still running at the time this note was added. The exact V61 review remains a manual reviewer workflow, not an automated art signoff.
+
+**Art status unchanged:** V57 whole-source SSIM ≈0.5155 remains below the ≈0.85 research gate. The 18 candidate-render landmarks are still unmeasured by an independent reviewer; five connected facial value planes, full normal-speed 300-frame review and professional artist acceptance remain open. Do not merge.
