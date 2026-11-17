@@ -73,7 +73,20 @@ export function bugTopView(id: string, pose: BugPose = {}): BugDrawing {
       add("leg", [base, [side * W * 0.9, base[1] - len * 0.35], [side * W * 0.5, base[1] - len * 0.62], [side * W * 0.25, base[1] - len * 0.45]], false, { width: L * 0.035 });
       continue;
     }
-    add("leg", [base, knee, foot, tip], false, { width: L * (s.id === "rhino-beetle" || s.id === "stag-beetle" ? 0.04 : 0.028) });
+    // the leg by segment: a stout femur, a slimmer tibia, then the fine tarsus of jointed tarsomeres ending in claws
+    const w0 = L * (s.id === "rhino-beetle" || s.id === "stag-beetle" ? 0.045 : s.id === "honeybee" || s.id === "cicada" ? 0.034 : 0.03);
+    add("leg", [base, knee], false, { width: w0 });
+    add("leg", [knee, foot], false, { width: w0 * 0.68 });
+    const nT = 4;
+    for (let q = 0; q < nT; q++) {
+      const a: FPoint = [foot[0] + ((tip[0] - foot[0]) * q) / nT, foot[1] + ((tip[1] - foot[1]) * q) / nT], b: FPoint = [foot[0] + ((tip[0] - foot[0]) * (q + 0.85)) / nT, foot[1] + ((tip[1] - foot[1]) * (q + 0.85)) / nT];
+      add("leg", [a, b], false, { width: w0 * (0.42 - q * 0.04) });
+    }
+    // the claws: a small fork at the tip
+    const tdx = tip[0] - foot[0], tdy = tip[1] - foot[1], tl = Math.hypot(tdx, tdy) || 1, cl = w0 * 0.9;
+    for (const sg of [-1, 1]) add("leg", [tip, [tip[0] + (tdx / tl) * cl * 0.6 + (-tdy / tl) * cl * 0.5 * sg, tip[1] + (tdy / tl) * cl * 0.6 + (tdx / tl) * cl * 0.5 * sg]], false, { width: w0 * 0.18 });
+    // the knee: a small swelling at the femur–tibia joint
+    add("leg", ellipsePoints({ cx: knee[0], cy: knee[1], rx: w0 * 0.5, ry: w0 * 0.5, angle: 0 }, 10), true, { width: 0 });
   }
   // wings (under the body for open wings, over it for closed ones)
   const wingRoot1: FPoint = [0, segY[1]], wingRoot2: FPoint = [0, segY[2]];
