@@ -10,6 +10,7 @@ import {ROSE_PHYSICAL_FOLDS,physicalFoldUndersideDetails,physicalFoldFaceDetails
 import {ROSE_INNER_WHORL_ORGANS,inspectRoseInnerWhorl} from "./colored-pencil-rose-inner-whorl";
 import {ROSE_MIDDLE_LAMINAE,inspectRoseMiddleLaminae} from "./colored-pencil-rose-middle-lamina";
 import {roseFrontValueDetails,inspectRoseFrontValueBands} from "./colored-pencil-rose-front-value";
+import {ROSE_PETAL_RIM_SIDEWALLS,rosePetalRimContacts,inspectRosePetalRimSidewalls} from "./colored-pencil-rose-rim-thickness";
 
 /**
  * Four independent original subject studies. These are *authored* silhouettes,
@@ -54,7 +55,7 @@ function material(shape: ObjectShape, seed: number, transform: string): PencilRe
   return createPencilMaterialRegion(input);
 }
 
-function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false): ObjectShape[] {
+function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false): ObjectShape[] {
   const shapes:ObjectShape[] = [
     {id:"stem",surface:"wood",palette:leaf,
       path:"M241 266 Q233 324 247 417 L254 417 Q251 331 250 268 Z",
@@ -150,6 +151,10 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
     const issues=inspectRoseMiddleLaminae();
     if(issues.length)throw new Error("Rose middle cup: "+issues.join("; "));
   }
+  if(rimStudy){
+    const issues=inspectRosePetalRimSidewalls();
+    if(issues.length)throw new Error("Rose cuticle rim thickness: "+issues.join("; "));
+  }
   const anatomy:ObjectShape[]=shapes.flatMap(shape=>{
     if(leafStudy&&(shape.id==="leaf-left"||shape.id==="leaf-right")){
       const side=shape.id==="leaf-left"?"left":"right";
@@ -184,8 +189,17 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
         ...(frontalContacts.length?
           {details:[...(shape.details??[]),...frontalContacts]}:{}),
       };
+      const rimSource=rimStudy?ROSE_PETAL_RIM_SIDEWALLS.find(r=>r.faceId===shape.id):undefined;
+      const rim:ObjectShape|undefined=rimSource?{
+        id:rimSource.id,surface:"petal",palette:rimSource.palette,
+        path:rimSource.path,bounds:rimSource.bounds,
+        direction:rimSource.direction,flow:rimSource.flow,
+        startFrame:shape.startFrame??25,
+        details:rosePetalRimContacts(rimSource),
+      }:undefined;
       return shape.id==="back-cup"&&middleStudy?
-        [underturn,face,...ROSE_MIDDLE_LAMINAE]:[underturn,face];
+        [underturn,face,...ROSE_MIDDLE_LAMINAE]:
+        rim?[underturn,face,rim]:[underturn,face];
     }
     if(middleStudy&&shape.id==="back-cup")
       return [shape,...ROSE_MIDDLE_LAMINAE];
@@ -398,6 +412,8 @@ export interface PencilObjectStudyOptions {
   roseMiddleCupStudy?: boolean;
   /** Opt-in original form-aligned local dry-pigment value planes; requires physical folds. */
   roseFrontValueStudy?: boolean;
+  /** Opt-in two genuine, variably thick frontal petal cuticle sidewalls; requires folded petal supports. */
+  rosePetalRimStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -408,7 +424,7 @@ export function pencilObjectStudyDrawing({
   roseLaminaStudy = false, roseLipStudy = false, roseCalyxStudy = false,
   rosePinnateStudy = false, rosePhysicalFolds = false,
   roseInnerWhorlStudy = false, roseMiddleCupStudy = false,
-  roseFrontValueStudy = false,
+  roseFrontValueStudy = false, rosePetalRimStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -434,13 +450,17 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose middle cup flag must be boolean");
   if(typeof roseFrontValueStudy !== "boolean")
     throw new RangeError("Rose frontal value study flag must be boolean");
+  if(typeof rosePetalRimStudy !== "boolean")
+    throw new RangeError("Rose cuticle rim study flag must be boolean");
+  if(subject==="rose"&&rosePetalRimStudy&&!rosePhysicalFolds)
+    throw new RangeError("Rose cuticle sidewalls require source-connected physical folds");
   if(subject==="rose"&&roseFrontValueStudy&&!rosePhysicalFolds)
     throw new RangeError("Rose frontal values require the anatomically folded petal supports");
   if(subject==="rose"&&roseFrontValueStudy){
     const errors=inspectRoseFrontValueBands();
     if(errors.length)throw new RangeError("Rose frontal value axes: "+errors.join("; "));
   }
-  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy) :
+  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
@@ -454,7 +474,7 @@ export function pencilObjectStudyDrawing({
   ] as const;
   const regions = shapes.map((shape, i) => {
     // Permit every valid UI seed while keeping each material pass in signed-31-bit range.
-    const original=subject==="rose"&&(roseCalyxStudy||rosePinnateStudy||rosePhysicalFolds||roseInnerWhorlStudy||roseMiddleCupStudy)?
+    const original=subject==="rose"&&(roseCalyxStudy||rosePinnateStudy||rosePhysicalFolds||roseInnerWhorlStudy||roseMiddleCupStudy||rosePetalRimStudy)?
       roseOriginalIds.findIndex(id=>id===shape.id):-1;
     // The original seven-petal material hashes never change. Calyx organ
     // material seeds also remain identical when foliage is simultaneously on;
@@ -467,11 +487,14 @@ export function pencilObjectStudyDrawing({
       ROSE_INNER_WHORL_ORGANS.findIndex(o=>o.id===shape.id):-1;
     const middleIndex=subject==="rose"&&roseMiddleCupStudy?
       ROSE_MIDDLE_LAMINAE.findIndex(o=>o.id===shape.id):-1;
+    const rimIndex=subject==="rose"&&rosePetalRimStudy?
+      ROSE_PETAL_RIM_SIDEWALLS.findIndex(o=>o.id===shape.id):-1;
     const materialIndex=original>=0?original:
       calyxIndex>=0?3+calyxIndex:
       foldIndex>=0?22+foldIndex:
       whorlIndex>=0?31+whorlIndex:
-      middleIndex>=0?35+middleIndex:i;
+      middleIndex>=0?35+middleIndex:
+      rimIndex>=0?40+rimIndex:i;
     const region = material(shape, (seed + materialIndex * 311) % 2147483647, transform);
     const frontal=subject==="rose"&&roseFrontValueStudy&&
       (shape.id==="petal-front-left"||shape.id==="petal-front-right")?
