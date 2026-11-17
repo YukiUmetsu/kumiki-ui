@@ -136,11 +136,13 @@ def kmeans_lab(lab_pixels: np.ndarray, k: int = 3, seed: int = 7) -> list[dict]:
 
     x = np.asarray(lab_pixels, dtype=np.float32).reshape(-1, 3)
     if len(x) < k * 4:
-        return [{"lab": [round(float(v), 2) for v in x.mean(0)], "share": 1.0, "hex": hex_of_lab(x.mean(0))}] if len(x) else []
+        m = x.mean(0)
+        return [{"lab": [round(float(v), 2) for v in m], "chroma": round(float(np.hypot(m[1], m[2])), 2), "share": 1.0, "hex": hex_of_lab(m)}] if len(x) else []
     cv2.setRNGSeed(seed)
     _, labels, centres = cv2.kmeans(x, k, None, (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 40, 0.2), 4, cv2.KMEANS_PP_CENTERS)
     shares = np.bincount(labels.ravel(), minlength=k) / len(x)
-    out = [{"lab": [round(float(v), 2) for v in centres[i]], "share": round(float(shares[i]), 3), "hex": hex_of_lab(centres[i])} for i in range(k)]
+    out = [{"lab": [round(float(v), 2) for v in centres[i]], "chroma": round(float(np.hypot(centres[i][1], centres[i][2])), 2),
+            "share": round(float(shares[i]), 3), "hex": hex_of_lab(centres[i])} for i in range(k)]
     return sorted(out, key=lambda c: -c["share"])
 
 

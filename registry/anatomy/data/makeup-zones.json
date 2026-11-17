@@ -113,7 +113,7 @@
       "shape": { "kind": "stroke", "soft": 0.08, "points": [
         { "v": 37, "off": [0, 0.07, 0.02], "r": 0.025 }, { "v": 0, "off": [0, 0.07, 0.02], "r": 0.03 }, { "v": 267, "off": [0, 0.07, 0.02], "r": 0.025 } ] },
       "note": "A fine light line just above the upper lip's peaks: sharpens the vermilion border so the lip looks fuller." },
-    { "id": "brow-bone", "label": "Brow bone", "product": "highlight", "side": "both", "measure": false,
+    { "id": "brow-bone", "label": "Brow bone", "product": "highlight", "side": "both", "measure": true,
       "shape": { "kind": "stroke", "soft": 0.22, "points": [
         { "v": 52, "off": [0, -0.1, 0], "r": 0.06 }, { "v": 53, "off": [0, -0.1, 0], "r": 0.08 }, { "v": 46, "off": [0, -0.08, 0], "r": 0.06 } ] },
       "note": "Under the outer half of the brow arch: lifts the brow." },

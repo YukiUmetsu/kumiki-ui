@@ -59,9 +59,9 @@ A blueprint (`kumiki.makeup.blueprint/1`) holds:
 - **light:** the fitted model and the key direction.
 - **zones:** per zone, the observed dL*, da*, db* against the skin and the effect after the bare prior. Each zone also
   has its placement: centroid, angle and spread in eye widths.
-- **palettes:** k-means in CIELAB of lips, lids and cheeks.
+- **palettes:** k-means in CIELAB of lips, lids and cheeks, with each colour's chroma (saturation) and share.
 - **contrast:** facial contrast after Porcheron et al. 2013.
-- **finish:** specular share, peak, sparkle and the class.
+- **finish:** specular share, peak, sparkle, the local variance of fine texture, and the class.
 
 ## Phase 3: paint
 

@@ -114,12 +114,13 @@ From 104 bare faces and 17 CC0 or public-domain made-up portraits (visual review
   than the skin. Their lids are darker and their cheeks redder. A made-up face's effect is its observed colour minus
   this prior.
 - **Effects.** The made-up references wore their makeup mostly in the eyes and lips. Lips: about -14 L*, +12 a*. Liner
-  about -9 L*. Outer V about -8 L*. Brows about -4 L*. The cheek contour in everyday photographs is subtle.
+  about -9 L*. Outer V about -8 L*. Brows about -4 L*. The brow bone, under the arch, about +4 L* (a highlight). The
+  cheek contour in everyday photographs is subtle.
 - **Contrast.** Lip and eye luminance contrast rose from bare to made-up references (lips about 0.10 to 0.21). This is
   the direction Russell (2009) and Jones et al. (2015) report.
 - **Beauty.** The data has 49 women of the Face Research Lab London Set. Their rated attractiveness rose with a
-  narrower jaw for the cheek width (r = -0.40, p = 0.004) and with more even skin redness (r = -0.29, p = 0.04). The
-  analysis is exploratory (18 features per sex).
+  narrower jaw for the cheek width (r = -0.40, p = 0.004). It also rose with more even skin redness (r = -0.29,
+  p = 0.04). The analysis is exploratory (18 features per sex).
 
 Storybook → Makeup → Learned from photographs shows the tables.
 

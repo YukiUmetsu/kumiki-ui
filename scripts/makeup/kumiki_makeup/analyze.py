@@ -27,12 +27,12 @@ from .zones import atlas, resolve, weight
 
 LUMA = np.array([0.2126, 0.7152, 0.0722])
 SKIN_ZONES = ("under-eye", "cheek-contour", "temple-contour", "jaw-contour", "nose-contour", "cheekbone-highlight", "nose-highlight",
-              "forehead-highlight", "chin-highlight", "blush-apples")
+              "forehead-highlight", "chin-highlight", "brow-bone", "blush-apples")
 FEATURE_ZONES = ("lips", "brow", "lid", "crease", "outer-v", "lower-lash", "liner")
 # the effect each zone is expected to show, for placement fitting: (channel, sign)
 EFFECT = {"cheek-contour": ("L", -1), "temple-contour": ("L", -1), "jaw-contour": ("L", -1), "nose-contour": ("L", -1),
           "cheekbone-highlight": ("L", 1), "nose-highlight": ("L", 1), "forehead-highlight": ("L", 1), "chin-highlight": ("L", 1),
-          "under-eye": ("L", 1), "blush-apples": ("a", 1), "crease": ("L", -1), "outer-v": ("L", -1)}
+          "under-eye": ("L", 1), "brow-bone": ("L", 1), "blush-apples": ("a", 1), "crease": ("L", -1), "outer-v": ("L", -1)}
 
 
 @dataclass
@@ -123,8 +123,9 @@ def _placement(face: Face, zid: str, dmap: np.ndarray, valid: np.ndarray) -> dic
 
 
 def _finish(face: Face, ratio_y: np.ndarray, chroma_drop: np.ndarray, sel: np.ndarray, ew_px: float, thresholds: dict | None = None) -> dict:
-    """Specular share (shine over a broad area), peak (how bright the sheen gets) and sparkle (isolated, colourless
-    bright points per square eye width) of a zone. Classes come from thresholds learned on bare faces (learn.py:
+    """Specular share (shine over a broad area), peak (how bright the sheen gets), sparkle (isolated, colourless
+    bright points per square eye width) and texture (the local variance of fine detail: powder fills and softens it,
+    dewy films and bare skin keep it) of a zone. Classes come from thresholds learned on bare faces (learn.py:
     matte below bare skin's 20th percentile of sheen, dewy above its 90th, shimmer and glitter above its sparkle range);
     without them, fixed estimates (grade E)."""
     r = ratio_y[sel]
@@ -140,10 +141,15 @@ def _finish(face: Face, ratio_y: np.ndarray, chroma_drop: np.ndarray, sel: np.nd
     small = int(((stats[1:, cv2.CC_STAT_AREA] >= 1) & (stats[1:, cv2.CC_STAT_AREA] <= 6)).sum()) if n > 1 else 0
     sparkle = small / max(1e-6, sel.sum() / ew_px ** 2)
     share = float(spec.mean())
+    # local pixel variance of the fine detail: log-luminance minus its 1.5 px blur, inside the zone
+    lg = np.zeros(face.tri.shape, np.float32)
+    lg[sel] = np.log(np.clip(ratio_y[sel], 1e-3, 10))
+    fine = lg - cv2.GaussianBlur(lg, (0, 0), 1.5)
+    texture = float(np.std(fine[sel]))
     t = thresholds or {"matte_peak": 1.1, "dewy_peak": 1.45, "dewy_share": 0.04, "shimmer": 2.5, "glitter": 6.0}
     cls = ("glitter" if sparkle > t["glitter"] else "shimmer" if sparkle > t["shimmer"] else "dewy" if (peak > t["dewy_peak"] and share > t["dewy_share"])
            else "matte" if peak < t["matte_peak"] else "satin")
-    return {"specular_share": round(share, 4), "peak": round(peak, 3), "sparkle_per_ew2": round(float(sparkle), 2), "class": cls}
+    return {"specular_share": round(share, 4), "peak": round(peak, 3), "sparkle_per_ew2": round(float(sparkle), 2), "texture_sd": round(texture, 4), "class": cls}
 
 
 def analyze(face: Face, prior: dict | None = None, labels: dict | None = None, finish_thresholds: dict | None = None, shape_reference: dict | None = None) -> dict:
@@ -253,7 +259,7 @@ def analyze(face: Face, prior: dict | None = None, labels: dict | None = None, f
 
     # 5. finish
     finish = {}
-    for zid in ("cheekbone-highlight", "nose-highlight", "forehead-highlight"):
+    for zid in ("cheekbone-highlight", "nose-highlight", "forehead-highlight", "brow-bone"):
         sel = on & skin_seg & (zmap[zid] > 0.5)
         f = _finish(face, ratio_y, chroma_drop, sel, ew_px, finish_thresholds)
         if f:
