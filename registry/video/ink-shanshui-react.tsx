@@ -250,18 +250,28 @@ function RockInkPlanes({stations,seed,band,detail,mist,nearBankFlow=false,source
       const register=i%6===0||i%6===3
         ?"descending-hemp" as const
         :i%5===2?"short-head" as const:"rolled-cheek" as const;
-      const flowDirection=s(seed+9671,i*23+band*37)>.48?1:-1;
+      // Native 2.3x review rejected the 6 long near-bank phrases:
+      // their short horizontal travel / large vertical drop painted as
+      // identical free-hanging rainfall. Huang's hemp loads follow the
+      // curved hill's DOWNHILL flank before dissolving into dry paper.
+      // Prefer actual descending ridge tangent over arbitrary direction;
+      // on almost level crowns a seeded left/right alternation remains.
+      // Only the opt-in Fuchun near bank uses this movement grammar.
+      const downhill=ridgeHeight(stations,x+18)-ridgeHeight(stations,x-18);
+      const flowDirection=Math.abs(downhill)>3.5
+        ?(downhill>0?1:-1)
+        :(s(seed+9671,i*23+band*37)>.48?1:-1);
       const flowRun=(register==="descending-hemp"
-        ?25+18*s(seed+9689,i*37+9)
+        ?47+24*s(seed+9689,i*37+9)
         :register==="short-head"
-          ?23+17*s(seed+9689,i*37+9)
-          :30+32*s(seed+9689,i*37+9))*
-        (i%6===0?.68:1);
+          ?25+13*s(seed+9689,i*37+9)
+          :38+24*s(seed+9689,i*37+9))*
+        (i%6===0?.88:1);
       const bankFall=register==="descending-hemp"
-        ?34+21*s(seed+9757,i*23)
+        ?19+13*s(seed+9757,i*23)
         :register==="short-head"
-          ?10+7*s(seed+9769,i*11)
-          :14.2+5.1*s(seed+9733,i*31);
+          ?8+5*s(seed+9769,i*11)
+          :11+8*s(seed+9733,i*31);
       const flowEndX=x+flowDirection*flowRun;
       const start:P=[x,rootY];
       const bed=(u:number,dep:number):P=>{
