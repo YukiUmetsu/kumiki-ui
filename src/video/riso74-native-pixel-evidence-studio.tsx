@@ -185,8 +185,8 @@ export function Riso74NativePixelEvidencePanel({firstPhoto,secondPhoto,
               readable(data.second.horizontalContrast)],
             ["Vertical adjacent detail",readable(data.first.verticalContrast),
               readable(data.second.verticalContrast)],
-            ["Actually sampled pixels",data.first.originalSamplePixelCount,
-              data.second.originalSamplePixelCount],
+            ["Diagnostic grid points (may repeat)",data.first.sampleGridPoints,
+              data.second.sampleGridPoints],
           ] as const).map(row=><tr key={row[0]}
             style={{borderBottom:"1px solid #D5C9BC"}}>
             <th scope="row" style={{textAlign:"left"}}>{row[0]}</th>
@@ -201,7 +201,7 @@ export function Riso74NativePixelEvidencePanel({firstPhoto,secondPhoto,
       geometric **upper bound** on source sampling, not proof of sharp
       capture. RGB here is NOT spectrally calibrated RISO ink, coverage,
       printing pressure or ICC color. The browser samples a ≤128×128
-      nearest-neighbor local pixel window; source images remain unchanged,
+      nearest-neighbor local pixel window (low-resolution native pixels may repeat); source images remain unchanged,
       local and unuploaded. Independent physical art sign-off is still required.
     </p>
   </section>;
