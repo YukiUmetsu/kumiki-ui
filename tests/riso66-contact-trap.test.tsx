@@ -46,8 +46,10 @@ describe("RISO66 original native shared-edge physical stencil geometry",()=>{
   });
   it("retains every native dry-fibre hole, source centreline, pressure sample and opposite edge",()=>{
     for(const aspect of ["landscape","portrait"] as const){
-      const {base}=build(aspect);
-      const p=trapped(160,aspect).geometry;
+      const {base,neighbor}=build(aspect);
+      const p=createRisoContactTrap(base,neighbor,{
+        side:"positive",maximumGap:12,maximumExtension:12,overlap:1.2,
+      }).geometry;
       expect(p.dryPaths).toBe(base.dryPaths);
       expect(p.widthProfile).toBe(base.widthProfile);
       expect(p.centerline).toBe(base.centerline);
