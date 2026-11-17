@@ -399,13 +399,25 @@ Steps:
   - they rest on the forehead (bangs), pass beside the cheeks and over the ears, and drape over the shoulders: in
     front of the ridge onto the chest, behind it down the back.
 - **Styles:** blow-dried cuts hug the head; set or gathered styles stay against it; coils stand out.
-- **Cut:** a blunt line, layers or a textured trim, and each fringe on its own line.
+- **Physics** ([research note](../research/hair-bangs-2026-11-17.md)): fringes and short and medium lengths then
+  settle as heavy elastic rods. The weight beyond each joint bends the strand from its styled curve by
+  (moment × segment) / B, with B / w = ℓ³. Positions are rebuilt from the root, so nothing stretches; every point is
+  pushed out of the head, face, ears, neck, shoulders and chest on every pass; a surface hair rests on carries the
+  weight beyond it. With no contact this is the heavy elastica, within 1–3°. Long hair and blunt-cut lengths keep
+  their grown hang.
+- **Cut:** a blunt line, layers or a textured trim, and each fringe on its own line. The fringe lines come from 25
+  modern photographs (measured):
+  - full: 2 mm below the brows in the middle, 12 mm at the outer brow;
+  - curtain: open to the hairline in the middle, to the outer brow and cheekbone;
+  - side-swept: from the hairline to 18 mm below the brow.
+- **Fringe pieces:** 18–48 clumps of their own, gathering near the ends; each piece ends a few millimetres up or
+  down. A fringe strand is drawn as two finer ones.
 - **Children (5,000–120,000)** follow only guides that stay together, with their offset carried in the strand's own
   frame. Then they:
   - gather into locks (leaders chosen by root and tip);
-  - curl (waves as flattened spirals in step across the head, helices for curls);
+  - curl (waves as flat S-curves across the hair sheet, neighbouring locks nearly in step; helices for curls);
   - frizz and fly away in smooth arcs;
-  - stay off the face and below the parting.
+  - stay off the face (children too) and below the parting; a fringe's children are cut on its line.
 
 **`HAIRSTYLES`** (15): long straight, long wavy, lob, bob, bob with blunt bangs, shoulder length with curtain bangs,
 long side wave, curly, afro, ponytail, low bun, pixie, short crop, slicked back, buzz. Each has lengths by region,
