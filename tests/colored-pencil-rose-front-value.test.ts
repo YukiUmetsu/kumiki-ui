@@ -87,7 +87,7 @@ describe("CP-F1 frontal rose artist-local dry optical value planes",()=>{
   });
 
   it("is deterministic for extreme seeds and enforces physical-fold prerequisite",()=>{
-    for(const seed of [0,181,2147483000])
+    for(const seed of [0,181,2147483000,2147483647])
       expect(build("portrait",true,true,seed)).toEqual(build("portrait",true,true,seed));
     expect(()=>pencilObjectStudyDrawing({subject:"rose",aspect:"landscape",
       roseFrontValueStudy:true})).toThrow(/physical|folded/i);
