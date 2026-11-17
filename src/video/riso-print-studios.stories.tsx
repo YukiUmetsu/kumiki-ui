@@ -15,6 +15,7 @@ import {RisoMasterSeparationStudio} from "./riso-master-separation-studio";
 import {RisoPressDeliveryStudio} from "./riso-press-delivery-studio";
 import {RisoShopProofStudio} from "./riso-shop-proof-studio";
 import {RisoDrumPressureArtStudio} from "./riso75-drum-pressure-art-studio";
+import {RisoTornCollageStudio} from "./riso76-paper-collage-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -442,6 +443,12 @@ export const RisographShopScanProof:StoryObj<typeof RisoShopProofStudio>={
 export const RisographDrumContact:StoryObj<typeof RisoDrumPressureArtStudio>={
   name:"Risograph · Native Ink Drum Contact",
   render:()=> <RisoDrumPressureArtStudio/>,
+};
+
+/** Source-native FD1 physical zine collage transition: two original ink images. */
+export const RisographTornPaperCollage:StoryObj<typeof RisoTornCollageStudio>={
+  name:"Risograph · Torn-Print Fibre Collage Film",
+  render:()=> <RisoTornCollageStudio/>,
 };
 
 const meta = {
