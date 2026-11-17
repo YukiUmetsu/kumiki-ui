@@ -312,23 +312,70 @@ export function InkAnatomicalStandingFigure({
       <path d="M163 464 Q127 511 103 554 Q96 587 122 615
         Q136 635 158 621 L171 597 Q156 562 182 532"
         fill={robe} opacity=".64" stroke={ink} strokeWidth=".68" strokeOpacity=".38"/>
-      <path d="M122 596 Q130 581 151 586 Q167 598 157 612
-        Q154 629 142 633 Q125 628 121 613 Z"
-        fill="#e6cdb0" stroke={ink} strokeWidth=".74" strokeOpacity=".46"/>
-      <path d="M120 604 Q109 595 110 581 Q114 575 119 580
-        Q122 591 129 597 L138 604"
-        fill="#e6cdb0" stroke={ink} strokeWidth=".70" strokeOpacity=".47"/>
-      {Array.from({length:4},(_,i)=><path key={"finger"+i}
-        data-km-ink-hand-finger={i}
-        d={"M"+(129+i*5)+" "+(605+i*.8)
-          +" q"+ff(4+i*.3)+" 10 "+ff(4-i*.7)+" "+ff(18-i*1.3)}
-        stroke={ink} strokeWidth={.54+(i%2)*.12}
-        strokeLinecap="round" fill="none" opacity=".47"/>)}
-      <path data-km-ink-hand-opposed-thumb="true"
-        d="M123 606 Q129 599 133 607 Q139 616 146 618"
-        fill="none" stroke={ink} strokeWidth="1.0" opacity=".44"/>
-      <path d="M109 595 Q130 589 152 594" stroke={ink}
-        strokeWidth=".85" opacity=".39" fill="none"/>
+      {/** The palm rests around the bamboo's x≈129 shaft, never as a flat
+            mitten floating to its right. It retains separate proximal and
+            distal anatomy: soft thenar belly, curled phalanges, opposed thumb,
+            dorsal wash and tiny isolated nail crescents at the grip contact. */}
+      <g data-km-ink-grip-kinematics="opposed-thumb-on-source-bamboo">
+        <path data-km-ink-hand-palm="metacarpal-volume"
+          d="M135 588 C145 583 155 590 157 603
+            C158 614 149 623 139 621
+            Q130 618 127 607 Q127 595 135 588 Z"
+          fill={elder?"#dfcbb2":"#ead2b7"} stroke={ink}
+          strokeWidth=".79" strokeOpacity=".38"/>
+        <path d="M144 587 Q159 597 153 614 Q148 621 141 619"
+          stroke={wash} strokeWidth="8" opacity=".17"
+          fill="none" filter={"url(#"+uid+"-paper-spread)"}/>
+        {Array.from({length:4},(_,i)=>{
+          const knuckleX=146+(i%2)*2.5;
+          const kY=593+i*5.8;
+          const tipX=125+i*.65;
+          const tipY=kY+6.1;
+          const d="M"+ff(knuckleX)+" "+ff(kY)
+            +" C"+ff(knuckleX+6)+" "+ff(kY+1)
+            +" "+ff(knuckleX-6)+" "+ff(kY+7.7)
+            +" "+ff(tipX+3)+" "+ff(tipY-1.5)
+            +" C"+ff(tipX-4)+" "+ff(tipY-.9)
+            +" "+ff(tipX-4)+" "+ff(tipY+3.8)
+            +" "+ff(tipX+1)+" "+ff(tipY+5.3)
+            +" C"+ff(tipX+9)+" "+ff(tipY+8)
+            +" "+ff(knuckleX+2)+" "+ff(kY+12.3)
+            +" "+ff(knuckleX+3.1)+" "+ff(kY+5.1)+" Z";
+          return <g key={i} data-km-ink-hand-phalange={i}>
+            <path data-km-ink-hand-finger={i} d={d}
+              fill={elder?"#dec8ac":"#e9cdb1"} fillOpacity=".86"
+              stroke={ink} strokeWidth=".48"
+              strokeOpacity=".48" strokeLinejoin="round"/>
+            <path data-km-ink-grip-nail={i}
+              d={"M"+ff(tipX-1.3)+" "+ff(tipY+2)
+                +" q1.8 1.6 4.8 .3"}
+              fill="none" stroke={wash} strokeWidth=".42" opacity=".36"/>
+            <path d={"M"+ff(knuckleX-5)+" "+ff(kY+5.4)
+              +" q-3 1.8 -5 2.3"}
+              fill="none" stroke={wash} strokeWidth=".53" opacity=".24"/>
+          </g>;
+        })}
+        {/** Opposed first metacarpal crosses over the shaft toward index
+              phalanx; the skin actually interrupts the staff's thin ink line. */}
+        <path data-km-ink-hand-opposed-thumb="true"
+          d="M139 601 C133 595 128 591 124 588
+            C119 585 115 590 117 596
+            Q119 601 128 604 Q133 606 136 611
+            Q140 611 142 608 Z"
+          fill={elder?"#dbc3a7":"#e8ceb0"} fillOpacity=".91"
+          stroke={ink} strokeWidth=".63" strokeOpacity=".47"/>
+        <path d="M122 591 Q126 595 127 599 Q129 601 131 601"
+          stroke={wash} strokeWidth=".62" opacity=".39" fill="none"/>
+        {Array.from({length:14},(_,i)=>{
+          const k=i%7,t=Math.floor(i/7),xx=136+k*2.1;
+          const yy=591+t*17+Math.sin(i*1.2)*2;
+          return <path key={i} data-km-ink-hand-skin-fibre={i}
+            d={"M"+ff(xx)+" "+ff(yy)
+              +" q"+ff(1.0+Math.sin(i*1.1))+" 2.6 "+ff(-.7+k*.16)+" 4.1"}
+            fill="none" stroke={i%3===0?ink:wash} strokeWidth=".28"
+            opacity={.13+(i%4)*.028}/>;
+        })}
+      </g>
     </g>
     <title>Independent source-built late Ming standing scholar; preserved full ANAT1 face and physical garments</title>
   </svg>;
