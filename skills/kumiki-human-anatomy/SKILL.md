@@ -25,6 +25,11 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
      symmetry, femininity, measured eye, lip and breadth values and Pallett's ratios, never the golden ratio
      (`goldenRatioReport` only reports it).
    - `renderPortrait` / `FacePortrait` render it lit, with skin scattering, eyes, brows, lashes and hair.
+   - Eyes: pick a shape from `EYE_SHAPES` (`eyeShape`: almond, round, hooded, monolid, in-fold double lid, upturned,
+     downturned, deep-set, prominent, close-set, wide-set) and an iris from `IRIS_TYPES` (`eyes`, `eyesRight`).
+     For any style, draw the iris as a real one: a warmer pupillary zone streaking out along the fibres, a dark limbal
+     ring, crypts and a dark ruff (`irisAlbedo`). Lashes come in clumps, longest outside. Reference photographs:
+     Reference board, eyes.
 6. **Hair and colour** — for a rendered head, `groomHair(head, { style, fringe, parting, strands })` from
    `hair-groom.ts` (15 `HAIRSTYLES`, 7 `FRINGES`, up to 120,000 strands; `renderPortrait` does it for you from
    `hairStyle`, `fringe`, `hairStrands`). For the posable body, `growHair(body, posed.points, { length, curl,

@@ -15,6 +15,7 @@ find it: `npm run catalog:find -- --query="hair"` (or "skin colour", "pose", "fa
 | A face: landmarks, norms, variation | `anatomy-face.ts` | `createFace`, `measureFace`, `FACE_LANDMARKS`, `FACE_FEATURES`, `FACE_NORMS`, `eyeCentres` |
 | Hair, brows, lashes | `anatomy-hair.ts` | `growHair`, `renderHairSegments`, `faceHair`, `CURL_TYPES`, `HAIR_GROUPS`, `HAIR_FACTS` |
 | Groomed hairstyles and bangs, rendered strands | `hair-groom.ts` | `groomHair`, `HAIRSTYLES`, `FRINGES`, `renderHairStrands`, `hairDensityMap`, `scalpCover`, `partLine`, `HAIR_PHYSICS` |
+| Eye shapes and iris colours | `eye-detail.ts` | `EYE_SHAPES`, `applyEyeShape`, `IRIS_TYPES`, `irisAlbedo`, `EYE_EVIDENCE`, `EYE_REFERENCES` |
 | A rendered portrait | `face-portrait.ts`, `face-portrait-react.tsx` | `renderPortrait`, `FacePortrait`, `beautifulFace` (`face-beauty.ts`) |
 | Skin, hair and eye colour | `anatomy-color.ts` | `MONK_SKIN_TONES`, `skinShade`, `skinRamp`, `skinZoneColor`, `SKIN_SCATTERING`, `hairColorHex`, `HAIR_COLOR_PRESETS`, `IRIS_COLORS` |
 | Measured ranges, canon checks, surface anatomy | `anatomy-reference.ts` | `ANSUR`, `predictFromStature`, `CANON_CHECKS`, `SURFACE_FORMS`, `AGE_CHANGES`, `DRAWING_RECIPE`, `MODEL_TABLES` |

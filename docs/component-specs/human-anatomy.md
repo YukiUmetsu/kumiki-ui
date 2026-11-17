@@ -7,14 +7,17 @@ length/stature for age), `anatomy-measure.ts` (tape-measure sections, ANSUR-name
 `anatomy-view.ts` (camera, `HumanFrame`, contours, terminators, software rasteriser, `projectPoint`),
 `anatomy-face.ts` (3D face study, landmarks, feature loops, facial norms), `anatomy-hair.ts` (hair data, strand
 generator, hair rendering, brows and lashes), `hair-groom.ts` (groomed hairstyles and bangs, strand renderer),
+`eye-detail.ts` (eye shapes, iris colours and the iris's structure),
 `anatomy-color.ts` (skin, hair and iris colour; colour science), `anatomy-reference.ts` (ANSUR access,
 regressions, canon checks, surface forms, age changes, drawing recipe), `anatomy-react.tsx` (`HumanFigure` reference
 painter), `data/*` (baked tables and licences). Binary body model: `assets/models/anatomy/human-body-lattice.bin`
-(2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (22 public-domain/CC0 plates).
+(2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (33 public-domain/CC0 plates and
+photographs, 11 of them eyes).
 **Storybook:** Video production → Art Foundations → Human Anatomy → **Lab**, **Population line-up**, **Turnaround**,
 **Pose library** (+ front/side QA), **Hand poses**, **Face lab**, **Head angles**, **Range of motion**, **Any style**,
 **Proportions and ranges**, **Reference board**, **Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Hair on the
-posable body**, **Hair types and colours**, **Skin, hair and eye colour**, **Beautiful faces**, **Portrait lab**
+posable body**, **Eye lab**, **Eye shapes**, **Iris colours**, **Hair types and colours**, **Skin, hair and eye colour**,
+**Beautiful faces**, **Portrait lab**
 **Status:** implemented; agent review of Chromium screenshots only — **human visual review not recorded**. This is a
 construction and reference framework. It does **not** certify a finished realistic portrait or pencil drawing: those
 still need their style's gates (CP-F1, ArtCraft v7 portrait gate — AGENTS.md rules 13–14).
@@ -180,22 +183,32 @@ supersampling, most of it the hair. Geometry:
 - a neck behind the jaw, and shoulders.
 
 Shading:
-- **Key light:** shadow-mapped.
+- **Key light:** shadow-mapped with a softbox's soft edge (16 Poisson taps over about 1 mm), finer in close-ups,
+  with a bias that grows where the light grazes the skin.
 - **Fill, rim, sky and bounce lights.**
 - **Ambient occlusion** from 22 directions.
 - **Subsurface scattering:** the d'Eon & Luebke six-Gaussian skin profile.
 - **Specular:** a GGX dielectric with F₀ 0.028, oilier in the T-zone.
 - **Regional skin colour** (`SKIN_ZONES`).
-- **Eyes:** ray-traced, with sclera, a textured iris brighter opposite the light, pupil, a softbox catchlight and lid
-  shadow.
-- **Lashes and brows** drawn as hairs.
+- **Eyes:** ray-traced eyeballs:
+  - the iris from `eye-detail.ts`, lit like the face round it and brighter opposite the light;
+  - a sclera pinker toward the corners;
+  - a softbox catchlight, and the upper lid and lashes shading the top third;
+  - a pink waterline;
+  - the caruncle, hidden by an epicanthal fold.
+- **Lashes and brows** drawn as hairs: lashes in clumps of two to four, tapered, longest in the outer third, pressed
+  down by a single lid's fold. The eye shape sets the crease (its height, an in-fold start, or none), a hood's shadow
+  and the epicanthal fold.
 - **Lips:** volume and border.
 - **Hair:** groomed by `hair-groom.ts` (below). It shadows the skin under it, and the scalp under it is painted in the
   hair's colour (a soft hairline, a thin parting).
 - **Expressions:** EXPR1 action units and creases.
 
 Options:
-- sex, beauty, skin and eye colour;
+- sex, beauty and skin;
+- eyes: an `IRIS_TYPES` id (`eyes`, and `eyesRight` for complete heterochromia), the pupil's diameter (`pupil`, mm),
+  an `EYE_SHAPES` id (`eyeShape`);
+- `framing`: "eyes" for a close-up of both eyes and brows;
 - hair: melanin, a `HAIRSTYLES` id ("long", "short" and "bob" are kept as aliases), and `fringe`, `parting`,
   `hairStrands`, `hairLength`, `hairCurl` and `hairGrey` to override the style;
 - expression, yaw (±25°), key light;
@@ -210,6 +223,46 @@ the checks and sources.
 **Status:** agent review of renders only. It reads as a lit CG portrait, not an approved realistic portrait (AGENTS.md
 rule 14 still applies to the pencil portrait style). The mask is one average face, so individuals differ only by the
 parameters above.
+
+## Eyes in detail (`eye-detail.ts`)
+
+([research note](../research/eye-detail-2026-11-16.md))
+
+**`EYE_SHAPES`** (11): almond, round, hooded, monolid, in-fold double lid, upturned, downturned, deep-set, prominent,
+close-set and wide-set.
+
+Each sets the lid opening:
+- its height and width;
+- its canthal tilt and the upper lid's peak;
+- a rounder lower lid.
+
+And the lid and socket:
+- the upper-lid crease: its height, an in-fold start at the epicanthal fold, or none;
+- a hood and an epicanthal fold;
+- the eyes' depth and spacing.
+
+The numbers sit in measured ranges:
+- creases of 4–6 mm in Chinese double lids and 8–8.6 mm in Malay lids, with 30% of Chinese adults having none (Lu et
+  al. 2017);
+- inner corners 31–35 mm apart, openings 31–33 mm wide (Alberto & Soriano 2024);
+- a canthal tilt of about 8° (a Korean clinical sample).
+
+`applyEyeShape(vertices, shape, sex)` moves a face mesh to a shape; `beautifulFace({ eyeShape })` applies it. The
+portrait draws the crease, hood and fold.
+
+**`IRIS_TYPES`** (14): black-brown to light blue, with amber, hazel, yellow-green, grey-green and a green with a brown
+centre. Each has its own pupillary and ciliary colours, measured zone by zone in twelve public-domain or CC0 eye
+photographs (`EYE_REFERENCES`; blue and light blue are estimated). Each also sets fibres, crypts, furrows, a limbal
+ring, a pupillary ruff and freckles.
+
+`irisAlbedo(type, r, θ, seed)` gives the colour at a point:
+- the pupillary zone inside a jagged collarette, streaking out along the fibres;
+- radial fibres;
+- crypts by the collarette;
+- contraction furrows toward the edge;
+- the limbal ring and the ruff.
+
+`EYE_EVIDENCE` lists the graded findings. The eye photographs are on the Reference board under "eyes".
 
 ## Groomed hair (`hair-groom.ts`)
 
