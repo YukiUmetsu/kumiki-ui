@@ -1,6 +1,6 @@
 import {useEffect,useMemo,useState} from "react";
 import type {RisoProofPoint,RisoScanMeasurements} from "../../registry/video/riso-scan-proof";
-import {RISO71_CORNER_IDS,riso71BuildScanMeasurements,
+import {riso71BuildScanMeasurements,
   riso71DisplayToSourcePixel,riso71TargetKeys}
   from "../../registry/video/riso-scan-image-annotation";
 
@@ -9,7 +9,7 @@ const button={border:"1px solid #988575",background:"#FFFAED",
   padding:"7px 10px",borderRadius:3,minHeight:38,color:"#293E50",
   cursor:"pointer",font:"600 13px system-ui"} as const;
 const label=(key:string)=>key.startsWith("paper:")?
-  "PAPER "+key.slice(6).replaceAll("-"," "):
+  "PAPER "+key.slice(6).replace(/-/g," "):
   key.replace(":"," ink · ")+" register cross";
 
 /** RISO71: operator places actual points on a local scanned proof. Original
