@@ -28,6 +28,14 @@ describe("CRAYON1 source-authored physical wax underpaint",()=>{
     expect(html).toContain('data-km-crayon-paper-contact-wax');
     expect(draw([field])).toBe(draw([field]));
   });
+  it("follows a source-observed oblique facial plane without changing axis-aligned wax",()=>{
+    const tilted={...field,rotationDeg:-31};
+    const html=draw([tilted]);
+    expect(html).toContain('transform="rotate(-31 37.5 109.5)"');
+    expect(html).toContain('data-km-crayon-underpaint-field="0"');
+    expect(draw([field])).not.toContain('transform="rotate(');
+    expect(draw([tilted])).toBe(draw([tilted]));
+  });
   it("retains historical unchanged gradient and full wax when not opted in",()=>{
     expect(draw()).not.toContain('data-km-crayon-underpaint-fields');
     expect(draw()).toContain('data-km-crayon-underpaint="opaque"');
@@ -37,6 +45,7 @@ describe("CRAYON1 source-authored physical wax underpaint",()=>{
       {...field,x:-.1},{...field,y:1.1},{...field,radiusX:0},
       {...field,radiusY:1.1},{...field,strength:NaN},
       {...field,strength:1.1},{...field,color:"red"},
+      {...field,rotationDeg:90},{...field,rotationDeg:NaN},
     ]){
       const original=crayonAdultFaceStudy("portrait");
       const changed={...original,elements:original.elements.map(x=>
