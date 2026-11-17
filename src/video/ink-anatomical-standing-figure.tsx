@@ -118,12 +118,14 @@ export function InkAnatomicalStandingFigure({
     data-km-ink-standing-ground="soles-fixed">
     <defs>
       <clipPath id={uid+"-robe-boundary"}>
-        <path d="M166 458 C127 470 91 500 80 560 Q64 625 89 691
-          Q108 723 151 739 L167 714 C165 805 159 875 179 1008
-          Q226 1024 279 1016 Q357 1035 424 1010
-          Q420 907 409 806 L431 780 Q477 737 478 654
-          Q473 528 406 462 Q366 426 312 436
-          L243 450 Q201 431 166 458 Z"/>
+        <path d="M180 423 C158 434 144 464 140 505
+          Q132 566 146 624 Q157 662 178 686
+          L194 666 C183 766 174 882 183 985
+          Q269 1001 357 985 C366 883 357 766 346 666
+          L362 686 Q383 662 394 624 Q408 566 400 505
+          C396 464 382 434 360 423
+          Q326 431 294 447 L246 447
+          Q214 431 180 423 Z"/>
       </clipPath>
       <filter id={uid+"-paper-spread"} x="-30%" y="-30%" width="160%" height="160%">
         <feGaussianBlur stdDeviation="5.7"/>
