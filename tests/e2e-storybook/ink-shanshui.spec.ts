@@ -597,6 +597,24 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
   // individually rooted 28 dry-brush fibres / 12 deposited moss marks.
   await expect(legacyBank).toHaveCount(0);
   await expect(sourceBank).toHaveCount(4);
+  const inner=samples.last().locator("[data-km-fuchun-near-inner-stratum]");
+  await expect(inner).toHaveCount(26);
+  await expect(samples.last().locator("[data-km-fuchun-near-inner-phrase]"))
+    .toHaveCount(52);
+  await expect(samples.first().locator("[data-km-fuchun-near-inner-stratum]"))
+    .toHaveCount(0);
+  await page.getByRole("button",{name:"Bank interior cunfa · hide"}).click();
+  await expect(lab).toHaveAttribute("data-km-fidelity-inner-strata","off");
+  expect(await inner.evaluateAll(nodes=>nodes.map(node=>
+    getComputedStyle(node).visibility))).toEqual(Array(26).fill("hidden"));
+  await samples.last().screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-bank-interior-cunfa-before.png")});
+  await page.getByRole("button",{name:"Bank interior cunfa · show"}).click();
+  await expect(lab).toHaveAttribute("data-km-fidelity-inner-strata","on");
+  expect(await inner.evaluateAll(nodes=>nodes.map(node=>
+    getComputedStyle(node).visibility))).toEqual(Array(26).fill("visible"));
+  await samples.last().screenshot({animations:"disabled",
+    path:info.outputPath("fuchun-bank-interior-cunfa-after.png")});
   const turns=samples.last().locator("[data-km-fuchun-near-turning-wash]");
   await expect(turns).toHaveCount(8);
   await expect(samples.first().locator("[data-km-fuchun-near-turning-wash]"))

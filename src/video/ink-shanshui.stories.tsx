@@ -1024,6 +1024,7 @@ function FuchunSourceFidelityDesk(){
   const [ink,setInk]=useState(.9);
   const [comparison,setComparison]=useState<"seeds"|"near">("seeds");
   const [showTurning,setShowTurning]=useState(true);
+  const [showInnerStrata,setShowInnerStrata]=useState(true);
   const [lens,setLens]=useState<"native"|"rock"|"edge"|"pine"|"near">("native");
   const [layer,setLayer]=useState<"complete"|"stone"|"hemp"|"pine">("complete");
   const lenses={
@@ -1060,6 +1061,7 @@ function FuchunSourceFidelityDesk(){
     data-km-fidelity-layer={layer} data-km-fidelity-lens={lens}
     data-km-fidelity-comparison={comparison}
     data-km-fidelity-turning={showTurning?"on":"off"}
+    data-km-fidelity-inner-strata={showInnerStrata?"on":"off"}
     style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
       color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
       gap:16,alignContent:"start"}}>
@@ -1108,6 +1110,11 @@ function FuchunSourceFidelityDesk(){
         onClick={()=>setShowTurning(value=>!value)}>
         Turning-cheek wash · {showTurning?"hide":"show"}
       </button>
+      <button type="button" style={style.button}
+        aria-pressed={!showInnerStrata}
+        onClick={()=>setShowInnerStrata(current=>!current)}>
+        Bank interior cunfa · {showInnerStrata?"hide":"show"}
+      </button>
       <span style={{fontSize:12,color:"#675745"}}>
         Optional 19-station near-ridge candidate; ordinary film unchanged.
       </span>
@@ -1146,9 +1153,12 @@ function FuchunSourceFidelityDesk(){
         setDetail(1);setMist(.35);setInk(.9);
         setLens("native");setLayer("complete");setComparison("seeds");
         setShowTurning(true);
+        setShowInnerStrata(true);
       }}>Reset native source-fidelity review</button>
     </div>
     <style>{`
+      [data-km-fidelity-inner-strata="off"]
+      [data-km-fuchun-near-inner-stratum] {visibility:hidden;}
       [data-km-fidelity-turning="off"]
       [data-km-fuchun-near-turning-wash] {visibility:hidden;}
 

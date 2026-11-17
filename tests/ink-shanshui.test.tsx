@@ -3160,6 +3160,21 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect((candidate.match(/data-km-fuchun-near-bank-broken-crest=""/g)??[]))
       .toHaveLength(8);
     expect((candidate.match(/data-km-fuchun-near-hemp=""/g)??[])).toHaveLength(28);
+    const nested=[...candidate.matchAll(
+      /data-km-fuchun-near-inner-stratum="" data-km-fuchun-near-inner-source="([^"]+)" data-km-fuchun-near-inner-root="([^"]+)" data-km-fuchun-near-inner-station="([^"]+)" data-km-fuchun-near-inner-depth="([^"]+)"/g,
+    )];
+    expect(nested).toHaveLength(26);
+    expect((candidate.match(/data-km-fuchun-near-inner-phrase=""/g)??[])).toHaveLength(52);
+    expect(legacy).not.toContain('data-km-fuchun-near-inner-stratum=""');
+    expect(new Set(nested.map(m=>m[3])).size).toBeGreaterThan(17);
+    for(const [,source,root,station,depth] of nested){
+      expect(source.split(",").map(Number).every(Number.isFinite)).toBe(true);
+      expect(root.split(",").map(Number).every(Number.isFinite)).toBe(true);
+      expect(Number(station)).toBeGreaterThan(.1);
+      expect(Number(station)).toBeLessThan(.95);
+      expect(Number(depth)).toBeGreaterThan(.16);
+      expect(Number(depth)).toBeLessThan(.87);
+    }
     expect((candidate.match(/data-km-fuchun-near-deposit=""/g)??[])).toHaveLength(12);
     // The original museum's long pima is deposited OVER curved rock
     // cheeks, not isolated as regular vertical wires against a bare

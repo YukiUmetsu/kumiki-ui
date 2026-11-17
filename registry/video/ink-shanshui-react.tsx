@@ -2730,6 +2730,57 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
               " "+f(c2[0])+" "+f(c2[1])+
               " "+f(tip[0])+" "+f(tip[1])};
         });
+        // Opt-in Fuchun: nested paper-facing cunfa in the ACTUAL positive
+        // bank. The lower coordinate is a curved, source-connected bank
+        // belly—not a random screen-space stroke. Five/eight/seven/six
+        // asynchronous loads provide different near/middle/far bank rhythm.
+        // Each two-phrase path has a real dry-paper break in its center.
+        const innerStrata=Array.from({length:([5,8,7,6] as const)[i]},
+          (_,j)=>{
+            const count=([5,8,7,6] as const)[i];
+            const t=clamp(.12+.76*(j+.45)/count+
+              (s(seed+9401,i*113+j*29)-.5)*.07,.13,.9);
+            const depth=clamp(.21+.16*((j*3+i)%4)+
+              .08*(s(seed+9413,i*53+j*31)-.5),.17,.79);
+            const lowerControl:P=[left[0]+span*.53,
+              Math.max(lowerL[1],lowerR[1])+drop*.075];
+            const face=(u:number,v:number):P=>{
+              const upper=cubicPoint(left,first,second,right,u);
+              const lower=quadraticPoint(lowerL,lowerControl,lowerR,u);
+              return [upper[0]*(1-v)+lower[0]*v,
+                upper[1]*(1-v)+lower[1]*v];
+            };
+            const source=cubicPoint(left,first,second,right,t);
+            const root=face(t,depth);
+            const swing=(j%4===0?-.125:j%4===1?.165:
+              j%4===2?.12:-.095)*
+              (.88+.18*s(seed+9427,i*67+j*41));
+            const endT=clamp(t+swing,.09,.94);
+            const end=face(endT,clamp(depth+
+              (j%3===0?.13:j%3===1?-.075:.08),.16,.86));
+            const dx=end[0]-root[0],dy=end[1]-root[1];
+            const controls:[P,P]=[
+              [root[0]+dx*.31+
+                (j%2===0?2.4:-2.8),root[1]+dy*.27-
+                1.7*s(seed+9433,i*29+j*13)],
+              [root[0]+dx*.7-
+                (j%3===1?3.1:-1.6),root[1]+dy*.73+
+                1.8*s(seed+9449,i*37+j*23)],
+            ];
+            const a=cubicPoint(root,controls[0],controls[1],end,.44);
+            const b=cubicPoint(root,controls[0],controls[1],end,.61);
+            const firstBody=rockLoadedCubicRibbon(root,
+              cubicPoint(root,controls[0],controls[1],end,.11),
+              cubicPoint(root,controls[0],controls[1],end,.32),a,
+              (.68+1.17*s(seed+9461,i*73+j*19))*(j%3===0?1.1:.88),
+              seed+9473+i*71+j*29,"root-loaded");
+            const secondBody=rockLoadedCubicRibbon(b,
+              cubicPoint(root,controls[0],controls[1],end,.73),
+              cubicPoint(root,controls[0],controls[1],end,.88),end,
+              (.44+.83*s(seed+9487,i*61+j*17)),
+              seed+9497+i*97+j*37,"feathered-tail");
+            return {source,root,t,depth,firstBody,secondBody};
+          });
         return <g key={i} data-km-fuchun-near-bank=""
           data-km-fuchun-near-bank-source={
             f(left[0])+","+f(left[1])+";"+f(right[0])+","+f(right[1])}
@@ -2780,6 +2831,19 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
                 d={d} fill={"url(#"+gradient+")"}
                 opacity={f((i===1?.92:i===3?.67:.79)*
                   (k===0?1:.78)*(1-.22*mist))}/>)}
+            {innerStrata.map(({source,root,t,depth,firstBody,secondBody},j)=>
+              <g key={"interior"+j} data-km-fuchun-near-inner-stratum=""
+                data-km-fuchun-near-inner-source={f(source[0])+","+f(source[1])}
+                data-km-fuchun-near-inner-root={f(root[0])+","+f(root[1])}
+                data-km-fuchun-near-inner-station={f(t)}
+                data-km-fuchun-near-inner-depth={f(depth)}>
+                <path data-km-fuchun-near-inner-phrase=""
+                  d={firstBody} fill={j%3===0?"#463e33":"#655744"}
+                  opacity={f((j%3===0?.52:.36)*(1-.17*mist))}/>
+                <path data-km-fuchun-near-inner-phrase=""
+                  d={secondBody} fill={j%4===1?"#786950":"#504638"}
+                  opacity={f((j%4===1?.24:.37)*(1-.2*mist))}/>
+              </g>)}
             <path data-km-fuchun-near-bank-broken-crest="" d={rim1}
               fill="#4a3b30" opacity={f((i===1?.47:.35)*(1-.24*mist))}/>
             <path data-km-fuchun-near-bank-broken-crest="" d={rim2}
