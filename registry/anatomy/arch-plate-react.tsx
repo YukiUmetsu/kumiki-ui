@@ -98,11 +98,13 @@ export function ArchLibraryGallery({ initial = "cotswold-cottage" }: { initial?:
       <ul style={{ ...sheetGrid, listStyle: "none", margin: 0, padding: 0, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 280px), 1fr))" }}>
         {list.map(e => (
           <li key={e.id} style={{ display: "grid", gap: 6, alignContent: "start", minWidth: 0 }}>
-            <button type="button" onClick={() => { setOpen(e.id); setMood("own"); }} aria-pressed={open === e.id} aria-label={`Open ${e.label} large`}
-              style={{ padding: 0, border: open === e.id ? "2px solid var(--km-text-primary, #26211d)" : "2px solid transparent", borderRadius: 8, background: "none", cursor: "pointer" }}>
+            {/* the button is named by the title it shows (and the plate's own label), so what is seen is what is announced */}
+            <button type="button" onClick={() => { setOpen(e.id); setMood("own"); }} aria-pressed={open === e.id}
+              style={{ display: "grid", gap: 6, padding: 0, border: open === e.id ? "2px solid var(--km-text-primary, #26211d)" : "2px solid transparent", borderRadius: 8, background: "none", color: "inherit", textAlign: "start", cursor: "pointer" }}>
               <StorybookPlate id={e.id} width={384} height={216} />
+              <span style={{ font: "600 15px/1.3 var(--km-font-sans, system-ui, sans-serif)", overflowWrap: "anywhere", padding: "0 2px 2px" }}>{e.label}</span>
             </button>
-            <EntryText e={e} />
+            <EntryText e={e} hideTitle />
           </li>
         ))}
       </ul>
@@ -110,11 +112,11 @@ export function ArchLibraryGallery({ initial = "cotswold-cottage" }: { initial?:
   );
 }
 
-function EntryText({ e, large, headingId, children }: { e: LibraryEntry; large?: boolean; headingId?: string; children?: ReactNode }) {
+function EntryText({ e, large, headingId, hideTitle, children }: { e: LibraryEntry; large?: boolean; headingId?: string; hideTitle?: boolean; children?: ReactNode }) {
   const H = large ? "h3" : "h4";
   return (
     <div style={{ display: "grid", gap: 6, minWidth: 0, color: "var(--km-text-primary, #26211d)", font: "14px/1.45 var(--km-font-sans, system-ui, sans-serif)" }}>
-      <H id={headingId} style={{ margin: 0, font: `600 ${large ? 18 : 15}px/1.3 var(--km-font-sans, system-ui, sans-serif)`, overflowWrap: "anywhere" }}>{e.label}</H>
+      {hideTitle ? null : <H id={headingId} style={{ margin: 0, font: `600 ${large ? 18 : 15}px/1.3 var(--km-font-sans, system-ui, sans-serif)`, overflowWrap: "anywhere" }}>{e.label}</H>}
       <span style={sheetSmall}>{e.region} · {e.era} · {e.setting}, {e.view}, {e.scale}</span>
       <span style={{ ...sheetSmall, overflowWrap: "anywhere" }}><strong>Made of:</strong> {e.materials.join("; ")}</span>
       <span style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>{e.story.map(s => <span key={s} style={tag}>{s}</span>)}</span>

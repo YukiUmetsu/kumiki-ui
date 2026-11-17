@@ -107,6 +107,7 @@ Open **http://localhost:6006**, then try these real Storybook stories (links wor
 | Actual window holes, through-ports and blind cavities | [3D asset toolkit → Actual Solid Cutouts → Architecture](http://localhost:6006/?path=/story/craft-solid-cutouts--architecture) |
 | Exact 3D signage and crisp device labels | [3D asset toolkit → Precise World Text → Wayfinding](http://localhost:6006/?path=/story/craft-text-label--wayfinding) |
 | Procedural architecture and trees for a street | [3D asset toolkit → Procedural Environments → Street Corner](http://localhost:6006/?path=/story/craft-procedural-environments--street-corner) |
+| Painted storybook buildings, streets and rooms (100 structures) | [Video production → Art Foundations → Architecture → Illustrated library](http://localhost:6006/?path=/story/video-arch--storybook-library) |
 | Terrain-based scatter and woodland | [3D asset toolkit → Procedural Environments → Hillside](http://localhost:6006/?path=/story/craft-procedural-environments--hillside) |
 | Grass, ferns, wildflowers and UV-mapped ground materials | [3D asset toolkit → Natural Environments → Ground Vegetation](http://localhost:6006/?path=/story/craft-natural-environments--ground-vegetation) |
 | Seeded soil, moss, stone, sand, bark and leaf finishes | [3D asset toolkit → Natural Environments → Natural Materials](http://localhost:6006/?path=/story/craft-natural-environments--natural-materials) |

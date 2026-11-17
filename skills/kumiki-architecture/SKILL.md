@@ -22,7 +22,7 @@ The pack `architecture` decides *how big and how built*. Your style decides *how
 6. **Review.** Put a person beside the door and compare storey heights and the roof pitch with the type. Record what
    you checked.
 7. **Storybook plates.** For a painted building or room, start from `ARCH_LIBRARY` (100 entries; `StorybookPlate`
-   draws one). To make a new one, build with `SceneBuilder` and the parts in `arch-kit.ts` and `arch-kit-civic.ts`,
+   draws one; browse them in Storybook → Architecture → **Illustrated library**, or `npm run catalog:find -- --query="…"`). To make a new one, build with `SceneBuilder` and the parts in `arch-kit.ts` and `arch-kit-civic.ts`,
    weather the surfaces (`age`, `moss`, `flake`, `soot`, ivy), choose a light from `MOODS`, and frame with
    `frameSubject` so verticals stay vertical. Keep the darkest darks in the openings and the shadows cool. Read the
    [storybook study](../../docs/research/architecture-storybook-reference-study-2026-11-17.md).

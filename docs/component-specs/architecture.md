@@ -12,7 +12,7 @@
   renders) and `arch-plate-react.tsx` (`StorybookPlate`, `ArchLibraryGallery`, `ArchStyleGuide`).
 
 **Storybook:** Video production → Art Foundations → Architecture → **Sheet**, **Streets**, **Measured elevation**,
-**Storybook library**, **Storybook style guide**.
+**Illustrated library (100 structures)**, **Illustration style guide**.
 **Status:** implemented; agent review of renders only — **human visual review not recorded**.
 **Reference studies:** [elevations measured from photographs and drawings](../research/architecture-reference-study-2026-11-17.md)
 (Himeji, Morisada's machiya, Tōshōdai-ji, the Parthenon; observation of Bedford Square, Stein am Rhein and others);

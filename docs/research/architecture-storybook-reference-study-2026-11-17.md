@@ -1,7 +1,7 @@
 # ARCH1 storybook study: what the references taught (2026-11-17)
 
 **Pack:** `architecture` (ARCH1). **Spec:** [architecture](../component-specs/architecture.md).
-**Storybook:** Video production → Art Foundations → Architecture → **Storybook library**, **Storybook style guide**.
+**Storybook:** Video production → Art Foundations → Architecture → **Illustrated library (100 structures)**, **Illustration style guide**.
 **Status:** agent study and agent review of renders. **Human visual review is not recorded.**
 
 ## Why
