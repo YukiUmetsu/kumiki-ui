@@ -12,7 +12,7 @@ import {CRAYON_PORTRAIT_AUDIT} from "./crayon-artcraft-portrait-audit";
  * (139,123,119): grey/near neutral, NOT uniform white sticker.
  *
  * Use the existing ANAT1 source-fitted eyelid/limbus cubic structure
- * (V36), ten authored source-root lash gestures and all original wax.
+ * (V36), 33 authored source-root lash gestures and all original wax.
  * Soften contact at nasal tear duct, connect tarsal underfold and
  * increase eyelash microtouches without replacing eye by a vector icon.
  *
@@ -146,8 +146,8 @@ export function crayonF1RefineNearTarsusV45(
     if(el.id==="lash-contact-near"){
       if(hasLashes||el.kind!=="contour"||el.parentId!=="face-outline"||
          el.clipToParent!==true||el.waxContact!=="dry-wax"||
-         (el.d.match(/M/g)??[]).length!==10)
-        throw new RangeError("Missing original ten source-rooted upper eyelashes");
+         (el.d.match(/M/g)??[]).length!==33)
+        throw new RangeError("Missing original 33 source-rooted upper eyelashes");
       hasLashes=true;
       return {...el,d:el.d+" "+extraRootedLashes()} satisfies Contour;
     }
