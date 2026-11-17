@@ -58,7 +58,7 @@ function installExactSourceHash(sourceBytes:Buffer){
           Buffer.from(data.buffer,data.byteOffset,data.byteLength);
         if(bytes.equals(sourceBytes))
           return hexArrayBuffer(CRAYON_F1_V59_SOURCE.sha256);
-        return originalDigest(algorithm,data);
+        return originalDigest(algorithm,data as Parameters<typeof originalDigest>[1]);
       },
     },
   } as unknown as Crypto);
