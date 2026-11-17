@@ -23,7 +23,7 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx"|"rose-fold-left"|"rose-fold-right"|"rose-fold-back"|"rose-front-left"|"rose-front-right"|"rose-rim-left"|"rose-rim-right"|"rose-whorl-center"|"rose-whorl-recess"|"rose-mid-left"|"rose-mid-right";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx"|"rose-fold-left"|"rose-fold-right"|"rose-fold-back"|"rose-front-left"|"rose-front-right"|"rose-rim-left"|"rose-rim-right"|"rose-crown-face"|"rose-whorl-center"|"rose-whorl-recess"|"rose-mid-left"|"rose-mid-right";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
@@ -70,6 +70,7 @@ export function PencilFoundationStudio(){
   const [rosePhysicalFolds,setRosePhysicalFolds]=useState(false);
   const [roseFrontValueStudy,setRoseFrontValueStudy]=useState(false);
   const [rosePetalRimStudy,setRosePetalRimStudy]=useState(false);
+  const [roseBackCupReliefStudy,setRoseBackCupReliefStudy]=useState(false);
   const [roseInnerWhorlStudy,setRoseInnerWhorlStudy]=useState(false);
   const [roseMiddleCupStudy,setRoseMiddleCupStudy]=useState(false);
   const drawing=useMemo(()=>{
@@ -82,6 +83,7 @@ export function PencilFoundationStudio(){
         rosePhysicalFolds:specimen==="rose"&&rosePhysicalFolds,
         roseFrontValueStudy:specimen==="rose"&&roseFrontValueStudy,
         rosePetalRimStudy:specimen==="rose"&&rosePetalRimStudy,
+        roseBackCupReliefStudy:specimen==="rose"&&roseBackCupReliefStudy,
         roseInnerWhorlStudy:specimen==="rose"&&roseInnerWhorlStudy,
         roseMiddleCupStudy:specimen==="rose"&&roseMiddleCupStudy}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
@@ -91,7 +93,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseFrontValueStudy,rosePetalRimStudy,roseInnerWhorlStudy,roseMiddleCupStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseInnerWhorlStudy,roseMiddleCupStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -132,7 +134,8 @@ export function PencilFoundationStudio(){
     "petal-front-left":inspectionFocus==="rose-front-right"&&specimen==="rose"&&rosePhysicalFolds?
     "petal-front-right":inspectionFocus==="rose-rim-left"&&specimen==="rose"&&rosePetalRimStudy?
     "rose-rim-front-left":inspectionFocus==="rose-rim-right"&&specimen==="rose"&&rosePetalRimStudy?
-    "rose-rim-front-right":inspectionFocus==="rose-whorl-center"&&specimen==="rose"&&roseInnerWhorlStudy?
+    "rose-rim-front-right":inspectionFocus==="rose-crown-face"&&specimen==="rose"&&roseBackCupReliefStudy?
+    "back-cup":inspectionFocus==="rose-whorl-center"&&specimen==="rose"&&roseInnerWhorlStudy?
     "rose-whorl-scroll":inspectionFocus==="rose-whorl-recess"&&specimen==="rose"&&roseInnerWhorlStudy?
     "rose-whorl-recess":inspectionFocus==="rose-mid-left"&&specimen==="rose"&&roseMiddleCupStudy?
     "rose-mid-left-shoulder":inspectionFocus==="rose-mid-right"&&specimen==="rose"&&roseMiddleCupStudy?
@@ -154,6 +157,7 @@ export function PencilFoundationStudio(){
     data-km-rose-physical-folds={specimen==="rose"?(rosePhysicalFolds?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-front-value={specimen==="rose"?(roseFrontValueStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-petal-rim={specimen==="rose"?(rosePetalRimStudy?"opt-in":"baseline"):"not-applicable"}
+    data-km-rose-back-cup-relief={specimen==="rose"?(roseBackCupReliefStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-inner-whorl={specimen==="rose"?(roseInnerWhorlStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-middle-cup={specimen==="rose"?(roseMiddleCupStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-pinnate-study={specimen==="rose"?(rosePinnateStudy?"opt-in":"baseline"):"not-applicable"}
@@ -316,6 +320,9 @@ export function PencilFoundationStudio(){
           <option value="rose-fold-back" disabled={specimen!=="rose"||!rosePhysicalFolds}>
             Rose back-cup underturn / near-center curl
           </option>
+          <option value="rose-crown-face" disabled={specimen!=="rose"||!rosePhysicalFolds||!roseBackCupReliefStudy}>
+            Rose rear cup / asymmetric scalloped crest and front lamina
+          </option>
           <option value="rose-front-left" disabled={specimen!=="rose"||!rosePhysicalFolds}>
             Rose front-left lamina / curved medial attachment
           </option>
@@ -386,9 +393,18 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose physical folds" type="checkbox"
           checked={rosePhysicalFolds} onChange={e=>{
             setRosePhysicalFolds(e.target.checked);
-            if(!e.target.checked){setRoseFrontValueStudy(false);setRosePetalRimStudy(false);}
+            if(!e.target.checked){setRoseFrontValueStudy(false);setRosePetalRimStudy(false);setRoseBackCupReliefStudy(false);}
           }}/>
         FLORA1 five independent full-surface rolled underturns · geometric corolla A/B (unapproved)
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40,
+          opacity:rosePhysicalFolds?1:.65}}>
+        <input aria-label="Foundation rose rear cup relief" type="checkbox"
+          disabled={!rosePhysicalFolds}
+          checked={roseBackCupReliefStudy}
+          onChange={e=>setRoseBackCupReliefStudy(e.target.checked)}/>
+        FLORA1 irregular back-cup crest, physical underturn and selective dry-pencil rim · A/B (unapproved)
       </label>}
       {specimen==="rose"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
