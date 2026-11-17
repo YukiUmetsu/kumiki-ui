@@ -34,7 +34,7 @@ const round=(n:number)=>Number(n.toFixed(6));
 export function inspectRiso74NaturalPixelDensity(
   proof:Pick<Riso72ScanAffine,"sheetToPixel"|"paperOnly">,
 ):Riso74NaturalPixelEvidence{
-  const [a,b,c,d]=proof?.sheetToPixel??[];
+  const [a,b,c,d]=proof?.sheetToPixel??[NaN,NaN,NaN,NaN,NaN,NaN];
   if(proof?.paperOnly!==true||![a,b,c,d].every(finite))
     throw new RangeError("RISO74 requires a valid PAPER-only natural-image affine.");
   const ux=Math.hypot(a,b),uy=Math.hypot(c,d);
