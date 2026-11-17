@@ -67,17 +67,19 @@ Rays march over the heightfield, plus sub-grid ridged detail. Covers follow heig
 - **Snow:** above `snowlineAt(latitude)`, lowered by the season and on shaded slopes, holding only under about 50°,
   and thinned by wind scour near the line.
 - **Rock and scree:** rock where the slope exceeds about 38°, and scree at the angle of repose below it.
-- **Vegetation:** meadow above `treelineAt` and forest below it, on slopes trees can hold.
+- **Vegetation:** meadow above `treelineAt` and forest below it, on slopes trees can hold. Forest is a canopy layer
+  about 20 m above the ground, with crowns of mixed sizes (about 6 and 11 m), dark foliage and shade between the
+  crowns, so the eye meets treetops rather than painted ground.
 - **Other covers:** ash on volcanic cones, sand and sandstone, and water below sea level, with wind waves and a
   Fresnel sky reflection.
 
 Light comes from SKY1's `atmosphere()`: reddened sunlight, sky irradiance by slope, soft terrain shadows marched toward
-the sun, and aerial perspective along each ray. Exposure is metered like SKY1's camera. `TerrainView` renders in a
+the sun, and aerial perspective along each ray. Exposure is metered like SKY1's camera, mostly the fixed sunny-day exposure, so a frame of dark forest stays dark. `TerrainView` renders in a
 worker, cached, with a half-size preview and a working badge (see `foundation-render.ts`).
 
 ## Limits
 
 - The grid is 256–384 points per side, so the nearest ground is detail noise, not modelled rocks.
-- Trees are colour, not modelled.
+- Crowns are domes in a canopy layer, not modelled trees.
 - Snow does not drift.
 - Erosion is a droplet model, not a fluid simulation.

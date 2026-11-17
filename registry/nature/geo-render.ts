@@ -12,7 +12,7 @@
  *   slope, terrain shadows marched toward the sun, a little bounce, and aerial perspective
  *   (`atmosphere().aerial`) that fades and blues distant ranges by the real air between.
  */
-import { createRaster, downsample, encodeSrgb, fbm, linearOf, ridged } from "../anatomy/foundation-raster";
+import { createRaster, downsample, encodeSrgb, fbm, linearOf, ridged, worley } from "../anatomy/foundation-raster";
 import type { RGB3 } from "../anatomy/foundation-raster";
 import { atmosphere } from "./sky-atmosphere";
 import { findGroundCover, snowlineAt, treelineAt } from "./geo-data";
@@ -57,7 +57,30 @@ export function renderTerrain(o: TerrainRenderOptions = {}): TerrainRender {
   const cell = f.span / (f.n - 1), seed = f.seed;
   // fine relief below the grid: a few metres of ridged detail, scaled to the cell, so close slopes are not smooth
   const detailAmp = Math.min(40, cell * 0.45) * (kind === "dunes" ? 0.05 : kind === "hills" ? 0.4 : 1);
-  const heightAt = (x: number, z: number) => terrainHeightAt(f, x, z) + detailAmp * (ridged(seed + 31, x / (cell * 2.2), z / (cell * 2.2), 3, 2.1, 0.5) - 0.45);
+  const groundAt = (x: number, z: number) => terrainHeightAt(f, x, z) + detailAmp * (ridged(seed + 31, x / (cell * 2.2), z / (cell * 2.2), 3, 2.1, 0.5) - 0.45);
+  // Forest canopy: where trees grow (below the treeline, on slopes under about 35°, not on dunes, mesas or the coast)
+  // the surface the eye meets is the crowns, about 15–25 m above the ground: a canopy layer of crowns about 8 m across.
+  const forestKinds = kind === "alpine" || kind === "u-valley" || kind === "v-valley" || kind === "hills" || kind === "volcano";
+  const canopy = new Float32Array(f.n * f.n);
+  if (forestKinds) for (let j = 1; j < f.n - 1; j++) for (let i = 1; i < f.n - 1; i++) {
+    const k = j * f.n + i, hgt = f.h[k], sx2 = (f.h[k + 1] - f.h[k - 1]) / (2 * cell), sz2 = (f.h[k + f.n] - f.h[k - f.n]) / (2 * cell), slope2 = (Math.atan(Math.hypot(sx2, sz2)) * 180) / Math.PI;
+    const ash = kind === "volcano" ? smooth(f.min + (f.max - f.min) * 0.1, f.min + (f.max - f.min) * 0.22, hgt) : 0;
+    canopy[k] = 20 * (1 - smooth(treeline - 150, treeline + 40, hgt)) * (1 - smooth(30, 38, slope2)) * (1 - ash) * (fbm(seed + 23, (i * cell) / 60, (j * cell) / 60, 3) > -0.25 ? 1 : 0);
+  }
+  const canopyAt = (x: number, z: number) => {
+    if (!forestKinds) return 0;
+    const gx = (x / f.span) * (f.n - 1), gz = (z / f.span) * (f.n - 1);
+    if (gx < 0 || gz < 0 || gx >= f.n - 1 || gz >= f.n - 1) return 0;
+    const i = Math.floor(gx), j = Math.floor(gz), u = gx - i, v = gz - j, k = j * f.n + i;
+    const c0 = canopy[k] * (1 - u) * (1 - v) + canopy[k + 1] * u * (1 - v) + canopy[k + f.n] * (1 - u) * v + canopy[k + f.n + 1] * u * v;
+    if (c0 < 0.5) return 0;
+    // one dome per crown (Worley cells about 8 m)
+    // crowns of mixed sizes (about 6 and 11 m), the taller ones standing out
+    const a = worley(seed + 41, x / 6, z / 6), b = worley(seed + 43, x / 11, z / 11);
+    const da = Math.sqrt(Math.max(0, 1 - (a.f1 / 0.66) ** 2)) * (0.8 + 0.3 * a.id), db = Math.sqrt(Math.max(0, 1 - (b.f1 / 0.6) ** 2)) * (0.9 + 0.4 * b.id);
+    return c0 * (0.45 + 0.55 * Math.max(da * 0.85, db));
+  };
+  const heightAt = (x: number, z: number) => groundAt(x, z) + canopyAt(x, z);
   // camera: from the near (south, z = 0) side, looking north across the field
   const cam = o.camera ?? {};
   // default viewpoints: inside a range or a valley; back from a volcano, a mesa or a cliff so it stands in its land
@@ -124,10 +147,10 @@ export function renderTerrain(o: TerrainRenderOptions = {}): TerrainRender {
       // aspect: slopes facing away from the sun keep their snow lower
       const shade = 1 - Math.max(0, dot(nrm([n[0], 0, n[2]]), nrm([sunW[0], 0, sunW[2]])));
       const nz = fbm(seed + 17, px / 180, pz / 180, 4), fine = fbm(seed + 19, px / 18, pz / 18, 3);
-      let alb: V;
+      let alb: V, canopyShade = 1;
       if (water) alb = [0.02, 0.035, 0.045];
       else {
-        const hi = py + nz * 140 + shade * 180;
+        const hi = py + nz * 140 + shade * 180, onCanopy = canopyAt(px, pz) > 3;
         const rockK = smooth(33, 42, slope + fine * 6);
         let base: V;
         if (kind === "dunes") base = mix(covers.sand, mix(covers.sand, [0.32, 0.22, 0.13], 0.4), 0.15 + 0.15 * fine);
@@ -149,13 +172,22 @@ export function renderTerrain(o: TerrainRenderOptions = {}): TerrainRender {
         const scour = smooth(-0.35, 0.15, fbm(seed + 29, px / 60, pz / 60, 4) + (hi - snowline) / 900);
         const snowK = kind === "dunes" || kind === "mesa" || kind === "coast" ? 0 : smooth(snowline - 80, snowline + 120, hi) * (1 - smooth(44, 54, slope + fine * 10)) * scour;
         alb = mix(base, mix(covers.snow, covers.oldSnow, 0.35 + 0.25 * nz), snowK);
+        // the crowns: dark conifer and broadleaf greens, each crown a little different
+        if (onCanopy) {
+          // dark foliage (albedo about 0.08–0.15), each crown its own shade; deep shade in the gaps between crowns
+          const a = worley(seed + 41, px / 6, pz / 6), b = worley(seed + 43, px / 11, pz / 11), id = (a.id + b.id) / 2;
+          alb = mix(mix(covers.conifer, covers.broadleaf, smooth(treeline - 900, treeline - 1500, hi)), [0.03, 0.045, 0.03], 0.35 + 0.35 * id);
+          { const g = (alb[0] + alb[1] + alb[2]) / 3; alb = mix(alb, [g, g, g], 0.18); }
+          alb = mix(alb, mix(covers.snow, covers.oldSnow, 0.4), snowK * 0.6);
+          canopyShade = 0.35 + 0.65 * smooth(0.95, 0.35, Math.min(a.f1 / 0.66, b.f1 / 0.6));
+        }
       }
       // light
       const sun = atm.sunlight(py, sunW[1]), sh = water ? 0 : inShadow(px, py + 1.5, pz), nl = Math.max(0, dot(n, sunW)) * (1 - sh);
       const skyAmb = atm.skyIrradiance, ambK = (0.55 + 0.45 * n[1]) / Math.PI;
       const bounce = 0.08 * (1 - n[1]);
       col = [0, 0, 0];
-      for (let c = 0; c < 3; c++) col[c] = alb[c] * (sun[c] * nl + skyAmb[c] * ambK + sun[c] * bounce * 0.15);
+      for (let c = 0; c < 3; c++) col[c] = alb[c] * (sun[c] * nl * (0.5 + 0.5 * canopyShade) + skyAmb[c] * ambK * canopyShade + sun[c] * bounce * 0.15);
       if (water) {
         // the sea or a lake: sky reflection by Fresnel
         const v: V = [-d[0], -d[1], -d[2]], cosI = Math.max(0, dot(v, n)), F = 0.02 + 0.98 * Math.pow(1 - cosI, 5), dn = 2 * dot(d, n), rd: V = nrm([d[0] - dn * n[0], Math.abs(d[1] - dn * n[1]), d[2] - dn * n[2]]), sk = atm.sky(rd);
@@ -178,7 +210,8 @@ export function renderTerrain(o: TerrainRenderOptions = {}): TerrainRender {
   let logSum = 0;
   for (let k = 0; k < w * h; k++) logSum += Math.log(1e-5 + 0.2126 * out.rgb[k * 3] + 0.7152 * out.rgb[k * 3 + 1] + 0.0722 * out.rgb[k * 3 + 2]);
   const meanL = Math.exp(logSum / (w * h)), fixed = 1.9 / Math.max(0.01, gl * 1.15);
-  const exposure = o.exposure ?? Math.exp(0.5 * Math.log(0.18 / meanL) + 0.5 * Math.log(fixed));
+  // (mostly the fixed sunny-day exposure: a frame full of dark forest stays dark, as it does to the eye)
+  const exposure = o.exposure ?? Math.exp(0.3 * Math.log(0.18 / meanL) + 0.7 * Math.log(fixed));
   const fin = downsample(out, SS), rgba = encodeSrgb(fin, { toneMap: "aces", exposure });
   return { width: W, height: H, rgba, ms: (typeof performance !== "undefined" ? performance.now() : Date.now()) - t0, snowline, treeline, field: { min: f.min, max: f.max, kind } };
 }
