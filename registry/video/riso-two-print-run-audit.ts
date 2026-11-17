@@ -1,7 +1,7 @@
 import {createRiso72PaperAffine,riso72ImagePixelToPaperMm}
   from "./riso-paper-photo-affine";
 import type {Riso72ScanAffine} from "./riso-paper-photo-affine";
-import type {RisoProofMark,RisoProofPoint,RisoScanMeasurements}
+import type {RisoProofMark,RisoProofPoint,RisoScanMeasurements,RisoScanPlate}
   from "./riso-scan-proof";
 
 /** RISO73: independent observed source photos of TWO different sheets.
@@ -67,14 +67,14 @@ function inspectCopy(copy:Riso73PrintCopy,plateIds:readonly string[],
     !Array.isArray(scan.plates)||scan.plates.length!==plateIds.length||
     scan.plates.some((plate,i)=>plate?.plateId!==plateIds[i]||
       !Array.isArray(plate.marks)||plate.marks.length!==4||
-      plate.marks.some((mark,j)=>mark?.id!==ids[j]||
+      plate.marks.some((mark:RisoScanPlate["marks"][number],j:number)=>mark?.id!==ids[j]||
         !validPoint(mark.scanPx)||mark.scanPx[0]<0||
         mark.scanPx[0]>copy.pixels[0]||
         mark.scanPx[1]<0||mark.scanPx[1]>copy.pixels[1])))
     throw new RangeError("RISO73 each physical-copy image requires four complete, inside-image marks for every ink drum, in original press order.");
   const paper=createRiso72PaperAffine(scan,sheetMm,copy.pixels,toleranceMm);
   return {paper,plates:Object.fromEntries(scan.plates.map(plate=>[
-    plate.plateId,Object.fromEntries(plate.marks.map(mark=>[
+    plate.plateId,Object.fromEntries(plate.marks.map((mark:RisoScanPlate["marks"][number])=>[
       mark.id,riso72ImagePixelToPaperMm(paper,mark.scanPx),
     ])),
   ])) as Record<string,Record<RisoProofMark,RisoProofPoint>>};
