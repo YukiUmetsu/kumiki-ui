@@ -425,3 +425,65 @@ far-eye foreshortening and corresponding expression response. Geometry
 bounds/tests and browser artifacts alone cannot certify the resulting
 historical portrait or true teacher-painting fidelity. This PR remains draft
 under the independent Fuchun landscape art hold.
+
+
+## Late-Ming portrait multilayer wash study: source-anchored nose/cheek volume (2026-11-16)
+
+**Observed problem at genuine native Chromium 1×/macro:** the young reader was
+still too graphic in the cheeks and the bridge-to-nostril plane. In the
+pre-change actual source-fitted close-up, hard-edged broad tan bars across
+the malar region and an acute dark nasal slash made a nearly two-tone
+mask even though all ANAT1 and EXPR1 geometry tests passed. This is not a
+photoreal likeness; it is a material hierarchy and visual legibility issue.
+
+**External historical references, rather than commercial vector presets:**
+- [University of Michigan Museum of Art, Zeng Jing, *Portrait of Pan Qintai*
+  (1621, 1966/1.110)](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/):
+  near-transparent washes suggest the actual deep-set eye, forehead and
+  curved nose in conjunction with faint light-line drawing.
+- [Staatliche Museen zu Berlin, *Faces of China*, object 9.8 (Zeng Jing /
+  Huang Shiyuan, *Two Portraits of Ge Yilong*)](https://www.smb.museum/fileadmin/website/Presse/Pressematerial/2017/10/04_AKU_171010_Faces_of_China_Site_Plan_Lower_Level.pdf):
+  specifically describes volumetric eye socket/nostril work and successive
+  red/ochre pigment layers in a Jiangnan-mode portrait.
+- [Scholarly historical account of Bochen portrait methods](https://fphil.uniba.sk/fileadmin/fif/katedry_pracoviska/kvas/SOS_10_2/02_39breuer-form120520.pdf):
+  distinguishes ink-first layered modeling (*mogu aotufa*) from
+  fine-contour-and-wash (*goule tiancai fa*) practice. These sources are
+  **process references**, not permission to copy a historical sitter's
+  likeness into the existing teacher-observed youthful reader.
+
+**Implementation, without simplification:**
+\`src/video/ink-shanshui-reader-glazes.ts\` supplies six independent named
+source-space painting strata: near and far orbital shadow, convex side of
+nose, near and far malar transition and sublabial/chin relief. They use
+ANAT1's actual inner canthi, zygions, sellion, nose tip and menton; each
+pass is a distinct continuous cubic contour with its own opacity. The
+non-uniform near/far eye hierarchy is important because the actual
+painting is in three-quarter projection. At high detail, several fine
+source-aligned dry remnants make the edges tactile rather than smearing
+flat paint or introducing random grain.
+
+\`readerFaceAnatomy()\` **retains every existing face plane, eye cel, iris,
+ear, mouth viseme, jaw contour and pressure stroke** and appends the
+new glaze shapes. The previously acute nasal bridge plane gets a *more
+curved* existing four-cubic route and lighter value, not a reduced or
+blanked shape. Existing ink lines retain their own separate topological
+parts, and the two other Shanshui figures are not modified.
+
+**Storybook/QA:** \`Shanshui Reader Face Studio → Reader face · anatomy
+and eyelid/viseme study\` now includes a side-by-side original structural
+ANAT1 vs layered-source-glaze comparator, with live "Face glaze region"
+filter across all six regions. The original form, overall detail, eye/lid
+and five viseme controls drive both versions. Unit checks cover the 260×340
+source coordinate bounds, opacity, deterministic layering, detail tiers,
+unmodified visemes, and continuity of the source anatomy. Native Chromium
+captures cover the full 1× montage, isolated nose relief, and lowest-detail
+closed-eye / OH-viseme case.
+
+**Visual acceptance is still open.** Green CI and a valid six-region
+comparison do not establish that face reads as a Zeng Jing-quality
+historical portrait at 960×540 film scale. Inspect BOTH 1× and macro
+browser imagery and the film's native animated face. Reject if any region
+reads as striped cheek hatching, a cut-out nasal triangle, unnatural
+outer-eye pooling, a heavy lip chin crease, or the original near/far
+gaze becomes obscured. The larger Fuchun mountain/pima/pine draft hold
+also remains independent.
