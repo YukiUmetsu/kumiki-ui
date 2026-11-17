@@ -180,7 +180,7 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
     expect(actor).toContain('data-ink-proof-frame="12"');
     expect(actor).toContain('data-km-shanshui-frame="108"');
     expect(actor).toContain('data-km-shanshui-scene="misty-hermit"');
-    expect(actor).toContain('data-ink-transparent-paper="true"');
+    expect(actor).toContain('data-km-ink-standing-paper="transparent"');
     expect(actor).toContain('data-ink-cue="1.0000"');
     expect((actor.match(/data-km-ink-native-robe-brush=/g)||[])).toHaveLength(4);
     expect(actor).not.toMatch(/(?:NaN|Infinity|undefined)/);
