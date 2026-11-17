@@ -551,11 +551,14 @@ test("ANAT1 Chinese-ink five visemes retain detailed live lip relief and visible
           isInkFill(p)&&alpha(p)>=.25&&alpha(p)<.4);
         const center=paths.find(p=>p.getAttribute("fill")==="#937251"&&
           isInkFill(p)&&alpha(p)>=.17&&alpha(p)<.3);
-        if(!cavity||!inner||!center)
+        const core=paths.find(p=>p.getAttribute("fill")==="#403329"&&
+          isInkFill(p)&&alpha(p)>=.2&&alpha(p)<.3);
+        if(!cavity||!inner||!center||!core)
           throw Error("Missing multi-load original wet-ink speaking mouth");
         const b=(cavity as SVGPathElement).getBBox();
         const ib=(inner as SVGPathElement).getBBox();
         const cb=(center as SVGPathElement).getBBox();
+        const kb=(core as SVGPathElement).getBBox();
         const matrix=(cavity as SVGPathElement).getScreenCTM();
         if(!matrix)throw Error("Detached source mouth");
         const point=new DOMPoint(b.x+b.width*.5,b.y+b.height*.5)
@@ -566,6 +569,7 @@ test("ANAT1 Chinese-ink five visemes retain detailed live lip relief and visible
           width:b.width,height:b.height,
           innerWidth:ib.width,innerHeight:ib.height,
           deepWidth:cb.width,deepHeight:cb.height,
+          trueInkCoreWidth:kb.width,trueInkCoreHeight:kb.height,
           outlineOpacity:alpha(cavity),
           fillCount:paths.filter(p=>p.getAttribute("fill")!=="none").length,
           topOpacity:Math.max(...paths
@@ -582,6 +586,8 @@ test("ANAT1 Chinese-ink five visemes retain detailed live lip relief and visible
       expect(opening.innerWidth).toBeLessThan(opening.width);
       expect(opening.deepWidth).toBeLessThan(opening.innerWidth);
       expect(opening.deepHeight).toBeLessThan(opening.height);
+      expect(opening.trueInkCoreWidth).toBeLessThan(opening.deepWidth);
+      expect(opening.trueInkCoreHeight).toBeLessThan(opening.deepHeight);
       expect(opening.width).toBeLessThan(state==="aa"?15:7);
       expect(opening.height).toBeLessThan(8);
     }
