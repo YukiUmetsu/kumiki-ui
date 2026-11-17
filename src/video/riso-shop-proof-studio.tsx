@@ -247,7 +247,8 @@ export function RisoShopProofStudio(){
       <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end"}}>
         <label style={control}>Scan reading provenance
           <select aria-label="RISO70 scan evidence source"
-            value={inputType} onChange={e=>setInputType(e.target.value as typeof inputType)}>
+            value={inputType} onChange={e=>{setInputType(e.target.value as typeof inputType);
+              setScanPhoto(null);setScanJson("");}}>
             <option value="synthetic">Simulated, NOT physical</option>
             <option value="physical">Operator-entered actual scanned pixels</option>
           </select>
