@@ -11,7 +11,8 @@ const draw=(fields?:readonly CrayonUnderpaintField[],coverage:"open"|"opaque"="o
     bounds={{x:-10,y:-40,width:190,height:230}}
     colors={["#cf947a","#9a6871","#f0c6aa"]}
     underpaintGradient={{light:"#dfb8a0",shadow:"#725658",focusX:.3,focusY:.4,radius:1.1}}
-    underpaintFields={fields} coverage={coverage}
+    underpaintFields={fields} underpaintTooth={coverage==="opaque"?.3:0}
+    coverage={coverage}
     seed={912} pressure={.8} spacing={8} frame={159} first={1} last={159}
     tooth="tooth" reduced={false} markStrength={.4}/></svg>);
 describe("CRAYON1 source-authored physical wax underpaint",()=>{
