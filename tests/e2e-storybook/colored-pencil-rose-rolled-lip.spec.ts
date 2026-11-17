@@ -10,7 +10,7 @@ test("rose folded cuticle A/B survives both native aspect ratios and timeline",a
   await expect(scene).toHaveAttribute("data-km-rose-rolled-lip","baseline");
   for(const aspect of ["landscape","portrait"] as const){
     await page.getByRole("combobox",{name:"Foundation aspect"}).selectOption(aspect);
-    await page.getByRole("button",{name:/6\\. Burnish and visual audit/}).click();
+    await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
     const sourceBefore=await svg.evaluate(node=>node.outerHTML);
     const baseline=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-"+aspect+"-original-source.png")});
@@ -25,12 +25,12 @@ test("rose folded cuticle A/B survives both native aspect ratios and timeline",a
     await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-"+aspect+"-rolled-edge-macro.png")});
     await page.getByRole("checkbox",{name:"Foundation inspect macro"}).uncheck();
-    await page.getByRole("button",{name:/3\\. Light value map/}).click();
+    await page.getByRole("button",{name:/3\. Light value map/}).click();
     await expect(svg.locator('[data-km-pencil-trace^="rose-lip-"]')).toHaveCount(21);
     await expect(svg.locator('[data-km-pencil-trace^="rose-lip-"]').first())
       .toHaveAttribute("stroke-dasharray","0.00000 1");
     await checkbox.uncheck();
-    await page.getByRole("button",{name:/6\\. Burnish and visual audit/}).click();
+    await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
     await expect(svg.locator('[data-km-pencil-trace^="rose-lip-"]')).toHaveCount(0);
     expect(await svg.evaluate(node=>node.outerHTML)).toBe(sourceBefore);
   }
