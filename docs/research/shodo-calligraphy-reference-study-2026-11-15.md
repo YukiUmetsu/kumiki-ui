@@ -623,6 +623,14 @@ Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/2
 
 **Result.** Flagged characters 63 → 43. Overlap with the teacher's ink is unchanged on both halves of her 388 kanji (+0.0006 and +0.0000). The remaining contacts are mostly corner shoulders of 転折 (the corner of 夕 in 死 reaches 匕) and are measured next.
 
+## 2.26 Twenty-second study round: sweeps that lost their start
+
+**What was wrong.** In 用 the first stroke started 150 em below the corner where ㇆ begins, so the frame was open at the top left. KanjiVG opens many strokes with a small pen curl, and `trimFlourish` removes the first 55 em of such a stroke. It cut at the first sample past 55 em. `samplePathData` takes ten samples per cubic, and a long cubic whose first control point lies far down the stroke has its first sample far from its start (用: 150 em). Thirty-eight strokes of 757 characters lost more than 30 em of their start, sixteen more than 100 em, nearly all of them ノ: 夫 read as 天, 失 as 矢, and 央 火 九 明 started their ノ too low.
+
+**Change.** The entry curl is now cut at its length, between two samples. The exit cut is unchanged (it keeps the next sample, so it never cut too much).
+
+**Result.** On her ink, the rules forms of the 316 of her kanji that change are closer on both halves: overlap +0.0054 and +0.0074 (42/7 and 42/4 characters better/worse), centreline distance −0.06 and −0.07. 央 gains 0.24, 夫 0.19, 左 0.16, 映 0.16, 火 0.13; the largest loss is 0.02 (光).
+
 ## 3. From observation to model
 
 | Observation | Model decision |

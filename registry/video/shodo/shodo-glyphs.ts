@@ -334,10 +334,19 @@ function trimFlourish(raw: Vec[]): Vec[] {
   // KanjiVG's pen-style entry and exit curls span up to ~5 of its 109 units (≈ 50 em).
   const lead = Math.min(55, total * .12);
   let from = 0, to = raw.length - 1;
-  if (turn(dir(raw[0], at(lead)), dir(at(lead), at(lead * 2.5))) > .26) from = Math.max(0, arc.findIndex(a => a >= lead));
+  let start: Vec | null = null;
+  if (turn(dir(raw[0], at(lead)), dir(at(lead), at(lead * 2.5))) > .26) {
+    // Cut the entry curl at that length, between samples: a long cubic is sampled sparsely, and
+    // its next sample can lie far past the curl (用's first stroke lost 150 em and left its corner
+    // open; 夫's ノ started below its top line). The exit cut keeps the next sample, as before.
+    from = Math.max(1, arc.findIndex(a => a >= lead));
+    const t = (lead - arc[from - 1]) / ((arc[from] - arc[from - 1]) || 1);
+    start = [raw[from - 1][0] + (raw[from][0] - raw[from - 1][0]) * t, raw[from - 1][1] + (raw[from][1] - raw[from - 1][1]) * t];
+  }
   if (turn(dir(at(total - lead), raw[raw.length - 1]), dir(at(total - lead * 2.5), at(total - lead))) > .26)
     to = Math.max(from + 1, arc.findIndex(a => a >= total - lead));
-  return raw.slice(from, to + 1);
+  const kept = raw.slice(from, to + 1);
+  return start && Math.hypot(start[0] - kept[0][0], start[1] - kept[0][1]) > 1e-6 ? [start, ...kept] : kept;
 }
 
 /** Small かな: the 拗音 and 促音 marks. */
