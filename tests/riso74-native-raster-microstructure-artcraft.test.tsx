@@ -107,6 +107,10 @@ describe("RISO74 source-photo native pixels and honest Risograph microstructure 
     expect(html).toContain("Insufficient native pixels");
     expect(html).toContain('data-km-riso74-ppi="1"');
     expect(html).toContain('data-km-riso74-ppi="2"');
+    expect(html).toContain('data-km-riso74-paper-locator="1"');
+    expect(html).toContain('data-km-riso74-paper-locator="2"');
+    expect(html).toContain("4 mm physical micro-area");
+    expect(html).not.toContain("**upper bound**");
     expect(html).toContain('href="blob:first"');
     expect(html).toContain('href="blob:second"');
     expect(html).toContain('image-rendering:pixelated');
