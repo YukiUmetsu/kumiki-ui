@@ -65,6 +65,10 @@ async({page},info)=>{
     nodes.map(node=>node.getAttribute("d")))).toEqual(fibres);
   expect(await signature(source)).toEqual(originalInsert);
   expect(await signature(cover)).toEqual(originalCover);
+  await studio.getByRole("combobox",{name:"RISO79 source microscope zoom"}).selectOption("1");
+  await studio.locator("[data-km-riso79-film]").screenshot({
+    path:info.outputPath("riso80-organic-three-contours-endstop-1x.png"),animations:"disabled",
+  });
 
   await studio.getByRole("combobox",{name:"RISO79 aspect"}).selectOption("portrait");
   await expect(studio).toHaveAttribute("data-km-riso79-aspect","portrait");
