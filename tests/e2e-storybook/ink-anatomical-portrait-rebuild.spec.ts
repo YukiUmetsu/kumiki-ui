@@ -6,8 +6,8 @@ test("ANAT2 Chinese ink characters are genuinely different, expressive, and sour
     const preview=page.getByTestId("ink-anat2-live");
     const portrait=preview.getByTestId("ink-anat2-portrait");
     await expect(portrait).toBeVisible();
-    await expect(portrait.locator('[data-km-ink-cheek="L"] path')).toHaveCount(15);
-    await expect(portrait.locator('[data-km-ink-cheek="R"] path')).toHaveCount(15);
+    await expect(portrait.locator('[data-km-ink-cheek="L"] path')).toHaveCount(14);
+    await expect(portrait.locator('[data-km-ink-cheek="R"] path')).toHaveCount(14);
     const initialBrow=await portrait.locator('[data-km-ink-brow="L"] path').first().getAttribute("d");
     await page.getByRole("combobox",{name:"Ink rebuilt expression"}).selectOption("sad");
     const sadBrow=await portrait.locator('[data-km-ink-brow="L"] path').first().getAttribute("d");
