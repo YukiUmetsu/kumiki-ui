@@ -487,3 +487,49 @@ reads as striped cheek hatching, a cut-out nasal triangle, unnatural
 outer-eye pooling, a heavy lip chin crease, or the original near/far
 gaze becomes obscured. The larger Fuchun mountain/pima/pine draft hold
 also remains independent.
+
+
+### Positive anatomy correction after native portrait comparison · 2026-11-16
+
+The six-region translucent glazing pass was useful but could not repair
+the **underlying** near-cheek stripe and front-face angular nose silhouette
+in actual 1× Storybook captures. The next ArtCraft correction changes
+the originating geometry, not merely alpha on added paint layers:
+
+- The original near zygomatic value now rises from the source
+  zygion.R toward the orbital cheek and curls back **before**
+  reaching the upper lip. Its retained four cubic segments describe
+  a convex malar dome and unpainted inner paper, not a diagonal ribbon.
+  A second original masseter region bends beneath the cheek into the
+  rounded chin (four cubic turns); the fine mandibular pressure ink
+  remains independent.
+- The far malar region retains the much narrower volume appropriate
+  to a true three-quarter face. Its interior contour now follows the
+  far zygoma instead of closing as a straight, long triangular wedge.
+- The nose begins at the original ANAT1 sellion, but the independently
+  pressure-painted dorsal and secondary edge now turn into the
+  pronasale with a small rounded exit; the near alar pigment plane
+  is a short oval bend. The attached nostril and reflected paper-light
+  strokes stay present, thin, and independently editable.
+- Pigment alpha on these modified structural shapes **decreases**,
+  while all previous individual micro-elements, positive head,
+  ear, pupil, lid variants, five visemes, expression morphs and
+  added Bochen multi-pass glazes remain preserved.
+
+Authentic benchmark:
+[Zeng Jing's 1621 *Portrait of Pan Qintai* at UMMA](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/)
+describes individual eye-socket, nose and forehead volume built in ink
+wash instead of a flat mask; the
+[Bochen school process research](https://fphil.uniba.sk/fileadmin/fif/katedry_pracoviska/kvas/SOS_10_2/02_39breuer-form120520.pdf)
+distinguishes accumulated ink/colour from light contour plus glaze.
+This student-style young scroll reader is **not** Pan Qintai and must
+not appropriate or trace the historical sitter's image.
+
+**Review gate:** compare the actual screen-space face crop and the
+960×540 animated film before claiming quality. At macro level the
+malar return must read as a convex form, the far cheek as a short
+receding plane, and nasal tip as attached to (not hanging from) the
+sellion. At 1× the revised underpaint must neither create new sharp
+folds nor vanish beneath the opaque head; independently inspect open,
+soft and closed eyelids and OH/AA/rest mouth. The earlier unchanged
+Fuchun landscape ArtCraft hold remains in force.
