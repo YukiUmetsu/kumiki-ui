@@ -7,7 +7,7 @@ import type { Portrait, SkinPaintSample } from "../registry/anatomy/face-portrai
 import { srgbDecode } from "../registry/anatomy/foundation-raster";
 import { deltaE2000, filmStep, labToLinear, linearToLab, pigmentFor, readSkin } from "../registry/anatomy/makeup-color";
 import type { RGB } from "../registry/anatomy/anatomy-color";
-import { MAKEUP_LOOKS } from "../registry/anatomy/makeup-data";
+import { MAKEUP_EVIDENCE, MAKEUP_LOOKS } from "../registry/anatomy/makeup-data";
 import type { Look } from "../registry/anatomy/makeup-data";
 import { EYE_SHAPES } from "../registry/anatomy/eye-detail";
 import { checkMakeup, designMakeup, tapedEyeShape } from "../registry/anatomy/makeup-design";
@@ -139,6 +139,39 @@ describe("MAKEUP1 eye tools in the plan", () => {
     expect(get(good, "aegyo-sal-height").ok).toBe(true); expect(get(good, "wing-angle").ok).toBe(true); expect(get(good, "lens-size").ok).toBe(true);
     const bad = checkMakeup(designMakeup({ look: { ...look, eyes: { lens: { diameter: 15.5, ring: 0.6 } } }, face: V, overrides: { "aegyo-sal": { adjust: { radius: 3 } } } }), V);
     expect(get(bad, "aegyo-sal-height").ok).toBe(false); expect(get(bad, "lens-size").ok).toBe(false);
+  });
+});
+
+describe("MAKEUP1 East Asian looks", () => {
+  const EAST_ASIAN = ["c-glam", "k-idol", "jirai", "neo-gyaru", "ryousangata"];
+  it("designs the East Asian looks on single, in-fold and almond lids, for women and men", () => {
+    for (const id of EAST_ASIAN) {
+      for (const e of MAKEUP_LOOKS.find(l => l.id === id)!.evidence) expect(MAKEUP_EVIDENCE.some(x => x.id === e), `${id} cites ${e}`).toBe(true);
+      for (const eyeShape of ["monolid", "inner-double", "almond"] as const) for (const sex of [0, 1]) {
+        const V = beautifulFace({ sex, faceType: "east-asian", eyeShape }).vertices;
+        const plan = designMakeup({ look: id, face: V, eyeShape, skin: sex ? "#d9b08c" : "#e8c6a8" });
+        expect(plan.layers.length, id).toBeGreaterThan(6);
+        for (const c of checkMakeup(plan, V)) expect(c.ok, `${id} ${eyeShape} sex ${sex}: ${c.message}`).toBe(true);
+      }
+    }
+  });
+  it("paints a new look on a photograph without its eye tools", () => {
+    const W = 220, H = 260, data = new Uint8ClampedArray(W * H * 4);
+    for (let i = 0; i < W * H; i++) data.set([205, 160, 135, 255], i * 4);
+    const landmarks = CANON.map(([x, y, z]) => [W / 2 + x * 1.1, H / 2 - y * 1.1 + 6, -z * 1.1]);
+    const out = paintPhoto({ width: W, height: H, data, landmarks }, designMakeup({ look: "c-glam", face, skin: "#d8a98a" }));
+    const lc = CANON[17].map((v, k) => (v + CANON[14][k]) / 2) as Vec3, x = Math.round(W / 2 + lc[0] * 1.1), y = Math.round(H / 2 - lc[1] * 1.1 + 6), i = (y * W + x) * 4;
+    expect(out[i] - out[i + 1]).toBeGreaterThan(205 - 160 + 15);
+  });
+  it("lifts the wing on downturned eyes and flattens it on upturned eyes", () => {
+    const angle = (eyeShape: string) => {
+      const V = beautifulFace({ sex: 0, eyeShape }).vertices, plan = designMakeup({ look: "classic-red", face: V, eyeShape });
+      const p = resolveZone("liner-wing", V, plan.layers.find(l => l.zone === "liner-wing")!.adjust)[0].pts, tip = p[p.length - 1];
+      return Math.atan2(tip[1] - p[0][1], Math.abs(tip[0] - p[0][0])) * 180 / Math.PI;
+    };
+    expect(angle("downturned")).toBeGreaterThan(angle("almond"));
+    expect(angle("upturned")).toBeLessThan(angle("almond"));
+    expect(angle("round")).toBeLessThan(angle("almond"));
   });
 });
 
