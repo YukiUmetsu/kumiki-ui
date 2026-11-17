@@ -174,10 +174,29 @@ export function inkReaderExpressionStudy(
   const sourceEyes=assets["eyes-soft"];
   if(sourceEyes.kind!=="shapes")throw new Error("Reader lids must be SVG shapes");
   const aperture=clamp(1+1.17*(features.eyeOpen-1),.61,1.56);
+  // ANAT1/EXPR1 muscle response is asymmetric: AU6 orbicularis oculi
+  // lifts the *lower* tarsal shelf with the zygomatic cheek; AU5 widens
+  // the eye by recruiting mostly the upper lid. The previous symmetric
+  // scaling changed the ellipse numerically but read as identical in
+  // the real 1× five-pose atlas. Each original upper/lower brow and
+  // eyelid paint path keeps its own source topology and brush fibres.
+  const cheekLid=clamp(features.cheekRaise*3.2,0,.75);
+  const narrowLid=clamp((1-features.eyeOpen)*1.3,0,.65);
+  const upperOpen=clamp((features.eyeOpen-1)*2.3,0,.8);
   const lidWarp:InkWarp=(x,y)=>{
-    const center=x<143?105.25:104.6;
+    const near=x<143;
+    const center=near?105.25:104.6;
+    const eyeX=near?126.7:156.4;
+    const halfSpan=near?9.1:7.4;
+    // Contact pressure decays to zero at the original canthi so no
+    // detached inner tear duct or broken far-eye perspective appears.
+    const contact=Math.pow(clamp(1-Math.abs(x-eyeX)/halfSpan,0,1),.72);
     const fall=clamp(1-Math.abs(y-center)/8,0,1);
-    return [0,(y-center)*(aperture-1)*fall];
+    const lower=clamp((y-center)/3.1,0,1);
+    const upper=clamp((center-y)/3.1,0,1);
+    const asymmetric=-contact*((cheekLid+narrowLid)*lower+
+      upperOpen*upper);
+    return [0,(y-center)*(aperture-1)*fall+asymmetric];
   };
   assets["eyes-soft"]=withShapes(sourceEyes,sourceEyes.shapes
     .filter((s):s is CharacterPathShape=>s.type==="path")
