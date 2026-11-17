@@ -98,6 +98,14 @@ jobs:
         run: node --test tests/pencil-head-native-proof-capture.test.mjs
       - name: Verify new rose lamina native pixel parity first
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-rose-lamina.spec.ts
+      - name: Preserve independent rose native A/B and macro screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pencil-rose-lamina-native-proof
+          path: test-results/colored-pencil-rose-lamina-*/
+          retention-days: 7
+          if-no-files-found: warn
       - name: Check original drawing stages and 16:9 / 9:16 hero pixels
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-foundation.spec.ts tests/e2e-storybook/colored-pencil-cranial-volume.spec.ts tests/e2e-storybook/colored-pencil-head-silhouette-study.spec.ts tests/e2e-storybook/colored-pencil-portrait-guides.spec.ts tests/e2e-storybook/colored-pencil-head-annotation.spec.ts tests/e2e-storybook/colored-pencil-head-contour-review.spec.ts
       - name: Keep only the focused ArtCraft evidence
