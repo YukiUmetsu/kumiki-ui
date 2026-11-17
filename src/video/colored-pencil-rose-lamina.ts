@@ -33,7 +33,7 @@ const notes=[
   {id:"cool-shadow",color:"#552943",width:.38,opacity:.23,startFrame:169},
   {id:"carmine",color:"#A33360",width:.32,opacity:.30,startFrame:203},
   {id:"rose-veil",color:"#D87985",width:.23,opacity:.24,startFrame:234},
-  {id:"cuticle-light",color:"#FFD1BA",width:.18,opacity:.25,startFrame:260},
+  {id:"cuticle-light",color:"#FFD1BA",width:.22,opacity:.25,startFrame:260},
 ] as const;
 function sample(axis:RoseLaminaAxis,t:number){
   const u=1-t;
@@ -93,7 +93,7 @@ export function roseLaminaFibres(id:string,seed:number):PencilTrace[]{
     const path=commands.join(" ");
     if(path.length>12000)throw new RangeError("Botanical microfibre SVG budget exceeded");
     return {
-      id:"rose-lamina-"+id+"-"+note.id,path,color:note.color,
+      id:"rose-lam-"+id+"-"+note.id,path,color:note.color,
       width:note.width,opacity:note.opacity,
       startFrame:note.startFrame,durationFrames:49,
     };
