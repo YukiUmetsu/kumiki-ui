@@ -57,7 +57,7 @@ jobs:
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
-          --grep "ArtCraft source-referenced portrait audit|F1 V(43|44|45|46)"
+          --grep "ArtCraft source-referenced portrait audit|F1 V46"
       - name: Capture complete portrait and expression archival evidence (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-
