@@ -11,7 +11,7 @@ test("rose five-sepal calyx native A/B proof for both film formats",async({page}
   await expect(checkbox).not.toBeChecked();
   for(const aspect of ["landscape","portrait"] as const){
     await page.getByRole("combobox",{name:"Foundation aspect"}).selectOption(aspect);
-    await page.getByRole("button",{name:/6\\. Burnish and visual audit/}).click();
+    await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
     await expect(svg).toHaveAttribute("viewBox",aspect==="landscape"?"0 0 960 540":"0 0 540 960");
     const before=await svg.evaluate(node=>node.outerHTML);
     const base=await svg.screenshot({animations:"disabled",
@@ -35,7 +35,7 @@ test("rose five-sepal calyx native A/B proof for both film formats",async({page}
     expect(await svg.evaluate(node=>node.outerHTML)).toBe(before);
   }
   await checkbox.check();
-  await page.getByRole("button",{name:/3\\. Light value map/}).click();
+  await page.getByRole("button",{name:/3\. Light value map/}).click();
   await expect(svg.locator('[data-km-pencil-region^="calyx-"]')).toHaveCount(6);
   await expect(svg.locator('[data-km-pencil-region^="calyx-"] [data-km-pencil-details] path').first())
     .toHaveAttribute("stroke-dasharray","0.00000 1");
@@ -49,7 +49,7 @@ test("five native sepal bases attach within the actual rose receptacle fill",asy
   await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
   await page.getByRole("checkbox",{name:"Foundation rose calyx anatomy"}).check();
-  await page.getByRole("button",{name:/6\\. Burnish and visual audit/}).click();
+  await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
   const proof=await page.locator("svg[data-km-colored-pencil]").evaluate(svg=>{
     const receptor=svg.querySelector(
       '[data-km-pencil-region="calyx-receptacle"] [data-km-pencil-support]') as SVGPathElement|null;
