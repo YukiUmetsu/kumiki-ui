@@ -145,6 +145,16 @@ export function InkZengJingScholarHead({
       <clipPath id={uid+"-face-clip"}><path d={facePath}/></clipPath>
     </defs>
 
+    {/* Neck joins the collar; its sternocleidomastoid planes are wash, not lines. */}
+    <path d="M254 372 C256 390 253 405 247 419
+      Q270 432 293 419 C286 403 284 389 286 372 Z"
+      fill={`url(#${uid}-neck)`} opacity=".94"/>
+    <path d="M254 386 Q262 397 269 397 Q279 395 286 385"
+      fill="none" stroke={bone} strokeWidth="1.0" opacity=".30"/>
+    <path d="M260 392 Q259 408 255 416 M280 392 Q281 407 286 416"
+      fill="none" stroke={warm} strokeWidth="4.1" opacity=".10"
+      filter={`url(#${uid}-wash)`}/>
+
     {/* Skull and jaw: a narrow, asymmetric human cranium, not a vector oval. */}
     <path d={facePath} fill={`url(#${uid}-skin)`}
       stroke="#9f8872" strokeWidth=".52" strokeOpacity=".22"/>
@@ -290,16 +300,6 @@ export function InkZengJingScholarHead({
         d={`M${n(250+i*4.2)} ${n(279+(i%3)*2)} q2 -1 4 .2`}
         stroke={bone} strokeWidth=".25" opacity={.13*detail} fill="none"/>)}
     </g>}
-
-    {/* Neck joins the collar; its sternocleidomastoid planes are wash, not lines. */}
-    <path d="M254 372 C256 390 253 405 247 419
-      Q270 432 293 419 C286 403 284 389 286 372 Z"
-      fill={`url(#${uid}-neck)`} opacity=".94"/>
-    <path d="M254 386 Q262 397 269 397 Q279 395 286 385"
-      fill="none" stroke={bone} strokeWidth="1.0" opacity=".30"/>
-    <path d="M260 392 Q259 408 255 416 M280 392 Q281 407 286 416"
-      fill="none" stroke={warm} strokeWidth="4.1" opacity=".10"
-      filter={`url(#${uid}-wash)`}/>
 
     {/* Plain scholar's soft black gauze cap, with paper-visible dry fibers. */}
     <g data-km-zj1-headwear="ming-soft-black-gauze">
