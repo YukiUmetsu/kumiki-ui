@@ -31,10 +31,10 @@ export interface InkAnatomicalPortraitProps {
 const PERSONS={
   scholar:{yaw:19,face:{sex:.9,eyeSpacing:-.25,eyeWidth:.12,
     noseWidth:-.2,noseLength:.16,lowerFace:-.28,faceWidth:.94,mouthWidth:.98} satisfies FaceParams,
-    complexion:"#ddc4a4",bone:"#937a64",ink:"#2c2826",warm:"#ac7864",robe:"#a8a299"},
+    complexion:"#f0e0c7",bone:"#8f7967",ink:"#292b29",warm:"#ae8d75",robe:"#b3ad9f"},
   elder:{yaw:27,face:{sex:1,eyeSpacing:.18,eyeWidth:-.23,
     noseWidth:.38,noseLength:.48,lowerFace:.44,faceWidth:1.1,mouthWidth:.91} satisfies FaceParams,
-    complexion:"#ccb296",bone:"#826d59",ink:"#312f2c",warm:"#936f59",robe:"#777c77"},
+    complexion:"#e8d4b7",bone:"#7e7261",ink:"#2d302e",warm:"#a3846e",robe:"#9a9992"},
 } as const;
 type Point=readonly[number,number];
 const clamp=(x:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,x));
@@ -43,7 +43,7 @@ const xy=(p:Point)=>fmt(p[0])+" "+fmt(p[1]);
 /** Project the original 468-point millimetre ANAT1 mask; no old portrait path is read. */
 function projection(yaw:number){
   const a=yaw*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
-  return (p:readonly number[]):Point=>[270+2.03*(p[0]*c+p[2]*s),232-2.03*p[1]];
+  return (p:readonly number[]):Point=>[270+1.91*(p[0]*c+p[2]*s),232-2.03*p[1]];
 }
 function spline(points:readonly Point[],closed=false){
   if(points.length<2)return "";
@@ -118,12 +118,24 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
     const cheek=q(("cheekbone."+side) as keyof typeof FACE_LANDMARKS),zy=q(("zygion."+side) as keyof typeof FACE_LANDMARKS),al=q(("alare."+side) as keyof typeof FACE_LANDMARKS);
     const gon=q(("gonion."+side) as keyof typeof FACE_LANDMARKS),eye=q(("palpebrale-inferius."+side) as keyof typeof FACE_LANDMARKS);
     const near=side==="L"?1:.72;
-    const cheekVolume="M"+xy(shift(eye,0,3))+" C"+xy(shift(cheek,-3,0))
-      +" "+xy(shift(zy,side==="L"?3:-3,12))+" "+xy(shift(gon,side==="L"?-7:7,-11))
-      +" Q"+xy(shift(al,side==="L"?9:-9,17))+" "+xy(shift(al,2,3))+" Z";
+    // Zygoma->maxilla wet relief, not a straight-edged cardboard cheek.
+    const direction=side==="L"?1:-1;
+    const cheekVolume="M"+xy(shift(eye,0,6))
+      +" C"+xy(shift(cheek,-direction*8,0))
+      +" "+xy(shift(zy,-direction*44,7))
+      +" "+xy(shift(zy,-direction*23,16))
+      +" C"+xy(shift(zy,-direction*35,32))
+      +" "+xy(shift(al,direction*24,30))
+      +" "+xy(shift(al,direction*10,22))
+      +" Q"+xy(shift(al,direction*17,8))
+      +" "+xy(shift(al,direction*7,5))
+      +" Q"+xy(shift(cheek,-direction*17,-5))
+      +" "+xy(shift(eye,0,6))+" Z";
     return <g key={side} data-km-ink-cheek={side}>
-      <path d={cheekVolume} fill={preset.bone} opacity={.10*near}/>
-      <path d={cheekVolume} fill={preset.warm} opacity={.045*near}/>
+      <path d={cheekVolume} data-km-ink-wet-malar="bone" fill={preset.bone} opacity={.21*near}
+        filter={"url(#"+uid+"-wash-feather)"}/>
+      <path d={cheekVolume} data-km-ink-wet-malar="warm" fill={preset.warm} opacity={.086*near}
+        filter={"url(#"+uid+"-wash-feather)"}/>
       <path d={"M"+xy(shift(eye,-1,5))+" Q"+xy(shift(cheek,0,7))+" "+xy(shift(zy,side==="L"?5:-5,14))}
         stroke={preset.bone} strokeWidth="5.8" opacity={.09*near} fill="none"/>
       <path d={"M"+xy(shift(eye,0,8))+" Q"+xy(shift(cheek,1,10))+" "+xy(shift(al,side==="L"?7:-7,15))}
@@ -156,6 +168,9 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
   return <>
     <defs>
       <clipPath id={uid+"-skin"}><path d={faceOutline}/></clipPath>
+      <filter id={uid+"-wash-feather"} x="-35%" y="-35%" width="170%" height="170%">
+        <feGaussianBlur stdDeviation="5.2"/>
+      </filter>
       <filter id={uid+"-fibres"} x="-10%" y="-10%" width="120%" height="120%">
         <feTurbulence type="fractalNoise" baseFrequency=".074 .12" numOctaves="3"
           seed={character==="scholar"?11:31} result="grain"/>
@@ -209,17 +224,27 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
     <path d={"M"+xy(shift(templeR,0,-39))+" C"+xy(shift(top,-85,-54))+" "+xy(shift(top,45,-76))
       +" "+xy(shift(templeL,7,-25))+" L"+xy(shift(templeL,6,11))}
       fill={preset.ink} fillOpacity={character==="scholar"?.90:.65} stroke={preset.ink} strokeWidth="1.6"/>
-    <path d={faceOutline} fill={preset.complexion} stroke={preset.bone} strokeWidth="1.25"/>
+    <path d={faceOutline} fill={preset.complexion} stroke={preset.bone} strokeWidth=".78" strokeOpacity=".53"/>
     <g clipPath={"url(#"+uid+"-skin)"} data-km-ink-anatomy-washes="true">
       {/** No digital airbrush gradients: several overlaid, locally mapped pigment glazes. */}
-      <path d={"M"+xy(shift(top,-63,23))+" Q"+xy(shift(top,-3,54))+" "+xy(shift(top,68,16))
-        +" L"+xy(shift(top,57,64))+" Q"+xy(shift(top,-3,83))+" "+xy(shift(top,-69,52))+" Z"}
-        fill={preset.bone} opacity=".073"/>
-      <path d={"M"+xy(shift(top,-50,32))+" Q"+xy(shift(top,-10,54))+" "+xy(shift(top,51,27))
-        +" L"+xy(shift(top,40,48))+" Q"+xy(shift(top,-8,67))+" "+xy(shift(top,-59,48))+" Z"}
-        fill={preset.warm} opacity=".054"/>
-      <path d={"M"+xy(foreheadLeft)+" Q"+xy(shift(top,-3,62))+" "+xy(foreheadRight)}
-        stroke={preset.bone} opacity=".14" strokeWidth="9.5" fill="none"/>
+      {/** Overlapping wet brush deposits following living frontal bone arcs;
+           preserve sharp microstroke layers above, no hard polygon ends. */}
+      {Array.from({length:13},(_,i)=>{
+        const k=i/12,spread=(1-Math.pow(Math.abs(k-.5)*2,2))*.72+.28;
+        const start=shift(foreheadLeft,4+i*.8,-3-i*1.36);
+        const mid=shift(top,-4+(i-6)*1.4,58-i*2.2);
+        const end=shift(foreheadRight,-4-i*.84,-2-i*1.25);
+        return <path key={i} data-km-ink-frontal-glaze={i}
+          d={"M"+xy(start)+" Q"+xy(mid)+" "+xy(end)}
+          stroke={i%3===0?preset.warm:preset.bone}
+          strokeWidth={4+7*spread} strokeLinecap="round" fill="none"
+          filter={"url(#"+uid+"-wash-feather)"}
+          opacity={.032+(.017*spread)}/>;
+      })}
+      <path d={"M"+xy(shift(foreheadLeft,-3,9))+" Q"+xy(shift(top,-6,67))
+        +" "+xy(shift(foreheadRight,2,9))}
+        stroke={preset.warm} strokeWidth="8.5" opacity=".085"
+        filter={"url(#"+uid+"-wash-feather)"} fill="none"/>
       {washes("R")}{washes("L")}
       <path d={spline(feature("nose-bridge"))} stroke={preset.bone}
         strokeWidth="9" strokeOpacity=".15" fill="none"/>
@@ -235,9 +260,16 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
     <g data-km-ink-facial-structures="true">
       {/** Nose and orbital canthi come from pose-dependent ANAT1 vertex loops. */}
       <path d={spline(feature("nose-bridge"))} fill="none" stroke={preset.bone}
-        strokeWidth=".78" strokeLinecap="round" opacity=".55"/>
-      <path d={spline(feature("nose-base"))} fill="none" stroke={preset.ink}
-        strokeWidth=".76" opacity=".54"/>
+        strokeWidth=".61" strokeLinecap="round" opacity=".36"/>
+      {/** Interrupt the nasal-base line at the tissue planes: no U-shaped decal. */}
+      <path d={pathBetween(shift(q("alare.R"),-1,2),
+        shift(q("subnasale"),-13,2),shift(q("subnasale"),-3,3))}
+        stroke={preset.bone} strokeWidth=".63" opacity=".43" fill="none"/>
+      <path d={pathBetween(shift(q("subnasale"),3,3),
+        shift(q("subnasale"),10,4),shift(q("alare.L"),1,1))}
+        stroke={preset.bone} strokeWidth=".53" opacity=".31" fill="none"/>
+      <path d={pathBetween(shift(nose,-8,8),shift(nose,-2,11),shift(nose,7,8))}
+        fill="none" stroke={preset.warm} strokeWidth="2.3" opacity=".12"/>
       {(["R","L"] as const).map(side=><g key={side} data-km-ink-brow={side}>
         <path d={spline(brow(side))} stroke={preset.ink} strokeWidth={side==="L"?2.05:1.55}
           fill="none" opacity=".75" strokeLinecap="round"/>
@@ -251,13 +283,13 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
         })}
       </g>)}
       {eyeInk("R")}{eyeInk("L")}
-      <path d={spline(upperLip)} fill="none" stroke={preset.warm} opacity=".55" strokeWidth="1.05"/>
-      <path d={spline(lowerLip)} fill="none" stroke={preset.bone} opacity=".47" strokeWidth=".95"/>
+      <path d={spline(upperLip)} fill="none" stroke={preset.warm} opacity=".32" strokeWidth=".68"/>
+      <path d={spline(lowerLip)} fill="none" stroke={preset.bone} opacity=".31" strokeWidth=".67"/>
       {features.mouthOpen>.012&&<path data-km-ink-mouth-cavity="true"
         d={spline([...upperLip.slice(3,9),...lowerLip.slice(3,9).reverse()],true)}
         fill={preset.ink} opacity={clamp(.20+features.mouthOpen*.95,.2,.72)}/>}
       <path data-km-ink-mouth-line="true" d={spokenMouthContour} stroke={preset.ink}
-        strokeWidth="1.05" opacity=".68" strokeLinecap="round" fill="none"/>
+        strokeWidth=".76" opacity=".58" strokeLinecap="round" fill="none"/>
       <path d={"M"+xy(shift(q("sublabiale"),-12,4))+" Q"+xy(shift(q("sublabiale"),1,8))+" "+xy(shift(q("sublabiale"),13,1))}
         stroke={preset.bone} fill="none" strokeWidth=".64" opacity=".46"/>
       {marks.map(m=><g key={m.id} data-km-ink-action-mark={m.id}>
