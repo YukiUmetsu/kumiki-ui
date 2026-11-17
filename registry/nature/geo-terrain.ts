@@ -97,11 +97,19 @@ function shape(kind: TerrainKind, seed: number, u: number, v: number): number {
       return Math.max(0, hh - gully + 0.04 * fbm(seed + 9, u * 4, v * 4, 4) * smooth(0.1, 0.6, r));
     }
     case "mesa": {
-      // a cap rock over softer layers: a plateau where the field is high, cliffs, then a talus apron; strata
-      const f = fbm(seed, u * 4.2, v * 4.2, 5) * 0.5 + 0.5, edge = 0.6;
-      const top = smooth(edge - 0.015, edge + 0.005, f), apron = smooth(edge - 0.2, edge - 0.015, f);
-      const strata = 0.02 * Math.sin(apron * 40) * apron * (1 - top);
-      return 0.12 + 0.6 * apron * 0.5 + top * (0.85 - 0.3) + strata + 0.03 * fbm(seed + 4, u * 12, v * 12, 3);
+      // A hard cap rock over softer layers: broad flat tables (a couple of km across) where a low-frequency field is
+      // high; at the table's edge a near-vertical cliff band (the cap and the layer below it), then a talus apron at
+      // about 33° falling to the plain. Distance to the edge from the field and its gradient.
+      const fq = 2.3, f = fbm(seed, u * fq, v * fq, 4) * 0.5 + 0.5, e = 0.004;
+      const gx = ((fbm(seed, (u + e) * fq, v * fq, 4) - fbm(seed, (u - e) * fq, v * fq, 4)) * 0.5) / (2 * e), gy = ((fbm(seed, u * fq, (v + e) * fq, 4) - fbm(seed, u * fq, (v - e) * fq, 4)) * 0.5) / (2 * e);
+      const edge = 0.6, dist = (edge - f) / Math.max(0.05, Math.hypot(gx, gy));
+      const cap = 0.96 + 0.02 * fbm(seed + 4, u * 14, v * 14, 2), cliffDrop = 0.38, cliffW = 0.0035;
+      // talus: 33° in unit heights per unit distance (span / relief, about 6000 / 380)
+      const talus = Math.tan((33 * Math.PI) / 180) * (6000 / 380), floor = 0.06 + 0.04 * fbm(seed + 6, u * 3, v * 3, 3);
+      if (dist <= 0) return cap;
+      if (dist < cliffW) return cap - cliffDrop * smooth(0, cliffW, dist) - 0.01 * fbm(seed + 8, u * 40, v * 40, 2);
+      const apron = cap - cliffDrop - (dist - cliffW) * talus + 0.015 * fbm(seed + 9, u * 30, v * 30, 2);
+      return Math.max(floor, apron);
     }
     case "dunes": {
       // transverse dunes across a wind from -z to +z: a gentle back (about 70% of the wavelength) and a slip face
