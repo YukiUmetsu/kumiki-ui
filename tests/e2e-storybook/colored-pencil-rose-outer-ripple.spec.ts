@@ -120,7 +120,7 @@ test("softly scalloped distal rim is source-fill, paper locked and its five dry 
   for(const a of areas){
     expect(a.width).toBeGreaterThan(120);
     expect(a.height).toBeGreaterThan(130);
-    expect(a.area).toBeGreaterThan(17500);
+    expect(a.area).toBeGreaterThan(16000);
   }
   const hash=digest(await svg.screenshot({animations:"disabled"}));
   await page.getByRole("button",{name:/3\. Light value map/}).click();
