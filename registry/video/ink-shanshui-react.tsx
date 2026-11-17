@@ -2735,9 +2735,15 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
         // belly—not a random screen-space stroke. Five/eight/seven/six
         // asynchronous loads provide different near/middle/far bank rhythm.
         // Each two-phrase path has a real dry-paper break in its center.
-        const innerStrata=Array.from({length:([5,8,7,6] as const)[i]},
-          (_,j)=>{
-            const count=([5,8,7,6] as const)[i];
+        const innerCount=([5,8,7,6] as const)[i];
+        // Detail is an optional viewing LOD, not destructive edits to the
+        // brush. Select original station IDs across the WHOLE bank, never
+        // compress the surviving strokes into a new mechanical comb.
+        // At detail=1 every authored micro-element remains intact.
+        const innerStations=Array.from({length:innerCount},(_,j)=>j)
+          .filter(j=>s(seed+9503,i*109+j*37)<detail);
+        const innerStrata=innerStations.map(j=>{
+            const count=innerCount;
             const t=clamp(.12+.76*(j+.45)/count+
               (s(seed+9401,i*113+j*29)-.5)*.07,.13,.9);
             const depth=clamp(.21+.16*((j*3+i)%4)+

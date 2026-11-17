@@ -3167,6 +3167,25 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect((candidate.match(/data-km-fuchun-near-inner-phrase=""/g)??[])).toHaveLength(52);
     expect(legacy).not.toContain('data-km-fuchun-near-inner-stratum=""');
     expect(new Set(nested.map(m=>m[3])).size).toBeGreaterThan(17);
+    // Material detail controls must not leave full-complexity interior
+    // cunfa visible in a source-only / low-detail review. Retained
+    // stations keep the *same* cubic source geometry as full quality.
+    const studyAt=(detail:number)=>renderToStaticMarkup(
+      createElement(InkShanshuiStage,{frame:145,controls:{
+        ...DEFAULT_SHANSHUI,scene:"mountain-trail",
+        inkSchool:"fuchun",fuchunNearShoulderStudy:true,
+        seed:71,detail,mist:.35,ink:.9,
+      }}));
+    const sourceOnly=studyAt(0),sparse=studyAt(.4);
+    expect(sourceOnly).not.toContain('data-km-fuchun-near-inner-stratum=""');
+    const sparseRoots=[...sparse.matchAll(
+      /data-km-fuchun-near-inner-stratum="" data-km-fuchun-near-inner-source="([^"]+)" data-km-fuchun-near-inner-root="([^"]+)"/g,
+    )];
+    expect(sparseRoots.length).toBeGreaterThan(2);
+    expect(sparseRoots.length).toBeLessThan(nested.length);
+    const roots=new Set(nested.map(m=>m[1]+"|"+m[2]));
+    expect(sparseRoots.every(m=>roots.has(m[1]+"|"+m[2]))).toBe(true);
+
     for(const [,source,root,station,depth] of nested){
       expect(source.split(",").map(Number).every(Number.isFinite)).toBe(true);
       expect(root.split(",").map(Number).every(Number.isFinite)).toBe(true);
