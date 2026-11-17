@@ -126,3 +126,12 @@ Interactive Storybook: **Dry-Brush Ink Atelier**, same Risograph sidebar, non-hu
 The reusable `RisoBrushArt` has an explicit `layout="film"` mode, which preserves the original 20 original-source stroke shapes, true evenodd paper channels and all other separate spot masters while filling the entire native film output. It remains the exact same drawing used by the existing **Dry-Brush Ink Atelier**, with no rasterized copies. Production `renderRisoBrushFilmSlot` connects this to `loadFilmSlots` as the `riso-dry-brush` recipe slot. The same render function is used by **Risograph → Dry-Brush Production Film** in Storybook.
 
 The portable [10-second, 24fps Film Document](../../examples/film/riso-dry-brush-native.film.json) renders 240 frames to both 960×540 and 540×960. A clean CI job checks the doc, inspects exact source path/time parity and preview plate isolation, captures real Chromium Storybook views and invokes `npm run film:render` to produce actual MP4 files. See [source provenance, technical quality gates, commands and limits](../research/riso63-native-film-artcraft.md). Finished video is silent, no real press calibration is claimed, and no RISO60 human-hand study was changed.
+
+
+## RISO64 — real source-native press / camera cinematic shots
+
+The `RisoBrushArt.printFrame` optional prop defaults to **239**, preserving fully printed RISO62/63 visual/registry consumers. RISO64 composes the exact original source with the existing RisoPrint master-reveal clock and a separate deterministic paper-space camera matrix, evaluated from the FilmStage local scene frame. No new ink renderer or registry dependency.
+
+`RISO_CINEMATIC_BEATS` defines five original 24fps shots: `cobalt-macro` (48f), `cobalt-pullback` (52f), `vermilion-pass` (74f), `overprint-macro` (48f), `original-hold` (66f). The final 288-frame / 12-second film prints to 960×540 and 540×960. `evaluateRisoCinematic` and `risoCinematicCamera` are pure, independently testable functions; `renderRisoCinematicFilmSlot` is shared by the native production FilmStage and the Storybook **Two-Drum Cinematic Journey**. Source strokes, paper-open fibre paths, 2 spot masters, text and registration remain unchanged.
+
+`examples/film/riso-cinematic-two-plate.film.json` is the portable film. See [RISO64 research and source-deconstruction, guardrails, cinema shot list and actual video proof commands](../research/riso64-cinematic-press-artcraft.md). Reduced motion resolves to a stationary fully printed sheet. No video sound or physical Riso calibration is implied.

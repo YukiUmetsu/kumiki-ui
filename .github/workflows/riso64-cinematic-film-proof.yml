@@ -1,0 +1,99 @@
+name: RISO64 original cinematic two-drum 12-second video proof
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso64-cinematic-film-proof.yml"
+      - "src/video/riso-brush-studio.tsx"
+      - "src/video/riso-cinematic-timeline.ts"
+      - "src/video/riso-cinematic-slot.tsx"
+      - "src/video/riso-cinematic-film.ts"
+      - "src/video/riso-cinematic-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "src/film/film-slots.tsx"
+      - "examples/film/riso-cinematic-two-plate.film.json"
+      - "tests/riso64-cinematic-film-artcraft.test.tsx"
+      - "tests/e2e-storybook/riso64-cinematic-film.spec.ts"
+      - "docs/research/riso64-cinematic-press-artcraft.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: riso64-five-shot-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  five-original-camera-beats:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Source, original material, exact FD1 and pure camera tests
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso64-cinematic-film-artcraft.test.tsx tests/riso63-native-dry-brush-film.test.tsx tests/riso62-dry-brush-artcraft.test.tsx tests/print-plates.test.ts
+      - name: Existing source material available via clean independent consumer
+        run: node scripts/registry-fixture.js --item=riso-print
+      - name: Build real FilmStage Storybook with original artwork and camera
+        run: npm run build-storybook
+      - name: Install native Chromium and real system video encoder
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -version | head -n 1
+      - name: Capture 10 real native FilmStage contact sheet frames and seek states
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso64-cinematic-film.spec.ts
+      - name: Validate both portable native output files
+        run: npm run film:check -- examples/film/riso-cinematic-two-plate.film.json --format=json
+      - name: Encode all 288 physical spot-print frames for both orientations
+        run: npm run film:render -- examples/film/riso-cinematic-two-plate.film.json --out=dist/riso64-production
+      - name: Validate 24fps real video encodes, aspect and visibly evolving 5-beat frames
+        run: |
+          python3 - <<'PY'
+          import json, hashlib, subprocess
+          from pathlib import Path
+          root=Path("dist/riso64-production")
+          for output,(w,h) in {"landscape":(960,540),"portrait":(540,960)}.items():
+              mp4=root/f"{output}.mp4"
+              assert mp4.is_file() and mp4.stat().st_size>12000, f"Missing full original movie: {mp4}"
+              streams=json.loads(subprocess.check_output([
+                  "ffprobe","-v","error","-select_streams","v:0",
+                  "-show_entries","stream=codec_name,width,height,avg_frame_rate,nb_frames",
+                  "-of","json",str(mp4)
+              ],text=True))["streams"]
+              assert len(streams)==1
+              info=streams[0]
+              assert (info["width"],info["height"])==(w,h), info
+              assert info["avg_frame_rate"]=="24/1", info
+              assert int(info["nb_frames"])==288, info
+              output_dir=root/(output+"-contact")
+              output_dir.mkdir(exist_ok=True)
+              subprocess.run([
+                  "ffmpeg","-hide_banner","-loglevel","error","-y",
+                  "-i",str(mp4),
+                  "-vf","select=eq(n\\,24)+eq(n\\,74)+eq(n\\,138)+eq(n\\,198)+eq(n\\,287)",
+                  "-fps_mode","vfr",str(output_dir/"shot-%02d.png")
+              ],check=True)
+              files=sorted(output_dir.glob("shot-*.png"))
+              assert len(files)==5, f"Expected five true decoded original shots, got {len(files)}"
+              hashes=[hashlib.sha256(p.read_bytes()).hexdigest() for p in files]
+              assert len(set(hashes))==5, f"Encoded original shots frozen or collapsed: {output}"
+              print(output,info["codec_name"],"24 fps 288 frames",mp4.stat().st_size,"five original decoded frames distinct")
+          PY
+      - name: Preserve encoded movies, five full-size scene frames and ten browser views
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso64-real-cinematic-movies-and-artproof
+          path: |
+            dist/riso64-production/
+            test-results/
+          retention-days: 5
+          if-no-files-found: warn
