@@ -262,8 +262,31 @@ export function scrollReaderFacePortrait(detail=1):
     ];
     return [];
   };
+  // A static resting stomion across the centre of a rounded /o/
+  // made the native 3× close-up resemble a third eye. Keep ALL original
+  // ANAT1 orbicularis and paper-reserve paths, but turn their 4 inherited
+  // resting-mouth contours into the physically displaced upper/lower lip
+  // planes for speaking cels. This is not a loss of fine marks: the paths
+  // retain the original material, opacity, topology count and rig.
+  const speechAnatomyLips=(state:keyof typeof mouth):CharacterPathShape[]=>{
+    if(state!=="aa"&&state!=="oh")return anatomy.lips;
+    const moved:readonly string[]=state==="oh"?[
+      "M141.7 131.35 Q143.1 132.2 144.6 131.1",
+      "M140.45 125.45 C141.5 124.92 143.45 124.94 145.12 125.73 C143.5 125.58 141.98 125.53 140.45 125.45 Z",
+      "M140.65 125.45 Q142.7 124.82 145.15 125.86",
+      "M141.04 131.12 Q142.98 132.4 144.9 130.72",
+    ]:[
+      "M138.85 132.12 Q142.2 133.3 145.85 131.35",
+      "M136.3 124.8 C140.3 124.05 146.2 124.31 148.52 124.45 C145.5 125.7 140.1 125.28 136.3 124.8 Z",
+      "M136.3 124.82 Q142.2 124.1 148.5 124.58",
+      "M138.75 131.2 Q142.65 133.42 146.75 130.05",
+    ];
+    return anatomy.lips.slice(2).map((shape,i)=>
+      shape.type==="path"&&i<moved.length?
+        {...shape,d:moved[i]}:shape);
+  };
   const mouthAsset=(state:keyof typeof mouth)=>asset("mouth-"+state,[
-    ...(state==="aa"||state==="oh"?anatomy.lips.slice(2):anatomy.lips),
+    ...speechAnatomyLips(state),
     // The aperture is not a fully opaque cartoony dark badge. Pigment
     // optically builds via multiple independent lip and cavity passes.
     p(mouth[state],state==="aa"||state==="oh"?"$shadow":"none",
