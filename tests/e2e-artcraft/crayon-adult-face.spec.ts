@@ -1850,6 +1850,66 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
   expect(errors).toEqual([]);
 });
 
+/** Source photograph's measured asymmetrical green canopy, not a three-leaf icon.
+ * The frame, scene authoring seed, 608x1082 camera, paper and complete face
+ * are fixed for V42 negative control and native V43 source-traced candidate.
+ */
+test("F1 V43 source traced leaf-scumble vs V42 native 1x and top 2.4x",async({page},info)=>{
+  test.setTimeout(220_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const imageBuffers:Record<string,Uint8Array[]>={full:[],upper:[]};
+  for(const midfaceForm of [
+    "source-anat1-hedge-v42","source-anat1-photo-foliage-v43",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","upper"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:302,focusY:120,zoom:2.4},
+        {frame:299,focusX:302,focusY:120,zoom:2.4},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface","face-outline",
+        "hair-left-curtain","hair-right-curtain",
+        "cc0-hedge-dark-underpaint","cc0-hedge-far-pocket",
+        "source-brow-follicles-near","iris-near","iris-far",
+        "cc0-hedge-leaf-near-left-broad",
+        "cc0-hedge-lamina-near-left-broad"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await expect(svg.locator(
+        '[data-km-crayon-element^="cc0-hedge-"]')).toHaveCount(42);
+      const order=await page.evaluate(()=>{
+        const ids=[...document.querySelectorAll(
+          "svg[data-km-crayon-scene] [data-km-crayon-element]")].
+          map(n=>n.getAttribute("data-km-crayon-element"));
+        return {background:ids.indexOf("cc0-hedge-dark-underpaint"),
+          portrait:ids.indexOf("hair-back")};
+      });
+      expect(order.background).toBeGreaterThanOrEqual(0);
+      expect(order.portrait).toBeGreaterThan(order.background);
+      const screenshot=await svg.screenshot({
+        path:info.outputPath("crayon-v43-"+view+"-"+midfaceForm+"-299.png"),
+        animations:"disabled",
+      });
+      imageBuffers[view].push(screenshot);
+    }
+  }
+  for(const view of ["full","upper"] as const){
+    expect(imageBuffers[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(imageBuffers[view][0]),
+      Buffer.from(imageBuffers[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+
 /** Native photographic evergreen backdrop negative control: same V41 face
  * remains source registered, same paper/film, identical seeded wax index.
  * Full browser pixels are evidence, not art acceptance.
