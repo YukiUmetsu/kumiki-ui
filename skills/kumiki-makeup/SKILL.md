@@ -21,7 +21,8 @@ API. This is the working order.
    - a highlight under the contour, or a wing outside 10-45 degrees.
    - a foundation that does not match, or low lip contrast.
 4. **Paint it.**
-   - Rendered portrait: use `renderPortrait({ ...portrait, paint: makeupPaint(plan) })` or `<MakeupPortrait>`.
+   - Rendered portrait: use `renderPortrait({ ...portrait, paint: makeupPaint(plan) })` or `<MakeupPortrait>`. The
+     renderer's own makeup (`makeup: "natural"`) is then off. Set `makeup` only to combine the two.
    - Photograph: `paintPhoto({ width, height, data, landmarks, skinMask }, plan)`. Get the landmarks with
      `python3 -I scripts/makeup/makeup.py landmarks photo.jpg --out photo.json`.
    - Another style: draw `zoneOutline(zone, face)` in your medium (the face chart), and use `planSwatches(plan)` for

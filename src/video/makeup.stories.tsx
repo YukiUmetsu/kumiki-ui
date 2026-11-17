@@ -92,7 +92,7 @@ function Lab() {
     foundationFinish: "", highlightFinish: "", wing: "look", mascara: 0, expression: "", yaw: 0, keyAzimuth: -22, faceWidth: 1, lowerFace: 0 });
   const set = <K extends keyof LabState>(k: K, v: LabState[K]) => setS(prev => ({ ...prev, [k]: v }));
   const portrait: PortraitOptions = { sex: s.sex, skin: s.skin, eyes: s.eyes, eyeShape: s.eyeShape, hair: hairOf(s.hair), hairStyle: s.hairStyle, faceWidth: s.faceWidth, lowerFace: s.lowerFace,
-    expression: s.expression || undefined, yaw: s.yaw, keyAzimuth: s.keyAzimuth, width: 384, height: 480 };
+    expression: s.expression || undefined, yaw: s.yaw, keyAzimuth: s.keyAzimuth, width: 384, height: 480, makeup: "none" };
   const face = useMemo(() => beautifulFace(portrait).vertices, [s.sex, s.faceWidth, s.lowerFace, s.eyeShape]); // eslint-disable-line react-hooks/exhaustive-deps
   const plan: MakeupPlan = useMemo(() => {
     const p = designMakeup({ look: labLook(s), skin: s.skin, eyes: s.eyes, eyeShape: s.eyeShape, hair: hairOf(s.hair), face, intensity: s.intensity, undertone: s.undertone || undefined, faceShape: s.faceShape || undefined });
@@ -260,7 +260,7 @@ function OnAPhotograph() {
   const [own, setOwn] = useState<{ img: ImageData; landmarks: number[][]; skin: Uint8Array | null } | null>(null);
   const [status, setStatus] = useState("Rendering the bare portrait…");
   const out = useRef<HTMLCanvasElement>(null), ownOut = useRef<HTMLCanvasElement>(null), ownIn = useRef<HTMLCanvasElement>(null);
-  const portrait: PortraitOptions = { sex: 0, skin: "#c99a7e", eyes: "brown", hairStyle: "bun", width: 384, height: 480, seed: 9 };
+  const portrait: PortraitOptions = { sex: 0, skin: "#c99a7e", eyes: "brown", hairStyle: "bun", width: 384, height: 480, seed: 9, makeup: "none" };
   useEffect(() => {
     if (!bare) return;
     const plan = designMakeup({ look, skin: portrait.skin, face: bare.face.vertices, faceReference: "anat1" });

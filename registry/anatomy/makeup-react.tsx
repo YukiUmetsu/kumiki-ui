@@ -40,7 +40,10 @@ export interface MakeupPortraitProps {
   style?: CSSProperties;
 }
 
-/** An ANAT1 portrait wearing a look. Re-renders when the portrait, the design or the plan changes. */
+/**
+ * An ANAT1 portrait wearing a look and no other makeup: the renderer's own makeup is off unless `portrait.makeup` asks
+ * for it. Re-renders when the portrait, the design or the plan changes.
+ */
 export const MakeupPortrait = forwardRef<HTMLCanvasElement, MakeupPortraitProps>(function MakeupPortrait({ portrait, design, plan, label, style }, ref) {
   const planKey = JSON.stringify([portrait, design, plan]);
   const designed = useMemo(() => {
@@ -50,7 +53,7 @@ export const MakeupPortrait = forwardRef<HTMLCanvasElement, MakeupPortraitProps>
     return designMakeup({ skin: portrait.skin ?? "#d8a98a", eyes: portrait.eyes ?? "brown", eyeShape, hair: portrait.hair, ...design, face: face.vertices });
   }, [planKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const paint = useMemo(() => (designed.layers.length ? makeupPaint(designed) : undefined), [designed]);
-  return <FacePortrait ref={ref} options={{ ...portrait, paint }} label={label} style={style} />;
+  return <FacePortrait ref={ref} options={{ makeup: "none", ...portrait, paint }} label={label} style={style} />;
 });
 
 // ---- Face chart ---------------------------------------------------------------------------------------------------------

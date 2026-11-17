@@ -60,7 +60,7 @@ const face = beautifulFace(portrait).vertices;
 const plan = designMakeup({ look: "soft-glam", skin: portrait.skin, face, eyes: "hazel", eyeShape: "hooded", intensity: 1 });
 plan.rationale;             // why each choice: undertone, face shape, eye shape
 checkMakeup(plan, face);    // contour stops before the iris, blush above the nose base, brow peak, lip contrast...
-const image = renderPortrait({ ...portrait, paint: makeupPaint(plan) });
+const image = renderPortrait({ ...portrait, paint: makeupPaint(plan) }); // the renderer's own makeup is then off
 
 // a photograph: 478 MediaPipe landmarks times [width, height, width]
 const rgba = paintPhoto({ width, height, data, landmarks, skinMask }, plan);
