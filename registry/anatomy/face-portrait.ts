@@ -36,7 +36,7 @@ import type { AuWeights, ExpressedFace } from "./expression-face";
 import { createRaster, downsample, encodeSrgb, fbm, fillPolygon, gaussianBlur, hash2, linearOf, rasterizeTriangles, strokePolyline } from "./foundation-raster";
 import type { Raster, RGB3 } from "./foundation-raster";
 import ansur from "./data/ansur-ii-ranges.json";
-import { findHairStyle, groomHair, HAIR_PHYSICS, HAIR_SHADOW, hairDensityMap, partLine, renderHairStrands, rotateGroom, scalpCover } from "./hair-groom";
+import { findHairStyle, groomHair, HAIR_PHYSICS, hairDensityMap, partLine, renderHairStrands, rotateGroom, scalpCover } from "./hair-groom";
 import { EYE_SHAPES, findIris, irisAlbedo } from "./eye-detail";
 import { ageSpotsAt, blendSkinRegions, faceWrinkles, findSkinRegion, frecklesAt, skinSurface } from "./skin-texture";
 import type { EyeShapeSpec, IrisType } from "./eye-detail";
@@ -368,7 +368,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const hairHead: HairHead = { centre: [0, cyE, czE], radii: [ax, ay, az], hairlineY: face.hairlineY, browY: (LM("brow-mid.L", N0)[1] + LM("brow-mid.R", N0)[1]) / 2, tragionY, chinY: me[1], faceHalf: zyHalf,
     eyeY: pupilY, faceZ: gl[2], earX: headHalfW + 1, earZ: czE + az * 0.08, neck: { rx: neckRx, rz: neckRz, cz: neckCz }, shoulderY, shoulderHalf, sex,
     faceFront: FF, shoulderTop: x => shoulderY + 18 - (Math.abs(x) < neckRx ? 0 : 0.22 * (Math.abs(x) - neckRx) + 0.0009 * Math.max(0, Math.abs(x) - neckRx - 60) ** 2),
-    chestFront: x => chestCz + 70 * Math.sqrt(Math.max(0, 1 - (x / shoulderHalf) ** 2)) - 20 };
+    // the garment's own front (as built above), so hanging hair lies on the shoulders and chest, not inside them
+    chestFront: x => chestCz + (neckRz + 40) * Math.sqrt(Math.max(0, 1 - (x / shoulderHalf) ** 2)) - 20 };
   // strands drawn: as asked, or by the picture's size (a thumbnail needs fewer than a large portrait)
   const hairStrands = Math.round(o.hairStrands ?? Math.min(40000, Math.max(12000, W * H * 0.25)));
   const groomKey = JSON.stringify([styleId, fringe, parting, hairStrands, hairLength, hairCurl, seed, hairHead.radii.map(Math.round), Math.round(hairHead.hairlineY), Math.round(hairHead.browY), Math.round(gl[2]), Math.round(zyHalf), Math.round(sex * 10)]);
@@ -398,12 +399,17 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     const blurred = gaussianBlur(hairOnSkin, res, res, 1, 2 / cellMm);
     hairOnSkin.set(blurred);
   }
-  const underHair = (p: Vec3) => {
+  /** Hair fibre coverage over a point of skin, along the key light (real-head units: 1 = one full layer). */
+  const hairCov = (p: Vec3) => {
     const [x, y] = shadow.lookup(p), res = shadow.res, fx = x - 0.5, fy = y - 0.5, xi = Math.floor(fx), yi = Math.floor(fy), u = fx - xi, v = fy - yi;
     const at = (i: number, j: number) => hairOnSkin[Math.min(res - 1, Math.max(0, j)) * res + Math.min(res - 1, Math.max(0, i))];
-    const cov = (at(xi, yi) * (1 - u) + at(xi + 1, yi) * u) * (1 - v) + (at(xi, yi + 1) * (1 - u) + at(xi + 1, yi + 1) * u) * v;
-    return Math.exp(-HAIR_SHADOW.direct * cov);
+    return (at(xi, yi) * (1 - u) + at(xi + 1, yi) * u) * (1 - v) + (at(xi, yi + 1) * (1 - u) + at(xi + 1, yi + 1) * u) * v;
   };
+  // Hair over skin: a layer of dark fibres lets little light through (more melanin, less; estimated: about a quarter
+  // through one full layer of brown hair, a tenth of black), and hair lying close over the skin also blocks the sky and
+  // fill, so the skin under a fringe is in shade and the fringe reads as a solid mass, not a veil
+  const underHair = (p: Vec3) => Math.max(0.1, Math.exp(-(0.55 + 0.11 * Math.min(8, Math.max(0, hairEu))) * hairCov(p)));
+  const hairAmbient = (p: Vec3) => Math.max(0.35, Math.exp(-0.4 * hairCov(p)));
   // ambient occlusion per vertex from 22 directions over the front and upper hemisphere
   const ao = new Float32Array(nV).fill(1);
   {
@@ -529,10 +535,11 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
       continue;
     }
     skinM[i] = 1;
+    const hA = cover > 0 ? 1 : hairAmbient(p);
     // Wrapped diffuse: light reaches a little past the terminator through the skin (the blur adds the rest).
     const wrap = (nl: number, k: number) => Math.max(0, (nl + k) / (1 + k));
     for (let k = 0; k < 3; k++) {
-      E[i * 3 + k] = keyI[k] * wrap(nlKey, 0.08) * sKey + fillI[k] * wrap(nlFill, 0.2) * (0.5 + 0.5 * occ) + skyI[k] * occ * (0.55 + 0.45 * nlSky)
+      E[i * 3 + k] = keyI[k] * wrap(nlKey, 0.08) * sKey + hA * (fillI[k] * wrap(nlFill, 0.2) * (0.5 + 0.5 * occ) + skyI[k] * occ * (0.55 + 0.45 * nlSky))
         + rimI[k] * Math.max(0, nlRim) * Math.pow(1 - Math.max(0, dot3(n, v)), 1.5) * 1.4 + bounceI[k] * occ * Math.max(0, -nlSky);
     }
     // Albedo: base tone shifted by regional zones (face only), a little even mottling.

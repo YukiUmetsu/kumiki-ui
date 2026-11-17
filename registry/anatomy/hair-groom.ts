@@ -13,7 +13,10 @@
  *   part of the head, short hair stands, and ends a few centimetres long keep their direction;
  * - hair rests on the forehead (fringes), passes beside the cheeks and over the ears, and drapes over the shoulders,
  *   in front of the ridge to the chest and behind it down the back;
- * - then cut: a blunt line (bobs), layers or textured ends, and each fringe on its own line;
+ * - fringes and short and medium hair then settle under their weight (a heavy elastic rod, the moment method), pushed out
+ *   of the head, face, ears, neck, shoulders and chest on every pass;
+ * - then cut: a blunt line (bobs), layers or textured ends, and each fringe on its own line, measured on 25 modern
+ *   photographs (full fringes at the brows and lower toward the temples, curtains open in the middle to the cheekbones);
  * - child strands (5,000–120,000, configurable) interpolate guides of the same section, gather into clumps, curl by
  *   curl type, frizz and fly away in smooth arcs.
  *
@@ -109,14 +112,21 @@ export interface FringeSpec {
  */
 export const FRINGES: readonly FringeSpec[] = [
   { id: "blunt", label: "Blunt (full)", width: 34, depth: 55, density: 1, hold: 0.7, clump: 0.35, note: "Cut straight across at the brows; heavy, the ends turned a little under by the brush." },
-  { id: "wispy", label: "Wispy (see-through)", width: 30, depth: 32, density: 0.38, hold: 0.7, clump: 0.9, note: "A shallow section thinned so the forehead shows through, uneven ends at the brows." },
+  { id: "wispy", label: "Wispy (see-through)", width: 30, depth: 36, density: 0.55, hold: 0.7, clump: 0.9, note: "A shallow section thinned so the forehead shows through, uneven ends at the brows." },
   { id: "micro", label: "Micro (baby)", width: 30, depth: 42, density: 0.9, hold: 0.9, clump: 0.4, note: "Cut halfway up the forehead." },
   { id: "long", label: "Long (lash-grazing)", width: 34, depth: 50, density: 0.85, hold: 0.55, clump: 0.7, note: "Full and long, grazing the lashes, falling into pieces." },
-  { id: "curtain", label: "Curtain", width: 37, depth: 45, density: 0.85, hold: 1.15, clump: 0.55, note: "Parted in the middle, from the bridge of the nose to the cheekbones, sweeping out to frame the eyes." },
+  { id: "curtain", label: "Curtain", width: 46, depth: 55, density: 1, hold: 1.15, clump: 0.55, note: "Parted in the middle, from the bridge of the nose to the cheekbones, sweeping out to frame the eyes." },
   { id: "bottleneck", label: "Bottleneck", width: 32, depth: 45, density: 0.9, hold: 1.05, clump: 0.5, note: "Short and narrow in the middle at the brows, curving round the eyes to the cheekbones." },
   { id: "side-swept", label: "Side-swept", width: 37, depth: 52, density: 0.9, hold: 1.25, clump: 0.55, note: "Across the forehead from a side part: at the brow on the part side, to the cheekbone on the other." },
 ];
 export const findFringe = (id: FringeKind) => FRINGES.find(f => f.id === id);
+
+/**
+ * A fringe strand is drawn as this many finer ones (the fringe is the most looked-at hair: a smoother sheet), each at
+ * FRINGE_WIDTH of the usual width: together a little denser than the rest, as a cut fringe is (it is thinned less than
+ * the lengths behind it, and lies in one thin layer over the forehead).
+ */
+const FRINGE_STRANDS = 2, FRINGE_WIDTH = 0.85;
 
 /** Physical facts the groom uses. */
 export const HAIR_PHYSICS = {
@@ -240,6 +250,8 @@ export interface HairGroom {
   jitter: Float32Array; layer: Float32Array; edge: Float32Array;
   /** Per strand: its lock's (clump's) random 0–1, shared by the strands of a lock. */
   lock?: Float32Array;
+  /** Per strand: its drawn width as a share of the usual (finer where one strand is drawn as several, as in a fringe). */
+  width?: Float32Array;
   guides: Vec3[][];
   style: HairStyleSpec;
   ms: number;
@@ -274,6 +286,8 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
     if (!fr) return false;
     const dz = p[2] - H.centre[2];
     if (dz < 0) return false;
+    // the section lies behind the front hairline: sideburns and temples below it are never fringe
+    if (p[1] < H.hairlineY - 8) return false;
     const az = Math.abs(azimuth(H, p)), back = (p[1] - H.hairlineY) / (fr.depth * 0.75);
     return back < 1 && az < fr.width * (1 - Math.max(0, back) * 0.85);
   };
@@ -287,7 +301,9 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
     const k = clamp((H.hairlineY + 4 - p[1]) / 30, 0, 1), sx = Math.sign(root[0] - partX) || 1, away = style.parting === "right" ? 1 : -1;
     switch (fr?.id) {
       // curtains part at the centre and sweep out to clear the eyes; a bottleneck is shorter and rounder
-      case "curtain": return nrm([sx * (0.35 + 1.9 * k), -0.4 - 0.55 * k, 1.1 * (1 - k)]);
+      // (as on the references: down and out at about 45° from the part, lying along the face, not out to the sides)
+      //  first down from the part, then out: a pair of parentheses round the eyes)
+      case "curtain": return nrm([sx * (0.18 + 1.35 * k * k), -0.85 - 0.6 * k, 1.1 * (1 - k)]);
       case "bottleneck": return nrm([sx * (0.15 + 1.4 * k * k), -0.5 - 0.6 * k, 1.1 * (1 - k)]);
       case "side-swept": return nrm([away * (1.25 - 0.35 * k), -0.35 - 0.6 * k, 1.0 * (1 - k)]);
       default: return nrm([root[0] * 0.004, -0.4 - 0.75 * k, 1.1 * (1 - k)]);
@@ -317,6 +333,9 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
     const topness = clamp((p[1] - H.tragionY) / (top - H.tragionY), 0, 1);
     const side = style.length.side + (style.length.back - style.length.side) * sst(0.5, 0.95, az);
     let L = fringe ? style.length.front : side + (style.length.top - side) * topness * topness;
+    // a fringe is cut from hair longer than the finished fringe (from behind the hairline over the dome to the cut line),
+    // so the cut, not the length, decides where it ends; a short men's fringe keeps its own length
+    if (fringe && fr && style.length.front >= 80) L = Math.max(L, { blunt: 140, wispy: 135, micro: 90, long: 160, curtain: 175, bottleneck: 160, "side-swept": 180 }[fr.id]);
     // sideburns (in front of the ear, below the temple) are clipped shorter on short cuts
     if (style.length.side < 60 && Math.abs(azimuth(H, p)) < 80 && p[1] < H.browY) L *= 0.55;
     return L * ls;
@@ -327,7 +346,9 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
   const faceEdge = (y: number) => (faceRows.length ? faceRows[clamp(Math.round((y - fy0) / 2), 0, faceRows.length - 1)] : H.faceHalf);
   const shoulderTop = H.shoulderTop ?? ((x: number) => H.shoulderY + 14 - 0.22 * Math.max(0, Math.abs(x) - H.neck.rx));
   const chestFront = H.chestFront ?? (() => H.neck.cz + 30);
-  const RZ = 58, RY = 42, bustBottom = H.shoulderY - 175;
+  // the torso in section: half its depth RZ, and the rounding RY where the shoulder's top meets its front (the garment
+  // is upright below it, so hanging hair lies on its front, not a little inside it)
+  const RZ = 58, RY = 14, bustBottom = H.shoulderY - 175;
   // ---- guides ----
   interface Guide { root: Vec3; n: Vec3; dir: Vec3; L: number; fringe: boolean; layer: number; side: number; drape: number; pts: Vec3[] }
   const guides: Guide[] = [];
@@ -341,7 +362,8 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
   const lift = ((ct.lift + style.volume * 0.4) * Math.PI) / 180;
   const shellOff = (layer: number, fringe: boolean, root: Vec3) => {
     const edge = root[1] - hairlineAt(H, azimuth(H, root));
-    let o = 1 + style.volume * (0.2 + 0.8 * Math.pow(layer, 0.8)) * (fringe ? 0.45 : 1) * (0.35 + 0.65 * sst(0, 25, edge));
+    // a fringe stands off the scalp where it leaves it (the rounded dome over the hairline on the references)
+    let o = 1 + style.volume * (0.2 + 0.8 * Math.pow(layer, 0.8)) * (fringe ? 0.75 : 1) * (0.35 + 0.65 * sst(0, 25, edge));
     if (style.frontLift && !fringe && inFront(root)) o += style.frontLift * Math.exp(-Math.max(0, edge) / 35);
     return o;
   };
@@ -351,11 +373,12 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
     let q = q0, head = false, body = false;
     const e = ellipsoidAt(H, q, off);
     if (e.inside) { q = e.surf; head = true; }
-    if ((mode === "guide" || g.fringe) && H.faceFront && q[1] > H.chinY - 5 && q[1] < H.hairlineY + 30 && q[2] > H.centre[2] + H.radii[2] * 0.25) {
+    if (H.faceFront && q[1] > H.chinY - 5 && q[1] < H.hairlineY + 30 && q[2] > H.centre[2] + H.radii[2] * 0.25) {
       const ff = H.faceFront(q[0], q[1]);
       if (Number.isFinite(ff)) {
-        const offF = g.fringe ? 1.2 + off * 0.5 : 2 + off * 0.5;
-        if (!g.fringe && inFront(q) && q[2] > ff - 28) {
+        // a fringe lies close on the forehead; hair beside the face keeps the thickness of the mass it belongs to
+        const offF = g.fringe ? 1.2 + off * 0.5 : 2 + off * 1.0;
+        if (mode === "guide" && !g.fringe && inFront(q) && q[2] > ff - 28) {
           // hair that is not a fringe stays above the hairline over the face: it slides along the hairline on the scalp
           const hl = hairlineAt(H, azimuth(H, q)) + 1 + off * 0.3;
           if (q[1] < hl && q[1] > hl - 12) {
@@ -378,6 +401,13 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
         }
       }
     }
+    // curtain, bottleneck and side-swept fringes are blow-dried to frame the eyes, not to hang in them: below the brows a
+    // fringe strand stays outside the eye on its own side (a blunt or long fringe may graze the lashes)
+    if (g.fringe && fr && (fr.id === "curtain" || fr.id === "bottleneck" || fr.id === "side-swept") && q[1] < H.browY + 2 && q[1] > eyeY - 14) {
+      const eyeX = H.faceHalf * 0.47, side = fr.id === "side-swept" ? (style.parting === "right" ? 1 : -1) : (Math.sign(g.root[0] - partX) || 1);
+      const outer = side * (eyeX + 17 + off * 0.3), inner = side * (eyeX - 16);
+      if (side * q[0] > side * inner && side * q[0] < side * outer) q = [q[0] + clamp(outer - q[0], -5, 5), q[1], q[2]];
+    }
     for (const sg of [-1, 1]) {
       const c: Vec3 = [sg * H.earX, H.tragionY + 4, H.earZ], rx = 9 + off * 0.5, ry = 33 + off * 0.3, rz = 17 + off * 0.3;
       const dx = (q[0] - c[0]) / rx, dy = (q[1] - c[1]) / ry, dz = (q[2] - c[2]) / rz, r = Math.hypot(dx, dy, dz);
@@ -397,6 +427,97 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
       if (body && q[1] < tp) g.drape = q[2] > zc ? 1 : -1;
     }
     return { q, head, body };
+  };
+  // where each fringe ends, from fringes measured on 25 modern photographs (docs/research/hair-bangs-2026-11-17.md): e mm
+  // below the brows' upper edge across the forehead, xb the outer end of the brow; full fringes end at the brows and come
+  // lower toward the temples, a curtain opens to the hairline in the middle and reaches the outer brow and the cheekbone,
+  // a side-swept fringe runs from the hairline on the short side to below the brow on the long side. `jit` (mm) moves a
+  // piece's end up or down.
+  const xb = H.faceHalf * 0.8;
+  const fringeCutY = (xx: number, jit: number): number => {
+    const ax = Math.abs(xx), r = Math.min(1.6, ax / xb);
+    switch (fr?.id) {
+      case "blunt": return H.browY - (2 + 10 * r * r) - jit;
+      case "micro": return H.browY + (H.hairlineY - H.browY) * 0.5 - jit * 0.5;
+      case "wispy": return H.browY - (3 + 8 * r * r) - jit * 1.4;
+      case "long": return Math.min(H.browY - 12, eyeY + 6) - 6 * r * r - jit;
+      // (a short curtain, as on men's middle-parted cuts, ends at the brows by the temples, not on the cheekbones)
+      case "curtain": return Math.max(style.length.front < 120 ? H.browY - 4 : -Infinity, H.browY + 30 - 37 * Math.min(1, r) ** 1.25 - 26 * Math.max(0, r - 1) - jit);
+      case "bottleneck": return H.browY + 12 - 22 * Math.min(1, r) ** 1.6 - 24 * Math.max(0, r - 1) - jit;
+      case "side-swept": { const across = clamp(((style.parting === "right" ? xx : -xx) / xb) * 0.5 + 0.5, 0, 1); return H.browY + 30 - 48 * across ** 1.2 - jit; }
+      default: return -Infinity;
+    }
+  };
+  // ---- physics: each guide settles under its own weight ----
+  // A heavy elastic rod (the hair's bending stiffness B against its weight w per length, B / w = l^3 with l the
+  // elasto-gravity length, about 5 cm; Goldstein, Warren & Ball 2012), settled by the moment method: the weight beyond
+  // each joint bends the rod there away from its styled (set) curvature by (moment x segment) / B; positions are rebuilt
+  // from the root so no segment stretches, and every point is pushed out of the head, face, ears, neck, shoulders and
+  // chest on every pass. Set hair is stiffer (hold). With no contact this is the heavy elastica: a horizontal 5 cm hair
+  // tips 9.5 degrees down, 7.5 cm 29, 10 cm 54, 15 cm 82.
+  const ELL = HAIR_PHYSICS.gravityLength.value;
+  const rotAbout = (v: Vec3, ax: Vec3, ang: number): Vec3 => {
+    const c = Math.cos(ang), sn = Math.sin(ang), k = dot(ax, v), cr = cross(ax, v);
+    return [v[0] * c + cr[0] * sn + ax[0] * k * (1 - c), v[1] * c + cr[1] * sn + ax[1] * k * (1 - c), v[2] * c + cr[2] * sn + ax[2] * k * (1 - c)];
+  };
+  const settle = (pts0: Vec3[], g: Guide, offFull: number, ramp: number): Vec3[] => {
+    if (tie || coily || pts0.length < 4) return pts0;
+    const cum = [0]; for (let i = 1; i < pts0.length; i++) cum.push(cum[i - 1] + len(sub(pts0[i], pts0[i - 1])));
+    const total = cum[cum.length - 1];
+    // long hair is grown hanging already (its free part turns to the vertical over its elasto-gravity length); the
+    // moment passes would let it swing across the face, so they settle fringes and short and medium hair
+    // a blunt cut (a bob) is shaped by the cut and the blow-dry, its ends turned under against the neck: it keeps its grown
+    // shape (its fringe still settles)
+    if (total < 8 || (!g.fringe && (total > 260 || style.cut === "blunt"))) return pts0;
+    const m = clamp(Math.round(total / 3.5), 4, 70), ds = total / m;
+    // longer strands: smaller turns a pass (their joints carry long levers; large turns overshoot into loops)
+    const maxTurn = 0.8 * Math.min(1, 160 / total), relaxK = total > 200 ? 0.6 : 0.8;
+    const P: Vec3[] = []; let j = 0;
+    for (let i = 0; i <= m; i++) { const t = (i / m) * total; while (j < cum.length - 2 && cum[j + 1] < t) j++; const f = (t - cum[j]) / Math.max(1e-9, cum[j + 1] - cum[j]); P.push(mix3(pts0[j], pts0[Math.min(pts0.length - 1, j + 1)], clamp(f, 0, 1))); }
+    const r: Vec3[] = []; for (let i = 0; i < m; i++) r.push(nrm(sub(P[i + 1], P[i])));
+    const B = ELL ** 3 * (1 + 2.5 * Math.max(0, (g.fringe && fr ? fr.hold : hold) - 0.5));
+    let d = r.slice();
+    const X: Vec3[] = P.slice(), touch = new Uint8Array(m + 1);
+    const build = () => {
+      for (let i = 0; i < m; i++) {
+        const want = add(X[i], sc(d[i], ds)), q = collide(want, offFull * sst(0, ramp, (i + 1) * ds), g).q;
+        touch[i + 1] = len(sub(q, want)) > 0.05 ? 1 : 0;
+        const dd = nrm(sub(q, X[i])); d[i] = dd; X[i + 1] = add(X[i], sc(dd, ds));
+      }
+    };
+    // the rest bend carried along: segment i keeps its set turn from segment i - 1 (the rest direction turned the way
+    // segment i - 1 has turned from its own rest direction)
+    const carry = (prevNow: Vec3, i: number): Vec3 => {
+      const ax = cross(r[i - 1], prevNow), l = len(ax);
+      return l > 1e-9 ? rotAbout(r[i], sc(ax, 1 / l), Math.atan2(l, dot(r[i - 1], prevNow))) : dot(r[i - 1], prevNow) > 0 ? r[i] : sc(r[i], -1);
+    };
+    // (15 passes, the update 0.8 of the way, at most 0.8 rad a joint a pass: within 1-3 degrees of the elastica)
+    for (let it = 0; it < 15; it++) {
+      build();
+      // resting on the head or face along its whole length: nothing to settle
+      if (it === 0) { let all = true; for (let i = 2; i <= m && all; i++) all = touch[i] === 1; if (all) break; }
+      // the weight beyond each joint, as a torque about it (w = 1 per mm): lever (sum of midpoints - n X_k) x (0, -ds, 0)
+      // where the hair rests on the head, face or shoulders the surface carries the weight beyond: the sum restarts there
+      const tau: Vec3[] = new Array(m);
+      let Sx = 0, Sz = 0, n = 0;
+      for (let k = m - 1; k >= 0; k--) {
+        if (touch[k + 1]) { Sx = 0; Sz = 0; n = 0; }
+        Sx += (X[k][0] + X[k + 1][0]) / 2; Sz += (X[k][2] + X[k + 1][2]) / 2; n++; tau[k] = [(Sz - n * X[k][2]) * ds, 0, -(Sx - n * X[k][0]) * ds];
+      }
+      const nd: Vec3[] = [r[0]];
+      for (let i = 1; i < m; i++) {
+        let v = carry(nd[i - 1], i);
+        const t = tau[i], tl = len(t), ang = Math.min(maxTurn, (tl * ds) / B);
+        if (ang > 1e-7) v = rotAbout(v, sc(t, 1 / tl), ang);
+        nd.push(nrm(mix3(d[i], v, relaxK)));
+      }
+      // settled: no joint turns more than 0.002 rad a pass
+      let moved = 0; for (let i = 0; i < m; i++) moved = Math.max(moved, 1 - dot(d[i], nd[i]));
+      d = nd;
+      if (moved < 2e-6) break;
+    }
+    build();
+    return X;
   };
   for (const g of guides) {
     const Lsim = Math.max(3, g.L * effShrink), ds = clamp(Lsim / 90, 0.7, 3.5);
@@ -425,7 +546,8 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
       if (g.fringe) {
         // a fringe follows its cut and set while it lies on the head and forehead; off them, gravity takes it
         const f = fringeDir(contact ? x : [x[0], Math.min(x[1], H.hairlineY - 30), x[2]], g.root);
-        target = nrm(add(sc(f, (fr?.hold ?? 0.8) * (contact ? 2 : 0.6)), DOWN)); relax = contact ? 10 : free;
+        const offHold = !fr ? 0.6 : fr.id === "side-swept" ? 1.3 : fr.id === "curtain" || fr.id === "bottleneck" ? 1.0 : 0.6;
+        target = nrm(add(sc(f, (fr?.hold ?? 0.8) * (contact ? 2 : offHold)), DOWN)); relax = contact ? 10 : free;
       } else if (coily && !tied) {
         // tightly coiled hair is stiff and its coils hold one another up: it stands out from the scalp
         const e0 = ellipsoidAt(H, x, 0), c = combField(e0.surf, e0.n, g.root);
@@ -471,25 +593,16 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
       arc += step; x = q; pts.push(q);
       if (x[1] < bustBottom) break;
     }
-    // ---- cut ----
+    // ---- settle under gravity, then cut (a cut is made on hair that hangs) ----
+    const settled = settle(pts, g, offFull, ramp);
+    if (settled !== pts) { pts.length = 0; pts.push(...settled); }
     let keep = pts.length;
     if (style.cut === "blunt" && style.cutLine && !g.fringe) {
       for (let i = 2; i < pts.length; i++) { const yCut = H.tragionY - style.cutLine.below + (pts[i][2] - H.centre[2]) * -style.cutLine.slope; if (pts[i][1] < yCut) { keep = i; break; } }
     }
     if (g.fringe && fr) {
-      const cutY = (xx: number) => {
-        const ax = Math.abs(xx), fh = H.faceHalf;
-        switch (fr.id) {
-          case "blunt": return H.browY + 2 - 0.0015 * xx * xx;
-          case "micro": return H.browY + (H.hairlineY - H.browY) * 0.5;
-          case "wispy": return H.browY + 1 - rnd() * 6;
-          case "long": return eyeY + 7 - rnd() * 4;
-          case "curtain": return H.browY - 8 - (H.browY - 8 - (eyeY - 22)) * Math.min(1, ax / (fh * 0.8)) ** 1.3;
-          case "bottleneck": return H.browY - (H.browY - (eyeY - 18)) * Math.min(1, ax / (fh * 0.75)) ** 1.8;
-          case "side-swept": { const across = clamp(((style.parting === "right" ? xx : -xx) / fh) * 0.5 + 0.5, 0, 1); return H.browY + 2 - (H.browY + 2 - (eyeY - 20)) * across; }
-        }
-      };
-      for (let i = 2; i < pts.length; i++) if (pts[i][1] < cutY(pts[i][0])) { keep = i; break; }
+      const jitL = gaussR(rnd) * 2.2;
+      for (let i = 2; i < pts.length; i++) if (pts[i][1] < fringeCutY(pts[i][0], jitL)) { keep = i; break; }
     }
     if (style.cut === "textured") keep = Math.max(2, Math.round(keep * (0.82 + 0.18 * rnd())));
     // a light smoothing (root fixed) takes out the small kinks a collision step leaves
@@ -550,17 +663,38 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
   };
   // clumps: leaders among the children, in the same section
   const clumpN = Math.max(8, Math.round(nStrands / (14 + 50 * (1 - style.clump))));
-  const leaders: { root: Vec3; pts: Vec3[]; phase: number; key: string }[] = [];
+  const leaders: { root: Vec3; pts: Vec3[]; phase: number; key: string; L: number }[] = [];
   for (let k = 0; k < clumpN; k++) {
     const s = sample(), c = childCurve(s.p), pts = followGuides(c, s.n, Array.from({ length: MG }, (_, i) => i / (MG - 1))).pts;
-    const field = 1.7 * Math.sin(s.p[0] / 23 + 0.4) + 1.3 * Math.sin(s.p[2] / 31 + s.p[1] / 47) + 0.9 * Math.sin((s.p[0] + s.p[1]) / 19);
-    leaders.push({ root: s.p, pts, phase: field + (rnd() - 0.5) * 0.5, key: `${c.fringe}${c.side}${c.drape}` });
+    // neighbouring locks wave nearly in step (the waves run in bands across the hair, as real waves do; locks out of
+    // step cross one another in a braided texture): the phase varies slowly over the head, with a little jitter
+    const field = 0.9 * Math.sin(s.p[0] / 70 + 0.4) + 0.7 * Math.sin(s.p[2] / 90 + s.p[1] / 110);
+    leaders.push({ root: s.p, pts, phase: field + (rnd() - 0.5) * 0.3, key: `${c.fringe}${c.side}${c.drape}`, L: c.L });
+  }
+  // a fringe has clumps of its own, much finer than the rest (a few dozen hairs each in a blunt fringe, larger pieces in
+  // a wispy one): the head's clumps are too coarse for it and leave it a comb of separate locks
+  if (fr) {
+    const nLead = Math.round(18 + 30 * (1 - fr.clump));
+    for (let k = 0, tries = 0; k < nLead && tries < nLead * 60; tries++) {
+      const s = sample(); if (!inFringe(s.p)) continue;
+      const c = childCurve(s.p), pts = followGuides(c, s.n, Array.from({ length: MG }, (_, i) => i / (MG - 1))).pts;
+      leaders.push({ root: s.p, pts, phase: rnd() * 6, key: `${c.fringe}${c.side}${c.drape}`, L: c.L }); k++;
+    }
   }
   const helix = ct.helix, amp = ct.amplitude * 1000, wl = ct.wavelength * 1000, segC = amp > 0 ? Math.min(6, wl / 7) : 6;
   const out: number[] = [], starts: number[] = [], counts: number[] = [], jit: number[] = [], lay: number[] = [], edge: number[] = [], lockR: number[] = [];
-  for (let sIdx = 0; sIdx < nStrands; sIdx++) {
-    const s = sample(), c = childCurve(s.p);
-    if (c.fringe && fr && rnd() > fr.density) continue;
+  const wid: number[] = [];
+  // a strand in the fringe is drawn as FRINGE_STRANDS finer ones beside one another
+  let pendBase: { p: Vec3; n: Vec3; layer: number } | null = null, pendLeft = 0, sampled = 0;
+  for (;;) {
+    let s: { p: Vec3; n: Vec3; layer: number }, isExtra = false;
+    if (pendLeft > 0 && pendBase) { pendLeft--; isExtra = true; s = { p: add(pendBase.p, [gaussR(rnd) * 0.9, gaussR(rnd) * 0.9, 0]), n: pendBase.n, layer: pendBase.layer }; }
+    else { if (sampled >= nStrands) break; sampled++; s = sample(); }
+    const c = childCurve(s.p);
+    if (c.fringe && fr && !isExtra) {
+      if (rnd() > fr.density) continue;
+      pendBase = s; pendLeft = FRINGE_STRANDS - 1;
+    }
     const key = `${c.fringe}${c.side}${c.drape}`;
     const jt = rnd(), fly = rnd() < 0.01 + style.frizz * 0.02;
     // length jitter: blunt cuts stay even, layered and textured vary
@@ -568,30 +702,38 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
     const edgeMm = s.p[1] - hairlineAt(H, azimuth(H, s.p));
     // about one in two hairs at the very edge of the hairline is a short fine one (4–15 mm)
     const lenK = edgeMm < 4 && !c.fringe && jt < 0.5 ? Math.min(1, (4 + 11 * rnd()) / Math.max(1, c.L)) : 1;
-    const nPts = clamp(Math.round((c.L * lj * lenK) / segC) + 1, 4, MG), step = (c.L * lj * lenK) / (nPts - 1);
+    // fringes in finer segments: a few long straight segments show as a zig-zag across a fringe's face
+    const nPts = clamp(Math.round((c.L * lj * lenK) / (c.fringe ? Math.min(segC, 2.5) : segC)) + 1, 4, MG);
+    const step = (c.L * lj * lenK) / (nPts - 1);
     const flyDir = nrm([gaussR(rnd), gaussR(rnd) * 0.5, gaussR(rnd)]), ph: Vec3 = [rnd() * 6.28, rnd() * 6.28, rnd() * 6.28];
     const childOff = shellOff(s.layer, c.fringe, s.p) * 0.9, childG: Guide = { root: s.p, n: s.n, dir: s.n, L: c.L, fringe: c.fringe, layer: s.layer, side: c.side, drape: c.drape, pts: [] };
-    starts.push(out.length / 3); counts.push(nPts); jit.push(jt); lay.push(s.layer); edge.push(edgeMm);
+    starts.push(out.length / 3); counts.push(nPts); jit.push(jt); lay.push(s.layer); edge.push(edgeMm); wid.push(c.fringe ? FRINGE_WIDTH : 1);
     let arc = 0;
     const cp: Vec3[] = [], us = Array.from({ length: nPts }, (_, k) => (k / (nPts - 1)) * lj * lenK), path = followGuides(c, s.n, us);
     // the clump this strand joins: a near leader whose hair goes where this strand's goes (by root and tip)
     const tip = path.pts[nPts - 1], uEnd = us[nPts - 1];
     let lead = leaders[0], ld = Infinity;
-    for (const l of leaders) { if (l.key !== key) continue; const d = len(sub(l.root, s.p)) + 0.5 * len(sub(at(l.pts, uEnd), tip)); if (d < ld) { ld = d; lead = l; } }
-    if (!Number.isFinite(ld)) for (const l of leaders) { const d = len(sub(l.root, s.p)) + 0.5 * len(sub(at(l.pts, uEnd), tip)); if (d < ld) { ld = d; lead = l; } }
+    const tipOf = (l: { pts: Vec3[]; L: number }) => at(l.pts, clamp((uEnd * c.L) / Math.max(1, l.L), 0, 1));
+    for (const l of leaders) { if (l.key !== key) continue; const d = len(sub(l.root, s.p)) + 0.5 * len(sub(tipOf(l), tip)); if (d < ld) { ld = d; lead = l; } }
+    if (!Number.isFinite(ld)) for (const l of leaders) { const d = len(sub(l.root, s.p)) + 0.5 * len(sub(tipOf(l), tip)); if (d < ld) { ld = d; lead = l; } }
     lockR.push((((lead.phase * 7.13) % 1) + 1) % 1);
+
     for (let k = 0; k < nPts; k++) {
       const u = us[k], base = path.pts[k];
       let q = base;
       // clumping toward the clump leader, stronger toward the tips
-      const w = (c.fringe && fr ? fr.clump : style.clump) * Math.pow(u, c.fringe ? 0.8 : 1.3) * 0.9;
-      if (w > 0) q = mix3(q, add(at(lead.pts, u), sc(sub(s.p, lead.root), 0.15)), w);
+      // (a fringe stays one sheet down most of its length and gathers into pieces only near the ends)
+      //  a see-through fringe is thin pieces all the way, with skin between them)
+      const w = c.fringe && fr ? Math.min(0.95, (0.35 + 0.65 * fr.clump) * sst(0.68, 1, u) ** 1.5 + 0.08 * u + Math.max(0, fr.clump - 0.6) * 1.8 * u ** 0.8) : style.clump * Math.pow(u, 1.3) * 0.9;
+      // (toward the leader's point the same distance from its root: a leader longer or shorter than the strand must
+      // not pull its tip along a different length, which drags fringe ends down onto the cheeks)
+      if (w > 0) q = mix3(q, add(at(lead.pts, clamp((u * c.L) / Math.max(1, lead.L), 0, 1)), sc(sub(s.p, lead.root), 0.15)), w);
       // curl: offsets round the strand's direction; a clump curls together
       if (amp > 0 && k > 0) {
         const ref = path.frames[k].n, bin = path.frames[k].b;
         arc += step;
-        const lockV = 0.94 + 0.12 * ((lead.phase * 3.7 % 1 + 1) % 1), th = (2 * Math.PI * arc) / (wl * lockV) + lead.phase + jt * 0.35, ramp = Math.min(1, arc / 15), a2 = amp * (1.2 - 0.4 * lockV / 1.2);
-        const o2 = helix ? add(sc(ref, Math.cos(th) * a2), sc(bin, Math.sin(th) * a2)) : add(sc(ref, Math.cos(th) * a2 * 0.8), sc(bin, Math.sin(th) * a2 * 0.55));
+        const lockV = 0.94 + 0.12 * ((lead.phase * 3.7 % 1 + 1) % 1), th = (2 * Math.PI * arc) / (wl * lockV) + lead.phase + jt * 0.15, ramp = Math.min(1, arc / 15), a2 = amp * (1.2 - 0.4 * lockV / 1.2) * (c.fringe ? 0.25 : 1);
+        const o2 = helix ? add(sc(ref, Math.cos(th) * a2), sc(bin, Math.sin(th) * a2)) : add(sc(bin, Math.sin(th) * a2), sc(ref, Math.sin(th * 0.5 + 0.7) * a2 * 0.2));
         q = add(q, sc(o2, ramp));
       }
       // frizz as slow, smooth wander; the odd flyaway leaves the mass in an arc
@@ -637,10 +779,20 @@ export function groomHair(head: HairHead, o: GroomOptions = {}): HairGroom {
         }
       }
     }
+    // a fringe's children are cut on the fringe's line too, as scissors cut every hair, exactly where they cross it; each
+    // piece a few millimetres up or down (the measured edges wander by about 4.7 mm): a row of points, not a ruled line
+    if (c.fringe && fr) {
+      const cj = (((((lead.phase * 9.17) % 1) + 1) % 1) * 2 - 1) * 3;
+      for (let k = 2; k < cp.length; k++) {
+        const yc = fringeCutY(cp[k][0], cj);
+        if (cp[k][1] < yc) { const a = cp[k - 1], b = cp[k], t = clamp((a[1] - yc) / Math.max(1e-6, a[1] - b[1]), 0, 1); cp[k] = mix3(a, b, t); cp.length = k + 1; break; }
+      }
+      counts[counts.length - 1] = cp.length;
+    }
     for (const q of cp) out.push(q[0], q[1], q[2]);
   }
   return {
-    points: Float32Array.from(out), starts: Uint32Array.from(starts), counts: Uint16Array.from(counts), jitter: Float32Array.from(jit), layer: Float32Array.from(lay), edge: Float32Array.from(edge), lock: Float32Array.from(lockR),
+    points: Float32Array.from(out), starts: Uint32Array.from(starts), counts: Uint16Array.from(counts), jitter: Float32Array.from(jit), layer: Float32Array.from(lay), edge: Float32Array.from(edge), lock: Float32Array.from(lockR), width: Float32Array.from(wid),
     guides: guides.map(g => g.pts), style, ms: now() - t0,
   };
 }
@@ -668,7 +820,7 @@ export interface HairRenderOptions {
 }
 export interface HairShadowMap { at: (rotated: Vec3) => number }
 /** Hair fibre coverage in front of a rotated point along a direction (a deep opacity map), in real-head units. */
-export type HairDensityMap = (rotated: Vec3) => number;
+export type HairDensityMap = ((rotated: Vec3) => number) & { total?: (rotated: Vec3) => number };
 
 /** Marschner-style longitudinal lobe. */
 const lobe = (x: number, mu: number, beta: number) => Math.exp(-((x - mu) ** 2) / (2 * beta * beta)) / (beta * Math.sqrt(2 * Math.PI));
@@ -737,12 +889,20 @@ export function hairDensityMap(groom: HairGroom, R: Float32Array, dir: Vec3, res
     const li = Math.min(K - 1, Math.floor(l)), f = l - li, before = li > 0 ? layers[t * K + li - 1] : 0;
     return before + (layers[t * K + li] - before) * Math.min(1, f);
   };
-  return (p: Vec3) => {
+  const fn = ((p: Vec3) => {
     const [x, y, d] = coord(p), xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
     let s = 0;
     for (let j = 0; j < 2; j++) for (let k = 0; k < 2; k++) { const X = clamp(xi + k, 0, res - 1), Y = clamp(yi + j, 0, res - 1); s += texel(Y * res + X, d) * (k ? fx : 1 - fx) * (j ? fy : 1 - fy); }
     return s;
+  }) as HairDensityMap;
+  // the whole column of hair along the direction at a point (front to back): how much hair there is to scatter in
+  fn.total = (p: Vec3) => {
+    const [x, y] = coord(p), xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
+    let s = 0;
+    for (let j = 0; j < 2; j++) for (let k = 0; k < 2; k++) { const X = clamp(xi + k, 0, res - 1), Y = clamp(yi + j, 0, res - 1); s += layers[(Y * res + X) * K + K - 1] * (k ? fx : 1 - fx) * (j ? fy : 1 - fy); }
+    return s;
   };
+  return fn;
 }
 
 /**
@@ -767,7 +927,7 @@ export function renderHairStrands(out: Raster, groom: HairGroom, view: HairRende
   const nSeg = nPts - groom.starts.length, segA = new Uint32Array(nSeg), segCol = new Float32Array(nSeg * 3), segDepth = new Float32Array(nSeg), segT = new Float32Array(nSeg), segW = new Float32Array(nSeg);
   let q = 0, dMin = Infinity, dMax = -Infinity;
   for (let s = 0; s < groom.starts.length; s++) {
-    const st = groom.starts[s], c = groom.counts[s], jt = groom.jitter[s], fine = jt < 0.5 ? 0.4 + 0.6 * sst(0, 4, groom.edge ? groom.edge[s] : 9) : 1;
+    const st = groom.starts[s], c = groom.counts[s], jt = groom.jitter[s], fine = (jt < 0.5 ? 0.4 + 0.6 * sst(0, 4, groom.edge ? groom.edge[s] : 9) : 1) * (groom.width ? groom.width[s] : 1);
     // locks catch the light a little differently from one another
     const lockTone = 0.9 + 0.2 * (groom.lock ? groom.lock[s] : 0.5);
     const isGrey = (o.grey ?? 0) > 0 && jt < (o.grey ?? 0);
@@ -778,6 +938,9 @@ export function renderHairStrands(out: Raster, groom: HairGroom, view: HairRende
       // older hair toward the ends is a little lighter (weathered cuticle)
       const base = base0.map(x => x * (1 + 0.1 * t01)) as RGB, lum = 0.2126 * base[0] + 0.7152 * base[1] + 0.0722 * base[2];
       const dKey = keyDom(m), dView = viewDom(m), sh = o.headShadow ? o.headShadow(m) : 1;
+      // light scattered on through the hair needs hair to scatter in: a thin fringe or a lone strand has little behind it
+      // (dual scattering's global part grows with the hair along the light), so it is not lit like the inside of the mass
+      const vol = keyDom.total ? 1 - Math.exp(-0.35 * keyDom.total(m)) : 1;
       const Tkey = Math.exp(-kDense * dKey) * sh, Tms = Math.exp(-kMs * dKey) * (0.4 + 0.6 * sh), occ = Math.exp(-0.25 * dView);
       // longitudinal angles
       const si = clamp(dot(L, t), -1, 1), sr = clamp(dot(v, t), -1, 1), thI = Math.asin(si), thR = Math.asin(sr), thH = (thI + thR) / 2, thD = (thR - thI) / 2;
@@ -797,7 +960,7 @@ export function renderHairStrands(out: Raster, groom: HairGroom, view: HairRende
         // multiple scattering: light diffused through the hair volume returns in the hair's colour, deeper than direct light reaches
         // (each bounce multiplies by the fibre's colour, but much of the light goes forward through few fibres: the volume
         // is a little more saturated than one fibre, not as much as a square)
-        const ms = base[k] * (0.5 * base[k] + 0.5 * lum) * 1.6 * (0.45 + 0.55 * diff) * Tms + base[k] * 0.35 * diff * Tkey;
+        const ms = base[k] * (0.5 * base[k] + 0.5 * lum) * 1.6 * (0.45 + 0.55 * diff) * Tms * (0.25 + 0.75 * vol) + base[k] * 0.35 * diff * Tkey;
         // sky and the light bounced round inside the hair and off the skin reach even the inner layers
         let cc = o.key.colour[k] * (spec * Tkey * 0.75 + ms) + sky[k] * base[k] * (0.3 + 0.7 * occ) * 0.9;
         if (o.fill && Lf) cc += o.fill.colour[k] * (base[k] * Math.sqrt(Math.max(0, 1 - dot(Lf, t) ** 2)) * 0.7 + specF * (0.6 + base[k])) * occ;

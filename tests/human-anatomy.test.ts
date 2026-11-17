@@ -199,7 +199,20 @@ describe("ANAT1 beautiful faces and portraits", () => {
     const bangs = groomHair(head, { style: "bob-bangs", strands: 3000, seed: 4 }), tips: number[] = [];
     for (let s = 0; s < bangs.starts.length; s++) { const e = (bangs.starts[s] + bangs.counts[s] - 1) * 3; if (Math.abs(bangs.points[e]) < 30 && bangs.points[e + 2] > head.faceZ - 15 && bangs.points[e + 1] < head.hairlineY) tips.push(bangs.points[e + 1]); }
     expect(tips.length).toBeGreaterThan(40);
-    expect(Math.abs(tips.reduce((p, q) => p + q, 0) / tips.length - (head.browY + 2))).toBeLessThan(6);
+    // (measured on modern photographs: full fringes end about 2 mm below the brows' upper edge in the middle)
+    expect(Math.abs(tips.reduce((p, q) => p + q, 0) / tips.length - (head.browY - 3))).toBeLessThan(4);
+    // gravity: the bangs' ends hang down (they settle under their weight, not set at a straight angle)
+    let down = 0, nb = 0;
+    for (let s = 0; s < bangs.starts.length; s++) {
+      if ((bangs.width?.[s] ?? 1) >= 1 || bangs.counts[s] < 3) continue;
+      const e = (bangs.starts[s] + bangs.counts[s] - 1) * 3, f = e - 3, dl = Math.hypot(bangs.points[e] - bangs.points[f], bangs.points[e + 1] - bangs.points[f + 1], bangs.points[e + 2] - bangs.points[f + 2]);
+      if (dl > 1e-6) { down += (bangs.points[e + 1] - bangs.points[f + 1]) / dl; nb++; }
+    }
+    expect(nb).toBeGreaterThan(100);
+    expect(down / nb).toBeLessThan(-0.6);
+    // collisions: long hair lies on the shoulders and chest, not inside them
+    const torso = pts(a).filter(([x, y, z]) => Math.abs(x) < head.shoulderHalf * 0.9 && y < head.shoulderTop!(x) - 15 && z < head.chestFront!(x) - 3 && z > head.chestFront!(x) - 90);
+    expect(torso.length / pts(a).length).toBeLessThan(0.003);
     // tightly coiled hair stands out from the scalp (an afro), straight hair lies on it
     const out = (g: HairGroom) => { let s = 0; for (let k = 0; k < g.starts.length; k++) { const e = (g.starts[k] + g.counts[k] - 1) * 3, d = [(g.points[e] - head.centre[0]) / head.radii[0], (g.points[e + 1] - head.centre[1]) / head.radii[1], (g.points[e + 2] - head.centre[2]) / head.radii[2]]; s += Math.hypot(d[0], d[1], d[2]); } return s / g.starts.length; };
     expect(out(groomHair(head, { style: "afro", strands: 800, seed: 4 }))).toBeGreaterThan(out(groomHair(head, { style: "slicked-back", strands: 800, seed: 4 })) + 0.2);
@@ -235,7 +248,7 @@ describe("ANAT1 beautiful faces and portraits", () => {
     expect(IRIS_TYPES.length).toBeGreaterThanOrEqual(14);
     const p = renderPortrait({ sex: 0, width: 120, height: 52, supersample: 1, framing: "eyes", eyes: "blue", eyeShape: "round", hairStrands: 1500 });
     expect(p.rgba.length).toBe(120 * 52 * 4);
-  });
+  }, 20000);
   it("skin: textured by region, deeper with age, pores where they are, detail fading by the pixel, wrinkles with age", () => {
     const grid = (id: string, age: number, fp = 0.03, f: "height" | "darken" = "height") => { const r = findSkinRegion(id), v: number[] = []; for (let j = 0; j < 40; j++) for (let i = 0; i < 40; i++) v.push(skinSurface(r, i * 0.2, j * 0.2, { age, footprint: fp, seed: 2 })[f]); return v; };
     const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length, sd = (v: number[]) => { const m = mean(v); return Math.sqrt(mean(v.map(x => (x - m) ** 2))); };

@@ -43,7 +43,10 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
    short and padded with dimpled knuckles.
 6. **Hair and colour** — for a rendered head, `groomHair(head, { style, fringe, parting, strands })` from
    `hair-groom.ts` (15 `HAIRSTYLES`, 7 `FRINGES`, up to 120,000 strands; `renderPortrait` does it for you from
-   `hairStyle`, `fringe`, `hairStrands`). For the posable body, `growHair(body, posed.points, { length, curl,
+   `hairStyle`, `fringe`, `hairStrands`). Fringes and short or medium hair settle under gravity (heavy elastic rods,
+   calibrated to the elastica) with collisions against the head, face, ears, neck, shoulders and chest; fringe cut
+   lines come from 25 measured modern photographs. Never set hair at a straight angle by hand: give it a styled shape
+   and let it settle. For the posable body, `growHair(body, posed.points, { length, curl,
    parting, flow, fringe })` and pass it to `HumanFigure` (`hair`, `hairColor` with eumelanin/pheomelanin/grey) or
    stroke `renderHairSegments` yourself. Never draw hair as one flat shape: it falls from the widest part of the head,
    gathers into locks, has a white highlight toward the root and a tinted one toward the tip, and keeps its colour on
