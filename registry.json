@@ -4174,6 +4174,33 @@
       ]
     },
     {
+      "name": "architecture",
+      "type": "registry:ui",
+      "title": "Architecture Framework (ARCH1)",
+      "description": "Buildings in any art style, built round people: the human scale (doors, ceilings, storeys, sills, stairs and Blondel's rule), roof pitch by covering and climate, the classical orders and intercolumniation, the Japanese modules (shaku, ken, tatami), and nine building types by place and period (Kyoto machiya, Japanese temple hall, minka and gassho farmhouse, castle keep, Georgian town house, half-timbered house, Greek Doric temple, modern apartment block, adobe) with storeys, bays, roofs (straight in towns, curved only on temples and keeps), eaves and drawing notes. buildingElevation builds measured front elevations as parts by role for any painter; BuildingElevation, StreetElevation and ArchSheet draw them with a person for scale and dimension lines. Every value graded reported or estimated with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/arch-data.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-data.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-construct.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-construct.ts"
+        },
+        {
+          "path": "registry/anatomy/arch-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "terrain",
       "type": "registry:ui",
       "title": "Terrain and Landforms Framework (GEO1)",
