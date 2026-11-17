@@ -153,8 +153,8 @@ function parseOrganicContour(path:string,w:RisoPullWindow):ParsedContour{
       throw new RangeError("RISO80 organic contours support only absolute M/L/C/Q/Z commands; arcs and relative commands are intentionally rejected.");
     }
   }
-  if(!hasMove||!closed||samples.length<12)
-    throw new RangeError("RISO80 contour must be one closed shape with at least twelve sampled points.");
+  if(!hasMove||!closed||samples.length<5)
+    throw new RangeError("RISO80 contour must be one closed shape with at least four edges.");
   for(const p of [...samples,...controls]){
     if(!pointInWindow(p,w))
       throw new RangeError("RISO80 contour and all Bézier controls must stay inside their declared source-paper bounds.");
