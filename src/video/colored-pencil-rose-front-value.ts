@@ -39,10 +39,10 @@ export interface RoseFrontValueBand {
 export const ROSE_FRONT_VALUE_BANDS:readonly RoseFrontValueBand[]=[
   {
     id:"left-fold",petal:"petal-front-left",role:"fold-core",
-    axis:[[233,188],[239,204],[234,230],[244,260]],
-    halfWidth:9,contacts:112,
+    axis:[[222,188],[225,204],[233,229],[244,260]],
+    halfWidth:16,contacts:82,
     pigment:["#642442","#98415C","#C46B7E"],
-    nibs:[.86,.64,.38],opacity:[.71,.53,.34],
+    nibs:[.46,.38,.30],opacity:[.32,.30,.24],
   },
   {
     id:"left-belly",petal:"petal-front-left",role:"convex-belly",
@@ -60,10 +60,10 @@ export const ROSE_FRONT_VALUE_BANDS:readonly RoseFrontValueBand[]=[
   },
   {
     id:"right-fold",petal:"petal-front-right",role:"fold-core",
-    axis:[[255,192],[267,213],[249,235],[244,261]],
-    halfWidth:10,contacts:118,
+    axis:[[263,192],[273,210],[258,234],[247,261]],
+    halfWidth:17,contacts:85,
     pigment:["#5D2746","#99465F","#CC7582"],
-    nibs:[.89,.66,.42],opacity:[.71,.50,.31],
+    nibs:[.50,.40,.31],opacity:[.35,.32,.23],
   },
   {
     id:"right-belly",petal:"petal-front-right",role:"convex-belly",
@@ -131,10 +131,16 @@ export function roseFrontValueDetails(petal:RoseFrontPetal,seed:number):PencilTr
         const x=tangent.x+nx*radial,y=tangent.y+ny*radial;
         // Deliberately unequal contact lengths and oblique direction;
         // leave paper pores and do not draw CAD-perfect parallel grids.
-        const length=(2.8+5.4*pencilHash(seed,key,29))*
-          (pass===2?.69:pass===0?.84:1);
-        const bow=(pencilHash(seed,key,37)-.5)*1.7;
-        parts.push(contact(x,y,tangent.dx,tangent.dy,length,bow));
+        const length=(1.75+3.15*pencilHash(seed,key,29))*
+          (pass===2?.75:pass===0?.80:1);
+        const bow=(pencilHash(seed,key,37)-.5)*1.45;
+        // True dry-pencil scumble: diverging local fibre axes avoid a
+        // dense parallel scratch-beard rather than hiding it with blur.
+        const turn=(pencilHash(seed,key,41)-.5)*.48;
+        const c=Math.cos(turn),q=Math.sin(turn);
+        const dx=tangent.dx*c-tangent.dy*q;
+        const dy=tangent.dx*q+tangent.dy*c;
+        parts.push(contact(x,y,dx,dy,length,bow));
       }
       const path=parts.join(" ");
       if(path.length>12000)
