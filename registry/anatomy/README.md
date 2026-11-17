@@ -14,6 +14,11 @@ find it: `npm run catalog:find -- --query="hair"` (or "skin colour", "pose", "fa
 | A drawing from any camera | `anatomy-view.ts` | `renderHumanFrame`, `renderMeshFrame`, `rasterizeHumanFrame`, `projectPoint`, `smoothPath` |
 | A face: landmarks, norms, variation | `anatomy-face.ts` | `createFace`, `measureFace`, `FACE_LANDMARKS`, `FACE_FEATURES`, `FACE_NORMS`, `eyeCentres` |
 | Hair, brows, lashes | `anatomy-hair.ts` | `growHair`, `renderHairSegments`, `faceHair`, `CURL_TYPES`, `HAIR_GROUPS`, `HAIR_FACTS` |
+| Groomed hairstyles and bangs, rendered strands | `hair-groom.ts` | `groomHair`, `HAIRSTYLES`, `FRINGES`, `renderHairStrands`, `hairDensityMap`, `scalpCover`, `partLine`, `HAIR_PHYSICS` |
+| Eye shapes and iris colours | `eye-detail.ts` | `EYE_SHAPES`, `applyEyeShape`, `IRIS_TYPES`, `irisAlbedo`, `EYE_EVIDENCE`, `EYE_REFERENCES` |
+| Skin texture by region and age | `skin-texture.ts`, `skin-texture-react.tsx` | `SKIN_REGIONS`, `skinSurface`, `faceWrinkles`, `frecklesAt`, `ageSpotsAt`, `renderSkinSwatch`, `SkinSwatchView`, `SkinRegionsSheet` |
+| Hands in detail: types, gestures, grasps, actions | `hand-model.ts`, `hand-render.ts`, `hand-react.tsx` | `HAND_TYPES`, `buildHand`, `poseHand`, `HAND_GESTURES`, `GRASPS`, `graspHand`, `HAND_ANIMATIONS`, `animateHand`, `renderHand`, `HandView`, `HandFlipbook` |
+| A rendered portrait | `face-portrait.ts`, `face-portrait-react.tsx` | `renderPortrait`, `FacePortrait`, `beautifulFace` (`face-beauty.ts`) |
 | Skin, hair and eye colour | `anatomy-color.ts` | `MONK_SKIN_TONES`, `skinShade`, `skinRamp`, `skinZoneColor`, `SKIN_SCATTERING`, `hairColorHex`, `HAIR_COLOR_PRESETS`, `IRIS_COLORS` |
 | Measured ranges, canon checks, surface anatomy | `anatomy-reference.ts` | `ANSUR`, `predictFromStature`, `CANON_CHECKS`, `SURFACE_FORMS`, `AGE_CHANGES`, `DRAWING_RECIPE`, `MODEL_TABLES` |
 | A reference painter (React) | `anatomy-react.tsx` | `HumanFigure` (clay, tonal, cel, silhouette; contours, terminators, skeleton, landmarks, head grid, hair) |

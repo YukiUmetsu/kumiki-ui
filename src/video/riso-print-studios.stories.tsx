@@ -4,6 +4,10 @@ import { risoSecondSheetArtworks, risoSecondSheetImprintArt } from "./riso-print
 import { RISO_SHEET_FEED_FILM, RISO_OVERPRINT_FILM, RISO_OVERPRINT_MOTIF, risoOverprintOrigin } from "./riso-print-film";
 import { useEffect, useMemo, useState } from "react";
 import { RisoPrint } from "../../registry/video/print-plates-react";
+import {RisoGradientStudio} from "./riso-gradient-studio";
+import {RisoBrushStudio} from "./riso-brush-studio";
+import {RisoDryBrushFilmStudio} from "./riso-dry-brush-film-studio";
+import {RisoCinematicStudio} from "./riso-cinematic-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -365,6 +369,30 @@ function RisoOverprintLab() {
 export const RisographOverprint: StoryObj<typeof RisoOverprintLab> = {
   name: "Risograph · Native Overprint Transition",
   render: () => <RisoOverprintLab />,
+};
+
+/** Native paper-space tonal gradient proof; no human actors or hand studies. */
+export const RisographGradientInk:StoryObj<typeof RisoGradientStudio>={
+  name:"Risograph · Continuous Spot-Ink Gradient",
+  render:()=> <RisoGradientStudio/>,
+};
+
+/** Independent source-native dry-ink pressure and splintering, non-human. */
+export const RisographDryBrush:StoryObj<typeof RisoBrushStudio>={
+  name:"Risograph · Dry-Brush Ink Atelier",
+  render:()=> <RisoBrushStudio/>,
+};
+
+/** Existing FD1 production capture and MP4 proof of the exact RISO62 artist's ink. */
+export const RisographDryBrushFilm:StoryObj<typeof RisoDryBrushFilmStudio>={
+  name:"Risograph · Dry-Brush Production Film",
+  render:()=> <RisoDryBrushFilmStudio/>,
+};
+
+/** Existing FilmStage and original RISO62 materials, now with five authored camera/press beats. */
+export const RisographCinematicJourney:StoryObj<typeof RisoCinematicStudio>={
+  name:"Risograph · Two-Drum Cinematic Journey",
+  render:()=> <RisoCinematicStudio/>,
 };
 
 const meta = {

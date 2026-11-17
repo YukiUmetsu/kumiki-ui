@@ -6,13 +6,20 @@ length/stature for age), `anatomy-measure.ts` (tape-measure sections, ANSUR-name
 `anatomy-pose.ts` (clinical joints, ranges, forward kinematics, skinning, pose and hand-pose library),
 `anatomy-view.ts` (camera, `HumanFrame`, contours, terminators, software rasteriser, `projectPoint`),
 `anatomy-face.ts` (3D face study, landmarks, feature loops, facial norms), `anatomy-hair.ts` (hair data, strand
-generator, hair rendering, brows and lashes), `anatomy-color.ts` (skin, hair and iris colour; colour science), `anatomy-reference.ts` (ANSUR access,
+generator, hair rendering, brows and lashes), `hair-groom.ts` (groomed hairstyles and bangs, strand renderer),
+`eye-detail.ts` (eye shapes, iris colours and the iris's structure), `skin-texture.ts` and `skin-texture-react.tsx`
+(skin texture by region and age), `hand-model.ts`, `hand-render.ts` and `hand-react.tsx` (hands in detail: types,
+gestures, grasps, actions),
+`anatomy-color.ts` (skin, hair and iris colour; colour science), `anatomy-reference.ts` (ANSUR access,
 regressions, canon checks, surface forms, age changes, drawing recipe), `anatomy-react.tsx` (`HumanFigure` reference
 painter), `data/*` (baked tables and licences). Binary body model: `assets/models/anatomy/human-body-lattice.bin`
-(2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (22 public-domain/CC0 plates).
+(2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (42 public-domain/CC0 plates and
+photographs: 11 of eyes, 5 of skin, 4 of hands).
 **Storybook:** Video production → Art Foundations → Human Anatomy → **Lab**, **Population line-up**, **Turnaround**,
 **Pose library** (+ front/side QA), **Hand poses**, **Face lab**, **Head angles**, **Range of motion**, **Any style**,
-**Proportions and ranges**, **Reference board**, **Hair lab**, **Hair types and colours**, **Skin, hair and eye colour**,
+**Proportions and ranges**, **Reference board**, **Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Hair on the
+posable body**, **Eye lab**, **Eye shapes**, **Iris colours**, **Skin texture by region**, **Hand lab**, **Hand types**,
+**Hand gestures**, **Grasps (GRASP taxonomy)**, **Hand animations**, **Hand details**, **Hair types and colours**, **Skin, hair and eye colour**,
 **Beautiful faces**, **Portrait lab**
 **Status:** implemented; agent review of Chromium screenshots only — **human visual review not recorded**. This is a
 construction and reference framework. It does **not** certify a finished realistic portrait or pencil drawing: those
@@ -155,6 +162,11 @@ The mask has no ears, cranium or hairline.
 **`beautifulFace(options)`.** Applies what the research on facial attractiveness supports
 ([research note](../research/face-beauty-portrait-2026-11-16.md)), each step scaled by `beauty` (0 = the calibrated
 average face, 1 = everything applied):
+- **Real faces** (`realFaces`, default 1): starts from the shape of a composite of public-domain portraits of film
+  actors (`FACE_COMPOSITE`, [research note](../research/face-composite-2026-11-16.md)): 11 women and 12 men, measured
+  with face landmarks, one photograph a person, averaged by sex. The mouth is left out (smiles) and the nose wings
+  damped. The composite's cheekbone breadths land on ANSUR II's. The steps below then set the measured breadths, eye
+  opening and lips; the composite shapes what lies between.
 - **Averageness:** starts from population means.
 - **Symmetry:** every vertex is averaged with its mirror.
 - **Breadths:** cheekbone breadth set to ANSUR II (133.8 mm women, 142.6 mm men), which gives Pallett's 46% pupil ratio
@@ -170,28 +182,52 @@ nose : mouth = 1 : φ, and the popular length : width = φ. Tests found the mask
 (Holland 2008), and a 2024 systematic review found no link between golden-ratio fit and attractiveness. So φ is
 reported, not built in.
 
-**`renderPortrait(options)`.** Renders on the CPU, about 0.4 s for a 220 px draft and 3–4 s for 384 × 480 at 2×
-supersampling. Geometry:
+**`renderPortrait(options)`.** Renders on the CPU, about 3–6 s for 256 × 320 and 8–15 s for 480 × 600 at 2×
+supersampling, most of it the hair. Geometry:
 - the calibrated face, Loop-subdivided twice;
+- a strip of skin grown from the face mask's top edge up and round to the cranium, so the forehead is one surface up
+  to the hairline;
 - a cranium from ANSUR head measures;
 - a neck behind the jaw, and shoulders.
 
 Shading:
-- **Key light:** shadow-mapped.
+- **Key light:** shadow-mapped with a softbox's soft edge (16 Poisson taps over about 1 mm), finer in close-ups,
+  with a bias that grows where the light grazes the skin.
 - **Fill, rim, sky and bounce lights.**
 - **Ambient occlusion** from 22 directions.
 - **Subsurface scattering:** the d'Eon & Luebke six-Gaussian skin profile.
 - **Specular:** a GGX dielectric with F₀ 0.028, oilier in the T-zone.
-- **Regional skin colour** (`SKIN_ZONES`).
-- **Eyes:** ray-traced, with sclera, a textured iris brighter opposite the light, pupil, a softbox catchlight and lid
-  shadow.
-- **Lashes, brows and fine hairline hairs** drawn as hairs.
+- **Regional skin colour** (`SKIN_ZONES`), with uneven tone that grows with age.
+- **Skin texture by region and age** (`skin-texture.ts`): furrows, pores and fine wrinkles bend the normal and
+  darken the furrows, faded by the pixel's size; the face's age lines and folds (`faceWrinkles`); age spots and
+  freckles.
+- **Eyes:** ray-traced eyeballs:
+  - the iris from `eye-detail.ts`, lit like the face round it and brighter opposite the light;
+  - a sclera pinker toward the corners;
+  - a softbox catchlight, and the upper lid and lashes shading the top third;
+  - a pink waterline;
+  - the caruncle, hidden by an epicanthal fold.
+- **Lashes and brows** drawn as hairs: lashes in clumps of two to four, tapered, longest in the outer third, pressed
+  down by a single lid's fold. The eye shape sets the crease (its height, an in-fold start, or none), a hood's shadow
+  and the epicanthal fold.
 - **Lips:** volume and border.
-- **Hair:** strand-traced, with Kajiya–Kay highlights.
+- **Hair:** groomed by `hair-groom.ts` (below). It shadows the skin under it, and the scalp under it is painted in the
+  hair's colour (a soft hairline, a thin parting).
 - **Expressions:** EXPR1 action units and creases.
 
-Options: sex, beauty, skin, eye colour, hair melanin and style (long, bob, short), expression, yaw (±25°), key light,
-and `debug` passes.
+Options:
+- sex, beauty and skin;
+- eyes: an `IRIS_TYPES` id (`eyes`, and `eyesRight` for complete heterochromia), the pupil's diameter (`pupil`, mm),
+  an `EYE_SHAPES` id (`eyeShape`);
+- `framing`: "eyes" for a close-up of both eyes and brows;
+- `age` (years; default 30) and `freckles` (0–1);
+- hair: melanin, a `HAIRSTYLES` id ("long", "short" and "bob" are kept as aliases), and `fringe`, `parting`,
+  `hairStrands`, `hairLength`, `hairCurl` and `hairGrey` to override the style;
+- expression, yaw (±25°), key light;
+- `debug` passes (normals, irradiance, occlusion, hair shadow).
+
+The result carries the groom and the head it was groomed on (`hair`). By default 12,000–40,000 strands are drawn,
+scaled with the picture's size, up to 120,000 on request.
 
 `FacePortrait` draws one in a canvas after paint, queued one at a time. `GoldenRatioTable` and `BeautyEvidence` show
 the checks and sources.
@@ -200,7 +236,187 @@ the checks and sources.
 rule 14 still applies to the pencil portrait style). The mask is one average face, so individuals differ only by the
 parameters above.
 
-## Hair (`growHair`, `renderHairSegments`, `faceHair`)
+## Eyes in detail (`eye-detail.ts`)
+
+([research note](../research/eye-detail-2026-11-16.md))
+
+**`EYE_SHAPES`** (11): almond, round, hooded, monolid, in-fold double lid, upturned, downturned, deep-set, prominent,
+close-set and wide-set.
+
+Each sets the lid opening:
+- its height and width;
+- its canthal tilt and the upper lid's peak;
+- a rounder lower lid.
+
+And the lid and socket:
+- the upper-lid crease: its height, an in-fold start at the epicanthal fold, or none;
+- a hood and an epicanthal fold;
+- the eyes' depth and spacing.
+
+The numbers sit in measured ranges:
+- creases of 4–6 mm in Chinese double lids and 8–8.6 mm in Malay lids, with 30% of Chinese adults having none (Lu et
+  al. 2017);
+- inner corners 31–35 mm apart, openings 31–33 mm wide (Alberto & Soriano 2024);
+- a canthal tilt of about 8° (a Korean clinical sample).
+
+`applyEyeShape(vertices, shape, sex)` moves a face mesh to a shape; `beautifulFace({ eyeShape })` applies it. The
+portrait draws the crease, hood and fold.
+
+**`IRIS_TYPES`** (14): black-brown to light blue, with amber, hazel, yellow-green, grey-green and a green with a brown
+centre. Each has its own pupillary and ciliary colours, measured zone by zone in twelve public-domain or CC0 eye
+photographs (`EYE_REFERENCES`; blue and light blue are estimated). Each also sets fibres, crypts, furrows, a limbal
+ring, a pupillary ruff and freckles.
+
+`irisAlbedo(type, r, θ, seed)` gives the colour at a point:
+- the pupillary zone inside a jagged collarette, streaking out along the fibres;
+- radial fibres;
+- crypts by the collarette;
+- contraction furrows toward the edge;
+- the limbal ring and the ruff.
+
+`EYE_EVIDENCE` lists the graded findings. The eye photographs are on the Reference board under "eyes".
+
+## Skin texture by region (`skin-texture.ts`)
+
+([research note](../research/skin-texture-2026-11-16.md))
+
+**`SKIN_REGIONS`** (13): forehead, nose, cheek, chin, eyelids, crow's feet, upper lip, neck, back of the hand,
+knuckles, palm, fingertip and forearm. Each has:
+- pores (density, size);
+- a furrow network (spacing, depth, anisotropy, direction);
+- fine wrinkles or creases, papillary ridges;
+- vellus hair, sheen and redness.
+
+The anchors are reported (sources in `SKIN_EVIDENCE`):
+- primary furrows 30–100 µm deep, secondary 5–40 µm;
+- cheek pores at 10–80 per cm² (Flament et al. 2015), larger on the nose and forehead;
+- vellus hair 439/cm² on the forehead;
+- with age the furrows grow fewer and deeper.
+
+**`skinSurface(region, x, y, { age, footprint, seed })`** gives the height, darkening and redness at a point:
+- primary lines in three crossing families (triangles and rhombi), finer secondary lines, domed plateaus;
+- pores as oval pits;
+- wandering, branching wrinkles, and ridges that end and fork (a loop on a fingertip);
+- detail finer than about two pixels faded out.
+
+Also:
+- `faceWrinkles` (forehead, glabella, crow's feet, under-eye, nasolabial and marionette folds, neck);
+- `ageSpotsAt` and `frecklesAt`; `blendSkinRegions`;
+- `renderSkinSwatch` (a region at macro scale under a raking light, with near-surface and subsurface scattering, a
+  sheen and vellus hairs), and `SkinSwatchView` / `SkinRegionsSheet` in React.
+
+## Hands in detail (`hand-model.ts`, `hand-render.ts`, `hand-react.tsx`)
+
+([research note](../research/hands-2026-11-16.md))
+
+**`HAND_TYPES`** (11), with sizes from ANSUR II (means and percentiles) or estimated for children:
+- adults: a large strong man's, an average man's, a slender long-fingered hand, an average, slender and small woman's;
+- younger: a teenager's, a six-year-old's, a toddler's;
+- older: an old woman's and an old man's.
+
+Each sets length, breadth, palm length, finger thickness, padding, muscle, knuckles, veins, tendons, taper, digit
+ratio, nails (shape, free edge) and skin.
+
+**`buildHand(type, side)`** gives bone lengths and radii:
+- the phalanges follow two reported rules: middle + distal ≈ proximal, and joint-to-tip ≈ 1.3 × the end segment;
+- finger widths come from the breadth;
+- the thumb sits at the base of the palm.
+
+**`poseHand(hand, pose)`** places every bone. `HandPose` gives MCP, PIP and DIP flexion and spread for each finger,
+and the thumb's CMC flexion, abduction and opposition with its MCP and IP; then the wrist. The pose is completed
+naturally:
+- end joints follow the middle joints (⅔);
+- neighbours follow a little;
+- a `thumbTo` or `thumbPoint` target solves the thumb's angles within its ranges.
+
+**`HAND_GESTURES`** (15): relaxed (the normal cascade), open, spread, fist, point, OK, thumbs up, V, horns, call me,
+pinch, claw, cupped, beckon, three.
+
+**`GRASPS`** (33): the GRASP taxonomy (Feix et al. 2016), numbered as in the paper, with kind, opposition, thumb
+position and observed frequency. **`graspHand(hand, id, close)`**:
+- places the grasp's object by contact;
+- opens each joint until the finger is clear, then closes it until it touches;
+- solves the thumb onto the object.
+
+So any hand fits any object.
+
+**`HAND_ANIMATIONS`** (8): wave, grasp and release, count to five, beckon, drum the fingers, pinch and let go, thumbs
+up, make an OK. **`animateHand(hand, anim, t)`** eases by the minimum-jerk profile (Flash & Hogan 1985), with
+per-finger delays and oscillations; actions loop.
+
+**`renderHand(posed, options)`** ray-marches a signed-distance hand:
+- **Surface:** rounded-cone phalanges with joint bulges and pads, a palm of metacarpals with thenar and hypothenar
+  masses, nails (square, oval, round, almond), veins, tendons, a child's dimples, the held object.
+- **Shading:** skin texture by region, palm and joint creases, a lighter palm, a traced shadow map read softly,
+  occlusion, subsurface scattering, glossy nails.
+- **Options:** views by the hand's own sides; `focus` and `zoom` for close-ups; `frameMm` for one scale across
+  hands; skin and nail colour; `quality: "draft"` for animation frames.
+
+`HandView` and `HandFlipbook` (frames rendered progressively, then looped; reduced motion waits for Play) show them in
+React.
+
+**Status:** agent review of renders only. Fingers blend rather than collide; there is no arm.
+
+## Groomed hair (`hair-groom.ts`)
+
+The hair foundation for rendered heads ([research note](../research/hair-groom-2026-11-16.md)).
+
+**`groomHair(head, { style, fringe, parting, curl, lengthScale, strands, guides, seed })`** grooms a style on a
+`HairHead`. A `HairHead` gives:
+- the cranium (ellipsoid), hairline, brow, eye, ear, chin and neck heights;
+- optionally the face's front surface, the shoulder tops and the chest front, so hair can rest on them.
+
+Steps:
+- **Roots** sit on the skin inside an anatomical hairline (front, temples, around the ears, the nape).
+- **Comb:** away from the crown whorl, or back, or to the side. Hair leaves a parting on its own side, and over the
+  front of the head the style holds it off the face until it passes the temple.
+- **Guides (480)** grow from the root as heavy elastic rods:
+  - where the hair beneath holds them (outer layers from higher roots lie further out), they lie on the head and
+    follow the comb;
+  - where the head falls away, they turn toward gravity over √(ℓ³/L), with ℓ ≈ 5 cm (Goldstein et al. 2012). So
+    long hair falls from the widest part of the head, short hair stands, and the last few centimetres keep their
+    direction;
+  - they rest on the forehead (bangs), pass beside the cheeks and over the ears, and drape over the shoulders: in
+    front of the ridge onto the chest, behind it down the back.
+- **Styles:** blow-dried cuts hug the head; set or gathered styles stay against it; coils stand out.
+- **Cut:** a blunt line, layers or a textured trim, and each fringe on its own line.
+- **Children (5,000–120,000)** follow only guides that stay together, with their offset carried in the strand's own
+  frame. Then they:
+  - gather into locks (leaders chosen by root and tip);
+  - curl (waves as flattened spirals in step across the head, helices for curls);
+  - frizz and fly away in smooth arcs;
+  - stay off the face and below the parting.
+
+**`HAIRSTYLES`** (15): long straight, long wavy, lob, bob, bob with blunt bangs, shoulder length with curtain bangs,
+long side wave, curly, afro, ponytail, low bun, pixie, short crop, slicked back, buzz. Each has lengths by region,
+cut, parting, fringe, comb, curl, volume, clumping, frizz, hold, ends, front lift and hug.
+
+**`FRINGES`** (7): blunt, wispy (see-through), micro, long (lash-grazing), curtain, bottleneck, side-swept. Each has a
+triangular section (width to the temple corners, depth behind the hairline), density, set, clumping and its cut line:
+- blunt at the brows;
+- micro halfway up the forehead;
+- long at the lashes;
+- curtain from the bridge of the nose to the cheekbones;
+- bottleneck from the brows round the eyes to the cheekbones;
+- side-swept from the brow on the part side to the cheekbone.
+
+**`renderHairStrands(raster, groom, view, light)`** draws the strands as anti-aliased lines, far to near, hidden
+behind the skin and ears. Each drawn strand is as wide as the real hairs it stands for. Shading:
+- Marschner's R, TT and TRT lobes with melanin absorption;
+- deep opacity maps along the key light (`hairDensityMap`) for self-shadowing, and along the view for sky occlusion;
+- light scattered through the hair volume in the hair's colour, so the side away from the light still reads as hair,
+  not as a bald scalp;
+- a sheen from the fill; locks and tips vary a little in tone; grey strands are a share of white fibres.
+
+`scalpCover` and `partLine` say where to paint the scalp in the hair's colour, and where a parting shows.
+`HAIR_PHYSICS` and `HAIR_SHADOW` hold the constants.
+
+**Status:** agent review of renders only (Hair lab, Hairstyles, Bangs). It is a groom for portraits from the front
+(±25°), not a simulation in motion.
+
+## Hair on the posable body (`growHair`, `renderHairSegments`, `faceHair`)
+
+The quick drawing hair for the 3D body and the painters (the portrait uses `hair-groom.ts`).
 
 `growHair(body, posedPoints, params)` plants roots inside an anatomical hairline — the front at the trichion (sellion
 + Farkas tr–n), temples (with `recession`), above the ears, the nape — orients them away from the crown whorl (right of

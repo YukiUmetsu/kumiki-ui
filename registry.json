@@ -3308,7 +3308,7 @@
       "name": "riso-print",
       "type": "registry:ui",
       "title": "Risograph Spot-Ink Printing",
-      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, fixed registration, halftone screens, paper grain, a sheet-feed transition, and a native incoming spot-ink overprint scene bridge. Authored original SVG plates render through existing FilmStage slots; no alternate renderer or clock.",
+      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, fixed registration, halftone screens, paper grain, a sheet-feed transition, and a native incoming spot-ink overprint scene bridge. Authored original SVG plates render through existing FilmStage slots; no alternate renderer or clock. Adds source-native continuously graded AM ink dots, paper-fixed micro-irregularity, and optional custom SVG contour clipping.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3331,6 +3331,31 @@
           "path": "registry/video/riso-overprint.tsx",
           "type": "registry:ui",
           "target": "components/video/riso-overprint.tsx"
+        },
+        {
+          "path": "registry/video/riso-screening.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-screening.ts"
+        },
+        {
+          "path": "registry/video/riso-gradient-ink.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-gradient-ink.ts"
+        },
+        {
+          "path": "registry/video/riso-gradient-ink-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-gradient-ink-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-dry-brush.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-dry-brush.ts"
+        },
+        {
+          "path": "registry/video/riso-dry-brush-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-dry-brush-react.tsx"
         }
       ]
     },
@@ -3719,6 +3744,41 @@
           "target": "components/anatomy/face-portrait-react.tsx"
         },
         {
+          "path": "registry/anatomy/hair-groom.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/hair-groom.ts"
+        },
+        {
+          "path": "registry/anatomy/eye-detail.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/eye-detail.ts"
+        },
+        {
+          "path": "registry/anatomy/skin-texture.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/skin-texture.ts"
+        },
+        {
+          "path": "registry/anatomy/skin-texture-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/skin-texture-react.tsx"
+        },
+        {
+          "path": "registry/anatomy/hand-model.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/hand-model.ts"
+        },
+        {
+          "path": "registry/anatomy/hand-render.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/hand-render.ts"
+        },
+        {
+          "path": "registry/anatomy/hand-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/hand-react.tsx"
+        },
+        {
           "path": "registry/anatomy/anatomy-face.ts",
           "type": "registry:ui",
           "target": "components/anatomy/anatomy-face.ts"
@@ -3762,6 +3822,11 @@
           "path": "registry/anatomy/data/model-tables.json",
           "type": "registry:ui",
           "target": "components/anatomy/data/model-tables.json"
+        },
+        {
+          "path": "registry/anatomy/data/face-composite.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/face-composite.json"
         },
         {
           "path": "registry/anatomy/data/anatomy-references.json",
@@ -3926,7 +3991,7 @@
       "name": "sky-weather",
       "type": "registry:ui",
       "title": "Sky and Weather Framework (SKY1)",
-      "description": "Style-neutral weather and sky for any art style: the Beaufort scale with sea and land signs; rain, snow, hail, fog, mist and haze classes; drop size spectra (Marshall-Palmer), fall speeds (Atlas 1973), drop shapes (Brandes 2002), slant in wind, streak length at a shutter, visibility and Koschmieder distance fading; the ten WMO cloud genera with heights, looks, WMO element widths and 1896 Cloud Atlas plates, drawn as layered shapes (cauliflower cumulus, anvil cumulonimbus, cirrus wisps, rows of altocumulus, rolls, layers with rain curtains) and set in perspective as cloud decks; sky phases by sun elevation with sampled palettes and the CIE overcast sky; sun elevation and shadow length; lightning stroke timing and branching channels, thunder delay and rainbow geometry. One weather state feeds the environmental-effects renderers at real speeds. A weather scene, cloud atlas and reference sheet; every value graded reported, measured or estimated with sources. Cumulus in detail (sky-cumulus.ts): a tree of rising thermals, lumps on lumps (cauliflower), light by sun azimuth per mass, shading ladders measured from CC0/PD cloud photos, backlit silver linings on the true silhouette, and turrets that rise and fade at measured updraft speeds.",
+      "description": "Style-neutral weather and sky for any art style: the Beaufort scale with sea and land signs; rain, snow, hail, fog, mist and haze classes; drop size spectra (Marshall-Palmer), fall speeds (Atlas 1973), drop shapes (Brandes 2002), slant in wind, streak length at a shutter, visibility and Koschmieder distance fading; the ten WMO cloud genera with heights, looks, WMO element widths and 1896 Cloud Atlas plates, drawn as layered shapes (cauliflower cumulus, anvil cumulonimbus, cirrus wisps, rows of altocumulus, rolls, layers with rain curtains) and set in perspective as cloud decks; sky phases by sun elevation with sampled palettes and the CIE overcast sky; sun elevation and shadow length; lightning stroke timing and branching channels, thunder delay and rainbow geometry. One weather state feeds the environmental-effects renderers at real speeds. A weather scene, cloud atlas and reference sheet; every value graded reported, measured or estimated with sources. Cumulus in detail (sky-cumulus.ts): a tree of rising thermals, lumps on lumps (cauliflower), light by sun azimuth per mass, shading ladders measured from CC0/PD cloud photos, backlit silver linings on the true silhouette, and turrets that rise and fade at measured updraft speeds. Rendered skies: a single-scattering atmosphere (Rayleigh, Mie from visibility, ozone; Hillaire 2020 constants) and all ten genera as volumes of cloud water or ice built from their physics (extinction from water content and effective radius, WMO element widths, Kelvin-Helmholtz billow rows, cirrus fall streaks bent by shear, 22 and 46 degree ice halos, translucent altostratus, ragged nimbostratus with scud and rain, cumulonimbus towers, anvil, overshooting top and mammatus), lit by marched sunlight, multiple-scattering octaves and two-stream diffusion, with aerial perspective, cloud shadows and camera metering; CloudSky and RenderedCloudAtlas.",
       "dependencies": [],
       "registryDependencies": [
         "art-foundations",
@@ -3957,6 +4022,21 @@
           "path": "registry/nature/sky-react.tsx",
           "type": "registry:ui",
           "target": "components/nature/sky-react.tsx"
+        },
+        {
+          "path": "registry/nature/sky-atmosphere.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-atmosphere.ts"
+        },
+        {
+          "path": "registry/nature/sky-volume.ts",
+          "type": "registry:ui",
+          "target": "components/nature/sky-volume.ts"
+        },
+        {
+          "path": "registry/nature/sky-volume-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/sky-volume-react.tsx"
         }
       ]
     },
@@ -3964,7 +4044,7 @@
       "name": "water",
       "type": "registry:ui",
       "title": "Water Framework (WATER1)",
-      "description": "Style-neutral water for any art style: the WMO sea state code; the fully developed sea a wind raises (Pierson-Moskowitz: significant height, peak period, wavelength, crest speed) with whitecap cover (Monahan & O'Muircheartaigh); dispersion in deep and shallow water; a seeded sea surface of short-crested third-order Stokes waves to sample anywhere and any time, float heave and pitch, and particle orbits; wave limits (H/L 0.142, 120 degree crest, breaking at 0.8 depth); breakers by the Iribarren number (spilling, plunging, collapsing, surging) drawn in cross-section at any stage with foam, a plunging lip on its ballistic arc and the air of the tube; Kelvin wakes (19.47 degrees, transverse spacing 2 pi V^2/g) and ripple rings; Fresnel reflectance, the mirror rule, sun glitter from Cox-Munk slopes and colour through depth; sine-generated meanders 11 widths long; water colours measured off CC0 and public-domain photographs. A sea scene (colours from Fresnel and the sky, glints only where a facet mirrors the sun), true-scale seas by wind, breaker, wake, ripple, reflection and meander figures and a reference sheet; every value graded with sources. Breakers and foam in detail (breakerDetail): flow lines in the face, a translucent teal lip from water's absorption, a lit tube, whitewater with bubbles over an aerated plume, foam lace, spray and spindrift blown off the crest, with colours measured from surf photos; the sea scene leaves foam lace that fades at a rate measured from surf video, streaked along the wind in gales.",
+      "description": "Style-neutral water for any art style: the WMO sea state code; the fully developed sea a wind raises (Pierson-Moskowitz: significant height, peak period, wavelength, crest speed) with whitecap cover (Monahan & O'Muircheartaigh); dispersion in deep and shallow water; a seeded sea surface of short-crested third-order Stokes waves to sample anywhere and any time, float heave and pitch, and particle orbits; wave limits (H/L 0.142, 120 degree crest, breaking at 0.8 depth); breakers by the Iribarren number (spilling, plunging, collapsing, surging) drawn in cross-section at any stage with foam, a plunging lip on its ballistic arc and the air of the tube; Kelvin wakes (19.47 degrees, transverse spacing 2 pi V^2/g) and ripple rings; Fresnel reflectance, the mirror rule, sun glitter from Cox-Munk slopes and colour through depth; sine-generated meanders 11 widths long; water colours measured off CC0 and public-domain photographs. A sea scene (colours from Fresnel and the sky, glints only where a facet mirrors the sun), true-scale seas by wind, breaker, wake, ripple, reflection and meander figures and a reference sheet; every value graded with sources. Breakers and foam in detail (breakerDetail): flow lines in the face, a translucent teal lip from water's absorption, a lit tube, whitewater with bubbles over an aerated plume, foam lace, spray and spindrift blown off the crest, with colours measured from surf photos; the sea scene leaves foam lace that fades at a rate measured from surf video, streaked along the wind in gales. A rendered open sea (water-ocean.ts): JONSWAP and Pierson-Moskowitz spectra with Hasselmann spreading summed by FFT in three cascades (Tessendorf), choppy crests, whitecaps where the surface folds at Monahan's measured cover with fading foam, slopes calibrated to Cox-Munk, Fresnel reflection of SKY1's sky and clouds, Cox-Munk sun glitter, the blue light back out of deep water from absorption and Morel's backscatter, turquoise backlit crests and haze; OceanView and SeaByBeaufort.",
       "dependencies": [],
       "registryDependencies": [
         "art-foundations",
@@ -3985,6 +4065,16 @@
           "path": "registry/nature/water-react.tsx",
           "type": "registry:ui",
           "target": "components/nature/water-react.tsx"
+        },
+        {
+          "path": "registry/nature/water-ocean.ts",
+          "type": "registry:ui",
+          "target": "components/nature/water-ocean.ts"
+        },
+        {
+          "path": "registry/nature/water-ocean-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/water-ocean-react.tsx"
         }
       ]
     },

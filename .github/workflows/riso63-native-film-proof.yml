@@ -1,0 +1,104 @@
+name: Risograph RISO63 real FilmStage and encoded video proof
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso63-native-film-proof.yml"
+      - "src/video/riso-brush-studio.tsx"
+      - "src/video/riso-brush-film-slot.tsx"
+      - "src/video/riso-dry-brush-film.ts"
+      - "src/video/riso-dry-brush-film-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "src/film/film-slots.tsx"
+      - "examples/film/riso-dry-brush-native.film.json"
+      - "tests/riso63-native-dry-brush-film.test.tsx"
+      - "tests/e2e-storybook/riso63-dry-brush-film.spec.ts"
+      - "docs/research/riso63-native-film-artcraft.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: riso63-native-film-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  actual-native-video-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Strict TypeScript and exact FD1 source parity
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso63-native-dry-brush-film.test.tsx tests/riso62-dry-brush-artcraft.test.tsx tests/print-plates.test.ts
+      - name: Clean consumer install of the unchanged physical spot-ink registry
+        run: node scripts/registry-fixture.js --item=riso-print
+      - name: Native production Storybook build
+        run: npm run build-storybook
+      - name: Install real Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Native full-size 16:9 and 9:16 FilmStage, spot separations and frame seek
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso63-dry-brush-film.spec.ts
+      - name: Both full native film documents pass static validation
+        run: npm run film:check -- examples/film/riso-dry-brush-native.film.json --format=json
+      - name: Install FFmpeg and FFprobe for real MP4 encoding (not Playwright's minimal bundle)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+      - name: Encode the COMPLETE 240-frame ten-second source film for both outputs
+        run: npm run film:render -- examples/film/riso-dry-brush-native.film.json --out=dist/riso63-production
+      - name: Verify encoded MP4 dimensions, 24fps, 240 actual frames and nonstatic picture
+        run: |
+          python3 - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          root=Path("dist/riso63-production")
+          for output,(w,h) in {"landscape":(960,540),"portrait":(540,960)}.items():
+              mp4=root/f"{output}.mp4"
+              assert mp4.exists() and mp4.stat().st_size>10000, f"Missing real encoded MP4: {mp4}"
+              raw=subprocess.check_output([
+                  "ffprobe","-v","error","-select_streams","v:0",
+                  "-show_entries","stream=codec_name,codec_type,width,height,avg_frame_rate,nb_frames",
+                  "-of","json",str(mp4)
+              ], text=True)
+              streams=json.loads(raw)["streams"]
+              assert len(streams)==1, f"Bad video streams {output}: {streams}"
+              s=streams[0]
+              assert (s["width"],s["height"])==(w,h), s
+              assert s["avg_frame_rate"]=="24/1", s
+              assert int(s["nb_frames"])==240, s
+              assert s["codec_type"]=="video", s
+              out=root/f"{output}-decoded"
+              out.mkdir(exist_ok=True)
+              subprocess.run([
+                  "ffmpeg","-hide_banner","-loglevel","error","-y",
+                  "-i",str(mp4),"-vf","select=eq(n\\,24)+eq(n\\,120)",
+                  "-vsync","0",str(out/"frame-%02d.png")
+              ],check=True)
+              import hashlib
+              images=sorted(out.glob("frame-*.png"))
+              assert len(images)==2, f"Cannot decode two motion frames from {output}"
+              sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+              assert sha(images[0])!=sha(images[1]), f"Encoded {output} picture is frozen"
+              print(f"{output}: {w}x{h} 24fps, 240 decoded frames, {mp4.stat().st_size} bytes, evolving picture")
+          PY
+      - name: Preserve actual MP4 videos and native proof images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso63-real-filmstage-mp4-proof
+          path: |
+            dist/riso63-production/
+            test-results/
+          retention-days: 5
+          if-no-files-found: warn

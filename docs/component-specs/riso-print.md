@@ -100,3 +100,38 @@ A character source part may set `screenTone:"light"|"mid"` only when `paint:"scr
 Original Courier/Paper Artist cheeks, orbital sockets, temples and jaw shadows have **distinct authored local tonal masters** while their original face/eye/lip geometry, rig, color palette and film frames are unchanged. The existing Risograph `OcularPrintCraft` story contains a reversible `RISO26 tonal master comparison` using the unchanged prior facial stencils as baseline; AM/FM, red-only/blue-only, pose, 16:9/9:16, physical pitch and gain all remain interactive.
 
 Technical checks: `tests/riso26-tonal-press-artcraft.test.tsx` and actual `tests/e2e-storybook/riso21-ocular-print-artcraft.spec.ts`. This is a **digital-print simulation**, not empirical calibration of a Riso drum or independent human-likeness certification.
+
+
+## RISO61 — continuous spot-ink dot gradients (original non-character scene)
+
+Native helper files: registry/video/riso-gradient-ink.ts and registry/video/riso-gradient-ink-react.tsx. Installed by the same riso-print registry item, together with the preexisting required riso-screening.ts that the print renderer imports.
+
+- createRisoGradientGeometry: pure generator with user-defined coverage stops (2..12; first 0, last 1), horizontal/vertical/radial spatial profiles, bounded AM lattice angle (per plate), 2..36 unit screen cell, optional 0..1 ink gain, irregularity and 0..0.2 low-coverage dropout. The generated dot sites, paper seed, per-plate offsets and sizes are source-space values. A maximum 40,000 candidate grid sites protects the renderer; split larger 4K fields into distinct bounded regions.
+- risoGradientCoverage: inspect arbitrary profile values without a screenshot.
+- risoGradientDotPath: combine every dot as two native elliptical SVG arcs, preserving exact small-radius physical detail without thousands of standalone DOM elements.
+- RisoGradientInk: drop the component directly inside the existing RisoPrint artworks.blue / artworks.red callback, pass the matching paint.solid as color, plus its paper-space coordinate box and optionally a valid SVG shape contour. It clips to the source shape without reducing the contour's topological detail. All original background paper fiber, ink tooth, press order and full-frame clocks remain RisoPrint-owned.
+
+The same Storybook folder now includes **Continuous Spot-Ink Gradient**: entirely original two-plate tidal contours in landscape/portrait, separate ink masters, absolute animation seek, independently adjustable registration, source tone direction, pickup and dropout. No anatomy changes or bundled external visual assets. Strict unit tests and native Chromium evidence are in tests/riso61-ink-gradient-artcraft.test.tsx and tests/e2e-storybook/riso61-ink-gradient.spec.ts. Read docs/research/riso61-variable-tone-gradient-artcraft.md for authentic printing references, exact topology, art gate and limitations. RISO61 is not a calibrated physical Riso press profile; do not claim print-color fidelity without a real test press.
+
+
+## RISO62 — calligraphic dry-brush physical-stencil ink
+
+The riso-print item also installs `riso-dry-brush.ts` and `riso-dry-brush-react.tsx`. `createRisoBrushGeometry` constructs a variable-pressure ribbon from an original 4-point cubic with 2–12 width stops, each source direction following the cubic's local tangents. `risoBrushInkPath` exposes the original closed SVG ribbon plus separate paper-white dry splinter channels; use `fillRule="evenodd"`. `RisoDryBrushInk` places it inside one existing `RisoPrint` spot-master artwork callback and uses the matching `paint.solid` color. No extra master, opacity-based brush, raster asset, screen filter or parallel clock.
+
+Interactive Storybook: **Dry-Brush Ink Atelier**, same Risograph sidebar, non-human two-plate poster with physical registration, both separations, 16:9/9:16, an original 240-frame source gesture, pressure width, dried fibres and paper stock; strict pure unit, native Playwright and clean registry consumer tests. Reference provenance, topology, rights and limited/non-calibrated press fidelity: [RISO62 research](../research/riso62-dry-brush-artcraft.md). Any physical edition still requires press proof and normal-speed visual review.
+
+
+## RISO63 — the original dry-brush artwork in production FilmStage
+
+The reusable `RisoBrushArt` has an explicit `layout="film"` mode, which preserves the original 20 original-source stroke shapes, true evenodd paper channels and all other separate spot masters while filling the entire native film output. It remains the exact same drawing used by the existing **Dry-Brush Ink Atelier**, with no rasterized copies. Production `renderRisoBrushFilmSlot` connects this to `loadFilmSlots` as the `riso-dry-brush` recipe slot. The same render function is used by **Risograph → Dry-Brush Production Film** in Storybook.
+
+The portable [10-second, 24fps Film Document](../../examples/film/riso-dry-brush-native.film.json) renders 240 frames to both 960×540 and 540×960. A clean CI job checks the doc, inspects exact source path/time parity and preview plate isolation, captures real Chromium Storybook views and invokes `npm run film:render` to produce actual MP4 files. See [source provenance, technical quality gates, commands and limits](../research/riso63-native-film-artcraft.md). Finished video is silent, no real press calibration is claimed, and no RISO60 human-hand study was changed.
+
+
+## RISO64 — real source-native press / camera cinematic shots
+
+The `RisoBrushArt.printFrame` optional prop defaults to **239**, preserving fully printed RISO62/63 visual/registry consumers. RISO64 composes the exact original source with the existing RisoPrint master-reveal clock and a separate deterministic paper-space camera matrix, evaluated from the FilmStage local scene frame. No new ink renderer or registry dependency.
+
+`RISO_CINEMATIC_BEATS` defines five original 24fps shots: `cobalt-macro` (48f), `cobalt-pullback` (52f), `vermilion-pass` (74f), `overprint-macro` (48f), `original-hold` (66f). The final 288-frame / 12-second film prints to 960×540 and 540×960. `evaluateRisoCinematic` and `risoCinematicCamera` are pure, independently testable functions; `renderRisoCinematicFilmSlot` is shared by the native production FilmStage and the Storybook **Two-Drum Cinematic Journey**. Source strokes, paper-open fibre paths, 2 spot masters, text and registration remain unchanged.
+
+`examples/film/riso-cinematic-two-plate.film.json` is the portable film. See [RISO64 research and source-deconstruction, guardrails, cinema shot list and actual video proof commands](../research/riso64-cinematic-press-artcraft.md). Reduced motion resolves to a stationary fully printed sheet. No video sound or physical Riso calibration is implied.

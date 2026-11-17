@@ -613,6 +613,24 @@ Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/2
 
 **Small かな.** KanjiVG draws ぁ っ ゃ ァ ッ ャ … at 0.79 of a full かな, and in a grid ゃ beside し reads as や. Her one small かな (っ in a small-brush lesson) is 0.46 of the width of her す, and handwriting guides teach about half to two thirds. `shodoKaishoForm` writes KanjiVG small かな at 0.76 of KanjiVG's size (about 0.6 of a full かな), on the foot of their box (`smallKana`).
 
+## 2.25 Twenty-first study round: strokes that meet where they should not
+
+**What was wrong.** The owner saw the first stroke of 急 meet its third stroke. A check now compares, for each pair of strokes, the gap between our rendered inks with the gap in the teacher's labelled ink, and with KanjiVG's skeleton for characters without her ink (the gap that KanjiVG's centrelines leave once each stroke has its rendered width). In the rules forms of the JLPT N5–N3 kanji, 63 characters had strokes of 旁 that ran into 偏 (校, 持, 精, 待, 働, 体, 倒, 野).
+
+**Causes and changes.**
+- *Joins across parts.* `shodoJoinStrokes` moves an end up to 70 em onto an earlier stroke, which closes the gaps left by trimming KanjiVG's pen curls. It also pulled 交's horizontal in 校 into 木. Across top-level parts it now joins only ends within 15 em.
+- *Lengthened strokes.* The 主画 (×1.1), 払い (×1.16) and 提 (×1.2) lengthenings reached the other part (体, 倒, 野). A lengthening now stops 50 em (centreline to centreline) from the strokes of another part, or at the distance the skeleton had when that was already smaller. Inside a part strokes stay as they were; a stricter rule for every stroke lowered the match with the teacher's ink.
+
+**Result.** Flagged characters 63 → 43. Overlap with the teacher's ink is unchanged on both halves of her 388 kanji (+0.0006 and +0.0000). The remaining contacts are mostly corner shoulders of 転折 (the corner of 夕 in 死 reaches 匕) and are measured next.
+
+## 2.26 Twenty-second study round: sweeps that lost their start
+
+**What was wrong.** In 用 the first stroke started 150 em below the corner where ㇆ begins, so the frame was open at the top left. KanjiVG opens many strokes with a small pen curl, and `trimFlourish` removes the first 55 em of such a stroke. It cut at the first sample past 55 em. `samplePathData` takes ten samples per cubic, and a long cubic whose first control point lies far down the stroke has its first sample far from its start (用: 150 em). Thirty-eight strokes of 757 characters lost more than 30 em of their start, sixteen more than 100 em, nearly all of them ノ: 夫 read as 天, 失 as 矢, and 央 火 九 明 started their ノ too low.
+
+**Change.** The entry curl is now cut at its length, between two samples. The exit cut is unchanged (it keeps the next sample, so it never cut too much).
+
+**Result.** On her ink, the rules forms of the 316 of her kanji that change are closer on both halves: overlap +0.0054 and +0.0074 (42/7 and 42/4 characters better/worse), centreline distance −0.06 and −0.07. 央 gains 0.24, 夫 0.19, 左 0.16, 映 0.16, 火 0.13; the largest loss is 0.02 (光).
+
 ## 3. From observation to model
 
 | Observation | Model decision |

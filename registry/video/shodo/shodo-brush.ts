@@ -225,7 +225,9 @@ export function drawShodoBrush(
   const view: V3 = [0, 0, 1];
   const halfway = unit(add(L, view));
   const dryRgb = shodoRgb(brush.hairColor), wetRgb = shodoRgb(pose.color || ink.color);
-  const hair: HairLook = { dry: [...dryRgb], wet: [...wetRgb], inkLine: clamp(.05 + .62 * (1 - pose.ink), .04, .86) };
+  // Photographs of loaded 大筆 and 小筆: the ink reaches from the point to about three quarters
+  // of the tuft; the quarter at the collar stays dry and pale, with a soft wicking edge.
+  const hair: HairLook = { dry: [...dryRgb], wet: [...wetRgb], inkLine: clamp(.24 + .52 * (1 - pose.ink), .22, .86) };
   const N = g.spine.length - 1;
   const P = (i: number, ang: number, rho: number): V3 => {
     const flatHw = g.flat[i];
@@ -255,10 +257,11 @@ export function drawShodoBrush(
   const tipScreen = project(cam, g.spine[N]), rootScreen = project(cam, g.spine[0]);
   const grad = ctx.createLinearGradient(rootScreen[0], rootScreen[1], tipScreen[0], tipScreen[1]);
   const wetDark = mix(hair.wet, [0, 0, 0], .25);
-  grad.addColorStop(0, css(mix(hair.dry, [0, 0, 0], .18)));
-  grad.addColorStop(Math.max(0, hair.inkLine - .1), css(hair.dry));
-  grad.addColorStop(hair.inkLine, css(mix(hair.dry, wetDark, .7)));
-  grad.addColorStop(Math.min(1, hair.inkLine + .06), css(wetDark));
+  grad.addColorStop(0, css(mix(hair.dry, [60, 50, 40], .3)));
+  grad.addColorStop(Math.max(.05, hair.inkLine - .14), css(hair.dry));
+  grad.addColorStop(Math.max(.08, hair.inkLine - .04), css(mix(hair.dry, wetDark, .35)));
+  grad.addColorStop(hair.inkLine + .03, css(mix(hair.dry, wetDark, .82)));
+  grad.addColorStop(Math.min(1, hair.inkLine + .1), css(wetDark));
   grad.addColorStop(1, css(wetDark));
   ctx.save();
   ctx.beginPath();
@@ -291,7 +294,7 @@ export function drawShodoBrush(
   for (let h = 0; h < count; h++) {
     const ang = inkHash(seed, h, 3) * Math.PI * 2;
     const rho = Math.sqrt(inkHash(seed, h, 5)) * .98;
-    hairs.push({ ang, rho, jitter: inkHash(seed, h, 7) - .5, line: hair.inkLine + (inkHash(seed, h, 11) - .5) * .09,
+    hairs.push({ ang, rho, jitter: inkHash(seed, h, 7) - .5, line: hair.inkLine + (inkHash(seed, h, 11) - .5) * .12,
       depth: Math.sin(ang) * rho, clump: Math.floor(inkHash(seed, h, 13) * clumps.length) });
   }
   hairs.sort((a, b) => a.depth - b.depth);
@@ -318,22 +321,25 @@ export function drawShodoBrush(
     const lam = clamp(dot(nrm, L) * .5 + .55, .15, 1);
     const tan = unit(sub(g.spine[Math.min(N, midI + 1)], g.spine[midI]));
     const th = dot(tan, halfway), kk = Math.pow(Math.sqrt(Math.max(0, 1 - th * th)), 60);
-    const dryCol = mix(hair.dry, [0, 0, 0], (1 - lam) * .55);
+    // Dry goat hair is translucent and pale: little contrast between single hairs.
+    const dryCol = mix(hair.dry, [70, 58, 46], (1 - lam) * .32);
     const wetCol = mix(hair.wet, [255, 255, 255], kk * .55 * (.4 + .6 * pose.ink) + .03 * lam);
     const widthPx = Math.max(.35, D * .012 * scaleAt(cam, 20));
     const alpha = .55 + .4 * h.rho;
     ctx.lineWidth = widthPx;
-    const drawRun = (from: number, to: number, col: number[]) => {
+    const drawRun = (from: number, to: number, col: number[], a = alpha) => {
       if (to - from < 1) return;
-      ctx.strokeStyle = css(col, alpha);
+      ctx.strokeStyle = css(col, a);
       ctx.beginPath();
       ctx.moveTo(pts[from][0], pts[from][1]);
       for (let i = from + 1; i <= to; i++) ctx.lineTo(pts[i][0], pts[i][1]);
       ctx.stroke();
     };
     const split = wetFrom < 0 ? N : wetFrom;
-    drawRun(0, split, dryCol);
-    drawRun(Math.max(0, split - 1), N, wetCol);
+    // Dry run, then a short wicking run in between, then the soaked run.
+    drawRun(0, Math.max(0, split - 2), dryCol, alpha * .7);
+    drawRun(Math.max(0, split - 3), Math.min(N, split + 1), mix(dryCol, wetCol, .55), alpha * .85);
+    drawRun(split, N, wetCol);
   }
   // Wet sheen: a broad, soft reflection of the window along the soaked part, with a
   // thin bright core, as on a freshly dipped brush.
@@ -365,21 +371,24 @@ export function drawShodoBrush(
       ctx.lineWidth = Math.max(2, D * .22);
       trace();
       ctx.filter = "none";
-      ctx.strokeStyle = `rgba(255,255,255,${(.16 + .26 * pose.ink).toFixed(3)})`;
-      ctx.lineWidth = Math.max(.7, D * .035);
+      ctx.strokeStyle = `rgba(255,255,255,${(.1 + .16 * pose.ink).toFixed(3)})`;
+      ctx.lineWidth = Math.max(.7, D * .03);
       trace();
       ctx.restore();
     }
   }
   ctx.restore();
 
-  // ── Ferrule and handle ──
-  const Lh = D * brush.length * brush.handleLength, rh = D * .56;
+  // ── Collar and handle ──
+  // As on real 大筆: the hair is set straight into the cane, and a short lacquered collar
+  // (口巻き) flush with the cane covers the joint. The collar is drawn first and the handle
+  // over it, because the handle is nearer to a camera above the paper; the hair comes out
+  // from under the collar, so no open end of a tube shows.
+  const Lh = D * brush.length * brush.handleLength, rh = D * .56, collar = D * .42;
   const top = add(g.ferrule, mul(g.axis, Lh));
   const cane = textures ? tintedCane(textures.cane, handleRgb) : null;
-  drawCylinder(ctx, cam, add(g.ferrule, mul(g.axis, D * .5)), top, rh, rh * .98, handleRgb, L, seed + 1, true, cane);
-  // The lacquered ring where the hair is set into the handle covers the junction.
-  drawCylinder(ctx, cam, g.ferrule, add(g.ferrule, mul(g.axis, D * .62)), rh * 1.04, rh * 1.06, [26, 22, 20], L, seed, false, null);
+  drawCylinder(ctx, cam, g.ferrule, add(g.ferrule, mul(g.axis, collar + D * .02)), rh * 1.01, rh * 1.01, [28, 24, 22], L, seed, false, null);
+  drawCylinder(ctx, cam, add(g.ferrule, mul(g.axis, collar)), top, rh, rh * .97, handleRgb, L, seed + 1, true, cane);
   if (look.cord) drawCord(ctx, cam, top, g.axis, rh, seed);
 }
 
@@ -397,8 +406,9 @@ function tintedCane(source: CanvasImageSource, rgb: readonly number[]): HTMLCanv
   x.drawImage(source, 0, 0, 768, 32);
   const img = x.getImageData(0, 0, 768, 32), d = img.data;
   for (let i = 0; i < d.length; i += 4) {
-    // Detail is stored as luminance / 1.35; above 1 the cane turns slightly warmer.
-    const l = d[i] / 255 * 1.35;
+    // Detail is stored as luminance / 1.35; above 1 the cane turns slightly warmer. The
+    // mottle is kept at 60 % of the scan: cane for brush handles is clean, with fine specks.
+    const l = 1 + (d[i] / 255 * 1.35 - 1) * .6;
     d[i] = clamp(rgb[0] * l * (l > 1 ? 1.02 : 1), 0, 255);
     d[i + 1] = clamp(rgb[1] * l, 0, 255);
     d[i + 2] = clamp(rgb[2] * l * (l > 1 ? .96 : 1), 0, 255);
@@ -421,13 +431,15 @@ function drawCylinder(
   // The end caps are seen as ellipses whose roundness is the axis part pointing at the camera.
   const capRatio = clamp(Math.abs(cam.view === "side" ? axis[1] : axis[2]), .08, 1);
   ctx.save();
-  // Body.
+  // Body: the two sides and, at each end, the outer half of the end ellipse, so the outline
+  // is convex. (In the ellipse frame, angle π/2 points from b back toward a; the outer half
+  // at b runs through 3π/2 and the outer half at a runs through π/2.)
   ctx.beginPath();
   ctx.moveTo(pa[0] + nx * wa, pa[1] + ny * wa);
   ctx.lineTo(pb[0] + nx * wb, pb[1] + ny * wb);
-  ctx.ellipse(pb[0], pb[1], wb, wb * capRatio, Math.atan2(ny, nx), 0, Math.PI, false);
+  ctx.ellipse(pb[0], pb[1], wb, wb * capRatio, Math.atan2(ny, nx), 0, Math.PI, true);
   ctx.lineTo(pa[0] - nx * wa, pa[1] - ny * wa);
-  ctx.ellipse(pa[0], pa[1], wa, wa * capRatio, Math.atan2(ny, nx), Math.PI, Math.PI * 2, false);
+  ctx.ellipse(pa[0], pa[1], wa, wa * capRatio, Math.atan2(ny, nx), Math.PI, 0, true);
   ctx.closePath();
   // Light falls on the side whose normal faces the light.
   const side: V3 = unit([nx, ny, 0]);

@@ -27,6 +27,14 @@ const referenceUrls = import.meta.glob("../../assets/photos/anatomy-references/*
 import type { HumanCamera } from "../../registry/anatomy/anatomy-view";
 import { BeautyEvidence, FacePortrait, GoldenRatioTable } from "../../registry/anatomy/face-portrait-react";
 import type { EyeColour, HairStyle, PortraitOptions } from "../../registry/anatomy/face-portrait";
+import { FRINGES, HAIRSTYLES, findHairStyle } from "../../registry/anatomy/hair-groom";
+import { EYE_EVIDENCE, EYE_SHAPES, IRIS_TYPES, findEyeShape, findIris } from "../../registry/anatomy/eye-detail";
+import { SKIN_EVIDENCE } from "../../registry/anatomy/skin-texture";
+import { SkinRegionsSheet } from "../../registry/anatomy/skin-texture-react";
+import { GRASPS, HAND_ANIMATIONS, HAND_EVIDENCE, HAND_GESTURES, HAND_TYPES, findGrasp, findHandType } from "../../registry/anatomy/hand-model";
+import { HandFlipbook, HandView } from "../../registry/anatomy/hand-react";
+import type { HandRenderOptions } from "../../registry/anatomy/hand-render";
+import type { FringeKind, Parting } from "../../registry/anatomy/hair-groom";
 import { EMOTIONS } from "../../registry/anatomy/expression-facs";
 
 const page = { display: "grid", gap: 16, padding: 24, minHeight: "100vh", background: "#f3efe8", color: "#26211d", font: "15px/1.45 system-ui, sans-serif" } as const;
@@ -476,7 +484,7 @@ function HeadWithHair({ model, params, hair, color, yaw, pitch = 4, size, surfac
   return <HumanFigure frame={frame} surface={surface} hair={strands} hairColor={color} palette={skin ? { light: skin, shadow: rgbToHex(skinShade(skin, -0.35)) } : undefined} label="Head with grown hair" />;
 }
 
-function HairLab() {
+function BodyHairLab() {
   const { model, error } = useHumanModel();
   const [hair, setHair] = useState<HairParams>({ length: 0.22, curl: 1, strands: 2200, parting: "left", flow: "natural", recession: 0, clump: 0.45, frizz: 0.15, seed: 1 });
   const [color, setColor] = useState<HairColorChoice>({ eumelanin: 1.3, pheomelanin: 0, grey: 0 });
@@ -487,7 +495,8 @@ function HairLab() {
   return (
     <div style={{ ...page, gridTemplateColumns: "minmax(260px, 340px) 1fr" }}>
       <div style={panel}>
-        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Hair lab</h2>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Hair on the posable body</h2>
+        <p style={{ ...muted, maxWidth: 300 }}>The quick drawing hair on the posable 3D body. The groomed, rendered hair (styles, bangs, up to 120,000 strands) is in the Hair lab.</p>
         {num("length", "Length (m)", 0.01, 0.6, 0.01)}
         <label style={label}>Curl type: {CURL_TYPES[(hair.curl ?? 1) - 1].label}<input type="range" min={1} max={8} step={1} value={hair.curl} onChange={e => setHair(h => ({ ...h, curl: Number(e.target.value) }))} /></label>
         {num("strands", "Strands drawn", 300, 5000, 100, v => String(v))}
@@ -632,9 +641,14 @@ function BeautifulFaces() {
   ];
   return (
     <div style={{ ...page, gap: 20 }}>
-      <p style={{ ...muted, maxWidth: 900 }}>Each face starts from measured population means (Farkas norms, ANSUR II face breadths and pupil distances), is made symmetric, gets above-average femininity (women) or a slight feminisation (men), measured attractive lip heights, an open eye at a measured palpebral height and a slight canthal tilt, and a hairline at Pallett's 36% ratio. Rendered with measured skin scattering (d'Eon & Luebke profile), a shadowed key light and occlusion, ray-traced eyes and strand-traced hair.</p>
+      <p style={{ ...muted, maxWidth: 900 }}>Each face starts from the shape of real faces (a composite of public-domain portraits of film actors, averaged by sex) and measured population means (Farkas norms, ANSUR II face breadths and pupil distances), is made symmetric, gets above-average femininity (women) or a slight feminisation (men), measured attractive lip heights, an open eye at a measured palpebral height and a slight canthal tilt, and a hairline at Pallett's 36% ratio. Rendered with measured skin scattering (d'Eon & Luebke profile), a shadowed key light and occlusion, ray-traced eyes and strand-traced hair.</p>
       <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
         {people.map((p, k) => <figure key={k} style={{ margin: 0, display: "grid", gap: 4 }}><FacePortrait options={{ ...p.o, width: 288, height: 360, seed: 5 + k }} label={p.caption} /><figcaption style={muted}>{p.caption}</figcaption></figure>)}
+      </div>
+      <h3 style={{ margin: 0 }}>The shape of real faces</h3>
+      <p style={{ ...muted, maxWidth: 900 }}>The composite of public-domain portraits of film actors, measured with face landmarks and averaged by sex (one photograph a person; no one's likeness survives the average), shapes the contours, cheeks, brows and nose; the breadths, eye opening and lips are then set to their measured values. Left: without it; right: with it.</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+        {[0, 1].flatMap(sex => [0, 1].map(rf => <figure key={`${sex}-${rf}`} style={{ margin: 0, display: "grid", gap: 4 }}><FacePortrait options={{ sex, realFaces: rf, skin: SKINS[2], hairStyle: sex ? "short-crop" : "bun", width: 288, height: 360, hairStrands: 14000 }} label={`${sex ? "Man" : "Woman"}, ${rf ? "with" : "without"} the real-face composite`} /><figcaption style={muted}>{sex ? "Man" : "Woman"}, {rf ? "with the composite" : "the calibrated mask"}</figcaption></figure>))}
       </div>
       <h3 style={{ margin: 0 }}>The calibrated average (beauty 0) against the findings applied (beauty 1)</h3>
       <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
@@ -649,20 +663,295 @@ function BeautifulFaces() {
 }
 
 const SKINS = ["#f1d3bd", "#e6c0a4", "#d8a98a", "#c99a7e", "#b3825f", "#8d5a3b", "#6d452f", "#4b2e20"];
+const MEN_STYLES = new Set(["short-crop", "slicked-back", "buzz"]);
+
+/** The hair foundation on the portrait head: every style, bang and part, with as many strands as you like. */
+function HairLab() {
+  const [o, setO] = useState<PortraitOptions>({ sex: 0, skin: "#e6c0a4", eyes: "brown", hairStyle: "shoulder-curtain", hairStrands: 40000, hairLength: 1, hair: { eumelanin: 1.3, pheomelanin: 0 }, hairGrey: 0, keyAzimuth: -22, keyElevation: 40, yaw: 0 });
+  const [info, setInfo] = useState("");
+  const set = (k: keyof PortraitOptions, v: unknown) => setO(prev => ({ ...prev, [k]: v }));
+  const style = findHairStyle(o.hairStyle ?? "long-straight"), fringe = FRINGES.find(f => f.id === (o.fringe ?? style.fringe));
+  const colour = HAIR_COLOR_PRESETS.find(c => c.eumelanin === o.hair?.eumelanin && c.pheomelanin === (o.hair?.pheomelanin ?? 0))?.id ?? "";
+  const range = (k: keyof PortraitOptions, name: string, min: number, max: number, step: number, fmt = (v: number) => String(v), dflt = 0) => (
+    <label key={k} style={label}>{name}: {fmt(Number(o[k] ?? dflt))}<input type="range" min={min} max={max} step={step} value={Number(o[k] ?? dflt)} onChange={e => set(k, Number(e.target.value))} /></label>);
+  return (
+    <div style={{ ...page, gridTemplateColumns: "minmax(250px, 330px) 1fr" }}>
+      <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Hair lab</h2>
+        <label style={label}>Style<select style={field} value={o.hairStyle} onChange={e => setO(prev => ({ ...prev, hairStyle: e.target.value, sex: MEN_STYLES.has(e.target.value) ? 1 : prev.sex, fringe: undefined, parting: undefined, hairCurl: undefined }))}>
+          {HAIRSTYLES.map(st => <option key={st.id} value={st.id}>{st.label}</option>)}</select></label>
+        <label style={label}>Bangs<select style={field} value={o.fringe ?? ""} onChange={e => set("fringe", (e.target.value || undefined) as FringeKind | undefined)}>
+          <option value="">the style's ({style.fringe})</option><option value="none">none</option>{FRINGES.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}</select></label>
+        <label style={label}>Part<select style={field} value={o.parting ?? ""} onChange={e => set("parting", (e.target.value || undefined) as Parting | undefined)}>
+          <option value="">the style's ({style.parting})</option>{(["none", "center", "left", "right"] as const).map(v => <option key={v} value={v}>{v}</option>)}</select></label>
+        {range("hairStrands", "Strands drawn", 5000, 120000, 5000, v => v.toLocaleString("en"), 40000)}
+        {range("hairLength", "Length", 0.4, 1.6, 0.05, v => `${v.toFixed(2)}×`, 1)}
+        <label style={label}>Curl<select style={field} value={o.hairCurl ?? ""} onChange={e => set("hairCurl", e.target.value ? Number(e.target.value) : undefined)}>
+          <option value="">the style's ({CURL_TYPES[style.curl - 1].label})</option>{CURL_TYPES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label>
+        <label style={label}>Colour<select style={field} value={colour} onChange={e => { const c = HAIR_COLOR_PRESETS.find(x => x.id === e.target.value); if (c) set("hair", { eumelanin: c.eumelanin, pheomelanin: c.pheomelanin }); }}>
+          {colour ? null : <option value="">custom</option>}{HAIR_COLOR_PRESETS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label>
+        {range("hairGrey", "Grey strands", 0, 1, 0.05, v => `${Math.round(v * 100)}%`)}
+        {range("sex", "Woman → man", 0, 1, 1)}
+        <label style={label}>Skin<select style={field} value={o.skin} onChange={e => set("skin", e.target.value)}>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+        {range("yaw", "Head turn", -25, 25, 5, v => `${v}°`)}{range("keyAzimuth", "Key light from", -70, 70, 5, v => `${v}°`)}{range("keyElevation", "Key light height", 0, 70, 5, v => `${v}°`)}
+      </div>
+      <div style={{ display: "grid", gap: 8, alignContent: "start", maxWidth: 520 }}>
+        <FacePortrait options={{ ...o, width: 416, height: 520 }} label={`Portrait with ${style.label} hair`} onRendered={p => setInfo(`${(p.hair?.groom.starts.length ?? 0).toLocaleString("en")} strands · groomed in ${Math.round(p.hair?.groom.ms ?? 0)} ms · rendered in ${Math.round(p.ms)} ms`)} />
+        <p style={muted} aria-live="polite">{info || "Rendering…"}</p>
+        <p style={muted}><b>{style.label}.</b> {style.note}</p>
+        {fringe ? <p style={muted}><b>{fringe.label} bangs.</b> {fringe.note}</p> : null}
+      </div>
+    </div>
+  );
+}
+
+/** Eyes in detail: every eye shape and iris, each eye's colour, the pupil, a close-up or the whole portrait. */
+function EyeLab() {
+  const [o, setO] = useState<PortraitOptions>({ sex: 0, skin: "#e6c0a4", eyes: "hazel", eyeShape: "almond", pupil: 4, framing: "eyes", keyAzimuth: -22, keyElevation: 40, yaw: 0, hairStrands: 12000 });
+  const set = (k: keyof PortraitOptions, v: unknown) => setO(prev => ({ ...prev, [k]: v }));
+  const shape = findEyeShape(typeof o.eyeShape === "string" ? o.eyeShape : "almond"), iris = findIris(o.eyes ?? "brown");
+  const close = o.framing === "eyes";
+  const range = (k: keyof PortraitOptions, name: string, min: number, max: number, step: number, fmt = (v: number) => String(v), dflt = 0) => (
+    <label key={k} style={label}>{name}: {fmt(Number(o[k] ?? dflt))}<input type="range" min={min} max={max} step={step} value={Number(o[k] ?? dflt)} onChange={e => set(k, Number(e.target.value))} /></label>);
+  return (
+    <div style={{ ...page, gridTemplateColumns: "minmax(250px, 330px) 1fr" }}>
+      <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Eye lab</h2>
+        <label style={label}>Eye shape<select style={field} value={shape.id} onChange={e => set("eyeShape", e.target.value)}>{EYE_SHAPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        <label style={label}>Iris<select style={field} value={iris.id} onChange={e => set("eyes", e.target.value)}>{IRIS_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        <label style={label}>Right eye (heterochromia)<select style={field} value={o.eyesRight ?? ""} onChange={e => set("eyesRight", e.target.value || undefined)}><option value="">the same</option>{IRIS_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        {range("pupil", "Pupil", 2, 7, 0.5, v => `${v} mm`, 4)}
+        <label style={label}>Framing<select style={field} value={o.framing ?? "portrait"} onChange={e => set("framing", e.target.value)}><option value="eyes">eyes, close</option><option value="portrait">portrait</option></select></label>
+        {range("sex", "Woman → man", 0, 1, 1)}
+        <label style={label}>Skin<select style={field} value={o.skin} onChange={e => set("skin", e.target.value)}>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+        {range("yaw", "Head turn", -25, 25, 5, v => `${v}°`)}{range("keyAzimuth", "Key light from", -70, 70, 5, v => `${v}°`)}{range("keyElevation", "Key light height", 0, 70, 5, v => `${v}°`)}
+      </div>
+      <div style={{ display: "grid", gap: 8, alignContent: "start", maxWidth: close ? 760 : 520 }}>
+        <FacePortrait options={{ ...o, width: close ? 720 : 416, height: close ? 310 : 520 }} label={`${shape.label} eyes, ${iris.label} iris`} />
+        <p style={muted}><b>{shape.label}.</b> {shape.note} Opening {shape.height} mm, tilt {shape.tilt}°, crease {shape.crease ? `${shape.crease} mm` : "none"}{shape.epicanthal ? `, epicanthal fold ${shape.epicanthal}` : ""}{shape.hood ? `, hood ${shape.hood}` : ""} ({shape.grade}).</p>
+        <p style={muted}><b>{iris.label}.</b> Pupillary zone {iris.pupillary}, ciliary zone {iris.ciliary}; {iris.source} ({iris.grade}).</p>
+      </div>
+    </div>
+  );
+}
+
+/** Every eye shape, with what sets it. */
+function EyeShapes() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Eye shapes measured on real people: the lid opening (height, width, canthal tilt), the upper-lid crease (its height, or none in a single lid), a hood, an epicanthal fold, depth and spacing. Reference photographs are on the Reference board (eyes).</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))" }}>
+        {EYE_SHAPES.map((t, k) => <figure key={t.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <FacePortrait options={{ sex: 0, skin: SKINS[[1, 1, 2, 2, 1, 0, 3, 2, 1, 4, 0][k]], eyes: ["brown", "blue", "green", "dark-brown", "dark-brown", "hazel", "amber", "grey", "light-blue", "light-brown", "grey-green"][k], eyeShape: t.id, framing: "eyes", hairStrands: 8000, width: 480, height: 206, seed: 3 + k }} label={`${t.label} eyes`} />
+          <figcaption style={muted}><b>{t.label}</b> — {t.note}</figcaption></figure>)}
+      </div>
+      <ul style={{ ...muted, maxWidth: 900, paddingLeft: 18 }}>{EYE_EVIDENCE.filter(x => x.id !== "iris-zones" && x.id !== "iris-continuous").map(x => <li key={x.id}>{x.finding} ({x.url ? <a href={x.url}>{x.source}</a> : x.source}; {x.grade})</li>)}</ul>
+    </div>
+  );
+}
+
+/** Every iris colour, close up. */
+function IrisColours() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Fourteen irises. Each has a pupillary zone and a ciliary zone in their own colours, measured zone by zone in public-domain or CC0 photographs where one was available, and the structure of a real iris: the collarette, radial fibres, crypts, contraction furrows, the dark limbal ring and the pupillary ruff.</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))" }}>
+        {IRIS_TYPES.map((t, k) => <figure key={t.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <FacePortrait options={{ sex: 0, skin: SKINS[[3, 2, 1, 2, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0][k]], eyes: t.id, eyeShape: "almond", framing: "eyes", hairStrands: 8000, width: 480, height: 206, seed: 5 + k }} label={`${t.label} iris`} />
+          <figcaption style={muted}><b>{t.label}</b> — {t.source} ({t.grade})</figcaption></figure>)}
+      </div>
+      <ul style={{ ...muted, maxWidth: 900, paddingLeft: 18 }}>{EYE_EVIDENCE.filter(x => x.id === "iris-zones" || x.id === "iris-continuous").map(x => <li key={x.id}>{x.finding} ({x.source}; {x.grade})</li>)}</ul>
+    </div>
+  );
+}
+
+/** Skin is not smooth: its texture by body region and age, with what sets it. */
+function SkinTexture() {
+  return (
+    <div style={{ ...page, gap: 18 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>The skin's surface by region, at macro scale under a raking light: a network of furrows (primary lines crossing into triangles and rhombi, finer secondary lines between them, each plateau a little domed), pores where follicles open, fine wrinkles and folds, papillary ridges on the palm and fingertips, and fine vellus hairs. With age the furrows grow fewer, wider and deeper and the folds stronger. Reference photographs: Reference board, skin.</p>
+      <SkinRegionsSheet />
+      <h3 style={{ margin: 0 }}>The same face at 25, 45, 65 and 80</h3>
+      <p style={{ ...muted, maxWidth: 900 }}>Forehead lines, the lines between the brows, crow's feet, lines under the eyes, the nasolabial folds and marionette lines, neck lines and age spots come with age; the fine texture shows only as close as the camera can resolve it.</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+        {[25, 45, 65, 80].map((age, k) => <figure key={age} style={{ margin: 0, display: "grid", gap: 4 }}>
+          <FacePortrait options={{ sex: k % 2, age, hairStyle: k % 2 ? "short-crop" : "bun", hairGrey: Math.max(0, (age - 40) / 40), skin: SKINS[[1, 3, 2, 1][k]], width: 288, height: 360, seed: 9 + k, hairStrands: 16000 }} label={`Portrait at ${age}`} />
+          <figcaption style={muted}>{age} years</figcaption></figure>)}
+      </div>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 320px), 1fr))" }}>
+        {[[28, 0], [70, 0], [30, 0.85]].map(([age, fr], k) => <figure key={k} style={{ margin: 0, display: "grid", gap: 4 }}>
+          <FacePortrait options={{ sex: 0, age, freckles: fr, framing: "eyes", skin: fr ? "#f1d3bd" : SKINS[2], eyes: fr ? "green" : "brown", hair: fr ? { eumelanin: 0.25, pheomelanin: 1.6 } : undefined, hairStrands: 8000, width: 480, height: 206, seed: 3 + k }} label={`Eyes and skin at ${age}${fr ? " with freckles" : ""}`} />
+          <figcaption style={muted}>{age} years{fr ? ", freckles" : ""}, close</figcaption></figure>)}
+      </div>
+      <ul style={{ ...muted, maxWidth: 900, paddingLeft: 18 }}>{SKIN_EVIDENCE.map(x => <li key={x.id}>{x.finding} ({x.url ? <a href={x.url}>{x.source}</a> : x.source}; {x.grade})</li>)}</ul>
+    </div>
+  );
+}
+
+type HandViewName = NonNullable<HandRenderOptions["view"]>;
+const HAND_VIEWS: HandViewName[] = ["back", "palm", "thumb-side", "little-side", "three-quarter"];
+/** Hands in detail: any type, gesture or grasp, from any side, close up if you like. */
+function HandLab() {
+  const [type, setType] = useState("man"), [mode, setMode] = useState<"gesture" | "grasp">("gesture"), [gesture, setGesture] = useState("relaxed"), [grasp, setGrasp] = useState("medium-wrap");
+  const [view, setView] = useState<HandViewName>("three-quarter"), [yaw, setYaw] = useState(0), [pitch, setPitch] = useState(0), [side, setSide] = useState<"right" | "left">("right");
+  const [focus, setFocus] = useState<"" | "index" | "middle" | "thumb" | "palm">(""), [skin, setSkin] = useState(""), [nails, setNails] = useState("");
+  const t = findHandType(type), g = findGrasp(grasp), ge = HAND_GESTURES.find(x => x.id === gesture);
+  const options: HandRenderOptions = { width: 420, height: 420, view, yaw, pitch, focus: focus || undefined, zoom: focus ? 3.5 : 1, skin: skin || undefined, nailColour: nails || undefined };
+  return (
+    <div style={{ ...page, gridTemplateColumns: "minmax(250px, 330px) 1fr" }}>
+      <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
+        <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Hand lab</h2>
+        <label style={label}>Hand<select style={field} value={type} onChange={e => setType(e.target.value)}>{HAND_TYPES.map(x => <option key={x.id} value={x.id}>{x.label}</option>)}</select></label>
+        <label style={label}>Which hand<select style={field} value={side} onChange={e => setSide(e.target.value as "right" | "left")}><option value="right">right</option><option value="left">left</option></select></label>
+        <div style={row}>{(["gesture", "grasp"] as const).map(m => <button key={m} type="button" style={mode === m ? active : button} aria-pressed={mode === m} onClick={() => setMode(m)}>{m}</button>)}</div>
+        {mode === "gesture"
+          ? <label style={label}>Gesture<select style={field} value={gesture} onChange={e => setGesture(e.target.value)}>{HAND_GESTURES.map(x => <option key={x.id} value={x.id}>{x.label}</option>)}</select></label>
+          : <label style={label}>Grasp<select style={field} value={grasp} onChange={e => setGrasp(e.target.value)}>{GRASPS.map(x => <option key={x.id} value={x.id}>{x.n}. {x.label}</option>)}</select></label>}
+        <label style={label}>View<select style={field} value={view} onChange={e => setView(e.target.value as HandViewName)}>{HAND_VIEWS.map(v => <option key={v} value={v}>{v}</option>)}</select></label>
+        <label style={label}>Turn: {yaw}°<input type="range" min={-90} max={90} step={5} value={yaw} onChange={e => setYaw(Number(e.target.value))} /></label>
+        <label style={label}>Tilt: {pitch}°<input type="range" min={-60} max={60} step={5} value={pitch} onChange={e => setPitch(Number(e.target.value))} /></label>
+        <label style={label}>Close-up<select style={field} value={focus} onChange={e => setFocus(e.target.value as typeof focus)}><option value="">whole hand</option><option value="index">index fingertip</option><option value="middle">middle fingertip</option><option value="thumb">thumb tip</option><option value="palm">palm</option></select></label>
+        <label style={label}>Skin<select style={field} value={skin} onChange={e => setSkin(e.target.value)}><option value="">the hand's ({t.skin})</option>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
+        <label style={label}>Nails<select style={field} value={nails} onChange={e => setNails(e.target.value)}><option value="">natural</option><option value="#b0242c">red polish</option><option value="#e8c4c0">pale pink polish</option><option value="#2a2630">dark polish</option></select></label>
+      </div>
+      <div style={{ display: "grid", gap: 8, alignContent: "start", maxWidth: 520 }}>
+        <HandView hand={mode === "grasp" ? { type, side, grasp } : { type, side, gesture }} options={options} label={`${t.label} hand, ${mode === "grasp" ? g.label : ge?.label}`} />
+        <p style={muted}><b>{t.label}.</b> {t.note} Length {Math.round(t.length)} mm, breadth {Math.round(t.breadth)} mm, palm {Math.round(t.palmLength)} mm; index : ring {t.digitRatio}.</p>
+        {mode === "grasp"
+          ? <p style={muted}><b>{g.n}. {g.label}</b> — {g.kind}, {g.opposition} opposition, thumb {g.thumb}; {g.freq}% of grasps in housekeeping and machining work (Feix et al. 2016). The fingers close until they touch the object.</p>
+          : <p style={muted}><b>{ge?.label}.</b> {ge?.note}</p>}
+      </div>
+    </div>
+  );
+}
+
+/** Every hand type, side by side. */
+function HandTypes() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>All at one scale (each square is 300 mm across). Hands as they differ: sizes from ANSUR II (hand length, breadth and palm length by sex and percentile) and studies of children's fingers; shape traits (finger thickness, padding, muscle, knuckles, veins and tendons, taper, nails, digit ratio) from public-domain photographs (Reference board, hands).</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 230px), 1fr))" }}>
+        {HAND_TYPES.map(t => <figure key={t.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <HandView hand={{ type: t.id, gesture: "relaxed" }} options={{ width: 260, height: 260, view: "back", frameMm: 300, supersample: 1 }} label={`${t.label} hand from the back, at one scale`} />
+          <figcaption style={muted}><b>{t.label}</b> — {Math.round(t.length)} × {Math.round(t.breadth)} mm. {t.note}</figcaption></figure>)}
+      </div>
+    </div>
+  );
+}
+
+/** Gestures and everyday hand shapes. */
+function HandGestures() {
+  const views: Record<string, HandViewName> = { fist: "thumb-side", point: "thumb-side", ok: "palm", "thumbs-up": "thumb-side", peace: "palm", horns: "palm", call: "palm", pinch: "thumb-side", claw: "thumb-side", cupped: "thumb-side", beckon: "thumb-side", "count-3": "palm" };
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Joint angles within the clinical ranges; unspecified end joints follow the middle joints (about two-thirds); at rest the fingers flex more toward the little finger (the normal cascade); the thumb's pad is solved to land where the gesture puts it (on the index tip for OK, across the middle phalanges in a fist).</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+        {HAND_GESTURES.map(g => <figure key={g.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <HandView hand={{ type: "woman", gesture: g.id }} options={{ width: 240, height: 240, view: views[g.id] ?? "three-quarter", supersample: 1 }} label={`${g.label} gesture`} />
+          <figcaption style={muted}><b>{g.label}</b> — {g.note}</figcaption></figure>)}
+      </div>
+    </div>
+  );
+}
+
+/** The 33 grasps of the GRASP taxonomy. */
+function HandGrasps() {
+  const groups: ("power" | "intermediate" | "precision")[] = ["power", "intermediate", "precision"];
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>The 33 grasp types of the GRASP taxonomy (Feix, Romero, Schmiedmayer, Dollar &amp; Kragic 2016), numbered as in the paper, with the share of grasps observed in housekeeping and machining work. Each hand is shaped for the grasp, then each finger closes, joint by joint, until it touches the object, so any hand fits any object.</p>
+      {groups.map(k => <section key={k} style={{ display: "grid", gap: 10 }}>
+        <h3 style={{ margin: 0, textTransform: "capitalize" }}>{k}</h3>
+        <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))" }}>
+          {GRASPS.filter(g => g.kind === k).map(g => <figure key={g.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+            <HandView hand={{ type: "man", grasp: g.id }} options={{ width: 220, height: 220, view: g.opposition === "palm" ? "thumb-side" : "three-quarter", supersample: 1 }} label={`Grasp ${g.n}, ${g.label}`} />
+            <figcaption style={muted}><b>{g.n}. {g.label}</b> — {g.opposition}, thumb {g.thumb}, {g.freq}%</figcaption></figure>)}
+        </div>
+      </section>)}
+    </div>
+  );
+}
+
+/** Actions, played. */
+function HandAnimations() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Each action is keyframed and eased by the minimum-jerk profile of human point-to-point movement (Flash &amp; Hogan 1985); in a grasp the fingers start a few tens of milliseconds apart. Frames are rendered here (draft quality), then looped; with reduced motion they wait for Play.</p>
+      <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+        {HAND_ANIMATIONS.map((a, k) => <figure key={a.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <HandFlipbook type={["man", "woman", "woman", "man", "woman", "man", "man", "woman"][k] ?? "man"} animation={a.id} options={{ width: 220, height: 220, view: a.id === "wave" || a.id === "count" ? "back" : a.id === "beckon" ? "palm" : "thumb-side" }} />
+          <figcaption style={muted}><b>{a.label}</b> — {a.note}</figcaption></figure>)}
+      </div>
+      <ul style={{ ...muted, maxWidth: 900, paddingLeft: 18 }}>{HAND_EVIDENCE.map(x => <li key={x.id}>{x.finding} ({x.url ? <a href={x.url}>{x.source}</a> : x.source}; {x.grade})</li>)}</ul>
+    </div>
+  );
+}
+
+/** Close-ups: nails, knuckles, a child's dimples, the palm's creases. */
+function HandDetails() {
+  const items: { hand: Parameters<typeof HandView>[0]["hand"]; o: HandRenderOptions; caption: string }[] = [
+    { hand: { type: "man-strong", gesture: "open" }, o: { view: "back", focus: "middle", zoom: 3.5 }, caption: "Square nails, short, on thick fingers" },
+    { hand: { type: "woman-slender", gesture: "open" }, o: { view: "back", focus: "middle", zoom: 3.5 }, caption: "Long almond nails" },
+    { hand: { type: "woman", gesture: "open" }, o: { view: "back", focus: "middle", zoom: 3.5, nailColour: "#b0242c" }, caption: "Oval nails, red polish" },
+    { hand: { type: "child", gesture: "relaxed" }, o: { view: "back", focus: "palm", zoom: 2 }, caption: "A child's back of the hand: dimples over the knuckles" },
+    { hand: { type: "elder-man", gesture: "relaxed" }, o: { view: "back", focus: "palm", zoom: 2 }, caption: "An old man's: tendons, veins, big knuckles" },
+    { hand: { type: "man", gesture: "open" }, o: { view: "palm", focus: "palm", zoom: 1.8 }, caption: "The palm's creases: heart, head and life lines; the wrist creases" },
+  ];
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))" }}>
+        {items.map((x, k) => <figure key={k} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <HandView hand={x.hand} options={{ width: 300, height: 300, ...x.o }} label={x.caption} />
+          <figcaption style={muted}>{x.caption}</figcaption></figure>)}
+      </div>
+    </div>
+  );
+}
+
+/** Every hairstyle, groomed on the portrait head. */
+function Hairstyles() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Each style is combed on the head, grown under gravity (lying on the head where the hair beneath holds it, hanging where it leaves the head), cut (a blunt line, layers, texture, or the bangs' own line) and filled out to tens of thousands of strands.</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 210px), 1fr))" }}>
+        {HAIRSTYLES.map((st, k) => <figure key={st.id} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <FacePortrait options={{ sex: MEN_STYLES.has(st.id) ? 1 : 0, skin: SKINS[[1, 2, 0, 3, 1, 2, 1, 2, 6, 2, 1, 3, 2, 4, 3][k]], hairStyle: st.id, hairStrands: 30000, hair: st.id === "afro" ? { eumelanin: 7 } : undefined, width: 256, height: 320, seed: 3 + k }} label={`Portrait with ${st.label} hair`} />
+          <figcaption style={muted}><b>{st.label}</b> — {st.note}</figcaption></figure>)}
+      </div>
+    </div>
+  );
+}
+
+/** Every kind of bangs (fringe) on one cut. */
+function Bangs() {
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <p style={{ ...muted, maxWidth: 900 }}>Bangs are cut from a triangular section behind the front hairline: combed forward over the hairline, set and left to fall on the forehead, then cut on their own line (straight at the brows, halfway up the forehead, at the lashes, from the bridge of the nose to the cheekbones, or across from the brow to the cheekbone).</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 210px), 1fr))" }}>
+        {(["none", ...FRINGES.map(f => f.id)] as FringeKind[]).map((f, k) => { const spec = FRINGES.find(x => x.id === f); return (
+          <figure key={f} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+            <FacePortrait options={{ sex: 0, skin: SKINS[1], hairStyle: "lob", fringe: f, parting: f === "curtain" || f === "bottleneck" ? "center" : f === "side-swept" ? "left" : "none", hairStrands: 30000, width: 256, height: 320, seed: 11 + k }} label={`Lob with ${spec ? spec.label : "no"} bangs`} />
+            <figcaption style={muted}><b>{spec ? spec.label : "No bangs"}</b>{spec ? ` — ${spec.note}` : " — the front swept off the face to either side of the part."}</figcaption></figure>); })}
+      </div>
+    </div>
+  );
+}
 /** One portrait with every control. */
 function PortraitLab() {
-  const [o, setO] = useState<PortraitOptions>({ sex: 0, beauty: 1, skin: "#d8a98a", eyes: "brown", hairStyle: "long", expression: "", intensity: 1, yaw: 0, keyAzimuth: -22, keyElevation: 40 });
+  const [o, setO] = useState<PortraitOptions>({ sex: 0, beauty: 1, skin: "#d8a98a", eyes: "brown", hairStyle: "long-straight", expression: "", intensity: 1, yaw: 0, keyAzimuth: -22, keyElevation: 40, age: 30, freckles: 0 });
   const set = (k: keyof PortraitOptions, v: unknown) => setO(prev => ({ ...prev, [k]: v }));
   const num = (k: keyof PortraitOptions, min: number, max: number, step: number) => <label key={k} style={label}>{k}: {String(o[k])}
     <input type="range" min={min} max={max} step={step} value={Number(o[k] ?? 0)} onChange={e => set(k, Number(e.target.value))} /></label>;
   return (
     <div style={{ ...page, gridTemplateColumns: "minmax(240px, 320px) 1fr" }}>
       <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
-        {num("sex", 0, 1, 1)}{num("beauty", 0, 1, 0.25)}
+        {num("sex", 0, 1, 1)}{num("beauty", 0, 1, 0.25)}{num("realFaces", 0, 1, 0.25)}
         <label style={label}>Skin<select style={field} value={o.skin} onChange={e => set("skin", e.target.value)}>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
-        <label style={label}>Eyes<select style={field} value={o.eyes} onChange={e => set("eyes", e.target.value as EyeColour)}>{(["dark-brown", "brown", "hazel", "green", "blue", "grey"] as const).map(c => <option key={c}>{c}</option>)}</select></label>
-        <label style={label}>Hair<select style={field} value={o.hairStyle} onChange={e => set("hairStyle", e.target.value as HairStyle)}>{(["long", "bob", "short"] as const).map(c => <option key={c}>{c}</option>)}</select></label>
+        <label style={label}>Eyes<select style={field} value={o.eyes} onChange={e => set("eyes", e.target.value as EyeColour)}>{IRIS_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        <label style={label}>Eye shape<select style={field} value={typeof o.eyeShape === "string" ? o.eyeShape : ""} onChange={e => set("eyeShape", e.target.value || undefined)}><option value="">measured average</option>{EYE_SHAPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
+        <label style={label}>Hair<select style={field} value={o.hairStyle} onChange={e => set("hairStyle", e.target.value as HairStyle)}>{HAIRSTYLES.map(st => <option key={st.id} value={st.id}>{st.label}</option>)}</select></label>
         <label style={label}>Expression<select style={field} value={o.expression} onChange={e => set("expression", e.target.value)}><option value="">neutral</option>{EMOTIONS.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}</select></label>
+        {num("age", 18, 85, 1)}{num("freckles", 0, 1, 0.1)}
         {num("intensity", 0, 1, 0.1)}{num("yaw", -25, 25, 5)}{num("keyAzimuth", -70, 70, 5)}{num("keyElevation", 0, 70, 5)}
       </div>
       <div style={{ maxWidth: 480 }}><FacePortrait options={{ ...o, expression: o.expression || undefined, width: 384, height: 480 }} label="Portrait" /></div>
@@ -678,5 +967,18 @@ export const AnyStyleStory: Story = { name: "Any style", render: () => <AnyStyle
 export const ProportionsStory: Story = { name: "Proportions and ranges", render: () => <Proportions /> };
 export const ReferenceBoardStory: Story = { name: "Reference board", render: () => <ReferenceBoard /> };
 export const HairLabStory: Story = { name: "Hair lab", render: () => <HairLab /> };
+export const HairstylesStory: Story = { name: "Hairstyles", render: () => <Hairstyles /> };
+export const EyeLabStory: Story = { name: "Eye lab", render: () => <EyeLab /> };
+export const SkinTextureStory: Story = { name: "Skin texture by region", render: () => <SkinTexture /> };
+export const HandLabStory: Story = { name: "Hand lab", render: () => <HandLab /> };
+export const HandTypesStory: Story = { name: "Hand types", render: () => <HandTypes /> };
+export const HandGesturesStory: Story = { name: "Hand gestures", render: () => <HandGestures /> };
+export const HandGraspsStory: Story = { name: "Grasps (GRASP taxonomy)", render: () => <HandGrasps /> };
+export const HandAnimationsStory: Story = { name: "Hand animations", render: () => <HandAnimations /> };
+export const HandDetailsStory: Story = { name: "Hand details", render: () => <HandDetails /> };
+export const EyeShapesStory: Story = { name: "Eye shapes", render: () => <EyeShapes /> };
+export const IrisColoursStory: Story = { name: "Iris colours", render: () => <IrisColours /> };
+export const BangsStory: Story = { name: "Bangs (fringes)", render: () => <Bangs /> };
+export const BodyHairLabStory: Story = { name: "Hair on the posable body", render: () => <BodyHairLab /> };
 export const HairTypesStory: Story = { name: "Hair types and colours", render: () => <HairTypes /> };
 export const SkinColourStory: Story = { name: "Skin, hair and eye colour", render: () => <SkinAndColour /> };

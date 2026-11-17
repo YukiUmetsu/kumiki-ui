@@ -19,6 +19,7 @@ import {riso51MorphSourcePart} from "./riso51-view-conditioned-source";
 import {riso53ReorderPalmarInk} from "./riso53-palmar-depth-composition";
 import {riso54ApplyWebReserves} from "./riso54-interdigital-paper-reserve";
 import {riso58ApplyContactSkin} from "./riso58-anat1-volume-skin";
+import {riso59PreviewContact} from "./riso59-continuous-hand-envelope";
 import {evaluateRiso56HandoffCamera,riso56ProjectPlacement,riso56ProjectPoint,riso56CameraMatrix} from "./riso56-handoff-camera";
 import {riso43FrontIndexIds} from "./riso43-physical-paper-depth";
 import {inspectRiso44PrintedIndexContact} from "./riso44-source-index-paper-contact";
@@ -478,6 +479,7 @@ export function RisoHumanEnsembleStudio(){
   const [plate,setPlate]=useState<EnsemblePlate>("both");
   const [anchors,setAnchors]=useState(false);
   const [editorialCamera,setEditorialCamera]=useState(true);
+  const [riso59Preview,setRiso59Preview]=useState(false);
   const [grain,setGrain]=useState(.45);
   const [misregistration,setMisregistration]=useState(.25);
   const [dotCell,setDotCell]=useState(6);
@@ -539,9 +541,18 @@ export function RisoHumanEnsembleStudio(){
       {id:"red",color:red,opacity:1,dotCell,dotAngle:17,registration:[.5,-.4]},
     ],
   };
+  // Contact joint transforms, paper handoff, camera and both original
+  // pressure models are unchanged: only four physical source paths per
+  // actor are compared at the same 1x / 9:16 source frame. Opt-in review.
+  const riso59Spec=useMemo(()=>({
+    donor:riso59PreviewContact(COURIER,"courier").spec,
+    receiver:riso59PreviewContact(PAPER_ARTIST,"paper-artist").spec,
+  }),[]);
   const people=[
-    {spec:COURIER,stage:riso56ProjectPlacement(state.first,camera)},
-    {spec:PAPER_ARTIST,stage:riso56ProjectPlacement(state.second,camera)},
+    {spec:riso59Preview?riso59Spec.donor:COURIER,
+      stage:riso56ProjectPlacement(state.first,camera)},
+    {spec:riso59Preview?riso59Spec.receiver:PAPER_ARTIST,
+      stage:riso56ProjectPlacement(state.second,camera)},
   ] as const;
   const footContacts=([
     {spec:COURIER,stage:state.first},
@@ -601,9 +612,9 @@ export function RisoHumanEnsembleStudio(){
         // Once the physical paper has moved away from the source finger root,
         // never leave that original rigged finger floating over its surface.
         ...(state.sourceTouching
-          ? [gripLayer(COURIER,people[0].stage,"right","courier-grip")]:[]),
+          ? [gripLayer(people[0].spec,people[0].stage,"right","courier-grip")]:[]),
         ...(state.receiverTouching
-          ? [gripLayer(PAPER_ARTIST,people[1].stage,"left","artist-grip")]:[]),
+          ? [gripLayer(people[1].spec,people[1].stage,"left","artist-grip")]:[]),
       ]
       : []),
   ];
@@ -697,6 +708,10 @@ export function RisoHumanEnsembleStudio(){
           aria-label="RISO ensemble handoff closeup camera"
           onChange={e=>setEditorialCamera(e.target.checked)}/>
           Cinematic paper-handoff camera (RISO56)</label>
+        <label><input type="checkbox" checked={riso59Preview}
+          aria-label="RISO59 film three-quarter skin A/B"
+          onChange={e=>setRiso59Preview(e.target.checked)}/>
+          RISO59 unapproved skin envelope · original film A/B</label>
         <label><input type="checkbox" checked={anchors} aria-label="RISO ensemble contact anchors"
           onChange={e=>setAnchors(e.target.checked)}/> Show contact anchors</label>
         <label>Screen cell · {dotCell}px <input type="range" min={3} max={12} step={1}
@@ -754,6 +769,7 @@ export function RisoHumanEnsembleStudio(){
           data-km-riso56-handoff-camera-beat={camera.beat.toFixed(3)}
           data-km-riso56-handoff-camera-matrix={cameraMatrix}
           data-km-riso56-editorial-camera={String(editorialCamera)}
+          data-km-riso59-film-preview={String(riso59Preview)}
           data-km-riso-human-ensemble-frame={frame}
           data-km-riso-human-ensemble-aspect={aspect}
           data-km-riso-human-ensemble-paper-curl={paperCurl}
@@ -786,8 +802,9 @@ export function RisoHumanEnsembleStudio(){
       <p style={{fontSize:12,color:"#63727A"}}>
         All frames are deterministic. The letter begins at the Courier's hand,
         reaches the Paper Artist by frame 160, then releases from the Courier at the
-        configured moment. The print follows the recipient afterward. No alpha-transparent
-        bodies, synthetic mitten shapes or playback-history-dependent transforms.
+        configured moment. The print follows the recipient afterward. RISO59 is an
+        unapproved, reversible source-shape comparison; original print is the default.
+        No alpha-transparent bodies, synthetic mitten shapes or playback-history-dependent transforms.
       </p>
     </div>
   </main>;

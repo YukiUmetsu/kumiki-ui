@@ -34,7 +34,7 @@ export interface ShodoLayoutItem {
 export interface ShodoWritingInput {
   items: readonly ShodoLayoutItem[];
   style: ShodoStyle;
-  /** Seconds the brush hovers before it moves in. */
+  /** Seconds the brush hovers before it moves in. Default 0.2 (6 frames at 30 fps). */
   lead?: number;
   /** Seconds held after the last lift. */
   tail?: number;
@@ -132,6 +132,16 @@ export interface ShodoPlan {
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const smooth = (t: number) => { const u = clamp(t, 0, 1); return u * u * (3 - 2 * u); };
+/** Quintic ease: zero speed and zero acceleration at both ends. */
+const smoother = (t: number) => { const u = clamp(t, 0, 1); return u * u * u * (u * (u * 6 - 15) + 10); };
+/**
+ * Quintic ease from 0 to 1 that starts with slope `m0` (0..2.5, where it stays monotonic)
+ * and ends at rest with zero acceleration.
+ */
+const easeFrom = (t: number, m0: number) => {
+  const u = clamp(t, 0, 1), u2 = u * u, u3 = u2 * u;
+  return m0 * (u - 6 * u3 + 8 * u3 * u - 3 * u3 * u2) + u3 * (u * (u * 6 - 15) + 10);
+};
 const norm = (x: number, y: number): [number, number] => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
 const DT = 1 / 240;
 
@@ -679,6 +689,52 @@ export function shodoHandLean(
   return [rx * stand + ux * travel, ry * stand + uy * travel];
 }
 
+/** Time constant of the hand's speed changes along a stroke, s (about two thirds of a frame at 30 fps). */
+const TRAVEL_SIGMA = .022;
+
+/**
+ * Smooths the speed along the stroke path, not the path itself. The technique segments
+ * change speed in one sample (for example from the 打ち込み hold straight to full travel),
+ * which shows as a jump at 30 fps. A real hand speeds up and slows down over a few tens of
+ * milliseconds. The distance travelled is smoothed in time (Gaussian, odd reflection at both
+ * ends, so the start, the end and the exit speed stay), and each sample moves to its new
+ * distance on the same path. Press and timing stay as they are; corners stay sharp.
+ */
+function smoothTravel(raw: { t: number; x: number; y: number }[]): void {
+  const n = raw.length;
+  if (n < 4) return;
+  const arc = new Float64Array(n);
+  for (let i = 1; i < n; i++) arc[i] = arc[i - 1] + Math.hypot(raw[i].x - raw[i - 1].x, raw[i].y - raw[i - 1].y);
+  const total = arc[n - 1];
+  if (total <= 1e-6) return;
+  const t0 = raw[0].t, t1 = raw[n - 1].t;
+  const inside = (time: number): number => {
+    let lo = 0, hi = n - 1;
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (raw[m].t <= time) lo = m; else hi = m; }
+    const span = raw[hi].t - raw[lo].t;
+    return span > 0 ? arc[lo] + (arc[hi] - arc[lo]) * (time - raw[lo].t) / span : arc[hi];
+  };
+  // The distance at any time, with odd reflection past both ends.
+  const at = (time: number): number =>
+    time < t0 ? 2 * arc[0] - inside(Math.min(t1, 2 * t0 - time))
+      : time > t1 ? 2 * total - inside(Math.max(t0, 2 * t1 - time)) : inside(time);
+  const K = 7, h = 3 * TRAVEL_SIGMA / K;
+  const weights = Array.from({ length: 2 * K + 1 }, (_, k) => Math.exp(-.5 * Math.pow((k - K) * h / TRAVEL_SIGMA, 2)));
+  const wsum = weights.reduce((a, b) => a + b, 0);
+  const smoothArc = raw.map(r => weights.reduce((acc, w, k) => acc + w * at(r.t + (k - K) * h), 0) / wsum);
+  const xs = raw.map(r => r.x), ys = raw.map(r => r.y);
+  let j = 1;
+  for (let i = 0; i < n; i++) {
+    const a = Math.min(total, Math.max(0, smoothArc[i]));
+    j = Math.max(1, Math.min(j, n - 1));
+    while (j > 1 && arc[j - 1] > a) j--;
+    while (j < n - 1 && arc[j] < a) j++;
+    const seg = arc[j] - arc[j - 1], u = seg > 1e-9 ? (a - arc[j - 1]) / seg : 1;
+    raw[i].x = xs[j - 1] + (xs[j] - xs[j - 1]) * u;
+    raw[i].y = ys[j - 1] + (ys[j] - ys[j - 1]) * u;
+  }
+}
+
 function sampleProgram(
   segs: Segment[], placed: Placed, style: ShodoStyle, t0: number, inkStart: number,
 ): { samples: ShodoContact[]; ink: number } {
@@ -698,6 +754,7 @@ function sampleProgram(
     }
     t += duration;
   }
+  smoothTravel(raw);
   // Velocity, the hair's tip direction (with lag), ink spending and patch size.
   const a = style.hand.tipAngle * Math.PI / 180;
   const base: V = [Math.cos(a), Math.sin(a)];
@@ -755,7 +812,7 @@ export function planShodoWriting(input: ShodoWritingInput): ShodoPlan {
   const first = items[0];
   const rest: V = input.rest ? [input.rest[0], input.rest[1]] : [first.x + first.size * 1.05, first.y + first.size * .95];
   const inkstone: V = input.inkstone ? [input.inkstone[0], input.inkstone[1]] : [first.x + first.size * 1.6, first.y + first.size * .5];
-  let t = input.lead ?? .5;
+  let t = input.lead ?? .2;
   let ink = style.ink.load;
   let pos: V = rest, leaveTip: V = [0, 0], leavePress = 0, lastDir: V = [1, 0];
   let leaveLean: V = shodoRestLean(style);
@@ -764,15 +821,17 @@ export function planShodoWriting(input: ShodoWritingInput): ShodoPlan {
   const air: ShodoAirMove[] = [];
   const restZ = first.size * .16;
   let color = style.ink.color;
-  const airMove = (to: V, approach: V, dip: boolean, z0 = 0, z1 = 0, nextColor = color) => {
+  const airMove = (to: V, approach: V, dip: boolean, z0 = 0, z1 = 0, nextColor = color, lift = 1) => {
     const dist = Math.hypot(to[0] - pos[0], to[1] - pos[1]);
     const ref = items[0].size;
     const duration = (.3 + dist / (1.05 * ref)) / Math.sqrt(speed) * (dip ? 1.3 : 1);
     const c1: V = [pos[0] + lastDir[0] * dist * .22, pos[1] + lastDir[1] * dist * .22 - dist * .08];
     const c2: V = [to[0] - approach[0] * dist * .2, to[1] - approach[1] * dist * .2 - dist * .05];
     air.push({
-      // Between strokes the hand lifts the tip clear by a third to two thirds of the tuft.
-      t0: t, t1: t + duration, from: pos, c1, c2, to, height: tuftL * (.3 + .35 * Math.min(1, dist / ref)), z0, z1,
+      // Between strokes the hand lifts the tip clear by a third to two thirds of the tuft. A
+      // quick hop (under 0.4 s) lifts less, so the tip does not jump up and down in a few frames.
+      t0: t, t1: t + duration, from: pos, c1, c2, to, z0, z1,
+      height: tuftL * (.3 + .35 * Math.min(1, dist / ref)) * clamp(duration / .4, .6, 1) * lift,
       leaveTip, leavePress, leaveLean, ink, dip, color, nextColor,
     });
     t += duration;
@@ -848,7 +907,8 @@ export function planShodoWriting(input: ShodoWritingInput): ShodoPlan {
   if (input.exit === "hover") {
     // Lift just off the end of the last stroke and stay there, as a teacher pauses.
     const hover: V = [pos[0] - lastDir[0] * first.size * .02, pos[1] - lastDir[1] * first.size * .02];
-    airMove(hover, [0, 1], false, 0, first.size * .03);
+    // Only a small rise: the brush comes off the paper and stays just above the last stroke.
+    airMove(hover, [0, 1], false, 0, first.size * .03, color, .25);
   } else airMove(rest, [0, 1], false, 0, restZ);
   const D = style.brush.diameter * style.hand.width * first.size / 1000;
   return {
@@ -925,18 +985,30 @@ export function shodoBrushPose(plan: ShodoPlan, seconds: number): ShodoBrushPose
     const local = t - move.t0;
     const outbound = move.dip ? Math.min(local, travel) : local;
     const u = move.dip ? clamp(outbound / travel, 0, 1) : clamp(local / (move.t1 - move.t0), 0, 1);
+    // The stroke that the brush just left, if this move follows one.
+    const prior = next > 0 ? plan.strokes[next - 1] : next < 0 ? plan.strokes[plan.strokes.length - 1] : undefined;
+    const left = prior && prior.t1 <= move.t0 + 1e-9 ? prior.samples[prior.samples.length - 1] : undefined;
     // Studied on side views: the brush leaves the paper almost straight up, travels high,
     // arrives over its target, then comes down onto it; it never skims the paper.
-    const [x, y] = bezier(move, smooth(u / .86));
-    const z = lerp(move.z0, move.z1, smooth(u)) + move.height * Math.min(smooth(u / .22), smooth((1 - u) / .3));
+    // Quintic eases and long, overlapping lift, travel and descent keep the tip on one smooth
+    // arc at 30 fps: the lift takes the first 42 % of the move, the travel the first 90 %, the
+    // descent the last 45 %. The travel starts at the speed with which the brush left the
+    // paper (a 払い follows through), and it ends at rest over the next start.
+    const span = (move.dip ? travel : move.t1 - move.t0) * .9;
+    const handle = 3 * Math.hypot(move.c1[0] - move.from[0], move.c1[1] - move.from[1]);
+    const m0 = left && handle > 1e-6 ? clamp(left.speed * span / handle, 0, 2.5) : 0;
+    const [x, y] = bezier(move, easeFrom(u / .9, m0));
+    const z = lerp(move.z0, move.z1, smoother(u)) + move.height * Math.min(smoother(u / .42), smoother((1 - u) / .45));
     // The lean relaxes from how the brush left the paper back to the resting hold.
-    const rest = shodoRestLean(plan.style), k = smooth(u);
+    const rest = shodoRestLean(plan.style), k = smoother(u);
     const leanX = lerp(move.leaveLean[0], rest[0], k), leanY = lerp(move.leaveLean[1], rest[1], k);
-    // The hair springs back from its last bend with a damped wobble.
+    // The hair springs back from its last bend with a damped wobble. It starts from the bend
+    // it had on the paper and is released with a speed set by the lift, so it does not snap.
     const since = t - move.t0;
     const stiff = plan.style.brush.stiffness;
     const decay = Math.exp(-since / (.07 + .1 * (1 - stiff)));
-    const bend = move.leavePress * decay * Math.cos(since * (18 + 22 * stiff));
+    const omega = 18 + 22 * stiff;
+    const bend = decay * ((left?.p ?? 0) * Math.cos(since * omega) + move.leavePress * Math.sin(since * omega));
     const dx = move.to[0] - move.from[0], dy = move.to[1] - move.from[1];
     const [vx, vy] = norm(dx || 1e-6, dy);
     return {

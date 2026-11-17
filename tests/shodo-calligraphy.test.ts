@@ -10,7 +10,11 @@ import { shodoFerruleHeight } from "../registry/video/shodo/shodo-brush";
 import { ShodoInkSurface } from "../registry/video/shodo/shodo-ink";
 import { DEFAULT_SHODO_STYLE, inspectShodoStyle, resolveShodoStyle } from "../registry/video/shodo/shodo-style";
 import { SHODO_BASICS, auditShodoTechniques } from "../registry/video/shodo/shodo-techniques";
-import { ShodoKanjiInfoCard, kanjiCardPhaseAt, kanjiCardTimeline, resolveKanjiCardContent } from "../src/video/shodo-demos";
+import {
+  KANJI_WORD_EASE, ShodoKanjiInfoCard, fillKanjiCardContent, kanjiCardPhaseAt, kanjiCardTimeline, parseWordHighlights, resolveKanjiCardContent,
+  spreadWordHighlights, wordHighlightAt,
+} from "../src/video/shodo-demos";
+import { readKanjiCardDataset } from "../src/video/shodo-studio";
 
 const ei = () => planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["永"], x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE });
 
@@ -246,6 +250,27 @@ describe("SHO1 shodō calligraphy", () => {
     expect(worstHeight).toBeLessThan(.3 * L);
   });
 
+  it("moves the tip smoothly at 30 fps: an early start, eased arcs, no step to full speed, no snap at a lift", () => {
+    for (const char of ["永", "道"]) {
+      const plan = planShodoWriting({ items: [{ glyph: SHODO_GLYPHS[char], x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE });
+      const D = plan.brush.diameter;
+      const P = Array.from({ length: Math.ceil(plan.duration * 30) + 1 }, (_, f) => shodoBrushPose(plan, f / 30));
+      const step = (a: typeof P[0], b: typeof P[0]) => Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z);
+      let airAcc = 0, bendStep = 0, jumps = 0;
+      for (let f = 2; f < P.length; f++) {
+        const [a, b, c] = [P[f - 2], P[f - 1], P[f]];
+        const acc = Math.hypot(c.x - 2 * b.x + a.x, c.y - 2 * b.y + a.y, c.z - 2 * b.z + a.z);
+        if (!(a.contact && b.contact && c.contact)) airAcc = Math.max(airAcc, acc);
+        bendStep = Math.max(bendStep, Math.abs(c.bend - b.bend));
+        if (step(a, b) < .5 && step(b, c) > 8) jumps++;                  // standstill, then full speed
+      }
+      expect(P.findIndex((p, f) => f > 0 && step(P[f - 1], p) > .5)).toBeLessThanOrEqual(8);  // moves within 8 frames
+      expect(airAcc, char).toBeLessThan(.4 * D);                         // was .52–.59 D before the eased arcs
+      expect(bendStep, char).toBeLessThan(.25);                          // was .35 when the spring-back snapped
+      expect(jumps, char).toBe(0);
+    }
+  });
+
   it("reads KanjiVG components, merging a part split around another one", () => {
     const glyph = parseKanjiVgSvg(`<svg viewBox="0 0 109 109"><g kvg:element="回">
       <g kvg:element="囗" kvg:part="1" kvg:position="kamae"><path d="M20,20 L20,90"/><path d="M20,20 L90,20 L90,90"/></g>
@@ -254,6 +279,27 @@ describe("SHO1 shodō calligraphy", () => {
     const kids = glyph.parts!.children;
     expect(kids.map(k => [k.element, k.position, k.strokes])).toEqual([["囗", "kamae", [0, 1, 5]], ["口", undefined, [2, 3, 4]]]);
     expect(shodoLayout(glyph)).toBe("enclosure");
+  });
+
+  it("cuts a KanjiVG entry curl at its length, not at the next sparse sample (用 keeps its corner)", () => {
+    // 用's first two strokes from KanjiVG: the ㇒ opens with a pen curl, then one long cubic whose
+    // first sample (t = .1) lies 150 em down the stroke.
+    const glyph = parseKanjiVgSvg(`<svg viewBox="0 0 109 109"><g kvg:element="用">
+      <path d="M25.44,16.14c0.83,1.04,1.1,2.36,1.15,3.86C28.12,65.5,24.5,82,13.75,95"/>
+      <path d="M27.8,18.84C43.75,17,71.5,14,81.92,13.47c4.07-0.21,5.75,2.03,5.75,5.18c0,6.1-0.32,50.35-0.32,71.37c0,14.98-8.09,2.23-9.84,1.34"/></g></svg>`);
+    const [sweep, frame] = glyph.strokes.map(s => s.points[0]);
+    expect(sweep[1]).toBeLessThan(215);                      // KanjiVG starts it at 148 em; the curl is about 50 em
+    expect(Math.hypot(sweep[0] - frame[0], sweep[1] - frame[1])).toBeLessThan(60);
+  });
+
+  it("does not pull a stroke of 旁 into 偏: joins across parts only where the ends already meet", () => {
+    const glyph = parseKanjiVgSvg(`<svg viewBox="0 0 109 109"><g kvg:element="仁">
+      <g kvg:element="亻" kvg:position="left"><path d="M30,20 L30,90"/></g>
+      <g kvg:element="二" kvg:position="right"><path d="M35,40 L90,40"/><path d="M50,80 L90,80"/></g></g></svg>`);
+    const formed = shodoKaishoForm(glyph);
+    const vertical = formed.strokes[0].points[0][0], start = formed.strokes[1].points[0][0];
+    expect(start - vertical).toBeGreaterThan(25);           // about 46 em apart in KanjiVG; not snapped
+    expect(formed.strokes[1].joinStart).toBeFalsy();
   });
 
   it("applies the 間架結構 rules: taller 冠/脚, 左短右長 for 偏/旁, originals untouched", () => {
@@ -318,11 +364,63 @@ describe("SHO1 shodō calligraphy", () => {
     // Sample data belongs to 道 only; nothing is invented for another character.
     expect(resolveKanjiCardContent("道", {}).jlpt).toBe("N4");
     expect(resolveKanjiCardContent("道", { jlpt: null }).jlpt).toBeNull();
+    expect(resolveKanjiCardContent("道", {}).vermilionStrokes).toBeUndefined();         // all black unless asked
     expect(Object.values(resolveKanjiCardContent("山", {})).every(v => v === undefined)).toBe(true);
     const { unmount } = render(createElement(ShodoKanjiInfoCard, { char: "山", meanings: "MOUNTAIN" }));
     expect(screen.queryByText(/JLPT/)).toBeNull();
     unmount();
     render(createElement(ShodoKanjiInfoCard, { char: "山", meanings: "MOUNTAIN", jlpt: "N5" }));
     expect(screen.getByText("JLPT N5")).toBeInTheDocument();
+  });
+
+  it("highlights one useful word at a time, eased in and out, the later cue first, and nothing outside the cues", () => {
+    const E = KANJI_WORD_EASE;
+    const cues = [{ word: 0, at: 1 }, { word: 1, at: 2, hold: 1 }, { word: 2, at: 2.5 }, { word: 7, at: 1.5 }];
+    const at = (t: number) => wordHighlightAt(cues, t, { count: 3 });
+    expect(at(.99)).toEqual({ word: null, strength: 0 });                    // before the first cue
+    expect(at(1 + E / 2).word).toBe(0);                                       // easing in
+    expect(at(1 + E / 2).strength).toBeGreaterThan(0);
+    expect(at(1 + E / 2).strength).toBeLessThan(1);
+    expect(at(1.5)).toEqual({ word: 0, strength: 1 });                       // fully on; word 7 does not exist
+    expect(at(2 - E / 2).word).toBe(0);                                       // eases out before the next cue …
+    expect(at(2 - E / 2).strength).toBeLessThan(1);
+    expect(at(2 + E / 2).word).toBe(1);                                       // … which then eases in
+    expect(at(2.6).word).toBe(2);                                             // overlap: the later cue wins
+    expect(at(5 - E / 2).strength).toBeLessThan(1);                          // default hold 2.5 s, eased out
+    expect(at(5.01)).toEqual({ word: null, strength: 0 });                   // after the last cue
+    let prev = 0;
+    for (let f = 0; f < 180; f++) {                                           // no jump from frame to frame
+      const h = at(f / 30);
+      expect(Math.abs(h.strength - prev)).toBeLessThan(.25);
+      prev = h.strength;
+    }
+    expect(parseWordHighlights("0@3, 1@6.5+1.5; x@2\n2 @ 9")).toEqual([{ word: 0, at: 3 }, { word: 1, at: 6.5, hold: 1.5 }, { word: 2, at: 9 }]);
+    const words = resolveKanjiCardContent("道", {}).words;
+    render(createElement(ShodoKanjiInfoCard, { char: "道", words, highlight: { word: 1, strength: 1 } }));
+    expect(screen.getByRole("listitem", { current: true })).toHaveTextContent("道路");
+  });
+
+  it("fills the empty card fields from local kanji data, and typed values win", () => {
+    // A tiny inline fixture: one usable entry with one malformed word, and one malformed entry.
+    const data = readKanjiCardDataset({ kanji: [
+      { char: "山", jlpt: "N5", card: { meanings: "MOUNTAIN", onyomi: "SAN (サン)", jlpt: "N5", words: [{ word: "山", ruby: "やま", romaji: "yama", meaning: "mountain" }, { word: 1 }] } },
+      { char: 2, card: {} },
+    ] });
+    expect(data?.size).toBe(1);
+    const card = data?.get("山")?.card;
+    expect(card?.words).toHaveLength(1);
+    expect(card?.kunyomi).toBeUndefined();
+    const empty = fillKanjiCardContent({}, card);
+    expect([empty.meanings, empty.jlpt, empty.kunyomi]).toEqual(["MOUNTAIN", "N5", undefined]);
+    const typed = fillKanjiCardContent({ meanings: "HILL", jlpt: null, words: resolveKanjiCardContent("道", {}).words }, card);
+    expect(typed.meanings).toBe("HILL");                                      // typed text wins
+    expect(typed.jlpt).toBeNull();                                            // "no badge" wins
+    expect(typed.words?.[0].word).toBe("山");                                 // the 道 sample words are replaced
+    expect(fillKanjiCardContent({ meanings: "X" }, undefined)).toEqual({ meanings: "X" });
+    expect(readKanjiCardDataset(null)).toBeNull();
+    expect(readKanjiCardDataset({ kanji: "x" })).toBeNull();
+    // "each": every word in turn, from 20 % to 80 % of the video.
+    expect(spreadWordHighlights(3, 20).map(c => c.at)).toEqual([4, 10, 16]);
+    expect(spreadWordHighlights(2, 10)).toEqual([{ word: 0, at: 2, hold: 2.5 }, { word: 1, at: 8, hold: 2.5 }]);
   });
 });

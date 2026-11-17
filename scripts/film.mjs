@@ -42,7 +42,15 @@ const needsFile = command !== "example";
 if (needsFile && files.length !== 1) throw Error("Give exactly one film file.");
 const filmPath = needsFile ? resolve(files[0]) : undefined, filmDir = needsFile ? dirname(filmPath) : undefined;
 
-const viteBase = { configFile: false, root: ROOT, cacheDir: "node_modules/.vite-film", server: { fs: { strict: false } } };
+/** RISO64: ensure the lazy-loaded slot art and FilmStage share one React
+ * dispatcher. Without dedupe a second optimized React instance can make
+ * source-art hooks fail only in the actual export capture page, while the
+ * Storybook scene appears valid (invalid hook call / useMemo null). */
+const viteBase = {
+  configFile: false, root: ROOT, cacheDir: "node_modules/.vite-film",
+  resolve: { dedupe: ["react", "react-dom"] },
+  server: { fs: { strict: false } },
+};
 /** Load registry TypeScript through Vite, which resolves its extensionless imports. Its own cache folder: this server stays open
  * while the capture page's server starts, and two optimizers with different settings in one folder each clear and rewrite the
  * other's pre-bundled dependencies, so a page could load two copies of React on a slow machine. */
@@ -67,11 +75,11 @@ async function startFilmServer() {
       });
     },
   }], server: { ...viteBase.server, host: "127.0.0.1", hmr: false, ws: false }, optimizeDeps: {
-    entries: ["src/film/capture.tsx"],
-    // These nested Base UI imports were discovered only after the capture page
-    // started on a cold cache. Pre-bundling them reduces optimizer reloads
-    // that can split React across dependency versions during capture.
-    include: ["@base-ui/react/accordion", "@base-ui/react/checkbox", "@base-ui/react/combobox", "@base-ui/react/dialog",
+    // Scan the lazy slot entry and pre-bundle React plus Base UI's nested
+    // imports before the capture page starts, avoiding late optimizer reloads.
+    entries: ["src/film/capture.tsx", "src/film/film-slots.tsx"],
+    include: ["react", "react-dom", "react-dom/client", "react/jsx-runtime", "react/jsx-dev-runtime",
+      "@base-ui/react/accordion", "@base-ui/react/checkbox", "@base-ui/react/combobox", "@base-ui/react/dialog",
       "@base-ui/react/menu", "@base-ui/react/popover", "@base-ui/react/radio-group", "@base-ui/react/radio", "@base-ui/react/select",
       "@base-ui/react/separator", "@base-ui/react/slider", "@base-ui/react/switch", "@base-ui/react/tabs", "@base-ui/react/toast", "@base-ui/react/tooltip"],
   } });

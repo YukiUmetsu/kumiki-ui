@@ -38,6 +38,8 @@ import { PaintedPage } from "../video/watercolour-brush-page";
 import { paintExampleSpec } from "../video/watercolour-brush-demo";
 import { RisoCharacterPerformance } from "../video/riso-character-demo";
 import { RisoPrint } from "../../registry/video/print-plates-react";
+import { renderRisoBrushFilmSlot } from "../video/riso-brush-film-slot";
+import { renderRisoCinematicFilmSlot } from "../video/riso-cinematic-slot";
 import { ColoredPencilSciencePlate } from "../video/colored-pencil-science";
 import { PencilScene } from "../../registry/video/colored-pencil-scene-react";
 import { pencilCharacterScene } from "../video/colored-pencil-character-scenes";
@@ -914,6 +916,8 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           aspect={context.width > context.height ? "landscape" : "portrait"}
           frame={rawOffset + context.frame} reducedMotion={context.reducedMotion}/>;
       }
+      case "riso-dry-brush": return renderRisoBrushFilmSlot(content, context);
+      case "riso-dry-brush-cinematic": return renderRisoCinematicFilmSlot(content, context);
       case "riso-print-study": {
         const aspect = context.width > context.height ? "landscape" : "portrait";
         const rawOffset = props.offsetFrame ?? 0;
@@ -1077,7 +1081,7 @@ export async function loadFilmSlots(film: SlotFilm): Promise<(content: SlotConte
           tooth={.62} shadowStrength={.92} edgeStrength={artwork === "scenery" ? .34 : .68} curlStrength={1} liftStrength={1}/>
       }
 
-      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, watercolour-master-study, painted-composition, watercolour-actor, collage-scene, collage-tear, ukiyoe-scene, ukiyoe-kasumi, ukiyoe-transition.`);
+      default: throw new Error(`No slot "${content.slot}". Available: colored-pencil-science, colored-pencil-character, colored-pencil-wildlife, biplane-flight, planet-walk, tiny-world, fly-past, finale, logo, sign-off, crayon-scene, crayon-character-film, crayon-storybook, riso-dry-brush-cinematic, riso-dry-brush, riso-print-study, riso-sheet-feed, riso-overprint, riso-next-print, ink-brush-study, watercolour-brush, watercolour-wet-paper, watercolour-master-study, painted-composition, watercolour-actor, collage-scene, collage-tear, ukiyoe-scene, ukiyoe-kasumi, ukiyoe-transition.`);
     }
   };
 }
