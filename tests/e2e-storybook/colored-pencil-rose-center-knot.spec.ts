@@ -85,6 +85,7 @@ test("native 16:9 + 9:16: real six-source central knot with a visible curled bac
     // 44 regions expand to 45 and the center geometries are reconstructed.
     for(const name of [
       "Foundation rose physical folds",
+      "Foundation rose frontal lamina volume",
       "Foundation rose frontal local values",
       "Foundation rose physical rim thickness",
       "Foundation rose rear cup relief",
@@ -103,6 +104,7 @@ test("native 16:9 + 9:16: real six-source central knot with a visible curled bac
       "Foundation rose rear cup relief",
       "Foundation rose physical rim thickness",
       "Foundation rose frontal local values",
+      "Foundation rose frontal lamina volume",
       "Foundation rose physical folds",
     ])
       await page.getByRole("checkbox",{name}).uncheck();
