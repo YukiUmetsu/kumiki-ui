@@ -17,7 +17,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `animated-metric` | visual | dom | [spec](component-specs/animated-metric.md) | `house-math-animated-metric--metrics` | — |
 | `animated-text` | motion | data | — | — | — |
 | `annotate` | video | dom | [spec](component-specs/annotate.md) | `video-production-annotated-footage--bigger-than-it-looks` | — |
-| `architecture` | finance | dom | — | `video-arch--sheet` | — |
+| `architecture` | finance | dom | — | `video-arch--storybook-library` | — |
 | `art-foundations` | finance | dom | — | — | — |
 | `artboard` | media | dom | — | `media-artboard--default` | — |
 | `asset-state-sequence` | visual | data | [spec](component-specs/asset-state-sequence.md) | `house-math-asset-state-sequence--states` | — |
