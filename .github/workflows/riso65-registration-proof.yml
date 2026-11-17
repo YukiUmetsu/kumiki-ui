@@ -1,0 +1,50 @@
+name: RISO65 native registration and trapping preflight proof
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso65-registration-proof.yml"
+      - "registry/video/riso-registration-preflight.ts"
+      - "src/video/riso-brush-studio.tsx"
+      - "src/video/riso-registration-proof-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "tests/riso65-registration-preflight.test.tsx"
+      - "tests/e2e-storybook/riso65-registration-proof.spec.ts"
+      - "docs/research/riso65-registration-preflight-artcraft.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: riso65-register-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-two-plate-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Types, source-geometry and pairwise displacement checks
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso65-registration-preflight.test.tsx tests/riso64-cinematic-film-artcraft.test.tsx tests/riso62-dry-brush-artcraft.test.tsx tests/print-plates.test.ts
+      - name: Reusable RISO1 clean consumer install
+        run: node scripts/registry-fixture.js --item=riso-print
+      - name: Build actual Storybook
+        run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - name: Capture physical source-native 1× and 3× A/B in both outputs
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso65-registration-proof.spec.ts
+      - name: Keep real Chromium native proof for independent art review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso65-native-register-1x-3x
+          path: test-results/
+          retention-days: 5
+          if-no-files-found: warn
