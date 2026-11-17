@@ -99,8 +99,9 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
     const elder=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
       {character:"elder",emotion:"sad",detail:1,view:"face"}));
     for(const s of [scholar,elder]){
-      expect(s).toContain('data-km-ink-anatomic-bust-ratio=".69"');
-      expect(s).toContain('translate(83.7 130.2) scale(.69)');
+      expect(s).toContain('data-km-ink-anatomic-bust-ratio="0.48"');
+      expect(s).toContain('translate(140.40 218.40) scale(0.48)');
+      expect(s).toContain('data-ink-head-scale="0.48"');
       expect(s).toContain('data-km-ink-face-sculpt="lower-third-continuous"');
       expect(s).toContain('data-km-ink-hair=');
       expect(s).not.toMatch(/(?:NaN|Infinity|undefined)/);
@@ -115,8 +116,27 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
     expect(scholar).not.toContain('data-km-ink-beard-substrate=');
     expect(scholar).toContain('data-km-ink-neck-contact="mandible-to-silk"');
     expect(scholar).not.toContain('data-km-ink-age-anatomy=');
-    expect(scholar).toContain('viewBox="0 95 540 525"');
-    expect(elder).toContain('viewBox="100 112 345 419"');
+    expect(scholar).toContain('viewBox="0 193.91 540 426.09"');
+    expect(elder).toContain('viewBox="151.74 205.74 240.00 291.48"');
+  });
+  it("allows a source-led head-to-garment ratio without distorting ANAT1 or losing face microscope crop",()=>{
+    const small=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"scholar",headScale:.4,emotion:"smile",view:"bust",detail:1}));
+    const large=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"scholar",headScale:.72,emotion:"smile",view:"face",detail:1}));
+    expect(small).toContain('data-ink-head-scale="0.40"');
+    expect(large).toContain('data-ink-head-scale="0.72"');
+    expect(small).toContain('data-km-ink-anatomic-bust-ratio="0.40"');
+    expect(large).toContain('data-km-ink-anatomic-bust-ratio="0.72"');
+    expect((small.match(/data-km-ink-frontal-glaze=/g)||[])).toHaveLength(13);
+    expect((large.match(/data-km-ink-frontal-glaze=/g)||[])).toHaveLength(13);
+    expect((small.match(/data-km-ink-neck-tendon=/g)||[])).toHaveLength(8);
+    expect((large.match(/data-km-ink-neck-tendon=/g)||[])).toHaveLength(8);
+    expect(small).not.toContain('viewBox="0 193.91 540 426.09"');
+    expect(large).not.toContain('viewBox="151.74 205.74 240.00 291.48"');
+    for(const bad of [.37,.76,NaN,Infinity,-Infinity])
+      expect(()=>renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+        {headScale:bad}))).toThrow(RangeError);
   });
   it("draws 4 physically variable-width INK1 calligraphy gestures on independently wrapped robes",()=>{
     const a=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
