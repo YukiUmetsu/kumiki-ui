@@ -238,3 +238,52 @@ test("EXPR1 source-equivalent emotion atlas compares five ANAT1 poses and expose
     await page.getByRole("checkbox",{name:"Show EXPR1 ANAT1 facial landmarks"}).uncheck();
     await expect(micro.locator("[data-km-ink-anat1-anchor]")).toHaveCount(0);
   });
+
+test("Native ANAT1 near/far pupil rim fibres stay within their own painted irises",async({page},info)=>{
+  await page.goto("/iframe.html?id=video-ink-reader-face--reader-expression-art-craft&viewMode=story");
+  const near=page.getByTestId("reader-expr1-iris-near");
+  const far=page.getByTestId("reader-expr1-iris-far");
+  await expect(page.getByTestId("reader-expr1-iris-microscope")).toBeVisible();
+  const assertRimInside=async(svg:typeof near,part:"pupil-left"|"pupil-right")=>{
+    const result=await svg.locator('[data-km-ink-expression-part="'+part+'"]')
+      .evaluate(el=>{
+        const path=Array.from(el.querySelectorAll("path")) as SVGPathElement[];
+        if(path.length<4)throw Error("Missing original painted iris and limbal microstroke");
+        const first=path[0],rim=path[path.length-1];
+        const total=rim.getTotalLength();
+        let hits=0;
+        for(let i=1;i<20;i++){
+          const pt=rim.getPointAtLength(total*i/20);
+          if(first.isPointInFill(pt))hits++;
+        }
+        return {hits,total,count:path.length,
+          firstBox:first.getBBox(),rimBox:rim.getBBox()};
+      });
+    expect(result.hits,
+      "Distinct original limbal stroke must stay in the anatomical iris fill")
+      .toBeGreaterThanOrEqual(13);
+    expect(result.rimBox.x).toBeGreaterThan(result.firstBox.x);
+    expect(result.rimBox.x+result.rimBox.width)
+      .toBeLessThan(result.firstBox.x+result.firstBox.width+.1);
+    expect(result.rimBox.y+result.rimBox.height)
+      .toBeLessThan(result.firstBox.y+result.firstBox.height+.1);
+  };
+  await assertRimInside(near,"pupil-left");
+  await assertRimInside(far,"pupil-right");
+  await near.screenshot({animations:"disabled",
+    path:info.outputPath("reader-EXPR1-native-near-limbal-iris-microscope.png")});
+  await far.screenshot({animations:"disabled",
+    path:info.outputPath("reader-EXPR1-native-far-limbal-iris-microscope.png")});
+  const horizontal=page.getByRole("slider",{name:"EXPR1 iris gaze horizontal"});
+  await horizontal.focus();await horizontal.press("End");
+  await expect(near.locator("[data-km-ink-iris-travel]"))
+    .not.toHaveCount(0);
+  await page.getByRole("combobox",{name:"EXPR1 eyelids"}).selectOption("closed");
+  await expect(near.locator('[data-km-ink-expression-part="pupil-left"]'))
+    .toHaveCount(0);
+  await expect(far.locator('[data-km-ink-expression-part="pupil-right"]'))
+    .toHaveCount(0);
+  await page.getByRole("combobox",{name:"EXPR1 eyelids"}).selectOption("soft");
+  await assertRimInside(near,"pupil-left");
+  await assertRimInside(far,"pupil-right");
+});
