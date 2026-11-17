@@ -162,6 +162,11 @@ The mask has no ears, cranium or hairline.
 **`beautifulFace(options)`.** Applies what the research on facial attractiveness supports
 ([research note](../research/face-beauty-portrait-2026-11-16.md)), each step scaled by `beauty` (0 = the calibrated
 average face, 1 = everything applied):
+- **Real faces** (`realFaces`, default 1): starts from the shape of a composite of public-domain portraits of film
+  actors (`FACE_COMPOSITE`, [research note](../research/face-composite-2026-11-16.md)): 11 women and 12 men, measured
+  with face landmarks, one photograph a person, averaged by sex. The mouth is left out (smiles) and the nose wings
+  damped. The composite's cheekbone breadths land on ANSUR II's. The steps below then set the measured breadths, eye
+  opening and lips; the composite shapes what lies between.
 - **Averageness:** starts from population means.
 - **Symmetry:** every vertex is averaged with its mirror.
 - **Breadths:** cheekbone breadth set to ANSUR II (133.8 mm women, 142.6 mm men), which gives Pallett's 46% pupil ratio

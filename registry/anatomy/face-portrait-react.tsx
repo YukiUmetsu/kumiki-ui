@@ -62,5 +62,5 @@ export function GoldenRatioTable({ face = {} }: { face?: BeautyOptions }) {
 
 /** The attractiveness findings the beautiful face applies, each with its source and grade. */
 export function BeautyEvidence() {
-  return <ul style={{ ...sheetList, ...sheetSmall }}>{BEAUTY_EVIDENCE.map(e => <li key={e.id}><b>{e.id}</b> ({e.grade}): {e.finding} <a href={e.url}>{e.source}</a></li>)}</ul>;
+  return <ul style={{ ...sheetList, ...sheetSmall }}>{BEAUTY_EVIDENCE.map(e => <li key={e.id}><b>{e.id}</b> ({e.grade}): {e.finding} {e.url ? <a href={e.url}>{e.source}</a> : e.source}</li>)}</ul>;
 }

@@ -87,7 +87,7 @@ describe("ANAT1 hair and colour", () => {
   });
 });
 
-import { beautifulFace, goldenRatioReport, PHI } from "../registry/anatomy/face-beauty";
+import { beautifulFace, FACE_COMPOSITE, goldenRatioReport, PHI } from "../registry/anatomy/face-beauty";
 import { renderPortrait } from "../registry/anatomy/face-portrait";
 import { FRINGES, HAIRSTYLES, findHairStyle, groomHair, partLine, scalpCover } from "../registry/anatomy/hair-groom";
 import type { HairGroom } from "../registry/anatomy/hair-groom";
@@ -116,10 +116,27 @@ describe("ANAT1 beautiful faces and portraits", () => {
       expect(f.applied.palpebral).toBeLessThan(11.5);
       expect(f.applied.lowerLip / f.applied.upperLip).toBeGreaterThan(1.5);
       expect(v[13][1] - v[14][1]).toBeLessThan(0.6);
-      expect(f.applied.canthalTilt).toBeGreaterThan(2);
+      // a slight upward tilt (preferred in female faces, Bashour & Geist 2007); the real-face composite sets men's eyes flatter
+      expect(f.applied.canthalTilt).toBeGreaterThan(sex ? 1 : 2);
     }
     // beauty 0 keeps the calibrated average face
     expect(beautifulFace({ sex: 0, beauty: 0 }).vertices).toEqual(createFace({ sex: 0 }).vertices);
+  });
+  it("applies the real-face composite: measured from public-domain portraits, symmetric, gentle, off when asked", () => {
+    for (const sex of ["female", "male"] as const) {
+      const c = FACE_COMPOSITE[sex];
+      expect(c.n).toBeGreaterThanOrEqual(10);
+      expect(c.offsets).toHaveLength(468);
+      const mags = c.offsets.map(o => Math.hypot(o[0], o[1], o[2]));
+      expect(Math.max(...mags)).toBeLessThan(15);
+    }
+    expect(FACE_COMPOSITE.sources.every(x => /public domain|cc0|^pd$/i.test(x.licence))).toBe(true);
+    // the composite changes the face, and realFaces 0 leaves it as it was
+    const a = beautifulFace({ sex: 0, realFaces: 0 }).vertices, b = beautifulFace({ sex: 0 }).vertices;
+    expect(Math.max(...a.map((p, i) => Math.hypot(p[0] - b[i][0], p[1] - b[i][1], p[2] - b[i][2])))).toBeGreaterThan(1);
+    // still symmetric after it (the symmetry step follows)
+    const f = beautifulFace({ sex: 1 }), L = (k: keyof typeof FACE_LANDMARKS) => f.vertices[FACE_LANDMARKS[k]];
+    expect(Math.abs(L("exocanthion.L")[0] + L("exocanthion.R")[0])).toBeLessThan(0.2);
   });
   it("reports the golden-ratio checks without building on them", () => {
     const f = beautifulFace({ sex: 0 }), rows = goldenRatioReport(f.vertices, f.hairlineY);

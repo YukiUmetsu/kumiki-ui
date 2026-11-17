@@ -3824,6 +3824,11 @@
           "target": "components/anatomy/data/model-tables.json"
         },
         {
+          "path": "registry/anatomy/data/face-composite.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/face-composite.json"
+        },
+        {
           "path": "registry/anatomy/data/anatomy-references.json",
           "type": "registry:ui",
           "target": "components/anatomy/data/anatomy-references.json"

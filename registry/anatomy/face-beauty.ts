@@ -20,16 +20,27 @@
 import type { Vec3 } from "./anatomy-body";
 import { createFace, eyeCentres, FACE_LANDMARKS } from "./anatomy-face";
 import { applyEyeShape, findEyeShape } from "./eye-detail";
+import composite from "./data/face-composite.json";
 import type { EyeShapeSpec } from "./eye-detail";
 import type { FaceLandmark, FaceParams, FaceStudy } from "./anatomy-face";
 import ansur from "./data/ansur-ii-ranges.json";
 
-export interface BeautyEvidence { id: string; finding: string; grade: "reported" | "estimated"; source: string; url: string }
+export interface BeautyEvidence { id: string; finding: string; grade: "reported" | "estimated" | "measured"; source: string; url?: string }
+
+/**
+ * The shape of real faces: per-vertex offsets (mm) from ANAT1's calibrated face to the composite of public-domain
+ * portraits of film actors, measured with MediaPipe's face landmarker, aligned on the stable upper face, averaged by
+ * sex (one photograph a person), symmetrised and smoothed. The mouth is left out and the nose wings damped (smiles
+ * and shadows); the jaw comes only from closed mouths. A composite of many faces shows no one's likeness.
+ */
+export const FACE_COMPOSITE = composite as unknown as { method: string; sources: { title: string; page: string; licence: string }[]; female: { n: number; offsets: number[][] }; male: { n: number; offsets: number[][] } };
 
 /** The findings this module applies, each with its source. */
 export const BEAUTY_EVIDENCE: readonly BeautyEvidence[] = [
   { id: "averageness", grade: "reported", finding: "Blends of many faces are more attractive than their constituent faces; the more faces in a composite, the more attractive it is.",
     source: "Little, Jones & DeBruine 2011, Phil. Trans. R. Soc. B 366:1638 (review; Galton; Langlois & Roggman 1990)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3130383/" },
+  { id: "real-faces", grade: "measured", finding: `The composite of public-domain portraits of film actors (${(composite as { female: { n: number } }).female.n} women, ${(composite as { male: { n: number } }).male.n} men; MediaPipe landmarks, one photograph a person) has cheekbone breadths of 133 and 138 mm, close to ANSUR II's 134 and 143 mm, more open eyes than the calibrated mask, and lower brows in men.`,
+    source: "ANAT1 face composite (data/face-composite.json; docs/research/face-composite-2026-11-16.md)" },
   { id: "symmetry", grade: "reported", finding: "Increasing symmetry alone is sufficient to increase attractiveness.", source: "Little, Jones & DeBruine 2011 (review)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3130383/" },
   { id: "femininity", grade: "reported", finding: "Feminine features increase the attractiveness of female faces across cultures; the public prefers above-average femininity in women.",
     source: "Little, Jones & DeBruine 2011; Holland 2008, Aesthetic Plast. Surg. 32:200", url: "https://pubmed.ncbi.nlm.nih.gov/18175168/" },
@@ -105,6 +116,11 @@ export interface BeautyOptions extends FaceParams {
   femininity?: number;
   /** An eye shape (`EYE_SHAPES` id or a spec): almond, round, hooded, monolid, upturned, … Without one the eyes keep the measured average opening. */
   eyeShape?: string | EyeShapeSpec;
+  /**
+   * How much of the shape of real faces to apply (0 none … 1 all, the default): the composite of public-domain
+   * portraits of film actors (`FACE_COMPOSITE`), measured by face landmarks and averaged by sex.
+   */
+  realFaces?: number;
 }
 export interface BeautifulFace extends FaceStudy {
   /** The hairline height (mm) that puts the eye-to-mouth distance at 36% of face length (Pallett 2010). */
@@ -137,6 +153,13 @@ export function beautifulFace(o: BeautyOptions = {}): BeautifulFace {
   const base = createFace({ ...o, sex });
   const v: Vec3[] = base.vertices.map(p => [p[0], p[1], p[2]]);
   const L = (k: FaceLandmark) => v[FACE_LANDMARKS[k]];
+  // 0. The shape of real faces: the actors' composite (by sex), before the measured targets below, which then set the
+  //    breadths, the eyes' opening and the lips; the composite shapes what lies between (contours, cheeks, brow, nose).
+  const rf = Math.min(1, Math.max(0, o.realFaces ?? 1)) * b;
+  if (rf > 0) {
+    const fo = FACE_COMPOSITE.female.offsets, mo = FACE_COMPOSITE.male.offsets;
+    v.forEach((p, i) => { for (let k = 0; k < 3; k++) p[k] += rf * (fo[i][k] * (1 - sex) + mo[i][k] * sex); });
+  }
   // 1. Symmetry: average each vertex with its mirrored partner.
   const mir = mirrorMap(base.vertices);
   const snap = v.map(p => [p[0], p[1], p[2]] as Vec3);
