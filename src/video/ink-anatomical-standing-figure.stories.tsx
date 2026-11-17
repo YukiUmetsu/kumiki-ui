@@ -18,6 +18,7 @@ function StandingAtelier(){
   const [detail,setDetail]=useState(1);
   const [frame,setFrame]=useState(12);
   const [reduced,setReduced]=useState(false);
+  const [camera,setCamera]=useState<"full"|"waist"|"grip"|"hem">("full");
   return <main data-testid="ink-anat2-standing-figure-studio" style={page}>
     <p style={{fontSize:11,letterSpacing:2,fontWeight:700}}>
       ORIGINAL CHINESE INK / ANAT2 / SOURCE-BUILT FULL STANDING ART HOLD
@@ -36,6 +37,15 @@ function StandingAtelier(){
       This remains experimental, not approved historical craft.
     </p>
     <div style={{display:"flex",flexWrap:"wrap",gap:18,alignItems:"end",marginBottom:20}}>
+      <label style={label}>Native source microscope
+        <select value={camera} aria-label="Ink standing camera" style={select}
+          onChange={e=>setCamera(e.target.value as "full"|"waist"|"grip"|"hem")}>
+          <option value="full">Whole standing figure · 1×</option>
+          <option value="waist">Wicked robe junction · 2.8×</option>
+          <option value="grip">Bamboo finger opposition · 5.4×</option>
+          <option value="hem">Sandals and hem contact · 1.86×</option>
+        </select>
+      </label>
       <label style={label}>Character
         <select value={character} aria-label="Ink standing character" style={select}
           onChange={e=>setCharacter(e.target.value as InkPortraitCharacter)}>
@@ -74,12 +84,14 @@ function StandingAtelier(){
           background:"#f2e6d3",boxShadow:"0 12px 34px #483b2525"}}>
         <InkAnatomicalStandingFigure character={character} emotion={emotion}
           detail={detail} frame={frame} reducedMotion={reduced}
-          intensity={.95} headScale={headScale}/>
+          intensity={.95} headScale={headScale} camera={camera}/>
       </div>
       <aside style={{fontSize:13,lineHeight:1.72}}>
         <h2 style={{font:"normal 22px Georgia,serif"}}>Visual gates · not approved</h2>
         <p>The figure is separately painted in native SVG rather than a
-          bitmapped cutout. The complete standing form is matched to the
+          bitmapped cutout. The three native microscopes preserve the exact
+          same geometries, including every bristle and paper channel.
+          The complete standing form is matched to the
           smaller head, yet the original eyelid and body painting still need
           critical historical comparison at native and magnified views.</p>
         <p>Staff and fingers require physical contact review at 3×; robe must
