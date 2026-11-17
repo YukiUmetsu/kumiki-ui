@@ -563,6 +563,11 @@ export interface ShodoFormOptions {
    */
   footTurn?: number;
   /**
+   * Weight factor for a kanji 右払い. 1..1.5. KanjiVG kanji: 1.3 (measured: her 右払い are 1.44 times as
+   * heavy as the rules' weight by length; the other stroke kinds 0.87 to 1.24); otherwise 1.
+   */
+  rightSweepWeight?: number;
+  /**
    * Size factor for a small かな (ぁ っ ゃ ァ ッ ャ …) from KanjiVG, about the foot of its box. 0.6..1.
    * Default 0.76: KanjiVG draws them at 0.79 of a full かな, too large to read beside one (ゃ
    * next to し reads as や); 0.76 gives about 0.6, as handwriting is taught.
@@ -601,6 +606,7 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
   const dotLength = kana ? 1 : options.dotLength ?? (measured ? .8 : 1);
   const riseStrokeLength = kana ? 1 : options.riseStrokeLength ?? (measured ? 1.2 : 1);
   const footTurn = kana ? 0 : options.footTurn ?? (measured ? 12 : 0);
+  const rightSweepWeight = kana ? 1 : options.rightSweepWeight ?? (measured ? 1.3 : 1);
   const small = source.source === "kanjivg" && SMALL_KANA.has(source.char) ? options.smallKana ?? .76 : 1;
   const sweep = kana ? 1 : options.sweep ?? 1.16;
   // 主画: one horizontal carries the character; it is written longer than the rest.
@@ -616,6 +622,8 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
     let points: ShodoPoint[] = sheared[i];
     const out: ShodoStrokeSpec = { ...st, points };
     if (st.weight === undefined) out.weight = Math.round(Math.min(1.1, Math.max(.84, .86 + .26 * length(st) / longest)) * 100) / 100;
+    // Her 右払い press down to a heavy foot; a thin one reads as a long dot (秋's 火).
+    if (st.weight === undefined && st.kind === "right-sweep" && rightSweepWeight !== 1) out.weight = Math.round((out.weight ?? 1) * rightSweepWeight * 100) / 100;
     const last = i === glyph.strokes.length - 1, end = st.points[st.points.length - 1];
     if (!kana && last && st.kind === "vertical" && !st.end && end[1] >= bottom - 2 && length(st) > 450) out.end = "nuki";
     // Teachers' kaisho carries its sweeps further than a typeface skeleton: extend 払い

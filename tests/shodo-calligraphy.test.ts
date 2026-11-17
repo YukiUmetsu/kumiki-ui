@@ -297,6 +297,16 @@ describe("SHO1 shodō calligraphy", () => {
     expect(Math.abs(pullOut(shodoKaishoForm(nyo)) - pullOut(shodoKaishoForm(nyo, { footTurn: 0 })))).toBeLessThan(1);
   });
 
+  it("writes a kanji 右払い heavier than its length alone gives (rightSweepWeight)", () => {
+    const glyph: ShodoGlyph = { char: "乀", source: "kanjivg", strokes: [
+      { kind: "horizontal", points: [[200, 300], [800, 300]] },
+      { kind: "right-sweep", points: [[300, 400], [600, 700], [760, 780]] },
+    ] };
+    const weight = (g: ShodoGlyph) => g.strokes[1].weight ?? 1;
+    expect(weight(shodoKaishoForm(glyph)) / weight(shodoKaishoForm(glyph, { rightSweepWeight: 1 }))).toBeCloseTo(1.3, 1);
+    expect(shodoKaishoForm(glyph).strokes[0].weight).toBe(shodoKaishoForm(glyph, { rightSweepWeight: 1 }).strokes[0].weight);
+  });
+
   it("cuts a KanjiVG entry curl at its length, not at the next sparse sample (用 keeps its corner)", () => {
     // 用's first two strokes from KanjiVG: the ㇒ opens with a pen curl, then one long cubic whose
     // first sample (t = .1) lies 150 em down the stroke.

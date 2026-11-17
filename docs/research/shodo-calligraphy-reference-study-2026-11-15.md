@@ -639,6 +639,8 @@ Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/2
 
 **Change.** For KanjiVG kanji, `shodoKaishoForm` turns the pull-out 12° flatter, never above the horizontal (`footTurn`), when it is at most half of the stroke (辶's sweep ends in one long segment, its whole tail, which keeps its course; turning it lifted 辶 into the part above it). On her ink, the 98 of her kanji with a 右払い gain on both halves: overlap +0.0043 and +0.0014 (30/7 and 26/15 characters better/worse); 8° gives +0.0030 and +0.0025, 16° +0.0045 and +0.0018 with a worse centreline on one half.
 
+**The foot's weight.** The flatter pull-out alone left 秋's stroke thin, ending in a small round press. Her 右払い are heavy: their weight is 1.44 times the rules' weight by length (median 1.49 against 1.03, 99 strokes), far more than any other kind (horizontals 1.09, verticals 1.14, dots 1.24, left sweeps 0.87). `shodoKaishoForm` multiplies a kanji 右払い's weight by 1.3 (`rightSweepWeight`). On her ink, the 98 kanji gain on both halves: overlap +0.0076 and +0.0099 (38/6 and 42/2 characters better/worse); 1.2 gives +0.0064 and +0.0071, 1.44 +0.0090 and +0.0114 with a worse centreline (+0.03 and +0.10 against +0.02 and +0.06 at 1.3).
+
 ## 3. From observation to model
 
 | Observation | Model decision |
