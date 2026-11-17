@@ -42,7 +42,6 @@ describe("FLORA1 / CP-F1 original rose calyx and five-sepal receptacle",()=>{
         expect(after).toEqual(before);
       }
     });
-  });
   it("composes independently with the existing seven-petal fibre and lip studies",()=>{
     const baseline=draw("landscape",false,true,true);
     const studied=draw("landscape",true,true,true);
