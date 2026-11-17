@@ -496,6 +496,18 @@ const polyDistance = (points: readonly ShodoPoint[], q: ShodoPoint): { d: number
 };
 
 /**
+ * Degrees below the horizontal past which a KanjiVG dot falls to the left steeply enough to be
+ * written as a short ノ (泉's first stroke, the left dot of ⺣). Measured on a teacher's ink: 110.
+ */
+const LEFT_DOT = 110;
+
+const isLeftDot = (st: ShodoStrokeSpec) => st.kind === "dot" && st.points.length >= 2
+  && Math.atan2(st.points[st.points.length - 1][1] - st.points[0][1], st.points[st.points.length - 1][0] - st.points[0][0]) * 180 / Math.PI > LEFT_DOT;
+
+/** How far (em) an end may reach past an earlier line and still join it; further, the stroke crosses that line. */
+const CROSS_REACH = 40;
+
+/**
  * Find stroke ends that meet an earlier stroke (closer than `reach` em) and mark them as joins.
  * With `snap`, a horizontal, vertical or turn end is also moved along its own line onto the
  * other stroke's centreline, so the inner lines of boxes close cleanly.
@@ -515,10 +527,16 @@ export function shodoJoinStrokes(glyph: ShodoGlyph, reach = 70, snap = true): Sh
       const e = points[index];
       let best: { d: number; at: ShodoPoint } | null = null;
       // Only a line already on the paper can take the join (earlier in stroke order).
+      const nb0 = points[index === 0 ? 1 : index - 1];
+      const ox = e[0] - nb0[0], oy = e[1] - nb0[1], ol = Math.hypot(ox, oy) || 1;
       glyph.strokes.forEach((other, j) => {
         if (j >= i || other.kind === "dot") return;
         const limit = partOf.has(i) && partOf.has(j) && partOf.get(i) !== partOf.get(j) ? across : reach;
         const hit = polyDistance(other.points, e);
+        // An end that already passes through the other line and reaches well beyond it crosses that
+        // line (青's top vertical, the verticals of 艹): it stands free, so it is not pulled back.
+        const beyond = -((hit.at[0] - e[0]) * ox + (hit.at[1] - e[1]) * oy) / ol;
+        if (beyond > CROSS_REACH) return;
         if (hit.d < limit && (!best || hit.d < best.d)) best = hit;
       });
       if (!best) continue;
@@ -557,6 +575,17 @@ export interface ShodoFormOptions {
   /** Length factor for a kanji 提 (rising stroke ㇀), from its start. 1..1.4. KanjiVG kanji: 1.2 (measured); otherwise 1. */
   riseStrokeLength?: number;
   /**
+   * Degrees by which a kanji 右払い's pull-out (its last segment, from the pressed foot) turns
+   * flatter than KanjiVG's, never above the horizontal. 0..20. KanjiVG kanji: 12 (measured: her
+   * pull-outs run 21° below the horizontal, KanjiVG's 34°); otherwise 0.
+   */
+  footTurn?: number;
+  /**
+   * Weight factor for a kanji 右払い. 1..1.5. KanjiVG kanji: 1.3 (measured: her 右払い are 1.44 times as
+   * heavy as the rules' weight by length; the other stroke kinds 0.87 to 1.24); otherwise 1.
+   */
+  rightSweepWeight?: number;
+  /**
    * Size factor for a small かな (ぁ っ ゃ ァ ッ ャ …) from KanjiVG, about the foot of its box. 0.6..1.
    * Default 0.76: KanjiVG draws them at 0.79 of a full かな, too large to read beside one (ゃ
    * next to し reads as や); 0.76 gives about 0.6, as handwriting is taught.
@@ -594,6 +623,8 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
   // Her dots are shorter and her 提 strokes longer than KanjiVG's (§2.23).
   const dotLength = kana ? 1 : options.dotLength ?? (measured ? .8 : 1);
   const riseStrokeLength = kana ? 1 : options.riseStrokeLength ?? (measured ? 1.2 : 1);
+  const footTurn = kana ? 0 : options.footTurn ?? (measured ? 12 : 0);
+  const rightSweepWeight = kana ? 1 : options.rightSweepWeight ?? (measured ? 1.3 : 1);
   const small = source.source === "kanjivg" && SMALL_KANA.has(source.char) ? options.smallKana ?? .76 : 1;
   const sweep = kana ? 1 : options.sweep ?? 1.16;
   // 主画: one horizontal carries the character; it is written longer than the rest.
@@ -609,6 +640,8 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
     let points: ShodoPoint[] = sheared[i];
     const out: ShodoStrokeSpec = { ...st, points };
     if (st.weight === undefined) out.weight = Math.round(Math.min(1.1, Math.max(.84, .86 + .26 * length(st) / longest)) * 100) / 100;
+    // Her 右払い press down to a heavy foot; a thin one reads as a long dot (秋's 火).
+    if (st.weight === undefined && st.kind === "right-sweep" && rightSweepWeight !== 1) out.weight = Math.round((out.weight ?? 1) * rightSweepWeight * 100) / 100;
     const last = i === glyph.strokes.length - 1, end = st.points[st.points.length - 1];
     if (!kana && last && st.kind === "vertical" && !st.end && end[1] >= bottom - 2 && length(st) > 450) out.end = "nuki";
     // Teachers' kaisho carries its sweeps further than a typeface skeleton: extend 払い
@@ -633,6 +666,16 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
     if (st.kind === "right-sweep" && st.points.length < 3) {
       const [a, b] = [st.points[0], st.points[st.points.length - 1]];
       strokes[i] = { ...st, points: [a, [Math.round(a[0] + (b[0] - a[0]) * .72), Math.round(a[1] + (b[1] - a[1]) * .74)], b] };
+    }
+    // 右払い: the pull-out leaves the foot flatter than KanjiVG draws it (秋's 火 read as a long dot).
+    // Only a real pull-out turns: the last segment of 辶's sweep is its whole tail.
+    const sweep = strokes[i];
+    if (footTurn && sweep.kind === "right-sweep" && resolveEnd(sweep) === "harai" && sweep.points.length >= 3) {
+      const P = sweep.points, foot = P[P.length - 2], tip = P[P.length - 1];
+      const len = Math.hypot(tip[0] - foot[0], tip[1] - foot[1]);
+      if (len > .5 * length(sweep)) return;
+      const angle = Math.max(0, Math.atan2(tip[1] - foot[1], tip[0] - foot[0]) - footTurn * Math.PI / 180);
+      strokes[i] = { ...sweep, points: [...P.slice(0, -1), [Math.round(foot[0] + Math.cos(angle) * len), Math.round(foot[1] + Math.sin(angle) * len)]] };
     }
   });
   let formed = shodoJoinStrokes({ ...glyph, strokes });
@@ -662,6 +705,10 @@ export function shodoKaishoForm(source: ShodoGlyph, options: ShodoFormOptions = 
     const fx = (Math.min(...pts.map(p => p[0])) + Math.max(...pts.map(p => p[0]))) / 2, fy = Math.max(...pts.map(p => p[1]));
     formed = { ...formed, strokes: formed.strokes.map(st => ({ ...st, points: st.points.map(([x, y]) => [Math.round(fx + (x - fx) * small), Math.round(fy + (y - fy) * small)] as const) })) };
   }
+  // A dot that falls steeply to the left (泉's first stroke, the left dot of ⺣) is written as a short
+  // ノ: the dot's pressed footprint points down-right, across such a path, and reads as a blob. Not
+  // for a teacher's forms: their dots were fitted to that teacher's ink as dots.
+  if (measured) formed = { ...formed, strokes: formed.strokes.map(st => isLeftDot(st) ? { ...st, kind: "left-sweep" as const } : st) };
   return formed;
 }
 

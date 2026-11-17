@@ -90,6 +90,8 @@ export interface RisoBrushArtProps {
   seed:number;
   inkScale:number;
   registration:number;
+  /** Independently translate the entire SECOND ink stencil. Default stays legacy. */
+  secondPlateRegistration?:readonly [number,number];
   grain:number;
   animate:boolean;
   /** Remove preview-only shadows and width caps inside a film output. */
@@ -97,9 +99,14 @@ export interface RisoBrushArtProps {
 }
 /** Same source artwork for the Storybook studio AND FD1 capture/export. */
 export function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registration,
-  grain,animate,printFrame=239,layout="studio"}:RisoBrushArtProps){
+  grain,animate,printFrame=239,secondPlateRegistration=[.65,-.45],
+  layout="studio"}:RisoBrushArtProps){
   if(!Number.isSafeInteger(printFrame)||printFrame<0||printFrame>239)
     throw new RangeError("RISO64 requires an absolute print frame 0..239.");
+  if(!Array.isArray(secondPlateRegistration)||
+    secondPlateRegistration.length!==2||
+    !secondPlateRegistration.every(v=>Number.isFinite(v)&&v>=-12&&v<=12))
+    throw new RangeError("RISO65 second master registration must be a finite [-12,12] design-pixel pair.");
   if(!Number.isSafeInteger(frame)||frame<0||frame>239)
     throw new RangeError("RISO63 requires an absolute source frame between 0 and 239.");
   if(!["both","blue","red"].includes(plate)||
@@ -116,7 +123,7 @@ export function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registrat
   const source=risoExampleSpec(aspect,seed);
   const spec={...source,plates:source.plates.map(p=>({...p,
     color:p.id==="blue"?cobalt:vermilion,
-    registration:p.id==="blue"?[0,0] as const:[.65,-.45] as const,
+    registration:p.id==="blue"?[0,0] as const:secondPlateRegistration,
   }))};
   const phase=animate?frame/239:0.52;
   const isPaperSeed=seed;

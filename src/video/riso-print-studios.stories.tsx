@@ -8,6 +8,9 @@ import {RisoGradientStudio} from "./riso-gradient-studio";
 import {RisoBrushStudio} from "./riso-brush-studio";
 import {RisoDryBrushFilmStudio} from "./riso-dry-brush-film-studio";
 import {RisoCinematicStudio} from "./riso-cinematic-studio";
+import {RisoRegistrationPreflightStudio} from "./riso-registration-proof-studio";
+import {RisoContactTrapStudio} from "./riso-contact-trap-studio";
+import {RisoTopologyGuardStudio} from "./riso-topology-guard-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -393,6 +396,24 @@ export const RisographDryBrushFilm:StoryObj<typeof RisoDryBrushFilmStudio>={
 export const RisographCinematicJourney:StoryObj<typeof RisoCinematicStudio>={
   name:"Risograph · Two-Drum Cinematic Journey",
   render:()=> <RisoCinematicStudio/>,
+};
+
+/** Interactive A/B original native stencil registration and numeric trap budget; no hands. */
+export const RisographRegistrationPreflight:StoryObj<typeof RisoRegistrationPreflightStudio>={
+  name:"Risograph · Registration Preflight",
+  render:()=> <RisoRegistrationPreflightStudio/>,
+};
+
+/** Physical two-master ArtCraft contact-edge source proof; no human hands. */
+export const RisographContactEdgeTrap:StoryObj<typeof RisoContactTrapStudio>={
+  name:"Risograph · Native Shared-Edge Trapping",
+  render:()=> <RisoContactTrapStudio/>,
+};
+
+/** RISO67 actual SVG quadratic self-contact & paper-opening safety demo. */
+export const RisographTopologySafety:StoryObj<typeof RisoTopologyGuardStudio>={
+  name:"Risograph · Native Stencil Topology Guard",
+  render:()=> <RisoTopologyGuardStudio/>,
 };
 
 const meta = {

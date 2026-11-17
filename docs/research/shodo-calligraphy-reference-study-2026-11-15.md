@@ -631,6 +631,34 @@ Together, dots at 0.8 and 提 at 1.2 change overlap by +0.0020 and +0.0013 (84/2
 
 **Result.** On her ink, the rules forms of the 316 of her kanji that change are closer on both halves: overlap +0.0054 and +0.0074 (42/7 and 42/4 characters better/worse), centreline distance −0.06 and −0.07. 央 gains 0.24, 夫 0.19, 左 0.16, 映 0.16, 火 0.13; the largest loss is 0.02 (光).
 
+## 2.27 Twenty-third study round: the foot of a 右払い
+
+**What was wrong.** The owner saw 秋's last stroke end like a long dot, not a 右払い. The stroke ends in a round press instead of a foot that flattens to the right. A 右払い is drawn from its last segment: the brush presses at the foot, then pulls out along that segment. KanjiVG's pull-out runs steeply down, close to the stroke's own course, so the press stays round.
+
+**Measurement.** On her 99 右払い with a rules form, her pull-out leaves the foot at a median 21° below the horizontal (middle half 10° to 31°), ours at 34° (27° to 38°); her stroke turns 18° at the foot, ours 10°. The pull-out's length matches (0.23 against 0.24 of the stroke).
+
+**Change.** For KanjiVG kanji, `shodoKaishoForm` turns the pull-out 12° flatter, never above the horizontal (`footTurn`), when it is at most half of the stroke (辶's sweep ends in one long segment, its whole tail, which keeps its course; turning it lifted 辶 into the part above it). On her ink, the 98 of her kanji with a 右払い gain on both halves: overlap +0.0043 and +0.0014 (30/7 and 26/15 characters better/worse); 8° gives +0.0030 and +0.0025, 16° +0.0045 and +0.0018 with a worse centreline on one half.
+
+**The foot's weight.** The flatter pull-out alone left 秋's stroke thin, ending in a small round press. Her 右払い are heavy: their weight is 1.44 times the rules' weight by length (median 1.49 against 1.03, 99 strokes), far more than any other kind (horizontals 1.09, verticals 1.14, dots 1.24, left sweeps 0.87). `shodoKaishoForm` multiplies a kanji 右払い's weight by 1.3 (`rightSweepWeight`). On her ink, the 98 kanji gain on both halves: overlap +0.0076 and +0.0099 (38/6 and 42/2 characters better/worse); 1.2 gives +0.0064 and +0.0071, 1.44 +0.0090 and +0.0114 with a worse centreline (+0.03 and +0.10 against +0.02 and +0.06 at 1.3).
+
+## 2.28 Twenty-fourth study round: a foot at the tip
+
+**What was wrong.** The owner saw 永's last stroke end with no 右払い. Her form of 永 and the engine code that draws it had not changed since the eleventh round; `footTurn` and `rightSweepWeight` change only KanjiVG forms. The renderer takes a 右払い's last point pair as the pull-out from the pressed foot. A rules form has three or four points, its last pair a quarter of the stroke. Her traced and fitted forms space their points along the stroke: 永's ends in nine points, its last pair 49 em (8 % of the stroke), so the brush pressed its foot at the tip and lifted there. 20 of her 102 右払い have a last pair under 15 % of the stroke (大 2 %, 天 3 %, 犬 3 %); her pull-outs measure 23 % (median).
+
+**Change.** A 右払い's pull-out is at least `technique.footShare` of the stroke (default 0.2). When the last pair is shorter, the foot moves back along the stroke to that share. On her ink, her 100 kanji with a 右払い gain on both halves: overlap +0.0023 and +0.0015 (7/3 and 8/5 characters better/worse); 0.16 gives +0.0018 and +0.0010, 0.24 +0.0020 and −0.0003. The rules forms of 98 of her kanji gain too (+0.0017 and +0.0015, none worse).
+
+**What is still different.** Her pull-out ends in a sharp point with a flat lower edge. Ours ends rounder: 70 of her 102 右払い and 70 of 138 rules 右払い fail the techniques board's tip check (≤ 0.55 of the middle width). The pressed foot's teardrop leads with its round belly, and the pull-out is about as long as that footprint. A softer press curve (−0.001 to −0.007) and a longer pull-out past the tip (`pullOut` 0.4: −0.0006 and −0.0023) both lose overlap with her ink, but her forms were fitted under the current brush, so a change to the foot's footprint needs a refit to be judged.
+
+## 2.29 Twenty-fifth study round: crossing starts and left-falling dots
+
+**What was wrong.** The owner compared her forms with the rules forms on a review page and marked five kanji. In the rules forms, 青's top vertical and the two verticals of 艹 (葉) started on the horizontal instead of above it, and 市's centre vertical started at 巾's top instead of under the horizontal. 泉's first stroke looked wrong in both forms.
+
+**Cause 1: a crossing start was pulled back.** `shodoJoinStrokes` joined any end within 70 em of an earlier line and moved it onto that line. It did not ask on which side of the line the end lies: an end that has already passed through the line and stands beyond it (青: KanjiVG starts the vertical 71 em above the top horizontal) was moved back onto it. Now an end that reaches more than 40 em past the line (about half a stroke's width; less hides inside the line) crosses it and stays free. On her ink, the rules forms of the 74 of her kanji that change gain on both halves: overlap +0.0067 and +0.0112 (15/1 and 15/0 characters better/worse); 25 em gives +0.0066 and +0.0122 with more changes, 60 em +0.0027 and +0.0084.
+
+**Cause 2: a dot that falls to the left.** KanjiVG marks 泉's first stroke as a dot (㇔), but it falls down-left at 119°, as does the left dot of ⺣ (点, 無, 魚: about 115°). The dot's pressed teardrop always points down-right, across such a path, and leaves a blob. In a KanjiVG kanji, `shodoKaishoForm` now writes a dot that falls to the left steeper than 110° as a short ノ. On her ink, the rules forms of the 35 of her kanji with such a dot gain on both halves: +0.0019 and +0.0007 (105°: −0.0009 and −0.0019; 115°: +0.0016 and 0.0000). Keeping such a dot's full length instead of the dot's shortening (0.8) is not better (centreline worse on both halves). Her own forms keep their dots: drawn as a ノ, her 10 kanji with such a dot lose on both halves (−0.026 and −0.014; 応 点 息 −0.08), because their points were fitted to her ink as dots.
+
+**Her forms.** 57 strokes of 47 of her kanji first run backwards and then go their way (青's top vertical, 艹 in 花 英 茶 葉). Trimming them loses overlap with her ink (−0.0009 and −0.0060): many follow her real entry, which moves against the stroke before it turns (蔵鋒). They stay; the owner's marked kanji are handled one by one.
+
 ## 3. From observation to model
 
 | Observation | Model decision |

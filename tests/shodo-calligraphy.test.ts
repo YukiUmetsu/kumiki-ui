@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SHODO_GLYPHS, inspectShodoGlyph, parseKanjiVgSvg, shodoKaishoForm } from "../registry/video/shodo/shodo-glyphs";
+import { SHODO_GLYPHS, inspectShodoGlyph, parseKanjiVgSvg, shodoJoinStrokes, shodoKaishoForm } from "../registry/video/shodo/shodo-glyphs";
 import type { ShodoGlyph } from "../registry/video/shodo/shodo-glyphs";
 import { loadShodoGlyph, shodoTeacherFor } from "../registry/video/shodo/shodo-glyph-source";
 import { shodoKankaRulesFor, shodoLayout, shodoStructure } from "../registry/video/shodo/shodo-structure";
@@ -40,6 +40,53 @@ describe("SHO1 shodō calligraphy", () => {
     const plan = planShodoWriting({ items, style: resolveShodoStyle({ brush: { diameter: 118 } }) });
     const { checks, failures } = auditShodoTechniques(new ShodoInkSurface(plan, { x: 0, y: 0, width: 1100, height: 600, scale: 1 }));
     expect(checks.length).toBeGreaterThanOrEqual(SHODO_BASICS.length);
+    expect(failures).toEqual([]);
+  });
+
+  it("leaves a stroke that crosses an earlier line standing free, and still closes a near join", () => {
+    // 青's top vertical and 艹's verticals start above the horizontal they cross.
+    const glyph = (start: number): ShodoGlyph => ({ char: "・", source: "kanjivg", strokes: [
+      { kind: "horizontal", points: [[200, 300], [800, 300]] },
+      { kind: "vertical", points: [[500, start], [500, 700]] },
+    ] });
+    const crossing = shodoJoinStrokes(glyph(250)).strokes[1];
+    expect(crossing.points[0]).toEqual([500, 250]);
+    expect(crossing.joinStart).toBeUndefined();
+    // A start a little past the line (KanjiVG's overlap at a join) or short of it still joins.
+    for (const start of [285, 330]) {
+      const joined = shodoJoinStrokes(glyph(start)).strokes[1];
+      expect(joined.joinStart).toBe(true);
+      expect(joined.points[0][1]).toBe(300);
+    }
+  });
+
+  it("writes a KanjiVG dot that falls steeply to the left as a short ノ, and a dot to the right as a dot", () => {
+    const formed = shodoKaishoForm({ char: "点", source: "kanjivg", strokes: [
+      { kind: "dot", points: [[500, 200], [440, 300]] },
+      { kind: "dot", points: [[500, 500], [560, 600]] },
+    ] });
+    expect(formed.strokes.map(s => s.kind)).toEqual(["left-sweep", "dot"]);
+    // A teacher's dots stay dots: they were fitted to the teacher's ink as dots.
+    const taught = shodoKaishoForm({ char: "点", source: "teacher", strokes: [{ kind: "dot", points: [[500, 200], [440, 300]] }] });
+    expect(taught.strokes[0].kind).toBe("dot");
+  });
+
+  it("keeps a 右払い's foot and flat point when its points are spaced evenly (a traced form)", () => {
+    const demo = SHODO_BASICS.find(b => b.id === "migi-harai")!.demo;
+    const P = demo.points, seg = P.slice(1).map((p, i) => Math.hypot(p[0] - P[i][0], p[1] - P[i][1]));
+    const total = seg.reduce((a, b) => a + b, 0);
+    const even = Array.from({ length: 9 }, (_, k) => {
+      let d = total * k / 8, i = 0;
+      while (i < seg.length - 1 && d > seg[i]) d -= seg[i++];
+      const t = d / seg[i];
+      return [Math.round(P[i][0] + (P[i + 1][0] - P[i][0]) * t), Math.round(P[i][1] + (P[i + 1][1] - P[i][1]) * t)] as const;
+    });
+    const plan = planShodoWriting({
+      items: [{ glyph: { char: "・", source: "original", strokes: [{ ...demo, points: even }] }, x: 0, y: 0, size: 220 }],
+      style: resolveShodoStyle({ brush: { diameter: 118 } }),
+    });
+    const { checks, failures } = auditShodoTechniques(new ShodoInkSurface(plan, { x: 0, y: 0, width: 220, height: 220, scale: 1 }));
+    expect(checks.map(c => c.check.technique)).toEqual(expect.arrayContaining(["foot", "harai"]));
     expect(failures).toEqual([]);
   });
 
@@ -279,6 +326,32 @@ describe("SHO1 shodō calligraphy", () => {
     const kids = glyph.parts!.children;
     expect(kids.map(k => [k.element, k.position, k.strokes])).toEqual([["囗", "kamae", [0, 1, 5]], ["口", undefined, [2, 3, 4]]]);
     expect(shodoLayout(glyph)).toBe("enclosure");
+  });
+
+  it("turns a kanji 右払い's pull-out flatter at the foot (footTurn), as the teacher writes it", () => {
+    const glyph: ShodoGlyph = { char: "乀", source: "kanjivg", strokes: [
+      { kind: "right-sweep", points: [[300, 300], [600, 650], [700, 720]] },            // pull-out 35° below the horizontal
+    ] };
+    const pullOut = (g: ShodoGlyph) => {
+      const P = g.strokes[0].points, [f, t] = [P[P.length - 2], P[P.length - 1]];
+      return Math.atan2(t[1] - f[1], t[0] - f[0]) * 180 / Math.PI;
+    };
+    const plain = pullOut(shodoKaishoForm(glyph, { footTurn: 0 })), turned = pullOut(shodoKaishoForm(glyph));
+    expect(plain - turned).toBeGreaterThan(10);                                         // 12° by default
+    expect(turned).toBeGreaterThan(0);                                                  // never above the horizontal
+    // 辶's sweep: its last segment is the whole tail, not a pull-out, and keeps its course.
+    const nyo: ShodoGlyph = { char: "乀", source: "kanjivg", strokes: [{ kind: "right-sweep", points: [[130, 730], [250, 710], [810, 830]] }] };
+    expect(Math.abs(pullOut(shodoKaishoForm(nyo)) - pullOut(shodoKaishoForm(nyo, { footTurn: 0 })))).toBeLessThan(1);
+  });
+
+  it("writes a kanji 右払い heavier than its length alone gives (rightSweepWeight)", () => {
+    const glyph: ShodoGlyph = { char: "乀", source: "kanjivg", strokes: [
+      { kind: "horizontal", points: [[200, 300], [800, 300]] },
+      { kind: "right-sweep", points: [[300, 400], [600, 700], [760, 780]] },
+    ] };
+    const weight = (g: ShodoGlyph) => g.strokes[1].weight ?? 1;
+    expect(weight(shodoKaishoForm(glyph)) / weight(shodoKaishoForm(glyph, { rightSweepWeight: 1 }))).toBeCloseTo(1.3, 1);
+    expect(shodoKaishoForm(glyph).strokes[0].weight).toBe(shodoKaishoForm(glyph, { rightSweepWeight: 1 }).strokes[0].weight);
   });
 
   it("cuts a KanjiVG entry curl at its length, not at the next sparse sample (用 keeps its corner)", () => {

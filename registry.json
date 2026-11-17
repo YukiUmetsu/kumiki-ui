@@ -3356,6 +3356,21 @@
           "path": "registry/video/riso-dry-brush-react.tsx",
           "type": "registry:ui",
           "target": "components/video/riso-dry-brush-react.tsx"
+        },
+        {
+          "path": "registry/video/riso-contact-trap.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-contact-trap.ts"
+        },
+        {
+          "path": "registry/video/riso-stencil-topology.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-stencil-topology.ts"
+        },
+        {
+          "path": "registry/video/riso-path-geometry.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-path-geometry.ts"
         }
       ]
     },
@@ -3824,9 +3839,9 @@
           "target": "components/anatomy/data/model-tables.json"
         },
         {
-          "path": "registry/anatomy/data/face-composite.json",
+          "path": "registry/anatomy/data/face-types.json",
           "type": "registry:ui",
-          "target": "components/anatomy/data/face-composite.json"
+          "target": "components/anatomy/data/face-types.json"
         },
         {
           "path": "registry/anatomy/data/anatomy-references.json",
@@ -4177,6 +4192,60 @@
           "path": "registry/anatomy/expression-react.tsx",
           "type": "registry:ui",
           "target": "components/anatomy/expression-react.tsx"
+        }
+      ]
+    },
+    {
+      "name": "makeup",
+      "type": "registry:ui",
+      "title": "Makeup and Beauty Framework (MAKEUP1)",
+      "description": "Makeup and beauty for any face in any art style, grounded in graded evidence and learned from openly licensed photographs. A 31-zone atlas on the 468-point face mesh (shared with a Python photo pipeline): foundation, concealer, corrector, cheek, temple, jaw and nose contour, five highlights, bronzer, five blush placements, lid, crease, outer V, inner corner, lower lash line, liner and wing, brow fill on the brow map (peak at 71% of the eye width), lips, liner, gradient and gloss, anchored to vertices and sized in eye widths so it follows each face. 14 products as pigment films (stain to opaque paint, Kubelka-Munk simplified) and 8 finishes (matte to glitter). Colour: CIEDE2000, ITA and an undertone split from measured cheek hue (Xiao et al. 2017), foundation matching with the measured healthy shift (Stephen et al. 2009), concealer and correctors, contour, bronzer and highlight by depth and undertone, blush and lip families, eyeshadow complements by iris, brows from hair. 12 looks as colour rules (no-makeup, fresh dewy, soft glam, sculpted, classic red, smoky eye, sun-kissed, igari, monochrome rose, grooming, maiko); face-shape and eye-shape placement rules; designMakeup with reasons, checkMakeup (contour stops before the iris, blush above the nose base, light above shadow, wing angle, foundation match, lip contrast against learned ranges, brow peak); makeupPaint for ANAT1 portraits (films lit without subsurface scattering, finish, shimmer flakes, mascara, brow colour) and paintPhoto for any photograph with MediaPipe landmarks (frequency separation keeps the skin's texture); face charts, undertone plane, evidence and learned-data tables. Learned data: bare-skin prior, makeup effects, placement, facial contrast and beauty correlations from the Face Research Lab London Set (CC BY 4.0) and CC0 portraits.",
+      "dependencies": [],
+      "registryDependencies": [
+        "human-anatomy",
+        "facial-expressions",
+        "art-foundations"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/makeup-zones.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-zones.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-color.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-color.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-data.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-data.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-design.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-design.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-paint.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-paint.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-react.tsx"
+        },
+        {
+          "path": "registry/anatomy/data/makeup-zones.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/makeup-zones.json"
+        },
+        {
+          "path": "registry/anatomy/data/makeup-learned.json",
+          "type": "registry:ui",
+          "target": "components/anatomy/data/makeup-learned.json"
         }
       ]
     },

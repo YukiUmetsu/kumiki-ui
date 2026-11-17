@@ -15,12 +15,13 @@ regressions, canon checks, surface forms, age changes, drawing recipe), `anatomy
 painter), `data/*` (baked tables and licences). Binary body model: `assets/models/anatomy/human-body-lattice.bin`
 (2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (42 public-domain/CC0 plates and
 photographs: 11 of eyes, 5 of skin, 4 of hands).
-**Storybook:** Video production → Art Foundations → Human Anatomy → **Lab**, **Population line-up**, **Turnaround**,
-**Pose library** (+ front/side QA), **Hand poses**, **Face lab**, **Head angles**, **Range of motion**, **Any style**,
-**Proportions and ranges**, **Reference board**, **Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Hair on the
-posable body**, **Eye lab**, **Eye shapes**, **Iris colours**, **Skin texture by region**, **Hand lab**, **Hand types**,
-**Hand gestures**, **Grasps (GRASP taxonomy)**, **Hand animations**, **Hand details**, **Hair types and colours**, **Skin, hair and eye colour**,
-**Beautiful faces**, **Portrait lab**
+**Storybook:** Video production → Art Foundations → Human Anatomy, in this order:
+body — **Lab**, **Population line-up**, **Turnaround**, **Pose library**, **Range of motion**, **Proportions and
+ranges**, **Any style**, **Reference board**; faces — **Face lab**, **Beautiful faces**, **Head angles**; eyes —
+**Eye lab**, **Eye shapes**, **Iris colours**; skin — **Skin texture by region**, **Skin colour (Monk scale)**; hair —
+**Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Curl types and hair colours**, **Hair on the posable body**;
+hands — **Hand lab**, **Hand types**, **Hand gestures**, **Grasps (GRASP taxonomy)**, **Hand animations**, **Hand
+details**.
 **Status:** implemented; agent review of Chromium screenshots only — **human visual review not recorded**. This is a
 construction and reference framework. It does **not** certify a finished realistic portrait or pencil drawing: those
 still need their style's gates (CP-F1, ArtCraft v7 portrait gate — AGENTS.md rules 13–14).
@@ -162,19 +163,34 @@ The mask has no ears, cranium or hairline.
 **`beautifulFace(options)`.** Applies what the research on facial attractiveness supports
 ([research note](../research/face-beauty-portrait-2026-11-16.md)), each step scaled by `beauty` (0 = the calibrated
 average face, 1 = everything applied):
-- **Real faces** (`realFaces`, default 1): starts from the shape of a composite of public-domain portraits of film
-  actors (`FACE_COMPOSITE`, [research note](../research/face-composite-2026-11-16.md)): 11 women and 12 men, measured
-  with face landmarks, one photograph a person, averaged by sex. The mouth is left out (smiles) and the nose wings
-  damped. The composite's cheekbone breadths land on ANSUR II's. The steps below then set the measured breadths, eye
-  opening and lips; the composite shapes what lies between.
 - **Averageness:** starts from population means.
 - **Symmetry:** every vertex is averaged with its mirror.
 - **Breadths:** cheekbone breadth set to ANSUR II (133.8 mm women, 142.6 mm men), which gives Pallett's 46% pupil ratio
   by itself.
 - **Jaw:** a narrower jaw.
 - **Femininity:** above-average femininity for women; slight feminisation for men (Perrett 1998).
-- **Eyes:** the opening set to a measured palpebral height (8–11.5 mm reported) with a slight canthal tilt.
+- **Eyes:** a slight canthal tilt (the opening: see lids on the iris).
+- **Brows:** drawn in the band between the face's own upper and lower brow edges, so each type's stars' brow shape and
+  thickness carry through.
 - **Lips:** vermilion heights from attractive young women (6.5 / 11.6 mm, Popenko's 1:2); the lips closed.
+- **Form:** brow ridge about 10 mm ahead of the cornea, the rim below the eye about 3 mm behind it, the cheek about
+  2 mm ahead (Jelks vector).
+- **Face types** (`faceType`, `realFaces` 0–1.5): the shape of beautiful modern stars of one ancestry group, by sex
+  (`FACE_TYPE_GROUPS`, `FACE_TYPES`, [research note](../research/face-types-2026-11-16.md)): East Asian, Southeast
+  Asian, South Asian, Middle Eastern & North African, Black, Latin American, Northern & Western, Southern and Eastern
+  European. Each type is fitted to several stars' photographs (1995 on; public domain, CC0, CC BY or CC BY-SA,
+  measured only and credited; one photograph a person) in MediaPipe's landmark space: rendered, read by the same model
+  and corrected. Groups are never blended. Asking for a type also brings its look (skin, eyes, hair) unless given;
+  without one, the type matching the norm is used. Lid margins and the inner lip line are left out of the fit.
+- **Bone structure** (with the type): the group's depth at the brow ridge, nasal root and cheekbones (measured on its
+  stars' photographs against the Northern European stars) and at the bridge, nose tip and lips (soft-tissue norms
+  and estimates).
+- **Face-shape variants** (`faceVariant` 1 or 2): each type's stars split in two by face shape, each variant from at
+  least four people, named by what it changes (for example "a longer face, a narrower jaw").
+- **Lids on the iris:** the upper margin MRD1 above the pupil (about 4 mm), the lower MRD2 below it (about 5.3 mm),
+  where the portrait puts the eyeball, so no white shows above or below the iris. An eye shape keeps its own opening.
+- **Mouth corners:** at the height measured on the type's stars' closed mouths (a little below the lips' midline),
+  not drooping.
 - **Hairline:** placed where the eye-to-mouth distance is 36% of face length.
 
 **The golden ratio.** `goldenRatioReport` lists the claims beside the face's values (`GOLDEN_RATIO`): Marquardt's
@@ -188,11 +204,12 @@ supersampling, most of it the hair. Geometry:
 - a strip of skin grown from the face mask's top edge up and round to the cranium, so the forehead is one surface up
   to the hairline;
 - a cranium from ANSUR head measures;
-- a neck behind the jaw, and shoulders.
+- a neck behind the jaw that ends under the garment, and shoulders with a scoop or crew neckline.
 
 Shading:
-- **Key light:** shadow-mapped with a softbox's soft edge (16 Poisson taps over about 1 mm), finer in close-ups,
-  with a bias that grows where the light grazes the skin.
+- **Key light:** a softbox of about 20°: shadow-mapped, the shadow's edge widening with the distance to what casts
+  it (percentage-closer soft shadows: a blocker search, then 16 Poisson taps turned per point), so the nose's shadow
+  is soft at its end; finer in close-ups, with a bias that grows where the light grazes the skin.
 - **Fill, rim, sky and bounce lights.**
 - **Ambient occlusion** from 22 directions.
 - **Subsurface scattering:** the d'Eon & Luebke six-Gaussian skin profile.
@@ -224,9 +241,13 @@ Options:
 - hair: melanin, a `HAIRSTYLES` id ("long", "short" and "bob" are kept as aliases), and `fringe`, `parting`,
   `hairStrands`, `hairLength`, `hairCurl` and `hairGrey` to override the style;
 - expression, yaw (±25°), key light;
+- makeup: `makeup` ("none", "natural" or "glamour", by default "natural" for women) and `lipstick`. For a designed
+  look, give `paint: makeupPaint(plan)` from MAKEUP1 ([makeup](makeup.md)). The built-in makeup is then off by
+  default;
 - `debug` passes (normals, irradiance, occlusion, hair shadow).
 
-The result carries the groom and the head it was groomed on (`hair`). By default 12,000–40,000 strands are drawn,
+The result carries the groom and the head it was groomed on (`hair`), and the 468 face-mesh points in output pixels
+(`landmarks`). By default 12,000–40,000 strands are drawn,
 scaled with the picture's size, up to 120,000 on request.
 
 `FacePortrait` draws one in a canvas after paint, queued one at a time. `GoldenRatioTable` and `BeautyEvidence` show
@@ -379,13 +400,25 @@ Steps:
   - they rest on the forehead (bangs), pass beside the cheeks and over the ears, and drape over the shoulders: in
     front of the ridge onto the chest, behind it down the back.
 - **Styles:** blow-dried cuts hug the head; set or gathered styles stay against it; coils stand out.
-- **Cut:** a blunt line, layers or a textured trim, and each fringe on its own line.
+- **Physics** ([research note](../research/hair-bangs-2026-11-17.md)): fringes and short and medium lengths then
+  settle as heavy elastic rods. The weight beyond each joint bends the strand from its styled curve by
+  (moment × segment) / B, with B / w = ℓ³. Positions are rebuilt from the root, so nothing stretches; every point is
+  pushed out of the head, face, ears, neck, shoulders and chest on every pass; a surface hair rests on carries the
+  weight beyond it. With no contact this is the heavy elastica, within 1–3°. Long hair and blunt-cut lengths keep
+  their grown hang.
+- **Cut:** a blunt line, layers or a textured trim, and each fringe on its own line. The fringe lines come from 25
+  modern photographs (measured):
+  - full: 2 mm below the brows in the middle, 12 mm at the outer brow;
+  - curtain: open to the hairline in the middle, to the outer brow and cheekbone;
+  - side-swept: from the hairline to 18 mm below the brow.
+- **Fringe pieces:** 18–48 clumps of their own, gathering near the ends; each piece ends a few millimetres up or
+  down. A fringe strand is drawn as two finer ones.
 - **Children (5,000–120,000)** follow only guides that stay together, with their offset carried in the strand's own
   frame. Then they:
   - gather into locks (leaders chosen by root and tip);
-  - curl (waves as flattened spirals in step across the head, helices for curls);
+  - curl (waves as flat S-curves across the hair sheet, neighbouring locks nearly in step; helices for curls);
   - frizz and fly away in smooth arcs;
-  - stay off the face and below the parting.
+  - stay off the face (children too) and below the parting; a fringe's children are cut on its line.
 
 **`HAIRSTYLES`** (15): long straight, long wavy, lob, bob, bob with blunt bangs, shoulder length with curtain bangs,
 long side wave, curly, afro, ponytail, low bun, pixie, short crop, slicked back, buzz. Each has lengths by region,

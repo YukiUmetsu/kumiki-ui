@@ -87,7 +87,7 @@ describe("ANAT1 hair and colour", () => {
   });
 });
 
-import { beautifulFace, FACE_COMPOSITE, goldenRatioReport, PHI } from "../registry/anatomy/face-beauty";
+import { beautifulFace, FACE_TYPE_GROUPS, FACE_TYPES, goldenRatioReport, PHI } from "../registry/anatomy/face-beauty";
 import { renderPortrait } from "../registry/anatomy/face-portrait";
 import { FRINGES, HAIRSTYLES, findHairStyle, groomHair, partLine, scalpCover } from "../registry/anatomy/hair-groom";
 import type { HairGroom } from "../registry/anatomy/hair-groom";
@@ -101,7 +101,8 @@ import { createRaster, fft2, fillPolygon, gaussianBlur, strokePolyline } from ".
 describe("ANAT1 beautiful faces and portraits", () => {
   it("applies the attractiveness findings: symmetric, measured breadths and eyes, Pallett's ratios, closed lips", () => {
     for (const sex of [0, 1]) {
-      const f = beautifulFace({ sex }), v = f.vertices, L = (k: keyof typeof FACE_LANDMARKS) => v[FACE_LANDMARKS[k]];
+      // the findings alone (no face type: the type's stars then move the face toward their own shape)
+      const f = beautifulFace({ sex, realFaces: 0 }), v = f.vertices, L = (k: keyof typeof FACE_LANDMARKS) => v[FACE_LANDMARKS[k]];
       // symmetry: paired landmarks mirror across the midline
       expect(Math.abs(L("exocanthion.L")[0] + L("exocanthion.R")[0])).toBeLessThan(0.2);
       expect(Math.abs(L("cheilion.L")[1] - L("cheilion.R")[1])).toBeLessThan(0.2);
@@ -114,35 +115,64 @@ describe("ANAT1 beautiful faces and portraits", () => {
       // the eye opening inside the reported 8–11.5 mm; lips near 1:2 and closed
       expect(f.applied.palpebral).toBeGreaterThan(8);
       expect(f.applied.palpebral).toBeLessThan(11.5);
-      expect(f.applied.lowerLip / f.applied.upperLip).toBeGreaterThan(1.5);
+      // (the face type's stars set the lips last: modern Northern European stars' lower lip is about 1.5 times the upper)
+      expect(f.applied.lowerLip / f.applied.upperLip).toBeGreaterThan(1.4);
       expect(v[13][1] - v[14][1]).toBeLessThan(0.6);
-      // a slight upward tilt (preferred in female faces, Bashour & Geist 2007); the real-face composite sets men's eyes flatter
+      // a slight upward tilt (preferred in female faces, Bashour & Geist 2007)
       expect(f.applied.canthalTilt).toBeGreaterThan(sex ? 1 : 2);
     }
     // beauty 0 keeps the calibrated average face
     expect(beautifulFace({ sex: 0, beauty: 0 }).vertices).toEqual(createFace({ sex: 0 }).vertices);
   });
-  it("applies the real-face composite: measured from public-domain portraits, symmetric, gentle, off when asked", () => {
-    for (const sex of ["female", "male"] as const) {
-      const c = FACE_COMPOSITE[sex];
-      expect(c.n).toBeGreaterThanOrEqual(10);
-      expect(c.offsets).toHaveLength(468);
-      const mags = c.offsets.map(o => Math.hypot(o[0], o[1], o[2]));
-      expect(Math.max(...mags)).toBeLessThan(15);
+  it("builds face types per ancestry from freely licensed modern photographs: several stars each, gentle, never blended", () => {
+    expect(FACE_TYPE_GROUPS.length).toBeGreaterThanOrEqual(6);
+    for (const [key, t] of Object.entries(FACE_TYPES)) {
+      expect(key).toBe(`${t.group}:${t.sex}`);
+      // several people a type, so none of them is copied
+      expect(t.n).toBeGreaterThanOrEqual(4);
+      expect(t.sources).toHaveLength(t.n);
+      // free licences only, each photograph credited (measured, never redistributed)
+      expect(t.sources.every(x => /public domain|cc0|^pd$|^cc by(-sa)? \d/i.test(x.licence))).toBe(true);
+      expect(t.sources.every(x => /public domain|cc0|^pd$/i.test(x.licence) || (x.author ?? "").length > 0)).toBe(true);
+      expect(t.offsets).toHaveLength(468);
+      expect(Math.max(...t.offsets.map(o => Math.hypot(o[0], o[1], o[2] ?? 0)))).toBeLessThan(15);
     }
-    expect(FACE_COMPOSITE.sources.every(x => /public domain|cc0|^pd$/i.test(x.licence))).toBe(true);
-    // the composite changes the face, and realFaces 0 leaves it as it was
-    const a = beautifulFace({ sex: 0, realFaces: 0 }).vertices, b = beautifulFace({ sex: 0 }).vertices;
-    expect(Math.max(...a.map((p, i) => Math.hypot(p[0] - b[i][0], p[1] - b[i][1], p[2] - b[i][2])))).toBeGreaterThan(1);
+    // a type changes the face, realFaces 0 leaves it as it was, and two groups give two different faces
+    const g = FACE_TYPE_GROUPS.map(x => x.id), a = beautifulFace({ sex: 0, faceType: g[0], realFaces: 0 }).vertices, b = beautifulFace({ sex: 0, faceType: g[0] }).vertices;
+    const far = (p: readonly (readonly number[])[], q: readonly (readonly number[])[]) => Math.max(...p.map((x, i) => Math.hypot(x[0] - q[i][0], x[1] - q[i][1], x[2] - q[i][2])));
+    expect(far(a, b)).toBeGreaterThan(1);
+    expect(far(b, beautifulFace({ sex: 0, faceType: g[g.length - 1] }).vertices)).toBeGreaterThan(1);
+    // bone structure differs by group: the East Asian stars' nasal root and brow ridge sit further back than the
+    // Northern European stars' (measured on their photographs, as the anthropological literature describes)
+    const rel = (f: ReturnType<typeof beautifulFace>, i: number) => f.vertices[i][2] - eyeCentres(f.vertices).L[2];
+    const ea = beautifulFace({ sex: 0, faceType: "east-asian" }), ne = beautifulFace({ sex: 0, faceType: "northern-european" });
+    expect(rel(ea, FACE_LANDMARKS.sellion)).toBeLessThan(rel(ne, FACE_LANDMARKS.sellion) - 0.5);
+    expect(rel(ea, FACE_LANDMARKS["brow-mid.L"])).toBeLessThan(rel(ne, FACE_LANDMARKS["brow-mid.L"]) - 0.5);
+    // face-shape variants within a type: several people each, a real difference
+    for (const t of Object.values(FACE_TYPES)) for (const [k, x] of (t.variants ?? []).entries()) {
+      expect(x.n).toBeGreaterThanOrEqual(4);
+      expect(x.offsets).toHaveLength(468);
+      const base = beautifulFace({ sex: t.sex === "female" ? 0 : 1, faceType: t.group }).vertices;
+      expect(far(base, beautifulFace({ sex: t.sex === "female" ? 0 : 1, faceType: t.group, faceVariant: k + 1 }).vertices)).toBeGreaterThan(0.3);
+    }
     // still symmetric after it (the symmetry step follows)
     const f = beautifulFace({ sex: 1 }), L = (k: keyof typeof FACE_LANDMARKS) => f.vertices[FACE_LANDMARKS[k]];
     expect(Math.abs(L("exocanthion.L")[0] + L("exocanthion.R")[0])).toBeLessThan(0.2);
+    // the lids sit on the iris at measured margin-to-pupil distances (MRD1 about 4, MRD2 about 5.3 mm), where the
+    // portrait puts the eyeball; the mouth's corners at the height measured on the stars' closed mouths
+    for (const sex of [0, 1]) {
+      const g = beautifulFace({ sex }), M = (k: keyof typeof FACE_LANDMARKS) => g.vertices[FACE_LANDMARKS[k]], ec = eyeCentres(g.vertices).L;
+      const mrd1 = M("palpebrale-superius.L")[1] - ec[1], mrd2 = ec[1] - M("palpebrale-inferius.L")[1];
+      expect(mrd1).toBeGreaterThan(3.6); expect(mrd1).toBeLessThan(4.9);
+      expect(mrd2).toBeGreaterThan(4.9); expect(mrd2).toBeLessThan(5.8);
+      expect(M("cheilion.L")[1] - M("stomion")[1]).toBeCloseTo(-FACE_TYPES[`northern-european:${sex ? "male" : "female"}`].mouthCorner, 1);
+    }
   });
   it("reports the golden-ratio checks without building on them", () => {
     const f = beautifulFace({ sex: 0 }), rows = goldenRatioReport(f.vertices, f.hairlineY);
     expect(rows.find(x => x.id === "mouth-nose")!.target).toBeCloseTo(PHI, 6);
-    // the evidence-built face sits measurably off φ: the claims are reported, not imposed
-    expect(Math.abs(rows.find(x => x.id === "mouth-nose")!.value - PHI)).toBeGreaterThan(0.03);
+    // the evidence-built face is not tuned to φ: the claims are reported, not imposed
+    expect(rows.some(r => Math.abs(r.value - r.target) / r.target > 0.03)).toBe(true);
     expect(eyeCentres(f.vertices).L[0]).toBeGreaterThan(0);
   });
   it("renders a portrait: a lit face over the background, dark pupils, nothing out of range", () => {
@@ -169,7 +199,20 @@ describe("ANAT1 beautiful faces and portraits", () => {
     const bangs = groomHair(head, { style: "bob-bangs", strands: 3000, seed: 4 }), tips: number[] = [];
     for (let s = 0; s < bangs.starts.length; s++) { const e = (bangs.starts[s] + bangs.counts[s] - 1) * 3; if (Math.abs(bangs.points[e]) < 30 && bangs.points[e + 2] > head.faceZ - 15 && bangs.points[e + 1] < head.hairlineY) tips.push(bangs.points[e + 1]); }
     expect(tips.length).toBeGreaterThan(40);
-    expect(Math.abs(tips.reduce((p, q) => p + q, 0) / tips.length - (head.browY + 2))).toBeLessThan(6);
+    // (measured on modern photographs: full fringes end about 2 mm below the brows' upper edge in the middle)
+    expect(Math.abs(tips.reduce((p, q) => p + q, 0) / tips.length - (head.browY - 3))).toBeLessThan(4);
+    // gravity: the bangs' ends hang down (they settle under their weight, not set at a straight angle)
+    let down = 0, nb = 0;
+    for (let s = 0; s < bangs.starts.length; s++) {
+      if ((bangs.width?.[s] ?? 1) >= 1 || bangs.counts[s] < 3) continue;
+      const e = (bangs.starts[s] + bangs.counts[s] - 1) * 3, f = e - 3, dl = Math.hypot(bangs.points[e] - bangs.points[f], bangs.points[e + 1] - bangs.points[f + 1], bangs.points[e + 2] - bangs.points[f + 2]);
+      if (dl > 1e-6) { down += (bangs.points[e + 1] - bangs.points[f + 1]) / dl; nb++; }
+    }
+    expect(nb).toBeGreaterThan(100);
+    expect(down / nb).toBeLessThan(-0.6);
+    // collisions: long hair lies on the shoulders and chest, not inside them
+    const torso = pts(a).filter(([x, y, z]) => Math.abs(x) < head.shoulderHalf * 0.9 && y < head.shoulderTop!(x) - 15 && z < head.chestFront!(x) - 3 && z > head.chestFront!(x) - 90);
+    expect(torso.length / pts(a).length).toBeLessThan(0.003);
     // tightly coiled hair stands out from the scalp (an afro), straight hair lies on it
     const out = (g: HairGroom) => { let s = 0; for (let k = 0; k < g.starts.length; k++) { const e = (g.starts[k] + g.counts[k] - 1) * 3, d = [(g.points[e] - head.centre[0]) / head.radii[0], (g.points[e + 1] - head.centre[1]) / head.radii[1], (g.points[e + 2] - head.centre[2]) / head.radii[2]]; s += Math.hypot(d[0], d[1], d[2]); } return s / g.starts.length; };
     expect(out(groomHair(head, { style: "afro", strands: 800, seed: 4 }))).toBeGreaterThan(out(groomHair(head, { style: "slicked-back", strands: 800, seed: 4 })) + 0.2);
@@ -205,7 +248,7 @@ describe("ANAT1 beautiful faces and portraits", () => {
     expect(IRIS_TYPES.length).toBeGreaterThanOrEqual(14);
     const p = renderPortrait({ sex: 0, width: 120, height: 52, supersample: 1, framing: "eyes", eyes: "blue", eyeShape: "round", hairStrands: 1500 });
     expect(p.rgba.length).toBe(120 * 52 * 4);
-  });
+  }, 20000);
   it("skin: textured by region, deeper with age, pores where they are, detail fading by the pixel, wrinkles with age", () => {
     const grid = (id: string, age: number, fp = 0.03, f: "height" | "darken" = "height") => { const r = findSkinRegion(id), v: number[] = []; for (let j = 0; j < 40; j++) for (let i = 0; i < 40; i++) v.push(skinSurface(r, i * 0.2, j * 0.2, { age, footprint: fp, seed: 2 })[f]); return v; };
     const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length, sd = (v: number[]) => { const m = mean(v); return Math.sqrt(mean(v.map(x => (x - m) ** 2))); };

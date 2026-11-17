@@ -135,3 +135,21 @@ The `RisoBrushArt.printFrame` optional prop defaults to **239**, preserving full
 `RISO_CINEMATIC_BEATS` defines five original 24fps shots: `cobalt-macro` (48f), `cobalt-pullback` (52f), `vermilion-pass` (74f), `overprint-macro` (48f), `original-hold` (66f). The final 288-frame / 12-second film prints to 960×540 and 540×960. `evaluateRisoCinematic` and `risoCinematicCamera` are pure, independently testable functions; `renderRisoCinematicFilmSlot` is shared by the native production FilmStage and the Storybook **Two-Drum Cinematic Journey**. Source strokes, paper-open fibre paths, 2 spot masters, text and registration remain unchanged.
 
 `examples/film/riso-cinematic-two-plate.film.json` is the portable film. See [RISO64 research and source-deconstruction, guardrails, cinema shot list and actual video proof commands](../research/riso64-cinematic-press-artcraft.md). Reduced motion resolves to a stationary fully printed sheet. No video sound or physical Riso calibration is implied.
+
+## RISO65 — original master registration displacement preflight (experimental)
+
+RISO65 adds a reusable numerical `evaluateRisoRegistration` preflight in `registry/video/riso-registration-preflight.ts` for two/three plate RISO1 specs. It reports actual deterministic per-master transforms, all pairwise second-minus-first displacement vectors, magnitude and excess above a user-declared design allowance. Registration is a **paper-space plate transform**, not a deformation of original ink geometry. Source-native RISO62/63/64 remain byte-equivalent at default register.
+
+Storybook **Risograph · Registration Preflight** provides original vs offset native ink panels, two aspect ratios, individual spot master isolation, source-frame seeking, paper tooth, register x/y and shared 1×/3× optical inspection. It never claims physical press colorimetry or true stencil trapping: budget numbers cannot certify adjacency, paper seam absence or real press repeatability. Source and release criteria: [RISO65 research](../research/riso65-registration-preflight-artcraft.md).
+
+## RISO66 — opt-in native shared-edge trapping
+
+Source-native, explicit edge-only geometry: `createRisoContactTrap(base,neighbor,{side,maximumGap,maximumExtension,overlap,minimumRun})` in `registry/video/riso-contact-trap.ts`. Only sustained near-parallel, opposite-facing physically adjacent outer edge segments qualify. The selected source outer path grows under a bounded locally eased ink extension. Every original dry-fibre cutout and paper pore, pressure stop, centerline, opposite edge and ink registration remain unchanged.
+
+The `riso-print` registry item includes this module for consumer access. Full interactive source, two master isolation and original vs trapped A/B visual evidence live in the **Risograph · Native Shared-Edge Trapping** Storybook study. See [RISO66 source research and release caveats](../research/riso66-native-contact-trap-artcraft.md). Not a generic path Boolean/trapping solution or printer-approved output; printed register must be proven physically.
+
+## RISO67 — source-native stencil topology safety (opt-in)
+
+`auditRisoTrapTopology(original,candidate,flatness=.35)` inspects actual Q-curve SVG boundaries with bounded adaptive sampling. It measures newly introduced nonadjacent perimeter contacts, outer border–paper-hole cuts, newly outside holes, missing contours, and orientation flips. Existing baseline weaknesses remain visible in `inheritedDefects`; `noNewDefects` is a **differential** condition, not certification of zero holes or accurate real press alignment.
+
+`createGuardedRisoContactTrap(base,neighbor,options,flatness)` wraps RISO66 and returns `accepted`, `reason`, `topology`, and `proposed`. If a candidate introduces modeled damage, it returns the untouched original `base` geometry for ink rendering, preserving every original pressure stop and source dry-brush paper opening. The existing non-guarded API is unchanged. For interactive full-sheet, 3× macro and rejection-proof review use Storybook **Risograph · Native Stencil Topology Guard**. Full source and limitations: [RISO67 ArtCraft](../research/riso67-stencil-topology-artcraft.md).
