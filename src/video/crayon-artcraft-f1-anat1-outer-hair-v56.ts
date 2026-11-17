@@ -53,7 +53,7 @@ const corrections:Readonly<Record<Id,{before:string;after:string;endBefore?:stri
       "C500 404 506 448 516 493"+
       "C528 535 534 562 544 609",
     endBefore:"C468 500 452 449 447 404C439 353 406 256 379 191Z",
-    endAfter:"C468 510 452 456 447 408C439 358 406 268 379 222Z",
+    endAfter:"C468 500 452 449 447 404C439 353 406 256 379 222Z",
   },
 };
 export function crayonF1SourceOuterHairV56(elements:readonly CrayonElement[]):CrayonElement[]{
