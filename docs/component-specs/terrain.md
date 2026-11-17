@@ -50,7 +50,8 @@ The landforms:
 `terrainHeightfield({ kind, seed, n, span, relief, base, rain })` returns heights in metres on an n × n grid. Each kind
 has its own natural span, from 1.2 km for dunes to 30 km for a shield.
 
-- **Shape by kind.** Ridged, domain-warped noise for ranges. Concave cones with craters and radial gullies for
+- **Shape by kind.** Ridged, domain-warped noise for ranges. Dunes about 150 m apart, with windward backs of about
+  11° and slip faces at the angle of repose (measured on the field: median 11°, 95th percentile 34°), crests rounded. Concave cones with craters and radial gullies for
   volcanoes. Cap-rock plateaus over aprons, with strata, for mesas. Asymmetric sawtooth transverse dunes. Valleys
   carved as a U or a V along a meander. A cliffed coast with a deep sea floor.
 - **Hydraulic erosion** (`erode`): droplets run downhill, eroding where they speed up and depositing where they slow
@@ -58,7 +59,7 @@ has its own natural span, from 1.2 km for dunes to 30 km for a shield.
 - **Thermal erosion** (`settle`): material settles to its angle of repose; dunes settle at 33°. Mesas skip it, so their
   cap rock stands.
 - **Reading heights** (`terrainHeightAt`) works anywhere. Past the edge, ranges continue for mountain kinds and a plain
-  for the others, so a horizon never ends in a cut.
+  for the others (dunes and hills continue their own shape), so a horizon never ends in a cut.
 
 ## Rendering (`renderTerrain`, `TerrainView`)
 
@@ -73,7 +74,8 @@ Rays march over the heightfield, plus sub-grid ridged detail. Covers follow heig
 - **Other covers:** ash on volcanic cones, sand and sandstone, and water below sea level, with wind waves and a
   Fresnel sky reflection.
 
-Light comes from SKY1's `atmosphere()`: reddened sunlight, sky irradiance by slope, soft terrain shadows marched toward
+Light comes from SKY1's `atmosphere()`: reddened sunlight, sky irradiance by slope, light bounced off the sunlit
+ground (strong over sand and snow), soft terrain shadows marched toward
 the sun, and aerial perspective along each ray. Exposure is metered like SKY1's camera, mostly the fixed sunny-day exposure, so a frame of dark forest stays dark. `TerrainView` renders in a
 worker, cached, with a half-size preview and a working badge (see `foundation-render.ts`).
 

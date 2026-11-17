@@ -30,6 +30,8 @@ export interface Heightfield {
   min: number; max: number;
   /** Sea level when the land meets water (coast), else -Infinity. */
   sea: number;
+  /** The foot's height and the relief (m) the shape was scaled by: land past the edge continues the same shape. */
+  base?: number; relief?: number;
   ms: number;
 }
 
@@ -71,7 +73,7 @@ export function terrainHeightfield(o: TerrainOptions = {}): Heightfield {
   else if (kind !== "mesa" && kind !== "coast") settle(h, n, 0.75, (relief / span) * (n - 1), 20);
   let min = Infinity, max = -Infinity;
   for (let k = 0; k < h.length; k++) { h[k] = base + h[k] * relief; min = Math.min(min, h[k]); max = Math.max(max, h[k]); }
-  return { n, span, h, kind, seed, min, max, sea: kind === "coast" ? 0 : -Infinity, ms: (typeof performance !== "undefined" ? performance.now() : Date.now()) - t0 };
+  return { n, span, h, kind, seed, min, max, base, relief, sea: kind === "coast" ? 0 : -Infinity, ms: (typeof performance !== "undefined" ? performance.now() : Date.now()) - t0 };
 }
 
 /** The landform's shape at (u, v) in the unit square, 0 … 1 (before erosion). */
@@ -114,8 +116,11 @@ function shape(kind: TerrainKind, seed: number, u: number, v: number): number {
     case "dunes": {
       // transverse dunes across a wind from -z to +z: a gentle back (about 70% of the wavelength) and a slip face
       // (the wind blows toward -z, so the slip faces look toward a camera on the south side)
-      const lambda = 0.1, w = fbm(seed, u * 3, v * 3, 3) * 0.6, s = ((v + w * lambda * 2 + 0.15 * fbm(seed + 1, u * 6, 0.5, 2)) / lambda) % 1, ph = 1 - (s < 0 ? s + 1 : s);
-      const saw = ph < 0.86 ? ph / 0.86 : 1 - (ph - 0.86) / 0.14;
+      // (about 150 m crest to crest on a 1.2 km field; the slip face takes a quarter of it, so a 24 m dune's slip face
+      // stands at about the angle of repose, 33°, and its windward back at about 12°)
+      const lambda = 0.125, w = fbm(seed, u * 3, v * 3, 3) * 0.6, s = ((v + w * lambda * 2 + 0.15 * fbm(seed + 1, u * 6, 0.5, 2)) / lambda) % 1, ph = 1 - (s < 0 ? s + 1 : s);
+      // (the crest rounded over a few metres: a sharp corner aliased into teeth along every crest)
+      const saw = (ph < 0.76 ? ph / 0.76 : 1 - (ph - 0.76) / 0.24) - 0.06 * Math.exp(-(((ph - 0.76) / 0.035) ** 2));
       const crest = Math.pow(Math.max(0, saw), 1.3) * (0.7 + 0.3 * fbm(seed + 2, u * 5, v * 2, 3));
       return 0.15 + 0.7 * crest + 0.1 * fbm(seed + 3, u * 2, v * 2, 3);
     }
@@ -210,6 +215,11 @@ export function terrainHeightAt(f: Heightfield, x: number, z: number): number {
   }
   // beyond: distant ranges as tall as the field, blended in over a tenth of the span
   const out = Math.max(-gx, -gz, gx - (n - 1), gz - (n - 1)) / (n * 0.1), w = Math.min(1, Math.max(0, out));
+  // dunes and hills are a shape with little or no erosion: past the edge the same shape continues
+  if ((f.kind === "dunes" || f.kind === "hills") && f.base !== undefined && f.relief !== undefined) {
+    const far = f.base + shape(f.kind, f.seed, x / f.span, z / f.span) * f.relief;
+    return inside ? hIn : hIn * (1 - w) + far * w;
+  }
   // mountain kinds continue as ranges; volcanoes, mesas, dunes and hills stand on a plain (with low swells)
   const ranges = f.kind === "alpine" || f.kind === "u-valley" || f.kind === "v-valley";
   const far = f.kind === "coast" ? f.sea - 40
