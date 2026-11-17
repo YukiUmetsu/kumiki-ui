@@ -747,3 +747,35 @@ verified successful pigment paintings. Do not merge PR #466 until
 actual same-frame 1×/3× browser captures, teacher reference and 960×540
 moving-film face + Fuchun geology/pine/hemp have been reviewed and
 accepted independently.
+
+
+### Exact-head native browser review of source-mass repaint (2026-11-17)
+
+[Chinese Ink Storybook + 96-frame film, run 44026671883](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44026671883)
+completed successfully after typecheck, unit, registry and 58 browser
+checks. Its [native visual evidence, artifact 14303418718](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44026671883/artifacts/14303418718)
+was opened at rendered pixel scale. Technical success is **not**
+ArtCraft approval:
+
+- **Near/far malar and nose:** the extra convex glazes soften their
+  narrow diagonal predecessor, but the actual source face is still
+  highly graphic with several horizontal cheek terraces and overly
+  flat warm-tone skin. At 1× it does not yet equal the individually
+  graduated wet-on-paper pigment of the historical source.
+- **Iris microscope visual failure despite green tests:** the near
+  microscope showed mostly ear/cheek and the far microscope showed
+  nasal/cheek washes rather than visible irises. All pupil assets and
+  clip paths were present but their **facialRest y offsets** were omitted
+  when building the inspection viewboxes. Updated near and far crop
+  cameras use the actual fitted pupil-part displacement. New Chromium
+  test maps the iris's rendered midpoint via native `getScreenCTM()`
+  to the SVG viewport and rejects offscreen microscopes; exact-head
+  rerender and screenshot review still required.
+- **Speech cel:** low-detail OH appears as a conspicuous dark floating
+  oval in very tight cheek/nasal crops. This may reflect a full-figure
+  scale/material issue or unusual clipping; do not claim a final
+  dialogue-acting pass without the original 960×540 film and the
+  teacher painting side by side.
+
+The prior source geometry, all hair/microtexture, expressions and
+native frame clock remain. **ART HOLD continues** independently of CI.
