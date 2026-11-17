@@ -101,8 +101,12 @@ export function scrollReaderFacePortrait(detail=1):
     // A broad straight lower-cheek stripe looked like painted-on
     // hatching rather than the rounded jaw plane. Follow the
     // masseter into the mentolabial shadow with a fine wet taper.
-    p("M119.2 116 C121.8 123.3 126.7 127 132 129.1 C127.7 125.5 122.6 122.7 119.2 116 Z",
-      "$skinshade","none",0,.095),
+    // The lower masseter plane curves below the cheek bulge and rolls
+    // toward the labiomental hollow; it is neither a straight stripe
+    // through the mouth nor an age-inappropriate wrinkle. Keep the
+    // independent wet-paper plane and separate dry contour strokes.
+    p("M119.2 116 C121.4 120.5 124.8 123.5 128.7 124.8 C131.3 126.1 132.6 127.6 132 129.1 C129.5 127.9 126.8 126.6 124.4 124.9 C122 122.6 120.4 119.6 119.2 116 Z",
+      "$skinshade","none",0,.078),
     // No additional heavy jaw-tracing strokes: the solid face outline
     // already describes the young chin. Extra lines aged this reader.
     // Subtle, anatomically placed nose bridge and nostril. The earlier
