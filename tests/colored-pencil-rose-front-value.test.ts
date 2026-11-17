@@ -111,8 +111,12 @@ describe("CP-F1 frontal rose artist-local dry optical value planes",()=>{
     expect(html).toContain('data-km-pencil-interior-details=""');
     expect(html).toContain('data-km-pencil-trace="rv-right-fold-cool"');
     expect(html).toContain('clip-path="url(');
-    expect(html.indexOf('data-km-pencil-interior-details=""'))
-      .toBeLessThan(html.indexOf('data-km-graphite=""'));
+    const newLocal=html.indexOf('data-km-pencil-interior-details=""');
+    expect(newLocal).toBeGreaterThan(0);
+    // The first graphite in the whole SVG belongs to the stem. Verify
+    // this petal's NEXT graphite layer follows its contained optical layer.
+    expect(html.indexOf('data-km-graphite=""',newLocal))
+      .toBeGreaterThan(newLocal);
     const pre=renderToStaticMarkup(createElement(PencilDrawing,{drawing:build("landscape"),frame:335}));
     expect(pre).not.toContain('data-km-pencil-interior-details=""');
     expect(pre).not.toContain('rv-right-fold-cool');
