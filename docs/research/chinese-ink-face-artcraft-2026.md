@@ -592,3 +592,44 @@ Technique verification references:
 - [China Daily 2024, account of Zeng's multi-stage portrait practice](https://en.chinaculture.org/a/202406/13/WS666a2500a31082fc043cc2ab_2.html):
   lightly outlined structure with ultra-thin colored ink washes
   that leave the underlying shaded face perceptible.
+
+
+## ANAT1/EXPR1 native Storybook expression atlas (2026-11-16)
+
+A source-preserving five-pose inspection row now lives in the existing
+**Shanshui Reader Face Studio → EXPR1 expression atelier** Storybook entry.
+Neutral, smile, sorrow, anger and surprise are rendered from the **same**
+original three-quarter reader paths at the **same** fitted head camera,
+ink detail and selectable intensity. Clicking a card selects that emotion in
+the full-size timeline study without changing its source identity. Each card
+prints the *actual* EXPR1 brow, lid, cheek and lip feature magnitudes, rather
+than inventing a text description of a finished visual result.
+
+The optional **ANAT1 measured facial anchors** overlay places named
+endocanthia, sellion, pronasale, zygions, stomion, menton and other original
+points in the *production head's fitted transform*, not the raw asset
+coordinates. This is an inspection guide only. It is off by default and
+does not alter, mirror, simplify or export into the authored portrait.
+Original head outline, fine brow fibres, pressure variations, hair,
+ear, separate pupil paths, open/soft aperture masks, expression glazes,
+five speech visemes and motion keyframes remain source-backed.
+
+**Authentic visual benchmarks** (technique references, not source art to
+copy or redistribute):
+
+- [Zeng Jing, *Portrait of Pan Qintai* (1621), UMMA](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/):
+  near-transparent layered wash shapes orbital depth, forehead and nose;
+  individualized drawing depends on relationships between face parts.
+- [Ruan Zude, *Portrait of Yizhai* (1561 or 1621), Met 59.49.1](https://www.metmuseum.org/art/collection/search/36081):
+  high cheekbone, asymmetric lip corners and quiet gaze read as a coherent
+  expression, rather than independently moving stickers.
+
+**Chromium contract:** five uniquely identified original-source SVG panels;
+head/ear/hair present and equal where invariant; emotion-dependent brows;
+source-specific near/far pupil clipping; button-to-editor interaction;
+more than twenty independently named ANAT1 landmarks with reversible
+overlay, with exported screenshots for an independent visual review.
+The atlas is a **diagnostic**, not evidence of historical facial likeness.
+Actual 1×/3× teacher-photo and 960×540 frame/film comparisons, malar/nose
+pigment quality, and the independent Fuchun rock/pine/hemp art holds still
+block merging PR #466.
