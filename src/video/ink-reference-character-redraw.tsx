@@ -22,7 +22,8 @@ import {renderMeshFrame,projectPoint,smoothPath} from "../../registry/anatomy/an
 
 export const INK_REFERENCE_CHARACTERS=["scholar","elder"] as const;
 export const INK_REFERENCE_EXPRESSIONS=[
-  "neutral","smile","sad","angry","surprise","fear","disgust","contempt",
+  "neutral","smile","polite-smile","sad","surprise","fear","angry","disgust",
+  "contempt","laugh","cry","shy","pain","sleepy","determined","mie",
 ] as const;
 export type InkReferenceCharacter=typeof INK_REFERENCE_CHARACTERS[number];
 export type InkReferenceExpression=typeof INK_REFERENCE_EXPRESSIONS[number];
