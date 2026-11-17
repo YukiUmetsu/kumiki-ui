@@ -32,7 +32,7 @@ The earlier center study had six named surfaces and a separate scroll reverse, b
 | `rose-whorl-left` | Narrow lifted inner wall | Tall, oblique lamina with a distinct upper tip and a lower return that turns toward the centre. |
 | `rose-whorl-right` | Broader tucked shoulder | Wider right-facing petal with a different crest height and an interrupted inner fold. |
 | `heart` | Foreground convex lamina | Unequal shoulders and a flattened, offset lower return. The old long crease is re-authored into two short local contacts. |
-| `rose-whorl-scroll` | Foremost curled petal | A compact, asymmetrical hooked petal; it is no longer a complete engraved C-loop. |
+| `rose-whorl-scroll` | Foremost curled petal | A compact, off-axis convex lamina with a distinct turned reverse; no closed inner spiral. |
 | `rose-center-scroll-underturn` | Physical abaxial reverse | Separate opaque sidewall shares the exact first cubic hinge with the front scroll and remains visible outside it. |
 
 The four legacy whorl organs keep their four existing timed pencil contacts, but those contacts are re-authored as short source-local marks aligned with their new silhouettes. Four additional dry-pencil contacts are appended to each of the six central surfaces. The two old base strokes on `inner-fold` and `heart` are replaced by two shorter source-local contacts each rather than being drawn over the new petal topology.
