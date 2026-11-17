@@ -144,19 +144,21 @@ export function crayonF1RefineNearTarsusV45(
     if(seen.has(el.id))throw new RangeError("Duplicate CC0 face ID "+el.id);
     seen.add(el.id);
     if(el.id==="lash-contact-near"){
+      // First narrow the tagged CrayonElement union. Accessing .d on an
+      // unknown scene element before confirming kind=contour is unsafe.
+      if(hasLashes||el.kind!=="contour"||el.parentId!=="face-outline"||
+         el.clipToParent!==true||el.waxContact!=="dry-wax")
+        throw new RangeError("Missing native source-rooted upper lash contour");
       const sourceCount=(el.d.match(/M/g)??[]).length;
       const newMicroContacts=extraRootedLashes();
-      // Raw base eye has 10 authored sparse strokes; the standard source-eye\n      // override has 16 original wax lashes. Some Storybook controls use
-      // the photographed 33-lash rooted-flow option. All three are
-      // existing library controls; never silently force one.
-      // Appending 23 gives counts 33, 39 or 56. A 33-count
-      // *already applied V45* is distinguished by its exact terminal
-      // micro-contact geometry to prevent destructive double re-ink.
-      if(hasLashes||el.kind!=="contour"||el.parentId!=="face-outline"||
-         el.clipToParent!==true||el.waxContact!=="dry-wax"||
-         (sourceCount!==10&&sourceCount!==16&&sourceCount!==33)||
+      // Raw base eye has 10 source strokes; the normal source-eye
+      // override has 16, while rooted-flow has 33. Preserve every
+      // original stroke in whichever eye-contact mode was selected.
+      // A second V45 pass on a ten-lash baseline has 33 strokes, but
+      // is distinguished from real rooted-flow by its terminal segment.
+      if((sourceCount!==10&&sourceCount!==16&&sourceCount!==33)||
          el.d.endsWith(" "+newMicroContacts))
-        throw new RangeError("Missing original raw/source-eye/rooted upper lashes or V45 already applied");
+        throw new RangeError("Missing original 10/16/33 lashes or V45 already applied");
       hasLashes=true;
       return {...el,d:el.d+" "+newMicroContacts} satisfies Contour;
     }
