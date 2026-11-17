@@ -30,7 +30,7 @@ export function BugFigure({ species, pose, size = 220, label, style, blurWings =
       case "head": case "thorax": case "abdomen": case "body": return `url(#${uid}-chitin)`;
       case "elytra": return `url(#${uid}-elytra)`;
       case "shell": return `url(#${uid}-shell)`;
-      case "eye": return s.wings === "net" ? "#5b2a1f" : "#121212";
+      case "eye": return `url(#${uid}-facets)`;
       case "wing": return p.colour ?? "rgba(230,230,235,0.4)";
       case "mandible": case "horn": return `url(#${uid}-chitin)`;
       case "glow": return p.colour ?? "#c8ff5a";
@@ -46,12 +46,21 @@ export function BugFigure({ species, pose, size = 220, label, style, blurWings =
         <filter id={`${uid}-glow`} x="-2" y="-2" width="5" height="5"><feGaussianBlur stdDeviation={s.length.typical * 0.12} /></filter>
         <filter id={`${uid}-blur`}><feGaussianBlur stdDeviation={s.length.typical * 0.06} /></filter>
         <filter id={`${uid}-shadow`} x="-0.3" y="-0.3" width="1.6" height="1.6"><feGaussianBlur stdDeviation={s.length.typical * 0.035} /></filter>
+        {/* compound eyes: a fine faceted texture and a glint */}
+        <pattern id={`${uid}-facets`} width={s.length.typical * 0.018} height={s.length.typical * 0.0156} patternUnits="userSpaceOnUse"><rect width="100%" height="100%" fill={s.wings === "net" ? "#5b2a1f" : "#141414"} /><circle cx={s.length.typical * 0.009} cy={s.length.typical * 0.0078} r={s.length.typical * 0.0062} fill={s.wings === "net" ? "#7a3a2a" : "#2a2a2a"} /></pattern>
+        <radialGradient id={`${uid}-eyeglint`} cx="0.32" cy="0.3" r="0.6"><stop offset="0" stopColor="#ffffff" stopOpacity="0.75" /><stop offset="0.25" stopColor="#ffffff" stopOpacity="0" /></radialGradient>
       </defs>
       {/* a soft contact shadow under the body */}
       <ellipse cx={s.length.typical * 0.04} cy={s.length.typical * 0.06} rx={s.length.typical * s.shape.width * 0.6} ry={s.length.typical * 0.5} fill="rgba(0,0,0,0.25)" filter={`url(#${uid}-shadow)`} />
       {dr.parts.map((p, i) => {
         if (p.role === "glow") return <g key={i} opacity={p.opacity ?? 1}><path d={smoothD(p)} fill={fill(p)} filter={`url(#${uid}-glow)`} opacity={0.9} /><path d={smoothD(p)} fill="#f4ffd0" /></g>;
         if (!p.closed) return <path key={i} d={d(p)} fill="none" stroke={p.colour ?? (p.role === "leg" || p.role === "antenna" ? body : "#2a2420")} strokeWidth={p.width ?? 0.3} strokeLinecap="round" strokeLinejoin="round" opacity={p.opacity ?? 1} />;
+        if (p.role === "eye") return <g key={i}><path d={smoothD(p)} fill={fill(p)} stroke="rgba(0,0,0,0.6)" strokeWidth={s.length.typical * 0.006} /><path d={smoothD(p)} fill={`url(#${uid}-eyeglint)`} /></g>;
+        if (p.role === "thorax" && s.id === "honeybee") {
+          // fuzz: short pale hairs standing round the thorax
+          const cx = p.pts.reduce((a, q) => a + q[0], 0) / p.pts.length, cy = p.pts.reduce((a, q) => a + q[1], 0) / p.pts.length;
+          return <g key={i}><path d={smoothD(p)} fill={fill(p)} stroke="rgba(0,0,0,0.5)" strokeWidth={s.length.typical * 0.006} />{p.pts.map((q, k) => { const dx = q[0] - cx, dy = q[1] - cy, l = Math.hypot(dx, dy) || 1, hl = s.length.typical * 0.05; return <path key={k} d={`M${(q[0] - (dx / l) * hl * 0.5).toFixed(2)} ${(q[1] - (dy / l) * hl * 0.5).toFixed(2)}L${(q[0] + (dx / l) * hl).toFixed(2)} ${(q[1] + (dy / l) * hl).toFixed(2)}`} stroke="#d8b47a" strokeWidth={s.length.typical * 0.006} opacity={0.75} />; })}</g>;
+        }
         const isWing = p.role === "wing";
         return <path key={i} d={smoothD(p)} fill={fill(p)} opacity={p.opacity ?? 1} filter={isWing && blurWings ? `url(#${uid}-blur)` : undefined}
           stroke={isWing ? "rgba(60,45,30,0.6)" : p.role === "spot" || p.role === "band" ? "none" : "rgba(0,0,0,0.55)"} strokeWidth={s.length.typical * 0.006} />;
