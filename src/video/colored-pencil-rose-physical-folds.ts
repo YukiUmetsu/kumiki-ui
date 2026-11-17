@@ -113,7 +113,7 @@ function stroke(id:string,path:string,color:string,width:number,
  * not a visual embellishment attached to the original flat petal.
  */
 export function physicalFoldUndersideDetails(fold:RosePhysicalFold):PencilTrace[]{
-  const key="rose-fold-"+fold.id+"-";
+  const key="rf-"+fold.id+"-";
   return [
     stroke(key+"hinge",fold.hinge,"#5C2544",.88,169,52,.64),
     stroke(key+"dry-cuticle",fold.dryLight,"#FFE4D3",.72,235,54,.72),
