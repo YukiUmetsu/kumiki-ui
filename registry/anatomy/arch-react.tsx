@@ -18,10 +18,24 @@ function palette(e: Elevation, ids: { glass: string; roof: string; wall: string 
   const t = e.type, brick = t.id === "georgian-townhouse";
   return {
     wall: brick ? `url(#${ids.wall}-brick)` : `url(#${ids.wall})`, shade: "rgba(20,16,12,0.45)", roof: `url(#${ids.roof})`, "roof-line": shade(t.roofColour, -0.35), window: shade(t.trim, -0.2), glass: `url(#${ids.glass})`,
-    frame: t.id === "georgian-townhouse" ? "#f1ece2" : shade(t.trim, 0.05), door: t.id === "georgian-townhouse" ? "#22303a" : `url(#${ids.wall}-grain)`, timber: `url(#${ids.wall}-grain)`, lattice: shade(t.trim, -0.35),
-    column: t.id === "greek-temple" ? "#e9e3d6" : "#9b3b28", ornament: "#c9a23a", step: "#d9d2c3", base: t.id === "castle-keep" ? "#9a958b" : "#8f8a80", bracket: shade(t.trim, 0.1), plaster: shade(t.wall, 0.45), beam: t.id === "greek-temple" ? "#ddd6c7" : shade(t.trim, -0.05), cloth: "#2c3a5a",
+    frame: brick ? "#f1ece2" : shade(t.trim, 0.05), door: brick ? "#22303a" : t.id === "greek-temple" ? "#4d3b29" : `url(#${ids.wall}-grain)`, timber: `url(#${ids.wall}-grain)`, lattice: shade(t.trim, -0.35),
+    column: `url(#${ids.wall}-col)`, ornament: t.id === "machiya" ? "#b39a68" : "#c9a23a", step: "#d9d2c3",
+    // the keep's base shows only in the joints between its stones
+    base: t.id === "castle-keep" ? "#4f483e" : "#8f8a80", bracket: shade(t.trim, 0.1), plaster: brick ? "#e7e1d3" : shade(t.wall, 0.45), beam: t.id === "greek-temple" ? "#ddd6c7" : shade(t.trim, -0.05), cloth: "#2c3a5a",
+    cast: "rgba(30,26,40,0.3)", "tile-end": shade(t.roofColour, -0.18), stone: STONE, "brick-arch": "#a9563b", iron: "#1c1e21", straw: `url(#${ids.roof}-straw)`,
   };
 }
+
+/** A column's colour: marble on a Greek temple, vermilion lacquer elsewhere. */
+const columnColour = (t: Elevation["type"]) => t.id === "greek-temple" ? "#e9e3d6" : "#9b3b28";
+
+/** Ishigaki granite, warm grey-brown; each stone shaded by its own tone. */
+const STONE = "#a39479";
+const fillOf = (p: ElevationPart, pal: Record<PartRole, string>) => p.role === "stone" ? shade(STONE, (p.tone ?? 0) * 0.16) : pal[p.role];
+const strokeOf = (p: ElevationPart) => p.role === "glass" || p.role === "shade" || p.role === "cast" ? "none" : p.role === "stone" ? "rgba(40,32,24,0.55)" : "rgba(30,24,18,0.35)";
+
+/** Japanese fired-clay tiles (kawara): every Japanese roof but thatch. */
+const kawara = (t: Elevation["type"]) => t.region === "Japan" && t.roof !== "thatch-hip";
 
 const pathOf = (p: ElevationPart) => `M${p.pts.map(q => `${q[0].toFixed(3)} ${(-q[1]).toFixed(3)}`).join("L")}${p.closed ? "Z" : ""}`;
 
@@ -58,9 +72,30 @@ function ElevationSvg({ items, dims, person, height, label, style }: { items: { 
           <g key={k} transform={`translate(${x} 0)`}>
             <defs>
               <linearGradient id={ids.glass} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5d7183" /><stop offset="0.45" stopColor="#24313d" /><stop offset="0.55" stopColor="#3a4b5a" /><stop offset="1" stopColor="#161d24" /></linearGradient>
-              <pattern id={ids.roof} width={t.roof === "thatch-hip" ? 0.6 : 0.3} height={t.roof === "thatch-hip" ? 0.25 : 0.35} patternUnits="userSpaceOnUse">
+              <pattern id={ids.roof} width={t.roof === "thatch-hip" ? 0.6 : 0.3} height={t.roof === "thatch-hip" ? 0.25 : kawara(t) ? 0.27 : 0.35} patternUnits="userSpaceOnUse">
                 <rect width="1" height="1" fill={t.roofColour} />
-                {t.roof === "thatch-hip" ? <path d="M0 0.2 L0.6 0.15" stroke={shade(t.roofColour, -0.25)} strokeWidth={0.04} /> : <path d="M0.15 0 V0.35 M0 0.33 H0.3" stroke={shade(t.roofColour, -0.3)} strokeWidth={0.035} />}
+                {t.roof === "thatch-hip" ? <>
+                    {/* straw laid down the slope in courses */}
+                    <path d="M0.03 0 L0.036 0.25 M0.09 0 L0.084 0.25 M0.14 0 L0.146 0.25 M0.2 0 L0.195 0.25 M0.26 0 L0.266 0.25 M0.33 0 L0.324 0.25 M0.39 0 L0.396 0.25 M0.45 0 L0.444 0.25 M0.52 0 L0.526 0.25 M0.57 0 L0.565 0.25" stroke={shade(t.roofColour, -0.22)} strokeWidth={0.014} />
+                    <path d="M0.06 0 L0.062 0.25 M0.17 0 L0.168 0.25 M0.3 0 L0.302 0.25 M0.42 0 L0.418 0.25 M0.55 0 L0.552 0.25" stroke={shade(t.roofColour, 0.18)} strokeWidth={0.01} />
+                  </>
+                  : kawara(t) ? <>
+                    {/* S-section tiles in rows: a lit crest, a dark channel, the lap of each course a shallow wave */}
+                    <rect x={0.03} width={0.09} height={0.27} fill={shade(t.roofColour, 0.2)} />
+                    <rect x={0.18} width={0.07} height={0.27} fill={shade(t.roofColour, -0.28)} />
+                    <path d="M0 0.255 Q0.075 0.215 0.15 0.255 Q0.225 0.285 0.3 0.255" stroke={shade(t.roofColour, -0.4)} strokeWidth={0.022} fill="none" />
+                    {/* a keep's round-tile joints plastered white (Himeji) */}
+                    {t.id === "castle-keep" ? <rect x={0.13} width={0.03} height={0.27} fill="#ecebe6" opacity={0.9} /> : null}
+                  </>
+                  : <path d="M0.15 0 V0.35 M0 0.33 H0.3" stroke={shade(t.roofColour, -0.3)} strokeWidth={0.035} />}
+              </pattern>
+              {/* a column lit from the left: its roundness */}
+              <linearGradient id={`${ids.wall}-col`} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor={shade(columnColour(t), -0.06)} /><stop offset="0.32" stopColor={shade(columnColour(t), 0.12)} /><stop offset="0.75" stopColor={shade(columnColour(t), -0.1)} /><stop offset="1" stopColor={shade(columnColour(t), -0.32)} /></linearGradient>
+              {/* the cut edge of thatch at the eaves: straw ends, golden, in layers */}
+              <pattern id={`${ids.roof}-straw`} width={0.12} height={0.27} patternUnits="userSpaceOnUse">
+                <rect width="0.12" height="0.27" fill={shade(t.roofColour, 0.16)} />
+                <path d="M0.02 0 V0.27 M0.055 0 V0.27 M0.09 0 V0.27" stroke={shade(t.roofColour, -0.12)} strokeWidth={0.012} />
+                <path d="M0 0.26 H0.12" stroke={shade(t.roofColour, -0.28)} strokeWidth={0.02} />
               </pattern>
               <linearGradient id={ids.wall} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={shade(t.wall, -0.08)} /><stop offset="1" stopColor={shade(t.wall, 0.06)} /></linearGradient>
               {/* brick at its real size: 215 × 65 mm with 10 mm joints (courses 75 mm), Flemish bond (stretcher, header) */}
@@ -77,7 +112,7 @@ function ElevationSvg({ items, dims, person, height, label, style }: { items: { 
             </defs>
             <g filter={`url(#${uid}-tex)`}>
               {e.parts.map((p, i) => p.closed
-                ? <path key={i} d={pathOf(p)} fill={pal[p.role]} stroke={p.role === "glass" || p.role === "shade" ? "none" : "rgba(30,24,18,0.35)"} strokeWidth={0.02} />
+                ? <path key={i} d={pathOf(p)} fill={fillOf(p, pal)} stroke={strokeOf(p)} strokeWidth={p.role === "stone" ? 0.03 : 0.02} />
                 : <path key={i} d={pathOf(p)} fill="none" stroke={pal[p.role]} strokeWidth={p.width ?? 0.06} strokeLinecap="round" strokeLinejoin="round" />)}
             </g>
             {dims ? e.dims.map((d, i) => (
