@@ -47,7 +47,7 @@ test("native rose fold contacts remain on their own source petal",async({page})=
   await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
   await page.getByRole("checkbox",{name:"Foundation rose rolled lip study"}).check();
-  await page.getByRole("button",{name:/6\\. Burnish and visual audit/}).click();
+  await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
   const evidence=await page.locator("svg[data-km-colored-pencil]").evaluate(svg=>{
     const ids=[
       "outer-left","outer-right","back-cup","petal-front-left",
@@ -58,7 +58,7 @@ test("native rose fold contacts remain on their own source petal",async({page})=
     for(const id of ids){
       const region=svg.querySelector('[data-km-pencil-region="'+id+'"]');
       const details=region?.querySelector("[data-km-pencil-details]");
-      const clip=details?.getAttribute("clip-path")?.match(/^url\\(#([^)]*)\\)$/)?.[1];
+      const clip=details?.getAttribute("clip-path")?.match(/^url\(#([^)]*)\)$/)?.[1];
       const shape=clip?svg.querySelector('clipPath[id="'+clip+'"] path') as SVGPathElement|null:null;
       const traces=details?.querySelectorAll('[data-km-pencil-trace^="rose-lip-"]');
       if(!shape||!traces||traces.length!==3){
