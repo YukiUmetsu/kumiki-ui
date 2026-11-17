@@ -395,6 +395,54 @@ function ReaderFaceStudio(){
           </figure>)}
         </div>
       </section>
+      <section data-testid="reader-ink-malar-nose-microscope"
+        style={{gridColumn:"1 / -1"}}>
+        <h2 style={{font:"500 18px Georgia,serif"}}>
+          ArtCraft · native cheek and nasal ink-wash microscopy
+        </h2>
+        <p style={{fontSize:12,color:"#715d48",maxWidth:940,lineHeight:1.55}}>
+          Three real source-paint windows at the SAME face orientation and
+          pigment detail as the film. Inspect the near malar convexity,
+          foreshortened far orbital cheek, and continuous sellion-to-alar
+          nasal bridge. Broad feathered tone must read as facial volume,
+          not as duplicate parallel stripes or a hard beak. No tracing
+          from the historical portrait and no new mask assets.
+        </p>
+        <div style={{display:"grid",gap:12,
+          gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))"}}>
+          {([
+            {id:"malar-near",title:"Near malar · convex wash",
+              bounds:[114,101,143,129]},
+            {id:"malar-far",title:"Far malar · receding wash",
+              bounds:[145,98,169,131]},
+            {id:"nose-bridge",title:"Nasal ridge · alar continuity",
+              bounds:[141,95,160,130]},
+          ] as const).map(({id,title,bounds})=>
+            <figure key={id} data-km-ink-wash-micro={id}
+              style={{margin:0,background:"#f7eedc",padding:10,
+                border:"1px solid #cdb899",minWidth:0}}>
+              <svg data-km-ink-wash-source={id} role="img"
+                aria-label={"Live original reader "+title}
+                viewBox={fittedFaceWindow(bounds,2,2)}
+                style={{display:"block",width:"100%",height:286,
+                  background:"#f7eedc"}}>
+                <g transform={pose(fit.headRest,139,124)}>
+                  <g data-km-ink-wash-native-face="">{shapes("face")}</g>
+                  {facePart("brows","brow",[140,94])}
+                  {facePart("eyes","eyes-"+eyes,[140,102])}
+                  {eyes!=="closed"&&<>
+                    {facePart("pupil-left","pupil-left",[128,102])}
+                    {facePart("pupil-right","pupil-right",[156,102])}
+                  </>}
+                  {facePart("mouth","mouth-"+mouth,[142,124])}
+                </g>
+              </svg>
+              <figcaption style={{fontSize:12,color:"#715d48",marginTop:8}}>
+                {title} · {glazes[id].length} independent ink passes
+              </figcaption>
+            </figure>)}
+        </div>
+      </section>
       <section>
         <h2 style={{font:"500 18px Georgia,serif"}}>
           ArtCraft · live auricular Y-fold and recessed concha
