@@ -88,7 +88,7 @@ export const MAKEUP_EVIDENCE: readonly MakeupEvidence[] = [
     appliedAs: "The reason the East Asian looks enlarge the eyes and keep the nose and lips small.", source: "Glocker et al. 2009, Ethology 115:257", url: "https://doi.org/10.1111/j.1439-0310.2008.01603.x" },
   { id: "lash-maps", grade: "convention", finding: "Manga (spiky) lash maps set 5-7 spikes on each eye, 10-14 mm long, over a shorter wispy base of 6-10 mm.",
     appliedAs: "The spiky lash style (spikes at 14 mm at most).", source: "Lash-mapping guides (Stacy Lash, Swaniya Lashes)", url: "https://stacylash.com/blogs/lash-news/manga-lash-spikes-placement-guide" },
-  { id: "trend-cn", grade: "convention", finding: "Chinese social-video glam (popularly \"Douyin makeup\"): an aegyo-sal highlight with a shadow under it, an inner-corner liner, drawn lower lashes, a puppy wing, blush under the eyes and across the nose, a narrow nose contour, a porcelain base and gradient lips.",
+  { id: "trend-cn", grade: "convention", finding: "Chinese social-video glam: an aegyo-sal highlight with a shadow under it, an inner-corner liner, drawn lower lashes, a puppy wing, blush under the eyes and across the nose, a narrow nose contour, a porcelain base and gradient lips.",
     appliedAs: "The c-glam look.", source: "makeup.com, Vogue Singapore, Refinery29, Daily Vanity (beauty media)", url: "https://www.makeup.com/makeup-tutorials/makeup-tutorials/douyin-makeup" },
   { id: "trend-kr", grade: "convention", finding: "Korean idol and ulzzang makeup: straight brows, a downward puppy liner, an aegyo-sal highlight, glowing skin and a gradient lip that is darker at the inner centre.",
     appliedAs: "The k-idol look.", source: "L'Oréal Paris, Time Out, Pinkvilla (beauty media)", url: "https://www.lorealparisusa.com/beauty-magazine/makeup/makeup-looks/ulzzang-makeup-for-beginners" },
@@ -245,11 +245,11 @@ export const MAKEUP_LOOKS: readonly Look[] = [
     lashes: { length: 1, thickness: 1.1, darkness: 1 }, adapt: false, evidence: [] },
   // ---- East Asian transformation looks (research: docs/research/makeup-east-asian-trends-2026-11-17.md) ----------------
   // The aegyo-sal goes on before the liners: its highlight sits under the lash line, and the liner on it.
-  { id: "c-glam", label: "Chinese social-video glam", summary: "Porcelain skin, a glittering aegyo-sal with a shadow under it, a lengthened inner corner, a soft puppy wing, spiky lashes and drawn lower lashes, big dark lenses, blush under the eyes and across the nose, a narrow nose and a coral-red gradient lip (popularly \"Douyin makeup\").",
+  { id: "c-glam", label: "Chinese social-video glam", summary: "Porcelain skin, a glittering aegyo-sal with a shadow under it, a lengthened inner corner, a soft puppy wing, spiky lashes and drawn lower lashes, big dark lenses, blush under the eyes and across the nose, a narrow nose and a coral-red gradient lip.",
     layers: [{ zone: "foundation", colour: { kind: "skin", dL: 2, da: -0.5, db: -1.5 }, coverage: 0.6, finish: "satin" }, { zone: "under-eye", colour: { kind: "palette", swatch: "concealer" }, coverage: 0.35 },
       { zone: "lid", colour: { kind: "eye", tone: "peach-gold" }, coverage: 0.65, finish: "shimmer" }, { zone: "crease", colour: { kind: "eye", tone: "brown" }, coverage: 0.5 },
       { zone: "aegyo-sal", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.45, finish: "glitter" }, { zone: "aegyo-sal-shadow", colour: { kind: "eye", tone: "taupe" }, coverage: 0.35 },
-      { zone: "lower-lash", colour: { kind: "eye", tone: "brown" }, coverage: 0.6, adjust: { radius: 1.5, soft: 1.5 } }, { zone: "liner-lower", colour: { kind: "liner", tone: "brown" }, coverage: 0.8, adjust: { scale: 0.45 } },
+      { zone: "lower-lash", colour: { kind: "eye", tone: "brown" }, coverage: 0.6, adjust: { radius: 1.5, soft: 1.5 } }, { zone: "liner-lower", colour: { kind: "liner", tone: "brown" }, coverage: 0.8, adjust: { span: 0.5 } },
       { zone: "liner", colour: { kind: "liner", tone: "black" }, coverage: 0.95, adjust: { radius: 1.15 } }, { zone: "puppy-wing", colour: { kind: "liner", tone: "black" }, coverage: 0.95, adjust: { rotate: -6, radius: 1.3 } },
       { zone: "liner-inner", colour: { kind: "liner", tone: "black" }, coverage: 0.95 },
       { zone: "blush-igari", colour: { kind: "blush" }, coverage: 0.75 }, { zone: "blush-sunkissed", colour: { kind: "blush" }, coverage: 0.35 },

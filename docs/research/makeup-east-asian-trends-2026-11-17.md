@@ -125,7 +125,7 @@ products and from Takehara & Tanijiri 2015, not from these photographs.
 | Spiky lashes | 5-7 spikes for each eye, 10-14 mm (14 mm at most), over a base at 0.75 of the natural length | convention |
 | Doll lashes | 1.3 times the clumps, 1.35 times the length (14 mm at most), more flare, heavy lower lashes | convention, estimated |
 | Drawn lower lashes | 4-7 thin strokes, 2-4 mm down from the lower lash line, on its outer two thirds | convention |
-| Tape | Crease 4.5 + 2·t mm on single lids. An in-fold lid stays in-fold. Hood × (1 − t). Opening +1.2·t mm on single and in-fold lids, +0.5·t mm on others. | reported (range), estimated (amounts) |
+| Tape | Crease 4.5 + 2·t mm on single lids. An in-fold lid stays in-fold. Hood × (1 − t). Opening +1.2·t mm on single lids, +0.5·t mm on others (in-fold too). | reported (range), estimated (amounts) |
 | Straight brows | 0-1: the brow's upper and lower edges move toward straight lines from head to tail | convention |
 
 ## References studied (local only, not shipped)
@@ -153,7 +153,7 @@ All are openly licensed. They were viewed in the scratchpad and were not committ
 | The gyaru black lower liner did not show: the lower-lash zone is a smudge under the outer half only, and the lower lashes hid it. | A new `liner-lower` zone: a fine line along the whole lower lash line, from the outer corner. The gyaru eye now has liner all round it, joined to the wing. |
 | The gyaru cheekbone highlight showed as pale patches at the sides of the face. | Coverage 0.35 with a dewy finish instead of 0.6 shimmer. |
 | The Korean idol and ryousangata blush sat at the outer cheeks; the references show it under the eyes. | More `blush-igari` (under the eyes) and less of the apple or lifted placements. |
-| The Chinese glam eye had no line under its outer half. | A brown `liner-lower` on the outer half (scale 0.45). |
+| The Chinese glam eye had no line under its outer half. | A brown `liner-lower` on the outer half (span 0.5). |
 | On single lids (the story's first face) four looks showed no upper lashes. The renderer pressed every lash under the fold, so from the front each pointed at the camera. | Styled (false) lashes rise past a single lid's fold. Bare lashes stay pressed down. The jirai-kei look wears wispy false lashes. |
 
 ## Limits

@@ -56,6 +56,8 @@ export interface ZoneAdjust {
   /** Move, eye widths [x (outward on each side is negative x on the right), y up]. */
   shift?: [number, number];
   rotate?: number; scale?: number; radius?: number; soft?: number; grow?: number;
+  /** Strokes: keep the first part, 0-1 of the stroke's length from its first point (a lower liner on the outer half). */
+  span?: number;
 }
 export interface ZonePart { kind: "stroke" | "polygon"; pts: Vec3[]; r: number[]; soft: number; grow: number; lo: Vec3; hi: Vec3 }
 
@@ -98,19 +100,33 @@ function skinDepth(V: readonly Vec3[], x: number, y: number): number | null {
   return best;
 }
 
+/** The first `span` (0-1) of a stroke's length: its points up to the cut, then the cut point with its radius. */
+function cutStroke(P: Vec3[], R: number[], span: number): [Vec3[], number[]] {
+  const seg = P.slice(1).map((b, i) => Math.hypot(b[0] - P[i][0], b[1] - P[i][1], b[2] - P[i][2]));
+  let left = span * seg.reduce((a, b) => a + b, 0);
+  const outP: Vec3[] = [P[0]], outR = [R[0]];
+  for (let i = 0; i < seg.length; i++) {
+    if (left >= seg[i]) { outP.push(P[i + 1]); outR.push(R[i + 1]); left -= seg[i]; continue; }
+    const t = seg[i] > 0 ? left / seg[i] : 0, a = P[i], b = P[i + 1];
+    outP.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]); outR.push(R[i] + (R[i + 1] - R[i]) * t);
+    break;
+  }
+  return [outP, outR];
+}
+
 /** A zone's parts on a face: one per side, or one for a centre zone. */
 export function resolveZone(id: string, V: readonly Vec3[], adjust: ZoneAdjust = {}): ZonePart[] {
   const z = findZone(id), ew = eyeWidth(V), sh = z.shape;
   const parts: ZonePart[] = [];
   for (const mirrored of z.side === "both" ? [false, true] : [false]) {
-    let pts = sh.points.map(p => resolvePoint(p, V, ew, mirrored));
+    let pts = sh.points.map(p => resolvePoint(p, V, ew, mirrored)), r = sh.points.map(p => (p.r ?? 0) * ew * (adjust.radius ?? 1));
+    if (sh.kind === "stroke" && adjust.span !== undefined && adjust.span < 1) [pts, r] = cutStroke(pts, r, Math.max(0, adjust.span));
     const sx = mirrored ? -1 : 1;
     if (adjust.scale !== undefined || adjust.rotate !== undefined) {
       const piv = pts[0], k = adjust.scale ?? 1, a = ((adjust.rotate ?? 0) * Math.PI / 180) * sx, c = Math.cos(a), s = Math.sin(a);
       pts = pts.map(p => { const dx = p[0] - piv[0], dy = p[1] - piv[1], dz = p[2] - piv[2]; return [piv[0] + (dx * c - dy * s) * k, piv[1] + (dx * s + dy * c) * k, piv[2] + dz * k] as Vec3; });
     }
     if (adjust.shift) pts = pts.map(p => [p[0] + adjust.shift![0] * sx * ew, p[1] + adjust.shift![1] * ew, p[2]] as Vec3);
-    const r = sh.points.map(p => (p.r ?? 0) * ew * (adjust.radius ?? 1));
     const soft = (sh.soft ?? 0.3) * ew * (adjust.soft ?? 1), grow = ((sh.grow ?? 0) + (adjust.grow ?? 0)) * ew;
     const m = Math.max(...r, 0) + soft + Math.max(0, grow);
     const lo: Vec3 = [Math.min(...pts.map(p => p[0])) - m, Math.min(...pts.map(p => p[1])) - m, Math.min(...pts.map(p => p[2])) - m];

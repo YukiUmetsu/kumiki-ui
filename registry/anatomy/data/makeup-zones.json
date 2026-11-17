@@ -177,7 +177,7 @@
       "note": "A fine point drawn from the inner corner toward the nose and down: the eye reads longer (East Asian looks)." },
     { "id": "liner-lower", "label": "Lower liner", "product": "liner", "side": "both", "measure": false,
       "shape": { "kind": "stroke", "soft": 0.03, "points": [ { "v": 33, "off": [-0.01, -0.008, 0], "surface": true, "r": 0.02 }, { "v": 7, "off": [0, -0.015, 0], "surface": true, "r": 0.019 }, { "v": 163, "off": [0, -0.016, 0], "surface": true, "r": 0.017 }, { "v": 144, "off": [0, -0.016, 0], "surface": true, "r": 0.015 }, { "v": 145, "off": [0, -0.016, 0], "surface": true, "r": 0.013 }, { "v": 153, "off": [0, -0.015, 0], "surface": true, "r": 0.011 }, { "v": 154, "off": [0, -0.013, 0], "surface": true, "r": 0.008 }, { "v": 155, "off": [0, -0.011, 0], "surface": true, "r": 0.004 } ] },
-      "note": "A fine line along the lower lash line from the outer corner inward, thinner toward the inner corner. It starts at the outer corner, so a smaller scale shortens it: 0.35 lines the outer third, 1 the whole lid (gyaru)." },
+      "note": "A fine line along the lower lash line from the outer corner inward, thinner toward the inner corner. It starts at the outer corner: a span of 0.35 lines the outer third, 0.5 the outer half, 1 the whole lid (gyaru)." },
     { "id": "aegyo-sal", "label": "Aegyo-sal (tear bag)", "product": "highlight", "side": "both", "measure": false,
       "shape": { "kind": "stroke", "soft": 0.11, "points": [ { "v": 155, "off": [0, -0.030, 0], "surface": true, "r": 0.018 }, { "v": 154, "off": [0, -0.047, 0], "surface": true, "r": 0.035 }, { "v": 153, "off": [0, -0.072, 0], "surface": true, "r": 0.06 }, { "v": 145, "off": [0, -0.092, 0], "surface": true, "r": 0.08 }, { "v": 144, "off": [0, -0.087, 0], "surface": true, "r": 0.075 }, { "v": 163, "off": [0, -0.070, 0], "surface": true, "r": 0.058 }, { "v": 7, "off": [0, -0.047, 0], "surface": true, "r": 0.035 }, { "v": 33, "off": [-0.01, -0.024, 0], "surface": true, "r": 0.012 } ] },
       "note": "A bright crescent under the lower lashes, about half the eye opening's height (5 mm preferred): a youthful, smiling eye." },
@@ -186,7 +186,7 @@
       "note": "A soft line on the aegyo-sal's lower edge, from below the inner edge of the iris to the outer third: it makes the band read as a bulge." },
     { "id": "tear-mole", "label": "Tear mole (beauty mark)", "product": "liner", "side": "center", "measure": false,
       "shape": { "kind": "stroke", "soft": 0.015, "points": [ { "lerp": [{ "v": 374 }, { "v": 263 }, 0.6], "off": [0, -0.2, 0], "surface": true, "r": 0.02 }, { "lerp": [{ "v": 374 }, { "v": 263 }, 0.6], "off": [0.005, -0.205, 0], "surface": true, "r": 0.02 } ] },
-      "note": "A small dot below the outer third of one eye (the face's left): a classic accent in jirai and Douyin-style looks." },
+      "note": "A small dot below the outer third of one eye (the face's left): a classic accent in jirai-kei and Chinese social-video looks." },
     { "id": "brow", "label": "Brow fill", "product": "brow", "side": "both", "measure": true,
       "shape": { "kind": "polygon", "soft": 0.1, "points": [
         { "a": "brow-head", "off": [0, -0.06, 0] }, { "v": 107, "off": [0, -0.02, 0] }, { "v": 66, "off": [0, -0.02, 0] }, { "a": "brow-arch" }, { "v": 63, "off": [0, -0.03, 0] }, { "a": "brow-tail" },

@@ -12,7 +12,7 @@ API. This is the working order.
 1. **Start from a look, not from colours.** Pick one of the 17 `MAKEUP_LOOKS`:
    - bare, no-makeup, fresh dewy, soft glam, sculpted, classic red, smoky eye, sun-kissed, igari, monochrome rose,
      grooming, maiko.
-   - five East Asian looks that transform the eyes: `c-glam` (Chinese social-video glam, "Douyin makeup"), `k-idol`,
+   - five East Asian looks that transform the eyes: `c-glam` (Chinese social-video glam), `k-idol`,
      `jirai`, `neo-gyaru` and `ryousangata`.
 
    A look is colour rules and zones, so it adapts to any skin.
@@ -36,7 +36,7 @@ API. This is the working order.
    - Another style: draw `zoneOutline(zone, face)` in your medium (the face chart), and use `planSwatches(plan)` for
      the colours. Keep contour cool and greyed, highlight on the planes that face the light.
 5. **Change things as data.** Use `overrides: { "cheek-contour": { coverage: 0.9 }, lips: false }` (a new zone with a
-   colour adds a layer), or a whole `Look`. Zones take `adjust` (`shift`, `rotate`, `scale`, `radius`, `soft`, `grow`) in eye widths.
+   colour adds a layer), or a whole `Look`. Zones take `adjust` (`shift`, `rotate`, `scale`, `radius`, `soft`, `grow`) in eye widths, and `span` (0-1) keeps the first part of a stroke.
 6. **Learn from a photograph.** Use the Python pipeline (`scripts/makeup/README.md`): `ingest` (licence gate), `analyze`
    (blueprint), `learn`, then `apply --blueprint` for a parametric transfer. Do not commit photographs of people. Ship
    only aggregates from CC0, PDM, US-Gov or CC BY sources (`learn --ship`).

@@ -73,6 +73,22 @@ describe("MAKEUP1 zone atlas", () => {
       expect(f([V[145][0], V[145][1] - 2.5, skinZ(V, V[145][0], V[145][1] - 2.5)])).toBeLessThan(0.2);
     }
   });
+  it("shortens a stroke along its own line with span: a lower liner on the outer half stays on the lid", () => {
+    const toSeg = (p: Vec3, a: Vec3, b: Vec3) => {
+      const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], L2 = ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2;
+      const t = Math.min(1, Math.max(0, ((p[0] - a[0]) * ab[0] + (p[1] - a[1]) * ab[1] + (p[2] - a[2]) * ab[2]) / L2));
+      return Math.hypot(p[0] - a[0] - ab[0] * t, p[1] - a[1] - ab[1] * t, p[2] - a[2] - ab[2] * t);
+    };
+    for (const V of [beautifulFace({ sex: 0, faceType: "east-asian" }).vertices, CANON]) {
+      const f = zoneField("liner-lower", V, { span: 0.5 }), under = (v: number) => f([V[v][0], V[v][1] - 0.5, skinZ(V, V[v][0], V[v][1] - 0.5)]);
+      for (const v of [7, 163, 144]) expect(under(v), `under ${v}`).toBeGreaterThan(0.5);
+      for (const v of [153, 154]) expect(under(v), `under ${v}`).toBeLessThan(0.2);
+      // the cut end lies on the zone's own line (a scale would pull it off the lid)
+      const full = resolveZone("liner-lower", V)[0].pts, cut = resolveZone("liner-lower", V, { span: 0.5 })[0].pts, end = cut[cut.length - 1];
+      expect(cut.length).toBeLessThan(full.length);
+      expect(Math.min(...full.slice(1).map((b, i) => toSeg(end, full[i], b)))).toBeLessThan(1e-6);
+    }
+  });
   it("covers each stroke zone's own points on ANAT1's face, symmetrically on both sides", () => {
     for (const z of MAKEUP_ZONES.filter(z => z.shape.kind === "stroke")) {
       const parts = resolveZone(z.id, face), f = zoneField(z.id, face);
@@ -129,7 +145,7 @@ describe("MAKEUP1 eye tools in the plan", () => {
     const mono = tapedEyeShape(shape("monolid"), 1);
     expect(mono.crease).toBeCloseTo(6.5, 6); expect(mono.height).toBeCloseTo(9.2, 6); expect(mono.hood).toBe(0);
     const infold = tapedEyeShape(shape("inner-double"), 1);
-    expect(infold.crease).toBeCloseTo(6.5, 6); expect(infold.infold).toBe(true); expect(infold.height).toBeCloseTo(10.0, 6);
+    expect(infold.crease).toBeCloseTo(6.5, 6); expect(infold.infold).toBe(true); expect(infold.height - shape("inner-double").height).toBeCloseTo(0.5, 6);
     const almond = tapedEyeShape(shape("almond"), 1);
     expect(almond.crease).toBeCloseTo(7.5, 6); expect(almond.height).toBeCloseTo(10.0, 6);
     expect(tapedEyeShape(shape("almond"), 0)).toBe(shape("almond"));
@@ -139,6 +155,8 @@ describe("MAKEUP1 eye tools in the plan", () => {
     const strong = designMakeup({ look, face, intensity: 1.5 });
     expect(strong.eyes.lens!.diameter).toBeLessThanOrEqual(14.5); expect(strong.eyes.tape).toBeLessThanOrEqual(1);
     expect(strong.lashes.style).toBe("spiky"); expect(strong.brows.straight).toBeLessThanOrEqual(1);
+    expect(strong.lashes.styleStrength).toBe(1);
+    expect(designMakeup({ look, face, intensity: 0.1 }).lashes.styleStrength).toBeCloseTo(0.1, 6);
     const bare = designMakeup({ look, face, intensity: 0 });
     expect(bare.eyes.lens).toBeUndefined(); expect(bare.eyes.tape).toBe(0); expect(bare.brows.straight).toBe(0);
   });
@@ -148,6 +166,8 @@ describe("MAKEUP1 eye tools in the plan", () => {
       { zone: "aegyo-sal", colour: { kind: "palette", swatch: "highlight" }, coverage: 0.6 }, { zone: "puppy-wing", colour: { kind: "liner", tone: "brown" }, coverage: 0.9 }] };
     const good = checkMakeup(designMakeup({ look, face: V }), V);
     expect(get(good, "aegyo-sal-height").ok).toBe(true); expect(get(good, "wing-angle").ok).toBe(true); expect(get(good, "lens-size").ok).toBe(true);
+    // at a low intensity the lens is nearly natural: smaller than a circle lens is not a fault
+    expect(get(checkMakeup(designMakeup({ look, face: V, intensity: 0.2 }), V), "lens-size").ok).toBe(true);
     const bad = checkMakeup(designMakeup({ look: { ...look, eyes: { lens: { diameter: 15.5, ring: 0.6 } } }, face: V, overrides: { "aegyo-sal": { adjust: { radius: 3 } } } }), V);
     expect(get(bad, "aegyo-sal-height").ok).toBe(false); expect(get(bad, "lens-size").ok).toBe(false);
   });
@@ -175,14 +195,21 @@ describe("MAKEUP1 East Asian looks", () => {
     expect(out[i] - out[i + 1]).toBeGreaterThan(205 - 160 + 15);
   });
   it("lifts the wing on downturned eyes and flattens it on upturned eyes", () => {
-    const angle = (eyeShape: string) => {
-      const V = beautifulFace({ sex: 0, eyeShape }).vertices, plan = designMakeup({ look: "classic-red", face: V, eyeShape });
+    const angle = (eyeShape: string, named = true) => {
+      const V = beautifulFace({ sex: 0, eyeShape }).vertices, plan = designMakeup({ look: "classic-red", face: V, ...(named ? { eyeShape } : {}) });
       const p = resolveZone("liner-wing", V, plan.layers.find(l => l.zone === "liner-wing")!.adjust)[0].pts, tip = p[p.length - 1];
       return Math.atan2(tip[1] - p[0][1], Math.abs(tip[0] - p[0][0])) * 180 / Math.PI;
     };
     expect(angle("downturned")).toBeGreaterThan(angle("almond"));
     expect(angle("upturned")).toBeLessThan(angle("almond"));
     expect(angle("round")).toBeLessThan(angle("almond"));
+    // a face whose tilt is measured, not named (a photograph): the same direction
+    expect(angle("downturned", false)).toBeGreaterThan(angle("almond", false));
+    expect(angle("upturned", false)).toBeLessThan(angle("almond", false));
+  });
+  it("keeps popular platform names out of the looks, the evidence text and the zone notes (spec: research note and search terms only)", () => {
+    const text = [...MAKEUP_LOOKS.flatMap(l => [l.label, l.summary]), ...MAKEUP_EVIDENCE.flatMap(e => [e.finding, e.appliedAs]), ...MAKEUP_ZONES.flatMap(z => [z.label, z.note ?? ""])].join(" ");
+    expect(text).not.toMatch(/douyin|tiktok|xiaohongshu|instagram/i);
   });
 });
 
@@ -212,7 +239,7 @@ describe("MAKEUP1 eye tools in the renderer", () => {
       }
     }
   }, 120000);
-  it("false lashes rise past a single lid's fold (bare lashes on it point at the camera)", () => {
+  it("false lashes rise past a single lid's fold (bare lashes on it point at the camera) and fade in with their strength", () => {
     const base = { faceType: "east-asian" as const, eyeShape: "monolid", framing: "eyes" as const, width: 192, height: 96, makeup: "none" as const };
     const lashes = (style: "natural" | "spiky" | "doll") => renderPortrait({ ...base, paint: { key: `lashes-${style}`, shade() {}, lashes: { length: 1.25, thickness: 1.3, darkness: 1, style } } });
     const natural = lashes("natural"), spiky = lashes("spiky"), doll = lashes("doll");
@@ -228,6 +255,9 @@ describe("MAKEUP1 eye tools in the renderer", () => {
     };
     expect(above(spiky)).toBeLessThan(above(natural) - 4);
     expect(above(doll)).toBeLessThan(above(natural) - 4);
+    // a style fades in with its strength: a faint one is nearly the natural lashes, not a full set
+    const faint = renderPortrait({ ...base, paint: { key: "lashes-faint", shade() {}, lashes: { length: 1.25, thickness: 1.3, darkness: 1, style: "doll", styleStrength: 0.05 } } });
+    expect(Math.abs(above(faint) - above(natural))).toBeLessThan(1.5);
   }, 120000);
 });
 

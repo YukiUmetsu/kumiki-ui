@@ -131,6 +131,8 @@ export interface SkinPaint {
 export interface LashSpec {
   length: number; thickness: number; darkness: number;
   style?: "natural" | "wispy" | "spiky" | "doll";
+  /** How much of the style shows, 0-1 (default 1): MAKEUP1 fades it in with the intensity. */
+  styleStrength?: number;
   lower?: { length: number; darkness: number; drawn: number };
 }
 /** A circle lens: its tinted diameter (mm; a natural iris is about 11.7), the limbal ring's darkness 0-1, and a tint
@@ -1246,8 +1248,10 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
   const mL = l.mascara?.length ?? 1, mT = l.mascara?.thickness ?? 1, mD = Math.min(1, Math.max(0, l.mascara?.darkness ?? 0.5));
   // false-lash styles and lower lashes (MAKEUP1); without them every factor below is 1
   const style = l.mascara?.style ?? "natural", lowerL = l.mascara?.lower, styled = style !== "natural";
+  // how much of the style shows: it fades in, so a low intensity is not a full set of false lashes
+  const sStr = styled ? Math.min(1, Math.max(0, l.mascara?.styleStrength ?? 1)) : 0, sf = (f: number) => 1 + (f - 1) * sStr;
   // a single lid's fold presses bare lashes down; false lashes are curled and glued on, so they rise past it
-  const pressed = single && !styled;
+  const rise = single ? sStr : 1;
   const lowD = lowerL ? Math.min(1, Math.max(0, lowerL.darkness)) : mD;
   // soft dark (or light) lines on the skin: creases, the fold of a single lid, a hood's shadow, an epicanthal fold
   const shadeLine = (pts: [number, number][], widthMm: number, blurMm: number, strength: number) => {
@@ -1265,42 +1269,42 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
     // bolder). Upper: 8–11 mm, longest in the outer third, growing forward and curling up, so from the front they rise
     // only a few millimetres; lower: 4–6 mm, sparse and pale, down and out. A single lid's fold presses the upper
     // lashes down and hides their roots.
-    const clumps = upper ? Math.round((38 + 8 * (1 - sex)) * (style === "doll" ? 1.3 : style === "wispy" ? 1.2 : style === "spiky" ? 0.7 : 1)) : Math.round(18 * (style === "doll" ? 1.3 : 1));
+    const clumps = upper ? Math.round((38 + 8 * (1 - sex)) * sf(style === "doll" ? 1.3 : style === "wispy" ? 1.2 : style === "spiky" ? 0.7 : 1)) : Math.round(18 * sf(style === "doll" ? 1.3 : 1));
     for (let cI = 0; cI < clumps; cI++) {
       const tc = 0.05 + 0.92 * ((cI + 0.5 + 0.4 * (hash2(l.seed + 61, cI, upper ? 1 : 2) - 0.5)) / clumps), nIn = 2 + Math.floor(hash2(l.seed + 67, cI, 3) * 3);
-      const cLen = (upper ? (6.8 + 4.4 * Math.sin(Math.PI * Math.pow(tc, 0.7))) * (0.85 + 0.3 * hash2(l.seed + 53, cI, 1)) * (pressed ? 0.6 : 1 - 0.15 * sh.hood) * mL : (2.6 + 2.6 * Math.sin(Math.PI * tc)) * (0.8 + 0.3 * hash2(l.seed + 59, cI, 2)) * (1 + (mL - 1) * 0.5) * (lowerL?.length ?? 1))
-        * (style === "doll" ? 1.35 : upper && style === "spiky" ? 0.75 : 1);
-      const cFan = ((tc - 0.42) * (upper ? 1.0 : 0.7) + (hash2(l.seed + 71, cI, 4) - 0.5) * 0.15) * (style === "doll" ? 1.25 : 1);
+      const cLen = (upper ? (6.8 + 4.4 * Math.sin(Math.PI * Math.pow(tc, 0.7))) * (0.85 + 0.3 * hash2(l.seed + 53, cI, 1)) * (single ? 0.6 + (1 - 0.15 * sh.hood - 0.6) * rise : 1 - 0.15 * sh.hood) * mL : (2.6 + 2.6 * Math.sin(Math.PI * tc)) * (0.8 + 0.3 * hash2(l.seed + 59, cI, 2)) * (1 + (mL - 1) * 0.5) * (lowerL?.length ?? 1))
+        * sf(style === "doll" ? 1.35 : upper && style === "spiky" ? 0.75 : 1);
+      const cFan = ((tc - 0.42) * (upper ? 1.0 : 0.7) + (hash2(l.seed + 71, cI, 4) - 0.5) * 0.15) * sf(style === "doll" ? 1.25 : 1);
       for (let k = 0; k < (upper ? nIn : 1 + (nIn > 3 ? 1 : 0)); k++) {
         const t = tc + (hash2(l.seed + 73, cI * 7 + k, 5) - 0.5) * (0.9 / clumps), base = at(Math.min(0.99, Math.max(0.01, t)));
-        const rnd = hash2(l.seed + 79, cI * 7 + k, 6), lenRaw = cLen * (style === "wispy" ? 0.65 + 0.7 * rnd : 0.85 + 0.25 * rnd) * (upper ? lashLen : 1 + 0.1 * mk);
+        const rnd = hash2(l.seed + 79, cI * 7 + k, 6), lenRaw = cLen * (style === "wispy" ? 0.85 + 0.25 * rnd + (0.45 * rnd - 0.2) * sStr : 0.85 + 0.25 * rnd) * (upper ? lashLen : 1 + 0.1 * mk);
         const len = styled ? Math.min(14, lenRaw) : lenRaw, fan = cFan + (hash2(l.seed + 83, cI * 7 + k, 7) - 0.5) * 0.12;
-        const lift = upper ? (pressed ? 0.12 : 0.55) : -0.3;
+        const lift = upper ? (single ? 0.12 + 0.43 * rise : 0.55) : -0.3;
         const ptsS: [number, number][] = [];
         for (let q = 0; q <= 6; q++) {
           const u = q / 6, curl = lift * u * u;
           // the tips of a clump draw together
           const conv = upper ? -0.06 * u * u * (k - (nIn - 1) / 2) : 0;
-          const p = l.rot([base[0] + outward * (fan * len * u + conv), base[1] + (upper ? (pressed ? -0.05 : 0.08) * u + curl * 0.42 : -0.2 * u + curl * 0.4) * len, base[2] + 0.85 * len * u]);
+          const p = l.rot([base[0] + outward * (fan * len * u + conv), base[1] + (upper ? (single ? -0.05 + 0.13 * rise : 0.08) * u + curl * 0.42 : -0.2 * u + curl * 0.4) * len, base[2] + 0.85 * len * u]);
           ptsS.push(l.proj(p[0], p[1], p[2]));
         }
-        strokePolyline(out, ptsS, (upper ? 0.17 * lashW : 0.08 * (1 + 0.3 * mk)) * mT * (style === "wispy" || (upper && style === "spiky") ? 0.8 : 1) / l.mmPerPx, 0.02 * mT / l.mmPerPx, l.col, Math.min(1, (upper ? 0.94 : 0.42 + 0.2 * mk) * (0.6 + 0.8 * (upper ? mD : lowD))));
+        strokePolyline(out, ptsS, (upper ? 0.17 * lashW : 0.08 * (1 + 0.3 * mk)) * mT * sf(style === "wispy" || (upper && style === "spiky") ? 0.8 : 1) / l.mmPerPx, 0.02 * mT / l.mmPerPx, l.col, Math.min(1, (upper ? 0.94 : 0.42 + 0.2 * mk) * (0.6 + 0.8 * (upper ? mD : lowD))));
       }
     }
     // manga (spiky) false lashes: 5-7 spikes, 10-14 mm, longest in the outer third, each a few lashes drawn to one tip
     if (upper && style === "spiky") {
       const nSp = 5 + Math.floor(hash2(l.seed + 101, s === "L" ? 1 : 2, 0) * 3);
       for (let i = 0; i < nSp; i++) {
-        const t = 0.16 + 0.78 * ((i + 0.5) / nSp), spikeLen = Math.min(14, (10.2 + 3.6 * Math.sin(Math.PI * Math.pow(t, 0.8))) * mL);
-        const lift = 0.55, fan0 = (t - 0.42) * 1.05;
+        const t = 0.16 + 0.78 * ((i + 0.5) / nSp), spikeLen = Math.min(14, (10.2 + 3.6 * Math.sin(Math.PI * Math.pow(t, 0.8))) * mL) * (0.5 + 0.5 * sStr);
+        const lift = single ? 0.12 + 0.43 * rise : 0.55, fan0 = (t - 0.42) * 1.05;
         for (let k = 0; k < 4; k++) {
           const base = at(Math.min(0.99, Math.max(0.01, t + (k - 1.5) * 0.012))), ptsS: [number, number][] = [];
           for (let q = 0; q <= 6; q++) {
             const u = q / 6, curl = lift * u * u, conv = -0.28 * u * u * (k - 1.5);
-            const p = l.rot([base[0] + outward * (fan0 * spikeLen * u + conv), base[1] + (0.08 * u + curl * 0.42) * spikeLen, base[2] + 0.85 * spikeLen * u]);
+            const p = l.rot([base[0] + outward * (fan0 * spikeLen * u + conv), base[1] + ((single ? -0.05 + 0.13 * rise : 0.08) * u + curl * 0.42) * spikeLen, base[2] + 0.85 * spikeLen * u]);
             ptsS.push(l.proj(p[0], p[1], p[2]));
           }
-          strokePolyline(out, ptsS, 0.18 * mT / l.mmPerPx, 0.02 / l.mmPerPx, l.col, 0.97);
+          strokePolyline(out, ptsS, 0.18 * mT / l.mmPerPx, 0.02 / l.mmPerPx, l.col, 0.97 * sStr);
         }
       }
     }

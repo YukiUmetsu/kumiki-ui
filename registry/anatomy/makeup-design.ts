@@ -199,10 +199,10 @@ export function designMakeup(o: DesignOptions = {}): MakeupPlan {
     }
     if (analysis.canthalTilt < EYE_RULES.downturned.below) {
       rationale.push(`Canthal tilt ${analysis.canthalTilt.toFixed(1)} deg: ${EYE_RULES.downturned.note}`);
-      layers = layers.map(l => (l.zone === "liner-wing" ? { ...l, adjust: { ...l.adjust, rotate: (l.adjust?.rotate ?? 0) + 8 } } : l));
+      layers = layers.map(l => (l.zone === "liner-wing" ? { ...l, adjust: { ...l.adjust, rotate: (l.adjust?.rotate ?? 0) - 8 } } : l));
     } else if (analysis.canthalTilt > EYE_RULES.upturned.above) {
       rationale.push(`Canthal tilt ${analysis.canthalTilt.toFixed(1)} deg: ${EYE_RULES.upturned.note}`);
-      layers = layers.map(l => (l.zone === "liner-wing" ? { ...l, adjust: { ...l.adjust, rotate: (l.adjust?.rotate ?? 0) - 6 } } : l));
+      layers = layers.map(l => (l.zone === "liner-wing" ? { ...l, adjust: { ...l.adjust, rotate: (l.adjust?.rotate ?? 0) + 6 } } : l));
     }
   }
   // the eye shape (ANAT1's EYE_SHAPES): placement for hooded, single and in-fold lids, tilts and depths
@@ -231,7 +231,7 @@ export function designMakeup(o: DesignOptions = {}): MakeupPlan {
   const lower = lash.lower && k > 0 ? { length: 1 + (lash.lower.length - 1) * k, darkness: 0.5 + (lash.lower.darkness - 0.5) * k1, drawn: Math.round(lash.lower.drawn * k1) } : undefined;
   return {
     schema: "kumiki.makeup.plan/1", look: look.id, label: look.label, intensity, skin, analysis, layers: out,
-    lashes: { length: 1 + (lash.length - 1) * k, thickness: 1 + (lash.thickness - 1) * k, darkness: 0.5 + (lash.darkness - 0.5) * k1, ...(lash.style && k > 0 ? { style: lash.style } : {}), ...(lower ? { lower } : {}) },
+    lashes: { length: 1 + (lash.length - 1) * k, thickness: 1 + (lash.thickness - 1) * k, darkness: 0.5 + (lash.darkness - 0.5) * k1, ...(lash.style && k > 0 ? { style: lash.style, styleStrength: k1 } : {}), ...(lower ? { lower } : {}) },
     eyes: { ...(lens ? { lens } : {}), tape: (look.eyes?.tape ?? 0) * k1 },
     brows: { colour: browColour(hair), density: look.brows?.density ?? 1, straight: (look.brows?.straight ?? 0) * k1 },
     rationale,
@@ -249,7 +249,7 @@ export function tapedEyeShape(shape: EyeShapeSpec, tape: number): EyeShapeSpec {
   if (t === 0) return shape;
   const single = shape.crease <= 0, lifted = 4.5 + 2 * t;
   return { ...shape, id: `${shape.id}+tape`, label: `${shape.label}, taped`, crease: single ? lifted : shape.infold ? Math.max(shape.crease, lifted) : shape.crease,
-    hood: shape.hood * (1 - t), height: shape.height + (single || shape.infold ? 1.2 : 0.5) * t };
+    hood: shape.hood * (1 - t), height: shape.height + (single ? 1.2 : 0.5) * t };
 }
 
 // ---- Checks ----------------------------------------------------------------------------------------------------------
@@ -299,7 +299,7 @@ export function checkMakeup(plan: MakeupPlan, V: readonly Vec3[]): MakeupCheck[]
   }
   if (plan.eyes.lens) {
     const d = plan.eyes.lens.diameter;
-    out.push({ id: "lens-size", ok: d >= 12.5 && d <= 14.5, rule: "A circle lens of 12.5-14.5 mm tinted diameter: a natural iris is about 11.7 mm, and larger reads as costume (convention). A 125% iris read as more attractive (Takehara & Tanijiri 2015).", message: `The lens is ${d.toFixed(1)} mm across.` });
+    out.push({ id: "lens-size", ok: d <= 14.5, rule: "A circle lens of at most 14.5 mm tinted diameter (12.5-14.5 mm is usual): a natural iris is about 11.7 mm, and larger reads as costume (convention). A 125% iris read as more attractive (Takehara & Tanijiri 2015).", message: `The lens is ${d.toFixed(1)} mm across.` });
   }
   const found = layer("foundation");
   if (found && "relative" in found.colour) {
