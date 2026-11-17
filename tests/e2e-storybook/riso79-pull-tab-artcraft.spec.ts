@@ -16,14 +16,22 @@ await expect(print.locator("[data-km-riso79-cut-rim]")).toHaveCount(3);
 await expect(print.locator("[data-km-riso79-cut-fibre]")).toHaveCount(264);
 const source=print.locator("[data-km-riso79-insert-plane] [data-km-riso-print]");
 const cover=print.locator("[data-km-riso79-stationary-original-cover] [data-km-riso-print]");
-const orig=await source.evaluate(el=>el.outerHTML);
-const top=await cover.evaluate(el=>el.outerHTML);
+// React useId is reallocated across FilmStage scene boundaries. Compare the
+// original source-stencil geometry and all paper pores, not ephemeral SVG IDs.
+const printSignature=(which:typeof source)=>which.evaluate(el=>({
+plates:Array.from(el.querySelectorAll("[data-km-riso-plate]")).map(x=>x.getAttribute("data-km-riso-plate")),
+paths:Array.from(el.querySelectorAll("[data-km-riso-plate] path")).map(x=>x.getAttribute("d")),
+text:Array.from(el.querySelectorAll("[data-km-riso-plate] text")).map(x=>x.textContent),
+pores:Array.from(el.querySelectorAll("mask circle")).map(x=>[x.getAttribute("cx"),x.getAttribute("cy"),x.getAttribute("r")]),
+}));
+const orig=await printSignature(source);
+const top=await printSignature(cover);
 const cut=await print.locator("[data-km-riso79-cut-fibre]").first().getAttribute("d");
 await studio.locator("[data-km-riso79-film]").screenshot({path:info.outputPath("riso79-1x-two-original-prints-three-openings.png"),animations:"disabled"});
 await studio.getByRole("combobox",{name:"RISO79 source microscope zoom"}).selectOption("3");
 await studio.locator("[data-km-riso79-film]").screenshot({path:info.outputPath("riso79-3x-diecut-fibres-spot-ink-detail.png"),animations:"disabled"});
-expect(await source.evaluate(el=>el.outerHTML)).toEqual(orig);
-expect(await cover.evaluate(el=>el.outerHTML)).toEqual(top);
+expect(await printSignature(source)).toEqual(orig);
+expect(await printSignature(cover)).toEqual(top);
 await studio.getByRole("combobox",{name:"RISO79 source microscope zoom"}).selectOption("1");
 await studio.getByRole("slider",{name:"RISO79 absolute film frame"}).focus();
 await studio.getByRole("slider",{name:"RISO79 absolute film frame"}).press("Home");
@@ -33,8 +41,8 @@ await studio.getByRole("slider",{name:"RISO79 absolute film frame"}).press("End"
 await expect(studio).toHaveAttribute("data-km-riso79-phase","revealed");
 await expect(print.locator("[data-km-riso79-insert-plane]")).not.toHaveAttribute("transform","translate(0 0)");
 await expect(print.locator("[data-km-riso79-cut-fibre]").first()).toHaveAttribute("d",cut!);
-expect(await source.evaluate(el=>el.outerHTML)).toEqual(orig);
-expect(await cover.evaluate(el=>el.outerHTML)).toEqual(top);
+expect(await printSignature(source)).toEqual(orig);
+expect(await printSignature(cover)).toEqual(top);
 await studio.locator("[data-km-riso79-film]").screenshot({path:info.outputPath("riso79-original-sliding-print-at-physical-endstop.png"),animations:"disabled"});
 await studio.getByRole("combobox",{name:"RISO79 pull direction"}).selectOption("left");
 await expect(print).toHaveAttribute("data-km-riso79-direction","left");
