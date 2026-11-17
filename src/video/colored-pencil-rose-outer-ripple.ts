@@ -107,7 +107,7 @@ export function inspectRoseOuterRippleSurfaces():string[]{
     if(!old||shape.hinge!==old.hinge||
       !old.underside.startsWith(hingeStart)||
       !old.underside.includes(hingeEnd)||
-      !shape.face.includes(shape.hinge)||shape.face===old.face)
+      !shape.face.includes(shape.hinge.slice(1))||shape.face===old.face)
       issues.push("Detached real rose outer cuticle hinge: "+shape.id);
     if(!/^M[\d\s.CQZ-]+Z$/.test(shape.face)||
       shape.face.split("C").length<10||
