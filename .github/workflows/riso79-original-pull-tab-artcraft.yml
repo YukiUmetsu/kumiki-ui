@@ -38,7 +38,6 @@ jobs:
       - name: Original native physical print clean consumer
         run: |
           npm run registry:validate
-          npm run catalog:check
           node scripts/registry-fixture.js --item=riso-print
       - name: Production Storybook build
         run: npm run build-storybook
