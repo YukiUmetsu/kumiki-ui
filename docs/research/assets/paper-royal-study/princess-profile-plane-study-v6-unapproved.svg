@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="580" viewBox="260 150 480 580">
+<defs>
+ <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d0a386"/><stop offset=".5" stop-color="#e7c2a4"/><stop offset="1" stop-color="#bc8e79"/></linearGradient>
+ <linearGradient id="socket" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9a705f"/><stop offset="1" stop-color="#be907a"/></linearGradient>
+ <linearGradient id="cheek" x1="0" y1="0" x2="1" y2=".3"><stop stop-color="#bd8d77"/><stop offset=".65" stop-color="#d2a28b"/><stop offset="1" stop-color="#dfb399"/></linearGradient>
+ <filter id="stock-lift" x="-25%" y="-30%" width="150%" height="170%"><feDropShadow dx="1.0" dy="1.8" stdDeviation="1.0" flood-color="#412d2a" flood-opacity=".33"/></filter>
+ <pattern id="fibre" width="97" height="79" patternUnits="userSpaceOnUse"><path d="M7 6l5 .2M27 14l3 -.2M62 5l8 .2M39 27l5 .2M14 44l3 -.3M78 36l6 .2M51 55l2 -.2M6 72l7 .2M83 68l3 -.2" fill="none" stroke="#7a5b50" stroke-opacity=".13" stroke-width=".55"/></pattern>
+ <clipPath id="face"><path d="M260 150 H615 C632 181 646 216 647 246 C649 277 638 309 634 330 C628 361 638 399 655 435 C668 461 695 478 701 507 C703 520 696 529 681 533 C669 542 665 559 650 570 C638 579 624 587 619 601 C628 610 638 621 641 631 C640 638 630 646 627 658 C623 670 632 689 636 704 C639 713 637 723 631 730 H260Z"/></clipPath>
+</defs>
+<!-- The cropped face continues beyond the viewport; the cheek and orbital planes are overlapping physical stock. -->
+<path d="M260 150 H615 C632 181 646 216 647 246 C649 277 638 309 634 330 C628 361 638 399 655 435 C668 461 695 478 701 507 C703 520 696 529 681 533 C669 542 665 559 650 570 C638 579 624 587 619 601 C628 610 638 621 641 631 C640 638 630 646 627 658 C623 670 632 689 636 704 C639 713 637 723 631 730 H260Z" fill="url(#skin)"/>
+<g clip-path="url(#face)">
+ <path d="M260 168 C348 170 407 193 441 232 C468 261 486 281 518 289 C548 296 577 299 604 319 C620 333 627 355 637 381 C612 374 587 365 567 369 C539 374 519 396 492 413 C451 435 400 452 356 466 L260 493Z" fill="url(#socket)" opacity=".24"/>
+ <path d="M260 510 C330 485 401 453 452 419 C489 395 518 374 543 371 C565 369 585 380 605 381 C618 382 630 383 644 388 C653 405 660 421 668 438 C642 428 622 433 605 445 C583 461 568 482 542 494 C507 511 459 524 414 531 C368 538 315 546 260 558Z" fill="url(#cheek)" opacity=".24"/>
+ <g transform="translate(162 115) scale(.7 .66)">
+ <!-- Brow cuts sweep toward the bridge. -->
+ <!-- The socket sheet is cut as one continuous region and sits behind the eye. -->
+ <path d="M478 303 C490 292 505 286 523 285 C543 284 560 288 575 299 C585 309 587 322 584 335 C574 331 560 327 543 328 C519 329 499 335 480 342 C477 329 475 316 478 303Z" fill="#c69b84" filter="url(#stock-lift)"/>
+ <path d="M478 298 C495 286 516 281 536 283 C549 284 563 289 573 297 C558 293 544 291 529 292 C510 292 494 295 478 301Z" fill="#846253"/>
+ <!-- Pale aperture is a distinct cut sheet, lifted slightly over the socket. -->
+ <path d="M502 342 C519 332 537 329 554 330 C566 331 573 336 578 341 C571 347 562 350 552 349 C535 348 516 345 502 342Z" fill="#dfc1ab" filter="url(#stock-lift)"/>
+ <path d="M550 332 C556 331 561 334 562 338 C563 342 561 346 558 348 C554 348 552 346 551 343 C550 339 550 335 550 332Z" fill="#52484b"/>
+ <!-- Upper lid overlaps iris. Tapered cut lashes remain attached at their roots. -->
+ <path d="M501 341 C516 330 535 326 553 328 C567 329 575 335 580 341 C571 338 561 336 551 336 C533 335 515 339 501 343Z M508 338 Q501 334 498 331 Q505 334 512 336Z M515 335 Q507 331 504 328 Q512 331 519 334Z M522 333 Q515 329 513 326 Q520 329 526 332Z" fill="#574d4b" filter="url(#stock-lift)"/>
+ <path d="M513 345 C526 350 542 352 554 351 C562 351 569 348 575 344 C570 350 562 354 553 354 C538 353 524 350 513 346Z" fill="#bd9682" filter="url(#stock-lift)"/>
+ </g>
+ <!-- Nasal wing is connected to the cheek plane; mouth only indicates the crop's lower boundary. -->
+ <path d="M597 487 C616 477 637 474 652 480 C662 485 668 494 674 504 C665 499 655 498 646 500 C632 503 623 513 616 524 C608 513 603 500 597 487Z" fill="#ba8a74" opacity=".62"/>
+ <path d="M620 519 C633 512 648 511 662 516 C653 518 645 522 638 530 C629 530 622 526 620 519Z" fill="#79574c" opacity=".9"/>
+ <path d="M563 624 C582 615 607 617 623 626 C610 625 600 629 590 632 C580 634 571 631 563 628Z" fill="#a2736c"/>
+ <rect x="260" y="150" width="480" height="580" fill="url(#fibre)"/>
+</g>
+</svg>
