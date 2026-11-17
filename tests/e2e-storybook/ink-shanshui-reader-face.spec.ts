@@ -588,6 +588,13 @@ test("ANAT1 Chinese-ink five visemes retain detailed live lip relief and visible
       expect(opening.deepHeight).toBeLessThan(opening.height);
       expect(opening.trueInkCoreWidth).toBeLessThan(opening.deepWidth);
       expect(opening.trueInkCoreHeight).toBeLessThan(opening.deepHeight);
+      if(state==="oh"){
+        // One true vertical /o/ slit, not a shaded pupil surrounded
+        // by horizontally mirrored permanent lip-line ovals.
+        expect(opening.height/opening.width).toBeGreaterThan(1.55);
+        expect(opening.trueInkCoreHeight/opening.trueInkCoreWidth)
+          .toBeGreaterThan(2);
+      }
       expect(opening.width).toBeLessThan(state==="aa"?15:7);
       expect(opening.height).toBeLessThan(8);
     }
