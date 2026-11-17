@@ -89,6 +89,16 @@ jobs:
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
           tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
+      - name: Include the frozen CC0 source screenshot in the review artifact
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_file="$(find .artcraft-original-photo -type f -name 'artcraft-portrait-woman-portrait-source.png' -print -quit)"
+          test -n "$source_file"
+          printf '%s  %s\n' "f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2" "$source_file" | sha256sum --check -
+          mkdir -p test-results/artcraft-source
+          cp "$source_file" test-results/artcraft-source/cc0-source-608x1082.png
       - name: Save native screenshots and failures
         if: always()
         uses: actions/upload-artifact@v4
