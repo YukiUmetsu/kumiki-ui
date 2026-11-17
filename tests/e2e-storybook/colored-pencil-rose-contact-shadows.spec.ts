@@ -8,7 +8,9 @@ const story="/iframe.html?id=video-colored-pencil-science--drawing-foundation&vi
 test("physical lower/upper rose contact valleys: 16:9 / 9:16 fill/occlusion A/B and full 45-region native art",async({page},info)=>{
   await page.goto(story);
   const svg=page.locator("svg[data-km-colored-pencil]");
+  const paper=svg.locator("xpath=..");
   const studio=page.locator("[data-km-foundation-studio]");
+  await expect(paper).toHaveCSS("overflow","hidden");
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
   const parent=page.getByRole("checkbox",{name:"Foundation rose nested inner whorl"});
   const knot=page.getByRole("checkbox",{name:"Foundation rose center knot anatomy"});
@@ -116,8 +118,8 @@ test("physical lower/upper rose contact valleys: 16:9 / 9:16 fill/occlusion A/B 
       await focus.selectOption(focusName);
       await expect(studio).toHaveAttribute("data-km-foundation-inspection-focus",part);
       await zoom.check();
-      await svg.screenshot({animations:"disabled",
-        path:info.outputPath("rose-occlusion-"+aspect+"-"+part+"-215pct.png")});
+      await paper.screenshot({animations:"disabled",
+        path:info.outputPath("rose-occlusion-"+aspect+"-"+part+"-215pct-parent-crop.png")});
       await zoom.uncheck();
     }
     await focus.selectOption("default");
