@@ -27,6 +27,8 @@ export interface InkAnatomicalPortraitProps extends Omit<SVGProps<SVGSVGElement>
   intensity?:number;
   detail?:number;
   view?:InkPortraitView;
+  /** Original period figure's face-to-broad-sleeve scale (0.38..0.75). */
+  headScale?:number;
   /** Transparent compositing into an existing FilmStage, not a paper sticker. */
   transparentPaper?:boolean;
   /** A calibrated paper color for standalone figure plates. */
@@ -131,8 +133,8 @@ const ROBE_PRESSURE_MARKS={
   elder:evaluateInkBrush(robeInkSpec("elder"),1,true),
 };
 
-interface PaintProps {posed:ExpressedFace; character:InkPortraitCharacter; detail:number; view:InkPortraitView; uid:string}
-function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
+interface PaintProps {posed:ExpressedFace; character:InkPortraitCharacter; detail:number; view:InkPortraitView; uid:string; headScale:number}
+function PaintedPortrait({posed,character,detail,view,uid,headScale}:PaintProps){
   const preset=PERSONS[character], P=projection(preset.yaw),v=posed.vertices;
   const q=(k:keyof typeof FACE_LANDMARKS)=>P(v[FACE_LANDMARKS[k]]);
   const feature=(id:string)=>FACE_FEATURES[id].loop.map(i=>P(v[i]));
@@ -403,10 +405,13 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           strokeWidth={hair.width} opacity={hair.opacity*.78}/>)}
       </g>)}
     </g>
-    {/** Period half-figure bust ratio: period silk sleeves are broader than the
-         sitter's head. Native QA rejected the 0.75-width giant head; fit the
-         new skull and all its EXPR1-attached ink around its collar contact. */}
-    <g data-km-ink-anatomic-bust-ratio=".69" transform="translate(83.7 130.2) scale(.69)">
+    {/** Real source head/body ratio is not the old cartoon's giant head.
+         Preserve every ANAT1 point, EXPR1 action, cap fiber and jaw/neck
+         connection with a shared transform about the measured collar seam
+         (270,420). The face microscope rescales its camera inversely. */}
+    <g data-km-ink-anatomic-bust-ratio={fmt(headScale)}
+      transform={"translate("+fmt(270*(1-headScale))+" "+fmt(420*(1-headScale))
+        +") scale("+fmt(headScale)+")"}>
     {/** Neck is physically continuous between the ANAT1 jaw and the robe.
          The old exact-head screenshot left a strip of empty paper beneath
          the chin. This independent original anatomical cylinder sits
@@ -779,23 +784,32 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
 }
 /** Reusable live SVG layer for cinematics, independent of existing reader art. */
 export function InkAnatomicalPortrait({character="scholar",emotion="neutral",intensity=1,
-  detail=1,view="bust",className,transparentPaper=false,paperColor="#f4ebd9",
-  style, ...svgProps}:InkAnatomicalPortraitProps){
+  detail=1,view="bust",headScale=.48,className,transparentPaper=false,
+  paperColor="#f4ebd9",style, ...svgProps}:InkAnatomicalPortraitProps){
   const uid=useId().replace(/:/g,"");
   if(!/^#[0-9a-fA-F]{6}$/.test(paperColor))throw new RangeError("paperColor must be #RRGGBB");
+  if(!Number.isFinite(headScale)||headScale<.38||headScale>.75)
+    throw new RangeError("headScale must be finite and in [0.38,0.75]");
   const study=useMemo(()=>inkPortraitAnatomy(character,emotion,intensity),
     [character,emotion,intensity]);
   const amount=clamp(detail,0,1);
+  const scaleRatio=headScale/.69;
+  const faceBox=[270+(100-270)*scaleRatio,
+    420+(112-420)*scaleRatio,345*scaleRatio,419*scaleRatio];
+  const bustTop=420+(95-420)*scaleRatio;
+  const camera=view==="face"?faceBox.map(fmt).join(" "):
+    view==="robe"?"55 410 430 202":"0 "+fmt(bustTop)+" 540 "+fmt(620-bustTop);
   return <svg {...svgProps} data-testid="ink-anat2-portrait" data-ink-character={character}
       data-ink-emotion={emotion} data-ink-view={view}
+      data-ink-head-scale={fmt(headScale)}
       data-ink-transparent-paper={transparentPaper?"true":"false"}
       className={className} xmlns="http://www.w3.org/2000/svg"
       role="img" aria-label={svgProps["aria-label"]??(character+" ink portrait, "+emotion+" expression")}
-      viewBox={view==="face"?"100 112 345 419":view==="robe"?"55 410 430 202":"0 95 540 525"}
+      viewBox={camera}
       style={{display:"block",background:transparentPaper?"transparent":paperColor,
         width:"100%",height:"auto",...style}}>
     {!transparentPaper&&<rect data-km-ink-paper="true" width="540" height="620" fill={paperColor}/>}
     <g><PaintedPortrait posed={study.posed} character={character} detail={amount}
-      view={view} uid={"ink-a2-"+uid}/></g>
+      view={view} uid={"ink-a2-"+uid} headScale={headScale}/></g>
   </svg>;
 }
