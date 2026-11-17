@@ -1,7 +1,7 @@
 name: Crayon ArtCraft adult face browser proof
 
-# PR checks exercise the modified source-led portrait and its predecessors.
-# The complete archival screenshot suite remains available manually.
+# PR checks exercise the modified source-led portrait and immediately adjacent controls.
+# The complete V29-V38 archival screenshot suite remains available manually.
 # No video/FFmpeg/full Storybook/legacy tests or deleted test files.
 on:
   pull_request:
@@ -49,7 +49,7 @@ jobs:
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
-          --grep "ArtCraft source-referenced portrait audit|F1 V(29|30|31|32|33|34|35|36|37|38)"
+          --grep "ArtCraft source-referenced portrait audit|F1 V(35|36|37|38)"
       - name: Capture complete portrait and expression archival evidence (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-
