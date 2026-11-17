@@ -60,6 +60,9 @@ export interface PencilRegion {
   layers: readonly PencilPigmentLayer[];
   contour: PencilTrace;
   details?: readonly PencilTrace[];
+  /** Form-attached interior optical contacts clipped to the authored
+   * silhouette, without clipping legacy guide and peripheral detail. */
+  interiorDetails?: readonly PencilTrace[];
   /** Clip fine interior accents to the source silhouette; the enclosing contour stays uncut.
    * Opt-in, preserving exterior construction and guide marks in legacy drawings.
    */
@@ -195,6 +198,10 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
     }
     if ((region.details?.length ?? 0) > 96 || region.details?.some((trace: PencilTrace) => !validTrace(trace)))
       issues.push(at + ".details: up to 96 bounded graphite details allowed.");
+    if (region.interiorDetails !== undefined &&
+      (!Array.isArray(region.interiorDetails) || region.interiorDetails.length > 36 ||
+       region.interiorDetails.some((trace: PencilTrace) => !validTrace(trace))))
+      issues.push(at + ".interiorDetails: up to 36 bounded, source-clipped tonal contacts allowed.");
   }
   return issues;
 }
