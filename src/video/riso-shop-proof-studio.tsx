@@ -12,6 +12,7 @@ import type {RisoScanMeasurements} from "../../registry/video/riso-scan-proof";
 import {RisoScanImageAnnotator} from "./riso71-scan-image-annotator";
 import type {Riso71SourceImage} from "./riso71-scan-image-annotator";
 import {Riso72PaperPhotoComparator} from "./riso72-paper-photo-comparator";
+import {Riso73TwoCopyPrintStudy} from "./riso73-two-print-run-studio";
 
 const control={display:"grid",gap:4,font:"600 13px system-ui",minWidth:155} as const;
 const button={border:"1px solid #847867",background:"#FFFAED",padding:"9px 13px",
@@ -47,6 +48,9 @@ export function RisoShopProofStudio(){
   const [inputType,setInputType]=useState<"synthetic"|"physical">("synthetic");
   const [scanJson,setScanJson]=useState("");
   const [scanPhoto,setScanPhoto]=useState<Riso71SourceImage|null>(null);
+  const [showSecondCopy,setShowSecondCopy]=useState(false);
+  const [secondPhoto,setSecondPhoto]=useState<Riso71SourceImage|null>(null);
+  const [secondScan,setSecondScan]=useState<RisoScanMeasurements|null>(null);
   const [macro,setMacro]=useState(false);
   const [busy,setBusy]=useState(false);
   const [downloadError,setDownloadError]=useState("");
@@ -294,6 +298,41 @@ export function RisoShopProofStudio(){
           sheetMm={layout.sheetMm}
           originalMasters={previews}
           expectedMarksMm={risoPrintRegistrationTargets(spec,masters,layout)}/>}
+      {inputType==="physical"&&scanPhoto&&photoReadings&&
+        marks==="crop-and-register"&&shop.compatible&&
+        <section data-km-riso73-second-copy-controls=""
+          aria-label="RISO73 optional real second printed sheet"
+          style={{display:"grid",gap:10,padding:"10px 0",
+            borderTop:"1px solid #9E927D"}}>
+          <button type="button" style={{...button,justifySelf:"start"}}
+            aria-label="RISO73 add or remove second physical print scan"
+            aria-expanded={showSecondCopy}
+            onClick={()=>{
+              if(showSecondCopy){setSecondPhoto(null);setSecondScan(null);}
+              setShowSecondCopy(!showSecondCopy);
+            }}>
+            {showSecondCopy?"Close second-copy inspection":
+              "Inspect another physical print copy"}
+          </button>
+          {showSecondCopy&&<>
+            <div style={{fontWeight:700}}>SECOND PHYSICAL PAPER COPY ·
+              independent original photograph and 12 measured positions
+            </div>
+            <RisoScanImageAnnotator
+              plateIds={spec.plates.map(p=>p.id)}
+              resetKey={[aspect,frame,seed,marks,"copy2"].join(":")}
+              onChange={setSecondScan}
+              onImage={setSecondPhoto}/>
+            {secondPhoto&&secondScan&&
+              <Riso73TwoCopyPrintStudy
+                firstPhoto={scanPhoto} secondPhoto={secondPhoto}
+                firstScan={photoReadings} secondScan={secondScan}
+                sheetMm={layout.sheetMm}
+                plateIds={spec.plates.map(p=>p.id)}
+                expectedMarksMm={
+                  risoPrintRegistrationTargets(spec,masters,layout)}/>}
+          </>}
+        </section>}
       {inputType==="physical"&&<label style={{display:"grid",gap:6,
         font:"600 13px system-ui"}}>
         Actual observed scan pixels JSON (all 4 paper edges and 8 cross centers)
