@@ -108,13 +108,15 @@ export function RisoPullTabTheatre({
       isolation:"isolate",background:cover.spec.paper,...style}}>
     <defs>
       <clipPath id={id+"-apertures"} clipPathUnits="userSpaceOnUse">
-        {pose.windows.map(w=><path key={w.id} d={w.path}/>)}
+        {pose.windows.map(w=><path key={w.id} d={w.path}
+          data-km-riso80-aperture-contour={w.id}/>) }
       </clipPath>
       <mask id={id+"-diecut"} maskUnits="userSpaceOnUse"
         maskContentUnits="userSpaceOnUse" x="0" y="0"
         width={width} height={height}>
         <rect width={width} height={height} fill="white"/>
-        {pose.windows.map(w=><path key={w.id} d={w.path} fill="black"/>)}
+        {pose.windows.map(w=><path key={w.id} d={w.path} fill="black"
+          data-km-riso80-source-contour={w.id} data-km-riso80-source-winding={w.winding}/>)}
       </mask>
       {pose.windows.map(w=><linearGradient key={w.id}
         id={id+"-rim-"+w.id}
