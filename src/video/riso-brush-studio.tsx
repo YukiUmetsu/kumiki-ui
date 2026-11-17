@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useRef,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import {RisoPrint} from "../../registry/video/print-plates-react";
 import {RisoDryBrushInk} from "../../registry/video/riso-dry-brush-react";
 import type {RisoBrushOptions,RisoBrushPoint} from "../../registry/video/riso-dry-brush";
@@ -83,6 +83,8 @@ export interface RisoBrushArtProps {
   aspect:RisoAspect;
   /** Absolute source frame, 0..239; the production FilmStage owns the clock. */
   frame:number;
+  /** Press master progress, independently sampled from the original source motion; default is fully inked. */
+  printFrame?:number;
   plate:RisoBrushPlate;
   dryness:number;
   seed:number;
@@ -95,7 +97,9 @@ export interface RisoBrushArtProps {
 }
 /** Same source artwork for the Storybook studio AND FD1 capture/export. */
 export function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registration,
-  grain,animate,layout="studio"}:RisoBrushArtProps){
+  grain,animate,printFrame=239,layout="studio"}:RisoBrushArtProps){
+  if(!Number.isSafeInteger(printFrame)||printFrame<0||printFrame>239)
+    throw new RangeError("RISO64 requires an absolute print frame 0..239.");
   if(!Number.isSafeInteger(frame)||frame<0||frame>239)
     throw new RangeError("RISO63 requires an absolute source frame between 0 and 239.");
   if(!["both","blue","red"].includes(plate)||
@@ -107,13 +111,13 @@ export function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registrat
     typeof animate!=="boolean"||(layout!=="studio"&&layout!=="film"))
     throw new RangeError("RISO63 requires valid physical spot masters and bounded source controls.");
   const portrait=aspect==="portrait",w=portrait?540:960,h=portrait?960:540;
-  const spec=useMemo(()=>{
-    const source=risoExampleSpec(aspect,seed);
-    return {...source,plates:source.plates.map(p=>({...p,
-      color:p.id==="blue"?cobalt:vermilion,
-      registration:p.id==="blue"?[0,0] as const:[.65,-.45] as const,
-    }))};
-  },[aspect,seed]);
+  // Source spec is small and deterministic. Explicitly pure evaluation
+  // avoids a separate React dispatcher in lazy-loaded production captures.
+  const source=risoExampleSpec(aspect,seed);
+  const spec={...source,plates:source.plates.map(p=>({...p,
+    color:p.id==="blue"?cobalt:vermilion,
+    registration:p.id==="blue"?[0,0] as const:[.65,-.45] as const,
+  }))};
   const phase=animate?frame/239:0.52;
   const isPaperSeed=seed;
   const brushes=(ink:"blue"|"red")=>{
@@ -185,11 +189,12 @@ export function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registrat
   };
   return <div data-km-riso62-stage={aspect} data-km-riso62-absolute-frame={frame}
     data-km-riso62-stroke-motion={String(animate)}
+    data-km-riso64-print-frame={printFrame}
     data-km-riso63-film-layout={String(layout==="film")}
     style={{width:"100%",maxWidth:layout==="film"?"none":portrait?460:960,
       background:paper,
       boxShadow:layout==="film"?"none":"0 12px 34px #2b30251c"}}>
-    <RisoPrint spec={spec} frame={239} artworks={artworks}
+    <RisoPrint spec={spec} frame={printFrame} artworks={artworks}
       visiblePlateIds={plate==="both"?undefined:[plate]}
       paperGrain={grain} misregistration={registration}
       label="Original Risograph calligraphic current with two true spot inks and paper-white dry-brush fibres"

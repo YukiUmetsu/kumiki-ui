@@ -7,6 +7,7 @@ import { RisoPrint } from "../../registry/video/print-plates-react";
 import {RisoGradientStudio} from "./riso-gradient-studio";
 import {RisoBrushStudio} from "./riso-brush-studio";
 import {RisoDryBrushFilmStudio} from "./riso-dry-brush-film-studio";
+import {RisoCinematicStudio} from "./riso-cinematic-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -386,6 +387,12 @@ export const RisographDryBrush:StoryObj<typeof RisoBrushStudio>={
 export const RisographDryBrushFilm:StoryObj<typeof RisoDryBrushFilmStudio>={
   name:"Risograph · Dry-Brush Production Film",
   render:()=> <RisoDryBrushFilmStudio/>,
+};
+
+/** Existing FilmStage and original RISO62 materials, now with five authored camera/press beats. */
+export const RisographCinematicJourney:StoryObj<typeof RisoCinematicStudio>={
+  name:"Risograph · Two-Drum Cinematic Journey",
+  render:()=> <RisoCinematicStudio/>,
 };
 
 const meta = {
