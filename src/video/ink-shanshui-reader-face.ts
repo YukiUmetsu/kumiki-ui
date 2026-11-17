@@ -44,7 +44,7 @@ const mouth={
   // Preserve independently riggable cels; build continuous lip-rolling
   // cubic anatomy, asymmetrical lower vermilion and real ink relief.
   aa:"M136.4 125.8 C139.3 124.95 146.4 125.35 148.3 125.1 C147.6 126.9 146.6 128.9 144.8 130.55 C142.9 132.05 140.75 130.9 139.4 129.1 C138 127.45 137.1 126.45 136.4 125.8 Z",
-  oh:"M141.1 125.9 C142.6 125.2 144.1 125.42 144.9 126.52 C145.8 127.7 145.63 129.4 144.28 130.4 C143.18 131.08 141.65 130.44 141.12 129.2 C140.55 127.75 140.7 126.55 141.1 125.9 Z",
+  oh:"M142 125.75 C142.89 125.35 143.98 125.68 144.28 126.85 C144.76 128.45 144.15 130.35 143.26 130.95 C142.43 131.02 141.86 129.99 141.68 128.65 C141.48 127.27 141.61 126.29 142 125.75 Z",
   mm:"M135.6 125.7 Q141 125.4 148.5 124.5",
   smile:"M135.1 124.9 Q142.4 129.3 149.2 123.4",
 } as const;
@@ -190,44 +190,39 @@ export function scrollReaderFacePortrait(detail=1):
   // mouth/jaw source-space anatomy; add living shape detail, not an icon.
   const speechLips=(state:keyof typeof mouth):CharacterPathShape[]=>{
     if(state==="oh")return [
-      // Lower vermilion: an irregular convex wet edge, not a badge oval.
-      p("M141 130.15 C141.9 131.5 144.45 131.85 145.35 129.9 C144.65 132.35 141.95 132.8 140.95 130.85 Z",
+      // Source-informed /o/ is a narrow VERTICAL 3/4 oral fissure,
+      // not a round concentric iris with a painted pupil. Keep every
+      // original ink/paper/pressure mark as its own editable layer.
+      p("M141.88 130.1 C142.61 131.35 143.95 131.76 144.38 129.91 C144.08 132.02 142.61 132.18 141.84 130.92 Z",
         "$skinshade","none",0,.18),
-      p("M141.15 125.82 C142.35 125.13 144.22 125.4 145.14 126.56",
+      p("M141.98 126.06 C142.46 125.44 143.78 125.36 144.24 126.53",
         "none","$shadow",.42,.53),
-      p("M141.05 130.05 C142.12 131.22 144.15 131.3 144.95 130.12",
+      p("M141.74 130.23 C142.46 131.06 143.58 131.49 144.34 130.14",
         "none","$skinshade",.37,.56),
-      // A near-transparent outer cheek-to-vermilion transition wraps the
-      // oblique mouth surface; the central oral fissure is much smaller
-      // than its lip ring. Wet pigments accumulate in different directions
-      // instead of filling a mechanically flat oval.
-      p("M141.4 126.5 C142.38 125.86 144.11 126.14 144.7 127.22 C145.12 128.06 145 129.1 144.35 129.69 C143.37 130.35 142 129.87 141.56 128.95 C141.23 128.15 141.12 127.19 141.4 126.5 Z",
+      // Delicate outer lip relief turns with orbicularis oris, while
+      // the center remains paper-diluted rather than an opaque badge.
+      p("M141.72 126.55 C142.27 126.04 143.82 126.18 144.19 127.24 C144.48 128.5 143.96 129.6 143.16 130.23 C142.41 129.75 141.84 128.76 141.72 126.55 Z",
         "$skinshade","none",0,.125),
-      p("M142.02 127.02 C142.84 126.43 144.04 126.74 144.3 127.63 C144.56 128.53 144.31 129.37 143.54 129.68 C142.63 129.77 141.89 129.06 141.92 128.21 C141.91 127.73 141.89 127.37 142.02 127.02 Z",
+      // Physically *nested* vertical cavity shadows: broad wet turn,
+      // smaller warm wash, darkest asymmetric off-center recess.
+      p("M142.12 126.78 C142.7 126.4 143.6 126.91 143.77 127.85 C143.9 129.04 143.49 130.01 142.98 130.14 C142.37 129.72 142.06 128.58 142.12 126.78 Z",
         "$shadow","none",0,.32),
-      p("M142.55 127.36 C143.1 127.1 143.72 127.35 143.85 127.9 C143.97 128.61 143.62 129.16 143.05 129.13 C142.55 128.97 142.41 127.95 142.55 127.36 Z",
+      p("M142.5 127.12 C142.79 126.96 143.37 127.42 143.36 128 C143.5 129 143.28 129.48 142.96 129.61 C142.58 129.16 142.46 128.17 142.5 127.12 Z",
         "$deep","none",0,.18),
-      // Deepest wet ink accumulates only in a tiny crescent under the
-      // receding upper lip. $deep is the lighter ochre pigment, whereas
-      // $ink holds the true dark line. Never fill the full oral oval.
-      // Centre-of-hole black dots read as a painted pupil. Shift the
-      // strongest ink to a small tilted *upper cavity shelf* rooted in
-      // the moving vermilion, leaving the lower mouth paper-translucent.
-      p("M142.73 127.56 C143.03 127.43 143.52 127.54 143.69 127.78 C143.46 127.98 143.04 127.93 142.73 127.56 Z",
+      p("M142.66 127.55 C142.84 127.4 143.08 127.62 143.12 127.92 C143.23 128.65 143.12 129.02 142.96 129.21 C142.77 128.86 142.67 128.18 142.66 127.55 Z",
         "$ink","none",0,.22),
-      // Unequal sidewalls: near orbicularis has a broader lip roll,
-      // far lip recedes toward the nose rather than mirroring the oval.
-      p("M141.08 126.85 C140.74 127.82 140.72 128.79 141.25 129.76",
+      // Perspective-correct unequal near/far lip rolls (no upper and
+      // lower eye-lid-like horizontal strokes extending to the cheeks).
+      p("M141.77 126.69 C141.47 127.86 141.7 129.17 142.12 130.06",
         "none","$skinshade",.34,.29),
-      p("M144.86 126.72 C145.36 127.59 145.27 128.56 144.84 129.44",
+      p("M144.19 126.92 C144.59 128.02 144.4 129.06 144.07 129.68",
         "none","$shadow",.23,.29),
-      pressure([141.38,125.98],[142.1,125.43],[143.73,125.58],
-        [144.73,126.36],.27,792,"$shadow",.31),
-      // Source paper glimmers through the lower lip's wet edge;
-      // a closed translucent wedge, not a white graphic highlight.
-      p("M142.18 131.3 C142.98 131.6 144.02 131.32 144.68 130.86 C144.23 131.71 143.02 131.95 142.18 131.3 Z",
+      pressure([141.95,125.98],[142.38,125.43],[143.56,125.58],
+        [144.24,126.36],.27,792,"$shadow",.31),
+      // Reserve individual soft lower-lip fibres, NOT a white circle.
+      p("M142 131.14 C142.67 131.46 143.7 131.28 144.24 130.83 C143.88 131.65 142.74 131.75 142 131.14 Z",
         "$paper","none",0,.21),
-      p("M142.3 131.85 Q143.55 132.17 144.5 131.43",
+      p("M142.21 131.74 Q143.25 132.04 144.1 131.35",
         "none","$paper",.28,.24),
     ];
     if(state==="aa")return [
@@ -274,10 +269,10 @@ export function scrollReaderFacePortrait(detail=1):
   const speechAnatomyLips=(state:keyof typeof mouth):CharacterPathShape[]=>{
     if(state!=="aa"&&state!=="oh")return anatomy.lips;
     const moved:readonly string[]=state==="oh"?[
-      "M141.7 131.35 Q143.1 132.2 144.6 131.1",
-      "M140.45 125.45 C141.5 124.92 143.45 124.94 145.12 125.73 C143.5 125.58 141.98 125.53 140.45 125.45 Z",
-      "M140.65 125.45 Q142.7 124.82 145.15 125.86",
-      "M141.04 131.12 Q142.98 132.4 144.9 130.72",
+      "M141.98 131.22 Q143.04 132.07 144.19 131.07",
+      "M141.76 125.97 C142.43 125.32 143.58 125.39 144.34 126.09 C143.42 125.84 142.55 125.8 141.76 125.97 Z",
+      "M141.8 125.92 Q143.04 125.39 144.27 126.14",
+      "M141.89 131.06 Q143.04 132.3 144.36 130.86",
     ]:[
       "M138.85 132.12 Q142.2 133.3 145.85 131.35",
       "M136.3 124.8 C140.3 124.05 146.2 124.31 148.52 124.45 C145.5 125.7 140.1 125.28 136.3 124.8 Z",
@@ -295,7 +290,7 @@ export function scrollReaderFacePortrait(detail=1):
     p(state==="aa"?
       "M138.5 132 Q142.8 134.1 146.3 130.8":
       state==="oh"?
-      "M141.05 131.05 Q143.05 132.72 145.02 130.8":
+      "M141.83 131.07 Q143.04 132.46 144.31 130.87":
       "M139.9 129.6 Q143.6 131.7 147.2 128.6",
     "none","$skinshade",.46,.35);
   const mouthAsset=(state:keyof typeof mouth)=>asset("mouth-"+state,[
@@ -311,7 +306,8 @@ export function scrollReaderFacePortrait(detail=1):
     ...speechLips(state),
     attachedLowerLip(state),
     p(state==="aa"?"M139.2 130.8 Q143.4 132.4 146 129.9":
-      "M138.2 128.9 Q143.6 129.5 147 127.6",
+      state==="oh"?"M141.91 130.54 Q143.1 131.35 144.24 130.42":
+        "M138.2 128.9 Q143.6 129.5 147 127.6",
       "none","$skinshade",.55,.43),
     ...(medium?[p("M135.1 124.2 Q137 123.4 139.1 124.2",
       "none","$skinshade",.41,.38)]:[]),
