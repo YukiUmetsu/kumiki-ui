@@ -110,6 +110,27 @@ The [exact-head 44148624099 Chromium + 960×540 film run](https://github.com/Yuk
 
 **Art quality remains NOT CLEARED:** the independent body, hand anatomy, staff contact, expressive face and garment volume need a **native-scale side-by-side review against the museum original**; unit-test counts cannot establish physical brush behavior, full human figure plausibility, or visual continuity. No walking gait, separate articulated knee, hand gesture variation or production character rig is claimed. All previous historic Fuchun hemp, pine, rock, and final normal-speed cinematic acceptance gates remain.
 
+## Actual 540×1080 Chromium ArtCraft review: reject seam and over-contrasted garment
+
+The [previous full native Storybook/film run 44163318183](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44163318183) **passed** TypeScript, original Shanshui tests, new standing figure tests and real Chromium. Inspected the real PNGs for the original 540×1080 standing scholar/elder and full 960×540 stage (browser screenshot artifact [14364757683](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44163318183/artifacts/14364757683)), rather than relying on test presence.
+
+**Disqualifying visual findings:**
+1. A dead-straight strong **horizontal line at source y≈612** cuts through the robe like a two-piece paper collage. The legacy 540×620 bust layer was clipped abruptly across the standing 540×1080 gown.
+2. Original upper robe used a gray/green filled broad garment mass, contrasting too sharply with the paler lower cotton gown. The cloth looks like a dark overcoat sewn to an unweighted lower panel. Its fold lines are disproportionately dark and geographically flat rather than single cotton folds.
+3. The staff grips the hand neither convincingly at 1× nor in proper depth; the native pen/staff image appeared in front of skin in earlier builds. The previous code rearranged staff behind the hand, but true **5.4×** optical review of finger opposition is still needed.
+4. The 960×540 figure's bottom landed around the last ~40 px of the viewport, not clearly on the foreground river bank. Visually it looked too large relative to distance mountains. The face remains obviously simplified cartoon linework at close range.
+
+**Source-informed correction, preserving every individual original path:**
+- In the standalone ANAT2 portrait, new opt-in `garmentWash="cotton"` reuses its entire painting and original INK1 pressure geometry, but uses a pale warm cotton color/load and lower silhouette-ink contrast. The original full-bust/portrait `silk` appearance remains the default, untouched.
+- The native 540×1080 standing figure blends the *actual existing original bust SVG* using a **source-space** 540×620 paper-absorption gradient/mask, fully opaque to 490 px, then smoothly releasing through 530–620 px into the uninterrupted, pale, independent hem painting. This is not a CSS screenshot trick, rectangle hiding missing elements, or removal of microtextures. All upper sleeve/waist paths, ANAT1 face, beard fibers, 4 upper INK1 strokes and 6 lower INK1 strokes remain.
+- Corrected original standing cotton underlayer and overlayer pigmentation toward unbleached parchment/white cotton; dark brush edges still survive independently and only the upper underpainting is de-loaded.
+- Original optional 960×540 actor scales from 183 down to **150 px wide**, anchored at **(635,184)**. The full-body 540×1080 painting therefore retains feet at 184+150×1025/540 ≈ **469**, consistent with the 960×540 near-bank ground around y≈470. The historic bamboo staff, actual 96-frame motion, foreground occlusion and fixed shoes remain unaltered.
+- New source-geometry-only cameras in `InkAnatomicalStandingFigure` (no pixel resampling): `full` = 540×1080, `waist` = 65/425/420/305 at ~2.8×, `grip` = 87/535/100/134 at ~5.4×, `hem` = 158/855/290/196 at ~1.86×. The independent full-standing Storybook atelier exposes all 4; real Chromium screenshots assert every original staff/robe/foot path is still present.
+
+**Historical painting reference:** [UMMA, Zeng Jing, *Portrait of Pan Qintai* (1621)](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/) describes pale cotton garments and nearly invisible graded face wash. [High-resolution original image](https://commons.wikimedia.org/wiki/File:Zeng_Jing_(Tseng_Ching)_-_Portrait_of_Pan_Qintai_-_Google_Art_Project.jpg) is consulted for weight hierarchy and anatomy, not traced, embedded or published as an asset.
+
+**No release claim:** These edits are candidate corrections to observed pixels, not a passed visual art gate. Re-render exact-head 1× and all three microscopes, inspect source-space physical sleeve continuity, thumb/staff overlap and foot planting, and only then consider further work. Facial depth, hand contact, garment material and the entire Fuchun geography still fail historical-grade acceptance.
+
 ## Actual acceptance gates
 
 1. Storybook **ANAT2 Independent Portrait Rebuild**: both character controls, five facial expressions, face microscope, 0–100% expression intensity, fibre detail and 24-fps motion slider work in Chromium. Check that eyebrows and mouth change from the *same* face, not cutout stickers; 0 and 96 return identical SVG geometry.
