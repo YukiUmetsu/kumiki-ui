@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/riso64-cinematic-film-proof.yml"
       - "src/video/riso-brush-studio.tsx"
+      - "scripts/film.mjs"
       - "src/video/riso-cinematic-timeline.ts"
       - "src/video/riso-cinematic-slot.tsx"
       - "src/video/riso-cinematic-film.ts"
@@ -52,6 +53,8 @@ jobs:
         run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso64-cinematic-film.spec.ts
       - name: Validate both portable native output files
         run: npm run film:check -- examples/film/riso-cinematic-two-plate.film.json --format=json
+      - name: Smoke real production capture of macro source frame before encoding
+        run: npm run film:frame -- examples/film/riso-cinematic-two-plate.film.json --only=landscape --frame=24 --out=dist/riso64-preflight
       - name: Encode all 288 physical spot-print frames for both orientations
         run: npm run film:render -- examples/film/riso-cinematic-two-plate.film.json --out=dist/riso64-production
       - name: Validate 24fps real video encodes, aspect and visibly evolving 5-beat frames
