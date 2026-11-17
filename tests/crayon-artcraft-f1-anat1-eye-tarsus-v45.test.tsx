@@ -2,6 +2,7 @@ import {describe,it,expect} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {inspectCrayonScene} from "../registry/video/materials/crayon-scene";
+import {auditCrayonF1LashRootContinuity} from "../src/video/crayon-artcraft-f1-lash-clusters";
 import {crayonCc0FaceStudy} from "../src/video/crayon-artcraft-cc0-face";
 import {
   CRAYON_F1_V45_SOURCE,CRAYON_F1_V45_CHANGED_IDS,
@@ -69,8 +70,8 @@ describe("Crayon ArtCraft V45 source tarsal form, scleral color and rooted nativ
           if(original.kind!=="contour"||candidate.kind!=="contour")
             throw new Error("Source lash component lost");
           expect(candidate.d.startsWith(original.d+" ")).toBe(true);
-          expect((original.d.match(/M/g)??[])).toHaveLength(33);
-          expect((candidate.d.match(/M/g)??[])).toHaveLength(56);
+          expect((original.d.match(/M/g)??[])).toHaveLength(10);
+          expect((candidate.d.match(/M/g)??[])).toHaveLength(33);
           const {d:a,...originalMeta}=original;
           const {d:b,...candidateMeta}=candidate;
           expect(candidateMeta).toEqual(originalMeta);
@@ -84,6 +85,29 @@ describe("Crayon ArtCraft V45 source tarsal form, scleral color and rooted nativ
       expect(after.elements.filter(e=>e.id.startsWith("cc0-hedge-")))
         .toEqual(before.elements.filter(e=>e.id.startsWith("cc0-hedge-")));
     }
+  });
+
+  it("preserves pre-existing rooted-flow 33 source eyelashes and registers 23 more true tarsal contacts",()=>{
+    const options={detail:1,lashFinish:"rooted-flow" as const};
+    const v43=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-photo-foliage-v43",
+    });
+    const v45=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-eye-tarsus-v45",
+    });
+    expect(inspectCrayonScene(v45)).toEqual([]);
+    const source=v43.elements.find(x=>x.id==="lash-contact-near");
+    const result=v45.elements.find(x=>x.id==="lash-contact-near");
+    if(source?.kind!=="contour"||result?.kind!=="contour")
+      throw new Error("Missing ANAT1 root-flow source lash");
+    expect((source.d.match(/M/g)??[])).toHaveLength(33);
+    expect((result.d.match(/M/g)??[])).toHaveLength(56);
+    expect(result.d.startsWith(source.d+" ")).toBe(true);
+    const roots=auditCrayonF1LashRootContinuity(v45.elements);
+    expect(roots.near.count).toBe(56);
+    expect(roots.near.detached).toBe(0);
+    expect(roots.near.maximumDistance).toBeLessThanOrEqual(5.5);
+    expect(roots.far.detached).toBe(0);
   });
 
   it("fails closed if original V36 eye is detached, source follicle removed, or study double-applied",()=>{
