@@ -53,9 +53,12 @@ export function RisoPullTabFilmStudio(){
       {id:"centre-slit",x:710,y:170,width:95,height:206,radius:9},
       {id:"right-slit",x:820,y:170,width:95,height:206,radius:9},
     ]:[
-      {id:"left-slit",x:54,y:529,width:120,height:250,radius:10},
-      {id:"centre-slit",x:203,y:529,width:120,height:250,radius:10},
-      {id:"right-slit",x:352,y:529,width:120,height:250,radius:10},
+      // In the final down-pull frame the printed insert's editorial
+      // subtitle crosses y=538. Keep all real diecuts below that type
+      // and within the original full-detail river halftone field.
+      {id:"left-slit",x:54,y:595,width:120,height:228,radius:10},
+      {id:"centre-slit",x:203,y:595,width:120,height:228,radius:10},
+      {id:"right-slit",x:352,y:595,width:120,height:228,radius:10},
     ];
     return candidates.slice(0,windowCount);
   },[aspect,windowCount]);
