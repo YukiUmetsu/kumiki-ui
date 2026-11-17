@@ -30,4 +30,4 @@
 
 ## Outstanding physical limitations and next step
 
-The sample A4 print profile with top 12mm and other edges 8mm is illustrative, not validated for any manufacturer. The stamp/cross positions and brightness of native grayscale files are not proof of machine color response or stock; the print shop may want PDF, TIFF or additional file controls. Real print scans are necessary for actual physical QA. A flatbed scan with documented paper edge positions and both drum cross centers is the next empirical step. Do NOT work on human-hand PR #513.
+The sample A4 print profile with top 10mm and other edges 8mm is illustrative, not validated for any manufacturer. The stamp/cross positions and brightness of native grayscale files are not proof of machine color response or stock; the print shop may want PDF, TIFF or additional file controls. Real print scans are necessary for actual physical QA. A flatbed scan with documented paper edge positions and both drum cross centers is the next empirical step. Do NOT work on human-hand PR #513.

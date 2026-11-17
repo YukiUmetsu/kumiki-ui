@@ -56,7 +56,7 @@ async({page},info)=>{
   await expect(root).toHaveAttribute("data-km-riso70-ready","false");
   await expect(page.getByRole("button",{name:"RISO70 export blue PDF"})).toBeDisabled();
   await expect(root.locator("[data-km-riso70-issues]")).toContainText("mark-outside-press");
-  await range("RISO70 unavailable top",12);
+  await range("RISO70 unavailable top",10);
   await expect(root).toHaveAttribute("data-km-riso70-ready","true");
   await range("RISO70 synthetic red X",3.2);
   await expect(root).toHaveAttribute("data-km-riso70-within","false");

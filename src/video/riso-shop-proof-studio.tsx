@@ -34,7 +34,7 @@ export function RisoShopProofStudio(){
   const [aspect,setAspect]=useState<RisoAspect>("landscape");
   const [frame,setFrame]=useState(160);
   const [seed,setSeed]=useState(66);
-  const [margins,setMargins]=useState({top:12,right:8,bottom:8,left:8});
+  const [margins,setMargins]=useState({top:10,right:8,bottom:8,left:8});
   const [marks,setMarks]=useState<"none"|"crop"|"crop-and-register">("crop-and-register");
   const [format,setFormat]=useState<RisoPressFormat>("pdf");
   const [dpi,setDpi]=useState<300|600>(300);

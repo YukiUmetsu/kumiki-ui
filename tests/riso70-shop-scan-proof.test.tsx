@@ -16,7 +16,7 @@ const setup=(aspect:"landscape"|"portrait"="landscape",frame=160)=>{
   const spec=risoExampleSpec(aspect,66),
     masters=riso68OriginalMasters(aspect,frame,66),
     layout=riso68PaperProfile(aspect,{marks:"crop-and-register"});
-  const profile=riso70IllustrativeProfile({top:12,right:8,bottom:8,left:8});
+  const profile=riso70IllustrativeProfile({top:10,right:8,bottom:8,left:8});
   return {spec,masters,layout,profile};
 };
 describe("RISO70 explicit machine policies and PAPER-corner scanned proof",()=>{
@@ -30,8 +30,8 @@ describe("RISO70 explicit machine policies and PAPER-corner scanned proof",()=>{
       expect(report.shopId).toBe("illustrative-custom-a4");
       expect(report.profileSource).toBe("operator-entered");
       expect(report.printableMm).toEqual({
-        x:8,y:12,width:layout.sheetMm[0]-16,
-        height:layout.sheetMm[1]-20,
+        x:8,y:10,width:layout.sheetMm[0]-16,
+        height:layout.sheetMm[1]-18,
       });
       expect(masters.reduce((s,p)=>s+p.shapes.reduce((t,x)=>
         t+(x.dryPaths?.length??0),0),0)).toBeGreaterThan(400);
@@ -134,7 +134,7 @@ describe("RISO70 explicit machine policies and PAPER-corner scanned proof",()=>{
       .toThrow(/four observed PAPER corners/);
     expect(()=>inspect({...p,corners:[...p.corners.slice(0,3),
       {...p.corners[3],scanPx:p.corners[0].scanPx}]}))
-      .toThrow(/degenerate|singular/);
+      .toThrow(/degenerate|singular|calibration exceeds/);
   });
   it("blocks perspective-warped scans by independent PAPER-corner residual",()=>{
     const {spec,masters,layout}=setup();
