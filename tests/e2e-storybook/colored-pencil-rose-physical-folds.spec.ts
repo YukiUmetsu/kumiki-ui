@@ -95,6 +95,30 @@ test("frontal rose S-seam retains both paper-bound dry optical contacts across s
   }
 });
 
+test("medial S-seam remains physically filled — no paper-through gap between forward petals",async({page})=>{
+  await page.goto(story);
+  const svg=page.locator("svg[data-km-colored-pencil]");
+  await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
+  await page.getByRole("checkbox",{name:"Foundation rose physical folds"}).check();
+  await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
+  // These source-space x/y samples were picked from the real 960×540
+  // screenshot's formerly naked paper gap, not from invented mock paths.
+  // Both faces share the same authored paper transform and z-order.
+  const samples=[[244,212],[244,219],[244,226],[244,233],[244,240],
+                 [244,247],[244,254]] as const;
+  const exposed=await svg.evaluate((root,points)=>{
+    const left=root.querySelector('[data-km-pencil-region="petal-front-left"] path[data-km-pencil-support]') as SVGPathElement|null;
+    const right=root.querySelector('[data-km-pencil-region="petal-front-right"] path[data-km-pencil-support]') as SVGPathElement|null;
+    if(!left||!right)return points.map(([x,y])=>({x,y,covered:false}));
+    return points.map(([x,y])=>({
+      x,y,covered:left.isPointInFill(new DOMPoint(x,y))||
+        right.isPointInFill(new DOMPoint(x,y)),
+    }));
+  },samples);
+  for(const {x,y,covered} of exposed)
+    expect(covered,"paper hole at authored flower coordinates "+x+","+y).toBe(true);
+});
+
 test("physical underturns have truly visible filled lamina beyond their parent face — not just a line",async({page})=>{
   await page.goto(story);
   const svg=page.locator("svg[data-km-colored-pencil]");
