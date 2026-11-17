@@ -3,7 +3,7 @@ import {
   ShodoBrushCloseUp, ShodoBrushMotionStudy, ShodoCharacterGallery, ShodoFilmShot, ShodoKanjiCard, ShodoTechniquesBoard, fillKanjiCardContent, parseWordHighlights,
 } from "./shodo-demos";
 import type { JlptLevel, KanjiCardContent, KanjiCardInk, KanjiCardLayout, KanjiCardPhase, KanjiCardWord } from "./shodo-demos";
-import { KANJI_DATASET_CREDIT, ShodoStudio, useKanjiCardDataset } from "./shodo-studio";
+import { ShodoStudio, useKanjiCardDataset } from "./shodo-studio";
 
 const meta = {
   title: "Video production/Film Looks/Shodō Calligraphy",
@@ -64,13 +64,12 @@ function KanjiCardFromArgs(args: KanjiCardArgs) {
     meanings: args.meanings || undefined, onyomi: args.onyomi || undefined, kunyomi: args.kunyomi || undefined,
     jlpt: args.jlpt === "sample" ? undefined : args.jlpt === "none" ? null : args.jlpt, words: args.words?.length ? args.words : undefined,
   };
-  const { content, filled } = fillKanjiCardContent(typed, dataset?.get(char)?.card);
+  const content = fillKanjiCardContent(typed, dataset?.get(char)?.card);
   const cues = args.wordHighlights?.trim().toLowerCase() === "each" ? "each" as const : parseWordHighlights(args.wordHighlights ?? "");
   return <ShodoKanjiCard
     key={char + "|" + args.layout}
     char={char} heading={args.heading} layout={args.layout}
     meanings={content.meanings} onyomi={content.onyomi} kunyomi={content.kunyomi} jlpt={content.jlpt} words={content.words}
-    dataCredit={filled ? KANJI_DATASET_CREDIT : undefined}
     speed={args.speed} timing={{ write: seconds(args.writeSeconds), review: seconds(args.reviewSeconds), info: seconds(args.infoSeconds) }}
     sections={{ label: args.showLabel, meanings: args.showMeanings, readings: args.showReadings, jlpt: args.showJlpt, words: args.showWords }}
     cardFrom={args.cardFrom} ink={args.ink} strokeNumbers={args.strokeNumbers}

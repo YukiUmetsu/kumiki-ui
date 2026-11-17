@@ -411,13 +411,12 @@ describe("SHO1 shodō calligraphy", () => {
     expect(card?.words).toHaveLength(1);
     expect(card?.kunyomi).toBeUndefined();
     const empty = fillKanjiCardContent({}, card);
-    expect(empty.filled).toBe(true);
-    expect([empty.content.meanings, empty.content.jlpt, empty.content.kunyomi]).toEqual(["MOUNTAIN", "N5", undefined]);
+    expect([empty.meanings, empty.jlpt, empty.kunyomi]).toEqual(["MOUNTAIN", "N5", undefined]);
     const typed = fillKanjiCardContent({ meanings: "HILL", jlpt: null, words: resolveKanjiCardContent("道", {}).words }, card);
-    expect(typed.content.meanings).toBe("HILL");                              // typed text wins
-    expect(typed.content.jlpt).toBeNull();                                    // "no badge" wins
-    expect(typed.content.words?.[0].word).toBe("山");                         // the 道 sample words are replaced
-    expect(fillKanjiCardContent({ meanings: "X" }, undefined)).toEqual({ content: { meanings: "X" }, filled: false });
+    expect(typed.meanings).toBe("HILL");                                      // typed text wins
+    expect(typed.jlpt).toBeNull();                                            // "no badge" wins
+    expect(typed.words?.[0].word).toBe("山");                                 // the 道 sample words are replaced
+    expect(fillKanjiCardContent({ meanings: "X" }, undefined)).toEqual({ meanings: "X" });
     expect(readKanjiCardDataset(null)).toBeNull();
     expect(readKanjiCardDataset({ kanji: "x" })).toBeNull();
     // "each": every word in turn, from 20 % to 80 % of the video.

@@ -129,7 +129,7 @@ The ink of the character is centred in the writing panel, not in the full frame.
 **Local kanji data (stories only).** On the owner's machine, the stories fill the card from `local-assets/shodo-teachers/kanji-cards/jlpt-n5-n3.json`. Storybook serves this file as `/shodo-teachers/kanji-cards/jlpt-n5-n3.json`. It has study-card data for the 612 JLPT N5–N3 kanji, and it is never committed.
 - `useKanjiCardDataset` in `src/video/shodo-studio.tsx` (beside `useShodoTeachers`) loads the file once per page. `readKanjiCardDataset` reads it and leaves out entries and fields of the wrong type.
 - When the `char` control holds a kanji from the file, `fillKanjiCardContent` fills each empty card field (meanings, on'yomi, kun'yomi, JLPT, words) from the kanji's `card`. A field that still holds the 道 sample counts as empty. A value typed in the controls wins, and the JLPT option "none" also wins.
-- When a card shows data from the file, the footer adds the line "Kanji data: KANJIDIC2 and JMdict, © EDRDG, CC BY-SA 4.0. JLPT levels and vocabulary: Jonathan Waller's JLPT resources, CC BY." under the KanjiVG line (`dataCredit`).
+- The card shows no credit for this data. The credit line goes in the description of each video (the data's README in the private repository gives it).
 - Without the file (on every other machine), the stories behave as before: only 道 has sample data.
 
 ### Word highlights

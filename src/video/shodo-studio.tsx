@@ -54,8 +54,6 @@ export interface ShodoKanjiDatasetEntry {
 
 /** Where Storybook serves the owner's study-card data (from `local-assets/shodo-teachers/kanji-cards/`). */
 export const KANJI_DATASET_URL = "/shodo-teachers/kanji-cards/jlpt-n5-n3.json";
-/** Credit for the study-card data; show it when a card uses the data. */
-export const KANJI_DATASET_CREDIT = "Kanji data: KANJIDIC2 and JMdict, © EDRDG, CC BY-SA 4.0. JLPT levels and vocabulary: Jonathan Waller's JLPT resources, CC BY.";
 
 /**
  * Reads the study-card file `{ about, kanji: [{ char, jlpt, card: { meanings, onyomi, kunyomi,
