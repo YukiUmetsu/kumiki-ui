@@ -11,6 +11,7 @@ import {RisoCinematicStudio} from "./riso-cinematic-studio";
 import {RisoRegistrationPreflightStudio} from "./riso-registration-proof-studio";
 import {RisoContactTrapStudio} from "./riso-contact-trap-studio";
 import {RisoTopologyGuardStudio} from "./riso-topology-guard-studio";
+import {RisoMasterSeparationStudio} from "./riso-master-separation-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -414,6 +415,12 @@ export const RisographContactEdgeTrap:StoryObj<typeof RisoContactTrapStudio>={
 export const RisographTopologySafety:StoryObj<typeof RisoTopologyGuardStudio>={
   name:"Risograph · Native Stencil Topology Guard",
   render:()=> <RisoTopologyGuardStudio/>,
+};
+
+/** Two complete original K-only physical ink masters with measured print-shop controls. */
+export const RisographMasterSeparation:StoryObj<typeof RisoMasterSeparationStudio>={
+  name:"Risograph · Native Grayscale Master Separation",
+  render:()=> <RisoMasterSeparationStudio/>,
 };
 
 const meta = {
