@@ -331,6 +331,13 @@ test("source-linked Bochen multiglaze survives native 1x, isolated six-region an
     const newShapes=await layered.locator("[data-km-ink-glaze-base] path")
       .evaluateAll(nodes=>nodes.map(node=>node.getAttribute("d")));
     expect(newShapes).toEqual(oldShapes);
+    // The before/after panels must retain more than an empty head fill:
+    // live ear mass, malar jaw paint, philtrum and tiny pressure lines
+    // are present in both, so the ArtCraft difference is truthful.
+    expect(oldShapes.length).toBeGreaterThan(10);
+    expect(oldShapes.some(d=>d?.startsWith(
+      "M119.2 116 C121.4 120.5 124.8 123.5"))).toBe(true);
+    expect(oldShapes.some(d=>d?.includes("143.3 143.7"))).toBe(true);
     const regions=layered.locator("[data-km-ink-glaze-region]");
     await expect(regions).toHaveCount(6);
     const before=await layered.locator("[data-km-ink-glaze-region] path").count();
