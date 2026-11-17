@@ -265,3 +265,29 @@ test("reference-redrawn ZJ1 face, continuous robe, bamboo grip and planted sanda
     await figure.screenshot({animations:"disabled",
       path:info.outputPath("zj1-white-cotton-robe-and-visible-sandals-1.86x.png")});
   });
+
+test("ZJ1 face atelier drives five source-space expressions from EXPR1 FACS features",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-anat2-standing-figure--cotton-robe-and-staff&viewMode=story");
+    const figure=page.getByTestId("ink-anat2-standing-live")
+      .locator('[data-km-ink-standing-figure="scholar"]');
+    const camera=page.getByRole("combobox",{name:"Ink standing camera"});
+    const expression=page.getByRole("combobox",{name:"Ink standing emotion"});
+    await camera.selectOption("face");
+    const head=figure.locator('[data-km-ink-zengjing-head="scholar"]');
+    await expect(head).toHaveAttribute("data-km-ink-zengjing-method","mogu-aotufa");
+    const states=["neutral","smile","sad","angry","surprise"] as const;
+    const browPaths:string[]=[],mouthPaths:string[]=[],eyeOpenings:string[]=[];
+    for(const state of states){
+      await expression.selectOption(state);
+      await expect(head).toHaveAttribute("data-km-ink-face-emotion",state);
+      browPaths.push((await head.locator('[data-km-zj1-brow="L"] path').first().getAttribute("d"))??"");
+      mouthPaths.push((await head.locator('[data-km-zj1-mouth="anatomical"] path').first().getAttribute("d"))??"");
+      eyeOpenings.push((await head.locator('[data-km-zj1-eye="L"] path').first().getAttribute("d"))??"");
+      await head.screenshot({animations:"disabled",
+        path:info.outputPath("zj1-facs-"+state+"-native-face.png")});
+    }
+    expect(new Set(browPaths).size).toBeGreaterThan(2);
+    expect(new Set(mouthPaths).size).toBe(5);
+    expect(new Set(eyeOpenings).size).toBeGreaterThan(2);
+  });
