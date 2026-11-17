@@ -233,19 +233,23 @@ test("ANAT2 real Shanshui film switches between grounded full figure and origina
     await expect(actor.locator('[data-km-ink-standing-figure]')).toHaveCount(1);
   });
 
-test("original standing cotton color and source-space 2.8x robe seam, 5.4x grip and 1.86x soles are genuinely inspectable",
+test("reference-redrawn ZJ1 face, continuous robe, bamboo grip and planted sandals are inspectable at native source scale",
   async({page},info)=>{
     await page.goto("/iframe.html?id=video-ink-anat2-standing-figure--cotton-robe-and-staff&viewMode=story");
     const figure=page.getByTestId("ink-anat2-standing-live")
       .locator('[data-km-ink-standing-figure="scholar"]');
     const camera=page.getByRole("combobox",{name:"Ink standing camera"});
     await expect(figure).toHaveAttribute("data-km-ink-standing-camera","full");
-    await expect(figure.locator('[data-km-ink-standing-seam="paper-wicked-continuous"]')).toHaveCount(1);
-    await expect(figure.locator('[data-km-ink-costume-material="cotton"]')).toHaveCount(1);
+    await expect(figure.locator('[data-km-ink-zengjing-head="scholar"]')).toHaveCount(1);
+    await expect(figure.locator('[data-km-ink-standing-head="independent-zj1-mogu"]')).toHaveCount(1);
+    await camera.selectOption("face");
+    await expect(figure).toHaveAttribute("viewBox","215 183 110 260");
+    await figure.screenshot({animations:"disabled",
+      path:info.outputPath("zj1-zengjing-mogu-face-anatomy-4.7x.png")});
     await camera.selectOption("waist");
     await expect(figure).toHaveAttribute("viewBox","65 425 420 305");
     await figure.screenshot({animations:"disabled",
-      path:info.outputPath("anat2-standing-real-paperwicked-cotton-junction-2.8x.png")});
+      path:info.outputPath("zj1-continuous-cotton-cross-collar-and-waist-2.8x.png")});
     await camera.selectOption("grip");
     await expect(figure).toHaveAttribute("viewBox","87 535 100 134");
     await expect(figure.locator('[data-km-ink-bamboo-staff="continuous"]')).toHaveCount(1);
@@ -254,10 +258,10 @@ test("original standing cotton color and source-space 2.8x robe seam, 5.4x grip 
     await expect(figure.locator('[data-km-ink-grip-nail]')).toHaveCount(4);
     await expect(figure.locator('[data-km-ink-hand-skin-fibre]')).toHaveCount(14);
     await figure.screenshot({animations:"disabled",
-      path:info.outputPath("anat2-standing-real-bamboo-opposed-grip-5.4x.png")});
+      path:info.outputPath("zj1-ming-scholar-bamboo-grip-5.4x.png")});
     await camera.selectOption("hem");
     await expect(figure).toHaveAttribute("viewBox","158 855 290 196");
     await expect(figure.locator('[data-km-ink-foot]')).toHaveCount(2);
     await figure.screenshot({animations:"disabled",
-      path:info.outputPath("anat2-standing-real-cotton-hem-and-sandals-1.86x.png")});
+      path:info.outputPath("zj1-white-cotton-robe-and-visible-sandals-1.86x.png")});
   });
