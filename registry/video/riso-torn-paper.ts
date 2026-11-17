@@ -139,5 +139,5 @@ export function risoTornProgress(
     throw new RangeError("RISO76 expects absolute nonnegative frame/start and 1–3600 scene frames.");
   if(reducedMotion)return 1;
   const t=clamp01((frame-startFrame)/durationFrames);
-  return rounded(t*t*(3-2*t));
+  return t*t*(3-2*t); // never quantize the film clock into 1/1000-frame pauses
 }
