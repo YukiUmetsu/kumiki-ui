@@ -1850,6 +1850,60 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
   expect(errors).toEqual([]);
 });
 
+/** Source-pixel-observed V41 forehead boundary and right temple overlap.
+ * Browser proof deliberately captures the SAME original V40 and candidate
+ * at identical absolute time, camera, seed, paper and native material.
+ * It does not claim likeness or approve a photographic quality score.
+ */
+test("F1 V41 actual native CC0 source hairline 1x/forehead/far temple vs V40",async({page},info)=>{
+  test.setTimeout(210_000);
+  await page.setViewportSize({width:608,height:1082});
+  const exceptions:string[]=[];
+  page.on("pageerror",e=>exceptions.push(e.message));
+  const images:Record<string,Uint8Array[]>={full:[],forehead:[],right:[]};
+  for(const midfaceForm of [
+    "source-anat1-hair-contour-v40","source-anat1-hairline-v41",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","forehead","right"] as const){
+      const focus=view==="forehead"?
+        {focusX:335,focusY:350,zoom:2.4}:
+        {focusX:513,focusY:670,zoom:2.15};
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,...focus},{frame:299,...focus},
+      ]};
+      const markup=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        markup+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["face-outline","forehead-light","hair-crown-surface",
+        "hair-left-curtain","hair-right-curtain",
+        "source-brow-follicles-near","iris-near","iris-far",
+        "hair-rooted-crown-0","hair-rooted-left-0","hair-rooted-right-0"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await expect(svg.locator(
+        '[data-km-crayon-element^="hair-rooted-"]')).toHaveCount(18);
+      const img=await svg.screenshot({
+        path:info.outputPath("crayon-v41-"+view+"-"+midfaceForm+"-299.png"),
+        animations:"disabled",
+      });
+      images[view].push(img);
+    }
+  }
+  for(const view of ["full","forehead","right"] as const){
+    expect(images[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(images[view][0]),
+      Buffer.from(images[view][1]))).not.toBe(0);
+  }
+  expect(exceptions).toEqual([]);
+});
+
 /** V40 independently inspectable native 608x1082 source-space silhouette.
  * Reuses every original V39 hair cubic, face and 300-frame material scene;
  * negative controls share exact source camera, frame and deterministic seed.
