@@ -312,44 +312,121 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       <path d={"M"+xy(shift(templeL,18,8))+" q6 6 2 10"}
         fill="none" stroke={preset.ink} strokeWidth="2" opacity=".27"/>
     </g>
-    {/** Hair is independent from skin and dynamically remains in head space. */}
-    {character==="scholar"?<>
-      <path d={"M"+xy(shift(top,-77,21))+" Q"+xy(shift(hatTop,-8,-48))
-        +" "+xy(shift(top,75,13))+" Q"+xy(shift(top,57,-9))
-        +" "+xy(shift(top,31,-7))+" L"+xy(shift(top,-58,6))+" Z"}
-        fill={preset.ink} opacity=".91"/>
-      <path d={"M"+xy(shift(hatTop,-32,-8))+" Q"+xy(shift(hatTop,0,-45))
-        +" "+xy(shift(hatTop,38,-14))+" L"+xy(shift(hatTop,39,6))
-        +" "+xy(shift(hatTop,-35,9))+" Z"} fill="#302a27" opacity=".93"/>
-      <path d={"M"+xy(shift(hatTop,-39,11))+" Q"+xy(shift(hatTop,1,7))
-        +" "+xy(shift(hatTop,44,9))} fill="none" stroke="#938573" strokeWidth="1.25" opacity=".68"/>
-    </>:<>
-      <path d={"M"+xy(shift(top,-68,5))+" Q"+xy(shift(top,-8,-34))
-        +" "+xy(shift(top,69,0))+" Q"+xy(shift(top,50,21))
-        +" "+xy(shift(top,20,6))+" Q"+xy(shift(top,-37,13))
-        +" "+xy(shift(top,-68,5))+" Z"} fill={preset.ink} opacity=".84"/>
-      <path d={"M"+xy(shift(q("cheilion.R"),-11,-2))+" Q"+xy(shift(q("menton"),-25,30))
-        +" "+xy(shift(menton,-12,86))+" Q"+xy(shift(menton,2,67))
-        +" "+xy(shift(menton,16,83))+" Q"+xy(shift(q("cheilion.L"),19,20))
-        +" "+xy(shift(q("cheilion.L"),14,-3))}
-        fill="#5a5147" opacity=".31" stroke={preset.ink} strokeWidth=".8"/>
-      {Array.from({length:39},(_,i)=>{
-        const t=i/38,x=menton[0]+(t-.5)*76;
-        const topY=menton[1]-26+Math.abs(t-.5)*36;
-        const len=(1-Math.abs(t-.5)*.95)*(40+16*Math.sin(i*4.12));
-        return <path key={i} d={"M"+fmt(x)+" "+fmt(topY)+" q"+fmt((t-.5)*8)
-          +" "+fmt(len*.55)+" "+fmt((t-.5)*14)+" "+fmt(len)}
-          fill="none" stroke={i%5===0?"#e2d3bd":preset.ink}
-          strokeWidth={i%3===0?.75:.43} opacity={(i%5===0?.58:.36)*detail}/>;
-      })}
-    </>}
-    {Array.from({length:42},(_,i)=>{
-      const t=i/41,x=top[0]-65+t*133,y=top[1]-6-Math.sin(Math.PI*t)*23;
-      return <path key={"h"+i} d={"M"+fmt(x)+" "+fmt(y)+" q"+fmt(2.7*Math.sin(i*.61))
-        +" "+fmt(-7+i%4*.5)+" "+fmt(2.4*Math.cos(i))+" -"+fmt(12+(i%7)*1.25)}
-        stroke={character==="elder"&&i%4===0?"#b6a68e":preset.ink}
-        fill="none" strokeWidth={i%5===0?.78:.38} opacity={(.24+(i%3)*.11)*detail}/>;
-    })}
+
+    {/** Unlike the rejected earlier crown, no exposed vertical hair comb or
+         disconnected cap. All hair fibers have a true painted support mask. */}
+    {(()=>{
+      const crown=character==="scholar"?
+        "M"+xy(shift(top,-90,9))
+        +" C"+xy(shift(top,-97,-20))+" "+xy(shift(top,-68,-41))
+        +" "+xy(shift(top,-33,-44))
+        +" C"+xy(shift(top,-11,-54))+" "+xy(shift(top,17,-50))
+        +" "+xy(shift(top,43,-39))
+        +" C"+xy(shift(top,70,-28))+" "+xy(shift(top,94,-9))
+        +" "+xy(shift(top,92,10))
+        +" C"+xy(shift(top,48,11))+" "+xy(shift(top,-49,16))
+        +" "+xy(shift(top,-90,9))+" Z"
+        :
+        "M"+xy(shift(top,-77,15))
+        +" C"+xy(shift(top,-74,-15))+" "+xy(shift(top,-49,-30))
+        +" "+xy(shift(top,-21,-26))
+        +" C"+xy(shift(top,16,-33))+" "+xy(shift(top,58,-22))
+        +" "+xy(shift(top,72,14))
+        +" Q"+xy(shift(top,44,8))+" "+xy(shift(top,26,18))
+        +" C"+xy(shift(top,-8,8))+" "+xy(shift(top,-49,22))
+        +" "+xy(shift(top,-77,15))+" Z";
+      return <g data-km-ink-hair={character}>
+        <path d={crown} fill={preset.ink}
+          fillOpacity={character==="scholar"?.90:.66}
+          stroke={preset.ink} strokeWidth=".62" strokeOpacity=".7"/>
+        <clipPath id={uid+"-hair-crown"}><path d={crown}/></clipPath>
+        <g clipPath={"url(#"+uid+"-hair-crown)"}>
+          {Array.from({length:65},(_,i)=>{
+            const t=i/64,edge=Math.abs(t-.5)*2;
+            const x=top[0]-76+t*155;
+            const y=top[1]-9-18*(1-edge*edge)+2.1*Math.sin(i*1.87);
+            const length=7+13*(1-edge)+2.2*Math.sin(i*2.31);
+            const bend=1.5+2.8*Math.cos(i*.93);
+            return <path key={i}
+              d={"M"+fmt(x)+" "+fmt(y)
+                +" q"+fmt(bend)+" "+fmt(length*.46)
+                +" "+fmt(bend+(i%3-1)*2)+" "+fmt(length)}
+              stroke={character==="elder"&&i%5===0?"#c9bca6":"#bcb09b"}
+              fill="none" strokeWidth={i%7===0?.83:.33+(i%4)*.07}
+              opacity={(character==="scholar"?.38:.54)*detail}/>;
+          })}
+        </g>
+        {character==="scholar"?<>
+          {/** Folded Ming scholar cap, with a continuous brim and side wings. */}
+          <path d={"M"+xy(shift(top,-86,7))
+            +" C"+xy(shift(top,-40,16))+" "+xy(shift(top,30,13))
+            +" "+xy(shift(top,88,7))
+            +" L"+xy(shift(top,80,19))
+            +" Q"+xy(shift(top,-7,20))+" "+xy(shift(top,-79,18))+" Z"}
+            fill="#262724" opacity=".95"/>
+          <path d={"M"+xy(shift(top,-78,9))
+            +" Q"+xy(shift(top,-102,14))+" "+xy(shift(top,-116,21))
+            +" Q"+xy(shift(top,-94,27))+" "+xy(shift(top,-72,19))}
+            fill="#2e2e2a" opacity=".82"/>
+          <path d={"M"+xy(shift(top,80,7))
+            +" Q"+xy(shift(top,101,11))+" "+xy(shift(top,110,22))
+            +" Q"+xy(shift(top,89,23))+" "+xy(shift(top,77,18))}
+            fill="#2e2e2a" opacity=".87"/>
+          <path d={"M"+xy(shift(top,-73,9))
+            +" Q"+xy(shift(top,-11,13))+" "+xy(shift(top,70,9))}
+            fill="none" stroke="#cabca0" strokeWidth=".69" opacity=".37"/>
+          <path d={"M"+xy(shift(top,-35,-39))
+            +" Q"+xy(shift(top,-22,-46))+" "+xy(shift(top,-9,-48))}
+            fill="none" stroke="#c7b7a0" strokeWidth=".66" opacity=".27"/>
+        </>:<>
+          <path d={"M"+xy(shift(top,-53,12))
+            +" Q"+xy(shift(top,-18,10))+" "+xy(shift(top,12,12))
+            +" Q"+xy(shift(top,43,10))+" "+xy(shift(top,54,16))}
+            stroke="#c8b7a0" strokeWidth=".9" fill="none" opacity=".42"/>
+          {Array.from({length:8},(_,i)=><path key={i}
+            d={"M"+xy(shift(top,-47+i*11,14+(i%2)*2))
+              +" q"+fmt(1.1+(i%3))+" 6 "+fmt(3+(i%3))+" "+fmt(10+(i%4))}
+            stroke={i%3===0?"#bdb5a6":preset.ink}
+            strokeWidth=".53" opacity=".37" fill="none"/>)}
+          {/** Isolated moustache-root clusters with actual hairline directions. */}
+          {Array.from({length:18},(_,i)=>{
+            const near=i<9,side=near?-1:1,k=i%9;
+            const corner=near?q("cheilion.R"):q("cheilion.L");
+            const x=corner[0]+side*(3+k*1.7);
+            const y=corner[1]-5+(k%3)*.38;
+            return <path key={"m"+i}
+              d={"M"+fmt(x)+" "+fmt(y)+" q"+fmt(side*(3+k*.2))
+                +" "+fmt(2.2+k*.1)+" "+fmt(side*(4+k*.45))+" "+fmt(5+(k%3)*1.3)}
+              fill="none" stroke={preset.ink}
+              opacity={(i%4===0?.40:.25)*detail} strokeWidth={i%3===0?.70:.38}/>;
+          })}
+          {/** Five separate tapering chin locks, never one rectangular beard. */}
+          {Array.from({length:5},(_,i)=>{
+            const offset=i-2,root=shift(menton,offset*13,-1+Math.abs(offset)*4);
+            const end=shift(menton,offset*8,52+Math.cos(offset*1.8)*15);
+            const mid:Point=shift(menton,offset*10,28+Math.abs(offset)*2);
+            return <path key={"lock"+i} data-km-ink-beard-lock={i}
+              d={"M"+xy(shift(root,-4,-1))
+                +" Q"+xy(shift(mid,-5,-1))+" "+xy(end)
+                +" Q"+xy(shift(mid,4,3))+" "+xy(shift(root,3,2))+" Z"}
+              fill={preset.ink} opacity={.08+(i===2?.13:.04)}/>;
+          })}
+          {Array.from({length:55},(_,i)=>{
+            const t=i/54,x=menton[0]+(t-.5)*66;
+            const offset=Math.abs(t-.5)*2;
+            const topY=menton[1]-5+offset*10+1.2*Math.sin(i*1.83);
+            const len=(1-offset*.53)*(30+28*Math.abs(Math.sin(i*2.77)));
+            const drift=(t-.5)*13;
+            return <path key={i} d={"M"+fmt(x)+" "+fmt(topY)
+              +" Q"+fmt(x+drift*.4)+" "+fmt(topY+len*.51)
+              +" "+fmt(x+drift)+" "+fmt(topY+len)}
+              fill="none" stroke={i%7===0?"#bfb3a1":preset.ink}
+              strokeWidth={i%4===0?.83:.32+(i%3)*.09}
+              opacity={(i%7===0?.38:.30)*detail}/>;
+          })}
+        </>}
+      </g>;
+    })()}
     {/** Paper fibers are individual dry, directional lines, not a flat gradient. */}
     {detail>.5&&Array.from({length:27},(_,i)=>{
       const x=110+(i*73)%317,y=492+(i*47)%108;
