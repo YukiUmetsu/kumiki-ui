@@ -52,6 +52,9 @@ describe("CP-F1 source-area dry pencil value planes for frontal rose",()=>{
         expect(zone.bounds).toEqual(plane.bounds);
         expect(zone.details).toEqual(plane.details);
         expect(zone.contour.opacity).toBe(0);
+        expect(zone.underpaintOpacity).toBe(plane.surface==="cast-shadow"?.28:.13);
+        expect(zone.layers[0].spacing).toBeLessThan(4);
+        expect(zone.layers[0].pressure).toBeGreaterThan(.30);
         expect(zone.layers.length).toBeGreaterThanOrEqual(3);
         expect(after.foundation?.surfaces[plane.id]).toBe(plane.surface);
       }
