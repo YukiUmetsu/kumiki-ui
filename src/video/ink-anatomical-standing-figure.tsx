@@ -39,18 +39,18 @@ const pt=(x:number,y:number,pressure:number,pace:number)=>({x,y,pressure,pace});
 /** Registered INK1 native trajectories on the *lower cotton robe* only. */
 function lowerRobeInkSpec(character:InkPortraitCharacter):InkBrushSpec {
   const elder=character==="elder";
-  const adjust=elder?12:0;
+  const adjust=elder?6:0;
   return {
     version:1,width:540,height:1080,paper:"#f2e6d3",seed:elder?1621:1647,
     strokes:[
       {id:"left-weight-fold",width:4.1,load:.72,dryness:.62,tone:1,startFrame:0,durationFrames:1,
-        points:[pt(182,563,.05,1.5),pt(175,707,.72,.66),pt(154,868,.51,1.1),pt(195,1005,.03,2.1)]},
+        points:[pt(182,563,.05,1.5),pt(175,707,.72,.66),pt(184,868,.51,1.1),pt(195,982,.03,2.1)]},
       {id:"inside-left-panel",width:2.7,load:.66,dryness:.77,tone:1,startFrame:0,durationFrames:1,
-        points:[pt(246,575,.04,1.6),pt(237,733,.87,.78),pt(223,906,.35,1.3),pt(208,1023,.02,2.2)]},
+        points:[pt(246,575,.04,1.6),pt(237,733,.87,.78),pt(223,906,.35,1.3),pt(208,982,.02,2.2)]},
       {id:"crossed-inner-hem",width:3.4,load:.55,dryness:.81,tone:2,startFrame:0,durationFrames:1,
-        points:[pt(311,570,.07,1.7),pt(298,714,.9,.59),pt(306,883,.48,.94),pt(319,1013,.02,2)]},
+        points:[pt(311,570,.07,1.7),pt(298,714,.9,.59),pt(306,883,.48,.94),pt(319,982,.02,2)]},
       {id:"right-bias-fold",width:4.25,load:.74,dryness:.59,tone:1,startFrame:0,durationFrames:1,
-        points:[pt(369,559,.06,1.9),pt(365,704,.82,.62),pt(390,877,.60,1.12),pt(394,1009,.03,2.1)]},
+        points:[pt(339,559,.06,1.9),pt(352,704,.82,.62),pt(348,877,.60,1.12),pt(351,982,.03,2.1)]},
       {id:"hanging-sleeve-dry-release",width:4.1,load:.57,dryness:.89,tone:1,startFrame:0,durationFrames:1,
         points:[pt(354,472,.05,1.7),pt(390,565,.85,.65),pt(385,646+adjust,.55,1.15),pt(360,680+adjust,.03,2.2)]},
       {id:"bamboo-hand-sleeve",width:2.75,load:.62,dryness:.70,tone:1,startFrame:0,durationFrames:1,
