@@ -207,6 +207,11 @@ export function scrollReaderFacePortrait(detail=1):
         "$shadow","none",0,.32),
       p("M142.55 127.36 C143.1 127.1 143.72 127.35 143.85 127.9 C143.97 128.61 143.62 129.16 143.05 129.13 C142.55 128.97 142.41 127.95 142.55 127.36 Z",
         "$deep","none",0,.18),
+      // Deepest wet ink accumulates only in a tiny crescent under the
+      // receding upper lip. $deep is the lighter ochre pigment, whereas
+      // $ink holds the true dark line. Never fill the full oral oval.
+      p("M142.8 127.65 C143.05 127.43 143.52 127.55 143.62 127.92 C143.57 128.43 143.27 128.67 142.93 128.44 C142.73 128.21 142.7 127.9 142.8 127.65 Z",
+        "$ink","none",0,.22),
       // Unequal sidewalls: near orbicularis has a broader lip roll,
       // far lip recedes toward the nose rather than mirroring the oval.
       p("M141.08 126.85 C140.74 127.82 140.72 128.79 141.25 129.76",
@@ -244,6 +249,8 @@ export function scrollReaderFacePortrait(detail=1):
         "$shadow","none",0,.29),
       p("M140.16 127.52 C141.92 127.5 144.7 127.9 145.72 127.44 C145.15 128.81 144.08 129.67 142.85 129.57 C141.53 129.24 140.76 128.43 140.16 127.52 Z",
         "$deep","none",0,.24),
+      p("M141.48 127.91 C142.3 127.94 144.11 128.24 144.74 128.01 C144.35 128.7 143.63 129.08 142.77 128.95 C142.13 128.7 141.78 128.36 141.48 127.91 Z",
+        "$ink","none",0,.26),
       pressure([137.22,125.85],[139.72,125.45],[144.7,125.73],
         [147.85,125.26],.3,793,"$shadow",.32),
       pressure([139.1,129.44],[140.32,131.07],[143.65,131.76],
