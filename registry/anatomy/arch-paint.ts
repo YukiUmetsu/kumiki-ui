@@ -29,7 +29,7 @@ export interface GroundZone { x0: number; x1: number; z0: number; z1: number; y:
 /** A canopy of leaves above the scene: sunlight through it falls in dapples. */
 export interface Canopy { x: number; z: number; y: number; r: number; /** Share of light blocked, 0–1. */ density?: number }
 /** A window that lets a sun shaft into a room: a rectangle on a wall plane (`axis` "z": the wall lies at constant z). */
-export interface Portal { x: number; y: number; z: number; axis: "x" | "z"; hw: number; hh: number }
+export interface Portal { x: number; y: number; z: number; axis: "x" | "z"; hw: number; hh: number; /** What the window does to sunlight passing through: clear glass, stained glass (coloured patches) or paper (no direct sun, only a glow). */ tint?: "clear" | "stained" | "paper" }
 /** Ivy on a wall: a patch rooted at (x, z) on the ground, `w` wide and `h` tall, on the wall facing ±z (`axis` "z") or ±x. */
 export interface IvyPatch { x: number; z: number; y0?: number; w: number; h: number; axis?: "x" | "z" }
 export interface CameraSpec {
@@ -53,6 +53,10 @@ export interface Mood {
   white?: number;
   /** A second, unshadowed light from behind that rims the silhouette: elevation°, azimuth°, K, strength. */
   rim?: readonly [number, number, number, number];
+  /** Exposure key (the mid value the picture is metered to): 0.3 by day, 0.16 at night; lower keeps a dim church dim round its glowing glass. */
+  key?: number;
+  /** How far past white the brightest few per cent may be exposed (1.6 by default); higher lets a sunlit garden beyond open shoji burn out so the room itself reads. */
+  burn?: number;
 }
 export const MOODS: Readonly<Record<MoodId, Mood>> = {
   morning: { sunElevation: 24, sunAzimuth: -58, sunKelvin: 4300, sunPower: 3.0, skyTop: "#5f8fc8", skyHorizon: "#f1e7d2", ambient: 1.15, haze: "#d9dde0", visibility: 1400, wet: 0, snow: 0, night: 0, cloud: 0.35 },
@@ -86,6 +90,8 @@ export interface ArchScene {
   dust?: number;
   /** A closed room: sky light enters only through its windows (`portals`), falling off with distance, so corners away from them stay dark. */
   interior?: boolean;
+  /** Where the room ends: hits outside this box (a garden seen through open shoji) are lit as outdoors. */
+  interiorBox?: { lo: readonly [number, number, number]; hi: readonly [number, number, number] };
   /** Far plane, metres. */
   far?: number;
   seed?: number;
@@ -116,6 +122,7 @@ export function kelvinRgb(k: number): [number, number, number] {
   return [R / Y, G / Y, B / Y];
 }
 const sst = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const vnoise = (s: number, x: number, y: number) => 0.5 + 0.5 * gradNoise(s, x, y);
 
 // ---- The painter --------------------------------------------------------------------------------------------------------------
 
@@ -173,6 +180,8 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
 
   // G-buffer
   const col = new Float32Array(n * 3), depth = new Float32Array(n), nrm = new Float32Array(n * 3), ids = new Float32Array(n), sunVis = new Float32Array(n), emis = new Float32Array(n);
+  // sun shafts are gathered apart and smoothed before they join the picture: their few samples per pixel would otherwise read as grain
+  const shaft = new Float32Array(portals.length ? n * 3 : 0);
   const so = newSurfOut(), si: SurfIn = { tone: 0, fw: 0.01, ny: 0, y: 0, seed, wx: 0, wy: 0, wz: 0 };
   const so2 = newSurfOut();
   let steps = 0, hits = 0;
@@ -226,6 +235,12 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
     }
     const r = Math.max(0, Math.min(1, res));
     return r * r * (3 - 2 * r);
+  };
+  /** Whether the air at a point sees the window it lies in the beam of (a short hard shadow march). */
+  const beamClear = (px: number, py: number, pz: number, dx: number, dy: number, dz: number, tMax: number): boolean => {
+    let t = 0.05;
+    for (let i = 0; i < 16 && t < tMax; i++) { const hh = sdf(px + dx * t, py + dy * t, pz + dz * t); if (hh < 0.01) return false; t += Math.max(hh, 0.05); }
+    return true;
   };
   const ao = (px: number, py: number, pz: number, nx: number, ny: number, nz: number): number => {
     let occ = 0, sc = 1;
@@ -351,27 +366,43 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
         rough *= 1 - 0.6 * wet;
       }
       // light: sun
+      const ib = scene.interiorBox, indoor = !!scene.interior && (!ib || (hx >= ib.lo[0] && hx <= ib.hi[0] && hy >= ib.lo[1] && hy <= ib.hi[1] && hz >= ib.lo[2] && hz <= ib.hi[2]));
       let vis = 0;
       const diff = bnx * Lx + bny * Ly + bnz * Lz;
+      let tintR = 1, tintG = 1, tintB = 1;
       if (sunP > 0.01 && nx * Lx + ny * Ly + nz * Lz > -0.05) {
-        vis = softShadow(hx + nx * 0.004, hy + ny * 0.004, hz + nz * 0.004, Lx, Ly, Lz, 120, 14, draft ? 32 : 72);
+        if (indoor && portals.length) {
+          // indoors the sun arrives only through a window: find the window the sun ray passes through, then test the way to it
+          let tHit = -1, pt: Portal | null = null;
+          for (const p of portals) { const nd = p.axis === "z" ? Lz : Lx; if (Math.abs(nd) < 1e-3 || p.tint === "paper") continue; const tt = ((p.axis === "z" ? p.z - hz : p.x - hx)) / nd; if (tt <= 0) continue; const a = (p.axis === "z" ? hx + Lx * tt - p.x : hz + Lz * tt - p.z), yy = hy + Ly * tt - p.y; if (Math.abs(a) < p.hw && Math.abs(yy) < p.hh && (tHit < 0 || tt < tHit)) { tHit = tt; pt = p; } }
+          if (pt && tHit > 0.2) {
+            vis = softShadow(hx + nx * 0.004, hy + ny * 0.004, hz + nz * 0.004, Lx, Ly, Lz, tHit - 0.35, 14, draft ? 24 : 48);
+            if (pt.tint === "stained") {
+              // light through medieval glass lands as soft pools of blue and violet with ruby and some gold, about a third as bright
+              const u = (pt.axis === "z" ? hx + Lx * tHit : hz + Lz * tHit) * 1.6, w = (hy + Ly * tHit) * 1.1, n1 = vnoise(seed + 77, u, w), n2 = vnoise(seed + 91, u * 1.7, w * 1.7);
+              const rub = sst(0.45, 0.75, n1), gold = sst(0.7, 0.9, n2) * (1 - rub);
+              tintR = 0.38 * (0.32 * (1 - rub - gold) + 1.0 * rub + 1.0 * gold); tintG = 0.38 * (0.42 * (1 - rub - gold) + 0.22 * rub + 0.72 * gold); tintB = 0.38 * (1.0 * (1 - rub - gold) + 0.32 * rub + 0.25 * gold);
+            }
+          } else vis = 0;
+        } else vis = softShadow(hx + nx * 0.004, hy + ny * 0.004, hz + nz * 0.004, Lx, Ly, Lz, 120, 14, draft ? 32 : 72);
         if (canopies.length && vis > 0) vis *= cookie(hx, hy, hz);
       }
       let occ = ao(hx, hy, hz, nx, ny, nz) * (0.55 + 0.45 * so.cav);
       // where a wall meets the ground the sky is half hidden: contact shadow
       if (zoneHit < 0 && ny < 0.5 && grounds.length) { const gy = hy - groundBelow(hx, hz); occ *= 1 - 0.45 * Math.exp(-Math.max(0, gy) * 3.2) * (1 - Math.max(0, ny)); }
       const dsun = Math.max(0, diff) * vis;
+      const sunR = sunC[0] * tintR, sunG = sunC[1] * tintG, sunB = sunC[2] * tintB;
       // sky: brighter from above; ground bounce warm from below
       let windowLight = 1;
-      if (scene.interior) {
+      if (indoor) {
         // sky light through each window: its area, seen at an angle, over the square of the distance
         let wf = 0;
-        for (const p of portals) { const vx = p.x - hx, vy = p.y - hy, vz = p.z - hz, d2 = vx * vx + vy * vy + vz * vz + 0.3, dl = Math.sqrt(d2), cs = Math.max(0, (bnx * vx + bny * vy + bnz * vz) / dl) * 0.8 + 0.2, cp = Math.abs(p.axis === "z" ? vz : vx) / dl; wf += (4 * p.hw * p.hh * cs * cp) / (Math.PI * d2); }
+        for (const p of portals) { const vx = p.x - hx, vy = p.y - hy, vz = p.z - hz, d2 = vx * vx + vy * vy + vz * vz + 0.3, dl = Math.sqrt(d2), cs = Math.max(0, (bnx * vx + bny * vy + bnz * vz) / dl) * 0.8 + 0.2, cp = Math.abs(p.axis === "z" ? vz : vx) / dl, tr = p.tint === "stained" ? 0.16 : p.tint === "paper" ? 0.55 : 1; wf += (4 * p.hw * p.hh * cs * cp * tr) / (Math.PI * d2); }
         windowLight = Math.min(1.2, 0.08 + wf * 5);
       }
       const skyK = amb * occ * (0.55 + 0.45 * bny) * windowLight, bounce = amb * occ * 0.35 * Math.max(0, -bny + 0.25) * sunP * 0.3;
       const skyR = skyTop[0] * 0.55 + skyHor[0] * 0.45, skyG = skyTop[1] * 0.55 + skyHor[1] * 0.45, skyB = skyTop[2] * 0.55 + skyHor[2] * 0.45;
-      let lr = sunC[0] * dsun + skyR * skyK + 0.55 * bounce, lg = sunC[1] * dsun + skyG * skyK + 0.45 * bounce, lb = sunC[2] * dsun + skyB * skyK + 0.32 * bounce;
+      let lr = sunR * dsun + skyR * skyK + 0.55 * bounce, lg = sunG * dsun + skyG * skyK + 0.45 * bounce, lb = sunB * dsun + skyB * skyK + 0.32 * bounce;
       // the rim light: catches edges that turn away from the camera, as a back light does in a studio
       if (rimC) { const nd = bnx * rimD[0] + bny * rimD[1] + bnz * rimD[2]; if (nd > 0) { const edge = 0.35 + 0.65 * Math.pow(1 - Math.max(0, -(dx * bnx + dy * bny + dz * bnz)), 2); const f = nd * edge * (0.5 + 0.5 * occ); lr += rimC[0] * f; lg += rimC[1] * f; lb += rimC[2] * f; } }
       // lamps, candles, fires
@@ -432,18 +463,23 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
       // sun shafts through room windows
       if (portals.length && sunP > 0.05) {
         const N = draft ? 10 : 22, dust = scene.dust ?? 0.5;
-        let acc = 0;
+        let acc = 0, stainedAcc = 0;
         for (let s = 0; s < N; s++) {
           const ts = (t * (s + hash2(seed, px, py * 7 + s))) / N, qx = cam.x + dx * ts, qy = cam.y + dy * ts, qz = cam.z + dz * ts;
           for (const p of portals) {
             const nrmD = p.axis === "z" ? Lz : Lx; if (Math.abs(nrmD) < 0.01) continue;
             const tt = ((p.axis === "z" ? p.z - qz : p.x - qx)) / nrmD; if (tt <= 0) continue;
             const cx2 = qx + Lx * tt - p.x, cy2 = qy + Ly * tt - p.y, cz2 = qz + Lz * tt - p.z, a = p.axis === "z" ? cx2 : cz2;
-            if (Math.abs(a) < p.hw && Math.abs(cy2) < p.hh) { const mote = hash2(seed + 9, Math.floor(qx * 40), Math.floor(qy * 40) + Math.floor(qz * 40) * 77) > 0.997 ? 6 : 1; acc += mote; break; }
+            if (Math.abs(a) < p.hw && Math.abs(cy2) < p.hh && p.tint !== "paper") {
+              // the beam is broken where a pier or wall stands between this bit of air and the window
+              if (!beamClear(qx, qy, qz, Lx, Ly, Lz, tt - 0.3)) break;
+              const mote = hash2(seed + 9, Math.floor(qx * 40), Math.floor(qy * 40) + Math.floor(qz * 40) * 77) > 0.9985 ? 2.2 : 1; acc += mote * (p.tint === "stained" ? 0.3 : 1); if (p.tint === "stained") stainedAcc += mote * 0.3; break; }
           }
         }
-        const sh = (acc / N) * dust * 0.09 * t * 0.25;
-        cr += sunC[0] * sh; cg += sunC[1] * sh; cb += sunC[2] * sh;
+        // the light scattered toward the eye grows with the length of beam crossed, which in a nave is capped by its haze
+        const sh = Math.min((acc / N) * t, 5) * dust * 0.0225, sv = acc > 0 ? stainedAcc / acc : 0;
+        // a shaft through stained glass is violet-blue
+        shaft[k3] = sunC[0] * sh * (1 - 0.45 * sv); shaft[k3 + 1] = sunC[1] * sh * (1 - 0.4 * sv); shaft[k3 + 2] = sunC[2] * sh;
       }
       // the air between: aerial perspective
       const fog = 1 - Math.exp(-t / mood.visibility);
@@ -470,13 +506,21 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
     }
   }
 
+  if (shaft.length) {
+    const R = Math.max(2, Math.round(3 * SS)), tmp = new Float32Array(n * 3);
+    for (let pass = 0; pass < 2; pass++) {
+      for (let y = 0; y < h; y++) for (let c = 0; c < 3; c++) { let acc = 0; for (let x = -R; x <= R; x++) acc += shaft[(y * w + Math.min(w - 1, Math.max(0, x))) * 3 + c]; for (let x = 0; x < w; x++) { tmp[(y * w + x) * 3 + c] = acc / (2 * R + 1); acc += shaft[(y * w + Math.min(w - 1, x + R + 1)) * 3 + c] - shaft[(y * w + Math.max(0, x - R)) * 3 + c]; } }
+      for (let x = 0; x < w; x++) for (let c = 0; c < 3; c++) { let acc = 0; for (let y = -R; y <= R; y++) acc += tmp[(Math.min(h - 1, Math.max(0, y)) * w + x) * 3 + c]; for (let y = 0; y < h; y++) { shaft[(y * w + x) * 3 + c] = acc / (2 * R + 1); acc += tmp[(Math.min(h - 1, y + R + 1) * w + x) * 3 + c] - tmp[(Math.max(0, y - R) * w + x) * 3 + c]; } }
+    }
+    for (let i = 0; i < n * 3; i++) col[i] += shaft[i];
+  }
   // ---- Paint ----------------------------------------------------------------------------------------------------------------
   if (mood.white) {
     // partial white balance: keep a little warmth, as a painter keeps candlelight golden but not orange
     const wb = kelvinRgb(mood.white), k0 = 0.75 / wb[0], k1 = 0.75 / wb[1], k2 = 0.75 / wb[2];
     for (let i = 0; i < n; i++) { col[i * 3] *= 0.25 + k0; col[i * 3 + 1] *= 0.25 + k1; col[i * 3 + 2] *= 0.25 + k2; }
   }
-  const out = paintPass({ w, h, col, depth, nrm, ids, sunVis, emis }, { paint: o.paint ?? 1, ink: o.ink ?? 0.8, seed, night, SS, wet });
+  const out = paintPass({ w, h, col, depth, nrm, ids, sunVis, emis }, { paint: o.paint ?? 1, ink: o.ink ?? 0.8, seed, night, SS, wet, key: mood.key, burn: mood.burn });
   const rgba = new Uint8ClampedArray(W * H * 4);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     let r = 0, g = 0, b = 0;
@@ -507,7 +551,7 @@ function uvOf(lx: number, ly: number, lz: number, nx: number, ny: number, nz: nu
 
 interface GBuf { w: number; h: number; col: Float32Array; depth: Float32Array; nrm: Float32Array; ids: Float32Array; sunVis: Float32Array; emis: Float32Array }
 
-function paintPass(g: GBuf, p: { paint: number; ink: number; seed: number; night: number; SS: number; wet: number }): Float32Array {
+function paintPass(g: GBuf, p: { paint: number; ink: number; seed: number; night: number; SS: number; wet: number; key?: number; burn?: number }): Float32Array {
   const { w, h, depth, nrm, ids, sunVis, emis } = g, n = w * h, P = p.paint, SS = p.SS;
   // 1. exposure and a soft filmic curve: highlights roll off like paper white, never clip hard
   const disp = new Float32Array(n * 3);
@@ -518,7 +562,7 @@ function paintPass(g: GBuf, p: { paint: number; ink: number; seed: number; night
   const lum: number[] = [];
   for (let i = 0; i < n; i += 7) lum.push(0.2126 * g.col[i * 3] + 0.7152 * g.col[i * 3 + 1] + 0.0722 * g.col[i * 3 + 2]);
   lum.sort((a, b2) => a - b2);
-  const p97 = lum[Math.floor(lum.length * 0.97)] ?? 1, key = p.night > 0.5 ? 0.16 : 0.3, expo = Math.min(key / Math.exp(sumLog / Math.max(1, cnt)), 1.6 / Math.max(1e-4, p97));
+  const p97 = lum[Math.floor(lum.length * 0.97)] ?? 1, key = p.key ?? (p.night > 0.5 ? 0.16 : 0.3), expo = Math.min(key / Math.exp(sumLog / Math.max(1, cnt)), (p.burn ?? 1.6) / Math.max(1e-4, p97));
   const lift = 0.45 * P * (1 - 0.6 * p.night);
   const curve = (x0: number) => { const x = x0 * expo, v = Math.max(0, x + lift * 0.06 * (1 - Math.min(1, x * 3))) * 0.92; const y = (v * (2.51 * v + 0.03)) / (v * (2.43 * v + 0.59) + 0.14); return Math.pow(Math.min(1, y), 1 / 2.2); };
   for (let i = 0; i < n * 3; i++) disp[i] = curve(g.col[i]);
