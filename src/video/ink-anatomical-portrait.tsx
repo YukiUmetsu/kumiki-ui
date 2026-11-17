@@ -256,7 +256,7 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       <path d={"M"+xy(shift(q("sublabiale"),-12,4))+" Q"+xy(shift(q("sublabiale"),1,8))+" "+xy(shift(q("sublabiale"),13,1))}
         stroke={preset.bone} fill="none" strokeWidth=".64" opacity=".46"/>
       {marks.map(m=><g key={m.id} data-km-ink-action-mark={m.id}>
-        <path d={spline(m.points.map(([x,y])=>P([x,y,42]))} fill="none"
+        <path d={spline(m.points.map(([x,y])=>P([x,y,42])))} fill="none"
           stroke={preset.bone} strokeWidth={.38+(.3*m.strength)}
           opacity={.15+.25*m.strength} strokeLinecap="round"/>
       </g>)}
