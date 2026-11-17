@@ -712,6 +712,98 @@ export const Cc0NasalDepthAndOcclusion:Story={
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
 };
+/** V37 versus V38 on the same native source camera, at the same absolute frame.
+ * Side-by-side snapshots intentionally keep the reference unmodified. */
+export function Cc0HairValueComparisonV38({
+  detail,startFrame,playbackRate,loop,
+}:StudyProps){
+  const [inspection,setInspection]=useState<"full"|"crown"|"left"|"right">("full");
+  const specs=useMemo(()=>{
+    const d=Math.max(.2,detail);
+    return {
+      before:crayonCc0FaceStudy({detail:d,midfaceForm:"source-anat1-brow-follicles"}),
+      after:crayonCc0FaceStudy({detail:d,midfaceForm:"source-anat1-hair-values"}),
+    };
+  },[detail]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,specs.after.durationFrames,"crayon-v38-hair-value-comparison",
+    playbackRate,loop);
+  const camera=useMemo(()=>{
+    const focus={
+      crown:{focusX:298,focusY:261,zoom:2.85},
+      left:{focusX:68,focusY:640,zoom:2.85},
+      right:{focusX:524,focusY:667,zoom:2.85},
+    } as const;
+    return inspection==="full"?null:[
+      {frame:0,...focus[inspection]},
+      {frame:specs.after.durationFrames-1,...focus[inspection]},
+    ];
+  },[inspection,specs.after.durationFrames]);
+  const variants=[
+    {key:"v37",name:"V37 control · source-rooted brow / original hair",
+      spec:specs.before},
+    {key:"v38",name:"V38 candidate · darker deposited hair wax",
+      spec:specs.after},
+  ] as const;
+  return <section data-km-crayon-hair-ab="unapproved" style={{
+    padding:16,maxWidth:1160,margin:"auto",color:"#352b30",
+    background:"#f3e9da",boxSizing:"border-box",fontFamily:"system-ui"}}>
+    <h2 style={{fontSize:19,margin:"0 0 8px"}}>Source hair value · matched V37/V38 comparison (!dev)</h2>
+    <p style={{fontSize:13,lineHeight:1.6,maxWidth:850}}>
+      Both native CRAYON1 renderings share source registration, seed, exposure,
+      frame and inspection camera. The experiment changes pigment deposition,
+      not strand count or geometry. ART HOLD: photographic likeness and
+      the required full-motion independent review remain unapproved.
+    </p>
+    <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap",
+      marginBottom:14,fontSize:13}}>
+      <label>Inspect hair{" "}
+        <select aria-label="Hair volume comparison region"
+          value={inspection}
+          onChange={e=>setInspection(e.target.value as typeof inspection)}>
+          <option value="full">Whole photograph camera · 1×</option>
+          <option value="crown">Crown and parting · 2.85×</option>
+          <option value="left">Left curtain · 2.85×</option>
+          <option value="right">Right curtain · 2.85×</option>
+        </select>
+      </label>
+      <button type="button" onClick={toggle}>{playing?"Pause":"Play both"}</button>
+      <button type="button" onClick={restart}>Restart</button>
+      <label>Shared frame{" "}
+        <input type="range" aria-label="Shared hair comparison frame"
+          min={0} max={specs.after.durationFrames-1}
+          value={frame} onChange={e=>seek(Number(e.target.value))}/>
+      </label>
+      <output aria-live="off">{frame}</output>
+      <button type="button" onClick={()=>seek(specs.after.durationFrames-1)}>
+        Final deposition
+      </button>
+    </div>
+    <div style={{display:"grid",gap:14,alignItems:"start",
+      gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,300px),1fr))"}}>
+      {variants.map(({key,name,spec})=><figure key={key}
+        data-km-crayon-hair-variant={key}
+        style={{minWidth:0,margin:0}}>
+        <figcaption style={{fontSize:13,fontWeight:650,marginBottom:7}}>
+          {name}
+        </figcaption>
+        <div style={{width:"100%",aspectRatio:"608 / 1082",
+          overflow:"hidden",background:"#f4e6d3"}}>
+          <CrayonScene spec={camera?{...spec,camera}:spec} frame={frame}/>
+        </div>
+      </figure>)}
+    </div>
+    <p style={{fontSize:12,lineHeight:1.55,maxWidth:850}}>
+      Reference: Christopher Campbell, CC0, linked in the CC0 source face lab.
+      This visual control is not an artist acceptance certificate.
+    </p>
+  </section>;
+}
+export const Cc0HairValueABV38:Story={
+  name:"CC0 dark hair · synced V37/V38 1× + 2.85× A/B (!dev)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0HairValueComparisonV38 {...args}/>,
+};
 export const Cc0Anat1HairValuesV38:Story={
   name:"CC0 original photographed chestnut-black hair crown and curtains (!dev V38)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
