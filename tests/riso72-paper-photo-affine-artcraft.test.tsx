@@ -5,7 +5,7 @@ import {createRiso72PaperAffine,riso72PaperMmToImagePixel,
   from "../registry/video/riso-paper-photo-affine";
 import {Riso72PaperPhotoComparator}
   from "../src/video/riso72-paper-photo-comparator";
-import {risoPrintRegistrationTargets,simulateRisoScanProof}
+import {risoPrintRegistrationTargets}
   from "../registry/video/riso-scan-proof";
 import type {RisoProofPoint,RisoScanMeasurements}
   from "../registry/video/riso-scan-proof";
@@ -45,7 +45,7 @@ describe("RISO72 image-based native physical-paper source verification",()=>{
       ...c,scanPx:[c.scanPx[0]+30,c.scanPx[1]-40] as const}):c);
     expect(()=>createRiso72PaperAffine({corners:skew},sheet,imageSize))
       .toThrow(/non-affine/);
-    const folded=[base[0],base[3],base[2],base[1]];
+    const folded=base.map((c,i)=>({...c,scanPx:[base[0],base[3],base[2],base[1]][i].scanPx}));
     expect(()=>createRiso72PaperAffine({corners:folded},sheet,imageSize))
       .toThrow(/mirrored/);
     const flat=base.map((c,i)=>i===3?({...c,scanPx:base[0].scanPx}):c);
@@ -68,8 +68,16 @@ describe("RISO72 image-based native physical-paper source verification",()=>{
     const spec=risoExampleSpec("landscape",66);
     const masters=riso68OriginalMasters("landscape",160,66);
     const layout=riso68PaperProfile("landscape",{marks:"crop-and-register"});
-    const scan=simulateRisoScanProof(spec,masters,layout,[1.3,-.7],
-      {scanRotationDegrees:8,scanPixelsPerMm:11});
+    const targets=risoPrintRegistrationTargets(spec,masters,layout);
+    const scan:RisoScanMeasurements={kind:"physical-scan",
+      corners:corners(),plates:spec.plates.map(p=>({
+        plateId:p.id,marks:(["top","bottom","left","right"] as const).map(id=>({
+          id,scanPx:sheetToImage([
+            targets[id][0]+(p.id==="red"?1.3:0),
+            targets[id][1]+(p.id==="red"?-.7:0),
+          ]),
+        })),
+      }))};
     // Offset all ink pixels by an arbitrary large amount; the paper affine
     // must still only derive from original corner pixels.
     const inkMoved:RisoScanMeasurements={...scan,plates:scan.plates.map(p=>({
@@ -78,8 +86,8 @@ describe("RISO72 image-based native physical-paper source verification",()=>{
         m.scanPx[1]+(p.plateId==="red"?29:0),
       ] as const})),
     }))};
-    const a=createRiso72PaperAffine(scan,layout.sheetMm,[6000,5000]);
-    const b=createRiso72PaperAffine(inkMoved,layout.sheetMm,[6000,5000]);
+    const a=createRiso72PaperAffine(scan,layout.sheetMm,imageSize);
+    const b=createRiso72PaperAffine(inkMoved,layout.sheetMm,imageSize);
     expect(b).toEqual(a);
     const before=spec.plates.map(p=>serializeRisoSeparationMaster(
       spec,masters,layout,p.id));
