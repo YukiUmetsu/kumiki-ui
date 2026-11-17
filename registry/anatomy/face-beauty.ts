@@ -16,33 +16,72 @@
  * `beautifulFace` therefore starts from a face calibrated to measured population means (Farkas norms, ANSUR II
  * breadths), makes it symmetric, opens the eyes and fills the lips to measured attractive values, adds femininity, and
  * places the hairline at Pallett's ratio. Every step is scaled by `beauty` (0 the calibrated average, 1 the full set).
+ *
+ * Then it takes the shape of a face type (`FACE_TYPE_GROUPS`): beautiful film and music stars of one ancestry (East
+ * Asian, South Asian, Black, Latin American, …), by sex, never blended across groups.
  */
 import type { Vec3 } from "./anatomy-body";
 import { createFace, eyeCentres, FACE_LANDMARKS } from "./anatomy-face";
 import { applyEyeShape, findEyeShape } from "./eye-detail";
-import composite from "./data/face-composite.json";
+import faceTypes from "./data/face-types.json";
 import type { EyeShapeSpec } from "./eye-detail";
 import type { FaceLandmark, FaceParams, FaceStudy } from "./anatomy-face";
 import ansur from "./data/ansur-ii-ranges.json";
 
 export interface BeautyEvidence { id: string; finding: string; grade: "reported" | "estimated" | "measured"; source: string; url?: string }
 
+/** A face type's look by default (each can be changed): skin, iris, hair colour, style and curl, eye shape. */
+export interface FaceTypeLook { skin: string; eyes: string; hair: { eumelanin: number; pheomelanin?: number }; hairStyle: string; hairCurl?: number; hairLength?: number; fringe?: string; parting?: string; eyeShape?: string }
+/** A group of face types: the stars of one ancestry. `norm` is the population norm the face is built on. */
 /**
- * The shape of beautiful real faces: per-vertex offsets (mm), by sex, applied after the other steps. They were fitted
- * so that the rendered face, read by MediaPipe's face landmarker exactly as the photographs were, matches the average
- * of public-domain portraits of film stars (frontalised, one photograph a person, the mouth from closed mouths only).
- * Symmetric and smooth; a composite of many faces shows no one's likeness.
+ * A group's bone structure in depth (mm, + forward), against the face this module builds (a European-derived norm):
+ * the brow ridge, the nasal root (radix) and bridge (dorsum), the nose's tip, the cheekbones, the lips and the chin.
  */
-export const FACE_COMPOSITE = composite as unknown as { method: string; sources: { title: string; page: string; licence: string }[]; female: { n: number; offsets: number[][] }; male: { n: number; offsets: number[][] } };
+export interface FaceBone { brow: number; radix: number; dorsum: number; tip: number; cheek: number; upperLip: number; lowerLip: number; chin: number }
+export interface FaceTypeGroup { id: string; label: string; includes: string; norm: string; female: FaceTypeLook; male: FaceTypeLook; bone?: FaceBone }
+/**
+ * A face type: per-vertex offsets (mm) fitted so that the rendered face, read by MediaPipe's face landmarker exactly as
+ * the photographs were, matches the stars of one group and sex (frontalised, one photograph a person). `mouthCorner`
+ * is how far the corners sat below the lips' midline on their closed, unsmiling mouths (mm).
+ */
+export interface FaceType { group: string; sex: "female" | "male"; n: number; residual: number; mouthCorner: number;
+  /** Per-vertex offsets, x and y (mm), on the canonical 468-vertex face. */
+  offsets: number[][];
+  /** The photographs measured, with their credits (author, licence, page). */
+  sources: { title: string; page: string; licence: string; licenceUrl?: string; author?: string; year?: number | null; yaw: number }[];
+  /**
+   * Face-shape variants within the type: its stars split in two by face shape (each of several people), each the
+   * type plus its cluster's difference (x and y offsets, mm), named by the measures it changes most.
+   */
+  variants?: { label: string; n: number; offsets: number[][] }[] }
+const FT = faceTypes as unknown as { method: string; model: string; groups: FaceTypeGroup[]; types: Record<string, FaceType> };
+/** Every face type, keyed "group:female" or "group:male". */
+export const FACE_TYPES: Readonly<Record<string, FaceType>> = FT.types;
+/** The groups that have face types, in order. */
+export const FACE_TYPE_GROUPS: readonly FaceTypeGroup[] = FT.groups.filter(g => FT.types[`${g.id}:female`] || FT.types[`${g.id}:male`]);
+/** How the face types were measured and fitted. */
+export const FACE_TYPES_METHOD: string = FT.method;
+export const findFaceTypeGroup = (id: string | undefined): FaceTypeGroup | undefined => FT.groups.find(g => g.id === id);
+/** The face type that matches a population norm: the default when none is asked for. */
+const NORM_GROUP: Record<string, string> = { "north-american-white": "northern-european", "african-american": "black", saudi: "middle-eastern" };
+/** The face type a set of options resolves to (asked for, or the one matching the norm). */
+export const faceTypeOf = (o: { faceType?: string; norm?: string }): string => o.faceType ?? NORM_GROUP[o.norm ?? "north-american-white"] ?? "northern-european";
+/** A face type's default look for a sex (0 woman … 1 man). */
+export function faceTypeLook(group: string, sex: number): FaceTypeLook | undefined {
+  const g = findFaceTypeGroup(group);
+  return g ? (sex < 0.5 ? g.female : g.male) : undefined;
+}
 
 /** The findings this module applies, each with its source. */
 export const BEAUTY_EVIDENCE: readonly BeautyEvidence[] = [
   { id: "averageness", grade: "reported", finding: "Blends of many faces are more attractive than their constituent faces; the more faces in a composite, the more attractive it is.",
     source: "Little, Jones & DeBruine 2011, Phil. Trans. R. Soc. B 366:1638 (review; Galton; Langlois & Roggman 1990)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3130383/" },
-  { id: "real-faces", grade: "measured", finding: `The shape of beautiful real faces: public-domain studio portraits of film stars (${(composite as { female: { n: number } }).female.n} actresses, ${(composite as { male: { n: number } }).male.n} actors), one a person, frontal, the mouth closed and unsmiling and the eyes open, measured with MediaPipe's face landmarker and averaged by sex. The face is fitted to that average in the landmark model's own measurement space: rendered, read the same way and corrected (residual about 1.1 mm for women and 1.8 mm for men, root mean square over the landmarks).`,
-    source: "ANAT1 face composite (data/face-composite.json; docs/research/beautiful-faces-2026-11-16.md)" },
-  { id: "mouth-corners", grade: "measured", finding: "On the same portraits the mouth's corners sit 0.74 mm (actresses) and 0.86 mm (actors) below the midline where the lips meet; a relaxed mouth with lower corners reads as downturned.",
-    source: "ANAT1 face composite (docs/research/beautiful-faces-2026-11-16.md)" },
+  { id: "real-faces", grade: "measured", finding: "Face types: modern photographs (1995 on) of film, television and music stars widely seen as beautiful or handsome, by ancestry group and sex, under free licences (public domain, CC0, CC BY, CC BY-SA; measured only, each credited), one photograph a person, frontal, the eyes open, the mouth from closed mouths, measured with MediaPipe's face landmarker. Each type is fitted in the landmark model's own measurement space (rendered, read the same way, corrected); groups are never blended.",
+    source: "ANAT1 face types (data/face-types.json; docs/research/face-types-2026-11-16.md)" },
+  { id: "bone", grade: "measured", finding: "Bone structure differs by group: the brow ridge, nasal root and cheekbone depth are measured on each group's stars (the landmark model's depth estimates, against the Northern European stars; East Asian brow ridges about 2.7 mm and nasal roots 1.5 mm further back, Asian cheekbones about 1 mm further forward, as the anthropological literature describes). Lips and nose follow soft-tissue norms: lips against the nose-to-chin E-line −4 / −2 mm in Caucasian samples, −0.04 / +1.66 mm in Malaysian Chinese and −1.3 / +0.19 mm in Malay women; lower, less projecting noses in East Asian, Southeast Asian and African-descended faces (estimated amounts).",
+    source: "ANAT1 face types (docs/research/face-types-2026-11-16.md); E-line values: IIUM J. Orofac. Health Sci. (Malay and Malaysian Chinese adults)", url: "https://journals.iium.edu.my/ktn/index.php/ijohs/article/download/164/103/2863" },
+  { id: "mouth-corners", grade: "measured", finding: "On the same photographs the mouth's corners sit a little below the midline where the lips meet (about 0.7–0.9 mm, by type); a relaxed mouth with lower corners reads as downturned.",
+    source: "ANAT1 face types (docs/research/face-types-2026-11-16.md)" },
   { id: "vector", grade: "reported", finding: "In young adults the soft tissue over the supraorbital rim projects about 10 mm beyond the cornea, the infraorbital rim lies about 3 mm behind it and the cheek prominence about 2 mm beyond it (a positive vector); a cheek behind the cornea (a negative vector) goes with a tired, aged look.",
     source: "Jelks & Jelks vector analysis, as summarised in Yaremchuk's infraorbital rim chapter (Plastic Surgery Key)", url: "https://plasticsurgerykey.com/infraorbital-rim/" },
   { id: "symmetry", grade: "reported", finding: "Increasing symmetry alone is sufficient to increase attractiveness.", source: "Little, Jones & DeBruine 2011 (review)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3130383/" },
@@ -121,10 +160,16 @@ export interface BeautyOptions extends FaceParams {
   /** An eye shape (`EYE_SHAPES` id or a spec): almond, round, hooded, monolid, upturned, … Without one the eyes keep the measured average opening. */
   eyeShape?: string | EyeShapeSpec;
   /**
-   * How much of the shape of real faces to apply (0 none … 1 all, the default): the composite of public-domain
-   * portraits of film actors (`FACE_COMPOSITE`), measured by face landmarks and averaged by sex.
+   * A face type (`FACE_TYPE_GROUPS` id): the shape of beautiful stars of one ancestry, e.g. "east-asian",
+   * "southeast-asian", "south-asian", "middle-eastern", "black", "latin-american", "northern-european",
+   * "southern-european", "eastern-european". Asking for one also brings its look (skin, eyes, hair) unless those are
+   * given. Default: the type matching the population norm (`norm`), without its look.
    */
+  faceType?: string;
+  /** How much of the face type's shape to apply (0 none … 1 all, the default; up to 1.5 exaggerates it). */
   realFaces?: number;
+  /** A face-shape variant within the type (1 or 2, `FACE_TYPES[…].variants`); none or 0: the type as a whole. */
+  faceVariant?: number;
   /**
    * How much to bring the face's depth to measured projections relative to the cornea (0 … 1, default 1): the brow
    * ridge about 10 mm ahead, the rim below the eye about 3 mm behind and the cheek prominence about 2 mm ahead (a
@@ -186,7 +231,8 @@ function placeLids(v: Vec3[], mrd1: number, mrd2: number, k: number) {
 /** A face built from the attractiveness findings (see the module note). */
 export function beautifulFace(o: BeautyOptions = {}): BeautifulFace {
   const b = Math.min(1, Math.max(0, o.beauty ?? 1)), sex = Math.min(1, Math.max(0, o.sex ?? 0.5));
-  const base = createFace({ ...o, sex });
+  const typeId = faceTypeOf(o), group = findFaceTypeGroup(typeId);
+  const base = createFace({ ...o, norm: (o.norm ?? group?.norm ?? "north-american-white") as FaceParams["norm"], sex });
   const v: Vec3[] = base.vertices.map(p => [p[0], p[1], p[2]]);
   const L = (k: FaceLandmark) => v[FACE_LANDMARKS[k]];
   // 1. Symmetry: average each vertex with its mirrored partner.
@@ -220,9 +266,9 @@ export function beautifulFace(o: BeautyOptions = {}): BeautifulFace {
     const en = L(`endocanthion.${s}` as FaceLandmark);
     v.forEach(p => { const d = Math.hypot(p[0] - en[0], p[1] - en[1]); if (d < 6) p[1] -= 0.7 * b * (1 - d / 6); });
   }
-  // 4b. An eye shape: the opening, crease skin, fold, depth and spacing of a real eye type (eye-detail.ts)
-  const eyeShape = o.eyeShape === undefined ? undefined : typeof o.eyeShape === "string" ? findEyeShape(o.eyeShape) : o.eyeShape;
-  if (eyeShape) applyEyeShape(v, eyeShape, sex);
+  // 4b. An eye shape, if one is asked for: applied after the face type (step 6c''), so its opening, tilt and spacing hold
+  const shapeAsked = o.eyeShape ?? (o.faceType ? faceTypeLook(typeId, sex)?.eyeShape : undefined);
+  const eyeShape = shapeAsked === undefined ? undefined : typeof shapeAsked === "string" ? findEyeShape(shapeAsked) : shapeAsked;
   // 5. Lips: vermilion heights toward the measured attractive values (6.5 / 11.6 mm in young women; masculinising
   //    thins the lips, so men take about 0.85 of that, estimated).
   {
@@ -290,22 +336,51 @@ export function beautifulFace(o: BeautyOptions = {}): BeautifulFace {
       }
     }
   }
-  // 6c. The shape of beautiful real faces: the last correction, fitted so that this face, rendered and read by the same
-  //     face-landmark model as the photographs, matches the average of public-domain portraits of film stars (by sex).
-  //     Up to 1.5 exaggerates it (moving further from the average face, as Perrett, May & Yoshikawa 1994 found raised
-  //     attractiveness).
+  // 6c. The face type: the last correction, fitted so that this face, rendered and read by the same face-landmark
+  //     model as the photographs, matches beautiful stars of one group (the woman's and the man's types blended by sex,
+  //     never one group with another). Up to 1.5 exaggerates it (further from the norm the face was built on, as
+  //     Perrett, May & Yoshikawa 1994 found raised attractiveness).
   const rf = Math.min(1.5, Math.max(0, o.realFaces ?? 1)) * b;
-  if (rf > 0) {
-    const fo = FACE_COMPOSITE.female.offsets, mo = FACE_COMPOSITE.male.offsets;
-    v.forEach((p, i) => { for (let k = 0; k < 3; k++) p[k] += rf * (fo[i][k] * (1 - sex) + mo[i][k] * sex); });
+  const tF = FT.types[`${typeId}:female`] ?? FT.types[`${typeId}:male`], tM = FT.types[`${typeId}:male`] ?? tF;
+  if (rf > 0 && tF && tM) {
+    const fo = tF.offsets, mo = tM.offsets;
+    // offsets are stored x and y only (the fit moves points as seen from the front; depth comes from the bone step)
+    v.forEach((p, i) => { for (let k = 0; k < 3; k++) p[k] += rf * ((fo[i][k] ?? 0) * (1 - sex) + (mo[i][k] ?? 0) * sex); });
+    // a face-shape variant within the type
+    const vi = Math.round(o.faceVariant ?? 0) - 1, vf = tF.variants?.[vi]?.offsets, vm = tM.variants?.[vi]?.offsets;
+    if (vi >= 0 && (vf || vm)) v.forEach((p, i) => { for (let k = 0; k < 2; k++) p[k] += rf * ((vf ?? vm)![i][k] * (1 - sex) + (vm ?? vf)![i][k] * sex); });
   }
+  // 6c'. The group's bone structure in depth (the front view's proportions came with the type): the brow ridge, the
+  //      nasal root and bridge, the nose's tip, the cheekbones, the lips and the chin brought forward or back.
+  const bone = group?.bone, bk = Math.min(1.5, rf);
+  if (bone && bk > 0) {
+    const ecB = eyeCentres(v), eyeY = (ecB.L[1] + ecB.R[1]) / 2, prn = L("pronasale"), ls = L("labiale-superius"), li = L("labiale-inferius"), pg = L("pogonion");
+    const half = Math.abs(L("cheilion.L")[0]), radixY = eyeY + 5, gs = (d: number, s0: number) => Math.exp(-(d * d) / (2 * s0 * s0));
+    for (const p of v) {
+      let dz = 0;
+      for (const c of [ecB.L, ecB.R]) {
+        const dx = (p[0] - c[0]) * (Math.sign(c[0]) || 1), dy = p[1] - c[1];
+        dz += bone.brow * gs(dx - 1, 11) * gs(dy - 20, 5.5) + bone.cheek * gs(dx - 12, 11) * gs(dy + 24, 8);
+      }
+      const along = Math.min(1, Math.max(0, (radixY - p[1]) / Math.max(1, radixY - prn[1])));
+      dz += bone.radix * gs(p[0], 7) * gs(p[1] - radixY, 7);
+      dz += bone.dorsum * gs(p[0], 6) * Math.sin(Math.PI * along) * (p[1] < radixY && p[1] > prn[1] ? 1 : 0);
+      dz += bone.tip * gs(p[0], 6) * gs(p[1] - prn[1], 5);
+      dz += bone.upperLip * gs(p[0], half * 0.8) * gs(p[1] - ls[1], 5) + bone.lowerLip * gs(p[0], half * 0.8) * gs(p[1] - li[1], 5);
+      dz += bone.chin * gs(p[0], 12) * gs(p[1] - pg[1], 8);
+      p[2] += bk * dz;
+    }
+  }
+  // 6c''. An eye shape asked for: the opening, crease skin, fold, depth and spacing of a real eye type (eye-detail.ts),
+  //       over the type's eyes (the user's choice wins)
+  if (eyeShape) applyEyeShape(v, eyeShape, sex);
   // 6d. The lids back on the iris (the composite's lids are left as measured on the eye, not as photographs read them:
   //     lash lines, liner and wide-eyed poses make the lids look further apart). An eye shape keeps its own opening.
   if (!eyeShape) placeLids(v, mrd1, mrd2, b);
-  // 6e. The mouth's corners at the height measured on the stars' closed, unsmiling mouths: 0.74 mm (women) and 0.86 mm
-  //     (men) below the midline where the lips meet. Left lower, a relaxed mouth reads as downturned and sad.
+  // 6e. The mouth's corners at the height measured on the type's closed, unsmiling mouths (about 0.7–0.9 mm below the
+  //     midline where the lips meet). Left lower, a relaxed mouth reads as downturned and sad.
   if (rf > 0) {
-    const st = L("stomion"), drop = 0.74 + 0.12 * sex;
+    const st = L("stomion"), drop = tF && tM ? tF.mouthCorner * (1 - sex) + tM.mouthCorner * sex : 0.74 + 0.12 * sex;
     for (const s of ["L", "R"] as const) {
       const ch = L(`cheilion.${s}` as FaceLandmark), dy = (st[1] - drop - ch[1]) * Math.min(1, rf), cx = ch[0], cy = ch[1];
       if (Math.abs(dy) > 0.05) v.forEach(p => { const d2 = (p[0] - cx) ** 2 + (p[1] - cy) ** 2; if (d2 < 400) p[1] += dy * Math.exp(-d2 / (2 * 4.5 ** 2)); });
