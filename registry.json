@@ -3368,6 +3368,11 @@
           "target": "components/video/riso-stencil-topology.ts"
         },
         {
+          "path": "registry/video/riso-separation-master.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-separation-master.ts"
+        },
+        {
           "path": "registry/video/riso-path-geometry.ts",
           "type": "registry:ui",
           "target": "components/video/riso-path-geometry.ts"
