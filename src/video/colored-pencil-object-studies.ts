@@ -15,6 +15,7 @@ import {ROSE_BACK_CUP_RELIEF,roseBackCupUndersideDetails,roseBackCupFaceDetails,
 import {ROSE_FRONT_LAMINA_VOLUME,inspectRoseFrontLaminaVolume} from "./colored-pencil-rose-front-lamina-volume";
 import {ROSE_CENTER_KNOT_SURFACES,ROSE_CENTER_SCROLL_BACKFACE,inspectRoseCenterKnot} from "./colored-pencil-rose-center-knot";
 import {ROSE_OUTER_FORM_FACE_PALETTES,roseOuterFormDeposits,inspectRoseOuterForm} from "./colored-pencil-rose-outer-form";
+import {ROSE_OUTER_RIPPLE_SURFACES,inspectRoseOuterRippleSurfaces} from "./colored-pencil-rose-outer-ripple";
 import {roseCenterValueDetails,inspectRoseCenterValueFields} from "./colored-pencil-rose-center-local-value";
 
 /**
@@ -60,7 +61,7 @@ function material(shape: ObjectShape, seed: number, transform: string): PencilRe
   return createPencilMaterialRegion(input);
 }
 
-function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false,volumeStudy=false,knotStudy=false,outerFormStudy=false): ObjectShape[] {
+function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false,volumeStudy=false,knotStudy=false,outerFormStudy=false,outerRippleStudy=false): ObjectShape[] {
   const shapes:ObjectShape[] = [
     {id:"stem",surface:"wood",palette:leaf,
       path:"M241 266 Q233 324 247 417 L254 417 Q251 331 250 268 Z",
@@ -176,6 +177,10 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
     const issues=inspectRoseOuterForm();
     if(issues.length)throw new Error("Rose outer petal sculptural color fields: "+issues.join("; "));
   }
+  if(outerRippleStudy){
+    const issues=inspectRoseOuterRippleSurfaces();
+    if(issues.length)throw new Error("Rose outer petal actual edge topology: "+issues.join("; "));
+  }
   const anatomy:ObjectShape[]=shapes.flatMap(shape=>{
     if(leafStudy&&(shape.id==="leaf-left"||shape.id==="leaf-right")){
       const side=shape.id==="leaf-left"?"left":"right";
@@ -228,11 +233,13 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
       // and true original sidewall. Only the full front-facing lamina belly
       // and its material-specific crease/vein contacts are reconstructed.
       const volume=volumeStudy?ROSE_FRONT_LAMINA_VOLUME.find(v=>v.id===shape.id):undefined;
-      const contacts=[...frontalContacts,...(volume?.contacts??[])];
+      const ripple=outerRippleStudy?ROSE_OUTER_RIPPLE_SURFACES.find(v=>v.id===shape.id):undefined;
+      const contacts=[...frontalContacts,...(volume?.contacts??[]),...(ripple?.contacts??[])];
       const outerPetal=shape.id==="outer-left"||shape.id==="outer-right"?
         shape.id:undefined;
       const face:ObjectShape={
-        ...shape,path:volume?.face??source.face,bounds:volume?.bounds??source.faceBounds,
+        ...shape,path:volume?.face??ripple?.face??source.face,
+        bounds:volume?.bounds??ripple?.bounds??source.faceBounds,
         // Only the explicitly requested facing lamina receives a warmer
         // middle-value material palette; the cool physically turned underside,
         // original flowers, and all material seeds are left untouched.
@@ -474,6 +481,8 @@ export interface PencilObjectStudyOptions {
   roseCenterKnotStudy?: boolean;
   /** Opt-in source-curved dry-pencil color transitions on two outer adaxial rose petals. */
   roseOuterFormStudy?: boolean;
+  /** Experimental nonmirrored outer petal edge silhouettes; existing physical reverse is retained. */
+  roseOuterRippleStudy?: boolean;
   /** Original gently diffused pencil values for the six true center knot surfaces. */
   roseCenterValueStudy?: boolean;
 }
@@ -489,7 +498,7 @@ export function pencilObjectStudyDrawing({
   roseFrontValueStudy = false, rosePetalRimStudy = false,
   roseBackCupReliefStudy = false, roseFrontLaminaVolumeStudy = false,
   roseCenterKnotStudy = false, roseOuterFormStudy = false,
-  roseCenterValueStudy = false,
+  roseCenterValueStudy = false, roseOuterRippleStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -525,6 +534,10 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose center knot study flag must be boolean");
   if(typeof roseOuterFormStudy !== "boolean")
     throw new RangeError("Rose outer form study flag must be boolean");
+  if(typeof roseOuterRippleStudy !== "boolean")
+    throw new RangeError("Rose outer ripple flag must be boolean");
+  if(subject==="rose"&&roseOuterRippleStudy&&!rosePhysicalFolds)
+    throw new RangeError("Rose outer ripple requires physically attached underturned petals");
   if(typeof roseCenterValueStudy !== "boolean")
     throw new RangeError("Rose center value study flag must be boolean");
   if(subject==="rose"&&roseCenterValueStudy&&!roseCenterKnotStudy)
@@ -549,7 +562,7 @@ export function pencilObjectStudyDrawing({
     const errors=inspectRoseFrontValueBands();
     if(errors.length)throw new RangeError("Rose frontal value axes: "+errors.join("; "));
   }
-  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseCenterKnotStudy,roseOuterFormStudy) :
+  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseCenterKnotStudy,roseOuterFormStudy,roseOuterRippleStudy) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
@@ -650,6 +663,17 @@ export function pencilObjectStudyDrawing({
         url:"https://cpsa.org/wp-content/uploads/ARTopics01_Maklowski_GoldLeaf.pdf",
         rights:"technique-only" as const,
         observation:"A hand-drawn rose shows sharp structural boundaries between central petals yet soft changes through cool shadow, mid-rose and returned warm light within each curved lamina; dry pencil fields are clipped to individually built source shapes.",
+      }]:[]),
+      ...(subject==="rose"&&roseOuterRippleStudy?[{
+        title:"Sakurai Midori — Rosa chinensis petals (2006), CC BY-SA 3.0",
+        url:"https://commons.wikimedia.org/wiki/File:Rosa_chinensis_petals.jpg",
+        rights:"technique-only" as const,
+        observation:"Natural rose outer petal margins have uneven convex lobes, local rolled lips and one-sided edge notches. The fresh faces must preserve the actual upper fold seam of the differently shaded abaxial reverse rather than applying an artificial overpaint outline.",
+      },{
+        title:"Riboim — original Rosa Centifolia photo (2024), CC0",
+        url:"https://commons.wikimedia.org/wiki/File:Rosa_Centifolia.jpg",
+        rights:"technique-only" as const,
+        observation:"The broader petal margin is wavy and asymmetric; its curved distal edge develops slightly different scallop intervals on opposing petals. This is a separate cultivar and only a general shape observation, not a registered landmark match.",
       }]:[]),
       ...(subject==="rose"&&roseOuterFormStudy?[{
         title:"Karen Elaine Evans — artist-original Pink Rose colored-pencil form",
