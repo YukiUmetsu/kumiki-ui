@@ -124,8 +124,11 @@ export function inspectPencilDrawing(spec: PencilDrawingSpec): string[] {
   if (!HEX.test(spec.paper)) issues.push("paper: must be a six-digit hexadecimal colour.");
   if (!Number.isFinite(spec.paperTooth) || spec.paperTooth < 0 || spec.paperTooth > 1)
     issues.push("paperTooth: must be within 0..1.");
-  if (!Array.isArray(spec.regions) || spec.regions.length === 0 || spec.regions.length > 24) {
-    issues.push("regions: 1–24 named specimens or facets required.");
+  // Dense source-first botanical anatomy needs independent leaflets, rachises,
+  // stipules and calyx facets. Keep an explicit hard ceiling: up to 48 native
+  // bounded regions, never an unbounded number of CSS/raster detail layers.
+  if (!Array.isArray(spec.regions) || spec.regions.length === 0 || spec.regions.length > 48) {
+    issues.push("regions: 1–48 named specimens or facets required.");
     return issues;
   }
   const ids = new Set<string>();
