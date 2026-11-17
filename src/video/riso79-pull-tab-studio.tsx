@@ -23,6 +23,7 @@ export function RisoPullTabFilmStudio(){
   const [frame,setFrame]=useState(110);
   const [direction,setDirection]=useState<RisoPullDirection>("right");
   const [windowCount,setWindowCount]=useState(3);
+  const [windowShape,setWindowShape]=useState<"rounded"|"organic">("rounded");
   const [relief,setRelief]=useState(.72);
   const [depthMm,setDepthMm]=useState(.32);
   const [lampAngle,setLampAngle]=useState(225);
@@ -47,23 +48,37 @@ export function RisoPullTabFilmStudio(){
     artworks:risoSecondSheetArtworks(aspect),
   }),[aspect]);
   const windows=useMemo(():readonly RisoPullWindow[]=>{
-    const candidates=aspect==="landscape"?[
-      // Chromium 1×/3× reference inspection showed the older x=472
-      // first slit reading as unprinted beige stock. These apertures follow
-      // the real full-detail river/circle source-ink drawing at *all* seeks.
-      {id:"left-slit",x:600,y:170,width:95,height:206,radius:9},
-      {id:"centre-slit",x:710,y:170,width:95,height:206,radius:9},
-      {id:"right-slit",x:820,y:170,width:95,height:206,radius:9},
-    ]:[
-      // The portrait insert travels down 182 source units. At the end
-      // these three narrow slits expose the original circular two-ink
-      // halftone (source y=540..720), below the subtitle and above footer.
+    const landscapeRounded:readonly RisoPullWindow[]=[
+      {id:"left-slit",x:472,y:164,width:110,height:218,radius:10},
+      {id:"centre-slit",x:601,y:164,width:110,height:218,radius:10},
+      {id:"right-slit",x:730,y:164,width:110,height:218,radius:10},
+    ];
+    const landscapeOrganic:readonly RisoPullWindow[]=[
+      {id:"left-slit",x:472,y:164,width:110,height:218,contour:
+        "M 526 164 C 547 164 571 180 574 204 C 578 227 559 245 567 267 C 576 292 559 324 543 358 C 532 381 512 378 502 360 C 489 336 505 310 495 286 C 485 264 496 242 485 219 C 476 197 499 171 526 164 Z"},
+      {id:"centre-slit",x:601,y:164,width:110,height:218,contour:
+        "M 656 164 C 676 168 698 187 699 211 C 700 234 681 249 688 271 C 696 294 680 326 664 358 C 652 380 633 378 624 359 C 612 336 628 310 617 286 C 606 263 617 242 607 219 C 604 197 626 170 656 164 Z"},
+      {id:"right-slit",x:730,y:164,width:110,height:218,contour:
+        "M 785 164 C 806 168 828 187 829 210 C 830 234 810 250 819 273 C 828 297 811 329 795 358 C 782 380 762 379 754 360 C 742 337 759 309 748 286 C 737 262 748 241 738 218 C 730 197 756 170 785 164 Z"},
+    ];
+    const portraitRounded:readonly RisoPullWindow[]=[
       {id:"left-slit",x:195,y:650,width:40,height:180,radius:8},
       {id:"centre-slit",x:244,y:650,width:40,height:180,radius:8},
       {id:"right-slit",x:293,y:650,width:40,height:180,radius:8},
     ];
+    const portraitOrganic:readonly RisoPullWindow[]=[
+      {id:"left-slit",x:195,y:650,width:40,height:180,contour:
+        "M 215 650 C 226 652 234 668 232 688 C 230 707 221 720 225 740 C 229 761 223 784 221 803 C 219 818 216 830 210 830 C 204 830 199 818 200 803 C 202 783 197 762 200 741 C 203 721 198 706 200 688 C 198 670 205 654 215 650 Z"},
+      {id:"centre-slit",x:244,y:650,width:40,height:180,contour:
+        "M 264 650 C 275 652 283 668 281 688 C 279 707 269 720 274 740 C 278 761 272 784 270 803 C 268 818 265 830 259 830 C 253 830 248 818 249 803 C 251 783 246 762 249 741 C 252 721 247 706 249 688 C 247 670 254 654 264 650 Z"},
+      {id:"right-slit",x:293,y:650,width:40,height:180,contour:
+        "M 313 650 C 324 652 332 668 330 688 C 328 707 318 720 323 740 C 327 761 321 784 319 803 C 317 818 314 830 308 830 C 302 830 297 818 298 803 C 300 783 295 762 298 741 C 301 721 296 706 298 688 C 296 670 303 654 313 650 Z"},
+    ];
+    const candidates=aspect==="landscape"?
+      (windowShape==="organic"?landscapeOrganic:landscapeRounded):
+      (windowShape==="organic"?portraitOrganic:portraitRounded);
     return candidates.slice(0,windowCount);
-  },[aspect,windowCount]);
+  },[aspect,windowCount,windowShape]);
   const travel=(direction==="left"||direction==="right"?
     cover.spec.width:cover.spec.height)*.115;
   useEffect(()=>{
@@ -109,6 +124,7 @@ export function RisoPullTabFilmStudio(){
     data-km-riso79-frame={frame}
     data-km-riso79-phase={phase}
     data-km-riso79-windows={windowCount}
+    data-km-riso79-shape-preset={windowShape}
     data-km-riso79-direction={direction}
     data-km-riso79-aspect={aspect}
     data-km-riso79-zoom={zoom}
@@ -161,6 +177,13 @@ export function RisoPullTabFilmStudio(){
           <option value="left">Pull left</option>
           <option value="up">Pull up</option>
           <option value="down">Pull down</option>
+        </select>
+      </label>
+      <label style={label}>Window contour
+        <select aria-label="RISO79 window shape" value={windowShape}
+          onChange={e=>setWindowShape(e.target.value as "rounded"|"organic")}>
+          <option value="rounded">Rounded die-cut</option>
+          <option value="organic">Organic contour</option>
         </select>
       </label>
       <label style={label}>Physical die-cut windows · {windowCount}
