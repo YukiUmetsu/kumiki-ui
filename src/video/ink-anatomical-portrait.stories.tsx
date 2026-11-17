@@ -178,6 +178,150 @@ function FacialMotionProof(){
   </main>;
 }
 
+
+/** Opt-in original-reference microscope. Museums' paintings are not bundled:
+ * users inspect the actual owned/licensed/public-domain image locally. */
+function HistoricalSourceDesk(){
+  const [source,setSource]=useState<string|null>(null);
+  const [sourceName,setSourceName]=useState("");
+  const [error,setError]=useState("");
+  const [character,setCharacter]=useState<InkPortraitCharacter>("scholar");
+  const [emotion,setEmotion]=useState<InkPortraitEmotion>("neutral");
+  const [view,setView]=useState<InkPortraitView>("face");
+  const [zoom,setZoom]=useState(1);
+  const [panX,setPanX]=useState(0);
+  const [panY,setPanY]=useState(0);
+  const [overlay,setOverlay]=useState(false);
+  const [sourceOpacity,setSourceOpacity]=useState(.5);
+  useEffect(()=>()=>{if(source)URL.revokeObjectURL(source);},[source]);
+  const loadFile=(file:File|undefined)=>{
+    if(!file){return;}
+    if(!["image/png","image/jpeg","image/webp"].includes(file.type)){
+      setError("Only PNG, JPEG, and WebP images are supported.");
+      return;
+    }
+    setError("");
+    setSource(URL.createObjectURL(file));
+    setSourceName(file.name);
+  };
+  const sourceImage=source?<img data-testid="ink-anat2-source-image"
+    src={source} alt={"Uploaded historical portrait: "+sourceName}
+    style={{display:"block",width:"100%",height:"100%",objectFit:"contain",
+      transform:'translate('+panX+'px,'+panY+'px) scale('+zoom+')',
+      transformOrigin:"50% 50%"}}/>:
+    <p style={{margin:20,textAlign:"center",maxWidth:330,fontSize:14}}>
+      Load an original historical painting locally to conduct a real same-camera
+      comparison. No photograph is embedded or transmitted by this story.
+    </p>;
+  const drawing=<InkAnatomicalPortrait character={character} emotion={emotion}
+    view={view} detail={1} intensity={.9}/>;
+  const panel={...framed,aspectRatio:view==="face"?"345 / 476":"540 / 620",
+    width:"min(100%,470px)",position:"relative",overflow:"hidden",
+    display:"grid",placeItems:"center"} as const;
+  return <main data-testid="ink-anat2-historical-source-desk" style={inkPage}>
+    <header>
+      <h1 style={{font:"normal 34px Georgia,serif",margin:"4px 0 10px"}}>
+        ANAT2 · actual-painting same-camera comparison
+      </h1>
+      <p style={{maxWidth:1050,lineHeight:1.65}}>
+        ART HOLD. Compare an authentic source painting's real face, hair, nose,
+        brush loading and garment topology against the independently drawn
+        ANAT1+EXPR1 SVG. Controls deliberately expose optical differences;
+        synthetic tests never constitute reference validation.
+      </p>
+    </header>
+    <div style={{display:"flex",flexWrap:"wrap",gap:16,alignItems:"end",margin:"18px 0"}}>
+      <label style={field}>Original painting (local image)
+        <input type="file" aria-label="Ink original source image"
+          accept="image/png,image/jpeg,image/webp"
+          onChange={e=>loadFile(e.currentTarget.files?.[0])}/>
+      </label>
+      <label style={field}>ANAT2 figure
+        <select aria-label="Ink source review character" value={character}
+          style={selectStyle} onChange={e=>setCharacter(e.target.value as InkPortraitCharacter)}>
+          {INK_PORTRAIT_CHARACTERS.map(c=><option key={c}>{c}</option>)}
+        </select>
+      </label>
+      <label style={field}>Expression
+        <select aria-label="Ink source review expression" value={emotion}
+          style={selectStyle} onChange={e=>setEmotion(e.target.value as InkPortraitEmotion)}>
+          {INK_PORTRAIT_EMOTIONS.map(c=><option key={c}>{c}</option>)}
+        </select>
+      </label>
+      <label style={field}>Shared inspection camera
+        <select aria-label="Ink source review camera" value={view}
+          style={selectStyle} onChange={e=>setView(e.target.value as InkPortraitView)}>
+          <option value="bust">Figure and garment</option>
+          <option value="face">Native face microscope</option>
+        </select>
+      </label>
+      <label style={field}>Reference zoom · {zoom.toFixed(2)}×
+        <input aria-label="Ink original source zoom" type="range" min="1" max="4"
+          step=".05" value={zoom} onChange={e=>setZoom(Number(e.target.value))}/>
+      </label>
+      <label style={field}>Reference horizontal position · {panX}
+        <input aria-label="Ink original horizontal pan" type="range" min="-150" max="150"
+          value={panX} onChange={e=>setPanX(Number(e.target.value))}/>
+      </label>
+      <label style={field}>Reference vertical position · {panY}
+        <input aria-label="Ink original vertical pan" type="range" min="-150" max="150"
+          value={panY} onChange={e=>setPanY(Number(e.target.value))}/>
+      </label>
+      <label style={{...field,alignSelf:"center"}}>
+        <span>Source-image registration overlay</span>
+        <input type="checkbox" aria-label="Ink source overlay"
+          checked={overlay} onChange={e=>setOverlay(e.target.checked)}/>
+      </label>
+      <label style={field}>Reference overlay opacity · {Math.round(sourceOpacity*100)}%
+        <input type="range" aria-label="Ink source overlay opacity"
+          min="0" max="1" step=".05" value={sourceOpacity}
+          onChange={e=>setSourceOpacity(Number(e.target.value))}/>
+      </label>
+    </div>
+    {error&&<p role="alert" style={{color:"#8b3326"}}>{error}</p>}
+    <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(240px,470px))",
+      gap:16,alignItems:"start"}}>
+      <figure style={{margin:0}}>
+        <figcaption style={{marginBottom:8,fontWeight:600}}>
+          Original image · {sourceName||"no source provided"}
+        </figcaption>
+        <div data-testid="ink-anat2-source-window" style={panel}>{sourceImage}</div>
+      </figure>
+      <figure style={{margin:0}}>
+        <figcaption style={{marginBottom:8,fontWeight:600}}>
+          Live ANAT2 source-space reconstruction
+        </figcaption>
+        <div data-testid="ink-anat2-paint-window" style={panel}>
+          {drawing}
+          {overlay&&source&&<div data-testid="ink-anat2-registration-overlay"
+            style={{position:"absolute",inset:0,opacity:sourceOpacity,pointerEvents:"none",
+              overflow:"hidden",mixBlendMode:"multiply"}}>
+            {sourceImage}
+          </div>}
+        </div>
+      </figure>
+    </div>
+    <p style={{maxWidth:920,fontSize:13,lineHeight:1.6}}>
+      Reference imagery stays on this device and is released on unmount.
+      The image pan and zoom are manually controlled; the panels are not automatically
+      registered, and a matching viewBox does not establish historic likeness.
+      Compare visible true nose alae, eyelid occlusion, chin/lip relief, pigment
+      feathering, separated beard locks, and the direction of each cloth fold.
+    </p>
+    <p style={{fontSize:13}}>
+      Original studies:{" "}
+      <a href="https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/"
+        target="_blank" rel="noreferrer">Zeng Jing · Pan Qintai (UMMA)</a>
+      {" · "}
+      <a href="https://www.metmuseum.org/art/collection/search/39715"
+        target="_blank" rel="noreferrer">Ren Bonian · Scholar on a Rock (Met)</a>
+      {" · "}
+      <a href="https://www.christies.com.cn/en/lot/ren-yi-ren-bonian-1840-1895-portrait-of-6346442/"
+        target="_blank" rel="noreferrer">Ren Yi · Portrait of Yunfeng (Christie's)</a>
+    </p>
+  </main>;
+}
+
 const meta={title:"Video production/Film Looks/Chinese Ink/ANAT2 Independent Portrait Rebuild",
   id:"video-ink-anat2-portrait-rebuild",component:RebuildAtelier,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof RebuildAtelier>;
@@ -186,6 +330,10 @@ export const PortraitRebuild:StoryObj<typeof meta>={name:"Fresh painted figure �
 export const TwoCharactersAndFiveExpressions:StoryObj<typeof meta>={
   name:"Two original figures · five expression comparison",
   render:()=> <IndependentExpressionAtlas/>,
+};
+export const HistoricalPaintingReview:StoryObj<typeof meta>={
+  name:"Authentic portrait reference · local-image A/B and optical overlay (ART HOLD)",
+  render:()=> <HistoricalSourceDesk/>,
 };
 export const FilmTimeFaceMotion:StoryObj<typeof meta>={
   name:"24 fps facial acting and source-space microscopes",
