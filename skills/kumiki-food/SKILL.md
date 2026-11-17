@@ -1,6 +1,6 @@
 ---
 name: kumiki-food
-description: Use when drawing, painting, animating or reviewing food in Kumiki in any art style (meat, eggs, toast and bread, rice, sushi, ramen, dango, tempura, fruit, steam), especially when cooked food is coloured by guesswork (a steak pink to the edges, an egg yolk that does not match the boiling time), browning is even, steam looks like smoke or puffs from the surface, or every food has the same gloss.
+description: Use when drawing, painting, animating or reviewing food in Kumiki in any art style (meat, eggs, toast and bread, rice, sushi, ramen, dango, tempura, fruit, steam), or when you need a storybook-realism food still life from the 200-food library (any region or era, raw or cooked, with its vessel, table and golden-hour light), especially when cooked food is coloured by guesswork (a steak pink to the edges, an egg yolk that does not match the boiling time), browning is even, steam looks like smoke or puffs from the surface, or every food has the same gloss.
 ---
 
 # Kumiki food (FOOD1)
@@ -17,3 +17,9 @@ Read the [spec](../../docs/component-specs/food.md).
    within about 15 cm, and shows best backlit against the dark (`Steam`).
 5. **Size the dish** (`DISHES`): onigiri sides 7–9 cm, a ramen bowl 18–22 cm.
 6. **Render or reference** with `renderFood` / `FoodView`. Record what you checked.
+7. **Storybook still lifes.** Find a food in `FOOD_LIBRARY` (by `group`, `region`, `state`, `era` or words in
+   `look`). Show it with `FoodStillLifeView`, or render it with `renderFoodStillLife`. Change the light with `mood`.
+   Change the individual with `seed`. Get a close-up with `zoom`.
+8. **A new food.** Build it from the kit (`fruit`, `halfFruit`, `boule`, `cakeSlice`, `thickFill`, `noodles`,
+   `skewer` and others). Use the surfaces in `food-surfaces.ts`. Add an entry with its `look`. Render a contact sheet
+   and compare it with photographs before you call it finished.
