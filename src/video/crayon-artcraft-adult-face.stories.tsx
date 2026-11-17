@@ -14,6 +14,11 @@ import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit} from "./crayon-artcraft
 import {auditCrayonF1LashRootContinuity,type CrayonF1LashFinish}
   from "./crayon-artcraft-f1-lash-clusters";
 import {crayonF1RegisterAnat1Face} from "./crayon-artcraft-f1-anat1-malar";
+import {CRAYON_F1_V59_NAMES,CRAYON_F1_V59_SOURCE,
+  crayonF1CandidateLandmarkAudit,crayonF1CandidatePointerPoint,
+  type CrayonF1CandidateLandmark,type CrayonF1CandidateMarks,
+  type CrayonF1CandidateVariant}
+  from "./crayon-artcraft-f1-candidate-landmarks-v59";
 
 /** ArtCraft reference crops use only the native CRAYON1 camera; source marks remain unchanged. */
 export type ArtcraftInspection="full"|"face"|"eyes"|"nose-mouth"|"garment";
@@ -178,7 +183,8 @@ const meta={
   title:"Video production/Film Looks/Crayon/ArtCraft Source Lab",
   id:"video-crayon-artcraft-adult-face",
   tags:["!dev"],
-  excludeStories:["AdultFaceArtcraftWorkbench","AdultFaceExpressionComparison",
+  excludeStories:["Cc0CandidateLandmarkWorksheetV59",
+    "AdultFaceArtcraftWorkbench","AdultFaceExpressionComparison",
     "crayonArtcraftInspectionSpec"],
   component:Cc0SourceRegisteredFaceWorkbench,
   args:{aspect:"landscape",detail:1,expression:"warm",headScaleY:.82,startFrame:299,playbackRate:1,loop:false,inspection:"full",
@@ -1386,4 +1392,154 @@ export const Cc0SourceLashFlowFarMacro:Story={
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialEyeContact="source-sculpt" initialInspection="far-eye"
     initialLashFinish="rooted-flow"/>,
+};
+
+/**
+ * V59 independently entered *candidate-render* landmarks. The 18 blue source
+ * witnesses are already frozen CC0 photo observations, NOT measurements of
+ * this changing experimental native drawing. On the real full-camera f299
+ * drawing the reviewer must place each orange candidate witness by hand.
+ *
+ * This is an unapproved research aid. A click does not authenticate a PNG,
+ * validate value planes, substitute 300-frame review, or authorize release.
+ */
+export function Cc0CandidateLandmarkWorksheetV59({detail}:{detail:number}){
+  const [variant,setVariant]=useState<CrayonF1CandidateVariant>(
+    "source-anat1-hair-edge-v57");
+  const [selected,setSelected]=useState<CrayonF1CandidateLandmark>(
+    CRAYON_F1_V59_NAMES[0]);
+  const [marks,setMarks]=useState<CrayonF1CandidateMarks>({});
+  const [draftX,setDraftX]=useState("");
+  const [draftY,setDraftY]=useState("");
+  const [sourceVisible,setSourceVisible]=useState(true);
+  const spec=useMemo(()=>crayonCc0FaceStudy({detail:Math.max(.2,Math.min(1,detail)),
+    midfaceForm:variant}),[detail,variant]);
+  const evidence={sourceSha256:CRAYON_F1_V59_SOURCE.sha256,variant,frame:299,
+    width:608,height:1082,marks};
+  const audit=crayonF1CandidateLandmarkAudit(evidence);
+  const setCandidate=(point:readonly [number,number])=>{
+    setMarks(previous=>({...previous,[selected]:point}));
+    setDraftX(String(point[0]));setDraftY(String(point[1]));
+  };
+  const choose=(name:CrayonF1CandidateLandmark)=>{
+    setSelected(name);
+    setDraftX(marks[name]===undefined?"":String(marks[name]?.[0]));
+    setDraftY(marks[name]===undefined?"":String(marks[name]?.[1]));
+  };
+  const valid=draftX.trim()!==""&&draftY.trim()!==""&&
+    [Number(draftX),Number(draftY)].every(Number.isInteger)&&
+    Number(draftX)>=0&&Number(draftX)<608&&Number(draftY)>=0&&Number(draftY)<1082;
+  return <section data-km-crayon-f1-landmark-audit={audit.status} style={{
+    maxWidth:1050,margin:"auto",padding:18,color:"#292a31",
+    background:"#f4e9dc",fontFamily:"system-ui",boxSizing:"border-box"}}>
+    <h2 style={{fontSize:20,margin:"0 0 8px"}}>CC0 ArtCraft — native candidate 18-landmark annotation (!dev V59)</h2>
+    <p style={{fontSize:13,lineHeight:1.5,maxWidth:840}}>
+      The 18 blue reference marks are original-photo measurements. Select a
+      feature, then click its location on the <strong>actual rendered</strong> 608×1082
+      frame-299 crayon portrait; orange marks are editable candidate observations.
+      They start empty: the source marks must never be copied as candidate data.
+      This worksheet is not an independently authenticated screenshot or art signoff.
+      Reference: <a href={CRAYON_F1_V59_SOURCE.sourceUrl} target="_blank"
+        rel="noopener noreferrer">Christopher Campbell’s CC0 source photograph</a>.
+    </p>
+    <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end",marginBottom:14}}>
+      <label>Source study
+        <select aria-label="Candidate source stage" value={variant}
+          onChange={e=>{
+            setVariant(e.target.value as CrayonF1CandidateVariant);
+            setMarks({});setDraftX("");setDraftY("");
+          }} style={{display:"block",maxWidth:"100%"}}>
+          <option value="source-anat1-superior-tarsus-v54">V54 photo-positive eye/face</option>
+          <option value="source-anat1-hair-top-v56">V56 hair silhouette control</option>
+          <option value="source-anat1-hair-edge-v57">V57 source-edge candidate</option>
+        </select>
+      </label>
+      <label>Candidate feature
+        <select aria-label="Anatomical landmark" value={selected}
+          onChange={e=>choose(e.target.value as CrayonF1CandidateLandmark)}
+          style={{display:"block"}}>
+          {CRAYON_F1_V59_NAMES.map(name=>
+            <option value={name} key={name}>{name}</option>)}
+        </select>
+      </label>
+      <label><input type="checkbox" checked={sourceVisible}
+        onChange={e=>setSourceVisible(e.target.checked)}/> Show blue source anchors</label>
+      <output aria-live="polite">{audit.measured}/18 candidate observations · {audit.status}</output>
+    </div>
+    <div style={{width:"min(100%,420px)",margin:"0 auto",position:"relative",
+      aspectRatio:"608 / 1082",background:"#e2d7c8",outline:"1px solid #a8998d"}}
+      data-km-crayon-f1-landmark-source-camera="608x1082-f299">
+      <CrayonScene spec={spec} frame={299}/>
+      <button type="button" title={"Mark "+selected+" on the native final render"}
+        aria-label={"Click the actual native render to mark "+selected}
+        onClick={e=>setCandidate(crayonF1CandidatePointerPoint(e.clientX,e.clientY,
+          e.currentTarget.getBoundingClientRect()))}
+        style={{position:"absolute",inset:0,width:"100%",height:"100%",
+          zIndex:2,cursor:"crosshair",border:0,padding:0,background:"transparent"}}/>
+      <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:3,
+        pointerEvents:"none"}}>
+        {sourceVisible&&CRAYON_F1_V59_NAMES.map(name=>{
+          const [x,y]=CRAYON_PORTRAIT_AUDIT.sourcePoints[name];
+          return <span key={"src-"+name} title={"Original source: "+name}
+            data-km-crayon-f1-source-landmark={name}
+            style={{position:"absolute",left:(x/608*100)+"%",top:(y/1082*100)+"%",
+              width:name===selected?10:6,height:name===selected?10:6,
+              transform:"translate(-50%,-50%)",borderRadius:"50%",
+              border:"1px solid white",background:"#246ddb",
+              boxShadow:"0 0 0 1px #0a2856"}}/>;
+        })}
+        {CRAYON_F1_V59_NAMES.map(name=>{
+          const point=marks[name];if(!point)return null;
+          return <span key={"candidate-"+name} title={"Native candidate: "+name}
+            data-km-crayon-f1-candidate-landmark={name}
+            style={{position:"absolute",left:(point[0]/608*100)+"%",
+              top:(point[1]/1082*100)+"%",width:11,height:11,
+              transform:"translate(-50%,-50%) rotate(45deg)",
+              background:name===selected?"#f69f2e":"#e66e26",
+              border:"1px solid #331e0d",boxShadow:"0 0 0 1px #fff"}}/>;
+        })}
+      </div>
+    </div>
+    <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"end",marginTop:14}}>
+      <label>Native pixel X <input aria-label="Candidate pixel X" type="number"
+        min={0} max={607} step={1} style={{display:"block",width:100}}
+        value={draftX} onChange={e=>setDraftX(e.target.value)}/></label>
+      <label>Native pixel Y <input aria-label="Candidate pixel Y" type="number"
+        min={0} max={1081} step={1} style={{display:"block",width:100}}
+        value={draftY} onChange={e=>setDraftY(e.target.value)}/></label>
+      <button type="button" disabled={!valid}
+        onClick={()=>setCandidate([Number(draftX),Number(draftY)])}>
+        Record manual coordinates</button>
+      <button type="button" disabled={!marks[selected]} onClick={()=>{
+        setMarks(previous=>{
+          const copy={...previous};delete copy[selected];return copy;
+        });setDraftX("");setDraftY("");
+      }}>Clear selected</button>
+      <button type="button" disabled={audit.measured===0} onClick={()=>{
+        setMarks({});setDraftX("");setDraftY("");
+      }}>Clear all</button>
+    </div>
+    <p style={{fontSize:13,lineHeight:1.5,margin:"10px 0"}}>
+      Source SHA-256: <code>{CRAYON_F1_V59_SOURCE.sha256}</code>.
+      Native candidate screenshot SHA-256: <strong>not collected</strong>.
+      The current film and facial value planes have not been independently approved.
+      {audit.outliers.length>0&&<> Normalized source-face landmark outliers:
+        {" "+audit.outliers.join(", ")}.</>}
+    </p>
+    <label style={{display:"block",fontSize:13}}>
+      Copy candidate observation record (unverified, no artistic release approval)
+      <textarea aria-label="Unverified candidate landmark observations" readOnly
+        value={JSON.stringify({...evidence,
+          sourceImage:"registered CC0 608x1082 screenshot",
+          renderedPngSha256:null,independentPixelVerification:false,
+          releaseApproved:false},null,2)}
+        style={{display:"block",width:"100%",height:130,resize:"vertical",
+          boxSizing:"border-box",fontFamily:"monospace",fontSize:11}}/>
+    </label>
+  </section>;
+}
+export const Cc0Anat1CandidateLandmarksV59:Story={
+  name:"CC0 18 native candidate landmarks · manual source-relative audit (!dev V59)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0CandidateLandmarkWorksheetV59 detail={args.detail}/>,
 };
