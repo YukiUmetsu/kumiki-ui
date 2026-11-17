@@ -92,17 +92,24 @@ export function readerInkPortraitGlazes(
   // light dorsal ridge. Successive partly overlapping passes curve into
   // the alar cartilages rather than making an angular triangular slash.
   passes["nose-bridge"].push(
-    glaze("M"+at(s,1,1.1)+" C"+at(s,1.8,5.6)+
-      " "+at(s,3.1,10.6)+" "+at(s,5.1,12.8)+
-      " C"+at(t,.1,-2)+" "+at(t,.2,-.2)+
-      " "+at(t,-.9,.55)+
-      " C"+at(s,3.6,14.1)+" "+at(s,1.2,10.8)+
-      " "+at(s,1,1.1)+" Z",.13),
-    glaze("M"+at(s,1.9,4.2)+" C"+at(s,2.8,8.4)+
-      " "+at(s,4.3,12.4)+" "+at(t,-1,0)+
-      " C"+at(t,-.4,.6)+" "+at(s,3.5,12.7)+
-      " "+at(s,2.8,9.1)+" C"+at(s,2.2,7.1)+
-      " "+at(s,2,5.2)+" "+at(s,1.9,4.2)+" Z",.07),
+    // The old parallel nasal side planes made a stiff angular S-slash
+    // beneath the far eye at 1×. Model the actual same sellion→pronasale
+    // positive ink as a translucent convex relief, rotating broad
+    // shadows around the unpainted dorsal light, never replacing it.
+    glaze("M"+at(s,.8,.8)+" C"+at(s,2.5,5.1)+
+      " "+at(s,2.3,8.7)+" "+at(s,4.1,11.4)+
+      " C"+at(t,-1,-2.9)+" "+at(t,.3,-1.2)+
+      " "+at(t,-.5,.1)+
+      " C"+at(t,-2.7,.55)+" "+at(s,2.3,10.9)+
+      " "+at(s,.8,.8)+" Z",.104),
+    // Secondary contour nests around the rounded tip instead of
+    // drawing a second straight dark stripe along the nose bridge.
+    glaze("M"+at(s,1.8,5.2)+" C"+at(s,3.6,8.1)+
+      " "+at(s,4.1,11.4)+" "+at(t,-1.4,-1.5)+
+      " C"+at(t,-.8,.1)+" "+at(t,-2,.3)+
+      " "+at(t,-3.1,-1.4)+
+      " C"+at(s,2,11.2)+" "+at(s,1.4,8.2)+
+      " "+at(s,1.8,5.2)+" Z",.07),
     // Unpainted dorsal light, source-following and almost translucent.
     glaze("M"+at(s,-.5,2.9)+" C"+at(s,-.4,6.3)+
       " "+at(s,.5,9.2)+" "+at(s,1.8,11.8)+
