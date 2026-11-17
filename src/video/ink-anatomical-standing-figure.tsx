@@ -27,6 +27,8 @@ export interface InkAnatomicalStandingFigureProps
   /** Frame-native, standing (not walking), 0..95. */
   frame?:number;
   reducedMotion?:boolean;
+  /** Reframe the same original SVG source-space geometry without resampling. */
+  camera?:"full"|"waist"|"grip"|"hem";
   /** Transparent native film layer; no glued-on parchment/card. */
   transparentPaper?:boolean;
 }
@@ -76,7 +78,7 @@ export function inkStandingPoseAt(frame:number,reducedMotion=false) {
 /** Original standing figure is a source-space SVG, fully editable as DOM. */
 export function InkAnatomicalStandingFigure({
   character="scholar",emotion="neutral",intensity=1,detail=1,headScale=.48,
-  frame=0,reducedMotion=false,transparentPaper=false,style,...svgProps
+  frame=0,reducedMotion=false,camera="full",transparentPaper=false,style,...svgProps
 }:InkAnatomicalStandingFigureProps) {
   if(!Number.isFinite(detail)||detail<.25||detail>1)
     throw new RangeError("Standing ANAT2 detail must be .25..1");
@@ -85,12 +87,21 @@ export function InkAnatomicalStandingFigure({
   const elder=character==="elder";
   const ink=elder?"#4b514b":"#494a46",wash=elder?"#9c9a8e":"#a7a49b";
   const robe=elder?"#e0d6c8":"#e6dccd",under="#f0e7d9";
+  const cameras={
+    full:{viewBox:"0 0 540 1080",height:1080},
+    waist:{viewBox:"65 425 420 305",height:392},
+    grip:{viewBox:"87 535 100 134",height:724},
+    hem:{viewBox:"158 855 290 196",height:365},
+  } as const;
+  if(!(camera in cameras))throw new RangeError("Invalid standing ANAT2 camera");
+  const filmCamera=cameras[camera];
   const nativeStyle:CSSProperties={display:"block",width:"100%",height:"auto",
     background:transparentPaper?"transparent":"#f2e6d3",...style};
   return <svg {...svgProps} xmlns="http://www.w3.org/2000/svg"
     role="img" aria-label={svgProps["aria-label"]??(
       (elder?"Elder":"Young")+" original Chinese ink full standing scholar")}
-    viewBox="0 0 540 1080" width="540" height="1080" style={nativeStyle}
+    viewBox={filmCamera.viewBox} width="540" height={filmCamera.height}
+    style={nativeStyle} data-km-ink-standing-camera={camera}
     data-km-ink-standing-figure={character} data-km-ink-standing-frame={frame}
     data-km-ink-standing-physical="source-540x1080"
     data-km-ink-standing-paper={transparentPaper?"transparent":"paper"}
