@@ -1,4 +1,5 @@
 import {useEffect,useState} from "react";
+import {InkAnatomicalPortraitFilm,INK_ANAT2_PROOF_FRAMES} from "./ink-anatomical-portrait-film";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {InkAnatomicalPortrait,INK_PORTRAIT_CHARACTERS,INK_PORTRAIT_EMOTIONS,
   inkPortraitAnatomy} from "./ink-anatomical-portrait";
@@ -395,6 +396,95 @@ function RobePressureMicroscopePanel(){
   </main>;
 }
 
+/**
+ * FilmStage-sized 24 fps candidate, NOT replacement for existing canonical
+ * river-scholar rig. This scene has a genuinely composited transparent
+ * original actor between atmosphere and foreground in the Shanshui painter.
+ */
+function NativeActorFilmProof(){
+  const [frame,setFrame]=useState(0);
+  const [playing,setPlaying]=useState(false);
+  const [reduced,setReduced]=useState(false);
+  const [character,setCharacter]=useState<InkPortraitCharacter>("scholar");
+  const [emotion,setEmotion]=useState<Exclude<InkPortraitEmotion,"neutral">>("smile");
+  useEffect(()=>{
+    if(!playing)return;
+    if(reduced||window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+      setPlaying(false);return;
+    }
+    const start=performance.now(),origin=frame;
+    let id=0;
+    const tick=(now:number)=>{
+      const next=Math.min(INK_ANAT2_PROOF_FRAMES-1,
+        origin+Math.max(0,Math.floor((now-start)*24/1000)));
+      setFrame(next);
+      if(next>=INK_ANAT2_PROOF_FRAMES-1)setPlaying(false);
+      else id=requestAnimationFrame(tick);
+    };
+    id=requestAnimationFrame(tick);
+    return ()=>cancelAnimationFrame(id);
+  },[playing,reduced]);
+  return <main style={inkPage}>
+    <p style={{fontSize:11,fontWeight:700,letterSpacing:2}}>
+      ANAT2 / NATIVE 960×540 / OPTIONAL ART HOLD
+    </p>
+    <h1 style={{font:"normal 34px Georgia,serif",margin:"7px 0 13px"}}>
+      New figure inside a living Shanshui shot
+    </h1>
+    <p style={{lineHeight:1.65,maxWidth:990}}>
+      Genuine 96-frame opt-in scene: ANAT2 original scholar or elder appears
+      as a transparent source-space ink actor over the registered Shanshui
+      atmosphere and behind actual painterly foreground, with a single
+      deterministic 24-fps EXPR1 facial cue, body sway and breathing.
+      This is a cinematographic comparison stage, not proof of historical
+      likeness or a replacement for the existing production actor.
+    </p>
+    <div style={{display:"flex",gap:18,flexWrap:"wrap",alignItems:"end",marginBottom:16}}>
+      <label style={field}>Actor
+        <select aria-label="Ink ANAT2 film actor" value={character}
+          style={selectStyle} onChange={e=>{setPlaying(false);
+            setCharacter(e.target.value as InkPortraitCharacter)}}>
+          {INK_PORTRAIT_CHARACTERS.map(c=><option key={c}>{c}</option>)}
+        </select>
+      </label>
+      <label style={field}>Expression
+        <select aria-label="Ink ANAT2 film emotion" value={emotion}
+          style={selectStyle} onChange={e=>{setPlaying(false);
+            setEmotion(e.target.value as Exclude<InkPortraitEmotion,"neutral">)}}>
+          {INK_PORTRAIT_EMOTIONS.filter(e=>e!=="neutral").map(c=><option key={c}>{c}</option>)}
+        </select>
+      </label>
+      <label style={{...field,alignSelf:"center"}}>
+        <span>Reduced motion</span>
+        <input type="checkbox" aria-label="Ink ANAT2 film reduced motion"
+          checked={reduced} onChange={e=>{setPlaying(false);setReduced(e.target.checked)}}/>
+      </label>
+      <button type="button" style={selectStyle}
+        onClick={()=>{if(frame>=INK_ANAT2_PROOF_FRAMES-1)setFrame(0);
+          setPlaying(!playing);}}
+        aria-label={playing?"Pause ANAT2 film":"Play ANAT2 film"}>
+        {playing?"Pause":"Play"}
+      </button>
+    </div>
+    <div style={{width:960,maxWidth:"100%",overflowX:"auto"}}>
+      <InkAnatomicalPortraitFilm frame={frame} character={character}
+        emotion={emotion} reducedMotion={reduced}/>
+    </div>
+    <label style={{...field,marginTop:16,width:960,maxWidth:"100%"}}>
+      Native video frame {frame}/{INK_ANAT2_PROOF_FRAMES-1}
+      <input type="range" min="0" max={INK_ANAT2_PROOF_FRAMES-1}
+        aria-label="Ink ANAT2 film seek" value={frame}
+        onChange={e=>{setPlaying(false);setFrame(Number(e.target.value))}}/>
+    </label>
+    <p style={{fontSize:13,maxWidth:960,lineHeight:1.65}}>
+      Art release gate: compare the actor at 1× and 3× with
+      historical paintings; inspect foreground occlusion, physical
+      shoulder contact, head-to-robe rhythm and skin wash across all 96 frames.
+      Technical or screenshot success does not clear the existing ART HOLD.
+    </p>
+  </main>;
+}
+
 const meta={title:"Video production/Film Looks/Chinese Ink/ANAT2 Independent Portrait Rebuild",
   id:"video-ink-anat2-portrait-rebuild",component:RebuildAtelier,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof RebuildAtelier>;
@@ -411,6 +501,10 @@ export const HistoricalPaintingReview:StoryObj<typeof meta>={
 export const RobePressureMicroscope:StoryObj<typeof meta>={
   name:"INK1 loaded silk lapels · sleeve pressure and paper-fibre microscope",
   render:()=> <RobePressureMicroscopePanel/>,
+};
+export const OriginalFilmActorProof:StoryObj<typeof meta>={
+  name:"96-frame real Shanshui composition · new ANAT2 actor (ART HOLD)",
+  render:()=> <NativeActorFilmProof/>,
 };
 export const FilmTimeFaceMotion:StoryObj<typeof meta>={
   name:"24 fps facial acting and source-space microscopes",
