@@ -3288,6 +3288,53 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(candidate).not.toContain("<image ");
   });
 
+  it("keeps all 20 planted Fuchun pine arms and 40 original crowns while adding living two-load woody pressure",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed:number)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,seed,detail:1},
+      }));
+    const a=paint("fuchun",71),b=paint("fuchun",87),
+      guo=paint("early-spring",71);
+    expect(a).toBe(paint("fuchun",71));
+    expect((a.match(/data-km-cliff-pine-bough-bone=""/g)??[]))
+      .toHaveLength(20);
+    expect((a.match(/data-km-cliff-pine-ink-island=""/g)??[]))
+      .toHaveLength(40);
+    expect((a.match(/data-km-cliff-pine-wood-body=""/g)??[]))
+      .toHaveLength(40);
+    expect((a.match(/data-km-cliff-pine-wood-dry-witness=""/g)??[]))
+      .toHaveLength(40);
+    expect(guo).not.toContain('data-km-cliff-pine-wood-load=""');
+    const loads=[...a.matchAll(
+      /data-km-cliff-pine-wood-load="" data-km-cliff-pine-wood-source="([^"]+)" data-km-cliff-pine-wood-tip="([^"]+)" data-km-cliff-pine-wood-role="([^"]+)" data-km-cliff-pine-wood-weight="([^"]+)"/g,
+    )];
+    expect(loads).toHaveLength(40);
+    expect(loads.filter(v=>v[3]==="root-loaded")).toHaveLength(20);
+    expect(loads.filter(v=>v[3]==="feathered-tail")).toHaveLength(20);
+    expect(new Set(loads.map(v=>v[4])).size).toBeGreaterThan(24);
+    for(const [,start,end,role,weight] of loads){
+      const root=start.split(",").map(Number),tip=end.split(",").map(Number);
+      expect(root.every(Number.isFinite)).toBe(true);
+      expect(tip.every(Number.isFinite)).toBe(true);
+      expect(Math.hypot(tip[0]-root[0],tip[1]-root[1]))
+        .toBeGreaterThan(3);
+      expect(Number(weight)).toBeGreaterThan(.9);
+      expect(["root-loaded","feathered-tail"]).toContain(role);
+    }
+    expect([...b.matchAll(
+      /data-km-cliff-pine-wood-source="([^"]+)"/g,
+    )].map(v=>v[1])).not.toEqual(loads.map(v=>v[1]));
+    for(const element of [
+      "data-km-cliff-pine-graft", "data-km-cliff-pine-fringe",
+      "data-km-cliff-pine-needle", "data-km-cliff-pine-wet-cluster",
+      "data-km-cliff-pine-connected-canopy",
+    ]){
+      expect(a).toContain(element+'=""');
+    }
+    expect(a).not.toContain("<image ");
+  });
+
   it("rejects malformed opt-in near-rock study controls",()=>{
     expect(()=>assertShanshuiControls({
       ...DEFAULT_SHANSHUI,fuchunNearShoulderStudy:"enabled" as never,
