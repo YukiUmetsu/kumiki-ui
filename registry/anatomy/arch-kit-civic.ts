@@ -16,7 +16,7 @@
 import type { ArchShape, Node } from "./arch-sdf";
 import { leaf } from "./arch-sdf";
 import type { SceneBuilder } from "./arch-kit";
-import { beam, box, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, gableRoof, gableWall, hipRoof, lanternParts, opening, openingTop, pentRoof, repeatAround, repeatWheel, repeatX, revolve, sphere, spire, tower, windowParts } from "./arch-kit";
+import { beam, box, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, gableRoof, gableWall, hipRoof, lanternParts, opening, openingTop, pentRoof, repeatAround, repeatWheel, repeatX, repeatZ, revolve, sphere, spire, tower, windowParts } from "./arch-kit";
 import type { SurfaceSpec } from "./arch-surface";
 
 // ---- Churches and cathedrals ------------------------------------------------------------------------------------------------
@@ -95,18 +95,35 @@ export function church(b: SceneBuilder, c: ChurchSpec): { top: number } {
     const th = c.towerH ?? c.H * 1.6, tw = c.towers === "west-pair" ? Math.max(4, aw + 1) : c.W * 0.55;
     const zs = c.towers === "west-pair" ? [c.W / 2 + aw / 2, -(c.W / 2 + aw / 2)] : [0];
     for (const z of zs) {
+      // belfry stages: paired lancets on the front and the side of the upper two stages
       const tc: Node[] = [];
-      for (let k = 0; k < 3; k++) { const y0 = th * (0.3 + k * 0.22); tc.push(opening(xw - tw / 2, y0, tw * 0.28, th * 0.12, shape, z - tw / 2 - 1, z + tw / 2 + 1, "z")); tc.push(opening(z, y0, tw * 0.28, th * 0.12, shape, xw - tw - 1, xw + 0.5, "x")); }
+      for (let k = 1; k < 3; k++) for (const o of [-0.17, 0.17]) {
+        const y0 = th * (0.42 + (k - 1) * 0.27), lw = tw * 0.13, lh = th * 0.16;
+        tc.push(opening(z + o * tw, y0, lw, lh - openingTop(lw, 0, shape), shape, xw - tw - 1, xw - tw + 1.2, "x"));
+        tc.push(opening(xw - tw / 2 + o * tw, y0, lw, lh - openingTop(lw, 0, shape), shape, z + tw / 2 - 1.2, z + tw / 2 + 1, "z"));
+      }
       parts.push(cut(boxAt(xw - tw, 0, z - tw / 2, xw, th, z + tw / 2, wm, b.r()), tc));
-      if (gothic) for (const cz of [z - tw / 2, z + tw / 2]) parts.push(boxAt(xw - tw - 0.5, 0, cz - 0.45, xw - tw + 0.6, th * 0.85, cz + 0.45, wm));
+      if (gothic) {
+        // stepped corner buttresses up the tower, each crowned by a pinnacle
+        for (const cz of [z - tw / 2, z + tw / 2]) for (const cx of [xw - tw]) {
+          parts.push(boxAt(cx - 1.4, 0, cz - 0.6, cx + 0.4, th * 0.4, cz + 0.6, wm), boxAt(cx - 1.0, th * 0.4, cz - 0.5, cx + 0.3, th * 0.78, cz + 0.5, wm), boxAt(cx - 0.6, th * 0.78, cz - 0.4, cx + 0.2, th, cz + 0.4, wm));
+          parts.push(spire(cx - 0.2, cz, th, th + 4.5, 0.55, 4, wm, 0, Math.PI / 4));
+        }
+        // an open parapet of small merlons round the tower top
+        parts.push(repeatZ(box(xw - tw - 0.15, th + 0.45, z - tw / 2 + 0.6, 0.2, 0.45, 0.25, wm), 1.1, Math.max(2, Math.floor(tw / 1.1))));
+      }
       if (c.spire !== null && !c.ruin) { const sm = b.mat(c.spire ?? c.roof); parts.push(spire(xw - tw / 2, z, th, th + (gothic ? th * 0.75 : th * 0.35), tw * 0.5, gothic ? 8 : 4, sm, b.r(), gothic ? 0 : Math.PI / 4)); top = Math.max(top, th + (gothic ? th * 0.75 : th * 0.35)); }
-      else top = Math.max(top, th);
+      else top = Math.max(top, th + (gothic ? 4.5 : 0));
     }
-    // the portal, deep in orders, and the rose
+    // three portals deep in orders (the middle one tallest), each under a gable; above them a gallery of niches
     const pw = c.W * 0.32, pc: Node[] = [];
-    for (let k = 0; k < 4; k++) pc.push(opening(0, 0, pw - k * 0.35, 3.4 - k * 0.1, shape, xw - 2.4, xw - 0.3 - k * 0.5, "x"));
-    parts.push(cut(boxAt(xw - 1.2, 0, -c.W / 2, xw + 0.01, c.H, c.W / 2, wm), pc));
+    const portals = c.towers === "west-pair" ? [[0, pw, 1], [c.W / 2 + aw / 2, pw * 0.7, 0.75], [-(c.W / 2 + aw / 2), pw * 0.7, 0.75]] : [[0, pw, 1]];
+    for (const [pz, w, k0] of portals) for (let k = 0; k < 4; k++) pc.push(opening(pz, 0, w - k * 0.35, (3.4 - k * 0.1) * k0 + 1.2 * (k0 - 0.75), shape, xw - (c.towers === "west-pair" && pz !== 0 ? tw + 2.6 : 2.4), xw - (c.towers === "west-pair" && pz !== 0 ? tw : 0) - 0.3 - k * 0.5, "x"));
+    parts.push(cut(boxAt(xw - 1.2, 0, -c.W / 2, xw + 0.01, c.H, c.W / 2, wm), pc.filter(p => p.lo[0] > xw - 3)));
+    if (c.towers === "west-pair") for (const z of zs) parts.push(cut(boxAt(xw - tw - 1.4, 0, z - tw / 2 + 0.7, xw - tw, 9, z + tw / 2 - 0.7, wm), pc.filter(p => p.lo[0] < xw - 3 && Math.abs((p.lo[2] + p.hi[2]) / 2 - z) < tw)));
+    for (const [pz, w, k0] of portals) { const xf = c.towers === "west-pair" && pz !== 0 ? xw - tw - 1.4 : xw - 1.2, yb = openingTop(w, (3.4 * k0) + 1.2 * (k0 - 0.75), shape) + 0.4; parts.push(gableRoof({ x0: xf - 0.5, x1: xf + 0.1, z0: pz - w / 2 - 0.4, z1: pz + w / 2 + 0.4, y: yb, pitch: 58, over: 0, t: 0.6, ridge: "x" }, wm)); }
     parts.push(box(xw - 0.3, 1.9, 0, 0.08, 1.9, pw / 2 - 0.9, b.mat({ kind: "boards", colour: "#4a3424" })));
+    if (gothic) parts.push(cut(boxAt(xw - 1.6, c.H * 0.42, -c.W / 2, xw - 1.2, c.H * 0.42 + 3.2, c.W / 2, wm), Array.from({ length: Math.floor(c.W / 1.4) }, (_, k) => opening(-c.W / 2 + 0.7 + k * 1.4, c.H * 0.42 + 0.4, 0.8, 1.6, "pointed", xw - 2, xw - 1.35, "x"))));
     if (c.rose) { const rs = b.mat({ kind: "stained", emit: 0 }); parts.push(cylX(c.H * 0.68, 0, xw - 1.25, xw - 1.1, c.W * 0.28, rs), ringX(xw - 1.25, c.H * 0.68, 0, c.W * 0.28, 0.3, 0.3, wm)); }
   }
   if (c.towers === "crossing") {

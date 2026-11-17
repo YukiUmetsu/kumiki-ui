@@ -11,7 +11,7 @@
  */
 import { seeded } from "./foundation-shapes";
 import type { ArchShape, Node, RoofSpan } from "./arch-sdf";
-import { beam, box, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, frame, gableRoof, gableWall, hipRoof, leaf, mansard, opening, openingTop, pentRoof, repeatAround, repeatWheel, repeatX, resetScene, revolve, sphere, spire, union, worldRoot } from "./arch-sdf";
+import { beam, box, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, frame, gableRoof, gableWall, hipRoof, leaf, mansard, opening, openingTop, pentRoof, repeatAround, repeatWheel, repeatX, repeatZ, resetScene, revolve, sphere, spire, union, worldRoot } from "./arch-sdf";
 import type { ArchScene, CameraSpec, Canopy, GroundZone, IvyPatch, Mood, MoodId, PointLight, Portal } from "./arch-paint";
 import type { SurfaceSpec } from "./arch-surface";
 
@@ -605,4 +605,4 @@ const repeatZ2 = (n: Node, step: number, count: number): Node => {
 };
 
 // re-exported for generators elsewhere
-export { beam, box, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, gableRoof, gableWall, hipRoof, leaf, mansard, opening, openingTop, pentRoof, repeatAround, repeatWheel, repeatX, revolve, sphere, spire, union };
+export { beam, box, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, gableRoof, gableWall, hipRoof, leaf, mansard, opening, openingTop, pentRoof, repeatAround, repeatWheel, repeatX, repeatZ, revolve, sphere, spire, union };

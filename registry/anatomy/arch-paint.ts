@@ -208,15 +208,16 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
     return tg;
   };
   const softShadow = (px: number, py: number, pz: number, dx: number, dy: number, dz: number, tMax: number, k: number, maxSteps: number): number => {
-    let res = 1, t = 0.04, ph = 1e9;
+    // the classic penumbra estimate (k·h/t): robust where distances are only bounds (cut openings, leaning frames)
+    let res = 1, t = 0.04;
     for (let i = 0; i < maxSteps && t < tMax; i++) {
       const hh = sdf(px + dx * t, py + dy * t, pz + dz * t);
       if (hh < 0.0008) return 0;
-      const yy = (hh * hh) / (2 * ph), dd = Math.sqrt(Math.max(0, hh * hh - yy * yy));
-      res = Math.min(res, (k * dd) / Math.max(0.0001, t - yy));
-      ph = hh; t += Math.min(Math.max(hh, 0.02), 4);
+      res = Math.min(res, (k * hh) / t);
+      t += Math.min(Math.max(hh * 0.9, 0.015), 4);
     }
-    return Math.max(0, Math.min(1, res));
+    const r = Math.max(0, Math.min(1, res));
+    return r * r * (3 - 2 * r);
   };
   const ao = (px: number, py: number, pz: number, nx: number, ny: number, nz: number): number => {
     let occ = 0, sc = 1;
@@ -345,7 +346,7 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
       let vis = 0;
       const diff = bnx * Lx + bny * Ly + bnz * Lz;
       if (sunP > 0.01 && nx * Lx + ny * Ly + nz * Lz > -0.05) {
-        vis = softShadow(hx + nx * 0.004, hy + ny * 0.004, hz + nz * 0.004, Lx, Ly, Lz, 120, 9, draft ? 32 : 64);
+        vis = softShadow(hx + nx * 0.004, hy + ny * 0.004, hz + nz * 0.004, Lx, Ly, Lz, 120, 14, draft ? 32 : 72);
         if (canopies.length && vis > 0) vis *= cookie(hx, hy, hz);
       }
       let occ = ao(hx, hy, hz, nx, ny, nz) * (0.55 + 0.45 * so.cav);
@@ -500,6 +501,14 @@ function paintPass(g: GBuf, p: { paint: number; ink: number; seed: number; night
   const lift = 0.45 * P * (1 - 0.6 * p.night);
   const curve = (x0: number) => { const x = x0 * expo, v = Math.max(0, x + lift * 0.06 * (1 - Math.min(1, x * 3))) * 0.92; const y = (v * (2.51 * v + 0.03)) / (v * (2.43 * v + 0.59) + 0.14); return Math.pow(Math.min(1, y), 1 / 2.2); };
   for (let i = 0; i < n * 3; i++) disp[i] = curve(g.col[i]);
+  // specks: a lone far hit with sky nearly all round it is a grazing ray's noise, not detail; it takes the sky's colour
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const i = y * w + x;
+    if (ids[i] < 0 || depth[i] < 60) continue;
+    let sky = 0, r = 0, gg = 0, b = 0;
+    for (let j = -1; j <= 1; j++) for (let k = -1; k <= 1; k++) { const q = i + j * w + k; if (q !== i && ids[q] < 0) { sky++; r += disp[q * 3]; gg += disp[q * 3 + 1]; b += disp[q * 3 + 2]; } }
+    if (sky >= 5) { disp[i * 3] = r / sky; disp[i * 3 + 1] = gg / sky; disp[i * 3 + 2] = b / sky; ids[i] = -1; depth[i] = depth[i] * 4; }
+  }
   if (P <= 0) return disp;
 
   // 2. washes: an edge-aware blur that stays inside each shape (same surface, near depth)
@@ -533,7 +542,7 @@ function paintPass(g: GBuf, p: { paint: number; ink: number; seed: number; night
     const sh = (1 - s) * (1 - nightK * 0.6) * P;
     out[k] += (-0.035 * sh + 0.03 * s * P) * (0.4 + L); out[k + 1] += (-0.01 * sh + 0.012 * s * P) * (0.4 + L); out[k + 2] += (0.05 * sh - 0.03 * s * P) * (0.4 + L);
     // gentle saturation in the mid-tones, as watercolour pigment reads richer than a photograph
-    const m = (out[k] + out[k + 1] + out[k + 2]) / 3, sat = 1 + 0.12 * P * (1 - Math.abs(L - 0.5) * 2);
+    const m = (out[k] + out[k + 1] + out[k + 2]) / 3, sat = 1 + 0.2 * P * (1 - Math.abs(L - 0.5) * 2);
     out[k] = m + (out[k] - m) * sat; out[k + 1] = m + (out[k + 1] - m) * sat; out[k + 2] = m + (out[k + 2] - m) * sat;
   }
 
@@ -597,7 +606,7 @@ function paintPass(g: GBuf, p: { paint: number; ink: number; seed: number; night
     // rain: thin slanting strokes of lighter air
     if (p.wet > 0.6) { const ru = fx * 0.9 + fy * 0.22, cell = Math.floor(ru / 3), off = (fy + hash2(p.seed + 131, cell, 0) * 400) % 37; if (hash2(p.seed + 137, cell, Math.floor((fy + hash2(p.seed + 139, cell, 1) * 400) / 37)) > 0.55 && off < 9 && Math.abs(ru - cell * 3 - 1.5) < 0.35) { const a = 0.16 * (p.wet - 0.6) * 2.5; r += (0.85 - r) * a; gg += (0.88 - gg) * a; b += (0.92 - b) * a; } }
     // a soft vignette, like the falloff at the edge of a painted plate
-    const vx = x / w - 0.5, vy = y / h - 0.5, vig = 1 - P * 0.22 * Math.pow(vx * vx * 1.2 + vy * vy * 1.6, 1.4) * 4;
+    const vx = x / w - 0.5, vy = y / h - 0.5, vig = 1 - P * 0.14 * Math.pow(vx * vx * 1.2 + vy * vy * 1.6, 1.4) * 4;
     out[k] = r * vig; out[k + 1] = gg * vig; out[k + 2] = b * vig;
   }
   return out;

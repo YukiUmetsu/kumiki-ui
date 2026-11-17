@@ -130,12 +130,13 @@ const add = (e: LibraryEntry) => { E.push(e); };
 add({ id: "cotswold-cottage", label: "Cotswold stone cottage", group: "british", region: "England, Cotswolds", era: "17th century", setting: "village", view: "exterior", scale: "humble", mood: "golden",
   materials: ["oolitic limestone rubble", "stone slates in diminishing courses", "oak", "leaded lights"], story: ["ivy on the gable", "flower boxes", "firewood under a lean-to", "worn threshold", "garden walls"],
   note: "Stone slates are laid largest at the eaves and smallest at the ridge, on a steep pitch (about 45° or more) because the porous stone needs it.",
-  build: (seed = 1) => { const b = new SceneBuilder(seed); countryside(b, { trees: [[-12, -5, 9]] });
+  build: (seed = 1) => { const b = new SceneBuilder(seed); countryside(b, { trees: [[-8.5, -4, 9]] });
     placeHouse(b, { w: 9, d: 5.5, storeys: 2, storeyH: 2.6, walls: S.cotswold, roof: { kind: "gable", pitch: 52, mat: S.stoneSlate, over: 0.25, sag: 0.12 },
       windows: { rows: [[-2.8, 2.5], [-2.8, 0, 2.5]], spec: W.leaded(0.9, 1.0, { flowers: "#c0392b", head: { kind: "ashlar", colour: "#c9ad78" } }) },
       door: { x: -0.2, mat: S.boards("#3f5a52"), lantern: true, canopy: S.stoneSlate }, chimneys: [{ x: 3.9, mat: S.cotswold }], ivy: [{ x: -4.2, w: 2.5, h: 5 }] }, 0, 0, -32, 0, () => { firewood(b, 5.6, 2.8, 1.4, 1.1); bench(b, -1.9, 2.75); });
+    const cam = frameSubject(b, 14, { pad: 0.14 });
     gardenWall(b, -14, -5, 4.2); gardenWall(b, 6, 14, 4.2); b.place();
-    return done(b, frameSubject(b, 14, { pad: 0.06 }), "golden"); } });
+    return done(b, cam, "golden"); } });
 add({ id: "tudor-jettied-house", label: "Tudor jettied town house", group: "british", region: "England", era: "c. 1500–1580", setting: "town", view: "exterior", scale: "domestic", mood: "morning",
   materials: ["close-studded oak", "lime plaster infill", "plain clay tiles", "brick chimney"], story: ["upper floors jettied over the street", "a hanging shop sign", "oriel windows"],
   note: "Close studding: studs set as close as their own width; each floor jettied out on joist ends to gain room over the street.",
@@ -1013,7 +1014,7 @@ export function surfaceStudy(surface: SurfaceSpec, form: "wall" | "roof" | "grou
   if (form === "roof") {
     b.add(gableRoof({ x0: -2, x1: 2, z0: -2.4, z1: 2.4, y: 0.6, pitch: 40, over: 0.2 }, m), gableWall({ x0: -2, x1: 2, z0: -2.4, z1: 2.4, y: 0.6, pitch: 40 }, b.mat(S.ashlar("#cfc4ad"))), boxAt(-2, 0, -2.4, 2, 0.6, 2.4, b.mat(S.ashlar("#cfc4ad"))));
     b.place({ yaw: 24 });
-    return b.scene({ x: 1.0, y: 3.4, z: 5.6, yaw: -8, fov: 52, shift: -0.15 }, mood);
+    return b.scene({ x: 0.8, y: 3.4, z: 5.2, yaw: -8, fov: 52, shift: -0.62 }, mood);
   }
   return b.scene({ x: 0, y: 1.6, z: 3, yaw: 0, fov: 52, shift: -0.85 }, mood);
 }

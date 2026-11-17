@@ -130,7 +130,7 @@ const SURFACES: readonly { label: string; s: SurfaceSpec; form?: "wall" | "roof"
   { label: "Weathered oak frame with pegs", s: { kind: "timber-frame", colour: "#e8dcc2", colour2: "#4a3a2c", pattern: "close", storey: 2.6, sill: 0.9, spacing: 0.5, age: 0.6 }, note: "Studs as wide as the gaps (close studding), proud of the infill; oak pegs at the joints; grain along each member." },
   { label: "Rough limestone, mossy joints", s: { kind: "rubble", colour: "#b3a68c", moss: 0.8, age: 0.7 }, note: "Random rubble 0.15–0.4 m in 10–30 mm mortar; moss lives in the joints and on what faces up." },
   { label: "Cotswold coursed rubble", s: { kind: "coursed-rubble", colour: "#c9a66a", moss: 0.3, age: 0.6 }, note: "Thin honey-coloured beds of varied height, laid flat." },
-  { label: "Granite ashlar", s: { kind: "ashlar", colour: "#9a958c", course: 0.4, age: 0.6, moss: 0.3 }, note: "Courses 0.25–0.45 m, joints 3–10 mm, worn arrises." },
+  { label: "Granite ashlar", s: { kind: "ashlar", colour: "#77746f", course: 0.4, age: 0.6, moss: 0.3 }, note: "Courses 0.25–0.45 m, joints 3–10 mm, worn arrises." },
   { label: "Flaking limewash over brick", s: { kind: "limewash", colour: "#efe8d8", flake: 0.55, under: "brick", age: 0.6 }, note: "Salt and damp push the coat off near the ground and where water runs; the brick shows through." },
   { label: "Brick in Flemish bond", s: { kind: "brick", colour: "#9b4f37", pattern: "flemish", age: 0.5 }, note: "215 × 65 mm units, 10 mm joints; headers and stretchers alternate; burnt headers chequer." },
   { label: "Handmade clay tiles", s: { kind: "plain-tile", colour: "#8f5038", age: 0.6, moss: 0.4 }, form: "roof", note: "A 100 mm gauge, each tile cambered and fired a little differently; moss in the laps." },

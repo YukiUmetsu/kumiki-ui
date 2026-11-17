@@ -114,11 +114,11 @@ function courses(u: number, v: number, rowH: number, unitL: number, seed: number
   return { id: hash2(seed + 5, id, row), dj, row, fy, fx: (uu - left) / Math.max(1e-6, right - left) };
 }
 
-/** Moss and lichen over any masonry: in the joints (cavity low), on tops (ny up), heavier near the ground. */
-function mossOver(o: SurfOut, u: number, v: number, amount: number, i: SurfIn, jointDepth: number) {
+/** Moss and lichen over any masonry: in the joints and laps (`inJoint` 1), on what faces up, near the damp ground, in patches. */
+function mossOver(o: SurfOut, u: number, v: number, amount: number, i: SurfIn, inJoint: number) {
   if (amount <= 0) return;
   const n = fbm(i.seed + 71, u * 1.7, v * 1.7, 3), fine = gradNoise(i.seed + 73, u * 23, v * 23);
-  const where = amount * (0.55 * (1 - jointDepth) + 0.6 * Math.max(0, i.ny) + 0.35 * sst(1.5, 0, i.y) + 0.25 * n) - 0.38 + 0.12 * fine;
+  const where = amount * (0.6 * inJoint + 0.45 * Math.max(0, i.ny) + 0.35 * sst(1.5, 0, i.y) + 0.3 * n) - 0.42 + 0.12 * fine;
   const m = sst(0, 0.25, where);
   if (m > 0) { mixInto(o, fine > 0.2 ? MOSS : MOSS_DARK, m * 0.9); o.h += m * 0.006; o.rough = Math.max(o.rough, 0.95); }
   const lich = sst(0.62, 0.7, n * 0.5 + 0.5 + fine * 0.1) * amount * 0.6;
@@ -202,7 +202,8 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
         const tex = fbm(seed + 3, u * 30, v * 30, 2);
         set(o, col, 1 + tex * 0.08);
         const rb = resolve(i.fw, H), inJoint = sst(0.009, 0.004, dj) * rb;
-        if (rb < 1) { const k = 1 - rb; o.r += (red[0] * 0.95 - o.r) * k * 0.7; o.g += (red[1] * 0.95 - o.g) * k * 0.7; o.b += (red[2] * 0.95 - o.b) * k * 0.7; }
+        // below two pixels a brick's own colour (and the headers' chequer) would alias: fade to the wall's average, with a soft mottle
+        if (rb < 1) { const k = 1 - rb, mot = 1 + 0.06 * fbm(seed + 8, u * 0.8, v * 0.8, 2); o.r += (red[0] * 0.9 * mot - o.r) * k; o.g += (red[1] * 0.9 * mot - o.g) * k; o.b += (red[2] * 0.92 * mot - o.b) * k; }
         o.h = 0.003 * sst(0, 0.01, dj) * rb + 0.0006 * tex;
         if (inJoint > 0) { mixInto(o, mortar, inJoint * 0.9); o.h -= 0.004 * inJoint; }
         o.cav = 1 - 0.4 * inJoint; o.rough = 0.88; o.spec = 0.03; o.porous = 0.7;
@@ -231,7 +232,7 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
           const rim = sst(0.0, 0.006, lose - 0.42) * (1 - sst(0.006, 0.02, lose - 0.42));
           o.r *= 1 - rim * 0.25; o.g *= 1 - rim * 0.25; o.b *= 1 - rim * 0.25;
         }
-        grime(o, u, v, age, i); mossOver(o, u, v, moss, i, 1);
+        grime(o, u, v, age, i); mossOver(o, u, v, moss, i, 0.3);
       };
     }
     case "timber-frame": {
@@ -269,7 +270,7 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
           if (Math.hypot(pegU, pegV) < 0.022) { o.r *= 0.62; o.g *= 0.6; o.b *= 0.58; o.h -= 0.002; }
         }
         const edge = sst(0.02, 0, Math.abs(d)); o.cav = 1 - 0.3 * edge * (1 - tim);
-        grime(o, u, v, age * 0.8, i); mossOver(o, u, v, moss, i, 1);
+        grime(o, u, v, age * 0.8, i); mossOver(o, u, v, moss, i, 0.3);
       };
     }
     case "log": case "boards": {
@@ -285,7 +286,7 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
         const silver = (s.age ?? 0.4) * 0.5 * (0.6 + 0.4 * fbm(seed + 4, b * 0.4, a * 0.4, 2));
         mixInto(o, [0.32, 0.3, 0.28], silver);
         o.rough = 0.85; o.porous = 0.55; o.spec = 0.02;
-        grime(o, u, v, age * 0.6, i); mossOver(o, u, v, moss, i, rnd);
+        grime(o, u, v, age * 0.6, i); mossOver(o, u, v, moss, i, 1 - rnd);
       };
     }
     case "mudbrick": case "turf-wall": {
@@ -478,8 +479,13 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
       return (u, v, i, o) => {
         const n = rock ? fbm3(seed + 1, i.wx * 0.35, i.wy * 0.5, i.wz * 0.35, 4) : fbm(seed + 1, u * 0.6, v * 0.6, 4), fine = rock ? fbm3(seed + 2, i.wx * 3, i.wy * 3, i.wz * 3, 2) : fbm(seed + 2, u * 7, v * 7, 3);
         set(o, base, 0.85 + 0.18 * (n * 0.5 + 0.5) + 0.08 * fine);
-        if (rock) { const strata = (Math.sin(i.wy * 1.3 + n * 5) * 0.5 + 0.5) * 0.6 + 0.2, crack = sst(0.08, 0, Math.abs(fbm3(seed + 3, i.wx * 0.9, i.wy * 0.25, i.wz * 0.9, 2))); o.r *= 0.86 + 0.14 * strata - 0.3 * crack; o.g *= 0.86 + 0.14 * strata - 0.3 * crack; o.b *= 0.88 + 0.12 * strata - 0.28 * crack; const veg = sst(0.55, 0.8, i.ny + 0.3 * n) * 0.8; mixInto(o, [0.2, 0.25, 0.1], veg); }
-        if (s.kind === "grass") { mixInto(o, [0.42, 0.42, 0.18], sst(0.2, 0.8, n * 0.5 + 0.5) * 0.35); mixInto(o, [0.2, 0.28, 0.1], sst(0.4, 0.9, fine * 0.5 + 0.5) * 0.3); }
+        if (rock) { const strata = 0.5 + 0.35 * fbm3(seed + 4, i.wx * 0.12, i.wy * 0.6, i.wz * 0.12, 2), crack = sst(0.08, 0, Math.abs(fbm3(seed + 3, i.wx * 0.9, i.wy * 0.25, i.wz * 0.9, 2))); o.r *= 0.86 + 0.14 * strata - 0.3 * crack; o.g *= 0.86 + 0.14 * strata - 0.3 * crack; o.b *= 0.88 + 0.12 * strata - 0.28 * crack; const veg = sst(0.55, 0.8, i.ny + 0.3 * n) * 0.8; mixInto(o, [0.2, 0.25, 0.1], veg); }
+        if (s.kind === "grass") {
+          // a meadow: drifts of lighter and darker green, sun-dried patches, and flowers where it is near enough to see them
+          const drift = fbm(seed + 5, u * 0.12, v * 0.12, 3);
+          mixInto(o, [0.42, 0.42, 0.18], sst(0.2, 0.8, n * 0.5 + 0.5) * 0.3); mixInto(o, [0.16, 0.26, 0.08], sst(0.1, 0.8, drift * 0.5 + 0.5) * 0.35); mixInto(o, [0.2, 0.28, 0.1], sst(0.4, 0.9, fine * 0.5 + 0.5) * 0.25);
+          if (i.fw < 0.04) { const fl = hash2(seed + 6, Math.floor(u * 7), Math.floor(v * 7)); if (fl > 0.975) set(o, fl > 0.99 ? [0.85, 0.72, 0.2] : fl > 0.982 ? [0.86, 0.86, 0.82] : [0.7, 0.3, 0.45]); }
+        }
         if (s.kind === "dirt") { const rut = sst(0.25, 0.0, Math.abs(Math.abs(u) - 0.75)); o.r *= 1 - 0.12 * rut; o.g *= 1 - 0.12 * rut; o.b *= 1 - 0.1 * rut; }
         o.h = 0.02 * fine + 0.05 * n; o.cav = 0.85 + 0.15 * fine; o.rough = s.kind === "snow" ? 0.6 : 0.95; o.spec = s.kind === "snow" ? 0.08 : 0.01; o.porous = s.kind === "rock" ? 0.4 : 0.8;
         if (s.kind === "rock") grime(o, u, v, age, i);
@@ -590,7 +596,7 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
     }
     default: {
       const c = C(s.colour, "#9a9288");
-      return (u, v, i, o) => { const n = fbm(seed, u * 3, v * 3, 3); set(o, c, 1 + n * 0.06); o.h = 0.002 * n; o.cav = 1; o.rough = 0.8; o.spec = 0.03; o.porous = 0.5; grime(o, u, v, age, i); mossOver(o, u, v, moss, i, 1); };
+      return (u, v, i, o) => { const n = fbm(seed, u * 3, v * 3, 3); set(o, c, 1 + n * 0.06); o.h = 0.002 * n; o.cav = 1; o.rough = 0.8; o.spec = 0.03; o.porous = 0.5; grime(o, u, v, age, i); mossOver(o, u, v, moss, i, 0.3); };
     }
   }
 }
