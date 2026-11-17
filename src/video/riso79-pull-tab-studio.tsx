@@ -126,6 +126,8 @@ export function RisoPullTabFilmStudio(){
     data-km-riso79-windows={windowCount}
     data-km-riso79-shape-preset={windowShape}
     data-km-riso80-shape-preset={windowShape}
+    data-km-riso80-lens-x={focusX}
+    data-km-riso80-lens-y={focusY}
     data-km-riso79-direction={direction}
     data-km-riso79-aspect={aspect}
     data-km-riso79-zoom={zoom}
