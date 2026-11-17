@@ -470,7 +470,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   initialEyeContact="source-shade",initialMidfaceForm="baseline",
 }:StudyProps & {
   initialLashFinish?:CrayonF1LashFinish;
-  initialInspection?:"full"|"face"|"near-eye"|"far-eye"|"mouth"|"nose"|"jaw-neck";
+  initialInspection?:"full"|"face"|"near-eye"|"far-eye"|"mouth"|"nose"|"jaw-neck"|"hair-left"|"hair-right";
   initialEyeContact?:Cc0EyeContact;
   initialMidfaceForm?:Cc0MidfaceForm;
 }){
@@ -488,7 +488,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
-  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values"].includes(midfaceForm)?
+  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39"].includes(midfaceForm)?
     crayonF1RegisterAnat1Face():null,[midfaceForm]);
   const lashRootAudit=useMemo(()=>lashFinish!=="sparse"&&eyeContact!=="baseline"
     ?auditCrayonF1LashRootContinuity(spec.elements):null,
@@ -663,6 +663,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-anat1-near-eye">CC0 ANAT1 photographed near eyelid aperture and pigment (V36 !dev, from V35)</option>
            <option value="source-anat1-brow-follicles">CC0 ANAT1 source-rooted near eyebrow and follicles (V37 !dev, from V36)</option>
            <option value="source-anat1-hair-values">CC0 original photographed dark hair source-value calibration (V38 !dev, from V37)</option>
+           <option value="source-anat1-rooted-hair-v39">CC0 native source-root to shaft wax gestures (V39 !dev, from V38)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -803,6 +804,18 @@ export const Cc0HairValueABV38:Story={
   name:"CC0 dark hair · synced V37/V38 1× + 2.85× A/B (!dev)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0HairValueComparisonV38 {...args}/>,
+};
+export const Cc0Anat1RootFlowV39:Story={
+  name:"CC0 continuous crown-to-curtain root wax / original face (!dev V39)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-rooted-hair-v39" initialInspection="full"/>,
+};
+export const Cc0Anat1RootFlowDetailV39:Story={
+  name:"CC0 rooted dry-wax curtain and face contact 2.15× (!dev V39)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-rooted-hair-v39" initialInspection="hair-right"/>,
 };
 export const Cc0Anat1HairValuesV38:Story={
   name:"CC0 original photographed chestnut-black hair crown and curtains (!dev V38)",
