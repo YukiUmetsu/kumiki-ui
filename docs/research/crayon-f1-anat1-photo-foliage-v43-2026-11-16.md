@@ -37,3 +37,33 @@ The largest source contour occupies x412–607 / y127–348, an asymmetrically p
 - **Rejection:** If new source contours still read as a smooth silhouette patch instead of optical-depth foliage, if the color medians wash out, if the full portrait or any important source ROI materially regresses, or if the native grain disappears, leave V43 `!dev` and do not promote. A larger global SSIM is only diagnostic; it does **not** prove authentic art.
 
 **Art HOLD.** Whole-photo release target **≥0.85**, independent full-image 18 landmark and five source facial value-plane checks, real-time entire 300-frame animation inspection, physical pencil/crayon finish at 1× and independent artist signoff are all unresolved. Keep PR #461 unmerged.
+
+## Exact-head native pixel evidence and forensic screenshot rejection
+
+**Source:** original 608×1082 CC0 capture SHA256 `f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2`. Pixel-generation head `7b3364b1d2a2b70e71f9cae5a8bf46a466551988` uses identical authored camera, source, seed, frame 299 and portrait for both variants. [Same-head native Chromium PNGs, full 1× / canopy 2.4× artifact **14298484504**](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44016205791/artifacts/14298484504). Independent `skimage.metrics.structural_similarity` on actual decoded RGB, `data_range=255,channel_axis=2`, no alignment/contrast retouching:
+
+| 608×1082 original CC0 source ROI | V42 negative control | V43 traced wax | Δ |
+| --- | ---: | ---: | ---: |
+| Whole 0,0,608,1082 | 0.489747 | **0.496979** | **+0.007231** |
+| Upper 0,0,608,163 | 0.487647 | **0.534956** | **+0.047309** |
+| Upper-left 0,0,225,160 | 0.449769 | **0.459777** | +0.010008 |
+| Upper-right 385,0,608,170 | 0.494337 | **0.540193** | **+0.045857** |
+| Far-upper 520,180,608,355 | 0.374066 | **0.382692** | +0.008626 |
+| Far-middle 550,345,608,625 | 0.371129 | **0.398210** | +0.027081 |
+| Far-lower 580,625,608,900 | 0.359641 | **0.426712** | +0.067071 |
+| Near-upper-left 0,150,80,290 | 0.287692 | **0.313519** | +0.025827 |
+| Full face 108,282,502,862 | **0.622878** | 0.622734 | **−0.000144** |
+| Near eye 174,430,346,609 | 0.563332 | 0.563332 | 0 |
+| Nose / mouth 323,500,498,770 | 0.532488 | 0.532488 | 0 |
+
+**Critical first-run failure and its fix.** The original V43 naive `svg.screenshot` generated an **incomplete Chromium SVG tile raster**: portions of the actual face and environment became featureless paper, despite intact DOM nodes, identical facial data and green tests. This screenshot was deliberately **rejected** as false renderability proof. After limiting 19 source-blob native wax feather filters from **18 to 7 source px** and implementing a **decoded-PNG, identical original-face eye/lid/cheek pixel gate**, the persisted screenshot is independently verified: all 11,500 central source-face pixels in x220..335,y490..590 have **0 maximum RGB difference** from the exact V42 native same-head control. The Playwright test decodes the **exact PNG bytes ultimately written to the artifact** using browser image decode/canvas and retries genuinely incomplete GPU paint tiles, rather than testing an unrelated later crop. Do not remove this gate or use earlier unguarded V43 artifacts for art critique.
+
+**Localized source-conditioned polish:** Initial traced far-upper foliage made x520..608,y180..355 too bright (native mean RGB **72,93,49**, source **45,65,26**, V42 **57,80,39**) despite positive top SSIM. The largest real CC0 polygon x412..607,y127..348 now carries **deep shadow wax** beneath the six separately source-traced high-light islands, without deleting any of its 44 authored source contour vertices or finer contact. Final native far-upper mean **55,75,37**, and far-upper SSIM rises from the rejected 0.301664 to **0.382692**, above the V42 0.374066 control. This is still visibly too bright and too symbol-like compared with out-of-focus real leaf bokeh.
+
+**CI:** [native drawing grammar PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44016205799), [strict source typecheck and changed unit suites PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44016205832), [actual browser image proof PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44016205791), all at pixel-generation head `7b3364b`.
+
+## Independent ArtCraft decision and next work
+
+**NOT APPROVED / KEEP DRAFT AND !dev.** At 1×, irregular green clumps now correspond to the photographed source silhouette better than V42's evenly repeated leaf triplets, with measured whole/upper-region improvements; however they still read as discrete oversized manufactured cutouts at 2.4×, not far-depth, optically blurred hand-rendered crayon. The woman's face and hair remain stylized and much less volumetric/beautiful than the CC0 photographic reference, and the portrait remains far below required **≥0.85** whole-source SSIM. The minor full-face SSIM regression (−0.000144) is documented, not hidden.
+
+**Next priority:** rework photographic depth and edge break-up of the 19 real-source foliage shapes (not substitute 3D leaves or flat textures), then prioritize the more serious source-registered facial anatomy, orbital form and hair volume. Add robust **frame-export capture stability** beyond this research-only screenshot gate before production; inspect 18 final native-render facial landmarks, five measured facial value planes and all 300 normal-speed frames. No merge or production promotion before an independent artist approves.
