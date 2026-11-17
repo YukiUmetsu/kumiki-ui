@@ -43,13 +43,13 @@ test("FLORA1 rear-cup physical relief is a true reversible 16:9/9:16 image and 2
     await macro.uncheck();
     await focus.selectOption("default");
     for(const name of ["Foundation rose nested inner whorl","Foundation rose middle cup",
-      "Foundation rose frontal local values","Foundation rose calyx anatomy","Foundation rose pinnate leaves"])
+      "Foundation rose frontal local values","Foundation rose physical rim thickness","Foundation rose calyx anatomy","Foundation rose pinnate leaves"])
       await page.getByRole("checkbox",{name}).check();
-    await expect(svg.locator("[data-km-pencil-region]")).toHaveCount(42);
+    await expect(svg.locator("[data-km-pencil-region]")).toHaveCount(44);
     await svg.screenshot({animations:"disabled",
-      path:info.outputPath("crown-"+aspect+"-full42-cup-native.png")});
+      path:info.outputPath("crown-"+aspect+"-full44-cup-native.png")});
     for(const name of ["Foundation rose pinnate leaves","Foundation rose calyx anatomy",
-      "Foundation rose frontal local values","Foundation rose middle cup","Foundation rose nested inner whorl"])
+      "Foundation rose physical rim thickness","Foundation rose frontal local values","Foundation rose middle cup","Foundation rose nested inner whorl"])
       await page.getByRole("checkbox",{name}).uncheck();
     await relief.uncheck();
     await expect(scene).toHaveAttribute("data-km-rose-back-cup-relief","baseline");
