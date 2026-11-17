@@ -42,9 +42,15 @@ async({page},info)=>{
   await expect(root).toHaveAttribute("data-km-riso75-frame","0");
   await expect(firstStreak).toHaveAttribute("d",originalStreak!);
   const frame0=await sourceBrush.first().evaluate(el=>el.outerHTML);
+  // Source gestures are intentionally periodic: frame 239 closes the loop
+  // and matches frame 0. Verify motion at an INTERMEDIATE time, not the seam.
+  await root.getByRole("slider",{name:"RISO75 original source film frame"}).press("ArrowRight");
+  await expect(root).toHaveAttribute("data-km-riso75-frame","1");
+  expect(await sourceBrush.first().evaluate(el=>el.outerHTML)).not.toBe(frame0);
+  await expect(firstStreak).toHaveAttribute("d",originalStreak!);
   await root.getByRole("slider",{name:"RISO75 original source film frame"}).press("End");
   await expect(root).toHaveAttribute("data-km-riso75-frame","239");
-  expect(await sourceBrush.first().evaluate(el=>el.outerHTML)).not.toBe(frame0);
+  expect(await sourceBrush.first().evaluate(el=>el.outerHTML)).toBe(frame0);
   await expect(firstStreak).toHaveAttribute("d",originalStreak!);
   await root.getByRole("combobox",{name:"RISO75 paper feed direction"})
     .selectOption("left-to-right");
