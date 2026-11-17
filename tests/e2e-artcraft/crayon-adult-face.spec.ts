@@ -1732,6 +1732,69 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
  * No changes allowed to source hair masses or unrelated upper foliage.
  */
 /** Independently source-positive-only upper-lid candidate; V52 control. */
+/** The source CC0 original hair cap stands y194 at x300 and y309 at x450.
+ * This native, same-608x1082-browser proof tests V56 real wax geometry vs
+ * exact V54 negative control: no new hair lines, no changed paper/camera.
+ */
+test("F1 V56 source-measured hair-crown silhouette full and 2.85x V54 control",async({page},info)=>{
+  test.setTimeout(235_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const shots:Record<string,Uint8Array[]>={full:[],crown:[],right:[]};
+  const roi:Record<string,number[][]>={foliage:[],nearIris:[]};
+  for(const midfaceForm of [
+    "source-anat1-superior-tarsus-v54","source-anat1-hair-top-v56",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","crown","right"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:view==="crown"?300:510,
+          focusY:view==="crown"?260:625,zoom:view==="crown"?2.85:2.15},
+        {frame:299,focusX:view==="crown"?300:510,
+          focusY:view==="crown"?260:625,zoom:view==="crown"?2.85:2.15},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+        "</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface","hair-right-curtain",
+        "hair-rooted-crown-0","hair-rooted-right-0","face-outline","iris-near"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-crayon-element^="hair-source-lock-"]')).toHaveCount(0);
+      await page.waitForTimeout(350);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v56-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      shots[view].push(png);
+      if(view==="full"){
+        const pixels=await page.evaluate(async(b64:string)=>{
+          const im=new Image();im.src="data:image/png;base64,"+b64;await im.decode();
+          const cv=document.createElement("canvas");cv.width=im.naturalWidth;cv.height=im.naturalHeight;
+          const ctx=cv.getContext("2d");if(!ctx)throw Error("No source original pixel inspector");
+          ctx.drawImage(im,0,0);
+          return {foliage:Array.from(ctx.getImageData(0,0,80,75).data),
+            nearIris:Array.from(ctx.getImageData(239,531,53,39).data)};
+        },Buffer.from(png).toString("base64"));
+        roi.foliage.push(pixels.foliage);roi.nearIris.push(pixels.nearIris);
+      }
+    }
+  }
+  for(const [key,arr] of Object.entries(roi)){
+    expect(arr).toHaveLength(2);
+    let changed=0;
+    for(let i=0;i<arr[0].length;i+=4)
+      if(Math.abs(arr[0][i]-arr[1][i])+
+         Math.abs(arr[0][i+1]-arr[1][i+1])+
+         Math.abs(arr[0][i+2]-arr[1][i+2])>5)changed++;
+    expect(changed/(arr[0].length/4),key).toBeLessThanOrEqual(.003);
+  }
+  for(const view of ["full","crown","right"] as const){
+    expect(shots[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(shots[view][0]),Buffer.from(shots[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
 test("F1 V54 upper-lash-only photo geometry 1x and 2.85x V52 negative control",async({page},info)=>{
   test.setTimeout(240_000);
   await page.setViewportSize({width:608,height:1082});

@@ -482,7 +482,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
-  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49","source-anat1-photometric-hair-v50","source-anat1-rooted-hair-v51","source-anat1-photo-hair-face-v52","source-anat1-palpebral-v53","source-anat1-superior-tarsus-v54"].includes(midfaceForm)?
+  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49","source-anat1-photometric-hair-v50","source-anat1-rooted-hair-v51","source-anat1-photo-hair-face-v52","source-anat1-palpebral-v53","source-anat1-superior-tarsus-v54","source-anat1-hair-top-v56"].includes(midfaceForm)?
     crayonF1RegisterAnat1Face():null,[midfaceForm]);
   const lashRootAudit=useMemo(()=>lashFinish!=="sparse"&&eyeContact!=="baseline"
     ?auditCrayonF1LashRootContinuity(spec.elements):null,
@@ -674,6 +674,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-anat1-photo-hair-face-v52">CC0 photo-measured oblique facial planes and dark rooted hair (V52 !dev)</option>
            <option value="source-anat1-palpebral-v53">Rejected V53 upper/lower/iris photo-SSIM regression (!dev negative control)</option>
            <option value="source-anat1-superior-tarsus-v54">CC0 upper tarsal/lash only, original V52 sclera/iris/pupil/lower lid (V54 !dev)</option>
+           <option value="source-anat1-hair-top-v56">CC0 source-scanned 22-station crown/curtain outer shape (V56 !dev)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -817,6 +818,24 @@ export const Cc0HairValueABV38:Story={
   render:args=><Cc0HairValueComparisonV38 {...args}/>,
 };
 /** Native source-wax only. V48 remains the exact negative control for V49. */
+export const Cc0Anat1HairTopV56:Story={
+  name:"CC0 photographed source-registered asymmetric outer hair silhouette (!dev V56)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-top-v56" initialInspection="full"/>,
+};
+export const Cc0Anat1HairCrownV56:Story={
+  name:"CC0 22-source-station crown top and physical wax mass at 2.85× (!dev V56)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-top-v56" initialInspection="hair-crown"/>,
+};
+export const Cc0Anat1HairRightV56:Story={
+  name:"CC0 far curtain natural gravity turn and preserved original fibers 2.15× (!dev V56)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-top-v56" initialInspection="hair-right"/>,
+};
 export const Cc0Anat1SuperiorTarsusV54:Story={
   name:"CC0 photographic superior tarsus with original iris/eye wax portrait (!dev V54)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
