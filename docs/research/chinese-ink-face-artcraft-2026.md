@@ -687,3 +687,63 @@ emotion-specific brow/lid/cheek articulation and 960×540 production
 readability; (4) independently inspect native film and Fuchun's
 still-synthetic rock/hemp/pine geography. This is a **DRAFT / ART HOLD**:
 no source-relative visual approval or merge on CI green alone.
+
+
+## ANAT1 malar/nasal positive-ink repaint — original source geometry (2026-11-16)
+
+**Source reference and topology deconstruction:**
+[Zeng Jing, *Portrait of Pan Qintai* (1621), UMMA](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/)
+describes subtle ink gradations defining the actual eye sockets, forehead
+and nose with delicately drawn light contours. The [Bochen-school account of
+mogu aotufa and goule tiancai fa](https://fphil.uniba.sk/fileadmin/fif/katedry_pracoviska/kvas/SOS_10_2/02_39breuer-form120520.pdf)
+distinguishes ink-wash accumulation and thin-line-plus-wash methods.
+**Observed visual topology:** the zygomatic eminence is a convex pigment
+mass *under* the concave lower eyelid; the distant cheek recedes toward
+the alar fold; reflected paper remains inside the convex plane; nose
+light turns around the dorsum into rounded pronasale and alar cartilage,
+not a thick S stroke. Tactile hierarchy comes from near-transparent
+wet passes over soft paper support and localized dry remnants, not
+parallel painted ribbons. Museum images are study references only;
+no licensed image has been embedded, traced, or redistributed.
+
+**Actual rendered rejection:** 57/58 native Storybook tests passed in
+[run 44014134040](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44014134040)
+but screenshots still visibly contained *several horizontal cheek bands
+and an angular distal nose*: code checks are not an artistic verdict.
+The one failing Playwright test was a diagnostics-only implementation
+error: SVG `getBBox()` returned a native SVGRect whose numeric fields
+became undefined when sent through browser evaluation. Fix: explicitly
+serialize `{x,y,width,height}` and retain both 19-point
+`isPointInFill` iris-enclosure measurements.
+
+**Bounded surgical repaint (no shape deletion or style simplification):**
+- Reconstruct the existing second, third and high-detail near-malar
+  pigment passes into distinct CLOSED cubic convex cheek volumes instead
+  of nested diagonal ribbons; rotate the original dry edge remnant
+  across the malar curvature. Preserve the original primary cheek
+  positive-volume path, paper lift, ANAT1 anchor and each separate pass.
+- Resculpt the original far cheek into a foreshortened, multi-cubic
+  receding bulb with its own smaller undertone. The far side is not
+  mirrored from the wider near plane.
+- Curve the two existing nasal-shadow glazes into a sellion→dorsum→tip
+  volume, preserving the source ANAT1 tip coordinates, unpainted dorsal
+  relief and independent hand-tapered dry stroke.
+- Recurve the existing distal nasal ink contour to lose the abrupt
+  S-turn; expand the original alar-bulb closed ink mass to three
+  continuous cubics with an optically lighter end. Original nostril
+  accents, ear cartilage, eyebrows, pupil occluders and five visemes
+  remain separate and animated.
+
+**Storybook:** original Shanshui Reader Face Studio now includes 3
+**film-transform-accurate malar/nasal close-ups** displaying the actual
+full source face in cropped near-cheek, far-cheek and bridge-to-alar
+windows. Detail, eyes and visemes work on the same source render.
+The existing before/after glazing panel and six-region selector remain.
+Unit tests guard against narrow secondary cheek strips; native
+Chromium captures all three live regions and low-detail speaking state.
+
+**Visual sign-off outstanding:** these are source-code changes, not
+verified successful pigment paintings. Do not merge PR #466 until
+actual same-frame 1×/3× browser captures, teacher reference and 960×540
+moving-film face + Fuchun geology/pine/hemp have been reviewed and
+accepted independently.
