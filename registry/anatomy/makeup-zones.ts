@@ -23,6 +23,9 @@ export interface PointSpec {
   off?: [number, number, number];
   /** Stroke points: half-width of the full-strength core, eye widths. */
   r?: number;
+  /** Put the point on the skin: after the offset, its depth is the face's front surface under its (x, y). Thin strokes
+   * off the lid (a wing tip, a shadow line, a beauty mark) then touch the skin of every face. */
+  surface?: boolean;
   note?: string;
 }
 export type FinishId = "matte" | "velvet" | "satin" | "dewy" | "glossy" | "shimmer" | "metallic" | "glitter";
@@ -76,7 +79,23 @@ export function resolvePoint(spec: PointSpec, V: readonly Vec3[], ew: number, mi
   } else if (spec.a) p = resolvePoint(MAKEUP_ATLAS.anchors[spec.a], V, ew, mirrored);
   else throw new Error(`MAKEUP1: bad point ${JSON.stringify(spec)}`);
   if (spec.off) p = [p[0] + (mirrored ? -spec.off[0] : spec.off[0]) * ew, p[1] + spec.off[1] * ew, p[2] + spec.off[2] * ew];
+  if (spec.surface) p = [p[0], p[1], skinDepth(V, p[0], p[1]) ?? p[2]];
   return p;
+}
+
+/** The face's front surface under (x, y): the depth of the nearest mesh triangle that covers it, seen from the front. */
+function skinDepth(V: readonly Vec3[], x: number, y: number): number | null {
+  let best: number | null = null;
+  for (let t = 0; t < MESH_TRIS.length; t += 3) {
+    const A = V[MESH_TRIS[t]], B = V[MESH_TRIS[t + 1]], C = V[MESH_TRIS[t + 2]];
+    const d = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
+    if (Math.abs(d) < 1e-9) continue;
+    const w1 = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / d, w2 = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / d, w3 = 1 - w1 - w2;
+    if (w1 < 0 || w2 < 0 || w3 < 0) continue;
+    const z = w1 * A[2] + w2 * B[2] + w3 * C[2];
+    if (best === null || z > best) best = z;
+  }
+  return best;
 }
 
 /** A zone's parts on a face: one per side, or one for a centre zone. */

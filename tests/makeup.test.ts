@@ -22,6 +22,41 @@ describe("MAKEUP1 zone atlas", () => {
     }
     expect(Object.keys(parity.weights).sort()).toEqual(MAKEUP_ZONES.map(z => z.id).sort());
   });
+  it("places the East Asian zones: aegyo-sal under the lower lid, the puppy wing down, the tear mole on one side", () => {
+    const V = beautifulFace({ sex: 0, faceType: "east-asian" }).vertices;
+    const aegyo = zoneField("aegyo-sal", V);
+    expect(aegyo([V[145][0], V[145][1] - 2.5, V[145][2]])).toBeGreaterThan(0.5);
+    expect(aegyo(V[159])).toBeLessThan(0.1);
+    const wing = resolveZone("puppy-wing", V)[0].pts, tip = wing[wing.length - 1];
+    expect(tip[1]).toBeLessThan(wing[0][1]);
+    expect(Math.abs(tip[0])).toBeGreaterThan(Math.abs(wing[0][0]));
+    expect(resolveZone("tear-mole", V)).toHaveLength(1);
+    // the straight brow's upper edge: points 1-4 (head top to tail) on one line, seen from the front
+    const up = resolveZone("brow-straight", V)[0].pts.slice(1, 5), [a, b] = [up[0], up[up.length - 1]];
+    const off = (p: Vec3) => Math.abs((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])) / Math.hypot(b[0] - a[0], b[1] - a[1]);
+    for (const p of up) expect(off(p)).toBeLessThan(0.6);
+  });
+  it("paints thin strokes off the lid on the skin of every face (wing tips, aegyo-sal shadow, tear mole)", () => {
+    const tris = faceData.triangles as number[][];
+    const skinZ = (V: readonly Vec3[], x: number, y: number) => {
+      let best = -Infinity;
+      for (const [a, b, c] of tris) {
+        const A = V[a], B = V[b], C = V[c], d = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
+        if (Math.abs(d) < 1e-9) continue;
+        const w1 = ((B[1] - C[1]) * (x - C[0]) + (C[0] - B[0]) * (y - C[1])) / d, w2 = ((C[1] - A[1]) * (x - C[0]) + (A[0] - C[0]) * (y - C[1])) / d;
+        if (w1 >= 0 && w2 >= 0 && 1 - w1 - w2 >= 0) best = Math.max(best, w1 * A[2] + w2 * B[2] + (1 - w1 - w2) * C[2]);
+      }
+      return best;
+    };
+    for (const V of [beautifulFace({ sex: 0, faceType: "east-asian" }).vertices, beautifulFace({ sex: 0 }).vertices, CANON]) {
+      for (const id of ["puppy-wing", "liner-wing", "aegyo-sal-shadow", "tear-mole"]) {
+        const pts = resolveZone(id, V)[0].pts, end = pts[Math.floor((pts.length - 1) * 0.75)];
+        // just inside the stroke's end, on the skin under it
+        const q: Vec3 = [end[0], end[1], skinZ(V, end[0], end[1])];
+        expect(zoneField(id, V)(q), id).toBeGreaterThan(0.5);
+      }
+    }
+  });
   it("covers each stroke zone's own points on ANAT1's face, symmetrically on both sides", () => {
     for (const z of MAKEUP_ZONES.filter(z => z.shape.kind === "stroke")) {
       const parts = resolveZone(z.id, face), f = zoneField(z.id, face);

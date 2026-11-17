@@ -15,7 +15,7 @@ from functools import lru_cache
 import numpy as np
 
 from . import DATA
-from .geometry import eye_width, mirror_map
+from .geometry import canonical, eye_width, mirror_map
 
 
 @dataclass
@@ -59,7 +59,28 @@ def point(spec: dict, P: np.ndarray, ew: float, mirrored: bool) -> np.ndarray:
     off = spec.get("off")
     if off:
         p = p + np.array([-off[0] if mirrored else off[0], off[1], off[2]]) * ew
+    if spec.get("surface"):
+        z = _skin_depth(P, float(p[0]), float(p[1]))
+        if z is not None:
+            p = np.array([p[0], p[1], z])
     return p
+
+
+def _skin_depth(P: np.ndarray, x: float, y: float) -> float | None:
+    """The face's front surface under (x, y): the depth of the nearest mesh triangle that covers it, seen from the front
+    (makeup-zones.ts skinDepth does the same)."""
+    T = canonical()[1]
+    A, B, C = P[T[:, 0]], P[T[:, 1]], P[T[:, 2]]
+    d = (B[:, 1] - C[:, 1]) * (A[:, 0] - C[:, 0]) + (C[:, 0] - B[:, 0]) * (A[:, 1] - C[:, 1])
+    ok = np.abs(d) >= 1e-9
+    dd = np.where(ok, d, 1.0)
+    w1 = ((B[:, 1] - C[:, 1]) * (x - C[:, 0]) + (C[:, 0] - B[:, 0]) * (y - C[:, 1])) / dd
+    w2 = ((C[:, 1] - A[:, 1]) * (x - C[:, 0]) + (A[:, 0] - C[:, 0]) * (y - C[:, 1])) / dd
+    w3 = 1 - w1 - w2
+    inside = ok & (w1 >= 0) & (w2 >= 0) & (w3 >= 0)
+    if not inside.any():
+        return None
+    return float((w1 * A[:, 2] + w2 * B[:, 2] + w3 * C[:, 2])[inside].max())
 
 
 def resolve(zone_id: str, P: np.ndarray, adjust: dict | None = None) -> list[Part]:
