@@ -1,11 +1,9 @@
 import {describe,expect,it} from "vitest";
-import {mkdirSync,writeFileSync} from "node:fs";
-import {join} from "node:path";
 import {renderToStaticMarkup} from "react-dom/server";
 import {inspectCrayonScene,crayonWorldPoint} from "../registry/video/materials/crayon-scene";
 import {CrayonScene} from "../registry/video/materials/crayon-scene-react";
 import {crayonAdultFaceStudy,portraitCriticalParts} from "../src/video/crayon-artcraft-adult-face-fixtures";
-import faceMeta,{AdultFaceThreeQuarter,AdultFacePortrait,AdultFaceArtcraftWorkbench}
+import faceMeta,{AdultFaceArtcraftWorkbench}
   from "../src/video/crayon-artcraft-adult-face.stories";
 import * as artcraftStoryExports from "../src/video/crayon-artcraft-adult-face.stories";
 import {Cc0SourceRegisteredFaceWorkbench} from "../src/video/crayon-artcraft-adult-face.stories";
@@ -290,11 +288,10 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
       expect(artcraftStoryExports,exportName).not.toHaveProperty(exportName);
     expect(faceMeta.component).toBe(Cc0SourceRegisteredFaceWorkbench);
   });
-  it("keeps unfinished face studies out of public Storybook",()=>{
+  it("keeps the remaining source bench explicitly unapproved",()=>{
     expect(faceMeta.tags).toContain("!dev");
-    expect(faceMeta.title).toBe("Video production/Film Looks/Crayon/ArtCraft Adult Face Lab");
-    expect(AdultFaceThreeQuarter.args??{}).toEqual({});
-    expect(AdultFacePortrait.args?.aspect).toBe("portrait");
+    expect(faceMeta.title).toBe("Video production/Film Looks/Crayon/ArtCraft Source Lab");
+    expect(faceMeta.component).toBe(Cc0SourceRegisteredFaceWorkbench);
   });
   it("rejects real 2026-11-14 reference alignment rather than rewarding cosmetic wax",()=>{
     const audit=crayonPortraitFrozenAudit();
@@ -372,16 +369,5 @@ describe("ArtCraft v6 reference-led adult portrait construction (not visual appr
     expect(start).not.toEqual(end);
     expect(end).toContain('data-km-crayon-anatomical-mask=');
   });
-  it("exports actual React renderer SVGs for 1x/3x ArtCraft inspection when explicitly requested",()=>{
-    if(process.env.KUMIKI_CRAYON_ARTCRAFT_PROOF!=="1")return;
-    const dir="dist/crayon-artcraft-face-proof";
-    mkdirSync(dir,{recursive:true});
-    for(const aspect of ["landscape","portrait"] as const){
-      const scene=crayonAdultFaceStudy(aspect);
-      for(const frame of [1,75,160,235,299]){
-        const svg=renderToStaticMarkup(<CrayonScene spec={scene} frame={frame}/>);
-        writeFileSync(join(dir,"adult-face-"+aspect+"-"+frame+".svg"),svg);
-      }
-    }
-  });
+
 });
