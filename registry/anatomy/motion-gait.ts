@@ -31,7 +31,9 @@ export interface Gait {
   /** Share of the cycle a foot is on the ground (toe-off), and the events in words. */
   stance: number; events: readonly string[];
   /** Joint angles through the cycle (phase 0–1 from right heel strike), degrees, for the right side (the left is half a cycle later). */
-  curves: { hip: Keys; knee: Keys; ankle: Keys; toes: Keys; shoulder: Keys; elbow: Keys };
+  curves: { hip: Keys; knee: Keys; ankle: Keys; toes: Keys; shoulder: Keys; elbow: Keys;
+    /** Hip abduction (+) / adduction (−) through the cycle: the pelvis drops a few degrees on the swing side (frontal plane). */
+    hipAbduct?: Keys };
   /** Trunk lean (flexion) and twist amplitude, degrees. */
   trunkLean: number; trunkTwist: number;
   sources: readonly string[];
@@ -49,6 +51,9 @@ export const GAITS: Record<"walk" | "run", Gait> = {
       toes: [[0, 0], [0.45, 5], [0.55, -25], [0.62, -35], [0.7, -5], [1, 0]],
       shoulder: [[0, -16], [0.25, -2], [0.5, 16], [0.75, 2], [1, -16]],
       elbow: [[0, 12], [0.25, 18], [0.5, 30], [0.75, 18], [1, 12]],
+      // the stance hip adducts about 4–5° by mid-stance as the pelvis drops on the swing side (Perry & Burnfield); the
+      // pelvis here does not tilt, so only the part that narrows the step to its real width (about 10 cm) is kept
+      hipAbduct: [[0, 0], [0.18, -2], [0.4, -1.5], [0.6, 1], [0.8, 1.5], [1, 0]],
     },
     trunkLean: 3, trunkTwist: 5,
     sources: ["Winter 1991, The biomechanics and motor control of human gait", "Perry & Burnfield 2010, Gait Analysis", "Wikipedia: Gait (human)"],
@@ -100,7 +105,7 @@ export function gaitPose(gaitId: "walk" | "run", phase: number, moodId: MoodId =
   const side = (ph: number, arm: number) => {
     const knee = curveAt(c.knee, ph) * (moodId === "tired" && ph > g.stance ? 0.75 : 1);
     return {
-      hip: { flex: curveAt(c.hip, ph) * m.stride },
+      hip: { flex: curveAt(c.hip, ph) * m.stride, abduct: c.hipAbduct ? curveAt(c.hipAbduct, ph) * m.bounce : 0 },
       knee: { flex: Math.max(0, knee) },
       ankle: { flex: curveAt(c.ankle, ph) },
       toes: { flex: curveAt(c.toes, ph) },

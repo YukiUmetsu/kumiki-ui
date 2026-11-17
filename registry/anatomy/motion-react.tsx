@@ -33,7 +33,7 @@ export function GaitStrip({ model, params = { sex: 0.5, age: 30 }, gait = "walk"
   const span = (cycle.frames[cycle.frames.length - 1].root[2] + cycle.stride / frames) * ppm + figW;
   return (
     <div role="img" aria-label={label ?? `${cycle.gait.label}, ${cycle.mood.label.toLowerCase()}: one cycle as a chronophotograph`} style={{ position: "relative", height, width: "100%", overflowX: "auto", overflowY: "hidden", background: "var(--km-surface-subtle, #ece6da)", borderRadius: 6 }}>
-      <div style={{ position: "relative", width: span, height }}>
+      <div style={{ position: "relative", width: span, minWidth: "100%", height }}>
         <div style={{ position: "absolute", left: 0, right: 0, top: height - 18, height: 2, background: "#6d655b" }} />
         {cycle.frames.map((f, k) => (
           <div key={k} style={{ position: "absolute", left: f.root[2] * ppm, top: 0, width: figW, height, opacity: 0.35 + 0.65 * (k / Math.max(1, frames - 1)) }}>
