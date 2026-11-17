@@ -341,7 +341,19 @@ test("source-linked Bochen multiglaze survives native 1x, isolated six-region an
     const regions=layered.locator("[data-km-ink-glaze-region]");
     await expect(regions).toHaveCount(6);
     const before=await layered.locator("[data-km-ink-glaze-region] path").count();
-    expect(before).toBeGreaterThanOrEqual(14);
+    expect(before).toBeGreaterThanOrEqual(15);
+    // This is an actual native Chromium geometry constraint: a cheek
+    // painted as a long narrow ribbon passed DOM/path-count assertions.
+    // Require rounded vertical anatomical depth at the real source scale.
+    const cheek=await layered.locator(
+      '[data-km-ink-glaze-region="malar-near"] path').first().evaluate(el=>{
+      const rect=(el as SVGPathElement).getBBox();
+      return {width:rect.width,height:rect.height,x:rect.x,y:rect.y};
+    });
+    expect(cheek.width).toBeGreaterThan(14);
+    expect(cheek.height).toBeGreaterThan(cheek.width*.45);
+    expect(cheek.x).toBeGreaterThan(118);
+    expect(cheek.y).toBeGreaterThan(104);
     // Real Chromium pixels, not just path counters: invisible source paint
     // must FAIL the ArtCraft proof. Rasterize the original-vs-layered
     // comparison at a fixed size, with identical source camera and palette.
