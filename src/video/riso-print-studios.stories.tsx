@@ -17,6 +17,7 @@ import {RisoShopProofStudio} from "./riso-shop-proof-studio";
 import {RisoDrumPressureArtStudio} from "./riso75-drum-pressure-art-studio";
 import {RisoTornCollageStudio} from "./riso76-paper-collage-studio";
 import {RisoRostrumCollageStudio} from "./riso77-rostrum-studio";
+import {RisoAccordionPrintedFilmStudio} from "./riso78-accordion-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -456,6 +457,12 @@ export const RisographTornPaperCollage:StoryObj<typeof RisoTornCollageStudio>={
 export const RisographKineticRostrum:StoryObj<typeof RisoRostrumCollageStudio>={
   name:"Risograph · Kinetic Printed Paper Cutouts",
   render:()=> <RisoRostrumCollageStudio/>,
+};
+
+/** RISO78: physical accordion fold on ONE continuous original spot-ink sheet. */
+export const RisographContinuousAccordion:StoryObj<typeof RisoAccordionPrintedFilmStudio>={
+  name:"Risograph · Continuous Printed Accordion Zine",
+  render:()=> <RisoAccordionPrintedFilmStudio/>,
 };
 
 const meta = {
