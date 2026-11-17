@@ -12,7 +12,8 @@ import type { Look } from "../registry/anatomy/makeup-data";
 import { EYE_SHAPES } from "../registry/anatomy/eye-detail";
 import { checkMakeup, designMakeup, tapedEyeShape } from "../registry/anatomy/makeup-design";
 import type { MakeupCheck } from "../registry/anatomy/makeup-design";
-import { makeupPaint, paintPhoto } from "../registry/anatomy/makeup-paint";
+import { makeupPaint, makeupPortraitOptions, paintPhoto } from "../registry/anatomy/makeup-paint";
+import { MAKEUP_RUNNERS } from "../registry/anatomy/makeup-render-jobs";
 import { MAKEUP_ZONES, resolveZone, zoneField } from "../registry/anatomy/makeup-zones";
 import parity from "./fixtures/makeup-zone-parity.json";
 
@@ -227,6 +228,18 @@ describe("MAKEUP1 eye tools in the renderer", () => {
     };
     expect(above(spiky)).toBeLessThan(above(natural) - 4);
     expect(above(doll)).toBeLessThan(above(natural) - 4);
+  }, 120000);
+});
+
+describe("MAKEUP1 in a render worker", () => {
+  it("renders a plan from plain data, as a worker gets it (a paint's functions cannot be cloned)", () => {
+    const portrait = { faceType: "east-asian" as const, eyeShape: "monolid", framing: "eyes" as const, width: 96, height: 48, makeup: "none" as const };
+    const plan = designMakeup({ look: "neo-gyaru", face: beautifulFace(portrait).vertices, eyeShape: "monolid", skin: "#d8a98a" });
+    const args = structuredClone({ portrait, plan });
+    const out = (MAKEUP_RUNNERS["makeup-portrait"] as unknown as (a: typeof args) => { rgba: Uint8ClampedArray })(args);
+    const direct = renderPortrait(makeupPortraitOptions(portrait, plan));
+    expect(out.rgba.length).toBe(direct.rgba.length);
+    expect(out.rgba.every((v, i) => v === direct.rgba[i])).toBe(true);
   }, 120000);
 });
 

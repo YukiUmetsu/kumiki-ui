@@ -75,6 +75,7 @@ Foundations → Makeup · photo pipeline (Python): [`scripts/makeup`](../../scri
 | Colour: undertone, palettes, films, colour difference | `makeup-color.ts` | `readSkin`, `basePalette`, `blushOn`, `lipColour`, `EYE_COMPLEMENTS`, `pigmentFor`, `filmStep`, `deltaE2000` |
 | Paint: the portrait renderer, a photograph | `makeup-paint.ts` | `makeupPaint`, `makeupPortraitOptions`, `paintPhoto`, `restFrame` |
 | Painters (React) | `makeup-react.tsx` | `MakeupPortrait`, `FaceChart`, `MakeupSwatches`, `MakeupChecks`, `UndertonePlane`, `LearnedEffects` |
+| Made-up portraits in workers (the plan goes as data, the worker builds the paint) | `makeup-render-pool.ts`, `makeup-render-jobs.ts`, `makeup-render-worker.ts` | `MAKEUP_RENDER_POOL`, `MAKEUP_RUNNERS` |
 | Learned aggregates (Python pipeline, openly licensed photos) | `data/makeup-learned.json` | prior, effects, placement, contrast, beauty correlations, sources |
 
 # EXPR1 — facial expressions (file map)

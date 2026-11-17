@@ -4547,6 +4547,21 @@
           "target": "components/anatomy/makeup-react.tsx"
         },
         {
+          "path": "registry/anatomy/makeup-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-render-pool.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-render-jobs.ts"
+        },
+        {
+          "path": "registry/anatomy/makeup-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/makeup-render-worker.ts"
+        },
+        {
           "path": "registry/anatomy/data/makeup-zones.json",
           "type": "registry:ui",
           "target": "components/anatomy/data/makeup-zones.json"

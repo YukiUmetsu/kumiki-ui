@@ -46,6 +46,7 @@ Python pipeline paints it on a photograph (`makeup.py apply --plan`).
 | Design | `makeup-design.ts` | `analyzeFace` (shape, eye spacing, tilt, lip ratio, brow peak), `designMakeup` (look + skin + face + iris + hair -> `MakeupPlan` with reasons and eye tools), `tapedEyeShape`, `checkMakeup`, `planSwatches`. |
 | Paint | `makeup-paint.ts` | `makeupPaint(plan)` (the `SkinPaint` that `renderPortrait` calls), `makeupPortraitOptions(portrait, plan)` (paint, tape and no built-in makeup), `paintPhoto(photo, plan)`, `restFrame(landmarks)`. |
 | React | `makeup-react.tsx` | `MakeupPortrait`, `FaceChart`, `MakeupSwatches`, `MakeupChecks`, `UndertonePlane`, `LearnedEffects`, `LearnedContrast`, `BeautyCorrelations`, `MakeupEvidenceList`. |
+| Workers | `makeup-render-pool.ts`, `makeup-render-jobs.ts`, `makeup-render-worker.ts` | `MakeupPortrait` renders in a module worker, cached (see `foundation-render.ts`). The plan goes to the worker as data, and the worker builds the paint: a paint's functions cannot go to a worker. |
 
 ## Use it
 
