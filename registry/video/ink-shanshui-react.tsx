@@ -5086,12 +5086,155 @@ function StoneBridge(){
     })}
   </g>;
 }
+/** Opt-in close-reading of a Fuchun ravine cut by continuous water.
+ * The source waterfall is not a pair of opaque calligraphic white tubes:
+ * the blank paper must travel between two positive, loaded rock banks,
+ * with irregular narrowing, retained body, dry ledges and a clear pool.
+ * The medium reference is Ma Yuan's Scholar Viewing a Waterfall (Met
+ * 1973.120.9); all geometry below is original, not traced or rasterized.
+ * Ordinary and all other school waterfall paint remains untouched. */
+function FuchunSourceWaterfall({phase,detail,seed}:{
+  phase:number;detail:number;seed:number;
+}){
+  const id="kmfuchunfall"+useId().replace(/[^a-z0-9_-]/gi,"");
+  const leftBank="M323 308 C332 302 340 302 346 307 "+
+    "C352 316 352 330 348 342 "+
+    "C342 360 341 373 336 393 "+
+    "C331 409 325 427 322 445 "+
+    "C317 441 316 434 318 427 "+
+    "C321 406 327 385 331 369 "+
+    "C334 352 331 339 324 328 "+
+    "C321 321 320 313 323 308 Z";
+  const rightBank="M373 307 C382 308 388 317 388 328 "+
+    "C392 345 388 358 381 371 "+
+    "C374 387 367 402 361 418 "+
+    "C358 429 357 439 357 446 "+
+    "C362 443 365 438 369 431 "+
+    "C377 414 380 396 387 381 "+
+    "C395 363 397 343 394 326 "+
+    "C394 312 384 303 373 307 Z";
+  // Source-causal centerline: the water descends through a curved
+  // rock channel, not through a straight rectangular cutout.
+  const flowStart:P=[364,316],flowC1:P=[373,345],
+    flowC2:P=[344,405],flowEnd:P=[340,439];
+  const axis="M364 316 C373 345 344 405 340 439";
+  const reserve="M360 313 C357 322 359 331 357 344 "+
+    "C355 359 351 373 347 389 "+
+    "C341 411 338 428 336 441 "+
+    "Q339 438 342 440 C345 427 347 417 352 405 "+
+    "C360 384 364 369 368 354 "+
+    "C374 333 374 319 368 314 "+
+    "Q364 318 360 313 Z";
+  // Positive, overlapping geological cheeks beside the actual flow.
+  // Each local facet owns a source-rooted parent and a broken pen lip,
+  // not a uniformly tinted mountain sticker.
+  const cheekPlans=[
+    {side:"left",root:[340,308],tone:"#3d433e",load:.46,
+      d:"M339 309 C349 306 352 313 350 326 C346 336 340 348 335 364 C327 369 326 361 329 351 C332 331 334 317 339 309 Z",
+      edge:"M339 313 Q344 316 340 332 M337 341 Q331 353 329 362"},
+    {side:"left",root:[329,359],tone:"#62665d",load:.39,
+      d:"M331 355 C337 357 340 368 338 380 C335 393 327 407 324 421 C318 418 318 407 321 395 C324 380 324 367 331 355 Z",
+      edge:"M330 363 Q335 378 326 398 M325 404 Q322 413 322 421"},
+    {side:"right",root:[377,312],tone:"#404740",load:.48,
+      d:"M378 309 C387 312 391 326 390 341 C388 355 382 370 373 385 C370 380 373 365 378 348 C383 331 378 318 378 309 Z",
+      edge:"M382 316 Q390 333 383 351 M379 360 Q377 369 374 378"},
+    {side:"right",root:[376,377],tone:"#676a60",load:.33,
+      d:"M380 375 C389 379 388 396 382 408 C378 420 372 435 361 445 C361 432 370 415 373 400 C377 390 376 381 380 375 Z",
+      edge:"M380 382 Q382 396 375 413 M372 422 Q368 435 363 442"},
+  ] as const;
+  // Thin water fibres follow one anatomical descending flow axis.
+  // Variable at/tail length and opacity leave genuine paper holes,
+  // while the absolute frame drives only small surface flicks.
+  const fibres=Array.from({length:8},(_,i)=>{
+    const aT=.07+.106*i+(s(seed+9853,i*23)-.5)*.028;
+    const bT=Math.min(.97,aT+.044+.037*s(seed+9863,i*17));
+    const a=cubicPoint(flowStart,flowC1,flowC2,flowEnd,aT);
+    const b=cubicPoint(flowStart,flowC1,flowC2,flowEnd,bT);
+    const shift=(i%4===0?-2.25:i%4===1?1.6:i%4===2?-1.15:2.7);
+    const p:P=[a[0]+shift,a[1]];
+    const q:P=[b[0]+shift*.62,b[1]];
+    const c:P=[p[0]+(q[0]-p[0])*.54+1.3,p[1]+(q[1]-p[1])*.41];
+    return {a:p,b:q,body:rockLoadedRibbon(p,c,q,
+      .35+.61*s(seed+9871,i*29),seed+9881+i*37)};
+  });
+  const flick=.7*Math.sin(phase*1.3);
+  return <g data-km-shanshui-waterfall=""
+    data-km-waterfall-study="fuchun-eroded-channel"
+    data-km-waterfall-source-flow-axis={axis}>
+    <defs>
+      <linearGradient id={id+"-reserve"} gradientUnits="userSpaceOnUse"
+        x1="359" y1="317" x2="339" y2="441">
+        <stop offset="0" stopColor="#faf0de" stopOpacity=".43"/>
+        <stop offset=".25" stopColor="#fff5e7" stopOpacity=".35"/>
+        <stop offset=".62" stopColor="#f4efe1" stopOpacity=".23"/>
+        <stop offset=".89" stopColor="#edeadb" stopOpacity=".13"/>
+        <stop offset="1" stopColor="#ece9dc" stopOpacity="0"/>
+      </linearGradient>
+    </defs>
+    <path data-km-waterfall-bank="left" d={leftBank}
+      fill="#62665a" fillOpacity=".2" stroke="#4d534a"
+      strokeWidth=".83" opacity=".76"/>
+    <path data-km-waterfall-bank="right" d={rightBank}
+      fill="#555b52" fillOpacity=".24" stroke="#464d44"
+      strokeWidth=".94" opacity=".75"/>
+    {cheekPlans.map((plan,i)=><g key={i}
+      data-km-waterfall-rock-cheek=""
+      data-km-waterfall-rock-source={plan.root.join(",")}
+      data-km-waterfall-rock-side={plan.side}>
+      <path d={plan.d} fill={plan.tone} opacity={plan.load}/>
+      <path data-km-waterfall-rock-edge="" d={plan.edge}
+        fill="none" stroke="#383e37"
+        strokeWidth={i%2===0?.8:.61}
+        strokeLinecap="round" opacity={i%2===0?".57":".39"}/>
+    </g>)}
+    <path data-km-waterfall-shelf=""
+      d="M330 306 Q339 299 346 306 Q355 309 359 311
+         M371 308 Q382 302 391 315
+         M325 343 Q331 345 337 351
+         M378 365 Q386 358 389 367"
+      fill="none" stroke="#4a4c40" strokeWidth=".91"
+      opacity=".6" strokeLinecap="round"/>
+    {/* Paper is a partially open soft gap between inked rock banks.
+        Its original curved path breaks the white double-tube motif. */}
+    <path data-km-waterfall-reserve="" d={reserve}
+      fill={"url(#"+id+"-reserve)"} opacity=".73"/>
+    {fibres.map(({a,b,body},i)=><path key={i}
+      data-km-waterfall-fibre=""
+      data-km-waterfall-fibre-source={a.join(",")}
+      data-km-waterfall-fibre-tip={b.join(",")}
+      d={body} fill={i%3===1?"#726f60":"#899083"}
+      opacity={f((i%3===0?.48:.32)*(1-.14*Math.cos(phase*.5+i)))}/>)}
+    <path data-km-waterfall-pool=""
+      d="M322 441 Q330 438 337 441 M343 441 Q352 439 359 444
+        M318 448 Q326 445 334 448 M340 449 Q348 451 358 447
+        M327 455 Q336 453 346 455 M355 455 Q365 454 371 452"
+      fill="none" stroke="#6f7466" strokeWidth=".67"
+      strokeLinecap="round" opacity=".57"/>
+    {detail>.32&&Array.from({length:Math.round(detail*9)},(_,i)=>{
+      const dx=i*4.37,px=325+dx,
+        py=438+1.2*Math.sin(i*1.2)+flick*(.23+.11*(i%2));
+      return <path key={i} data-km-waterfall-impact=""
+        d={"M"+f(px)+" "+f(py)+" q-"+
+          f(1.3+.28*(i%3))+" -"+f(1.9+(i%4)*.8)+" -"+
+          f(2.1+.6*(i%3))+" -"+f(1.3+i%3)+
+          " M"+f(px+1.2)+" "+f(py+.8)+" q"+
+          f(1.5+.5*(i%3))+" -.6 "+f(3.2+i%3)+" -.3"}
+        fill="none" stroke={i%3===0?"#4d554b":"#a6a393"}
+        strokeWidth={f(.35+.09*(i%3))} opacity=".47"
+        strokeLinecap="round"/>;
+    })}
+  </g>;
+}
+
 /** Ink-reserve waterfall against actual painted cliff banks.
  * The river is readable from negative space and interrupted dark edges,
  * not two unmoored opaque white tubes. The cascade keeps its root and pool
  * still, with only surface flicks varying by absolute film time.
  * Study: Ma Yuan's Scholar Viewing a Waterfall (Met 1973.120.9). */
-function InkWaterfall({phase,detail}:{phase:number;detail:number}){
+function InkWaterfall({phase,detail,sourceStudy=false,seed=71}:{
+  phase:number;detail:number;sourceStudy?:boolean;seed?:number;
+}){
+  if(sourceStudy)return <FuchunSourceWaterfall phase={phase} detail={detail} seed={seed}/>;
   const flick=f(.56*Math.sin(phase*1.3));
   return <g data-km-shanshui-waterfall="">
     {/* The cliff lip and two shadowed banks give the cascade an origin,
@@ -5362,7 +5505,9 @@ export function InkShanshuiStage({frame,controls={
           <Clouds shift={at.cloudX}/>
           <Birds motion={at}/>
           {controls.scene==="mountain-trail"&&
-            <InkWaterfall phase={at.waterPhase} detail={controls.detail}/>}
+            <InkWaterfall phase={at.waterPhase} detail={controls.detail}
+              sourceStudy={controls.fuchunNearShoulderStudy===true&&
+                (controls.inkSchool??"fuchun")==="fuchun"} seed={seed}/>}
           {river&&<>
             <Water seed={seed} phase={at.waterPhase} detail={controls.detail}/>
             <StoneBridge/>
