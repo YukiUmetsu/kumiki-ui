@@ -22,7 +22,7 @@ export function createRaster(width: number, height: number, fill: RGB3 = [0, 0, 
   return { width, height, rgb, alpha: a };
 }
 
-const srgbEncode = (v: number) => (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055);
+export const srgbEncode = (v: number) => (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055);
 export const srgbDecode = (v: number) => (v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
 /** Hex colour → linear RGB. */
 export const linearOf = (hex: string): RGB3 => { const n = parseInt(hex.replace("#", "").slice(0, 6), 16); return [srgbDecode(((n >> 16) & 255) / 255), srgbDecode(((n >> 8) & 255) / 255), srgbDecode((n & 255) / 255)]; };

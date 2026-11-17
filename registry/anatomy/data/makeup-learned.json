@@ -1,0 +1,2968 @@
+{
+ "schema": "kumiki.makeup.learned/1",
+ "generated": "2026-11-16",
+ "counts": {
+  "bare": 104,
+  "made_up": 17,
+  "rated": 102
+ },
+ "prior": {
+  "blush-apples": {
+   "dL": 2.83,
+   "da": 1.69,
+   "db": -0.15,
+   "n": 104
+  },
+  "brow": {
+   "dL": -23.31,
+   "da": -3.32,
+   "db": -3.86,
+   "n": 103
+  },
+  "cheek-contour": {
+   "dL": 0.4,
+   "da": 0.21,
+   "db": 0.3,
+   "n": 104
+  },
+  "cheekbone-highlight": {
+   "dL": 2.63,
+   "da": 0.88,
+   "db": 2.31,
+   "n": 104
+  },
+  "chin-highlight": {
+   "dL": -0.47,
+   "da": 0.17,
+   "db": -2.38,
+   "n": 104
+  },
+  "crease": {
+   "dL": 0.88,
+   "da": 0.21,
+   "db": -0.31,
+   "n": 103
+  },
+  "forehead-highlight": {
+   "dL": 2.79,
+   "da": -1.52,
+   "db": -3.15,
+   "n": 104
+  },
+  "jaw-contour": {
+   "dL": 0.87,
+   "da": -2.54,
+   "db": -3.08,
+   "n": 104
+  },
+  "lid": {
+   "dL": -9.88,
+   "da": -0.41,
+   "db": -2.11,
+   "n": 103
+  },
+  "liner": {
+   "dL": -35.9,
+   "da": -4.88,
+   "db": -7.87,
+   "n": 103
+  },
+  "lips": {
+   "dL": -10.13,
+   "da": 10.72,
+   "db": -4.95,
+   "n": 104
+  },
+  "lower-lash": {
+   "dL": -14.13,
+   "da": -1.13,
+   "db": -6.38,
+   "n": 103
+  },
+  "nose-contour": {
+   "dL": 2.58,
+   "da": 3.7,
+   "db": 1.8,
+   "n": 104
+  },
+  "nose-highlight": {
+   "dL": 1.04,
+   "da": 3.21,
+   "db": 0.21,
+   "n": 104
+  },
+  "outer-v": {
+   "dL": -10.55,
+   "da": -0.25,
+   "db": -1.12,
+   "n": 103
+  },
+  "temple-contour": {
+   "dL": -5.36,
+   "da": -2.24,
+   "db": -0.49,
+   "n": 101
+  },
+  "under-eye": {
+   "dL": -0.47,
+   "da": 0.24,
+   "db": -1.86,
+   "n": 103
+  }
+ },
+ "finish_thresholds": {
+  "matte_peak": 1.387,
+  "dewy_peak": 2.024,
+  "dewy_share": 0.0668,
+  "shimmer": 13.28,
+  "glitter": 26.57,
+  "n": 104
+ },
+ "shape_reference": {
+  "length_width": 1.1856,
+  "forehead_cheek": 0.8537,
+  "jaw_cheek": 0.7954,
+  "chin_jaw": 0.5627,
+  "eye_spacing": 1.1714
+ },
+ "effects": {
+  "blush-apples": {
+   "n": 17,
+   "dL": {
+    "median": -1.05,
+    "p25": -4.2,
+    "p75": 0.11
+   },
+   "da": {
+    "median": -0.45,
+    "p25": -1.44,
+    "p75": 1.27
+   },
+   "db": {
+    "median": -1.76,
+    "p25": -2.77,
+    "p75": -1.01
+   }
+  },
+  "brow": {
+   "n": 16,
+   "dL": {
+    "median": -3.88,
+    "p25": -9.88,
+    "p75": 0.75
+   },
+   "da": {
+    "median": 0.84,
+    "p25": -2.4,
+    "p75": 4.01
+   },
+   "db": {
+    "median": -3.85,
+    "p25": -8.08,
+    "p75": 1.13
+   }
+  },
+  "cheek-contour": {
+   "n": 17,
+   "dL": {
+    "median": -1.12,
+    "p25": -3.71,
+    "p75": -0.69
+   },
+   "da": {
+    "median": 3.47,
+    "p25": 0.69,
+    "p75": 7.3
+   },
+   "db": {
+    "median": 2.08,
+    "p25": -0.41,
+    "p75": 4.13
+   }
+  },
+  "cheekbone-highlight": {
+   "n": 17,
+   "dL": {
+    "median": 0.74,
+    "p25": -0.65,
+    "p75": 2.56
+   },
+   "da": {
+    "median": -0.54,
+    "p25": -1.84,
+    "p75": 1.53
+   },
+   "db": {
+    "median": -3.61,
+    "p25": -5.03,
+    "p75": -2.65
+   }
+  },
+  "chin-highlight": {
+   "n": 16,
+   "dL": {
+    "median": 1.7,
+    "p25": 0.32,
+    "p75": 4.43
+   },
+   "da": {
+    "median": 1.37,
+    "p25": 0.26,
+    "p75": 3.93
+   },
+   "db": {
+    "median": 3.58,
+    "p25": 2.06,
+    "p75": 5.55
+   }
+  },
+  "crease": {
+   "n": 16,
+   "dL": {
+    "median": 1.81,
+    "p25": -9.88,
+    "p75": 7.75
+   },
+   "da": {
+    "median": 0.45,
+    "p25": -2.34,
+    "p75": 3.95
+   },
+   "db": {
+    "median": 0.89,
+    "p25": -0.84,
+    "p75": 2.97
+   }
+  },
+  "forehead-highlight": {
+   "n": 17,
+   "dL": {
+    "median": -1.37,
+    "p25": -2.38,
+    "p75": -0.25
+   },
+   "da": {
+    "median": -0.99,
+    "p25": -1.75,
+    "p75": 0.07
+   },
+   "db": {
+    "median": -1.06,
+    "p25": -2.38,
+    "p75": 0.53
+   }
+  },
+  "jaw-contour": {
+   "n": 16,
+   "dL": {
+    "median": -3.87,
+    "p25": -6.05,
+    "p75": -1.96
+   },
+   "da": {
+    "median": 6.24,
+    "p25": 4.48,
+    "p75": 9.35
+   },
+   "db": {
+    "median": 8.23,
+    "p25": 6.58,
+    "p75": 11.64
+   }
+  },
+  "lid": {
+   "n": 16,
+   "dL": {
+    "median": -1.0,
+    "p25": -21.04,
+    "p75": 5.25
+   },
+   "da": {
+    "median": 3.31,
+    "p25": -0.24,
+    "p75": 4.92
+   },
+   "db": {
+    "median": 0.62,
+    "p25": -5.86,
+    "p75": 2.7
+   }
+  },
+  "liner": {
+   "n": 16,
+   "dL": {
+    "median": -9.42,
+    "p25": -19.05,
+    "p75": -0.32
+   },
+   "da": {
+    "median": -0.92,
+    "p25": -4.65,
+    "p75": 3.17
+   },
+   "db": {
+    "median": -4.95,
+    "p25": -8.9,
+    "p75": 2.21
+   }
+  },
+  "lips": {
+   "n": 16,
+   "dL": {
+    "median": -14.4,
+    "p25": -17.09,
+    "p75": 0.33
+   },
+   "da": {
+    "median": 11.99,
+    "p25": 2.09,
+    "p75": 26.45
+   },
+   "db": {
+    "median": 4.11,
+    "p25": -2.51,
+    "p75": 16.38
+   }
+  },
+  "lower-lash": {
+   "n": 16,
+   "dL": {
+    "median": -12.72,
+    "p25": -17.56,
+    "p75": -8.88
+   },
+   "da": {
+    "median": -1.28,
+    "p25": -5.45,
+    "p75": 3.41
+   },
+   "db": {
+    "median": -2.12,
+    "p25": -5.08,
+    "p75": -0.04
+   }
+  },
+  "nose-contour": {
+   "n": 17,
+   "dL": {
+    "median": -1.05,
+    "p25": -2.13,
+    "p75": 0.57
+   },
+   "da": {
+    "median": -3.4,
+    "p25": -5.61,
+    "p75": -2.35
+   },
+   "db": {
+    "median": -4.57,
+    "p25": -6.67,
+    "p75": -2.95
+   }
+  },
+  "nose-highlight": {
+   "n": 17,
+   "dL": {
+    "median": 0.38,
+    "p25": -0.71,
+    "p75": 2.54
+   },
+   "da": {
+    "median": -6.11,
+    "p25": -7.43,
+    "p75": -3.33
+   },
+   "db": {
+    "median": -6.67,
+    "p25": -11.04,
+    "p75": -3.77
+   }
+  },
+  "outer-v": {
+   "n": 16,
+   "dL": {
+    "median": -7.87,
+    "p25": -30.7,
+    "p75": -1.32
+   },
+   "da": {
+    "median": 3.67,
+    "p25": -1.92,
+    "p75": 5.69
+   },
+   "db": {
+    "median": -2.16,
+    "p25": -7.29,
+    "p75": 2.62
+   }
+  },
+  "temple-contour": {
+   "n": 15,
+   "dL": {
+    "median": -6.92,
+    "p25": -11.27,
+    "p75": -2.04
+   },
+   "da": {
+    "median": 3.4,
+    "p25": 0.81,
+    "p75": 5.69
+   },
+   "db": {
+    "median": 0.41,
+    "p25": -2.9,
+    "p75": 4.47
+   }
+  },
+  "under-eye": {
+   "n": 16,
+   "dL": {
+    "median": -3.38,
+    "p25": -6.09,
+    "p75": -0.99
+   },
+   "da": {
+    "median": -1.59,
+    "p25": -2.48,
+    "p75": -0.75
+   },
+   "db": {
+    "median": -1.93,
+    "p25": -3.27,
+    "p75": -0.89
+   }
+  }
+ },
+ "effects_by_style": {
+  "classic-red": {
+   "blush-apples": {
+    "n": 3,
+    "dL": {
+     "median": -4.2,
+     "p25": -4.6,
+     "p75": -1.55
+    },
+    "da": {
+     "median": -2.35,
+     "p25": -3.49,
+     "p75": -0.64
+    },
+    "db": {
+     "median": -2.27,
+     "p25": -2.52,
+     "p75": -1.01
+    }
+   },
+   "brow": {
+    "n": 3,
+    "dL": {
+     "median": -10.55,
+     "p25": -31.95,
+     "p75": -10.39
+    },
+    "da": {
+     "median": -2.11,
+     "p25": -2.77,
+     "p75": -1.37
+    },
+    "db": {
+     "median": -9.72,
+     "p25": -9.84,
+     "p75": -9.28
+    }
+   },
+   "cheek-contour": {
+    "n": 3,
+    "dL": {
+     "median": -3.71,
+     "p25": -4.84,
+     "p75": -3.26
+    },
+    "da": {
+     "median": 5.8,
+     "p25": 2.67,
+     "p75": 6.83
+    },
+    "db": {
+     "median": 2.51,
+     "p25": 2.29,
+     "p75": 3.79
+    }
+   },
+   "cheekbone-highlight": {
+    "n": 3,
+    "dL": {
+     "median": -4.11,
+     "p25": -9.19,
+     "p75": -0.5
+    },
+    "da": {
+     "median": -1.84,
+     "p25": -3.13,
+     "p75": -1.43
+    },
+    "db": {
+     "median": -3.81,
+     "p25": -4.42,
+     "p75": -3.53
+    }
+   },
+   "crease": {
+    "n": 3,
+    "dL": {
+     "median": -13.45,
+     "p25": -39.88,
+     "p75": -11.07
+    },
+    "da": {
+     "median": -5.37,
+     "p25": -5.57,
+     "p75": -0.72
+    },
+    "db": {
+     "median": -2.38,
+     "p25": -6.36,
+     "p75": -1.15
+    }
+   },
+   "forehead-highlight": {
+    "n": 3,
+    "dL": {
+     "median": -0.23,
+     "p25": -0.45,
+     "p75": 0.05
+    },
+    "da": {
+     "median": -1.27,
+     "p25": -1.27,
+     "p75": -1.03
+    },
+    "db": {
+     "median": 0.24,
+     "p25": -0.41,
+     "p75": 0.38
+    }
+   },
+   "jaw-contour": {
+    "n": 3,
+    "dL": {
+     "median": -6.33,
+     "p25": -15.37,
+     "p75": -3.62
+    },
+    "da": {
+     "median": 9.17,
+     "p25": 7.37,
+     "p75": 11.23
+    },
+    "db": {
+     "median": 13.15,
+     "p25": 11.71,
+     "p75": 14.84
+    }
+   },
+   "lid": {
+    "n": 3,
+    "dL": {
+     "median": -33.95,
+     "p25": -41.05,
+     "p75": -26.16
+    },
+    "da": {
+     "median": -3.91,
+     "p25": -5.13,
+     "p75": 0.6
+    },
+    "db": {
+     "median": -8.8,
+     "p25": -10.06,
+     "p75": -7.0
+    }
+   },
+   "liner": {
+    "n": 3,
+    "dL": {
+     "median": -29.54,
+     "p25": -37.18,
+     "p75": -23.18
+    },
+    "da": {
+     "median": -2.39,
+     "p25": -6.23,
+     "p75": -1.09
+    },
+    "db": {
+     "median": -8.64,
+     "p25": -12.24,
+     "p75": -7.09
+    }
+   },
+   "lower-lash": {
+    "n": 3,
+    "dL": {
+     "median": -29.43,
+     "p25": -48.53,
+     "p75": -22.05
+    },
+    "da": {
+     "median": -5.58,
+     "p25": -7.11,
+     "p75": -2.42
+    },
+    "db": {
+     "median": -8.33,
+     "p25": -11.04,
+     "p75": -7.05
+    }
+   },
+   "nose-contour": {
+    "n": 3,
+    "dL": {
+     "median": -1.62,
+     "p25": -1.88,
+     "p75": -0.64
+    },
+    "da": {
+     "median": -5.22,
+     "p25": -5.42,
+     "p75": -4.31
+    },
+    "db": {
+     "median": -4.57,
+     "p25": -7.28,
+     "p75": -4.22
+    }
+   },
+   "nose-highlight": {
+    "n": 3,
+    "dL": {
+     "median": 1.14,
+     "p25": 0.0,
+     "p75": 2.75
+    },
+    "da": {
+     "median": -6.67,
+     "p25": -6.95,
+     "p75": -5.78
+    },
+    "db": {
+     "median": -8.45,
+     "p25": -10.34,
+     "p75": -7.87
+    }
+   },
+   "outer-v": {
+    "n": 3,
+    "dL": {
+     "median": -38.81,
+     "p25": -53.57,
+     "p75": -35.02
+    },
+    "da": {
+     "median": -5.62,
+     "p25": -5.81,
+     "p75": 0.51
+    },
+    "db": {
+     "median": -11.33,
+     "p25": -12.39,
+     "p75": -8.96
+    }
+   },
+   "temple-contour": {
+    "n": 3,
+    "dL": {
+     "median": -8.88,
+     "p25": -10.92,
+     "p75": -7.18
+    },
+    "da": {
+     "median": 1.17,
+     "p25": 0.81,
+     "p75": 4.66
+    },
+    "db": {
+     "median": 4.71,
+     "p25": 0.5,
+     "p75": 6.58
+    }
+   },
+   "under-eye": {
+    "n": 3,
+    "dL": {
+     "median": -2.63,
+     "p25": -5.81,
+     "p75": -2.3
+    },
+    "da": {
+     "median": -0.4,
+     "p25": -0.77,
+     "p75": 0.02
+    },
+    "db": {
+     "median": -1.07,
+     "p25": -1.56,
+     "p75": 0.03
+    }
+   }
+  },
+  "colour-eye": {},
+  "dark-lip": {},
+  "dewy": {},
+  "everyday": {},
+  "graphic-liner": {},
+  "natural": {},
+  "red-lip": {
+   "blush-apples": {
+    "n": 3,
+    "dL": {
+     "median": -4.7,
+     "p25": -6.26,
+     "p75": -2.72
+    },
+    "da": {
+     "median": 1.47,
+     "p25": 1.2,
+     "p75": 1.72
+    },
+    "db": {
+     "median": -1.76,
+     "p25": -3.14,
+     "p75": -1.72
+    }
+   },
+   "brow": {
+    "n": 3,
+    "dL": {
+     "median": -4.22,
+     "p25": -6.09,
+     "p75": -3.2
+    },
+    "da": {
+     "median": 8.03,
+     "p25": 6.8,
+     "p75": 8.2
+    },
+    "db": {
+     "median": 5.07,
+     "p25": 4.19,
+     "p75": 5.5
+    }
+   },
+   "cheek-contour": {
+    "n": 3,
+    "dL": {
+     "median": -0.84,
+     "p25": -1.03,
+     "p75": -0.5
+    },
+    "da": {
+     "median": 7.3,
+     "p25": 3.98,
+     "p75": 11.25
+    },
+    "db": {
+     "median": 2.69,
+     "p25": 1.14,
+     "p75": 4.87
+    }
+   },
+   "cheekbone-highlight": {
+    "n": 3,
+    "dL": {
+     "median": -0.33,
+     "p25": -2.67,
+     "p75": 0.8
+    },
+    "da": {
+     "median": -0.97,
+     "p25": -2.61,
+     "p75": 0.9
+    },
+    "db": {
+     "median": -4.84,
+     "p25": -4.94,
+     "p75": -3.75
+    }
+   },
+   "chin-highlight": {
+    "n": 3,
+    "dL": {
+     "median": 1.17,
+     "p25": 0.56,
+     "p75": 1.21
+    },
+    "da": {
+     "median": 2.44,
+     "p25": 0.36,
+     "p75": 3.72
+    },
+    "db": {
+     "median": 3.72,
+     "p25": 2.9,
+     "p75": 4.79
+    }
+   },
+   "crease": {
+    "n": 3,
+    "dL": {
+     "median": 7.09,
+     "p25": 1.63,
+     "p75": 8.4
+    },
+    "da": {
+     "median": -2.79,
+     "p25": -2.83,
+     "p75": -1.61
+    },
+    "db": {
+     "median": 1.7,
+     "p25": 0.59,
+     "p75": 1.72
+    }
+   },
+   "forehead-highlight": {
+    "n": 3,
+    "dL": {
+     "median": -2.47,
+     "p25": -2.62,
+     "p75": -1.92
+    },
+    "da": {
+     "median": -1.84,
+     "p25": -3.34,
+     "p75": -1.12
+    },
+    "db": {
+     "median": 0.6,
+     "p25": -0.93,
+     "p75": 1.25
+    }
+   },
+   "jaw-contour": {
+    "n": 3,
+    "dL": {
+     "median": -2.52,
+     "p25": -4.24,
+     "p75": -1.4
+    },
+    "da": {
+     "median": 9.87,
+     "p25": 7.01,
+     "p75": 12.38
+    },
+    "db": {
+     "median": 8.11,
+     "p25": 7.45,
+     "p75": 10.44
+    }
+   },
+   "lid": {
+    "n": 3,
+    "dL": {
+     "median": -9.33,
+     "p25": -9.42,
+     "p75": -2.21
+    },
+    "da": {
+     "median": 4.23,
+     "p25": 2.84,
+     "p75": 4.54
+    },
+    "db": {
+     "median": 3.47,
+     "p25": 2.96,
+     "p75": 5.3
+    }
+   },
+   "liner": {
+    "n": 3,
+    "dL": {
+     "median": -6.41,
+     "p25": -9.42,
+     "p75": -5.84
+    },
+    "da": {
+     "median": 3.25,
+     "p25": 2.42,
+     "p75": 4.22
+    },
+    "db": {
+     "median": 2.18,
+     "p25": 0.69,
+     "p75": 2.23
+    }
+   },
+   "lips": {
+    "n": 3,
+    "dL": {
+     "median": -14.45,
+     "p25": -15.22,
+     "p75": -14.45
+    },
+    "da": {
+     "median": 30.85,
+     "p25": 29.46,
+     "p75": 34.76
+    },
+    "db": {
+     "median": 19.71,
+     "p25": 18.73,
+     "p75": 22.69
+    }
+   },
+   "lower-lash": {
+    "n": 3,
+    "dL": {
+     "median": -9.75,
+     "p25": -11.2,
+     "p75": -0.99
+    },
+    "da": {
+     "median": 1.44,
+     "p25": -1.98,
+     "p75": 2.36
+    },
+    "db": {
+     "median": -2.3,
+     "p25": -2.72,
+     "p75": -0.62
+    }
+   },
+   "nose-contour": {
+    "n": 3,
+    "dL": {
+     "median": 3.26,
+     "p25": 2.21,
+     "p75": 7.04
+    },
+    "da": {
+     "median": -6.28,
+     "p25": -10.6,
+     "p75": -4.18
+    },
+    "db": {
+     "median": -5.01,
+     "p25": -9.54,
+     "p75": -4.5
+    }
+   },
+   "nose-highlight": {
+    "n": 3,
+    "dL": {
+     "median": 1.8,
+     "p25": 0.62,
+     "p75": 4.26
+    },
+    "da": {
+     "median": -8.92,
+     "p25": -13.91,
+     "p75": -5.82
+    },
+    "db": {
+     "median": -6.65,
+     "p25": -12.04,
+     "p75": -5.71
+    }
+   },
+   "outer-v": {
+    "n": 3,
+    "dL": {
+     "median": -13.88,
+     "p25": -17.68,
+     "p75": -8.41
+    },
+    "da": {
+     "median": 4.4,
+     "p25": 3.04,
+     "p75": 4.89
+    },
+    "db": {
+     "median": 4.08,
+     "p25": 2.21,
+     "p75": 4.98
+    }
+   },
+   "temple-contour": {
+    "n": 3,
+    "dL": {
+     "median": -14.52,
+     "p25": -17.21,
+     "p75": -7.35
+    },
+    "da": {
+     "median": -0.42,
+     "p25": -2.12,
+     "p75": 5.55
+    },
+    "db": {
+     "median": -4.14,
+     "p25": -5.02,
+     "p75": 1.9
+    }
+   },
+   "under-eye": {
+    "n": 3,
+    "dL": {
+     "median": -4.1,
+     "p25": -5.06,
+     "p75": -1.57
+    },
+    "da": {
+     "median": -3.68,
+     "p25": -3.81,
+     "p75": -3.42
+    },
+    "db": {
+     "median": -2.11,
+     "p25": -3.71,
+     "p75": -1.81
+    }
+   }
+  },
+  "sculpted-glam": {},
+  "smoky": {},
+  "vintage": {}
+ },
+ "placement": {
+  "blush-apples": {
+   "n": 34,
+   "centroid_ew": [
+    0.13,
+    -0.191
+   ],
+   "angle_deg": -34.7,
+   "spread_ew": [
+    0.427,
+    0.29
+   ]
+  },
+  "cheek-contour": {
+   "n": 34,
+   "centroid_ew": [
+    0.097,
+    0.044
+   ],
+   "angle_deg": -60.1,
+   "spread_ew": [
+    0.423,
+    0.178
+   ]
+  },
+  "cheekbone-highlight": {
+   "n": 32,
+   "centroid_ew": [
+    0.076,
+    -0.283
+   ],
+   "angle_deg": -32.5,
+   "spread_ew": [
+    0.241,
+    0.124
+   ]
+  },
+  "chin-highlight": {
+   "n": 16,
+   "centroid_ew": [
+    -0.004,
+    0.125
+   ],
+   "angle_deg": -9.5,
+   "spread_ew": [
+    0.187,
+    0.165
+   ]
+  },
+  "crease": {
+   "n": 32,
+   "centroid_ew": [
+    -0.081,
+    -0.005
+   ],
+   "angle_deg": 17.1,
+   "spread_ew": [
+    0.345,
+    0.221
+   ]
+  },
+  "forehead-highlight": {
+   "n": 17,
+   "centroid_ew": [
+    -0.017,
+    -0.252
+   ],
+   "angle_deg": 31.2,
+   "spread_ew": [
+    0.26,
+    0.175
+   ]
+  },
+  "jaw-contour": {
+   "n": 32,
+   "centroid_ew": [
+    0.165,
+    0.067
+   ],
+   "angle_deg": -43.5,
+   "spread_ew": [
+    0.367,
+    0.059
+   ]
+  },
+  "nose-contour": {
+   "n": 34,
+   "centroid_ew": [
+    -0.018,
+    0.149
+   ],
+   "angle_deg": -83.8,
+   "spread_ew": [
+    0.302,
+    0.068
+   ]
+  },
+  "nose-highlight": {
+   "n": 17,
+   "centroid_ew": [
+    0.002,
+    0.042
+   ],
+   "angle_deg": 44.8,
+   "spread_ew": [
+    0.242,
+    0.065
+   ]
+  },
+  "outer-v": {
+   "n": 32,
+   "centroid_ew": [
+    0.03,
+    -0.041
+   ],
+   "angle_deg": 44.4,
+   "spread_ew": [
+    0.116,
+    0.085
+   ]
+  },
+  "temple-contour": {
+   "n": 29,
+   "centroid_ew": [
+    0.12,
+    0.226
+   ],
+   "angle_deg": 73.2,
+   "spread_ew": [
+    0.31,
+    0.049
+   ]
+  },
+  "under-eye": {
+   "n": 32,
+   "centroid_ew": [
+    0.03,
+    -0.252
+   ],
+   "angle_deg": 17.2,
+   "spread_ew": [
+    0.382,
+    0.212
+   ]
+  }
+ },
+ "contrast": {
+  "bare": {
+   "brows": {
+    "L": {
+     "median": 0.17,
+     "p25": 0.12,
+     "p75": 0.23,
+     "n": 104
+    },
+    "a": {
+     "median": 0.01,
+     "p25": 0.0,
+     "p75": 0.01,
+     "n": 104
+    },
+    "b": {
+     "median": 0.01,
+     "p25": 0.0,
+     "p75": 0.02,
+     "n": 104
+    }
+   },
+   "eyes": {
+    "L": {
+     "median": 0.26,
+     "p25": 0.2,
+     "p75": 0.32,
+     "n": 103
+    },
+    "a": {
+     "median": 0.02,
+     "p25": 0.02,
+     "p75": 0.03,
+     "n": 103
+    },
+    "b": {
+     "median": 0.03,
+     "p25": 0.02,
+     "p75": 0.04,
+     "n": 103
+    }
+   },
+   "lips": {
+    "L": {
+     "median": 0.1,
+     "p25": 0.07,
+     "p75": 0.13,
+     "n": 104
+    },
+    "a": {
+     "median": -0.03,
+     "p25": -0.04,
+     "p75": -0.03,
+     "n": 104
+    },
+    "b": {
+     "median": 0.02,
+     "p25": 0.01,
+     "p75": 0.03,
+     "n": 104
+    }
+   }
+  },
+  "made_up": {
+   "brows": {
+    "L": {
+     "median": 0.25,
+     "p25": 0.2,
+     "p75": 0.3,
+     "n": 17
+    },
+    "a": {
+     "median": 0.01,
+     "p25": -0.0,
+     "p75": 0.02,
+     "n": 17
+    },
+    "b": {
+     "median": 0.02,
+     "p25": 0.0,
+     "p75": 0.03,
+     "n": 17
+    }
+   },
+   "eyes": {
+    "L": {
+     "median": 0.34,
+     "p25": 0.27,
+     "p75": 0.44,
+     "n": 16
+    },
+    "a": {
+     "median": 0.02,
+     "p25": 0.02,
+     "p75": 0.03,
+     "n": 16
+    },
+    "b": {
+     "median": 0.03,
+     "p25": 0.02,
+     "p75": 0.04,
+     "n": 16
+    }
+   },
+   "lips": {
+    "L": {
+     "median": 0.21,
+     "p25": 0.08,
+     "p75": 0.25,
+     "n": 16
+    },
+    "a": {
+     "median": -0.06,
+     "p25": -0.11,
+     "p75": -0.04,
+     "n": 16
+    },
+    "b": {
+     "median": 0.01,
+     "p25": -0.03,
+     "p75": 0.03,
+     "n": 16
+    }
+   }
+  }
+ },
+ "palettes": {
+  "lips": [
+   {
+    "hex": "#b4373c",
+    "lab": [
+     42.52,
+     50.53,
+     26.27
+    ],
+    "style": "natural"
+   },
+   {
+    "hex": "#b15859",
+    "lab": [
+     48.44,
+     36.36,
+     16.28
+    ],
+    "style": "vintage"
+   },
+   {
+    "hex": "#691b28",
+    "lab": [
+     23.43,
+     35.37,
+     11.93
+    ],
+    "style": "sculpted-glam"
+   },
+   {
+    "hex": "#86594b",
+    "lab": [
+     42.18,
+     16.89,
+     15.51
+    ],
+    "style": "graphic-liner"
+   },
+   {
+    "hex": "#cc3c38",
+    "lab": [
+     47.49,
+     56.48,
+     35.46
+    ],
+    "style": "red-lip"
+   },
+   {
+    "hex": "#d38989",
+    "lab": [
+     64.6,
+     28.17,
+     12.01
+    ],
+    "style": "everyday"
+   },
+   {
+    "hex": "#71192e",
+    "lab": [
+     24.95,
+     39.36,
+     9.77
+    ],
+    "style": "sculpted-glam"
+   },
+   {
+    "hex": "#573e49",
+    "lab": [
+     29.25,
+     13.25,
+     -2.28
+    ],
+    "style": "dark-lip"
+   },
+   {
+    "hex": "#af3840",
+    "lab": [
+     41.76,
+     48.64,
+     22.53
+    ],
+    "style": "classic-red"
+   },
+   {
+    "hex": "#73463b",
+    "lab": [
+     34.6,
+     18.26,
+     14.81
+    ],
+    "style": "graphic-liner"
+   },
+   {
+    "hex": "#b5192c",
+    "lab": [
+     39.02,
+     59.19,
+     31.77
+    ],
+    "style": "red-lip"
+   },
+   {
+    "hex": "#794e5c",
+    "lab": [
+     38.4,
+     20.31,
+     -0.75
+    ],
+    "style": "colour-eye"
+   },
+   {
+    "hex": "#bd5255",
+    "lab": [
+     48.86,
+     43.12,
+     19.68
+    ],
+    "style": "red-lip"
+   },
+   {
+    "hex": "#ac5d69",
+    "lab": [
+     49.13,
+     33.22,
+     7.6
+    ],
+    "style": "smoky"
+   },
+   {
+    "hex": "#d68176",
+    "lab": [
+     62.91,
+     31.42,
+     20.08
+    ],
+    "style": "dewy"
+   },
+   {
+    "hex": "#e13a46",
+    "lab": [
+     51.11,
+     63.94,
+     32.8
+    ],
+    "style": "classic-red"
+   }
+  ],
+  "lids": [
+   {
+    "hex": "#d4b0a7",
+    "lab": [
+     74.8,
+     11.63,
+     9.74
+    ],
+    "style": "natural"
+   },
+   {
+    "hex": "#1d1c1e",
+    "lab": [
+     10.5,
+     1.25,
+     -1.21
+    ],
+    "style": "classic-red"
+   },
+   {
+    "hex": "#53493e",
+    "lab": [
+     31.64,
+     2.61,
+     7.97
+    ],
+    "style": "vintage"
+   },
+   {
+    "hex": "#b87961",
+    "lab": [
+     56.94,
+     21.6,
+     23.46
+    ],
+    "style": "sculpted-glam"
+   },
+   {
+    "hex": "#926251",
+    "lab": [
+     46.15,
+     17.24,
+     17.18
+    ],
+    "style": "graphic-liner"
+   },
+   {
+    "hex": "#d19d83",
+    "lab": [
+     68.93,
+     16.32,
+     21.02
+    ],
+    "style": "red-lip"
+   },
+   {
+    "hex": "#9d6654",
+    "lab": [
+     48.61,
+     20.03,
+     19.32
+    ],
+    "style": "sculpted-glam"
+   },
+   {
+    "hex": "#ffe5da",
+    "lab": [
+     93.54,
+     10.48,
+     9.7
+    ],
+    "style": "dark-lip"
+   },
+   {
+    "hex": "#a77f60",
+    "lab": [
+     56.39,
+     11.26,
+     22.68
+    ],
+    "style": "classic-red"
+   },
+   {
+    "hex": "#864f40",
+    "lab": [
+     39.48,
+     21.45,
+     18.53
+    ],
+    "style": "graphic-liner"
+   },
+   {
+    "hex": "#dbb4a9",
+    "lab": [
+     76.4,
+     12.65,
+     10.62
+    ],
+    "style": "red-lip"
+   },
+   {
+    "hex": "#9a7074",
+    "lab": [
+     51.42,
+     17.6,
+     4.16
+    ],
+    "style": "colour-eye"
+   },
+   {
+    "hex": "#d1a798",
+    "lab": [
+     71.78,
+     13.58,
+     13.77
+    ],
+    "style": "red-lip"
+   },
+   {
+    "hex": "#403c38",
+    "lab": [
+     25.59,
+     0.73,
+     3.21
+    ],
+    "style": "smoky"
+   },
+   {
+    "hex": "#c2886f",
+    "lab": [
+     61.82,
+     19.47,
+     22.3
+    ],
+    "style": "dewy"
+   },
+   {
+    "hex": "#8d6861",
+    "lab": [
+     47.53,
+     13.74,
+     9.75
+    ],
+    "style": "classic-red"
+   }
+  ]
+ },
+ "beauty": {
+  "female": [
+   {
+    "feature": "shape jaw_cheek",
+    "r": -0.404,
+    "ci95": [
+     -0.615,
+     -0.138
+    ],
+    "p": 0.0037,
+    "n": 49
+   },
+   {
+    "feature": "skin evenness sd a*",
+    "r": -0.291,
+    "ci95": [
+     -0.529,
+     -0.011
+    ],
+    "p": 0.0422,
+    "n": 49
+   },
+   {
+    "feature": "shape length_width",
+    "r": 0.281,
+    "ci95": [
+     0.0,
+     0.521
+    ],
+    "p": 0.05,
+    "n": 49
+   },
+   {
+    "feature": "lip contrast a*",
+    "r": -0.248,
+    "ci95": [
+     -0.494,
+     0.036
+    ],
+    "p": 0.0865,
+    "n": 49
+   },
+   {
+    "feature": "skin a*",
+    "r": -0.247,
+    "ci95": [
+     -0.494,
+     0.037
+    ],
+    "p": 0.0875,
+    "n": 49
+   },
+   {
+    "feature": "shape forehead_cheek",
+    "r": 0.246,
+    "ci95": [
+     -0.038,
+     0.493
+    ],
+    "p": 0.0886,
+    "n": 49
+   },
+   {
+    "feature": "skin L*",
+    "r": 0.245,
+    "ci95": [
+     -0.039,
+     0.492
+    ],
+    "p": 0.0904,
+    "n": 49
+   },
+   {
+    "feature": "cheek redness (apples da*)",
+    "r": -0.173,
+    "ci95": [
+     -0.433,
+     0.114
+    ],
+    "p": 0.2355,
+    "n": 49
+   },
+   {
+    "feature": "canthal tilt deg",
+    "r": 0.171,
+    "ci95": [
+     -0.116,
+     0.431
+    ],
+    "p": 0.2414,
+    "n": 49
+   },
+   {
+    "feature": "lip contrast L*",
+    "r": 0.142,
+    "ci95": [
+     -0.145,
+     0.407
+    ],
+    "p": 0.3327,
+    "n": 49
+   },
+   {
+    "feature": "shape chin_jaw",
+    "r": 0.101,
+    "ci95": [
+     -0.185,
+     0.372
+    ],
+    "p": 0.4906,
+    "n": 49
+   },
+   {
+    "feature": "skin evenness sd L*",
+    "r": -0.07,
+    "ci95": [
+     -0.344,
+     0.216
+    ],
+    "p": 0.6352,
+    "n": 49
+   },
+   {
+    "feature": "skin b*",
+    "r": 0.03,
+    "ci95": [
+     -0.253,
+     0.309
+    ],
+    "p": 0.8381,
+    "n": 49
+   },
+   {
+    "feature": "lower/upper lip",
+    "r": -0.022,
+    "ci95": [
+     -0.301,
+     0.261
+    ],
+    "p": 0.8826,
+    "n": 49
+   },
+   {
+    "feature": "brow contrast L*",
+    "r": 0.021,
+    "ci95": [
+     -0.262,
+     0.3
+    ],
+    "p": 0.8882,
+    "n": 49
+   },
+   {
+    "feature": "under-eye lightness (dL*)",
+    "r": -0.016,
+    "ci95": [
+     -0.296,
+     0.266
+    ],
+    "p": 0.9128,
+    "n": 49
+   },
+   {
+    "feature": "eye contrast L*",
+    "r": 0.005,
+    "ci95": [
+     -0.277,
+     0.285
+    ],
+    "p": 0.975,
+    "n": 49
+   },
+   {
+    "feature": "asymmetry mm",
+    "r": 0.002,
+    "ci95": [
+     -0.279,
+     0.283
+    ],
+    "p": 0.9873,
+    "n": 49
+   }
+  ],
+  "male": [
+   {
+    "feature": "shape length_width",
+    "r": 0.308,
+    "ci95": [
+     0.041,
+     0.534
+    ],
+    "p": 0.0242,
+    "n": 53
+   },
+   {
+    "feature": "skin evenness sd L*",
+    "r": 0.302,
+    "ci95": [
+     0.035,
+     0.529
+    ],
+    "p": 0.0274,
+    "n": 53
+   },
+   {
+    "feature": "eye contrast L*",
+    "r": -0.272,
+    "ci95": [
+     -0.505,
+     -0.002
+    ],
+    "p": 0.0482,
+    "n": 53
+   },
+   {
+    "feature": "brow contrast L*",
+    "r": 0.212,
+    "ci95": [
+     -0.062,
+     0.456
+    ],
+    "p": 0.1285,
+    "n": 53
+   },
+   {
+    "feature": "lip contrast L*",
+    "r": -0.2,
+    "ci95": [
+     -0.446,
+     0.075
+    ],
+    "p": 0.1524,
+    "n": 53
+   },
+   {
+    "feature": "skin evenness sd a*",
+    "r": 0.129,
+    "ci95": [
+     -0.146,
+     0.386
+    ],
+    "p": 0.3583,
+    "n": 53
+   },
+   {
+    "feature": "skin a*",
+    "r": -0.128,
+    "ci95": [
+     -0.385,
+     0.148
+    ],
+    "p": 0.3643,
+    "n": 53
+   },
+   {
+    "feature": "shape forehead_cheek",
+    "r": 0.107,
+    "ci95": [
+     -0.168,
+     0.367
+    ],
+    "p": 0.4467,
+    "n": 53
+   },
+   {
+    "feature": "canthal tilt deg",
+    "r": -0.087,
+    "ci95": [
+     -0.349,
+     0.188
+    ],
+    "p": 0.5397,
+    "n": 53
+   },
+   {
+    "feature": "lip contrast a*",
+    "r": -0.07,
+    "ci95": [
+     -0.334,
+     0.204
+    ],
+    "p": 0.6216,
+    "n": 53
+   },
+   {
+    "feature": "asymmetry mm",
+    "r": -0.066,
+    "ci95": [
+     -0.33,
+     0.208
+    ],
+    "p": 0.6412,
+    "n": 53
+   },
+   {
+    "feature": "under-eye lightness (dL*)",
+    "r": 0.061,
+    "ci95": [
+     -0.213,
+     0.326
+    ],
+    "p": 0.6665,
+    "n": 53
+   },
+   {
+    "feature": "skin L*",
+    "r": -0.049,
+    "ci95": [
+     -0.315,
+     0.224
+    ],
+    "p": 0.7276,
+    "n": 53
+   },
+   {
+    "feature": "shape jaw_cheek",
+    "r": 0.049,
+    "ci95": [
+     -0.225,
+     0.315
+    ],
+    "p": 0.7313,
+    "n": 53
+   },
+   {
+    "feature": "lower/upper lip",
+    "r": 0.032,
+    "ci95": [
+     -0.241,
+     0.299
+    ],
+    "p": 0.8223,
+    "n": 53
+   },
+   {
+    "feature": "shape chin_jaw",
+    "r": 0.032,
+    "ci95": [
+     -0.24,
+     0.3
+    ],
+    "p": 0.8212,
+    "n": 53
+   },
+   {
+    "feature": "cheek redness (apples da*)",
+    "r": 0.02,
+    "ci95": [
+     -0.252,
+     0.289
+    ],
+    "p": 0.8876,
+    "n": 53
+   },
+   {
+    "feature": "skin b*",
+    "r": -0.018,
+    "ci95": [
+     -0.287,
+     0.254
+    ],
+    "p": 0.9011,
+    "n": 53
+   }
+  ]
+ },
+ "sources": [
+  {
+   "id": "frl-001",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-002",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-003",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-004",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-005",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-006",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-007",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-008",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-009",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-010",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-011",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-012",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-013",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-014",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-016",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-017",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-018",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-019",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-020",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-021",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-022",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-024",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-025",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-026",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-027",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-029",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-030",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-031",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-032",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-033",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-034",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-036",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-037",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-038",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-039",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-041",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-042",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-043",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-044",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-045",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-061",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-062",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-063",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-064",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-066",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-067",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-068",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-069",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-070",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-081",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-082",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-083",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-086",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-087",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-090",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-091",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-092",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-094",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-096",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-097",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-099",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-100",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-101",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-102",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-103",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-104",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-105",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-107",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-108",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-112",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-113",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-114",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-115",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-117",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-118",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-119",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-120",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-121",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-122",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-123",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-124",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-125",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-126",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-127",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-128",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-129",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-130",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-131",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-132",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-134",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-135",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-136",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-137",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-138",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-139",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-140",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-141",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-142",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-143",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-144",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-172",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "frl-173",
+   "licence": "cc-by-4.0",
+   "credit": "Face Research Lab London Set, DeBruine & Jones 2017, CC BY 4.0 (doi:10.6084/m9.figshare.5047666.v5)",
+   "url": "https://doi.org/10.6084/m9.figshare.5047666.v5",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "ov-10123186-5c74-4d03-98a8-5d9e3649a48e",
+   "licence": "cc0-1.0",
+   "credit": "\"Woman Model\" by Candace McDaniel (stocksnap)",
+   "url": "https://stocksnap.io/photo/woman-model-RG9FRO0CLN",
+   "makeup": true,
+   "style": "fantasy"
+  },
+  {
+   "id": "ov-1a8b4f1b-8472-4f21-8fa0-07be48b08349",
+   "licence": "pdm-1.0",
+   "credit": "\"beauty serenity soul\" by elliepausnow (flickr)",
+   "url": "https://www.flickr.com/photos/194872641@N07/53914994523",
+   "makeup": true,
+   "style": "natural"
+  },
+  {
+   "id": "ov-1cd2fd03-94fa-4c79-869a-69704dcc41c8",
+   "licence": "cc0-1.0",
+   "credit": "\"Woman Smoking\" by Candace McDaniel (stocksnap)",
+   "url": "https://stocksnap.io/photo/woman-smoking-2OQ2FLVU8M",
+   "makeup": true,
+   "style": "classic-red"
+  },
+  {
+   "id": "ov-45054528-c03b-4ad3-b3c7-c813b95c0189",
+   "licence": "cc0-1.0",
+   "credit": "\"Woman Model\" by Candace McDaniel (stocksnap)",
+   "url": "https://stocksnap.io/photo/woman-model-8EN1IYSZ8Y",
+   "makeup": true,
+   "style": "vintage"
+  },
+  {
+   "id": "ov-50b371fd-037b-421f-bcfd-28b400edad67",
+   "licence": "cc0-1.0",
+   "credit": "\"Woman Model\" by Matt Moloney (stocksnap)",
+   "url": "https://stocksnap.io/photo/woman-model-B5K7IFBRYK",
+   "makeup": true,
+   "style": "sculpted-glam"
+  },
+  {
+   "id": "ov-513480c9-ce90-437f-876e-bc6d4414b1ad",
+   "licence": "cc0-1.0",
+   "credit": "\"Urban Woman\" by Matt Moloney (stocksnap)",
+   "url": "https://stocksnap.io/photo/urban-woman-XHPYLDM6GH",
+   "makeup": true,
+   "style": "graphic-liner"
+  },
+  {
+   "id": "ov-5648fe5b-b520-438a-8126-a3f070c1fae7",
+   "licence": "cc0-1.0",
+   "credit": "\"Urban Woman\" by Joseph L. Etchingham (stocksnap)",
+   "url": "https://stocksnap.io/photo/urban-woman-H1DONX4WW2",
+   "makeup": true,
+   "style": "red-lip"
+  },
+  {
+   "id": "ov-58860fec-8884-4b3a-8b6d-dc7cff290526",
+   "licence": "cc0-1.0",
+   "credit": "\"A picture of Sarah in her everyday look\" by Marquette654 (flickr)",
+   "url": "https://www.flickr.com/photos/199047989@N04/54370317366",
+   "makeup": true,
+   "style": "everyday"
+  },
+  {
+   "id": "ov-64d81eba-d240-4d3e-8b27-da6d6ab66f61",
+   "licence": "cc0-1.0",
+   "credit": "\"My wife Sarah this morning, no makeup or hair and wearing her PJs still\" by Marquette654 (flickr)",
+   "url": "https://www.flickr.com/photos/199047989@N04/55027549343",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "ov-8e19d461-57b3-409e-a7ef-0e0724f657dd",
+   "licence": "cc0-1.0",
+   "credit": "\"Woman Model\" by Matt Moloney (stocksnap)",
+   "url": "https://stocksnap.io/photo/woman-model-P9WQKCJXCE",
+   "makeup": true,
+   "style": "sculpted-glam"
+  },
+  {
+   "id": "ov-9205b054-4a41-4db4-a434-458a72477d2a",
+   "licence": "cc0-1.0",
+   "credit": "\"Woman Model\" by Candace McDaniel (stocksnap)",
+   "url": "https://stocksnap.io/photo/woman-model-WVGTRQXVDR",
+   "makeup": true,
+   "style": "dark-lip"
+  },
+  {
+   "id": "ov-9c562d33-740d-447d-8010-50c174e3f79a",
+   "licence": "cc0-1.0",
+   "credit": "\"Woman Model\" by Candace McDaniel (stocksnap)",
+   "url": "https://stocksnap.io/photo/woman-model-TJHZP9PY4F",
+   "makeup": true,
+   "style": "classic-red"
+  },
+  {
+   "id": "ov-b4ff63ed-69fb-4b44-b8da-d43a4ffc7f6b",
+   "licence": "cc0-1.0",
+   "credit": "\"Urban Woman\" by Matt Moloney (stocksnap)",
+   "url": "https://stocksnap.io/photo/urban-woman-8RTGL25EL8",
+   "makeup": true,
+   "style": "graphic-liner"
+  },
+  {
+   "id": "ov-b6af34f1-87a2-4ebf-8598-d2cac51affdd",
+   "licence": "cc0-1.0",
+   "credit": "\"Urban Woman\" by Joseph L. Etchingham (stocksnap)",
+   "url": "https://stocksnap.io/photo/urban-woman-Z62HPGMRRM",
+   "makeup": true,
+   "style": "red-lip"
+  },
+  {
+   "id": "ov-c4847fa5-3fb3-4c4c-97cf-7677166d66a3",
+   "licence": "cc0-1.0",
+   "credit": "\"Smiling Woman\" by Candace McDaniel (stocksnap)",
+   "url": "https://stocksnap.io/photo/smiling-woman-TI7XCCOF5U",
+   "makeup": true,
+   "style": "colour-eye"
+  },
+  {
+   "id": "ov-c5d5e1dc-e007-4f57-839f-a4bfd4de7971",
+   "licence": "cc0-1.0",
+   "credit": "\"Urban Woman\" by Joseph L. Etchingham (stocksnap)",
+   "url": "https://stocksnap.io/photo/urban-woman-BWLQLFNTGZ",
+   "makeup": true,
+   "style": "red-lip"
+  },
+  {
+   "id": "ov-cd42d68b-ced2-4e96-89b5-8afed9adad90",
+   "licence": "pdm-1.0",
+   "credit": "\"Carrie Capri Portrait\" by Carrie Capri (flickr)",
+   "url": "https://www.flickr.com/photos/145856291@N08/54270830260",
+   "makeup": false,
+   "style": null
+  },
+  {
+   "id": "ov-e25d6a41-9315-4307-84c3-b844e074f1f1",
+   "licence": "cc0-1.0",
+   "credit": "\"Woman Model\" by Candace McDaniel (stocksnap)",
+   "url": "https://stocksnap.io/photo/woman-model-78YQNJCMVI",
+   "makeup": true,
+   "style": "smoky"
+  },
+  {
+   "id": "ov-e2999f28-6e48-463e-acbf-4bb1a10814b4",
+   "licence": "cc0-1.0",
+   "credit": "\"Beauty Woman\" by Authentic Stock (stocksnap)",
+   "url": "https://stocksnap.io/photo/beauty-woman-P1KLMCNBPU",
+   "makeup": true,
+   "style": "dewy"
+  },
+  {
+   "id": "ov-ea76450c-035c-4821-8792-428a122d243f",
+   "licence": "cc0-1.0",
+   "credit": "\"Woman Portrait\" by Candace McDaniel (stocksnap)",
+   "url": "https://stocksnap.io/photo/woman-portrait-I5FGYWDOH2",
+   "makeup": true,
+   "style": "classic-red"
+  }
+ ],
+ "about": "Learned by scripts/makeup (MAKEUP1) from openly licensed photographs: the Face Research Lab London Set (CC BY 4.0; bare faces with attractiveness ratings) and CC0 or public-domain portraits found through Openverse (labels reviewed by eye in scripts/makeup/reference-labels.json). Aggregates only; the photographs are not redistributed.",
+ "face_shapes": {
+  "oval": {},
+  "round": {
+   "length_width": -0.08,
+   "jaw_cheek": 0.04,
+   "chin_jaw": 0.08
+  },
+  "square": {
+   "length_width": -0.06,
+   "jaw_cheek": 0.1,
+   "chin_jaw": 0.1
+  },
+  "oblong": {
+   "length_width": 0.1
+  },
+  "heart": {
+   "forehead_cheek": 0.06,
+   "jaw_cheek": -0.08,
+   "chin_jaw": -0.12
+  },
+  "diamond": {
+   "forehead_cheek": -0.09,
+   "jaw_cheek": -0.07,
+   "chin_jaw": -0.05
+  },
+  "triangle": {
+   "forehead_cheek": -0.08,
+   "jaw_cheek": 0.1
+  }
+ }
+}

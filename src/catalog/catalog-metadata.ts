@@ -150,6 +150,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:costume":{storyId:"video-costume--sheet"},
   "pack:materials":{storyId:"video-materials--sheet"},
   "pack:facial-expressions":{storyId:"video-facial-expressions--atlas"},
+  "pack:makeup":{storyId:"video-makeup--makeup-lab"},
   "pack:ukiyoe-handscroll":{storyId:"video-ukiyoe-handscroll--night-ferry"},
   "pack:shodo-calligraphy":{storyId:"video-shodo--studio"},
   "pack:ukiyoe-episode":{storyId:"video-ukiyoe-handscroll--episode"},

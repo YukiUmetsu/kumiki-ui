@@ -60,6 +60,23 @@ Trees, bamboo, flowers and grasses in any art style. Full guide: [spec](../../do
 Shared by ANIM1 and FLORA1 (`art-foundations`): `foundation-shapes.ts` (geometry, record types, the scale person) and
 `foundation-react.tsx` (sheet cards, swatches, the to-scale chart).
 
+# MAKEUP1 — makeup and beauty (file map)
+
+Makeup on any face in any style: where each product goes, which colour suits the skin, light and shadow, finish.
+Guide: [spec](../../docs/component-specs/makeup.md) · [skill](../../skills/kumiki-makeup/SKILL.md) · Storybook: Art
+Foundations → Makeup · photo pipeline (Python): [`scripts/makeup`](../../scripts/makeup/README.md) · find it:
+`npm run catalog:find -- --query="contour"` · exact exports: `npm run catalog:api -- --id=makeup --format=json`.
+
+| I need… | File | Start with |
+|---|---|---|
+| A look designed for a face, skin, iris and hair; checks | `makeup-design.ts` | `designMakeup`, `checkMakeup`, `analyzeFace`, `planSwatches` |
+| Looks, evidence, face- and eye-shape rules, learned data | `makeup-data.ts` | `MAKEUP_LOOKS`, `MAKEUP_EVIDENCE`, `FACE_SHAPE_RULES`, `EYE_SHAPE_RULES`, `MAKEUP_LEARNED` |
+| Where a product goes on a face (any face on the 468-point mesh) | `makeup-zones.ts`, `data/makeup-zones.json` | `zoneField`, `resolveZone`, `zoneOutline`, `MAKEUP_ZONES`, `MAKEUP_ATLAS` |
+| Colour: undertone, palettes, films, colour difference | `makeup-color.ts` | `readSkin`, `basePalette`, `blushOn`, `lipColour`, `EYE_COMPLEMENTS`, `pigmentFor`, `filmStep`, `deltaE2000` |
+| Paint: the portrait renderer, a photograph | `makeup-paint.ts` | `makeupPaint`, `paintPhoto`, `restFrame` |
+| Painters (React) | `makeup-react.tsx` | `MakeupPortrait`, `FaceChart`, `MakeupSwatches`, `MakeupChecks`, `UndertonePlane`, `LearnedEffects` |
+| Learned aggregates (Python pipeline, openly licensed photos) | `data/makeup-learned.json` | prior, effects, placement, contrast, beauty correlations, sources |
+
 # EXPR1 — facial expressions (file map)
 
 Expressions for any style, on ANAT1's measured face. Guide: [spec](../../docs/component-specs/facial-expressions.md) ·
