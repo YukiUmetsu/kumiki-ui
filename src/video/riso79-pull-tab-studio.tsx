@@ -57,7 +57,7 @@ export function RisoPullTabFilmStudio(){
     ]:[
       // The portrait insert travels down 182 source units. At the end
       // these three narrow slits expose the original circular two-ink
-      // halftone (source y=468..648), below the subtitle and above footer.
+      // halftone (source y=540..720), below the subtitle and above footer.
       {id:"left-slit",x:195,y:650,width:40,height:180,radius:8},
       {id:"centre-slit",x:244,y:650,width:40,height:180,radius:8},
       {id:"right-slit",x:293,y:650,width:40,height:180,radius:8},
