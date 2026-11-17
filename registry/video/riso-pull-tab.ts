@@ -54,7 +54,6 @@ interface ParsedContour{
 }
 const round=(n:number)=>Number(n.toFixed(4));
 const finite=(n:number)=>Number.isFinite(n);
-const NUMBER_TOKEN=/[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/g;
 const PATH_TOKEN=/[A-Za-z]|[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/g;
 const dist=(a:Point,b:Point)=>Math.hypot(b.x-a.x,b.y-a.y);
 const cross=(a:Point,b:Point,c:Point)=>
