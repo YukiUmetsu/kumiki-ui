@@ -182,24 +182,23 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
     const cheek=q(("cheekbone."+side) as keyof typeof FACE_LANDMARKS),zy=q(("zygion."+side) as keyof typeof FACE_LANDMARKS),al=q(("alare."+side) as keyof typeof FACE_LANDMARKS);
     const gon=q(("gonion."+side) as keyof typeof FACE_LANDMARKS),eye=q(("palpebrale-inferius."+side) as keyof typeof FACE_LANDMARKS);
     const near=side==="L"?1:.72;
-    // Zygoma->maxilla wet relief, not a straight-edged cardboard cheek.
+    // Oblique orbital-malared bony forms have no filled polygon boundary.
+    // Earlier exact-head browser raster exhibited a huge straight triangle
+    // from each lower lid to the alar groove: not present in Zeng Jing's
+    // near-transparent, bone-immersing facial glazes. Deposits are pressure
+    // tapered curved contacts, then paper-absorbed with soft edges.
     const direction=side==="L"?1:-1;
-    const cheekVolume="M"+xy(shift(eye,0,6))
-      +" C"+xy(shift(cheek,-direction*8,0))
-      +" "+xy(shift(zy,-direction*44,7))
-      +" "+xy(shift(zy,-direction*23,16))
-      +" C"+xy(shift(zy,-direction*35,32))
-      +" "+xy(shift(al,direction*24,30))
-      +" "+xy(shift(al,direction*10,22))
-      +" Q"+xy(shift(al,direction*17,8))
-      +" "+xy(shift(al,direction*7,5))
-      +" Q"+xy(shift(cheek,-direction*17,-5))
-      +" "+xy(shift(eye,0,6))+" Z";
+    const malarArc=pathBetween(shift(eye,direction*2,7),
+      shift(cheek,-direction*4,13),shift(zy,-direction*14,23));
+    const maxillaryArc=pathBetween(shift(cheek,direction*1,9),
+      shift(al,direction*10,19),shift(al,direction*6,27));
     return <g key={side} data-km-ink-cheek={side}>
-      <path d={cheekVolume} data-km-ink-wet-malar="bone" fill={preset.bone} opacity={.21*near}
-        filter={"url(#"+uid+"-wash-feather)"}/>
-      <path d={cheekVolume} data-km-ink-wet-malar="warm" fill={preset.warm} opacity={.086*near}
-        filter={"url(#"+uid+"-wash-feather)"}/>
+      <path d={malarArc} data-km-ink-wet-malar="bone" fill="none"
+        stroke={preset.bone} strokeWidth={21} strokeLinecap="round"
+        opacity={.29*near} filter={"url(#"+uid+"-face-wet-diffusion)"}/>
+      <path d={maxillaryArc} data-km-ink-wet-malar="warm" fill="none"
+        stroke={preset.warm} strokeWidth={15} strokeLinecap="round"
+        opacity={.16*near} filter={"url(#"+uid+"-face-wet-diffusion)"}/>
       <path d={"M"+xy(shift(eye,-1,5))+" Q"+xy(shift(cheek,0,7))+" "+xy(shift(zy,side==="L"?5:-5,14))}
         stroke={preset.bone} strokeWidth="5.8" opacity={.09*near} fill="none"/>
       <path d={"M"+xy(shift(eye,0,8))+" Q"+xy(shift(cheek,1,10))+" "+xy(shift(al,side==="L"?7:-7,15))}
@@ -249,6 +248,9 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       <clipPath id={uid+"-skin"}><path d={faceOutline}/></clipPath>
       <filter id={uid+"-wash-feather"} x="-35%" y="-35%" width="170%" height="170%">
         <feGaussianBlur stdDeviation="5.2"/>
+      </filter>
+      <filter id={uid+"-face-wet-diffusion"} x="-70%" y="-70%" width="240%" height="240%">
+        <feGaussianBlur stdDeviation="11.5"/>
       </filter>
       <filter id={uid+"-fibres"} x="-10%" y="-10%" width="120%" height="120%">
         <feTurbulence type="fractalNoise" baseFrequency=".074 .12" numOctaves="3"
