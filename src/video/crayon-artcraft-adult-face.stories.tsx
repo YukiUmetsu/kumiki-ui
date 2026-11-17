@@ -488,7 +488,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
-  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41"].includes(midfaceForm)?
+  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42"].includes(midfaceForm)?
     crayonF1RegisterAnat1Face():null,[midfaceForm]);
   const lashRootAudit=useMemo(()=>lashFinish!=="sparse"&&eyeContact!=="baseline"
     ?auditCrayonF1LashRootContinuity(spec.elements):null,
@@ -667,6 +667,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-anat1-rooted-hair-v39">CC0 native source-root to shaft wax gestures (V39 !dev, from V38)</option>
            <option value="source-anat1-hair-contour-v40">CC0 source asymmetrical hair masses and fine wax contact (V40 !dev)</option>
            <option value="source-anat1-hairline-v41">CC0 source-observed forehead / far-temple hair overlap (V41 !dev)</option>
+           <option value="source-anat1-hedge-v42">CC0 source-photographed native wax foliage / near-depth bokeh (V42 !dev)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -808,6 +809,24 @@ export const Cc0HairValueABV38:Story={
   name:"CC0 dark hair · synced V37/V38 1× + 2.85× A/B (!dev)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0HairValueComparisonV38 {...args}/>,
+};
+export const Cc0Anat1SourceHedgeV42:Story={
+  name:"CC0 photographed dark green hedgerow / opaque source portrait (!dev V42)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hedge-v42" initialInspection="full"/>,
+};
+export const Cc0Anat1HedgeLeftV42:Story={
+  name:"CC0 native leaf wax, warm/cool depth upper-left (!dev V42)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hedge-v42" initialInspection="hair-left"/>,
+};
+export const Cc0Anat1HedgeRightV42:Story={
+  name:"CC0 native wax foliage behind far hair, 2.15× (!dev V42)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hedge-v42" initialInspection="hair-right"/>,
 };
 export const Cc0Anat1MeasuredHairlineV41:Story={
   name:"CC0 source-observed scalp/forehead hair transition (!dev V41)",
