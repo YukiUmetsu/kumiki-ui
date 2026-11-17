@@ -42,8 +42,12 @@ The flame is rendered as a volume:
   Flames tear into tongues with gaps higher up; a candle stays laminar.
 - **Emission and absorption:** soot emits at its temperature's colour and brightness and absorbs; small flames show a
   faint blue base.
-- **Smoke:** billows above, lit warm from below.
-- **Sparks:** motion-blurred over a 1/48 s shutter.
+- **Fuel:** wood fires burn on logs: charred bark cracked into blocks, its cracks glowing where it burns, over a bed
+  of embers. The logs hide the flame behind them.
+- **Smoke:** wisps, domain-warped so they roll and fold, starting narrow and widening, bluish-grey from wood, lit warm
+  from below.
+- **Sparks:** each with its own launch point, drift and swirl (they wander 10–30 cm even off a small fire) and a
+  capped rise, motion-blurred over a 1/48 s shutter.
 - **Firelight** on the ground or on the candle's wax, plus bloom.
 - **Exposure:** set for the flame, so cores read yellow-white and edges orange.
 

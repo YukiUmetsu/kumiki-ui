@@ -11,7 +11,7 @@
  * - Sparks ride the plume, cooling from yellow to red, drawn with a 1/48 s motion blur.
  * - Firelight lights the ground (or a candle's wax) with an inverse-square falloff; a soft bloom round the flame.
  */
-import { createRaster, downsample, encodeSrgb, fbm, fbm3, linearOf } from "../anatomy/foundation-raster";
+import { createRaster, downsample, encodeSrgb, fbm, fbm3, linearOf, worley } from "../anatomy/foundation-raster";
 import { blackbodyRGB, blackbodyRadiance, findFire, fireball, flameHeight, flickerHz, SMOKE } from "./fx-data";
 import type { FireId } from "./fx-data";
 
@@ -123,12 +123,14 @@ export function renderFire(o: FireRenderOptions = {}): FireRender {
   const smokeAt = (x: number, y: number, z: number) => {
     const yy = y - L * 0.75;
     if (!smokeOn || yy < 0) return 0;
-    const rr = Dw * 0.5 + Math.tan((SMOKE.halfAngle.typical * Math.PI) / 180) * yy * 2.6 + Dw * 0.2, lean = wind * yy * 0.8;
+    const rr = Dw * 0.25 + Math.tan((SMOKE.halfAngle.typical * Math.PI) / 180) * yy * 2.2 + Dw * 0.1, lean = wind * yy * 0.8;
     const d = Math.hypot(x - lean, z) / rr;
     if (d > 1.4) return 0;
+    // wisps: the plume's turbulence, domain-warped so it rolls and folds; thin threads, not a uniform haze
     const k = 1 / Math.max(eddy * 1.5, rr * 0.6), yt = y - u * 0.6 * t;
-    const b = 0.5 + 0.5 * fbm3(seed + 21, x * k, yt * k, z * k, 4);
-    return Math.max(0, b - d * 0.75) * ss(0, L * 0.4, yy) * Math.exp(-yy / (L * 3)) * (f.smoke === "black" ? 2.5 : f.smoke === "grey" ? 0.9 : 0.25);
+    const wx = fbm3(seed + 27, x * k * 0.5, yt * k * 0.5, z * k * 0.5, 2) * 1.6, wz = fbm3(seed + 29, x * k * 0.5 + 3, yt * k * 0.5, z * k * 0.5, 2) * 1.6;
+    const b = 0.5 + 0.5 * fbm3(seed + 21, x * k + wx, yt * k, z * k + wz, 4), wisp = Math.pow(Math.max(0, b), f.smoke === "black" ? 1.2 : 2.6);
+    return Math.max(0, wisp - d * 0.45) * ss(0, L * 0.3, yy) * Math.exp(-yy / (L * 2.5)) * (f.smoke === "black" ? 2.5 : f.smoke === "grey" ? 1.6 : 0.4);
   };
   const steps = 36;
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
@@ -147,8 +149,35 @@ export function renderFire(o: FireRenderOptions = {}): FireRender {
         const ground = linearOf(bg === "day" ? "#6b5e4a" : "#2a221b"), r2 = X * X + (Y * 3) ** 2, light = 0.12 / (0.3 + r2 / (f.D * f.D));
         const tex = 0.8 + 0.2 * fbm(seed + 31, X / 0.05, Y / 0.02, 3);
         c = [ground[0] * tex + light * 0.9, ground[1] * tex + light * 0.5, ground[2] * tex + light * 0.18];
-        // logs and embers under a wood fire
-        if (Math.abs(X) < f.D * 0.55 && Y > -f.D * 0.12) { const em = 0.5 + 0.5 * fbm(seed + 33, X / (f.D * 0.06), t * 0.5, 2); const T = 950 + 250 * em; const bb = blackbodyRGB(T), rad = blackbodyRadiance(T) * 1.5; c = [0.05 + bb[0] * rad, 0.03 + bb[1] * rad, 0.02 + bb[2] * rad]; }
+      }
+    }
+    // the fuel: wood fires burn on logs; charred bark (near black, cracked into blocks by the heat) with the cracks
+    // glowing orange-red where the wood is burning, hottest under the flame, and a bed of embers between the logs
+    let logCover = 0;
+    if (!small && f.smoke !== "black") {
+      const lr = f.D * 0.09, logs = [[-0.48, 0.02, 0.38, 0.13], [0.46, 0.03, -0.32, 0.15], [-0.36, 0.08, 0.42, 0.06], [0.1, 0.01, 0.5, 0.02]] as const;
+      // embers: a low glowing bed
+      if (Math.abs(X) < f.D * 0.45 && Y > -0.002 && Y < lr * 0.8) {
+        const wv = worley(seed + 51, X / (f.D * 0.05), Y / (f.D * 0.05)), em = (1 - Math.min(1, wv.f1 * 1.8)) * (0.6 + 0.4 * fbm(seed + 53, X / (f.D * 0.1), t * 0.7, 2));
+        const T = 900 + 350 * em * (1 - Math.abs(X) / (f.D * 0.45)), bb = blackbodyRGB(T), rad = blackbodyRadiance(T) * 1.4 * em;
+        c = [0.03 + bb[0] * rad, 0.02 + bb[1] * rad, 0.015 + bb[2] * rad];
+      }
+      for (const [ax, ay, bx, by] of logs) {
+        const Ax = ax * f.D, Ay = ay * f.D + lr, Bx = bx * f.D, By = by * f.D + lr, ex = Bx - Ax, ey = By - Ay, l2 = ex * ex + ey * ey;
+        const tt = Math.max(0, Math.min(1, ((X - Ax) * ex + (Y - Ay) * ey) / l2)), dx = X - Ax - ex * tt, dy = Y - Ay - ey * tt, d = Math.hypot(dx, dy);
+        if (d > lr) continue;
+        // the cylinder: shading round it, bark cracked into blocks along its length
+        const across = d / lr, ny = dy / lr, along = tt * Math.sqrt(l2);
+        const cr = worley(seed + 61, along / (lr * 0.55), (Math.asin(Math.max(-1, Math.min(1, ny))) * lr) / (lr * 0.35)), crack = 1 - Math.min(1, (cr.f2 - cr.f1) / 0.12);
+        const heat = Math.exp(-((X / (f.D * 0.35)) ** 2)) * (0.5 + 0.5 * ss(0.3, -0.6, ny)) * (0.7 + 0.3 * fbm(seed + 63, along / lr, t * 0.6, 2));
+        const shade = 0.25 + 0.75 * Math.sqrt(Math.max(0, 1 - across * across)) * (0.6 + 0.4 * Math.max(0, ny + 0.3));
+        let lc: [number, number, number] = [0.012 * shade, 0.011 * shade, 0.01 * shade];
+        // ash on the unburnt top, glowing cracks where it burns
+        lc = lc.map((v, k) => v + [0.04, 0.038, 0.036][k] * Math.max(0, ny) * (1 - heat) * 0.6 * (0.5 + 0.5 * cr.id)) as [number, number, number];
+        if (crack > 0.3 && heat > 0.15) { const T = 850 + 400 * heat * crack, bb = blackbodyRGB(T), rad = blackbodyRadiance(T) * 2.2 * crack * heat; lc = [lc[0] + bb[0] * rad, lc[1] + bb[1] * rad, lc[2] + bb[2] * rad]; }
+        const edge = Math.min(1, (lr - d) / (mpp * 1.2));
+        c = [c[0] * (1 - edge) + lc[0] * edge, c[1] * (1 - edge) + lc[1] * edge, c[2] * (1 - edge) + lc[2] * edge];
+        logCover = Math.max(logCover, edge);
       }
     }
     // integrate the flame and smoke along the view ray (z through the volume)
@@ -157,7 +186,11 @@ export function renderFire(o: FireRenderOptions = {}): FireRender {
       const dz = (2 * R) / steps;
       let tr = 1, er = 0, eg = 0, eb = 0;
       for (let s = 0; s < steps && tr > 0.004; s++) {
-        const Z = -R + (s + 0.5) * dz, fl = field(X, Y, Z);
+        const Z = -R + (s + 0.5) * dz;
+        // a log in front of the fire's middle hides what burns behind it
+        // (flames rise off the log's surface: thin right at the wood, so its char and glowing cracks show through)
+        if (logCover > 0.5 && Z < f.D * 0.09) continue;
+        const fl = field(X, Y, Z);
         if (fl.T > 0) {
           const bb = blackbodyRGB(fl.T), rad = blackbodyRadiance(fl.T) * emitK * fl.soot * dz;
           er += tr * (bb[0] * rad + fl.blue * 0.004 * dz * emitK); eg += tr * (bb[1] * rad + fl.blue * 0.012 * dz * emitK); eb += tr * (bb[2] * rad + fl.blue * 0.06 * dz * emitK);
@@ -179,8 +212,10 @@ export function renderFire(o: FireRenderOptions = {}): FireRender {
     for (let n = 0; n < 60; n++) {
       const life = 0.8 + 1.4 * ((n * 0.618) % 1), born = -((n * 0.377) % 1) * 3 + Math.floor(t / 3) * 3, age = ((t - born) % 3 + 3) % 3;
       if (age > life) continue;
-      const lx = (((n * 0.731) % 1) - 0.5) * f.D * 0.8, rise = u * 1.2;
-      const pos = (a: number): [number, number] => [lx + wind * a * 0.8 + 0.25 * f.D * Math.sin(n + a * 3) * a, L * 0.3 + rise * a - 1.2 * a * a];
+      // each spark its own launch point, sideways drift and swirl (a small fire's sparks still wander 10–30 cm)
+      const spread = Math.max(f.D, 0.25), h1 = ((n * 0.731) % 1) - 0.5, h2 = ((n * 0.457 + 0.13) % 1) - 0.5, h3 = (n * 0.619) % 1;
+      const lx = h1 * f.D * 0.8, rise = Math.min(u, 2.4) * (0.5 + 0.8 * h3), drift = h2 * spread * 4.5;
+      const pos = (a: number): [number, number] => [lx + (wind * 0.8 + drift) * a + 0.8 * spread * Math.sin(n * 1.7 + a * (2 + 2 * h3)) * a, L * 0.3 + rise * a - 1.2 * a * a];
       const [sx, sy] = pos(age), [px, py] = pos(Math.max(0, age - 1 / 48));
       const T = 1300 - 500 * (age / life), bb = blackbodyRGB(T), br = blackbodyRadiance(T) * 6 * (1 - age / life);
       const ax = (sx - x0) / mpp, ay = yBase - sy / mpp, bx = (px - x0) / mpp, by = yBase - py / mpp, len = Math.max(1, Math.hypot(ax - bx, ay - by));

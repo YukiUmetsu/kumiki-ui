@@ -48,7 +48,7 @@ export const FLAME_TEMPERATURES: readonly { what: string; kelvin: Range; look: s
 /** Smoke: plume spread and colour. */
 export const SMOKE = {
   halfAngle: rep(6, 7, 9, "Plume theory: radius about 0.12 × height (Morton, Taylor & Turner 1956)"),
-  colours: { light: "#d9dbdd", grey: "#9a9a98", black: "#1d1c1b" },
+  colours: { light: "#d9dde2", grey: "#a3acb6", black: "#1d1c1b" },
   notes: ["Wood smoke is white to blue-grey (fine droplets scatter light; blue against dark, brown against bright sky).", "Oil, rubber and plastics give black, sooty smoke that hides the flame.", "Smoke rises in billows that roll and widen; it stops rising and spreads flat at an inversion."],
 } as const;
 
