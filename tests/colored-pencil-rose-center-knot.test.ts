@@ -24,13 +24,22 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
       "rose-whorl-right","heart","rose-whorl-scroll",
     ]);
     expect(new Set(ROSE_CENTER_KNOT_SURFACES.map(x=>x.path)).size).toBe(6);
+    const centres=ROSE_CENTER_KNOT_SURFACES.map(x=>[
+      x.bounds[0]+x.bounds[2]/2,x.bounds[1]+x.bounds[3]/2,
+    ].join(","));
+    expect(new Set(centres).size).toBe(6);
+    expect(ROSE_CENTER_KNOT_SURFACES.find(x=>x.id==="inner-fold")?.replacementBaseDetails)
+      .toHaveLength(2);
+    expect(ROSE_CENTER_KNOT_SURFACES.find(x=>x.id==="heart")?.replacementBaseDetails)
+      .toHaveLength(2);
     for(const s of ROSE_CENTER_KNOT_SURFACES){
       expect(s.path).toMatch(/^M.+ Z$/);
       expect(s.path.split("C").length).toBeGreaterThanOrEqual(3);
       expect(s.bounds[2]*s.bounds[3]).toBeGreaterThan(900);
       expect(s.dryContours).toHaveLength(4);
       expect(new Set(s.dryContours.map(t=>t.id)).size).toBe(4);
-      for(const trace of s.dryContours){
+      expect(s.dryContours.every(t=>t.path.length<=180)).toBe(true);
+      for(const trace of [...(s.replacementBaseDetails??[]),...s.dryContours]){
         expect(trace.path).toMatch(/^M/);
         expect(trace.opacity).toBeLessThan(.65);
         expect(trace.width).toBeLessThan(.7);
@@ -60,9 +69,9 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
           const revised=ROSE_CENTER_KNOT_SURFACES.find(o=>o.id===prior.id)!;
           expect(current?.path).toBe(revised.path);
           expect(current?.bounds).toEqual(revised.bounds);
-          expect(current?.details?.slice(0,prior.details?.length??0))
-            .toEqual(prior.details??[]);
-          expect(current?.details?.slice(prior.details?.length??0))
+          const baseDetails=revised.replacementBaseDetails??prior.details??[];
+          expect(current?.details?.slice(0,baseDetails.length)).toEqual(baseDetails);
+          expect(current?.details?.slice(baseDetails.length))
             .toEqual(revised.dryContours);
           expect(current?.opaqueSupport).toBe(true);
           expect(current?.craft).toBeDefined();
@@ -93,7 +102,9 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
       expect(current).toBeDefined();
       expect(current?.layers.map(l=>l.seed)).toEqual(previous.layers.map(l=>l.seed));
       if(!remodeled.has(previous.id))expect(current).toEqual(previous);
-      else expect(current?.details?.length).toBe((previous.details?.length??0)+4);
+      else expect(current?.details?.length).toBe(
+        (ROSE_CENTER_KNOT_SURFACES.find(x=>x.id===previous.id)!
+          .replacementBaseDetails??previous.details??[]).length+4);
     }
     for(const id of ["rose-rim-front-left","rose-rim-front-right","back-cup",
                      "rose-turn-back-cup","rose-mid-right-tuck",
