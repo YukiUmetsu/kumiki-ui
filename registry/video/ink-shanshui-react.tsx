@@ -2637,6 +2637,60 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
               " "+f(c2[0])+" "+f(c2[1])+
               " "+f(end[0])+" "+f(end[1])};
         });
+        // A source-led second brush pass across the rounded rock cheek:
+        // Huang's dense pima is supported by many broken TRANSVERSE
+        // geological turnings. The old vertical fibres hanging against
+        // a nearly blank tan face had no such intersecting value rhythm.
+        // These three terraces are attached to the parent cubic crown;
+        // their incomplete wet/dry halves keep actual paper apertures.
+        // The same bank and source-ridge clip constrain all deposits.
+        const terraces=([
+          {from:.08,to:.65,depth:.19,weight:3.3},
+          {from:.18,to:.83,depth:.38,weight:2.7},
+          {from:.31,to:.9,depth:.59,weight:1.9},
+        ] as const).map((planTerrace,k)=>{
+          const upper0=cubicPoint(left,first,second,right,planTerrace.from);
+          const upper3=cubicPoint(left,first,second,right,planTerrace.to);
+          const descent=drop*planTerrace.depth;
+          const start:P=[
+            upper0[0]-span*(k===0?.018:-.011),
+            upper0[1]+descent,
+          ];
+          const tip:P=[
+            upper3[0]+span*(k===1?.035:.012),
+            upper3[1]+descent+drop*(k===2?.16:.095),
+          ];
+          const c1:P=[start[0]+span*(k===2?.15:.23),
+            start[1]+drop*(k===0?.035:.09)];
+          const c2:P=[tip[0]-span*(k===0?.17:.22),
+            tip[1]-drop*(k===2?.13:.18)];
+          const pressure=planTerrace.weight*
+            (.79+.34*s(seed+9331,i*41+k*23));
+          const phrase=(from:number,to:number,idx:number)=>{
+            const r=cubicPoint(start,c1,c2,tip,from);
+            const e=cubicPoint(start,c1,c2,tip,to);
+            const a=cubicPoint(start,c1,c2,tip,
+              from+(to-from)*.29);
+            const b=cubicPoint(start,c1,c2,tip,
+              from+(to-from)*.77);
+            return rockLoadedCubicRibbon(r,a,b,e,
+              pressure*(idx===0?1:.63),
+              seed+9341+i*79+k*29+idx*11,
+              idx===0?"root-loaded":"feathered-tail");
+          };
+          // The release between the two loaded phrases is a real hole,
+          // not a fake paper-colored overpaint on top of the shadow.
+          const release=.49+.08*s(seed+9361,i*23+k*17);
+          return {
+            root:start,tip,
+            axis:"M"+f(start[0])+" "+f(start[1])+
+              " C"+f(c1[0])+" "+f(c1[1])+
+              " "+f(c2[0])+" "+f(c2[1])+
+              " "+f(tip[0])+" "+f(tip[1]),
+            near:phrase(0,release-.035,0),
+            far:phrase(release+.07,1,1),
+          };
+        });
         // Three asymmetrically spaced deposited moss touches link back
         // to the SAME positive fold rather than floating in the valley.
         const deposits=([.21,.51,.79] as const).map((t,k)=>{
@@ -2677,6 +2731,23 @@ function FuchunNearBankRelief({stations,seed,detail,mist,id}:{
               fill="#4a3b30" opacity={f((i===1?.47:.35)*(1-.24*mist))}/>
             <path data-km-fuchun-near-bank-broken-crest="" d={rim2}
               fill="#5b4b3c" opacity={f(.28*(1-.2*mist))}/>
+            {terraces.map(({root,tip,axis,near,far},k)=>
+              <g key={"turn"+k} data-km-fuchun-near-terrace=""
+                data-km-fuchun-near-terrace-root={
+                  f(root[0])+","+f(root[1])}
+                data-km-fuchun-near-terrace-tip={
+                  f(tip[0])+","+f(tip[1])}
+                data-km-fuchun-near-terrace-axis={axis}
+                data-km-fuchun-near-terrace-level={k}>
+                <path data-km-fuchun-near-terrace-phrase=""
+                  d={near} fill="#4d4538"
+                  opacity={f((k===0?.55:k===1?.43:.32)*
+                    (1-.18*mist))}/>
+                <path data-km-fuchun-near-terrace-phrase=""
+                  d={far} fill="#675743"
+                  opacity={f((k===0?.34:k===1?.3:.22)*
+                    (1-.18*mist))}/>
+              </g>)}
             {strokes.map(({root,body,axis,kind},j)=>
               <path key={j} data-km-fuchun-near-hemp=""
                 data-km-fuchun-near-hemp-root={f(root[0])+","+f(root[1])}
