@@ -10,7 +10,8 @@ import type { Mesh, Placement, V3 } from "./food-mesh";
 import type { Part, SurfaceFn } from "./food-scene";
 import { RestingSurface, dewOn, profile } from "./food-stage";
 import type { Vessel } from "./food-stage";
-import { cutFace, leaf, paperSkin, skin, stalk } from "./food-surfaces";
+import { C, cutFace, leaf, mixInto, paperSkin, skin, sst, stalk } from "./food-surfaces";
+import { bananaSolid } from "./food-textures";
 import type { CutSpec, SkinSpec } from "./food-surfaces";
 import { fbm3 } from "../anatomy/foundation-raster";
 
@@ -251,14 +252,45 @@ export function heap(make: (i: number, r: () => number) => Mesh, count: number, 
 
 // ---- Elongated produce ------------------------------------------------------------------------------------------------------------
 
-/** A banana: a curved sweep with a five-angled section, a stalk and a dark blossom end. */
+/** A banana: a curved finger with five soft ridges, its skin from MATL1 (`bananaSolid`: striations, sugar spots),
+ *  greener at the neck, the blossom tip dark. Built along +x, the stalk end at +x. */
+function bananaFinger(len: number, R: number, seed: number, ripe: number): { body: Mesh; neck: Mesh; surface: SurfaceFn } {
+  const r = rng(seed), arc = 0.06 + r() * 0.04;
+  const curve: V3[] = [[-len / 2, R * 1.3, 0], [-len / 4, R * 0.55, len * arc], [0, R, len * (arc + 0.03)], [len / 4, R * 1.4, len * arc], [len / 2, R * 2.6, -len * 0.02]];
+  const body = sweep(curve, { radius: (t, th) => R * (0.94 + r() * 0) * Math.pow(Math.sin(Math.PI * Math.min(1, t * 0.97 + 0.02)), 0.42) * (1 - 0.07 * Math.pow(Math.abs(Math.cos((th * 5) / 2)), 3)) * (t > 0.92 ? 1 - (t - 0.92) * 6 : 1), nu: 30, nv: 72 });
+  const neck = sweep([[len / 2 - 4, R * 2.5, -len * 0.02], [len / 2 + 10, R * 3.1, -len * 0.035], [len / 2 + 22, R * 3.3, -len * 0.04]], { radius: t => R * (0.3 - 0.06 * t), flatten: 0.8, nu: 10, nv: 10 });
+  const tex = bananaSolid({ ripe, seed }), green = C("#8f9a34"), tip = C("#2a1e10");
+  const surface: SurfaceFn = (s, o) => {
+    const t = tex(s.o[0], s.o[1], s.o[2]);
+    o.albedo[0] = t.a[0]; o.albedo[1] = t.a[1]; o.albedo[2] = t.a[2];
+    mixInto(o.albedo, green, sst(0.82, 0.98, s.uv[1]) * 0.7 + (1 - ripe) * 0.3);
+    mixInto(o.albedo, tip, sst(0.06, 0.0, s.uv[1]) * 0.9);
+    o.height = t.h; o.rough = t.r; o.spec = 0.04; o.coat = 0.25; o.coatRough = 0.2; o.mfp[0] = 1.2; o.mfp[1] = 1; o.mfp[2] = 0.3; o.trans = 0.1;
+  };
+  return { body, neck, surface };
+}
+/** One banana lying on its side. */
 export function banana(len = 190, R = 18, seed = 1, at: V3 = [0, 0, 0], turn = 0, ripeness = 0.6): Part[] {
-  const curve: V3[] = [[-len / 2, R * 1.3, 0], [-len / 4, R * 0.55, len * 0.06], [0, R, len * 0.09], [len / 4, R * 1.4, len * 0.06], [len / 2, R * 2.6, -len * 0.02]];
-  const body = sweep(curve, { radius: (t, th) => R * Math.pow(Math.sin(Math.PI * Math.min(1, t * 0.97 + 0.02)), 0.42) * (1 - 0.06 * Math.pow(Math.abs(Math.cos((th * 5) / 2)), 3)) * (t > 0.92 ? 1 - (t - 0.92) * 6 : 1), nu: 30, nv: 70 });
-  const neck = sweep([[len / 2 - 4, R * 2.5, -len * 0.02], [len / 2 + 10, R * 3.2, -len * 0.04], [len / 2 + 18, R * 3.4, -len * 0.05]], { radius: () => R * 0.28, nu: 10, nv: 8 });
+  const f = bananaFinger(len, R, seed, ripeness), pl: Placement = { ry: turn, at };
+  return grouped([part("banana", transform(f.body, pl), f.surface), part("stalk", transform(f.neck, pl), stalk("#6b6430", "#8c9a3a"))]);
+}
+/** A hand of bananas: `n` fingers fanned from one crown (their stalks meet in a cut, dried crown), lying on the table. */
+export function bananaHand(n: number, len: number, R: number, at: V3, turn = 0, seed = 1, ripeness = 0.7): Part[] {
+  const crown: V3 = [len / 2 + 22, R * 3.3, -len * 0.04], necks: Mesh[] = [], r = rng(seed);
+  const parts: Part[] = [];
+  for (let i = 0; i < n; i++) {
+    const f = bananaFinger(len * (0.92 + r() * 0.14), R * (0.95 + r() * 0.1), seed + i * 7, ripeness);
+    // each finger turned about the crown, the hand's two rows a little apart in height
+    const ang = (i - (n - 1) / 2) * 17, lift = (i % 2) * R * 0.9;
+    const about = (m: Mesh) => transform(transform(transform(m, { at: [-crown[0], -crown[1], -crown[2]] }), { ry: ang, rz: (i % 2) * 6 }), { at: [crown[0], crown[1] + lift, crown[2]] });
+    necks.push(about(f.neck));
+    parts.push(part("banana", about(f.body), f.surface));
+  }
+  // the crown: a short, thick, ridged stub where the hand was cut from the bunch, its cut end dark and dry
+  const crownM = sweep([[crown[0] - 4, crown[1] + R * 0.3, crown[2]], [crown[0] + 8, crown[1] + R * 0.5, crown[2]], [crown[0] + 16, crown[1] + R * 0.6, crown[2]]], { radius: (t, th) => R * 0.75 * (1 - 0.1 * Math.abs(Math.sin(th * 3))) * (t > 0.95 ? 0.85 : 1), flatten: 1.6, nu: 18, nv: 8 });
   const pl: Placement = { ry: turn, at };
-  const sk = skin({ base: ripeness > 0.5 ? "#e9c53a" : "#b9c24a", blush: "#8f9a2f", blushAmount: 1 - ripeness, speckle: ripeness, speckleColour: "#4a3216", rough: 0.42, wax: 0.25, bruise: ripeness * 0.3, seed });
-  return grouped([part("banana", transform(body, pl), sk), part("stalk", transform(neck, pl), stalk("#6b6430", "#8c9a3a"))]);
+  const placed = [...parts.map(p => ({ ...p, mesh: transform(p.mesh, pl) })), part("stalks", transform(merge(necks), pl), stalk("#6b6430", "#8c9a3a")), part("crown", transform(crownM, pl), (s, o) => { stalk("#5a4a28", "#7a7a38")(s, o); if (s.o[0] > crown[0] + 14) { mixInto(o.albedo, C("#3a2a18"), 1); o.rough = 0.8; } })];
+  return grouped(placed);
 }
 
 /** A tapered root (carrot, parsnip, daikon, radish tail) along +X with feathery or leafy tops. */
@@ -318,30 +350,80 @@ export function mushroomMesh(kind: "button" | "porcini" | "shiitake" | "chantere
   return { cap, stem: st };
 }
 
-/** A herb sprig: a stem with paired leaves (basil, mint, parsley, cilantro, thyme, rosemary needles, dill threads). */
-export function herbSprig(kind: "basil" | "mint" | "parsley" | "cilantro" | "thyme" | "rosemary" | "dill" | "bay" | "shiso", len: number, seed = 1): { stem: Mesh; leaves: Mesh } {
+/** One herb leaf along +x from its base: ovate or lance, `cup` (edges curling down, so the blade domes), a `fold` along
+ *  the midrib, serrated (`teeth`) or lobed (`lobes`), drooping at the tip. */
+export function herbLeaf(o: { len: number; width: number; shape?: "ovate" | "lance" | "round" | "needle"; cup?: number; fold?: number; teeth?: number; lobes?: number; droop?: number; seed?: number }): Mesh {
+  const r = rng(o.seed ?? 1), L = o.len, W = o.width, tw = (r() - 0.5) * 0.5;
+  const outline = (sv: number) => {
+    const base = o.shape === "needle" ? Math.pow(Math.sin(Math.PI * Math.min(1, sv * 0.95 + 0.05)), 0.3) * (1 - 0.3 * sv)
+      : o.shape === "lance" ? Math.pow(Math.sin(Math.PI * Math.min(1, sv)), 0.85) * (1 - 0.35 * sv)
+      : o.shape === "round" ? Math.pow(Math.sin(Math.PI * Math.min(1, sv)), 0.5)
+      : Math.pow(Math.sin(Math.PI * Math.min(1, sv * 0.97 + 0.03)), 0.62) * (1 - 0.22 * sv);
+    const teeth = o.teeth ? 1 + 0.07 * Math.abs(Math.sin(sv * Math.PI * o.teeth)) - 0.035 : 1, lobes = o.lobes ? 1 - 0.28 * Math.pow(Math.abs(Math.sin(sv * Math.PI * o.lobes)), 3) * (sv > 0.25 ? 1 : 0) : 1;
+    return (W / 2) * base * teeth * lobes;
+  };
+  return blade({ length: L, halfWidth: outline, nu: o.teeth || o.lobes ? 16 : 10, nv: o.teeth || o.lobes ? 40 : 20,
+    lift: (sv, w) => -(o.cup ?? 0.2) * W * 0.25 * w * w * Math.sin(Math.PI * sv) + (o.fold ?? 0) * W * 0.18 * Math.abs(w) + w * tw * sv * W * 0.3 + Math.sin(sv * 9 + w * 3 + (o.seed ?? 1)) * L * 0.006,
+    bend: sv => -(o.droop ?? 0.2) * L * sv * sv });
+}
+export type HerbKind = "basil" | "mint" | "parsley" | "cilantro" | "thyme" | "rosemary" | "dill" | "bay" | "shiso";
+/**
+ * A herb sprig along +x: basil, mint and shiso with opposite leaf pairs at nodes (each pair turned 90° from the last),
+ * on short petioles, largest low down, a bud of young leaves at the tip; parsley and coriander as fans of lobed
+ * leaflets on long stalks; dill as thread fronds; thyme and rosemary as tiny leaves or needles on woody stems; bay as
+ * leathery alternate leaves.
+ */
+export function herbSprig(kind: HerbKind, len: number, seed = 1): { stem: Mesh; leaves: Mesh } {
   const r = rng(seed), stems: Mesh[] = [], leaves: Mesh[] = [];
-  const pts: V3[] = [[0, 0, 0], [len * 0.35, 1.5, (r() - 0.5) * 4], [len * 0.7, 2.5, (r() - 0.5) * 6], [len, 3 + r() * 2, (r() - 0.5) * 8]];
-  stems.push(sweep(pts, { radius: t => (kind === "rosemary" ? 1.1 : 0.8) * (1 - t * 0.5), nu: 6, nv: 14 }));
-  const pairs = kind === "rosemary" ? 26 : kind === "thyme" ? 14 : kind === "dill" ? 10 : kind === "bay" ? 3 : 4;
-  for (let i = 0; i < pairs; i++) {
-    const t = 0.15 + (i / pairs) * 0.85, x = len * t, y = 1 + t * 3;
-    for (const side of [-1, 1]) {
-      const size = kind === "basil" ? 26 * (1.1 - t * 0.5) : kind === "mint" ? 20 * (1.1 - t * 0.5) : kind === "shiso" ? 34 : kind === "bay" ? 40 : kind === "parsley" || kind === "cilantro" ? 14 : kind === "rosemary" ? 11 : kind === "dill" ? 16 : 4;
-      const wr = kind === "rosemary" ? 0.1 : kind === "dill" ? 0.05 : kind === "thyme" ? 0.45 : kind === "bay" ? 0.33 : kind === "parsley" || kind === "cilantro" ? 0.85 : 0.55;
-      const shape = kind === "parsley" || kind === "cilantro" ? "round" : kind === "rosemary" || kind === "dill" || kind === "bay" ? "lance" : "oval";
-      const lm = leafMesh(size * (0.85 + r() * 0.3), wr, kind === "basil" ? 0.3 : 0.15, seed + i * 7 + (side > 0 ? 3 : 0), shape);
-      leaves.push(transform(lm, { ry: side * (55 + r() * 25) - 20, rx: side * 10, at: [x, y, 0] }));
+  const stemPt = (t: number): V3 => [len * t, 1.2 + t * 3 + Math.sin(t * 3 + seed) * 1.5, Math.sin(t * 2.3 + seed) * 3];
+  const woody = kind === "rosemary" || kind === "thyme";
+  stems.push(sweep([0, 0.33, 0.66, 1].map(stemPt), { radius: t => (woody ? 1.1 : kind === "dill" ? 0.6 : 0.95) * (1 - t * 0.55), nu: 6, nv: 16 }));
+  const leafAt = (m: Mesh, t: number, yaw: number, pitch: number, roll = 0) => { const p = stemPt(t); leaves.push(transform(m, { rz: pitch, rx: roll, ry: yaw, at: p })); };
+  if (kind === "basil" || kind === "mint" || kind === "shiso") {
+    const nodes = 4, big = kind === "shiso" ? 40 : kind === "basil" ? 30 : 22;
+    for (let k = 0; k < nodes; k++) {
+      const t = 0.2 + (k / nodes) * 0.72, size = big * (1.1 - 0.55 * (k / nodes)) * (0.9 + r() * 0.2), phase = (k % 2) * 90;
+      for (const side of [-1, 1]) {
+        const lm = herbLeaf({ len: size, width: size * (kind === "mint" ? 0.55 : 0.62), shape: "ovate", cup: kind === "basil" ? 0.9 : 0.35, teeth: kind === "basil" ? 0 : kind === "mint" ? 14 : 18, droop: 0.22, seed: seed + k * 11 + (side > 0 ? 5 : 0) });
+        // a short petiole, then the blade angled up and out from the stem
+        const yaw = phase + (side > 0 ? 0 : 180) + (r() - 0.5) * 18;
+        const pet = sweep([[0, 0, 0], [size * 0.12, size * 0.05, 0]], { radius: () => 0.55, nu: 5, nv: 4 });
+        leafAt(merge([pet, transform(lm, { at: [size * 0.11, size * 0.05, 0] })]), t, yaw, 18 + r() * 12);
+      }
     }
+    // the tip: young leaves folded up round the bud
+    for (let q = 0; q < 3; q++) leafAt(herbLeaf({ len: big * 0.32, width: big * 0.18, shape: "ovate", cup: 0.4, fold: 1.2, droop: -0.1, seed: seed + 50 + q }), 0.98, q * 120 + r() * 30, 52);
+  } else if (kind === "parsley" || kind === "cilantro") {
+    for (let k = 0; k < 4; k++) {
+      const t = 0.35 + k * 0.17, yaw = (k % 2 ? 1 : -1) * (35 + r() * 25), stalkLen = len * 0.22;
+      const fan: Mesh[] = [sweep([[0, 0, 0], [stalkLen * 0.6, 2, 0], [stalkLen, 3, 0]], { radius: () => 0.45, nu: 5, nv: 6 })];
+      for (let q = 0; q < 3; q++) fan.push(transform(herbLeaf({ len: 13, width: 11, shape: "round", lobes: kind === "cilantro" ? 2 : 3, cup: 0.15, droop: 0.05, seed: seed + k * 7 + q }), { ry: (q - 1) * 40, at: [stalkLen, 3, 0] }));
+      leafAt(merge(fan), t, yaw, 10);
+    }
+  } else if (kind === "dill") {
+    for (let k = 0; k < 8; k++) {
+      const t = 0.3 + k * 0.08, yaw = (r() - 0.5) * 140;
+      for (let q = 0; q < 6; q++) { const a = (q / 6 - 0.5) * 1.6, l = 12 + r() * 10; leafAt(sweep([[0, 0, 0], [l * 0.5, l * 0.15, Math.sin(a) * l * 0.3], [l, l * 0.1, Math.sin(a) * l * 0.6]], { radius: () => 0.22, nu: 4, nv: 6 }), t, yaw, 8); }
+    }
+  } else if (woody) {
+    const count = kind === "rosemary" ? 34 : 26, golden = 137.5;
+    for (let k = 0; k < count; k++) {
+      const t = 0.1 + (k / count) * 0.88, size = kind === "rosemary" ? 13 * (1 - 0.3 * t) : 4.2;
+      leafAt(herbLeaf({ len: size, width: kind === "rosemary" ? 1.8 : 2.4, shape: kind === "rosemary" ? "needle" : "ovate", cup: kind === "rosemary" ? -0.6 : 0.2, droop: 0.05, seed: seed + k }), t, k * golden, 40 + r() * 15);
+    }
+  } else {
+    for (let k = 0; k < 4; k++) leafAt(herbLeaf({ len: 46 - k * 4, width: 15, shape: "lance", cup: 0.1, fold: 0.4, droop: 0.06, seed: seed + k }), 0.25 + k * 0.22, (k % 2 ? 1 : -1) * 50, 12);
   }
   return { stem: merge(stems), leaves: merge(leaves) };
 }
 /** Herb leaves as parts at a placement. */
-export function herbs(kind: Parameters<typeof herbSprig>[0], len: number, pl: Placement, seed = 1, colour?: string): Part[] {
+export function herbs(kind: HerbKind, len: number, pl: Placement, seed = 1, colour?: string): Part[] {
   const { stem: s, leaves: l } = herbSprig(kind, len, seed);
-  const c = colour ?? (kind === "basil" ? "#3e7a2a" : kind === "mint" ? "#4f8a3a" : kind === "rosemary" ? "#4a5f3a" : kind === "thyme" ? "#5a6e40" : kind === "bay" ? "#56693a" : kind === "shiso" ? "#4a7a30" : "#3f7d2c");
-  return grouped([part(`${kind} leaves`, transform(l, pl), leaf(c, { veins: kind === "basil" ? 6 : 4, gloss: kind === "basil" || kind === "bay" ? 0.6 : 0.3, seed })), part(`${kind} stem`, transform(s, pl), stalk("#5d7a2c", "#6d8f34"))]);
+  const c = colour ?? (kind === "basil" ? "#3a7a26" : kind === "mint" ? "#4a8a36" : kind === "rosemary" ? "#4a5f3a" : kind === "thyme" ? "#5a6e40" : kind === "bay" ? "#56693a" : kind === "shiso" ? "#4a7a30" : kind === "dill" ? "#5a8a3a" : "#3f7d2c");
+  const surf = leaf(c, { veins: kind === "basil" ? 6 : kind === "mint" ? 7 : 4, gloss: kind === "basil" || kind === "bay" ? 0.7 : kind === "rosemary" ? 0.4 : 0.3, rugose: kind === "mint" || kind === "shiso" ? 0.8 : 0, seed });
+  return grouped([part(`${kind} leaves`, transform(l, pl), surf), part(`${kind} stem`, transform(s, pl), stalk(woodyColour(kind), "#6d8f34"))]);
 }
+const woodyColour = (k: HerbKind) => (k === "rosemary" || k === "thyme" ? "#6a5a3a" : "#5d7a2c");
 
 /** Scattered small garnish pieces (scallion rings, chopped herbs, chilli flakes, sesame, peppercorns) over a surface. */
 export function sprinkle(kind: "scallion" | "herb-bits" | "chilli" | "sesame" | "black-sesame" | "pepper" | "salt-flakes" | "nuts" | "pomegranate-seeds" | "parmesan", count: number, radius: number, y: (x: number, z: number) => number, seed = 1, centre: V3 = [0, 0, 0]): Mesh {
@@ -369,8 +451,8 @@ export function sprinkle(kind: "scallion" | "herb-bits" | "chilli" | "sesame" | 
  * Grains (cooked rice) over a mesh: `count` grains about `len` × `wid` mm, each lying in the surface along a random
  * direction, sunk about a third of its thickness, where `keep(objectPosition, normal)` allows. Sampled by area.
  */
-export function grainCoat(m: Mesh, count: number, sp: { len?: number; wid?: number; seed?: number; keep?: (o: V3, n: V3) => boolean } = {}): Mesh {
-  const r = rng(sp.seed ?? 1), L = sp.len ?? 5.5, Wd = sp.wid ?? 2.8, tmpl = ellipsoid(L / 2, Wd * 0.46, Wd / 2, 10, 7);
+export function grainCoat(m: Mesh, count: number, sp: { len?: number; wid?: number; seed?: number; keep?: (o: V3, n: V3) => boolean; light?: boolean } = {}): Mesh {
+  const r = rng(sp.seed ?? 1), L = sp.len ?? 5.5, Wd = sp.wid ?? 2.8, tmpl = sp.light ? ellipsoid(L / 2, Wd * 0.46, Wd / 2, 8, 5) : ellipsoid(L / 2, Wd * 0.46, Wd / 2, 10, 7);
   const tris = m.tri.length / 3, cum = new Float64Array(tris);
   let total = 0;
   for (let t = 0; t < tris; t++) {
@@ -405,4 +487,36 @@ export function grainCoat(m: Mesh, count: number, sp: { len?: number; wid?: numb
     g++;
   }
   return out;
+}
+
+/**
+ * Small pieces scattered over a mesh's surface (egg curds, peas, carrot dice, batter frills, char bits): `make(i, r)`
+ * builds a piece round the origin with +y as its outward side; it is turned to the surface normal at an area-weighted
+ * random point, spun about it, and sunk by `sink` mm.
+ */
+export function surfaceScatter(m: Mesh, count: number, make: (i: number, r: () => number) => Mesh, sp: { seed?: number; sink?: number; keep?: (o: V3, n: V3, p: V3) => boolean } = {}): Mesh {
+  const r = rng(sp.seed ?? 1), tris = m.tri.length / 3, cum = new Float64Array(tris);
+  let total = 0;
+  for (let t = 0; t < tris; t++) {
+    const a = m.tri[t * 3] * 3, b = m.tri[t * 3 + 1] * 3, c = m.tri[t * 3 + 2] * 3;
+    const ux = m.pos[b] - m.pos[a], uy = m.pos[b + 1] - m.pos[a + 1], uz = m.pos[b + 2] - m.pos[a + 2], vx = m.pos[c] - m.pos[a], vy = m.pos[c + 1] - m.pos[a + 1], vz = m.pos[c + 2] - m.pos[a + 2];
+    total += Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx) / 2; cum[t] = total;
+  }
+  const out: Mesh[] = [];
+  for (let k = 0, tries = 0; k < count && tries < count * 5; tries++) {
+    const pick = r() * total; let lo = 0, hi = tris - 1;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid] < pick) lo = mid + 1; else hi = mid; }
+    let b1 = r(), b2 = r(); if (b1 + b2 > 1) { b1 = 1 - b1; b2 = 1 - b2; }
+    const ia = m.tri[lo * 3] * 3, ib = m.tri[lo * 3 + 1] * 3, ic = m.tri[lo * 3 + 2] * 3, b0 = 1 - b1 - b2;
+    const at = (arr: number[], q: number) => arr[ia + q] * b0 + arr[ib + q] * b1 + arr[ic + q] * b2;
+    const p: V3 = [at(m.pos, 0), at(m.pos, 1), at(m.pos, 2)], o: V3 = [at(m.obj, 0), at(m.obj, 1), at(m.obj, 2)];
+    let n: V3 = [at(m.nrm, 0), at(m.nrm, 1), at(m.nrm, 2)]; const nl = Math.hypot(...n) || 1; n = [n[0] / nl, n[1] / nl, n[2] / nl];
+    if (sp.keep && !sp.keep(o, n, p)) continue;
+    // turn +y to the normal: tilt about the axis perpendicular to both
+    const tilt = (Math.acos(Math.max(-1, Math.min(1, n[1]))) * 180) / Math.PI, yaw = (Math.atan2(n[0], n[2]) * 180) / Math.PI, sink = sp.sink ?? 0;
+    const piece = transform(transform(make(k, r), { ry: r() * 360, at: [0, -sink, 0] }), { rx: tilt, ry: yaw, at: p });
+    out.push(reseed(piece, [k * 23, 0, k * 13]));
+    k++;
+  }
+  return merge(out);
 }

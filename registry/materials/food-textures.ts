@@ -323,3 +323,57 @@ export function mushroomCapSolid(sp: { colour?: string; cracks?: number; seed?: 
     return { a, h: fib * 0.03 - crack * 0.3 + fbm3(seed + 3, x / 3, y / 3, z / 3, 2) * 0.1, r: 0.7 };
   };
 }
+
+/** Banana skin: fine lengthwise striations (fibres along +x), sugar spots in clusters as it ripens (`ripe` 0…1), soft bruises. */
+export function bananaSolid(sp: { ripe?: number; seed?: number } = {}): FoodSolid {
+  const seed = sp.seed ?? 91, ripe = sp.ripe ?? 0.6, yel = hexLin("#e2bb3e"), grn = hexLin("#a3ab3c"), spot = hexLin("#4a2e12"), bru = hexLin("#8a6a2a");
+  return (x, y, z) => {
+    const stri = 0.5 + 0.5 * Math.sin((y * 0.8 + z * 0.6) * 4.2 + fbm3(seed, x / 30, y / 3, z / 3, 2) * 3);
+    let a = mix(grn, yel, sst(0.2, 0.7, ripe + 0.2 * fbm3(seed + 1, x / 40, y / 20, z / 20, 2)));
+    a = mul(a, 0.94 + 0.06 * stri + 0.06 * fbm3(seed + 2, x / 12, y / 12, z / 12, 2));
+    // sugar spots: freckles in loose clusters, more and larger as it ripens
+    const cluster = sst(0.5 - ripe * 0.5, 0.8 - ripe * 0.4, 0.5 + 0.5 * fbm3(seed + 3, x / 16, y / 16, z / 16, 3));
+    const d = worley3(seed + 4, x / 2.2, y / 2.2, z / 2.2), sr = 0.1 + 0.22 * d.id * ripe;
+    const freckle = d.f1 < sr && d.id < 0.25 + ripe * 0.5 ? (1 - d.f1 / sr) * cluster : 0;
+    a = mix(a, spot, sst(0, 0.4, freckle) * 0.9);
+    const bruise = sst(0.45, 0.8, fbm3(seed + 5, x / 18, y / 18, z / 18, 3)) * ripe * 0.6;
+    a = mix(a, bru, bruise);
+    return { a, h: stri * 0.01 - bruise * 0.15 - freckle * 0.02, r: 0.42 + bruise * 0.15 };
+  };
+}
+/** Flatbread (naan, pita, tortilla, chapati): pale toasted dough, leopard char spots with brown halos (`char` 0…1),
+ *  pores and a faint flour dust. */
+export function flatbreadSolid(sp: { dough?: string; char?: number; toast?: number; flour?: number; seed?: number } = {}): FoodSolid {
+  const seed = sp.seed ?? 93, dough = hexLin(sp.dough ?? "#e8d0a0"), ch = sp.char ?? 0.5, flourC = hexLin("#efe8d8");
+  return (x, y, z) => {
+    const toastN = 0.5 + 0.5 * fbm3(seed, x / 14, y / 14, z / 14, 3), b = c01((sp.toast ?? 0.3) * (0.6 + 0.8 * toastN));
+    let a = crustColour(b, dough);
+    // leopard spots: small dark blisters with a brown halo, in loose groups
+    const d = worley3(seed + 1, x / 5, y / 5, z / 5), group = sst(0.35, 0.7, 0.5 + 0.5 * fbm3(seed + 2, x / 25, y / 25, z / 25, 2) + ch * 0.3);
+    const rr = 0.18 + 0.2 * d.id, spotK = d.f1 < rr * 1.8 && d.id < ch * 0.8 ? group : 0;
+    if (spotK > 0) { const t = d.f1 / rr; a = mix(a, crustColour(0.6, dough), sst(1.8, 1.0, t) * spotK * 0.8); a = mix(a, [0.03, 0.018, 0.01], sst(0.9, 0.35, t) * spotK); }
+    const pore = 1 - sst(0.1, 0.2, worley3(seed + 3, x / 0.9, y / 0.9, z / 0.9).f1);
+    a = mul(a, 1 - pore * 0.12);
+    const f = (sp.flour ?? 0.2) * sst(0.3, 0.8, 0.5 + 0.5 * fbm3(seed + 4, x / 8, y / 8, z / 8, 2));
+    a = mix(a, flourC, f * 0.6);
+    return { a, h: (spotK > 0 ? sst(1.2, 0.4, d.f1 / rr) * spotK * 0.3 : 0) - pore * 0.08 + fbm3(seed + 5, x / 3, y / 3, z / 3, 2) * 0.06, r: 0.7 - spotK * 0.15 };
+  };
+}
+/** Injera: a spongy fermented teff sheet, its face crowded with "eyes" (gas holes about 1–3 mm), matte grey-tan. */
+export function injeraSolid(seed = 95): FoodSolid {
+  const base = hexLin("#b49a76"), hole = hexLin("#4f3e2c");
+  return (x, y, z) => {
+    const d = worley3(seed, x / 2.2, y / 2.2, z / 2.2), r = 0.2 + 0.14 * d.id, eye = 1 - sst(r * 0.75, r, d.f1);
+    const a = mix(mul(base, 0.92 + 0.12 * fbm3(seed + 1, x / 10, y / 10, z / 10, 2)), hole, eye * 0.75);
+    return { a, h: -eye * 0.6 + (1 - Math.min(1, d.f2 - d.f1) * 2) * 0.05, r: 0.85 - eye * 0.2 };
+  };
+}
+/** Tempura batter: pale gold, craggy and lacy, bubbles in the crust, the thin frills browner and crisper. */
+export function batterSolid(sp: { bake?: number; seed?: number } = {}): FoodSolid {
+  const seed = sp.seed ?? 97, base = hexLin("#f2e2b0"), bake = sp.bake ?? 0.3;
+  return (x, y, z) => {
+    const crag = fbm3(seed, x / 2.5, y / 2.5, z / 2.5, 4), bub = worley3(seed + 1, x / 1.3, y / 1.3, z / 1.3), dimple = 1 - sst(0.12, 0.3, bub.f1);
+    const b = c01(bake * (0.7 + 0.6 * sst(-0.2, 0.6, crag)) + dimple * 0.05);
+    return { a: mul(crustColour(b, base), 0.95 + 0.08 * crag), h: crag * 0.5 - dimple * 0.2, r: 0.45 - dimple * 0.1 };
+  };
+}

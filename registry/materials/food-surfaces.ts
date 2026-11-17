@@ -286,7 +286,7 @@ export function stalk(colour = "#5a4426", green = "#5b6b2c", seed = 31): Surface
   return (s, o) => { const p = s.o, f = fbm3(seed, p[0] / 0.4, p[1] / 4, p[2] / 0.4, 2); setMix(o.albedo, a, g, clamp01(s.uv[1] * 0.8 + 0.2 * f)); scaleInto(o.albedo, 0.85 + 0.2 * f); o.rough = 0.7; o.height = f * 0.04; };
 }
 /** A leaf: midrib and side veins from u (across) and v (along), translucent in backlight, a waxy sheen on top. */
-export function leaf(colour = "#3f6b26", opts: { vein?: string; veins?: number; gloss?: number; seed?: number; edgeBrown?: number } = {}): SurfaceFn {
+export function leaf(colour = "#3f6b26", opts: { vein?: string; veins?: number; gloss?: number; seed?: number; edgeBrown?: number; rugose?: number } = {}): SurfaceFn {
   const a = C(colour), vc = C(opts.vein ?? "#9bb267"), brown = C("#7a5a2a"), seed = opts.seed ?? 37, nveins = opts.veins ?? 7, gloss = opts.gloss ?? 0.4;
   return (s, o) => {
     const u = s.uv[0] - 0.5, v = s.uv[1], mid = Math.abs(u), lat = Math.abs(((v * nveins - mid * 3.2 + 1000) % 1) - 0.5);
@@ -295,7 +295,9 @@ export function leaf(colour = "#3f6b26", opts: { vein?: string; veins?: number; 
     scaleInto(o.albedo, 0.85 + 0.2 * fbm(s.seed + seed, s.o[0] / 3, s.o[2] / 3, 3));
     mixInto(o.albedo, vc, vein * 0.55);
     if (opts.edgeBrown) mixInto(o.albedo, brown, sst(0.38, 0.5, mid + fbm(seed + 2, v * 4, 0.3, 2) * 0.1) * opts.edgeBrown);
-    o.height = -vein * 0.05 + fbm(seed + 3, s.o[0] / 1.5, s.o[2] / 1.5, 2) * 0.02; o.rough = 0.45 - gloss * 0.25; o.spec = 0.045; o.coat = gloss * 0.6; o.coatRough = 0.18;
+    // a rugose leaf (mint, shiso) puckers between its veins
+    const pucker = opts.rugose ? Math.sqrt(Math.max(0, 1 - Math.min(1, worley(seed + 4, s.uv[0] * 9, s.uv[1] * 16, 1).f1 * 1.8))) * opts.rugose : 0;
+    o.height = -vein * 0.05 + pucker * 0.12 + fbm(seed + 3, s.o[0] / 1.5, s.o[2] / 1.5, 2) * 0.02; o.rough = 0.45 - gloss * 0.25 + pucker * 0.1; o.spec = 0.045; o.coat = gloss * 0.6; o.coatRough = 0.18;
     o.trans = 0.75; o.mfp[0] = 0.5; o.mfp[1] = 0.9; o.mfp[2] = 0.3;
   };
 }

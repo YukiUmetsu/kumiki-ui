@@ -10,8 +10,9 @@ import { cookEgg, cookSteak, crustColour, eggColours, meatColour, toastBrowning 
 import type { Part, SurfaceFn } from "./food-scene";
 import { liquidIn, mound, profile } from "./food-stage";
 import type { Vessel } from "./food-stage";
-import { C, chocolate, clamp01, cream, crumb, crust, crystal, fishFlesh, fishSkin, froth, glazeMeat, grains, laminated, layered, leaf, mixInto, noodle, nori, powder, rawMeat, rawPoultry, riceSurface, roastSkin, scaleInto, seared, setMix, smooth, sponge, sst, syrup } from "./food-surfaces";
-import { grainCoat, grouped, leafMesh, part, sprinkle } from "./food-kit";
+import { C, chocolate, clamp01, cream, crumb, crust, crystal, fishFlesh, fishSkin, fried, fromSolid, froth, glazeMeat, grains, laminated, layered, leaf, mixInto, noodle, nori, powder, rawMeat, rawPoultry, riceSurface, roastSkin, scaleInto, seared, setMix, smooth, sponge, sst, syrup } from "./food-surfaces";
+import { batterSolid, crustColour as crustTex, flatbreadSolid, injeraSolid } from "./food-textures";
+import { grainCoat, grouped, leafMesh, part, sprinkle, surfaceScatter } from "./food-kit";
 
 // ---- Outlines --------------------------------------------------------------------------------------------------------------------
 
@@ -111,17 +112,24 @@ export function croissant(len: number, R: number, at: V3 = [0, 0, 0], turn = 0, 
 export function flatbread(kind: "naan" | "pita" | "tortilla" | "injera" | "focaccia" | "lavash" | "chapati" | "pancake" | "crepe", size: number, at: V3 = [0, 0, 0], seed = 1, turn = 0): Part[] {
   const r = rng(seed), long = kind === "naan" ? 1.45 : kind === "focaccia" ? 1.3 : 1, th = kind === "focaccia" ? 28 : kind === "injera" ? 6 : kind === "naan" ? 9 : kind === "pita" ? 11 : kind === "pancake" ? 10 : 2.5;
   const outline = (t: number) => { const c = Math.cos(t), s = Math.sin(t); const base = 1 / Math.hypot(c / long, s); return (size / 2) * base * (1 + 0.04 * Math.sin(t * 3 + r() * 0) + 0.025 * Math.sin(t * 7 + seed)) * (kind === "naan" ? 1 - 0.18 * Math.max(0, c) * Math.max(0, c) : 1); };
+  // naan puffs in fewer, bigger bubbles than pita or chapati
+  const bubbleMm = kind === "naan" ? 21 : 9, bubbleCut = kind === "naan" ? 0.7 : 0.45;
   const top = (x: number, z: number) => {
     const rr = Math.hypot(x / long, z) / (size / 2), base = th * (kind === "pita" ? 0.9 + 0.3 * (1 - rr * rr) : kind === "pancake" ? 0.85 + 0.15 * (1 - rr ** 4) : 1 - 0.25 * rr ** 3);
-    if (kind === "naan" || kind === "pita" || kind === "chapati") { const d = worley(seed, x / 9, z / 9, 1); return base + Math.sqrt(Math.max(0, 1 - Math.min(1, d.f1 / (0.35 + 0.25 * d.id)))) * (kind === "naan" ? 5 : 2.5) * (d.id > 0.45 ? 1 : 0.2); }
+    if (kind === "naan" || kind === "pita" || kind === "chapati") { const d = worley(seed, x / bubbleMm, z / bubbleMm, 1); return base + Math.sqrt(Math.max(0, 1 - Math.min(1, d.f1 / (0.35 + 0.25 * d.id)))) * (kind === "naan" ? 6 : 2.5) * (d.id > bubbleCut ? 1 : 0.15); }
     if (kind === "focaccia") { const d = worley(seed, x / 13, z / 13, 0.6); return base - (1 - sst(0.05, 0.28, d.f1)) * 5 + fbm(seed + 3, x / 30, z / 30, 2) * 2; }
     return base + fbm(seed, x / 25, z / 25, 3) * 0.6;
   };
   const m = slab({ outline, top, bevel: Math.min(th * 0.45, 5), nu: 120, nv: 56 });
   const pl: Placement = { ry: turn, at };
-  if (kind === "injera") return [part("injera", transform(m, pl), (s, o) => { const d = worley(seed, s.o[0] / 1.6, s.o[2] / 1.6, 1), hole = 1 - sst(0.12, 0.24, d.f1); setMix(o.albedo, C("#b49a76"), C("#5f4a34"), hole * 0.85); o.height = -hole * 0.5; o.rough = 0.8; o.occl = 1 - hole * 0.4; })];
+  if (kind === "injera") return [part("injera", transform(m, pl), fromSolid(injeraSolid(seed), { coat: 0.1, coatRough: 0.3 }))];
   if (kind === "focaccia") {
-    const fsurf: SurfaceFn = (s, o) => { crust({ bake: 0.5, blisters: 0.2, seed, dough: "#e8cf8e" })(s, o); const oil = sst(0.1, 0.6, fbm3(seed + 9, s.o[0] / 9, s.o[1] / 9, s.o[2] / 9, 3)); o.coat = Math.max(o.coat, oil * 0.9); o.coatRough = 0.05; mixInto(o.albedo, C("#c98c2c"), oil * 0.25); };
+    // golden crust on the high ground; olive oil pooled glossy in each finger dimple (the same pattern as the dimples)
+    const fsurf: SurfaceFn = (s, o) => {
+      crust({ bake: 0.52, blisters: 0.3, seed, dough: "#e8cf8e" })(s, o);
+      const d = worley(seed, s.o[0] / 13, s.o[2] / 13, 0.6), pool = 1 - sst(0.04, 0.2, d.f1), film = sst(0.1, 0.6, fbm3(seed + 9, s.o[0] / 9, s.o[1] / 9, s.o[2] / 9, 3));
+      mixInto(o.albedo, C("#b8781e"), pool * 0.45 + film * 0.15); o.coat = Math.max(o.coat, Math.max(pool, film * 0.7)); o.coatRough = 0.03; o.rough = Math.min(o.rough, 0.6 - pool * 0.4); o.height *= 1 - pool * 0.8;
+    };
     const out = [part("focaccia", transform(m, pl), fsurf)];
     const rose: Mesh[] = [];
     for (let i = 0; i < 16; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * size * 0.4, x = Math.cos(a) * d * long, z = Math.sin(a) * d; rose.push(transform(leafMesh(16, 0.12, 0.05, seed + i, "lance"), { ry: r() * 360, at: [x, top(x, z) + 0.6, z] })); }
@@ -130,7 +138,17 @@ export function flatbread(kind: "naan" | "pita" | "tortilla" | "injera" | "focac
     return out;
   }
   if (kind === "pancake" || kind === "crepe") return [part(kind, transform(m, pl), crust({ bake: kind === "pancake" ? 0.48 : 0.42, blisters: 0, seed, dough: "#f0d9a0" }))];
-  const charred: SurfaceFn = (s, o) => { crust({ bake: kind === "tortilla" || kind === "lavash" ? 0.18 : 0.45, flour: kind === "tortilla" ? 0.3 : 0.15, blisters: 0, seed, dough: kind === "tortilla" ? "#ecd9a6" : "#e7cf98" })(s, o); const d = worley(seed + 4, s.o[0] / 6, s.o[2] / 6, 1); if (d.f1 < 0.22 && d.id > 0.55 && s.n[1] > 0.3) { const k = 1 - d.f1 / 0.22; mixInto(o.albedo, C("#2a170c"), k * 0.85); } };
+  // leopard-charred dough (MATL1 flatbread), the bubbles' tops scorched hardest; naan glossed with ghee
+  const fb = flatbreadSolid({ dough: kind === "tortilla" ? "#ead6a0" : "#e8d0a0", char: kind === "naan" ? 0.75 : kind === "chapati" ? 0.6 : kind === "tortilla" ? 0.45 : 0.32, toast: kind === "naan" ? 0.4 : kind === "pita" ? 0.22 : 0.26, flour: kind === "tortilla" ? 0.35 : 0.2, seed });
+  const charred: SurfaceFn = (s, o) => {
+    const t = fb(s.o[0], s.o[1], s.o[2]);
+    o.albedo[0] = t.a[0]; o.albedo[1] = t.a[1]; o.albedo[2] = t.a[2]; o.height = t.h; o.rough = t.r; o.spec = 0.035; o.mfp[0] = 0.8; o.mfp[1] = 0.6; o.mfp[2] = 0.3;
+    if (kind === "naan" || kind === "pita" || kind === "chapati") {
+      const d = worley(seed, s.o[0] / bubbleMm, s.o[2] / bubbleMm, 1), bub = Math.sqrt(Math.max(0, 1 - Math.min(1, d.f1 / (0.35 + 0.25 * d.id)))) * (d.id > bubbleCut ? 1 : 0.15);
+      mixInto(o.albedo, crustTex(0.62, C("#e8d0a0")), sst(0.3, 0.8, bub) * 0.6); mixInto(o.albedo, [0.03, 0.018, 0.01], sst(0.75, 0.98, bub) * (kind === "naan" ? 0.85 : 0.5));
+    }
+    if (kind === "naan") { o.coat = 0.6; o.coatRough = 0.12; }
+  };
   return [part(kind, transform(m, pl), charred)];
 }
 /** A braided loaf (challah): three ropes plaited, egg-washed, seeded. */
@@ -679,4 +697,105 @@ export function drink(v: Vessel, kind: "coffee" | "tea" | "matcha" | "cocoa" | "
   const surf: SurfaceFn = kind === "coffee" ? (s, o) => { const rr = Math.hypot(s.o[0], s.o[2]) / v.innerR(y), d = worley(seed, s.o[0] / 0.6, s.o[2] / 0.6, 1); setMix(o.albedo, C("#c88a52"), C("#6a3a1a"), sst(0.6, 1, rr) * 0.8 + 0.15 * fbm(seed + 1, s.o[0] / 4, s.o[2] / 4, 3)); o.height = Math.sqrt(Math.max(0, 1 - d.f1 * 2)) * 0.03; o.rough = 0.3; o.coat = 0.4; o.mfp[0] = 0.6; o.mfp[1] = 0.4; o.mfp[2] = 0.3; }
     : kind === "matcha" ? froth("#7f9a3a", seed) : kind === "cocoa" ? (s, o) => { froth("#c9a68a", seed)(s, o); const dust = sst(0.2, 0.6, fbm(seed + 2, s.o[0] / 4, s.o[2] / 4, 3)); mixInto(o.albedo, C("#4a2a1a"), dust * 0.8); o.sheen = 0.5; } : kind === "chai" ? (s, o) => { froth("#c99a6a", seed)(s, o); const sp = worley(seed + 3, s.o[0] / 2, s.o[2] / 2, 1); if (sp.f1 < 0.12) mixInto(o.albedo, C("#5a3018"), 0.8); } : kind === "lassi" ? cream("#f4ead0") : cream("#fbf8f0", { gloss: 0.5 });
   return [part(kind, top, surf)];
+}
+
+// ---- Tempura, gyoza, rice mounds (detailed) -------------------------------------------------------------------------------------
+
+/** A shrimp in tempura: straightened under a lumpy, lacy batter with crisp frills; the coral tail fan bare. */
+export function tempuraShrimp(len: number, at: V3, turn = 0, seed = 1): Part[] {
+  const R = len * 0.1, r = rng(seed);
+  let body = sweep([[-len / 2, R, 0], [-len * 0.1, R * 1.05, 1.5], [len * 0.25, R, -1], [len / 2 - 6, R * 0.8, 0]], { radius: t => R * Math.pow(Math.sin(Math.PI * Math.min(1, t * 0.88 + 0.12)), 0.35) * (1 - 0.4 * t) + 1, nu: 24, nv: 44 });
+  body = displace(body, o => Math.max(0, fbm3(seed, o[0] / 5, o[1] / 5, o[2] / 5, 3)) * 3.5 + fbm3(seed + 1, o[0] / 2, o[1] / 2, o[2] / 2, 2) * 0.8);
+  // frills: thin crisp shreds of batter standing off the coat, flattened
+  const frills = surfaceScatter(body, 70, (_i, rr) => displace(ellipsoid(2 + rr() * 3, 0.9 + rr() * 0.8, 1.6 + rr() * 2, 10, 6), o => fbm3(seed + 3, o[0], o[1], o[2], 2) * 0.6), { seed: seed + 2, sink: 0.4, keep: (_o, n) => n[1] > -0.4 });
+  const tail = merge([0, 1].map(k => transform(blade({ length: R * 1.9, halfWidth: sv => R * 0.75 * Math.sin(Math.PI * Math.min(1, sv * 0.85 + 0.15)) * (0.7 + sv * 0.5), lift: (sv, w) => w * w * 1.2 + sv * 2, nu: 10, nv: 10 }), { ry: k ? 18 : -18, rz: 12, at: [len / 2 - 8, R * 0.85, 0] })));
+  const pl: Placement = { ry: turn + (r() - 0.5) * 6, at };
+  const batter = fromSolid(batterSolid({ bake: 0.32, seed }), { coat: 0.35, coatRough: 0.1 });
+  const frillS = fromSolid(batterSolid({ bake: 0.5, seed: seed + 1 }), { coat: 0.25, coatRough: 0.12 });
+  const tailS: SurfaceFn = (s, o) => { setMix(o.albedo, C("#e8582a"), C("#5a1a0e"), sst(0.75, 1, s.uv[1])); scaleInto(o.albedo, 0.9 + 0.15 * Math.abs(Math.sin(s.uv[0] * 20))); o.rough = 0.25; o.coat = 0.7; o.coatRough = 0.06; o.trans = 0.5; o.mfp[0] = 1.2; o.mfp[1] = 0.5; o.mfp[2] = 0.3; };
+  const bodyM = transform(body, pl);
+  let minY = Infinity; for (let k = 1; k < bodyM.pos.length; k += 3) minY = Math.min(minY, bodyM.pos[k]);
+  const lift = (m: Mesh) => transform(m, { at: [0, at[1] - minY, 0] });
+  return grouped([part("tempura", lift(bodyM), batter), part("frills", lift(transform(frills, pl)), frillS), part("tail", lift(transform(tail, pl)), tailS)]);
+}
+
+/**
+ * Pan-fried gyoza (hanetsuki): crescents with a pleated crest along the sealed seam, the pleats fanning down the
+ * front; bottoms fried brown and crisp; a lace wing of fried starch joining them on the plate.
+ */
+export function gyozaPlate(n: number, at: V3, turn = 0, seed = 1): Part[] {
+  const r = rng(seed), L = 66, D = 30, H = 20, pieces: Mesh[] = [];
+  for (let i = 0; i < n; i++) {
+    const outline = (t: number) => { const c = Math.cos(t), sn = Math.sin(t); return (sn < 0 ? 1 / Math.hypot(c / (L / 2), sn / (D * 0.42)) : 1 / Math.hypot(c / (L / 2), sn / (D * 0.58))) * (1 + 0.03 * fbm(seed + i, c * 2, sn * 2, 2)); };
+    // a crest along z ≈ 0 rising from the flat base; pleats ripple down the front (+z) side, strongest at the crest
+    const top = (x: number, z: number) => {
+      const e = Math.abs(x) / (L / 2), crestZ = -2, dz = z - crestZ, body = H * Math.pow(Math.max(0, 1 - e * e), 0.5) * Math.exp(-(dz * dz) / (2 * (D * 0.26) ** 2));
+      const pleat = dz > -2 ? Math.sin(x * 0.42 + i) * 2.2 * Math.exp(-((dz - 1) ** 2) / 40) * Math.max(0, 1 - e) : 0;
+      return 1.5 + body + pleat;
+    };
+    const m = slab({ outline, top, bevel: 2, nu: 120, nv: 48 });
+    pieces.push(reseed(transform(m, { ry: 90 + (i - (n - 1) / 2) * -5 + (r() - 0.5) * 4, at: [(i - (n - 1) / 2) * 30, 0, Math.abs(i - (n - 1) / 2) * 2] }), [i * 90, 0, 0]));
+  }
+  const skinS: SurfaceFn = (s, o) => {
+    // the wrapper: thin, a little translucent, dusted; fried brown on the base and up its lower edge
+    smooth("#ecdcbc", { rough: 0.4, gloss: 0.3, scatter: 0.3, trans: 0.45, seed })(s, o);
+    const fry = 1 - sst(1.5, 5.5, s.o[1] + fbm(seed + 2, s.o[0] / 6, s.o[2] / 6, 2) * 1.2);
+    if (fry > 0) { const c = crustTex(0.5 + 0.16 * fbm(seed + 3, s.o[0] / 5, s.o[2] / 5, 2), C("#e7cf9a")); mixInto(o.albedo, c, fry); o.rough = 0.3; o.coat = 0.7 * fry; o.coatRough = 0.06; o.trans *= 1 - fry; o.height += fry * fbm(seed + 4, s.o[0] / 1.2, s.o[2] / 1.2, 2) * 0.2; }
+  };
+  // served flipped from the pan: the browned bases face up, the lace wing of fried batter lies over and between them
+  const flipped = transform(merge(pieces), { rx: 180 });
+  let top = -Infinity, low = Infinity;
+  for (let k = 1; k < flipped.pos.length; k += 3) { top = Math.max(top, flipped.pos[k]); low = Math.min(low, flipped.pos[k]); }
+  const gy = transform(flipped, { at: [0, -low, 0] }), Ht = top - low;
+  const wing = slab({ outline: t => (n * 30) / 2 * 1.08 / Math.hypot(Math.cos(t), Math.sin(t) * 1.7) * (1 + 0.08 * fbm(seed + 9, Math.cos(t) * 3, Math.sin(t) * 3, 3)), top: (x, z) => Ht - 1.2 - 0.6 * Math.pow(Math.hypot(x / ((n * 30) / 2), z / 30), 2) * 2, bottom: Ht - 2.4, bevel: 0.4, nu: 140, nv: 30, noSide: true });
+  // the lace: a thin transparent layer — where the batter webbed it scatters golden light, its holes show the plate
+  const wingS: SurfaceFn = (s, o) => { const d = worley(seed + 5, s.o[0] / 4.2, s.o[2] / 4.2, 1), hole = 1 - sst(0.3, 0.42, d.f1 * (0.75 + 0.5 * d.id)), web = 1 - hole, edge = sst(0.75, 1, Math.hypot(s.o[0] / ((n * 30) / 2), s.o[2] / 22)); const c = crustTex(0.32 + 0.2 * sst(0.4, 0.95, d.f2 - d.f1) + 0.2 * edge, C("#f0dcaa")); const k = web * (1 - edge * 0.6); o.absorb[0] = 3 * k; o.absorb[1] = 3 * k; o.absorb[2] = 3 * k; o.scatter[0] = c[0]; o.scatter[1] = c[1]; o.scatter[2] = c[2]; o.density = 6 * k; o.rough = 0.3; o.spec = 0.04 * k + 0.001; o.height = web * fbm(seed + 6, s.o[0] / 1.2, s.o[2] / 1.2, 2) * 0.2; };
+  const pl: Placement = { ry: turn, at };
+  return grouped([part("gyoza", transform(gy, pl), skinS), part("wing", transform(wing, pl), wingS, { transparent: true, thin: 1.2 })]);
+}
+
+export interface RiceMoundSpec {
+  R: number; H: number;
+  /** A dome (a plated mound) or flat (a pan or pot filled level). */
+  shape?: "dome" | "flat";
+  /** Grain size (mm), how many, and tints by weight (each grain draws one). */
+  grain?: { len?: number; wid?: number; count?: number; tints: readonly (readonly [string, number])[] };
+  /** Things tossed through it: egg curds, peas, carrot dice, scallion rings, charred bits, fried onion. */
+  extras?: readonly { kind: "egg" | "peas" | "carrot" | "scallion" | "char" | "onion"; count: number }[];
+  seed?: number;
+}
+/** A mound of cooked rice (fried rice, jollof, biryani): a heap coated grain by grain, each grain tinted on its own,
+ *  with egg, peas, carrot, scallion or charred bits through it. */
+export function riceMound(at: V3, sp: RiceMoundSpec): Part[] {
+  const seed = sp.seed ?? 1, R = sp.R, H = sp.H, g = sp.grain ?? { tints: [["#f3efe6", 1]] };
+  const base = slab({ outline: t => R * (1 + 0.06 * Math.sin(t * 4 + seed) + 0.04 * fbm(seed, Math.cos(t) * 2, Math.sin(t) * 2, 2)), top: (x, z) => (sp.shape === "flat" ? H * (1 - Math.pow(Math.hypot(x, z) / R, 10) * 0.3) : H * Math.pow(Math.max(0, 1 - (Math.hypot(x, z) / R) ** 2), 0.8)) + fbm(seed + 1, x / 9, z / 9, 3) * 2, bevel: 4, nu: 120, nv: 48 });
+  const grainsM = grainCoat(base, g.count ?? 1800, { len: g.len ?? 5.2, wid: g.wid ?? 2.6, seed: seed + 2, light: true, keep: (_o, n) => n[1] > -0.2 });
+  const tints = g.tints.map(([hex, w]) => [C(hex), w] as const), wsum = tints.reduce((a, [, w]) => a + w, 0);
+  const grainS: SurfaceFn = (s, o) => {
+    // each grain carries its index in its object x (grainCoat offsets them 17 mm apart): one tint per grain
+    const id = Math.floor((s.o[0] + 8.5) / 17), h = ((id * 2654435761) >>> 0) / 4294967296;
+    let acc = 0, col = tints[0][0];
+    for (const [c, w] of tints) { acc += w / wsum; if (h < acc) { col = c; break; } }
+    const k = 0.92 + 0.08 * fbm3(seed, s.o[0], s.o[1] * 2, s.o[2], 2);
+    o.albedo[0] = col[0] * k; o.albedo[1] = col[1] * k; o.albedo[2] = col[2] * k; o.rough = 0.25; o.spec = 0.04; o.coat = 0.55; o.coatRough = 0.06; o.mfp[0] = 1.4; o.mfp[1] = 1.2; o.mfp[2] = 0.9; o.trans = 0.4;
+  };
+  const pl: Placement = { at };
+  const bed = riceSurface(seed), bedTint = tints[0][0];
+  const out: Part[] = [part("rice", transform(base, pl), (s, o) => { bed(s, o); o.albedo[0] *= bedTint[0] * 0.6; o.albedo[1] *= bedTint[1] * 0.6; o.albedo[2] *= bedTint[2] * 0.6; }), part("grains", transform(grainsM, pl), grainS)];
+  for (const ex of sp.extras ?? []) {
+    const make = (i: number, r: () => number): Mesh => ex.kind === "egg" ? displace(ellipsoid(4 + r() * 4, 1.6 + r(), 3 + r() * 3, 12, 8), o => fbm3(seed + i, o[0] / 2, o[1] / 2, o[2] / 2, 2) * 1.2)
+      : ex.kind === "peas" ? ellipsoid(3.8, 3.6, 3.8, 12, 8)
+      : ex.kind === "carrot" ? box(4.5, 4, 4.5, 6, 10, 8)
+      : ex.kind === "scallion" ? transform(lathe(profile([[2.4, 0], [2.6, 0.3], [2.6, 1.6], [2.4, 1.9], [1.7, 1.9], [1.5, 1.6], [1.5, 0.3], [1.7, 0]]), { nu: 16, nv: 8 }), { rx: 80 })
+      : ex.kind === "onion" ? displace(ellipsoid(4, 1, 2, 10, 6), o => fbm3(seed + i, o[0], o[1], o[2], 2) * 0.6)
+      : displace(ellipsoid(3, 1.4, 2.4, 8, 6), o => fbm3(seed + i, o[0], o[1], o[2], 2) * 0.8);
+    const surf: SurfaceFn = ex.kind === "egg" ? (s, o) => { setMix(o.albedo, C("#f2c53a"), C("#f6e6a0"), sst(-0.3, 0.5, fbm3(seed, s.o[0] / 3, s.o[1] / 3, s.o[2] / 3, 2))); o.rough = 0.35; o.coat = 0.4; o.mfp[0] = 1.5; o.mfp[1] = 1.2; o.mfp[2] = 0.4; o.height = fbm3(seed + 1, s.o[0], s.o[1], s.o[2], 2) * 0.15; }
+      : ex.kind === "peas" ? smooth("#6aa83a", { rough: 0.2, gloss: 0.7, scatter: 0.3, trans: 0.3, seed })
+      : ex.kind === "carrot" ? smooth("#e8701e", { rough: 0.3, gloss: 0.5, scatter: 0.2, seed })
+      : ex.kind === "scallion" ? smooth("#7aa83a", { rough: 0.3, gloss: 0.4, scatter: 0.3, trans: 0.5, seed })
+      : ex.kind === "onion" ? fried({ bake: 0.75, base: "#c8803a", seed })
+      : (s, o) => { setMix(o.albedo, C("#2a140a"), C("#6a3416"), sst(-0.4, 0.5, fbm3(seed, s.o[0], s.o[1], s.o[2], 2))); o.rough = 0.5; };
+    out.push(part(ex.kind, transform(surfaceScatter(base, ex.count, make, { seed: seed + ex.kind.length * 7, sink: 1, keep: (_o, n) => n[1] > 0 }), pl), surf));
+  }
+  return grouped(out);
 }

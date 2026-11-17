@@ -97,6 +97,19 @@ backlight with chiaroscuro. There are no outlines and no flat shading.
   over its base.
 - Bell peppers have lobes deepest at the shoulders and base (`ribProfile: "ends"`), a thick curved stem and calyx.
   Carrots have fine lateral root hairs.
+- `bananaHand`: fingers fanned from one cut crown, the skin from MATL1 (`bananaSolid`: striations, sugar spots),
+  greener at the neck, dark at the blossom tip.
+- `herbSprig` / `herbLeaf`: basil, mint and shiso with opposite leaf pairs turned 90° at each node, on petioles, a
+  bud of young leaves at the tip (basil cupped and glossy, mint serrated and rugose); parsley and coriander as fans of
+  lobed leaflets; dill as thread fronds; thyme and rosemary on woody stems; bay alternate.
+- `tempuraShrimp`: a straightened shrimp under lumpy batter with crisp frills (`surfaceScatter`), its coral tail bare.
+- `gyozaPlate`: hanetsuki gyoza, flipped from the pan with their browned bases up under a lace wing. The wing is a
+  thin transparent layer: the webbed batter scatters golden light and the holes show the plate.
+- `riceMound`: fried rice, jollof, biryani and paella coated grain by grain (each grain tinted on its own), with egg
+  curds, peas, carrot, scallion, fried onion or charred bits through it; `shape: "flat"` fills a pan or a pot.
+- Flatbreads use MATL1's `flatbreadSolid` (leopard char with brown halos) and `injeraSolid`. Naan has a dozen or so
+  big bubbles, scorched on top and glossed with ghee. Focaccia pools olive oil in its finger dimples. The pizza's
+  cornicione is blistered, each blister scorched on top.
 
 - All shapes are parametric surfaces in millimetres: `lathe` (round things), `sweep` (long things), `slab` (an
   extruded footprint with a bevel and a height-mapped top), `blade` (leaves and sheets), `ellipsoid` and `box`.
@@ -147,6 +160,5 @@ backlight with chiaroscuro. There are no outlines and no flat shading.
 - One camera angle per entry (an orbit and a zoom can be set). Transparent layers sort per part, not per pixel.
 - Settling stacks pieces on a height field: a piece cannot tuck under another's overhang, and it does not rotate
   as it rolls (it tries a few fixed tilts).
-- The quality of the 200 still lifes is not equal. The agent reviewed contact sheets of all 200 renders. Weak entries
-  are bananas, the herb sprigs, the tempura, the gyoza, the fried-rice mounds and some flatbreads (simple shapes),
-  and the leopard spots on the pizza rim (too faint). **Human visual review is not recorded.**
+- The quality of the 200 still lifes is not equal. The agent reviewed contact sheets of all 200 renders after each
+  round. **Human visual review is not recorded.**

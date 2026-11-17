@@ -25,7 +25,7 @@ import { fbm, fbm3, gaussianStream, gradNoise, hash2, ridged, warpedFbm, worley,
 import type { Grade } from "../anatomy/foundation-shapes";
 import type { MaterialRecord } from "./materials-data";
 import { MATERIALS } from "./materials-data";
-import { agedCheeseSolid, beefSolid, citrusSolid, crumbSolid, crustSolid, fishScaleSolid, gratinSolid, mushroomCapSolid, pepperSolid, potatoSolid, poultrySolid, riceSolid, salmonSolid, searSolid, tomatoSolid, tunaSolid } from "./food-textures";
+import { agedCheeseSolid, bananaSolid, batterSolid, beefSolid, citrusSolid, crumbSolid, crustSolid, fishScaleSolid, flatbreadSolid, gratinSolid, injeraSolid, mushroomCapSolid, pepperSolid, potatoSolid, poultrySolid, riceSolid, salmonSolid, searSolid, tomatoSolid, tunaSolid } from "./food-textures";
 
 export type C3 = [number, number, number];
 export interface TexSample {
@@ -805,6 +805,10 @@ export function materialTexture(id: string, seed = 7, record?: MaterialRecord): 
     case "food-potato-skin": return solid("food", 40, potatoSolid({ seed }), "Russet net, lenticels, eyes, earth.", [], { sss: 0.5 }, 60);
     case "food-citrus-peel": return solid("food", 25, citrusSolid({ seed }), "Oil glands about 1 mm as shallow pits.", [], { sss: 1.5 }, 60);
     case "food-mushroom-cap": return solid("food", 50, mushroomCapSolid({ seed, cracks: 0.6 }), "Radial fibrils and scaly cracks.", [], {}, 60);
+    case "food-banana-skin": return solid("food", 40, bananaSolid({ ripe: 0.75, seed }), "Striations along the fruit, sugar spots in clusters.", [], { sss: 1 }, 60);
+    case "food-flatbread": return solid("food", 60, flatbreadSolid({ char: 0.6, toast: 0.35, seed }), "Leopard spots about 2–4 mm with brown halos.", [], {}, 60);
+    case "food-injera": return solid("food", 40, injeraSolid(seed), "Eyes about 1–3 mm.", [], {}, 60);
+    case "food-tempura-batter": return solid("food", 30, batterSolid({ bake: 0.35, seed }), "Craggy, bubbled, crisp.", [], {}, 50);
     default: return m.metal ? surf("metal", 80, metalSurface(m, seed, "polished"), "Polished, with faint swirl marks.") : solid("smooth", 80, smoothSolid(m, seed, { grain: 0.012, blotch: 0.02 }), "Smooth.");
   }
 }

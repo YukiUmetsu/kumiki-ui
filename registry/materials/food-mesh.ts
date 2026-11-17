@@ -173,7 +173,8 @@ export function slab(o: SlabOptions): Mesh {
   // the profile along v: 60% top, 20% bevel, 20% side
   const vt = 0.6, vb = o.noSide ? 1 : 0.8;
   return paramSurface(nu, nv, true, (u, v) => {
-    const th = u * Math.PI * 2, R = Math.max(0.01, o.outline(th)), cx = Math.cos(th), cz = Math.sin(th), inner = Math.max(0, R - b);
+    // (clockwise seen from above, so the outward side of cross(∂v, ∂u) is up on the top face)
+    const th = (1 - u) * Math.PI * 2, R = Math.max(0.01, o.outline(th)), cx = Math.cos(th), cz = Math.sin(th), inner = Math.max(0, R - b);
     if (v <= vt) {
       const rho = Math.sqrt(v / vt) * inner, x = cx * rho, z = cz * rho;
       return [x, o.top(x, z), z];
