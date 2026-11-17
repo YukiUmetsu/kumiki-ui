@@ -116,3 +116,35 @@ test("ANAT2 robe microscope reuses INK1 variable-pressure material and exposes m
     await expect(elder.locator('[data-ink-robe-camera="robe"] [data-km-ink-native-robe-brush]'))
       .toHaveCount(4);
   });
+
+test("experimental 96-frame ANAT2 actor is transparent, motion-safe and foreground-composited",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-anat2-portrait-rebuild--original-film-actor-proof&viewMode=story");
+    const film=page.getByTestId("ink-anat2-960-film");
+    const actor=film.getByTestId("ink-anat2-film-actor");
+    await expect(film).toBeVisible();
+    await expect(film).toHaveAttribute("data-ink-proof-frame","0");
+    await expect(actor).toHaveAttribute("data-ink-cue","0.0000");
+    await expect(film.locator('[data-km-shanshui-scene="misty-hermit"]')).toBeVisible();
+    await expect(actor.getByTestId("ink-anat2-portrait"))
+      .toHaveAttribute("data-ink-transparent-paper","true");
+    await expect(actor.locator('[data-km-ink-native-robe-brush]')).toHaveCount(4);
+    await film.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-native-shanshui-actor-frame00-960x540.png")});
+    const seek=page.getByRole("slider",{name:"Ink ANAT2 film seek"});
+    await seek.fill("12");
+    await expect(film).toHaveAttribute("data-ink-proof-frame","12");
+    await expect(actor).toHaveAttribute("data-ink-cue","1.0000");
+    await film.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-native-shanshui-actor-frame12-960x540.png")});
+    await page.getByRole("combobox",{name:"Ink ANAT2 film actor"}).selectOption("elder");
+    await expect(film).toHaveAttribute("data-ink-proof-character","elder");
+    await film.screenshot({animations:"disabled",
+      path:info.outputPath("anat2-native-shanshui-elder-frame12-960x540.png")});
+    await seek.fill("95");
+    await expect(actor).toHaveAttribute("data-ink-cue","0.0000");
+    await page.getByRole("checkbox",{name:"Ink ANAT2 film reduced motion"}).check();
+    await expect(actor).toHaveAttribute("data-ink-cue","0.0000");
+    await expect(actor.getByTestId("ink-anat2-portrait"))
+      .toHaveAttribute("data-ink-transparent-paper","true");
+  });
