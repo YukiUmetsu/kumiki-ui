@@ -603,6 +603,62 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
       },detail));
   });
 
+  it("models independent AA and OH 3/4 lip anatomy as multi-pass thin ink, not an opaque oval",()=>{
+    const high=scrollReaderFacePortrait(1),low=scrollReaderFacePortrait(.1);
+    const aperture=(name:"mouth-aa"|"mouth-oh")=>{
+      const marks=paths(high,name);
+      const ink=marks.find(s=>s.type==="path"&&s.fill==="$shadow"&&
+        s.stroke==="none"&&s.opacity!==undefined&&s.opacity>.5);
+      if(!ink||ink.type!=="path")throw Error("Native speech opening missing");
+      return {marks,ink};
+    };
+    const aa=aperture("mouth-aa"),oh=aperture("mouth-oh");
+    // Both open mouth cels have deliberate near/far rolling contours.
+    // Every original open viseme gains five separate wet/dry marks
+    // without deleting original ANAT1 mouth muscle / lip planes.
+    for(const [name,item] of [["mouth-aa",aa],["mouth-oh",oh]] as const){
+      expect(item.marks.length).toBeGreaterThanOrEqual(
+        paths(low,name).length);
+      expect(item.ink.opacity).toBeLessThan(.6);
+      expect((item.ink.d.match(/C/g)??[]).length)
+        .toBeGreaterThanOrEqual(3);
+      expect(item.marks.filter(s=>s.type==="path"&&
+        s.fill!=="none").length).toBeGreaterThanOrEqual(4);
+      expect(item.marks.filter(s=>s.type==="path"&&
+        s.stroke==="$skinshade").length).toBeGreaterThanOrEqual(3);
+      expect(item.marks.filter(s=>s.type==="path"&&
+        s.fill==="$paper").length).toBeGreaterThanOrEqual(1);
+    }
+    expect(aa.ink.d).not.toEqual(oh.ink.d);
+    const envelope=(d:string)=>{
+      const values=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      const xs=values.filter((_,i)=>i%2===0),
+        ys=values.filter((_,i)=>i%2===1);
+      return {x0:Math.min(...xs),x1:Math.max(...xs),
+        y0:Math.min(...ys),y1:Math.max(...ys)};
+    };
+    const big=envelope(aa.ink.d),small=envelope(oh.ink.d);
+    expect(big.x1-big.x0).toBeGreaterThan((small.x1-small.x0)*1.8);
+    expect(big.y1-big.y0).toBeGreaterThan(small.y1-small.y0);
+    expect(small.x0).toBeGreaterThan(139);
+    expect(small.x1).toBeLessThan(147);
+    expect(small.y0).toBeGreaterThan(124);
+    expect(small.y1).toBeLessThan(134);
+    // Drawing cannot regress into a flat solid dark sticker at either
+    // production detail setting.
+    for(const detail of [.1,.45,1]){
+      const viseme=scrollReaderFacePortrait(detail);
+      for(const name of ["mouth-aa","mouth-oh"]){
+        const marks=paths(viseme,name);
+        expect(marks.some(s=>s.type==="path"&&
+          s.fill==="$paper"&&(s.opacity??0)<.4)).toBe(true);
+        expect(marks.some(s=>s.type==="path"&&
+          s.fill==="$deep"&&(s.opacity??0)<.5)).toBe(true);
+      }
+    }
+    expect(scrollReaderFacePortrait(1)).toEqual(high);
+  });
+
   it("keeps pre-existing reader face contour, lip cels, ear and paint while adding optically nested washes",()=>{
     const original=scrollReaderFacePortrait(1);
     const anatomy=readerFaceAnatomy(1);
