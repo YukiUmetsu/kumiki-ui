@@ -63,9 +63,11 @@ export function PencilFoundationStudio(){
   const [headContourCraft,setHeadContourCraft]=useState(true);
   const [headVolumeWeave,setHeadVolumeWeave]=useState(true);
   const [headSilhouetteStudy,setHeadSilhouetteStudy]=useState(false);
+  const [roseLaminaStudy,setRoseLaminaStudy]=useState(true);
   const drawing=useMemo(()=>{
     const base=specimen==="rose"||specimen==="architecture"||specimen==="fabric"?
-      pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,seed}):
+      pencilObjectStudyDrawing({subject:specimen,aspect,pressure,paperTooth:tooth,
+        seed,roseLaminaStudy:specimen==="rose"&&roseLaminaStudy}):
       pencilLivingStudyDrawing({subject:specimen==="portrait"?"portrait":
         specimen==="fox"?"fox":"valley",aspect,pressure,paperTooth:tooth,
         seed,headContourCraft,headVolumeWeave,headSilhouetteStudy});
@@ -73,7 +75,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -120,6 +122,8 @@ export function PencilFoundationStudio(){
     data-km-head-cranial-volume={specimen==="portrait"?(headVolumeWeave?"on":"off"):"not-applicable"}
     data-km-skull-silhouette-study={specimen==="portrait"?
       (headSilhouetteStudy?"oblique":"baseline"):"not-applicable"}
+    data-km-rose-lamina-study={specimen==="rose"?
+      (roseLaminaStudy?"opt-in":"baseline"):"not-applicable"}
     style={{minHeight:"100vh",padding:24,display:"grid",alignContent:"start",
       gap:16,background:"#E8E7DE",font:"15px/1.5 system-ui",color:"#3B4747"}}>
     <header style={{maxWidth:1050,display:"grid",gap:4}}>
@@ -270,6 +274,13 @@ export function PencilFoundationStudio(){
           <option value="core-shadow">Core shadow</option>
           <option value="reflected-light">Reflected-light return</option>
         </select>
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
+        <input aria-label="Foundation rose petal lamina fibres"
+          type="checkbox" checked={roseLaminaStudy}
+          onChange={e=>setRoseLaminaStudy(e.target.checked)}/>
+        Four-pass petal fibres · original A/B (experimental)
       </label>}
       {specimen==="portrait"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
