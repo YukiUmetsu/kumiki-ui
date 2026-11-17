@@ -407,6 +407,43 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
          sitter's head. Native QA rejected the 0.75-width giant head; fit the
          new skull and all its EXPR1-attached ink around its collar contact. */}
     <g data-km-ink-anatomic-bust-ratio=".69" transform="translate(83.7 130.2) scale(.69)">
+    {/** Neck is physically continuous between the ANAT1 jaw and the robe.
+         The old exact-head screenshot left a strip of empty paper beneath
+         the chin. This independent original anatomical cylinder sits
+         BEHIND the face and above the cross-collar at the same pivot. */}
+    <g data-km-ink-neck-contact="mandible-to-silk">
+      <path d={"M"+xy(shift(menton,-39,-13))
+        +" C"+xy(shift(menton,-38,1))
+        +" "+xy(shift(menton,-25,20))
+        +" "+xy(shift(menton,-31,34))
+        +" Q"+xy(shift(menton,-39,45))
+        +" "+xy(shift(menton,-50,51))
+        +" Q"+xy(shift(menton,0,64))
+        +" "+xy(shift(menton,51,51))
+        +" Q"+xy(shift(menton,38,40))
+        +" "+xy(shift(menton,31,34))
+        +" C"+xy(shift(menton,29,17))
+        +" "+xy(shift(menton,37,0))
+        +" "+xy(shift(menton,40,-13))+" Z"}
+        fill={preset.complexion} stroke={preset.bone}
+        strokeWidth=".79" strokeOpacity=".44"/>
+      {Array.from({length:8},(_,i)=>{
+        const x=menton[0]-34+i*9.7,k=i/7;
+        const y=menton[1]+2+3*Math.sin(i*1.17);
+        return <path key={i} data-km-ink-neck-tendon={i}
+          d={"M"+fmt(x)+" "+fmt(y)
+            +" q"+fmt(5*Math.cos(i*.7))+" "+fmt(21+k*8)
+            +" "+fmt(1.5+3*Math.sin(i*.8))+" "+fmt(35+k*8)}
+          stroke={i<3?preset.bone:preset.warm}
+          strokeWidth={.48+(i%3)*.16} strokeLinecap="round" fill="none"
+          opacity={(i%3===0?.28:.11)*detail}/>;
+      })}
+      <path d={"M"+xy(shift(menton,-29,38))
+        +" Q"+xy(shift(menton,0,51))
+        +" "+xy(shift(menton,35,37))}
+        fill="none" stroke={preset.bone} strokeWidth="5.4"
+        opacity=".12" filter={"url(#"+uid+"-wash-feather)"}/>
+    </g>
     {/** Cranial hair/hat, painted behind skin; scalp height derives from the ANAT1 forehead. */}
     {/** Independent temporal hair under headcloth only. Earlier native 1x
          showed one large modern black wedge from the far temple to the ear.
