@@ -29,7 +29,7 @@ export interface RisoPullTabTheatreProps{
   readonly travel:number;
   readonly progress:number;
   readonly seed?:number;
-  /** Edge lamination, incision shadow, and retained cellulose whiskers. */
+  /** Cut-wall relief, lamp-directed cavity shadow and short cut-face microfibrils. */
   readonly paperRelief?:number;
   readonly paperGrain?:number;
   readonly misregistration?:number;
