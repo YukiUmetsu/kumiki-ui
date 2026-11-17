@@ -36,6 +36,12 @@ await studio.getByRole("slider",{name:"RISO79 physical stock thickness"}).focus(
 await studio.getByRole("slider",{name:"RISO79 physical stock thickness"}).press("End");
 await expect(print).toHaveAttribute("data-km-riso79-paper-depth-mm","1.2");
 await studio.locator("[data-km-riso79-film]").screenshot({path:info.outputPath("riso79-3x-thick-stock-cross-section-and-cavity-shadow.png"),animations:"disabled"});
+await studio.getByRole("slider",{name:"RISO79 edge lamp angle"}).focus();
+await studio.getByRole("slider",{name:"RISO79 edge lamp angle"}).press("Home");
+await expect(print).toHaveAttribute("data-km-riso79-light-direction","1,0");
+await expect(print.locator("linearGradient").first()).toHaveAttribute("x1","1");
+await expect(print.locator("linearGradient").first()).toHaveAttribute("x2","0");
+await studio.locator("[data-km-riso79-film]").screenshot({path:info.outputPath("riso79-3x-edge-lamp-from-right.png"),animations:"disabled"});
 await studio.getByRole("slider",{name:"RISO79 physical stock thickness"}).press("Home");
 for(let i=0;i<6;i++)await studio.getByRole("slider",{name:"RISO79 physical stock thickness"}).press("ArrowRight");
 await expect(print).toHaveAttribute("data-km-riso79-paper-depth-mm","0.32");
