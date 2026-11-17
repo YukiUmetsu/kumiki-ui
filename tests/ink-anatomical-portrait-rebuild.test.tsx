@@ -1,6 +1,7 @@
 import {describe,it,expect} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {createElement} from "react";
+import {inkAnat2FilmCue,InkAnatomicalPortraitFilm} from "../src/video/ink-anatomical-portrait-film";
 import {InkAnatomicalPortrait,inkPortraitAnatomy,INK_PORTRAIT_EMOTIONS,
   INK_PORTRAIT_CHARACTERS} from "../src/video/ink-anatomical-portrait";
 
@@ -137,6 +138,42 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
     expect(a).toContain('data-km-ink-collar="late-ming-scholar-crossed"');
     expect(b).toContain('data-km-ink-collar="elder-overlapping-soft-wrap"');
     expect(a).not.toEqual(b);
+  });
+  it("composes original portraits into the native foreground-occluded 960x540 film without a paper decal",()=>{
+    const standalone=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"scholar",emotion:"neutral",paperColor:"#ede1cb"}));
+    expect(standalone).toContain('data-km-ink-paper="true"');
+    expect(standalone).toContain('fill="#ede1cb"');
+    const transparent=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"elder",emotion:"neutral",transparentPaper:true,id:"ink-anat2-external"}));
+    expect(transparent).toContain('data-ink-transparent-paper="true"');
+    expect(transparent).not.toContain('data-km-ink-paper="true"');
+    expect(transparent).toContain('id="ink-anat2-external"');
+    expect(()=>renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {paperColor:"not-a-color"}))).toThrow(RangeError);
+    const actor=renderToStaticMarkup(createElement(InkAnatomicalPortraitFilm,
+      {frame:12,character:"scholar",emotion:"smile"}));
+    expect(actor).toContain('data-testid="ink-anat2-960-film"');
+    expect(actor).toContain('data-ink-proof-frame="12"');
+    expect(actor).toContain('data-km-shanshui-frame="108"');
+    expect(actor).toContain('data-km-shanshui-scene="misty-hermit"');
+    expect(actor).toContain('data-ink-transparent-paper="true"');
+    expect(actor).toContain('data-ink-cue="1.0000"');
+    expect((actor.match(/data-km-ink-native-robe-brush=/g)||[])).toHaveLength(4);
+    expect(actor).not.toMatch(/(?:NaN|Infinity|undefined)/);
+  });
+  it("advances 96 actor film frames deterministically and preserves neutral reduced-motion output",()=>{
+    expect(inkAnat2FilmCue(0)).toBe(0);
+    expect(inkAnat2FilmCue(12)).toBe(1);
+    expect(inkAnat2FilmCue(54)).toBe(1);
+    expect(inkAnat2FilmCue(84)).toBe(0);
+    expect(inkAnat2FilmCue(95)).toBe(0);
+    expect(inkAnat2FilmCue(12,true)).toBe(0);
+    expect(inkAnat2FilmCue(7)).toBe(inkAnat2FilmCue(7));
+    for(const n of [NaN,-1,96,120,1.5])expect(()=>inkAnat2FilmCue(n)).toThrow(RangeError);
+    expect(renderToStaticMarkup(createElement(InkAnatomicalPortraitFilm,
+      {frame:48,character:"elder",reducedMotion:true})))
+      .toContain('data-ink-cue="0.0000"');
   });
   it("rejects invalid emotion and intensity instead of producing a broken SVG",()=>{
     expect(()=>inkPortraitAnatomy("scholar","surprise",NaN)).toThrow(RangeError);
