@@ -824,6 +824,44 @@ test("Fuchun lower mountain Storybook compares unchanged original 1x against 19-
         "fuchun-rounded-near-2.3x.png"),
     });
   }
+  // The same 960×540 painting also compares its actual Ma Yuan-inspired
+  // Fuchun cascade on a matched 3.1× native SVG lens, not a screenshot
+  // illustration. The baseline's two white-tube ribbons are retained
+  // verbatim in the first sample. Only the opt-in study shows physically
+  // continuous eroded rock cheeks and eight source-axis water fibres.
+  const firstFall=samples.first().locator("[data-km-shanshui-waterfall]");
+  const secondFall=samples.last().locator("[data-km-shanshui-waterfall]");
+  await expect(firstFall).toHaveCount(1);
+  await expect(secondFall).toHaveCount(1);
+  await expect(firstFall).not.toHaveAttribute("data-km-waterfall-study",
+    "fuchun-eroded-channel");
+  await expect(secondFall).toHaveAttribute("data-km-waterfall-study",
+    "fuchun-eroded-channel");
+  await expect(firstFall.locator("[data-km-waterfall-ribbon]")).toHaveCount(3);
+  await expect(secondFall.locator("[data-km-waterfall-ribbon]")).toHaveCount(0);
+  await expect(secondFall.locator("[data-km-waterfall-rock-cheek]"))
+    .toHaveCount(4);
+  await expect(secondFall.locator("[data-km-waterfall-rock-edge]"))
+    .toHaveCount(4);
+  await expect(secondFall.locator("[data-km-waterfall-fibre]"))
+    .toHaveCount(8);
+  await expect(secondFall.locator("[data-km-waterfall-impact]"))
+    .toHaveCount(9);
+  await expect(firstFall.locator("[data-km-waterfall-rock-cheek]"))
+    .toHaveCount(0);
+  await expect(secondFall).toHaveAttribute("data-km-waterfall-source-flow-axis",
+    "M364 316 C373 345 344 405 340 439");
+  await page.getByRole("button",{name:"Waterfall ravine · 3.1×"}).click();
+  await expect(lab).toHaveAttribute("data-km-fidelity-lens","fall");
+  for(let i=0;i<2;i++){
+    await expect(samples.nth(i).locator("[data-km-fidelity-viewport]"))
+      .toHaveCSS("width","420px");
+    await samples.nth(i).locator("[data-km-fidelity-viewport]").screenshot({
+      animations:"disabled",
+      path:info.outputPath(i===0?"fuchun-legacy-fall-3.1x.png":
+        "fuchun-eroded-channel-3.1x.png"),
+    });
+  }
   // Film events must remain synchronized; geometry is source-authored
   // and independent of the absolute frame for each individual construction.
   await page.getByRole("button",{name:/Late atmospheric pass/}).click();
