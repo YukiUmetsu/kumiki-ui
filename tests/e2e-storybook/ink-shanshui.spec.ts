@@ -550,6 +550,20 @@ test("Fuchun source-fidelity desk uses two real seeded stages at native 1x and c
   await expect(samples.first().locator("[data-km-master-rock-art]")).toBeHidden();
   await expect(samples.first().locator("[data-km-cliff-pine-grove]")).toBeVisible();
   await page.getByRole("button",{name:"Pine root/crown · 2.8×"}).click();
+  // Every live old-pine branch now carries two separate wet/dry
+  // pressure passes ON its source quadratic, never a disconnected
+  // overlay. Keep the existing root/canopy/needle microdetail visible.
+  const woody=samples.first().locator("[data-km-cliff-pine-wood-load]");
+  await expect(woody).toHaveCount(40);
+  await expect(samples.first().locator(
+    "[data-km-cliff-pine-wood-body]")).toHaveCount(40);
+  await expect(samples.first().locator(
+    "[data-km-cliff-pine-wood-dry-witness]")).toHaveCount(40);
+  await expect(samples.first().locator(
+    "[data-km-cliff-pine-bough-bone]")).toHaveCount(20);
+  await expect(samples.first().locator(
+    "[data-km-cliff-pine-ink-island]")).toHaveCount(40);
+  await expect(woody.first()).toBeVisible();
   await samples.first().locator("[data-km-fidelity-viewport]").screenshot({
     animations:"disabled",path:info.outputPath("fuchun-fidelity-rooted-pine-2.8x.png")});
 
