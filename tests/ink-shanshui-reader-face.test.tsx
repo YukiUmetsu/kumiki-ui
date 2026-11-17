@@ -8,6 +8,8 @@ import {scrollReaderFacePortrait,READER_FACE_LANDMARKS} from
   "../src/video/ink-shanshui-reader-face";
 import {readerFaceAnatomy,READER_FACE_CRAFT_REGIONS,READER_FACE_ANAT1_POINTS} from
   "../src/video/ink-shanshui-reader-anatomy";
+import {readerInkPortraitGlazes,READER_INK_GLAZE_REGIONS} from
+  "../src/video/ink-shanshui-reader-glazes";
 import {FACE_LANDMARKS,FACE_CANONICAL_MEASURES} from
   "../registry/anatomy/anatomy-face";
 import {shanshuiFaceAssets} from "../src/video/ink-shanshui-face-plates";
@@ -453,4 +455,71 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
       expect(markup).toEqual(renderToStaticMarkup(createElement(InkShanshuiFilm,props)));
     }
   });
+  it("follows the original canthi, zygions and pronasale with layered six-region Ming glazes",()=>{
+    const A=READER_FACE_ANAT1_POINTS;
+    const guide={
+      nearCanthus:A["endocanthion.R"],
+      farCanthus:A["endocanthion.L"],
+      sellion:A.sellion,
+      noseTip:A.pronasale,
+      nearCheek:A["zygion.R"],
+      farCheek:A["zygion.L"],
+      chin:A.menton,
+    };
+    const low=readerInkPortraitGlazes(guide,0);
+    const medium=readerInkPortraitGlazes(guide,.6);
+    const high=readerInkPortraitGlazes(guide,1);
+    expect(Object.keys(high)).toEqual(READER_INK_GLAZE_REGIONS);
+    expect(READER_INK_GLAZE_REGIONS).toHaveLength(6);
+    const count=(shapes:typeof high)=>Object.values(shapes)
+      .reduce((total,layer)=>total+layer.length,0);
+    expect(count(low)).toBeGreaterThanOrEqual(8);
+    expect(count(medium)).toBeGreaterThan(count(low));
+    expect(count(high)).toBeGreaterThan(count(medium));
+    expect(high["orbital-near"].length)
+      .toBeGreaterThan(high["orbital-far"].length);
+    for(const [region,shapes] of Object.entries(high)){
+      expect(shapes.length,region).toBeGreaterThanOrEqual(2);
+      for(const shape of shapes){
+        expect(shape.type).toBe("path");
+        expect(shape.d).toMatch(/^M/);
+        expect(shape.d).not.toMatch(/NaN|Infinity|undefined/);
+        expect(shape.fill).toMatch(/^\$(?:skinshade|paper)$|^none$/);
+        expect(shape.opacity).toBeGreaterThan(0);
+        expect(shape.opacity).toBeLessThan(.3);
+        expect(shape.strokeWidth).toBeLessThanOrEqual(.3);
+      }
+    }
+    expect(readerInkPortraitGlazes(guide,1)).toEqual(high);
+    expect(()=>readerInkPortraitGlazes(guide,Infinity)).toThrow(RangeError);
+    expect(()=>readerInkPortraitGlazes(guide,-.01)).toThrow(RangeError);
+    expect(()=>readerInkPortraitGlazes({...guide,
+      sellion:[NaN,100]},1)).toThrow(RangeError);
+  });
+  it("keeps pre-existing reader face contour, lip cels, ear and paint while adding optically nested washes",()=>{
+    const original=scrollReaderFacePortrait(1);
+    const anatomy=readerFaceAnatomy(1);
+    const low=readerFaceAnatomy(.1);
+    const shapeCount=(name:string)=>paths(original,name).length;
+    expect(anatomy.planes.length).toBeGreaterThan(low.planes.length+4);
+    // The source-fitted paper-skin base and independent film visemes
+    // cannot be replaced with a new facial sticker for the glaze effect.
+    expect(paths(original,"face")[1]).toMatchObject({
+      type:"path",fill:"$skin",opacity:1,
+    });
+    for(const name of ["reader-ear","brow","eyes-open","eyes-soft",
+      "eyes-closed","mouth-rest","mouth-aa","mouth-oh","mouth-mm",
+      "mouth-smile","pupil-left","pupil-right"])
+      expect(shapeCount(name)).toBeGreaterThan(0);
+    const nasalTurn=anatomy.planes.find(s=>s.d.includes(
+      "C149.1 103.8 150.4 109.1 152.2 112.5"));
+    expect(nasalTurn).toMatchObject({
+      type:"path",fill:"$skinshade",stroke:"none",opacity:.185,
+    });
+    // Prior large angular bridge wedge is not restored by the glazing.
+    expect(anatomy.planes.some(s=>s.d.includes(
+      "C149.2 103.4 153 109.3 155 112.6"))).toBe(false);
+    expect(original).toEqual(scrollReaderFacePortrait(1));
+  });
+
 });
