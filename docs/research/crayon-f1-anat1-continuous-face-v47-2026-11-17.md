@@ -46,4 +46,42 @@ One sampled pixel does **not** define a skin region. The trial uses **continuous
 - **Art rejection conditions:** Brown wax scratch banding, overly regular parallel strokes, material too neat/homogeneous, darkening at wrong location, disconnected cheek highlight, photo-relative whole or cheek-region SSIM regression, overpaint onto eyes/nose/eyelids/hair, contour widths looking like dark facial hair or false pore lines, or failure to materially increase connected 3D face appearance. If observed, retain only as `!dev` negative research, not production.
 - Release: Existing global **≥0.85 CC0-photo SSIM** gate remains. Final-render independently observed **18 anatomical landmarks, five complete facial value regions**, all 300 naturally played animation frames, independent artist evaluation, and source-to-render visual inspection at 1×, 1.6×, and near-eye detail are **not** satisfied by these tests.
 
-**Status before native pixel comparison:** experimental candidate; PR #461 stays DRAFT / ART HOLD / DO NOT MERGE.
+## V47 independent native Chromium image and artist review
+
+Actual same-head code commit **`0eefb55d59d871b5903b0953f34972fa5a058449`**, saved native SVG/Chromium screenshots at full **608×1082** f299 for both negative-control **V46** and V47 experimental stage, plus the exact original-camera 2.1× cheek macro. Original CC0 photographic RGB bytes were compared to the **unmodified** original f299 native PNGs via `skimage.metrics.structural_similarity(photo,render,channel_axis=2,data_range=255)`. No transforms, image overlays, alignments, sharpening, or contrast postprocessing.
+
+**Source and rendered evidence:**
+- [Native 1× whole portrait, 2.1× cheek V46/V47 matched screenshots, artifact **14341401786**](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44111816738/artifacts/14341401786).
+- [V47 native Chromium screenshot check PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44111816738); [strict TypeScript and changed unit suites PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44111816712); [native drawing grammar PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44111816722).
+- The initial run identified two *real* integration faults (photographed eyebrow follicles are `kind:"contour"`, not `"wax"`; ANAT1 `HumanFrame.vertexLight` stores **signed n·L in [−1,1]**, so the shadowed jaw legitimately yields a negative value). Fixed both with explicit native type and signed-light normalization. All three workflows subsequently passed at the exact pixel generation commit.
+
+### 608×1082 exact original-photo comparisons
+
+| Photo source ROI x0,y0,x1,y1 | Native V46 SSIM | Native V47 SSIM | Δ | RGB MAE V46→V47 |
+| --- | ---: | ---: | ---: | --- |
+| Whole portrait (0,0,608,1082) | **0.497072** | 0.496756 | **−0.000316** | 27.79→27.78 |
+| Full face (108,282,502,862) | **0.623006** | 0.622086 | −0.000920 | 27.60→27.59 |
+| Near eye (175,450,360,625) | **0.576375** | 0.576103 | −0.000272 | 33.84→33.84 |
+| Malar crest (145,580,250,680) | **0.788520** | 0.788274 | −0.000246 | 15.09→15.09 |
+| Undercheek shadow (107,620,233,830) | **0.665734** | 0.658880 | **−0.006854** | 42.86→42.74 |
+| Infraorbital (190,565,330,660) | **0.743826** | 0.743649 | −0.000177 | 23.67→23.67 |
+| Nasal root (310,515,405,650) | **0.654919** | 0.653032 | −0.001887 | 22.78→22.80 |
+| Jaw turn (196,784,390,864) | **0.696713** | 0.693215 | −0.003498 | 24.16→24.09 |
+| Entire near cheek (117,585,310,810) | **0.765417** | 0.762345 | **−0.003072** | 28.49→28.43 |
+| Far eye negative control (415,475,470,535) | 0.339835 | 0.339835 | exactly unchanged | 51.90→51.90 |
+| Upper foliage negative control (0,0,80,75) | 0.560451 | 0.560451 | exactly unchanged | 16.61→16.61 |
+| Near iris original control (239,531,292,570) | 0.512308 | 0.512308 | exactly unchanged | 28.87→28.87 |
+
+This validates optical isolation: the original V46 face and all 18 source hair groups and V43 photographic foliage are preserved and 5 normal-weighted contours change just **~0.07% of full image pixels** (and ~0.19% within the full face). However the new marks **do not** form a continuous broad facial value field: the missing ~80-RGB lateral cheek shadow remains, and the new wax fragments make unnatural isolated dark dots/moles and abrasion-like parallel scratches on the cheek at 1×/2.1×. Negative controls are pixel identical.
+
+**Critical ArtCraft conclusion: REJECT the V47 candidate as a visual-improvement claim.** A tiny MAE gain is outweighed by worse SSIM in every touched region; material-level form and anatomical likeness do not improve. The five opt-in `!dev` scumble groups remain an isolated implementation/negative experiment only. Their tests passing **does not** constitute artistic acceptance.
+
+### Next implementation priorities
+
+1. **Change the actual light-bearing volume**, not add more surface flecks: source-observed 3D-coherent underpaint, calibrated across the near cheek and nasolabial return and using the ANAT1 camera and smooth normal field. Broad wax occupancy must replace default flat skin *without cutting out/tile-like hard planes*. Use multiple physically contiguous wax glazes and preserve skin texture.
+2. Recover actual source eye/eyebrow detail, scleral curvature, tearfilm, cornea and the subtle lower-lid-to-cheek geometry. V46 remains the stronger selected experimental anatomy candidate.
+3. Develop a **photo-relative 3D surface map** (smooth, continuous 2D chromatic/luminance errors with optical depth) and compare each region under an identical f299 source and seed. Distinguish source makeup, occlusion, pigment tooth and human skin surface; do not assume the generic ANAT1 mesh is the sitter's 3D scan.
+4. Audit real **18 final rendered landmarks, five continuous source facial plane ranges, all 300 frames at normal speed**, and independent artist approval. No merge until the original ≥0.85 source similarity gate and visual review are met.
+
+**Final V47 status:** DRAFT, ART HOLD, **not approved**, do not merge PR #461.
+
