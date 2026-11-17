@@ -1021,7 +1021,8 @@ function catmullRom(pts: [number, number][], n = 6): [number, number][] {
 function drawEye(out: Raster, mask: Float32Array, e: { w: number; h: number; side: "L" | "R"; centre: Vec3; camPos: Vec3; f: number; D: number; yc: number; Lkey: Vec3; keyI: RGB3; skyI: RGB3; fillI: RGB3; Lfill: Vec3;
   iris: IrisType; pupilR: number; epicanthal: number; seed: number; lens?: LensSpec;
   upper: [number, number][]; lower: [number, number][]; mmPerPx: number; gaze: { x: number; y: number; cross: number }; yawR: number; pitchR: number }) {
-  const R = 12, irisR = (e.lens?.diameter ?? 11.7) / 2, pupilR = e.pupilR, C = e.centre;
+  // a lens's tinted diameter, kept between just past the pupil and 15 mm (larger reads as costume)
+  const R = 12, irisR = (e.lens ? Math.min(15, Math.max(2 * e.pupilR + 1, e.lens.diameter)) : 11.7) / 2, pupilR = e.pupilR, C = e.centre;
   // Gaze: toward the camera, turned by the expression's gaze (about 15° at full) and convergence.
   const toCam = norm3([e.camPos[0] - C[0], e.camPos[1] - C[1], e.camPos[2] - C[2]]);
   const gz = norm3([toCam[0] + e.gaze.x * 0.26 - Math.sign(C[0]) * e.gaze.cross * 0.2, toCam[1] + e.gaze.y * 0.2, toCam[2]]);
@@ -1269,7 +1270,7 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
     const at = (t: number): Vec3 => { const x = t * (pts.length - 1), i = Math.min(pts.length - 2, Math.floor(x)), f = x - i; return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f, pts[i][2] + (pts[i + 1][2] - pts[i][2]) * f]; };
     const outward = Math.sign(pts[pts.length - 1][0] - pts[0][0]) || 1, upper = which === "upper";
     // Lashes grow in small clumps of two to four (about 90–150 upper, 75 lower in life; fewer drawn, each a little
-    // bolder). Upper: 8–11 mm, longest in the outer third, growing forward and curling up, so from the front they rise
+    // bolder). Upper: 8–11 mm, longest a little inside the middle, growing forward and curling up, so from the front they rise
     // only a few millimetres; lower: 4–6 mm, sparse and pale, down and out. A single lid's fold presses the upper
     // lashes down and hides their roots.
     const clumps = upper ? Math.round((38 + 8 * (1 - sex)) * sf(style === "doll" ? 1.3 : style === "wispy" ? 1.2 : style === "spiky" ? 0.7 : 1)) : Math.round(18 * sf(style === "doll" ? 1.3 : 1));
@@ -1281,7 +1282,7 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
       for (let k = 0; k < (upper ? nIn : 1 + (nIn > 3 ? 1 : 0)); k++) {
         const t = tc + (hash2(l.seed + 73, cI * 7 + k, 5) - 0.5) * (0.9 / clumps), base = at(Math.min(0.99, Math.max(0.01, t)));
         const rnd = hash2(l.seed + 79, cI * 7 + k, 6), lenRaw = cLen * (style === "wispy" ? 0.85 + 0.25 * rnd + (0.45 * rnd - 0.2) * sStr : 0.85 + 0.25 * rnd) * (upper ? lashLen : 1 + 0.1 * mk);
-        const len = styled ? Math.min(14, lenRaw) : lenRaw, fan = cFan + (hash2(l.seed + 83, cI * 7 + k, 7) - 0.5) * 0.12;
+        const len = styled ? Math.min(upper ? 14 : 8, lenRaw) : lenRaw, fan = cFan + (hash2(l.seed + 83, cI * 7 + k, 7) - 0.5) * 0.12;
         const lift = upper ? (single ? 0.12 + 0.43 * rise : 0.55) : -0.3;
         const ptsS: [number, number][] = [];
         for (let q = 0; q <= 6; q++) {
@@ -1296,9 +1297,9 @@ function drawLashes(out: Raster, l: { V: readonly Vec3[]; rot: (p: Vec3) => Vec3
     }
     // manga (spiky) false lashes: 5-7 spikes, 10-14 mm, longest in the outer third, each a few lashes drawn to one tip
     if (upper && style === "spiky") {
-      const nSp = 5 + Math.floor(hash2(l.seed + 101, s === "L" ? 1 : 2, 0) * 3);
+      const nSp = 5 + Math.floor(hash2(l.seed + 101, 1, 0) * 3); // the same count on both eyes
       for (let i = 0; i < nSp; i++) {
-        const t = 0.16 + 0.78 * ((i + 0.5) / nSp), spikeLen = Math.min(14, (10.2 + 3.6 * Math.sin(Math.PI * Math.pow(t, 0.8))) * mL) * (0.5 + 0.5 * sStr);
+        const t = 0.16 + 0.78 * ((i + 0.5) / nSp), spikeLen = Math.min(14, (10.2 + 3.6 * Math.sin(Math.PI * Math.pow(t, 1.9))) * (1 + 0.35 * (mL - 1))) * (0.5 + 0.5 * sStr);
         const lift = single ? 0.12 + 0.43 * rise : 0.55, fan0 = (t - 0.42) * 1.05;
         for (let k = 0; k < 4; k++) {
           const base = at(Math.min(0.99, Math.max(0.01, t + (k - 1.5) * 0.012))), ptsS: [number, number][] = [];

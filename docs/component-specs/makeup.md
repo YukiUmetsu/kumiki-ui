@@ -89,14 +89,16 @@ reference photographs studied.
 A look's `lashes`, `eyes` and `brows` drive the renderer through `SkinPaint`. They scale with intensity, inside their
 caps, and are not used at 0:
 
-- **Lashes:** `style` "wispy", "spiky" (manga: 5-7 spikes of 10-14 mm) or "doll", and `lower` (length, darkness,
-  strokes drawn with liner). No styled lash is longer than 14 mm. A single lid's fold presses bare lashes down, so from
+- **Lashes:** `style` "wispy", "spiky" or "doll", and `lower` (length, darkness, strokes drawn with liner). Spiky
+  lashes are manga spikes: 5-7 on each eye, 10-14 mm, longest in the outer third. No styled upper lash is longer than
+  14 mm, and no styled lower lash is longer than 8 mm. A single lid's fold presses bare lashes down, so from
   the front they hardly show. Styled (false) lashes are curled and glued on, so they rise past the fold.
   `styleStrength` (0-1) fades a style in. `designMakeup` sets it from the intensity, so a low intensity does not give
   a full set of false lashes. `curl` (0-1) lifts lashes past a single lid as false lashes do: a look that wears mascara
   curls its lashes (a lash curler). Lower lashes drawn with liner take the liner's colour (`lower.colour`).
 - **Lens:** `eyes.lens` with the tinted `diameter` (12.5-14.5 mm, a natural iris is about 11.7 mm), the limbal `ring`
-  and a `tint`.
+  and a `tint`. The tint starts outside the pupil. The renderer keeps the diameter between just past the pupil and
+  15 mm.
 - **Tape:** `eyes.tape` 0-1. `tapedEyeShape` gives a single lid a low crease and keeps an in-fold lid in-fold. It
   opens a single lid by up to 1.2 mm and other lids by up to 0.5 mm. `makeupPortraitOptions` applies it to the face's
   own eye shape. A face with measured lids (no eye shape) is left as it is.

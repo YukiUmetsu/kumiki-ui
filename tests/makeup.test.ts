@@ -242,6 +242,15 @@ describe("MAKEUP1 East Asian looks", () => {
     const out = paintPhoto({ width: W, height: H, data, landmarks }, designMakeup({ look: "c-glam", face, skin: "#d8a98a" }));
     const lc = CANON[17].map((v, k) => (v + CANON[14][k]) / 2) as Vec3, x = Math.round(W / 2 + lc[0] * 1.1), y = Math.round(H / 2 - lc[1] * 1.1 + 6), i = (y * W + x) * 4;
     expect(out[i] - out[i + 1]).toBeGreaterThan(205 - 160 + 15);
+    // the eye zones too: the aegyo-sal under the lower lid is lighter, the liner over the upper lid darker
+    const luma = (o: Uint8ClampedArray, p: Vec3, dy: number, pick: (a: number[]) => number) => {
+      const cx = Math.round(W / 2 + p[0] * 1.1), cy = Math.round(H / 2 - (p[1] + dy) * 1.1 + 6), vals: number[] = [];
+      for (let yy = cy - 1; yy <= cy + 1; yy++) for (let xx = cx - 1; xx <= cx + 1; xx++) { const j = (yy * W + xx) * 4; vals.push(0.2126 * o[j] + 0.7152 * o[j + 1] + 0.0722 * o[j + 2]); }
+      return pick(vals);
+    };
+    const bare = 0.2126 * 205 + 0.7152 * 160 + 0.0722 * 135, mean = (a: number[]) => a.reduce((u, v) => u + v, 0) / a.length;
+    expect(luma(out, CANON[145], -2.5, mean)).toBeGreaterThan(bare + 4);
+    expect(luma(out, CANON[160], 0.8, a => Math.min(...a))).toBeLessThan(bare - 40);
   });
   it("lifts the wing on downturned eyes and flattens it on upturned eyes", () => {
     const angle = (eyeShape: string, named = true) => {
@@ -287,6 +296,30 @@ describe("MAKEUP1 eye tools in the renderer", () => {
         expect(m).toBeLessThan(15);
       }
     }
+  }, 120000);
+  it("clamps a lens to 15 mm and to just past the pupil, and tints only outside the pupil", () => {
+    const base = { framing: "eyes" as const, width: 96, height: 48, pupil: 8, makeup: "none" as const };
+    const lens = (diameter: number, tint?: [number, number, number]) => renderPortrait({ ...base, paint: { key: `lens-${diameter}-${tint}`, shade() {}, eyes: { lens: { diameter, ring: 0.5, ...(tint ? { tint } : {}) } } } }).rgba;
+    const same = (a: Uint8ClampedArray, b: Uint8ClampedArray) => a.length === b.length && a.every((v, i) => v === b[i]);
+    expect(same(lens(8), lens(9))).toBe(true);
+    expect(same(lens(20), lens(15))).toBe(true);
+    // along a row through the pupil: the pupil's edge stays where it is, and the first iris pixels take the tint
+    const plain = renderPortrait({ ...base, width: 192, height: 96, paint: { key: "lens-plain", shade() {}, eyes: { lens: { diameter: 13, ring: 0.5 } } } });
+    const red = renderPortrait({ ...base, width: 192, height: 96, paint: { key: "lens-red", shade() {}, eyes: { lens: { diameter: 13, ring: 0.5, tint: [0.45, 0.04, 0.03] } } } });
+    const lm = plain.landmarks, cy = Math.round((lm[159][1] + lm[145][1]) / 2), cx = Math.round((lm[33][0] + lm[133][0]) / 2);
+    const edge = (p: Portrait) => { let x = cx; while (Lstar(p, x, cy) < 15 && x < cx + 30) x++; return x; };
+    expect(Math.abs(edge(red) - edge(plain))).toBeLessThanOrEqual(1);
+    const at = (p: Portrait, x: number) => { const i = (cy * p.width + x) * 4; return [p.rgba[i], p.rgba[i + 1]]; };
+    const [rr, rg] = at(red, edge(plain) + 2), [pr, pg] = at(plain, edge(plain) + 2);
+    expect(rr - rg).toBeGreaterThan(pr - pg + 10);
+  }, 120000);
+  it("stops styled lashes at 14 mm above and 8 mm below", () => {
+    const base = { faceType: "east-asian" as const, eyeShape: "inner-double", framing: "eyes" as const, width: 96, height: 48, makeup: "none" as const };
+    const lashes = (up: number, low: number) => renderPortrait({ ...base, paint: { key: `cap-${up}-${low}`, shade() {}, lashes: { length: up, thickness: 1.2, darkness: 1, style: "spiky", lower: { length: low, darkness: 1, drawn: 0 } } } }).rgba;
+    const same = (a: Uint8ClampedArray, b: Uint8ClampedArray) => a.every((v, i) => v === b[i]);
+    const ref = lashes(3, 2.5);
+    expect(same(ref, lashes(5, 2.5))).toBe(true); // every upper lash and spike is past 14 mm
+    expect(same(ref, lashes(3, 4))).toBe(true); // every lower lash is past 8 mm
   }, 120000);
   it("false lashes rise past a single lid's fold (bare lashes on it point at the camera) and fade in with their strength", () => {
     const base = { faceType: "east-asian" as const, eyeShape: "monolid", framing: "eyes" as const, width: 192, height: 96, makeup: "none" as const };
