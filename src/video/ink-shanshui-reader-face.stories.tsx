@@ -654,6 +654,7 @@ function ReaderExpressionLab(){
   const [cueFrame,setCueFrame]=useState(24);
   const [gazeX,setGazeX]=useState(0);
   const [gazeY,setGazeY]=useState(0);
+  const [showAnat1,setShowAnat1]=useState(false);
   const [playing,setPlaying]=useState(false);
   const [reduceMotion,setReduceMotion]=useState(false);
   useEffect(()=>{
@@ -822,6 +823,11 @@ function ReaderExpressionLab(){
       <button type="button" onClick={()=>{setGazeX(0);setGazeY(0);}}>
         Reset gaze
       </button>
+      <label style={{display:"flex",gap:7,alignItems:"center"}}>
+        <input aria-label="Show EXPR1 ANAT1 facial landmarks" type="checkbox"
+          checked={showAnat1} onChange={e=>setShowAnat1(e.target.checked)}/>
+        ANAT1 measured facial anchors
+      </label>
       <label style={{display:"grid",gap:5}}>Eyelid override
         <select aria-label="EXPR1 eyelids" value={lidOverride}
           onChange={e=>setLidOverride(e.target.value as ReaderInkLids|"auto")}>
@@ -855,6 +861,15 @@ function ReaderExpressionLab(){
           viewBox={faceCamera()}
           style={{width:"100%",height:400,background:"#f7eedc"}}>
           {brush(main,eyes,mouth,"live-micro")}
+          {showAnat1&&<g data-km-ink-expression-anat1=""
+            pointerEvents="none" transform={pose(fit.headRest,[139,124])}>
+            {Object.entries(READER_FACE_ANAT1_POINTS).map(([name,[x,y]])=>
+              <g data-km-ink-anat1-anchor={name} key={name}>
+                <circle cx={x} cy={y} r=".58" fill="#b3402e"
+                  stroke="#f7eedc" strokeWidth=".2"/>
+                <title>{name}: {x}, {y}</title>
+              </g>)}
+          </g>}
         </svg>
       </section>
     </div>
@@ -881,6 +896,51 @@ function ReaderExpressionLab(){
         </figure>;
       })}
     </div>
+    <section data-testid="reader-expr1-emotion-atlas" aria-label="ANAT1 and EXPR1 original reader emotion atlas">
+      <h2 style={{font:"500 21px Georgia,serif",margin:"26px 0 6px"}}>
+        One sitter, five EXPR1 action-unit poses · matched ink and camera
+      </h2>
+      <p style={{fontSize:12,color:"#715b46",maxWidth:1000,margin:"0 0 12px"}}>
+        Every panel paints the same original three-quarter ANAT1 face, ear,
+        hair fibres, source eye windows and lip geometry. Only EXPR1 muscle
+        actions and restrained ink creases differ. The five views share the
+        selected intensity and pigment detail, independent of the film cue.
+        Select a pose to inspect it in the full-size motion controls.
+      </p>
+      <div style={{display:"grid",gap:12,maxWidth:1050,
+        gridTemplateColumns:"repeat(auto-fit,minmax(174px,1fr))"}}>
+        {READER_INK_EMOTIONS.map(id=>{
+          const sample=inkReaderExpressionStudy(id,intensity,detail);
+          const selected=emotion===id;
+          return <figure key={id} data-km-ink-expression-emotion={id}
+            style={{margin:0,minWidth:0,padding:8,background:"#f7eedc",
+              border:selected?"2px solid #8c6b50":"2px solid #d3bea2"}}>
+            <svg data-km-ink-expression-atlas-svg={id} role="img"
+              aria-label={"Original source reader in "+id+" EXPR1 pose"}
+              viewBox={faceCamera()}
+              style={{width:"100%",height:205,display:"block"}}>
+              {brush(sample,sample.lids,sample.mouth,"atlas-"+id)}
+            </svg>
+            <figcaption style={{display:"grid",gap:5,marginTop:8}}>
+              <button type="button" aria-pressed={selected}
+                aria-label={"Select "+id+" EXPR1 expression"}
+                onClick={()=>{setEmotion(id);setCueFrame(24);setPlaying(false);}}
+                style={{padding:"7px 9px",background:"#eee1c9",
+                  border:"1px solid #bda68a",color:"#47382a"}}>
+                {id}
+              </button>
+              <output data-km-ink-expression-metrics={id}
+                style={{fontSize:11,lineHeight:1.55,color:"#6a513d"}}>
+                Inner brow {sample.features.browInner.toFixed(2)}
+                {" · "}lid {sample.features.eyeOpen.toFixed(2)}×
+                {" · "}cheek {sample.features.cheekRaise.toFixed(2)}
+                {" · "}lip {sample.features.mouthCorner.toFixed(2)}
+              </output>
+            </figcaption>
+          </figure>;
+        })}
+      </div>
+    </section>
     <h2 style={{font:"500 21px Georgia,serif",marginTop:24}}>
       Film-time facial transition · 24 fps / four seconds
     </h2>
