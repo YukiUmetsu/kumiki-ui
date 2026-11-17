@@ -31,8 +31,8 @@ const strokes=(id:string,passes:readonly Contact[]):readonly PencilTrace[]=>
   }));
 
 /** Painting order: asymmetric rear pocket -> left lifted wall -> right tucked
- * shoulder -> foreground curled petal. The latter is one convex lamina with
- * a small hooked return, not a closed engraved C-ring.
+ * shoulder -> foreground turned petal. It is one convex lamina; the narrow reverse
+ * supplies the fold, not a closed engraved C-ring.
  */
 export const ROSE_INNER_WHORL_ORGANS:readonly RoseInnerWhorlOrgan[]=[
   {
