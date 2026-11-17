@@ -151,14 +151,14 @@ export function crayonF1RefineNearTarsusV45(
         throw new RangeError("Missing native source-rooted upper lash contour");
       const sourceCount=(el.d.match(/M/g)??[]).length;
       const newMicroContacts=extraRootedLashes();
-      // Raw base eye has 10 source strokes; the normal source-eye
-      // override has 16, while rooted-flow has 33. Preserve every
-      // original stroke in whichever eye-contact mode was selected.
-      // A second V45 pass on a ten-lash baseline has 33 strokes, but
-      // is distinguished from real rooted-flow by its terminal segment.
-      if((sourceCount!==10&&sourceCount!==16&&sourceCount!==33)||
+      // V45 requires the source-eye scleral contact, which does not
+      // exist for the 10-lash raw eyeContact=baseline negative control.
+      // The real source-eye path has 16 original strokes, while the
+      // optional rooted-flow path has 33. Never silently promote raw
+      // eyes or erase any previously deposited source lashes.
+      if((sourceCount!==16&&sourceCount!==33)||
          el.d.endsWith(" "+newMicroContacts))
-        throw new RangeError("Missing original 10/16/33 lashes or V45 already applied");
+        throw new RangeError("Missing original source-eye/rooted lash contour or V45 already applied");
       hasLashes=true;
       return {...el,d:el.d+" "+newMicroContacts} satisfies Contour;
     }
