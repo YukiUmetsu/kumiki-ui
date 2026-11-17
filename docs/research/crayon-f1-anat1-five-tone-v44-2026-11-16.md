@@ -41,4 +41,33 @@ These are local color witnesses, not validated source skin segmentation, photome
 - Photo quality: source vs matched V43/V44 native f299 in 11 established background/face ROIs, plus extra 7×7 anatomical samples here. **Correct 85-RGB cheek shadow alone is not sufficient** if it becomes a hard brown patch or destroys 3D volume. Inspect at 1× and macro, reject distorted/flat face and any unintended near-eye iris shift. No reliance on structural tests alone.
 - Whole-portrait release threshold **≥0.85 RGB SSIM** versus the photographed CC0 capture. V43 whole **0.496979**, below; V44 unmeasured until actual screenshot audit. Independently validated final-render 18 landmarks, five complete 3D/tonal planes, all 300 frames at normal speed, and professional artist approval are still required.
 
-**Decision before pixel review: ART HOLD, do not merge.**
+## Exact-head browser screenshot and independent photographic review
+
+The strong contact-first V44 attempt (head `1701fb526901c7e49d356b43d8b20a3903a1adea`) **failed artistic inspection despite green Chromium/TS/native CI**: dark orbital/cheek wax strokes looked like graphic scratches, produced a new hard darkened malar side, and lowered full photographic SSIM from V43 **0.496979** to **0.491347**. Its native photo ROI differences showed source-value means moving in the right direction but **local shape/texture structure regressed**. The stronger version is rejected as an art candidate.
+
+The more restrained, currently isolated V44 contact-pigment values `c0e47ef60535e3dd2a970693ae3fb3b5c19651a1` restored near-baseline physical wax pressure and softened feather contact without altering any original source curve, detail, face geometry or hair:
+
+- [Exact code-head native Chromium f299 608×1082 and 1.6× face, V43/V44 matched screenshots (artifact **14303522522**)](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44027519138/artifacts/14303522522), [browser PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44027519138).
+- [Strict TypeScript and changed tests PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44027519060), [native CRAYON1 drawing PASS](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44027519163).
+- Source is the **unchanged byte-verified original 608×1082 CC0 capture**, and both V43 native negative control and V44 native candidate are from the **same GitHub commit**, camera, frame and wax seed. All values below computed on the original RGB arrays with `skimage.metrics.structural_similarity(source,render,data_range=255,channel_axis=2)` and mean absolute error (MAE).
+
+| Source region | V43 SSIM | V44 SSIM | V43→V44 MAE |
+| --- | ---: | ---: | ---: |
+| Whole portrait | **0.496979** | 0.495457 (−0.001521) | 27.72 → **27.61** |
+| Full face x108..502,y282..862 | **0.622734** | 0.618646 (−0.004088) | 27.41 → **27.12** |
+| Near eye x174..346,y430..609 | **0.563332** | 0.559245 | 32.13 → **30.93** |
+| Orbito-malar x105..370,y465..820 | **0.682332** | 0.676073 | 31.14 → **30.41** |
+| Cheek cast x102..211,y608..824 | **0.632872** | 0.621130 | 47.92 → **46.61** |
+| Malar highlight x132..250,y560..700 | **0.761895** | 0.751935 | **22.98** → 23.44 (regressed) |
+| Nasal root x312..400,y474..605 | **0.643096** | 0.625014 | 32.78 → **31.30** |
+| Chin x299..461,y748..865 | **0.687284** | 0.667944 | 23.21 → **22.81** |
+| Forehead x105..455,y285..440 | 0.695480 | 0.695481 | unchanged |
+| Upper CC0 background x0..608,y0..163 | 0.534956 | 0.534956 | identical |
+
+Actual source-point 7×7 RGB median Euclidean errors in the restrained variant: near orbit **81.5→76.8**, cheek underturn **145.5→140.3**, jaw **136.3→131.1**, nasal root **71.2→62.0** and cheek bounce **38.9→35.9**. This is a **small real color-proximity improvement, but structural image similarity worsened in every meaningful touched face ROI**. Local MAE improvement does **not** override photographic SSIM and realistic human-artist judgement.
+
+The native exported comparison visually confirms every original iris/lid, contour, lower jaw, photo-traced greenery and hair group remains, but dry wax shadow accents are still too directional and the source photograph's three-dimensional orbital rim/zygomatic transitions are not reproduced. No unobserved quality claim is made.
+
+## Decision and next highest-value work
+
+**V44 remains an isolated, selectable !dev experiment, ARTISTICALLY REJECTED for now. Do not merge #461 or promote as realism improvement.** Whole SSIM **0.495457 < V43 0.496979**, much lower than the original **≥0.85 gate**. The next improvement should target **source-measured optical/anatomical 3D structure**, especially near-eye upper lid aperture, cheek/malar volume and natural soft inter-plane form before increasing cosmetic wax contact. Preserve all original ANAT1 anatomy and fine-grain real crayon texture, no flattened skin photos, no hand-wave SSIM gains. Independently validate 18 final-render landmarks, five full tonal planes and all 300 frames at natural speed before signoff.
