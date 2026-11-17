@@ -503,6 +503,48 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(()=>readerInkPortraitGlazes({...guide,
       sellion:[NaN,100]},1)).toThrow(RangeError);
   });
+  it("builds convex ANAT1 malar pigment volumes rather than parallel cheek bands",()=>{
+    const A=READER_FACE_ANAT1_POINTS;
+    const glazes=readerInkPortraitGlazes({
+      nearCanthus:A["endocanthion.R"],
+      farCanthus:A["endocanthion.L"],sellion:A.sellion,
+      noseTip:A.pronasale,nearCheek:A["zygion.R"],
+      farCheek:A["zygion.L"],chin:A.menton,
+    },1);
+    const coords=(d:string)=>{
+      // SVG M/C/Q geometry is source-space x,y control-point pairs.
+      const numbers=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(numbers.length%2).toBe(0);
+      const xs=numbers.filter((_,i)=>i%2===0);
+      const ys=numbers.filter((_,i)=>i%2===1);
+      return {x0:Math.min(...xs),x1:Math.max(...xs),
+        y0:Math.min(...ys),y1:Math.max(...ys)};
+    };
+    const broad=glazes["malar-near"][0];
+    expect(broad.type).toBe("path");
+    expect((broad.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+    const b=coords(broad.d);
+    const width=b.x1-b.x0,height=b.y1-b.y0;
+    expect(width).toBeGreaterThan(14);
+    expect(height).toBeGreaterThan(width*.55);
+    expect(b.x0).toBeGreaterThan(119);
+    expect(b.x1).toBeLessThan(141);
+    expect(b.y0).toBeGreaterThan(105);
+    expect(b.y1).toBeLessThan(125);
+    expect(glazes["malar-near"].length).toBeGreaterThanOrEqual(5);
+    expect(glazes["malar-near"].slice(0,3)
+      .every(x=>x.fill==="$skinshade"&&(x.opacity??1)<.1)).toBe(true);
+    const all=readerFaceAnatomy(1);
+    const base=all.planes.find(x=>x.d.startsWith("M119.1 107.9"));
+    expect(base?.d).toContain("C134.6 121.5 130.5 120 127.1 117.9");
+    expect(base?.opacity).toBeLessThan(.08);
+    const paper=all.planes.find(x=>x.d.startsWith("M126.6 112.8"));
+    expect(paper).toMatchObject({fill:"$paper",opacity:.13});
+    const dorsal=all.nose.find(x=>x.d.includes("147.2 99.5"));
+    expect(dorsal?.opacity).toBeLessThan(.4);
+    expect(all.nose.some(x=>x.d.startsWith("M150.9 114.2"))).toBe(true);
+    expect(all.nose.length).toBeGreaterThanOrEqual(8);
+  });
   it("keeps pre-existing reader face contour, lip cels, ear and paint while adding optically nested washes",()=>{
     const original=scrollReaderFacePortrait(1);
     const anatomy=readerFaceAnatomy(1);
