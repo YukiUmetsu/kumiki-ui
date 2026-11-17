@@ -75,7 +75,7 @@ describe("RISO74 source-photo native pixels and honest Risograph microstructure 
     const checker=makeRgba(16,16,(x)=>x%2===0?
       [0,0,0,255]:[255,255,255,255]);
     const stats=inspectRiso74RasterPatch(checker);
-    expect(stats.originalSamplePixelCount).toBe(256);
+    expect(stats.sampleGridPoints).toBe(256);
     expect(stats.meanRgb).toEqual([127.5,127.5,127.5]);
     expect(stats.meanLuma).toBeCloseTo(127.5,6);
     expect(stats.lumaStandardDeviation).toBeCloseTo(127.5,6);
