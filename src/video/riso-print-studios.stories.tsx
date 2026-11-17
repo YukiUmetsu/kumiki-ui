@@ -14,6 +14,7 @@ import {RisoTopologyGuardStudio} from "./riso-topology-guard-studio";
 import {RisoMasterSeparationStudio} from "./riso-master-separation-studio";
 import {RisoPressDeliveryStudio} from "./riso-press-delivery-studio";
 import {RisoShopProofStudio} from "./riso-shop-proof-studio";
+import {RisoDrumPressureArtStudio} from "./riso75-drum-pressure-art-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -435,6 +436,12 @@ export const RisographPressDelivery:StoryObj<typeof RisoPressDeliveryStudio>={
 export const RisographShopScanProof:StoryObj<typeof RisoShopProofStudio>={
   name:"Risograph · Printer Profile and Scan Registration Lab",
   render:()=> <RisoShopProofStudio/>,
+};
+
+/** RISO75 artist-authored dual-drum paper-locked contact material; not a scanner QA UI. */
+export const RisographDrumContact:StoryObj<typeof RisoDrumPressureArtStudio>={
+  name:"Risograph · Native Ink Drum Contact",
+  render:()=> <RisoDrumPressureArtStudio/>,
 };
 
 const meta = {
