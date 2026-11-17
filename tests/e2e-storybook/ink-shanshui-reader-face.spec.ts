@@ -497,7 +497,12 @@ test("Ming face ArtCraft microscope keeps live malar and nasal wash at matched s
     await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("soft");
     await page.getByRole("combobox",{name:"Face mouth"}).selectOption("oh");
     await expect(studio.locator('[data-ink-reader-part="mouth"]')).toHaveCount(3);
-    await page.getByRole("slider",{name:"Face craftsmanship"}).fill("0.1");
+    const detail=page.getByRole("slider",{name:"Face craftsmanship"});
+    await detail.focus();
+    await detail.press("Home");
+    await detail.press("ArrowRight");
+    await detail.press("ArrowRight");
+    await expect(detail).toHaveValue("0.1");
     await expect(studio.locator('[data-km-ink-wash-native-face] path').first()).toBeVisible();
     await studio.screenshot({animations:"disabled",
       path:info.outputPath("reader-native-malar-nose-low-detail-soft-lids-oh.png")});
