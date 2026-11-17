@@ -8,7 +8,8 @@ import {CRAYON_PORTRAIT_AUDIT} from "../src/video/crayon-artcraft-portrait-audit
 import {CRAYON_F1_V38_SOURCE,CRAYON_F1_V38_HAIR_IDS,
   crayonF1CalibrateAnat1HairValues}
   from "../src/video/crayon-artcraft-f1-anat1-hair-value";
-import {Cc0Anat1HairValuesV38,Cc0Anat1HairCrownV38}
+import {Cc0Anat1HairValuesV38,Cc0Anat1HairCrownV38,
+  Cc0HairValueABV38,Cc0HairValueComparisonV38}
   from "../src/video/crayon-artcraft-adult-face.stories";
 const by=(a:readonly CrayonElement[],id:string)=>a.find(e=>e.id===id);
 const isHairFiber=(id:string)=>/^hair-rooted-(crown|left|right)-\d$/.test(id);
@@ -100,6 +101,21 @@ describe("F1 V38 ANAT1/CC0 photographed crown + face-occluding curtain native wa
     expect(()=>crayonF1CalibrateAnat1HairValues(native.elements.filter(e=>
       !e.id.startsWith("hair-rooted-right-")))).toThrow(RangeError);
   });
+
+  it("offers a true source-matched V37/V38 A/B without changing either scene",()=>{
+    expect(Cc0HairValueABV38.name).toContain("!dev");
+    const html=renderToStaticMarkup(<Cc0HairValueComparisonV38
+      aspect="portrait" detail={.2} expression="neutral"
+      headScaleY={.82} startFrame={299} playbackRate={1} loop={false}/>);
+    expect(html).toContain('data-km-crayon-hair-ab="unapproved"');
+    expect(html).toContain('data-km-crayon-hair-variant="v37"');
+    expect(html).toContain('data-km-crayon-hair-variant="v38"');
+    expect(html).toContain('aria-label="Shared hair comparison frame"');
+    expect(html).toContain('aria-label="Hair volume comparison region"');
+    expect(html).toContain('max="299"');
+    expect(html).not.toContain("<foreignObject");
+    expect(html).not.toContain("<image");
+  },40_000);
 
   it("preserves 300-frame paper tooth, real hair strokes and original !dev Storybook",()=>{
     expect(Cc0Anat1HairValuesV38.name).toContain("!dev");
