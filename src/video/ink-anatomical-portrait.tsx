@@ -157,11 +157,27 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
   const foreheadLeft=shift(browPoints[1],-5,-17),foreheadRight=shift(browPoints[browPoints.length-2],5,-17);
   const upperLip=feature("lips-upper"),lowerLip=feature("lips-lower");
   const mouthLine=feature("mouth-line");
-  // Jaw-drop and AU26 create a real two-rim fissure: upper inner vermilion
-  // stays anchored while the measured lower lip follows the EXPR1 mandibular
-  // displacement. Never leave a closed-mouth seam painted across open speech.
+  // Source-space oral fissure: borrow the EXPR1 stomion and mobile lower
+  // vermilion, but NEVER paint its entire multi-lip contour as a solid
+  // trapezoid. Delicate near/far labial ledges surround a narrow asymmetric
+  // cavity whose volume grows continuously with mandibular displacement.
+  const oral=q("stomion"),lowerOral=q("labiale-inferius");
+  const lipGap=clamp(features.mouthOpen,0,1.5);
+  const apertureWidth=clamp(3.3+lipGap*8.4,3.3,11.2);
+  const apertureHeight=clamp(1.9+(lowerOral[1]-oral[1])*.43,3.5,20);
+  const cavityTop:Point=[oral[0]+1.4,oral[1]-1.5];
+  const mouthCavityD="M"+xy(shift(cavityTop,-apertureWidth,2))
+    +" C"+xy(shift(cavityTop,-apertureWidth*.67,-2.8))
+    +" "+xy(shift(cavityTop,apertureWidth*.42,-2.3))
+    +" "+xy(shift(cavityTop,apertureWidth,1.6))
+    +" C"+xy(shift(cavityTop,apertureWidth*.89,apertureHeight*.6))
+    +" "+xy(shift(cavityTop,apertureWidth*.15,apertureHeight))
+    +" "+xy(shift(cavityTop,-apertureWidth*.15,apertureHeight))
+    +" C"+xy(shift(cavityTop,-apertureWidth*.69,apertureHeight*.83))
+    +" "+xy(shift(cavityTop,-apertureWidth*.94,apertureHeight*.31))
+    +" "+xy(shift(cavityTop,-apertureWidth,2))+" Z";
   const spokenMouthContour=features.mouthOpen>.012?
-    spline([...mouthLine,...lowerLip.slice(2,9).reverse()],true):spline(mouthLine);
+    mouthCavityD:spline(mouthLine);
   // A genuinely independently sculpted garment: elder open cross-lapel versus
   // scholar's wrapped collar, not the original Shanshui body's part assets.
   return <>
@@ -278,8 +294,14 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       {washes("R")}{washes("L")}
       <path d={spline(feature("nose-bridge"))} stroke={preset.bone}
         strokeWidth="9" strokeOpacity=".15" fill="none"/>
-      <path d={spline(feature("nose-base"))} stroke={preset.warm}
-        strokeWidth="5.2" strokeOpacity=".16" fill="none"/>
+      <path d={pathBetween(shift(q("alare.R"),-3,2),
+        shift(q("subnasale"),-12,6),shift(q("subnasale"),-4,7))}
+        stroke={preset.warm} strokeWidth="5.3" strokeOpacity=".12"
+        filter={"url(#"+uid+"-wash-feather)"} fill="none"/>
+      <path d={pathBetween(shift(q("subnasale"),4,7),
+        shift(q("subnasale"),12,4),shift(q("alare.L"),3,2))}
+        stroke={preset.bone} strokeWidth="4.5" strokeOpacity=".10"
+        filter={"url(#"+uid+"-wash-feather)"} fill="none"/>
       <path d={"M"+xy(shift(nose,-10,0))+" Q"+xy(shift(nose,-4,14))+" "+xy(shift(q("subnasale"),-5,5))}
         stroke={preset.bone} strokeWidth="2" opacity=".19" fill="none"/>
       <path d={"M"+xy(shift(menton,-48,-4))+" Q"+xy(shift(menton,0,-14))+" "+xy(shift(menton,50,-9))}
@@ -315,11 +337,20 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       {eyeInk("R")}{eyeInk("L")}
       <path d={spline(upperLip)} fill="none" stroke={preset.warm} opacity=".32" strokeWidth=".68"/>
       <path d={spline(lowerLip)} fill="none" stroke={preset.bone} opacity=".31" strokeWidth=".67"/>
-      {features.mouthOpen>.012&&<path data-km-ink-mouth-cavity="true"
-        d={spline([...upperLip.slice(3,9),...lowerLip.slice(3,9).reverse()],true)}
-        fill={preset.ink} opacity={clamp(.20+features.mouthOpen*.95,.2,.72)}/>}
+      {features.mouthOpen>.012&&<>
+        <path data-km-ink-mouth-cavity="true" d={mouthCavityD}
+          fill={preset.warm} opacity={clamp(.25+lipGap*.16,.25,.46)}/>
+        <path d={mouthCavityD} fill={preset.ink}
+          opacity={clamp(.12+lipGap*.12,.12,.30)}/>
+        <path d={pathBetween(
+          shift(cavityTop,-apertureWidth*.65,apertureHeight+.4),
+          shift(cavityTop,0,apertureHeight+2.4),
+          shift(cavityTop,apertureWidth*.62,apertureHeight+.5))}
+          fill="none" stroke={preset.warm} strokeWidth="1.4" opacity=".27"/>
+      </>}
       <path data-km-ink-mouth-line="true" d={spokenMouthContour} stroke={preset.ink}
-        strokeWidth=".76" opacity=".58" strokeLinecap="round" fill="none"/>
+        strokeWidth={lipGap>.012?.78:.68} opacity={lipGap>.012?.42:.48}
+        strokeLinecap="round" fill="none"/>
       <path d={"M"+xy(shift(q("sublabiale"),-12,4))+" Q"+xy(shift(q("sublabiale"),1,8))+" "+xy(shift(q("sublabiale"),13,1))}
         stroke={preset.bone} fill="none" strokeWidth=".64" opacity=".46"/>
       {marks.map(m=><g key={m.id} data-km-ink-action-mark={m.id}>
@@ -421,12 +452,11 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           {/** Isolated moustache-root clusters with actual hairline directions. */}
           {Array.from({length:18},(_,i)=>{
             const near=i<9,side=near?-1:1,k=i%9;
-            const corner=near?q("cheilion.R"):q("cheilion.L");
-            const x=corner[0]+side*(3+k*1.7);
-            const y=corner[1]-5+(k%3)*.38;
+            const x=q("subnasale")[0]+side*(4+k*1.4);
+            const y=q("stomion")[1]-8+(k%3)*.38;
             return <path key={"m"+i}
-              d={"M"+fmt(x)+" "+fmt(y)+" q"+fmt(side*(3+k*.2))
-                +" "+fmt(2.2+k*.1)+" "+fmt(side*(4+k*.45))+" "+fmt(5+(k%3)*1.3)}
+              d={"M"+fmt(x)+" "+fmt(y)+" q"+fmt(side*(2+k*.17))
+                +" "+fmt(2.1+k*.1)+" "+fmt(side*(4+k*.32))+" "+fmt(4.3+(k%3)*1.2)}
               fill="none" stroke={preset.ink}
               opacity={(i%4===0?.40:.25)*detail} strokeWidth={i%3===0?.70:.38}/>;
           })}
