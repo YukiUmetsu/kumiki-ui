@@ -146,17 +146,17 @@ export function crayonF1RefineNearTarsusV45(
     if(el.id==="lash-contact-near"){
       const sourceCount=(el.d.match(/M/g)??[]).length;
       const newMicroContacts=extraRootedLashes();
-      // Some Storybook controls use the original 10 sparse lashes,
-      // others the photographed 33-lash rooted-flow option. Both are
-      // authentic existing source controls; never silently force one.
-      // Appending 23 gives counts 33 and 56, respectively. A 33-count
+      // Raw base eye has 10 authored sparse strokes; the standard source-eye\n      // override has 16 original wax lashes. Some Storybook controls use
+      // the photographed 33-lash rooted-flow option. All three are
+      // existing library controls; never silently force one.
+      // Appending 23 gives counts 33, 39 or 56. A 33-count
       // *already applied V45* is distinguished by its exact terminal
       // micro-contact geometry to prevent destructive double re-ink.
       if(hasLashes||el.kind!=="contour"||el.parentId!=="face-outline"||
          el.clipToParent!==true||el.waxContact!=="dry-wax"||
-         (sourceCount!==10&&sourceCount!==33)||
+         (sourceCount!==10&&sourceCount!==16&&sourceCount!==33)||
          el.d.endsWith(" "+newMicroContacts))
-        throw new RangeError("Missing original sparse/rooted source eye lashes or V45 already applied");
+        throw new RangeError("Missing original raw/source-eye/rooted upper lashes or V45 already applied");
       hasLashes=true;
       return {...el,d:el.d+" "+newMicroContacts} satisfies Contour;
     }
