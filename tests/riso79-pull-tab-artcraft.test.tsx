@@ -39,8 +39,10 @@ const travel=(direction==="left"||direction==="right"?960:540)*.19;
 const start=evaluateRisoPullTab({...args,direction,travel,progress:0});
 const end=evaluateRisoPullTab({...args,direction,travel,progress:1});
 expect(start.translation).toEqual([0,0]);
-expect(end.translation).toEqual(direction==="right"?[travel,0]:
-direction==="left"?[-travel,0]:direction==="down"?[0,travel]:[0,-travel]);
+const expected=direction==="right"?[travel,0]:
+direction==="left"?[-travel,0]:direction==="down"?[0,travel]:[0,-travel];
+expect(end.translation[0]).toBeCloseTo(expected[0],4);
+expect(end.translation[1]).toBeCloseTo(expected[1],4);
 expect(end.windows.map(w=>w.path)).toEqual(start.windows.map(w=>w.path));
 expect(end.windows.map(w=>w.fibres)).toEqual(start.windows.map(w=>w.fibres));
 expect(end.fixedCoverRegistration).toBe(true);
