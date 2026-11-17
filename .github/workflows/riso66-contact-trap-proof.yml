@@ -1,0 +1,53 @@
+name: RISO66 native facing-edge trapping and paper-fibre ArtCraft proof
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/riso66-contact-trap-proof.yml"
+      - "registry/video/riso-dry-brush.ts"
+      - "registry/video/riso-contact-trap.ts"
+      - "registry.json"
+      - "src/video/riso-contact-trap-studio.tsx"
+      - "src/video/riso-print-studios.stories.tsx"
+      - "tests/riso66-contact-trap.test.tsx"
+      - "tests/e2e-storybook/riso66-contact-trap.spec.ts"
+      - "docs/research/riso66-native-contact-trap-artcraft.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: riso66-contact-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-native-contact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.15.0"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Exact TypeScript and source-native adjacent-stencil geometry
+        run: |
+          npm run typecheck
+          npm run test -- tests/riso66-contact-trap.test.tsx tests/riso65-registration-preflight.test.tsx tests/riso64-cinematic-film-artcraft.test.tsx tests/riso62-dry-brush-artcraft.test.tsx
+      - name: Registry, clean independent consumer install with new trap helper
+        run: |
+          npm run registry:validate
+          node scripts/registry-fixture.js --item=riso-print
+      - name: Build real interactive Storybook
+        run: npm run build-storybook
+      - run: npx playwright install --with-deps chromium
+      - name: Real 1x and 3x native print artifacts, both outputs and random seeks
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso66-contact-trap.spec.ts
+      - name: Preserve independent art review proof screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: riso66-native-contact-trapping-source-proof
+          path: test-results/
+          retention-days: 5
+          if-no-files-found: warn
