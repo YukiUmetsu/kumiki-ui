@@ -662,12 +662,12 @@ export function pencilObjectStudyDrawing({
       ...(subject==="rose"&&roseContactShadowStudy?[{
         title:"Leyth — Rose Blossom Closeup (self-published CC0 photograph, Commons)",
         url:"https://commons.wikimedia.org/wiki/File:Rose_Blossom_Closeup.jpg",
-        rights:"public-domain" as const,
+        rights:"technique-only" as const,
         observation:"The obliquely seen double rose has narrow asymmetric physical valleys where a raised upper petal masks the lower lamina; each lower face receives a localized chromatic penumbra rather than a universal dark outlined C arc. No exact specimen/cultivar match is claimed.",
       },{
         title:"chuttersnap — Silky red petals in close-up (2016 CC0 photo, Commons)",
         url:"https://commons.wikimedia.org/wiki/File:Silky_red_petals_in_close-up_(Unsplash).jpg",
-        rights:"public-domain" as const,
+        rights:"technique-only" as const,
         observation:"Deep wedge-like contact darkness follows real over-under curled edges and opens into broad softly reflected color. Photos are qualitative morphology, not licensed art traced into geometry.",
       }]:[]),
       ...(subject==="rose"&&roseCenterValueStudy?[{
