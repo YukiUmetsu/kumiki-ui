@@ -177,3 +177,127 @@ def shippable(learned: dict) -> dict:
                     "scripts/makeup/reference-labels.json). Aggregates only; the photographs are not redistributed.")
     out["face_shapes"] = FACE_SHAPES
     return out
+
+
+# ---- Before/after pairs ---------------------------------------------------------------------------------------------
+
+# the zones each kind of pair made up; every other zone measures the noise between two photos of the same bare skin.
+# A pair with no part label (or an unknown one) had makeup on the whole face.
+PART_ZONES = {"lips": {"lips"}, "eyes": {"lid", "crease", "outer-v", "liner", "lower-lash", "brow", "brow-bone"},
+              "skin": {"under-eye", "cheek-contour", "temple-contour", "jaw-contour", "nose-contour", "cheekbone-highlight", "nose-highlight",
+                       "forehead-highlight", "chin-highlight", "brow-bone", "blush-apples"}}
+MIN_PAIRS = 5  # fewer pairs give no stable median
+
+
+def paired_report(refs: str, shipped: dict | None = None) -> dict:
+    """Each person with makeup against the same person without: the zone colour change (observed, so each photo's own
+    skin is the reference), the facial contrast change and the skin's change, by the part that was made up. Zones a
+    pair did not make up give the noise floor. Beside them, the shipped (unpaired) effects, to check their direction
+    and size."""
+    by_pair: dict[str, dict] = {}
+    for b in load_blueprints(refs):
+        pid = b["labels"].get("pair")
+        if pid:
+            by_pair.setdefault(pid, {})["made" if b["labels"].get("makeup") else "bare"] = b
+    pairs = [(v["bare"], v["made"]) for _, v in sorted(by_pair.items()) if "bare" in v and "made" in v]
+    changed: dict[str, list] = {}
+    noise: dict[str, list] = {}
+    contrast: dict[str, dict] = {}  # part -> feature -> channel -> changes
+    skin: dict[str, dict] = {}  # part -> measure -> changes
+    for a, m in pairs:
+        part = a["labels"].get("part") or "face"
+        touched = PART_ZONES.get(part, set(a["zones"]))
+        for z, va in a["zones"].items():
+            vm = m["zones"].get(z, {})
+            if "observed" in va and "observed" in vm:
+                d = {k: vm["observed"][k] - va["observed"][k] for k in ZONE_KEYS}
+                (changed if z in touched else noise).setdefault(z, []).append(d)
+        for f in ("brows", "eyes", "lips"):
+            if f in a.get("contrast", {}) and f in m.get("contrast", {}):
+                for ch in ("L", "a", "b"):
+                    contrast.setdefault(part, {}).setdefault(f, {}).setdefault(ch, []).append(m["contrast"][f][ch] - a["contrast"][f][ch])
+        s = skin.setdefault(part, {"sd_L": [], "sd_a": [], "dL": [], "da": [], "db": []})
+        for k in ("sd_L", "sd_a"):
+            s[k].append(m["skin"]["evenness"][k] - a["skin"]["evenness"][k])
+        for i, k in enumerate(("dL", "da", "db")):
+            s[k].append(m["skin"]["lab"][i] - a["skin"]["lab"][i])
+    changed = {z: r for z, r in changed.items() if len(r) >= MIN_PAIRS}
+    noise = {z: r for z, r in noise.items() if len(r) >= MIN_PAIRS}
+    stat = lambda rows: {"n": len(rows)} | {k: _q([r[k] for r in rows]) for k in ZONE_KEYS}
+    parts = {p: len(s["dL"]) for p, s in skin.items()}
+    report = {
+        "schema": "kumiki.makeup.paired-report/1", "generated": date.today().isoformat(), "pairs": len(pairs), "parts": parts,
+        "licences": sorted({p[0]["source"].get("licence", "") for p in pairs}), "ship": False,
+        "changed": {z: stat(r) for z, r in changed.items()},
+        "noise": {z: stat(r) for z, r in noise.items()},
+        "contrast_change": {p: {f: {ch: _q(v) | {"n": len(v)} for ch, v in d.items()} for f, d in fs.items()}
+                            for p, fs in contrast.items() if parts[p] >= MIN_PAIRS},
+        "skin_change": {p: {k: _q(v) for k, v in s.items()} for p, s in skin.items() if parts[p] >= MIN_PAIRS},
+    }
+    # the noise floor: typical absolute change in zones nobody made up
+    floor = {k: round(float(np.median([abs(r[k]) for rows in noise.values() for r in rows])), 2) for k in ZONE_KEYS} if noise else {}
+    report["noise_floor_abs_median"] = floor
+    comparison = {}
+    if shipped:
+        for z, st in report["changed"].items():
+            e = shipped.get("effects", {}).get(z)
+            if e:
+                comparison[z] = {k: {"paired": st[k]["median"], "shipped": e[k]["median"],
+                                     "same_sign": (st[k]["median"] >= 0) == (e[k]["median"] >= 0)} for k in ZONE_KEYS}
+        c_ship = shipped.get("contrast", {})
+        for p, fs in report["contrast_change"].items():
+            for f, d in fs.items():
+                if f in c_ship.get("bare", {}) and f in c_ship.get("made_up", {}):
+                    comparison[f"contrast:{f}:{p}"] = {"paired_change_L": d["L"]["median"],
+                                                       "shipped_bare_to_made_L": round(c_ship["made_up"][f]["L"]["median"] - c_ship["bare"][f]["L"]["median"], 3)}
+    report["comparison"] = comparison
+    report["summary"] = {
+        "pairs by part": parts, "licences": report["licences"],
+        "changed (median dL*, da*, db*, n)": {z: [v["dL"]["median"], v["da"]["median"], v["db"]["median"], v["n"]] for z, v in report["changed"].items()},
+        "noise floor |d| (median over untouched zones)": floor,
+        "contrast change L*": {p: {f: d["L"]["median"] for f, d in fs.items()} for p, fs in report["contrast_change"].items()},
+        "comparison with the shipped data": comparison,
+    }
+    return report
+
+
+def paired_transfer(refs: str) -> dict:
+    """Phase 3 against the truth: each made-up blueprint painted (as an atlas plan) onto the same person's bare photo.
+    For the zones the pair made up: the CIEDE2000 from the real made-up photo, before (the bare photo) and after the
+    transfer. For the other zones: how far the transfer moved the bare colour (it should not). The plan ignores the
+    blueprint's labels, so it shows what an unreviewed reference carries over. Colours are compared as each photo's zone
+    colour against its own skin, put on the bare skin."""
+    from .analyze import analyze, prepare
+    from .color import delta_e2000
+    from .ingest import load_face, load_kept
+    from .paint import apply_plan, plan_from_blueprint
+
+    by_pair: dict[str, dict] = {}
+    for r in load_kept(refs):
+        if r["labels"].get("pair"):
+            by_pair.setdefault(r["labels"]["pair"], {})["made" if r["labels"].get("makeup") else "bare"] = r
+    bps = Path(refs) / "blueprints"
+    made_up: dict[str, dict] = {}
+    moved: dict[str, list] = {}
+    for v in by_pair.values():
+        if "bare" not in v or "made" not in v:
+            continue
+        bare = json.loads((bps / f"{v['bare']['id']}.blueprint.json").read_text())
+        made = json.loads((bps / f"{v['made']['id']}.blueprint.json").read_text())
+        rgb, lm, mask = load_face(refs, v["bare"])
+        out = analyze(prepare(apply_plan(prepare(rgb, lm, mask), plan_from_blueprint(made | {"labels": {}})), lm, mask), labels=v["bare"]["labels"])
+        skin = np.array(bare["skin"]["lab"], dtype=np.float64)
+        on_skin = lambda zone: skin + np.array([zone["observed"][k] for k in ZONE_KEYS])
+        touched = PART_ZONES.get(v["bare"]["labels"].get("part") or "face", set(bare["zones"]))
+        for z, zb in bare["zones"].items():
+            zm, zo = made["zones"].get(z, {}), out["zones"].get(z, {})
+            if not all("observed" in d for d in (zb, zm, zo)):
+                continue
+            if z in touched:
+                d = made_up.setdefault(z, {"before": [], "after": []})
+                d["before"].append(delta_e2000(on_skin(zb), on_skin(zm)))
+                d["after"].append(delta_e2000(on_skin(zo), on_skin(zm)))
+            else:
+                moved.setdefault(z, []).append(delta_e2000(on_skin(zo), on_skin(zb)))
+    return {"made_up": {z: {"n": len(d["after"]), "before": _q(d["before"]), "after": _q(d["after"])} for z, d in made_up.items() if len(d["after"]) >= MIN_PAIRS},
+            "moved_untouched": {z: _q(r) | {"n": len(r)} for z, r in moved.items() if len(r) >= MIN_PAIRS}}

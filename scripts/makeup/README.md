@@ -72,15 +72,45 @@ python3 -I scripts/makeup/makeup.py apply target.jpg --blueprint <...> --warp tp
 python3 -I scripts/makeup/makeup.py landmarks photo.jpg --out photo.json   # for the TypeScript paintPhoto
 ```
 
-`--warp atlas` (the default) turns the blueprint's zones into plan layers. Each layer takes the measured colour change,
-placement and finish. Effects that break product physics are dropped: contour must darken, highlight and concealer
-must lighten, blush must redden.
+`--warp atlas` (the default) turns the blueprint's zones into plan layers. Each layer is a film with its product's
+hide. The reference's made-up colour, laid over the colour that bare faces show in that zone (the prior), gives the
+pigment. The film puts that pigment over the target's own colour: an opaque lipstick covers the target's lips and a
+stain tints them. Each layer also takes the measured placement and finish.
+
+Effects that break product physics are dropped: contour must darken, highlight and concealer must lighten, blush must
+redden. The zones that the visual review excluded (`exclude_zones` in `reference-labels.json`) are not transferred.
+One photo cannot fully separate makeup from the person's own colouring and the photo's light. A reference with no eye
+makeup can still give eyeshadow and liner from its natural lid and lash-line darkness. Review each reference and list
+such zones in `exclude_zones`.
 
 `--warp mesh` carries the per-pixel effect through the shared mesh (piecewise affine). `--warp tps` carries it through
-a thin-plate spline on 86 landmarks. Both dense warps are denoised and gated, and they are still noisier than `atlas`.
+a thin-plate spline on 86 landmarks. With `--adapt relative`, both dense warps add the measured change in CIELAB,
+without a film. They are denoised and gated, and they are still noisier than `atlas`.
 
-`--adapt relative` (the default) keeps the change of colour relative to the target's own skin and lips. `--adapt
-pigment` lays the same pigment on the new skin.
+`--adapt relative` (the default) solves the pigment on the target's skin colour, so the look follows the target's skin
+and exposure. `--adapt pigment` lays the reference's pigment without a change.
+
+## Check against before/after pairs
+
+Photos of the same people with and without makeup test what unpaired references cannot: the person and, in one photo
+session, the light cancel out. Keep a set local when its licence does not let it ship.
+
+```sh
+python3 -I scripts/makeup/makeup.py ingest paired --root <set> --metadata <set>/pairs.csv --licence cc-by-nc-nd-4.0 --out work/pairs
+python3 -I scripts/makeup/makeup.py analyze work/pairs --prior work/learned.json
+python3 -I scripts/makeup/makeup.py pairs work/pairs --transfer --out local-assets/makeup/paired-validation.json
+```
+
+The CSV has one row per person. The columns `no_makeup` and `with_makeup` name the two photos, in the folders
+`no_makeup/` and `with_makeup/`. An optional column `part` names what was made up: lips, eyes or skin.
+
+`pairs` reports the change (made up minus bare) in each zone that the part covers. The other zones give the noise
+between two photos of one bare face. The report puts the change beside the shipped effects and contrast. `pairs` does
+not write under `registry/`.
+
+`--transfer` paints each made-up blueprint onto the same person's bare photo. It gives the CIEDE2000 from the real
+made-up photo before and after, and how far the transfer moved the zones that had no makeup. The plan ignores the
+reference's labels, so the second number shows what an unreviewed reference carries over.
 
 ## Files
 

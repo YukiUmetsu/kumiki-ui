@@ -11,6 +11,7 @@
   # Phase 2: blueprints, then what many references teach
   python3 -I scripts/makeup/makeup.py analyze <work>/refs [--prior <work>/learned.json] [--overlays]
   python3 -I scripts/makeup/makeup.py learn   <work>/refs --out <work>/learned.json [--ship registry/anatomy/data/makeup-learned.json]
+  python3 -I scripts/makeup/makeup.py pairs   <work>/pairs --out local-assets/makeup/paired-validation.json [--transfer]   # before/after check
 
   # Phase 3: paint a blueprint (transfer) or a plan (from the TypeScript designMakeup) onto a new face
   python3 -I scripts/makeup/makeup.py apply <target.jpg> --blueprint <ref>.blueprint.json --out out.png [--warp atlas|mesh|tps] [--adapt pigment|relative]
@@ -40,6 +41,8 @@ def _records(a) -> object:
         return sources.folder(a.root, a.licence, a.credit or "", made)
     if a.adapter == "openverse":
         return sources.openverse(a.query, a.downloads, a.licences, a.limit, True if a.makeup in ("yes", "unknown") else False)
+    if a.adapter == "paired":
+        return sources.paired(a.root, a.metadata, a.licence, a.credit or "")
     if a.adapter == "ffhq":
         return sources.ffhq(a.root, a.metadata)
     if a.adapter == "celebahq":
@@ -171,6 +174,28 @@ def cmd_learn(a):
         print(f"wrote {a.ship} (licences that may ship only)")
 
 
+def cmd_pairs(a):
+    """Before/after pairs of the same people: what makeup changed, the measurement noise, and the shipped data beside
+    them. The result derives from the pairs' licence, so it is written outside the library."""
+    from kumiki_makeup.learn import paired_report
+
+    out = Path(a.out).resolve()
+    if (Path(__file__).resolve().parents[2] / "registry") in out.parents:
+        raise SystemExit("pairs: write the report outside registry/ (it derives from the pairs' licence, which may not ship)")
+    shipped = json.loads(Path(a.compare).read_text()) if a.compare else None
+    report = paired_report(a.refs, shipped)
+    if a.transfer:
+        from kumiki_makeup.learn import paired_transfer
+
+        report["transfer"] = paired_transfer(a.refs)
+        report["summary"]["transfer dE00 to the made-up photo (before, after, n)"] = {
+            z: [d["before"]["median"], d["after"]["median"], d["n"]] for z, d in report["transfer"]["made_up"].items()}
+        report["summary"]["transfer dE00 moved where nothing was made up"] = {z: d["median"] for z, d in report["transfer"]["moved_untouched"].items()}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(report, indent=1))
+    print(json.dumps(report["summary"], indent=1))
+
+
 def cmd_apply(a):
     from kumiki_makeup.paint import apply_file
 
@@ -184,10 +209,10 @@ def main():
     sub = p.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("ingest", help="Phase 1: licence-gated ingestion, landmarks, quality, alignment")
-    s.add_argument("adapter", choices=["frl-london", "folder", "openverse", "ffhq", "celebahq", "mt"])
+    s.add_argument("adapter", choices=["frl-london", "folder", "paired", "openverse", "ffhq", "celebahq", "mt"])
     s.add_argument("--root")
-    s.add_argument("--metadata", help="ffhq-dataset-v2.json (ffhq) or list_attr_celeba.txt (celebahq)")
-    s.add_argument("--licence", default="unknown", help="folder adapter: the folder's licence id (see sources.LICENCES)")
+    s.add_argument("--metadata", help="ffhq-dataset-v2.json (ffhq), list_attr_celeba.txt (celebahq) or the pairs CSV (paired)")
+    s.add_argument("--licence", default="unknown", help="folder and paired adapters: the set's licence id (see sources.LICENCES)")
     s.add_argument("--credit")
     s.add_argument("--makeup", choices=["yes", "no", "unknown"], default="unknown")
     s.add_argument("--query", default="makeup portrait")
@@ -228,6 +253,14 @@ def main():
     s.add_argument("--ship", help="also write the shippable subset (CC0/PDM/US-Gov/CC BY sources only) here")
     s.add_argument("--labels", help="visual-review labels (default scripts/makeup/reference-labels.json)")
     s.set_defaults(fn=cmd_learn)
+
+    s = sub.add_parser("pairs", help="Phase 2: validate against before/after pairs of the same people (local report)")
+    s.add_argument("refs")
+    s.add_argument("--compare", default=str(Path(__file__).resolve().parents[2] / "registry" / "anatomy" / "data" / "makeup-learned.json"),
+                   help="the shipped learned data to compare with")
+    s.add_argument("--out", required=True, help="the report (outside registry/: it derives from the pairs' licence)")
+    s.add_argument("--transfer", action="store_true", help="also paint each made-up blueprint onto the same person's bare photo and compare")
+    s.set_defaults(fn=cmd_pairs)
 
     s = sub.add_parser("apply", help="Phase 3: paint a blueprint or a plan onto a face")
     s.add_argument("target")

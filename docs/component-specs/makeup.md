@@ -100,10 +100,12 @@ Finishes change roughness and specular strength. Shimmer and glitter add mirror 
 changes lash length, thickness and darkness. The designer's blend modes (multiply, normal, screen, soft light) are also
 available.
 
-**Photographs.** `paintPhoto` separates a smooth colour layer from the photo's detail (frequency separation). All
+**Photographs.** `paintPhoto` separates a smooth colour layer from the photo's detail (frequency separation). The
 luminance variation (form, pores, fine lines) stays with the light layer, so makeup changes colour and value, not the
-skin's surface. The Python pipeline has a fuller light model. It fits ambient-occluded spherical harmonics plus the key
-light's cast shadow, from the mesh itself (see `scripts/makeup/README.md`).
+skin's surface. Lips and brows are darker than the skin by their own colour, so their darkness stays in their colour.
+A film covers their true colour and takes the light of the skin around them. The Python pipeline has a fuller light
+model. It fits ambient-occluded spherical harmonics plus the key light's cast shadow, from the mesh itself (see
+`scripts/makeup/README.md`).
 
 ## What was learned (Python pipeline, `data/makeup-learned.json`)
 
@@ -143,8 +145,11 @@ The licence gate keeps CC0, PDM, US-Gov and CC BY by default. Research-only sets
 ## Limits
 
 - **One photo cannot fully separate makeup from light and colour grading.** The light model and the bare prior remove
-  most natural shading. The product-physics gate drops measured "effects" that break their product's direction. Dense
-  per-pixel transfer (`--warp mesh|tps`) is still noisier than the parametric default.
+  most natural shading. The product-physics gate drops measured "effects" that break their product's direction. A
+  reference's own lid and lash-line darkness can still read as eyeshadow and liner. List such zones in the
+  reference's `exclude_zones`, and the transfer leaves them out. Dense per-pixel transfer (`--warp mesh|tps`) is still
+  noisier than the parametric default. `makeup.py pairs --transfer` measures a transfer against the real made-up photo
+  of the same person.
 - **The bare prior comes from studio-lit faces** (Face Research Lab London Set). Zones that cast shadow in directional
   light (under the jaw, temples, eye sockets) carry some lighting bias.
 - **The learned set is small** (17 made-up portraits from stock photographs). It shows directions, not effect sizes.

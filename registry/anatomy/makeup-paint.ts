@@ -166,6 +166,19 @@ export function paintPhoto(photo: PhotoFace, plan: MakeupPlan): Uint8ClampedArra
   for (let i = 0; i < n; i += 3) if (m[i] && notSkin.every(f => f(restAt(i)) < 0.15)) samples.push([lowS[i * 3] / mS[i], lowS[i * 3 + 1] / mS[i], lowS[i * 3 + 2] / mS[i]]);
   const med = (k: number) => { const v = samples.map(s => s[k]).sort((p, q) => p - q); return v[Math.floor(v.length / 2)] ?? 0.3; };
   const base: RGB = [med(0), med(1), med(2)], yBase = Math.max(1e-4, lum(base));
+  // Lips and brows are darker than the skin by their own colour, not by the light. Their mean luminance against the
+  // skin around them goes back into their albedo, so a film covers their true colour and is lit like the skin there.
+  const feature = ["lips", "brow"].map(z => zoneField(z, rest));
+  const fw = new Float32Array(n), wF = new Float32Array(n), sF = new Float32Array(n), wS = new Float32Array(n), sS = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    if (!m[i]) continue;
+    const p = restAt(i), f = Math.min(1, Math.max(feature[0](p), feature[1](p)));
+    // each pixel's own luminance (not the smooth layer's) and each side's core, so the edge mixes neither into the other
+    const S = lum([lin[i * 3], lin[i * 3 + 1], lin[i * 3 + 2]]) / yBase;
+    fw[i] = f; wF[i] = f ** 4; sF[i] = S * wF[i]; wS[i] = (1 - f) ** 4; sS[i] = S * wS[i];
+  }
+  const sigBroad = Math.max(1, 0.35 * ewPx);
+  const [bF, bWF, bS, bWS] = [sF, wF, sS, wS].map(a => gaussianBlur(a, W, H, 1, sigBroad));
   const adapted: MakeupPlan = { ...plan, skin: { ...plan.skin, lab: linearToLab(base) } };
   const paint = makeupPaint(adapted);
   paint.prepare!(rest);
@@ -174,8 +187,10 @@ export function paintPhoto(photo: PhotoFace, plan: MakeupPlan): Uint8ClampedArra
   for (let i = 0; i < n; i++) {
     if (!m[i]) continue;
     const low = [lowS[i * 3] / mS[i], lowS[i * 3 + 1] / mS[i], lowS[i * 3 + 2] / mS[i]], yl = Math.max(1e-5, lum(low));
-    // all luminance variation stays with the light layer (form, pores); the albedo keeps the pixel's chroma at the skin's value
-    const S = yl / yBase;
+    // the luminance variation goes to the light layer (form, pores). The albedo keeps the pixel's chroma at the skin's
+    // value, or at the feature's own value on lips and brows.
+    const own = fw[i] > 1e-3 ? Math.min(1.5, Math.max(0.1, (bF[i] / Math.max(1e-6, bWF[i])) / Math.max(1e-6, bS[i] / Math.max(1e-6, bWS[i])))) : 1;
+    const S = yl / yBase / (1 + (own - 1) * fw[i]);
     for (let k = 0; k < 3; k++) { s.albedo[k] = low[k] / S; s.film[k] = 0; }
     s.roughness = 0.45; s.specular = 1; s.sparkle = 0; s.tint = null;
     const p = restAt(i);

@@ -4,6 +4,8 @@ Every image enters as a Record that names its licence. Only licences on the allo
 (CelebA-HQ, MT, FFHQ's NC images) need an explicit opt-in, and anything learned from them is marked not to ship.
 
 Recommended sets (see scripts/makeup/README.md for the reasons and the licence notes):
+  paired       before/after photos of the same people (for example Unique Data's Makeup Detection sample,
+               CC BY-NC-ND 4.0, local validation only)                                     -> paired
   bare faces   Face Research Lab London Set (102 faces, attractiveness ratings, CC BY 4.0)  -> frl-london
                FFHQ, the images whose own Flickr licence is CC0, PDM or US-Gov               -> ffhq (licence-filtered)
   with makeup  CC0 / public-domain portraits found through Openverse                          -> openverse
@@ -32,6 +34,7 @@ LICENCES = {
     "cc-by-sa-4.0": {"ship": True, "redistribute": False, "attribution": True},
     "cc-by-nc-2.0": {"ship": False, "redistribute": False, "attribution": True},
     "cc-by-nc-sa-4.0": {"ship": False, "redistribute": False, "attribution": True},
+    "cc-by-nc-nd-4.0": {"ship": False, "redistribute": False, "attribution": True},
     "research-only": {"ship": False, "redistribute": False, "attribution": True},
     "unknown": {"ship": False, "redistribute": False, "attribution": True},
 }
@@ -112,6 +115,26 @@ def frl_london(root: str) -> Iterator[Record]:
                      url="https://doi.org/10.6084/m9.figshare.5047666.v5",
                      labels={"makeup": False, "age": int(meta["face_age"]) if meta.get("face_age") else None, "gender": meta.get("face_gender"),
                              "ethnicity": meta.get("face_eth"), "attractiveness": round(sum(rs) / len(rs), 4) if rs else None, "raters": len(rs)})
+
+
+def paired(root: str, metadata: str, licence: str, credit: str = "", bare_dir: str = "no_makeup", made_dir: str = "with_makeup") -> Iterator[Record]:
+    """Before/after photos of the same people. The CSV (comma, semicolon or tab) has one row per person: the bare
+    photo (column no_makeup, in bare_dir), the made-up photo (column with_makeup, in made_dir) and optional part,
+    gender, age and country. Each record is labelled with its pair, so 'pairs' compares each person with themself:
+    the person and, when the two photos share a session, the light cancel out."""
+    base = Path(root)
+    lines = Path(metadata).read_text(encoding="utf-8").splitlines()
+    dialect = csv.Sniffer().sniff(lines[0], delimiters=",;\t")
+    for k, row in enumerate(csv.DictReader(lines, dialect=dialect)):
+        pid = f"{base.name}-{k}"
+        common = {key: row[key] for key in ("part", "gender", "country") if row.get(key)}
+        if row.get("age", "").strip().isdigit():
+            common["age"] = int(row["age"])
+        for col, sub, made in (("no_makeup", bare_dir, False), ("with_makeup", made_dir, True)):
+            p = base / sub / row[col]
+            if _is_image(p):
+                yield Record(id=f"pair-{pid}-{'made' if made else 'bare'}", path=str(p), source=f"paired:{base.name}", licence=licence, credit=credit,
+                             labels={"makeup": made, "pair": pid, **common})
 
 
 _FFHQ_LICENCE = {"Public Domain Mark": "pdm-1.0", "Public Domain Dedication (CC0)": "cc0-1.0", "United States Government Work": "us-gov",

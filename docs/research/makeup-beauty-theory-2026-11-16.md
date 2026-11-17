@@ -67,9 +67,15 @@ convention. They are graded so.
 - **Gate transfers by product physics.** One photo cannot fully separate makeup from light and colour grading. A first
   dense transfer carried orange, green and purple patches from the reference's light. The default transfer is now
   parametric (zone colour, placement and finish as plan layers). Contour must darken, highlight and concealer must
-  lighten, and blush must redden. Lipstick is relative to the target's own lips.
+  lighten, and blush must redden. Lipstick goes over the target's own lips.
 - **Keep relief under paint.** Foundation first flattened the light on the cheeks. Real foundation evens colour more
-  than form. The film now keeps 85% of the luminance relief it covers.
+  than form. A film's pigment now takes 85% of the luminance relief under it. The relief is measured within the film's
+  own cover: the darkness of the lips against the skin is their colour, not relief.
+- **Lay a transfer as a film.** The first transfer added the measured change in CIELAB to the target's lips. When the
+  target's lips differed from the bare average, it counted their colour twice. The transfer now solves the product's
+  pigment over the bare prior. Then it lays that pigment with the product's hide over the target's own colour. A local
+  before/after check found this (`makeup.py pairs --transfer`: the same people with and without makeup). The check's
+  photos and results do not ship.
 
 ## What the renders changed
 
@@ -82,11 +88,16 @@ convention. They are graded so.
 | Contour mostly on the turned-away side of ANAT1's narrower face | Its front end brought forward toward the iris (it still stops before it) |
 | Face-chart numbers stacked on the nose | One number per zone on its own side, moved apart where they would overlap |
 | Lipstick read as a flat sticker | Relief kept under the film |
+| A lipstick transfer counted the target's own lip colour twice (too red on red lips, too yellow on yellow lips) | The pigment solved over the bare prior and laid with the product's hide |
+| Transferred lipstick came out darker than on the reference | The relief measured within the film's cover, not against the skin around the lips |
+| `paintPhoto` darkened lipstick and brow colour by the bare feature's own darkness | The feature's darkness kept in its colour, and the film lit like the skin around it |
+| A reference with glasses gave eyeshadow from the frames | The transfer leaves out the review's `exclude_zones` |
 
 ## Limits
 
 - The prior comes from studio-lit faces. Directional light leaves some shadow in the jaw, temple and socket zones.
 - 17 made-up references show directions, not effect sizes. Different people and cameras sit in the two groups.
+- A transfer from one reference can carry the reference's own lid and lash-line darkness as eyeshadow and liner.
 - Exploratory correlations: 18 features per sex, n = 49 and 53.
 - Undertone classes and face-shape classes are estimates and conventions.
 - No human visual review yet.

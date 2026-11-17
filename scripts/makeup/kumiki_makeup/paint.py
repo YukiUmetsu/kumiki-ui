@@ -82,16 +82,17 @@ def pigment_for(apparent_lin: np.ndarray, skin_lin: np.ndarray, hide: float) -> 
     return np.clip(apparent_lin / np.maximum(1e-4, hide + (1 - hide) * skin_lin), 0, 1)
 
 
-def film(low: np.ndarray, layers: list[tuple[np.ndarray, np.ndarray, float, str]]) -> tuple[np.ndarray, np.ndarray]:
-    """Composite pigment films over the smooth albedo. Each layer: (strength per pixel, pigment, hide, blend).
-    Returns the new smooth albedo and the hiding share per pixel (for the detail layer)."""
+def film(low: np.ndarray, layers: list[tuple[np.ndarray, np.ndarray, float, str, np.ndarray]]) -> tuple[np.ndarray, np.ndarray]:
+    """Composite pigment films over the smooth albedo. Each layer: (strength per pixel, pigment, hide, blend, form).
+    What a film lets through keeps the skin's own relief. What it hides becomes its pigment, lit by 'form' (the relief
+    under it). Returns the new smooth albedo and the hiding share per pixel (for the detail layer)."""
     out = low.copy()
     hid = np.zeros(low.shape[:-1])
-    for w, m, h, blend in layers:
+    for w, m, h, blend, form in layers:
         w3 = w[..., None]
         if blend in ("film", "multiply", "normal"):
             hh = 0.0 if blend == "multiply" else 1.0 if blend == "normal" else h
-            out = out * ((1 - w3) + w3 * (1 - hh) * m) + w3 * hh * m
+            out = out * ((1 - w3) + w3 * (1 - hh) * m) + w3 * hh * m * form[..., None]
             hid = 1 - (1 - hid) * (1 - w * hh)
         elif blend == "screen":
             out = 1 - (1 - out) * (1 - w3 * m)
@@ -128,24 +129,20 @@ def finish_change(dec: dict, wmap: np.ndarray, finish: str, coverage: float, see
     return out
 
 
-def relief(face: Face, dec: dict, broad_ew: float = 0.35) -> np.ndarray:
-    """Luminance relief of the smooth layer against a broad blur (the lips' volume, light on the cheek apples):
-    form the coarse shading model misses. Paint follows form, so a film keeps it."""
-    on = (face.tri >= 0).astype(np.float64)
+def relief(face: Face, dec: dict, cover: np.ndarray, broad_ew: float = 0.35) -> np.ndarray:
+    """Luminance relief of the smooth layer within a film's cover (the lips' volume, light on the cheek apples): form
+    the coarse shading model misses. Paint follows form, so a film keeps it. The broad average is taken over the
+    cover only: the darkness of lips or brows against the skin around them is their colour, not relief."""
+    wgt = (face.tri >= 0) * cover
     y = dec["low"] @ LUMA
     sig = max(1.0, broad_ew * dec["ew_px"])
-    broad = cv2.GaussianBlur(y * on, (0, 0), sig) / np.maximum(1e-6, cv2.GaussianBlur(on, (0, 0), sig))
-    return np.where(on > 0, np.clip(y / np.maximum(1e-6, broad), 0.6, 1.5), 1.0)
+    broad = cv2.GaussianBlur(y * wgt, (0, 0), sig) / np.maximum(1e-6, cv2.GaussianBlur(wgt, (0, 0), sig))
+    return np.where(wgt > 1e-3, np.clip(y / np.maximum(1e-6, broad), 0.6, 1.5), 1.0)
 
 
 def recompose(face: Face, dec: dict, low_new: np.ndarray, hidden: np.ndarray, shine: np.ndarray) -> np.ndarray:
-    """New sRGB image: smooth albedo (with the form's relief kept under the film) x detail (thinned by what the film
-    hides) x the face's own light + shine."""
+    """New sRGB image: smooth albedo x detail (thinned by what the film hides) x the face's own light + shine."""
     on = face.tri >= 0
-    # the film replaced the smooth layer's luminance relief in proportion to what it hides: put 85% of it back,
-    # so foundation evens colour more than it flattens form and lipstick keeps the lips' volume
-    R = relief(face, dec)
-    low_new = low_new * (R ** (0.85 * hidden))[..., None]
     keep = 1 - 0.55 * hidden  # opaque film thins fine colour detail; relief stays
     D = dec["D"] ** keep[..., None]
     alb_new = low_new * D
@@ -160,7 +157,9 @@ def recompose(face: Face, dec: dict, low_new: np.ndarray, hidden: np.ndarray, sh
 def resolve_colour(layer: dict, skin_lin: np.ndarray, hide: float) -> np.ndarray:
     """A layer's pigment. 'lab' or 'hex' is the product's colour over white; 'relative' {dL, da, db} is how the
     product should look at full strength against the skin (or, with "to": "zone", against the zone's own colour,
-    which apply_plan passes in as skin_lin: lips, brows)."""
+    which apply_plan passes in as skin_lin: lips, brows). 'over' {dL, da, db}, against the skin, is the colour that
+    the 'relative' look was laid over (a blueprint's bare prior): the pigment is solved over it, so the film lays the
+    same product over the target's own colour."""
     c = layer.get("colour", {})
     if "pigment" in c:
         return np.clip(np.array(c["pigment"], dtype=np.float64), 0, 1)
@@ -169,9 +168,11 @@ def resolve_colour(layer: dict, skin_lin: np.ndarray, hide: float) -> np.ndarray
     if "hex" in c:
         h = c["hex"].lstrip("#")
         return C.srgb_to_linear(np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)]) / 255.0)
-    rel = c.get("relative", {})
-    lab = C.linear_to_lab(skin_lin) + np.array([rel.get("dL", 0), rel.get("da", 0), rel.get("db", 0)])
-    return pigment_for(np.clip(C.lab_to_linear(lab), 0, 1), skin_lin, hide)
+    rel, over = c.get("relative", {}), c.get("over", {})
+    skin_lab = C.linear_to_lab(skin_lin)
+    lab = skin_lab + np.array([rel.get("dL", 0), rel.get("da", 0), rel.get("db", 0)])
+    under = np.clip(C.lab_to_linear(skin_lab + np.array([over.get("dL", 0), over.get("da", 0), over.get("db", 0)])), 0, 1)
+    return pigment_for(np.clip(C.lab_to_linear(lab), 0, 1), under, hide)
 
 
 def apply_plan(face: Face, plan: dict, strength: float = 1.0) -> np.ndarray:
@@ -193,7 +194,9 @@ def apply_plan(face: Face, plan: dict, strength: float = 1.0) -> np.ndarray:
             if core.sum() > 20:
                 base = np.median(dec["low"][core], axis=0)
         m = resolve_colour(L, base, hide)
-        layers.append((w, m, hide, L.get("blend", "film")))
+        # 85% of the relief under the film lights its pigment: foundation evens colour more than it flattens form,
+        # and lipstick keeps the lips' volume
+        layers.append((w, m, hide, L.get("blend", "film"), relief(face, dec, w) ** 0.85))
         fin = L.get("finish", prod.get("finish"))
         if fin:
             shine += finish_change(dec, w, fin, 1.0, np.nan_to_num(face.U[..., :2]))
@@ -268,15 +271,20 @@ def _plausible(product: str, e: dict) -> bool:
 
 
 def plan_from_blueprint(bp: dict, adapt: str = "relative", min_delta: float = 2.0, max_shift: float = 0.25) -> dict:
-    """A reference's blueprint as a plan: one layer per zone whose measured effect is clear (CIE76 >= min_delta), with
-    the effect as the layer's colour (relative, or as the same pigment on the reference's skin), the measured finish,
-    and the zone moved toward where the reference's makeup actually sat (clamped to max_shift eye widths)."""
+    """A reference's blueprint as a plan: one layer per zone whose measured effect is clear (CIE76 >= min_delta), the
+    measured finish, and the zone moved toward where the reference's makeup actually sat (clamped to max_shift eye
+    widths). Each layer is a film: the reference's made-up colour, laid over what bare faces show in that zone (the
+    prior), gives the product's pigment. The film puts it over the target's own colour with the product's hide, so an
+    opaque lipstick covers the target's lips and a stain tints them. 'relative' solves the pigment on the target's
+    skin, 'pigment' on the reference's skin."""
     products = atlas()["products"]
-    skin_lin = C.lab_to_linear(np.array(bp["skin"]["lab"], dtype=np.float64))
+    skin_lab = np.array(bp["skin"]["lab"], dtype=np.float64)
+    prior = bp.get("prior_used") or {}
+    left_out = set(bp.get("labels", {}).get("exclude_zones", []))  # the visual review's zones to leave out (glasses, hair)
     layers = []
     for zid, z in bp["zones"].items():
         eff = z.get("effect")
-        if not eff or zid not in atlas()["by_id"]:
+        if not eff or zid not in atlas()["by_id"] or zid in left_out:
             continue
         if math.sqrt(eff["dL"] ** 2 + eff["da"] ** 2 + eff["db"] ** 2) < min_delta:
             continue
@@ -284,12 +292,14 @@ def plan_from_blueprint(bp: dict, adapt: str = "relative", min_delta: float = 2.
         if not _plausible(prod, eff):
             continue
         hide = products.get(prod, {}).get("hide", 0.5)
+        made = {k: z["observed"][k] for k in ("dL", "da", "db")}
+        bare = {k: prior[zid][k] for k in ("dL", "da", "db")} if zid in prior else {"dL": 0, "da": 0, "db": 0}
         if adapt == "pigment":
-            app = np.clip(C.lab_to_linear(np.array(bp["skin"]["lab"]) + np.array([eff["dL"], eff["da"], eff["db"]])), 0, 1)
-            colour = {"pigment": [round(float(v), 5) for v in pigment_for(app, skin_lin, hide)]}
+            app = np.clip(C.lab_to_linear(skin_lab + np.array(list(made.values()))), 0, 1)
+            under = np.clip(C.lab_to_linear(skin_lab + np.array(list(bare.values()))), 0, 1)
+            colour = {"pigment": [round(float(v), 5) for v in pigment_for(app, under, hide)]}
         else:
-            # relative to the zone's own bare colour: a lipstick darkens the lips, not the skin
-            colour = {"relative": dict(eff), "to": "zone"}
+            colour = {"relative": made, "over": bare}
         layer = {"zone": zid, "product": prod, "colour": colour, "coverage": 1.0}
         sides = list((z.get("placement") or {}).values())
         if sides:
@@ -311,8 +321,9 @@ def apply_blueprint(face: Face, ref: Face, bp: dict, prior: dict | None, warp: s
     delta, where = effect_maps(ref, prior)
     mag = np.linalg.norm(delta, axis=-1)
     delta = delta * np.clip(1 - denoise / np.maximum(1e-6, mag), 0, 1)[..., None]
+    left_out = set(bp.get("labels", {}).get("exclude_zones", []))
     clear = [zid for zid, z in bp["zones"].items() if z.get("effect") and math.sqrt(sum(v * v for v in z["effect"].values())) >= min_delta
-             and zid in atlas()["by_id"] and _plausible(atlas()["by_id"][zid]["product"], z["effect"])]
+             and zid in atlas()["by_id"] and zid not in left_out and _plausible(atlas()["by_id"][zid]["product"], z["effect"])]
     if clear:
         gate = np.maximum.reduce(list(zone_maps(ref, clear).values()))
         where = where * gate
@@ -350,7 +361,7 @@ def apply_blueprint(face: Face, ref: Face, bp: dict, prior: dict | None, warp: s
         hide = 0.5
         m = np.clip(app / np.maximum(1e-4, hide + (1 - hide) * ref_skin), 0, 1)
         w3 = w_t[..., None]
-        low_new = dec["low"] * ((1 - w3) + w3 * (1 - hide) * m) + w3 * hide * m
+        low_new = dec["low"] * ((1 - w3) + w3 * (1 - hide) * m) + w3 * hide * m * (relief(face, dec, w_t) ** 0.85)[..., None]
         hidden = w_t * hide
     shine = np.zeros(face.lin.shape)
     for zid, f in bp.get("finish", {}).items():

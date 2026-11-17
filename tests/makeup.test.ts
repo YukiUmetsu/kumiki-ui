@@ -91,9 +91,21 @@ describe("MAKEUP1 paint", () => {
     // a synthetic frontal photo: the canonical face, 1.1 px per mm, centred
     const landmarks = CANON.map(([x, y, z]) => [W / 2 + x * 1.1, H / 2 - y * 1.1 + 6, -z * 1.1]);
     const out = paintPhoto({ width: W, height: H, data, landmarks }, plan);
-    const at = (p: Vec3) => { const x = Math.round(W / 2 + p[0] * 1.1), y = Math.round(H / 2 - p[1] * 1.1 + 6), i = (y * W + x) * 4; return [out[i], out[i + 1], out[i + 2]]; };
-    const lip = at(CANON[17].map((v, k) => (v + CANON[14][k]) / 2) as Vec3);
+    const at = (o: Uint8ClampedArray, p: Vec3) => { const x = Math.round(W / 2 + p[0] * 1.1), y = Math.round(H / 2 - p[1] * 1.1 + 6), i = (y * W + x) * 4; return [o[i], o[i + 1], o[i + 2]]; };
+    const lc = CANON[17].map((v, k) => (v + CANON[14][k]) / 2) as Vec3;
+    const lip = at(out, lc);
     expect(lip[0] - lip[1]).toBeGreaterThan(70);
     expect(Array.from(out.slice(0, 4))).toEqual([205, 160, 135, 255]);
+    // an opaque lipstick looks the same over light and dark bare lips: their darkness is their colour, not the light
+    const outline = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146].map(i => landmarks[i]);
+    const inLips = (x: number, y: number) => outline.reduce((c, [xa, ya], a) => {
+      const [xb, yb] = outline[(a + 1) % outline.length];
+      return (ya > y) !== (yb > y) && x < ((xb - xa) * (y - ya)) / (yb - ya) + xa ? !c : c;
+    }, false);
+    const dark = data.slice();
+    for (let i = 0; i < W * H; i++) if (inLips((i % W) + 0.5, Math.floor(i / W) + 0.5)) dark.set([140, 80, 80], i * 4);
+    const opaque = { ...plan, layers: plan.layers.filter(l => l.zone === "lips").map(l => ({ ...l, blend: "normal" as const, coverage: 1 })) };
+    const [overLight, overDark] = [data, dark].map(d => at(paintPhoto({ width: W, height: H, data: d, landmarks }, opaque), lc));
+    overLight.forEach((v, k) => expect(Math.abs(v - overDark[k]), `channel ${k}`).toBeLessThanOrEqual(3));
   });
 });
