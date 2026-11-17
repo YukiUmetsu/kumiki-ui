@@ -94,14 +94,22 @@ async({page},info)=>{
   await page.getByRole("combobox",{name:"RISO72 synchronized zoom"})
     .selectOption("3");
   await expect(comparison).toHaveAttribute("data-km-riso72-zoom","3");
+  // Source-faithful A/B: the test image is a captured BLUE native master.
+  // Compare blue with blue first, before proving red remains independent.
+  await comparison.screenshot({
+    path:info.outputPath("riso72-blue-source-to-blue-photo-fixture-3x.png"),
+    animations:"disabled",
+  });
   await page.getByRole("combobox",{name:"RISO72 original spot ink"})
     .selectOption("red");
   await expect(comparison.locator('[data-km-riso72-original-master="red"]'))
     .toHaveCount(1);
   await comparison.screenshot({
-    path:info.outputPath("riso72-native-red-master-vs-rectified-image-3x.png"),
+    path:info.outputPath("riso72-independent-red-master-vs-blue-test-fixture-3x.png"),
     animations:"disabled",
   });
+  await page.getByRole("combobox",{name:"RISO72 original spot ink"})
+    .selectOption("blue");
   await page.getByRole("combobox",{name:"RISO72 inspection mode"})
     .selectOption("overlaid");
   await expect(comparison).toHaveAttribute("data-km-riso72-mode","overlaid");
