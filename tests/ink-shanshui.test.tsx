@@ -2996,6 +2996,68 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(at145).not.toMatch(/NaN|Infinity|undefined/);
   });
 
+  it("cuts an opt-in Fuchun waterfall through physically layered rock, not two opaque white tubes",()=>{
+    const stage=(seed:number,study:boolean,frame=145,detail=1,
+      inkSchool:"fuchun"|"travelers"="fuchun")=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool,seed,detail,
+          fuchunNearShoulderStudy:study},
+      }));
+    const baseline=stage(71,false),studied=stage(71,true),
+      changedSeed=stage(87,true),late=stage(71,true,215);
+    expect(baseline).toBe(stage(71,false));
+    expect(studied).toBe(stage(71,true));
+    expect(baseline).not.toContain('data-km-waterfall-study=');
+    expect(studied).toContain(
+      'data-km-waterfall-study="fuchun-eroded-channel"');
+    expect((studied.match(/data-km-waterfall-bank="(?:left|right)"/g)??[]))
+      .toHaveLength(2);
+    expect((studied.match(/data-km-waterfall-rock-cheek=""/g)??[]))
+      .toHaveLength(4);
+    expect((studied.match(/data-km-waterfall-rock-edge=""/g)??[]))
+      .toHaveLength(4);
+    expect((studied.match(/data-km-waterfall-fibre=""/g)??[]))
+      .toHaveLength(8);
+    expect((studied.match(/data-km-waterfall-impact=""/g)??[]))
+      .toHaveLength(9);
+    expect((studied.match(/data-km-waterfall-ribbon=""/g)??[]))
+      .toHaveLength(0);
+    expect(studied).toContain('data-km-waterfall-reserve=""');
+    expect(studied).toContain('data-km-waterfall-pool=""');
+    expect(studied).toContain('data-km-waterfall-shelf=""');
+    expect(studied).toContain(
+      'data-km-waterfall-source-flow-axis="M364 316 C373 345 344 405 340 439"');
+    const roots=[...studied.matchAll(
+      /data-km-waterfall-fibre="" data-km-waterfall-fibre-source="([^"]+)" data-km-waterfall-fibre-tip="([^"]+)" d="([^"]+)"/g,
+    )];
+    expect(roots).toHaveLength(8);
+    for(const [,start,tip,path] of roots){
+      const a=start.split(",").map(Number),b=tip.split(",").map(Number);
+      expect(a.every(Number.isFinite)).toBe(true);
+      expect(b.every(Number.isFinite)).toBe(true);
+      expect(path).toMatch(/^M/);
+      expect(b[1]).toBeGreaterThan(a[1]);
+      expect(b[1]-a[1]).toBeLessThan(15);
+    }
+    // Film time moves only light surface flicks, not the original water
+    // trajectory or either supporting geological rock mass.
+    const invariant=(html:string)=>
+      [...html.matchAll(/data-km-waterfall-rock-source="([^"]+)"/g)]
+        .map(m=>m[1]);
+    expect(invariant(studied)).toEqual(invariant(late));
+    expect(invariant(studied)).toEqual(invariant(changedSeed));
+    expect(roots.map(x=>x[3])).not.toEqual([...changedSeed.matchAll(
+      /data-km-waterfall-fibre="" data-km-waterfall-fibre-source="[^"]+" data-km-waterfall-fibre-tip="[^"]+" d="([^"]+)"/g,
+    )].map(x=>x[1]));
+    expect(stage(71,true,145,0)).not.toContain("data-km-waterfall-impact");
+    // The new waterfall is a local Fuchun fidelity study, never an
+    // accidental global change to the other ink painting masters.
+    expect(stage(71,true,145,1,"travelers")).toBe(
+      stage(71,false,145,1,"travelers"));
+    expect(studied).not.toMatch(/NaN|Infinity|undefined/);
+  });
+
   it("samples the same final absolute frame for reduced-motion scenery and actor",()=>{
     for(const requestedFrame of [0,88,200,299]){
       const html=renderToStaticMarkup(createElement(InkShanshuiFilm,{
