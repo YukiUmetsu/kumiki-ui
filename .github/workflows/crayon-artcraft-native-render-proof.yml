@@ -1,8 +1,10 @@
 name: Crayon ArtCraft source-native browser proof
 
-# PR checks exercise V41 photographed face/hair overlap and exact V40 negative control.
-# Earlier V29-V37 archival browser proofs remain available manually.
-# No video/FFmpeg/full Storybook/legacy tests or deleted test files.
+# PR checks exercise current V52 source baseline, V54 upper-lid and V56 hair
+# hypotheses plus the independent photo-SSIM proof. Rejected V51/V53 and
+# all prior experimental versions remain in source tests, available via manual
+# workflow_dispatch; do not repeatedly replay the historical 8+ spec suite.
+# No FFmpeg/full Storybook/legacy tests or deleted test files.
 on:
   pull_request:
     paths:
@@ -75,7 +77,7 @@ jobs:
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
-          --grep "F1 V48|F1 V49|F1 V50|F1 V51|F1 V52|F1 V53|F1 V54|F1 V56"
+          --grep "F1 V52|F1 V54|F1 V56"
       - name: Score exact original CC0 against V52/V54 real native Chromium pixels
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
