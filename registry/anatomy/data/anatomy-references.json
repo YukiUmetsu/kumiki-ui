@@ -698,6 +698,101 @@
     "credit": "Own work",
     "date": "1/1/25"
    }
+  },
+  {
+   "id": "skin-closeup",
+   "file": "assets/photos/anatomy-references/skin-closeup.jpg",
+   "region": "skin",
+   "title": "Young skin close up under a raking light.",
+   "study": [
+    "Primary furrows crossing in three directions into triangles and rhombi, finer secondary lines between them (SKIN_REGIONS: three primary families, three secondary).",
+    "Each plateau is a little domed and catches the light; a fine vellus hair lies along the skin."
+   ],
+   "source": {
+    "title": "File:Human skin close-up.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Human_skin_close-up.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Human_skin_close-up.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Montavius Howard (TongCreator), from Pixabay",
+    "credit": "Pixabay archive copy at the Wayback Machine",
+    "date": "2017-01-18 22:11:18"
+   }
+  },
+  {
+   "id": "skin-hand-macro",
+   "file": "assets/photos/anatomy-references/skin-hand-macro.jpg",
+   "region": "skin",
+   "title": "The back of a hand at macro scale.",
+   "study": [
+    "A coarser, deeper network than the face's, crossed by folds over the bones and tendons.",
+    "A glossy sheen on the plateaus."
+   ],
+   "source": {
+    "title": "File:Hand skin closeup.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Hand_skin_closeup.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Hand_skin_closeup.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Clump",
+    "credit": "Own work",
+    "date": "2020-12-06"
+   }
+  },
+  {
+   "id": "skin-old",
+   "file": "assets/photos/anatomy-references/skin-old.jpg",
+   "region": "skin",
+   "title": "Old skin: deep furrows and crêpe.",
+   "study": [
+    "With age the primary furrows deepen and widen while the secondary lines thin out (reported in replica studies): the network becomes coarse cushions.",
+    "Larger folds cross the network."
+   ],
+   "source": {
+    "title": "File:OldSkin.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:OldSkin.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/0/07/OldSkin.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "https://commons.wikimedia.org/wiki/User:F%C3%A6",
+    "credit": "https://www.flickr.com/photos/cogdog/5227755871/",
+    "date": "2023-06-10"
+   }
+  },
+  {
+   "id": "skin-freckles",
+   "file": "assets/photos/anatomy-references/skin-freckles.jpg",
+   "region": "skin",
+   "title": "Freckles across the nose and cheeks.",
+   "study": [
+    "Many small irregular tan spots of uneven strength, densest across the cheekbones and the nose where the sun falls (frecklesAt).",
+    "Pores show on the nose."
+   ],
+   "source": {
+    "title": "File:Freckles on dutch girl face (Unsplash).jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Freckles_on_dutch_girl_face_(Unsplash).jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/6/64/Freckles_on_dutch_girl_face_%28Unsplash%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Lotte Meijer lottemeijer",
+    "credit": "https://unsplash.com/photos/bZxvkmfoVDY\n\narchive copy at the Wayback Machine",
+    "date": "2016-09-13"
+   }
+  },
+  {
+   "id": "skin-old-hand",
+   "file": "assets/photos/anatomy-references/skin-old-hand.jpg",
+   "region": "skin",
+   "title": "An old hand.",
+   "study": [
+    "Knuckle folds, raised veins and the crêpe of thin skin over the back of the hand.",
+    "Wrinkles concentric over the finger joints (SKIN_REGIONS knuckle)."
+   ],
+   "source": {
+    "title": "File:Hand-351277.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Hand-351277.jpg",
+    "original": "https://upload.wikimedia.org/wikipedia/commons/8/88/Hand-351277.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+    "licence": "CC0",
+    "artist": "Witizia (original picture), modification: Mielon",
+    "credit": "http://pixabay.com/en/hand-elderly-woman-wrinkles-351277/",
+    "date": "2014-02-01 13:46:19"
+   }
   }
  ]
 }

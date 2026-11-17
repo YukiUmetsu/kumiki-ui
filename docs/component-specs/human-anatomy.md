@@ -7,16 +7,17 @@ length/stature for age), `anatomy-measure.ts` (tape-measure sections, ANSUR-name
 `anatomy-view.ts` (camera, `HumanFrame`, contours, terminators, software rasteriser, `projectPoint`),
 `anatomy-face.ts` (3D face study, landmarks, feature loops, facial norms), `anatomy-hair.ts` (hair data, strand
 generator, hair rendering, brows and lashes), `hair-groom.ts` (groomed hairstyles and bangs, strand renderer),
-`eye-detail.ts` (eye shapes, iris colours and the iris's structure),
+`eye-detail.ts` (eye shapes, iris colours and the iris's structure), `skin-texture.ts` and `skin-texture-react.tsx`
+(skin texture by region and age),
 `anatomy-color.ts` (skin, hair and iris colour; colour science), `anatomy-reference.ts` (ANSUR access,
 regressions, canon checks, surface forms, age changes, drawing recipe), `anatomy-react.tsx` (`HumanFigure` reference
 painter), `data/*` (baked tables and licences). Binary body model: `assets/models/anatomy/human-body-lattice.bin`
-(2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (33 public-domain/CC0 plates and
-photographs, 11 of them eyes).
+(2.6 MB, 1.3 MB gzipped). Reference images: `assets/photos/anatomy-references/` (38 public-domain/CC0 plates and
+photographs: 11 of eyes, 5 of skin).
 **Storybook:** Video production → Art Foundations → Human Anatomy → **Lab**, **Population line-up**, **Turnaround**,
 **Pose library** (+ front/side QA), **Hand poses**, **Face lab**, **Head angles**, **Range of motion**, **Any style**,
 **Proportions and ranges**, **Reference board**, **Hair lab**, **Hairstyles**, **Bangs (fringes)**, **Hair on the
-posable body**, **Eye lab**, **Eye shapes**, **Iris colours**, **Hair types and colours**, **Skin, hair and eye colour**,
+posable body**, **Eye lab**, **Eye shapes**, **Iris colours**, **Skin texture by region**, **Hair types and colours**, **Skin, hair and eye colour**,
 **Beautiful faces**, **Portrait lab**
 **Status:** implemented; agent review of Chromium screenshots only — **human visual review not recorded**. This is a
 construction and reference framework. It does **not** certify a finished realistic portrait or pencil drawing: those
@@ -189,7 +190,10 @@ Shading:
 - **Ambient occlusion** from 22 directions.
 - **Subsurface scattering:** the d'Eon & Luebke six-Gaussian skin profile.
 - **Specular:** a GGX dielectric with F₀ 0.028, oilier in the T-zone.
-- **Regional skin colour** (`SKIN_ZONES`).
+- **Regional skin colour** (`SKIN_ZONES`), with uneven tone that grows with age.
+- **Skin texture by region and age** (`skin-texture.ts`): furrows, pores and fine wrinkles bend the normal and
+  darken the furrows, faded by the pixel's size; the face's age lines and folds (`faceWrinkles`); age spots and
+  freckles.
 - **Eyes:** ray-traced eyeballs:
   - the iris from `eye-detail.ts`, lit like the face round it and brighter opposite the light;
   - a sclera pinker toward the corners;
@@ -209,6 +213,7 @@ Options:
 - eyes: an `IRIS_TYPES` id (`eyes`, and `eyesRight` for complete heterochromia), the pupil's diameter (`pupil`, mm),
   an `EYE_SHAPES` id (`eyeShape`);
 - `framing`: "eyes" for a close-up of both eyes and brows;
+- `age` (years; default 30) and `freckles` (0–1);
 - hair: melanin, a `HAIRSTYLES` id ("long", "short" and "bob" are kept as aliases), and `fringe`, `parting`,
   `hairStrands`, `hairLength`, `hairCurl` and `hairGrey` to override the style;
 - expression, yaw (±25°), key light;
@@ -263,6 +268,35 @@ ring, a pupillary ruff and freckles.
 - the limbal ring and the ruff.
 
 `EYE_EVIDENCE` lists the graded findings. The eye photographs are on the Reference board under "eyes".
+
+## Skin texture by region (`skin-texture.ts`)
+
+([research note](../research/skin-texture-2026-11-16.md))
+
+**`SKIN_REGIONS`** (13): forehead, nose, cheek, chin, eyelids, crow's feet, upper lip, neck, back of the hand,
+knuckles, palm, fingertip and forearm. Each has:
+- pores (density, size);
+- a furrow network (spacing, depth, anisotropy, direction);
+- fine wrinkles or creases, papillary ridges;
+- vellus hair, sheen and redness.
+
+The anchors are reported (sources in `SKIN_EVIDENCE`):
+- primary furrows 30–100 µm deep, secondary 5–40 µm;
+- cheek pores at 10–80 per cm² (Flament et al. 2015), larger on the nose and forehead;
+- vellus hair 439/cm² on the forehead;
+- with age the furrows grow fewer and deeper.
+
+**`skinSurface(region, x, y, { age, footprint, seed })`** gives the height, darkening and redness at a point:
+- primary lines in three crossing families (triangles and rhombi), finer secondary lines, domed plateaus;
+- pores as oval pits;
+- wandering, branching wrinkles, and ridges that end and fork (a loop on a fingertip);
+- detail finer than about two pixels faded out.
+
+Also:
+- `faceWrinkles` (forehead, glabella, crow's feet, under-eye, nasolabial and marionette folds, neck);
+- `ageSpotsAt` and `frecklesAt`; `blendSkinRegions`;
+- `renderSkinSwatch` (a region at macro scale under a raking light, with near-surface and subsurface scattering, a
+  sheen and vellus hairs), and `SkinSwatchView` / `SkinRegionsSheet` in React.
 
 ## Groomed hair (`hair-groom.ts`)
 

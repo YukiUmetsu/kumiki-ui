@@ -16,6 +16,7 @@ find it: `npm run catalog:find -- --query="hair"` (or "skin colour", "pose", "fa
 | Hair, brows, lashes | `anatomy-hair.ts` | `growHair`, `renderHairSegments`, `faceHair`, `CURL_TYPES`, `HAIR_GROUPS`, `HAIR_FACTS` |
 | Groomed hairstyles and bangs, rendered strands | `hair-groom.ts` | `groomHair`, `HAIRSTYLES`, `FRINGES`, `renderHairStrands`, `hairDensityMap`, `scalpCover`, `partLine`, `HAIR_PHYSICS` |
 | Eye shapes and iris colours | `eye-detail.ts` | `EYE_SHAPES`, `applyEyeShape`, `IRIS_TYPES`, `irisAlbedo`, `EYE_EVIDENCE`, `EYE_REFERENCES` |
+| Skin texture by region and age | `skin-texture.ts`, `skin-texture-react.tsx` | `SKIN_REGIONS`, `skinSurface`, `faceWrinkles`, `frecklesAt`, `ageSpotsAt`, `renderSkinSwatch`, `SkinSwatchView`, `SkinRegionsSheet` |
 | A rendered portrait | `face-portrait.ts`, `face-portrait-react.tsx` | `renderPortrait`, `FacePortrait`, `beautifulFace` (`face-beauty.ts`) |
 | Skin, hair and eye colour | `anatomy-color.ts` | `MONK_SKIN_TONES`, `skinShade`, `skinRamp`, `skinZoneColor`, `SKIN_SCATTERING`, `hairColorHex`, `HAIR_COLOR_PRESETS`, `IRIS_COLORS` |
 | Measured ranges, canon checks, surface anatomy | `anatomy-reference.ts` | `ANSUR`, `predictFromStature`, `CANON_CHECKS`, `SURFACE_FORMS`, `AGE_CHANGES`, `DRAWING_RECIPE`, `MODEL_TABLES` |

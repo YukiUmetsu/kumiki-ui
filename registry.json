@@ -3754,6 +3754,16 @@
           "target": "components/anatomy/eye-detail.ts"
         },
         {
+          "path": "registry/anatomy/skin-texture.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/skin-texture.ts"
+        },
+        {
+          "path": "registry/anatomy/skin-texture-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/skin-texture-react.tsx"
+        },
+        {
           "path": "registry/anatomy/anatomy-face.ts",
           "type": "registry:ui",
           "target": "components/anatomy/anatomy-face.ts"

@@ -92,6 +92,7 @@ import { renderPortrait } from "../registry/anatomy/face-portrait";
 import { FRINGES, HAIRSTYLES, findHairStyle, groomHair, partLine, scalpCover } from "../registry/anatomy/hair-groom";
 import type { HairGroom } from "../registry/anatomy/hair-groom";
 import { EYE_SHAPES, IRIS_TYPES, findIris, irisAlbedo } from "../registry/anatomy/eye-detail";
+import { SKIN_REGIONS, faceWrinkles, findSkinRegion, renderSkinSwatch, skinSurface } from "../registry/anatomy/skin-texture";
 import { eyeCentres, FACE_LANDMARKS } from "../registry/anatomy/anatomy-face";
 import { createRaster, fft2, fillPolygon, gaussianBlur, strokePolyline } from "../registry/anatomy/foundation-raster";
 
@@ -185,6 +186,26 @@ describe("ANAT1 beautiful faces and portraits", () => {
     expect(IRIS_TYPES.length).toBeGreaterThanOrEqual(14);
     const p = renderPortrait({ sex: 0, width: 120, height: 52, supersample: 1, framing: "eyes", eyes: "blue", eyeShape: "round", hairStrands: 1500 });
     expect(p.rgba.length).toBe(120 * 52 * 4);
+  });
+  it("skin: textured by region, deeper with age, pores where they are, detail fading by the pixel, wrinkles with age", () => {
+    const grid = (id: string, age: number, fp = 0.03, f: "height" | "darken" = "height") => { const r = findSkinRegion(id), v: number[] = []; for (let j = 0; j < 40; j++) for (let i = 0; i < 40; i++) v.push(skinSurface(r, i * 0.2, j * 0.2, { age, footprint: fp, seed: 2 })[f]); return v; };
+    const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length, sd = (v: number[]) => { const m = mean(v); return Math.sqrt(mean(v.map(x => (x - m) ** 2))); };
+    expect(skinSurface(findSkinRegion("cheek"), 3.1, 4.2, { age: 40, seed: 3 })).toEqual(skinSurface(findSkinRegion("cheek"), 3.1, 4.2, { age: 40, seed: 3 }));
+    // furrows deepen with age (replica studies)
+    expect(sd(grid("back-of-hand", 70))).toBeGreaterThan(sd(grid("back-of-hand", 25)) * 1.3);
+    // pores darken the nose more than the forearm
+    expect(mean(grid("nose", 30, 0.03, "darken"))).toBeGreaterThan(mean(grid("forearm", 30, 0.03, "darken")));
+    // detail finer than about two pixels fades out (no aliasing at portrait scale)
+    expect(sd(grid("back-of-hand", 70, 3))).toBeLessThan(sd(grid("back-of-hand", 70)) * 0.05);
+    // wrinkles: none at 20, some at 70
+    const f = { browY: 50, hairlineY: 90, eyeY: 27, outerCorner: 46, neckTop: -100, alar: [17, -1] as [number, number], mouth: [24, -30] as [number, number] };
+    let young = 0, old = 0;
+    for (let y = -40; y < 85; y += 1.5) for (let x = -60; x < 60; x += 1.5) { young = Math.min(young, faceWrinkles(x, y, 20, f, 1)); old = Math.min(old, faceWrinkles(x, y, 70, f, 1)); }
+    expect(young).toBe(0);
+    expect(old).toBeLessThan(-0.1);
+    expect(SKIN_REGIONS.length).toBeGreaterThanOrEqual(13);
+    const sw = renderSkinSwatch({ region: "palm", age: 40, width: 40, height: 30 });
+    expect(sw.rgba.length).toBe(40 * 30 * 4);
   });
   it("raster foundation: polygon coverage, blur, strokes and FFT round trip", () => {
     let cov = 0;
