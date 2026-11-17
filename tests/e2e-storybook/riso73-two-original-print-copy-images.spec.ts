@@ -121,6 +121,8 @@ async({page},info)=>{
   await expect(micro).toHaveAttribute("data-km-riso74-loaded","true");
   await expect(micro.locator("[data-km-riso74-measured-stats]")).toBeVisible();
   await expect(micro.locator("[data-km-riso74-swatch]")).toHaveCount(2);
+  await expect(micro.locator("[data-km-riso74-paper-locator]")).toHaveCount(2);
+  await expect(micro).toContainText("44% / 92.4 mm");
   await micro.screenshot({
     path:info.outputPath("riso74-actual-low-resolution-warning-and-raw-photo-swatches.png"),
     animations:"disabled",
