@@ -710,10 +710,13 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
           type:"path",fill:old[i].fill,stroke:old[i].stroke,
           strokeWidth:old[i].strokeWidth,opacity:old[i].opacity,
         });
+        if(warped[i].type!=="path"||old[i].type!=="path")
+          throw Error("Active anatomical lip must remain a path");
         expect(warped[i].d).not.toEqual(old[i].d);
       }
       // The long neutral 14px line must now lie ABOVE the speaking
       // negative space, not bisecting its apparent opening.
+      if(warped[2].type!=="path")throw Error("Upper lip is not source path");
       const upper=warped[2].d;
       expect(upper).toContain(state==="oh"?"M140.65 125.45":"M136.3 124.82");
       const originalFace=scrollReaderFacePortrait(1);
