@@ -507,7 +507,7 @@ export function PencilFoundationStudio(){
           onChange={e=>setRoseContactShadowStudy(e.target.checked)}/>
         FLORA1 five nested rose petal contacts / source-clipped color and shadow A/B (unapproved)
       </label>}
-      {specimen==="rose"&&roseContactShadowStudy&&<a
+      {specimen==="rose"&&<a
         href="https://commons.wikimedia.org/wiki/File:Rose_Blossom_Closeup.jpg"
         target="_blank" rel="noreferrer" style={{fontSize:12}}>
         CC0 botanical photo reference (Leyth) — qualitative comparison, not a photograph-matched cultivar
