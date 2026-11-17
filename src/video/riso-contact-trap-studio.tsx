@@ -4,6 +4,7 @@ import {RisoDryBrushInk} from "../../registry/video/riso-dry-brush-react";
 import {createRisoBrushGeometry,risoBrushInkPath} from "../../registry/video/riso-dry-brush";
 import type {RisoBrushOptions,RisoBrushPoint} from "../../registry/video/riso-dry-brush";
 import {createRisoContactTrap} from "../../registry/video/riso-contact-trap";
+import {createGuardedRisoContactTrap} from "../../registry/video/riso-stencil-topology";
 import {risoExampleSpec} from "./riso-print-demo";
 import type {RisoAspect} from "./riso-print-demo";
 
@@ -70,16 +71,19 @@ export interface Riso66PanelProps {
   master:"both"|"blue"|"red";
   zoom:number;
   id:"before"|"after";
+  /** RISO67 opt-in fail-closed actual SVG topology audit. */
+  topologyGuard?:boolean;
 }
 export function Riso66Panel({aspect,frame,seed,registered,enabled,maximumGap,
-  extension,overlap,grain,master,zoom,id}:Riso66PanelProps){
+  extension,overlap,grain,master,zoom,id,topologyGuard=false}:Riso66PanelProps){
   const art=riso66Source(aspect,frame,seed);
   const blue=createRisoBrushGeometry(art.blue);
   const red=createRisoBrushGeometry(art.red);
-  const trap=createRisoContactTrap(blue,red,{
-    side:"positive",maximumGap,
-    maximumExtension:enabled?extension:0,overlap,
-  });
+  const trapOptions={side:"positive" as const,maximumGap,
+    maximumExtension:enabled?extension:0,overlap};
+  const trap=topologyGuard
+    ? createGuardedRisoContactTrap(blue,red,trapOptions)
+    : createRisoContactTrap(blue,red,trapOptions);
   const source=risoExampleSpec(aspect,seed);
   const spec={...source,plates:source.plates.map(plate=>({
     ...plate,color:plate.id==="blue"?cobalt:vermilion,
@@ -115,6 +119,9 @@ export function Riso66Panel({aspect,frame,seed,registered,enabled,maximumGap,
     data-km-riso66-runs={trap.contactRuns}
     data-km-riso66-matched={trap.matchedStations}
     data-km-riso66-expanded={trap.expandedStations}
+    data-km-riso67-guard={topologyGuard?
+      ("accepted" in trap && trap.accepted?"accepted":"rejected"):"off"}
+    data-km-riso67-paper-holes={trap.geometry.dryPaths.length}
     style={{margin:0,minWidth:0}}>
     <figcaption style={{font:"700 14px system-ui",marginBottom:8}}>
       {id==="before"?"Original adjacent spot inks · no trapping":
