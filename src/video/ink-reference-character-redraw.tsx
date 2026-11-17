@@ -9,6 +9,7 @@
  * Reference study: docs/research/chinese-ink-anatomical-portrait-rebuild-2026-11-17.md
  */
 import {useId,useMemo} from "react";
+import type {CSSProperties} from "react";
 import {
   createFace,FACE_FEATURES,FACE_LANDMARKS,faceFeatureLines,measureFace,
   eyeCentres,
@@ -34,7 +35,7 @@ export interface InkReferenceCharacterRedrawProps {
   intensity?:number;
   detail?:number;
   className?:string;
-  style?:React.CSSProperties;
+  style?:CSSProperties;
 }
 
 /** The two identities are independently measured raw-mesh studies, not ethnicity presets. */
@@ -328,9 +329,9 @@ export function InkReferenceCharacterRedraw({
         const lip=f.id.startsWith("lips")||f.id==="mouth-line";
         return <path key={f.id+"-"+i} data-km-anat1-feature={f.id}
           d={f.d} fill="none" stroke={lip?"#735847":palette.ink}
-          strokeWidth={brow?1.02:eye?.78:nose?.62:lip?.58:.48}
+          strokeWidth={brow?1.02:eye? .78:nose? .62:lip? .58:.48}
           strokeLinecap="round" strokeLinejoin="round"
-          opacity={brow?.62:eye?.76:nose?.52:lip?.72:.5}/>;
+          opacity={brow? .62:eye? .76:nose? .52:lip? .72:.5}/>;
       })}
       {g.irises.map(eye=><g key={eye.side} data-km-anat1-iris={eye.side}>
         <ellipse cx={eye.x} cy={eye.y} rx={eye.rx} ry={eye.ry}
@@ -345,7 +346,7 @@ export function InkReferenceCharacterRedraw({
         fill="none" stroke={palette.ink}
         strokeWidth={.35+mark.strength*.48}
         strokeLinecap="round"
-        opacity={mark.strength*(character==="elder"?.48:.31)*detail}/>)}
+        opacity={mark.strength*(character==="elder" ? .48:.31)*detail}/>)}
     </g>
     {faceHair(character,g,uid,detail)}
     <g data-km-ink-reference-fine-planes="jaw-neck-collar">
