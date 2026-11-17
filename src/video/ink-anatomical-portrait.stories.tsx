@@ -1,5 +1,6 @@
 import {useEffect,useState} from "react";
 import {InkAnatomicalPortraitFilm,INK_ANAT2_PROOF_FRAMES} from "./ink-anatomical-portrait-film";
+import {InkAnatomicalStandingFigure} from "./ink-anatomical-standing-figure";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {InkAnatomicalPortrait,INK_PORTRAIT_CHARACTERS,INK_PORTRAIT_EMOTIONS,
   inkPortraitAnatomy} from "./ink-anatomical-portrait";
@@ -421,6 +422,7 @@ function NativeActorFilmProof(){
   const [reduced,setReduced]=useState(false);
   const [character,setCharacter]=useState<InkPortraitCharacter>("scholar");
   const [emotion,setEmotion]=useState<Exclude<InkPortraitEmotion,"neutral">>("smile");
+  const [figureMode,setFigureMode]=useState<"standing"|"bust">("standing");
   useEffect(()=>{
     if(!playing)return;
     if(reduced||window.matchMedia("(prefers-reduced-motion: reduce)").matches){
@@ -449,7 +451,9 @@ function NativeActorFilmProof(){
       Genuine 96-frame opt-in scene: ANAT2 original scholar or elder appears
       as a transparent source-space ink actor over the registered Shanshui
       atmosphere and behind actual painterly foreground, with a single
-      deterministic 24-fps EXPR1 facial cue, body sway and breathing.
+      deterministic 24-fps EXPR1 facial cue, planted sandals, breathing and
+      independent cloth/staff motion. The previous bust remains available
+      as a negative-control comparison.
       This is a cinematographic comparison stage, not proof of historical
       likeness or a replacement for the existing production actor.
     </p>
@@ -459,6 +463,14 @@ function NativeActorFilmProof(){
           style={selectStyle} onChange={e=>{setPlaying(false);
             setCharacter(e.target.value as InkPortraitCharacter)}}>
           {INK_PORTRAIT_CHARACTERS.map(c=><option key={c}>{c}</option>)}
+        </select>
+      </label>
+      <label style={field}>Native figure framing
+        <select aria-label="Ink ANAT2 film framing" value={figureMode}
+          style={selectStyle} onChange={e=>{setPlaying(false);
+            setFigureMode(e.target.value as "standing"|"bust")}}>
+          <option value="standing">Standing · planted sandals and staff</option>
+          <option value="bust">Original cropped bust · negative control</option>
         </select>
       </label>
       <label style={field}>Expression
@@ -482,7 +494,7 @@ function NativeActorFilmProof(){
     </div>
     <div style={{width:960,maxWidth:"100%",overflowX:"auto"}}>
       <InkAnatomicalPortraitFilm frame={frame} character={character}
-        emotion={emotion} reducedMotion={reduced}/>
+        emotion={emotion} reducedMotion={reduced} figureMode={figureMode}/>
     </div>
     <label style={{...field,marginTop:16,width:960,maxWidth:"100%"}}>
       Native video frame {frame}/{INK_ANAT2_PROOF_FRAMES-1}
