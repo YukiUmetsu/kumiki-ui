@@ -1,7 +1,7 @@
 import {clamp01,printHash} from "./print-plates";
 
-/** RISO79: one die-cut printed cover, a separately printed intact sliding
- * insert, and openings whose paper coordinates do not move with the film. */
+/** RISO80 adds authored closed organic contours to the RISO79 paper theatre.
+ * A custom path is one absolute, closed SVG contour in original sheet units. */
 export type RisoPullDirection="right"|"left"|"down"|"up";
 export interface RisoPullWindow{
   readonly id:string;
@@ -10,19 +10,18 @@ export interface RisoPullWindow{
   readonly width:number;
   readonly height:number;
   readonly radius?:number;
+  /** Optional source-authored M/L/C/Q/Z path; coordinates are absolute sheet units. */
+  readonly contour?:string;
 }
 export interface RisoPullSpec{
   readonly width:number;
   readonly height:number;
   readonly windows:readonly RisoPullWindow[];
   readonly direction:RisoPullDirection;
-  /** In original sheet units, not percent or screen pixels. */
   readonly travel:number;
   readonly progress:number;
   readonly seed:number;
-  /** Stock thickness, in millimetres; converted to source-space CSS units. */
   readonly paperDepthMm?:number;
-  /** Direction FROM the lamp toward the sheet; normalized before projection. */
   readonly lightDirection?:readonly [number,number];
 }
 export interface RisoPullWindowGeometry{
@@ -32,6 +31,7 @@ export interface RisoPullWindowGeometry{
   readonly y:number;
   readonly width:number;
   readonly height:number;
+  readonly shape:"rounded-rect"|"organic-contour";
   readonly fibres:readonly string[];
 }
 export interface RisoPullEvaluation{
@@ -45,9 +45,171 @@ export interface RisoPullEvaluation{
   readonly fixedCoverRegistration:true;
   readonly fixedInsertRegistration:true;
 }
+interface Point{readonly x:number;readonly y:number}
+interface ParsedContour{
+  readonly samples:readonly Point[];
+  readonly controls:readonly Point[];
+  readonly signedArea:number;
+  readonly perimeter:number;
+}
 const round=(n:number)=>Number(n.toFixed(4));
 const finite=(n:number)=>Number.isFinite(n);
-function check(s:RisoPullSpec){
+const NUMBER_TOKEN=/[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/g;
+const PATH_TOKEN=/[A-Za-z]|[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/g;
+const dist=(a:Point,b:Point)=>Math.hypot(b.x-a.x,b.y-a.y);
+const cross=(a:Point,b:Point,c:Point)=>
+  (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+
+function pointInWindow(p:Point,w:RisoPullWindow):boolean{
+  return p.x>=w.x-.01&&p.y>=w.y-.01&&
+    p.x<=w.x+w.width+.01&&p.y<=w.y+w.height+.01;
+}
+function segmentsCross(a:Point,b:Point,c:Point,d:Point):boolean{
+  const eps=1e-7;
+  const o1=cross(a,b,c),o2=cross(a,b,d);
+  const o3=cross(c,d,a),o4=cross(c,d,b);
+  return ((o1>eps&&o2< -eps)||(o1< -eps&&o2>eps))&&
+    ((o3>eps&&o4< -eps)||(o3< -eps&&o4>eps));
+}
+/** Parse only one closed, absolute M/L/C/Q/Z contour. Sampling is used for
+ * topology, bounds and arc-length fibre placement; the original Bézier path
+ * is preserved verbatim for the SVG mask and cut edge. */
+function parseOrganicContour(path:string,w:RisoPullWindow):ParsedContour{
+  if(typeof path!=="string"||path.length<20||path.length>4096)
+    throw new RangeError("RISO80 organic contour must be a 20–4096 character authored SVG path.");
+  const tokens=path.match(PATH_TOKEN)??[];
+  const residue=path.replace(PATH_TOKEN,"").replace(/[\s,]/g,"");
+  if(residue||tokens.length<8||tokens.length>512||
+    tokens[0]!=="M"||tokens[tokens.length-1]!=="Z")
+    throw new RangeError("RISO80 contour must contain one absolute M/L/C/Q/Z path and end in Z.");
+  let cursor=0,commands=0,hasMove=false,closed=false;
+  let current:Point={x:0,y:0},start:Point={x:0,y:0};
+  const samples:Point[]=[];
+  const controls:Point[]=[];
+  const readNumbers=(count:number):number[]=>{
+    if(cursor+count>tokens.length)throw new RangeError("RISO80 contour command has missing coordinates.");
+    const values:number[]=[];
+    for(let k=0;k<count;k++){
+      const token=tokens[cursor++];
+      if(!token||/^[A-Za-z]$/.test(token))throw new RangeError("RISO80 contour command has missing coordinates.");
+      const n=Number(token);
+      if(!finite(n)||Math.abs(n)>8192)throw new RangeError("RISO80 contour coordinates must be finite and within ±8192.");
+      values.push(n);
+    }
+    return values;
+  };
+  const append=(p:Point)=>{
+    if(!finite(p.x)||!finite(p.y))throw new RangeError("RISO80 contour contains a non-finite point.");
+    if(samples.length&&dist(samples[samples.length-1],p)<1e-6)
+      throw new RangeError("RISO80 contour contains a zero-length edge.");
+    samples.push(p);
+  };
+  while(cursor<tokens.length){
+    const command=tokens[cursor++];
+    commands++;
+    if(commands>64)throw new RangeError("RISO80 contour is limited to 64 explicit path commands.");
+    if(!/^[A-Z]$/.test(command))
+      throw new RangeError("RISO80 contour accepts only uppercase absolute M/L/C/Q/Z commands.");
+    if(command==="M"){
+      if(hasMove||samples.length)throw new RangeError("RISO80 contour must be a single connected subpath.");
+      const [x,y]=readNumbers(2);
+      current={x,y};start=current;hasMove=true;
+      controls.push(current);append(current);
+    }else if(command==="L"){
+      if(!hasMove||closed)throw new RangeError("RISO80 L command must follow the initial M.");
+      const [x,y]=readNumbers(2);
+      current={x,y};controls.push(current);append(current);
+    }else if(command==="C"){
+      if(!hasMove||closed)throw new RangeError("RISO80 C command must follow the initial M.");
+      const [x1,y1,x2,y2,x3,y3]=readNumbers(6);
+      const p0=current,p1={x:x1,y:y1},p2={x:x2,y:y2},p3={x:x3,y:y3};
+      controls.push(p1,p2,p3);
+      for(let step=1;step<=8;step++){
+        const t=step/8,u=1-t;
+        append({
+          x:u*u*u*p0.x+3*u*u*t*p1.x+3*u*t*t*p2.x+t*t*t*p3.x,
+          y:u*u*u*p0.y+3*u*u*t*p1.y+3*u*t*t*p2.y+t*t*t*p3.y,
+        });
+      }
+      current=p3;
+    }else if(command==="Q"){
+      if(!hasMove||closed)throw new RangeError("RISO80 Q command must follow the initial M.");
+      const [x1,y1,x2,y2]=readNumbers(4);
+      const p0=current,p1={x:x1,y:y1},p2={x:x2,y:y2};
+      controls.push(p1,p2);
+      for(let step=1;step<=6;step++){
+        const t=step/6,u=1-t;
+        append({
+          x:u*u*p0.x+2*u*t*p1.x+t*t*p2.x,
+          y:u*u*p0.y+2*u*t*p1.y+t*t*p2.y,
+        });
+      }
+      current=p2;
+    }else if(command==="Z"){
+      if(!hasMove||closed||cursor!==tokens.length)
+        throw new RangeError("RISO80 Z must close the one contour and be the final command.");
+      if(dist(current,start)>1e-6)append(start);
+      closed=true;
+    }else{
+      throw new RangeError("RISO80 organic contours support only absolute M/L/C/Q/Z commands; arcs and relative commands are intentionally rejected.");
+    }
+  }
+  if(!hasMove||!closed||samples.length<12)
+    throw new RangeError("RISO80 contour must be one closed shape with at least twelve sampled points.");
+  for(const p of [...samples,...controls]){
+    if(!pointInWindow(p,w))
+      throw new RangeError("RISO80 contour and all Bézier controls must stay inside their declared source-paper bounds.");
+  }
+  const polygon=samples.slice(0,-1);
+  let twiceArea=0,perimeter=0;
+  for(let i=0;i<samples.length-1;i++){
+    const a=samples[i],b=samples[i+1];
+    twiceArea+=a.x*b.y-b.x*a.y;
+    perimeter+=dist(a,b);
+  }
+  const signedArea=twiceArea/2;
+  if(!finite(signedArea)||Math.abs(signedArea)<Math.max(180,w.width*w.height*.08)||
+    !finite(perimeter)||perimeter<80)
+    throw new RangeError("RISO80 organic contour needs a substantial closed area and at least 80 source units of perimeter.");
+  // Reject self-crossing contours. Adjacent sampled segments and the closing
+  // pair are expected to meet; every other intersection is an invalid aperture.
+  const n=polygon.length;
+  for(let i=0;i<n;i++)for(let j=i+2;j<n;j++){
+    if(i===0&&j===n-1)continue;
+    if(segmentsCross(samples[i],samples[i+1],samples[j],samples[j+1]))
+      throw new RangeError("RISO80 organic contour must be a simple non-self-intersecting closed silhouette.");
+  }
+  return {samples,controls,signedArea,perimeter};
+}
+function customContourFibres(parsed:ParsedContour,seed:number):readonly string[]{
+  const points=parsed.samples;
+  const cumulative:number[]=[0];
+  for(let i=0;i<points.length-1;i++)
+    cumulative.push(cumulative[i]+dist(points[i],points[i+1]));
+  const total=cumulative[cumulative.length-1];
+  const outward=parsed.signedArea>0?1:-1;
+  return Array.from({length:88},(_,i)=>{
+    const jitter=.08+.84*printHash(seed,i+11,13);
+    const target=(i+jitter)/88*total;
+    let segment=0;
+    while(segment<cumulative.length-2&&cumulative[segment+1]<target)segment++;
+    const a=points[segment],b=points[segment+1];
+    const length=Math.max(1e-6,dist(a,b));
+    const t=(target-cumulative[segment])/length;
+    const px=a.x+(b.x-a.x)*t,py=a.y+(b.y-a.y)*t;
+    const tx=(b.x-a.x)/length,ty=(b.y-a.y)/length;
+    // In SVG's downward-positive coordinates, positive signed area is
+    // clockwise; its outward normal is the left normal of each tangent.
+    const nx=outward*ty,ny=outward*-tx;
+    const bend=(printHash(seed+37,i+3,19)-.5)*1.35;
+    const fibreLength=.28+1.52*printHash(seed,i+31,23);
+    return "M"+round(px)+" "+round(py)+
+      " Q"+round(px+nx*fibreLength*.43-tx*bend*.35)+" "+
+      round(py+ny*fibreLength*.43-ty*bend*.35)+
+      " "+round(px+nx*fibreLength-tx*bend)+" "+round(py+ny*fibreLength-ty*bend);
+  });
+}
+function check(s:RisoPullSpec):Map<string,ParsedContour>{
   if(!s||!finite(s.width)||!finite(s.height)||
     s.width<240||s.height<240||s.width>8192||s.height>8192||
     !Array.isArray(s.windows)||s.windows.length<1||s.windows.length>4||
@@ -66,14 +228,16 @@ function check(s:RisoPullSpec){
   if(!finite(lightLength)||lightLength<.25||lightLength>1.5)
     throw new RangeError("RISO79 light direction must be a finite nonzero vector of length .25–1.5.");
   const ids=new Set<string>();
+  const parsed=new Map<string,ParsedContour>();
   for(const w of s.windows){
     const r=w.radius??Math.min(w.width,w.height)*.065;
     if(!w||!/^[a-z][a-z0-9-]{0,35}$/.test(w.id)||ids.has(w.id)||
-      ![w.x,w.y,w.width,w.height,r].every(finite)||
+      ![w.x,w.y,w.width,w.height].every(finite)||
       w.width<35||w.height<35||w.width>s.width*.85||w.height>s.height*.85||
       w.x<10||w.y<10||w.x+w.width>s.width-10||w.y+w.height>s.height-10||
-      r<0||r>Math.min(w.width,w.height)*.25)
+      (w.contour===undefined&&(!finite(r)||r<0||r>Math.min(w.width,w.height)*.25)))
       throw new RangeError("RISO79 requires unique named source-paper openings, inset 10 units, minimum 35 units, and bounded corner cuts.");
+    if(w.contour!==undefined)parsed.set(w.id,parseOrganicContour(w.contour,w));
     ids.add(w.id);
   }
   for(let i=0;i<s.windows.length;i++)for(let j=i+1;j<s.windows.length;j++){
@@ -82,13 +246,17 @@ function check(s:RisoPullSpec){
       a.y<b.y+b.height+7&&a.y+a.height+7>b.y)
       throw new RangeError("RISO79 physical openings need at least seven source-paper units between cut edges.");
   }
+  return parsed;
 }
 export function risoPullWindowContour(w:RisoPullWindow):string{
+  if(w.contour!==undefined){
+    parseOrganicContour(w.contour,w);
+    return w.contour.trim();
+  }
   const {x,y,width:hWidth,height:hHeight}=w;
   const r=w.radius??Math.min(hWidth,hHeight)*.065;
   const x2=x+hWidth,y2=y+hHeight;
   const f=(v:number)=>String(round(v));
-  // Four hand-cut convex corner turns, but no geometry reduction of ink.
   return "M"+f(x+r)+" "+f(y)+
     " L"+f(x2-r)+" "+f(y)+
     " C"+f(x2-r*.37)+" "+f(y)+" "+f(x2)+" "+f(y+r*.34)+" "+f(x2)+" "+f(y+r)+
@@ -99,15 +267,12 @@ export function risoPullWindowContour(w:RisoPullWindow):string{
     " L"+f(x)+" "+f(y+r)+
     " C"+f(x)+" "+f(y+r*.34)+" "+f(x+r*.39)+" "+f(y)+" "+f(x+r)+" "+f(y)+" Z";
 }
-/** 88 deterministic short cut-face microfibrils per true paper opening.
- * Their anchors belong to source-paper coordinates, never the video camera. */
 export function risoPullWindowFibres(w:RisoPullWindow,seed:number):readonly string[]{
+  if(w.contour!==undefined)return customContourFibres(parseOrganicContour(w.contour,w),seed);
   const r=w.radius??Math.min(w.width,w.height)*.065;
   const x=w.x,y=w.y,x2=x+w.width,y2=y+w.height;
   return Array.from({length:88},(_,i)=>{
     const side=Math.floor(i/22),index=i%22;
-    // A die-cut edge is clean, not deckled: short, irregularly spaced
-    // microfibrils remain attached to the cut face without long torn-paper hairs.
     const t=.018+.964*((index+.08+.84*printHash(seed,i+11,13))/22);
     const bend=(printHash(seed+37,i+3,19)-.5)*1.35;
     const length=.28+1.52*printHash(seed,i+31,23);
@@ -135,7 +300,7 @@ export function risoPullProgress(
   return clamp01((frame-startFrame)/durationFrames);
 }
 export function evaluateRisoPullTab(s:RisoPullSpec):RisoPullEvaluation{
-  check(s);
+  const parsed=check(s);
   const eased=s.progress*s.progress*(3-2*s.progress);
   const offset=round(eased*s.travel);
   const shift:readonly [number,number]=s.direction==="right"?[offset,0]:
@@ -144,23 +309,20 @@ export function evaluateRisoPullTab(s:RisoPullSpec):RisoPullEvaluation{
   const light=s.lightDirection??[-.55,-.84];
   const lightLength=Math.hypot(light[0],light[1]);
   const depthUnits=round(paperDepthMm*96/25.4);
-  // Light travels from the lamp toward the sheet; the visible cast shadow
-  // falls in the opposite direction. This is an art-directed 2.5D cue,
-  // not a claim to simulate the mechanical optics of a physical press.
   const shadowOffset:readonly [number,number]=[
     round(-light[0]/lightLength*depthUnits*1.85),
     round(-light[1]/lightLength*depthUnits*1.85),
   ];
   return {
-    // Preserve SVG/serializable paper identity at the first frame: never -0.
     translation:[shift[0]===0?0:shift[0],shift[1]===0?0:shift[1]],
     easedProgress:round(eased),
     paperDepthMm,depthUnits,shadowOffset,
     shadowOpacity:round(Math.min(.32,.12+paperDepthMm*.14)),
     windows:s.windows.map(w=>({
       id:w.id,x:w.x,y:w.y,width:w.width,height:w.height,
-      path:risoPullWindowContour(w),
-      fibres:risoPullWindowFibres(w,s.seed),
+      path:w.contour?.trim()??risoPullWindowContour(w),
+      fibres:w.contour!==undefined?customContourFibres(parsed.get(w.id)!,s.seed):risoPullWindowFibres(w,s.seed),
+      shape:w.contour!==undefined?"organic-contour":"rounded-rect",
     })),
     fixedCoverRegistration:true,fixedInsertRegistration:true,
   };
