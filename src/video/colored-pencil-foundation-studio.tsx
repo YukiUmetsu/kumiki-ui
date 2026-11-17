@@ -66,6 +66,7 @@ export function PencilFoundationStudio(){
   const [roseLaminaStudy,setRoseLaminaStudy]=useState(true);
   const [roseLipStudy,setRoseLipStudy]=useState(false);
   const [roseCalyxStudy,setRoseCalyxStudy]=useState(false);
+  const [roseHypanthiumAttachmentStudy,setRoseHypanthiumAttachmentStudy]=useState(false);
   const [rosePinnateStudy,setRosePinnateStudy]=useState(false);
   const [rosePhysicalFolds,setRosePhysicalFolds]=useState(false);
   const [roseOuterFormStudy,setRoseOuterFormStudy]=useState(false);
@@ -85,6 +86,7 @@ export function PencilFoundationStudio(){
         seed,roseLaminaStudy:specimen==="rose"&&roseLaminaStudy,
         roseLipStudy:specimen==="rose"&&roseLipStudy,
         roseCalyxStudy:specimen==="rose"&&roseCalyxStudy,
+        roseHypanthiumAttachmentStudy:specimen==="rose"&&roseHypanthiumAttachmentStudy,
         rosePinnateStudy:specimen==="rose"&&rosePinnateStudy,
         rosePhysicalFolds:specimen==="rose"&&rosePhysicalFolds,
         roseOuterFormStudy:specimen==="rose"&&roseOuterFormStudy,
@@ -105,7 +107,7 @@ export function PencilFoundationStudio(){
       ...r,craft:r.craft?{...r.craft,burnish}:undefined,
     }))};
   },[specimen,aspect,pressure,tooth,burnish,seed,
-    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseOuterFormStudy,roseOuterRippleStudy,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseCenterKnotStudy,roseCenterValueStudy,roseContactShadowStudy,roseMiddleCupStudy]);
+    headContourCraft,headVolumeWeave,headSilhouetteStudy,roseLaminaStudy,roseLipStudy,roseCalyxStudy,roseHypanthiumAttachmentStudy,rosePinnateStudy,rosePhysicalFolds,roseOuterFormStudy,roseOuterRippleStudy,roseFrontValueStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseInnerWhorlStudy,roseCenterKnotStudy,roseCenterValueStudy,roseContactShadowStudy,roseMiddleCupStudy]);
   // Reference-grade debugging only. The normal studio/export uses the
   // complete original pencil drawing. Selecting a band isolates those
   // REAL native ANAT1-lit SVG paths, never swaps in a bitmap, generated
@@ -183,6 +185,7 @@ export function PencilFoundationStudio(){
     data-km-rose-middle-cup={specimen==="rose"?(roseMiddleCupStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-pinnate-study={specimen==="rose"?(rosePinnateStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-calyx-study={specimen==="rose"?(roseCalyxStudy?"opt-in":"baseline"):"not-applicable"}
+    data-km-rose-hypanthium-attachment={specimen==="rose"?(roseHypanthiumAttachmentStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-rolled-lip={specimen==="rose"?(roseLipStudy?"opt-in":"baseline"):"not-applicable"}
     data-km-rose-lamina-study={specimen==="rose"?
       (roseLaminaStudy?"opt-in":"baseline"):"not-applicable"}
@@ -408,8 +411,20 @@ export function PencilFoundationStudio(){
       {specimen==="rose"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
         <input aria-label="Foundation rose calyx anatomy" type="checkbox"
-          checked={roseCalyxStudy} onChange={e=>setRoseCalyxStudy(e.target.checked)}/>
+          checked={roseCalyxStudy} onChange={e=>{
+            setRoseCalyxStudy(e.target.checked);
+            if(!e.target.checked)setRoseHypanthiumAttachmentStudy(false);
+          }}/>
         FLORA1 calyx: five attached sepals / receptacle · anatomical A/B (unapproved)
+      </label>}
+      {specimen==="rose"&&<label
+        style={{display:"flex",gap:7,alignItems:"center",minHeight:40,
+          opacity:roseCalyxStudy&&rosePhysicalFolds?1:.65}}>
+        <input aria-label="Foundation rose hypanthium attachment" type="checkbox"
+          disabled={!roseCalyxStudy||!rosePhysicalFolds}
+          checked={roseHypanthiumAttachmentStudy}
+          onChange={e=>setRoseHypanthiumAttachmentStudy(e.target.checked)}/>
+        FLORA1 petal-to-receptacle transition / one continuous rising floral cup behind front petals · A/B (unapproved)
       </label>}
       {specimen==="rose"&&<label
         style={{display:"flex",gap:7,alignItems:"center",minHeight:40}}>
@@ -423,7 +438,7 @@ export function PencilFoundationStudio(){
         <input aria-label="Foundation rose physical folds" type="checkbox"
           checked={rosePhysicalFolds} onChange={e=>{
             setRosePhysicalFolds(e.target.checked);
-            if(!e.target.checked){setRoseFrontValueStudy(false);setRosePetalRimStudy(false);setRoseBackCupReliefStudy(false);setRoseFrontLaminaVolumeStudy(false);setRoseOuterFormStudy(false);setRoseOuterRippleStudy(false);}
+            if(!e.target.checked){setRoseFrontValueStudy(false);setRosePetalRimStudy(false);setRoseBackCupReliefStudy(false);setRoseFrontLaminaVolumeStudy(false);setRoseOuterFormStudy(false);setRoseOuterRippleStudy(false);setRoseHypanthiumAttachmentStudy(false);}
           }}/>
         FLORA1 five independent full-surface rolled underturns · geometric corolla A/B (unapproved)
       </label>}
