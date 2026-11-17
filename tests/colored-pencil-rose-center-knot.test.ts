@@ -9,7 +9,7 @@ import {inspectPencilFoundationDrawing} from "../registry/video/colored-pencil-f
 const rose=(aspect:"landscape"|"portrait",knot=false,complete=false,seed=371)=>
   pencilObjectStudyDrawing({
     subject:"rose",aspect,seed,roseInnerWhorlStudy:true,roseCenterKnotStudy:knot,
-    rosePhysicalFolds:complete,roseFrontValueStudy:complete,
+    rosePhysicalFolds:complete,roseFrontLaminaVolumeStudy:complete,roseFrontValueStudy:complete,
     rosePetalRimStudy:complete,roseBackCupReliefStudy:complete,
     roseCalyxStudy:complete,rosePinnateStudy:complete,roseLaminaStudy:complete,
     roseLipStudy:complete,roseMiddleCupStudy:complete,
@@ -82,7 +82,7 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
       expect(under?.layers[0].seed).toBeGreaterThanOrEqual(0);
     });
 
-  it("composes with the entire 44-region sidewall/calyx/rear-cup ecosystem without re-seeding it",()=>{
+  it("composes with the entire 44-region frontal-volume/sidewall/calyx/rear-cup ecosystem without re-seeding it",()=>{
     const before=rose("portrait",false,true);
     const after=rose("portrait",true,true);
     expect(before.regions).toHaveLength(44);
