@@ -373,7 +373,7 @@ export function PencilFoundationStudio(){
             Rose front-right physical rim / uneven cuticle thickness
           </option>
           <option value="rose-whorl-center" disabled={specimen!=="rose"||!roseInnerWhorlStudy}>
-            Rose center / off-axis foreground curl
+            Rose center / off-axis foreground petal
           </option>
           <option value="rose-whorl-recess" disabled={specimen!=="rose"||!roseInnerWhorlStudy}>
             Rose center / irregular shaded pocket
