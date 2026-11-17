@@ -44,6 +44,19 @@ describe("RISO76 ArtCraft: detailed physical paper cut, source-native two spot i
       expect(new Set(result.fibrePaths.map(x=>x.id)).size).toBe(144);
     }
     expect(new Set(paths.map(x=>x.clipPath)).size).toBe(4);
+    // A torn cellulose strand must physically START on the newly
+    // revealed paper and extend OUT onto the outgoing print. Reverse
+    // strands are not visible and leave the transition a flat wipe.
+    const coords=(d:string)=>
+      (d.match(/-?\\d+(?:\\.\\d+)?/g)??[]).map(Number);
+    const ltr=coords(paths[0].fibrePaths[0].d);
+    const rtl=coords(paths[1].fibrePaths[0].d);
+    const ttb=coords(paths[2].fibrePaths[0].d);
+    const btt=coords(paths[3].fibrePaths[0].d);
+    expect(ltr[4]).toBeGreaterThan(ltr[0]);
+    expect(rtl[4]).toBeLessThan(rtl[0]);
+    expect(ttb[5]).toBeGreaterThan(ttb[1]);
+    expect(btt[5]).toBeLessThan(btt[1]);
     expect(paths[0].centre).toBeCloseTo(480,2);
     expect(paths[1].centre).toBeCloseTo(480,2);
     expect(paths[2].centre).toBeCloseTo(270,2);
