@@ -101,7 +101,7 @@ export function RisoCinematicStudio(){
           background:current.id===id?"#293E53":"#FFF9ED",
           color:current.id===id?"#FFF9ED":"#293E53",
           border:"1px solid #A2A7A5",borderRadius:4,cursor:"pointer"}}>
-        {i+1} · {id.replaceAll("-"," ")}
+        {i+1} · {id.replace(/-/g," ")}
       </button>)}
     </nav>
     <p style={{margin:0,fontSize:12}}>
