@@ -84,7 +84,7 @@ export function InkAnatomicalStandingFigure({
   const uid="km-standing-"+useId().replace(/[^a-zA-Z0-9_-]/g,"");
   const elder=character==="elder";
   const ink=elder?"#4b514b":"#494a46",wash=elder?"#9c9a8e":"#a7a49b";
-  const robe=elder?"#beb9ab":"#d1c9b9",under="#ede4d3";
+  const robe=elder?"#e0d6c8":"#e6dccd",under="#f0e7d9";
   const nativeStyle:CSSProperties={display:"block",width:"100%",height:"auto",
     background:transparentPaper?"transparent":"#f2e6d3",...style};
   return <svg {...svgProps} xmlns="http://www.w3.org/2000/svg"
@@ -104,6 +104,19 @@ export function InkAnatomicalStandingFigure({
           Q473 528 406 462 Q366 426 312 436
           L243 450 Q201 431 166 458 Z"/>
       </clipPath>
+      <linearGradient id={uid+"-upper-robe-release"} x1="0" y1="0"
+        x2="0" y2="620" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#fff"/>
+        <stop offset=".79" stopColor="#fff"/>
+        <stop offset=".86" stopColor="#fff" stopOpacity=".96"/>
+        <stop offset=".96" stopColor="#fff" stopOpacity=".18"/>
+        <stop offset="1" stopColor="#000"/>
+      </linearGradient>
+      <mask id={uid+"-upper-robe-contact"} maskUnits="userSpaceOnUse"
+        maskContentUnits="userSpaceOnUse" x="0" y="0" width="540" height="620">
+        <rect x="0" y="0" width="540" height="620"
+          fill={"url(#"+uid+"-upper-robe-release)"}/>
+      </mask>
       <filter id={uid+"-paper-spread"} x="-30%" y="-30%" width="160%" height="160%">
         <feGaussianBlur stdDeviation="5.7"/>
       </filter>
@@ -221,15 +234,20 @@ export function InkAnatomicalStandingFigure({
           opacity={hair.opacity*.66}/>)}
       </g>)}
     </g>
-    {/* Existing 468-point ANAT1 portrait and every original expression,
-        hand-painted cheek wash, beard fibre, period cap and INK1 lapel
-        mark are retained at the exact same unwarped source coordinates. */}
-    <g transform={"translate(0 "+pose.breathe+")"}>
-      <InkAnatomicalPortrait character={character} emotion={emotion}
-        intensity={intensity} detail={detail} headScale={headScale}
-        view="source" transparentPaper={true}
-        x={0} y={0} width={540} height={620}
-        style={{width:540,height:620,overflow:"visible"}}/>
+    {/* The old upper bust cut off in a dead-straight line at y=612,
+        impossible on a real cotton robe. Preserve ALL original ink
+        microgeometry and dissolve its lower hem across >120 paper units
+        into the continuous standing cotton substrate. The mask stays in
+        source coordinates, not in screen space or an animated CSS texture. */}
+    <g data-km-ink-standing-seam="paper-wicked-continuous"
+      mask={"url(#"+uid+"-upper-robe-contact)"}>
+      <g transform={"translate(0 "+pose.breathe+")"}>
+        <InkAnatomicalPortrait character={character} emotion={emotion}
+          intensity={intensity} detail={detail} headScale={headScale}
+          view="source" garmentWash="cotton" transparentPaper={true}
+          x={0} y={0} width={540} height={620}
+          style={{width:540,height:620,overflow:"visible"}}/>
+      </g>
     </g>
     {/* A continuous waist-to-ankle set of satin-lit folds obscures the
         temporal edge where the upper and lower robes cross. */}
