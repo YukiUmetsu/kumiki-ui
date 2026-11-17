@@ -139,13 +139,13 @@ function createReferenceGeometry(
       +" Q140 "+fmt(capBottom+17)+" "+fmt(left-12)+" "+fmt(capBottom+5)+" Z";
 
   return {
-    frame,outline,features,marks,irises,landmarks,capPath,top,left,right,
-    nearest,measures,featuresNow,
+    outline,features,marks,irises,landmarks,capPath,top,left,right,
+    nearest,measures,
     source:character==="scholar"?"LOC-1903-cph-3a44343":"LOC-1860-LCCN2011660679",
   };
 }
 
-function faceHair(character:InkReferenceCharacter,g:ReturnType<typeof createReferenceGeometry>,uid:string,detail:number){
+function faceHair(character:InkReferenceCharacter,g:ReturnType<typeof createReferenceGeometry>,detail:number){
   const ink=IDENTITY[character].ink;
   if(character==="scholar"){
     const y=g.landmarks.subnasale[1]+8;
@@ -321,7 +321,7 @@ export function InkReferenceCharacterRedraw({
         fill="none" stroke="#8a715c" strokeWidth="1.2"
         opacity=".25" filter={"url(#"+uid+"-wet-wash)"}/>
     </g>
-    <g data-km-anat1-projected-features="true">
+    <g data-km-anat1-projected-features="true" clipPath={"url(#"+uid+"-face-clip)"}>
       {g.features.map((f,i)=>{
         const brow=f.id.startsWith("brow");
         const eye=f.id.startsWith("eye");
@@ -348,7 +348,7 @@ export function InkReferenceCharacterRedraw({
         strokeLinecap="round"
         opacity={mark.strength*(character==="elder" ? .48:.31)*detail}/>)}
     </g>
-    {faceHair(character,g,uid,detail)}
+    {faceHair(character,g,detail)}
     <g data-km-ink-reference-fine-planes="jaw-neck-collar">
       <path d={"M"+fmt(jawLeft[0])+" "+fmt(jawLeft[1])
         +" Q140 "+fmt(chin[1]+16)+" "+fmt(jawRight[0])+" "+fmt(jawRight[1])}
