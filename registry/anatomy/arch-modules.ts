@@ -411,11 +411,15 @@ export function moduleScene(id: string, seed = 3): ArchScene {
   const e = findModule(id);
   if (!e) throw new Error(`Unknown module ${id}`);
   const b = new SceneBuilder(seed);
-  e.build(b); b.place();
+  e.build(b);
+  return studioScene(b, e.view);
+}
+/** Whatever is in `b` alone on a parchment studio cove (a floor curving into a wall that faces the camera), framed level from heading `yaw`, eye at `eye` of its height, in studio light. */
+export function studioScene(b: SceneBuilder, view: { yaw?: number; eye?: number; pad?: number } = {}): ArchScene {
+  b.place();
   const { lo, hi } = b.subjectBounds(), size = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]);
-  const yaw = e.view?.yaw ?? 25, a = (yaw * Math.PI) / 180, nx = Math.sin(a), nz = Math.cos(a), cx = (lo[0] + hi[0]) / 2, cz = (lo[2] + hi[2]) / 2, D = size * 0.9 + 2;
-  const cam = studioCamera(b, yaw, lo[1] + (hi[1] - lo[1]) * (e.view?.eye ?? 0.55), e.view?.pad ?? 0.16);
-  // the cove: a floor that curves up into a wall behind the module, facing the camera
+  const yaw = view.yaw ?? 25, a = (yaw * Math.PI) / 180, nx = Math.sin(a), nz = Math.cos(a), cx = (lo[0] + hi[0]) / 2, cz = (lo[2] + hi[2]) / 2, D = size * 0.9 + 2;
+  const cam = studioCamera(b, yaw, lo[1] + (hi[1] - lo[1]) * (view.eye ?? 0.55), view.pad ?? 0.16);
   const k = Math.max(2, size * 0.6), paper = b.mat({ kind: "parchment" });
   b.add(leaf((x, y, z) => { const dw = (x - cx) * nx + (z - cz) * nz + D, h = Math.max(k - Math.abs(y - dw), 0) / k; return Math.min(y, dw) - h * h * k * 0.25; }, [-1e4, -1, -1e4], [1e4, 1e4, 1e4], paper));
   b.place();
