@@ -10,7 +10,7 @@
 import type { Node, SculptPrim } from "./arch-sdf";
 import { leaf, sculpt } from "./arch-sdf";
 import type { SceneBuilder } from "./arch-kit";
-import { beam, boxAt, capsule, coneY, cut, cylX, cylY, cylZ, ellipsoid, opening, repeatAround, repeatX, revolve, sphere } from "./arch-kit";
+import { beam, boxAt, capsule, cut, cylX, cylY, cylZ, dome, ellipsoid, opening, repeatAround, repeatX, revolve, sphere } from "./arch-kit";
 import type { SurfaceSpec } from "./arch-surface";
 import { findFurnitureType } from "./furn-data";
 
@@ -42,7 +42,7 @@ export const FM = {
   lacquer: { kind: "painted-wood", colour: "#2a1a14", flake: 0.02 } as SurfaceSpec,
   plates: { kind: "jars", colour: "#e8e2d6" } as SurfaceSpec,
   books: { kind: "books" } as SurfaceSpec,
-  tiles: { kind: "glazed-tube", colour: "#2f6a5a", unit: 0.25, course: 0.25 } as SurfaceSpec,
+  tiles: { kind: "glazed-tile", colour: "#2f6a5a", colour2: "#3a7a68", unit: 0.22 } as SurfaceSpec,
 };
 
 // ---- Joiner's parts -------------------------------------------------------------------------------------------------------
@@ -217,7 +217,6 @@ function chairWithCabriole(b: SceneBuilder, wood: SurfaceSpec, foot: "pad" | "cl
   b.add(splat(0, 0.44, 0.94, -0.2, splatW, 0.018, 0.12, w, pierce));
   b.add(leaf((x, y, z) => { const yc = 0.98 + 0.03 * Math.cos(x * 9) + 0.015 * Math.cos(x * 22); return Math.max(Math.hypot(y - yc, (z + 0.27) * 2) - 0.03, Math.abs(x) - 0.25); }, [-0.26, 0.92, -0.32], [0.26, 1.04, -0.22], w));
 }
-import { dome } from "./arch-kit";
 
 /** Build one furniture type into the builder (local metres, front toward +z, on the floor). */
 export function buildFurniture(b: SceneBuilder, id: string) {
@@ -227,4 +226,3 @@ export function buildFurniture(b: SceneBuilder, id: string) {
 }
 /** The furniture types that have a construction. */
 export const BUILT_FURNITURE = Object.keys(B);
-export { coneY as _coneY };

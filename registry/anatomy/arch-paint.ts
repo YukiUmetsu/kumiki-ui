@@ -84,6 +84,8 @@ export interface ArchScene {
   grounds?: readonly GroundZone[];
   /** Dust in the air of a room (sun shafts) 0–1. */
   dust?: number;
+  /** A closed room: sky light enters only through its windows (`portals`), falling off with distance, so corners away from them stay dark. */
+  interior?: boolean;
   /** Far plane, metres. */
   far?: number;
   seed?: number;
@@ -360,7 +362,14 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
       if (zoneHit < 0 && ny < 0.5 && grounds.length) { const gy = hy - groundBelow(hx, hz); occ *= 1 - 0.45 * Math.exp(-Math.max(0, gy) * 3.2) * (1 - Math.max(0, ny)); }
       const dsun = Math.max(0, diff) * vis;
       // sky: brighter from above; ground bounce warm from below
-      const skyK = amb * occ * (0.55 + 0.45 * bny), bounce = amb * occ * 0.35 * Math.max(0, -bny + 0.25) * sunP * 0.3;
+      let windowLight = 1;
+      if (scene.interior) {
+        // sky light through each window: its area, seen at an angle, over the square of the distance
+        let wf = 0;
+        for (const p of portals) { const vx = p.x - hx, vy = p.y - hy, vz = p.z - hz, d2 = vx * vx + vy * vy + vz * vz + 0.3, dl = Math.sqrt(d2), cs = Math.max(0, (bnx * vx + bny * vy + bnz * vz) / dl) * 0.8 + 0.2, cp = Math.abs(p.axis === "z" ? vz : vx) / dl; wf += (4 * p.hw * p.hh * cs * cp) / (Math.PI * d2); }
+        windowLight = Math.min(1.2, 0.08 + wf * 5);
+      }
+      const skyK = amb * occ * (0.55 + 0.45 * bny) * windowLight, bounce = amb * occ * 0.35 * Math.max(0, -bny + 0.25) * sunP * 0.3;
       const skyR = skyTop[0] * 0.55 + skyHor[0] * 0.45, skyG = skyTop[1] * 0.55 + skyHor[1] * 0.45, skyB = skyTop[2] * 0.55 + skyHor[2] * 0.45;
       let lr = sunC[0] * dsun + skyR * skyK + 0.55 * bounce, lg = sunC[1] * dsun + skyG * skyK + 0.45 * bounce, lb = sunC[2] * dsun + skyB * skyK + 0.32 * bounce;
       // the rim light: catches edges that turn away from the camera, as a back light does in a studio
@@ -505,7 +514,11 @@ function paintPass(g: GBuf, p: { paint: number; ink: number; seed: number; night
   // meter the picture as a painter judges values: the lit surfaces set the key, the darkest darks stay transparent
   let sumLog = 0, cnt = 0;
   for (let i = 0; i < n; i += 3) { const L = 0.2126 * g.col[i * 3] + 0.7152 * g.col[i * 3 + 1] + 0.0722 * g.col[i * 3 + 2]; sumLog += Math.log(1e-4 + L); cnt++; }
-  const key = p.night > 0.5 ? 0.16 : 0.3, expo = key / Math.exp(sumLog / Math.max(1, cnt));
+  // ...but never so bright that the lights burn out: the brightest few per cent (windows, fire, sunlit stone) cap it, so a dark panelled room stays dark round its pools of light
+  const lum: number[] = [];
+  for (let i = 0; i < n; i += 7) lum.push(0.2126 * g.col[i * 3] + 0.7152 * g.col[i * 3 + 1] + 0.0722 * g.col[i * 3 + 2]);
+  lum.sort((a, b2) => a - b2);
+  const p97 = lum[Math.floor(lum.length * 0.97)] ?? 1, key = p.night > 0.5 ? 0.16 : 0.3, expo = Math.min(key / Math.exp(sumLog / Math.max(1, cnt)), 1.6 / Math.max(1e-4, p97));
   const lift = 0.45 * P * (1 - 0.6 * p.night);
   const curve = (x0: number) => { const x = x0 * expo, v = Math.max(0, x + lift * 0.06 * (1 - Math.min(1, x * 3))) * 0.92; const y = (v * (2.51 * v + 0.03)) / (v * (2.43 * v + 0.59) + 0.14); return Math.pow(Math.min(1, y), 1 / 2.2); };
   for (let i = 0; i < n * 3; i++) disp[i] = curve(g.col[i]);

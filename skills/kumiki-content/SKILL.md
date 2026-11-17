@@ -46,6 +46,8 @@ Write data, not TSX. Read [the film document](../../docs/component-specs/film-do
 
 **Land on screen:** any mountain, valley, volcano, desert or coast starts from the terrain framework — [kumiki-terrain](../kumiki-terrain/SKILL.md) — so slopes, snowlines, treelines and distance fading match the place.
 
+**Rooms and furniture on screen:** any room or piece of furniture starts from the interiors framework — [kumiki-interiors](../kumiki-interiors/SKILL.md) — so seats, tables and beds are the right height for the people and the period.
+
 **Buildings on screen:** any house, street, temple or castle starts from the architecture framework — [kumiki-architecture](../kumiki-architecture/SKILL.md) — so doors, storeys and roofs are the right size for the people and the place.
 
 **Small creatures on screen:** any insect, spider or snail starts from the small-creatures framework — [kumiki-small-creatures](../kumiki-small-creatures/SKILL.md) — so legs, wings, sizes and motion are right.

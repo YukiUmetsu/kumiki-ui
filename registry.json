@@ -4476,6 +4476,54 @@
       ]
     },
     {
+      "name": "interiors-furniture",
+      "type": "registry:ui",
+      "title": "Interiors and Furniture Framework (INTERIOR1)",
+      "description": "Rooms and furniture in any art style, built round the body: seat, table, counter, shelf and bed heights and depths with the seat-to-table gap, room clearances and mattress sizes (graded reported or estimated with sources); 32 furniture types by period and culture (oak settle, Windsor, Shaker ladder-back, Queen Anne and Chippendale chairs on cabriole legs with pad or ball-and-claw feet, Thonet No. 14, Ming horseshoe and official's hat chairs, Bauhaus tubular steel, moulded plywood lounge chair, buttoned Chesterfield, floor cushions; refectory, gateleg, everted-end altar and chabudai tables; pedestal desk; sideboard, Welsh dresser, bookcase, staircase tansu, round-corner cabinet, dowry chest; four-poster and futon; chandelier and leaded-glass lamp; longcase clock, fireplace, tiled stove, folding screen) with construction notes and checks; each built at its measured size from the ARCH1 kit (buildFurniture) and shown on a parchment studio cove; ten period rooms (Tudor hall, Georgian drawing room, Victorian parlour, Shaker room, Alpine Stube, Art Deco lounge, mid-century living room, Japanese washitsu, Chinese scholar's studio, Moroccan salon) painted with window-driven light, fires, candles and lamps. FurniturePlate, RoomPlate, FurnitureSheet, FurnitureShowcase, RoomLibrary; renders in workers, cached.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations",
+        "architecture"
+      ],
+      "files": [
+        {
+          "path": "registry/anatomy/furn-data.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/furn-data.ts"
+        },
+        {
+          "path": "registry/anatomy/furn-construct.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/furn-construct.ts"
+        },
+        {
+          "path": "registry/anatomy/furn-library.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/furn-library.ts"
+        },
+        {
+          "path": "registry/anatomy/furn-paint-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/furn-paint-jobs.ts"
+        },
+        {
+          "path": "registry/anatomy/furn-paint-pool.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/furn-paint-pool.ts"
+        },
+        {
+          "path": "registry/anatomy/furn-paint-worker.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/furn-paint-worker.ts"
+        },
+        {
+          "path": "registry/anatomy/furn-react.tsx",
+          "type": "registry:ui",
+          "target": "components/anatomy/furn-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "terrain",
       "type": "registry:ui",
       "title": "Terrain and Landforms Framework (GEO1)",

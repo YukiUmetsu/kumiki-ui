@@ -26,6 +26,8 @@ Putting makeup on any face in any style (foundation, contour, highlight, blush, 
 
 Drawing or animating facial expressions and emotions in any style (brows, lids, mouth, creases, smiles that reach the eyes): follow [kumiki-facial-expressions](../kumiki-facial-expressions/SKILL.md).
 Mountains, valleys, volcanoes, mesas, dunes, cliffs or hills in any style (slopes, snow and treelines, erosion, distance): follow [kumiki-terrain](../kumiki-terrain/SKILL.md).
+Rooms and furniture in any style (chairs, tables, beds, cabinets, lamps, period rooms; seat and table heights): follow [kumiki-interiors](../kumiki-interiors/SKILL.md).
+
 Buildings, houses, streets, temples, castles, columns or roofs in any style (door and storey sizes, stairs, roof pitch, orders): follow [kumiki-architecture](../kumiki-architecture/SKILL.md).
 Insects, spiders, snails or other small creatures in any style (legs and wings by order, sizes, wingbeats, fireflies): follow [kumiki-small-creatures](../kumiki-small-creatures/SKILL.md).
 Food and cooking in any style (doneness, boiled eggs, browning, steam, gloss, dishes): follow [kumiki-food](../kumiki-food/SKILL.md).
