@@ -70,8 +70,8 @@ describe("Crayon ArtCraft V45 source tarsal form, scleral color and rooted nativ
           if(original.kind!=="contour"||candidate.kind!=="contour")
             throw new Error("Source lash component lost");
           expect(candidate.d.startsWith(original.d+" ")).toBe(true);
-          expect((original.d.match(/M/g)??[])).toHaveLength(10);
-          expect((candidate.d.match(/M/g)??[])).toHaveLength(33);
+          expect((original.d.match(/M/g)??[])).toHaveLength(16);
+          expect((candidate.d.match(/M/g)??[])).toHaveLength(39);
           const {d:a,...originalMeta}=original;
           const {d:b,...candidateMeta}=candidate;
           expect(candidateMeta).toEqual(originalMeta);
@@ -85,6 +85,23 @@ describe("Crayon ArtCraft V45 source tarsal form, scleral color and rooted nativ
       expect(after.elements.filter(e=>e.id.startsWith("cc0-hedge-")))
         .toEqual(before.elements.filter(e=>e.id.startsWith("cc0-hedge-")));
     }
+  });
+
+  it("preserves optional original raw 10-lash source mode without double-applying",()=>{
+    const source=crayonCc0FaceStudy({eyeContact:"baseline",
+      midfaceForm:"source-anat1-photo-foliage-v43"});
+    const original=source.elements.find(x=>x.id==="lash-contact-near");
+    if(original?.kind!=="contour")throw new Error("No source sparse eye");
+    expect((original.d.match(/M/g)??[])).toHaveLength(10);
+    // Runtime V45 also accepts this original eye setting, preserving
+    // every original source stroke, and never promotes it implicitly.
+    const candidate=crayonCc0FaceStudy({eyeContact:"baseline",
+      midfaceForm:"source-anat1-eye-tarsus-v45"});
+    const lashes=candidate.elements.find(x=>x.id==="lash-contact-near");
+    if(lashes?.kind!=="contour")throw new Error("Missing raw-original lash finish");
+    expect(lashes.d.startsWith(original.d+" ")).toBe(true);
+    expect((lashes.d.match(/M/g)??[])).toHaveLength(33);
+    expect(()=>crayonF1RefineNearTarsusV45(candidate.elements)).toThrow(RangeError);
   });
 
   it("preserves pre-existing rooted-flow 33 source eyelashes and registers 23 more true tarsal contacts",()=>{
