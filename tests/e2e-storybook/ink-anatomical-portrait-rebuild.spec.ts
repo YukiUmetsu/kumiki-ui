@@ -132,7 +132,17 @@ test("experimental 96-frame ANAT2 actor is transparent, motion-safe and foregrou
     await film.screenshot({animations:"disabled",
       path:info.outputPath("anat2-native-shanshui-actor-frame00-960x540.png")});
     const seek=page.getByRole("slider",{name:"Ink ANAT2 film seek"});
-    await seek.fill("12");
+    // Chromium/Playwright intentionally rejects locator.fill() for range
+    // inputs. Use the native setter plus an actual bubbling input event;
+    // React's tracked input state will process exactly one frame transition.
+    await seek.evaluate((element)=>{
+      const input=element as HTMLInputElement;
+      const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+      if(!setter)throw new Error("Range slider setter unavailable");
+      setter.call(input,"12");
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+    });
     await expect(film).toHaveAttribute("data-ink-proof-frame","12");
     await expect(actor).toHaveAttribute("data-ink-cue","1.0000");
     await film.screenshot({animations:"disabled",
@@ -141,7 +151,9 @@ test("experimental 96-frame ANAT2 actor is transparent, motion-safe and foregrou
     await expect(film).toHaveAttribute("data-ink-proof-character","elder");
     await film.screenshot({animations:"disabled",
       path:info.outputPath("anat2-native-shanshui-elder-frame12-960x540.png")});
-    await seek.fill("95");
+    await seek.focus();
+    await seek.press("End");
+    await expect(film).toHaveAttribute("data-ink-proof-frame","95");
     await expect(actor).toHaveAttribute("data-ink-cue","0.0000");
     await page.getByRole("checkbox",{name:"Ink ANAT2 film reduced motion"}).check();
     await expect(actor).toHaveAttribute("data-ink-cue","0.0000");
