@@ -166,4 +166,63 @@ describe("VisualTransformation MG1 compiler", () => {
     expect(evaluateVisualTransformation(split, 60).layers.filter(l => l.id.endsWith(":from"))).toHaveLength(1);
     expect(evaluateVisualTransformation(split, 60).layers.every(l => l.clips.length > 0)).toBe(true);
   });
+
+  describe("topology-morph (AdvancedShapeMorph)", () => {
+    const twoSquares = { contours: [
+      { closed: true, points: [{ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 40, y: 100 }, { x: 0, y: 100 }] },
+      { closed: true, points: [{ x: 60, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 60, y: 100 }] },
+    ] };
+    const shaped = (id: string, shape: typeof square, x = 0): VisualElement => ({ ...element(id, x), content: { kind: "shape", bounds: { x: 0, y: 0, width: 100, height: 100 }, shape } });
+    const ring = "M0 50 A50 50 0 1 0 100 50 A50 50 0 1 0 0 50 Z M30 50 A20 20 0 1 0 70 50 A20 20 0 1 0 30 50 Z";
+    const pathElement = (id: string, d: string, x = 0): VisualElement => ({ ...element(id, x), content: { kind: "svg-path", bounds: { x: 0, y: 0, width: 100, height: 100 }, d } });
+
+    it("is chosen by auto for closed shapes whose topology differs and paints one nonzero union", () => {
+      const compiled = compileVisualTransformation(spec({ to: { id: "b", elements: [shaped("token", twoSquares, 200)] } }));
+      expect(compiled.decisions[0].selected).toBe("topology-morph");
+      expect(compiled.diagnostics).toEqual([]);
+      const middle = evaluateVisualTransformation(compiled, 60).layers;
+      expect(middle).toHaveLength(1);
+      const content = middle[0].content;
+      expect(content.kind === "shape" && content.fillRule).toBe("nonzero");
+      expect(content.kind === "shape" && content.shape.contours).toHaveLength(2);
+      expect(evaluateVisualTransformation(compiled, 100).layers[0].content).toEqual(shaped("token", twoSquares).content);
+      expect(evaluateVisualTransformation(compiled, 20).layers[0].content).toEqual(element("token").content);
+    });
+
+    it("keeps explicit geometric-morph strict and open or stroked paths on the fallback", () => {
+      expect(compileVisualTransformation(spec({ to: { id: "b", elements: [shaped("token", twoSquares)] }, strategy: "geometric-morph" })).decisions[0].selected).toBe("crossfade");
+      const open = { contours: [{ closed: false, points: [{ x: 0, y: 0 }, { x: 100, y: 50 }, { x: 0, y: 100 }] }] };
+      expect(compileVisualTransformation(spec({ to: { id: "b", elements: [shaped("token", open)] } })).decisions[0].selected).toBe("crossfade");
+      expect(compileVisualTransformation(spec({ to: { id: "b", elements: [pathElement("token", ring)] } })).decisions[0].selected).toBe("crossfade");
+    });
+
+    it("morphs SVG path data when requested, including holes", () => {
+      const compiled = compileVisualTransformation(spec({ to: { id: "b", elements: [pathElement("token", ring, 200)] }, strategy: "topology-morph" }));
+      expect(compiled.decisions[0].selected).toBe("topology-morph");
+      const content = evaluateVisualTransformation(compiled, 90).layers[0].content;
+      expect(content.kind === "shape" && content.shape.contours[0].holes).toHaveLength(1);
+    });
+
+    it("paints cross-dissolve parts on their own fading layers and seeks deterministically", () => {
+      const compiled = compileVisualTransformation(spec({ to: { id: "b", elements: [shaped("token", twoSquares)] }, strategy: "topology-morph", morph: { topologyStrategy: "cross-dissolve" } }));
+      const middle = evaluateVisualTransformation(compiled, 60);
+      const parts = middle.layers.filter(layer => layer.id.includes(":part:"));
+      expect(parts).toHaveLength(1);
+      expect(parts[0].opacity).toBeGreaterThan(0);
+      expect(parts[0].opacity).toBeLessThan(1);
+      for (const frame of [99, 21, 75]) evaluateVisualTransformation(compiled, frame);
+      expect(evaluateVisualTransformation(compiled, 60)).toEqual(middle);
+    });
+
+    it("round-trips morph options through JSON, rejects morph easing and retargets mid-morph", () => {
+      const input = spec({ to: { id: "b", elements: [shaped("token", twoSquares, 200)] }, strategy: "topology-morph", morph: { topologyStrategy: "partition", interpolation: "intrinsic" } });
+      const parsed = parseVisualTransformation(serializeVisualTransformation(input));
+      expect(parsed.lanes[0].morph).toEqual({ topologyStrategy: "partition", interpolation: "intrinsic" });
+      expect(evaluateVisualTransformation(parsed, 60).layers[0].content).toEqual(evaluateVisualTransformation(compileVisualTransformation(input), 60).layers[0].content);
+      expect(() => compileVisualTransformation({ ...input, morph: { easing: "linear" } as never })).toThrow(/without easing/);
+      const program = createVisualTransformationProgram([input]);
+      const retargeted = retargetVisualTransformation(program, { frame: 60, to: { id: "c", elements: [element("token", 400)] }, durationFrames: 30 });
+      expect(evaluateVisualTransformationProgram(retargeted, 75).layers.length).toBeGreaterThan(0);
+    });
+  });
 });

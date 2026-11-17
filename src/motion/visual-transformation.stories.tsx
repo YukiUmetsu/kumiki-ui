@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { VisualTransformationDemo } from "./visual-transformation-demo";
+import { VisualTransformationTopologyDemo } from "./visual-transformation-topology-demo";
 
 const meta = {
   title: "Motion engine/Visual Transformation", id: "motion-visual-transformation",
@@ -15,6 +16,8 @@ export const ReferenceFilm: Story = {};
 export const Portrait: Story = { args: { initialAspect: "portrait", initialFrame: 720 } };
 export const AlternativeTheme: Story = { args: { initialTheme: "theme-b", initialFrame: 870 } };
 export const GeometricMorph: Story = { args: { initialFrame: 120 } };
+/** `auto` selects `topology-morph` (AdvancedShapeMorph) when contours differ: parts split, holes close and appear. */
+export const TopologyMorph: Story = { render: () => <VisualTransformationTopologyDemo /> };
 export const MaskReveal: Story = { args: { initialShapeStrategy: "mask-reveal", initialFrame: 120 } };
 export const ParticleTransport: Story = { args: { initialShapeStrategy: "particle-handoff", initialFrame: 120 } };
 export const DiagramHandoff: Story = { args: { initialFrame: 270 } };

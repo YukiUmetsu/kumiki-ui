@@ -9,13 +9,48 @@ is explicit (one-to-one, merge, split, grouped pairs), or unique semantic IDs ar
 matched. Missing elements enter/exit; ambiguous identities and invalid references
 are actionable errors. Every source and destination has exactly one owner.
 
-Selection prefers compatible geometric morphs, then shared representations;
-changed text and opaque SVG path strings use explicit crossfade. Mask reveal and
-bounded seeded particle transport are opt-in. SVG topology is validated by the
-existing morph kernel. Singular/mirrored transform changes crossfade endpoint
-poses rather than interpolate a discontinuous signed scale. Contour ordering and
-point correspondence remain author responsibilities; no automatic SVG parser,
+Selection prefers compatible geometric morphs, then shared representations, then
+`topology-morph` for closed shape contours whose topology differs; changed text and
+open or stroked SVG paths use explicit crossfade. Mask reveal and bounded seeded
+particle transport are opt-in. SVG topology is validated by the existing morph
+kernel. Singular/mirrored transform changes crossfade endpoint poses rather than
+interpolate a discontinuous signed scale. Explicit `geometric-morph` keeps its
+strict contract: contour ordering and point correspondence are the author's. No
 text shaping, mathematical equivalence or 3D projection is claimed.
+
+**Topology morph (MC1.1, 2026-11-17).** `topology-morph` hands the contours to
+[`AdvancedShapeMorph`](motion-geometry.md#advancedshapemorph-any-two-shapes-text-and-3d):
+part and hole matching, ring correspondence with exact corners, transit crossing
+checks and split, merge, partition, emerge or cross-dissolve strategies.
+
+- `auto` selects it when both sides are `shape` content, every contour is closed, and
+  strict validation fails. Request it explicitly to morph `svg-path` content (subpaths
+  are filled regions; open subpaths close).
+- The mapping or spec option `morph` takes `AdvancedShapeMorph` settings without
+  `easing` (`topologyStrategy`, `resampleDensity`, `alignment`, `interpolation`,
+  `holeTransport`, `fillRule`, `curveTolerance`, `dissolveScale`). It is JSON data and
+  survives `serializeVisualTransformation`.
+- The mapping `easing` shapes progress; the morph runs linearly on that progress.
+  Transform, opacity and colour still come from MG1 tracks. Frames outside the
+  handoff are the authored scenes.
+- Morph frames are `shape` content with `fillRule: "nonzero"`, so overlapping parts
+  form one union. The SVG adapter honours `fillRule`; authored shapes default to
+  `evenodd`. A `cross-dissolve` part paints on its own layer
+  (`<lane layer id>:part:<n>`) with its opacity.
+- A split or merge **mapping** paints one endpoint per lane and keeps the declared
+  fallback. To morph one shape into several parts, author each side as one element
+  with several contours. `toContourShape(svgPathData)` converts SVG data into contours.
+- One plan is built per lane at compile time; its warnings join the compiled
+  diagnostics with the lane id. The cache is keyed by lane, so compiled records stay
+  plain data.
+- Limits: a stroke follows each part's outline, so overlapping parts show inner
+  edges; prefer fill for split, merge and partition morphs.
+- Evidence: `tests/visual-transformation.test.ts` (selection, endpoints, SVG paths,
+  open paths stay on the fallback, fading layers, JSON round trip, morph easing
+  rejected, deterministic seeking, retarget); the reference film's 337 strategy
+  decisions are unchanged; `registry-fixture --item=visual-transformation` compiles a
+  topology-morph consumer. Storybook: Motion engine → Visual Transformation →
+  *Topology Morph*.
 
 Frames are integers at rational FPS, ranges end-exclusive. The first handoff
 frame is exactly the source; the first frame after the range is exactly the
