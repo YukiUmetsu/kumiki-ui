@@ -78,10 +78,10 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
     palette:["#743047","#3E1A31","#9D5267"],
     direction:8,flow:13,
     dryContours:contacts("rose-whorl-recess",[
-      "M226 157 Q230 150 237 148",
+      "M247 157 Q247 151 253 146",
       "M263 150 Q269 147 274 150",
       "M249 174 Q263 183 276 178",
-      "M231 153 L234 150 M237 148 L239 147",
+      "M246 157 L248 153 M251 149 L254 146",
     ]),
   },
   {
@@ -93,7 +93,7 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
     dryContours:contacts("rose-whorl-left",[
       "M220 154 Q222 146 229 142",
       "M222 163 Q223 171 231 177",
-      "M238 177 Q246 183 252 184",
+      "M250 181 Q254 184 258 182",
       "M222 151 L224 148 M228 143 L231 141",
     ]),
   },
@@ -138,8 +138,8 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
     dryContours:contacts("rose-whorl-scroll",[
       "M239 158 Q245 149 252 148",
       "M257 155 Q262 159 259 164",
-      "M237 169 Q243 176 250 172",
-      "M234 163 L237 158 M248 147 L252 147",
+      "M250 180 Q257 184 264 180",
+      "M247 179 L251 182 M260 182 L264 180",
     ]),
   },
 ] as const;
