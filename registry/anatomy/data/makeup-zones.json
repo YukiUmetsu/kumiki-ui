@@ -111,7 +111,7 @@
       "note": "The centre of the chin. Long faces skip it so the face does not look longer." },
     { "id": "cupids-bow", "label": "Cupid's bow", "product": "highlight", "side": "center", "measure": false,
       "shape": { "kind": "stroke", "soft": 0.08, "points": [
-        { "v": 37, "off": [0, 0.07, 0.02], "r": 0.025 }, { "v": 0, "off": [0, 0.07, 0.02], "r": 0.03 }, { "v": 267, "off": [0, 0.07, 0.02], "r": 0.025 } ] },
+        { "v": 37, "off": [0, 0.07, 0], "r": 0.025 }, { "v": 0, "off": [0, 0.07, 0], "r": 0.03 }, { "v": 267, "off": [0, 0.07, 0], "r": 0.025 } ] },
       "note": "A fine light line just above the upper lip's peaks: sharpens the vermilion border so the lip looks fuller." },
     { "id": "brow-bone", "label": "Brow bone", "product": "highlight", "side": "both", "measure": true,
       "shape": { "kind": "stroke", "soft": 0.22, "points": [

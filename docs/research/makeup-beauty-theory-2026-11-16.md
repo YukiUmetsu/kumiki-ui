@@ -92,6 +92,8 @@ convention. They are graded so.
 | Transferred lipstick came out darker than on the reference | The relief measured within the film's cover, not against the skin around the lips |
 | `paintPhoto` darkened lipstick and brow colour by the bare feature's own darkness | The feature's darkness kept in its colour, and the film lit like the skin around it |
 | A reference with glasses gave eyeshadow from the frames | The transfer leaves out the review's `exclude_zones` |
+| Face-chart outlines frayed on the sides of the face and nose (each grid point took its nearest vertex's depth) | The depth interpolated in the mesh's front triangle, where the painters also measure |
+| The cupid's bow stroke sat in front of some faces' skin, so it painted almost nothing | No forward offset: about 32 mm of outline on every face tested |
 
 ## Limits
 

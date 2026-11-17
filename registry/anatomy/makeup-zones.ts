@@ -10,8 +10,12 @@
  * Coordinates: the face's rest frame in mm, +x the face's own left, +y up, +z forward (ANAT1's convention).
  */
 import type { Vec3 } from "./anatomy-body";
+import faceData from "./data/face-mesh-mediapipe.json";
 import { mirrorMap } from "./face-beauty";
+import { rasterizeTriangles } from "./foundation-raster";
 import atlasJson from "./data/makeup-zones.json";
+
+const MESH_TRIS = (faceData.triangles as number[][]).flat();
 
 export interface PointSpec {
   v?: number; mix?: [number, number][]; lerp?: [PointSpec, PointSpec, number]; a?: string;
@@ -143,31 +147,20 @@ export function zoneField(id: string, V: readonly Vec3[], adjust?: ZoneAdjust): 
 
 /**
  * Outlines of a zone at a weight level (0.5: the edge of its blend), seen from the front: closed polylines in the rest
- * frame's (x, y), mm. Marching squares on a grid of `step` mm over the zone, depth taken from the face (the nearest
- * vertex in front), so painters can draw a face chart in any style.
+ * frame's (x, y), mm. Marching squares on a grid of `step` mm over the zone, on the face's front surface, so painters
+ * can draw a face chart in any style.
  */
 export function zoneOutline(id: string, V: readonly Vec3[], o: { level?: number; step?: number; adjust?: ZoneAdjust } = {}): [number, number][][] {
   const level = o.level ?? 0.5, step = o.step ?? 1, f = zoneField(id, V, o.adjust), parts = resolveZone(id, V, o.adjust);
   const x0 = Math.min(...parts.map(p => p.lo[0])), x1 = Math.max(...parts.map(p => p.hi[0])), y0 = Math.min(...parts.map(p => p.lo[1])), y1 = Math.max(...parts.map(p => p.hi[1]));
   const nx = Math.ceil((x1 - x0) / step) + 1, ny = Math.ceil((y1 - y0) / step) + 1, g = new Float32Array(nx * ny);
-  const zAt = frontDepth(V);
-  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const x = x0 + i * step, y = y0 + j * step; g[j * nx + i] = f([x, y, zAt(x, y)]); }
+  // The depth under each grid point is interpolated in the mesh's front triangle: a vertex's own depth jumps on the
+  // steep sides of the face and nose, and 3D stroke zones then fray. Off the mesh nothing is painted, so the weight is 0.
+  const sx = new Float32Array(468), sy = new Float32Array(468), sz = new Float32Array(468);
+  for (let k = 0; k < 468; k++) { sx[k] = (V[k][0] - x0) / step + 0.5; sy[k] = (V[k][1] - y0) / step + 0.5; sz[k] = V[k][2]; }
+  const front = rasterizeTriangles(nx, ny, sx, sy, sz, MESH_TRIS);
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const k = j * nx + i; g[k] = front.tri[k] < 0 ? 0 : f([x0 + i * step, y0 + j * step, front.depth[k]]); }
   return marchingSquares(g, nx, ny, level).map(line => line.map(([i, j]) => [x0 + i * step, y0 + j * step] as [number, number]));
-}
-
-/** Depth of the face's front surface at (x, y): the z of the nearest vertex, from a coarse grid (mm). */
-function frontDepth(V: readonly Vec3[]): (x: number, y: number) => number {
-  const cell = 6, map = new Map<string, number[]>();
-  V.forEach((p, i) => { const k = `${Math.floor(p[0] / cell)},${Math.floor(p[1] / cell)}`; (map.get(k) ?? map.set(k, []).get(k)!).push(i); });
-  return (x, y) => {
-    const cx = Math.floor(x / cell), cy = Math.floor(y / cell);
-    let best = -1, bd = Infinity;
-    for (let r = 0; r <= 4 && best < 0; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) for (const i of map.get(`${cx + dx},${cy + dy}`) ?? []) {
-      const d = (V[i][0] - x) ** 2 + (V[i][1] - y) ** 2 - V[i][2] * 1e-3;
-      if (d < bd) { bd = d; best = i; }
-    }
-    return best >= 0 ? V[best][2] : 0;
-  };
 }
 
 /** Iso-lines of a scalar grid as joined polylines in grid coordinates (marching squares, linear interpolation). */
