@@ -132,7 +132,9 @@ function createReferenceGeometry(
       gaze[side][0]/1000,gaze[side][1]/1000,centres[side][2]/1000,
     ]);
     const [x,y]=map([p[0],p[1]]);
-    const near=side==="L";
+    const nearIndex=FACE_LANDMARKS[side==="L"?"exocanthion.L":"exocanthion.R"];
+    const farIndex=FACE_LANDMARKS[side==="L"?"exocanthion.R":"exocanthion.L"];
+    const near=frame.vertexFacing[nearIndex]>=frame.vertexFacing[farIndex];
     return {
       side,x,y,
       rx:fmt(gaze.r*.58*1.05*(near?1:.78)),
