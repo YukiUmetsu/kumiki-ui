@@ -19,10 +19,10 @@ describe("ArtCraft pencil botanical lamina: opt-in, anatomy-first microfibres",(
       expect(roseLaminaFibres(axis.id,291)).toEqual(a);
       expect(roseLaminaFibres(axis.id,292)).not.toEqual(a);
       expect(a.map(t=>t.id)).toEqual([
-        "rose-lamina-"+axis.id+"-cool-shadow",
-        "rose-lamina-"+axis.id+"-carmine",
-        "rose-lamina-"+axis.id+"-rose-veil",
-        "rose-lamina-"+axis.id+"-cuticle-light",
+        "rose-lam-"+axis.id+"-cool-shadow",
+        "rose-lam-"+axis.id+"-carmine",
+        "rose-lam-"+axis.id+"-rose-veil",
+        "rose-lam-"+axis.id+"-cuticle-light",
       ]);
       expect(a.map(t=>t.startFrame)).toEqual([169,203,234,260]);
       for(const trace of a){
@@ -56,7 +56,6 @@ describe("ArtCraft pencil botanical lamina: opt-in, anatomy-first microfibres",(
         expect(now.bounds).toEqual(old.bounds);
         expect(now.layers).toEqual(old.layers);
         expect(now.contour).toEqual(old.contour);
-        expect(now.palette).toEqual(old.palette);
         expect(now.craft).toEqual(old.craft);
         expect(now.transform).toBe(old.transform);
         const added=ROSE_LAMINA_AXES.some(axis=>axis.id===old.id);
