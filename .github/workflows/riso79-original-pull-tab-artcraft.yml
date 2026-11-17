@@ -12,6 +12,7 @@ on:
       - "tests/riso79-pull-tab-artcraft.test.tsx"
       - "tests/e2e-storybook/riso79-pull-tab-artcraft.spec.ts"
       - "docs/research/riso79-original-window-pull-tab-artcraft.md"
+      - "docs/research/riso79-paper-edge-material-study.md"
   workflow_dispatch:
 permissions:
   contents: read
