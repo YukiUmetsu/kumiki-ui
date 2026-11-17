@@ -10,7 +10,6 @@ test("two original rose outer petal edges A/B in both movie aspects, macro sourc
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
   const folds=page.getByRole("checkbox",{name:"Foundation rose physical folds"});
   const margins=page.getByRole("checkbox",{name:"Foundation rose outer petal edge relief"});
-  const form=page.getByRole("checkbox",{name:"Foundation rose outer petal form colour"});
   const focus=page.getByRole("combobox",{name:"Foundation inspection focus"});
   const macro=page.getByRole("checkbox",{name:"Foundation inspect macro"});
   await expect(margins).toBeDisabled();
