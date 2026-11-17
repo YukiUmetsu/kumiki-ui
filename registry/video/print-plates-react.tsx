@@ -4,6 +4,7 @@ import { evaluateRisoPrint, inspectRisoPrint, plateRegistration, printHash } fro
 import type { RisoPrintSpec } from "./print-plates";
 import { createRisoScreenGeometry, wrapRisoScreenDots } from "./riso-screening";
 import type { RisoScreenMode } from "./riso-screening";
+import {createRisoDrumContactGeometry} from "./riso-drum-contact";
 
 /** Render-owned SVG paint bindings: authored artwork chooses solid fills or screened densities per spot ink. */
 export interface RisoPaint {
@@ -32,6 +33,10 @@ export interface RisoPrintProps extends Omit<SVGProps<SVGSVGElement>, "children"
   foregroundLayers?: readonly RisoForegroundLayer[];
   misregistration?: number;
   paperGrain?: number;
+  /** Optional art-directed per-drum longitudinal ink starvation, 0..1.
+   * Native SVG source geometry is untouched. Exact zero equals no effect. */
+  drumContact?: {readonly dryness:number;
+    readonly feed:"top-to-bottom"|"left-to-right"};
   /** AM regular variable-radius screen or FM deterministic dispersed droplets. Defaults to AM. */
   screenMode?: RisoScreenMode;
   /** Nominal screened coverage 0..1; defaults to the legacy .32-radius AM screen. */
@@ -61,7 +66,7 @@ export function printRevealPath(width: number, height: number, progress: number,
 
 /** Separate ink layers over fixed paper; no local clocks, image downloads, or WebGL. */
 export function RisoPrint({
-  spec, frame, artworks, foregroundLayers = [], misregistration = 0, paperGrain = .5,
+  spec, frame, artworks, foregroundLayers = [], misregistration = 0, paperGrain = .5, drumContact,
   screenMode = "am", screenDensity = Math.PI * .32 * .32, dotGain = 0, reducedMotion = false,
   transparentPaper = false, visiblePlateIds, label = "Two-color Risograph print", style, ...svgProps
 }: RisoPrintProps) {
@@ -86,6 +91,10 @@ export function RisoPrint({
   if ((screenMode !== "am" && screenMode !== "fm") || !Number.isFinite(screenDensity) || screenDensity < 0 || screenDensity > 1 ||
       !Number.isFinite(dotGain) || dotGain < 0 || dotGain > 1)
     throw new RangeError("RISO screenMode must be AM or FM, with screenDensity and dotGain between 0 and 1.");
+  if(drumContact && (!Number.isFinite(drumContact.dryness)||
+    drumContact.dryness<0||drumContact.dryness>1||
+    !["top-to-bottom","left-to-right"].includes(drumContact.feed)))
+    throw new RangeError("RISO75 contact requires ink dryness 0..1 and a paper feed direction.");
   const activePlateIds = visiblePlateIds ? new Set(visiblePlateIds) : null;
   const frameState = evaluateRisoPrint(spec, frame, reducedMotion);
   const rawId = useId();
@@ -106,6 +115,11 @@ export function RisoPrint({
       density:screenDensity*.55, dotGain:dotGain*.75,
       seed:spec.seed, plateIndex:index}),
   }));
+  const drumContactGeometry = spec.plates.map((_, index)=>
+    drumContact && drumContact.dryness>0 ? createRisoDrumContactGeometry({
+      width:spec.width,height:spec.height,seed:spec.seed,
+      plateIndex:index,dryness:drumContact.dryness,feed:drumContact.feed,
+    }):null);
   const sheet = useMemo(() => Array.from({ length: 450 }, (_, i) => ({
     x: printHash(spec.seed, i, 31) * spec.width,
     y: printHash(spec.seed, i, 37) * spec.height,
@@ -131,8 +145,12 @@ export function RisoPrint({
       data-km-riso-foreground-layer={layerId}
       style={{ mixBlendMode: "multiply" }} opacity={plate.opacity}
       clipPath={`url(#${uid}-clip-${i})`} mask={`url(#${uid}-tooth)`}>
-      <g transform={`translate(${dx.toFixed(3)} ${dy.toFixed(3)})`} fill={plate.color} stroke="none">
-        {artwork(paint)}
+      <g data-km-riso75-contact-drum={drumContactGeometry[i]?plate.id:undefined}
+        mask={drumContactGeometry[i]?`url(#${uid}-contact-${i})`:undefined}>
+        <g transform={`translate(${dx.toFixed(3)} ${dy.toFixed(3)})`}
+          fill={plate.color} stroke="none">
+          {artwork(paint)}
+        </g>
       </g>
     </g>;
   };
@@ -151,6 +169,23 @@ export function RisoPrint({
         {grain > 0 && pores.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={p.r * (.4 + grain)} fill="#000" />)}
       </mask>
       {spec.plates.map((plate, index) => <Fragment key={plate.id}>
+        {drumContactGeometry[index]&&<mask id={`${uid}-contact-${index}`}
+          x={0} y={0} width={spec.width} height={spec.height}
+          maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse">
+          <rect width={spec.width} height={spec.height} fill="#fff"/>
+          <g stroke="#000" strokeLinecap="round" fill="none"
+            data-km-riso75-fibre-master={plate.id}>
+            {drumContactGeometry[index].streaks.map(line=><path
+              key={line.id} data-km-riso75-streak={line.id}
+              d={line.d} strokeWidth={line.strokeWidth}
+              opacity={line.opacity}/>)}
+          </g>
+          <g fill="#000" data-km-riso75-pore-master={plate.id}>
+            {drumContactGeometry[index].pinpricks.map(p=><ellipse
+              key={p.id} cx={p.cx} cy={p.cy} rx={p.rx} ry={p.ry}
+              opacity={p.opacity}/>)}
+          </g>
+        </mask>}
         <pattern id={`${uid}-dots-${index}`} x={0} y={0}
           width={screens[index].tileSize} height={screens[index].tileSize}
           patternUnits="userSpaceOnUse" patternTransform={`rotate(${plate.dotAngle})`}>

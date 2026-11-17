@@ -3308,7 +3308,7 @@
       "name": "riso-print",
       "type": "registry:ui",
       "title": "Risograph Spot-Ink Printing",
-      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, fixed registration, halftone screens, paper grain, a sheet-feed transition, and a native incoming spot-ink overprint scene bridge. Authored original SVG plates render through existing FilmStage slots; no alternate renderer or clock. Adds source-native continuously graded AM ink dots, paper-fixed micro-irregularity, and optional custom SVG contour clipping.",
+      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, native per-drum paper-locked ink contact fissures/pinholes, authored registration and halftone screening, paper-grain, source-native dry-brush gradients, sheet-feed transition, and native spot-ink overprint. Independent original vector masters and FilmStage motion remain intact; optional zero-effect contact cannot replace physical press measurements.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3336,6 +3336,11 @@
           "path": "registry/video/riso-screening.ts",
           "type": "registry:ui",
           "target": "components/video/riso-screening.ts"
+        },
+        {
+          "path": "registry/video/riso-drum-contact.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-drum-contact.ts"
         },
         {
           "path": "registry/video/riso-gradient-ink.ts",

@@ -1,0 +1,34 @@
+# RISO75 — Reusable paper-anchored, independent drum-contact material for moving ink
+
+## Real-world Risograph image/process reference and five-axis deconstruction
+
+**Sources:** [Dizzy Ink: Imperfections](https://risograph.co.uk/08-imperfections), [MICA: Riso Image Making](https://www.mica.edu/campus-life-and-resources/places-and-spaces/maker-spaces-fabrication-studios/2d-prototyping-studio/riso-image-making-and-printing/), [University of Utah RISO operator guide](https://lib.utah.edu/collections/book-arts/risograph.php), [Moniker Press print-process guide](https://www.monikerpress.ca/printing/), [MCAD Risograph printing](https://intranet.mcad.edu/kb/risograph-printing), [FaVU RISO Quirks](https://dilny.favu.vut.cz/en/bookbinding/workplace/riso-lab/risograph-quirks), [MICA / Book Arts grain-touch and halftone characteristics](https://web.faa.illinois.edu/app/uploads/sites/6/2021/05/riso_print_guide.pdf).
+
+These references document *real Riso-printed paper* and studio physical-press behavior. Printing produces independent stencil passes; dense ink areas may show pressure marks, ink density irregularities, feed-aligned artifacts, registration inconsistencies and paper-dependent grain. They also document that such imperfections are not always desirable: professional printing often minimizes them. They are therefore **opt-in art-directed materials with a literal zero/no-op** rather than defaults applied to every ink or a blanket texture filter.
+
+External print photographs and instruction diagrams are references only, neither downloaded, traced, reverse engineered, redistributed nor presented as original `kumiki-ui` artwork. No physical printer/profile calibration is available. The existing RISO62 original 20-gesture moving calligraphic drawing is the independently authored visual source of the new Storybook.
+
+| ArtCraft axis | Reference observation | Implemented consequence |
+| --- | --- | --- |
+| Topology / genuine stroke silhouette | Original paper-negative holes, closed pressure ribbons and taper must remain clear even when print density drops intermittently. | Add a **second**, optional ink-contact SVG mask only. Never mutate original path, paper knockout, dry brush, source geometry, PDF/TIFF master or underlying inks. Existing original paper-tooth mask remains independent. |
+| Vector flow / pressure | Roller feed creates directionally coherent local transfer disturbances rather than omnidirectional snow/noise. | 16 uneven cross-sheet lanes × 7 hand-parameterized curved cubic fissures with varying two-segment tangents; every filament has an individual phase, onset, winding and width. Direction selectable along physical sheet's Y or X feed. |
+| Edge characteristics / paper openings | Severe dropout is localized; ink edges remain original signed contours, unlike soft Gaussian blur. | 16 × 5 source-vector fine ellipses aligned longitudinally with the feed, plus 112 cubic hairline slits per drum. Each one only diminishes deposited ink locally; no full-image blur, sharpening, generic uniform-opacity fade, bitmap grain or postprocessed RGB. |
+| Layering / optical interaction | Cobalt and vermilion inks belong to distinct stencils, yet share one paper; overprints are not monolithic desaturated overlays. | Unique seeded contact masks per physical drum; separate original `<g>` retains multiply overprint and registered original plate transforms. `visiblePlateIds` still works; foreground original layers inherit the same individual drum-contact mask. |
+| Surface scale / cinematic temporal continuity | Paper, ink-contact defects and dry-brush fibers cannot crawl independently as the artwork moves or the camera tracks it. | Deterministic coordinate-space geometry based on seed, paper width/height, physical feed and drum index; **no film frame in generation**. Original source vectors can animate at 24fps, while material remains fixed to paper; 1×, 2× and 3× camera preserves vector data. |
+
+## Artist capability
+
+- New pure reusable `createRisoDrumContactGeometry`: 112 original two-cubic contact fissures + 80 elongated ink-starvation micropores per spot plate, precise 0..1 dryness, explicit feed orientation, unique per drum, stable frame-independent seed, strict invalid-input failure, bounded native geometry and unique IDs.
+- Reusable `RisoPrint` prop `drumContact?: {dryness, feed}`, optional and preserving existing behavior at zero. The existing physical original dry-brush ink, paper tooth, AM/FM dots, source transforms, per-plate offsets, opaque and transparent modes remain unchanged. This is a compositional option, not an automatic physical calibration.
+- `RisoBrushArt` forwards the optional contact material into the production source component without rewriting any 20 authored original gestures or any source paths. All existing FilmStage and export uses are backward compatible.
+- Dedicated Storybook state `Risograph · Native Ink Drum Contact` in the **existing Film Looks / Risograph** group, not a new folder. Two synchronous, detailed side-by-side paper images: untouched vector source vs altered contact deposition. 24fps original source playback; scrub 0..239; plate select; 16:9/9:16; feed X/Y; intensity 0..1; separate paper texture; reduced motion; 1×/2×/3× common lens with XY pan.
+- Changes only the *displayed ink deposition* inside an optional local SVG mask, not the grayscale per-drum PDF/TIFF export, not a human/hand image, not an animated noise filter, not a nondeterministic CSS animation. Source paths remain exact.
+
+## Integration and verification
+
+1. Strict TypeScript; native geometry unit tests: deterministic per plate, independent second drum, frame invariance, axis anisotropy, original source geometry/no-op at zero, robust constraints and 20 original curve ID/path preservation.
+2. Actual Storybook production build and Chromium browser test: 1× A/B, 3× camera, same original source 20 curves, distinct drum stencil texture, frame scrub forward/back and fixed mask, changing feed angle, spot-plate visibility, 9:16 rendering, zero-mask identity and reduced motion; photograph-quality judgment requires **actual screenshots**, not just green Playwright.
+3. Original existing core RISO screen tests and 62/63/64 film regression; clean `riso-print` registry consumer fixture, `registry:validate`. No npm dependency and no new registry entry. If native exported press masters change accidentally, reject.
+4. The texture is a **designed analogue** of uneven feed/contact: not authentic physical calibration. Genuine Riso print quality and real density/pressure behavior still require operator-owned actual pressed paper scans for 1×/3× independent image analysis. Do not claim green CI alone proves print realism.
+
+This slice prioritizes a **usable artistic component that produces rich animated video material** over further scanner-measurement dashboards. The source-original contour density is never simplified to achieve it.

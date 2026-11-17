@@ -93,13 +93,16 @@ export interface RisoBrushArtProps {
   /** Independently translate the entire SECOND ink stencil. Default stays legacy. */
   secondPlateRegistration?:readonly [number,number];
   grain:number;
+  /** Optional paper-locked per-drum print-contact fibres; source art remains original. */
+  drumContact?: {readonly dryness:number;
+    readonly feed:"top-to-bottom"|"left-to-right"};
   animate:boolean;
   /** Remove preview-only shadows and width caps inside a film output. */
   layout?:"studio"|"film";
 }
 /** Same source artwork for the Storybook studio AND FD1 capture/export. */
 export function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registration,
-  grain,animate,printFrame=239,secondPlateRegistration=[.65,-.45],
+  grain,animate,drumContact,printFrame=239,secondPlateRegistration=[.65,-.45],
   layout="studio"}:RisoBrushArtProps){
   if(!Number.isSafeInteger(printFrame)||printFrame<0||printFrame>239)
     throw new RangeError("RISO64 requires an absolute print frame 0..239.");
@@ -204,6 +207,7 @@ export function RisoBrushArt({aspect,frame,plate,dryness,seed,inkScale,registrat
     <RisoPrint spec={spec} frame={printFrame} artworks={artworks}
       visiblePlateIds={plate==="both"?undefined:[plate]}
       paperGrain={grain} misregistration={registration}
+      drumContact={drumContact}
       label="Original Risograph calligraphic current with two true spot inks and paper-white dry-brush fibres"
       style={{width:"100%",height:"auto"}}/>
   </div>;
