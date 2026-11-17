@@ -70,6 +70,7 @@ on:
       - 'tests/e2e-storybook/colored-pencil-cranial-volume.spec.ts'
       - 'tests/e2e-storybook/colored-pencil-head-silhouette-study.spec.ts'
       - 'tests/e2e-storybook/colored-pencil-rose-lamina.spec.ts'
+      - 'tests/e2e-storybook/colored-pencil-rose-rolled-lip.spec.ts'
       - 'tests/e2e-storybook/colored-pencil-portrait-guides.spec.ts'
       - '.github/workflows/colored-pencil-foundation-proof.yml'
   workflow_dispatch:
@@ -99,7 +100,7 @@ jobs:
       - name: Test exact-byte source/native-image proof capture
         run: node --test tests/pencil-head-native-proof-capture.test.mjs
       - name: Verify new rose lamina native pixel parity first
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-rose-lamina.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-rose-lamina.spec.ts tests/e2e-storybook/colored-pencil-rose-rolled-lip.spec.ts
       - name: Preserve independent rose native A/B and macro screenshot evidence
         if: always()
         uses: actions/upload-artifact@v4
