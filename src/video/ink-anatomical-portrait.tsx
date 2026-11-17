@@ -153,7 +153,6 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
   };
   const top=q("forehead"),menton=q("menton"),nose=q("pronasale");
   const templeL=q("zygion.L"),templeR=q("zygion.R");
-  const hatTop=shift(top,-11,-24);
   const browPoints=[...brow("L"),...brow("R")];
   const foreheadLeft=shift(browPoints[1],-5,-17),foreheadRight=shift(browPoints[browPoints.length-2],5,-17);
   const upperLip=feature("lips-upper"),lowerLip=feature("lips-lower");
