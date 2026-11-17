@@ -63,6 +63,8 @@ export interface SurfaceSpec {
   /** Diminishing courses (stone slates): the heights of the eaves and the ridge, metres (local). */
   eave?: number;
   ridge?: number;
+  /** Clear glass: how much of what lies behind a pane shows through it (0–1). */
+  clear?: number;
   /** A quarter turn of the pattern (a mat laid the other way). */
   turn?: boolean;
   /** Added to (u, v) before painting: carries one picture across separate pieces (the panels of a screen, a painting's centre). */
@@ -141,6 +143,28 @@ function grime(o: SurfOut, u: number, v: number, age: number, i: SurfIn) {
   o.r *= k; o.g *= k * 1.0; o.b *= k * 0.98;
 }
 
+/**
+ * Flat-sawn wood figure in a board's own coordinates (`a` across the grain from the board's centre line, `l` along it):
+ * growth rings cut by the face at a slight angle make the arched "cathedral" figure; latewood bands are darker; ring-porous
+ * oak shows its earlywood pores as fine dashes and its rays as short pale flecks. Each board (`board`, 0–1) has its own
+ * pith offset, depth, tilt and growth rate. Where a pixel covers several rings the figure fades to its average.
+ */
+function woodGrain(a: number, l: number, seed: number, board: number, fw: number, oak = true) {
+  const bi = Math.floor(board * 1e6), h = (k: number) => hash2(seed + 40 + k, bi, k);
+  const pith = (h(1) - 0.5) * 0.3, depth = 0.03 + h(2) * 0.22, tilt = (h(3) - 0.5) * 0.08, sp = 0.0022 + 0.0045 * h(4);
+  const wob = fbm(seed + 44, l * 0.7 + bi, a * 5, 3) * 0.005 + gradNoise(seed + 45, l * 3, a * 25) * 0.0012;
+  const f = frac((Math.hypot(a - pith, depth + tilt * l) + wob) / sp);
+  const late = sst(0.55, 0.85, f) * (1 - sst(0.93, 1.0, f)), rr = resolve(fw, sp * 2.2);
+  let k = (1 - 0.3 * (late * rr + 0.33 * (1 - rr))) * (0.93 + 0.14 * (fbm(seed + 46, l * 0.25 + bi, a * 2, 2) * 0.5 + 0.5));
+  let pore = 0;
+  if (oak) {
+    pore = sst(0.6, 0.82, gradNoise(seed + 47, a * 700, l * 45)) * (1 - sst(0.06, 0.25, f)) * resolve(fw, 0.0016);
+    k *= 1 + 0.14 * sst(0.72, 0.92, gradNoise(seed + 48, a * 320, l * 22)) * resolve(fw, 0.0025);
+  }
+  k *= 1 - 0.3 * pore;
+  return { k, h: 0.00025 * (late - 0.33) * rr - 0.00015 * pore };
+}
+
 // ---- The surfaces -------------------------------------------------------------------------------------------------------------
 
 const SG = { blue: linearOf("#2a52b0"), deep: linearOf("#1c3480"), ruby: linearOf("#a8162a"), gold: linearOf("#e0a52e"), green: linearOf("#2f8a46"), white: linearOf("#c9cdb8"), purple: linearOf("#7a3080"), flesh: linearOf("#d9a888") };
@@ -198,7 +222,7 @@ function stainedDesign(u: number, v: number, W: number, rose: boolean, seed: num
   } else {
     // the mosaic ground: small blue squares in a ruby trellis
     const a = (u + v) / 0.13, b2 = (u - v) / 0.13, ld = Math.min(frac(a), 1 - frac(a), frac(b2), 1 - frac(b2)) * 0.092;
-    c = ld < 0.012 ? SG.ruby : frac(Math.floor(a) * 0.37 + Math.floor(b2) * 0.61) < 0.5 ? SG.blue : SG.deep; edge = Math.min(Math.abs(ld - 0.012), dS, inner - au);
+    c = ld < 0.009 ? SG.ruby : frac(Math.floor(a) * 0.37 + Math.floor(b2) * 0.61) < 0.5 ? SG.blue : SG.deep; edge = Math.min(Math.abs(ld - 0.009), dS, inner - au);
     id = frac(Math.floor(a) * 0.37 + Math.floor(b2) * 0.61);
   }
   return { c, edge, iron, paint, id };
@@ -224,9 +248,20 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
       const joint = s.kind === "rustication" ? 0.045 : s.kind === "marble" ? 0.003 : 0.008, rust = s.kind === "rustication";
       return (u, v, i, o) => {
         const c = courses(u, v, H, L, seed, 0.3);
-        const col = vary(stone, c.id, s.kind === "marble" ? 0.04 : 0.09);
+        // each block cut from its own part of the bed: brighter or duller, warmer (iron-stained) or greyer
+        const col = vary(stone, c.id, s.kind === "marble" ? 0.04 : 0.11, s.kind === "marble" ? 0.03 : 0.18);
         const grain = fbm(seed + 3, u * 9, v * 9, 3), pits = gradNoise(seed + 9, u * 60, v * 60);
         set(o, col, 1 + grain * 0.06 + pits * 0.02);
+        if (!rust && s.kind !== "marble") {
+          // bedding layers through the block, shell fragments and voids in the limestone, the mason's tooling, chipped arrises
+          const bed = Math.sin(v * 95 + c.id * 40 + fbm(seed + 11, u * 2, v * 14, 2) * 2.5) * resolve(i.fw, 0.012);
+          const sh = worley(seed + 12, u / 0.006, v / 0.006, 0.9), rs = resolve(i.fw, 0.008), shell = sh.f1 < 0.32 ? (sh.id > 0.9 ? -0.22 : sh.id < 0.06 ? 0.14 : 0) : 0;
+          const tool = Math.sin((u * 0.6 + v) * 700 + gradNoise(seed + 13, u * 8, v * 8) * 4) * resolve(i.fw, 0.0025);
+          const chip = sst(0.62, 0.8, gradNoise(seed + 14, u * 30, v * 30)) * sst(0.025, 0.004, c.dj);
+          const k = 1 + 0.025 * bed + shell * rs + 0.012 * tool - 0.12 * chip;
+          o.r *= k; o.g *= k; o.b *= k * 0.995;
+          o.h += 0.0003 * tool - 0.004 * chip - (shell < 0 ? 0.0008 * rs : 0);
+        }
         const inJoint = sst(joint, joint * 0.4, c.dj) * resolve(i.fw, H * 0.5);
         // rusticated blocks have chamfered, deep channels; ashlar arrises are a little worn
         const edge = rust ? sst(0, 0.07, c.dj) : sst(0, 0.012, c.dj);
@@ -289,8 +324,12 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
         const bare = sst(0.0, 0.015, lose - 0.42);
         const trowel = fbm(seed + 23, u * 2.5 + v * 0.8, v * 2.2, 3);
         set(o, coat, 1 + trowel * 0.05 + fine * 0.025);
+        // hairline cracks where the plaster has moved, a few patches made good in a slightly different tint
+        const cw = worley(seed + 30, u / 0.5, v / 0.5, 1), crack = sst(0.0014, 0.0004, (cw.f2 - cw.f1) * 0.25 + 0.0008 * gradNoise(seed + 32, u * 70, v * 70)) * sst(0.6, 0.78, fbm(seed + 31, u * 1.1, v * 1.1, 2) * 0.5 + 0.5) * resolve(i.fw, 0.003) * clamp01(flake * 4);
+        const patch = sst(0.72, 0.74, hash2(seed + 33, Math.floor(u / 0.7 + 0.3 * Math.floor(v / 0.5)), Math.floor(v / 0.5))) * 0.04 * clamp01(flake * 6);
+        o.r *= 1 - 0.4 * crack + patch; o.g *= 1 - 0.4 * crack + patch * 0.8; o.b *= 1 - 0.38 * crack + patch * 0.5;
         // limewash is translucent where thin: a hint of the joints below
-        o.h = 0.0015 * trowel; o.cav = 1; o.rough = 0.92; o.spec = 0.02; o.porous = 0.75;
+        o.h = 0.0015 * trowel - 0.0006 * crack; o.cav = 1 - 0.4 * crack; o.rough = 0.92; o.spec = 0.02; o.porous = 0.75;
         if (s.kind === "limewash") { under(u, v, i, tmp); mixInto(o, [tmp.r, tmp.g, tmp.b], 0.08 * (1 - tmp.cav) + 0.03); }
         if (bare > 0) {
           under(u, v, i, tmp);
@@ -346,10 +385,10 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
       return (u, v, i, o) => {
         const a = vertical ? u : v, b = vertical ? v : u, row = Math.floor(a / H), f = a - row * H;
         const id = hash2(seed, row, 1), col = vary(wood, id, 0.12, 0.1);
-        const grain = Math.sin(a * 220 + fbm(seed + 2, b * 0.5, a * 4 + row, 3) * 12) * 0.5 + 0.5, gr2 = fbm(seed + 3, b * 0.8, a * 14, 3);
-        set(o, col, 0.84 + grain * 0.18 + gr2 * 0.06);
+        const g = woodGrain(f - H / 2, b, seed, id, i.fw, false), grain = g.k;
+        set(o, col, g.k * (1 + 0.04 * fbm(seed + 3, b * 0.8, a * 14, 3)));
         const rnd = vertical ? sst(0, 0.012, Math.min(f, H - f)) : Math.sqrt(clamp01(1 - ((f / H) * 2 - 1) ** 2));
-        o.h = vertical ? 0.006 * rnd : 0.04 * rnd + 0.002 * grain; o.cav = vertical ? 0.55 + 0.45 * rnd : 0.35 + 0.65 * rnd;
+        o.h = vertical ? 0.006 * rnd + g.h : 0.04 * rnd + 0.002 * grain; o.cav = vertical ? 0.55 + 0.45 * rnd : 0.35 + 0.65 * rnd;
         // weathered silver on the outside of old wood
         const silver = (s.age ?? 0.4) * 0.5 * (0.6 + 0.4 * fbm(seed + 4, b * 0.4, a * 0.4, 2));
         mixInto(o, [0.32, 0.3, 0.28], silver);
@@ -481,13 +520,16 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
     case "oak": case "painted-wood": {
       const wood = C(s.colour, s.kind === "oak" ? "#6d5440" : "#3f5b66"), under = linearOf("#7a6650"), flake = s.flake ?? (s.kind === "painted-wood" ? 0.3 : 0);
       return (u, v, i, o) => {
-        const g = v + fbm(seed + 1, u * 0.7, v * 0.3, 2) * 0.1, grain = Math.sin(u * 160 + fbm(seed + 2, u * 2, g * 0.8, 3) * 10) * 0.5 + 0.5;
-        set(o, wood, 0.86 + 0.16 * grain);
-        o.h = 0.0015 * grain; o.cav = 1; o.rough = s.kind === "oak" ? 0.75 : 0.55; o.spec = s.kind === "oak" ? 0.03 : 0.06; o.porous = 0.4;
+        // boards about 16 cm wide, each with its own figure and tone; paint shows the grain and its brush strokes through
+        const bw = 0.16, bi = Math.floor(u / bw), board = hash2(seed + 3, bi, 9), g = woodGrain(u - (bi + 0.5) * bw, v, seed, board, i.fw, s.kind === "oak");
+        const grain = g.k;
+        if (s.kind === "oak") { set(o, vary(wood, board, 0.07, 0.08), g.k); o.h = g.h; o.rough = 0.5; o.spec = 0.06; }
+        else { const brush = fbm(seed + 6, u * 6, v * 70, 2) * resolve(i.fw, 0.004); set(o, wood, 0.97 + 0.04 * (g.k - 0.9) + 0.03 * brush); o.h = 0.4 * g.h + 0.0002 * brush; o.rough = 0.5; o.spec = 0.07; }
+        o.cav = 1; o.porous = 0.4;
         if (flake > 0) {
           const lose = fbm(seed + 4, u * 4, v * 9, 4) * 0.5 + 0.5 + 0.15 * gradNoise(seed + 5, u * 40, v * 12) - (1 - flake) * 0.8;
           const bare = sst(0.18, 0.2, lose);
-          if (bare > 0) { mixInto(o, tint(under, [0.9 + grain * 0.2, 0.9 + grain * 0.2, 0.9 + grain * 0.2]), bare); o.h -= 0.0008 * bare; o.rough = 0.85; }
+          if (bare > 0) { mixInto(o, tint(under, [0.75 + grain * 0.3, 0.75 + grain * 0.3, 0.75 + grain * 0.3]), bare); o.h -= 0.0008 * bare; o.rough = 0.85; }
         }
         grime(o, u, v, age * 0.5, i);
       };
@@ -504,8 +546,9 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
     case "glass": case "leaded": case "stained": case "greenhouse": {
       const lead = linearOf("#2b2a29"), tintC = C(s.colour, s.kind === "greenhouse" ? "#9fb3a8" : "#202831");
       const palette = [linearOf("#a32b2b"), linearOf("#2d4a9a"), linearOf("#d9a930"), linearOf("#3d7a46"), linearOf("#6b3a8a"), linearOf("#c8c2b0")];
+      const starPal = [linearOf("#c8862a"), linearOf("#a32030"), linearOf("#2f7a5a"), linearOf("#e0b84a"), linearOf("#1f4a8a"), linearOf("#235a6a")];
       return (u, v, i, o) => {
-        set(o, tintC); o.h = 0; o.cav = 1; o.rough = 0.05; o.spec = 1; o.metal = 0; o.porous = 0; o.glass = 1;
+        set(o, tintC); o.h = 0; o.cav = 1; o.rough = 0.05; o.spec = 1; o.metal = 0; o.porous = 0; o.glass = 1; o.clear = s.clear ?? 0;
         let came = 0;
         if (s.kind === "leaded") {
           // diamond quarries about 0.1 × 0.15 m in 6 mm cames
@@ -519,6 +562,13 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
           const rl = resolve(i.fw, 0.05), ri = resolve(i.fw, 0.25);
           came = clamp01(Math.max(sst(0.012, 0.006, g.edge) * rl + 0.16 * (1 - rl), sst(0.024, 0.016, g.iron) * ri + 0.06 * (1 - ri)));
           o.glass = 0.6;
+        } else if (s.kind === "stained" && s.pattern === "star") {
+          // geometric glass of the Islamic world: eight-point stars (two squares, one turned 45°) on a ground of crosses, in leads
+          const P = s.unit ?? 0.13, cu = Math.floor(u / P), cv = Math.floor(v / P), x = (frac(u / P) - 0.5) * P, y = (frac(v / P) - 0.5) * P, a = P * 0.3;
+          const star = Math.min(Math.max(Math.abs(x), Math.abs(y)) - a, (Math.abs(x) + Math.abs(y)) * Math.SQRT1_2 - a), core = Math.hypot(x, y) - a * 0.42;
+          set(o, star < 0 ? (core < 0 ? starPal[3] : starPal[(((cu * 3 + cv) % 3) + 3) % 3]) : starPal[4 + (((cu + cv) % 2) + 2) % 2], 0.55);
+          const rl = resolve(i.fw, 0.03);
+          came = sst(0.006, 0.002, Math.min(Math.abs(star), Math.abs(core), P / 2 - Math.max(Math.abs(x), Math.abs(y)))) * rl + 0.2 * (1 - rl); o.glass = 0.6;
         } else if (s.kind === "stained") {
           const w = worley(seed, u * 7, v * 5, 0.9), k = Math.floor(w.id * palette.length);
           set(o, palette[k], 0.55); came = sst(0.08, 0.03, w.f2 - w.f1); o.glass = 0.6;
@@ -759,14 +809,19 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
     }
     case "floorboards": {
       const wood = C(s.colour, "#6e5038");
-      return (u, v, _i, o) => {
+      return (u, v, i, o) => {
+        // boards 18 cm wide in staggered lengths, each with its own figure, cupped a little, face-nailed at the ends
         const P = 0.18, row = Math.floor(u / P), fu = u - row * P, L = 2.4, off = hash2(seed, row, 1) * L, seg = Math.floor((v + off) / L), fv = (v + off) - seg * L;
-        const col = vary(wood, hash2(seed + 1, row, seg), 0.14, 0.08), grain = Math.sin(u * 300 + fbm(seed + 2, v * 0.6, u * 8, 3) * 8) * 0.5 + 0.5;
-        set(o, col, 0.85 + 0.18 * grain);
-        const gap = sst(0.004, 0.001, Math.min(fu, P - fu, fv, L - fv));
-        o.r *= 1 - 0.6 * gap; o.g *= 1 - 0.6 * gap; o.b *= 1 - 0.6 * gap;
-        o.h = 0.001 * grain - 0.002 * gap; o.cav = 1 - 0.5 * gap; o.rough = 0.55; o.spec = 0.06; o.porous = 0.3;
-        const worn = sst(0.6, 1, fbm(seed + 3, u * 0.5, v * 0.5, 2) * 0.5 + 0.5); mixInto(o, tint(col, [1.25, 1.2, 1.1]), worn * 0.3);
+        const board = hash2(seed + 1, row, seg), col = vary(wood, board, 0.12, 0.1), g = woodGrain(fu - P / 2, fv, seed, board, i.fw);
+        set(o, col, g.k);
+        const gap = sst(0.003, 0.0008, Math.min(fu, P - fu, fv, L - fv)) * resolve(i.fw, 0.01) + 0.15 * (1 - resolve(i.fw, 0.01)) * sst(0.02, 0, Math.min(fu, P - fu));
+        let nail = 0; for (const ny of [0.04, L - 0.04]) for (const nx of [P * 0.28, P * 0.72]) nail = Math.max(nail, sst(0.004, 0.002, Math.hypot(fu - nx, fv - ny)));
+        nail *= resolve(i.fw, 0.008);
+        o.r *= 1 - 0.65 * gap - 0.6 * nail; o.g *= 1 - 0.65 * gap - 0.6 * nail; o.b *= 1 - 0.65 * gap - 0.55 * nail;
+        o.h = g.h + 0.0012 * (1 - ((fu / P) * 2 - 1) ** 2) - 0.002 * gap; o.cav = 1 - 0.5 * gap; o.porous = 0.3;
+        // traffic wears the finish off along paths: paler, matt; the edges keep their polish
+        const worn = sst(0.6, 1, fbm(seed + 3, u * 0.5, v * 0.5, 2) * 0.5 + 0.5); mixInto(o, tint(col, [1.25, 1.2, 1.1]), worn * 0.25);
+        o.rough = 0.38 + 0.35 * worn; o.spec = 0.09 - 0.05 * worn;
       };
     }
     case "tile-floor": {
@@ -841,17 +896,41 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
       };
     }
     case "rug": {
-      // a knotted rug: a field with a central medallion, guard stripes and a main border, knots and wear
-      const field = C(s.colour, "#8e2a22"), ink = C(s.colour2, "#1f2c4a"), cream = linearOf("#e2d3ae"), gold = linearOf("#c9993e");
+      // a hand-knotted rug (unit × course, centred on u = v = 0): a field of small rosettes on a diamond lattice with an
+      // eight-lobed medallion and pendants, corner spandrels, a main border of rosettes on a vine between guard stripes;
+      // colours drift in bands along the length (abrash), every knot a little different, the middle worn paler
+      const field = C(s.colour, "#8e2a22"), ink = C(s.colour2, "#1f2c4a"), cream = linearOf("#e2d3ae"), gold = linearOf("#c9993e"), rose = linearOf("#b8584a"), green = linearOf("#4d6a52");
       const W = s.unit ?? 2.4, L = s.course ?? 3.4;
-      return (u, v, _i, o) => {
-        const x = u / W + 0.5, y = v / L + 0.5, bx = Math.min(x, 1 - x) * W, by = Math.min(y, 1 - y) * L, edge = Math.min(bx, by);
-        const knot = hash2(seed, Math.floor(u * 400), Math.floor(v * 400));
-        let col = field;
-        if (edge < 0.04) col = cream; else if (edge < 0.08) col = ink; else if (edge < 0.3) { const m = Math.sin((Math.max(bx, by) * 9) + Math.sin(Math.min(bx, by) * 30) * 1.5); col = m > 0.3 ? gold : m > -0.4 ? ink : cream; } else if (edge < 0.34) col = gold;
-        else { const cx = (x - 0.5) * W, cy = (y - 0.5) * L, rr = Math.hypot(cx * 1.1, cy * 0.75), ang = Math.atan2(cy, cx); const med = rr < 0.55 + 0.08 * Math.cos(ang * 8); if (med) col = rr < 0.22 ? gold : ink; else { const f = Math.sin(cx * 11) * Math.sin(cy * 9); if (f > 0.75) col = cream; else if (f < -0.8) col = ink; } }
-        set(o, col, 0.88 + 0.16 * knot); const wear = sst(0.4, 0.9, fbm(seed + 3, u * 1.2, v * 1.2, 2) * 0.5 + 0.5) * 0.25; mixInto(o, [0.55, 0.45, 0.35], wear);
-        o.h = 0.002 * knot; o.rough = 0.95; o.spec = 0.01; o.porous = 0.7;
+      return (u, v, i, o) => {
+        const bx = W / 2 - Math.abs(u), by = L / 2 - Math.abs(v), edge = Math.min(bx, by), rr = resolve(i.fw, 0.03);
+        let col: readonly number[] = field;
+        if (edge < 0.025) col = cream; else if (edge < 0.05) col = ink; else if (edge < 0.065) col = gold;
+        else if (edge < 0.29) {
+          // the main border: rosettes every 22 cm on a meandering vine, on dark ground
+          const t = bx < by ? v : u, P = 0.22, al = (frac(t / P) - 0.5) * P, ac = edge - 0.178, r = Math.hypot(al, ac), th = Math.atan2(ac, al);
+          col = ink;
+          if (Math.abs(ac - 0.06 * Math.sin((t / P) * Math.PI * 2)) < 0.009) col = cream;
+          if (r < 0.068 * (0.72 + 0.28 * Math.cos(th * 6))) col = r < 0.024 ? gold : r < 0.04 ? cream : rose;
+        } else if (edge < 0.31) col = gold; else if (edge < 0.33) col = ink;
+        else {
+          const fx = u, fy = v, me = Math.hypot(fx / (W * 0.2), fy / (L * 0.17)), th = Math.atan2(fy / L, fx / W), lobe = 1 + 0.13 * Math.cos(th * 8);
+          const corner = Math.hypot((W / 2 - 0.33 - Math.abs(fx)) / (W * 0.16), (L / 2 - 0.33 - Math.abs(fy)) / (L * 0.12));
+          const pend = Math.abs(fx) / 0.09 + Math.abs(Math.abs(fy) - L * 0.17 * 1.32) / 0.13;
+          if (me < lobe) col = me < 0.22 ? gold : me < 0.42 ? field : me < 0.86 * lobe ? ink : gold;
+          else if (pend < 1) col = pend < 0.45 ? gold : ink;
+          else if (corner < 1) col = corner > 0.88 ? gold : ink;
+          else {
+            const a = (fx + fy) / 0.2, b2 = (fx - fy) / 0.2, la = frac(a) - 0.5, lb = frac(b2) - 0.5, line = Math.min(Math.abs(la), Math.abs(lb)) * 0.2, node = Math.hypot(la, lb) * 0.2, mid = Math.hypot(Math.abs(la) - 0.5, Math.abs(lb) - 0.5) * 0.2;
+            if (node < 0.03) col = node < 0.012 ? gold : cream; else if (mid < 0.022) col = green; else if (line < 0.005) col = ink;
+          }
+          // the medallion's ring holds eight palmettes and a ring of small dots; the spandrels a scatter of small flowers
+          if (me < lobe && me > 0.46 && me < 0.84 * lobe) { const pal = Math.cos(th * 8) * (1 - Math.abs(me - 0.64) * 3.2); if (pal > 0.62) col = pal > 0.86 ? rose : cream; else if (Math.cos(th * 16 + Math.PI) > 0.9 && Math.abs(me - 0.58) < 0.035) col = gold; }
+          if (corner < 0.88 && Math.hypot(frac(fx * 7) - 0.5, frac(fy * 7) - 0.5) < 0.16) col = cream;
+        }
+        const abrash = 0.9 + 0.16 * (fbm(seed, 0.3, v * 1.8, 2) * 0.5 + 0.5), knot = hash2(seed, Math.floor(u * 250), Math.floor(v * 250));
+        set(o, col, (abrash * (0.9 + 0.14 * knot)) * rr + (1 - rr) * abrash);
+        const wear = sst(0.35, 0.95, fbm(seed + 3, u * 1.2, v * 1.2, 2) * 0.5 + 0.5) * sst(0.2, 0.6, Math.min(bx, by)) * 0.3; mixInto(o, [0.55, 0.46, 0.36], wear);
+        o.h = 0.0015 * knot * rr; o.rough = 0.95; o.spec = 0.01; o.porous = 0.7;
       };
     }
     case "tatami-mat": {

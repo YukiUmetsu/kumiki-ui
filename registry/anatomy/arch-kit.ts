@@ -27,6 +27,8 @@ export class SceneBuilder {
   readonly portals: Portal[] = [];
   readonly ivy: IvyPatch[] = [];
   readonly grounds: GroundZone[] = [];
+  /** Set by a room that looks out of its windows: inside this box interior light rules apply, outside it is daylight. */
+  interiorBox?: { lo: [number, number, number]; hi: [number, number, number] };
   readonly rnd: () => number;
   /** Local parts, lights and ivy waiting for `place`. */
   private local: { nodes: Node[]; lights: PointLight[]; ivy: IvyPatch[]; canopies: Canopy[] } = { nodes: [], lights: [], ivy: [], canopies: [] };
