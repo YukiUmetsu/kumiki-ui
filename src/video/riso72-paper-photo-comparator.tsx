@@ -120,7 +120,7 @@ export function Riso72PaperPhotoComparator({photo,measurements,sheetMm,
       </h3>
       <p style={{margin:0}}>Independent original grayscale spot drum on the
         left; original uploaded scanned image on the right. Both show the same
-        **physical sheet** millimeter coordinate system, aligned using
+        physical sheet millimeter coordinate system, aligned using
         FOUR PAPER corners only. Stencil fibers, paper-open slots, and source
         gradients remain original native vectors. Overprinted RGB photo colors
         are not density-matched to a single K-only drum.
