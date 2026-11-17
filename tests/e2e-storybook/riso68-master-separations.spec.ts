@@ -1,4 +1,4 @@
-import {readFile} from "node:fs/promises";
+import {readFile,writeFile} from "node:fs/promises";
 import {test,expect} from "@playwright/test";
 
 test("RISO68 actual distinct K-only master downloads and geometry 16:9/9:16",
@@ -61,6 +61,7 @@ async({page},info)=>{
   expect(blue.suggestedFilename()).toMatch(/blue-2362a0-K.svg$/);
   expect(bluePath).not.toBeNull();
   const blueSvg=await readFile(bluePath!,"utf8");
+  await writeFile(info.outputPath("riso68-blue-physical-native-master.svg"),blueSvg);
   expect(blueSvg).toContain('data-km-riso68-master="blue"');
   expect(blueSvg.match(/data-km-riso68-mark=/g)).toHaveLength(16);
   expect(blueSvg).not.toContain('data-km-riso68-master="red"');
@@ -70,6 +71,7 @@ async({page},info)=>{
   const red=await redEvent,redPath=await red.path();
   expect(red.suggestedFilename()).toMatch(/red-dd593d-K.svg$/);
   const redSvg=await readFile(redPath!,"utf8");
+  await writeFile(info.outputPath("riso68-red-physical-native-master.svg"),redSvg);
   expect(redSvg).not.toBe(blueSvg);
   expect(redSvg.match(/data-km-riso68-mark=/g)).toHaveLength(16);
   const markSection=(s:string)=>s.slice(s.indexOf('<g data-km-riso68-marks'));

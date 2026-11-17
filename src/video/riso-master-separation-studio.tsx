@@ -159,7 +159,9 @@ export function RisoMasterSeparationStudio(){
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox={"0 0 "+sw+" "+sh}
                 style={{position:"absolute",inset:0,width:"100%",height:"100%",
-                  pointerEvents:"none",overflow:"visible"}}
+                  pointerEvents:"none",overflow:"visible",
+                  transform:zoom?"scale(2)":"none",
+                  transformOrigin:"50% 50%"}}
                 fill="none" strokeWidth={.42}>
                 <rect x={t.x} y={t.y} width={t.width} height={t.height}
                   stroke="#2A8B82" strokeDasharray="2.5 1.8"/>
