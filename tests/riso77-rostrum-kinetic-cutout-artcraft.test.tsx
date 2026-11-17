@@ -86,7 +86,7 @@ describe("RISO77 source-faithful rostrum print cutouts and handmade paper layer 
     expect(()=>assertRisoCutoutContour("M0 0 L1 1 Z")).toThrow(/closed SVG/);
     expect(()=>assertRisoCutoutContour("M0 0 L20 0 L20 20 L0 20"))
       .toThrow(/closed SVG/);
-    expect(()=>assertRisoCutoutContour("M0 0 H80 V50 H0 Z"));
+    expect(()=>assertRisoCutoutContour("M0 0 H80 V50 H0 L0 0 Z")).not.toThrow();
   });
   it("the three semantically cut originals maintain exact individually printed spot masters, original paper texture and registered two-ink layers",()=>{
     for(const aspect of ["landscape","portrait"] as const){
