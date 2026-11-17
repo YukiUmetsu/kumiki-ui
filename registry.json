@@ -3361,6 +3361,16 @@
           "path": "registry/video/riso-contact-trap.ts",
           "type": "registry:ui",
           "target": "components/video/riso-contact-trap.ts"
+        },
+        {
+          "path": "registry/video/riso-stencil-topology.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-stencil-topology.ts"
+        },
+        {
+          "path": "registry/video/riso-path-geometry.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-path-geometry.ts"
         }
       ]
     },
