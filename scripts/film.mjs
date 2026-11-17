@@ -42,7 +42,15 @@ const needsFile = command !== "example";
 if (needsFile && files.length !== 1) throw Error("Give exactly one film file.");
 const filmPath = needsFile ? resolve(files[0]) : undefined, filmDir = needsFile ? dirname(filmPath) : undefined;
 
-const viteBase = { configFile: false, root: ROOT, cacheDir: "node_modules/.vite-film", server: { fs: { strict: false } } };
+/** RISO64: ensure the lazy-loaded slot art and FilmStage share one React
+ * dispatcher. Without dedupe a second optimized React instance can make
+ * source-art hooks fail only in the actual export capture page, while the
+ * Storybook scene appears valid (invalid hook call / useMemo null). */
+const viteBase = {
+  configFile: false, root: ROOT, cacheDir: "node_modules/.vite-film",
+  resolve: { dedupe: ["react", "react-dom"] },
+  server: { fs: { strict: false } },
+};
 /** Load registry TypeScript through Vite, which resolves its extensionless imports. Its own cache folder: this server stays open
  * while the capture page's server starts, and two optimizers with different settings in one folder each clear and rewrite the
  * other's pre-bundled dependencies, so a page could load two copies of React on a slow machine. */
