@@ -334,7 +334,7 @@ function HistoricalSourceDesk(){
  * not a screen-aligned animated texture. All 4 separate authored INK1
  * gestures and their multiple bristles remain live at every microscope zoom.
  */
-function RobePressureMicroscope(){
+function RobePressureMicroscopePanel(){
   const [detail,setDetail]=useState(1);
   const [emotion,setEmotion]=useState<InkPortraitEmotion>("neutral");
   return <main data-testid="ink-anat2-robe-pressure-microscope" style={inkPage}>
@@ -410,7 +410,7 @@ export const HistoricalPaintingReview:StoryObj<typeof meta>={
 };
 export const RobePressureMicroscope:StoryObj<typeof meta>={
   name:"INK1 loaded silk lapels · sleeve pressure and paper-fibre microscope",
-  render:()=> <RobePressureMicroscope/>,
+  render:()=> <RobePressureMicroscopePanel/>,
 };
 export const FilmTimeFaceMotion:StoryObj<typeof meta>={
   name:"24 fps facial acting and source-space microscopes",
