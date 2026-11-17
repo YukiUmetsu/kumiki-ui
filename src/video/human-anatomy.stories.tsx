@@ -25,7 +25,7 @@ import { rgbToHex, skinShade } from "../../registry/anatomy/anatomy-color";
 
 const referenceUrls = import.meta.glob("../../assets/photos/anatomy-references/*.jpg", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
 import type { HumanCamera } from "../../registry/anatomy/anatomy-view";
-import { BeautyEvidence, FacePortrait, GoldenRatioTable } from "../../registry/anatomy/face-portrait-react";
+import { BeautyEvidence, FacePortrait, GoldenRatioTable, PortraitInMotion } from "../../registry/anatomy/face-portrait-react";
 import { FACE_TYPE_GROUPS, FACE_TYPES, beautifulFace, faceTypeLook, faceTypeOf } from "../../registry/anatomy/face-beauty";
 import type { PortraitOptions } from "../../registry/anatomy/face-portrait";
 import { FRINGES, HAIRSTYLES, findHairStyle } from "../../registry/anatomy/hair-groom";
@@ -641,6 +641,28 @@ function SkinAndColour() {
   );
 }
 
+/** Portraits that blink, glance and have their hair moved by a breeze, rendered frame by frame in the workers. */
+function InMotion() {
+  const [wind, setWind] = useState(2.2);
+  const people: { o: PortraitOptions; label: string; dir: number }[] = [
+    { o: { sex: 0, faceType: "east-asian", hairStyle: "long-wavy", width: 240, height: 300, supersample: 1, hairStrands: 12000, seed: 5 }, label: "Long wavy hair, the breeze from the front", dir: 0 },
+    { o: { sex: 0, faceType: "black", hairStyle: "curly", hairCurl: 6, hairLength: 0.75, width: 240, height: 300, supersample: 1, hairStrands: 12000, seed: 7 }, label: "Curls, the breeze from the side", dir: 70 },
+    { o: { sex: 1, faceType: "southern-european", width: 240, height: 300, supersample: 1, hairStrands: 12000, seed: 3 }, label: "Short hair: it barely moves", dir: 20 },
+  ];
+  return (
+    <div style={{ ...page, gap: 16 }}>
+      <h2 style={{ margin: 0, font: "700 20px system-ui" }}>Portrait in motion — blinks, glances, hair in a breeze</h2>
+      <p style={{ ...muted, maxWidth: 900 }}>Each loop holds one blink (the lid closes in about 100 ms and reopens in about 200 ms, as high-speed video of spontaneous blinks shows), a glance aside and back (a saccade is over within a frame), and hair bending in the wind like light rods fixed at the root: its ends travel with the square of the wind speed and of their length, a wave runs down each lock, hair resting on the shoulders is held by friction, and nothing passes into the head or body.</p>
+      <div style={row} role="group" aria-label="Wind">{[[0, "Still air"], [1, "Light air, 1 m/s"], [2.2, "Light breeze, 2.2 m/s"], [4, "Gentle breeze, 4 m/s"]].map(([v, n]) => <button key={n} type="button" style={wind === v ? active : button} aria-pressed={wind === v} onClick={() => setWind(v as number)}>{n}</button>)}</div>
+      <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 240px), 1fr))" }}>
+        {people.map(x => <figure key={x.label} style={{ margin: 0, display: "grid", gap: 4, alignContent: "start" }}>
+          <PortraitInMotion options={x.o} motion={{ wind, windDirection: x.dir }} fps={10} label={`${x.label}, animated`} />
+          <figcaption style={muted}>{x.label}</figcaption></figure>)}
+      </div>
+    </div>
+  );
+}
+
 const meta = { title: "Video production/Art Foundations/Human Anatomy", id: "video-human-anatomy", component: BodyLab, parameters: { layout: "fullscreen" } } satisfies Meta<typeof BodyLab>;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -981,6 +1003,7 @@ export const ReferenceBoardStory: Story = { name: "Reference board", render: () 
 export const FaceLabStory: Story = { name: "Face lab", render: () => <FaceLab /> };
 export const BeautifulFacesStory: Story = { name: "Beautiful faces", render: () => <BeautifulFaces /> };
 export const HeadAngles: Story = { name: "Head angles", render: () => <FaceAngles /> };
+export const InMotionStory: Story = { name: "Portrait in motion", render: () => <InMotion /> };
 export const EyeLabStory: Story = { name: "Eye lab", render: () => <EyeLab /> };
 export const EyeShapesStory: Story = { name: "Eye shapes", render: () => <EyeShapes /> };
 export const IrisColoursStory: Story = { name: "Iris colours", render: () => <IrisColours /> };

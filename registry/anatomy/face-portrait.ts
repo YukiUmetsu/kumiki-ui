@@ -36,7 +36,8 @@ import type { AuWeights, ExpressedFace } from "./expression-face";
 import { createRaster, downsample, encodeSrgb, fbm, fillPolygon, gaussianBlur, hash2, linearOf, rasterizeTriangles, strokePolyline } from "./foundation-raster";
 import type { Raster, RGB3 } from "./foundation-raster";
 import ansur from "./data/ansur-ii-ranges.json";
-import { findHairStyle, groomHair, HAIR_PHYSICS, hairDensityMap, partLine, renderHairStrands, rotateGroom, scalpCover } from "./hair-groom";
+import { findHairStyle, groomHair, HAIR_PHYSICS, hairDensityMap, moveHair, partLine, renderHairStrands, rotateGroom, scalpCover } from "./hair-groom";
+import type { HairMotion } from "./hair-groom";
 import { EYE_SHAPES, findIris, irisAlbedo } from "./eye-detail";
 import { ageSpotsAt, blendSkinRegions, faceWrinkles, findSkinRegion, frecklesAt, skinSurface } from "./skin-texture";
 import type { EyeShapeSpec, IrisType } from "./eye-detail";
@@ -89,6 +90,8 @@ export interface PortraitOptions extends BeautyOptions {
   seed?: number;
   /** Output a pass instead of the portrait, for checking: surface normals, irradiance before scattering, or occlusion. */
   debug?: "normals" | "irradiance" | "ao" | "hair-shadow";
+  /** Hair in moving air for one frame (`moveHair`): `{ t, wind, direction, gust }`. The groom is reused; only its pose changes. */
+  hairMotion?: HairMotion;
   /** Paint on the skin: makeup (MAKEUP1's `makeupPaint`), face paint, kumadori. */
   paint?: SkinPaint;
 }
@@ -185,10 +188,14 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const sub1 = loopSubdivide([flat(V0), flat(N0)], faceTris0), sub2 = loopSubdivide(sub1.pos, sub1.tris);
   // cranium: an ellipsoid from tragion − 45 mm to the head top, its front 6 mm behind the brow
   const ay = (headTop - (tragionY - 45)) / 2, cyE = headTop - ay, az = headLen / 2, czE = gl[2] - 6 - az, ax = headHalfW;
-  const ellZ = (x: number, y: number) => { const r = 1 - (x / ax) ** 2 - ((y - cyE) / ay) ** 2; return r > 0 ? czE + az * Math.sqrt(r) : NaN; };
   // The face mask ends below the hairline. A strip of skin grows from its top edge up and round the forehead and
   // temples until it lies on the cranium, sharing the mask's edge vertices, so the forehead is one surface.
-  const strip = foreheadStrip(sub2.pos[0], sub2.pos[1], sub2.tris, Math.max(ec.L[1], ec.R[1]) + 6, ellZ);
+  const onCranium = (p: Vec3): Vec3 => {
+    const dx = p[0], dy = p[1] - cyE, dz = p[2] - czE, r = Math.sqrt((dx / ax) ** 2 + (dy / ay) ** 2 + (dz / az) ** 2) || 1, k = 1 / r;
+    const q: Vec3 = [dx * k, cyE + dy * k, czE + dz * k], nq = norm3([q[0] / (ax * ax), (q[1] - cyE) / (ay * ay), (q[2] - czE) / (az * az)]);
+    return [q[0] + nq[0] * 0.3, q[1] + nq[1] * 0.3, q[2] + nq[2] * 0.3];
+  };
+  const strip = foreheadStrip(sub2.pos[0], sub2.pos[1], sub2.tris, Math.max(ec.L[1], ec.R[1]) + 6, onCranium);
   const FV = strip.E, FN0 = strip.N, faceTris = strip.tris, nFace = FV.length / 3;
   /** A chain of original vertices expanded through both levels' edge midpoints (exact opening boundaries). */
   const expand = (chain: readonly number[]) => { const c1: number[] = [chain[0]]; for (let k = 1; k < chain.length; k++) { const m = sub1.mid.get(ekey(chain[k - 1], chain[k])); if (m !== undefined) c1.push(m); c1.push(chain[k]); }
@@ -383,31 +390,44 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   }
   // the hair's density map toward the key light: 320 cells, fewer only for small previews
   const densityRes = Math.min(320, Math.max(128, Math.round(Math.max(w, h) * 0.8)));
+  // in moving air the groomed hair (cached) takes this frame's pose
+  if (o.hairMotion) groom = moveHair(groom, hairHead, o.hairMotion);
   const hairRot = rotateGroom(groom, rotH), hairKeyMap = hairDensityMap(groom, hairRot, Lkey, densityRes, 3.5);
   // The hair's shadow on the skin: fibre coverage between the first skin along the key and the light, in the shadow
-  // map's frame, blurred by about 2 mm (a soft key).
+  // map's frame. The key is a softbox of about 20°, so a shadow's edge widens with the hair's distance from the skin
+  // (about 0.35 of it): coverage is gathered in four layers by that distance and each is blurred by its own penumbra
+  // (hair lying on the skin casts a crisp edge, a curtain hanging 3 cm off the cheek a soft one).
   const hairOnSkin = new Float32Array(shadow.res * shadow.res);
   {
     const res = shadow.res, cellMm = (2 * shadowHalf) / res, fibreEff = (HAIR_PHYSICS.fibreDiameter.value * HAIR_PHYSICS.scalpCount.value) / Math.max(1, groom.starts.length);
+    const LAYERS = [{ upTo: 6, sigma: 1.0 }, { upTo: 18, sigma: 2.6 }, { upTo: 40, sigma: 5 }, { upTo: Infinity, sigma: 9 }];
+    const layer = LAYERS.map(() => new Float32Array(res * res));
     for (let s2 = 0; s2 < groom.starts.length; s2++) {
       const st = groom.starts[s2], c = groom.counts[s2];
       for (let j = 1; j < c; j++) {
         const a = (st + j - 1) * 3, b = (st + j) * 3, m: Vec3 = [(hairRot[a] + hairRot[b]) / 2, (hairRot[a + 1] + hairRot[b + 1]) / 2, (hairRot[a + 2] + hairRot[b + 2]) / 2];
         const [x, y, z] = shadow.lookup(m), xi = Math.floor(x), yi = Math.floor(y);
         if (xi < 0 || yi < 0 || xi >= res || yi >= res) continue;
-        const sd = shadow.buf.depth[yi * res + xi];
-        if (!(z > sd + 0.6)) continue;
-        hairOnSkin[yi * res + xi] += (Math.hypot(hairRot[b] - hairRot[a], hairRot[b + 1] - hairRot[a + 1], hairRot[b + 2] - hairRot[a + 2]) * fibreEff) / (cellMm * cellMm);
+        const sd = shadow.buf.depth[yi * res + xi], gap = z - sd;
+        // (texels with no skin behind them shadow nothing; blurred, they would spill over the face's edge)
+        if (!Number.isFinite(sd) || !(gap > 0.6)) continue;
+        const L = gap < 6 ? 0 : gap < 18 ? 1 : gap < 40 ? 2 : 3;
+        layer[L][yi * res + xi] += (Math.hypot(hairRot[b] - hairRot[a], hairRot[b + 1] - hairRot[a + 1], hairRot[b + 2] - hairRot[a + 2]) * fibreEff) / (cellMm * cellMm);
       }
     }
-    const blurred = gaussianBlur(hairOnSkin, res, res, 1, 2 / cellMm);
-    hairOnSkin.set(blurred);
+    LAYERS.forEach((l, k) => { const bl = gaussianBlur(layer[k], res, res, 1, l.sigma / cellMm); for (let i = 0; i < bl.length; i++) hairOnSkin[i] += bl[i]; });
   }
-  /** Hair fibre coverage over a point of skin, along the key light (real-head units: 1 = one full layer). */
+  /**
+   * Hair fibre coverage over a point of skin, along the key light (real-head units: 1 = one full layer). Only skin the
+   * key reaches has hair between it and the light: a point behind the first skin (a cheek turned away) is shadowed by
+   * the head already, and must not take on the coverage of the forehead in front of it.
+   */
   const hairCov = (p: Vec3) => {
-    const [x, y] = shadow.lookup(p), res = shadow.res, fx = x - 0.5, fy = y - 0.5, xi = Math.floor(fx), yi = Math.floor(fy), u = fx - xi, v = fy - yi;
+    const [x, y, z] = shadow.lookup(p), res = shadow.res, fx = x - 0.5, fy = y - 0.5, xi = Math.floor(fx), yi = Math.floor(fy), u = fx - xi, v = fy - yi;
     const at = (i: number, j: number) => hairOnSkin[Math.min(res - 1, Math.max(0, j)) * res + Math.min(res - 1, Math.max(0, i))];
-    return (at(xi, yi) * (1 - u) + at(xi + 1, yi) * u) * (1 - v) + (at(xi, yi + 1) * (1 - u) + at(xi + 1, yi + 1) * u) * v;
+    const behind = shadow.buf.depth[Math.min(res - 1, Math.max(0, Math.round(fy))) * res + Math.min(res - 1, Math.max(0, Math.round(fx)))] - z;
+    const reach = 1 - smoothstep(4, 12, behind);
+    return reach * ((at(xi, yi) * (1 - u) + at(xi + 1, yi) * u) * (1 - v) + (at(xi, yi + 1) * (1 - u) + at(xi + 1, yi + 1) * u) * v);
   };
   // Hair over skin: a layer of dark fibres lets little light through (more melanin, less; estimated: about a quarter
   // through one full layer of brown hair, a tenth of black), and hair lying close over the skin also blocks the sky and
@@ -482,6 +502,31 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const cloth = linearOf(o.clothing ?? "#30343c"), lipBase = linearOf(skinZoneColor(skinHex, "lips"));
   const hairEu = o.hair?.eumelanin ?? look?.hair.eumelanin ?? (sex > 0.5 ? 1.6 : 1.3), hairPheo = o.hair?.pheomelanin ?? look?.hair.pheomelanin ?? 0.15, scalpHair = hairAlbedo(hairSigmaA(hairEu, hairPheo)) as unknown as RGB3;
   const rootCol: RGB3 = [scalpHair[0] * 0.8, scalpHair[1] * 0.8, scalpHair[2] * 0.8];
+  // Which way the hair leaves the scalp, near each point: the groom's root segments (their first 25 mm) averaged in
+  // 6 mm cells. The scalp under the hair shows fine streaks along it, and the hairline breaks into them.
+  const FLOW_CELL = 6, flow = new Map<number, Vec3>();
+  {
+    const gp = groom.points, key3 = (x: number, y: number, z: number) => ((Math.floor(x / FLOW_CELL) + 512) * 1024 + (Math.floor(y / FLOW_CELL) + 512)) * 1024 + (Math.floor(z / FLOW_CELL) + 512);
+    for (let s2 = 0; s2 < groom.starts.length; s2 += 2) {
+      const st = groom.starts[s2], c = groom.counts[s2];
+      let run = 0;
+      for (let j = 1; j < c && run < 25; j++) {
+        const a = (st + j - 1) * 3, b = (st + j) * 3, d: Vec3 = [gp[b] - gp[a], gp[b + 1] - gp[a + 1], gp[b + 2] - gp[a + 2]], l = Math.hypot(d[0], d[1], d[2]);
+        run += l;
+        const k = key3(gp[a], gp[a + 1], gp[a + 2]), f = flow.get(k);
+        if (f) { f[0] += d[0]; f[1] += d[1]; f[2] += d[2]; } else flow.set(k, [d[0], d[1], d[2]]);
+      }
+    }
+  }
+  const flowAt = (q: Vec3): Vec3 | null => {
+    let f: Vec3 = [0, 0, 0];
+    for (let dz = -1; dz <= 1; dz++) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const g = flow.get(((Math.floor(q[0] / FLOW_CELL) + dx + 512) * 1024 + (Math.floor(q[1] / FLOW_CELL) + dy + 512)) * 1024 + (Math.floor(q[2] / FLOW_CELL) + dz + 512));
+      if (g) f = [f[0] + g[0], f[1] + g[1], f[2] + g[2]];
+    }
+    const l = Math.hypot(f[0], f[1], f[2]);
+    return l > 1e-6 ? [f[0] / l, f[1] / l, f[2] / l] : null;
+  };
   // natural lip colour: rosier and deeper than the skin zone's average (women's a little more saturated)
   const wrk = { browY: (LM("brow-mid.L", N0)[1] + LM("brow-mid.R", N0)[1]) / 2, hairlineY: face.hairlineY, eyeY: pupilY, outerCorner: Math.abs(LM("exocanthion.L", N0)[0]), neckTop: me[1] - 25,
     alar: [Math.abs(LM("alare.L", N0)[0]), LM("alare.L", N0)[1]] as [number, number], mouth: [Math.abs(LM("cheilion.L", N0)[0]), LM("cheilion.L", N0)[1]] as [number, number] };
@@ -530,15 +575,35 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
     // the roots: where hair covers the scalp (and the skin above the hairline) it shows the hair's colour, lit like the
     // hair mass it stands for rather than shadowed like skin under hair
     const ph: Vec3 = [P[a * 3] * b0 + P[b * 3] * b1 + P[c * 3] * b2, P[a * 3 + 1] * b0 + P[b * 3 + 1] * b1 + P[c * 3 + 1] * b2, P[a * 3 + 2] * b0 + P[b * 3 + 2] * b1 + P[c * 3 + 2] * b2];
-    const cover = mat <= 1 ? scalpCover(hairHead, groom.style, ph) : 0, partW = mat <= 1 ? partLine(hairHead, groom.style, ph) : 0;
+    let cover = mat <= 1 ? scalpCover(hairHead, groom.style, ph) : 0, streak = 1;
+    const partW = mat <= 1 ? partLine(hairHead, groom.style, ph) : 0;
+    if (cover > 0) {
+      // streaks along the hair's flow (clumps about 0.8 mm across, 7 mm long), and a hairline that breaks into them:
+      // fine hairs reaching out of the cover instead of a smooth fade
+      const fd = flowAt(ph);
+      if (fd) {
+        const nn = norm3([ph[0] / (ax * ax), (ph[1] - cyE) / (ay * ay), (ph[2] - czE) / (az * az)]), side = norm3([nn[1] * fd[2] - nn[2] * fd[1], nn[2] * fd[0] - nn[0] * fd[2], nn[0] * fd[1] - nn[1] * fd[0]]);
+        const along = ph[0] * fd[0] + ph[1] * fd[1] + ph[2] * fd[2], across = ph[0] * side[0] + ph[1] * side[1] + ph[2] * side[2];
+        // straight hair shows long streaks; curls and coils (types IV–VIII) show round clumps a couple of millimetres across
+        const curlK = Math.min(1, Math.max(0, ((hairCurl ?? 1) - 3) / 4));
+        const tl = 0.6 * fbm(seed + 41, across / 0.8, along / 7, 2) + 0.4 * fbm(seed + 43, across / 0.35, along / 3, 1);
+        const tc = 0.55 * fbm(seed + 47, across / 1.1, along / 1.1, 2) + 0.45 * Math.abs(Math.sin((across + 2 * fbm(seed + 53, across / 2, along / 2, 1)) * 2.6) * Math.sin((along + 2 * fbm(seed + 59, along / 2, across / 2, 1)) * 2.6));
+        const t = tl * (1 - curlK) + tc * curlK;
+        streak = 0.78 - 0.1 * curlK + (0.44 + 0.3 * curlK) * t;
+        if (cover < 1) cover = smoothstep(0.15, 0.85, cover + 0.4 * (t - 0.5));
+      }
+    }
     // the shadow's bias grows where the light grazes the skin (no self-shadowing ripples on the brow and lids)
     const nlK0 = dot3(n, Lkey), sKey = lit(p, 0.9 + 3.2 * (1 - Math.max(0, nlK0)) * (900 / shadow.res)) * (underHair(p) + (1 - underHair(p)) * 0.6 * cover), nlKey = nlK0, nlFill = dot3(n, Lfill), nlRim = dot3(n, Lrim), nlSky = dot3(n, Lsky);
     if (mat === 3) {
-      const d = Math.max(0, nlKey) * sKey * 0.9 + Math.max(0, nlFill) * 0.6 + occ * 0.3 * (0.6 + 0.4 * nlSky);
+      // hair over cloth: the fabric's nap and folds blur a lock's shadow, and light passes between the locks
+      const sCloth = lit(p, 0.9 + 3.2 * (1 - Math.max(0, nlK0)) * (900 / shadow.res)) * Math.sqrt(underHair(p));
+      const d = Math.max(0, nlKey) * sCloth * 0.9 + Math.max(0, nlFill) * 0.6 + occ * 0.3 * (0.6 + 0.4 * nlSky);
       for (let k = 0; k < 3; k++) { Alb[i * 3 + k] = cloth[k]; E[i * 3 + k] = d * (k === 2 ? 1.04 : 1) * 1.6; }
       continue;
     }
-    skinM[i] = 1;
+    // hair over the scalp is not skin: it takes no part in the skin's light scattering (no red rim along the hairline)
+    skinM[i] = 1 - 0.95 * cover;
     const hA = cover > 0 ? 1 : hairAmbient(p);
     // Wrapped diffuse: light reaches a little past the terminator through the skin (the blur adds the rest).
     const wrap = (nl: number, k: number) => Math.max(0, (nl + k) / (1 + k));
@@ -557,7 +622,7 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
       alb = [r, g, bb]; tz = 0.25 + 0.75 * (tzone[a] * b0 + tzone[b] * b1 + tzone[c] * b2);
     } else if (mat === 2) alb = mixC(baseLin, linearOf(skinZoneColor(skinHex, "cheeks")), 0.12);
     if (mat === 1) { alb = mixC(baseLin, zoneCol[0], 0.7); tz = 0.25 + 0.75 * 0.7 * (1 - smoothstep(10, 45, Math.abs(ph[0]))) * (1 - cover); }
-    if (cover > 0) alb = mixC(alb, rootCol, cover);
+    if (cover > 0) alb = mixC(alb, [rootCol[0] * streak, rootCol[1] * streak, rootCol[2] * streak], cover);
     // the scalp in a parting lies in the shade of the hair on both sides of it: a thin, dull line, not a bright seam
     if (partW > 0) alb = mixC(alb, [alb[0] * 0.42, alb[1] * 0.38, alb[2] * 0.36], partW);
     // uneven tone: broad blotches of redness and pigment (a few centimetres), finer mottling, more with age
@@ -636,8 +701,8 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
   const hairCol = scalpHair;
   for (let i = 0; i < w * h; i++) {
     if (!solid[i]) continue;
-    const s = skinM[i] ? Es : E;
-    for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] = Alb[i * 3 + k] * s[i * 3 + k] + (Film ? Film[i * 3 + k] * E[i * 3 + k] : 0) + Spec[i * 3 + k];
+    const sm = skinM[i];
+    for (let k = 0; k < 3; k++) out.rgb[i * 3 + k] = Alb[i * 3 + k] * (Es[i * 3 + k] * sm + E[i * 3 + k] * (1 - sm)) + (Film ? Film[i * 3 + k] * E[i * 3 + k] : 0) + Spec[i * 3 + k];
   }
   // ears (before the front hair, after the head)
   // the eyeballs and the mouth are solid to the hair too (they are drawn, not in the depth buffer)
@@ -721,10 +786,10 @@ export function renderPortrait(o: PortraitOptions = {}): Portrait {
 
 /**
  * Grow the face mask's top edge (its outer boundary above `yMin`) into a strip of skin: rows 4.5 mm apart continuing the
- * surface outward from the edge, bending onto the cranium (`ellZ`, the front of the ellipsoid) over 32 mm. Returns the
+ * surface outward from the edge, bending onto the cranium (`onCranium`: the ellipsoid along its radius, 0.3 mm out) over 32 mm. Returns the
  * expressed and neutral positions and the triangles, extended; the mask's own vertices keep their indices.
  */
-function foreheadStrip(E0: Float64Array, N0: Float64Array, T0: ArrayLike<number>, yMin: number, ellZ: (x: number, y: number) => number) {
+function foreheadStrip(E0: Float64Array, N0: Float64Array, T0: ArrayLike<number>, yMin: number, onCranium: (p: Vec3) => Vec3) {
   const n0 = E0.length / 3, count = new Map<number, number>(), triOf = new Map<number, number>();
   for (let t = 0; t < T0.length / 3; t++) for (let e = 0; e < 3; e++) { const k = ekey(T0[t * 3 + e], T0[t * 3 + ((e + 1) % 3)]); count.set(k, (count.get(k) ?? 0) + 1); triOf.set(k, t); }
   const adj = new Map<number, number[]>(), inner = new Map<number, Vec3>();
@@ -761,8 +826,11 @@ function foreheadStrip(E0: Float64Array, N0: Float64Array, T0: ArrayLike<number>
   for (let k = 1; k <= K; k++) for (let i = 0; i < M; i++) {
     const w = smoothstep(0, 1, k / K);
     for (const [A, out] of [[E0, E], [N0, N]] as const) {
-      const b0 = pos(A, chain[i]), p: Vec3 = [b0[0] + sm[i][0] * DS * k, b0[1] + sm[i][1] * DS * k, b0[2] + sm[i][2] * DS * k], ez = ellZ(p[0], p[1]);
-      if (Number.isFinite(ez)) p[2] += (ez + 0.3 - p[2]) * w;
+      const b0 = pos(A, chain[i]), p: Vec3 = [b0[0] + sm[i][0] * DS * k, b0[1] + sm[i][1] * DS * k, b0[2] + sm[i][2] * DS * k];
+      // onto the cranium along its radius from the ellipsoid's centre (sideways at the temples too, where a strip that
+      // only moved in depth stood out past the skull as fins)
+      const q = onCranium(p);
+      for (let c = 0; c < 3; c++) p[c] += (q[c] - p[c]) * w;
       out.push(p[0], p[1], p[2]);
     }
   }

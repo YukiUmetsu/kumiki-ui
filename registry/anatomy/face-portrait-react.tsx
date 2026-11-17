@@ -4,11 +4,14 @@
  *
  * Portraits render on the CPU in workers (see `foundation-render.ts`), cached, so a page of them stays responsive.
  */
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import type { CanvasHTMLAttributes, CSSProperties } from "react";
 import type { Portrait, PortraitOptions } from "./face-portrait";
 import { ANATOMY_RENDER_POOL } from "./anatomy-render-pool";
+import { requestRender } from "./foundation-render";
 import type { RenderOutput } from "./foundation-render";
+import { portraitFrame } from "./portrait-motion";
+import type { PortraitMotion } from "./portrait-motion";
 import { RenderFrame } from "./foundation-render-react";
 import { BEAUTY_EVIDENCE, GOLDEN_RATIO, beautifulFace } from "./face-beauty";
 import type { BeautyOptions } from "./face-beauty";
@@ -45,6 +48,56 @@ export const FacePortrait = forwardRef<HTMLCanvasElement, FacePortraitProps>(fun
 function toPortrait(r: RenderOutput): Portrait {
   const m = (r.meta ?? {}) as { face: Portrait["face"]; landmarks: Portrait["landmarks"]; strands?: number; groomMs?: number };
   return { width: r.width, height: r.height, rgba: r.rgba, ms: r.ms, face: m.face, landmarks: m.landmarks, stats: { strands: m.strands ?? 0, groomMs: m.groomMs ?? 0 } };
+}
+
+export interface PortraitInMotionProps { options: PortraitOptions; motion?: PortraitMotion; fps?: number; label: string }
+/**
+ * A portrait that blinks, glances and has its hair moved by a breeze (`portraitFrame`): every frame rendered in the
+ * workers (cached), then looped at its own speed. Until all frames are ready it shows the frames done and a progress
+ * line; with reduced motion it waits for Play.
+ */
+export function PortraitInMotion({ options, motion = {}, fps = 10, label }: PortraitInMotionProps) {
+  const canvas = useRef<HTMLCanvasElement>(null), T = motion.period ?? 3.2, n = Math.max(2, Math.round(T * fps));
+  const W = options.width ?? 288, H = options.height ?? 360;
+  const [frames, setFrames] = useState<ImageData[]>([]), [done, setDone] = useState(0), [playing, setPlaying] = useState(false);
+  const key = JSON.stringify([options, motion, fps]);
+  useEffect(() => {
+    let live = true;
+    const ac = new AbortController(), out: (ImageData | undefined)[] = new Array(n).fill(undefined);
+    setFrames([]); setDone(0);
+    setPlaying(!(typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches));
+    const affinity = JSON.stringify([options.sex, options.faceType, options.hairStyle, options.fringe, options.hairStrands, options.seed]);
+    let count = 0;
+    for (let k = 0; k < n; k++) void requestRender({ pool: ANATOMY_RENDER_POOL, kind: "portrait", args: portraitFrame(options, (k / n) * T, motion), priority: 1 + k / n, signal: ac.signal, affinity })
+      .then(r => {
+        if (!live) return;
+        out[k] = new ImageData(new Uint8ClampedArray(r.rgba), r.width, r.height); count++; setDone(count);
+        if (count === n) setFrames(out as ImageData[]);
+        else if (k === 0) { const ctx = canvas.current?.getContext("2d"); ctx?.putImageData(out[0]!, 0, 0); }
+      }, () => {});
+    return () => { live = false; ac.abort(); };
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  const ready = frames.length === n;
+  useEffect(() => {
+    const ctx = canvas.current?.getContext("2d");
+    if (!ctx || !ready) return;
+    if (!playing) { ctx.putImageData(frames[0], 0, 0); return; }
+    let raf = 0, start = 0;
+    const tick = (now: number) => { if (!start) start = now; ctx.putImageData(frames[Math.floor(((now - start) / 1000) * fps) % n], 0, 0); raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [frames, ready, playing, fps, n]);
+  return (
+    <div style={{ display: "grid", gap: 6 }}>
+      <canvas ref={canvas} width={W} height={H} role="img" aria-label={label} aria-busy={!ready}
+        style={{ display: "block", width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, borderRadius: 6, background: "var(--km-surface-subtle, #8a8784)" }} />
+      <div style={{ display: "flex", gap: 8, alignItems: "center", ...sheetSmall }}>
+        <button type="button" disabled={!ready} onClick={() => setPlaying(p => !p)} aria-pressed={playing}
+          style={{ minHeight: 32, padding: "4px 10px", borderRadius: 6, border: "1px solid #797776", background: "#fff", font: "13px system-ui" }}>{playing ? "Pause" : "Play"}</button>
+        <span aria-live="polite">{ready ? `${n} frames, ${fps} fps, a ${T} s loop` : `Rendering frames ${done} / ${n}…`}</span>
+      </div>
+    </div>
+  );
 }
 
 const cell: CSSProperties = { padding: "4px 8px", borderBottom: "1px solid var(--km-border-subtle, #e2deda)", textAlign: "left", verticalAlign: "top" };
