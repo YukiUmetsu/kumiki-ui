@@ -56,6 +56,19 @@ describe("ArtCraft CC0 F1 V41 photographed forehead and far-temple hairline",()=
           const {d:afterPath,...afterEverything}=other;
           expect(afterEverything).toEqual(beforeEverything);
           expect(afterPath.length).toBeGreaterThan(100);
+          if(el.id==="face-outline"){
+            // V30 recorded real CC0 left cheek, chin (398,858) and jaw.
+            // A new scalp arc must never restore the rejected legacy jaw.
+            for(const originalLower of [
+              "C478 531 488 594 497 664",
+              "C428 850 411 857 398 858",
+              "C78 694 76 686 80 681",
+              "C107 561 105 519 108 474",
+            ]){
+              expect(beforePath).toContain(originalLower);
+              expect(afterPath).toContain(originalLower);
+            }
+          }
           expect(beforePath).not.toBe(afterPath);
           changed++;
         }else expect(other).toEqual(el);
