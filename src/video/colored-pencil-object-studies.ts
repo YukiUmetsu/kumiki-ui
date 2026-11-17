@@ -13,6 +13,7 @@ import {roseFrontValueDetails,inspectRoseFrontValueBands} from "./colored-pencil
 import {ROSE_PETAL_RIM_SIDEWALLS,rosePetalRimContacts,inspectRosePetalRimSidewalls} from "./colored-pencil-rose-rim-thickness";
 import {ROSE_BACK_CUP_RELIEF,roseBackCupUndersideDetails,roseBackCupFaceDetails,inspectRoseBackCupRelief} from "./colored-pencil-rose-back-cup-relief";
 import {ROSE_FRONT_LAMINA_VOLUME,inspectRoseFrontLaminaVolume} from "./colored-pencil-rose-front-lamina-volume";
+import {ROSE_CENTER_KNOT_SURFACES,ROSE_CENTER_SCROLL_BACKFACE,inspectRoseCenterKnot} from "./colored-pencil-rose-center-knot";
 
 /**
  * Four independent original subject studies. These are *authored* silhouettes,
@@ -57,7 +58,7 @@ function material(shape: ObjectShape, seed: number, transform: string): PencilRe
   return createPencilMaterialRegion(input);
 }
 
-function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false,volumeStudy=false): ObjectShape[] {
+function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false,volumeStudy=false,knotStudy=false): ObjectShape[] {
   const shapes:ObjectShape[] = [
     {id:"stem",surface:"wood",palette:leaf,
       path:"M241 266 Q233 324 247 417 L254 417 Q251 331 250 268 Z",
@@ -165,6 +166,10 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
     const issues=inspectRoseFrontLaminaVolume();
     if(issues.length)throw new Error("Rose frontal lamina material shape: "+issues.join("; "));
   }
+  if(knotStudy){
+    const issues=inspectRoseCenterKnot();
+    if(issues.length)throw new Error("Rose center source relief: "+issues.join("; "));
+  }
   const anatomy:ObjectShape[]=shapes.flatMap(shape=>{
     if(leafStudy&&(shape.id==="leaf-left"||shape.id==="leaf-right")){
       const side=shape.id==="leaf-left"?"left":"right";
@@ -175,13 +180,29 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
       return ROSE_CALYX_ORGANS.map(organ=>({
         ...organ,surface:"leaf" as const,startFrame:50,
       }));
-    // Nested laminae must belong to the original corolla's physical draw
-    // order: back recess/left/right sit above inner-fold, central scroll
-    // crosses in front of the unchanged heart. Existing regions are retained.
+    // The inner cup uses independently curved real material rather than a
+    // generic spiral. Every keyed original pigment seed and pre-existing
+    // contact remains; only opt-in lamina paths and additional dry marks change.
+    const knot=(part:ObjectShape):ObjectShape=>{
+      const source=knotStudy?ROSE_CENTER_KNOT_SURFACES.find(o=>o.id===part.id):undefined;
+      return source?{...part,path:source.path,bounds:source.bounds,
+        palette:source.palette,direction:source.direction,flow:source.flow,
+        details:[...(part.details??[]),...source.dryContours]}:part;
+    };
     if(whorlStudy&&shape.id==="inner-fold")
-      return [shape,...ROSE_INNER_WHORL_ORGANS.filter(o=>o.id!=="rose-whorl-scroll")];
-    if(whorlStudy&&shape.id==="heart")
-      return [shape,...ROSE_INNER_WHORL_ORGANS.filter(o=>o.id==="rose-whorl-scroll")];
+      return [knot(shape),...ROSE_INNER_WHORL_ORGANS
+        .filter(o=>o.id!=="rose-whorl-scroll").map(o=>knot({...o}))];
+    if(whorlStudy&&shape.id==="heart"){
+      const scroll=ROSE_INNER_WHORL_ORGANS.find(o=>o.id==="rose-whorl-scroll")!;
+      const under=ROSE_CENTER_SCROLL_BACKFACE;
+      const realUnderside:ObjectShape={
+        id:under.id,surface:"petal",palette:under.palette,path:under.path,
+        bounds:under.bounds,direction:under.direction,flow:under.flow,
+        details:under.details,
+      };
+      return knotStudy?[knot(shape),realUnderside,knot({...scroll})]:
+        [shape,scroll];
+    }
     const fold=foldStudy?ROSE_PHYSICAL_FOLDS.find(f=>f.id===shape.id):undefined;
     if(fold){
       // The independently authored rear crest replaces BOTH physical halves
@@ -436,6 +457,8 @@ export interface PencilObjectStudyOptions {
   roseBackCupReliefStudy?: boolean;
   /** Opt-in broad convex frontal lamina source reconstruction. Requires physical folds. */
   roseFrontLaminaVolumeStudy?: boolean;
+  /** Experimental true source-curved center knot, with a physically separate scroll reverse. */
+  roseCenterKnotStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -448,6 +471,7 @@ export function pencilObjectStudyDrawing({
   roseInnerWhorlStudy = false, roseMiddleCupStudy = false,
   roseFrontValueStudy = false, rosePetalRimStudy = false,
   roseBackCupReliefStudy = false, roseFrontLaminaVolumeStudy = false,
+  roseCenterKnotStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -479,6 +503,10 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose back-cup relief flag must be boolean");
   if(typeof roseFrontLaminaVolumeStudy !== "boolean")
     throw new RangeError("Rose front lamina volume flag must be boolean");
+  if(typeof roseCenterKnotStudy !== "boolean")
+    throw new RangeError("Rose center knot study flag must be boolean");
+  if(subject==="rose"&&roseCenterKnotStudy&&!roseInnerWhorlStudy)
+    throw new RangeError("Rose source center reconstruction requires real inner-whorl laminae");
   if(subject==="rose"&&roseFrontLaminaVolumeStudy&&!rosePhysicalFolds)
     throw new RangeError("Rose front lamina volume requires physical fold anatomy");
   if(subject==="rose"&&roseBackCupReliefStudy&&!rosePhysicalFolds)
@@ -491,7 +519,7 @@ export function pencilObjectStudyDrawing({
     const errors=inspectRoseFrontValueBands();
     if(errors.length)throw new RangeError("Rose frontal value axes: "+errors.join("; "));
   }
-  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy) :
+  const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy,rosePetalRimStudy,roseBackCupReliefStudy,roseFrontLaminaVolumeStudy,roseCenterKnotStudy) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
   const transform = aspect === "landscape" ? "translate(416 32) scale(1.08)" :
@@ -505,7 +533,7 @@ export function pencilObjectStudyDrawing({
   ] as const;
   const regions = shapes.map((shape, i) => {
     // Permit every valid UI seed while keeping each material pass in signed-31-bit range.
-    const original=subject==="rose"&&(roseCalyxStudy||rosePinnateStudy||rosePhysicalFolds||roseInnerWhorlStudy||roseMiddleCupStudy||rosePetalRimStudy)?
+    const original=subject==="rose"&&(roseCalyxStudy||rosePinnateStudy||rosePhysicalFolds||roseInnerWhorlStudy||roseMiddleCupStudy||rosePetalRimStudy||roseCenterKnotStudy)?
       roseOriginalIds.findIndex(id=>id===shape.id):-1;
     // The original seven-petal material hashes never change. Calyx organ
     // material seeds also remain identical when foliage is simultaneously on;
@@ -520,12 +548,15 @@ export function pencilObjectStudyDrawing({
       ROSE_MIDDLE_LAMINAE.findIndex(o=>o.id===shape.id):-1;
     const rimIndex=subject==="rose"&&rosePetalRimStudy?
       ROSE_PETAL_RIM_SIDEWALLS.findIndex(o=>o.id===shape.id):-1;
+    const knotIndex=subject==="rose"&&roseCenterKnotStudy&&
+      shape.id===ROSE_CENTER_SCROLL_BACKFACE.id?42:-1;
     const materialIndex=original>=0?original:
       calyxIndex>=0?3+calyxIndex:
       foldIndex>=0?22+foldIndex:
       whorlIndex>=0?31+whorlIndex:
       middleIndex>=0?35+middleIndex:
-      rimIndex>=0?40+rimIndex:i;
+      rimIndex>=0?40+rimIndex:
+      knotIndex>=0?knotIndex:i;
     const region = material(shape, (seed + materialIndex * 311) % 2147483647, transform);
     const frontal=subject==="rose"&&roseFrontValueStudy&&
       (shape.id==="petal-front-left"||shape.id==="petal-front-right")?
@@ -576,6 +607,12 @@ export function pencilObjectStudyDrawing({
         url:"https://www.artfinder.com/product/pink-rose-6a554/",
         rights:"technique-only" as const,
         observation:"Anatomical double-rose cup has separate intermediate hooked petal faces with asymmetrical shoulders, counterturning edges and dark fold attachment, rather than a single empty band.",
+      }]:[]),
+      ...(subject==="rose"&&roseCenterKnotStudy?[{
+        title:"Dianne Sutherland — drawing a complex rose structure",
+        url:"https://www.botanicalartcourses.com/post/drawing-a-complex-flower-structure-rose",
+        rights:"technique-only" as const,
+        observation:"Outer petals enclose a compact irregular central bud: short, overlapping surfaces must recede in depth, with genuinely visible tucked backfaces; a uniform concentric C motif lacks anatomical changes of plane.",
       }]:[]),
       ...(subject==="rose"&&roseFrontLaminaVolumeStudy?[{
         title:"Plant Cell — ethylene-regulated asymmetric petal-base growth of hybrid roses",
