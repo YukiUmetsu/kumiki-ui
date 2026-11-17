@@ -641,9 +641,14 @@ function BeautifulFaces() {
   ];
   return (
     <div style={{ ...page, gap: 20 }}>
-      <p style={{ ...muted, maxWidth: 900 }}>Each face starts from measured population means (Farkas norms, ANSUR II face breadths and pupil distances), is made symmetric, gets above-average femininity (women) or a slight feminisation (men), measured attractive lip heights, an open eye at a measured palpebral height and a slight canthal tilt, and a hairline at Pallett's 36% ratio. Rendered with measured skin scattering (d'Eon & Luebke profile), a shadowed key light and occlusion, ray-traced eyes and strand-traced hair.</p>
+      <p style={{ ...muted, maxWidth: 900 }}>Each face starts from the shape of real faces (a composite of public-domain portraits of film actors, averaged by sex) and measured population means (Farkas norms, ANSUR II face breadths and pupil distances), is made symmetric, gets above-average femininity (women) or a slight feminisation (men), measured attractive lip heights, an open eye at a measured palpebral height and a slight canthal tilt, and a hairline at Pallett's 36% ratio. Rendered with measured skin scattering (d'Eon & Luebke profile), a shadowed key light and occlusion, ray-traced eyes and strand-traced hair.</p>
       <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
         {people.map((p, k) => <figure key={k} style={{ margin: 0, display: "grid", gap: 4 }}><FacePortrait options={{ ...p.o, width: 288, height: 360, seed: 5 + k }} label={p.caption} /><figcaption style={muted}>{p.caption}</figcaption></figure>)}
+      </div>
+      <h3 style={{ margin: 0 }}>The shape of real faces</h3>
+      <p style={{ ...muted, maxWidth: 900 }}>The composite of public-domain portraits of film actors, measured with face landmarks and averaged by sex (one photograph a person; no one's likeness survives the average), shapes the contours, cheeks, brows and nose; the breadths, eye opening and lips are then set to their measured values. Left: without it; right: with it.</p>
+      <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
+        {[0, 1].flatMap(sex => [0, 1].map(rf => <figure key={`${sex}-${rf}`} style={{ margin: 0, display: "grid", gap: 4 }}><FacePortrait options={{ sex, realFaces: rf, skin: SKINS[2], hairStyle: sex ? "short-crop" : "bun", width: 288, height: 360, hairStrands: 14000 }} label={`${sex ? "Man" : "Woman"}, ${rf ? "with" : "without"} the real-face composite`} /><figcaption style={muted}>{sex ? "Man" : "Woman"}, {rf ? "with the composite" : "the calibrated mask"}</figcaption></figure>))}
       </div>
       <h3 style={{ margin: 0 }}>The calibrated average (beauty 0) against the findings applied (beauty 1)</h3>
       <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))" }}>
@@ -940,7 +945,7 @@ function PortraitLab() {
   return (
     <div style={{ ...page, gridTemplateColumns: "minmax(240px, 320px) 1fr" }}>
       <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
-        {num("sex", 0, 1, 1)}{num("beauty", 0, 1, 0.25)}
+        {num("sex", 0, 1, 1)}{num("beauty", 0, 1, 0.25)}{num("realFaces", 0, 1, 0.25)}
         <label style={label}>Skin<select style={field} value={o.skin} onChange={e => set("skin", e.target.value)}>{SKINS.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
         <label style={label}>Eyes<select style={field} value={o.eyes} onChange={e => set("eyes", e.target.value as EyeColour)}>{IRIS_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
         <label style={label}>Eye shape<select style={field} value={typeof o.eyeShape === "string" ? o.eyeShape : ""} onChange={e => set("eyeShape", e.target.value || undefined)}><option value="">measured average</option>{EYE_SHAPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select></label>
