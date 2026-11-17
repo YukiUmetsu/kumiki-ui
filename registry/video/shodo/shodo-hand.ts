@@ -538,7 +538,22 @@ function strokeProgram(spec: ShodoStrokeSpec, base: ShodoStyle, seed: number, st
   const w = D * shodoContactWidth(pt, style.brush.stiffness);
   const ctx: StrokeContext = { style, pt, w, seed };
   const start = resolveStart(spec), end = resolveEnd(spec);
-  const pts = spec.points.map(p => [p[0], p[1]] as V);
+  let pts = spec.points.map(p => [p[0], p[1]] as V);
+  let turnList = spec.turns ?? [];
+  if (spec.kind === "right-sweep" && end === "harai" && pts.length >= 3 && T.footShare > 0) {
+    // 右払い: the pull-out is at least footShare of the stroke. A traced or fitted form spaces its
+    // points along the stroke, so its last pair is short and the foot would sit at the tip (永).
+    const seg = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
+    const want = T.footShare * seg.reduce((a, b) => a + b, 0);
+    if (seg[seg.length - 1] < want) {
+      let i = seg.length - 1, back = 0;
+      while (i > 0 && back + seg[i] < want) back += seg[i--];
+      const t = (want - back) / seg[i], a = pts[i + 1], b = pts[i];
+      const foot: V = [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
+      pts = [...pts.slice(0, i + 1), foot, pts[pts.length - 1]];
+      turnList = turnList.filter(k => k < i + 1);
+    }
+  }
   const segs: Segment[] = [];
 
   if (spec.kind === "dot") {
@@ -566,7 +581,7 @@ function strokeProgram(spec: ShodoStrokeSpec, base: ShodoStyle, seed: number, st
     return { segs, land, start: "uchikomi", end: "tome" };
   }
 
-  const turns = [...(spec.turns ?? [])].sort((x, y) => x - y);
+  const turns = [...turnList].sort((x, y) => x - y);
   const breaks = [0, ...turns, pts.length - 1];
   let footRun: V[] | null = null;
   if (spec.kind === "right-sweep" && end === "harai" && pts.length >= 3) {

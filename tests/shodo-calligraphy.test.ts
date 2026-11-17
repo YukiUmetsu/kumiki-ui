@@ -43,6 +43,25 @@ describe("SHO1 shodō calligraphy", () => {
     expect(failures).toEqual([]);
   });
 
+  it("keeps a 右払い's foot and flat point when its points are spaced evenly (a traced form)", () => {
+    const demo = SHODO_BASICS.find(b => b.id === "migi-harai")!.demo;
+    const P = demo.points, seg = P.slice(1).map((p, i) => Math.hypot(p[0] - P[i][0], p[1] - P[i][1]));
+    const total = seg.reduce((a, b) => a + b, 0);
+    const even = Array.from({ length: 9 }, (_, k) => {
+      let d = total * k / 8, i = 0;
+      while (i < seg.length - 1 && d > seg[i]) d -= seg[i++];
+      const t = d / seg[i];
+      return [Math.round(P[i][0] + (P[i + 1][0] - P[i][0]) * t), Math.round(P[i][1] + (P[i + 1][1] - P[i][1]) * t)] as const;
+    });
+    const plan = planShodoWriting({
+      items: [{ glyph: { char: "・", source: "original", strokes: [{ ...demo, points: even }] }, x: 0, y: 0, size: 220 }],
+      style: resolveShodoStyle({ brush: { diameter: 118 } }),
+    });
+    const { checks, failures } = auditShodoTechniques(new ShodoInkSurface(plan, { x: 0, y: 0, width: 220, height: 220, scale: 1 }));
+    expect(checks.map(c => c.check.technique)).toEqual(expect.arrayContaining(["foot", "harai"]));
+    expect(failures).toEqual([]);
+  });
+
   it("deposits ink exactly where the brush touches, and nowhere ahead of it", () => {
     const plan = ei();
     const surface = new ShodoInkSurface(plan, { x: 0, y: 0, width: 400, height: 400, scale: 1 });

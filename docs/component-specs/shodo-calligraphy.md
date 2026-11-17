@@ -19,7 +19,7 @@ Every stroke is 始筆 (start) → 送筆 (travel) → 終筆 (end), the "トン
 | 懸針 kenshin | `end: "nuki"` | Lifts while moving to a needle point. | `kenshinLift` |
 | 撥ね hane | `end: "hane"`, `hook` | Pauses, draws a short 45° line, flicks toward the hook. | `haneHold`, `haneLength`, `haneSpeed` |
 | 左払い hidari-harai | `end: "harai"` | Keeps an even press, then lifts along the arc. | `haraiLift` |
-| 右払い migi-harai | `kind: "right-sweep"` | Swells to a pressed foot, pauses, pulls out flat. | `footPress`, `footHold`, `pullOut` |
+| 右払い migi-harai | `kind: "right-sweep"` | Swells to a pressed foot, pauses, pulls out flat. The pull-out is the last point pair, but at least `footShare` (0.2) of the stroke, so a traced form with evenly spaced points keeps its foot. | `footPress`, `footHold`, `pullOut`, `footShare` |
 | 点 ten | `kind: "dot"` | Touches, presses along 45°, holds, gathers back. | `tenPress`, `tenHold` |
 
 **結び (かな loops).** Where a かな curve comes back across its own path and the loop has room for an open counter, the brush eases off through the loop so the counter stays open. A loop counts when the path returns within 0.8 stroke widths after at least 3 widths, and the largest circle inside it is 0.6 to 4 widths across. Hairpin turns and wide bowls are not loops. `technique.musubiLift` sets how much the brush eases off (default 0.25, range 0 to 0.9). 結び is a かな technique, not one of the ten kaisho basics.

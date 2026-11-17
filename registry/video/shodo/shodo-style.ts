@@ -134,6 +134,12 @@ export interface ShodoTechniqueParams {
   footPress: number;
   footHold: number;
   pullOut: number;
+  /**
+   * 右払い: the shortest pull-out, as a share of the stroke's length. The pull-out is the last
+   * point pair; when that is shorter (a traced or fitted form spaces its points along the stroke),
+   * the foot moves back along the stroke to this share.
+   */
+  footShare: number;
   /** 点: extra press and hold of the dot. */
   tenPress: number;
   tenHold: number;
@@ -238,7 +244,7 @@ export const DEFAULT_SHODO_TECHNIQUE: ShodoTechniqueParams = {
   tomePress: .3, tomeReach: .12, tomeHold: .08, suiro: .75,
   haneHold: .1, haneLength: 1.25, haneSpeed: .1,
   haraiLift: .42, kenshinLift: .62,
-  footPress: .46, footHold: .1, pullOut: .22,
+  footPress: .46, footHold: .1, pullOut: .22, footShare: .2,
   tenPress: .12, tenHold: .12,
   musubiLift: .25,
 };
@@ -288,7 +294,7 @@ export const SHODO_TECHNIQUE_RANGES: Record<keyof ShodoTechniqueParams, Range> =
   tomePress: [0, 1], tomeReach: [0, .6], tomeHold: [0, .4], suiro: [0, 1.5],
   haneHold: [0, .4], haneLength: [.3, 2.5], haneSpeed: [.04, .4],
   haraiLift: [.1, .9], kenshinLift: [.1, .95],
-  footPress: [0, 1], footHold: [0, .4], pullOut: [0, .8],
+  footPress: [0, 1], footHold: [0, .4], pullOut: [0, .8], footShare: [0, .5],
   tenPress: [0, 1], tenHold: [0, .4],
   musubiLift: [0, .9],
 };
