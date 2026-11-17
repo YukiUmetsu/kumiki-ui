@@ -29,10 +29,35 @@ test("FLORA1 five-leaflet rose foliage native A/B and macro at both film aspects
     const full=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-"+aspect+"-pinnate-five-leaflets-native.png")});
     expect(hash(full)).not.toBe(hash(base));
-    await page.getByRole("checkbox",{name:"Foundation inspect macro"}).check();
+    const inspection=page.getByRole("combobox",{name:"Foundation inspection focus"});
+    const macro=page.getByRole("checkbox",{name:"Foundation inspect macro"});
+    await inspection.selectOption("rose-left-leaf");
+    await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus",
+      "rose-left-pair-far-down");
+    await macro.check();
     await svg.screenshot({animations:"disabled",
-      path:info.outputPath("rose-"+aspect+"-pinnate-five-leaflets-macro.png")});
-    await page.getByRole("checkbox",{name:"Foundation inspect macro"}).uncheck();
+      path:info.outputPath("rose-"+aspect+"-left-leaflet-2x-native-macro.png")});
+    await inspection.selectOption("rose-right-leaf");
+    await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus",
+      "rose-right-pair-near-down");
+    await svg.screenshot({animations:"disabled",
+      path:info.outputPath("rose-"+aspect+"-right-leaflet-2x-native-macro.png")});
+    await macro.uncheck();
+    await inspection.selectOption("default");
+    const calyx=page.getByRole("checkbox",{name:"Foundation rose calyx anatomy"});
+    await calyx.check();
+    await expect(svg.locator("[data-km-pencil-region]")).toHaveCount(30);
+    await svg.screenshot({animations:"disabled",
+      path:info.outputPath("rose-"+aspect+"-combined-five-sepal-pinnate-native.png")});
+    await inspection.selectOption("rose-calyx");
+    await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus",
+      "calyx-receptacle");
+    await macro.check();
+    await svg.screenshot({animations:"disabled",
+      path:info.outputPath("rose-"+aspect+"-combined-calyx-root-2x-native-macro.png")});
+    await macro.uncheck();
+    await inspection.selectOption("default");
+    await calyx.uncheck();
     await leaves.uncheck();
     await expect(scene).toHaveAttribute("data-km-rose-pinnate-study","baseline");
     expect(await svg.evaluate(node=>node.outerHTML)).toBe(baseHtml);
