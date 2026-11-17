@@ -825,10 +825,10 @@ export const Cc0Anat1FiveToneOrbitV44:Story={
     initialMidfaceForm="source-anat1-five-tone-v44" initialInspection="face"/>,
 };
 export const Cc0Anat1FiveToneCheekV44:Story={
-  name:"CC0 zygomatic highlight and deep mandibular cast 2.12× (!dev V44)",
+  name:"CC0 orbital / upper malar wax pigment contact 2.12× (!dev V44)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
-    initialMidfaceForm="source-anat1-five-tone-v44" initialInspection="eyes"/>,
+    initialMidfaceForm="source-anat1-five-tone-v44" initialInspection="near-eye"/>,
 };
 export const Cc0Anat1PhotoFoliageV43:Story={
   name:"CC0 photographed actual green canopy silhouette without repeated foliage icons (!dev V43)",
