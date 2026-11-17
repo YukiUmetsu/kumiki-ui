@@ -44,6 +44,42 @@ describe("Chinese ink ANAT2 original independent full standing scholar",()=>{
       expect(sheet).not.toMatch(/(?:NaN|Infinity|undefined)/);
     }
   });
+  it("removes the straight 612px source bust cutoff with shared paper-gradient cotton absorption instead of deleting strokes",()=>{
+    const figure=renderToStaticMarkup(createElement(InkAnatomicalStandingFigure,
+      {character:"scholar",emotion:"neutral",frame:12,detail:1}));
+    const silk=renderToStaticMarkup(createElement(InkAnatomicalPortrait,
+      {character:"scholar",emotion:"neutral",view:"source",transparentPaper:true}));
+    expect(figure).toContain('data-km-ink-standing-seam="paper-wicked-continuous"');
+    expect(figure).toContain('data-km-ink-costume-material="cotton"');
+    expect(figure).toContain('upper-robe-contact');
+    expect(figure).toContain('upper-robe-release');
+    expect(figure).toContain('gradientUnits="userSpaceOnUse"');
+    expect(figure).toContain('stop-opacity=".18"');
+    expect(silk).toContain('data-km-ink-costume-material="silk"');
+    expect((figure.match(/data-km-ink-native-robe-brush=/g)||[])).toHaveLength(4);
+    expect((figure.match(/data-km-ink-standing-pressure=/g)||[])).toHaveLength(6);
+    expect((figure.match(/data-km-ink-sleeve-loading=/g)||[])).toHaveLength(12);
+    expect((figure.match(/data-km-ink-cloth-pressure=/g)||[])).toHaveLength(17);
+    expect((figure.match(/data-km-ink-frontal-glaze=/g)||[])).toHaveLength(13);
+  });
+  it("keeps the same editable 1080px original paths in the full, paper seam, hand and foot microscopes",()=>{
+    const views=["full","waist","grip","hem"] as const;
+    const images=views.map(camera=>renderToStaticMarkup(createElement(
+      InkAnatomicalStandingFigure,{character:"elder",camera,frame:54,detail:1})));
+    const boxes=["0 0 540 1080","65 425 420 305",
+      "87 535 100 134","158 855 290 196"];
+    images.forEach((image,i)=>{
+      expect(image).toContain('viewBox="'+boxes[i]+'"');
+      expect(image).toContain('data-km-ink-standing-camera="'+views[i]+'"');
+      expect((image.match(/data-km-ink-standing-bristle=/g)||[]).length).toBeGreaterThan(40);
+      expect((image.match(/data-km-ink-bamboo-node=/g)||[])).toHaveLength(10);
+      expect((image.match(/data-km-ink-beard-fibre=/g)||[])).toHaveLength(93);
+      expect((image.match(/data-km-ink-hand-finger=/g)||[])).toHaveLength(4);
+      expect(image).not.toMatch(/(?:NaN|Infinity|undefined)/);
+    });
+    expect(()=>renderToStaticMarkup(createElement(
+      InkAnatomicalStandingFigure,{camera:"invalid" as "full"}))).toThrow(RangeError);
+  });
   it("keeps both sandal anchors exactly stationary through the complete frame cycle and reverse seeks",()=>{
     const sampled=[95,0,72,12,42,95].map(frame=>renderToStaticMarkup(
       createElement(InkAnatomicalStandingFigure,{frame,character:"scholar",detail:.5})));
