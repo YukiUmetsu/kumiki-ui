@@ -68,6 +68,13 @@ expect(relit.windows.map(w=>w.path)).toEqual(base.windows.map(w=>w.path));
 expect(thicker.windows.map(w=>w.fibres)).toEqual(base.windows.map(w=>w.fibres));
 expect(relit.translation).toEqual(base.translation);
 });
+it("rotates the cut-face highlight gradient with the actual lamp direction",()=>{
+const html=renderToStaticMarkup(<RisoPullTabTheatre cover={cover}
+insert={insert} windows={windows} travel={182.4} progress={.5}
+lightDirection={[1,0]}/>);
+expect(html).toContain('data-km-riso79-light-direction="1,0"');
+expect(html).toContain('x1="1" y1="0.5" x2="0" y2="0.5"');
+});
 it("owns 88 different deterministic individually curved physical cellulose cuts per opening",()=>{
 for(const w of windows){
 const fibres=risoPullWindowFibres(w,79);
@@ -96,6 +103,9 @@ expect(()=>evaluateRisoPullTab({...args,travel:999})).toThrow(/bounded travel/);
 expect(()=>evaluateRisoPullTab({...args,progress:NaN})).toThrow(/progress/);
 expect(()=>evaluateRisoPullTab({...args,paperDepthMm:1.21})).toThrow(/paper depth/);
 expect(()=>evaluateRisoPullTab({...args,lightDirection:[0,0]})).toThrow(/light direction/);
+expect(()=>renderToStaticMarkup(<RisoPullTabTheatre cover={cover} insert={insert}
+windows={windows} travel={182.4} progress={.5} paperRelief={1.1}/>))
+.toThrow(/paper relief/);
 expect(()=>evaluateRisoPullTab({...args,windows:[windows[0],windows[0]]})).toThrow(/unique/);
 expect(()=>evaluateRisoPullTab({...args,windows:[windows[0],{...windows[1],x:490}]})).toThrow(/between cut edges/);
 expect(()=>risoPullProgress(-1,0,140)).toThrow(/absolute/);
