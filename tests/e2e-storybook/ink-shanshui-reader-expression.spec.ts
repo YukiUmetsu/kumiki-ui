@@ -256,8 +256,15 @@ test("Native ANAT1 near/far pupil rim fibres stay within their own painted irise
           const pt=rim.getPointAtLength(total*i/20);
           if(first.isPointInFill(pt))hits++;
         }
+        // SVGRect / DOMRect returned by getBBox() is not structured-
+        // clone enumerable across Playwright evaluate; serialize numeric
+        // fields explicitly or assertions silently receive undefined.
+        const rect=(node:SVGPathElement)=>{
+          const b=node.getBBox();
+          return {x:b.x,y:b.y,width:b.width,height:b.height};
+        };
         return {hits,total,count:path.length,
-          firstBox:first.getBBox(),rimBox:rim.getBBox()};
+          firstBox:rect(first),rimBox:rect(rim)};
       });
     expect(result.hits,
       "Distinct original limbal stroke must stay in the anatomical iris fill")
