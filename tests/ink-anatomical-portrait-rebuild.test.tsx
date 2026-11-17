@@ -63,7 +63,7 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
         {character:"elder",emotion:"surprise",intensity:t})));
     const faceInk=poses.map(s=>{
       const element=s.match(/<path[^>]*data-km-ink-mouth-line="true"[^>]*>/)?.[0];
-      return element?.match(/\\bd="([^"]+)"/)?.[1];
+      return element?.match(/\bd="([^"]+)"/)?.[1];
     });
     expect(faceInk.every(Boolean)).toBe(true);
     expect(new Set(faceInk).size).toBe(5);
