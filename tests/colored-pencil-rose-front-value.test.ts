@@ -20,6 +20,16 @@ describe("CP-F1 frontal rose artist-local dry optical value planes",()=>{
     expect(inspectRoseFrontValueBands()).toEqual([]);
     expect(ROSE_FRONT_VALUE_BANDS).toHaveLength(6);
     expect(new Set(ROSE_FRONT_VALUE_BANDS.map(b=>JSON.stringify(b.axis))).size).toBe(6);
+    // The initial true native 1×/2.15× inspection rejected a narrow
+    // overpressured fold band resembling two dark vertical hair beards.
+    // Lock broad low-pressure folded shadow contact; never fix by erasing
+    // the source fold, lip or full-surface shading layers.
+    for(const band of ROSE_FRONT_VALUE_BANDS.filter(b=>b.role==="fold-core")){
+      expect(band.halfWidth).toBeGreaterThanOrEqual(14);
+      expect(band.contacts).toBeLessThanOrEqual(90);
+      expect(band.nibs[0]).toBeLessThanOrEqual(.55);
+      expect(band.opacity[0]).toBeLessThanOrEqual(.36);
+    }
     for(const petal of ["petal-front-left","petal-front-right"] as const){
       const bands=ROSE_FRONT_VALUE_BANDS.filter(b=>b.petal===petal);
       expect(bands.map(b=>b.role)).toEqual(["fold-core","convex-belly","reflected-field"]);
