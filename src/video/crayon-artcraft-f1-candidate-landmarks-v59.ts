@@ -111,3 +111,65 @@ export function crayonF1CandidatePointerPoint(
   return [Math.min(607,Math.round((clientX-rect.left)/rect.width*608)),
     Math.min(1081,Math.round((clientY-rect.top)/rect.height*1082))];
 }
+
+/**
+ * V60 source-native browser capture handoff. The caller must SHA-256 the
+ * ACTUAL Chromium PNG bytes; this function cannot attest that arbitrary
+ * caller-supplied strings really belong to a rendered native frame.
+ *
+ * This is a provenance worksheet for independent reviewers, not automatic
+ * feature detection, an artistic qualification or a licence to merge V57.
+ */
+export interface CrayonF1NativeCaptureInfo {
+  variant:CrayonF1CandidateVariant;
+  nativePngSha256:string;
+  /** SHA of the workflow checkout, which may be a PR merge ref. */
+  checkoutCommitSha:string;
+  pngFileName:string;
+}
+export function crayonF1NativeCaptureWorksheetV60(info:CrayonF1NativeCaptureInfo){
+  if(!HEX256.test(info.nativePngSha256)||
+     info.nativePngSha256.toLowerCase()===CRAYON_F1_V59_SOURCE.sha256||
+     !/^[a-f0-9]{40}$/i.test(info.checkoutCommitSha)||
+     !/^[a-z0-9][a-z0-9._-]*\.png$/i.test(info.pngFileName)||
+     info.pngFileName.includes(".."))
+    throw new RangeError("V60 native capture provenance invalid");
+  const evidence:CrayonF1CandidateEvidence={
+    sourceSha256:CRAYON_F1_V59_SOURCE.sha256,
+    variant:info.variant,
+    renderedPngSha256:info.nativePngSha256.toLowerCase(),
+    frame:CRAYON_F1_V59_SOURCE.frame,
+    width:CRAYON_F1_V59_SOURCE.width,
+    height:CRAYON_F1_V59_SOURCE.height,
+    marks:{},
+  };
+  const audit=crayonF1CandidateLandmarkAudit(evidence);
+  if(audit.measured!==0||audit.missing.length!==18)
+    throw new RangeError("V60 false actual-render feature measurements");
+  return {
+    schema:"kumiki-crayon-artcraft-candidate-v60" as const,
+    source:{
+      url:CRAYON_F1_V59_SOURCE.sourceUrl,
+      sha256:CRAYON_F1_V59_SOURCE.sha256,
+      screenshotNotOriginalCameraJpeg:true,
+      frozenPoints:CRAYON_PORTRAIT_AUDIT.sourcePoints,
+    },
+    native:{
+      fileName:info.pngFileName,
+      sha256:info.nativePngSha256.toLowerCase(),
+      workflowCheckoutSha:info.checkoutCommitSha.toLowerCase(),
+      variant:info.variant,
+      detail:1,
+      viewport:[608,1082] as const,
+      fullSourceCamera:true,
+      frame:299,
+    },
+    evidence,
+    audit,
+    independentRenderedPointObservations:0 as const,
+    facialValuePlanesApproved:false as const,
+    entire300FrameFilmReviewed:false as const,
+    artistApproved:false as const,
+    releaseApproved:false as const,
+  };
+}
