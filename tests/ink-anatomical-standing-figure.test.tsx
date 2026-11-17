@@ -38,6 +38,14 @@ describe("Chinese ink ANAT2 original independent full standing scholar",()=>{
       expect((sheet.match(/data-km-ink-frontal-glaze=/g)||[])).toHaveLength(13);
       expect((sheet.match(/data-km-ink-bamboo-node=/g)||[])).toHaveLength(10);
       expect((sheet.match(/data-km-ink-hand-finger=/g)||[])).toHaveLength(4);
+      expect(sheet).toContain('data-km-ink-grip-kinematics="opposed-thumb-on-source-bamboo"');
+      expect(sheet).toContain('data-km-ink-hand-palm="metacarpal-volume"');
+      expect((sheet.match(/data-km-ink-hand-phalange=/g)||[])).toHaveLength(4);
+      expect((sheet.match(/data-km-ink-grip-nail=/g)||[])).toHaveLength(4);
+      expect((sheet.match(/data-km-ink-hand-skin-fibre=/g)||[])).toHaveLength(14);
+      // Real thumb/finger occlusion must appear in front of the bamboo shaft.
+      expect(sheet.indexOf('data-km-ink-bamboo-staff="continuous"'))
+        .toBeLessThan(sheet.indexOf('data-km-ink-grip-kinematics='));
       expect(sheet).toContain('data-km-ink-hand-opposed-thumb="true"');
       expect(sheet).toContain('data-km-ink-foot="0"');
       expect(sheet).toContain('data-km-ink-foot="1"');
