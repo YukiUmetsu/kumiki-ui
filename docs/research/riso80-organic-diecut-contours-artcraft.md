@@ -61,8 +61,8 @@ The exact authored path is preserved in the aperture mask. No raster tracing, sm
 
 The Storybook control "RISO80 window shape" toggles between the original rounded cuts and three independently authored organic silhouettes in both source compositions:
 
-- Landscape: three asymmetrical, tapered leaf/ripple cuts with different shoulders and lower returns.
-- Portrait: three narrow, flowing vertical cuts whose width is intentionally constrained by the 9:16 composition.
+- Landscape: one tapered leaf, one S-curve channel and one asymmetrical flame/lobed silhouette; their shoulders, waists and lower returns differ rather than repeating one translated shape.
+- Portrait: a narrow leaf, a sinuous S-curve and a more asymmetric flame, each constrained by the 9:16 composition.
 - Every window has its own stable ID and source-space envelope. The current renderer conservatively rejects overlapping envelopes even if two custom contours might geometrically miss each other.
 
 These are original demonstration paths, not traced versions of the reference photographs.
