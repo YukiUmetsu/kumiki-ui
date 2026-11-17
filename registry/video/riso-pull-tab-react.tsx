@@ -102,6 +102,7 @@ export function RisoPullTabTheatre({
     data-km-riso79-shadow-offset={shadowX+","+shadowY}
     data-km-riso79-light-direction={lightDirection.join(",")}
     data-km-riso79-windows={pose.windows.length}
+    data-km-riso80-organic-window-count={pose.windows.filter(w=>w.shape==="organic-contour").length}
     data-km-riso79-insert-offset={dx+","+dy}
     style={{display:"block",width:"100%",height:"100%",overflow:"hidden",
       isolation:"isolate",background:cover.spec.paper,...style}}>
@@ -164,7 +165,10 @@ export function RisoPullTabTheatre({
     </g>
     {pose.windows.map(w=><g key={w.id}
       pointerEvents="none" data-km-riso79-cut-rim={w.id}
-      data-km-riso79-cut-contour-kind={w.shape}>
+      data-km-riso79-cut-contour-kind={w.shape}
+      data-km-riso80-contour-kind={w.shape}
+      data-km-riso80-contour-winding={w.winding}
+      data-km-riso80-organic-contour={w.shape==="organic-contour"?w.id:undefined}>
       {paperRelief>0&&<Fragment>
         {/* The stock's cut cross-section occupies the inner half of the
             contour stroke. Its width follows measured paper caliper. */}
