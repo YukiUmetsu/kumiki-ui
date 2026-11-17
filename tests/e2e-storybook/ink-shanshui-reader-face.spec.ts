@@ -315,3 +315,52 @@ test("ear microcamera reveals the real Y-branch antihelix, concha wash and landm
     await ear.screenshot({animations:"disabled",
       path:info.outputPath("reader-ear-ANAT1-minimum-detail.png")});
   });
+
+
+test("source-linked Bochen multiglaze survives native 1x, isolated six-region and lower-detail comparisons",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const proof=page.getByTestId("reader-ink-glaze-comparison");
+    const original=proof.locator('[data-km-ink-glaze-variant="original"]');
+    const layered=proof.locator('[data-km-ink-glaze-variant="layered"]');
+    await expect(proof).toBeVisible();
+    await expect(original).toBeVisible();
+    await expect(layered).toBeVisible();
+    const oldShapes=await original.locator("[data-km-ink-glaze-base] path")
+      .evaluateAll(nodes=>nodes.map(node=>node.getAttribute("d")));
+    const newShapes=await layered.locator("[data-km-ink-glaze-base] path")
+      .evaluateAll(nodes=>nodes.map(node=>node.getAttribute("d")));
+    expect(newShapes).toEqual(oldShapes);
+    const regions=layered.locator("[data-km-ink-glaze-region]");
+    await expect(regions).toHaveCount(6);
+    const before=await layered.locator("[data-km-ink-glaze-region] path").count();
+    expect(before).toBeGreaterThanOrEqual(14);
+    for(const id of ["orbital-near","orbital-far","nose-bridge",
+      "malar-near","malar-far","sublabial"]){
+      expect(await layered.locator('[data-km-ink-glaze-region="'+id+'"] path')
+        .count(),id).toBeGreaterThanOrEqual(2);
+    }
+    await proof.screenshot({animations:"disabled",
+      path:info.outputPath("reader-source-Ming-ink-glazes-all-1x.png")});
+    const choose=page.getByRole("combobox",{name:"Face glaze region"});
+    await choose.selectOption("nose-bridge");
+    await expect(layered.locator('[data-km-ink-glaze-region="nose-bridge"]'))
+      .toHaveAttribute("opacity","1");
+    await expect(layered.locator('[data-km-ink-glaze-region="malar-near"]'))
+      .toHaveAttribute("opacity","0.09");
+    await proof.screenshot({animations:"disabled",
+      path:info.outputPath("reader-source-Ming-ink-nasal-bridge-isolated.png")});
+    const detail=page.getByRole("slider",{name:"Face craftsmanship"});
+    await detail.focus();await detail.press("Home");
+    await expect(detail).toHaveValue("0");
+    const low=await layered.locator("[data-km-ink-glaze-region] path").count();
+    expect(low).toBeLessThan(before);
+    expect(await original.locator("[data-km-ink-glaze-base] path").count())
+      .toBeLessThan(oldShapes.length);
+    await page.getByRole("combobox",{name:"Face eyelids"})
+      .selectOption("closed");
+    await page.getByRole("combobox",{name:"Face mouth"}).selectOption("oh");
+    await expect(regions).toHaveCount(6);
+    await proof.screenshot({animations:"disabled",
+      path:info.outputPath("reader-source-Ming-ink-minimum-detail-blink-oh.png")});
+  });
