@@ -38,7 +38,7 @@
 
 ## Supplemental rights-cleared morphology references and native visual review
 
-Two independently authored Wikimedia Commons photographs were inspected as complementary morphology references, not as same-pose registration targets:
+Three independently authored Wikimedia Commons photographs were inspected as complementary morphology references, not as same-pose registration targets:
 
 - **Nebula Alchemist, P1.1.2014.jpg (CC0 1.0, 3,264 × 2,448):** a front/three-quarter open red rose with visible green sepal bases and a short stem. Useful for the corolla-to-calyx transition and overall petal overlap; the photographed cultivar, pose and lighting do not match this stylized rose. https://commons.wikimedia.org/wiki/File:P1.1.2014.jpg
 - **Rillke, Rose rosa.jpg (CC0 1.0, 1,920 × 1,799):** a pink double rose in side profile with a visible petal skirt, sepals and stem. The Commons record explicitly notes colour correction, crop and resizing; use only as qualitative evidence for side-facing lamina and sepal relationships. https://commons.wikimedia.org/wiki/File:Rose_rosa.jpg
@@ -49,3 +49,10 @@ These references have not been annotated with independently measured landmarks a
 **Native browser review of PR #621 exact head \`2fb3159623d2fd2f733541c75feb7c96a5c89bf6\`:** the landscape and portrait 1× screenshots show a subtle, localized change at the two frontal heels; the initial 2.15× SVG-element screenshots enlarged the full drawing rather than capturing the clipped parent viewport, so they are not accepted as true macro crops. The overall flower still reads as a stylized vector construction: the center remains overly spiral/concentric, the frontal faces remain comparatively planar, and lateral sepal apertures are not source-validated. This is a contained anatomy experiment, **not** an artistic acceptance. Keep \`roseProximalHeelStudy=false\` by default and retain **ART HOLD**.
 
 The corrected browser proof captures the clipped parent paper viewport at the selected left/right anatomical focus, for both old and new geometry in both aspects. It asserts the two focus crops differ, each new crop differs from its own baseline, and the full SVG restores byte-identically with the option OFF.
+
+
+## Corrected clipped-macro visual review
+
+The final browser artifact captures the actual clipped paper viewport (not the transformed SVG element) at 2.15×, with distinct left and right focus, in both 16:9 and 9:16. The left and right crops show the intended broader, rounder proximal heel returns while preserving the existing upper fold hinges and cup attachment. The 1× change remains subtle. The overall rose is still stylized and its center remains overly concentric; this is not an artistic realism approval. **ART HOLD remains; the study stays opt-in.**
+
+Evidence: https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44182726360/artifacts/14373811342
