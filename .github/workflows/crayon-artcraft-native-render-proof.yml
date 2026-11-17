@@ -32,7 +32,16 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Install browser runtime
         run: npx playwright install --with-deps chromium
-      - name: Capture source-native material and CC0 reference inspection proofs
+      # The rejected synthetic portrait is gone. PRs verify representative
+      # native source/paper geometry; full archival visual coverage is opt-in.
+      - name: Capture source-native material and CC0 smoke proofs (PR)
+        if: github.event_name == 'pull_request'
+        run: >-
+          npx playwright test -c playwright.artcraft.config.ts
+          tests/e2e-artcraft/crayon-adult-face.spec.ts
+          --grep "ArtCraft CC0 native wax eye specimen|ArtCraft two-up hand-laid crayon wax|ArtCraft real paper-height contact proof"
+      - name: Capture complete source-native archive (manual)
+        if: github.event_name == 'workflow_dispatch'
         run: npx playwright test -c playwright.artcraft.config.ts tests/e2e-artcraft/crayon-adult-face.spec.ts
       - name: Save native screenshots and failures
         if: always()
