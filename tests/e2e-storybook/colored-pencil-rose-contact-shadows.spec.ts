@@ -26,8 +26,14 @@ test("physical lower/upper rose contact valleys: 16:9 / 9:16 fill/occlusion A/B 
   for(const aspect of ["landscape","portrait"] as const){
     await page.getByRole("combobox",{name:"Foundation aspect"}).selectOption(aspect);
     await expect(svg.locator("[data-km-pencil-region]")).toHaveCount(16);
-    const preLayout=await svg.boundingBox();
-    expect(preLayout).toBeTruthy();
+    // Compare *document* coordinates rather than viewport scroll offsets:
+    // Playwright may scroll to whichever checkbox is currently clicked.
+    const canvasDocumentBounds=()=>svg.evaluate(element=>{
+      const b=element.getBoundingClientRect();
+      return {x:b.x+window.scrollX,y:b.y+window.scrollY,
+        width:b.width,height:b.height};
+    });
+    const preLayout=await canvasDocumentBounds();
     const before=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-occlusion-"+aspect+"-original.png")});
     await shadows.check();
@@ -35,10 +41,9 @@ test("physical lower/upper rose contact valleys: 16:9 / 9:16 fill/occlusion A/B 
     // Reference attribution must remain visible in both states: changing
     // its presence moves the SVG by fractional CSS pixels and causes false
     // global pigment/edge antialias differences in this native A/B proof.
-    const postLayout=await svg.boundingBox();
-    expect(postLayout).toBeTruthy();
+    const postLayout=await canvasDocumentBounds();
     for(const dimension of ["x","y","width","height"] as const)
-      expect(postLayout![dimension]).toBeCloseTo(preLayout![dimension],6);
+      expect(postLayout[dimension]).toBeCloseTo(preLayout[dimension],6);
     await expect(svg).toHaveAttribute("viewBox",
       aspect==="landscape"?"0 0 960 540":"0 0 540 960");
     await expect(svg.locator("[data-km-pencil-region]")).toHaveCount(16);
