@@ -93,6 +93,8 @@ import { FRINGES, HAIRSTYLES, findHairStyle, groomHair, partLine, scalpCover } f
 import type { HairGroom } from "../registry/anatomy/hair-groom";
 import { EYE_SHAPES, IRIS_TYPES, findIris, irisAlbedo } from "../registry/anatomy/eye-detail";
 import { SKIN_REGIONS, faceWrinkles, findSkinRegion, renderSkinSwatch, skinSurface } from "../registry/anatomy/skin-texture";
+import { GRASPS, HAND_ANIMATIONS, HAND_GESTURES, HAND_TYPES, animateHand, buildHand, graspHand, minimumJerk, poseHand, propDistance } from "../registry/anatomy/hand-model";
+import { renderHand } from "../registry/anatomy/hand-render";
 import { eyeCentres, FACE_LANDMARKS } from "../registry/anatomy/anatomy-face";
 import { createRaster, fft2, fillPolygon, gaussianBlur, strokePolyline } from "../registry/anatomy/foundation-raster";
 
@@ -206,6 +208,36 @@ describe("ANAT1 beautiful faces and portraits", () => {
     expect(SKIN_REGIONS.length).toBeGreaterThanOrEqual(13);
     const sw = renderSkinSwatch({ region: "palm", age: 40, width: 40, height: 30 });
     expect(sw.rgba.length).toBe(40 * 30 * 4);
+  });
+  it("hands: measured sizes and digit ratios, grasps that touch their object, the thumb on its target, looping actions", () => {
+    const gest = (id: string) => HAND_GESTURES.find(g => g.id === id)!.pose;
+    for (const t of HAND_TYPES) {
+      const h = buildHand(t.id), ph = poseHand(h, gest("open")), tip = ph.bones.find(b => b.finger === "middle" && b.seg === 2)!.b;
+      // wrist crease to the middle fingertip is the type's hand length (ANSUR's definition)
+      expect(Math.abs(tip[1] - t.length) / t.length, t.id).toBeLessThan(0.04);
+      const sum = (f: "index" | "ring") => h.fingers[f].lengths.reduce((a, b) => a + b, 0);
+      expect(sum("index") / sum("ring")).toBeCloseTo(t.digitRatio, 2);
+    }
+    // a medium wrap: every finger touches the handle and none sinks into it
+    const man = buildHand("man"), wrap = graspHand(man, "medium-wrap");
+    for (const f of ["index", "middle", "ring", "little"] as const) {
+      let m = Infinity;
+      for (const b of wrap.bones.filter(q => q.finger === f)) for (let k = 0; k <= 8; k++) { const t = k / 8, p: [number, number, number] = [b.a[0] + (b.b[0] - b.a[0]) * t, b.a[1] + (b.b[1] - b.a[1]) * t, b.a[2] + (b.b[2] - b.a[2]) * t]; m = Math.min(m, propDistance(p, wrap.prop) - (b.ra + (b.rb - b.ra) * t)); }
+      expect(m, f).toBeLessThan(2);
+      expect(m, f).toBeGreaterThan(-4);
+    }
+    expect(GRASPS.length).toBe(33);
+    expect(GRASPS.reduce((a, g) => a + g.freq, 0)).toBeGreaterThan(95);
+    // a fist: the thumb's tip lies on the middle finger's middle phalanx
+    const fist = poseHand(man, gest("fist")), th = fist.bones.find(b => b.finger === "thumb" && b.seg === 2)!, mid = fist.bones.find(b => b.finger === "middle" && b.seg === 1)!;
+    const mm: [number, number, number] = [(mid.a[0] + mid.b[0]) / 2, (mid.a[1] + mid.b[1]) / 2, (mid.a[2] + mid.b[2]) / 2];
+    expect(Math.hypot(th.b[0] - mm[0], th.b[1] - mm[1], th.b[2] - mm[2])).toBeLessThan(28);
+    // actions loop and are deterministic; the minimum-jerk easing starts and ends at rest
+    for (const a of HAND_ANIMATIONS) { const p1 = animateHand(man, a, 0.37), p2 = animateHand(man, a, 0.37 + a.duration); expect(p1.bones.map(b => b.b)).toEqual(p2.bones.map(b => b.b)); }
+    expect(minimumJerk(0)).toBe(0); expect(minimumJerk(1)).toBe(1); expect(minimumJerk(0.5)).toBeCloseTo(0.5, 6);
+    const r = renderHand(poseHand(buildHand("child"), gest("relaxed")), { width: 48, height: 48, supersample: 1, quality: "draft" });
+    let differ = 0; for (let i = 0; i < 48 * 48; i++) if (Math.abs(r.rgba[i * 4] - r.rgba[0]) > 12) differ++;
+    expect(differ).toBeGreaterThan(80);
   });
   it("raster foundation: polygon coverage, blur, strokes and FFT round trip", () => {
     let cov = 0;

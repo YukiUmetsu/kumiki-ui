@@ -30,6 +30,12 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
      For any style, draw the iris as a real one: a warmer pupillary zone streaking out along the fibres, a dark limbal
      ring, crypts and a dark ruff (`irisAlbedo`). Lashes come in clumps, longest outside. Reference photographs:
      Reference board, eyes.
+5b. **Hands** — for a detailed hand, `buildHand(type)` from `hand-model.ts` (11 `HAND_TYPES`: strong man, slender,
+   woman, small, teen, child, toddler, old; sizes from ANSUR II), then `poseHand(hand, HAND_GESTURES…)` or
+   `graspHand(hand, "medium-wrap")` (the 33 GRASP-taxonomy grasps close onto their object) and `renderHand`. For
+   motion, `animateHand(hand, HAND_ANIMATIONS…, t)` (minimum-jerk easing). In any style: the relaxed fingers
+   cascade, end joints follow the middle (⅔), the thumb opposes from the base of the palm, and a child's hand is
+   short and padded with dimpled knuckles.
 6. **Hair and colour** — for a rendered head, `groomHair(head, { style, fringe, parting, strands })` from
    `hair-groom.ts` (15 `HAIRSTYLES`, 7 `FRINGES`, up to 120,000 strands; `renderPortrait` does it for you from
    `hairStyle`, `fringe`, `hairStrands`). For the posable body, `growHair(body, posed.points, { length, curl,
