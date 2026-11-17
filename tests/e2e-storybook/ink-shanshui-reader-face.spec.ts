@@ -468,3 +468,37 @@ test("native source malar dome and attached rounded nasal turn remain visible wi
       .not.toHaveCount(0);
     await expect(face.locator('[data-ink-reader-part="face"] path')).not.toHaveCount(0);
   });
+
+
+test("Ming face ArtCraft microscope keeps live malar and nasal wash at matched source projection",
+  async({page},info)=>{
+    await page.goto("/iframe.html?id=video-ink-reader-face--three-quarter-face-study&viewMode=story");
+    const studio=page.getByTestId("reader-ink-malar-nose-microscope");
+    await expect(studio).toBeVisible();
+    await expect(studio.locator("[data-km-ink-wash-micro]")).toHaveCount(3);
+    const boxes:string[]=[];
+    for(const region of ["malar-near","malar-far","nose-bridge"] as const){
+      const micro=studio.locator('[data-km-ink-wash-micro="'+region+'"]');
+      const svg=micro.locator("svg");
+      await expect(svg).toBeVisible();
+      const box=await svg.getAttribute("viewBox");
+      expect(box?.split(/\s+/).map(Number).every(Number.isFinite)).toBe(true);
+      boxes.push(box??"");
+      const paint=micro.locator('[data-km-ink-wash-native-face] path');
+      expect(await paint.count()).toBeGreaterThan(25);
+      await expect(micro.locator('[data-ink-reader-part="eyes"]')).toHaveCount(1);
+      await expect(micro.locator('[data-ink-reader-part="pupil-left"]')).toHaveCount(1);
+    }
+    expect(new Set(boxes).size).toBe(3);
+    await studio.screenshot({animations:"disabled",
+      path:info.outputPath("reader-native-malar-nose-three-region-wet-wash-microscopy.png")});
+    await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("closed");
+    await expect(studio.locator('[data-ink-reader-part="pupil-left"]')).toHaveCount(0);
+    await page.getByRole("combobox",{name:"Face eyelids"}).selectOption("soft");
+    await page.getByRole("combobox",{name:"Face mouth"}).selectOption("oh");
+    await expect(studio.locator('[data-ink-reader-part="mouth"]')).toHaveCount(3);
+    await page.getByRole("slider",{name:"Face craftsmanship"}).fill("0.1");
+    await expect(studio.locator('[data-km-ink-wash-native-face] path').first()).toBeVisible();
+    await studio.screenshot({animations:"disabled",
+      path:info.outputPath("reader-native-malar-nose-low-detail-soft-lids-oh.png")});
+  });
