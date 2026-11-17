@@ -178,6 +178,15 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
           {region.craft&&<CraftDeposit region={region} frame={frame}
             reducedMotion={reducedMotion}/>}
         </g>
+        {/* Interior optical marks are silhouette-bound but do not clip the
+            original peripheral pencil traces and edge construction. */}
+        {region.interiorDetails?.length ?
+          <g data-km-pencil-interior-details=""
+            clipPath={"url(#" + uid + "-region-" + index + ")"}
+            mask={"url(#" + uid + "-pigment-mask)"}>
+            {region.interiorDetails.map((trace,i)=>
+              <Trace key={trace.id??i} trace={trace} frame={frame} reducedMotion={reducedMotion}/>)}
+          </g>:null}
         <g data-km-graphite="">
           {region.craft ?
             <g opacity={region.craft.kind==="ocular"||region.craft.kind==="keratin"?.83:.34}>

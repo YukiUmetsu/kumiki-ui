@@ -9,6 +9,7 @@ import {ROSE_PINNATE_ORGANS,inspectRosePinnateOrgans} from "./colored-pencil-ros
 import {ROSE_PHYSICAL_FOLDS,physicalFoldUndersideDetails,physicalFoldFaceDetails,inspectRosePhysicalFolds} from "./colored-pencil-rose-physical-folds";
 import {ROSE_INNER_WHORL_ORGANS,inspectRoseInnerWhorl} from "./colored-pencil-rose-inner-whorl";
 import {ROSE_MIDDLE_LAMINAE,inspectRoseMiddleLaminae} from "./colored-pencil-rose-middle-lamina";
+import {roseFrontValueDetails,inspectRoseFrontValueBands} from "./colored-pencil-rose-front-value";
 
 /**
  * Four independent original subject studies. These are *authored* silhouettes,
@@ -395,6 +396,8 @@ export interface PencilObjectStudyOptions {
   roseInnerWhorlStudy?: boolean;
   /** Opt-in three individually curved middle-whorl laminae; ART HOLD. */
   roseMiddleCupStudy?: boolean;
+  /** Opt-in original form-aligned local dry-pigment value planes; requires physical folds. */
+  roseFrontValueStudy?: boolean;
 }
 
 export const PENCIL_OBJECT_STUDIES: readonly PencilObjectStudy[] =
@@ -405,6 +408,7 @@ export function pencilObjectStudyDrawing({
   roseLaminaStudy = false, roseLipStudy = false, roseCalyxStudy = false,
   rosePinnateStudy = false, rosePhysicalFolds = false,
   roseInnerWhorlStudy = false, roseMiddleCupStudy = false,
+  roseFrontValueStudy = false,
 }: PencilObjectStudyOptions): PencilDrawingSpec {
   if (!PENCIL_OBJECT_STUDIES.includes(subject)) throw new RangeError("Invalid pencil object study");
   if (aspect !== "landscape" && aspect !== "portrait") throw new RangeError("Invalid pencil output aspect");
@@ -428,6 +432,14 @@ export function pencilObjectStudyDrawing({
     throw new RangeError("Rose inner whorl flag must be boolean");
   if(typeof roseMiddleCupStudy !== "boolean")
     throw new RangeError("Rose middle cup flag must be boolean");
+  if(typeof roseFrontValueStudy !== "boolean")
+    throw new RangeError("Rose frontal value study flag must be boolean");
+  if(subject==="rose"&&roseFrontValueStudy&&!rosePhysicalFolds)
+    throw new RangeError("Rose frontal values require the anatomically folded petal supports");
+  if(subject==="rose"&&roseFrontValueStudy){
+    const errors=inspectRoseFrontValueBands();
+    if(errors.length)throw new RangeError("Rose frontal value axes: "+errors.join("; "));
+  }
   const shapes = subject === "rose" ? roseShapes(roseLaminaStudy,seed,roseLipStudy,roseCalyxStudy,rosePinnateStudy,rosePhysicalFolds,roseInnerWhorlStudy,roseMiddleCupStudy) :
     subject === "glass" ? glassShapes() :
     subject === "architecture" ? architectureShapes() : fabricShapes();
@@ -461,9 +473,13 @@ export function pencilObjectStudyDrawing({
       whorlIndex>=0?31+whorlIndex:
       middleIndex>=0?35+middleIndex:i;
     const region = material(shape, (seed + materialIndex * 311) % 2147483647, transform);
-    return { ...region, layers:region.layers.map(layer => ({
-      ...layer, pressure:Math.min(1, layer.pressure * pressure),
-    })) };
+    const frontal=subject==="rose"&&roseFrontValueStudy&&
+      (shape.id==="petal-front-left"||shape.id==="petal-front-right")?
+      roseFrontValueDetails(shape.id,seed):undefined;
+    return { ...region, ...(frontal?{interiorDetails:frontal}:{}),
+      layers:region.layers.map(layer => ({
+        ...layer, pressure:Math.min(1, layer.pressure * pressure),
+      })) };
   });
   const references={
     rose:{
@@ -506,6 +522,12 @@ export function pencilObjectStudyDrawing({
         url:"https://www.artfinder.com/product/pink-rose-6a554/",
         rights:"technique-only" as const,
         observation:"Anatomical double-rose cup has separate intermediate hooked petal faces with asymmetrical shoulders, counterturning edges and dark fold attachment, rather than a single empty band.",
+      }]:[]),
+      ...(subject==="rose"&&roseFrontValueStudy?[{
+        title:"Gary Greene — Rose in coloured pencil, layered local value",
+        url:"https://www.artistsnetwork.com/art-techniques/touchable-textures-in-colored-pencil/",
+        rights:"technique-only" as const,
+        observation:"The actual source rose shading builds distinct deep red shadow contacts first, lighter rose and reflected values later; local axes follow curling petal surfaces.",
       }]:[])],
     construction:subject==="rose"?
       "Author the stem, petal overlap, continuous attached leaf veins, shadow pockets and isolated curled lamina edges before pencil deposits.":

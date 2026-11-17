@@ -18,6 +18,7 @@ on:
       - 'src/video/colored-pencil-rose-physical-folds.ts'
       - 'src/video/colored-pencil-rose-inner-whorl.ts'
       - 'src/video/colored-pencil-rose-middle-lamina.ts'
+      - 'src/video/colored-pencil-rose-front-value.ts'
       - 'src/video/colored-pencil-object-studies.ts'
       - 'src/video/colored-pencil-head-annotation.ts'
       - 'src/video/colored-pencil-head-annotation-atlas.tsx'
@@ -61,6 +62,7 @@ on:
       - 'tests/colored-pencil-rose-physical-folds.test.ts'
       - 'tests/colored-pencil-rose-inner-whorl.test.ts'
       - 'tests/colored-pencil-rose-middle-lamina.test.ts'
+      - 'tests/colored-pencil-rose-front-value.test.ts'
       - 'tests/colored-pencil-portrait-guides.test.ts'
       - 'tests/colored-pencil-dry-portrait.test.ts'
       - 'tests/colored-pencil-full-head.test.ts'
@@ -86,6 +88,7 @@ on:
       - 'tests/e2e-storybook/colored-pencil-rose-physical-folds.spec.ts'
       - 'tests/e2e-storybook/colored-pencil-rose-inner-whorl.spec.ts'
       - 'tests/e2e-storybook/colored-pencil-rose-middle-lamina.spec.ts'
+      - 'tests/e2e-storybook/colored-pencil-rose-front-value.spec.ts'
       - 'tests/e2e-storybook/colored-pencil-portrait-guides.spec.ts'
       - '.github/workflows/colored-pencil-foundation-proof.yml'
   workflow_dispatch:
@@ -109,13 +112,13 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Validate CP-F1 material contract and backward compatibility
-        run: npx vitest run --project unit tests/colored-pencil-foundation.test.tsx tests/colored-pencil-first-character-craft.test.ts tests/colored-pencil-cranial-volume.test.ts tests/colored-pencil-head-silhouette-study.test.ts tests/colored-pencil-rose-lamina.test.ts tests/colored-pencil-rose-rolled-lip.test.ts tests/colored-pencil-rose-calyx.test.ts tests/colored-pencil-rose-pinnate.test.ts tests/colored-pencil-rose-physical-folds.test.ts tests/colored-pencil-rose-inner-whorl.test.ts tests/colored-pencil-rose-middle-lamina.test.ts tests/colored-pencil-head-annotation.test.ts tests/colored-pencil-head-checkpoint.test.ts tests/colored-pencil-head-contour-diagnostics.test.ts tests/colored-pencil-craft.test.tsx tests/colored-pencil-photo.test.ts tests/colored-pencil-portrait-guides.test.ts tests/colored-pencil-dry-portrait.test.ts tests/colored-pencil-full-head.test.ts tests/colored-pencil-dry-contact.test.ts tests/colored-pencil-optical-eyelids.test.ts tests/colored-pencil-iris-optics.test.ts tests/colored-pencil-skin-weave.test.ts tests/colored-pencil-needlepoint.test.ts tests/colored-pencil-photometric-glaze.test.ts tests/colored-pencil-neck-contact.test.ts tests/colored-pencil-jaw-tooth.test.ts tests/colored-pencil-facial-planes.test.ts tests/colored-pencil-full-head-tone-proof.test.ts
+        run: npx vitest run --project unit tests/colored-pencil-foundation.test.tsx tests/colored-pencil-first-character-craft.test.ts tests/colored-pencil-cranial-volume.test.ts tests/colored-pencil-head-silhouette-study.test.ts tests/colored-pencil-rose-lamina.test.ts tests/colored-pencil-rose-rolled-lip.test.ts tests/colored-pencil-rose-calyx.test.ts tests/colored-pencil-rose-pinnate.test.ts tests/colored-pencil-rose-physical-folds.test.ts tests/colored-pencil-rose-inner-whorl.test.ts tests/colored-pencil-rose-middle-lamina.test.ts tests/colored-pencil-rose-front-value.test.ts tests/colored-pencil-head-annotation.test.ts tests/colored-pencil-head-checkpoint.test.ts tests/colored-pencil-head-contour-diagnostics.test.ts tests/colored-pencil-craft.test.tsx tests/colored-pencil-photo.test.ts tests/colored-pencil-portrait-guides.test.ts tests/colored-pencil-dry-portrait.test.ts tests/colored-pencil-full-head.test.ts tests/colored-pencil-dry-contact.test.ts tests/colored-pencil-optical-eyelids.test.ts tests/colored-pencil-iris-optics.test.ts tests/colored-pencil-skin-weave.test.ts tests/colored-pencil-needlepoint.test.ts tests/colored-pencil-photometric-glaze.test.ts tests/colored-pencil-neck-contact.test.ts tests/colored-pencil-jaw-tooth.test.ts tests/colored-pencil-facial-planes.test.ts tests/colored-pencil-full-head-tone-proof.test.ts
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Test exact-byte source/native-image proof capture
         run: node --test tests/pencil-head-native-proof-capture.test.mjs
       - name: Verify new rose lamina native pixel parity first
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-rose-lamina.spec.ts tests/e2e-storybook/colored-pencil-rose-rolled-lip.spec.ts tests/e2e-storybook/colored-pencil-rose-calyx.spec.ts tests/e2e-storybook/colored-pencil-rose-pinnate.spec.ts tests/e2e-storybook/colored-pencil-rose-physical-folds.spec.ts tests/e2e-storybook/colored-pencil-rose-inner-whorl.spec.ts tests/e2e-storybook/colored-pencil-rose-middle-lamina.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/colored-pencil-rose-lamina.spec.ts tests/e2e-storybook/colored-pencil-rose-rolled-lip.spec.ts tests/e2e-storybook/colored-pencil-rose-calyx.spec.ts tests/e2e-storybook/colored-pencil-rose-pinnate.spec.ts tests/e2e-storybook/colored-pencil-rose-physical-folds.spec.ts tests/e2e-storybook/colored-pencil-rose-inner-whorl.spec.ts tests/e2e-storybook/colored-pencil-rose-middle-lamina.spec.ts tests/e2e-storybook/colored-pencil-rose-front-value.spec.ts
       - name: Preserve independent rose native A/B and macro screenshot evidence
         if: always()
         uses: actions/upload-artifact@v4
