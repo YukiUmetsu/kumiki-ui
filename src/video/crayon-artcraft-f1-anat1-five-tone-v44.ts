@@ -34,10 +34,14 @@ export const CRAYON_F1_V44_PHOTO_VALUE_SAMPLES=Object.freeze({
 
 const pigment:Readonly<Record<Id,Partial<Wax>>>={
   "socket-near":{
+    // V44 first measured dark contact had better RGB MAE but worse
+    // source SSIM and visibly large dark wax scratches at eyelid/jaw.
+    // Retain source-dark pigment, but restore near-V43 tooth spacing,
+    // lightly feathered pressure and original soft value transitions.
     // Oblique supraorbital under-plane, NEVER a flat black eye-hole;
     // preserve red/grey underpainting and source lid geometry.
     colors:["#795954","#453337","#a77e78"],
-    pressure:.76,spacing:6.3,markStrength:.31,blendRadius:13,
+    pressure:.63,spacing:6.4,markStrength:.20,blendRadius:16,
     featherContacts:true,
   },
   "cheek-malar-cast":{
@@ -45,28 +49,28 @@ const pigment:Readonly<Record<Id,Partial<Wax>>>={
     // Multiple dark open dry-wax contacts, feathered into the existing
     // connected zygomatic shape, not an opaque sticker.
     colors:["#785049","#3e2b2b","#a37c6a"],
-    pressure:.78,spacing:6.5,markStrength:.38,blendRadius:13,
+    pressure:.61,spacing:7.0,markStrength:.21,blendRadius:17,
     featherContacts:true,
   },
   "cheek-malar-bounce":{
     // Higher-lit cheekbone y620 stays structurally connected to the
     // infraorbital, with small pale wax contact, not an added ellipse.
     colors:["#ffdeca","#c6a095","#ffe9d5"],
-    pressure:.55,spacing:7.1,markStrength:.22,blendRadius:15,
+    pressure:.47,spacing:7.1,markStrength:.17,blendRadius:16,
     featherContacts:true,
   },
   "nose-root":{
     // Medial nasal depth: lower value at x350,532 while leaving the
     // authentic ANAT1 measured dorsal ridge, eye and nostrils intact.
     colors:["#8d6960","#54403d","#b7907f"],
-    pressure:.66,spacing:6.8,markStrength:.32,blendRadius:13,
+    pressure:.49,spacing:7.0,markStrength:.19,blendRadius:16,
     featherContacts:true,
   },
   "chin-plane":{
     // Light under lower lip must roll toward the shadow, not occupy
     // an entirely pale flat strip over the lower mandibular form.
     colors:["#ba8d7e","#735b57","#d6aa95"],
-    pressure:.43,spacing:8.7,markStrength:.20,blendRadius:11,
+    pressure:.32,spacing:9.1,markStrength:.14,blendRadius:13,
     featherContacts:true,
   },
 };
