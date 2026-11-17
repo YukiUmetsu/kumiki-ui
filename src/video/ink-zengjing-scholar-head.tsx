@@ -277,18 +277,26 @@ export function InkZengJingScholarHead({
 
     {/* Mouth: individualized vermilion edges and a live expression aperture. */}
     <g data-km-zj1-mouth="anatomical">
-      {mouthOpen>.1&&<path d={`M263 356 Q270 ${n(353-mouthOpen)} 277 356
-        Q276 364 270 364 Q264 363 263 356 Z`}
+      {mouthOpen>.1&&<path d={`M${n(270-mouthHalf*.72)} 356
+        Q270 ${n(353-mouthOpen)} ${n(270+mouthHalf*.72)} 356
+        Q${n(270+mouthHalf*.58)} ${n(364+jawDrop)}
+        270 ${n(364+jawDrop)}
+        Q${n(270-mouthHalf*.58)} ${n(364+jawDrop)}
+        ${n(270-mouthHalf*.72)} 356 Z`}
         fill="#68483f" opacity={.68*power}/>}
-      <path d={`M258 ${n(357-mouthLift)} Q263 ${n(355-mouthLift*.5)}
-        270 ${n(357+mouthOpen*.25)} Q277 ${n(355-mouthLift*.5)}
-        282 ${n(357-mouthLift)}`}
+      <path d={`M${n(270-mouthHalf)} ${n(357-mouthLift+asymmetry*.5)}
+        Q${n(270-mouthHalf*.55)} ${n(355-mouthLift*.5)}
+        270 ${n(357+mouthOpen*.25)}
+        Q${n(270+mouthHalf*.55)} ${n(355-mouthLift*.5)}
+        ${n(270+mouthHalf)} ${n(357-mouthLift-asymmetry*.5)}`}
         fill="none" stroke="#8b6253" strokeWidth=".68"
         strokeLinecap="round" opacity=".65"/>
-      <path d={`M260 ${n(359-mouthLift*.25)} Q270 ${n(363-mouthLift*.7)}
-        280 ${n(359-mouthLift*.25)}`}
+      <path d={`M${n(270-mouthHalf*.78)} ${n(359-mouthLift*.25+asymmetry*.4)}
+        Q270 ${n(363-mouthLift*.7+jawDrop*.5)}
+        ${n(270+mouthHalf*.78)} ${n(359-mouthLift*.25-asymmetry*.4)}`}
         fill="none" stroke="#a67d69" strokeWidth=".55" opacity=".48"/>
-      <path d="M264 365 Q270 367 276 365"
+      <path d={`M264 ${n(365+jawDrop*.55)} Q270 ${n(367+jawDrop)}
+        276 ${n(365+jawDrop*.55)}`}
         fill="none" stroke={bone} strokeWidth=".48" opacity=".34"/>
     </g>
 
