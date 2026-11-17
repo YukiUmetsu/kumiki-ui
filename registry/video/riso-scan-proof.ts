@@ -190,7 +190,7 @@ export function inspectRisoScanProof(
     measurements.plates.length!==spec.plates.length||
     measurements.plates.some((p,i)=>p?.plateId!==spec.plates[i].id||
       !Array.isArray(p.marks)||p.marks.length!==4||
-      p.marks.some((m,j)=>m?.id!==ids[j]||!point(m.scanPx))))
+      p.marks.some((m:RisoScanPlate["marks"][number],j:number)=>m?.id!==ids[j]||!point(m.scanPx))))
     throw new RangeError("RISO70 requires four observed PAPER corners and four cross centers for every declared ink drum; missing readings fail closed.");
   const [w,h]=layout.sheetMm;
   const expected=([[0,0],[w,0],[w,h],[0,h]] as const);
@@ -205,7 +205,7 @@ export function inspectRisoScanProof(
   if(cornerWorst>scannerToleranceMm)
     throw new RangeError("RISO70 scanner paper-corner calibration exceeds declared residual tolerance; use a flat scan or correct perspective first.");
   const result: RisoPlateScanResult[]=measurements.plates.map(p=>{
-    const marks:RisoMarkOffset[]=p.marks.map(m=>{
+    const marks:RisoMarkOffset[]=p.marks.map((m:RisoScanPlate["marks"][number])=>{
       const actual=pixelToMm(m.scanPx),nominal=target[m.id];
       const delta:RisoProofPoint=[actual[0]-nominal[0],actual[1]-nominal[1]];
       return {id:m.id,expectedMm:nominal,measuredMm:actual,

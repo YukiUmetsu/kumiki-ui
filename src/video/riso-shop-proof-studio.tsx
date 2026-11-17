@@ -196,6 +196,12 @@ export function RisoShopProofStudio(){
             aria-label="RISO70 absolute source frame"
             onChange={e=>setFrame(Number(e.target.value))}/>
         </label>
+        <label style={control}>Original source seed
+          <input type="number" min={0} max={200000} value={seed}
+            aria-label="RISO70 original source seed"
+            onChange={e=>setSeed(Math.max(0,Math.min(200000,
+              Math.trunc(Number(e.target.value)||0))))}/>
+        </label>
         <label style={{display:"flex",alignItems:"center",gap:7,minHeight:40}}>
           <input type="checkbox" aria-label="RISO70 2x source macro"
             checked={macro} onChange={e=>setMacro(e.target.checked)}/>
