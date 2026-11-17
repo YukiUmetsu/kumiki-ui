@@ -4174,6 +4174,54 @@
       ]
     },
     {
+      "name": "terrain",
+      "type": "registry:ui",
+      "title": "Terrain and Landforms Framework (GEO1)",
+      "description": "The ground in any art style: twelve landforms by how they formed (fold ranges, glacial horns, U- and V-valleys, strato-, shield and cinder volcanoes, mesas and buttes, barchan dunes, scree, sea cliffs, rolling hills) with their reported slopes, reliefs, profiles and drawing notes; the angle of repose of loose material; snowlines and treelines by latitude; ground-cover albedo; the rules of distance. Heightfields for each landform worn by hydraulic erosion (droplets cutting gullies and laying fans) and thermal erosion (scree at its angle of repose), and a renderer: snow above the snowline (lower on shaded slopes, only where it can hold), rock on steep faces, scree, meadow and forest by the treeline, sand, ash and water, under SKY1's physical atmosphere with terrain shadows, aerial perspective and camera metering. TerrainView (worker, cached), LandformProfile and GeoSheet; every value graded reported, measured or estimated with sources.",
+      "dependencies": [],
+      "registryDependencies": [
+        "art-foundations",
+        "sky-weather"
+      ],
+      "files": [
+        {
+          "path": "registry/nature/geo-data.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-data.ts"
+        },
+        {
+          "path": "registry/nature/geo-terrain.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-terrain.ts"
+        },
+        {
+          "path": "registry/nature/geo-render.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render.ts"
+        },
+        {
+          "path": "registry/nature/geo-react.tsx",
+          "type": "registry:ui",
+          "target": "components/nature/geo-react.tsx"
+        },
+        {
+          "path": "registry/nature/geo-render-pool.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render-pool.ts"
+        },
+        {
+          "path": "registry/nature/geo-render-jobs.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render-jobs.ts"
+        },
+        {
+          "path": "registry/nature/geo-render-worker.ts",
+          "type": "registry:ui",
+          "target": "components/nature/geo-render-worker.ts"
+        }
+      ]
+    },
+    {
       "name": "materials",
       "type": "registry:ui",
       "title": "Materials Framework (MATL1)",
