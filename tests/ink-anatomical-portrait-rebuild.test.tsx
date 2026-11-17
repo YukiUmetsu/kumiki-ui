@@ -128,6 +128,10 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
       expect(svg).toContain('data-km-ink-native-robe-brush="sleeve-left"');
       expect(svg).toContain('data-km-ink-native-robe-brush="sleeve-right"');
       expect((svg.match(/maskUnits="userSpaceOnUse"/g)||[])).toHaveLength(4);
+      // INK1's authored tangent bristles are all retained: no 1-in-4
+      // sampling shortcut can silently flatten the material at 3x.
+      expect((svg.match(/data-km-ink-robe-bristle=/g)||[]).length)
+        .toBeGreaterThan(30);
       expect(svg).not.toMatch(/(?:NaN|Infinity|undefined)/);
     }
     expect(a).toContain('data-km-ink-collar="late-ming-scholar-crossed"');
