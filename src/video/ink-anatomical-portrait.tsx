@@ -43,7 +43,14 @@ const xy=(p:Point)=>fmt(p[0])+" "+fmt(p[1]);
 /** Project the original 468-point millimetre ANAT1 mask; no old portrait path is read. */
 function projection(yaw:number){
   const a=yaw*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
-  return (p:readonly number[]):Point=>[270+1.91*(p[0]*c+p[2]*s),232-2.03*p[1]];
+  return (p:readonly number[]):Point=>{
+    const y=232-2.03*p[1];
+    // The raw sagittal scaffold overextended the chin and outer jaws.
+    // Move the lower third by a continuous, differentiable anatomical warp;
+    // retain the measured upper-face mesh, EXPR1 eye, brow and nose motion.
+    const t=clamp((y-292)/172,0,1),ease=t*t*(3-2*t);
+    return [270+1.91*(p[0]*c+p[2]*s)*(.965-.12*ease),y-37*ease];
+  };
 }
 function spline(points:readonly Point[],closed=false){
   if(points.length<2)return "";
@@ -270,7 +277,9 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
     <path d={"M"+xy(shift(templeR,0,-39))+" C"+xy(shift(top,-85,-54))+" "+xy(shift(top,45,-76))
       +" "+xy(shift(templeL,7,-25))+" L"+xy(shift(templeL,6,11))}
       fill={preset.ink} fillOpacity={character==="scholar"?.90:.65} stroke={preset.ink} strokeWidth="1.6"/>
-    <path d={faceOutline} fill={preset.complexion} stroke={preset.bone} strokeWidth=".78" strokeOpacity=".53"/>
+    <path d={faceOutline} data-km-ink-face-sculpt="lower-third-continuous"
+      fill={preset.complexion} stroke={preset.bone}
+      strokeWidth=".65" strokeOpacity=".44"/>
     <g clipPath={"url(#"+uid+"-skin)"} data-km-ink-anatomy-washes="true">
       {/** No digital airbrush gradients: several overlaid, locally mapped pigment glazes. */}
       {/** Overlapping wet brush deposits following living frontal bone arcs;
@@ -377,25 +386,25 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
     {/** Unlike the rejected earlier crown, no exposed vertical hair comb or
          disconnected cap. All hair fibers have a true painted support mask. */}
     {(()=>{
+      // Folded Ming headcloth; not the rejected modern beret silhouette.
+      // Both forms are attached to the real ANAT1 forehead landmark.
       const crown=character==="scholar"?
-        "M"+xy(shift(top,-90,9))
-        +" C"+xy(shift(top,-97,-20))+" "+xy(shift(top,-68,-41))
-        +" "+xy(shift(top,-33,-44))
-        +" C"+xy(shift(top,-11,-54))+" "+xy(shift(top,17,-50))
-        +" "+xy(shift(top,43,-39))
-        +" C"+xy(shift(top,70,-28))+" "+xy(shift(top,94,-9))
-        +" "+xy(shift(top,92,10))
-        +" C"+xy(shift(top,48,11))+" "+xy(shift(top,-49,16))
-        +" "+xy(shift(top,-90,9))+" Z"
+        "M"+xy(shift(top,-85,9))
+        +" C"+xy(shift(top,-85,-13))+" "+xy(shift(top,-70,-67))
+        +" "+xy(shift(top,-60,-80))
+        +" L"+xy(shift(top,34,-88))
+        +" Q"+xy(shift(top,50,-81))+" "+xy(shift(top,59,-62))
+        +" L"+xy(shift(top,78,-4))
+        +" C"+xy(shift(top,65,13))+" "+xy(shift(top,-43,21))
+        +" "+xy(shift(top,-85,9))+" Z"
         :
-        "M"+xy(shift(top,-77,15))
-        +" C"+xy(shift(top,-74,-15))+" "+xy(shift(top,-49,-30))
-        +" "+xy(shift(top,-21,-26))
-        +" C"+xy(shift(top,16,-33))+" "+xy(shift(top,58,-22))
-        +" "+xy(shift(top,72,14))
-        +" Q"+xy(shift(top,44,8))+" "+xy(shift(top,26,18))
-        +" C"+xy(shift(top,-8,8))+" "+xy(shift(top,-49,22))
-        +" "+xy(shift(top,-77,15))+" Z";
+        "M"+xy(shift(top,-82,12))
+        +" L"+xy(shift(top,-71,-59))
+        +" Q"+xy(shift(top,-33,-64))+" "+xy(shift(top,19,-62))
+        +" Q"+xy(shift(top,56,-59))+" "+xy(shift(top,66,-33))
+        +" L"+xy(shift(top,73,14))
+        +" C"+xy(shift(top,46,10))+" "+xy(shift(top,-45,23))
+        +" "+xy(shift(top,-82,12))+" Z";
       return <g data-km-ink-hair={character}>
         <path d={crown} fill={preset.ink}
           fillOpacity={character==="scholar"?.90:.66}
@@ -404,9 +413,9 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
         <g clipPath={"url(#"+uid+"-hair-crown)"}>
           {Array.from({length:65},(_,i)=>{
             const t=i/64,edge=Math.abs(t-.5)*2;
-            const x=top[0]-76+t*155;
-            const y=top[1]-9-18*(1-edge*edge)+2.1*Math.sin(i*1.87);
-            const length=7+13*(1-edge)+2.2*Math.sin(i*2.31);
+            const x=top[0]-65+t*119;
+            const y=top[1]-15-58*(1-edge*.4)+2.1*Math.sin(i*1.87);
+            const length=9+25*(1-edge)+2.2*Math.sin(i*2.31);
             const bend=1.5+2.8*Math.cos(i*.93);
             return <path key={i}
               d={"M"+fmt(x)+" "+fmt(y)
@@ -414,7 +423,7 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
                 +" "+fmt(bend+(i%3-1)*2)+" "+fmt(length)}
               stroke={character==="elder"&&i%5===0?"#c9bca6":"#bcb09b"}
               fill="none" strokeWidth={i%7===0?.83:.33+(i%4)*.07}
-              opacity={(character==="scholar"?.38:.54)*detail}/>;
+              opacity={(character==="scholar"?.22:.37)*detail}/>;
           })}
         </g>
         {character==="scholar"?<>
@@ -436,9 +445,15 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
           <path d={"M"+xy(shift(top,-73,9))
             +" Q"+xy(shift(top,-11,13))+" "+xy(shift(top,70,9))}
             fill="none" stroke="#cabca0" strokeWidth=".69" opacity=".37"/>
-          <path d={"M"+xy(shift(top,-35,-39))
-            +" Q"+xy(shift(top,-22,-46))+" "+xy(shift(top,-9,-48))}
-            fill="none" stroke="#c7b7a0" strokeWidth=".66" opacity=".27"/>
+          <path d={"M"+xy(shift(top,-64,-67))
+            +" Q"+xy(shift(top,-22,-71))+" "+xy(shift(top,35,-73))}
+            fill="none" stroke="#c7b7a0" strokeWidth=".69" opacity=".28"/>
+          <path d={"M"+xy(shift(top,30,-82))
+            +" Q"+xy(shift(top,58,-53))+" "+xy(shift(top,75,7))}
+            fill="none" stroke="#b4a593" strokeWidth="1.04" opacity=".41"/>
+          <path d={"M"+xy(shift(top,-75,-11))
+            +" Q"+xy(shift(top,-48,-26))+" "+xy(shift(top,-30,-65))}
+            fill="none" stroke="#c7b7a0" strokeWidth="1.01" opacity=".24"/>
         </>:<>
           <path d={"M"+xy(shift(top,-53,12))
             +" Q"+xy(shift(top,-18,10))+" "+xy(shift(top,12,12))
