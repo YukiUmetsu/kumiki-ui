@@ -8,7 +8,20 @@ import {inspectRisoPrint} from "./print-plates";
 import {evaluateRisoPullTab} from "./riso-pull-tab";
 import type {RisoPullDirection,RisoPullWindow} from "./riso-pull-tab";
 
+function mixPaperColor(paper:string,tint:string,amount:number):string{
+  if(!/^#[0-9a-f]{6}$/i.test(paper)||!/^#[0-9a-f]{6}$/i.test(tint))
+    throw new RangeError("RISO79 paper edge color requires six-digit source stock colors.");
+  const channels=[1,3,5].map(i=>Math.round(
+    parseInt(paper.slice(i,i+2),16)*(1-amount)+
+    parseInt(tint.slice(i,i+2),16)*amount));
+  return "#"+channels.map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+
 export interface RisoPullTabTheatreProps{
+  /** Caliper of the top stock; converted from mm to source-space units. */
+  readonly paperDepthMm?:number;
+  /** Unit direction FROM the lamp toward the paper surface. */
+  readonly lightDirection?:readonly [number,number];
   readonly cover:RisoSheet;
   readonly insert:RisoSheet;
   readonly windows:readonly RisoPullWindow[];
@@ -31,7 +44,8 @@ export interface RisoPullTabTheatreProps{
  * disturbs ink registration as the paper moves. */
 export function RisoPullTabTheatre({
   cover,insert,windows,direction="right",travel,progress,seed=79,
-  paperRelief=.66,paperGrain=.55,misregistration=.22,drumContact,
+  paperRelief=.66,paperGrain=.55,misregistration=.22,
+  paperDepthMm=.32,lightDirection=[-.55,-.84],drumContact,
   label="Printed Risograph paper theatre, original spot inks and moving pull-tab reveal",
   className,style,
 }:RisoPullTabTheatreProps){
@@ -50,10 +64,16 @@ export function RisoPullTabTheatre({
     throw new RangeError("RISO79 paper relief, grain and ink registration must be 0..1.");
   const pose=evaluateRisoPullTab({
     width,height,windows,direction,travel,progress,seed,
+    paperDepthMm,lightDirection,
   });
   const raw=useId().replace(/[^a-zA-Z0-9_-]/g,"");
   const id="riso79-"+raw;
   const [dx,dy]=pose.translation;
+  const [shadowX,shadowY]=pose.shadowOffset;
+  const paper=cover.spec.paper;
+  const edgeWall=mixPaperColor(paper,"#6C5946",.31);
+  const cavity=mixPaperColor(paper,"#30251F",.58);
+  const bevel=mixPaperColor(paper,"#FFFDF4",.76);
   const common={
     frame:completedRisoFrame(cover.spec),
     paperGrain,misregistration,drumContact,reducedMotion:true,
@@ -72,6 +92,10 @@ export function RisoPullTabTheatre({
     data-km-riso79-direction={direction}
     data-km-riso79-progress={progress}
     data-km-riso79-travel={travel}
+    data-km-riso79-paper-depth-mm={pose.paperDepthMm}
+    data-km-riso79-depth-units={pose.depthUnits}
+    data-km-riso79-shadow-offset={shadowX+","+shadowY}
+    data-km-riso79-light-direction={lightDirection.join(",")}
     data-km-riso79-windows={pose.windows.length}
     data-km-riso79-insert-offset={dx+","+dy}
     style={{display:"block",width:"100%",height:"100%",overflow:"hidden",
@@ -89,10 +113,11 @@ export function RisoPullTabTheatre({
       {pose.windows.map(w=><linearGradient key={w.id}
         id={id+"-rim-"+w.id} x1="0" y1="0" x2="1" y2="1"
         gradientUnits="objectBoundingBox">
-        <stop offset="0" stopColor="#29231C" stopOpacity=".39"/>
-        <stop offset=".24" stopColor="#FDF7E9" stopOpacity=".88"/>
-        <stop offset=".63" stopColor="#29231C" stopOpacity=".22"/>
-        <stop offset="1" stopColor="#FFFEF3" stopOpacity=".72"/>
+        <stop offset="0" stopColor={cavity} stopOpacity=".82"/>
+        <stop offset=".19" stopColor={edgeWall} stopOpacity=".96"/>
+        <stop offset=".47" stopColor={paper} stopOpacity=".98"/>
+        <stop offset=".73" stopColor={edgeWall} stopOpacity=".86"/>
+        <stop offset="1" stopColor={bevel} stopOpacity=".98"/>
       </linearGradient>)}
     </defs>
     <g data-km-riso79-printed-insert-window=""
@@ -105,13 +130,27 @@ export function RisoPullTabTheatre({
           artworks={insert.artworks}/>
       </g>
     </g>
-    {/* A narrow pressed paper rim is under the stationary cover, giving
-        the window a physical inside wall rather than a flat screenshot. */}
-    {paperRelief>0&&pose.windows.map(w=><path key={w.id}
-      d={w.path} fill="none" stroke="#3F3026"
-      strokeWidth={t(5*paperRelief)}
-      opacity={t(.12*paperRelief)}
-      data-km-riso79-inside-contact-shadow={w.id}/>)}
+    {/* The cavity shadow is cast by the cut wall onto the lower printed
+        sheet. It is source-space, lamp-directed and clipped to the real
+        aperture; no blurred screenshot or moving ink mask is involved. */}
+    {paperRelief>0&&<g clipPath={"url(#"+id+"-apertures)"}
+      data-km-riso79-cavity-shadow-field="">
+      {pose.windows.map(w=><g key={w.id}>
+        <path d={w.path} transform={"translate("+t(shadowX)+" "+t(shadowY)+")"}
+          fill="none" stroke={cavity}
+          strokeWidth={t(pose.depthUnits*3.25)}
+          strokeLinecap="round" strokeLinejoin="round"
+          opacity={t(pose.shadowOpacity*paperRelief)}
+          data-km-riso79-inside-contact-shadow={w.id}/>
+        <path d={w.path}
+          transform={"translate("+t(shadowX*.42)+" "+t(shadowY*.42)+")"}
+          fill="none" stroke={cavity}
+          strokeWidth={t(pose.depthUnits*1.85)}
+          strokeLinecap="round" strokeLinejoin="round"
+          opacity={t(pose.shadowOpacity*.52*paperRelief)}
+          data-km-riso79-cavity-occlusion={w.id}/>
+      </g>)}
+    </g>}
     <g mask={"url(#"+id+"-diecut)"}
       data-km-riso79-stationary-original-cover="">
       <RisoPrint {...common} spec={cover.spec} artworks={cover.artworks}/>
@@ -119,15 +158,33 @@ export function RisoPullTabTheatre({
     {pose.windows.map(w=><g key={w.id}
       pointerEvents="none" data-km-riso79-cut-rim={w.id}>
       {paperRelief>0&&<Fragment>
-        <path d={w.path} fill="none" stroke="#36291F"
-          strokeWidth={t(.65+1.7*paperRelief)}
-          opacity={t(.18*paperRelief)}/>
+        {/* The stock's cut cross-section occupies the inner half of the
+            contour stroke. Its width follows measured paper caliper. */}
+        <g clipPath={"url(#"+id+"-apertures)"}
+          data-km-riso79-paper-cross-section={w.id}>
+          <path d={w.path} fill="none" stroke={edgeWall}
+            strokeWidth={t(pose.depthUnits*2.25)}
+            strokeLinecap="round" strokeLinejoin="round"
+            opacity={t(.78*paperRelief)}
+            data-km-riso79-paper-wall={w.id}/>
+          <path d={w.path}
+            transform={"translate("+t(-shadowX*.18)+" "+t(-shadowY*.18)+")"}
+            fill="none" stroke={bevel}
+            strokeWidth={t(Math.max(.28,pose.depthUnits*.48))}
+            strokeLinecap="round" strokeLinejoin="round"
+            opacity={t(.88*paperRelief)}
+            data-km-riso79-edge-bevel={w.id}/>
+        </g>
+        {/* A narrow top-face glint keeps the cut crisp at 1× without
+            turning the die-cut into a white cartoon outline. */}
         <path d={w.path} fill="none" stroke={"url(#"+id+"-rim-"+w.id+")"}
-          strokeWidth={t(.5+2.1*paperRelief)}
-          opacity={t(.63*paperRelief)}/>
+          strokeWidth={t(.42+pose.depthUnits*.48)}
+          strokeLinecap="round" strokeLinejoin="round"
+          opacity={t(.76*paperRelief)}
+          data-km-riso79-cut-face-highlight={w.id}/>
         <g data-km-riso79-cellulose-field={w.id}
-          stroke="#796C59" strokeWidth=".39" fill="none"
-          strokeLinecap="round" opacity={t(.41*paperRelief)}>
+          stroke={edgeWall} strokeWidth=".23" fill="none"
+          strokeLinecap="round" opacity={t(.64*paperRelief)}>
           {w.fibres.map((d,i)=><path key={i}
             data-km-riso79-cut-fibre={w.id+"-"+i} d={d}/>)}
         </g>
