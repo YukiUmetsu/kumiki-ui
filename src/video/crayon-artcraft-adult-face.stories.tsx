@@ -17,7 +17,7 @@ import {crayonF1RegisterAnat1Face} from "./crayon-artcraft-f1-anat1-malar";
 import {CRAYON_F1_V59_NAMES,CRAYON_F1_V59_SOURCE,
   crayonF1CandidateLandmarkAudit,crayonF1CandidatePointerPoint,
   crayonF1NativePngDimensionsV61,crayonF1NativePngSha256V61,
-  crayonF1ValidateNativePngManifestV61,
+  crayonF1ValidateSourcePngV62,crayonF1ValidateNativePngManifestV61,
   type CrayonF1CandidateLandmark,type CrayonF1CandidateMarks,
   type CrayonF1CandidateVariant,type CrayonF1NativeCaptureWorksheetV60}
   from "./crayon-artcraft-f1-candidate-landmarks-v59";
@@ -1565,10 +1565,12 @@ function readCrayonFileV61(
  * V60 Playwright run. The live SVG is intentionally not substituted here.
  */
 export function Cc0NativePngReviewWorkbenchV61(){
+  const [sourceFile,setSourceFile]=useState<File|null>(null);
   const [pngFile,setPngFile]=useState<File|null>(null);
   const [manifestFile,setManifestFile]=useState<File|null>(null);
   const [capture,setCapture]=useState<{
     fileName:string;sha256:string;dataUrl:string;
+    sourceFileName:string;sourceSha256:string;sourceDataUrl:string;
     manifest:CrayonF1NativeCaptureWorksheetV60;
   }|null>(null);
   const [status,setStatus]=useState<
@@ -1584,7 +1586,7 @@ export function Cc0NativePngReviewWorkbenchV61(){
 
   useEffect(()=>{
     let cancelled=false;
-    if(!pngFile||!manifestFile){
+    if(!sourceFile||!pngFile||!manifestFile){
       setCapture(null);setError("");setStatus("UPLOAD_REQUIRED");
       return ()=>{cancelled=true;};
     }
@@ -1592,16 +1594,25 @@ export function Cc0NativePngReviewWorkbenchV61(){
     setDraftX("");setDraftY("");setStatus("VERIFYING");
     void (async()=>{
       try{
-        if(!manifestFile.name.toLowerCase().endsWith(".json"))
-          throw new RangeError("The matching V60 sidecar must be a .json file");
-        const [buffer,dataUrl,manifestText]=await Promise.all([
+        if(!sourceFile.name.toLowerCase().endsWith(".png")||
+          !manifestFile.name.toLowerCase().endsWith(".json"))
+          throw new RangeError("V62 requires the exact CC0 source PNG and matching V60 .json sidecar");
+        const [sourceBuffer,sourceDataUrl,buffer,dataUrl,manifestText]=await Promise.all([
+          readCrayonFileV61(sourceFile,"arrayBuffer"),
+          readCrayonFileV61(sourceFile,"dataURL"),
           readCrayonFileV61(pngFile,"arrayBuffer"),
           readCrayonFileV61(pngFile,"dataURL"),
           readCrayonFileV61(manifestFile,"text"),
         ]);
-        if(typeof buffer==="string"||typeof dataUrl!=="string"||
+        if(typeof sourceBuffer==="string"||typeof sourceDataUrl!=="string"||
+          typeof buffer==="string"||typeof dataUrl!=="string"||
           typeof manifestText!=="string")
-          throw new RangeError("V61 file reader returned an invalid value");
+          throw new RangeError("V62 file reader returned an unexpected representation");
+        const [sourceWidth,sourceHeight]=crayonF1NativePngDimensionsV61(
+          new Uint8Array(sourceBuffer));
+        const sourceSha256=await crayonF1NativePngSha256V61(sourceBuffer);
+        crayonF1ValidateSourcePngV62(
+          sourceFile.name,sourceSha256,sourceWidth,sourceHeight);
         const [width,height]=crayonF1NativePngDimensionsV61(
           new Uint8Array(buffer));
         const sha256=await crayonF1NativePngSha256V61(buffer);
@@ -1609,7 +1620,11 @@ export function Cc0NativePngReviewWorkbenchV61(){
         const verified=crayonF1ValidateNativePngManifestV61(
           parsed,pngFile.name,sha256,width,height);
         if(cancelled)return;
-        setCapture({fileName:pngFile.name,sha256,dataUrl,manifest:verified});
+        setCapture({
+          fileName:pngFile.name,sha256,dataUrl,
+          sourceFileName:sourceFile.name,sourceSha256,sourceDataUrl,
+          manifest:verified,
+        });
         setStatus("VERIFIED_CAPTURE");
       }catch(cause){
         if(cancelled)return;
@@ -1618,7 +1633,7 @@ export function Cc0NativePngReviewWorkbenchV61(){
       }
     })();
     return ()=>{cancelled=true;};
-  },[pngFile,manifestFile]);
+  },[sourceFile,pngFile,manifestFile]);
 
   const audit=capture?crayonF1CandidateLandmarkAudit({
     ...capture.manifest.evidence,marks,
@@ -1638,11 +1653,14 @@ export function Cc0NativePngReviewWorkbenchV61(){
     Number(draftX)>=0&&Number(draftX)<608&&
     Number(draftY)>=0&&Number(draftY)<1082;
   const record=capture&&audit?JSON.stringify({
-    schema:"kumiki-crayon-artcraft-candidate-review-v61",
+    schema:"kumiki-crayon-artcraft-candidate-review-v62",
     source:capture.manifest.source,native:capture.manifest.native,
     evidence:{...capture.manifest.evidence,marks,
       renderedPngSha256:capture.sha256},
     audit,
+    sourcePngFileName:capture.sourceFileName,
+    sourcePngSha256:capture.sourceSha256,
+    sourcePngBytesSha256Verified:true,
     nativePngBytesSha256Verified:true,
     candidateMarksManuallyEntered:Object.keys(marks).length>0,
     sourcePointsCopiedToCandidate:false,
@@ -1651,22 +1669,36 @@ export function Cc0NativePngReviewWorkbenchV61(){
     entire300FrameFilmReviewed:false,
     artistApproved:false,releaseApproved:false,
   },null,2):"";
+  const cameraStyle={
+    width:"min(100%,420px)",margin:"0 auto",position:"relative" as const,
+    aspectRatio:"608 / 1082",background:"#e2d7c8",
+    outline:"1px solid #a8998d",overflow:"hidden" as const,
+  };
   return <section data-km-crayon-f1-native-review={status} style={{
     maxWidth:1050,margin:"auto",padding:18,color:"#292a31",
     background:"#f4e9dc",fontFamily:"system-ui",boxSizing:"border-box"}}>
     <h2 style={{fontSize:20,margin:"0 0 8px"}}>
-      CC0 ArtCraft — exact native PNG review and 18-point annotation (!dev V61)
+      CC0 ArtCraft — paired source/native PNG review and 18-point annotation (!dev V62)
     </h2>
-    <p style={{fontSize:13,lineHeight:1.5,maxWidth:850}}>
-      Upload the exact Chromium PNG and its matching V60 JSON sidecar from one
-      GitHub Actions artifact. V61 checks the PNG signature, 608×1082 IHDR,
-      SHA-256 bytes, source hash, native variant and all 18 frozen source points
-      before enabling annotation. The blue marks belong to the photograph;
-      orange marks are manually entered on the uploaded candidate PNG.
-      Measurements do not certify artist independence or release quality.
+    <p style={{fontSize:13,lineHeight:1.5,maxWidth:900}}>
+      Upload the exact archived 608×1082 CC0 source screenshot PNG, the native
+      Chromium candidate PNG and its matching V60 JSON sidecar from the same
+      Actions artifact. V62 hashes both PNG byte streams and verifies the source
+      against the frozen CC0 screenshot SHA-256. Blue anchors appear only on the
+      original source; orange marks are manually observed only on the candidate.
+      The source screenshot is not the original camera JPEG. Measurements do not
+      certify reviewer independence or artistic approval.
     </p>
     <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end",marginBottom:12}}>
-      <label>Native screenshot PNG
+      <label>Exact CC0 source screenshot PNG
+        <input type="file" accept="image/png,.png"
+          aria-label="Original CC0 source PNG"
+          onChange={event=>{
+            setSourceFile(event.target.files?.[0]??null);
+            setMarks({});setDraftX("");setDraftY("");
+          }} style={{display:"block",maxWidth:"100%"}}/>
+      </label>
+      <label>Native Chromium candidate PNG
         <input type="file" accept="image/png,.png"
           aria-label="Native Chromium screenshot PNG"
           onChange={event=>{
@@ -1686,17 +1718,22 @@ export function Cc0NativePngReviewWorkbenchV61(){
         {" "+(audit?.status??status)}</output>
     </div>
     {status==="UPLOAD_REQUIRED"&&<p>
-      Upload both the native PNG and its V60 JSON sidecar to unlock annotation.
+      Upload the exact source photo, native PNG and matching V60 JSON sidecar to unlock annotation.
     </p>}
     {status==="VERIFYING"&&<p aria-live="polite">
-      Verifying actual PNG bytes against the V60 manifest…
+      Verifying both PNG byte streams, frozen CC0 source identity and V60 candidate manifest…
     </p>}
     {status==="REJECTED"&&<p role="alert">
       Capture verification failed: {error}
     </p>}
     {capture&&audit&&<>
       <p data-km-crayon-f1-native-png-verified="" style={{fontSize:13,lineHeight:1.5}}>
-        <strong>Verified native screenshot bytes</strong>
+        <strong>Verified source screenshot bytes</strong>
+        {" · SHA-256 "}<code>{capture.sourceSha256}</code>
+        {" · "+capture.sourceFileName}
+      </p>
+      <p data-km-crayon-f1-native-png-verified="" style={{fontSize:13,lineHeight:1.5}}>
+        <strong>Verified native candidate bytes</strong>
         {" · "+capture.manifest.native.variant+" · SHA-256 "}
         <code>{capture.sha256}</code>
       </p>
@@ -1712,42 +1749,67 @@ export function Cc0NativePngReviewWorkbenchV61(){
         <label><input type="checkbox" checked={sourceVisible}
           onChange={event=>setSourceVisible(event.target.checked)}/>
           Show blue source anchors</label>
-        <span style={{fontSize:12}}>Camera: 608×1082 · frame 299 · detail 1</span>
+        <span style={{fontSize:12}}>Matched camera: 608×1082 · frame 299 · detail 1</span>
       </div>
-      <div data-km-crayon-f1-verified-png-camera="608x1082-f299"
-        style={{width:"min(100%,420px)",margin:"0 auto",position:"relative",
-          aspectRatio:"608 / 1082",background:"#e2d7c8",outline:"1px solid #a8998d"}}>
-        <img src={capture.dataUrl} alt="Verified native crayon candidate screenshot"
-          draggable={false} style={{display:"block",width:"100%",height:"100%",
-            objectFit:"fill"}}/>
-        <button type="button"
-          aria-label={"Click the verified native PNG to mark "+selected}
-          onClick={event=>setCandidate(crayonF1CandidatePointerPoint(
-            event.clientX,event.clientY,event.currentTarget.getBoundingClientRect()))}
-          style={{position:"absolute",inset:0,width:"100%",height:"100%",
-            zIndex:2,cursor:"crosshair",border:0,padding:0,background:"transparent"}}/>
-        <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:3,
-          pointerEvents:"none"}}>
-          {sourceVisible&&CRAYON_F1_V59_NAMES.map(name=>{
-            const [x,y]=CRAYON_PORTRAIT_AUDIT.sourcePoints[name];
-            return <span key={"source-"+name} title={"Original source: "+name}
-              data-km-crayon-f1-source-landmark={name}
-              style={{position:"absolute",left:(x/608*100)+"%",
-                top:(y/1082*100)+"%",width:name===selected?10:6,
-                height:name===selected?10:6,transform:"translate(-50%,-50%)",
-                borderRadius:"50%",border:"1px solid white",background:"#246ddb",
-                boxShadow:"0 0 0 1px #0a2856"}}/>;
-          })}
-          {CRAYON_F1_V59_NAMES.map(name=>{
-            const point=marks[name];if(!point)return null;
-            return <span key={"candidate-"+name} title={"Candidate PNG: "+name}
-              data-km-crayon-f1-candidate-landmark={name}
-              style={{position:"absolute",left:(point[0]/608*100)+"%",
-                top:(point[1]/1082*100)+"%",width:11,height:11,
-                transform:"translate(-50%,-50%) rotate(45deg)",
-                background:name===selected?"#f69f2e":"#e66e26",
-                border:"1px solid #331e0d",boxShadow:"0 0 0 1px #fff"}}/>;
-          })}
+      <div style={{display:"grid",
+        gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",
+        gap:16,alignItems:"start"}}>
+        <div data-testid="crayon-f1-verified-source-camera"
+          data-km-crayon-f1-source-camera="608x1082"
+          style={{minWidth:0}}>
+          <p style={{fontSize:12,fontWeight:600,margin:"0 0 6px"}}>
+            Original CC0 source · blue source anchors
+          </p>
+          <div style={cameraStyle}>
+            <img src={capture.sourceDataUrl} alt="Verified CC0 original source photo"
+              draggable={false} style={{display:"block",width:"100%",height:"100%",
+                objectFit:"fill"}}/>
+            <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:3,
+              pointerEvents:"none"}}>
+              {sourceVisible&&CRAYON_F1_V59_NAMES.map(name=>{
+                const [x,y]=CRAYON_PORTRAIT_AUDIT.sourcePoints[name];
+                return <span key={"source-"+name} title={"Original source: "+name}
+                  data-km-crayon-f1-source-landmark={name}
+                  style={{position:"absolute",left:(x/608*100)+"%",
+                    top:(y/1082*100)+"%",width:name===selected?10:7,
+                    height:name===selected?10:7,transform:"translate(-50%,-50%)",
+                    borderRadius:"50%",border:"1px solid white",background:"#246ddb",
+                    boxShadow:"0 0 0 1px #0a2856"}}/>;
+              })}
+            </div>
+          </div>
+        </div>
+        <div data-testid="crayon-f1-verified-candidate-camera"
+          data-km-crayon-f1-candidate-camera="608x1082-f299"
+          style={{minWidth:0}}>
+          <p style={{fontSize:12,fontWeight:600,margin:"0 0 6px"}}>
+            Native crayon candidate · orange candidate observations
+          </p>
+          <div data-km-crayon-f1-verified-png-camera="608x1082-f299"
+            style={cameraStyle}>
+            <img src={capture.dataUrl} alt="Verified native crayon candidate screenshot"
+              draggable={false} style={{display:"block",width:"100%",height:"100%",
+                objectFit:"fill"}}/>
+            <button type="button"
+              aria-label={"Click the verified native PNG to mark "+selected}
+              onClick={event=>setCandidate(crayonF1CandidatePointerPoint(
+                event.clientX,event.clientY,event.currentTarget.getBoundingClientRect()))}
+              style={{position:"absolute",inset:0,width:"100%",height:"100%",
+                zIndex:2,cursor:"crosshair",border:0,padding:0,background:"transparent"}}/>
+            <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:3,
+              pointerEvents:"none"}}>
+              {CRAYON_F1_V59_NAMES.map(name=>{
+                const point=marks[name];if(!point)return null;
+                return <span key={"candidate-"+name} title={"Candidate PNG: "+name}
+                  data-km-crayon-f1-candidate-landmark={name}
+                  style={{position:"absolute",left:(point[0]/608*100)+"%",
+                    top:(point[1]/1082*100)+"%",width:11,height:11,
+                    transform:"translate(-50%,-50%) rotate(45deg)",
+                    background:name===selected?"#f69f2e":"#e66e26",
+                    border:"1px solid #331e0d",boxShadow:"0 0 0 1px #fff"}}/>;
+              })}
+            </div>
+          </div>
         </div>
       </div>
       <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"end",marginTop:14}}>
@@ -1774,10 +1836,11 @@ export function Cc0NativePngReviewWorkbenchV61(){
         }}>Clear all</button>
       </div>
       <p style={{fontSize:13,lineHeight:1.5,margin:"10px 0"}}>
-        The SHA-256 is computed from the uploaded PNG bytes, not copied from
-        the JSON. Source points are immutable and never become candidate points.
-        Candidate coordinates are manual observations; an independent reviewer
-        and artist must still assess the image and all 300 frames.
+        The source and candidate SHA-256 values are computed from their uploaded
+        PNG bytes. Blue source points are drawn over the source image only;
+        candidate coordinates are independently entered on the native candidate
+        image only. Reviewer independence, all 300 frames and artist approval
+        remain separate requirements.
       </p>
       <label style={{display:"block",fontSize:13}}>
         Copy byte-verified candidate observation record (not release approval)
@@ -1789,8 +1852,9 @@ export function Cc0NativePngReviewWorkbenchV61(){
     </>}
   </section>;
 }
+
 export const Cc0NativePngReviewV61:Story={
-  name:"CC0 exact native PNG · manual 18-point review (ArtCraft experiment, !dev V61)",
+  name:"CC0 paired source/native PNG · manual 18-point review (ArtCraft experiment, !dev V62)",
   render:()=> <Cc0NativePngReviewWorkbenchV61/>,
 };
 
