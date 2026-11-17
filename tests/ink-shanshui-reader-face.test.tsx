@@ -164,15 +164,22 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     const portrait=scrollReaderFacePortrait(1);
     const material=readerFaceAnatomy(1);
     const malar=material.planes.find(s=>s.type==="path"&&
-      s.d.includes("C125.6 110 132.9 113.4"));
+      s.d.includes("C124.9 108.7 131.7 112.7 135.2 115.7"));
     const lowerCheek=paths(portrait,"face").find(s=>s.type==="path"&&
-      s.d.startsWith("M119.2 116 C121.8 123.3"));
+      s.d.startsWith("M119.2 116 C121.4 120.5 124.8 123.5"));
     const lip=material.lips.find(s=>s.type==="path"&&
       s.d.includes("M135.2 125.9 Q138.9"));
     if(!malar||malar.type!=="path"||
        !lowerCheek||lowerCheek.type!=="path"||
        !lip||lip.type!=="path")
       throw Error("Facial anatomy paint course missing");
+    // All original pigment is still present; only its positive anatomy
+    // is redirected. The longer, nonlinear return prevents the old
+    // ruler-like brown stripe from reading as a nasolabial wrinkle.
+    expect((malar.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(4);
+    expect((lowerCheek.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(4);
+    expect(malar.d).toContain("C127.2 115.9 123.2 115.7 120.8 109.6 Z");
+    expect(lowerCheek.d).toContain("C122 122.6 120.4 119.6 119.2 116 Z");
     for(const shape of [malar,lowerCheek]){
       expect(shape.stroke).toBe("none");
       expect(shape.fill).toBe("$skinshade");
