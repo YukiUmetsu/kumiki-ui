@@ -56,7 +56,8 @@ interface ParsedContour{
 }
 const round=(n:number)=>Number(n.toFixed(4));
 const finite=(n:number)=>Number.isFinite(n);
-const PATH_TOKEN=/[A-Za-z]|[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/g;
+const PATH_TOKEN=/[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|[A-Za-z]/g;
+const organicContourCache=new WeakMap<RisoPullWindow,{key:string;value:ParsedContour}>();
 const dist=(a:Point,b:Point)=>Math.hypot(b.x-a.x,b.y-a.y);
 const cross=(a:Point,b:Point,c:Point)=>
   (b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
