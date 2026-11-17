@@ -204,7 +204,7 @@ head renderer in `src/video/ink-reference-character-redraw.tsx`.
    - Full image: https://cdn.loc.gov/service/pnp/cph/3b30000/3b32000/3b32400/3b32425r.jpg
    - The LOC record says no known restrictions on publication; the work is a charcoal drawing on brown paper.
    - Study observations: broader age-related orbital and cheek planes; a longer beard mass that resolves into separate locks rather than a triangular decal; a relaxed seated shoulder line; sleeve weight follows gravity; the pipe hand shows thumb opposition, curled finger contact and a wrist that remains connected to the forearm.
-   - Used for elder age structure, beard silhouette, seated gesture, sleeve gravity and hand-contact study. The drawing is not traced.
+   - Used for elder age structure and beard silhouette in this head/bust pass. Seated gesture, sleeve gravity and pipe-hand contact are documented for the next full-body/hand pass; the drawing is not traced.
 
 3. **Three-quarter face portrait of an unidentified bearded man (1860), Library of Congress LCCN 2006688331.**
    - Record: https://commons.wikimedia.org/wiki/File:Three-quarter_face_portrait_of_man_with_beard_LCCN2006688331.jpg
