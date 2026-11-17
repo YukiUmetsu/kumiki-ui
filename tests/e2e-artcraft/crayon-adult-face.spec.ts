@@ -7,7 +7,7 @@ import {crayonCc0NearEyeStudy} from "../../src/video/crayon-artcraft-cc0-near-ey
 import {crayonPaperContactSwatches} from "../../src/video/crayon-artcraft-paper-contact-fixtures";
 import {crayonArtcraftBodyStudy} from "../../src/video/crayon-artcraft-body-study";
 import {crayonCc0FaceStudy,CRAYON_F1_EYE_INSPECTION} from "../../src/video/crayon-artcraft-cc0-face";
-import {AdultFaceArtcraftWorkbench} from "../../src/video/crayon-artcraft-adult-face.stories";
+import {AdultFaceArtcraftWorkbench,Cc0HairValueComparisonV38} from "../../src/video/crayon-artcraft-adult-face.stories";
 
 /** Only exact React-native CRAYON1 renders may serve as visual evidence.
  * This workflow produces viewable image files and machine-checks the DOM.
@@ -1804,6 +1804,49 @@ test("F1 V37 ANAT1 source-follicle brow original native 300-frame wax film",asyn
       path:info.outputPath("crayon-v37-native-film-"+frame+".png")}));
   }
   expect(Buffer.compare(Buffer.from(frames[0]),Buffer.from(frames[2]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** Material-only two-up V37 vs V38 in the actual published !dev Storybook
+ * presentation. Both output frames must come from the same native source and
+ * remain physically present, with no replacement screenshot or CSS filter.
+ * Browser screenshots are evidence of renderability, not artist signoff.
+ */
+test("F1 V38 matched Storybook A/B native hair control and candidate",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:1220,height:1200});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const html=renderToStaticMarkup(createElement(Cc0HairValueComparisonV38,{
+    aspect:"portrait",detail:.2,expression:"neutral",headScaleY:.82,
+    startFrame:299,playbackRate:1,loop:false,
+  }));
+  await page.setContent("<!doctype html><html><body style='margin:0'>"+
+    html+"</body></html>");
+  const gallery=page.locator('[data-km-crayon-hair-ab="unapproved"]');
+  await expect(gallery).toBeVisible();
+  const controls=gallery.locator('[data-km-crayon-hair-variant]');
+  await expect(controls).toHaveCount(2);
+  const scenes=gallery.locator("svg[data-km-crayon-scene]");
+  await expect(scenes).toHaveCount(2);
+  for(const name of ["v37","v38"]){
+    const panel=gallery.locator('[data-km-crayon-hair-variant="'+name+'"]');
+    await expect(panel.locator('svg[data-km-crayon-scene]')).toHaveAttribute(
+      "data-km-crayon-frame","299");
+    await expect(panel.locator('[data-km-crayon-element="hair-crown-surface"]'))
+      .toHaveCount(1);
+    await expect(panel.locator('[data-km-crayon-element="hair-right-curtain"]'))
+      .toHaveCount(1);
+    await expect(panel.locator('[data-km-crayon-element="source-brow-follicles-near"]'))
+      .toHaveCount(1);
+    await panel.locator("svg[data-km-crayon-scene]").screenshot({
+      path:info.outputPath("crayon-v38-storybook-"+name+"-full-299.png"),
+      animations:"disabled",
+    });
+  }
+  const before=await scenes.nth(0).screenshot({animations:"disabled"});
+  const after=await scenes.nth(1).screenshot({animations:"disabled"});
+  expect(Buffer.compare(Buffer.from(before),Buffer.from(after))).not.toBe(0);
   expect(errors).toEqual([]);
 });
 
