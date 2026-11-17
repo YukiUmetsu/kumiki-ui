@@ -70,6 +70,8 @@ export interface Part {
   castShadow?: boolean;
   seed?: number;
   k?: Record<string, number>;
+  /** Parts of one piece (a fruit, its stem and leaves) share a group and move together when settled. */
+  group?: number;
 }
 
 // ---- Light ---------------------------------------------------------------------------------------------------------------------

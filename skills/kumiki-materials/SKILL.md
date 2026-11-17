@@ -1,6 +1,6 @@
 ---
 name: kumiki-materials
-description: Use when choosing, painting, rendering or reviewing what something is made of in Kumiki in any art style (metal, wood, bamboo, tatami, paper, plaster, lacquer, stone, tile, thatch, ceramic, glass, snow), especially when colours or values are guessed, metals look like grey plastic, wet surfaces are not darker, old things look new, textures look like generic noise (wood grain, tatami weave, thatch, washi, leather, granite, marble), or a PBR material needs base colour, metalness and roughness.
+description: Use when choosing, painting, rendering or reviewing what something is made of in Kumiki in any art style (metal, wood, bamboo, tatami, paper, plaster, lacquer, stone, tile, thatch, ceramic, glass, snow, and food surfaces: raw and seared beef, salmon, poultry skin, bread crust and crumb, rice, cheese, produce skins), especially when colours or values are guessed, metals look like grey plastic, wet surfaces are not darker, old things look new, textures look like generic noise (wood grain, tatami weave, thatch, washi, leather, granite, marble), or a PBR material needs base colour, metalness and roughness.
 ---
 
 # Kumiki materials (MATL1)

@@ -3,15 +3,15 @@
  * dumplings, sushi, skewers, piles of grain and spice, jars and drinks. Builders return parts sized in mm and placed
  * on a vessel's floor; the cooking physics (`food-physics.ts`) colours steak slices, boiled eggs and toast.
  */
-import { fbm, fbm3, worley } from "../anatomy/foundation-raster";
-import { blade, box, displace, ellipsoid, lathe, merge, reseed, rng, slab, sweep, transform, warp } from "./food-mesh";
+import { fbm, fbm3, worley, worley3 } from "../anatomy/foundation-raster";
+import { blade, box, displace, ellipsoid, lathe, merge, paramSurface, reseed, rng, slab, sweep, transform, warp } from "./food-mesh";
 import type { Mesh, Placement, V3 } from "./food-mesh";
 import { cookEgg, cookSteak, crustColour, eggColours, meatColour, toastBrowning } from "./food-physics";
 import type { Part, SurfaceFn } from "./food-scene";
 import { liquidIn, mound, profile } from "./food-stage";
 import type { Vessel } from "./food-stage";
-import { C, chocolate, clamp01, cream, crumb, crust, crystal, fishFlesh, fishSkin, froth, glazeMeat, grains, laminated, layered, leaf, mixInto, noodle, nori, powder, roastSkin, scaleInto, seared, setMix, smooth, sponge, sst, syrup } from "./food-surfaces";
-import { leafMesh, part, sprinkle } from "./food-kit";
+import { C, chocolate, clamp01, cream, crumb, crust, crystal, fishFlesh, fishSkin, froth, glazeMeat, grains, laminated, layered, leaf, mixInto, noodle, nori, powder, rawMeat, rawPoultry, riceSurface, roastSkin, scaleInto, seared, setMix, smooth, sponge, sst, syrup } from "./food-surfaces";
+import { grainCoat, grouped, leafMesh, part, sprinkle } from "./food-kit";
 
 // ---- Outlines --------------------------------------------------------------------------------------------------------------------
 
@@ -206,14 +206,14 @@ export function cupcake(R: number, at: V3, top: "muffin" | "frosting", seed = 1,
   const out: Part[] = [part("case", transform(caseM, { at }), (s, o) => { const a = Math.atan2(s.o[2], s.o[0]); setMix(o.albedo, C("#c9a46c"), C("#e7d4b2"), Math.abs(Math.sin(a * 16))); o.rough = 0.6; o.trans = 0.3; o.mfp[0] = o.mfp[1] = o.mfp[2] = 0.5; })];
   if (top === "muffin") out.push(dome(R * 1.15, R * 0.8, crust({ bake: 0.55, blisters: 0, seed, dough: "#e3c189" }), [at[0], at[1] + R * 0.86, at[2]], seed, R * 0.06, "muffin top"));
   else { out.push(dome(R * 1.02, R * 0.25, sponge("#e6c98f"), [at[0], at[1] + R * 0.86, at[2]], seed, 0, "cake top")); out.push(piped(R * 0.95, R * 1.3, cream(frost, { gloss: 0.3 }), [at[0], at[1] + R * 0.95, at[2]], 3, 8, seed)); }
-  return out;
+  return grouped(out);
 }
 /** A macaron: two domed shells with ruffled feet and a filling. */
 export function macaron(R: number, colour: string, filling: string, at: V3, seed = 1, tilt = 0): Part[] {
   const shell = (flip: boolean) => lathe(profile(flip ? [[0, 0], [R * 0.9, 0], [R, R * 0.12], [R * 0.95, R * 0.3], [R * 0.6, R * 0.5], [0, R * 0.55]] : [[0, R * 0.55], [R * 0.6, R * 0.5], [R * 0.95, R * 0.3], [R, R * 0.12], [R * 0.9, 0], [0, 0]]), { nu: 48, nv: 24, modulate: (th, v) => 1 + (v > 0.15 && v < 0.45 ? 0.03 * Math.sin(th * 23 + seed) : 0) });
   const shellS = smooth(colour, { rough: 0.55, scatter: 0.05, seed, vary: 0.04 });
   const pl = (y: number): Placement => ({ rx: tilt, at: [at[0], at[1] + y, at[2]] });
-  return [part("shell", transform(shell(true), pl(0)), shellS), part("filling", transform(slab({ outline: () => R * 0.86, top: () => R * 0.28, bevel: R * 0.12, nu: 48, nv: 16 }), pl(R * 0.5)), cream(filling, { gloss: 0.4 })), part("shell", transform(shell(false), pl(R * 0.78)), shellS)];
+  return grouped([part("shell", transform(shell(true), pl(0)), shellS), part("filling", transform(slab({ outline: () => R * 0.86, top: () => R * 0.28, bevel: R * 0.12, nu: 48, nv: 16 }), pl(R * 0.5)), cream(filling, { gloss: 0.4 })), part("shell", transform(shell(false), pl(R * 0.78)), shellS)]);
 }
 /** A cookie: a flat, cracked disc with chips or nuts. */
 export function cookie(R: number, at: V3, seed = 1, chips = true, tilt = 0): Part {
@@ -240,7 +240,7 @@ export function tart(R: number, H: number, filling: SurfaceFn, at: V3, sp: { lat
     }
     out.push(part("lattice", transform(merge(strips), { at }), crust({ bake: bake + 0.08, blisters: 0, shine: 0.6, dough: "#efd6a0", seeds: "none", seed: seed + 3 })));
   }
-  return out;
+  return grouped(out);
 }
 
 // ---- Eggs (FOOD1 physics) -----------------------------------------------------------------------------------------------------------
@@ -271,7 +271,7 @@ export function eggHalf(minutes: number, at: V3, turn = 0, seed = 1, marinated =
   };
   const white: SurfaceFn = marinated ? smooth("#b9844a", { rough: 0.25, gloss: 0.5, scatter: 0.12, seed }) : smooth("#f7f5ee", { rough: 0.25, gloss: 0.4, scatter: 0.12, seed });
   const pl: Placement = { ry: turn, at: [at[0], at[1] + a * 0.98, at[2]] };
-  return [part("egg white", transform(half, pl), white), part("egg cut", transform(face, pl), faceS)];
+  return grouped([part("egg white", transform(half, pl), white), part("egg cut", transform(face, pl), faceS)]);
 }
 /** A fried egg: a lacy, crisp-edged white (browned by the hot oil) and a domed glossy yolk. */
 export function friedEgg(at: V3, seed = 1, crisp = 0.6, turn = 0): Part[] {
@@ -286,7 +286,7 @@ export function friedEgg(at: V3, seed = 1, crisp = 0.6, turn = 0): Part[] {
   };
   const yolk = lathe(profile([[0, 0], [12.5, 0], [13.5, 2], [12, 7], [7, 10.5], [0, 11.5]]), { nu: 48, nv: 24 });
   const pl: Placement = { ry: turn, at };
-  return [part("egg white", transform(white, pl), whiteS), part("yolk", transform(yolk, { ry: turn, at: [at[0] - 6, at[1] + 3, at[2] + 4] }), (s, o) => { o.albedo[0] = 0.92; o.albedo[1] = 0.42; o.albedo[2] = 0.04; o.rough = 0.12; o.coat = 1; o.coatRough = 0.03; o.mfp[0] = 3; o.mfp[1] = 1.4; o.mfp[2] = 0.3; o.trans = 0.3; o.height = fbm(seed, s.o[0], s.o[2], 2) * 0.02; })];
+  return grouped([part("egg white", transform(white, pl), whiteS), part("yolk", transform(yolk, { ry: turn, at: [at[0] - 6, at[1] + 3, at[2] + 4] }), (s, o) => { o.albedo[0] = 0.92; o.albedo[1] = 0.42; o.albedo[2] = 0.04; o.rough = 0.12; o.coat = 1; o.coatRough = 0.03; o.mfp[0] = 3; o.mfp[1] = 1.4; o.mfp[2] = 0.3; o.trans = 0.3; o.height = fbm(seed, s.o[0], s.o[2], 2) * 0.02; })]);
 }
 
 // ---- Meat and fish ----------------------------------------------------------------------------------------------------------------
@@ -296,23 +296,27 @@ export function steakSliced(thickness: number, perSide: number, at: V3, n = 4, t
   const res = cookSteak({ thickness, perSide }), T = thickness, L = 110, sliceW = 15;
   const rounded = (a: number, b: number, p = 5) => (t: number) => { const c = Math.cos(t), sn = Math.sin(t); return 1 / Math.pow(Math.pow(Math.abs(c) / a, p) + Math.pow(Math.abs(sn) / b, p), 1 / p); };
   const pl: Placement = { ry: turn, at };
-  const whole = transform(slab({ outline: rounded(L / 2, 38, 3.2), top: (x, z) => T + fbm(seed, x / 18, z / 18, 2) * 1.5, bevel: 6, nu: 96, nv: 30 }), { at: [-30, 0, -34] });
+  const r = rng(seed), ragged = (f: (t: number) => number, k: number, sd: number) => (t: number) => f(t) * (1 + k * fbm(sd, Math.cos(t) * 2, Math.sin(t) * 2, 3));
+  const whole = transform(slab({ outline: ragged(rounded(L / 2, 38, 3.2), 0.07, seed), top: (x, z) => T * (1 + 0.1 * fbm(seed + 1, x / 30, z / 30, 2)) + fbm(seed, x / 18, z / 18, 2) * 1.5, bevel: 6, nu: 120, nv: 30 }), { at: [-30, 0, -34] });
+  // slices cut by hand: each a little thicker or thinner, wedge-shaped, its outline its own
   const slicesM: Mesh[] = [];
-  for (let i = 0; i < n; i++) slicesM.push(transform(slab({ outline: rounded(L / 2, T / 2), top: () => sliceW, bevel: 2.5, nu: 80, nv: 26 }), { rx: -4, ry: 6 - i * 5, at: [20 + i * 4, i * 4.2, 18 + i * 12] }));
+  for (let i = 0; i < n; i++) { const th = sliceW * (0.82 + r() * 0.36), wedge = (r() - 0.5) * 0.25; slicesM.push(transform(slab({ outline: ragged(rounded(L / 2 * (0.94 + r() * 0.1), T / 2), 0.06, seed + i * 5), top: (x) => th * (1 + wedge * x / (L / 2)) + fbm(seed + i, x / 10, 0.5, 2) * 0.6, bevel: 2.5, nu: 96, nv: 26 }), { rx: -4 + (r() - 0.5) * 6, ry: 6 - i * 5 + (r() - 0.5) * 8, at: [20 + i * 4 + (r() - 0.5) * 4, i * 4.2, 18 + i * 12] })); }
   const crustS = seared({ bake: 0.7 + 0.25 * Math.max(res.crust[0], res.crust[1]), base: "#9a5a3a", gloss: 0.5, seed });
   const faceS: SurfaceFn = (s, o) => {
     // a slice's top is the cut face: depth through the steak runs across it (object z, −T/2 … T/2)
-    if (s.o[1] < sliceW - 1.6) { crustS(s, o); return; }
+    if (s.n[1] < 0.55) { crustS(s, o); return; }
     const d = clamp01((s.o[2] + T / 2) / T), k = Math.min(res.peak.length - 1, Math.max(0, d * (res.peak.length - 1))), k0 = Math.floor(k), f = k - k0;
     const peak = res.peak[k0] * (1 - f) + res.peak[Math.min(res.peak.length - 1, k0 + 1)] * f, c = meatColour(peak);
     const edge = Math.min(T / 2 - Math.abs(s.o[2]), L / 2 - Math.abs(s.o[0])), crustK = 1 - sst(0.5, 2.4, edge + fbm(seed, s.o[0] / 2, s.o[2], 2) * 0.5);
     o.albedo[0] = c[0]; o.albedo[1] = c[1]; o.albedo[2] = c[2];
-    const fib = fbm(seed + 1, s.o[0] / 6, s.o[2] / 0.5, 3);
-    scaleInto(o.albedo, 0.86 + 0.18 * fib);
+    const fib = fbm(seed + 1, s.o[0] / 6, s.o[2] / 0.5, 3), grain = worley3(seed + 2, s.o[0] / 1.3, s.o[1] / 12, s.o[2] / 1.3), wall = 1 - sst(0, 0.1, grain.f2 - grain.f1);
+    scaleInto(o.albedo, (0.88 + 0.14 * fib) * (0.95 + 0.08 * grain.id) * (1 + 0.06 * wall));
+    // juice beading on the cut, and the knife's drag
+    const bead = worley3(seed + 3, s.o[0] / 2.5, s.o[1] / 2.5, s.o[2] / 2.5), drop = bead.f1 < 0.16 && bead.id < 0.3 ? 1 - bead.f1 / 0.16 : 0;
     if (crustK > 0) mixInto(o.albedo, crustColour(0.85, C("#8a4a26")), crustK);
-    o.rough = 0.25; o.coat = 0.7 * (1 - sst(60, 75, peak)); o.coatRough = 0.06; o.spec = 0.035; o.height = fib * 0.05; o.mfp[0] = 1.2; o.mfp[1] = 0.4; o.mfp[2] = 0.3;
+    o.rough = 0.25; o.coat = Math.max(0.7 * (1 - sst(60, 75, peak)), drop); o.coatRough = 0.04; o.spec = 0.035; o.height = fib * 0.05 - wall * 0.03 + drop * 0.25 + 0.02 * Math.sin(s.o[0] * 1.8 + fib * 3); o.mfp[0] = 1.2; o.mfp[1] = 0.4; o.mfp[2] = 0.3;
   };
-  return [part("steak", seat(transform(whole, pl), at[1]), crustS), part("slices", seat(transform(merge(slicesM), pl), at[1]), faceS)];
+  return grouped([part("steak", seat(transform(whole, pl), at[1]), crustS), part("slices", seat(transform(merge(slicesM), pl), at[1]), faceS)]);
 }
 /** A roast bird (chicken, poussin, duck): body, breast ridge, legs, folded wings; golden blistered skin. */
 export function roastBird(size: number, at: V3, sp: { bake?: number; turn?: number; seed?: number; raw?: boolean; herbs?: number; glaze?: string } = {}): Part[] {
@@ -332,31 +336,100 @@ export function roastBird(size: number, at: V3, sp: { bake?: number; turn?: numb
     limbs.push(transform(ellipsoid(22 * s, 7 * s, 11 * s, 24, 12), { ry: side * -15, rz: -12, at: [-28 * s, 10 * s, side * 33 * s] }));
   }
   const m = seat(transform(merge([body, ...limbs]), { ry: sp.turn ?? 0, at }), at[1]);
-  const surf: SurfaceFn = sp.raw ? smooth("#efd2b8", { rough: 0.35, gloss: 0.5, scatter: 0.25, pores: 0.04, seed }) : sp.glaze ? glazeMeat({ colour: sp.glaze, char: 0.35, seed }) : roastSkin({ bake: sp.bake ?? 0.62, seed, herbs: sp.herbs });
+  const surf: SurfaceFn = sp.raw ? rawPoultry(seed) : sp.glaze ? glazeMeat({ colour: sp.glaze, char: 0.35, seed }) : roastSkin({ bake: sp.bake ?? 0.62, seed, herbs: sp.herbs });
   return [part("bird", m, surf)];
 }
-/** A whole fish lying on its side (mackerel, sea bream, trout): fusiform body, tail, fins, eye; skin and grill marks. */
+/** A whole fish lying on its side (mackerel, sea bream, trout): fusiform body, forked tail, dorsal, pectoral, pelvic
+ *  and anal fins with rays, a gill cover, an eye with pupil, iris and cornea; scaled skin and grill marks. */
 export function wholeFish(len: number, at: V3, sp: { back?: string; belly?: string; crisp?: number; bars?: boolean; turn?: number; seed?: number; grill?: number } = {}): Part[] {
-  const seed = sp.seed ?? 1, H = len * 0.24, T = len * 0.1;
-  const body = lathe(profile([[0, 0], [H * 0.25, len * 0.03], [H * 0.48, len * 0.15], [H * 0.5, len * 0.35], [H * 0.36, len * 0.6], [H * 0.16, len * 0.8], [H * 0.09, len * 0.86], [0, len * 0.87]]), { nu: 48, nv: 60, squash: T / (H * 0.5) });
-  const fish = transform(body, { rz: -90, at: [-len / 2, T * 0.95, 0] });
-  const tail = transform(blade({ length: len * 0.18, halfWidth: s => H * 0.3 * (0.25 + s * 0.9), lift: (_s, w) => Math.sin(w * 3) * 0.6, nu: 12, nv: 12 }), { rx: 90, at: [len * 0.34, T * 0.95, 0] });
-  const dorsal = transform(blade({ length: len * 0.3, halfWidth: s => H * 0.13 * Math.sin(Math.PI * s), nu: 8, nv: 14 }), { rx: 90, at: [-len * 0.15, T * 0.95 + H * 0.45, 0] });
-  const eye = ellipsoid(H * 0.08, H * 0.08, H * 0.05, 16, 12);
+  const seed = sp.seed ?? 1, H = len * 0.24, T = len * 0.1, nose = -len / 2;
+  const body = lathe(profile([[0, 0], [H * 0.18, len * 0.02], [H * 0.42, len * 0.12], [H * 0.5, len * 0.32], [H * 0.38, len * 0.58], [H * 0.17, len * 0.79], [H * 0.09, len * 0.86], [0, len * 0.87]]), { nu: 56, nv: 72, squash: T / (H * 0.5) });
+  const fish = transform(body, { rz: -90, at: [nose, 0, 0] });
+  // fins: thin blades, their rays running from the root out to the edge
+  const fin = (length: number, width: (s: number) => number, pl: Placement, droop = 0) => transform(blade({ length, halfWidth: width, lift: (s, w) => Math.sin(w * 3 + s * 2) * length * 0.015 - droop * s * s * length, nu: 14, nv: 14 }), pl);
+  const tailX = nose + len * 0.84, midY = 0;
+  const fins = [
+    fin(len * 0.2, s => H * 0.36 * (0.2 + s) * (1 - 0.55 * Math.exp(-((s - 1) ** 2) / 0.02)), { rx: 90, at: [tailX, midY, 0] }),
+    fin(len * 0.3, s => H * 0.12 * Math.sin(Math.PI * Math.min(1, s * 1.05)), { rx: 90, rz: 4, at: [nose + len * 0.32, midY + H * 0.44, 0] }),
+    fin(len * 0.13, s => H * 0.06 * Math.sin(Math.PI * Math.min(1, s * 1.1)) * (1.2 - s), { ry: -14, rz: -12, at: [nose + len * 0.26, midY - H * 0.08, T * 0.92] }, 0.2),
+    fin(len * 0.08, s => H * 0.05 * Math.sin(Math.PI * s), { rx: 90, rz: 170, at: [nose + len * 0.42, midY - H * 0.42, 0] }),
+    fin(len * 0.14, s => H * 0.08 * Math.sin(Math.PI * s), { rx: 90, rz: 176, at: [nose + len * 0.7, midY - H * 0.32, 0] }),
+  ];
+  const eyeR = H * 0.085, eye = ellipsoid(eyeR, eyeR, eyeR * 0.55, 20, 14);
   const pl: Placement = { ry: sp.turn ?? 0, at };
   const skinS = fishSkin({ back: sp.back, belly: sp.belly, crisp: sp.crisp ?? 0.4, bars: sp.bars, seed });
-  const grill = sp.grill ?? 0;
-  const surf: SurfaceFn = grill ? (s, o) => { skinS(s, o); const t = (s.o[0] * 0.8 + s.o[2] * 0.6) / 16, bar = 1 - sst(0.06, 0.14, Math.abs(t - Math.round(t))); if (s.n[1] > 0.4 && bar > 0) mixInto(o.albedo, C("#1a0e08"), bar * grill); } : skinS;
-  return [
-    part("fish", seat(transform(merge([fish, tail, dorsal]), pl), at[1]), surf),
-    part("eye", transform(eye, { ry: sp.turn ?? 0, at: [at[0] + (-len * 0.42) * Math.cos(((sp.turn ?? 0) * Math.PI) / 180), at[1] + T * 1.7, at[2] + len * 0.42 * Math.sin(((sp.turn ?? 0) * Math.PI) / 180)] }), (_s, o) => { o.albedo[0] = 0.75; o.albedo[1] = 0.72; o.albedo[2] = 0.62; o.rough = 0.05; o.coat = 1; o.coatRough = 0.02; }),
-  ];
+  const grill = sp.grill ?? 0, gillY = len * 0.21;
+  const surf: SurfaceFn = (smp, o) => {
+    // the scales want (along the body, belly → back, across): the lathe's own axes are (height, along, across)
+    const ox = smp.o[0], oy = smp.o[1];
+    smp.o[0] = oy; smp.o[1] = ox; skinS(smp, o); smp.o[0] = ox; smp.o[1] = oy;
+    // the gill cover's edge, an arc behind the eye
+    const g = Math.abs(smp.o[1] - gillY - 0.04 * len * (smp.o[0] / H) ** 2);
+    if (g < 1.2) { mixInto(o.albedo, C("#2a2622"), (1 - g / 1.2) * 0.6); o.height += (1 - g / 1.2) * 0.25; }
+    if (smp.o[1] < gillY) o.rough = Math.max(0.12, o.rough - 0.06);
+    if (grill) { const t = (smp.p[0] * 0.8 + smp.p[2] * 0.6) / 16, bar = 1 - sst(0.06, 0.14, Math.abs(t - Math.round(t)) + fbm(seed + 3, smp.p[0] / 4, smp.p[2] / 4, 2) * 0.04); if (smp.n[1] > 0.4 && bar > 0) mixInto(o.albedo, C("#1a0e08"), bar * grill); }
+  };
+  const finS: SurfaceFn = (smp, o) => { const ray = Math.pow(Math.abs(Math.sin(smp.uv[0] * Math.PI * 14)), 0.6); setMix(o.albedo, C(sp.crisp ? "#7a5a3a" : "#8a8e8c"), C(sp.crisp ? "#3a2416" : "#4a5254"), ray * 0.6 + smp.uv[1] * 0.25); o.height = ray * 0.06; o.rough = 0.35; o.coat = 0.3; o.trans = 0.6; o.mfp[0] = 0.6; o.mfp[1] = 0.6; o.mfp[2] = 0.5; };
+  const eyeS: SurfaceFn = (smp, o) => { const r = Math.hypot(smp.o[0], smp.o[1]) / eyeR; if (r < 0.48) { o.albedo[0] = 0.01; o.albedo[1] = 0.01; o.albedo[2] = 0.012; } else { setMix(o.albedo, C(sp.crisp ? "#d8d0b8" : "#c8a24a"), C("#e8e4d8"), sst(0.6, 0.95, r)); } o.rough = 0.05; o.coat = 1; o.coatRough = 0.02; o.spec = 0.05; };
+  // built standing with its side to +z, then laid on that side's opposite: the eye side faces up, the fins lie flat
+  const lay = (m: Mesh) => transform(transform(m, { rx: -90 }), pl);
+  const bodyM = lay(fish), finM = lay(merge(fins)), eyeM = lay(transform(eye, { at: [nose + len * 0.11, H * 0.06, T * 0.82] }));
+  let minY = Infinity;
+  for (let k = 1; k < bodyM.pos.length; k += 3) minY = Math.min(minY, bodyM.pos[k]);
+  const lift = (m: Mesh) => transform(m, { at: [0, at[1] - minY, 0] });
+  // fins flop onto the plate: keep them just above it
+  const fl = lift(finM);
+  for (let k = 1; k < fl.pos.length; k += 3) fl.pos[k] = Math.max(at[1] + 0.4, fl.pos[k]);
+  return grouped([part("fish", lift(bodyM), surf), part("fins", fl, finS), part("eye", lift(eyeM), eyeS)]);
 }
 /** A fillet or slab (salmon, tuna, pork belly, tofu, cheese, butter): w × d × h with rounded edges and a surface. */
-export function slabPiece(w: number, d: number, h: number, surface: SurfaceFn, at: V3, turn = 0, sp: { bevel?: number; taper?: number; bump?: number; seed?: number; tilt?: number; name?: string } = {}): Part {
-  const outline = (t: number) => { const c = Math.cos(t), s = Math.sin(t); return 1 / Math.pow(Math.pow(Math.abs(c) / (w / 2), 6) + Math.pow(Math.abs(s) / (d / 2), 6), 1 / 6); };
-  const m = slab({ outline, top: (x, z) => h * (1 - (sp.taper ?? 0) * Math.pow(Math.max(0, x / (w / 2)), 2)) + fbm(sp.seed ?? 1, x / 15, z / 15, 2) * (sp.bump ?? 0.5), bevel: sp.bevel ?? Math.min(h * 0.35, 4), nu: 96, nv: 36 });
-  return part(sp.name ?? "piece", transform(reseed(m, [(sp.seed ?? 1) * 23, 0, 0]), { rx: sp.tilt ?? 0, ry: turn, at }), surface);
+export function slabPiece(w: number, d: number, h: number, surface: SurfaceFn, at: V3, turn = 0, sp: { bevel?: number; taper?: number; bump?: number; seed?: number; tilt?: number; name?: string; irregular?: number } = {}): Part {
+  // nothing cut by hand is exact: the outline wanders, the thickness varies, the edges sag a little
+  const seed = sp.seed ?? 1, irr = sp.irregular ?? 0.06;
+  const outline = (t: number) => { const c = Math.cos(t), s = Math.sin(t); return (1 / Math.pow(Math.pow(Math.abs(c) / (w / 2), 6) + Math.pow(Math.abs(s) / (d / 2), 6), 1 / 6)) * (1 + irr * fbm(seed + 3, c * 1.6, s * 1.6, 3) + irr * 0.3 * fbm(seed + 4, c * 6, s * 6, 2)); };
+  const top = (x: number, z: number) => { const e = Math.max(Math.abs(x) / (w / 2), Math.abs(z) / (d / 2)); return h * (1 - (sp.taper ?? 0) * Math.pow(Math.max(0, x / (w / 2)), 2)) * (1 + irr * 1.2 * fbm(seed + 5, x / 30, z / 30, 2)) * (1 - irr * 0.8 * Math.pow(e, 4)) + fbm(seed, x / 15, z / 15, 2) * (sp.bump ?? 0.5); };
+  const m = slab({ outline, top, bevel: (sp.bevel ?? Math.min(h * 0.35, 4)), nu: 120, nv: 40 });
+  return part(sp.name ?? "piece", transform(reseed(m, [seed * 23, 0, 0]), { rx: sp.tilt ?? 0, ry: turn, at }), surface);
+}
+/** A steak cut lying flat (raw or seared): a ribeye's rounded, lopsided outline with its fat cap on one side, or a
+ *  plain sirloin with a fat strip along one edge; uneven thickness; the face shows the fibres end-on. */
+export function steakCut(kind: "ribeye" | "sirloin", at: V3, sp: { thickness?: number; marbling?: number; seared?: number; turn?: number; seed?: number; colour?: string } = {}): Part {
+  const seed = sp.seed ?? 1, T = sp.thickness ?? 30, W = kind === "ribeye" ? 150 : 170, D = kind === "ribeye" ? 110 : 80;
+  const outline = (t: number) => {
+    const c = Math.cos(t), s = Math.sin(t), base = 1 / Math.hypot(c / (W / 2), s / (D / 2));
+    // a ribeye bulges where the cap sits and flattens along its fat side; a sirloin is a long rounded oblong
+    return base * (kind === "ribeye" ? 1 + 0.1 * Math.cos(t - 0.7) - 0.08 * Math.max(0, Math.cos(t - Math.PI)) : 1 + 0.05 * Math.cos(2 * t)) * (1 + 0.08 * fbm(seed, c * 1.5, s * 1.5, 3) + 0.02 * fbm(seed + 1, c * 6, s * 6, 2));
+  };
+  // raw meat slumps: domed a little, its sides rounded and soft
+  const top = (x: number, z: number) => T * (1 + 0.12 * fbm(seed + 2, x / 35, z / 35, 2)) * (1.08 - 0.22 * Math.pow(Math.hypot(x / (W / 2), z / (D / 2)), 2.5));
+  const m = slab({ outline, top, bevel: Math.min(13, T * 0.5), nu: 160, nv: 44 });
+  // the fat cap: a band inside the outline along the far-left side (ribeye) or the top edge (sirloin)
+  const fatSide = (p: V3) => { const t = Math.atan2(p[2], p[0]), inside = outline(t) - Math.hypot(p[0], p[2]); const side = kind === "ribeye" ? sst(0.1, 0.6, -Math.cos(t - 0.2)) : sst(0.2, 0.7, -Math.sin(t)); return (1 - sst(6, 12 + 4 * fbm(seed + 7, p[0] / 10, p[1] / 10, p[2] / 10, 2), inside)) * side; };
+  const raw = rawMeat({ axis: "y", marbling: sp.marbling ?? 0.4, ribeye: kind === "ribeye" ? { w: W * 0.95, d: D * 0.95 } : undefined, knife: 0.7, seed, colour: sp.colour, fatCap: p => (p[1] > T * 0.5 || Math.abs(p[1] - T / 2) < T ? fatSide(p) : 0) });
+  const sear = sp.seared ? seared({ bake: sp.seared, base: "#9a5a3a", gloss: 0.5, seed }) : null;
+  const surf: SurfaceFn = sear ? (smp, o) => { sear(smp, o); const cap = fatSide(smp.o); if (cap > 0.5) { mixInto(o.albedo, crustColour(0.55, C("#e8d0a0")), cap * 0.8); o.coat = 0.8; } } : raw;
+  return part(kind, transform(m, { ry: sp.turn ?? 0, at }), surf);
+}
+/** A side of salmon (or trout): a fillet's outline tapering to the tail, thick along the back, thin at the belly with
+ *  its white fat stripe; the myomeres run across it; skin silver at the edges. */
+export function salmonFillet(len: number, at: V3, sp: { turn?: number; seed?: number; cooked?: number; seared?: number } = {}): Part {
+  const seed = sp.seed ?? 1, L = len / 2, Wd = len * 0.2;
+  const poly: [number, number][] = [[-L, -Wd * 0.85], [-L * 0.5, -Wd], [L * 0.35, -Wd * 0.9], [L * 0.85, -Wd * 0.4], [L, -Wd * 0.12], [L * 1.02, Wd * 0.05], [L * 0.85, Wd * 0.38], [L * 0.35, Wd * 0.85], [-L * 0.5, Wd * 0.95], [-L, Wd * 0.8]];
+  const { outline } = polyOutline(poly);
+  const rough = (t: number) => outline(t) * (1 + 0.025 * fbm(seed, Math.cos(t) * 3, Math.sin(t) * 3, 3));
+  const top = (x: number, z: number) => { const along = Math.min(1, Math.max(0, (x + L) / (2 * L))), across = z / Wd; return len * 0.12 * (1 - 0.7 * Math.pow(along, 1.6)) * (1 - 0.45 * Math.max(0, across) * Math.max(0, across)) * (1 - 0.25 * Math.max(0, -across) ** 2) * (1 + 0.06 * fbm(seed + 2, x / 25, z / 25, 2)); };
+  const m = slab({ outline: rough, top, bevel: 4, nu: 160, nv: 40 });
+  const flesh = fishFlesh({ colour: "#ee7240", bands: 9, cooked: sp.cooked ?? 0, seed });
+  const sear = sp.seared ? seared({ bake: sp.seared, base: "#f0a070", gloss: 0.6, seed }) : null;
+  const surf: SurfaceFn = (smp, o) => {
+    if (sear && smp.n[1] > 0.6) { sear(smp, o); return; }
+    flesh(smp, o);
+    // the belly's fat stripe and the silver skin under the edges
+    const across = smp.o[2] / Wd, belly = sst(0.55, 0.8, across) * (1 - sst(0.95, 1.1, across));
+    mixInto(o.albedo, C("#fbe6d8"), belly * 0.55);
+    if (smp.o[1] < 3 && smp.n[1] < 0.2) { mixInto(o.albedo, C("#b8c0c4"), 0.8 * (1 - sst(1, 3, smp.o[1]))); o.coat = 0.6; }
+  };
+  return part("fillet", transform(reseed(m, [seed * 13, 0, 0]), { ry: sp.turn ?? 0, at }), surf);
 }
 /** Chunks (stew meat, potatoes, tofu, paneer, croutons, fruit pieces): lumpy rounded cubes scattered at a height. */
 export function chunks(count: number, size: number, areaR: number, y: (x: number, z: number) => number, surface: SurfaceFn, seed = 1, sink = 0.35, centre: V3 = [0, 0, 0], round = 4): Part {
@@ -387,7 +460,7 @@ export function shell(kind: "mussel" | "clam" | "oyster" | "scallop", size: numb
   const pl: Placement = { ry: turn, at };
   const out = [part(kind, transform(m, pl), shellS)];
   if (kind === "oyster") out.push(part("oyster meat", transform(slab({ outline: t => outline(t) * 0.68, top: (x, z) => 6 + (1 - Math.hypot(x, z) / (size * 0.34)) * 3 + fbm(seed, x / 4, z / 4, 3) * 1.2, bottom: 4, bevel: 2, nu: 64, nv: 24 }), pl), (s, o) => { const frill = sst(0.75, 0.95, Math.hypot(s.o[0], s.o[2]) / (size * 0.32)); setMix(o.albedo, C("#cfc6b4"), C("#4f4a42"), frill * 0.8); o.rough = 0.1; o.coat = 1; o.coatRough = 0.02; o.mfp[0] = 2; o.mfp[1] = 2; o.mfp[2] = 1.8; o.trans = 0.4; }));
-  return out;
+  return grouped(out);
 }
 
 // ---- Dumplings, sushi, skewers, wraps --------------------------------------------------------------------------------------------
@@ -413,16 +486,39 @@ export function dumpling(kind: "gyoza" | "xiaolongbao" | "baozi" | "har-gow" | "
   const surf: SurfaceFn = kind === "empanada" ? crust({ bake: 0.6, shine: 0.6, blisters: 0, seed, dough: "#ecd09a" }) : kind === "gyoza" ? (s, o) => { smooth("#f0e6d0", { rough: 0.35, gloss: 0.3, scatter: 0.25, trans: 0.4, seed })(s, o); const fry = 1 - sst(1.5, 5, s.o[1]); if (fry > 0) { const c = crustColour(0.72, C("#e7cf9a")); mixInto(o.albedo, c, fry); o.rough = 0.3; o.coat = 0.6; } } : kind === "pierogi" ? (s, o) => { smooth("#f1e3c4", { rough: 0.35, gloss: 0.4, scatter: 0.2, seed })(s, o); const b = sst(0.3, 0.8, fbm3(seed, s.o[0] / 8, s.o[1] / 8, s.o[2] / 8, 3)); mixInto(o.albedo, C("#c48a3c"), b * 0.5); } : smooth("#efe3cb", { rough: 0.3, gloss: 0.4, scatter: 0.3, trans: 0.5, seed });
   return part(kind, transform(m, { ry: turn, at }), surf);
 }
+/** One cooked rice grain: pearly, glossy, light passing through it. */
+const riceGrain: SurfaceFn = (s, o) => { const k = 0.93 + 0.07 * fbm3(3, s.o[0], s.o[1] * 2, s.o[2], 2); o.albedo[0] = 0.92 * k; o.albedo[1] = 0.9 * k; o.albedo[2] = 0.84 * k; o.rough = 0.22; o.spec = 0.04; o.coat = 0.55; o.coatRough = 0.06; o.mfp[0] = 1.6; o.mfp[1] = 1.5; o.mfp[2] = 1.3; o.trans = 0.55; o.height = fbm3(5, s.o[0] * 3, s.o[1] * 3, s.o[2] * 3, 2) * 0.01; };
+
+/** An onigiri: a soft rounded triangle of rice about 80 mm across, coated grain by grain, a band of nori over its
+ *  base. Standing on its flat bottom edge, its face to +z. */
+export function onigiri(at: V3, sp: { turn?: number; seed?: number; size?: number } = {}): Part[] {
+  const seed = sp.seed ?? 1, r0 = (sp.size ?? 80) * 0.46, T = (sp.size ?? 80) * 0.38;
+  const R = (th: number) => r0 * (1 + 0.15 * Math.cos(3 * (th - Math.PI / 2))) * (1 + 0.02 * fbm(seed, Math.cos(th) * 2, Math.sin(th) * 2, 2));
+  // a closed pillow: v runs from the front centre over the rim to the back centre
+  let body = paramSurface(96, 48, true, (u, v) => { const th = u * Math.PI * 2, ph = v * Math.PI, rho = Math.pow(Math.sin(ph), 0.32), rr = R(th) * rho; return [Math.cos(th) * rr, Math.sin(th) * rr, (T / 2) * Math.cos(ph) * (1 - 0.15 * rho * rho)]; });
+  body = displace(body, o => fbm3(seed + 1, o[0] / 12, o[1] / 12, o[2] / 12, 2) * 1.6);
+  // seat it on its flat bottom edge
+  let minY = Infinity; for (let k = 1; k < body.pos.length; k += 3) minY = Math.min(minY, body.pos[k]);
+  const noriH = r0 * 0.75, isNori = (o: V3) => o[1] - minY < noriH && Math.abs(o[0]) < r0 * 0.55;
+  const noriBody = displace(body, o => (isNori(o) ? 1.4 : 0));
+  const grains = grainCoat(body, 950, { seed: seed + 3, keep: o => !isNori(o) });
+  const pl: Placement = { ry: sp.turn ?? 0, at: [at[0], at[1] - minY, at[2]] };
+  const bodyS: SurfaceFn = (s, o) => { if (isNori(s.o)) { nori(seed)(s, o); const crease = Math.abs(Math.sin(s.o[0] * 0.9 + fbm(seed, s.o[1] / 8, s.o[2] / 8, 2) * 2)); o.height += crease * 0.05; return; } riceSurface(seed)(s, o); scaleInto(o.albedo, 0.62); };
+  return grouped([part("rice ball", transform(noriBody, pl), bodyS), part("rice grains", transform(grains, pl), riceGrain)]);
+}
+
 /** Nigiri: a hand-pressed rice block with a draped slice of fish (or tamago, eel), optional nori band. */
 export function nigiri(topping: "salmon" | "tuna" | "eel" | "tamago" | "shrimp" | "sea-bream", at: V3, turn = 0, seed = 1): Part[] {
   const rice = displace(box(52, 20, 24, 3, 28, 18), o => fbm3(seed, o[0] / 5, o[1] / 5, o[2] / 5, 2) * 0.9);
   const pl: Placement = { ry: turn, at: [at[0], at[1] + 10, at[2]] };
-  const out = [part("rice", seat(transform(rice, pl), at[1]), grains({ colour: "#f2eee4", size: 0.9, cooked: 0.8, seed }))];
+  const riceM = seat(transform(rice, pl), at[1]);
+  const grainsM = grainCoat(riceM, 260, { seed: seed + 5, keep: (_o, n) => n[1] < 0.85 });
+  const out = [part("rice", riceM, (s, o) => { riceSurface(seed)(s, o); scaleInto(o.albedo, 0.75); }), part("rice grains", grainsM, riceGrain)];
   const top = slab({ outline: t => 1 / Math.pow(Math.pow(Math.abs(Math.cos(t)) / 33, 4) + Math.pow(Math.abs(Math.sin(t)) / 15, 4), 0.25), top: (x) => 4 + (topping === "tamago" ? 8 : 0) - Math.pow(x / 33, 2) * 7, bevel: 1.2, nu: 72, nv: 24 });
-  const topS: SurfaceFn = topping === "salmon" ? fishFlesh({ colour: "#f07a45", fat: "#fbe3d0", bands: 6, seed }) : topping === "tuna" ? fishFlesh({ colour: "#a1202c", fat: "#d8606a", bands: 9, seed }) : topping === "sea-bream" ? fishFlesh({ colour: "#f1e3dc", fat: "#f2b8b0", bands: 6, seed }) : topping === "eel" ? glazeMeat({ colour: "#4a2414", char: 0.3, seed, sesame: 0.3 }) : topping === "shrimp" ? (s, o) => { const b = Math.abs(Math.sin(s.o[0] * 0.35)); setMix(o.albedo, C("#f6eee6"), C("#f0703c"), sst(0.4, 0.9, b)); o.rough = 0.3; o.coat = 0.5; o.mfp[0] = 1.5; o.mfp[1] = 1; o.mfp[2] = 0.8; } : (s, o) => { crust({ bake: 0.2, blisters: 0, dough: "#f6d66a", seed })(s, o); if (s.n[1] < 0.6) { const l = Math.abs(Math.sin(s.o[1] * 1.6)); mixInto(o.albedo, C("#f4dc7a"), l * 0.4); } };
+  const topS: SurfaceFn = topping === "salmon" ? fishFlesh({ colour: "#f07a45", fat: "#fbe3d0", bands: 6, seed }) : topping === "tuna" ? fishFlesh({ colour: "#a1202c", tuna: true, seed }) : topping === "sea-bream" ? fishFlesh({ colour: "#f1e3dc", fat: "#f2b8b0", bands: 6, seed }) : topping === "eel" ? glazeMeat({ colour: "#4a2414", char: 0.3, seed, sesame: 0.3 }) : topping === "shrimp" ? (s, o) => { const b = Math.abs(Math.sin(s.o[0] * 0.35)); setMix(o.albedo, C("#f6eee6"), C("#f0703c"), sst(0.4, 0.9, b)); o.rough = 0.3; o.coat = 0.5; o.mfp[0] = 1.5; o.mfp[1] = 1; o.mfp[2] = 0.8; } : (s, o) => { crust({ bake: 0.2, blisters: 0, dough: "#f6d66a", seed })(s, o); if (s.n[1] < 0.6) { const l = Math.abs(Math.sin(s.o[1] * 1.6)); mixInto(o.albedo, C("#f4dc7a"), l * 0.4); } };
   out.push(part(topping, transform(top, { ry: turn, at: [at[0], at[1] + 17, at[2]] }), topS));
   if (topping === "tamago" || topping === "eel") out.push(part("nori", transform(slab({ outline: t => 1 / Math.pow(Math.pow(Math.abs(Math.cos(t)) / 6, 6) + Math.pow(Math.abs(Math.sin(t)) / 17, 6), 1 / 6), top: () => 30, bottom: 0, bevel: 0.6, nu: 48, nv: 24 }), { ry: turn, at: [at[0], at[1] - 0.4, at[2]] }), nori()));
-  return out;
+  return grouped(out);
 }
 /** Maki slices: a nori ring round rice and a coloured filling, cut faces up. */
 export function makiSlices(n: number, at: V3, filling: string, turn = 0, seed = 1): Part[] {
@@ -452,7 +548,7 @@ export function skewer(len: number, pieces: number, pieceSize: number, surface: 
   const pieceM = transform(merge(ms), pl), stick = transform(stickM, pl);
   let minY = Infinity; for (let i = 1; i < pieceM.pos.length; i += 3) minY = Math.min(minY, pieceM.pos[i]);
   for (const m of [pieceM, stick]) for (let i = 1; i < m.pos.length; i += 3) m.pos[i] += at[1] - minY;
-  return [part("pieces", pieceM, surface), part("skewer", stick, (s, o) => { setMix(o.albedo, C("#d9bf8c"), C("#5a3a1a"), sst(0.3, 0.9, fbm3(seed, s.o[0] / 6, s.o[1], s.o[2], 2) + (Math.abs(s.o[0]) > len * 0.38 ? 0 : 0.3))); o.rough = 0.6; o.height = fbm3(seed + 1, s.o[0] / 0.3, s.o[1] * 4, s.o[2] * 4, 2) * 0.03; })];
+  return grouped([part("pieces", pieceM, surface), part("skewer", stick, (s, o) => { setMix(o.albedo, C("#d9bf8c"), C("#5a3a1a"), sst(0.3, 0.9, fbm3(seed, s.o[0] / 6, s.o[1], s.o[2], 2) + (Math.abs(s.o[0]) > len * 0.38 ? 0 : 0.3))); o.rough = 0.6; o.height = fbm3(seed + 1, s.o[0] / 0.3, s.o[1] * 4, s.o[2] * 4, 2) * 0.03; })]);
 }
 /** A taco: a folded corn tortilla shell holding fillings, standing on its fold. */
 export function taco(at: V3, filling: SurfaceFn, turn = 0, seed = 1): Part[] {
@@ -461,17 +557,17 @@ export function taco(at: V3, filling: SurfaceFn, turn = 0, seed = 1): Part[] {
   const fill = displace(transform(ellipsoid(R * 0.75, R * 0.22, R * 0.2, 40, 20), { at: [0, R * 0.28, 0] }), o => fbm3(seed, o[0] / 6, o[1] / 6, o[2] / 6, 3) * 5);
   const pl: Placement = { ry: turn, at };
   const tort: SurfaceFn = (s, o) => { crust({ bake: 0.3, blisters: 0, seed, dough: "#e9cf86" })(s, o); const d = worley(seed + 2, s.o[0] / 7, s.o[2] / 7, 1); if (d.f1 < 0.2 && d.id > 0.5) mixInto(o.albedo, C("#3a2310"), (1 - d.f1 / 0.2) * 0.7); };
-  return [part("tortilla", transform(shell, pl), tort), part("filling", transform(fill, pl), filling)];
+  return grouped([part("tortilla", transform(shell, pl), tort), part("filling", transform(fill, pl), filling)]);
 }
 /** A stack of discs (burger, pancakes, mille-crêpe): each `[radius, height, surface, bulge]` from the bottom. */
 export function stack(layers: readonly (readonly [number, number, SurfaceFn, number?])[], at: V3, seed = 1): Part[] {
   let y = at[1];
-  return layers.map(([R, h, s, bulge], i) => {
+  return grouped(layers.map(([R, h, s, bulge], i) => {
     const m = slab({ outline: t => R * (1 + 0.025 * Math.sin(t * 3 + i + seed) + (bulge ?? 0) * 0.08 * fbm(seed + i, Math.cos(t) * 2, Math.sin(t) * 2, 2)), top: (x, z) => h * (1 + (bulge ?? 0) * (1 - (Math.hypot(x, z) / R) ** 2)), bevel: Math.min(h * 0.45, 5), nu: 96, nv: 32 });
     const p = part(`layer ${i}`, transform(m, { at: [at[0], y, at[2]] }), s);
     y += h * (1 + (bulge ?? 0)) - 0.6;
     return p;
-  });
+  }));
 }
 
 // ---- Bowls -------------------------------------------------------------------------------------------------------------------------

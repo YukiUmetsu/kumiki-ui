@@ -5,15 +5,19 @@
  * Every builder is seeded, so a fruit's asymmetry, a bruise or the lean of a stem is the same every time, and
  * different seeds give different, natural-looking individuals.
  */
-import { blade, displace, ellipsoid, lathe, merge, reseed, rng, slab, sweep, transform, warp } from "./food-mesh";
+import { blade, displace, ellipsoid, emptyMesh, lathe, merge, reseed, rng, slab, sweep, transform, warp } from "./food-mesh";
 import type { Mesh, Placement, V3 } from "./food-mesh";
 import type { Part, SurfaceFn } from "./food-scene";
-import { dewOn, profile } from "./food-stage";
+import { RestingSurface, dewOn, profile } from "./food-stage";
+import type { Vessel } from "./food-stage";
 import { cutFace, leaf, paperSkin, skin, stalk } from "./food-surfaces";
 import type { CutSpec, SkinSpec } from "./food-surfaces";
 import { fbm3 } from "../anatomy/foundation-raster";
 
 export const part = (name: string, mesh: Mesh, surface: SurfaceFn, o: Partial<Part> = {}): Part => ({ name, mesh, surface, ...o });
+let groupIds = 0;
+/** Mark parts as one piece (they settle together). */
+export const grouped = (parts: Part[]): Part[] => { const g = ++groupIds; return parts.map(p => ({ ...p, group: g })); };
 
 // ---- Fruit silhouettes (radius 1 = half the widest width; y from the resting point) ---------------------------------------------
 
@@ -59,8 +63,9 @@ export const shapeTop = (s: FruitShape) => SHAPES[s][SHAPES[s].length - 1][1];
 export const shapeHeight = (s: FruitShape) => Math.max(...SHAPES[s].map(p => p[1])) - Math.min(...SHAPES[s].map(p => p[1]));
 
 export interface BodyOptions {
-  /** Lobes or ribs round the fruit: count and depth (tomato 5–8, pumpkin 10–14, garlic cloves 8). */
-  ribs?: number; ribDepth?: number;
+  /** Lobes or ribs round the fruit: count and depth (tomato 5–8, pumpkin 10–14, garlic cloves 8), deepest mid-body
+   *  (`"middle"`) or at the shoulders and the base (`"ends"`, bell peppers). */
+  ribs?: number; ribDepth?: number; ribProfile?: "middle" | "ends";
   /** A suture crease down one side (peaches, plums, cherries, mangoes) 0…1. */
   suture?: number;
   /** Natural asymmetry, mm. */
@@ -81,7 +86,7 @@ export function fruitBody(shape: FruitShape, R: number, o: BodyOptions = {}): Me
     nu: o.nu ?? 72, nv: o.nv ?? 56, squash: o.squash,
     modulate: (th, v) => {
       let k = 1;
-      if (ribs) k *= 1 - rd * (1 - Math.pow(Math.abs(Math.cos((th * ribs) / 2)), 0.6)) * Math.sin(Math.min(1, v * 1.1) * Math.PI);
+      if (ribs) k *= 1 - rd * (1 - Math.pow(Math.abs(Math.cos((th * ribs) / 2)), 0.6)) * (o.ribProfile === "ends" ? 0.35 + 0.65 * Math.max(Math.exp(-((v - 0.08) ** 2) / 0.012), Math.exp(-((v - 0.85) ** 2) / 0.02)) : Math.sin(Math.min(1, v * 1.1) * Math.PI));
       if (sut) { const d = Math.atan2(Math.sin(th), Math.cos(th)); k *= 1 - sut * 0.05 * Math.exp(-(d * d) / 0.02) * Math.sin(v * Math.PI); }
       return k;
     },
@@ -127,6 +132,8 @@ export function calyx(n: number, len: number, width: number, top: number, droop 
 
 export interface FruitSpec {
   shape: FruitShape; R: number; skin: SkinSpec; body?: BodyOptions;
+  /** A surface to use instead of `skin` (a MATL1 food texture: `citrusPeel`, `tomatoSkin`, `pepperSkin` …). */
+  surface?: SurfaceFn;
   stem?: { len: number; thick: number; colour?: string; green?: string; curl?: number } | null;
   leaves?: { count: number; len: number; colour?: string; shape?: "oval" | "lance" | "heart" | "round" } | null;
   calyx?: { n: number; len: number; width: number; colour?: string; droop?: number; rise?: number; dried?: boolean } | null;
@@ -148,7 +155,7 @@ export function fruit(sp: FruitSpec): Part[] {
   let dy = 0;
   if (sp.lie) { let minY = Infinity; for (let i = 1; i < bodyM.pos.length; i += 3) minY = Math.min(minY, bodyM.pos[i]); dy = (sp.at?.[1] ?? 0) - minY; for (let i = 1; i < bodyM.pos.length; i += 3) bodyM.pos[i] += dy; }
   const attach = (m: Mesh) => { const mm = transform(m, pl); for (let i = 1; i < mm.pos.length; i += 3) mm.pos[i] += dy; return mm; };
-  const skinFn = skin({ ...sp.skin, seed: (sp.skin.seed ?? 0) + seed });
+  const skinFn = sp.surface ?? skin({ ...sp.skin, seed: (sp.skin.seed ?? 0) + seed });
   out.push(part(`${sp.shape}`, bodyM, sp.achenes ? achenes(skinFn) : skinFn, { k: {} }));
   if (sp.stem) out.push(part("stem", attach(stem(top, sp.stem.len, sp.stem.thick, seed + 3, sp.stem.curl ?? 0.3)), stalk(sp.stem.colour, sp.stem.green)));
   if (sp.calyx) out.push(part("calyx", attach(calyx(sp.calyx.n, sp.calyx.len, sp.calyx.width, top - 0.5, sp.calyx.droop ?? 0.4, seed + 5, sp.calyx.rise ?? 0)), sp.calyx.dried ? stalk("#5b4a2c", "#6e6a3a") : leaf(sp.calyx.colour ?? "#4d7a2a", { veins: 2, gloss: 0.3 })));
@@ -157,7 +164,7 @@ export function fruit(sp: FruitSpec): Part[] {
     out.push(part("leaf", attach(transform(lm, { rz: 10 + r() * 25, ry: i * 140 + r() * 40, at: [0, top + (sp.stem?.len ?? 4) * 0.5, 0] })), leaf(sp.leaves.colour ?? "#4a7a2c", { seed: seed + i })));
   }
   if (sp.dew) out.push(dewOn(bodyM, sp.dew, seed + 17));
-  return out;
+  return grouped(out);
 }
 /** Strawberry achenes: little yellow seeds in pits over a skin surface. */
 function achenes(under: SurfaceFn): SurfaceFn {
@@ -169,7 +176,7 @@ function achenes(under: SurfaceFn): SurfaceFn {
 }
 
 /** Half of a fruit cut across its axis, lying cut-face up: a lower shell and the cut face (`cutFace`). */
-export function halfFruit(shape: FruitShape, R: number, skinSp: SkinSpec, cut: Omit<CutSpec, "radius">, o: { at?: V3; turn?: number; tilt?: number; seed?: number; cutAt?: number } = {}): Part[] {
+export function halfFruit(shape: FruitShape, R: number, skinSp: SkinSpec, cut: Omit<CutSpec, "radius">, o: { at?: V3; turn?: number; tilt?: number; seed?: number; cutAt?: number; surface?: SurfaceFn } = {}): Part[] {
   const prof = shapeProfile(shape), seed = o.seed ?? 1, H = shapeHeight(shape), yc = (o.cutAt ?? 0.5) * H;
   // the shell below the cut
   let vCut = 0;
@@ -177,7 +184,7 @@ export function halfFruit(shape: FruitShape, R: number, skinSp: SkinSpec, cut: O
   const shell = lathe(v => { const [r, y] = prof(v * vCut); return [r * R, y * R]; }, { nu: 72, nv: 36 });
   const rc = prof(vCut)[0] * R * 0.985, face = slab({ outline: t => rc * (1 + 0.01 * Math.sin(t * 3 + seed)), top: (x, z) => yc * R + 0.3 * Math.pow(Math.hypot(x, z) / rc, 2), bottom: yc * R - 1, bevel: 0.6, nu: 72, nv: 30, noSide: true });
   const pl: Placement = { rx: o.tilt ?? 0, ry: o.turn ?? 0, at: o.at ?? [0, 0, 0] };
-  return [part("half", transform(shell, pl), skin({ ...skinSp, seed: seed + (skinSp.seed ?? 0) })), part("cut face", transform(face, pl), cutFace({ ...cut, radius: rc, seed }))];
+  return grouped([part("half", transform(shell, pl), o.surface ?? skin({ ...skinSp, seed: seed + (skinSp.seed ?? 0) })), part("cut face", transform(face, pl), cutFace({ ...cut, radius: rc, seed }))]);
 }
 
 /** Round slices (lemon wheels, tomato, cucumber coins, kiwi): `n` overlapping discs fanned along a line. */
@@ -208,25 +215,36 @@ export function grapeBunch(colour: SkinSpec, berryR = 9, count = 34, seed = 1, a
   const bm = transform(merge(berries), pl), sm = transform(merge(stalks), pl);
   let minY = Infinity; for (let i = 1; i < bm.pos.length; i += 3) minY = Math.min(minY, bm.pos[i]);
   for (const m of [bm, sm]) for (let i = 1; i < m.pos.length; i += 3) m.pos[i] += at[1] - minY;
-  return [part("grapes", bm, skin({ ...colour, seed })), part("stalk", sm, stalk("#6a5a34", "#7d7f3e"))];
+  return grouped([part("grapes", bm, skin({ ...colour, seed })), part("stalk", sm, stalk("#6a5a34", "#7d7f3e"))]);
 }
 
-/** Small round things heaped in a vessel or on a board (berries, cherries, olives, nuts, dumplings): packed in layers. */
-export function heap(make: (i: number, r: () => number) => Mesh, count: number, pieceR: number, areaR: number, baseY: number, seed = 1, layers = 3): Mesh {
-  const r = rng(seed), out: Mesh[] = [], placed: V3[] = [];
-  for (let L = 0; L < layers && out.length < count; L++) {
-    const ringR = areaR * (1 - L * 0.32);
-    let tries = 0;
-    while (out.length < count && tries++ < 600) {
-      const a = r() * Math.PI * 2, d = Math.sqrt(r()) * ringR, x = Math.cos(a) * d, z = Math.sin(a) * d;
-      // rest on whatever is below: the floor or a lower piece
-      let y = baseY;
-      for (const p of placed) { const hd = Math.hypot(p[0] - x, p[2] - z); if (hd < pieceR * 1.9) y = Math.max(y, p[1] + Math.sqrt(Math.max(0, (pieceR * 1.9) ** 2 - hd * hd)) - pieceR * 0.2); }
-      if (L === 0 ? y > baseY + 0.1 : y < baseY + pieceR * 0.8) continue;
-      if (placed.some(p => Math.hypot(p[0] - x, p[1] - y, p[2] - z) < pieceR * 1.75)) continue;
-      placed.push([x, y, z]);
-      out.push(reseed(transform(make(out.length, r), { ry: r() * 360, rx: (r() - 0.5) * 30, at: [x, y, z] }), [out.length * 37, 0, out.length * 11]));
+/**
+ * Small things heaped in a vessel or on a board (berries, olives, nuts, dumplings, potatoes): each piece is dropped
+ * from above, at a spot within `areaR` of the centre, onto the floor and the pieces already there, and kept inside
+ * the vessel's wall (`settle`'s resting surface).
+ */
+export function heap(make: (i: number, r: () => number) => Mesh, count: number, pieceR: number, areaR: number, baseY: number, seed = 1, v: Vessel | null = null): Mesh {
+  const r = rng(seed), out: Mesh[] = [], field = new RestingSurface(v ?? { parts: [], floorY: baseY, rimY: baseY, rimR: areaR + pieceR * 2, innerR: () => areaR + pieceR * 2, frame: 0 }, (v ? v.rimR : areaR) * 1.2 + 120, 1.2);
+  for (let i = 0; i < count; i++) {
+    const piece = reseed(transform(make(i, r), { ry: r() * 360, rx: (r() - 0.5) * 30 }), [i * 37, 0, i * 11]);
+    // dropped at a few spots, it rolls to the lowest it can reach (no towers)
+    let best: Mesh | null = null, bestY = Infinity;
+    for (let t = 0; t < 8; t++) {
+      const a = r() * Math.PI * 2, d = Math.sqrt(r()) * areaR;
+      let m = transform(piece, { at: [Math.cos(a) * d, baseY + 200, Math.sin(a) * d] });
+      for (let k = 0; k < 5; k++) {
+        const e = field.outside(m);
+        if (e > 0) { let cx = 0, cz = 0; for (let q = 0; q < m.pos.length; q += 3) { cx += m.pos[q]; cz += m.pos[q + 2]; } const n = m.pos.length / 3, dd = Math.hypot(cx / n, cz / n) || 1; m = transform(m, { at: [(-cx / n / dd) * (e + 0.3), 0, (-cz / n / dd) * (e + 0.3)] }); }
+        m = transform(m, { at: [0, field.lift(m), 0] });
+        if (field.outside(m) <= 0) break;
+      }
+      let cy = 0; for (let q = 1; q < m.pos.length; q += 3) cy += m.pos[q];
+      cy /= m.pos.length / 3;
+      if (field.outside(m) <= 0.5 && cy < bestY) { bestY = cy; best = m; }
     }
+    const m = best ?? transform(piece, { at: [0, field.lift(piece), 0] });
+    field.add(m);
+    out.push(m);
   }
   return merge(out);
 }
@@ -240,7 +258,7 @@ export function banana(len = 190, R = 18, seed = 1, at: V3 = [0, 0, 0], turn = 0
   const neck = sweep([[len / 2 - 4, R * 2.5, -len * 0.02], [len / 2 + 10, R * 3.2, -len * 0.04], [len / 2 + 18, R * 3.4, -len * 0.05]], { radius: () => R * 0.28, nu: 10, nv: 8 });
   const pl: Placement = { ry: turn, at };
   const sk = skin({ base: ripeness > 0.5 ? "#e9c53a" : "#b9c24a", blush: "#8f9a2f", blushAmount: 1 - ripeness, speckle: ripeness, speckleColour: "#4a3216", rough: 0.42, wax: 0.25, bruise: ripeness * 0.3, seed });
-  return [part("banana", transform(body, pl), sk), part("stalk", transform(neck, pl), stalk("#6b6430", "#8c9a3a"))];
+  return grouped([part("banana", transform(body, pl), sk), part("stalk", transform(neck, pl), stalk("#6b6430", "#8c9a3a"))]);
 }
 
 /** A tapered root (carrot, parsnip, daikon, radish tail) along +X with feathery or leafy tops. */
@@ -248,6 +266,10 @@ export function taperRoot(len: number, R: number, skinFn: SurfaceFn, seed = 1, a
   const r = rng(seed), bend = (r() - 0.5) * len * 0.12;
   const body = sweep([[0, R, 0], [len * 0.35, R * 0.8, bend * 0.5], [len * 0.7, R * 0.5, bend], [len, R * 0.25, bend * 1.4]], { radius: t => R * Math.pow(Math.max(0, 1 - t), 0.7) * (t < 0.04 ? 0.6 + t * 10 : 1) + 0.3, nu: 22, nv: 50 });
   const out: Part[] = [part("root", transform(body, { ry: turn, at }), skinFn, { k: { tipAt: 0.85 } })];
+  // fine lateral root hairs in rows along the root
+  const hairs: Mesh[] = [];
+  for (let i = 0; i < 46; i++) { const t = 0.12 + r() * 0.8, a = r() * Math.PI * 2, x = len * t, rad = R * Math.pow(Math.max(0, 1 - t), 0.7) + 0.3, cz = bend * Math.min(1, t * 1.4), cy = R * (1 - 0.75 * t), l = 2.5 + r() * 5; hairs.push(sweep([[x, cy + Math.sin(a) * rad * 0.95, cz + Math.cos(a) * rad * 0.95], [x + l * 0.5, cy + Math.sin(a) * (rad + l * 0.6), cz + Math.cos(a) * (rad + l * 0.6)], [x + l, cy + Math.sin(a) * (rad + l) - l * 0.3, cz + Math.cos(a) * (rad + l)]], { radius: q => 0.22 * (1 - q * 0.7), nu: 4, nv: 4 })); }
+  out.push(part("root hairs", transform(merge(hairs), { ry: turn, at }), stalk("#d9b48a", "#c8a07a")));
   if (tops !== "none") {
     const stalks: Mesh[] = [], leaves: Mesh[] = [];
     for (let i = 0; i < 7; i++) {
@@ -259,7 +281,7 @@ export function taperRoot(len: number, R: number, skinFn: SurfaceFn, seed = 1, a
     out.push(part("tops", transform(merge(stalks), { ry: turn, at }), stalk("#5d7a2c", "#6d8f34")));
     out.push(part("leaves", transform(merge(leaves), { ry: turn, at }), leaf("#4f7f2d", { veins: 3, seed })));
   }
-  return out;
+  return grouped(out);
 }
 
 /** A pepper or chilli: a sweep with three or four lobes, a green calyx and stalk. */
@@ -268,7 +290,7 @@ export function chilli(len: number, R: number, colour: string, seed = 1, at: V3 
   const body = sweep([[0, R, 0], [len * 0.4, R * 0.95, c * 0.3], [len * 0.8, R * 0.8 + c * 0.2, c * 0.9], [len, R * 0.6 + c * 0.35, c * 1.3]], { radius: (t, th) => R * Math.pow(Math.max(0, 1 - t), 0.55) * (1 - 0.08 * Math.pow(Math.abs(Math.sin((th * lobes) / 2)), 2)) * (t < 0.05 ? 0.7 + t * 6 : 1) + 0.2, nu: 24, nv: 40 });
   const cap = sweep([[2, R, 0], [-4, R * 1.05, 0], [-10 - r() * 6, R * 1.4, (r() - 0.5) * 6]], { radius: t => (t < 0.3 ? R * 0.75 * (1 - t) : R * 0.2), nu: 12, nv: 10 });
   const pl: Placement = { ry: turn, at };
-  return [part("chilli", transform(body, pl), skin({ base: colour, rough: 0.12, wax: 0.9, seed, trans: 0.45, scatter: 0.2 })), part("calyx", transform(cap, pl), stalk("#4e6a24", "#6b8a30"))];
+  return grouped([part("chilli", transform(body, pl), skin({ base: colour, rough: 0.12, wax: 0.9, seed, trans: 0.45, scatter: 0.2 })), part("calyx", transform(cap, pl), stalk("#4e6a24", "#6b8a30"))]);
 }
 
 /** A bulb of garlic or an onion with its papery skin, roots and a dry neck. */
@@ -279,7 +301,7 @@ export function bulb(kind: "onion" | "red-onion" | "garlic" | "shallot", R: numb
   for (let i = 0; i < 14; i++) { const a = r() * Math.PI * 2, l = R * (0.2 + r() * 0.25); roots.push(sweep([[0, R * 0.04, 0], [Math.cos(a) * l * 0.5, -0.5, Math.sin(a) * l * 0.5], [Math.cos(a) * l, 0.3, Math.sin(a) * l]], { radius: () => 0.35, nu: 4, nv: 5 })); }
   const pl: Placement = { rz: lie, at };
   const colour = kind === "red-onion" ? "#7a2a3c" : kind === "garlic" ? "#e9dfcf" : kind === "shallot" ? "#a8604a" : "#b9773f";
-  return [part(kind, transform(body, pl), paperSkin(colour, seed)), part("neck", transform(stem(top, R * 0.5, R * 0.1, seed, 0.6), pl), paperSkin(colour, seed + 1)), part("roots", transform(merge(roots), pl), stalk("#c8b490", "#a89870"))];
+  return grouped([part(kind, transform(body, pl), paperSkin(colour, seed)), part("neck", transform(stem(top, R * 0.5, R * 0.1, seed, 0.6), pl), paperSkin(colour, seed + 1)), part("roots", transform(merge(roots), pl), stalk("#c8b490", "#a89870"))]);
 }
 
 /** A mushroom: cap and stem, gills below the cap (button, porcini, shiitake, chanterelle). */
@@ -318,7 +340,7 @@ export function herbSprig(kind: "basil" | "mint" | "parsley" | "cilantro" | "thy
 export function herbs(kind: Parameters<typeof herbSprig>[0], len: number, pl: Placement, seed = 1, colour?: string): Part[] {
   const { stem: s, leaves: l } = herbSprig(kind, len, seed);
   const c = colour ?? (kind === "basil" ? "#3e7a2a" : kind === "mint" ? "#4f8a3a" : kind === "rosemary" ? "#4a5f3a" : kind === "thyme" ? "#5a6e40" : kind === "bay" ? "#56693a" : kind === "shiso" ? "#4a7a30" : "#3f7d2c");
-  return [part(`${kind} stem`, transform(s, pl), stalk("#5d7a2c", "#6d8f34")), part(`${kind} leaves`, transform(l, pl), leaf(c, { veins: kind === "basil" ? 6 : 4, gloss: kind === "basil" || kind === "bay" ? 0.6 : 0.3, seed }))];
+  return grouped([part(`${kind} leaves`, transform(l, pl), leaf(c, { veins: kind === "basil" ? 6 : 4, gloss: kind === "basil" || kind === "bay" ? 0.6 : 0.3, seed })), part(`${kind} stem`, transform(s, pl), stalk("#5d7a2c", "#6d8f34"))]);
 }
 
 /** Scattered small garnish pieces (scallion rings, chopped herbs, chilli flakes, sesame, peppercorns) over a surface. */
@@ -339,4 +361,48 @@ export function sprinkle(kind: "scallion" | "herb-bits" | "chilli" | "sesame" | 
     ms.push(reseed(transform(m, { at: [x, y(x, z) + 0.4, z] }), [i * 13, 0, i * 5]));
   }
   return merge(ms);
+}
+
+// ---- Grains on a surface ------------------------------------------------------------------------------------------------------
+
+/**
+ * Grains (cooked rice) over a mesh: `count` grains about `len` × `wid` mm, each lying in the surface along a random
+ * direction, sunk about a third of its thickness, where `keep(objectPosition, normal)` allows. Sampled by area.
+ */
+export function grainCoat(m: Mesh, count: number, sp: { len?: number; wid?: number; seed?: number; keep?: (o: V3, n: V3) => boolean } = {}): Mesh {
+  const r = rng(sp.seed ?? 1), L = sp.len ?? 5.5, Wd = sp.wid ?? 2.8, tmpl = ellipsoid(L / 2, Wd * 0.46, Wd / 2, 10, 7);
+  const tris = m.tri.length / 3, cum = new Float64Array(tris);
+  let total = 0;
+  for (let t = 0; t < tris; t++) {
+    const a = m.tri[t * 3] * 3, b = m.tri[t * 3 + 1] * 3, c = m.tri[t * 3 + 2] * 3;
+    const ux = m.pos[b] - m.pos[a], uy = m.pos[b + 1] - m.pos[a + 1], uz = m.pos[b + 2] - m.pos[a + 2], vx = m.pos[c] - m.pos[a], vy = m.pos[c + 1] - m.pos[a + 1], vz = m.pos[c + 2] - m.pos[a + 2];
+    total += Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx) / 2; cum[t] = total;
+  }
+  const out = emptyMesh();
+  for (let g = 0, tries = 0; g < count && tries < count * 4; tries++) {
+    const pick = r() * total; let lo = 0, hi = tris - 1;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid] < pick) lo = mid + 1; else hi = mid; }
+    let b1 = r(), b2 = r(); if (b1 + b2 > 1) { b1 = 1 - b1; b2 = 1 - b2; }
+    const ia = m.tri[lo * 3] * 3, ib = m.tri[lo * 3 + 1] * 3, ic = m.tri[lo * 3 + 2] * 3, b0 = 1 - b1 - b2;
+    const at = (arr: number[], k: number) => arr[ia + k] * b0 + arr[ib + k] * b1 + arr[ic + k] * b2;
+    const p: V3 = [at(m.pos, 0), at(m.pos, 1), at(m.pos, 2)], o: V3 = [at(m.obj, 0), at(m.obj, 1), at(m.obj, 2)];
+    let n: V3 = [at(m.nrm, 0), at(m.nrm, 1), at(m.nrm, 2)]; const nl = Math.hypot(...n) || 1; n = [n[0] / nl, n[1] / nl, n[2] / nl];
+    if (sp.keep && !sp.keep(o, n)) continue;
+    // a frame in the surface: t along the grain, n out of the surface, b across
+    const q: V3 = [r() - 0.5, r() - 0.5, r() - 0.5], d = q[0] * n[0] + q[1] * n[1] + q[2] * n[2];
+    let t: V3 = [q[0] - n[0] * d, q[1] - n[1] * d, q[2] - n[2] * d]; const tl = Math.hypot(...t) || 1; t = [t[0] / tl, t[1] / tl, t[2] / tl];
+    const bb: V3 = [n[1] * t[2] - n[2] * t[1], n[2] * t[0] - n[0] * t[2], n[0] * t[1] - n[1] * t[0]], k = 0.85 + r() * 0.3, sink = Wd * 0.16, tiltK = (r() - 0.5) * 0.5;
+    const base = out.pos.length / 3;
+    for (let v = 0; v < tmpl.pos.length; v += 3) {
+      const gx = tmpl.pos[v] * k, gy = tmpl.pos[v + 1] * k + gx * tiltK, gz = tmpl.pos[v + 2] * k;
+      out.pos.push(p[0] + t[0] * gx + n[0] * (gy - sink) + bb[0] * gz, p[1] + t[1] * gx + n[1] * (gy - sink) + bb[1] * gz, p[2] + t[2] * gx + n[2] * (gy - sink) + bb[2] * gz);
+      const nx = tmpl.nrm[v], ny = tmpl.nrm[v + 1], nz = tmpl.nrm[v + 2];
+      out.nrm.push(t[0] * nx + n[0] * ny + bb[0] * nz, t[1] * nx + n[1] * ny + bb[1] * nz, t[2] * nx + n[2] * ny + bb[2] * nz);
+      out.obj.push(tmpl.obj[v] + g * 17, tmpl.obj[v + 1], tmpl.obj[v + 2] + g * 5);
+    }
+    for (let v = 0; v < tmpl.uv.length; v++) out.uv.push(tmpl.uv[v]);
+    for (const ti of tmpl.tri) out.tri.push(ti + base);
+    g++;
+  }
+  return out;
 }

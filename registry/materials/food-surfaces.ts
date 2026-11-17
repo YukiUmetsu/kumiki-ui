@@ -11,6 +11,8 @@
 import { fbm, fbm3, gradNoise3, linearOf, worley, worley3 } from "../anatomy/foundation-raster";
 import type { RGB3 } from "../anatomy/foundation-raster";
 import { crustColour } from "./food-physics";
+import { agedCheeseSolid, beefSolid, citrusSolid, crumbSolid, fishScaleSolid, gratinSolid, mushroomCapSolid, pepperSolid, potatoSolid, poultrySolid, riceSolid, salmonSolid, searSolid, tomatoSolid, tunaSolid } from "./food-textures";
+import type { BeefSpec, FoodSolid } from "./food-textures";
 import type { V3 } from "./food-mesh";
 import type { Sample, Surface, SurfaceFn } from "./food-scene";
 
@@ -39,6 +41,18 @@ export const MFP = {
   wholemilk: mfpOf([2.55, 3.21, 3.77], [0.0011, 0.0024, 0.014]),
   skimmilk: mfpOf([0.7, 1.22, 1.9], [0.0014, 0.0025, 0.0142]),
 } as const;
+export interface FoodOptics { mfp?: readonly number[]; scatter?: number; coat?: number; coatRough?: number; sheen?: number; sheenTint?: V3; trans?: number; spec?: number }
+/** A surface from a MATL1 food texture (`food-textures.ts`): albedo, relief and roughness from the texture at the
+ *  object position, the light transport (mean free path, clear coat, sheen, translucency) from the food. */
+export function fromSolid(tex: FoodSolid, op: FoodOptics = {}): SurfaceFn {
+  return (s, o) => {
+    const t = tex(s.o[0], s.o[1], s.o[2]);
+    o.albedo[0] = t.a[0]; o.albedo[1] = t.a[1]; o.albedo[2] = t.a[2]; o.height = t.h; o.rough = t.r; o.spec = op.spec ?? 0.035;
+    if (op.mfp) { const k = op.scatter ?? 1; o.mfp[0] = op.mfp[0] * k; o.mfp[1] = op.mfp[1] * k; o.mfp[2] = op.mfp[2] * k; }
+    o.coat = op.coat ?? 0; o.coatRough = op.coatRough ?? 0.08; o.trans = op.trans ?? 0;
+    if (op.sheen) { o.sheen = op.sheen; if (op.sheenTint) { o.sheenTint[0] = op.sheenTint[0]; o.sheenTint[1] = op.sheenTint[1]; o.sheenTint[2] = op.sheenTint[2]; } }
+  };
+}
 /** A mean free path scaled down (food skins scatter less far than the bulk measurements' slabs show on screen). */
 const mfpK = (m: readonly number[], k: number, out: V3) => setV(out, m[0] * k, m[1] * k, m[2] * k);
 
@@ -390,19 +404,17 @@ export function crust(sp: CrustSpec): SurfaceFn {
 export interface CrumbSpec { colour?: string; open?: number; gloss?: number; crustColour?: string; crustWidth?: number; outline?: (p: V3) => number; seed?: number; swirl?: string }
 /** A cut crumb face: irregular alveoli (an open sourdough crumb or a tight sandwich crumb), glossy hole walls. */
 export function crumb(sp: CrumbSpec = {}): SurfaceFn {
-  const c = C(sp.colour ?? "#ead7b0"), crustC = C(sp.crustColour ?? "#7a4520"), seed = sp.seed ?? 59, open = sp.open ?? 0.5, sw = sp.swirl ? C(sp.swirl) : null;
+  const crustC = C(sp.crustColour ?? "#7a4520"), seed = sp.seed ?? 59, sw = sp.swirl ? C(sp.swirl) : null, tex = crumbSolid({ open: sp.open, colour: sp.colour, seed });
   return (s, o) => {
-    const p = s.o, cell = worley3(seed, p[0] / (1.2 + open * 2.6), p[1] / (1.2 + open * 2.6) * 1.15, p[2] / (1.2 + open * 2.6)), size = 0.1 + 0.32 * open * (0.4 + cell.id);
-    const hole = 1 - sst(size - 0.06, size + 0.03, cell.f1), small = worley3(seed + 1, p[0] / 0.7, p[1] / 0.7, p[2] / 0.7), pin = 1 - sst(0.18, 0.26, small.f1);
-    setC(o.albedo, c);
-    scaleInto(o.albedo, 0.95 + 0.1 * fbm3(seed + 2, p[0] / 3, p[1] / 3, p[2] / 3, 2));
+    const p = s.o, t = tex(p[0], p[1], p[2]);
+    setC(o.albedo, t.a);
     if (sw) { const ang = Math.atan2(p[1], p[0]), rr = Math.hypot(p[0], p[1]); mixInto(o.albedo, sw, sst(0.75, 0.95, Math.sin(rr * 0.55 - ang) * 0.5 + 0.5) * 0.8); }
-    // inside a hole: deeper and shadowed, the far wall glossy (gelatinised starch)
-    const depth = Math.max(hole, pin * 0.6);
-    scaleInto(o.albedo, 1 - depth * 0.42);
-    o.height = -depth * (0.6 + open * 1.2) + fbm3(seed + 3, p[0] / 0.35, p[1] / 0.35, p[2] / 0.35, 2) * 0.05;
-    o.rough = 0.75 - hole * 0.4 * (sp.gloss ?? 0.6); o.spec = 0.035; o.occl = 1 - depth * 0.3; mfpK(MFP.potato, 0.3, o.mfp);
-    if (sp.outline) { const e = sp.outline(p); if (e < (sp.crustWidth ?? 3)) { setC(o.albedo, crustC); o.height = 0; o.rough = 0.6; } }
+    o.height = t.h; o.rough = t.r + (1 - (sp.gloss ?? 0.6)) * 0.1; o.spec = 0.035; mfpK(MFP.potato, 0.3, o.mfp);
+    if (sp.outline) {
+      // the crust round a slice: dark, thin, a little ragged where the knife tore it
+      const e = sp.outline(p) + fbm3(seed + 9, p[0] / 3, p[1] / 3, p[2] / 3, 2) * 0.8, w = sp.crustWidth ?? 3;
+      if (e < w) { const k = 1 - sst(w * 0.6, w, e); mixInto(o.albedo, crustC, k); scaleInto(o.albedo, 1 - 0.15 * (1 - sst(0, w * 0.4, e))); o.height = k * 0.1; o.rough = 0.6; }
+    }
   };
 }
 /** Laminated pastry (croissants): flaky layers in the arms, a glossy egg-washed top, darker on the ridges. */
@@ -459,14 +471,15 @@ export function glazed(under: SurfaceFn, colour: string, amount = 0.8): SurfaceF
 export interface CheeseSpec { paste: string; rind?: string; holes?: number; veins?: number; crystals?: number; bloomy?: boolean; rindWidth?: number; wet?: number; seed?: number; outline?: (p: V3) => number }
 /** Cheese: paste with eyes (holes), blue veins, crunchy crystals; a natural, waxed or bloomy rind near the outline. */
 export function cheese(sp: CheeseSpec): SurfaceFn {
-  const pc = C(sp.paste), rc = C(sp.rind ?? sp.paste), blue = C("#4a5a5a"), cry = C("#fff8e4"), seed = sp.seed ?? 83;
+  const pc = C(sp.paste), rc = C(sp.rind ?? sp.paste), blue = C("#4a5a5a"), cry = C("#fff8e4"), seed = sp.seed ?? 83, aged = sp.crystals ? agedCheeseSolid({ paste: sp.paste, seed }) : null;
   return (s, o) => {
     const p = s.o; setC(o.albedo, pc);
     scaleInto(o.albedo, 0.95 + 0.08 * fbm3(seed, p[0] / 5, p[1] / 5, p[2] / 5, 3));
     let ht = 0;
+    if (aged) { const t = aged(p[0], p[1], p[2]); setC(o.albedo, t.a); ht = t.h; }
     if (sp.holes) { const d = worley3(seed + 1, p[0] / 9, p[1] / 9, p[2] / 9), r = 0.25 * sp.holes * (0.4 + d.id); if (d.f1 < r) { const k = d.f1 / r; ht -= Math.sqrt(1 - k * k) * 4; scaleInto(o.albedo, 0.78 + 0.2 * k); o.rough = 0.25; o.coat = 0.3; } }
     if (sp.veins) { const v = Math.abs(fbm3(seed + 2, p[0] / 6, p[1] / 6, p[2] / 6, 4)); if (v < 0.05 * sp.veins) { const sp2 = worley3(seed + 3, p[0] / 0.8, p[1] / 0.8, p[2] / 0.8); mixInto(o.albedo, blue, 0.75 * (1 - sst(0.2, 0.4, sp2.f1))); ht -= 0.15; } }
-    if (sp.crystals) { const d = worley3(seed + 4, p[0] / 2, p[1] / 2, p[2] / 2); if (d.f1 < 0.1 * sp.crystals) { mixInto(o.albedo, cry, 0.6); ht += 0.05; } }
+    if (sp.crystals && !aged) { const d = worley3(seed + 4, p[0] / 2, p[1] / 2, p[2] / 2); if (d.f1 < 0.1 * sp.crystals) { mixInto(o.albedo, cry, 0.6); ht += 0.05; } }
     o.rough = Math.min(o.rough, 0.55 - (sp.wet ?? 0) * 0.35); o.spec = 0.035; o.coat = Math.max(o.coat, (sp.wet ?? 0) * 0.6); mfpK(MFP.wholemilk, 0.12, o.mfp); o.trans = 0.15;
     if (sp.outline) {
       const e = sp.outline(p), rw = sp.rindWidth ?? 3;
@@ -478,16 +491,11 @@ export function cheese(sp: CheeseSpec): SurfaceFn {
 /** Bubbling, broiled cheese (gratin, pizza, French onion soup): melted paste, raised bubbles browned on their tops,
  *  oil glistening in micro-droplets, darker blistered edges. `browning` 0…1. */
 export function gratin(sp: { paste?: string; browning?: number; bubbles?: number; oil?: number; seed?: number; scale?: number } = {}): SurfaceFn {
-  const pc = C(sp.paste ?? "#f2d27a"), seed = sp.seed ?? 89, tmp: V3 = [0, 0, 0], k = sp.scale ?? 1;
+  const seed = sp.seed ?? 89, tex = gratinSolid({ paste: sp.paste, browning: sp.browning, bubbles: sp.bubbles, scale: sp.scale, seed });
   return (s, o) => {
-    const p = s.o, cell = worley3(seed, p[0] / (5.5 * k), p[1] / (5.5 * k), p[2] / (5.5 * k)), small = worley3(seed + 1, p[0] / 1.6, p[1] / 1.6, p[2] / 1.6);
-    const bub = Math.sqrt(Math.max(0, 1 - Math.min(1, cell.f1 / (0.5 + 0.3 * cell.id)))) * (sp.bubbles ?? 0.8), micro = Math.sqrt(Math.max(0, 1 - Math.min(1, small.f1 / 0.38)));
-    const br = sp.browning ?? 0.5, wash = 0.5 + 0.5 * fbm3(seed + 2, p[0] / 14, p[1] / 14, p[2] / 14, 3);
-    // golden all over where the heat reached, deeper in broad patches, scorched only on the tallest blisters
-    const b = clamp01(br * (0.35 + 0.5 * wash + 0.2 * bub) + (cell.id > 0.62 ? sst(0.75, 1, bub) * br * 0.45 : 0));
-    setC(tmp, crustColour(b * 0.95, pc)); setC(o.albedo, tmp);
-    o.height = bub * 1.4 + micro * 0.2; o.rough = 0.32 - (sp.oil ?? 0.6) * 0.15; o.spec = 0.04; o.coat = (sp.oil ?? 0.6) * (0.5 + 0.5 * micro); o.coatRough = 0.06;
-    mfpK(MFP.wholemilk, 0.1, o.mfp); o.occl = 0.75 + 0.25 * sst(0, 0.5, bub);
+    const p = s.o, t = tex(p[0], p[1], p[2]), micro = Math.sqrt(Math.max(0, 1 - Math.min(1, worley3(seed + 1, p[0] / 1.6, p[1] / 1.6, p[2] / 1.6).f1 / 0.38)));
+    setC(o.albedo, t.a); o.height = t.h; o.rough = 0.32 - (sp.oil ?? 0.6) * 0.15; o.spec = 0.04; o.coat = (sp.oil ?? 0.6) * (0.5 + 0.5 * micro); o.coatRough = 0.06;
+    mfpK(MFP.wholemilk, 0.1, o.mfp); o.occl = 0.75 + 0.25 * sst(0, 0.7, t.h);
   };
 }
 /** Butter: pale yellow, waxy, strong subsurface glow (a block or a curl melting). */
@@ -498,78 +506,66 @@ export function butter(seed = 97): SurfaceFn {
 
 // ---- Meat and fish -----------------------------------------------------------------------------------------------------------------
 
-/** Raw red meat: muscle grain along X, intramuscular fat marbling (0 lean … 1 wagyu), a wet surface. */
-export function rawMeat(sp: { colour?: string; fat?: string; marbling?: number; seed?: number; fatCap?: (p: V3) => number } = {}): SurfaceFn {
-  const m = C(sp.colour ?? "#9d2a2a"), f = C(sp.fat ?? "#f2e6d0"), seed = sp.seed ?? 101;
+/** Raw red meat (`beefSolid`): fascicles, marbling in the seams, a ribeye's regions, knife drag; a fat cap; wet. */
+export function rawMeat(sp: BeefSpec & { colour?: string; fatCap?: (p: V3) => number } = {}): SurfaceFn {
+  const f = C(sp.fat ?? "#f2e6d0"), tex = beefSolid({ ...sp, muscle: sp.colour ?? sp.muscle, seed: sp.seed ?? 101 });
   return (s, o) => {
-    const p = s.o, fib = fbm3(seed, p[0] / 9, p[1] / 0.5, p[2] / 0.5, 3), mb = fbm3(seed + 1, p[0] / 9 + fbm3(seed + 2, p[0] / 18, p[1] / 6, p[2] / 6, 2), p[1] / 3, p[2] / 3, 4);
-    setC(o.albedo, m); scaleInto(o.albedo, 0.85 + 0.2 * fib);
-    const fatT = sst(0.55 - (sp.marbling ?? 0.3) * 0.5, 0.65 - (sp.marbling ?? 0.3) * 0.5, mb) * Math.min(1, (sp.marbling ?? 0.3) * 2.5);
-    const cap = sp.fatCap ? sp.fatCap(p) : 0;
-    mixInto(o.albedo, f, Math.max(fatT, cap));
-    o.height = fib * 0.06 + fatT * 0.05; o.rough = 0.3; o.spec = 0.035; o.coat = 0.55; o.coatRough = 0.12; mfpK(MFP.chicken, 0.3, o.mfp); o.trans = 0.15;
+    const p = s.o, t = tex(p[0], p[1], p[2]), cap = sp.fatCap ? sp.fatCap(p) : 0;
+    setC(o.albedo, t.a); o.height = t.h; o.rough = t.r;
+    if (cap > 0) { mixInto(o.albedo, f, cap); o.rough = o.rough * (1 - cap) + 0.42 * cap; o.height += cap * 0.05; }
+    o.spec = 0.035; o.coat = 0.5 * (1 - cap); o.coatRough = 0.1; mfpK(MFP.chicken, 0.3, o.mfp); o.trans = 0.15;
   };
 }
-/** Roasted poultry skin: golden to mahogany by heat exposure, tight micro-blisters with rendered fat glistening. */
+/** Roasted poultry skin (`poultrySolid`): golden to mahogany, micro-blisters, rendered fat glistening, herbs. */
 export function roastSkin(sp: { bake?: number; seed?: number; herbs?: number } = {}): SurfaceFn {
-  const seed = sp.seed ?? 103, base = C("#e7c48a"), herb = C("#3d4a1e"), pep = C("#1f1712"), tmp: V3 = [0, 0, 0];
+  const seed = sp.seed ?? 103, tex = poultrySolid({ roast: sp.bake ?? 0.6, seed }), herb = C("#3d4a1e"), pep = C("#1f1712");
   return (s, o) => {
-    const p = s.o, up = s.n[1], big = fbm3(seed, p[0] / 14, p[1] / 14, p[2] / 14, 4), bl = worley3(seed + 1, p[0] / 1.15, p[1] / 1.15, p[2] / 1.15), blis = Math.sqrt(Math.max(0, 1 - Math.min(1, bl.f1 / 0.42)));
-    const b = clamp01((sp.bake ?? 0.6) * (0.72 + 0.35 * sst(-0.3, 0.8, up) + 0.22 * big + 0.12 * blis));
-    setC(tmp, crustColour(b, base)); setC(o.albedo, tmp);
-    // pores where the feathers were, on a 2–3 mm grid
-    const pore = worley3(seed + 2, p[0] / 2.6, p[1] / 2.6, p[2] / 2.6);
-    if (pore.f1 < 0.08) scaleInto(o.albedo, 0.75);
-    o.height = blis * 0.22 + big * 0.5 - (pore.f1 < 0.08 ? 0.05 : 0);
-    o.rough = 0.35; o.spec = 0.04; o.coat = 0.55 + 0.4 * blis; o.coatRough = 0.07; mfpK(MFP.chicken, 0.25, o.mfp);
+    const p = s.o, t = tex(p[0], p[1], p[2]), up = s.n[1];
+    setC(o.albedo, t.a); scaleInto(o.albedo, 0.9 + 0.12 * sst(-0.3, 0.8, up));
+    o.height = t.h; o.rough = t.r; o.spec = 0.04; o.coat = 0.55 + 0.35 * sst(0.25, 0.32, 0.34 - t.r); o.coatRough = 0.07; mfpK(MFP.chicken, 0.25, o.mfp);
     if (sp.herbs) { const d = worley3(seed + 3, p[0] / 3.2, p[1] / 3.2, p[2] / 3.2); if (d.f1 < 0.12 * sp.herbs && up > -0.2) { setC(o.albedo, d.id > 0.5 ? herb : pep); o.coat = 0.2; o.height += 0.1; } }
   };
 }
+/** Raw poultry skin (`poultrySolid`): pale, follicles in tracts, fat and flesh showing through, moist. */
+export const rawPoultry = (seed = 105): SurfaceFn => fromSolid(poultrySolid({ seed }), { mfp: MFP.chicken, scatter: 0.35, coat: 0.45, coatRough: 0.12, trans: 0.25 });
 /** Sticky braise or barbecue glaze over meat: deep mahogany lacquer, charred caramelised edges, sesame optional. */
 export function glazeMeat(sp: { colour?: string; char?: number; seed?: number; sesame?: number; fat?: (p: V3) => number } = {}): SurfaceFn {
-  const g = C(sp.colour ?? "#5a2412"), ch = C("#1d0d07"), ses = C("#efe0b4"), fatC = C("#e8c890"), seed = sp.seed ?? 107;
+  const g = C(sp.colour ?? "#5a2412"), ch = C("#1d0d07"), ses = C("#efe0b4"), fatC = C("#e8c890"), seed = sp.seed ?? 107, crustTex = searSolid({ bake: 0.8, base: sp.colour ?? "#5a2412", seed });
   return (s, o) => {
-    const p = s.o, n1 = fbm3(seed, p[0] / 6, p[1] / 6, p[2] / 6, 4), edge = sst(0.3, 1, 1 - Math.abs(s.n[1]));
-    setC(o.albedo, g); scaleInto(o.albedo, 0.8 + 0.35 * n1);
+    const p = s.o, n1 = fbm3(seed, p[0] / 6, p[1] / 6, p[2] / 6, 4), edge = sst(0.3, 1, 1 - Math.abs(s.n[1])), cr = crustTex(p[0], p[1], p[2]);
+    setC(o.albedo, g); scaleInto(o.albedo, 0.78 + 0.35 * n1);
     if (sp.fat) mixInto(o.albedo, fatC, sp.fat(p) * 0.7);
     const charA = clamp01((sp.char ?? 0.4) * sst(0.15, 0.6, n1 + edge * 0.5));
-    mixInto(o.albedo, ch, charA);
-    o.height = n1 * 0.5 + fbm3(seed + 1, p[0] / 1, p[1] / 1, p[2] / 1, 2) * 0.08; o.rough = 0.28; o.spec = 0.04; o.coat = 1 - charA * 0.6; o.coatRough = 0.035; mfpK(MFP.ketchup, 0.4, o.mfp);
+    mixInto(o.albedo, ch, charA * 0.8); mixInto(o.albedo, cr.a, charA * 0.3);
+    // the glaze is thick in the hollows, thin and bubbled on the high points
+    o.height = n1 * 0.5 + cr.h * 0.4 + fbm3(seed + 1, p[0] / 1, p[1] / 1, p[2] / 1, 2) * 0.06; o.rough = 0.26; o.spec = 0.04; o.coat = 1 - charA * 0.6; o.coatRough = 0.03 + 0.05 * sst(0, 0.5, n1); mfpK(MFP.ketchup, 0.4, o.mfp);
     if (sp.sesame) { const d = worley3(seed + 2, p[0] / 3, p[1] / 3, p[2] / 3, 0.9); if (d.f1 < 0.16 && d.id < sp.sesame) { setC(o.albedo, ses); o.coat = 0.4; o.height += 0.3; } }
   };
 }
-/** Seared or grilled surface: a browned crust with dark grill bars (`bars` mm apart, 0 none). */
+/** Seared or grilled surface (`searSolid`): a browned crust of fused beads, char on the peaks, grill bars `bars` mm apart. */
 export function seared(sp: { bake?: number; base?: string; bars?: number; barAngle?: number; seed?: number; gloss?: number } = {}): SurfaceFn {
-  const seed = sp.seed ?? 109, base = C(sp.base ?? "#b9805a"), tmp: V3 = [0, 0, 0], ang = ((sp.barAngle ?? 35) * Math.PI) / 180, ca = Math.cos(ang), sa = Math.sin(ang);
+  const seed = sp.seed ?? 109, ang = ((sp.barAngle ?? 35) * Math.PI) / 180, ca = Math.cos(ang), sa = Math.sin(ang), tex = searSolid({ bake: sp.bake ?? 0.6, base: sp.base ?? "#b9805a", seed });
   return (s, o) => {
-    const p = s.o, n1 = fbm3(seed, p[0] / 4, p[1] / 4, p[2] / 4, 4), up = s.n[1];
-    let b = clamp01((sp.bake ?? 0.6) * (0.75 + 0.3 * n1) * (0.6 + 0.4 * sst(-0.2, 0.7, Math.abs(up))));
-    if (sp.bars) { const t = (p[0] * ca + p[2] * sa) / sp.bars, bar = 1 - sst(0.08, 0.2, Math.abs(t - Math.round(t)) + fbm3(seed + 3, p[0] / 3, 0, p[2] / 3, 2) * 0.05); b = Math.max(b, bar * 0.97 * sst(0.3, 0.8, Math.abs(up))); }
-    setC(tmp, crustColour(b, base)); setC(o.albedo, tmp);
-    o.height = n1 * 0.3 + fbm3(seed + 1, p[0] / 0.8, p[1] / 0.8, p[2] / 0.8, 2) * 0.1; o.rough = 0.5 - (sp.gloss ?? 0.4) * 0.25; o.spec = 0.04; o.coat = (sp.gloss ?? 0.4) * 0.7; o.coatRough = 0.1; mfpK(MFP.chicken, 0.15, o.mfp);
+    const p = s.o, t = tex(p[0], p[1], p[2]), up = s.n[1];
+    setC(o.albedo, t.a); scaleInto(o.albedo, 0.85 + 0.15 * sst(-0.2, 0.7, Math.abs(up)));
+    if (sp.bars) { const tt = (p[0] * ca + p[2] * sa) / sp.bars, bar = 1 - sst(0.06, 0.18, Math.abs(tt - Math.round(tt)) + fbm3(seed + 3, p[0] / 3, 0, p[2] / 3, 2) * 0.05); if (bar > 0) { mixInto(o.albedo, crustColour(0.97, C("#4a2a16")), bar * sst(0.3, 0.8, Math.abs(up))); } }
+    o.height = t.h; o.rough = t.r - (sp.gloss ?? 0.4) * 0.15; o.spec = 0.04; o.coat = (sp.gloss ?? 0.4) * 0.7; o.coatRough = 0.1; mfpK(MFP.chicken, 0.15, o.mfp);
   };
 }
-/** Fish flesh: raw (salmon, tuna) or cooked (white, flaking): myotome bands with white fat lines, wet sheen. */
-export function fishFlesh(sp: { colour: string; fat?: string; bands?: number; cooked?: number; seed?: number }): SurfaceFn {
-  const c = C(sp.colour), f = C(sp.fat ?? "#f6efe6"), seed = sp.seed ?? 113;
-  return (s, o) => {
-    const p = s.o, chevron = (p[0] + Math.abs(p[2]) * 0.55 + fbm3(seed, p[0] / 12, p[1] / 12, p[2] / 12, 2) * 2) / (sp.bands ?? 7), line = 1 - sst(0.0, 0.09, Math.abs(chevron - Math.round(chevron)));
-    setC(o.albedo, c); scaleInto(o.albedo, 0.9 + 0.12 * fbm3(seed + 1, p[0] / 3, p[1] / 3, p[2] / 3, 2));
-    mixInto(o.albedo, f, line * 0.75);
-    const ck = sp.cooked ?? 0;
-    o.height = -line * (0.08 + ck * 0.4); o.rough = 0.22 + ck * 0.45; o.spec = 0.035; o.coat = 0.6 * (1 - ck); o.coatRough = 0.06; mfpK(MFP.chicken, 0.5 * (1 - ck * 0.7), o.mfp); o.trans = 0.3 * (1 - ck);
-  };
+/** Fish flesh: raw or cooked salmon, trout or white fish (`salmonSolid`: myomeres and septa), or tuna (`tunaSolid`). */
+export function fishFlesh(sp: { colour: string; fat?: string; bands?: number; cooked?: number; seed?: number; tuna?: boolean }): SurfaceFn {
+  const ck = sp.cooked ?? 0, tex = sp.tuna ? tunaSolid(sp.seed ?? 113) : salmonSolid({ colour: sp.colour, cooked: ck, spacing: sp.bands ?? 8, seed: sp.seed ?? 113 });
+  return fromSolid(tex, { mfp: MFP.chicken, scatter: 0.5 * (1 - ck * 0.7), coat: 0.6 * (1 - ck), coatRough: 0.06, trans: 0.3 * (1 - ck) });
 }
-/** Fish skin with scales: silver belly to dark back by `k.side` (object y), overlapping scale rows, iridescent sheen. */
+/** Fish skin (`fishScaleSolid`): scale rows, dark back to silver belly, lateral line; crisped by `crisp`; dark bars. */
 export function fishSkin(sp: { back?: string; belly?: string; scale?: number; crisp?: number; seed?: number; bars?: boolean } = {}): SurfaceFn {
-  const back = C(sp.back ?? "#3c4e57"), belly = C(sp.belly ?? "#d8dde0"), seed = sp.seed ?? 127, sz = sp.scale ?? 2.2, tmp: V3 = [0, 0, 0];
+  const seed = sp.seed ?? 127, tex = fishScaleSolid({ back: sp.back, belly: sp.belly, size: sp.scale, seed }), tmp: V3 = [0, 0, 0];
   return (s, o) => {
-    const p = s.o, row = p[0] / sz + (Math.floor(p[1] / sz) % 2) * 0.5, cell = Math.abs((row % 1 + 1) % 1 - 0.5), arc = Math.abs(((p[1] / sz) % 1 + 1) % 1 - 0.5);
-    const sc = sst(0.3, 0.5, Math.max(cell, arc));
-    setMix(o.albedo, belly, back, sst(-3, 6, p[1] + fbm3(seed, p[0] / 15, p[1] / 15, p[2] / 15, 2) * 3));
+    const p = s.o, t = tex(p[0], p[1], p[2]);
+    setC(o.albedo, t.a);
     if (sp.bars) { const bar = Math.sin(p[0] * 0.45 + Math.sin(p[1] * 0.5) * 1.2); if (p[1] > 1) mixInto(o.albedo, C("#1d2a30"), sst(0.4, 0.9, bar) * 0.8); }
     if (sp.crisp) { setC(tmp, crustColour(clamp01(sp.crisp * (0.7 + 0.4 * fbm3(seed + 1, p[0] / 4, p[1] / 4, p[2] / 4, 3))), C("#c9b496"))); mixInto(o.albedo, tmp, sp.crisp); }
-    o.height = sc * 0.06; o.rough = 0.2 + (sp.crisp ?? 0) * 0.3; o.spec = 0.06 + 0.1 * (1 - (sp.crisp ?? 0)); o.coat = 0.7; o.coatRough = 0.05; o.sheen = 0.25 * (1 - (sp.crisp ?? 0)); setV(o.sheenTint, 0.7, 0.85, 0.95);
+    o.height = t.h; o.rough = t.r + (sp.crisp ?? 0) * 0.3; o.spec = 0.06 + 0.1 * (1 - (sp.crisp ?? 0)); o.coat = 0.7; o.coatRough = 0.05; o.sheen = 0.25 * (1 - (sp.crisp ?? 0)); setV(o.sheenTint, 0.7, 0.85, 0.95);
   };
 }
 /** Deep-fried batter or breadcrumbs: craggy, golden, crisp, with oil glints (tempura, schnitzel, fried chicken). */
@@ -593,6 +589,21 @@ export function grains(sp: { colour: string; size?: number; cooked?: number; var
     setMix(o.albedo, c, v, d.id); scaleInto(o.albedo, 0.65 + 0.4 * dome);
     o.height = dome * 0.6 * sz; o.rough = 0.5 - (sp.cooked ?? 0) * 0.3; o.spec = 0.035; o.coat = (sp.cooked ?? 0) * 0.6 * dome; o.coatRough = 0.1; o.occl = 0.6 + 0.4 * dome; mfpK(MFP.potato, 0.35, o.mfp); o.trans = 0.2;
   };
+}
+/** Cooked rice (`riceSolid`): plump, glossy, translucent grains. */
+export const riceSurface = (seed = 137, colour?: string): SurfaceFn => fromSolid(riceSolid({ seed, colour }), { mfp: MFP.potato, scatter: 0.35, coat: 0.45, coatRough: 0.1, trans: 0.2 });
+/** Tomato skin (`tomatoSolid`). */
+export const tomatoSkin = (colour = "#c8240f", seed = 81, shoulder?: string): SurfaceFn => fromSolid(tomatoSolid({ colour, shoulder, seed }), { mfp: MFP.apple, scatter: 0.3, coat: 0.9, coatRough: 0.05, trans: 0.3 });
+/** Bell pepper skin (`pepperSolid`). */
+export const pepperSkin = (colour = "#c41a12", seed = 83): SurfaceFn => fromSolid(pepperSolid({ colour, seed }), { mfp: MFP.apple, scatter: 0.25, coat: 1, coatRough: 0.03, trans: 0.3 });
+/** Citrus peel (`citrusSolid`). */
+export const citrusPeel = (colour = "#ef8a1c", seed = 87, pores = 0.12): SurfaceFn => fromSolid(citrusSolid({ colour, seed, pores }), { mfp: MFP.apple, scatter: 0.3, coat: 0.45, coatRough: 0.15, trans: 0.1 });
+/** Potato skin (`potatoSolid`). */
+export const potatoSkin = (colour = "#c8a36a", seed = 85, russet = 0.6, soil = 0.4): SurfaceFn => fromSolid(potatoSolid({ colour, seed, russet, soil }), { mfp: MFP.potato, scatter: 0.4, trans: 0.1 });
+/** Mushroom cap (`mushroomCapSolid`) with fine radial gills below (by `k.gills`). */
+export function mushroomCap(colour = "#8a6a4a", gills = "#cdb79a", seed = 89, cracks = 0.3): SurfaceFn {
+  const tex = mushroomCapSolid({ colour, cracks, seed }), under = mushroom(colour, gills, seed);
+  return (s, o) => { if (s.n[1] < -0.2 && s.k.gills) { under(s, o); return; } const t = tex(s.o[0], s.o[1], s.o[2]); setC(o.albedo, t.a); o.height = t.h; o.rough = t.r; o.spec = 0.035; o.sheen = 0.3; setV(o.sheenTint, t.a[0] * 1.6, t.a[1] * 1.6, t.a[2] * 1.6); };
 }
 /** An opaque sauce, stew or curry: colour, gloss, oil separating at the edges, flecks of spice or herbs. */
 export function sauce(sp: { colour: string; oil?: string; oiliness?: number; flecks?: string; fleckAmount?: number; gloss?: number; chunky?: number; seed?: number }): SurfaceFn {

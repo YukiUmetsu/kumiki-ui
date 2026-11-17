@@ -20,6 +20,9 @@ Read the [spec](../../docs/component-specs/food.md).
 7. **Storybook still lifes.** Find a food in `FOOD_LIBRARY` (by `group`, `region`, `state`, `era` or words in
    `look`). Show it with `FoodStillLifeView`, or render it with `renderFoodStillLife`. Change the light with `mood`.
    Change the individual with `seed`. Get a close-up with `zoom`.
-8. **A new food.** Build it from the kit (`fruit`, `halfFruit`, `boule`, `cakeSlice`, `thickFill`, `noodles`,
+8. **Nothing exact, nothing floating, nothing through the bowl.** Cut pieces get irregular outlines and uneven
+   thickness (`slabPiece`, `steakCut`, `salmonFillet`). Loose pieces settle into their vessel (`settle`, `heap`).
+   Food textures come from MATL1 (`food-textures.ts`); improve a texture there and every dish that uses it improves.
+9. **A new food.** Build it from the kit (`fruit`, `halfFruit`, `boule`, `cakeSlice`, `thickFill`, `noodles`,
    `skewer` and others). Use the surfaces in `food-surfaces.ts`. Add an entry with its `look`. Render a contact sheet
    and compare it with photographs before you call it finished.

@@ -14,6 +14,7 @@
  */
 import type { RGB3 } from "../anatomy/foundation-raster";
 import { linearOf } from "../anatomy/foundation-raster";
+import { crustColour } from "./food-textures";
 import { COOKING_TEMPERATURES as T, DIFFUSIVITY } from "./food-data";
 
 export interface SteakCook {
@@ -99,11 +100,8 @@ export function meatColour(peakC: number): RGB3 {
   return mix(ROSE, GREY, ss(68, 75, peakC));
 }
 /** A browned surface for a browning index 0 … 1: golden, brown, deep brown, nearly black. */
-export function crustColour(b: number, base: RGB3 = linearOf("#d9b98a")): RGB3 {
-  const stops: RGB3[] = [base, linearOf("#c9944e"), linearOf("#8a5126"), linearOf("#4a2a16"), linearOf("#1c120c")];
-  const x = Math.min(0.999, Math.max(0, b)) * (stops.length - 1), i = Math.floor(x);
-  return mix(stops[i], stops[i + 1], x - i);
-}
+/** Maillard browning colour (defined with MATL1's food textures). */
+export { crustColour };
 /** Egg white and yolk for the peak temperature reached (°C): colour and how set (0 liquid … 1 firm). */
 export function eggColours(peakC: number, inYolk: boolean): { colour: RGB3; set: number } {
   if (inYolk) {

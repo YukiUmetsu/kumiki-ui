@@ -4307,7 +4307,8 @@
       "description": "Food that looks cooked the way it was cooked, in any art style: the temperatures where food changes (myosin, myoglobin, egg white and yolk, Maillard browning, caramelisation, starch), beef doneness by core temperature, thermal diffusivity, steam, gloss by food and dishes. Cooking by heat conduction: cookSteak, cookEgg, toastBrowning; colours from peak temperatures; renderFood, FoodView, Steam, FoodSheet. Storybook still lifes: a library of 200 foods (raw produce and cooked dishes from every region and era, each with its vessel, table and light) rendered on the CPU from measured silhouettes (lathe, sweep, extruded slabs) with physical surfaces: subsurface scattering from measured mean free paths (Jensen 2001), backlit translucency, PCSS sun shadows, world-space occlusion, liquids and glass with absorption, steam, depth of field and a warm storybook grade. Golden-hour, morning-market, midnight and window moods. FoodStillLifeView, FoodLibrary, FoodStyleGuide, FoodMoodStudy.",
       "dependencies": [],
       "registryDependencies": [
-        "art-foundations"
+        "art-foundations",
+        "materials"
       ],
       "files": [
         {
@@ -4566,6 +4567,11 @@
           "path": "registry/materials/materials-render-worker.ts",
           "type": "registry:ui",
           "target": "components/materials/materials-render-worker.ts"
+        },
+        {
+          "path": "registry/materials/food-textures.ts",
+          "type": "registry:ui",
+          "target": "components/materials/food-textures.ts"
         }
       ]
     },

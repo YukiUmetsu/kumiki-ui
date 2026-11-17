@@ -5,8 +5,8 @@
 import { bounds, merge } from "./food-mesh";
 import type { V3 } from "./food-mesh";
 import { renderStillLife } from "./food-scene";
-import type { StillLife, StillLifeRender } from "./food-scene";
-import { MOODS } from "./food-stage";
+import type { Part, StillLife, StillLifeRender } from "./food-scene";
+import { MOODS, settle } from "./food-stage";
 import type { MoodId } from "./food-stage";
 import { foodEntry, tableFor, vesselFor } from "./food-library";
 import type { FoodEntry } from "./food-library";
@@ -24,7 +24,16 @@ export interface FoodStillLifeOptions {
 
 /** Stage an entry as a still life. */
 export function foodStillLife(e: FoodEntry, o: FoodStillLifeOptions = {}): StillLife {
-  const seed = o.seed ?? 1, v = vesselFor(e, seed), food = e.build(v, seed), parts = [...v.parts, ...food];
+  const seed = o.seed ?? 1, v = vesselFor(e, seed), built = e.build(v, seed);
+  // loose pieces come to rest in their vessel and on one another (each group moves as one)
+  let food = built;
+  const st = e.settle ?? (e.group === "fruit" || e.group === "vegetable");
+  if (st) {
+    const groups: Part[][] = [], byId = new Map<number, Part[]>();
+    for (const p of built) { if (p.group === undefined) groups.push([p]); else { let g = byId.get(p.group); if (!g) { g = []; byId.set(p.group, g); groups.push(g); } g.push(p); } }
+    food = settle(v, groups, { seed, maxTilt: typeof st === "object" ? st.maxTilt : undefined });
+  }
+  const parts = [...v.parts, ...food];
   const mood = MOODS[o.mood ?? e.mood];
   // frame on the food (the vessel may be cropped, as in a food photograph), never tighter than half the whole dish;
   // look down into deep vessels far enough to see what is in them

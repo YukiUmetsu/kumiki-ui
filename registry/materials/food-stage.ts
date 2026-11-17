@@ -267,6 +267,101 @@ export function scatter(count: number, radius: number, y: (x: number, z: number)
   return merge(ms);
 }
 
+// ---- Settling: pieces dropped into a vessel ----------------------------------------------------------------------------------
+
+/**
+ * The surface pieces come to rest on: a height field (mm) over the vessel's floor and its inner wall, raised by every
+ * piece already settled, and the wall itself (no part of a piece may stand outside the inner radius at its height).
+ */
+export class RestingSurface {
+  private readonly n: number; private readonly h: Float32Array;
+  constructor(readonly v: Vessel | null, readonly extent: number, readonly cell = 1.5, readonly gap = 0.6) {
+    this.n = Math.ceil((extent * 2) / cell);
+    this.h = new Float32Array(this.n * this.n);
+    for (let j = 0; j < this.n; j++) for (let i = 0; i < this.n; i++) this.h[j * this.n + i] = this.floorAt(Math.hypot((i + 0.5) * cell - extent, (j + 0.5) * cell - extent));
+  }
+  /** The vessel's own surface at radius r: the floor, then the inner wall rising (bowls), or the table beyond a dish. */
+  floorAt(r: number): number {
+    const v = this.v;
+    if (!v) return 0;
+    if (v.rimY <= 20) return r <= v.innerR(v.floorY) ? v.floorY : r <= v.rimR ? v.floorY + (v.rimY - v.floorY) * Math.min(1, (r - v.innerR(v.floorY)) / Math.max(1, v.rimR - v.innerR(v.floorY))) : 0;
+    if (r <= v.innerR(v.floorY)) return v.floorY;
+    // the inner wall: the lowest height whose inner radius reaches r
+    let lo = v.floorY, hi = v.rimY;
+    if (v.innerR(hi) < r) return v.rimY + 1e4;
+    for (let k = 0; k < 24; k++) { const m = (lo + hi) / 2; if (v.innerR(m) >= r) hi = m; else lo = m; }
+    return hi;
+  }
+  at(x: number, z: number): number {
+    const i = Math.floor((x + this.extent) / this.cell), j = Math.floor((z + this.extent) / this.cell);
+    return i < 0 || j < 0 || i >= this.n || j >= this.n ? this.floorAt(Math.hypot(x, z)) : this.h[j * this.n + i];
+  }
+  /** Raise the field under a settled piece. */
+  add(m: Mesh): void {
+    for (let k = 0; k < m.pos.length; k += 3) {
+      const i = Math.floor((m.pos[k] + this.extent) / this.cell), j = Math.floor((m.pos[k + 2] + this.extent) / this.cell), y = m.pos[k + 1];
+      for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+        const ii = i + di, jj = j + dj;
+        if (ii >= 0 && jj >= 0 && ii < this.n && jj < this.n && this.h[jj * this.n + ii] < y) this.h[jj * this.n + ii] = y;
+      }
+    }
+  }
+  /** How far a piece must move up (positive) or may fall (negative) to rest on the field. */
+  lift(m: Mesh): number { let d = -Infinity; for (let k = 0; k < m.pos.length; k += 3) d = Math.max(d, this.at(m.pos[k], m.pos[k + 2]) - m.pos[k + 1]); return d; }
+  /** How far a piece pokes out of the vessel's inner wall (mm, 0 if inside). */
+  outside(m: Mesh): number {
+    const v = this.v;
+    if (!v || v.rimY <= 20) return 0;
+    let e = 0;
+    for (let k = 0; k < m.pos.length; k += 3) { const y = Math.min(v.rimY, m.pos[k + 1]); e = Math.max(e, Math.hypot(m.pos[k], m.pos[k + 2]) - (v.innerR(y) - this.gap)); }
+    return e;
+  }
+}
+
+const shiftParts = (parts: readonly Part[], d: V3): Part[] => parts.map(p => ({ ...p, mesh: transform(p.mesh, { at: d }) }));
+const turnParts = (parts: readonly Part[], pivot: V3, rx: number, rz: number): Part[] =>
+  parts.map(p => ({ ...p, mesh: transform(transform(transform(p.mesh, { at: [-pivot[0], -pivot[1], -pivot[2]] }), { rx, rz }), { at: pivot }) }));
+const centroid = (m: Mesh): V3 => { const c: V3 = [0, 0, 0], n = m.pos.length / 3; for (let k = 0; k < m.pos.length; k += 3) { c[0] += m.pos[k]; c[1] += m.pos[k + 1]; c[2] += m.pos[k + 2]; } return [c[0] / n, c[1] / n, c[2] / n]; };
+
+/**
+ * Settle pieces into a vessel (or onto a board, a plate or the table) one at a time, in order: each group (a fruit with
+ * its stem and leaves) is tried at a few tilts, pushed in from the wall, dropped until it rests on the floor or on the
+ * pieces below it, and the lowest resting pose is kept. Nothing passes through the vessel or another piece from above.
+ * The first part of each group is its body, the part that collides.
+ */
+export function settle(v: Vessel | null, groups: readonly (readonly Part[])[], o: { seed?: number; tries?: number; maxTilt?: number; gap?: number; roam?: number } = {}): Part[] {
+  const r = rng(o.seed ?? 3), extent = (v ? v.rimR * 1.15 : 0) + 160, field = new RestingSurface(v, extent, 1.5, o.gap ?? 0.6), out: Part[] = [];
+  // how far a piece may roll from where it was put: within a bowl, anywhere on its floor; on a flat dish, nearby
+  const roam = o.roam ?? (v && v.rimY > 20 ? v.innerR(v.floorY + (v.rimY - v.floorY) * 0.5) * 0.8 : 30);
+  for (const g of groups) {
+    if (!g.length) continue;
+    const home = centroid(g[0].mesh);
+    let best: Part[] | null = null, bestScore = Infinity;
+    const tries = Math.max(1, o.tries ?? 12);
+    for (let t = 0; t < tries; t++) {
+      const mt = o.maxTilt ?? 40;
+      let parts = t % 3 === 0 ? [...g] : turnParts(g, home, (r() - 0.5) * 2 * mt, (r() - 0.5) * 2 * mt);
+      // roll: try nearby spots, the first where it was put
+      if (t > 0) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * roam; parts = shiftParts(parts, [Math.cos(a) * d, 0, Math.sin(a) * d]); }
+      for (let k = 0; k < 6; k++) {
+        // in from the wall, towards the vessel's axis
+        const e = field.outside(parts[0].mesh);
+        if (e > 0) { const c = centroid(parts[0].mesh), d = Math.hypot(c[0], c[2]) || 1; parts = shiftParts(parts, [(-c[0] / d) * (e + 0.3), 0, (-c[2] / d) * (e + 0.3)]); }
+        // then down (or up) onto whatever is below
+        const dy = field.lift(parts[0].mesh);
+        if (Math.abs(dy) > 0.05) parts = shiftParts(parts, [0, dy, 0]);
+        if (e <= 0 && Math.abs(dy) <= 0.05) break;
+      }
+      const c = centroid(parts[0].mesh), score = c[1] + 0.04 * Math.hypot(c[0] - home[0], c[2] - home[2]);
+      if (field.outside(parts[0].mesh) <= 0.5 && score < bestScore) { bestScore = score; best = parts; }
+    }
+    best ??= shiftParts(g, [0, field.lift(g[0].mesh), 0]);
+    field.add(best[0].mesh);
+    out.push(...best);
+  }
+  return out;
+}
+
 /** A heap: a mound of radius R and height Hh (smooth, a little lumpy) as a slab. */
 export const mound = (R: number, Hh: number, base = 0, seed = 1, lump = 0.08) => slab({
   outline: t => R * (1 + 0.05 * Math.sin(t * 3 + seed) + 0.03 * Math.sin(t * 7 + seed * 2)),

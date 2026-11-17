@@ -9,6 +9,8 @@
 - `food-react.tsx`: `FoodView`, `Steam`, `FoodSheet`, `FoodStillLifeView`, `FoodLibrary`, `FoodStyleGuide`,
   `FoodMoodStudy`.
 - `food-render-pool.ts`, `food-render-jobs.ts`, `food-render-worker.ts`: rendering in workers.
+- Food textures: `food-textures.ts` in the `materials` pack (MATL1 family `food`, see the
+  [materials spec](materials.md)). The still lifes and MATL1's swatches sample the same recipes.
 - Storybook still lifes: `food-mesh.ts` (shapes), `food-scene.ts` (the renderer), `food-surfaces.ts` (surfaces),
   `food-stage.ts` (moods and vessels), `food-kit.ts` (produce), `food-dishes.ts` (cooked food), `food-library.ts`
   (the 200 foods) and `food-still-life.ts` (staging and `renderFoodStillLife`).
@@ -76,9 +78,25 @@ backlight with chiaroscuro. There are no outlines and no flat shading.
   street food and drinks.
 - `foodStillLife(entry, { mood, seed, elevation, zoom })` stages an entry. The camera frames the food (the vessel can
   be cropped). The camera looks down into deep vessels. Hot dishes steam.
+- Loose pieces settle (`settle`, default for fruit and vegetables, `settle: true` or `{ maxTilt }` on other
+  entries). Each piece (a group: a fruit with its stem, leaves and dew) is tried at a few spots and tilts, pushed in
+  from the vessel's inner wall, dropped onto the floor and onto the pieces already there, and the lowest resting pose
+  is kept. No piece passes through the vessel or through another piece from above. `heap` drops its pieces the same
+  way.
 - `renderFoodStillLife({ id, width, height, supersample, … })` renders an entry. The worker job is `still-life`.
 
 ### Construction (`food-mesh.ts`, `food-kit.ts`, `food-dishes.ts`)
+
+- Nothing is exact. Cut pieces (`slabPiece`, `steakCut`, `salmonFillet`, steak slices) have wandering outlines,
+  uneven thickness and edges that sag. Each slice of a steak has its own thickness and wedge.
+- Meat and fish have their anatomy: a ribeye's eye, cap seam, kernel and fat cap; a sirloin's fat strip; a salmon
+  fillet thick along the back, thin at the belly with its fat stripe; a whole fish laid on its side with dorsal,
+  pectoral, pelvic, anal and forked tail fins (rays), a gill cover and an eye with pupil, iris and cornea.
+- Rice is grain by grain where it shows: `grainCoat` lays about 950 grains over an onigiri and about 260 over a
+  nigiri's rice, each lying in the surface and half sunk. The onigiri is a closed rounded triangle with nori raised
+  over its base.
+- Bell peppers have lobes deepest at the shoulders and base (`ribProfile: "ends"`), a thick curved stem and calyx.
+  Carrots have fine lateral root hairs.
 
 - All shapes are parametric surfaces in millimetres: `lathe` (round things), `sweep` (long things), `slab` (an
   extruded footprint with a bevel and a height-mapped top), `blade` (leaves and sheets), `ellipsoid` and `box`.
@@ -127,6 +145,8 @@ backlight with chiaroscuro. There are no outlines and no flat shading.
 - The FOOD1 rasters (`renderFood`) are 2D. The still lifes are 3D scenes on the CPU, about 1–3 s for 300 × 225 at
   2× supersampling in a worker, and about 5–8 s for 720 × 540.
 - One camera angle per entry (an orbit and a zoom can be set). Transparent layers sort per part, not per pixel.
+- Settling stacks pieces on a height field: a piece cannot tuck under another's overhang, and it does not rotate
+  as it rolls (it tries a few fixed tilts).
 - The quality of the 200 still lifes is not equal. The agent reviewed contact sheets of all 200 renders. Weak entries
   are bananas, the herb sprigs, the tempura, the gyoza, the fried-rice mounds and some flatbreads (simple shapes),
   and the leopard spots on the pizza rim (too faint). **Human visual review is not recorded.**

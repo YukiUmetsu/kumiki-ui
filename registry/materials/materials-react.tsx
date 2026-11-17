@@ -139,8 +139,8 @@ export function WeatheringStrip({ track, years, environment }: { track: Weatheri
   );
 }
 
-const FAMILY_ORDER: MaterialFamily[] = ["metal", "metal-oxide", "lacquer", "wood", "plant", "paper", "plaster", "ceramic", "stone", "earth", "organic", "glass", "ice", "liquid", "manmade"];
-const FAMILY_LABEL: Record<MaterialFamily, string> = { metal: "Metals", "metal-oxide": "Rust and patina", lacquer: "Lacquer", wood: "Wood", plant: "Bamboo, rush and straw", paper: "Paper", plaster: "Plaster", ceramic: "Ceramics and tile", stone: "Stone", earth: "Earth and sand", organic: "Organic", glass: "Glass", ice: "Snow and ice", liquid: "Liquids", manmade: "Other" };
+const FAMILY_ORDER: MaterialFamily[] = ["metal", "metal-oxide", "lacquer", "wood", "plant", "paper", "plaster", "ceramic", "stone", "earth", "organic", "food", "glass", "ice", "liquid", "manmade"];
+const FAMILY_LABEL: Record<MaterialFamily, string> = { metal: "Metals", "metal-oxide": "Rust and patina", lacquer: "Lacquer", wood: "Wood", plant: "Bamboo, rush and straw", paper: "Paper", plaster: "Plaster", ceramic: "Ceramics and tile", stone: "Stone", earth: "Earth and sand", organic: "Organic", glass: "Glass", ice: "Snow and ice", liquid: "Liquids", manmade: "Other" , food: "Food"};
 
 export type SheetLook = "rendered" | "flat";
 /** Materials to see up close: the organic ones first. */
