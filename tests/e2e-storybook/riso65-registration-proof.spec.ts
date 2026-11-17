@@ -15,14 +15,24 @@ test("RISO65 real Chromium native spot masters stay identical while registration
   const pathData=async()=>await drift.locator("[data-km-riso62-source-path]")
     .evaluateAll(nodes=>nodes.map(node=>node.getAttribute("d")));
   const initial=await pathData();
-  const change=page.getByRole("slider",{name:"RISO65 register x"});
-  await change.fill("6");
+  const setRange=async(name:string,value:number)=>{
+    const slider=page.getByRole("slider",{name});
+    await slider.evaluate((node,next)=>{
+      const setter=Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,"value")?.set;
+      if(!setter)throw new Error("Cannot set native range input");
+      setter.call(node,String(next));
+      node.dispatchEvent(new Event("input",{bubbles:true}));
+      node.dispatchEvent(new Event("change",{bubbles:true}));
+    },value);
+  };
+  await setRange("RISO65 register x",6);
   await expect(root).toHaveAttribute("data-km-riso65-register-x","6");
   await expect(drift.locator('g[transform="translate(6.000 -3.000)"]')).toHaveCount(1);
   expect(await pathData()).toEqual(initial);
   await expect(root.locator("[data-km-riso65-preflight]"))
     .toHaveAttribute("data-km-riso65-preflight","review");
-  await page.getByRole("slider",{name:"RISO65 trap allowance"}).fill("8");
+  await setRange("RISO65 trap allowance",8);
   await expect(root.locator("[data-km-riso65-preflight]"))
     .toHaveAttribute("data-km-riso65-preflight","within");
   for(const aspect of ["landscape","portrait"] as const){
@@ -45,12 +55,11 @@ test("RISO65 real Chromium native spot masters stay identical while registration
     await page.getByRole("combobox",{name:"RISO65 master"}).selectOption("both");
   }
   await page.getByRole("combobox",{name:"RISO65 aspect"}).selectOption("landscape");
-  const frame=page.getByRole("slider",{name:"RISO65 absolute source frame"});
-  await frame.fill("40");
+  await setRange("RISO65 absolute source frame",40);
   const first=await pathData();
-  await frame.fill("200");
+  await setRange("RISO65 absolute source frame",200);
   expect(await pathData()).not.toEqual(first);
-  await frame.fill("40");
+  await setRange("RISO65 absolute source frame",40);
   expect(await pathData()).toEqual(first);
   expect(errors).toEqual([]);
 });
