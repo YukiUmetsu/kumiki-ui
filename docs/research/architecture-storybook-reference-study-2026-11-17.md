@@ -134,6 +134,11 @@ setting, view, scale, materials, story details and what its references taught (`
 - Brick, tiles and thatch made moiré rings at a distance; patterns and their relief now fade below two pixels.
 - Ink broke into dotted "birds" along far hills; the line now fades with distance.
 - Candlelit rooms were flooded orange; partial white balance.
+- Soft shadows smeared down leaning facades: the improved penumbra estimate needs exact distances, which cut openings
+  and leaning frames do not give; the classic estimate (k·h/t) is used.
+- Moss covered whole roofs: its joint weight was inverted; it now gathers in joints and laps and in patches.
+- Lone far hits at grazing range made specks along the horizon; a lone hit with sky nearly all round takes the sky's
+  colour.
 
 ## Limits
 
