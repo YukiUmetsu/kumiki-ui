@@ -1,4 +1,4 @@
-name: Crayon ArtCraft adult face browser proof
+name: Crayon ArtCraft source-native browser proof
 
 # PR checks exercise V41 photographed face/hair overlap and exact V40 negative control.
 # Earlier V29-V37 archival browser proofs remain available manually.
@@ -31,7 +31,6 @@ on:
       - src/video/crayon-artcraft-f1-anat1-photo-hair-v50.ts
       - src/video/crayon-artcraft-f1-anat1-root-locks-v51.ts
       - registry/anatomy/anatomy-face.ts
-      - tests/e2e-artcraft/crayon-expression-comparison.spec.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
       - playwright.artcraft.config.ts
       - .github/workflows/crayon-artcraft-native-render-proof.yml
@@ -62,18 +61,17 @@ jobs:
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
-          --grep "ArtCraft source-referenced portrait audit|F1 V48|F1 V49|F1 V50|F1 V51"
-      - name: Capture complete portrait and expression archival evidence (manual)
+          --grep "F1 V48|F1 V49|F1 V50|F1 V51"
+      - name: Capture source-native material and registered portrait evidence (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
-          tests/e2e-artcraft/crayon-expression-comparison.spec.ts
       - name: Save native screenshots and failures
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: crayon-artcraft-native-portrait
+          name: crayon-artcraft-source-native-inspection
           path: test-results/
           retention-days: 10
           if-no-files-found: warn

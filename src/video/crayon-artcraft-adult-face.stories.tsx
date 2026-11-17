@@ -175,10 +175,12 @@ export function AdultFaceExpressionComparison({aspect,detail,headScaleY,startFra
   </section>;
 }
 const meta={
-  title:"Video production/Film Looks/Crayon/ArtCraft Adult Face Lab",
+  title:"Video production/Film Looks/Crayon/ArtCraft Source Lab",
   id:"video-crayon-artcraft-adult-face",
   tags:["!dev"],
-  component:AdultFaceArtcraftWorkbench,
+  excludeStories:["AdultFaceArtcraftWorkbench","AdultFaceExpressionComparison",
+    "crayonArtcraftInspectionSpec"],
+  component:Cc0SourceRegisteredFaceWorkbench,
   args:{aspect:"landscape",detail:1,expression:"warm",headScaleY:.82,startFrame:299,playbackRate:1,loop:false,inspection:"full",
     referenceReview:false,showCandidateLandmarks:false},
   argTypes:{aspect:{control:"inline-radio",options:["landscape","portrait"]},
@@ -193,19 +195,11 @@ const meta={
     loop:{control:"boolean"},
     referenceReview:{control:"boolean",description:"Compare CC0 source to frozen real render; no artistic approval"},
     showCandidateLandmarks:{control:"boolean",description:"18 independent screenshot-observed points, portrait frame 299 only"}},
-} satisfies Meta<typeof AdultFaceArtcraftWorkbench>;
+} satisfies Meta<typeof Cc0SourceRegisteredFaceWorkbench>;
 export default meta;
 type Story=StoryObj<typeof meta>;
-export const AdultFaceThreeQuarter:Story={};
-export const AdultFacePortrait:Story={args:{aspect:"portrait"}};
-export const AdultFaceConstruction:Story={args:{startFrame:160}};
-export const MatchedExpressionComparison:Story={render:args=><AdultFaceExpressionComparison {...args}/>};
-export const MatchedExpressionPortrait:Story={args:{aspect:"portrait"},render:args=><AdultFaceExpressionComparison {...args}/>};
-export const EyeStructureMacro:Story={args:{inspection:"eyes",startFrame:299}};
-export const LipAndNoseMacro:Story={args:{inspection:"nose-mouth",startFrame:299}};
-export const TailoredGarmentMacro:Story={args:{inspection:"garment",startFrame:299}};
-export const MatchedEyesMacro:Story={args:{inspection:"eyes",startFrame:299},render:args=><AdultFaceExpressionComparison {...args}/>};
-
+// The rejected synthetic blue-coat adult portrait is deliberately absent
+// from Storybook; the internal legacy geometry remains research only.
 /** ArtCraft experimental, source-crop-derived independent iris/eyelid wax.
  * NOT transplanted onto the rejected whole-face synthetic character.
  */
