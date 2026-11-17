@@ -9,6 +9,7 @@ import {inspectRisoShopJob} from "../../registry/video/riso-shop-profile";
 import type {RisoShopProfile,RisoPressFormat} from "../../registry/video/riso-shop-profile";
 import {createRisoScanTemplate,inspectRisoScanProof,simulateRisoScanProof} from "../../registry/video/riso-scan-proof";
 import type {RisoScanMeasurements} from "../../registry/video/riso-scan-proof";
+import {RisoScanImageAnnotator} from "./riso71-scan-image-annotator";
 
 const control={display:"grid",gap:4,font:"600 13px system-ui",minWidth:155} as const;
 const button={border:"1px solid #847867",background:"#FFFAED",padding:"9px 13px",
@@ -270,6 +271,11 @@ export function RisoShopProofStudio(){
           Export unfilled real-scan template
         </button>
       </div>
+      {inputType==="physical"&&marks==="crop-and-register"&&
+        <RisoScanImageAnnotator
+          plateIds={spec.plates.map(p=>p.id)}
+          resetKey={[aspect,frame,seed,marks].join(":")}
+          onChange={reading=>setScanJson(reading?JSON.stringify(reading,null,2):"")}/>}
       {inputType==="physical"&&<label style={{display:"grid",gap:6,
         font:"600 13px system-ui"}}>
         Actual observed scan pixels JSON (all 4 paper edges and 8 cross centers)
