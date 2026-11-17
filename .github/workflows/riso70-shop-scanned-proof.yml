@@ -1,10 +1,15 @@
-name: RISO70 explicit print-shop paper margins and measured scanner registration proof
+name: RISO70–71 print-shop paper margins and image-based physical scan annotation proof
 on:
   pull_request:
     paths:
       - ".github/workflows/riso70-shop-scanned-proof.yml"
       - "registry/video/riso-shop-profile.ts"
       - "registry/video/riso-scan-proof.ts"
+      - "registry/video/riso-scan-image-annotation.ts"
+      - "src/video/riso71-scan-image-annotator.tsx"
+      - "tests/riso71-scan-image-annotation-artcraft.test.tsx"
+      - "tests/e2e-storybook/riso71-native-scan-image.spec.ts"
+      - "docs/research/riso71-source-image-registration-artcraft.md"
       - "registry.json"
       - "src/video/riso-shop-proof-studio.tsx"
       - "src/video/riso-print-studios.stories.tsx"
@@ -31,7 +36,7 @@ jobs:
       - name: Strict TypeScript and original RISO70-RISO65 source QA
         run: |
           npm run typecheck
-          npm run test -- tests/riso70-shop-scan-proof.test.tsx tests/riso69-press-master-formats.test.tsx tests/riso68-master-separations.test.tsx tests/riso67-topology-guard.test.tsx tests/riso66-contact-trap.test.tsx tests/riso65-registration-preflight.test.tsx
+          npm run test -- tests/riso71-scan-image-annotation-artcraft.test.tsx tests/riso70-shop-scan-proof.test.tsx tests/riso69-press-master-formats.test.tsx tests/riso68-master-separations.test.tsx tests/riso67-topology-guard.test.tsx tests/riso66-contact-trap.test.tsx tests/riso65-registration-preflight.test.tsx
       - name: Independent riso-print clean consumer installation and registry validation
         run: |
           npm run registry:validate
@@ -43,7 +48,7 @@ jobs:
         run: npm run build-storybook
       - run: npx playwright install --with-deps chromium
       - name: Real native paper art, scanner measurements, unsafe margins, and PDF files
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso70-shop-scan-proof.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso70-shop-scan-proof.spec.ts tests/e2e-storybook/riso71-native-scan-image.spec.ts
       - name: Independent PDF file decoding and physical page render
         run: |
           sudo apt-get update -qq
