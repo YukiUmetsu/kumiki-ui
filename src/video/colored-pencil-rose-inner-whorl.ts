@@ -104,7 +104,7 @@ export function inspectRoseInnerWhorl():string[]{
     for(const detail of organ.details){
       if(!detail.path.startsWith("M")||!/^#[0-9A-Fa-f]{6}$/.test(detail.color)||
         !Number.isFinite(detail.width)||detail.width<.2||detail.width>2||
-        !Number.isFinite(detail.opacity)||detail.opacity<=0||detail.opacity>1||
+        (typeof detail.opacity!=="number"||!Number.isFinite(detail.opacity)||detail.opacity<=0||detail.opacity>1)||
         !Number.isSafeInteger(detail.startFrame)||detail.startFrame<160||
         !Number.isSafeInteger(detail.durationFrames)||detail.durationFrames<8)
         issues.push("Invalid whorl pencil contact: "+organ.id);
