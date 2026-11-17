@@ -146,6 +146,11 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
   const foreheadLeft=shift(browPoints[1],-5,-17),foreheadRight=shift(browPoints[browPoints.length-2],5,-17);
   const upperLip=feature("lips-upper"),lowerLip=feature("lips-lower");
   const mouthLine=feature("mouth-line");
+  // Jaw-drop and AU26 create a real two-rim fissure: upper inner vermilion
+  // stays anchored while the measured lower lip follows the EXPR1 mandibular
+  // displacement. Never leave a closed-mouth seam painted across open speech.
+  const spokenMouthContour=features.mouthOpen>.012?
+    spline([...mouthLine,...lowerLip.slice(2,9).reverse()],true):spline(mouthLine);
   // A genuinely independently sculpted garment: elder open cross-lapel versus
   // scholar's wrapped collar, not the original Shanshui body's part assets.
   return <>
@@ -251,7 +256,7 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       {features.mouthOpen>.012&&<path data-km-ink-mouth-cavity="true"
         d={spline([...upperLip.slice(3,9),...lowerLip.slice(3,9).reverse()],true)}
         fill={preset.ink} opacity={clamp(.20+features.mouthOpen*.95,.2,.72)}/>}
-      <path data-km-ink-mouth-line="true" d={spline(mouthLine)} stroke={preset.ink}
+      <path data-km-ink-mouth-line="true" d={spokenMouthContour} stroke={preset.ink}
         strokeWidth="1.05" opacity=".68" strokeLinecap="round" fill="none"/>
       <path d={"M"+xy(shift(q("sublabiale"),-12,4))+" Q"+xy(shift(q("sublabiale"),1,8))+" "+xy(shift(q("sublabiale"),13,1))}
         stroke={preset.bone} fill="none" strokeWidth=".64" opacity=".46"/>
@@ -319,7 +324,7 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
       return <path key={"p"+i} d={"M"+fmt(x)+" "+fmt(y)+" l"+fmt((i%3-1)*3)+" "+fmt(4+i%5)}
         stroke={preset.ink} fill="none" strokeWidth=".28" opacity=".105"/>;
     })}
-    <title>{character==="scholar"?"Young scholar":"Elder scholar"} — {view} — {features.eyeOpen.toFixed(2)} eye aperture</title>
+    <title>{`${character==="scholar"?"Young scholar":"Elder scholar"} — ${view} — ${features.eyeOpen.toFixed(2)} eye aperture`}</title>
   </>;
 }
 /** Reusable live SVG layer for cinematics, independent of existing reader art. */
