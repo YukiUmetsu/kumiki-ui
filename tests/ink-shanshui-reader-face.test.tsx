@@ -712,6 +712,11 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(small.x1).toBeLessThan(147);
     expect(small.y0).toBeGreaterThan(124);
     expect(small.y1).toBeLessThan(134);
+    // The previous roughly circular /o/ opening became a small eye at
+    // native scale. The actual three-quarter mouth must be vertically
+    // elongated, with a narrower far-side contact than its /a/ partner.
+    expect((small.y1-small.y0)/(small.x1-small.x0))
+      .toBeGreaterThan(1.55);
     // Drawing cannot regress into a flat solid dark sticker at either
     // production detail setting.
     for(const detail of [.1,.45,1]){
@@ -743,7 +748,7 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
       expect(underline.fill).toBe("none");
       expect(underline.d).toBe(id==="aa"?
         "M138.5 132 Q142.8 134.1 146.3 130.8":id==="oh"?
-        "M141.05 131.05 Q143.05 132.72 145.02 130.8":original);
+        "M141.83 131.07 Q143.04 132.46 144.31 130.87":original);
     }
     // OH no longer has a centered dark pupil-like disc; the deepest
     // pigment lives in a tiny upper-lip crescent under the upper rim.
@@ -751,8 +756,15 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     const core=oh.find(s=>s.type==="path"&&s.fill==="$ink"&&
       s.stroke==="none"&&s.opacity===.22);
     if(!core||core.type!=="path")throw Error("OH shadow shelf missing");
-    expect(core.d).toContain("M142.73 127.56");
+    expect(core.d).toContain("M142.66 127.55");
     expect((core.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(2);
+    const xy=[...core.d.matchAll(/(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)]
+      .map(m=>[Number(m[1]),Number(m[2])] as const);
+    const xs=xy.map(v=>v[0]),ys=xy.map(v=>v[1]);
+    const width=Math.max(...xs)-Math.min(...xs);
+    const height=Math.max(...ys)-Math.min(...ys);
+    expect(width).toBeLessThan(.9);
+    expect(height).toBeGreaterThan(width*2);
     expect(core.d).not.toContain("C143.57 128.43");
     expect(paths(portrait,"mouth-aa")).not.toEqual(oh);
   });
@@ -790,7 +802,7 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
       // negative space, not bisecting its apparent opening.
       if(warped[2].type!=="path")throw Error("Upper lip is not source path");
       const upper=warped[2].d;
-      expect(upper).toContain(state==="oh"?"M140.65 125.45":"M136.3 124.82");
+      expect(upper).toContain(state==="oh"?"M141.8 125.92":"M136.3 124.82");
       const originalFace=scrollReaderFacePortrait(1);
       expect(paths(originalFace,"mouth-"+state).length)
         .toBe(active.length);
