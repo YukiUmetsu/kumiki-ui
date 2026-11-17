@@ -108,7 +108,7 @@ jobs:
           name: pencil-rose-botanical-native-proof
           path: |
             test-results/colored-pencil-rose-lamina-*/
-            test-results/colored-pencil-rose-rolled-lip-*/
+            test-results/colored-pencil-rose-rolled-*/
           retention-days: 7
           if-no-files-found: warn
       - name: Check original drawing stages and 16:9 / 9:16 hero pixels
