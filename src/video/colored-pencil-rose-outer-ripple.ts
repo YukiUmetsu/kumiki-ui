@@ -99,7 +99,7 @@ export function inspectRoseOuterRippleSurfaces():string[]{
     const old=ROSE_PHYSICAL_FOLDS.find(p=>p.id===shape.id);
     if(ids.has(shape.id))issues.push("Repeated outer lamina "+shape.id);
     ids.add(shape.id);
-    const hingeNumbers=shape.hinge.match(/-?\\d+(?:\\.\\d+)?/g)??[];
+    const hingeNumbers=shape.hinge.match(/-?\d+(?:\.\d+)?/g)??[];
     const hingeStart="M"+hingeNumbers[0]+" "+hingeNumbers[1];
     const hingeEnd=hingeNumbers.slice(-2).join(" ");
     // The reverse side closes along the *opposite orientation* of the
