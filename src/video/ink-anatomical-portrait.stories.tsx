@@ -313,6 +313,11 @@ function HistoricalSourceDesk(){
       <a href="https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/"
         target="_blank" rel="noreferrer">Zeng Jing · Pan Qintai (UMMA)</a>
       {" · "}
+      <a href="https://commons.wikimedia.org/wiki/File:Zeng_Jing_(Tseng_Ching)_-_Portrait_of_Pan_Qintai_-_Google_Art_Project.jpg"
+        target="_blank" rel="noreferrer">
+        Pan Qintai · high-resolution public-domain original (Wikimedia)
+      </a>
+      {" · "}
       <a href="https://www.metmuseum.org/art/collection/search/39715"
         target="_blank" rel="noreferrer">Ren Bonian · Scholar on a Rock (Met)</a>
       {" · "}
