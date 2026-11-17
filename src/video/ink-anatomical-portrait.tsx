@@ -7,6 +7,7 @@
  * Authentic historical works are references, not imported / traced assets.
  */
 import {useId, useMemo} from "react";
+import type {SVGProps} from "react";
 import type {FaceParams} from "../../registry/anatomy/anatomy-face";
 import {evaluateInkBrush} from "../../registry/video/ink-brush";
 import type {InkBrushSpec} from "../../registry/video/ink-brush";
@@ -20,13 +21,16 @@ export type InkPortraitCharacter=typeof INK_PORTRAIT_CHARACTERS[number];
 export type InkPortraitEmotion=typeof INK_PORTRAIT_EMOTIONS[number];
 export type InkPortraitView="bust"|"face"|"robe";
 
-export interface InkAnatomicalPortraitProps {
+export interface InkAnatomicalPortraitProps extends Omit<SVGProps<SVGSVGElement>,"children"|"viewBox"> {
   character?:InkPortraitCharacter;
   emotion?:InkPortraitEmotion;
   intensity?:number;
   detail?:number;
   view?:InkPortraitView;
-  /** User-provided className and native SVG props remain optional. */
+  /** Transparent compositing into an existing FilmStage, not a paper sticker. */
+  transparentPaper?:boolean;
+  /** A calibrated paper color for standalone figure plates. */
+  paperColor?:string;
   className?:string;
 }
 
@@ -722,18 +726,22 @@ function PaintedPortrait({posed,character,detail,view,uid}:PaintProps){
 }
 /** Reusable live SVG layer for cinematics, independent of existing reader art. */
 export function InkAnatomicalPortrait({character="scholar",emotion="neutral",intensity=1,
-  detail=1,view="bust",className}:InkAnatomicalPortraitProps){
+  detail=1,view="bust",className,transparentPaper=false,paperColor="#f4ebd9",
+  style, ...svgProps}:InkAnatomicalPortraitProps){
   const uid=useId().replace(/:/g,"");
+  if(!/^#[0-9a-fA-F]{6}$/.test(paperColor))throw new RangeError("paperColor must be #RRGGBB");
   const study=useMemo(()=>inkPortraitAnatomy(character,emotion,intensity),
     [character,emotion,intensity]);
   const amount=clamp(detail,0,1);
-  return <svg data-testid="ink-anat2-portrait" data-ink-character={character}
+  return <svg {...svgProps} data-testid="ink-anat2-portrait" data-ink-character={character}
       data-ink-emotion={emotion} data-ink-view={view}
+      data-ink-transparent-paper={transparentPaper?"true":"false"}
       className={className} xmlns="http://www.w3.org/2000/svg"
-      role="img" aria-label={character+" ink portrait, "+emotion+" expression"}
+      role="img" aria-label={svgProps["aria-label"]??(character+" ink portrait, "+emotion+" expression")}
       viewBox={view==="face"?"100 112 345 419":view==="robe"?"55 410 430 202":"0 95 540 525"}
-      style={{display:"block",background:"#f3ead9",width:"100%",height:"auto"}}>
-    <rect width="540" height="620" fill="#f4ebd9"/>
+      style={{display:"block",background:transparentPaper?"transparent":paperColor,
+        width:"100%",height:"auto",...style}}>
+    {!transparentPaper&&<rect data-km-ink-paper="true" width="540" height="620" fill={paperColor}/>}
     <g><PaintedPortrait posed={study.posed} character={character} detail={amount}
       view={view} uid={"ink-a2-"+uid}/></g>
   </svg>;
