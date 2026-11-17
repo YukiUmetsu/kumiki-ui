@@ -45,6 +45,7 @@ import {crayonF1BuildPhotometricUnderpaintV48} from "./crayon-artcraft-f1-anat1-
 import {crayonF1AddObliqueSourceVolumeV49} from "./crayon-artcraft-f1-anat1-oblique-volume-v49";
 import {crayonF1AddPhotometricHairWaxV50} from "./crayon-artcraft-f1-anat1-photo-hair-v50";
 import {crayonF1AddPhotoRootLocksV51} from "./crayon-artcraft-f1-anat1-root-locks-v51";
+import {crayonF1CombinePhotoWaxV52} from "./crayon-artcraft-f1-anat1-photo-composition-v52";
 import {crayonF1ReconstructBrows} from "./crayon-artcraft-f1-brow-geometry";
 import {crayonF1ReconstructJawNeck} from "./crayon-artcraft-f1-jaw-neck-geometry";
 import {crayonF1AddRootedLashes,type CrayonF1LashFinish}
@@ -82,7 +83,7 @@ export type Cc0FaceView="wax"|"anatomy";
 /** Source-registered ocular pigment experiment; baseline is an unchanged negative control. */
 export type Cc0EyeContact="baseline"|"source-shade"|"source-value"|"source-sculpt";
 export type Cc0BrowForm="baseline"|"source-rooted";
-export type Cc0MidfaceForm="baseline"|"source-volume"|"source-alar"|"source-oral"|"source-oral-sculpt"|"source-nose-sculpt"|"source-nasal-depth"|"source-contour-joined"|"source-nasal-volume"|"source-nasal-value"|"source-naris-occlusion"|"source-nasal-relief"|"source-solid-relief"|"source-carved-naris"|"source-fused-naris"|"source-face-values"|"source-orbital-hood"|"source-mandibular-turn"|"source-anat1-malar"|"source-anat1-midface-bridge"|"source-anat1-nasal-volume"|"source-anat1-alar-recess"|"source-anat1-orbit-malar"|"source-anat1-near-eye"|"source-anat1-brow-follicles"|"source-anat1-hair-values"|"source-anat1-rooted-hair-v39"|"source-anat1-hair-contour-v40"|"source-anat1-hairline-v41"|"source-anat1-hedge-v42"|"source-anat1-photo-foliage-v43"|"source-anat1-five-tone-v44"|"source-anat1-eye-tarsus-v45"|"source-anat1-orbital-aperture-v46"|"source-anat1-continuous-face-v47"|"source-anat1-photometric-underpaint-v48"|"source-anat1-oblique-volume-v49"|"source-anat1-photometric-hair-v50"|"source-anat1-rooted-hair-v51";
+export type Cc0MidfaceForm="baseline"|"source-volume"|"source-alar"|"source-oral"|"source-oral-sculpt"|"source-nose-sculpt"|"source-nasal-depth"|"source-contour-joined"|"source-nasal-volume"|"source-nasal-value"|"source-naris-occlusion"|"source-nasal-relief"|"source-solid-relief"|"source-carved-naris"|"source-fused-naris"|"source-face-values"|"source-orbital-hood"|"source-mandibular-turn"|"source-anat1-malar"|"source-anat1-midface-bridge"|"source-anat1-nasal-volume"|"source-anat1-alar-recess"|"source-anat1-orbit-malar"|"source-anat1-near-eye"|"source-anat1-brow-follicles"|"source-anat1-hair-values"|"source-anat1-rooted-hair-v39"|"source-anat1-hair-contour-v40"|"source-anat1-hairline-v41"|"source-anat1-hedge-v42"|"source-anat1-photo-foliage-v43"|"source-anat1-five-tone-v44"|"source-anat1-eye-tarsus-v45"|"source-anat1-orbital-aperture-v46"|"source-anat1-continuous-face-v47"|"source-anat1-photometric-underpaint-v48"|"source-anat1-oblique-volume-v49"|"source-anat1-photometric-hair-v50"|"source-anat1-rooted-hair-v51"|"source-anat1-photo-hair-face-v52";
 export type Cc0JawNeckForm="baseline"|"source-contour";
 export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact;midfaceForm?:Cc0MidfaceForm;browForm?:Cc0BrowForm;jawNeckForm?:Cc0JawNeckForm;lashFinish?:CrayonF1LashFinish}
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
@@ -149,6 +150,14 @@ export const CRAYON_F1_EYE_INSPECTION={
 } as const;
 
 export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
+  // Preserve V50's exact film, add only V49's measured face pressure plane.
+  // V51's failed parallel hair stripes are never included in this composition.
+  if(options.midfaceForm==="source-anat1-photo-hair-face-v52"){
+    const v50=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-photometric-hair-v50",
+    });
+    return {...v50,elements:crayonF1CombinePhotoWaxV52(v50.elements)};
+  }
   // V51 builds on the existing identical V50 finished original film, then
   // appends only nine hand-directed pigment groups clipped to source hair.
   // Negative controls for V48/V49/V50 remain exactly unchanged.

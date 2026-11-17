@@ -1727,6 +1727,75 @@ test("F1 V38 matched Storybook A/B native hair control and candidate",async({pag
  * Protect same decoded-actual-PNG original green canopy & nasal tissue.
  */
 
+/** Same-head original 608x1082 CC0 screenshot: composed native V49 face
+ * pressure fields on original V50 hair. The rejected V51 fake roots are
+ * excluded. Far eye and upper original background are protected pixels.
+ */
+test("F1 V52 source-combined actual native hair skin full and cheek vs V50",async({page},info)=>{
+  test.setTimeout(230_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const rois:Record<string,number[][]>={foliage:[],farEye:[]};
+  const shots:Record<string,Uint8Array[]>={full:[],cheek:[]};
+  for(const midfaceForm of [
+    "source-anat1-photometric-hair-v50","source-anat1-photo-hair-face-v52",
+  ] as const){
+    const base=crayonCc0FaceStudy({detail:1,midfaceForm});
+    for(const view of ["full","cheek"] as const){
+      const spec=view==="full"?base:{...base,camera:[
+        {frame:0,focusX:255,focusY:690,zoom:2.1},
+        {frame:299,focusX:255,focusY:690,zoom:2.1},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+        "</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const [id,num] of [
+        ["face-outline",12],["hair-crown-surface",4],
+        ["hair-left-curtain",4],["hair-right-curtain",3],
+      ] as const)
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"] [data-km-crayon-underpaint-field]'))
+          .toHaveCount(midfaceForm==="source-anat1-photo-hair-face-v52"?num:
+            id==="face-outline"?8:num);
+      await expect(svg.locator('[data-km-crayon-element^="hair-source-lock-"]')).toHaveCount(0);
+      await page.waitForTimeout(380);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v52-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      shots[view].push(png);
+      if(view==="full"){
+        const pixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const c=document.createElement("canvas");
+          c.width=image.naturalWidth;c.height=image.naturalHeight;
+          const ctx=c.getContext("2d");
+          if(!ctx)throw new Error("Native photo source pixel auditor unavailable");
+          ctx.drawImage(image,0,0);
+          return {foliage:Array.from(ctx.getImageData(0,0,80,75).data),
+            farEye:Array.from(ctx.getImageData(415,475,55,60).data)};
+        },Buffer.from(png).toString("base64"));
+        rois.foliage.push(pixels.foliage);
+        rois.farEye.push(pixels.farEye);
+      }
+    }
+  }
+  for(const [name,pair] of Object.entries(rois)){
+    expect(pair).toHaveLength(2);
+    let changed=0;
+    for(let i=0;i<pair[0].length;i+=4)
+      if(Math.abs(pair[0][i]-pair[1][i])+
+         Math.abs(pair[0][i+1]-pair[1][i+1])+
+         Math.abs(pair[0][i+2]-pair[1][i+2])>5)changed++;
+    expect(changed/(pair[0].length/4),name).toBeLessThanOrEqual(.003);
+  }
+  for(const view of ["full","cheek"] as const){
+    expect(shots[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(shots[view][0]),Buffer.from(shots[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
 /** Original 608x1082 CC0 source, V50 unchanged negative control. V51
  * adds *only* physical dry-wax locks clipped to original wax hair geometry.
  * Film time, reference camera, face/iris and foliaged backdrop do not shift.

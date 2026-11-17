@@ -482,7 +482,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
-  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49","source-anat1-photometric-hair-v50","source-anat1-rooted-hair-v51"].includes(midfaceForm)?
+  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49","source-anat1-photometric-hair-v50","source-anat1-rooted-hair-v51","source-anat1-photo-hair-face-v52"].includes(midfaceForm)?
     crayonF1RegisterAnat1Face():null,[midfaceForm]);
   const lashRootAudit=useMemo(()=>lashFinish!=="sparse"&&eyeContact!=="baseline"
     ?auditCrayonF1LashRootContinuity(spec.elements):null,
@@ -670,7 +670,8 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-anat1-photometric-underpaint-v48">CC0 native continuous photometric skin underpaint (V48 !dev, from V46)</option>
            <option value="source-anat1-oblique-volume-v49">CC0 photo-aligned oblique orbital/cheek wax, preserved V48 (V49 !dev)</option>
            <option value="source-anat1-photometric-hair-v50">CC0 photographed dark crown/curtain native hair wax (V50 !dev; V48-based)</option>
-           <option value="source-anat1-rooted-hair-v51">CC0 crown root fan, left sweep, far curtain naturally directed wax fibers (V51 !dev, V50-based)</option>
+           <option value="source-anat1-rooted-hair-v51">Rejected source-discordant outer hair stripes (V51 !dev negative control)</option>
+           <option value="source-anat1-photo-hair-face-v52">CC0 photo-measured oblique facial planes and dark rooted hair (V52 !dev)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -814,6 +815,30 @@ export const Cc0HairValueABV38:Story={
   render:args=><Cc0HairValueComparisonV38 {...args}/>,
 };
 /** Native source-wax only. V48 remains the exact negative control for V49. */
+export const Cc0Anat1PhotoCombinedV52:Story={
+  name:"CC0 photograph-matched wax skin and dark rooted hair in full portrait (!dev V52)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-hair-face-v52" initialInspection="full"/>,
+};
+export const Cc0Anat1PhotoFaceV52:Story={
+  name:"CC0 oblique orbital/cheek planes in original dark-haired portrait at 1.6× (!dev V52)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-hair-face-v52" initialInspection="face"/>,
+};
+export const Cc0Anat1PhotoNearEyeV52:Story={
+  name:"CC0 photographed real orbital value and tarsal roll at 2.85× (!dev V52)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-hair-face-v52" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1PhotoCrownV52:Story={
+  name:"CC0 V50 original physical rooted hair preserved before rejected V51 fibers (!dev V52)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-hair-face-v52" initialInspection="hair-crown"/>,
+};
 export const Cc0Anat1RootLocksV51:Story={
   name:"CC0 source-rooted directional wax hair locks and original full portrait (!dev V51)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
