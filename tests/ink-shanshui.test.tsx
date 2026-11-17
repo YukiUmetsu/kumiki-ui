@@ -3376,7 +3376,7 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     // Native 2.3x optical review rejected 6 near-vertical long hemp
     // contacts: every root must cross the supporting positive shoulder
     // before releasing, and short alum-heads stay distinctly shorter.
-    const travel=nearFlow.map((mark,j)=>{
+    const travel=nearFlow.map(mark=>{
       const root=mark[1].split(" C")[0].slice(1).split(" ").map(Number);
       expect(root).toHaveLength(2);
       expect(root.every(Number.isFinite)).toBe(true);
