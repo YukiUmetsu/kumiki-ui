@@ -99,8 +99,14 @@ export function inspectRoseOuterRippleSurfaces():string[]{
     const old=ROSE_PHYSICAL_FOLDS.find(p=>p.id===shape.id);
     if(ids.has(shape.id))issues.push("Repeated outer lamina "+shape.id);
     ids.add(shape.id);
+    const hingeNumbers=shape.hinge.match(/-?\\d+(?:\\.\\d+)?/g)??[];
+    const hingeStart="M"+hingeNumbers[0]+" "+hingeNumbers[1];
+    const hingeEnd=hingeNumbers.slice(-2).join(" ");
+    // The reverse side closes along the *opposite orientation* of the
+    // same Bézier cuticle. Its control points are therefore in reverse order.
     if(!old||shape.hinge!==old.hinge||
-      !old.underside.includes(old.hinge)||
+      !old.underside.startsWith(hingeStart)||
+      !old.underside.includes(hingeEnd)||
       !shape.face.includes(shape.hinge)||shape.face===old.face)
       issues.push("Detached real rose outer cuticle hinge: "+shape.id);
     if(!/^M[\d\s.CQZ-]+Z$/.test(shape.face)||
