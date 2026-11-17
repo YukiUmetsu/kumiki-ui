@@ -178,7 +178,8 @@ const meta={
   id:"video-crayon-artcraft-adult-face",
   tags:["!dev"],
   // Non-story review helpers must never become visible as CSF exports.
-  excludeStories:[/^AdultFace/,/^crayonArtcraftInspectionSpec$/],
+  excludeStories:["AdultFaceArtcraftWorkbench","AdultFaceExpressionComparison",
+    "crayonArtcraftInspectionSpec"],
   component:Cc0SourceRegisteredFaceWorkbench,
   args:{aspect:"landscape",detail:1,expression:"warm",headScaleY:.82,startFrame:299,playbackRate:1,loop:false,inspection:"full",
     referenceReview:false,showCandidateLandmarks:false},
