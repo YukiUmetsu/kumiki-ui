@@ -389,11 +389,19 @@ export function InkMingQingCharacterStudy({
     </defs>
     <rect width="320" height="390" fill="#f1e8d9"/>
     <g data-km-ink-anat5-paper-fibre="source-layer" opacity=".24">
-      {Array.from({length:38},(_,i)=>{
-        const x=(i*47)%320,y=(i*71)%390;
-        return <path key={i} d={"M"+x+" "+y+" q"+(i%2?3:-2)+" "+(i%5+1)+" "+(i%3+1)+" "+(i%7+2)}
-          fill="none" stroke={i%3===0?"#9d8b72":"#fff8e9"}
-          strokeWidth={.28+(i%4)*.12} opacity={.22+(i%5)*.035}/>;
+      {Array.from({length:72},(_,i)=>{
+        const x=(i*47+19)%320,y=(i*71+31)%390;
+        const dx=Math.sin(i*1.73)*4.2,dy=2+Math.cos(i*.91)*3.4;
+        return <path key={i} data-km-ink-anat5-paper-thread={i}
+          d={"M"+fmt(x)+" "+fmt(y)+" q"+fmt(dx*.55)+" "+fmt(dy*.45)+" "+fmt(dx)+" "+fmt(dy)}
+          fill="none" stroke={i%4===0?"#9d8b72":"#fff8e9"}
+          strokeWidth={.2+(i%5)*.1} opacity={.17+(i%7)*.025}/>;
+      })}
+      {Array.from({length:28},(_,i)=>{
+        const x=(i*83+11)%320,y=(i*59+37)%390;
+        return <ellipse key={i} data-km-ink-anat5-paper-pigment-speck={i}
+          cx={x} cy={y} rx={.18+(i%3)*.13} ry={.14+(i%4)*.09}
+          fill={i%3===0?"#8f7a61":"#fff8eb"} opacity={.16+(i%4)*.035}/>;
       })}
     </g>
     <g data-km-ink-anat5-upper-body="anatomical-shoulder-and-collar-mass">
@@ -515,15 +523,46 @@ export function InkMingQingCharacterStudy({
       <path d={"M"+fmt(g.right+2)+" "+fmt(earY-11)+" C"+fmt(g.right+18)+" "+fmt(earY-16)
         +" "+fmt(g.right+22)+" "+fmt(earY+12)+" "+fmt(g.right+4)+" "+fmt(earY+17)}
         fill="#ddc7ad" stroke={p.ink} strokeWidth=".7" opacity=".74"/>
-      <path d={"M"+fmt(g.right+7)+" "+fmt(earY-3)+" Q"+fmt(g.right+16)+" "+fmt(earY+2)+" "+fmt(g.right+7)+" "+fmt(earY+10)}
+      <path data-km-ink-anat5-ear-helix="near"
+        d={"M"+fmt(g.right+7)+" "+fmt(earY-3)+" Q"+fmt(g.right+16)+" "+fmt(earY+2)+" "+fmt(g.right+7)+" "+fmt(earY+10)}
         fill="none" stroke={p.ink} strokeWidth=".55" opacity=".54"/>
-      <path d={"M"+fmt(g.left-2)+" "+fmt(earY-8)+" C"+fmt(g.left-13)+" "+fmt(earY-12)
-        +" "+fmt(g.left-17)+" "+fmt(earY+9)+" "+fmt(g.left-3)+" "+fmt(earY+14)}
+      <path data-km-ink-anat5-ear-antihelix="near"
+        d={"M"+fmt(g.right+10)+" "+fmt(earY-5)+" Q"+fmt(g.right+5)+" "+fmt(earY+1)+" "+fmt(g.right+11)+" "+fmt(earY+6)}
+        fill="none" stroke={p.wash} strokeWidth=".85" opacity=".58"/>
+      <path data-km-ink-anat5-ear-tragus="near"
+        d={"M"+fmt(g.right+4)+" "+fmt(earY+1)+" q4 -2 5 2"}
+        fill="none" stroke={p.ink} strokeWidth=".55" opacity=".46"/>
+      <path data-km-ink-anat5-ear-helix="far"
+        d={"M"+fmt(g.left-2)+" "+fmt(earY-8)+" C"+fmt(g.left-13)+" "+fmt(earY-12)
+          +" "+fmt(g.left-17)+" "+fmt(earY+9)+" "+fmt(g.left-3)+" "+fmt(earY+14)}
         fill="#ddc7ad" stroke={p.ink} strokeWidth=".6" opacity=".42"/>
+      {character!=="scholar"&&<g data-km-ink-anat5-earring="suspended-jade">
+        <path d={"M"+fmt(g.right+14)+" "+fmt(earY+12)+" q5 7 0 14"}
+          fill="none" stroke="#a88b5e" strokeWidth=".85" opacity=".8"/>
+        <ellipse cx={g.right+14} cy={earY+27} rx="2.2" ry="3.1"
+          fill="#d6c29b" stroke="#8c704e" strokeWidth=".45"/>
+        <circle cx={g.right+14} cy={earY+27} r=".8" fill="#f6e7cf"/>
+      </g>}
     </g>
     <path d={"M"+fmt(neckLeft)+" "+fmt(neckTop)+" C"+fmt(neckLeft-4)+" 301 121 316 129 323"
       +" Q160 345 191 323 C199 316 "+fmt(neckRight+4)+" 301 "+fmt(neckRight)+" "+fmt(neckTop)+" Z"}
       fill="#d3b99e" opacity=".9"/>
+    <g data-km-ink-anat5-neck-anatomy="tendon-and-clavicle">
+      <path data-km-ink-anat5-sternocleidomastoid="L"
+        d={"M"+fmt(g.landmarks.gonionL[0]+3)+" "+fmt(g.landmarks.gonionL[1]+2)
+          +" C"+fmt(neckLeft+1)+" 296 132 315 139 336"}
+        fill="none" stroke={p.wash} strokeWidth="2.3" opacity=".22" filter={"url(#"+uid+"-soft)"} />
+      <path data-km-ink-anat5-sternocleidomastoid="R"
+        d={"M"+fmt(g.landmarks.gonionR[0]-3)+" "+fmt(g.landmarks.gonionR[1]+2)
+          +" C"+fmt(neckRight-1)+" 296 188 315 181 336"}
+        fill="none" stroke={p.wash} strokeWidth="2.3" opacity=".18" filter={"url(#"+uid+"-soft)"} />
+      <path data-km-ink-anat5-clavicle="collar-contact"
+        d="M116 337 Q137 345 160 344 Q184 345 204 337"
+        fill="none" stroke="#8f735d" strokeWidth=".75" opacity=".32"/>
+      <path data-km-ink-anat5-hairline="temple-to-temple"
+        d={"M"+fmt(g.left+9)+" "+fmt(g.top+8)+" Q"+fmt(cx)+" "+fmt(g.top+17)+" "+fmt(g.right-9)+" "+fmt(g.top+8)}
+        fill="none" stroke={p.ink} strokeWidth=".48" opacity=".35"/>
+    </g>
     <path d={g.outline} fill={"url(#"+uid+"-skin)"} stroke={p.ink} strokeWidth=".7" strokeOpacity=".38"/>
     <g clipPath={"url(#"+uid+"-face)"} data-km-ink-anat5-facial-wash-planes="forehead-orbit-malar-nose-jaw">
       <path d={"M"+fmt(g.landmarks.forehead[0]-35)+" "+fmt(g.landmarks.forehead[1]+6)
