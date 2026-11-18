@@ -1,8 +1,9 @@
 import {useEffect,useId,useMemo,useState} from "react";
 import latticeUrl from "../../assets/models/anatomy/human-body-lattice.bin?url";
 import type {HumanBodyModel,HumanParams} from "../../registry/anatomy/anatomy-body";
-import {createHumanBody,loadHumanBodyModel} from "../../registry/anatomy/anatomy-body";
+import {createHumanBody,loadHumanBodyModel,HUMAN_PRESETS} from "../../registry/anatomy/anatomy-body";
 import {measureHumanBody} from "../../registry/anatomy/anatomy-measure";
+import {growHair} from "../../registry/anatomy/anatomy-hair";
 import {HAND_POSES,POSE_PRESETS,poseHumanBody} from "../../registry/anatomy/anatomy-pose";
 import type {HumanPose} from "../../registry/anatomy/anatomy-pose";
 import {HumanFigure} from "../../registry/anatomy/anatomy-react";
@@ -197,9 +198,11 @@ export function buildInkRobeBrushSpec(frame:HumanFrame,character:InkAnatomyChara
   };
 }
 
+const SCHOLAR_BASE=HUMAN_PRESETS.find(p=>p.id==="man-50")?.params??{sex:1,age:50};
+const ELDER_BASE=HUMAN_PRESETS.find(p=>p.id==="man-80")?.params??{sex:1,age:80};
 const BODY_PARAMS:Record<InkAnatomyCharacter,HumanParams>={
-  scholar:{sex:1,age:58,muscle:.36,weight:.42,stature:1.68,growthCurve:false,ancestry:{asian:1}},
-  elder:{sex:1,age:72,muscle:.28,weight:.46,stature:1.64,growthCurve:false,ancestry:{asian:1}},
+  scholar:{...SCHOLAR_BASE,sex:1,age:58,muscle:.36,weight:.42,stature:1.68,growthCurve:false,ancestry:{asian:1}},
+  elder:{...ELDER_BASE,sex:1,age:72,muscle:.28,weight:.46,stature:1.64,growthCurve:false,ancestry:{asian:1}},
 };
 
 function useAnatomyModel(){
@@ -236,6 +239,11 @@ export function InkAnatomyCharacterFigure({
   const paths=useMemo(()=>frame?buildInkRobePaths(frame,character,prop):null,[frame,character,prop]);
   const brushSpec=useMemo(()=>frame?buildInkRobeBrushSpec(frame,character):null,[frame,character]);
   const brush=useMemo(()=>brushSpec?evaluateInkBrush(brushSpec,1,true):[],[brushSpec]);
+  const hair=useMemo(()=>body&&posed?growHair(body,posed.points,{
+    length:character==="elder"?.105:.078,curl:1,strands:820,parting:"center",
+    flow:"back",recession:character==="elder"?.18:.05,volume:.008,
+    clump:.78,frizz:.06,seed:character==="elder"?48293:48292,
+  }):null,[body,posed,character]);
   const measures=useMemo(()=>body?measureHumanBody(body):null,[body]);
   if(error)return <div role="alert" data-testid="ink-anat4-error">ANAT1 body lattice: {error}</div>;
   if(!body||!posed||!frame||!paths||!measures)return <div role="status" data-testid="ink-anat4-loading">Loading ANAT1 body lattice…</div>;
@@ -250,6 +258,7 @@ export function InkAnatomyCharacterFigure({
     data-km-anat1-out-of-range={posed.outOfRange.length}
     data-km-anat1-heads-tall={fmt(measures.headsTall)}
     data-km-anat1-hand-length-mm={fmt(measures.handLength*1000)}
+    data-km-anat1-hair-strands={hair?.counts.length??0}
     data-km-ink1-strokes={brush.length}
     style={{position:"relative",width:460,height:840,maxWidth:"100%",background:"#f1e7d6",overflow:"hidden"}}>
     <svg width="460" height="840" viewBox="0 0 460 840"
@@ -268,6 +277,8 @@ export function InkAnatomyCharacterFigure({
         rx="5" ry="8" fill="#66513c" stroke="#3d3026" strokeWidth=".8"/>}
     </svg>
     <HumanFigure frame={frame} surface="tonal" contour lineWidth={1.25}
+      hair={hair??undefined}
+      hairColor={{eumelanin:character==="elder"?.45:1.6,pheomelanin:.04,grey:character==="elder"?.76:.14}}
       palette={{light:"#e8c9a9",shadow:"#785b47",ink:"#3a3029",accent:"#a38a70",grid:"#b5a58f",eye:"#ead8c3"}}
       label={character==="elder"?"Anatomy-led elder ink figure":"Anatomy-led scholar ink figure"}
       style={{position:"absolute",inset:0}}/>
