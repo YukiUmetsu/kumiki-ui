@@ -4,56 +4,51 @@
 
 ## Purpose
 
-Create new Chinese-ink character studies from independently researched Ming/Qing figure paintings. The redraws do not reuse the previous Shanshui cast or the ANAT2–ANAT5 character paths. The implementation imports only the shared ANAT1 face topology/landmarks and EXPR1 expression deformation.
+Create new Chinese-ink character studies from independently researched Ming/Qing figure paintings. The redraws do not reuse the previous Shanshui cast or the ANAT2–ANAT5 character paths. The implementation uses ANAT1's 468-point facial surface and named craniofacial landmarks, plus EXPR1's FACS action units, feature deformations, crease marks, gaze and continuous expression-weight blending.
 
-## New source set
+These are original character studies informed by historical visual language, not reconstructions of a sitter's identity. Historical paintings are not photographic references and cannot satisfy the photo-based ArtCraft v7 likeness gate.
+
+## New source set and rights
 
 | Source | Useful evidence | Rights / use |
 |---|---|---|
-| [Chen Hongshou, Scholar with Staff and Brush](https://www.clevelandart.org/art/1979.27.2.19), CMA 1979.27.2.19 | A small standing bearded scholar in a tan robe and black cap, holding a staff and brush; delicate contour lines and intentionally reduced scale. The museum describes the late album style as archaistic and hyper-refined. | CMA Open Access: the museum states that the work may be copied, modified and distributed without asking permission. |
-| [Ren Yi, Zhong Kui](https://www.metmuseum.org/art/collection/search/37393?showOnly=openAccess), Met 2002.208.2, dated 1883 | Broad facial mass, blossom in the hair, full beard, book-reading gaze and voluminous robe. The Met notes that Ren Yi adopts Chen Hongshou's figural style and presents Zhong Kui as an elegant, eccentric scholar rather than a conventional ferocious demon-queller. | Met Open Access; Public Domain. |
-| [Ren Yi, Su Wu the Shepherd](https://www.artmuseum.tsinghua.edu.cn/en/cpsj_english/gndc/gcxy/201605/t20160526_1116.shtml), Tsinghua University Art Museum, 1874 | Seated elder with greying temples, far-reaching gaze, scepter and stretched torso; the museum describes fine facial contour lines and the use of nail-head-rat-tail and bent-reed drawing in hood and clothing. | Museum record is linked for study. Reproduction rights are not stated; no source image is embedded in Storybook. |
-| [Chen Hongshou, Lady Xuanwen Giving Instruction on the Rites of Zhou](https://www.clevelandart.org/art/1961.89), CMA 1961.89, 1638 | An older woman instructs young scholars. The museum describes elongated, exaggerated faces, fine even iron-wire outlines and brilliant mineral pigments; useful for a future female-character and robe study. | CMA Open Access; the museum states that the work may be copied, modified and distributed without asking permission. Image endpoint was unavailable in this pass; link-only. |
+| [Chen Hongshou, Scholar with Staff and Brush](https://www.clevelandart.org/art/1979.27.2.19), CMA 1979.27.2.19 | Small standing scholar with black cap, staff, brush, tan robe and fine contour lines. Preserve the deliberately reduced figure scale. | CMA Open Access; copy, modification and distribution permitted. |
+| [Ren Yi, Zhong Kui](https://www.metmuseum.org/art/collection/search/37393?showOnly=openAccess), Met 2002.208.2, dated 1883 | Eccentric scholar, blossom in hair, full beard, book-reading gaze and voluminous robe. Not the conventional ferocious demon-queller pose. | Met Open Access; Public Domain. |
+| [Ren Yi, Su Wu the Shepherd](https://www.artmuseum.tsinghua.edu.cn/en/cpsj_english/gndc/gcxy/201605/t20160526_1116.shtml), Tsinghua University Art Museum, 1874 | Grey temples, distant gaze, stretched seated torso and scepter; fine facial contour, nail-head-rat-tail and bent-reed drawing in hood and clothing. | Museum record is linked for study. Reproduction rights are not stated; image remains link-only. |
+| [Chen Hongshou, Lady Xuanwen Giving Instruction on the Rites of Zhou](https://www.clevelandart.org/art/1961.89), CMA 1961.89, 1638 | Venerable woman instructs young scholars; elongated faces, iron-wire outline and mineral pigments. | CMA Open Access; image remains link-only because the stable endpoint was not verified. |
+| [Jiang Jun, Portrait of a Lady](https://www.metmuseum.org/art/collection/search/51780?showOnly=openAccess), Met 52.177.5, 1906 | 26-year-old woman with pink peony, jade hairpins, hanging earrings, blue embroidered robe and folded fan. Primary reference for the new lady character. | Met Open Access; Public Domain. |
+| [Unidentified artist, Portrait of a Gentleman](https://www.metmuseum.org/art/collection/search/48939?showOnly=openAccess), Met 51.39.3, 16th–17th c. | Long flowing beard, seated formal pose, vermilion robe and crane rank badge; useful for beard taper and robe mass. | Met Open Access; Public Domain. |
+| [Jiang Yun, Portrait of a Man](https://www.metmuseum.org/art/collection/search/51783?showOnly=openAccess), Met 52.177.8, 19th c. | 45-year-old sitter, direct gaze, fur-lined coat and peacock-feather hat ornament; mature face and tonal hierarchy. | Met Open Access; Public Domain. |
+| [Unidentified artist, Portrait of a Scholar](https://www.metmuseum.org/art/collection/search/48941?showOnly=openAccess), Met 29.20.1, 17th–18th c. | Seated scholar, black cap, quiet pose, plain robe and generous negative space. | Met Open Access; Public Domain. |
+| [Ruan Zude, Portrait of Yizhai at Eighty-Five](https://www.metmuseum.org/art/collection/search/36081), Met 59.49.1 | High cheekbones, pursed lips and gentle gaze as age/personality cues. | Link-only; reproduction rights not established. |
+| [Ruan Zude, Portrait of the Wife of Yizhai](https://www.metmuseum.org/art/collection/search/36082), Met 59.49.2 | Elderly female portrait, gold-and-pearl earrings, ornate headdress and layered blue brocade. | Link-only; reproduction rights not established. |
 
 ## Source deconstruction
 
-### Scholar
+- **Scholar:** CMA miniature for vertical scale, staff/brush gesture, black cap and iron-wire contour. Met scholar and gentleman portraits for beard taper, head-to-body relation and robe mass. Do not inflate the miniature into a heroic bust.
+- **Su Wu:** Tsinghua record identifies grey temples, far gaze, stretched seated body and scepter. Hood and robe combine nail-head-rat-tail and bent-reed drawing. Age reads through orbital depth and soft tissue, not a rectangular beard silhouette.
+- **Zhong Kui:** Met source describes an elegant, eccentric scholar with blossom in hair, book-reading gaze, archaic bronzes, flowers and fruit. Build broad cheek/jaw mass and full but translucent beard; avoid the generic demon-queller stereotype.
+- **Jiang Jun's lady:** Met 1906 portrait supplies a blue embroidered robe, pink peony, jade hairpins, hanging earrings and folded fan. The new character is independently drawn with a tapered jaw, smaller vermilion mouth and pinned coiffure; it is not the sitter's likeness.
 
-- Use the CMA standing scholar for vertical gesture, head-to-body scale, black cap, staff/brush relationship and fine line density.
-- Use Ren Yi's Zhong Kui for the composed scholarly gaze and voluminous robe; use Lady Xuanwen for elongated face proportions and the iron-wire line vocabulary.
-- Keep the face long and narrow, with a tapered jaw, fine moustache and separate pointed beard.
-- Keep robe folds directional and sparse enough to preserve the miniature figure's negative space. Do not inflate the source into a generic heroic body.
+## Anatomy and expression
 
-### Su Wu
-
-- The Tsinghua record identifies grey temples, a far-reaching gaze, a seated but stretched body and a scepter held with resolve.
-- The hood and robe combine nail-head-rat-tail and bent-reed drawing; vary line pressure and taper rather than repeating parallel fold marks.
-- Age reads through upper-lid weight, temple greying, fine contour lines and a long light beard, not exaggerated wrinkles or a grimace.
-- The sheep and cold setting explain the scene, but are not needed in this portrait crop.
-
-### Zhong Kui
-
-- The Met source describes an elegant, eccentric scholar with a blossom in his hair, seated reading beside archaic bronzes, flowers and fruit.
-- Build a broad cheek/jaw mass, substantial nose, full beard and loose hair; retain a composed reading gaze.
-- The blossom and robe volume distinguish the character. Avoid the generic angry demon-queller stereotype.
-
-## Anatomy and expression implementation
-
-- Start from ANAT1's raw 468-point face topology. Apply small source-specific local landmark remaps for face width, jaw, lower-face length, nose projection, eye spacing, cheek mass and mouth width.
-- Do not use a population norm as a proxy for a historical sitter. The remaps are explicitly source-study parameters, not demographic claims.
-- Project the face at a controllable yaw so near/far eye width, nose projection and cheek overlap remain asymmetric.
-- Use EXPR1's FACS-based expression deformation for neutral, smile, sad, angry, surprise and fear. Brow, eyelid, cheek, nasolabial, mouth and jaw changes remain connected.
-- Keep ears, headwear, hair, beard, moustache, neck, collar and robe as separate layers. Hair and beard fibers are deterministic and individually tapered.
-- Preserve the difference between line character: fine facial contour, more forceful cloth/hood edges, and softer wet washes. Paper grain is subtle and should never replace real linework.
+- Use ANAT1's 468-point face topology, named landmarks and upper/lower eye/lip loops. The 468-point face mask does not include ears, cranium or hairline; this study uses source-relative ear-root approximations, and production full-head work must integrate the human-body lattice.
+- Apply local source-specific remaps for face width, temple, jaw, chin, cheek, nose, eye spacing and lower-face length. No demographic norm is used as a proxy for a historical sitter.
+- Age affects orbital depth and mild soft-tissue descent. Fine age marks remain restrained and follow bone planes.
+- EXPR1 drives brow, eyelid, cheek, nose, lip-corner and jaw motion. AU weights blend continuously across a 12-frame transition; reduced-motion mode snaps to the target.
+- Eye apertures are closed paths from ANAT1 upper/lower lid loops. The mouth outline comes from upper/lower lip loops; open oral aperture follows EXPR1 mouth/jaw movement.
+- Hair/headwear fibers are clipped to the supporting cap, hood or coiffure. Beard mass is a translucent substrate beneath tapered fibers; the lady has no beard or moustache.
+- Rice-paper fibers are irregular and directional, not a ruled grid. Face planes use layered washes; facial contours remain fine and cloth edges carry more pressure.
 
 ## Storybook
 
 - Story: Video production / Film Looks / Chinese Ink / ANAT6 Source-led Character Portraits.
-- Controls: character, expression, intensity, yaw and material detail.
-- Contact sheet: six expressions for the selected source-led character.
-- Reference board: four source cards. Only the CMA and Met Public Domain images are embedded. Tsinghua and the second Met reference remain link-only.
-- The reference cards record the role each source plays: face/beard, pose/prop, garment, line character and a future female-character reference.
+- Characters: scholar, Su Wu, Zhong Kui and a new Jiang Jun lady study.
+- Controls: expression source/target, intensity, 12-frame transition, head turn, material detail and reduced motion.
+- Contact sheet: eight expressions per character.
+- Reference board: ten source cards; six Open Access/Public Domain images embedded, four rights-unclear/unverified records link-only.
+- Browser evidence captures 1× and enlarged 3× crops. Screenshot review remains a human art review, not an automated path-count score.
 
 ## Acceptance boundary
 
-This is a source-informed art study, not a sitter likeness claim. The ArtCraft portrait gate remains open: the historic paintings are not source photographs, and the work has not completed source-relative landmark registration plus independent 1×/3× visual review. Do not describe the study as production-qualified until that gate is satisfied.
+Research-only. Historical paintings are style and character references, not source photographs. The photo-based ArtCraft v7 likeness gate remains open. Do not describe this as production-qualified until the relevant style gate, native 1×/3× visual review and any required consented photographic-reference process are complete.
