@@ -78,6 +78,9 @@ describe("ANAT5 original Ming/Qing Chinese ink character studies",()=>{
       expect((svg.match(/data-km-ink-anat5-nostril=/g)||[])).toHaveLength(2);
       expect((svg.match(/data-km-ink-anat5-philtrum=/g)||[])).toHaveLength(2);
       expect((svg.match(/data-km-ink-anat5-brow-fiber=/g)||[])).toHaveLength(28);
+      expect((svg.match(/data-km-ink-anat5-paper-thread=/g)||[])).toHaveLength(72);
+      expect((svg.match(/data-km-ink-anat5-paper-pigment-speck=/g)||[])).toHaveLength(28);
+      expect((svg.match(/data-km-ink-anat5-ear-helix=/g)||[])).toHaveLength(2);
       expect(svg).toContain('data-km-ink-anat5-lip-volume="vermilion-border"');
       expect(svg).toContain('data-km-ink-anat5-nose-bridge-wash="true"');
     }
@@ -87,8 +90,10 @@ describe("ANAT5 original Ming/Qing Chinese ink character studies",()=>{
     expect((scholar.match(/data-km-ink-anat5-moustache-substrate=/g)||[])).toHaveLength(2);
     expect((writer.match(/data-km-ink-anat5-collar-motif=/g)||[])).toHaveLength(18);
     expect(writer).toContain('data-km-ink-anat5-writer-hair-ornament="floral-coil"');
+    expect((writer.match(/data-km-ink-anat5-earring=/g)||[])).toHaveLength(1);
     expect((attendant.match(/data-km-ink-anat5-collar-motif=/g)||[])).toHaveLength(18);
     expect(attendant).toContain('data-km-ink-anat5-attendant-hair-pins="paired-coils"');
+    expect((attendant.match(/data-km-ink-anat5-earring=/g)||[])).toHaveLength(1);
   });
 
   it("rejects invalid identities, expressions and non-finite controls",()=>{
