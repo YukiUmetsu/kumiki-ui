@@ -37,7 +37,7 @@ const strokes=(id:string,passes:readonly Contact[]):readonly PencilTrace[]=>
 export const ROSE_INNER_WHORL_ORGANS:readonly RoseInnerWhorlOrgan[]=[
   {
     id:"rose-whorl-recess",surface:"petal",
-    path:"M244 159 C241 152 245 145 253 142 C260 139 266 144 271 147 C278 145 285 144 290 150 C294 156 290 163 284 168 C279 174 275 180 268 182 C260 185 251 181 246 175 C241 170 241 164 244 159 Z",
+    path:"M252 159 C257 152 265 149 273 153 C279 156 282 162 279 167 C272 168 266 172 260 178 C255 180 250 176 248 171 C247 166 249 162 252 159 Z",
     bounds:[239,139,56,47],palette:["#743047","#3E1A31","#9D5267"],
     direction:8,flow:13,
     details:strokes("recess",[
@@ -61,7 +61,7 @@ export const ROSE_INNER_WHORL_ORGANS:readonly RoseInnerWhorlOrgan[]=[
   },
   {
     id:"rose-whorl-right",surface:"petal",
-    path:"M254 145 C260 137 270 132 280 136 C289 140 294 148 291 156 C288 164 279 168 270 170 C263 171 256 167 252 162 C260 164 269 160 274 154 C271 148 264 147 258 152 C254 154 251 150 254 145 Z",
+    path:"M253 145 C260 136 271 132 282 137 C291 142 295 150 290 158 C286 165 278 169 268 171 C261 172 255 168 252 163 C259 164 267 161 272 156 C276 151 272 146 266 145 C261 144 257 148 254 151 C251 151 251 148 253 145 Z",
     bounds:[250,130,45,43],palette:["#B45169","#5B2340","#D17C8E"],
     direction:-41,flow:-24,
     details:strokes("right",[
@@ -73,7 +73,7 @@ export const ROSE_INNER_WHORL_ORGANS:readonly RoseInnerWhorlOrgan[]=[
   },
   {
     id:"rose-whorl-scroll",surface:"petal",
-    path:"M235 174 C229 167 230 158 236 151 C242 144 250 143 257 147 C263 151 265 158 260 164 C257 169 252 173 247 176 C251 180 258 182 265 179 C261 186 248 187 240 182 C236 180 235 176 235 174 Z",
+    path:"M232 174 C225 166 227 155 234 148 C241 140 251 139 260 145 C268 151 269 160 263 168 C259 174 252 177 246 179 C252 184 261 185 270 180 C267 189 250 192 239 185 C234 182 232 178 232 174 Z",
     bounds:[226,143,40,45],palette:["#B0526B","#57213E","#D58696"],
     direction:35,flow:22,
     details:strokes("scroll",[
