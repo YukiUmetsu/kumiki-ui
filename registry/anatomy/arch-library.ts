@@ -909,7 +909,7 @@ add({ id: "village-bakery", label: "Village bakery interior", group: "interior",
     for (const [lx, lz] of [[0.65, -2.45], [1.85, -2.45], [0.65, -1.95], [1.85, -1.95]] as const) b.add(boxAt(lx - 0.04, 0, lz - 0.04, lx + 0.04, 0.55, lz + 0.04, b.mat({ kind: "oak", colour: "#7a5a3a" })));
     b.place();
     return done(b, interiorCam(5.2, 1.55, 68, 0.12, -6), dayIn({ sunElevation: 18, sunAzimuth: -75 }), { dust: 0.22, interior: true }); } });
-add({ id: "apothecary", label: "Cluttered apothecary", group: "interior", region: "Europe", era: "18th century", setting: "town", view: "interior", scale: "humble", mood: "candle",
+add({ id: "apothecary", label: "Cluttered apothecary", group: "interior", region: "Europe", era: "18th century", setting: "town", view: "interior", scale: "humble", mood: "interior-day",
   materials: ["oak drawers with labels", "glass and faience jars", "brass scales"], story: ["herbs drying from the beams", "a candle on the counter", "labels on every drawer"],
   note: "Walls of small labelled drawers below shelves of jars; herbs hung to dry from the ceiling beams.",
   build: (seed = 92) => { const b = new SceneBuilder(seed);
@@ -959,7 +959,7 @@ add({ id: "attic-workshop", label: "Cosy attic workshop", group: "interior", reg
     barrel(b, 2.8, -1.4, 0.3, 0.7); b.place(); stool(b, 0.8, -2.2, 20);
     hangingLantern(b, -0.6, 2.2, -2.6, 3.6, 0.05); sleepingCat(b, 0.15, 0.97, -3.95, 15);
     return done(b, interiorCam(4.2, 1.5, 72, 0.32), dayIn({ sunElevation: 26, sunAzimuth: 170, burn: 1.8 }), { dust: 0.18, interior: true }); } });
-add({ id: "blacksmith-forge", label: "Blacksmith's forge", group: "interior", region: "Europe", era: "19th century", setting: "village", view: "interior", scale: "humble", mood: "candle",
+add({ id: "blacksmith-forge", label: "Blacksmith's forge", group: "interior", region: "Europe", era: "19th century", setting: "village", view: "interior", scale: "humble", mood: "interior-day",
   materials: ["brick forge with hood", "an iron anvil on an oak stump", "soot-black beams"], story: ["glowing coals", "tongs and hammers on the wall", "a quenching tub"],
   note: "The hearth raised to working height, bellows behind, the anvil a step away; everything soot-black but the fire.",
   build: (seed = 95) => { const b = new SceneBuilder(seed);
@@ -1033,7 +1033,7 @@ add({ id: "cottage-kitchen", label: "Cottage kitchen", group: "interior", region
     for (const z of [-1.4, -0.95, -0.5]) b.add(revolve(-3.18, z, 0.92, 1.04, t => 0.05 + 0.02 * t, 0.07, b.mat({ kind: "enamel", colour: "#a8603a" })), ellipsoid(-3.18, 1.1, z, 0.06, 0.07, 0.06, b.mat({ kind: "foliage", colour: "#4a6a3a" })));
     b.place(); stool(b, -0.9, 0.3, 15); stool(b, 0.8, 0.4, 70);
     return done(b, interiorCam(4), dayIn({ sunElevation: 20, sunAzimuth: -75 }), { dust: 0.3, interior: true }); } });
-add({ id: "clockmaker-shop", label: "Clockmaker's workshop", group: "interior", region: "Germany and Switzerland", era: "19th century", setting: "town", view: "interior", scale: "humble", mood: "candle",
+add({ id: "clockmaker-shop", label: "Clockmaker's workshop", group: "interior", region: "Germany and Switzerland", era: "19th century", setting: "town", view: "interior", scale: "humble", mood: "interior-day",
   materials: ["walls of clocks", "a bench at the window", "brass and glass"], story: ["a magnifier on the bench", "pendulums at rest"],
   note: "A watchmaker's bench stands at the window for light; clocks hang on every wall, each case a little different.",
   build: (seed = 99) => { const b = new SceneBuilder(seed);
