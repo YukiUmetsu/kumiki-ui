@@ -14,14 +14,12 @@ test("ANAT5 portrait atelier exposes new references and live expressions",async(
   await expect(portrait)
     .toHaveAttribute("data-km-ink-anat5-source-object","2024.180");
   await atelier.getByRole("combobox",{name:"Facial expression"}).selectOption("smile");
-  await expect(atelier.locator('[data-km-ink-anat5-character="writer"]'))
-    .toHaveAttribute("data-km-expr1-emotion","smile");
+  await expect(portrait).toHaveAttribute("data-km-expr1-emotion","smile");
   await atelier.getByRole("combobox",{name:"Historical character"}).selectOption("attendant");
   await expect(portrait)
     .toHaveAttribute("data-km-ink-anat5-hair-style","attendant-double-pin");
   await atelier.getByRole("combobox",{name:"Facial expression"}).selectOption("fear");
-  await expect(atelier.locator('[data-km-ink-anat5-character="attendant"]'))
-    .toHaveAttribute("data-km-expr1-emotion","fear");
+  await expect(portrait).toHaveAttribute("data-km-expr1-emotion","fear");
   await atelier.getByRole("slider",{name:"Expression intensity"}).evaluate(el=>{
     const input=el as HTMLInputElement;input.value="0.55";
     input.dispatchEvent(new Event("input",{bubbles:true}));

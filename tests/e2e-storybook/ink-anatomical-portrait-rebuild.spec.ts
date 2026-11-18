@@ -142,8 +142,8 @@ test("experimental 96-frame ANAT2 actor is transparent, motion-safe and foregrou
     await expect(film).toHaveAttribute("data-ink-proof-frame","0");
     await expect(actor).toHaveAttribute("data-ink-cue","0.0000");
     await expect(film.locator('[data-km-shanshui-scene="misty-hermit"]')).toBeVisible();
-    await expect(actor.getByTestId("ink-anat2-portrait"))
-      .toHaveAttribute("data-ink-transparent-paper","true");
+    await expect(actor.locator("[data-km-ink-standing-figure]"))
+      .toHaveAttribute("data-km-ink-standing-paper","transparent");
     await expect(actor.locator('[data-km-ink-native-robe-brush]')).toHaveCount(4);
     await film.screenshot({animations:"disabled",
       path:info.outputPath("anat2-native-shanshui-actor-frame00-960x540.png")});
@@ -173,8 +173,8 @@ test("experimental 96-frame ANAT2 actor is transparent, motion-safe and foregrou
     await expect(actor).toHaveAttribute("data-ink-cue","0.0000");
     await page.getByRole("checkbox",{name:"Ink ANAT2 film reduced motion"}).check();
     await expect(actor).toHaveAttribute("data-ink-cue","0.0000");
-    await expect(actor.getByTestId("ink-anat2-portrait"))
-      .toHaveAttribute("data-ink-transparent-paper","true");
+    await expect(actor.locator("[data-km-ink-standing-figure]"))
+      .toHaveAttribute("data-km-ink-standing-paper","transparent");
   });
 
 test("ANAT2 original standing scholar preserves all planted supports at 1x while motion affects local cloth only",
@@ -190,7 +190,8 @@ test("ANAT2 original standing scholar preserves all planted supports at 1x while
     await expect(figure.locator('[data-km-ink-bamboo-node]')).toHaveCount(10);
     await expect(figure.locator('[data-km-ink-hand-finger]')).toHaveCount(4);
     await expect(figure.locator('[data-km-ink-standing-pressure]')).toHaveCount(6);
-    await expect(figure.locator('[data-km-ink-native-robe-brush]')).toHaveCount(4);
+    await expect(figure.locator('[data-km-ink-garment-flow]')).toHaveCount(82);
+    await expect(figure.locator('[data-km-ink-garment-dry-lift]')).toHaveCount(46);
     const feet=figure.locator('[data-km-ink-foot]');
     const original=await Promise.all([feet.nth(0).boundingBox(),feet.nth(1).boundingBox()]);
     await live.screenshot({animations:"disabled",
