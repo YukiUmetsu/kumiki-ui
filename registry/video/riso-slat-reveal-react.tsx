@@ -42,7 +42,7 @@ export interface RisoSlatTheatreProps{
 }
 
 /** RISO81: complete original cover plus individually clipped, interleaved printed slats.
- * One rigid pull comb moves every strip through its own source-ordered slot.
+ * One pull tab drives ordered strips through parallel slots with bounded per-slot timing.
  * No ink morph, raster mask, crossfade or independent animation clock is used. */
 export function RisoSlatTheatre({
   cover,insert,axis,direction,count,progress,seed=81,travel,stagger=.22,
