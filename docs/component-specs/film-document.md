@@ -560,7 +560,7 @@ Storybook: **Promo Moves → Beat Hits**, played with the film's own mix (`npm r
   - hit sounds on the accent lane.
 - **Rendered frames.** At 960×540, frames 131 (punch and blur), 262 (punch and split) and 327 (punch, blur and flash) show the radial smear, the red and blue fringes and the lift. A first single-pass blur showed a dotted texture; the two-pass blur is smooth.
 - **The loop.** It was imported with `limitDb: 9` and `crossSeconds: 0.01`.
-  - **Limiting.** The raw take peaks 17.5 dB over its loudness, and no film master could reach −14 LUFS. The film's mix now measures −15.4 LUFS.
+  - **Limiting.** The raw take peaks 17.5 dB over its loudness, and no film master could reach −14 LUFS. The film's mix now measures −15.0 LUFS (−15.4 before the master's loudness passes, below).
   - **A/B.** earshot hears the limited loop as the same sound as the raw take: cosine 0.99, and the same strong match (z +5.0 against +5.1), slightly darker.
   - **Clicks.** The mix's `mix-click` warnings fall on its eighth notes; earshot reads one as crisp hi-hats (z +4.8).
 - **Owner review.** Visual and listening review is pending.
