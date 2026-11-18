@@ -9,6 +9,8 @@ test("ANAT4 full figure uses ANAT1 anatomy, EXPR1 face and INK1 robe brush geome
     const figure=page.getByTestId("ink-anat4-figure");
     await expect(figure).toHaveAttribute("data-km-anat4-ready","true",{timeout:30000});
     await expect(figure).toHaveAttribute("data-km-anat1-out-of-range","0");
+    expect(Number(await figure.getAttribute("data-km-anat1-hair-strands"))).toBeGreaterThan(0);
+    expect(Number(await figure.getAttribute("data-km-anat1-joint-count"))).toBeGreaterThan(30);
     await expect(figure.locator("[data-km-ink1-stroke]")).toHaveCount(8);
     await expect(page.getByTestId("ink-anat4-face-study")).toBeVisible();
     await page.screenshot({fullPage:true,animations:"disabled",
