@@ -31,6 +31,7 @@ import spinZoomExample from "../../examples/film/spin-zoom.film.json";
 import chatExample from "../../examples/film/chat-story.film.json";
 import subjectExample from "../../examples/film/subject.film.json";
 import freezeExample from "../../examples/film/freeze-intro.film.json";
+import slowmoExample from "../../examples/film/slowmo.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -542,6 +543,24 @@ export const FreezeFrameIntro: StoryObj = {
       from <code>npm run video:matte</code>, with a thin light edge), and the name card sliding in over a soft shade that keeps the white
       name readable on the deck. Then colour returns and the footage plays on. Reduced motion keeps the grade and the card and drops the
       flash and the slide.
+    </FilmCompare>;
+  },
+};
+
+const slowmoDoc = slowmoExample as unknown as FilmDocument;
+/** One second of footage slowed four times: with new in-between frames from `npm run video:slowmo` (motion-compensated interpolation),
+ * against the same second played at a quarter speed, which shows each real frame four times. */
+export const SmoothSlowMotion: StoryObj = {
+  render: function SmoothSlowMotion() {
+    const variants = useMemo(() => ({
+      smooth: { label: "Interpolated (4×)", film: compileExample(slowmoDoc) },
+      repeated: { label: "Repeated frames (before)", film: compileExample({ ...slowmoDoc, scenes: slowmoDoc.scenes.map(scene => ({ ...scene, content: { ...scene.content as object,
+        video: { id: "peacock-walk", src: "assets/footage/peacock-walk.mp4", width: 960, height: 540, fps: 30, frameCount: 120, licenseRef: "commons-peacock-walking-cc0" }, from: 30, rate: .25 } })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      Switch between the two at Quarter speed: repeated frames step every fourth frame; the interpolated clip moves on every frame. Its
+      check rebuilt dropped frames of this clip at 0.952 SSIM against the real ones, where repeating frames scores 0.933. Interpolation
+      guesses: fast or tangled motion (wings, water, crowds) shows warped seams, which the check warns about before you use it.
     </FilmCompare>;
   },
 };
