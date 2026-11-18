@@ -243,7 +243,48 @@ Rules for every slice:
 | **MC1.1 — AdvancedShapeMorph** | `shape-morph` (ShapeMorph), VisualTransformation | High-fidelity morphs across different geometries: complex contours, holes and topology changes. | Delivered 2026-11-17 (PR #623); owner approved. `AdvancedShapeMorph` core, traced text, the `shape-morph-three` 3D adapter ([spec](component-specs/motion-geometry.md#advancedshapemorph-any-two-shapes-text-and-3d)) and the VT1 strategy `topology-morph`, which `auto` selects for closed contours whose topology differs ([spec](component-specs/visual-transformation.md)). |
 | **MC1.2 — SculpturalTypography** | KineticText (`animated-text`, `kinetic-text.ts`), TitleSequence | Letters as dimensional, deformable, material-bearing animated objects. | Built 2026-11-17, in review: `sculptural-type` (per-letter solids from distance fields, five relief profiles, Barr deformers with exact normals, six weighted entrances) and `sculptural-type-three` (MATL1 materials baked at real size); TitleSequence `title.sculpt` (cut card, letterpress, embossed foil, chiselled) ([spec](component-specs/sculptural-type.md)). Owner visual review pending. |
 | **MC1.3 — PhysicalPaperMotion** | PaperCraft, EditorialCollage | True dimensional folds, paper bending, tearing, peeling, thickness and material-responsive shadows. | Built 2026-11-17, in review: `paper-sheet` (eleven measured stocks; folds, bends, peels, rolls and tears as developable facets with exact affine maps; heavy-elastica sag; fibre bevels; Kubelka–Munk light; penumbra shadows) with `sheet` on PaperCraft layers and collage cutouts; `paper-book` (simulated magazine page turns with leaf-on-leaf contact) with a Three.js renderer; `paper-sound` (cues from paper motion on recorded CC0 paper sounds) ([spec](component-specs/paper-sheet.md)). Owner visual and listening review pending. |
-| **MC1.4 — MaterialAwareTransitions** | FilmMatte (`film-matte.ts`), FilmShapeWipe (`film-shape-wipe.ts`) | Transitions driven by the real behaviour of ink, paper, paint, glass and other materials. | Not started. |
+| **MC1.4 — MaterialAwareTransitions** | FilmMatte (`film-matte.ts`), FilmShapeWipe (`film-shape-wipe.ts`) | Transitions driven by the real behaviour of ink, paper, paint, glass and other materials. | Built 2026-11-18, in review: `material-transitions` (ink bleeding into paper, paper burning, paint running down, breath frosting glass, from eikonal fronts through physical speed fields; reeded glass refracting and a pane shattering; a page peeling, tearing and folding; a drop rippling water and wax draining, through precise two-pass warps; each with its own recorded sound), as matte textures and as shape wipes opened through a material ([spec](component-specs/material-transitions.md)). Owner visual review pending. |
+
+### Selective colour engine (VP1) — owner request 2026-11-18, next milestone
+
+The owner asked for a selective-colour video engine as the next milestone, after the MC1.4 weak points are done. It turns
+frames into high-contrast black and white and keeps chosen colours, by colour thresholds, spatial masks and timed curves.
+The brief named a well-known film's look; as with film looks (doc 33), no film or brand name goes into library code or
+docs. The engine is called **selective colour**.
+
+**Brief, in short:**
+
+- **One configuration object (`SelectiveColorConfig`), adjustable at run time, with no hard-coded values:**
+  - the colour space for isolation (HSV, CIELAB or YCbCr);
+  - the target colour (hue centre, minimum saturation and value);
+  - the tolerance (hue window, saturation fall-off) and feathering (soft mask edges, no halos or pixelated edges);
+  - the monochrome base (luminance weights such as Rec. 601 or 709, or a custom film-noir curve, contrast boost and
+    black level);
+  - time windows (start and end times or frames, and a transition length that fades smoothly from full monochrome to
+    selective colour and back).
+- **Decoupled stages:** ingest and decode, a temporal gate (outside a window: pass-through or full monochrome, by a
+  global default), mask generation (convert, measure distance to the target, alpha 0–1 with tolerance and feathering),
+  composite (monochrome base blended with the original through the mask), output and encode.
+- **Quality:** ready for hardware acceleration and vectorisation (matrix maths, shader-ready logic, parallel frames);
+  full logging; graceful errors for out-of-range timestamps, missing files and unsupported codecs.
+
+**Fit with what exists** (check each before use; docs go out of date): `film-look.ts` already grades with a channel
+mixer, contrast, blacks and whites; `frame-accurate-clip.tsx` and `footage-react.tsx` play footage frame by frame;
+`scripts/export-video.mjs` encodes with FFmpeg; `shader-fx` runs WebGL passes in films.
+
+| Slice | Deliverable | State |
+|---|---|---|
+| **VP1.1 — Core** | Config schema and validation with JSON-pointer problems; colour conversions (HSV, CIELAB, YCbCr) and distances (hue window, ΔE); the mask with tolerance, feathering and edge-aware smoothing so masks do not halo or flicker; the monochrome base; time windows with transition curves. Pure TypeScript on typed arrays: the reference implementation. | Queued |
+| **VP1.2 — Renderers** | The same maths as a WebGL fragment shader for previews and films, with a parity test against the reference to a stated tolerance. | Queued |
+| **VP1.3 — File pipeline** | Decode → process → encode on files through FFmpeg, with probing, logging and errors for missing files, unsupported codecs and out-of-range times; parallel frame processing. | Queued |
+| **VP1.4 — Films and discovery** | A film-document field and a FilmLook option; a Storybook story in the existing Film Looks section; spec, catalog entry and clean registry install. | Queued |
+
+Research before VP1.1 (graded sources in the spec):
+- perceptual colour distance (ΔE76 against CIEDE2000) and skin-tone separation in CIELAB and YCbCr;
+- edge-aware mask feathering (for example the guided filter);
+- temporal stability of masks across frames;
+- how editors and colourists build selective-colour and noir grades.
+
 
 ## Within each component slice
 

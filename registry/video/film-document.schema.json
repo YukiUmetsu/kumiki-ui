@@ -6752,11 +6752,34 @@
       "mark"
      ]
     },
+    "material": {
+     "enum": [
+      "bleed",
+      "burn",
+      "frost"
+     ],
+     "description": "Open the shape through a material: its edge bleeds like ink, burns like paper or clears like frost."
+    },
+    "grain": {
+     "type": "number",
+     "description": "bleed and burn: the paper's grain (fibre direction), degrees from the frame's x axis."
+    },
     "texture": {
      "enum": [
+      "ripple",
+      "bleed",
+      "burn",
+      "frost",
       "ink",
       "brush",
-      "smoke"
+      "smoke",
+      "paint",
+      "refract",
+      "shatter",
+      "peel",
+      "tear",
+      "fold",
+      "melt"
      ]
     },
     "seed": {
@@ -10356,6 +10379,8 @@
         "shake",
         "rain",
         "burst",
+        "burn",
+        "melt",
         "pop",
         "stack",
         "walk",
@@ -10370,8 +10395,6 @@
         "stamp",
         "split",
         "vanish",
-        "melt",
-        "burn",
         "inflate",
         "deflate",
         "pulse",

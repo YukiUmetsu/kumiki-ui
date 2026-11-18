@@ -308,6 +308,18 @@ export function ShaderFxMomentsConsumerExample() {
   return <ShaderFxLayer spec={{ id: "sea", effect: "mesh-gradient", layer: "background" }} frame={0} fps={{ num: 30, den: 1 }} hostDurationFrames={90} />;
 }`,
   }),
+  "material-transitions": (specifier) => {
+    return {
+      imports: [`import { materialFrame, planMaterial } from "${specifier}";`],
+      componentName: "MaterialTransitionsExample",
+      component: `export function MaterialTransitionsExample() {
+  // Paper burning open in a circle from a point, half way through: a reveal mask and the scorch, char and ember layers.
+  const [plan] = useState(() => planMaterial({ material: "burn", seed: 3, shape: "circle", origins: [{ x: 0.6, y: 0.45 }] }, 96, 54, 16 / 9));
+  const frame = materialFrame(plan, 0.5);
+  return <ul data-revealed={frame.reveal.filter((v) => v > 128).length}>{frame.layers.map((layer) => <li key={layer.id}>{layer.id} {layer.blend}</li>)}</ul>;
+}`,
+    };
+  },
   "film-document": (specifier) => ({
     imports: [`import { compileFilm, evaluateFilm } from "${specifier}";`],
     componentName: "FilmDocumentConsumerExample",

@@ -11,6 +11,11 @@ import panelsExample from "../../examples/film/panels.film.json";
 import stutterExample from "../../examples/film/stutter.film.json";
 import typeExample from "../../examples/film/type-moves.film.json";
 import matteExample from "../../examples/film/matte.film.json";
+import materialExample from "../../examples/film/material.film.json";
+import materialShapesExample from "../../examples/film/material-shapes.film.json";
+import materialGlassExample from "../../examples/film/material-glass.film.json";
+import materialPaperExample from "../../examples/film/material-paper.film.json";
+import materialLiquidExample from "../../examples/film/material-liquid.film.json";
 import revealsExample from "../../examples/film/reveals.film.json";
 import demoExample from "../../examples/film/demo-moves.film.json";
 import { renderFilmScreen } from "../film/film-screens";
@@ -260,6 +265,35 @@ export const OrganicMatte: StoryObj = {
       Ink starts from a named subject (or two seeded points) and spreads in tendrils; a brush sweeps left to right with streaked bristles;
       smoke has no origin and a soft edge. The dither repeats an 8×8 ordered pattern at the cell size, so its cells stay hard. Reduced motion
       keeps a dissolve.
+    </FilmCompare>;
+  },
+};
+
+/** MC1.4: the same four scenes, with transitions driven by materials. Ink bleeds out of the daylight in the cave into the
+ * lagoon; the lagoon burns away to the waterfall; paint runs down over the falls; breath frosts the glass and clears on the
+ * close. The other films: reeded glass passes and a pane shatters; a page peels back, tears, and folds like a letter; a drop ripples
+ * water and wax drains. One film keeps shapes: a circle burns open from the daylight, a diamond bleeds open, a star burns,
+ * a circle of frost clears. */
+export const MaterialTransitions: StoryObj = {
+  render: function MaterialTransitions() {
+    const variants = useMemo(() => ({
+      material: { label: "Bleed, burn, paint, frost", film: compileExample(materialExample as unknown as FilmDocument) },
+      glass: { label: "Glass: refract, shatter", film: compileExample(materialGlassExample as unknown as FilmDocument) },
+      paper: { label: "Paper: peel, tear, fold", film: compileExample(materialPaperExample as unknown as FilmDocument) },
+      liquid: { label: "Liquid: ripple, melt", film: compileExample(materialLiquidExample as unknown as FilmDocument) },
+      shapes: { label: "Shapes opened through materials", film: compileExample(materialShapesExample as unknown as FilmDocument) },
+      mattes: { label: "Noise mattes (before)", film: compileExample(matteDoc) },
+    }), []);
+    return <FilmCompare variants={variants} moment={startOf("lagoon", 18)}>
+      Each material moves by its physics. Ink soaks along the paper's fibres and slows as it spreads (√t), with pigment
+      gathering at the wet edge; burning paper advances at a steady speed through uneven paper, scorching ahead, glowing,
+      then crumbling to char; paint runs down in fingers of one spacing whose tips speed ahead; breath frosts the glass
+      with droplets that grow, the scenes change behind the frost, and it clears. A shape keeps its outline while the
+      material roughens its edge. Reeded glass bends the view through each flute by Snell's law and breaks the cut into
+      strips; a struck pane cracks radially and in rings, then its shards fall at the real rate of gravity. A page curls
+      back around a growing cylinder with the print showing through its back, tears along a rough path with a white
+      core, or folds in half and in half again in perspective and is tossed away. A drop's rings travel at capillary–gravity wave speeds; wax drains like a film on a wall, thinning from the
+      top. Reduced motion keeps a dissolve.
     </FilmCompare>;
   },
 };

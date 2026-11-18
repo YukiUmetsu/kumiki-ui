@@ -206,7 +206,7 @@ Evidence (2026-11-11): `tests/film-document.test.ts`, "flash cut, burst and pola
 
 ### Shape wipe
 
-`{ "kind": "shape", "shape": "circle", "subject": "glow", "color": "#ffffff" }` opens the next scene through a growing shape: an iris `circle`, a `diamond`, a `star`, a `square`, or the brand's `mark`. It grows from the centre of a subject of the outgoing scene (declared in its `subjects`), or from the frame's centre, slow at first and fast into the corners, and its last frame covers the far corner. `color` draws a thin line on its edge so the shape reads as designed. Default 16 frames.
+`{ "kind": "shape", "shape": "circle", "subject": "glow", "color": "#ffffff" }` opens the next scene through a growing shape (add `"material": "burn"`, `"bleed"` or `"frost"` to open it through a material; see [material transitions](material-transitions.md)): an iris `circle`, a `diamond`, a `star`, a `square`, or the brand's `mark`. It grows from the centre of a subject of the outgoing scene (declared in its `subjects`), or from the frame's centre, slow at first and fast into the corners, and its last frame covers the far corner. `color` draws a thin line on its edge so the shape reads as designed. Default 16 frames.
 
 - **Mark.** `"shape": "mark"` grows the film's `brand.mark`, used as a mask. A picture's outline cannot be measured, so over the last third the rest of the incoming scene fades in around the mark, and the wipe always ends on the full scene. Use a solid silhouette with a transparent background.
 - **Reduced motion** keeps a dissolve of the same length.
@@ -229,8 +229,19 @@ Evidence (2026-11-11): `tests/film-document.test.ts`, "shape wipe". Frames rende
 - **`ink`**: it spreads from a subject of the scene before (or two points placed by the seed) in tendrils, like ink in water.
 - **`brush`**: it sweeps left to right with an edge broken into streaks, like bristles dragged across.
 - **`smoke`**: it drifts in from everywhere at once, with a soft edge.
+- **Materials** (`bleed`, `burn`, `paint`, `frost`): the next scene arrives the way ink soaks into paper, paper burns
+  away, paint runs down or breath frosts glass. The fronts come from each material's physics, with their own overlays.
+  `grain` sets the paper's fibre direction.
+- **Glass, paper and liquids** (`refract`, `shatter`, `peel`, `tear`, `fold`, `ripple`, `melt`): a sheet of reeded glass
+  passes the lens, the picture breaks like a struck pane, the page curls back from a corner, is torn in two or is folded
+  like a letter and tossed away, a drop rings out
+  on water, or the picture drains down like warm wax. `subject` sets where the pane is struck or the drop lands;
+  `direction` sets the way the glass travels (`refract`) or the curl travels (`peel`). See
+  [material transitions](material-transitions.md).
 
-`seed` picks another matte of the same kind. `color` stains the travelling edge. Default 26 frames.
+`seed` picks another matte of the same kind. `color` stains the travelling edge (for a material: the ink, the char, the
+gloss, the frost, the glass's tint, the light on the cracks, the paper's back or core, or the light on the water).
+Default 26 frames, and 34–48 for a material.
 
 **Dither.** `{ "kind": "dither", "cell": 0.008 }` shows the next scene cell by cell in an 8×8 ordered (Bayer) pattern, at a cell size given as a share of the frame's short side. Default 14 frames.
 
@@ -278,6 +289,8 @@ Example: [`examples/film/lens.film.json`](../../examples/film/lens.film.json). S
 `npm run film:sound-kit -- <folder>` makes an original kit: `whoosh.wav`, `riser.wav`, `hit.wav`, `ping.wav` and `kit.json`. `film:render` then places a whoosh that peaks at the middle of each transition, and on each turn the sound that its `story.turnAccent` asks for: `soft` (the default) is one quiet tone for a dry twist, `impact` is a riser and a hit for a big reveal, and `none` is silence. `kit.json` states where each sound peaks, so the peak lands on its frame. You can replace the files with licensed sounds. Keep `kit.json` true, and set `licenseRef`.
 
 **Which transitions whoosh** (doc 34, S10). `"accents": { "kit": "…", "on": "moves" }` puts a whoosh only on transitions that travel: whip, pass-by, zoom, container, match, wipe, shape and lens. Trailers rarely mark a cut with sound: of 268 measured cut candidates, only 25 had a sound attack within a quarter second. Without `on`, every transition with length gets one, so existing films sound as they did. `accent-every-cut` warns when 70% or more of a film's transitions (four or more) get one. Dips, flashes and bursts never get one.
+
+**Material sounds.** A material transition makes its material's own recorded sound instead of a whoosh, with or without `on`: a pane breaking, then its pieces landing; a match and paper crackling; breath on glass; a drop on water; paper ripping or a page swishing past; syrup slopping. A refract matte travels like a pass-by, so it gets the whoosh. An authored `accent` still wins (`"none"` silences it). The sounds come from the sound catalog (`material-sound.ts` lists them), so `film:render` needs no extra kit files. See [material transitions](material-transitions.md#sounds).
 
 `npm run film:sound-kit -- <folder> --preset=neutral` makes a kit of designed CC0 sounds instead of plain tones, with physical sounds for `audio.cues`. See [Sound Catalog](sound-catalog.md).
 

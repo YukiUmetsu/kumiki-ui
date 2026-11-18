@@ -759,6 +759,35 @@
    "verifiedAt": "2026-11-12"
   },
   {
+   "id": "breath-exhale-soft",
+   "path": "recorded/breath-exhale-soft.wav",
+   "sha256": "15be495bd806b8befb66113709f0a2d24c507f2209cdeedf97a46f484910c5e3",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 48480,
+   "peakSeconds": 0.2065,
+   "loudnessLufs": -20.2,
+   "tags": [
+    "foley",
+    "breath",
+    "exhale",
+    "human",
+    "recorded"
+   ],
+   "description": "One soft exhale, as on a cold window.",
+   "sourceUrl": "https://freesound.org/people/otherthings/sounds/65619/",
+   "author": "otherthings",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
    "id": "call-gull-1",
    "path": "recorded/call-gull-1.wav",
    "sha256": "ffd372d45e74de5ca901ea927c5941f4c4c0823f9d978d8ee986692c5e07621d",
@@ -1147,6 +1176,37 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "fire-paper-crackle",
+   "path": "recorded/fire-paper-crackle.wav",
+   "sha256": "888ee83ba5f8dfa54899d9e2ace433e17306f513a6c540c516f0b5045d1ef92b",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 76560,
+   "peakSeconds": 0.0274,
+   "loudnessLufs": -34.8,
+   "tags": [
+    "foley",
+    "fire",
+    "paper",
+    "burn",
+    "crackle",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "Paper burning with a soft, quick crackle.",
+   "sourceUrl": "https://freesound.org/people/kyles/sounds/453472/",
+   "author": "kyles",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
   },
   {
    "id": "flap-wings-1",
@@ -1591,6 +1651,68 @@
    ],
    "sourceRevision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
    "verifiedAt": "2026-11-07"
+  },
+  {
+   "id": "glass-debris-tinkle",
+   "path": "recorded/glass-debris-tinkle.wav",
+   "sha256": "755d79b7e054953aa43abd10006e9e70d9a89636ce812f1fc1c34bd012da6dad",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 70636,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -11.9,
+   "tags": [
+    "foley",
+    "glass",
+    "shards",
+    "debris",
+    "tinkle",
+    "recorded"
+   ],
+   "material": "glass",
+   "description": "Pieces of broken glass falling and tinkling.",
+   "sourceUrl": "https://freesound.org/people/LazyLids/sounds/369070/",
+   "author": "LazyLids",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "glass-shatter-pane",
+   "path": "recorded/glass-shatter-pane.wav",
+   "sha256": "8ff71058eeb83b5f62bbc69a3c27673e6aefa6cbadc18fba45799f6c44198e49",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 92239,
+   "peakSeconds": 0.02,
+   "loudnessLufs": -22.1,
+   "tags": [
+    "foley",
+    "glass",
+    "break",
+    "shatter",
+    "window",
+    "recorded"
+   ],
+   "material": "glass",
+   "description": "A window pane struck and shattering: the impact, then the burst of breaking glass.",
+   "sourceUrl": "https://freesound.org/people/kyles/sounds/452667/",
+   "author": "kyles",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
   },
   {
    "id": "hiss-smoke",
@@ -2150,6 +2272,99 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "liquid-syrup-ooze",
+   "path": "recorded/liquid-syrup-ooze.wav",
+   "sha256": "2791394989edf190ccccd1aee16cc6a3ee9b6eaf24b7fcc09cb6b328bfb233ca",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 61920,
+   "peakSeconds": 0.1751,
+   "loudnessLufs": -30.1,
+   "tags": [
+    "foley",
+    "liquid",
+    "viscous",
+    "syrup",
+    "ooze",
+    "recorded"
+   ],
+   "material": "liquid",
+   "description": "Thick syrup oozing with a slow, wet squelch.",
+   "sourceUrl": "https://freesound.org/people/joshs/sounds/320041/",
+   "author": "joshs",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "liquid-syrup-pour",
+   "path": "recorded/liquid-syrup-pour.wav",
+   "sha256": "812fecd7aa7a2be2e6ee075bc94e178cb9b995c008163e42c95ae53294e180ad",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 67200,
+   "peakSeconds": 0.2194,
+   "loudnessLufs": -34.1,
+   "tags": [
+    "foley",
+    "liquid",
+    "viscous",
+    "syrup",
+    "pour",
+    "recorded"
+   ],
+   "material": "liquid",
+   "description": "Thick syrup slopping and running.",
+   "sourceUrl": "https://freesound.org/people/joshs/sounds/320041/",
+   "author": "joshs",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "match-strike-flare",
+   "path": "recorded/match-strike-flare.wav",
+   "sha256": "403410dd24040146d93c7efe3238b413133263bd2b9e09462c0a10a5d8dea738",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 69600,
+   "peakSeconds": 0.0449,
+   "loudnessLufs": -35.5,
+   "tags": [
+    "foley",
+    "fire",
+    "match",
+    "strike",
+    "ignite",
+    "recorded"
+   ],
+   "material": "wood",
+   "description": "A match struck along the box and flaring alight.",
+   "sourceUrl": "https://freesound.org/people/JarredGibb/sounds/248236/",
+   "author": "JarredGibb",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
   },
   {
    "id": "mechanical-latch-heavy",
