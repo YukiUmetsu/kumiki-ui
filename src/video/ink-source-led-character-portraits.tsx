@@ -137,7 +137,6 @@ const PROFILES:Record<InkSourceLedCharacter,SourceProfile>={
 };
 
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
-const smooth=(v:number)=>{const t=clamp(v,0,1);return t*t*(3-2*t);};
 const fmt=(v:number)=>Number(v.toFixed(2));
 const gaussian=(x:number,y:number,cx:number,cy:number,sx:number,sy:number)=>{
   const dx=(x-cx)/sx,dy=(y-cy)/sy;
@@ -354,13 +353,14 @@ export function buildSourceLedPortraitGeometry(
     zygionL:landmark("zygion.L"),zygionR:landmark("zygion.R"),
     gonionL:landmark("gonion.L"),gonionR:landmark("gonion.R"),
     cheekboneL:landmark("cheekbone.L"),cheekboneR:landmark("cheekbone.R"),
-    earRootL:[Math.min(...outlinePoints.map(point=>point[0]))+4,
+    earRootL:[landmark("zygion.L")[0]-9,
       (landmark("endocanthion.L")[1]+landmark("subnasale")[1])/2] as Point,
-    earRootR:[Math.max(...outlinePoints.map(point=>point[0]))-4,
+    earRootR:[landmark("zygion.R")[0]+9,
       (landmark("endocanthion.R")[1]+landmark("subnasale")[1])/2] as Point,
     mouthL:landmark("cheilion.L"),mouthR:landmark("cheilion.R"),
     eyeInnerL:landmark("endocanthion.L"),eyeInnerR:landmark("endocanthion.R"),
     browInnerL:landmark("brow-inner.L"),browInnerR:landmark("brow-inner.R"),
+    browOuterL:landmark("brow-outer.L"),browOuterR:landmark("brow-outer.R"),
   };
   return {
     character,sourceId:p.sourceId,sourceObjectId:p.sourceObjectId,sourceLabel:p.sourceLabel,
@@ -386,23 +386,41 @@ function buildBeardFibers(g:SourceLedPortraitGeometry,p:SourceProfile,detail:num
   return Array.from({length:count},(_,i)=>{
     const t=(i+.5)/count,r=rand(41+i,characterSeed(g.character));
     const startX=jawL-4+t*(jawR-jawL+8);
-    const startY=mouthY+9+r*13;
-    const endX=cx+(t-.5)*p.beardSpread+(r-.5)*11;
-    const endY=Math.min(558,chinY+p.beardLength*(.76+r*.34));
-    const c1x=startX+(endX-startX)*.22+(r-.5)*9;
+    const startY=mouthY+8+r*13;
+    const tuftBias=t<.2?-1:t>.8?1:t<.43?-.35:t>.57?.35:0;
+    const endX=cx+(t-.5)*p.beardSpread+tuftBias*(2+r*5);
+    const endY=Math.min(578,chinY+p.beardLength*(.66+r*.32)+Math.abs(t-.5)*p.beardLength*.12);
+    const c1x=startX+(endX-startX)*.22+(r-.5)*11;
     const c1y=startY+17+r*12;
-    const c2x=endX+(cx-endX)*.18+(r-.5)*8;
+    const c2x=endX+(cx-endX)*.18+(r-.5)*9;
     const c2y=endY-15-r*12;
     return {
       d:"M "+fmt(startX)+" "+fmt(startY)+" C "+fmt(c1x)+" "+fmt(c1y)+" "+fmt(c2x)+" "+fmt(c2y)+" "+fmt(endX)+" "+fmt(endY),
-      width:fmt(.28+r*.72),opacity:fmt(.22+r*.42),
+      width:fmt(.22+r*.68),opacity:fmt(.16+r*.34),
     };
   });
 }
 function characterSeed(character:InkSourceLedCharacter){
   return character==="scholar"?17:character==="shepherd"?53:character==="zhong-kui"?91:127;
 }
-function buildHeadFibers(g:SourceLedPortraitGeometry,p:SourceProfile,detail:number):Fiber[]{
+function buildBrowFibers(g:SourceLedPortraitGeometry,detail:number):Fiber[]{
+  const count=Math.max(4,Math.round(10*detail));
+  return (["L","R"] as const).flatMap(side=>{
+    const inner=side==="L"?g.landmarks.browInnerL:g.landmarks.browInnerR;
+    const outer=side==="L"?g.landmarks.browOuterL:g.landmarks.browOuterR;
+    const direction=Math.sign(outer[0]-inner[0])|| (side==="L"?-1:1);
+    return Array.from({length:count},(_,i)=>{
+      const t=(i+.5)/count,r=rand(701+i,characterSeed(g.character)+(side==="L"?0:37));
+      const x=inner[0]+(outer[0]-inner[0])*t;
+      const y=inner[1]+(outer[1]-inner[1])*t-Math.sin(t*Math.PI)*1.2;
+      const sx=x-direction*r*1.1,sy=y+(r-.5)*1.1;
+      const ex=x+direction*(1+r*1.8),ey=y-.8-r*1.4;
+      return {d:"M "+fmt(sx)+" "+fmt(sy)+" Q "+fmt(x+direction*.6)+" "+fmt(y-1.1)+" "+fmt(ex)+" "+fmt(ey),
+        width:fmt(.22+r*.34),opacity:fmt(.22+r*.28)};
+    });
+  });
+}
+function buildHeadFibers(g:SourceLedPortraitGeometry,p:SourceProfile,detail:number){
   const count=Math.max(8,Math.round(p.hairFiberCount*detail));
   const cx=(g.left+g.right)/2,w=g.right-g.left,top=g.top;
   return Array.from({length:count},(_,i)=>{
@@ -515,6 +533,21 @@ function earPath(point:Point,side:"L"|"R",scale:number){
     " C "+fmt(x+s*w*.55)+" "+fmt(y+h)+" "+fmt(x-s*w*.18)+" "+fmt(y+h*.72)+" "+fmt(x-s*w*.22)+" "+fmt(y+h*.12)+
     " C "+fmt(x-s*w*.24)+" "+fmt(y-h*.2)+" "+fmt(x-s*w*.1)+" "+fmt(y-h*.48)+" "+fmt(x)+" "+fmt(y-h*.58)+" Z";
 }
+function earInnerPaths(point:Point,side:"L"|"R",scale:number){
+  const s=side==="L"?-1:1,x=point[0],y=point[1],w=12*scale,h=22*scale;
+  return {
+    antihelix:"M "+fmt(x-s*w*.12)+" "+fmt(y-h*.34)+
+      " C "+fmt(x+s*w*.30)+" "+fmt(y-h*.52)+" "+fmt(x+s*w*.72)+" "+fmt(y-h*.20)+" "+fmt(x+s*w*.60)+" "+fmt(y+h*.05)+
+      " C "+fmt(x+s*w*.52)+" "+fmt(y+h*.31)+" "+fmt(x+s*w*.16)+" "+fmt(y+h*.42)+" "+fmt(x-s*w*.05)+" "+fmt(y+h*.22),
+    concha:"M "+fmt(x+s*w*.18)+" "+fmt(y-h*.05)+
+      " C "+fmt(x+s*w*.52)+" "+fmt(y-h*.16)+" "+fmt(x+s*w*.60)+" "+fmt(y+h*.18)+" "+fmt(x+s*w*.28)+" "+fmt(y+h*.24)+
+      " Q "+fmt(x+s*w*.08)+" "+fmt(y+h*.18)+" "+fmt(x+s*w*.18)+" "+fmt(y-h*.05)+" Z",
+    tragus:"M "+fmt(x-s*w*.06)+" "+fmt(y-h*.04)+
+      " Q "+fmt(x+s*w*.14)+" "+fmt(y+h*.02)+" "+fmt(x+s*w*.04)+" "+fmt(y+h*.18),
+    lobe:"M "+fmt(x+s*w*.08)+" "+fmt(y+h*.34)+
+      " Q "+fmt(x+s*w*.42)+" "+fmt(y+h*.59)+" "+fmt(x+s*w*.58)+" "+fmt(y+h*.34),
+  };
+}
 
 function headwearPath(g:SourceLedPortraitGeometry,p:SourceProfile){
   const cx=(g.left+g.right)/2,top=g.top;
@@ -571,27 +604,22 @@ function beardMassPath(g:SourceLedPortraitGeometry,p:SourceProfile){
   if(p.beardStyle==="none")return "";
   const l=g.landmarks.gonionL,r=g.landmarks.gonionR,mL=g.landmarks.mouthL,mR=g.landmarks.mouthR;
   const cx=(mL[0]+mR[0])/2,my=(mL[1]+mR[1])/2,chin=g.landmarks.menton[1];
-  const end=Math.min(558,chin+p.beardLength);
-  const spread=p.beardSpread/2;
-  if(p.beardStyle==="pointed"){
-    return "M "+fmt(mL[0]-4)+" "+fmt(my+7)+
-      " Q "+fmt(l[0]-7)+" "+fmt(chin+8)+" "+fmt(cx-spread*.65)+" "+fmt(end-18)+
-      " Q "+fmt(cx)+" "+fmt(end+9)+" "+fmt(cx+spread*.65)+" "+fmt(end-18)+
-      " Q "+fmt(r[0]+7)+" "+fmt(chin+8)+" "+fmt(mR[0]+4)+" "+fmt(my+7)+
-      " Q "+fmt(cx)+" "+fmt(my+22)+" "+fmt(mL[0]-4)+" "+fmt(my+7)+" Z";
-  }
-  if(p.beardStyle==="long"){
-    return "M "+fmt(l[0]-8)+" "+fmt(my+2)+
-      " C "+fmt(l[0]-22)+" "+fmt(chin+20)+" "+fmt(cx-spread)+" "+fmt(end-20)+" "+fmt(cx-7)+" "+fmt(end)+
-      " Q "+fmt(cx+2)+" "+fmt(end+12)+" "+fmt(cx+spread*.9)+" "+fmt(end-8)+
-      " C "+fmt(r[0]+20)+" "+fmt(chin+20)+" "+fmt(r[0]+8)+" "+fmt(my+2)+" "+fmt(mR[0]+4)+" "+fmt(my+2)+
-      " Q "+fmt(cx)+" "+fmt(my+26)+" "+fmt(mL[0]-4)+" "+fmt(my+2)+" Z";
-  }
-  return "M "+fmt(l[0]-16)+" "+fmt(my-1)+
-    " C "+fmt(l[0]-30)+" "+fmt(chin+14)+" "+fmt(cx-spread)+" "+fmt(end-24)+" "+fmt(cx-7)+" "+fmt(end)+
-    " Q "+fmt(cx)+" "+fmt(end+12)+" "+fmt(cx+spread*.95)+" "+fmt(end-4)+
-    " C "+fmt(r[0]+30)+" "+fmt(chin+14)+" "+fmt(r[0]+16)+" "+fmt(my-1)+" "+fmt(mR[0]+5)+" "+fmt(my-1)+
-    " Q "+fmt(cx)+" "+fmt(my+27)+" "+fmt(mL[0]-5)+" "+fmt(my-1)+" Z";
+  const end=Math.min(578,chin+p.beardLength),spread=p.beardSpread/2;
+  const asym=g.character==="shepherd"?-3.5:g.character==="zhong-kui"?4.5:1.2;
+  const leftJaw=l[0]-5,rightJaw=r[0]+5;
+  const leftOuter=cx-spread*.70-asym,rightOuter=cx+spread*.72+asym;
+  const leftInner=cx-spread*.23-asym*.3,rightInner=cx+spread*.25+asym*.25;
+  const lower=end+(p.beardStyle==="long"?18:p.beardStyle==="full"?12:8);
+  return "M "+fmt(mL[0]-4)+" "+fmt(my+6)+
+    " C "+fmt(mL[0]-12)+" "+fmt(my+16)+" "+fmt(l[0]-14)+" "+fmt(chin+10)+" "+fmt(leftJaw)+" "+fmt(chin+22)+
+    " C "+fmt(leftJaw-4)+" "+fmt(chin+44)+" "+fmt(leftOuter-10)+" "+fmt(end-44)+" "+fmt(leftOuter)+" "+fmt(end-24)+
+    " C "+fmt(leftOuter+5)+" "+fmt(end-6)+" "+fmt(leftInner-7)+" "+fmt(end+5)+" "+fmt(leftInner)+" "+fmt(end+2)+
+    " C "+fmt(leftInner+6)+" "+fmt(end+10)+" "+fmt(cx+asym-10)+" "+fmt(lower+4)+" "+fmt(cx+asym)+" "+fmt(lower)+
+    " C "+fmt(cx+asym+10)+" "+fmt(lower+4)+" "+fmt(rightInner-6)+" "+fmt(end+10)+" "+fmt(rightInner)+" "+fmt(end+2)+
+    " C "+fmt(rightInner+7)+" "+fmt(end+5)+" "+fmt(rightOuter-5)+" "+fmt(end-6)+" "+fmt(rightOuter)+" "+fmt(end-24)+
+    " C "+fmt(rightOuter+10)+" "+fmt(end-44)+" "+fmt(rightJaw+4)+" "+fmt(chin+44)+" "+fmt(rightJaw)+" "+fmt(chin+22)+
+    " C "+fmt(r[0]+14)+" "+fmt(chin+10)+" "+fmt(mR[0]+12)+" "+fmt(my+16)+" "+fmt(mR[0]+4)+" "+fmt(my+6)+
+    " Q "+fmt(cx+spread*.28)+" "+fmt(my+25)+" "+fmt(mL[0]-4)+" "+fmt(my+6)+" Z";
 }
 
 export function InkSourceLedCharacterPortrait({
@@ -615,6 +643,7 @@ export function InkSourceLedCharacterPortrait({
   const g=useMemo(()=>buildSourceLedPortraitGeometry(character,emotion,intensity,yaw,fromEmotion,progress),[character,emotion,intensity,yaw,fromEmotion,progress]);
   const beard=useMemo(()=>buildBeardFibers(g,p,detail),[g,p,detail]);
   const hair=useMemo(()=>buildHeadFibers(g,p,detail),[g,p,detail]);
+  const brows=useMemo(()=>buildBrowFibers(g,detail),[g,detail]);
   const folds=robeFolds(character);
   const cx=(g.left+g.right)/2,w=g.right-g.left;
   const chin=g.landmarks.menton,forehead=g.landmarks.forehead;
@@ -622,6 +651,8 @@ export function InkSourceLedCharacterPortrait({
   const nose=g.landmarks.pronasale;
   const cheekL=g.landmarks.cheekboneL,cheekR=g.landmarks.cheekboneR;
   const earScale=clamp(w/142,.78,1.18);
+  const earL=earInnerPaths(g.landmarks.earRootL,"L",earScale);
+  const earR=earInnerPaths(g.landmarks.earRootR,"R",earScale*.82);
   const cap=headwearPath(g,p);
   const beardPath=beardMassPath(g,p);
   const upperLip="M "+fmt(g.landmarks.mouthL[0])+" "+fmt(mouthY-1)+
@@ -631,7 +662,7 @@ export function InkSourceLedCharacterPortrait({
   const beardOpacity=p.beardStyle==="none"?0:.22;
   const eyeLine=(id:string)=>id.indexOf("eye-upper")===0;
   const featureStyle=(id:string)=>{
-    if(id.indexOf("brow")===0)return {width:character==="zhong-kui"?2.5:1.9,opacity:.76};
+    if(id.indexOf("brow")===0)return {width:character==="zhong-kui"?1.7:1.2,opacity:.58};
     if(eyeLine(id))return {width:1.35,opacity:.88};
     if(id.indexOf("eye-lower")===0)return {width:.75,opacity:.45};
     if(id.indexOf("nose")===0)return {width:1.0,opacity:.58};
@@ -738,15 +769,29 @@ export function InkSourceLedCharacterPortrait({
     <path d="M 217 438 Q 240 458 263 438 M 222 452 Q 214 468 211 479 M 258 452 Q 266 468 269 479"
       fill="none" stroke={p.wash} strokeWidth="2.1" opacity=".28"/>
 
-    <g data-km-ink-anat6-ear="L" opacity=".74">
-      <path d={earPath(g.landmarks.earRootL,"L",earScale)} fill="#d9c3aa" stroke={p.ink} strokeWidth=".85" strokeOpacity=".6"/>
-      <path d={"M "+fmt(g.landmarks.earRootL[0]-4)+" "+fmt(g.landmarks.earRootL[1]-9)+" Q "+fmt(g.landmarks.earRootL[0]-13)+" "+fmt(g.landmarks.earRootL[1])+" "+fmt(g.landmarks.earRootL[0]-4)+" "+fmt(g.landmarks.earRootL[1]+10)}
-        fill="none" stroke={p.wash} strokeWidth="1.1" opacity=".62"/>
+    <g data-km-ink-anat6-ear="L" opacity=".78">
+      <path data-km-ink-anat6-ear-part="helix.L" d={earPath(g.landmarks.earRootL,"L",earScale)}
+        fill="#d9c3aa" stroke={p.ink} strokeWidth=".85" strokeOpacity=".6"/>
+      <path data-km-ink-anat6-ear-part="antihelix.L" d={earL.antihelix}
+        fill="none" stroke={p.wash} strokeWidth="1.05" strokeLinecap="round" opacity=".72"/>
+      <path data-km-ink-anat6-ear-part="concha.L" d={earL.concha}
+        fill={p.wash} fillOpacity=".16" stroke={p.wash} strokeWidth=".7" opacity=".72"/>
+      <path data-km-ink-anat6-ear-part="tragus.L" d={earL.tragus}
+        fill="none" stroke={p.ink} strokeWidth=".9" strokeLinecap="round" opacity=".62"/>
+      <path data-km-ink-anat6-ear-part="lobe.L" d={earL.lobe}
+        fill="none" stroke={p.wash} strokeWidth="1.0" strokeLinecap="round" opacity=".65"/>
     </g>
     <g data-km-ink-anat6-ear="R" opacity=".55">
-      <path d={earPath(g.landmarks.earRootR,"R",earScale*.82)} fill="#d9c3aa" stroke={p.ink} strokeWidth=".72" strokeOpacity=".48"/>
-      <path d={"M "+fmt(g.landmarks.earRootR[0]+3)+" "+fmt(g.landmarks.earRootR[1]-7)+" Q "+fmt(g.landmarks.earRootR[0]+10)+" "+fmt(g.landmarks.earRootR[1])+" "+fmt(g.landmarks.earRootR[0]+3)+" "+fmt(g.landmarks.earRootR[1]+8)}
-        fill="none" stroke={p.wash} strokeWidth=".9" opacity=".55"/>
+      <path data-km-ink-anat6-ear-part="helix.R" d={earPath(g.landmarks.earRootR,"R",earScale*.82)}
+        fill="#d9c3aa" stroke={p.ink} strokeWidth=".72" strokeOpacity=".48"/>
+      <path data-km-ink-anat6-ear-part="antihelix.R" d={earR.antihelix}
+        fill="none" stroke={p.wash} strokeWidth=".85" strokeLinecap="round" opacity=".62"/>
+      <path data-km-ink-anat6-ear-part="concha.R" d={earR.concha}
+        fill={p.wash} fillOpacity=".12" stroke={p.wash} strokeWidth=".6" opacity=".58"/>
+      <path data-km-ink-anat6-ear-part="tragus.R" d={earR.tragus}
+        fill="none" stroke={p.ink} strokeWidth=".75" strokeLinecap="round" opacity=".5"/>
+      <path data-km-ink-anat6-ear-part="lobe.R" d={earR.lobe}
+        fill="none" stroke={p.wash} strokeWidth=".8" strokeLinecap="round" opacity=".52"/>
     </g>
 
     <path d={cap} fill={"url(#"+uid+"-cap)"} stroke={p.ink} strokeWidth="1.1" strokeOpacity=".75"
@@ -851,6 +896,10 @@ export function InkSourceLedCharacterPortrait({
         stroke={p.ink} strokeWidth="1.1" opacity=".68"/>
     </g>
 
+    <g data-km-ink-anat6-brow-fibers="true" fill="none" stroke={p.hair} strokeLinecap="round">
+      {brows.map((fiber,i)=><path key={i} data-km-ink-anat6-brow-fiber={i} d={fiber.d}
+        strokeWidth={fiber.width} strokeOpacity={fiber.opacity}/>)}
+    </g>
     <g data-km-anat1-irises="true">
       {g.irises.map(iris=><g key={iris.side} data-km-anat1-iris={iris.side}>
         <ellipse cx={iris.x} cy={iris.y} rx={iris.rx} ry={iris.ry} fill="#74604d" opacity=".84"/>
