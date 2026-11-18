@@ -1,8 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { ARCH_LIBRARY, LIBRARY_GROUPS } from "../registry/anatomy/arch-library";
 import { paintArchScene } from "../registry/anatomy/arch-paint";
+import { revolve, sphere, spire, union } from "../registry/anatomy/arch-sdf";
 
 describe("ARCH1 storybook library", () => {
+  it("closes a turned part at its own end radius, with no phantom disc", () => {
+    // a vase from radius 0.1 at the foot to 0.3 at the belly and 0.05 at the top
+    const n = revolve(0, 0, 0, 1, t => 0.1 + 0.2 * Math.sin(Math.PI * t) - 0.05 * t, 0.3, 1);
+    expect(n.f(0.2, 1.01, 0)).toBeGreaterThan(0.1);
+    expect(n.f(0.0, 1.01, 0)).toBeCloseTo(0.01, 6);
+    expect(n.f(0.0, 0.5, 0)).toBeLessThan(0);
+  });
+  it("bounds a pyramid by its corners, and never reports a far box as a surface", () => {
+    // a square pyramid's corners lie at r·√2 from its axis
+    const p = spire(100, 0, 0, 10, 10, 4, 1);
+    expect(p.hi[0] - 100).toBeGreaterThanOrEqual(10 * Math.SQRT2 - 1e-6);
+    // half a metre outside the pyramid's box, near its apex, the surface is metres away: the union must not answer 0.5
+    const both = union([sphere(0, 0, 0, 1, 2), p]);
+    expect(both.f(100 + 10 * Math.SQRT2 + 0.5, 9, 0)).toBeGreaterThan(1);
+  });
   it("has 100 distinct entries in known traditions, each with its story", () => {
     expect(ARCH_LIBRARY).toHaveLength(100);
     expect(new Set(ARCH_LIBRARY.map(e => e.id)).size).toBe(100);

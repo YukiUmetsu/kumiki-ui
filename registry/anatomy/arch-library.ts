@@ -9,11 +9,16 @@
  * vertical) and a light that suits it. What each entry learned from its references is in `note`; the sources are in
  * `docs/research/architecture-storybook-reference-study-2026-11-17.md`.
  */
-import type { ArchScene, CameraSpec, MoodId } from "./arch-paint";
+import type { ArchScene, CameraSpec, Mood, MoodId } from "./arch-paint";
+import { MOODS } from "./arch-paint";
 import type { HouseSpec, WindowSpec } from "./arch-kit";
-import { SceneBuilder, barrel, beam, bench, box, boxAt, capsule, clump, coneY, cut, cylY, cypress, dome, ellipsoid, firewood, gableRoof, gableWall, gardenWall, ground, hills, hipRoof, house, lamppost, onionDome, opening, pentRoof, revolve, sphere, spire, street, tower, tree, water } from "./arch-kit";
-import { arcade, bridge, candle, church, curtainWall, domeChurch, gatehouse, glasshouse, hearth, kasbahTower, keep, lighthouse, room, shelves, staveChurch, table, trullo, waterWheel, windmill } from "./arch-kit-civic";
+import { SceneBuilder, barrel, beam, bench, box, boxAt, capsule, clump, coneY, cut, cylY, cylZ, cypress, leaf, peaks, repeatX, repeatZ, dome, ellipsoid, firewood, gableRoof, gableWall, gardenWall, ground, hills, hipRoof, house, lamppost, onionDome, opening, pentRoof, revolve, sphere, spire, street, tower, tree, water } from "./arch-kit";
+import { anvil, balance, breadRack, candlestick, clockParts, flourSack, forge, hangingLantern, herbBunch, jarRow, magnifierLamp, peel, sleepingCat, stool, tankard, wallClock, workbench, writingDesk } from "./arch-kit-props";
+import { archRoll, sculpt } from "./arch-sdf";
+import type { Node } from "./arch-sdf";
+import { arcade, bridge, candle, chairRows, church, octShaft, curtainWall, domeChurch, gatehouse, glasshouse, gothicNave, hearth, kasbahTower, keep, lighthouse, room, shelves, staveChurch, table, trullo, waterWheel, windmill } from "./arch-kit-civic";
 import type { SurfaceSpec } from "./arch-surface";
+import { gradNoise } from "./foundation-raster";
 
 export type LibraryGroup = "british" | "french" | "alpine" | "low-countries" | "italian" | "mediterranean" | "nordic" | "middle-east" | "historic" | "rural" | "interior";
 export interface LibraryEntry {
@@ -115,7 +120,7 @@ function town(b: SceneBuilder, kerbA = 6, kerbB = 12, cobble: SurfaceSpec = { ki
   ground(b, -400, 400, -400, 200, { kind: "flags", colour: "#8d877b" }, 0.02);
   street(b, -80, 80, kerbA, kerbB, cobble);
 }
-const done = (b: SceneBuilder, cam: CameraSpec, mood: MoodId, extra: Partial<ArchScene> = {}) => b.scene(cam, mood, extra);
+const done = (b: SceneBuilder, cam: CameraSpec, mood: MoodId | Mood, extra: Partial<ArchScene> = {}) => b.scene(cam, mood, extra);
 /** A house placed at (x, z) turned `yaw`°, with props added after it. */
 function placeHouse(b: SceneBuilder, s: HouseSpec, x = 0, z = 0, yaw = 0, lean = 0, props?: () => void) {
   house(b, s); props?.(); b.place({ x, z, yaw, leanX: lean * 0.6, leanZ: lean });
@@ -371,7 +376,15 @@ add({ id: "bruges-belfry", label: "Market square belfry", group: "low-countries"
   note: "Belfries rise in square stages, then an octagonal lantern, as a sign of the town's freedom; the hall below kept charters and cloth.",
   build: (seed = 29) => { const b = new SceneBuilder(seed); ground(b, -400, 400, -400, 400, { kind: "cobbles" });
     placeHouse(b, { w: 30, d: 14, storeys: 2, storeyH: 5, walls: S.brick("#9a5a40"), roof: { kind: "hip", pitch: 45, mat: S.plainTile }, windows: { rows: [[-10, -5, 5, 10], [-10, -5, 0, 5, 10]], spec: { w: 1.4, h: 3, shape: "pointed", panes: [2, 4] } }, door: { x: 0, w: 2.5, h: 4, shape: "pointed" } }, 0, 0, 0, 0, () => {
-      tower(b, { x: 0, z: -2, plan: "square", r: 4.5, h: 46, wall: S.brick("#9a5a40"), belfry: true, clock: 38 }); tower(b, { x: 0, z: -2, plan: "octagon", r: 3.6, h: 60, wall: S.ashlar("#cfc4ad") }); });
+      tower(b, { x: 0, z: -2, plan: "square", r: 4.5, h: 46, wall: S.brick("#9a5a40"), belfry: true, clock: 38 }); });
+    // the stone octagon stands on the brick tower, ringed by a pierced parapet, with a small turret at each corner of the square below
+    const stone = b.mat(S.ashlar("#cfc4ad", 0.4)), lead = b.mat({ kind: "lead" });
+    for (const [cx, cz] of [[-4.2, -6.2], [4.2, -6.2], [-4.2, 2.2], [4.2, 2.2]] as const) b.add(cylY(cx, cz, 40, 48.5, 0.75, stone), coneY(cx, cz, 48.5, 52, 0.95, 0.05, lead));
+    b.add(cut(boxAt(-4.7, 46, -6.7, 4.7, 47.2, 2.7, stone), [boxAt(-4.3, 46.3, -6.3, 4.3, 48, 2.3, 0)]));
+    b.add(octShaft(0, -2, 46, 70, 3.5, stone, Math.PI / 8), cut(octShaft(0, -2, 64, 68, 3.6, stone, Math.PI / 8), [opening(0, 64.4, 1.6, 2.2, "pointed", -6, 2, "z"), opening(-2, 64.4, 1.6, 2.2, "pointed", -4, 4, "x")]));
+    b.add(cut(octShaft(0, -2, 70, 71.4, 3.95, stone, Math.PI / 8), [octShaft(0, -2, 70.3, 72, 3.6, 0, Math.PI / 8)]), octShaft(0, -2, 70, 76, 1.6, lead, Math.PI / 8), coneY(0, -2, 76, 79.5, 1.8, 0.05, lead), sphere(0, 79.6, -2, 0.25, b.mat({ kind: "gold" })));
+    for (let k = 0; k < 8; k++) { const a = (k + 0.5) * (Math.PI / 4), r = 3.5 / Math.cos(Math.PI / 8); b.add(cylY(Math.cos(a) * r, -2 + Math.sin(a) * r, 46, 71.6, 0.28, stone), coneY(Math.cos(a) * r, -2 + Math.sin(a) * r, 71.6, 73.4, 0.32, 0.03, stone)); }
+    b.place();
     return done(b, frameSubject(b, -16), "overcast"); } });
 add({ id: "dutch-windmill", label: "Dutch smock windmill", group: "low-countries", region: "Netherlands, polder", era: "18th century", setting: "rural", view: "exterior", scale: "civic", mood: "morning",
   materials: ["thatched smock on a brick base", "a turning cap", "lattice sails with canvas"], story: ["a stage around the mill", "a ditch", "flat polder to the horizon"],
@@ -483,14 +496,33 @@ add({ id: "lombard-romanesque-church", label: "Lombard Romanesque church", group
 add({ id: "cycladic-cliffside", label: "Cycladic cliffside houses", group: "mediterranean", region: "Greece, Santorini", era: "18th–19th century", setting: "coast", view: "exterior", scale: "humble", mood: "noon",
   materials: ["lime-whitewashed rubble", "barrel vaults", "blue painted doors"], story: ["terraces where one roof is the next house's yard", "stairs down to the sea"],
   note: "Whitewash (lime, water, sea salt) keeps houses cool; vaults and flat roofs that gather water step down the cliff, each roof the terrace above the next.",
-  build: (seed = 43) => { const b = new SceneBuilder(seed); water(b, -600, 600, 10, 600, -40, "#2a5f88");
-    const cliff = b.mat({ kind: "rock", colour: "#8a6a58" }); b.add(clump(0, -20, -30, 120, 60, 40, cliff, 0.3, 0.12)); b.place();
+  build: (seed = 43) => { const b = new SceneBuilder(seed); water(b, -600, 600, 14, 600, -8, "#2a5f88");
+    // the cliff as stepped terraces: each row of houses is cut into the slope behind the retaining wall of the row above
+    // it, so one house's roof is the next one's yard; below the lowest row the bare cliff falls to the sea
+    const cliff = b.mat({ kind: "rock", colour: "#8a6a58" }), terrace = b.mat(S.rubble("#cdbca6", 0.5)), pave = b.mat(S.limewash("#efece4", 0.08, "rubble")), parapet = b.mat(S.limewash("#f5f3ec", 0.05, "rubble"));
+    const rows: readonly (readonly [number, number, number])[] = [[30, -3.5, 22], [24, 1.5, 23], [18, 6.5, 24], [12, 11.5, 25]];
+    rows.forEach(([y, zf, hw], r) => {
+      const below = rows[r + 1]?.[0] ?? -10;
+      b.add(boxAt(-hw, y - 3.1, -60, hw, y, zf, terrace), boxAt(-hw, y - 0.06, -60, hw, y, zf, pave), boxAt(-hw, y, zf - 0.2, hw, y + 0.9, zf, parapet, 0, 0.05));
+      // behind the houses of the row below, the slope itself
+      b.add(boxAt(-hw, below - 0.2, -60, hw, y - 3.1, zf - 5.4, terrace));
+    });
+    b.add(clump(0, 20, -42, 52, 30, 20, cliff, 0.3, 0.14));
+    // one continuous cliff face below the lowest terrace, leaning back as it rises, its face broken by ribs and gullies
+    b.add(leaf((x, y, z) => {
+      const face = 15.5 - (y + 10) * 0.16 + 1.6 * gradNoise(7, x * 0.12, y * 0.05) + 0.7 * gradNoise(8, x * 0.4, y * 0.3) + 0.25 * gradNoise(9, x * 1.3, y * 1.1);
+      return Math.max(z - face, Math.abs(x) - 40 + (y + 10) * 0.35 - 2.5 * gradNoise(10, y * 0.2, 0), y - 11.6 - 1.6 * gradNoise(11, x * 0.09, 0) - 0.5 * gradNoise(12, x * 0.4, 0), -12 - y) * 0.45;
+    }, [-44, -12, -10], [44, 12.2, 19], cliff));
+    for (const sx of [-1, 1]) for (let k = 0; k < 4; k++) b.add(clump(sx * (29 + k * 3), 6 + k * 5, 2 - k * 5, 7, 9 + k, 9, cliff, b.r(), 0.1));
+    // a whitewashed stair zigzagging down the east side from the top terrace to a landing at the sea
+    for (let k = 0; k < 60; k++) { const y = 30 - k * 0.42, z = -3.5 + k * 0.27, x = 25 + (Math.floor(k / 14) % 2 ? -2 : 0); if (y < 11.8) break; b.add(boxAt(x, y - 0.4, z - 0.3, x + 2, y, z, pave)); }
+    b.place();
     const white = S.limewash("#f5f3ec", 0.06, "rubble");
-    for (let k = 0; k < 12; k++) { const row = Math.floor(k / 4), x = (k % 4 - 1.5) * 8 + (row % 2) * 4, y = 30 - row * 6, z = -8 + row * 5;
-      house(b, { w: 6, d: 6, storeys: 1, storeyH: 3.2, walls: white, roof: { kind: "flat", pitch: 1, mat: S.limewash("#f5f3ec", 0.04), gableMat: white }, windows: { rows: [[1.5]], spec: W.shuttered("#2f6ab0", 0.8, 1.1) }, door: { x: -1.2, mat: S.paint("#2f6ab0", 0.1), step: null } });
-      if (k % 3 === 0) b.add(cut(cylY(0, 0, 3.2, 3.2, 0, 0), []), dome(0, 3.2, 0, 2.4, 2.2, b.mat(S.paint("#2f6ab0", 0.05))));
+    for (let k = 0; k < 12; k++) { const row = Math.floor(k / 4), x = (k % 4 - 1.5) * 8.5 + (row % 2) * 4 + b.r(-1.2, 1.2), y = 30 - row * 6, z = -8 + row * 5 - 0.5 - b.r(0, 1.2), w = 5 + ((k * 7) % 3), two = k % 5 === 2;
+      house(b, { w, d: 6, storeys: two ? 2 : 1, storeyH: 3.0, walls: white, roof: { kind: "flat", pitch: 1, mat: S.limewash("#f5f3ec", 0.04), gableMat: white }, windows: { rows: [[1.5]], spec: W.shuttered("#2f6ab0", 0.8, 1.1) }, door: { x: -1.2, mat: S.paint("#2f6ab0", 0.1), step: null } });
+      if (k % 3 === 0 && !two) b.add(dome(0, 3.0, 0, 2.1, 2.0, b.mat(S.paint("#2f6ab0", 0.05))), cylY(0, 0, 3.0, 3.25, 2.2, b.mat(white)), cylY(0, 0, 5.0, 5.5, 0.08, b.mat(S.limewash("#f5f3ec", 0.04))));
       b.place({ x, y, z }); }
-    return done(b, frameSubject(b, 14, { eye: 22 }), "noon"); } });
+    return done(b, { x: 12, y: 4, z: 100, yaw: -7, fov: 50, shift: 0.3 }, "noon"); } });
 add({ id: "blue-domed-chapel", label: "Blue-domed island chapel", group: "mediterranean", region: "Greece, Cyclades", era: "19th century", setting: "coast", view: "exterior", scale: "humble", mood: "golden",
   materials: ["whitewash", "a blue-painted dome", "a pierced bell gable"], story: ["bells hung in the gable wall", "the sea beyond"],
   note: "Small chapels carry a dome on a drum and a pierced bell gable; walls and paving are whitewashed, the dome painted blue.",
@@ -622,13 +654,38 @@ add({ id: "carpathian-wooden-church", label: "Carpathian wooden church", group: 
 add({ id: "moroccan-riad", label: "Moroccan riad courtyard", group: "middle-east", region: "Morocco, Marrakesh", era: "18th–19th century", setting: "city", view: "interior", scale: "domestic", mood: "noon",
   materials: ["lime plaster (tadelakt)", "zellige tile dado", "cedar", "horseshoe arches"], story: ["orange trees", "a fountain", "the sky as the ceiling"],
   note: "A riad turns inward round a four-sided garden court: blank walls outside, zellige below and carved plaster and cedar above.",
-  build: (seed = 60) => { const b = new SceneBuilder(seed); ground(b, -40, 40, -40, 40, { kind: "zellige", colour: "#2f6f73", colour2: "#efe7d3", unit: 0.12 }, 0);
-    const wall = S.plaster("#e3b48a", 0.08);
-    for (const yaw of [0, 90, 180, 270]) { arcade(b, -7, 7, -6, 3, 4.6, "horseshoe", wall, 2.5); b.add(boxAt(-7, 0, -5.98, 7, 1.3, -5.9, b.mat({ kind: "zellige", colour: "#2f6f73", colour2: "#efe7d3", unit: 0.09, pattern: "star" }))); b.add(boxAt(-7, 5.0, -8.6, 7, 9.5, -6, b.mat(wall))); b.add(boxAt(-7, 8.6, -6.2, 7, 9.0, -5.8, b.mat({ kind: "oak", colour: "#6a4228" }))); b.place({ yaw }); }
-    b.add(cylY(0, 0, 0, 0.6, 1.4, b.mat({ kind: "zellige", colour: "#2a5a8a", colour2: "#efe7d3", unit: 0.08 })), cylY(0, 0, 0.55, 0.6, 1.25, b.mat({ kind: "water" })), revolve(0, 0, 0.6, 1.6, t => 0.25 + 0.3 * Math.sin(t * Math.PI) ** 2, 0.6, b.mat({ kind: "marble" }), 0, 2));
-    for (const [x, z] of [[-3.8, -3.6], [3.8, -3.6]]) tree(b, x, z, 3.6, 1.4, { kind: "foliage", colour: "#2f4a2a", colour2: "#e88a2a" }, false);
+  build: (seed = 60) => { const b = new SceneBuilder(seed), C = 5, G = 2.4, n = 3, span = (2 * C) / n, E = C + G + 0.5;
+    ground(b, -40, 40, -40, 40, { kind: "zellige", colour: "#2f6f73", colour2: "#efe7d3", unit: 0.12 }, 0);
+    const wall = b.mat(S.plaster("#e3b48a", 0.08)), zel = b.mat({ kind: "zellige", colour: "#2f6f73", colour2: "#efe7d3", unit: 0.09, pattern: "star" }), geb = b.mat({ kind: "plaster", colour: "#efe2c8", flake: 0 });
+    const cedar = b.mat({ kind: "oak", colour: "#6a4228", age: 0.3 }), green = b.mat({ kind: "glazed-tube", colour: "#2f6a4a", unit: 0.16, course: 0.26 }), door = b.mat({ kind: "painted-wood", colour: "#2a4a5a", flake: 0.1 }), dark = b.mat({ kind: "plain", colour: "#3a2a20" });
+    for (const yaw of [0, 90, 180, 270]) {
+      const z0 = -C, arches: Node[] = [];
+      for (let i = 0; i < n; i++) arches.push(opening(-C + span * (i + 0.5), 0, span * 0.62, 2.3, "horseshoe", z0 - 0.7, z0 + 0.2));
+      // ground floor: horseshoe arches on piers clad in zellige to 1.2 m, the gallery behind, a painted door in its back wall
+      b.add(cut(boxAt(-C, 0, z0 - 0.5, C, 4.4, z0, wall), arches), cut(boxAt(-C, 0, z0, C, 1.2, z0 + 0.03, zel), arches));
+      b.add(boxAt(-E, 4.2, z0 - G, E, 4.55, z0, wall));
+      b.add(cut(boxAt(-E, 0, z0 - G - 0.5, E, 4.4, z0 - G, wall), [boxAt(-0.8, 0, z0 - G - 1, 0.8, 2.8, z0 - G + 0.1, 0)]), boxAt(-0.8, 0, z0 - G - 0.3, 0.8, 2.8, z0 - G - 0.25, door), boxAt(-E, 0, z0 - G, E, 1.2, z0 - G + 0.03, zel));
+      // the carved plaster frieze over the arcade: a band of small blind horseshoe arches
+      b.add(cut(boxAt(-C, 3.45, z0, C, 4.2, z0 + 0.05, geb), [repeatX(opening(-C + 0.15, 3.55, 0.17, 0.36, "horseshoe", z0 + 0.02, z0 + 0.12), 0.26, Math.floor((2 * C) / 0.26))]));
+      // upper floor: a turned cedar balustrade between posts, the back wall with shuttered windows, a carved cedar eave on corbels, a green-tiled pent roof
+      b.add(boxAt(-C, 4.55, z0 - 0.06, C, 4.65, z0 + 0.12, cedar), repeatX(revolve(-C + 0.12, z0 + 0.03, 4.65, 5.55, t => 0.025 + 0.02 * Math.sin(t * Math.PI * 3) ** 2, 0.05, cedar, 0, 2), 0.16, Math.floor((2 * C) / 0.16)), boxAt(-C, 5.55, z0 - 0.04, C, 5.65, z0 + 0.1, cedar));
+      for (let i = 0; i <= n; i++) b.add(boxAt(-C + span * i - 0.1, 4.55, z0 - 0.1, -C + span * i + 0.1, 7.6, z0 + 0.1, cedar));
+      const ups: Node[] = []; for (let i = 0; i < n; i++) ups.push(opening(-C + span * (i + 0.5), 4.9, 0.9, 1.5, "flat", z0 - G - 1, z0 - G + 0.1));
+      b.add(cut(boxAt(-E, 4.55, z0 - G - 0.5, E, 9.6, z0 - G, wall), ups));
+      for (let i = 0; i < n; i++) { const x = -C + span * (i + 0.5); b.add(boxAt(x - 0.45, 4.9, z0 - G - 0.25, x + 0.45, 6.4, z0 - G - 0.2, dark), boxAt(x - 0.95, 4.9, z0 - G + 0.02, x - 0.47, 6.4, z0 - G + 0.06, door), boxAt(x + 0.47, 4.9, z0 - G + 0.02, x + 0.95, 6.4, z0 - G + 0.06, door)); }
+      b.add(boxAt(-C, 7.6, z0 - G, C, 7.85, z0 + 0.35, cedar), repeatX(sculpt([{ a: [-C + 0.2, 7.58, z0 + 0.04], b: [-C + 0.2, 7.3, z0 + 0.04], r1: 0.06, r2: 0.03 }, { a: [-C + 0.2, 7.58, z0 + 0.2], e: [0.06, 0.05, 0.14] }], 0.04, cedar), 0.42, Math.floor((2 * C) / 0.42)));
+      b.add(pentRoof(-E, E, z0 - G, G + 0.6, 7.95 + (G + 0.6) * 0.445, 24, green));
+      b.place({ yaw });
+    }
+    // the garden: an octagonal fountain basin with a marble bowl, four raised beds of orange trees and herbs, bougainvillea up a corner pier
+    const marble = b.mat({ kind: "marble", colour: "#ece6da" }), water = b.mat({ kind: "water", colour: "#3a6a6a" }), soil = b.mat({ kind: "dirt", colour: "#5a4030" }), zb = b.mat({ kind: "zellige", colour: "#2a5a8a", colour2: "#efe7d3", unit: 0.08 }), herb = b.mat({ kind: "foliage", colour: "#4a6a3a" });
+    b.add(octShaft(0, 0, 0, 0.42, 1.25, zb), octShaft(0, 0, 0.3, 0.38, 1.12, water), revolve(0, 0, 0.38, 0.95, t => (t < 0.6 ? 0.08 : 0.08 + 0.4 * ((t - 0.6) / 0.4) ** 1.5), 0.5, marble, 0, 3), cylY(0, 0, 0.9, 0.93, 0.44, water), capsule(0, 0.93, 0, 0, 1.2, 0, 0.012, b.mat({ kind: "plain", colour: "#e8f0f0" })));
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) { const cx = sx * 2.9, cz = sz * 2.9; b.add(boxAt(cx - 1.3, 0, cz - 1.3, cx + 1.3, 0.35, cz + 1.3, zel), boxAt(cx - 1.2, 0.3, cz - 1.2, cx + 1.2, 0.36, cz + 1.2, soil)); for (let k = 0; k < 6; k++) b.add(clump(cx + Math.cos(k * 1.05) * 0.85, 0.45, cz + Math.sin(k * 1.05) * 0.85, 0.22, 0.14, 0.22, herb, b.r(), 0.4)); }
+    for (let k = 0; k < 12; k++) b.add(clump(-C + 0.3 + 0.25 * Math.sin(k * 2.1), 0.6 + k * 0.38, -C + 0.3 + 0.25 * Math.cos(k * 1.7), 0.35, 0.28, 0.3, b.mat({ kind: "foliage", colour: k % 3 ? "#b0306a" : "#3a5a2a" }), b.r(), 0.5));
     b.place();
-    return done(b, { x: 0.4, y: 1.6, z: 5.6, yaw: 0, fov: 74, shift: 0.36 }, "noon"); } });
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) tree(b, sx * 2.9, sz * 2.9, 3.4, 1.15, { kind: "foliage", colour: "#2f4a2a", colour2: "#e88a2a" }, false);
+    b.place();
+    return done(b, { x: 0.5, y: 1.6, z: 4.6, yaw: -10, fov: 78, shift: 0.36 }, "morning"); } });
 add({ id: "kasbah-ksar", label: "Atlas kasbah", group: "middle-east", region: "Morocco, Atlas", era: "17th–19th century", setting: "mountain", view: "exterior", scale: "civic", mood: "golden",
   materials: ["rammed earth (pisé)", "mud brick", "palm-wood lintels"], story: ["tapering corner towers with carved tops", "a palm grove", "the river bed"],
   note: "Rammed earth in lifts with putlog holes; corner towers taper upward and end in stepped merlons and incised patterns.",
@@ -654,15 +711,50 @@ add({ id: "souk-arcade", label: "Stone-arched souk", group: "middle-east", regio
 add({ id: "damascene-courtyard", label: "Damascene courtyard house", group: "middle-east", region: "Syria, Damascus", era: "18th century", setting: "city", view: "interior", scale: "domestic", mood: "morning",
   materials: ["ablaq striped stone (black basalt and limestone)", "an iwan", "a marble fountain"], story: ["a lemon tree", "jasmine on the wall"],
   note: "Ablaq: alternating courses of dark and light stone; an iwan (vaulted open hall) faces the fountain court.",
-  build: (seed = 63) => { const b = new SceneBuilder(seed); ground(b, -40, 40, -40, 40, { kind: "tile-floor", colour: "#d8cfbf", colour2: "#7a6a5a", unit: 0.5 }, 0);
-    const ablaq = { kind: "ashlar", colour: "#e6dcc8", course: 0.3, age: 0.3 } as SurfaceSpec, dark = { kind: "ashlar", colour: "#3c3a38", course: 0.3 } as SurfaceSpec;
-    const am = b.mat(ablaq), dm = b.mat(dark);
-    b.add(cut(boxAt(-8, 0, -9, 8, 10, -7, am), [opening(0, 0, 6, 4.5, "pointed", -10, -6)])); for (let k = 0; k < 16; k++) if (k % 2) b.add(boxAt(-8, k * 0.6, -7.02, 8, k * 0.6 + 0.3, -6.98, dm));
-    b.add(boxAt(-3, 0, -13, 3, 9, -9, b.mat(S.plaster("#d9c9b0"))));
-    for (const s of [-1, 1]) { b.add(boxAt(s * 8, 0, -9, s * 8 + s * 1, 10, 9, am)); tree(b, s * 5, 2, 4, 1.6, { kind: "foliage", colour: "#3a5a2a", colour2: "#e8d050" }, false); }
-    b.add(boxAt(-1.6, 0, -1.6, 1.6, 0.5, 1.6, b.mat({ kind: "marble" })), boxAt(-1.4, 0.45, -1.4, 1.4, 0.5, 1.4, b.mat({ kind: "water" })));
+  build: (seed = 63) => { const b = new SceneBuilder(seed), X = 7, Zs = -9, Zn = 9, W = 6, hs = 4.75, zb = Zs - 6.8;
+    ground(b, -40, 40, -40, 40, { kind: "tile-floor", colour: "#e2d8c6", colour2: "#6a5a50", unit: 0.6 }, 0);
+    const ab = b.mat({ kind: "ashlar", colour: "#e6dcc8", course: 0.32, unit: 0.7, age: 0.3, pattern: "ablaq" }), plaster = b.mat(S.plaster("#e8dcc4", 0.06)), marble = b.mat({ kind: "marble", colour: "#ece6da" });
+    const wood = b.mat({ kind: "painted-wood", colour: "#5a3a26", flake: 0.06 }), dark = b.mat({ kind: "plain", colour: "#2a221c" }), iron = b.mat({ kind: "iron", colour: "#1e1c1a" }), water = b.mat({ kind: "water", colour: "#3a6a6a" });
+    // the iwan: a tall pointed arch raised a step, framed by a roll moulding and a rectangular border, a vaulted hall behind
+    b.add(cut(boxAt(-X, 0, Zs - 0.8, X, 12, Zs, ab), [opening(0, 0.45, W, hs, "pointed", Zs - 2, Zs + 1)]));
+    b.add(archRoll(0, 0.45, W, hs, "pointed", Zs + 0.03, 0.08, 0.09, marble, "z"), archRoll(0, 0.45, W, hs, "pointed", Zs + 0.03, 0.42, 0.06, marble, "z"));
+    const top = 0.45 + hs + (W / 2) * 1.73 + 0.7;
+    for (const sx of [-1, 1]) b.add(boxAt(sx * (W / 2 + 0.7) - 0.09, 0.45, Zs, sx * (W / 2 + 0.7) + 0.09, top, Zs + 0.08, marble));
+    b.add(boxAt(-W / 2 - 0.79, top - 0.18, Zs, W / 2 + 0.79, top, Zs + 0.08, marble), boxAt(-W / 2 - 1, 0, Zs - 0.8, W / 2 + 1, 0.45, Zs + 0.6, marble));
+    b.add(boxAt(-3.4, 0, zb, 3.4, 0.45, Zs, marble), boxAt(-4.0, 0, zb, -3.2, 11, Zs - 0.8, plaster), boxAt(3.2, 0, zb, 4.0, 11, Zs - 0.8, plaster), boxAt(-4, 0, zb - 0.6, 4, 11, zb, plaster));
+    b.add(cut(boxAt(-3.3, 4.8, zb, 3.3, 11, Zs - 0.8, plaster), [opening(0, 0.45, 6.4, hs, "pointed", zb - 1, Zs)]));
+    // in the iwan: banquettes with cushions along the walls, a carpet, a niche with a brass lamp
+    const red = b.mat({ kind: "fabric", colour: "#8a2a24", colour2: "#c8902a", unit: 0.08 }), cush = b.mat({ kind: "velvet", colour: "#2a3a5a" });
+    for (const sx of [-1, 1]) b.add(boxAt(sx * 3.2 - (sx > 0 ? 0.7 : 0), 0.45, zb + 0.2, sx * 3.2 + (sx < 0 ? 0.7 : 0), 0.85, Zs - 1.2, red, 0, 0.04), capsule(sx * 2.95, 1.0, zb + 0.4, sx * 2.95, 1.0, Zs - 1.4, 0.16, cush));
+    b.add(boxAt(-2.0, 0.45, zb + 0.6, 2.0, 0.47, Zs - 1.6, b.mat({ kind: "rug", unit: 4, course: 4, offset: [0, (zb + Zs) / 2] })));
+    b.add(cut(boxAt(-0.8, 1.2, zb - 0.05, 0.8, 3.4, zb + 0.02, plaster), [opening(0, 1.3, 1.2, 1.4, "pointed", zb - 0.4, zb + 0.1)]), revolve(0, zb + 0.15, 1.3, 1.65, t => 0.08 + 0.06 * Math.sin(Math.PI * t), 0.14, b.mat({ kind: "brass", colour: "#b08a45" })));
+    // the side ranges: ablaq below with grilled windows and a door, plaster above with projecting wooden lattice windows, a cornice on corbels
+    for (const sv of [-1, 1]) {
+      const xw = sv * X, lo: Node[] = [], up: Node[] = [];
+      for (const z of [-4.5, 4.5]) { lo.push(opening(z, 1.0, 1.2, 1.7, "flat", xw - 1, xw + 1, "x")); up.push(opening(z, 5.6, 1.3, 1.6, "flat", xw - 1, xw + 1, "x")); }
+      lo.push(opening(0, 0, 1.4, 2.4, "pointed", xw - 1, xw + 1, "x")); up.push(opening(0, 5.6, 1.3, 1.6, "flat", xw - 1, xw + 1, "x"));
+      const x0 = Math.min(xw, xw + sv * 0.8), x1 = Math.max(xw, xw + sv * 0.8);
+      b.add(cut(boxAt(x0, 0, Zs, x1, 4.6, Zn, ab), lo), cut(boxAt(x0, 4.6, Zs, x1, 9.4, Zn, plaster), up), boxAt(x0, 0, Zs, x1, 0.2, Zn, ab));
+      for (const z of [-4.5, 4.5]) { b.add(boxAt(xw + sv * 0.4, 1.0, z - 0.6, xw + sv * 0.45, 2.7, z + 0.6, dark)); for (let k = 0; k < 6; k++) b.add(capsule(xw + sv * 0.06, 1.0, z - 0.5 + k * 0.2, xw + sv * 0.06, 2.7, z - 0.5 + k * 0.2, 0.012, iron)); }
+      b.add(boxAt(xw + sv * 0.35, 0, -0.7, xw + sv * 0.4, 3.0, 0.7, wood), boxAt(xw - sv * 0.02, 2.45, -0.95, xw + sv * 0.05, 2.62, 0.95, marble));
+      for (const z of [-4.5, 0, 4.5]) {
+        // a mashrabiya: a lattice box cantilevered on brackets
+        b.add(boxAt(xw - sv * 0.55, 5.4, z - 0.85, xw, 5.5, z + 0.85, wood), boxAt(xw - sv * 0.55, 7.45, z - 0.85, xw, 7.6, z + 0.85, wood), boxAt(xw - sv * 0.55, 5.5, z - 0.8, xw - sv * 0.5, 7.45, z + 0.8, b.mat({ kind: "chinese-screen" })));
+        for (const dz of [-0.8, 0.8]) b.add(boxAt(xw - sv * 0.55, 5.5, z + dz - 0.04, xw, 7.45, z + dz + 0.04, wood), capsule(xw, 4.9, z + dz * 0.8, xw - sv * 0.5, 5.4, z + dz * 0.8, 0.04, wood));
+      }
+      b.add(boxAt(xw - sv * 0.45, 9.2, Zs, xw + sv * 0.2, 9.45, Zn, wood), repeatZ(sculpt([{ a: [xw - sv * 0.05, 9.18, Zs + 0.3], b: [xw - sv * 0.05, 8.9, Zs + 0.3], r1: 0.06, r2: 0.03 }, { a: [xw - sv * 0.25, 9.15, Zs + 0.3], e: [0.18, 0.05, 0.06] }], 0.04, wood), 0.5, Math.floor((Zn - Zs) / 0.5)));
+    }
+    b.add(boxAt(-X, 0, Zn, X, 9.4, Zn + 0.8, plaster));
+    // the court: an octagonal marble pool with a jet, citrus trees in round beds, jasmine up the west wall, pots along the iwan step
+    b.add(octShaft(0, 1.5, 0, 0.55, 1.5, marble), octShaft(0, 1.5, 0.4, 0.5, 1.36, water), cylY(0, 1.5, 0.5, 0.75, 0.08, marble), capsule(0, 0.75, 1.5, 0, 1.15, 1.5, 0.012, b.mat({ kind: "plain", colour: "#e8f0f0" })));
+    const soil = b.mat({ kind: "dirt", colour: "#5a4030" }), leaves = b.mat({ kind: "foliage", colour: "#3a5a2a" }), flowers = b.mat({ kind: "plain", colour: "#f4f0e6" }), pot = b.mat({ kind: "enamel", colour: "#b0603a" });
+    for (const [x, z] of [[-3.6, 3.2], [3.6, -2.2]] as const) b.add(cut(cylY(x, z, 0, 0.4, 1.0, marble), [cylY(x, z, 0.3, 0.5, 0.9, 0)]), cylY(x, z, 0.3, 0.36, 0.9, soil));
+    for (let k = 0; k < 16; k++) { const y = 0.5 + k * 0.5, z = -6 + 0.5 * Math.sin(k * 1.3) + (k % 3) * 0.4; b.add(clump(-X + 0.3, y, z, 0.3, 0.32, 0.5, leaves, b.r(), 0.5)); if (k % 2) b.add(sphere(-X + 0.55, y + 0.1, z + 0.2, 0.05, flowers), sphere(-X + 0.5, y - 0.1, z - 0.25, 0.05, flowers)); }
+    for (const x of [-4.5, -3.9, 3.9, 4.5]) b.add(revolve(x, Zs + 0.9, 0, 0.45, t => 0.16 + 0.06 * Math.sin(Math.PI * t), 0.22, pot), clump(x, 0.6, Zs + 0.9, 0.25, 0.28, 0.25, leaves, b.r(), 0.5));
     b.place();
-    return done(b, look(0, 3.6, 0, 11, 0, 1.6, 64), "morning"); } });
+    for (const [x, z, c2] of [[-3.6, 3.2, "#e8d050"], [3.6, -2.2, "#e88a2a"]] as const) tree(b, x, z, 4.2, 1.7, { kind: "foliage", colour: "#3a5a2a", colour2: c2 }, false);
+    b.place();
+    return done(b, { x: 1.2, y: 1.6, z: 8.0, yaw: -3, fov: 72, shift: 0.42 }, "morning"); } });
 add({ id: "ottoman-timber-house", label: "Ottoman timber house", group: "middle-east", region: "Turkey, Safranbolu", era: "18th–19th century", setting: "town", view: "exterior", scale: "domestic", mood: "golden",
   materials: ["stone ground floor", "timber-framed upper floors in white plaster", "projecting bays (cumba)"], story: ["upper floors overhanging the lane on curved brackets", "many small windows"],
   note: "A stone base holds stables; living floors in plastered timber oversail the street on brackets with rows of windows.",
@@ -686,18 +778,16 @@ add({ id: "gothic-flying-buttresses", label: "Gothic choir with flying buttresse
     b.place({ yaw: -8 });
     return done(b, frameSubject(b, 14, { fov: 62 }), "noon"); } });
 add({ id: "gothic-nave-interior", label: "Gothic nave interior", group: "historic", region: "France", era: "13th century", setting: "city", view: "interior", scale: "monumental", mood: "interior-day",
-  materials: ["limestone piers", "rib vaults", "stained glass"], story: ["coloured light on the floor", "rows of chairs", "candles at a side altar"],
-  note: "Piers rise in shafts to the vault ribs; the clerestory windows fill the bays between them.",
+  materials: ["limestone piers", "quadripartite rib vaults", "stained glass"], story: ["coloured light on the piers", "rows of rush chairs", "candles at a side altar"],
+  note: "Three storeys after Chartres: compound piers carry the arcade, a triforium passage, and a clerestory of two lancets under a rose in each lunette of the rib vault; seen across the nave from its north side.",
   build: (seed = 67) => { const b = new SceneBuilder(seed);
-    const st = S.ashlar("#cfc6b2", 0.4), sm = b.mat(st);
-    room(b, { w: 14, d: 60, h: 34, wall: st, floor: { kind: "tile-floor", colour: "#b8ae9a", colour2: "#8a8070", unit: 0.6 }, ceiling: st, windows: [0, 1, 2, 3, 4].flatMap(k => [{ wall: "left" as const, at: -20 + k * 9, sill: 15, w: 4, h: 10, shape: "pointed" as const, glass: { kind: "stained", emit: 1.2 } as SurfaceSpec }, { wall: "right" as const, at: -20 + k * 9, sill: 15, w: 4, h: 10, shape: "pointed" as const, glass: { kind: "stained", emit: 1.2 } as SurfaceSpec }]) });
-    for (let k = 0; k < 7; k++) for (const s of [-1, 1]) { b.add(cylY(s * 5.5, -24 + k * 9 - 4.5, 0, 24, 0.8, sm)); }
-    // a pointed barrel vault over the nave, springing from the piers
-    b.add(cut(boxAt(-7.5, 18, -32, 7.5, 34, 24, sm), [opening(0, 0, 14, 18, "pointed", -33, 25, "z")]));
-    for (let k = 0; k < 12; k++) for (const s of [-1, 1]) b.add(boxAt(s * 1.2, 0, 8 - k * 1.6, s * 4.4, 0.85, 8.4 - k * 1.6, b.mat({ kind: "oak", colour: "#5a3e2a" })));
-    candle(b, 4.8, 1.1, -20, 0.03); candle(b, 4.6, 1.1, -19.6, 0.03);
+    const nv = gothicNave(b, { bays: 6 }), B = nv.length / 6;
+    chairRows(b, 4.9, -5.2, 8, 22); chairRows(b, -1.3, -5.2, 8, 22); b.place();
+    // a side altar in the south aisle: a stone table with candles burning
+    table(b, nv.span / 2 + 4.6, -B * 2.6, 1.6, 0.7, 1.0, { kind: "ashlar", colour: "#cbbd9e", course: 0.3 }, true);
+    for (const dz of [-0.5, -0.2, 0.15, 0.45]) candle(b, nv.span / 2 + 4.5, 1.0, -B * 2.6 + dz, 0.04);
     b.place();
-    return done(b, { x: 1.2, y: 1.6, z: 24, fov: 58, shift: 0.78 }, "interior-day", { dust: 0.5 }); } });
+    return done(b, { x: -4.2, y: 1.6, z: -3.0, yaw: 26, fov: 70, shift: 0.62 }, { ...MOODS["interior-day"], sunElevation: 46, sunAzimuth: -62, sunPower: 4.6, ambient: 0.22, key: 0.1, burn: 0.9 }, { dust: 0.12, interior: true }); } });
 add({ id: "norman-keep", label: "Norman stone keep", group: "historic", region: "England and Normandy", era: "1070–1180", setting: "rural", view: "exterior", scale: "monumental", mood: "overcast",
   materials: ["Caen limestone and flint rubble", "pilaster buttresses", "battlements"], story: ["a forebuilding stair to the first-floor door", "corner turrets"],
   note: "Square donjons (the White Tower is about 27 m high) with walls several metres thick at the base, entered at first floor.",
@@ -742,10 +832,10 @@ add({ id: "roman-aqueduct", label: "Roman aqueduct", group: "historic", region: 
 add({ id: "medieval-stone-bridge", label: "Medieval multi-arch stone bridge", group: "historic", region: "England", era: "14th–15th century", setting: "riverside", view: "exterior", scale: "civic", mood: "morning",
   materials: ["rubble with ashlar voussoirs", "pointed arches", "cutwaters and refuges"], story: ["pedestrian refuges over the cutwaters", "reflections in the river", "moss on the cutwaters"],
   note: "Piers about 1/5–1/10 of the span with pointed cutwaters upstream; refuges let people step aside for carts.",
-  build: (seed = 73) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, trees: [[-30, -14, 12], [32, -16, 13]] }); water(b, -400, 400, -12, 12, -1.5, "#4a6264");
+  build: (seed = 73) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, trees: [[-30, -14, 12], [32, -16, 13]] }); water(b, -16, 16, -300, 300, -1.5, "#4a6264");
     bridge(b, { arches: 5, span: 7, shape: "pointed", h: 6.5, w: 5, wall: S.rubble("#a29680", 0.4), ring: S.ashlar("#b8aa8e", 0.35), cutwaters: true, refuges: true });
     b.place();
-    return done(b, frameSubject(b, -30), "morning"); } });
+    return done(b, frameSubject(b, -8, { eye: 1.2 }), "morning"); } });
 add({ id: "inhabited-bridge", label: "Bridge lined with houses", group: "historic", region: "Italy, Florence", era: "1345", setting: "riverside", view: "exterior", scale: "civic", mood: "golden",
   materials: ["segmental stone arches", "shops cantilevered over the river on brackets"], story: ["back rooms hanging over the water", "shutters and awnings"],
   note: "Low segmental arches leave room for a street of shops above; their back rooms hang over the river on timber brackets.",
@@ -862,11 +952,16 @@ add({ id: "vineyard-press-house", label: "Vineyard press house", group: "rural",
 add({ id: "packhorse-bridge", label: "Packhorse bridge", group: "rural", region: "England, Lake District", era: "17th century", setting: "mountain", view: "exterior", scale: "humble", mood: "morning",
   materials: ["slate rubble", "a single segmental arch", "low parapets for laden horses"], story: ["a beck tumbling below", "ferns in the joints"],
   note: "Narrow single arches with low parapets so packhorses' panniers could pass.",
-  build: (seed = 88) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, grass: "#5f6e3c" }); water(b, -400, 400, -5, 5, -1.2, "#5a6a62");
+  build: (seed = 88) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, grass: "#5f6e3c" }); water(b, -3.4, 3.4, -300, 300, -1.2, "#5a6a62");
     bridge(b, { arches: 1, span: 7, shape: "round", h: 4.2, w: 1.8, pier: 3.5, wall: S.rubble("#7a776e", 0.6), water: 1.2, hump: 14 });
-    b.place({ yaw: -30 });
-    for (let k = 0; k < 8; k++) b.add(clump(-10 + k * 3, -0.6, (k % 2 ? 4 : -4), 1.2, 0.8, 1.0, b.mat({ kind: "rock", colour: "#77746a" }), b.r(), 0.2)); b.place();
-    return done(b, frameSubject(b, 6, { pad: 0.16 }), "morning"); } });
+    b.place();
+    // boulders in the beck and along its banks, ferns in the bridge's joints
+    const rock = b.mat({ kind: "rock", colour: "#77746a", moss: 0.4 }), fern = b.mat({ kind: "foliage", colour: "#4a6a2a" });
+    for (let k = 0; k < 14; k++) { const z = -26 + k * 4 + b.r(-1, 1), x = b.r(-1.8, 1.8); b.add(clump(x, -1.0, z, b.r(0.4, 0.9), b.r(0.3, 0.6), b.r(0.4, 0.8), rock, b.r(), 0.25)); }
+    for (const sx of [-1, 1]) for (let k = 0; k < 34; k++) { const z = -40 + k * 2.2 + b.r(-0.6, 0.6); if (Math.abs(z) < 2.2) continue; b.add(clump(sx * (3.4 + b.r(-0.3, 0.4)), -0.45, z, b.r(0.6, 1.2), b.r(0.5, 0.9), b.r(0.6, 1.1), rock, b.r(), 0.25)); }
+    for (let k = 0; k < 8; k++) b.add(clump(b.r(-6, 6), b.r(1.0, 3.2), b.r(0.8, 1.0) * (k % 2 ? 1 : -1), 0.25, 0.18, 0.12, fern, b.r(), 0.5));
+    b.place();
+    return done(b, frameSubject(b, -5, { pad: 0.2, eye: 1.1 }), "morning"); } });
 add({ id: "cider-orchard-barn", label: "Cider barn in an orchard", group: "rural", region: "England, Somerset", era: "18th century", setting: "rural", view: "exterior", scale: "humble", mood: "golden",
   materials: ["red sandstone", "pantiles", "weatherboard"], story: ["apple trees in blossom", "a ladder against a tree"],
   note: "Weatherboarded upper storeys over stone, pantiles at a moderate pitch, apples pressed inside.",
@@ -874,116 +969,192 @@ add({ id: "cider-orchard-barn", label: "Cider barn in an orchard", group: "rural
     placeHouse(b, { w: 14, d: 7, storeys: 2, storeyH: 2.8, walls: [S.rubble("#9a5a44"), S.boards("#5a4a3a", 0.6)], roof: { kind: "gable", pitch: 38, mat: S.pantile }, door: { x: -3, w: 2.4, h: 2.6 }, windows: { rows: [[3], [0]], spec: W.leaded(0.8, 0.8) } }, 0, -4, -14);
     for (let i = 0; i < 6; i++) tree(b, (i < 3 ? -20 : 12) + (i % 3) * 4.5, -2 + (i % 2) * 6, 4.6, 2.2, { kind: "foliage", colour: "#6a8a3a", colour2: "#f0d8e0" }); b.place();
     return done(b, frameSubject(b, 8), "golden"); } });
-add({ id: "alpine-summer-hut", label: "Alpine summer dairy hut", group: "rural", region: "Switzerland", era: "19th century", setting: "mountain", view: "exterior", scale: "humble", mood: "winter",
+add({ id: "alpine-summer-hut", label: "Alpine summer dairy hut", group: "rural", region: "Switzerland", era: "19th century", setting: "mountain", view: "exterior", scale: "humble", mood: "morning",
   materials: ["dry-stone walls", "a stone-slab roof", "a log upper gable"], story: ["cheese cellar", "cows' bells hanging by the door", "high pasture and peaks"],
   note: "Above the treeline huts are stone, roofed with heavy stone slabs at a low pitch against wind.",
   build: (seed = 90) => { const b = new SceneBuilder(seed); countryside(b, { grass: "#7a8a4a", lane: false });
-    for (let k = 0; k < 5; k++) b.add(clump(-200 + k * 95, 30, -560 - (k % 2) * 60, 90, 150 + (k % 3) * 40, 70, b.mat({ kind: "rock", colour: "#9a9ca6" }), b.r(), 0.18));
-    b.place();
+    // the peaks above the pasture, snow on their upper faces
+    peaks(b, [[-260, -470, 150, 150], [-50, -540, 200, 170], [170, -460, 135, 135], [360, -520, 170, 150]], 115);
     placeHouse(b, { w: 8, d: 6, storeys: 1, storeyH: 2.6, walls: S.rubble("#8f8a80", 0.4), roof: { kind: "gable", pitch: 24, mat: { kind: "stone-slate", colour: "#7a7670", course: 0.4, unit: 0.5, moss: 0.4 }, over: 0.4, gableMat: S.log("#5a4a3a") }, door: { x: 0, w: 1.0, mat: S.boards("#4a3a2a") }, windows: { rows: [[2.5]], spec: { w: 0.5, h: 0.5, panes: [1, 1] } } }, 0, 0, 20);
     b.place();
-    return done(b, frameSubject(b, -10, { pad: 0.3, lift: 0.08 }), "winter"); } });
+    // the yard: a hollowed-log trough under a spout, a split-rail fence round the hut, a bench by the door, a cowbell on its strap
+    const log = b.mat(S.log("#6a5a44")), water = b.mat({ kind: "water", colour: "#4a6a6a" }), rail = b.mat({ kind: "oak", colour: "#7a6a52", age: 0.8 }), brass = b.mat({ kind: "brass", colour: "#a8823e" }), leather = b.mat({ kind: "leather", colour: "#4a2a1a" });
+    b.add(cut(boxAt(-1.4, 0, -0.35, 1.4, 0.6, 0.35, log, 0, 0.12), [boxAt(-1.25, 0.2, -0.25, 1.25, 0.8, 0.25, 0, 0, 0.08)]), boxAt(-1.25, 0.2, -0.25, 1.25, 0.5, 0.25, water), capsule(1.6, 1.3, 0, 1.0, 0.95, 0, 0.05, log), capsule(1.6, 0, 0, 1.6, 1.35, 0, 0.07, log));
+    b.place({ x: -6.5, z: 2.2, yaw: 20 });
+    for (let k = 0; k < 9; k++) { const x = -10 + k * 2.6; b.add(capsule(x, 0, 7.5, x, 1.15, 7.5, 0.05, rail)); if (k < 8) for (const y of [0.5, 0.95]) b.add(capsule(x, y, 7.5, x + 2.6, y + 0.04 * Math.sin(k), 7.5, 0.04, rail)); }
+    b.add(boxAt(-0.6, 0.42, 0, 0.6, 0.47, 0.32, rail), boxAt(-0.55, 0, 0.05, -0.48, 0.42, 0.28, rail), boxAt(0.48, 0, 0.05, 0.55, 0.42, 0.28, rail));
+    b.place({ x: 2.2, z: 3.4, yaw: 20 });
+    b.add(capsule(0, 2.1, 0, 0, 1.75, 0.02, 0.025, leather), revolve(0, 0.02, 1.48, 1.75, t => 0.11 - 0.05 * t, 0.12, brass));
+    b.place({ x: -1.0, z: 3.25, yaw: 20 });
+    return done(b, frameSubject(b, -10, { pad: 0.3, lift: 0.08 }), "morning"); } });
 
 // Lived-in interiors ------------------------------------------------------------------------------------------------------
 const interiorCam = (z = 5.5, y = 1.55, fov = 66, shift = 0.12, yaw = 0): CameraSpec => ({ x: 0, y, z, fov, shift, yaw });
+/** Daylight indoors, exposed for the room as an interior photographer would (a bright window may burn out). */
+const dayIn = (o: Partial<Mood> = {}): Mood => ({ ...MOODS["interior-day"], burn: 2.4, ...o });
 add({ id: "village-bakery", label: "Village bakery interior", group: "interior", region: "France", era: "19th century", setting: "village", view: "interior", scale: "humble", mood: "interior-day",
   materials: ["brick bread oven", "limewashed walls", "oak counter and shelves"], story: ["loaves on the racks", "the oven's glow", "flour sacks", "a peel by the oven"],
   note: "A wood-fired dome oven in brick with a low segmental mouth; bread racked on slatted shelves; morning sun through the shop window.",
   build: (seed = 91) => { const b = new SceneBuilder(seed);
-    room(b, { w: 7, d: 8, h: 3.2, wall: S.limewash("#ece2cc", 0.2, "brick"), floor: { kind: "tile-floor", colour: "#a8512f", colour2: "#c8b89a" }, beams: 1.2, windows: [{ wall: "left", at: -1, sill: 0.9, w: 1.6, h: 1.6, glass: { kind: "glass" } }] });
-    hearth(b, 1.6, -4, 1.0, 0.8, { kind: "brick", colour: "#9a5038", age: 0.9, soot: 2.4 }, 0.5); b.add(dome(1.6, 1.3, -3.4, 1.4, 1.1, b.mat({ kind: "brick", colour: "#9a5038", soot: 2.5 })));
-    shelves(b, -3.4, -0.4, -4, 2.2, "bread", 0.45); table(b, -0.8, 0.5, 2.6, 0.8, 0.95, { kind: "oak", colour: "#6a4c34" }, true);
-    for (let k = 0; k < 3; k++) b.add(clump(3 - k * 0.5, 0.35, -1.2 + k * 0.4, 0.3, 0.4, 0.3, b.mat({ kind: "fabric", colour: "#d9ccb0", colour2: "#d9ccb0" }), b.r(), 0.1));
+    room(b, { w: 7, d: 8, h: 3.2, view: "garden", wall: S.limewash("#ece2cc", 0.2, "brick"), floor: { kind: "tile-floor", colour: "#a8512f", colour2: "#c8b89a" }, beams: 1.2, windows: [{ wall: "left", at: -0.6, sill: 0.8, w: 1.8, h: 1.7, glass: { kind: "glass" } }],
+      trim: { mould: { kind: "painted-wood", colour: "#5a6a5a", flake: 0.05 }, skirting: 0.15, dado: 1.1, dadoMat: { kind: "glazed-tile", colour: "#e8e2d4", colour2: "#dcd4c4", unit: 0.15 }, bars: [3, 3] } });
+    // the oven: a brick dome in the corner, its mouth glowing; wood stacked beside it, the peel against the wall
+    hearth(b, 1.6, -4, 1.0, 0.8, { kind: "brick", colour: "#9a5038", age: 0.9, soot: 2.4 }, 0.3); b.add(dome(1.6, 1.3, -3.4, 1.4, 1.1, b.mat({ kind: "brick", colour: "#9a5038", soot: 2.5 })));
+    b.add(boxAt(2.7, 0, -2.6, 3.45, 0.95, -1.9, b.mat({ kind: "firewood" }))); b.place(); peel(b, 3.3, -3.7, -15);
+    breadRack(b, -1.95, -3.55, 0, 2.7, 2.1);
+    // the counter with loaves in baskets, a balance; flour sacks by the wall; the kneading trough
+    table(b, -0.9, 0.3, 2.6, 0.8, 0.95, { kind: "oak", colour: "#6a4c34" }, true); b.place();
+    const bread = b.mat({ kind: "bread" }), wicker = b.mat({ kind: "cane", colour: "#a8824e" });
+    for (const [bx, n] of [[-1.7, 4], [-0.9, 3]] as const) { b.add(cut(cylY(bx, 0.3, 0.95, 1.08, 0.24, wicker), [cylY(bx, 0.3, 0.98, 1.2, 0.22, 0)])); for (let k = 0; k < n; k++) b.add(ellipsoid(bx + 0.1 * Math.cos(k * 2.1), 1.06, 0.3 + 0.1 * Math.sin(k * 2.1), 0.09, 0.06, 0.08, bread)); }
+    b.place(); balance(b, 0.1, 0.95, 0.3);
+    flourSack(b, 2.95, -1.2, 20); flourSack(b, 3.05, -0.55, -30, 0.92); flourSack(b, 2.45, -1.0, 60, 1.05);
+    b.add(boxAt(0.6, 0.55, -2.5, 1.9, 0.95, -1.9, b.mat({ kind: "oak", colour: "#7a5a3a", age: 0.5 })), ellipsoid(1.25, 0.92, -2.2, 0.45, 0.06, 0.22, b.mat({ kind: "plain", colour: "#e8dcc0" })));
+    for (const [lx, lz] of [[0.65, -2.45], [1.85, -2.45], [0.65, -1.95], [1.85, -1.95]] as const) b.add(boxAt(lx - 0.04, 0, lz - 0.04, lx + 0.04, 0.55, lz + 0.04, b.mat({ kind: "oak", colour: "#7a5a3a" })));
     b.place();
-    return done(b, interiorCam(), "interior-day", { dust: 0.9 }); } });
-add({ id: "apothecary", label: "Cluttered apothecary", group: "interior", region: "Europe", era: "18th century", setting: "town", view: "interior", scale: "humble", mood: "candle",
+    return done(b, interiorCam(5.2, 1.55, 68, 0.12, -6), dayIn({ sunElevation: 18, sunAzimuth: -75 }), { dust: 0.22, interior: true }); } });
+add({ id: "apothecary", label: "Cluttered apothecary", group: "interior", region: "Europe", era: "18th century", setting: "town", view: "interior", scale: "humble", mood: "interior-day",
   materials: ["oak drawers with labels", "glass and faience jars", "brass scales"], story: ["herbs drying from the beams", "a candle on the counter", "labels on every drawer"],
   note: "Walls of small labelled drawers below shelves of jars; herbs hung to dry from the ceiling beams.",
   build: (seed = 92) => { const b = new SceneBuilder(seed);
-    room(b, { w: 6, d: 7, h: 3.0, wall: S.plaster("#bfae8a", 0.2), floor: { kind: "floorboards", colour: "#5a4232" }, beams: 1.0 });
-    shelves(b, -3, 3, -3.5, 1.2, "drawers", 0.4); shelves(b, -3, 3, -3.5, 1.3, "jars", 0.3, 1.25);
-    table(b, 0, -1.2, 3.4, 0.7, 0.95, { kind: "oak", colour: "#4a3424" }, true);
-    b.add(cylY(-0.8, -1.2, 0.95, 1.4, 0.03, b.mat({ kind: "brass" })), cylY(-1.1, -1.2, 1.25, 1.27, 0.12, b.mat({ kind: "brass" })), cylY(-0.5, -1.2, 1.25, 1.27, 0.12, b.mat({ kind: "brass" })));
-    for (let k = 0; k < 7; k++) b.add(clump(-2.5 + k * 0.8, 2.6, -2 + (k % 2) * 0.6, 0.12, 0.3, 0.12, b.mat({ kind: "foliage", colour: "#6a6a3a" }), b.r(), 0.5));
-    candle(b, 0.6, 0.95, -1.1, 0.12); candle(b, -2.6, 1.25, -3.2, 0.06);
-    b.place();
-    return done(b, interiorCam(4.5), "candle"); } });
+    room(b, { w: 6, d: 7, h: 3.0, view: "garden", wall: S.plaster("#bfae8a", 0.2), floor: { kind: "floorboards", colour: "#5a4232" }, beams: 1.0, windows: [{ wall: "left", at: 1.0, sill: 0.9, w: 0.9, h: 1.3, glass: { kind: "leaded" } }], trim: { mould: { kind: "oak", colour: "#3a2618" }, skirting: 0.18 } });
+    // a wall of small labelled drawers under shelves of faience albarelli
+    shelves(b, -3, 3, -3.5, 1.2, "drawers", 0.4); b.place();
+    const oak = b.mat({ kind: "oak", colour: "#3e2a1c", age: 0.4 });
+    for (let k = 0; k < 3; k++) { const y = 1.38 + k * 0.44; b.add(boxAt(-3, y - 0.03, -3.5, 3, y, -3.18, oak)); b.place(); jarRow(b, -2.92, 2.92, y, -3.34, k === 1 ? 0.24 : 0.2); }
+    for (const x of [-3, -1, 1, 2.95]) b.add(boxAt(x, 1.2, -3.5, x + 0.05, 2.75, -3.18, oak)); b.add(boxAt(-3.05, 2.72, -3.5, 3.05, 2.8, -3.14, oak)); b.place();
+    // the counter: a balance, a bronze mortar and pestle, bottles of tinctures, an open receipt book, a candle
+    table(b, 0, -1.3, 3.4, 0.7, 0.95, { kind: "oak", colour: "#4a3424" }, true); b.place();
+    balance(b, -0.9, 0.95, -1.3);
+    const bronze = b.mat({ kind: "brass", colour: "#7a5a32" }), glassB = b.mat({ kind: "enamel", colour: "#2a3a2a" }), glassA = b.mat({ kind: "enamel", colour: "#6a3a1e" });
+    b.add(cut(revolve(0.35, -1.25, 0.95, 1.09, t => 0.09 - 0.025 * t, 0.09, bronze), [sphere(0.35, 1.12, -1.25, 0.07, 0)]), capsule(0.35, 1.0, -1.25, 0.42, 1.22, -1.15, 0.016, bronze));
+    for (let k = 0; k < 4; k++) b.add(revolve(1.0 + k * 0.13, -1.45, 0.95, 1.18 + (k % 2) * 0.05, t => (t < 0.62 ? 0.04 : 0.04 - (t - 0.62) * 0.08), 0.042, k % 2 ? glassA : glassB));
+    b.add(boxAt(-0.25, 0.955, -1.2, 0.15, 0.965, -0.95, b.mat({ kind: "parchment", pattern: "text", unit: 0.4, course: 0.25, offset: [0.05, 0] })));
+    b.place(); candlestick(b, 0.7, 0.95, -1.05, 0.05);
+    for (let k = 0; k < 8; k++) herbBunch(b, -2.6 + k * 0.72, 2.72, -2.0 + (k % 3) * 0.55, ["#6a7040", "#7a6a3a", "#5a6a3a"][k % 3]);
+    return done(b, interiorCam(4.4, 1.5, 68, 0.12), dayIn({ sunElevation: 20, sunAzimuth: -80, key: 0.2, burn: 1.5, sunPower: 3.0 }), { dust: 0.12, interior: true }); } });
 add({ id: "old-library", label: "Old library", group: "interior", region: "Ireland and England", era: "18th century", setting: "city", view: "interior", scale: "civic", mood: "interior-day",
   materials: ["oak bookcases floor to ceiling", "a gallery", "leaded windows"], story: ["a rolling ladder", "a globe", "a reading table with an open book"],
   note: "Bookcases set at right angles to the walls between the windows (alcoves), a gallery reached by ladders.",
   build: (seed = 93) => { const b = new SceneBuilder(seed);
-    room(b, { w: 9, d: 18, h: 7, wall: S.plaster("#d8ccb0", 0.05), floor: { kind: "floorboards", colour: "#6a4a32" }, ceiling: { kind: "boards", colour: "#5a3e2a" }, windows: [{ wall: "left", at: -6, sill: 1.5, w: 1.8, h: 3.6, shape: "round", glass: { kind: "leaded" } }, { wall: "left", at: 0, sill: 1.5, w: 1.8, h: 3.6, shape: "round", glass: { kind: "leaded" } }] });
+    room(b, { view: "garden", trim: { mould: { kind: "oak", colour: "#3a2618" }, skirting: 0.3 }, w: 9, d: 18, h: 7, wall: { kind: "boards", colour: "#4a3020", course: 0.24, age: 0.1 }, floor: { kind: "floorboards", colour: "#6a4a32" }, ceiling: { kind: "boards", colour: "#5a3e2a" }, windows: [{ wall: "left", at: -6, sill: 1.5, w: 1.8, h: 3.6, shape: "round", glass: { kind: "leaded" } }, { wall: "left", at: 0, sill: 1.5, w: 1.8, h: 3.6, shape: "round", glass: { kind: "leaded" } }] });
     shelves(b, -4.5, 4.5, -9, 6.8, "books", 0.4); for (const z of [-6, -3, 0, 3]) shelves(b, 2.2, 4.5, z, 6.6, "books", 0.35);
     b.add(boxAt(1.8, 3.4, -9, 2.2, 3.5, 6, b.mat({ kind: "oak", colour: "#4a3424" })));
-    table(b, -1.5, -2, 2.4, 1.1, 0.8, { kind: "oak", colour: "#5a3e28" }); b.add(boxAt(-1.8, 0.8, -2.2, -1.2, 0.84, -1.8, b.mat({ kind: "plain", colour: "#efe6cc" })));
+    table(b, -1.5, -2, 2.4, 1.1, 0.8, { kind: "oak", colour: "#5a3e28" }); b.add(boxAt(-1.85, 0.8, -2.2, -1.15, 0.815, -1.8, b.mat({ kind: "parchment", pattern: "text", unit: 0.7, course: 0.4, offset: [1.5, 0] })), boxAt(-0.8, 0.8, -2.3, -0.45, 0.92, -2.05, b.mat({ kind: "leather", colour: "#5a2a1a" })), boxAt(-0.78, 0.92, -2.28, -0.47, 0.98, -2.07, b.mat({ kind: "leather", colour: "#2a3a2a" })));
     b.add(sphere(-3.2, 1.2, 0.5, 0.4, b.mat({ kind: "plain", colour: "#c9b48a" })), cylY(-3.2, 0.5, 0, 0.8, 0.05, b.mat({ kind: "oak" })));
     const oak = b.mat({ kind: "oak", colour: "#4a3424" }); b.add(boxAt(1.6, 0, -4.8, 1.68, 6.4, -4.7, oak), boxAt(1.6, 0, -4.2, 1.68, 6.4, -4.1, oak)); for (let k = 0; k < 18; k++) b.add(boxAt(1.6, 0.3 + k * 0.34, -4.8, 1.68, 0.33 + k * 0.34, -4.1, oak));
+    // marble busts on pedestals at the ends of the bookcase alcoves
+    const marble = b.mat({ kind: "marble", colour: "#e6e0d4" });
+    for (const z of [-4.5, -1.5, 1.5]) b.add(revolve(1.9, z, 0, 1.2, t => 0.16 - 0.04 * Math.sin(Math.PI * t) + (t < 0.08 || t > 0.92 ? 0.04 : 0), 0.2, marble), sculpt([{ a: [1.9, 1.38, z], e: [0.22, 0.14, 0.12] }, { a: [1.9, 1.5, z], b: [1.9, 1.6, z], r1: 0.055, r2: 0.05 }, { a: [1.9, 1.72, z + 0.01], e: [0.085, 0.11, 0.095] }, { a: [1.82, 1.74, z + 0.07], e: [0.02, 0.025, 0.02] }], 0.04, marble));
     b.place();
-    return done(b, interiorCam(7, 1.6, 68, 0.3), "interior-day", { dust: 0.6 }); } });
+    return done(b, interiorCam(7, 1.6, 68, 0.3), dayIn({ sunElevation: 26, sunAzimuth: -70, key: 0.2, burn: 1.6 }), { dust: 0.05, interior: true }); } });
 add({ id: "attic-workshop", label: "Cosy attic workshop", group: "interior", region: "Europe", era: "19th century", setting: "town", view: "interior", scale: "humble", mood: "interior-day",
   materials: ["exposed rafters and purlins", "a dormer window", "a worn workbench"], story: ["tools on a board", "shavings on the floor", "a lantern", "a cat on the sill"],
   note: "Under the roof the rafters pitch down to low knee walls; light comes from a dormer cut through the slope.",
   build: (seed = 94) => { const b = new SceneBuilder(seed);
-    room(b, { w: 7, d: 8, h: 1.2, wall: S.plaster("#d9cdb4", 0.2), floor: { kind: "floorboards", colour: "#6a4c34" }, attic: 48, windows: [{ wall: "back", at: 0, sill: 0.9, w: 1.4, h: 1.4, glass: { kind: "glass" } }] });
-    table(b, 0, -3.1, 3.2, 0.8, 0.9, { kind: "oak", colour: "#7a5a3a" }, true);
-    const oak = b.mat({ kind: "oak", colour: "#5a4030" }); b.add(boxAt(-2.8, 0.95, -3.95, 2.8, 2.2, -3.9, oak)); for (let k = 0; k < 8; k++) b.add(boxAt(-2.4 + k * 0.6, 1.2, -3.88, -2.36 + k * 0.6, 1.8 + (k % 3) * 0.1, -3.84, b.mat({ kind: "iron" })));
-    b.add(boxAt(-3.3, 0, -1, -2.5, 0.8, 1.2, b.mat(S.boards("#6a4a32")))); barrel(b, 2.8, -1.4, 0.3, 0.7);
-    b.add(ellipsoid(0.5, 2.38, -3.9, 0.2, 0.12, 0.12, b.mat({ kind: "plain", colour: "#2a2420" }))); candle(b, -1.2, 0.9, -3.0, 0.07);
-    b.place();
-    return done(b, interiorCam(4.5, 1.5, 72, 0.32), "interior-day", { dust: 0.9 }); } });
-add({ id: "blacksmith-forge", label: "Blacksmith's forge", group: "interior", region: "Europe", era: "19th century", setting: "village", view: "interior", scale: "humble", mood: "candle",
+    room(b, { w: 7, d: 8, h: 1.2, view: "garden", wall: S.plaster("#d9cdb4", 0.2), floor: { kind: "floorboards", colour: "#6a4c34" }, attic: 48, windows: [{ wall: "back", at: 0, sill: 0.95, w: 1.3, h: 1.3, glass: { kind: "glass" } }], trim: { mould: { kind: "oak", colour: "#6a4c34" }, bars: [2, 2] } });
+    workbench(b, 0, -3.15, 0, 2.6, false);
+    // tools hung along the knee wall, a chair in pieces, a barrel, a stool, a lantern, the cat asleep on the sill
+    const dk = b.mat({ kind: "oak", colour: "#3e2c1e" }), ir = b.mat({ kind: "iron", colour: "#1e1c1a" });
+    for (let k = 0; k < 6; k++) b.add(capsule(-3.45, 1.0, -2.5 + k * 0.3, -3.45, 0.55 + (k % 2) * 0.1, -2.5 + k * 0.3, 0.012, k % 2 ? ir : dk));
+    b.add(boxAt(-3.48, 0.95, -2.7, -3.44, 1.05, -0.7, dk)); b.place();
+    for (let k = 0; k < 4; k++) b.add(capsule(-2.2 + k * 0.12, 0.02, 0.2, -2.0 + k * 0.12, 0.02, 0.9, 0.022, b.mat({ kind: "oak", colour: "#a8865c" })));
+    b.add(boxAt(-2.6, 0.0, 0.6, -2.1, 0.03, 1.0, b.mat({ kind: "oak", colour: "#a8865c" }))); b.place();
+    barrel(b, 2.8, -1.4, 0.3, 0.7); b.place(); stool(b, 0.8, -2.2, 20);
+    hangingLantern(b, -0.6, 2.2, -2.6, 3.6, 0.05); sleepingCat(b, 0.15, 0.97, -3.95, 15);
+    return done(b, interiorCam(4.2, 1.5, 72, 0.32), dayIn({ sunElevation: 26, sunAzimuth: 170, burn: 1.8 }), { dust: 0.18, interior: true }); } });
+add({ id: "blacksmith-forge", label: "Blacksmith's forge", group: "interior", region: "Europe", era: "19th century", setting: "village", view: "interior", scale: "humble", mood: "interior-day",
   materials: ["brick forge with hood", "an iron anvil on an oak stump", "soot-black beams"], story: ["glowing coals", "tongs and hammers on the wall", "a quenching tub"],
   note: "The hearth raised to working height, bellows behind, the anvil a step away; everything soot-black but the fire.",
   build: (seed = 95) => { const b = new SceneBuilder(seed);
-    room(b, { w: 7, d: 8, h: 3.4, wall: S.rubble("#4a4038", 0.1), floor: { kind: "dirt", colour: "#3a3028" }, beams: 1.1 });
-    hearth(b, 0.8, -4, 1.4, 1.1, { kind: "brick", colour: "#5a3428", soot: 1.2, age: 1 }, 1.4);
-    const iron = b.mat({ kind: "iron", age: 0.4 }); b.add(cylY(-1, -1.4, 0, 0.6, 0.35, b.mat({ kind: "oak", colour: "#4a3a2a" })), boxAt(-1.4, 0.6, -1.55, -0.6, 0.85, -1.25, iron), coneY(-0.6, -1.4, 0.68, 0.82, 0.12, 0.02, iron));
-    for (let k = 0; k < 6; k++) b.add(boxAt(-3.45, 1.0 + (k % 2) * 0.1, -3 + k * 0.4, -3.42, 1.9, -2.96 + k * 0.4, iron)); barrel(b, 2.6, -1, 0.4, 0.6);
-    b.place();
-    return done(b, interiorCam(4), "candle"); } });
+    room(b, { w: 8, d: 8, h: 3.6, view: "garden", wall: S.rubble("#4a4038", 0.1), floor: { kind: "dirt", colour: "#3a3028" }, beams: 1.1, windows: [{ wall: "left", at: -1.5, sill: 1.2, w: 0.9, h: 1.0, glass: { kind: "glass", colour: "#3a3a36" } }] });
+    forge(b, 0.6, -3.35, 0, 1.5, 3.6); anvil(b, 0.3, -1.3, 12);
+    // tongs and hammers racked on the wall, horseshoes on a nail, a heap of coal, a stool
+    const ir = b.mat({ kind: "iron", colour: "#1e1c1a", age: 0.4 }), dk = b.mat({ kind: "oak", colour: "#3e2c1e", age: 0.6 });
+    b.add(boxAt(-3.98, 1.7, -3.2, -3.9, 1.78, -0.6, dk));
+    for (let k = 0; k < 8; k++) { const z = -3.0 + k * 0.32; b.add(capsule(-3.86, 1.72, z, -3.86, 0.75, z - 0.03, 0.012, ir), capsule(-3.86, 1.72, z + 0.04, -3.86, 0.75, z + 0.07, 0.012, ir)); }
+    for (let k = 0; k < 5; k++) b.add(leaf((x, y, z) => { const zz = z - (-0.2 + k * 0.17); return Math.max(Math.abs(Math.hypot(y - 1.55, zz) - 0.06) - 0.009, Math.abs(x + 3.9) - 0.006, (y - 1.55) - 0.035); }, [-3.92, 1.48, -0.3 + k * 0.17], [-3.88, 1.6, -0.1 + k * 0.17], ir));
+    for (let k = 0; k < 9; k++) b.add(clump(-2.2 + 0.3 * Math.cos(k * 1.9), 0.1 + 0.05 * (k % 3), -3.1 + 0.3 * Math.sin(k * 1.9), 0.18, 0.14, 0.18, b.mat({ kind: "rock", colour: "#1c1a18" }), b.r(), 0.4));
+    b.place(); stool(b, -1.4, -0.6, 30); barrel(b, 2.9, -1.0, 0.4, 0.6); b.place();
+    return done(b, interiorCam(4.2), dayIn({ sunElevation: 30, sunAzimuth: -70, ambient: 0.25, key: 0.13, burn: 1.4 }), { dust: 0.4, interior: true }); } });
 add({ id: "tavern-hearth", label: "Tavern with a roaring hearth", group: "interior", region: "England", era: "17th–18th century", setting: "village", view: "interior", scale: "humble", mood: "candle",
   materials: ["inglenook fireplace", "flagstone floor", "low oak beams"], story: ["barrels behind the bar", "pewter tankards", "a settle by the fire"],
   note: "Low ceilings on heavy beams, an inglenook big enough to sit in, flagstones worn by boots.",
   build: (seed = 96) => { const b = new SceneBuilder(seed);
-    room(b, { w: 8, d: 9, h: 2.5, wall: S.limewash("#e6dcc4", 0.3, "rubble"), floor: { kind: "flags", colour: "#7a7468", unit: 0.6 }, beams: 0.9, windows: [{ wall: "left", at: -2, sill: 0.9, w: 1.0, h: 0.9, glass: { kind: "leaded" } }] });
-    hearth(b, 1.5, -4.5, 2.2, 1.6, { kind: "rubble", colour: "#8a7a62", soot: 2.0 }, 1.2);
-    for (let k = 0; k < 3; k++) barrel(b, -3.3, -3.5 + k * 0.8, 0.35, 0.8);
-    table(b, -0.8, 0.2, 1.8, 0.9); table(b, 2.2, 1.2, 1.4, 0.9);
-    for (const [x, z] of [[-1.2, 0.2], [-0.5, 0.3], [2.3, 1.1]]) b.add(cylY(x, z, 0.78, 0.94, 0.05, b.mat({ kind: "zinc", colour: "#8a8a86" })));
-    candle(b, -0.8, 0.78, 0.0, 0.06); candle(b, 2.2, 0.78, 1.2, 0.05);
+    room(b, { w: 8, d: 9, h: 2.5, view: "garden", wall: S.limewash("#e6dcc4", 0.3, "rubble"), floor: { kind: "flags", colour: "#7a7468", unit: 0.6 }, beams: 0.9, windows: [{ wall: "left", at: -2, sill: 0.9, w: 1.0, h: 0.9, glass: { kind: "leaded" } }], trim: { mould: { kind: "oak", colour: "#3a2a1c" }, skirting: 0.2 } });
+    hearth(b, 1.5, -4.5, 2.2, 1.6, { kind: "rubble", colour: "#8a7a62", soot: 2.0 }, 0.12);
+    // the bar: barrels on a stillage, a counter, bottles; pewter plates on a rail; hops along a beam
+    const oak = b.mat({ kind: "oak", colour: "#4a3424", age: 0.5 }), pew = b.mat({ kind: "zinc", colour: "#8c8c88" }), bottle = b.mat({ kind: "enamel", colour: "#2a3424" }), hops = b.mat({ kind: "foliage", colour: "#7a8a48" });
+    b.add(boxAt(-3.9, 0.5, -4.4, -2.5, 0.56, -1.6, oak)); b.place(); for (let k = 0; k < 3; k++) { barrel(b, -3.3, -3.9 + k * 0.85, 0.32, 0.75); b.place({ y: 0.56 }); }
+    b.add(boxAt(-2.4, 0, -3.6, -2.0, 1.05, -0.8, oak, 0, 0.01), boxAt(-2.5, 1.05, -3.7, -1.9, 1.1, -0.7, oak));
+    for (let k = 0; k < 6; k++) b.add(revolve(-2.2, -3.4 + k * 0.45, 1.1, 1.38, t => (t < 0.6 ? 0.04 : 0.04 - (t - 0.6) * 0.08), 0.042, bottle));
+    b.add(boxAt(-1.5, 1.55, -4.5, 3.5, 1.58, -4.38, oak)); for (let k = 0; k < 9; k++) b.add(cylZ(-1.25 + k * 0.32, 1.72, -4.45, -4.43, 0.14, pew));
+    for (let k = 0; k < 14; k++) b.add(clump(-3.6 + k * 0.5, 2.2 - 0.06 * Math.sin(k * 0.9), -0.7, 0.14, 0.1, 0.12, hops, b.r(), 0.5));
     b.place();
-    return done(b, interiorCam(4.8, 1.5), "candle"); } });
+    // tables with tankards and candles, benches, stools; a cat by the fire
+    table(b, -0.6, 0.2, 1.8, 0.9); table(b, 2.2, 1.2, 1.4, 0.9); bench(b, -0.6, -0.6, 1.6); bench(b, -0.6, 0.6, 1.6); b.place();
+    for (const [x, z, a] of [[-1.1, 0.15, 0.4], [-0.3, 0.3, 2.6], [2.1, 1.0, 1.2], [2.4, 1.3, -0.6]] as const) tankard(b, x, 0.78, z, a);
+    candlestick(b, -0.6, 0.78, 0.15, 0.022); candlestick(b, 2.25, 0.78, 1.25, 0.02);
+    stool(b, 1.4, 1.4, 10); stool(b, 3.0, 1.0, 50); sleepingCat(b, 1.2, 0.0, -3.4, -30, "#3a3430");
+    hangingLantern(b, 0.6, 1.7, -1.2, 2.5, 0.025);
+    return done(b, interiorCam(4.8, 1.5), { ...MOODS["candle"], key: 0.12, burn: 1.0 }, { dust: 0.1, interior: true }); } });
 add({ id: "monastery-scriptorium", label: "Monastery scriptorium", group: "interior", region: "Europe", era: "12th century", setting: "rural", view: "interior", scale: "humble", mood: "interior-day",
   materials: ["stone barrel vault", "round-arched windows", "sloped writing desks"], story: ["parchment and ink horns", "a shaft of morning light"],
   note: "Scribes worked in north light from tall round-headed windows, at sloped desks beneath a stone vault.",
   build: (seed = 97) => { const b = new SceneBuilder(seed);
     const st = S.ashlar("#cbbf9f", 0.34);
-    room(b, { w: 6, d: 12, h: 7.5, wall: st, floor: { kind: "flags", colour: "#9a907e" }, ceiling: st, windows: [{ wall: "left", at: -3, sill: 1.2, w: 0.9, h: 2.2, shape: "round", glass: { kind: "glass" } }, { wall: "left", at: 1.5, sill: 1.2, w: 0.9, h: 2.2, shape: "round", glass: { kind: "glass" } }] });
-    b.add(cut(boxAt(-3.5, 3.9, -6.5, 3.5, 7.5, 10, b.mat(st)), [opening(0, 0, 6, 4, "round", -7, 11, "z")]));
-    for (const z of [-3, 1.5]) { table(b, -1.6, z, 1.2, 0.8, 1.0, { kind: "oak", colour: "#6a4c32" }); b.add(boxAt(-2.1, 1.02, z - 0.3, -1.2, 1.04, z + 0.2, b.mat({ kind: "plain", colour: "#efe4c4" }))); }
+    room(b, { w: 6, d: 12, h: 7.5, view: "garden", wall: st, floor: { kind: "flags", colour: "#9a907e" }, ceiling: st, windows: [{ wall: "left", at: -3, sill: 1.2, w: 0.9, h: 2.2, shape: "round", glass: { kind: "glass" } }, { wall: "left", at: 1.5, sill: 1.2, w: 0.9, h: 2.2, shape: "round", glass: { kind: "glass" } }] });
+    b.add(cut(boxAt(-3.5, 3.9, -6.5, 3.5, 7.5, 10, b.mat(st)), [opening(0, 0, 6, 4, "round", -7, 11, "z")])); b.place();
+    // three monks' desks along the window wall, each with its manuscript and exemplar; a book cupboard; a candle stand
+    for (const z of [-3.6, -0.5, 2.5]) writingDesk(b, -1.9, z, 90);
+    const oak = b.mat({ kind: "oak", colour: "#5a4030", age: 0.5 }), books = b.mat({ kind: "books", course: 0.36 });
+    b.add(boxAt(1.4, 0, -5.98, 2.9, 2.2, -5.4, oak), boxAt(1.48, 0.1, -5.9, 2.82, 2.1, -5.55, books), boxAt(1.4, 0, -5.4, 1.46, 2.2, -4.8, oak)); b.place();
+    candlestick(b, 0.6, 1.1, -2.0, 0.04); b.add(revolve(0.6, -2.0, 0, 1.1, t => 0.03 + 0.12 * Math.exp(-t * 18), 0.15, b.mat({ kind: "iron", colour: "#1e1c1a" }))); b.place();
+    // a reading lectern in the middle with the great book chained to it; a crucifix on the end wall; manuscripts stacked
+    const dk = b.mat({ kind: "oak", colour: "#3e2c1e", age: 0.5 }), ir = b.mat({ kind: "iron", colour: "#1e1c1a" });
+    b.add(revolve(0.9, 1.0, 0, 1.0, t => 0.05 + 0.15 * Math.exp(-t * 10), 0.2, dk), boxAt(0.6, 1.0, 0.75, 1.2, 1.04, 1.25, dk), boxAt(0.65, 1.04, 0.8, 1.15, 1.07, 1.2, b.mat({ kind: "parchment", pattern: "text", unit: 0.5, course: 0.4, offset: [-0.9, 0] })));
+    for (let k = 0; k < 6; k++) b.add(sphere(1.2 + k * 0.03, 1.0 - k * 0.04, 1.0, 0.012, ir));
+    b.add(boxAt(-0.05, 4.2, -5.95, 0.05, 5.4, -5.9, dk), boxAt(-0.35, 4.95, -5.95, 0.35, 5.05, -5.9, dk));
+    for (let k = 0; k < 4; k++) b.add(boxAt(2.0, 0, -4.2 + k * 0.02, 2.36, 0.08 + k * 0.06, -3.9 + k * 0.02, b.mat({ kind: "leather", colour: ["#5a2a1a", "#3a2a1c", "#6a4a2a", "#2a1e18"][k] })));
     b.place();
-    return done(b, interiorCam(6, 1.5, 62, 0.28), "interior-day", { dust: 0.8 }); } });
+    return done(b, { x: 1.9, y: 1.55, z: 4.6, fov: 64, shift: 0.22, yaw: -24 }, dayIn({ sunElevation: 24, sunAzimuth: -70 }), { dust: 0.16, interior: true }); } });
 add({ id: "cottage-kitchen", label: "Cottage kitchen", group: "interior", region: "Europe", era: "19th century", setting: "village", view: "interior", scale: "humble", mood: "interior-day",
   materials: ["limewashed walls", "a range in the old hearth", "a dresser with plates"], story: ["copper pots", "bread on the table", "herbs on the windowsill"],
   note: "The old open hearth holds a range; a dresser of plates faces it; the scrubbed table is the centre of the house.",
   build: (seed = 98) => { const b = new SceneBuilder(seed);
-    room(b, { w: 6.5, d: 7, h: 2.6, wall: S.limewash("#ede6d4", 0.25, "rubble"), floor: { kind: "flags", colour: "#8a8478", unit: 0.55 }, beams: 1.0, windows: [{ wall: "left", at: -1, sill: 0.9, w: 1.0, h: 1.0, glass: { kind: "leaded" } }] });
-    hearth(b, 1.4, -3.5, 1.4, 1.2, { kind: "brick", colour: "#8a4a34", soot: 2 }, 0.5);
-    shelves(b, -3.2, -1.0, -3.5, 1.9, "jars", 0.3); table(b, 0, -0.5, 1.8, 0.9, 0.8, { kind: "oak", colour: "#b8a07a" });
-    for (let k = 0; k < 4; k++) b.add(sphere(0.6 + k * 0.42, 2.2, -3.3, 0.14 + k * 0.02, b.mat({ kind: "copper", age: 0.05 })));
-    b.add(ellipsoid(-0.2, 0.86, -0.5, 0.18, 0.08, 0.1, b.mat({ kind: "bread" })));
+    room(b, { w: 6.5, d: 7, h: 2.6, view: "garden", wall: S.limewash("#ede6d4", 0.25, "rubble"), floor: { kind: "flags", colour: "#8a8478", unit: 0.55 }, beams: 1.0, windows: [{ wall: "left", at: -1, sill: 0.9, w: 1.0, h: 1.0, glass: { kind: "leaded" } }], trim: { mould: { kind: "painted-wood", colour: "#6a7a5c", flake: 0.08 } } });
+    hearth(b, 1.4, -3.5, 1.4, 1.2, { kind: "brick", colour: "#8a4a34", soot: 2 }, 0.3);
+    // a crane swung over the fire with a pot; the dresser of blue-and-white plates; the scrubbed table; pans on the wall
+    const ir = b.mat({ kind: "iron", colour: "#1e1c1a", age: 0.4 }), oak = b.mat({ kind: "oak", colour: "#6a4c32", age: 0.4 }), plateW = b.mat({ kind: "enamel", colour: "#e8e4dc" }), plateB = b.mat({ kind: "enamel", colour: "#2c4a8a" }), cu = b.mat({ kind: "enamel", colour: "#a8562c" });
+    b.add(capsule(0.85, 0.3, -3.3, 0.85, 1.3, -3.3, 0.02, ir), capsule(0.85, 1.25, -3.3, 1.5, 1.25, -3.0, 0.015, ir), capsule(1.5, 1.25, -3.0, 1.5, 0.85, -3.0, 0.006, ir), revolve(1.5, -3.0, 0.55, 0.85, t => 0.13 + 0.04 * Math.sin(Math.PI * t), 0.17, ir));
+    b.add(boxAt(-3.2, 0, -3.5, -1.0, 0.9, -3.0, oak), boxAt(-3.25, 0.9, -3.52, -0.95, 0.94, -2.95, oak), boxAt(-3.2, 0.94, -3.5, -3.15, 2.1, -3.25, oak), boxAt(-1.05, 0.94, -3.5, -1.0, 2.1, -3.25, oak), boxAt(-3.25, 2.1, -3.52, -0.95, 2.18, -3.2, oak));
+    for (let r = 0; r < 3; r++) { const y = 1.25 + r * 0.32; b.add(boxAt(-3.2, y - 0.02, -3.5, -1.0, y, -3.28, oak)); for (let k = 0; k < 6; k++) { const px = -3.0 + k * 0.36; b.add(cylZ(px, y + 0.13, -3.42, -3.4, 0.13, k % 2 ? plateB : plateW), cylZ(px, y + 0.13, -3.4, -3.395, 0.09, k % 2 ? plateW : plateB)); } }
     b.place();
-    return done(b, interiorCam(4), "interior-day", { dust: 0.6 }); } });
-add({ id: "clockmaker-shop", label: "Clockmaker's workshop", group: "interior", region: "Germany and Switzerland", era: "19th century", setting: "town", view: "interior", scale: "humble", mood: "candle",
+    table(b, 0, -0.5, 1.8, 0.9, 0.8, { kind: "oak", colour: "#c8b08a" }); b.place();
+    b.add(ellipsoid(-0.2, 0.86, -0.5, 0.18, 0.08, 0.1, b.mat({ kind: "bread" })), revolve(0.4, -0.6, 0.8, 1.02, t => 0.06 + 0.03 * Math.sin(Math.PI * t), 0.1, b.mat({ kind: "enamel", colour: "#c8b090" })));
+    b.add(capsule(-0.9, 2.15, -1.6, 0.9, 2.15, -1.6, 0.012, ir));
+    for (const [k, x] of [-0.6, -0.15, 0.3, 0.75].entries()) { const r = 0.09 + k * 0.02, yc = 1.95 - r; b.add(capsule(x, 2.15, -1.6, x, yc + r, -1.6, 0.008, cu), cut(cylZ(x, yc, -1.66, -1.6, r, cu), [cylZ(x, yc, -1.8, -1.615, r - 0.008, 0)])); }
+    for (const z of [-1.4, -0.95, -0.5]) b.add(revolve(-3.18, z, 0.92, 1.04, t => 0.05 + 0.02 * t, 0.07, b.mat({ kind: "enamel", colour: "#a8603a" })), ellipsoid(-3.18, 1.1, z, 0.06, 0.07, 0.06, b.mat({ kind: "foliage", colour: "#4a6a3a" })));
+    b.place(); stool(b, -0.9, 0.3, 15); stool(b, 0.8, 0.4, 70);
+    return done(b, interiorCam(4), dayIn({ sunElevation: 20, sunAzimuth: -75 }), { dust: 0.3, interior: true }); } });
+add({ id: "clockmaker-shop", label: "Clockmaker's workshop", group: "interior", region: "Germany and Switzerland", era: "19th century", setting: "town", view: "interior", scale: "humble", mood: "interior-day",
   materials: ["walls of clocks", "a bench at the window", "brass and glass"], story: ["a magnifier on the bench", "pendulums at rest"],
   note: "A watchmaker's bench stands at the window for light; clocks hang on every wall, each case a little different.",
   build: (seed = 99) => { const b = new SceneBuilder(seed);
-    room(b, { w: 6, d: 7, h: 3, wall: { kind: "boards", colour: "#6a4a30", course: 0.2, age: 0.2 }, floor: { kind: "floorboards", colour: "#5a3e2a" }, beams: 1.2 });
-    for (let k = 0; k < 14; k++) { const x = -2.6 + (k % 7) * 0.85, y = 1.4 + Math.floor(k / 7) * 0.8; b.add(boxAt(x - 0.25, y - 0.3, -3.5, x + 0.25, y + 0.35, -3.35, b.mat({ kind: "oak", colour: ["#5a3a24", "#7a5034", "#3a2618"][k % 3] }))); b.add(cylY(x, -3.34, y - 0.01, y + 0.01, 0.18, b.mat({ kind: "plain", colour: "#efe6cf" }))); }
-    table(b, 0, -2.6, 3.6, 0.8, 0.95, { kind: "oak", colour: "#6a4c32" }, true);
-    candle(b, 0.8, 0.95, -2.6, 0.1); candle(b, -1.4, 0.95, -2.6, 0.08);
-    b.place();
-    return done(b, interiorCam(4), "candle"); } });
+    room(b, { w: 6, d: 7, h: 3, view: "garden", wall: { kind: "boards", colour: "#6a4a30", course: 0.2, age: 0.2 }, floor: { kind: "floorboards", colour: "#5a3e2a" }, beams: 1.2, windows: [{ wall: "left", at: -2.0, sill: 0.95, w: 1.6, h: 1.4, glass: { kind: "glass" } }], trim: { mould: { kind: "oak", colour: "#3a2618" }, skirting: 0.15, bars: [3, 2] } });
+    // clocks on every wall, each a different case: round dials, regulators, cuckoo clocks
+    const woods: SurfaceSpec[] = [{ kind: "oak", colour: "#3a2618", age: 0.2 }, { kind: "oak", colour: "#6a4024", age: 0.2 }, { kind: "oak", colour: "#8a6038", age: 0.2 }];
+    const styles = ["round", "regulator", "cuckoo", "round", "round", "cuckoo", "regulator", "round"] as const;
+    for (let k = 0; k < 8; k++) wallClock(b, -2.4 + k * 0.68, styles[k] === "regulator" ? 1.9 : 1.65 + (k % 2) * 0.45, -3.5, styles[k], woods[k % 3]);
+    for (let k = 0; k < 4; k++) wallClock(b, -1.6 + k * 0.85, 2.55, -3.5, "round", woods[(k + 1) % 3]);
+    // the bench at the window: a high top over small drawers, the magnifier lamp, clock parts, a movement under a bell glass
+    const oak = b.mat({ kind: "oak", colour: "#5a3e28", age: 0.3 }), dr = b.mat({ kind: "drawers" });
+    b.add(boxAt(-2.95, 0, -3.0, -2.25, 0.92, -1.0, oak), boxAt(-2.94, 0.3, -2.95, -2.9, 0.88, -1.05, dr), boxAt(-3.0, 0.92, -3.05, -2.1, 0.97, -0.95, oak)); b.place();
+    magnifierLamp(b, -2.6, 0.97, -2.3); clockParts(b, -2.45, 0.97, -1.7);
+    b.add(cylY(-2.55, -1.25, 0.97, 1.0, 0.1, oak), cut(revolve(-2.55, -1.25, 1.0, 1.3, t => 0.085 * Math.sqrt(Math.max(0, 1 - Math.max(0, t - 0.6) ** 2 / 0.16)), 0.09, b.mat({ kind: "glass", colour: "#8a9a98", clear: 0.85 })), [revolve(-2.55, -1.25, 0.99, 1.29, t => 0.08 * Math.sqrt(Math.max(0, 1 - Math.max(0, t - 0.6) ** 2 / 0.16)), 0.085, 0)]));
+    b.add(cylY(-2.55, -1.25, 1.0, 1.1, 0.05, b.mat({ kind: "brass", colour: "#c09a4e" }))); b.place();
+    stool(b, -1.8, -2.0, -60);
+    table(b, 0.8, -1.4, 2.0, 0.7, 0.92, { kind: "oak", colour: "#5a3e28" }, true); b.place(); clockParts(b, 0.6, 0.92, -1.45); wallClock(b, 1.3, 0.92, -1.6, "regulator");
+    return done(b, interiorCam(4), dayIn({ sunElevation: 22, sunAzimuth: -80, key: 0.22 }), { dust: 0.2, interior: true }); } });
 add({ id: "bookshop-rain-night", label: "Bookshop on a rainy night", group: "interior", region: "Europe", era: "19th century", setting: "town", view: "exterior", scale: "humble", mood: "rain-night",
   materials: ["painted shopfront", "small-paned bow window", "wet cobbles"], story: ["warm light from the window onto the wet street", "a lamp's reflection in the puddles", "books stacked in the window"],
   note: "Light spilling from a warm window onto rain-slicked cobbles: lamp colour about 2000 K against the blue night.",
@@ -991,7 +1162,12 @@ add({ id: "bookshop-rain-night", label: "Bookshop on a rainy night", group: "int
     placeHouse(b, { w: 7, d: 8, storeys: 3, storeyH: 2.9, walls: [S.paint("#2f3f4f", 0.1), S.brick("#7a3e2c")], roof: { kind: "gable-front", pitch: 50, mat: S.slate }, windows: { rows: [[], [-1.8, 1.8], [0]], spec: W.sash(0.9, 1.5) }, shop: { fascia: S.paint("#2f3f4f") }, door: null }, 0, 0, -10, 0.005, () => {
       b.add(boxAt(-2.8, 0.5, 3.72, 2.8, 0.85, 3.78, b.mat({ kind: "books", course: 0.36 }))); b.light({ x: 0, y: 1.8, z: 3.2, kelvin: 2200, power: 0.6 }); });
     lamppost(b, 4.5, 5.6); b.place();
-    return done(b, frameSubject(b, 14, { pad: 0.08 }), "rain-night"); } });
+    // the street the shop stands in: neighbours of other heights, colours and materials either side, a few windows lit
+    const view = frameSubject(b, 14, { pad: 0.2 });
+    const neighbours: readonly (readonly [number, number, SurfaceSpec, number])[] = [[-7.4, 4, S.brick("#6a3a2a"), 7], [-14.2, 3, S.paint("#c8b896", 0.1), 6.4], [7.2, 3, S.paint("#7a8a7a", 0.15), 7], [14.0, 4, S.brick("#8a4a34"), 6.4]];
+    for (const [x, storeys, wall, w] of neighbours) placeHouse(b, { w, d: 8, storeys, storeyH: 2.8, walls: wall, roof: { kind: storeys > 3 ? "gable-front" : "gable", pitch: 45, mat: S.slate }, windows: { rows: Array.from({ length: storeys }, (_, k) => (k === 0 ? [-1.6, 1.6] : [-1.8, 0, 1.8])), spec: W.sash(0.8, 1.35) }, door: { x: 0, w: 1.0, mat: S.paint("#2a2a2a") } }, x, 0, -10, 0.004);
+    lamppost(b, -9.5, 5.6); b.place();
+    return done(b, view, "rain-night"); } });
 
 /** All 100 entries. */
 export const ARCH_LIBRARY: readonly LibraryEntry[] = E;

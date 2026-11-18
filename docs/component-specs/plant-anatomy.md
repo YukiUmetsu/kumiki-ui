@@ -1,7 +1,7 @@
 # FLORA1 — plant anatomy framework for any art style
 
 **Registry item:** `plant-anatomy` (shared pieces in `art-foundations`) · **Files:** `registry/anatomy/plant-*.ts(x)` ·
-**Storybook:** Video production → Art Foundations → Plant Anatomy (Sheet, Seasons, Growth forms, In season, Crown and bark detail) ·
+**Storybook:** Video production → Art Foundations → Plant Anatomy (Sheet, Seasons, Growth forms, In season, Crown and bark detail; FLORA2 stories) ·
 **Skill:** [kumiki-plant-anatomy](../../skills/kumiki-plant-anatomy/SKILL.md) · **Research:**
 [plant anatomy framework, 2026-11-15](../research/plant-anatomy-framework-2026-11-15.md)
 
@@ -15,6 +15,8 @@ paper has the same architecture:
 
 The style decides only how it looks. It mirrors ANAT1 (people) and ANIM1 (animals), and shares their foundation
 module.
+
+For plants in 3D, of any species, use the [flora engine FLORA2](flora-engine.md). It grows a plant from a profile measured from references.
 
 ## What it is for
 

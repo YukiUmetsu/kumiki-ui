@@ -149,7 +149,8 @@ export function revolve(cx: number, cz: number, y0: number, y1: number, prof: (t
   const h = y1 - y0, k = 1 / Math.sqrt(1 + lip * lip);
   return leaf((x, y, z) => {
     const t = (y - y0) / h, q = Math.hypot(x - cx, z - cz);
-    if (t < 0 || t > 1) return Math.max(Math.hypot(Math.max(q - rMax, 0), t < 0 ? y0 - y : y - y1), 1e-3);
+    // beyond its ends the solid is closed by a disc of the end's own radius (not the bounding radius, which left a thin phantom disc)
+    if (t < 0 || t > 1) { const re = Math.max(0, prof(t < 0 ? 0 : 1)), dy = t < 0 ? y0 - y : y - y1; return q > re ? Math.hypot(q - re, dy) : dy; }
     return (q - prof(t)) * k;
   }, [cx - rMax, y0, cz - rMax], [cx + rMax, y1, cz + rMax], mat, tone, wrapAt(cx, cz));
 }
@@ -217,12 +218,14 @@ export function hipRoof(s: RoofSpan, mat: number, tone = 0): Node {
 /** A pyramid or spire with `sides` faces (4 or 8), base half-width `r` at `y0`, apex at `y1`. */
 export function spire(cx: number, cz: number, y0: number, y1: number, r: number, sides: 4 | 6 | 8, mat: number, tone = 0, rot = 0): Node {
   const h = y1 - y0, a = Math.atan2(h, r), sn = Math.sin(a), cs = Math.cos(a), step = (Math.PI * 2) / sides;
+  // the box must reach the corners (the circumradius, r / cos(π/sides): 1.41 r for a square), or they are clipped off
+  const R = r / Math.cos(Math.PI / sides) + 1e-3;
   return leaf((x, y, z) => {
     const px = x - cx, pz = z - cz;
     // the face whose outward normal is nearest this point's direction
     const ang = Math.atan2(pz, px) - rot, k = Math.round(ang / step) * step + rot, d = px * Math.cos(k) + pz * Math.sin(k);
     return Math.max((y - y1) * cs + d * sn, y0 - y);
-  }, [cx - r * 1.09, y0, cz - r * 1.09], [cx + r * 1.09, y1, cz + r * 1.09], mat, tone, wrapAt(cx, cz));
+  }, [cx - R, y0, cz - R], [cx + R, y1, cz + R], mat, tone, wrapAt(cx, cz));
 }
 /** A mansard: a steep lower slope (`steep`°) up to `y + h1`, then a low hip (`pitch`°). Haussmann's are 45°. */
 export function mansard(s: RoofSpan & { h1: number; steep: number }, mat: number, tone = 0): Node {
@@ -251,24 +254,38 @@ export type ArchShape = "flat" | "round" | "pointed" | "horseshoe" | "segmental"
  * An opening cut through a wall whose face lies at constant z (`axis` "z") or x (`axis` "x"): width `w`, sill at `y0`,
  * springing at `y0 + hs`, from `d0` to `d1` along the wall's normal. Returned as a distance function to subtract.
  */
+/** The 2D distance (negative inside) to an opening's outline in its wall plane: `u` across from its centre, `yy` up from its sill. */
+export function openingProfile(u: number, yy: number, r: number, hs: number, shape: ArchShape): number {
+  const rectBelow = Math.max(Math.abs(u) - r, -yy, yy - hs);
+  if (shape === "flat") return rectBelow;
+  if (shape === "round") return Math.min(rectBelow, Math.hypot(u, yy - hs) - r);
+  if (shape === "segmental") { const R = (r * r + (r * 0.42) ** 2) / (2 * r * 0.42); return Math.min(rectBelow, Math.max(Math.hypot(u, yy - hs - 0.42 * r + R) - R, hs - yy, Math.abs(u) - r)); }
+  if (shape === "pointed") return Math.min(rectBelow, Math.max(Math.hypot(Math.abs(u) + r, yy - hs) - 2 * r, hs - yy));
+  if (shape === "horseshoe") { const R = r * 1.15; return Math.min(Math.max(Math.abs(u) - r * 0.92, -yy, yy - hs), Math.hypot(u, yy - hs) - R); }
+  const R = r * 0.75; return Math.min(rectBelow, Math.max(Math.hypot(Math.abs(u) + R * 0.4, yy - hs) - R * 1.4, hs - yy));
+}
 export function opening(c: number, y0: number, w: number, hs: number, shape: ArchShape, d0: number, d1: number, axis: "z" | "x" = "z"): Node {
   const r = w / 2, dm = (d0 + d1) / 2, dh = Math.abs(d1 - d0) / 2;
   const top = shape === "flat" ? hs : shape === "pointed" ? hs + r * 1.73 : shape === "horseshoe" ? hs + r * 1.15 : shape === "segmental" ? hs + r * 0.42 : shape === "ogee" ? hs + r * 1.5 : hs + r;
   const f: Sdf = (x, y, z) => {
     const u = (axis === "z" ? x : z) - c, n = (axis === "z" ? z : x) - dm, yy = y - y0;
-    const dn = Math.abs(n) - dh;
-    let d2: number;
-    const rectBelow = Math.max(Math.abs(u) - r, -yy, yy - hs);
-    if (shape === "flat") d2 = rectBelow;
-    else if (shape === "round") d2 = Math.min(rectBelow, Math.hypot(u, yy - hs) - r);
-    else if (shape === "segmental") { const R = (r * r + (r * 0.42) ** 2) / (2 * r * 0.42); d2 = Math.min(rectBelow, Math.max(Math.hypot(u, yy - hs - 0.42 * r + R) - R, hs - yy, Math.abs(u) - r)); }
-    else if (shape === "pointed") d2 = Math.min(rectBelow, Math.max(Math.hypot(Math.abs(u) + r, yy - hs) - 2 * r, hs - yy));
-    else if (shape === "horseshoe") { const R = r * 1.15; d2 = Math.min(Math.max(Math.abs(u) - r * 0.92, -yy, yy - hs), Math.hypot(u, yy - hs) - R); }
-    else { const R = r * 0.75; d2 = Math.min(rectBelow, Math.max(Math.hypot(Math.abs(u) + R * 0.4, yy - hs) - R * 1.4, hs - yy) ); }
-    return Math.max(d2, dn);
+    return Math.max(openingProfile(u, yy, r, hs, shape), Math.abs(n) - dh);
   };
   const R = r * 1.2;
   return axis === "z" ? { f, lo: [c - R, y0 - 0.01, Math.min(d0, d1)], hi: [c + R, y0 + top + 0.01, Math.max(d0, d1)] } : { f, lo: [Math.min(d0, d1), y0 - 0.01, c - R], hi: [Math.max(d0, d1), y0 + top + 0.01, c + R] };
+}
+/**
+ * A roll moulding run round an opening's arch: a round section of radius `r` whose centre follows the outline offset by
+ * `off` (+ outward into the wall) in the plane at `n` (x for axis "x", z for axis "z"); from the springing up only.
+ */
+export function archRoll(c: number, y0: number, w: number, hs: number, shape: ArchShape, n: number, off: number, r: number, mat: number, axis: "z" | "x" = "z"): Node {
+  const rr = w / 2, top = openingTop(w, hs, shape) + off + r, R = rr + off + r;
+  const f: Sdf = (x, y, z) => {
+    const u = (axis === "z" ? x : z) - c, nn = (axis === "z" ? z : x) - n, yy = y - y0;
+    const d = Math.hypot(openingProfile(u, yy, rr, hs, shape) - off, nn) - r;
+    return Math.max(d, y0 + hs - y);
+  };
+  return axis === "z" ? leaf(f, [c - R, y0 + hs, n - r], [c + R, y0 + top, n + r], mat, 0.15) : leaf(f, [n - r, y0 + hs, c - R], [n + r, y0 + top, c + R], mat, 0.15);
 }
 /** The height of an opening's top above its sill (springing plus the arch's rise). */
 export function openingTop(w: number, hs: number, shape: ArchShape) {
@@ -290,7 +307,9 @@ function pair(a: Node, b: Node): Node {
     lo, hi, f: (x, y, z) => {
       const ba = boxDist(a.lo, a.hi, x, y, z), bb = boxDist(b.lo, b.hi, x, y, z);
       const first = ba <= bb ? a : b, second = ba <= bb ? b : a, b1 = ba <= bb ? ba : bb, b2 = ba <= bb ? bb : ba;
-      if (b1 > 0.25) return b1;
+      // a box distance is a safe bound, but must stay above the march's hit tolerance (0.0005 + 0.0006·t, 0.36 m at 600 m),
+      // or far bounding boxes are taken for surfaces
+      if (b1 > 1) return b1;
       const d1 = first.f(x, y, z);
       if (d1 <= b2) return d1;
       const m = M, t = TN, fr = FR, uc = UC, d2 = second.f(x, y, z);

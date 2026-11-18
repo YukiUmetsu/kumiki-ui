@@ -177,6 +177,48 @@ backdrop; a longer lens (34°) and an eye at mid-height of the module, as produc
 single object; contact shadow from ambient occlusion where the module meets the floor; the paint pass at half strength
 so the modules stay crisp enough to study.
 
+## Weak spots, third pass (2026-11-18)
+
+The owner: "continue working on weak spots." A review of all 100 plates found:
+
+- **Ghost sheets in far scenery.** Pieces of a far mountain floated in the sky as torn grey sheets. Two bugs, both in
+  `arch-sdf.ts`. A square pyramid's bounding box ended at r·1.09, so its corners (at r·√2) were cut off. A union of two
+  nodes also returned the distance to the nearer child's *box* whenever that exceeded 0.25 m. The march counts a hit
+  when the distance falls below 0.0005 + 0.0006·t, which is 0.3 m at 500 m, so boxes far away were taken for surfaces.
+  The union now answers with the box distance only above 1 m, and a test checks both. The same fix removed specks on
+  the hill village's horizon, smudges beside the Rhine castle and streaks on the Cycladic hill. Renders take about 9%
+  longer.
+- **Mountains.** Snow-capped peaks are built with `peaks()` in `arch-kit.ts`: three square pyramids turned against each
+  other per massif, for faces, ridges and gullies, with snow above a broken snowline. Keep them within about 600 m.
+- **Moroccan riad.** Rebuilt as a two-storey court:
+  - horseshoe arches on zellige-clad piers;
+  - a carved plaster frieze of small blind arches;
+  - a turned cedar balustrade on the gallery, and a cedar eave on corbels;
+  - green glazed tiles;
+  - an octagonal fountain;
+  - four raised beds with orange trees, and bougainvillea.
+- **Damascene courtyard.** Rebuilt:
+  - real ablaq coursing (the new `ashlar` pattern `ablaq`: basalt and limestone by turns, every third pale course ochre);
+  - an iwan with a roll-moulded pointed arch, banquettes, a carpet and a lamp niche;
+  - side ranges with grilled windows below and cantilevered mashrabiya above;
+  - a cornice on corbels;
+  - an octagonal pool, citrus trees, jasmine and pots.
+- **Market square belfry (Bruges).** The stone octagon floated on the brick tower and ran straight to a flat cap. It
+  now has a pierced parapet, corner turrets, buttress shafts with pinnacles, an open belfry stage, a lead lantern and
+  a gilt ball.
+- **Packhorse bridge.** The beck ran along the bridge, not under it. It now crosses beneath the arch between boulders,
+  and the view looks up the beck.
+- **Alpine summer hut.** It was shown in winter mood against a garbled backdrop. It now sits under summer light below
+  snow-capped peaks, with a log trough, a split-rail fence, a bench and a cowbell.
+- **Bookshop on a rainy night.** It stood alone in an empty square. It now stands in a street of neighbours with lit
+  windows and a second lamp.
+- **Cycladic cliffside.** The houses floated in front of a rock ellipsoid that never met them. Now:
+  - the cliff is stepped terraces, and each row of houses is cut into the slope behind the retaining wall above it,
+    so one roof is the next house's yard, as the plate's story says;
+  - houses vary in width and height, with domed chapels;
+  - a whitewashed stair zigzags down the east side;
+  - below the lowest row, one continuous rock face, broken by ribs and gullies, falls to the sea.
+
 ## Limits
 
 - Ornament is simplified: no carved capitals, tracery inside windows, statues or Lüftlmalerei figures.
