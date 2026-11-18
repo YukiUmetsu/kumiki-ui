@@ -20,9 +20,10 @@ export function RisoSlatRevealStudio(){
   const [aspect,setAspect]=useState<RisoAspect>("landscape");
   const [frame,setFrame]=useState(108);
   const [axis,setAxis]=useState<RisoSlatAxis>("horizontal");
-  const [direction,setDirection]=useState<RisoSlatDirection>("down");
+  const [direction,setDirection]=useState<RisoSlatDirection>("right");
   const [count,setCount]=useState(12);
   const [overlapMm,setOverlapMm]=useState(.32);
+  const [stagger,setStagger]=useState(.22);
   const [paperThicknessMm,setPaperThicknessMm]=useState(.24);
   const [slotClearanceMm,setSlotClearanceMm]=useState(.08);
   const [relief,setRelief]=useState(.72);
@@ -72,7 +73,7 @@ export function RisoSlatRevealStudio(){
       if(context.reducedMotion)progress=1;
       return <RisoSlatTheatre cover={cover} insert={insert}
         axis={axis} direction={direction} count={count} progress={progress}
-        seed={seed} overlapMm={overlapMm} paperThicknessMm={paperThicknessMm}
+        seed={seed} overlapMm={overlapMm} stagger={stagger} paperThicknessMm={paperThicknessMm}
         slotClearanceMm={slotClearanceMm} interleaveDepthMm={interleaveDepthMm}
         paperRelief={relief} paperGrain={grain} misregistration={registration}
         label="Two complete original Risograph masters joined by a collision-safe interleaved paper slat comb"/>;
@@ -97,9 +98,10 @@ export function RisoSlatRevealStudio(){
       </h1>
       <p style={{margin:0}}>
         The stationary original cover is replaced by a second complete print,
-        cut into individually moving strips. One rigid pull comb threads the
-        strips through ordered slots. Alternating depth lanes permit a measured
-        paper lap without coplanar collisions; each spot-ink master stays source-locked.
+        cut into individually moving strips. One pull tab drives the strips
+        through ordered slots with bounded per-slot timing. Alternating depth
+        lanes permit a measured paper lap without coplanar collisions; each
+        spot-ink master stays source-locked.
       </p>
     </header>
     <section aria-label="RISO81 paper slat controls"
@@ -130,7 +132,7 @@ export function RisoSlatRevealStudio(){
         <select aria-label="RISO81 slat axis" value={axis}
           onChange={e=>{
             const next=e.target.value as RisoSlatAxis;
-            setAxis(next);setDirection(next==="horizontal"?"down":"right");
+            setAxis(next);setDirection(next==="horizontal"?"right":"down");
           }}>
           <option value="horizontal">Horizontal rows</option>
           <option value="vertical">Vertical columns</option>
@@ -157,6 +159,11 @@ export function RisoSlatRevealStudio(){
         <input aria-label="RISO81 slat overlap" type="range"
           min={0} max={.7} step={.02} value={overlapMm}
           onChange={e=>setOverlapMm(Number(e.target.value))}/>
+      </label>
+      <label style={label}>Slot timing stagger · {Math.round(stagger*100)}%
+        <input aria-label="RISO81 slat stagger" type="range"
+          min={0} max={.45} step=".01" value={stagger}
+          onChange={e=>setStagger(Number(e.target.value))}/>
       </label>
       <label style={label}>Stock caliper · {paperThicknessMm.toFixed(2)} mm
         <input aria-label="RISO81 paper thickness" type="range"
