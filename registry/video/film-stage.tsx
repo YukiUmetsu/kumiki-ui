@@ -316,6 +316,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       layers: frame.layers.filter(layer => layer.alpha.some(v => v > 0)).map(layer => ({ ...layer, image: alphaImage(layer.alpha, MATERIAL_COLS, materialRows) })),
       vectors: frame.vectors ?? [], below: frame.incomingBelow === true, warpOut: warp(frame.warpOut), warpIn: warp(frame.warpIn),
       clipOut: frame.outClip ? ringsClipPath(frame.outClip, film.height) : undefined,
+      matrixOut: frame.outMatrix && { a: frame.outMatrix[0], b: frame.outMatrix[1], c: frame.outMatrix[2], d: frame.outMatrix[3], e: frame.outMatrix[4] * film.height, f: frame.outMatrix[5] * film.height },
     };
   })() : undefined;
   // A shape wipe opens the next scene through a growing shape; reduced motion keeps the dissolve.
@@ -409,7 +410,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       // A bed's loudness: a small scale about the middle, or a soft light from it. Reduced motion keeps the scene still.
       const level = scene.drive && !reduce ? scene.drive.values[Math.min(scene.drive.values.length - 1, Math.max(0, layer.localFrame))] ?? 0 : 0;
       const driven = scene.drive?.property === "scale" ? 1 + scene.drive.amount * level : 1, glow = scene.drive?.property === "glow" ? Math.round(scene.drive.amount * level * 1e4) / 1e4 : 0;
-      const { a, b, c, d, e, f } = (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix) || (through && (incoming ? through.incoming : through.outgoing)) || (whip && (incoming ? whip.incoming : whip.outgoing))
+      const { a, b, c, d, e, f } = (material?.matrixOut && !incoming && !loopLayer && material.matrixOut) || (match && matchMatrix(match, incoming, state.transition!.progress)) || (container && incoming && grow?.matrix) || (through && (incoming ? through.incoming : through.outgoing)) || (whip && (incoming ? whip.incoming : whip.outgoing))
         || (pass && { ...layer.matrix, e: layer.matrix.e + (incoming ? pass.incoming : pass.outgoing) }) || layer.matrix;
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.

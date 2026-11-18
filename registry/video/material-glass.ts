@@ -12,7 +12,7 @@
  *   gravity, the loosened ones near the impact first, tumbling and drifting back from the lens, their faces glinting as
  *   they turn. Each shard carries its piece of the outgoing scene; the incoming scene is behind the glass.
  */
-import { clamp01, eachCellInRing, hash, ringArea, smooth } from "./material-kit";
+import { clamp01, clipToFrame, eachCellInRing, hash, ringArea, smooth } from "./material-kit";
 import type { MaterialFrame, MaterialLayer, MaterialVector } from "./material-kit";
 
 export type GlassKind = "refract" | "shatter";
@@ -243,25 +243,6 @@ function breakPane(origin: { x: number; y: number }, aspect: number, seed: numbe
     return [origin.x, origin.y, origin.x + len * mid * Math.cos(a), origin.y + len * mid * Math.sin(a), origin.x + len * Math.cos(a + bend), origin.y + len * Math.sin(a + bend)];
   });
   return { shards, cracks: lines, starburst };
-}
-
-/** A ring cut to the frame rectangle (Sutherland–Hodgman). */
-function clipToFrame(ring: readonly number[], aspect: number): number[] {
-  let pts = ring.slice();
-  const edges: [number, number, number][] = [[1, 0, 0], [-1, 0, aspect], [0, 1, 0], [0, -1, 1]];
-  for (const [ax, ay, c] of edges) {
-    // Keep points with ax·x + ay·y + (ax < 0 || ay < 0 ? c : -c) ≥ 0, i.e. inside this edge.
-    const side = (x: number, y: number) => (ax ? ax * x : ay * y) + (ax < 0 || ay < 0 ? c : -c);
-    const out: number[] = [];
-    for (let i = 0, n = pts.length; i < n; i += 2) {
-      const j = (i + 2) % n, x0 = pts[i], y0 = pts[i + 1], x1 = pts[j], y1 = pts[j + 1], s0 = side(x0, y0), s1 = side(x1, y1);
-      if (s0 >= 0) out.push(x0, y0);
-      if ((s0 >= 0) !== (s1 >= 0)) { const t = s0 / (s0 - s1); out.push(x0 + t * (x1 - x0), y0 + t * (y1 - y0)); }
-    }
-    pts = out;
-    if (pts.length < 6) return [];
-  }
-  return pts;
 }
 
 /** A shard's affine map from rest to the frame at time t (seconds), and its tilt. */

@@ -231,10 +231,16 @@ Evidence (2026-11-11): `tests/film-document.test.ts`, "shape wipe". Frames rende
 - **`smoke`**: it drifts in from everywhere at once, with a soft edge.
 - **Materials** (`bleed`, `burn`, `paint`, `frost`): the next scene arrives the way ink soaks into paper, paper burns
   away, paint runs down or breath frosts glass. The fronts come from each material's physics, with their own overlays.
-  `grain` sets the paper's fibre direction. See [material transitions](material-transitions.md).
+  `grain` sets the paper's fibre direction.
+- **Glass, paper and liquids** (`refract`, `shatter`, `peel`, `tear`, `ripple`, `melt`): a sheet of reeded glass passes
+  the lens, the picture breaks like a struck pane, the page curls back from a corner or is torn in two, a drop rings out
+  on water, or the picture drains down like warm wax. `subject` sets where the pane is struck or the drop lands;
+  `direction` sets the way the glass travels (`refract`) or the curl travels (`peel`). See
+  [material transitions](material-transitions.md).
 
 `seed` picks another matte of the same kind. `color` stains the travelling edge (for a material: the ink, the char, the
-gloss or the frost). Default 26 frames, and 36–48 for a material.
+gloss, the frost, the glass's tint, the light on the cracks, the paper's back or core, or the light on the water).
+Default 26 frames, and 34–48 for a material.
 
 **Dither.** `{ "kind": "dither", "cell": 0.008 }` shows the next scene cell by cell in an 8×8 ordered (Bayer) pattern, at a cell size given as a share of the frame's short side. Default 14 frames.
 

@@ -6766,6 +6766,7 @@
     },
     "texture": {
      "enum": [
+      "ripple",
       "bleed",
       "burn",
       "frost",
@@ -6774,7 +6775,10 @@
       "smoke",
       "paint",
       "refract",
-      "shatter"
+      "shatter",
+      "peel",
+      "tear",
+      "melt"
      ]
     },
     "seed": {
@@ -10375,6 +10379,7 @@
         "rain",
         "burst",
         "burn",
+        "melt",
         "pop",
         "stack",
         "walk",
@@ -10389,7 +10394,6 @@
         "stamp",
         "split",
         "vanish",
-        "melt",
         "inflate",
         "deflate",
         "pulse",

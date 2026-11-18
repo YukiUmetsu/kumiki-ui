@@ -37,6 +37,8 @@ export interface MaterialVector {
   blend: "normal" | "multiply" | "screen";
   /** A soft edge: Gaussian blur in thousandths of the frame height (shadows). */
   blur?: number;
+  /** Draw only outside these rings: a shadow cast past an object onto what lies under it, not onto the object. */
+  outside?: readonly (readonly number[])[];
 }
 
 /**
@@ -71,6 +73,9 @@ export interface MaterialFrame {
   outClip?: readonly (readonly number[])[];
   /** The incoming scene lies under the outgoing one, which breaks, tears or peels away to show it. */
   incomingBelow?: boolean;
+  /** An exact transform of the whole outgoing layer, [a, b, c, d, e, f] with e and f in frame heights: x' = a·x + c·y + e.
+   * `warpOut` and its cover are then in the layer's own coordinates, so the warp holds only what the transform cannot. */
+  outMatrix?: readonly [number, number, number, number, number, number];
 }
 
 /* ------------------------------------------------------------------ *
@@ -158,3 +163,46 @@ export function transformRing(ring: readonly number[], m: readonly [number, numb
   }
   return out;
 }
+
+/** The part of a ring where nx·x + ny·y ≥ c (Sutherland–Hodgman against one line). */
+export function clipHalfPlane(ring: readonly number[], nx: number, ny: number, c: number): number[] {
+  const out: number[] = [];
+  for (let i = 0, n = ring.length; i < n; i += 2) {
+    const j = (i + 2) % n, x0 = ring[i], y0 = ring[i + 1], x1 = ring[j], y1 = ring[j + 1];
+    const s0 = nx * x0 + ny * y0 - c, s1 = nx * x1 + ny * y1 - c;
+    if (s0 >= 0) out.push(x0, y0);
+    if ((s0 >= 0) !== (s1 >= 0)) { const t = s0 / (s0 - s1); out.push(x0 + t * (x1 - x0), y0 + t * (y1 - y0)); }
+  }
+  return out.length >= 6 ? out : [];
+}
+
+/** A ring cut to the frame (0..aspect × 0..1). */
+export function clipToFrame(ring: readonly number[], aspect: number): number[] {
+  let r: number[] = ring.slice();
+  for (const [nx, ny, c] of [[1, 0, 0], [-1, 0, -aspect], [0, 1, 0], [0, -1, -1]] as const) { r = clipHalfPlane(r, nx, ny, c); if (!r.length) return r; }
+  return r;
+}
+
+/** A ring with no edge longer than `step`, so a curved map can bend it. */
+export function densify(ring: readonly number[], step: number, closed = true): number[] {
+  const out: number[] = [];
+  const n = ring.length, last = closed ? n : n - 2;
+  for (let i = 0; i < last; i += 2) {
+    const j = (i + 2) % n, x0 = ring[i], y0 = ring[i + 1], x1 = ring[j], y1 = ring[j + 1];
+    const parts = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / step));
+    for (let q = 0; q < parts; q++) out.push(x0 + ((x1 - x0) * q) / parts, y0 + ((y1 - y0) * q) / parts);
+  }
+  if (!closed) out.push(ring[n - 2], ring[n - 1]);
+  return out;
+}
+
+/** The ring turned counter-clockwise (positive area), so rings add up under the nonzero rule. */
+export function positive(ring: readonly number[]): number[] {
+  if (ringArea(ring) >= 0) return ring.slice();
+  const out: number[] = [];
+  for (let i = ring.length - 2; i >= 0; i -= 2) out.push(ring[i], ring[i + 1]);
+  return out;
+}
+
+/** The frame as a ring. */
+export const frameRing = (aspect: number): number[] => [0, 0, aspect, 0, aspect, 1, 0, 1];

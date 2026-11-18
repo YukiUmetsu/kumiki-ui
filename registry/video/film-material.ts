@@ -13,6 +13,10 @@
  *   figures, Beysens & Knobler 1986), until the old scene is lost behind frosted glass; the scenes change behind it and
  *   the frost clears to the next one.
  *
+ * - **peel** and **tear**: paper. A page curls back from a corner, showing its back; a page is ripped in two and the
+ *   halves pulled away. See `material-paper.ts`.
+ * - **ripple** and **melt**: liquids. A drop rings out on water at the real speeds of capillary–gravity waves; a layer
+ *   of wax softens and drains down the frame in drips. See `material-liquid.ts`.
  * - **refract** and **shatter**: glass. A sheet of reeded glass passes the lens and its flutes break the cut into strips;
  *   a pane breaks from a point and its shards fall away. See `material-glass.ts`.
  *
@@ -24,21 +28,25 @@ import { byte, clamp01, easeInOut, fbm, hash, smooth } from "./material-kit";
 import type { MaterialFrame } from "./material-kit";
 import { GLASS_FRAMES, glassFrame, planGlass } from "./material-glass";
 import type { GlassKind, GlassPlan, MaterialDirection } from "./material-glass";
+import { PAPER_FRAMES, paperFrame, planPaper } from "./material-paper";
+import type { PaperKind, PaperPlan } from "./material-paper";
+import { LIQUID_FRAMES, liquidFrame, planLiquid } from "./material-liquid";
+import type { LiquidKind, LiquidPlan } from "./material-liquid";
 
 export type { MaterialFrame, MaterialLayer, MaterialVector, MaterialWarp } from "./material-kit";
 export type { MaterialDirection } from "./material-glass";
 
 /** Materials whose front spreads through a speed field. */
 export type FrontKind = "bleed" | "burn" | "paint" | "frost";
-export type MaterialKind = FrontKind | GlassKind;
+export type MaterialKind = FrontKind | GlassKind | PaperKind | LiquidKind;
 export type MaterialShape = "circle" | "diamond" | "square" | "star";
 
 export interface MaterialSpec {
   material: MaterialKind;
   /** A different seed gives a different sheet of the same material. @default 1 */
   seed?: number;
-  /** Where the front starts, as fractions of the frame (bleed, burn, frost), or where the pane is struck (shatter).
-   * @default seeded points */
+  /** Where the front starts, as fractions of the frame (bleed, burn, frost), where the pane is struck (shatter) or
+   * where the drop lands (ripple). @default seeded points */
   origins?: readonly { x: number; y: number }[];
   /** bleed: the ink. burn: the char. paint: the gloss. frost: the frost's tint. refract: the glass's tint. shatter: the
    * light on the cracks. */
@@ -47,7 +55,8 @@ export interface MaterialSpec {
   grain?: number;
   /** The front keeps this shape around the first origin while the material roughens it. */
   shape?: MaterialShape;
-  /** refract: the way the glass travels. @default "right" */
+  /** refract: the way the glass travels (default "right"). peel: the way the curl travels, from the opposite corner
+   * (default "left", from the bottom right). */
   direction?: MaterialDirection;
   /** The transition's length in seconds, for materials that move at real rates (falling shards). @default the default length at 30 fps */
   seconds?: number;
@@ -74,13 +83,17 @@ export interface FrontPlan {
 }
 
 /** Everything a material needs on every frame, solved once. */
-export type MaterialPlan = FrontPlan | GlassPlan;
+export type MaterialPlan = FrontPlan | GlassPlan | PaperPlan | LiquidPlan;
 const isGlassPlan = (plan: MaterialPlan): plan is GlassPlan => plan.material === "refract" || plan.material === "shatter";
+const isPaperPlan = (plan: MaterialPlan): plan is PaperPlan => plan.material === "peel" || plan.material === "tear";
+const isLiquidPlan = (plan: MaterialPlan): plan is LiquidPlan => plan.material === "ripple" || plan.material === "melt";
+/** Materials that take a direction. */
+const DIRECTED: readonly MaterialKind[] = ["refract", "peel"];
 
-export const MATERIAL_KINDS: readonly MaterialKind[] = ["bleed", "burn", "paint", "frost", "refract", "shatter"];
+export const MATERIAL_KINDS: readonly MaterialKind[] = ["bleed", "burn", "paint", "frost", "refract", "shatter", "peel", "tear", "ripple", "melt"];
 export const MATERIAL_SHAPES: readonly MaterialShape[] = ["circle", "diamond", "square", "star"];
 /** Default length of each material, frames at 30 fps: capillary and burning fronts read slower than a matte. */
-export const MATERIAL_FRAMES: Readonly<Record<MaterialKind, number>> = { bleed: 40, burn: 44, paint: 36, frost: 48, ...GLASS_FRAMES };
+export const MATERIAL_FRAMES: Readonly<Record<MaterialKind, number>> = { bleed: 40, burn: 44, paint: 36, frost: 48, ...GLASS_FRAMES, ...PAPER_FRAMES, ...LIQUID_FRAMES };
 const DEFAULT_COLOR: Record<FrontKind, string> = { bleed: "#162033", burn: "#15110f", paint: "#ffffff", frost: "#e8eef2" };
 
 /* ------------------------------------------------------------------ *
@@ -237,6 +250,11 @@ export function planMaterial(spec: MaterialSpec, cols: number, rows: number, asp
     const origin = spec.origins?.[0] ?? (spec.material === "shatter" ? materialOrigins(seed, 1)[0] : undefined);
     return planGlass(spec.material, { cols, rows, aspect, seed, seconds: spec.seconds ?? MATERIAL_FRAMES[spec.material] / 30, direction: spec.direction, color: spec.color, origin });
   }
+  if (spec.material === "peel" || spec.material === "tear") return planPaper(spec.material, { cols, rows, aspect, seed, direction: spec.direction, color: spec.color });
+  if (spec.material === "ripple" || spec.material === "melt") {
+    const origin = spec.origins?.[0] ?? (spec.material === "ripple" ? materialOrigins(seed, 1)[0] : undefined);
+    return planLiquid(spec.material, { cols, rows, aspect, seed, seconds: spec.seconds ?? MATERIAL_FRAMES[spec.material] / 30, color: spec.color, origin });
+  }
   return planFront(spec as MaterialSpec & { material: FrontKind }, cols, rows, aspect, seed);
 }
 
@@ -356,7 +374,7 @@ const SCORCH = "#7a5326";
 
 /** The frame of a material transition at `progress` (0 = only the old scene, 1 = only the new). */
 export function materialFrame(plan: MaterialPlan, progress: number): MaterialFrame {
-  return isGlassPlan(plan) ? glassFrame(plan, progress) : frontFrame(plan, progress);
+  return isGlassPlan(plan) ? glassFrame(plan, progress) : isPaperPlan(plan) ? paperFrame(plan, progress) : isLiquidPlan(plan) ? liquidFrame(plan, progress) : frontFrame(plan, progress);
 }
 
 function frontFrame(plan: FrontPlan, progress: number): MaterialFrame {
@@ -513,8 +531,8 @@ export interface MaterialProblem {
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 /** Lengths that read as the material, seconds. Shards need about 0.6 s to fall a frame height, after a short hold. */
-const TIMING: Record<MaterialKind, readonly [number, number]> = { bleed: [0.8, 2.2], burn: [0.8, 2.2], paint: [0.7, 1.8], frost: [1, 2.4], refract: [0.7, 1.6], shatter: [1, 2.2] };
-const READS_AS: Record<MaterialKind, string> = { bleed: "ink soaking into paper", burn: "burning paper", paint: "running paint", frost: "breath on glass", refract: "glass passing the lens", shatter: "breaking glass" };
+const TIMING: Record<MaterialKind, readonly [number, number]> = { bleed: [0.8, 2.2], burn: [0.8, 2.2], paint: [0.7, 1.8], frost: [1, 2.4], refract: [0.7, 1.6], shatter: [1, 2.2], peel: [0.8, 1.8], tear: [0.9, 2], ripple: [0.9, 2], melt: [1.1, 2.4] };
+const READS_AS: Record<MaterialKind, string> = { bleed: "ink soaking into paper", burn: "burning paper", paint: "running paint", frost: "breath on glass", refract: "glass passing the lens", shatter: "breaking glass", peel: "a page peeling away", tear: "paper tearing", ripple: "ripples on water", melt: "melting wax" };
 
 /** Problems with a material spec at `path`, given its length in frames at `rate` fps. */
 export function inspectMaterial(spec: Partial<MaterialSpec>, frames: number, rate: number, path: string): MaterialProblem[] {
@@ -527,8 +545,10 @@ export function inspectMaterial(spec: Partial<MaterialSpec>, frames: number, rat
   if (spec.shape !== undefined && !MATERIAL_SHAPES.includes(spec.shape)) say("error", "material-shape", "/shape", `"${spec.shape}" is not a shape a material front can keep.`, `Shapes: ${MATERIAL_SHAPES.join(", ")}.`);
   if (spec.material === "paint" && spec.shape) say("warning", "material-shape-unused", "/shape", "Paint runs down under gravity; it does not grow a shape.");
   if ((spec.material === "refract" || spec.material === "shatter") && spec.shape) say("warning", "material-shape-unused", "/shape", "Glass bends or breaks; it does not grow a shape.");
+  if ((spec.material === "peel" || spec.material === "tear") && spec.shape) say("warning", "material-shape-unused", "/shape", "A page peels or tears; it does not grow a shape.");
+  if ((spec.material === "ripple" || spec.material === "melt") && spec.shape) say("warning", "material-shape-unused", "/shape", "Water rings out and wax drains; neither grows a shape.");
   if (spec.direction !== undefined && !["left", "right", "up", "down"].includes(spec.direction)) say("error", "material-direction", "/direction", `"${spec.direction}" is not a direction.`, "Directions: left, right, up, down.");
-  if (spec.direction !== undefined && spec.material !== "refract" && spec.material !== undefined && MATERIAL_KINDS.includes(spec.material)) say("warning", "material-direction-unused", "/direction", `A ${spec.material} has no direction.`);
+  if (spec.direction !== undefined && spec.material !== undefined && MATERIAL_KINDS.includes(spec.material) && !DIRECTED.includes(spec.material)) say("warning", "material-direction-unused", "/direction", `A ${spec.material} has no direction.`, `Only ${DIRECTED.join(" and ")} take one.`);
   if (spec.origins?.some((o) => !(o.x >= 0 && o.x <= 1 && o.y >= 0 && o.y <= 1))) say("error", "material-origin", "/origins", "Origins are fractions of the frame, 0 to 1.");
   if (problems.some((p) => p.severity === "error") || !spec.material) return problems;
   const seconds = frames / rate;

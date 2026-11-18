@@ -8,6 +8,8 @@ import type { FilmDocument } from "../registry/video/film-document";
 import materialFilm from "../examples/film/material.film.json";
 import materialShapes from "../examples/film/material-shapes.film.json";
 import materialGlass from "../examples/film/material-glass.film.json";
+import materialPaper from "../examples/film/material-paper.film.json";
+import materialLiquid from "../examples/film/material-liquid.film.json";
 
 const COLS = 96, ROWS = 54, ASPECT = 16 / 9;
 const mean = (a: Uint8ClampedArray) => a.reduce((s, v) => s + v, 0) / a.length / 255;
@@ -157,5 +159,55 @@ describe("material transitions", () => {
     const film = compileFilm(materialGlass as unknown as FilmDocument, { outputId: "draft" });
     expect(film.ok).toBe(true);
     if (film.ok) expect(Object.values(film.film.mattes).map((m) => m.texture)).toEqual(["refract", "shatter", "refract", "shatter"]);
+  });
+
+  it("peels and tears paper", () => {
+    const aspect = 16 / 9;
+    // Peel: nothing lifts at the start; midway the flap shows the page's back, mirrored; at the end the page is gone.
+    const peel = planMaterial({ material: "peel" }, COLS, ROWS, aspect);
+    const first = materialFrame(peel, 0);
+    expect(first.warpOut!.owner!.every((o) => o === 0)).toBe(true);
+    const mid = materialFrame(peel, 0.5);
+    expect(mid.warpOut!.owner!.some((o) => o === 1)).toBe(true);
+    expect(mid.warpOut!.owner!.some((o) => o < 0)).toBe(true);
+    expect(mid.vectors!.map((v) => v.id)).toEqual(expect.arrayContaining(["flap", "curl", "peel-shadow"]));
+    expect(materialFrame(peel, 1).warpOut!.owner!.every((o) => o < 0)).toBe(true);
+    // Tear: the halves open behind the tip, which runs down; once free they leave the frame.
+    const tear = planMaterial({ material: "tear", seed: 3 }, COLS, ROWS, aspect);
+    const running = materialFrame(tear, 0.3).warpOut!.owner!;
+    expect(running.some((o) => o === 0) && running.some((o) => o === 1) && running.some((o) => o < 0)).toBe(true);
+    // Below the tip the page is still whole.
+    expect(running.slice(running.length - COLS).every((o) => o >= 0)).toBe(true);
+    expect(materialFrame(tear, 1).warpOut!.owner!.every((o) => o < 0)).toBe(true);
+    const film = compileFilm(materialPaper as unknown as FilmDocument, { outputId: "draft" });
+    expect(film.ok).toBe(true);
+    if (film.ok) expect(Object.values(film.film.mattes).map((m) => m.texture)).toEqual(["peel", "tear", "peel", "tear"]);
+  });
+
+  it("rings out water and drains wax", () => {
+    const aspect = 16 / 9;
+    // Ripple: the main packet travels at its group velocity, so the revealed disc's radius grows in step with time.
+    const ripple = planMaterial({ material: "ripple", seconds: 40 / 30, origins: [{ x: 0.5, y: 0.5 }] }, COLS, ROWS, aspect);
+    const radius = (p: number) => Math.sqrt((mean(materialFrame(ripple, p).reveal) * aspect) / Math.PI);
+    expect(radius(0.4) / radius(0.2)).toBeGreaterThan(1.7);
+    expect(radius(0.4) / radius(0.2)).toBeLessThan(2.3);
+    // Ahead of the waves the water is still; at the end the surface is calm and the next scene is whole.
+    const early = materialFrame(ripple, 0.15).warpOut!;
+    expect(early.dx[0]).toBe(0);
+    expect(early.dx.some((v) => Math.abs(v) > 0.002)).toBe(true);
+    const done = materialFrame(ripple, 1);
+    expect(done.warpOut!.dx.every((v) => v === 0)).toBe(true);
+    expect(mean(done.reveal)).toBeGreaterThan(0.99);
+    // Melt: the layer drains from the top down and stretches; at the end nothing of it is left.
+    const melt = planMaterial({ material: "melt", seed: 2 }, COLS, ROWS, aspect);
+    const half = materialFrame(melt, 0.5), cover = half.warpOut!.cover!;
+    expect(mean(cover.slice(0, COLS * 4))).toBeLessThan(mean(cover.slice(COLS * (ROWS - 4))));
+    expect(half.outMatrix![3]).toBeGreaterThan(1.1);
+    // Cover is in the layer's own coordinates; the stretched layer runs past the frame's foot, where nothing shows.
+    const last = materialFrame(melt, 1), onScreen = Math.floor(ROWS / last.outMatrix![3]) * COLS;
+    expect(last.warpOut!.cover!.slice(0, onScreen).every((c) => c === 0)).toBe(true);
+    const film = compileFilm(materialLiquid as unknown as FilmDocument, { outputId: "draft" });
+    expect(film.ok).toBe(true);
+    if (film.ok) expect(Object.values(film.film.mattes).map((m) => m.texture)).toEqual(["ripple", "melt", "ripple", "melt"]);
   });
 });

@@ -101,16 +101,19 @@ export function MaterialVectors({ vectors, width, height, idPrefix }: { vectors:
     const gid = `${idPrefix}-${v.id}`, d = pathData(v.rings, v.closed), fill = v.gradient ? `url(#${gid}-g)` : v.fill ?? "none";
     return <svg key={v.id} aria-hidden="true" data-km-film-material-vector={v.id} width={width} height={height} viewBox={`0 0 ${aspect} 1`} preserveAspectRatio="none"
       style={{ ...style, mixBlendMode: v.blend === "normal" ? undefined : v.blend, opacity: v.alpha }}>
-      {(v.gradient || v.blur) && <defs>
+      {(v.gradient || v.blur || v.outside) && <defs>
         {v.gradient && <linearGradient id={`${gid}-g`} gradientUnits="userSpaceOnUse" x1={v.gradient.x1} y1={v.gradient.y1} x2={v.gradient.x2} y2={v.gradient.y2}>
           {v.gradient.stops.map(([offset, color, alpha], i) => <stop key={i} offset={offset} stopColor={color} stopOpacity={alpha} />)}
         </linearGradient>}
+        {v.outside && <clipPath id={`${gid}-o`} clipPathUnits="userSpaceOnUse">
+          <path clipRule="evenodd" d={`M-1 -1H${aspect + 1}V2H-1Z${pathData(v.outside, true).join("")}`} />
+        </clipPath>}
         {v.blur && <filter id={`${gid}-b`} filterUnits="userSpaceOnUse" x={-0.1} y={-0.1} width={aspect + 0.2} height={1.2}><feGaussianBlur stdDeviation={v.blur / 1000} /></filter>}
       </defs>}
-      <g filter={v.blur ? `url(#${gid}-b)` : undefined}>
+      <g clipPath={v.outside ? `url(#${gid}-o)` : undefined}><g filter={v.blur ? `url(#${gid}-b)` : undefined}>
         {d.map((path, i) => <path key={i} d={path} fill={v.closed ? fill : "none"} stroke={v.stroke} strokeWidth={v.width ? v.width / 1000 : undefined}
           strokeLinejoin="round" strokeLinecap="round" opacity={v.alphas ? v.alphas[i] : undefined} />)}
-      </g>
+      </g></g>
     </svg>;
   })}</>;
 }

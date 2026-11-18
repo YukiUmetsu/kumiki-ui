@@ -187,7 +187,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `makeup` | finance | dom | — | `video-makeup--makeup-lab` | — |
 | `map-stage` | visual | dom | [spec](component-specs/map-stage.md) | `visual-map-stage--walkthrough-story` | — |
 | `mask-reveal` | motion | data | — | — | — |
-| `material-transitions` | video | data | [spec](component-specs/material-transitions.md) | `video-production-promo-moves--material-transitions` | — |
+| `material-transitions` | video | dom | [spec](component-specs/material-transitions.md) | `video-production-promo-moves--material-transitions` | — |
 | `materials` | finance | dom | — | `video-materials--sheet` | — |
 | `measure-units` | visual | data | [spec](component-specs/dimension-overlay.md) | — | — |
 | `mechanism-sequence` | visual | data | [spec](component-specs/mechanism-sequence.md) | `house-math-mechanism-sequence--mechanisms` | — |
