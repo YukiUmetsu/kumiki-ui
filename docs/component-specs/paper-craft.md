@@ -340,3 +340,17 @@ This is a **rigid leaf with one spine**, not a V-fold engine or dynamic bending-
 `PaperCutLayer.fibreScale?: number` sets the relative size of the seeded, sheet-anchored fibre pattern (finite 0.25–2; default 1), and `fibreIntensity?: number` multiplies that sheet's tooth opacity (finite 0–1; default 1). The stage's `tooth` remains the global control. Different sheets may use different values without changing geometry, fill or other sheets. The existing Garden page exposes wing controls. The repeated horizontal fibre approximation is not a calibrated paper scan or physical microstructure.
 
 Source observations and rendered comparisons: [paper stock controls study](../research/paper-stock-controls-study.md).
+
+## MC1.3 — physical paper layers
+
+Any layer can be a sheet of real paper stock: `sheet: { stock, grain, thickness, bends, tears, back }` (the
+`PaperSheetMotion` of [paper-sheet](paper-sheet.md)). The sheet's outline is the layer's path and holes. Its folds,
+bends, peels, rolls and tears are true 3D facets that carry the layer's artwork. The sheet sags by the stock's weight,
+shades by its curvature, and casts shadows on the backing. Shadows soften with height and lighten through thin paper.
+Bend and tear keys use scene frames. Scene settings are in `physical: { pxPerMm, gravity, light, view }`. The default
+light and the layer height (3.3 + depth px) match the drop shadows of flat layers, so physical and flat layers sit in
+one light. `liftedTip` and `curl` stay as they were for layers without a sheet.
+
+Storybook: Paper Craft → *Physical Paper · Fold, Peel, Roll, Tear*. The diorama below the lab tears its cover open,
+unrolls a banner, swings a door and peels the sun. Each moving piece is an ordinary layer with a `sheet`
+(`src/video/paper-physical-scene.ts`).

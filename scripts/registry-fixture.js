@@ -2645,6 +2645,31 @@ export function ShapeMorphExample() {
 }`,
     };
   },
+  "paper-sheet": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { evaluatePaperSheet, inspectPaperSheet } from "${specifier}";`,
+        `import { PaperSheetSvg } from "${motionDir}/paper-sheet-svg";`,
+        `import { paperGravityLength, paperTransmittance, PAPER_STOCKS } from "${motionDir}/paper-sheet-stock";`,
+      ],
+      componentName: "PaperSheetExample",
+      component: `export function PaperSheetExample() {
+  // A postcard of origami paper: a corner folds over, a tear runs down and its right side lifts behind the tip.
+  const spec = { outline: "M0 0H520V360H0Z", stock: "kami" as const, pxPerMm: 4,
+    bends: [
+      { id: "corner", kind: "fold" as const, line: [[330, 0], [520, 190]] as [[number, number], [number, number]], flap: [520, 0] as [number, number], angle: 160 },
+      { id: "lift", kind: "fold" as const, follow: "rip", piece: { tear: "rip", at: [100, 180] as [number, number] }, angle: 30, radius: 60 },
+    ],
+    tears: [{ id: "rip", from: [260, -4] as [number, number], to: [250, 364] as [number, number], progress: 0.6 }] };
+  const sheet = evaluatePaperSheet(spec, 0);
+  const sags = paperGravityLength(PAPER_STOCKS.tissue) * 1000;
+  return <svg viewBox="-40 -40 600 440" data-issues={inspectPaperSheet(spec).length} data-sag={sags.toFixed(0)} data-light={paperTransmittance(PAPER_STOCKS.kami).toFixed(2)}>
+    <PaperSheetSvg sheet={sheet} color="#f6f1e4" light="table" front={<rect width={520} height={360} fill="#b5452f" />} />
+  </svg>;
+}`,
+    };
+  },
   "sculptural-type-three": (specifier) => {
     return {
       imports: [

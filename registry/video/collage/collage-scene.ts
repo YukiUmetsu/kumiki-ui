@@ -17,6 +17,8 @@ import type { CollageFontRole, CollageFonts } from "./collage-type";
 import type { CollagePuppetAction, CollagePuppetLook } from "./collage-puppet";
 import { inspectPuppet } from "./collage-puppet";
 import type { RigSpec } from "../../rig/rig-spec";
+import { inspectPaperSheetMotion } from "../../motion/paper-sheet";
+import type { PaperSheetMotion } from "../../motion/paper-sheet";
 import { inspectRig } from "../../rig/rig-spec";
 
 export type CollageColor = `#${string}`;
@@ -100,6 +102,11 @@ export interface CollageCutoutNode extends CollageBase {
   pattern?: { type: "lines" | "grid" | "dots" | "stripes"; color: CollagePaint; spacing?: number; angle?: number; opacity?: number };
   /** Optional thin printed outline. */
   stroke?: { color: CollagePaint; width: number };
+  /**
+   * MC1.3 physical paper: the cutout folds, peels, rolls and tears in 3D with curvature shading, edge thickness and
+   * cast shadows; its outline is the cutout's silhouette. The stock defaults from `material`. Keys use scene frames.
+   */
+  sheet?: PaperSheetMotion;
 }
 
 export interface CollageTextNode extends CollageBase {
@@ -473,6 +480,7 @@ export function inspectCollageScene(input: unknown): string[] {
           if (node.halftone.cell !== undefined && !inRange(node.halftone.cell, 2, 60)) errors.push(p + ".halftone.cell must be 2..60");
           for (const key of ["from", "to", "opacity"] as const) if (node.halftone[key] !== undefined && !inRange(node.halftone[key], 0, 1)) errors.push(p + ".halftone." + key + " must be 0..1");
         }
+        if (node.sheet !== undefined) for (const issue of inspectPaperSheetMotion(node.sheet, p + ".sheet.")) errors.push(`${issue.path}: ${issue.message}`);
         if (node.pattern) {
           if (!["lines", "grid", "dots", "stripes"].includes(node.pattern.type)) errors.push(p + ".pattern.type is unknown");
           checkPaint(node.pattern.color, palette, p + ".pattern.color", errors);

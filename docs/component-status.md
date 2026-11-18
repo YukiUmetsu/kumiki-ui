@@ -208,6 +208,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `painted-composition` | video | dom | — | — | — |
 | `paired-focus` | motion | dom | [spec](component-specs/paired-focus.md) | `motion-paired-focus--complete-sequence` | — |
 | `paper-craft` | video | dom | — | — | — |
+| `paper-sheet` | motion | dom | [spec](component-specs/paper-sheet.md) | `video-production-film-looks-paper-craft--physical-paper` | — |
 | `particle-moments` | visual | dom | [spec](component-specs/environmental-effects.md) | `video-particle-moments--choose-particles` | — |
 | `people-3d` | people | three | [spec](component-specs/people-3d.md) | `domains-people-3d--casual-adult` | **not reviewed** |
 | `physical-motion` | motion | data | [spec](component-specs/physical-motion.md) | `craft-blender-asset-bridge--physically-grounded-motion` | — |

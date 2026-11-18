@@ -15,6 +15,7 @@ import type { PaperScenery, PaperSceneryPalette } from "../../registry/video/pap
 import type { PaperObject, PaperObjectPalette } from "../../registry/video/paper-object-kit";
 import type { PaperBotanicalPalette } from "../../registry/video/paper-botanical-kit";
 import type { PaperAspect } from "./paper-craft-demo";
+import { PaperSheetLab } from "./paper-sheet-lab";
 
 type Controls = {
   artwork: "garden" | "botanical" | "object" | "scenery";
@@ -509,4 +510,11 @@ export const MoonlitLantern: Story = {
     colorLayers:hideControl,curl:hideControl,relief:hideControl,
     frame:hideControl,curtains:hideControl,
   },
+};
+
+/** MC1.3 physical paper: real stocks fold, peel, roll, tear and hang; shares Paper Craft's existing folder. */
+export const PhysicalPaper: Story = {
+  name:"Physical Paper · Fold, Peel, Roll, Tear",
+  render:()=><PaperSheetLab/>,
+  parameters:{controls:{disable:true}},
 };

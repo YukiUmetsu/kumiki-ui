@@ -166,6 +166,15 @@ treatment lab can wind it to noon, let the hours fly, tick in real time or pull 
 hook and payoff use the same rig. Reassembled at rest, the layers match the source photo to a mean difference of
 0.9/255. The plate under the hands is a restoration (see ASSETS.md).
 
+## Physical paper cutouts (MC1.3)
+
+A `cutout` takes `sheet` (the `PaperSheetMotion` of [paper-sheet](paper-sheet.md)), and then folds, tears, peels and
+rolls in 3D. Its print (`pattern`, `halftone`, fibre core) stays on every facet. It sags by its stock's weight, shows
+its thickness and fibres along tears, and casts its own shadow. The stock follows `material`. The height follows
+`lift`, and the light follows the scene's `light` angle, so physical and flat pieces share one light. Keys use the
+stepped frame, so on-twos cadence stays. Child nodes do not follow their parent's fold. Storybook: Editorial Collage →
+*COLLAGE1 · Physical paper lab*.
+
 ## Limits
 
 - Paper fibre and grain are generated textures, not scanned stock; halftone print of photos is an SVG filter whose

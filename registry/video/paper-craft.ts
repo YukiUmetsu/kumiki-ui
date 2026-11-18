@@ -3,6 +3,11 @@
  * Native cut-out shapes, exposed holes, hinges and folds: not a video filter.
  * Pure absolute-frame evaluation; no timers, global RNG or second timeline.
  */
+import { evaluatePaperSheet, inspectPaperSheetMotion } from "../motion/paper-sheet";
+import type { PaperSheetFrame, PaperSheetMotion, PaperSheetSpec, PaperVec3 } from "../motion/paper-sheet";
+import { PAPER_LIGHTS } from "../motion/paper-sheet-light";
+import type { PaperLight, PaperLightName, PaperView } from "../motion/paper-sheet-light";
+
 export type PaperStyle = "layered" | "kirigami" | "pop-up" | "lightbox" | "shadow-puppet";
 export type PaperMotion = "rise" | "swing" | "unfold" | "still" | "flutter";
 /** Separate, actually hinged tip contour; unlike a gradient this changes silhouette. */
@@ -71,6 +76,21 @@ export interface PaperCutLayer {
   enterFrame?: number;
   /** Duration of local assembly beat (frames). */
   durationFrames?: number;
+  /**
+   * MC1.3 physical paper: the layer becomes a sheet of real stock that folds, bends, peels, rolls and tears in 3D,
+   * with curvature shading, edge thickness and shadows cast on the backing. Bend and tear keys use scene frames.
+   */
+  sheet?: PaperSheetMotion;
+}
+/** Scene settings shared by every physical layer. */
+export interface PaperPhysicalSettings {
+  /** Real size of the scene. @default 4 (a 1280 px frame is a 32 cm diorama) */
+  pxPerMm?: number;
+  /** @default [0, 1, 0] (an upright diorama: down the screen) */
+  gravity?: PaperVec3;
+  /** @default the scene's own key: upper left, soft, matching the layer shadows */
+  light?: PaperLight | PaperLightName;
+  view?: PaperView;
 }
 export interface PaperCraftSpec {
   version: 1;
@@ -89,6 +109,8 @@ export interface PaperCraftSpec {
   startAssembled?: boolean;
   /** Optional overhead-camera key poses. A bounded, solid-stock push/pan only. */
   cameraKeys?: readonly PaperCameraKey[];
+  /** Settings for layers with a physical `sheet`. */
+  physical?: PaperPhysicalSettings;
 }
 /** SVG affine [a,b,c,d,e,f], in global paper-sheet coordinates. */
 export type PaperAffine = readonly [number,number,number,number,number,number];
@@ -117,6 +139,8 @@ export interface PaperLayerFrame {
   shadowX: number;
   shadowY: number;
   shadowBlur: number;
+  /** The physical sheet on this frame, for layers with `sheet`. */
+  sheet?: PaperSheetFrame;
 }
 export interface PaperCraftFrame {
   frame: number;
@@ -127,6 +151,35 @@ export interface PaperIssue { path: string; message: string }
 export const PAPER_STYLES: readonly PaperStyle[] = ["layered", "kirigami", "pop-up", "lightbox", "shadow-puppet"];
 /** Bounded detailed cut-stock budget; the renderer remains deterministic and exportable. */
 export const MAX_PAPER_LAYERS = 128;
+/**
+ * The scene's own key light for physical layers: upper left and soft, so flap shadows agree with the drop shadows
+ * of flat layers. The sky is up the screen (an upright diorama).
+ */
+export const PAPER_CRAFT_LIGHT: PaperLight = { direction: [-0.55, -0.8, 1], size: 60, key: 0.8, ambient: 0.4, bounce: 0.25, up: [0, -1, 0] };
+/** Height of a layer above the backing, px: the same rule as its drop shadow (offset 1.8 + 0.55 × depth, …). */
+export const paperLayerHeight = (layer: Pick<PaperCutLayer, "depth">) => 3.3 + layer.depth;
+/** The full sheet spec of a physical layer: its cut outline, the scene's size and gravity, its height. */
+export function paperLayerSheetSpec(spec: PaperCraftSpec, layer: PaperCutLayer, index: number): PaperSheetSpec {
+  const sheet = layer.sheet ?? {};
+  return {
+    outline: [layer.path, ...(layer.holes ?? [])].join(" "),
+    fillRule: "evenodd",
+    stock: sheet.stock ?? "cardstock",
+    grain: sheet.grain,
+    thickness: sheet.thickness,
+    bends: sheet.bends,
+    tears: sheet.tears,
+    seed: sheet.seed ?? spec.seed + index * 17,
+    pxPerMm: spec.physical?.pxPerMm ?? 4,
+    gravity: spec.physical?.gravity ?? [0, 1, 0],
+    support: paperLayerHeight(layer),
+  };
+}
+/** The light physical layers use. */
+export function paperCraftLight(spec: Pick<PaperCraftSpec, "physical">): PaperLight {
+  const light = spec.physical?.light;
+  return light === undefined ? PAPER_CRAFT_LIGHT : typeof light === "string" ? PAPER_LIGHTS[light] : light;
+}
 const hex = /^#[0-9a-fA-F]{6}$/;
 const finite = (n: number) => Number.isFinite(n);
 /** Closed, numeric SVG paths only: user data is never interpreted as SVG markup or CSS. */
@@ -204,6 +257,19 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
   if (!Number.isInteger(spec.durationFrames) || spec.durationFrames < 1 || spec.durationFrames > 36000) bad("durationFrames", "duration must be 1–36000");
   if (!Number.isSafeInteger(spec.seed)) bad("seed", "seed must be a safe integer");
   if (!hex.test(spec.backing) || !hex.test(spec.light)) bad("paper", "paper colours must be opaque six-digit hex");
+  if (spec.physical !== undefined) {
+    const ph = spec.physical, fin = (v: unknown) => typeof v === "number" && Number.isFinite(v);
+    if (!ph || typeof ph !== "object") bad("physical", "physical settings object required");
+    else {
+      if (ph.pxPerMm !== undefined && (!fin(ph.pxPerMm) || ph.pxPerMm < .05 || ph.pxPerMm > 200)) bad("physical.pxPerMm", "pxPerMm must be 0.05–200");
+      if (ph.gravity !== undefined && !(Array.isArray(ph.gravity) && ph.gravity.length === 3 && ph.gravity.every(fin))) bad("physical.gravity", "gravity must be three finite numbers");
+      const light = ph.light;
+      if (typeof light === "string") { if (!(light in PAPER_LIGHTS)) bad("physical.light", "unknown light preset"); }
+      else if (light !== undefined && !(light && Array.isArray(light.direction) && light.direction.length === 3 && light.direction.every(fin) &&
+        [light.size, light.key, light.ambient, light.bounce].every(v => fin(v) && v >= 0) && light.size <= 179)) bad("physical.light", "light needs a direction and nonnegative size (<180°), key, ambient and bounce");
+      if (ph.view !== undefined && !(ph.view && [ph.view.tilt ?? 0, ph.view.turn ?? 0].every(v => fin(v) && Math.abs(v) <= 89))) bad("physical.view", "tilt and turn must be within ±89°");
+    }
+  }
   if (!Array.isArray(spec.layers) || spec.layers.length < 1 || spec.layers.length > MAX_PAPER_LAYERS) bad("layers", "provide 1–128 separate cut-outs");
   inspectKeys(spec.cameraKeys, spec.durationFrames, "cameraKeys", issues,
     ["x","y","zoom"], name => name === "zoom" ? [1,1.18] : [-Math.max(spec.width, spec.height)*.12,Math.max(spec.width,spec.height)*.12]);
@@ -274,6 +340,7 @@ export function inspectPaperCraft(spec: PaperCraftSpec): PaperIssue[] {
           bad(base + ".rigGroup", "all sheets in one rig must share pivot and waveform");
       } else rigs.set(layer.rigGroup, layer);
     }
+    if (layer.sheet !== undefined) issues.push(...inspectPaperSheetMotion(layer.sheet, base + ".sheet."));
     inspectKeys(layer.poseKeys, spec.durationFrames, base+".poseKeys", issues,
       ["x","y","angle"], name => name === "angle" ? [-180,180] : [-4096,4096]);
     if (layer.enterFrame !== undefined && (!Number.isInteger(layer.enterFrame) || layer.enterFrame < 0 || layer.enterFrame >= spec.durationFrames))
@@ -347,6 +414,7 @@ export function evaluatePaperCraft(spec: PaperCraftSpec, frame: number, reducedM
       shadowX: 1.8 + depth * (spec.style === "lightbox" ? 1.05 : .55),
       shadowY: 2 + depth * (spec.style === "lightbox" ? 1.65 : .8),
       shadowBlur: 2.2 + depth * (spec.style === "lightbox" ? 1.9 : .85),
+      sheet: layer.sheet ? evaluatePaperSheet(paperLayerSheetSpec(spec, layer, i), reducedMotion ? spec.durationFrames - 1 : frame) : undefined,
     };
   });
   // Parent-first rigid affine composition, independent of scene-wide Z ordering.

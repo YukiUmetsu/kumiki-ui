@@ -26,6 +26,11 @@ import { fontStack } from "./collage-type";
 import type { PuppetPoint } from "./collage-puppet";
 import { PUPPET_RIG, ellipseOutline, hairOutline, headOutline, limbOutline, puppetPose, shadeHex, shoeOutline, torsoOutline } from "./collage-puppet";
 import { paperEdge } from "./collage-geometry";
+import { evaluatePaperSheet } from "../../motion/paper-sheet";
+import type { PaperSheetSpec } from "../../motion/paper-sheet";
+import type { PaperStockName } from "../../motion/paper-sheet-stock";
+import type { PaperLight } from "../../motion/paper-sheet-light";
+import { PaperSheetSvg } from "../../motion/paper-sheet-svg";
 
 export interface CollageSceneProps extends Omit<SVGProps<SVGSVGElement>, "width" | "height" | "viewBox" | "children"> {
   spec: CollageSceneSpec;
@@ -86,14 +91,32 @@ function FibreOverlay({ ctx, d, material }: { ctx: Ctx; d: string; material: Col
 
 // ---- Cutouts ---------------------------------------------------------------------------------------------------------------------
 
-function Cutout({ ctx, node, lift }: { ctx: Ctx; node: CollageCutoutNode; lift: number }) {
+const SHEET_STOCK: Record<CollagePaperMaterial, PaperStockName> = { paper: "copy", card: "cardstock", kraft: "kraft", newsprint: "newsprint", tissue: "tissue", glossy: "glossy" };
+
+/** Height of a piece above the board in its local units: the same rule as its drop shadow. */
+const liftHeight = (ctx: Ctx, lift: number) => (2 + Math.max(0, lift) * 15) / Math.max(.05, ctx.scale);
+
+/** The scene's light in a piece's local space, so physical shadows fall the same way on screen as flat ones. */
+function collageLight(ctx: Ctx): PaperLight {
+  const a = (ctx.light - ctx.rot) * Math.PI / 180;
+  return { direction: [-Math.cos(a) * ctx.mirror, -Math.sin(a), 1], size: 30, key: .72, ambient: .5, bounce: .3 };
+}
+
+function collageSheetSpec(ctx: Ctx, node: CollageCutoutNode, outline: string, lift: number): PaperSheetSpec {
+  const sheet = node.sheet ?? {};
+  return {
+    outline, fillRule: "nonzero", stock: sheet.stock ?? SHEET_STOCK[node.material ?? "paper"], grain: sheet.grain, thickness: sheet.thickness,
+    bends: sheet.bends, tears: sheet.tears, seed: sheet.seed ?? seedOf(node.id, ctx.spec.seed), support: liftHeight(ctx, lift),
+  };
+}
+
+function Cutout({ ctx, node, lift, frame }: { ctx: Ctx; node: CollageCutoutNode; lift: number; frame: number }) {
   const g = cutoutGeometry(node, ctx.spec.seed);
   const fill = paint(ctx.spec, node.fill), material = node.material ?? "paper";
   const clip = `${ctx.uid}-clip-${node.id}`;
   const coreColor = paint(ctx.spec, node.backing?.color, "#f6f1e6");
   const pattern = node.pattern;
-  return <>
-    <ShadowPath ctx={ctx} d={g.silhouette} lift={lift} strength={node.shadow ?? 1} />
+  const art = <>
     {g.core && <path d={g.core} fill={coreColor} />}
     {g.core && !ctx.plain && <path d={g.core} fill={`url(#${ctx.uid}-fibre)`} opacity={.35} style={{ mixBlendMode: "soft-light" }} />}
     <path d={g.face} fill={fill} opacity={material === "tissue" ? .84 : 1} />
@@ -106,6 +129,17 @@ function Cutout({ ctx, node, lift }: { ctx: Ctx; node: CollageCutoutNode; lift: 
     {material === "card" && <path d={g.face} fill="none" stroke={shadeHex(fill, -.3)} strokeWidth={1.1} opacity={.45} />}
     {material === "glossy" && <path d={g.face} fill={`url(#${ctx.uid}-sheen)`} opacity={.55} />}
     <FibreOverlay ctx={ctx} d={g.face} material={material} />
+  </>;
+  if (node.sheet) {
+    // The same pasted-up artwork on every facet of a physically folded, peeled or torn sheet.
+    const sheet = evaluatePaperSheet(collageSheetSpec(ctx, node, g.silhouette, lift), frame);
+    return <PaperSheetSvg sheet={sheet} front={art} color={fill}
+      back={node.sheet.back ? <path d={g.silhouette} fill={node.sheet.back} /> : undefined}
+      light={collageLight(ctx)} shadow={node.shadow ?? 1} />;
+  }
+  return <>
+    <ShadowPath ctx={ctx} d={g.silhouette} lift={lift} strength={node.shadow ?? 1} />
+    {art}
   </>;
 }
 
@@ -612,7 +646,7 @@ function renderNode(ctx: Ctx, node: CollageNode, attachments: Map<string, Collag
   const attach = (part: string) => (attachments.get(node.id + "." + part) ?? []).map(child => <Fragment key={child.id}>{renderNode({ ...childCtx, scale: childCtx.scale * (node.kind === "puppet" ? 1 : 1) }, child, attachments)}</Fragment>);
   let body: ReactNode = null;
   switch (node.kind) {
-    case "cutout": body = <Cutout ctx={childCtx} node={node} lift={pose.lift} />; break;
+    case "cutout": body = <Cutout ctx={childCtx} node={node} lift={pose.lift} frame={state.sampled} />; break;
     case "text": body = <TextPiece ctx={childCtx} node={node} state={{ sampled: state.sampled, step: state.step, lift: pose.lift }} />; break;
     case "marker": body = <Marker ctx={childCtx} node={node} progress={pose.progress} step={Math.floor(ctx.frame / 2)} />; break;
     case "tape": body = <Tape ctx={childCtx} node={node} lift={pose.lift} />; break;
