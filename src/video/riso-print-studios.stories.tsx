@@ -19,6 +19,7 @@ import {RisoTornCollageStudio} from "./riso76-paper-collage-studio";
 import {RisoRostrumCollageStudio} from "./riso77-rostrum-studio";
 import {RisoAccordionPrintedFilmStudio} from "./riso78-accordion-studio";
 import {RisoPullTabFilmStudio} from "./riso79-pull-tab-studio";
+import {RisoSlatRevealStudio} from "./riso81-slat-studio";
 import type { RisoScreenMode } from "../../registry/video/riso-screening";
 import { compileFilm } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -470,6 +471,12 @@ export const RisographContinuousAccordion:StoryObj<typeof RisoAccordionPrintedFi
 export const RisographPrintedPullTab:StoryObj<typeof RisoPullTabFilmStudio>={
   name:"Risograph · Original Printed Paper Pull-Tab",
   render:()=> <RisoPullTabFilmStudio/>,
+};
+
+/** RISO81: interleaved original print slats, one rigid comb and collision-safe paper lanes. */
+export const RisographInterleavedPaperSlats:StoryObj<typeof RisoSlatRevealStudio>={
+  name:"Risograph · Interleaved Paper Slat Reveal",
+  render:()=> <RisoSlatRevealStudio/>,
 };
 
 const meta = {
