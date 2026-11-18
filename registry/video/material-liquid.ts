@@ -6,6 +6,9 @@
  *   ω² = gk + (σ/ρ)k³ (Lamb, *Hydrodynamics* §266–267), so short ripples outrun long ones and die faster. The surface's
  *   slope bends the view (refraction) and catches the light. The next scene shows inside the packet the drop sends out;
  *   the waves break the seam into rings.
+ *   The drop's splash comes first, at its real speed (Worthington 1908; Rein 1993): a crown rises at the crater's rim
+ *   with beads on its edge, spray flies out and lands in ringlets, the crater collapses into a central jet whose tip
+ *   falls back as a second, smaller splash. At 30 fps it lasts about nine frames.
  * - **melt**: the picture is a layer of wax on a warm wall. It softens and drains: a viscous film on a vertical wall
  *   thins fastest at the top (Jeffreys 1930, h ∝ √(νy / gt)), so the top clears first while the rest sags, stretches
  *   and runs in drips of one spacing whose tips lead (Huppert 1982). The melt is glossy, and the next scene is behind it.
@@ -33,6 +36,8 @@ export interface LiquidPlan {
   gain: number;
   /** melt: the drip profile per column (−1..1). */
   drips: Float32Array;
+  /** ripple: the splash's spray, per droplet [angle, outward speed m/s, upward speed m/s, radius m]. */
+  spray: Float32Array;
 }
 
 export const LIQUID_FRAMES: Readonly<Record<LiquidKind, number>> = { ripple: 40, melt: 48 };
@@ -101,7 +106,12 @@ export function planLiquid(material: LiquidKind, opts: { cols: number; rows: num
       drips[i] = f + 0.05 * (fbm(x * 24, 1, seed + 3, 3) - 0.5);
     }
   }
-  return { material, cols, rows, aspect, seed, seconds, color: opts.color ?? DEFAULT_COLOR[material], origin, metres, reach, gain, drips };
+  // A 4 mm drop falling about half a metre throws a dozen or so droplets of a millimetre or less.
+  const spray = new Float32Array(material === "ripple" ? 4 * 16 : 0);
+  for (let i = 0; i < spray.length / 4; i++) {
+    spray.set([((i + 0.6 * hash(i, 61, seed)) / (spray.length / 4)) * Math.PI * 2, 0.18 + 0.4 * hash(i, 62, seed), 0.35 + 0.55 * hash(i, 63, seed), 0.0004 + 0.0007 * hash(i, 64, seed) ** 2], 4 * i);
+  }
+  return { material, cols, rows, aspect, seed, seconds, color: opts.color ?? DEFAULT_COLOR[material], origin, metres, reach, gain, drips, spray };
 }
 
 export function liquidFrame(plan: LiquidPlan, progress: number): MaterialFrame {
@@ -115,7 +125,7 @@ function rippleFrame(plan: LiquidPlan, p: number): MaterialFrame {
   const calm = 1 - smooth(0.82, 1, p), slope = t > 0 ? rippleSlope(radii, t) : new Float64Array(samples);
   const at = (r: number) => { const f = (r / ((reach + 0.05) * metres)) * (samples - 1), i = Math.min(samples - 2, Math.floor(f)), u = f - i; return slope[i] * (1 - u) + slope[i + 1] * u; };
   // The seam rides with the main packet; the waves break it into rings.
-  const kMain = 2 / DROP, cg = (G + 3 * SIGMA_RHO * kMain * kMain) / (2 * omega(kMain)), front = (cg * t) / metres, seam = 0.07, lead = 1.7 * front + 0.04;
+  const kMain = 2 / DROP, cg = (G + 3 * SIGMA_RHO * kMain * kMain) / (2 * omega(kMain)), front = (cg * t) / metres, seam = 0.07, lead = 1.7 * front + 0.04, craterR = 0.012 / metres;
   const dx = new Float32Array(n), dy = new Float32Array(n), reveal = new Uint8ClampedArray(n), light = new Uint8ClampedArray(n), dark = new Uint8ClampedArray(n);
   // Light from the upper left: a slope facing it glints.
   const lx = -0.6, ly = -0.8;
@@ -125,7 +135,9 @@ function rippleFrame(plan: LiquidPlan, p: number): MaterialFrame {
     // second (viscous damping e^(−2νk²t)), so the solution's tiny far tail is cut. Near the drop the first rings are
     // steep; the bend saturates smoothly rather than tearing the picture.
     const still = smooth(lead + 0.06, lead, r);
-    const g = 0.03 * Math.tanh((at(r * metres) * plan.gain * calm * still) / 0.03), ux = ex / r, uy = ey / r;
+    // The crater: for its first 90 ms the surface dips under the drop and bends the view outward.
+    const crater = t < CRATER_S ? 0.012 * Math.sin((Math.PI * t) / CRATER_S) * (r / craterR) * Math.exp(-((r / craterR) ** 2)) : 0;
+    const g = 0.03 * Math.tanh((at(r * metres) * plan.gain * calm * still + crater) / 0.03), ux = ex / r, uy = ey / r;
     // Refraction: the view shifts down the slope, staying a pixel inside the frame.
     dx[k] = Math.max(EDGE - x, Math.min(aspect - EDGE - x, -g * ux));
     dy[k] = Math.max(EDGE - y, Math.min(1 - EDGE - y, -g * uy));
@@ -136,7 +148,71 @@ function rippleFrame(plan: LiquidPlan, p: number): MaterialFrame {
     dark[k] = Math.round(255 * clamp01(-0.25 * facing));
   }
   const warp = { dx, dy };
-  return { reveal, layers: [{ id: "ripple-shade", color: "#0b1620", alpha: dark, blend: "multiply" }, { id: "ripple-light", color: plan.color, alpha: light, blend: "screen" }], warpOut: warp, warpIn: warp };
+  return { reveal, layers: [{ id: "ripple-shade", color: "#0b1620", alpha: dark, blend: "multiply" }, { id: "ripple-light", color: plan.color, alpha: light, blend: "screen" }], vectors: splash(plan, t), warpOut: warp, warpIn: warp };
+}
+
+/** How long the crater lasts, seconds. */
+const CRATER_S = 0.09;
+/** Ripples from a landing droplet travel at about the slowest capillary–gravity speed, m/s. */
+const RINGLET_SPEED = 0.23;
+
+/** A circle as a closed polyline, frame heights. */
+const circle = (x: number, y: number, r: number, count = 36) => {
+  const out: number[] = [];
+  for (let i = 0; i <= count; i++) { const a = (i / count) * Math.PI * 2; out.push(x + r * Math.cos(a), y + r * Math.sin(a)); }
+  return out;
+};
+
+/** The drop's splash at time t (seconds): crown, spray, ringlets, jet and the jet's falling tip, seen from above. */
+function splash(plan: LiquidPlan, t: number): MaterialFrame["vectors"] {
+  const { origin, metres: M, spray } = plan, o = origin, unit = (m: number) => m / M;
+  const rings: number[][] = [], ringAlpha: number[] = [], beads: number[][] = [], beadAlpha: number[] = [], shade: number[][] = [], shadeAlpha: number[] = [];
+  const ringlet = (x: number, y: number, since: number, size: number) => {
+    if (since < 0 || since > 0.3) return;
+    rings.push(circle(x, y, unit(size + RINGLET_SPEED * since)));
+    ringAlpha.push(0.55 * Math.exp(-since / 0.1));
+  };
+  // The crown: a thin sheet thrown up round the crater, beaded at its rim (Rayleigh–Plateau), gone in about 70 ms.
+  if (t > 0.002 && t < 0.075) {
+    const R = unit(0.011) * (1 - Math.exp(-t / 0.012)), seen = smooth(0.002, 0.012, t) * (1 - smooth(0.035, 0.075, t));
+    rings.push(circle(o.x, o.y, R, 48)); ringAlpha.push(0.85 * seen);
+    shade.push(circle(o.x, o.y, R * 0.8, 48)); shadeAlpha.push(0.4 * seen);
+    // Rim fingers are irregular: uneven spacing and size, some already flung a little way out.
+    for (let i = 0; i < 18; i++) {
+      const a = ((i + 0.9 * (hash(i, 71, plan.seed) - 0.5)) / 18) * Math.PI * 2, rr = R * (1.02 + 0.16 * hash(i, 72, plan.seed) ** 2);
+      beads.push(circle(o.x + rr * Math.cos(a), o.y + rr * Math.sin(a), unit(0.0004 + 0.0008 * hash(i, 73, plan.seed)), 8)); beadAlpha.push((0.6 + 0.35 * hash(i, 74, plan.seed)) * seen);
+    }
+  }
+  // Spray: each droplet flies out (seen from above it moves straight out), streaked over a 180° shutter, and lands in a
+  // ringlet where it falls.
+  for (let i = 0; i < spray.length; i += 4) {
+    const [a, vr, vz, size] = [spray[i], spray[i + 1], spray[i + 2], spray[i + 3]], t0 = 0.008, flight = (2 * vz) / G, tau = t - t0;
+    const at = (s: number) => unit(0.006 + vr * s);
+    if (tau > 0 && tau < flight) {
+      const r = at(tau), r0 = at(Math.max(0, tau - 1 / 60)), height = vz * tau - 0.5 * G * tau * tau, grow = 1 + height / 0.5;
+      beads.push(circle(o.x + r * Math.cos(a), o.y + r * Math.sin(a), Math.max(0.0016, unit(size) * grow), 8)); beadAlpha.push(0.95);
+      rings.push([o.x + r0 * Math.cos(a), o.y + r0 * Math.sin(a), o.x + r * Math.cos(a), o.y + r * Math.sin(a)]); ringAlpha.push(0.45);
+    }
+    const land = at(flight);
+    ringlet(o.x + land * Math.cos(a), o.y + land * Math.sin(a), tau - flight, size);
+  }
+  // The jet: the crater closes into a column that rises toward the lens (a bright drop of light from above), and its tip
+  // pinches off and falls back about a quarter of a second later, splashing again on a small scale.
+  if (t > 0.05 && t < 0.2) {
+    const rise = Math.sin((Math.PI * (t - 0.05)) / 0.15), R = unit(0.0018 + 0.0022 * rise);
+    beads.push(circle(o.x, o.y, R, 16)); beadAlpha.push(0.85 * rise);
+    shade.push(circle(o.x, o.y, R * 1.8, 24)); shadeAlpha.push(0.35 * rise);
+  }
+  if (t > 0.32 && t < 0.37) {
+    const R = unit(0.005) * (1 - Math.exp(-(t - 0.32) / 0.01)), seen = 1 - smooth(0.34, 0.37, t);
+    rings.push(circle(o.x, o.y, R, 32)); ringAlpha.push(0.6 * seen);
+  }
+  ringlet(o.x, o.y, t - 0.34, 0.002);
+  const out: NonNullable<MaterialFrame["vectors"]> = [];
+  if (shade.length) out.push({ id: "splash-shade", rings: shade, closed: false, stroke: "#0b1620", width: 2.4, alpha: 1, alphas: shadeAlpha, blend: "multiply" });
+  if (rings.length) out.push({ id: "splash-rings", rings, closed: false, stroke: plan.color, width: 1.5, alpha: 1, alphas: ringAlpha, blend: "screen" });
+  if (beads.length) out.push({ id: "splash-beads", rings: beads, closed: true, fill: plan.color, alpha: 1, alphas: beadAlpha, blend: "screen" });
+  return out;
 }
 
 function meltFrame(plan: LiquidPlan, p: number): MaterialFrame {

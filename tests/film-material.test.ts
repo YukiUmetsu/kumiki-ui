@@ -204,6 +204,10 @@ describe("material transitions", () => {
     const radius = (p: number) => Math.sqrt((mean(materialFrame(ripple, p).reveal) * aspect) / Math.PI);
     expect(radius(0.4) / radius(0.2)).toBeGreaterThan(1.7);
     expect(radius(0.4) / radius(0.2)).toBeLessThan(2.3);
+    // The splash comes first and is over in under half a second: crown and spray, then only the rings.
+    const crown = materialFrame(ripple, 0.025 / (40 / 30)).vectors!.map((v) => v.id);
+    expect(crown).toEqual(expect.arrayContaining(["splash-rings", "splash-beads"]));
+    expect(materialFrame(ripple, 0.5).vectors!.length).toBe(0);
     // Ahead of the waves the water is still; at the end the surface is calm and the next scene is whole.
     const early = materialFrame(ripple, 0.15).warpOut!;
     expect(early.dx[0]).toBe(0);
