@@ -48,7 +48,7 @@ export interface RoseContactShadow {
 export const ROSE_CONTACT_SHADOWS:readonly RoseContactShadow[]=[
   {
     id:"collar-under-cup",lower:"inner-fold",upper:"rose-whorl-recess",
-    axis:[[220,167],[234,175],[253,182],[271,178]],
+    axis:[[220,167],[237,174],[255,177],[270,174]],
     halfWidth:4.2,contacts:78,
     pigments:["#52243A","#83435B","#BB7180"],
     nibs:[.38,.33,.26],opacity:[.27,.23,.18],
@@ -62,7 +62,7 @@ export const ROSE_CONTACT_SHADOWS:readonly RoseContactShadow[]=[
   },
   {
     id:"cup-under-right",lower:"rose-whorl-recess",upper:"rose-whorl-right",
-    axis:[[263,148],[269,154],[273,161],[280,165]],
+    axis:[[260,153],[265,158],[270,164],[276,170]],
     halfWidth:3.2,contacts:62,
     pigments:["#522339","#8B4560","#BC7284"],
     nibs:[.36,.31,.25],opacity:[.26,.22,.18],
@@ -76,7 +76,7 @@ export const ROSE_CONTACT_SHADOWS:readonly RoseContactShadow[]=[
   },
   {
     id:"heart-under-scroll",lower:"heart",upper:"rose-whorl-scroll",
-    axis:[[246,178],[251,181],[258,182],[265,179]],
+    axis:[[250,180],[255,181],[260,181],[266,180]],
     halfWidth:2.5,contacts:49,
     pigments:["#54233C","#8A405B","#BB7182"],
     nibs:[.33,.29,.23],opacity:[.25,.20,.16],
