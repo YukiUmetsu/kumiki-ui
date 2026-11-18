@@ -29,7 +29,9 @@ test("ANAT6 builds new source-led characters from museum references and live EXP
   await expect(portrait).toHaveAttribute("data-km-expr1-emotion","angry");
   const yaw=atelier.getByRole("slider",{name:"Source-led head turn"});
   await yaw.evaluate(el=>{
-    const input=el as HTMLInputElement;input.value="20";
+    const input=el as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    setter?.call(input,"20");
     input.dispatchEvent(new Event("input",{bubbles:true}));
     input.dispatchEvent(new Event("change",{bubbles:true}));
   });
