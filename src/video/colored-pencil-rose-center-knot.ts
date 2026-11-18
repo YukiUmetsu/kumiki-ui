@@ -65,7 +65,7 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
         "M277 146 Q284 147 288 153","#A95770",.4,.36,239,38),
     ],
     dryContours:contacts("inner-fold",[
-      "M230 145 Q235 139 241 137",
+      "M230 150 Q236 143 244 141",
       "M273 145 Q280 142 285 147",
       "M212 161 Q219 168 227 169",
       "M264 177 Q272 177 278 172",
@@ -80,7 +80,7 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
     dryContours:contacts("rose-whorl-recess",[
       "M253 157 Q259 151 266 151",
       "M273 155 Q278 159 277 164",
-      "M252 165 Q256 169 261 172",
+      "M253 163 Q257 166 261 170",
       "M258 162 L262 157 M265 155 L269 154",
     ]),
   },
@@ -138,8 +138,8 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
     dryContours:contacts("rose-whorl-scroll",[
       "M238 155 Q245 145 255 143",
       "M264 151 Q270 157 267 164",
-      "M245 175 Q253 181 263 179",
-      "M243 171 L248 176 M256 179 L262 178",
+      "M244 172 Q252 178 262 176",
+      "M243 170 L248 174 M256 176 L262 175",
     ]),
   },
 ] as const;
@@ -156,9 +156,9 @@ export const ROSE_CENTER_SCROLL_BACKFACE={
   palette:["#97445D","#4F1D37","#C8798A"] as const,
   direction:60,flow:18,
   details:[
-    mark("rk-underturn-crease","M224 166 Q225 157 231 151","#6A304B",.48,.48,192,42),
-    mark("rk-underturn-reflect","M226 160 Q230 153 235 150","#E7B5B7",.31,.43,247,38),
-    mark("rk-underturn-fibres","M222 159 L225 153 M232 150 L235 149","#A85A74",.25,.34,223,40),
+    mark("rk-underturn-crease","M224 166 Q221 159 226 151","#6A304B",.48,.48,192,42),
+    mark("rk-underturn-reflect","M224 160 Q225 153 229 149","#E7B5B7",.31,.43,247,38),
+    mark("rk-underturn-fibres","M220 160 L222 155 M227 151 L229 148","#A85A74",.25,.34,223,40),
     mark("rk-underturn-tint","M224 169 Q227 175 231 178","#DDA0A9",.27,.36,271,38),
   ] as readonly PencilTrace[],
 } as const;
