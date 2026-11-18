@@ -75,8 +75,7 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
       expect(current?.layers).toHaveLength(3);
       const layers=current!.layers;
       expect(layers.map(layer=>layer.texture)).toEqual(["hatch","fiber","fiber"]);
-      const tone=id==="inner-fold"||id==="rose-whorl-recess"||
-        id===ROSE_CENTER_SCROLL_BACKFACE.id?"core":"rim";
+      const tone=id==="rose-whorl-scroll"?"rim":"core";
       expect(layers.map(layer=>layer.tone)).toEqual([tone,tone,tone]);
       expect(layers[1].angle-layers[0].angle).toBeCloseTo(11,6);
       expect(layers[2].angle-layers[0].angle).toBeCloseTo(-9,6);
@@ -84,7 +83,8 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
       expect(layers[2].flow).toBeCloseTo((layers[0].flow??0)*.76,6);
       const previous=baseline.regions.find(region=>region.id===id);
       if(previous){
-        // Preserve every layer property other than the authored angle and fan.
+        // Keep timing, spacing, nib, pressure, seed and texture; only the
+      // center palette, tone hierarchy, angle and directional fan are re-authored.
         expect(layers.map(({angle,flow,color,tone,...rest})=>rest))
           .toEqual(previous.layers.map(({angle,flow,color,tone,...rest})=>rest));
       }
