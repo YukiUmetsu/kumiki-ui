@@ -686,6 +686,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-anat1-hair-edge-v57">CC0 original-photo remaining 22-station scalp and far curtain edge (V57 !dev)</option>
            <option value="source-anat1-connected-face-v63">CC0 source-connected seven-wax facial value calibration over V57 geometry (V63 !dev)</option>
            <option value="source-anat1-connected-face-v64">CC0 source-led narrow oral aperture, connected enamel and lip micro-wax (V64 !dev)</option>
+           <option value="source-anat1-connected-face-v65">CC0 dark-centered oral cavity, connected enamel and tactile vermilion (V65 !dev)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -894,6 +895,18 @@ export const Cc0Anat1ConnectedFaceV64Mouth:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-anat1-connected-face-v64" initialInspection="mouth"/>,
+};
+export const Cc0Anat1ConnectedFaceV65:Story={
+  name:"CC0 V65 dark-centered oral cavity · full portrait",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v65" initialInspection="full"/>,
+};
+export const Cc0Anat1ConnectedFaceV65Mouth:Story={
+  name:"CC0 V65 dark-centered oral cavity · 3× mouth inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v65" initialInspection="mouth"/>,
 };
 export const Cc0Anat1HairTopV56:Story={
   name:"CC0 photographed source-registered asymmetric outer hair silhouette (!dev V56)",
@@ -1506,6 +1519,7 @@ export function Cc0CandidateLandmarkWorksheetV59({detail}:{detail:number}){
           <option value="source-anat1-hair-edge-v57">V57 source-edge candidate</option>
           <option value="source-anat1-connected-face-v63">V63 connected-face value candidate</option>
           <option value="source-anat1-connected-face-v64">V64 oral-aperture candidate</option>
+          <option value="source-anat1-connected-face-v65">V65 dark oral-cavity candidate</option>
         </select>
       </label>
       <label>Candidate feature

@@ -1,6 +1,6 @@
 name: Crayon ArtCraft source-native browser proof
 
-# PR checks exercise V52 source baseline, V54 upper-lid, V56/V57 hair, V63 face and V64 oral candidates
+# PR checks exercise V52 source baseline, V54 upper-lid, V56/V57 hair, V63 face and V65 dark-cavity oral candidates
 # hypotheses plus the independent photo-SSIM proof. Rejected V51/V53 and
 # all prior experimental versions remain in source tests, available via manual
 # workflow_dispatch; do not repeatedly replay the historical 8+ spec suite.
@@ -39,10 +39,12 @@ on:
       - src/video/crayon-artcraft-f1-anat1-photo-hair-edge-v57.ts
       - src/video/crayon-artcraft-f1-anat1-connected-face-v63.ts
       - src/video/crayon-artcraft-f1-oral-aperture-v64.ts
+      - src/video/crayon-artcraft-f1-oral-aperture-v65.ts
       - tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
       - tests/crayon-artcraft-f1-native-png-review-v61.test.tsx
       - tests/crayon-artcraft-f1-connected-face-v63.test.ts
       - tests/crayon-artcraft-f1-oral-aperture-v64.test.ts
+      - tests/crayon-artcraft-f1-oral-aperture-v65.test.ts
       - tests/crayon-artcraft-f1-candidate-landmarks-v59.test.tsx
       - registry/anatomy/anatomy-face.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
@@ -81,14 +83,14 @@ jobs:
           path: .artcraft-original-photo
       # One Playwright invocation per job: a second test command clears
       # test-results/ and silently destroys the first set of native PNGs.
-      # Keep native 1x/3x V54/V56/V63/V64 A/B and original-photo SSIM together.
+      # Keep native 1x/3x V54/V56/V63/V64/V65 A/B and original-photo SSIM together.
       - name: Capture source-native geometry and exact CC0 original-photo pixel audit (PR)
         if: github.event_name == 'pull_request'
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
           tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
-          --grep "F1 V52|F1 V54|F1 V55|F1 V56|F1 V57|F1 V58|F1 V63|F1 V64"
+          --grep "F1 V52|F1 V54|F1 V55|F1 V56|F1 V57|F1 V58|F1 V63|F1 V65"
       - name: Capture full source-native archive and original-photo QA (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-
