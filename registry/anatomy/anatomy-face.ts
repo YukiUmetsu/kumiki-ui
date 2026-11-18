@@ -9,7 +9,7 @@
  */
 import type { Vec3 } from "./anatomy-body";
 import type { HumanFrame, MeshSource } from "./anatomy-view";
-import faceData from "./data/face-mesh-mediapipe.json";
+import faceData from "./data/face-mesh-mediapipe.json" with {type:"json"};
 
 export const FACE_MESH_SOURCE = faceData.source;
 const BASE: readonly Vec3[] = faceData.vertices as Vec3[];

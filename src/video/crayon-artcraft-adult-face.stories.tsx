@@ -1,4 +1,4 @@
-import {useMemo,useState} from "react";
+import {useEffect,useMemo,useState} from "react";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
 import {crayonCamera} from "../../registry/video/materials/crayon-scene";
@@ -13,6 +13,14 @@ import {useCrayonStoryPlayback} from "./crayon-story-playback";
 import {CRAYON_PORTRAIT_AUDIT,crayonPortraitFrozenAudit} from "./crayon-artcraft-portrait-audit";
 import {auditCrayonF1LashRootContinuity,type CrayonF1LashFinish}
   from "./crayon-artcraft-f1-lash-clusters";
+import {crayonF1RegisterAnat1Face} from "./crayon-artcraft-f1-anat1-malar";
+import {CRAYON_F1_V59_NAMES,CRAYON_F1_V59_SOURCE,
+  crayonF1CandidateLandmarkAudit,crayonF1CandidatePointerPoint,
+  crayonF1NativePngDimensionsV61,crayonF1NativePngSha256V61,
+  crayonF1ValidateSourcePngV62,crayonF1ValidateNativePngManifestV61,
+  type CrayonF1CandidateLandmark,type CrayonF1CandidateMarks,
+  type CrayonF1CandidateVariant,type CrayonF1NativeCaptureWorksheetV60}
+  from "./crayon-artcraft-f1-candidate-landmarks-v59";
 
 /** ArtCraft reference crops use only the native CRAYON1 camera; source marks remain unchanged. */
 export type ArtcraftInspection="full"|"face"|"eyes"|"nose-mouth"|"garment";
@@ -177,8 +185,8 @@ const meta={
   title:"Video production/Film Looks/Crayon/ArtCraft Source Lab",
   id:"video-crayon-artcraft-adult-face",
   tags:["!dev"],
-  // Non-story review helpers must never become visible as CSF exports.
-  excludeStories:["AdultFaceArtcraftWorkbench","AdultFaceExpressionComparison",
+  excludeStories:["Cc0CandidateLandmarkWorksheetV59","Cc0NativePngReviewWorkbenchV61",
+    "AdultFaceArtcraftWorkbench","AdultFaceExpressionComparison",
     "crayonArtcraftInspectionSpec"],
   component:Cc0SourceRegisteredFaceWorkbench,
   args:{aspect:"landscape",detail:1,expression:"warm",headScaleY:.82,startFrame:299,playbackRate:1,loop:false,inspection:"full",
@@ -198,9 +206,8 @@ const meta={
 } satisfies Meta<typeof Cc0SourceRegisteredFaceWorkbench>;
 export default meta;
 type Story=StoryObj<typeof meta>;
-// The rejected synthetic blue-coat adult bust is deliberately absent from
-// Storybook. Its legacy geometry remains internal audit evidence only;
-// this suite exposes source-registered material studies instead.
+// The rejected synthetic blue-coat adult portrait is deliberately absent
+// from Storybook; the internal legacy geometry remains research only.
 /** ArtCraft experimental, source-crop-derived independent iris/eyelid wax.
  * NOT transplanted onto the rejected whole-face synthetic character.
  */
@@ -465,7 +472,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   initialEyeContact="source-shade",initialMidfaceForm="baseline",
 }:StudyProps & {
   initialLashFinish?:CrayonF1LashFinish;
-  initialInspection?:"full"|"near-eye"|"far-eye"|"mouth"|"nose";
+  initialInspection?:"full"|"face"|"near-eye"|"far-eye"|"mouth"|"nose"|"jaw-neck"|"hair-crown"|"hair-left"|"hair-right";
   initialEyeContact?:Cc0EyeContact;
   initialMidfaceForm?:Cc0MidfaceForm;
 }){
@@ -479,10 +486,12 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const [lashFinish,setLashFinish]=useState<CrayonF1LashFinish>(initialLashFinish);
   const [inspection,setInspection]=useState<
     "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
-    "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right">(initialInspection);
+    "nose"|"mouth"|"jaw-neck"|"hair-crown"|"hair-left"|"hair-right">(initialInspection);
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
+  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49","source-anat1-photometric-hair-v50","source-anat1-rooted-hair-v51","source-anat1-photo-hair-face-v52","source-anat1-palpebral-v53","source-anat1-superior-tarsus-v54","source-anat1-hair-top-v56","source-anat1-hair-edge-v57","source-anat1-connected-face-v63","source-anat1-connected-face-v64"].includes(midfaceForm)?
+    crayonF1RegisterAnat1Face():null,[midfaceForm]);
   const lashRootAudit=useMemo(()=>lashFinish!=="sparse"&&eyeContact!=="baseline"
     ?auditCrayonF1LashRootContinuity(spec.elements):null,
     [spec,eyeContact,lashFinish]);
@@ -497,6 +506,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
       nose:{focusX:416,focusY:622,zoom:3},
       mouth:{focusX:417,focusY:734,zoom:3},
       "jaw-neck":{focusX:312,focusY:871,zoom:2.4},
+      "hair-crown":{focusX:300,focusY:270,zoom:2.85},
       "hair-left":{focusX:75,focusY:670,zoom:2.15},
       "hair-right":{focusX:513,focusY:670,zoom:2.15},
     }[inspection];
@@ -522,6 +532,15 @@ export function Cc0SourceRegisteredFaceWorkbench({
       identity. A source landmark graph can be toggled without changing
       painted shapes or wax sequence. Artistic acceptance is NOT established.
     </p>
+    {anat1Fit&&<p data-km-crayon-f1-anat1-register="not-art-approved"
+      style={{margin:"0 0 12px",fontSize:12,lineHeight:1.65,maxWidth:870}}>
+      ANAT1 468-vertex face mask: source-fitted yaw {anat1Fit.yaw}°,
+      pitch {anat1Fit.pitch}°, 2D roll {anat1Fit.roll.toFixed(1)}°;
+      registered landmark RMSE {anat1Fit.rmse.toFixed(1)} px across
+      13 observed facial anchors. The mesh determines the native cheek
+      wax flow and camera geometry, not the subject’s identity.
+      Source and candidate remain different media; ARTISTIC REVIEW FAILED.
+    </p>}
     {lashRootAudit&&<p data-km-crayon-f1-lash-root-audit="topology-only"
       style={{margin:"0 0 12px",fontSize:12,lineHeight:1.65,maxWidth:870}}>
       Source-space rooted lash proximity: near {lashRootAudit.near.count} contacts,
@@ -631,6 +650,43 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-contour-joined">CC0 shared alar rim and source-hooked naris wax (experimental V20)</option>
           <option value="source-nasal-volume">CC0 bone-to-tip wax with restrained sidewall (experimental V21b)</option>
            <option value="source-nasal-value">CC0 connected near wing and septal tonal wax (V22 unapproved)</option>
+           <option value="source-naris-occlusion">CC0 projected 3/4 nostril cutouts (V23 experimental)</option>
+           <option value="source-nasal-relief">CC0 source light and far nasal shadow relief (V24 !dev)</option>
+           <option value="source-solid-relief">CC0 pressure-built opaque nose and soft wax edge (V25 !dev)</option>
+           <option value="source-carved-naris">CC0 attached negative-space cavity carve (V26 !dev)</option>
+           <option value="source-fused-naris">CC0 feathered cavities under shared alar roof (V27 experimental)</option>
+           <option value="source-face-values">CC0 measured cheek and orbit light planes (V28 unapproved)</option>
+           <option value="source-orbital-hood">CC0 natural supraorbital ribbon, not eye disks (V29 study)</option>
+           <option value="source-mandibular-turn">CC0 photographed jaw-to-malar silhouette (V30 study)</option>
+           <option value="source-anat1-malar">CC0 ANAT1 3D camera-guided malar wax flow (V31 unapproved)</option>
+           <option value="source-anat1-midface-bridge">CC0 ANAT1 continuous zygoma-to-alar wax planes (V32 unapproved)</option>
+           <option value="source-anat1-nasal-volume">CC0 ANAT1 root-to-tip nasal bone and cartilage (V33 REJECTED)</option>
+           <option value="source-anat1-alar-recess">CC0 ANAT1 near/far nasal recess (V34 REJECTED)</option>
+           <option value="source-anat1-orbit-malar">CC0 ANAT1 orbital-to-malar tonal face mass (V35 !dev, from V32)</option>
+           <option value="source-anat1-near-eye">CC0 ANAT1 photographed near eyelid aperture and pigment (V36 !dev, from V35)</option>
+           <option value="source-anat1-brow-follicles">CC0 ANAT1 source-rooted near eyebrow and follicles (V37 !dev, from V36)</option>
+           <option value="source-anat1-hair-values">CC0 original photographed dark hair source-value calibration (V38 !dev, from V37)</option>
+           <option value="source-anat1-rooted-hair-v39">CC0 native source-root to shaft wax gestures (V39 !dev, from V38)</option>
+           <option value="source-anat1-hair-contour-v40">CC0 source asymmetrical hair masses and fine wax contact (V40 !dev)</option>
+           <option value="source-anat1-hairline-v41">CC0 source-observed forehead / far-temple hair overlap (V41 !dev)</option>
+           <option value="source-anat1-hedge-v42">CC0 source-photographed native wax foliage / near-depth bokeh (V42 !dev)</option>
+           <option value="source-anat1-photo-foliage-v43">CC0 photograph-traced 19 nonrepeating green-bokeh contours (V43 !dev)</option>
+           <option value="source-anat1-five-tone-v44">CC0 five source-measured connected skin value planes (V44 !dev)</option>
+           <option value="source-anat1-eye-tarsus-v45">CC0 source-fitted near-eye sulcus, lacrimal wax and micro-lashes (V45 !dev)</option>
+           <option value="source-anat1-orbital-aperture-v46">CC0 source-registered 3D orbital aperture and continuous eyelid curvature (V46 !dev)</option>
+           <option value="source-anat1-continuous-face-v47">CC0 source-measured normal-weighted continuous facial wax flow (V47 !dev)</option>
+           <option value="source-anat1-photometric-underpaint-v48">CC0 native continuous photometric skin underpaint (V48 !dev, from V46)</option>
+           <option value="source-anat1-oblique-volume-v49">CC0 photo-aligned oblique orbital/cheek wax, preserved V48 (V49 !dev)</option>
+           <option value="source-anat1-photometric-hair-v50">CC0 photographed dark crown/curtain native hair wax (V50 !dev; V48-based)</option>
+           <option value="source-anat1-rooted-hair-v51">Rejected source-discordant outer hair stripes (V51 !dev negative control)</option>
+           <option value="source-anat1-photo-hair-face-v52">CC0 photo-measured oblique facial planes and dark rooted hair (V52 !dev)</option>
+           <option value="source-anat1-palpebral-v53">Rejected V53 upper/lower/iris photo-SSIM regression (!dev negative control)</option>
+           <option value="source-anat1-superior-tarsus-v54">CC0 upper tarsal/lash only, original V52 sclera/iris/pupil/lower lid (V54 !dev)</option>
+           <option value="source-anat1-hair-top-v56">CC0 source-scanned 22-station crown/curtain outer shape (V56 !dev)</option>
+           <option value="source-anat1-hair-edge-v57">CC0 original-photo remaining 22-station scalp and far curtain edge (V57 !dev)</option>
+           <option value="source-anat1-connected-face-v63">CC0 source-connected seven-wax facial value calibration over V57 geometry (V63 !dev)</option>
+           <option value="source-anat1-connected-face-v64">CC0 source-led narrow oral aperture, connected enamel and lip micro-wax (V64 !dev)</option>
+           <option value="source-anat1-connected-face-v65">CC0 dark-centered oral cavity, connected enamel and tactile vermilion (V65 !dev)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -652,7 +708,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
         <select aria-label="CC0 source anatomy inspection" value={inspection}
           onChange={e=>setInspection(e.target.value as
             "full"|"face"|"eyes"|"near-eye"|"far-eye"|"nose-mouth"|
-            "nose"|"mouth"|"jaw-neck"|"hair-left"|"hair-right")}>
+            "nose"|"mouth"|"jaw-neck"|"hair-crown"|"hair-left"|"hair-right")}>
           <option value="full">Full portrait</option>
           <option value="face">Face planes (1.6×)</option>
           <option value="eyes">Both eyes (2.12×)</option>
@@ -662,6 +718,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
           <option value="nose">Asymmetric nostrils (3×)</option>
           <option value="mouth">Shadowed lips and incisors (3×)</option>
           <option value="jaw-neck">Jaw-to-neck attachment (2.4×)</option>
+          <option value="hair-crown">Crown root hair (2.85×)</option>
           <option value="hair-left">Left rooted hair (2.15×)</option>
           <option value="hair-right">Right rooted hair (2.15×)</option>
         </select>
@@ -679,6 +736,651 @@ export const Cc0NasalDepthAndOcclusion:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-nasal-depth" initialInspection="nose"/>,
+};
+/** V37 versus V38 on the same native source camera, at the same absolute frame.
+ * Side-by-side snapshots intentionally keep the reference unmodified. */
+export function Cc0HairValueComparisonV38({
+  detail,startFrame,playbackRate,loop,
+}:StudyProps){
+  const [inspection,setInspection]=useState<"full"|"crown"|"left"|"right">("full");
+  const specs=useMemo(()=>{
+    const d=Math.max(.2,detail);
+    return {
+      before:crayonCc0FaceStudy({detail:d,midfaceForm:"source-anat1-brow-follicles"}),
+      after:crayonCc0FaceStudy({detail:d,midfaceForm:"source-anat1-hair-values"}),
+    };
+  },[detail]);
+  const {frame,playing,seek,restart,toggle}=useCrayonStoryPlayback(
+    startFrame,specs.after.durationFrames,"crayon-v38-hair-value-comparison",
+    playbackRate,loop);
+  const camera=useMemo(()=>{
+    const focus={
+      crown:{focusX:298,focusY:261,zoom:2.85},
+      left:{focusX:68,focusY:640,zoom:2.85},
+      right:{focusX:524,focusY:667,zoom:2.85},
+    } as const;
+    return inspection==="full"?null:[
+      {frame:0,...focus[inspection]},
+      {frame:specs.after.durationFrames-1,...focus[inspection]},
+    ];
+  },[inspection,specs.after.durationFrames]);
+  const variants=[
+    {key:"v37",name:"V37 control · source-rooted brow / original hair",
+      spec:specs.before},
+    {key:"v38",name:"V38 candidate · darker deposited hair wax",
+      spec:specs.after},
+  ] as const;
+  return <section data-km-crayon-hair-ab="unapproved" style={{
+    padding:16,maxWidth:1160,margin:"auto",color:"#352b30",
+    background:"#f3e9da",boxSizing:"border-box",fontFamily:"system-ui"}}>
+    <h2 style={{fontSize:19,margin:"0 0 8px"}}>Source hair value · matched V37/V38 comparison (!dev)</h2>
+    <p style={{fontSize:13,lineHeight:1.6,maxWidth:850}}>
+      Both native CRAYON1 renderings share source registration, seed, exposure,
+      frame and inspection camera. The experiment changes pigment deposition,
+      not strand count or geometry. ART HOLD: photographic likeness and
+      the required full-motion independent review remain unapproved.
+    </p>
+    <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap",
+      marginBottom:14,fontSize:13}}>
+      <label>Inspect hair{" "}
+        <select aria-label="Hair volume comparison region"
+          value={inspection}
+          onChange={e=>setInspection(e.target.value as typeof inspection)}>
+          <option value="full">Whole photograph camera · 1×</option>
+          <option value="crown">Crown and parting · 2.85×</option>
+          <option value="left">Left curtain · 2.85×</option>
+          <option value="right">Right curtain · 2.85×</option>
+        </select>
+      </label>
+      <button type="button" onClick={toggle}>{playing?"Pause":"Play both"}</button>
+      <button type="button" onClick={restart}>Restart</button>
+      <label>Shared frame{" "}
+        <input type="range" aria-label="Shared hair comparison frame"
+          min={0} max={specs.after.durationFrames-1}
+          value={frame} onChange={e=>seek(Number(e.target.value))}/>
+      </label>
+      <output aria-live="off">{frame}</output>
+      <button type="button" onClick={()=>seek(specs.after.durationFrames-1)}>
+        Final deposition
+      </button>
+    </div>
+    <div style={{display:"grid",gap:14,alignItems:"start",
+      gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,300px),1fr))"}}>
+      {variants.map(({key,name,spec})=><figure key={key}
+        data-km-crayon-hair-variant={key}
+        style={{minWidth:0,margin:0}}>
+        <figcaption style={{fontSize:13,fontWeight:650,marginBottom:7}}>
+          {name}
+        </figcaption>
+        <div style={{width:"100%",aspectRatio:"608 / 1082",
+          overflow:"hidden",background:"#f4e6d3"}}>
+          <CrayonScene spec={camera?{...spec,camera}:spec} frame={frame}/>
+        </div>
+      </figure>)}
+    </div>
+    <p style={{fontSize:12,lineHeight:1.55,maxWidth:850}}>
+      Reference: Christopher Campbell, CC0, linked in the CC0 source face lab.
+      This visual control is not an artist acceptance certificate.
+    </p>
+  </section>;
+}
+export const Cc0HairValueABV38:Story={
+  name:"CC0 dark hair · synced V37/V38 1× + 2.85× A/B (!dev)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0HairValueComparisonV38 {...args}/>,
+};
+/** Native source-wax only. V48 remains the exact negative control for V49. */
+export const Cc0Anat1SourceHairEdgeV57:Story={
+  name:"CC0 original photo 22-point outer crown contour correction (!dev V57)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-edge-v57" initialInspection="full"/>,
+};
+export const Cc0Anat1SourceHairCrownV57:Story={
+  name:"CC0 source-measured scalp and darker root crown at 2.85× (!dev V57)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-edge-v57" initialInspection="hair-crown"/>,
+};
+export const Cc0Anat1SourceHairRightV57:Story={
+  name:"CC0 right hair curtain authentic outer silhouette 2.15× (!dev V57)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-edge-v57" initialInspection="hair-right"/>,
+};
+export const Cc0Anat1ConnectedFaceV63:Story={
+  name:"CC0 source-connected facial value calibration over V57 geometry (!dev V63)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="full"/>,
+};
+export const Cc0Anat1ConnectedFaceV63Face:Story={
+  name:"CC0 V63 connected face · 1.6× full-face inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="face"/>,
+};
+export const Cc0Anat1ConnectedFaceV63NearEye:Story={
+  name:"CC0 V63 connected face · 2.95× near-eye inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1ConnectedFaceV63FarEye:Story={
+  name:"CC0 V63 connected face · 3× far-eye inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="far-eye"/>,
+};
+export const Cc0Anat1ConnectedFaceV63Nose:Story={
+  name:"CC0 V63 connected face · 3× nose inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="nose"/>,
+};
+export const Cc0Anat1ConnectedFaceV63Mouth:Story={
+  name:"CC0 V63 connected face · 3× mouth inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="mouth"/>,
+};
+export const Cc0Anat1ConnectedFaceV64:Story={
+  name:"CC0 V64 source-led oral aperture · full portrait",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v64" initialInspection="full"/>,
+};
+export const Cc0Anat1ConnectedFaceV64Mouth:Story={
+  name:"CC0 V64 source-led oral aperture · 3× mouth inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v64" initialInspection="mouth"/>,
+};
+export const Cc0Anat1ConnectedFaceV65:Story={
+  name:"CC0 V65 dark-centered oral cavity · full portrait",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v65" initialInspection="full"/>,
+};
+export const Cc0Anat1ConnectedFaceV65Mouth:Story={
+  name:"CC0 V65 dark-centered oral cavity · 3× mouth inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v65" initialInspection="mouth"/>,
+};
+export const Cc0Anat1HairTopV56:Story={
+  name:"CC0 photographed source-registered asymmetric outer hair silhouette (!dev V56)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-top-v56" initialInspection="full"/>,
+};
+export const Cc0Anat1HairCrownV56:Story={
+  name:"CC0 22-source-station crown top and physical wax mass at 2.85× (!dev V56)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-top-v56" initialInspection="hair-crown"/>,
+};
+export const Cc0Anat1HairRightV56:Story={
+  name:"CC0 far curtain natural gravity turn and preserved original fibers 2.15× (!dev V56)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-top-v56" initialInspection="hair-right"/>,
+};
+export const Cc0Anat1SuperiorTarsusV54:Story={
+  name:"CC0 photographic superior tarsus with original iris/eye wax portrait (!dev V54)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-superior-tarsus-v54" initialInspection="full"/>,
+};
+export const Cc0Anat1SuperiorEyeV54:Story={
+  name:"CC0 local source-observed superior lash contact and original pupil 2.85× (!dev V54)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-superior-tarsus-v54" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1SuperiorFaceV54:Story={
+  name:"CC0 photographed 3D upper lid shadow on preserved V52 face 1.6× (!dev V54)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-superior-tarsus-v54" initialInspection="face"/>,
+};
+export const Cc0Anat1PalpebralV53:Story={
+  name:"CC0 photographed eyelid/iris topology, native complete crayon face (!dev V53)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-palpebral-v53" initialInspection="full"/>,
+};
+export const Cc0Anat1PalpebralEyeV53:Story={
+  name:"CC0 source-measured connected tarsal and iris wax at 2.85× (!dev V53)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-palpebral-v53" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1PalpebralFaceV53:Story={
+  name:"CC0 real near-eye integration with original face at 1.6× (!dev V53)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-palpebral-v53" initialInspection="face"/>,
+};
+export const Cc0Anat1PhotoCombinedV52:Story={
+  name:"CC0 photograph-matched wax skin and dark rooted hair in full portrait (!dev V52)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-hair-face-v52" initialInspection="full"/>,
+};
+export const Cc0Anat1PhotoFaceV52:Story={
+  name:"CC0 oblique orbital/cheek planes in original dark-haired portrait at 1.6× (!dev V52)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-hair-face-v52" initialInspection="face"/>,
+};
+export const Cc0Anat1PhotoNearEyeV52:Story={
+  name:"CC0 photographed real orbital value and tarsal roll at 2.85× (!dev V52)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-hair-face-v52" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1PhotoCrownV52:Story={
+  name:"CC0 V50 original physical rooted hair preserved before rejected V51 fibers (!dev V52)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-hair-face-v52" initialInspection="hair-crown"/>,
+};
+export const Cc0Anat1RootLocksV51:Story={
+  name:"CC0 source-rooted directional wax hair locks and original full portrait (!dev V51)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-rooted-hair-v51" initialInspection="full"/>,
+};
+export const Cc0Anat1RootCrownV51:Story={
+  name:"CC0 source parting crown fan and dry-wax strand depth 2.85× (!dev V51)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-rooted-hair-v51" initialInspection="hair-crown"/>,
+};
+export const Cc0Anat1RootLeftV51:Story={
+  name:"CC0 source near-side hair sweep, irregular root-to-ear curves 2.15× (!dev V51)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-rooted-hair-v51" initialInspection="hair-left"/>,
+};
+export const Cc0Anat1RootRightV51:Story={
+  name:"CC0 source hanging hair shaft and broken wax glancing light 2.15× (!dev V51)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-rooted-hair-v51" initialInspection="hair-right"/>,
+};
+export const Cc0Anat1HairVolumeV50:Story={
+  name:"CC0 original photographed dark crown and curtain, intact wax fibers (!dev V50)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photometric-hair-v50" initialInspection="full"/>,
+};
+export const Cc0Anat1HairCrownV50:Story={
+  name:"CC0 source root-to-shaft crown wax at 2.85× (!dev V50)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photometric-hair-v50" initialInspection="hair-crown"/>,
+};
+export const Cc0Anat1HairLeftV50:Story={
+  name:"CC0 left reflected chestnut crown and roots at 2.15× (!dev V50)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photometric-hair-v50" initialInspection="hair-left"/>,
+};
+export const Cc0Anat1HairRightV50:Story={
+  name:"CC0 face-occluding hair curtain and physical wax grain at 2.15× (!dev V50)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photometric-hair-v50" initialInspection="hair-right"/>,
+};
+export const Cc0Anat1ObliqueVolumeV49:Story={
+  name:"CC0 ANAT1 photographic oblique skin wax, native 1× (!dev V49)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-oblique-volume-v49" initialInspection="full"/>,
+};
+export const Cc0Anat1ObliqueCheekV49:Story={
+  name:"CC0 near-cheek, lateral wax and jaw at 1.6× (!dev V49)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-oblique-volume-v49" initialInspection="face"/>,
+};
+export const Cc0Anat1ObliqueOrbitV49:Story={
+  name:"CC0 source lower lid, malar roll and under-naris 2.95× (!dev V49)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-oblique-volume-v49" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1PhotometricUnderpaintV48:Story={
+  name:"CC0 native ANAT1 wax face underpaint (!dev V48)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photometric-underpaint-v48" initialInspection="full"/>,
+};
+export const Cc0Anat1CheekUnderpaintV48:Story={
+  name:"CC0 original undercheek and jaw wax at 1.6× (!dev V48)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photometric-underpaint-v48" initialInspection="face"/>,
+};
+export const Cc0Anat1OrbitUnderpaintV48:Story={
+  name:"CC0 photo-driven nasal/orbital wax macro (!dev V48)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photometric-underpaint-v48" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1ContinuousFaceV47:Story={
+  name:"CC0 source-registered ANAT1 normal-weighted continuous facial wax (!dev V47)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-continuous-face-v47" initialInspection="full"/>,
+};
+export const Cc0Anat1CheekFormV47:Story={
+  name:"CC0 cheekbone, undercheek and jaw dry-wax curvature at 1.6× (!dev V47)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-continuous-face-v47" initialInspection="face"/>,
+};
+export const Cc0Anat1OrbitMalarV47:Story={
+  name:"CC0 upper eye and malar continuity, native wax macro (!dev V47)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-continuous-face-v47" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1OrbitalApertureV46:Story={
+  name:"CC0 continuous 3D ANAT1 eye aperture / complete crayon scene (!dev V46)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-orbital-aperture-v46" initialInspection="full"/>,
+};
+export const Cc0Anat1OrbitalRimV46:Story={
+  name:"CC0 upper sulcus, almond aperture, wet limbus and projected brow at 2.8× (!dev V46)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-orbital-aperture-v46" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1OrbitalCheekV46:Story={
+  name:"CC0 infraorbital-to-zygomatic connected wax and original full face (!dev V46)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-orbital-aperture-v46" initialInspection="face"/>,
+};
+export const Cc0Anat1SourceTarsusV45:Story={
+  name:"CC0 source-measured tarsal, tear-duct and lacrimal skin depth (!dev V45)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-eye-tarsus-v45" initialInspection="full"/>,
+};
+export const Cc0Anat1NearTarsusV45:Story={
+  name:"CC0 near-eye rim, segmented sclera and 23 lash root microcontacts 2.8× (!dev V45)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-eye-tarsus-v45" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1EyeCheekV45:Story={
+  name:"CC0 eyelid-to-zygomatic transition in full face 1.6× (!dev V45)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-eye-tarsus-v45" initialInspection="face"/>,
+};
+export const Cc0Anat1FiveToneFaceV44:Story={
+  name:"CC0 source-calibrated 5-plane physical wax facial depth (!dev V44)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-five-tone-v44" initialInspection="full"/>,
+};
+export const Cc0Anat1FiveToneOrbitV44:Story={
+  name:"CC0 near orbital/infraorbital 1.6× pigment falloff (!dev V44)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-five-tone-v44" initialInspection="face"/>,
+};
+export const Cc0Anat1FiveToneCheekV44:Story={
+  name:"CC0 orbital / upper malar wax pigment contact 2.12× (!dev V44)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-five-tone-v44" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1PhotoFoliageV43:Story={
+  name:"CC0 photographed actual green canopy silhouette without repeated foliage icons (!dev V43)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-foliage-v43" initialInspection="full"/>,
+};
+export const Cc0Anat1PhotoFoliageLeftV43:Story={
+  name:"CC0 source-traced irregular upper-left canopy / native dry wax (!dev V43)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-foliage-v43" initialInspection="hair-left"/>,
+};
+export const Cc0Anat1PhotoFoliageFarV43:Story={
+  name:"CC0 source-traced green-black far canopy and physical wax grain (!dev V43)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-photo-foliage-v43" initialInspection="hair-right"/>,
+};
+export const Cc0Anat1SourceHedgeV42:Story={
+  name:"CC0 photographed dark green hedgerow / opaque source portrait (!dev V42)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hedge-v42" initialInspection="full"/>,
+};
+export const Cc0Anat1HedgeLeftV42:Story={
+  name:"CC0 native leaf wax, warm/cool depth upper-left (!dev V42)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hedge-v42" initialInspection="hair-left"/>,
+};
+export const Cc0Anat1HedgeRightV42:Story={
+  name:"CC0 native wax foliage behind far hair, 2.15× (!dev V42)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hedge-v42" initialInspection="hair-right"/>,
+};
+export const Cc0Anat1MeasuredHairlineV41:Story={
+  name:"CC0 source-observed scalp/forehead hair transition (!dev V41)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hairline-v41" initialInspection="full"/>,
+};
+export const Cc0Anat1MeasuredForeheadV41:Story={
+  name:"CC0 source upper-face vs hairline 1.6× (!dev V41)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hairline-v41" initialInspection="face"/>,
+};
+export const Cc0Anat1MeasuredTempleV41:Story={
+  name:"CC0 photographed right temple/far curtain overlap 2.15× (!dev V41)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hairline-v41" initialInspection="hair-right"/>,
+};
+export const Cc0Anat1HairSilhouetteV40:Story={
+  name:"CC0 asymmetric physical hair silhouette and fine dry-wax (!dev V40)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-contour-v40" initialInspection="full"/>,
+};
+export const Cc0Anat1HairSilhouetteCrownV40:Story={
+  name:"CC0 asymmetric crown and parting root 2.85× (!dev V40)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-contour-v40" initialInspection="hair-crown"/>,
+};
+export const Cc0Anat1HairSilhouetteRightV40:Story={
+  name:"CC0 face-occluding curtain and wax tooth 2.15× (!dev V40)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-contour-v40" initialInspection="hair-right"/>,
+};
+export const Cc0Anat1HairSilhouetteLeftV40:Story={
+  name:"CC0 near curtain / ear and micro-wax 2.15× (!dev V40)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-contour-v40" initialInspection="hair-left"/>,
+};
+export const Cc0Anat1RootFlowV39:Story={
+  name:"CC0 continuous crown-to-curtain root wax / original face (!dev V39)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-rooted-hair-v39" initialInspection="full"/>,
+};
+export const Cc0Anat1RootFlowCrownV39:Story={
+  name:"CC0 crown parting / rooted wax underpainting 2.85× (!dev V39)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-rooted-hair-v39" initialInspection="hair-crown"/>,
+};
+export const Cc0Anat1RootFlowDetailV39:Story={
+  name:"CC0 rooted dry-wax curtain and face contact 2.15× (!dev V39)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-rooted-hair-v39" initialInspection="hair-right"/>,
+};
+export const Cc0Anat1HairValuesV38:Story={
+  name:"CC0 original photographed chestnut-black hair crown and curtains (!dev V38)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-values" initialInspection="full"/>,
+};
+export const Cc0Anat1HairCrownV38:Story={
+  name:"CC0 original photographed hair crown / direction / wax 3× (!dev V38)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-hair-values" initialInspection="face"/>,
+};
+export const Cc0Anat1BrowFolliclesV37:Story={
+  name:"CC0 ANAT1 photographed near eyebrow cortex and rooted wax hair (!dev V37)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-brow-follicles" initialInspection="full"/>,
+};
+export const Cc0Anat1BrowDetailV37:Story={
+  name:"CC0 ANAT1 eyebrow fiber/upper-orbital shadow 3× native wax (!dev V37)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-brow-follicles" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1NearEyeV36:Story={
+  name:"CC0 ANAT1 photographed near-eye iris, eyelid and tear-margin (!dev V36)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-near-eye" initialInspection="full"/>,
+};
+export const Cc0Anat1NearEyeDetailV36:Story={
+  name:"CC0 ANAT1 source near-eye tarsal occlusion 3× (!dev V36)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-near-eye" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1OrbitMalarV35:Story={
+  name:"CC0 ANAT1 continuous orbital, cheek and bridge mass (!dev V35)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-orbit-malar" initialInspection="full"/>,
+};
+export const Cc0Anat1OrbitMalarNearV35:Story={
+  name:"CC0 ANAT1 original source value continuity at 3× (!dev V35)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-orbit-malar" initialInspection="face"/>,
+};
+export const Cc0Anat1AlarRecessV34:Story={
+  name:"CC0 ANAT1 anatomically recessed near/far nasal cavities (!dev V34)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-alar-recess" initialInspection="full"/>,
+};
+export const Cc0Anat1AlarDetailV34:Story={
+  name:"CC0 ANAT1 attached nostril/alar occlusion close-up (!dev V34)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-alar-recess" initialInspection="nose"/>,
+};
+export const Cc0Anat1NasalVolumeV33:Story={
+  name:"CC0 ANAT1 source-fitted 3/4 nasal bridge and tip wax (!dev V33)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-nasal-volume" initialInspection="full"/>,
+};
+export const Cc0Anat1NasalCloseV33:Story={
+  name:"CC0 ANAT1 nasal-root, cartilage, alar contact close-up (!dev V33)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-nasal-volume" initialInspection="nose"/>,
+};
+export const Cc0Anat1MidfaceBridgeV32:Story={
+  name:"CC0 ANAT1 source-fitted zygomatic-to-alar wax bridge (!dev V32)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-midface-bridge" initialInspection="full"/>,
+};
+export const Cc0Anat1MidfaceBridgeNearV32:Story={
+  name:"CC0 ANAT1 photographed nasal/cheek 3× native wax (!dev V32)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-midface-bridge" initialInspection="nose"/>,
+};
+export const Cc0Anat1MalarV31:Story={
+  name:"CC0 ANAT1 3D source-fitted cheek wax, original face (!dev V31)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-malar" initialInspection="full"/>,
+};
+export const Cc0Anat1MalarCloseV31:Story={
+  name:"CC0 ANAT1 malar bone and eye–cheek tangent, 1.6× (!dev V31)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-malar" initialInspection="face"/>,
+};
+export const Cc0MandibularTurnV30:Story={
+  name:"CC0 oblique cheek and mandibular source silhouette (!dev V30)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-mandibular-turn" initialInspection="jaw-neck"/>,
+};
+export const Cc0OrbitalHoodV29:Story={
+  name:"CC0 asymmetric wax brow hood and eyelid continuity (!dev V29)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-orbital-hood" initialInspection="near-eye"/>,
+};
+export const Cc0FacialValuePlanesV28:Story={
+  name:"CC0 measured near/far cheek and eye socket value planes (!dev V28)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-face-values" initialInspection="full"/>,
+};
+export const Cc0FusedNarisV27:Story={
+  name:"CC0 tapered matte nasal recess / attached alar cartilage 3× (!dev V27)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-fused-naris" initialInspection="nose"/>,
+};
+export const Cc0CarvedNarisV26:Story={
+  name:"CC0 attached alar negative-space cavities 3× (!dev V26)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-carved-naris" initialInspection="nose"/>,
+};
+export const Cc0OpaqueNasalVolumeV25:Story={
+  name:"CC0 opaque wax nasal volume / soft real paper contacts 3× (!dev V25)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-solid-relief" initialInspection="nose"/>,
+};
+export const Cc0NasalTonalReliefV24:Story={
+  name:"CC0 lit tip / far-side warm shadow native wax relief 3× (!dev V24)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-nasal-relief" initialInspection="nose"/>,
+};
+export const Cc0NarisOcclusionV23:Story={
+  name:"CC0 independently curved near/far nasal undercuts / ANAT1 3× (!dev V23)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-naris-occlusion" initialInspection="nose"/>,
 };
 export const Cc0NasalValue:Story={
   name:"CC0 attached nasal underplane / asymmetric alae 3× (V22 !dev)",
@@ -755,4 +1457,475 @@ export const Cc0SourceLashFlowFarMacro:Story={
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialEyeContact="source-sculpt" initialInspection="far-eye"
     initialLashFinish="rooted-flow"/>,
+};
+
+/**
+ * V59 independently entered *candidate-render* landmarks. The 18 blue source
+ * witnesses are already frozen CC0 photo observations, NOT measurements of
+ * this changing experimental native drawing. On the real full-camera f299
+ * drawing the reviewer must place each orange candidate witness by hand.
+ *
+ * This is an unapproved research aid. A click does not authenticate a PNG,
+ * validate value planes, substitute 300-frame review, or authorize release.
+ */
+export function Cc0CandidateLandmarkWorksheetV59({detail}:{detail:number}){
+  const [variant,setVariant]=useState<CrayonF1CandidateVariant>(
+    "source-anat1-hair-edge-v57");
+  const [selected,setSelected]=useState<CrayonF1CandidateLandmark>(
+    CRAYON_F1_V59_NAMES[0]);
+  const [marks,setMarks]=useState<CrayonF1CandidateMarks>({});
+  const [draftX,setDraftX]=useState("");
+  const [draftY,setDraftY]=useState("");
+  const [sourceVisible,setSourceVisible]=useState(true);
+  const spec=useMemo(()=>crayonCc0FaceStudy({detail:Math.max(.2,Math.min(1,detail)),
+    midfaceForm:variant}),[detail,variant]);
+  const evidence={sourceSha256:CRAYON_F1_V59_SOURCE.sha256,variant,frame:299,
+    width:608,height:1082,marks};
+  const audit=crayonF1CandidateLandmarkAudit(evidence);
+  const setCandidate=(point:readonly [number,number])=>{
+    setMarks(previous=>({...previous,[selected]:point}));
+    setDraftX(String(point[0]));setDraftY(String(point[1]));
+  };
+  const choose=(name:CrayonF1CandidateLandmark)=>{
+    setSelected(name);
+    setDraftX(marks[name]===undefined?"":String(marks[name]?.[0]));
+    setDraftY(marks[name]===undefined?"":String(marks[name]?.[1]));
+  };
+  const valid=draftX.trim()!==""&&draftY.trim()!==""&&
+    [Number(draftX),Number(draftY)].every(Number.isInteger)&&
+    Number(draftX)>=0&&Number(draftX)<608&&Number(draftY)>=0&&Number(draftY)<1082;
+  return <section data-km-crayon-f1-landmark-audit={audit.status} style={{
+    maxWidth:1050,margin:"auto",padding:18,color:"#292a31",
+    background:"#f4e9dc",fontFamily:"system-ui",boxSizing:"border-box"}}>
+    <h2 style={{fontSize:20,margin:"0 0 8px"}}>CC0 ArtCraft — native candidate 18-landmark annotation (!dev V59)</h2>
+    <p style={{fontSize:13,lineHeight:1.5,maxWidth:840}}>
+      The 18 blue reference marks are original-photo measurements. Select a
+      feature, then click its location on the <strong>actual rendered</strong> 608×1082
+      frame-299 crayon portrait; orange marks are editable candidate observations.
+      They start empty: the source marks must never be copied as candidate data.
+      This worksheet is not an independently authenticated screenshot or art signoff.
+      Reference: <a href={CRAYON_F1_V59_SOURCE.sourceUrl} target="_blank"
+        rel="noopener noreferrer">Christopher Campbell’s CC0 source photograph</a>.
+    </p>
+    <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end",marginBottom:14}}>
+      <label>Source study
+        <select aria-label="Candidate source stage" value={variant}
+          onChange={e=>{
+            setVariant(e.target.value as CrayonF1CandidateVariant);
+            setMarks({});setDraftX("");setDraftY("");
+          }} style={{display:"block",maxWidth:"100%"}}>
+          <option value="source-anat1-superior-tarsus-v54">V54 photo-positive eye/face</option>
+          <option value="source-anat1-hair-top-v56">V56 hair silhouette control</option>
+          <option value="source-anat1-hair-edge-v57">V57 source-edge candidate</option>
+          <option value="source-anat1-connected-face-v63">V63 connected-face value candidate</option>
+          <option value="source-anat1-connected-face-v64">V64 oral-aperture candidate</option>
+          <option value="source-anat1-connected-face-v65">V65 dark oral-cavity candidate</option>
+        </select>
+      </label>
+      <label>Candidate feature
+        <select aria-label="Anatomical landmark" value={selected}
+          onChange={e=>choose(e.target.value as CrayonF1CandidateLandmark)}
+          style={{display:"block"}}>
+          {CRAYON_F1_V59_NAMES.map(name=>
+            <option value={name} key={name}>{name}</option>)}
+        </select>
+      </label>
+      <label><input type="checkbox" checked={sourceVisible}
+        onChange={e=>setSourceVisible(e.target.checked)}/> Show blue source anchors</label>
+      <output aria-live="polite">{audit.measured}/18 candidate observations · {audit.status}</output>
+    </div>
+    <div style={{width:"min(100%,420px)",margin:"0 auto",position:"relative",
+      aspectRatio:"608 / 1082",background:"#e2d7c8",outline:"1px solid #a8998d"}}
+      data-km-crayon-f1-landmark-source-camera="608x1082-f299">
+      <CrayonScene spec={spec} frame={299}/>
+      <button type="button" title={"Mark "+selected+" on the native final render"}
+        aria-label={"Click the actual native render to mark "+selected}
+        onClick={e=>setCandidate(crayonF1CandidatePointerPoint(e.clientX,e.clientY,
+          e.currentTarget.getBoundingClientRect()))}
+        style={{position:"absolute",inset:0,width:"100%",height:"100%",
+          zIndex:2,cursor:"crosshair",border:0,padding:0,background:"transparent"}}/>
+      <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:3,
+        pointerEvents:"none"}}>
+        {sourceVisible&&CRAYON_F1_V59_NAMES.map(name=>{
+          const [x,y]=CRAYON_PORTRAIT_AUDIT.sourcePoints[name];
+          return <span key={"src-"+name} title={"Original source: "+name}
+            data-km-crayon-f1-source-landmark={name}
+            style={{position:"absolute",left:(x/608*100)+"%",top:(y/1082*100)+"%",
+              width:name===selected?10:6,height:name===selected?10:6,
+              transform:"translate(-50%,-50%)",borderRadius:"50%",
+              border:"1px solid white",background:"#246ddb",
+              boxShadow:"0 0 0 1px #0a2856"}}/>;
+        })}
+        {CRAYON_F1_V59_NAMES.map(name=>{
+          const point=marks[name];if(!point)return null;
+          return <span key={"candidate-"+name} title={"Native candidate: "+name}
+            data-km-crayon-f1-candidate-landmark={name}
+            style={{position:"absolute",left:(point[0]/608*100)+"%",
+              top:(point[1]/1082*100)+"%",width:11,height:11,
+              transform:"translate(-50%,-50%) rotate(45deg)",
+              background:name===selected?"#f69f2e":"#e66e26",
+              border:"1px solid #331e0d",boxShadow:"0 0 0 1px #fff"}}/>;
+        })}
+      </div>
+    </div>
+    <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"end",marginTop:14}}>
+      <label>Native pixel X <input aria-label="Candidate pixel X" type="number"
+        min={0} max={607} step={1} style={{display:"block",width:100}}
+        value={draftX} onChange={e=>setDraftX(e.target.value)}/></label>
+      <label>Native pixel Y <input aria-label="Candidate pixel Y" type="number"
+        min={0} max={1081} step={1} style={{display:"block",width:100}}
+        value={draftY} onChange={e=>setDraftY(e.target.value)}/></label>
+      <button type="button" disabled={!valid}
+        onClick={()=>setCandidate([Number(draftX),Number(draftY)])}>
+        Record manual coordinates</button>
+      <button type="button" disabled={!marks[selected]} onClick={()=>{
+        setMarks(previous=>{
+          const copy={...previous};delete copy[selected];return copy;
+        });setDraftX("");setDraftY("");
+      }}>Clear selected</button>
+      <button type="button" disabled={audit.measured===0} onClick={()=>{
+        setMarks({});setDraftX("");setDraftY("");
+      }}>Clear all</button>
+    </div>
+    <p style={{fontSize:13,lineHeight:1.5,margin:"10px 0"}}>
+      Source SHA-256: <code>{CRAYON_F1_V59_SOURCE.sha256}</code>.
+      Native candidate screenshot SHA-256: <strong>not collected</strong>.
+      The current film and facial value planes have not been independently approved.
+      {audit.outliers.length>0&&<> Normalized source-face landmark outliers:
+        {" "+audit.outliers.join(", ")}.</>}
+    </p>
+    <label style={{display:"block",fontSize:13}}>
+      Copy candidate observation record (unverified, no artistic release approval)
+      <textarea aria-label="Unverified candidate landmark observations" readOnly
+        value={JSON.stringify({...evidence,
+          sourceImage:"registered CC0 608x1082 screenshot",
+          renderedPngSha256:null,independentPixelVerification:false,
+          releaseApproved:false},null,2)}
+        style={{display:"block",width:"100%",height:130,resize:"vertical",
+          boxSizing:"border-box",fontFamily:"monospace",fontSize:11}}/>
+    </label>
+  </section>;
+}
+
+/** Read a user-selected file without trusting its MIME type or filename. */
+function readCrayonFileV61(
+  file:File,mode:"arrayBuffer"|"dataURL"|"text",
+):Promise<ArrayBuffer|string>{
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(reader.error??new Error("Unable to read selected file"));
+    reader.onload=()=>{
+      const value=reader.result;
+      if(mode==="arrayBuffer"&&value instanceof ArrayBuffer)resolve(value);
+      else if(mode!=="arrayBuffer"&&typeof value==="string")resolve(value);
+      else reject(new Error("Selected file returned an unexpected representation"));
+    };
+    if(mode==="arrayBuffer")reader.readAsArrayBuffer(file);
+    else if(mode==="dataURL")reader.readAsDataURL(file);
+    else reader.readAsText(file);
+  });
+}
+
+/**
+ * V61 review happens on the exact browser PNG that was hashed by the
+ * V60 Playwright run. The live SVG is intentionally not substituted here.
+ */
+export function Cc0NativePngReviewWorkbenchV61(){
+  const [sourceFile,setSourceFile]=useState<File|null>(null);
+  const [pngFile,setPngFile]=useState<File|null>(null);
+  const [manifestFile,setManifestFile]=useState<File|null>(null);
+  const [capture,setCapture]=useState<{
+    fileName:string;sha256:string;dataUrl:string;
+    sourceFileName:string;sourceSha256:string;sourceDataUrl:string;
+    manifest:CrayonF1NativeCaptureWorksheetV60;
+  }|null>(null);
+  const [status,setStatus]=useState<
+    "UPLOAD_REQUIRED"|"VERIFYING"|"VERIFIED_CAPTURE"|"REJECTED"
+  >("UPLOAD_REQUIRED");
+  const [error,setError]=useState("");
+  const [selected,setSelected]=useState<CrayonF1CandidateLandmark>(
+    CRAYON_F1_V59_NAMES[0]);
+  const [marks,setMarks]=useState<CrayonF1CandidateMarks>({});
+  const [draftX,setDraftX]=useState("");
+  const [draftY,setDraftY]=useState("");
+  const [sourceVisible,setSourceVisible]=useState(true);
+
+  useEffect(()=>{
+    let cancelled=false;
+    if(!sourceFile||!pngFile||!manifestFile){
+      setCapture(null);setError("");setStatus("UPLOAD_REQUIRED");
+      return ()=>{cancelled=true;};
+    }
+    setCapture(null);setError("");setMarks({});
+    setDraftX("");setDraftY("");setStatus("VERIFYING");
+    void (async()=>{
+      try{
+        if(!sourceFile.name.toLowerCase().endsWith(".png")||
+          !manifestFile.name.toLowerCase().endsWith(".json"))
+          throw new RangeError("V62 requires the exact CC0 source PNG and matching V60 .json sidecar");
+        const [sourceBuffer,sourceDataUrl,buffer,dataUrl,manifestText]=await Promise.all([
+          readCrayonFileV61(sourceFile,"arrayBuffer"),
+          readCrayonFileV61(sourceFile,"dataURL"),
+          readCrayonFileV61(pngFile,"arrayBuffer"),
+          readCrayonFileV61(pngFile,"dataURL"),
+          readCrayonFileV61(manifestFile,"text"),
+        ]);
+        if(typeof sourceBuffer==="string"||typeof sourceDataUrl!=="string"||
+          typeof buffer==="string"||typeof dataUrl!=="string"||
+          typeof manifestText!=="string")
+          throw new RangeError("V62 file reader returned an unexpected representation");
+        const [sourceWidth,sourceHeight]=crayonF1NativePngDimensionsV61(
+          new Uint8Array(sourceBuffer));
+        const sourceSha256=await crayonF1NativePngSha256V61(sourceBuffer);
+        crayonF1ValidateSourcePngV62(
+          sourceFile.name,sourceSha256,sourceWidth,sourceHeight);
+        const [width,height]=crayonF1NativePngDimensionsV61(
+          new Uint8Array(buffer));
+        const sha256=await crayonF1NativePngSha256V61(buffer);
+        const parsed:unknown=JSON.parse(manifestText);
+        const verified=crayonF1ValidateNativePngManifestV61(
+          parsed,pngFile.name,sha256,width,height);
+        if(cancelled)return;
+        setCapture({
+          fileName:pngFile.name,sha256,dataUrl,
+          sourceFileName:sourceFile.name,sourceSha256,sourceDataUrl,
+          manifest:verified,
+        });
+        setStatus("VERIFIED_CAPTURE");
+      }catch(cause){
+        if(cancelled)return;
+        setCapture(null);setStatus("REJECTED");
+        setError(cause instanceof Error?cause.message:String(cause));
+      }
+    })();
+    return ()=>{cancelled=true;};
+  },[sourceFile,pngFile,manifestFile]);
+
+  const audit=capture?crayonF1CandidateLandmarkAudit({
+    ...capture.manifest.evidence,marks,
+    renderedPngSha256:capture.sha256,
+  }):null;
+  const setCandidate=(point:readonly [number,number])=>{
+    setMarks(previous=>({...previous,[selected]:point}));
+    setDraftX(String(point[0]));setDraftY(String(point[1]));
+  };
+  const choose=(name:CrayonF1CandidateLandmark)=>{
+    setSelected(name);
+    setDraftX(marks[name]===undefined?"":String(marks[name]?.[0]));
+    setDraftY(marks[name]===undefined?"":String(marks[name]?.[1]));
+  };
+  const valid=draftX.trim()!==""&&draftY.trim()!==""&&
+    [Number(draftX),Number(draftY)].every(Number.isInteger)&&
+    Number(draftX)>=0&&Number(draftX)<608&&
+    Number(draftY)>=0&&Number(draftY)<1082;
+  const record=capture&&audit?JSON.stringify({
+    schema:"kumiki-crayon-artcraft-candidate-review-v62",
+    source:capture.manifest.source,native:capture.manifest.native,
+    evidence:{...capture.manifest.evidence,marks,
+      renderedPngSha256:capture.sha256},
+    audit,
+    sourcePngFileName:capture.sourceFileName,
+    sourcePngSha256:capture.sourceSha256,
+    sourcePngBytesSha256Verified:true,
+    nativePngBytesSha256Verified:true,
+    candidateMarksManuallyEntered:Object.keys(marks).length>0,
+    sourcePointsCopiedToCandidate:false,
+    reviewerIndependenceVerified:false,
+    facialValuePlanesApproved:false,
+    entire300FrameFilmReviewed:false,
+    artistApproved:false,releaseApproved:false,
+  },null,2):"";
+  const cameraStyle={
+    width:"min(100%,420px)",margin:"0 auto",position:"relative" as const,
+    aspectRatio:"608 / 1082",background:"#e2d7c8",
+    outline:"1px solid #a8998d",overflow:"hidden" as const,
+  };
+  return <section data-km-crayon-f1-native-review={status} style={{
+    maxWidth:1050,margin:"auto",padding:18,color:"#292a31",
+    background:"#f4e9dc",fontFamily:"system-ui",boxSizing:"border-box"}}>
+    <h2 style={{fontSize:20,margin:"0 0 8px"}}>
+      CC0 ArtCraft — paired source/native PNG review and 18-point annotation (!dev V62)
+    </h2>
+    <p style={{fontSize:13,lineHeight:1.5,maxWidth:900}}>
+      Upload the exact archived 608×1082 CC0 source screenshot PNG, the native
+      Chromium candidate PNG and its matching V60 JSON sidecar from the same
+      Actions artifact. V62 hashes both PNG byte streams and verifies the source
+      against the frozen CC0 screenshot SHA-256. Blue anchors appear only on the
+      original source; orange marks are manually observed only on the candidate.
+      The source screenshot is not the original camera JPEG. Measurements do not
+      certify reviewer independence or artistic approval.
+    </p>
+    <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end",marginBottom:12}}>
+      <label>Exact CC0 source screenshot PNG
+        <input type="file" accept="image/png,.png"
+          aria-label="Original CC0 source PNG"
+          onChange={event=>{
+            setSourceFile(event.target.files?.[0]??null);
+            setMarks({});setDraftX("");setDraftY("");
+          }} style={{display:"block",maxWidth:"100%"}}/>
+      </label>
+      <label>Native Chromium candidate PNG
+        <input type="file" accept="image/png,.png"
+          aria-label="Native Chromium screenshot PNG"
+          onChange={event=>{
+            setPngFile(event.target.files?.[0]??null);
+            setMarks({});setDraftX("");setDraftY("");
+          }} style={{display:"block",maxWidth:"100%"}}/>
+      </label>
+      <label>Matching V60 provenance JSON
+        <input type="file" accept="application/json,.json"
+          aria-label="Matching V60 capture manifest JSON"
+          onChange={event=>{
+            setManifestFile(event.target.files?.[0]??null);
+            setMarks({});setDraftX("");setDraftY("");
+          }} style={{display:"block",maxWidth:"100%"}}/>
+      </label>
+      <output aria-live="polite">{audit?.measured??0}/18 candidate pixel observations ·
+        {" "+(audit?.status??status)}</output>
+    </div>
+    {status==="UPLOAD_REQUIRED"&&<p>
+      Upload the exact source photo, native PNG and matching V60 JSON sidecar to unlock annotation.
+    </p>}
+    {status==="VERIFYING"&&<p aria-live="polite">
+      Verifying both PNG byte streams, frozen CC0 source identity and V60 candidate manifest…
+    </p>}
+    {status==="REJECTED"&&<p role="alert">
+      Capture verification failed: {error}
+    </p>}
+    {capture&&audit&&<>
+      <p data-km-crayon-f1-native-png-verified="" style={{fontSize:13,lineHeight:1.5}}>
+        <strong>Verified source screenshot bytes</strong>
+        {" · SHA-256 "}<code>{capture.sourceSha256}</code>
+        {" · "+capture.sourceFileName}
+      </p>
+      <p data-km-crayon-f1-native-png-verified="" style={{fontSize:13,lineHeight:1.5}}>
+        <strong>Verified native candidate bytes</strong>
+        {" · "+capture.manifest.native.variant+" · SHA-256 "}
+        <code>{capture.sha256}</code>
+      </p>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"end",marginBottom:12}}>
+        <label>Candidate feature
+          <select aria-label="Verified PNG anatomical landmark" value={selected}
+            onChange={event=>choose(event.target.value as CrayonF1CandidateLandmark)}
+            style={{display:"block"}}>
+            {CRAYON_F1_V59_NAMES.map(name=>
+              <option value={name} key={name}>{name}</option>)}
+          </select>
+        </label>
+        <label><input type="checkbox" checked={sourceVisible}
+          onChange={event=>setSourceVisible(event.target.checked)}/>
+          Show blue source anchors</label>
+        <span style={{fontSize:12}}>Matched camera: 608×1082 · frame 299 · detail 1</span>
+      </div>
+      <div style={{display:"grid",
+        gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",
+        gap:16,alignItems:"start"}}>
+        <div data-testid="crayon-f1-verified-source-camera"
+          data-km-crayon-f1-source-camera="608x1082"
+          style={{minWidth:0}}>
+          <p style={{fontSize:12,fontWeight:600,margin:"0 0 6px"}}>
+            Original CC0 source · blue source anchors
+          </p>
+          <div style={cameraStyle}>
+            <img src={capture.sourceDataUrl} alt="Verified CC0 original source photo"
+              draggable={false} style={{display:"block",width:"100%",height:"100%",
+                objectFit:"fill"}}/>
+            <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:3,
+              pointerEvents:"none"}}>
+              {sourceVisible&&CRAYON_F1_V59_NAMES.map(name=>{
+                const [x,y]=CRAYON_PORTRAIT_AUDIT.sourcePoints[name];
+                return <span key={"source-"+name} title={"Original source: "+name}
+                  data-km-crayon-f1-source-landmark={name}
+                  style={{position:"absolute",left:(x/608*100)+"%",
+                    top:(y/1082*100)+"%",width:name===selected?10:7,
+                    height:name===selected?10:7,transform:"translate(-50%,-50%)",
+                    borderRadius:"50%",border:"1px solid white",background:"#246ddb",
+                    boxShadow:"0 0 0 1px #0a2856"}}/>;
+              })}
+            </div>
+          </div>
+        </div>
+        <div data-testid="crayon-f1-verified-candidate-camera"
+          data-km-crayon-f1-candidate-camera="608x1082-f299"
+          style={{minWidth:0}}>
+          <p style={{fontSize:12,fontWeight:600,margin:"0 0 6px"}}>
+            Native crayon candidate · orange candidate observations
+          </p>
+          <div data-km-crayon-f1-verified-png-camera="608x1082-f299"
+            style={cameraStyle}>
+            <img src={capture.dataUrl} alt="Verified native crayon candidate screenshot"
+              draggable={false} style={{display:"block",width:"100%",height:"100%",
+                objectFit:"fill"}}/>
+            <button type="button"
+              aria-label={"Click the verified native PNG to mark "+selected}
+              onClick={event=>setCandidate(crayonF1CandidatePointerPoint(
+                event.clientX,event.clientY,event.currentTarget.getBoundingClientRect()))}
+              style={{position:"absolute",inset:0,width:"100%",height:"100%",
+                zIndex:2,cursor:"crosshair",border:0,padding:0,background:"transparent"}}/>
+            <div aria-hidden="true" style={{position:"absolute",inset:0,zIndex:3,
+              pointerEvents:"none"}}>
+              {CRAYON_F1_V59_NAMES.map(name=>{
+                const point=marks[name];if(!point)return null;
+                return <span key={"candidate-"+name} title={"Candidate PNG: "+name}
+                  data-km-crayon-f1-candidate-landmark={name}
+                  style={{position:"absolute",left:(point[0]/608*100)+"%",
+                    top:(point[1]/1082*100)+"%",width:11,height:11,
+                    transform:"translate(-50%,-50%) rotate(45deg)",
+                    background:name===selected?"#f69f2e":"#e66e26",
+                    border:"1px solid #331e0d",boxShadow:"0 0 0 1px #fff"}}/>;
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"end",marginTop:14}}>
+        <label>Native pixel X
+          <input aria-label="Candidate pixel X" type="number" min={0} max={607}
+            step={1} style={{display:"block",width:100}} value={draftX}
+            onChange={event=>setDraftX(event.target.value)}/>
+        </label>
+        <label>Native pixel Y
+          <input aria-label="Candidate pixel Y" type="number" min={0} max={1081}
+            step={1} style={{display:"block",width:100}} value={draftY}
+            onChange={event=>setDraftY(event.target.value)}/>
+        </label>
+        <button type="button" disabled={!valid}
+          onClick={()=>setCandidate([Number(draftX),Number(draftY)])}>
+          Record manual coordinates</button>
+        <button type="button" disabled={!marks[selected]} onClick={()=>{
+          setMarks(previous=>{
+            const copy={...previous};delete copy[selected];return copy;
+          });setDraftX("");setDraftY("");
+        }}>Clear selected</button>
+        <button type="button" disabled={audit.measured===0} onClick={()=>{
+          setMarks({});setDraftX("");setDraftY("");
+        }}>Clear all</button>
+      </div>
+      <p style={{fontSize:13,lineHeight:1.5,margin:"10px 0"}}>
+        The source and candidate SHA-256 values are computed from their uploaded
+        PNG bytes. Blue source points are drawn over the source image only;
+        candidate coordinates are independently entered on the native candidate
+        image only. Reviewer independence, all 300 frames and artist approval
+        remain separate requirements.
+      </p>
+      <label style={{display:"block",fontSize:13}}>
+        Copy byte-verified candidate observation record (not release approval)
+        <textarea aria-label="Verified-PNG candidate observation record" readOnly
+          value={record} style={{display:"block",width:"100%",height:180,
+            resize:"vertical",boxSizing:"border-box",fontFamily:"monospace",
+            fontSize:11}}/>
+      </label>
+    </>}
+  </section>;
+}
+
+export const Cc0NativePngReviewV61:Story={
+  name:"CC0 paired source/native PNG · manual 18-point review (ArtCraft experiment, !dev V62)",
+  render:()=> <Cc0NativePngReviewWorkbenchV61/>,
+};
+
+export const Cc0Anat1CandidateLandmarksV59:Story={
+  name:"CC0 18 native candidate landmarks · manual source-relative audit (!dev V59)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0CandidateLandmarkWorksheetV59 detail={args.detail}/>,
 };

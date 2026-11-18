@@ -16,6 +16,43 @@ import {crayonF1BuildNasalWaxDepth} from "./crayon-artcraft-f1-nasal-depth";
 import {crayonF1JoinNarisContours} from "./crayon-artcraft-f1-naris-contour";
 import {crayonF1ConstructNasalVolume} from "./crayon-artcraft-f1-nasal-volume";
 import {crayonF1ReconstructNasalValue} from "./crayon-artcraft-f1-photometric-nose";
+import {crayonF1NarisSourceOcclusion} from "./crayon-artcraft-f1-naris-occlusion";
+import {crayonF1SourceTonalRelief} from "./crayon-artcraft-f1-source-nose-relief";
+import {crayonF1FeatheredSolidNose} from "./crayon-artcraft-f1-solid-nose-volume";
+import {crayonF1CarveNarisRecess} from "./crayon-artcraft-f1-carved-naris";
+import {crayonF1FuseNarisIntoAlarSkin} from "./crayon-artcraft-f1-naris-wax-fusion";
+import {crayonF1CalibrateFacialValues} from "./crayon-artcraft-f1-face-values";
+import {crayonF1RebuildOrbitalHood} from "./crayon-artcraft-f1-orbital-hood";
+import {crayonF1RebuildMalarMandible} from "./crayon-artcraft-f1-mandibular-turn";
+import {crayonF1PaintAnat1Malar} from "./crayon-artcraft-f1-anat1-malar";
+import {crayonF1RebuildAnat1Midface} from "./crayon-artcraft-f1-anat1-midface-bridge";
+import {crayonF1BuildAnat1NasalVolume} from "./crayon-artcraft-f1-anat1-nasal-volume";
+import {crayonF1RebuildAnat1AlarRecess} from "./crayon-artcraft-f1-anat1-alar-depth";
+import {crayonF1BuildAnat1OrbitMalarField} from "./crayon-artcraft-f1-anat1-orbit-malar-field";
+import {crayonF1BuildAnat1NearEyeAperture} from "./crayon-artcraft-f1-anat1-eyelid-aperture";
+import {crayonF1BuildAnat1SourceBrow} from "./crayon-artcraft-f1-anat1-brow-follicles";
+import {crayonF1CalibrateAnat1HairValues} from "./crayon-artcraft-f1-anat1-hair-value";
+import {crayonF1AddRootedHairFlow} from "./crayon-artcraft-f1-anat1-root-flow";
+import {crayonF1ReconstructHairContourV40} from "./crayon-artcraft-f1-anat1-hair-contour-v40";
+import {crayonF1AlignAnat1HairlineV41} from "./crayon-artcraft-f1-anat1-hairline-v41";
+import {crayonF1AddSourceHedgeV42} from "./crayon-artcraft-f1-anat1-hedge-v42";
+import {crayonF1RebuildPhotoFoliageV43} from "./crayon-artcraft-f1-anat1-photo-foliage-v43";
+import {crayonF1CalibrateSourceSkinV44} from "./crayon-artcraft-f1-anat1-five-tone-v44";
+import {crayonF1RefineNearTarsusV45} from "./crayon-artcraft-f1-anat1-eye-tarsus-v45";
+import {crayonF1RebuildOrbitalApertureV46} from "./crayon-artcraft-f1-anat1-orbital-aperture-v46";
+import {crayonF1AddContinuousFaceWaxV47} from "./crayon-artcraft-f1-anat1-continuous-face-v47";
+import {crayonF1BuildPhotometricUnderpaintV48} from "./crayon-artcraft-f1-anat1-skin-underpaint-v48";
+import {crayonF1AddObliqueSourceVolumeV49} from "./crayon-artcraft-f1-anat1-oblique-volume-v49";
+import {crayonF1AddPhotometricHairWaxV50} from "./crayon-artcraft-f1-anat1-photo-hair-v50";
+import {crayonF1AddPhotoRootLocksV51} from "./crayon-artcraft-f1-anat1-root-locks-v51";
+import {crayonF1CombinePhotoWaxV52} from "./crayon-artcraft-f1-anat1-photo-composition-v52";
+import {crayonF1RebuildSourcePalpebralV53} from "./crayon-artcraft-f1-anat1-palpebral-v53";
+import {crayonF1SourceSuperiorTarsusV54} from "./crayon-artcraft-f1-anat1-superior-tarsus-v54";
+import {crayonF1SourceOuterHairV56} from "./crayon-artcraft-f1-anat1-outer-hair-v56";
+import {crayonF1PhotographicHairEdgeV57} from "./crayon-artcraft-f1-anat1-photo-hair-edge-v57";
+import {crayonF1ConnectedFacePlanesV63} from "./crayon-artcraft-f1-anat1-connected-face-v63";
+import {crayonF1RefineOralApertureV64} from "./crayon-artcraft-f1-oral-aperture-v64";
+import {crayonF1DeepenOralCavityV65} from "./crayon-artcraft-f1-oral-aperture-v65";
 import {crayonF1ReconstructBrows} from "./crayon-artcraft-f1-brow-geometry";
 import {crayonF1ReconstructJawNeck} from "./crayon-artcraft-f1-jaw-neck-geometry";
 import {crayonF1AddRootedLashes,type CrayonF1LashFinish}
@@ -31,8 +68,9 @@ import {crayonF1AddRootedLashes,type CrayonF1LashFinish}
  *
  * Unlike the unrelated synthetic adult bust, every major plane below uses
  * THIS source photograph's original screen-space (x,y) coordinates and
- * the 18 frozen source landmark annotations. There is no auto-fitting, no
- * invented generic face proportion template and no photographic texture.
+ * the 18 frozen source landmark annotations. The separate opt-in V31
+ * ANAT1 study fits only the canonical 3D face camera to those source
+ * anchors, without overriding the photographed identity or using a raster texture.
  *
  * The full original camera JPEG is not locally certified. This is a
  * source-led research artifact; do not transplant it onto the B1 body.
@@ -52,7 +90,7 @@ export type Cc0FaceView="wax"|"anatomy";
 /** Source-registered ocular pigment experiment; baseline is an unchanged negative control. */
 export type Cc0EyeContact="baseline"|"source-shade"|"source-value"|"source-sculpt";
 export type Cc0BrowForm="baseline"|"source-rooted";
-export type Cc0MidfaceForm="baseline"|"source-volume"|"source-alar"|"source-oral"|"source-oral-sculpt"|"source-nose-sculpt"|"source-nasal-depth"|"source-contour-joined"|"source-nasal-volume"|"source-nasal-value";
+export type Cc0MidfaceForm="baseline"|"source-volume"|"source-alar"|"source-oral"|"source-oral-sculpt"|"source-nose-sculpt"|"source-nasal-depth"|"source-contour-joined"|"source-nasal-volume"|"source-nasal-value"|"source-naris-occlusion"|"source-nasal-relief"|"source-solid-relief"|"source-carved-naris"|"source-fused-naris"|"source-face-values"|"source-orbital-hood"|"source-mandibular-turn"|"source-anat1-malar"|"source-anat1-midface-bridge"|"source-anat1-nasal-volume"|"source-anat1-alar-recess"|"source-anat1-orbit-malar"|"source-anat1-near-eye"|"source-anat1-brow-follicles"|"source-anat1-hair-values"|"source-anat1-rooted-hair-v39"|"source-anat1-hair-contour-v40"|"source-anat1-hairline-v41"|"source-anat1-hedge-v42"|"source-anat1-photo-foliage-v43"|"source-anat1-five-tone-v44"|"source-anat1-eye-tarsus-v45"|"source-anat1-orbital-aperture-v46"|"source-anat1-continuous-face-v47"|"source-anat1-photometric-underpaint-v48"|"source-anat1-oblique-volume-v49"|"source-anat1-photometric-hair-v50"|"source-anat1-rooted-hair-v51"|"source-anat1-photo-hair-face-v52"|"source-anat1-palpebral-v53"|"source-anat1-superior-tarsus-v54"|"source-anat1-hair-top-v56"|"source-anat1-hair-edge-v57"|"source-anat1-connected-face-v63"|"source-anat1-connected-face-v64"|"source-anat1-connected-face-v65";
 export type Cc0JawNeckForm="baseline"|"source-contour";
 export interface Cc0FaceOptions {detail?:number;view?:Cc0FaceView;fiberMaterial?:"line"|"dry-wax";eyeContact?:Cc0EyeContact;midfaceForm?:Cc0MidfaceForm;browForm?:Cc0BrowForm;jawNeckForm?:Cc0JawNeckForm;lashFinish?:CrayonF1LashFinish}
 type Wax=Extract<CrayonElement,{kind:"wax"}>;
@@ -119,6 +157,83 @@ export const CRAYON_F1_EYE_INSPECTION={
 } as const;
 
 export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
+  // V63 is an isolated pigment calibration over the exact V57 geometry.
+  // The source contour, hair, timing, paper and all other elements stay unchanged.
+  if(options.midfaceForm==="source-anat1-connected-face-v65"){
+    const v64=crayonCc0FaceStudy({...options,midfaceForm:"source-anat1-connected-face-v64"});
+    return {...v64,elements:crayonF1DeepenOralCavityV65(v64.elements)};
+  }
+  if(options.midfaceForm==="source-anat1-connected-face-v64"){
+    const v63=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-connected-face-v63",
+    });
+    return {...v63,elements:crayonF1RefineOralApertureV64(v63.elements)};
+  }
+  if(options.midfaceForm==="source-anat1-connected-face-v63"){
+    const v57=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-hair-edge-v57",
+    });
+    return {...v57,elements:crayonF1ConnectedFacePlanesV63(v57.elements)};
+  }
+  // V57 opt-in exact photographed outer-root correction. V56 remains the
+  // same-source negative control, all internal hair fibers unchanged.
+  if(options.midfaceForm==="source-anat1-hair-edge-v57"){
+    const v56=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-hair-top-v56",
+    });
+    return {...v56,elements:crayonF1PhotographicHairEdgeV57(v56.elements)};
+  }
+  // V56 opt-in source silhouette: never create new hair texture/stripes.
+  // All V54 photo-corrected eye/face, paper and 267+ fibers are retained.
+  if(options.midfaceForm==="source-anat1-hair-top-v56"){
+    const v54=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-superior-tarsus-v54",
+    });
+    return {...v54,elements:crayonF1SourceOuterHairV56(v54.elements)};
+  }
+  // V54 isolates only the upper lid source-positive V53 local change.
+  // All remaining geometry/material is exactly original photo-positive V52.
+  if(options.midfaceForm==="source-anat1-superior-tarsus-v54"){
+    const original=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-photo-hair-face-v52",
+    });
+    return {...original,elements:crayonF1SourceSuperiorTarsusV54(original.elements)};
+  }
+  // V53 is an isolated true native anatomical 3D/photo eye hypothesis.
+  // Never rework default face or photographically proven V52 unconditionally.
+  if(options.midfaceForm==="source-anat1-palpebral-v53"){
+    const original=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-photo-hair-face-v52",
+    });
+    return {...original,elements:crayonF1RebuildSourcePalpebralV53(original.elements)};
+  }
+  // Preserve V50's exact film, add only V49's measured face pressure plane.
+  // V51's failed parallel hair stripes are never included in this composition.
+  if(options.midfaceForm==="source-anat1-photo-hair-face-v52"){
+    const v50=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-photometric-hair-v50",
+    });
+    return {...v50,elements:crayonF1CombinePhotoWaxV52(v50.elements)};
+  }
+  // V51 builds on the existing identical V50 finished original film, then
+  // appends only nine hand-directed pigment groups clipped to source hair.
+  // Negative controls for V48/V49/V50 remain exactly unchanged.
+  if(options.midfaceForm==="source-anat1-rooted-hair-v51"){
+    const v50=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-photometric-hair-v50",
+    });
+    return {...v50,elements:crayonF1AddPhotoRootLocksV51(
+      v50.elements,options.detail??1)};
+  }
+  // V50 composes the actual measured V48 skin/eye film before adding only
+  // three source-registered existing wax hair undercoats. The V49 facial
+  // plane trial remains separately reversible; all legacy stages unchanged.
+  if(options.midfaceForm==="source-anat1-photometric-hair-v50"){
+    const v48=crayonCc0FaceStudy({
+      ...options,midfaceForm:"source-anat1-photometric-underpaint-v48",
+    });
+    return {...v48,elements:crayonF1AddPhotometricHairWaxV50(v48.elements)};
+  }
   const detail=options.detail??1,view=options.view??"wax";
   const fiberMaterial=options.fiberMaterial??"dry-wax";
   const eyeContact=options.eyeContact??"source-shade";
@@ -132,7 +247,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     !["wax","anatomy"].includes(view)||
     !["line","dry-wax"].includes(fiberMaterial)||
     !["baseline","source-shade","source-value","source-sculpt"].includes(eyeContact)||
-    !["baseline","source-volume","source-alar","source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)||
+    !["baseline","source-volume","source-alar","source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value","source-naris-occlusion","source-nasal-relief","source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)||
     !["baseline","source-contour"].includes(jawNeckForm)||
     !["baseline","source-rooted"].includes(browForm)||
     !["sparse","rooted","rooted-flow"].includes(lashFinish))
@@ -1179,7 +1294,7 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     crayonF1SculptTarsal(valueEyes):valueEyes;
   // One source-rooted face artist, one baseline: no invented brow arch
   // is silently promoted to the existing scene defaults.
-  const brow= browForm==="source-rooted"?
+  const brow= browForm==="source-rooted"||["source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
     crayonF1ReconstructBrows(ocular):ocular;
   // The sparse/original lashes are the negative control for photographic
   // lash density. Rooted dense fibers are never silently promoted.
@@ -1187,28 +1302,131 @@ export function crayonCc0FaceStudy(options:Cc0FaceOptions={}):CrayonSceneSpec{
     crayonF1AddRootedLashes(brow,lashFinish):brow;
   const studied=midfaceForm!=="baseline"?
     crayonF1ReconstructMidface(lashed):lashed;
-  const alar=["source-alar","source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
+  const alar=["source-alar","source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value","source-naris-occlusion","source-nasal-relief","source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
     crayonF1ConnectAlarUndercuts(studied):studied;
-  const oral=["source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
+  const oral=["source-oral","source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value","source-naris-occlusion","source-nasal-relief","source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
     crayonF1ReconstructOralContact(alar):alar;
-  const sculpted=["source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
+  const sculpted=["source-oral-sculpt","source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value","source-naris-occlusion","source-nasal-relief","source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
     crayonF1SculptOralOcclusion(oral):oral;
-  const nasal=["source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
+  const nasal=["source-nose-sculpt","source-nasal-depth","source-contour-joined","source-nasal-volume","source-nasal-value","source-naris-occlusion","source-nasal-relief","source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
     crayonF1SculptNasalCartilage(sculpted):sculpted;
   const depth=midfaceForm==="source-nasal-depth"?
     crayonF1BuildNasalWaxDepth(nasal):nasal;
-  const joined=["source-contour-joined","source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
+  const joined=["source-contour-joined","source-nasal-volume","source-nasal-value","source-naris-occlusion","source-nasal-relief","source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
     crayonF1JoinNarisContours(depth):depth;
-  const volume=["source-nasal-volume","source-nasal-value"].includes(midfaceForm)?
+  const volume=["source-nasal-volume","source-nasal-value","source-naris-occlusion","source-nasal-relief","source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
     crayonF1ConstructNasalVolume(joined):joined;
-  const value=midfaceForm==="source-nasal-value"?
+  const value=["source-nasal-value","source-naris-occlusion","source-nasal-relief","source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
     crayonF1ReconstructNasalValue(volume):volume;
+  const occluded=["source-naris-occlusion","source-nasal-relief","source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1NarisSourceOcclusion(value):value;
+  const relief=["source-nasal-relief","source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1SourceTonalRelief(occluded):occluded;
+  const solid=["source-solid-relief","source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1FeatheredSolidNose(relief):relief;
+  const carved=["source-carved-naris","source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1CarveNarisRecess(solid):solid;
+  const fused=["source-fused-naris","source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1FuseNarisIntoAlarSkin(carved):carved;
+  const facial=["source-face-values","source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1CalibrateFacialValues(fused):fused;
+  const orbital=["source-orbital-hood","source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1RebuildOrbitalHood(facial):facial;
   const constructed=jawNeckForm==="source-contour"?
-    crayonF1ReconstructJawNeck(value):value;
+    crayonF1ReconstructJawNeck(orbital):orbital;
+  const mandible=["source-mandibular-turn","source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1RebuildMalarMandible(constructed):constructed;
+  const anat1=["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1PaintAnat1Malar(mandible):mandible;
+  const bridge=["source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1RebuildAnat1Midface(anat1):anat1;
+  const photoNose=midfaceForm==="source-anat1-nasal-volume"?
+    crayonF1BuildAnat1NasalVolume(bridge):bridge;
+  const alar34=midfaceForm==="source-anat1-alar-recess"?
+    crayonF1RebuildAnat1AlarRecess(photoNose):photoNose;
+  const orbital35=["source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1BuildAnat1OrbitMalarField(alar34):alar34;
+  const aperture36=["source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1BuildAnat1NearEyeAperture(orbital35):orbital35;
+  const follicles37=["source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49"].includes(midfaceForm)?
+    crayonF1BuildAnat1SourceBrow(aperture36):aperture36;
+  const v48Volume=(midfaceForm==="source-anat1-photometric-underpaint-v48"||
+    midfaceForm==="source-anat1-oblique-volume-v49")?
+      crayonF1BuildPhotometricUnderpaintV48(
+        crayonF1RebuildOrbitalApertureV46(
+          crayonF1RebuildPhotoFoliageV43(
+            crayonF1AddSourceHedgeV42(
+              crayonF1AlignAnat1HairlineV41(
+                crayonF1ReconstructHairContourV40(
+                  crayonF1AddRootedHairFlow(
+                    crayonF1CalibrateAnat1HairValues(follicles37),detail))),detail)))
+      ):null;
   return {version:1,id:"crayon-artcraft-cc0-portrait-"+view,
     width:608,height:1082,durationFrames:300,seed:441501,
     paper:C.paper,paperTooth:.79,
-    elements:constructed,
+    elements:midfaceForm==="source-anat1-oblique-volume-v49"?
+      crayonF1AddObliqueSourceVolumeV49(v48Volume!):
+      midfaceForm==="source-anat1-photometric-underpaint-v48"?v48Volume!:
+      midfaceForm==="source-anat1-continuous-face-v47"?
+      crayonF1AddContinuousFaceWaxV47(
+        crayonF1RebuildOrbitalApertureV46(
+          crayonF1RebuildPhotoFoliageV43(
+            crayonF1AddSourceHedgeV42(
+              crayonF1AlignAnat1HairlineV41(
+                crayonF1ReconstructHairContourV40(
+                  crayonF1AddRootedHairFlow(
+                    crayonF1CalibrateAnat1HairValues(follicles37),detail))),detail)))):
+      midfaceForm==="source-anat1-orbital-aperture-v46"?
+        crayonF1RebuildOrbitalApertureV46(
+          crayonF1RebuildPhotoFoliageV43(
+            crayonF1AddSourceHedgeV42(
+              crayonF1AlignAnat1HairlineV41(
+                crayonF1ReconstructHairContourV40(
+                  crayonF1AddRootedHairFlow(
+                    crayonF1CalibrateAnat1HairValues(follicles37),detail))),detail))):
+      midfaceForm==="source-anat1-eye-tarsus-v45"?
+        crayonF1RefineNearTarsusV45(
+          crayonF1RebuildPhotoFoliageV43(
+            crayonF1AddSourceHedgeV42(
+              crayonF1AlignAnat1HairlineV41(
+                crayonF1ReconstructHairContourV40(
+                  crayonF1AddRootedHairFlow(
+                    crayonF1CalibrateAnat1HairValues(follicles37),detail))),detail))):
+      midfaceForm==="source-anat1-five-tone-v44"?
+        crayonF1CalibrateSourceSkinV44(
+          crayonF1RebuildPhotoFoliageV43(
+            crayonF1AddSourceHedgeV42(
+              crayonF1AlignAnat1HairlineV41(
+                crayonF1ReconstructHairContourV40(
+                  crayonF1AddRootedHairFlow(
+                    crayonF1CalibrateAnat1HairValues(follicles37),detail))),detail))):
+      midfaceForm==="source-anat1-photo-foliage-v43"?
+        crayonF1RebuildPhotoFoliageV43(
+          crayonF1AddSourceHedgeV42(
+            crayonF1AlignAnat1HairlineV41(
+              crayonF1ReconstructHairContourV40(
+                crayonF1AddRootedHairFlow(
+                  crayonF1CalibrateAnat1HairValues(follicles37),detail))),detail)):
+      midfaceForm==="source-anat1-hedge-v42"?
+        crayonF1AddSourceHedgeV42(
+          crayonF1AlignAnat1HairlineV41(
+            crayonF1ReconstructHairContourV40(
+              crayonF1AddRootedHairFlow(
+                crayonF1CalibrateAnat1HairValues(follicles37),detail))),detail):
+      midfaceForm==="source-anat1-hairline-v41"?
+        crayonF1AlignAnat1HairlineV41(
+          crayonF1ReconstructHairContourV40(
+            crayonF1AddRootedHairFlow(
+              crayonF1CalibrateAnat1HairValues(follicles37),detail))):
+      midfaceForm==="source-anat1-hair-contour-v40"?
+        crayonF1ReconstructHairContourV40(
+          crayonF1AddRootedHairFlow(
+            crayonF1CalibrateAnat1HairValues(follicles37),detail)):
+      midfaceForm==="source-anat1-rooted-hair-v39"?
+        crayonF1AddRootedHairFlow(
+          crayonF1CalibrateAnat1HairValues(follicles37),detail):
+      midfaceForm==="source-anat1-hair-values"?
+        crayonF1CalibrateAnat1HairValues(follicles37):follicles37,
     camera:[{frame:0,focusX:304,focusY:541,zoom:1},
       {frame:299,focusX:304,focusY:541,zoom:1}]};
 }

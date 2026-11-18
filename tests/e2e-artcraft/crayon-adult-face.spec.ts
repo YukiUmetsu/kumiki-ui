@@ -1,4 +1,5 @@
 import {expect,test} from "@playwright/test";
+import {writeFile} from "node:fs/promises";
 import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import {CrayonScene} from "../../registry/video/materials/crayon-scene-react";
@@ -6,12 +7,12 @@ import {crayonCc0NearEyeStudy} from "../../src/video/crayon-artcraft-cc0-near-ey
 import {crayonPaperContactSwatches} from "../../src/video/crayon-artcraft-paper-contact-fixtures";
 import {crayonArtcraftBodyStudy} from "../../src/video/crayon-artcraft-body-study";
 import {crayonCc0FaceStudy,CRAYON_F1_EYE_INSPECTION} from "../../src/video/crayon-artcraft-cc0-face";
+import {Cc0HairValueComparisonV38} from "../../src/video/crayon-artcraft-adult-face.stories";
 
-/** The blue-coat adult bust and CC0 landmark-dot audit were rejected by
- * art direction. They must not be regenerated into CI screenshot artifacts.
- * Only independently source-registered CRAYON1 material/face studies remain.
+/** The rejected blue-coat bust and landmark-dot audit screenshot
+ * were retired after visual review; they must not be regenerated in CI.
+ * The source-registered anatomy/material checks below remain.
  */
-
 for(const mode of [{aspect:"landscape",width:960,height:540},
   {aspect:"portrait",width:540,height:960}] as const){
   test("ArtCraft CC0 native wax eye specimen "+mode.aspect,async({page},info)=>{
@@ -1050,5 +1051,1983 @@ test("F1 V22 near/far nasal wing joined tonal wax at 1x/3x",async({page},info)=>
   }
   expect(Buffer.compare(Buffer.from(imgs[0]),Buffer.from(imgs[2]))).not.toBe(0);
   expect(Buffer.compare(Buffer.from(imgs[1]),Buffer.from(imgs[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** V23 real source-aligned A/B raster proof; not an aesthetic release gate. */
+test("F1 V23 CC0 near/far cavity/roof topology 1x 3x at f299",async({page},info)=>{
+  test.setTimeout(120_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const png:Uint8Array[]=[];
+  for(const midfaceForm of ["source-nasal-value","source-naris-occlusion"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:417,focusY:629,zoom:3},
+        {frame:299,focusX:417,focusY:629,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["naris-shadow-near","naris-shadow-far",
+        "alar-roof-near","alar-roof-far","nose-subalar-contact"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      png.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v23-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(png[0]),Buffer.from(png[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(png[1]),Buffer.from(png[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** ArtCraft V24 source-registered 1×/3× physical pigment A/B vs V23.
+ * This creates evidence for visual REJECTION, not automatic approval.
+ */
+test("F1 V24 CC0 nasal light planes, source native 1x and 3x f299",async({page},info)=>{
+  test.setTimeout(120_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const png:Uint8Array[]=[];
+  for(const midfaceForm of ["source-naris-occlusion","source-nasal-relief"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:417,focusY:629,zoom:3},
+        {frame:299,focusX:417,focusY:629,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["nose-tip","nose-dorsum","nose-sidewall-form",
+        "nose-septal-transition","naris-shadow-near","naris-shadow-far"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      png.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v24-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(png[0]),Buffer.from(png[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(png[1]),Buffer.from(png[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test("F1 V25 source native solid volume 1x and 3x f299",async({page},info)=>{
+  test.setTimeout(120_000);
+  await page.setViewportSize({width:608,height:1082});
+  const png:Uint8Array[]=[];const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  for(const midfaceForm of ["source-nasal-relief","source-solid-relief"] as const){
+    const base=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?base:{...base,camera:[
+        {frame:0,focusX:417,focusY:629,zoom:3},
+        {frame:299,focusX:417,focusY:629,zoom:3}]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["nose-tip","nose-dorsum","nose-sidewall-form",
+        "nose-septal-transition","naris-shadow-near","naris-shadow-far"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      png.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v25-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(png[0]),Buffer.from(png[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(png[1]),Buffer.from(png[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** Native V26 optical A/B for source core and 1x/3x shape sign-off.
+ * Does not mark art accepted; source reference cannot be embedded as texture.
+ */
+test("F1 V26 late cavity wax 608x1082 native A/B at 1x and 3x",async({page},info)=>{
+  test.setTimeout(120_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const renders:Uint8Array[]=[];
+  for(const midfaceForm of ["source-solid-relief","source-carved-naris"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:417,focusY:629,zoom:3},
+        {frame:299,focusX:417,focusY:629,zoom:3},
+      ]};
+      const markup=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        markup+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["naris-shadow-near","naris-shadow-far","alar-roof-near","alar-roof-far"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      const order=await svg.locator('[data-km-crayon-element^="naris-shadow-"],[data-km-crayon-element^="alar-roof-"]')
+        .evaluateAll(nodes=>nodes.map(n=>n.getAttribute("data-km-crayon-element")));
+      if(midfaceForm==="source-carved-naris")
+        for(const side of ["near","far"] as const)
+          expect(order.indexOf("alar-roof-"+side)).toBeLessThan(
+            order.indexOf("naris-shadow-"+side));
+      renders.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v26-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(renders[0]),Buffer.from(renders[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(renders[1]),Buffer.from(renders[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** Source-registered V27: identical native f299 1x/3x negative control A/B. */
+test("F1 V27 connected alar wax softness at 1x and 3x f299",async({page},info)=>{
+ test.setTimeout(120_000);
+ await page.setViewportSize({width:608,height:1082});
+ const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+ const result:Uint8Array[]=[];
+ for(const midfaceForm of ["source-carved-naris","source-fused-naris"] as const){
+   const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+   for(const zoom of [1,3] as const){
+     const spec=zoom===1?original:{...original,camera:[
+       {frame:0,focusX:417,focusY:629,zoom:3},
+       {frame:299,focusX:417,focusY:629,zoom:3},
+     ]};
+     const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+     await page.setContent("<!doctype html><html><body style='margin:0'>"+
+       html+"</body></html>");
+     const svg=page.locator("svg[data-km-crayon-scene]");
+     await expect(svg).toBeVisible();
+     for(const id of ["alar-roof-near","alar-roof-far",
+       "naris-shadow-near","naris-shadow-far"])
+       await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+         .toHaveCount(1);
+     result.push(await svg.screenshot({animations:"disabled",
+       path:info.outputPath("crayon-v27-"+zoom+"x-"+midfaceForm+"-299.png")}));
+   }
+ }
+ expect(Buffer.compare(Buffer.from(result[0]),Buffer.from(result[2]))).not.toBe(0);
+ expect(Buffer.compare(Buffer.from(result[1]),Buffer.from(result[3]))).not.toBe(0);
+ expect(errors).toEqual([]);
+});
+
+/** Photographed source facial five-zone values; genuine native 1×/3× A/B.
+ * Technical screenshot capture is never ArtCraft artistic acceptance.
+ */
+test("F1 V28 source facial value atlas at 1x and 3x f299",async({page},info)=>{
+ test.setTimeout(120_000);
+ await page.setViewportSize({width:608,height:1082});
+ const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+ const result:Uint8Array[]=[];
+ for(const midfaceForm of ["source-fused-naris","source-face-values"] as const){
+   const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+   for(const zoom of [1,3] as const){
+     const spec=zoom===1?original:{...original,camera:[
+       {frame:0,focusX:300,focusY:610,zoom:3},
+       {frame:299,focusX:300,focusY:610,zoom:3},
+     ]};
+     const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+     await page.setContent("<!doctype html><html><body style='margin:0'>"+
+       html+"</body></html>");
+     const svg=page.locator("svg[data-km-crayon-scene]");
+     await expect(svg).toBeVisible();
+     for(const id of ["cheek-malar-cast","cheek-malar-bounce","cheek-far",
+       "socket-near","socket-far"])
+       await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+         .toHaveCount(1);
+     result.push(await svg.screenshot({animations:"disabled",
+       path:info.outputPath("crayon-v28-"+zoom+"x-"+midfaceForm+"-299.png")}));
+   }
+ }
+ expect(Buffer.compare(Buffer.from(result[0]),Buffer.from(result[2]))).not.toBe(0);
+ expect(Buffer.compare(Buffer.from(result[1]),Buffer.from(result[3]))).not.toBe(0);
+ expect(errors).toEqual([]);
+});
+
+/** V29 ArtCraft corrective macro brow topology vs V28. Screenshot evidence only. */
+test("F1 V29 real orbital hood vs V28 at source 1x and 3x f299",async({page},info)=>{
+  test.setTimeout(120_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const renders:Uint8Array[]=[];
+  for(const midfaceForm of ["source-face-values","source-orbital-hood"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:315,focusY:515,zoom:3},
+        {frame:299,focusX:315,focusY:515,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["socket-near","socket-far","sclera-near","sclera-far",
+        "upper-lid-near","upper-lid-far","cheek-malar-cast","naris-shadow-near"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      renders.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v29-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(renders[0]),Buffer.from(renders[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(renders[1]),Buffer.from(renders[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** V30 source photo-calibrated three-quarter cheek/jaw: native evidence,
+ * not an ArtCraft likeness certificate. Preserve both source identities.
+ */
+test("F1 V30 photographed mandibular silhouette vs V29 at 1x and 2.4x",async({page},info)=>{
+  test.setTimeout(140_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",err=>errors.push(err.message));
+  const images:Uint8Array[]=[];
+  for(const midfaceForm of ["source-orbital-hood","source-mandibular-turn"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,2.4] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:300,focusY:761,zoom:2.4},
+        {frame:299,focusX:300,focusY:761,zoom:2.4},
+      ]};
+      const markup=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        markup+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","jaw-underside","chin-plane",
+        "cheek-malar-cast","cheek-malar-bounce","socket-near","socket-far",
+        "naris-shadow-near","naris-shadow-far","lip-lower"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      const img=await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v30-"+zoom+"x-"+midfaceForm+"-299.png")});
+      images.push(img);
+    }
+  }
+  expect(Buffer.compare(Buffer.from(images[0]),Buffer.from(images[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(images[1]),Buffer.from(images[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** F1 V31 ANAT1 468-vertex face projected onto independent photographed
+ * source observations. Proof is original native wax pixels, not approval.
+ */
+test("F1 V31 ANAT1 registered 3D cheek vs V30 at 1x and 3x f299",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));
+  const screenshots:Uint8Array[]=[];
+  for(const midfaceForm of ["source-mandibular-turn","source-anat1-malar"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:196,focusY:647,zoom:3},
+        {frame:299,focusX:196,focusY:647,zoom:3},
+      ]};
+      const markup=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        markup+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","cheek-malar-bounce","cheek-malar-cast",
+        "socket-near","socket-far","naris-shadow-near","jaw-underside"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      screenshots.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v31-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(screenshots[0]),Buffer.from(screenshots[2])))
+    .not.toBe(0);
+  expect(Buffer.compare(Buffer.from(screenshots[1]),Buffer.from(screenshots[3])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** V32 exact 608×1082 native CRAYON1 original photo camera A/B.
+ * ANAT1 is anatomical geometry, not a substitute for source visual approval.
+ */
+test("F1 V32 ANAT1 zygoma-to-alar native 1x/3x vs V31 at f299",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));
+  const shots:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-malar","source-anat1-midface-bridge"] as const){
+    const native=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?native:{...native,camera:[
+        {frame:0,focusX:300,focusY:612,zoom:3},
+        {frame:299,focusX:300,focusY:612,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","malar-cheek-near","cheek-malar-bounce",
+        "nose-sidewall","nose-root","nose-tip","socket-near","socket-far",
+        "jaw-underside","chin-plane"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      shots.push(await svg.screenshot({animations:"disabled",path:info.outputPath(
+        "crayon-v32-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(shots[1]),Buffer.from(shots[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** ArtCraft F1 V33 ANAT1 nasal bone-to-bulb real native browser evidence.
+ * The 468-point 3D framework guides original-source projection only;
+ * this is NOT an independently approved face or a photo raster effect.
+ */
+test("F1 V33 ANAT1 photographed nasal volume 1x/3x vs V32 at f299",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const captures:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-midface-bridge",
+    "source-anat1-nasal-volume"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:403,focusY:581,zoom:3},
+        {frame:299,focusX:403,focusY:581,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","nose-root","nose-dorsum","nose-sidewall-form",
+        "nose-tip","nose-tip-reflected-light","naris-shadow-near","naris-shadow-far",
+        "socket-near","socket-far","lip-lower","chin-plane"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      captures.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v33-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[2])))
+    .not.toBe(0);
+  expect(Buffer.compare(Buffer.from(captures[1]),Buffer.from(captures[3])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** Spot-check three native film exposures as a temporal negative control.
+ * A full 300-frame artist review remains an independent release blocker.
+ */
+test("F1 V33 ANAT1 native nose preserves 300-frame scene exposures",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const scene=crayonCc0FaceStudy({detail:.35,midfaceForm:"source-anat1-nasal-volume",
+    eyeContact:"source-shade"});
+  expect(scene.durationFrames).toBe(300);
+  const pngs:Uint8Array[]=[];
+  for(const frame of [0,149,299] as const){
+    const html=renderToStaticMarkup(createElement(CrayonScene,{spec:scene,frame}));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["face-outline","nose-dorsum","nose-tip","naris-shadow-near"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+    }
+    pngs.push(await svg.screenshot({animations:"disabled",
+      path:info.outputPath("crayon-v33-film-native-"+frame+".png")}));
+  }
+  expect(Buffer.compare(Buffer.from(pngs[0]),Buffer.from(pngs[2]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** F1 V34 rejected V33's nasal-bridge regression. This independently
+ * compares the ANAT1 camera's PHOTO-FITTED native dark cavity/overhang
+ * to the original positive-control V32. Green CI != artist approval.
+ */
+test("F1 V34 ANAT1 continuous attached alar rims source 1x/3x vs V32",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const shots:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-midface-bridge",
+    "source-anat1-alar-recess"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:416,focusY:635,zoom:3},
+        {frame:299,focusX:416,focusY:635,zoom:3},
+      ]};
+      const markup=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+markup+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","alar-roof-near","naris-shadow-near",
+        "alar-roof-far","naris-shadow-far","nose-root","nose-tip",
+        "nose-dorsum","socket-near","socket-far","chin-plane"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      shots.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v34-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(shots[1]),Buffer.from(shots[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** V35 source-photo 608×1082 camera vs V32 original native wax, at 1× and
+ * 3× with identical source-relative framing. No separate raster/color
+ * photo template, no manufactured "art approval" based on browser success.
+ */
+test("F1 V35 ANAT1 continuous orbital malar five-value field source 1x/3x vs V32",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const captures:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-midface-bridge",
+    "source-anat1-orbit-malar"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:305,focusY:581,zoom:3},
+        {frame:299,focusX:305,focusY:581,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","socket-near","socket-far",
+        "malar-cheek-near","cheek-malar-cast","cheek-malar-bounce",
+        "nose-root","nose-dorsum","naris-shadow-near","naris-shadow-far",
+        "iris-near","iris-far","lip-lower","chin-plane"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      captures.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v35-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[2])))
+    .not.toBe(0);
+  expect(Buffer.compare(Buffer.from(captures[1]),Buffer.from(captures[3])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** Three temporally different native camera exposures provide a minimal
+ * gross-pop baseline. Full natural-speed 300-frame review remains OPEN. */
+test("F1 V35 ANAT1 facial value mass native three film exposures",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const scene=crayonCc0FaceStudy({detail:.28,eyeContact:"source-shade",
+    midfaceForm:"source-anat1-orbit-malar"});
+  const frames:Uint8Array[]=[];
+  expect(scene.durationFrames).toBe(300);
+  for(const frame of [0,149,299] as const){
+    const markup=renderToStaticMarkup(createElement(CrayonScene,{spec:scene,frame}));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+markup+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["face-outline","socket-near","socket-far",
+      "malar-cheek-near","nose-root"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+    }
+    frames.push(await svg.screenshot({animations:"disabled",
+      path:info.outputPath("crayon-v35-native-film-"+frame+".png")}));
+  }
+  expect(Buffer.compare(Buffer.from(frames[0]),Buffer.from(frames[2]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** V36 native shape/value A/B: real Chromium pixels, fixed original photo
+ * 608×1082 camera and SOURCE sclera/iris values. Passing browser/Typescript
+ * is not equivalent to original identity or independent artist approval.
+ */
+test("F1 V36 ANAT1 near eye actual photographed tarsal source 1x/3x vs V35",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const captures:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-orbit-malar",
+    "source-anat1-near-eye"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:269,focusY:550,zoom:3},
+        {frame:299,focusX:269,focusY:550,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","sclera-near","sclera-inner-contact-near","iris-near","pupil-near",
+        "upper-lid-near","lash-root-near","lower-lid-near","lower-lid-margin-near",
+        "upper-lid-crease-near","socket-near","socket-far","sclera-far",
+        "iris-far","naris-shadow-near","lip-lower","hair-left-curtain"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      captures.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v36-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(captures[0]),Buffer.from(captures[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(captures[1]),Buffer.from(captures[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test("F1 V36 ANAT1 near-eye wax preserves full 300-frame native scene contract",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const scene=crayonCc0FaceStudy({detail:.2,eyeContact:"source-shade",
+    midfaceForm:"source-anat1-near-eye"});
+  expect(scene.durationFrames).toBe(300);
+  const frames:Uint8Array[]=[];
+  for(const frame of [0,149,299] as const){
+    const html=renderToStaticMarkup(createElement(CrayonScene,{spec:scene,frame}));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["face-outline","sclera-near","iris-near","upper-lid-near"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+    }
+    frames.push(await svg.screenshot({animations:"disabled",
+      path:info.outputPath("crayon-v36-native-film-"+frame+".png")}));
+  }
+  expect(Buffer.compare(Buffer.from(frames[0]),Buffer.from(frames[2]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** ArtCraft F1 V37 actual source-photo eyebrow root comparison.
+ * Native browser screenshots of the unchanged V36 and the proposed V37
+ * original-sitter near-brow, no embedded source pixels or raster overlay.
+ */
+test("F1 V37 ANAT1 photographed brow mass and 165 wax follicles source 1x/3x vs V36",async({page},info)=>{
+  test.setTimeout(180_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const shots:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-near-eye",
+    "source-anat1-brow-follicles"] as const){
+    const original=crayonCc0FaceStudy({
+      midfaceForm,eyeContact:"source-shade",browForm:"baseline",
+    });
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:264,focusY:483,zoom:3},
+        {frame:299,focusX:264,focusY:483,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["face-outline","brow-superciliary-near","socket-near",
+        "sclera-near","sclera-inner-contact-near","iris-near","pupil-near",
+        "lash-root-near","lower-lid-near","nose-dorsum","malar-cheek-near",
+        "hair-left-curtain","hair-right-curtain"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      if(midfaceForm==="source-anat1-brow-follicles"){
+        for(const id of ["source-brow-feather-near","source-brow-wax-near",
+          "source-brow-vein-near","source-brow-fibers-near",
+          "source-brow-follicles-near","source-brow-flyaways-near",
+          "source-brow-fibers-far"]){
+          await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+        }
+      }
+      shots.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v37-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(shots[0]),Buffer.from(shots[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(shots[1]),Buffer.from(shots[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+test("F1 V37 ANAT1 source-follicle brow original native 300-frame wax film",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const scene=crayonCc0FaceStudy({detail:.2,eyeContact:"source-shade",
+    midfaceForm:"source-anat1-brow-follicles"});
+  expect(scene.durationFrames).toBe(300);
+  const frames:Uint8Array[]=[];
+  for(const frame of [0,149,299] as const){
+    const html=renderToStaticMarkup(createElement(CrayonScene,{spec:scene,frame}));
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    for(const id of ["face-outline","source-brow-wax-near","source-brow-fibers-near",
+      "source-brow-follicles-near","sclera-near"]){
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+    }
+    frames.push(await svg.screenshot({animations:"disabled",
+      path:info.outputPath("crayon-v37-native-film-"+frame+".png")}));
+  }
+  expect(Buffer.compare(Buffer.from(frames[0]),Buffer.from(frames[2]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** Material-only two-up V37 vs V38 in the actual published !dev Storybook
+ * presentation. Both output frames must come from the same native source and
+ * remain physically present, with no replacement screenshot or CSS filter.
+ * Browser screenshots are evidence of renderability, not artist signoff.
+ */
+test("F1 V38 matched Storybook A/B native hair control and candidate",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:1220,height:1200});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const html=renderToStaticMarkup(createElement(Cc0HairValueComparisonV38,{
+    aspect:"portrait",detail:.2,expression:"neutral",headScaleY:.82,
+    startFrame:299,playbackRate:1,loop:false,
+  }));
+  await page.setContent("<!doctype html><html><body style='margin:0'>"+
+    html+"</body></html>");
+  const gallery=page.locator('[data-km-crayon-hair-ab="unapproved"]');
+  await expect(gallery).toBeVisible();
+  const controls=gallery.locator('[data-km-crayon-hair-variant]');
+  await expect(controls).toHaveCount(2);
+  const scenes=gallery.locator("svg[data-km-crayon-scene]");
+  await expect(scenes).toHaveCount(2);
+  for(const name of ["v37","v38"]){
+    const panel=gallery.locator('[data-km-crayon-hair-variant="'+name+'"]');
+    await expect(panel.locator('svg[data-km-crayon-scene]')).toHaveAttribute(
+      "data-km-crayon-frame","299");
+    await expect(panel.locator('[data-km-crayon-element="hair-crown-surface"]'))
+      .toHaveCount(1);
+    await expect(panel.locator('[data-km-crayon-element="hair-right-curtain"]'))
+      .toHaveCount(1);
+    await expect(panel.locator('[data-km-crayon-element="source-brow-follicles-near"]'))
+      .toHaveCount(1);
+    await panel.locator("svg[data-km-crayon-scene]").screenshot({
+      path:info.outputPath("crayon-v38-storybook-"+name+"-full-299.png"),
+      animations:"disabled",
+    });
+  }
+  const before=await scenes.nth(0).screenshot({animations:"disabled"});
+  const after=await scenes.nth(1).screenshot({animations:"disabled"});
+  expect(Buffer.compare(Buffer.from(before),Buffer.from(after))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** F1 V45: independent source-measured photographed near-eye/crease proof.
+ * The whole original V43 source portrait is the untouched negative control
+ * (not the rejected V44 contact study). Both use exact same film frame 299,
+ * source 608x1082, photo hedge, ANAT1 camera and original authored seed.
+ */
+/** F1 V46: matched source-photo 608×1082 original V43
+ * and physically constructed nine-cubic ANAT1 source-connected eye.
+ * 1× and 2.8× actual Chromium PNGs, original f299, no pixel overlays.
+ * Protect same decoded-actual-PNG original green canopy & nasal tissue.
+ */
+
+/** Original CC0 photo camera 608x1082, same true Chromium PNG:
+ * V53 photo-connected ocular topology vs original V52 negative control.
+ * No changes allowed to source hair masses or unrelated upper foliage.
+ */
+/** Independently source-positive-only upper-lid candidate; V52 control. */
+/** The source CC0 original hair cap stands y194 at x300 and y309 at x450.
+ * This native, same-608x1082-browser proof tests V56 real wax geometry vs
+ * exact V54 negative control: no new hair lines, no changed paper/camera.
+ */
+/** V57 original-source outer hair geometry; preserve the V56 physical
+ * fiber/material film without invented contour strokes. Real Chromium.
+ */
+test("F1 V57 source measured crown/cascade real native 1x and 2.85x V56 control",async({page},info)=>{
+  test.setTimeout(210_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const shots:Record<string,Uint8Array[]>={full:[],crown:[],right:[]};
+  const controls:Record<string,number[][]>={foliage:[],nearIris:[]};
+  for(const midfaceForm of [
+    "source-anat1-hair-top-v56","source-anat1-hair-edge-v57",
+  ] as const){
+    const base=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","crown","right"] as const){
+      const camera=view==="full"?base.camera:[
+        {frame:0,focusX:view==="crown"?300:510,
+          focusY:view==="crown"?260:625,zoom:view==="crown"?2.85:2.15},
+        {frame:299,focusX:view==="crown"?300:510,
+          focusY:view==="crown"?260:625,zoom:view==="crown"?2.85:2.15},
+      ];
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{
+          spec:{...base,camera},frame:299}))+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface","hair-right-curtain",
+        "face-outline","iris-near","hair-rooted-crown-0","hair-rooted-right-0"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-crayon-element^="hair-source-lock-"]')).toHaveCount(0);
+      await page.waitForTimeout(280);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v57-"+view+"-"+midfaceForm+"-299.png"),
+        Buffer.from(png));
+      shots[view].push(png);
+      if(view==="full"){
+        const px=await page.evaluate(async(encoded:string)=>{
+          const img=new Image();img.src="data:image/png;base64,"+encoded;await img.decode();
+          const c=document.createElement("canvas");
+          c.width=img.naturalWidth;c.height=img.naturalHeight;
+          const ctx=c.getContext("2d");
+          if(!ctx)throw new Error("Native original-source photo pixel inspector unavailable");
+          ctx.drawImage(img,0,0);
+          return {foliage:Array.from(ctx.getImageData(0,0,80,75).data),
+            nearIris:Array.from(ctx.getImageData(239,531,53,39).data)};
+        },Buffer.from(png).toString("base64"));
+        controls.foliage.push(px.foliage);
+        controls.nearIris.push(px.nearIris);
+      }
+    }
+  }
+  for(const [region,pairs] of Object.entries(controls)){
+    expect(pairs).toHaveLength(2);
+    let changed=0;
+    for(let i=0;i<pairs[0].length;i+=4)
+      if(Math.abs(pairs[0][i]-pairs[1][i])+
+         Math.abs(pairs[0][i+1]-pairs[1][i+1])+
+         Math.abs(pairs[0][i+2]-pairs[1][i+2])>5)changed++;
+    expect(changed/(pairs[0].length/4),region).toBeLessThanOrEqual(.003);
+  }
+  for(const view of ["full","crown","right"] as const){
+    expect(shots[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(shots[view][0]),Buffer.from(shots[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+test("F1 V56 source-measured hair-crown silhouette full and 2.85x V54 control",async({page},info)=>{
+  test.setTimeout(235_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const shots:Record<string,Uint8Array[]>={full:[],crown:[],right:[]};
+  const roi:Record<string,number[][]>={foliage:[],nearIris:[]};
+  for(const midfaceForm of [
+    "source-anat1-superior-tarsus-v54","source-anat1-hair-top-v56",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","crown","right"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:view==="crown"?300:510,
+          focusY:view==="crown"?260:625,zoom:view==="crown"?2.85:2.15},
+        {frame:299,focusX:view==="crown"?300:510,
+          focusY:view==="crown"?260:625,zoom:view==="crown"?2.85:2.15},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+        "</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface","hair-right-curtain",
+        "hair-rooted-crown-0","hair-rooted-right-0","face-outline","iris-near"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-crayon-element^="hair-source-lock-"]')).toHaveCount(0);
+      await page.waitForTimeout(350);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v56-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      shots[view].push(png);
+      if(view==="full"){
+        const pixels=await page.evaluate(async(b64:string)=>{
+          const im=new Image();im.src="data:image/png;base64,"+b64;await im.decode();
+          const cv=document.createElement("canvas");cv.width=im.naturalWidth;cv.height=im.naturalHeight;
+          const ctx=cv.getContext("2d");if(!ctx)throw Error("No source original pixel inspector");
+          ctx.drawImage(im,0,0);
+          return {foliage:Array.from(ctx.getImageData(0,0,80,75).data),
+            nearIris:Array.from(ctx.getImageData(239,531,53,39).data)};
+        },Buffer.from(png).toString("base64"));
+        roi.foliage.push(pixels.foliage);roi.nearIris.push(pixels.nearIris);
+      }
+    }
+  }
+  for(const [key,arr] of Object.entries(roi)){
+    expect(arr).toHaveLength(2);
+    let changed=0;
+    for(let i=0;i<arr[0].length;i+=4)
+      if(Math.abs(arr[0][i]-arr[1][i])+
+         Math.abs(arr[0][i+1]-arr[1][i+1])+
+         Math.abs(arr[0][i+2]-arr[1][i+2])>5)changed++;
+    expect(changed/(arr[0].length/4),key).toBeLessThanOrEqual(.003);
+  }
+  for(const view of ["full","crown","right"] as const){
+    expect(shots[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(shots[view][0]),Buffer.from(shots[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+test("F1 V54 upper-lash-only photo geometry 1x and 2.85x V52 negative control",async({page},info)=>{
+  test.setTimeout(240_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const controls:number[][]=[];
+  const captures:Record<string,Uint8Array[]>={full:[],eye:[]};
+  for(const midfaceForm of [
+    "source-anat1-photo-hair-face-v52","source-anat1-superior-tarsus-v54",
+  ] as const){
+    const base=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","eye"] as const){
+      const spec=view==="full"?base:{...base,camera:[
+        {frame:0,focusX:270,focusY:546,zoom:2.85},
+        {frame:299,focusX:270,focusY:546,zoom:2.85},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+        "</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["sclera-near","iris-near","pupil-near",
+        "upper-lid-near","lash-root-near","lower-lid-near"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-crayon-element^="hair-source-lock-"]')).toHaveCount(0);
+      await page.waitForTimeout(410);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v53-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      captures[view].push(png);
+      if(view==="full"){
+        controls.push(await page.evaluate(async(encoded:string)=>{
+          const i=new Image();i.src="data:image/png;base64,"+encoded;
+          await i.decode();
+          const c=document.createElement("canvas");
+          c.width=i.naturalWidth;c.height=i.naturalHeight;
+          const ctx=c.getContext("2d");
+          if(!ctx)throw new Error("Real native screenshot pixel inspector missing");
+          ctx.drawImage(i,0,0);
+          return Array.from(ctx.getImageData(0,0,80,75).data);
+        },Buffer.from(png).toString("base64")));
+      }
+    }
+  }
+  expect(controls).toHaveLength(2);
+  let changed=0;
+  for(let i=0;i<controls[0].length;i+=4)
+    if(Math.abs(controls[0][i]-controls[1][i])+
+       Math.abs(controls[0][i+1]-controls[1][i+1])+
+       Math.abs(controls[0][i+2]-controls[1][i+2])>5)changed++;
+  expect(changed/(controls[0].length/4)).toBeLessThanOrEqual(.003);
+  for(const view of ["full","eye"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+test("F1 V53 source-connected actual near-eye anatomy 1x and 2.85x V52 negative control",async({page},info)=>{
+  test.setTimeout(240_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const controls:number[][]=[];
+  const captures:Record<string,Uint8Array[]>={full:[],eye:[]};
+  for(const midfaceForm of [
+    "source-anat1-photo-hair-face-v52","source-anat1-palpebral-v53",
+  ] as const){
+    const base=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","eye"] as const){
+      const spec=view==="full"?base:{...base,camera:[
+        {frame:0,focusX:270,focusY:546,zoom:2.85},
+        {frame:299,focusX:270,focusY:546,zoom:2.85},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+        "</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["sclera-near","iris-near","pupil-near",
+        "upper-lid-near","lash-root-near","lower-lid-near"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-crayon-element^="hair-source-lock-"]')).toHaveCount(0);
+      await page.waitForTimeout(410);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v53-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      captures[view].push(png);
+      if(view==="full"){
+        controls.push(await page.evaluate(async(encoded:string)=>{
+          const i=new Image();i.src="data:image/png;base64,"+encoded;
+          await i.decode();
+          const c=document.createElement("canvas");
+          c.width=i.naturalWidth;c.height=i.naturalHeight;
+          const ctx=c.getContext("2d");
+          if(!ctx)throw new Error("Real native screenshot pixel inspector missing");
+          ctx.drawImage(i,0,0);
+          return Array.from(ctx.getImageData(0,0,80,75).data);
+        },Buffer.from(png).toString("base64")));
+      }
+    }
+  }
+  expect(controls).toHaveLength(2);
+  let changed=0;
+  for(let i=0;i<controls[0].length;i+=4)
+    if(Math.abs(controls[0][i]-controls[1][i])+
+       Math.abs(controls[0][i+1]-controls[1][i+1])+
+       Math.abs(controls[0][i+2]-controls[1][i+2])>5)changed++;
+  expect(changed/(controls[0].length/4)).toBeLessThanOrEqual(.003);
+  for(const view of ["full","eye"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+/** Same-head original 608x1082 CC0 screenshot: composed native V49 face
+ * pressure fields on original V50 hair. The rejected V51 fake roots are
+ * excluded. Far eye and upper original background are protected pixels.
+ */
+test("F1 V52 source-combined actual native hair skin full and cheek vs V50",async({page},info)=>{
+  test.setTimeout(230_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const rois:Record<string,number[][]>={foliage:[],farEye:[]};
+  const shots:Record<string,Uint8Array[]>={full:[],cheek:[]};
+  for(const midfaceForm of [
+    "source-anat1-photometric-hair-v50","source-anat1-photo-hair-face-v52",
+  ] as const){
+    const base=crayonCc0FaceStudy({detail:1,midfaceForm});
+    for(const view of ["full","cheek"] as const){
+      const spec=view==="full"?base:{...base,camera:[
+        {frame:0,focusX:255,focusY:690,zoom:2.1},
+        {frame:299,focusX:255,focusY:690,zoom:2.1},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+        "</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const [id,num] of [
+        ["face-outline",12],["hair-crown-surface",4],
+        ["hair-left-curtain",4],["hair-right-curtain",3],
+      ] as const)
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"] [data-km-crayon-underpaint-field]'))
+          .toHaveCount(midfaceForm==="source-anat1-photo-hair-face-v52"?num:
+            id==="face-outline"?8:num);
+      await expect(svg.locator('[data-km-crayon-element^="hair-source-lock-"]')).toHaveCount(0);
+      await page.waitForTimeout(380);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v52-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      shots[view].push(png);
+      if(view==="full"){
+        const pixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const c=document.createElement("canvas");
+          c.width=image.naturalWidth;c.height=image.naturalHeight;
+          const ctx=c.getContext("2d");
+          if(!ctx)throw new Error("Native photo source pixel auditor unavailable");
+          ctx.drawImage(image,0,0);
+          return {foliage:Array.from(ctx.getImageData(0,0,80,75).data),
+            farEye:Array.from(ctx.getImageData(415,475,55,60).data)};
+        },Buffer.from(png).toString("base64"));
+        rois.foliage.push(pixels.foliage);
+        rois.farEye.push(pixels.farEye);
+      }
+    }
+  }
+  for(const [name,pair] of Object.entries(rois)){
+    expect(pair).toHaveLength(2);
+    let changed=0;
+    for(let i=0;i<pair[0].length;i+=4)
+      if(Math.abs(pair[0][i]-pair[1][i])+
+         Math.abs(pair[0][i+1]-pair[1][i+1])+
+         Math.abs(pair[0][i+2]-pair[1][i+2])>5)changed++;
+    expect(changed/(pair[0].length/4),name).toBeLessThanOrEqual(.003);
+  }
+  for(const view of ["full","cheek"] as const){
+    expect(shots[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(shots[view][0]),Buffer.from(shots[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+/** Original 608x1082 CC0 source, V50 unchanged negative control. V51
+ * adds *only* physical dry-wax locks clipped to original wax hair geometry.
+ * Film time, reference camera, face/iris and foliaged backdrop do not shift.
+ */
+test("F1 V51 source-rooted anatomical hair lock native 1x and 2.85x V50 comparison",async({page},info)=>{
+  test.setTimeout(240_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const rois:Record<string,number[][]>={foliage:[],nearIris:[]};
+  const images:Record<string,Uint8Array[]>={full:[],crown:[]};
+  for(const midfaceForm of [
+    "source-anat1-photometric-hair-v50","source-anat1-rooted-hair-v51",
+  ] as const){
+    const base=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","crown"] as const){
+      const spec=view==="full"?base:{...base,camera:[
+        {frame:0,focusX:279,focusY:241,zoom:2.85},
+        {frame:299,focusX:279,focusY:241,zoom:2.85},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+        "</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["face-outline","iris-near","hair-crown-surface",
+        "hair-left-curtain","hair-right-curtain"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      for(const id of ["hair-source-lock-crown-0","hair-source-lock-left-1",
+        "hair-source-lock-right-2"])
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(midfaceForm==="source-anat1-rooted-hair-v51"?1:0);
+      await page.waitForTimeout(380);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v51-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      images[view].push(png);
+      if(view==="full"){
+        const pixels=await page.evaluate(async(encoded:string)=>{
+          const i=new Image();i.src="data:image/png;base64,"+encoded;await i.decode();
+          const c=document.createElement("canvas");
+          c.width=i.naturalWidth;c.height=i.naturalHeight;
+          const ctx=c.getContext("2d");
+          if(!ctx)throw new Error("Missing native original-photo inspector");
+          ctx.drawImage(i,0,0);
+          return {foliage:Array.from(ctx.getImageData(0,0,80,75).data),
+            nearIris:Array.from(ctx.getImageData(239,531,53,39).data)};
+        },Buffer.from(png).toString("base64"));
+        rois.foliage.push(pixels.foliage);
+        rois.nearIris.push(pixels.nearIris);
+      }
+    }
+  }
+  for(const [id,pair] of Object.entries(rois)){
+    expect(pair).toHaveLength(2);
+    let changed=0;
+    for(let i=0;i<pair[0].length;i+=4)
+      if(Math.abs(pair[0][i]-pair[1][i])+
+         Math.abs(pair[0][i+1]-pair[1][i+1])+
+         Math.abs(pair[0][i+2]-pair[1][i+2])>5)changed++;
+    expect(changed/(pair[0].length/4),id).toBeLessThanOrEqual(.003);
+  }
+  for(const view of ["full","crown"] as const){
+    expect(images[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(images[view][0]),Buffer.from(images[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+/** Same 608×1082 photo screenshot and normal 300-frame f299 film.
+ * Opt-in V50 changes original hair pigment only, all source geometry/iris
+ * and foliage remain exactly the native V48 negative-control artwork.
+ */
+test("F1 V50 native original-root hair photo 1x and 2.3x V48 comparison",async({page},info)=>{
+  test.setTimeout(220_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const controls:Record<string,number[][]>={foliage:[],nearIris:[]};
+  const captures:Record<string,Uint8Array[]>={full:[],crown:[]};
+  for(const midfaceForm of [
+    "source-anat1-photometric-underpaint-v48",
+    "source-anat1-photometric-hair-v50",
+  ] as const){
+    const base=crayonCc0FaceStudy({detail:1,midfaceForm});
+    for(const view of ["full","crown"] as const){
+      const spec=view==="full"?base:{...base,camera:[
+        {frame:0,focusX:278,focusY:240,zoom:2.3},
+        {frame:299,focusX:278,focusY:240,zoom:2.3},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+        "</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const [id,num] of [
+        ["hair-crown-surface",4],["hair-left-curtain",4],
+        ["hair-right-curtain",3],
+      ] as const){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"] [data-km-crayon-underpaint-field]'))
+          .toHaveCount(midfaceForm==="source-anat1-photometric-hair-v50"?num:0);
+      }
+      await expect(svg.locator('[data-km-crayon-element="face-outline"] [data-km-crayon-underpaint-field]')).toHaveCount(8);
+      await page.waitForTimeout(380);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v50-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      captures[view].push(png);
+      if(view==="full"){
+        const sampled=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();
+          image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw new Error("No actual native PNG pixel inspector");
+          ctx.drawImage(image,0,0);
+          return {foliage:Array.from(ctx.getImageData(0,0,80,75).data),
+            nearIris:Array.from(ctx.getImageData(239,531,53,39).data)};
+        },Buffer.from(png).toString("base64"));
+        controls.foliage.push(sampled.foliage);
+        controls.nearIris.push(sampled.nearIris);
+      }
+    }
+  }
+  for(const [id,pair] of Object.entries(controls)){
+    expect(pair).toHaveLength(2);
+    let changed=0;
+    for(let i=0;i<pair[0].length;i+=4)
+      if(Math.abs(pair[0][i]-pair[1][i])+
+         Math.abs(pair[0][i+1]-pair[1][i+1])+
+         Math.abs(pair[0][i+2]-pair[1][i+2])>5)changed++;
+    expect(changed/(pair[0].length/4),id).toBeLessThanOrEqual(.003);
+  }
+  for(const view of ["full","crown"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),
+      Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+/** Native frame-299 browser image V48 compared with exact original V46.
+ * Protected far eye and foliage MUST remain identical when changing wax skin.
+ */
+test("F1 V48 native photo-measured wax underpaint 1x and 2.1x V46 negative control",async({page},info)=>{
+  test.setTimeout(215_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const controls:Record<string,number[][]>={foliage:[],farEye:[]};
+  const shots:Record<string,Uint8Array[]>={full:[],cheek:[]};
+  for(const midfaceForm of [
+    "source-anat1-orbital-aperture-v46","source-anat1-photometric-underpaint-v48",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","cheek"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:255,focusY:690,zoom:2.1},
+        {frame:299,focusX:255,focusY:690,zoom:2.1}]};
+      await page.setContent("<!doctype html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+"</body>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      await expect(svg.locator('[data-km-crayon-element="face-outline"] [data-km-crayon-underpaint-field]'))
+        .toHaveCount(midfaceForm==="source-anat1-photometric-underpaint-v48"?8:0);
+      await page.waitForTimeout(350);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v48-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      shots[view].push(png);
+      if(view==="full"){
+        const pixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw Error("Missing Chromium pixel inspector");
+          ctx.drawImage(image,0,0);
+          return {foliage:Array.from(ctx.getImageData(0,0,70,70).data),
+            farEye:Array.from(ctx.getImageData(415,475,55,60).data)};
+        },Buffer.from(png).toString("base64"));
+        controls.foliage.push(pixels.foliage);
+        controls.farEye.push(pixels.farEye);
+      }
+    }
+  }
+  for(const pairs of Object.values(controls)){
+    expect(pairs).toHaveLength(2);
+    let different=0;
+    for(let i=0;i<pairs[0].length;i+=4){
+      if(Math.abs(pairs[0][i]-pairs[1][i])+
+         Math.abs(pairs[0][i+1]-pairs[1][i+1])+
+         Math.abs(pairs[0][i+2]-pairs[1][i+2])>5)different++;
+    }
+    expect(different/(pairs[0].length/4)).toBeLessThanOrEqual(.003);
+  }
+  for(const view of ["full","cheek"] as const){
+    expect(shots[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(shots[view][0]),Buffer.from(shots[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+/** Same-commit V46/V47 physical wax proof, source CC0 camera and time.
+ * Source-matched original negative controls preserve protected far-eye
+ * and foliage pixels; no screenshot merely judged by presence of DOM IDs.
+ */
+test("F1 V47 continuous 3D ANAT1 source skin wax 1x and 2.1x versus V46",async({page},info)=>{
+  test.setTimeout(215_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const captures:Record<string,Uint8Array[]>={full:[],cheek:[]};
+  const protectedBackground:number[][]=[];
+  const protectedOriginalFarEye:number[][]=[];
+  for(const midfaceForm of [
+    "source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","cheek"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:255,focusY:690,zoom:2.1},
+        {frame:299,focusX:270,focusY:542,zoom:2.8},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["sclera-near","sclera-inner-contact-near",
+        "iris-near","pupil-near","upper-lid-near","lash-root-near",
+        "lash-contact-near","lower-lid-near","lower-lid-margin-near",
+        "upper-lid-crease-near","source-brow-follicles-near",
+        "hair-crown-surface","face-outline","nose-dorsum",
+        "cc0-hedge-dark-underpaint"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      if(midfaceForm==="source-anat1-continuous-face-v47"){
+        await expect(svg.locator(
+          '[data-km-crayon-element^="cc0-anat1-form-"]')).toHaveCount(5);
+      }else{
+        await expect(svg.locator(
+          '[data-km-crayon-element^="cc0-anat1-form-"]')).toHaveCount(0);
+      }
+      await page.waitForTimeout(480);
+      const screenshot=await svg.screenshot({animations:"disabled"});
+      if(view==="full"){
+        // Check actual decoded, same-PNG source details not touched by
+        // V45. A fake DOM-only success can hide unpainted Chromium tiles.
+        const originalPixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();
+          image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=image.naturalWidth;
+          canvas.height=image.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw new Error("Missing photo pixel audit");
+          ctx.drawImage(image,0,0);
+          return [
+            Array.from(ctx.getImageData(0,0,70,70).data),
+            Array.from(ctx.getImageData(415,475,55,60).data),
+          ];
+        },Buffer.from(screenshot).toString("base64"));
+        protectedBackground.push(originalPixels[0]);
+        protectedOriginalFarEye.push(originalPixels[1]);
+      }
+      await writeFile(info.outputPath(
+        "crayon-v47-"+view+"-"+midfaceForm+"-299.png"),
+        Buffer.from(screenshot));
+      captures[view].push(screenshot);
+    }
+  }
+  const mismatch=(a:number[],b:number[])=>{
+    if(a.length!==b.length)return 1;
+    let different=0;
+    for(let i=0;i<a.length;i+=4)
+      if(Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+
+        Math.abs(a[i+2]-b[i+2])>5)different++;
+    return different/(a.length/4);
+  };
+  expect(protectedBackground).toHaveLength(2);
+  expect(protectedOriginalFarEye).toHaveLength(2);
+  expect(mismatch(protectedBackground[0],protectedBackground[1]))
+    .toBeLessThanOrEqual(.003);
+  expect(mismatch(protectedOriginalFarEye[0],protectedOriginalFarEye[1]))
+    .toBeLessThanOrEqual(.003);
+  for(const view of ["full","cheek"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),
+      Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});test("F1 V46 source-registered orbital 3D cubic anatomy full 1x and 2.8x versus V43",async({page},info)=>{
+  test.setTimeout(215_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const captures:Record<string,Uint8Array[]>={full:[],eye:[]};
+  const protectedBackground:number[][]=[];
+  const protectedOriginalNose:number[][]=[];
+  for(const midfaceForm of [
+    "source-anat1-photo-foliage-v43","source-anat1-orbital-aperture-v46",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","eye"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:270,focusY:542,zoom:2.8},
+        {frame:299,focusX:270,focusY:542,zoom:2.8},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["sclera-near","sclera-inner-contact-near",
+        "iris-near","pupil-near","upper-lid-near","lash-root-near",
+        "lash-contact-near","lower-lid-near","lower-lid-margin-near",
+        "upper-lid-crease-near","source-brow-follicles-near",
+        "hair-crown-surface","face-outline","nose-dorsum",
+        "cc0-hedge-dark-underpaint"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await page.waitForTimeout(480);
+      const screenshot=await svg.screenshot({animations:"disabled"});
+      if(view==="full"){
+        // Check actual decoded, same-PNG source details not touched by
+        // V45. A fake DOM-only success can hide unpainted Chromium tiles.
+        const originalPixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();
+          image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=image.naturalWidth;
+          canvas.height=image.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw new Error("Missing photo pixel audit");
+          ctx.drawImage(image,0,0);
+          return [
+            Array.from(ctx.getImageData(0,0,70,70).data),
+            Array.from(ctx.getImageData(355,600,65,65).data),
+          ];
+        },Buffer.from(screenshot).toString("base64"));
+        protectedBackground.push(originalPixels[0]);
+        protectedOriginalNose.push(originalPixels[1]);
+      }
+      await writeFile(info.outputPath(
+        "crayon-v46-"+view+"-"+midfaceForm+"-299.png"),
+        Buffer.from(screenshot));
+      captures[view].push(screenshot);
+    }
+  }
+  const mismatch=(a:number[],b:number[])=>{
+    if(a.length!==b.length)return 1;
+    let different=0;
+    for(let i=0;i<a.length;i+=4)
+      if(Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+
+        Math.abs(a[i+2]-b[i+2])>5)different++;
+    return different/(a.length/4);
+  };
+  expect(protectedBackground).toHaveLength(2);
+  expect(protectedOriginalNose).toHaveLength(2);
+  expect(mismatch(protectedBackground[0],protectedBackground[1]))
+    .toBeLessThanOrEqual(.003);
+  expect(mismatch(protectedOriginalNose[0],protectedOriginalNose[1]))
+    .toBeLessThanOrEqual(.003);
+  for(const view of ["full","eye"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),
+      Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+test("F1 V45 near-eye tarsus full 1x and 2.8x versus V43 source-negative control",async({page},info)=>{
+  test.setTimeout(215_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const captures:Record<string,Uint8Array[]>={full:[],eye:[]};
+  const protectedBackground:number[][]=[];
+  const protectedOriginalNose:number[][]=[];
+  for(const midfaceForm of [
+    "source-anat1-photo-foliage-v43","source-anat1-eye-tarsus-v45",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","eye"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:270,focusY:542,zoom:2.8},
+        {frame:299,focusX:270,focusY:542,zoom:2.8},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["sclera-near","sclera-inner-contact-near",
+        "iris-near","pupil-near","upper-lid-near","lash-root-near",
+        "lash-contact-near","lower-lid-near","lower-lid-margin-near",
+        "upper-lid-crease-near","source-brow-follicles-near",
+        "hair-crown-surface","face-outline","nose-dorsum",
+        "cc0-hedge-dark-underpaint"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await page.waitForTimeout(480);
+      const screenshot=await svg.screenshot({animations:"disabled"});
+      if(view==="full"){
+        // Check actual decoded, same-PNG source details not touched by
+        // V45. A fake DOM-only success can hide unpainted Chromium tiles.
+        const originalPixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();
+          image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=image.naturalWidth;
+          canvas.height=image.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw new Error("Missing photo pixel audit");
+          ctx.drawImage(image,0,0);
+          return [
+            Array.from(ctx.getImageData(0,0,70,70).data),
+            Array.from(ctx.getImageData(355,600,65,65).data),
+          ];
+        },Buffer.from(screenshot).toString("base64"));
+        protectedBackground.push(originalPixels[0]);
+        protectedOriginalNose.push(originalPixels[1]);
+      }
+      await writeFile(info.outputPath(
+        "crayon-v45-"+view+"-"+midfaceForm+"-299.png"),
+        Buffer.from(screenshot));
+      captures[view].push(screenshot);
+    }
+  }
+  const mismatch=(a:number[],b:number[])=>{
+    if(a.length!==b.length)return 1;
+    let different=0;
+    for(let i=0;i<a.length;i+=4)
+      if(Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+
+        Math.abs(a[i+2]-b[i+2])>5)different++;
+    return different/(a.length/4);
+  };
+  expect(protectedBackground).toHaveLength(2);
+  expect(protectedOriginalNose).toHaveLength(2);
+  expect(mismatch(protectedBackground[0],protectedBackground[1]))
+    .toBeLessThanOrEqual(.003);
+  expect(mismatch(protectedOriginalNose[0],protectedOriginalNose[1]))
+    .toBeLessThanOrEqual(.003);
+  for(const view of ["full","eye"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),
+      Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+
+/** F1 V44 real physical wax facial value proof, not likeness approval:
+ * same complete V43 source photo environment, identical 18 rooted hair
+ * groups, seed, paper and frame, but five native ANAT1 physical wax
+ * underplanes have new photographed pigment pressure and chroma.
+ */
+test("F1 V44 photographed five face value planes and V43 native negative control",async({page},info)=>{
+  test.setTimeout(220_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const captures:Record<string,Uint8Array[]>={full:[],face:[]};
+  const protectedBackground:number[][]=[];
+  for(const midfaceForm of [
+    "source-anat1-photo-foliage-v43","source-anat1-five-tone-v44",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","face"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:312,focusY:641,zoom:1.6},
+        {frame:299,focusX:312,focusY:641,zoom:1.6},
+      ]};
+      const markup=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        markup+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["face-outline","socket-near","cheek-malar-cast",
+        "cheek-malar-bounce","nose-root","chin-plane",
+        "iris-near","iris-far","hair-crown-surface","hair-right-curtain",
+        "cc0-hedge-dark-underpaint","cc0-hedge-leaf-near-left-broad"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await expect(svg.locator(
+        '[data-km-crayon-element^="hair-rooted-"]')).toHaveCount(18);
+      await page.waitForTimeout(450);
+      let png=await svg.screenshot({animations:"disabled"});
+      if(view==="full"){
+        const sample=async(pixels:Uint8Array):Promise<number[]>=>{
+          return page.evaluate(async(encoded:string)=>{
+            const image=new Image();
+            image.src="data:image/png;base64,"+encoded;
+            await image.decode();
+            const canvas=document.createElement("canvas");
+            canvas.width=image.naturalWidth;
+            canvas.height=image.naturalHeight;
+            const ctx=canvas.getContext("2d");
+            if(!ctx)throw new Error("No native crayon photo comparison canvas");
+            ctx.drawImage(image,0,0);
+            return Array.from(ctx.getImageData(0,0,82,72).data);
+          },Buffer.from(pixels).toString("base64"));
+        };
+        const diff=(a:number[],b:number[])=>{
+          if(a.length!==b.length)return 1;
+          let pixels=0;
+          for(let i=0;i<a.length;i+=4)
+            if(Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+
+              Math.abs(a[i+2]-b[i+2])>5)pixels++;
+          return pixels/(a.length/4);
+        };
+        let background=await sample(png);
+        if(protectedBackground.length===0){
+          protectedBackground.push(background);
+        }else{
+          const control=protectedBackground[0];
+          for(let attempt=0;attempt<6&&diff(control,background)>.003;attempt++){
+            await page.waitForTimeout(500);
+            png=await svg.screenshot({animations:"disabled"});
+            background=await sample(png);
+          }
+          expect(diff(control,background)).toBeLessThanOrEqual(.003);
+        }
+      }
+      await writeFile(info.outputPath(
+        "crayon-v44-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(png));
+      captures[view].push(png);
+    }
+  }
+  for(const view of ["full","face"] as const){
+    expect(captures[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(captures[view][0]),
+      Buffer.from(captures[view][1]))).not.toBe(0);
+  }
+  expect(protectedBackground).toHaveLength(1);
+  expect(errors).toEqual([]);
+});
+
+/** Source photograph's measured asymmetrical green canopy, not a three-leaf icon.
+ * The frame, scene authoring seed, 608x1082 camera, paper and complete face
+ * are fixed for V42 negative control and native V43 source-traced candidate.
+ */
+test("F1 V43 source traced leaf-scumble vs V42 native 1x and top 2.4x",async({page},info)=>{
+  test.setTimeout(220_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const imageBuffers:Record<string,Uint8Array[]>={full:[],upper:[]};
+  const unchangedFace:number[][]=[];
+  for(const midfaceForm of [
+    "source-anat1-hedge-v42","source-anat1-photo-foliage-v43",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","upper"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:302,focusY:120,zoom:2.4},
+        {frame:299,focusX:302,focusY:120,zoom:2.4},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface","face-outline",
+        "hair-left-curtain","hair-right-curtain",
+        "cc0-hedge-dark-underpaint","cc0-hedge-far-pocket",
+        "source-brow-follicles-near","iris-near","iris-far",
+        "cc0-hedge-leaf-near-left-broad",
+        "cc0-hedge-lamina-near-left-broad"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await expect(svg.locator(
+        '[data-km-crayon-element^="cc0-hedge-"]')).toHaveCount(42);
+      const order=await page.evaluate(()=>{
+        const ids=[...document.querySelectorAll(
+          "svg[data-km-crayon-scene] [data-km-crayon-element]")].
+          map(n=>n.getAttribute("data-km-crayon-element"));
+        return {background:ids.indexOf("cc0-hedge-dark-underpaint"),
+          portrait:ids.indexOf("hair-back")};
+      });
+      expect(order.background).toBeGreaterThanOrEqual(0);
+      expect(order.portrait).toBeGreaterThan(order.background);
+      // A screenshot can be obtained while Chromium still rasterizes
+      // expensive wax/mask tiles. Inspect PIXELS FROM THE EXACT PNG that
+      // will be saved, rather than the DOM or a later, different crop.
+      const protectedPixels=async(png:Uint8Array):Promise<number[]>=>{
+        return page.evaluate(async (encoded:string)=>{
+          const img=new Image();
+          img.src="data:image/png;base64,"+encoded;
+          await img.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=img.naturalWidth;
+          canvas.height=img.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw new Error("Missing pixel audit context");
+          ctx.drawImage(img,0,0);
+          return Array.from(ctx.getImageData(220,490,115,100).data);
+        },Buffer.from(png).toString("base64"));
+      };
+      const mismatch=(before:number[],after:number[]):number=>{
+        if(before.length!==after.length)return 1;
+        let different=0;
+        for(let i=0;i<before.length;i+=4){
+          const delta=Math.abs(before[i]-after[i])+
+            Math.abs(before[i+1]-after[i+1])+
+            Math.abs(before[i+2]-after[i+2]);
+          if(delta>5)different++;
+        }
+        return different/(before.length/4);
+      };
+      await page.waitForTimeout(350);
+      let screenshot=await svg.screenshot({animations:"disabled"});
+      if(view==="full"){
+        const reference=unchangedFace[0];
+        // Validate the exact encoded screenshot. If the compositor shows
+        // empty face tiles, give GPU paint a small chance to settle, then
+        // reject rather than releasing a broken screenshot as quality proof.
+        let pixels=await protectedPixels(screenshot);
+        if(reference){
+          for(let attempt=0;attempt<6&&mismatch(reference,pixels)>.003;attempt++){
+            await page.waitForTimeout(450);
+            screenshot=await svg.screenshot({animations:"disabled"});
+            pixels=await protectedPixels(screenshot);
+          }
+          expect(mismatch(reference,pixels)).toBeLessThanOrEqual(.003);
+        }else unchangedFace.push(pixels);
+      }
+      // Save only the audited screenshot, never a subsequent unverified
+      // image whose GPU tile state may differ.
+      await writeFile(info.outputPath(
+        "crayon-v43-"+view+"-"+midfaceForm+"-299.png"),Buffer.from(screenshot));
+      imageBuffers[view].push(screenshot);
+    }
+  }
+  for(const view of ["full","upper"] as const){
+    expect(imageBuffers[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(imageBuffers[view][0]),
+      Buffer.from(imageBuffers[view][1]))).not.toBe(0);
+  }
+  // Reference pixel sample was captured from the original V42 PNG,
+  // and the candidate was compared against it before artifact capture.
+  expect(unchangedFace).toHaveLength(1);
+  expect(errors).toEqual([]);
+});
+
+/** Native photographic evergreen backdrop negative control: same V41 face
+ * remains source registered, same paper/film, identical seeded wax index.
+ * Full browser pixels are evidence, not art acceptance.
+ */
+test("F1 V42 photographed CC0 evergreen hedge native 1x and upper-source 2.4x vs V41",async({page},info)=>{
+  test.setTimeout(220_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const images:Record<string,Uint8Array[]>={full:[],upper:[],right:[]};
+  for(const midfaceForm of [
+    "source-anat1-hairline-v41","source-anat1-hedge-v42",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","upper","right"] as const){
+      const focus=view==="upper"?
+        {focusX:302,focusY:120,zoom:2.4}:
+        {focusX:546,focusY:410,zoom:2.4};
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,...focus},{frame:299,...focus},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface","face-outline",
+        "forehead-light","hair-right-curtain","iris-near","iris-far",
+        "source-brow-follicles-near","lip-upper"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      const hedge=svg.locator('[data-km-crayon-element^="cc0-hedge-"]');
+      if(midfaceForm==="source-anat1-hedge-v42"){
+        await expect(hedge).toHaveCount(42);
+        const order=await page.evaluate(()=>{
+          const ids=[...document.querySelectorAll(
+            "svg[data-km-crayon-scene] [data-km-crayon-element]")].
+            map(n=>n.getAttribute("data-km-crayon-element"));
+          return {background:ids.indexOf("cc0-hedge-dark-underpaint"),
+            portrait:ids.indexOf("hair-back")};
+        });
+        expect(order.background).toBeGreaterThanOrEqual(0);
+        expect(order.portrait).toBeGreaterThan(order.background);
+      } else await expect(hedge).toHaveCount(0);
+      const bytes=await svg.screenshot({
+        path:info.outputPath("crayon-v42-"+view+"-"+midfaceForm+"-299.png"),
+        animations:"disabled",
+      });
+      images[view].push(bytes);
+    }
+  }
+  for(const view of ["full","upper","right"] as const){
+    expect(images[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(images[view][0]),
+      Buffer.from(images[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+
+/** Source-pixel-observed V41 forehead boundary and right temple overlap.
+ * Browser proof deliberately captures the SAME original V40 and candidate
+ * at identical absolute time, camera, seed, paper and native material.
+ * It does not claim likeness or approve a photographic quality score.
+ */
+test("F1 V41 actual native CC0 source hairline 1x/forehead/far temple vs V40",async({page},info)=>{
+  test.setTimeout(210_000);
+  await page.setViewportSize({width:608,height:1082});
+  const exceptions:string[]=[];
+  page.on("pageerror",e=>exceptions.push(e.message));
+  const images:Record<string,Uint8Array[]>={full:[],forehead:[],right:[]};
+  for(const midfaceForm of [
+    "source-anat1-hair-contour-v40","source-anat1-hairline-v41",
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","forehead","right"] as const){
+      const focus=view==="forehead"?
+        {focusX:335,focusY:350,zoom:2.4}:
+        {focusX:513,focusY:670,zoom:2.15};
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,...focus},{frame:299,...focus},
+      ]};
+      const markup=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        markup+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["face-outline","forehead-light","hair-crown-surface",
+        "hair-left-curtain","hair-right-curtain",
+        "source-brow-follicles-near","iris-near","iris-far",
+        "hair-rooted-crown-0","hair-rooted-left-0","hair-rooted-right-0"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await expect(svg.locator(
+        '[data-km-crayon-element^="hair-rooted-"]')).toHaveCount(18);
+      const img=await svg.screenshot({
+        path:info.outputPath("crayon-v41-"+view+"-"+midfaceForm+"-299.png"),
+        animations:"disabled",
+      });
+      images[view].push(img);
+    }
+  }
+  for(const view of ["full","forehead","right"] as const){
+    expect(images[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(images[view][0]),
+      Buffer.from(images[view][1]))).not.toBe(0);
+  }
+  expect(exceptions).toEqual([]);
+});
+
+/** V40 independently inspectable native 608x1082 source-space silhouette.
+ * Reuses every original V39 hair cubic, face and 300-frame material scene;
+ * negative controls share exact source camera, frame and deterministic seed.
+ * These native PNGs are evidence for ART REVIEW, not an approval or SSIM.
+ */
+test("F1 V40 source asymmetry and smaller dry-wax contact vs V39 at 1x, crown and curtain",async({page},info)=>{
+  test.setTimeout(200_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const results:Record<string,Uint8Array[]>={full:[],crown:[],right:[]};
+  for(const midfaceForm of [
+    "source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40"
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","crown","right"] as const){
+      const focus=view==="crown"?
+        {focusX:300,focusY:270,zoom:2.85}:
+        {focusX:513,focusY:670,zoom:2.15};
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,...focus},{frame:299,...focus},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{
+        spec,frame:299,
+      }));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface",
+        "hair-left-curtain","hair-right-curtain",
+        "hair-rooted-crown-0","hair-rooted-left-0","hair-rooted-right-0",
+        "source-brow-follicles-near","iris-near","lip-upper"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      await expect(svg.locator(
+        '[data-km-crayon-element^="hair-rooted-"]')).toHaveCount(18);
+      const pixels=await svg.screenshot({
+        path:info.outputPath("crayon-v40-"+view+"-"+midfaceForm+"-299.png"),
+        animations:"disabled",
+      });
+      results[view].push(pixels);
+    }
+  }
+  for(const view of ["full","crown","right"] as const){
+    expect(results[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(results[view][0]),
+      Buffer.from(results[view][1]))).not.toBe(0);
+  }
+  expect(errors).toEqual([]);
+});
+
+/** Root-to-shaft source-gesture ArtCraft study: actual native browser
+ * pixels on a fixed CC0 camera. This does not certify appearance/likeness.
+ * No photo raster is included in the native render.
+ */
+test("F1 V39 root-to-shaft wax source native V38/V39 1x and curtain macro",async({page},info)=>{
+  test.setTimeout(180_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  const full:Uint8Array[]=[];
+  const macro:Uint8Array[]=[];
+  for(const midfaceForm of [
+    "source-anat1-hair-values","source-anat1-rooted-hair-v39"
+  ] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of ["full","right-curtain"] as const){
+      const spec=view==="full"?original:{...original,camera:[
+        {frame:0,focusX:513,focusY:670,zoom:2.15},
+        {frame:299,focusX:513,focusY:670,zoom:2.15},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      for(const id of ["hair-back","hair-crown-surface","hair-left-curtain",
+        "hair-right-curtain","hair-rooted-left-0","hair-rooted-right-0",
+        "source-brow-follicles-near","iris-near","lip-upper"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]'))
+          .toHaveCount(1);
+      }
+      const screenshot=await svg.screenshot({
+        path:info.outputPath("crayon-v39-"+view+"-"+midfaceForm+"-299.png"),
+        animations:"disabled",
+      });
+      if(view==="full")full.push(screenshot);
+      else macro.push(screenshot);
+    }
+  }
+  expect(Buffer.compare(Buffer.from(full[0]),Buffer.from(full[1])))
+    .not.toBe(0);
+  expect(Buffer.compare(Buffer.from(macro[0]),Buffer.from(macro[1])))
+    .not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** V38 source-conditioned hair: native 608×1082 exact-camera 1×/3×
+ * source-photo vs V37 negative control. Only the hair pigment changes.
+ * ArtCraft realism still needs independent photographic pixel review. */
+test("F1 V38 ANAT1 photographed three volume hair light values source 1x/3x vs V37",async({page},info)=>{
+  test.setTimeout(150_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
+  const pngs:Uint8Array[]=[];
+  for(const midfaceForm of ["source-anat1-brow-follicles",
+    "source-anat1-hair-values"] as const){
+    const original=crayonCc0FaceStudy({midfaceForm,eyeContact:"source-shade"});
+    for(const zoom of [1,3] as const){
+      const spec=zoom===1?original:{...original,camera:[
+        {frame:0,focusX:300,focusY:298,zoom:3},
+        {frame:299,focusX:300,focusY:298,zoom:3},
+      ]};
+      const html=renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}));
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+html+"</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      for(const id of ["hair-back","hair-crown-surface","hair-left-curtain",
+        "hair-right-curtain","hair-rooted-crown-0","hair-rooted-left-0",
+        "hair-rooted-right-0","source-brow-follicles-near","sclera-near",
+        "nose-root","face-outline","lip-lower"]){
+        await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+      }
+      pngs.push(await svg.screenshot({animations:"disabled",
+        path:info.outputPath("crayon-v38-"+zoom+"x-"+midfaceForm+"-299.png")}));
+    }
+  }
+  expect(Buffer.compare(Buffer.from(pngs[0]),Buffer.from(pngs[2]))).not.toBe(0);
+  expect(Buffer.compare(Buffer.from(pngs[1]),Buffer.from(pngs[3]))).not.toBe(0);
+  expect(errors).toEqual([]);
+});
+
+/** Native real-browser visual negative control: exact V48 is retained as-is.
+ * Every PNG is from the existing physical CRAYON1 SVG, never imported photo.
+ * Screenshots must still undergo independent photo/artist review.
+ */
+test("F1 V49 photographic oblique native wax fields 1x/2.1x and V48 negative control",async({page},info)=>{
+  test.setTimeout(245_000);
+  await page.setViewportSize({width:608,height:1082});
+  const errors:string[]=[];page.on("pageerror",err=>errors.push(err.message));
+  const views=["full","cheek"] as const;
+  const shots:Record<string,Uint8Array[]>={full:[],cheek:[]};
+  const controls:Record<string,number[][]>={foliage:[],farEye:[]};
+  for(const midfaceForm of [
+    "source-anat1-photometric-underpaint-v48",
+    "source-anat1-oblique-volume-v49",
+  ] as const){
+    const base=crayonCc0FaceStudy({midfaceForm,detail:1});
+    for(const view of views){
+      const spec=view==="full"?base:{...base,camera:[
+        {frame:0,focusX:255,focusY:690,zoom:2.1},
+        {frame:299,focusX:255,focusY:690,zoom:2.1},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+"</body>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+      const count=midfaceForm==="source-anat1-oblique-volume-v49"?12:8;
+      await expect(svg.locator('[data-km-crayon-element="face-outline"] [data-km-crayon-underpaint-field]'))
+        .toHaveCount(count);
+      await expect(svg.locator('[data-km-crayon-element="iris-near"]')).toHaveCount(1);
+      await expect(svg.locator('[data-km-crayon-element="cc0-hedge-dark-underpaint"]')).toHaveCount(1);
+      const rotated=svg.locator('[data-km-crayon-element="face-outline"] ellipse[transform^="rotate("]');
+      await expect(rotated).toHaveCount(count===12?4:0);
+      await page.waitForTimeout(370);
+      const png=await svg.screenshot({animations:"disabled"});
+      await writeFile(info.outputPath("crayon-v49-"+view+"-"+midfaceForm+"-299.png"),
+        Buffer.from(png));
+      shots[view].push(png);
+      if(view==="full"){
+        const pixels=await page.evaluate(async(encoded:string)=>{
+          const image=new Image();image.src="data:image/png;base64,"+encoded;
+          await image.decode();
+          const canvas=document.createElement("canvas");
+          canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+          const ctx=canvas.getContext("2d");
+          if(!ctx)throw Error("No browser pixel inspector");
+          ctx.drawImage(image,0,0);
+          const sample=(x:number,y:number,w:number,h:number)=>
+            Array.from(ctx.getImageData(x,y,w,h).data);
+          return {foliage:sample(0,0,70,70),farEye:sample(415,475,55,60)};
+        },Buffer.from(png).toString("base64"));
+        controls.foliage.push(pixels.foliage);
+        controls.farEye.push(pixels.farEye);
+      }
+    }
+  }
+  for(const [id,pairs] of Object.entries(controls)){
+    expect(pairs).toHaveLength(2);
+    let difference=0;
+    for(let i=0;i<pairs[0].length;i+=4){
+      const rgb=Math.abs(pairs[0][i]-pairs[1][i])+
+        Math.abs(pairs[0][i+1]-pairs[1][i+1])+
+        Math.abs(pairs[0][i+2]-pairs[1][i+2]);
+      if(rgb>5)difference++;
+    }
+    expect(difference/(pairs[0].length/4),id).toBeLessThanOrEqual(.003);
+  }
+  for(const view of views){
+    expect(shots[view]).toHaveLength(2);
+    expect(Buffer.compare(Buffer.from(shots[view][0]),
+      Buffer.from(shots[view][1]))).not.toBe(0);
+  }
   expect(errors).toEqual([]);
 });

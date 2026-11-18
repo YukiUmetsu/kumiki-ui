@@ -80,6 +80,7 @@ function CrayonNode({ spec, node, frame, seed, reducedMotion, tooth }: {
             markStrength={node.markStrength}
             underpaintTooth={node.underpaintTooth} opaqueBurnish={node.opaqueBurnish}
             underpaintGradient={node.underpaintGradient}
+            underpaintFields={node.underpaintFields}
             nibStyle={node.nibStyle} deposition={node.deposition}
             strokeOrder={node.strokeOrder} markLength={node.markLength}
             redraw={node.redraw} edgeRoughness={node.edgeRoughness}
@@ -123,11 +124,21 @@ export function CrayonScene({spec, frame, reducedMotion = false, hideScreenSpace
   // Derive wax seeds from original authored indices BEFORE any presentation filtering.
   // A detail crop must retain the identical wax/paper marks of the exported film.
   const indexed = spec.elements.map((node,i)=>({node,seed:spec.seed+i*1193}));
-  const rendered = (screenSpace:boolean) => indexed.filter(x=>
-    (x.node.screenSpace ?? false)===screenSpace &&
-    (!hideScreenSpace || !x.node.screenSpace)).map(x=>
-    <CrayonNode key={x.node.id} spec={spec} node={x.node} seed={x.seed} tooth={tooth}
-      frame={at} reducedMotion={reducedMotion} />);
+  const rendered = (screenSpace:boolean) => {
+    const selected=indexed.filter(x=>
+      (x.node.screenSpace ?? false)===screenSpace &&
+      (!hideScreenSpace || !x.node.screenSpace));
+    // Painter's underlayer is a pure presentation sort: compute seed from
+    // original authored index, NOT sorted index. Existing films retain
+    // pixel-identical paper and wax when backdrop nodes are appended.
+    const painterOrder=[
+      ...selected.filter(x=>x.node.renderLayer==="backdrop"),
+      ...selected.filter(x=>x.node.renderLayer!=="backdrop"),
+    ];
+    return painterOrder.map(x=>
+      <CrayonNode key={x.node.id} spec={spec} node={x.node} seed={x.seed} tooth={tooth}
+        frame={at} reducedMotion={reducedMotion} />);
+  };
   return <svg {...svgProps} role={svgProps["aria-hidden"] ? undefined : "img"}
     aria-label={svgProps["aria-hidden"] ? undefined : (svgProps["aria-label"] ?? "Wax-crayon illustrated scene")}
     data-km-crayon-scene={spec.id} data-km-crayon-frame={frame}

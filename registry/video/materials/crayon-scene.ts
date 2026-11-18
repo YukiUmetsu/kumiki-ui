@@ -37,6 +37,12 @@ export interface CrayonBase {
   exitFade?: CrayonTiming;
   placement?: CrayonPlacement;
   screenSpace?: boolean;
+  /** Optional painter's underlayer. Backdrop is drawn behind all ordinary
+   * world-space art even if authored later; authored element index still
+   * owns its deterministic wax seed. Defaults to normal, with no change
+   * to any legacy film. Useful when adding late reference environments.
+   */
+  renderLayer?: "backdrop" | "normal";
   /** Optional articulated parent. Order of artwork stays independent of the rig hierarchy. */
   parentId?: string;
   /** Local rotation/scale pivot in authored drawing coordinates. */
@@ -65,6 +71,16 @@ export interface CrayonVolumeGradient {
   /** Radius as proportion of the silhouette bounding-box, 0.2..1.5. */
   radius:number;
 }
+/** Smooth, source-observed local color deposition under physical wax grain.
+ * Coordinates and radii are fractions of the SAME original silhouette bounds.
+ */
+export interface CrayonUnderpaintField {
+  x:number;y:number;radiusX:number;radiusY:number;
+  color:CrayonColor;strength:number;
+  /** Signed source-observed 2D pigment flow (degrees, -89..89).
+   * Omitted leaves every historic wax spot pixel identical. */
+  rotationDeg?:number;
+}
 export interface CrayonWaxElement extends CrayonBase {
   kind: "wax";
   /** Original drawings selected at absolute frames. */
@@ -87,15 +103,14 @@ export interface CrayonWaxElement extends CrayonBase {
   /** Opaque, silhouette-blocking wax underpaint for characters and solid props;
    * default open retains translucent scenery and older CRAYON1 documents. */
   coverage?: "open" | "opaque";
-  /** Edge blending radius (0..18 SVG units) for painted open wax glazes.
-   * Finished subjects remain opaque because their own underpaint is separate. */
+  /** Edge alpha feather (0..18) on open scumbles; opaque volumes can opt in
+   * only with featherContacts and stroke-built deposition. RGB wax and
+   * raised paper tooth are never photo-filtered. */
   blendRadius?: number;
-  /** Feather the DIRECTIONAL GRAIN CONTACT along the same open-wax
-   * silhouette radius. Unlike blendRadius alone, this also fades the
-   * pressure marks and contact clumps that would otherwise end abruptly
-   * at the clipPath and create a cut-paper polygon. Requires an open,
-   * stroke-built glaze with blendRadius > 0. Off by default, especially
-   * for opaque characters and precise ink boundaries. */
+  /** Physical edge contact: historical open glazes unchanged; opt-in
+   * opaque stroke-built wax simultaneously feathers its undercoat and
+   * dry-fiber grain WITHOUT losing the core solid pigment or draw-in.
+   * Default off for all older opaque characters and hard ink edges. */
   featherContacts?: boolean;
   /** 0..1 artistic density of medium-native random tooth marks.
    * Lower values leave opaque underpaint intact; the artist can layer
@@ -112,6 +127,8 @@ export interface CrayonWaxElement extends CrayonBase {
   /** Smooth underlying side-nib mass, combined with full-opacity silhouette
    * and explicit pressure-shaped wax scratches; never a global object blur. */
   underpaintGradient?:CrayonVolumeGradient;
+  /** Optional opt-in wax color contacts, below the physical tooth. */
+  underpaintFields?:readonly CrayonUnderpaintField[];
   /** Confine a tonal glaze to the animated parent wax silhouette. */
   clipToParent?: boolean;
   /** Held, small-patch reworking of wax pigment; frame-deterministic. */
@@ -242,6 +259,9 @@ export function inspectCrayonScene(input: unknown): string[] {
       if (typeof node.id !== "string" || !/^[a-z][a-z0-9-]{1,63}$/.test(node.id) || seen.has(node.id)) errors.push(p + ".id must be a unique slug");
       else seen.add(node.id);
       checkTime(node.timing, v.durationFrames ?? 0, p, errors);
+      if(node.renderLayer!==undefined&&
+         node.renderLayer!=="normal"&&node.renderLayer!=="backdrop")
+        errors.push(p+".renderLayer must be backdrop or normal");
       if (node.exitFade !== undefined) {
         checkTime(node.exitFade,v.durationFrames ?? 0,p+".exitFade",errors);
         if (!node.exitFade || node.exitFade.start < node.timing?.end)
@@ -349,14 +369,16 @@ export function inspectCrayonScene(input: unknown): string[] {
         if (node.coverage !== undefined && node.coverage !== "open" && node.coverage !== "opaque")
           errors.push(p + ".coverage must be open or opaque");
         if (node.blendRadius !== undefined && (!finite(node.blendRadius)||node.blendRadius<0||
-          node.blendRadius>18||node.coverage!=="open"))
-          errors.push(p + ".blendRadius must be 0..18 on open wax");
+          node.blendRadius>18||(node.coverage!=="open"&&
+            !(node.coverage==="opaque"&&node.featherContacts===true&&
+              node.deposition==="stroke-built"))))
+          errors.push(p + ".blendRadius requires open or opt-in solid feather");
         if (node.featherContacts !== undefined &&
           (typeof node.featherContacts!=="boolean" ||
             (node.featherContacts &&
-              (node.coverage!=="open" || node.deposition!=="stroke-built" ||
+              (node.deposition!=="stroke-built" ||
                 !finite(node.blendRadius) || (node.blendRadius??0)<=0))))
-          errors.push(p + ".featherContacts requires open stroke-built wax with blendRadius > 0");
+          errors.push(p + ".featherContacts requires stroke-built wax and blendRadius > 0");
         if (node.underpaintGradient !== undefined) {
           const g=node.underpaintGradient;
           if(!g || node.coverage!=="opaque" || !finite(g.focusX) || !finite(g.focusY) ||
@@ -367,6 +389,23 @@ export function inspectCrayonScene(input: unknown): string[] {
             checkColor(String(g.light??""),p+".underpaintGradient.light",errors);
             checkColor(String(g.shadow??""),p+".underpaintGradient.shadow",errors);
           }
+        }
+        if(node.underpaintFields!==undefined){
+          const fields=node.underpaintFields;
+          if(node.coverage!=="opaque"||!Array.isArray(fields)||
+             fields.length===0||fields.length>12)
+            errors.push(p+".underpaintFields require 1..12 opaque wax regions");
+          if(Array.isArray(fields))fields.forEach((f,i)=>{
+            const q=p+".underpaintFields["+i+"]";
+            if(!f||![f.x,f.y,f.radiusX,f.radiusY,f.strength].every(finite)||
+               f.x<0||f.x>1||f.y<0||f.y>1||
+               f.radiusX<=0||f.radiusX>1||f.radiusY<=0||f.radiusY>1||
+               f.strength<=0||f.strength>1||
+               (f.rotationDeg!==undefined&&
+                (!finite(f.rotationDeg)||Math.abs(f.rotationDeg)>89)))
+              errors.push(q+" require normalized finite geometry");
+            checkColor(String(f?.color??""),q+".color",errors);
+          });
         }
         if (node.markStrength !== undefined && (!finite(node.markStrength)||
           node.markStrength<0||node.markStrength>1))
@@ -557,6 +596,8 @@ export function inspectCrayonScene(input: unknown): string[] {
       if (!parent) { errors.push("elements["+index+"].parentId does not exist"); continue; }
       if (!!parent.screenSpace !== !!node.screenSpace)
         errors.push("elements["+index+"].parentId crosses screenSpace boundary");
+      if ((parent.renderLayer??"normal")!==(node.renderLayer??"normal"))
+        errors.push("elements["+index+"].parentId crosses renderLayer boundary");
       const visited=new Set<string>([node.id]);
       let cursor:CrayonElement | undefined=parent;
       while (cursor) {

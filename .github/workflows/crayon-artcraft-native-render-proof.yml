@@ -1,12 +1,52 @@
 name: Crayon ArtCraft source-native browser proof
 
-# Only changes to the new source-led portrait probe trigger this isolated
-# proof. No video/FFmpeg/full Storybook/legacy tests run here.
+# PR checks exercise V52 source baseline, V54 upper-lid, V56/V57 hair, V63 face and V65 dark-cavity oral candidates
+# hypotheses plus the independent photo-SSIM proof. Rejected V51/V53 and
+# all prior experimental versions remain in source tests, available via manual
+# workflow_dispatch; do not repeatedly replay the historical 8+ spec suite.
+# No FFmpeg/full Storybook/legacy tests or deleted test files.
 on:
   pull_request:
     paths:
       - src/video/crayon-artcraft-adult-face-fixtures.ts
       - src/video/crayon-artcraft-adult-face.stories.tsx
+      - src/video/crayon-artcraft-cc0-face.ts
+      - src/video/crayon-artcraft-f1-anat1-malar.ts
+      - src/video/crayon-artcraft-f1-anat1-midface-bridge.ts
+      - src/video/crayon-artcraft-f1-anat1-nasal-volume.ts
+      - src/video/crayon-artcraft-f1-anat1-alar-depth.ts
+      - src/video/crayon-artcraft-f1-anat1-orbit-malar-field.ts
+      - src/video/crayon-artcraft-f1-anat1-eyelid-aperture.ts
+      - src/video/crayon-artcraft-f1-anat1-brow-follicles.ts
+      - src/video/crayon-artcraft-f1-anat1-hair-value.ts
+      - src/video/crayon-artcraft-f1-anat1-root-flow.ts
+      - src/video/crayon-artcraft-f1-anat1-hair-contour-v40.ts
+      - src/video/crayon-artcraft-f1-anat1-hairline-v41.ts
+      - src/video/crayon-artcraft-f1-anat1-hedge-v42.ts
+      - src/video/crayon-artcraft-f1-anat1-photo-foliage-v43.ts
+      - src/video/crayon-artcraft-f1-anat1-five-tone-v44.ts
+      - src/video/crayon-artcraft-f1-anat1-eye-tarsus-v45.ts
+      - src/video/crayon-artcraft-f1-anat1-orbital-aperture-v46.ts
+      - src/video/crayon-artcraft-f1-anat1-continuous-face-v47.ts
+      - src/video/crayon-artcraft-f1-anat1-skin-underpaint-v48.ts
+      - src/video/crayon-artcraft-f1-anat1-oblique-volume-v49.ts
+      - src/video/crayon-artcraft-f1-anat1-photo-hair-v50.ts
+      - src/video/crayon-artcraft-f1-anat1-root-locks-v51.ts
+      - src/video/crayon-artcraft-f1-anat1-photo-composition-v52.ts
+      - src/video/crayon-artcraft-f1-anat1-palpebral-v53.ts
+      - src/video/crayon-artcraft-f1-anat1-superior-tarsus-v54.ts
+      - src/video/crayon-artcraft-f1-anat1-outer-hair-v56.ts
+      - src/video/crayon-artcraft-f1-anat1-photo-hair-edge-v57.ts
+      - src/video/crayon-artcraft-f1-anat1-connected-face-v63.ts
+      - src/video/crayon-artcraft-f1-oral-aperture-v64.ts
+      - src/video/crayon-artcraft-f1-oral-aperture-v65.ts
+      - tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
+      - tests/crayon-artcraft-f1-native-png-review-v61.test.tsx
+      - tests/crayon-artcraft-f1-connected-face-v63.test.ts
+      - tests/crayon-artcraft-f1-oral-aperture-v64.test.ts
+      - tests/crayon-artcraft-f1-oral-aperture-v65.test.ts
+      - tests/crayon-artcraft-f1-candidate-landmarks-v59.test.tsx
+      - registry/anatomy/anatomy-face.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
       - playwright.artcraft.config.ts
       - .github/workflows/crayon-artcraft-native-render-proof.yml
@@ -14,6 +54,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: crayon-artcraft-portrait-${{ github.ref }}
@@ -32,17 +73,40 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Install browser runtime
         run: npx playwright install --with-deps chromium
-      # The rejected synthetic portrait is gone. PRs verify representative
-      # native source/paper geometry; full archival visual coverage is opt-in.
-      - name: Capture source-native material and CC0 smoke proofs (PR)
+      - name: Restore frozen 608x1082 CC0 photo source (reference, NOT render)
+        uses: actions/download-artifact@v4
+        with:
+          name: artcraft-pencil-real-reference-pixel-evidence
+          run-id: 43682633614
+          repository: YukiUmetsu/kumiki-ui
+          github-token: ${{ github.token }}
+          path: .artcraft-original-photo
+      # One Playwright invocation per job: a second test command clears
+      # test-results/ and silently destroys the first set of native PNGs.
+      # Keep native 1x/3x V54/V56/V63/V64/V65 A/B and original-photo SSIM together.
+      - name: Capture source-native geometry and exact CC0 original-photo pixel audit (PR)
         if: github.event_name == 'pull_request'
         run: >-
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
-          --grep "ArtCraft CC0 native wax eye specimen|ArtCraft two-up hand-laid crayon wax|ArtCraft real paper-height contact proof"
-      - name: Capture complete source-native archive (manual)
+          tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
+          --grep "F1 V52|F1 V54|F1 V55|F1 V56|F1 V57|F1 V58|F1 V63|F1 V65"
+      - name: Capture full source-native archive and original-photo QA (manual)
         if: github.event_name == 'workflow_dispatch'
-        run: npx playwright test -c playwright.artcraft.config.ts tests/e2e-artcraft/crayon-adult-face.spec.ts
+        run: >-
+          npx playwright test -c playwright.artcraft.config.ts
+          tests/e2e-artcraft/crayon-adult-face.spec.ts
+          tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
+      - name: Include the frozen CC0 source screenshot in the review artifact
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_file="$(find .artcraft-original-photo -type f -name 'artcraft-portrait-woman-portrait-source.png' -print -quit)"
+          test -n "$source_file"
+          printf '%s  %s\n' "f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2" "$source_file" | sha256sum --check -
+          mkdir -p test-results/artcraft-source
+          cp "$source_file" test-results/artcraft-source/cc0-source-608x1082.png
       - name: Save native screenshots and failures
         if: always()
         uses: actions/upload-artifact@v4

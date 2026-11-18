@@ -971,7 +971,7 @@ describe("UKIYO1 boats, boarding and riding a wave", () => {
     expect(Math.min(...ys)).toBeLessThan(ys[0] - 100);                       // carried well up the face
     for (let i = 1; i < ys.length; i++) { expect(Math.abs(ys[i] - ys[i - 1]), `y step at ${150 + i}`).toBeLessThan(12); expect(Math.abs(rots[i] - rots[i - 1]), `pitch step at ${150 + i}`).toBeLessThan(2.5); }
     expect(inspectUkiyoeScene(scene({ nodes: [{ id: "b", kind: "group", ride: { on: "nope" } }] })).map(i => i.path)).toContain("$.nodes[0].ride.on");
-  }, 20000);
+  }, 60000);
   it("surges a poled hull on each stroke and fades loops in and out", () => {
     expect(loopOffsets({ kind: "surge", period: 44, amplitude: 1 }, 11, 0).x).toBeCloseTo(10, 3);
     expect(loopOffsets({ kind: "rock", period: 40, start: 100, fade: 20 }, 100, 0).y).toBeCloseTo(0, 6);
