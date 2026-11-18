@@ -55,7 +55,7 @@ export const ROSE_CONTACT_SHADOWS:readonly RoseContactShadow[]=[
   },
   {
     id:"cup-under-left",lower:"rose-whorl-recess",upper:"rose-whorl-left",
-    axis:[[251,179],[256,181],[263,182],[269,180]],
+    axis:[[255,166],[261,169],[264,174],[266,179]],
     halfWidth:3,contacts:58,
     pigments:["#56263F","#823D55","#B46A7D"],
     nibs:[.36,.31,.25],opacity:[.25,.22,.18],
