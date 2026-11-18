@@ -14,40 +14,76 @@ const select={padding:8,border:"1px solid #b8a68c",background:"#faf2e3",
   color:"#2e2a24",fontSize:13} as const;
 const sources=[
   {
-    id:"scholar-scroll-a",
+    id:"scholar-scroll-a",group:"Ming scholar anatomy",
     title:"Twenty-five bust portraits of famous scholars · crop A",
     image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/51810/197276/main-image",
-    href:"https://www.metmuseum.org/art/collection/search/51810",
-    credit:"Unidentified artist, Ming dynasty, 16th–17th c. · object 55.37 · ink and color on paper · Public Domain.",
-    note:"Three different heads in one scroll. Study head silhouette, beard root direction, eye/brow variation and the tall dark hat without assigning an identity.",
-    alt:"Detail crop from the Met's Twenty-five bust portraits of famous scholars, showing three individual scholar portraits."
+    href:"https://www.metmuseum.org/art/collection/search/51810",fit:"cover",position:"center 52%",
+    credit:"Unidentified artist, Ming dynasty, 16th or 17th c. · object 55.37 · ink and color on paper · Public Domain.",
+    note:"Compare three separate skull/cap/beard constructions. The left sitter has a broader face and moustache, the center a denser beard, and the right a tall squared hat. The removed labels prevent sitter identification.",
+    alt:"Three distinct scholar busts from the Met's Twenty-five bust portraits of famous scholars."
   },
   {
-    id:"scholar-scroll-b",
+    id:"scholar-scroll-b",group:"Ming scholar anatomy",
     title:"Twenty-five bust portraits of famous scholars · crop B",
     image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/51810/161536/main-image",
-    href:"https://www.metmuseum.org/art/collection/search/51810",
-    credit:"Unidentified artist, Ming dynasty, 16th–17th c. · object 55.37 · ink and color on paper · Public Domain.",
-    note:"Comparative head and beard study. The scroll's labels were removed before acquisition; the redraw does not claim to identify any sitter.",
+    href:"https://www.metmuseum.org/art/collection/search/51810",fit:"cover",position:"center 50%",
+    credit:"Unidentified artist, Ming dynasty, 16th or 17th c. · object 55.37 · ink and color on paper · Public Domain.",
+    note:"Secondary comparison for hat height, cheek-to-jaw transition, brow rhythm and collar contour. Treat the individual as an anonymous sitter, not a named historical person.",
     alt:"Second detail crop from the Met's Twenty-five bust portraits of famous scholars."
   },
   {
-    id:"writer-and-attendant",
+    id:"writer-attendant",group:"Qing court roles",
     title:"Woman at her dressing table",
     image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/910543/2250417/main-image",
-    href:"https://www.metmuseum.org/art/collection/search/910543",
+    href:"https://www.metmuseum.org/art/collection/search/910543",fit:"contain",position:"center",
     credit:"Attributed to Leng Mei, early 18th c. · object 2024.180 · ink and color on silk · Public Domain.",
-    note:"Separate the seated writer from the standing attendant: head angle, lowered gaze, pinned hair, collar overlap and garment volume are not interchangeable.",
-    alt:"The seated woman and standing attendant in the Met's Woman at her dressing table."
+    note:"The seated writer and standing attendant are distinct constructions: lowered inward gaze, head inclination, hair ornaments, collar overlaps and hand-to-object relationship. The Met identifies the inkstone and water pot as evidence of the seated subject's writing practice.",
+    alt:"The seated writer and standing attendant in the Met's Woman at her dressing table."
   },
   {
-    id:"formal-lady",
+    id:"formal-lady",group:"Ming portrait proportion",
     title:"Portrait of a Lady",
     image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/48936/164539/main-image",
-    href:"https://www.metmuseum.org/art/collection/search/48936",
+    href:"https://www.metmuseum.org/art/collection/search/48936",fit:"contain",position:"center",
     credit:"Unidentified artist, Ming dynasty, late 16th–early 17th c. · object 51.39.1 · ink and color on silk · Public Domain.",
-    note:"Comparative formal head/neck alignment, head-to-robe scale and negative space. The available reproduction is monochrome.",
-    alt:"The formal seated figure in the Met's Portrait of a Lady."
+    note:"Formal seated portrait for head-to-robe scale, neck insertion, sleeve volume, hand placement and negative space. The available reproduction is monochrome; no color or pigment claims are inferred.",
+    alt:"The seated figure in the Met's Ming-dynasty Portrait of a Lady."
+  },
+  {
+    id:"qing-man",group:"Qing male portrait detail",
+    title:"Portrait of a Man",
+    image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/51783/2234827/main-image",
+    href:"https://www.metmuseum.org/art/collection/search/51783",fit:"contain",position:"center",
+    credit:"Jiang Yun (Chinese, 1847–1919), 19th c. · object 52.177.8 · ink and color on paper · Public Domain.",
+    note:"New male reference for the rounded cap, temple-to-cheek transition, moustache/goatee separation, fur mass, blue under-robe and large sleeve volumes. Qing-period clothing is not copied onto the Ming scholar.",
+    alt:"Jiang Yun's Qing-dynasty Portrait of a Man."
+  },
+  {
+    id:"qing-lady",group:"Qing female portrait detail",
+    title:"Portrait of a Lady",
+    image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/51780/2234806/main-image",
+    href:"https://www.metmuseum.org/art/collection/search/51780",fit:"contain",position:"center",
+    credit:"Jiang Jun, 19th c. · object 52.177.5 · ink and color on paper · Public Domain.",
+    note:"New close study for hairline and bun silhouette, floral ornaments, earrings, high embroidered collar, sleeve borders and hand-to-object scale. The face remains delicate without becoming featureless.",
+    alt:"Jiang Jun's Qing-dynasty Portrait of a Lady."
+  },
+  {
+    id:"ming-court-ladies",group:"Ming attendants and group hierarchy",
+    title:"Court ladies and attendant",
+    image:"https://ids.si.edu/ids/deliveryService?id=FS-8197_07&max=1200",
+    href:"https://asia-archive.si.edu/object/F1916.135/",fit:"contain",position:"center",
+    credit:"School of Tang Yin, formerly attributed to Su Hanchen, 16th c. · F1916.135 · ink and color on silk · Smithsonian CC0.",
+    note:"Three court women establish role hierarchy through different head tilts, pinned hair masses, small facial marks and garment lengths. This aged, low-contrast reproduction is used for contour and pose only, not precise color measurement.",
+    alt:"The three court women and attendant in the Smithsonian's Ming-dynasty Court ladies and attendant."
+  },
+  {
+    id:"man-and-servant",group:"Ming/Qing figure hierarchy",
+    title:"Portrait of a man and his servant",
+    image:"https://upload.wikimedia.org/wikipedia/commons/f/fc/Portrait_of_a_man_and_his_servant.jpg",
+    href:"https://asia-archive.si.edu/object/F1918.9/",fit:"contain",position:"center",
+    credit:"Unidentified artist, 17th c., Ming or Qing dynasty · F1918.9 · ink and color on silk · Smithsonian CC0.",
+    note:"New role-scale reference: a dominant seated figure and smaller servant share one visual space without reusing the same head/body ratios. Study the sitter's cap, beard, broad robe and the attendant's relative scale; no sitter identity is asserted.",
+    alt:"The principal sitter and smaller servant in the Smithsonian's Portrait of a man and his servant."
   },
 ] as const;
 
@@ -142,9 +178,13 @@ function ReferenceAtelier(){
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:16}}>
         {sources.map(source=><article key={source.id} style={card}
           data-km-ink-anat5-reference-card={source.id}>
-          <div style={{height:250,background:"#e5dac8",display:"grid",placeItems:"center"}}>
-            <img src={source.image} alt={source.alt} loading="lazy" referrerPolicy="no-referrer"
-              style={{maxWidth:"100%",maxHeight:250,objectFit:"contain"}}/>
+          <p style={{fontSize:10,letterSpacing:1,fontWeight:700,color:"#766958",margin:"0 0 8px"}}>
+            {source.group.toUpperCase()}
+          </p>
+          <div style={{height:270,background:"#e5dac8",display:"grid",placeItems:"center",overflow:"hidden"}}>
+            <img data-km-ink-anat5-reference-image={source.id} src={source.image} alt={source.alt}
+              loading="eager" decoding="async" referrerPolicy="no-referrer"
+              style={{display:"block",width:"100%",height:"100%",objectFit:source.fit,objectPosition:source.position}}/>
           </div>
           <h3 style={{font:"normal 18px Georgia,serif",margin:"12px 0 5px"}}>{source.title}</h3>
           <p style={{fontSize:11,color:"#6c6256",lineHeight:1.5}}>{source.credit}</p>
