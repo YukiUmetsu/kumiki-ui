@@ -149,6 +149,16 @@ function AnatomyFigureAtelier(){
       </div>
     </section>
     <section style={{...panel,marginTop:22}}>
+      <h2 style={{font:"normal 23px Georgia,serif",marginTop:0}}>Canonical identity is unchanged</h2>
+      <p style={{fontSize:13,lineHeight:1.7}}>
+        Misty Hermit, Riverside Scholar and Mountain Trail from the three approved teacher paintings
+        remain the identity/pose ground truth. The new Smithsonian, LOC and Met works are craft
+        references only. Their original teacher-image files are not staged in this repository or the
+        accessible file library, so this ANAT4 construction is an anatomy/gesture study, not an
+        identity-matched replacement.
+      </p>
+    </section>
+    <section style={{...panel,marginTop:22}}>
       <h2 style={{font:"normal 23px Georgia,serif",marginTop:0}}>Anatomy and acceptance notes</h2>
       <ul style={{lineHeight:1.75,fontSize:13,paddingLeft:20}}>
         <li>The body lattice is a MakeHuman/ANSUR-derived construction scaffold. Its Asian ancestry morph is a coarse model axis, not a validated historical Chinese anthropometric norm or a claim about either sitter.</li>
