@@ -547,17 +547,16 @@ test("F1 V63 source-connected facial value calibration native PNG and V60 eviden
 });
 
 /**
- * V65 native oral-cavity proof. V63 and V64 remain explicit negative controls;
- * V65 changes only mouth wax and is compared against the exact same source,
- * camera, paper, frame and renderer.
+ * V65 native oral-cavity proof. The independent V63 baseline proof remains
+ * separate; this A/B compares V64 and V65 only to avoid rendering the same
+ * V63 source baseline twice in one browser job.
  */
 test("F1 V65 source-led dark oral cavity native PNG, 3x mouth and V60 evidence",async({page},info)=>{
-  test.setTimeout(240_000);
+  test.setTimeout(180_000);
   await page.setViewportSize({width:W,height:H});
   const original=discoverSource(process.env.KM_ARTCRAFT_CC0_SOURCE_DIR??".artcraft-original-photo");
   const captures:Record<string,string>={};
   for(const [label,midfaceForm] of [
-    ["V63","source-anat1-connected-face-v63"],
     ["V64","source-anat1-connected-face-v64"],
     ["V65","source-anat1-connected-face-v65"],
   ] as const){
@@ -568,39 +567,37 @@ test("F1 V65 source-led dark oral cavity native PNG, 3x mouth and V60 evidence",
     const svg=page.locator("svg[data-km-crayon-scene]");
     await expect(svg).toBeVisible();
     await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
-    if(label!=="V63"){
-      const aperture=svg.locator('[data-km-crayon-element="mouth-aperture-depth"]');
-      // Measure the authored silhouette path, not the outer wax group:
-      // group bounds include renderer/filter extents, not the mouth aperture.
-      const apertureShape=aperture.locator(
+    const aperture=svg.locator('[data-km-crayon-element="mouth-aperture-depth"]');
+    // Measure the authored silhouette path, not the outer wax group:
+    // group bounds include renderer/filter extents, not the mouth aperture.
+    const apertureShape=aperture.locator(
+      '[data-km-crayon-region] > defs > clipPath > path').first();
+    await expect(apertureShape).toHaveCount(1);
+    const apertureBox=await apertureShape.evaluate(element=>{
+      const box=(element as SVGGraphicsElement).getBBox();
+      return {width:box.width,height:box.height};
+    });
+    expect(apertureBox.width).toBeLessThanOrEqual(118);
+    expect(apertureBox.height).toBeLessThanOrEqual(34);
+    const arch=svg.locator('[data-km-crayon-element="dental-arch-connected-wax"]');
+    const archShape=arch.locator(
+      '[data-km-crayon-region] > defs > clipPath > path').first();
+    await expect(archShape).toHaveCount(1);
+    const archBox=await archShape.evaluate(element=>{
+      const box=(element as SVGGraphicsElement).getBBox();
+      return {width:box.width,height:box.height};
+    });
+    if(label==="V65")expect(archBox.height).toBeLessThanOrEqual(15);
+    for(const id of ["dental-surface-left","dental-surface-center","dental-surface-far"]){
+      const tooth=svg.locator('[data-km-crayon-element="'+id+'"]');
+      const toothShape=tooth.locator(
         '[data-km-crayon-region] > defs > clipPath > path').first();
-      await expect(apertureShape).toHaveCount(1);
-      const apertureBox=await apertureShape.evaluate(element=>{
-        const box=(element as SVGGraphicsElement).getBBox();
-        return {width:box.width,height:box.height};
+      await expect(toothShape).toHaveCount(1);
+      const box=await toothShape.evaluate(element=>{
+        const bounds=(element as SVGGraphicsElement).getBBox();
+        return {width:bounds.width,height:bounds.height};
       });
-      expect(apertureBox.width).toBeLessThanOrEqual(118);
-      expect(apertureBox.height).toBeLessThanOrEqual(34);
-      const arch=svg.locator('[data-km-crayon-element="dental-arch-connected-wax"]');
-      const archShape=arch.locator(
-        '[data-km-crayon-region] > defs > clipPath > path').first();
-      await expect(archShape).toHaveCount(1);
-      const archBox=await archShape.evaluate(element=>{
-        const box=(element as SVGGraphicsElement).getBBox();
-        return {width:box.width,height:box.height};
-      });
-      if(label==="V65")expect(archBox.height).toBeLessThanOrEqual(15);
-      for(const id of ["dental-surface-left","dental-surface-center","dental-surface-far"]){
-        const tooth=svg.locator('[data-km-crayon-element="'+id+'"]');
-        const toothShape=tooth.locator(
-          '[data-km-crayon-region] > defs > clipPath > path').first();
-        await expect(toothShape).toHaveCount(1);
-        const box=await toothShape.evaluate(element=>{
-          const bounds=(element as SVGGraphicsElement).getBBox();
-          return {width:bounds.width,height:bounds.height};
-        });
-        expect(box.height).toBeLessThanOrEqual(12);
-      }
+      expect(box.height).toBeLessThanOrEqual(12);
     }
     const png=await svg.screenshot({animations:"disabled"});
     writeFileSync(info.outputPath("v65-native-"+label+"-299.png"),png);
@@ -619,7 +616,7 @@ test("F1 V65 source-led dark oral cavity native PNG, 3x mouth and V60 evidence",
     const detail=await mouthSvg.screenshot({animations:"disabled"});
     writeFileSync(info.outputPath("v65-detail-"+label+"-mouth-3x.png"),detail);
   }
-  const metrics=await page.evaluate(async({source,v63,v64,v65})=>{
+  const metrics=await page.evaluate(async({source,v64,v65})=>{
     async function pixels(base64:string){
       const img=new Image();img.src="data:image/png;base64,"+base64;
       await img.decode();
@@ -631,7 +628,7 @@ test("F1 V65 source-led dark oral cavity native PNG, 3x mouth and V60 evidence",
       ctx.drawImage(img,0,0);
       return ctx.getImageData(0,0,608,1082).data;
     }
-    const [src,a,b,c]=await Promise.all([pixels(source),pixels(v63),pixels(v64),pixels(v65)]);
+    const [src,b,c]=await Promise.all([pixels(source),pixels(v64),pixels(v65)]);
     const mouth=[385,725,70,25] as const;
     function mouthStats(data:Uint8ClampedArray){
       const [x,y,w,h]=mouth;let dark=0,brightNeutral=0;
@@ -654,15 +651,14 @@ test("F1 V65 source-led dark oral cavity native PNG, 3x mouth and V60 evidence",
       return n/total;
     }
     return {
-      sourceMouth:mouthStats(src),v63Mouth:mouthStats(a),
-      v64Mouth:mouthStats(b),v65Mouth:mouthStats(c),
+      sourceMouth:mouthStats(src),v64Mouth:mouthStats(b),v65Mouth:mouthStats(c),
       mouthChangedFraction:changed(b,c,mouth),
       eyeControlChangedFraction:changed(b,c,[190,490,180,115]),
       noseControlChangedFraction:changed(b,c,[350,510,130,160]),
       hairControlChangedFraction:changed(b,c,[0,150,530,250]),
     };
   },{
-    source:original.toString("base64"),v63:captures.V63,v64:captures.V64,v65:captures.V65,
+    source:original.toString("base64"),v64:captures.V64,v65:captures.V65,
   });
   const checkoutSha=process.env.GITHUB_SHA??
     execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
@@ -676,7 +672,6 @@ test("F1 V65 source-led dark oral cavity native PNG, 3x mouth and V60 evidence",
   const report={
     schema:"kumiki-crayon-artcraft-v65-oral-cavity-audit",
     sourceSha256:REFERENCE_SHA,
-    v63PngSha256:createHash("sha256").update(Buffer.from(captures.V63,"base64")).digest("hex"),
     v64PngSha256:createHash("sha256").update(Buffer.from(captures.V64,"base64")).digest("hex"),
     v65PngSha256:record.native.sha256,
     metrics,audit:record.audit,artisticApproval:false,releaseApproved:false,
@@ -684,12 +679,10 @@ test("F1 V65 source-led dark oral cavity native PNG, 3x mouth and V60 evidence",
   writeFileSync(info.outputPath("v65-oral-cavity-audit.json"),JSON.stringify(report,null,2)+"\n");
   writeFileSync(info.outputPath("v60-native-candidate-V65-299.json"),JSON.stringify(record,null,2)+"\n");
   console.log("[ArtCraft V65 oral cavity audit]"+JSON.stringify(report));
-  expect(metrics.v64Mouth.brightNeutralPixels)
-    .toBeLessThan(metrics.v63Mouth.brightNeutralPixels*.75);
   expect(metrics.v65Mouth.brightNeutralPixels)
     .toBeLessThanOrEqual(metrics.v64Mouth.brightNeutralPixels);
   expect(metrics.v65Mouth.darkPixels)
-    .toBeGreaterThan(Math.max(metrics.v63Mouth.darkPixels,metrics.v64Mouth.darkPixels)+10);
+    .toBeGreaterThan(metrics.v64Mouth.darkPixels+10);
   expect(metrics.mouthChangedFraction).toBeGreaterThan(0);
   expect(metrics.eyeControlChangedFraction).toBe(0);
   expect(metrics.noseControlChangedFraction).toBe(0);

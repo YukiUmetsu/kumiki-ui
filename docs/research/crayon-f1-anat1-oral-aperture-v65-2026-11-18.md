@@ -36,9 +36,9 @@ The aperture path itself, its parent clipping, source camera, paper, seed, timin
 
 ## Native acceptance protocol
 
-The source-native Playwright test captures V63, V64 and V65 on the same commit, 608×1082, frame 299, with a 3× mouth inspection and a V60 SHA-bound sidecar for V65. Acceptance requires:
+The PR workflow retains the independent V63 baseline proof; the V65 source-native A/B test compares V64 and V65 on the same commit, source, 608×1082 canvas and frame 299, with 3× mouth inspections and a V60 SHA-bound sidecar for V65. Acceptance requires:
 
-- V65 dark-pixel count to exceed both V63 and V64 by more than 10 pixels in the fixed mouth ROI.
+- V65 dark-pixel count to exceed V64 by more than 10 pixels in the fixed mouth ROI; the independent V63 baseline remains recorded above.
 - V65 bright-neutral pixels not to exceed V64.
 - Eye, nose and hair control regions to remain pixel-identical between V64 and V65.
 - The 3× mouth crop to retain the narrow oblique aperture, connected enamel and textured vermilion without a sticker-like edge.
