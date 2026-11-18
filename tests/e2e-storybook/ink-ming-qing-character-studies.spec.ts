@@ -12,6 +12,8 @@ test("ANAT5 portrait atelier exposes new references and live expressions",async(
   await expect(atelier.locator('[data-km-ink-anat5-reference-image][loading="eager"]')).toHaveCount(8);
   expect(await portrait.getAttribute("data-km-ink-anat5-source-references")).toContain("Met 55.37");
   await expect(atelier.locator('[data-testid="ink-anat5-expression-contact-sheet"] svg')).toHaveCount(6);
+  const faceReview=atelier.getByTestId("ink-anat5-face-detail-review").locator("svg");
+  await expect(faceReview).toHaveAttribute("data-km-ink-anat5-view","face");
   await page.screenshot({fullPage:true,animations:"disabled",path:info.outputPath("anat5-scholar-neutral.png")});
   await atelier.getByRole("combobox",{name:"Historical character"}).selectOption("writer");
   await expect(portrait)
