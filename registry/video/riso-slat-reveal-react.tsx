@@ -151,7 +151,7 @@ export function RisoSlatTheatre({
           data-km-riso81-lane={slat.lane}
           data-km-riso81-depth-mm={slat.depthMm}
           data-km-riso81-exposure={slat.exposure}>
-          <g clipPath={"url(#"+id+"-"+slat.id)}
+          <g clipPath={"url(#"+id+"-"+slat.id+")"}
             data-km-riso81-original-printed-strip={slat.id}>
             <RisoPrint {...common} spec={insert.spec}
               frame={completedRisoFrame(insert.spec)}
