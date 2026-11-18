@@ -183,10 +183,13 @@ test("F1 V58 original CC0 22-station hair silhouette source image and V56 V57",a
   const original=discoverSource(process.env.KM_ARTCRAFT_CC0_SOURCE_DIR??".artcraft-original-photo");
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   const captures:Record<string,string>={};
-  for(const [label,midfaceForm] of [
+  const variants=[
     ["V56","source-anat1-hair-top-v56"],
     ["V57","source-anat1-hair-edge-v57"],
-  ] as const){
+    ["V63","source-anat1-connected-face-v63"],
+    ["V64","source-anat1-connected-face-v64"],
+  ] as const;
+  for(const [label,midfaceForm] of variants){
     const source=crayonCc0FaceStudy({midfaceForm,detail:1});
     await page.setContent("<!doctype html><html><body style='margin:0'>"+
       renderToStaticMarkup(createElement(CrayonScene,{spec:source,frame:299}))+
@@ -208,10 +211,8 @@ test("F1 V58 original CC0 22-station hair silhouette source image and V56 V57",a
   const checkoutSha=process.env.GITHUB_SHA??
     execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
   const nativeCaptures=Object.fromEntries(
-    (["V56","V57"] as const).map(label=>{
+    variants.map(([label,variant])=>{
       const png=Buffer.from(captures[label],"base64");
-      const variant=label==="V56"?"source-anat1-hair-top-v56" as const:
-        "source-anat1-hair-edge-v57" as const;
       const record=crayonF1NativeCaptureWorksheetV60({
         variant,
         nativePngSha256:createHash("sha256").update(png).digest("hex"),
