@@ -322,6 +322,28 @@ export function InkMingQingCharacterStudy({
   const mouthPath="M"+fmt(g.landmarks.mouthL[0])+" "+fmt(mouthY)
     +" Q"+fmt(cx)+" "+fmt(mouthY-mouthOpen)+" "+fmt(g.landmarks.mouthR[0])+" "+fmt(mouthY)
     +" Q"+fmt(cx)+" "+fmt(mouthY+mouthOpen*.72)+" "+fmt(g.landmarks.mouthL[0])+" "+fmt(mouthY)+" Z";
+  const eyes=(["L","R"] as const).map(side=>{
+    const outer=g.landmarks["exocanthion"+side],inner=g.landmarks["endocanthion"+side];
+    const upper=g.landmarks["upperLid"+side],lower=g.landmarks["lowerLid"+side];
+    const d="M"+fmt(outer[0])+" "+fmt(outer[1])
+      +" Q"+fmt(upper[0])+" "+fmt(upper[1])+" "+fmt(inner[0])+" "+fmt(inner[1])
+      +" Q"+fmt(lower[0])+" "+fmt(lower[1])+" "+fmt(outer[0])+" "+fmt(outer[1])+" Z";
+    const fold="M"+fmt(outer[0])+" "+fmt(outer[1]-3.2)
+      +" Q"+fmt(upper[0])+" "+fmt(upper[1]-5.2)+" "+fmt(inner[0])+" "+fmt(inner[1]-2.7);
+    const rim="M"+fmt(outer[0])+" "+fmt(outer[1]+2.2)
+      +" Q"+fmt(lower[0])+" "+fmt(lower[1]+3.1)+" "+fmt(inner[0])+" "+fmt(inner[1]+1.7);
+    return {side,outer,inner,upper,lower,d,fold,rim};
+  });
+  const brows=(["L","R"] as const).map(side=>({
+    side,a:g.landmarks["browInner"+side],b:g.landmarks["browMid"+side],c:g.landmarks["browOuter"+side],
+  }));
+  const lipPath="M"+fmt(g.landmarks.mouthL[0])+" "+fmt(g.landmarks.mouthL[1])
+    +" Q"+fmt(g.landmarks.labialeSuperius[0]-4)+" "+fmt(g.landmarks.labialeSuperius[1]-3)
+    +" "+fmt(g.landmarks.labialeSuperius[0])+" "+fmt(g.landmarks.labialeSuperius[1])
+    +" Q"+fmt(g.landmarks.labialeSuperius[0]+4)+" "+fmt(g.landmarks.labialeSuperius[1]-3)
+    +" "+fmt(g.landmarks.mouthR[0])+" "+fmt(g.landmarks.mouthR[1])
+    +" Q"+fmt(g.landmarks.labialeInferius[0])+" "+fmt(g.landmarks.labialeInferius[1]+3)
+    +" "+fmt(g.landmarks.mouthL[0])+" "+fmt(g.landmarks.mouthL[1])+" Z";
   const hairPath=capOrHairPath(character,g);
   const hairCount=Math.max(0,Math.round(g.hairFiberCount*detail));
   const beardCount=Math.max(0,Math.round(g.beardFiberCount*detail));
@@ -350,6 +372,16 @@ export function InkMingQingCharacterStudy({
       <filter id={uid+"-soft"} x="-20%" y="-20%" width="140%" height="140%">
         <feGaussianBlur stdDeviation=".8"/>
       </filter>
+      <filter id={uid+"-wash-edge"} x="-30%" y="-30%" width="160%" height="160%">
+        <feTurbulence type="fractalNoise" baseFrequency=".035 .055" numOctaves="2" seed="17" result="paper-noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="paper-noise" scale="1.15" xChannelSelector="R" yChannelSelector="G"/>
+        <feGaussianBlur stdDeviation=".32"/>
+      </filter>
+      <linearGradient id={uid+"-skin"} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#f7ead7"/>
+        <stop offset="46%" stopColor={p.skin}/>
+        <stop offset="100%" stopColor="#d8bda2"/>
+      </linearGradient>
     </defs>
     <rect width="320" height="390" fill="#f1e8d9"/>
     <g data-km-ink-anat5-paper-fibre="source-layer" opacity=".24">
@@ -434,7 +466,7 @@ export function InkMingQingCharacterStudy({
     <path d={"M"+fmt(neckLeft)+" "+fmt(neckTop)+" C"+fmt(neckLeft-4)+" 301 121 316 129 323"
       +" Q160 345 191 323 C199 316 "+fmt(neckRight+4)+" 301 "+fmt(neckRight)+" "+fmt(neckTop)+" Z"}
       fill="#d3b99e" opacity=".9"/>
-    <path d={g.outline} fill={p.skin} stroke={p.ink} strokeWidth=".7" strokeOpacity=".38"/>
+    <path d={g.outline} fill={"url(#"+uid+"-skin)"} stroke={p.ink} strokeWidth=".7" strokeOpacity=".38"/>
     <g clipPath={"url(#"+uid+"-face)"} data-km-ink-anat5-facial-wash-planes="forehead-orbit-malar-nose-jaw">
       <path d={"M"+fmt(g.landmarks.forehead[0]-35)+" "+fmt(g.landmarks.forehead[1]+6)
         +" C"+fmt(g.landmarks.forehead[0]-19)+" "+fmt(g.landmarks.forehead[1]-18)
@@ -475,9 +507,100 @@ export function InkMingQingCharacterStudy({
           strokeWidth={.32+(i%3)*.14} opacity={.13*detail}/>;
       })}
     </g>
+    <g data-km-ink-anat5-landmark-facial-planes="nose-philtrum-lips-chin">
+      <path data-km-ink-anat5-nose-bridge-wash="true"
+        d={"M"+fmt(g.landmarks.sellion[0]-4)+" "+fmt(g.landmarks.sellion[1]+2)
+          +" C"+fmt(g.landmarks.sellion[0]-8)+" "+fmt(g.landmarks.pronasale[1]-7)
+          +" "+fmt(g.landmarks.pronasale[0]-6)+" "+fmt(g.landmarks.pronasale[1]-2)
+          +" "+fmt(g.landmarks.subnasale[0]-5)+" "+fmt(g.landmarks.subnasale[1]+2)
+          +" Q"+fmt(g.landmarks.pronasale[0]+4)+" "+fmt(g.landmarks.pronasale[1]+6)
+          +" "+fmt(g.landmarks.sellion[0]+5)+" "+fmt(g.landmarks.sellion[1]+2)+" Z"}
+        fill={p.wash} opacity=".14" filter={"url(#"+uid+"-wash-edge)"}/>
+      <path data-km-ink-anat5-nose-sidewall="L"
+        d={"M"+fmt(g.landmarks.sellion[0]-5)+" "+fmt(g.landmarks.sellion[1]+3)
+          +" Q"+fmt(g.landmarks.alareL[0]-4)+" "+fmt(g.landmarks.pronasale[1]+4)
+          +" "+fmt(g.landmarks.alareL[0])+" "+fmt(g.landmarks.alareL[1]+1)}
+        fill="none" stroke={p.wash} strokeWidth="3.6" strokeLinecap="round" opacity=".17" filter={"url(#"+uid+"-soft)"}/>
+      <path data-km-ink-anat5-nose-sidewall="R"
+        d={"M"+fmt(g.landmarks.sellion[0]+5)+" "+fmt(g.landmarks.sellion[1]+3)
+          +" Q"+fmt(g.landmarks.alareR[0]+4)+" "+fmt(g.landmarks.pronasale[1]+4)
+          +" "+fmt(g.landmarks.alareR[0])+" "+fmt(g.landmarks.alareR[1]+1)}
+        fill="none" stroke={p.wash} strokeWidth="3.6" strokeLinecap="round" opacity=".14" filter={"url(#"+uid+"-soft)"}/>
+      <path d={"M"+fmt(g.landmarks.pronasale[0]-4)+" "+fmt(g.landmarks.pronasale[1]-1)
+        +" Q"+fmt(g.landmarks.pronasale[0])+" "+fmt(g.landmarks.pronasale[1]+3)
+        +" "+fmt(g.landmarks.pronasale[0]+4)+" "+fmt(g.landmarks.pronasale[1]-1)}
+        fill="none" stroke="#fff7e8" strokeWidth="1.4" opacity=".54" strokeLinecap="round"/>
+      <ellipse data-km-ink-anat5-nostril="L" cx={g.landmarks.alareL[0]+1.1}
+        cy={g.landmarks.alareL[1]+1.8} rx="1.7" ry=".78" fill="#594338" opacity=".48"/>
+      <ellipse data-km-ink-anat5-nostril="R" cx={g.landmarks.alareR[0]-1.1}
+        cy={g.landmarks.alareR[1]+1.8} rx="1.7" ry=".78" fill="#594338" opacity=".42"/>
+      <path data-km-ink-anat5-alar-rim="L"
+        d={"M"+fmt(g.landmarks.alareL[0]-4)+" "+fmt(g.landmarks.alareL[1]+1)
+          +" Q"+fmt(g.landmarks.alareL[0])+" "+fmt(g.landmarks.alareL[1]-2)
+          +" "+fmt(g.landmarks.alareL[0]+3)+" "+fmt(g.landmarks.alareL[1]+1)}
+        fill="none" stroke={p.ink} strokeWidth=".55" opacity=".38"/>
+      <path data-km-ink-anat5-alar-rim="R"
+        d={"M"+fmt(g.landmarks.alareR[0]-3)+" "+fmt(g.landmarks.alareR[1]+1)
+          +" Q"+fmt(g.landmarks.alareR[0])+" "+fmt(g.landmarks.alareR[1]-2)
+          +" "+fmt(g.landmarks.alareR[0]+4)+" "+fmt(g.landmarks.alareR[1]+1)}
+        fill="none" stroke={p.ink} strokeWidth=".55" opacity=".34"/>
+      <path data-km-ink-anat5-philtrum="L"
+        d={"M"+fmt(g.landmarks.subnasale[0]-3)+" "+fmt(g.landmarks.subnasale[1]+2)
+          +" Q"+fmt(g.landmarks.labialeSuperius[0]-5)+" "+fmt(g.landmarks.stomion[1]-1)
+          +" "+fmt(g.landmarks.labialeSuperius[0]-3)+" "+fmt(g.landmarks.labialeSuperius[1])}
+        fill="none" stroke={p.wash} strokeWidth=".8" opacity=".48"/>
+      <path data-km-ink-anat5-philtrum="R"
+        d={"M"+fmt(g.landmarks.subnasale[0]+3)+" "+fmt(g.landmarks.subnasale[1]+2)
+          +" Q"+fmt(g.landmarks.labialeSuperius[0]+5)+" "+fmt(g.landmarks.stomion[1]-1)
+          +" "+fmt(g.landmarks.labialeSuperius[0]+3)+" "+fmt(g.landmarks.labialeSuperius[1])}
+        fill="none" stroke={p.wash} strokeWidth=".8" opacity=".42"/>
+      <path data-km-ink-anat5-lip-volume="vermilion-border" d={lipPath}
+        fill="#9a6d5c" opacity=".22"/>
+      <path data-km-ink-anat5-lip-highlight="lower-vermilion"
+        d={"M"+fmt(g.landmarks.mouthL[0]+3)+" "+fmt(g.landmarks.mouthL[1]+1)
+          +" Q"+fmt(g.landmarks.labialeInferius[0])+" "+fmt(g.landmarks.labialeInferius[1]+2)
+          +" "+fmt(g.landmarks.mouthR[0]-3)+" "+fmt(g.landmarks.mouthR[1]+1)}
+        fill="none" stroke="#f7e6d2" strokeWidth="1" opacity=".6" strokeLinecap="round"/>
+      <path data-km-ink-anat5-nasolabial="L"
+        d={"M"+fmt(g.landmarks.alareL[0]-1)+" "+fmt(g.landmarks.alareL[1]+2)
+          +" Q"+fmt(g.landmarks.mouthL[0]-8)+" "+fmt(g.landmarks.mouthL[1]+8)
+          +" "+fmt(g.landmarks.mouthL[0]+1)+" "+fmt(g.landmarks.mouthL[1]+13)}
+        fill="none" stroke={p.wash} strokeWidth="1.05" opacity=".32"/>
+      <path data-km-ink-anat5-nasolabial="R"
+        d={"M"+fmt(g.landmarks.alareR[0]+1)+" "+fmt(g.landmarks.alareR[1]+2)
+          +" Q"+fmt(g.landmarks.mouthR[0]+8)+" "+fmt(g.landmarks.mouthR[1]+8)
+          +" "+fmt(g.landmarks.mouthR[0]-1)+" "+fmt(g.landmarks.mouthR[1]+13)}
+        fill="none" stroke={p.wash} strokeWidth="1.05" opacity=".28"/>
+      <path data-km-ink-anat5-chin-plane="sub-labial"
+        d={"M"+fmt(g.landmarks.sublabiale[0]-12)+" "+fmt(g.landmarks.sublabiale[1]-2)
+          +" Q"+fmt(g.landmarks.menton[0])+" "+fmt(g.landmarks.menton[1]+6)
+          +" "+fmt(g.landmarks.sublabiale[0]+12)+" "+fmt(g.landmarks.sublabiale[1]-2)}
+        fill="none" stroke={p.wash} strokeWidth="4.8" opacity=".13" filter={"url(#"+uid+"-soft)"}/>
+    </g>
     <g data-km-anat1-projected-features="true">
+      {eyes.map(eye=><g key={eye.side} data-km-ink-anat5-eye-anatomy={eye.side}>
+        <path data-km-ink-anat5-eye-aperture={eye.side} d={eye.d} fill="#f6ead9" opacity=".72"/>
+        <path data-km-ink-anat5-eye-lid-fold={eye.side} d={eye.fold}
+          fill="none" stroke={p.wash} strokeWidth=".68" opacity=".54"/>
+        <path data-km-ink-anat5-eye-lower-rim={eye.side} d={eye.rim}
+          fill="none" stroke="#fff5e6" strokeWidth=".72" opacity=".48"/>
+        <path d={"M"+fmt(eye.outer[0])+" "+fmt(eye.outer[1])
+          +" q"+(eye.side==="L"?-2.4:2.4)+" -1.8 "+(eye.side==="L"?-3.7:3.7)+" -3.4"}
+          fill="none" stroke={p.ink} strokeWidth=".52" opacity=".55"/>
+        {Array.from({length:5},(_,i)=>{
+          const t=.12+i*.16,pt=quadPoint(eye.outer,eye.upper,eye.inner,t);
+          const side=eye.side==="L"?-1:1;
+          return <path key={i} data-km-ink-anat5-lash={eye.side+"-"+i}
+            d={"M"+fmt(pt[0])+" "+fmt(pt[1])
+              +" q"+fmt(side*(1.1+i*.18))+" "+fmt(-1.5-i*.16)
+              +" "+fmt(side*(2.0+i*.2))+" "+fmt(-2.5-i*.22)}
+            fill="none" stroke={p.ink} strokeWidth={.35+(i%2)*.12} opacity=".48"/>;
+        })}
+      </g>)}
       {g.irises.map(eye=><g key={eye.side} data-km-anat1-iris={eye.side}>
-        <ellipse cx={eye.x} cy={eye.y} rx={eye.rx} ry={eye.ry} fill="#755a43" opacity=".78"/>
+        <ellipse cx={eye.x} cy={eye.y} rx={eye.rx} ry={eye.ry} fill="#755a43" opacity=".84"/>
+        <ellipse cx={eye.x} cy={eye.y} rx={eye.rx*.76} ry={eye.ry*.9}
+          fill="none" stroke="#c4a27c" strokeWidth=".36" opacity=".72"/>
         <ellipse cx={eye.x} cy={eye.y} rx={eye.rx*.43} ry={eye.ry*.76} fill="#211e1a"/>
         <path d={"M"+fmt(eye.x-eye.rx*.28)+" "+fmt(eye.y-eye.ry*.35)+" q1.4 -1.4 2.7 .1"}
           fill="none" stroke="#fff5e5" strokeWidth=".8" opacity=".8"/>
@@ -492,6 +615,21 @@ export function InkMingQingCharacterStudy({
           strokeLinecap="round" strokeLinejoin="round"
           opacity={brow ? 0.68 : eye ? 0.78 : nose ? 0.56 : lip ? 0.75 : 0.48}/>;
       })}
+      {brows.map(brow=><g key={brow.side} data-km-ink-anat5-brow-anatomy={brow.side}>
+        <path d={"M"+fmt(brow.a[0])+" "+fmt(brow.a[1])
+          +" Q"+fmt(brow.b[0])+" "+fmt(brow.b[1])+" "+fmt(brow.c[0])+" "+fmt(brow.c[1])}
+          fill="none" stroke={p.ink} strokeWidth="1.25" opacity=".42" strokeLinecap="round"/>
+        {Array.from({length:14},(_,i)=>{
+          const t=(i+.25)/14,pt=quadPoint(brow.a,brow.b,brow.c,t);
+          const direction=brow.side==="L"?-1:1;
+          return <path key={i} data-km-ink-anat5-brow-fiber={brow.side+"-"+i}
+            d={"M"+fmt(pt[0])+" "+fmt(pt[1])
+              +" q"+fmt(direction*(.6+(i%3)*.5))+" "+fmt(-1.1-(i%4)*.25)
+              +" "+fmt(direction*(1.7+(i%4)*.5))+" "+fmt(-2.2-(i%3)*.35)}
+            fill="none" stroke={p.hair} strokeWidth={.24+(i%4)*.11}
+            opacity={(.26+(i%5)*.06)*detail} strokeLinecap="round"/>;
+        })}
+      </g>)}
       {g.marks.map(mark=><path key={mark.id} data-km-expr1-mark={mark.id} d={mark.d}
         fill="none" stroke={p.ink} strokeWidth={.35+mark.strength*.48}
         strokeLinecap="round" opacity={mark.strength*(character==="scholar" ? 0.48 : 0.34)*detail}/>)}
