@@ -5,23 +5,34 @@ on:
       - ".github/workflows/riso79-original-pull-tab-artcraft.yml"
       - "registry/video/riso-pull-tab.ts"
       - "registry/video/riso-pull-tab-react.tsx"
+      - "registry/video/riso-slat-reveal.ts"
+      - "registry/video/riso-slat-reveal-react.tsx"
       - "src/video/riso79-pull-tab-film.ts"
       - "src/video/riso79-pull-tab-studio.tsx"
+      - "src/video/riso81-slat-film.ts"
+      - "src/video/riso81-slat-studio.tsx"
       - "src/video/riso-print-studios.stories.tsx"
       - "registry.json"
       - "tests/riso79-pull-tab-artcraft.test.tsx"
+      - "tests/riso81-interleaved-paper-slats.test.tsx"
       - "tests/riso80-organic-diecut-artcraft.test.tsx"
       - "tests/e2e-storybook/riso79-pull-tab-artcraft.spec.ts"
+      - "tests/e2e-storybook/riso81-interleaved-paper-slats.spec.ts"
       - "tests/e2e-storybook/riso80-organic-diecut-artcraft.spec.ts"
       - "docs/research/riso80-organic-diecut-contours-artcraft.md"
       - "docs/component-specs/riso-print.md"
       - "docs/research/riso79-original-window-pull-tab-artcraft.md"
       - "docs/research/riso79-paper-edge-material-study.md"
+      - "docs/research/riso81-interleaved-paper-slats-artcraft.md"
+      - "docs/component-specs/riso-print.md"
+      - "docs/02-component-catalog.md"
+      - "docs/35-material-native-film-styles-implementation-roadmap.md"
+      - "registry.json"
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  original-paper-two-spot-sliding-window:
+  original-paper-pull-tab-organic-cut-and-interleaved-slats:
     runs-on: ubuntu-latest
     timeout-minutes: 24
     steps:
@@ -43,7 +54,7 @@ jobs:
         run: npm run build-storybook
       - run: npx playwright install --with-deps chromium
       - name: Actual Chromium rounded and organic 1x 3x 9x16 source-contour proof
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso79-pull-tab-artcraft.spec.ts tests/e2e-storybook/riso80-organic-diecut-artcraft.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso79-pull-tab-artcraft.spec.ts tests/e2e-storybook/riso80-organic-diecut-artcraft.spec.ts tests/e2e-storybook/riso81-interleaved-paper-slats.spec.ts tests/e2e-storybook/riso80-organic-diecut-artcraft.spec.ts
       - name: Preserve actual ArtCraft screenshot evidence
         if: always()
         uses: actions/upload-artifact@v4
