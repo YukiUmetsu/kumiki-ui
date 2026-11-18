@@ -10,6 +10,8 @@ import type { WatchMotion } from "./collage-watch-rig";
 import watchUrl from "./assets/collage/pocket-watch-cutout.webp";
 import locoUrl from "./assets/collage/locomotive-1873-cutout.webp";
 import { CAST, PALETTE as PAPER_PALETTE } from "./collage-standard-time";
+import { paperSheetSoundCues } from "../../registry/motion/paper-sound";
+import { usePaperCuePlayer } from "./paper-sound-player";
 import { PHOTO_PALETTE } from "./collage-photo-registers";
 
 const PALETTE = { ...PAPER_PALETTE, ...PHOTO_PALETTE };
@@ -129,6 +131,10 @@ export function PhysicalPaperCollageLab() {
     ];
     return { version: 1, id: "physical-paper-lab", width: 1920, height: 1080, durationFrames: 150, seed: 9, board: { material: "kraft" }, palette: PALETTE, cadence, grain: .3, nodes };
   }, [stockMode, cadence]);
+  const [sound, setSound] = useState(true);
+  // Each piece's own motion makes its sound: the fold's crease, the rip, the peel, the roll.
+  const cues = useMemo(() => spec.nodes.flatMap((node) => (node.kind === "cutout" && node.sheet ? paperSheetSoundCues(node.sheet, 150, 30) : [])), [spec]);
+  usePaperCuePlayer(cues, loop.frame, 30, sound);
   return <div style={page}>
     <header><h1 style={{ margin: 0, font: "700 32px/1.15 Georgia, serif" }}>Physical paper lab</h1>
       <p style={{ margin: "6px 0 0", maxWidth: 820 }}>Cutouts made of real paper stock fold, tear, peel and roll in three dimensions. Each piece keeps its print on every facet,
@@ -143,6 +149,9 @@ export function PhysicalPaperCollageLab() {
         <option value="material">From each piece's material</option><option value="tissue">All tissue</option><option value="cardstock">All cardstock</option></select></label>
       <label style={label}>Cadence<select aria-label="Cadence" value={cadence} style={{ minHeight: 40, font: "inherit" }} onChange={e => setCadence(Number(e.target.value) as 1 | 2)}>
         <option value={1}>On ones (smooth)</option><option value={2}>On twos (stop motion)</option></select></label>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px system-ui" }}>
+        <input type="checkbox" checked={sound} onChange={e => setSound(e.target.checked)} /> Sound (recorded paper, {cues.length} cues)
+      </label>
     </div>
   </div>;
 }

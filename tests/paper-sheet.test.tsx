@@ -8,6 +8,8 @@ import { PaperSheetSvg } from "../registry/motion/paper-sheet-svg";
 import { evaluatePaperCraft, inspectPaperCraft } from "../registry/video/paper-craft";
 import { inspectCollageScene } from "../registry/video/collage/collage-scene";
 import { paperPhysicalSceneSpec } from "../src/video/paper-physical-scene";
+import { bakePaperBook, inspectPaperBook, inspectPaperBookContacts } from "../registry/motion/paper-book";
+import { paperBookSoundCues, paperSheetSoundCues } from "../registry/motion/paper-sound";
 
 const RECT = "M0 0H400V300H0Z";
 
@@ -185,5 +187,43 @@ describe("paper light and rendering", () => {
       nodes: [{ id: "n", kind: "cutout", shape: { type: "rect", width: 100, height: 80 }, fill: "#ffffff", sheet: { stock: "tissue", bends: [{ id: "x", kind: "roll", line: [[0, 0], [0, 1]], flap: [1, 0], angle: 5000 }] } }],
     });
     expect(errors.some((e) => e.includes("sheet.bends[0].angle"))).toBe(true);
+  });
+});
+
+describe("paper book", () => {
+  const riffle = () => bakePaperBook({ leaves: 10, width: 210, height: 280, open: 2, durationFrames: 110, quality: "draft",
+    turns: [{ frame: 4, kind: "grab", frames: 14, release: 0.62, count: 3, interval: 7 }] });
+
+  it("turns leaves that touch, land and settle in order without passing through each other", () => {
+    const bake = riffle();
+    const report = inspectPaperBookContacts(bake);
+    // Crossings stay within a few paper thicknesses, and paper does not stretch.
+    expect(report.maxPenetration).toBeLessThan(1);
+    expect(report.maxStretch).toBeLessThan(0.08);
+    const settled = bake.events.filter((e) => e.kind === "settle").map((e) => e.leaf);
+    expect(settled).toEqual([2, 3, 4]);
+    expect(bake.events.filter((e) => e.kind === "land")).toHaveLength(3);
+    const last = bake.frames[bake.frames.length - 1];
+    expect(last.leftCount + last.leaves.filter((l) => l.place === "left").length).toBe(5);
+  });
+
+  it("is deterministic, and a weak flick falls back onto its own stack", () => {
+    const spec = { leaves: 6, width: 210, height: 280, open: 2, durationFrames: 70, quality: "draft" as const, turns: [{ frame: 2, kind: "flick" as const, speed: 500 }] };
+    const a = bakePaperBook(spec);
+    const b = bakePaperBook(spec);
+    expect(Array.from(a.frames[40].leaves[0].positions)).toEqual(Array.from(b.frames[40].leaves[0].positions));
+    const end = a.frames[a.frames.length - 1];
+    expect(end.leftCount + end.leaves.filter((l) => l.place === "left").length).toBe(2);
+  });
+
+  it("makes sound cues from contact and motion", () => {
+    const cues = paperBookSoundCues(riffle());
+    expect(cues.some((c) => c.cause === "riffle")).toBe(true);
+    expect(cues.filter((c) => c.cause.startsWith("land")).length).toBe(3);
+    expect(cues.every((c) => c.gainDb <= 0 && c.gainDb >= -30)).toBe(true);
+    const sheet = paperSheetSoundCues({ tears: [{ id: "t", from: [0, -4], to: [0, 304], keys: [{ frame: 0, progress: 0 }, { frame: 60, progress: 1 }] }],
+      bends: [{ id: "f", kind: "fold", line: [[0, 0], [0, 10]], flap: [5, 5], angle: 0, keys: [{ frame: 10, angle: 0 }, { frame: 40, angle: 170 }] }] }, 90);
+    expect(new Set(sheet.map((c) => c.sound))).toEqual(new Set(["paper-fold", "paper-tear-slow"]));
+    expect(inspectPaperBook({ leaves: 1, width: 1, height: 1, durationFrames: 0, turns: [{ frame: -1 }] } as never).map((i) => i.path)).toEqual(expect.arrayContaining(["leaves", "width", "durationFrames", "turns[0].frame"]));
   });
 });

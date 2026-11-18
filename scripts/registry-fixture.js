@@ -2670,6 +2670,53 @@ export function ShapeMorphExample() {
 }`,
     };
   },
+  "paper-book": (specifier) => {
+    return {
+      imports: [`import { bakePaperBook, inspectPaperBookContacts } from "${specifier}";`],
+      componentName: "PaperBookExample",
+      component: `export function PaperBookExample() {
+  // A 12-leaf magazine: a hand turns one page from the bottom corner, then three pages are riffled.
+  const [bake] = useState(() => bakePaperBook({ leaves: 12, width: 210, height: 280, open: 2, durationFrames: 60, quality: "draft",
+    turns: [{ frame: 2, kind: "grab", grip: "bottom" }, { frame: 30, kind: "grab", frames: 12, count: 3, interval: 6 }] }));
+  const contacts = inspectPaperBookContacts(bake);
+  return <span data-frames={bake.frames.length} data-events={bake.events.length} data-crossing={contacts.maxPenetration.toFixed(2)} />;
+}`,
+    };
+  },
+  "paper-book-three": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { PaperBookObject } from "${specifier}";`,
+        `import { bakePaperBook } from "${motionDir}/paper-book";`,
+      ],
+      componentName: "PaperBookThreeExample",
+      component: `export function PaperBookThreeExample() {
+  const [book] = useState(() => new PaperBookObject(bakePaperBook({ leaves: 6, width: 210, height: 280, durationFrames: 30, quality: "draft",
+    turns: [{ frame: 1, kind: "flick", speed: 1600 }] }), { scale: 0.01 }));
+  book.update(15);
+  void book.dispose;
+  return <span data-children={book.children.length} />;
+}`,
+    };
+  },
+  "paper-sound": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { PAPER_SOUNDS, paperBookSoundCues, paperSheetSoundCues } from "${specifier}";`,
+        `import { bakePaperBook } from "${motionDir}/paper-book";`,
+      ],
+      componentName: "PaperSoundExample",
+      component: `export function PaperSoundExample() {
+  const [cues] = useState(() => [
+    ...paperBookSoundCues(bakePaperBook({ leaves: 6, width: 210, height: 280, durationFrames: 40, quality: "draft", turns: [{ frame: 1 }] })),
+    ...paperSheetSoundCues({ tears: [{ id: "rip", from: [0, 0], to: [0, 300], keys: [{ frame: 0, progress: 0 }, { frame: 60, progress: 1 }] }] }, 90),
+  ]);
+  return <ul data-land={PAPER_SOUNDS.land}>{cues.map((cue, i) => <li key={i}>{cue.frame}: {cue.sound} {cue.gainDb.toFixed(1)} dB</li>)}</ul>;
+}`,
+    };
+  },
   "sculptural-type-three": (specifier) => {
     return {
       imports: [

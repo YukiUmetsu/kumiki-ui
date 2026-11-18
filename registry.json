@@ -1353,6 +1353,61 @@
       ]
     },
     {
+      "name": "paper-book",
+      "type": "registry:ui",
+      "title": "Physical Paper Book",
+      "description": "Bound books and magazines whose page turns are simulated sheets of real paper stock (coated magazine paper by default): each moving leaf is a particle sheet with stretch, shear and bending constraints from the stock's stiffness, pinned on the spine, pulled by gravity and slowed by air drag. A hand takes a corner (the corner leads and the page curls into a cone), the middle of the edge, or a thumb flicks it; riffles turn many leaves in quick succession; turns run forward or back. Leaves never pass through each other or the stacks: around the spine they keep their angular order a paper's thickness apart, so they touch, land and settle in order. Deterministic small-step XPBD baked once for exact seeking, with contact events (lift, release, touch, land, settle) for sound and a CPU contact check.",
+      "dependencies": [],
+      "registryDependencies": [
+        "paper-sheet"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/paper-book.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paper-book.ts"
+        }
+      ]
+    },
+    {
+      "name": "paper-book-three",
+      "type": "registry:ui",
+      "title": "Physical Paper Book Three",
+      "description": "Three.js renderer for a baked paper book: smooth leaf surfaces interpolated from the simulation grid (Catmull-Rom) and kept apart as drawn, recto and verso textures (the verso mirrored to read from behind), coated-paper clear coat, stacks with one edge line per leaf, and shadows cast leaf on leaf.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "paper-book"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/paper-book-three.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paper-book-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "paper-sound",
+      "type": "registry:ui",
+      "title": "Physical Paper Sound",
+      "description": "Sound cues made from what paper does: page turns with a take per leaf, landings on the frame the simulation finds the leaf striking the stack and as loud as it struck, soft brushes where leaves touch in the air, one fluttering run for a riffle, slow or fast rips by how fast a tear runs, the crease of a fold, peels, rolls and slides. The default ids are recorded CC0 paper sounds in the sound catalog; every id can be swapped.",
+      "dependencies": [],
+      "registryDependencies": [
+        "paper-sheet",
+        "paper-book"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/paper-sound.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paper-sound.ts"
+        }
+      ]
+    },
+    {
       "name": "sculptural-type-three",
       "type": "registry:ui",
       "title": "Sculptural Type Three",

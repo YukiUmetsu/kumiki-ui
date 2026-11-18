@@ -1314,3 +1314,18 @@ export function evaluatePaperSheet(spec: PaperSheetSpec, frame: number): PaperSh
     warnings,
   };
 }
+
+/** A bend's keyed values on a frame (degrees for the angle, px for the rest). */
+export function paperBendAt(bend: PaperBend, frame: number): { angle: number; offset: number; radius: number | undefined; length: number | undefined } {
+  return {
+    angle: keyed(bend.keys, frame, (k) => k.angle, bend.angle),
+    offset: keyed(bend.keys, frame, (k) => k.offset, bend.offset ?? 0),
+    radius: bend.radius === undefined && !bend.keys?.some((k) => k.radius !== undefined) ? undefined : keyed(bend.keys, frame, (k) => k.radius, bend.radius ?? 1),
+    length: bend.length === undefined && !bend.keys?.some((k) => k.length !== undefined) ? undefined : keyed(bend.keys, frame, (k) => k.length, bend.length ?? 1),
+  };
+}
+
+/** A tear's keyed progress on a frame, 0–1. */
+export function paperTearAt(tear: PaperTear, frame: number): number {
+  return Math.min(1, Math.max(0, keyed(tear.keys, frame, (k) => k.progress, tear.progress ?? 0)));
+}

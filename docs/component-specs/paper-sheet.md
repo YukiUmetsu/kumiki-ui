@@ -1,13 +1,21 @@
 # Physical paper sheet (MC1.3)
 
-**Registry item:** `paper-sheet` (files `registry/motion/paper-sheet*.ts(x)`). PaperCraft (`paper-craft`) and Editorial
-Collage (`editorial-collage`) depend on it.
+**Registry items:**
+- `paper-sheet` (files `registry/motion/paper-sheet*.ts(x)`). PaperCraft (`paper-craft`) and Editorial Collage
+  (`editorial-collage`) depend on it.
+- `paper-book` and `paper-book-three` (magazines and books with simulated page turns).
+- `paper-sound` (sound cues from paper motion).
 
 **Storybook:**
 - Video production → Film Looks → Paper Craft → *Physical Paper · Fold, Peel, Roll, Tear*. This is the lab: seven moves,
   eleven stocks, light, camera tilt and turn, and thickness. Below the lab, a PaperCraft diorama with physical layers.
 - Video production → Film Looks → Editorial Collage → *COLLAGE1 · Physical paper lab*. This shows cutouts that fold,
   tear, peel and roll on a kraft board.
+- Video production → Film Looks → Paper Craft → *Magazine · Page Flip*. A 24-page magazine in 3D. Moves: hand turns
+  (bottom corner, top corner, edge), a riffle of five pages, a flick, a weak flick that falls back, and a turn back.
+  Controls: stock, simulation quality and air drag. Sound comes from the simulation.
+
+All three labs have a sound switch. While a lab plays, it fires the cues that `paper-sound` makes from the motion.
 
 **Find it:** `npm run catalog:find -- --query="paper fold peel tear" --format=json`. Exact exports:
 `npm run catalog:api -- --id=paper-sheet --format=json`.
@@ -105,6 +113,96 @@ These functions do not depend on a renderer: `paperViewMatrix`, `paperFacetMatri
   and flat shadows fall the same way. Bend and tear keys use the cutout's stepped frame, so cadence on twos still
   works.
 
+## Magazines and books (`paper-book`)
+
+```ts
+const bake = bakePaperBook({ leaves: 12, width: 210, height: 280, open: 2, durationFrames: 150,
+  turns: [{ frame: 6, kind: "grab", grip: "bottom" }, { frame: 60, kind: "grab", frames: 14, count: 5, interval: 7 }] });
+bake.frames[f]          // stacks (leftCount, rightCount) and every leaf with its own shape
+bake.events             // lift, release, touch, land and settle, each with a strength and a speed
+inspectPaperBookContacts(bake)   // deepest crossing (mm) and largest stretch: a CPU check
+new PaperBookObject(bake, { page: (n) => texture }).update(f)   // paper-book-three
+```
+
+- **Leaves are real sheets.** Each moving leaf is a grid of particles held by stretch, shear and bending constraints,
+  pinned along the spine.
+  - Bending stiffness comes from the stock. The grain runs along the spine, so a page bends along the grain, the easy
+    way.
+  - Gravity and air drag (½ρC_dAv², flat-plate C_d 1.2) act on every particle, so a page billows as it sweeps.
+  - The default stock is coated magazine paper (90 g/m², 75 µm, gloss 0.32), and the covers default to the leaf stock.
+- **Moves:**
+  - `grab`: a hand takes the bottom or top corner or the middle of the edge. It carries the page on an eased arc round
+    the spine, draws the edge in toward the spine and lets go while still moving. A corner grip leads, so the page
+    curls into a cone.
+  - `flick`: a thumb pushes the edge. Without air, a page lying flat needs about 800°/s to pass the top, by energy.
+    Air drag takes most of that. Measured on the default magazine page in still air: 1,400°/s lifts it to 43°, and
+    2,200°/s to about 80°, and both fall back; 3,000°/s turns it. With half the drag, 1,700°/s turns it.
+  - `count` and `interval` make a riffle. `direction: "back"` turns from left to right.
+- **Contact.** All leaves hinge on one spine, so around it the leaves are ordered by angle. A lower index is always at a
+  larger angle. Contact keeps that order at every point (r, y), one gap apart: a point that crosses is turned back
+  round the spine at its own radius and height.
+  - Inside the binding, the gap closes at a constant angle, as bound pages meet at the fold.
+  - In a landed pile the leaf beneath does not yield (shock propagation). A landed leaf loses its speed into its
+    neighbour (no bounce) with a little friction.
+  - Leaves settle in stack order and freeze on top of their stack. A covered settled leaf joins the stack shape.
+- **Solver.**
+  - Small-step XPBD: 14–28 substeps a frame and three stretch passes.
+  - Long-range tethers to the spine and to the hand (Kim et al. 2012) keep the paper from stretching. A soft hand
+    attachment lets the paper's own constraints win.
+  - Strain limiting each frame (Provot 1995), then a final contact pass.
+- **Measured** (fine quality: a 13 × 17 grid, 20 substeps):
+  - A 150-frame riffle of five leaves bakes in about 0.4 s, and a single turn in about 0.1 s.
+  - The deepest crossing is 0.53 mm at mid-page. Stretch is at most 5%, and only at the first edge beside the pinned
+    spine.
+- **Rendering** (`paper-book-three`):
+  - The renderer interpolates leaves from the grid with Catmull–Rom, at 4 × per cell.
+  - An interpolated surface can bulge past its grid on a tight curl, so `paperBookSeparate` keeps the drawn surfaces
+    in the same angular order. A resting leaf holds still, and a moving one yields.
+  - The recto and verso are textures. The verso is mirrored, so it reads from behind. Coated stock gets a clear coat.
+  - Each stack draws its top leaf over a block, with one edge line per leaf.
+  - Paper 0.12 mm apart needs a logarithmic depth buffer. The lab's stage turns it on (`createStudioStage(…, {
+    logarithmicDepth: true })`).
+
+## Sound (`paper-sound`)
+
+`paperBookSoundCues(bake)` and `paperSheetSoundCues(spec, frames, fps)` return cues `{ frame, sound, gainDb, align,
+cause }`. `align: "peak"` puts the sound's measured peak on the frame; `"start"` begins it there.
+
+| Motion | Cue |
+|---|---|
+| A leaf turns | A page-turn swish, with its peak midway between lift and landing. The take is chosen per leaf from three recordings. |
+| A leaf lands | A paper flap on the landing frame, −18 + 14 × strength dB. The strength is the closing speed of the contact. |
+| Leaves brush in the air | A softer flap, −24 + 12 × strength dB. |
+| Three leaves leave within a second | One riffle run at the first lift, with each turn 6 dB quieter. |
+| A tear | A slow rip (3.9 s) from the start when the tear runs 1.2 s or longer, else a fast rip with its peak mid-tear. |
+| A fold or bend closes | A fold with its crease pressed. Folds that close together merge into one louder cue. |
+| A peel, a roll, a travelling crease or slide | Peel, unroll or paper slide, from the start of the motion. Eased pauses under 4 frames do not split a motion. |
+
+The labs verify sync with earshot. In the riffle mix, all 5 landing cues have an onset within 40 ms of their contact
+frame (median 20 ms; random placement scores 37%), and the events tag as foley and paper rustling. The landings do not
+stand out as strong accents over the riffle run, because paper landing on paper is soft. Set film gains in the mix;
+the raw cue mix sits near −30 LUFS.
+
+### Recorded paper sounds (CC0)
+
+Imported with `sound:import`. Each licence was read on its Freesound page (CC0 1.0). Each trim was checked with
+earshot (realness and description), and the low end under 150 Hz was kept under 20%: the fold take was high-passed at
+160 Hz to remove handling rumble.
+
+| Id | Source (Freesound) | earshot reading |
+|---|---|---|
+| `paper-page-turn-1`, `-2` | *Glossy Magazine sounds* by fieldtapes (271342) | a page turning, z +3.6 / +4.5; p_real 0.94 |
+| `paper-page-turn-3` | *Turning pages* by bdunis4 (271459) | a quick swipe, z +3.4; p_real 0.96 |
+| `paper-page-land` | *Paper Flap* by amholma (344356) | a page turning, z +2.8; p_real 0.98 |
+| `paper-riffle` | *Flipping Pages* by VithorMoraes (391350) | a page turning, z +3.5; p_real 0.93 |
+| `paper-tear-slow` | *tearing paper; slow* by viwright2112 (630399) | paper rustling, z +4.1; p_real 0.98 |
+| `paper-tear-fast` | *paper tearing rip* by Mikes-MultiMedia (349702) | a quick swipe, z +3.5; p_real 0.99 |
+| `paper-fold` | *paper - folding 01* by Anthousai (398896) | paper rustling, z +4.3; p_real 0.97 |
+| `paper-peel` | *Painters Tape Peeling* (383856) | scissors cutting / a match struck, z +3.2; p_real 0.995 |
+| `paper-unroll` | *Unrolling a paper map* by Lewooz (580586) | paper rustling, z +3.3; p_real 0.99 |
+
+No human listening review has been done yet.
+
 ## Stocks and sources
 
 | Stock | g/m² | µm | E MD / CD GPa | Opacity | Fibre mm | Notes |
@@ -141,6 +239,9 @@ them with measured values when you have them.
 
 ## Limits
 
+- **Book:** a leaf that curls back on itself (its radius from the spine shrinking along the page) has two angles at one
+  point; the contact uses the leaf's extreme angle there, which is conservative. Leaves do not collide with
+  themselves. The stack below its top leaf is drawn as a block, so its edges show leaf lines but not each leaf's curl.
 - One bend is a generalised cylinder: the curvature runs across one straight line. Cone curls (a corner turned by
   hand) are close to a diagonal fold with a large radius, but not exact.
 - A nested bend rides only on the rigid end of its parent. A bend that carries others does not sag.

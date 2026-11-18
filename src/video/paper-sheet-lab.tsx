@@ -15,6 +15,8 @@ import { Slider } from "../ui/slider";
 import { MotionScrubber } from "../motion/react";
 import { PaperCraftStage } from "../../registry/video/paper-craft-react";
 import { paperPhysicalSceneSpec } from "./paper-physical-scene";
+import { paperSheetSoundCues } from "../../registry/motion/paper-sound";
+import { usePaperCuePlayer } from "./paper-sound-player";
 
 import { DURATION, FPS, MOVES, PX_PER_MM, SHEET, TABLE_EDGE, paperMoveSpec, slideOf } from "./paper-sheet-moves";
 import type { PaperMove } from "./paper-sheet-moves";
@@ -102,8 +104,11 @@ export function PaperSheetLab({ initialMove = "fold", initialFrame = 64 }: Paper
   const [radius, setRadius] = useState(0);
   const [grainAcross, setGrainAcross] = useState(false);
   const diorama = useMemo(() => paperPhysicalSceneSpec(stock), [stock]);
+  const [sound, setSound] = useState(true);
   const timeline = useMemo<MotionTimeline>(() => ({ schemaVersion: 1, id: "paper-sheet", fps: { num: FPS, den: 1 }, durationFrames: DURATION, nodes: [] }), []);
   const moveSpec = useMemo(() => paperMoveSpec(move, radius), [move, radius]);
+  const cues = useMemo(() => paperSheetSoundCues(moveSpec, DURATION, FPS), [moveSpec]);
+  usePaperCuePlayer(cues, frame, FPS, sound);
   const spec: PaperSheetSpec = useMemo(() => ({
     outline: `M${SHEET.x} ${SHEET.y}H${SHEET.x + SHEET.w}V${SHEET.y + SHEET.h}H${SHEET.x}Z`,
     stock,
@@ -197,6 +202,7 @@ export function PaperSheetLab({ initialMove = "fold", initialFrame = 64 }: Paper
             <Field label="Print colour"><input type="color" className={colourClass} value={ink} onChange={(event) => setInk(event.target.value)} /></Field>
           </div>
           <Checkbox label="Printed front" checked={print} onCheckedChange={setPrint} />
+          <Checkbox label={`Sound while playing (${cues.map((c) => c.cause).join(", ") || "none"})`} checked={sound} onCheckedChange={setSound} />
           <NumberSlider label="Crease or front radius (0 = from the stock)" value={radius} min={0} max={80} step={1} unit=" px" onChange={setRadius} />
           <NumberSlider label="Thickness (× true caliper)" value={thickness} min={0} max={8} step={0.5} unit="×" onChange={setThickness} />
           <Field label="Light">

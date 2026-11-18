@@ -16,6 +16,7 @@ import type { PaperObject, PaperObjectPalette } from "../../registry/video/paper
 import type { PaperBotanicalPalette } from "../../registry/video/paper-botanical-kit";
 import type { PaperAspect } from "./paper-craft-demo";
 import { PaperSheetLab } from "./paper-sheet-lab";
+import { MagazineFlipLab } from "./magazine-flip-lab";
 
 type Controls = {
   artwork: "garden" | "botanical" | "object" | "scenery";
@@ -516,5 +517,12 @@ export const MoonlitLantern: Story = {
 export const PhysicalPaper: Story = {
   name:"Physical Paper · Fold, Peel, Roll, Tear",
   render:()=><PaperSheetLab/>,
+  parameters:{controls:{disable:true}},
+};
+
+/** MC1.3 magazine page flip: simulated leaves with contact; shares Paper Craft's existing folder. */
+export const MagazinePageFlip: Story = {
+  name:"Magazine · Page Flip",
+  render:()=><MagazineFlipLab/>,
   parameters:{controls:{disable:true}},
 };
