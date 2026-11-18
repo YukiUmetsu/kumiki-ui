@@ -65,3 +65,15 @@ This correction changes the silhouette and painterly contact, not the CP-F1 mate
 Passing source and browser tests proves deterministic geometry and material integration, not artistic realism. Inspect the actual full-frame 1×, all 4 directional macro crops and complete 45-region plate. Reject the result if the centre still reads as a radial fan, a screw, a button pasted on top, a set of outlined tubes, or a flat dark hole.
 
 **ART HOLD remains:** the photographs are qualitative morphology references, not a same-pose measured registration set. The flower still lacks independently measured landmarks, validated cultivar identity, multi-view petal normals and accepted natural-motion behaviour. Keep both studies OFF by default until a separate visual review approves them.
+
+
+## Follow-up value-first pass — 2026-11-17
+
+The exact-head review rejected the centre at 1× because it collapsed into a dense dark spiral. This iteration changes the silhouette hierarchy before adding any texture:
+
+- Narrow the central recess into an irregular diagonal occlusion wedge; it no longer reads as a second closed petal ring.
+- Broaden and flatten the right-facing shoulder so its convex face is readable at the full-frame scale.
+- Enlarge the foreground scroll's convex face and move its lower return outward, separating it from the rear pocket.
+- Keep the existing timed pencil contacts, material seeds, palette model, region IDs, parent clipping and opt-in defaults unchanged. No new fibre density or outline pass is added.
+
+The same authored silhouettes are kept byte-identical in the four-organ whorl and six-surface centre definitions. This is a geometry-only experiment, not a claim of improved realism. The existing exact-head Chromium proof must re-check all five true contact valleys, source clipping and 16:9/9:16 renders. **ART HOLD remains until the next native 1× review confirms the petals read separately at normal video size.**
