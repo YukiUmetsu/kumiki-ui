@@ -839,6 +839,59 @@ The wheels' motion blur follows the ramp: `FilmStage` gives each 3D shot its pla
 
 A ramp multiplies the content's own motion. Ramping into a cut needs a shot that is still moving at its end; a shot that eases to a stop gains nothing from `exit`.
 
+### Velocity edit
+
+`"speed": { "source": 315, "beats": { "bed": "drums", "every": 2, "shape": "rush" } }` makes the speed follow the beats of a bed with a declared tempo (VE1.2), the short-form "velocity" edit. Between beats the content races; on each beat it drops to slow motion, so every hit of the music lands on a slowed, readable moment.
+
+| Field | Meaning |
+|---|---|
+| `beats.bed` | A bed with `bpm` (and `beatOffset`); its beats are the speed points. |
+| `beats.every`, `beats.phase` | Every 1, 2, 4 or 8 beats, at a beat of the group, as for hits. |
+| `beats.shape` | `rush` (default): races into each beat and drops to slow motion on it, the classic velocity edit. `dip`: slow on each beat, fastest midway. `burst`: fast out of each beat, slowing into the next. `freeze`: almost stops on each beat. |
+| `beats.contrast` | The fast speed over the slow one, 2 to 20. Default 8. |
+
+**How the curve is built.**
+
+- **Fit.** The curve's shape is scaled so the content fits the scene exactly. `source` sets how slow the slow motion is: more content for the same frames plays faster everywhere.
+- **The example's range.** `"source": 315` in 262 frames with `rush` at contrast 8 runs from 0.40× on each kick to 3.1× just before the next.
+- **Enter and exit.** `enter` and `exit` still ramp into and out of cuts.
+- **Holds.** A velocity edit takes no holds (`speed-beats-holds`).
+
+**Playback.**
+
+- **Motion blur.** 3D shots get the instantaneous speed as their playback rate, so motion blur streams in the fast stretches and clears in the slow ones.
+- **Reduced motion** plays the content at an even speed.
+- **Hits.** Pair the speed with beat hits on the same beats: a punch and zoom blur on the slowed kick, a shake on the snare.
+
+| Code | Severity | When |
+|---|---|---|
+| `speed-beats-bed`, `speed-beats-tempo`, `speed-beats-every` | error | No such bed, a bed with no `bpm`, a bad grouping |
+| `speed-beats-shape`, `speed-beats-contrast`, `speed-beats-holds`, `speed-beats-few` | error | An unknown shape, a contrast outside 2 to 20, holds as well, fewer than two beats in the scene |
+| `speed-fast` | warning | Over 10× anywhere; motion stops reading |
+| `speed-beats-flat` | warning | The beats still play near full speed, so nothing reads as slow motion |
+
+**Example.** [`examples/film/velocity-edit.film.json`](../../examples/film/velocity-edit.film.json).
+
+- **The shot.** The race car from behind, on a camera locked to it, cut to `bed-drums-hiphop-110`.
+- **The cut.** `rush` on the kicks, with a punch and zoom blur on each kick and a shake on each snare.
+- **Storybook.**
+  - **Speed Ramp → Velocity** plays it beside the same content at an even 1.2×, on one clock, with the film's mix (`npm run sound:moves -- --mix=velocity-edit`).
+  - **Speed Ramp → Graphs** draws the four shapes on the 110 bpm grid.
+
+**Evidence (2026-11-18).**
+
+- **Tests.** `tests/film-velocity.test.ts` covers:
+  - the shapes;
+  - the exact fit;
+  - slow on every kick and fast just before it;
+  - every check;
+  - the example's hits landing on slow motion.
+- **Rendered frames** (960×540), with the motion blur following the speed:
+  - frame 31 at 2.9×: the ground and kerbs streak;
+  - frame 34 at 0.4×: sharp, under the kick's zoom blur.
+- **A shared fix found here.** With hits on the race shot, the asphalt, lines and kerbs vanished. `FiberStage` measured its canvas with `getBoundingClientRect`, which counts the hit layer's CSS scale, so the canvas re-sized itself under any transform. It now measures layout size (`resize: { offsetSize: true }`). The same mismatch affected sound-driven scale and the whip and zoom transitions on 3D shots.
+- **Owner review.** Visual and listening review is pending.
+
 ## Stutter
 
 `"stutter": { "at": 66, "frames": 6, "repeats": 3 }` on a scene plays six content frames from frame 66 four times in all, then the scene carries on: a "b-b-b-but" on a landing, a hit or a turn. `at` is a content frame or one of the scene's moments; `frames` is 2 to 8 (default 4); `repeats` is 1 to 4 (default 2).

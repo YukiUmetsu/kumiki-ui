@@ -8262,6 +8262,36 @@
     },
     "enter": {
      "type": "number"
+    },
+    "beats": {
+     "type": "object",
+     "properties": {
+      "bed": {
+       "type": "string"
+      },
+      "every": {
+       "type": "number"
+      },
+      "phase": {
+       "type": "number"
+      },
+      "shape": {
+       "enum": [
+        "dip",
+        "burst",
+        "rush",
+        "freeze"
+       ]
+      },
+      "contrast": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "bed"
+     ],
+     "additionalProperties": false,
+     "description": "A velocity edit: the speed follows the beats of a bed that declares `bpm`, slow on each beat and fast between. Takes the place of `holds`. `every` and `phase` pick the beats as for hits."
     }
    },
    "required": [
