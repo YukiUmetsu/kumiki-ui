@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import { InstancedMesh } from "three";
 import { ReferenceGuidedFloraEngine } from "../registry/anatomy/flora-engine";
 import { FLORA_PROFILES, MONSTERA } from "../registry/anatomy/flora-profiles";
+import { ENGLISH_OAK, FIDDLE_LEAF_FIG } from "../registry/anatomy/flora-profiles-popular";
 import { FloraProfileError, checkFloraProfile } from "../registry/anatomy/flora-profile";
 import type { SpeciesMorphologyProfile } from "../registry/anatomy/flora-profile";
-import { buildBlade } from "../registry/anatomy/flora-leaf";
-import { heavyElastica } from "../registry/anatomy/flora-math";
+import { bladeLayout, buildBlade } from "../registry/anatomy/flora-leaf";
+import { UP, cross, dot, heavyElastica, normalize, sub } from "../registry/anatomy/flora-math";
+import { growSkeleton } from "../registry/anatomy/flora-skeleton";
+import { COCONUT_PALM } from "../registry/anatomy/flora-profiles-popular";
 import { SpatialLayoutManager } from "../registry/anatomy/flora-layout";
 import { createFloraAsset } from "../registry/anatomy/flora-three";
 import { inspectHeroAsset } from "../registry/craft/hero-quality-gate";
@@ -51,6 +54,25 @@ describe("FLORA2 growth", () => {
     const strand = heavyElastica(0.6, 400);
     expect(strand[strand.length - 1]).toBeCloseTo(-Math.PI / 2, 1);
     expect(heavyElastica(0.4, 0).every(a => a === 0.4)).toBe(true);
+  });
+  it("draws the fiddle's waist and the oak's lobes in the outline", () => {
+    const fig = FIDDLE_LEAF_FIG.organs.leaf, oak = ENGLISH_OAK.organs.leaf;
+    if (fig.kind !== "blade" || oak.kind !== "blade") throw new Error("leaves must be blades");
+    const f = bladeLayout(fig, 1), w = (s: number) => f.halfWidth(f.yBase + s * (f.yApex - f.yBase));
+    expect(w(0.42)).toBeLessThan(w(0.72) * 0.9);
+    const o = bladeLayout(oak, 1), samples = Array.from({ length: 101 }, (_, i) => o.halfWidth(o.yBase + (0.15 + 0.7 * i / 100) * (o.yApex - o.yBase)));
+    const sinuses = samples.filter((v, i) => i > 0 && i < 100 && v < samples[i - 1] && v < samples[i + 1]).length;
+    expect(sinuses).toBeGreaterThanOrEqual(2);
+  });
+  it("builds a tulip of six tepals and six stamens, and coconut pinnae on both sides of the rachis", () => {
+    const tulip = engine.organ("tulipa-gesneriana", "flower", "preview", 1).specimens[0].batches;
+    const count = (part: string) => tulip.filter(b => b.surface === part).reduce((s, b) => s + b.count, 0);
+    expect(count("tepal")).toBe(6); expect(count("anther")).toBe(6);
+    const sk = growSkeleton(COCONUT_PALM, { seed: 3, stage: 1, density: 1, detail: 1, maxOrgans: 1e5 });
+    const frond = sk.axes.find(a => a.rule.id === "frond")!, t = normalize(sub(frond.nodes[4].p, frond.nodes[3].p)), side = normalize(cross(t, UP));
+    const near = sk.organs.filter(o => o.organ === "pinna" && Math.hypot(...sub(o.p, frond.nodes[4].p)) < 0.4);
+    const left = near.filter(o => dot(o.y, side) > 0).length, right = near.filter(o => dot(o.y, side) < 0).length;
+    expect(left).toBeGreaterThan(2); expect(right).toBeGreaterThan(2);
   });
   it("keeps the dragon tree's crown near the measured width (1.69 × height)", () => {
     const sp = engine.generate({ speciesProfile: "dracaena-cinnabari", seed: 4, fidelityLevel: "preview", layoutMode: { mode: "hero" }, growthStage: 1 }).specimens[0];

@@ -301,6 +301,10 @@ const CLOSE_UPS: { title: string; note: string; make: () => FloraScene; view?: P
   { title: "Monstera deliciosa, adult leaf", note: "Splits between the laterals and hole rows sized to the measured 1.6–4.6% hole area; veins from the same layout in the normal map.", make: () => flora.organ("monstera-deliciosa", "leaf", "macro_ultra", 1), view: { azimuth: 6, elevation: 10, zoom: 1.7 } },
   { title: "Monstera deliciosa, adolescent leaf", note: "Heteroblasty: fenestration starts at growth stage 0.32; fewer, shorter splits first.", make: () => flora.organ("monstera-deliciosa", "leaf", "macro_ultra", 0.42), view: { azimuth: 6, elevation: 10, zoom: 1.7 } },
   { title: "Helianthus annuus, flower head", note: "Disc florets at n × 137.5°, r = c√n (Vogel): the 34 and 55 spirals appear by themselves.", make: () => flora.organ("helianthus-annuus", "head", "macro_ultra", 1), view: { azimuth: 0, elevation: 0 } },
+  { title: "Tulipa gesneriana, flower", note: "Six tepals in two whorls of three, cupped and a little incurved (a negative droop), with six dark stamens.", make: () => flora.organ("tulipa-gesneriana", "flower", "macro_ultra", 1), view: { azimuth: 20, elevation: 12, zoom: 1.15 } },
+  { title: "Quercus robur, leaf", note: "Four to five rounded lobes a side cut 50% in (the lobed margin), small auricles at the base.", make: () => flora.organ("quercus-robur", "leaf", "macro_ultra", 1), view: { azimuth: 0, elevation: 12, zoom: 1.6 } },
+  { title: "Acer palmatum, leaf", note: "Five to nine finely serrate, acuminate lobes fanned over 230° from one petiole, joined at their broad bases.", make: () => flora.organ("acer-palmatum", "leaf", "macro_ultra", 1), view: { azimuth: 0, elevation: 20, zoom: 1.6 } },
+  { title: "Ficus lyrata, leaf", note: "The fiddle: widest near the tip, a 14% waist, wavy edge, pale curved laterals.", make: () => flora.organ("ficus-lyrata", "leaf", "macro_ultra", 1), view: { azimuth: 0, elevation: 10, zoom: 1.6 } },
   { title: "Adansonia digitata, palmate leaf", note: "Five to seven obovate leaflets fanned on one petiole.", make: () => flora.organ("adansonia-digitata", "leaf", "macro_ultra", 1), view: { azimuth: 0, elevation: 20, zoom: 1.7 } },
   { title: "Echeveria rosette", note: "Fleshy keeled leaves at the golden angle; offsets from stage 0.55.", make: () => flora.generate({ speciesProfile: "echeveria", seed: 4, fidelityLevel: "macro_ultra", layoutMode: { mode: "hero" }, growthStage: 1 }), view: { elevation: 40, zoom: 1.2 } },
   { title: "Adansonia digitata, trunk and limb collars", note: "Folded bark from solid noise, root flare and limbs swelling into the trunk.", make: () => flora.generate({ speciesProfile: "adansonia-digitata", seed: 11, fidelityLevel: "high_def", layoutMode: { mode: "hero" }, growthStage: 1 }),
@@ -328,6 +332,21 @@ const SCENES: Record<string, { label: string; configs: FloraEngineConfig[] }> = 
   ] },
   willows: { label: "Weeping willow grove", configs: [
     { speciesProfile: "salix-babylonica", seed: 8, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 4, clumpRadius: 8 }, growthStage: 1, variants: 3 },
+  ] },
+  bulbs: { label: "Tulip and lavender fields", configs: [
+    { speciesProfile: "tulipa-gesneriana", seed: 2, fidelityLevel: "preview", layoutMode: { mode: "rows", rowCount: 8, plantsPerRow: 30, organicJitter: 0.4 }, growthStage: 0.95, stageSpread: 0.1, origin: [0, -1.2] },
+    { speciesProfile: "lavandula-angustifolia", seed: 4, fidelityLevel: "preview", layoutMode: { mode: "rows", rowCount: 3, plantsPerRow: 5, organicJitter: 0.25 }, growthStage: 1, origin: [0, 2.2] },
+  ] },
+  palms: { label: "Coconut palms on a beach", configs: [
+    { speciesProfile: "cocos-nucifera", seed: 6, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 5, clumpRadius: 6 }, growthStage: 1, stageSpread: 0.2, variants: 4 },
+  ] },
+  desert: { label: "Saguaro desert", configs: [
+    { speciesProfile: "carnegiea-gigantea", seed: 3, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 6, clumpRadius: 10 }, growthStage: 0.85, stageSpread: 0.3, variants: 4 },
+    { speciesProfile: "aloe-vera", seed: 5, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 8, clumpRadius: 4 }, growthStage: 1, origin: [3, 3] },
+  ] },
+  park: { label: "Oak and maple parkland", configs: [
+    { speciesProfile: "quercus-robur", seed: 5, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 3, clumpRadius: 12 }, growthStage: 1, variants: 3 },
+    { speciesProfile: "acer-palmatum", seed: 7, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 4, clumpRadius: 4 }, growthStage: 1, variants: 2, origin: [12, 6] },
   ] },
   floor: { label: "Succulent bed and moss cushions", configs: [
     { speciesProfile: "echeveria", seed: 9, fidelityLevel: "preview", layoutMode: { mode: "ground-cover", width: 0.8, depth: 0.8, density: 45 }, growthStage: 1, variants: 4, stageSpread: 0.25 },

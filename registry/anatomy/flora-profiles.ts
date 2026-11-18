@@ -12,6 +12,7 @@
 import { range } from "./foundation-shapes";
 import type { SpeciesMorphologyProfile } from "./flora-profile";
 import { GOLDEN_ANGLE } from "./flora-math";
+import { POPULAR_PROFILES } from "./flora-profiles-popular";
 
 const commonsPhoto = (file: string) => `https://commons.wikimedia.org/wiki/File:${file.replace(/ /g, "_")}`;
 
@@ -75,7 +76,7 @@ export const BAOBAB: SpeciesMorphologyProfile = {
   summary: "A massive smooth grey trunk (cone, cylinder, waisted, bell or bottle) that divides at about 0.4 of the height into crooked, fast-tapering limbs; palmate leaves of five to seven leaflets at the ends of the shoots.",
   sources: [
     { id: "wiki-baobab", title: "Wikipedia: Adansonia digitata", url: "https://en.wikipedia.org/wiki/Adansonia_digitata", kind: "flora", rights: "cited",
-      observed: ["Height 5–25 m; trunk up to 10–14 m across, fluted or cylindrical, often with a flared base.", "Bark grey, smooth, up to 8 cm thick.", "Leaves palmate with five to seven leaflets (up to nine); seedlings have simple leaves; leafless about eight months a year."] },
+      observed: ["Height 5–25 m; trunk up to 10–14 m across, fluted or cylindrical, often with a flared base.", "Bark grey, smooth, up to 8 cm thick.", "Leaves palmate with five to seven leaflets (up to nine); seedlings have simple leaves; leafless about eight months a year.", "Flowers hang on stalks 15–90 cm long; fruit up to 25 cm long."] },
     { id: "malawi-trunks", title: "Baobab population survey, Mzuzu University repository", url: "https://repository.mzuni.ac.mw/bitstreams/40163307-62e4-4994-a2a1-603fdbb2dded/download", kind: "paper", rights: "cited",
       observed: ["Trunk forms: cone-shaped 56%, cylindrical 21%, concave 17%, bell-shaped 7% (as summarised by our search; full text not read)."] },
     { id: "elephant-photo", title: "Baobab and elephant, Tanzania", url: commonsPhoto("Baobab_and_elephant,_Tanzania.jpg"), kind: "photo", rights: "CC BY-SA", creator: "Ferdinand Reus",
@@ -114,16 +115,19 @@ export const BAOBAB: SpeciesMorphologyProfile = {
     leaf: { kind: "blade", surface: "leaf", length: range(0.05, 0.1, 0.15, "estimated"), width: 0.38, widestAt: 0.62, baseShape: 1.1, apexShape: 0.75,
       veins: { style: "pinnate", laterals: 9, angle: 55, midrib: 0.06 }, fold: 6, droop: 0.8, droopPitch: 10,
       stalk: { length: 0.09, radius: 0.0016, surface: "petiole" }, leaflets: { count: range(5, 5, 7, "reported", "wiki-baobab"), spread: 150 } },
+    fruit: { kind: "bud", surface: "fruit", length: range(0.12, 0.18, 0.25, "reported", "wiki-baobab"), width: 0.45, stalk: { length: 0.35, radius: 0.005, surface: "petiole" } },
   },
   placements: [
     { organ: "leaf", on: "spray", place: "tip", count: [3, 6], angle: [35, 70] },
     { organ: "leaf", on: "spray", place: "along", from: 0.3, to: 1, spacing: 0.12, angle: [55, 45] },
     { organ: "leaf", on: "twig", place: "tip", count: [2, 4], angle: [35, 70] },
+    { organ: "fruit", on: "twig", place: "along", from: 0.6, to: 1, count: [1, 1], chance: 0.22, angle: [178, 178], onset: 0.7 },
   ],
   surfaces: {
     bark: { colour: [{ at: 0, hex: "#6d6257" }, { at: 0.35, hex: "#766a5e" }, { at: 0.8, hex: "#675e55" }, { at: 1, hex: "#5d554d" }], roughness: 0.82, texture: "bark-folds", tile: 1.2, relief: 0.05 },
     leaf: { colour: [{ at: 0, hex: "#55692f" }, { at: 1, hex: "#5f7535" }], back: "#8a9a6e", roughness: 0.5, clearcoat: 0.25, texture: "leaf-veins" },
     petiole: { colour: [{ at: 0, hex: "#5f6a3a" }, { at: 1, hex: "#6b7a3a" }], roughness: 0.6, texture: "stem" },
+    fruit: { colour: [{ at: 0, hex: "#8a8a6a" }, { at: 1, hex: "#77735c" }], roughness: 0.8, sheen: 0.6, sheenColour: "#d8d4c0", texture: "none" },
   },
   layout: { spacing: 18, clumpRadius: 14 },
   seedling: 0.05,
@@ -222,6 +226,7 @@ export const WEEPING_WILLOW: SpeciesMorphologyProfile = {
     { organ: "leaf", on: "strand", place: "along", from: 0.04, to: 1, spacing: 0.035, angle: [40, 30], scale: [1.3, 1.3] },
     { organ: "leaf", on: "twiglet", place: "along", from: 0.05, to: 1, spacing: 0.035, angle: [40, 30], scale: [1.3, 1.3] },
     { organ: "leaf", on: "branch", place: "along", from: 0.2, to: 1, spacing: 0.045, angle: [45, 45] },
+    { organ: "leaf", on: "limb", place: "along", from: 0.45, to: 1, spacing: 0.05, angle: [45, 45] },
   ],
   surfaces: {
     bark: { colour: [{ at: 0, hex: "#4d3d2c" }, { at: 0.5, hex: "#5a4733" }, { at: 1, hex: "#7a6a3c" }], roughness: 0.9, texture: "bark-fissured", tile: 0.8, relief: 0.09 },
@@ -408,5 +413,5 @@ export const HAIRCAP_MOSS: SpeciesMorphologyProfile = {
   },
 };
 
-/** The reference-measured profiles the engine registers by default. */
-export const FLORA_PROFILES: readonly SpeciesMorphologyProfile[] = [MONSTERA, BAOBAB, DRAGON_TREE, WEEPING_WILLOW, SUNFLOWER, MAIZE, ECHEVERIA, HAIRCAP_MOSS];
+/** The reference-measured profiles the engine registers by default: the first study and the popular plants. */
+export const FLORA_PROFILES: readonly SpeciesMorphologyProfile[] = [MONSTERA, BAOBAB, DRAGON_TREE, WEEPING_WILLOW, SUNFLOWER, MAIZE, ECHEVERIA, HAIRCAP_MOSS, ...POPULAR_PROFILES];

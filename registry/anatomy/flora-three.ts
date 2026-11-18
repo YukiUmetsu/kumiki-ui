@@ -64,6 +64,8 @@ function axisMaps(kind: SurfaceSpec["texture"], size: number): Maps {
       return 0.6 + 0.12 * fbm3(seed + 4, c * 3, v * 3, s * 3, 3) - 0.22 * (1 - ring) ** 10 + 0.05 * gradNoise3(seed + 5, c * 40, v * 6, s * 40);
     }
     if (kind === "root") { const cell = worley(seed, u * 10, v * 18, 0.9); return 0.45 + 0.4 * clamp(cell.f2 - cell.f1, 0, 0.6) + 0.1 * fbm3(seed, c * 6, v * 9, s * 6, 2); }
+    // Waxy cactus skin: fine vertical striations and faint growth bands.
+    if (kind === "cactus") return 0.62 + 0.07 * gradNoise3(seed, c * 36, v * 1.2, s * 36) - 0.06 * Math.max(0, Math.sin(2 * Math.PI * (v * 10 + 0.8 * fbm3(seed + 3, c * 2, v * 2, s * 2, 2)))) ** 8 + 0.05 * fbm3(seed + 4, c * 5, v * 5, s * 5, 3);
     if (kind === "coir") {
       let fib = 0;
       for (let k = 0; k < 3; k++) fib += Math.abs(gradNoise3(seed + 10 * k, c * (18 + k * 7), v * (3 + k * 5), s * (18 + k * 7)));
@@ -88,13 +90,13 @@ function bladeMaps(spec: BladeSpec, kind: SurfaceSpec["texture"], size: number):
   if (hit) return hit;
   const L = 1, lay = bladeLayout(spec, L), aspect = 2 * lay.W / (lay.yApex - lay.yBase);
   const h = size, w = Math.max(32, Math.min(size, Math.round(size * aspect * 1.4)));
-  const H = new Float32Array(w * h), V = new Float32Array(w * h), mid = spec.veins.midrib * lay.W;
+  const H = new Float32Array(w * h), V = new Float32Array(w * h), P = new Float32Array(w * h), mid = spec.veins.midrib * lay.W;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const px = (x / (w - 1) - 0.5) * 2 * lay.W, py = lay.yBase + (y / (h - 1)) * (lay.yApex - lay.yBase), half = Math.max(1e-5, lay.halfWidth(py)), a = Math.abs(px) / half;
     const s = clamp((py - lay.yBase) / (lay.yApex - lay.yBase));
     const midW = mid * (1 - 0.65 * s), dMid = Math.abs(px);
     let vein = Math.exp(-((dMid / Math.max(1e-5, midW)) ** 2)), height = 0.5 + 0.35 * vein;
-    if (kind === "parallel-veins" || kind === "petal" || lay.parallel) {
+    if (kind === "parallel-veins" || kind === "petal" || kind === "banded" || lay.parallel) {
       const n = spec.veins.laterals, k = a * n, d = Math.abs(k - Math.round(k)) * half / n, lw = midW * 0.25 + 1e-5;
       const lat = Math.exp(-((d / lw) ** 2));
       height += 0.08 * lat; vein = Math.max(vein, lat * 0.55);
@@ -108,12 +110,19 @@ function bladeMaps(spec: BladeSpec, kind: SurfaceSpec["texture"], size: number):
       vein = Math.max(vein, lat * 0.85, net * 0.12);
     }
     if (kind === "farina") height += 0.04 * fbm(55, px * 60, py * 60, 3);
-    H[y * w + x] = height; V[y * w + x] = kind === "farina" ? smooth((a - 0.82) / 0.18) : vein;
+    // Pattern masks: wavy cross-bands (snake plant) and white flecks (aloe).
+    let pattern = 0;
+    if (kind === "banded") pattern = smooth((0.5 + 0.5 * Math.sin(2 * Math.PI * (py / 0.032 + 1.4 * a * a + 0.8 * fbm(13, px * 20, py * 8, 3))) - 0.5) / 0.3);
+    if (kind === "spotted") { const cell = worley(17, px / 0.022, py / 0.045, 0.9); pattern = cell.id > 0.3 ? smooth((0.26 - cell.f1) / 0.1) : 0; }
+    H[y * w + x] = height + 0.015 * pattern; V[y * w + x] = kind === "farina" ? smooth((a - 0.82) / 0.18) : vein; P[y * w + x] = pattern;
   }
   const veinTint: [number, number, number] = kind === "petal" ? [1, 0.96, 0.85] : [1.12, 1.12, 0.92];
   const maps = bake(w, h, H, kind === "petal" ? 1.5 : 3, (_, i) => {
-    const v = V[i], base = 0.84;
-    return [base * (1 - v) + base * veinTint[0] * v, base * (1 - v) + base * veinTint[1] * v, base * (1 - v) + base * veinTint[2] * v];
+    const v = V[i], q = P[i], base = kind === "banded" ? 0.72 : kind === "spotted" ? 0.8 : 0.84;
+    const c = [base * (1 - v) + base * veinTint[0] * v, base * (1 - v) + base * veinTint[1] * v, base * (1 - v) + base * veinTint[2] * v];
+    // Light bands and flecks are paler and greyer than the leaf.
+    const light = kind === "banded" ? [0.99, 1, 0.9] : [1, 1, 0.94];
+    return [c[0] + (light[0] - c[0]) * q, c[1] + (light[1] - c[1]) * q, c[2] + (light[2] - c[2]) * q];
   }, (_, i) => 0.9 + 0.1 * V[i]);
   MAP_CACHE.set(key, maps);
   return maps;
@@ -170,13 +179,20 @@ export function createFloraAsset(input: FloraScene | readonly FloraScene[], o: F
       // The colour maps average about 0.84; lift the base colour so the profile's colours stay as sampled.
       m.color.setScalar(1 / 0.84);
     }
-    if (thin && s.back) {
-      const back = new Color().setRGB(...linearOf(s.back));
+    if (thin) {
+      // The underside: a colour ratio to the upper side (so crown shading and tone variation stay), matte, no wax coat.
+      const top = linearOf(s.colour.reduce((a, c) => (Math.abs(c.at - 0.5) < Math.abs(a.at - 0.5) ? c : a)).hex), under = linearOf(s.back ?? s.colour[0].hex);
+      // Undersides are paler and greyer than the upper side. Use the luminance ratio (softened by √, so a shaded underside
+      // does not glow) and a little desaturation: a per-channel ratio blows up the blue of a dark green leaf.
+      const lum = (c: readonly number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+      const ratio = new Vector2(Math.min(1.25, Math.max(0.7, Math.sqrt(lum(under) / Math.max(1e-4, lum(top))))), 0.12);
       m.onBeforeCompile = shader => {
-        shader.uniforms.floraBack = { value: back };
-        shader.fragmentShader = "uniform vec3 floraBack;\n" + shader.fragmentShader.replace("#include <color_fragment>", "#include <color_fragment>\n  if (!gl_FrontFacing) diffuseColor.rgb = mix(diffuseColor.rgb, floraBack, 0.7);");
+        shader.uniforms.floraBack = { value: ratio };
+        shader.fragmentShader = "uniform vec2 floraBack;\n" + shader.fragmentShader
+          .replace("#include <color_fragment>", "#include <color_fragment>\n  if (!gl_FrontFacing) { vec3 c = diffuseColor.rgb * floraBack.x; diffuseColor.rgb = mix(c, vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), floraBack.y); }")
+          .replace("#include <lights_physical_fragment>", "#include <lights_physical_fragment>\n  if (!gl_FrontFacing) {\n    material.roughness = max(material.roughness, 0.62);\n  #ifdef USE_CLEARCOAT\n    material.clearcoat = 0.0;\n  #endif\n  }");
       };
-      m.customProgramCacheKey = () => `flora-back-${s.back}`;
+      m.customProgramCacheKey = () => `flora-back-${ratio.x.toFixed(3)}`;
     }
     materials.set(key, m);
     return m;
@@ -202,8 +218,10 @@ export function createFloraAsset(input: FloraScene | readonly FloraScene[], o: F
       }
       for (const b of sp.batches) {
         const spec = profile.organs[b.organ], blade = bladeFor(profile, b);
-        // Blades and ray florets are single sheets seen from both sides; fleshy leaves, ears and buds are closed.
-        const thin = spec.kind === "blade" ? (spec.thickness ?? 0) <= 0.001 : spec.kind === "capitulum" && (b.surface === spec.rays.surface || b.surface === spec.bracts.surface);
+        // Blades, petals and ray florets are single sheets seen from both sides; fleshy leaves, ears and buds are closed.
+        const thin = spec.kind === "blade" ? (spec.thickness ?? 0) <= 0.001
+          : spec.kind === "corolla" ? b.surface === spec.petal.surface && (spec.petal.thickness ?? 0) <= 0.001
+            : spec.kind === "capitulum" && (b.surface === spec.rays.surface || b.surface === spec.bracts.surface);
         const count = b.count * placeM.length;
         const im = new InstancedMesh(res.own(geometry(b.template)), materialFor(profile, b.surface, blade, thin), count);
         let k = 0;
@@ -253,6 +271,7 @@ export function createFloraAsset(input: FloraScene | readonly FloraScene[], o: F
 function bladeFor(profile: SpeciesMorphologyProfile, b: FloraOrganBatch): BladeSpec | undefined {
   const spec = profile.organs[b.organ];
   if (spec.kind === "blade") return spec;
+  if (spec.kind === "corolla") return b.surface === spec.petal.surface ? spec.petal : CAPITULUM_PART;
   if (spec.kind === "capitulum" && (b.surface === spec.rays.surface || b.surface === spec.bracts.surface)) return CAPITULUM_PART;
   if (spec.kind === "ear") return CAPITULUM_PART;
   if (spec.kind === "bud") return CAPITULUM_PART;
