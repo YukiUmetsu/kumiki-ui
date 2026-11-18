@@ -17,6 +17,9 @@ describe("ANAT3 reference-led Chinese ink character redraw",()=>{
     expect(svg).toContain('data-km-anat1-landmarks="35"');
     expect((svg.match(/data-km-anat1-feature=/g)||[]).length).toBeGreaterThan(6);
     expect(svg).toContain('data-km-ink-reference-wash-planes="forehead-orbit-malar-nose-jaw"');
+    expect(Number(svg.match(/data-km-anat1-facial-hair-count="(\\d+)"/)?.[1])).toBeGreaterThan(80);
+    expect((svg.match(/data-km-anat1-facial-hair="brow"/g)||[]).length).toBeGreaterThan(40);
+    expect((svg.match(/data-km-anat1-facial-hair="lash-upper"/g)||[]).length).toBeGreaterThan(20);
     expect(svg).not.toMatch(/(?:NaN|Infinity|undefined)/);
   });
 
