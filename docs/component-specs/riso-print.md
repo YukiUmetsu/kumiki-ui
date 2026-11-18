@@ -226,9 +226,9 @@ Storybook keeps the component in **Video production → Film Looks → Risograph
 ### Geometry and material contract
 
 - Each slat clips the complete original insert master to its own source rectangle. At the end stop the strips reconstruct the original image; the source plate paths are not morphed or re-registered.
-- All slats share one rigid translation. Slot order is therefore invariant under nonsequential seek; no independent per-slat spring or timing offset can invert the comb.
+- Each slat has a bounded local progress derived from the same absolute FilmStage pull state. Strips move only along their own long axis inside parallel guide lanes; the cross-axis slot order cannot invert under nonsequential seek.
 - Adjacent strips may overlap by a small bounded lap. Their even/odd depth lanes separate that overlap in Z; same-lane spacing and slot width are checked before any geometry is emitted.
-- The start position fully retracts every slat outside the frame. The end position is exactly zero translation. The travel distance cannot exceed the validated limit.
+- The start position fully retracts every slat outside the frame. The end position is exactly zero translation for every strip. The travel distance cannot exceed the validated limit.
 - Each slat carries source-locked paper grain, directional cut-edge relief and deterministic cellulose microfibres. These details are fixed to the strip and do not crawl or flicker.
 - \`data-km-riso81-slat\`, \`data-km-riso81-slot\`, \`data-km-riso81-lane\`, \`data-km-riso81-exposure\` and collision-clearance attributes expose inspectable geometry evidence.
 
