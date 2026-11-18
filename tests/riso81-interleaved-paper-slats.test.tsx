@@ -29,7 +29,7 @@ describe("RISO81 interleaved original-paper slats",()=>{
     expect(start.slats.every(s=>s.exposure===0)).toBe(true);
     expect(end.slats.every(s=>s.exposure===1)).toBe(true);
     expect(start.slats.every(s=>s.translation[0]===0&&s.translation[1]===-start.travel)).toBe(true);
-    expect(end.slats.every(s=>s.translation).every(t=>t[0]===0&&t[1]===0)).toBe(true);
+    expect(end.slats.every(s=>s.translation[0]===0&&s.translation[1]===0)).toBe(true);
     expect(middle.slats.every(s=>s.translation[0]===0&&s.translation[1]===middle.translation[1])).toBe(true);
     expect(end.slats.map(s=>s.slotOrder)).toEqual(Array.from({length:12},(_,i)=>i));
     expect(end.slats.map(s=>s.lane)).toEqual(Array.from({length:12},(_,i)=>(i%2) as 0|1));
