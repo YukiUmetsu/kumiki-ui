@@ -40,7 +40,7 @@ describe("Crayon ArtCraft V63 connected five-plane value calibration",()=>{
   it("exposes V63 as a reversible opt-in face variant over the unchanged V57 geometry",()=>{
     const v57=crayonCc0FaceStudy({midfaceForm:"source-anat1-hair-edge-v57"});
     const v63=crayonCc0FaceStudy({
-      midfaceForm:"source-anat1-connected-face-v63" as never,
+      midfaceForm:"source-anat1-connected-face-v63",
     });
     expect(v63.elements).toHaveLength(v57.elements.length);
     const before=new Map(v57.elements.map(element=>[element.id,element]));

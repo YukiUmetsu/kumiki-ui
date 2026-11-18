@@ -490,7 +490,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
   const spec=useMemo(()=>crayonCc0FaceStudy({
     detail:Math.max(.2,detail),view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish,
   }),[detail,view,fiberMaterial,eyeContact,browForm,midfaceForm,jawNeckForm,lashFinish]);
-  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49","source-anat1-photometric-hair-v50","source-anat1-rooted-hair-v51","source-anat1-photo-hair-face-v52","source-anat1-palpebral-v53","source-anat1-superior-tarsus-v54","source-anat1-hair-top-v56","source-anat1-hair-edge-v57"].includes(midfaceForm)?
+  const anat1Fit=useMemo(()=>["source-anat1-malar","source-anat1-midface-bridge","source-anat1-nasal-volume","source-anat1-alar-recess","source-anat1-orbit-malar","source-anat1-near-eye","source-anat1-brow-follicles","source-anat1-hair-values","source-anat1-rooted-hair-v39","source-anat1-hair-contour-v40","source-anat1-hairline-v41","source-anat1-hedge-v42","source-anat1-photo-foliage-v43","source-anat1-five-tone-v44","source-anat1-eye-tarsus-v45","source-anat1-orbital-aperture-v46","source-anat1-continuous-face-v47","source-anat1-photometric-underpaint-v48","source-anat1-oblique-volume-v49","source-anat1-photometric-hair-v50","source-anat1-rooted-hair-v51","source-anat1-photo-hair-face-v52","source-anat1-palpebral-v53","source-anat1-superior-tarsus-v54","source-anat1-hair-top-v56","source-anat1-hair-edge-v57","source-anat1-connected-face-v63"].includes(midfaceForm)?
     crayonF1RegisterAnat1Face():null,[midfaceForm]);
   const lashRootAudit=useMemo(()=>lashFinish!=="sparse"&&eyeContact!=="baseline"
     ?auditCrayonF1LashRootContinuity(spec.elements):null,
@@ -684,6 +684,7 @@ export function Cc0SourceRegisteredFaceWorkbench({
            <option value="source-anat1-superior-tarsus-v54">CC0 upper tarsal/lash only, original V52 sclera/iris/pupil/lower lid (V54 !dev)</option>
            <option value="source-anat1-hair-top-v56">CC0 source-scanned 22-station crown/curtain outer shape (V56 !dev)</option>
            <option value="source-anat1-hair-edge-v57">CC0 original-photo remaining 22-station scalp and far curtain edge (V57 !dev)</option>
+           <option value="source-anat1-connected-face-v63">CC0 source-connected seven-wax facial value calibration over V57 geometry (V63 !dev)</option>
           <option value="baseline">Unchanged previous nose and mouth (negative control)</option>
         </select>
       </label>
@@ -844,6 +845,12 @@ export const Cc0Anat1SourceHairRightV57:Story={
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-anat1-hair-edge-v57" initialInspection="hair-right"/>,
+};
+export const Cc0Anat1ConnectedFaceV63:Story={
+  name:"CC0 source-connected facial value calibration over V57 geometry (!dev V63)",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="full"/>,
 };
 export const Cc0Anat1HairTopV56:Story={
   name:"CC0 photographed source-registered asymmetric outer hair silhouette (!dev V56)",
@@ -1454,6 +1461,7 @@ export function Cc0CandidateLandmarkWorksheetV59({detail}:{detail:number}){
           <option value="source-anat1-superior-tarsus-v54">V54 photo-positive eye/face</option>
           <option value="source-anat1-hair-top-v56">V56 hair silhouette control</option>
           <option value="source-anat1-hair-edge-v57">V57 source-edge candidate</option>
+          <option value="source-anat1-connected-face-v63">V63 connected-face value candidate</option>
         </select>
       </label>
       <label>Candidate feature

@@ -21,7 +21,7 @@ export type CrayonF1Point=readonly [number,number];
 export type CrayonF1CandidateVariant=
   "source-anat1-superior-tarsus-v54"|
   "source-anat1-hair-top-v56"|
-  "source-anat1-hair-edge-v57";
+  "source-anat1-hair-edge-v57"|"source-anat1-connected-face-v63";
 export type CrayonF1CandidateMarks=
   Partial<Record<CrayonF1CandidateLandmark,CrayonF1Point>>;
 
@@ -43,6 +43,7 @@ const VARIANTS:readonly CrayonF1CandidateVariant[]=[
   "source-anat1-superior-tarsus-v54",
   "source-anat1-hair-top-v56",
   "source-anat1-hair-edge-v57",
+  "source-anat1-connected-face-v63",
 ];
 const HEX256=/^[a-f0-9]{64}$/i;
 const isPoint=(value:unknown):value is CrayonF1Point=>

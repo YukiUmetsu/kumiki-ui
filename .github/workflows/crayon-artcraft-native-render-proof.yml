@@ -1,6 +1,6 @@
 name: Crayon ArtCraft source-native browser proof
 
-# PR checks exercise current V52 source baseline, V54 upper-lid and V56 hair
+# PR checks exercise V52 source baseline, V54 upper-lid, V56/V57 hair and V63 facial values
 # hypotheses plus the independent photo-SSIM proof. Rejected V51/V53 and
 # all prior experimental versions remain in source tests, available via manual
 # workflow_dispatch; do not repeatedly replay the historical 8+ spec suite.
@@ -37,8 +37,11 @@ on:
       - src/video/crayon-artcraft-f1-anat1-superior-tarsus-v54.ts
       - src/video/crayon-artcraft-f1-anat1-outer-hair-v56.ts
       - src/video/crayon-artcraft-f1-anat1-photo-hair-edge-v57.ts
+      - src/video/crayon-artcraft-f1-anat1-connected-face-v63.ts
       - tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
       - tests/crayon-artcraft-f1-native-png-review-v61.test.tsx
+      - tests/crayon-artcraft-f1-connected-face-v63.test.ts
+      - tests/crayon-artcraft-f1-candidate-landmarks-v59.test.tsx
       - registry/anatomy/anatomy-face.ts
       - tests/e2e-artcraft/crayon-adult-face.spec.ts
       - playwright.artcraft.config.ts
@@ -83,7 +86,7 @@ jobs:
           npx playwright test -c playwright.artcraft.config.ts
           tests/e2e-artcraft/crayon-adult-face.spec.ts
           tests/e2e-artcraft/crayon-original-photo-fidelity.spec.ts
-          --grep "F1 V52|F1 V54|F1 V55|F1 V56|F1 V57|F1 V58"
+          --grep "F1 V52|F1 V54|F1 V55|F1 V56|F1 V57|F1 V58|F1 V63"
       - name: Capture full source-native archive and original-photo QA (manual)
         if: github.event_name == 'workflow_dispatch'
         run: >-

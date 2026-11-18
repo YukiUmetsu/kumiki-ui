@@ -119,7 +119,7 @@ describe("ArtCraft V59 actual rendered-landmark evidence quarantine",()=>{
   },60_000);
   it("keeps the connected-face V63 native capture independently identifiable",()=>{
     const worksheet=crayonF1NativeCaptureWorksheetV60({
-      variant:"source-anat1-connected-face-v63" as never,
+      variant:"source-anat1-connected-face-v63",
       nativePngSha256:"b".repeat(64),
       checkoutCommitSha:"e".repeat(40),
       pngFileName:"v63-photo-native-299.png",

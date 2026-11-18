@@ -385,3 +385,131 @@ test("F1 V58 original CC0 22-station hair silhouette source image and V56 V57",a
   expect(status==="REGIONAL_SOURCE_POSITIVE_CANDIDATE"||
     status==="ART_REJECT_OR_MORE_REVIEW").toBe(true);
 });
+
+/**
+ * V63 native proof: source-connected pigment values are rendered by Chromium,
+ * byte-hashed, and packaged with the still-empty independent V60 worksheet.
+ * This is a material experiment, not portrait or artist approval.
+ */
+test("F1 V63 source-connected facial value calibration native PNG and V60 evidence",async({page},info)=>{
+  test.setTimeout(180_000);
+  await page.setViewportSize({width:W,height:H});
+  const original=discoverSource(process.env.KM_ARTCRAFT_CC0_SOURCE_DIR??".artcraft-original-photo");
+  const captures:Record<string,string>={};
+  for(const [label,midfaceForm] of [
+    ["V57","source-anat1-hair-edge-v57"],
+    ["V63","source-anat1-connected-face-v63"],
+  ] as const){
+    const spec=crayonCc0FaceStudy({midfaceForm,detail:1});
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+      "</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+    for(const id of ["face-outline","lower-lid-near","cheek-malar-cast",
+      "cheek-malar-bounce","nose-root","nose-dorsum","nose-sidewall-form",
+      "jaw-underside","hair-crown-surface"])
+      await expect(svg.locator('[data-km-crayon-element="'+id+'"]')).toHaveCount(1);
+    await page.waitForTimeout(320);
+    const png=await svg.screenshot({animations:"disabled"});
+    writeFileSync(info.outputPath("v63-native-"+label+"-299.png"),png);
+    captures[label]=Buffer.from(png).toString("base64");
+  }
+  const metrics=await page.evaluate(async({source,v57,v63,points})=>{
+    async function pixels(base64:string){
+      const img=new Image();img.src="data:image/png;base64,"+base64;
+      await img.decode();
+      if(img.naturalWidth!==608||img.naturalHeight!==1082)
+        throw new Error("V63 native screenshot is not the exact 608×1082 camera");
+      const canvas=document.createElement("canvas");
+      canvas.width=608;canvas.height=1082;
+      const ctx=canvas.getContext("2d",{willReadFrequently:true});
+      if(!ctx)throw new Error("No Chromium pixel inspector");
+      ctx.drawImage(img,0,0);
+      return ctx.getImageData(0,0,608,1082).data;
+    }
+    const [a,b,c]=await Promise.all([pixels(source),pixels(v57),pixels(v63)]);
+    function median(values:number[]){
+      values.sort((x,y)=>x-y);
+      return values[Math.floor(values.length/2)];
+    }
+    function medianRgb(data:Uint8ClampedArray,x:number,y:number){
+      return [0,1,2].map(channel=>{
+        const values:number[]=[];
+        for(let yy=y-3;yy<=y+3;yy++)for(let xx=x-3;xx<=x+3;xx++)
+          values.push(data[(yy*608+xx)*4+channel]);
+        return median(values);
+      });
+    }
+    function fraction(dataA:Uint8ClampedArray,dataB:Uint8ClampedArray,
+      box:readonly [number,number,number,number]){
+      const [x,y,w,h]=box;let changed=0,total=0;
+      for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){
+        const i=(yy*608+xx)*4;
+        if(dataA[i]!==dataB[i]||dataA[i+1]!==dataB[i+1]||
+          dataA[i+2]!==dataB[i+2])changed++;
+        total++;
+      }
+      return changed/total;
+    }
+    const witnesses=points.map((point:{id:string;x:number;y:number})=>{
+      const sourceRgb=medianRgb(a,point.x,point.y);
+      const v57Rgb=medianRgb(b,point.x,point.y);
+      const v63Rgb=medianRgb(c,point.x,point.y);
+      const distance=(rgb:number[])=>rgb.reduce((sum,value,index)=>
+        sum+Math.abs(value-sourceRgb[index]),0)/3;
+      return {id:point.id,at:[point.x,point.y],sourceRgb,v57Rgb,v63Rgb,
+        v57Mae:distance(v57Rgb),v63Mae:distance(v63Rgb)};
+    });
+    return {
+      sourceNativeDimensions:[608,1082],
+      faceChangedFraction:fraction(b,c,[90,420,430,450]),
+      crownControlChangedFraction:fraction(b,c,[0,150,530,250]),
+      foliageControlChangedFraction:fraction(b,c,[0,0,80,75]),
+      witnesses,
+      improvedWitnesses:witnesses.filter(x=>x.v63Mae<x.v57Mae).map(x=>x.id),
+    };
+  },{
+    source:original.toString("base64"),
+    v57:captures.V57,v63:captures.V63,
+    points:[
+      {id:"infraorbital-cast",x:255,y:583},
+      {id:"lateral-undercheek",x:133,y:702},
+      {id:"nasal-root",x:333,y:533},
+      {id:"malar-light-return",x:175,y:615},
+      {id:"nasal-ridge-return",x:367,y:595},
+      {id:"mandibular-roll",x:261,y:830},
+    ],
+  });
+  const checkoutSha=process.env.GITHUB_SHA??
+    execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
+  const png=Buffer.from(captures.V63,"base64");
+  const record=crayonF1NativeCaptureWorksheetV60({
+    variant:"source-anat1-connected-face-v63",
+    nativePngSha256:createHash("sha256").update(png).digest("hex"),
+    checkoutCommitSha:checkoutSha,
+    pngFileName:"v63-native-V63-299.png",
+  });
+  writeFileSync(info.outputPath("v60-native-candidate-V63-299.json"),
+    JSON.stringify(record,null,2)+"\n");
+  const report={
+    schema:"kumiki-crayon-artcraft-v63-native-value-audit",
+    sourceSha256:REFERENCE_SHA,
+    sourceIsOriginalCameraJpeg:false,
+    artisticApproval:false,
+    releaseApproved:false,
+    v63PngSha256:record.native.sha256,
+    v60Manifest:"v60-native-candidate-V63-299.json",
+    audit:record.audit,
+    metrics,
+  };
+  writeFileSync(info.outputPath("v63-connected-face-value-audit.json"),
+    JSON.stringify(report,null,2)+"\n");
+  console.log("[ArtCraft V63 native face-value audit]"+JSON.stringify(report));
+  expect(metrics.faceChangedFraction).toBeGreaterThan(0);
+  expect(metrics.crownControlChangedFraction).toBe(0);
+  expect(metrics.foliageControlChangedFraction).toBe(0);
+  expect(record.audit.status).toBe("INCOMPLETE");
+  expect(record.releaseApproved).toBe(false);
+});
