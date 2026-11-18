@@ -172,7 +172,8 @@ test("F1 V55 source-vs-native similarity 608x1082 CC0 V52 and V54 (research repo
 
 
 /**
- * ArtCraft V58: actual ORIGINAL CC0 photo vs V56/V57 PHOTO-REGISTERED
+ * ArtCraft V58/V60: actual ORIGINAL CC0 photo plus byte-authenticated native
+ * V56/V57/V63/V64 candidate screenshots and sidecars for paired review.
  * hair silhouette. Do not accept two changed vector images as a proof:
  * source SHA, source-station scan, local RGB SSIM and protected pixel checks
  * are independent real-browser evidence; source does not enter the film.
