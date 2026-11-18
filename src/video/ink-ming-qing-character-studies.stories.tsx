@@ -19,7 +19,7 @@ const sources=[
     image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/51810/197276/main-image",
     href:"https://www.metmuseum.org/art/collection/search/51810",fit:"cover",position:"center 52%",
     credit:"Unidentified artist, Ming dynasty, 16th or 17th c. · object 55.37 · ink and color on paper · Public Domain.",
-    note:"Compare three separate skull/cap/beard constructions. The left sitter has a broader face and moustache, the center a denser beard, and the right a tall squared hat. The removed labels prevent sitter identification.",
+    note:"Comparative group study only. The three sitters have distinct skull, cap and beard constructions; do not blend them into one identity. The removed labels prevent sitter identification.",
     alt:"Three distinct scholar busts from the Met's Twenty-five bust portraits of famous scholars."
   },
   {
@@ -28,7 +28,7 @@ const sources=[
     image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/51810/161536/main-image",
     href:"https://www.metmuseum.org/art/collection/search/51810",fit:"cover",position:"center 50%",
     credit:"Unidentified artist, Ming dynasty, 16th or 17th c. · object 55.37 · ink and color on paper · Public Domain.",
-    note:"Secondary comparison for hat height, cheek-to-jaw transition, brow rhythm and collar contour. Treat the individual as an anonymous sitter, not a named historical person.",
+    note:"Primary ANAT5 scholar study: the rightmost anonymous sitter with a tall squared black cap, three-quarter gaze and dark beard. The scroll's removed labels prohibit a confident sitter identification; this crop alone defines the scholar's headwear and facial-hair design.",
     alt:"Second detail crop from the Met's Twenty-five bust portraits of famous scholars."
   },
   {
@@ -55,7 +55,7 @@ const sources=[
     image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/51783/2234827/main-image",
     href:"https://www.metmuseum.org/art/collection/search/51783",fit:"cover",position:"center 35%",
     credit:"Jiang Yun (Chinese, 1847–1919), 19th c. · object 52.177.8 · ink and color on paper · Public Domain.",
-    note:"New male reference for the rounded cap, temple-to-cheek transition, moustache/goatee separation, fur mass, blue under-robe and large sleeve volumes. Qing-period clothing is not copied onto the Ming scholar.",
+    note:"Technique and material benchmark only: study translucent facial modeling, cheek-to-jaw wash and robe volume. Do not borrow this sitter's rounded Qing cap, fur coat or moustache/goatee identity for the Ming scholar.",
     alt:"Jiang Yun's Qing-dynasty Portrait of a Man."
   },
   {
@@ -64,7 +64,7 @@ const sources=[
     image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/51780/2234806/main-image",
     href:"https://www.metmuseum.org/art/collection/search/51780",fit:"cover",position:"center 50%",
     credit:"Jiang Jun, 19th c. · object 52.177.5 · ink and color on paper · Public Domain.",
-    note:"New close study for hairline and bun silhouette, floral ornaments, earrings, high embroidered collar, sleeve borders and hand-to-object scale. The face remains delicate without becoming featureless.",
+    note:"Secondary female face/costume benchmark only: study subtle facial planes, hairline, floral ornaments, earrings and high embroidered collar. Do not replace the seated writer or standing attendant identity from 2024.180.",
     alt:"Jiang Jun's Qing-dynasty Portrait of a Lady."
   },
   {
@@ -142,10 +142,10 @@ function ReferenceAtelier(){
         <h2 style={{font:"normal 25px Georgia,serif",margin:"0 0 6px"}}>{characterLabels[character]}</h2>
         <p style={{fontSize:12,lineHeight:1.6,minHeight:40}}>
           {character==="scholar"
-            ?"Objects 55.37 + 52.177.8: square Ming scholar cap, tapered jaw, separate cheek growth, moustache and split chin beard. Qing fur and collar details are reference-only, not transferred to the Ming costume."
+            ?"Met 55.37 rightmost sitter is the primary source: three-quarter gaze, tall squared scholar cap, long cheek-to-chin beard and narrow moustache. Met 52.177.8 is only a tonal-wash and robe-volume benchmark."
             :character==="writer"
-              ?"Objects 2024.180 + 52.177.5: lowered inward gaze, narrow oval face, pinned coil, floral ornament, earrings and embroidered collar bands."
-              :"Objects 2024.180 + F1916.135: a separate attendant head inclination and gaze, paired hair pins, smaller compositional role and independently shaped collar."}
+              ?"Met 2024.180 seated writer is primary: lowered inward gaze, inclined head, high pinned coil and floral ornament. Met 52.177.5 is only a secondary face/collar technique benchmark."
+              :"Met 2024.180 standing attendant is primary: downward head inclination, single high bun with floral pin and smaller compositional role. Smithsonian F1916.135 informs group hierarchy only."}
         </p>
         <div style={{maxWidth:440,margin:"0 auto"}}>
           <div data-testid="ink-anat5-selected-portrait">
@@ -154,7 +154,7 @@ function ReferenceAtelier(){
           </div>
         </div>
         <p style={{fontSize:11,letterSpacing:1,fontWeight:700,marginBottom:0}}>
-          ANAT1 LANDMARKS · EXPR1 {emotion.toUpperCase()} · {character==="scholar"?"SOURCES 55.37 / 52.177.8":character==="writer"?"SOURCES 2024.180 / 52.177.5":"SOURCES 2024.180 / F1916.135"}
+          ANAT1 LANDMARKS · EXPR1 {emotion.toUpperCase()} · {character==="scholar"?"PRIMARY 55.37 RIGHTMOST · 52.177.8 TONE ONLY":character==="writer"?"PRIMARY 2024.180 WRITER · 52.177.5 DETAIL ONLY":"PRIMARY 2024.180 ATTENDANT · F1916.135 HIERARCHY ONLY"}
         </p>
       </section>
       <section style={card}>
@@ -197,7 +197,7 @@ function ReferenceAtelier(){
           </p>
           <div style={{height:270,background:"#e5dac8",display:"grid",placeItems:"center",overflow:"hidden"}}>
             <img data-km-ink-anat5-reference-image={source.id} src={source.image} alt={source.alt}
-              loading="eager" decoding="async" referrerPolicy="no-referrer"
+              loading="eager" decoding="async" fetchPriority="high" referrerPolicy="no-referrer"
               style={{display:"block",width:"100%",height:"100%",objectFit:source.fit,objectPosition:source.position}}/>
           </div>
           <h3 style={{font:"normal 18px Georgia,serif",margin:"12px 0 5px"}}>{source.title}</h3>
@@ -222,7 +222,7 @@ function ReferenceAtelier(){
     <section style={{...card,marginTop:20}}>
       <h2 style={{font:"normal 22px Georgia,serif",marginTop:0}}>Construction rules</h2>
       <ul style={{fontSize:13,lineHeight:1.75,paddingLeft:20,marginBottom:0}}>
-        <li>ANAT1 raw face topology; source-specific local landmark morphs only. No unrelated demographic norm.</li>
+        <li>ANAT1 is the deformable understructure only. Primary source crop controls silhouette, headwear and facial-hair identity; technique references never overwrite the primary character.</li>
         <li>3D yaw projection preserves unequal near/far eye width and visible feature curves.</li>
         <li>Separate headwear/hair, beard roots, ears, neck, collar and robe folds. No single silhouette reused for all three characters.</li>
         <li>Wet washes remain irregular and low-opacity; hair/beard fibers are rooted and tapered, not parallel bars.</li>
