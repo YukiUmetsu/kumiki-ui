@@ -8,13 +8,15 @@ export interface RisoSlatSpec{
   readonly height:number;
   /** Horizontal slats are rows; vertical slats are columns. */
   readonly axis:RisoSlatAxis;
-  /** Horizontal rows travel up/down; vertical columns travel left/right. */
+  /** Horizontal rows travel left/right; vertical columns travel up/down. */
   readonly direction:RisoSlatDirection;
   readonly count:number;
   readonly progress:number;
   readonly seed:number;
-  /** Initial retraction distance in source-sheet units. Defaults to one span plus the edge lap. */
+  /** Initial retraction distance along each slat's long axis. */
   readonly travel?:number;
+  /** Maximum normalized delay from the first to last slot, 0..0.45. */
+  readonly stagger?:number;
   readonly overlapMm?:number;
   readonly paperThicknessMm?:number;
   readonly slotClearanceMm?:number;
@@ -36,6 +38,7 @@ export interface RisoSlatPose extends RisoSlatRect{
   readonly lane:0|1;
   readonly depthMm:number;
   readonly depthUnits:number;
+  readonly localProgress:number;
   readonly translation:readonly [number,number];
   readonly exposure:number;
   readonly fibres:readonly string[];
@@ -50,7 +53,8 @@ export interface RisoSlatSlot{
 export interface RisoSlatEvaluation{
   readonly easedProgress:number;
   readonly travel:number;
-  readonly translation:readonly [number,number];
+  readonly pullTranslation:readonly [number,number];
+  readonly stagger:number;
   readonly overlapMm:number;
   readonly overlapUnits:number;
   readonly paperThicknessMm:number;
@@ -94,9 +98,10 @@ const fibrePaths=(rect:RisoSlatRect,axis:RisoSlatAxis,seed:number,index:number):
   return paths;
 };
 
-/** Pure source-space geometry for a pull-tab comb of independently printed paper slats.
- * Alternating depth lanes allow a bounded edge lap without coplanar collisions.
- * Every slat shares one rigid translation, so slot order cannot invert during a seek. */
+/** Pure source-space geometry for a tab-driven jalousie/slat dissolve.
+ * Each printed strip remains in its own ordered guide lane. Bounded slot timing
+ * creates an interleaved reveal; alternating Z lanes permit edge lap without
+ * coplanar collisions. No strip can cross another strip's slot. */
 export function evaluateRisoSlatReveal(spec:RisoSlatSpec):RisoSlatEvaluation{
   if(!spec||![spec.width,spec.height].every(finite)||
     spec.width<240||spec.height<240||spec.width>8192||spec.height>8192||
@@ -107,15 +112,17 @@ export function evaluateRisoSlatReveal(spec:RisoSlatSpec):RisoSlatEvaluation{
     !Number.isSafeInteger(spec.seed)||spec.seed<0||spec.seed>2147483647)
     throw new RangeError("RISO81 requires bounded paper, 4–24 slats, a compatible axis, progress 0..1 and a 31-bit seed.");
   const horizontal=spec.axis==="horizontal";
-  if((horizontal&&!["up","down"].includes(spec.direction))||
-    (!horizontal&&!["left","right"].includes(spec.direction)))
-    throw new RangeError("RISO81 slat travel must be perpendicular to the slat's long axis.");
-  const span=horizontal?spec.height:spec.width;
-  const pitch=span/spec.count;
+  if((horizontal&&!["left","right"].includes(spec.direction))||
+    (!horizontal&&!["up","down"].includes(spec.direction)))
+    throw new RangeError("RISO81 slats travel along their long axis through ordered parallel slots.");
+  const span=horizontal?spec.width:spec.height;
+  const crossSpan=horizontal?spec.height:spec.width;
+  const pitch=crossSpan/spec.count;
   const paperThicknessMm=spec.paperThicknessMm??.24;
   const slotClearanceMm=spec.slotClearanceMm??.08;
   const overlapMm=spec.overlapMm??.32;
   const interleaveDepthMm=spec.interleaveDepthMm??.42;
+  const stagger=spec.stagger??.22;
   const overlapUnits=overlapMm*PX_PER_MM;
   const slotWidthUnits=(paperThicknessMm+slotClearanceMm)*PX_PER_MM;
   const requestedTravel=spec.travel??span+overlapUnits+.5;
@@ -125,22 +132,22 @@ export function evaluateRisoSlatReveal(spec:RisoSlatSpec):RisoSlatEvaluation{
     overlapUnits>pitch*.12||
     !finite(interleaveDepthMm)||interleaveDepthMm<paperThicknessMm+slotClearanceMm||
     interleaveDepthMm>3||
+    !finite(stagger)||stagger<0||stagger>.45||
     !finite(requestedTravel)||requestedTravel<span+overlapUnits||requestedTravel>span*1.12||
     pitch-overlapUnits<slotWidthUnits+.25)
-    throw new RangeError("RISO81 slat lap, slot clearance, interleave depth and retraction must preserve positive collision clearance.");
+    throw new RangeError("RISO81 slat lap, slot clearance, interleave depth, stagger and travel must preserve positive collision clearance.");
   const travel=round(requestedTravel);
   const light=spec.lightDirection??[-.55,-.84];
-  if(!Array.isArray(light)||light.length!==2||!light.every(finite)){
+  if(!Array.isArray(light)||light.length!==2||!light.every(finite))
     throw new RangeError("RISO81 requires a finite two-component lamp direction.");
-  }
   const lightLength=Math.hypot(light[0],light[1]);
   if(!finite(lightLength)||lightLength<.25||lightLength>1.5)
     throw new RangeError("RISO81 lamp direction length must be .25–1.5.");
   const eased=spec.progress*spec.progress*(3-2*spec.progress);
-  const distance=round(travel*(1-eased));
-  const translation:readonly [number,number]=horizontal?
-    [0,spec.direction==="down"?-distance:distance]:
-    [spec.direction==="right"?-distance:distance,0];
+  const globalDistance=round(travel*(1-eased));
+  const pullTranslation:readonly [number,number]=horizontal?
+    [spec.direction==="right"?-globalDistance:globalDistance,0]:
+    [0,spec.direction==="down"?-globalDistance:globalDistance];
   const collisionClearanceMm=round(interleaveDepthMm-paperThicknessMm-slotClearanceMm);
   const depthUnits=interleaveDepthMm*PX_PER_MM;
   const shadowMagnitude=(paperThicknessMm+interleaveDepthMm)*PX_PER_MM*.82;
@@ -156,14 +163,21 @@ export function evaluateRisoSlatReveal(spec:RisoSlatSpec):RisoSlatEvaluation{
       {x:0,y:round(start),width:spec.width,height:round(end-start)}:
       {x:round(start),y:0,width:round(end-start),height:spec.height};
     const lane=(index%2) as 0|1;
-    const shiftedStart=horizontal?rect.y+translation[1]:rect.x+translation[0];
-    const shiftedEnd=shiftedStart+(horizontal?rect.height:rect.width);
+    const delay=spec.count===1?0:stagger*index/(spec.count-1);
+    const localProgress=clamp01((spec.progress-delay)/(1-delay));
+    const localEased=localProgress*localProgress*(3-2*localProgress);
+    const distance=round(travel*(1-localEased));
+    const translation:readonly [number,number]=horizontal?
+      [spec.direction==="right"?-distance:distance,0]:
+      [0,spec.direction==="down"?-distance:distance];
+    const shiftedStart=horizontal?rect.x+translation[0]:rect.y+translation[1];
+    const shiftedEnd=shiftedStart+(horizontal?rect.width:rect.height);
     const visible=Math.max(0,Math.min(span,shiftedEnd)-Math.max(0,shiftedStart));
     slats.push({
       ...rect,id:"slat-"+String(index+1).padStart(2,"0"),
       index,slotOrder:index,lane,depthMm:lane?interleaveDepthMm:0,
-      depthUnits:lane?depthUnits:0,translation,
-      exposure:clamp01(visible/(horizontal?rect.height:rect.width)),
+      depthUnits:lane?depthUnits:0,localProgress,translation,
+      exposure:clamp01(visible/(horizontal?rect.width:rect.height)),
       fibres:fibrePaths(rect,spec.axis,spec.seed,index),
     });
   }
@@ -174,7 +188,7 @@ export function evaluateRisoSlatReveal(spec:RisoSlatSpec):RisoSlatEvaluation{
         "M"+round(center)+" 0 V"+spec.height};
   });
   return {
-    easedProgress:round(eased),travel,translation,
+    easedProgress:round(eased),travel,pullTranslation,stagger,
     overlapMm,overlapUnits:round(overlapUnits),paperThicknessMm,
     slotClearanceMm,slotWidthUnits:round(slotWidthUnits),
     interleaveDepthMm,collisionClearanceMm,shadowOffset,
