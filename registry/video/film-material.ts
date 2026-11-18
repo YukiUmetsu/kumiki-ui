@@ -435,25 +435,34 @@ function frontFrame(plan: FrontPlan, progress: number): MaterialFrame {
   if (plan.material === "paint") {
     // The painted area is wherever the front has passed; a capillary ridge at the front is thicker and catches the light.
     const t = easeInOut(p) * 1.02;
-    const gloss = new Uint8ClampedArray(n), shade = new Uint8ClampedArray(n);
-    const ridge = 0.035;
+    const gloss = new Uint8ClampedArray(n), shade = new Uint8ClampedArray(n), streak = new Uint8ClampedArray(n), groove = new Uint8ClampedArray(n);
+    const ridge = 0.035, fingers = plan.fingers;
+    // The film the front leaves behind: thicker in a rivulet behind each drip, thin between, draining as it ages
+    // (h ∝ t^(−1/2), Jeffreys). Its sideways slope catches the light from the upper left in long vertical streaks.
+    const rivulet = (i: number) => (fingers ? Math.max(0, fingers[Math.max(0, Math.min(plan.cols - 1, i))]) : 0);
     for (let j = 0; j < plan.rows; j++) {
+      const y = (j + 0.5) / plan.rows, formed = smooth(0.25, 0.5, y);
       for (let i = 0; i < plan.cols; i++) {
         const k = i + j * plan.cols, a = arrival[k];
         const behind = t - a;
         reveal[k] = byte(smooth(-0.004, 0.004, behind));
         if (behind > 0 && t < 1.01) {
           // Thickness h: a flat film behind a bulging ridge; its slope lights the top of the bulge and shades the lip.
-          const tip = plan.fingers ? 0.6 + 0.6 * Math.max(0, plan.fingers[i]) : 1;
+          const tip = fingers ? 0.6 + 0.6 * Math.max(0, fingers[i]) : 1;
           const x = behind / (ridge * tip);
           const slope = x < 1 ? Math.cos(x * Math.PI) : 0;
           const fade = 1 - smooth(0.9, 1, p);
           gloss[k] = byte((Math.max(0, slope) ** 2 * 0.55 * (0.7 + 0.6 * grainField[k]) + 0.06 * (1 - x / 6)) * fade);
           shade[k] = byte((x < 0.35 ? 0.35 * (1 - x / 0.35) : 0) * fade);
+          // Only just behind a drip's head is the film thick and wet enough to glisten; it drains quickly.
+          const film = formed * Math.exp(-behind / 0.035), side = (rivulet(i + 2) - rivulet(i - 2)) * (plan.cols / 384) * 2.2;
+          streak[k] = byte(clamp01(-side) * 0.18 * film * fade);
+          groove[k] = byte(clamp01(side) * 0.12 * film * fade);
         }
       }
     }
-    return { reveal, layers: [{ id: "lip", color: "#000000", alpha: shade, blend: "multiply" }, { id: "gloss", color: plan.color, alpha: gloss, blend: "screen" }] };
+    return { reveal, layers: [{ id: "lip", color: "#000000", alpha: shade, blend: "multiply" }, { id: "rivulet-shade", color: "#000000", alpha: groove, blend: "multiply" },
+      { id: "rivulet-light", color: plan.color, alpha: streak, blend: "screen" }, { id: "gloss", color: plan.color, alpha: gloss, blend: "screen" }] };
   }
   // frost: forms over the first half, the scenes cross behind it at the middle, then it clears.
   const forming = p < 0.5;

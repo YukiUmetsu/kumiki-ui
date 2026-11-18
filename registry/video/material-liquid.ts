@@ -223,8 +223,23 @@ function rippleFrame(plan: LiquidPlan, p: number): MaterialFrame {
     light[k] = Math.round(255 * clamp01(0.4 * facing) ** 1.6);
     dark[k] = Math.round(255 * clamp01(-0.25 * facing));
   }
+  // The splash is water too: its crown sheet, droplets and jet are small lenses that turn the picture under them over.
+  const drop = splash(plan, t);
+  for (const lens of drop.lenses) {
+    const reach = lens.ring ? lens.ring + lens.r : lens.r, i0 = Math.max(0, Math.floor(((lens.x - reach) / aspect) * cols)), i1 = Math.min(cols - 1, Math.ceil(((lens.x + reach) / aspect) * cols));
+    const j0 = Math.max(0, Math.floor((lens.y - reach) * rows)), j1 = Math.min(rows - 1, Math.ceil((lens.y + reach) * rows));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const k = i + j * cols, x = ((i + 0.5) / cols) * aspect, y = (j + 0.5) / rows, qx = x - lens.x, qy = y - lens.y, d = Math.hypot(qx, qy);
+      // A ball of water (or a ring-shaped sheet, across its width) shows the picture behind it inverted and smaller.
+      const off = lens.ring ? d - lens.ring : d, u = off / lens.r;
+      if (Math.abs(u) >= 1) continue;
+      const w = (1 - u * u) * lens.strength, sx = lens.ring ? (qx / (d || 1)) * off : qx, sy = lens.ring ? (qy / (d || 1)) * off : qy;
+      dx[k] = Math.max(EDGE - x, Math.min(aspect - EDGE - x, dx[k] - 1.8 * sx * w));
+      dy[k] = Math.max(EDGE - y, Math.min(1 - EDGE - y, dy[k] - 1.8 * sy * w));
+    }
+  }
   const warp = { dx, dy };
-  return { reveal, layers: [{ id: "ripple-shade", color: "#0b1620", alpha: dark, blend: "multiply" }, { id: "ripple-light", color: plan.color, alpha: light, blend: "screen" }], vectors: splash(plan, t), warpOut: warp, warpIn: warp };
+  return { reveal, layers: [{ id: "ripple-shade", color: "#0b1620", alpha: dark, blend: "multiply" }, { id: "ripple-light", color: plan.color, alpha: light, blend: "screen" }], vectors: drop.vectors, warpOut: warp, warpIn: warp };
 }
 
 /** How long the crater lasts, seconds. */
@@ -240,9 +255,12 @@ const circle = (x: number, y: number, r: number, count = 36) => {
 };
 
 /** The drop's splash at time t (seconds): crown, spray, ringlets, jet and the jet's falling tip, seen from above. */
-function splash(plan: LiquidPlan, t: number): MaterialFrame["vectors"] {
+/** A small water lens in the splash: a ball (radius r), or a ring-shaped sheet of radius `ring` and half-width r. */
+interface SplashLens { x: number; y: number; r: number; ring?: number; strength: number }
+
+function splash(plan: LiquidPlan, t: number): { vectors: NonNullable<MaterialFrame["vectors"]>; lenses: SplashLens[] } {
   const { origin, metres: M, spray } = plan, o = origin, unit = (m: number) => m / M;
-  const rings: number[][] = [], ringAlpha: number[] = [], beads: number[][] = [], beadAlpha: number[] = [], shade: number[][] = [], shadeAlpha: number[] = [];
+  const rings: number[][] = [], ringAlpha: number[] = [], beads: number[][] = [], beadAlpha: number[] = [], shade: number[][] = [], shadeAlpha: number[] = [], lenses: SplashLens[] = [];
   const ringlet = (x: number, y: number, since: number, size: number) => {
     if (since < 0 || since > 0.3) return;
     rings.push(circle(x, y, unit(size + RINGLET_SPEED * since)));
@@ -252,6 +270,7 @@ function splash(plan: LiquidPlan, t: number): MaterialFrame["vectors"] {
   if (t > 0.002 && t < 0.075) {
     const R = unit(0.011) * (1 - Math.exp(-t / 0.012)), seen = smooth(0.002, 0.012, t) * (1 - smooth(0.035, 0.075, t));
     rings.push(circle(o.x, o.y, R, 48)); ringAlpha.push(0.85 * seen);
+    lenses.push({ x: o.x, y: o.y, ring: R, r: unit(0.0015), strength: seen });
     shade.push(circle(o.x, o.y, R * 0.8, 48)); shadeAlpha.push(0.4 * seen);
     // Rim fingers are irregular: uneven spacing and size, some already flung a little way out.
     for (let i = 0; i < 18; i++) {
@@ -266,7 +285,9 @@ function splash(plan: LiquidPlan, t: number): MaterialFrame["vectors"] {
     const at = (s: number) => unit(0.006 + vr * s);
     if (tau > 0 && tau < flight) {
       const r = at(tau), r0 = at(Math.max(0, tau - 1 / 60)), height = vz * tau - 0.5 * G * tau * tau, grow = 1 + height / 0.5;
-      beads.push(circle(o.x + r * Math.cos(a), o.y + r * Math.sin(a), Math.max(0.0016, unit(size) * grow), 8)); beadAlpha.push(0.95);
+      const bead = Math.max(0.0016, unit(size) * grow);
+      beads.push(circle(o.x + r * Math.cos(a), o.y + r * Math.sin(a), bead, 8)); beadAlpha.push(0.95);
+      lenses.push({ x: o.x + r * Math.cos(a), y: o.y + r * Math.sin(a), r: bead * 1.2, strength: 1 });
       rings.push([o.x + r0 * Math.cos(a), o.y + r0 * Math.sin(a), o.x + r * Math.cos(a), o.y + r * Math.sin(a)]); ringAlpha.push(0.45);
     }
     const land = at(flight);
@@ -277,6 +298,7 @@ function splash(plan: LiquidPlan, t: number): MaterialFrame["vectors"] {
   if (t > 0.05 && t < 0.2) {
     const rise = Math.sin((Math.PI * (t - 0.05)) / 0.15), R = unit(0.0018 + 0.0022 * rise);
     beads.push(circle(o.x, o.y, R, 16)); beadAlpha.push(0.85 * rise);
+    lenses.push({ x: o.x, y: o.y, r: R * 1.3, strength: rise });
     shade.push(circle(o.x, o.y, R * 1.8, 24)); shadeAlpha.push(0.35 * rise);
   }
   if (t > 0.32 && t < 0.37) {
@@ -288,7 +310,7 @@ function splash(plan: LiquidPlan, t: number): MaterialFrame["vectors"] {
   if (shade.length) out.push({ id: "splash-shade", rings: shade, closed: false, stroke: "#0b1620", width: 2.4, alpha: 1, alphas: shadeAlpha, blend: "multiply" });
   if (rings.length) out.push({ id: "splash-rings", rings, closed: false, stroke: plan.color, width: 1.5, alpha: 1, alphas: ringAlpha, blend: "screen" });
   if (beads.length) out.push({ id: "splash-beads", rings: beads, closed: true, fill: plan.color, alpha: 1, alphas: beadAlpha, blend: "screen" });
-  return out;
+  return { vectors: out, lenses };
 }
 
 function meltFrame(plan: LiquidPlan, p: number): MaterialFrame {

@@ -69,6 +69,8 @@ const GRAVITY = 7.3;
 const CAMERA = 1.8;
 /** A loose shard's ground edge, frame heights wide, and how far light through it is pulled inward. */
 const BEVEL = 0.006, BEVEL_PULL = 0.004;
+/** How clear the cut edge is at its outer line: the next scene shows this much through it. */
+const RIM_CLEAR = 0.6;
 /** How long the cracks take to cross the pane (truly under a millisecond; two frames so the eye can see them run). */
 const CRACK_SECONDS = 0.07;
 
@@ -380,7 +382,7 @@ function shatterFrame(plan: GlassPlan, p: number): MaterialFrame {
   let warpOut: MaterialFrame["warpOut"];
   if (moving) {
     // Rasterise the shards far to near: each cell shows its shard's piece of the outgoing scene.
-    const owner = new Int16Array(n).fill(-1), dx = new Float32Array(n), dy = new Float32Array(n);
+    const owner = new Int16Array(n).fill(-1), dx = new Float32Array(n), dy = new Float32Array(n), cover = new Uint8ClampedArray(n).fill(255);
     const depth = shards.map((s, i) => ({ i, z: s.vz * Math.max(0, t - s.release) })).sort((a, b) => b.z - a.z);
     for (const { i } of depth) {
       if (!visible[i]) continue;
@@ -392,6 +394,7 @@ function shatterFrame(plan: GlassPlan, p: number): MaterialFrame {
       eachCellInRing(ring, cols, rows, aspect, (k) => {
         let x = (((k % cols) + 0.5) / cols) * aspect, y = (Math.floor(k / cols) + 0.5) / rows;
         const sx = x, sy = y;
+        cover[k] = 255;
         if (bevel > 0) {
           let near = Infinity, nx = 0, ny = 0;
           for (let q = 0; q < m; q++) {
@@ -400,13 +403,17 @@ function shatterFrame(plan: GlassPlan, p: number): MaterialFrame {
             const dist = Math.hypot(x - ax - u * ex, y - ay - u * ey);
             if (dist < near) { near = dist; nx = -ey / len; ny = ex / len; }
           }
-          if (near < bevel) { const pull = BEVEL_PULL * (1 - near / bevel) ** 2; x += nx * pull; y += ny * pull; }
+          if (near < bevel) {
+            const pull = BEVEL_PULL * (1 - near / bevel) ** 2; x += nx * pull; y += ny * pull;
+            // The cut edge carries no picture: it is clear glass, and the next scene shows through it.
+            cover[k] = Math.round(255 * (1 - RIM_CLEAR * smooth(bevel * 0.85, bevel * 0.15, near)));
+          }
         }
         const rx = (d * (x - e) - c * (y - f)) / det, ry = (-b * (x - e) + a * (y - f)) / det;
         owner[k] = i; dx[k] = rx - sx; dy[k] = ry - sy;
       });
     }
-    warpOut = { dx, dy, owner };
+    warpOut = { dx, dy, owner, cover };
   }
   // Cracks: while they run, lines grow out from the impact; then each shard's outline follows the shard.
   const front = (smooth(0, CRACK_SECONDS, t) ** 0.6) * 3;

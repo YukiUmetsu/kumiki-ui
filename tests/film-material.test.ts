@@ -155,6 +155,8 @@ describe("material transitions", () => {
     expect(start.outClip).toBeUndefined();
     const falling = materialFrame(shatter, 0.55);
     expect(falling.incomingBelow).toBe(true);
+    // A loose shard's cut edge is clear glass: the next scene shows through it.
+    expect(falling.warpOut!.cover!.some((c) => c < 200)).toBe(true);
     expect(falling.warpOut!.owner!.some((o) => o < 0)).toBe(true);
     const end = materialFrame(shatter, 1);
     expect(end.outClip ?? []).toEqual([]);
