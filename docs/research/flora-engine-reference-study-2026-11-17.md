@@ -182,7 +182,73 @@ Render review log, round two:
    - The parkland at `preview` looked leafless, and at `high_def` it ran at 44 fps. `preview` now keeps 65% of small
      organs at about 12 triangles each: 9.5 M triangles at 60 fps.
 
+## Round three: junctions, bark and plants of Japanese scenery
+
+The owner asked for three things: better collars where limbs leave a trunk, real bark textures, and the plants that anime
+backgrounds show most, with fine detail.
+
+**Junctions.** Photos of pruned and unpruned limbs (arborist guides on the branch collar and the branch bark ridge) show
+three features: the trunk swells around the limb, a ridge of bark pushes up above the joint, and the limb flares into
+an elliptical collar. The model in the spec's "Junctions" section reproduces all three. Forks have no collar.
+
+**Bark scans.** Nine CC0 scans from Poly Haven, at 1024 px, are in `assets/textures/bark/` (diffuse, OpenGL normal and
+roughness) and in the asset manifest:
+
+| Scan | Creator | Tile | Used for |
+|---|---|---|---|
+| [sakura_bark](https://polyhaven.com/a/sakura_bark) | Charlotte Baglioni | 1.6 m | Somei-yoshino |
+| [pine_bark](https://polyhaven.com/a/pine_bark) | Dimitrios Savva | 2 m | Japanese black pine |
+| [japanese_camphor_bark](https://polyhaven.com/a/japanese_camphor_bark) | Charlotte Baglioni | 1.8 m | Camphor tree |
+| [japanese_zelkova_bark](https://polyhaven.com/a/japanese_zelkova_bark) | Charlotte Baglioni | 1.8 m | Ginkgo |
+| [chinese_hackberry_bark](https://polyhaven.com/a/chinese_hackberry_bark) | Charlotte Baglioni | 1.8 m | Baobab, dragon tree, fiddle-leaf fig, wisteria |
+| [jolcham_oak_bark_01](https://polyhaven.com/a/jolcham_oak_bark_01) | Charlotte Baglioni | 1 × 2 m | English oak |
+| [trident_maple_bark](https://polyhaven.com/a/trident_maple_bark) | Charlotte Baglioni | 1.8 m | Japanese maple, momiji |
+| [bark_willow](https://polyhaven.com/a/bark_willow) | Dario Barresi, Dimitrios Savva | 1 m | Weeping willow, lavender |
+| [palm_tree_bark](https://polyhaven.com/a/palm_tree_bark) | Dimitrios Savva, Rico Cilliers | 1.3 m | Coconut palm |
+
+**Plants.** Nine profiles in `flora-profiles-anime.ts`. Sizes come from the cited Wikipedia pages (graded `reported`)
+and from FLORA1's species records, which cite their own sources.
+
+| Plant | Source | Observed |
+|---|---|---|
+| Somei-yoshino | [Prunus × yedoensis](https://en.wikipedia.org/wiki/Prunus_%C3%97_yedoensis), FLORA1 mountain cherry | 5–12 m; flowers 3–3.5 cm, five notched petals, five or six together, before the leaves; ringed lenticel bark |
+| Japanese black pine | FLORA1 | 10–20 m; needles in pairs 6–12 cm; plated blackish bark; old pines lean with a flat crown |
+| Moso bamboo | [Phyllostachys edulis](https://en.wikipedia.org/wiki/Phyllostachys_edulis), FLORA1 madake | Culms to 28 m and 22 cm; node rings; leaves in fans |
+| Hydrangea | [Hydrangea macrophylla](https://en.wikipedia.org/wiki/Hydrangea_macrophylla) | About 3 m; mophead of sterile four-parted florets; blue on acid soil |
+| Red spider lily | [Lycoris radiata](https://en.wikipedia.org/wiki/Lycoris_radiata) | Scape 30–70 cm; umbel of 4–6 flowers; narrow recurved segments; long upcurved stamens; no leaves at flowering |
+| Japanese wisteria | FLORA1 | Racemes 30–50 cm, violet #9b7cc4 to #c8b4e0, opening from the base; grey twining stems |
+| Ginkgo | FLORA1 | 20–35 m; fan leaves 5–10 cm with a notch, saffron #f2b51c in autumn; leaves fall within days |
+| Momiji | FLORA1 Japanese maple | Autumn red #c3341f; leaves on the ground |
+| Camphor tree | FLORA1 | 20–30 m; broad dome; wavy glossy leaves; pale fissured bark; the shrine's sacred tree |
+
+New engine features, each general and data-driven: junction collars, scanned bark, `cluster` organs (dome, umbel,
+raceme), corolla stamens that curve and a flower stalk, notched blades, `ruffleWave`, `litter` and `hang` placements,
+star florets for distant flowers, and a smaller share for litter.
+
+Render review log, round three:
+
+1. **Round 10.** Limbs met trunks in butt joints. Parent swell, a branch bark ridge and an elliptical collar fixed the
+   oak and the baobab. A dragon-tree fork showed a ring-shaped cup where the child's collar sat on the parent's end.
+   Fork continuations now have no collar and start inside the parent.
+2. **Round 11.** The baobab scan tiled into a dotted pattern. A finer hackberry scan, world-space tone variation and a
+   random shift per axis removed it.
+3. **Round 12.** The first sakura had 112 M triangles: each flower took a leaf's share. Flowers now share a budget per
+   flower. Wisteria racemes lay sideways. Florets now use the flower frame, and racemes hang.
+4. **Round 13.** Spider-lily tepals aliased into zigzags. The ruffle got its own wavelength (`ruffleWave`).
+5. **Round 14.** The sakura avenue ran at 20 fps with 53.6 M triangles. Star florets for distant flowers, one template
+   per distant cluster, three-sided stalks and a twelfth share for litter brought it to 9.0 M triangles at 60 fps.
+   Thinning blossom clusters as small organs made the trees bare, so it was undone. The first stars were dark. They now
+   take their colour from the pale part of the petal.
+6. **Round 15.** The "Trunks and junctions" story framed whole trees in leaf, so the collars were too small to judge.
+   It now shows the trees bare and closer. The camphor showed a blob under a limb. Three causes were checked one at a
+   time: a codominant collar wider than the trunk (now capped at 0.95 of the parent), the fork stub along the child's
+   own direction (now down the parent's axis), and the collar fading from the parent's axis, so that only 7% of it was
+   left where a 66° limb comes out of a 0.9 m trunk. The collar and the ridge now sit at the exit point. The crease of a
+   limb that comes toward the camera remains: two tubes cannot blend into one surface.
+7. **Round 16.** The ginkgo row read as bare trunks. More twigs and spurs, and five to eight leaves per spur, made it a
+   yellow crown. Leaf stalks under 150 triangles are now straight and three-sided, which kept the shrine at 60 fps.
+
 ## What not to copy
 
-The photos are for measurement only. No pixels, textures or compositions from them are in the engine. Every texture is
-procedural.
+The photos are for measurement only. No pixels or compositions from them are in the engine. The bark scans are CC0
+Poly Haven files, listed in the asset manifest. Every other texture is procedural.

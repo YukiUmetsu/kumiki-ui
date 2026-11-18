@@ -46,6 +46,11 @@ export interface SurfaceSpec {
   texture: SurfaceTexture;
   /** Metres covered by one texture tile on axes (bark, stems, roots). Blades map one tile to the whole blade. */
   tile?: number;
+  /**
+   * A photo-scanned bark (axes only): its id, the physical size of one tile (m) and its source page. The scan's own
+   * maps come from the caller (`createFloraAsset` option `scans`); without them the procedural `texture` is drawn.
+   */
+  scan?: { id: string; width: number; height: number; source: string };
   /** Geometric relief on thick axes, in foot radii (bark folds and fissures). */
   relief?: number;
 }
@@ -149,6 +154,8 @@ export interface BladeSpec {
   mucro?: number;
   /** A narrowing of the blade (a fiddle or violin shape): where along the lamina (0–1) and how deep (fraction of the width). */
   waist?: { at: number; depth: number };
+  /** A notch cut into the apex (a cherry petal, a two-lobed ginkgo leaf): its depth (fraction of the length) and its width at the tip (fraction of the width). */
+  notch?: { depth: number; width: number };
   /** Cordate basal lobes: fraction of the lamina length behind the petiole, and the half-width of the sinus at the base (× width). */
   lobe?: number;
   sinus?: number;
@@ -170,11 +177,13 @@ export interface BladeSpec {
   /** Fleshy leaves: thickness (m) and underside keel (× thickness). Over 1 mm builds a closed leaf. */
   thickness?: number;
   keel?: number;
-  /** Cross-section fold (deg, + margins up), cup, pleats between laterals and margin ruffle (× width), twist (deg). */
+  /** Cross-section fold (deg, + margins up), cup, pleats between laterals and margin ruffle (× width), twist (deg).
+   * `ruffleWave` is the ruffle's wavelength as a fraction of the length (default 0.06). */
   fold?: number;
   cup?: number;
   corrugation?: number;
   ruffle?: number;
+  ruffleWave?: number;
   twist?: number;
   /** Heavy-elastica G along the midrib, and the base pitch it was measured at (deg above horizontal). A negative G
    * curls the blade toward its upper face (incurved petals and tepals). */
@@ -216,17 +225,38 @@ export interface CorollaSpec {
   perWhorl?: number;
   angle: readonly [number, number];
   scale?: readonly [number, number];
-  stamens?: { count: number; length: number; surface: string };
+  /** Stamens: count, length (m) and surface (its colour runs from filament to anther). `curve` bends long filaments
+   * toward the flower axis (deg), as on a spider lily. */
+  stamens?: { count: number; length: number; surface: string; curve?: number };
+  /** A stalk (pedicel) below a single flower: length and radius (m), surface. */
+  stalk?: { length: number; radius: number; surface: string };
 }
 
-export type OrganSpec = BladeSpec | CapitulumSpec | EarSpec | BudSpec | CorollaSpec;
+/**
+ * Florets gathered on one stalk: a dome of florets (a hydrangea mophead), an umbel of rays (a spider lily, a cherry
+ * cluster) or a hanging raceme that opens from the base (wisteria). `floret` names a corolla organ. `size` is the dome
+ * diameter, the ray length or the raceme length (m). `spread` is the cap angle of a dome or the cone half-angle of an
+ * umbel (deg). Rays and the raceme axis are drawn with `stalk`.
+ */
+export interface ClusterSpec {
+  kind: "cluster";
+  floret: string;
+  shape: "dome" | "umbel" | "raceme";
+  count: Range;
+  size: Range;
+  spread?: number;
+  stalk: { radius: number; surface: string };
+}
+
+export type OrganSpec = BladeSpec | CapitulumSpec | EarSpec | BudSpec | CorollaSpec | ClusterSpec;
 
 /** Where organs sit on an axis. */
 export interface OrganRule {
   organ: string;
   on: string;
-  /** Along the axis at a spacing or count, at its tip, or as a rosette round its tip. */
-  place: "along" | "tip" | "rosette";
+  /** Along the axis at a spacing or count, at its tip, as a rosette round its tip, or as litter lying on the ground
+   * under the crown (fallen petals and leaves; `count` organs, `on` names the root axis). */
+  place: "along" | "tip" | "rosette" | "litter";
   from?: number;
   to?: number;
   /** Metres between nodes (along). */
@@ -247,6 +277,8 @@ export interface OrganRule {
   phase?: number;
   /** Along: where the organ's base sits, as a fraction of the axis radius (default 0.85; 1 puts spines on rib crests). */
   offset?: number;
+  /** Along: hang straight down under gravity whatever the axis direction (racemes, hanging fruit). */
+  hang?: boolean;
   /** Rosette: radius of the ring of leaf bases (m) and the height they climb (m). */
   core?: number;
   rise?: number;
@@ -285,6 +317,9 @@ export interface SpeciesMorphologyProfile {
   blueprint: { phyllotaxy: string; skeleton: string; surface: string; layout: string };
 }
 
+/** A CC0 Poly Haven bark scan of `width` × `height` metres (see `SurfaceSpec.scan`). */
+export const polyHavenScan = (id: string, width: number, height = width): NonNullable<SurfaceSpec["scan"]> => ({ id, width, height, source: `https://polyhaven.com/a/${id}` });
+
 export interface FloraProfileIssue { level: "error" | "warning"; path: string; message: string }
 
 const HEX = /^#[0-9a-f]{6}$/i;
@@ -318,6 +353,7 @@ export function checkFloraProfile(p: SpeciesMorphologyProfile): FloraProfileIssu
     if (s.back && !HEX.test(s.back)) err(`surfaces.${k}.back`, "use #rrggbb");
     if (s.rim && (!HEX.test(s.rim.hex) || !(s.rim.width > 0 && s.rim.width < 1))) err(`surfaces.${k}.rim`, "use #rrggbb and a width in 0…1");
     if (!(s.roughness >= 0 && s.roughness <= 1)) err(`surfaces.${k}.roughness`, "use 0…1");
+    if (s.scan && (!(s.scan.width > 0 && s.scan.height > 0) || !/^https:\/\//.test(s.scan.source))) err(`surfaces.${k}.scan`, "give the tile size in metres and an https source");
   }
   const needSurface = (path: string, id: string | undefined) => { if (!id || !surfaces[id]) err(path, `unknown surface "${id}"`); };
   const rules = new Map((p.axes ?? []).map(a => [a.id, a]));
@@ -378,6 +414,10 @@ export function checkFloraProfile(p: SpeciesMorphologyProfile): FloraProfileIssu
       needSurface(`${at}.petal.surface`, o.petal.surface); range(`${at}.petal.length`, o.petal.length);
       if (!(o.count >= 1 && o.count <= 200)) err(`${at}.count`, "use 1…200 petals");
       if (o.stamens) needSurface(`${at}.stamens.surface`, o.stamens.surface);
+      if (o.stalk) needSurface(`${at}.stalk.surface`, o.stalk.surface);
+    } else if (o.kind === "cluster") {
+      if (organs[o.floret]?.kind !== "corolla") err(`${at}.floret`, `"${o.floret}" must name a corolla organ`);
+      range(`${at}.count`, o.count); range(`${at}.size`, o.size); needSurface(`${at}.stalk.surface`, o.stalk.surface);
     } else err(at, "unknown organ kind");
   }
   (p.placements ?? []).forEach((r, i) => {
@@ -385,7 +425,7 @@ export function checkFloraProfile(p: SpeciesMorphologyProfile): FloraProfileIssu
     if (!organs[r.organ]) err(`${at}.organ`, `unknown organ "${r.organ}"`);
     if (!rules.has(r.on)) err(`${at}.on`, `unknown axis rule "${r.on}"`);
     if (r.place === "along" && !r.spacing && !r.count) err(at, "give spacing or count");
-    if (r.place === "rosette" && !r.count) err(at, "a rosette needs a count");
+    if ((r.place === "rosette" || r.place === "litter") && !r.count) err(at, `a ${r.place} needs a count`);
   });
   if (p.support) needSurface("support.surface", p.support.surface);
   if (!(p.layout?.spacing > 0)) err("layout.spacing", "give the spacing between plants (m)");

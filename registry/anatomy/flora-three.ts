@@ -10,8 +10,8 @@
  *   striations, cork, coir fibres; leaf vein maps built from the blade's own vein layout, so the veins run between the
  *   cut holes and splits. Each gives a colour, a normal and a roughness map.
  */
-import { BufferAttribute, BufferGeometry, Color, DataTexture, DoubleSide, FrontSide, Group, InstancedBufferAttribute, InstancedMesh, LinearFilter, LinearMipmapLinearFilter, Matrix4, MeshPhysicalMaterial, NoColorSpace, RGBAFormat, RepeatWrapping, UnsignedByteType, Vector2, Vector3 } from "three";
-import type { Material } from "three";
+import { BufferAttribute, BufferGeometry, Color, DataTexture, DoubleSide, FrontSide, Group, InstancedBufferAttribute, InstancedMesh, LinearFilter, LinearMipmapLinearFilter, Matrix4, MeshPhysicalMaterial, NoColorSpace, RGBAFormat, RepeatWrapping, SRGBColorSpace, TextureLoader, UnsignedByteType, Vector2, Vector3 } from "three";
+import type { Material, Texture } from "three";
 import { createAssetResources } from "../craft/hero-asset";
 import type { HeroAsset, HeroFidelityTier } from "../craft/hero-asset";
 import { fbm, fbm3, gradNoise3, linearOf, worley } from "./foundation-raster";
@@ -86,7 +86,7 @@ function axisMaps(kind: SurfaceSpec["texture"], size: number): Maps {
 
 /** Leaf maps in the blade's UV space: midrib, laterals and the areole network from the blade's vein layout. */
 function bladeMaps(spec: BladeSpec, kind: SurfaceSpec["texture"], size: number): Maps {
-  const key = `blade|${kind}|${size}|${JSON.stringify(spec.veins)}|${spec.width}|${spec.lobe ?? 0}|${spec.widestAt}|${spec.baseShape}|${spec.apexShape}`, hit = MAP_CACHE.get(key);
+  const key = `blade|${kind}|${size}|${JSON.stringify([spec.veins, spec.margin, spec.waist, spec.mucro])}|${spec.width}|${spec.lobe ?? 0}|${spec.widestAt}|${spec.baseShape}|${spec.apexShape}`, hit = MAP_CACHE.get(key);
   if (hit) return hit;
   const L = 1, lay = bladeLayout(spec, L), aspect = 2 * lay.W / (lay.yApex - lay.yBase);
   const h = size, w = Math.max(32, Math.min(size, Math.round(size * aspect * 1.4)));
@@ -149,12 +149,49 @@ function geometry(m: MeshData): BufferGeometry {
   return g;
 }
 
+/** A photo-scanned bark loaded by `loadFloraScans`: colour, normal and roughness maps and the colour's linear mean. */
+export interface FloraScan { map: Texture; normal?: Texture; rough?: Texture; mean: readonly [number, number, number] }
+
+/**
+ * Loads scanned barks (for example CC0 scans from Poly Haven) by id: `{ sakura_bark: { map, normal, rough } }` with
+ * URLs. The caller owns the textures (assets never dispose them), so one loaded set serves every asset.
+ */
+export async function loadFloraScans(urls: Readonly<Record<string, { map: string; normal?: string; rough?: string }>>): Promise<Record<string, FloraScan>> {
+  const loader = new TextureLoader(), out: Record<string, FloraScan> = {};
+  const load = async (url: string | undefined, srgb: boolean) => {
+    if (!url) return undefined;
+    const t = await loader.loadAsync(url);
+    t.wrapS = t.wrapT = RepeatWrapping; t.anisotropy = 8; t.colorSpace = srgb ? SRGBColorSpace : NoColorSpace;
+    return t;
+  };
+  await Promise.all(Object.entries(urls).map(async ([id, u]) => {
+    const [map, normal, rough] = await Promise.all([load(u.map, true), load(u.normal, false), load(u.rough, false)]);
+    out[id] = { map: map!, normal, rough, mean: meanColour(map!) };
+  }));
+  return out;
+}
+
+/** The linear mean colour of a loaded image (the browser draws it small on a canvas). */
+function meanColour(t: Texture): [number, number, number] {
+  const img = t.image as CanvasImageSource | undefined;
+  if (typeof document === "undefined" || !img) return [0.18, 0.18, 0.18];
+  const c = document.createElement("canvas"); c.width = c.height = 32;
+  const g = c.getContext("2d");
+  if (!g) return [0.18, 0.18, 0.18];
+  g.drawImage(img, 0, 0, 32, 32);
+  const d = g.getImageData(0, 0, 32, 32).data, sum = [0, 0, 0];
+  for (let i = 0; i < d.length; i += 4) for (let k = 0; k < 3; k++) { const v = d[i + k] / 255; sum[k] += v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }
+  return [sum[0] / 1024, sum[1] / 1024, sum[2] / 1024];
+}
+
 export interface FloraAssetOptions {
   id?: string;
   tier?: HeroFidelityTier;
   /** Procedural map size; defaults to the first scene's fidelity. */
   textureSize?: number;
   fidelity?: FloraFidelity;
+  /** Scanned barks by id (`loadFloraScans`). A surface with a matching `scan` uses them instead of its procedural maps. */
+  scans?: Readonly<Record<string, FloraScan>>;
 }
 
 /** Builds a `HeroAsset` (metres) from one or more engine scenes. */
@@ -170,7 +207,14 @@ export function createFloraAsset(input: FloraScene | readonly FloraScene[], o: F
     const s = profile.surfaces[surfaceKey], isAxis = !blade;
     m = res.own(new MeshPhysicalMaterial({ vertexColors: true, roughness: s.roughness, metalness: 0, side: thin ? DoubleSide : FrontSide,
       clearcoat: s.clearcoat ?? 0, clearcoatRoughness: 0.32, sheen: s.sheen ?? 0, sheenRoughness: 0.55, sheenColor: new Color(s.sheenColour ?? "#ffffff"), envMapIntensity: 0.9 }));
-    if (s.texture !== "none") {
+    const scan = isAxis && s.scan ? o.scans?.[s.scan.id] : undefined;
+    if (scan) {
+      // The scan's detail on the profile's measured colour: dividing by the scan's mean keeps the vertex colours.
+      m.map = scan.map; m.normalMap = scan.normal ?? null; m.roughnessMap = scan.rough ?? null;
+      m.color.setRGB(...scan.mean.map(v => Math.min(6, 1 / Math.max(0.02, v))) as [number, number, number]);
+      m.roughness = scan.rough ? 1 : s.roughness;
+      m.normalScale = new Vector2(1.2, 1.2);
+    } else if (s.texture !== "none") {
       const maps = isAxis ? axisMaps(s.texture, Math.min(512, size)) : bladeMaps(blade!, s.texture, size);
       m.map = res.own(texture(maps, "colour", isAxis));
       m.normalMap = res.own(texture(maps, "normal", isAxis));
@@ -271,7 +315,7 @@ export function createFloraAsset(input: FloraScene | readonly FloraScene[], o: F
 function bladeFor(profile: SpeciesMorphologyProfile, b: FloraOrganBatch): BladeSpec | undefined {
   const spec = profile.organs[b.organ];
   if (spec.kind === "blade") return spec;
-  if (spec.kind === "corolla") return b.surface === spec.petal.surface ? spec.petal : CAPITULUM_PART;
+  if (spec.kind === "corolla") return b.surface === spec.petal.surface ? spec.petal : undefined;
   if (spec.kind === "capitulum" && (b.surface === spec.rays.surface || b.surface === spec.bracts.surface)) return CAPITULUM_PART;
   if (spec.kind === "ear") return CAPITULUM_PART;
   if (spec.kind === "bud") return CAPITULUM_PART;

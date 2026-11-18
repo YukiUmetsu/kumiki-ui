@@ -2,7 +2,7 @@
 
 **Registry item:** `flora-engine` (needs `art-foundations` and `crafted-3d-hero`) · **Files:** `registry/anatomy/flora-*.ts` ·
 **Storybook:** Video production → Art Foundations → Plant Anatomy (3D flora engine, Reference blueprints, Organ close-ups,
-Rows and groves, Register a profile) · **Skill:** [kumiki-plant-anatomy](../../skills/kumiki-plant-anatomy/SKILL.md) ·
+Rows and groves, Register a profile, Trunks and junctions) · **Skill:** [kumiki-plant-anatomy](../../skills/kumiki-plant-anatomy/SKILL.md) ·
 **Research:** [reference study and parameter blueprint, 2026-11-17](../research/flora-engine-reference-study-2026-11-17.md)
 
 FLORA2 grows any plant in 3D from a `SpeciesMorphologyProfile`. A profile is plain data: sizes, ratios and colours
@@ -17,14 +17,14 @@ WebGL scenes. Both share `art-foundations` (seeded random streams, noise, graded
 | Part | File | What it does |
 |---|---|---|
 | `SpeciesMorphologyProfile` | `flora-profile.ts` | The schema, `checkFloraProfile` (broken references, impossible numbers, missing evidence) and `FloraProfileError`. |
-| Reference profiles | `flora-profiles.ts`, `flora-profiles-popular.ts` | `FLORA_PROFILES` (18): Monstera deliciosa, Adansonia digitata, Dracaena cinnabari, Salix babylonica, Helianthus annuus, Zea mays, Echeveria, Polytrichum commune; and the popular coconut palm, English oak, Japanese maple, fiddle-leaf fig, snake plant, aloe vera, garden tulip, English lavender, saguaro and Boston fern (`POPULAR_PROFILES`). |
+| Reference profiles | `flora-profiles.ts`, `flora-profiles-popular.ts`, `flora-profiles-anime.ts` | `FLORA_PROFILES` (27): Monstera deliciosa, Adansonia digitata, Dracaena cinnabari, Salix babylonica, Helianthus annuus, Zea mays, Echeveria, Polytrichum commune; the popular coconut palm, English oak, Japanese maple, fiddle-leaf fig, snake plant, aloe vera, garden tulip, English lavender, saguaro and Boston fern (`POPULAR_PROFILES`); and the plants of Japanese scenery that anime backgrounds show most: Somei-yoshino cherry, Japanese black pine, moso bamboo, hydrangea, red spider lily, Japanese wisteria, ginkgo and Japanese maple in autumn, and the camphor tree (`ANIME_PROFILES`). |
 | Math | `flora-math.ts` | Vectors, centripetal Catmull–Rom, cubic Bézier, rotation-minimizing frames, monotone radius profiles, the heavy elastica, the growth curve, `MeshBuffer`. Noise comes from `foundation-raster`. |
 | Skeleton | `flora-skeleton.ts` | `growSkeleton`: axes, forks, climbing, colonies and organ placements. |
 | Leaves | `flora-leaf.ts` | `buildBlade` and `bladeLayout`: outlines, vein coordinates, fenestration, 3D shaping. |
 | `ProceduralMeshBuilder` | `flora-mesh.ts` | Tubes with bark relief, organ templates and instance matrices, the fidelity table, organ close-ups. |
 | `SpatialLayoutManager` | `flora-layout.ts` | Hero, rows, groves and ground cover. |
 | `ReferenceGuidedFloraEngine` | `flora-engine.ts` | The profile registry, `generate`, `organ`, and a specimen cache. |
-| Three.js adapter | `flora-three.ts` | `createFloraAsset`: `InstancedMesh` draw groups, physical materials, procedural maps, a `HeroAsset`. |
+| Three.js adapter | `flora-three.ts` | `createFloraAsset`: `InstancedMesh` draw groups, physical materials, procedural maps, a `HeroAsset`. `loadFloraScans` loads bark scans. |
 
 Only `flora-three.ts` imports Three.js. The other files make typed arrays, so they run in workers and tests.
 
@@ -50,6 +50,23 @@ const scene = engine.generate({
 between them) and `origin` (to put several species in one scene). Pass an array of scenes to `createFloraAsset` for a
 mixed scene. `engine.organ(profile, organ, fidelity, maturity)` gives one organ alone for close-ups.
 
+### Bark scans
+
+A surface with a `scan` uses a photo-scanned bark at its physical size. Load the maps once and pass them to every asset:
+
+```ts
+import { loadFloraScans } from "./flora-three";
+
+const scans = await loadFloraScans({
+  sakura_bark: { map: "/bark/sakura_bark_diff.jpg", normal: "/bark/sakura_bark_nor_gl.jpg", rough: "/bark/sakura_bark_rough.jpg" },
+});
+createFloraAsset(scene, { fidelity: "high_def", scans });
+```
+
+Without the maps, the surface falls back to its procedural texture. The asset does not own the scan textures, so one load
+serves many assets. The nine scans in `assets/textures/bark/` are CC0 Poly Haven maps at 1024 px, listed in
+`assets/THIRD_PARTY_ASSETS.json`. The stories load them with `src/video/flora-bark-scans.ts`.
+
 ### Register a profile at run time
 
 ```ts
@@ -67,9 +84,9 @@ own.
 | `sources` | Each studied reference: URL, licence (`rights`), creator and what was observed. Photos are linked, never copied. |
 | `size`, `measured` | Graded ranges (`reported` with a source, `measured` from our photo study, `estimated`). |
 | `axes` | Axis rules: kind, surface, length (of the height, of the parent, or of the drop to the ground), radius, radius profile or weighted profile variants, root flare, limb swell, node rings, `ribs` (columnar cacti), elastica gravity and tip load, upturn, wander, `lean` (a leaning palm), start angle and divergence, lateral `children`, a dichotomous `fork`, `climb` and `colony`. |
-| `organs` | `blade` (simple, palmate or fleshy leaves, petals, swords, grass blades), `capitulum` (a composite flower head), `corolla` (petals or tepals in whorls or a spiral, with stamens: a tulip), `ear` and `bud` (with an optional stalk: hanging fruit, acorns). |
-| `placements` | Where organs sit: `along` an axis (spacing, nodes, divergence; `sides` with a `lift` for pinnae left and right of a rachis; a fixed `phase` and an `offset` to put spines on rib crests; size from base → middle → tip), at its `tip`, or as a `rosette`. |
-| `surfaces` | Colour stops from foot to tip (sRGB, sampled from the references), underside colour, a coloured `rim` (variegated margin), roughness, clear coat, sheen and a procedural texture. |
+| `organs` | `blade` (simple, palmate or fleshy leaves, petals, swords, grass blades; a `notch` at the apex for a cherry petal or a ginkgo fan, `ruffleWave` for the wavelength of a ruffled margin), `capitulum` (a composite flower head), `corolla` (petals or tepals in whorls or a spiral, with stamens that can `curve` up and out, and a flower `stalk`), `cluster` (corolla florets in a `dome` (a hydrangea mophead), an `umbel` (cherry blossom, a spider lily) or a hanging `raceme` that opens from its base (wisteria)), `ear` and `bud` (with an optional stalk: hanging fruit, acorns). |
+| `placements` | Where organs sit: `along` an axis (spacing, nodes, divergence; `sides` with a `lift` for pinnae left and right of a rachis; a fixed `phase` and an `offset` to put spines on rib crests; size from base → middle → tip; `hang` to point the organ at the ground), at its `tip`, as a `rosette`, or as `litter` (a count of fallen petals or leaves on the ground under the crown). |
+| `surfaces` | Colour stops from foot to tip (sRGB, sampled from the references), underside colour, a coloured `rim` (variegated margin), roughness, clear coat, sheen, a procedural texture, and an optional bark `scan` (id, physical width and height, source). |
 | `support`, `layout`, `seedling` | A pole to climb, layout defaults, height at stage 0. |
 | `blueprint` | The parameter blueprint in words: phyllotaxy, skeleton, surface, layout. |
 
@@ -90,6 +107,35 @@ own.
 6. **Organs.** Leaves face the sky, or face away from the axis. Organs formed early in the plant's life are juvenile
    (heteroblasty: the first Monstera leaves have no holes). Over the organ cap, organs are thinned evenly and the kept
    ones grow a little.
+
+## Junctions
+
+A limb leaves a trunk through a branch collar, not a butt joint. The mesh builder finds each junction from the grown
+skeleton and shapes both tubes:
+
+- **Exit point.** A child starts on its parent's axis. It comes out of the parent's surface after r_parent ÷ sin θ of
+  its length (θ from the parent's axis, at most 3 parent radii), higher up the parent when θ is narrow. The collar and
+  the ridge are placed there, where they can be seen.
+- **Parent swell.** Over the child's footprint, the parent's radius grows by up to 0.55 × the child's radius in a
+  Gaussian of 1.5 child radii. The swell sits 0.35 child radii above the exit point: the bark ridge that pushes up
+  between the limb and the trunk.
+- **Branch collar.** The child's base flares by `clamp(0.45 · r_parent / r_child, 0.15, 0.85)` (or the axis's own
+  `swell`). The flare is full inside the parent and fades over about one branch diameter after the exit point. It is
+  stretched along the parent's axis, so the collar meets the trunk in an ellipse, as in a photo of a pruned limb.
+- **Codominant limbs.** The collar never makes the child wider than 0.95 of its parent. A limb nearly as thick as its
+  parent has no collar, only the ridge, so it never bulges out of the trunk.
+- **Crowned axes.** An axis with two or more children in its last quarter ends in a crown: its radius stays full until
+  90% of its length and then closes to 0.68, so the children grow out of it, not out of a pencil tip.
+- **Forks.** A continuation at the end of its parent (a dichotomous fork) gets no collar. It starts 0.8 parent radii
+  back down the parent's axis, inside the parent's end, so the fork has no ring, no gap and no stub out of the side.
+
+## Bark
+
+- **Scans at physical size.** The u and v repeats come from the scan's width and height in metres, so a 1.8 m tile
+  covers 1.8 m of trunk. A thin twig wraps a fraction of the tile instead of squeezing a whole one.
+- **Colour from the profile.** The material colour is 1 ÷ the scan's mean colour, so the vertex colours keep the
+  profile's measured bark colour and the scan gives only the detail.
+- **No visible tiling.** A world-space fbm varies the tone by ±14%, and each axis gets its own random u and v shift.
 
 ## Leaves
 
@@ -127,6 +173,11 @@ own.
   calls.
 - **Level of detail.** `preview` keeps 65% of small organs and makes each one cheap (about 12 triangles), so a tree in
   a field stays leafy. Keeping 40% made oaks look bare in winter.
+- **Distant flowers.** A flower under 40 triangles is a flat star: a centre and a rim through each petal tip and gap,
+  coloured from the paler part of the petal. A cluster of star florets is one template, so a cherry umbel is two
+  instances (stalks and stars), not six. Its stalks are straight and three-sided.
+- **Litter.** Fallen organs are counted apart from living ones and get a twelfth of a living organ's share.
+- **Stalks.** A blade under 150 triangles gets a straight three-sided stalk (6 triangles, not 40).
 - **Measured.** We orbited the "Rows and groves" scenes in Chromium (ANGLE Metal, Apple M4). All eight held 60 frames per
   second, the display cap:
 
@@ -164,7 +215,10 @@ own.
   - the elastica limits;
   - the dragon tree's crown width against the measured 1.69 × height;
   - the row pitch and stagger, and the Poisson spacing;
-  - registration at run time and `inspectHeroAsset` on an instanced asset.
+  - registration at run time and `inspectHeroAsset` on an instanced asset;
+  - the tulip's six tepals and six anthers as pieces of one template per flower;
+  - the three CC0 maps of every scanned bark, and their manifest entries;
+  - hanging wisteria racemes, flat sakura litter, and star florets in a distant cherry.
 - **3D gate.** No FLORA2 asset is in `docs/verification/hero-approvals.json`. All are work in progress until a person
   reviews them.
 
@@ -172,8 +226,17 @@ own.
 
 - Leaves are drawn larger than life where a crown must read at tree scale with the leaf counts a GPU can draw: willow
   strand leaves 1.3×, Japanese maple 1.4×, English oak 2.2× (a real oak crown has about ten times more leaves).
+- The plants of Japanese scenery use the same idea: cherry blossom clusters 2× (fallen petals 1.6×), ginkgo leaves 2.2×,
+  camphor leaves 2.4×, bamboo leaves 1.5×, wisteria racemes 1.2×, and pine needle brushes 1.4–1.9× with 60–110 needles
+  where a real brush has hundreds of pairs.
+- One bamboo culm reads thin on its own. A grove of 40 reads as bamboo.
+- Somei-yoshino blossom is a flat star from afar. The notch and the stamens show only in close-ups and at `high_def`.
 - At `preview`, fine axes and small organs are thinned, and the kept organs grow a little to cover the same area.
 - There is no wind or growth animation yet. FLORA1's sway rates (`swayHz: "species"`) are the reference for it.
+- A junction is two tubes with a collar and a ridge, not one blended surface. A thick limb that comes toward the camera
+  shows a U-shaped crease where its underside meets the trunk.
+- Hydrangea colour is fixed per profile (blue). Real mopheads turn pink on alkaline soil.
+- Scans exist for nine barks. The other trunks use the procedural bark texture.
 - There are no flowers on the baobab, the dragon tree, the willow, the aloe and the saguaro. Maize kernels are inside
   the husk. Moss sporophytes are not drawn. Baobab pods, acorns and coconuts are simple spindles on stalks.
 - Palmate maple lobes are separate blades that overlap at the base. The palm of the leaf is their overlap, not one

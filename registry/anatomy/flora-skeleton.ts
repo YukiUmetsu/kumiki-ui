@@ -41,6 +41,8 @@ export interface OrganPlacement {
   maturity: number;
   /** A stable random number for the organ's variant. */
   pick: number;
+  /** True for a fallen organ lying on the ground (a `litter` placement). */
+  litter?: boolean;
 }
 export interface FloraSkeleton {
   profile: SpeciesMorphologyProfile;
@@ -271,12 +273,15 @@ export function growSkeleton(profile: SpeciesMorphologyProfile, o: GrowOptions):
             const phi = (phi0 + k * (pr.divergence ?? GOLDEN_ANGLE) + j * 360 / per) * DEG;
             const q = pr.sides ? normalize(add(scale(side, (j ? -1 : 1) * Math.cos(lift)), scale(upish, Math.sin(lift)))) : add(scale(n, Math.cos(phi)), scale(b, Math.sin(phi)));
             const A = lerp(pr.angle[0], pr.angle[1], rel) * DEG;
-            const y = normalize(add(scale(t, Math.cos(A)), scale(q, Math.sin(A))));
+            const y = pr.hang ? normalize([(rng() - 0.5) * 0.12, -1, (rng() - 0.5) * 0.12]) : normalize(add(scale(t, Math.cos(A)), scale(q, Math.sin(A))));
             const sc = pr.scale, s = !sc ? 1 : sc.length === 3 ? (rel < 0.5 ? lerp(sc[0], sc[1], rel * 2) : lerp(sc[1], sc[2], rel * 2 - 1)) : lerp(sc[0], sc[1], rel);
-            organs.push({ organ: pr.organ, ...frameOf(add(p, q, radiusAt(a, u) * (pr.offset ?? 0.85)), y, q, pr.face, pr.sides ? roll() / 3 : roll()), scale: s * sizeAt * (small ? grow3 : 1), maturity: stage * lerp(0.45, 1, u), pick: rng() });
+            const base = add(p, q, radiusAt(a, u) * (pr.offset ?? 0.85));
+            // Flower heads, flowers and clusters point their axis (+z) along the placement direction, as at a tip.
+            const fr = spec.kind === "capitulum" || spec.kind === "corolla" || spec.kind === "cluster" ? (() => { const x = perpendicular(y); return { p: base, x, y: cross(y, x), z: y }; })() : frameOf(base, y, q, pr.face, pr.sides ? roll() / 3 : roll());
+            organs.push({ organ: pr.organ, ...fr, scale: s * sizeAt * (small ? grow3 : 1), maturity: stage * lerp(0.45, 1, u), pick: rng() });
           }
         }
-      } else if (a.terminal) {
+      } else if (pr.place !== "litter" && a.terminal) {
         const end = pointAt(ai, 1), count = pr.count ? Math.max(1, Math.round(between(rng, pr.count[0], pr.count[1] + 0.999) - 0.499)) : 1;
         const total = pr.place === "rosette" ? Math.max(3, Math.round(count * lerp(0.45, 1, stage))) : count;
         const phi0 = rng() * 360;
@@ -297,13 +302,28 @@ export function growSkeleton(profile: SpeciesMorphologyProfile, o: GrowOptions):
             const A = lerp(pr.angle[0], pr.angle[1], k / Math.max(1, total - 1)) * DEG;
             y = normalize(add(scale(end.t, Math.cos(A)), scale(q, Math.sin(A))));
           }
-          const fr = spec.kind === "capitulum" || spec.kind === "corolla" ? (() => { const z = y, x = perpendicular(z); return { p, x, y: cross(z, x), z }; })() : frameOf(p, y, q, pr.face, roll());
+          const fr = spec.kind === "capitulum" || spec.kind === "corolla" || spec.kind === "cluster" ? (() => { const z = y, x = perpendicular(z); return { p, x, y: cross(z, x), z }; })() : frameOf(p, y, q, pr.face, roll());
           organs.push({ organ: pr.organ, ...fr, scale: s * sizeAt, maturity, pick: rng() });
         }
       }
     });
   }
   const support = profile.support ? { top: supportTop, radius: supportRadius, surface: profile.support.surface } : undefined;
+  // Litter: organs lying flat on the ground under the crown, spread over the ellipse of the organs already placed.
+  const above = organs.filter(g => g.p[1] > 0.05);
+  for (const pr of profile.placements) {
+    if (pr.place !== "litter" || !above.length || (pr.onset !== undefined && stage < pr.onset)) continue;
+    let cx = 0, cz = 0;
+    for (const g of above) { cx += g.p[0] / above.length; cz += g.p[2] / above.length; }
+    let rx = 0, rz = 0;
+    for (const g of above) { rx = Math.max(rx, Math.abs(g.p[0] - cx)); rz = Math.max(rz, Math.abs(g.p[2] - cz)); }
+    const n = Math.round(between(rng, pr.count![0], pr.count![1]) * keep), s0 = pr.scale ? pr.scale[0] : 1;
+    for (let k = 0; k < n; k++) {
+      const r = Math.sqrt(rng()) * 1.08, a = rng() * Math.PI * 2, yaw = rng() * Math.PI * 2, y: V3 = [Math.cos(yaw), 0, Math.sin(yaw)];
+      const z: V3 = rng() < 0.7 ? UP : [0, -1, 0], p: V3 = [cx + Math.cos(a) * r * rx, 0.003 + rng() * 0.004, cz + Math.sin(a) * r * rz];
+      organs.push({ organ: pr.organ, p, y, z, x: cross(y, z), scale: s0 * sizeAt * (0.8 + 0.4 * rng()), maturity: 1, pick: rng(), litter: true });
+    }
+  }
   // Over the cap, thin evenly (never drop whole rosettes at the end) and let the kept organs grow a little.
   const kept = organs.length > o.maxOrgans ? (() => { const k = o.maxOrgans / organs.length; return organs.filter(() => rng() < k).map(g => ({ ...g, scale: g.scale / k ** 0.25 })); })() : organs;
   return { profile, axes, organs: kept, height: H, stage, support };

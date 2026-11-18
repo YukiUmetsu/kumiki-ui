@@ -11,8 +11,10 @@
  */
 import { range } from "./foundation-shapes";
 import type { SpeciesMorphologyProfile } from "./flora-profile";
+import { polyHavenScan } from "./flora-profile";
 import { GOLDEN_ANGLE } from "./flora-math";
 import { POPULAR_PROFILES } from "./flora-profiles-popular";
+import { ANIME_PROFILES } from "./flora-profiles-anime";
 
 const commonsPhoto = (file: string) => `https://commons.wikimedia.org/wiki/File:${file.replace(/ /g, "_")}`;
 
@@ -121,10 +123,10 @@ export const BAOBAB: SpeciesMorphologyProfile = {
     { organ: "leaf", on: "spray", place: "tip", count: [3, 6], angle: [35, 70] },
     { organ: "leaf", on: "spray", place: "along", from: 0.3, to: 1, spacing: 0.12, angle: [55, 45] },
     { organ: "leaf", on: "twig", place: "tip", count: [2, 4], angle: [35, 70] },
-    { organ: "fruit", on: "twig", place: "along", from: 0.6, to: 1, count: [1, 1], chance: 0.22, angle: [178, 178], onset: 0.7 },
+    { organ: "fruit", on: "twig", place: "along", from: 0.6, to: 1, count: [1, 1], chance: 0.22, angle: [90, 90], hang: true, onset: 0.7 },
   ],
   surfaces: {
-    bark: { colour: [{ at: 0, hex: "#6d6257" }, { at: 0.35, hex: "#766a5e" }, { at: 0.8, hex: "#675e55" }, { at: 1, hex: "#5d554d" }], roughness: 0.82, texture: "bark-folds", tile: 1.2, relief: 0.05 },
+    bark: { colour: [{ at: 0, hex: "#6d6257" }, { at: 0.35, hex: "#766a5e" }, { at: 0.8, hex: "#675e55" }, { at: 1, hex: "#5d554d" }], roughness: 0.82, texture: "bark-folds", tile: 1.2, relief: 0.05, scan: polyHavenScan("chinese_hackberry_bark", 1.8) },
     leaf: { colour: [{ at: 0, hex: "#55692f" }, { at: 1, hex: "#5f7535" }], back: "#8a9a6e", roughness: 0.5, clearcoat: 0.25, texture: "leaf-veins" },
     petiole: { colour: [{ at: 0, hex: "#5f6a3a" }, { at: 1, hex: "#6b7a3a" }], roughness: 0.6, texture: "stem" },
     fruit: { colour: [{ at: 0, hex: "#8a8a6a" }, { at: 1, hex: "#77735c" }], roughness: 0.8, sheen: 0.6, sheenColour: "#d8d4c0", texture: "none" },
@@ -174,7 +176,7 @@ export const DRAGON_TREE: SpeciesMorphologyProfile = {
     { organ: "sword", on: "trunk", place: "rosette", count: [28, 40], angle: [8, 78], scale: [0.55, 1], core: 0.025, rise: 0.05 },
   ],
   surfaces: {
-    bark: { colour: [{ at: 0, hex: "#665a4e" }, { at: 0.35, hex: "#5e5044" }, { at: 1, hex: "#5a3e2e" }], roughness: 0.78, texture: "bark-ringed", tile: 0.6, relief: 0.035 },
+    bark: { colour: [{ at: 0, hex: "#665a4e" }, { at: 0.35, hex: "#5e5044" }, { at: 1, hex: "#5a3e2e" }], roughness: 0.78, texture: "bark-ringed", tile: 0.6, relief: 0.035, scan: polyHavenScan("chinese_hackberry_bark", 1.8) },
     leaf: { colour: [{ at: 0, hex: "#6e7240" }, { at: 0.3, hex: "#5c6427" }, { at: 1, hex: "#606724" }], back: "#7a845a", roughness: 0.5, clearcoat: 0.2, texture: "parallel-veins" },
   },
   layout: { spacing: 9, clumpRadius: 10 },
@@ -229,7 +231,7 @@ export const WEEPING_WILLOW: SpeciesMorphologyProfile = {
     { organ: "leaf", on: "limb", place: "along", from: 0.45, to: 1, spacing: 0.05, angle: [45, 45] },
   ],
   surfaces: {
-    bark: { colour: [{ at: 0, hex: "#4d3d2c" }, { at: 0.5, hex: "#5a4733" }, { at: 1, hex: "#7a6a3c" }], roughness: 0.9, texture: "bark-fissured", tile: 0.8, relief: 0.09 },
+    bark: { colour: [{ at: 0, hex: "#4d3d2c" }, { at: 0.5, hex: "#5a4733" }, { at: 1, hex: "#7a6a3c" }], roughness: 0.9, texture: "bark-fissured", tile: 0.8, relief: 0.09, scan: polyHavenScan("bark_willow", 1) },
     twig: { colour: [{ at: 0, hex: "#7a6a3c" }, { at: 1, hex: "#9a8a4a" }], roughness: 0.6, texture: "stem", tile: 0.3 },
     leaf: { colour: [{ at: 0, hex: "#6f8a33" }, { at: 1, hex: "#7f9a3e" }], back: "#b4c48c", roughness: 0.55, clearcoat: 0.1, texture: "leaf-veins" },
   },
@@ -413,5 +415,5 @@ export const HAIRCAP_MOSS: SpeciesMorphologyProfile = {
   },
 };
 
-/** The reference-measured profiles the engine registers by default: the first study and the popular plants. */
-export const FLORA_PROFILES: readonly SpeciesMorphologyProfile[] = [MONSTERA, BAOBAB, DRAGON_TREE, WEEPING_WILLOW, SUNFLOWER, MAIZE, ECHEVERIA, HAIRCAP_MOSS, ...POPULAR_PROFILES];
+/** The reference-measured profiles the engine registers by default: the first study, the popular plants and the plants of Japanese scenery. */
+export const FLORA_PROFILES: readonly SpeciesMorphologyProfile[] = [MONSTERA, BAOBAB, DRAGON_TREE, WEEPING_WILLOW, SUNFLOWER, MAIZE, ECHEVERIA, HAIRCAP_MOSS, ...POPULAR_PROFILES, ...ANIME_PROFILES];

@@ -11,6 +11,7 @@
  */
 import { commons, range } from "./foundation-shapes";
 import type { SpeciesMorphologyProfile } from "./flora-profile";
+import { polyHavenScan } from "./flora-profile";
 
 const wiki = (page: string, observed: readonly string[]) => ({ id: `wiki-${page.toLowerCase().replace(/_/g, "-")}`, title: `Wikipedia: ${page.replace(/_/g, " ")}`, url: `https://en.wikipedia.org/wiki/${page}`, kind: "flora" as const, rights: "cited" as const, observed });
 
@@ -43,7 +44,7 @@ export const COCONUT_PALM: SpeciesMorphologyProfile = {
     { organ: "nut", on: "trunk", place: "along", from: 0.955, to: 0.985, count: [6, 10], perNode: 2, angle: [125, 145], offset: 1, onset: 0.6 },
   ],
   surfaces: {
-    bark: { colour: [{ at: 0, hex: "#6f6a5c" }, { at: 1, hex: "#8a8676" }], roughness: 0.85, texture: "bark-ringed", tile: 0.5, relief: 0.03 },
+    bark: { colour: [{ at: 0, hex: "#6f6a5c" }, { at: 1, hex: "#8a8676" }], roughness: 0.85, texture: "bark-ringed", tile: 0.5, relief: 0.03, scan: polyHavenScan("palm_tree_bark", 1.3) },
     rachis: { colour: [{ at: 0, hex: "#8f8a3e" }, { at: 1, hex: "#a3a24a" }], roughness: 0.55, texture: "stem", tile: 0.4 },
     leaf: { colour: [{ at: 0, hex: "#4a681c" }, { at: 0.5, hex: "#557420" }, { at: 1, hex: "#5f7e26" }], back: "#7f8f4a", roughness: 0.42, clearcoat: 0.35, texture: "parallel-veins" },
     nut: { colour: [{ at: 0, hex: "#5f7028" }, { at: 1, hex: "#6b7f2c" }], roughness: 0.45, clearcoat: 0.3, texture: "none" },
@@ -91,10 +92,10 @@ export const ENGLISH_OAK: SpeciesMorphologyProfile = {
     { organ: "leaf", on: "spray", place: "tip", count: [10, 16], angle: [30, 85], scale: [2.2, 2.2] },
     { organ: "leaf", on: "spray", place: "along", from: 0.3, to: 1, spacing: 0.03, angle: [55, 45], scale: [2.2, 2.2] },
     { organ: "leaf", on: "twig", place: "along", from: 0.5, to: 1, spacing: 0.05, angle: [55, 45], scale: [2.2, 2.2] },
-    { organ: "acorn", on: "spray", place: "along", from: 0.5, to: 1, count: [1, 1], chance: 0.12, angle: [150, 150], onset: 0.7 },
+    { organ: "acorn", on: "spray", place: "along", from: 0.5, to: 1, count: [1, 1], chance: 0.12, angle: [90, 90], hang: true, onset: 0.7 },
   ],
   surfaces: {
-    bark: { colour: [{ at: 0, hex: "#4a4232" }, { at: 0.4, hex: "#544a38" }, { at: 1, hex: "#5f5644" }], roughness: 0.92, texture: "bark-fissured", tile: 0.7, relief: 0.08 },
+    bark: { colour: [{ at: 0, hex: "#4a4232" }, { at: 0.4, hex: "#544a38" }, { at: 1, hex: "#5f5644" }], roughness: 0.92, texture: "bark-fissured", tile: 0.7, relief: 0.08, scan: polyHavenScan("jolcham_oak_bark_01", 1, 2) },
     twig: { colour: [{ at: 0, hex: "#5f5644" }, { at: 1, hex: "#6a5f4a" }], roughness: 0.8, texture: "stem", tile: 0.3 },
     leaf: { colour: [{ at: 0, hex: "#46551f" }, { at: 1, hex: "#505e25" }], back: "#93a26a", roughness: 0.5, clearcoat: 0.15, texture: "leaf-veins" },
     acorn: { colour: [{ at: 0, hex: "#7a7a38" }, { at: 0.4, hex: "#6a5222" }, { at: 1, hex: "#7a4a22" }], roughness: 0.35, clearcoat: 0.4, texture: "none" },
@@ -138,7 +139,7 @@ export const JAPANESE_MAPLE: SpeciesMorphologyProfile = {
     { organ: "leaf", on: "branch", place: "along", from: 0.4, to: 1, spacing: 0.05, perNode: 2, divergence: 90, angle: [55, 45], scale: [1.4, 1.4] },
   ],
   surfaces: {
-    bark: { colour: [{ at: 0, hex: "#55544c" }, { at: 1, hex: "#625c52" }], roughness: 0.7, texture: "bark-folds", tile: 0.6, relief: 0.015 },
+    bark: { colour: [{ at: 0, hex: "#55544c" }, { at: 1, hex: "#625c52" }], roughness: 0.7, texture: "bark-folds", tile: 0.6, relief: 0.015, scan: polyHavenScan("trident_maple_bark", 1.8) },
     twig: { colour: [{ at: 0, hex: "#6a4a3a" }, { at: 1, hex: "#7a5040" }], roughness: 0.6, texture: "stem", tile: 0.2 },
     leaf: { colour: [{ at: 0, hex: "#4f7028" }, { at: 1, hex: "#5c802e" }], back: "#7d9a5e", roughness: 0.5, texture: "leaf-veins" },
   },
@@ -171,7 +172,7 @@ export const FIDDLE_LEAF_FIG: SpeciesMorphologyProfile = {
   },
   placements: [{ organ: "leaf", on: "stem", place: "along", from: 0.3, to: 1, spacing: 0.05, angle: [58, 25], scale: [1, 0.75] }],
   surfaces: {
-    bark: { colour: [{ at: 0, hex: "#58523f" }, { at: 1, hex: "#5f6a3e" }], roughness: 0.75, texture: "bark-ringed", tile: 0.3, relief: 0.02 },
+    bark: { colour: [{ at: 0, hex: "#58523f" }, { at: 1, hex: "#5f6a3e" }], roughness: 0.75, texture: "bark-ringed", tile: 0.3, relief: 0.02, scan: polyHavenScan("chinese_hackberry_bark", 1.8) },
     leaf: { colour: [{ at: 0, hex: "#3c5a26" }, { at: 1, hex: "#4a6a2c" }], back: "#6f8a58", roughness: 0.42, clearcoat: 0.3, texture: "leaf-veins" },
   },
   layout: { spacing: 1 },
@@ -321,7 +322,7 @@ export const LAVENDER: SpeciesMorphologyProfile = {
     { organ: "floret", on: "spike", place: "along", from: 0.72, to: 1, spacing: 0.006, perNode: 6, divergence: 30, angle: [55, 30] },
   ],
   surfaces: {
-    wood: { colour: [{ at: 0, hex: "#6a5a44" }, { at: 1, hex: "#7a6a50" }], roughness: 0.85, texture: "bark-fissured", tile: 0.2, relief: 0.03 },
+    wood: { colour: [{ at: 0, hex: "#6a5a44" }, { at: 1, hex: "#7a6a50" }], roughness: 0.85, texture: "bark-fissured", tile: 0.2, relief: 0.03, scan: polyHavenScan("bark_willow", 1) },
     shoot: { colour: [{ at: 0, hex: "#7f8f6a" }, { at: 1, hex: "#8a9a74" }], roughness: 0.75, sheen: 0.5, sheenColour: "#dfe6d8", texture: "stem", tile: 0.2 },
     leaf: { colour: [{ at: 0, hex: "#7f8f78" }, { at: 1, hex: "#8a9a80" }], back: "#9aa892", roughness: 0.75, sheen: 0.6, sheenColour: "#d8e0d4", texture: "parallel-veins" },
     flower: { colour: [{ at: 0, hex: "#5f4a8a" }, { at: 1, hex: "#7a5fae" }], roughness: 0.7, sheen: 0.4, sheenColour: "#c8b8f0", texture: "none" },

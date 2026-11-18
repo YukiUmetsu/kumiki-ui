@@ -11,7 +11,9 @@ import type { PlantFigureMode } from "../../registry/anatomy/plant-react";
 import { HeroAssetViewer } from "../../registry/craft/hero-viewer";
 import { ReferenceGuidedFloraEngine } from "../../registry/anatomy/flora-engine";
 import type { FloraEngineConfig, FloraScene } from "../../registry/anatomy/flora-engine";
-import { createFloraAsset } from "../../registry/anatomy/flora-three";
+import { createFloraAsset, loadFloraScans } from "../../registry/anatomy/flora-three";
+import type { FloraScan } from "../../registry/anatomy/flora-three";
+import { BARK_SCAN_URLS } from "./flora-bark-scans";
 import { FloraProfileError, checkFloraProfile } from "../../registry/anatomy/flora-profile";
 import type { FloraProfileIssue, SpeciesMorphologyProfile } from "../../registry/anatomy/flora-profile";
 import type { FloraFidelity } from "../../registry/anatomy/flora-mesh";
@@ -169,6 +171,17 @@ function CrownDetail() {
 
 /** One engine for every FLORA2 story; profiles registered in "Register a profile" join it. */
 const flora = new ReferenceGuidedFloraEngine();
+/** The CC0 bark scans, loaded once; plants draw procedural bark until they arrive. */
+let scanLoad: Promise<Record<string, FloraScan>> | undefined;
+function useBarkScans(): Record<string, FloraScan> | undefined {
+  const [scans, setScans] = useState<Record<string, FloraScan>>();
+  useEffect(() => {
+    let live = true;
+    (scanLoad ??= loadFloraScans(BARK_SCAN_URLS)).then(s => { if (live) setScans(s); }, () => undefined);
+    return () => { live = false; };
+  }, []);
+  return scans;
+}
 const FIDELITIES: readonly FloraFidelity[] = ["preview", "high_def", "macro_ultra"];
 type LayoutMode = FloraLayout["mode"];
 const card = { display: "grid", gap: 8, alignContent: "start", padding: 16, borderRadius: 10, background: "var(--km-surface-default, #fff)", border: "1px solid var(--km-border-subtle, #cecac8)" } as const;
@@ -210,7 +223,8 @@ function FloraEngineLab() {
   const [elevation, setElevation] = useState(8);
   const profile = flora.profile(id)!;
   const scene = useMemo(() => flora.generate({ speciesProfile: id, seed, fidelityLevel: fidelity, layoutMode: layoutFor(profile, mode), growthStage: stage }), [id, seed, fidelity, mode, stage, profile]);
-  const createAsset = useCallback(() => createFloraAsset(scene, { fidelity }), [scene, fidelity]);
+  const scans = useBarkScans();
+  const createAsset = useCallback(() => createFloraAsset(scene, { fidelity, scans }), [scene, fidelity, scans]);
   const sp = scene.specimens[0];
   return (
     <div style={page}>
@@ -244,7 +258,8 @@ function FloraBlueprintStory() {
   const [id, setId] = useState("adansonia-digitata");
   const p = flora.profile(id)!;
   const scene = useMemo(() => flora.generate({ speciesProfile: id, seed: 11, fidelityLevel: "preview", layoutMode: { mode: "hero" }, growthStage: 1 }), [id]);
-  const createAsset = useCallback(() => createFloraAsset(scene, { fidelity: "preview" }), [scene]);
+  const scans = useBarkScans();
+  const createAsset = useCallback(() => createFloraAsset(scene, { fidelity: "preview", scans }), [scene, scans]);
   const range = (r: { min: number; typical: number; max: number; grade: string; source?: string }) => `${r.typical} (${r.min}–${r.max}), ${r.grade}${r.source ? `, ${r.source}` : ""}`;
   const organ = Object.entries(p.organs)[0];
   return (
@@ -289,7 +304,8 @@ function FloraBlueprintStory() {
 /** A close-up: an organ alone, or a whole plant framed on one of its parts. */
 function CloseUp({ title, note, make, view }: { title: string; note: string; make: () => FloraScene; view?: { target?: (s: FloraScene) => [number, number, number]; zoom?: number; elevation?: number; azimuth?: number } }) {
   const scene = useMemo(make, [make]);
-  const createAsset = useCallback(() => createFloraAsset(scene, { fidelity: "macro_ultra" }), [scene]);
+  const scans = useBarkScans();
+  const createAsset = useCallback(() => createFloraAsset(scene, { fidelity: "macro_ultra", scans }), [scene, scans]);
   return (
     <figure style={{ ...card, margin: 0 }}>
       <HeroAssetViewer createAsset={createAsset} width={560} height={420} pixelRatio={1.5} azimuth={view?.azimuth ?? 18} elevation={view?.elevation ?? 6} zoom={view?.zoom} target={view?.target?.(scene)} fov={26} ariaLabel={title} />
@@ -304,12 +320,44 @@ const CLOSE_UPS: { title: string; note: string; make: () => FloraScene; view?: P
   { title: "Tulipa gesneriana, flower", note: "Six tepals in two whorls of three, cupped and a little incurved (a negative droop), with six dark stamens.", make: () => flora.organ("tulipa-gesneriana", "flower", "macro_ultra", 1), view: { azimuth: 20, elevation: 12, zoom: 1.15 } },
   { title: "Quercus robur, leaf", note: "Four to five rounded lobes a side cut 50% in (the lobed margin), small auricles at the base.", make: () => flora.organ("quercus-robur", "leaf", "macro_ultra", 1), view: { azimuth: 0, elevation: 12, zoom: 1.6 } },
   { title: "Acer palmatum, leaf", note: "Five to nine finely serrate, acuminate lobes fanned over 230° from one petiole, joined at their broad bases.", make: () => flora.organ("acer-palmatum", "leaf", "macro_ultra", 1), view: { azimuth: 0, elevation: 20, zoom: 1.6 } },
+  { title: "Somei-yoshino, blossom cluster", note: "An umbel of five flowers: five clawed petals with a notched tip, 30 stamens with yellow anthers, pedicels from one point.", make: () => flora.organ("prunus-yedoensis", "blossom", "macro_ultra", 1), view: { azimuth: 20, elevation: 30, zoom: 1.4 } },
+  { title: "Red spider lily, umbel", note: "Strap tepals recurved with wavy edges; stamens 7 cm long arcing up toward the flower axis.", make: () => flora.organ("lycoris-radiata", "umbel", "macro_ultra", 1), view: { azimuth: 20, elevation: 20, zoom: 1.3 } },
+  { title: "Hydrangea, mophead", note: "A dome of four-sepalled florets placed by the golden angle.", make: () => flora.organ("hydrangea-macrophylla", "head", "macro_ultra", 1), view: { azimuth: 20, elevation: 25, zoom: 1.3 } },
+  { title: "Wisteria, raceme", note: "Florets open at the base and still in bud at the tip, by the golden angle round the axis.", make: () => flora.organ("wisteria-floribunda", "raceme", "macro_ultra", 1), view: { azimuth: 20, elevation: 8, zoom: 1.2 } },
+  { title: "Ginkgo, leaf in autumn", note: "The fan: a wedge base, a truncate wavy top with a central notch, fine radiating veins.", make: () => flora.organ("ginkgo-biloba", "leaf", "macro_ultra", 1), view: { azimuth: 0, elevation: 12, zoom: 1.6 } },
   { title: "Ficus lyrata, leaf", note: "The fiddle: widest near the tip, a 14% waist, wavy edge, pale curved laterals.", make: () => flora.organ("ficus-lyrata", "leaf", "macro_ultra", 1), view: { azimuth: 0, elevation: 10, zoom: 1.6 } },
   { title: "Adansonia digitata, palmate leaf", note: "Five to seven obovate leaflets fanned on one petiole.", make: () => flora.organ("adansonia-digitata", "leaf", "macro_ultra", 1), view: { azimuth: 0, elevation: 20, zoom: 1.7 } },
   { title: "Echeveria rosette", note: "Fleshy keeled leaves at the golden angle; offsets from stage 0.55.", make: () => flora.generate({ speciesProfile: "echeveria", seed: 4, fidelityLevel: "macro_ultra", layoutMode: { mode: "hero" }, growthStage: 1 }), view: { elevation: 40, zoom: 1.2 } },
   { title: "Adansonia digitata, trunk and limb collars", note: "Folded bark from solid noise, root flare and limbs swelling into the trunk.", make: () => flora.generate({ speciesProfile: "adansonia-digitata", seed: 11, fidelityLevel: "high_def", layoutMode: { mode: "hero" }, growthStage: 1 }),
     view: { target: s => [0, s.specimens[0].height * 0.3, 0], zoom: 2.6, elevation: 6 } },
 ];
+/** Trunks and junctions: each tree framed on where its trunk divides, at high definition with the scanned bark. */
+const TRUNKS: { id: string; title: string; note: string; at: number; zoom: number; elevation?: number; azimuth?: number }[] = [
+  { id: "adansonia-digitata", title: "Baobab", note: "Limbs leave the top fifth; the trunk top dissolves into their swollen bases.", at: 0.36, zoom: 2.4 },
+  { id: "quercus-robur", title: "English oak", note: "Massive low limbs with collars and bark ridges; fissured oak bark scan.", at: 0.2, zoom: 4.5 },
+  { id: "prunus-yedoensis", title: "Somei-yoshino cherry", note: "Low fork into spreading limbs with collars; sakura bark scan with lenticel bands.", at: 0.2, zoom: 4 },
+  { id: "cinnamomum-camphora", title: "Camphor tree", note: "Buttressed foot and massive limbs; Japanese camphor bark scan.", at: 0.2, zoom: 3.5 },
+  { id: "acer-palmatum", title: "Japanese maple", note: "Opposite limbs from a short trunk; trident maple bark scan.", at: 0.2, zoom: 3.5 },
+  { id: "dracaena-cinnabari", title: "Dragon tree", note: "Dichotomous forks: each fork is a crowned axis whose children swell over its end.", at: 0.55, zoom: 2.6, elevation: 0 },
+  { id: "pinus-thunbergii", title: "Japanese black pine", note: "Leaning trunk, tiered limbs with collars; plated pine bark scan.", at: 0.4, zoom: 3.5 },
+];
+/** The trees bare (organ batches left out), so the junctions show. */
+const TRUNK_MAKERS: Record<string, () => FloraScene> = Object.fromEntries(TRUNKS.map(t => [t.id, () => {
+  const sc = flora.generate({ speciesProfile: t.id, seed: 11, fidelityLevel: "high_def", layoutMode: { mode: "hero" }, growthStage: 1 });
+  return { ...sc, specimens: sc.specimens.map(sp => ({ ...sp, batches: [] })) };
+}]));
+function FloraTrunkStory() {
+  return (
+    <div style={page}>
+      <p style={muted}>Branch collars, bark ridges and crotches grown from the skeleton for every tree, under CC0 bark scans (Poly Haven) at their real size. Leaves and flowers are left out so the junctions show.</p>
+      <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 480px), 1fr))" }}>
+        {TRUNKS.map(t => <CloseUp key={t.id} title={t.title} note={t.note} make={TRUNK_MAKERS[t.id]}
+          view={{ target: sc => [0, sc.specimens[0].height * t.at, 0], zoom: t.zoom, elevation: t.elevation ?? 6, azimuth: t.azimuth }} />)}
+      </div>
+    </div>
+  );
+}
+
 function FloraCloseUpStory() {
   return (
     <div style={page}>
@@ -348,6 +396,28 @@ const SCENES: Record<string, { label: string; configs: FloraEngineConfig[] }> = 
     { speciesProfile: "quercus-robur", seed: 5, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 3, clumpRadius: 12 }, growthStage: 1, variants: 3 },
     { speciesProfile: "acer-palmatum", seed: 7, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 4, clumpRadius: 4 }, growthStage: 1, variants: 2, origin: [12, 6] },
   ] },
+  sakura: { label: "Sakura avenue in full bloom", configs: [
+    { speciesProfile: "prunus-yedoensis", seed: 4, fidelityLevel: "preview", layoutMode: { mode: "rows", rowCount: 2, plantsPerRow: 4, rowPitch: 11, plantSpacing: 8, organicJitter: 0.25 }, growthStage: 1, variants: 3 },
+  ] },
+  bamboo: { label: "Bamboo grove", configs: [
+    { speciesProfile: "phyllostachys-edulis", seed: 2, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 40, clumpRadius: 3.5, clumps: 3 }, growthStage: 1, stageSpread: 0.25, variants: 4 },
+  ] },
+  shrine: { label: "Shrine grounds in autumn", configs: [
+    { speciesProfile: "cinnamomum-camphora", seed: 3, fidelityLevel: "preview", layoutMode: { mode: "hero" }, growthStage: 1 },
+    { speciesProfile: "ginkgo-biloba", seed: 5, fidelityLevel: "preview", layoutMode: { mode: "rows", rowCount: 1, plantsPerRow: 3, plantSpacing: 9, organicJitter: 0.2 }, growthStage: 0.9, origin: [-4, 16], variants: 2 },
+    { speciesProfile: "acer-palmatum-momiji", seed: 6, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 4, clumpRadius: 4 }, growthStage: 1, origin: [14, 6], variants: 2 },
+    { speciesProfile: "pinus-thunbergii", seed: 7, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 2, clumpRadius: 4 }, growthStage: 1, origin: [-14, 4], variants: 2 },
+  ] },
+  ajisai: { label: "Rainy-season hydrangea path", configs: [
+    { speciesProfile: "hydrangea-macrophylla", seed: 8, fidelityLevel: "preview", layoutMode: { mode: "rows", rowCount: 2, plantsPerRow: 7, rowPitch: 3, plantSpacing: 1.4, organicJitter: 0.3 }, growthStage: 1, variants: 3 },
+  ] },
+  higan: { label: "Red spider lilies along a path", configs: [
+    { speciesProfile: "lycoris-radiata", seed: 9, fidelityLevel: "preview", layoutMode: { mode: "ground-cover", width: 4, depth: 0.8, density: 30 }, growthStage: 1, variants: 3, origin: [0, -0.7] },
+    { speciesProfile: "lycoris-radiata", seed: 11, fidelityLevel: "preview", layoutMode: { mode: "ground-cover", width: 4, depth: 0.8, density: 30 }, growthStage: 1, variants: 3, origin: [0, 0.7] },
+  ] },
+  fuji: { label: "Wisteria in bloom", configs: [
+    { speciesProfile: "wisteria-floribunda", seed: 10, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 3, clumpRadius: 4 }, growthStage: 1, variants: 2 },
+  ] },
   floor: { label: "Succulent bed and moss cushions", configs: [
     { speciesProfile: "echeveria", seed: 9, fidelityLevel: "preview", layoutMode: { mode: "ground-cover", width: 0.8, depth: 0.8, density: 45 }, growthStage: 1, variants: 4, stageSpread: 0.25 },
     { speciesProfile: "polytrichum-commune", seed: 6, fidelityLevel: "preview", layoutMode: { mode: "grove", count: 3, clumpRadius: 0.35 }, growthStage: 1, variants: 3, origin: [0.95, -0.15] },
@@ -360,7 +430,8 @@ function FloraSceneStory() {
   const [fps, setFps] = useState<number | null>(null);
   const reduced = usePrefersReducedMotion();
   const scenes = useMemo(() => SCENES[key].configs.map(c => flora.generate(c)), [key]);
-  const createAsset = useCallback(() => createFloraAsset(scenes, { fidelity: "preview", textureSize: 256 }), [scenes]);
+  const scans = useBarkScans();
+  const createAsset = useCallback(() => createFloraAsset(scenes, { fidelity: "preview", textureSize: 256, scans }), [scenes, scans]);
   const frames = useRef<number[]>([]);
   useEffect(() => {
     if (!orbit || reduced) { setFps(null); return; }
@@ -443,7 +514,8 @@ function FloraRegisterStory() {
     }
   };
   const scene = useMemo(() => (registered ? flora.generate({ speciesProfile: registered.id, seed: 3, fidelityLevel: "high_def", layoutMode: { mode: "hero" }, growthStage: stage }) : null), [registered, stage]);
-  const createAsset = useCallback(() => createFloraAsset(scene!, { fidelity: "high_def" }), [scene]);
+  const scans = useBarkScans();
+  const createAsset = useCallback(() => createFloraAsset(scene!, { fidelity: "high_def", scans }), [scene, scans]);
   const draft = useMemo(() => { try { return checkFloraProfile(JSON.parse(text)); } catch { return null; } }, [text]);
   return (
     <div style={page}>
@@ -481,3 +553,4 @@ export const FloraBlueprints: Story = { name: "Reference blueprints", render: ()
 export const FloraCloseUps: Story = { name: "Organ close-ups", render: () => <FloraCloseUpStory /> };
 export const FloraScenes: Story = { name: "Rows and groves", render: () => <FloraSceneStory /> };
 export const FloraRegister: Story = { name: "Register a profile", render: () => <FloraRegisterStory /> };
+export const FloraTrunks: Story = { name: "Trunks and junctions", render: () => <FloraTrunkStory /> };
