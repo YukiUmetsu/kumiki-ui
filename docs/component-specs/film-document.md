@@ -1026,6 +1026,50 @@ Example: [`examples/film/stutter.film.json`](../../examples/film/stutter.film.js
 
 Evidence (2026-11-11): `tests/film-document.test.ts`, "stutter". Frames 66 to 90 rendered at 960×540: the water streaks fall, jump back and fall again three times. A first draft stuttered on the `symbol` moment, after the pieces had landed, so nothing visibly repeated; the example now stutters the falling water.
 
+## Freeze-frame intro
+
+`"freeze": { "at": 42, "frames": 66, "name": "Kevin", "role": "Peacock. Regular. Snack inspector", "sound": "hit" }` on a scene stops the picture on a moment and introduces someone (VE1.6). `registry/video/film-freeze.ts` holds the timing; `film-freeze-react.tsx` draws the card.
+
+**The hold.**
+
+- **Time map.** A freeze is a time map, like a stutter. The scene runs `frames` longer than its content (default 1.6 s, 0.6 to 4 s), showing content frame `at` (a frame or a moment) throughout. Moments after it move later by the hold.
+- **Moments.** It adds `freeze`, where the picture stops, and `named`, where the card has landed.
+- **One time map.** A scene can only have one time map at a time (`freeze-time-map`).
+
+**The look, during the hold.**
+
+- **Grade.** `mono` (default) greys and deepens the picture; `dim` darkens it; `none` leaves it. The grade snaps in over two frames as the picture stops.
+- **Flash.** One short white flash as it stops (`"flash": false` drops it).
+- **Name card.** A large white name with a thin bar of the brand colour (default a warm yellow) under it, wiping in from its `side` (`left`, the default, or `right`). The role sits on a solid label in the ink that reads on it. A soft shade in the card's corner keeps the white name readable on bright ground.
+- **Sound.** `sound` plays a kit or catalog sound as the picture stops, and needs `audio.accents.kit`.
+- **With a cutout.** On a footage scene with a `subject` cutout ([Subject matte](subject-matte.md)), only the background is graded. The subject keeps its colour, with a thin light edge.
+- **Reduced motion** keeps the grade and the card and drops the flash and the slides.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `freeze-frames`, `freeze-moment`, `freeze-at`, `freeze-name`, `freeze-side`, `freeze-grade` | error | A hold outside 0.6 to 4 s, an unknown moment or a frame outside the content, no name, a bad side or grade |
+| `freeze-time-map` | error | A freeze with a speed ramp, a stutter, a rewind or a stretch |
+| `freeze-sound`, `freeze-sound-no-kit` | error | A sound the kit lacks, or no kit |
+| `freeze-short` | warning | The hold is shorter than the name and role need to be read (0.5 s plus three words a second) |
+| `freeze-name-long`, `freeze-role-long` | warning | A name over 28 characters, a role over 40 |
+
+**Example.** [`examples/film/freeze-intro.film.json`](../../examples/film/freeze-intro.film.json): the CC0 peacock clip with its cutout, frozen mid-step for 2.2 s as "Kevin", with the kit's hit over the drum loop. Storybook: **Promo Moves → Freeze Frame Intro**, beside the same footage without the freeze, with the film's mix.
+
+**Evidence (2026-11-18).**
+
+- **Tests.** `tests/film-freeze.test.tsx` covers:
+  - the time map;
+  - the grade, the slide and the single flash;
+  - reduced motion;
+  - the checks;
+  - the card's markup;
+  - the example's moment, its sound, and the one-time-map rule.
+- **Rendered frames** (960×540): the flash as it stops, the grey deck with the bird in colour, the card, and colour back after the hold.
+- **Review fixes.**
+  - A first card set the white name on a yellow bar (2.1:1) and over the bright tail (2.4:1). The card now stands on the side away from the bird, over a corner shade, and the frame passes the contrast check.
+  - A 1.6 s hold was too short for the name and role; the example holds 2.2 s.
+- **Owner review.** Visual and listening review is pending.
+
 ## Screen demos
 
 A `"recipeId": "screen-demo"` scene shows real software being used, from screenshots or live React UI, with a choreographed cursor, a camera that follows the work, and callouts:

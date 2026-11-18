@@ -76,6 +76,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
   { id: "VE1.5", name: "Subject cutout", group: "Animation and type", rank: "P0", status: "built", story: "video-production-promo-moves--subject-cutout",
     what: "The subject of real footage cut out frame by frame (npm run video:matte): words behind it, an outline, a new background, clones from earlier frames.",
     usage: '"subject": { "cutout": { "src": "assets/footage/peacock-walk-cutout.webm", … }, "behind": true, "outline": { "color": "#ffffff" } }' },
+  { id: "VE1.6", name: "Freeze-frame intro", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--freeze-frame-intro",
+    what: "The picture stops on a moment, greys out around its subject (in colour, from its cutout), a name and role slam in with a flash and a hit, then it plays on.",
+    usage: '"freeze": { "at": 42, "frames": 66, "name": "Kevin", "role": "Peacock. Regular.", "sound": "hit" }' },
   { id: "VE1.1", name: "Beat hits", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--beat-hits",
     what: "A punch zoom, a camera shake, an RGB split, a zoom blur or a flash on each beat of a bed with a declared tempo, on its loud onsets, or on moments; patterns combine (punch on the kick, shake on the snare).",
     usage: '"hits": [{ "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } }, { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }] · bed "bpm": 110' },
@@ -110,6 +113,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.6": { registryItem: "film-document", jobs: ["introduce a character", "name the people in a video"], keywords: ["freeze frame", "freeze-frame intro", "character intro", "character introduction",
+    "name card", "name title", "meet the crew", "lower third", "pause and name", "who is this", "title card"],
+    avoid: "Give the card time to be read (about 2 s); one freeze per person; keep the role to a few words." },
   "VE1.5": { registryItem: "film-document", jobs: ["put text behind a person", "cut out the subject of a video"], keywords: ["text behind subject", "text behind person", "subject cutout", "background removal",
     "remove background video", "segmentation", "matte", "rotoscope", "outline stroke", "subject outline", "glow outline", "background replace", "clone effect", "clone yourself", "depth effect"],
     avoid: "Clones need a locked-off camera; a cutout carries the footage's licence; Safari does not play VP9 alpha." },

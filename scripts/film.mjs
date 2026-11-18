@@ -115,7 +115,7 @@ function accentKit(document) {
   // A cue may name a catalog sound outright ("catalog:rise-shepard"), for a one-shot no kit carries; it is found in the catalog, and its
   // peak lands on the cue's moment like any kit sound.
   // Turn and transition accents name catalog sounds too: a braam on a turn, a reverse swell on a cut; so may a scene's hits.
-  const wanted = [...new Set([...(document.audio?.cues ?? []).map(cue => cue.sound), ...document.scenes.flatMap(scene => [scene.hits ?? []].flat().map(hits => hits.sound)), ...document.scenes.flatMap(scene => scene.content?.card === "chat" ? [scene.content.sound?.me, scene.content.sound?.them] : []), ...document.scenes.some(scene => scene.story?.turnAccent === "braam") ? ["catalog:braam-low"] : [],
+  const wanted = [...new Set([...(document.audio?.cues ?? []).map(cue => cue.sound), ...document.scenes.flatMap(scene => [scene.hits ?? []].flat().map(hits => hits.sound)), ...document.scenes.flatMap(scene => scene.content?.card === "chat" ? [scene.content.sound?.me, scene.content.sound?.them] : []), ...document.scenes.map(scene => scene.freeze?.sound), ...document.scenes.some(scene => scene.story?.turnAccent === "braam") ? ["catalog:braam-low"] : [],
     ...document.scenes.some(scene => scene.transition?.accent === "suck") ? ["catalog:swell-reverse"] : [],
     // A material transition makes its material's own recorded sounds.
     ...document.scenes.flatMap(scene => (MATERIAL_SOUNDS[scene.transition?.kind === "matte" ? scene.transition.texture ?? "" : scene.transition?.kind === "shape" ? scene.transition.material ?? "" : ""] ?? []).map(cue => "catalog:" + cue.sound))]

@@ -22,6 +22,8 @@ import { hitsAt, hitsReach } from "./film-hits";
 import { HitLayer } from "./film-hits-react";
 import { MotionBlurFilter } from "./film-blur-react";
 import { spinCutFrame } from "./film-spin";
+import { freezeAt } from "./film-freeze";
+import { FreezeCard, freezeGrade } from "./film-freeze-react";
 import type { ResolvedLook } from "./film-look";
 import { FilmLookLayer } from "./film-look-react";
 import { BrandBug, FilmCard } from "./film-cards-react";
@@ -366,6 +368,9 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       // A speed ramp maps the scene's frame to its content's; reduced motion plays the content at an even speed.
       const local = scene.speed ? speedSource(scene.speed, held, reduce) : held;
       const contentFrames = scene.contentFrames ?? (scene.speed ? Math.round(scene.speed.map[scene.speed.map.length - 1]) : scene.endFrame - scene.startFrame);
+      // A freeze-frame intro: footage with a subject cutout greys its own background; any other scene is graded whole.
+      const frozen = scene.freeze ? freezeAt(scene.freeze, layer.localFrame, reduce) : undefined;
+      const gradeWhole = frozen?.held && scene.freeze && !(scene.kind === "footage" && scene.content.subject) ? freezeGrade(scene.freeze.grade, frozen.grade) : undefined;
       const drifts = film.drift && !reduce && scene.kind !== "ray-world" && scene.kind !== "shot-3d" && scene.kind !== "screen-demo" && scene.kind !== "motion-chart" && scene.kind !== "chart-morph" && scene.kind !== "annotate" && scene.kind !== "draw-on" && scene.kind !== "title-sequence" && scene.kind !== "footage" && scene.kind !== "slot" && (!look || look.motion.camera === "drift");
       const content = <>
           {effects(scene, "background", held)}
@@ -378,7 +383,8 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           : scene.kind === "motion-chart" ? <MotionChart plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} appearance={film.appearance} reducedMotion={reduce} />
           : scene.kind === "chart-morph" ? <ChartMorph plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} appearance={film.appearance} accent={film.brand?.color} reducedMotion={reduce} />
           : scene.kind === "slot" ? (renderSlot ?? (() => { throw new Error(`Film scene "${scene.id}" is a slot, but FilmStage has no renderSlot.`); })())(scene.content, { frame: local, fps: film.fps, durationFrames: contentFrames, width: film.width, height: film.height, reducedMotion: reduce })
-          : scene.kind === "footage" ? <FootageScene content={scene.content} frame={local} fps={film.fps} durationFrames={contentFrames} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
+          : scene.kind === "footage" ? <FootageScene content={scene.content} frame={local} fps={film.fps} durationFrames={contentFrames} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce}
+              freeze={frozen?.held && scene.freeze ? { grade: scene.freeze.grade, amount: frozen.grade } : undefined} />
           : scene.kind === "title-sequence" ? <TitleSequence plan={scene.plan} frame={local} width={film.width} height={film.height} reducedMotion={reduce} />
           : scene.kind === "draw-on" ? <DrawOn plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
           : scene.kind === "annotate" ? <Annotate plan={scene.plan} frame={local} width={film.width} height={film.height} safeInset={film.safeInset} reducedMotion={reduce} />
@@ -436,7 +442,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         clipPath: material?.clipOut && !incoming && !loopLayer ? material.clipOut : gate && incoming ? `circle(${gate.r}px at ${gate.cx}px ${gate.cy}px)` : shape && incoming && shape.clipPath ? shape.clipPath : container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
         filter: layerWarp(incoming) && !loopLayer ? `url(#${warpId}-${incoming ? "in" : "out"})` : spin && incoming === spin.showIncoming && (spin.spin > 0 || spin.zoom > 0) ? `url(#${warpId}-spin)` : whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : flash && incoming && flash.glow > .01 ? `brightness(${1 + 1.6 * flash.glow}) saturate(${1 - .5 * flash.glow})` : undefined }}>
-        <div style={{ ...LAYER, transformOrigin: gate && incoming ? `${gate.cx}px ${gate.cy}px` : undefined,
+        <div style={{ ...LAYER, filter: gradeWhole, transformOrigin: gate && incoming ? `${gate.cx}px ${gate.cy}px` : undefined,
           transform: gate && incoming ? `scale(${gate.scale})` : drifts || driven !== 1 ? `scale(${Math.round((drifts ? 1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame) : 1) * driven * 1e5) / 1e5})` : undefined }}>
           {(() => {
             // Beat hits move and filter the picture under the look, so its grain and vignette stay still in the frame.
@@ -448,6 +454,8 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         </div>
         {glow > .004 && <div aria-hidden="true" data-km-film-drive-glow="" style={{ ...LAYER, pointerEvents: "none", mixBlendMode: "screen", opacity: glow,
           background: `radial-gradient(ellipse 62% 58% at 50% 50%, ${scene.drive!.color}, transparent 72%)` }} />}
+        {frozen?.held && scene.freeze && <FreezeCard freeze={scene.freeze} enter={frozen.enter} leave={frozen.leave} flash={frozen.flash} accent={film.brand?.color ?? "#ffcf3f"}
+          width={film.width} height={film.height} safeInset={film.safeInset} />}
       </div>;
       if (!(container && incoming && grow)) return node;
       const dark = film.appearance === "dark", unit = Math.min(film.width, film.height) / 100, lift = Math.sin(Math.PI * Math.min(1, grow.e * 1.2));

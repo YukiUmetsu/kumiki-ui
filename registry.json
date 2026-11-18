@@ -5830,6 +5830,16 @@
           "target": "components/video/film-subject.ts"
         },
         {
+          "path": "registry/video/film-freeze.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-freeze.ts"
+        },
+        {
+          "path": "registry/video/film-freeze-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-freeze-react.tsx"
+        },
+        {
           "path": "registry/video/footage-react.tsx",
           "type": "registry:ui",
           "target": "components/video/footage-react.tsx"
