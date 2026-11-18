@@ -357,7 +357,7 @@ export function InkMingQingCharacterStudy({
     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 390" role="img"
     aria-label={character+" Chinese ink portrait study"}
     data-km-ink-anat5="true" data-km-ink-anat5-character={character}
-    data-km-ink-anat5-source={g.sourceId} data-km-ink-anat5-source-object={g.sourceObjectId}
+    data-km-ink-anat5-source={g.sourceId} data-km-ink-anat5-source-object={g.sourceObjectId} data-km-ink-anat5-source-references={g.sourceReferences.join(" | ")}
     data-km-ink-anat5-hair-style={g.hairStyle} data-km-ink-anat5-yaw={fmt(g.yaw)}
     data-km-anat1-source="468-point-face-mesh"
     data-km-anat1-face-width-mm={fmt(g.faceWidthMm)}
