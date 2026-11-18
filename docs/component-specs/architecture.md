@@ -11,7 +11,9 @@
   quadripartite rib vaults `ribVaultWebs` and `ribVaultRibs`, `compoundPier`, `crocketCapital`, `atticBase`, `octShaft`,
   `archRise`, church `chairRows`, room joinery `RoomSpec.trim` and garden views `RoomSpec.view`; in `arch-sdf.ts`
   `archRoll` runs a roll moulding round any opening's arch, using `openingProfile`; `peaks` in `arch-kit.ts` builds
-  faceted snow-capped mountain backdrops), `arch-kit-props.ts` (the tools and
+  faceted snow-capped mountain backdrops; `crag` builds bedded rock with a levelled top for buildings to stand on,
+  `plinth` a battered masonry footing that carries walls down a crag or a slope, `hillField` a turf hill that reports
+  its height), `arch-kit-props.ts` (the tools and
   goods of trades for working interiors: workbench, anvil, forge with bellows, bread racks, flour sacks, faience jar
   rows, a balance, herb bunches, a scriptorium desk, wall clocks, a magnifier lamp, clock parts, tankards, candlesticks,
   a hanging lantern, stools, a sleeping cat), `arch-library.ts` (100 entries),

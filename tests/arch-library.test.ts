@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ARCH_LIBRARY, LIBRARY_GROUPS } from "../registry/anatomy/arch-library";
 import { paintArchScene } from "../registry/anatomy/arch-paint";
 import { revolve, sphere, spire, union } from "../registry/anatomy/arch-sdf";
+import { SceneBuilder, crag } from "../registry/anatomy/arch-kit";
 
 describe("ARCH1 storybook library", () => {
   it("closes a turned part at its own end radius, with no phantom disc", () => {
@@ -18,6 +19,31 @@ describe("ARCH1 storybook library", () => {
     // half a metre outside the pyramid's box, near its apex, the surface is metres away: the union must not answer 0.5
     const both = union([sphere(0, 0, 0, 1, 2), p]);
     expect(both.f(100 + 10 * Math.SQRT2 + 0.5, 9, 0)).toBeGreaterThan(1);
+  });
+  it("builds a crag with a flat top, a wider foot and a distance that never overshoots", () => {
+    const b = new SceneBuilder(4);
+    crag(b, { x: 0, z: 0, top: 20, base: 0, rx: 12, rz: 8, bench: 0.8, back: { dir: 90, slope: 0.8 }, cap: null, talus: 0, scrub: 0 });
+    const f = b.scene({ x: 0, y: 2, z: 60 }, "noon").root.f;
+    expect(f(0, 20.2, 0)).toBeGreaterThan(0);
+    expect(f(0, 19.8, 0)).toBeLessThan(0);
+    // the foot reaches further out than the top along the same line
+    let topEdge = 0, footEdge = 0;
+    for (let x = 0; x < 40; x += 0.05) { if (f(x, 19.5, 0) < 0) topEdge = x; if (f(x, 1, 0) < 0) footEdge = x; }
+    expect(footEdge).toBeGreaterThan(topEdge + 1);
+    // a safe step: from any point outside, nothing within the distance the field reports is inside the rock
+    let seed = 7, bad = 0, tried = 0;
+    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    for (let k = 0; k < 3000; k++) {
+      const p = [rnd() * 60 - 30, rnd() * 26 - 3, rnd() * 50 - 25], fp = f(p[0], p[1], p[2]);
+      if (fp <= 0.01) continue;
+      tried++;
+      for (let j = 0; j < 12; j++) {
+        const dx = rnd() * 2 - 1, dy = rnd() * 2 - 1, dz = rnd() * 2 - 1, l = Math.hypot(dx, dy, dz) || 1, r = fp * 0.999 * Math.cbrt(rnd());
+        if (f(p[0] + (dx / l) * r, p[1] + (dy / l) * r, p[2] + (dz / l) * r) < 0) bad++;
+      }
+    }
+    expect(tried).toBeGreaterThan(1000);
+    expect(bad).toBe(0);
   });
   it("has 100 distinct entries in known traditions, each with its story", () => {
     expect(ARCH_LIBRARY).toHaveLength(100);

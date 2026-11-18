@@ -330,7 +330,9 @@ export function paintArchScene(scene: ArchScene, o: PaintOptions = {}): ArchPain
       const [lx, ly, lz] = toLocal(hit.frame, hx, hy, hz), [lnx, lny, lnz] = dirToLocal(hit.frame, nx, ny, nz);
       const [u, v, tu, tv] = uvOf(lx, ly, lz, lnx, lny, lnz, hit.wrap);
       const fw = (t * tanH * 2) / w;
-      si.tone = hit.tone; si.fw = fw; si.ny = ny; si.y = ly; si.wx = hx; si.wy = hy; si.wz = hz;
+      // a surface seen at a grazing angle is stretched in depth: patterns must fade by the pixel's longer side, not its width
+      const cosI = Math.abs(nx * dx + ny * dy + nz * dz);
+      si.tone = hit.tone; si.fw = fw / Math.max(0.14, cosI); si.ny = ny; si.y = ly; si.wx = hx; si.wy = hy; si.wz = hz;
       fn(u, v, si, so);
       const h0 = so.h;
       // overlays: soot, ivy, snow

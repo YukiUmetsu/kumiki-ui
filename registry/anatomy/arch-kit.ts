@@ -547,6 +547,152 @@ export function peaks(b: SceneBuilder, list: readonly (readonly [number, number,
   b.place();
 }
 
+// ---- Rock and ground that buildings stand on --------------------------------------------------------------------------------
+
+/** Signed distance to a closed polygon in the xz plane (vertices in order), negative inside. */
+function polyDist(px: number, pz: number, vx: ArrayLike<number>, vz: ArrayLike<number>): number {
+  const n = vx.length;
+  let d = (px - vx[0]) ** 2 + (pz - vz[0]) ** 2, sgn = 1;
+  for (let i = 0, j = n - 1; i < n; j = i, i++) {
+    const ex = vx[j] - vx[i], ez = vz[j] - vz[i], wx = px - vx[i], wz = pz - vz[i];
+    const t = Math.min(1, Math.max(0, (wx * ex + wz * ez) / (ex * ex + ez * ez))), bx = wx - ex * t, bz = wz - ez * t;
+    d = Math.min(d, bx * bx + bz * bz);
+    const c1 = pz >= vz[i], c2 = pz < vz[j], c3 = ex * wz > ez * wx;
+    if ((c1 && c2 && c3) || (!c1 && !c2 && !c3)) sgn = -sgn;
+  }
+  return sgn * Math.sqrt(d);
+}
+export interface CragSpec {
+  x: number; z: number;
+  /** The levelled top, where buildings stand. */
+  top: number;
+  /** The ground or water level at its foot (the rock continues 2 m below it). */
+  base: number;
+  /** Half sizes of the top platform. */
+  rx: number; rz: number;
+  yaw?: number;
+  /** Bedding: the mean thickness of a layer of rock, metres (2–4 for limestone and sandstone, about 1–1.5 for slate); each layer varies. */
+  layer?: number;
+  /** Mean width of the ledge where a layer steps out beyond the one above it; each layer varies, a few overhang. */
+  bench?: number;
+  /** How far the faces lean outward per metre of depth (0 vertical). */
+  batter?: number;
+  /** A gentler slope on one side (a spur joining the hill behind it): the direction it faces (degrees, 0 = +x, 90 = +z) and its lean per metre. */
+  back?: { dir: number; slope: number };
+  /** Corners of the plan (7–12): fewer gives bigger faces between vertical joints. */
+  sides?: number;
+  /** How much the plan's corners wander, as a share of the radius. */
+  rough?: number;
+  rock?: SurfaceSpec;
+  /** A soil and grass cap on the top, set back from the edge; null for bare rock. */
+  cap?: SurfaceSpec | null;
+  /** Width of the scree apron at the foot (0 for none, as where the sea washes it). */
+  talus?: number;
+  /** Bushes on the ledges. */
+  scrub?: number;
+}
+/**
+ * A crag of bedded rock with a levelled top, the way castles, lighthouses and villages actually stand on rock. Its plan is
+ * an irregular polygon whose faces meet at sharp vertical joints. The rock lies in beds of uneven thickness; each bed
+ * steps out by an uneven ledge below the one above (a few overhang), so the face is broken by ledges and the corners
+ * shift from bed to bed. The faces lean back a little, more on a `back` slope where a spur meets its hill; scree gathers
+ * at the foot; bushes root on the ledges; a soil and grass cap sits on the top, set back from the edge. Its top is flat
+ * at `top`, so buildings set there sit on it; `plinth` carries walls down its face.
+ */
+export function crag(b: SceneBuilder, c: CragSpec): { top: number } {
+  const L = c.layer ?? 2.8, bench = c.bench ?? 0.6, batter = c.batter ?? 0.12, n = c.sides ?? 9, rough = c.rough ?? 0.22, H = c.top - c.base + 2;
+  const a0 = ((c.yaw ?? 0) * Math.PI) / 180, ca = Math.cos(a0), sa = Math.sin(a0);
+  // the beds: uneven thicknesses, each with its own ledge (a few negative: an overhanging harder bed)
+  const tops: number[] = [0], ledge: number[] = [], cum: number[] = [0];
+  while (tops[tops.length - 1] < H + L) { tops.push(tops[tops.length - 1] + L * b.r(0.55, 1.45)); const lw = b.r() < 0.15 ? -0.25 * bench : bench * b.r(0.2, 1.8); ledge.push(lw); cum.push(cum[cum.length - 1] + lw); }
+  const layers = ledge.length;
+  // each bed's ledge also varies corner by corner, so a ledge runs out along the face and reappears further on
+  const ledgeAt: number[][] = ledge.map(lw => Array.from({ length: n }, () => lw * b.r(0, 1.3)));
+  const cumAt: number[][] = [new Array(n).fill(0)];
+  for (let k = 0; k < layers; k++) cumAt.push(cumAt[k].map((v, i) => v + ledgeAt[k][i]));
+  // the plan's corners, each bed shifting them a little; each corner's own lean (steep cliff, or the gentle back slope)
+  const ang = Array.from({ length: n }, (_, i) => ((i + 0.6 * b.r(-0.5, 0.5)) / n) * Math.PI * 2);
+  const base = ang.map(() => 1 + rough * b.r(-1, 1)), rad: number[][] = [];
+  for (let k = 0; k <= layers; k++) rad.push(base.map(r0 => r0 * (1 + 0.09 * b.r(-1, 1))));
+  const backDir = (((c.back?.dir ?? 0) - (c.yaw ?? 0)) * Math.PI) / 180, lean = ang.map(a => batter + (c.back ? (c.back.slope - batter) * Math.max(0, Math.cos(a - backDir)) ** 2 : 0) * b.r(0.85, 1.15));
+  const vx = new Float64Array(n), vz = new Float64Array(n), cosA = ang.map(Math.cos), sinA = ang.map(Math.sin);
+  const plan = (t: number) => {
+    let k = 0; while (k < layers - 1 && tops[k + 1] <= t) k++;
+    const fr = (t - tops[k]) / (tops[k + 1] - tops[k]), w = fr < 0.45 ? 0 : ((fr - 0.45) / 0.55) ** 2 * (3 - 2 * ((fr - 0.45) / 0.55));
+    for (let i = 0; i < n; i++) { const r = rad[k][i] * (1 - w) + rad[k + 1][i] * w, off = lean[i] * t + cumAt[k][i] + ledgeAt[k][i] * w; vx[i] = cosA[i] * (c.rx * r + off); vz[i] = sinA[i] * (c.rz * r + off); }
+  };
+  const maxLean = Math.max(...lean), reach = Math.max(c.rx, c.rz) * (1 + rough) * 1.12 + maxLean * H + Math.max(0, ...cumAt.flat()) + 1;
+  const rockSpec = c.rock ?? { kind: "rock", colour: "#8a8274" }, rock = b.mat(rockSpec);
+  const toLocal = (x: number, z: number): [number, number] => { const px = x - c.x, pz = z - c.z; return [px * ca + pz * sa, -px * sa + pz * ca]; };
+  // a safe step: the plan's corners move with depth by up to (lean + ledge rate + corner shift) per metre
+  // the ledges ramp out over the lower 55% of a bed (the thinnest bed is 0.55 L), by up to 1.8 × 1.3 × bench; smoothstep's peak slope is 1.5
+  const K = 1 / Math.sqrt(1 + (maxLean + (1.5 * bench * 1.8 * 1.3) / (L * 0.55 * 0.55) + 0.75) ** 2), R0 = (c.rx + c.rz) / 2, sd = Math.floor(b.r(0, 1e4));
+  // a circle that contains the whole plan (ribs included) at each depth: away from the rock it gives a cheap bound with a far
+  // larger safe step, so rays approaching from a distance do not crawl at the step the ledges need near the face
+  const rMax = Math.max(...rad.flat()), outer0 = Math.max(c.rx, c.rz) * rMax + Math.max(0, ...cumAt.flat()) + 1.4, Kc = 1 / Math.sqrt(1 + maxLean * maxLean);
+  b.add(leaf((x, y, z) => {
+    const [lx, lz] = toLocal(x, z), t = Math.min(H, Math.max(0, c.top - y));
+    const dc = Math.hypot(lx, lz) - outer0 - maxLean * t;
+    if (dc > 0.5) return Math.max(dc * Kc, y - c.top, c.base - 2 - y);
+    plan(t);
+    // vertical ribs and fissures, long up the face and short round it, fading out on the top (at most 1.37 m: far from the
+    // face that bound stands in for them, so the noise is only computed near the rock)
+    const dp = polyDist(lx, lz, vx, vz), ribK = Math.min(1, t / 1.5);
+    let rib: number;
+    if (Math.abs(dp) < 2.5) { const along = Math.atan2(lz, lx) * R0; rib = (0.9 * gradNoise(sd, along * 0.22, y * 0.035) + 0.35 * gradNoise(sd + 1, along * 0.8, y * 0.1) + 0.12 * gradNoise(sd + 2, along * 2.6, y * 0.4)) * ribK; }
+    else rib = (dp > 0 ? -1.37 : 1.37) * ribK;
+    const d2 = dp + rib, dy = y - c.top;
+    const d = d2 > 0 && dy > 0 ? Math.hypot(d2, dy) : Math.max(d2, dy, c.base - 2 - y);
+    return d * K;
+  }, [c.x - reach, c.base - 2, c.z - reach], [c.x + reach, c.top, c.z + reach], rock, b.r()));
+  // the scree apron: broken rock fallen from the face, spreading out at its angle of repose
+  if ((c.talus ?? 0) > 0) {
+    const tw = c.talus!, th = tw * 0.9, scree = b.mat({ ...rockSpec, kind: "rock", colour: "#8f8a80" }), tFoot = c.top - c.base;
+    b.add(leaf((x, y, z) => {
+      const [lx, lz] = toLocal(x, z); plan(tFoot);
+      const rise = Math.max(0, y - c.base), d2 = polyDist(lx, lz, vx, vz) - tw * Math.max(0, 1 - rise / th);
+      return Math.max(d2 * 0.5, y - c.base - th, c.base - 1 - y);
+    }, [c.x - reach - tw, c.base - 1, c.z - reach - tw], [c.x + reach + tw, c.base + th, c.z + reach + tw], scree, b.r()));
+  }
+  // the cap of soil and grass on the top, set back from the edge
+  if (c.cap !== null) {
+    const cap = b.mat(c.cap ?? { kind: "grass", colour: "#6a7440" });
+    b.add(leaf((x, y, z) => { const [lx, lz] = toLocal(x, z); plan(0); return Math.max(polyDist(lx, lz, vx, vz) + 0.7 + 0.35 * gradNoise(41, lx * 0.4, lz * 0.4), Math.abs(y - c.top - 0.06) - 0.07); }, [c.x - reach, c.top - 0.05, c.z - reach], [c.x + reach, c.top + 0.15, c.z + reach], cap));
+  }
+  // bushes rooted on the ledges
+  const bush = b.mat({ kind: "foliage", colour: "#4a5a2e" });
+  for (let s2 = 0; s2 < (c.scrub ?? 8); s2++) {
+    const k = 1 + Math.floor(b.r(0, Math.max(1, layers - 2))), t = tops[k] - 0.05, i = Math.floor(b.r(0, n)), j = (i + 1) % n;
+    if (t > c.top - c.base - 0.3 || Math.min(ledgeAt[k - 1][i], ledgeAt[k - 1][j]) < 0.35) continue;
+    plan(t);
+    const f = b.r(0.15, 0.85), px = vx[i] + (vx[j] - vx[i]) * f, pz = vz[i] + (vz[j] - vz[i]) * f, el = Math.hypot(vx[j] - vx[i], vz[j] - vz[i]) || 1;
+    const nx = (vz[j] - vz[i]) / el, nz = -(vx[j] - vx[i]) / el, o = Math.min(0.5, Math.min(ledgeAt[k - 1][i], ledgeAt[k - 1][j]) * 0.5), ox = px + nx * o, oz = pz + nz * o;
+    b.add(clump(c.x + ox * ca - oz * sa, c.top - t + 0.3, c.z + ox * sa + oz * ca, b.r(0.4, 0.9), b.r(0.35, 0.6), b.r(0.4, 0.9), bush, b.r(), 0.4));
+  }
+  b.place();
+  return { top: c.top };
+}
+/**
+ * A masonry plinth (footing) under a footprint built at the origin, from y = 0 (where the building stands) down to
+ * −depth, spreading outward by `batter` per metre as it descends: walls on a crag's edge or houses on a slope stand on
+ * one, so their masonry meets the ground instead of floating over it. Place it with the building.
+ */
+export function plinth(b: SceneBuilder, w: number, d: number, depth: number, s: SurfaceSpec, batter = 0.15) {
+  const m = b.mat(s), k = 1 / Math.sqrt(1 + batter * batter);
+  b.add(leaf((x, y, z) => { const t = Math.max(0, -y), e = batter * t; return Math.max(Math.abs(x) - w / 2 - e, Math.abs(z) - d / 2 - e, y, -depth - y) * k; }, [-w / 2 - batter * depth, -depth, -d / 2 - batter * depth], [w / 2 + batter * depth, 0, d / 2 + batter * depth], m, b.r()));
+}
+/**
+ * A smooth hill of turf rising from the ground: height h at (cx, cz), falling off over rx and rz like a gentle bell,
+ * with low undulations. Returns its height at any (x, z), so buildings can be set on it and their plinths run down to it.
+ */
+export function hillField(b: SceneBuilder, cx: number, cz: number, h: number, rx: number, rz: number, s: SurfaceSpec = { kind: "grass", colour: "#6b7a3c" }): (x: number, z: number) => number {
+  const height = (x: number, z: number) => { const q = ((x - cx) / rx) ** 2 + ((z - cz) / rz) ** 2; return h * Math.exp(-q) * (1 + 0.06 * gradNoise(43, x * 0.05, z * 0.05)) - 0.3 * (1 - Math.exp(-q)); };
+  const slope = (0.86 * h) / Math.min(rx, rz) + 0.1, k = 1 / Math.sqrt(1 + slope * slope);
+  b.add(leaf((x, y, z) => Math.max((y - height(x, z)) * k, -2 - y), [cx - rx * 2.6, -2, cz - rz * 2.6], [cx + rx * 2.6, h * 1.07, cz + rz * 2.6], b.mat(s)));
+  b.place();
+  return height;
+}
+
 // ---- Towers, spires, domes ----------------------------------------------------------------------------------------------------
 
 export interface TowerSpec {

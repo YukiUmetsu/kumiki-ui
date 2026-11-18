@@ -219,6 +219,54 @@ The owner: "continue working on weak spots." A review of all 100 plates found:
   - a whitewashed stair zigzags down the east side;
   - below the lowest row, one continuous rock face, broken by ribs and gullies, falls to the sea.
 
+## Buildings on rock (2026-11-18)
+
+The owner: "if building is on top of rocks or something, it seems very weird, not realistic now."
+
+The rock under every perched building was one noisy ellipsoid (`clump`), which reads as a potato. The buildings were
+set at a fixed height on it, so their bases floated over its curve or sank into it, and no masonry met the rock.
+Real crags (observation only; common geology and castle-building knowledge, not measured here):
+
+- the rock lies in beds of uneven thickness, broken by vertical joints into faces and buttresses, and each harder bed
+  forms a ledge where plants root;
+- the faces lean back a little, and a spur that joins its hill has a gentler back slope;
+- scree gathers at the foot, except where the sea washes it;
+- builders level the top, and set walls at the edge on battered footings that run down into the rock, so masonry
+  grows out of it;
+- houses on a slope stand at the height of their uphill side over a stone undercroft.
+
+The kit now has three primitives:
+
+- `crag`: an irregular polygon plan whose corners shift from bed to bed, beds of uneven thickness, ledges that vary
+  corner by corner, a few overhangs, vertical ribs and fissures, an optional back slope, scree, bushes on the ledges
+  and a grass cap set back from the edge.
+- `plinth`: a battered masonry footing.
+- `hillField`: a turf hill whose height can be queried.
+
+The rock surface has bedding partings, water streaks and lichen, and its plants come in patches rather than stripes.
+
+Plates rebuilt:
+
+- **Rhine castle:** a tall jointed slate spur off a vine-terraced valley side; the walls are inset from its edge on
+  footings, and it is seen across the river.
+- **Hill village:** each house stands on a stone undercroft run down to the turf, and a continuous rampart follows
+  the slope.
+- **Lighthouse:** a bedded islet with ledges awash and boulders, the keeper's cottage on its top (it was buried in the
+  rock on main), and steps down to a landing.
+- **Cycladic cliffside:** crags for the caldera wall and the flanks.
+
+Renderer fixes found on the way:
+
+- Water ripples were not band-limited (four octaves down to 6 cm), so distant water was salt-and-pepper speckle.
+  Each band now fades at its own wavelength.
+- Every surface's pixel footprint now grows with the viewing angle (up to 7×), so ground seen at a grazing angle no
+  longer aliases. Water now reflects the bridges and towers clearly.
+- The crag is costly near its face, so it uses a cheap outer bound away from the rock and computes its rib noise only
+  near the face. The Cycladic plate went from 15.7 s to 8 s at 560 px.
+
+A test checks the crag's flat top, its wider foot, and the safe-step property: no point inside the rock lies within
+the distance the field reports. The test catches a crag made to overstep.
+
 ## Limits
 
 - Ornament is simplified: no carved capitals, tracery inside windows, statues or Lüftlmalerei figures.
