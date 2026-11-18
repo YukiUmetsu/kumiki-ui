@@ -14,14 +14,14 @@ import {
 } from "../../registry/anatomy/anatomy-face";
 import type {FaceLandmark} from "../../registry/anatomy/anatomy-face";
 import {
-  expressEmotion,expressFace,expressionFeatures,expressionMarks,irisPositions,findEmotion,
+  expressFace,expressionFeatures,expressionMarks,irisPositions,findEmotion,blendWeights,nearestEmotion,
 } from "../../registry/anatomy/expression-face";
 import type {ExpressionFeatures} from "../../registry/anatomy/expression-face";
 import {renderMeshFrame,projectPoint,smoothPath} from "../../registry/anatomy/anatomy-view";
 import type {Vec3} from "../../registry/anatomy/anatomy-body";
 
-export const INK_SOURCE_LED_CHARACTERS=["scholar","shepherd","zhong-kui"] as const;
-export const INK_SOURCE_LED_EXPRESSIONS=["neutral","smile","sad","angry","surprise","fear"] as const;
+export const INK_SOURCE_LED_CHARACTERS=["scholar","shepherd","zhong-kui","lady"] as const;
+export const INK_SOURCE_LED_EXPRESSIONS=["neutral","smile","sad","angry","surprise","fear","disgust","contempt"] as const;
 export type InkSourceLedCharacter=typeof INK_SOURCE_LED_CHARACTERS[number];
 export type InkSourceLedExpression=typeof INK_SOURCE_LED_EXPRESSIONS[number];
 type Point=[number,number];
@@ -32,6 +32,9 @@ export interface InkSourceLedCharacterPortraitProps {
   intensity?:number;
   detail?:number;
   yaw?:number;
+  fromEmotion?:InkSourceLedExpression;
+  transitionProgress?:number;
+  reducedMotion?:boolean;
   className?:string;
   style?:CSSProperties;
 }
@@ -45,7 +48,12 @@ interface SourceProfile {
   pitch:number;
   faceWidth:number;
   jawWidth:number;
+  templeWidth:number;
+  chinWidth:number;
   lowerFace:number;
+  malarProjection:number;
+  orbitDepth:number;
+  ageSag:number;
   noseWidth:number;
   noseProjection:number;
   eyeSpacing:number;
@@ -55,11 +63,11 @@ interface SourceProfile {
   cheekLift:number;
   browLift:number;
   age:number;
-  headwear:"scholar-cap"|"wrapped-hood"|"loose-hair";
+  headwear:"scholar-cap"|"wrapped-hood"|"loose-hair"|"pinned-hair";
   hairFiberCount:number;
   hair:string;
   headwearColor:string;
-  beardStyle:"pointed"|"long"|"full";
+  beardStyle:"pointed"|"long"|"full"|"none";
   beardFiberCount:number;
   beardLength:number;
   beardSpread:number;
@@ -70,6 +78,7 @@ interface SourceProfile {
   robe:string;
   collar:string;
   accent:string;
+  lip:string;
 }
 
 const PROFILES:Record<InkSourceLedCharacter,SourceProfile>={
@@ -78,36 +87,52 @@ const PROFILES:Record<InkSourceLedCharacter,SourceProfile>={
     sourceObjectId:"CMA 1979.27.2.19",
     sourceLabel:"Staff-bearing scholar",
     sourceNote:"A narrow, upright scholar with a black cap, fine moustache, tapered beard, staff and brush; the redraw studies the iron-wire contour rhythm and measured garment line.",
-    yaw:16,pitch:-3,faceWidth:.93,jawWidth:.91,lowerFace:1.09,
-    noseWidth:.96,noseProjection:1.03,eyeSpacing:.98,eyeHeight:.88,mouthWidth:.94,
-    cheekWidth:.95,cheekLift:1.2,browLift:.4,age:56,
+    yaw:16,pitch:-3,faceWidth:.88,jawWidth:.82,templeWidth:.91,chinWidth:.78,
+    lowerFace:1.12,malarProjection:2.8,orbitDepth:1.6,ageSag:.45,
+    noseWidth:.96,noseProjection:1.03,eyeSpacing:.98,eyeHeight:1.02,mouthWidth:.94,
+    cheekWidth:1.02,cheekLift:.55,browLift:.25,age:56,
     headwear:"scholar-cap",hairFiberCount:34,hair:"#282a27",headwearColor:"#292b28",
-    beardStyle:"pointed",beardFiberCount:66,beardLength:72,beardSpread:48,beardColor:"#34312b",
-    ink:"#39362f",skin:"#eadbc6",wash:"#92755f",robe:"#e7ddce",collar:"#c9bca8",accent:"#9a5d45",
+    beardStyle:"pointed",beardFiberCount:66,beardLength:46,beardSpread:34,beardColor:"#34312b",
+    ink:"#39362f",skin:"#eadbc6",wash:"#92755f",robe:"#e7ddce",collar:"#c9bca8",accent:"#9a5d45",lip:"#875d52",
   },
   shepherd:{
     sourceId:"tsinghua-ren-yi-su-wu-1874",
     sourceObjectId:"Tsinghua Su Wu · 1874",
     sourceLabel:"Su Wu, the shepherd",
     sourceNote:"An older seated figure with greying temples, a far-reaching gaze, blue wrapped hood, long beard and scepter. The source emphasizes a stretched torso and a steadfast expression.",
-    yaw:7,pitch:-1,faceWidth:1.02,jawWidth:.98,lowerFace:1.12,
-    noseWidth:1.04,noseProjection:1.06,eyeSpacing:1.01,eyeHeight:.82,mouthWidth:1.02,
-    cheekWidth:1.05,cheekLift:.2,browLift:-.8,age:68,
+    yaw:7,pitch:-1,faceWidth:.94,jawWidth:.86,templeWidth:.94,chinWidth:.84,
+    lowerFace:1.14,malarProjection:2.6,orbitDepth:3.0,ageSag:1.9,
+    noseWidth:1.04,noseProjection:1.06,eyeSpacing:1.01,eyeHeight:.88,mouthWidth:1.02,
+    cheekWidth:1.03,cheekLift:.15,browLift:-.35,age:68,
     headwear:"wrapped-hood",hairFiberCount:28,hair:"#b7a58e",headwearColor:"#758d91",
-    beardStyle:"long",beardFiberCount:112,beardLength:126,beardSpread:62,beardColor:"#c2b7a5",
-    ink:"#484238",skin:"#e4d1b8",wash:"#927965",robe:"#d9d1c2",collar:"#b8c0b6",accent:"#607e83",
+    beardStyle:"long",beardFiberCount:112,beardLength:88,beardSpread:44,beardColor:"#c2b7a5",
+    ink:"#484238",skin:"#e4d1b8",wash:"#927965",robe:"#d9d1c2",collar:"#b8c0b6",accent:"#607e83",lip:"#86685c",
   },
   "zhong-kui":{
     sourceId:"met-ren-yi-zhong-kui-2002.208.2",
     sourceObjectId:"Met 2002.208.2",
     sourceLabel:"Zhong Kui",
     sourceNote:"The legendary figure is rendered as an eccentric scholar: broad cheek and jaw mass, heavy beard, loose hair with a blossom, and a voluminous seated robe.",
-    yaw:10,pitch:1,faceWidth:1.07,jawWidth:1.10,lowerFace:1.04,
-    noseWidth:1.14,noseProjection:1.12,eyeSpacing:1.04,eyeHeight:1.02,mouthWidth:1.08,
-    cheekWidth:1.12,cheekLift:.8,browLift:-1.0,age:48,
+    yaw:10,pitch:1,faceWidth:1.02,jawWidth:1.08,templeWidth:1.04,chinWidth:1.02,
+    lowerFace:1.04,malarProjection:3.8,orbitDepth:1.2,ageSag:.55,
+    noseWidth:1.14,noseProjection:1.12,eyeSpacing:1.04,eyeHeight:1.0,mouthWidth:1.08,
+    cheekWidth:1.10,cheekLift:.45,browLift:-.55,age:48,
     headwear:"loose-hair",hairFiberCount:78,hair:"#292621",headwearColor:"#302b27",
-    beardStyle:"full",beardFiberCount:154,beardLength:108,beardSpread:94,beardColor:"#302c27",
-    ink:"#37332d",skin:"#e8d6c1",wash:"#94735e",robe:"#d8c5b1",collar:"#b79c84",accent:"#a94f3d",
+    beardStyle:"full",beardFiberCount:154,beardLength:76,beardSpread:76,beardColor:"#302c27",
+    ink:"#37332d",skin:"#e8d6c1",wash:"#94735e",robe:"#d8c5b1",collar:"#b79c84",accent:"#a94f3d",lip:"#815b4e",
+  },
+  lady:{
+    sourceId:"met-jiang-jun-portrait-of-a-lady-52.177.5",
+    sourceObjectId:"Met 52.177.5",
+    sourceLabel:"Jiang Jun · Portrait of a Lady study",
+    sourceNote:"A new late-Qing female character study from the Met's 1906 portrait: softly tapered jaw, small vermilion lips, high pinned coiffure, pink peony, jade hairpins, hanging earrings, embroidered blue robe and folded fan. It is an original character, not the sitter's likeness.",
+    yaw:3,pitch:0,faceWidth:.90,jawWidth:.84,templeWidth:.94,chinWidth:.78,
+    lowerFace:.99,malarProjection:2.4,orbitDepth:.7,ageSag:.08,
+    noseWidth:.90,noseProjection:.94,eyeSpacing:1.0,eyeHeight:1.08,mouthWidth:.88,
+    cheekWidth:1.0,cheekLift:.28,browLift:.22,age:26,
+    headwear:"pinned-hair",hairFiberCount:92,hair:"#27251f",headwearColor:"#292720",
+    beardStyle:"none",beardFiberCount:0,beardLength:0,beardSpread:0,beardColor:"#27251f",
+    ink:"#51483e",skin:"#f0dfcf",wash:"#a67c70",robe:"#477f93",collar:"#e7d9c2",accent:"#c75f70",lip:"#a64c56",
   },
 };
 
@@ -130,7 +155,7 @@ const rand=(seed:number,index:number)=>{
  */
 function createSourceFace(character:InkSourceLedCharacter){
   const p=PROFILES[character];
-  const base=createFace({calibrate:false,sex:1});
+  const base=createFace({calibrate:false});
   const vertices=base.vertices.map(v=>[v[0],v[1],v[2]] as Vec3);
   const at=(name:FaceLandmark)=>vertices[FACE_LANDMARKS[name]];
   const sellionY=at("sellion")[1],subnasaleY=at("subnasale")[1];
@@ -140,6 +165,9 @@ function createSourceFace(character:InkSourceLedCharacter){
   const eyeR=(at("palpebrale-superius.R")[1]+at("palpebrale-inferius.R")[1])/2;
   const eyeY=(eyeL+eyeR)/2;
   const cheekL=at("cheekbone.L"),cheekR=at("cheekbone.R");
+  const gonionL=at("gonion.L"),gonionR=at("gonion.R");
+  const menton=at("menton");
+  const ageFactor=clamp((p.age-25)/65,0,1);
   for(const v of vertices){
     const x=v[0],y=v[1];
     const lower=smooth(clamp((subnasaleY-y)/lowerSpan,0,1));
@@ -153,12 +181,23 @@ function createSourceFace(character:InkSourceLedCharacter){
       gaussian(x,y,cheekL[0],cheekL[1],25,28),
       gaussian(x,y,cheekR[0],cheekR[1],25,28),
     );
+    const jaw=Math.max(
+      gaussian(x,y,gonionL[0],gonionL[1],21,25),
+      gaussian(x,y,gonionR[0],gonionR[1],21,25),
+    );
+    const temple=Math.max(
+      gaussian(x,y,-43,eyeY+25,25,32),
+      gaussian(x,y,43,eyeY+25,25,32),
+    );
+    const chin=gaussian(x,y,0,menton[1]+7,22,18);
     const brow=Math.max(
       gaussian(x,y,at("brow-inner.L")[0],at("brow-inner.L")[1],19,10),
       gaussian(x,y,at("brow-inner.R")[0],at("brow-inner.R")[1],19,10),
     );
     v[0]=x*p.faceWidth;
-    v[0]*=1+(p.jawWidth-1)*lower;
+    v[0]*=1+(p.jawWidth-1)*jaw;
+    v[0]*=1+(p.templeWidth-1)*temple;
+    v[0]*=1+(p.chinWidth-1)*chin;
     v[0]*=1+(p.noseWidth-1)*nose;
     v[0]*=1+(p.eyeSpacing-1)*eyes;
     v[0]*=1+(p.mouthWidth-1)*mouth;
@@ -167,7 +206,9 @@ function createSourceFace(character:InkSourceLedCharacter){
     v[1]=eyeY+(v[1]-eyeY)*(1+(p.eyeHeight-1)*eyes);
     v[1]-=p.cheekLift*cheek;
     v[1]-=p.browLift*brow;
+    v[1]-=ageFactor*p.ageSag*cheek;
     v[2]*=1+(p.noseProjection-1)*nose;
+    v[2]+=p.malarProjection*cheek-p.orbitDepth*eyes;
   }
   const points=new Float32Array(vertices.length*3);
   vertices.forEach((v,i)=>{
@@ -182,6 +223,7 @@ const FACE_BASE:Record<InkSourceLedCharacter,ReturnType<typeof createFace>>={
   scholar:createSourceFace("scholar"),
   shepherd:createSourceFace("shepherd"),
   "zhong-kui":createSourceFace("zhong-kui"),
+  lady:createSourceFace("lady"),
 };
 
 export interface SourceLedPortraitGeometry {
@@ -197,9 +239,15 @@ export interface SourceLedPortraitGeometry {
   outline:string;
   features:{id:string;d:string}[];
   marks:{id:string;strength:number;d:string}[];
+  eyeOpenings:{side:"L"|"R";d:string}[];
+  mouthOutline:string;
+  mouthLine:string;
   irises:{side:"L"|"R";x:number;y:number;rx:number;ry:number}[];
   landmarks:Record<string,Point>;
   expression:ExpressionFeatures;
+  expressionMatch:string;
+  transitionFrom:InkSourceLedExpression;
+  transitionProgress:number;
   faceWidthMm:number;
   noseWidthMm:number;
   mouthWidthMm:number;
@@ -214,17 +262,32 @@ export function buildSourceLedPortraitGeometry(
   emotion:InkSourceLedExpression,
   intensity:number,
   yawOverride?:number,
+  fromEmotion:InkSourceLedExpression="neutral",
+  transitionProgress=1,
 ):SourceLedPortraitGeometry{
   if(!INK_SOURCE_LED_CHARACTERS.includes(character))throw new RangeError("Unknown ANAT6 character");
   if(!INK_SOURCE_LED_EXPRESSIONS.includes(emotion)||(emotion!=="neutral"&&!findEmotion(emotion)))
     throw new RangeError("Unknown ANAT6 expression");
+  if(!INK_SOURCE_LED_EXPRESSIONS.includes(fromEmotion)||(fromEmotion!=="neutral"&&!findEmotion(fromEmotion)))
+    throw new RangeError("Unknown ANAT6 transition source expression");
   if(!Number.isFinite(intensity)||intensity<0||intensity>1)
     throw new RangeError("ANAT6 expression intensity must be in [0,1]");
+  if(!Number.isFinite(transitionProgress)||transitionProgress<0||transitionProgress>1)
+    throw new RangeError("ANAT6 transition progress must be in [0,1]");
   const p=PROFILES[character],yaw=yawOverride===undefined?p.yaw:yawOverride;
   if(!Number.isFinite(yaw)||yaw < -35||yaw > 35)
     throw new RangeError("ANAT6 yaw must be finite and in [-35,35]");
   const base=FACE_BASE[character];
-  const expressed=emotion==="neutral"?expressFace({},base):expressEmotion(emotion,intensity,base);
+  const scaleWeights=(weights:Readonly<Record<number,number>>):Record<number,number>=>Object.fromEntries(
+    Object.entries(weights).map(([id,value])=>[Number(id),value*intensity]),
+  ) as Record<number,number>;
+  const fromWeights=fromEmotion==="neutral"?{}:findEmotion(fromEmotion)?.aus??{};
+  const toWeights=emotion==="neutral"?{}:findEmotion(emotion)?.aus??{};
+  const progress=transitionProgress;
+  const expressed=expressFace(blendWeights(
+    [scaleWeights(fromWeights),1-progress],
+    [scaleWeights(toWeights),progress],
+  ),base);
   const frame=renderMeshFrame(
     expressed.mesh,{yaw,pitch:p.pitch},
     {width:240,height:280,pixelsPerMetre:610,centerOnTarget:true,padding:0},
@@ -239,6 +302,11 @@ export function buildSourceLedPortraitGeometry(
   const landmark=(name:FaceLandmark)=>pointAt(FACE_LANDMARKS[name]);
   const outlinePoints=FACE_FEATURES.oval.loop.map(pointAt);
   const outline=smoothPath(outlinePoints,true);
+  const eyeOpenings=(["L","R"] as const).map(side=>{
+    const upper=FACE_FEATURES["eye-upper."+side].loop.map(pointAt);
+    const lower=FACE_FEATURES["eye-lower."+side].loop.slice(1,-1).reverse().map(pointAt);
+    return {side,d:smoothPath([...upper,...lower],true)};
+  });
   const features=faceFeatureLines(frame)
     .filter(line=>line.id!=="oval")
     .map(line=>({id:line.id,d:smoothPath(line.points.map(map),false)}))
@@ -258,6 +326,10 @@ export function buildSourceLedPortraitGeometry(
     });
     return {id:mark.id,strength:mark.strength,d:smoothPath(points,false)};
   }).filter(mark=>mark.d.length>0);
+  const mouthUpper=FACE_FEATURES["lips-upper"].loop.map(pointAt);
+  const mouthLower=FACE_FEATURES["lips-lower"].loop.slice(1,-1).reverse().map(pointAt);
+  const mouthOutline=smoothPath([...mouthUpper,...mouthLower],true);
+  const mouthLine=features.find(feature=>feature.id==="mouth-line")?.d??"";
   const centres=eyeCentres(expressed.vertices),gaze=irisPositions(expressed);
   const irises=([ "L","R" ] as const).map(side=>{
     const projected=projectPoint(frame,[
@@ -269,8 +341,8 @@ export function buildSourceLedPortraitGeometry(
     const near=frame.vertexFacing[nearIndex]>=frame.vertexFacing[farIndex];
     return {
       side,x,y,
-      rx:fmt(gaze.r*frame.projection.scale/1000*1.58*.58*(near?1:.76)),
-      ry:fmt(gaze.r*frame.projection.scale/1000*1.58*.48*clamp(expressionFeatures(expressed).eyeOpen,.35,1.5)*(near?1:.82)),
+      rx:fmt(gaze.r*frame.projection.scale/1000*1.58*.96*(near?1:.78)),
+      ry:fmt(gaze.r*frame.projection.scale/1000*1.58*.68*clamp(expressionFeatures(expressed).eyeOpen,.35,1.5)*(near?1:.82)),
     };
   });
   const m=measureFace(expressed.vertices),e=expressionFeatures(expressed);
@@ -281,6 +353,10 @@ export function buildSourceLedPortraitGeometry(
     zygionL:landmark("zygion.L"),zygionR:landmark("zygion.R"),
     gonionL:landmark("gonion.L"),gonionR:landmark("gonion.R"),
     cheekboneL:landmark("cheekbone.L"),cheekboneR:landmark("cheekbone.R"),
+    earRootL:[Math.min(...outlinePoints.map(point=>point[0]))+4,
+      (landmark("endocanthion.L")[1]+landmark("subnasale")[1])/2],
+    earRootR:[Math.max(...outlinePoints.map(point=>point[0]))-4,
+      (landmark("endocanthion.R")[1]+landmark("subnasale")[1])/2],
     mouthL:landmark("cheilion.L"),mouthR:landmark("cheilion.R"),
     eyeInnerL:landmark("endocanthion.L"),eyeInnerR:landmark("endocanthion.R"),
     browInnerL:landmark("brow-inner.L"),browInnerR:landmark("brow-inner.R"),
@@ -288,8 +364,11 @@ export function buildSourceLedPortraitGeometry(
   return {
     character,sourceId:p.sourceId,sourceObjectId:p.sourceObjectId,sourceLabel:p.sourceLabel,
     headwear:p.headwear,beardStyle:p.beardStyle,hairFiberCount:p.hairFiberCount,
-    beardFiberCount:p.beardFiberCount,yaw,outline,features,marks,irises,landmarks,
-    expression:e,faceWidthMm:m.zyZy,noseWidthMm:m.alAl,mouthWidthMm:m.chCh,
+    beardFiberCount:p.beardFiberCount,yaw,outline,features,marks,eyeOpenings,
+    mouthOutline,mouthLine,irises,landmarks,expression:e,
+    expressionMatch:emotion==="neutral"?"neutral":nearestEmotion(e)[0]?.id??emotion,
+    transitionFrom:fromEmotion,transitionProgress:progress,
+    faceWidthMm:m.zyZy,noseWidthMm:m.alAl,mouthWidthMm:m.chCh,
     lowerFaceMm:m.snGn,top:Math.min(...outlinePoints.map(x=>x[1])),
     left:Math.min(...outlinePoints.map(x=>x[0])),right:Math.max(...outlinePoints.map(x=>x[0])),
   };
@@ -297,6 +376,7 @@ export function buildSourceLedPortraitGeometry(
 
 interface Fiber {d:string;width:number;opacity:number}
 function buildBeardFibers(g:SourceLedPortraitGeometry,p:SourceProfile,detail:number):Fiber[]{
+  if(p.beardStyle==="none")return [];
   const count=Math.max(12,Math.round(p.beardFiberCount*detail));
   const cx=(g.landmarks.mouthL[0]+g.landmarks.mouthR[0])/2;
   const jawL=g.landmarks.gonionL[0],jawR=g.landmarks.gonionR[0];
@@ -319,7 +399,7 @@ function buildBeardFibers(g:SourceLedPortraitGeometry,p:SourceProfile,detail:num
   });
 }
 function characterSeed(character:InkSourceLedCharacter){
-  return character==="scholar"?17:character==="shepherd"?53:91;
+  return character==="scholar"?17:character==="shepherd"?53:character==="zhong-kui"?91:127;
 }
 function buildHeadFibers(g:SourceLedPortraitGeometry,p:SourceProfile,detail:number):Fiber[]{
   const count=Math.max(8,Math.round(p.hairFiberCount*detail));
@@ -335,11 +415,20 @@ function buildHeadFibers(g:SourceLedPortraitGeometry,p:SourceProfile,detail:numb
       };
     }
     if(p.headwear==="scholar-cap"){
-      const x=cx-w*.56+t*w*1.12;
-      const y0=top-59+Math.sin(t*Math.PI)*-5;
+      const x=cx-w*.53+t*w*1.06;
+      const y0=top-29+Math.sin(t*Math.PI)*-2;
       return {
-        d:"M "+fmt(x)+" "+fmt(y0)+" Q "+fmt(x+(t-.5)*5)+" "+fmt(top-15)+" "+fmt(x+(t-.5)*7)+" "+fmt(top+24),
-        width:fmt(.32+r*.38),opacity:fmt(.16+r*.25),
+        d:"M "+fmt(x)+" "+fmt(y0)+" Q "+fmt(x+(t-.5)*4)+" "+fmt(top-12)+" "+fmt(x+(t-.5)*5)+" "+fmt(top+22),
+        width:fmt(.24+r*.24),opacity:fmt(.11+r*.18),
+      };
+    }
+    if(p.headwear==="pinned-hair"){
+      const x=cx-w*.53+t*w*1.06;
+      const y0=top-26+Math.sin(t*Math.PI)*-17;
+      const endX=cx+(t-.5)*w*.66+(r-.5)*5;
+      return {
+        d:"M "+fmt(x)+" "+fmt(y0)+" C "+fmt(x+(t-.5)*16)+" "+fmt(top-6)+" "+fmt(endX+(t-.5)*9)+" "+fmt(top+6)+" "+fmt(endX)+" "+fmt(top+39+r*9),
+        width:fmt(.34+r*.38),opacity:fmt(.19+r*.28),
       };
     }
     const x=cx-w*.58+t*w*1.16;
@@ -396,6 +485,24 @@ function robeFolds(character:InkSourceLedCharacter):Fiber[]{
       "M 228 478 C 232 520 226 560 224 600",
       "M 252 478 C 248 520 254 560 256 600",
     ],
+    lady:[
+      "M 66 600 C 86 552 118 516 162 490 Q 190 478 211 483",
+      "M 414 600 C 394 552 362 516 318 490 Q 290 478 269 483",
+      "M 138 505 C 163 522 183 545 191 576",
+      "M 342 505 C 317 522 297 545 289 576",
+      "M 169 482 C 181 500 198 514 218 526",
+      "M 311 482 C 299 500 282 514 262 526",
+      "M 190 540 C 204 551 215 565 221 590",
+      "M 290 540 C 276 551 265 565 259 590",
+      "M 102 563 C 143 556 168 573 183 598",
+      "M 378 563 C 337 556 312 573 297 598",
+      "M 224 488 C 229 516 227 543 223 566",
+      "M 256 488 C 251 516 253 543 257 566",
+      "M 151 519 C 175 531 189 544 196 562",
+      "M 329 519 C 305 531 291 544 284 562",
+      "M 207 500 C 220 513 229 528 232 544",
+      "M 273 500 C 260 513 251 528 248 544",
+    ],
   };
   return paths[character].map((d,i)=>({d,width:.55+(i%4)*.18,opacity:.2+(i%3)*.08}));
 }
@@ -410,11 +517,20 @@ function earPath(point:Point,side:"L"|"R",scale:number){
 
 function headwearPath(g:SourceLedPortraitGeometry,p:SourceProfile){
   const cx=(g.left+g.right)/2,top=g.top;
+  if(p.headwear==="pinned-hair"){
+    return "M "+fmt(g.left-17)+" "+fmt(top+35)+
+      " C "+fmt(g.left-29)+" "+fmt(top+3)+" "+fmt(cx-55)+" "+fmt(top-38)+" "+fmt(cx-22)+" "+fmt(top-44)+
+      " C "+fmt(cx-7)+" "+fmt(top-66)+" "+fmt(cx+35)+" "+fmt(top-63)+" "+fmt(cx+48)+" "+fmt(top-36)+
+      " C "+fmt(g.right+27)+" "+fmt(top-12)+" "+fmt(g.right+27)+" "+fmt(top+28)+" "+fmt(g.right+13)+" "+fmt(top+53)+
+      " Q "+fmt(cx)+" "+fmt(top+35)+" "+fmt(g.left+8)+" "+fmt(top+55)+" Z";
+  }
   if(p.headwear==="scholar-cap"){
-    return "M "+fmt(g.left-18)+" "+fmt(top+35)+
-      " C "+fmt(g.left-26)+" "+fmt(top+6)+" "+fmt(cx-43)+" "+fmt(top-67)+" "+fmt(cx)+" "+fmt(top-76)+
-      " C "+fmt(cx+43)+" "+fmt(top-67)+" "+fmt(g.right+26)+" "+fmt(top+6)+" "+fmt(g.right+18)+" "+fmt(top+35)+
-      " L "+fmt(g.right+13)+" "+fmt(top+48)+" Q "+fmt(cx)+" "+fmt(top+62)+" "+fmt(g.left-13)+" "+fmt(top+48)+" Z";
+    return "M "+fmt(g.left-13)+" "+fmt(top+29)+
+      " C "+fmt(g.left-17)+" "+fmt(top+3)+" "+fmt(cx-44)+" "+fmt(top-32)+" "+fmt(cx-26)+" "+fmt(top-34)+
+      " L "+fmt(cx+26)+" "+fmt(top-34)+
+      " C "+fmt(cx+44)+" "+fmt(top-32)+" "+fmt(g.right+17)+" "+fmt(top+3)+" "+fmt(g.right+13)+" "+fmt(top+29)+
+      " L "+fmt(g.right+10)+" "+fmt(top+39)+
+      " Q "+fmt(cx)+" "+fmt(top+46)+" "+fmt(g.left-10)+" "+fmt(top+39)+" Z";
   }
   if(p.headwear==="wrapped-hood"){
     return "M "+fmt(g.left-13)+" "+fmt(top+37)+
@@ -424,8 +540,8 @@ function headwearPath(g:SourceLedPortraitGeometry,p:SourceProfile){
       " Q "+fmt(cx)+" "+fmt(top+27)+" "+fmt(g.left+7)+" "+fmt(top+58)+" Z";
   }
   return "M "+fmt(g.left-15)+" "+fmt(top+36)+
-    " C "+fmt(g.left-30)+" "+fmt(top-5)+" "+fmt(cx-45)+" "+fmt(top-67)+" "+fmt(cx-8)+" "+fmt(top-70)+
-    " C "+fmt(cx+18)+" "+fmt(top-89)+" "+fmt(g.right+28)+" "+fmt(top-18)+" "+fmt(g.right+17)+" "+fmt(top+34)+
+    " C "+fmt(g.left-30)+" "+fmt(top-5)+" "+fmt(cx-45)+" "+fmt(top-48)+" "+fmt(cx-8)+" "+fmt(top-50)+
+    " C "+fmt(cx+18)+" "+fmt(top-66)+" "+fmt(g.right+28)+" "+fmt(top-18)+" "+fmt(g.right+17)+" "+fmt(top+34)+
     " C "+fmt(g.right+4)+" "+fmt(top+64)+" "+fmt(g.right-12)+" "+fmt(top+86)+" "+fmt(g.right-26)+" "+fmt(top+91)+
     " Q "+fmt(cx)+" "+fmt(top+49)+" "+fmt(g.left+21)+" "+fmt(top+88)+" Z";
 }
@@ -435,6 +551,8 @@ function robePath(character:InkSourceLedCharacter){
     return "M 82 600 C 98 546 119 511 158 489 Q 195 467 221 468 L 259 468 Q 285 467 322 489 C 361 511 382 546 398 600 Z";
   if(character==="shepherd")
     return "M 54 600 C 76 534 112 500 159 482 Q 198 464 240 468 Q 282 464 321 482 C 368 500 404 534 426 600 Z";
+  if(character==="lady")
+    return "M 44 600 C 62 548 102 505 153 484 Q 196 458 240 464 Q 284 458 327 484 C 378 505 418 548 436 600 Z";
   return "M 34 600 C 57 524 104 482 160 470 Q 202 448 240 456 Q 278 448 320 470 C 376 482 423 524 446 600 Z";
 }
 
@@ -443,10 +561,13 @@ function collarPath(character:InkSourceLedCharacter){
     return "M 195 466 Q 216 480 240 505 Q 264 480 285 466 L 316 493 Q 286 515 260 550 L 240 565 L 220 550 Q 194 515 164 493 Z";
   if(character==="shepherd")
     return "M 178 468 Q 210 483 240 520 Q 270 483 302 468 L 336 501 Q 296 522 268 567 L 240 581 L 212 567 Q 184 522 144 501 Z";
+  if(character==="lady")
+    return "M 190 462 Q 216 480 240 506 Q 264 480 290 462 L 323 489 Q 289 516 270 551 L 240 566 L 210 551 Q 191 516 157 489 Z";
   return "M 176 457 Q 210 480 240 518 Q 270 480 304 457 L 350 500 Q 301 531 269 575 L 240 588 L 211 575 Q 179 531 130 500 Z";
 }
 
 function beardMassPath(g:SourceLedPortraitGeometry,p:SourceProfile){
+  if(p.beardStyle==="none")return "";
   const l=g.landmarks.gonionL,r=g.landmarks.gonionR,mL=g.landmarks.mouthL,mR=g.landmarks.mouthR;
   const cx=(mL[0]+mR[0])/2,my=(mL[1]+mR[1])/2,chin=g.landmarks.menton[1];
   const end=Math.min(558,chin+p.beardLength);
@@ -473,7 +594,8 @@ function beardMassPath(g:SourceLedPortraitGeometry,p:SourceProfile){
 }
 
 export function InkSourceLedCharacterPortrait({
-  character="scholar",emotion="neutral",intensity=.88,detail=1,yaw,className,style,
+  character="scholar",emotion="neutral",intensity=.88,detail=1,yaw,
+  fromEmotion="neutral",transitionProgress=1,reducedMotion=false,className,style,
 }:InkSourceLedCharacterPortraitProps){
   if(!INK_SOURCE_LED_CHARACTERS.includes(character))throw new RangeError("Unknown ANAT6 character");
   if(!INK_SOURCE_LED_EXPRESSIONS.includes(emotion))throw new RangeError("Unknown ANAT6 expression");
@@ -483,8 +605,13 @@ export function InkSourceLedCharacterPortrait({
     throw new RangeError("ANAT6 detail must be in [.25,1]");
   if(yaw!==undefined&&(!Number.isFinite(yaw)||yaw < -35||yaw > 35))
     throw new RangeError("ANAT6 yaw must be finite and in [-35,35]");
+  if(!INK_SOURCE_LED_EXPRESSIONS.includes(fromEmotion))
+    throw new RangeError("ANAT6 transition source expression is invalid");
+  if(!Number.isFinite(transitionProgress)||transitionProgress<0||transitionProgress>1)
+    throw new RangeError("ANAT6 transition progress must be in [0,1]");
+  const progress=reducedMotion?1:transitionProgress;
   const p=PROFILES[character],uid="km-anat6-"+useId().replace(/[^a-zA-Z0-9_-]/g,"");
-  const g=useMemo(()=>buildSourceLedPortraitGeometry(character,emotion,intensity,yaw),[character,emotion,intensity,yaw]);
+  const g=useMemo(()=>buildSourceLedPortraitGeometry(character,emotion,intensity,yaw,fromEmotion,progress),[character,emotion,intensity,yaw,fromEmotion,progress]);
   const beard=useMemo(()=>buildBeardFibers(g,p,detail),[g,p,detail]);
   const hair=useMemo(()=>buildHeadFibers(g,p,detail),[g,p,detail]);
   const folds=robeFolds(character);
@@ -500,7 +627,7 @@ export function InkSourceLedCharacterPortrait({
     " Q "+fmt(cx)+" "+fmt(mouthY-12-p.age*.04)+" "+fmt(g.landmarks.mouthR[0])+" "+fmt(mouthY-1);
   const lowerLip="M "+fmt(g.landmarks.mouthL[0]+2)+" "+fmt(mouthY+2)+
     " Q "+fmt(cx)+" "+fmt(mouthY+9+g.expression.mouthOpen*10)+" "+fmt(g.landmarks.mouthR[0]-2)+" "+fmt(mouthY+2);
-  const beardOpacity=character==="shepherd"?.9:.94;
+  const beardOpacity=p.beardStyle==="none"?0:.22;
   const eyeLine=(id:string)=>id.indexOf("eye-upper")===0;
   const featureStyle=(id:string)=>{
     if(id.indexOf("brow")===0)return {width:character==="zhong-kui"?2.5:1.9,opacity:.76};
@@ -520,6 +647,9 @@ export function InkSourceLedCharacterPortrait({
     data-km-ink-anat6-headwear={g.headwear}
     data-km-ink-anat6-beard={g.beardStyle}
     data-km-ink-anat6-yaw={g.yaw}
+    data-km-expr1-transition-from={g.transitionFrom}
+    data-km-expr1-transition-progress={g.transitionProgress}
+    data-km-expr1-nearest-emotion={g.expressionMatch}
     data-km-ink-anat6-hair-fiber-count={hair.length}
     data-km-ink-anat6-beard-fiber-count={beard.length}
     data-km-anat1-source="468-point-face-mesh"
@@ -575,17 +705,21 @@ export function InkSourceLedCharacterPortrait({
         <feBlend in="SourceGraphic" in2="grain" mode="multiply"/>
       </filter>
       <clipPath id={uid+"-face-clip"}><path d={g.outline}/></clipPath>
+      <clipPath id={uid+"-headwear-clip"}><path d={cap}/></clipPath>
       <clipPath id={uid+"-robe-clip"}><path d={robe}/></clipPath>
     </defs>
 
     <rect width="480" height="600" fill={"url(#"+uid+"-paper)"}/>
-    <g opacity=".18" fill="none" stroke="#9f8d76" strokeWidth=".55">
-      {Array.from({length:16},(_,i)=><path key={i} d={"M "+(18+i*31)+" 0 q "+(i%2?5:-4)+" 180 "+(i%2?-3:4)+" 600"}/>)}
-      {Array.from({length:12},(_,i)=><path key={"h"+i} d={"M 0 "+(36+i*48)+" q 120 "+(i%2?2:-2)+" 240 0 t 240 0"}/>)}
+    <g data-km-ink-anat6-paper-fibers="true" opacity=".13" fill="none" stroke="#9f8d76" strokeLinecap="round">
+      {Array.from({length:38},(_,i)=>{
+        const x=18+(i*67)%442,y=20+(i*113)%560,len=7+(i%7)*3;
+        return <path key={i} d={"M "+fmt(x)+" "+fmt(y)+" q "+fmt((i%3-1)*1.6)+" "+fmt(len*.45)+" "+fmt((i%5-2)*.6)+" "+fmt(len)}
+          strokeWidth={i%4===0?.7:.38} opacity={.28+(i%4)*.08}/>;
+      })}
     </g>
-    <g opacity=".14" fill="none" stroke={p.wash} strokeWidth="12" filter={"url(#"+uid+"-wash)"}>
-      <path d="M 24 170 Q 82 110 124 148 T 218 118"/>
-      <path d="M 310 110 Q 380 82 448 144 T 470 210"/>
+    <g opacity=".08" fill="none" stroke={p.wash} strokeWidth="9" filter={"url(#"+uid+"-wash)"}>
+      <path d="M 26 170 Q 85 122 128 151 T 214 130"/>
+      <path d="M 314 112 Q 378 92 442 144 T 466 205"/>
     </g>
 
     <path d={robe} fill={"url(#"+uid+"-robe)"} stroke={p.ink} strokeWidth="1.05" strokeOpacity=".52"/>
@@ -604,13 +738,13 @@ export function InkSourceLedCharacterPortrait({
       fill="none" stroke={p.wash} strokeWidth="2.1" opacity=".28"/>
 
     <g data-km-ink-anat6-ear="L" opacity=".74">
-      <path d={earPath(g.landmarks.zygionL,"L",earScale)} fill="#d9c3aa" stroke={p.ink} strokeWidth=".85" strokeOpacity=".6"/>
-      <path d={"M "+fmt(g.landmarks.zygionL[0]-4)+" "+fmt(g.landmarks.zygionL[1]-9)+" Q "+fmt(g.landmarks.zygionL[0]-13)+" "+fmt(g.landmarks.zygionL[1])+" "+fmt(g.landmarks.zygionL[0]-4)+" "+fmt(g.landmarks.zygionL[1]+10)}
+      <path d={earPath(g.landmarks.earRootL,"L",earScale)} fill="#d9c3aa" stroke={p.ink} strokeWidth=".85" strokeOpacity=".6"/>
+      <path d={"M "+fmt(g.landmarks.earRootL[0]-4)+" "+fmt(g.landmarks.earRootL[1]-9)+" Q "+fmt(g.landmarks.earRootL[0]-13)+" "+fmt(g.landmarks.earRootL[1])+" "+fmt(g.landmarks.earRootL[0]-4)+" "+fmt(g.landmarks.earRootL[1]+10)}
         fill="none" stroke={p.wash} strokeWidth="1.1" opacity=".62"/>
     </g>
     <g data-km-ink-anat6-ear="R" opacity=".55">
-      <path d={earPath(g.landmarks.zygionR,"R",earScale*.82)} fill="#d9c3aa" stroke={p.ink} strokeWidth=".72" strokeOpacity=".48"/>
-      <path d={"M "+fmt(g.landmarks.zygionR[0]+3)+" "+fmt(g.landmarks.zygionR[1]-7)+" Q "+fmt(g.landmarks.zygionR[0]+10)+" "+fmt(g.landmarks.zygionR[1])+" "+fmt(g.landmarks.zygionR[0]+3)+" "+fmt(g.landmarks.zygionR[1]+8)}
+      <path d={earPath(g.landmarks.earRootR,"R",earScale*.82)} fill="#d9c3aa" stroke={p.ink} strokeWidth=".72" strokeOpacity=".48"/>
+      <path d={"M "+fmt(g.landmarks.earRootR[0]+3)+" "+fmt(g.landmarks.earRootR[1]-7)+" Q "+fmt(g.landmarks.earRootR[0]+10)+" "+fmt(g.landmarks.earRootR[1])+" "+fmt(g.landmarks.earRootR[0]+3)+" "+fmt(g.landmarks.earRootR[1]+8)}
         fill="none" stroke={p.wash} strokeWidth=".9" opacity=".55"/>
     </g>
 
@@ -629,29 +763,45 @@ export function InkSourceLedCharacterPortrait({
         fill="none" stroke="#435f65" strokeWidth="1.6" opacity=".62"/>
     </>}
     {p.headwear==="loose-hair"&&<>
-      <path d={"M "+fmt(cx+20)+" "+fmt(g.top-61)+" C "+fmt(cx+45)+" "+fmt(g.top-84)+" "+fmt(cx+66)+" "+fmt(g.top-56)+" "+fmt(cx+58)+" "+fmt(g.top-32)+" Q "+fmt(cx+42)+" "+fmt(g.top-16)+" "+fmt(cx+24)+" "+fmt(g.top-35)+" Z"}
+      <path d={"M "+fmt(cx+20)+" "+fmt(g.top-42)+" C "+fmt(cx+45)+" "+fmt(g.top-64)+" "+fmt(cx+66)+" "+fmt(g.top-42)+" "+fmt(cx+58)+" "+fmt(g.top-18)+" Q "+fmt(cx+42)+" "+fmt(g.top-4)+" "+fmt(cx+24)+" "+fmt(g.top-22)+" Z"}
         fill={p.hair} stroke={p.ink} strokeWidth=".8"/>
-      <g transform={"translate("+fmt(cx+50)+" "+fmt(g.top-56)+")"} fill={p.accent} stroke="#784638" strokeWidth=".8">
+      <g transform={"translate("+fmt(cx+50)+" "+fmt(g.top-37)+")"} fill={p.accent} stroke="#784638" strokeWidth=".8">
         {Array.from({length:5},(_,i)=><ellipse key={i} cx={Math.cos(i*Math.PI*2/5)*7} cy={Math.sin(i*Math.PI*2/5)*7} rx="4.6" ry="7.2" transform={"rotate("+(i*72)+")"}/>)}
         <circle r="3.1" fill="#c39a5e"/>
       </g>
     </>}
+    {p.headwear==="pinned-hair"&&<g data-km-ink-anat6-flower="peony">
+      <g transform={"translate("+fmt(cx+45)+" "+fmt(g.top-42)+")"}>
+        {Array.from({length:9},(_,i)=><ellipse key={i} cx={Math.cos(i*Math.PI*2/9)*8} cy={Math.sin(i*Math.PI*2/9)*8} rx="5.6" ry="9.2"
+          transform={"rotate("+(i*40)+")"} fill={i%2===0?"#d77b83":"#b94f63"} stroke="#8d4b50" strokeWidth=".55"/>)}
+        <circle r="4" fill="#d4ad69" stroke="#9d8053" strokeWidth=".65"/>
+      </g>
+      <path d={"M "+fmt(cx-32)+" "+fmt(g.top-35)+" q 24 -18 48 -5"}
+        fill="none" stroke="#b7a06e" strokeWidth="2.1" strokeLinecap="round"/>
+      <path d={"M "+fmt(cx-30)+" "+fmt(g.top-36)+" l -13 -16 m 13 16 l -2 -18"}
+        fill="none" stroke="#7b9b8e" strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx={fmt(cx-43)} cy={fmt(g.top-52)} r="2.4" fill="#b8a16b"/>
+    </g>}
 
     <path d={g.outline} fill={"url(#"+uid+"-skin)"} stroke={p.ink} strokeWidth=".88" strokeOpacity=".46"/>
-    {p.headwear==="scholar-cap"&&<g data-km-ink-anat6-cap-band="true" fill="none" stroke="#242522"><path d={"M "+fmt(g.left-18)+" "+fmt(g.top+34)+" Q "+fmt(cx)+" "+fmt(g.top+55)+" "+fmt(g.right+18)+" "+fmt(g.top+34)} strokeWidth="2.2" opacity=".64"/><path d={"M "+fmt(g.left-8)+" "+fmt(g.top+42)+" Q "+fmt(cx)+" "+fmt(g.top+58)+" "+fmt(g.right+8)+" "+fmt(g.top+42)} strokeWidth="1.2" opacity=".78"/></g>}
+    {p.headwear==="scholar-cap"&&<g data-km-ink-anat6-cap-band="true" fill="none" stroke="#242522"><path d={"M "+fmt(g.left-13)+" "+fmt(g.top+29)+" Q "+fmt(cx)+" "+fmt(g.top+42)+" "+fmt(g.right+13)+" "+fmt(g.top+29)} strokeWidth="2.0" opacity=".64"/><path d={"M "+fmt(g.left-9)+" "+fmt(g.top+36)+" Q "+fmt(cx)+" "+fmt(g.top+47)+" "+fmt(g.right+9)+" "+fmt(g.top+36)} strokeWidth="1.1" opacity=".78"/></g>}
     <g clipPath={"url(#"+uid+"-face-clip)"} filter={"url(#"+uid+"-paper-grain)"}>
       <path d={"M "+fmt(forehead[0]-52)+" "+fmt(g.top+15)+" Q "+fmt(cx)+" "+fmt(g.top-9)+" "+fmt(forehead[0]+48)+" "+fmt(g.top+16)+" Q "+fmt(cx+20)+" "+fmt(g.top+59)+" "+fmt(cx)+" "+fmt(g.top+62)+" Q "+fmt(cx-30)+" "+fmt(g.top+55)+" "+fmt(forehead[0]-52)+" "+fmt(g.top+15)+" Z"}
         fill="#fff3df" opacity=".22" filter={"url(#"+uid+"-soft)"}/>
-      <ellipse cx={cheekL[0]} cy={cheekL[1]+9} rx={character==="zhong-kui"?25:21} ry="34"
-        fill={"url(#"+uid+"-cheek)"} transform={"rotate(-12 "+fmt(cheekL[0])+" "+fmt(cheekL[1]+9)+")"} opacity=".92"/>
-      <ellipse cx={cheekR[0]} cy={cheekR[1]+9} rx={character==="zhong-kui"?25:21} ry="34"
-        fill={"url(#"+uid+"-cheek)"} transform={"rotate(12 "+fmt(cheekR[0])+" "+fmt(cheekR[1]+9)+")"} opacity=".86"/>
-      <ellipse cx={g.landmarks.eyeInnerL[0]-12} cy={g.landmarks.eyeInnerL[1]+1} rx="22" ry="14"
-        fill={"url(#"+uid+"-orbit)"}/>
-      <ellipse cx={g.landmarks.eyeInnerR[0]+12} cy={g.landmarks.eyeInnerR[1]+1} rx="22" ry="14"
-        fill={"url(#"+uid+"-orbit)"}/>
-      <path d={"M "+fmt(g.landmarks.sellion[0]-12)+" "+fmt(g.landmarks.sellion[1]+5)+" C "+fmt(nose[0]-9)+" "+fmt(g.landmarks.sellion[1]+37)+" "+fmt(nose[0]-8)+" "+fmt(nose[1]-9)+" "+fmt(nose[0]-13)+" "+fmt(nose[1]+4)+" Q "+fmt(nose[0])+" "+fmt(nose[1]+19)+" "+fmt(nose[0]+15)+" "+fmt(nose[1]+5)+" C "+fmt(nose[0]+8)+" "+fmt(nose[1]-9)+" "+fmt(nose[0]+8)+" "+fmt(g.landmarks.sellion[1]+37)+" "+fmt(g.landmarks.sellion[0]+12)+" "+fmt(g.landmarks.sellion[1]+5)+" Z"}
-        fill={"url(#"+uid+"-nose)"} opacity=".88"/>
+      <path d={"M "+fmt(cheekL[0]-22)+" "+fmt(cheekL[1]-10)+" C "+fmt(cheekL[0]-9)+" "+fmt(cheekL[1]-22)+" "+fmt(cheekL[0]+18)+" "+fmt(cheekL[1]-13)+" "+fmt(cheekL[0]+22)+" "+fmt(cheekL[1]+1)+" C "+fmt(cheekL[0]+12)+" "+fmt(cheekL[1]+17)+" "+fmt(cheekL[0]-10)+" "+fmt(cheekL[1]+24)+" "+fmt(cheekL[0]-23)+" "+fmt(cheekL[1]+10)+" Z"}
+        fill={"url(#"+uid+"-cheek)"} opacity=".68"/>
+      <path d={"M "+fmt(cheekR[0]-22)+" "+fmt(cheekR[1]-10)+" C "+fmt(cheekR[0]-9)+" "+fmt(cheekR[1]-22)+" "+fmt(cheekR[0]+18)+" "+fmt(cheekR[1]-13)+" "+fmt(cheekR[0]+22)+" "+fmt(cheekR[1]+1)+" C "+fmt(cheekR[0]+12)+" "+fmt(cheekR[1]+17)+" "+fmt(cheekR[0]-10)+" "+fmt(cheekR[1]+24)+" "+fmt(cheekR[0]-23)+" "+fmt(cheekR[1]+10)+" Z"}
+        fill={"url(#"+uid+"-cheek)"} opacity=".62"/>
+      <ellipse cx={g.landmarks.eyeInnerL[0]-10} cy={g.landmarks.eyeInnerL[1]+1} rx="18" ry="10"
+        fill={"url(#"+uid+"-orbit)"} opacity=".72"/>
+      <ellipse cx={g.landmarks.eyeInnerR[0]+10} cy={g.landmarks.eyeInnerR[1]+1} rx="18" ry="10"
+        fill={"url(#"+uid+"-orbit)"} opacity=".58"/>>
+      <path d={"M "+fmt(g.landmarks.sellion[0]-7)+" "+fmt(g.landmarks.sellion[1]+5)+" C "+fmt(g.landmarks.sellion[0]-9)+" "+fmt(g.landmarks.sellion[1]+25)+" "+fmt(nose[0]-8)+" "+fmt(nose[1]-14)+" "+fmt(nose[0]-7)+" "+fmt(nose[1]+2)+" C "+fmt(nose[0]-2)+" "+fmt(nose[1]+8)+" "+fmt(nose[0]+3)+" "+fmt(nose[1]+8)+" "+fmt(nose[0]+5)+" "+fmt(nose[1]+2)+" C "+fmt(nose[0]+7)+" "+fmt(nose[1]-13)+" "+fmt(g.landmarks.sellion[0]+5)+" "+fmt(g.landmarks.sellion[1]+25)+" "+fmt(g.landmarks.sellion[0]+4)+" "+fmt(g.landmarks.sellion[1]+5)+" Z"}
+        fill={"url(#"+uid+"-nose)"} opacity=".62"/>
+      <path d={"M "+fmt(g.landmarks.sellion[0]-4)+" "+fmt(g.landmarks.sellion[1]+8)+" C "+fmt(g.landmarks.sellion[0]-7)+" "+fmt(g.landmarks.sellion[1]+24)+" "+fmt(nose[0]-5)+" "+fmt(nose[1]-6)+" "+fmt(nose[0]-5)+" "+fmt(nose[1]+1)}
+        fill="none" stroke={p.wash} strokeWidth="1.15" opacity=".46"/>
+      <path d={"M "+fmt(g.landmarks.sellion[0]+4)+" "+fmt(g.landmarks.sellion[1]+8)+" C "+fmt(g.landmarks.sellion[0]+7)+" "+fmt(g.landmarks.sellion[1]+24)+" "+fmt(nose[0]+6)+" "+fmt(nose[1]-6)+" "+fmt(nose[0]+6)+" "+fmt(nose[1]+1)}
+        fill="none" stroke={p.ink} strokeWidth=".8" opacity=".28"/>
       <path d={"M "+fmt(g.landmarks.gonionL[0]-3)+" "+fmt(g.landmarks.gonionL[1]-8)+" Q "+fmt(cx)+" "+fmt(chin[1]+29)+" "+fmt(g.landmarks.gonionR[0]+3)+" "+fmt(g.landmarks.gonionR[1]-8)}
         fill="none" stroke="#8b725e" strokeWidth="8" opacity=".08" filter={"url(#"+uid+"-wash)"}/>
       <path d={"M "+fmt(g.landmarks.pronasale[0]-9)+" "+fmt(g.landmarks.pronasale[1]+4)+" Q "+fmt(g.landmarks.pronasale[0])+" "+fmt(g.landmarks.pronasale[1]+10)+" "+fmt(g.landmarks.pronasale[0]+9)+" "+fmt(g.landmarks.pronasale[1]+4)}
@@ -665,21 +815,35 @@ export function InkSourceLedCharacterPortrait({
       })}
     </g>
 
-    <path d={beardPath} fill={"url(#"+uid+"-beard)"} opacity={beardOpacity}
-      data-km-ink-anat6-beard-mass={p.beardStyle}/>
-    <g data-km-ink-anat6-beard-fibers="true" fill="none" stroke={p.beardColor} strokeLinecap="round">
-      {beard.map((f,i)=><path key={i} data-km-ink-anat6-beard-fiber={i} d={f.d}
-        strokeWidth={f.width} strokeOpacity={f.opacity}/>)}
-    </g>
+    {p.beardStyle!=="none"&&<>
+      <path d={beardPath} fill={"url(#"+uid+"-beard)"} opacity={beardOpacity}
+        data-km-ink-anat6-beard-mass={p.beardStyle}/>
+      <g data-km-ink-anat6-beard-fibers="true" fill="none" stroke={p.beardColor} strokeLinecap="round">
+        {beard.map((f,i)=><path key={i} data-km-ink-anat6-beard-fiber={i} d={f.d}
+          strokeWidth={f.width} strokeOpacity={f.opacity}/>)}
+      </g>
+    </>}
 
+    <g data-km-anat1-eye-openings="true">
+      {g.eyeOpenings.map(eye=><path key={eye.side} data-km-anat1-eye-opening={eye.side}
+        d={eye.d} fill="#f3e8d8" fillOpacity={eye.side==="L"?.74:.56} stroke="none"/>)}
+    </g>
     <g data-km-anat1-features="true" fill="none" stroke={p.ink} strokeLinecap="round" strokeLinejoin="round">
       {g.features.map((f,i)=>{
         const s=featureStyle(f.id);
         return <path key={i} data-km-anat1-feature={f.id} d={f.d}
           strokeWidth={s.width} strokeOpacity={s.opacity}/>;
       })}
-      <path d={upperLip} stroke={p.ink} strokeWidth="1.05" opacity=".74"/>
-      <path d={lowerLip} stroke={p.wash} strokeWidth=".85" opacity=".66"/>
+
+      <path d={g.mouthOutline} data-km-anat1-mouth-shape="true" fill={p.lip} fillOpacity=".19" stroke="none"/>
+      <path d={g.mouthLine} data-km-anat1-mouth-line="true" stroke={p.ink} strokeWidth={g.expression.mouthOpen>.12?1.15:.82} strokeOpacity=".82"/>
+      <path d={upperLip} stroke={p.lip} strokeWidth="1.0" opacity=".66"/>
+      <path d={lowerLip} stroke={p.wash} strokeWidth=".85" opacity=".58"/>
+      {g.expression.mouthOpen>.06&&<path data-km-anat1-oral-aperture="true"
+        d={"M "+fmt(g.landmarks.mouthL[0]+3)+" "+fmt(mouthY+1)+" Q "+fmt(cx)+" "+fmt(mouthY+Math.min(7,g.expression.mouthOpen*5.8))+" "+fmt(g.landmarks.mouthR[0]-3)+" "+fmt(mouthY+1)+" Q "+fmt(cx)+" "+fmt(mouthY-Math.min(2,g.expression.mouthOpen*1.3))+" "+fmt(g.landmarks.mouthL[0]+3)+" "+fmt(mouthY+1)+" Z"}
+        fill="#57382f" opacity={clamp(g.expression.mouthOpen*.8,0,.68)}/>}
+      {character==="lady"&&<path d={"M "+fmt(cx-8)+" "+fmt(mouthY+5)+" Q "+fmt(cx)+" "+fmt(mouthY+7)+" "+fmt(cx+8)+" "+fmt(mouthY+5)}
+        fill="none" stroke="#f2c6b9" strokeWidth=".85" opacity=".62"/>}
       <path d={"M "+fmt(cx)+" "+fmt(g.landmarks.subnasale[1]-3)+" Q "+fmt(cx-1)+" "+fmt(mouthY-11)+" "+fmt(cx-2)+" "+fmt(mouthY-4)}
         stroke={p.wash} strokeWidth=".9" opacity=".44"/>
       <path d={"M "+fmt(g.landmarks.pronasale[0]-12)+" "+fmt(g.landmarks.pronasale[1]+6)+" q -3 4 -5 2 M "+fmt(g.landmarks.pronasale[0]+12)+" "+fmt(g.landmarks.pronasale[1]+6)+" q 3 4 5 2"}
@@ -698,16 +862,15 @@ export function InkSourceLedCharacterPortrait({
       {g.marks.map((mark,i)=><path key={i} data-km-expr1-mark={mark.id} d={mark.d}
         strokeWidth={.55+mark.strength*.72} strokeOpacity={.18+mark.strength*.48}/>)}
     </g>
-    <g data-km-ink-anat6-moustache="true" fill="none" stroke={p.beardColor} strokeLinecap="round">
+    {p.beardStyle!=="none"&&<g data-km-ink-anat6-moustache="true" fill="none" stroke={p.beardColor} strokeLinecap="round">
       <path d={"M "+fmt(cx-2)+" "+fmt(mouthY-4)+" C "+fmt(cx-15)+" "+fmt(mouthY-17)+" "+fmt(g.landmarks.mouthL[0]-13)+" "+fmt(mouthY-8)+" "+fmt(g.landmarks.mouthL[0]-5)+" "+fmt(mouthY+1)}
-        strokeWidth={character==="zhong-kui"?4.1:2.4} opacity=".86"/>
+        strokeWidth={character==="zhong-kui"?3.2:1.7} opacity=".72"/>
       <path d={"M "+fmt(cx+2)+" "+fmt(mouthY-4)+" C "+fmt(cx+15)+" "+fmt(mouthY-17)+" "+fmt(g.landmarks.mouthR[0]+13)+" "+fmt(mouthY-8)+" "+fmt(g.landmarks.mouthR[0]+5)+" "+fmt(mouthY+1)}
-        strokeWidth={character==="zhong-kui"?4.1:2.4} opacity=".86"/>
-    </g>
+        strokeWidth={character==="zhong-kui"?3.2:1.7} opacity=".72"/>
+    </g>}
 
-    <g data-km-ink-anat6-head-fibers="true" fill="none" stroke={p.headwear==="loose-hair"?p.hair:p.headwearColor} strokeLinecap="round">
-      {hair.map((f,i)=><path key={i} data-km-ink-anat6-hair-fiber={i} d={f.d}
-        strokeWidth={f.width} strokeOpacity={f.opacity}/>)}
+    <g data-km-ink-anat6-head-fibers="true" clipPath={"url(#"+uid+"-headwear-clip)"} fill="none" stroke={p.hair} strokeLinecap="round">
+      {hair.map((f,i)=><path key={i} data-km-ink-anat6-hair-fiber={i} d={f.d} strokeWidth={f.width} strokeOpacity={f.opacity}/>)}
     </g>
     {p.headwear==="wrapped-hood"&&<g fill="none" stroke="#526f73" strokeLinecap="round">
       <path d={"M "+fmt(g.left-12)+" "+fmt(g.top+17)+" Q "+fmt(cx-8)+" "+fmt(g.top+47)+" "+fmt(g.right+11)+" "+fmt(g.top+17)}
@@ -715,12 +878,45 @@ export function InkSourceLedCharacterPortrait({
       <path d={"M "+fmt(g.left-5)+" "+fmt(g.top+28)+" Q "+fmt(cx+10)+" "+fmt(g.top+58)+" "+fmt(g.right+5)+" "+fmt(g.top+28)}
         strokeWidth=".9" opacity=".52"/>
     </g>}
+    {character==="lady"&&<>
+      <g data-km-ink-anat6-earring="L" fill="none" stroke="#b99a5d" strokeLinecap="round">
+        <path d={"M "+fmt(g.landmarks.earRootL[0]-2)+" "+fmt(g.landmarks.earRootL[1]+5)+" q -4 9 -2 17"} strokeWidth="1.0"/>
+        <circle cx={fmt(g.landmarks.earRootL[0]-4)} cy={fmt(g.landmarks.earRootL[1]+23)} r="2.5" fill="#8ca69a" stroke="#7c8e7f"/>
+        <path d={"M "+fmt(g.landmarks.earRootL[0]-4)+" "+fmt(g.landmarks.earRootL[1]+25)+" q -1 6 -3 8"} strokeWidth=".8"/>
+        <ellipse cx={fmt(g.landmarks.earRootL[0]-7)} cy={fmt(g.landmarks.earRootL[1]+34)} rx="2.2" ry="3.6" fill="#d3b26f" stroke="#9b8154"/>
+      </g>
+      <g data-km-ink-anat6-earring="R" fill="none" stroke="#b99a5d" strokeLinecap="round">
+        <path d={"M "+fmt(g.landmarks.earRootR[0]+2)+" "+fmt(g.landmarks.earRootR[1]+5)+" q 4 9 2 17"} strokeWidth="1.0"/>
+        <circle cx={fmt(g.landmarks.earRootR[0]+4)} cy={fmt(g.landmarks.earRootR[1]+23)} r="2.5" fill="#8ca69a" stroke="#7c8e7f"/>
+        <path d={"M "+fmt(g.landmarks.earRootR[0]+4)+" "+fmt(g.landmarks.earRootR[1]+25)+" q 1 6 3 8"} strokeWidth=".8"/>
+        <ellipse cx={fmt(g.landmarks.earRootR[0]+7)} cy={fmt(g.landmarks.earRootR[1]+34)} rx="2.2" ry="3.6" fill="#d3b26f" stroke="#9b8154"/>
+      </g>
+      <g data-km-ink-anat6-folded-fan="true" strokeLinecap="round">
+        <path d="M 173 526 Q 240 493 307 526 L 296 564 Q 240 548 184 564 Z" fill="#e8d9bf" stroke="#917d61" strokeWidth="1.05"/>
+        {Array.from({length:11},(_,i)=>{
+          const x=183+i*11.4;
+          return <path key={i} d={"M 240 556 Q "+fmt(x)+" 540 "+fmt(x)+" 527"} fill="none" stroke={i%3===0?"#9d795f":"#b49b78"} strokeWidth={i%3===0?.85:.48} opacity=".7"/>;
+        })}
+        <path d="M 240 555 L 240 589" stroke="#9a805d" strokeWidth="2.1"/>
+        <path d="M 185 565 Q 240 553 295 565" fill="none" stroke="#f7ecda" strokeWidth="1.1" opacity=".8"/>
+      </g>
+    </>}
 
     <path d={collar} fill={p.collar} fillOpacity=".82" stroke={p.ink} strokeWidth="1.0" strokeOpacity=".64"/>
     <path d={"M 240 506 Q 222 530 194 557 M 240 506 Q 258 530 286 557"}
       fill="none" stroke={p.accent} strokeWidth="2.1" opacity=".64"/>
     <path d={"M 240 521 Q 225 546 213 568 M 240 521 Q 255 546 267 568"}
       fill="none" stroke="#f5ecdc" strokeWidth="1.6" opacity=".68"/>
+    {character==="lady"&&<g data-km-ink-anat6-robe-embroidery="true" fill="none" stroke="#d6bd83" strokeLinecap="round">
+      {Array.from({length:14},(_,i)=>{
+        const x=176+(i%7)*21,y=486+Math.floor(i/7)*12;
+        return <g key={i} transform={"translate("+x+" "+y+")"}>
+          <path d="M 0 -4 Q 5 0 0 4 Q -5 0 0 -4 Z" strokeWidth=".55" opacity=".72"/>
+          <circle r="1.1" fill="#c49e66" stroke="none"/>
+        </g>;
+      })}
+      <path d="M 164 494 Q 240 526 316 494 M 179 505 Q 240 536 301 505" strokeWidth=".7" opacity=".55"/>
+    </g>}
     <g fill="none" stroke={p.ink} strokeLinecap="round">
       {Array.from({length:Math.round(22*detail)},(_,i)=>{
         const t=(i+.5)/Math.round(22*detail),x=116+t*248;
