@@ -6,7 +6,7 @@ async({page},info)=>{
   const errors:string[]=[];
   page.on("pageerror",error=>errors.push(error.message));
   await page.setViewportSize({width:1500,height:1280});
-  await page.goto("/iframe.html?id=video-riso-print-lab--risograph-interleaved-paper-slats&viewMode=story");
+  await page.goto("/iframe.html?id=video-riso-print-lab--risograph-interleaved-paper-slat-reveal&viewMode=story");
   const studio=page.locator("[data-km-riso81-studio]");
   await expect(studio).toBeVisible();
   await expect(studio).toHaveAttribute("data-km-riso81-frame","108");
