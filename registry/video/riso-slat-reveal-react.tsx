@@ -26,6 +26,7 @@ export interface RisoSlatTheatreProps{
   readonly progress:number;
   readonly seed?:number;
   readonly travel?:number;
+  readonly stagger?:number;
   readonly overlapMm?:number;
   readonly paperThicknessMm?:number;
   readonly slotClearanceMm?:number;
@@ -44,7 +45,7 @@ export interface RisoSlatTheatreProps{
  * One rigid pull comb moves every strip through its own source-ordered slot.
  * No ink morph, raster mask, crossfade or independent animation clock is used. */
 export function RisoSlatTheatre({
-  cover,insert,axis,direction,count,progress,seed=81,travel,
+  cover,insert,axis,direction,count,progress,seed=81,travel,stagger=.22,
   overlapMm=.32,paperThicknessMm=.24,slotClearanceMm=.08,
   interleaveDepthMm=.42,paperRelief=.72,paperGrain=.55,
   misregistration=.22,lightDirection=[-.55,-.84],drumContact,
@@ -64,12 +65,12 @@ export function RisoSlatTheatre({
     throw new RangeError("RISO81 relief, paper grain and registration controls must be 0..1.");
   const {width,height}=cover.spec;
   const pose=evaluateRisoSlatReveal({
-    width,height,axis,direction,count,progress,seed,travel,overlapMm,
+    width,height,axis,direction,count,progress,seed,travel,stagger,overlapMm,
     paperThicknessMm,slotClearanceMm,interleaveDepthMm,lightDirection,
   });
   const raw=useId().replace(/[^a-zA-Z0-9_-]/g,"");
   const id="riso81-"+raw;
-  const [dx,dy]=pose.translation;
+  const [pullX,pullY]=pose.pullTranslation;
   const [shadowX,shadowY]=pose.shadowOffset;
   const paper=cover.spec.paper;
   const edgeWall=mixPaperColor(paper,"#6C5946",.34);
@@ -90,6 +91,7 @@ export function RisoSlatTheatre({
     data-km-riso81-direction={direction}
     data-km-riso81-progress={progress}
     data-km-riso81-travel={pose.travel}
+    data-km-riso81-stagger={pose.stagger}
     data-km-riso81-slat-count={pose.slats.length}
     data-km-riso81-slot-count={pose.slots.length}
     data-km-riso81-overlap-mm={pose.overlapMm}
@@ -130,7 +132,7 @@ export function RisoSlatTheatre({
           opacity={t(.64*paperRelief)}/>
       </g>)}
     </g>
-    <g data-km-riso81-moving-comb="" data-km-riso81-common-translation={dx+","+dy}>
+    <g data-km-riso81-moving-comb="" data-km-riso81-pull-translation={pullX+","+pullY}>
       {ordered.map(slat=>{
         const horizontal=axis==="horizontal";
         const first=horizontal?
@@ -142,7 +144,7 @@ export function RisoSlatTheatre({
         const top=slat.lane===0?bevel:edgeWall;
         const bottom=slat.lane===0?edgeWall:bevel;
         return <g key={slat.id}
-          transform={"translate("+dx+" "+dy+")"}
+          transform={"translate("+slat.translation[0]+" "+slat.translation[1]+")"}
           data-km-riso81-slat={slat.id}
           data-km-riso81-index={slat.index}
           data-km-riso81-slot-order={slat.slotOrder}
@@ -180,7 +182,7 @@ export function RisoSlatTheatre({
           </g>}
         </g>;
       })}
-      {paperRelief>0&&<g transform={"translate("+dx+" "+dy+")"}
+      {paperRelief>0&&<g transform={"translate("+pullX+" "+pullY+")"}
         pointerEvents="none" data-km-riso81-pull-rail="">
         {axis==="horizontal"?
           <path d={"M"+t(width-11)+" 0 V"+height}
