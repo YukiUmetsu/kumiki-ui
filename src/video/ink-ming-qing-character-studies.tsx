@@ -563,11 +563,12 @@ export function InkMingQingCharacterStudy({
       <path data-km-ink-anat5-clavicle="collar-contact"
         d="M116 337 Q137 345 160 344 Q184 345 204 337"
         fill="none" stroke="#8f735d" strokeWidth=".75" opacity=".32"/>
-      <path data-km-ink-anat5-hairline="temple-to-temple"
-        d={"M"+fmt(g.left+9)+" "+fmt(g.top+8)+" Q"+fmt(cx)+" "+fmt(g.top+17)+" "+fmt(g.right-9)+" "+fmt(g.top+8)}
-        fill="none" stroke={p.ink} strokeWidth=".48" opacity=".35"/>
+
     </g>
     <path d={g.outline} fill={"url(#"+uid+"-skin)"} stroke={p.ink} strokeWidth=".7" strokeOpacity=".38"/>
+    <path data-km-ink-anat5-hairline="temple-to-temple"
+      d={"M"+fmt(g.left+9)+" "+fmt(g.top+8)+" Q"+fmt(cx)+" "+fmt(g.top+17)+" "+fmt(g.right-9)+" "+fmt(g.top+8)}
+      fill="none" stroke={p.ink} strokeWidth=".48" opacity=".35"/>
     <g clipPath={"url(#"+uid+"-face)"} data-km-ink-anat5-facial-wash-planes="forehead-orbit-malar-nose-jaw">
       <path d={"M"+fmt(g.landmarks.forehead[0]-35)+" "+fmt(g.landmarks.forehead[1]+6)
         +" C"+fmt(g.landmarks.forehead[0]-19)+" "+fmt(g.landmarks.forehead[1]-18)
