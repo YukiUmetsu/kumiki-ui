@@ -172,7 +172,6 @@ export function buildInkRobeBrushSpec(frame:HumanFrame,character:InkAnatomyChara
   const {anchors}=paths;
   const center=mid(anchors.hem[0],anchors.hem[1]);
   const shoulderMid=mid(anchors.shoulders[0],anchors.shoulders[1]);
-  const elbowMid=mid(anchors.elbows[0],anchors.elbows[1]);
   const hipMid=mid(anchors.hips[0],anchors.hips[1]);
   const nodes=(pts:readonly (readonly [number,number])[])=>pts.map(([x,y],i)=>({
     x:fmt(clamp(x,4,frame.width-4)),y:fmt(clamp(y,4,frame.height-4)),
@@ -249,7 +248,6 @@ export function InkAnatomyCharacterFigure({
   if(!body||!posed||!frame||!paths||!measures)return <div role="status" data-testid="ink-anat4-loading">Loading ANAT1 body lattice…</div>;
   const [leftSleeve,rightSleeve]=paths.sleeves;
   const [leftCuff,rightCuff]=paths.cuffs;
-  const [leftHem,rightHem]=paths.anchors.hem;
   const cx=(frame.bounds.x0+frame.bounds.x1)/2;
   return <div className={className} data-testid="ink-anat4-figure"
     data-km-anat4-ready="true" data-km-anat4-character={character}
