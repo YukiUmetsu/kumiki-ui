@@ -401,7 +401,7 @@ export function InkMingQingCharacterStudy({
         +" "+fmt(g.right+22)+" "+fmt(earY+12)+" "+fmt(g.right+4)+" "+fmt(earY+17)}
         fill="#ddc7ad" stroke={p.ink} strokeWidth=".7" opacity=".74"/>
       <path d={"M"+fmt(g.right+7)+" "+fmt(earY-3)+" Q"+fmt(g.right+16)+" "+fmt(earY+2)+" "+fmt(g.right+7)+" "+fmt(earY+10)}
-        fill="none" stroke={p.ink} strokeWidth=".55" opacity=".54/>
+        fill="none" stroke={p.ink} strokeWidth=".55" opacity=".54"/>
       <path d={"M"+fmt(g.left-2)+" "+fmt(earY-8)+" C"+fmt(g.left-13)+" "+fmt(earY-12)
         +" "+fmt(g.left-17)+" "+fmt(earY+9)+" "+fmt(g.left-3)+" "+fmt(earY+14)}
         fill="#ddc7ad" stroke={p.ink} strokeWidth=".6" opacity=".42"/>
@@ -463,13 +463,13 @@ export function InkMingQingCharacterStudy({
         const nose=f.id.startsWith("nose"),lip=f.id.startsWith("lips")||f.id==="mouth-line";
         return <path key={f.id+"-"+i} data-km-anat1-feature={f.id} d={f.d}
           fill="none" stroke={lip?"#755548":p.ink}
-          strokeWidth={brow?1.05:eye?.82:nose?.68:lip?.72:.5}
+          strokeWidth={brow ? 1.05 : eye ? 0.82 : nose ? 0.68 : lip ? 0.72 : 0.5}
           strokeLinecap="round" strokeLinejoin="round"
-          opacity={brow?.68:eye?.78:nose?.56:lip?.75:.48}/>;
+          opacity={brow ? 0.68 : eye ? 0.78 : nose ? 0.56 : lip ? 0.75 : 0.48}/>;
       })}
       {g.marks.map(mark=><path key={mark.id} data-km-expr1-mark={mark.id} d={mark.d}
         fill="none" stroke={p.ink} strokeWidth={.35+mark.strength*.48}
-        strokeLinecap="round" opacity={mark.strength*(character==="scholar"?.48:.34)*detail}/>)}
+        strokeLinecap="round" opacity={mark.strength*(character==="scholar" ? 0.48 : 0.34)*detail}/>)}
     </g>
     {character==="scholar"&&<g data-km-ink-anat5-beard="rooted-split-fibres">
       <path d={"M"+fmt(g.landmarks.mouthL[0]-3)+" "+fmt(mouthY+4)
