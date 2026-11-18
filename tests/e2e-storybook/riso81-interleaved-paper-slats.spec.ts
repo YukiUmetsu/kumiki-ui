@@ -18,7 +18,7 @@ async({page},info)=>{
   await expect(theatre.locator("[data-km-riso81-fibre]")).toHaveCount(288);
   await expect(theatre.locator("[data-km-riso-print]")).toHaveCount(13);
   await expect(theatre).toHaveAttribute("data-km-riso81-axis","horizontal");
-  await expect(theatre).toHaveAttribute("data-km-riso81-direction","down");
+  await expect(theatre).toHaveAttribute("data-km-riso81-direction","right");
   await expect(theatre).toHaveAttribute("data-km-riso81-collision-clearance-mm","0.1");
   const sourceSignature=async()=>theatre.locator("[data-km-riso81-slat]").evaluateAll(slats=>
     slats.map(s=>{
@@ -50,7 +50,7 @@ async({page},info)=>{
   await film.screenshot({path:info.outputPath("riso81-reconstructed-original-insert-at-endstop.png"),animations:"disabled"});
   await studio.getByRole("combobox",{name:"RISO81 slat axis"}).selectOption("vertical");
   await expect(theatre).toHaveAttribute("data-km-riso81-axis","vertical");
-  await expect(theatre).toHaveAttribute("data-km-riso81-direction","right");
+  await expect(theatre).toHaveAttribute("data-km-riso81-direction","down");
   await studio.getByRole("combobox",{name:"RISO81 slat direction"}).selectOption("up");
   await expect(theatre).toHaveAttribute("data-km-riso81-direction","up");
   await film.screenshot({path:info.outputPath("riso81-vertical-interleaved-columns-portrait-source.png"),animations:"disabled"});
