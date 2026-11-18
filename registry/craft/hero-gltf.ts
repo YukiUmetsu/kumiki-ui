@@ -2,21 +2,24 @@
  *
  * Export: any HeroAsset → binary .glb (meshes, skins, instancing, PBR materials,
  * vertex colors and painted textures) for Blender, other engines or review.
- * Shader-only micro-detail (`applySurfaceDetail`) is not representable in glTF and
- * is dropped; everything else round-trips.
+ * Shader-only micro-detail (`applySurfaceDetail`) is not representable in glTF: its settings
+ * travel in the material's `extras` and `restoreSurfaceDetail` re-applies them on load
+ * (other engines see the plain material).
  *
  * Import: a licensed .glb/.gltf → a HeroAsset factory. glTF animation clips become
  * frame-addressed actions (pure functions of the frame, like every other asset), so
  * imported models work in the viewer, stage sets, finance stage and video export.
  */
 import { AnimationClip, AnimationMixer, Box3, Group, Mesh, QuaternionKeyframeTrack, Vector3, VectorKeyframeTrack } from "three";
-import type { AnimationAction, KeyframeTrack, Material, Object3D, Texture } from "three";
+import type { AnimationAction, KeyframeTrack, Material, MeshStandardMaterial, Object3D, Texture } from "three";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { clone as cloneSkinned } from "three/addons/utils/SkeletonUtils.js";
 import type { HeroAsset } from "./hero-asset";
 import type { HeroActionSpec, HeroActionState } from "./hero-action";
 import { actionTime, findAction } from "./hero-action";
+import { applySurfaceDetail } from "./surface-detail";
+import type { SurfaceDetailOptions } from "./surface-detail";
 import type { HeroStudioOptions } from "./hero-studio";
 
 /**
@@ -79,6 +82,32 @@ export async function exportHeroGlb(asset: HeroAsset, options: HeroGlbExportOpti
   return result;
 }
 
+/**
+ * Re-apply procedural micro-detail recorded by `applySurfaceDetail` in material extras (fur, cast metal …),
+ * and expose the per-vertex roughness/metalness attribute glTF stores as `_surface`. Idempotent.
+ */
+export function restoreSurfaceDetail(root: Object3D): void {
+  root.traverse(node => {
+    const mesh = node as Mesh;
+    if (!mesh.isMesh) return;
+    // glTF stores custom attributes with a leading underscore (loaders lower-case them): alias each under its
+    // original name (`_surface` → `surface`, `_kmcoata` → `kmcoata`, `_kmflow` → `kmFlow`).
+    for (const stored of Object.keys(mesh.geometry.attributes)) {
+      if (!stored.startsWith("_")) continue;
+      const name = stored === "_kmflow" ? "kmFlow" : stored.slice(1);
+      if (!mesh.geometry.getAttribute(name)) mesh.geometry.setAttribute(name, mesh.geometry.getAttribute(stored));
+    }
+    for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+      const detail = material.userData.surfaceDetail as SurfaceDetailOptions | undefined;
+      const standard = material as MeshStandardMaterial;
+      if (!detail || material.userData.surfaceDetailRestored || !standard.isMeshStandardMaterial) continue;
+      applySurfaceDetail(standard, { ...detail, vertexSurface: detail.vertexSurface && !!mesh.geometry.getAttribute("surface"),
+        vertexFlow: detail.vertexFlow && !!mesh.geometry.getAttribute("kmFlow") });
+      material.userData.surfaceDetailRestored = true;
+    }
+  });
+}
+
 export interface GltfHeroOptions {
   id?: string;
   /** glTF is meters by specification; override only for non-conforming files. */
@@ -117,6 +146,7 @@ export async function loadGltfHero(source: string | ArrayBuffer, options: GltfHe
       loop: meta?.loop ?? true, meaning: meta?.meaning ?? "Imported glTF animation." };
   });
   template.traverse(node => { if ((node as Mesh).isMesh) { node.castShadow = true; node.receiveShadow = true; } });
+  restoreSurfaceDetail(template);
   const rest = options.restPose;
   const restIndex = rest ? actions.findIndex(a => a.id === rest.action) : -1;
   if (rest && restIndex < 0) throw new Error(`restPose action "${rest.action}" is not a clip in this glTF.`);

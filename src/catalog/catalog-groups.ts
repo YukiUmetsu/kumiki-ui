@@ -191,6 +191,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "inspectable-asset-three": "3D asset toolkit",
   "screen-surface": "3D asset toolkit",
   "people-3d": "3D asset toolkit",
+  "gallop-rider-3d": "3D asset toolkit",
   "exploded-view": "Asset motion and states",
   "section-reveal": "Asset motion and states",
   "section-reveal-three": "Asset motion and states",

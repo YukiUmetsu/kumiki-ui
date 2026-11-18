@@ -22,11 +22,17 @@ export interface RigBoneSpec {
   tail: Vec3;
   /** Influence radius: vertices within ~radius of the segment follow this bone. */
   radius: number;
+  /** Extra segments that also count as this bone for skin weights (a muscle mass that moves with the bone but
+   * lies off its axis, such as a thigh round the femur). Each vertex uses the nearest of the bone's segments. */
+  influences?: ReadonlyArray<{ head: Vec3; tail: Vec3; radius: number }>;
 }
 
 export interface AutoRig {
   mesh: SkinnedMesh;
   bones: ReadonlyMap<string, Bone>;
+  /** The shared skeleton, for binding more meshes (hair, clothing) with {@link bindToAutoRig}. */
+  skeleton: Skeleton;
+  specs: readonly RigBoneSpec[];
   /** Reset every bone to rest. */
   reset(): void;
   /** Rotate a bone (XYZ Euler radians, world-aligned at rest) and optionally offset it. */
@@ -41,22 +47,15 @@ function segmentDistance(p: Vector3, a: Vector3, ab: Vector3, abLen2: number): n
   return Math.sqrt(x * x + y * y + z * z);
 }
 
-/** Compute skin weights and wrap the geometry in a SkinnedMesh bound to a fresh skeleton. */
-export function createAutoRig(geometry: BufferGeometry, material: Material, specs: readonly RigBoneSpec[],
-  options: { smoothing?: number; sharpness?: number } = {}): AutoRig {
-  if (!specs.length) throw new Error("Auto-rig needs at least one bone.");
-  const names = new Set<string>();
-  for (const spec of specs) {
-    if (names.has(spec.name)) throw new Error(`Duplicate rig bone "${spec.name}".`);
-    if (spec.parent && !names.has(spec.parent)) throw new Error(`Rig bone "${spec.name}" must come after its parent "${spec.parent}".`);
-    if (!(spec.radius > 0)) throw new Error(`Rig bone "${spec.name}" needs a positive radius.`);
-    names.add(spec.name);
-  }
+/** Write `skinIndex`/`skinWeight` for `geometry`: Gaussian falloff to each bone segment, smoothed, top four kept. */
+function computeSkinWeights(geometry: BufferGeometry, specs: readonly RigBoneSpec[], options: { smoothing?: number; sharpness?: number }) {
   const position = geometry.attributes.position as BufferAttribute;
   const count = position.count, n = specs.length;
-  const heads = specs.map(s => new Vector3(...s.head)), tails = specs.map(s => new Vector3(...s.tail));
-  const axes = specs.map((_, i) => tails[i].clone().sub(heads[i]));
-  const len2 = axes.map(v => v.lengthSq());
+  // Every weight segment of every bone: the bone itself, then its extra influences.
+  const segments = specs.map(s => [{ head: s.head, tail: s.tail, radius: s.radius }, ...(s.influences ?? [])].map(g => {
+    const a = new Vector3(...g.head), ab = new Vector3(...g.tail).sub(a);
+    return { a, ab, len2: ab.lengthSq(), radius: g.radius };
+  }));
   const sharp = options.sharpness ?? 2.2;
   // Dense weights (vertices × bones) before smoothing.
   let weights = new Float32Array(count * n);
@@ -65,7 +64,8 @@ export function createAutoRig(geometry: BufferGeometry, material: Material, spec
     p.fromBufferAttribute(position, v);
     let best = Infinity;
     for (let b = 0; b < n; b++) {
-      const q = segmentDistance(p, heads[b], axes[b], len2[b]) / specs[b].radius;
+      let q = Infinity;
+      for (const g of segments[b]) q = Math.min(q, segmentDistance(p, g.a, g.ab, g.len2) / g.radius);
       score[b] = q * q * sharp;
       best = Math.min(best, score[b]);
     }
@@ -110,6 +110,21 @@ export function createAutoRig(geometry: BufferGeometry, material: Material, spec
   }
   geometry.setAttribute("skinIndex", new BufferAttribute(skinIndex, 4));
   geometry.setAttribute("skinWeight", new BufferAttribute(skinWeight, 4));
+}
+
+/** Compute skin weights and wrap the geometry in a SkinnedMesh bound to a fresh skeleton. */
+export function createAutoRig(geometry: BufferGeometry, material: Material, specs: readonly RigBoneSpec[],
+  options: { smoothing?: number; sharpness?: number } = {}): AutoRig {
+  if (!specs.length) throw new Error("Auto-rig needs at least one bone.");
+  const names = new Set<string>();
+  for (const spec of specs) {
+    if (names.has(spec.name)) throw new Error(`Duplicate rig bone "${spec.name}".`);
+    if (spec.parent && !names.has(spec.parent)) throw new Error(`Rig bone "${spec.name}" must come after its parent "${spec.parent}".`);
+    if (!(spec.radius > 0)) throw new Error(`Rig bone "${spec.name}" needs a positive radius.`);
+    names.add(spec.name);
+  }
+  computeSkinWeights(geometry, specs, options);
+  const heads = specs.map(s => new Vector3(...s.head));
 
   // Skeleton: bone positions are relative to the parent's joint.
   const bones = new Map<string, Bone>();
@@ -128,10 +143,11 @@ export function createAutoRig(geometry: BufferGeometry, material: Material, spec
   const mesh = new SkinnedMesh(geometry, material);
   for (const root of roots) mesh.add(root);
   mesh.updateMatrixWorld(true);
-  mesh.bind(new Skeleton([...bones.values()]));
+  const skeleton = new Skeleton([...bones.values()]);
+  mesh.bind(skeleton);
   mesh.frustumCulled = false;
   return {
-    mesh, bones,
+    mesh, bones, skeleton, specs,
     reset() {
       for (const [name, bone] of bones) { bone.quaternion.identity(); bone.position.copy(rest.get(name)!); }
     },
@@ -149,4 +165,17 @@ export function createAutoRig(geometry: BufferGeometry, material: Material, spec
       bone.attach(object);
     },
   };
+}
+
+/**
+ * Skin another mesh in the rig's rest space (hair, straps, clothing) to the same skeleton.
+ * Add the result as a sibling of `rig.mesh` (same transform), never under a bone.
+ */
+export function bindToAutoRig(rig: AutoRig, geometry: BufferGeometry, material: Material,
+  options: { smoothing?: number; sharpness?: number } = {}): SkinnedMesh {
+  computeSkinWeights(geometry, rig.specs, options);
+  const mesh = new SkinnedMesh(geometry, material);
+  mesh.bind(rig.skeleton, rig.mesh.bindMatrix);
+  mesh.frustumCulled = false;
+  return mesh;
 }
