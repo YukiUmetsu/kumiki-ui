@@ -18,6 +18,7 @@ import { archRoll, sculpt } from "./arch-sdf";
 import type { Node } from "./arch-sdf";
 import { arcade, bridge, candle, chairRows, church, octShaft, curtainWall, domeChurch, gatehouse, glasshouse, gothicNave, hearth, kasbahTower, keep, lighthouse, room, shelves, staveChurch, table, trullo, waterWheel, windmill } from "./arch-kit-civic";
 import type { SurfaceSpec } from "./arch-surface";
+import { gradNoise } from "./foundation-raster";
 
 export type LibraryGroup = "british" | "french" | "alpine" | "low-countries" | "italian" | "mediterranean" | "nordic" | "middle-east" | "historic" | "rural" | "interior";
 export interface LibraryEntry {
@@ -495,14 +496,33 @@ add({ id: "lombard-romanesque-church", label: "Lombard Romanesque church", group
 add({ id: "cycladic-cliffside", label: "Cycladic cliffside houses", group: "mediterranean", region: "Greece, Santorini", era: "18th–19th century", setting: "coast", view: "exterior", scale: "humble", mood: "noon",
   materials: ["lime-whitewashed rubble", "barrel vaults", "blue painted doors"], story: ["terraces where one roof is the next house's yard", "stairs down to the sea"],
   note: "Whitewash (lime, water, sea salt) keeps houses cool; vaults and flat roofs that gather water step down the cliff, each roof the terrace above the next.",
-  build: (seed = 43) => { const b = new SceneBuilder(seed); water(b, -600, 600, 10, 600, -40, "#2a5f88");
-    const cliff = b.mat({ kind: "rock", colour: "#8a6a58" }); b.add(clump(0, -20, -30, 120, 60, 40, cliff, 0.3, 0.12)); b.place();
+  build: (seed = 43) => { const b = new SceneBuilder(seed); water(b, -600, 600, 14, 600, -8, "#2a5f88");
+    // the cliff as stepped terraces: each row of houses is cut into the slope behind the retaining wall of the row above
+    // it, so one house's roof is the next one's yard; below the lowest row the bare cliff falls to the sea
+    const cliff = b.mat({ kind: "rock", colour: "#8a6a58" }), terrace = b.mat(S.rubble("#cdbca6", 0.5)), pave = b.mat(S.limewash("#efece4", 0.08, "rubble")), parapet = b.mat(S.limewash("#f5f3ec", 0.05, "rubble"));
+    const rows: readonly (readonly [number, number, number])[] = [[30, -3.5, 22], [24, 1.5, 23], [18, 6.5, 24], [12, 11.5, 25]];
+    rows.forEach(([y, zf, hw], r) => {
+      const below = rows[r + 1]?.[0] ?? -10;
+      b.add(boxAt(-hw, y - 3.1, -60, hw, y, zf, terrace), boxAt(-hw, y - 0.06, -60, hw, y, zf, pave), boxAt(-hw, y, zf - 0.2, hw, y + 0.9, zf, parapet, 0, 0.05));
+      // behind the houses of the row below, the slope itself
+      b.add(boxAt(-hw, below - 0.2, -60, hw, y - 3.1, zf - 5.4, terrace));
+    });
+    b.add(clump(0, 20, -42, 52, 30, 20, cliff, 0.3, 0.14));
+    // one continuous cliff face below the lowest terrace, leaning back as it rises, its face broken by ribs and gullies
+    b.add(leaf((x, y, z) => {
+      const face = 15.5 - (y + 10) * 0.16 + 1.6 * gradNoise(7, x * 0.12, y * 0.05) + 0.7 * gradNoise(8, x * 0.4, y * 0.3) + 0.25 * gradNoise(9, x * 1.3, y * 1.1);
+      return Math.max(z - face, Math.abs(x) - 40 + (y + 10) * 0.35 - 2.5 * gradNoise(10, y * 0.2, 0), y - 11.6 - 1.6 * gradNoise(11, x * 0.09, 0) - 0.5 * gradNoise(12, x * 0.4, 0), -12 - y) * 0.45;
+    }, [-44, -12, -10], [44, 12.2, 19], cliff));
+    for (const sx of [-1, 1]) for (let k = 0; k < 4; k++) b.add(clump(sx * (29 + k * 3), 6 + k * 5, 2 - k * 5, 7, 9 + k, 9, cliff, b.r(), 0.1));
+    // a whitewashed stair zigzagging down the east side from the top terrace to a landing at the sea
+    for (let k = 0; k < 60; k++) { const y = 30 - k * 0.42, z = -3.5 + k * 0.27, x = 25 + (Math.floor(k / 14) % 2 ? -2 : 0); if (y < 11.8) break; b.add(boxAt(x, y - 0.4, z - 0.3, x + 2, y, z, pave)); }
+    b.place();
     const white = S.limewash("#f5f3ec", 0.06, "rubble");
-    for (let k = 0; k < 12; k++) { const row = Math.floor(k / 4), x = (k % 4 - 1.5) * 8 + (row % 2) * 4, y = 30 - row * 6, z = -8 + row * 5;
-      house(b, { w: 6, d: 6, storeys: 1, storeyH: 3.2, walls: white, roof: { kind: "flat", pitch: 1, mat: S.limewash("#f5f3ec", 0.04), gableMat: white }, windows: { rows: [[1.5]], spec: W.shuttered("#2f6ab0", 0.8, 1.1) }, door: { x: -1.2, mat: S.paint("#2f6ab0", 0.1), step: null } });
-      if (k % 3 === 0) b.add(cut(cylY(0, 0, 3.2, 3.2, 0, 0), []), dome(0, 3.2, 0, 2.4, 2.2, b.mat(S.paint("#2f6ab0", 0.05))));
+    for (let k = 0; k < 12; k++) { const row = Math.floor(k / 4), x = (k % 4 - 1.5) * 8.5 + (row % 2) * 4 + b.r(-1.2, 1.2), y = 30 - row * 6, z = -8 + row * 5 - 0.5 - b.r(0, 1.2), w = 5 + ((k * 7) % 3), two = k % 5 === 2;
+      house(b, { w, d: 6, storeys: two ? 2 : 1, storeyH: 3.0, walls: white, roof: { kind: "flat", pitch: 1, mat: S.limewash("#f5f3ec", 0.04), gableMat: white }, windows: { rows: [[1.5]], spec: W.shuttered("#2f6ab0", 0.8, 1.1) }, door: { x: -1.2, mat: S.paint("#2f6ab0", 0.1), step: null } });
+      if (k % 3 === 0 && !two) b.add(dome(0, 3.0, 0, 2.1, 2.0, b.mat(S.paint("#2f6ab0", 0.05))), cylY(0, 0, 3.0, 3.25, 2.2, b.mat(white)), cylY(0, 0, 5.0, 5.5, 0.08, b.mat(S.limewash("#f5f3ec", 0.04))));
       b.place({ x, y, z }); }
-    return done(b, frameSubject(b, 14, { eye: 22 }), "noon"); } });
+    return done(b, { x: 12, y: 4, z: 100, yaw: -7, fov: 50, shift: 0.3 }, "noon"); } });
 add({ id: "blue-domed-chapel", label: "Blue-domed island chapel", group: "mediterranean", region: "Greece, Cyclades", era: "19th century", setting: "coast", view: "exterior", scale: "humble", mood: "golden",
   materials: ["whitewash", "a blue-painted dome", "a pierced bell gable"], story: ["bells hung in the gable wall", "the sea beyond"],
   note: "Small chapels carry a dome on a drum and a pierced bell gable; walls and paving are whitewashed, the dome painted blue.",

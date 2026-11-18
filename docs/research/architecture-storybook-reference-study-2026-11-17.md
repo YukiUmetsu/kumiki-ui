@@ -212,6 +212,12 @@ The owner: "continue working on weak spots." A review of all 100 plates found:
   snow-capped peaks, with a log trough, a split-rail fence, a bench and a cowbell.
 - **Bookshop on a rainy night.** It stood alone in an empty square. It now stands in a street of neighbours with lit
   windows and a second lamp.
+- **Cycladic cliffside.** The houses floated in front of a rock ellipsoid that never met them. Now:
+  - the cliff is stepped terraces, and each row of houses is cut into the slope behind the retaining wall above it,
+    so one roof is the next house's yard, as the plate's story says;
+  - houses vary in width and height, with domed chapels;
+  - a whitewashed stair zigzags down the east side;
+  - below the lowest row, one continuous rock face, broken by ribs and gullies, falls to the sea.
 
 ## Limits
 
