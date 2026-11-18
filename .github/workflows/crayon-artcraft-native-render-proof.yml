@@ -79,7 +79,7 @@ jobs:
           path: .artcraft-original-photo
       # One Playwright invocation per job: a second test command clears
       # test-results/ and silently destroys the first set of native PNGs.
-      # Keep actual 1x/3x V54/V56 A/B and original-photo SSIM together.
+      # Keep native 1x/3x V54/V56/V63 A/B and original-photo SSIM together.
       - name: Capture source-native geometry and exact CC0 original-photo pixel audit (PR)
         if: github.event_name == 'pull_request'
         run: >-

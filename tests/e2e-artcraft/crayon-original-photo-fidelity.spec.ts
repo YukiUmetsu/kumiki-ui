@@ -58,6 +58,7 @@ test("F1 V55 source-vs-native similarity 608x1082 CC0 V52 and V54 (research repo
     ["V54","source-anat1-superior-tarsus-v54"],
   ] as const){
     const spec=crayonCc0FaceStudy({midfaceForm,detail:1});
+    capturedSpecs[label]=spec;
     await page.setContent("<!doctype html><html><body style='margin:0'>"+
       renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
       "</body></html>");
@@ -183,6 +184,7 @@ test("F1 V58 original CC0 22-station hair silhouette source image and V56 V57",a
   const original=discoverSource(process.env.KM_ARTCRAFT_CC0_SOURCE_DIR??".artcraft-original-photo");
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   const captures:Record<string,string>={};
+  const capturedSpecs:Record<string,ReturnType<typeof crayonCc0FaceStudy>>={};
   for(const [label,midfaceForm] of [
     ["V56","source-anat1-hair-top-v56"],
     ["V57","source-anat1-hair-edge-v57"],
@@ -415,6 +417,34 @@ test("F1 V63 source-connected facial value calibration native PNG and V60 eviden
     const png=await svg.screenshot({animations:"disabled"});
     writeFileSync(info.outputPath("v63-native-"+label+"-299.png"),png);
     captures[label]=Buffer.from(png).toString("base64");
+  }
+  // Render actual vector 1.6×/2.95×/3× camera inspections at the same
+  // frame for both variants; this is not a raster upscale of the 1× PNG.
+  const detailCameras=[
+    ["face-1.6x",{focusX:335,focusY:586,zoom:1.6}],
+    ["near-eye-2.95x",{focusX:269,focusY:546,zoom:2.95}],
+    ["far-eye-3x",{focusX:437,focusY:516,zoom:3}],
+    ["nose-3x",{focusX:416,focusY:622,zoom:3}],
+    ["mouth-3x",{focusX:417,focusY:734,zoom:3}],
+  ] as const;
+  for(const [region,camera] of detailCameras){
+    for(const variant of ["V57","V63"] as const){
+      const spec=capturedSpecs[variant];
+      const zoomed={...spec,camera:[
+        {frame:0,...camera},{frame:299,...camera},
+      ]};
+      await page.setContent("<!doctype html><html><body style='margin:0'>"+
+        renderToStaticMarkup(createElement(CrayonScene,{spec:zoomed,frame:299}))+
+        "</body></html>");
+      const svg=page.locator("svg[data-km-crayon-scene]");
+      await expect(svg).toBeVisible();
+      const cameraGroup=svg.locator("[data-km-crayon-camera]");
+      const transform=await cameraGroup.getAttribute("transform");
+      expect(transform).toContain("scale("+camera.zoom+")");
+      await page.waitForTimeout(320);
+      const png=await svg.screenshot({animations:"disabled"});
+      writeFileSync(info.outputPath("v63-detail-"+variant+"-"+region+".png"),png);
+    }
   }
   const metrics=await page.evaluate(async({source,v57,v63,points})=>{
     async function pixels(base64:string){

@@ -852,6 +852,36 @@ export const Cc0Anat1ConnectedFaceV63:Story={
   render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
     initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="full"/>,
 };
+export const Cc0Anat1ConnectedFaceV63Face:Story={
+  name:"CC0 V63 connected face · 1.6× full-face inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="face"/>,
+};
+export const Cc0Anat1ConnectedFaceV63NearEye:Story={
+  name:"CC0 V63 connected face · 2.95× near-eye inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="near-eye"/>,
+};
+export const Cc0Anat1ConnectedFaceV63FarEye:Story={
+  name:"CC0 V63 connected face · 3× far-eye inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="far-eye"/>,
+};
+export const Cc0Anat1ConnectedFaceV63Nose:Story={
+  name:"CC0 V63 connected face · 3× nose inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="nose"/>,
+};
+export const Cc0Anat1ConnectedFaceV63Mouth:Story={
+  name:"CC0 V63 connected face · 3× mouth inspection",
+  args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
+  render:args=><Cc0SourceRegisteredFaceWorkbench {...args}
+    initialMidfaceForm="source-anat1-connected-face-v63" initialInspection="mouth"/>,
+};
 export const Cc0Anat1HairTopV56:Story={
   name:"CC0 photographed source-registered asymmetric outer hair silhouette (!dev V56)",
   args:{aspect:"portrait",detail:1,startFrame:299,playbackRate:1,loop:false},
