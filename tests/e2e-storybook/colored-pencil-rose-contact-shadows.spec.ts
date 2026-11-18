@@ -105,8 +105,8 @@ test("physical lower/upper rose contact valleys: 16:9 / 9:16 fill/occlusion A/B 
     },ROSE_CONTACT_SHADOWS);
     console.info("[rose-contact-occupancy]",aspect,JSON.stringify(occupancy));
     for(const measured of occupancy){
-      expect(measured.exposed,measured.id+" exposes painted lower petal").toBeGreaterThan(8);
-      expect(measured.covered,measured.id+" has real upper occluding petal").toBeGreaterThan(5);
+      expect(measured.exposed,measured.id+" exposes painted lower petal").toBeGreaterThan(20);
+      expect(measured.covered,measured.id+" has real upper occluding petal").toBeGreaterThan(20);
     }
     const after=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-occlusion-"+aspect+"-five-source-valleys-native.png")});
