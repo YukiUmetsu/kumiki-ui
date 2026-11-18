@@ -543,3 +543,132 @@ test("F1 V63 source-connected facial value calibration native PNG and V60 eviden
   expect(record.audit.status).toBe("INCOMPLETE");
   expect(record.releaseApproved).toBe(false);
 });
+
+/**
+ * V64 native oral-anatomy proof. Compares the exact same V63 geometry and
+ * source photo against V64's narrower connected enamel / vermilion treatment.
+ */
+test("F1 V64 source-led oral aperture native PNG, 3x mouth and V60 evidence",async({page},info)=>{
+  test.setTimeout(180_000);
+  await page.setViewportSize({width:W,height:H});
+  const original=discoverSource(process.env.KM_ARTCRAFT_CC0_SOURCE_DIR??".artcraft-original-photo");
+  const captures:Record<string,string>={};
+  for(const [label,midfaceForm] of [
+    ["V63","source-anat1-connected-face-v63"],
+    ["V64","source-anat1-connected-face-v64"],
+  ] as const){
+    const spec=crayonCc0FaceStudy({midfaceForm,detail:1});
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
+      "</body></html>");
+    const svg=page.locator("svg[data-km-crayon-scene]");
+    await expect(svg).toBeVisible();
+    await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
+    const aperture=svg.locator('[data-km-crayon-element="mouth-aperture-depth"]');
+    const apertureBox=await aperture.evaluate(element=>{
+      const box=(element as SVGGraphicsElement).getBBox();
+      return {width:box.width,height:box.height};
+    });
+    if(label==="V64"){
+      expect(apertureBox.width).toBeLessThanOrEqual(118);
+      expect(apertureBox.height).toBeLessThanOrEqual(34);
+      for(const id of ["dental-surface-left","dental-surface-center","dental-surface-far"]){
+        const tooth=svg.locator('[data-km-crayon-element="'+id+'"]');
+        const box=await tooth.evaluate(element=>{
+          const bounds=(element as SVGGraphicsElement).getBBox();
+          return {width:bounds.width,height:bounds.height};
+        });
+        expect(box.height).toBeLessThanOrEqual(12);
+      }
+    }
+    const png=await svg.screenshot({animations:"disabled"});
+    writeFileSync(info.outputPath("v64-native-"+label+"-299.png"),png);
+    captures[label]=Buffer.from(png).toString("base64");
+    const mouthSpec={...spec,camera:[
+      {frame:0,focusX:417,focusY:734,zoom:3},
+      {frame:299,focusX:417,focusY:734,zoom:3},
+    ]};
+    await page.setContent("<!doctype html><html><body style='margin:0'>"+
+      renderToStaticMarkup(createElement(CrayonScene,{spec:mouthSpec,frame:299}))+
+      "</body></html>");
+    const mouthSvg=page.locator("svg[data-km-crayon-scene]");
+    const transform=await mouthSvg.locator("[data-km-crayon-camera]").getAttribute("transform");
+    expect(transform).toContain("scale(3)");
+    await page.waitForTimeout(320);
+    const detail=await mouthSvg.screenshot({animations:"disabled"});
+    writeFileSync(info.outputPath("v64-detail-"+label+"-mouth-3x.png"),detail);
+  }
+  const metrics=await page.evaluate(async({source,v63,v64})=>{
+    async function pixels(base64:string){
+      const img=new Image();img.src="data:image/png;base64,"+base64;
+      await img.decode();
+      if(img.naturalWidth!==608||img.naturalHeight!==1082)
+        throw new Error("V64 oral screenshot is not 608×1082");
+      const canvas=document.createElement("canvas");canvas.width=608;canvas.height=1082;
+      const ctx=canvas.getContext("2d",{willReadFrequently:true});
+      if(!ctx)throw new Error("No Chromium pixel inspector");
+      ctx.drawImage(img,0,0);
+      return ctx.getImageData(0,0,608,1082).data;
+    }
+    const [src,a,b]=await Promise.all([pixels(source),pixels(v63),pixels(v64)]);
+    const mouth=[385,725,70,25] as const;
+    function mouthStats(data:Uint8ClampedArray){
+      const [x,y,w,h]=mouth;let dark=0,brightNeutral=0;
+      for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){
+        const i=(yy*608+xx)*4,r=data[i],g=data[i+1],bl=data[i+2];
+        const lum=.2126*r+.7152*g+.0722*bl;
+        if(lum<65)dark++;
+        if(lum>175&&Math.max(r,g,bl)-Math.min(r,g,bl)<70)brightNeutral++;
+      }
+      return {darkPixels:dark,brightNeutralPixels:brightNeutral};
+    }
+    function changed(a:Uint8ClampedArray,b:Uint8ClampedArray,
+      box:readonly [number,number,number,number]){
+      const [x,y,w,h]=box;let n=0,total=0;
+      for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){
+        const i=(yy*608+xx)*4;
+        if(a[i]!==b[i]||a[i+1]!==b[i+1]||a[i+2]!==b[i+2])n++;
+        total++;
+      }
+      return n/total;
+    }
+    return {
+      sourceMouth:mouthStats(src),v63Mouth:mouthStats(a),v64Mouth:mouthStats(b),
+      eyeControlChangedFraction:changed(a,b,[190,490,180,115]),
+      noseControlChangedFraction:changed(a,b,[350,510,130,160]),
+      hairControlChangedFraction:changed(a,b,[0,150,530,250]),
+    };
+  },{
+    source:original.toString("base64"),v63:captures.V63,v64:captures.V64,
+  });
+  const checkoutSha=process.env.GITHUB_SHA??
+    execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
+  const png=Buffer.from(captures.V64,"base64");
+  const record=crayonF1NativeCaptureWorksheetV60({
+    variant:"source-anat1-connected-face-v64",
+    nativePngSha256:createHash("sha256").update(png).digest("hex"),
+    checkoutCommitSha:checkoutSha,
+    pngFileName:"v64-native-V64-299.png",
+  });
+  const report={
+    schema:"kumiki-crayon-artcraft-v64-oral-aperture-audit",
+    sourceSha256:REFERENCE_SHA,
+    v63PngSha256:createHash("sha256").update(Buffer.from(captures.V63,"base64")).digest("hex"),
+    v64PngSha256:record.native.sha256,
+    metrics,
+    audit:record.audit,
+    artisticApproval:false,
+    releaseApproved:false,
+  };
+  writeFileSync(info.outputPath("v64-oral-aperture-audit.json"),JSON.stringify(report,null,2)+"\n");
+  writeFileSync(info.outputPath("v60-native-candidate-V64-299.json"),JSON.stringify(record,null,2)+"\n");
+  console.log("[ArtCraft V64 oral aperture audit]"+JSON.stringify(report));
+  expect(metrics.v64Mouth.brightNeutralPixels)
+    .toBeLessThan(metrics.v63Mouth.brightNeutralPixels*.75);
+  expect(metrics.v64Mouth.darkPixels).toBeGreaterThan(metrics.v63Mouth.darkPixels+10);
+  expect(metrics.eyeControlChangedFraction).toBe(0);
+  expect(metrics.noseControlChangedFraction).toBe(0);
+  expect(metrics.hairControlChangedFraction).toBe(0);
+  expect(record.audit.status).toBe("INCOMPLETE");
+  expect(record.releaseApproved).toBe(false);
+});

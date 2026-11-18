@@ -1,5 +1,6 @@
 import {describe,expect,it} from "vitest";
 import {crayonCc0FaceStudy} from "../src/video/crayon-artcraft-cc0-face";
+import type {CrayonElement} from "../registry/video/materials/crayon-scene";
 import {
   CRAYON_F1_ORAL_APERTURE_V64_IDS,
   crayonF1RefineOralApertureV64,
@@ -9,7 +10,7 @@ const ids=["mouth-aperture-depth","dental-arch-connected-wax",
   "dental-surface-left","dental-surface-center","dental-surface-far",
   "upper-vermilion-incisor-overhang","lip-upper","labial-upper-value",
   "lip-lower","labial-lower-value","lip-lower-wax-ribs"] as const;
-const byId=(elements:readonly {id:string}[],id:string)=>
+const byId=(elements:readonly CrayonElement[],id:string)=>
   elements.find(element=>element.id===id);
 const rgb=(hex:string)=>hex.replace("#","").match(/.{2}/g)!.map(x=>parseInt(x,16));
 
