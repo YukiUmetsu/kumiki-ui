@@ -56,12 +56,46 @@ interface ObjectShape {
   startFrame?: number;
 }
 
-function material(shape: ObjectShape, seed: number, transform: string): PencilRegion {
+const ROSE_CENTER_PIGMENT_TONE:Readonly<Record<string,"core"|"rim">>={
+  "inner-fold":"core",
+  "rose-whorl-recess":"core",
+  "rose-whorl-left":"core",
+  "rose-whorl-right":"core",
+  "heart":"core",
+  "rose-whorl-scroll":"rim",
+  "rose-center-scroll-underturn":"core",
+};
+
+function material(shape: ObjectShape, seed: number, transform: string,
+  formAlignedRoseCenter=false): PencilRegion {
   const input: PencilMaterialInput = {
     ...shape, seed, transform,
     startFrame:shape.startFrame ?? 25, durationFrames:170,craft:true,
   };
-  return createPencilMaterialRegion(input);
+  const region=createPencilMaterialRegion(input);
+  if(!formAlignedRoseCenter)return region;
+
+  // The general petal recipe intentionally cross-hatches at +73° / -44°.
+  // That is useful on broad outer petals, but the same crossed passes collapse
+  // the compact inner knot into a dark scribble at normal film size. Keep all
+  // three original pigment layers and their marks; only align their paper-space
+  // axes to this lamina's authored tangent and let each pass fan with the fold.
+  if(region.layers.length!==3)
+    throw new RangeError("Rose centre requires all three CP-F1 pigment passes");
+  const direction=shape.direction??region.layers[0].angle;
+  const flow=shape.flow??region.layers[0].flow??0;
+  const offsets=[0,11,-9] as const;
+  const fan=[1,.88,.76] as const;
+  const normalise=(angle:number)=>((angle+180)%360+360)%360-180;
+  return {
+    ...region,
+    layers:region.layers.map((layer,index)=>({
+      ...layer,
+      angle:normalise(direction+offsets[index]),
+      flow:flow*fan[index],
+      tone:ROSE_CENTER_PIGMENT_TONE[shape.id]??layer.tone,
+    })),
+  };
 }
 
 function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,leafStudy=false,foldStudy=false,whorlStudy=false,middleStudy=false,rimStudy=false,crownStudy=false,volumeStudy=false,knotStudy=false,outerFormStudy=false,outerRippleStudy=false,hypanthiumStudy=false,heelStudy=false): ObjectShape[] {
@@ -213,7 +247,10 @@ function roseShapes(laminaStudy=false,seed=173,lipStudy=false,calyxStudy=false,l
       const source=knotStudy?ROSE_CENTER_KNOT_SURFACES.find(o=>o.id===part.id):undefined;
       return source?{...part,path:source.path,bounds:source.bounds,
         palette:source.palette,direction:source.direction,flow:source.flow,
-        details:[...(part.details??[]),...source.dryContours]}:part;
+        // Long legacy centre arcs are re-authored as short local contacts;
+        // the four existing whorl fibres remain and are separately aligned.
+        details:[...(source.replacementBaseDetails??part.details??[]),
+          ...source.dryContours]}:part;
     };
     if(whorlStudy&&shape.id==="inner-fold")
       return [knot(shape),...ROSE_INNER_WHORL_ORGANS
@@ -642,7 +679,11 @@ export function pencilObjectStudyDrawing({
       middleIndex>=0?35+middleIndex:
       rimIndex>=0?40+rimIndex:
       knotIndex>=0?knotIndex:i;
-    const region = material(shape, (seed + materialIndex * 311) % 2147483647, transform);
+    const centerSurface=subject==="rose"&&roseCenterKnotStudy&&(
+      ROSE_CENTER_KNOT_SURFACES.some(s=>s.id===shape.id)||
+      shape.id===ROSE_CENTER_SCROLL_BACKFACE.id);
+    const region = material(shape,
+      (seed + materialIndex * 311) % 2147483647, transform,centerSurface);
     const frontal=subject==="rose"&&roseFrontValueStudy&&
       (shape.id==="petal-front-left"||shape.id==="petal-front-right")?
       roseFrontValueDetails(shape.id,seed):undefined;

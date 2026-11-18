@@ -23,7 +23,7 @@ const choice={padding:"8px 11px",minHeight:40,border:"1px solid #A9B4AA",
   borderRadius:6,background:"#FFFDF5",color:"#364951"} as const;
 const caption={display:"grid",gap:5,font:"600 13px system-ui",minWidth:145} as const;
 const press={...choice,cursor:"pointer",font:"600 13px system-ui"} as const;
-type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx"|"rose-fold-left"|"rose-fold-right"|"rose-fold-back"|"rose-outer-left"|"rose-outer-right"|"rose-front-left"|"rose-front-right"|"rose-rim-left"|"rose-rim-right"|"rose-crown-face"|"rose-whorl-center"|"rose-whorl-recess"|"rose-whorl-underturn"|"rose-mid-left"|"rose-mid-right";
+type InspectionFocus="default"|"fox-tail"|"fox-eye"|"fox-ear"|"fox-cheek"|"fox-chest"|"fox-forepaw"|"fox-hock"|"portrait-head"|"rose-left-leaf"|"rose-right-leaf"|"rose-calyx"|"rose-fold-left"|"rose-fold-right"|"rose-fold-back"|"rose-outer-left"|"rose-outer-right"|"rose-front-left"|"rose-front-right"|"rose-rim-left"|"rose-rim-right"|"rose-crown-face"|"rose-whorl-center"|"rose-whorl-recess"|"rose-whorl-left"|"rose-whorl-right"|"rose-whorl-heart"|"rose-whorl-back-crown"|"rose-whorl-underturn"|"rose-mid-left"|"rose-mid-right";
 
 /** Select the actual drawn part's projected center, not a guessed camera-space
  * crop. Both aspect transforms are shared with the drawing output itself. */
@@ -155,7 +155,11 @@ export function PencilFoundationStudio(){
     "rose-rim-front-right":inspectionFocus==="rose-crown-face"&&specimen==="rose"&&roseBackCupReliefStudy?
     "back-cup":inspectionFocus==="rose-whorl-center"&&specimen==="rose"&&roseInnerWhorlStudy?
     "rose-whorl-scroll":inspectionFocus==="rose-whorl-recess"&&specimen==="rose"&&roseInnerWhorlStudy?
-    "rose-whorl-recess":inspectionFocus==="rose-whorl-underturn"&&specimen==="rose"&&roseCenterKnotStudy?
+    "rose-whorl-recess":inspectionFocus==="rose-whorl-left"&&specimen==="rose"&&roseInnerWhorlStudy?
+    "rose-whorl-left":inspectionFocus==="rose-whorl-right"&&specimen==="rose"&&roseInnerWhorlStudy?
+    "rose-whorl-right":inspectionFocus==="rose-whorl-heart"&&specimen==="rose"&&roseCenterKnotStudy?
+    "heart":inspectionFocus==="rose-whorl-back-crown"&&specimen==="rose"&&roseCenterKnotStudy?
+    "inner-fold":inspectionFocus==="rose-whorl-underturn"&&specimen==="rose"&&roseCenterKnotStudy?
     "rose-center-scroll-underturn":inspectionFocus==="rose-mid-left"&&specimen==="rose"&&roseMiddleCupStudy?
     "rose-mid-left-shoulder":inspectionFocus==="rose-mid-right"&&specimen==="rose"&&roseMiddleCupStudy?
     "rose-mid-right-tuck":inspectionFocus==="portrait-head"&&specimen==="portrait"?
@@ -369,10 +373,22 @@ export function PencilFoundationStudio(){
             Rose front-right physical rim / uneven cuticle thickness
           </option>
           <option value="rose-whorl-center" disabled={specimen!=="rose"||!roseInnerWhorlStudy}>
-            Rose inner whorl / front spiral roll
+            Rose center / off-axis foreground petal
           </option>
           <option value="rose-whorl-recess" disabled={specimen!=="rose"||!roseInnerWhorlStudy}>
-            Rose inner whorl / deep shaded cup
+            Rose center / irregular shaded pocket
+          </option>
+          <option value="rose-whorl-left" disabled={specimen!=="rose"||!roseInnerWhorlStudy}>
+            Rose center / left lifted petal wall
+          </option>
+          <option value="rose-whorl-right" disabled={specimen!=="rose"||!roseInnerWhorlStudy}>
+            Rose center / right tucked shoulder
+          </option>
+          <option value="rose-whorl-heart" disabled={specimen!=="rose"||!roseCenterKnotStudy}>
+            Rose center / foreground convex lamina
+          </option>
+          <option value="rose-whorl-back-crown" disabled={specimen!=="rose"||!roseCenterKnotStudy}>
+            Rose center / irregular rear crown
           </option>
           <option value="rose-whorl-underturn" disabled={specimen!=="rose"||!roseCenterKnotStudy}>
             Rose centre curled lip / separate physical underside

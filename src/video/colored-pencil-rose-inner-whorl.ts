@@ -1,11 +1,12 @@
 /**
- * CP-F1 × FLORA1 — authored nested inner rose whorl, not a generic spiral stamp.
+ * CP-F1 × FLORA1 — source-led inner rose petals, not a concentric spiral stamp.
  *
- * Double-flowered roses arrange increasingly short petals around a deeply
- * shaded recess. Each original bounded surface here has its own attachment,
- * curl, occlusion, material and four pressure-timed pencil contacts.
- * Technique/morphology references are recorded in the companion research note.
- * Experimental: OFF for all production defaults pending independent 1× review.
+ * The flower centre is an overlap of separately facing laminae: a recessed
+ * pocket, a narrow left curl, a broader right shoulder and one foreground
+ * lobe. Their shoulders, tangents and occlusion roots are intentionally
+ * offset. None is a rotated copy of another. Experimental; OFF by default.
+ *
+ * Morphology references are documented in the companion ArtCraft study.
  */
 import type {PencilTrace} from "../../registry/video/colored-pencil";
 
@@ -26,61 +27,60 @@ type Contact=readonly [string,string,number,number,number];
 const strokes=(id:string,passes:readonly Contact[]):readonly PencilTrace[]=>
   passes.map(([path,color,width,opacity,startFrame],index)=>({
     id:"rw-"+id+"-"+index,path,color,width,opacity,
-    startFrame,durationFrames:46,
+    startFrame,durationFrames:42,
   }));
 
-/** Painting order: shaded cup -> left turn -> right turn -> front scroll.
- * These are four independently authored concave or reflexed physical laminae,
- * rather than four rotations of a shared wedge or a stroke-only dark line.
- * The existing inner-fold and heart sources stay in the drawing unchanged.
+/** Painting order: asymmetric rear pocket -> left lifted wall -> right tucked
+ * shoulder -> foreground turned petal. It is one convex lamina; the narrow reverse
+ * supplies the fold, not a closed engraved C-ring.
  */
 export const ROSE_INNER_WHORL_ORGANS:readonly RoseInnerWhorlOrgan[]=[
   {
     id:"rose-whorl-recess",surface:"petal",
-    path:"M216 159 C216 145 229 134 245 135 C261 129 284 138 293 150 C289 161 276 169 262 177 C242 186 223 174 216 159 Z",
-    bounds:[212,126,85,63],palette:["#923751","#451733","#B65B70"],
-    direction:14,flow:25,
+    path:"M252 159 C257 151 265 149 272 153 C279 156 282 162 279 167 C273 168 269 173 266 179 C261 176 258 171 255 166 C252 164 250 161 252 159 Z",
+    bounds:[247,147,35,32],palette:["#64283F","#3D182E","#A05B70"],
+    direction:8,flow:13,
     details:strokes("recess",[
-      ["M222 158 C231 143 244 142 255 141 M265 143 Q281 147 285 152","#4E2540",.89,.65,170],
-      ["M225 164 Q234 177 251 175 Q277 167 286 153","#623049",.8,.66,198],
-      ["M227 151 C241 141 254 147 268 144 M238 170 Q258 170 271 157","#C77E89",.48,.4,226],
-      ["M225 158 Q231 149 237 147 M276 150 Q281 154 278 159","#CF8298",.28,.28,257],
+      ["M253 157 Q259 151 266 151","#54233D",.76,.61,170],
+      ["M273 155 Q278 159 277 164","#C17A89",.39,.36,210],
+      ["M253 163 Q257 166 261 170","#5B2740",.56,.53,235],
+      ["M258 162 L262 157 M265 155 L269 154","#D18E9A",.25,.27,260],
     ]),
   },
   {
     id:"rose-whorl-left",surface:"petal",
-    path:"M219 163 C214 152 226 139 244 140 C252 142 251 147 245 153 C237 162 235 172 245 183 C232 181 222 174 219 163 Z",
-    bounds:[213,137,42,50],palette:["#AA4B65","#55243F","#D18194"],
-    direction:53,flow:24,
+    path:"M220 163 C214 157 214 149 219 143 C223 138 230 137 235 141 C240 145 238 151 233 156 C228 162 227 168 231 174 C238 166 247 163 255 166 C261 169 264 174 266 179 C253 191 233 181 222 168 C221 166 220 164 220 163 Z",
+    bounds:[212,135,55,57],palette:["#B85A70","#6B2440","#E5949F"],
+    direction:54,flow:27,
     details:strokes("left",[
-      ["M221 157 Q227 148 235 144 M238 143 L241 144","#D998A4",.63,.39,171],
-      ["M227 154 C223 163 230 177 242 180","#6F314C",.78,.7,200],
-      ["M232 151 Q228 161 233 166 M238 147 Q236 153 237 156","#9A4762",.45,.49,231],
-      ["M219 160 L222 155 M226 150 L229 148 M235 144 L237 143","#DFACAE",.29,.36,260],
+      ["M220 154 Q222 146 229 142","#D38A97",.55,.41,172],
+      ["M224 163 Q225 170 230 174","#642640",.73,.68,199],
+      ["M250 181 Q254 184 258 182","#A84B66",.43,.48,230],
+      ["M222 151 L224 148 M228 143 L231 141","#E0A9AA",.26,.33,258],
     ]),
   },
   {
     id:"rose-whorl-right",surface:"petal",
-    path:"M245 144 C259 133 277 134 287 145 C295 151 290 164 279 170 C266 177 251 172 246 161 C257 165 273 162 279 152 C269 142 255 146 245 151 Z",
-    bounds:[242,130,53,49],palette:["#B65871","#602946","#D7899B"],
-    direction:-43,flow:-23,
+    path:"M254 146 C262 137 273 134 284 140 C293 145 296 153 290 161 C285 167 276 169 267 167 C260 166 256 162 255 157 C260 157 265 154 268 150 C270 147 267 144 263 145 C259 146 257 150 255 153 C252 151 252 148 254 146 Z",
+    bounds:[250,132,46,39],palette:["#A94A62","#61213A","#D77E8E"],
+    direction:-34,flow:-20,
     details:strokes("right",[
-      ["M251 146 Q258 139 266 141 M273 143 Q282 147 285 152 M286 156 Q284 160 282 161","#E19FAA",.61,.41,173],
-      ["M248 160 C259 173 278 171 286 156","#712A46",1.08,.72,202],
-      ["M260 141 Q271 146 276 153 M255 166 Q266 169 273 164","#B85872",.46,.5,231],
-      ["M253 148 L257 146 M269 141 L271 142 M284 149 L285 152","#DFA4AB",.28,.33,259],
+      ["M260 144 Q270 137 280 141","#D78D9A",.55,.4,174],
+      ["M286 157 Q280 165 270 166","#58213D",.79,.69,202],
+      ["M260 158 Q267 161 273 156","#B65B72",.44,.49,232],
+      ["M284 147 L287 151 M280 160 L278 163","#E5A8AA",.25,.32,261],
     ]),
   },
   {
     id:"rose-whorl-scroll",surface:"petal",
-    path:"M232 171 C235 159 244 152 258 154 C265 153 273 162 271 170 C269 179 257 185 247 183 C241 181 242 176 247 173 C254 170 260 174 264 169 C261 161 250 160 244 166 Q240 173 232 171 Z",
-    bounds:[229,147,43,40],palette:["#B65975","#58253F","#D98EA0"],
-    direction:34,flow:19,
+    path:"M230 176 C221 166 223 151 234 141 C244 131 258 130 269 138 C280 146 283 159 276 169 C271 177 261 180 251 181 C259 185 270 182 279 174 C278 187 265 195 252 193 C239 191 231 184 230 176 Z",
+    bounds:[219,128,62,67],palette:["#C35B70","#70243F","#F1A2AA"],
+    direction:38,flow:26,
     details:strokes("scroll",[
-      ["M237 165 Q245 154 255 157 M260 158 Q265 161 266 166","#E8A7B2",.62,.43,177],
-      ["M244 170 Q251 158 261 165 Q270 173 257 180","#5B2944",.72,.68,205],
-      ["M238 166 Q241 157 248 158 M252 179 Q260 178 264 172","#A94E69",.45,.5,237],
-      ["M234 169 L238 164 M246 156 L249 155 M264 161 L267 165","#E8B2B3",.3,.4,266],
+      ["M238 153 Q246 141 258 138","#E2A4AB",.52,.39,177],
+      ["M270 150 Q277 158 273 166","#61233F",.56,.54,204],
+      ["M244 171 Q254 178 266 176","#B85C73",.42,.46,235],
+      ["M242 168 L248 173 M260 176 L266 175","#E7B0AE",.25,.33,264],
     ]),
   },
 ] as const;
@@ -90,6 +90,11 @@ export function inspectRoseInnerWhorl():string[]{
   if(ROSE_INNER_WHORL_ORGANS.length!==4)
     issues.push("Inner whorl requires four independently authored nested petals");
   const ids=new Set<string>();
+  const centres=ROSE_INNER_WHORL_ORGANS.map(o=>[
+    o.bounds[0]+o.bounds[2]/2,o.bounds[1]+o.bounds[3]/2,
+  ] as const);
+  if(new Set(centres.map(([x,y])=>x+","+y)).size!==4)
+    issues.push("Inner whorl petals must have independent off-axis centres");
   for(const organ of ROSE_INNER_WHORL_ORGANS){
     if(ids.has(organ.id))issues.push("Duplicate whorl organ "+organ.id);
     ids.add(organ.id);
@@ -101,12 +106,14 @@ export function inspectRoseInnerWhorl():string[]{
        b[0]<200||b[1]<120||b[0]+b[2]>320||b[1]+b[3]>200)
       issues.push("Whorl surface escapes the source flower center: "+organ.id);
     if(organ.details.length!==4)issues.push("Four optical passes required: "+organ.id);
-    for(const detail of organ.details){
-      if(!detail.path.startsWith("M")||!/^#[0-9A-Fa-f]{6}$/.test(detail.color)||
-        !Number.isFinite(detail.width)||detail.width<.2||detail.width>2||
-        (typeof detail.opacity!=="number"||!Number.isFinite(detail.opacity)||detail.opacity<=0||detail.opacity>1)||
-        !Number.isSafeInteger(detail.startFrame)||detail.startFrame<160||
-        !Number.isSafeInteger(detail.durationFrames)||detail.durationFrames<8)
+    for(const trace of organ.details){
+      if(!trace.path.startsWith("M")||trace.path.length>180||
+        !/^#[0-9A-Fa-f]{6}$/.test(trace.color)||
+        !Number.isFinite(trace.width)||trace.width<.2||trace.width>1||
+        (typeof trace.opacity!=="number"||!Number.isFinite(trace.opacity)||trace.opacity<=0||trace.opacity>1)||
+        !Number.isSafeInteger(trace.startFrame)||trace.startFrame<160||
+        !Number.isSafeInteger(trace.durationFrames)||trace.durationFrames<8||
+        trace.startFrame+trace.durationFrames>335)
         issues.push("Invalid whorl pencil contact: "+organ.id);
     }
   }

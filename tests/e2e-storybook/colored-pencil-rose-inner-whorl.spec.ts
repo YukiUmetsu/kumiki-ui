@@ -7,7 +7,9 @@ const ids=["rose-whorl-recess","rose-whorl-left","rose-whorl-right","rose-whorl-
 test("native CP-F1 rose central whorl A/B at 16:9 and 9:16 with truthful local zoom",async({page},info)=>{
   await page.goto(story);
   const svg=page.locator("svg[data-km-colored-pencil]");
+  const paper=svg.locator("xpath=..");
   const scene=page.locator("[data-km-foundation-studio]");
+  await expect(paper).toHaveCSS("overflow","hidden");
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
   await page.getByRole("button",{name:/6\. Burnish and visual audit/}).click();
   const whorl=page.getByRole("checkbox",{name:"Foundation rose nested inner whorl"});
@@ -40,8 +42,8 @@ test("native CP-F1 rose central whorl A/B at 16:9 and 9:16 with truthful local z
       await focus.selectOption(option);
       await expect(scene).toHaveAttribute("data-km-foundation-inspection-focus",region);
       await zoom.check();
-      await svg.screenshot({animations:"disabled",
-        path:info.outputPath("rose-inner-"+aspect+"-"+region+"-215pct.png")});
+      await paper.screenshot({animations:"disabled",
+        path:info.outputPath("rose-inner-"+aspect+"-"+region+"-215pct-parent-crop.png")});
       await zoom.uncheck();
     }
     await focus.selectOption("default");

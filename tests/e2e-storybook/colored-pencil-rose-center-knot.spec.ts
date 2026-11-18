@@ -8,7 +8,9 @@ const sourceIds=["inner-fold","heart","rose-whorl-recess",
 test("native 16:9 + 9:16: real six-source central knot with a visible curled backside, reversible A/B and full 45 regions",async({page},info)=>{
   await page.goto(story);
   const svg=page.locator("svg[data-km-colored-pencil]");
+  const paper=svg.locator("xpath=..");
   const studio=page.locator("[data-km-foundation-studio]");
+  await expect(paper).toHaveCSS("overflow","hidden");
   await page.getByRole("combobox",{name:"Foundation subject"}).selectOption("rose");
   const knot=page.getByRole("checkbox",{name:"Foundation rose center knot anatomy"});
   const whorl=page.getByRole("checkbox",{name:"Foundation rose nested inner whorl"});
@@ -23,6 +25,21 @@ test("native 16:9 + 9:16: real six-source central knot with a visible curled bac
     await expect(svg.locator("[data-km-pencil-region]")).toHaveCount(15);
     const before=await svg.screenshot({animations:"disabled",
       path:info.outputPath("rose-knot-"+aspect+"-legacy-whorl.png")});
+    const baselineMacros=new Map<string,Buffer>();
+    for(const [focusValue,part,name] of [
+      ["rose-whorl-center","rose-whorl-scroll","foreground-curl"],
+      ["rose-whorl-recess","rose-whorl-recess","recess"],
+      ["rose-whorl-left","rose-whorl-left","left-wall"],
+      ["rose-whorl-right","rose-whorl-right","right-shoulder"],
+    ] as const){
+      await focus.selectOption(focusValue);
+      await expect(studio).toHaveAttribute("data-km-foundation-inspection-focus",part);
+      await macro.check();
+      baselineMacros.set(name,await paper.screenshot({animations:"disabled",
+        path:info.outputPath("rose-knot-"+aspect+"-old-"+name+"-215pct.png")}));
+      await macro.uncheck();
+    }
+    await focus.selectOption("default");
     const previousPaths=await svg.evaluate((root,ids)=>{
       const result:Record<string,string|null>={};
       for(const id of ids){
@@ -41,14 +58,54 @@ test("native 16:9 + 9:16: real six-source central knot with a visible curled bac
       const region=svg.locator('[data-km-pencil-region="'+id+'"]');
       const path=region.locator("path[data-km-pencil-support]");
       await expect(path).toHaveCount(1);
-      expect(await path.getAttribute("d")).not.toBe(previousPaths[id]);
+      // The whorl study already owns the four independently reprofiled
+      // recess/side/scroll silhouettes. The deeper knot pass changes the
+      // rear crown and front convex lobe, and adds local contacts to all six.
+      if(id==="inner-fold"||id==="heart")
+        expect(await path.getAttribute("d")).not.toBe(previousPaths[id]);
+      else
+        expect(await path.getAttribute("d")).toBe(previousPaths[id]);
       const details=region.locator("[data-km-pencil-details] path");
       expect(await details.count()).toBeGreaterThanOrEqual(5);
+      const localContacts=await region.evaluate(node=>{
+        const support=node.querySelector("path[data-km-pencil-support]") as SVGPathElement|null;
+        if(!support)return [];
+        const paths=[...node.querySelectorAll(
+          'path[data-km-pencil-trace^="rw-"],path[data-km-pencil-trace^="rk-"]',
+        )] as SVGPathElement[];
+        return paths.map(path=>{
+          const length=path.getTotalLength();let inside=0;
+          for(let i=1;i<=9;i++){
+            const point=path.getPointAtLength(length*i/10);
+            if(support.isPointInFill(new DOMPoint(point.x,point.y)))inside++;
+          }
+          return {id:path.getAttribute("data-km-pencil-trace"),inside};
+        });
+      });
+      expect(localContacts.length).toBe(id==="inner-fold"||id==="heart"?6:8);
+      for(const contact of localContacts)
+        expect(contact.inside,contact.id+" stays on its own filled lamina").toBeGreaterThanOrEqual(7);
       await expect(region.locator("[data-km-pigment-layer]")).toHaveCount(3);
     }
     const physical=svg.locator('[data-km-pencil-region="rose-center-scroll-underturn"]');
     await expect(physical.locator("path[data-km-pencil-support]")).toHaveCount(1);
     await expect(physical.locator("[data-km-pencil-details] path")).toHaveCount(4);
+    const undersideContacts=await physical.evaluate(node=>{
+      const support=node.querySelector("path[data-km-pencil-support]") as SVGPathElement|null;
+      if(!support)return [];
+      const paths=[...node.querySelectorAll('path[data-km-pencil-trace^="rk-underturn-"]')] as SVGPathElement[];
+      return paths.map(path=>{
+        const length=path.getTotalLength();let inside=0;
+        for(let i=1;i<=9;i++){
+          const point=path.getPointAtLength(length*i/10);
+          if(support.isPointInFill(new DOMPoint(point.x,point.y)))inside++;
+        }
+        return {id:path.getAttribute("data-km-pencil-trace"),inside};
+      });
+    });
+    expect(undersideContacts).toHaveLength(4);
+    for(const contact of undersideContacts)
+      expect(contact.inside,contact.id+" stays on the reverse-petal lamina").toBeGreaterThanOrEqual(7);
     const stats=await svg.evaluate(root=>{
       const underside=root.querySelector('[data-km-pencil-region="rose-center-scroll-underturn"] path[data-km-pencil-support]') as SVGPathElement|null;
       const front=root.querySelector('[data-km-pencil-region="rose-whorl-scroll"] path[data-km-pencil-support]') as SVGPathElement|null;
@@ -69,15 +126,21 @@ test("native 16:9 + 9:16: real six-source central knot with a visible curled bac
       path:info.outputPath("rose-knot-"+aspect+"-original-central-physical-relief.png")});
     expect(hash(native)).not.toBe(hash(before));
     for(const [focusValue,part,name] of [
-      ["rose-whorl-center","rose-whorl-scroll","scrolled-face"],
+      ["rose-whorl-center","rose-whorl-scroll","foreground-curl"],
       ["rose-whorl-recess","rose-whorl-recess","occlusion-pocket"],
+      ["rose-whorl-left","rose-whorl-left","left-wall"],
+      ["rose-whorl-right","rose-whorl-right","right-shoulder"],
+      ["rose-whorl-heart","heart","front-lamina"],
+      ["rose-whorl-back-crown","inner-fold","rear-crown"],
       ["rose-whorl-underturn","rose-center-scroll-underturn","physical-backface"],
     ] as const){
       await focus.selectOption(focusValue);
       await expect(studio).toHaveAttribute("data-km-foundation-inspection-focus",part);
       await macro.check();
-      await svg.screenshot({animations:"disabled",
+      const current=await paper.screenshot({animations:"disabled",
         path:info.outputPath("rose-knot-"+aspect+"-"+name+"-215pct.png")});
+      const previous=baselineMacros.get(name);
+      if(previous)expect(hash(current),name).not.toBe(hash(previous));
       await macro.uncheck();
     }
     await focus.selectOption("default");
