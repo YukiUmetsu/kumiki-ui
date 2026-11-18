@@ -12,10 +12,11 @@
 import type { ArchScene, CameraSpec, Mood, MoodId } from "./arch-paint";
 import { MOODS } from "./arch-paint";
 import type { HouseSpec, WindowSpec } from "./arch-kit";
-import { SceneBuilder, barrel, beam, bench, box, boxAt, capsule, clump, coneY, cut, cylY, cylZ, cypress, leaf, dome, ellipsoid, firewood, gableRoof, gableWall, gardenWall, ground, hills, hipRoof, house, lamppost, onionDome, opening, pentRoof, revolve, sphere, spire, street, tower, tree, water } from "./arch-kit";
+import { SceneBuilder, barrel, beam, bench, box, boxAt, capsule, clump, coneY, cut, cylY, cylZ, cypress, leaf, peaks, repeatX, repeatZ, dome, ellipsoid, firewood, gableRoof, gableWall, gardenWall, ground, hills, hipRoof, house, lamppost, onionDome, opening, pentRoof, revolve, sphere, spire, street, tower, tree, water } from "./arch-kit";
 import { anvil, balance, breadRack, candlestick, clockParts, flourSack, forge, hangingLantern, herbBunch, jarRow, magnifierLamp, peel, sleepingCat, stool, tankard, wallClock, workbench, writingDesk } from "./arch-kit-props";
-import { sculpt } from "./arch-sdf";
-import { arcade, bridge, candle, chairRows, church, curtainWall, domeChurch, gatehouse, glasshouse, gothicNave, hearth, kasbahTower, keep, lighthouse, room, shelves, staveChurch, table, trullo, waterWheel, windmill } from "./arch-kit-civic";
+import { archRoll, sculpt } from "./arch-sdf";
+import type { Node } from "./arch-sdf";
+import { arcade, bridge, candle, chairRows, church, octShaft, curtainWall, domeChurch, gatehouse, glasshouse, gothicNave, hearth, kasbahTower, keep, lighthouse, room, shelves, staveChurch, table, trullo, waterWheel, windmill } from "./arch-kit-civic";
 import type { SurfaceSpec } from "./arch-surface";
 
 export type LibraryGroup = "british" | "french" | "alpine" | "low-countries" | "italian" | "mediterranean" | "nordic" | "middle-east" | "historic" | "rural" | "interior";
@@ -374,7 +375,15 @@ add({ id: "bruges-belfry", label: "Market square belfry", group: "low-countries"
   note: "Belfries rise in square stages, then an octagonal lantern, as a sign of the town's freedom; the hall below kept charters and cloth.",
   build: (seed = 29) => { const b = new SceneBuilder(seed); ground(b, -400, 400, -400, 400, { kind: "cobbles" });
     placeHouse(b, { w: 30, d: 14, storeys: 2, storeyH: 5, walls: S.brick("#9a5a40"), roof: { kind: "hip", pitch: 45, mat: S.plainTile }, windows: { rows: [[-10, -5, 5, 10], [-10, -5, 0, 5, 10]], spec: { w: 1.4, h: 3, shape: "pointed", panes: [2, 4] } }, door: { x: 0, w: 2.5, h: 4, shape: "pointed" } }, 0, 0, 0, 0, () => {
-      tower(b, { x: 0, z: -2, plan: "square", r: 4.5, h: 46, wall: S.brick("#9a5a40"), belfry: true, clock: 38 }); tower(b, { x: 0, z: -2, plan: "octagon", r: 3.6, h: 60, wall: S.ashlar("#cfc4ad") }); });
+      tower(b, { x: 0, z: -2, plan: "square", r: 4.5, h: 46, wall: S.brick("#9a5a40"), belfry: true, clock: 38 }); });
+    // the stone octagon stands on the brick tower, ringed by a pierced parapet, with a small turret at each corner of the square below
+    const stone = b.mat(S.ashlar("#cfc4ad", 0.4)), lead = b.mat({ kind: "lead" });
+    for (const [cx, cz] of [[-4.2, -6.2], [4.2, -6.2], [-4.2, 2.2], [4.2, 2.2]] as const) b.add(cylY(cx, cz, 40, 48.5, 0.75, stone), coneY(cx, cz, 48.5, 52, 0.95, 0.05, lead));
+    b.add(cut(boxAt(-4.7, 46, -6.7, 4.7, 47.2, 2.7, stone), [boxAt(-4.3, 46.3, -6.3, 4.3, 48, 2.3, 0)]));
+    b.add(octShaft(0, -2, 46, 70, 3.5, stone, Math.PI / 8), cut(octShaft(0, -2, 64, 68, 3.6, stone, Math.PI / 8), [opening(0, 64.4, 1.6, 2.2, "pointed", -6, 2, "z"), opening(-2, 64.4, 1.6, 2.2, "pointed", -4, 4, "x")]));
+    b.add(cut(octShaft(0, -2, 70, 71.4, 3.95, stone, Math.PI / 8), [octShaft(0, -2, 70.3, 72, 3.6, 0, Math.PI / 8)]), octShaft(0, -2, 70, 76, 1.6, lead, Math.PI / 8), coneY(0, -2, 76, 79.5, 1.8, 0.05, lead), sphere(0, 79.6, -2, 0.25, b.mat({ kind: "gold" })));
+    for (let k = 0; k < 8; k++) { const a = (k + 0.5) * (Math.PI / 4), r = 3.5 / Math.cos(Math.PI / 8); b.add(cylY(Math.cos(a) * r, -2 + Math.sin(a) * r, 46, 71.6, 0.28, stone), coneY(Math.cos(a) * r, -2 + Math.sin(a) * r, 71.6, 73.4, 0.32, 0.03, stone)); }
+    b.place();
     return done(b, frameSubject(b, -16), "overcast"); } });
 add({ id: "dutch-windmill", label: "Dutch smock windmill", group: "low-countries", region: "Netherlands, polder", era: "18th century", setting: "rural", view: "exterior", scale: "civic", mood: "morning",
   materials: ["thatched smock on a brick base", "a turning cap", "lattice sails with canvas"], story: ["a stage around the mill", "a ditch", "flat polder to the horizon"],
@@ -625,13 +634,38 @@ add({ id: "carpathian-wooden-church", label: "Carpathian wooden church", group: 
 add({ id: "moroccan-riad", label: "Moroccan riad courtyard", group: "middle-east", region: "Morocco, Marrakesh", era: "18th–19th century", setting: "city", view: "interior", scale: "domestic", mood: "noon",
   materials: ["lime plaster (tadelakt)", "zellige tile dado", "cedar", "horseshoe arches"], story: ["orange trees", "a fountain", "the sky as the ceiling"],
   note: "A riad turns inward round a four-sided garden court: blank walls outside, zellige below and carved plaster and cedar above.",
-  build: (seed = 60) => { const b = new SceneBuilder(seed); ground(b, -40, 40, -40, 40, { kind: "zellige", colour: "#2f6f73", colour2: "#efe7d3", unit: 0.12 }, 0);
-    const wall = S.plaster("#e3b48a", 0.08);
-    for (const yaw of [0, 90, 180, 270]) { arcade(b, -7, 7, -6, 3, 4.6, "horseshoe", wall, 2.5); b.add(boxAt(-7, 0, -5.98, 7, 1.3, -5.9, b.mat({ kind: "zellige", colour: "#2f6f73", colour2: "#efe7d3", unit: 0.09, pattern: "star" }))); b.add(boxAt(-7, 5.0, -8.6, 7, 9.5, -6, b.mat(wall))); b.add(boxAt(-7, 8.6, -6.2, 7, 9.0, -5.8, b.mat({ kind: "oak", colour: "#6a4228" }))); b.place({ yaw }); }
-    b.add(cylY(0, 0, 0, 0.6, 1.4, b.mat({ kind: "zellige", colour: "#2a5a8a", colour2: "#efe7d3", unit: 0.08 })), cylY(0, 0, 0.55, 0.6, 1.25, b.mat({ kind: "water" })), revolve(0, 0, 0.6, 1.6, t => 0.25 + 0.3 * Math.sin(t * Math.PI) ** 2, 0.6, b.mat({ kind: "marble" }), 0, 2));
-    for (const [x, z] of [[-3.8, -3.6], [3.8, -3.6]]) tree(b, x, z, 3.6, 1.4, { kind: "foliage", colour: "#2f4a2a", colour2: "#e88a2a" }, false);
+  build: (seed = 60) => { const b = new SceneBuilder(seed), C = 5, G = 2.4, n = 3, span = (2 * C) / n, E = C + G + 0.5;
+    ground(b, -40, 40, -40, 40, { kind: "zellige", colour: "#2f6f73", colour2: "#efe7d3", unit: 0.12 }, 0);
+    const wall = b.mat(S.plaster("#e3b48a", 0.08)), zel = b.mat({ kind: "zellige", colour: "#2f6f73", colour2: "#efe7d3", unit: 0.09, pattern: "star" }), geb = b.mat({ kind: "plaster", colour: "#efe2c8", flake: 0 });
+    const cedar = b.mat({ kind: "oak", colour: "#6a4228", age: 0.3 }), green = b.mat({ kind: "glazed-tube", colour: "#2f6a4a", unit: 0.16, course: 0.26 }), door = b.mat({ kind: "painted-wood", colour: "#2a4a5a", flake: 0.1 }), dark = b.mat({ kind: "plain", colour: "#3a2a20" });
+    for (const yaw of [0, 90, 180, 270]) {
+      const z0 = -C, arches: Node[] = [];
+      for (let i = 0; i < n; i++) arches.push(opening(-C + span * (i + 0.5), 0, span * 0.62, 2.3, "horseshoe", z0 - 0.7, z0 + 0.2));
+      // ground floor: horseshoe arches on piers clad in zellige to 1.2 m, the gallery behind, a painted door in its back wall
+      b.add(cut(boxAt(-C, 0, z0 - 0.5, C, 4.4, z0, wall), arches), cut(boxAt(-C, 0, z0, C, 1.2, z0 + 0.03, zel), arches));
+      b.add(boxAt(-E, 4.2, z0 - G, E, 4.55, z0, wall));
+      b.add(cut(boxAt(-E, 0, z0 - G - 0.5, E, 4.4, z0 - G, wall), [boxAt(-0.8, 0, z0 - G - 1, 0.8, 2.8, z0 - G + 0.1, 0)]), boxAt(-0.8, 0, z0 - G - 0.3, 0.8, 2.8, z0 - G - 0.25, door), boxAt(-E, 0, z0 - G, E, 1.2, z0 - G + 0.03, zel));
+      // the carved plaster frieze over the arcade: a band of small blind horseshoe arches
+      b.add(cut(boxAt(-C, 3.45, z0, C, 4.2, z0 + 0.05, geb), [repeatX(opening(-C + 0.15, 3.55, 0.17, 0.36, "horseshoe", z0 + 0.02, z0 + 0.12), 0.26, Math.floor((2 * C) / 0.26))]));
+      // upper floor: a turned cedar balustrade between posts, the back wall with shuttered windows, a carved cedar eave on corbels, a green-tiled pent roof
+      b.add(boxAt(-C, 4.55, z0 - 0.06, C, 4.65, z0 + 0.12, cedar), repeatX(revolve(-C + 0.12, z0 + 0.03, 4.65, 5.55, t => 0.025 + 0.02 * Math.sin(t * Math.PI * 3) ** 2, 0.05, cedar, 0, 2), 0.16, Math.floor((2 * C) / 0.16)), boxAt(-C, 5.55, z0 - 0.04, C, 5.65, z0 + 0.1, cedar));
+      for (let i = 0; i <= n; i++) b.add(boxAt(-C + span * i - 0.1, 4.55, z0 - 0.1, -C + span * i + 0.1, 7.6, z0 + 0.1, cedar));
+      const ups: Node[] = []; for (let i = 0; i < n; i++) ups.push(opening(-C + span * (i + 0.5), 4.9, 0.9, 1.5, "flat", z0 - G - 1, z0 - G + 0.1));
+      b.add(cut(boxAt(-E, 4.55, z0 - G - 0.5, E, 9.6, z0 - G, wall), ups));
+      for (let i = 0; i < n; i++) { const x = -C + span * (i + 0.5); b.add(boxAt(x - 0.45, 4.9, z0 - G - 0.25, x + 0.45, 6.4, z0 - G - 0.2, dark), boxAt(x - 0.95, 4.9, z0 - G + 0.02, x - 0.47, 6.4, z0 - G + 0.06, door), boxAt(x + 0.47, 4.9, z0 - G + 0.02, x + 0.95, 6.4, z0 - G + 0.06, door)); }
+      b.add(boxAt(-C, 7.6, z0 - G, C, 7.85, z0 + 0.35, cedar), repeatX(sculpt([{ a: [-C + 0.2, 7.58, z0 + 0.04], b: [-C + 0.2, 7.3, z0 + 0.04], r1: 0.06, r2: 0.03 }, { a: [-C + 0.2, 7.58, z0 + 0.2], e: [0.06, 0.05, 0.14] }], 0.04, cedar), 0.42, Math.floor((2 * C) / 0.42)));
+      b.add(pentRoof(-E, E, z0 - G, G + 0.6, 7.95 + (G + 0.6) * 0.445, 24, green));
+      b.place({ yaw });
+    }
+    // the garden: an octagonal fountain basin with a marble bowl, four raised beds of orange trees and herbs, bougainvillea up a corner pier
+    const marble = b.mat({ kind: "marble", colour: "#ece6da" }), water = b.mat({ kind: "water", colour: "#3a6a6a" }), soil = b.mat({ kind: "dirt", colour: "#5a4030" }), zb = b.mat({ kind: "zellige", colour: "#2a5a8a", colour2: "#efe7d3", unit: 0.08 }), herb = b.mat({ kind: "foliage", colour: "#4a6a3a" });
+    b.add(octShaft(0, 0, 0, 0.42, 1.25, zb), octShaft(0, 0, 0.3, 0.38, 1.12, water), revolve(0, 0, 0.38, 0.95, t => (t < 0.6 ? 0.08 : 0.08 + 0.4 * ((t - 0.6) / 0.4) ** 1.5), 0.5, marble, 0, 3), cylY(0, 0, 0.9, 0.93, 0.44, water), capsule(0, 0.93, 0, 0, 1.2, 0, 0.012, b.mat({ kind: "plain", colour: "#e8f0f0" })));
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) { const cx = sx * 2.9, cz = sz * 2.9; b.add(boxAt(cx - 1.3, 0, cz - 1.3, cx + 1.3, 0.35, cz + 1.3, zel), boxAt(cx - 1.2, 0.3, cz - 1.2, cx + 1.2, 0.36, cz + 1.2, soil)); for (let k = 0; k < 6; k++) b.add(clump(cx + Math.cos(k * 1.05) * 0.85, 0.45, cz + Math.sin(k * 1.05) * 0.85, 0.22, 0.14, 0.22, herb, b.r(), 0.4)); }
+    for (let k = 0; k < 12; k++) b.add(clump(-C + 0.3 + 0.25 * Math.sin(k * 2.1), 0.6 + k * 0.38, -C + 0.3 + 0.25 * Math.cos(k * 1.7), 0.35, 0.28, 0.3, b.mat({ kind: "foliage", colour: k % 3 ? "#b0306a" : "#3a5a2a" }), b.r(), 0.5));
     b.place();
-    return done(b, { x: 0.4, y: 1.6, z: 5.6, yaw: 0, fov: 74, shift: 0.36 }, "noon"); } });
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) tree(b, sx * 2.9, sz * 2.9, 3.4, 1.15, { kind: "foliage", colour: "#2f4a2a", colour2: "#e88a2a" }, false);
+    b.place();
+    return done(b, { x: 0.5, y: 1.6, z: 4.6, yaw: -10, fov: 78, shift: 0.36 }, "morning"); } });
 add({ id: "kasbah-ksar", label: "Atlas kasbah", group: "middle-east", region: "Morocco, Atlas", era: "17th–19th century", setting: "mountain", view: "exterior", scale: "civic", mood: "golden",
   materials: ["rammed earth (pisé)", "mud brick", "palm-wood lintels"], story: ["tapering corner towers with carved tops", "a palm grove", "the river bed"],
   note: "Rammed earth in lifts with putlog holes; corner towers taper upward and end in stepped merlons and incised patterns.",
@@ -657,15 +691,50 @@ add({ id: "souk-arcade", label: "Stone-arched souk", group: "middle-east", regio
 add({ id: "damascene-courtyard", label: "Damascene courtyard house", group: "middle-east", region: "Syria, Damascus", era: "18th century", setting: "city", view: "interior", scale: "domestic", mood: "morning",
   materials: ["ablaq striped stone (black basalt and limestone)", "an iwan", "a marble fountain"], story: ["a lemon tree", "jasmine on the wall"],
   note: "Ablaq: alternating courses of dark and light stone; an iwan (vaulted open hall) faces the fountain court.",
-  build: (seed = 63) => { const b = new SceneBuilder(seed); ground(b, -40, 40, -40, 40, { kind: "tile-floor", colour: "#d8cfbf", colour2: "#7a6a5a", unit: 0.5 }, 0);
-    const ablaq = { kind: "ashlar", colour: "#e6dcc8", course: 0.3, age: 0.3 } as SurfaceSpec, dark = { kind: "ashlar", colour: "#3c3a38", course: 0.3 } as SurfaceSpec;
-    const am = b.mat(ablaq), dm = b.mat(dark);
-    b.add(cut(boxAt(-8, 0, -9, 8, 10, -7, am), [opening(0, 0, 6, 4.5, "pointed", -10, -6)])); for (let k = 0; k < 16; k++) if (k % 2) b.add(boxAt(-8, k * 0.6, -7.02, 8, k * 0.6 + 0.3, -6.98, dm));
-    b.add(boxAt(-3, 0, -13, 3, 9, -9, b.mat(S.plaster("#d9c9b0"))));
-    for (const s of [-1, 1]) { b.add(boxAt(s * 8, 0, -9, s * 8 + s * 1, 10, 9, am)); tree(b, s * 5, 2, 4, 1.6, { kind: "foliage", colour: "#3a5a2a", colour2: "#e8d050" }, false); }
-    b.add(boxAt(-1.6, 0, -1.6, 1.6, 0.5, 1.6, b.mat({ kind: "marble" })), boxAt(-1.4, 0.45, -1.4, 1.4, 0.5, 1.4, b.mat({ kind: "water" })));
+  build: (seed = 63) => { const b = new SceneBuilder(seed), X = 7, Zs = -9, Zn = 9, W = 6, hs = 4.75, zb = Zs - 6.8;
+    ground(b, -40, 40, -40, 40, { kind: "tile-floor", colour: "#e2d8c6", colour2: "#6a5a50", unit: 0.6 }, 0);
+    const ab = b.mat({ kind: "ashlar", colour: "#e6dcc8", course: 0.32, unit: 0.7, age: 0.3, pattern: "ablaq" }), plaster = b.mat(S.plaster("#e8dcc4", 0.06)), marble = b.mat({ kind: "marble", colour: "#ece6da" });
+    const wood = b.mat({ kind: "painted-wood", colour: "#5a3a26", flake: 0.06 }), dark = b.mat({ kind: "plain", colour: "#2a221c" }), iron = b.mat({ kind: "iron", colour: "#1e1c1a" }), water = b.mat({ kind: "water", colour: "#3a6a6a" });
+    // the iwan: a tall pointed arch raised a step, framed by a roll moulding and a rectangular border, a vaulted hall behind
+    b.add(cut(boxAt(-X, 0, Zs - 0.8, X, 12, Zs, ab), [opening(0, 0.45, W, hs, "pointed", Zs - 2, Zs + 1)]));
+    b.add(archRoll(0, 0.45, W, hs, "pointed", Zs + 0.03, 0.08, 0.09, marble, "z"), archRoll(0, 0.45, W, hs, "pointed", Zs + 0.03, 0.42, 0.06, marble, "z"));
+    const top = 0.45 + hs + (W / 2) * 1.73 + 0.7;
+    for (const sx of [-1, 1]) b.add(boxAt(sx * (W / 2 + 0.7) - 0.09, 0.45, Zs, sx * (W / 2 + 0.7) + 0.09, top, Zs + 0.08, marble));
+    b.add(boxAt(-W / 2 - 0.79, top - 0.18, Zs, W / 2 + 0.79, top, Zs + 0.08, marble), boxAt(-W / 2 - 1, 0, Zs - 0.8, W / 2 + 1, 0.45, Zs + 0.6, marble));
+    b.add(boxAt(-3.4, 0, zb, 3.4, 0.45, Zs, marble), boxAt(-4.0, 0, zb, -3.2, 11, Zs - 0.8, plaster), boxAt(3.2, 0, zb, 4.0, 11, Zs - 0.8, plaster), boxAt(-4, 0, zb - 0.6, 4, 11, zb, plaster));
+    b.add(cut(boxAt(-3.3, 4.8, zb, 3.3, 11, Zs - 0.8, plaster), [opening(0, 0.45, 6.4, hs, "pointed", zb - 1, Zs)]));
+    // in the iwan: banquettes with cushions along the walls, a carpet, a niche with a brass lamp
+    const red = b.mat({ kind: "fabric", colour: "#8a2a24", colour2: "#c8902a", unit: 0.08 }), cush = b.mat({ kind: "velvet", colour: "#2a3a5a" });
+    for (const sx of [-1, 1]) b.add(boxAt(sx * 3.2 - (sx > 0 ? 0.7 : 0), 0.45, zb + 0.2, sx * 3.2 + (sx < 0 ? 0.7 : 0), 0.85, Zs - 1.2, red, 0, 0.04), capsule(sx * 2.95, 1.0, zb + 0.4, sx * 2.95, 1.0, Zs - 1.4, 0.16, cush));
+    b.add(boxAt(-2.0, 0.45, zb + 0.6, 2.0, 0.47, Zs - 1.6, b.mat({ kind: "rug", unit: 4, course: 4, offset: [0, (zb + Zs) / 2] })));
+    b.add(cut(boxAt(-0.8, 1.2, zb - 0.05, 0.8, 3.4, zb + 0.02, plaster), [opening(0, 1.3, 1.2, 1.4, "pointed", zb - 0.4, zb + 0.1)]), revolve(0, zb + 0.15, 1.3, 1.65, t => 0.08 + 0.06 * Math.sin(Math.PI * t), 0.14, b.mat({ kind: "brass", colour: "#b08a45" })));
+    // the side ranges: ablaq below with grilled windows and a door, plaster above with projecting wooden lattice windows, a cornice on corbels
+    for (const sv of [-1, 1]) {
+      const xw = sv * X, lo: Node[] = [], up: Node[] = [];
+      for (const z of [-4.5, 4.5]) { lo.push(opening(z, 1.0, 1.2, 1.7, "flat", xw - 1, xw + 1, "x")); up.push(opening(z, 5.6, 1.3, 1.6, "flat", xw - 1, xw + 1, "x")); }
+      lo.push(opening(0, 0, 1.4, 2.4, "pointed", xw - 1, xw + 1, "x")); up.push(opening(0, 5.6, 1.3, 1.6, "flat", xw - 1, xw + 1, "x"));
+      const x0 = Math.min(xw, xw + sv * 0.8), x1 = Math.max(xw, xw + sv * 0.8);
+      b.add(cut(boxAt(x0, 0, Zs, x1, 4.6, Zn, ab), lo), cut(boxAt(x0, 4.6, Zs, x1, 9.4, Zn, plaster), up), boxAt(x0, 0, Zs, x1, 0.2, Zn, ab));
+      for (const z of [-4.5, 4.5]) { b.add(boxAt(xw + sv * 0.4, 1.0, z - 0.6, xw + sv * 0.45, 2.7, z + 0.6, dark)); for (let k = 0; k < 6; k++) b.add(capsule(xw + sv * 0.06, 1.0, z - 0.5 + k * 0.2, xw + sv * 0.06, 2.7, z - 0.5 + k * 0.2, 0.012, iron)); }
+      b.add(boxAt(xw + sv * 0.35, 0, -0.7, xw + sv * 0.4, 3.0, 0.7, wood), boxAt(xw - sv * 0.02, 2.45, -0.95, xw + sv * 0.05, 2.62, 0.95, marble));
+      for (const z of [-4.5, 0, 4.5]) {
+        // a mashrabiya: a lattice box cantilevered on brackets
+        b.add(boxAt(xw - sv * 0.55, 5.4, z - 0.85, xw, 5.5, z + 0.85, wood), boxAt(xw - sv * 0.55, 7.45, z - 0.85, xw, 7.6, z + 0.85, wood), boxAt(xw - sv * 0.55, 5.5, z - 0.8, xw - sv * 0.5, 7.45, z + 0.8, b.mat({ kind: "chinese-screen" })));
+        for (const dz of [-0.8, 0.8]) b.add(boxAt(xw - sv * 0.55, 5.5, z + dz - 0.04, xw, 7.45, z + dz + 0.04, wood), capsule(xw, 4.9, z + dz * 0.8, xw - sv * 0.5, 5.4, z + dz * 0.8, 0.04, wood));
+      }
+      b.add(boxAt(xw - sv * 0.45, 9.2, Zs, xw + sv * 0.2, 9.45, Zn, wood), repeatZ(sculpt([{ a: [xw - sv * 0.05, 9.18, Zs + 0.3], b: [xw - sv * 0.05, 8.9, Zs + 0.3], r1: 0.06, r2: 0.03 }, { a: [xw - sv * 0.25, 9.15, Zs + 0.3], e: [0.18, 0.05, 0.06] }], 0.04, wood), 0.5, Math.floor((Zn - Zs) / 0.5)));
+    }
+    b.add(boxAt(-X, 0, Zn, X, 9.4, Zn + 0.8, plaster));
+    // the court: an octagonal marble pool with a jet, citrus trees in round beds, jasmine up the west wall, pots along the iwan step
+    b.add(octShaft(0, 1.5, 0, 0.55, 1.5, marble), octShaft(0, 1.5, 0.4, 0.5, 1.36, water), cylY(0, 1.5, 0.5, 0.75, 0.08, marble), capsule(0, 0.75, 1.5, 0, 1.15, 1.5, 0.012, b.mat({ kind: "plain", colour: "#e8f0f0" })));
+    const soil = b.mat({ kind: "dirt", colour: "#5a4030" }), leaves = b.mat({ kind: "foliage", colour: "#3a5a2a" }), flowers = b.mat({ kind: "plain", colour: "#f4f0e6" }), pot = b.mat({ kind: "enamel", colour: "#b0603a" });
+    for (const [x, z] of [[-3.6, 3.2], [3.6, -2.2]] as const) b.add(cut(cylY(x, z, 0, 0.4, 1.0, marble), [cylY(x, z, 0.3, 0.5, 0.9, 0)]), cylY(x, z, 0.3, 0.36, 0.9, soil));
+    for (let k = 0; k < 16; k++) { const y = 0.5 + k * 0.5, z = -6 + 0.5 * Math.sin(k * 1.3) + (k % 3) * 0.4; b.add(clump(-X + 0.3, y, z, 0.3, 0.32, 0.5, leaves, b.r(), 0.5)); if (k % 2) b.add(sphere(-X + 0.55, y + 0.1, z + 0.2, 0.05, flowers), sphere(-X + 0.5, y - 0.1, z - 0.25, 0.05, flowers)); }
+    for (const x of [-4.5, -3.9, 3.9, 4.5]) b.add(revolve(x, Zs + 0.9, 0, 0.45, t => 0.16 + 0.06 * Math.sin(Math.PI * t), 0.22, pot), clump(x, 0.6, Zs + 0.9, 0.25, 0.28, 0.25, leaves, b.r(), 0.5));
     b.place();
-    return done(b, look(0, 3.6, 0, 11, 0, 1.6, 64), "morning"); } });
+    for (const [x, z, c2] of [[-3.6, 3.2, "#e8d050"], [3.6, -2.2, "#e88a2a"]] as const) tree(b, x, z, 4.2, 1.7, { kind: "foliage", colour: "#3a5a2a", colour2: c2 }, false);
+    b.place();
+    return done(b, { x: 1.2, y: 1.6, z: 8.0, yaw: -3, fov: 72, shift: 0.42 }, "morning"); } });
 add({ id: "ottoman-timber-house", label: "Ottoman timber house", group: "middle-east", region: "Turkey, Safranbolu", era: "18th–19th century", setting: "town", view: "exterior", scale: "domestic", mood: "golden",
   materials: ["stone ground floor", "timber-framed upper floors in white plaster", "projecting bays (cumba)"], story: ["upper floors overhanging the lane on curved brackets", "many small windows"],
   note: "A stone base holds stables; living floors in plastered timber oversail the street on brackets with rows of windows.",
@@ -863,11 +932,16 @@ add({ id: "vineyard-press-house", label: "Vineyard press house", group: "rural",
 add({ id: "packhorse-bridge", label: "Packhorse bridge", group: "rural", region: "England, Lake District", era: "17th century", setting: "mountain", view: "exterior", scale: "humble", mood: "morning",
   materials: ["slate rubble", "a single segmental arch", "low parapets for laden horses"], story: ["a beck tumbling below", "ferns in the joints"],
   note: "Narrow single arches with low parapets so packhorses' panniers could pass.",
-  build: (seed = 88) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, grass: "#5f6e3c" }); water(b, -400, 400, -5, 5, -1.2, "#5a6a62");
+  build: (seed = 88) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, grass: "#5f6e3c" }); water(b, -3.4, 3.4, -300, 300, -1.2, "#5a6a62");
     bridge(b, { arches: 1, span: 7, shape: "round", h: 4.2, w: 1.8, pier: 3.5, wall: S.rubble("#7a776e", 0.6), water: 1.2, hump: 14 });
-    b.place({ yaw: -30 });
-    for (let k = 0; k < 8; k++) b.add(clump(-10 + k * 3, -0.6, (k % 2 ? 4 : -4), 1.2, 0.8, 1.0, b.mat({ kind: "rock", colour: "#77746a" }), b.r(), 0.2)); b.place();
-    return done(b, frameSubject(b, 6, { pad: 0.16 }), "morning"); } });
+    b.place();
+    // boulders in the beck and along its banks, ferns in the bridge's joints
+    const rock = b.mat({ kind: "rock", colour: "#77746a", moss: 0.4 }), fern = b.mat({ kind: "foliage", colour: "#4a6a2a" });
+    for (let k = 0; k < 14; k++) { const z = -26 + k * 4 + b.r(-1, 1), x = b.r(-1.8, 1.8); b.add(clump(x, -1.0, z, b.r(0.4, 0.9), b.r(0.3, 0.6), b.r(0.4, 0.8), rock, b.r(), 0.25)); }
+    for (const sx of [-1, 1]) for (let k = 0; k < 34; k++) { const z = -40 + k * 2.2 + b.r(-0.6, 0.6); if (Math.abs(z) < 2.2) continue; b.add(clump(sx * (3.4 + b.r(-0.3, 0.4)), -0.45, z, b.r(0.6, 1.2), b.r(0.5, 0.9), b.r(0.6, 1.1), rock, b.r(), 0.25)); }
+    for (let k = 0; k < 8; k++) b.add(clump(b.r(-6, 6), b.r(1.0, 3.2), b.r(0.8, 1.0) * (k % 2 ? 1 : -1), 0.25, 0.18, 0.12, fern, b.r(), 0.5));
+    b.place();
+    return done(b, frameSubject(b, -5, { pad: 0.2, eye: 1.1 }), "morning"); } });
 add({ id: "cider-orchard-barn", label: "Cider barn in an orchard", group: "rural", region: "England, Somerset", era: "18th century", setting: "rural", view: "exterior", scale: "humble", mood: "golden",
   materials: ["red sandstone", "pantiles", "weatherboard"], story: ["apple trees in blossom", "a ladder against a tree"],
   note: "Weatherboarded upper storeys over stone, pantiles at a moderate pitch, apples pressed inside.",
@@ -875,15 +949,24 @@ add({ id: "cider-orchard-barn", label: "Cider barn in an orchard", group: "rural
     placeHouse(b, { w: 14, d: 7, storeys: 2, storeyH: 2.8, walls: [S.rubble("#9a5a44"), S.boards("#5a4a3a", 0.6)], roof: { kind: "gable", pitch: 38, mat: S.pantile }, door: { x: -3, w: 2.4, h: 2.6 }, windows: { rows: [[3], [0]], spec: W.leaded(0.8, 0.8) } }, 0, -4, -14);
     for (let i = 0; i < 6; i++) tree(b, (i < 3 ? -20 : 12) + (i % 3) * 4.5, -2 + (i % 2) * 6, 4.6, 2.2, { kind: "foliage", colour: "#6a8a3a", colour2: "#f0d8e0" }); b.place();
     return done(b, frameSubject(b, 8), "golden"); } });
-add({ id: "alpine-summer-hut", label: "Alpine summer dairy hut", group: "rural", region: "Switzerland", era: "19th century", setting: "mountain", view: "exterior", scale: "humble", mood: "winter",
+add({ id: "alpine-summer-hut", label: "Alpine summer dairy hut", group: "rural", region: "Switzerland", era: "19th century", setting: "mountain", view: "exterior", scale: "humble", mood: "morning",
   materials: ["dry-stone walls", "a stone-slab roof", "a log upper gable"], story: ["cheese cellar", "cows' bells hanging by the door", "high pasture and peaks"],
   note: "Above the treeline huts are stone, roofed with heavy stone slabs at a low pitch against wind.",
   build: (seed = 90) => { const b = new SceneBuilder(seed); countryside(b, { grass: "#7a8a4a", lane: false });
-    for (let k = 0; k < 5; k++) b.add(clump(-200 + k * 95, 30, -560 - (k % 2) * 60, 90, 150 + (k % 3) * 40, 70, b.mat({ kind: "rock", colour: "#9a9ca6" }), b.r(), 0.18));
-    b.place();
+    // the peaks above the pasture, snow on their upper faces
+    peaks(b, [[-260, -470, 150, 150], [-50, -540, 200, 170], [170, -460, 135, 135], [360, -520, 170, 150]], 115);
     placeHouse(b, { w: 8, d: 6, storeys: 1, storeyH: 2.6, walls: S.rubble("#8f8a80", 0.4), roof: { kind: "gable", pitch: 24, mat: { kind: "stone-slate", colour: "#7a7670", course: 0.4, unit: 0.5, moss: 0.4 }, over: 0.4, gableMat: S.log("#5a4a3a") }, door: { x: 0, w: 1.0, mat: S.boards("#4a3a2a") }, windows: { rows: [[2.5]], spec: { w: 0.5, h: 0.5, panes: [1, 1] } } }, 0, 0, 20);
     b.place();
-    return done(b, frameSubject(b, -10, { pad: 0.3, lift: 0.08 }), "winter"); } });
+    // the yard: a hollowed-log trough under a spout, a split-rail fence round the hut, a bench by the door, a cowbell on its strap
+    const log = b.mat(S.log("#6a5a44")), water = b.mat({ kind: "water", colour: "#4a6a6a" }), rail = b.mat({ kind: "oak", colour: "#7a6a52", age: 0.8 }), brass = b.mat({ kind: "brass", colour: "#a8823e" }), leather = b.mat({ kind: "leather", colour: "#4a2a1a" });
+    b.add(cut(boxAt(-1.4, 0, -0.35, 1.4, 0.6, 0.35, log, 0, 0.12), [boxAt(-1.25, 0.2, -0.25, 1.25, 0.8, 0.25, 0, 0, 0.08)]), boxAt(-1.25, 0.2, -0.25, 1.25, 0.5, 0.25, water), capsule(1.6, 1.3, 0, 1.0, 0.95, 0, 0.05, log), capsule(1.6, 0, 0, 1.6, 1.35, 0, 0.07, log));
+    b.place({ x: -6.5, z: 2.2, yaw: 20 });
+    for (let k = 0; k < 9; k++) { const x = -10 + k * 2.6; b.add(capsule(x, 0, 7.5, x, 1.15, 7.5, 0.05, rail)); if (k < 8) for (const y of [0.5, 0.95]) b.add(capsule(x, y, 7.5, x + 2.6, y + 0.04 * Math.sin(k), 7.5, 0.04, rail)); }
+    b.add(boxAt(-0.6, 0.42, 0, 0.6, 0.47, 0.32, rail), boxAt(-0.55, 0, 0.05, -0.48, 0.42, 0.28, rail), boxAt(0.48, 0, 0.05, 0.55, 0.42, 0.28, rail));
+    b.place({ x: 2.2, z: 3.4, yaw: 20 });
+    b.add(capsule(0, 2.1, 0, 0, 1.75, 0.02, 0.025, leather), revolve(0, 0.02, 1.48, 1.75, t => 0.11 - 0.05 * t, 0.12, brass));
+    b.place({ x: -1.0, z: 3.25, yaw: 20 });
+    return done(b, frameSubject(b, -10, { pad: 0.3, lift: 0.08 }), "morning"); } });
 
 // Lived-in interiors ------------------------------------------------------------------------------------------------------
 const interiorCam = (z = 5.5, y = 1.55, fov = 66, shift = 0.12, yaw = 0): CameraSpec => ({ x: 0, y, z, fov, shift, yaw });
@@ -1059,7 +1142,12 @@ add({ id: "bookshop-rain-night", label: "Bookshop on a rainy night", group: "int
     placeHouse(b, { w: 7, d: 8, storeys: 3, storeyH: 2.9, walls: [S.paint("#2f3f4f", 0.1), S.brick("#7a3e2c")], roof: { kind: "gable-front", pitch: 50, mat: S.slate }, windows: { rows: [[], [-1.8, 1.8], [0]], spec: W.sash(0.9, 1.5) }, shop: { fascia: S.paint("#2f3f4f") }, door: null }, 0, 0, -10, 0.005, () => {
       b.add(boxAt(-2.8, 0.5, 3.72, 2.8, 0.85, 3.78, b.mat({ kind: "books", course: 0.36 }))); b.light({ x: 0, y: 1.8, z: 3.2, kelvin: 2200, power: 0.6 }); });
     lamppost(b, 4.5, 5.6); b.place();
-    return done(b, frameSubject(b, 14, { pad: 0.08 }), "rain-night"); } });
+    // the street the shop stands in: neighbours of other heights, colours and materials either side, a few windows lit
+    const view = frameSubject(b, 14, { pad: 0.2 });
+    const neighbours: readonly (readonly [number, number, SurfaceSpec, number])[] = [[-7.4, 4, S.brick("#6a3a2a"), 7], [-14.2, 3, S.paint("#c8b896", 0.1), 6.4], [7.2, 3, S.paint("#7a8a7a", 0.15), 7], [14.0, 4, S.brick("#8a4a34"), 6.4]];
+    for (const [x, storeys, wall, w] of neighbours) placeHouse(b, { w, d: 8, storeys, storeyH: 2.8, walls: wall, roof: { kind: storeys > 3 ? "gable-front" : "gable", pitch: 45, mat: S.slate }, windows: { rows: Array.from({ length: storeys }, (_, k) => (k === 0 ? [-1.6, 1.6] : [-1.8, 0, 1.8])), spec: W.sash(0.8, 1.35) }, door: { x: 0, w: 1.0, mat: S.paint("#2a2a2a") } }, x, 0, -10, 0.004);
+    lamppost(b, -9.5, 5.6); b.place();
+    return done(b, view, "rain-night"); } });
 
 /** All 100 entries. */
 export const ARCH_LIBRARY: readonly LibraryEntry[] = E;

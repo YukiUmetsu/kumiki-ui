@@ -9,6 +9,7 @@
  *
  * Every generator builds in local metres (the front faces +z, the ground at y = 0) and is placed with `b.place`.
  */
+import { gradNoise } from "./foundation-raster";
 import { seeded } from "./foundation-shapes";
 import type { ArchShape, Node, RoofSpan } from "./arch-sdf";
 import { beam, box, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, frame, gableRoof, gableWall, hipRoof, leaf, mansard, opening, openingTop, pentRoof, repeatAround, repeatWheel, repeatX, repeatZ, resetScene, revolve, sphere, spire, union, worldRoot } from "./arch-sdf";
@@ -520,6 +521,30 @@ export function hills(b: SceneBuilder, z: number, n = 4, h = 40, s: SurfaceSpec 
 /** Water at `y` over x0…x1, z0…z1 (a canal, a river, the sea), in world coordinates. */
 export function water(b: SceneBuilder, x0: number, x1: number, z0: number, z1: number, y = -0.8, colour = "#2e4c4f") {
   b.grounds.push({ x0, x1, z0, z1, y, mat: b.mat({ kind: "water", colour }) });
+}
+
+/**
+ * A range of mountain peaks for a backdrop: each massif is three square pyramids turned against each other (a summit and
+ * two shoulders), so it has faces, ridges and gullies rather than a cone's smooth flank; snow lies on every face above
+ * `snowline` (m), its edge broken by noise as it is on real slopes. Keep them within about 600 m of the camera.
+ */
+export function peaks(b: SceneBuilder, list: readonly (readonly [number, number, number, number])[], snowline: number, rockColour = "#8c8e94") {
+  const rock = b.mat({ kind: "rock", colour: rockColour }), snow = b.mat({ kind: "snow" });
+  for (const [cx, cz, h, r] of list) {
+    const rot = b.r(0, Math.PI / 2), parts: [number, number, number, number, number][] = [[cx, cz, h, r, rot], [cx + r * 0.5 * Math.cos(rot + 1.1), cz + r * 0.5 * Math.sin(rot + 1.1), h * 0.74, r * 0.82, rot + 0.45], [cx - r * 0.55 * Math.cos(rot - 0.7), cz - r * 0.55 * Math.sin(rot - 0.7), h * 0.62, r * 0.75, rot - 0.35]];
+    for (const [x, z, ph, pr, pr0] of parts) {
+      b.add(spire(x, z, -20, ph, pr, 4, rock, 0, pr0));
+      if (ph <= snowline) continue;
+      const a = Math.atan2(ph + 20, pr), sn = Math.sin(a), cs = Math.cos(a), step = Math.PI / 2;
+      b.add(leaf((px, py, pz) => {
+        const qx = px - x, qz = pz - z, ang = Math.atan2(qz, qx) - pr0, k = Math.round(ang / step) * step + pr0, d = qx * Math.cos(k) + qz * Math.sin(k);
+        // the snowline wanders by up to about 15 m; its slope can reach about 1.5, so the distance is scaled to stay a bound
+        const line = snowline + 11 * gradNoise(31, qx * 0.03, qz * 0.03) + 4 * gradNoise(32, qx * 0.1, qz * 0.1);
+        return Math.max((py - ph) * cs + d * sn - 0.8, (line - py) * 0.6);
+      }, [x - pr * 1.42, snowline - 25, z - pr * 1.42], [x + pr * 1.42, ph + 1, z + pr * 1.42], snow));
+    }
+  }
+  b.place();
 }
 
 // ---- Towers, spires, domes ----------------------------------------------------------------------------------------------------
