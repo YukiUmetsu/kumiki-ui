@@ -203,3 +203,43 @@ Storybook keeps the component in **Video production → Film Looks → Risograph
 - Focused CI: `.github/workflows/riso79-original-pull-tab-artcraft.yml` — strict TypeScript, RISO79/RISO80 and adjacent RISO77/RISO78 regression tests, registry validation and clean consumer fixture, production Storybook and actual Chromium screenshot artifacts.
 - No new dependency or registry source file is required; the existing `riso-print` pack already includes the pull-tab renderer and path-geometry foundation.
 - **Acceptance remains conditional on inspecting the captured Chromium images.** A passing topology test proves the declared path is simple under the bounded sampler, not that every organic shape looks like expertly cut paper at normal speed. The art is a 2.5D illustration, not a physical die-cut tolerance, tear, fold or friction simulation.
+
+
+## Interleaved printed-paper slat reveal (RISO81)
+
+\`RisoSlatTheatre\` composes two complete, independently printed spot-ink masters. The cover remains stationary; the second master is clipped into 4–24 source-ordered paper strips. One pull tab drives each strip through its own parallel slot with bounded per-slot timing. The moving strips reconstruct the exact second image at the end stop.
+
+### API
+
+- \`cover\` / \`insert\`: \`RisoSheet\` values with matching dimensions and paper stock; every declared plate requires original vector artwork.
+- \`axis\`: \`horizontal\` (rows) or \`vertical\` (columns).
+- \`direction\`: horizontal rows travel \`up\` / \`down\`; vertical columns travel \`left\` / \`right\`. Parallel movement is rejected.
+- \`count\`: 4–24 equal-pitch slats.
+- \`progress\`: absolute resolved 0..1 state. \`risoSlatProgress(frame,startFrame,durationFrames,reducedMotion)\` supplies seek-safe FilmStage timing.
+- \`travel?\`: source-space retraction distance. Defaults to one full perpendicular sheet span plus the lap; values that cannot fully retract the slats or exceed 1.12× the span are rejected.
+- \`overlapMm?\`: 0–0.7 mm edge lap, additionally bounded to 12% of local slot pitch.
+- \`paperThicknessMm?\`, \`slotClearanceMm?\`: caliper 0.08–1.2 mm and clearance 0.02–0.6 mm.
+- \`interleaveDepthMm?\`: separation between alternating depth lanes. Must be at least caliper plus slot clearance and no more than 3 mm.
+- \`paperRelief\`, \`paperGrain\`, \`misregistration\`: bounded material controls; the original spot-ink masters remain unchanged.
+- \`lightDirection?\`: finite lamp vector used for source-space edge shadow and bevel direction.
+
+### Geometry and material contract
+
+- Each slat clips the complete original insert master to its own source rectangle. At the end stop the strips reconstruct the original image; the source plate paths are not morphed or re-registered.
+- Each slat has a bounded local progress derived from the same absolute FilmStage pull state. Strips move only along their own long axis inside parallel guide lanes; the cross-axis slot order cannot invert under nonsequential seek.
+- Adjacent strips may overlap by a small bounded lap. Their even/odd depth lanes separate that overlap in Z; same-lane spacing and slot width are checked before any geometry is emitted.
+- The start position fully retracts every slat outside the frame. The end position is exactly zero translation for every strip. The travel distance cannot exceed the validated limit.
+- Each slat carries source-locked paper grain, directional cut-edge relief and deterministic cellulose microfibres. These details are fixed to the strip and do not crawl or flicker.
+- \`data-km-riso81-slat\`, \`data-km-riso81-slot\`, \`data-km-riso81-lane\`, \`data-km-riso81-exposure\` and collision-clearance attributes expose inspectable geometry evidence.
+
+Storybook: **Video production → Film Looks → Risograph → Interleaved Paper Slat Reveal**. Controls cover 16:9 / 9:16, row/column orientation, compatible along-axis travel direction, 4–24 strips, lap, per-slot timing stagger, stock caliper, slot clearance, paper relief, grain, seed, registration, microscope zoom and reduced motion.
+
+### Scope and limitations
+
+RISO81 is a deterministic 2.5D SVG model informed by historical tab-and-slat and jalousie mechanisms. It is not a friction, bending-stiffness, fatigue, tear-force or physical die-cut solver. It does not claim a manufacturable cut template. See [RISO81 reference study](../research/riso81-interleaved-paper-slats-artcraft.md).
+
+### RISO81 verification
+
+- Source geometry and frame contracts: \`tests/riso81-interleaved-paper-slats.test.tsx\`.
+- Actual Chromium Storybook proof: \`tests/e2e-storybook/riso81-interleaved-paper-slats.spec.ts\`.
+- Production registry, typecheck, Storybook build and full Risograph regression workflow remain required before merge.
