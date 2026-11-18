@@ -181,3 +181,25 @@ New opt-in registry modules registry/video/riso-shop-profile.ts and registry/vid
 For actual press QA, risoPrintRegistrationTargets reads four original top/bottom/left/right cross centers from the same source master sheet. createRisoScanTemplate returns unfilled, explicitly null scan-pixel coordinates for all four PAPER corners and four cross centers for each ink drum. inspectRisoScanProof calibrates scanner pixel geometry using independent PAPER corner coordinates ONLY, reports individual and relative signed ink displacement, RMS and worst error in physical millimeters, and compares them with an operator-declared tolerance. Missing measurements, malformed markings or scanner distortion beyond declared residuals fail closed. Synthetic examples are always tagged simulation-only. Operator-entered measured pixel data is not independently authenticated or physical printer certification.
 
 Storybook: Risograph · Printer Profile and Scan Registration Lab. It preserves full original spot-ink vector geometry, bristle paper openings, source frame seek and independent grayscale PDF/TIFF master files at both 16:9 and 9:16; adds visual inspection of physical printable bounds, interactive per-side margins, 1×/2× macro, measured scan JSON ingestion and explicit uncertainty. Reference research: ../research/riso70-shop-scan-artcraft.md .
+
+
+## Source-authored organic die-cut contours (RISO80)
+
+`RisoPullTabTheatre` extends the RISO79 two-sheet paper theatre with original organic apertures. The default rounded-rectangle contour remains unchanged. A window may instead supply `contour` as one source-authored SVG path in original sheet design coordinates:
+
+- Accepted grammar: one uppercase absolute `M`, `L`, `C`, `Q`, `Z` subpath. Multiple subpaths, open paths, relative commands, arcs, unsupported commands, malformed numbers and excessive path size are rejected.
+- The declared `x`, `y`, `width` and `height` remain the conservative non-overlapping source-paper envelope. Every sampled point and Bézier control must stay inside it.
+- The contour must have positive signed area (clockwise in SVG's downward-positive coordinates), a substantial enclosed area and a useful perimeter. Non-adjacent crossings, touches, collinear overlaps and zero-length edges fail closed. A single contour is intentional: holes and multiple islands require separate paper topology and are not silently flattened into one aperture.
+- The exact authored Bézier path is preserved for the real SVG mask. A bounded deterministic polyline is used only for topology validation and arc-length sampling; it does not replace the source path.
+- Each organic window receives 88 seeded short microfibrils distributed around the complete contour by arc length. Their outward normal follows the validated winding. Fibre placement is independent of frame, slider direction and camera; it never flickers or migrates as the print moves.
+- `data-km-riso80-contour-kind`, `data-km-riso80-contour-winding`, `data-km-riso80-source-contour` and the organic-window count expose inspectable render evidence. They are diagnostics, not a substitute for actual image review.
+
+Storybook keeps the component in **Video production → Film Looks → Risograph → Printed Paper Pull-Tab**. The `RISO80 window shape` control compares the rounded precision cut with three independently authored organic contours in both 16:9 and 9:16. Existing stock caliper, lamp, edge relief, print masters, slider, FilmStage timing and reduced-motion controls remain shared.
+
+### RISO80 evidence
+
+- Geometry: `tests/riso80-organic-diecut-artcraft.test.tsx` — clockwise/anticlockwise winding, curved and polygon paths, open/multiple/unsupported paths, self-crossing and non-adjacent touching, out-of-bounds Bézier handles, scientific-notation coordinates, deterministic arc-length fibres, source path preservation and unchanged two-plate masters.
+- Actual browser: `tests/e2e-storybook/riso80-organic-diecut-artcraft.spec.ts` — real Chromium 1× and 3× landscape, portrait 9:16, reverse seek, rounded negative control, exact source contours and original ink-master signatures.
+- Focused CI: `.github/workflows/riso79-original-pull-tab-artcraft.yml` — strict TypeScript, RISO79/RISO80 and adjacent RISO77/RISO78 regression tests, registry validation and clean consumer fixture, production Storybook and actual Chromium screenshot artifacts.
+- No new dependency or registry source file is required; the existing `riso-print` pack already includes the pull-tab renderer and path-geometry foundation.
+- **Acceptance remains conditional on inspecting the captured Chromium images.** A passing topology test proves the declared path is simple under the bounded sampler, not that every organic shape looks like expertly cut paper at normal speed. The art is a 2.5D illustration, not a physical die-cut tolerance, tear, fold or friction simulation.

@@ -23,6 +23,7 @@ export function RisoPullTabFilmStudio(){
   const [frame,setFrame]=useState(110);
   const [direction,setDirection]=useState<RisoPullDirection>("right");
   const [windowCount,setWindowCount]=useState(3);
+  const [windowShape,setWindowShape]=useState<"rounded"|"organic">("rounded");
   const [relief,setRelief]=useState(.72);
   const [depthMm,setDepthMm]=useState(.32);
   const [lampAngle,setLampAngle]=useState(225);
@@ -47,23 +48,37 @@ export function RisoPullTabFilmStudio(){
     artworks:risoSecondSheetArtworks(aspect),
   }),[aspect]);
   const windows=useMemo(():readonly RisoPullWindow[]=>{
-    const candidates=aspect==="landscape"?[
-      // Chromium 1×/3× reference inspection showed the older x=472
-      // first slit reading as unprinted beige stock. These apertures follow
-      // the real full-detail river/circle source-ink drawing at *all* seeks.
-      {id:"left-slit",x:600,y:170,width:95,height:206,radius:9},
-      {id:"centre-slit",x:710,y:170,width:95,height:206,radius:9},
-      {id:"right-slit",x:820,y:170,width:95,height:206,radius:9},
-    ]:[
-      // The portrait insert travels down 182 source units. At the end
-      // these three narrow slits expose the original circular two-ink
-      // halftone (source y=540..720), below the subtitle and above footer.
+    const landscapeRounded:readonly RisoPullWindow[]=[
+      {id:"left-slit",x:472,y:164,width:110,height:218,radius:10},
+      {id:"centre-slit",x:601,y:164,width:110,height:218,radius:10},
+      {id:"right-slit",x:730,y:164,width:110,height:218,radius:10},
+    ];
+    const landscapeOrganic:readonly RisoPullWindow[]=[
+      {id:"left-slit",x:472,y:164,width:110,height:218,contour:
+        "M 526 164 C 547 164 571 180 574 204 C 578 227 559 245 567 267 C 576 292 559 324 543 358 C 532 381 512 378 502 360 C 489 336 505 310 495 286 C 485 264 496 242 485 219 C 476 197 499 171 526 164 Z"},
+      {id:"centre-slit",x:601,y:164,width:110,height:218,contour:
+        "M 656 164 C 676 167 695 184 694 207 C 693 229 674 242 671 262 C 668 282 691 296 692 317 C 693 340 675 366 656 381 C 638 369 621 348 620 326 C 619 304 641 286 640 265 C 639 244 614 229 613 208 C 612 187 635 169 656 164 Z"},
+      {id:"right-slit",x:730,y:164,width:110,height:218,contour:
+        "M 785 164 C 806 170 826 188 828 210 C 830 231 811 244 807 262 C 803 281 832 292 832 315 C 832 339 812 367 789 381 C 773 369 757 352 753 333 C 749 314 766 298 765 278 C 764 257 740 246 737 224 C 733 201 755 174 785 164 Z"},
+    ];
+    const portraitRounded:readonly RisoPullWindow[]=[
       {id:"left-slit",x:195,y:650,width:40,height:180,radius:8},
       {id:"centre-slit",x:244,y:650,width:40,height:180,radius:8},
       {id:"right-slit",x:293,y:650,width:40,height:180,radius:8},
     ];
+    const portraitOrganic:readonly RisoPullWindow[]=[
+      {id:"left-slit",x:195,y:650,width:40,height:180,contour:
+        "M 215 650 C 226 652 234 668 232 688 C 230 707 221 720 225 740 C 229 761 223 784 221 803 C 219 818 216 830 210 830 C 204 830 199 818 200 803 C 202 783 197 762 200 741 C 203 721 198 706 200 688 C 198 670 205 654 215 650 Z"},
+      {id:"centre-slit",x:244,y:650,width:40,height:180,contour:
+        "M 264 650 C 275 652 283 668 281 688 C 279 706 265 718 263 737 C 261 755 275 769 274 788 C 273 807 267 823 260 830 C 253 823 247 807 248 788 C 249 769 262 755 260 737 C 258 718 245 706 247 688 C 245 670 253 654 264 650 Z"},
+      {id:"right-slit",x:292,y:650,width:42,height:180,contour:
+        "M 313 650 C 322.9 653.2 329.3 669.2 326.9 687 C 324.5 706 312.9 718 315.3 737 C 317.7 756 329.7 771 325.3 790 C 322.1 809 314.9 824 307.7 830 C 301.3 822 297.7 806 299.3 788 C 300.9 770 309.7 754 306.5 737 C 303.3 718 292.1 706 294.5 688 C 292.9 670 302.5 654 312.5 650 Z"},
+    ];
+    const candidates=aspect==="landscape"?
+      (windowShape==="organic"?landscapeOrganic:landscapeRounded):
+      (windowShape==="organic"?portraitOrganic:portraitRounded);
     return candidates.slice(0,windowCount);
-  },[aspect,windowCount]);
+  },[aspect,windowCount,windowShape]);
   const travel=(direction==="left"||direction==="right"?
     cover.spec.width:cover.spec.height)*.115;
   useEffect(()=>{
@@ -109,6 +124,10 @@ export function RisoPullTabFilmStudio(){
     data-km-riso79-frame={frame}
     data-km-riso79-phase={phase}
     data-km-riso79-windows={windowCount}
+    data-km-riso79-shape-preset={windowShape}
+    data-km-riso80-shape-preset={windowShape}
+    data-km-riso80-lens-x={focusX}
+    data-km-riso80-lens-y={focusY}
     data-km-riso79-direction={direction}
     data-km-riso79-aspect={aspect}
     data-km-riso79-zoom={zoom}
@@ -118,7 +137,7 @@ export function RisoPullTabFilmStudio(){
       font:"14px/1.5 system-ui"}}>
     <header style={{maxWidth:970}}>
       <div style={{font:"800 12px system-ui",letterSpacing:2}}>
-        RISOGRAPH / RISO79 / KINETIC ORIGINAL PAPER PRINTS
+        RISOGRAPH / RISO79–80 / KINETIC ORIGINAL PAPER PRINTS
       </div>
       <h1 style={{font:"700 clamp(24px,3vw,37px)/1.14 Georgia,serif",
         margin:"7px 0"}}>Cut-paper windows · moving printed underlay</h1>
@@ -161,6 +180,13 @@ export function RisoPullTabFilmStudio(){
           <option value="left">Pull left</option>
           <option value="up">Pull up</option>
           <option value="down">Pull down</option>
+        </select>
+      </label>
+      <label style={label}>Window contour
+        <select aria-label="RISO80 window shape" value={windowShape}
+          onChange={e=>setWindowShape(e.target.value as "rounded"|"organic")}>
+          <option value="rounded">Rounded die-cut</option>
+          <option value="organic">Organic contour</option>
         </select>
       </label>
       <label style={label}>Physical die-cut windows · {windowCount}
@@ -245,13 +271,13 @@ export function RisoPullTabFilmStudio(){
         transformOrigin:focusX+"% "+focusY+"%"}}>{stage}</div>
     </section>
     <p style={{fontSize:13,maxWidth:960,margin:0}}>
-      Separate original printed cover and insert. Four-sided vector die-cuts
-      have 88 short, individually seeded cut-face microfibrils each. The
-      wall and directional cavity shadow follow the stock caliper and lamp.
-      Only
-      the hidden paper insert and its grip move; native spot-ink paths never
-      repaint or lose registration. This overhead artist's paper mechanism is
-      not an empirical friction, cut-die or Risograph calibration model.
+      Separate original printed cover and insert. Choose rounded precision
+      cuts or source-authored organic silhouettes. Every organic contour is
+      one clockwise, closed, non-self-intersecting path; its 88 seeded
+      microfibrils follow the full contour by arc length. The cut wall and
+      directional cavity shadow follow stock caliper and lamp. Only the
+      hidden paper insert and grip move; spot-ink paths never repaint or lose
+      registration. This is a 2.5D art model, not a physical cut-die solver.
     </p>
   </main>;
 }

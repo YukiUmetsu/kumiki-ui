@@ -1,6 +1,6 @@
 # RISO79 — Two independent original Risograph sheets, stationary die-cut cover, moving paper insert
 
-Status: opt-in cinematic illustration mechanism. **Not a physical print/die calibration. Artistic 1×/3× screenshot acceptance remains pending until real Chromium images have been reviewed.**
+Status: RISO79 implementation merged in PR #622; focused Chromium CI captured and the 1×/3× evidence was inspected. Independent human visual approval remains separate. **Not a physical print/die calibration.**
 
 ## Independent photographed references (not bundled, traced or redistributed)
 
@@ -20,7 +20,9 @@ No source photo, animated GIF, source illustration, artist linework or original 
 
 ## Follow-on paper-edge study
 
-The next material iteration is documented in [RISO79 — Paper Edge Material Study](./riso79-paper-edge-material-study.md). It separates actual Risograph ink texture from precision die-cut edges and torn-paper negative controls, records image-source licensing, and defines the stock-caliper/lamp-driven 2.5D cut-wall construction. The new edge pass does not modify either original spot-ink master.
+The paper-edge iteration is documented in [RISO79 — Paper Edge Material Study](./riso79-paper-edge-material-study.md). It separates actual Risograph ink texture from precision die-cut edges and torn-paper negative controls, records image-source licensing, and defines the stock-caliper/lamp-driven 2.5D cut-wall construction. The edge pass does not modify either original spot-ink master.
+
+The next contour iteration is documented in [RISO80 — Source-authored Organic Die-cut Contours](./riso80-organic-diecut-contours-artcraft.md). It adds a bounded single-path SVG contour contract, clockwise winding validation, non-adjacent self-contact rejection and deterministic arc-length microfibrils. The exact authored path remains the real SVG aperture; the default rounded-rectangle windows remain unchanged.
 
 ## Five-axis ArtCraft deconstruction → original library feature
 
@@ -52,5 +54,5 @@ The next material iteration is documented in [RISO79 — Paper Edge Material Stu
 ## Remaining next priorities
 
 - Verify full 1×/3× printed opening readability and ratio against the independent referenced photos; adjust the original **cut geometry, optical depth, paper layering or ink composition** if it fails. Do not delete source strokes or hide printed details to make a green screenshot.
-- Add individually authored eccentric/organic closed window silhouettes with validated winding + fibre position on original contour, beyond the currently deliberately rectilinear mechanism.
 - Model genuinely interleaved physical slats for mechanical reveal or a paper-wheel/volvelle, with proper collision and fold proof before any 3D claims.
+- Record independent human normal-speed visual approval for the rounded and organic landscape/portrait paper-window films; CI screenshots alone do not qualify final material fidelity.
