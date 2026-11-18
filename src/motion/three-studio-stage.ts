@@ -38,8 +38,16 @@ export interface StudioStage {
   dispose: () => void;
 }
 
-export function createStudioStage(host: HTMLElement, canvas: HTMLCanvasElement): StudioStage {
-  const renderer = new WebGLRenderer({ canvas, antialias: true });
+export interface StudioStageOptions {
+  /**
+   * Logarithmic depth for scenes with surfaces a fraction of a millimetre apart (stacked paper), which a standard
+   * depth buffer cannot separate. Costs early depth rejection, so leave it off otherwise.
+   */
+  logarithmicDepth?: boolean;
+}
+
+export function createStudioStage(host: HTMLElement, canvas: HTMLCanvasElement, options: StudioStageOptions = {}): StudioStage {
+  const renderer = new WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: options.logarithmicDepth ?? false });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;

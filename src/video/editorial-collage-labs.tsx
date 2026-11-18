@@ -10,11 +10,13 @@ import type { WatchMotion } from "./collage-watch-rig";
 import watchUrl from "./assets/collage/pocket-watch-cutout.webp";
 import locoUrl from "./assets/collage/locomotive-1873-cutout.webp";
 import { CAST, PALETTE as PAPER_PALETTE } from "./collage-standard-time";
+import { paperSheetSoundCues } from "../../registry/motion/paper-sound";
+import { usePaperCuePlayer } from "./paper-sound-player";
 import { PHOTO_PALETTE } from "./collage-photo-registers";
 
 const PALETTE = { ...PAPER_PALETTE, ...PHOTO_PALETTE };
 
-const page = { display: "grid", gap: 16, padding: 24, minHeight: "100vh", background: "#f4f1ea", color: "#26231f", font: "15px/1.45 system-ui, sans-serif" } as const;
+const page = { display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16, padding: 24, minHeight: "100vh", background: "#f4f1ea", color: "#26231f", font: "15px/1.45 system-ui, sans-serif" } as const;
 const label = { display: "grid", gap: 5, font: "600 13px system-ui", minWidth: 150 } as const;
 const button = { border: "1px solid #a39a8c", borderRadius: 7, background: "#ffffff", color: "#26231f", padding: "9px 14px", minHeight: 40, cursor: "pointer", font: "600 13px system-ui" } as const;
 const stage = { width: 960, height: 540, maxWidth: "100%", aspectRatio: "16 / 9", boxShadow: "0 14px 44px rgba(40,30,20,.2)", overflow: "hidden" } as const;
@@ -88,6 +90,68 @@ export function PaperLab() {
       <label style={label}>Halftone coverage · {Math.round(coverage * 100)}%<input type="range" aria-label="Halftone coverage" min={0} max={1} step={.05} value={coverage} onChange={e => setCoverage(Number(e.target.value))} /></label>
       <label style={label}>Lift · {lift.toFixed(2)}<input type="range" aria-label="Lift" min={0} max={2} step={.05} value={lift} onChange={e => setLift(Number(e.target.value))} /></label>
       <label style={label}>Print dot · {printCell}px<input type="range" aria-label="Print dot" min={3} max={14} step={1} value={printCell} onChange={e => setPrintCell(Number(e.target.value))} /></label>
+    </div>
+  </div>;
+}
+
+/** MC1.3 physical paper in a collage: cutouts of real stock peel, fold, roll and tear with their own shadows. */
+export function PhysicalPaperCollageLab() {
+  const [stockMode, setStockMode] = useState<"material" | "tissue" | "cardstock">("material");
+  const [cadence, setCadence] = useState<1 | 2>(1);
+  const loop = useLoop(149, 96);
+  const spec = useMemo<CollageSceneSpec>(() => {
+    const stock = stockMode === "material" ? undefined : stockMode;
+    const nodes: CollageNode[] = [
+      // A lined note: its corner curls up and hangs by its own weight.
+      { id: "note", kind: "cutout", x: 380, y: 330, rotate: -3, shape: { type: "rect", width: 440, height: 340 }, fill: "#f3e7b0", edge: "cut", material: "paper",
+        pattern: { type: "lines", color: "#7f9ec4", spacing: 30, opacity: .7 },
+        sheet: { stock, bends: [{ id: "corner", kind: "fold", line: [[60, 170], [220, 10]], flap: [220, 170], angle: 0, radius: 6, keys: [{ frame: 10, angle: 0 }, { frame: 90, angle: 150 }] }] } },
+      { id: "note-cap", kind: "text", x: 180, y: 560, text: "Fold · the corner hangs by its weight", role: "label", size: 30, weight: 700, color: "ink" },
+      // A halftone clipping torn down the middle; the right side lifts behind the tip.
+      { id: "clip", kind: "cutout", x: 1000, y: 340, rotate: 2, shape: { type: "rect", width: 420, height: 380 }, fill: "#efe9dc", edge: "cut", material: "newsprint",
+        halftone: { color: "ink", toward: 40, from: .05, to: .75, cell: 8 },
+        sheet: { stock, tears: [{ id: "rip", from: [8, -196], to: [-14, 196], seed: 4, keys: [{ frame: 10, progress: 0 }, { frame: 120, progress: 1, easing: "ease-in" }] }],
+          bends: [{ id: "lift", kind: "fold", follow: "rip", piece: { tear: "rip", at: [120, 0] }, angle: 0, radius: 60, keys: [{ frame: 10, angle: 0 }, { frame: 80, angle: 26 }, { frame: 145, angle: 70 }] }] } },
+      { id: "clip-cap", kind: "text", x: 820, y: 590, text: "Tear · fibre bevel on the held side", role: "label", size: 30, weight: 700, color: "ink" },
+      // A glossy print peels off the board; its white back faces up.
+      { id: "print", kind: "cutout", x: 1560, y: 340, rotate: -2, shape: { type: "rect", width: 380, height: 300 }, fill: "teal", edge: "clean", material: "glossy",
+        halftone: { color: "navy", toward: 30, from: 0, to: .6, cell: 9 },
+        sheet: { stock, bends: [{ id: "peel", kind: "peel", line: [[-190, -150], [-190, 150]], flap: [-260, 0], angle: 0, adhesion: 40,
+          keys: [{ frame: 10, angle: 0, offset: 0 }, { frame: 30, angle: 95, offset: 40, easing: "ease-out" }, { frame: 140, angle: 120, offset: 250 }] }] } },
+      { id: "print-cap", kind: "text", x: 1400, y: 560, text: "Peel · radius from stiffness", role: "label", size: 30, weight: 700, color: "ink" },
+      // A kraft strip rolls up from its right end.
+      { id: "strip", kind: "cutout", x: 560, y: 820, rotate: 1, shape: { type: "rect", width: 760, height: 150 }, fill: "#b68a5a", edge: "torn", material: "kraft",
+        pattern: { type: "stripes", color: "#8c6339", spacing: 46, angle: 90, opacity: .45 },
+        sheet: { stock, bends: [{ id: "roll", kind: "roll", line: [[380, -75], [380, 75]], flap: [420, 0], angle: 1440, radius: 26, gravity: 0, keys: [{ frame: 10, offset: 0 }, { frame: 140, offset: 520 }] }] } },
+      { id: "strip-cap", kind: "text", x: 200, y: 950, text: "Roll · tightens one thickness a turn", role: "label", size: 30, weight: 700, color: "ink" },
+      // A tissue square folds in half; thin tissue sags and lets light through to its shadow.
+      { id: "tissue", kind: "cutout", x: 1460, y: 820, rotate: 4, shape: { type: "rect", width: 330, height: 260 }, fill: "pink", edge: "deckle", material: "tissue",
+        sheet: { stock, bends: [{ id: "half", kind: "fold", line: [[0, -130], [0, 130]], flap: [160, 0], angle: 0, radius: 10, keys: [{ frame: 10, angle: 0 }, { frame: 110, angle: 120 }] }] } },
+      { id: "tissue-cap", kind: "text", x: 1300, y: 990, text: "Tissue · sags, glows, tints its shadow", role: "label", size: 30, weight: 700, color: "ink" },
+    ];
+    return { version: 1, id: "physical-paper-lab", width: 1920, height: 1080, durationFrames: 150, seed: 9, board: { material: "kraft" }, palette: PALETTE, cadence, grain: .3, nodes };
+  }, [stockMode, cadence]);
+  const [sound, setSound] = useState(true);
+  // Each piece's own motion makes its sound: the fold's crease, the rip, the peel, the roll.
+  const cues = useMemo(() => spec.nodes.flatMap((node) => (node.kind === "cutout" && node.sheet ? paperSheetSoundCues(node.sheet, 150, 30) : [])), [spec]);
+  usePaperCuePlayer(cues, loop.frame, 30, sound);
+  return <div style={page}>
+    <header><h1 style={{ margin: 0, font: "700 32px/1.15 Georgia, serif" }}>Physical paper lab</h1>
+      <p style={{ margin: "6px 0 0", maxWidth: 820 }}>Cutouts made of real paper stock fold, tear, peel and roll in three dimensions. Each piece keeps its print on every facet,
+        shades by its curvature, shows its thickness and casts its own shadow on the board. Set every piece to tissue or card to see the stock change the motion.</p></header>
+    <div style={stage}><CollageScene spec={spec} frame={loop.frame} /></div>
+    <div style={{ display: "flex", gap: 12, alignItems: "end", maxWidth: 960 }}>
+      <button type="button" style={button} onClick={loop.toggle}>{loop.playing ? "Pause" : "Play"}</button>
+      <label style={{ ...label, flex: 1 }}>Frame · {loop.frame}<input type="range" aria-label="Physical paper frame" min={0} max={149} value={loop.frame} onChange={e => loop.setFrame(Number(e.target.value))} /></label>
+    </div>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 16, maxWidth: 960 }}>
+      <label style={label}>Stock<select aria-label="Stock" value={stockMode} style={{ minHeight: 40, font: "inherit" }} onChange={e => setStockMode(e.target.value as typeof stockMode)}>
+        <option value="material">From each piece's material</option><option value="tissue">All tissue</option><option value="cardstock">All cardstock</option></select></label>
+      <label style={label}>Cadence<select aria-label="Cadence" value={cadence} style={{ minHeight: 40, font: "inherit" }} onChange={e => setCadence(Number(e.target.value) as 1 | 2)}>
+        <option value={1}>On ones (smooth)</option><option value={2}>On twos (stop motion)</option></select></label>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px system-ui" }}>
+        <input type="checkbox" checked={sound} onChange={e => setSound(e.target.checked)} /> Sound (recorded paper, {cues.length} cues)
+      </label>
     </div>
   </div>;
 }

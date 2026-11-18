@@ -1,6 +1,7 @@
 import { useId, useMemo } from "react";
 import type { SVGProps } from "react";
-import { evaluatePaperCraft, paperHash } from "./paper-craft";
+import { evaluatePaperCraft, paperCraftLight, paperHash } from "./paper-craft";
+import { PaperSheetSvg } from "../motion/paper-sheet-svg";
 import type { PaperCraftSpec, PaperCutLayer } from "./paper-craft";
 
 /** Mix opaque RGB paper pigments without CSS filters or translucent fill layers. */
@@ -122,8 +123,9 @@ export function PaperCraftStage({
       return <g key={layer.id} data-km-paper-layer={layer.id} data-km-paper-progress={q.progress.toFixed(4)}
         data-km-paper-stock={layer.color} data-km-paper-rig={layer.rigGroup}
         data-km-paper-parent={layer.parentId}
-        transform={inherited} opacity={q.opacity} style={{ filter: layer.id === "die-cut-border" ? "none" : shadow }}>
-        <g clipPath={clip}>
+        transform={inherited} opacity={q.opacity} style={{ filter: layer.id === "die-cut-border" || q.sheet ? "none" : shadow }}>
+        {(() => {
+        const artwork = <g clipPath={clip}>
           <path d={cut} fill={curved ? `url(#${uid}-curl-${layer.id})` : layer.color} fillRule="evenodd"
             stroke={puppet ? "#422c28" : "#695447"} strokeWidth={puppet ? 1.55 : .7}
             strokeLinejoin="round" strokeOpacity={(puppet ? .6 : .22) * sheetEdge}
@@ -139,7 +141,13 @@ export function PaperCraftStage({
           {spec.style === "kirigami" && layer.motion === "unfold" && <path
             d={`M${pivot[0]} ${pivot[1] - 48} v96`}
             stroke="#5a3441" strokeWidth="1.35" strokeDasharray="4 4" opacity=".22" fill="none"/>}
-        </g>
+        </g>;
+        // A physical layer draws the same artwork on every facet of its folded, peeled or torn sheet,
+        // and casts its own shadows instead of the flat drop shadow.
+        return q.sheet ? <PaperSheetSvg sheet={q.sheet} front={artwork} color={layer.color}
+          back={layer.sheet?.back ? <path d={cut} fill={layer.sheet.back} fillRule="evenodd"/> : undefined}
+          light={paperCraftLight(spec)} view={spec.physical?.view} shadow={strength} /> : artwork;
+        })()}
         {/* The separate tip is a real shape, outside the base clipping mask;
             its hinge remains attached through every rig transform and frame seek.
             Both underside and lifted shadow are opaque solid-stock geometry. */}

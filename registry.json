@@ -1315,6 +1315,99 @@
       ]
     },
     {
+      "name": "paper-sheet",
+      "type": "registry:ui",
+      "title": "Physical Paper Sheet",
+      "description": "Physical paper (MC1.3): a sheet of real stock (copy, newsprint, tissue, tracing, kami, kozo washi, kraft, construction, cardstock, glossy photo, chipboard; measured grammage, caliper, MD/CD stiffness, ISO 2471 opacity and fibre length) folds on scored creases, bends, peels from a moving front whose radius follows stiffness and adhesion, rolls into a spiral that tightens by its thickness, tears along a wandering path with a fibre bevel and loose fibres, and sags under its own weight by its elastogravity length. Every frame resolves to planar facets with exact affine maps, so any artwork folds with the paper; nested bends ride on their parent's flap. The SVG renderer shades curvature, shows edge thickness, back faces and Kubelka-Munk show-through, and casts shadows whose penumbra widens with height and whose light passes through thin paper tinted by its colour. Renderer-neutral light, view and shadow functions serve other renderers. PaperCraft layers and Editorial Collage cutouts take a `sheet`.",
+      "dependencies": [],
+      "registryDependencies": [
+        "motion-track",
+        "shape-morph"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/paper-sheet.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paper-sheet.ts"
+        },
+        {
+          "path": "registry/motion/paper-sheet-stock.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paper-sheet-stock.ts"
+        },
+        {
+          "path": "registry/motion/paper-sheet-profile.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paper-sheet-profile.ts"
+        },
+        {
+          "path": "registry/motion/paper-sheet-light.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paper-sheet-light.ts"
+        },
+        {
+          "path": "registry/motion/paper-sheet-svg.tsx",
+          "type": "registry:ui",
+          "target": "components/motion/paper-sheet-svg.tsx"
+        }
+      ]
+    },
+    {
+      "name": "paper-book",
+      "type": "registry:ui",
+      "title": "Physical Paper Book",
+      "description": "Bound books and magazines whose page turns are simulated sheets of real paper stock (coated magazine paper by default): each moving leaf is a particle sheet with stretch, shear and bending constraints from the stock's stiffness, pinned on the spine, pulled by gravity and slowed by air drag. A hand takes a corner (the corner leads and the page curls into a cone), the middle of the edge, or a thumb flicks it; riffles turn many leaves in quick succession; turns run forward or back. Leaves never pass through each other or the stacks: around the spine they keep their angular order a paper's thickness apart, so they touch, land and settle in order. Deterministic small-step XPBD baked once for exact seeking, with contact events (lift, release, touch, land, settle) for sound and a CPU contact check.",
+      "dependencies": [],
+      "registryDependencies": [
+        "paper-sheet"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/paper-book.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paper-book.ts"
+        }
+      ]
+    },
+    {
+      "name": "paper-book-three",
+      "type": "registry:ui",
+      "title": "Physical Paper Book Three",
+      "description": "Three.js renderer for a baked paper book: smooth leaf surfaces interpolated from the simulation grid (Catmull-Rom) and kept apart as drawn, recto and verso textures (the verso mirrored to read from behind), coated-paper clear coat, stacks with one edge line per leaf, and shadows cast leaf on leaf.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "paper-book"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/paper-book-three.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paper-book-three.ts"
+        }
+      ]
+    },
+    {
+      "name": "paper-sound",
+      "type": "registry:ui",
+      "title": "Physical Paper Sound",
+      "description": "Sound cues made from what paper does: page turns with a take per leaf, landings on the frame the simulation finds the leaf striking the stack and as loud as it struck, soft brushes where leaves touch in the air, one fluttering run for a riffle, slow or fast rips by how fast a tear runs, the crease of a fold, peels, rolls and slides. The default ids are recorded CC0 paper sounds in the sound catalog; every id can be swapped.",
+      "dependencies": [],
+      "registryDependencies": [
+        "paper-sheet",
+        "paper-book"
+      ],
+      "files": [
+        {
+          "path": "registry/motion/paper-sound.ts",
+          "type": "registry:ui",
+          "target": "components/motion/paper-sound.ts"
+        }
+      ]
+    },
+    {
       "name": "sculptural-type-three",
       "type": "registry:ui",
       "title": "Sculptural Type Three",
@@ -4971,10 +5064,11 @@
       "name": "editorial-collage",
       "type": "registry:ui",
       "title": "Editorial Paper Collage (COLLAGE1)",
-      "description": "Data-driven newsroom-explainer paper collage: torn and cut paper with white fibre cores and lift shadows, amplitude-modulated halftone shading and archival-print filter, tape, boiling marker and highlighter strokes, condensed headlines on pasted-up slips with measured word layout, paper maps (Natural Earth land) with routes and pins, red string, jointed paper-puppet characters with walk/run/talk/gesture actions, stop-motion cadence and boil, parallax rostrum camera, object kit, real-photo registers (cut-outs with alpha-following torn sticker borders, halftone/duotone print, Ken Burns archival prints, document scans with OCR-placed highlights and spotlight, flat-colour and dark slate boards, shaded-relief maps, label/year boxes, chapter captions) and a paper-tear transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors.",
+      "description": "Data-driven newsroom-explainer paper collage: torn and cut paper with white fibre cores and lift shadows, amplitude-modulated halftone shading and archival-print filter, tape, boiling marker and highlighter strokes, condensed headlines on pasted-up slips with measured word layout, paper maps (Natural Earth land) with routes and pins, red string, jointed paper-puppet characters with walk/run/talk/gesture actions, stop-motion cadence and boil, parallax rostrum camera, object kit, real-photo registers (cut-outs with alpha-following torn sticker borders, halftone/duotone print, Ken Burns archival prints, document scans with OCR-placed highlights and spotlight, flat-colour and dark slate boards, shaded-relief maps, label/year boxes, chapter captions) and a paper-tear transition. Pure absolute-frame evaluation; JSON scenes validated with path-specific errors. Cutouts can be physical paper (paper-sheet) that fold, tear, peel and roll in 3D with their own shadows.",
       "dependencies": [],
       "registryDependencies": [
-        "universal-rig"
+        "universal-rig",
+        "paper-sheet"
       ],
       "files": [
         {
@@ -8176,9 +8270,11 @@
       "name": "paper-craft",
       "type": "registry:ui",
       "title": "Paper Craft Theatre",
-      "description": "Frame-exact paper film framework: original opaque cutouts, connected puppet rigs, native deckled curtains and hinged printed-page turns, two-aspect scene direction, deterministic pose/camera keyframes, five cardstock styles, Storybook and FD1 output.",
+      "description": "Frame-exact paper film framework: original opaque cutouts, connected puppet rigs, native deckled curtains and hinged printed-page turns, two-aspect scene direction, deterministic pose/camera keyframes, five cardstock styles, Storybook and FD1 output. Any layer can be physical paper (paper-sheet): real stock that folds, peels, rolls and tears in 3D with curvature shading, edge thickness and cast shadows.",
       "dependencies": [],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "paper-sheet"
+      ],
       "files": [
         {
           "path": "registry/video/paper-craft.ts",

@@ -8,7 +8,7 @@ import { collageFilm, shotStarts } from "./collage-film";
 import type { CollageFilmTweaks } from "./collage-film";
 import { STANDARD_TIME_SHOTS } from "./collage-standard-time";
 import type { CollageAspect, CollageShot } from "./collage-standard-time";
-import { CastLab, PaperLab, PhotoLab } from "./editorial-collage-labs";
+import { CastLab, PaperLab, PhotoLab, PhysicalPaperCollageLab } from "./editorial-collage-labs";
 import { PHOTO_REGISTER_SHOTS, PHOTO_REGISTER_TEARS } from "./collage-photo-registers";
 import type { ReactNode } from "react";
 
@@ -158,6 +158,10 @@ export const PhotoTreatmentLab: StoryObj<typeof CollageFilmPlayer> = {
 export const PaperAndPrintLab: StoryObj<typeof CollageFilmPlayer> = {
   name: "COLLAGE1 · Paper & print lab",
   render: () => <PaperLab />,
+};
+export const PhysicalPaperLab: StoryObj<typeof CollageFilmPlayer> = {
+  name: "COLLAGE1 · Physical paper lab (fold, tear, peel, roll)",
+  render: () => <PhysicalPaperCollageLab />,
 };
 export const PuppetCastLab: StoryObj<typeof CollageFilmPlayer> = {
   name: "COLLAGE1 · Puppet cast lab",

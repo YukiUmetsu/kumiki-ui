@@ -2645,6 +2645,78 @@ export function ShapeMorphExample() {
 }`,
     };
   },
+  "paper-sheet": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { evaluatePaperSheet, inspectPaperSheet } from "${specifier}";`,
+        `import { PaperSheetSvg } from "${motionDir}/paper-sheet-svg";`,
+        `import { paperGravityLength, paperTransmittance, PAPER_STOCKS } from "${motionDir}/paper-sheet-stock";`,
+      ],
+      componentName: "PaperSheetExample",
+      component: `export function PaperSheetExample() {
+  // A postcard of origami paper: a corner folds over, a tear runs down and its right side lifts behind the tip.
+  const spec = { outline: "M0 0H520V360H0Z", stock: "kami" as const, pxPerMm: 4,
+    bends: [
+      { id: "corner", kind: "fold" as const, line: [[330, 0], [520, 190]] as [[number, number], [number, number]], flap: [520, 0] as [number, number], angle: 160 },
+      { id: "lift", kind: "fold" as const, follow: "rip", piece: { tear: "rip", at: [100, 180] as [number, number] }, angle: 30, radius: 60 },
+    ],
+    tears: [{ id: "rip", from: [260, -4] as [number, number], to: [250, 364] as [number, number], progress: 0.6 }] };
+  const sheet = evaluatePaperSheet(spec, 0);
+  const sags = paperGravityLength(PAPER_STOCKS.tissue) * 1000;
+  return <svg viewBox="-40 -40 600 440" data-issues={inspectPaperSheet(spec).length} data-sag={sags.toFixed(0)} data-light={paperTransmittance(PAPER_STOCKS.kami).toFixed(2)}>
+    <PaperSheetSvg sheet={sheet} color="#f6f1e4" light="table" front={<rect width={520} height={360} fill="#b5452f" />} />
+  </svg>;
+}`,
+    };
+  },
+  "paper-book": (specifier) => {
+    return {
+      imports: [`import { bakePaperBook, inspectPaperBookContacts } from "${specifier}";`],
+      componentName: "PaperBookExample",
+      component: `export function PaperBookExample() {
+  // A 12-leaf magazine: a hand turns one page from the bottom corner, then three pages are riffled.
+  const [bake] = useState(() => bakePaperBook({ leaves: 12, width: 210, height: 280, open: 2, durationFrames: 60, quality: "draft",
+    turns: [{ frame: 2, kind: "grab", grip: "bottom" }, { frame: 30, kind: "grab", frames: 12, count: 3, interval: 6 }] }));
+  const contacts = inspectPaperBookContacts(bake);
+  return <span data-frames={bake.frames.length} data-events={bake.events.length} data-crossing={contacts.maxPenetration.toFixed(2)} />;
+}`,
+    };
+  },
+  "paper-book-three": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { PaperBookObject } from "${specifier}";`,
+        `import { bakePaperBook } from "${motionDir}/paper-book";`,
+      ],
+      componentName: "PaperBookThreeExample",
+      component: `export function PaperBookThreeExample() {
+  const [book] = useState(() => new PaperBookObject(bakePaperBook({ leaves: 6, width: 210, height: 280, durationFrames: 30, quality: "draft",
+    turns: [{ frame: 1, kind: "flick", speed: 1600 }] }), { scale: 0.01 }));
+  book.update(15);
+  void book.dispose;
+  return <span data-children={book.children.length} />;
+}`,
+    };
+  },
+  "paper-sound": (specifier) => {
+    const motionDir = specifier.replace(/\/[^/]+$/, "");
+    return {
+      imports: [
+        `import { PAPER_SOUNDS, paperBookSoundCues, paperSheetSoundCues } from "${specifier}";`,
+        `import { bakePaperBook } from "${motionDir}/paper-book";`,
+      ],
+      componentName: "PaperSoundExample",
+      component: `export function PaperSoundExample() {
+  const [cues] = useState(() => [
+    ...paperBookSoundCues(bakePaperBook({ leaves: 6, width: 210, height: 280, durationFrames: 40, quality: "draft", turns: [{ frame: 1 }] })),
+    ...paperSheetSoundCues({ tears: [{ id: "rip", from: [0, 0], to: [0, 300], keys: [{ frame: 0, progress: 0 }, { frame: 60, progress: 1 }] }] }, 90),
+  ]);
+  return <ul data-land={PAPER_SOUNDS.land}>{cues.map((cue, i) => <li key={i}>{cue.frame}: {cue.sound} {cue.gainDb.toFixed(1)} dB</li>)}</ul>;
+}`,
+    };
+  },
   "sculptural-type-three": (specifier) => {
     return {
       imports: [

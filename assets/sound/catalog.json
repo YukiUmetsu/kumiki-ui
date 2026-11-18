@@ -2309,6 +2309,232 @@
    "verifiedAt": "2026-11-07"
   },
   {
+   "id": "paper-fold",
+   "path": "recorded/paper-fold.wav",
+   "sha256": "c5799b35223793287b20bc537a94e2bc685db0f4bbe7ab713f15caa6ecc64122",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 130800,
+   "peakSeconds": 0.6119,
+   "loudnessLufs": -35.9,
+   "tags": [
+    "foley",
+    "paper",
+    "fold",
+    "crease",
+    "handling",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "A sheet of paper folded and its crease pressed down.",
+   "sourceUrl": "https://freesound.org/people/Anthousai/sounds/398896/",
+   "author": "Anthousai",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "paper-page-land",
+   "path": "recorded/paper-page-land.wav",
+   "sha256": "4e69c2895de68ff5ad423889bc9289b96d49c39847ec06ee6b8fc93f25dcd003",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 38880,
+   "peakSeconds": 0.1454,
+   "loudnessLufs": -23.5,
+   "tags": [
+    "foley",
+    "paper",
+    "page",
+    "land",
+    "flap",
+    "contact",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "A sheet of paper dropping flat: a soft papery flap.",
+   "sourceUrl": "https://freesound.org/people/amholma/sounds/344356/",
+   "author": "amholma",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "paper-page-turn-1",
+   "path": "recorded/paper-page-turn-1.wav",
+   "sha256": "6a9610d8bb6e6ddc95d9a93f98083685fcbd22984d359010beb6706e451ef06a",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 36000,
+   "peakSeconds": 0.0856,
+   "loudnessLufs": -29.4,
+   "tags": [
+    "foley",
+    "paper",
+    "page",
+    "turn",
+    "magazine",
+    "glossy",
+    "swish",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "A glossy magazine page turned over: a crisp, smooth swish.",
+   "sourceUrl": "https://freesound.org/people/fieldtapes/sounds/271342/",
+   "author": "fieldtapes",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "paper-page-turn-2",
+   "path": "recorded/paper-page-turn-2.wav",
+   "sha256": "3e3c30ddc24129c6cd7f056ed8d95e61ed8d39d4905e68e7cd5d75660f0ba1bc",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 68880,
+   "peakSeconds": 1.2357,
+   "loudnessLufs": -30.4,
+   "tags": [
+    "foley",
+    "paper",
+    "page",
+    "turn",
+    "magazine",
+    "glossy",
+    "rustle",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "A glossy magazine page lifted, turned and laid down: a fuller rustle.",
+   "sourceUrl": "https://freesound.org/people/fieldtapes/sounds/271342/",
+   "author": "fieldtapes",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "paper-page-turn-3",
+   "path": "recorded/paper-page-turn-3.wav",
+   "sha256": "0f9c56dbe95461726184e189882d05d18b7ba0415b99ca7e178ab9ac3507e6f8",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 26160,
+   "peakSeconds": 0.0108,
+   "loudnessLufs": -37.3,
+   "tags": [
+    "foley",
+    "paper",
+    "page",
+    "turn",
+    "book",
+    "swish",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "A book page flicked over: a short, dry swish.",
+   "sourceUrl": "https://freesound.org/people/bdunis4/sounds/271459/",
+   "author": "bdunis4",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "paper-peel",
+   "path": "recorded/paper-peel.wav",
+   "sha256": "1c6e1457796844b049614a23950f25b2dd177d922ae52e96d7d5e908102bc664",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 120240,
+   "peakSeconds": 0.0144,
+   "loudnessLufs": -34.2,
+   "tags": [
+    "foley",
+    "paper",
+    "tape",
+    "peel",
+    "sticky",
+    "crackle",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "Tape peeled slowly off a surface: a sticky crackling peel.",
+   "sourceUrl": "https://freesound.org/people/deleted_user_7146007/sounds/383856/",
+   "author": "deleted_user_7146007",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "paper-riffle",
+   "path": "recorded/paper-riffle.wav",
+   "sha256": "434675153d21e80422a2b0d9e7996bd9115886bbd313d8ee95414a029ecd4ed2",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 43920,
+   "peakSeconds": 0.0636,
+   "loudnessLufs": -33.2,
+   "tags": [
+    "foley",
+    "paper",
+    "pages",
+    "riffle",
+    "flip",
+    "flutter",
+    "book",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "Pages flipped fast under a thumb: a quick fluttering run.",
+   "sourceUrl": "https://freesound.org/people/VithorMoraes/sounds/391350/",
+   "author": "VithorMoraes",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
    "id": "paper-sheet-lay",
    "path": "recorded/paper-sheet-lay.wav",
    "sha256": "c57b9235ff81d79bbdd7ae62918551d176009eb72f3bc1fbde1d11aa589bc663",
@@ -2367,6 +2593,99 @@
     "library-distribution"
    ],
    "verifiedAt": "2026-11-15"
+  },
+  {
+   "id": "paper-tear-fast",
+   "path": "recorded/paper-tear-fast.wav",
+   "sha256": "e8ca564f0e8c6ff4609090f0597077ac6612ed1572502b77d3b8cb4f91cbf9f7",
+   "channels": 1,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 21360,
+   "peakSeconds": 0.0621,
+   "loudnessLufs": -24,
+   "tags": [
+    "foley",
+    "paper",
+    "tear",
+    "rip",
+    "fast",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "A sheet of paper ripped in one quick tear.",
+   "sourceUrl": "https://freesound.org/people/Mikes-MultiMedia/sounds/349702/",
+   "author": "Mikes-MultiMedia",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "paper-tear-slow",
+   "path": "recorded/paper-tear-slow.wav",
+   "sha256": "56855fd7fafaff9b146e5fa260cb9a1b59581a7e2b12ea319c2f9da0d1f8a821",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 188400,
+   "peakSeconds": 3.302,
+   "loudnessLufs": -27.5,
+   "tags": [
+    "foley",
+    "paper",
+    "tear",
+    "rip",
+    "slow",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "A sheet of paper torn slowly: a long crackling rip.",
+   "sourceUrl": "https://freesound.org/people/viwright2112/sounds/630399/",
+   "author": "viwright2112",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
+   "id": "paper-unroll",
+   "path": "recorded/paper-unroll.wav",
+   "sha256": "a5cf469cb88c408d01ed61b44a39e7b2f5670cdfb68a0460191a00e22ccc988b",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 204000,
+   "peakSeconds": 2.963,
+   "loudnessLufs": -31.9,
+   "tags": [
+    "foley",
+    "paper",
+    "unroll",
+    "scroll",
+    "map",
+    "recorded"
+   ],
+   "material": "paper",
+   "description": "A paper map unrolled across a table: a dry papery unrolling.",
+   "sourceUrl": "https://freesound.org/people/Lewooz/sounds/580586/",
+   "author": "Lewooz",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
   },
   {
    "id": "props-book-close",
