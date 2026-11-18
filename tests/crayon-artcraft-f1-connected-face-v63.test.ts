@@ -37,6 +37,30 @@ describe("Crayon ArtCraft V63 connected five-plane value calibration",()=>{
     }
   });
 
+  it("exposes V63 as a reversible opt-in face variant over the unchanged V57 geometry",()=>{
+    const v57=crayonCc0FaceStudy({midfaceForm:"source-anat1-hair-edge-v57"});
+    const v63=crayonCc0FaceStudy({
+      midfaceForm:"source-anat1-connected-face-v63" as never,
+    });
+    expect(v63.elements).toHaveLength(v57.elements.length);
+    const before=new Map(v57.elements.map(element=>[element.id,element]));
+    const after=new Map(v63.elements.map(element=>[element.id,element]));
+    for(const id of PATCH_IDS){
+      const old=before.get(id)!;
+      const next=after.get(id)!;
+      if(old.kind!=="wax"||next.kind!=="wax")throw new Error("expected wax plane");
+      expect(next.colors).not.toEqual(old.colors);
+      expect(next.d).toBe(old.d);
+      expect(next.bounds).toEqual(old.bounds);
+      expect(next.timing).toEqual(old.timing);
+      expect(next.parentId).toBe(old.parentId);
+    }
+    for(const old of v57.elements){
+      if(!PATCH_IDS.includes(old.id as typeof PATCH_IDS[number]))
+        expect(after.get(old.id)).toBe(old);
+    }
+  });
+
   it("records the six measured V57 source-to-render value witnesses",()=>{
     expect(CRAYON_F1_V63_WITNESSES).toHaveLength(6);
     expect(CRAYON_F1_V63_WITNESSES.map(item=>item.id)).toEqual([

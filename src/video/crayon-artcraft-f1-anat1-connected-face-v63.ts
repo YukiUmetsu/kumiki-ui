@@ -1,7 +1,6 @@
 import type {CrayonColor,CrayonElement} from "../../registry/video/materials/crayon-scene";
 import {CRAYON_PORTRAIT_AUDIT} from "./crayon-artcraft-portrait-audit";
 
-type Wax=Extract<CrayonElement,{kind:"wax"}>;
 type PlanePatch=Readonly<{
   colors:readonly [CrayonColor,CrayonColor,CrayonColor];
   pressure:number;

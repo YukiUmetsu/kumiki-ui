@@ -88,6 +88,7 @@ describe("ArtCraft V59 actual rendered-landmark evidence quarantine",()=>{
       "[data-km-crayon-f1-candidate-landmark]");
     expect(candidates()).toHaveLength(0);
     expect(source()).toHaveLength(18);
+    expect(screen.getByRole("option",{name:/V63 connected-face value candidate/})).toBeTruthy();
     expect(JSON.parse(output().value).marks).toEqual({});
     expect(screen.getByText(/0\/18 candidate observations/)).toBeTruthy();
     const canvas=screen.getByRole("button",{
@@ -116,6 +117,18 @@ describe("ArtCraft V59 actual rendered-landmark evidence quarantine",()=>{
     expect(screen.getByText(/0\/18 candidate observations/)).toBeTruthy();
     expect(JSON.parse(output().value).releaseApproved).toBe(false);
   },60_000);
+  it("keeps the connected-face V63 native capture independently identifiable",()=>{
+    const worksheet=crayonF1NativeCaptureWorksheetV60({
+      variant:"source-anat1-connected-face-v63" as never,
+      nativePngSha256:"b".repeat(64),
+      checkoutCommitSha:"e".repeat(40),
+      pngFileName:"v63-photo-native-299.png",
+    });
+    expect(worksheet.native.variant).toBe("source-anat1-connected-face-v63");
+    expect(worksheet.audit.status).toBe("INCOMPLETE");
+    expect(worksheet.audit.measured).toBe(0);
+    expect(worksheet.releaseApproved).toBe(false);
+  });
   it("V60 binds real Chromium PNG SHA to an EMPTY and explicitly unapproved reviewer worksheet",()=>{
     const actualScreenshotHash="a".repeat(64);
     const worksheet=crayonF1NativeCaptureWorksheetV60({
