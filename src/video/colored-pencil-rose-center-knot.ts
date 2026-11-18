@@ -132,7 +132,7 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
   {
     id:"rose-whorl-scroll",
     path:"M232 174 C225 166 227 155 234 148 C241 140 251 139 260 145 C268 151 269 160 263 168 C259 174 252 177 246 179 C252 184 261 185 270 180 C267 189 250 192 239 185 C234 182 232 178 232 174 Z",
-    bounds:[226,143,40,45],
+    bounds:[222,136,52,60],
     palette:["#A94C64","#55213D","#D27A8D"],
     direction:35,flow:22,
     dryContours:contacts("rose-whorl-scroll",[
