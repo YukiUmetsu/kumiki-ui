@@ -26,7 +26,7 @@ Every sequence has independent deterministic paper positions and oblique materia
 | Real lower lamina | Physically later upper lamina | Shadow axis (source x,y endpoints) | Why this boundary |
 |---|---|---|---|
 | `inner-fold` | `rose-whorl-recess` | (220,167) to (271,178) | Lower collar shows a visible exposed strip below a raised cup; its center is partially hidden by the darker new recess. |
-| `rose-whorl-recess` | `rose-whorl-left` | (251,179) to (269,180) | The left wall's lower turned heel crosses the cup's lower-left edge; the contact follows that small physical overlap, not the former non-overlapping upper arc. |
+| `rose-whorl-recess` | `rose-whorl-left` | (255,166) to (266,179) | The lifted left-wall lobe crosses the recess's lower-right edge; the axis follows their shared oblique boundary, not the former non-overlapping upper arc. |
 | `rose-whorl-recess` | `rose-whorl-right` | (263,148) to (280,165) | Opposite right turn has *different* exit attitude, width, and coloured pencil deposition. |
 | `rose-whorl-right` | `rose-whorl-scroll` | (251,150) to (274,168) | The scroll, **not the non-overlapping heart**, masks part of this right-facing curl. Prior guessed heart pairing was rejected after sampling actual source fills. |
 | `heart` | `rose-whorl-scroll` | (246,178) to (265,179) | The extended foreground scroll now crosses the heart's lower-left shoulder; the dark contact sits on their shared lower-right edge while the exposed heart face remains lit outside it. |
@@ -50,3 +50,26 @@ In the first real Chromium A/B capture, switching the contact study ON also made
 ## Integrated concurrent physical outer petal ripple (#614)
 
 The merged two outer-petal physical scallops are preserved alongside the independently clipped rose-center contact-shadow micro-pigment. Both are reversible and source-connected, with all earlier 45 part IDs and pigment seeds unchanged. The exact-head browser proof enables both in the full 45-organ frame in portrait and landscape without introducing a new SVG part. The CP-F1 contract has a maximum of twelve reference records; the two separate CC0 rose photographers are both credited in this document and combined into one manifest observation for the all-on case, without misrepresenting them as the same photographed cultivar.
+
+
+## Exact-head native verification — 2026-11-18
+
+Exact head `0d72a280c649f41bcc2c7ac544b46957cdf30833` completed both workflows successfully:
+
+- Changed-contract checks: 9 test files, 90 tests passed; TypeScript/type-safety and 939-module Storybook source preflight passed.
+- CP-F1 foundation proof: 40 test files, 201 tests passed; 37 rose Playwright cases and 10 additional foundation browser cases passed.
+- Both 16:9 and 9:16 source-pair occupancy audits returned the same native counts:
+
+| Physical contact | Lower pigment exposed | Upper petal coverage |
+|---|---:|---:|
+| `collar-under-cup` | 142 | 13 |
+| `cup-under-left` | 55 | 86 |
+| `cup-under-right` | 61 | 99 |
+| `right-under-scroll` | 70 | 19 |
+| `heart-under-scroll` | 167 | 11 |
+
+These are mounted-Chromium `isPointInFill` sample counts, not measurements from the reference photographs. The corrected left contact is the cubic axis `(255,166) → (261,169) → (264,174) → (266,179)`; the table records its endpoints.
+
+**Visual hold after reviewing the actual exact-head PNGs:** the full 45-region flower still reads as a clean vector construction with a dark, tightly curled centre. At 2.15× the central laminae are distinguishable, but the three petal pigment passes still cross-hatch each other too aggressively, making the knot read as a dark scribble instead of form-following dry pencil. The browser tests prove source integrity and reversible rendering, not visual acceptance.
+
+Next value-first change: keep all three CP-F1 pigment passes, their seeds, timing, spacing, nib widths, pressure, opacity and fine source-local contacts, but re-align their directions to each central lamina's authored flow. Do not reduce mark counts, add more fibres, or change the production default. **ART HOLD remains.**
