@@ -12,8 +12,8 @@
 import type { ArchScene, CameraSpec, Mood, MoodId } from "./arch-paint";
 import { MOODS } from "./arch-paint";
 import type { HouseSpec, WindowSpec } from "./arch-kit";
-import { SceneBuilder, barrel, beam, bench, box, boxAt, capsule, clump, coneY, crag, cut, cylY, cylZ, cypress, hillField, leaf, peaks, plinth, repeatX, repeatZ, dome, ellipsoid, firewood, gableRoof, gableWall, gardenWall, ground, hills, hipRoof, house, lamppost, onionDome, opening, pentRoof, revolve, sphere, spire, street, tower, tree, water } from "./arch-kit";
-import { anvil, balance, breadRack, candlestick, clockParts, flourSack, forge, hangingLantern, herbBunch, jarRow, magnifierLamp, peel, sleepingCat, stool, tankard, wallClock, workbench, writingDesk } from "./arch-kit-props";
+import { SceneBuilder, barrel, beam, bench, box, boxAt, capsule, clump, coneY, crag, cut, cylY, cylZ, cypress, hillField, leaf, patchwork, peaks, plinth, repeatX, repeatZ, track, wallFoot, dome, ellipsoid, firewood, gableRoof, gableWall, gardenWall, ground, hills, hipRoof, house, lamppost, onionDome, opening, pentRoof, revolve, sphere, spire, street, tower, tree, water } from "./arch-kit";
+import { anvil, appleBasket, balance, breadRack, candlestick, cart, clockParts, fence, flourSack, forge, haystack, trough, hangingLantern, herbBunch, jarRow, magnifierLamp, peel, sleepingCat, stool, tankard, wallClock, workbench, writingDesk } from "./arch-kit-props";
 import { archRoll, sculpt } from "./arch-sdf";
 import type { Node } from "./arch-sdf";
 import { arcade, bridge, candle, chairRows, church, octShaft, curtainWall, domeChurch, gatehouse, glasshouse, gothicNave, hearth, kasbahTower, keep, lighthouse, room, shelves, staveChurch, table, trullo, waterWheel, windmill } from "./arch-kit-civic";
@@ -363,7 +363,12 @@ add({ id: "rhine-crag-castle", label: "Rhine castle on a crag", group: "alpine",
   build: (seed = 25) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, grass: "#6a7a3e" }); water(b, -500, 500, 30, 400, -0.6, "#4a6066");
     // the spur: slate in thin beds, its top levelled for the castle; the walls stand on battered footings run down the face
     const top = 24;
-    crag(b, { x: 2, z: -5, top, base: 0, rx: 17, rz: 11.5, yaw: -6, layer: 4.2, bench: 0.9, batter: 0.08, back: { dir: -90, slope: 1.1 }, sides: 9, rough: 0.2, rock: { kind: "rock", colour: "#6e6a62" }, talus: 3, scrub: 22, cap: { kind: "grass", colour: "#6a7440" } });
+    const slate: SurfaceSpec = { kind: "rock", colour: "#6e6a62" };
+    crag(b, { x: 2, z: -5, top, base: 0, rx: 17, rz: 11.5, yaw: -6, layer: 4.2, bench: 0.9, batter: 0.08, back: { dir: -90, slope: 1.1 }, sides: 13, rough: 0.24, rock: slate, talus: 3, scrub: 22, cap: { kind: "grass", colour: "#6a7440" } });
+    // lower buttresses and fallen blocks against its foot break the face into masses, as on a real spur
+    crag(b, { x: -12, z: 4, top: 13, base: 0, rx: 6, rz: 5, yaw: 25, layer: 3.2, bench: 0.7, batter: 0.14, sides: 8, rough: 0.28, rock: slate, talus: 2.5, scrub: 6, cap: { kind: "grass", colour: "#6a7440" } });
+    crag(b, { x: 15, z: 5, top: 9, base: 0, rx: 5, rz: 4.5, yaw: -18, layer: 2.6, bench: 0.6, batter: 0.16, sides: 7, rough: 0.3, rock: slate, talus: 2.5, scrub: 5, cap: { kind: "grass", colour: "#6a7440" } });
+    crag(b, { x: 3, z: 9, top: 4.5, base: 0, rx: 4, rz: 2.6, yaw: 8, layer: 1.8, bench: 0.5, batter: 0.2, sides: 7, rough: 0.3, rock: slate, talus: 1.5, scrub: 3, cap: null });
     const wall = S.rubble("#7d776c", 0.35);
     tower(b, { x: -4, z: -2, plan: "round", r: 4, h: 22, wall, crenel: true, roof: { kind: "cone", h: 8, mat: S.slate }, slits: 3 });
     b.add(cylY(-4, -2, -5, 0, 4.4, b.mat(wall)), coneY(-4, -2, -5.6, -5, 5.6, 4.4, b.mat(wall)));
@@ -393,7 +398,12 @@ add({ id: "alpine-hay-barn", label: "Alpine hay barn (Stadel)", group: "alpine",
   build: (seed = 27) => { const b = new SceneBuilder(seed); countryside(b, { grass: "#76893e", lane: false, trees: [[-12, -12, 14]] });
     placeHouse(b, { w: 6, d: 5, storeys: 1, storeyH: 3.2, walls: S.log("#4a3424"), roof: { kind: "gable", pitch: 20, mat: S.boards("#5a4636", 0.8), over: 0.7 }, door: { x: 0, w: 1.8, h: 2.2, mat: S.boards("#3e2c20") } }, 0, 0, -30, 0.006, () => {
       for (let i = 0; i < 6; i++) b.add(clump(-2.5 + i, 3.2 + 1.7 * 0.364 + 0.12, 0.8 * (i % 2 ? 1 : -1), 0.25, 0.16, 0.25, b.mat(S.rubble("#8a857a")), b.r(), 0.3)); });
-    const cam = frameSubject(b, 8, { pad: 0.22 });
+    const cam = frameSubject(b, 8, { pad: 0.22, eye: 2.4 });
+    // the mown meadow: hay hung to dry on racks, a split-rail fence along the slope, a path worn to the doors, nettles at the logs
+    const rack = b.mat({ kind: "oak", colour: "#6a5a44", age: 0.8 }), hay = b.mat({ kind: "hay", colour: "#b8a060" });
+    for (const [rx, rz] of [[-9, 3], [8, 5]] as const) { for (const dx of [-2, 0, 2]) b.add(capsule(rx + dx, 0, rz, rx + dx, 1.9, rz, 0.05, rack)); for (let k = 0; k < 4; k++) b.add(capsule(rx - 2.2, 0.45 + k * 0.38, rz, rx + 2.2, 0.45 + k * 0.38, rz, 0.025, rack)); for (let k = 0; k < 4; k++) { const y = 0.45 + k * 0.38; b.add(leaf((px, py, pz) => Math.max(Math.abs(px - rx) - 2.1, (Math.abs(pz - rz) - 0.07 - 0.06 * Math.max(0, y - py) / 0.3) * 0.9, py - y - 0.04, y - 0.32 - py), [rx - 2.15, y - 0.33, rz - 0.15], [rx + 2.15, y + 0.05, rz + 0.15], hay)); } }
+    b.place();
+    fence(b, [[-16, -6], [-8, -9], [4, -10], [16, -7]]); track(b, [[6, 22], [3, 10], [0.5, 3.2]], 1.6); wallFoot(b, 0, 0, 6, 5, -30, 0);
     for (let i = 0; i < 30; i++) b.add(clump(-12 + b.r() * 24, 0.05, 2 + b.r() * 10, 0.4, 0.2, 0.4, b.mat({ kind: "foliage", colour: "#5f7a3a", colour2: ["#e8d070", "#d06a8a", "#f0f0e8"][i % 3] }), b.r()));
     b.place();
     return done(b, cam, "morning"); } });
@@ -430,7 +440,19 @@ add({ id: "dutch-windmill", label: "Dutch smock windmill", group: "low-countries
   note: "The cap turns the sails into the wind; canvas is reefed on the lattice; the stage lets the miller reach the sails.",
   build: (seed = 30) => { const b = new SceneBuilder(seed); countryside(b, { hills: false, grass: "#6f8440" }); water(b, -300, 300, 9, 12, -0.4, "#4a6a6e");
     windmill(b, 0, 0, 16, 4.6, S.thatch, S.thatch, 28); b.add(cylY(0, 0, 0, 3.5, 5.2, b.mat(S.brick("#7a3a2a")))); b.add(cylY(0, 0, 3.4, 3.6, 7, b.mat(S.boards("#5a4a3a")))); b.place();
-    return done(b, frameSubject(b, -8), "morning"); } });
+    const view = frameSubject(b, -8, { eye: 5.5, pad: 0.12 });
+    // the polder: drainage ditches ruling the flat pasture, reeds along the water, pollard willows, a plank bridge, the miller's cottage
+    for (const x of [-38, 26, 62]) water(b, x - 1.2, x + 1.2, -200, 9, -0.35, "#4a6a6e");
+    water(b, -300, 300, -48, -46, -0.35, "#4a6a6e");
+    const reed = b.mat({ kind: "foliage", colour: "#8a9050" }), willow = b.mat({ kind: "foliage", colour: "#7a8a5a" }), bark = b.mat({ kind: "oak", colour: "#5a5040", age: 0.7 });
+    for (let k = 0; k < 70; k++) { const x = b.r(-60, 60); b.add(clump(x, 0.35, 8.6 + b.r(-0.3, 0.3), b.r(0.3, 0.6), b.r(0.35, 0.6), b.r(0.2, 0.35), reed, b.r(), 0.5)); }
+    for (let k = 0; k < 5; k++) { const x = -40 + k * 5.5 + b.r(-1, 1), z = 4 + k * 2.2 + b.r(-0.5, 0.5); b.add(capsule(x, 0, z, x + b.r(-0.2, 0.2), 2.2, z, 0.28, bark), clump(x, 2.9, z, 1.6, 1.1, 1.6, willow, b.r(), 0.5)); }
+    b.add(boxAt(10, 0.1, 8.4, 11.4, 0.2, 12.6, b.mat(S.boards("#6a5a44", 0.8))));
+    b.place();
+    house(b, { w: 6, d: 7, storeys: 1, storeyH: 2.6, walls: S.brick("#8a4030"), roof: { kind: "gable", pitch: 55, mat: S.thatch }, windows: { rows: [[-1.6, 1.6]], spec: W.shuttered("#2f5a3a", 0.7, 1.0) }, door: { x: 0 } }); b.place({ x: 15, z: -3, yaw: -10 });
+    fence(b, [[11, 3], [19, 3], [19, -8]]);
+    patchwork(b, -50, 300, 600, false);
+    return done(b, view, "morning"); } });
 add({ id: "flemish-guildhall", label: "Flemish guildhall", group: "low-countries", region: "Belgium, Antwerp", era: "16th–17th century", setting: "city", view: "exterior", scale: "civic", mood: "golden",
   materials: ["sandstone with gilded ornament", "curved Baroque gable", "slate"], story: ["a gilded statue on the gable", "the guild's emblem"],
   note: "Guild houses compete in gables: volutes, obelisks and a gilded figure on top.",
@@ -942,7 +964,15 @@ add({ id: "stone-windmill-tower", label: "Stone tower mill", group: "historic", 
   note: "Tower mills keep a fixed brick tower and turn only the cap; a fantail behind steers the sails into the wind.",
   build: (seed = 80) => { const b = new SceneBuilder(seed); countryside(b, { hills: false });
     windmill(b, 0, 0, 18, 4.2, S.brick("#3a2a24"), S.paint("#efece4", 0.1), 8); b.place({ yaw: -12 });
-    return done(b, frameSubject(b, 4), "golden"); } });
+    const view = frameSubject(b, 4, { eye: 5, pad: 0.1 });
+    // wheat round the mill, a track up to its door, a cart of sacks waiting, long grass at its foot
+    track(b, [[24, 70], [14, 40], [6, 18], [1, 6]], 3.6);
+    cart(b, 4.5, 9, -60, "sacks"); flourSack(b, -2.2, 5.0, 30); flourSack(b, -1.4, 5.6, -20, 0.9);
+    for (let k = 0; k < 28; k++) { const a = (k / 28) * Math.PI * 2; b.add(clump(Math.cos(a) * 5.2, 0.2, Math.sin(a) * 5.2, b.r(0.3, 0.55), b.r(0.2, 0.35), b.r(0.3, 0.5), b.mat({ kind: "foliage", colour: "#5e7234" }), b.r(), 0.45)); }
+    b.place();
+    ground(b, -60, -6, -40, 40, { kind: "furrows", colour: "#c8a85a", colour2: "#a8884a", unit: 0.25 }, 0.004); ground(b, 8, 80, -40, 30, { kind: "furrows", colour: "#c4a456", colour2: "#a4844a", unit: 0.25 }, 0.004);
+    patchwork(b, -40);
+    return done(b, view, "golden"); } });
 
 // Rural and agrarian ------------------------------------------------------------------------------------------------------
 add({ id: "tithe-barn", label: "Stone tithe barn", group: "rural", region: "England", era: "14th century", setting: "rural", view: "exterior", scale: "civic", mood: "golden",
@@ -955,7 +985,14 @@ add({ id: "tithe-barn", label: "Stone tithe barn", group: "rural", region: "Engl
       b.add(boxAt(-1.8, 0, 8.9, 1.8, 4.5, 9.1, b.mat({ kind: "hay" })));
       for (let k = 0; k < 8; k++) { const x = -18 + k * 5.2; if (Math.abs(x) > 4) b.add(boxAt(x - 0.5, 0, 5.5, x + 0.5, 4.2, 6.6, wm)); }
       for (let k = 0; k < 10; k++) { const x = -17 + k * 3.8; if (Math.abs(x) > 4.5) b.add(box(x, 3.2, 5.52, 0.08, 0.5, 0.05, b.mat({ kind: "plain", colour: "#1a1512" }))); } });
-    return done(b, frameSubject(b, 18), "golden"); } });
+    const view = frameSubject(b, 18, { eye: 6, pad: 0.04 });
+    // the farm round it: a rutted track to the porch, haycocks and a hay cart in the yard, nettles at the walls, a fence, hedged fields behind
+    track(b, [[-30, 60], [-14, 34], [-6, 20], [-2.6, 11.5]], 4.2);
+    wallFoot(b, 0, 0, 40, 11, -16, 0);
+    haystack(b, 26, -4, 2.4, 4.6); haystack(b, 31, 2, 2.1, 4.0); cart(b, 12, 16, 70, "hay"); trough(b, -16, 11, -16);
+    fence(b, [[18, 12], [24, 18], [36, 16], [40, 4]]);
+    patchwork(b, -40);
+    return done(b, view, "golden"); } });
 add({ id: "overshot-watermill", label: "Watermill with overshot wheel", group: "rural", region: "England and France", era: "18th century", setting: "riverside", view: "exterior", scale: "domestic", mood: "morning",
   materials: ["stone mill house", "oak wheel and leat", "plain tiles"], story: ["water spilling into the buckets", "sacks by the door", "the millpond"],
   note: "An overshot wheel needs a head of water greater than its diameter; a leat on posts brings it to the top of the wheel.",
@@ -969,7 +1006,17 @@ add({ id: "stone-dovecote", label: "Round stone dovecote", group: "rural", regio
     tower(b, { plan: "round", r: 3.5, h: 7, wall: S.rubble("#b5a07e", 0.35), roof: { kind: "cone", h: 5.5, mat: S.plainTile, over: 0.25 } });
     b.add(cylY(0, 0, 4.2, 4.45, 3.75, b.mat(S.ashlar("#c9b48c"))), cylY(0, 0, 12, 13, 0.8, b.mat(S.boards("#5a4a3a"))), coneY(0, 0, 13, 14, 1.1, 0.05, b.mat(S.plainTile)));
     b.place();
-    return done(b, frameSubject(b, -14, { pad: 0.14 }), "golden"); } });
+    const view = frameSubject(b, -14, { pad: 0.2, eye: 2.4 });
+    // the walled farmyard it stands in: dry-stone walls with a gate, an old cart, a trough, nettles at its foot, an orchard beyond
+    const dry = S.rubble("#a89878", 0.5);
+    gardenWall(b, -14, -3, 8, 1.4, dry); gardenWall(b, 3, 14, 8, 1.4, dry); b.place();
+    gardenWall(b, -14, 14, -10, 1.4, dry); b.place();
+    fence(b, [[-3, 8], [3, 8]], 1.1);
+    wallFoot(b, 0, 0, 7, 7, 0, 0);
+    cart(b, 7.5, 2.5, -40, "none"); trough(b, -6, 4, 10);
+    for (let k = 0; k < 8; k++) tree(b, -26 + (k % 4) * 6 + b.r(-1, 1), -18 - Math.floor(k / 4) * 6, 4.6, 2.0, { kind: "foliage", colour: "#5e7a36", colour2: "#c84a2a" });
+    b.place();
+    return done(b, view, "golden"); } });
 add({ id: "farmyard-well", label: "Farmyard with well and hay barn", group: "rural", region: "Europe", era: "19th century", setting: "rural", view: "exterior", scale: "humble", mood: "noon",
   materials: ["rubble walls", "timber barn", "a stone well with a little roof"], story: ["a cart", "hay", "chickens' coop", "a pump"],
   note: "A yard enclosed by house, barn and byre; the well head of stone with a windlass under a little roof.",
@@ -985,7 +1032,14 @@ add({ id: "dry-stone-bothy", label: "Shepherd's dry-stone hut", group: "rural", 
   build: (seed = 85) => { const b = new SceneBuilder(seed); countryside(b, { grass: "#6a6f48", lane: false });
     placeHouse(b, { w: 7, d: 5, storeys: 1, storeyH: 2, walls: S.rubble("#8a857a", 0.5), roof: { kind: "hip", pitch: 42, mat: { kind: "turf", colour: "#6a6a3a" }, over: 0.3 }, door: { x: 0, w: 0.8, h: 1.7, step: null }, windows: { rows: [[2]], spec: { w: 0.4, h: 0.4, panes: [1, 1] } } }, 0, 0, -18);
     gardenWall(b, -12, -4, 7, 1.2, S.rubble("#8a857a", 0.6)); gardenWall(b, 4, 12, 7, 1.2, S.rubble("#8a857a", 0.6)); b.place();
-    return done(b, frameSubject(b, -14), "overcast"); } });
+    const view = frameSubject(b, -14, { pad: 0.16, eye: 1.9 });
+    // moorland round it: heather and rushes in clumps, grey boulders, a peat stack by the door, a sheep path, smoke from the chimney end
+    const heather = b.mat({ kind: "foliage", colour: "#6a4a5a" }), rush = b.mat({ kind: "foliage", colour: "#7a7a48" }), boulder = b.mat({ kind: "rock", colour: "#8a857a", moss: 0.5 });
+    for (let k = 0; k < 80; k++) { const x = b.r(-40, 40), z = b.r(-30, 30); if (Math.abs(x) < 8 && Math.abs(z) < 8) continue; b.add(clump(x, 0.18, z, b.r(0.5, 1.2), b.r(0.2, 0.35), b.r(0.5, 1.0), k % 3 ? heather : rush, b.r(), 0.45)); }
+    for (let k = 0; k < 10; k++) b.add(clump(b.r(-30, 30), 0.25, b.r(-25, 20), b.r(0.5, 1.3), b.r(0.4, 0.8), b.r(0.5, 1.1), boulder, b.r(), 0.25));
+    b.add(boxAt(4.2, 0, 1.0, 5.6, 0.9, 2.2, b.mat({ kind: "firewood", colour: "#3a2a1e" })));
+    b.place(); track(b, [[-6, 30], [-2, 12], [0, 3.2]], 0.9, 0, { kind: "dirt", colour: "#6a5a44" });
+    return done(b, view, "overcast"); } });
 add({ id: "kentish-oast-house", label: "Kentish oast house", group: "rural", region: "England, Kent", era: "19th century", setting: "rural", view: "exterior", scale: "domestic", mood: "golden",
   materials: ["red brick roundels", "plain-tile cones", "white timber cowls"], story: ["hop bines", "the white cowls turning in the wind"],
   note: "Hops dried on a floor over a kiln in a round brick roundel; the cone's white cowl turns its back to the wind.",
@@ -1021,8 +1075,17 @@ add({ id: "cider-orchard-barn", label: "Cider barn in an orchard", group: "rural
   note: "Weatherboarded upper storeys over stone, pantiles at a moderate pitch, apples pressed inside.",
   build: (seed = 89) => { const b = new SceneBuilder(seed); countryside(b, { grass: "#6f8440" });
     placeHouse(b, { w: 14, d: 7, storeys: 2, storeyH: 2.8, walls: [S.rubble("#9a5a44"), S.boards("#5a4a3a", 0.6)], roof: { kind: "gable", pitch: 38, mat: S.pantile }, door: { x: -3, w: 2.4, h: 2.6 }, windows: { rows: [[3], [0]], spec: W.leaded(0.8, 0.8) } }, 0, -4, -14);
-    for (let i = 0; i < 6; i++) tree(b, (i < 3 ? -20 : 12) + (i % 3) * 4.5, -2 + (i % 2) * 6, 4.6, 2.2, { kind: "foliage", colour: "#6a8a3a", colour2: "#f0d8e0" }); b.place();
-    return done(b, frameSubject(b, 8), "golden"); } });
+    const view = frameSubject(b, 8, { pad: 0.42, eye: 2.4 });
+    // the orchard in rows round the barn, old trees leaning; baskets of apples under them, a ladder against one, a track to the door
+    for (let r2 = 0; r2 < 3; r2++) for (let c2 = 0; c2 < 9; c2++) { const x = -34 + c2 * 8 + (r2 % 2) * 4 + b.r(-0.8, 0.8), z = -14 + r2 * 9 + b.r(-0.8, 0.8); if (Math.abs(x) < 10 && z > -8 && z < 6) continue; tree(b, x, z, b.r(4.0, 5.2), b.r(2.0, 2.6), { kind: "foliage", colour: "#6a8a3a", colour2: "#c8342a" }); }
+    b.place();
+    appleBasket(b, -10.5, 7); appleBasket(b, -9.7, 7.6, "#c8a030"); appleBasket(b, 11, 6.5);
+    const lad = b.mat({ kind: "oak", colour: "#8a7050", age: 0.6 });
+    for (const s2 of [-0.22, 0.22]) b.add(capsule(-18 + s2, 0, 4.4, -18.6 + s2, 3.6, 3.9, 0.035, lad));
+    for (let k = 1; k < 10; k++) b.add(capsule(-18.22 - k * 0.06, k * 0.36, 4.4 - k * 0.05, -17.78 - k * 0.06, k * 0.36, 4.4 - k * 0.05, 0.02, lad));
+    b.place();
+    track(b, [[-20, 40], [-10, 20], [-3, 4.5]], 3.0); wallFoot(b, 0, 0, 14, 7, 0, -3);
+    return done(b, view, "golden"); } });
 add({ id: "alpine-summer-hut", label: "Alpine summer dairy hut", group: "rural", region: "Switzerland", era: "19th century", setting: "mountain", view: "exterior", scale: "humble", mood: "morning",
   materials: ["dry-stone walls", "a stone-slab roof", "a log upper gable"], story: ["cheese cellar", "cows' bells hanging by the door", "high pasture and peaks"],
   note: "Above the treeline huts are stone, roofed with heavy stone slabs at a low pitch against wind.",

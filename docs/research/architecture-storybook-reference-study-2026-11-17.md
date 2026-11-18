@@ -267,6 +267,37 @@ Renderer fixes found on the way:
 A test checks the crag's flat top, its wider foot, and the safe-step property: no point inside the rock lies within
 the distance the field reports. The test catches a crag made to overstep.
 
+## Buildings in their country (2026-11-18)
+
+The owner: "continue working on the weak points." The weakest exteriors were rural buildings standing alone on a flat
+lawn: nothing said how they were used or reached. Farm buildings are read by what surrounds them (observation; common
+knowledge of English and Dutch farmland, not measured here):
+
+- a track worn to the door, with two ruts and a grass middle;
+- hedged fields of pasture, ploughland and corn;
+- a mill standing in the wheat it grinds;
+- a barn with haycocks and a cart;
+- a polder mill among straight drainage ditches, reeds and pollard willows;
+- nettles and long grass where a wall meets the ground.
+
+The kit now has `track`, `hedgerow`, `patchwork` and `wallFoot`, and `curve` to smooth control points. The `furrows`
+surface draws ploughland, wheat and crops in rows. New props: `cart`, `haystack`, `fence`, `trough`, `appleBasket`.
+
+Plates set in their country:
+
+- **Tithe barn:** a track to the porch, haycocks, a hay cart, a trough and hedged fields.
+- **Stone windmill:** wheat fields, a track, a cart of sacks.
+- **Dutch windmill:** a polder of ditches with reeds, pollard willows, a plank bridge and the miller's cottage, seen from
+  higher.
+- **Stone dovecote:** a walled farmyard with a gate, a cart, a trough and an orchard.
+- **Cider barn:** rows of apple trees, baskets of apples, a ladder.
+- **Alpine hay barn:** hay drying on racks, a fence, a path.
+- **Dry-stone bothy:** heather, rushes, boulders, a peat stack and a sheep path.
+
+The Rhine spur gained lower buttresses and fallen blocks at its foot, so its face breaks into masses, and the main mass
+has more faces. A track's grass middle once read as "two lines" in a review. Pixel checks showed it renders correctly,
+so its middle strip was only narrowed. The full set takes 56 s at 256 px, against 46 s before (hedgerows and fields).
+
 ## Limits
 
 - Ornament is simplified: no carved capitals, tracery inside windows, statues or Lüftlmalerei figures.

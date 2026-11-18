@@ -208,3 +208,54 @@ export function sleepingCat(b: SceneBuilder, x: number, y: number, z: number, ya
   b.add(sculpt(prims, 0.03, fur));
   place(b, x, z, yaw, y);
 }
+
+// ---- Farm and yard ----------------------------------------------------------------------------------------------------------
+
+/** A two-wheeled farm cart: spoked wheels with iron tyres, a plank bed with raves, shafts resting on the ground; `load` heaps hay or sacks on it. */
+export function cart(b: SceneBuilder, x: number, z: number, yaw = 0, load: "hay" | "sacks" | "none" = "none") {
+  const wd = b.mat({ kind: "oak", colour: "#7a6046", age: 0.7 }), ir = b.mat(M.iron), R = 0.65;
+  for (const s of [-1, 1]) {
+    const wx = s * 0.78;
+    b.add(cut(cylX(R, 0, wx - 0.05, wx + 0.05, R, wd), [cylX(R, 0, wx - 0.1, wx + 0.1, R - 0.07, 0)]), cut(cylX(R, 0, wx - 0.055, wx + 0.055, R + 0.012, ir), [cylX(R, 0, wx - 0.1, wx + 0.1, R - 0.005, 0)]));
+    b.add(cylX(R, 0, wx - 0.12, wx + 0.12, 0.1, wd));
+    for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; b.add(capsule(wx, R, 0, wx, R + Math.sin(a) * (R - 0.06), Math.cos(a) * (R - 0.06), 0.02, wd)); }
+  }
+  b.add(cylX(R, 0, -0.9, 0.9, 0.04, ir), boxAt(-0.65, R + 0.12, -1.2, 0.65, R + 0.18, 1.0, wd), boxAt(-0.68, R + 0.18, -1.2, -0.62, R + 0.55, 1.0, wd), boxAt(0.62, R + 0.18, -1.2, 0.68, R + 0.55, 1.0, wd));
+  for (const s of [-1, 1]) b.add(capsule(s * 0.45, R + 0.15, 0.9, s * 0.4, 0.06, 2.9, 0.035, wd));
+  if (load === "hay") b.add(sculpt([{ a: [0, R + 0.7, -0.1], e: [0.75, 0.5, 1.2] }, { a: [0.1, R + 1.05, 0.1], e: [0.5, 0.35, 0.8] }], 0.2, b.mat({ kind: "hay", colour: "#c8a85a" })));
+  if (load === "sacks") for (const [sx, sz] of [[-0.3, -0.6], [0.3, -0.6], [-0.3, 0.1], [0.3, 0.1], [0, -0.25]] as const) b.add(sculpt([{ a: [sx, R + 0.36 + (sz === -0.25 ? 0.3 : 0), sz], e: [0.27, 0.18, 0.32] }], 0.08, b.mat(M.burlap)));
+  place(b, x, z, yaw);
+}
+/** A haycock: a rounded stack of hay on a stone or wooden base, raked down its sides, a thatched cap and a rope weighted with stones. */
+export function haystack(b: SceneBuilder, x: number, z: number, r = 2.2, h = 4.2) {
+  const hay = b.mat({ kind: "hay", colour: "#bfa05a" }), rope = b.mat({ kind: "hay", colour: "#6a5a3a" }), stone = b.mat({ kind: "rock", colour: "#8a857a" });
+  b.add(revolve(0, 0, 0, h, t => r * (t < 0.55 ? 0.92 + 0.08 * Math.sin((t / 0.55) * Math.PI * 0.5) : Math.sqrt(Math.max(0, 1 - ((t - 0.55) / 0.45) ** 2)) * (1 - 0.05 * (t - 0.55))), r * 1.02, hay, 0, 3));
+  // ropes over the dome: bands lying on its surface, crossing at the top
+  const ry = h * 0.45, mr = Math.min(r, ry);
+  for (let k = 0; k < 4; k++) { const a = (k / 4) * Math.PI, ca = Math.cos(a), sa = Math.sin(a); b.add(leaf((px, py, pz) => { const across = -px * sa + pz * ca, shell = (Math.hypot(px / r, (py - h * 0.55) / ry, pz / r) - 1) * mr; return Math.max(Math.abs(across) - 0.03, Math.abs(shell) - 0.03, h * 0.55 - py); }, [-r - 0.1, h * 0.5, -r - 0.1], [r + 0.1, h + 0.1, r + 0.1], rope)); }
+  for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; b.add(sphere(Math.cos(a) * r * 0.98, h * 0.5, Math.sin(a) * r * 0.98, 0.14, stone)); }
+  place(b, x, z, 0);
+}
+/** A post-and-rail fence along a list of points: split posts every ~2.4 m, two rails, a little out of true. */
+export function fence(b: SceneBuilder, pts: readonly (readonly [number, number])[], h = 1.15) {
+  const wd = b.mat({ kind: "oak", colour: "#7a6a52", age: 0.85 });
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const [ax, az] = pts[i], [bx, bz] = pts[i + 1], L = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.round(L / 2.4));
+    for (let k = 0; k <= n; k++) { const t = k / n, x = ax + (bx - ax) * t, z = az + (bz - az) * t, lean = b.r(-0.05, 0.05); b.add(capsule(x, 0, z, x + lean, h + b.r(-0.05, 0.08), z + lean * 0.5, 0.055, wd)); }
+    for (const y of [h * 0.45, h * 0.85]) b.add(capsule(ax, y + b.r(-0.04, 0.04), az, bx, y + b.r(-0.04, 0.04), bz, 0.04, wd));
+  }
+  b.place();
+}
+/** A stone water trough fed by a spout, a little moss on its rim. */
+export function trough(b: SceneBuilder, x: number, z: number, yaw = 0) {
+  const st = b.mat({ kind: "ashlar", colour: "#9a958a", course: 0.6, moss: 0.4 }), wat = b.mat({ kind: "water", colour: "#3a5a5a" });
+  b.add(cut(boxAt(-1.0, 0, -0.35, 1.0, 0.6, 0.35, st, 0, 0.03), [boxAt(-0.88, 0.15, -0.24, 0.88, 0.8, 0.24, 0)]), boxAt(-0.88, 0.15, -0.24, 0.88, 0.5, 0.24, wat));
+  place(b, x, z, yaw);
+}
+/** A wicker basket heaped with apples. */
+export function appleBasket(b: SceneBuilder, x: number, z: number, red = "#b8342a") {
+  const wicker = b.mat({ kind: "cane", colour: "#a8824e" }), apple = b.mat({ kind: "velvet", colour: red });
+  b.add(cut(revolve(0, 0, 0, 0.32, t => 0.22 + 0.06 * t, 0.29, wicker), [cylY(0, 0, 0.04, 0.5, 0.25, 0)]));
+  for (let k = 0; k < 9; k++) { const a = k * 2.4, r = 0.06 + 0.12 * ((k * 0.618) % 1); b.add(sphere(Math.cos(a) * r, 0.3 + 0.03 * (k % 3), Math.sin(a) * r, 0.045, apple)); }
+  place(b, x, z, 0);
+}
