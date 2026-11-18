@@ -115,10 +115,11 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     const points=[...ridge!.matchAll(/[ML] ?(-?[0-9.]+) (-?[0-9.]+)/g)]
       .map(([,x,y])=>[Number(x),Number(y)]);
     const summit=points.filter(([x])=>x>=531&&x<=572);
-    // The formerly needle-sharp triangle now has a real rounded
-    // double-shoulder summit with many intermediate contour stations.
+    // The formerly needle-sharp triangle now has a broad, held,
+    // lower, asymmetrically rolled summit with full dense stations.
+    // Avoid silently preserving the old 105px needle-height band.
     expect(summit.length).toBeGreaterThan(20);
-    expect(summit.filter(([,y])=>y>=96&&y<=115).length)
+    expect(summit.filter(([,y])=>y>=116&&y<=146).length)
       .toBeGreaterThan(12);
     // A saw-tooth skyline was visible at native 960x540 when each
     // 13–15px section inherited a full long-cliff jitter budget.
@@ -995,28 +996,194 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }
   });
 
-  it("holds a broad Fuchun rock bench instead of a pasted triangular secondary crest",()=>{
-    const paint=(detail:number)=>renderToStaticMarkup(createElement(InkShanshuiStage,{
-      frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
-        inkSchool:"fuchun",seed:71,detail},
-    }));
+  it("constructs a seed-stable Fuchun dome and broad shoulder, never a needle peak",()=>{
+    const paint=(seed:number,detail:number)=>renderToStaticMarkup(
+      createElement(InkShanshuiStage,{frame:145,controls:{
+        ...DEFAULT_SHANSHUI,scene:"mountain-trail",
+        inkSchool:"fuchun",seed,detail,
+      }}));
     const ridge=(html:string)=>html.match(
       /data-km-shanshui-ridge-contour="1" d="([^"]+)"/,
     )?.[1];
-    const d=ridge(paint(1));
-    expect(d).toBeDefined();
-    expect(ridge(paint(0))).toBe(d);
-    const points=[...d!.matchAll(/[ML] (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)]
-      .map(([,x,y])=>[Number(x),Number(y)]);
-    const at=(x:number)=>points.reduce((nearest,p)=>
-      Math.abs(p[0]-x)<Math.abs(nearest[0]-x)?p:nearest)[1];
-    // A broad near-level 492–512px bench connects the gentle 474px
-    // shoulder to the 559px summit. The old 11px V notch produced a
-    // second pointed pyramid at 1.65x and is explicitly rejected.
-    expect(Math.abs(at(492)-at(512))).toBeLessThan(7);
-    expect(at(474)).toBeGreaterThan(at(492)+7);
-    expect(at(559)+55).toBeLessThan(at(492));
-    expect(at(545)).toBeGreaterThan(at(559));
+    for(const seed of [71,87]){
+      const d=ridge(paint(seed,1));
+      expect(d).toBeDefined();
+      // The physical ridge is independent of brush-detail density.
+      expect(ridge(paint(seed,0))).toBe(d);
+      const points=[...d!.matchAll(
+        /[ML] (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g,
+      )].map(([,x,y])=>[Number(x),Number(y)]);
+      const at=(x:number)=>points.reduce((nearest,p)=>
+        Math.abs(p[0]-x)<Math.abs(nearest[0]-x)?p:nearest)[1];
+      // Seven interlocking source stations turn a 559px needle-like
+      // triangle into a genuinely held, asymmetrical cap with an
+      // uninterrupted left bench and a second, softer right shoulder.
+      expect(Math.abs(at(492)-at(512))).toBeLessThan(7);
+      expect(at(474)).toBeGreaterThan(at(492)+7);
+      expect(at(559)+40).toBeLessThan(at(492));
+      expect(at(545)).toBeGreaterThan(at(559));
+      const dome=[545,559,572,588,603].map(at);
+      expect(Math.max(...dome)-Math.min(...dome)).toBeLessThan(21);
+      expect(at(622)-at(572)).toBeLessThan(22);
+      // Original native ArtCraft f210 evidence rejected the narrow
+      // V-shaped peak. The same source crest now rolls across BOTH
+      // shoulders; the actual ridge path, all rooted child strokes,
+      // trees and half-dry paper reserves remain source-connected.
+      expect(at(531)-at(559)).toBeLessThan(21);
+      expect(at(603)-at(559)).toBeLessThan(7);
+      expect(at(647)).toBeGreaterThan(at(707)+4);
+      // 25 source ridge nodes produce 24×9 preserved organic samples
+      // plus two polygon closure edges. Do not decimate curve density.
+      expect((d!.match(/L /g)??[])).toHaveLength(218);
+    }
+    expect(ridge(paint(71,1))).not.toEqual(ridge(paint(87,1)));
+    // The old distant pale mountain retained a tall 581px pyramid
+    // after the closer geology was fixed. Only the Fuchun far band now
+    // shares a gentler two-station crown; do not rewrite the other
+    // three schools' historically separate far/middle ridge grammars.
+    const far=(html:string)=>html.match(
+      /data-km-shanshui-ridge-contour="0" d="([^"]+)"/,
+    )?.[1];
+    const fuchunFar=far(paint(71,1));
+    const guoFar=far(renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+        inkSchool:"early-spring",seed:71,detail:1},
+    })));
+    expect(fuchunFar).toBeDefined();
+    expect(guoFar).toBeDefined();
+    const stationY=(d:string,x:number)=>{
+      const coords=[...d.matchAll(
+        /[ML] (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g,
+      )].map(m=>[Number(m[1]),Number(m[2])]);
+      const nearest=coords.reduce((best,p)=>
+        Math.abs(p[0]-x)<Math.abs(best[0]-x)?p:best);
+      expect(nearest[0]).toBeCloseTo(x,3);
+      return nearest[1];
+    };
+    expect(stationY(fuchunFar!,581)).toBe(123);
+    expect(stationY(fuchunFar!,624)).toBe(122);
+    expect(stationY(guoFar!,581)).toBe(103);
+    expect(stationY(guoFar!,624)).toBe(117);
+    // 12 original far parent nodes, 11×9 natural sub-stations
+    // and both contour closure edges all remain, never simplified.
+    expect((fuchunFar!.match(/L /g)??[])).toHaveLength(101);
+  });
+
+  it("builds broad connected Fuchun rock brows rather than tall wet-wash curtains",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,seed,detail},
+      }));
+    const extent=(path:string)=>{
+      const n=(path.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(n.length%2).toBe(0);
+      const x=n.filter((_,i)=>i%2===0),y=n.filter((_,i)=>i%2===1);
+      return {w:Math.max(...x)-Math.min(...x),
+        h:Math.max(...y)-Math.min(...y)};
+    };
+    for(const seed of [71,87]){
+      const scene=paint("fuchun",seed);
+      const faces=[...scene.matchAll(
+        /data-km-master-mass="" d="([^"]+)" fill="url\(#([^"]+)\)"/g,
+      )];
+      expect(faces).toHaveLength(3);
+      for(const [,path,gradient] of faces){
+        // A genuine rounded rock BROW adds connected convex transitions
+        // to the existing parent silhouette. No traced source bitmap.
+        expect((path.match(/ C/g)??[])).toHaveLength(7);
+        expect(path.endsWith(" Z")).toBe(true);
+        const {w,h}=extent(path);
+        expect(w/h).toBeGreaterThan(.83);
+        expect(scene).toContain('id="'+gradient+'"');
+      }
+      const backs=[...scene.matchAll(
+        /data-km-master-fuchun-hillback-wash="" d="([^"]+)"/g,
+      )];
+      expect(backs).toHaveLength(6);
+      for(const [,path] of backs){
+        expect((path.match(/ C/g)??[])).toHaveLength(7);
+        const {w,h}=extent(path);
+        expect(w/h).toBeGreaterThan(.76);
+      }
+      expect(scene).toMatch(/data-km-master-fuchun-cross-shelf=/);
+      expect((scene.match(/data-km-master-stroke="" /g)??[]))
+        .toHaveLength(78);
+    }
+    // Only Huang's positive terrain anatomy is modified. The separate
+    // Guo Xi source rock grammar retains its own five-edge silhouettes.
+    const guo=paint("early-spring");
+    const clouds=[...guo.matchAll(/data-km-master-mass="" d="([^"]+)"/g)];
+    expect(clouds).toHaveLength(3);
+    expect(clouds.every(([,path])=>(path.match(/ C/g)??[]).length===5))
+      .toBe(true);
+    expect(paint("fuchun",71,0)).not.toContain(
+      "data-km-master-fuchun-hillback-wash");
+  });
+
+  it("roots twelve lateral Fuchun stone courses to the actual wet undercut rim",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed=71,detail=1,mist=.35)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          seed,detail,mist,inkSchool:school},
+      }));
+    const full=paint("fuchun");
+    const undertops=[...full.matchAll(
+      /data-km-master-fuchun-hillback-undercut="" data-km-master-fuchun-hillback-undercut-root="([^"]+)" d="([^"]+)"/g,
+    )];
+    const shelves=[...full.matchAll(
+      /data-km-master-fuchun-cross-shelf="" data-km-master-fuchun-cross-shelf-parent="([01])" data-km-master-fuchun-cross-shelf-root="([^"]+)" data-km-master-fuchun-cross-shelf-station="([^"]+)" data-km-master-fuchun-cross-shelf-axis="([^"]+)" data-km-master-fuchun-cross-shelf-loaded="([01])" d="([^"]+)"/g,
+    )];
+    expect(undertops).toHaveLength(6);
+    expect(shelves).toHaveLength(12);
+    for(let j=0;j<shelves.length;j++){
+      const [,parent,root,station,axis,loaded,body]=shelves[j];
+      // The two courses of one hill-back share its 0/1 local
+      // parent index; their load role alternates within that parent.
+      expect(Number(parent)).toBe(Math.floor(j/2)%2);
+      expect(Number(loaded)).toBe(j%2);
+      expect(Number(station)).toBe(j%2===0?.24:.68);
+      const undercut=undertops[j>>1][2];
+      const bone=(undercut.match(/-?\d+(?:\.\d+)?/g)??[])
+        .map(Number).slice(0,8);
+      expect(bone).toHaveLength(8);
+      const t=Number(station),u=1-t;
+      const expected=[
+        u*u*u*bone[0]+3*u*u*t*bone[2]+3*u*t*t*bone[4]+t*t*t*bone[6],
+        u*u*u*bone[1]+3*u*u*t*bone[3]+3*u*t*t*bone[5]+t*t*t*bone[7],
+      ];
+      const actual=root.split(",").map(Number);
+      expect(Math.hypot(actual[0]-expected[0],
+        actual[1]-expected[1])).toBeLessThan(.055);
+      expect(axis.startsWith("M"+root.replace(","," "))).toBe(true);
+      const points=(axis.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(points).toHaveLength(8);
+      const dx=points[6]-points[0],dy=points[7]-points[1];
+      expect(Math.abs(dx)).toBeGreaterThan(12);
+      expect(Math.abs(dx)).toBeGreaterThan(Math.abs(dy)*1.25);
+      expect(body.startsWith("M"+root.replace(","," "))).toBe(true);
+      expect((body.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(22);
+      // The shelves never escape their exact sampled parent rock volume.
+      // React's static SVG serializer can emit an explicit </path>
+      // instead of a self-closing />, so inspect only this path's start
+      // tag rather than looking for a serializer-dependent terminator.
+      const start=shelves[j].index!;
+      const openTag=full.slice(start,full.indexOf(">",start)+1);
+      expect(openTag).toContain("-volume-clip)");
+      expect(openTag).toContain(j%2===0?'fill="#41372f"':'fill="#584a3b"');
+    }
+    const another=paint("fuchun",87);
+    const otherAxes=[...another.matchAll(
+      /data-km-master-fuchun-cross-shelf-axis="([^"]+)"/g,
+    )].map(x=>x[1]);
+    expect(otherAxes).toHaveLength(12);
+    expect(otherAxes).not.toEqual(shelves.map(m=>m[4]));
+    expect(paint("fuchun",71,0)).not.toContain("data-km-master-fuchun-cross-shelf=");
+    expect(paint("early-spring")).not.toContain("data-km-master-fuchun-cross-shelf=");
+    // Mist is a material/lighting input, not a geometry or anchor mutation.
+    expect([...paint("fuchun",71,1,.9).matchAll(
+      /data-km-master-fuchun-cross-shelf-axis="([^"]+)"/g,
+    )].map(x=>x[1])).toEqual(shelves.map(m=>m[4]));
   });
 
   it("groups Fuchun 78 child fibres across all five live banks with an unpainted middle reserve",()=>{
@@ -1077,11 +1244,383 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(full).toContain('data-km-master-stroke-source-zone="lower-bank"');
     // Altered pigment load makes the short roots the dark notes; full
     // downhill hemp remains physically present but optically recessive.
-    expect(full).toMatch(/data-km-master-stroke-phrase="long"[^>]*><path data-km-master-stroke-loaded="" d="[^"]+" fill="#675541"/);
+    // Long-hemp faces now carry a true negative paper-reserve mask
+    // before the same original loaded SVG path; short head contacts
+    // remain fully wet and do not need a dry-core reserve.
+    expect(full).toMatch(/data-km-master-stroke-phrase="long"[^>]*><defs><mask data-km-master-stroke-reserve=""/);
+    expect(full).toMatch(/<path data-km-master-stroke-loaded="" d="[^"]+" fill="#675541" mask="url\(#([^"]+)\)"/);
     expect(full).toMatch(/data-km-master-stroke-phrase="short"[^>]*><path data-km-master-stroke-loaded="" d="[^"]+" fill="#44382f"/);
     expect(paint("fuchun",87)).not.toBe(full);
     expect(paint("fuchun",71,0)).not.toContain("data-km-master-stroke-source-zone=");
     expect(paint("early-spring")).not.toContain("data-km-master-stroke-source-zone=");
+  });
+
+  it("opens four actual hero ribs to paper without sacrificing any folded parent course",()=>{
+    const paint=(school:"fuchun"|"early-spring",detail=1,seed=71,mist=.35)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,detail,seed,mist},
+      }));
+    const full=paint("fuchun");
+    const ribs=[...full.matchAll(
+      /data-km-rock-hero-rib="" data-km-rock-hero-rib-root="([^"]+)" data-km-rock-hero-rib-support="[012]" data-km-rock-hero-rib-course="folded-3"/g,
+    )];
+    const reserves=[...full.matchAll(
+      /<mask data-km-rock-hero-rib-reserve="" id="([^"]+)" /g,
+    )];
+    const bodies=[...full.matchAll(
+      /data-km-rock-hero-face="" d="([^"]+)" fill="[^"]+" mask="url\(#([^"]+)\)"/g,
+    )];
+    const witness=[...full.matchAll(
+      /data-km-rock-hero-crease=""[^>]*mask="url\(#([^"]+)\)"/g,
+    )];
+    expect(ribs).toHaveLength(4);
+    expect(reserves).toHaveLength(4);
+    expect(bodies).toHaveLength(4);
+    expect(witness).toHaveLength(4);
+    expect(new Set(reserves.map(m=>m[1])).size).toBe(4);
+    expect(bodies.map(m=>m[2])).toEqual(reserves.map(m=>m[1]));
+    expect(witness.map(m=>m[1])).toEqual(reserves.map(m=>m[1]));
+    for(let i=0;i<4;i++){
+      const from=reserves[i].index!;
+      const mask=full.slice(from,full.indexOf("</mask>",from)+7);
+      expect(mask).toContain('style="mask-type:luminance"');
+      expect(mask).toContain('fill="#fff"');
+      const slits=[...mask.matchAll(
+        /data-km-rock-hero-rib-paper-slit="" data-km-rock-hero-rib-paper-stage="([012])" data-km-rock-hero-rib-paper-station="([^"]+)" d="([^"]+)" /g,
+      )];
+      expect(slits).toHaveLength(6);
+      expect(slits.map(m=>Number(m[1]))).toEqual([0,0,1,1,2,2]);
+      expect(slits.map(m=>Number(m[2]))).toEqual([
+        .38,.7,.38,.7,.38,.7,
+      ]);
+      expect(slits.every(m=>(m[3].match(/ Q/g)??[]).length===1&&
+        (m[3].match(/-?\d+(?:\.\d+)?/g)??[]).length===6))
+        .toBe(true);
+      expect(mask).toContain('stroke="#000"');
+      expect((bodies[i][1].match(/ C/g)??[]).length)
+        .toBeGreaterThanOrEqual(90);
+    }
+    expect((full.match(/data-km-rock-hero-rib-deposit="" /g)??[]))
+      .toHaveLength(12);
+    expect((full.match(/data-km-rock-hero-fibre="" /g)??[]))
+      .toHaveLength(8);
+    expect(paint("fuchun",1,71)).toEqual(full);
+    expect(paint("fuchun",1,87)).not.toEqual(full);
+    expect([...paint("fuchun",1,71,.88).matchAll(
+      /<mask data-km-rock-hero-rib-reserve="" id="([^"]+)" /g,
+    )].map(m=>m[1])).toEqual(reserves.map(m=>m[1]));
+    expect(paint("fuchun",.5)).not.toContain(
+      'data-km-rock-hero-rib-reserve=""');
+    expect(paint("early-spring")).not.toContain(
+      'data-km-rock-hero-rib-reserve=""');
+  });
+
+
+
+  it("paints the unchanged Fuchun hero geological bone as two genuine source-exact ink phrases, not one opaque ruler",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    for(const seed of [71,97]){
+      const html=draw("fuchun",seed);
+      const original=html.match(
+        /data-km-rock-hero-bone="" d="([^"]+)" fill="none" stroke="#695745"/,
+      );
+      expect(original).not.toBeNull();
+      expect((original![1].match(/ Q/g)??[])).toHaveLength(2);
+      expect((original![1].match(/ M/g)??[])).toHaveLength(1);
+      const parts=[...html.matchAll(
+        /data-km-rock-hero-bone-loaded="" data-km-rock-hero-bone-part="(crown|dry-tail)" data-km-rock-hero-bone-loaded-root="([^"]+)" data-km-rock-hero-bone-loaded-tip="([^"]+)" data-km-rock-hero-bone-source-from="([^"]+)" data-km-rock-hero-bone-source-to="([^"]+)" d="([^"]+)"/g,
+      )];
+      expect(parts).toHaveLength(2);
+      expect(parts.map(p=>p[1])).toEqual(["crown","dry-tail"]);
+      expect(parts.map(p=>[Number(p[4]),Number(p[5])])).toEqual([
+        [0,.41],[.52,.91],
+      ]);
+      const parent=html.match(/data-km-rock-hero-cliff="" data-km-rock-hero-root="([^"]+)"/)?.[1];
+      expect(parent).toBeDefined();
+      expect(original![1].startsWith(
+        "M"+parent!.replace(","," "))).toBe(true);
+      const [x,y]=parent!.split(",").map(Number);
+      const control:[number,number]=[x-19,y+31];
+      const tail:[number,number]=[x-56,y+116];
+      const source=(t:number)=>{
+        const u=1-t;
+        return [
+          u*u*x+2*u*t*control[0]+t*t*tail[0],
+          u*u*y+2*u*t*control[1]+t*t*tail[1],
+        ];
+      };
+      for(const [, ,r,t,start,stop,d] of parts){
+        // Even the original fine witness follows the identical source
+        // subcurve and cannot silently paint over the true paper gap.
+        expect(original![1]).toContain("M"+r.replace(","," "));
+        const control=source(Number(start));
+        expect(control.every(Number.isFinite)).toBe(true);
+        const at=source(Number(start)),end=source(Number(stop));
+        const actualR=r.split(",").map(Number);
+        const actualT=t.split(",").map(Number);
+        expect(Math.hypot(actualR[0]-at[0],actualR[1]-at[1]))
+          .toBeLessThan(.02);
+        expect(Math.hypot(actualT[0]-end[0],actualT[1]-end[1]))
+          .toBeLessThan(.02);
+        expect(d.startsWith("M"+r.replace(","," "))).toBe(true);
+        expect((d.match(/ C/g)??[]).length).toBeGreaterThanOrEqual(22);
+        expect(d.endsWith(" Z")).toBe(true);
+      }
+      // No pale canvas overpaint; the source quad has a real
+      // unpainted interval .41...52 between the two ink deposits.
+      expect(Number(parts[1][4])-Number(parts[0][5]))
+        .toBeGreaterThan(.1);
+      expect((html.match(/data-km-rock-hero-rib=""/g)??[])).toHaveLength(4);
+      expect((html.match(/data-km-rock-hero-rib-paper-slit=""/g)??[]))
+        .toHaveLength(24);
+      expect((html.match(/data-km-rock-hero-rib-deposit=""/g)??[]))
+        .toHaveLength(12);
+      expect((html.match(/data-km-rock-terrace-hemp=""/g)??[]))
+        .toHaveLength(40);
+      expect(draw("fuchun",seed)).toBe(html);
+    }
+    expect(draw("fuchun",71,0)).not.toContain(
+      'data-km-rock-hero-bone-loaded=""');
+    expect(draw("early-spring")).not.toContain(
+      'data-km-rock-hero-bone-loaded=""');
+  });
+
+  it("folds four authentic Fuchun hero-rib ribbons over short positive cheeks instead of diagonal stone wires",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    for(const seed of [71,97]){
+      const html=draw("fuchun",seed);
+      const ribs=[...html.matchAll(
+        /data-km-rock-hero-rib="" data-km-rock-hero-rib-root="([^"]+)" data-km-rock-hero-rib-support="([012])" data-km-rock-hero-rib-course="folded-3" data-km-rock-hero-rib-knee="([^"]+)" data-km-rock-hero-rib-return="([^"]+)" data-km-rock-hero-rib-tip="([^"]+)"/g,
+      )];
+      expect(ribs).toHaveLength(4);
+      const wash=[...html.matchAll(
+        /data-km-rock-hero-rib-cheek-wash="" d="([^"]+)" data-km-rock-hero-rib-cheek-root="([^"]+)" data-km-rock-hero-rib-cheek-knee="([^"]+)" data-km-rock-hero-rib-cheek-tip="([^"]+)" fill="url\(#([^"]+)\)"/g,
+      )];
+      expect(wash).toHaveLength(4);
+      expect(new Set(wash.map(x=>x[1])).size).toBe(4);
+      for(let i=0;i<4;i++){
+        const [,root, ,knee,returning,tip]=ribs[i];
+        const [ ,d,from,bend,end,gradient]=wash[i];
+        expect([from,bend,end]).toEqual([root,knee,tip]);
+        expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+        expect((d.match(/ C/g)??[])).toHaveLength(6);
+        expect((d.match(/ Q/g)??[])).toHaveLength(1);
+        expect(d.endsWith(" Z")).toBe(true);
+        expect(html).toContain('id="'+gradient+'"');
+        const p=[root,knee,returning,tip].map(x=>x.split(",").map(Number));
+        expect(p.every(q=>q.every(Number.isFinite))).toBe(true);
+        const dy=p[3][1]-p[0][1];
+        expect(dy).toBeGreaterThan(35);
+        expect(dy).toBeLessThan(70);
+        // The original 62–84 vertical-unit hanging wire had a weak
+        // lateral turn in its first quarter. These positive rock
+        // brows must reach at least one third their drift by the first
+        // shallow 20–23% of their descent, then physically fold down.
+        const dx=p[3][0]-p[0][0];
+        expect(Math.abs(dx)).toBeGreaterThan(15);
+        expect(Math.abs(p[1][0]-p[0][0])).toBeGreaterThan(
+          Math.abs(dx)*.30);
+        expect((p[1][1]-p[0][1])/dy).toBeLessThan(.32);
+        expect((p[2][1]-p[0][1])/dy).toBeLessThan(.65);
+      }
+      expect((html.match(/data-km-rock-hero-face=""/g)??[]))
+        .toHaveLength(4);
+      expect((html.match(/data-km-rock-hero-rib-deposit=""/g)??[]))
+        .toHaveLength(12);
+      expect((html.match(/data-km-rock-hero-rib-paper-slit=""/g)??[]))
+        .toHaveLength(24);
+      expect((html.match(/data-km-rock-hero-fibre=""/g)??[]))
+        .toHaveLength(8);
+      expect(draw("fuchun",seed)).toBe(html);
+    }
+    expect(draw("fuchun",71,0)).not.toContain(
+      'data-km-rock-hero-rib-cheek-wash=""');
+    expect(draw("early-spring")).not.toContain(
+      'data-km-rock-hero-rib-cheek-wash=""');
+  });
+
+
+  it("keeps 24 Fuchun hero ink paper slits open through the original brush, its positive cheek, and all twelve loaded deposits",()=>{
+    const render=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,detail,seed},
+      }));
+    for(const seed of [71,97]){
+      const html=render("fuchun",seed);
+      const ids=[...html.matchAll(
+        /<mask data-km-rock-hero-rib-reserve="" id="([^"]+)" /g,
+      )].map(m=>m[1]);
+      expect(ids).toHaveLength(4);
+      expect(new Set(ids).size).toBe(4);
+      const cheeks=[...html.matchAll(
+        /data-km-rock-hero-rib-cheek-wash="" d="[^"]+" data-km-rock-hero-rib-cheek-root="[^"]+" data-km-rock-hero-rib-cheek-knee="[^"]+" data-km-rock-hero-rib-cheek-tip="[^"]+" fill="[^"]+" mask="url\(#([^"]+)\)"/g,
+      )].map(m=>m[1]);
+      expect(cheeks).toEqual(ids);
+      const strokes=[...html.matchAll(
+        /data-km-rock-hero-face="" d="[^"]+" fill="[^"]+" mask="url\(#([^"]+)\)"/g,
+      )].map(m=>m[1]);
+      expect(strokes).toEqual(ids);
+      const deposits=[...html.matchAll(
+        /data-km-rock-hero-rib-deposit="" data-km-rock-hero-rib-deposit-root="[^"]+" data-km-rock-hero-rib-deposit-stage="[012]" d="[^"]+" fill="[^"]+" mask="url\(#([^"]+)\)"/g,
+      )].map(m=>m[1]);
+      expect(deposits).toEqual(ids.flatMap(id=>[id,id,id]));
+      const masks=ids.map(id=>{
+        const start=html.indexOf('id="'+id+'"');
+        return html.slice(start,html.indexOf("</mask>",start)+7);
+      });
+      expect(masks).toHaveLength(4);
+      masks.forEach((mask,i)=>{
+        expect(mask).toContain('style="mask-type:luminance"');
+        expect((mask.match(/data-km-rock-hero-rib-paper-slit=""/g)??[]))
+          .toHaveLength(6);
+        const actualIds=[...mask.matchAll(
+          /data-km-rock-hero-rib-paper-station="([^"]+)" d="([^"]+)"/g,
+        )];
+        expect(actualIds).toHaveLength(6);
+        for(const [,at,d] of actualIds){
+          expect([.38,.7]).toContain(Number(at));
+          expect(d).not.toMatch(/NaN|Infinity|undefined/);
+        }
+        expect(cheeks[i]).toBe(ids[i]);
+      });
+      expect((html.match(/data-km-rock-hero-rib-cheek-wash=""/g)??[]))
+        .toHaveLength(4);
+      expect((html.match(/data-km-rock-hero-rib-deposit=""/g)??[]))
+        .toHaveLength(12);
+      expect(render("fuchun",seed)).toBe(html);
+    }
+    expect(render("fuchun",71,0)).not.toContain(
+      'data-km-rock-hero-rib-cheek-wash=""');
+    expect(render("early-spring")).not.toContain(
+      'data-km-rock-hero-rib-cheek-wash=""');
+  });
+
+  it("preserves Fuchun loaded fibres while opening true negative dry-paper reserves",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed=71,detail=1,
+      mist=.35)=>renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+        inkSchool:school,seed,detail,mist},
+    }));
+    const full=paint("fuchun");
+    const reserves=[...full.matchAll(
+      /<mask data-km-master-stroke-reserve="" id="([^"]+)" /g,
+    )];
+    const painted=[...full.matchAll(
+      /<path data-km-master-stroke-loaded="" d="([^"]+)" fill="([^"]+)" mask="url\(#([^"]+)\)"/g,
+    )];
+    // Do not delete a single brush or replace it with a raster texture.
+    expect((full.match(/data-km-master-stroke="" /g)??[]))
+      .toHaveLength(78);
+    expect(reserves.length).toBeGreaterThan(18);
+    expect(reserves.length).toBeLessThan(45);
+    expect(painted).toHaveLength(reserves.length);
+    expect(new Set(reserves.map(m=>m[1])).size).toBe(reserves.length);
+    expect(painted.map(m=>m[3])).toEqual(reserves.map(m=>m[1]));
+    const stations:number[]=[];
+    for(let j=0;j<reserves.length;j++){
+      const id=reserves[j][1];
+      const from=reserves[j].index!;
+      const mask=full.slice(from,full.indexOf("</mask>",from)+7);
+      const original=painted[j][1];
+      expect(mask).toContain('style="mask-type:luminance"');
+      expect(mask).toContain('d="'+original+'" fill="#fff"');
+      expect(painted[j][2]).toMatch(/^#(675541|44382f)$/);
+      const slits=[...mask.matchAll(
+        /data-km-master-stroke-paper-slit="" data-km-master-stroke-paper-station="([^"]+)" d="([^"]+)" /g,
+      )];
+      expect(slits).toHaveLength(2);
+      for(const slit of slits){
+        const t=Number(slit[1]);
+        expect(t).toBeGreaterThanOrEqual(.38);
+        expect(t).toBeLessThanOrEqual(.67);
+        const points=(slit[2].match(/-?\d+(?:\.\d+)?/g)??[])
+          .map(Number);
+        expect(points).toHaveLength(6);
+        expect(points.every(Number.isFinite)).toBe(true);
+        expect(points[5]).toBeGreaterThan(points[1]);
+        stations.push(t);
+      }
+      expect(mask).toContain('id="'+id+'"');
+      expect(mask).toContain('stroke="#000"');
+    }
+    expect(stations.filter(t=>t===.38)).toHaveLength(reserves.length);
+    expect(stations.filter(t=>t===.67)).toHaveLength(reserves.length);
+    // Reproducibility: masks belong to same seeded anatomical marks,
+    // while their tear edge, pressure and crop respond deterministically.
+    expect(paint("fuchun")).toEqual(full);
+    expect(paint("fuchun",87)).not.toEqual(full);
+    expect([...paint("fuchun",71,1,.9).matchAll(
+      /<mask data-km-master-stroke-reserve="" id="([^"]+)" /g,
+    )].map(m=>m[1])).toEqual(reserves.map(m=>m[1]));
+    expect(paint("fuchun",71,.6)).not.toContain(
+      'data-km-master-stroke-reserve=""');
+    expect(paint("fuchun",71,0)).not.toContain(
+      'data-km-master-stroke-reserve=""');
+    expect(paint("early-spring")).not.toContain(
+      'data-km-master-stroke-reserve=""');
+  });
+
+
+  it("paints nine genuine Fuchun slope-turning ink volumes between original cubic rock strata",()=>{
+    const render=(school:"fuchun"|"early-spring",seed=71)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail:1},
+      }));
+    for(const seed of [71,97]){
+      const html=render("fuchun",seed);
+      const ribs=[...html.matchAll(
+        /data-km-master-stratum="" data-km-master-stratum-root="([^"]+)" data-km-master-stratum-index="([0-4])" data-km-master-stratum-centerline="([^"]+)"/g,
+      )].map(m=>(m[3].match(/-?\d+(?:\.\d+)?/g)??[]).map(Number));
+      expect(ribs).toHaveLength(15);
+      const bands=[...html.matchAll(
+        /data-km-master-fuchun-turning-bank="" data-km-master-fuchun-turning-bank-root="([^"]+)" data-km-master-fuchun-turning-bank-tip="([^"]+)" data-km-master-fuchun-turning-bank-from="([0-4])" data-km-master-fuchun-turning-bank-to="([0-4])" data-km-master-fuchun-turning-bank-depth="([^"]+)" data-km-master-fuchun-turning-bank-offset="([^"]+)"/g,
+      )];
+      expect(bands).toHaveLength(9);
+      const sample=(p:number[],t:number)=>{
+        const [x,y,c1x,c1y,c2x,c2y,tx,ty]=p,u=1-t;
+        return [u*u*u*x+3*u*u*t*c1x+3*u*t*t*c2x+t*t*t*tx,
+          u*u*u*y+3*u*u*t*c1y+3*u*t*t*c2y+t*t*t*ty];
+      };
+      for(let i=0;i<9;i++){
+        const [,root,tip,from,to,depth,offset]=bands[i];
+        const face=Math.floor(i/3);
+        const a=sample(ribs[face*5+Number(from)],Number(depth));
+        const b=sample(ribs[face*5+Number(to)],
+          Number(depth)+Number(offset));
+        const actualA=root.split(",").map(Number);
+        const actualB=tip.split(",").map(Number);
+        expect(Math.hypot(actualA[0]-a[0],actualA[1]-a[1]))
+          .toBeLessThan(.06);
+        expect(Math.hypot(actualB[0]-b[0],actualB[1]-b[1]))
+          .toBeLessThan(.06);
+        expect(Math.hypot(actualA[0]-actualB[0],
+          actualA[1]-actualB[1])).toBeGreaterThan(9);
+      }
+      expect((html.match(/data-km-master-fuchun-turning-wash=""/g)??[]))
+        .toHaveLength(9);
+      expect((html.match(/data-km-master-fuchun-turning-crest=""/g)??[]))
+        .toHaveLength(9);
+      expect((html.match(/data-km-master-fuchun-turning-crease=""/g)??[]))
+        .toHaveLength(9);
+      expect((html.match(/data-km-master-stroke-style="long-hemp"/g)??[]))
+        .toHaveLength(78);
+      expect((html.match(/data-km-master-fuchun-hillback=""/g)??[]))
+        .toHaveLength(6);
+      expect(render("fuchun",seed)).toBe(html);
+    }
+    expect(render("early-spring")).not.toContain(
+      "data-km-master-fuchun-turning-bank");
   });
 
   it("keeps all 78 live Fuchun ink strokes while varying length and handedness across rock cheeks",()=>{
@@ -1140,6 +1679,121 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       'data-km-master-stroke-phrase=');
     expect(paint("early-spring")).not.toContain(
       'data-km-master-stroke-phrase=');
+  });
+
+
+
+  it("loads the original 78 parent-rooted Fuchun hemp paths with three historically distinct pressure envelopes",()=>{
+    const make=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    for(const seed of [71,97,111]){
+      const html=make("fuchun",seed);
+      const strokes=[...html.matchAll(
+        /data-km-master-stroke="" data-km-master-stroke-style="long-hemp" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(?:wet|dry)" data-km-master-stroke-bank="[0-4]" data-km-master-stroke-bank-station="[^"]+" data-km-master-stroke-placement="attached-stratum" data-km-master-stroke-curl="none" data-km-master-stroke-phrase="(short|medium|long)" data-km-master-stroke-axis="([^"]+)" data-km-master-stroke-source-zone="[^"]+" data-km-master-stroke-flow="shoulder-first-pima" data-km-master-stroke-pressure-role="(root-loaded|broken-middle|feathered-tail)"/g,
+      )];
+      expect(strokes).toHaveLength(78);
+      for(const mode of ["root-loaded","broken-middle","feathered-tail"]){
+        expect(strokes.filter(x=>x[4]===mode).length).toBeGreaterThan(12);
+      }
+      const mapping={
+        short:"root-loaded",medium:"broken-middle",long:"feathered-tail",
+      } as const;
+      const roots=strokes.map(x=>x[1]);
+      for(const [,root,phrase,axis,role] of strokes){
+        expect(role).toBe(mapping[phrase as keyof typeof mapping]);
+        expect(axis.startsWith("M"+root.replace(","," "))).toBe(true);
+      }
+      const positive=[...html.matchAll(
+        /data-km-master-stroke-loaded="" d="([^"]+)" fill="[^"]+"(?: mask="[^"]+")?/g,
+      )].map(x=>x[1]);
+      expect(positive).toHaveLength(78);
+      expect(new Set(positive).size).toBe(78);
+      positive.forEach((path,i)=>{
+        expect(path.startsWith("M"+roots[i].replace(","," "))).toBe(true);
+        expect((path.match(/ C/g)??[]).length).toBeGreaterThan(30);
+        expect(path.endsWith(" Z")).toBe(true);
+        expect(path).not.toMatch(/NaN|Infinity|undefined/);
+      });
+      expect((html.match(/data-km-master-stratum=""/g)??[]))
+        .toHaveLength(15);
+      expect((html.match(/data-km-master-stroke-paper-slit=""/g)??[]).length)
+        .toBeGreaterThan(35);
+      expect(make("fuchun",seed)).toBe(html);
+    }
+    expect(make("fuchun",71,0)).not.toContain(
+      'data-km-master-stroke-pressure-role="root-loaded"');
+    expect(make("early-spring")).not.toContain(
+      "data-km-master-stroke-pressure-role");
+  });
+
+  it("sweeps all 78 Fuchun pima across the source rock shoulder before descending with a tapered dry tail",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    for(const seed of [71,97,111]){
+      const html=draw("fuchun",seed);
+      const marks=[...html.matchAll(
+        /data-km-master-stroke="" data-km-master-stroke-style="long-hemp" data-km-master-stroke-root="([^"]+)" data-km-master-stroke-dry="(?:wet|dry)" data-km-master-stroke-bank="[0-4]" data-km-master-stroke-bank-station="[^"]+" data-km-master-stroke-placement="attached-stratum" data-km-master-stroke-curl="none" data-km-master-stroke-phrase="(short|medium|long)" data-km-master-stroke-axis="([^"]+)" data-km-master-stroke-source-zone="[^"]+" data-km-master-stroke-flow="shoulder-first-pima"/g,
+      )];
+      expect(marks).toHaveLength(78);
+      const lengths:number[]=[];
+      const sweeps:number[]=[];
+      let strongEarlyTurns=0;
+      for(const [,root,phrase,axis] of marks){
+        const p=(axis.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+        expect(p).toHaveLength(8);
+        expect(axis.startsWith("M"+root.replace(","," "))).toBe(true);
+        const dx=p[6]-p[0],dy=p[7]-p[1];
+        expect(Math.abs(dx)).toBeGreaterThan(3);
+        expect(dy).toBeGreaterThan(8);
+        expect(dy).toBeLessThan(50);
+        const firstTurn=(p[2]-p[0])/dx;
+        const secondTurn=(p[4]-p[0])/dx;
+        const headFall=(p[3]-p[1])/dy;
+        const shoulderFall=(p[5]-p[1])/dy;
+        expect(firstTurn).toBeGreaterThan(.26);
+        expect(firstTurn).toBeLessThan(.9);
+        expect(secondTurn).toBeGreaterThan(.62);
+        expect(secondTurn).toBeLessThan(1.35);
+        expect(headFall).toBeGreaterThan(0);
+        expect(headFall).toBeLessThan(.19);
+        expect(shoulderFall).toBeGreaterThan(.49);
+        expect(shoulderFall).toBeLessThan(.68);
+        expect(p[3]).toBeLessThan(p[5]);
+        if(firstTurn>.49)strongEarlyTurns++;
+        lengths.push(dy);sweeps.push(firstTurn);
+        if(phrase==="short")expect(dy).toBeLessThan(22);
+        if(phrase==="medium"){
+          expect(dy).toBeGreaterThan(16);
+          expect(dy).toBeLessThan(35);
+        }
+        if(phrase==="long"){
+          expect(dy).toBeGreaterThan(34);
+          expect(dy).toBeLessThan(50);
+        }
+      }
+      expect(strongEarlyTurns).toBeGreaterThanOrEqual(36);
+      expect(Math.max(...lengths)-Math.min(...lengths))
+        .toBeGreaterThan(37);
+      expect(Math.max(...sweeps)-Math.min(...sweeps))
+        .toBeGreaterThan(.14);
+      // Three real geological faces, fifteen supporting rock
+      // stratum centerlines; no parent detail destroyed in redesign.
+      expect((html.match(/data-km-master-face=""/g)??[])).toHaveLength(3);
+      expect((html.match(/data-km-master-stratum=""/g)??[])).toHaveLength(15);
+      expect((html.match(/data-km-master-stroke-loaded=""/g)??[]))
+        .toHaveLength(78);
+      expect(draw("fuchun",seed)).toBe(html);
+    }
+    expect(draw("fuchun",71,0)).not.toContain(
+      'data-km-master-stroke-flow="shoulder-first-pima"');
+    expect(draw("early-spring")).not.toContain(
+      'data-km-master-stroke-flow="shoulder-first-pima"');
   });
 
   it("roots all original 78 Fuchun long-hemp marks to curving parent strata rather than straight dark wires",()=>{
@@ -1337,6 +1991,51 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(paint("early-spring")).not.toContain('data-km-cliff-pine-centerline=');
   });
 
+
+  it("gives the Fuchun grove 20 intentionally unequal supporting branch architectures without removing fine ink",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    const full=draw("fuchun");
+    const arms=[...full.matchAll(
+      /data-km-cliff-pine-bough="" data-km-cliff-pine-bough-root="([^"]+)" data-km-cliff-pine-bough-station="([^"]+)" data-km-cliff-pine-bough-centerline="([^"]+)" data-km-cliff-pine-arm-reach="([^"]+)" data-km-cliff-pine-arm-arch="([^"]+)"/g,
+    )];
+    expect(arms).toHaveLength(20);
+    const reaches=arms.map(m=>Number(m[4]));
+    const arches=arms.map(m=>Number(m[5]));
+    expect(reaches.every(Number.isFinite)).toBe(true);
+    expect(reaches.filter(n=>n>40).length).toBeGreaterThanOrEqual(4);
+    expect(reaches.filter(n=>n<27).length).toBeGreaterThanOrEqual(6);
+    expect(Math.max(...reaches)-Math.min(...reaches)).toBeGreaterThan(35);
+    expect(new Set(reaches.map(n=>Math.round(n))).size).toBeGreaterThan(14);
+    expect(arches.filter(n=>n<0).length).toBeGreaterThanOrEqual(3);
+    expect(arches.filter(n=>n>10).length).toBeGreaterThanOrEqual(6);
+    expect(new Set(arches).size).toBeGreaterThan(8);
+    arms.forEach(([,root,station,d,reach],k)=>{
+      const points=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(points).toHaveLength(6);
+      const xy=root.split(",").map(Number);
+      expect(Math.hypot(points[0]-xy[0],points[1]-xy[1]))
+        .toBeLessThan(.01);
+      const dx=Math.abs(points[4]-points[0]);
+      expect(Math.abs(dx-Number(reach))).toBeLessThan(.02);
+      expect(Number(station)).toBeGreaterThan(.17);
+      expect(Number(station)).toBeLessThan(.95);
+      if(k<4)expect(dx).toBeLessThan(37);
+    });
+    expect((full.match(/data-km-cliff-pine-bough-bone=""/g)??[])).toHaveLength(20);
+    expect((full.match(/data-km-cliff-pine-rootlet=""/g)??[])).toHaveLength(15);
+    expect((full.match(/data-km-cliff-pine-graft=""/g)??[])).toHaveLength(60);
+    expect((full.match(/data-km-cliff-pine-ink-island=""/g)??[])).toHaveLength(40);
+    expect((full.match(/data-km-cliff-pine-needle=""/g)??[])).toHaveLength(310);
+    expect(draw("fuchun")).toBe(full);
+    expect(draw("fuchun",87)).not.toBe(full);
+    expect(draw("fuchun",71,0)).not.toContain("data-km-cliff-pine-arm-reach");
+    expect(draw("early-spring")).not.toContain("data-km-cliff-pine-arm-reach");
+  });
+
   it("Fuchun old-pine needles include hooked and lateral flicks, not 310 uniformly upward comb teeth",()=>{
     const paint=(school:"fuchun"|"early-spring",seed=71)=>
       renderToStaticMarkup(createElement(InkShanshuiStage,{
@@ -1477,6 +2176,287 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
       if(center>edge*1.5&&center-edge>1.1)peaked++;
     }
     expect(peaked).toBeGreaterThanOrEqual(27);
+  });
+
+  it("breaks former symmetric Fuchun pine crowns into separate parent-rooted wet load crests",()=>{
+    const render=(seed:number)=>renderToStaticMarkup(createElement(InkShanshuiStage,{
+      frame:145,controls:{...DEFAULT_SHANSHUI,
+        scene:"mountain-trail",inkSchool:"fuchun",seed,detail:1},
+    }));
+    for(const seed of [71,97]){
+      const html=render(seed);
+      const roots=[...html.matchAll(
+        /data-km-cliff-pine-ink-island="" data-km-cliff-pine-ink-island-root="([^"]+)"/g,
+      )].map(m=>Number(m[1].split(",")[1]));
+      const lobes=[...html.matchAll(
+        /data-km-cliff-pine-fan-lobes="([6-8])"/g,
+      )].map(m=>Number(m[1]));
+      const fans=[...html.matchAll(
+        /data-km-cliff-pine-ink-canopy="" d="([^"]+)"/g,
+      )].map(m=>m[1]);
+      expect(roots).toHaveLength(40);
+      expect(lobes).toHaveLength(40);
+      expect(fans).toHaveLength(40);
+      let independentWetCrests=0;
+      for(let i=0;i<fans.length;i++){
+        const upper=fans[i].split(" C")[0];
+        const q=[...upper.matchAll(
+          / Q(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)/g,
+        )];
+        expect(q).toHaveLength(lobes[i]+1);
+        const heights=q.slice(0,lobes[i]).map(m=>
+          roots[i]-Number(m[4]));
+        // This rejects the earlier global sine umbrella: its crest
+        // rose monotonically and declined monotonically at every seed.
+        // A physically separate mid-bough dry lift now divides at least
+        // 15 of 40 ORIGINAL rooted fan silhouettes into two wet loads.
+        const hasInkLift=heights.some((height,k)=>
+          k>0&&k<heights.length-1&&
+          height<heights[k-1]-.4&&height<heights[k+1]-.4);
+        if(hasInkLift)independentWetCrests++;
+        expect(Math.max(...heights)).toBeGreaterThan(4);
+      }
+      expect(independentWetCrests).toBeGreaterThanOrEqual(15);
+      // Preserve the actual rich source, never flatten other layers.
+      expect((html.match(/data-km-cliff-pine-connected-canopy=""/g)??[]))
+        .toHaveLength(20);
+      expect((html.match(/data-km-cliff-pine-needle=""/g)??[]))
+        .toHaveLength(310);
+      expect((html.match(/data-km-cliff-pine-canopy-paper-channels="2"/g)??[]))
+        .toHaveLength(40);
+      expect(render(seed)).toBe(html);
+    }
+  });
+
+  it("keeps 60 source-anchored Fuchun pine grafts under 40 four-cubic ink crowns",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed:number,detail:number)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    const full=draw("fuchun",71,1);
+    const grafts=[...full.matchAll(/data-km-cliff-pine-graft="" data-km-cliff-pine-graft-root="([^"]+)" data-km-cliff-pine-graft-station="([^"]+)" data-km-cliff-pine-graft-bough="(\d+)" data-km-cliff-pine-graft-hand="(-?1)" d="([^"]+)"/g)];
+    expect(grafts).toHaveLength(60);
+    expect(new Set(grafts.map(m=>m[5])).size).toBe(60);
+    for(let i=0;i<20;i++)expect(grafts.filter(m=>Number(m[3])===i)
+      .map(m=>Number(m[2]))).toEqual([.56,.74,.92]);
+    for(const [,root,,group,hand,d] of grafts){
+      expect(Number(group)).toBeGreaterThanOrEqual(0);
+      expect(Math.abs(Number(hand))).toBe(1);
+      expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+      expect((d.match(/ C/g)??[]).length).toBeGreaterThan(20);
+    }
+    const canopies=[...full.matchAll(/data-km-cliff-pine-ink-canopy="" d="([^"]+)"/g)];
+    expect(canopies).toHaveLength(40);
+    expect(canopies.every(m=>(m[1].match(/ C/g)??[]).length===4)).toBe(true);
+    expect((full.match(/data-km-cliff-pine-needle=""/g)??[])).toHaveLength(310);
+    expect((full.match(/data-km-cliff-pine-pad=""/g)??[])).toHaveLength(60);
+    expect(draw("fuchun",71,1)).toBe(full);
+    expect(draw("fuchun",87,1)).not.toBe(full);
+    expect(draw("fuchun",71,0)).not.toContain("data-km-cliff-pine-graft");
+    expect(draw("early-spring",71,1)).not.toContain("data-km-cliff-pine-graft");
+  });
+
+  it("retains all pine stroke geometry while cutting two true Fuchun flying-white channels in each fan",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,seed,detail},
+      }));
+    const full=draw("fuchun");
+    const canopies=[...full.matchAll(
+      /data-km-cliff-pine-ink-canopy="" d="([^"]+)" data-km-cliff-pine-canopy-paper-channels="(\d+)" fill-rule="([^"]+)"/g,
+    )];
+    expect(canopies).toHaveLength(40);
+    const paperShapes=new Set<string>();
+    for(const [,d,holes,winding] of canopies){
+      expect(holes).toBe("2");
+      expect(winding).toBe("evenodd");
+      expect((d.match(/ M/g)??[])).toHaveLength(2);
+      expect((d.match(/ Z/g)??[])).toHaveLength(3);
+      expect((d.match(/ C/g)??[])).toHaveLength(4);
+      expect(d.startsWith("M")).toBe(true);
+      expect(d.endsWith(" Z")).toBe(true);
+      expect(d.split(" Z ").slice(1)).toHaveLength(2);
+      expect(d).not.toMatch(/NaN|Infinity|undefined/);
+      paperShapes.add(d);
+    }
+    expect(paperShapes.size).toBe(40);
+    expect((full.match(/data-km-cliff-pine-graft=""/g)??[])).toHaveLength(60);
+    expect((full.match(/data-km-cliff-pine-pad=""/g)??[])).toHaveLength(60);
+    expect((full.match(/data-km-cliff-pine-needle=""/g)??[])).toHaveLength(310);
+    expect((full.match(/data-km-cliff-pine-wet-cluster=""/g)??[])).toHaveLength(119);
+    expect(draw("fuchun")).toBe(full);
+    expect(draw("fuchun",97)).not.toBe(full);
+    expect(draw("fuchun",71,0)).not.toContain('data-km-cliff-pine-ink-canopy');
+    const guo=draw("early-spring");
+    expect((guo.match(/data-km-cliff-pine-ink-canopy=""/g)??[])).toHaveLength(40);
+    expect(guo).not.toContain('data-km-cliff-pine-canopy-paper-channels="2"');
+    expect(guo).not.toContain('fill-rule="evenodd"');
+  });
+
+
+  it("plants five Fuchun pine root systems on true trunk cubics and independent hillside contact ink",()=>{
+    const render=(seed:number,school:"fuchun"|"early-spring",detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",seed,inkSchool:school,detail},
+      }));
+    const ink=render(71,"fuchun");
+    const trees=[...ink.matchAll(
+      /data-km-cliff-pine-centerline="(M[^"]+)"/g,
+    )].map(m=>(m[1].match(/-?\d+(?:\.\d+)?/g)??[]).map(Number));
+    expect(trees).toHaveLength(5);
+    expect(trees.every(t=>t.length===8)).toBe(true);
+    const rootlets=[...ink.matchAll(
+      /data-km-cliff-pine-rootlet="" data-km-cliff-pine-rootlet-source="([^"]+)" data-km-cliff-pine-rootlet-end="([^"]+)" data-km-cliff-pine-rootlet-station="([^"]+)" data-km-cliff-pine-rootlet-hand="([^"]+)" d="([^"]+)"/g,
+    )];
+    expect(rootlets).toHaveLength(15);
+    const sample=(curve:number[],t:number)=>{
+      const u=1-t;
+      return [u*u*u*curve[0]+3*u*u*t*curve[2]+3*u*t*t*curve[4]+t*t*t*curve[6],
+        u*u*u*curve[1]+3*u*u*t*curve[3]+3*u*t*t*curve[5]+t*t*t*curve[7]];
+    };
+    rootlets.forEach(([,start,end,station,hand,d],index)=>{
+      const t=Number(station);
+      const root=start.split(",").map(Number),target=end.split(",").map(Number);
+      expect([.012,.032,.071]).toContain(t);
+      expect(Math.abs(Number(hand))).toBe(1);
+      const expected=sample(trees[Math.floor(index/3)],t);
+      expect(Math.hypot(root[0]-expected[0],root[1]-expected[1]))
+        .toBeLessThan(.1);
+      expect(Math.hypot(root[0]-target[0],root[1]-target[1]))
+        .toBeGreaterThan(5);
+      expect(d.startsWith("M"+start.replace(","," "))).toBe(true);
+      expect((d.match(/ C/g)??[]).length).toBeGreaterThan(20);
+    });
+    expect(new Set(rootlets.map(m=>m[5])).size).toBe(15);
+    const ground=[...ink.matchAll(
+      /data-km-cliff-pine-ground-ink="" data-km-cliff-pine-ground-ink-root="([^"]+)" data-km-cliff-pine-ground-ink-hand="([^"]+)" data-km-cliff-pine-ground-ink-load="([^"]+)" d="([^"]+)"/g,
+    )];
+    expect(ground).toHaveLength(40);
+    expect(ground.every(([,root,hand,load,d])=>
+      Math.abs(Number(hand))===1&&Number(load)>.6&&
+      d.startsWith("M"+root.replace(","," ")))).toBe(true);
+    expect(new Set(ground.map(m=>m[4])).size).toBe(40);
+    expect((ink.match(/data-km-cliff-pine-needle=""/g)??[])).toHaveLength(310);
+    expect((ink.match(/data-km-cliff-pine-graft=""/g)??[])).toHaveLength(60);
+    expect(render(71,"fuchun")).toBe(ink);
+    expect(render(87,"fuchun")).not.toBe(ink);
+    expect(render(71,"fuchun",0)).not.toContain("data-km-cliff-pine-rootlet");
+    expect(render(71,"early-spring")).not.toContain("data-km-cliff-pine-ground-contact");
+  });
+
+  it("joins 20 Fuchun old pine ink crowns to original quadratic boughs without deleting any detail",()=>{
+    const draw=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",seed,inkSchool:school,detail},
+      }));
+    const full=draw("fuchun");
+    const boughs=[...full.matchAll(
+      /data-km-cliff-pine-bough-centerline="(M[^"]+)"/g,
+    )].map(m=>(m[1].match(/-?\d+(?:\.\d+)?/g)??[]).map(Number));
+    const banks=[...full.matchAll(
+      /data-km-cliff-pine-connected-canopy="" data-km-cliff-pine-connected-canopy-bough="(\d+)" data-km-cliff-pine-connected-canopy-root="([^"]+)" data-km-cliff-pine-connected-canopy-tip="([^"]+)" d="([^"]+)"/g,
+    )];
+    expect(boughs).toHaveLength(20);
+    expect(banks).toHaveLength(20);
+    const sample=(coords:number[],t:number)=>{
+      const [x,y,cx,cy,tx,ty]=coords,u=1-t;
+      return [u*u*x+2*u*t*cx+t*t*tx,
+        u*u*y+2*u*t*cy+t*t*ty];
+    };
+    for(const [index,m] of banks.entries()){
+      const [,slot,root,tip,d]=m;
+      expect(Number(slot)).toBe(index);
+      const rootCoords=root.split(",").map(Number);
+      const tipCoords=tip.split(",").map(Number);
+      const p=sample(boughs[index],.34);
+      const q=sample(boughs[index],.985);
+      expect(Math.hypot(rootCoords[0]-p[0],rootCoords[1]-p[1]))
+        .toBeLessThan(.07);
+      expect(Math.hypot(tipCoords[0]-q[0],tipCoords[1]-q[1]))
+        .toBeLessThan(.07);
+      expect(d.startsWith("M"+root.replace(","," "))).toBe(true);
+      expect((d.match(/ Q/g)??[])).toHaveLength(16);
+      expect(d.endsWith(" Z")).toBe(true);
+      expect(d).not.toMatch(/NaN|Infinity|undefined/);
+    }
+    expect(new Set(banks.map(x=>x[4])).size).toBe(20);
+    expect((full.match(/data-km-cliff-pine-ink-island=""/g)??[])).toHaveLength(40);
+    expect((full.match(/data-km-cliff-pine-graft=""/g)??[])).toHaveLength(60);
+    expect((full.match(/data-km-cliff-pine-pad=""/g)??[])).toHaveLength(60);
+    expect((full.match(/data-km-cliff-pine-wet-cluster=""/g)??[])).toHaveLength(119);
+    expect((full.match(/data-km-cliff-pine-needle=""/g)??[])).toHaveLength(310);
+    expect(draw("fuchun")).toBe(full);
+    expect(draw("fuchun",97)).not.toBe(full);
+    expect(draw("fuchun",71,0)).not.toContain("data-km-cliff-pine-connected-canopy");
+    expect(draw("early-spring")).not.toContain("data-km-cliff-pine-connected-canopy");
+  });
+
+
+  it("does not fill 80 original Fuchun flying-white channels with the 20 newly joined pine underwashes",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed=71,detail=1)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool:school,seed,detail},
+      }));
+    const ink=paint("fuchun");
+    const masks=[...ink.matchAll(
+      /<mask data-km-cliff-pine-bridge-paper-mask="" data-km-cliff-pine-bridge-paper-mask-bough="(\d+)" id="([^"]+)"[^>]+>/g,
+    )];
+    expect(masks).toHaveLength(20);
+    expect(new Set(masks.map(m=>m[2])).size).toBe(20);
+    // Native masks must stay close to each original living branch.
+    // A full-canvas mask ×20 is an unacceptable 960x540 film cost.
+    const boxes=[...ink.matchAll(
+      /<mask data-km-cliff-pine-bridge-paper-mask=""[^>]+ x="([^"]+)" y="([^"]+)" width="([^"]+)" height="([^"]+)"/g,
+    )];
+    expect(boxes).toHaveLength(20);
+    for(const [,x,y,w,h] of boxes){
+      expect([x,y,w,h].every(v=>Number.isFinite(Number(v)))).toBe(true);
+      expect(Number(w)).toBeGreaterThan(72);
+      expect(Number(w)).toBeLessThan(180);
+      expect(Number(h)).toBeGreaterThan(60);
+      expect(Number(h)).toBeLessThan(140);
+      expect(Number(w)*Number(h)).toBeLessThan(21000);
+    }
+    expect(masks.map(m=>Number(m[1]))).toEqual(
+      Array.from({length:20},(_,k)=>k));
+    const cuts=[...ink.matchAll(
+      /data-km-cliff-pine-bridge-paper-cut="" data-km-cliff-pine-bridge-paper-cut-fan="([01])" d="([^"]+)"/g,
+    )];
+    expect(cuts).toHaveLength(40);
+    for(let j=0;j<40;j++){
+      const d=cuts[j][2];
+      expect(Number(cuts[j][1])).toBe(j%2);
+      expect((d.match(/ M/g)??[])).toHaveLength(1);
+      expect((d.match(/ Q/g)??[])).toHaveLength(4);
+      expect((d.match(/ Z/g)??[])).toHaveLength(2);
+      expect(d).not.toMatch(/NaN|Infinity|undefined/);
+    }
+    const fans=[...ink.matchAll(
+      /data-km-cliff-pine-ink-canopy="" d="([^"]+)" data-km-cliff-pine-canopy-paper-channels="2"/g,
+    )];
+    expect(fans).toHaveLength(40);
+    // Every black lumen in the underpaint mask is EXACTLY the same
+    // geometry as the original fan's two nested bristle paper gaps.
+    cuts.forEach(([, ,d],index)=>{
+      const fan=fans[index][1];
+      expect(fan.endsWith(" "+d)).toBe(true);
+    });
+    const bridges=[...ink.matchAll(
+      /data-km-cliff-pine-connected-canopy=""[^>]* mask="url\(#([^"]+)\)"/g,
+    )];
+    expect(bridges).toHaveLength(20);
+    for(let i=0;i<20;i++)expect(bridges[i][1]).toBe(masks[i][2]);
+    expect((ink.match(/data-km-cliff-pine-needle=""/g)??[])).toHaveLength(310);
+    expect((ink.match(/data-km-cliff-pine-graft=""/g)??[])).toHaveLength(60);
+    expect(paint("fuchun")).toBe(ink);
+    expect(paint("fuchun",87)).not.toBe(ink);
+    expect(paint("fuchun",71,0)).not.toContain("data-km-cliff-pine-bridge-paper-mask");
+    expect(paint("early-spring")).not.toContain("data-km-cliff-pine-bridge-paper-mask");
   });
 
   it("renders willow boughs as closed tapering brush geometry with fine attached leaves",()=>{
@@ -2016,6 +2996,68 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     expect(at145).not.toMatch(/NaN|Infinity|undefined/);
   });
 
+  it("cuts an opt-in Fuchun waterfall through physically layered rock, not two opaque white tubes",()=>{
+    const stage=(seed:number,study:boolean,frame=145,detail=1,
+      inkSchool:"fuchun"|"travelers"="fuchun")=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame,controls:{...DEFAULT_SHANSHUI,
+          scene:"mountain-trail",inkSchool,seed,detail,
+          fuchunNearShoulderStudy:study},
+      }));
+    const baseline=stage(71,false),studied=stage(71,true),
+      changedSeed=stage(87,true),late=stage(71,true,215);
+    expect(baseline).toBe(stage(71,false));
+    expect(studied).toBe(stage(71,true));
+    expect(baseline).not.toContain('data-km-waterfall-study=');
+    expect(studied).toContain(
+      'data-km-waterfall-study="fuchun-eroded-channel"');
+    expect((studied.match(/data-km-waterfall-bank="(?:left|right)"/g)??[]))
+      .toHaveLength(2);
+    expect((studied.match(/data-km-waterfall-rock-cheek=""/g)??[]))
+      .toHaveLength(4);
+    expect((studied.match(/data-km-waterfall-rock-edge=""/g)??[]))
+      .toHaveLength(4);
+    expect((studied.match(/data-km-waterfall-fibre=""/g)??[]))
+      .toHaveLength(8);
+    expect((studied.match(/data-km-waterfall-impact=""/g)??[]))
+      .toHaveLength(9);
+    expect((studied.match(/data-km-waterfall-ribbon=""/g)??[]))
+      .toHaveLength(0);
+    expect(studied).toContain('data-km-waterfall-reserve=""');
+    expect(studied).toContain('data-km-waterfall-pool=""');
+    expect(studied).toContain('data-km-waterfall-shelf=""');
+    expect(studied).toContain(
+      'data-km-waterfall-source-flow-axis="M364 316 C373 345 344 405 340 439"');
+    const roots=[...studied.matchAll(
+      /data-km-waterfall-fibre="" data-km-waterfall-fibre-source="([^"]+)" data-km-waterfall-fibre-tip="([^"]+)" d="([^"]+)"/g,
+    )];
+    expect(roots).toHaveLength(8);
+    for(const [,start,tip,path] of roots){
+      const a=start.split(",").map(Number),b=tip.split(",").map(Number);
+      expect(a.every(Number.isFinite)).toBe(true);
+      expect(b.every(Number.isFinite)).toBe(true);
+      expect(path).toMatch(/^M/);
+      expect(b[1]).toBeGreaterThan(a[1]);
+      expect(b[1]-a[1]).toBeLessThan(15);
+    }
+    // Film time moves only light surface flicks, not the original water
+    // trajectory or either supporting geological rock mass.
+    const invariant=(html:string)=>
+      [...html.matchAll(/data-km-waterfall-rock-source="([^"]+)"/g)]
+        .map(m=>m[1]);
+    expect(invariant(studied)).toEqual(invariant(late));
+    expect(invariant(studied)).toEqual(invariant(changedSeed));
+    expect(roots.map(x=>x[3])).not.toEqual([...changedSeed.matchAll(
+      /data-km-waterfall-fibre="" data-km-waterfall-fibre-source="[^"]+" data-km-waterfall-fibre-tip="[^"]+" d="([^"]+)"/g,
+    )].map(x=>x[1]));
+    expect(stage(71,true,145,0)).not.toContain("data-km-waterfall-impact");
+    // The new waterfall is a local Fuchun fidelity study, never an
+    // accidental global change to the other ink painting masters.
+    expect(stage(71,true,145,1,"travelers")).toBe(
+      stage(71,false,145,1,"travelers"));
+    expect(studied).not.toMatch(/NaN|Infinity|undefined/);
+  });
+
   it("samples the same final absolute frame for reduced-motion scenery and actor",()=>{
     for(const requestedFrame of [0,88,200,299]){
       const html=renderToStaticMarkup(createElement(InkShanshuiFilm,{
@@ -2091,5 +3133,364 @@ describe("reusable original Chinese ink shanshui art engine",()=>{
     }));
     expect(empty).not.toContain("data-km-ink-character-frame");
     expect(empty.length).toBeLessThan(rich.length);
+  });
+
+  it("keeps nine original source-supported alum-head stone caps with all 27 attached microdeposits, independent of seed",()=>{
+    const paint=(seed:number,school:"fuchun"|"early-spring"="fuchun")=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,detail:1,ink:.9,mist:.35,seed},
+      }));
+    const a=paint(71),again=paint(71),b=paint(87);
+    expect(a).toBe(again);
+    const crowns=[...a.matchAll(/data-km-master-fuchun-alum-head="" data-km-master-fuchun-alum-head-root="([^"]+)" data-km-master-fuchun-alum-head-bank="(\d+)" data-km-master-fuchun-alum-head-station="([^"]+)"/g)];
+    const volumes=[...a.matchAll(/data-km-master-fuchun-alum-head-volume="" d="([^"]+)" fill="url\(#([^"]+)\)"/g)];
+    const lips=[...a.matchAll(/data-km-master-fuchun-alum-head-lip="" d="([^"]+)"/g)];
+    expect(crowns).toHaveLength(9);
+    expect(volumes).toHaveLength(9);
+    expect(lips).toHaveLength(9);
+    expect((a.match(/data-km-master-fuchun-alum-head-moss=""/g)??[])).toHaveLength(27);
+    expect((a.match(/data-km-master-fuchun-alum-head-field=""/g)??[])).toHaveLength(3);
+    for(let k=0;k<9;k++){
+      const [x,y]=crowns[k][1].split(",").map(Number);
+      expect([x,y].every(Number.isFinite)).toBe(true);
+      expect(Number(crowns[k][2])).toBeLessThan(5);
+      expect(Number(crowns[k][3])).toBeGreaterThan(.1);
+      expect(Number(crowns[k][3])).toBeLessThan(.85);
+      expect(volumes[k][1].startsWith("M"+crowns[k][1].replace(","," ")))
+        .toBe(true);
+      expect((volumes[k][1].match(/ C/g)??[])).toHaveLength(6);
+      expect(volumes[k][1].endsWith(" Z")).toBe(true);
+      expect(lips[k][1].startsWith("M")).toBe(true);
+      expect(a.includes('id="'+volumes[k][2]+'"')).toBe(true);
+    }
+    expect((a.match(/data-km-master-fuchun-hillback=""/g)??[])).toHaveLength(6);
+    expect((a.match(/data-km-master-fuchun-cross-shelf=""/g)??[])).toHaveLength(12);
+    expect((a.match(/data-km-master-stroke-bank-station=/g)??[])).toHaveLength(78);
+    expect((a.match(/data-km-master-stratum=""/g)??[])).toHaveLength(15);
+    const crownsB=[...b.matchAll(/data-km-master-fuchun-alum-head-volume="" d="([^"]+)"/g)];
+    expect(crownsB).toHaveLength(9);
+    expect(crownsB.some((m,k)=>m[1]!==volumes[k][1])).toBe(true);
+    expect(paint(71,"early-spring")).not.toContain("data-km-master-fuchun-alum-head");
+    expect(a).not.toContain("<image ");
+    expect(a).not.toContain("data:image/");
+  });
+
+  it("constructs a candidate Fuchun broad lower mountain from 22 original continuous stations without changing production or other schools",()=>{
+    const paint=(school:"fuchun"|"travelers",seed:number,rounded?:boolean,
+      frame=145,scene:"mountain-trail"|"river-scholar"="mountain-trail")=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame,controls:{...DEFAULT_SHANSHUI,scene,inkSchool:school,
+          seed,detail:1,mist:.35,ink:.9,
+          fuchunNearShoulderStudy:rounded},
+      }));
+    const ridge=(html:string,band:number)=>html.match(
+      new RegExp('data-km-shanshui-ridge-contour="'+band+'" d="([^"]+)"'),
+    )?.[1];
+    const legacy=paint("fuchun",71),off=paint("fuchun",71,false),
+      candidate=paint("fuchun",71,true),candidate87=paint("fuchun",87,true);
+    expect(legacy).toBe(off);
+    expect(candidate).toBe(paint("fuchun",71,true));
+    expect(ridge(legacy,2)).not.toEqual(ridge(candidate,2));
+    expect(ridge(candidate,2)).not.toEqual(ridge(candidate87,2));
+    // 21 source spans retain 9 independently inked microstations each.
+    // Three EXTRA positive left-bank stations round the former needle
+    // cliff without deleting the previous broad 488..586 shoulder.
+    expect((ridge(candidate,2)?.match(/L /g)??[])).toHaveLength(191);
+    expect((ridge(legacy,2)?.match(/L /g)??[])).toHaveLength(92);
+    expect(ridge(candidate,2)).toContain("512 258");
+    expect(ridge(candidate,2)).toContain("243 327");
+    expect(ridge(candidate,2)).toContain("271 319");
+    expect(ridge(candidate,2)).toContain("299 330");
+    expect(ridge(legacy,2)).toContain("275 298");
+    // A rounded stone brow, not a 107px isolated sharp apex.
+    const bankHeights=(html:string,targets:readonly number[])=>{
+      const contour=ridge(html,2)!;
+      const sampled=[...contour.matchAll(/[ML] (-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g)]
+        .map(x=>[Number(x[1]),Number(x[2])]);
+      return targets.map(x=>{
+        const point=sampled.reduce((nearest,p)=>
+          Math.abs(p[0]-x)<Math.abs(nearest[0]-x)?p:nearest);
+        return point[1];
+      });
+    };
+    const [valley,lead,crest,tail,down]=bankHeights(candidate,
+      [160,243,271,299,338]);
+    expect(valley-crest).toBeGreaterThan(70);
+    expect(Math.abs(crest-lead)).toBeLessThan(12);
+    expect(Math.abs(tail-crest)).toBeLessThan(13);
+    expect(down-crest).toBeGreaterThan(18);
+    for(const band of [0,1])
+      expect(ridge(candidate,band)).toEqual(ridge(legacy,band));
+    // Same exact clip, ink and downstream ridge-derived features; changing
+    // the actual near ridge changes the child painter's root positions.
+    expect(legacy).not.toContain('data-km-fuchun-near-relief=""');
+    expect((candidate.match(/data-km-fuchun-near-relief=""/g)??[])).toHaveLength(1);
+    // The real 960×540 native capture exposed almost no value contrast
+    // despite rich source-linked geometry. Five translucent ink values
+    // now sit on the SAME four positive bank faces, not on fake masks.
+    expect(candidate).toContain(
+      'data-km-fuchun-near-relief-pigment="cool-ink-five-value"');
+    expect(legacy).not.toContain(
+      'data-km-fuchun-near-relief-pigment="cool-ink-five-value"');
+    expect((candidate.match(/stop-color="#292e2c" stop-opacity="(?:0)?\.84"/g)??[]))
+      .toHaveLength(4);
+    expect((candidate.match(/stop-color="#424844" stop-opacity="(?:0)?\.69"/g)??[]))
+      .toHaveLength(4);
+    expect((candidate.match(/stop-color="#5d6259" stop-opacity="(?:0)?\.42"/g)??[]))
+      .toHaveLength(4);
+    expect((candidate.match(/stop-color="#909181" stop-opacity="(?:0)?\.13"/g)??[]))
+      .toHaveLength(4);
+    expect((candidate.match(/data-km-fuchun-near-bank=""/g)??[])).toHaveLength(4);
+    expect((candidate.match(/data-km-fuchun-near-bank-wash=""/g)??[])).toHaveLength(4);
+    const turns=[...candidate.matchAll(
+      /data-km-fuchun-near-turning-wash="" data-km-fuchun-near-turning-source="([^"]+)" data-km-fuchun-near-turning-tip="([^"]+)" data-km-fuchun-near-turning-axis="([^"]+)" data-km-fuchun-near-turning-width="([^"]+)" d="([^"]+)"/g,
+    )];
+    expect(turns).toHaveLength(8);
+    expect(legacy).not.toContain('data-km-fuchun-near-turning-wash');
+    expect(new Set(turns.map(m=>m[4])).size).toBeGreaterThan(5);
+    for(const [,root,tip,axis,width,path] of turns){
+      expect(axis.startsWith("M"+root.replace(","," ")+" C")).toBe(true);
+      expect(path.startsWith("M"+root.replace(","," "))).toBe(true);
+      expect(Number(width)).toBeGreaterThan(7);
+      expect(Number(tip.split(",")[1])-Number(root.split(",")[1]))
+        .toBeGreaterThan(24);
+    }
+    expect((candidate.match(/data-km-fuchun-near-bank-broken-crest=""/g)??[]))
+      .toHaveLength(8);
+    expect((candidate.match(/data-km-fuchun-near-hemp=""/g)??[])).toHaveLength(28);
+    const nested=[...candidate.matchAll(
+      /data-km-fuchun-near-inner-stratum="" data-km-fuchun-near-inner-source="([^"]+)" data-km-fuchun-near-inner-root="([^"]+)" data-km-fuchun-near-inner-station="([^"]+)" data-km-fuchun-near-inner-depth="([^"]+)"/g,
+    )];
+    expect(nested).toHaveLength(26);
+    expect((candidate.match(/data-km-fuchun-near-inner-phrase=""/g)??[])).toHaveLength(52);
+    const loaded=[...candidate.matchAll(
+      /data-km-fuchun-near-inner-load="(wet|dry)" data-km-fuchun-near-inner-width="([^"]+)"/g,
+    )];
+    expect(loaded).toHaveLength(52);
+    expect(loaded.filter(m=>m[1]==="wet")).toHaveLength(26);
+    expect(loaded.filter(m=>m[1]==="dry")).toHaveLength(26);
+    const wetWidths=loaded.filter(m=>m[1]==="wet").map(m=>Number(m[2]));
+    const dryWidths=loaded.filter(m=>m[1]==="dry").map(m=>Number(m[2]));
+    expect(Math.min(...wetWidths)).toBeGreaterThan(1.6);
+    expect(Math.max(...wetWidths)).toBeLessThan(5.3);
+    expect(Math.min(...dryWidths)).toBeGreaterThan(1);
+    expect(Math.max(...dryWidths)).toBeLessThan(2.9);
+    expect(new Set(loaded.map(m=>m[2])).size).toBeGreaterThan(36);
+    expect(legacy).not.toContain('data-km-fuchun-near-inner-stratum=""');
+    expect(new Set(nested.map(m=>m[3])).size).toBeGreaterThan(17);
+    // Material detail controls must not leave full-complexity interior
+    // cunfa visible in a source-only / low-detail review. Retained
+    // stations keep the *same* cubic source geometry as full quality.
+    const studyAt=(detail:number)=>renderToStaticMarkup(
+      createElement(InkShanshuiStage,{frame:145,controls:{
+        ...DEFAULT_SHANSHUI,scene:"mountain-trail",
+        inkSchool:"fuchun",fuchunNearShoulderStudy:true,
+        seed:71,detail,mist:.35,ink:.9,
+      }}));
+    const sourceOnly=studyAt(0),sparse=studyAt(.4);
+    expect(sourceOnly).not.toContain('data-km-fuchun-near-inner-stratum=""');
+    const sparseRoots=[...sparse.matchAll(
+      /data-km-fuchun-near-inner-stratum="" data-km-fuchun-near-inner-source="([^"]+)" data-km-fuchun-near-inner-root="([^"]+)"/g,
+    )];
+    expect(sparseRoots.length).toBeGreaterThan(2);
+    expect(sparseRoots.length).toBeLessThan(nested.length);
+    const detailedCunfaRoots=new Set(nested.map(m=>m[1]+"|"+m[2]));
+    expect(sparseRoots.every(m=>detailedCunfaRoots.has(m[1]+"|"+m[2]))).toBe(true);
+
+    for(const [,source,root,station,depth] of nested){
+      expect(source.split(",").map(Number).every(Number.isFinite)).toBe(true);
+      expect(root.split(",").map(Number).every(Number.isFinite)).toBe(true);
+      expect(Number(station)).toBeGreaterThan(.1);
+      expect(Number(station)).toBeLessThan(.95);
+      expect(Number(depth)).toBeGreaterThan(.16);
+      expect(Number(depth)).toBeLessThan(.87);
+    }
+    expect((candidate.match(/data-km-fuchun-near-deposit=""/g)??[])).toHaveLength(12);
+    // The original museum's long pima is deposited OVER curved rock
+    // cheeks, not isolated as regular vertical wires against a bare
+    // foreground wash. Preserve four original courses and 28 hemp,
+    // but add three independent curved, two-phrase value ledges per
+    // course (12 surfaces, 24 naturally interrupted loaded marks).
+    expect(legacy).not.toContain('data-km-fuchun-near-terrace=""');
+    expect((candidate.match(/data-km-fuchun-near-terrace=""/g)??[]))
+      .toHaveLength(12);
+    expect((candidate.match(/data-km-fuchun-near-terrace-phrase=""/g)??[]))
+      .toHaveLength(24);
+    const folds=[...candidate.matchAll(
+      /data-km-fuchun-near-terrace-root="([^"]+)" data-km-fuchun-near-terrace-tip="([^"]+)" data-km-fuchun-near-terrace-axis="([^"]+)" data-km-fuchun-near-terrace-level="(\d+)"/g,
+    )];
+    expect(folds).toHaveLength(12);
+    const counts=new Map<number,number>();
+    for(const [,root,tip,axis,index] of folds){
+      const k=Number(index);
+      counts.set(k,(counts.get(k)??0)+1);
+      const origin=root.split(",").map(Number);
+      const end=tip.split(",").map(Number);
+      expect(origin.every(Number.isFinite)).toBe(true);
+      expect(end.every(Number.isFinite)).toBe(true);
+      expect(axis.startsWith("M"+origin.join(" ")+" C")).toBe(true);
+      expect(axis.endsWith(end.join(" "))).toBe(true);
+      expect(end[0]).toBeGreaterThan(origin[0]+28);
+    }
+    expect([...counts.entries()].sort((a,b)=>a[0]-b[0]))
+      .toEqual([[0,4],[1,4],[2,4]]);
+    expect([...candidate87.matchAll(
+      /data-km-fuchun-near-terrace-axis="([^"]+)"/g,
+    )].map(m=>m[1])).not.toEqual(folds.map(a=>a[3]));
+    const banks=[...candidate.matchAll(
+      /data-km-fuchun-near-bank-source="([^"]+)" data-km-fuchun-near-bank-order="(\d+)" data-km-fuchun-near-bank-contour="([^"]+)"/g,
+    )];
+    expect(banks).toHaveLength(4);
+    for(const [i,bank] of banks.entries()){
+      const [left,right]=bank[1].split(";").map(point=>point.split(",").map(Number));
+      expect(Number(bank[2])).toBe(i);
+      expect(left.every(Number.isFinite)).toBe(true);
+      expect(right.every(Number.isFinite)).toBe(true);
+      expect(right[0]).toBeGreaterThan(left[0]+75);
+      expect(bank[3]).toMatch(/^M[-.\d]+ [-.\d]+ C/);
+      expect(bank[3].endsWith(" Z")).toBe(true);
+    }
+    const fineRoots=[...candidate.matchAll(
+      /data-km-fuchun-near-hemp-root="([^"]+)" data-km-fuchun-near-hemp-axis="([^"]+)"/g,
+    )];
+    expect(fineRoots).toHaveLength(28);
+    for(const [,root,axis] of fineRoots){
+      expect(axis.startsWith("M"+root.replace(","," ")+" C")).toBe(true);
+    }
+    expect([...candidate87.matchAll(/data-km-fuchun-near-bank-contour="([^"]+)"/g)]
+      .map(m=>m[1])).not.toEqual(banks.map(b=>b[3]));
+    // The formerly near-vertical original wash family keeps every
+    // source mark, shelf and moss deposit. Only the opt-in lower band
+    // follows the widened bank's true curved ridge coordinates.
+    expect((legacy.match(/data-km-rock-plane-flow="source-following"/g)??[]))
+      .toHaveLength(0);
+    const nearFlow=[...candidate.matchAll(
+      /data-km-rock-plane-flow="source-following" data-km-rock-plane-bank-register="[^"]+" data-km-rock-plane-bank-axis="([^"]+)" data-km-rock-plane-bank-end="([^"]+)"/g,
+    )];
+    expect(nearFlow).toHaveLength(17);
+    const registers=[...candidate.matchAll(
+      /data-km-rock-plane-bank-register="([^"]+)"/g,
+    )].map(match=>match[1]);
+    expect(registers).toHaveLength(17);
+    // Native 2.3x optical review rejected 6 near-vertical long hemp
+    // contacts: every root must cross the supporting positive shoulder
+    // before releasing, and short alum-heads stay distinctly shorter.
+    const travel=nearFlow.map(mark=>{
+      const root=mark[1].split(" C")[0].slice(1).split(" ").map(Number);
+      expect(root).toHaveLength(2);
+      expect(root.every(Number.isFinite)).toBe(true);
+      const tip=mark[2].split(",").map(Number);
+      return Math.abs(tip[0]-root[0]);
+    });
+    for(const [j,dx] of travel.entries()){
+      const minimum=registers[j]==="descending-hemp"?35:
+        registers[j]==="short-head"?22:37;
+      expect(dx).toBeGreaterThan(minimum);
+    }
+    // Huang's upper-to-lower long pima remains distinct from the
+    // rounded alum-head presses and cheek-following middle ink.
+    expect((candidate.match(/data-km-rock-plane-bank-register="descending-hemp"/g)??[]))
+      .toHaveLength(6);
+    expect((candidate.match(/data-km-rock-plane-bank-register="short-head"/g)??[]))
+      .toHaveLength(2);
+    expect((candidate.match(/data-km-rock-plane-bank-register="rolled-cheek"/g)??[]))
+      .toHaveLength(9);
+    expect(legacy).not.toContain("data-km-rock-plane-bank-register=");
+    const nearRoots=[...candidate.matchAll(
+      /data-km-rock-ink-plane="" data-km-rock-plane-root="([^"]+)" data-km-rock-plane-crest="([^"]+)" data-km-rock-plane-style="([^"]+)" data-km-rock-plane-flow="source-following"/g,
+    )];
+    expect(nearRoots).toHaveLength(17);
+    for(const [j,mark] of nearFlow.entries()){
+      const root=nearRoots[j][1].split(",").map(Number);
+      const endpoint=mark[2].split(",").map(Number);
+      expect(root.every(Number.isFinite)).toBe(true);
+      expect(endpoint.every(Number.isFinite)).toBe(true);
+      expect(mark[1].startsWith("M"+root.join(" ")+" C")).toBe(true);
+      expect(Math.abs(endpoint[0]-root[0])).toBeGreaterThan(16);
+      expect(root[1]-Number(nearRoots[j][2])).toBeGreaterThan(3);
+      expect(root[1]-Number(nearRoots[j][2])).toBeLessThan(8);
+    }
+    expect((candidate.match(/data-km-rock-plane-flow="original"/g)??[]))
+      .toHaveLength(19);
+    // Source-ridge clipping prevents a cubic's overshoot from painting
+    // into the sky without removing any real 17 brush paths or moss.
+    expect(candidate).toContain('data-km-rock-plane-source-clip=""');
+    expect(legacy).not.toContain('data-km-rock-plane-source-clip=""');
+    const sourceClip=candidate.match(
+      /<clipPath id="([^"]+source-supported-near-ink-2)" clipPathUnits="userSpaceOnUse"><path d="([^"]+)"/,
+    );
+    expect(sourceClip).not.toBeNull();
+    expect(sourceClip?.[2]).toBe(ridge(candidate,2));
+    expect(candidate).toContain('clip-path="url(#'+sourceClip?.[1]+')"');
+    expect(candidate).toContain('data-km-rock-plane-family="2"');
+    const roots=(html:string)=>[...html.matchAll(
+      /data-km-rock-plane-root="([^"]+)"/g,
+    )].map(m=>m[1]);
+    expect(roots(candidate)).not.toEqual(roots(legacy));
+    for(const frame of [84,215])
+      expect(ridge(paint("fuchun",71,true,frame),2))
+        .toEqual(ridge(candidate,2));
+    // The opt-in is never a cosmetic global shared mountain preference.
+    expect(paint("travelers",71,true)).toBe(paint("travelers",71,false));
+    expect(paint("fuchun",71,true,145,"river-scholar"))
+      .toBe(paint("fuchun",71,false,145,"river-scholar"));
+    expect(candidate).not.toContain("<image ");
+  });
+
+  it("keeps all 20 planted Fuchun pine arms and 40 original crowns while adding living two-load woody pressure",()=>{
+    const paint=(school:"fuchun"|"early-spring",seed:number)=>
+      renderToStaticMarkup(createElement(InkShanshuiStage,{
+        frame:145,controls:{...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:school,seed,detail:1},
+      }));
+    const a=paint("fuchun",71),b=paint("fuchun",87),
+      guo=paint("early-spring",71);
+    expect(a).toBe(paint("fuchun",71));
+    expect((a.match(/data-km-cliff-pine-bough-bone=""/g)??[]))
+      .toHaveLength(20);
+    expect((a.match(/data-km-cliff-pine-ink-island=""/g)??[]))
+      .toHaveLength(40);
+    expect((a.match(/data-km-cliff-pine-wood-body=""/g)??[]))
+      .toHaveLength(40);
+    expect((a.match(/data-km-cliff-pine-wood-dry-witness=""/g)??[]))
+      .toHaveLength(40);
+    expect(guo).not.toContain('data-km-cliff-pine-wood-load=""');
+    const loads=[...a.matchAll(
+      /data-km-cliff-pine-wood-load="" data-km-cliff-pine-wood-source="([^"]+)" data-km-cliff-pine-wood-tip="([^"]+)" data-km-cliff-pine-wood-role="([^"]+)" data-km-cliff-pine-wood-weight="([^"]+)"/g,
+    )];
+    expect(loads).toHaveLength(40);
+    expect(loads.filter(v=>v[3]==="root-loaded")).toHaveLength(20);
+    expect(loads.filter(v=>v[3]==="feathered-tail")).toHaveLength(20);
+    expect(new Set(loads.map(v=>v[4])).size).toBeGreaterThan(24);
+    for(const [,start,end,role,weight] of loads){
+      const root=start.split(",").map(Number),tip=end.split(",").map(Number);
+      expect(root.every(Number.isFinite)).toBe(true);
+      expect(tip.every(Number.isFinite)).toBe(true);
+      expect(Math.hypot(tip[0]-root[0],tip[1]-root[1]))
+        .toBeGreaterThan(3);
+      expect(Number(weight)).toBeGreaterThan(.9);
+      expect(["root-loaded","feathered-tail"]).toContain(role);
+    }
+    expect([...b.matchAll(
+      /data-km-cliff-pine-wood-source="([^"]+)"/g,
+    )].map(v=>v[1])).not.toEqual(loads.map(v=>v[1]));
+    for(const element of [
+      "data-km-cliff-pine-graft", "data-km-cliff-pine-fringe",
+      "data-km-cliff-pine-needle", "data-km-cliff-pine-wet-cluster",
+      "data-km-cliff-pine-connected-canopy",
+    ]){
+      expect(a).toContain(element+'=""');
+    }
+    expect(a).not.toContain("<image ");
+  });
+
+  it("rejects malformed opt-in near-rock study controls",()=>{
+    expect(()=>assertShanshuiControls({
+      ...DEFAULT_SHANSHUI,fuchunNearShoulderStudy:"enabled" as never,
+    })).toThrow(RangeError);
+    expect(()=>assertShanshuiControls({
+      ...DEFAULT_SHANSHUI,fuchunNearShoulderStudy:true,
+    })).not.toThrow();
   });
 });

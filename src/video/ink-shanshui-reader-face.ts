@@ -34,9 +34,17 @@ const asset=(name:string,shapes:CharacterPathShape[]):CharacterShapeAsset=>({
     source:"Original Kumiki scroll-reader three-quarter portrait: "+name},
 });
 const mouth={
-  rest:"M135.2 125.5 Q139.6 126.4 142.8 127 Q146.4 127.2 149 126.9",
-  aa:"M135.5 124.8 Q141.7 127.3 147.9 124.4 Q144.2 133.8 139.9 131.4 Q136.2 129.1 135.5 124.8 Z",
-  oh:"M141.3 125.2 Q145.2 125.1 145.8 128.5 Q145.5 132.1 142 131.7 Q139.4 129.5 141.3 125.2 Z",
+  // The neutral scholar rests his lips without a thick horizontal bar:
+  // slight perspective asymmetry preserves soft mouth-corner volume.
+  // Other AA/OH/MM/smile paths remain independently animated visemes.
+  rest:"M135.4 125.9 C137.1 125.6 139.1 126.2 141.6 126.8 C143.2 127.2 145.7 127.1 148.7 126.2",
+  // The historical native OH preview read as an unbroken dark lozenge
+  // on the lower cheek. A 3/4 /a/ opening is wider than /o/ but the
+  // unsupported flat cartoon "mouth sticker" is not a wet-ink mouth.
+  // Preserve independently riggable cels; build continuous lip-rolling
+  // cubic anatomy, asymmetrical lower vermilion and real ink relief.
+  aa:"M136.4 125.8 C139.3 124.95 146.4 125.35 148.3 125.1 C147.6 126.9 146.6 128.9 144.8 130.55 C142.9 132.05 140.75 130.9 139.4 129.1 C138 127.45 137.1 126.45 136.4 125.8 Z",
+  oh:"M142 125.75 C142.89 125.35 143.98 125.68 144.28 126.85 C144.76 128.45 144.15 130.35 143.26 130.95 C142.43 131.02 141.86 129.99 141.68 128.65 C141.48 127.27 141.61 126.29 142 125.75 Z",
   mm:"M135.6 125.7 Q141 125.4 148.5 124.5",
   smile:"M135.1 124.9 Q142.4 129.3 149.2 123.4",
 } as const;
@@ -51,8 +59,8 @@ export const READER_FACE_LANDMARKS:readonly ReaderFaceLandmark[]=[
   {name:"earlobe",x:115.3,y:117.8},
   {name:"near-eye-inner",x:136,y:102},
   {name:"near-eye-outer",x:119,y:102.3},
-  {name:"far-eye-inner",x:152,y:102.8},
-  {name:"far-eye-outer",x:163.5,y:101.1},
+  {name:"far-eye-inner",x:152,y:103.6},
+  {name:"far-eye-outer",x:163.5,y:102},
   {name:"nose-tip",x:152.4,y:115.5},
   {name:"mouth-corner",x:148.8,y:124},
   {name:"chin",x:143.3,y:143.7},
@@ -69,24 +77,41 @@ export function scrollReaderFacePortrait(detail=1):
   const face:CharacterPathShape[]=[
     // Ear is behind the cheek; unlike the former oval its lobe projects
     // past the hairline. Separate flesh planes keep it legible at thumbnail.
-    p("M117.2 94.9 C111.1 90.6 107.4 94.5 107.6 102.6 C107.6 112 111.3 121.5 117.2 120.1 C121.9 117.6 122.7 107.7 117.2 94.9 Z",
-      "$skin","$shadow",1.3),
+    p("M117.2 94.9 C113.3 92.7 109.1 96.2 109.2 103.2 C109.3 111.9 112.4 120.6 117.2 120.1 C121.5 117.3 121.7 107.5 117.2 94.9 Z",
+      "$skin","$shadow",1.03,1),
     p("M114.2 99.4 Q111.5 101.3 112.6 107.3 Q114.2 112.2 117.1 109",
       "none","$skinshade",1.4,.56),
     p("M117.3 103.6 Q115.2 104.3 115.1 107.8 Q119.6 108.5 116.2 113.5",
       "none","$shadow",.83,.67),
-    // Three-quarter temple -> tapered cheek -> defined chin. The right
-    // cheek reaches forwards; jaw narrows rapidly below the visible ear.
-    p("M119 77.6 C129.2 68.6 147.4 66.8 157.7 73.3 C163.3 78.4 166.2 87.5 165.8 97.7 C165.5 107 162.7 114.6 157.3 122.8 C154.8 126.2 152.7 128.7 150.8 131 C148.4 133.7 146.4 137.6 145.5 139.1 C144.7 140.8 144.3 142.8 143.3 143.7 C141.8 144.6 138.6 143.5 135.9 141.8 C132.1 139.5 127.9 136.8 124.9 133.1 C121.1 128.8 118.9 124.8 117.3 120.1 C115.9 116 115 112.3 114.6 106.8 C113.7 100.3 113.9 95.1 114.4 90.5 C114.7 86.8 116 81.3 119 77.6 Z",
-      "$skin","$shadow",1.12),
+    // Three-quarter temple -> broad malar arch -> rounded menton. In
+    // the first source-resolution review the almost triangular chin
+    // made a mask-like face; preserve the same ANAT1 menton and gonion
+    // positions, but transition through a rounded 4px chin plateau.
+    // The left/near cheek is fuller than the foreshortened right cheek.
+    p("M119 77.6 C129.2 68.6 147.4 66.8 157.7 73.3 C163.3 78.4 166.2 87.5 165.8 97.7 C165.5 107 162.7 114.6 157.3 122.8 C154.8 126.2 152.6 129.4 150.3 131.8 C148.6 133.7 146.5 136.7 145 139 C146 141.4 144.9 143.2 143.3 143.7 C140.6 144.6 138.7 143.7 136.1 142.2 C131.8 140.2 127.4 137.3 124.9 133.1 C121.1 128.8 118.9 124.8 117.3 120.1 C115.9 116 115 112.3 114.6 106.8 C113.7 100.3 113.9 95.1 114.4 90.5 C114.7 86.8 116 81.3 119 77.6 Z",
+      "$skin","$skinshade",.94,1),
+    // Original Chinese portrait methods: Zeng Jing's light ink face
+    // contours and multiple near-transparent wash values carry more
+    // structure than a thick continuous cartoon outline. The entire
+    // opaque face geometry stays untouched: the contour uses a lighter
+    // pigment and thinner ink width, NEVER alpha on the skin silhouette
+    // (which would make the original actor's head see-through).
+    // Orbital, nasal and malar wash planes remain independently layered.
     // Soft anatomical planes are placed along the jaw and nose and never
     // replace the opaque skin silhouette (no see-through heads).
     p("M154.1 85.5 C160.8 91 162.7 100 160.1 107.8 C158.6 111.8 155.8 113.1 153 115.4 C160 113.4 163.2 108.6 163.8 103.4 C164.8 97 162.6 88.8 154.1 85.5 Z",
       "$skinshade","none",0,.14),
     // A light embedded cheek plane follows the malar arch, not the
     // old long striped jaw hatch. Preserve unpainted skin for the light.
-    p("M118.2 113.6 C120.5 121.8 127.6 126.8 133.1 130.1 C129 125.3 123.6 122.6 119.5 116.3 Z",
-      "$skinshade","none",0,.115),
+    // A broad straight lower-cheek stripe looked like painted-on
+    // hatching rather than the rounded jaw plane. Follow the
+    // masseter into the mentolabial shadow with a fine wet taper.
+    // The lower masseter plane curves below the cheek bulge and rolls
+    // toward the labiomental hollow; it is neither a straight stripe
+    // through the mouth nor an age-inappropriate wrinkle. Keep the
+    // independent wet-paper plane and separate dry contour strokes.
+    p("M119.2 116 C121.4 120.5 124.8 123.5 128.7 124.8 C131.3 126.1 132.6 127.6 132 129.1 C129.5 127.9 126.8 126.6 124.4 124.9 C122 122.6 120.4 119.6 119.2 116 Z",
+      "$skinshade","none",0,.078),
     // No additional heavy jaw-tracing strokes: the solid face outline
     // already describes the young chin. Extra lines aged this reader.
     // Subtle, anatomically placed nose bridge and nostril. The earlier
@@ -98,13 +123,15 @@ export function scrollReaderFacePortrait(detail=1):
     // Orbital shadows sit below the eyelids, not as symmetrical smile arcs.
     p("M119.2 105.4 Q127.7 108.8 135.7 105.1",
       "none","$skinshade",.49,.4),
-    p("M153.2 105.1 Q158.7 107.1 163.2 104.2",
+    p("M153.2 105.9 Q158.7 107.9 163.2 105",
       "none","$skinshade",.45,.38),
     // Philtrum and lower lip are almost invisible in the teacher art.
     p("M144.5 119.6 Q144.9 121.4 145.3 122.1",
       "none","$skinshade",.35,.37),
-    p("M139.9 129.6 Q143.6 131.7 147.2 128.6",
-      "none","$skinshade",.66,.57),
+    // The lip underside was once stamped on the immobile head across
+    // EVERY active viseme; this made OH look like a small third eye at
+    // true 1×. Its identical original ink is retained below, now in the
+    // independent mouth cel, so it follows the singing/speaking lips.
   ];
   if(medium)face.push(
     pressure([116.3,108.5],[116.3,114.1],[117.1,118.4],[120.3,122.8],
@@ -133,12 +160,18 @@ export function scrollReaderFacePortrait(detail=1):
   const brow:CharacterPathShape[]=[
     // Asymmetry is essential: the near brow is long and the far one is
     // short with a visible gap at the frontal turn.
-    pressure([117.8,94.4],[124.1,91.3],[130.4,92.5],[135.8,96.3],
-      1.62,81,"$ink",.93),
-    pressure([149.2,95.5],[154.4,92.6],[159.4,92.9],[162.9,95.1],
-      1.32,82,"$ink",.89),
-    p("M118.4 93.2 Q126.6 90.5 135 94.8",
-      "none","$shadow",.46,.29),
+    // Scholar eyebrows carry emotion with tapered individual hair flow.
+    // Two former thick near-horizontal bars overwhelmed the delicate
+    // gongbi eye folds and read as stamped makeup at native resolution.
+    // Follow the existing two asymmetrical sockets, peak gently in the
+    // outer-middle third, and let the inner head of each brow breathe.
+    // Keep all original separately planted ANAT1 follicle strokes.
+    pressure([117.8,94.4],[123.3,91.2],[128.2,90.8],[135.8,96.3],
+      1.18,81,"$ink",.78),
+    pressure([149.2,95.5],[153.4,92.9],[158.4,92.7],[162.9,95.1],
+      .94,82,"$ink",.75),
+    p("M118.4 93.2 Q125.4 90.2 134.6 94.3",
+      "none","$shadow",.42,.24),
   ];
   if(medium)brow.push(
     pressure([119.6,92.9],[125.1,90.9],[130.5,92.3],[134.6,95.2],
@@ -150,12 +183,131 @@ export function scrollReaderFacePortrait(detail=1):
   const eyesOpen:CharacterPathShape[]=[...anatomy.eyesOpen];
   const eyesSoft:CharacterPathShape[]=[...anatomy.eyesSoft];
   const eyesClosed:CharacterPathShape[]=[...anatomy.eyesClosed];
+  // Independent speech lip planes in original 260x340 head space.
+  // The AA and OH dark apertures are translucent pigment separated
+  // from the 3/4 orbicularis lip rim and reflected paper-light.
+  // Retain the original five viseme identity/rig contracts and all
+  // mouth/jaw source-space anatomy; add living shape detail, not an icon.
+  const speechLips=(state:keyof typeof mouth):CharacterPathShape[]=>{
+    if(state==="oh")return [
+      // Source-informed /o/ is a narrow VERTICAL 3/4 oral fissure,
+      // not a round concentric iris with a painted pupil. Keep every
+      // original ink/paper/pressure mark as its own editable layer.
+      p("M141.88 130.1 C142.61 131.35 143.95 131.76 144.38 129.91 C144.08 132.02 142.61 132.18 141.84 130.92 Z",
+        "$skinshade","none",0,.18),
+      p("M141.98 126.06 C142.46 125.44 143.78 125.36 144.24 126.53",
+        "none","$shadow",.42,.53),
+      p("M141.74 130.23 C142.46 131.06 143.58 131.49 144.34 130.14",
+        "none","$skinshade",.37,.56),
+      // Delicate outer lip relief turns with orbicularis oris, while
+      // the center remains paper-diluted rather than an opaque badge.
+      p("M141.72 126.55 C142.27 126.04 143.82 126.18 144.19 127.24 C144.48 128.5 143.96 129.6 143.16 130.23 C142.41 129.75 141.84 128.76 141.72 126.55 Z",
+        "$skinshade","none",0,.125),
+      // Physically *nested* vertical cavity shadows: broad wet turn,
+      // smaller warm wash, darkest asymmetric off-center recess.
+      p("M142.12 126.78 C142.7 126.4 143.6 126.91 143.77 127.85 C143.9 129.04 143.49 130.01 142.98 130.14 C142.37 129.72 142.06 128.58 142.12 126.78 Z",
+        "$shadow","none",0,.32),
+      p("M142.5 127.12 C142.79 126.96 143.37 127.42 143.36 128 C143.5 129 143.28 129.48 142.96 129.61 C142.58 129.16 142.46 128.17 142.5 127.12 Z",
+        "$deep","none",0,.18),
+      p("M142.66 127.55 C142.84 127.4 143.08 127.62 143.12 127.92 C143.23 128.65 143.12 129.02 142.96 129.21 C142.77 128.86 142.67 128.18 142.66 127.55 Z",
+        "$ink","none",0,.22),
+      // Perspective-correct unequal near/far lip rolls (no upper and
+      // lower eye-lid-like horizontal strokes extending to the cheeks).
+      p("M141.77 126.69 C141.47 127.86 141.7 129.17 142.12 130.06",
+        "none","$skinshade",.34,.29),
+      p("M144.19 126.92 C144.59 128.02 144.4 129.06 144.07 129.68",
+        "none","$shadow",.23,.29),
+      pressure([141.95,125.98],[142.38,125.43],[143.56,125.58],
+        [144.24,126.36],.27,792,"$shadow",.31),
+      // Reserve individual soft lower-lip fibres, NOT a white circle.
+      p("M142 131.14 C142.67 131.46 143.7 131.28 144.24 130.83 C143.88 131.65 142.74 131.75 142 131.14 Z",
+        "$paper","none",0,.21),
+      p("M142.21 131.74 Q143.25 132.04 144.1 131.35",
+        "none","$paper",.28,.24),
+    ];
+    if(state==="aa")return [
+      p("M136.55 125.85 C140.15 124.95 145.1 125.8 148.15 125.15",
+        "none","$shadow",.49,.53),
+      // A small roof of paper tone indicates a receding upper dental
+      // plane without a modern white smile-sticker.
+      p("M138.2 126.3 C140.9 125.8 143.9 126.3 146.35 126.2 C144.6 127.15 140.75 127.5 138.2 126.3 Z",
+        "$paper","none",0,.3),
+      // AA lower lip follows the jaw-opening displacement as an
+      // asymmetrical convex wet plane (larger near lip, shortened far).
+      p("M138.8 129.35 C140.75 130.94 144.15 131.52 147.07 128.75 C145.6 131.84 141.4 132.78 138.8 129.35 Z",
+        "$skinshade","none",0,.155),
+      p("M138.55 129.82 C140.2 132.08 144.15 132.52 146.15 130.18",
+        "none","$skinshade",.43,.53),
+      // Mouth cavity grows below the lip seam. Preserve a soft outer
+      // vermilion brush wash; restrict the deeper recess to the central
+      // negative space, with no straight edge across the far cheek.
+      p("M137.8 126.3 C140.4 125.83 146.3 126.08 147.6 125.95 C146.8 127.64 145.4 130.2 143.95 130.75 C141.45 130.58 139.22 128.47 137.8 126.3 Z",
+        "$skinshade","none",0,.14),
+      p("M138.96 127.0 C141.2 126.64 145.1 127.15 146.96 126.6 C146.06 128.63 144.83 130.17 143.36 130.18 C141.62 129.93 140.13 128.62 138.96 127 Z",
+        "$shadow","none",0,.29),
+      p("M140.16 127.52 C141.92 127.5 144.7 127.9 145.72 127.44 C145.15 128.81 144.08 129.67 142.85 129.57 C141.53 129.24 140.76 128.43 140.16 127.52 Z",
+        "$deep","none",0,.24),
+      p("M141.48 127.91 C142.3 127.94 144.11 128.24 144.74 128.01 C144.35 128.7 143.63 129.08 142.77 128.95 C142.13 128.7 141.78 128.36 141.48 127.91 Z",
+        "$ink","none",0,.26),
+      pressure([137.22,125.85],[139.72,125.45],[144.7,125.73],
+        [147.85,125.26],.3,793,"$shadow",.32),
+      pressure([139.1,129.44],[140.32,131.07],[143.65,131.76],
+        [145.58,130.35],.26,794,"$skinshade",.32),
+      p("M140.25 130.2 C141.42 131.02 144.43 131.48 145.2 130.02",
+        "none","$deep",.28,.38),
+      p("M139.5 132.18 Q142.54 133.18 145.75 131.45",
+        "none","$paper",.31,.24),
+    ];
+    return [];
+  };
+  // A static resting stomion across the centre of a rounded /o/
+  // made the native 3× close-up resemble a third eye. Keep ALL original
+  // ANAT1 orbicularis and paper-reserve paths, but turn their 4 inherited
+  // resting-mouth contours into the physically displaced upper/lower lip
+  // planes for speaking cels. This is not a loss of fine marks: the paths
+  // retain the original material, opacity, topology count and rig.
+  const speechAnatomyLips=(state:keyof typeof mouth):CharacterPathShape[]=>{
+    if(state!=="aa"&&state!=="oh")return anatomy.lips;
+    const moved:readonly string[]=state==="oh"?[
+      "M141.98 131.22 Q143.04 132.07 144.19 131.07",
+      "M141.76 125.97 C142.43 125.32 143.58 125.39 144.34 126.09 C143.42 125.84 142.55 125.8 141.76 125.97 Z",
+      "M141.8 125.92 Q143.04 125.39 144.27 126.14",
+      "M141.89 131.06 Q143.04 132.3 144.36 130.86",
+    ]:[
+      "M138.85 132.12 Q142.2 133.3 145.85 131.35",
+      "M136.3 124.8 C140.3 124.05 146.2 124.31 148.52 124.45 C145.5 125.7 140.1 125.28 136.3 124.8 Z",
+      "M136.3 124.82 Q142.2 124.1 148.5 124.58",
+      "M138.75 131.2 Q142.65 133.42 146.75 130.05",
+    ];
+    return anatomy.lips.slice(2).map((shape,i)=>
+      shape.type==="path"&&i<moved.length?
+        {...shape,d:moved[i]}:shape);
+  };
+  // Move the ACTUAL original lower-lip light off the immobile face
+  // and onto the speaking cel; preserve ink/material/weight/opacity in
+  // REST and let its 3/4 anatomical attachment bend with AA and OH.
+  const attachedLowerLip=(state:keyof typeof mouth)=>
+    p(state==="aa"?
+      "M138.5 132 Q142.8 134.1 146.3 130.8":
+      state==="oh"?
+      "M141.83 131.07 Q143.04 132.46 144.31 130.87":
+      "M139.9 129.6 Q143.6 131.7 147.2 128.6",
+    "none","$skinshade",.46,.35);
   const mouthAsset=(state:keyof typeof mouth)=>asset("mouth-"+state,[
-    ...(state==="aa"||state==="oh"?anatomy.lips.slice(2):anatomy.lips),
+    ...speechAnatomyLips(state),
+    // The aperture is not a fully opaque cartoony dark badge. Pigment
+    // optically builds via multiple independent lip and cavity passes.
     p(mouth[state],state==="aa"||state==="oh"?"$shadow":"none",
-      "$shadow",state==="mm"?1.14:.99,state==="aa"?.85:.94),
+      state==="aa"||state==="oh"?"none":"$shadow",
+      state==="aa"||state==="oh"?0:state==="mm"?.84:state==="rest"?.74:.9,
+      // The source opening is the barely stained first wet impression:
+      // dark cavity values are layered centrally, not pasted in one fill.
+      state==="aa"?.17:state==="oh"?.18:state==="rest"?.75:.9),
+    ...speechLips(state),
+    attachedLowerLip(state),
     p(state==="aa"?"M139.2 130.8 Q143.4 132.4 146 129.9":
-      "M138.2 128.9 Q143.6 129.5 147 127.6",
+      state==="oh"?"M141.91 130.54 Q143.1 131.35 144.24 130.42":
+        "M138.2 128.9 Q143.6 129.5 147 127.6",
       "none","$skinshade",.55,.43),
     ...(medium?[p("M135.1 124.2 Q137 123.4 139.1 124.2",
       "none","$skinshade",.41,.38)]:[]),
@@ -164,25 +316,40 @@ export function scrollReaderFacePortrait(detail=1):
   // are tiny ink lashes BELOW the upper lids, not centred round eyes.
   const pupilLeft=asset("near-pupil",[
     ...anatomy.nearPupil,
-    p("M129 105.4 Q129.3 106.1 129.2 106.8",
-      "none","$ink",.86,.8),
+    // Real 1× Chromium review showed a second isolated dark dot just
+    // outside the near iris. Preserve its separate pressure mark, but
+    // bring it INSIDE the original ANAT1 limbal envelope (125.2..129.4)
+    // as the broken far-side iris rim, not an extra pupil.
+    p("M128.15 105.18 Q128.58 105.92 128.02 107.2",
+      "none","$ink",.36,.51),
   ]);
   const pupilRight=asset("far-pupil",[
     ...anatomy.farPupil,
-    p("M156.3 104.3 l.2 1.1","none","$ink",.66,.64),
+    // A projected far-eye iris is a single oval under the upper tarsus.
+    // Retain this micro-stroke, following the inside of its distal edge
+    // instead of an unrelated heavy dash beside the pupil.
+    p("M158.02 104.57 Q158.42 105.38 157.92 106.13",
+      "none","$ink",.28,.49),
   ]);
   // The near ear needs its own OVER-HAIR plane. In the source painting
   // the ear is outlined *in front of* the sideburn; putting both marks
   // inside the base face asset hid it beneath the cap and read as a wedge.
   const visibleEar=asset("near-ear-front-plane",[
-    p("M117.2 95.2 C112.3 92.5 107.8 95.7 108.1 103.3 C107.9 111.6 112.1 119.4 117.3 119.7 C121.7 116.7 122.2 106.1 117.2 95.2 Z",
-      "$skin","$shadow",1.21,1),
-    p("M115.5 99.7 Q111.7 100.1 112.6 105.7 Q114.1 111.6 118 109.5",
-      "none","$skinshade",1,.59),
-    p("M116.7 103.1 Q114.1 104.6 115.5 108 Q119.6 109.6 116.2 114",
-      "none","$shadow",.86,.71),
-    p("M111.1 102.4 Q110.6 109.2 114 114.4",
-      "none","$paper",.54,.55),
+    // The ear turns behind the sideburn rather than hanging as a uniform
+    // ink oval. Its rounded soft lobule returns into the cheek without a
+    // sharp apex, and the rim has more paper-visible negative space.
+    p("M117.1 95.2 C113.6 93.7 110.5 97.9 110.3 103.7 C110.25 109 112.1 115.1 115.7 118.5 C117.9 120 119.2 117.1 119.3 113.6 C120.7 109.9 120.3 104.7 118.7 98.9 C118.15 96.8 117.6 95.45 117.1 95.2 Z",
+      "$skin","$shadow",.78,1),
+    // Outer rim/fossa: a shallow scapha wash, not two nested C-shaped
+    // outlines that make the source portrait look like a rubber stamp.
+    p("M115.65 97.7 C112.7 97.3 111.2 100.6 111.85 104.9 C112.2 108.2 113.25 111.5 114.9 112.8",
+      "none","$skinshade",.56,.45),
+    // ANAT1 Y-shaped antihelix: the superior and inferior crura depart
+    // from exactly the same stem hinge while projecting at different depths.
+    p("M116.15 113.4 C114.65 111.45 113.8 109.15 114.45 106.7 M114.45 106.7 C113.7 104.4 114.3 101.9 116.35 100.95 M114.45 106.7 C115.5 105.25 117 105.3 117.75 106.5",
+      "none","$shadow",.55,.57),
+    p("M111.25 102.7 Q111.02 107.2 113.12 114.5",
+      "none","$paper",.43,.57),
     ...anatomy.ear,
   ]);
   return {

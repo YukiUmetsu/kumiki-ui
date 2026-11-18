@@ -502,7 +502,7 @@ function Export({scene}:{scene:ShanshuiScene}){
  * The NPM source images are external study links; no source pixels ship.
  */
 function MasterInkSourceComparison(){
-  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone">("all");
+  const [fuchunZone,setFuchunZone]=useState<"all"|"upper"|"lower"|"stone"|"alum-before"|"stone-before-turning"|"hero-before-cheek"|"hero-uncut"|"hemp-flow"|"hero-bone-ruler"|"ridge"|"pine"|"pine-bones"|"pine-contours"|"pine-unlinked"|"pine-bridge-uncut"|"pine-uncut"|"uncut">("all");
   const [frame,setFrame]=useState(145);
   const [seed,setSeed]=useState(71);
   const [detail,setDetail]=useState(1);
@@ -521,7 +521,7 @@ function MasterInkSourceComparison(){
     {school:"fuchun",title:"Huang Gongwang · long hemp fibre",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975",
       observation:"Rounded nested hills, uneven long hemp loaded at the head, bare paper between linked families. Do not confuse with raindrop marks.",
-      target:"Six linked round/saddle rock volumes, 15 curved loaded parent banks and all 78 anatomically rooted short/mid/long child fibres. New five-mark bank phrases alternate upper and lower parent windows with real reserved paper, saturated short crown contacts, and more diluted long recess strokes; use the bank-isolation proof to detect parallel rain or too-clean peaks. Preserve four hero fractures and five distinct pines with 20 boughs, 119 wet bunches, 40 fan masses, 60 pads and 310 needles. This remains an unapproved original technique study, not a reconstruction."},
+      target:"The live asymmetric summit, softened far dome and original rounded source rock cheeks support 15 pressure banks, 78 short/mid/long child fibres and 12 parent-rooted transverse stone courses. Selected medium and all long fibres now contain two material dry-paper slits, sampled exactly on the actual child cubic and cut through pigment with luminance masks; all 78 pressure ribbons remain. Compare Ink before dry-paper lift against All Fuchun hemp at the identical camera/seed. Preserve five original pines, 20 boughs, 119 wet bunches, 40 fan masses, 60 pads and 310 needles. This original technique remains source-inspired, not an approved reconstruction."},
     {school:"early-spring",title:"Guo Xi · curled cloud-head",
       url:"https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000960",
       observation:"Reversing cloud-head rock rolls, layered ink ranges and open mist; crab-claw pine branching in the source.",
@@ -578,21 +578,229 @@ function MasterInkSourceComparison(){
       [data-km-rock-hero-cliff],
       [data-km-master-ink-inspection="stone"] [data-km-master-study="fuchun"]
       [data-km-cliff-pine-grove] { visibility:hidden; }
+      /* Same-source A/B: conceal nine alum-head crowns and 27 attached
+         micro ink deposits without deleting their real source geometry. */
+      [data-km-master-ink-inspection="alum-before"]
+      [data-km-master-study="fuchun"]
+      [data-km-master-fuchun-alum-head-field] { visibility:hidden; }
+      /* A/B the actual mid-slope parent-rooted Fuchun stone volumes.
+         Retain all original pima, six hillbacks, 12 transverse shelves,
+         and four master views. Only the three new turning bands per
+         actual rock cheek are temporarily hidden by CSS. */
+      [data-km-master-ink-inspection="stone-before-turning"]
+      [data-km-master-study="fuchun"]
+      [data-km-master-fuchun-turning-field] { visibility:hidden; }
+      /* ArtCraft rock-face A/B on the SAME original film paths:
+         only the four new true-trajectory inward wash skins disappear.
+         All 4 original loaded ribbons, 24 real-paper slits, 12 deposits,
+         8 attached fine split marks and every old geological layer stay. */
+      [data-km-master-ink-inspection="hero-before-cheek"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-rib-cheek-wash] { visibility:hidden; }
+      /* Same exact 4 original rock support shapes, 4 loaded multi-stage
+         strokes, 12 pressure reloads, 24 local paper cuts: temporarily
+         remove ONLY their shared reserve mask on the below-stroke wash
+         and re-inked deposits. This catches visually buried paper
+         cutouts without false background-colored paper overlays. */
+      [data-km-master-ink-inspection="hero-uncut"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-rib-cheek-wash],
+      [data-km-master-ink-inspection="hero-uncut"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-rib-deposit] { mask:none !important; }
+      /* Internal ArtCraft lens on the ACTUAL 78 rendered Fuchun strokes.
+         Hide the other native foreground decorative layers, not the
+         stone mass, 15 supporting strata, or original 78 pima paths. */
+      [data-km-master-ink-inspection="hemp-flow"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff],
+      [data-km-master-ink-inspection="hemp-flow"]
+      [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-grove] { visibility:hidden; }
+      /* ArtCraft negative control for the original 116-unit source
+         backbone: compare the former 2.35px uniformly dark witness to
+         its two exact curved pigment phases with an open paper break.
+         Only the style of the ORIGINAL bone changes; every attached
+         rock cheek, fibre, secondary bank and child remains present. */
+      [data-km-master-ink-inspection="hero-bone-ruler"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-bone-loaded] { visibility:hidden; }
+      [data-km-master-ink-inspection="hero-bone-ruler"]
+      [data-km-master-study="fuchun"]
+      [data-km-rock-hero-bone] {
+        stroke-width:2.35px !important;
+        stroke:#47382d !important;
+        opacity:.84 !important;
+      }
+      /* The *real* 960x540 renderer supplies all three nested ridges.
+         Isolate only the middle band’s original filled skyline path.
+         Do not replace it with a polygon, diagram or copied image. */
+      [data-km-master-ink-inspection="ridge"] [data-km-master-study="fuchun"]
+      [data-km-shanshui-ridge="1"] > :not([data-km-shanshui-ridge-contour]),
+      [data-km-master-ink-inspection="ridge"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-paint-layer],
+      [data-km-master-ink-inspection="ridge"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-grove] { visibility:hidden; }
+      /* Isolate actual attached pine topology without replacing a path. */
+      [data-km-master-ink-inspection="pine"] [data-km-master-study="fuchun"]
+      [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff],
+      [data-km-master-ink-inspection="pine-uncut"] [data-km-master-study="fuchun"]
+      [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine-uncut"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff] { visibility:hidden; }
+      /* Macro ArtCraft inspection: isolate the 40 true old-pine loaded
+         crown silhouettes and the 20 joined bough masses. Underneath,
+         actual source wood is retained. Temporarily hide ONLY the
+         superficial needle/graft/wet material and mountain strokes,
+         so two wet pressure crests separated by a real dry lift can
+         be judged at delivered scale. Never remove production paths. */
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-graft],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-wet-cluster],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-pad],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-needle],
+      [data-km-master-ink-inspection="pine-contours"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-fringe] { visibility:hidden; }
+      /* An anatomical Storybook diagnostic only. No paths are removed:
+         hide superficial pine brush islands to inspect the actual
+         source-connected loaded armature (trunk, roots and 20 arms). */
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-ink-island],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-graft],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-wet-cluster],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-pad],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-needle],
+      [data-km-master-ink-inspection="pine-bones"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-connected-canopy] { visibility:hidden; }
+      /* Same original 20 Fuchun canopy bridge source paths retained,
+         but remove them from PAINT only to compare the previous floating
+         40 caplets against the loaded continuous branched composition.
+         All existing brush/needle microdetail remains live in both. */
+      [data-km-master-ink-inspection="pine-unlinked"] [data-km-master-study="fuchun"]
+      [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine-unlinked"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-cliff],
+      [data-km-master-ink-inspection="pine-unlinked"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-connected-canopy] { visibility:hidden; }
+      /* Toggle only the underpaint's *real* luminance mask: compare the
+         same bridge centerline and two existing fan windows before/after
+         preserving paper through BOTH positive, overlapping ink layers. */
+      [data-km-master-ink-inspection="pine-bridge-uncut"]
+      [data-km-master-study="fuchun"] [data-km-master-rock-art],
+      [data-km-master-ink-inspection="pine-bridge-uncut"]
+      [data-km-master-study="fuchun"] [data-km-rock-hero-cliff] {
+        visibility:hidden;
+      }
+      [data-km-master-ink-inspection="pine-bridge-uncut"]
+      [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-connected-canopy][mask] { mask:none !important; }
+      /* Before/after the actual Fuchun pine source's two hollow
+         brush-aligned windows: exactly the same d, seed and camera.
+         Nonzero fills all inner loops instead of cutting true paper.
+         Production always uses evenodd, with no CSS material override. */
+      [data-km-master-ink-inspection="pine-uncut"] [data-km-master-study="fuchun"]
+      [data-km-cliff-pine-ink-canopy] { fill-rule:nonzero !important; }
+      /* Material proof: same original long-hemp SVG ribbons and
+         gradients, but before their local dry-paper fissures. Attribute
+         masks are overridden with CSS; restoring 'all' reinstates the
+         original production mask without deleting a single brush. */
+      [data-km-master-ink-inspection="uncut"] [data-km-master-study="fuchun"]
+      [data-km-master-stroke-loaded][mask],
+      [data-km-master-ink-inspection="uncut"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-face][mask],
+      [data-km-master-ink-inspection="uncut"] [data-km-master-study="fuchun"]
+      [data-km-rock-hero-crease][mask] { mask:none !important; }
     `}</style>
     <div role="group" aria-label="Fuchun paper-reserve inspection"
       data-testid="shanshui-master-zone-presets"
       style={{display:"flex",gap:9,flexWrap:"wrap",alignItems:"center"}}>
       {([["all","All Fuchun hemp"],["upper","Upper-bank contacts only"],
         ["lower","Lower-bank contacts only"],
-        ["stone","Stone volumes · brush hidden"]] as const).map(([zone,title])=>
+        ["stone","Stone volumes · brush hidden"],
+        ["alum-before","Before attached alum-head crowns"],
+        ["stone-before-turning","Stone before rounded stratum relief"],
+        ["hero-before-cheek","Hero ribs before geological cheek wash"],
+        ["hero-uncut","Hero ribs before shared paper lift"],
+        ["hemp-flow","Hemp fibres · source shoulder sweep"],
+        ["hero-bone-ruler","Hero backbone · former dark ruler"],
+        ["ridge","Skyline · contour only"],
+        ["pine","Pine crowns · source anatomy"],
+        ["pine-bones","Pine armature · connected brush bones"],
+        ["pine-contours","Pine dual-load crown silhouettes"],
+        ["pine-unlinked","Pine before continuous crown bridge"],
+        ["pine-bridge-uncut","Pine bridge before paper reserve"],
+        ["pine-uncut","Pine before bristle paper lift"],
+        ["uncut","Ink before dry-paper lift"]] as const).map(([zone,title])=>
         <button type="button" key={zone} style={style.button}
-          aria-pressed={fuchunZone===zone} onClick={()=>setFuchunZone(zone)}>
+          aria-pressed={fuchunZone===zone} onClick={()=>{
+            setFuchunZone(zone);
+            if(zone==="stone-before-turning"||
+              zone==="hero-before-cheek"||
+              zone==="hero-uncut"||
+              zone==="hemp-flow"||
+              zone==="hero-bone-ruler")inspect(2.4,552,177);
+            else if(zone==="pine-bones")inspect(1.65,615,135);
+            else if(zone==="pine"||zone==="pine-contours"||
+              zone==="pine-unlinked"||
+              zone==="pine-uncut"||zone==="pine-bridge-uncut")
+              inspect(1.65,628,137);
+          }}>
           {title}
         </button>)}
       <span style={{maxWidth:500,fontSize:12,color:"#675745"}}>
-        Storybook-only: isolate original seven-curve rock volumes and wet/dry
-        undercuts from long-fibre marks without editing the source paths,
-        the other schools, or the production film clock.
+        Storybook-only: isolate skyline and stone backs, or compare
+        all 78 original fibres and four hero ribs before/after dry-paper cuts.
+        The pine-root camera isolates genuine trunk-to-soil contact on the
+        existing continuous mountain; it never creates a test-only path.
+        Before attached alum-head crowns hides only the nine positive source
+        boulder caps with their 27 miniature attached loaded brush marks.
+        All six large hillbacks, 12 cross-shelves, 78 original hemp
+        fibres and old-pine anatomy stay intact in both states.
+        Stone before rounded stratum relief isolates the same live
+        rock cheek contours before nine original nested turning washes.
+        Hero ribs before geological cheek wash isolates four physical
+        inward rock shades without removing their source-brush fibres,
+        fine deposits or original six true-paper reserve windows each.
+        Hero backbone former dark ruler compares the source's unchanged
+        deep parent quadratic under a former 2.35px ink ruler to two
+        pressure-loaded exact Bézier phrases with a visible source-paper
+        lift; parent geometry and all dependent brushwork stay rooted.
+        Hemp fibres source shoulder sweep isolates all 78 original
+        short/medium/long pima from the overlaid hero and pine, exposing
+        their rock-tangent-guided lateral crown turns, independently
+        pressured root press / mid-stroke reload / drying long tails,
+        and already-authored real-paper slit windows.
+        Hero ribs before shared paper lift demonstrates why a correct
+        transparent hole in only the top loaded stroke is insufficient:
+        the original source six per rib must also remove underneath
+        washes and physical pressure reloads.
+        Pine armature hides material layers to show the source trunk,
+        planted roots and twenty unequal loaded living branches. Compare
+        Pine before continuous crown bridge with Pine crowns to inspect
+        actual joining pigment, without changing source paths or 20 branches.
+        Pine bridge before paper reserve toggles only the connected
+        underwash's source-derived two-fan luminance mask: four original
+        hollow bristle channels per linked bough, no pasted paper ink.
+        The pine views toggle only two internal bristle-reserve cutouts per
+        original Fuchun fan, retaining all 40 crowns, 60 pads and 310 needles.
+        CSS cannot alter the source paths, attached roots or film clock.
       </span>
     </div>
     <div data-testid="shanshui-master-controls"
@@ -630,6 +838,11 @@ function MasterInkSourceComparison(){
       <button type="button" style={style.button}
         aria-pressed={view==="crop"&&zoom===1.65&&cropX===628&&cropY===137}
         onClick={()=>inspect(1.65,628,137)}>Pine grove · full crowns</button>
+      <button type="button" style={style.button}
+        aria-pressed={view==="crop"&&zoom===2.8&&cropX===615&&cropY===145}
+        onClick={()=>{setFuchunZone("pine");inspect(2.8,615,145);}}>
+        Pine feet · live ridge contact
+      </button>
       <button type="button" style={style.button}
         aria-pressed={view==="crop"&&zoom===2.4&&cropX===552&&cropY===177}
         onClick={()=>inspect(2.4,552,177)}>Rock strata · meso</button>
@@ -681,6 +894,508 @@ function MasterInkSourceComparison(){
     </p>
   </main>;
 }
+
+/** Production-source paper-lift A/B. Two genuine film renderers share the
+ * same absolute clock, authored paths, scene and camera. Only the left
+ * specimen suppresses the paper-reserve masks for material comparison. */
+function FuchunPaperLiftStudio(){
+  const [frame,setFrame]=useState(145);
+  const [seed,setSeed]=useState(71);
+  const [detail,setDetail]=useState(1);
+  const [ink,setInk]=useState(.9);
+  const [mist,setMist]=useState(.35);
+  const [cameraKey,setCameraKey]=useState<"film"|"summit"|"stone"|"fibre">("fibre");
+  const cameras={
+    film:{label:"Full 16:9 film",scale:1,x:480,y:270},
+    summit:{label:"Summit silhouette",scale:1.65,x:549,y:151},
+    stone:{label:"Rounded rock courses",scale:2.4,x:552,y:177},
+    fibre:{label:"Fibre and paper cuts",scale:3.35,x:553,y:207},
+  } as const;
+  const width=456,height=314;
+  const camera=cameras[cameraKey];
+  const fitted=Math.min(width/960,height/540);
+  const transform=cameraKey==="film"
+    ?"translate("+((width-960*fitted)/2)+"px,"+
+      ((height-540*fitted)/2)+"px) scale("+fitted+")"
+    :"translate("+(width/2-camera.scale*camera.x)+"px,"+
+      (height/2-camera.scale*camera.y)+"px) scale("+camera.scale+")";
+  const controls:ShanshuiControls={
+    ...DEFAULT_SHANSHUI,scene:"mountain-trail",inkSchool:"fuchun",
+    seed,detail,ink,mist,wind:0,
+  };
+  const specimens=[
+    {key:"uncut",name:"A · Before dry-paper lift",
+      note:"All 78 original hemp paths, transverse rock courses and hero ribs remain; only the local paper-reserve masks are bypassed."},
+    {key:"lifted",name:"B · Masked production ink",
+      note:"Identical positive brush geometry and ink load, with the real SVG fibre and rock-face luminance masks enabled."},
+  ] as const;
+  return <main data-testid="shanshui-fuchun-paper-lift-studio"
+    style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
+      color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
+      gap:16,alignContent:"start"}}>
+    <header style={{maxWidth:1050}}>
+      <h1 style={{font:"400 32px Georgia,serif",margin:"0 0 10px"}}>
+        Fuchun · true paper-reserve A/B
+      </h1>
+      <p style={{margin:0}}>
+        Two synchronized instances of the original 960×540 Chinese ink film.
+        The mountain silhouette, stone, trees, brush Béziers, color, seed,
+        clock and camera are identical. Only the negative-paper cuts differ.
+        Judge the full film before zooming into the source strokes.
+      </p>
+    </header>
+    <style>{'[data-km-fuchun-material="uncut"] [data-km-master-stroke-loaded][mask],'+
+      '[data-km-fuchun-material="uncut"] [data-km-rock-hero-face][mask],'+
+      '[data-km-fuchun-material="uncut"] [data-km-rock-hero-crease][mask]'+
+      '{mask:none!important;}'}</style>
+    <div role="group" aria-label="Paper lift inspection cameras"
+      style={{display:"flex",flexWrap:"wrap",gap:9}}>
+      {(Object.keys(cameras) as (keyof typeof cameras)[]).map(key=>
+        <button key={key} type="button" style={style.button}
+          aria-pressed={cameraKey===key} onClick={()=>setCameraKey(key)}>
+          {cameras[key].label}
+        </button>)}
+    </div>
+    <div role="group" aria-label="Synchronized material conditions"
+      style={{display:"flex",flexWrap:"wrap",gap:14,alignItems:"end"}}>
+      {([
+        ["Paper-lift frame",frame,setFrame,0,SHANSHUI_FRAMES-1,1],
+        ["Paper-lift seed",seed,setSeed,1,199,1],
+        ["Paper-lift detail",detail,setDetail,0,1,.05],
+        ["Paper-lift ink",ink,setInk,0,1,.05],
+        ["Paper-lift mist",mist,setMist,0,1,.05],
+      ] as const).map(([label,value,setValue,min,max,step])=>
+        <label key={label} style={{...style.field,minWidth:165}}>
+          {label} · {value}
+          <input aria-label={label} type="range"
+            min={min} max={max} step={step} value={value}
+            onChange={e=>setValue(Number(e.target.value))}/>
+        </label>)}
+      <button type="button" style={style.button} onClick={()=>{
+        setFrame(145);setSeed(71);setDetail(1);setInk(.9);setMist(.35);
+        setCameraKey("fibre");
+      }}>Reset paper-lift study</button>
+    </div>
+    <div style={{display:"grid",
+      gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,456px),1fr))",
+      gap:18,alignItems:"start",maxWidth:980}}>
+      {specimens.map(specimen=><section key={specimen.key}
+        data-km-fuchun-material={specimen.key}
+        data-km-fuchun-camera={cameraKey}
+        data-km-fuchun-frame={frame}
+        data-km-fuchun-seed={seed}
+        style={{display:"grid",gap:9,minWidth:0}}>
+        <h2 style={{font:"500 20px Georgia,serif",margin:0}}>
+          {specimen.name}
+        </h2>
+        <div data-km-fuchun-material-crop={specimen.key}
+          style={{width,height,maxWidth:"100%",position:"relative",
+            overflow:"hidden",background:"#f3e6cd",
+            border:"1px solid #9b8a74"}}>
+          <div style={{position:"absolute",left:0,top:0,
+            transformOrigin:"top left",transform}}>
+            <InkShanshuiStage frame={frame} controls={controls}/>
+          </div>
+        </div>
+        <p style={{margin:0,fontSize:12,color:"#675745"}}>{specimen.note}</p>
+      </section>)}
+    </div>
+    <p style={{margin:0,maxWidth:1000,fontSize:12,color:"#675745"}}>
+      Reference: Huang Gongwang's rounded nested stone backs, loaded and
+      depleted hemp-fibre pressure and open paper in the National Palace
+      Museum scroll. No museum pixels are incorporated here. This is a
+      material-causality inspection, not a certified reconstruction.{" "}
+      <a href="https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975"
+        target="_blank" rel="noreferrer">Original museum painting</a>.
+    </p>
+  </main>;
+}
+
+/** Source-fidelity release desk: two real Fuchun canvases, never a copied
+ * still or a reconstructed diagnostic landscape. ArtCraft review deliberately
+ * separates the macro rock silhouette from the attached pigment and pine
+ * anatomy. Passing structural tests does NOT approve historical likeness. */
+function FuchunSourceFidelityDesk(){
+  const [frame,setFrame]=useState(145);
+  const [firstSeed,setFirstSeed]=useState(71);
+  const [secondSeed,setSecondSeed]=useState(87);
+  const [detail,setDetail]=useState(1);
+  const [mist,setMist]=useState(.35);
+  const [ink,setInk]=useState(.9);
+  const [comparison,setComparison]=useState<"seeds"|"near"|"pine">("seeds");
+  const [showTurning,setShowTurning]=useState(true);
+  const [showInnerStrata,setShowInnerStrata]=useState(true);
+  const [lens,setLens]=useState<"native"|"rock"|"edge"|"pine"|"near"|"fall">("native");
+  const [layer,setLayer]=useState<"complete"|"stone"|"hemp"|"pine">("complete");
+  const lenses={
+    native:{width:960,height:540,zoom:1,x:480,y:270,
+      title:"Full scene · actual 960×540"},
+    rock:{width:420,height:308,zoom:2.4,x:552,y:177,
+      title:"Rock shoulders · 2.4×"},
+    edge:{width:420,height:308,zoom:3.35,x:553,y:207,
+      title:"Dry-brush edge · 3.35×"},
+    pine:{width:420,height:308,zoom:2.8,x:615,y:145,
+      title:"Pine root/crown · 2.8×"},
+    near:{width:420,height:308,zoom:2.3,x:505,y:290,
+      title:"Lower stone shoulder · 2.3×"},
+    fall:{width:420,height:308,zoom:3.1,x:355,y:371,
+      title:"Waterfall ravine · 3.1×"},
+  } as const;
+  const camera=lenses[lens];
+  const transform=lens==="native"?"none":
+    "translate("+(camera.width/2-camera.zoom*camera.x)+"px,"+
+      (camera.height/2-camera.zoom*camera.y)+"px) scale("+camera.zoom+")";
+  // Typed outside JSX so this ArtCraft inspector remains valid TSX under
+  // Storybook/Vite, without sacrificing any original inspection modes.
+  const isolationModes=[
+    ["complete","All original paint"],
+    ["stone","Positive rock anatomy"],
+    ["hemp","Original 78 hemp strokes"],
+    ["pine","Rooted old-pine anatomy"],
+  ] as const;
+  const checklist={
+    complete:"At 1×, reject triangular wash panels, decorative dark hooks, disconnected pine crowns and collapsed mist/paper space.",
+    stone:"Positive stone only: reject a pale isolated triangle or floating shelves. Six parent hillbacks must turn into three connected rock cheeks.",
+    hemp:"Actual source-guided ink: reject uniform hook spacing, sharp hairpins, evenly inked tube widths or detached short/medium/long fibres.",
+    pine:"Living rooted old pine: reject stacked clip-art caps, isolated branch-to-crown gaps, uniform needle stars and unplanted trunks.",
+  } as const;
+  return <main data-testid="shanshui-fuchun-fidelity-desk"
+    data-km-fidelity-layer={layer} data-km-fidelity-lens={lens}
+    data-km-fidelity-comparison={comparison}
+    data-km-fidelity-turning={showTurning?"on":"off"}
+    data-km-fidelity-inner-strata={showInnerStrata?"on":"off"}
+    style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
+      color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
+      gap:16,alignContent:"start"}}>
+    <header style={{maxWidth:1040}}>
+      <h1 style={{font:"400 32px Georgia,serif",margin:"0 0 9px"}}>
+        Fuchun · native source-fidelity release desk
+      </h1>
+      <p style={{margin:"0 0 10px"}}>
+        Compare two independently seeded runs of the exact production
+        Fuchun landscape stage at synchronized absolute frames. Use full
+        native size for landform anatomy before inspecting the same SVG at
+        2.4×/3.35×. Diagnostic layers only hide paint for inspection;
+        they do not substitute paths, delete fibres or alter film export.
+      </p>
+      <p style={{margin:0,fontSize:12,color:"#675745"}}>
+        Historical source: Huang Gongwang, <em>Dwelling in the Fuchun Mountains</em>{" "}
+        <a href="https://theme.npm.edu.tw/selection/Article.aspx?lang=2&sNo=04000975"
+          target="_blank" rel="noreferrer">National Palace Museum</a>{" · "}
+        <a href="https://smarthistory.org/huang-gongwang-dwelling-in-the-fuchun-mountains/"
+          target="_blank" rel="noreferrer">annotated hemp / alum-head detail</a>.
+        Original artwork is not redistributed or embedded.
+      </p>
+    </header>
+    <div role="group" aria-label="Fuchun temporal review presets"
+      style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+      {([["First painted layers",84],["Source-rhythm review",145],
+        ["Late atmospheric pass",215]] as const).map(([name,moment])=>
+        <button key={moment} type="button" style={style.button}
+          aria-pressed={frame===moment} onClick={()=>setFrame(moment)}>
+          {name} · f{moment}
+        </button>)}
+    </div>
+    <div role="group" aria-label="Fuchun macro topology comparisons"
+      style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+      <button type="button" style={style.button}
+        aria-pressed={comparison==="seeds"} onClick={()=>setComparison("seeds")}>
+        Independent seed comparison
+      </button>
+      <button type="button" style={style.button}
+        aria-pressed={comparison==="near"}
+        onClick={()=>{setComparison("near");setLens("native");setLayer("complete");}}>
+        Near mountain · original vs rounded anatomy (EXPERIMENT)
+      </button>
+      <button type="button" style={style.button}
+        aria-pressed={comparison==="pine"}
+        onClick={()=>{
+          setComparison("pine");setLens("pine");setLayer("pine");
+        }}>
+        Old-pine wood · before vs source-loaded
+      </button>
+      <button type="button" style={style.button}
+        aria-pressed={!showTurning}
+        onClick={()=>setShowTurning(value=>!value)}>
+        Turning-cheek wash · {showTurning?"hide":"show"}
+      </button>
+      <button type="button" style={style.button}
+        aria-pressed={!showInnerStrata}
+        onClick={()=>setShowInnerStrata(current=>!current)}>
+        Bank interior cunfa · {showInnerStrata?"hide":"show"}
+      </button>
+      <span style={{fontSize:12,color:"#675745"}}>
+        Optional 22-station near-ridge candidate; ordinary film unchanged.
+      </span>
+    </div>
+    <div role="group" aria-label="Fuchun fidelity cameras"
+      style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+      {(["native","rock","edge","pine","near","fall"] as const).map(key=>
+        <button key={key} type="button" style={style.button}
+          aria-pressed={lens===key} onClick={()=>setLens(key)}>
+          {lenses[key].title}
+        </button>)}
+    </div>
+    <div role="group" aria-label="Fuchun original-paint isolation"
+      style={{display:"flex",flexWrap:"wrap",gap:8,alignItems:"center"}}>
+      {isolationModes.map(([key,title])=>
+        <button key={key} type="button" style={style.button}
+          aria-pressed={layer===key} onClick={()=>setLayer(key)}>{title}</button>)}
+    </div>
+    <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+      {([
+        ["Fidelity frame",frame,setFrame,0,SHANSHUI_FRAMES-1,1],
+        ["Fidelity seed A",firstSeed,setFirstSeed,1,199,1],
+        ["Fidelity seed B",secondSeed,setSecondSeed,1,199,1],
+        ["Fidelity detail",detail,setDetail,0,1,.05],
+        ["Fidelity mist",mist,setMist,0,1,.05],
+        ["Fidelity ink",ink,setInk,0,1,.05],
+      ] as const).map(([name,value,change,min,max,step])=>
+        <label key={name} style={{...style.field,width:155}}>
+          {name} · {value}
+          <input aria-label={name} type="range" min={min} max={max}
+            step={step} value={value}
+            onChange={event=>change(Number(event.target.value))}/>
+        </label>)}
+      <button type="button" style={style.button} onClick={()=>{
+        setFrame(145);setFirstSeed(71);setSecondSeed(87);
+        setDetail(1);setMist(.35);setInk(.9);
+        setLens("native");setLayer("complete");setComparison("seeds");
+        setShowTurning(true);
+        setShowInnerStrata(true);
+      }}>Reset native source-fidelity review</button>
+    </div>
+    <style>{`
+      /* Before view hides only the 40 optional wood-pressure loads.
+         All original 20 bone arms, canopy islands, fan-edge paper
+         windows, fine needles and rooted source painting remain LIVE. */
+      [data-km-fidelity-comparison="pine"]
+      [data-km-fidelity-wood-study="before"]
+      [data-km-cliff-pine-wood-load] {visibility:hidden;}
+
+      [data-km-fidelity-inner-strata="off"]
+      [data-km-fuchun-near-inner-stratum] {visibility:hidden;}
+      [data-km-fidelity-turning="off"]
+      [data-km-fuchun-near-turning-wash] {visibility:hidden;}
+
+      [data-km-fidelity-layer="stone"] [data-km-fidelity-sample]
+        [data-km-master-stratum-field],
+      [data-km-fidelity-layer="stone"] [data-km-fidelity-sample]
+        [data-km-master-brush-field],
+      [data-km-fidelity-layer="stone"] [data-km-fidelity-sample]
+        [data-km-rock-hero-cliff],
+      [data-km-fidelity-layer="stone"] [data-km-fidelity-sample]
+        [data-km-cliff-pine-grove],
+      [data-km-fidelity-layer="hemp"] [data-km-fidelity-sample]
+        [data-km-rock-hero-cliff],
+      [data-km-fidelity-layer="hemp"] [data-km-fidelity-sample]
+        [data-km-cliff-pine-grove],
+      [data-km-fidelity-layer="pine"] [data-km-fidelity-sample]
+        [data-km-master-rock-art],
+      [data-km-fidelity-layer="pine"] [data-km-fidelity-sample]
+        [data-km-rock-hero-cliff] {visibility:hidden;}
+    `}</style>
+    <p role="status" data-testid="fuchun-fidelity-criteria"
+      style={{margin:0,maxWidth:1050,fontSize:13}}>
+      <strong>Artist rejection check:</strong> {checklist[layer]}
+    </p>
+    <div style={{display:"grid",
+      gridTemplateColumns:lens==="native"?"minmax(0,1fr)":
+        "repeat(auto-fit,minmax(min(100%,510px),1fr))",
+      gap:16,alignItems:"start"}}>
+      {([firstSeed,comparison==="seeds"?secondSeed:firstSeed] as const).map((seed,index)=>{
+        const nearStudy=comparison==="near"&&index===1;
+        const controls:ShanshuiControls={
+          ...DEFAULT_SHANSHUI,scene:"mountain-trail",
+          inkSchool:"fuchun",seed,detail,ink,mist,wind:0,
+          fuchunNearShoulderStudy:nearStudy,
+        };
+        return <section key={index} data-km-fidelity-sample={index}
+          data-km-fidelity-near-study={nearStudy?"rounded":"legacy"}
+          data-km-fidelity-wood-study={comparison==="pine"
+            ?index===0?"before":"loaded":"base"}
+          data-km-fidelity-seed={seed} data-km-fidelity-frame={frame}
+          style={{display:"grid",gap:8,minWidth:0}}>
+          <h2 style={{font:"500 19px Georgia,serif",margin:0}}>
+            {comparison==="near"
+              ?index===0?"Original untouched lower ridge":"22-station curved shoulder candidate"
+              :comparison==="pine"
+                ?index===0?"Original bough bones without new wood loads":
+                  "Source-traced wet and dry woody bough pressure"
+                :index===0?"Original run A":"Independent run B"} · seed {seed}
+            {" · frame "}{frame}
+          </h2>
+          <div data-km-fidelity-camera={lens}
+            style={{width:camera.width,maxWidth:"100%",overflowX:"auto",
+              border:"1px solid #9b8a74",background:"#f3e6cd"}}>
+            <div data-km-fidelity-viewport=""
+              style={{width:camera.width,height:camera.height,
+                overflow:"hidden",position:"relative"}}>
+              <div style={{position:"absolute",top:0,left:0,
+                width:960,height:540,transformOrigin:"top left",
+                transform}}>
+                <InkShanshuiStage frame={frame} controls={controls}/>
+              </div>
+            </div>
+          </div>
+          <p style={{margin:0,fontSize:12,color:"#675745"}}>
+            Same original 960×540 scene coordinates;{" "}
+            {lens==="native"?"unscaled production painting":
+              "browser camera crop, original editable paths"}.
+          </p>
+        </section>;
+      })}
+    </div>
+    <p style={{margin:0,maxWidth:1050,fontSize:12,color:"#675745"}}>
+      Hold artist approval until both seeds at frames 84, 145 and 215
+      show credible nested boulder silhouettes, pressure-varied connected
+      hemp with real dry-paper voids, planted pine trunks and directional
+      canopy spacing at 1× and macro scale. Green tests alone do not
+      establish likeness, historical source fidelity or a finished film.
+    </p>
+  </main>;
+}
+
+/** Temporal ArtCraft QA. Four independent real renderer samples are deliberately
+ * frozen at absolute frames: compare wet reveal, layering, settled ink and
+ * final atmosphere without screenshots, duplicates or a second animation clock. */
+function InkFilmContinuityStudio(){
+  const [school,setSchool]=useState<InkRockSchool>("fuchun");
+  const [seed,setSeed]=useState(71);
+  const [baseFrame,setBaseFrame]=useState(48);
+  const [frameStep,setFrameStep]=useState(54);
+  const [detail,setDetail]=useState(1);
+  const [ink,setInk]=useState(.9);
+  const [mist,setMist]=useState(.35);
+  const [scene,setScene]=useState<ShanshuiScene>("mountain-trail");
+  const [inspection,setInspection]=useState<"sheet"|"native">("sheet");
+  const [focusIndex,setFocusIndex]=useState(2);
+  const frames=Array.from({length:4},(_,i)=>Math.min(SHANSHUI_FRAMES-1,baseFrame+i*frameStep));
+  const controls:ShanshuiControls={...DEFAULT_SHANSHUI,scene,inkSchool:school,
+    seed,detail,ink,mist,wind:0};
+  return <main data-testid="shanshui-ink-continuity-studio"
+    style={{minHeight:"100vh",padding:24,background:"#e9e2d5",
+      color:"#352c23",font:"14px/1.5 system-ui",display:"grid",
+      gap:16,alignContent:"start"}}>
+    <header style={{maxWidth:1050}}>
+      <h1 style={{font:"400 32px Georgia,serif",margin:"0 0 10px"}}>
+        Landscape ink continuity · four distinct stage frames
+      </h1>
+      <p style={{margin:0}}>
+        Compare true production SVG frames at identical camera, paper,
+        seed and brush settings. The contact sheet samples the exact landscape
+        stage; the native 960×540 inspector renders the original complete
+        film with its articulated scholar. No static thumbnails or second clock.
+      </p>
+    </header>
+    <div style={{display:"flex",flexWrap:"wrap",gap:14,alignItems:"end"}}>
+      <label style={style.field}>Reference brush school
+        <select aria-label="Continuity ink school" value={school}
+          onChange={e=>setSchool(e.target.value as InkRockSchool)}>
+          <option value="fuchun">Huang Gongwang · long hemp</option>
+          <option value="early-spring">Guo Xi · cloud-head</option>
+          <option value="travelers">Fan Kuan · raindrop</option>
+          <option value="forest-grotto">Wang Meng · ox-hair</option>
+        </select>
+      </label>
+      <label style={style.field}>Composition
+        <select aria-label="Continuity composition" value={scene}
+          onChange={e=>setScene(e.target.value as ShanshuiScene)}>
+          <option value="mountain-trail">Mountain trail</option>
+          <option value="river-scholar">River scholar</option>
+          <option value="misty-hermit">Misty hermit</option>
+        </select>
+      </label>
+      {([
+        ["First frame",baseFrame,setBaseFrame,0,SHANSHUI_FRAMES-1-3*frameStep,1],
+        ["Frame interval",frameStep,setFrameStep,1,Math.floor((SHANSHUI_FRAMES-1-baseFrame)/3),1],
+        ["Seed",seed,setSeed,1,199,1],
+        ["Detail",detail,setDetail,0,1,.05],
+        ["Ink load",ink,setInk,0,1,.05],
+        ["Mist",mist,setMist,0,1,.05],
+      ] as const).map(([label,value,setValue,min,max,step])=>
+        <label key={label} style={{...style.field,minWidth:155}}>
+          {label} · {value}
+          <input aria-label={"Continuity "+label} type="range"
+            min={min} max={max} step={step} value={value}
+            onChange={e=>setValue(Number(e.target.value))}/>
+        </label>)}
+      <button type="button" style={style.button} onClick={()=>{
+        setSchool("fuchun");setScene("mountain-trail");setSeed(71);
+        setBaseFrame(48);setFrameStep(54);setDetail(1);setInk(.9);setMist(.35);
+        setInspection("sheet");setFocusIndex(2);
+      }}>Reset continuity study</button>
+    </div>
+    <div role="group" aria-label="Ink film inspection modes"
+      style={{display:"flex",flexWrap:"wrap",gap:10,alignItems:"end"}}>
+      <button type="button" style={style.button}
+        aria-pressed={inspection==="sheet"} onClick={()=>setInspection("sheet")}>
+        Four-frame landscape contact sheet
+      </button>
+      <button type="button" style={style.button}
+        aria-pressed={inspection==="native"} onClick={()=>setInspection("native")}>
+        Native 1× complete film · articulated scholar
+      </button>
+      {inspection==="native"&&
+        <label style={style.field}>Inspect original film moment
+          <select aria-label="Continuity inspect moment" value={focusIndex}
+            onChange={event=>setFocusIndex(Number(event.target.value))}>
+            {frames.map((frame,index)=>
+              <option key={index} value={index}>
+                {"Moment "+(index+1)+" · frame "+frame}
+              </option>)}
+          </select>
+        </label>}
+    </div>
+    {inspection==="native"?
+      <section data-km-ink-native-frame={frames[focusIndex]}
+        style={{display:"grid",gap:8,maxWidth:"100%"}}>
+        <strong>Original full film · moment {focusIndex+1} ·
+          absolute frame {frames[focusIndex]}</strong>
+        <div data-testid="shanshui-ink-native-viewport"
+          style={{width:960,maxWidth:"100%",overflowX:"auto",
+            border:"1px solid #9b8a74",background:"#f3e6cd"}}>
+          <div style={{width:960,height:540}}>
+            <InkShanshuiFilm frame={frames[focusIndex]} controls={controls}/>
+          </div>
+        </div>
+        <p style={{margin:0,maxWidth:940,fontSize:12,color:"#675745"}}>
+          Inspect full-resolution actor anatomy, shoe contact, robe and ink
+          against the same mountains and atmosphere. The native image is
+          not upscaled or generated from the contact-sheet thumbnails.
+        </p>
+      </section>
+      :
+      <div style={{display:"grid",
+        gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,470px),1fr))",
+        gap:16,maxWidth:1020}}>
+        {frames.map((frame,index)=><section key={index}
+          data-km-ink-continuity-frame={frame}
+          data-km-ink-continuity-school={school}
+          style={{display:"grid",gap:7}}>
+          <strong>Moment {index+1} · absolute frame {frame}</strong>
+          <div style={{position:"relative",width:468,height:264,
+            maxWidth:"100%",overflowX:"auto",overflowY:"hidden",background:"#f3e6cd",
+            border:"1px solid #b8aa96"}}>
+            <div style={{width:468,height:264,position:"relative",overflow:"hidden"}}>
+              <div style={{transform:"scale(.4875)",transformOrigin:"top left",
+                width:960,height:540}}>
+                <InkShanshuiStage frame={frame} controls={controls}/>
+              </div>
+            </div>
+          </div>
+        </section>)}
+      </div>
+    }
+    <p style={{margin:0,maxWidth:1000,fontSize:12,color:"#6f5c49"}}>
+      Four distinct native landscape samples preserve the original source
+      coordinates. The 1× mode evaluates the complete film including the
+      original scholar, one frame at a time to avoid four simultaneous rigs.
+      Reset restores the deterministic comparison. Visual approval still
+      requires human inspection of source reference and rendered film.
+    </p>
+  </main>;
+}
 const meta={title:"Video production/Film Looks/Chinese Ink/Shanshui Film Gallery",
   id:"video-ink-shanshui",component:Gallery,
   parameters:{layout:"fullscreen"}} satisfies Meta<typeof Gallery>;
@@ -696,6 +1411,21 @@ export const BrushworkDetailStudio:StoryObj<typeof BrushworkDetail>={
 export const FourMastersInkStudio:StoryObj<typeof MasterInkSourceComparison>={
   name:"Four masters · brushwork source comparisons",
   render:()=> <MasterInkSourceComparison/>,
+};
+
+export const FuchunPaperLift:StoryObj<typeof FuchunPaperLiftStudio>={
+  name:"Fuchun · wet/dry paper-lift A/B (production source)",
+  render:()=> <FuchunPaperLiftStudio/>,
+};
+
+export const FuchunFidelityReview:StoryObj<typeof FuchunSourceFidelityDesk>={
+  name:"Fuchun · 2-seed native source-fidelity review (ART HOLD)",
+  render:()=> <FuchunSourceFidelityDesk/>,
+};
+
+export const InkFilmContinuity:StoryObj<typeof InkFilmContinuityStudio>={
+  name:"Ink continuity · four production frames",
+  render:()=> <InkFilmContinuityStudio/>,
 };
 
 export const GeologicalInkStudio:StoryObj<typeof GeologicalInkStudy>={

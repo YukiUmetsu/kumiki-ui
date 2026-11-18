@@ -6,8 +6,12 @@ import {SHANSHUI_SCENES,DEFAULT_SHANSHUI} from
   "../registry/video/ink-shanshui";
 import {scrollReaderFacePortrait,READER_FACE_LANDMARKS} from
   "../src/video/ink-shanshui-reader-face";
-import {readerFaceAnatomy,READER_FACE_CRAFT_REGIONS} from
+import {readerFaceAnatomy,READER_FACE_CRAFT_REGIONS,READER_FACE_ANAT1_POINTS} from
   "../src/video/ink-shanshui-reader-anatomy";
+import {readerInkPortraitGlazes,READER_INK_GLAZE_REGIONS} from
+  "../src/video/ink-shanshui-reader-glazes";
+import {FACE_LANDMARKS,FACE_CANONICAL_MEASURES} from
+  "../registry/anatomy/anatomy-face";
 import {shanshuiFaceAssets} from "../src/video/ink-shanshui-face-plates";
 import {shanshuiOtherFaceCraft,SHANSHUI_PORTRAIT_OBSERVATIONS} from
   "../src/video/ink-shanshui-other-face-craft";
@@ -22,6 +26,57 @@ const paths=(assets:ReturnType<typeof scrollReaderFacePortrait>,key:string)=>{
   return a.shapes;
 };
 describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
+  it("builds an ANAT1-named foreshortened portrait with distinct facial ink-bone volumes",()=>{
+    const guide=READER_FACE_ANAT1_POINTS;
+    const ids=Object.keys(guide);
+    expect(ids.length).toBeGreaterThanOrEqual(25);
+    for(const [id,p] of Object.entries(guide)){
+      expect(id in FACE_LANDMARKS).toBe(true);
+      expect(p).toHaveLength(2);
+      expect(p.every(Number.isFinite)).toBe(true);
+      expect(p[0]).toBeGreaterThan(105);
+      expect(p[0]).toBeLessThan(168);
+      expect(p[1]).toBeGreaterThan(90);
+      expect(p[1]).toBeLessThan(147);
+    }
+    // ANAT1's 468-vertex canonical mask is the *anatomical vocabulary*
+    // and construction reference, not a mirrored mask pasted over the
+    // observed historical three-quarter face.
+    expect(FACE_CANONICAL_MEASURES.exEn).toBeGreaterThan(0);
+    expect(FACE_CANONICAL_MEASURES.nSn).toBeGreaterThan(0);
+    const span=(a:readonly number[],b:readonly number[])=>
+      Math.hypot(a[0]-b[0],a[1]-b[1]);
+    const near=span(guide["exocanthion.R"],guide["endocanthion.R"]);
+    const far=span(guide["exocanthion.L"],guide["endocanthion.L"]);
+    expect(far).toBeLessThan(near);
+    expect(far/near).toBeGreaterThan(.7);
+    expect(guide["pronasale"][1]).toBeGreaterThan(guide["sellion"][1]);
+    expect(guide["subnasale"][1]).toBeGreaterThan(guide["pronasale"][1]);
+    expect(guide["menton"][1]).toBeGreaterThan(guide["stomion"][1]+12);
+    expect(guide["alare.L"][0]).toBeGreaterThan(guide["alare.R"][0]);
+    expect(guide["labiale-superius"][1]).toBeLessThan(
+      guide["labiale-inferius"][1]);
+    const high=readerFaceAnatomy(1);
+    const low=readerFaceAnatomy(.1);
+    const wash=high.planes.filter(shape=>shape.type==="path"&&
+      shape.fill==="$skinshade"&&shape.stroke==="none"&&
+      (shape.opacity??0)>.11);
+    expect(wash.length).toBeGreaterThanOrEqual(8);
+    expect(high.planes.length).toBeGreaterThan(low.planes.length);
+    for(const shape of wash){
+      if(shape.type!=="path")throw Error("A wash must be geometry");
+      expect(shape.d.trim().endsWith("Z")).toBe(true);
+      expect(shape.d).not.toMatch(/NaN|Infinity|undefined/);
+      expect(shape.opacity).toBeLessThan(.4);
+    }
+    const portrait=scrollReaderFacePortrait(1);
+    expect(paths(portrait,"face").length)
+      .toBeGreaterThan(paths(scrollReaderFacePortrait(.1),"face").length);
+    for(const part of ["eyes-open","eyes-soft","eyes-closed",
+      "mouth-rest","mouth-aa","mouth-oh","mouth-mm","mouth-smile"]){
+      expect(paths(portrait,part).length).toBeGreaterThan(1);
+    }
+  });
   it("models an asymmetric near/far eye aperture and individually connected facial planes",()=>{
     const high=readerFaceAnatomy(1),low=readerFaceAnatomy(.1);
     const expected=[
@@ -37,6 +92,11 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     expect(high.brow.length).toBeGreaterThanOrEqual(8);
     expect(high.eyesOpen.length).toBeGreaterThanOrEqual(8);
     expect(high.eyesOpen.length).toBeGreaterThan(low.eyesOpen.length);
+    // Downcast lids still need two actual paper-lit aperture planes so
+    // attached animated iris geometry never becomes an isolated dot.
+    expect(high.eyesSoft.filter(shape=>shape.fill==="$paper"&&
+      shape.stroke==="none")).toHaveLength(2);
+    expect(high.eyesSoft.length).toBeGreaterThan(high.eyesClosed.length+4);
     expect(high.eyesSoft.length).toBeGreaterThan(4);
     expect(high.eyesClosed.length).toBeGreaterThanOrEqual(3);
     expect(high.nearPupil.length).toBeGreaterThanOrEqual(3);
@@ -70,8 +130,27 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     // A thoughtful downward-looking reader has a nearly level, closed
     // mouth at rest; the expressive "smile" cel remains distinct.
     expect(restMouth.some(s=>s.type==="path"&&
-      s.d.includes("M135.2 125.5 Q139.6 126.4"))).toBe(true);
+      s.d.includes("M135.4 125.9 C137.1 125.6"))).toBe(true);
     expect(paths(face,"mouth-smile")).not.toEqual(restMouth);
+    const anatomicalSeam=anatomy.lips.find(s=>s.type==="path"&&
+      s.d.includes("M135.2 125.9 Q138.9"));
+    if(!anatomicalSeam||anatomicalSeam.type!=="path")
+      throw new Error("Original attached muscle seam missing");
+    // ANAT1 lip volume must not double-ink the independent animated
+    // neutral mouth. Both original paths stay present and editable.
+    expect(anatomicalSeam.stroke).toBe("$skinshade");
+    expect(anatomicalSeam.strokeWidth).toBeLessThan(.5);
+    expect(anatomicalSeam.opacity).toBeLessThan(.5);
+    const dynamicRest=restMouth.find(s=>s.type==="path"&&
+      s.d.includes("M135.4 125.9 C137.1 125.6"));
+    if(!dynamicRest||dynamicRest.type!=="path")
+      throw new Error("Dynamic resting mouth contour missing");
+    expect(dynamicRest.fill).toBe("none");
+    expect(dynamicRest.strokeWidth).toBeLessThan(.8);
+    expect(dynamicRest.opacity).toBeLessThan(.8);
+    const speech=["mouth-aa","mouth-oh","mouth-mm","mouth-smile"];
+    expect(new Set(speech.map(id=>JSON.stringify(paths(face,id))).concat(
+      JSON.stringify(restMouth))).size).toBe(5);
     const root=paths(face,"face").find(s=>s.type==="path"&&s.d.includes("143.3 143.7"));
     expect(root).toMatchObject({fill:"$skin",opacity:1});
     const rig=makeShanshuiScholar(1,.88,"river-scholar");
@@ -80,6 +159,46 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     }
     expect(rig.parts.find(p=>p.id==="head")?.rest)
       .toEqual(shanshuiBodyFit("river-scholar").headRest);
+  });
+  it("binds translucent cheek and lip material to ANAT1 malar volume, not copied diagonal stripes",()=>{
+    const portrait=scrollReaderFacePortrait(1);
+    const material=readerFaceAnatomy(1);
+    const malar=material.planes.find(s=>s.type==="path"&&
+      s.d.includes("C124.9 108.7 131.7 112.7 135.2 115.7"));
+    const lowerCheek=paths(portrait,"face").find(s=>s.type==="path"&&
+      s.d.startsWith("M119.2 116 C121.4 120.5 124.8 123.5"));
+    const lip=material.lips.find(s=>s.type==="path"&&
+      s.d.includes("M135.2 125.9 Q138.9"));
+    if(!malar||malar.type!=="path"||
+       !lowerCheek||lowerCheek.type!=="path"||
+       !lip||lip.type!=="path")
+      throw Error("Facial anatomy paint course missing");
+    // All original pigment is still present; only its positive anatomy
+    // is redirected. The longer, nonlinear return prevents the old
+    // ruler-like brown stripe from reading as a nasolabial wrinkle.
+    expect((malar.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(4);
+    expect((lowerCheek.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(4);
+    expect(malar.d).toContain("C127.2 115.9 123.2 115.7 120.8 109.6 Z");
+    expect(lowerCheek.d).toContain("C122 122.6 120.4 119.6 119.2 116 Z");
+    for(const shape of [malar,lowerCheek]){
+      expect(shape.stroke).toBe("none");
+      expect(shape.fill).toBe("$skinshade");
+      expect(shape.opacity).toBeGreaterThan(0);
+      expect(shape.opacity).toBeLessThan(.14);
+      expect(shape.d.trim().endsWith("Z")).toBe(true);
+      expect(shape.d).not.toMatch(/NaN|Infinity/);
+    }
+    // Keep physical paper relief independent of the animated
+    // viseme line, without flattening the original ink micro-detail.
+    expect(lip.strokeWidth).toBeLessThan(.5);
+    expect(lip.opacity).toBeLessThan(.5);
+    const mouth=paths(portrait,"mouth-rest").find(s=>s.type==="path"&&
+      s.d.startsWith("M135.4 125.9 C137.1 125.6"));
+    expect(mouth).toMatchObject({type:"path",fill:"none"});
+    for(const id of ["mouth-rest","mouth-aa","mouth-oh","mouth-mm",
+      "mouth-smile","eyes-open","eyes-soft","eyes-closed"]){
+      expect(paths(portrait,id).length).toBeGreaterThan(1);
+    }
   });
   it("reconstructs an opaque tapered face with a separately delineated ear and nose",()=>{
     const art=scrollReaderFacePortrait(1);
@@ -121,6 +240,98 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
     }
     expect(READER_FACE_LANDMARKS.find(x=>x.name==="chin")!.y)
       .toBeGreaterThan(READER_FACE_LANDMARKS.find(x=>x.name==="nose-tip")!.y);
+  });
+  it("retains a rounded young jaw and fine three-quarter nose without thick overlapping ink hooks",()=>{
+    const source=scrollReaderFacePortrait(1);
+    const face=paths(source,"face");
+    const jaw=face.find(shape=>shape.type==="path"&&
+      shape.fill==="$skin"&&shape.d.includes("143.3 143.7"));
+    if(!jaw||jaw.type!=="path")throw new Error("Reader jaw missing");
+    // Two distinct native cubics approach and leave the actual ANAT1
+    // menton with a curved tangent; the former mask-like V point is
+    // rejected while keeping the original animation pivot unchanged.
+    expect(jaw.d).toMatch(
+      /C146 141\.4 144\.9 143\.2 143\.3 143\.7 C140\.6 144\.6 138\.7 143\.7 136\.1 142\.2/);
+    expect(jaw.d).not.toMatch(/NaN|Infinity/);
+    // Realistic Chinese face construction uses faint gongbi contours
+    // with ink-wash volume, not one uniform dark mask border.
+    expect(jaw.stroke).toBe("$skinshade");
+    expect(jaw.strokeWidth).toBeLessThan(1);
+    // Faint linework must never make a painted head transparent.
+    expect(jaw.opacity).toBe(1);
+    const earContour=paths(source,"reader-ear")[0];
+    if(earContour.type!=="path")throw Error("Near ear geometry missing");
+    expect(earContour.strokeWidth).toBeLessThan(1);
+    expect(earContour.opacity).toBe(1);
+    expect(earContour.fill).toBe("$skin");
+    const nose=readerFaceAnatomy(1).nose;
+    const featureLines=nose.filter(shape=>shape.type==="path"&&
+      shape.stroke!=="none"&&shape.stroke!=="$paper");
+    expect(featureLines.length).toBeGreaterThanOrEqual(5);
+    expect(featureLines.every(shape=>(shape.strokeWidth??0)<=.65)).toBe(true);
+    expect(featureLines.every(shape=>(shape.opacity??1)<=.65)).toBe(true);
+    expect(readerFaceAnatomy(1).nose).toEqual(nose);
+    expect(makeShanshuiScholar(1,.88,"river-scholar").parts
+      .find(x=>x.id==="head")?.rest).toEqual(
+        shanshuiBodyFit("river-scholar").headRest);
+  });
+  it("forms near and far eyelids around their original independent irises and non-spiral ear cartilage",()=>{
+    const high=readerFaceAnatomy(1);
+    const path=(region:readonly {type:string;d?:string}[],idx:number)=>{
+      const p=region[idx];
+      if(p?.type!=="path"||!p.d)throw Error("Missing anatomical path");
+      return p.d;
+    };
+    const box=(d:string)=>{
+      const nums=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(nums.length%2).toBe(0);
+      expect(nums.length).toBeGreaterThanOrEqual(8);
+      const xs=nums.filter((_,k)=>k%2===0);
+      const ys=nums.filter((_,k)=>k%2===1);
+      return {x0:Math.min(...xs),x1:Math.max(...xs),
+        y0:Math.min(...ys),y1:Math.max(...ys)};
+    };
+    const near=box(path(high.eyesOpen,0));
+    const far=box(path(high.eyesOpen,1));
+    const nearIris=box(path(high.nearPupil,0));
+    const farIris=box(path(high.farPupil,0));
+    expect(near.x1-near.x0).toBeGreaterThan(far.x1-far.x0);
+    expect(far.y0).toBeGreaterThan(near.y0);
+    for(const [eye,iris] of [[near,nearIris],[far,farIris]]){
+      expect(iris.x0).toBeGreaterThan(eye.x0);
+      expect(iris.x1).toBeLessThan(eye.x1);
+      expect(iris.y0).toBeGreaterThan(eye.y0);
+      expect(iris.y1).toBeLessThan(eye.y1);
+    }
+    const nearUpper=path(high.eyesOpen,2);
+    const farUpper=path(high.eyesOpen,3);
+    expect(nearUpper).not.toBe(farUpper);
+    expect(high.eyesOpen).not.toEqual(high.eyesSoft);
+    expect(high.eyesSoft).not.toEqual(high.eyesClosed);
+    const ear=paths(scrollReaderFacePortrait(1),"reader-ear");
+    const outer=ear[0];
+    if(outer.type!=="path")throw Error("Front ear should be a path");
+    expect(outer.fill).toBe("$skin");
+    expect(outer.d).toContain("119.3 113.6");
+    expect(outer.d).toContain("115.7 118.5");
+    expect(outer.strokeWidth).toBeLessThan(1);
+    expect(ear.length).toBeGreaterThanOrEqual(10);
+    expect(ear.every(shape=>shape.type==="path")).toBe(true);
+    // The concha is a recessed pigment volume, while the antihelix
+    // branches into three anatomical stems instead of a spiral or a
+    // dropped simplified outline.
+    expect(ear[2].type==="path"&&
+      (ear[2].d.match(/M/g)??[]).length).toBe(3);
+    // The superior and inferior crus must share a stem hinge. Their
+    // actual source control points are connected in 3/4 projection.
+    expect(ear[2].type==="path"&&ear[2].d)
+      .toContain("M114.45 106.7");
+    // Anatomy now has separate meatus, concha and low-opacity scapha.
+    expect(ear.length).toBeGreaterThanOrEqual(13);
+    expect(ear.some(shape=>shape.type==="path"&&
+      shape.fill==="$shadow"&&shape.stroke==="none"&&
+      (shape.opacity??0)>.15)).toBe(true);
+    expect(scrollReaderFacePortrait(1)).toEqual(scrollReaderFacePortrait(1));
   });
   it("preserves an asymmetric, foreshortened near/far eye and five speaking visemes",()=>{
     const plate=scrollReaderFacePortrait(.8);
@@ -251,4 +462,398 @@ describe("one-part-at-a-time: scroll reader three-quarter FACE only",()=>{
       expect(markup).toEqual(renderToStaticMarkup(createElement(InkShanshuiFilm,props)));
     }
   });
+  it("follows the original canthi, zygions and pronasale with layered six-region Ming glazes",()=>{
+    const A=READER_FACE_ANAT1_POINTS;
+    const guide={
+      nearCanthus:A["endocanthion.R"],
+      farCanthus:A["endocanthion.L"],
+      sellion:A.sellion,
+      noseTip:A.pronasale,
+      nearCheek:A["zygion.R"],
+      farCheek:A["zygion.L"],
+      chin:A.menton,
+    };
+    const low=readerInkPortraitGlazes(guide,0);
+    const medium=readerInkPortraitGlazes(guide,.6);
+    const high=readerInkPortraitGlazes(guide,1);
+    expect(Object.keys(high)).toEqual(READER_INK_GLAZE_REGIONS);
+    expect(READER_INK_GLAZE_REGIONS).toHaveLength(6);
+    const count=(shapes:typeof high)=>Object.values(shapes)
+      .reduce((total,layer)=>total+layer.length,0);
+    expect(count(low)).toBeGreaterThanOrEqual(8);
+    expect(count(medium)).toBeGreaterThan(count(low));
+    expect(count(high)).toBeGreaterThan(count(medium));
+    expect(high["orbital-near"].length)
+      .toBeGreaterThan(high["orbital-far"].length);
+    for(const [region,shapes] of Object.entries(high)){
+      expect(shapes.length,region).toBeGreaterThanOrEqual(2);
+      for(const shape of shapes){
+        expect(shape.type).toBe("path");
+        expect(shape.d).toMatch(/^M/);
+        expect(shape.d).not.toMatch(/NaN|Infinity|undefined/);
+        expect(shape.fill).toMatch(/^\$(?:skinshade|paper)$|^none$/);
+        expect(shape.opacity).toBeGreaterThan(0);
+        expect(shape.opacity).toBeLessThan(.3);
+        expect(shape.strokeWidth).toBeLessThanOrEqual(.3);
+      }
+    }
+    expect(readerInkPortraitGlazes(guide,1)).toEqual(high);
+    expect(()=>readerInkPortraitGlazes(guide,Infinity)).toThrow(RangeError);
+    expect(()=>readerInkPortraitGlazes(guide,-.01)).toThrow(RangeError);
+    expect(()=>readerInkPortraitGlazes({...guide,
+      sellion:[NaN,100]},1)).toThrow(RangeError);
+  });
+  it("adds an asymmetrical source-anchored forehead-turn glaze under the cap without flattening the light",()=>{
+    const A=READER_FACE_ANAT1_POINTS;
+    const ink=readerInkPortraitGlazes({
+      nearCanthus:A["endocanthion.R"],
+      farCanthus:A["endocanthion.L"],sellion:A.sellion,
+      noseTip:A.pronasale,nearCheek:A["zygion.R"],
+      farCheek:A["zygion.L"],chin:A.menton,
+    },1);
+    const near=ink["orbital-near"];
+    const far=ink["orbital-far"];
+    // The first two original near-orbital shades and one original far
+    // shade remain untouched. Additional planes occupy the frontal
+    // head *above* either eye, not another diagonal cheek stripe.
+    expect(near.length).toBeGreaterThanOrEqual(8);
+    expect(far.length).toBeGreaterThanOrEqual(4);
+    const forehead=near[2],paper=near[3],receding=far[1];
+    // Optical accumulation must deposit more than an invisible single
+    // 4%-alpha overlay in native face crops. Each separate wet plane
+    // curves around the frontal eminence and preserves paper light.
+    const stronger=near.slice(4,7),farStrong=far[2];
+    expect(stronger).toHaveLength(3);
+    for(const pass of [stronger[0],stronger[1],farStrong]){
+      expect(pass).toMatchObject({type:"path",fill:"$skinshade",
+        stroke:"none",strokeWidth:0});
+      expect(pass.opacity).toBeGreaterThan(.06);
+      expect(pass.opacity).toBeLessThan(.09);
+      expect((pass.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+    }
+    expect(stronger[2]).toMatchObject({type:"path",fill:"$paper",
+      stroke:"none",opacity:.073});
+    expect(stronger[0].d).toContain("M123.5 85.6");
+    expect(farStrong.d).toContain("M150.3 86.7");
+    for(const layer of [forehead,paper,receding]){
+      expect(layer.type).toBe("path");
+      expect(layer.d).toContain(" C");
+      expect((layer.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(2);
+      expect(layer.d).not.toMatch(/NaN|Infinity|undefined/);
+      expect(layer.opacity).toBeGreaterThan(0);
+      expect(layer.opacity).toBeLessThan(.055);
+    }
+    expect(forehead).toMatchObject({fill:"$skinshade",stroke:"none"});
+    expect(paper).toMatchObject({fill:"$paper",stroke:"none"});
+    expect(receding).toMatchObject({fill:"$skinshade",stroke:"none"});
+    expect(forehead.d).toContain("M119.5 88.5");
+    expect(receding.d).toContain("M150.8 88.4");
+    expect(near.map(x=>x.type==="path"?x.d:""))
+      .not.toEqual(far.map(x=>x.type==="path"?x.d:""));
+    const lower=readerInkPortraitGlazes({
+      nearCanthus:A["endocanthion.R"],
+      farCanthus:A["endocanthion.L"],sellion:A.sellion,
+      noseTip:A.pronasale,nearCheek:A["zygion.R"],
+      farCheek:A["zygion.L"],chin:A.menton,
+    },.1);
+    expect(lower["orbital-near"].length).toBeGreaterThanOrEqual(4);
+    expect(lower["orbital-far"].length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("builds convex ANAT1 malar pigment volumes rather than parallel cheek bands",()=>{
+    const A=READER_FACE_ANAT1_POINTS;
+    const glazes=readerInkPortraitGlazes({
+      nearCanthus:A["endocanthion.R"],
+      farCanthus:A["endocanthion.L"],sellion:A.sellion,
+      noseTip:A.pronasale,nearCheek:A["zygion.R"],
+      farCheek:A["zygion.L"],chin:A.menton,
+    },1);
+    const coords=(d:string)=>{
+      // SVG M/C/Q geometry is source-space x,y control-point pairs.
+      const numbers=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      expect(numbers.length%2).toBe(0);
+      const xs=numbers.filter((_,i)=>i%2===0);
+      const ys=numbers.filter((_,i)=>i%2===1);
+      return {x0:Math.min(...xs),x1:Math.max(...xs),
+        y0:Math.min(...ys),y1:Math.max(...ys)};
+    };
+    const broad=glazes["malar-near"][0];
+    expect(broad.type).toBe("path");
+    expect((broad.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+    const b=coords(broad.d);
+    const width=b.x1-b.x0,height=b.y1-b.y0;
+    expect(width).toBeGreaterThan(14);
+    expect(height).toBeGreaterThan(width*.55);
+    expect(b.x0).toBeGreaterThan(119);
+    expect(b.x1).toBeLessThan(141);
+    expect(b.y0).toBeGreaterThan(105);
+    expect(b.y1).toBeLessThan(125);
+    expect(glazes["malar-near"].length).toBeGreaterThanOrEqual(5);
+    expect(glazes["malar-near"].slice(0,3)
+      .every(x=>x.fill==="$skinshade"&&(x.opacity??1)<.1)).toBe(true);
+    const all=readerFaceAnatomy(1);
+    const base=all.planes.find(x=>x.d.startsWith("M119.1 107.9"));
+    expect(base?.d).toContain("C134.6 121.5 130.5 120 127.1 117.9");
+    expect(base?.opacity).toBeLessThan(.08);
+    const paper=all.planes.find(x=>x.d.startsWith("M126.6 112.8"));
+    expect(paper).toMatchObject({fill:"$paper",opacity:.13});
+    // The primary dorsal shape is pressure-sampled into a many-point
+    // closed path, so it must not be matched to the unsampled seed pair.
+    const dorsal=all.nose[0];
+    expect(dorsal).toMatchObject({type:"path",opacity:.34});
+    expect((dorsal?.d.match(/L/g)??[]).length).toBeGreaterThan(20);
+    expect(all.nose.some(x=>x.d.startsWith("M150.9 114.2"))).toBe(true);
+    expect(all.nose.length).toBeGreaterThanOrEqual(8);
+  });
+  it("builds compact convex secondary malar ink masses instead of multi-pass cheek stripes",()=>{
+    const A=READER_FACE_ANAT1_POINTS;
+    const glazes=readerInkPortraitGlazes({
+      nearCanthus:A["endocanthion.R"],farCanthus:A["endocanthion.L"],
+      sellion:A.sellion,noseTip:A.pronasale,
+      nearCheek:A["zygion.R"],farCheek:A["zygion.L"],chin:A.menton,
+    },1);
+    // Measuring control-point bounds is a conservative topology guard,
+    // not proof of full-scale pictorial quality. The previous narrow
+    // near-cheek passes formed several parallel diagonal wash stripes.
+    const extent=(d:string)=>{
+      const values=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      if(values.length%2)throw Error("Malformed original source ink path");
+      const xs=values.filter((_,i)=>i%2===0);
+      const ys=values.filter((_,i)=>i%2===1);
+      return {w:Math.max(...xs)-Math.min(...xs),
+        h:Math.max(...ys)-Math.min(...ys)};
+    };
+    const near=glazes["malar-near"];
+    const secondary=near.slice(1,4);
+    expect(secondary).toHaveLength(3);
+    for(const shape of secondary){
+      expect(shape.type).toBe("path");
+      const e=extent(shape.d);
+      expect((shape.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+      expect(e.w).toBeGreaterThan(5);
+      expect(e.h).toBeGreaterThan(e.w*.66);
+      expect(shape.opacity).toBeLessThan(.08);
+    }
+    const far=glazes["malar-far"].slice(0,2);
+    for(const shape of far){
+      const e=extent(shape.d);
+      expect((shape.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+      expect(e.h).toBeGreaterThan(e.w*.8);
+    }
+    const nose=glazes["nose-bridge"];
+    expect((nose[0].d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+    expect((nose[1].d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(3);
+    const anatomy=readerFaceAnatomy(1);
+    expect(anatomy.nose.some(shape=>shape.type==="path"&&
+      shape.d.startsWith("M150.9 114.2 C152.2 113.9"))).toBe(true);
+    expect(anatomy.nose.some(shape=>shape.type==="path"&&
+      shape.d.includes("C154.2 117.9 152.5 118.4 151.3 117.6"))).toBe(true);
+    for(const detail of [.1,.6,1])
+      expect(readerInkPortraitGlazes({
+        nearCanthus:A["endocanthion.R"],farCanthus:A["endocanthion.L"],
+        sellion:A.sellion,noseTip:A.pronasale,
+        nearCheek:A["zygion.R"],farCheek:A["zygion.L"],chin:A.menton,
+      },detail)).toEqual(readerInkPortraitGlazes({
+        nearCanthus:A["endocanthion.R"],farCanthus:A["endocanthion.L"],
+        sellion:A.sellion,noseTip:A.pronasale,
+        nearCheek:A["zygion.R"],farCheek:A["zygion.L"],chin:A.menton,
+      },detail));
+  });
+
+  it("models independent AA and OH 3/4 lip anatomy as multi-pass thin ink, not an opaque oval",()=>{
+    const high=scrollReaderFacePortrait(1),low=scrollReaderFacePortrait(.1);
+    const aperture=(name:"mouth-aa"|"mouth-oh")=>{
+      const marks=paths(high,name);
+      const ink=marks.find(s=>s.type==="path"&&s.fill==="$shadow"&&
+        s.stroke==="none"&&s.opacity!==undefined&&
+        s.opacity>=.16&&s.opacity<=.19);
+      if(!ink||ink.type!=="path")throw Error("Native speech opening missing");
+      return {marks,ink};
+    };
+    const aa=aperture("mouth-aa"),oh=aperture("mouth-oh");
+    // Both open mouth cels have deliberate near/far rolling contours.
+    // Every original open viseme gains five separate wet/dry marks
+    // without deleting original ANAT1 mouth muscle / lip planes.
+    for(const [name,item] of [["mouth-aa",aa],["mouth-oh",oh]] as const){
+      expect(item.marks.length).toBeGreaterThanOrEqual(
+        paths(low,name).length);
+      expect(item.ink.opacity).toBeLessThan(.2);
+      // An optically layered mouth is not a single flat sticker:
+      // reserve the light external silhouette for underpainting, then
+      // paint at least two smaller recessed cavity masses on top.
+      const cavity=item.marks.filter(s=>s.type==="path"&&
+        s.fill==="$shadow"&&s.stroke==="none"&&s.opacity!==undefined&&
+        s.opacity>=.25&&s.opacity<.4);
+      const deeper=item.marks.filter(s=>s.type==="path"&&
+        s.fill==="$deep"&&s.stroke==="none"&&s.opacity!==undefined&&
+        s.opacity>=.17&&s.opacity<.3);
+      // Original ANAT1 anatomy can already contain a separate wet
+      // $shadow/$deep paint pass. Require at least one of each new
+      // pigment level without incorrectly banning those preserved
+      // micro-layers (the prior exact-count test falsely rejected two).
+      expect(cavity.length).toBeGreaterThanOrEqual(1);
+      expect(deeper.length).toBeGreaterThanOrEqual(1);
+      // "$deep" is warm ochre, not the darkest pigment. The actual
+      // wet-mouth recess must also contain a much smaller $ink core,
+      // with its opacity weaker than the original opaque dark stamp.
+      const cores=item.marks.filter(s=>s.type==="path"&&
+        s.fill==="$ink"&&s.stroke==="none"&&
+        s.opacity!==undefined&&s.opacity>=.2&&s.opacity<.3);
+      expect(cores).toHaveLength(1);
+      const pressureFibres=item.marks.filter(s=>s.type==="path"&&
+        s.stroke==="none"&&s.d.includes(" L")&&
+        (s.fill==="$shadow"||s.fill==="$skinshade"));
+      expect(pressureFibres.length).toBeGreaterThanOrEqual(1);
+      expect((item.ink.d.match(/C/g)??[]).length)
+        .toBeGreaterThanOrEqual(3);
+      expect(item.marks.filter(s=>s.type==="path"&&
+        s.fill!=="none").length).toBeGreaterThanOrEqual(4);
+      expect(item.marks.filter(s=>s.type==="path"&&
+        s.stroke==="$skinshade").length).toBeGreaterThanOrEqual(3);
+      expect(item.marks.filter(s=>s.type==="path"&&
+        s.fill==="$paper").length).toBeGreaterThanOrEqual(1);
+    }
+    expect(aa.ink.d).not.toEqual(oh.ink.d);
+    const envelope=(d:string)=>{
+      const values=(d.match(/-?\d+(?:\.\d+)?/g)??[]).map(Number);
+      const xs=values.filter((_,i)=>i%2===0),
+        ys=values.filter((_,i)=>i%2===1);
+      return {x0:Math.min(...xs),x1:Math.max(...xs),
+        y0:Math.min(...ys),y1:Math.max(...ys)};
+    };
+    const big=envelope(aa.ink.d),small=envelope(oh.ink.d);
+    expect(big.x1-big.x0).toBeGreaterThan((small.x1-small.x0)*1.8);
+    expect(big.y1-big.y0).toBeGreaterThan(small.y1-small.y0);
+    expect(small.x0).toBeGreaterThan(139);
+    expect(small.x1).toBeLessThan(147);
+    expect(small.y0).toBeGreaterThan(124);
+    expect(small.y1).toBeLessThan(134);
+    // The previous roughly circular /o/ opening became a small eye at
+    // native scale. The actual three-quarter mouth must be vertically
+    // elongated, with a narrower far-side contact than its /a/ partner.
+    expect((small.y1-small.y0)/(small.x1-small.x0))
+      .toBeGreaterThan(1.55);
+    // Drawing cannot regress into a flat solid dark sticker at either
+    // production detail setting.
+    for(const detail of [.1,.45,1]){
+      const viseme=scrollReaderFacePortrait(detail);
+      for(const name of ["mouth-aa","mouth-oh"]){
+        const marks=paths(viseme,name);
+        expect(marks.some(s=>s.type==="path"&&
+          s.fill==="$paper"&&(s.opacity??0)<.4)).toBe(true);
+        expect(marks.some(s=>s.type==="path"&&
+          s.fill==="$deep"&&(s.opacity??0)<.5)).toBe(true);
+      }
+    }
+    expect(scrollReaderFacePortrait(1)).toEqual(high);
+  });
+
+  it("moves the original resting lower-lip wash off the fixed face and attaches a physical mouth light to all speech cels",()=>{
+    const portrait=scrollReaderFacePortrait(1);
+    const original="M139.9 129.6 Q143.6 131.7 147.2 128.6";
+    const fixed=paths(portrait,"face");
+    expect(fixed.some(s=>s.type==="path"&&s.d===original)).toBe(false);
+    const ids=["rest","aa","oh","mm","smile"] as const;
+    for(const id of ids){
+      const shapes=paths(portrait,"mouth-"+id);
+      const underline=shapes.find(s=>s.type==="path"&&
+        s.stroke==="$skinshade"&&s.strokeWidth===.46&&s.opacity===.35);
+      expect(underline).toBeDefined();
+      if(!underline||underline.type!=="path")
+        throw Error("Original lip reflection must remain vector ink");
+      expect(underline.fill).toBe("none");
+      expect(underline.d).toBe(id==="aa"?
+        "M138.5 132 Q142.8 134.1 146.3 130.8":id==="oh"?
+        "M141.83 131.07 Q143.04 132.46 144.31 130.87":original);
+    }
+    // OH no longer has a centered dark pupil-like disc; the deepest
+    // pigment lives in a tiny upper-lip crescent under the upper rim.
+    const oh=paths(portrait,"mouth-oh");
+    const core=oh.find(s=>s.type==="path"&&s.fill==="$ink"&&
+      s.stroke==="none"&&s.opacity===.22);
+    if(!core||core.type!=="path")throw Error("OH shadow shelf missing");
+    expect(core.d).toContain("M142.66 127.55");
+    expect((core.d.match(/C/g)??[]).length).toBeGreaterThanOrEqual(2);
+    const xy=[...core.d.matchAll(/(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)]
+      .map(m=>[Number(m[1]),Number(m[2])] as const);
+    const xs=xy.map(v=>v[0]),ys=xy.map(v=>v[1]);
+    const width=Math.max(...xs)-Math.min(...xs);
+    const height=Math.max(...ys)-Math.min(...ys);
+    expect(width).toBeLessThan(.9);
+    expect(height).toBeGreaterThan(width*2);
+    expect(core.d).not.toContain("C143.57 128.43");
+    expect(paths(portrait,"mouth-aa")).not.toEqual(oh);
+  });
+
+  it("routes preserved resting lip anatomy to attached AA/OH vermilion, not a third-eye horizontal mouth seam",()=>{
+    const anatomy=readerFaceAnatomy(1);
+    const old=anatomy.lips.slice(2,6).filter(s=>s.type==="path");
+    expect(old).toHaveLength(4);
+    const originalNeutralSeam=
+      "M135.2 125.9 Q138.9 125.6 142 126.7 Q145.9 127 148.7 126.6";
+    expect(old.some(s=>s.type==="path"&&
+      s.d===originalNeutralSeam)).toBe(true);
+    const rest=paths(scrollReaderFacePortrait(1),"mouth-rest");
+    expect(rest.some(s=>s.type==="path"&&
+      s.d===originalNeutralSeam)).toBe(true);
+    for(const state of ["aa","oh"] as const){
+      const active=paths(scrollReaderFacePortrait(1),"mouth-"+state);
+      // Preserve exactly the ANAT1 original four pigments/strokes and
+      // their order; change the *position of the lip contact* so the
+      // resting seam cannot cut horizontally through a speaking hole.
+      expect(active.some(s=>s.type==="path"&&
+        s.d===originalNeutralSeam)).toBe(false);
+      const warped=active.slice(0,4);
+      for(let i=0;i<4;i++){
+        const current=warped[i],original=old[i];
+        expect(current).toMatchObject({
+          type:"path",fill:original.fill,stroke:original.stroke,
+          strokeWidth:original.strokeWidth,opacity:original.opacity,
+        });
+        if(current.type!=="path"||original.type!=="path")
+          throw Error("Active anatomical lip must remain a path");
+        expect(current.d).not.toEqual(original.d);
+      }
+      // The long neutral 14px line must now lie ABOVE the speaking
+      // negative space, not bisecting its apparent opening.
+      if(warped[2].type!=="path")throw Error("Upper lip is not source path");
+      const upper=warped[2].d;
+      expect(upper).toContain(state==="oh"?"M141.8 125.92":"M136.3 124.82");
+      const originalFace=scrollReaderFacePortrait(1);
+      expect(paths(originalFace,"mouth-"+state).length)
+        .toBe(active.length);
+    }
+  });
+
+  it("keeps pre-existing reader face contour, lip cels, ear and paint while adding optically nested washes",()=>{
+    const original=scrollReaderFacePortrait(1);
+    const anatomy=readerFaceAnatomy(1);
+    const low=readerFaceAnatomy(.1);
+    const shapeCount=(name:string)=>paths(original,name).length;
+    expect(anatomy.planes.length).toBeGreaterThan(low.planes.length+4);
+    // The source-fitted paper-skin base and independent film visemes
+    // cannot be replaced with a new facial sticker for the glaze effect.
+    // Source paintings may add individual ear/cheek paths ahead of
+    // the untouched head. Find its opaque ANAT1 jaw silhouette by
+    // semantic geometry, never a brittle array index.
+    const originalHead=paths(original,"face").find(s=>
+      s.type==="path"&&s.fill==="$skin"&&s.d.includes("143.3 143.7"));
+    expect(originalHead).toMatchObject({
+      type:"path",fill:"$skin",opacity:1,
+    });
+    for(const name of ["reader-ear","brow","eyes-open","eyes-soft",
+      "eyes-closed","mouth-rest","mouth-aa","mouth-oh","mouth-mm",
+      "mouth-smile","pupil-left","pupil-right"])
+      expect(shapeCount(name)).toBeGreaterThan(0);
+    const nasalTurn=anatomy.planes.find(s=>s.d.includes(
+      "C149.1 103.8 150.4 109.1 152.2 112.5"));
+    expect(nasalTurn).toMatchObject({
+      type:"path",fill:"$skinshade",stroke:"none",opacity:.185,
+    });
+    // Prior large angular bridge wedge is not restored by the glazing.
+    expect(anatomy.planes.some(s=>s.d.includes(
+      "C149.2 103.4 153 109.3 155 112.6"))).toBe(false);
+    expect(original).toEqual(scrollReaderFacePortrait(1));
+  });
+
 });

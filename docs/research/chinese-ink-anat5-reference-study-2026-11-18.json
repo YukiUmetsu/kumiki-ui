@@ -1,0 +1,420 @@
+{
+  "project": "Kumiki UI — ANAT5 Ming/Qing source-led Chinese ink character studies",
+  "schema_version": 6,
+  "reference_mode": "style_guided",
+  "subject_type": "human",
+  "reference_policy": {
+    "min_references": 8,
+    "min_deep_studies": 3
+  },
+  "sources": [
+    {
+      "id": "met-55.37-rightmost-sitter",
+      "url": "https://www.metmuseum.org/art/collection/search/51810",
+      "image_url": "https://collectionapi.metmuseum.org/api/collection/v1/iiif/51810/161536/main-image",
+      "title": "Twenty-five bust portraits of famous scholars — rightmost anonymous sitter",
+      "creator": "Unidentified artist",
+      "rights": "Public Domain",
+      "medium": "Ming handscroll; ink and color on paper",
+      "view": "three-quarter bust; rightmost sitter in IIIF image 161536",
+      "deep_study": true,
+      "local_image": "references/met-55.37-161536.jpg",
+      "analysis": {
+        "construction": "The rightmost sitter has a tall squared dark cap, a three-quarter head turn toward image-left, a long narrow nose, lowered upper lids, moustache and a distinct tapered chin beard. Adjacent sitters are separate identities and must not be blended.",
+        "material": "Fine dark contour lines sit over restrained warm ink-and-color washes; cap and robe use larger low-contrast masses.",
+        "microdetail": "The cap edge is not a perfect rectangle; beard and moustache have separate roots and directional taper; eye openings are narrow and asymmetrical.",
+        "light": "The face is modeled with quiet value changes rather than glossy highlights or strong photographic shadow."
+      },
+      "crops": [
+        {
+          "feature": "canonical scholar head and cap",
+          "bbox": [
+            0.68,
+            0.1,
+            0.96,
+            0.72
+          ],
+          "observation": "Approximate normalized crop around the rightmost anonymous sitter; retain the tall cap, three-quarter gaze, cheek-to-jaw transition and separate moustache/goatee.",
+          "implementation_rule": "Use this sitter as the scholar identity source. Keep a distinct authored cap contour and face contour; do not average with the other two busts."
+        },
+        {
+          "feature": "moustache and chin beard",
+          "bbox": [
+            0.72,
+            0.37,
+            0.94,
+            0.76
+          ],
+          "observation": "Approximate crop around the rightmost sitter's lower face; facial hair is attached to the upper lip and chin, with cheek and chin flows kept distinct.",
+          "implementation_rule": "Construct moustache roots, cheek attachment, chin mass and tapered individual fibers as separate semantic layers."
+        }
+      ]
+    },
+    {
+      "id": "met-55.37-scroll-comparison",
+      "url": "https://www.metmuseum.org/art/collection/search/51810",
+      "image_url": "https://collectionapi.metmuseum.org/api/collection/v1/iiif/51810/197276/main-image",
+      "title": "Twenty-five bust portraits of famous scholars — comparative group crop",
+      "creator": "Unidentified artist",
+      "rights": "Public Domain",
+      "medium": "Ming handscroll; ink and color on paper",
+      "view": "three-bust comparative crop",
+      "deep_study": false,
+      "analysis": {
+        "construction": "Three distinct cap, cheek, beard and collar constructions are visible. Use as a comparison board only; no features are averaged into the canonical rightmost sitter."
+      }
+    },
+    {
+      "id": "met-2024.180-seated-writer",
+      "url": "https://www.metmuseum.org/art/collection/search/910543",
+      "image_url": "https://collectionapi.metmuseum.org/api/collection/v1/iiif/910543/2250417/main-image",
+      "title": "Woman at her dressing table — seated writer",
+      "creator": "Attributed to Leng Mei",
+      "rights": "Public Domain",
+      "medium": "Early 18th-century ink and color on silk",
+      "view": "seated figure; lowered inward gaze and writing-tool relationship",
+      "deep_study": true,
+      "local_image": "references/met-2024.180-2250417.jpg",
+      "analysis": {
+        "construction": "The seated writer is distinct from the standing attendant: head inclined toward the writing surface, smaller facial marks, pinned coiffure and a clear hand-to-writing-tool relationship.",
+        "material": "Silk support, restrained color washes, fine garment outlines and layered sleeve/collar overlaps.",
+        "microdetail": "Hair ornament placement, hairline, lowered gaze, small mouth, collar overlap and the relationship between wrist, sleeve and writing tools.",
+        "light": "Soft tonal transitions define the face and folds without hard glossy highlights."
+      },
+      "crops": [
+        {
+          "feature": "writer head, gaze and coiffure",
+          "bbox": [
+            0.18,
+            0.2,
+            0.6,
+            0.62
+          ],
+          "observation": "Approximate crop around the seated writer's head and upper torso; gaze is lowered and head inclined toward the writing surface.",
+          "implementation_rule": "Keep the writer's gaze and head pitch tied to the seated-writing pose; build a high pinned coiffure with a distinct ornament rather than a generic hair helmet."
+        },
+        {
+          "feature": "writer collar and hand relationship",
+          "bbox": [
+            0.1,
+            0.43,
+            0.66,
+            0.91
+          ],
+          "observation": "Approximate crop around the collar, sleeves and writing gesture; fabric overlaps the arm and hand rather than ending at a simple V-neck.",
+          "implementation_rule": "Use separate collar bands, sleeve openings, wrist/hand attachments and fold paths that converge at observed tension points."
+        }
+      ]
+    },
+    {
+      "id": "met-2024.180-standing-attendant",
+      "url": "https://www.metmuseum.org/art/collection/search/910543",
+      "image_url": "https://collectionapi.metmuseum.org/api/collection/v1/iiif/910543/2250417/main-image",
+      "title": "Woman at her dressing table — standing attendant",
+      "creator": "Attributed to Leng Mei",
+      "rights": "Public Domain",
+      "medium": "Early 18th-century ink and color on silk",
+      "view": "standing figure behind the seated writer",
+      "deep_study": true,
+      "local_image": "references/met-2024.180-2250417.jpg",
+      "analysis": {
+        "construction": "The attendant has a separate head inclination, smaller compositional role and distinct position behind the seated writer. Head and neck must remain attached through the turn.",
+        "material": "Fine contour work, subdued silk colors and overlapping robe/collar masses.",
+        "microdetail": "A compact high coiffure with one dominant bun/pin arrangement, downward gaze, delicate facial marks and a narrower collar silhouette.",
+        "light": "Low-contrast facial planes and garment folds; the attendant should not share the writer's face scale or hair mass."
+      },
+      "crops": [
+        {
+          "feature": "attendant head and high bun",
+          "bbox": [
+            0.48,
+            0.08,
+            0.86,
+            0.54
+          ],
+          "observation": "Approximate crop around the standing attendant's head and upper body; hair resolves as one high tied mass with ornament, not two symmetric side coils.",
+          "implementation_rule": "Use a single high bun with a directional pin and asymmetric hair fibers; preserve the observed head inclination."
+        }
+      ]
+    },
+    {
+      "id": "met-52.177.8-male-technique",
+      "url": "https://www.metmuseum.org/art/collection/search/51783",
+      "image_url": "https://collectionapi.metmuseum.org/api/collection/v1/iiif/51783/2234827/main-image",
+      "title": "Jiang Yun — Portrait of a Man",
+      "creator": "Jiang Yun",
+      "rights": "Public Domain",
+      "medium": "19th-century ink and color on paper",
+      "view": "full portrait; secondary tonal and robe-material benchmark",
+      "deep_study": false,
+      "analysis": {
+        "construction": "A separate Qing sitter with a rounded cap, fur garment and different facial-hair identity; do not transfer those silhouette features to the Ming scholar.",
+        "material": "Useful tonal benchmark for soft facial wash, layered fur mass and large robe volume.",
+        "microdetail": "Observe cheek-to-jaw wash transitions and the way fur texture is grouped into larger masses rather than isolated noise."
+      }
+    },
+    {
+      "id": "met-52.177.5-female-technique",
+      "url": "https://www.metmuseum.org/art/collection/search/51780",
+      "image_url": "https://collectionapi.metmuseum.org/api/collection/v1/iiif/51780/2234806/main-image",
+      "title": "Jiang Jun — Portrait of a Lady",
+      "creator": "Jiang Jun",
+      "rights": "Public Domain",
+      "medium": "19th-century ink and color on paper",
+      "view": "full portrait; secondary female face and costume benchmark",
+      "deep_study": false,
+      "analysis": {
+        "construction": "A separate Qing sitter; use only as a technique benchmark for delicate facial planes, hairline, ornaments and high collar.",
+        "material": "Fine ink outlines, restrained warm washes and detailed textile patterning.",
+        "microdetail": "Small eye openings, subtle lip definition, hair ornament and collar embroidery; avoid importing this sitter's identity into the 2024.180 characters."
+      }
+    },
+    {
+      "id": "met-51.39.1-formal-lady",
+      "url": "https://www.metmuseum.org/art/collection/search/48936",
+      "image_url": "https://collectionapi.metmuseum.org/api/collection/v1/iiif/48936/164539/main-image",
+      "title": "Portrait of a Lady",
+      "creator": "Unidentified artist",
+      "rights": "Public Domain",
+      "medium": "Ming ink and color on silk; available reproduction is monochrome",
+      "view": "full seated figure",
+      "deep_study": false,
+      "analysis": {
+        "construction": "Useful for head-to-robe scale, neck insertion, hand placement, sleeve volume and negative space only.",
+        "material": "Monochrome reproduction; do not infer original palette from this copy."
+      }
+    },
+    {
+      "id": "smithsonian-F1916.135-role",
+      "url": "https://asia-archive.si.edu/object/F1916.135/",
+      "image_url": "https://ids.si.edu/ids/deliveryService?id=FS-8197_07&max=1200",
+      "title": "Court ladies and attendant",
+      "creator": "School of Tang Yin; formerly attributed to Su Hanchen",
+      "rights": "CC0 1.0",
+      "medium": "16th-century ink and color on silk",
+      "view": "group hierarchy and court-hair reference",
+      "deep_study": false,
+      "analysis": {
+        "construction": "Three women establish role hierarchy through different head tilts, garment lengths and spacing.",
+        "material": "Aged, low-contrast reproduction; use for pose and contour only, not precise color measurement.",
+        "microdetail": "Hair masses and ornaments vary by role; avoid giving all figures identical head silhouettes."
+      }
+    },
+    {
+      "id": "smithsonian-F1918.9-scale",
+      "url": "https://asia-archive.si.edu/object/F1918.9/",
+      "image_url": "https://ids.si.edu/ids/deliveryService?id=FS-5807_13&max=1200",
+      "title": "Portrait of a man and his servant",
+      "creator": "Unidentified artist",
+      "rights": "CC0 1.0",
+      "medium": "17th-century ink and color on silk",
+      "view": "principal sitter and servant scale hierarchy",
+      "deep_study": false,
+      "analysis": {
+        "construction": "Use difference in principal/attendant scale and garment volume as a spatial benchmark; no sitter identity is asserted.",
+        "material": "Ink and color on silk."
+      }
+    }
+  ],
+  "feature_targets": [
+    {
+      "id": "scholar-head-silhouette",
+      "reference_ids": [
+        "met-55.37-rightmost-sitter"
+      ],
+      "critical": true,
+      "geometry_rule": "Build the rightmost anonymous sitter's tall squared cap, three-quarter head silhouette and cheek-to-jaw contour as separate authored curves; ANAT1 is only the deformable understructure.",
+      "microdetails": [
+        "cap crown curvature",
+        "cap side taper",
+        "temple-to-cheek inflection",
+        "three-quarter eye spacing",
+        "chin contour"
+      ],
+      "test_view": "front and source-matched three-quarter head crops",
+      "part_ids": [
+        "scholar-head",
+        "scholar-cap"
+      ],
+      "source_observation": "The rightmost sitter in IIIF image 161536 has a tall squared cap and three-quarter turn; the other busts in the scroll are not part of this identity.",
+      "detail_critical": true,
+      "structural_detail_critical": true,
+      "structural_region_ids": [
+        "scholar-head-contour"
+      ]
+    },
+    {
+      "id": "scholar-facial-hair",
+      "reference_ids": [
+        "met-55.37-rightmost-sitter",
+        "met-55.37-scroll-comparison"
+      ],
+      "critical": true,
+      "geometry_rule": "Separate moustache, cheek attachment, chin substrate and tapered beard fibers; preserve source flow instead of a single pointed triangle.",
+      "microdetails": [
+        "moustache roots",
+        "cheek-to-chin attachment",
+        "split beard strands",
+        "variable taper",
+        "unequal near/far density"
+      ],
+      "test_view": "three-quarter face crop at 1× and 3×",
+      "part_ids": [
+        "scholar-moustache",
+        "scholar-beard"
+      ],
+      "source_observation": "The selected sitter has a distinct dark moustache and chin beard; the scroll comparison shows other sitters have different facial-hair silhouettes.",
+      "detail_critical": true,
+      "structural_detail_critical": true,
+      "structural_region_ids": [
+        "scholar-beard-flow"
+      ]
+    },
+    {
+      "id": "writer-face-gaze",
+      "reference_ids": [
+        "met-2024.180-seated-writer",
+        "met-52.177.5-female-technique"
+      ],
+      "critical": true,
+      "geometry_rule": "Keep the seated writer's downward gaze, head pitch, face contour and neck attachment source-specific; use the Qing portrait only for subtle face/collar technique.",
+      "microdetails": [
+        "upper/lower lid asymmetry",
+        "inner/outer canthi",
+        "nose wing",
+        "small vermilion border",
+        "jaw-to-neck transition"
+      ],
+      "test_view": "seated three-quarter face crop and neutral/expression frames",
+      "part_ids": [
+        "writer-head",
+        "writer-eyes",
+        "writer-nose-mouth"
+      ],
+      "source_observation": "The writer is seated and looking inward/down toward the writing surface; her pose and identity come from 2024.180.",
+      "detail_critical": true,
+      "structural_detail_critical": true,
+      "structural_region_ids": [
+        "writer-face-contour"
+      ]
+    },
+    {
+      "id": "writer-coiffure-and-collar",
+      "reference_ids": [
+        "met-2024.180-seated-writer",
+        "met-52.177.5-female-technique"
+      ],
+      "critical": true,
+      "geometry_rule": "Construct layered pinned hair and floral ornament over a visible hairline; collar bands overlap the neck and robe rather than forming a generic V.",
+      "microdetails": [
+        "hairline",
+        "bun contour",
+        "ornament stem",
+        "inner/outer collar edges",
+        "embroidery placement"
+      ],
+      "test_view": "head-and-collar 3× crop",
+      "part_ids": [
+        "writer-hair",
+        "writer-ornament",
+        "writer-collar"
+      ],
+      "source_observation": "The seated writer has a pinned coiffure and ornament; the secondary lady portrait is a detail benchmark, not the writer's identity.",
+      "detail_critical": true,
+      "structural_detail_critical": true,
+      "structural_region_ids": [
+        "writer-hair-flow",
+        "writer-collar-contour"
+      ]
+    },
+    {
+      "id": "attendant-head-and-coiffure",
+      "reference_ids": [
+        "met-2024.180-standing-attendant",
+        "smithsonian-F1916.135-role"
+      ],
+      "critical": true,
+      "geometry_rule": "Use a separate standing-attendant head tilt and a single high bun/pin mass; preserve smaller compositional scale and head-to-neck attachment.",
+      "microdetails": [
+        "single bun silhouette",
+        "pin insertion",
+        "hairline",
+        "downward gaze",
+        "neck insertion"
+      ],
+      "test_view": "standing three-quarter head crop and full-figure scale view",
+      "part_ids": [
+        "attendant-head",
+        "attendant-hair",
+        "attendant-pin"
+      ],
+      "source_observation": "The standing attendant is a distinct figure behind the writer; the group painting is a role-hierarchy benchmark only.",
+      "detail_critical": true,
+      "structural_detail_critical": true,
+      "structural_region_ids": [
+        "attendant-hair-flow"
+      ]
+    },
+    {
+      "id": "costume-and-ink-material",
+      "reference_ids": [
+        "met-2024.180-seated-writer",
+        "met-2024.180-standing-attendant",
+        "met-52.177.8-male-technique",
+        "met-52.177.5-female-technique"
+      ],
+      "critical": true,
+      "geometry_rule": "Use overlapping collar, sleeve and robe masses with source-directed folds; preserve subtle wash edges and ink-line taper.",
+      "microdetails": [
+        "collar thickness",
+        "sleeve opening",
+        "fold convergence",
+        "wash edge",
+        "paper/silk grain"
+      ],
+      "test_view": "full upper-body and 3× collar/fold crops",
+      "part_ids": [
+        "scholar-robe",
+        "writer-collar",
+        "writer-robe",
+        "attendant-collar",
+        "attendant-robe"
+      ],
+      "source_observation": "The primary Ming/Qing scene defines each figure's costume; later portraits are only technique/material benchmarks.",
+      "detail_critical": true,
+      "structural_detail_critical": true,
+      "structural_region_ids": [
+        "costume-fold-flow"
+      ]
+    },
+    {
+      "id": "role-scale-and-pose",
+      "reference_ids": [
+        "met-2024.180-seated-writer",
+        "met-2024.180-standing-attendant",
+        "smithsonian-F1916.135-role",
+        "smithsonian-F1918.9-scale"
+      ],
+      "critical": true,
+      "geometry_rule": "Maintain the seated writer as the primary figure and the attendant as a smaller, spatially separate secondary figure; keep all head/neck/body connections continuous.",
+      "microdetails": [
+        "head-to-body ratio",
+        "head inclination",
+        "negative space",
+        "hand-to-object relation",
+        "robe silhouette"
+      ],
+      "test_view": "full two-character composition and pose sequence",
+      "part_ids": [
+        "writer-root",
+        "attendant-root"
+      ],
+      "source_observation": "The Met composition separates seated writer and standing attendant by pose, placement and scale; Smithsonian works are secondary role-hierarchy comparisons.",
+      "detail_critical": true,
+      "structural_detail_critical": true,
+      "structural_region_ids": [
+        "role-scale-overlap"
+      ]
+    }
+  ]
+}
