@@ -298,6 +298,40 @@ The Rhine spur gained lower buttresses and fallen blocks at its foot, so its fac
 has more faces. A track's grass middle once read as "two lines" in a review. Pixel checks showed it renders correctly,
 so its middle strip was only narrowed. The full set takes 56 s at 256 px, against 46 s before (hedgerows and fields).
 
+## Street life and carving (2026-11-18)
+
+The owner: "work on what's still weak." Three items were left from the last review.
+
+- **Tithe barn framing.** From a high, distant camera the track read as two thin lines and the foreground was empty
+  lawn. The plate is now seen low from the track itself, through an open field gate between fence runs, with the
+  haycocks and cart nearer the barn.
+- **Town plates on bare paving.**
+  - The Haussmann block stood with its front on the kerb line. It now stands behind its pavement, with plane trees in
+    iron grilles, a café terrace under the awning, an advertising column, a bench, a handcart, lamps and neighbouring
+    blocks.
+  - The Georgian crescent read as seven separate houses with hipped mansards. Georgian terraces read as one palace
+    front (observation, common knowledge of Bath and London terraces), so each house now carries a balustraded parapet
+    over its cornice, with chimney stacks on the party walls. The crescent has area railings and lamps, faces a railed
+    lawn with trees at its sides, and is seen at an angle so its curve shows.
+  - New street props: `railings`, `streetTree`, `cafeTerrace`, `advertColumn`, `handcart`, `streetBench`.
+- **Carving.**
+  - Crocket capitals now have a stalk that turns out into a curled leaf of three lobes, each with a midrib.
+  - The reredos saints were robed blobs. They are now Gothic standing figures, seven heads tall:
+    - a slight sway;
+    - a robe falling in vertical folds;
+    - a mantle drawn across the body;
+    - a book held at the chest and a hand raised in blessing;
+    - a veiled head with a brow and a nose;
+    - a halo with a raised rim.
+    The figures stand deeper in their niches, so no robe pokes through a gable.
+  - The eagle lectern has:
+    - a full breast with rows of carved feather scallops;
+    - eye sockets under a heavy brow, and a hooked beak with a gape;
+    - feathered thighs, and talons curled over the globe;
+    - rows of coverts on each wing;
+    - a broad wing blade with a scalloped trailing edge;
+    - lion's paws with toes under its column.
+
 ## Limits
 
 - Ornament is simplified: no carved capitals, tracery inside windows, statues or Lüftlmalerei figures.

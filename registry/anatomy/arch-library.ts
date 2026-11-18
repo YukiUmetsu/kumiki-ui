@@ -13,7 +13,7 @@ import type { ArchScene, CameraSpec, Mood, MoodId } from "./arch-paint";
 import { MOODS } from "./arch-paint";
 import type { HouseSpec, WindowSpec } from "./arch-kit";
 import { SceneBuilder, barrel, beam, bench, box, boxAt, capsule, clump, coneY, crag, cut, cylY, cylZ, cypress, hillField, leaf, patchwork, peaks, plinth, repeatX, repeatZ, track, wallFoot, dome, ellipsoid, firewood, gableRoof, gableWall, gardenWall, ground, hills, hipRoof, house, lamppost, onionDome, opening, pentRoof, revolve, sphere, spire, street, tower, tree, water } from "./arch-kit";
-import { anvil, appleBasket, balance, breadRack, candlestick, cart, clockParts, fence, flourSack, forge, haystack, trough, hangingLantern, herbBunch, jarRow, magnifierLamp, peel, sleepingCat, stool, tankard, wallClock, workbench, writingDesk } from "./arch-kit-props";
+import { advertColumn, anvil, appleBasket, balance, breadRack, cafeTerrace, candlestick, cart, clockParts, fence, flourSack, forge, handcart, haystack, railings, streetBench, streetTree, trough, hangingLantern, herbBunch, jarRow, magnifierLamp, peel, sleepingCat, stool, tankard, wallClock, workbench, writingDesk } from "./arch-kit-props";
 import { archRoll, sculpt } from "./arch-sdf";
 import type { Node } from "./arch-sdf";
 import { arcade, bridge, candle, chairRows, church, octShaft, curtainWall, domeChurch, gatehouse, glasshouse, gothicNave, hearth, kasbahTower, keep, lighthouse, room, shelves, staveChurch, table, trullo, waterWheel, windmill } from "./arch-kit-civic";
@@ -216,9 +216,20 @@ add({ id: "georgian-crescent", label: "Bath stone crescent", group: "british", r
   build: (seed = 9) => { const b = new SceneBuilder(seed); town(b, 9, 16, { kind: "setts" });
     const bath = S.ashlar("#d9c79e", 0.32);
     for (let k = 0; k < 7; k++) {
-      placeHouse(b, { w: 7, d: 12, storeys: 3, storeyH: 3.3, plinth: 0.6, walls: [{ kind: "rustication", colour: "#d4c197" }, bath], roof: { kind: "mansard", pitch: 25, mat: S.slate, h1: 2.4 }, windows: { rows: [[-1.8, 1.8], [-1.8, 1.8], [-1.8, 1.8]], spec: W.sash(1.1, 2.0, { surround: bath }) }, door: { x: 0, shape: "round", fanlight: true, mat: S.paint("#2a2a2a") }, cornice: bath }, Math.sin((k - 3) * 0.12) * 60, (1 - Math.cos((k - 3) * 0.12)) * 60, -(k - 3) * 0.12 * 57.3, 0, () => { for (const x of [-3.2, 3.2]) b.add(boxAt(x - 0.3, 3.9, 6, x + 0.3, 10.2, 6.18, b.mat(bath))); });
+      placeHouse(b, { w: 7, d: 12, storeys: 3, storeyH: 3.3, plinth: 0.6, walls: [{ kind: "rustication", colour: "#d4c197" }, bath], roof: { kind: "gable", pitch: 30, mat: S.slate, over: 0 }, windows: { rows: [[-1.8, 1.8], [-1.8, 1.8], [-1.8, 1.8]], spec: W.sash(1.1, 2.0, { surround: bath }) }, door: { x: 0, shape: "round", fanlight: true, mat: S.paint("#2a2a2a") }, cornice: bath }, Math.sin((k - 3) * 0.12) * 60, (1 - Math.cos((k - 3) * 0.12)) * 60, -(k - 3) * 0.12 * 57.3, 0, () => { for (const x of [-3.2, 3.2]) b.add(boxAt(x - 0.3, 3.9, 6, x + 0.3, 10.2, 6.18, b.mat(bath)));
+        // the parapet hides the roof behind a balustrade, so the terrace reads as one palace front; chimney stacks stand on the party walls
+        const bm = b.mat(bath), top = 0.6 + 3 * 3.3; b.add(boxAt(-3.62, top, 5.4, 3.62, top + 0.22, 6.2, bm), boxAt(-3.62, top + 0.95, 5.5, 3.62, top + 1.12, 6.15, bm), repeatX(revolve(-3.35, 5.85, top + 0.22, top + 0.95, t => 0.07 + 0.045 * Math.sin(Math.PI * Math.min(1, t * 1.2)) ** 2, 0.12, bm, 0, 2), 0.3, 24));
+        b.add(boxAt(-3.75, top, -3.5, -3.25, top + 2.6, -1.5, bm), boxAt(-3.8, top + 2.6, -3.55, -3.2, top + 2.75, -1.45, bm)); });
     }
-    return done(b, frameSubject(b, -6, { fov: 62 }), "noon"); } });
+    const view = frameSubject(b, -34, { fov: 58, pad: 0.06, eye: 5 });
+    // the crescent's furniture: iron railings round each basement area, lamp standards along the pavement, and across the
+    // road the lawn it faces, with trees, a railed edge and a bench
+    for (let k = 0; k < 7; k++) { const a = (k - 3) * 0.12, cx = Math.sin(a) * 60, cz = (1 - Math.cos(a)) * 60; railings(b, -3.4, -1.0, 7.6); railings(b, 1.0, 3.4, 7.6); b.place({ x: cx, z: cz, yaw: -a * 57.3 }); }
+    for (let k = 0; k < 4; k++) { const a = (k - 1.5) * 0.24, cx = Math.sin(a) * 51.5, cz = 60 - Math.cos(a) * 51.5; lamppost(b, cx, cz); } b.place();
+    ground(b, -60, 60, 17, 70, { kind: "grass", colour: "#6a7c3c" }, 0.03); railings(b, -40, 40, 17.4, 0.9);
+    for (const [x, z] of [[-52, 26], [-44, 40], [44, 38], [54, 25]] as const) tree(b, x, z, 13, 4.6, { kind: "foliage", colour: "#4e6a32" });
+    streetBench(b, -4, 19, 0); b.place();
+    return done(b, view, "noon"); } });
 
 // France -------------------------------------------------------------------------------------------------------------------
 add({ id: "norman-colombage", label: "Norman half-timbered house", group: "french", region: "France, Normandy", era: "15th–17th century", setting: "town", view: "exterior", scale: "domestic", mood: "morning",
@@ -236,9 +247,14 @@ add({ id: "haussmann-facade", label: "Haussmannian apartment building", group: "
     const stone = S.ashlar("#e2d6bd", 0.42);
     placeHouse(b, { w: 22, d: 14, storeys: 6, storeyH: 3.1, walls: [{ kind: "rustication", colour: "#ddd0b5", course: 0.42 }, stone], roof: { kind: "mansard", pitch: 20, mat: S.zinc, h1: 3.2 },
       windows: { rows: [[], [-9, -5.4, -1.8, 1.8, 5.4, 9], [-9, -5.4, -1.8, 1.8, 5.4, 9], [-9, -5.4, -1.8, 1.8, 5.4, 9], [-9, -5.4, -1.8, 1.8, 5.4, 9], [-9, -5.4, -1.8, 1.8, 5.4, 9]], spec: { w: 1.25, h: 2.3, panes: [2, 4], surround: stone, hood: "cornice", frame: S.paint("#f2efe8", 0.05), sillH: undefined } as WindowSpec, sillH: 0.3 },
-      dormers: { count: 6, spec: { w: 0.9, h: 1.3, panes: [2, 3] }, mat: S.zinc }, balconies: [{ storey: 2, continuous: true }, { storey: 5, continuous: true }], shop: { fascia: S.paint("#3b2a24"), awning: { kind: "fabric", colour: "#8b2f2a", colour2: "#efe4cf" } }, door: null, cornice: stone, bands: stone }, 0, 0, -20);
-    lamppost(b, 9, 6.6); b.place();
-    return done(b, frameSubject(b, 24, { fov: 60 }), "golden"); } });
+      dormers: { count: 6, spec: { w: 0.9, h: 1.3, panes: [2, 3] }, mat: S.zinc }, balconies: [{ storey: 2, continuous: true }, { storey: 5, continuous: true }], shop: { fascia: S.paint("#3b2a24"), awning: { kind: "fabric", colour: "#8b2f2a", colour2: "#efe4cf" } }, door: null, cornice: stone, bands: stone }, 0, -6, 0);
+    lamppost(b, 9, 6.6); lamppost(b, -9, 6.6); b.place();
+    const view = frameSubject(b, 24, { fov: 60, pad: 0.06 });
+    // the boulevard: plane trees in grilles along the kerb, a café terrace under the awning, an advertising column, benches, a handcart
+    for (const x of [-14, -4.5, 4.5, 14]) streetTree(b, x, 5.6, 11);
+    cafeTerrace(b, -8.5, 6.5, 2.6); advertColumn(b, 18, 5.0); streetBench(b, 0, 5.4, 180); handcart(b, -16, 9.5, 70);
+    for (const x of [-20, 20]) placeHouse(b, { w: 18, d: 14, storeys: 6, storeyH: 3.1, walls: [{ kind: "rustication", colour: "#d8cbb0", course: 0.42 }, stone], roof: { kind: "mansard", pitch: 20, mat: S.zinc, h1: 3.2 }, windows: { rows: [[], [-7, -3.5, 0, 3.5, 7], [-7, -3.5, 0, 3.5, 7], [-7, -3.5, 0, 3.5, 7], [-7, -3.5, 0, 3.5, 7], [-7, -3.5, 0, 3.5, 7]], spec: { w: 1.2, h: 2.2, panes: [2, 4] } }, balconies: [{ storey: 2, continuous: true }], door: null, cornice: stone }, x * 1.0 + Math.sign(x) * 0, -6, 0);
+    return done(b, view, "golden"); } });
 add({ id: "provencal-mas", label: "Provençal mas", group: "french", region: "France, Provence", era: "18th century", setting: "rural", view: "exterior", scale: "domestic", mood: "noon",
   materials: ["rubble stone with lime render", "Roman tiles at a low pitch", "painted shutters"], story: ["cypresses against the mistral", "a vine trellis", "lavender"],
   note: "Low pitches suit Roman tiles (about 17–35°); the north wall is nearly blind against the mistral; shutters in faded blue.",
@@ -985,12 +1001,19 @@ add({ id: "tithe-barn", label: "Stone tithe barn", group: "rural", region: "Engl
       b.add(boxAt(-1.8, 0, 8.9, 1.8, 4.5, 9.1, b.mat({ kind: "hay" })));
       for (let k = 0; k < 8; k++) { const x = -18 + k * 5.2; if (Math.abs(x) > 4) b.add(boxAt(x - 0.5, 0, 5.5, x + 0.5, 4.2, 6.6, wm)); }
       for (let k = 0; k < 10; k++) { const x = -17 + k * 3.8; if (Math.abs(x) > 4.5) b.add(box(x, 3.2, 5.52, 0.08, 0.5, 0.05, b.mat({ kind: "plain", colour: "#1a1512" }))); } });
-    const view = frameSubject(b, 18, { eye: 6, pad: 0.04 });
+    const view = { x: -13, y: 1.65, z: 44, yaw: 16, fov: 62, shift: 0.3 };
     // the farm round it: a rutted track to the porch, haycocks and a hay cart in the yard, nettles at the walls, a fence, hedged fields behind
-    track(b, [[-30, 60], [-14, 34], [-6, 20], [-2.6, 11.5]], 4.2);
+    track(b, [[-16, 70], [-13, 44], [-12.5, 34], [-7, 20], [-2.6, 11.5]], 3.4);
     wallFoot(b, 0, 0, 40, 11, -16, 0);
-    haystack(b, 26, -4, 2.4, 4.6); haystack(b, 31, 2, 2.1, 4.0); cart(b, 12, 16, 70, "hay"); trough(b, -16, 11, -16);
-    fence(b, [[18, 12], [24, 18], [36, 16], [40, 4]]);
+    haystack(b, 22, 6, 2.4, 4.6); haystack(b, 27.5, 11, 2.1, 4.0); cart(b, 9, 19, 70, "hay"); trough(b, -16, 11, -16);
+    fence(b, [[-30, 30], [-15.5, 33], [-15.5, 33.5]]); fence(b, [[-9.5, 34.5], [6, 37], [24, 36], [36, 28]]);
+    // the field gate standing open at the track, its posts either side
+    const gw = b.mat({ kind: "oak", colour: "#8a7a62", age: 0.8 });
+    b.add(capsule(-15.5, 0, 33.6, -15.5, 1.35, 33.6, 0.09, gw), capsule(-9.5, 0, 34.4, -9.5, 1.35, 34.4, 0.09, gw));
+    for (const y of [0.3, 0.65, 1.0, 1.25]) b.add(capsule(-15.4, y, 33.7, -13.2, y, 37.6, 0.035, gw));
+    b.add(capsule(-15.4, 0.3, 33.7, -13.2, 1.25, 37.6, 0.035, gw), capsule(-13.2, 0.2, 37.6, -13.2, 1.3, 37.6, 0.05, gw));
+    for (let k = 0; k < 30; k++) b.add(clump(b.r(-26, 10), 0.18, b.r(36, 44), b.r(0.3, 0.6), b.r(0.15, 0.3), b.r(0.3, 0.6), b.mat({ kind: "foliage", colour: "#6a7c38" }), b.r(), 0.5));
+    b.place();
     patchwork(b, -40);
     return done(b, view, "golden"); } });
 add({ id: "overshot-watermill", label: "Watermill with overshot wheel", group: "rural", region: "England and France", era: "18th century", setting: "riverside", view: "exterior", scale: "domestic", mood: "morning",
