@@ -173,6 +173,20 @@ function ReferenceAtelier(){
         </div>
       </section>
     </div>
+    <section style={{...card,marginTop:20}} data-testid="ink-anat5-face-detail-review">
+      <h2 style={{font:"normal 25px Georgia,serif",margin:"0 0 6px"}}>
+        Facial anatomy detail crop · 3× inspection
+      </h2>
+      <p style={{fontSize:12,lineHeight:1.65,maxWidth:1050}}>
+        This is the same source-derived mesh and expression pose in a tighter camera, not a second
+        character redraw. Inspect the near/far eyelids, brow roots, alar wings, nostrils, philtrum,
+        vermilion border, ear folds, hairline and beard attachment at enlarged scale.
+      </p>
+      <div style={{maxWidth:620,margin:"0 auto"}}>
+        <InkMingQingCharacterStudy character={character} emotion={emotion}
+          intensity={intensity} detail={detail} yaw={yaw} view="face"/>
+      </div>
+    </section>
     <section style={{marginTop:26}}>
       <h2 style={{font:"normal 27px Georgia,serif"}}>Newly studied museum references</h2>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:16}}>
