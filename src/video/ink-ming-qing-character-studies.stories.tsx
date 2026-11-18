@@ -53,7 +53,7 @@ const sources=[
     id:"qing-man",group:"Qing male portrait detail",
     title:"Portrait of a Man",
     image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/51783/2234827/main-image",
-    href:"https://www.metmuseum.org/art/collection/search/51783",fit:"contain",position:"center",
+    href:"https://www.metmuseum.org/art/collection/search/51783",fit:"cover",position:"center 35%",
     credit:"Jiang Yun (Chinese, 1847–1919), 19th c. · object 52.177.8 · ink and color on paper · Public Domain.",
     note:"New male reference for the rounded cap, temple-to-cheek transition, moustache/goatee separation, fur mass, blue under-robe and large sleeve volumes. Qing-period clothing is not copied onto the Ming scholar.",
     alt:"Jiang Yun's Qing-dynasty Portrait of a Man."
@@ -62,7 +62,7 @@ const sources=[
     id:"qing-lady",group:"Qing female portrait detail",
     title:"Portrait of a Lady",
     image:"https://collectionapi.metmuseum.org/api/collection/v1/iiif/51780/2234806/main-image",
-    href:"https://www.metmuseum.org/art/collection/search/51780",fit:"contain",position:"center",
+    href:"https://www.metmuseum.org/art/collection/search/51780",fit:"cover",position:"center 50%",
     credit:"Jiang Jun, 19th c. · object 52.177.5 · ink and color on paper · Public Domain.",
     note:"New close study for hairline and bun silhouette, floral ornaments, earrings, high embroidered collar, sleeve borders and hand-to-object scale. The face remains delicate without becoming featureless.",
     alt:"Jiang Jun's Qing-dynasty Portrait of a Lady."
