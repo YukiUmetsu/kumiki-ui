@@ -106,3 +106,47 @@ Both sidecars retain the frozen 18 source-photo points and explicitly report `IN
 - The separate source-native Chromium capture must finish successfully before the artifact is considered ready for manual review.
 
 **Art status remains HOLD:** no new candidate landmarks have been independently measured; V57 whole-source SSIM remains ≈0.5155 against the ≈0.85 research target. The five connected facial value planes, independent reviewer, full normal-speed 300-frame review and professional artist acceptance remain outstanding. V62 corrects the review evidence layout; it does not claim improved artwork or release readiness.
+
+
+## V63 — connected facial value calibration and native review (18 Nov 2026)
+
+- Added an opt-in V63 variant over V57. It changes only seven existing facial wax elements; geometry, source contours, hair, paper and timing remain unchanged.
+- Native browser proof: [run 44206798514](https://github.com/YukiUmetsu/kumiki-ui/actions/runs/44206798514), artifact `14385125580`.
+- Source PNG SHA-256: `f8d28cbede8c8c14f9902a328b6e979e353fd9ebe6efb454bda3152586b929c2`.
+- V63 native 608×1082 frame-299 PNG SHA-256: `fb9756ca416f3e46cb55087dcd70fb33f52e396cc7fa13a09b47cefc159360c0`.
+- Matching sidecar: `v60-native-candidate-V63-299.json`; the V60 record is deliberately `INCOMPLETE` with 0/18 candidate landmarks and no approval.
+
+### Source-value witnesses
+
+The six 7×7 RGB-median samples are compared against the exact V57 and V63 native PNGs. Four of six move closer to the CC0 source; two move slightly farther away.
+
+| Source region | V57 mean RGB error | V63 mean RGB error | Result |
+| --- | ---: | ---: | --- |
+| Infraorbital cast | 49.00 | 49.33 | Slight regression |
+| Lateral undercheek | 55.00 | 52.33 | Improved |
+| Nasal root | 53.67 | 49.33 | Improved |
+| Malar light return | 15.33 | 13.00 | Improved |
+| Nasal ridge return | 23.00 | 25.33 | Slight regression |
+| Mandibular roll | 24.33 | 22.67 | Improved |
+
+The V63 edit changes 33.67% of pixels in the measured face ROI, while the hair-crown and foliage control ROIs remain byte-identical. Despite that local pixel change, the 1× V57/V63 comparison is visually subtle; this is a modest value correction, not a demonstrated step-change in portrait quality.
+
+### ArtCraft v7 negative gate
+
+A fresh set of candidate landmarks was manually observed on the actual V63 native PNG, not copied from the source landmarks or the older PR #281 candidate. The v7 portrait gate returned `geometry_and_tone_pass`:
+
+- Face aspect error: 0.00873.
+- All 18 normalized landmark errors: below the unchanged 0.085 limit; maximum 0.04370.
+- Value-region contrast (source → V63 candidate, p90–p10): eye socket 127→71; nose 107→44; cheek 91→59; lips 109→60; hair 82→46. All exceed the fixed 0.38 minimum-contrast fraction.
+- The gate is a negative structural/tonal screen, not artistic acceptance. The measurements are builder-observed; an independent artist review is still required.
+
+The source is the frozen CC0 browser screenshot, **not** the unavailable original camera JPEG. Neither the source image nor its pixels are embedded in the illustration.
+
+### Remaining blockers
+
+- Full-resolution and 3× independent visual review against the actual reference.
+- Natural-speed review of the entire 300-frame film and stress poses.
+- Improve the remaining visual gap in continuous cheek/nasal form, eyelid subtlety, oral anatomy and authentic wax deposition; the current V63 value change alone is insufficient.
+- Independent artist approval and release review.
+
+**Status remains ART HOLD / DO NOT MERGE.** V63 is a reversible `!dev` study and makes no claim of final artistic fidelity.
