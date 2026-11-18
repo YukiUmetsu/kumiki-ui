@@ -77,3 +77,14 @@ The exact-head review rejected the centre at 1× because it collapsed into a den
 - Keep the existing timed pencil contacts, material seeds, palette model, region IDs, parent clipping and opt-in defaults unchanged. No new fibre density or outline pass is added.
 
 The same authored silhouettes are kept byte-identical in the four-organ whorl and six-surface centre definitions. This is a geometry-only experiment, not a claim of improved realism. The existing exact-head Chromium proof must re-check all five true contact valleys, source clipping and 16:9/9:16 renders. **ART HOLD remains until the next native 1× review confirms the petals read separately at normal video size.**
+
+
+## Geometry contract repair — 2026-11-18
+
+The first CI run of the value-first pass correctly caught two stale physical-reverse invariants. The scroll was enlarged without moving its separate abaxial underturn, so its exact shared first-cubic hinge no longer matched; the new scroll also exceeded the legacy lower bounds limit by one source unit. Corrected both sides rather than weakening the inspector:
+
+- The scroll bounds are now `[222,136,52,59]`, containing the full authored silhouette within the established `y ≤ 195` source window.
+- The underturn now shares the exact revised first cubic `M232 174 C225 166 227 155 234 148`, with a separately visible left-facing reverse and its own containing bounds.
+- The four-organ and six-surface whorl definitions remain synchronized. Existing semantic IDs, layer order, pencil contacts, deterministic seeds and opt-in defaults are unchanged.
+
+The previous CI failure was a real stale-hinge/bounds defect, not a test false positive. The next run must pass the foundation contract and all affected rose tests before native browser proof can proceed. ART HOLD remains.
