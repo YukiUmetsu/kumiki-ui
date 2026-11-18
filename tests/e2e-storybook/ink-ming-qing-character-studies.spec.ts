@@ -28,12 +28,16 @@ test("ANAT5 portrait atelier exposes new references and live expressions",async(
   await atelier.getByRole("combobox",{name:"Facial expression"}).selectOption("fear");
   await expect(portrait).toHaveAttribute("data-km-expr1-emotion","fear");
   await atelier.getByRole("slider",{name:"Expression intensity"}).evaluate(el=>{
-    const input=el as HTMLInputElement;input.value="0.55";
+    const input=el as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    setter?.call(input,"0.55");
     input.dispatchEvent(new Event("input",{bubbles:true}));
     input.dispatchEvent(new Event("change",{bubbles:true}));
   });
   await atelier.getByRole("slider",{name:"Head turn"}).evaluate(el=>{
-    const input=el as HTMLInputElement;input.value="15";
+    const input=el as HTMLInputElement;
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    setter?.call(input,"15");
     input.dispatchEvent(new Event("input",{bubbles:true}));
     input.dispatchEvent(new Event("change",{bubbles:true}));
   });
