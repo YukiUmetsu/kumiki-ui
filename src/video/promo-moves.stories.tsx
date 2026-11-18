@@ -28,6 +28,7 @@ import tapeExample from "../../examples/film/tape-rewind.film.json";
 import driveExample from "../../examples/film/sound-drive.film.json";
 import beatHitsExample from "../../examples/film/beat-hits.film.json";
 import spinZoomExample from "../../examples/film/spin-zoom.film.json";
+import chatExample from "../../examples/film/chat-story.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -487,6 +488,21 @@ export const SpinAndZoomBlur: StoryObj = {
       blur is strongest, and the next scene finishes the move. The spin blurs along circles about the centre and is enlarged just enough
       to keep the frame covered at each angle; the zoom blurs along rays. Both cuts land on a kick. Use Quarter speed to see the frames;
       Reduced motion plays a dissolve.
+    </FilmCompare>;
+  },
+};
+
+const chatDoc = chatExample as unknown as FilmDocument;
+/** A vertical text story: a two-person thread on a dark ground, then a group chat on light paper, each message landing with a soft sound
+ * over a low drum loop. */
+export const ChatStory: StoryObj = {
+  render: function ChatStory() {
+    const variants = useMemo(() => ({ chat: { label: "Chat story", film: compileExample(chatDoc) } }), []);
+    return <FilmCompare variants={variants} moment={() => 0} audio={soundUrls["../../assets/sound/lab/moves/chat-story.m4a"]}>
+      The first message is on screen at once, as the hook; each next one lands once the last has had time to be read, the other side's
+      after typing dots that become the message. The thread fills from the bottom and older messages scroll away at the top, each bubble
+      growing its own height so nothing jumps. "Me" sits on the right in the brand colour; a group shows each sender's name and initial.
+      Styling is neutral, not any messaging app's. Reduced motion drops the growth and the bouncing dots.
     </FilmCompare>;
   },
 };

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "chat-story",
+  "fps": { "num": 30, "den": 1 },
+  "outputs": [{ "id": "vertical", "preset": "tiktok" }, { "id": "draft", "width": 540, "height": 960 }],
+  "scenes": [
+    { "id": "umbrella", "recipeId": "card", "durationFrames": 680,
+      "content": {
+        "card": "chat", "ground": "dark",
+        "people": [{ "id": "me", "name": "Me" }, { "id": "sam", "name": "Sam" }],
+        "messages": [
+          { "from": "sam", "text": "did you borrow my umbrella this morning?" },
+          { "from": "me", "text": "no? why" },
+          { "from": "sam", "text": "it's gone. and it's pouring" },
+          { "from": "me", "text": "check the car" },
+          { "from": "sam", "text": "checked. not there" },
+          { "from": "sam", "text": "wait", "pause": 20 },
+          { "from": "sam", "text": "why is there a photo of my umbrella on the fridge" },
+          { "from": "me", "text": "so you'd know where it went", "pause": 12 },
+          { "from": "sam", "text": "you left me a PHOTO instead of the UMBRELLA?" }
+        ],
+        "sound": { "me": "catalog:whoosh-fast-soft", "them": "catalog:tech-pulse-soft", "gainDb": -6 }
+      } },
+    { "id": "flat", "recipeId": "card", "durationFrames": 330,
+      "transition": { "kind": "dissolve", "durationFrames": 10 },
+      "content": {
+        "card": "chat", "ground": "light", "title": "Flat 4B",
+        "people": [{ "id": "me", "name": "Me" }, { "id": "sam", "name": "Sam", "color": "#e8a33d" }, { "id": "noor", "name": "Noor", "color": "#5bb98c" }],
+        "messages": [
+          { "from": "noor", "text": "whose umbrella is drying in the bath" },
+          { "from": "sam", "text": "MINE. finally" },
+          { "from": "me", "text": "you're welcome" },
+          { "from": "noor", "text": "I have so many questions" }
+        ],
+        "sound": { "me": "catalog:whoosh-fast-soft", "them": "catalog:tech-pulse-soft", "gainDb": -6 }
+      } }
+  ],
+  "audio": { "lanes": [], "licenseRef": "kumiki-sound-catalog", "accents": { "kit": "assets/sfx", "gainDb": 5, "on": "moves" },
+    "beds": [{ "id": "drums", "sound": "bed-drums-hiphop-110", "gainDb": -6, "fadeSeconds": 1, "lowpassHz": 4000 }],
+    "master": { "profile": "youtube", "limit": true } }
+}
