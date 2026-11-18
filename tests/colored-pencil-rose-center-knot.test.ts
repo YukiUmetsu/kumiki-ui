@@ -64,6 +64,36 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
     }
   });
 
+  it("keeps all three centre pigment passes but aligns their directional grain to each authored lamina",()=>{
+    const baseline=rose("landscape",false);
+    const aligned=rose("landscape",true);
+    const ids=[...ROSE_CENTER_KNOT_SURFACES.map(surface=>surface.id),
+      ROSE_CENTER_SCROLL_BACKFACE.id];
+    for(const id of ids){
+      const current=aligned.regions.find(region=>region.id===id);
+      expect(current).toBeDefined();
+      expect(current?.layers).toHaveLength(3);
+      const layers=current!.layers;
+      expect(layers.map(layer=>layer.texture)).toEqual(["hatch","fiber","fiber"]);
+      expect(layers[1].angle-layers[0].angle).toBeCloseTo(11,6);
+      expect(layers[2].angle-layers[0].angle).toBeCloseTo(-9,6);
+      expect(layers[1].flow).toBeCloseTo((layers[0].flow??0)*.88,6);
+      expect(layers[2].flow).toBeCloseTo((layers[0].flow??0)*.76,6);
+      const previous=baseline.regions.find(region=>region.id===id);
+      if(previous){
+        // Preserve every layer property other than the authored angle and fan.
+        expect(layers.map(({angle,flow,...rest})=>rest))
+          .toEqual(previous.layers.map(({angle,flow,...rest})=>rest));
+      }
+    }
+    // The separate four-petal whorl option remains byte-compatible when the
+    // deeper centre-knot option is OFF.
+    const whorlOnly=rose("landscape",false);
+    const originalHeart=whorlOnly.regions.find(region=>region.id==="heart")!;
+    expect(originalHeart.layers.map(layer=>layer.angle)).not.toEqual(
+      aligned.regions.find(region=>region.id==="heart")!.layers.map(layer=>layer.angle));
+  });
+
   it.each(["landscape","portrait"] as const)(
     "reconstructs only six historical source surfaces and attaches one underturn, preserving unrelated regions at %s",aspect=>{
       const before=rose(aspect),after=rose(aspect,true);
