@@ -142,10 +142,10 @@ function ReferenceAtelier(){
         <h2 style={{font:"normal 25px Georgia,serif",margin:"0 0 6px"}}>{characterLabels[character]}</h2>
         <p style={{fontSize:12,lineHeight:1.6,minHeight:40}}>
           {character==="scholar"
-            ?"Object 55.37: tall scholar cap, individual beard roots, elongated lower face and a separate moustache-to-cheek transition."
+            ?"Objects 55.37 + 52.177.8: square Ming scholar cap, tapered jaw, separate cheek growth, moustache and split chin beard. Qing fur and collar details are reference-only, not transferred to the Ming costume."
             :character==="writer"
-              ?"Object 2024.180: lowered inward gaze, compact oval face, pinned coil, fine escaping hair and a softer crossed collar."
-              :"Object 2024.180: a distinct attendant face and head inclination, double-pin hair arrangement and asymmetric collar folds."}
+              ?"Objects 2024.180 + 52.177.5: lowered inward gaze, narrow oval face, pinned coil, floral ornament, earrings and embroidered collar bands."
+              :"Objects 2024.180 + F1916.135: a separate attendant head inclination and gaze, paired hair pins, smaller compositional role and independently shaped collar."}
         </p>
         <div style={{maxWidth:440,margin:"0 auto"}}>
           <div data-testid="ink-anat5-selected-portrait">
@@ -154,7 +154,7 @@ function ReferenceAtelier(){
           </div>
         </div>
         <p style={{fontSize:11,letterSpacing:1,fontWeight:700,marginBottom:0}}>
-          ANAT1 LANDMARKS · EXPR1 {emotion.toUpperCase()} · SOURCE OBJECT {character==="scholar"?"55.37":"2024.180"}
+          ANAT1 LANDMARKS · EXPR1 {emotion.toUpperCase()} · {character==="scholar"?"SOURCES 55.37 / 52.177.8":character==="writer"?"SOURCES 2024.180 / 52.177.5":"SOURCES 2024.180 / F1916.135"}
         </p>
       </section>
       <section style={card}>
