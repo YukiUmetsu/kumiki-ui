@@ -240,3 +240,56 @@ requires 1× and 3× visual review for facial likeness separation, ear/neck
 attachment, expression readability, beard edge quality and crop stability.
 Keep the Chinese Ink portrait work on **ART HOLD / DO NOT MERGE** until that
 review is complete. CI success is necessary but is not artistic acceptance.
+
+
+## ANAT4 — anatomy-led full-figure, robe and pipe/staff grip study (2026-11-17)
+
+The next pass starts again from ANAT1's posed body lattice rather than editing the
+earlier ANAT2 standing figure or tracing a prior screenshot. The head remains a
+separate ANAT3/EXPR1 study so the face can be inspected at a useful scale.
+
+### New reference set
+
+1. **Standing figure of Lü Dongbin, Ming dynasty (1368–1644), Smithsonian Freer Gallery, F1916.580.**
+   - Object record: https://asia-archive.si.edu/object/F1916.580/
+   - IIIF image: https://ids.si.edu/ids/deliveryService?id=FS-5908_09&max=1200
+   - The Smithsonian IIIF manifest identifies ink and color on silk, a 162 × 85.4 cm image, Ming period and CC0 metadata.
+   - Observations: tall hanging-scroll proportion; head-to-body scale; long, gravity-led robe column; wide sleeve masses; a few strong directional garment contours; robe hem and footwear relationship.
+   - Used for standing silhouette, robe rhythm and hanging-scroll composition only. Do not copy the immortal's face, identity or object.
+
+2. **An old Chinese man with his pipe, 1860, Library of Congress LCCN 2004679126.**
+   - LOC record: https://www.loc.gov/item/2004679126/
+   - High-resolution image: https://upload.wikimedia.org/wikipedia/commons/1/1f/An_old_Chinese_man_with_his_pipe%2C_half-length_portrait%2C_facing_front%2C_sitting_at_a_table%2C_holding_a_pipe_LCCN2004679126.jpg
+   - LOC/Commons metadata describes charcoal and lead white on tan paper; no known restrictions on publication; Public Domain Mark 1.0.
+   - Observations: wrist-to-palm continuity; thumb opposition across the pipe; index/middle contact; curled ring/little fingers; the pipe's long axis; sleeve volume terminating at the wrist; a second resting hand with a different finger tension.
+   - Used for grip anatomy and prop contact. The source drawing is not traced.
+
+3. **Portrait of a Gentleman, 16th–17th century, The Metropolitan Museum of Art, object 51.39.4.**
+   - Object record and image: https://www.metmuseum.org/art/collection/search/48939
+   - The Met marks the image Public Domain / Open Access; ink and color on silk.
+   - Observations: broad robe mass; the transition from shoulder to sleeve; beard silhouette; cap/headwear; seated weight and the separation between garment folds and decorative pattern.
+   - Used for robe mass and headwear study only. Do not copy the red official robe or rank badge.
+
+4. **Portrait of a Scholar, 17th–18th century, The Metropolitan Museum of Art, object 29.20.1.**
+   - Object record and image: https://www.metmuseum.org/art/collection/search/48941
+   - The Met marks the image Public Domain / Open Access; ink and color on paper.
+   - Observations: quieter scholar garment, plain collar, subdued pigment, headwear and face-to-body proportion. This is a seated portrait, not a standing anatomy template.
+
+### New redraw construction
+
+- Storybook route: **Video production / Film Looks / Chinese Ink / ANAT4 Anatomy-led Full Figure**. This is inside the existing Chinese Ink section, not a new Storybook folder.
+- ANAT1 starts from `HUMAN_PRESETS` (`man-50` / `man-80`), then applies explicit age/build/stature values. The Asian ancestry morph is a coarse MakeHuman sculpt axis only; it is not treated as a historical Chinese anthropometric norm or as an individual's identity.
+- `createHumanBody`, `poseHumanBody`, `POSE_PRESETS`, `HAND_POSES.grip` and separate thumb CMC/MCP/IP angles supply a posed five-finger hand. `renderHumanFrame` supplies occluding contours, joints and screen-space landmarks. The frame is the geometry authority; the ink painter does not invent the arm or wrist placement.
+- `growHair` creates depth-aware scalp strands on the same posed body. `HumanFigure` renders the anatomy underpainting and hair with depth; the scholar cap, elder beard fibers and garment are style-specific overlays.
+- The robe silhouette and sleeves are built from projected shoulder, elbow, wrist, hip and ankle anchors. `evaluateInkBrush` supplies pressure-varied folds, pigment cores, bristle hairs and flying-white paper gaps. The staff and pipe are placed behind the articulated hand so the hand surface occludes the prop.
+- The head panel reuses ANAT3's 468-point facial topology and EXPR1's FACS deformation, gaze and crease marks. It now also uses ANAT1 `faceHair` to draw directional brow and eyelash fibers. The face remains a separate close-up panel rather than a falsely registered miniature pasted onto the body head.
+
+### Acceptance status
+
+This is an **experimental anatomy-to-ink study**, not a finished production character.
+
+- The archival images are external Storybook references; source bytes have not been staged in the repository and no SHA-256 evidence has been recorded.
+- No independent 18-landmark source/render annotation or five matched facial value-plane package exists yet.
+- The ArtCraft v7 `portrait_fidelity_gate.py` measured pass and independent 1×/3× human visual review have not been run. The script/package is not staged in this repository.
+- ANAT1's MakeHuman/ANSUR body scaffold and coarse ancestry axis are not a historical Chinese body norm; the figure proportions still need source-relative measurement.
+- Keep ANAT3/ANAT4 in the existing experimental Chinese Ink Storybook section under **ART HOLD / UNAPPROVED**. Do not merge or promote based on structural tests or screenshots alone.
