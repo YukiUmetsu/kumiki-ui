@@ -74,10 +74,10 @@ interface SourceProfile {
 
 const PROFILES:Record<InkSourceLedCharacter,SourceProfile>={
   scholar:{
-    sourceId:"cma-chen-hongshou-1979.27.2.19+met-ren-yi-1986.267.49",
+    sourceId:"cma-chen-hongshou-1979.27.2.19+met-ren-yi-zhong-kui-2002.208.2+cma-1961.89",
     sourceObjectId:"CMA 1979.27.2.19",
     sourceLabel:"Staff-bearing scholar",
-    sourceNote:"A narrow, upright scholar with a black cap, fine moustache, tapered beard, staff and brush; the redraw studies the fine contour and vertical garment rhythm.",
+    sourceNote:"A narrow, upright scholar with a black cap, fine moustache, tapered beard, staff and brush; the redraw studies the iron-wire contour rhythm and measured garment line.",
     yaw:16,pitch:-3,faceWidth:.93,jawWidth:.91,lowerFace:1.09,
     noseWidth:.96,noseProjection:1.03,eyeSpacing:.98,eyeHeight:.88,mouthWidth:.94,
     cheekWidth:.95,cheekLift:1.2,browLift:.4,age:56,
@@ -164,6 +164,7 @@ function createSourceFace(character:InkSourceLedCharacter){
     v[0]*=1+(p.mouthWidth-1)*mouth;
     v[0]*=1+(p.cheekWidth-1)*cheek;
     v[1]=subnasaleY+(y-subnasaleY)*(y<subnasaleY?p.lowerFace:1);
+    v[1]=eyeY+(v[1]-eyeY)*(1+(p.eyeHeight-1)*eyes);
     v[1]-=p.cheekLift*cheek;
     v[1]-=p.browLift*brow;
     v[2]*=1+(p.noseProjection-1)*nose;
@@ -268,8 +269,8 @@ export function buildSourceLedPortraitGeometry(
     const near=frame.vertexFacing[nearIndex]>=frame.vertexFacing[farIndex];
     return {
       side,x,y,
-      rx:fmt(gaze.r*.58*1.58*(near?1:.76)),
-      ry:fmt(gaze.r*.48*1.58*clamp(expressionFeatures(expressed).eyeOpen,.35,1.5)*(near?1:.82)),
+      rx:fmt(gaze.r*frame.projection.scale/1000*1.58*.58*(near?1:.76)),
+      ry:fmt(gaze.r*frame.projection.scale/1000*1.58*.48*clamp(expressionFeatures(expressed).eyeOpen,.35,1.5)*(near?1:.82)),
     };
   });
   const m=measureFace(expressed.vertices),e=expressionFeatures(expressed);
@@ -408,7 +409,7 @@ function earPath(point:Point,side:"L"|"R",scale:number){
 }
 
 function headwearPath(g:SourceLedPortraitGeometry,p:SourceProfile){
-  const cx=(g.left+g.right)/2,w=g.right-g.left,top=g.top;
+  const cx=(g.left+g.right)/2,top=g.top;
   if(p.headwear==="scholar-cap"){
     return "M "+fmt(g.left-18)+" "+fmt(top+35)+
       " C "+fmt(g.left-26)+" "+fmt(top+6)+" "+fmt(cx-43)+" "+fmt(top-67)+" "+fmt(cx)+" "+fmt(top-76)+

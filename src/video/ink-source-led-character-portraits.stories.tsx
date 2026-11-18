@@ -19,7 +19,7 @@ const labels:Record<InkSourceLedCharacter,string>={
   "zhong-kui":"Zhong Kui · the eccentric scholar",
 };
 const notes:Record<InkSourceLedCharacter,string>={
-  scholar:"Chen Hongshou's compact, archaistic standing scholar and Ren Yi's scholar-on-a-rock inform the long face, fine beard roots, cap silhouette and measured robe folds. The staff/brush source is a pose and costume reference, not a traced figure.",
+  scholar:"Chen Hongshou's compact, archaistic standing scholar, the Met's Zhong Kui and Lady Xuanwen inform the long face, fine beard roots, cap silhouette and iron-wire contour rhythm. The staff/brush source is a pose and costume reference, not a traced figure.",
   shepherd:"Ren Yi's 1874 Su Wu is seated with greying temples, a distant steadfast gaze and a scepter. The hood and robe use forceful nail-head-rat-tail and bent-reed line rhythms; the portrait studies age, eye weight and a long light beard.",
   "zhong-kui":"Ren Yi's 1883 Zhong Kui is an elegant, eccentric scholar rather than a generic demon-queller: blossom in the hair, broad facial mass, full beard, book-reading gaze and voluminous robe. The drawing treats him as a legendary character, not a sitter likeness.",
 };
@@ -56,14 +56,14 @@ const sources=[
     note:"The museum describes grey temples, a far-reaching gaze, a stretched seated body and a scepter. It specifically identifies fine facial contour lines, nail-head-rat-tail drawing and bent-reed drawing in the hood and clothing.",
   },
   {
-    id:"met-scholar-rock",
-    title:"Scholar on a Rock",
-    artist:"Ren Yi (Ren Bonian) · ca. 1880 · object 1986.267.49",
-    href:"https://www.metmuseum.org/art/collection/search/39715?showOnly=openAccess",
+    id:"cma-lady-xuanwen",
+    title:"Lady Xuanwen Giving Instruction on the Rites of Zhou",
+    artist:"Chen Hongshou · 1638 · Ming dynasty",
+    href:"https://www.clevelandart.org/art/1961.89",
     image:null,
-    rights:"The Metropolitan Museum of Art; Public Domain. The image endpoint was unreliable during this pass.",
-    role:"Walking-stick gesture · reading gaze · scalloped silhouette · robe folds",
-    note:"The Met's publication describes the scholar resting on a garden rock, his walking stick propped in the stone and his attention fixed on a book. The patterned robe folds and blank ground make silhouette and negative space legible.",
+    rights:"Cleveland Museum of Art Open Access; copy, modification and distribution are permitted. Image endpoint was unavailable during this pass.",
+    role:"Elongated faces · iron-wire contour · mineral color · layered robes",
+    note:"An older woman instructs young scholars. The museum describes elongated, exaggerated faces, fine even iron-wire outlines and brilliant mineral pigments; this is a useful future female-character and robe reference.",
   },
 ] as const;
 

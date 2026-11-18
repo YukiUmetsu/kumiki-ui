@@ -13,14 +13,14 @@ Create new Chinese-ink character studies from independently researched Ming/Qing
 | [Chen Hongshou, Scholar with Staff and Brush](https://www.clevelandart.org/art/1979.27.2.19), CMA 1979.27.2.19 | A small standing bearded scholar in a tan robe and black cap, holding a staff and brush; delicate contour lines and intentionally reduced scale. The museum describes the late album style as archaistic and hyper-refined. | CMA Open Access: the museum states that the work may be copied, modified and distributed without asking permission. |
 | [Ren Yi, Zhong Kui](https://www.metmuseum.org/art/collection/search/37393?showOnly=openAccess), Met 2002.208.2, dated 1883 | Broad facial mass, blossom in the hair, full beard, book-reading gaze and voluminous robe. The Met notes that Ren Yi adopts Chen Hongshou's figural style and presents Zhong Kui as an elegant, eccentric scholar rather than a conventional ferocious demon-queller. | Met Open Access; Public Domain. |
 | [Ren Yi, Su Wu the Shepherd](https://www.artmuseum.tsinghua.edu.cn/en/cpsj_english/gndc/gcxy/201605/t20160526_1116.shtml), Tsinghua University Art Museum, 1874 | Seated elder with greying temples, far-reaching gaze, scepter and stretched torso; the museum describes fine facial contour lines and the use of nail-head-rat-tail and bent-reed drawing in hood and clothing. | Museum record is linked for study. Reproduction rights are not stated; no source image is embedded in Storybook. |
-| [Ren Yi, Scholar on a Rock](https://www.metmuseum.org/art/collection/search/39715?showOnly=openAccess), Met 1986.267.49, ca. 1880 | A scholar resting against a garden rock, walking stick propped in the stone, reading gaze, scalloped contours and patterned robe folds. | Met Public Domain record. Image endpoint was unreliable in this pass; link-only. |
+| [Chen Hongshou, Lady Xuanwen Giving Instruction on the Rites of Zhou](https://www.clevelandart.org/art/1961.89), CMA 1961.89, 1638 | An older woman instructs young scholars. The museum describes elongated, exaggerated faces, fine even iron-wire outlines and brilliant mineral pigments; useful for a future female-character and robe study. | CMA Open Access; the museum states that the work may be copied, modified and distributed without asking permission. Image endpoint was unavailable in this pass; link-only. |
 
 ## Source deconstruction
 
 ### Scholar
 
 - Use the CMA standing scholar for vertical gesture, head-to-body scale, black cap, staff/brush relationship and fine line density.
-- Use Ren Yi's Scholar on a Rock for the quieter reading gaze and the relation between scalloped silhouette and patterned robe folds.
+- Use Ren Yi's Zhong Kui for the composed scholarly gaze and voluminous robe; use Lady Xuanwen for elongated face proportions and the iron-wire line vocabulary.
 - Keep the face long and narrow, with a tapered jaw, fine moustache and separate pointed beard.
 - Keep robe folds directional and sparse enough to preserve the miniature figure's negative space. Do not inflate the source into a generic heroic body.
 
@@ -52,7 +52,7 @@ Create new Chinese-ink character studies from independently researched Ming/Qing
 - Controls: character, expression, intensity, yaw and material detail.
 - Contact sheet: six expressions for the selected source-led character.
 - Reference board: four source cards. Only the CMA and Met Public Domain images are embedded. Tsinghua and the second Met reference remain link-only.
-- The reference cards record the role each source plays: face/beard, pose/prop, garment, line character and gesture.
+- The reference cards record the role each source plays: face/beard, pose/prop, garment, line character and a future female-character reference.
 
 ## Acceptance boundary
 
