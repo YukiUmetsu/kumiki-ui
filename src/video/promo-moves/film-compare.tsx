@@ -14,10 +14,13 @@ import waterMark from "../../../examples/film/assets/water-mark.svg?url";
 import peacockWalk from "../../../examples/film/assets/footage/peacock-walk.mp4?url";
 import peacockCutout from "../../../examples/film/assets/footage/peacock-walk-cutout.webm?url";
 import peacockSlow from "../../../examples/film/assets/footage/peacock-walk-slow4.mp4?url";
+import annabelle from "../../../examples/film/assets/footage/annabelle-dance.mp4?url";
+import annabelleCutout from "../../../examples/film/assets/footage/annabelle-dance-cutout.webm?url";
 
 /** The example pictures and clips, served by Storybook, by ID. */
 export const EXAMPLE_IMAGES: Record<string, string> = { "ice-cave": iceCave, dynjandi, jokulsarlon, seljalandsfoss, "water-mark": waterMark,
-  "peacock-walk": peacockWalk, "peacock-walk-cutout": peacockCutout, "peacock-walk-slow4": peacockSlow };
+  "peacock-walk": peacockWalk, "peacock-walk-cutout": peacockCutout, "peacock-walk-slow4": peacockSlow,
+  "annabelle-dance": annabelle, "annabelle-dance-cutout": annabelleCutout };
 
 /** Every picture of an example (`{ id, src }` with a known ID, wherever it sits) served by Storybook. */
 function serveImages<T>(value: T): T {

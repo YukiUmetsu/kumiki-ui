@@ -19294,6 +19294,23 @@
     "subject": {
      "$ref": "#/$defs/FilmFootageSubject"
     },
+    "echo": {
+     "type": "object",
+     "properties": {
+      "copies": {
+       "type": "number"
+      },
+      "spacing": {
+       "type": "number"
+      },
+      "fade": {
+       "type": "number"
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "A whole-frame echo: earlier frames of the footage over the current one, fading with age, so everything that moves leaves a ghost (VE1.8). `copies` 2 to 12 (default 4), `spacing` 1 to 6 frames (default 2), `fade` 0.3 to 0.9 (default 0.6). For the subject alone, use `subject.trail`."
+    },
     "title": {
      "type": "object",
      "properties": {
@@ -19446,6 +19463,26 @@
       "additionalProperties": false
      },
      "description": "Up to six. `opacity` 0.2 to 1."
+    },
+    "trail": {
+     "type": "object",
+     "properties": {
+      "copies": {
+       "type": "number"
+      },
+      "spacing": {
+       "type": "number"
+      },
+      "fade": {
+       "type": "number"
+      },
+      "tint": {
+       "type": "string"
+      }
+     },
+     "required": [],
+     "additionalProperties": false,
+     "description": "A motion trail: `copies` (2 to 12, default 6) of the subject, `spacing` frames apart (1 to 6, default 2), each `fade` (0.3 to 0.9, default 0.7) as strong as the one before, washed in `tint` (#rrggbb) if given."
     }
    },
    "required": [

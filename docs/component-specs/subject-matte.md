@@ -68,6 +68,27 @@ npm run video:matte -- clip.mp4 --out=clip-cutout.webm [--mask=clip-mask.mp4] [-
 | `subject-behind-no-title` | warning | `behind` without a title |
 | `subject-clones-background` | warning | Clones over a new background float free of the ground they stood on |
 
+## Motion trail and echo
+
+Two kinds (VE1.8), from the echo and afterimage of dance and sports edits ([CapCut](https://www.capcut.com/create/silhouette-duet-motion-trail)).
+
+- **`subject.trail`.** The subject's own cutout from earlier frames, under the live subject: `copies` (2 to 12, default 6), `spacing` frames apart (1 to 6, default 2). Each copy is `fade` (0.3 to 0.9, default 0.7) as strong as the next newer one. A `tint` (#rrggbb) washes the copies 70 % toward one colour, keeping their alpha. `trailCopies()` lists the copies, oldest first.
+- **`echo` on any footage scene.** Earlier frames of the whole picture are laid over the current one, the same counts at half the strength, so the live picture stays clearest. It needs no cutout, and anything that moves leaves a ghost, the camera's sway included.
+
+**Example.** [`examples/film/motion-trail.film.json`](../../examples/film/motion-trail.film.json), on [Annabelle Butterfly Dance](https://commons.wikimedia.org/wiki/File:Annabelle_butterfly_dance_1894.ogv) (W. K. L. Dickson, 1894; CC0, at its own 25 fps, cut out by `video:matte`). Three scenes:
+
+1. a six-copy trail;
+2. an eight-copy trail washed in magenta;
+3. a five-copy whole-frame echo.
+
+Storybook: **Promo Moves → Motion Trail**.
+
+**Evidence (2026-11-18).**
+
+- **Rendered frames** (960×540): the swirling skirt layered in fading copies; the magenta wash behind the live dancer; the whole-frame echo as a soft multiple exposure.
+- **The echo on the peacock.** It barely shows, because the bird moves slowly; an echo needs motion.
+- **Tests** (`tests/subject-matte.test.tsx`): copy spacing and fading, the layer order (oldest copy first, under the subject), the tint filter, echo layers over the footage, and the checks (`subject-trail`, `footage-echo`).
+
 **Rights.** A cutout is a derivative of its footage, so it carries the footage's licence. Record both in `assets/THIRD_PARTY_ASSETS.json`.
 
 ## Example and evidence (2026-11-18)

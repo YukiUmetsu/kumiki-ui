@@ -8,6 +8,7 @@ import { createVideoElementAdapter } from "./frame-clip-adapters";
 import type { ClipFrameAdapter } from "./frame-clip-adapters";
 import type { FilmFootageContent } from "./film-document";
 import type { FilmFootageSubject } from "./film-subject";
+import { trailCopies } from "./film-subject";
 import { freezeGrade } from "./film-freeze-react";
 
 /** The outline around a cutout: its solid part (alpha over about 0.3, so a model's faint haze over shadows gets no line) grown by `px` (a
@@ -34,6 +35,17 @@ const shared = () => adapter ??= createVideoElementAdapter({ url: source => SOUR
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const out3 = (t: number) => 1 - (1 - clamp01(t)) ** 3;
 const FONT = "var(--km-font-display, var(--km-font-body, Inter, ui-sans-serif, system-ui, sans-serif))";
+
+/** A colour wash for trail copies: the copy's own picture mixed 70 % toward `color`, keeping its alpha. */
+function TintFilter({ id, color }: { id: string; color: string }) {
+  return <svg aria-hidden="true" width="0" height="0" style={{ position: "absolute" }}>
+    <filter id={id} colorInterpolationFilters="sRGB">
+      <feFlood floodColor={color} result="ink" />
+      <feComposite in="ink" in2="SourceAlpha" operator="in" result="wash" />
+      <feComposite in="wash" in2="SourceGraphic" operator="arithmetic" k2={.7} k3={.3} />
+    </filter>
+  </svg>;
+}
 
 /** The cutout's placement: the footage's own timing, in the cutout's frames (`offset` into the footage), `delay` frames behind. */
 function cutoutPlacement(subject: FilmFootageSubject, content: FilmFootageContent, durationFrames: number, delay = 0) {
@@ -76,11 +88,15 @@ export function FootageScene({ content, frame, fps, durationFrames, width, heigh
       </p>}
     </>;
   }
+  // A whole-frame echo: earlier frames of the footage over the current one, oldest first; each at half the strength of a trail copy, so
+  // the live picture stays the clearest.
+  const echoes = content.echo ? trailCopies({ copies: content.echo.copies ?? 4, spacing: content.echo.spacing ?? 2, fade: content.echo.fade ?? .6 }) : [];
   const layer: CSSProperties = { position: "absolute", inset: 0 }, framing = { fit: "cover" as const, focus }, push: CSSProperties = { ...layer, transform: `scale(${scale})`, transformOrigin: `${focus.x * 100}% ${focus.y * 100}%` };
   const clip = (key: string, place: typeof placement, description: string, style?: CSSProperties) =>
     <FrameAccurateClip key={key} data-km-footage-layer={key} placement={place} frame={frame} fps={fps} adapter={shared()} width={width} height={height} framing={framing} description={description} style={{ ...layer, ...style }} />;
+  const echoLayers = echoes.map(copy => clip(`echo-${copy.delay}`, { ...placement, id: `${placement.id}-echo-${copy.delay}`, timing: { ...placement.timing, trimIn: placement.timing.trimIn - copy.delay } }, "", { opacity: copy.opacity * .5 }));
   if (!subject) return <div role="img" aria-label={content.label} data-km-footage={v.id} style={{ ...layer, overflow: "hidden", background: "#07090c" }}>
-    <div style={push}>{clip("footage", placement, content.label)}</div>
+    <div style={push}>{clip("footage", placement, content.label)}{echoLayers}</div>
     {words}
   </div>;
   // In a freeze the subject takes a thin light edge, unless it has its own outline.
@@ -88,9 +104,12 @@ export function FootageScene({ content, frame, fps, durationFrames, width, heigh
   const graded = freeze ? freezeGrade(freeze.grade, freeze.amount) : undefined;
   return <div role="img" aria-label={content.label} data-km-footage={v.id} data-km-subject={subject.cutout.id} style={{ ...layer, overflow: "hidden", background: background && "color" in background ? background.color : "#07090c" }}>
     {/* The footage, unless a colour replaces it; blurred when the background is the footage itself, a little larger so the blur's edge stays out. */}
-    {!(background && "color" in background) && <div style={{ ...push, filter: graded }}>{clip("footage", placement, content.label, background && "blur" in background ? { filter: `blur(${background.blur * short}px)`, transform: "scale(1.06)" } : undefined)}</div>}
+    {!(background && "color" in background) && <div style={{ ...push, filter: graded }}>{clip("footage", placement, content.label, background && "blur" in background ? { filter: `blur(${background.blur * short}px)`, transform: "scale(1.06)" } : undefined)}{echoLayers}</div>}
     {subject.behind && words}
     <div aria-hidden="true" style={push} data-km-illustration-region="art">
+      {subject.trail?.tint && <TintFilter id={`${outlineId}-tint`} color={subject.trail.tint} />}
+      {subject.trail && trailCopies(subject.trail).map(copy => clip(`trail-${copy.delay}`, cutoutPlacement(subject, content, durationFrames, copy.delay), "",
+        { opacity: copy.opacity, filter: subject.trail!.tint ? `url(#${outlineId}-tint)` : undefined }))}
       {(subject.clones ?? []).map(clone => clip(`clone-${clone.delay}`, cutoutPlacement(subject, content, durationFrames, clone.delay), "", { opacity: clone.opacity ?? .85 }))}
       {outline && <OutlineFilter id={outlineId} px={(outline.width ?? .006) * short} color={outline.color ?? "#ffffff"} glow={outline.glow ?? 0} />}
       {clip("subject", cutoutPlacement(subject, content, durationFrames), "", outline ? { filter: `url(#${outlineId})` } : undefined)}

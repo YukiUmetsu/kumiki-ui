@@ -248,6 +248,10 @@ export interface FilmFootageContent {
   /** The subject cut out of this footage (`npm run video:matte`): words behind it, an outline, a new background, clones. See
    * `film-subject.ts`. */
   subject?: FilmFootageSubject;
+  /** A whole-frame echo: earlier frames of the footage over the current one, fading with age, so everything that moves leaves a ghost
+   * (VE1.8). `copies` 2 to 12 (default 4), `spacing` 1 to 6 frames (default 2), `fade` 0.3 to 0.9 (default 0.6). For the subject alone, use
+   * `subject.trail`. */
+  echo?: { copies?: number; spacing?: number; fade?: number };
   /** Words over the footage, landing word by word at `at` and leaving at `until` (or the scene's end). */
   title?: { text: string; at: number; until?: number; place?: "top" | "middle" | "bottom";
     /** `giant` fills most of the frame's width: a word or two for a subject to stand in front of (`subject.behind`). */ size?: "large" | "huge" | "giant"; emphasis?: string };
@@ -810,6 +814,9 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
           if (readingWords(title.text) > 7) report("warning", "footage-title-long", at + "/title/text", "Over seven words: footage carries a line, not a paragraph.");
         }
         if (content.subject) for (const item of inspectSubject(content.subject, v, Boolean(title), at + "/subject")) report(item.severity, item.code, item.path, item.message, item.hint);
+        const echo = content.echo;
+        if (echo && !((echo.copies === undefined || (Number.isSafeInteger(echo.copies) && echo.copies >= 2 && echo.copies <= 12)) && (echo.spacing === undefined || (Number.isSafeInteger(echo.spacing) && echo.spacing >= 1 && echo.spacing <= 6))
+          && (echo.fade === undefined || (echo.fade >= .3 && echo.fade <= .9)))) report("error", "footage-echo", at + "/echo", "An echo has 2 to 12 copies, 1 to 6 frames apart, each fading by 0.3 to 0.9.");
       }
       if (!hasProblem(path)) compiled.push({ kind: "footage", recipeId: "footage", id: scene.id, startFrame, endFrame, content,
         cues: [{ id: "start", frame: startFrame }, ...content.title ? [{ id: "title", frame: startFrame + content.title.at }] : []], ...placed(scene, {}, path) });

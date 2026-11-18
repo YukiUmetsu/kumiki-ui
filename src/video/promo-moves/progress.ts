@@ -82,6 +82,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
   { id: "VE1.7", name: "Smooth slow motion", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--smooth-slow-motion",
     what: "Footage slowed 2 to 8 times with new in-between frames (motion-compensated interpolation), with a held-out check of how well it rebuilds real frames.",
     usage: "npm run video:slowmo -- clip.mp4 --out=slow.mp4 --factor=4 --check" },
+  { id: "VE1.8", name: "Motion trail and echo", group: "Animation and type", rank: "P2", status: "built", story: "video-production-promo-moves--motion-trail",
+    what: "Fading copies of the cut-out subject every few frames, plain or washed in a colour; or a whole-frame echo of earlier frames, with no cutout.",
+    usage: '"subject": { …, "trail": { "copies": 6, "spacing": 2, "fade": 0.72, "tint": "#ff3d9a" } } · "echo": { "copies": 5, "spacing": 2 }' },
   { id: "VE1.1", name: "Beat hits", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--beat-hits",
     what: "A punch zoom, a camera shake, an RGB split, a zoom blur or a flash on each beat of a bed with a declared tempo, on its loud onsets, or on moments; patterns combine (punch on the kick, shake on the snare).",
     usage: '"hits": [{ "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } }, { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }] · bed "bpm": 110' },
@@ -116,6 +119,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.8": { registryItem: "film-document", jobs: ["show the path of a move", "dreamy dance look"], keywords: ["motion trail", "echo", "afterimage", "ghost trail", "trail effect", "onion skin",
+    "multiple exposure", "dance edit", "silhouette trail", "time echo", "frame blend"],
+    avoid: "A trail needs a cutout; an echo ghosts the whole picture, camera shake included." },
   "VE1.7": { registryItem: "film-document", jobs: ["slow footage down smoothly"], keywords: ["slow motion", "slowmo", "smooth slow motion", "optical flow", "frame interpolation", "motion interpolation",
     "time remap", "frame blending", "minterpolate", "fps conversion"],
     avoid: "Fast or tangled motion warps; run --check first and slow less if it warns." },

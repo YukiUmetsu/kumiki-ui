@@ -6,6 +6,8 @@
  * - **Background**: the subject over a flat colour, or over its own footage blurred, as if shot on a long lens.
  * - **Clones**: earlier copies of the subject, each `delay` frames of footage behind, over the live picture. They need a camera that does
  *   not move, so each copy stands where the subject stood.
+ * - **Trail** (VE1.8): a motion trail, many close copies a few frames apart, fading with age, optionally washed in one colour: the
+ *   echo or afterimage of dance and sports edits ([CapCut](https://www.capcut.com/create/silhouette-duet-motion-trail)).
  *
  * Practice: text behind a subject, a stroke around a cut-out subject, background removal and the clone effect are one-tap tools in
  * short-form editors ([Adobe](https://www.adobe.com/learn/premiere-pro/web/text-behind-subject-object-mask),
@@ -20,10 +22,19 @@ export interface FilmFootageSubject {
   background?: { color: string } | { blur: number };
   /** Up to six. `opacity` 0.2 to 1. @default 0.85 */
   clones?: ReadonlyArray<{ delay: number; opacity?: number }>;
+  /** A motion trail: `copies` (2 to 12, default 6) of the subject, `spacing` frames apart (1 to 6, default 2), each `fade` (0.3 to 0.9,
+   * default 0.7) as strong as the one before, washed in `tint` (#rrggbb) if given. */
+  trail?: { copies?: number; spacing?: number; fade?: number; tint?: string };
 }
 export interface SubjectProblem { severity: "error" | "warning"; code: string; path: string; message: string; hint?: string }
 
 const COLOR = /^#[0-9a-f]{6}$/i;
+/** The trail's copies, oldest first: how many frames behind each is, and its opacity. */
+export function trailCopies(trail: NonNullable<FilmFootageSubject["trail"]>): Array<{ delay: number; opacity: number }> {
+  const copies = trail.copies ?? 6, spacing = trail.spacing ?? 2, fade = trail.fade ?? .7;
+  return Array.from({ length: copies }, (_, i) => ({ delay: (copies - i) * spacing, opacity: Math.round(fade ** (copies - i) * 1000) / 1000 }));
+}
+
 /** Checks a subject against its footage (`video`). */
 export function inspectSubject(subject: FilmFootageSubject, video: { width: number; height: number; fps: number; frameCount: number }, hasTitle: boolean, path: string): SubjectProblem[] {
   const problems: SubjectProblem[] = [], say = (severity: SubjectProblem["severity"], code: string, at: string, message: string, hint?: string) => problems.push({ severity, code, path: path + at, message, hint });
@@ -56,5 +67,12 @@ export function inspectSubject(subject: FilmFootageSubject, video: { width: numb
     if (clone.opacity !== undefined && !(clone.opacity >= .2 && clone.opacity <= 1)) say("error", "subject-clones", `/clones/${i}/opacity`, "A clone's opacity runs from 0.2 to 1.");
   });
   if (clones.length && background) say("warning", "subject-clones-background", "/clones", "Clones over a new background float free of the ground they stood on.");
+  const trail = subject.trail;
+  if (trail) {
+    if (trail.copies !== undefined && !(Number.isSafeInteger(trail.copies) && trail.copies >= 2 && trail.copies <= 12)) say("error", "subject-trail", "/trail/copies", "A trail has 2 to 12 copies.");
+    if (trail.spacing !== undefined && !(Number.isSafeInteger(trail.spacing) && trail.spacing >= 1 && trail.spacing <= 6)) say("error", "subject-trail", "/trail/spacing", "Trail copies are 1 to 6 frames apart.");
+    if (trail.fade !== undefined && !(trail.fade >= .3 && trail.fade <= .9)) say("error", "subject-trail", "/trail/fade", "A trail fades by 0.3 to 0.9 a copy.");
+    if (trail.tint !== undefined && !COLOR.test(trail.tint)) say("error", "subject-trail", "/trail/tint", "A trail tint is #rrggbb.");
+  }
   return problems;
 }
