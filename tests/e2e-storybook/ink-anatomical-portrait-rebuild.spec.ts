@@ -144,7 +144,8 @@ test("experimental 96-frame ANAT2 actor is transparent, motion-safe and foregrou
     await expect(film.locator('[data-km-shanshui-scene="misty-hermit"]')).toBeVisible();
     await expect(actor.locator("[data-km-ink-standing-figure]"))
       .toHaveAttribute("data-km-ink-standing-paper","transparent");
-    await expect(actor.locator('[data-km-ink-native-robe-brush]')).toHaveCount(4);
+    await expect(actor.locator("[data-km-ink-standing-figure] [data-km-ink-standing-pressure]")).toHaveCount(6);
+    expect(await actor.locator("[data-km-ink-standing-figure] [data-km-ink-standing-bristle]").count()).toBeGreaterThan(30);
     await film.screenshot({animations:"disabled",
       path:info.outputPath("anat2-native-shanshui-actor-frame00-960x540.png")});
     const seek=page.getByRole("slider",{name:"Ink ANAT2 film seek"});
@@ -192,6 +193,7 @@ test("ANAT2 original standing scholar preserves all planted supports at 1x while
     await expect(figure.locator('[data-km-ink-standing-pressure]')).toHaveCount(6);
     await expect(figure.locator('[data-km-ink-garment-flow]')).toHaveCount(82);
     await expect(figure.locator('[data-km-ink-garment-dry-lift]')).toHaveCount(46);
+    expect(await figure.locator("[data-km-ink-standing-bristle]").count()).toBeGreaterThan(30);
     const feet=figure.locator('[data-km-ink-foot]');
     const original=await Promise.all([feet.nth(0).boundingBox(),feet.nth(1).boundingBox()]);
     await live.screenshot({animations:"disabled",
