@@ -3343,7 +3343,7 @@
       "name": "riso-print",
       "type": "registry:ui",
       "title": "Risograph Spot-Ink Printing",
-      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, native per-drum paper-locked ink contact fissures/pinholes, authored registration and halftone screening, paper-grain, source-native dry-brush gradients, sheet-feed transition, and native spot-ink overprint. Independent original vector masters and FilmStage motion remain intact; optional zero-effect contact cannot replace physical press measurements. Adds an original-frame print-to-print paper collage transition with four physically oriented tear directions, source-native SVG cellulose fibres, paper-lip relief and synchronized independent ink drums. RISO77 adds a full-vector independent spot-ink paper rostrum with depth-sorted original contour masks, stop-motion exposure cadence, shared camera/lamp, and stable physical ink registration. Original single-continuous-source accordion zine print unfolds through alternating 3–8 connected scored panels, paper-native cellulose scuffs, preserved vector inks, optional physical page relief and exact original fully open frame. RISO79 composes separately printed complete cover and underlay masters as native cut-paper windows: fixed 88-fibre paper rims, true source-locked slider translation, and 24fps seek-safe kinetic reveal. RISO80 adds source-authored organic die-cut contours: one bounded, clockwise, closed M/L/C/Q/Z silhouette per window, validated for bounds and self-contact, with deterministic arc-length cellulose microfibrils.",
+      "description": "Two- or three-plate spot-ink compositor with absolute-frame printing, multiply overprint, native per-drum paper-locked ink contact fissures/pinholes, authored registration and halftone screening, paper-grain, source-native dry-brush gradients, sheet-feed transition, and native spot-ink overprint. Independent original vector masters and FilmStage motion remain intact; optional zero-effect contact cannot replace physical press measurements. Adds an original-frame print-to-print paper collage transition with four physically oriented tear directions, source-native SVG cellulose fibres, paper-lip relief and synchronized independent ink drums. RISO77 adds a full-vector independent spot-ink paper rostrum with depth-sorted original contour masks, stop-motion exposure cadence, shared camera/lamp, and stable physical ink registration. Original single-continuous-source accordion zine print unfolds through alternating 3–8 connected scored panels, paper-native cellulose scuffs, preserved vector inks, optional physical page relief and exact original fully open frame. RISO79 composes separately printed complete cover and underlay masters as native cut-paper windows: fixed 88-fibre paper rims, true source-locked slider translation, and 24fps seek-safe kinetic reveal. RISO80 adds source-authored organic die-cut contours: one bounded, clockwise, closed M/L/C/Q/Z silhouette per window, validated for bounds and self-contact, with deterministic arc-length cellulose microfibrils. RISO81 adds a source-native interleaved paper-slat reveal: one rigid pull comb, ordered horizontal/vertical strips, alternating depth lanes, bounded overlap and travel, slot-clearance checks, and deterministic 24fps FilmStage motion.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -3481,6 +3481,16 @@
           "path": "registry/video/riso-path-geometry.ts",
           "type": "registry:ui",
           "target": "components/video/riso-path-geometry.ts"
+        },
+        {
+          "path": "registry/video/riso-slat-reveal.ts",
+          "type": "registry:ui",
+          "target": "components/video/riso-slat-reveal.ts"
+        },
+        {
+          "path": "registry/video/riso-slat-reveal-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/riso-slat-reveal-react.tsx"
         }
       ]
     },
