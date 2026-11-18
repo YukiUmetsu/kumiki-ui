@@ -92,6 +92,8 @@ const DIRECTED: readonly MaterialKind[] = ["refract", "peel"];
 
 export const MATERIAL_KINDS: readonly MaterialKind[] = ["bleed", "burn", "paint", "frost", "refract", "shatter", "peel", "tear", "ripple", "melt"];
 export const MATERIAL_SHAPES: readonly MaterialShape[] = ["circle", "diamond", "square", "star"];
+/** The grid that cell-sized details are tuned on. */
+const REFERENCE_COLS = 384;
 /** Default length of each material, frames at 30 fps: capillary and burning fronts read slower than a matte. */
 export const MATERIAL_FRAMES: Readonly<Record<MaterialKind, number>> = { bleed: 40, burn: 44, paint: 36, frost: 48, ...GLASS_FRAMES, ...PAPER_FRAMES, ...LIQUID_FRAMES };
 const DEFAULT_COLOR: Record<FrontKind, string> = { bleed: "#162033", burn: "#15110f", paint: "#ffffff", frost: "#e8eef2" };
@@ -260,6 +262,9 @@ export function planMaterial(spec: MaterialSpec, cols: number, rows: number, asp
 
 function planFront(spec: MaterialSpec & { material: FrontKind }, cols: number, rows: number, aspect: number, seed: number): FrontPlan {
   const color = spec.color ?? DEFAULT_COLOR[spec.material];
+  // Cell-sized details (droplets, paint wobble) are tuned on a 384-column grid and scale with the grid, so a finer grid
+  // for a larger output draws the same material, only sharper.
+  const unit = cols / REFERENCE_COLS;
   const n = cols * rows;
   const grainField = new Float32Array(n);
   const angle = ((spec.grain ?? 90) * Math.PI) / 180;
@@ -332,11 +337,11 @@ function planFront(spec: MaterialSpec & { material: FrontKind }, cols: number, r
       const y = (j + 0.5) / rows;
       for (let i = 0; i < cols; i++) {
         const a = amp * fingers[i];
-        const wobble = 0.006 * (fbm(i * 0.4, j * 0.08, seed + 7, 3) - 0.5);
+        const wobble = 0.006 * (fbm((i * 0.4) / unit, (j * 0.08) / unit, seed + 7, 3) - 0.5);
         // Solve a·t² + v·t − y = 0 for t ≥ 0.
         const t = Math.abs(a) < 1e-6 ? y / v : (-v + Math.sqrt(Math.max(0, v * v + 4 * a * y))) / (2 * a);
         arrival[i + j * cols] = Math.min(1, Math.max(0, t + wobble));
-        grainField[i + j * cols] = fbm(i * 0.35, j * 0.05, seed + 13, 3);
+        grainField[i + j * cols] = fbm((i * 0.35) / unit, (j * 0.05) / unit, seed + 13, 3);
       }
     }
     return { material: "paint", cols, rows, aspect, arrival, grainField, fingers, color, seed };
@@ -352,13 +357,13 @@ function planFront(spec: MaterialSpec & { material: FrontKind }, cols: number, r
   }
   const arrival = frontArrival(speed, cols, rows, aspect, origins, 1, 0, spec.shape, 0.4);
   // Breath-figure droplets: a jittered lattice, sizes spread like a coalesced population.
-  const pitch = 2.2;
+  const pitch = 2.2 * unit;
   const list: number[] = [];
   for (let gy = 0; gy < rows / pitch; gy++) {
     for (let gx = 0; gx < cols / pitch; gx++) {
       const x = (gx + hash(gx, gy, seed + 40)) * pitch, y = (gy + hash(gx, gy, seed + 41)) * pitch;
       const r = hash(gx, gy, seed + 42);
-      list.push(x, y, 0.35 + 1.25 * r * r, hash(gx, gy, seed + 43));
+      list.push(x, y, (0.35 + 1.25 * r * r) * unit, hash(gx, gy, seed + 43));
     }
   }
   return { material: "frost", cols, rows, aspect, arrival, grainField, droplets: Float32Array.from(list), color, seed };

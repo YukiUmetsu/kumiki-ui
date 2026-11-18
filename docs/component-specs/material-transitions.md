@@ -136,8 +136,10 @@ for those images to decode, so every frame renders the same in any seek order.
 
 ## Limits
 
-- Fronts and warps are grids. The stage solves fields at 384 columns, about 2.5 px per cell at 960 px. A fibre or
-  droplet is about three cells, and piece edges are crisp only where a clip ring or a vector line draws them.
+- Fronts and warps are grids. The stage scales the grid with the output: cells of about 2.5 px, from 384 columns at
+  960 px to 768 at 1920 px, capped at 1024 columns (3.75 px cells at 4K). Cell-sized details (droplets, paint wobble)
+  scale with the grid, so a larger output draws the same material, only sharper. Piece edges are crisp where a clip
+  ring or a vector line draws them.
 - The paint drip is the analytic fingering front, not a fluid simulation. Drips do not merge or branch. The same holds
   for melt: it is a draining film with drips, not a free-surface simulation.
 - Frost's swap happens behind frost that is fully formed but not opaque. Scenes very different in brightness show as a
@@ -164,6 +166,8 @@ for those images to decode, so every frame renders the same in any seek order.
     stays whole, and the halves leave the frame;
   - the ripple's revealed radius grows in step with time (group velocity), the water ahead is still, and it calms at the
     end; melt drains from the top first and leaves nothing on screen at the end;
+  - the same coverage, within 3%, on a 384- and a 768-column grid for every material, and frost droplets that keep
+    their size in the frame;
   - the material checks, and every example film compiling (with a mark refused).
 - `npm run film:seek -- examples/film/material-glass.film.json --only=draft --frames=240,110,240,236,110,240`: the
   same pixels in any seek order and on a fresh page.

@@ -210,4 +210,17 @@ describe("material transitions", () => {
     expect(film.ok).toBe(true);
     if (film.ok) expect(Object.values(film.film.mattes).map((m) => m.texture)).toEqual(["ripple", "melt", "ripple", "melt"]);
   });
+
+  it("draws the same material on a finer grid for a larger output", () => {
+    // The stage scales the grid with the output (384 columns at 960 px, 768 at 1920 px): coverage must not change with it.
+    const aspect = 16 / 9, coverage = (f: ReturnType<typeof materialFrame>) => f.warpOut?.owner ? f.warpOut.owner.filter((o) => o >= 0).length / f.warpOut.owner.length : mean(f.reveal);
+    for (const material of ["bleed", "burn", "paint", "frost", "refract", "shatter", "peel", "tear", "ripple"] as MaterialKind[]) {
+      const at = (cols: number) => coverage(materialFrame(planMaterial({ material, seed: 3, origins: [{ x: 0.45, y: 0.5 }], seconds: 1.4 }, cols, Math.round((cols * 9) / 16), aspect), 0.5));
+      expect(Math.abs(at(384) - at(768)), material).toBeLessThan(0.03);
+    }
+    // Frost droplets keep their size in the frame: about as many per frame at either grid.
+    const drops = (cols: number) => (planMaterial({ material: "frost", seed: 2 }, cols, Math.round((cols * 9) / 16), aspect).droplets!.length / 4);
+    expect(drops(768) / drops(384)).toBeGreaterThan(0.85);
+    expect(drops(768) / drops(384)).toBeLessThan(1.15);
+  });
 });

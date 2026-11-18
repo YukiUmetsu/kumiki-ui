@@ -156,8 +156,9 @@ function whipFrame(direction: "left" | "right" | "up" | "down", progress: number
   const blur = Math.sin(Math.PI * t) ** 2 * .018 * reach, k = 1 + 3 * blur / Math.min(width, height), ox = (1 - k) * width / 2, oy = (1 - k) * height / 2;
   return { outgoing: { a: k, b: 0, c: 0, d: k, e: ox + dx * reach * e, f: oy + dy * reach * e }, incoming: { a: k, b: 0, c: 0, d: k, e: ox - dx * reach * (1 - e), f: oy - dy * reach * (1 - e) }, blur };
 }
-/** Resolution of a material's fields across the frame: fine enough for paper fibres and droplets. */
-const MATERIAL_COLS = 384;
+/** Resolution of a material's fields across the frame: cells of about 2.5 px, fine enough for paper fibres and droplets,
+ * from 384 columns at 960 px wide up to 1024 at 2560 px and wider (a 4K frame gets 3.75 px cells). */
+const materialCols = (width: number) => Math.min(1024, Math.max(384, Math.round(width / 2.5)));
 /** The material behind a transition into `sceneId`: a material matte, or a shape opened through a material. `seconds` is the transition's
  * length, for materials that move at real rates. */
 function materialSpecFor(film: CompiledFilm, sceneId: string, seconds: number): MaterialSpec | undefined {
@@ -299,13 +300,13 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   // A material transition (a material matte, or a shape opened through a material) is solved once per transition: its
   // fronts come from an eikonal solve that is too costly to repeat each frame. Reduced motion keeps the dissolve.
   const materialKey = state.transition && !reduce ? state.transition.toShotId : undefined;
-  const materialRows = Math.max(2, Math.round(MATERIAL_COLS * film.height / film.width));
+  const MATERIAL_COLS = materialCols(film.width), materialRows = Math.max(2, Math.round(MATERIAL_COLS * film.height / film.width));
   const materialSeconds = window ? (window.endFrame - window.startFrame) / fpsValue : 0;
   const materialPlan = useMemo(() => {
     if (!materialKey) return undefined;
     const spec = materialSpecFor(film, materialKey, materialSeconds);
     return spec ? planMaterial(spec, MATERIAL_COLS, materialRows, film.width / film.height) : undefined;
-  }, [film, materialKey, materialRows, materialSeconds]);
+  }, [film, materialKey, MATERIAL_COLS, materialRows, materialSeconds]);
   const warpId = "km-film-warp-" + useId().replace(/[^a-zA-Z0-9]/g, "");
   const material = materialPlan ? (() => {
     const frame = materialFrame(materialPlan, state.transition!.progress);
