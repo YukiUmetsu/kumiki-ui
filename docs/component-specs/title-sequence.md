@@ -38,12 +38,22 @@ The ground is paper, with a fine grain multiplied over it and the pieces. Each p
 - A line's type size is its box's height (78% for the title, 70% for a credit).
 - A piece the colour of the ground cuts a streak or a window into the pieces under it, as in paper.
 
+## Sculpted titles (MC1.2)
+
+`"sculpt": { "style": "cut-card" }` on the title (or a credit) makes the line as physical letters, shaded from each letter's distance field ([Sculptural Type](sculptural-type.md)):
+- `cut-card`: letters cut from card and set down one by one after the pieces, each with its shadow tucking in;
+- `letterpress`: pressed into the paper and inked;
+- `embossed`: raised in foil;
+- `chiselled`: V-cut into the ground.
+
+A letter lands every 2 frames and settles in 6, on the sequence's cadence; the reading-time checks count that landing. `color` (#rrggbb) and `depth` (em, up to 0.3) are optional. **Storybook:** Video production → Title Sequence → `SculptedTitle`, with a switch for the four styles.
+
 ## Checks
 
 | Code | Severity | What it catches |
 |---|---|---|
 | `title-canvas`, `title-symbol`, `title-text` | error | No canvas, no pieces, no title |
-| `title-id`, `title-shape`, `title-box`, `title-order` | error | A missing or repeated ID; a piece off the canvas or under three points; a text box off the canvas; anything outside the scene |
+| `title-id`, `title-shape`, `title-box`, `title-order`, `title-sculpt` | error | A missing or repeated ID; a piece off the canvas or under three points; a text box off the canvas; anything outside the scene |
 | `title-short` | error | The last line cannot be read before the scene ends |
 | `title-many-pieces` | warning | More than twelve pieces: a picture, not a symbol |
 | `title-before-symbol` | warning | The title arrives before the symbol is whole |

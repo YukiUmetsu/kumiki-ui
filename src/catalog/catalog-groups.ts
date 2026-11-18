@@ -138,6 +138,8 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "mask-reveal": "Motion engine",
   "shape-morph": "Motion engine",
   "shape-morph-three": "Motion engine",
+  "sculptural-type": "Motion engine",
+  "sculptural-type-three": "Motion engine",
   "shared-element": "Motion engine",
   "motion-react": "Motion engine",
   "motion-director": "Motion engine",

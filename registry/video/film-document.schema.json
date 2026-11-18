@@ -17922,6 +17922,9 @@
     },
     "color": {
      "type": "string"
+    },
+    "sculpt": {
+     "$ref": "#/$defs/TitleSculpt"
     }
    },
    "required": [
@@ -17952,6 +17955,31 @@
     "y",
     "width",
     "height"
+   ],
+   "additionalProperties": false
+  },
+  "TitleSculpt": {
+   "type": "object",
+   "properties": {
+    "style": {
+     "enum": [
+      "cut-card",
+      "letterpress",
+      "embossed",
+      "chiselled"
+     ]
+    },
+    "color": {
+     "type": "string",
+     "description": "Card, ink or foil colour as #rrggbb. Default: the line's colour (foil: a warm gold)."
+    },
+    "depth": {
+     "type": "number",
+     "description": "Relief depth or card thickness, in em. Default per style."
+    }
+   },
+   "required": [
+    "style"
    ],
    "additionalProperties": false
   },

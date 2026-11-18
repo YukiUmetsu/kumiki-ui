@@ -9,6 +9,7 @@
  * Pure functions of the frame.
  */
 import { readingSeconds, readingWords } from "./film-cards";
+import { segmentText } from "../motion/kinetic-text";
 
 export type TitlePoint = readonly [number, number];
 export interface TitleBox { x: number; y: number; width: number; height: number }
@@ -26,7 +27,44 @@ export interface TitleShape {
   /** How rough its cut edge is, 0 (a clean cut) to 1 (torn). @default 0.4 */
   rough?: number;
 }
-export interface TitleText { text: string; at: number; box: TitleBox; align?: "start" | "middle" | "end"; color?: string }
+/**
+ * A title made as physical letters (sculptural typography, MC1.2), shaded from each letter's distance field:
+ * - `cut-card`: letters cut from card, set down one by one with their shadow, as the pieces are;
+ * - `letterpress`: letters pressed into the paper and inked;
+ * - `embossed`: letters raised out of the paper in foil;
+ * - `chiselled`: letters V-cut into the ground, as in stone.
+ */
+export interface TitleSculpt {
+  style: "cut-card" | "letterpress" | "embossed" | "chiselled";
+  /** Card, ink or foil colour as #rrggbb. Default: the line's colour (foil: a warm gold). */
+  color?: string;
+  /** Relief depth or card thickness, in em. Default per style. */
+  depth?: number;
+}
+export interface TitleText { text: string; at: number; box: TitleBox; align?: "start" | "middle" | "end"; color?: string; sculpt?: TitleSculpt }
+
+/** A sculpted letter lands every `SCULPT_LETTER_STEP` frames and settles in `SCULPT_LETTER_FRAMES`. */
+export const SCULPT_LETTER_STEP = 2, SCULPT_LETTER_FRAMES = 6;
+const SCULPT_STYLES: readonly TitleSculpt["style"][] = ["cut-card", "letterpress", "embossed", "chiselled"];
+
+/** The letters of a line that carry ink (spaces excluded), in order. */
+export const sculptedLetterCount = (text: string) => segmentText(text, "grapheme").filter(g => /\S/u.test(g)).length;
+
+export interface SculptedLetterState { visible: boolean; amount: number; lift: number; scale: number }
+/** How far each sculpted letter of a line has landed at a drawn frame. Pure; `reducedMotion` shows them finished. */
+export function sculptedLetters(line: TitleText, f: number, reducedMotion = false): SculptedLetterState[] {
+  const style = line.sculpt?.style ?? "cut-card", count = sculptedLetterCount(line.text);
+  return Array.from({ length: count }, (_, k) => {
+    if (reducedMotion) return { visible: f >= line.at, amount: 1, lift: 0, scale: 1 };
+    const t = (f - line.at - k * SCULPT_LETTER_STEP) / SCULPT_LETTER_FRAMES;
+    if (t < 0) return { visible: false, amount: 0, lift: 0, scale: 1 };
+    const e = 1 - (1 - Math.min(1, t)) ** 3;
+    // A card is set down from a little above the table; an impression or a cut deepens with a slight kiss.
+    return style === "cut-card"
+      ? { visible: true, amount: 1, lift: 0.22 * (1 - e), scale: 0.88 + 0.12 * e }
+      : { visible: true, amount: e * (1 + 0.12 * Math.sin(Math.PI * e)), lift: 0, scale: 1 };
+  });
+}
 export interface TitleSequenceContent {
   /** What the sequence shows, for a screen reader. */
   label: string;
@@ -76,6 +114,8 @@ export function compileTitleSequence(content: TitleSequenceContent, durationFram
   });
   for (const [path, line] of [["/title", title] as const, ...credits.map((item, i) => [`/credits/${i}`, item] as const)]) {
     const b = line.box;
+    if (line.sculpt && (!SCULPT_STYLES.includes(line.sculpt.style) || (line.sculpt.color !== undefined && !/^#[0-9a-f]{6}$/i.test(line.sculpt.color)) || (line.sculpt.depth !== undefined && !(line.sculpt.depth > 0 && line.sculpt.depth <= 0.3))))
+      say("error", "title-sculpt", path + "/sculpt", "A sculpted line needs a style (cut-card, letterpress, embossed or chiselled), an optional #rrggbb colour and a depth up to 0.3 em.");
     if (!(b && b.width > 0 && b.height > 0 && inside([b.x, b.y]) && inside([b.x + b.width, b.y + b.height]))) say("error", "title-box", path + "/box", "Text is set in a box on the canvas.");
     if (!(Number.isSafeInteger(line.at) && line.at >= 0 && line.at < durationFrames)) say("error", "title-order", path + "/at", "Text arrives inside the scene.");
   }
@@ -90,7 +130,8 @@ export function compileTitleSequence(content: TitleSequenceContent, durationFram
   // Each line holds for its reading time before the next arrives, and the last before the scene ends.
   const lines = [title, ...credits].map((line, i) => ({ line, path: i ? `/credits/${i - 1}` : "/title" })).sort((a, b) => a.line.at - b.line.at);
   lines.forEach(({ line, path }, i) => {
-    const words = line.text.split(/\s+/).filter(Boolean).length, landed = line.at + (words - 1) * 3, until = lines[i + 1]?.line.at ?? durationFrames, need = readingSeconds(line.text) + (i === lines.length - 1 ? .6 : 0);
+    const words = line.text.split(/\s+/).filter(Boolean).length, until = lines[i + 1]?.line.at ?? durationFrames, need = readingSeconds(line.text) + (i === lines.length - 1 ? .6 : 0);
+    const landed = line.sculpt ? line.at + (sculptedLetterCount(line.text) - 1) * SCULPT_LETTER_STEP + SCULPT_LETTER_FRAMES : line.at + (words - 1) * 3;
     if ((until - landed) / fps < need) say(i === lines.length - 1 ? "error" : "warning", i === lines.length - 1 ? "title-short" : "title-rushed", path + "/at",
       `"${line.text}" is up for ${((until - landed) / fps).toFixed(1)} s before ${i === lines.length - 1 ? "the scene ends" : "the next line"}; it needs about ${need.toFixed(1)} s.`);
   });
@@ -109,7 +150,7 @@ export function titleFrame(plan: TitlePlan, frame: number, reducedMotion = false
     return { shape, dx, dy, turn, scale, lifted: rest };
   });
   const words = (line: TitleText) => Math.max(0, Math.min(line.text.split(/\s+/).filter(Boolean).length, Math.floor((f - line.at) / 3) + 1));
-  return { pieces, title: words(content.title), credits: (content.credits ?? []).map(words) };
+  return { pieces, title: words(content.title), credits: (content.credits ?? []).map(words), drawn: f };
 }
 
 export function titleCues(plan: TitlePlan): Array<{ id: string; frame: number }> {
