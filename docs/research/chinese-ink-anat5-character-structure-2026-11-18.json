@@ -1,0 +1,877 @@
+{
+  "schema_version": 6,
+  "character": "ANAT5 source-led Ming/Qing Chinese ink portraits",
+  "reference_study": "docs/research/chinese-ink-anat5-reference-study-2026-11-18.json",
+  "production_method": "procedural-svg",
+  "required_parts": [
+    "scholar-root",
+    "scholar-head",
+    "scholar-face",
+    "scholar-eyes",
+    "scholar-nose-mouth",
+    "scholar-cap",
+    "scholar-moustache",
+    "scholar-beard",
+    "scholar-robe",
+    "writer-root",
+    "writer-head",
+    "writer-face",
+    "writer-eyes",
+    "writer-nose-mouth",
+    "writer-hair",
+    "writer-ornament",
+    "writer-collar",
+    "writer-robe",
+    "attendant-root",
+    "attendant-head",
+    "attendant-face",
+    "attendant-eyes",
+    "attendant-nose-mouth",
+    "attendant-hair",
+    "attendant-pin",
+    "attendant-collar",
+    "attendant-robe",
+    "paper-material"
+  ],
+  "parts": [
+    {
+      "id": "scholar-root",
+      "parent": null,
+      "representation": "group",
+      "bbox": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "reference_ids": [
+        "met-55.37-rightmost-sitter"
+      ],
+      "construction": "Master character root; preserve the source three-quarter facing and full bust placement.",
+      "details": {
+        "primary": "source-matched head/robe silhouette",
+        "secondary": "head-to-shoulder mass",
+        "tertiary": "cap, beard and textile marks"
+      },
+      "topology": "All scholar parts remain connected to this root; head, beard and robe are separate overlapping layers.",
+      "contour_plan": "Align head and robe envelope to the rightmost anonymous sitter in Met 55.37 IIIF 161536.",
+      "layering_plan": "Paper -> robe -> neck -> face -> beard -> cap/ear details; preserve hidden overlaps."
+    },
+    {
+      "id": "scholar-head",
+      "parent": "scholar-root",
+      "representation": "mesh-3d",
+      "bbox": [
+        0.28,
+        0.02,
+        0.73,
+        0.56
+      ],
+      "pivot": [
+        0.51,
+        0.35
+      ],
+      "reference_ids": [
+        "met-55.37-rightmost-sitter"
+      ],
+      "construction": "ANAT1 is a deformable understructure only; source-authored contour defines the visible skull, temple, cheek and jaw.",
+      "details": {
+        "primary": "three-quarter head silhouette",
+        "secondary": "cheek and jaw planes",
+        "tertiary": "temple, ear and hairline marks"
+      },
+      "topology": "Keep face contour, cap, ears, neck and beard as separate semantic paths; verify near/far feature visibility.",
+      "contour_plan": "Source crop anchors at cap corners, temple inflection, zygion, gonion and menton; do not use the raw generic oval as final contour.",
+      "layering_plan": "Head under cap; ear behind face; beard overlays lower cheek/chin; neck attaches under gonion and menton."
+    },
+    {
+      "id": "scholar-face",
+      "parent": "scholar-head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.34,
+        0.18,
+        0.67,
+        0.51
+      ],
+      "pivot": [
+        0.5,
+        0.34
+      ],
+      "reference_ids": [
+        "met-55.37-rightmost-sitter"
+      ],
+      "construction": "Source-specific face plane and outer contour over ANAT1 landmarks; maintain the source three-quarter view.",
+      "details": {
+        "primary": "face contour",
+        "secondary": "malar, nasal and jaw planes",
+        "tertiary": "eyelid and philtrum marks"
+      },
+      "topology": "Independent left/right face planes and contour breaks; preserve asymmetry.",
+      "contour_plan": "Cubic curves follow temple, cheek fullness, jaw taper and chin; avoid one smooth ellipse.",
+      "layering_plan": "Skin base -> cheek/temple wash -> nose and under-eye wash -> feature marks -> beard overlap."
+    },
+    {
+      "id": "scholar-eyes",
+      "parent": "scholar-face",
+      "representation": "vector-2d",
+      "bbox": [
+        0.38,
+        0.25,
+        0.63,
+        0.36
+      ],
+      "pivot": [
+        0.5,
+        0.3
+      ],
+      "reference_ids": [
+        "met-55.37-rightmost-sitter"
+      ],
+      "construction": "Separate near/far narrow eye openings with independent upper/lower lids and brow roots.",
+      "details": {
+        "primary": "source-shaped eye apertures",
+        "secondary": "lid rims and folds",
+        "tertiary": "tear corners and iris accents"
+      },
+      "topology": "Near/far eye curves remain distinct under yaw and blink.",
+      "contour_plan": "Two non-identical almond openings with tapered corners; upper lid carries more weight than lower.",
+      "layering_plan": "Brow -> orbital wash -> upper lid -> iris/pupil -> lower lid."
+    },
+    {
+      "id": "scholar-nose-mouth",
+      "parent": "scholar-face",
+      "representation": "vector-2d",
+      "bbox": [
+        0.43,
+        0.31,
+        0.57,
+        0.47
+      ],
+      "pivot": [
+        0.5,
+        0.39
+      ],
+      "reference_ids": [
+        "met-55.37-rightmost-sitter"
+      ],
+      "construction": "Nose bridge, alar wings, nostrils, philtrum and small mouth tied to ANAT1 anchors.",
+      "details": {
+        "primary": "nose and mouth junction",
+        "secondary": "alar and vermilion planes",
+        "tertiary": "nostril and lip-edge accents"
+      },
+      "topology": "Nose, moustache and lips overlap in correct order; no floating line marks.",
+      "contour_plan": "Use source-scale soft bridge and tip shapes, with small asymmetric nostrils.",
+      "layering_plan": "Nose wash -> alar shadow -> philtrum -> upper/lower lip -> moustache."
+    },
+    {
+      "id": "scholar-cap",
+      "parent": "scholar-head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.24,
+        0,
+        0.77,
+        0.28
+      ],
+      "pivot": [
+        0.5,
+        0.14
+      ],
+      "reference_ids": [
+        "met-55.37-rightmost-sitter"
+      ],
+      "construction": "Separate tall squared cap with softened crown corners, front panel, side seams and woven lower band.",
+      "details": {
+        "primary": "cap silhouette",
+        "secondary": "front panel and side seams",
+        "tertiary": "weave and dry-brush edge"
+      },
+      "topology": "Crown, front panel and side edges overlap without rectangular sticker corners.",
+      "contour_plan": "Use independent curved crown and side contours from the selected sitter.",
+      "layering_plan": "Cap silhouette -> panel -> side seam -> band -> sparse cloth fibers."
+    },
+    {
+      "id": "scholar-moustache",
+      "parent": "scholar-face",
+      "representation": "vector-2d",
+      "bbox": [
+        0.39,
+        0.37,
+        0.61,
+        0.45
+      ],
+      "pivot": [
+        0.5,
+        0.4
+      ],
+      "reference_ids": [
+        "met-55.37-rightmost-sitter"
+      ],
+      "construction": "Two independently rooted moustache lobes with directional taper.",
+      "details": {
+        "primary": "moustache mass",
+        "secondary": "left/right flow",
+        "tertiary": "fine edge fibers"
+      },
+      "topology": "Moustache remains separate from lips and beard substrate.",
+      "contour_plan": "Asymmetric upper-lip lobes with tapered outer tips.",
+      "layering_plan": "Upper lip shadow -> moustache mass -> fine fibers."
+    },
+    {
+      "id": "scholar-beard",
+      "parent": "scholar-face",
+      "representation": "vector-2d",
+      "bbox": [
+        0.37,
+        0.4,
+        0.64,
+        0.65
+      ],
+      "pivot": [
+        0.5,
+        0.47
+      ],
+      "reference_ids": [
+        "met-55.37-rightmost-sitter"
+      ],
+      "construction": "Cheek-attached beard roots, chin substrate and independent tapered strands.",
+      "details": {
+        "primary": "cheek-to-chin mass",
+        "secondary": "split flow and strand groups",
+        "tertiary": "root variation and lift tips"
+      },
+      "topology": "No detached triangular beard sticker; roots attach to both cheeks and chin.",
+      "contour_plan": "Separate left/right cheek boundaries and central chin taper; preserve source three-quarter asymmetry.",
+      "layering_plan": "Cheek root wash -> chin substrate -> strand groups -> sparse lifted ends."
+    },
+    {
+      "id": "scholar-robe",
+      "parent": "scholar-root",
+      "representation": "vector-2d",
+      "bbox": [
+        0.02,
+        0.48,
+        0.98,
+        1
+      ],
+      "pivot": [
+        0.5,
+        0.6
+      ],
+      "reference_ids": [
+        "met-55.37-rightmost-sitter",
+        "met-52.177.8-male-technique"
+      ],
+      "construction": "Ming robe silhouette and collar from 55.37; 52.177.8 is material technique only.",
+      "details": {
+        "primary": "shoulder and robe mass",
+        "secondary": "collar overlap and sleeve fold",
+        "tertiary": "ink taper and textile grain"
+      },
+      "topology": "Neck enters robe; collar overlaps chest; sleeves cover arms with hidden overscan.",
+      "contour_plan": "Use source robe silhouette and fold convergence; do not copy Qing fur or blue under-robe.",
+      "layering_plan": "Torso -> robe -> collar bands -> sleeve folds -> ink wash and fiber."
+    },
+    {
+      "id": "writer-root",
+      "parent": null,
+      "representation": "group",
+      "bbox": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "reference_ids": [
+        "met-2024.180-seated-writer"
+      ],
+      "construction": "Seated writer root aligned to the primary scene pose and writing-tool relationship.",
+      "details": {
+        "primary": "seated silhouette",
+        "secondary": "head-to-hand composition",
+        "tertiary": "hair and garment detail"
+      },
+      "topology": "Head, neck, arms, hands, tools and robe overlap in source order.",
+      "contour_plan": "Match seated head inclination and upper-body envelope from Met 2024.180.",
+      "layering_plan": "Robe -> neck -> head -> hair; arms/hands overlap sleeve and writing tools."
+    },
+    {
+      "id": "writer-head",
+      "parent": "writer-root",
+      "representation": "mesh-3d",
+      "bbox": [
+        0.3,
+        0.06,
+        0.7,
+        0.53
+      ],
+      "pivot": [
+        0.5,
+        0.34
+      ],
+      "reference_ids": [
+        "met-2024.180-seated-writer"
+      ],
+      "construction": "Source-specific head tilt and face proportions over ANAT1 deformation understructure.",
+      "details": {
+        "primary": "small inclined head silhouette",
+        "secondary": "cheek/jaw/neck",
+        "tertiary": "hairline and ear"
+      },
+      "topology": "Face, hair, ear and neck remain separate; preserve attachment through yaw and pitch.",
+      "contour_plan": "Use seated-writer head inclination, forehead, cheek and chin anchors; no generic oval.",
+      "layering_plan": "Neck behind jaw; hair mass behind face; ornament above hair; collar below neck."
+    },
+    {
+      "id": "writer-face",
+      "parent": "writer-head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.35,
+        0.18,
+        0.66,
+        0.51
+      ],
+      "pivot": [
+        0.5,
+        0.35
+      ],
+      "reference_ids": [
+        "met-2024.180-seated-writer",
+        "met-52.177.5-female-technique"
+      ],
+      "construction": "Subtle face planes and lowered gaze; secondary portrait only informs delicate line/wash technique.",
+      "details": {
+        "primary": "face contour and gaze",
+        "secondary": "cheek/nose/jaw planes",
+        "tertiary": "fine eyelid and lip marks"
+      },
+      "topology": "Unequal near/far features remain attached to the head surface.",
+      "contour_plan": "Source-relative contour with small asymmetries and shortened generic lower-face stretch.",
+      "layering_plan": "Skin wash -> orbital/cheek planes -> eyes/nose/mouth -> hairline overlap."
+    },
+    {
+      "id": "writer-eyes",
+      "parent": "writer-face",
+      "representation": "vector-2d",
+      "bbox": [
+        0.38,
+        0.25,
+        0.62,
+        0.36
+      ],
+      "pivot": [
+        0.5,
+        0.3
+      ],
+      "reference_ids": [
+        "met-2024.180-seated-writer",
+        "met-52.177.5-female-technique"
+      ],
+      "construction": "Downward gaze with independently shaped lids and minimal iris exposure.",
+      "details": {
+        "primary": "lowered eye apertures",
+        "secondary": "upper/lower lid folds",
+        "tertiary": "tear corners"
+      },
+      "topology": "Near/far eyes differ in visible width under head turn.",
+      "contour_plan": "Fine tapered lids; do not draw identical white ovals.",
+      "layering_plan": "Orbital wash -> upper lid -> iris -> lower rim."
+    },
+    {
+      "id": "writer-nose-mouth",
+      "parent": "writer-face",
+      "representation": "vector-2d",
+      "bbox": [
+        0.43,
+        0.32,
+        0.57,
+        0.47
+      ],
+      "pivot": [
+        0.5,
+        0.39
+      ],
+      "reference_ids": [
+        "met-2024.180-seated-writer",
+        "met-52.177.5-female-technique"
+      ],
+      "construction": "Small nose and subtle mouth, attached to face planes.",
+      "details": {
+        "primary": "nose/lip junction",
+        "secondary": "alar and vermilion shapes",
+        "tertiary": "nostril and philtrum"
+      },
+      "topology": "Nose, philtrum and lip remain in source order.",
+      "contour_plan": "Use small low-contrast forms and source-relative asymmetry.",
+      "layering_plan": "Nose wash -> alar shadow -> philtrum -> soft lip."
+    },
+    {
+      "id": "writer-hair",
+      "parent": "writer-head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.22,
+        0,
+        0.78,
+        0.31
+      ],
+      "pivot": [
+        0.52,
+        0.18
+      ],
+      "reference_ids": [
+        "met-2024.180-seated-writer"
+      ],
+      "construction": "Layered pinned coiffure with primary bun mass, secondary coil and visible hairline.",
+      "details": {
+        "primary": "coiffure silhouette",
+        "secondary": "overlapping bun/locks",
+        "tertiary": "directional fibers"
+      },
+      "topology": "Hair masses overlap; strands root in the mass and do not float.",
+      "contour_plan": "Asymmetric source silhouette with deliberate negative spaces.",
+      "layering_plan": "Back mass -> bun -> front locks -> hairline -> fibers."
+    },
+    {
+      "id": "writer-ornament",
+      "parent": "writer-hair",
+      "representation": "vector-2d",
+      "bbox": [
+        0.47,
+        0,
+        0.75,
+        0.24
+      ],
+      "pivot": [
+        0.61,
+        0.12
+      ],
+      "reference_ids": [
+        "met-2024.180-seated-writer",
+        "met-52.177.5-female-technique"
+      ],
+      "construction": "Floral ornament and pin embedded in the coiffure.",
+      "details": {
+        "primary": "ornament silhouette",
+        "secondary": "petal and pin structure",
+        "tertiary": "center bead and edge accents"
+      },
+      "topology": "Pin enters hair mass; flower remains attached.",
+      "contour_plan": "Petals have unequal curvature and overlap.",
+      "layering_plan": "Pin behind petals; center bead above petals."
+    },
+    {
+      "id": "writer-collar",
+      "parent": "writer-root",
+      "representation": "vector-2d",
+      "bbox": [
+        0.24,
+        0.47,
+        0.76,
+        0.78
+      ],
+      "pivot": [
+        0.5,
+        0.58
+      ],
+      "reference_ids": [
+        "met-2024.180-seated-writer",
+        "met-52.177.5-female-technique"
+      ],
+      "construction": "High layered collar with separate inner/outer bands and embroidered edge.",
+      "details": {
+        "primary": "collar silhouette",
+        "secondary": "band overlap",
+        "tertiary": "embroidery and seam marks"
+      },
+      "topology": "Collar overlaps neck and robe; no V-neck shortcut.",
+      "contour_plan": "Follow source collar height and neck contact.",
+      "layering_plan": "Inner band -> outer band -> robe edge -> embroidery."
+    },
+    {
+      "id": "writer-robe",
+      "parent": "writer-root",
+      "representation": "vector-2d",
+      "bbox": [
+        0.02,
+        0.54,
+        0.98,
+        1
+      ],
+      "pivot": [
+        0.5,
+        0.72
+      ],
+      "reference_ids": [
+        "met-2024.180-seated-writer"
+      ],
+      "construction": "Seated robe and sleeve masses with folds converging at the writing gesture.",
+      "details": {
+        "primary": "robe/sleeve envelope",
+        "secondary": "elbow and wrist fold",
+        "tertiary": "ink edge and silk grain"
+      },
+      "topology": "Hands remain connected to wrists; sleeve openings hide body intersections.",
+      "contour_plan": "Trace source fold directions and sleeve silhouette.",
+      "layering_plan": "Back robe -> sleeves -> forearms/hands -> writing tools."
+    },
+    {
+      "id": "attendant-root",
+      "parent": null,
+      "representation": "group",
+      "bbox": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "reference_ids": [
+        "met-2024.180-standing-attendant",
+        "smithsonian-F1916.135-role"
+      ],
+      "construction": "Standing secondary character with distinct scale and head inclination.",
+      "details": {
+        "primary": "secondary figure silhouette",
+        "secondary": "head/neck/body relation",
+        "tertiary": "pin and collar detail"
+      },
+      "topology": "Head attaches to neck; neck attaches to collar; robe remains behind hands.",
+      "contour_plan": "Keep attendant smaller than writer and aligned behind her.",
+      "layering_plan": "Background robe -> neck -> head -> hair -> pin -> collar detail."
+    },
+    {
+      "id": "attendant-head",
+      "parent": "attendant-root",
+      "representation": "mesh-3d",
+      "bbox": [
+        0.32,
+        0.05,
+        0.68,
+        0.51
+      ],
+      "pivot": [
+        0.5,
+        0.33
+      ],
+      "reference_ids": [
+        "met-2024.180-standing-attendant"
+      ],
+      "construction": "Separate head pitch and downward gaze over ANAT1 understructure.",
+      "details": {
+        "primary": "head silhouette",
+        "secondary": "cheek/jaw/neck",
+        "tertiary": "hairline and ear"
+      },
+      "topology": "Head and neck remain connected under pitch and yaw.",
+      "contour_plan": "Source-specific forehead, cheek, chin and head-tilt anchors.",
+      "layering_plan": "Neck -> face -> ears -> hair mass -> pin."
+    },
+    {
+      "id": "attendant-face",
+      "parent": "attendant-head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.36,
+        0.17,
+        0.65,
+        0.49
+      ],
+      "pivot": [
+        0.5,
+        0.33
+      ],
+      "reference_ids": [
+        "met-2024.180-standing-attendant",
+        "smithsonian-F1916.135-role"
+      ],
+      "construction": "Smaller face with lowered gaze and independent jaw/neck connection.",
+      "details": {
+        "primary": "face contour",
+        "secondary": "orbital and cheek planes",
+        "tertiary": "small nose and lip"
+      },
+      "topology": "Face features remain attached to head under pitch and yaw.",
+      "contour_plan": "Use an asymmetrical narrow oval with cheek fullness and a source-matched chin.",
+      "layering_plan": "Skin wash -> eyes/nose/mouth -> ear/hair overlap."
+    },
+    {
+      "id": "attendant-eyes",
+      "parent": "attendant-face",
+      "representation": "vector-2d",
+      "bbox": [
+        0.39,
+        0.24,
+        0.62,
+        0.35
+      ],
+      "pivot": [
+        0.5,
+        0.3
+      ],
+      "reference_ids": [
+        "met-2024.180-standing-attendant"
+      ],
+      "construction": "Downward gaze with independent near/far lid geometry.",
+      "details": {
+        "primary": "eye apertures",
+        "secondary": "lid folds",
+        "tertiary": "tear corners"
+      },
+      "topology": "Eye apertures follow the projected head and remain asymmetric.",
+      "contour_plan": "Fine narrow openings, no identical oval pair.",
+      "layering_plan": "Orbital wash -> upper lid -> iris -> lower rim."
+    },
+    {
+      "id": "attendant-nose-mouth",
+      "parent": "attendant-face",
+      "representation": "vector-2d",
+      "bbox": [
+        0.44,
+        0.31,
+        0.56,
+        0.46
+      ],
+      "pivot": [
+        0.5,
+        0.38
+      ],
+      "reference_ids": [
+        "met-2024.180-standing-attendant"
+      ],
+      "construction": "Small nose, philtrum and lip forms with low-contrast ink.",
+      "details": {
+        "primary": "nose/mouth",
+        "secondary": "alar and vermilion planes",
+        "tertiary": "nostril and lip accents"
+      },
+      "topology": "All marks attach to face landmarks.",
+      "contour_plan": "Source-specific small nose and mouth; avoid a vertical nose stripe.",
+      "layering_plan": "Nose wash -> nostrils -> philtrum -> lip."
+    },
+    {
+      "id": "attendant-hair",
+      "parent": "attendant-head",
+      "representation": "vector-2d",
+      "bbox": [
+        0.23,
+        0,
+        0.77,
+        0.32
+      ],
+      "pivot": [
+        0.55,
+        0.15
+      ],
+      "reference_ids": [
+        "met-2024.180-standing-attendant",
+        "smithsonian-F1916.135-role"
+      ],
+      "construction": "One asymmetric high bun and back hair mass, not paired symmetric coils.",
+      "details": {
+        "primary": "single high bun silhouette",
+        "secondary": "back hair and hairline",
+        "tertiary": "rooted fibers and flyaways"
+      },
+      "topology": "Bun overlaps main mass; hair fibers root in the mass and flow toward the bun.",
+      "contour_plan": "Single dominant bun with asymmetric negative space.",
+      "layering_plan": "Back hair -> bun -> pin -> flower -> fine fibers."
+    },
+    {
+      "id": "attendant-pin",
+      "parent": "attendant-hair",
+      "representation": "vector-2d",
+      "bbox": [
+        0.54,
+        0,
+        0.77,
+        0.22
+      ],
+      "pivot": [
+        0.65,
+        0.1
+      ],
+      "reference_ids": [
+        "met-2024.180-standing-attendant"
+      ],
+      "construction": "One inserted hairpin with small floral ornament.",
+      "details": {
+        "primary": "pin axis",
+        "secondary": "flower petals",
+        "tertiary": "center bead"
+      },
+      "topology": "Pin crosses into the bun and remains attached.",
+      "contour_plan": "Asymmetric flower and visible pin insertion point.",
+      "layering_plan": "Pin behind petals; center bead above."
+    },
+    {
+      "id": "attendant-collar",
+      "parent": "attendant-root",
+      "representation": "vector-2d",
+      "bbox": [
+        0.28,
+        0.45,
+        0.72,
+        0.76
+      ],
+      "pivot": [
+        0.5,
+        0.58
+      ],
+      "reference_ids": [
+        "met-2024.180-standing-attendant",
+        "met-52.177.5-female-technique"
+      ],
+      "construction": "Narrow high collar with separate inner/outer bands and embroidery.",
+      "details": {
+        "primary": "collar silhouette",
+        "secondary": "neck overlap",
+        "tertiary": "embroidered seam"
+      },
+      "topology": "Collar touches neck and overlaps robe without gaps.",
+      "contour_plan": "Follow the standing attendant's collar height and neck angle.",
+      "layering_plan": "Neck -> inner collar -> outer collar -> robe -> embroidery."
+    },
+    {
+      "id": "attendant-robe",
+      "parent": "attendant-root",
+      "representation": "vector-2d",
+      "bbox": [
+        0.05,
+        0.53,
+        0.95,
+        1
+      ],
+      "pivot": [
+        0.5,
+        0.72
+      ],
+      "reference_ids": [
+        "met-2024.180-standing-attendant"
+      ],
+      "construction": "Secondary robe and sleeve mass with distinct fold rhythm from the seated writer.",
+      "details": {
+        "primary": "robe envelope",
+        "secondary": "sleeve folds",
+        "tertiary": "ink edge and silk grain"
+      },
+      "topology": "Arms and sleeves overlap; no disconnected hands or detached collar.",
+      "contour_plan": "Preserve source scale and head-to-robe ratio.",
+      "layering_plan": "Back robe -> sleeves -> forearms/hands -> collar detail."
+    },
+    {
+      "id": "paper-material",
+      "parent": null,
+      "representation": "material-layer",
+      "bbox": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "reference_ids": [
+        "met-55.37-rightmost-sitter",
+        "met-2024.180-seated-writer"
+      ],
+      "construction": "Subtle warm paper/silk substrate with restrained fibre and pigment variation.",
+      "details": {
+        "primary": "base support tone",
+        "secondary": "fibre direction",
+        "tertiary": "small pigment deposits"
+      },
+      "topology": "Texture is pinned in paper coordinates and does not shimmer or detach from the artwork.",
+      "contour_plan": "Keep grain subtle and consistent with the support in each source.",
+      "layering_plan": "Support base -> fibres -> pigment deposits -> painted character layers."
+    }
+  ],
+  "render_evidence": [
+    {
+      "feature_id": "scholar-head-silhouette",
+      "image": "ci-artifact://14391847050/anat5-scholar-neutral.png",
+      "reference_image": "external:met-55.37-rightmost-sitter",
+      "camera": "source-matched three-quarter portrait, 1× and 3×",
+      "expected": "tall squared cap and source-specific face contour",
+      "observed": "face still reads as a generic smooth oval; cap shape is plausible but needs contour refinement",
+      "next_action": "rebuild outer face contour from source landmarks and inspect fresh crop",
+      "verdict": "fail"
+    },
+    {
+      "feature_id": "scholar-facial-hair",
+      "image": "ci-artifact://14391847050/anat5-scholar-face-3x.png",
+      "reference_image": "external:met-55.37-rightmost-sitter",
+      "camera": "3× lower-face crop",
+      "expected": "attached moustache, cheek roots and distinct tapered chin beard",
+      "observed": "beard reads as a narrow triangular bundle at this scale",
+      "next_action": "widen cheek substrate and rework fiber direction from root to tip",
+      "verdict": "fail"
+    },
+    {
+      "feature_id": "writer-face-gaze",
+      "image": "ci-artifact://14391847050/anat5-writer-face-3x.png",
+      "reference_image": "external:met-2024.180-seated-writer",
+      "camera": "3× seated writer face crop",
+      "expected": "lowered inward gaze and delicate source-specific facial contour",
+      "observed": "current available screenshot is not yet an approved source-matched face crop",
+      "next_action": "inspect new writer screenshot and rebuild if generic oval persists",
+      "verdict": "blocked"
+    },
+    {
+      "feature_id": "writer-coiffure-and-collar",
+      "image": "ci-artifact://14391847050/anat5-writer-neutral.png",
+      "reference_image": "external:met-2024.180-seated-writer",
+      "camera": "1× upper-body and 3× hair/collar crop",
+      "expected": "pinned coiffure and layered collar with correct overlap",
+      "observed": "current reference evidence is incomplete",
+      "next_action": "inspect fresh writer full and crop renders",
+      "verdict": "blocked"
+    },
+    {
+      "feature_id": "attendant-head-and-coiffure",
+      "image": "ci-artifact://14391847050/anat5-attendant-face-3x.png",
+      "reference_image": "external:met-2024.180-standing-attendant",
+      "camera": "3× attendant head crop",
+      "expected": "single high bun, lowered gaze and connected neck",
+      "observed": "previous paired-coil version was unsupported; single-bun replacement is awaiting fresh render",
+      "next_action": "inspect the new single-bun render and head/neck attachment",
+      "verdict": "blocked"
+    },
+    {
+      "feature_id": "costume-and-ink-material",
+      "image": "ci-artifact://14391847050/anat5-attendant-fear.png",
+      "reference_image": "external:met-2024.180-standing-attendant",
+      "camera": "1× upper-body and collar crop",
+      "expected": "source-specific collar and sleeve overlaps with restrained wash",
+      "observed": "collar still reads as a simplified V and textile pattern is too generic",
+      "next_action": "replace V-neck shortcut with layered source contour and fold convergence",
+      "verdict": "fail"
+    },
+    {
+      "feature_id": "role-scale-and-pose",
+      "image": "ci-artifact://14391847050/anat5-attendant-fear.png",
+      "reference_image": "external:met-2024.180-seated-writer",
+      "camera": "full two-character source composition",
+      "expected": "seated writer remains primary; standing attendant smaller and spatially separate",
+      "observed": "individual character atlas does not yet render the two-character composition",
+      "next_action": "add a source-scale two-character composition story before motion approval",
+      "verdict": "blocked"
+    }
+  ]
+}
