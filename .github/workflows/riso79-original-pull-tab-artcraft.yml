@@ -1,4 +1,4 @@
-name: RISO79–80 source-printed organic paper-window ArtCraft proof
+name: RISO79–81 source-printed paper mechanics ArtCraft proof
 on:
   pull_request:
     paths:
@@ -24,10 +24,8 @@ on:
       - "docs/research/riso79-original-window-pull-tab-artcraft.md"
       - "docs/research/riso79-paper-edge-material-study.md"
       - "docs/research/riso81-interleaved-paper-slats-artcraft.md"
-      - "docs/component-specs/riso-print.md"
       - "docs/02-component-catalog.md"
       - "docs/35-material-native-film-styles-implementation-roadmap.md"
-      - "registry.json"
   workflow_dispatch:
 permissions:
   contents: read
@@ -45,7 +43,7 @@ jobs:
       - name: Paper geometry, source ink, FilmStage and TypeScript
         run: |
           npm run typecheck
-          npm run test -- tests/riso80-organic-diecut-artcraft.test.tsx tests/riso79-pull-tab-artcraft.test.tsx tests/riso78-continuous-accordion-artcraft.test.tsx tests/riso77-rostrum-kinetic-cutout-artcraft.test.tsx
+          npm run test -- tests/riso81-interleaved-paper-slats.test.tsx tests/riso80-organic-diecut-artcraft.test.tsx tests/riso79-pull-tab-artcraft.test.tsx tests/riso78-continuous-accordion-artcraft.test.tsx tests/riso77-rostrum-kinetic-cutout-artcraft.test.tsx
       - name: Original native physical print clean consumer
         run: |
           npm run registry:validate
@@ -53,13 +51,13 @@ jobs:
       - name: Production Storybook build
         run: npm run build-storybook
       - run: npx playwright install --with-deps chromium
-      - name: Actual Chromium rounded and organic 1x 3x 9x16 source-contour proof
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso79-pull-tab-artcraft.spec.ts tests/e2e-storybook/riso80-organic-diecut-artcraft.spec.ts tests/e2e-storybook/riso81-interleaved-paper-slats.spec.ts tests/e2e-storybook/riso80-organic-diecut-artcraft.spec.ts
+      - name: Actual Chromium 1x 3x 9x16 source-contour and interleaved-slat proof
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/riso79-pull-tab-artcraft.spec.ts tests/e2e-storybook/riso80-organic-diecut-artcraft.spec.ts tests/e2e-storybook/riso81-interleaved-paper-slats.spec.ts
       - name: Preserve actual ArtCraft screenshot evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: riso80-organic-and-riso79-paper-window-1x-3x-portrait
+          name: riso81-interleaved-slats-riso79-80-paper-mechanics
           path: test-results/
           if-no-files-found: warn
           retention-days: 5
