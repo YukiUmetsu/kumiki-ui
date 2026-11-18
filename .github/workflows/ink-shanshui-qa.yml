@@ -7,6 +7,8 @@ on:
       - "registry/character/figure-proportion-study.ts"
       - "src/video/ink-shanshui*"
       - "src/video/ink-anatomical-portrait*"
+      - "src/video/ink-reference-character-redraw*"
+      - "src/video/ink-anatomy-character-figure*"
       - "tests/ink-shanshui.test.tsx"
       - "tests/ink-shanshui-proportion.test.tsx"
       - "tests/ink-shanshui-full-body.test.tsx"
@@ -16,12 +18,16 @@ on:
       - "tests/ink-shanshui-reader-expression.test.tsx"
       - "tests/ink-shanshui-reader-crown.test.tsx"
       - "tests/ink-anatomical-portrait-rebuild.test.tsx"
+      - "tests/ink-reference-character-redraw.test.tsx"
+      - "tests/ink-anatomy-character-figure.test.tsx"
       - "tests/e2e-storybook/ink-shanshui.spec.ts"
       - "tests/e2e-storybook/ink-shanshui-proportion.spec.ts"
       - "tests/e2e-storybook/ink-shanshui-reader-face.spec.ts"
       - "tests/e2e-storybook/ink-shanshui-reader-expression.spec.ts"
       - "tests/e2e-storybook/ink-storybook-navigation.spec.ts"
       - "tests/e2e-storybook/ink-anatomical-portrait-rebuild.spec.ts"
+      - "tests/e2e-storybook/ink-reference-character-redraw.spec.ts"
+      - "tests/e2e-storybook/ink-anatomy-character-figure.spec.ts"
       - "docs/research/chinese-ink-anatomical-portrait-rebuild-2026-11-17.md"
       - "docs/research/shanshui-reference-to-code-2026.md"
       - "registry.json"
@@ -49,7 +55,7 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
       - name: Deterministic painting, actor and composition tests
-        run: npx vitest run --project unit tests/ink-shanshui.test.tsx tests/ink-shanshui-proportion.test.tsx tests/ink-shanshui-full-body.test.tsx tests/ink-shanshui-fine-craft.test.tsx tests/ink-shanshui-pine-fringe.test.tsx tests/ink-shanshui-reader-face.test.tsx tests/ink-shanshui-reader-expression.test.tsx tests/ink-shanshui-reader-crown.test.tsx tests/ink-anatomical-portrait-rebuild.test.tsx
+        run: npx vitest run --project unit tests/ink-shanshui.test.tsx tests/ink-shanshui-proportion.test.tsx tests/ink-shanshui-full-body.test.tsx tests/ink-shanshui-fine-craft.test.tsx tests/ink-shanshui-pine-fringe.test.tsx tests/ink-shanshui-reader-face.test.tsx tests/ink-shanshui-reader-expression.test.tsx tests/ink-shanshui-reader-crown.test.tsx tests/ink-anatomical-portrait-rebuild.test.tsx tests/ink-reference-character-redraw.test.tsx tests/ink-anatomy-character-figure.test.tsx
       - name: Registry and catalog installation contracts
         run: |
           npm run registry:validate
@@ -57,7 +63,7 @@ jobs:
       - name: Chromium
         run: npx playwright install --with-deps chromium
       - name: Original Shanshui films and consolidated Chinese Ink Storybook navigation
-        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-shanshui.spec.ts tests/e2e-storybook/ink-shanshui-proportion.spec.ts tests/e2e-storybook/ink-shanshui-reader-face.spec.ts tests/e2e-storybook/ink-shanshui-reader-expression.spec.ts tests/e2e-storybook/ink-storybook-navigation.spec.ts tests/e2e-storybook/ink-anatomical-portrait-rebuild.spec.ts
+        run: npx playwright test -c playwright.storybook.config.ts tests/e2e-storybook/ink-shanshui.spec.ts tests/e2e-storybook/ink-shanshui-proportion.spec.ts tests/e2e-storybook/ink-shanshui-reader-face.spec.ts tests/e2e-storybook/ink-shanshui-reader-expression.spec.ts tests/e2e-storybook/ink-storybook-navigation.spec.ts tests/e2e-storybook/ink-anatomical-portrait-rebuild.spec.ts tests/e2e-storybook/ink-reference-character-redraw.spec.ts tests/e2e-storybook/ink-anatomy-character-figure.spec.ts
       - name: FFmpeg
         run: |
           sudo apt-get update -qq
