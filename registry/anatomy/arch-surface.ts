@@ -607,7 +607,17 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
       return (u, v, i, o) => {
         const n = rock ? fbm3(seed + 1, i.wx * 0.35, i.wy * 0.5, i.wz * 0.35, 4) : fbm(seed + 1, u * 0.6, v * 0.6, 4), fine = rock ? fbm3(seed + 2, i.wx * 3, i.wy * 3, i.wz * 3, 2) : fbm(seed + 2, u * 7, v * 7, 3);
         set(o, base, 0.85 + 0.18 * (n * 0.5 + 0.5) + 0.08 * fine);
-        if (rock) { const strata = 0.5 + 0.35 * fbm3(seed + 4, i.wx * 0.12, i.wy * 0.6, i.wz * 0.12, 2), crack = sst(0.08, 0, Math.abs(fbm3(seed + 3, i.wx * 0.9, i.wy * 0.25, i.wz * 0.9, 2))); o.r *= 0.86 + 0.14 * strata - 0.3 * crack; o.g *= 0.86 + 0.14 * strata - 0.3 * crack; o.b *= 0.88 + 0.12 * strata - 0.28 * crack; const veg = sst(0.55, 0.8, i.ny + 0.3 * n) * 0.8; mixInto(o, [0.2, 0.25, 0.1], veg); }
+        if (rock) {
+          const strata = 0.5 + 0.35 * fbm3(seed + 4, i.wx * 0.12, i.wy * 0.6, i.wz * 0.12, 2), crack = sst(0.08, 0, Math.abs(fbm3(seed + 3, i.wx * 0.9, i.wy * 0.25, i.wz * 0.9, 2)));
+          // bedding planes: thin dark partings every few decimetres, gently warped; dark streaks where water runs down the face
+          const bed = sst(0.035, 0.0, Math.abs(frac(i.wy / 0.55 + 0.4 * fbm3(seed + 5, i.wx * 0.05, 0, i.wz * 0.05, 2)) - 0.5) - 0.46) * resolve(i.fw, 0.1) * (1 - Math.abs(i.ny));
+          const streak = sst(0.15, 0.6, fbm3(seed + 6, i.wx * 1.4, i.wy * 0.06, i.wz * 1.4, 2)) * (1 - Math.abs(i.ny)) * 0.22;
+          const k = (0.86 + 0.14 * strata) * (1 - 0.3 * crack - 0.28 * bed - streak);
+          o.r *= k; o.g *= k; o.b *= k * 1.01;
+          const lichen = sst(0.6, 0.75, fbm3(seed + 7, i.wx * 0.8, i.wy * 0.8, i.wz * 0.8, 2)) * 0.25; mixInto(o, [0.62, 0.62, 0.5], lichen);
+          // plants hold only where soil gathers: on ledges, and there in patches, not as a stripe along every one
+          const veg = sst(0.55, 0.8, i.ny + 0.3 * n) * sst(0.1, 0.45, fbm3(seed + 8, i.wx * 0.25, i.wy * 0.25, i.wz * 0.25, 2)) * 0.8; mixInto(o, [0.2, 0.25, 0.1], veg);
+        }
         if (s.kind === "grass") {
           // a meadow: drifts of lighter and darker green, sun-dried patches, and flowers where it is near enough to see them
           const drift = fbm(seed + 5, u * 0.12, v * 0.12, 3);
@@ -621,9 +631,11 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
     }
     case "water": {
       const deep = C(s.colour, "#2c4a4f");
-      return (u, v, _i, o) => {
-        const n = fbm(seed, u * 0.8, v * 2.2, 4), r1 = gradNoise(seed + 1, u * 4, v * 9);
-        set(o, deep); o.h = 0.03 * n + 0.01 * r1; o.cav = 1; o.rough = 0.04; o.spec = 1; o.porous = 0; o.glass = 0.5;
+      return (u, v, i, o) => {
+        // ripples fade out once a pixel covers several of them (they would scatter the reflection into speckle), leaving the long swell
+        // each band fades at its own finest wavelength (the swell's is about 1.4 m, the wavelets' 0.23 m, the ripples' 0.11 m)
+        const swell = fbm(seed + 2, u * 0.07, v * 0.18, 3), wav = fbm(seed, u * 0.8, v * 2.2, 2), r1 = gradNoise(seed + 1, u * 4, v * 9);
+        set(o, deep); o.h = 0.12 * swell * resolve(i.fw, 1.4) + 0.03 * wav * resolve(i.fw, 0.23) + 0.01 * r1 * resolve(i.fw, 0.11); o.cav = 1; o.rough = 0.04; o.spec = 1; o.porous = 0; o.glass = 0.5;
       };
     }
     // ---- nature and lived-in details ----

@@ -12,7 +12,7 @@
 import type { ArchScene, CameraSpec, Mood, MoodId } from "./arch-paint";
 import { MOODS } from "./arch-paint";
 import type { HouseSpec, WindowSpec } from "./arch-kit";
-import { SceneBuilder, barrel, beam, bench, box, boxAt, capsule, clump, coneY, cut, cylY, cylZ, cypress, leaf, peaks, repeatX, repeatZ, dome, ellipsoid, firewood, gableRoof, gableWall, gardenWall, ground, hills, hipRoof, house, lamppost, onionDome, opening, pentRoof, revolve, sphere, spire, street, tower, tree, water } from "./arch-kit";
+import { SceneBuilder, barrel, beam, bench, box, boxAt, capsule, clump, coneY, crag, cut, cylY, cylZ, cypress, hillField, leaf, peaks, plinth, repeatX, repeatZ, dome, ellipsoid, firewood, gableRoof, gableWall, gardenWall, ground, hills, hipRoof, house, lamppost, onionDome, opening, pentRoof, revolve, sphere, spire, street, tower, tree, water } from "./arch-kit";
 import { anvil, balance, breadRack, candlestick, clockParts, flourSack, forge, hangingLantern, herbBunch, jarRow, magnifierLamp, peel, sleepingCat, stool, tankard, wallClock, workbench, writingDesk } from "./arch-kit-props";
 import { archRoll, sculpt } from "./arch-sdf";
 import type { Node } from "./arch-sdf";
@@ -121,6 +121,16 @@ function town(b: SceneBuilder, kerbA = 6, kerbB = 12, cobble: SurfaceSpec = { ki
   street(b, -80, 80, kerbA, kerbB, cobble);
 }
 const done = (b: SceneBuilder, cam: CameraSpec, mood: MoodId | Mood, extra: Partial<ArchScene> = {}) => b.scene(cam, mood, extra);
+/** A straight wall from (x0, z0) to (x1, z1), from y0 up to y1, t thick. */
+function beamWall(x0: number, z0: number, x1: number, z1: number, y0: number, y1: number, t: number, mat: number) {
+  const dx = x1 - x0, dz = z1 - z0, L = Math.hypot(dx, dz), ux = dx / L, uz = dz / L, mx = (x0 + x1) / 2, mz = (z0 + z1) / 2, R = L / 2 + t;
+  return leaf((x, y, z) => { const px = x - mx, pz = z - mz, a = px * ux + pz * uz, n = -px * uz + pz * ux; return Math.max(Math.abs(a) - L / 2, Math.abs(n) - t / 2, y0 - y, y - y1); }, [mx - R, y0, mz - R], [mx + R, y1, mz + R], mat);
+}
+/** A battered footing centred at (x, z) in the current group (w × d, depth deep), for walls built on a crag's edge. */
+function plinthAt(b: SceneBuilder, x: number, z: number, w: number, d: number, depth: number, s: SurfaceSpec) {
+  const at = b.mat(s), k = 1 / Math.sqrt(1 + 0.15 * 0.15);
+  b.add(leaf((px, py, pz) => { const t = Math.max(0, -py), e = 0.15 * t; return Math.max(Math.abs(px - x) - w / 2 - e, Math.abs(pz - z) - d / 2 - e, py, -depth - py) * k; }, [x - w / 2 - depth * 0.15, -depth, z - d / 2 - depth * 0.15], [x + w / 2 + depth * 0.15, 0, z + d / 2 + depth * 0.15], at));
+}
 /** A house placed at (x, z) turned `yaw`°, with props added after it. */
 function placeHouse(b: SceneBuilder, s: HouseSpec, x = 0, z = 0, yaw = 0, lean = 0, props?: () => void) {
   house(b, s); props?.(); b.place({ x, z, yaw, leanX: lean * 0.6, leanZ: lean });
@@ -273,12 +283,31 @@ add({ id: "fortified-hill-village", label: "Fortified hill village", group: "fre
   materials: ["honey limestone", "stone roofs (lauzes)", "brown tiles"], story: ["houses stacked up a hill to the church", "a ramparts walk"],
   note: "Hill villages climb in terraces; each house shows a gable or eave to the slope, and the church tower crowns the top.",
   build: (seed = 17) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, grass: "#7a7f48" });
-    const hill = b.mat({ kind: "rock", colour: "#8a8a5a" }); b.add(clump(0, -14, -20, 46, 26, 30, hill, 0.2, 0.08)); b.place();
+    // the hill itself is turf; every house stands at the height of its uphill side on a stone undercroft run down to the slope
+    const hill = hillField(b, 0, -20, 15, 38, 30, { kind: "grass", colour: "#7a7f48" });
     const stone = { kind: "coursed-rubble", colour: "#c9a774", moss: 0.25, age: 0.6 } as SurfaceSpec;
-    for (let k = 0; k < 9; k++) { const x = (k % 3 - 1) * 9 + (k > 2 ? 3 : 0), z = -6 - Math.floor(k / 3) * 7, y = 3 + Math.floor(k / 3) * 3.5;
-      house(b, { w: 7, d: 6, storeys: 2, storeyH: 2.7, walls: stone, roof: { kind: k % 2 ? "gable" : "hip", pitch: k % 3 ? 45 : 55, mat: k % 2 ? S.plainTile : { kind: "stone-slate", colour: "#8f8270", moss: 0.5 } }, windows: { rows: [[1.5], [-1.5, 1.5]], spec: W.shuttered("#6a4a3a", 0.8, 1.1) }, door: { x: -1.5 } }); b.place({ x, y, z, yaw: (k % 3 - 1) * 12 }); }
-    tower(b, { x: 0, z: -30, plan: "square", r: 3, h: 16, wall: stone, roof: { kind: "pyramid", h: 6, mat: S.plainTile }, belfry: true }); b.place({ y: 13 });
-    return done(b, frameSubject(b, 8), "golden"); } });
+    const onHill = (x: number, z: number, w: number, d: number) => { const hs = [hill(x - w / 2, z - d / 2), hill(x + w / 2, z - d / 2), hill(x - w / 2, z + d / 2), hill(x + w / 2, z + d / 2)]; return { y: Math.max(...hs), drop: Math.max(...hs) - Math.min(...hs) }; };
+    const spots: readonly (readonly [number, number, number])[] = [[-11, 0, 0], [-2, -1, 1], [8, 0.5, 0], [-15, -8, 1], [-6, -9, 0], [4, -8.5, 1], [13, -8, 0], [-9, -17, 1], [1, -17, 0], [10, -16, 1], [-4, -24, 0], [6, -24, 1]];
+    spots.forEach(([x, z, alt], k) => {
+      const w = 6 + (k % 3), d = 6, { y, drop } = onHill(x, z, w, d);
+      house(b, { w, d, storeys: 2, storeyH: 2.7, walls: stone, roof: { kind: alt ? "gable" : "hip", pitch: alt ? 45 : 55, mat: alt ? S.plainTile : { kind: "stone-slate", colour: "#8f8270", moss: 0.5 } }, windows: { rows: [[1.5], [-1.5, 1.5]], spec: W.shuttered("#6a4a3a", 0.8, 1.1) }, door: { x: -1.5 } });
+      plinth(b, w, d, drop + 0.6, stone, 0.06); b.place({ x, y, z, yaw: (k % 4) * 3 - 4 });
+    });
+    // the church at the crown, its tower rising over the roofs
+    const cy = onHill(0, -31, 6, 6).y;
+    tower(b, { x: 0, z: 0, plan: "square", r: 3, h: 16, wall: stone, roof: { kind: "pyramid", h: 6, mat: S.plainTile }, belfry: true }); plinth(b, 6, 6, 2, stone, 0.06); b.place({ y: cy, z: -31 });
+    // the rampart walk round the lower slope: wall stretches whose footings follow the ground, merlons on top
+    const rampart = b.mat({ ...stone, colour: "#b89a6a" });
+    const ring = (a: number): [number, number] => [Math.cos(a) * 29, -20 + Math.sin(a) * 23];
+    for (let k = 0; k < 40; k++) {
+      const a0 = Math.PI * (0.04 + 0.92 * (k / 40)), a1 = Math.PI * (0.04 + 0.92 * ((k + 1) / 40)), [x0, z0] = ring(a0), [x1, z1] = ring(a1), g = Math.min(hill(x0, z0), hill(x1, z1));
+      // each stretch overlaps the next so the curtain runs on without gaps; a merlon every 1.4 m along the walk
+      const ex = (x1 - x0) * 0.06, ez = (z1 - z0) * 0.06;
+      b.add(beamWall(x0 - ex, z0 - ez, x1 + ex, z1 + ez, g - 0.8, g + 3.4, 1.1, rampart));
+      for (const f of [0.25, 0.75]) { const mx = x0 + (x1 - x0) * f, mz = z0 + (z1 - z0) * f; b.add(boxAt(mx - 0.35, g + 3.4, mz - 0.35, mx + 0.35, g + 4.1, mz + 0.35, rampart)); }
+    }
+    b.place();
+    return done(b, { x: 30, y: 14, z: 80, yaw: -20, fov: 46, shift: 0.14 }, "golden"); } });
 add({ id: "gothic-cathedral-west-front", label: "Gothic cathedral west front", group: "french", region: "France, Picardy", era: "1220–1270", setting: "city", view: "exterior", scale: "monumental", mood: "morning",
   materials: ["limestone ashlar", "lead roofs", "stained glass rose"], story: ["deep portals in orders", "twin towers", "a square before it with people for scale"],
   note: "Amiens' vault stands about 42 m high over bays about 14.6 m apart; the west front shows the nave and aisles behind its towers and portals.",
@@ -332,11 +361,21 @@ add({ id: "rhine-crag-castle", label: "Rhine castle on a crag", group: "alpine",
   materials: ["slate rubble", "slate roofs", "a round bergfried"], story: ["the river below", "vineyard terraces", "a palas with stepped gables"],
   note: "Spur castles sit on rock above the river: a tall round keep (bergfried) as last refuge, the palas against the cliff edge.",
   build: (seed = 25) => { const b = new SceneBuilder(seed); countryside(b, { lane: false, grass: "#6a7a3e" }); water(b, -500, 500, 30, 400, -0.6, "#4a6066");
-    b.add(clump(0, 0, -6, 32, 22, 22, b.mat({ kind: "rock", colour: "#6e6a62" }), 0.3, 0.14)); b.place();
+    // the spur: slate in thin beds, its top levelled for the castle; the walls stand on battered footings run down the face
+    const top = 24;
+    crag(b, { x: 2, z: -5, top, base: 0, rx: 17, rz: 11.5, yaw: -6, layer: 4.2, bench: 0.9, batter: 0.08, back: { dir: -90, slope: 1.1 }, sides: 9, rough: 0.2, rock: { kind: "rock", colour: "#6e6a62" }, talus: 3, scrub: 22, cap: { kind: "grass", colour: "#6a7440" } });
     const wall = S.rubble("#7d776c", 0.35);
-    tower(b, { x: -4, z: -2, plan: "round", r: 4, h: 22, wall, crenel: true, roof: { kind: "cone", h: 8, mat: S.slate }, slits: 3 }); curtainWall(b, -18, 20, 6, 6, wall); b.place({ y: 17 });
-    house(b, { w: 16, d: 9, storeys: 3, storeyH: 3.4, walls: wall, roof: { kind: "step-gable", pitch: 55, mat: S.slate, ridgeMat: S.ashlar("#a89c88") }, windows: { rows: [[-4, 4], [-4, 0, 4], [-4, 0, 4]], spec: { w: 0.9, h: 1.6, shape: "pointed", panes: [2, 3] } }, door: null }); b.place({ x: 9, y: 17, z: 0 });
-    return done(b, frameSubject(b, -12), "golden"); } });
+    tower(b, { x: -4, z: -2, plan: "round", r: 4, h: 22, wall, crenel: true, roof: { kind: "cone", h: 8, mat: S.slate }, slits: 3 });
+    b.add(cylY(-4, -2, -5, 0, 4.4, b.mat(wall)), coneY(-4, -2, -5.6, -5, 5.6, 4.4, b.mat(wall)));
+    curtainWall(b, -11, 15, 3.2, 6, wall); plinthAt(b, 2, 3.6, 26, 3.6, 2.5, wall);
+    b.place({ y: top });
+    house(b, { w: 14, d: 8, storeys: 3, storeyH: 3.4, walls: wall, roof: { kind: "step-gable", pitch: 55, mat: S.slate, ridgeMat: S.ashlar("#a89c88") }, windows: { rows: [[-4, 4], [-4, 0, 4], [-4, 0, 4]], spec: { w: 0.9, h: 1.6, shape: "pointed", panes: [2, 3] } }, door: null });
+    plinth(b, 14, 8, 2.5, wall, 0.14); b.place({ x: 8, y: top, z: -3 });
+    // the valley side the spur juts from, planted with vines in rows along the slope
+    const slope = hillField(b, 0, -62, 34, 140, 34, { kind: "grass", colour: "#6a7440" }), vine = b.mat({ kind: "foliage", colour: "#4e6a2a" });
+    for (let r2 = 0; r2 < 9; r2++) { const z = -30 - r2 * 3.4; for (let k2 = 0; k2 < 46; k2++) { const x = -70 + k2 * 3.1 + (r2 % 2) * 1.5; if (Math.abs(x - 2) < 24 && z > -40) continue; b.add(clump(x, slope(x, z) + 0.5, z, 1.2, 0.55, 0.45, vine, b.r(), 0.35)); } }
+    b.place();
+    return done(b, { x: -30, y: 3, z: 118, yaw: 15, fov: 52, shift: 0.62 }, "golden"); } });
 add({ id: "medieval-town-gate", label: "Medieval town gate", group: "alpine", region: "Germany, Rothenburg", era: "14th century", setting: "town", view: "exterior", scale: "civic", mood: "dusk",
   materials: ["rubble with ashlar quoins", "tall tile roof", "oak gates"], story: ["a lantern in the gate passage", "the road running through the tower"],
   note: "Gate towers stand astride the road with a deep passage, their pyramid roofs of tile, the town wall running off each side.",
@@ -507,13 +546,15 @@ add({ id: "cycladic-cliffside", label: "Cycladic cliffside houses", group: "medi
       // behind the houses of the row below, the slope itself
       b.add(boxAt(-hw, below - 0.2, -60, hw, y - 3.1, zf - 5.4, terrace));
     });
-    b.add(clump(0, 20, -42, 52, 30, 20, cliff, 0.3, 0.14));
+    // the caldera wall behind and the rock either side: bedded volcanic rock, not lumps
+    const rockS: SurfaceSpec = { kind: "rock", colour: "#8a6a58" };
+    crag(b, { x: 0, z: -44, top: 44, base: -10, rx: 52, rz: 16, layer: 4.5, bench: 0.35, batter: 0.15, sides: 10, rough: 0.2, rock: rockS, cap: { kind: "dirt", colour: "#9a7a5a" }, talus: 0, scrub: 0 });
     // one continuous cliff face below the lowest terrace, leaning back as it rises, its face broken by ribs and gullies
     b.add(leaf((x, y, z) => {
       const face = 15.5 - (y + 10) * 0.16 + 1.6 * gradNoise(7, x * 0.12, y * 0.05) + 0.7 * gradNoise(8, x * 0.4, y * 0.3) + 0.25 * gradNoise(9, x * 1.3, y * 1.1);
       return Math.max(z - face, Math.abs(x) - 40 + (y + 10) * 0.35 - 2.5 * gradNoise(10, y * 0.2, 0), y - 11.6 - 1.6 * gradNoise(11, x * 0.09, 0) - 0.5 * gradNoise(12, x * 0.4, 0), -12 - y) * 0.45;
     }, [-44, -12, -10], [44, 12.2, 19], cliff));
-    for (const sx of [-1, 1]) for (let k = 0; k < 4; k++) b.add(clump(sx * (29 + k * 3), 6 + k * 5, 2 - k * 5, 7, 9 + k, 9, cliff, b.r(), 0.1));
+    for (const sx of [-1, 1]) crag(b, { x: sx * 33, z: -6, top: 30, base: -8, rx: 9, rz: 15, yaw: sx * 8, layer: 3.4, bench: 0.55, batter: 0.12, back: { dir: sx > 0 ? 0 : 180, slope: 0.6 }, sides: 9, rough: 0.25, rock: rockS, cap: { kind: "dirt", colour: "#9a7a5a" }, talus: 0, scrub: 4 });
     // a whitewashed stair zigzagging down the east side from the top terrace to a landing at the sea
     for (let k = 0; k < 60; k++) { const y = 30 - k * 0.42, z = -3.5 + k * 0.27, x = 25 + (Math.floor(k / 14) % 2 ? -2 : 0); if (y < 11.8) break; b.add(boxAt(x, y - 0.4, z - 0.3, x + 2, y, z, pave)); }
     b.place();
@@ -583,10 +624,23 @@ add({ id: "mediterranean-lighthouse", label: "Mediterranean lighthouse", group: 
   materials: ["whitewashed tower", "an iron lantern", "the keeper's cottage"], story: ["the lamp lit at dusk", "rocks and spray"],
   note: "A tapering masonry tower carries an iron gallery and a glazed lantern; the keeper lives beside it.",
   build: (seed = 51) => { const b = new SceneBuilder(seed); water(b, -600, 600, -600, 600, -1, "#2f5a6a");
-    b.add(clump(0, -3, 0, 22, 6, 16, b.mat({ kind: "rock", colour: "#7a7468" }), 0.3, 0.15)); b.place();
+    // a low islet of bedded rock, its top levelled for the station; the sea washes its foot, so no scree, only boulders and ledges awash
+    const rockS: SurfaceSpec = { kind: "rock", colour: "#7a7468" }, rock = b.mat(rockS);
+    crag(b, { x: 2, z: 1, top: 5.5, base: -1, rx: 15, rz: 10, yaw: 12, layer: 1.6, bench: 0.7, batter: 0.3, sides: 8, rough: 0.28, rock: rockS, cap: { kind: "grass", colour: "#8a8a5a" }, talus: 0, scrub: 8 });
+    crag(b, { x: -14, z: 6, top: -0.4, base: -1.5, rx: 6, rz: 3.5, yaw: -20, layer: 0.6, bench: 0.4, batter: 0.4, sides: 7, rough: 0.3, rock: rockS, cap: null, talus: 0, scrub: 0 });
+    crag(b, { x: 17, z: 9, top: -0.2, base: -1.5, rx: 4, rz: 3, yaw: 30, layer: 0.6, bench: 0.3, batter: 0.4, sides: 7, rough: 0.3, rock: rockS, cap: null, talus: 0, scrub: 0 });
+    for (let k = 0; k < 16; k++) { const a = b.r(0, Math.PI * 2), r = b.r(1.05, 1.35); b.add(clump(2 + Math.cos(a) * 17 * r, -0.9, 1 + Math.sin(a) * 12 * r, b.r(0.6, 1.4), b.r(0.4, 0.8), b.r(0.6, 1.2), rock, b.r(), 0.2)); }
+    b.place();
     lighthouse(b, 0, 0, 18, { kind: "plaster", colour: "#a8302a", flake: 0.1 }, S.limewash("#f2efe6", 0.1));
-    placeHouse(b, { w: 7, d: 6, storeys: 1, storeyH: 3, walls: S.limewash("#f2efe6", 0.1), roof: { kind: "hip", pitch: 22, mat: S.pantile }, windows: { rows: [[-2, 2]], spec: W.shuttered("#2f5a6a") }, door: { x: 0 } }, 6, 3, -20);
-    b.place({ y: 2.5 });
+    b.place({ y: 5.5 });
+    house(b, { w: 7, d: 6, storeys: 1, storeyH: 3, walls: S.limewash("#f2efe6", 0.1), roof: { kind: "hip", pitch: 22, mat: S.pantile }, windows: { rows: [[-2, 2]], spec: W.shuttered("#2f5a6a") }, door: { x: 0 } });
+    b.place({ x: 6, y: 5.5, z: 3, yaw: -20 });
+    // a low wall round the station yard, and stone steps cut down the rock to a landing at the water
+    const lime = b.mat(S.limewash("#f2efe6", 0.1)), step = b.mat(S.ashlar("#b8b0a2", 0.3));
+    b.add(cut(boxAt(-6, 0, -6, 12, 1.0, 9, lime), [boxAt(-5.7, -0.1, -5.7, 11.7, 1.2, 8.7, 0), boxAt(-6.5, -0.1, 7.5, -4.5, 1.2, 9.5, 0)]));
+    for (let k = 0; k < 16; k++) b.add(boxAt(-6.2 - k * 0.3, -4.0, 7.6, -4.6 - k * 0.3, -k * 0.4, 9.2, step));
+    b.add(boxAt(-12.2, -7.4, 7.4, -9.2, -6.2, 10.8, step));
+    b.place({ y: 5.5 });
     return done(b, frameSubject(b, -20), "dusk"); } });
 
 // Nordic and Eastern Europe ------------------------------------------------------------------------------------------------
