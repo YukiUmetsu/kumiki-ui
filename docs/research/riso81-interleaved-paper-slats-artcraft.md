@@ -54,7 +54,7 @@ The jalousie/flat-slat description explains the two-image transformation: separa
 - Slot clearance: 0.02–0.6 mm.
 - Alternating lane depth must be at least stock caliper plus slot clearance; same-lane separation must remain positive after overlap and slot width.
 - Retraction distance must be at least one full page span plus the edge lap, and no more than 1.12× the span.
-- All slats share the same translation. There is no per-slat spring or stagger that can cause order inversion.
+- One global 24fps pull state drives a bounded per-slot stagger (0–45%). Each slat moves only along its own long axis; no strip crosses another strip's guide lane, and all strips reach an exact zero-offset end stop.
 - Absolute FilmStage frames are integer 24fps samples; reduced motion resolves to the completed print.
 
 ## Limits
