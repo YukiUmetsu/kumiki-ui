@@ -463,7 +463,7 @@ export function InkMingQingCharacterStudy({
           const x=cx-17+i*3.4,y=g.top-40+(i%3)*2;
           return <path key={i} data-km-ink-anat5-cap-weave={i}
             d={"M"+fmt(x)+" "+fmt(y)+" q1.8 1.6 3.2 0"}
-            fill="none" stroke="#c5b69d" strokeWidth=".42" opacity=".28*detail"/>;
+            fill="none" stroke="#c5b69d" strokeWidth=".42" opacity={.28*detail}/>;
         })}
       </g>}
       {character!=="scholar"&&<g data-km-ink-anat5-pinned-hair="separate-locks">
