@@ -24,6 +24,15 @@ describe("Chinese ink ZJ1 reference-redrawn standing scholar",()=>{
     expect(head).not.toContain('data-ink-view=');
     expect(head).not.toContain('data-km-ink-face-mesh=');
   });
+  it("exposes the new ZJ1 elder beard as independently inspectable rooted fibers",()=>{
+    const elder=renderToStaticMarkup(createElement(InkZengJingScholarHead,
+      {character:"elder",emotion:"neutral",detail:1,headScale:.48}));
+    const scholar=renderToStaticMarkup(createElement(InkZengJingScholarHead,
+      {character:"scholar",emotion:"neutral",detail:1,headScale:.48}));
+    expect(elder).toContain('data-km-zj1-facial-hair="elder"');
+    expect((elder.match(/data-km-zj1-beard-fibre=/g)||[])).toHaveLength(31);
+    expect(scholar).not.toContain("data-km-zj1-beard-fibre=");
+  });
   it("maps the shared ANAT1 human-face measurements and EXPR1 FACS action units into the ZJ1 painting language",()=>{
     const neutral=inkZengJingExpressionFeatures("scholar","neutral");
     const smile=inkZengJingExpressionFeatures("scholar","smile");
