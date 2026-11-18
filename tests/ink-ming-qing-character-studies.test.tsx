@@ -19,6 +19,9 @@ describe("ANAT5 original Ming/Qing Chinese ink character studies",()=>{
     const attendant=buildMingQingPortraitGeometry("attendant","neutral",.8);
     expect([scholar.sourceObjectId,writer.sourceObjectId,attendant.sourceObjectId])
       .toEqual(["55.37","2024.180","2024.180"]);
+    expect(scholar.sourceReferences).toHaveLength(2);
+    expect(writer.sourceReferences).toHaveLength(2);
+    expect(attendant.sourceReferences.some(x=>x.includes("F1916.135"))).toBe(true);
     expect(new Set([scholar.faceWidthMm,writer.faceWidthMm,attendant.faceWidthMm]).size).toBeGreaterThan(1);
     expect(new Set([scholar.mouthWidthMm,writer.mouthWidthMm,attendant.mouthWidthMm]).size).toBeGreaterThan(1);
     expect(scholar.beardFiberCount).toBeGreaterThan(40);
@@ -61,6 +64,31 @@ describe("ANAT5 original Ming/Qing Chinese ink character studies",()=>{
     expect((attendant.match(/data-km-ink-anat5-hair-fiber=/g)||[]).length).toBeGreaterThan(20);
     expect(scholar).not.toEqual(writer);
     expect(writer).not.toEqual(attendant);
+  });
+
+
+  it("preserves source-specific facial anatomy and independent material structures",()=>{
+    const scholar=render({character:"scholar",emotion:"neutral",detail:1});
+    const writer=render({character:"writer",emotion:"neutral",detail:1});
+    const attendant=render({character:"attendant",emotion:"neutral",detail:1});
+    for(const svg of [scholar,writer,attendant]){
+      expect(svg).toContain('data-km-ink-anat5-source-references=');
+      expect((svg.match(/data-km-ink-anat5-eye-aperture=/g)||[])).toHaveLength(2);
+      expect((svg.match(/data-km-ink-anat5-eye-lid-fold=/g)||[])).toHaveLength(2);
+      expect((svg.match(/data-km-ink-anat5-nostril=/g)||[])).toHaveLength(2);
+      expect((svg.match(/data-km-ink-anat5-philtrum=/g)||[])).toHaveLength(2);
+      expect((svg.match(/data-km-ink-anat5-brow-fiber=/g)||[])).toHaveLength(28);
+      expect(svg).toContain('data-km-ink-anat5-lip-volume="vermilion-border"');
+      expect(svg).toContain('data-km-ink-anat5-nose-bridge-wash="true"');
+    }
+    expect(scholar).toContain('data-km-ink-anat5-cap-front-panel="woven-black-cloth"');
+    expect((scholar.match(/data-km-ink-anat5-cap-weave=/g)||[])).toHaveLength(11);
+    expect((scholar.match(/data-km-ink-anat5-beard-substrate=/g)||[])).toHaveLength(2);
+    expect((scholar.match(/data-km-ink-anat5-moustache-substrate=/g)||[])).toHaveLength(2);
+    expect((writer.match(/data-km-ink-anat5-collar-motif=/g)||[])).toHaveLength(18);
+    expect(writer).toContain('data-km-ink-anat5-writer-hair-ornament="floral-coil"');
+    expect((attendant.match(/data-km-ink-anat5-collar-motif=/g)||[])).toHaveLength(18);
+    expect(attendant).toContain('data-km-ink-anat5-attendant-hair-pins="paired-coils"');
   });
 
   it("rejects invalid identities, expressions and non-finite controls",()=>{
