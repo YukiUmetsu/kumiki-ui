@@ -21,7 +21,7 @@ const sources=[
   {
     id:"lu-dongbin",
     title:"Standing figure of Lü Dongbin · Ming dynasty",
-    image:"https://ids.si.edu/ids/deliveryService?id=FS-5908_09&max=1200",
+    image:"https://ids.si.edu/ids/iiif/FS-5908_09/full/full/0/default.jpg",
     href:"https://asia-archive.si.edu/object/F1916.580/",
     credit:"Smithsonian, Freer Gallery of Art, F1916.580 · ink and color on silk · 1368–1644 · CC0.",
     note:"Full-length hanging-scroll scale, head-to-body ratio, robe column, sleeve gravity and the way the figure is held together by a few long, directional garment strokes. Used for silhouette and brush-language study, not for copying the immortal, face or prop.",
