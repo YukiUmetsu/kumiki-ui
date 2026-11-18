@@ -6,7 +6,7 @@
 import type { Node, SculptPrim } from "./arch-sdf";
 import { leaf, sculpt, union } from "./arch-sdf";
 import type { SceneBuilder } from "./arch-kit";
-import { boxAt, capsule, coneY, cut, cylX, cylY, cylZ, ellipsoid, repeatAround, repeatX, revolve, sphere } from "./arch-kit";
+import { boxAt, capsule, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, repeatAround, repeatX, revolve, sphere, tree } from "./arch-kit";
 import type { SurfaceSpec } from "./arch-surface";
 
 const M = {
@@ -258,4 +258,71 @@ export function appleBasket(b: SceneBuilder, x: number, z: number, red = "#b8342
   b.add(cut(revolve(0, 0, 0, 0.32, t => 0.22 + 0.06 * t, 0.29, wicker), [cylY(0, 0, 0.04, 0.5, 0.25, 0)]));
   for (let k = 0; k < 9; k++) { const a = k * 2.4, r = 0.06 + 0.12 * ((k * 0.618) % 1); b.add(sphere(Math.cos(a) * r, 0.3 + 0.03 * (k % 3), Math.sin(a) * r, 0.045, apple)); }
   place(b, x, z, 0);
+}
+
+// ---- Street furniture -------------------------------------------------------------------------------------------------------
+
+/** Iron railings from (x0, z) to (x1, z): square bars with spear heads between top and bottom rails, on a stone kerb. */
+export function railings(b: SceneBuilder, x0: number, x1: number, z: number, h = 1.1) {
+  const ir = b.mat({ kind: "iron", colour: "#1c1c1e", age: 0.15 }), st = b.mat({ kind: "ashlar", colour: "#b8b0a0", course: 0.3 }), n = Math.floor((x1 - x0) / 0.13);
+  b.add(boxAt(x0, 0, z - 0.12, x1, 0.18, z + 0.12, st), boxAt(x0, 0.28, z - 0.012, x1, 0.31, z + 0.012, ir), boxAt(x0, h - 0.16, z - 0.012, x1, h - 0.13, z + 0.012, ir));
+  b.add(repeatX(union([boxAt(x0 + 0.05, 0.18, z - 0.008, x0 + 0.066, h, z + 0.008, ir), coneY(x0 + 0.058, z, h, h + 0.09, 0.022, 0.002, ir)]), 0.13, n));
+  b.place();
+}
+/** A London plane in the pavement: a mottled trunk, a crown lifted clear of the street, an iron grille round its foot. */
+export function streetTree(b: SceneBuilder, x: number, z: number, h = 11) {
+  const ir = b.mat({ kind: "iron", colour: "#22201e", age: 0.3 });
+  b.add(cut(boxAt(x - 0.7, 0.0, z - 0.7, x + 0.7, 0.03, z + 0.7, ir), [cylY(x, z, -0.1, 0.1, 0.25, 0)]));
+  b.place();
+  tree(b, x, z, h, h * 0.32, { kind: "foliage", colour: "#4e6a32" }, false);
+  b.place();
+}
+/** A café terrace along a front from x0 to x1 at z: round marble-topped tables on iron feet, each with two bentwood chairs. */
+export function cafeTerrace(b: SceneBuilder, x0: number, x1: number, z: number) {
+  const marble = b.mat({ kind: "marble", colour: "#e8e2d6" }), ir = b.mat({ kind: "iron", colour: "#1e1c1a" }), bw = b.mat({ kind: "oak", colour: "#3a2416", age: 0.1 }), cane = b.mat({ kind: "cane", colour: "#c8a46a" });
+  for (let x = x0; x <= x1; x += 1.9) {
+    b.add(cylY(x, z, 0.72, 0.75, 0.3, marble), cylY(x, z, 0.04, 0.72, 0.025, ir), cylY(x, z, 0, 0.04, 0.22, ir));
+    for (const s of [-1, 1]) {
+      const cx = x + s * 0.55, cz = z + 0.05;
+      b.add(cylY(cx, cz, 0.44, 0.47, 0.2, cane), cut(cylY(cx, cz, 0.44, 0.48, 0.21, bw), [cylY(cx, cz, 0.4, 0.5, 0.19, 0)]));
+      for (const [lx, lz] of [[-0.15, -0.15], [0.15, -0.15], [-0.15, 0.15], [0.15, 0.15]] as const) b.add(capsule(cx + lx * 0.9, 0.45, cz + lz * 0.9, cx + lx * 1.2, 0, cz + lz * 1.2, 0.012, bw));
+      b.add(capsule(cx + s * 0.17, 0.46, cz - 0.12, cx + s * 0.19, 0.9, cz - 0.12, 0.012, bw), capsule(cx + s * 0.17, 0.46, cz + 0.12, cx + s * 0.19, 0.9, cz + 0.12, 0.012, bw), capsule(cx + s * 0.19, 0.9, cz - 0.12, cx + s * 0.19, 0.9, cz + 0.12, 0.014, bw));
+    }
+  }
+  b.place();
+}
+/** An advertising column: a dark green drum pasted with posters in bands, a moulded cornice and a small zinc dome. */
+export function advertColumn(b: SceneBuilder, x: number, z: number) {
+  const green = b.mat({ kind: "painted-wood", colour: "#2a4a36", flake: 0.03 }), zinc = b.mat({ kind: "zinc", colour: "#6a7a7a" });
+  const posters = ["#d8c49a", "#c8442a", "#e8dcc0", "#2a4a7a", "#e0b840", "#d8d0c0"];
+  b.add(cylY(x, z, 0, 0.35, 0.66, green), cylY(x, z, 2.75, 2.95, 0.7, green), dome(x, 2.95, z, 0.68, 0.5, zinc), sphere(x, 3.5, z, 0.08, zinc));
+  // six posters round the drum, each a sector of a thin shell; outside its sector the distance is the chord to its edge
+  for (let k = 0; k < 6; k++) {
+    const mid = -Math.PI + ((k + 0.5) / 6) * Math.PI * 2, half = Math.PI / 6 - 0.01;
+    b.add(leaf((px, py, pz) => {
+      const dx = px - x, dz = pz - z, rr = Math.hypot(dx, dz);
+      let da = Math.atan2(dz, dx) - mid; da = Math.atan2(Math.sin(da), Math.cos(da));
+      const out = Math.max(0, Math.abs(da) - half), wedge = 2 * rr * Math.sin(Math.min(Math.PI / 2, out / 2));
+      return Math.max(rr - 0.6, 0.35 - py, py - 2.75, wedge);
+    }, [x - 0.62, 0.35, z - 0.62], [x + 0.62, 2.75, z + 0.62], b.mat({ kind: "parchment", colour: posters[k], pattern: "text", unit: 0.6, course: 0.6 })));
+  }
+  b.place();
+}
+/** A street handcart: two spoked wheels, a plank bed with low sides, a pair of handles, a load of crates or sacks. */
+export function handcart(b: SceneBuilder, x: number, z: number, yaw = 0) {
+  const wd = b.mat({ kind: "oak", colour: "#6a5038", age: 0.6 }), ir = b.mat(M.iron), R = 0.45;
+  for (const s of [-1, 1]) { b.add(cut(cylX(R, 0, s * 0.5 - 0.03, s * 0.5 + 0.03, R, wd), [cylX(R, 0, s * 0.5 - 0.06, s * 0.5 + 0.06, R - 0.05, 0)])); for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; b.add(capsule(s * 0.5, R, 0, s * 0.5, R + Math.sin(a) * (R - 0.04), Math.cos(a) * (R - 0.04), 0.014, wd)); } }
+  b.add(cylX(R, 0, -0.55, 0.55, 0.025, ir), boxAt(-0.45, R + 0.05, -0.7, 0.45, R + 0.09, 0.6, wd), boxAt(-0.47, R + 0.09, -0.7, -0.43, R + 0.3, 0.6, wd), boxAt(0.43, R + 0.09, -0.7, 0.47, R + 0.3, 0.6, wd));
+  for (const s of [-1, 1]) b.add(capsule(s * 0.38, R + 0.07, 0.6, s * 0.36, 0.75, 1.6, 0.025, wd));
+  b.add(boxAt(-0.4, R + 0.09, -0.6, 0.0, R + 0.4, -0.2, wd), boxAt(0.02, R + 0.09, -0.55, 0.4, R + 0.35, -0.1, b.mat({ kind: "oak", colour: "#8a6a48", age: 0.4 })));
+  b.add(sculpt([{ a: [0.0, R + 0.28, 0.25], e: [0.3, 0.18, 0.25] }], 0.08, b.mat(M.burlap)));
+  place(b, x, z, yaw);
+}
+/** A cast-iron street bench with wooden slats. */
+export function streetBench(b: SceneBuilder, x: number, z: number, yaw = 0, w = 1.8) {
+  const ir = b.mat({ kind: "iron", colour: "#22301e", age: 0.2 }), wd = b.mat({ kind: "oak", colour: "#7a5a3a", age: 0.5 });
+  for (const s of [-1, 1]) b.add(leaf((px, py, pz) => { const dx = Math.abs(px - s * (w / 2 - 0.1)) - 0.025; const seat = Math.max(Math.abs(pz) - 0.25, Math.abs(py - 0.42) - 0.03), leg = Math.max(Math.abs(pz + 0.0) - 0.25, py - 0.42, -py), back = Math.max(Math.abs(pz - 0.27 - (py - 0.42) * 0.25) - 0.03, py - 0.85, 0.42 - py); return Math.max(dx, Math.min(seat, Math.max(leg, Math.abs(Math.abs(pz) - 0.2) - 0.03), back)); }, [s * (w / 2 - 0.1) - 0.04, 0, -0.3], [s * (w / 2 - 0.1) + 0.04, 0.9, 0.42], ir));
+  for (let k = 0; k < 4; k++) b.add(boxAt(-w / 2, 0.43, -0.22 + k * 0.12, w / 2, 0.46, -0.13 + k * 0.12, wd));
+  for (let k = 0; k < 3; k++) b.add(boxAt(-w / 2, 0.55 + k * 0.1, 0.3 + k * 0.025, w / 2, 0.62 + k * 0.1, 0.33 + k * 0.025, wd));
+  place(b, x, z, yaw);
 }

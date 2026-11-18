@@ -13,7 +13,7 @@
  * - Victorian glasshouses are iron ribs and small panes over a brick plinth (the Palm House at Kew, 1844–48).
  * - Rooms are lit by their windows: a sun shaft with dust, and the warm light of an oven, a hearth or a candle.
  */
-import type { ArchShape, Node } from "./arch-sdf";
+import type { ArchShape, Node, SculptPrim } from "./arch-sdf";
 import { archRoll, boxDistance, frame, leaf, sculpt, union } from "./arch-sdf";
 import type { SceneBuilder } from "./arch-kit";
 import { beam, box, boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, gableRoof, gableWall, hills, hipRoof, lanternParts, opening, openingTop, pentRoof, repeatAround, repeatWheel, repeatX, repeatZ, revolve, sphere, spire, tower, tree, windowParts } from "./arch-kit";
@@ -730,7 +730,18 @@ export function crocketCapital(x: number, y: number, z: number, R: number, h: nu
   ];
   const P = (rad: number, yy: number): [number, number, number] => [x + rad, yy, z];
   // one crocket built on the +x axis and repeated round: a stalk off the bell, then a bud curling out and down
-  out.push(repeatAround(sculpt([{ a: P(R * 0.98, yb + h * 0.18), b: P(R * 1.16, yb + h * 0.66), r1: R * 0.075, r2: R * 0.06 }, { a: P(R * 1.16, yb + h * 0.66), b: P(R * 1.36, yb + h * 0.8), r1: R * 0.06, r2: R * 0.07 }, { a: P(R * 1.42, yb + h * 0.74), e: [R * 0.12, R * 0.1, R * 0.11] }, { a: P(R * 1.47, yb + h * 0.64), e: [R * 0.06, R * 0.07, R * 0.07] }], R * 0.05, mat), x, z, n, R * 1.62));
+  // a crocket: its stalk rises from the bell, then turns out into a curled leaf of three lobes, each with a midrib cut into it
+  const T = (rad: number, yy: number, t: number): [number, number, number] => [x + rad, yy, z + t];
+  const crocket: SculptPrim[] = [
+    { a: P(R * 0.98, yb + h * 0.18), b: P(R * 1.14, yb + h * 0.64), r1: R * 0.07, r2: R * 0.055 }, { a: P(R * 1.14, yb + h * 0.64), b: P(R * 1.34, yb + h * 0.79), r1: R * 0.055, r2: R * 0.06 },
+    { a: T(R * 1.44, yb + h * 0.76, 0), e: [R * 0.09, R * 0.075, R * 0.075] },
+    { a: T(R * 1.42, yb + h * 0.74, R * 0.1), e: [R * 0.075, R * 0.065, R * 0.07] }, { a: T(R * 1.42, yb + h * 0.74, -R * 0.1), e: [R * 0.075, R * 0.065, R * 0.07] },
+    { a: T(R * 1.5, yb + h * 0.66, 0), e: [R * 0.055, R * 0.07, R * 0.06] },
+    { a: T(R * 1.52, yb + h * 0.79, 0), b: T(R * 1.55, yb + h * 0.68, 0), r1: R * 0.012, r2: R * 0.01, sub: true, k: R * 0.01 },
+    { a: T(R * 1.48, yb + h * 0.77, R * 0.11), b: T(R * 1.5, yb + h * 0.7, R * 0.14), r1: R * 0.01, r2: R * 0.008, sub: true, k: R * 0.008 },
+    { a: T(R * 1.48, yb + h * 0.77, -R * 0.11), b: T(R * 1.5, yb + h * 0.7, -R * 0.14), r1: R * 0.01, r2: R * 0.008, sub: true, k: R * 0.008 },
+  ];
+  out.push(repeatAround(sculpt(crocket, R * 0.04, mat), x, z, n, R * 1.66));
   // stiff leaves between the crockets on the lower bell
   out.push(repeatAround(sculpt([{ a: [x + R * 0.98 * Math.cos(step / 2), yb + h * 0.1, z + R * 0.98 * Math.sin(step / 2)], b: [x + R * 1.1 * Math.cos(step / 2), yb + h * 0.42, z + R * 1.1 * Math.sin(step / 2)], r1: R * 0.06, r2: R * 0.1 }], R * 0.04, mat), x, z, n, R * 1.3));
   return out;

@@ -19,7 +19,8 @@
   goods of trades for working interiors: workbench, anvil, forge with bellows, bread racks, flour sacks, faience jar
   rows, a balance, herb bunches, a scriptorium desk, wall clocks, a magnifier lamp, clock parts, tankards, candlesticks,
   a hanging lantern, stools, a sleeping cat; and for farmyards a cart with hay or sacks, a haycock, a post-and-rail
-  fence, a stone trough and a basket of apples), `arch-library.ts` (100 entries),
+  fence, a stone trough and a basket of apples; and for streets iron railings with spear heads, a street tree in its
+  grille, a café terrace, an advertising column, a handcart and a street bench), `arch-library.ts` (100 entries),
   `arch-paint.ts`
   (light and the watercolour pass), `arch-paint-jobs.ts`, `arch-paint-pool.ts`, `arch-paint-worker.ts` (worker
   renders) and `arch-plate-react.tsx` (`StorybookPlate`, `ArchLibraryGallery`, `ArchStyleGuide`).
