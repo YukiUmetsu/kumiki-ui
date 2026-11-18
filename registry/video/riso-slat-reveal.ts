@@ -118,16 +118,17 @@ export function evaluateRisoSlatReveal(spec:RisoSlatSpec):RisoSlatEvaluation{
   const interleaveDepthMm=spec.interleaveDepthMm??.42;
   const overlapUnits=overlapMm*PX_PER_MM;
   const slotWidthUnits=(paperThicknessMm+slotClearanceMm)*PX_PER_MM;
-  const travel=spec.travel??span+overlapUnits+.5;
+  const requestedTravel=spec.travel??span+overlapUnits+.5;
   if(!finite(paperThicknessMm)||paperThicknessMm<.08||paperThicknessMm>1.2||
     !finite(slotClearanceMm)||slotClearanceMm<.02||slotClearanceMm>.6||
     !finite(overlapMm)||overlapMm<0||overlapMm>.7||
     overlapUnits>pitch*.12||
     !finite(interleaveDepthMm)||interleaveDepthMm<paperThicknessMm+slotClearanceMm||
     interleaveDepthMm>3||
-    !finite(travel)||travel<span+overlapUnits||travel>span*1.12||
+    !finite(requestedTravel)||requestedTravel<span+overlapUnits||requestedTravel>span*1.12||
     pitch-overlapUnits<slotWidthUnits+.25)
     throw new RangeError("RISO81 slat lap, slot clearance, interleave depth and retraction must preserve positive collision clearance.");
+  const travel=round(requestedTravel);
   const light=spec.lightDirection??[-.55,-.84];
   if(!Array.isArray(light)||light.length!==2||!light.every(finite)){
     throw new RangeError("RISO81 requires a finite two-component lamp direction.");
@@ -136,7 +137,7 @@ export function evaluateRisoSlatReveal(spec:RisoSlatSpec):RisoSlatEvaluation{
   if(!finite(lightLength)||lightLength<.25||lightLength>1.5)
     throw new RangeError("RISO81 lamp direction length must be .25–1.5.");
   const eased=spec.progress*spec.progress*(3-2*spec.progress);
-  const distance=travel*(1-eased);
+  const distance=round(travel*(1-eased));
   const translation:readonly [number,number]=horizontal?
     [0,spec.direction==="down"?-distance:distance]:
     [spec.direction==="right"?-distance:distance,0];
@@ -173,7 +174,7 @@ export function evaluateRisoSlatReveal(spec:RisoSlatSpec):RisoSlatEvaluation{
         "M"+round(center)+" 0 V"+spec.height};
   });
   return {
-    easedProgress:round(eased),travel:round(travel),translation,
+    easedProgress:round(eased),travel,translation,
     overlapMm,overlapUnits:round(overlapUnits),paperThicknessMm,
     slotClearanceMm,slotWidthUnits:round(slotWidthUnits),
     interleaveDepthMm,collisionClearanceMm,shadowOffset,
