@@ -17,7 +17,7 @@
  * `createSelectiveColorEngine` runs them frame by frame, keeps the temporal state, checks frames and times, and logs.
  * Decoding and encoding files is the file pipeline's job (VP1.3); a renderer passes RGBA frames in.
  */
-import { deltaE2000, deltaE76, hueDistance, LUMA_WEIGHTS, parseHex, rgbToHsv, rgbToLab, rgbToYcbcr, softFloor, softWindow, SRGB_TO_LINEAR, linearToLab } from "./selective-color-math";
+import { deltaE2000, deltaE76, hueDistance, linearToLab, LUMA_WEIGHTS, parseHex, rgbToHsv, rgbToLab, rgbToYcbcr, softFloor, softWindow, srgbToLinear } from "./selective-color-math";
 import type { LumaStandard } from "./selective-color-math";
 
 export type SelectiveColorSpace = "hsv" | "lab" | "ycbcr";
@@ -249,32 +249,75 @@ export function strengthAt(windows: readonly SelectiveColorWindow[], t: number, 
  * Stage 2: colour mask
  * ------------------------------------------------------------------ */
 
-/** How much each pixel matches the targets, 0..1 (the best target wins). */
-export function colorMask(frame: SelectiveColorFrame, config: SelectiveColorConfig): Float32Array {
-  const { width, height, data } = frame, n = width * height, mask = new Float32Array(n);
-  if (!config.targets.length) return mask;
+/** A function giving how much an sRGB colour (0..1 per channel) matches the config's targets, 0..1 (the best wins). */
+export function colorMatcher(config: SelectiveColorConfig): (r: number, g: number, b: number) => number {
   const space = config.colorSpace;
   const targets = config.targets.map((t) => {
     const [r, g, b] = parseHex(t.color)!;
     return { t, hsv: rgbToHsv(r, g, b), lab: rgbToLab(r, g, b), ycc: rgbToYcbcr(r, g, b, config.ycbcrStandard) };
   });
-  for (let p = 0; p < n; p++) {
-    const r8 = data[4 * p], g8 = data[4 * p + 1], b8 = data[4 * p + 2], r = r8 / 255, g = g8 / 255, b = b8 / 255;
+  if (space === "hsv") return (r, g, b) => {
+    const [h, s, v] = rgbToHsv(r, g, b);
     let best = 0;
-    if (space === "hsv") {
-      const [h, s, v] = rgbToHsv(r, g, b);
-      for (const { t, hsv } of targets) best = Math.max(best, softWindow(hueDistance(h, hsv[0]), t.tolerance, t.softness) * softFloor(s, t.saturationMin, t.saturationSoftness) * softFloor(v, t.valueMin, t.valueSoftness));
-    } else if (space === "lab") {
-      const [l, a, bb] = linearToLab(SRGB_TO_LINEAR[r8], SRGB_TO_LINEAR[g8], SRGB_TO_LINEAR[b8]), chroma = Math.hypot(a, bb) / 100;
-      for (const { t, lab } of targets) {
-        const dist = t.metric === "cie76" ? deltaE76(l, a, bb, lab[0], lab[1], lab[2], t.lightness) : deltaE2000(l, a, bb, lab[0], lab[1], lab[2], t.lightness);
-        best = Math.max(best, softWindow(dist, t.tolerance, t.softness) * softFloor(chroma, t.saturationMin, t.saturationSoftness) * softFloor(l / 100, t.valueMin, t.valueSoftness));
-      }
-    } else {
-      const [y, cb, cr] = rgbToYcbcr(r, g, b, config.ycbcrStandard), chroma = 2 * Math.hypot(cb, cr);
-      for (const { t, ycc } of targets) best = Math.max(best, softWindow(Math.hypot(cb - ycc[1], cr - ycc[2]), t.tolerance, t.softness) * softFloor(chroma, t.saturationMin, t.saturationSoftness) * softFloor(y, t.valueMin, t.valueSoftness));
+    for (const { t, hsv } of targets) best = Math.max(best, softWindow(hueDistance(h, hsv[0]), t.tolerance, t.softness) * softFloor(s, t.saturationMin, t.saturationSoftness) * softFloor(v, t.valueMin, t.valueSoftness));
+    return best;
+  };
+  if (space === "lab") return (r, g, b) => {
+    const [l, a, bb] = linearToLab(srgbToLinear(r), srgbToLinear(g), srgbToLinear(b)), chroma = Math.hypot(a, bb) / 100;
+    let best = 0;
+    for (const { t, lab } of targets) {
+      const dist = t.metric === "cie76" ? deltaE76(l, a, bb, lab[0], lab[1], lab[2], t.lightness) : deltaE2000(l, a, bb, lab[0], lab[1], lab[2], t.lightness);
+      best = Math.max(best, softWindow(dist, t.tolerance, t.softness) * softFloor(chroma, t.saturationMin, t.saturationSoftness) * softFloor(l / 100, t.valueMin, t.valueSoftness));
     }
-    mask[p] = best;
+    return best;
+  };
+  return (r, g, b) => {
+    const [y, cb, cr] = rgbToYcbcr(r, g, b, config.ycbcrStandard), chroma = 2 * Math.hypot(cb, cr);
+    let best = 0;
+    for (const { t, ycc } of targets) best = Math.max(best, softWindow(Math.hypot(cb - ycc[1], cr - ycc[2]), t.tolerance, t.softness) * softFloor(chroma, t.saturationMin, t.saturationSoftness) * softFloor(y, t.valueMin, t.valueSoftness));
+    return best;
+  };
+}
+
+/** Points per side of the colour lookup table: 65³ values, about one per four 8-bit levels. */
+export const MASK_LUT_SIZE = 65;
+const lutCache = new WeakMap<SelectiveColorConfig, Float32Array>();
+
+/** The match for every colour on a `MASK_LUT_SIZE`³ RGB grid, as a grading tool's 3D LUT. Cached per config. */
+export function maskLut(config: SelectiveColorConfig): Float32Array {
+  let lut = lutCache.get(config);
+  if (lut) return lut;
+  const n = MASK_LUT_SIZE, match = colorMatcher(config);
+  lut = new Float32Array(n * n * n);
+  for (let b = 0; b < n; b++) for (let g = 0; g < n; g++) for (let r = 0; r < n; r++) lut[r + n * (g + n * b)] = match(r / (n - 1), g / (n - 1), b / (n - 1));
+  lutCache.set(config, lut);
+  return lut;
+}
+
+/**
+ * How much each pixel matches the targets, 0..1 (the best target wins). The match depends only on a pixel's colour, so
+ * large frames in CIELAB or YCbCr read it from a 3D lookup table (trilinear; within 0.05 of the exact match in CIELAB
+ * and 0.025 in YCbCr). HSV is computed directly: its hue jumps across dark, washed-out colours faster than a table can
+ * follow, and it is cheap anyway. `exact` forces the direct path.
+ */
+export function colorMask(frame: SelectiveColorFrame, config: SelectiveColorConfig, exact = false): Float32Array {
+  const { width, height, data } = frame, count = width * height, mask = new Float32Array(count);
+  if (!config.targets.length) return mask;
+  const N = MASK_LUT_SIZE;
+  if (exact || config.colorSpace === "hsv" || count < (N * N * N) / 4) {
+    const match = colorMatcher(config);
+    for (let p = 0; p < count; p++) mask[p] = match(data[4 * p] / 255, data[4 * p + 1] / 255, data[4 * p + 2] / 255);
+    return mask;
+  }
+  const lut = maskLut(config), k = (N - 1) / 255;
+  for (let p = 0; p < count; p++) {
+    const fr = data[4 * p] * k, fg = data[4 * p + 1] * k, fb = data[4 * p + 2] * k;
+    const r0 = Math.min(N - 2, fr | 0), g0 = Math.min(N - 2, fg | 0), b0 = Math.min(N - 2, fb | 0), u = fr - r0, v = fg - g0, w = fb - b0;
+    const i = r0 + N * (g0 + N * b0), gs = N, bs = N * N;
+    const c00 = lut[i] + (lut[i + 1] - lut[i]) * u, c10 = lut[i + gs] + (lut[i + gs + 1] - lut[i + gs]) * u;
+    const c01 = lut[i + bs] + (lut[i + bs + 1] - lut[i + bs]) * u, c11 = lut[i + gs + bs] + (lut[i + gs + bs + 1] - lut[i + gs + bs]) * u;
+    const c0 = c00 + (c10 - c00) * v, c1 = c01 + (c11 - c01) * v;
+    mask[p] = c0 + (c1 - c0) * w;
   }
   return mask;
 }
@@ -339,6 +382,12 @@ export interface SelectiveColorState { previous?: Float32Array }
 
 /** Clean the matte, feather it, and smooth it against the last frame. Updates `state`. */
 export function refineMask(mask: Float32Array, frame: SelectiveColorFrame, config: SelectiveColorConfig, state: SelectiveColorState = {}): Float32Array {
+  return smoothMask(cleanAndFeather(mask, frame, config), config, state);
+}
+
+/** The spatial part of refining, frame by frame with no state: clean the matte, then feather it. Frames can run on
+ * separate threads. */
+export function cleanAndFeather(mask: Float32Array, frame: SelectiveColorFrame, config: SelectiveColorConfig): Float32Array {
   const { width, height } = frame, { cleanBlack, cleanWhite } = config.matte, span = Math.max(1e-6, 1 - cleanBlack - cleanWhite);
   let out: Float32Array = new Float32Array(mask.length);
   for (let k = 0; k < mask.length; k++) out[k] = Math.min(1, Math.max(0, (mask[k] - cleanBlack) / span));
@@ -348,10 +397,16 @@ export function refineMask(mask: Float32Array, frame: SelectiveColorFrame, confi
     // Three box passes approach a Gaussian, so the feather has no visible box corners.
     else { const step = Math.max(1, Math.round(r / Math.sqrt(3))); out = boxMean(boxMean(boxMean(out, width, height, step), width, height, step), width, height, step); }
   }
-  const s = config.temporal.smoothing;
-  if (s > 0 && state.previous && state.previous.length === out.length) for (let k = 0; k < out.length; k++) out[k] = (1 - s) * out[k] + s * state.previous[k];
-  state.previous = out;
   return out;
+}
+
+/** The temporal part of refining, in frame order: carry part of the last frame's mask over, against flicker. Updates
+ * `state`; `mask` is changed in place. */
+export function smoothMask(mask: Float32Array, config: SelectiveColorConfig, state: SelectiveColorState): Float32Array {
+  const s = config.temporal.smoothing;
+  if (s > 0 && state.previous && state.previous.length === mask.length) for (let k = 0; k < mask.length; k++) mask[k] = (1 - s) * mask[k] + s * state.previous[k];
+  state.previous = mask;
+  return mask;
 }
 
 /* ------------------------------------------------------------------ *

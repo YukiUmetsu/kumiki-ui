@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { deltaE2000, hueDistance, rgbToHsv, rgbToLab, rgbToYcbcr } from "../registry/video/selective-color-math";
-import { colorMask, composite, createSelectiveColorEngine, monochromeCurve, refineMask, resolveSelectiveColorConfig, SelectiveColorError, strengthAt } from "../registry/video/selective-color";
+import { colorMask, colorMatcher, composite, createSelectiveColorEngine, monochromeCurve, refineMask, resolveSelectiveColorConfig, SelectiveColorError, strengthAt } from "../registry/video/selective-color";
 import type { SelectiveColorFrame, SelectiveColorInput } from "../registry/video/selective-color";
 
 /** Sharma, Wu & Dalal (2005), Table 1: L1 a1 b1 L2 a2 b2 ΔE00 — test data for CIEDE2000 implementations. */
@@ -65,6 +65,19 @@ describe("selective colour", () => {
     for (let i = 1; i < 40; i++) expect(ramp[i]).toBeLessThanOrEqual(ramp[i - 1] + 1e-6);
     expect(ramp[0]).toBe(1);
     expect(ramp[39]).toBe(0);
+  });
+
+  it("reads large frames from a 3D lookup table close to the exact match (CIELAB and YCbCr)", () => {
+    for (const colorSpace of ["lab", "ycbcr"] as const) {
+      const { config } = resolveSelectiveColorConfig({ ...RED, colorSpace }), match = colorMatcher(config);
+      // Every colour of a fine RGB sweep, as one large frame, so the lookup table is used.
+      const side = 96, frame = { width: side * side, height: side, data: new Uint8ClampedArray(side * side * side * 4) };
+      for (let b = 0; b < side; b++) for (let g = 0; g < side; g++) for (let r = 0; r < side; r++) frame.data.set([Math.round((r * 255) / (side - 1)), Math.round((g * 255) / (side - 1)), Math.round((b * 255) / (side - 1)), 255], 4 * (r + side * (g + side * b)));
+      const mask = colorMask(frame, config);
+      let worst = 0;
+      for (let p = 0; p < mask.length; p++) worst = Math.max(worst, Math.abs(mask[p] - match(frame.data[4 * p] / 255, frame.data[4 * p + 1] / 255, frame.data[4 * p + 2] / 255)));
+      expect(worst, colorSpace).toBeLessThan(colorSpace === "lab" ? 0.05 : 0.025);
+    }
   });
 
   it("fades the effect in and out over each window", () => {
