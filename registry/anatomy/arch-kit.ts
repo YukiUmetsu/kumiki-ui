@@ -693,6 +693,81 @@ export function hillField(b: SceneBuilder, cx: number, cz: number, h: number, rx
   return height;
 }
 
+// ---- Country round a building: tracks, hedges, fields, the plants at a wall's foot ------------------------------------------
+
+/** Distance in the xz plane to a polyline. */
+function polylineDist(px: number, pz: number, pts: readonly (readonly [number, number])[]): number {
+  let d = 1e9;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const [ax, az] = pts[i], [bx, bz] = pts[i + 1], ex = bx - ax, ez = bz - az, t = Math.min(1, Math.max(0, ((px - ax) * ex + (pz - az) * ez) / (ex * ex + ez * ez || 1)));
+    d = Math.min(d, Math.hypot(px - ax - ex * t, pz - az - ez * t));
+  }
+  return d;
+}
+/** Smooth a few control points into a polyline (Catmull–Rom), for tracks and hedges that curve. */
+export function curve(ctrl: readonly (readonly [number, number])[], per = 8): [number, number][] {
+  const out: [number, number][] = [], P = (i: number) => ctrl[Math.max(0, Math.min(ctrl.length - 1, i))];
+  for (let i = 0; i + 1 < ctrl.length; i++) for (let k = 0; k < per; k++) {
+    const t = k / per, [x0, z0] = P(i - 1), [x1, z1] = P(i), [x2, z2] = P(i + 1), [x3, z3] = P(i + 2), t2 = t * t, t3 = t2 * t;
+    const f = (a: number, b2: number, c: number, d: number) => 0.5 * (2 * b2 + (-a + c) * t + (2 * a - 5 * b2 + 4 * c - d) * t2 + (-a + 3 * b2 - 3 * c + d) * t3);
+    out.push([f(x0, x1, x2, x3), f(z0, z1, z2, z3)]);
+  }
+  out.push([...ctrl[ctrl.length - 1]] as [number, number]);
+  return out;
+}
+/**
+ * A worn track along a curve: bare earth `w` wide, two wheel ruts, a strip of grass down the middle where hooves and
+ * wheels do not reach, its edges frayed into the grass. Lies on the ground at y (default 0).
+ */
+export function track(b: SceneBuilder, ctrl: readonly (readonly [number, number])[], w = 2.6, y = 0, earth: SurfaceSpec = { kind: "dirt", colour: "#7a6448" }) {
+  const pts = curve(ctrl), lo: [number, number, number] = [1e9, y - 0.05, 1e9], hi: [number, number, number] = [-1e9, y + 0.04, -1e9];
+  for (const [x, z] of pts) { lo[0] = Math.min(lo[0], x - w); lo[2] = Math.min(lo[2], z - w); hi[0] = Math.max(hi[0], x + w); hi[2] = Math.max(hi[2], z + w); }
+  const dirt = b.mat(earth), mid = b.mat({ kind: "grass", colour: "#6a7a3c" });
+  b.add(leaf((x, yy, z) => { const d = polylineDist(x, z, pts) - w / 2 - 0.25 * gradNoise(51, x * 0.6, z * 0.6); return Math.max(d, Math.abs(yy - y - 0.005) - 0.012); }, lo, hi, dirt));
+  b.add(leaf((x, yy, z) => { const d = polylineDist(x, z, pts) - w * 0.07 - 0.05 * gradNoise(52, x * 1.3, z * 1.3); return Math.max(d, Math.abs(yy - y - 0.02) - 0.012); }, lo, hi, mid));
+  b.place();
+}
+/** A hedgerow along a curve: a dense, uneven bank of shrubs about `h` tall, with a hedgerow tree every so often. */
+export function hedgerow(b: SceneBuilder, ctrl: readonly (readonly [number, number])[], h = 1.8, trees = 0.06, leaves: SurfaceSpec = { kind: "foliage", colour: "#4a6030" }) {
+  const pts = curve(ctrl, 6), m = b.mat(leaves);
+  let along = 0;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const [ax, az] = pts[i], [bx, bz] = pts[i + 1], L = Math.hypot(bx - ax, bz - az);
+    for (let s2 = 0; s2 < L; s2 += 1.6) { const t = s2 / L, x = ax + (bx - ax) * t, z = az + (bz - az) * t, hh = h * b.r(0.75, 1.2); b.add(clump(x, hh * 0.45, z, b.r(1.0, 1.5), hh * 0.55, b.r(0.8, 1.2), m, b.r(), 0.35)); }
+    along += L;
+  }
+  b.place();
+  const n = Math.floor(along * trees);
+  for (let k = 0; k < n; k++) { const [x, z] = pts[Math.floor(b.r(0, pts.length))]; tree(b, x, z, b.r(7, 11), b.r(2.5, 3.6), leaves); }
+  b.place();
+}
+/** Weeds, nettles and long grass along a building's foot (its footprint centred at x, z, w × d, turned yaw°), leaving a gap at the door (offset along the front). */
+export function wallFoot(b: SceneBuilder, x: number, z: number, w: number, d: number, yaw = 0, door?: number, colour = "#5a6e34") {
+  const m = b.mat({ kind: "foliage", colour }), a = (yaw * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
+  const edge = (u: number, v: number) => { b.add(clump(x + u * c - v * s, 0.18, z + u * s + v * c, b.r(0.25, 0.5), b.r(0.16, 0.32), b.r(0.25, 0.45), m, b.r(), 0.45)); };
+  for (let u = -w / 2; u <= w / 2; u += b.r(0.5, 1.1)) { if (door === undefined || Math.abs(u - door) > 1.0) edge(u, d / 2 + 0.25); edge(u, -d / 2 - 0.25); }
+  for (let v = -d / 2; v <= d / 2; v += b.r(0.5, 1.1)) { edge(-w / 2 - 0.25, v); edge(w / 2 + 0.25, v); }
+  b.place();
+}
+/** Field boundaries round the scene: a patchwork of fields (pasture, ploughland, standing wheat, hay meadow) behind z0, each edged by a hedgerow. */
+export function patchwork(b: SceneBuilder, z0 = -30, depth = 260, width = 520, hedges = true) {
+  const kinds: SurfaceSpec[] = [
+    { kind: "grass", colour: "#6a7c3c" }, { kind: "grass", colour: "#7d8a46" }, { kind: "furrows", colour: "#8a6a48", colour2: "#5a4430", unit: 0.8 },
+    { kind: "furrows", colour: "#c8a85a", colour2: "#a8884a", unit: 0.25 }, { kind: "grass", colour: "#8a9050" }, { kind: "furrows", colour: "#6a8040", colour2: "#4a5a2c", unit: 0.6 },
+  ];
+  const rows = [z0, z0 - depth * 0.18, z0 - depth * 0.42, z0 - depth];
+  for (let r = 0; r + 1 < rows.length; r++) {
+    let x = -width / 2;
+    while (x < width / 2) {
+      const fw = b.r(40, 90) * (1 + r * 0.5), spec = kinds[Math.floor(b.r(0, kinds.length))];
+      ground(b, x, x + fw, rows[r + 1], rows[r], spec, 0.004 + r * 0.002);
+      if (hedges && r < 2) hedgerow(b, [[x, rows[r] - 0.5], [x + fw * 0.5, rows[r] - 0.5 + b.r(-2, 2)], [x + fw, rows[r] - 0.5]], 1.8, 0.05);
+      if (hedges && r < 2) hedgerow(b, [[x, rows[r]], [x + b.r(-3, 3), (rows[r] + rows[r + 1]) / 2], [x, rows[r + 1]]], 1.8, 0.04);
+      x += fw;
+    }
+  }
+}
+
 // ---- Towers, spires, domes ----------------------------------------------------------------------------------------------------
 
 export interface TowerSpec {

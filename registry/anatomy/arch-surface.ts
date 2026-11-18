@@ -28,7 +28,7 @@ export type SurfaceKind =
   | "foliage" | "firewood" | "books" | "jars" | "bread" | "fabric" | "hay" | "fire" | "flame" | "floorboards" | "tile-floor" | "drawers" | "plain"
   | "parchment" | "polychrome" | "glazed-tube" | "board-concrete" | "travertine" | "titanium" | "steel" | "curtain" | "chinese-screen"
   | "cane" | "leather" | "velvet" | "rug" | "tatami-mat" | "veneer"
-  | "rush" | "gold-leaf" | "washi" | "earth" | "enamel" | "canvas" | "jute";
+  | "rush" | "gold-leaf" | "washi" | "earth" | "enamel" | "canvas" | "jute" | "furrows";
 
 /** One surface in a scene. Colours are sRGB hex; sizes are metres. */
 export interface SurfaceSpec {
@@ -809,6 +809,18 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
         const cu = Math.floor(u / P), cv = Math.floor(v / P), over = (Math.floor(cu / 2) + Math.floor(cv / 2)) % 2 === 0, bump = over ? Math.sin(frac(u / P) * Math.PI) : Math.sin(frac(v / P) * Math.PI), rr = resolve(i.fw, P);
         set(o, c, (0.78 + 0.28 * bump * rr + 0.14 * (1 - rr)) * (1 + 0.08 * fbm(seed, u * 4, v * 4, 2) + 0.06 * hash2(seed, cu, cv)));
         o.h = 0.003 * bump * rr; o.cav = 0.7 + 0.3 * bump; o.rough = 1; o.spec = 0.01; o.porous = 0.7;
+      };
+    }
+    case "furrows": {
+      // a field in rows (a ploughed field, standing wheat, a vegetable crop): ridges every `unit` m along v, a little
+      // wavering, the furrow bottoms darker (colour2); a field edge headland where the plough turned; fades to its average far off
+      const ridge = C(s.colour, "#8a6a48"), furrow = C(s.colour2, "#5a4430"), P = s.unit ?? 0.7;
+      return (u, v, i, o) => {
+        const a = u + 0.4 * gradNoise(seed, v * 0.02, 0) + 0.06 * gradNoise(seed + 1, v * 0.3, u * 0.1), f = Math.abs(frac(a / P) - 0.5) * 2, rr = resolve(i.fw, P);
+        set(o, ridge); mixInto(o, furrow, (sst(0.35, 0.95, f) * rr + 0.45 * (1 - rr)) * 0.9);
+        const n = fbm(seed + 2, u * 0.08, v * 0.08, 3), clod = fbm(seed + 3, u * 6, v * 6, 2);
+        o.r *= 0.92 + 0.12 * n + 0.05 * clod; o.g *= 0.92 + 0.12 * n + 0.05 * clod; o.b *= 0.93 + 0.1 * n;
+        o.h = 0.05 * (1 - f) * rr + 0.004 * clod; o.cav = 1 - 0.4 * f * rr; o.rough = 0.95; o.spec = 0.01; o.porous = 0.8;
       };
     }
     case "hay": {

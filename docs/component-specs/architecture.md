@@ -13,10 +13,13 @@
   `archRoll` runs a roll moulding round any opening's arch, using `openingProfile`; `peaks` in `arch-kit.ts` builds
   faceted snow-capped mountain backdrops; `crag` builds bedded rock with a levelled top for buildings to stand on,
   `plinth` a battered masonry footing that carries walls down a crag or a slope, `hillField` a turf hill that reports
-  its height), `arch-kit-props.ts` (the tools and
+  its height; `track`, `hedgerow`, `patchwork` and `wallFoot` set a building in working country: a rutted track with
+  a grass middle, hedgerows with trees, a patchwork of pasture, ploughland and wheat (the `furrows` surface), weeds
+  along a wall's foot), `arch-kit-props.ts` (the tools and
   goods of trades for working interiors: workbench, anvil, forge with bellows, bread racks, flour sacks, faience jar
   rows, a balance, herb bunches, a scriptorium desk, wall clocks, a magnifier lamp, clock parts, tankards, candlesticks,
-  a hanging lantern, stools, a sleeping cat), `arch-library.ts` (100 entries),
+  a hanging lantern, stools, a sleeping cat; and for farmyards a cart with hay or sacks, a haycock, a post-and-rail
+  fence, a stone trough and a basket of apples), `arch-library.ts` (100 entries),
   `arch-paint.ts`
   (light and the watercolour pass), `arch-paint-jobs.ts`, `arch-paint-pool.ts`, `arch-paint-worker.ts` (worker
   renders) and `arch-plate-react.tsx` (`StorybookPlate`, `ArchLibraryGallery`, `ArchStyleGuide`).
