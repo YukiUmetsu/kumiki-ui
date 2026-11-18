@@ -159,8 +159,7 @@ function createSourceFace(character:InkSourceLedCharacter){
   const vertices=base.vertices.map(v=>[v[0],v[1],v[2]] as Vec3);
   const at=(name:FaceLandmark)=>vertices[FACE_LANDMARKS[name]];
   const sellionY=at("sellion")[1],subnasaleY=at("subnasale")[1];
-  const mentonY=at("menton")[1],stomionY=at("stomion")[1];
-  const lowerSpan=Math.max(1,subnasaleY-mentonY);
+  const stomionY=at("stomion")[1];
   const eyeL=(at("palpebrale-superius.L")[1]+at("palpebrale-inferius.L")[1])/2;
   const eyeR=(at("palpebrale-superius.R")[1]+at("palpebrale-inferius.R")[1])/2;
   const eyeY=(eyeL+eyeR)/2;
@@ -170,7 +169,6 @@ function createSourceFace(character:InkSourceLedCharacter){
   const ageFactor=clamp((p.age-25)/65,0,1);
   for(const v of vertices){
     const x=v[0],y=v[1];
-    const lower=smooth(clamp((subnasaleY-y)/lowerSpan,0,1));
     const nose=gaussian(x,y,0,(sellionY+subnasaleY)/2,23,31);
     const eyes=Math.max(
       gaussian(x,y,-27,eyeY,25,17),
@@ -357,9 +355,9 @@ export function buildSourceLedPortraitGeometry(
     gonionL:landmark("gonion.L"),gonionR:landmark("gonion.R"),
     cheekboneL:landmark("cheekbone.L"),cheekboneR:landmark("cheekbone.R"),
     earRootL:[Math.min(...outlinePoints.map(point=>point[0]))+4,
-      (landmark("endocanthion.L")[1]+landmark("subnasale")[1])/2],
+      (landmark("endocanthion.L")[1]+landmark("subnasale")[1])/2] as Point,
     earRootR:[Math.max(...outlinePoints.map(point=>point[0]))-4,
-      (landmark("endocanthion.R")[1]+landmark("subnasale")[1])/2],
+      (landmark("endocanthion.R")[1]+landmark("subnasale")[1])/2] as Point,
     mouthL:landmark("cheilion.L"),mouthR:landmark("cheilion.R"),
     eyeInnerL:landmark("endocanthion.L"),eyeInnerR:landmark("endocanthion.R"),
     browInnerL:landmark("brow-inner.L"),browInnerR:landmark("brow-inner.R"),
