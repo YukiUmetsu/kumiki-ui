@@ -1,6 +1,7 @@
 import {describe,expect,it} from "vitest";
 import type {HumanFrame} from "../registry/anatomy/anatomy-view";
 import {JOINTS} from "../registry/anatomy/anatomy-pose";
+import type {JointDef} from "../registry/anatomy/anatomy-pose";
 import {evaluateInkBrush,inspectInkBrush} from "../registry/video/ink-brush";
 import {
   buildInkRobeBrushSpec,buildInkRobePaths,createInkAnatomyPose,
@@ -44,7 +45,7 @@ describe("ANAT4 anatomy-led Chinese ink full figure",()=>{
         const definition=JOINTS.find(x=>x.id===base);
         expect(definition, joint).toBeDefined();
         for(const [dof,value] of Object.entries(angles)){
-          const range=definition!.dofs[dof as keyof typeof definition.dofs];
+          const range=definition!.dofs[dof as keyof JointDef["dofs"]];
           expect(range, joint+" "+dof).toBeDefined();
           expect(value).toBeGreaterThanOrEqual(range!.min);
           expect(value).toBeLessThanOrEqual(range!.max);
@@ -63,7 +64,8 @@ describe("ANAT4 anatomy-led Chinese ink full figure",()=>{
       expect(geometry.cap).toContain("Z");
       expect(geometry.prop.path).toContain("M");
       expect(geometry.anchors.hem[0][1]).toBeLessThan(frame.floorY);
-      expect(Object.values(geometry.anchors).flat(2).every(Number.isFinite)).toBe(true);
+      const anchorValues=Object.values(geometry.anchors).flat(2) as number[];
+      expect(anchorValues.every(value=>Number.isFinite(value))).toBe(true);
       if(character==="elder")expect(geometry.beard).toContain("Z");
       else expect(geometry.beard).toBe("");
     }
