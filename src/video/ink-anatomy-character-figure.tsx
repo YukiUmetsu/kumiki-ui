@@ -240,8 +240,8 @@ export function InkAnatomyCharacterFigure({
   const brushSpec=useMemo(()=>frame?buildInkRobeBrushSpec(frame,character):null,[frame,character]);
   const brush=useMemo(()=>brushSpec?evaluateInkBrush(brushSpec,1,true):[],[brushSpec]);
   const hair=useMemo(()=>body&&posed?growHair(body,posed.points,{
-    length:character==="elder"?.105:.078,curl:1,strands:820,parting:"center",
-    flow:"back",recession:character==="elder"?.18:.05,volume:.008,
+    length:character==="elder" ? .105 : .078,curl:1,strands:820,parting:"center",
+    flow:"back",recession:character==="elder" ? .18 : .05,volume:.008,
     clump:.78,frizz:.06,seed:character==="elder"?48293:48292,
   }):null,[body,posed,character]);
   const measures=useMemo(()=>body?measureHumanBody(body):null,[body]);
@@ -278,7 +278,7 @@ export function InkAnatomyCharacterFigure({
     </svg>
     <HumanFigure frame={frame} surface="tonal" contour lineWidth={1.25}
       hair={hair??undefined}
-      hairColor={{eumelanin:character==="elder"?.45:1.6,pheomelanin:.04,grey:character==="elder"?.76:.14}}
+      hairColor={{eumelanin:character==="elder" ? .45 : 1.6,pheomelanin:.04,grey:character==="elder" ? .76 : .14}}
       palette={{light:"#e8c9a9",shadow:"#785b47",ink:"#3a3029",accent:"#a38a70",grid:"#b5a58f",eye:"#ead8c3"}}
       label={character==="elder"?"Anatomy-led elder ink figure":"Anatomy-led scholar ink figure"}
       style={{position:"absolute",inset:0}}/>
