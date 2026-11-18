@@ -43,7 +43,7 @@ The jalousie/flat-slat description explains the two-image transformation: separa
 4. **Alternating depth lanes.** Adjacent strips alternate between two paper-depth lanes. A bounded edge lap can close hairline seams without coplanar overlap.
 5. **Measured slot and travel contract.** Slot width is derived from stock caliper plus clearance. Travel must fully retract the slats and is capped against excessive overrun. The edge lap is bounded by both a physical millimetre limit and a fraction of local pitch.
 6. **Material cues.** Each strip keeps the original Risograph paper grain and spot-ink screen. Cut-edge bevels, directional contact shadows and deterministic cellulose microfibres follow the strip's physical edge. They are not blurred screenshot effects.
-7. **Two orientations.** Horizontal rows travel up/down; vertical columns travel left/right. A perpendicular axis/direction pairing is required.
+7. **Two orientations.** Horizontal rows travel left/right; vertical columns travel up/down. Each strip moves along its long axis through its own parallel guide slot.
 
 ## Geometry contract
 
