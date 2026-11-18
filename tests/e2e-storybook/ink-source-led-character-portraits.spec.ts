@@ -6,7 +6,7 @@ test("ANAT6 source-led portraits render all characters and FACS transitions",asy
  const portrait=atelier.getByTestId("ink-anat6-selected-portrait").locator("svg");
  await expect(portrait).toHaveAttribute("data-km-ink-anat6-character","scholar");
  await expect(portrait).toHaveAttribute("data-km-anat1-source","468-point-face-mesh");
- await expect(atelier.locator("[data-km-ink-anat6-reference-card]")).toHaveCount(10);
+ await expect(atelier.locator("[data-km-ink-anat6-reference-card]")).toHaveCount(12);
  await expect(atelier.locator("[data-km-ink-anat6-reference-card] img")).toHaveCount(6);
  await expect(atelier.getByTestId("ink-anat6-expression-contact-sheet").locator("svg")).toHaveCount(8);
  await page.screenshot({fullPage:true,animations:"disabled",path:info.outputPath("anat6-scholar-source-led-neutral.png")});
@@ -21,6 +21,10 @@ test("ANAT6 source-led portraits render all characters and FACS transitions",asy
  await expect(portrait.locator('[data-km-ink-anat6-flower="peony"]')).toHaveCount(1);
  await expect(portrait.locator("[data-km-ink-anat6-earring]")).toHaveCount(2);
  await expect(portrait.locator('[data-km-ink-anat6-folded-fan="true"]')).toHaveCount(1);
+ await expect(portrait.locator('[data-km-ink-anat6-fan-hands="true"]')).toHaveCount(1);
+ await expect(portrait.locator('[data-km-ink-anat6-sleeve-cuffs="true"]')).toHaveCount(1);
+ await expect(portrait.locator("[data-km-ink-anat6-ear-part]")).toHaveCount(10);
+ await expect(portrait.locator("[data-km-ink-anat6-brow-fiber]")).toHaveCount(20);
  await atelier.getByRole("combobox",{name:"Source-led transition from"}).selectOption("sad");
  await atelier.getByRole("combobox",{name:"Source-led expression"}).selectOption("smile");
  const transition=atelier.getByRole("slider",{name:"Source-led expression transition frame"});
@@ -31,6 +35,9 @@ test("ANAT6 source-led portraits render all characters and FACS transitions",asy
  });
  await expect(portrait).toHaveAttribute("data-km-expr1-transition-progress","0.5");
  await expect(portrait).toHaveAttribute("data-km-expr1-transition-from","sad");
+ const filmScale=atelier.getByTestId("ink-anat6-film-scale-preview");
+ await expect(filmScale).toBeVisible();
+ await filmScale.screenshot({animations:"disabled",path:info.outputPath("anat6-lady-film-960x540.png")});
  await page.screenshot({fullPage:true,animations:"disabled",path:info.outputPath("anat6-lady-sad-to-smile-frame06-1x.png")});
  await transition.focus();await transition.press("End");
  await expect(portrait).toHaveAttribute("data-km-expr1-transition-progress","1");

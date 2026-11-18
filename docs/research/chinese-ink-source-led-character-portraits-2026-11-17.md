@@ -20,6 +20,8 @@ These are original character studies informed by historical visual language, not
 | [Unidentified artist, Portrait of a Gentleman](https://www.metmuseum.org/art/collection/search/48939?showOnly=openAccess), Met 51.39.3, 16th–17th c. | Long flowing beard, seated formal pose, vermilion robe and crane rank badge; useful for beard taper and robe mass. | Met Open Access; Public Domain. |
 | [Jiang Yun, Portrait of a Man](https://www.metmuseum.org/art/collection/search/51783?showOnly=openAccess), Met 52.177.8, 19th c. | 45-year-old sitter, direct gaze, fur-lined coat and peacock-feather hat ornament; mature face and tonal hierarchy. | Met Open Access; Public Domain. |
 | [Unidentified artist, Portrait of a Scholar](https://www.metmuseum.org/art/collection/search/48941?showOnly=openAccess), Met 29.20.1, 17th–18th c. | Seated scholar, black cap, quiet pose, plain robe and generous negative space. | Met Open Access; Public Domain. |
+| [Zeng Jing, Portrait of Pan Qintai](https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/), 1621 | Individualized deep-set eyes, subtly layered transparent ink washes, and distinct nose/forehead volumes. Technique reference only, not a face template. | UMMA record; link-only, no image embedded. |
+| [Twenty-five bust portraits of famous scholars](https://www.metmuseum.org/art/collection/search/51810), Ming period, Met 55.37 | Distinct faces, noses, eyes and hair; non-mirrored eye-to-nose relationships across a character group. Do not average them into a generic template. | Met record; link-only pending work-level download-rights check. |
 | [Ruan Zude, Portrait of Yizhai at Eighty-Five](https://www.metmuseum.org/art/collection/search/36081), Met 59.49.1 | High cheekbones, pursed lips and gentle gaze as age/personality cues. | Link-only; reproduction rights not established. |
 | [Ruan Zude, Portrait of the Wife of Yizhai](https://www.metmuseum.org/art/collection/search/36082), Met 59.49.2 | Elderly female portrait, gold-and-pearl earrings, ornate headdress and layered blue brocade. | Link-only; reproduction rights not established. |
 
@@ -29,6 +31,8 @@ These are original character studies informed by historical visual language, not
 - **Su Wu:** Tsinghua record identifies grey temples, far gaze, stretched seated body and scepter. Hood and robe combine nail-head-rat-tail and bent-reed drawing. Age reads through orbital depth and soft tissue, not a rectangular beard silhouette.
 - **Zhong Kui:** Met source describes an elegant, eccentric scholar with blossom in hair, book-reading gaze, archaic bronzes, flowers and fruit. Build broad cheek/jaw mass and full but translucent beard; avoid the generic demon-queller stereotype.
 - **Jiang Jun's lady:** Met 19th-century portrait 52.177.5 supplies a blue embroidered robe, pink peony, elaborate hair ornaments, hanging earrings, patterned cuffs and folded fan. The inscription appears to identify a 26-year-old portrait. The new character is independently drawn with a tapered jaw, smaller vermilion mouth and pinned coiffure; it is not the sitter's likeness.
+- **Ink portrait technique:** Zeng Jing's *Portrait of Pan Qintai* is used only for deep-set eye modeling, translucent ink layers and nose/forehead volume; it is not an identity template.
+- **Character diversity:** the Met's 25 scholar busts demonstrate distinct eye/nose relationships and silhouette variation. Preserve per-character differences rather than averaging a generic scholar face.
 
 ## Anatomy and expression
 
@@ -37,7 +41,8 @@ These are original character studies informed by historical visual language, not
 - Age affects orbital depth and mild soft-tissue descent. Fine age marks remain restrained and follow bone planes.
 - EXPR1 drives brow, eyelid, cheek, nose, lip-corner and jaw motion. AU weights blend continuously across a 12-frame transition; reduced-motion mode snaps to the target.
 - Eye apertures are closed paths from ANAT1 upper/lower lid loops. The mouth outline comes from upper/lower lip loops; open oral aperture follows EXPR1 mouth/jaw movement.
-- Hair/headwear fibers are clipped to the supporting cap, hood or coiffure. Beard mass is a translucent substrate beneath tapered fibers; the lady has no beard or moustache.
+- Hair/headwear fibers are clipped to the supporting cap, hood or coiffure. Beard mass uses eight connected cubic contour sections with asymmetrical split tufts and individually tapered fibers; the lady has no beard or moustache.
+- Ears are built as separate helix, antihelix, concha, tragus and lobe marks. Brow fibers follow source-specific brow-inner/outer landmarks.
 - Rice-paper fibers are irregular and directional, not a ruled grid. Face planes use layered washes; facial contours remain fine and cloth edges carry more pressure.
 
 ## Storybook
@@ -46,8 +51,8 @@ These are original character studies informed by historical visual language, not
 - Characters: scholar, Su Wu, Zhong Kui and a new Jiang Jun lady study.
 - Controls: expression source/target, intensity, 12-frame transition, head turn, material detail and reduced motion.
 - Contact sheet: eight expressions per character.
-- Reference board: ten source cards; six Open Access/Public Domain images embedded, four rights-unclear/unverified records link-only.
-- Browser evidence captures 1× and enlarged 3× crops. Screenshot review remains a human art review, not an automated path-count score.
+- Reference board: twelve source cards; six Open Access/Public Domain images embedded, six rights-unclear/unverified records link-only.
+- Browser evidence captures native 960×540 film-scale composition, 1× page and enlarged 3× crop. Screenshot review follows the [Chinese Ink Face ArtCraft craft study](chinese-ink-face-artcraft-2026.md); it remains a human art review, not an automated path-count score.
 
 ## Acceptance boundary
 
