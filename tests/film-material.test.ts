@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { eikonal, inspectMaterial, materialFrame, planMaterial } from "../registry/video/film-material";
 import type { MaterialKind } from "../registry/video/film-material";
 import { encodeWarp } from "../registry/video/film-warp";
+import { MATERIAL_SOUNDS, MATERIAL_SOUND_IDS } from "../registry/video/material-sound";
+import catalog from "../assets/sound/catalog.json";
 import type { EncodedWarp } from "../registry/video/film-warp";
 import { compileFilm } from "../registry/video/film-document";
 import type { FilmDocument } from "../registry/video/film-document";
@@ -222,5 +224,33 @@ describe("material transitions", () => {
     const drops = (cols: number) => (planMaterial({ material: "frost", seed: 2 }, cols, Math.round((cols * 9) / 16), aspect).droplets!.length / 4);
     expect(drops(768) / drops(384)).toBeGreaterThan(0.85);
     expect(drops(768) / drops(384)).toBeLessThan(1.15);
+  });
+
+  it("makes each material's own recorded sound, where the material makes it", () => {
+    // Every cue names a recorded CC0 sound in the catalog that may ship with the library.
+    for (const id of MATERIAL_SOUND_IDS) {
+      const record = (catalog as { sounds: { id: string; origin: string; licenseId: string; redistributable: boolean }[] }).sounds.find((sound) => sound.id === id);
+      expect(record, id).toBeDefined();
+      expect(record!.origin, id).toBe("recorded");
+      expect(record!.licenseId, id).toBe("CC0-1.0");
+      expect(record!.redistributable, id).toBe(true);
+    }
+    const kit = { sounds: Object.fromEntries([["whoosh", { file: "whoosh.wav", peakSeconds: 0.23 }], ...MATERIAL_SOUND_IDS.map((id) => ["catalog:" + id, { file: id + ".wav", peakSeconds: 0.05, catalogId: id }])]) };
+    const doc = materialGlass as unknown as FilmDocument, compiled = compileFilm(doc, { outputId: "draft", accentKit: kit });
+    expect(compiled.ok).toBe(true);
+    if (!compiled.ok) return;
+    const sounds = compiled.film.audio!.sounds.filter((sound) => sound.id.startsWith("accent/"));
+    const at = (scene: string) => compiled.film.cut.transitions.find((item) => item.toShotId === scene)!;
+    // The pane breaks on the transition's first frame, and its pieces land about 0.6 s later.
+    const shatter = at("dynjandi"), breaking = sounds.filter((sound) => sound.id.startsWith("accent/dynjandi/"));
+    expect(breaking.map((sound) => sound.id.split("/").pop())).toEqual(MATERIAL_SOUNDS.shatter.map((cue) => "catalog:" + cue.sound));
+    expect(breaking[0].frame).toBe(shatter.startFrame);
+    expect(breaking[1].frame).toBe(Math.floor(shatter.startFrame + 0.42 * (shatter.endFrame - shatter.startFrame)));
+    // Reeded glass travels past like a pass-by: a whoosh at its middle, even with accents on moves only.
+    expect(sounds.filter((sound) => sound.id.startsWith("accent/lagoon/")).map((sound) => sound.id.split("/").pop())).toEqual(["whoosh"]);
+    // An authored accent still wins.
+    const quiet = { ...doc, scenes: doc.scenes.map((scene) => (scene.id === "dynjandi" ? { ...scene, transition: { ...scene.transition!, accent: "none" as const } } : scene)) };
+    const silenced = compileFilm(quiet, { outputId: "draft", accentKit: kit });
+    expect(silenced.ok && silenced.film.audio!.sounds.some((sound) => sound.id.startsWith("accent/dynjandi/"))).toBe(false);
   });
 });

@@ -24,7 +24,7 @@
     {
       "id": "cave",
       "recipeId": "card",
-      "durationFrames": 104,
+      "durationFrames": 92,
       "subjects": {
         "glow": {
           "region": {
@@ -51,7 +51,7 @@
     {
       "id": "lagoon",
       "recipeId": "card",
-      "durationFrames": 126,
+      "durationFrames": 134,
       "transition": {
         "kind": "matte",
         "texture": "bleed",
@@ -75,7 +75,7 @@
     {
       "id": "dynjandi",
       "recipeId": "card",
-      "durationFrames": 116,
+      "durationFrames": 110,
       "transition": {
         "kind": "matte",
         "texture": "burn",
@@ -98,7 +98,7 @@
     {
       "id": "fall",
       "recipeId": "card",
-      "durationFrames": 100,
+      "durationFrames": 94,
       "transition": {
         "kind": "matte",
         "texture": "paint",
@@ -121,7 +121,7 @@
     {
       "id": "close",
       "recipeId": "card",
-      "durationFrames": 132,
+      "durationFrames": 138,
       "transition": {
         "kind": "matte",
         "texture": "frost",
@@ -135,5 +135,17 @@
         "ground": "light"
       }
     }
-  ]
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "accents": {
+      "kit": "assets/sfx",
+      "gainDb": 0,
+      "on": "moves"
+    },
+    "master": {
+      "profile": "youtube"
+    }
+  }
 }

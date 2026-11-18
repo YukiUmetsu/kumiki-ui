@@ -24,6 +24,7 @@ import { serveFile } from "./serve-file.mjs";
 import { glArgs } from "./video-export-core.mjs";
 import { selectFilmFrame } from "./film-frame-core.mjs";
 import { SHADER_FX_GUIDE } from "../registry/video/shader-fx-guide.ts";
+import { MATERIAL_SOUNDS } from "../registry/video/material-sound.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const COMMANDS = new Set(["check", "render", "review", "frame", "seek", "example"]);
@@ -115,7 +116,10 @@ function accentKit(document) {
   // peak lands on the cue's moment like any kit sound.
   // Turn and transition accents name catalog sounds too: a braam on a turn, a reverse swell on a cut.
   const wanted = [...new Set([...(document.audio?.cues ?? []).map(cue => cue.sound), ...document.scenes.some(scene => scene.story?.turnAccent === "braam") ? ["catalog:braam-low"] : [],
-    ...document.scenes.some(scene => scene.transition?.accent === "suck") ? ["catalog:swell-reverse"] : []].filter(sound => typeof sound === "string" && sound.startsWith("catalog:")))];
+    ...document.scenes.some(scene => scene.transition?.accent === "suck") ? ["catalog:swell-reverse"] : [],
+    // A material transition makes its material's own recorded sounds.
+    ...document.scenes.flatMap(scene => (MATERIAL_SOUNDS[scene.transition?.kind === "matte" ? scene.transition.texture ?? "" : scene.transition?.kind === "shape" ? scene.transition.material ?? "" : ""] ?? []).map(cue => "catalog:" + cue.sound))]
+    .filter(sound => typeof sound === "string" && sound.startsWith("catalog:")))];
   if (!wanted.length) return loaded;
   const catalog = JSON.parse(readFileSync(join(ROOT, "assets/sound/catalog.json"), "utf8")), sounds = { ...loaded.sounds };
   for (const name of wanted) {

@@ -143,5 +143,17 @@
         "ground": "light"
       }
     }
-  ]
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "accents": {
+      "kit": "assets/sfx",
+      "gainDb": 0,
+      "on": "moves"
+    },
+    "master": {
+      "profile": "youtube"
+    }
+  }
 }

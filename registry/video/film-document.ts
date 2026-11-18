@@ -62,7 +62,8 @@ import { burstFrames, flashFrames, inspectBurst, inspectFlash, MAX_FLASHES_PER_S
 import type { FilmBurst, FilmBurstInsert, FilmBurstSpec, FilmFlash, FilmFlashSpec } from "./film-flash";
 import { inspectShapeWipe, SHAPE_WIPE_FRAMES, shapeWipeFrames } from "./film-shape-wipe";
 import { compilePanels } from "./film-panels";
-import { DITHER_FRAMES, inspectDither, inspectMatte, MATTE_FRAMES, matteFrames } from "./film-matte";
+import { DITHER_FRAMES, inspectDither, inspectMatte, isMaterialTexture, MATTE_FRAMES, matteFrames } from "./film-matte";
+import { MATERIAL_SOUNDS } from "./material-sound";
 import type { FilmDither, FilmDitherSpec, FilmMatte, FilmMatteSpec } from "./film-matte";
 import { compileStutter, stutterExtra } from "./film-stutter";
 import { inspectLens } from "./film-lens";
@@ -1078,13 +1079,19 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
   }
   // Quiet transitions get no whoosh: dips, flashes and bursts always; with `on: "moves"`, every transition that does not travel.
   const TRAVELS = new Set(["whip", "pass-by", "zoom", "container", "match", "wipe", "shape", "lens"]);
+  // Reeded glass sweeping past the lens travels like a pass-by.
+  const travels = (transition?: FilmTransition) => TRAVELS.has(transition?.kind ?? "cut") || (transition?.kind === "matte" && transition.texture === "refract");
   const quiet = new Set([...Object.keys(dips), ...Object.keys(flashes), ...Object.keys(bursts),
-    ...doc.audio?.accents?.on === "moves" ? doc.scenes.filter(scene => !TRAVELS.has(scene.transition?.kind ?? "cut")).map(scene => scene.id) : []]);
+    ...doc.audio?.accents?.on === "moves" ? doc.scenes.filter(scene => !travels(scene.transition)).map(scene => scene.id) : []]);
   if (doc.audio?.accents?.on !== undefined && doc.audio.accents.on !== "all" && doc.audio.accents.on !== "moves") report("error", "accent-on", "/audio/accents/on", "Accents go on \"all\" transitions or on \"moves\".");
-  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio, quiet, new Map(doc.scenes.map(scene => [scene.id, scene.transition?.accent]))) : [];
+  // A material transition makes its material's own sound (glass breaking, paper tearing) in place of a whoosh.
+  const materials = new Map<string, string>([...Object.entries(mattes).flatMap(([id, matte]) => isMaterialTexture(matte.texture) ? [[id, matte.texture] as [string, string]] : []),
+    ...Object.entries(shapes).flatMap(([id, shape]) => shape.material ? [[id, shape.material] as [string, string]] : [])]);
+  const accents = doc.audio?.accents && options.accentKit && cutResult?.ok ? deriveAccents(compiled, cutResult.plan, fps, options.accentKit, doc.audio, quiet, new Map(doc.scenes.map(scene => [scene.id, scene.transition?.accent])), materials) : [];
   // An accent on almost every cut makes a film sound like a template.
   if (doc.audio?.accents && (doc.audio.accents.on ?? "all") === "all" && cutResult?.ok) {
-    const sounded = cutResult.plan.transitions.filter(item => item.endFrame > item.startFrame && !quiet.has(item.toShotId)).length, total = cutResult.plan.transitions.length;
+    // A material's own sound (glass breaking, paper tearing) is not a whoosh.
+    const sounded = cutResult.plan.transitions.filter(item => item.endFrame > item.startFrame && !quiet.has(item.toShotId) && !MATERIAL_SOUNDS[materials.get(item.toShotId) ?? ""]?.length).length, total = cutResult.plan.transitions.length;
     if (total >= 4 && sounded / total > .7) report("warning", "accent-every-cut", "/audio/accents", `${sounded} of ${total} transitions get a whoosh.`, 'Trailers rarely mark a cut with sound; set "on": "moves" to keep whooshes for travelling moves.');
   }
   // A sonic logo plays as the end card's mark lands; its touch peaks within half a frame of the start, so it starts on the moment.
@@ -1302,9 +1309,10 @@ const ACCENT_LANE = "accents", SONIC_LANE = "sonic";
 /** A drop-out's end: 15 ms, short enough to read as stopping dead, long enough not to click. */
 const DROP_SECONDS = .015;
 /** A whoosh that peaks at the middle of each transition that moves (a dip through a colour is quiet), and on each turn the sound that its story asks for. A sound
- * that the kit does not have gets no `assetRef`, and the compiler reports it. */
+ * that the kit does not have gets no `assetRef`, and the compiler reports it. A material transition makes its material's recorded sounds instead (`material-sound.ts`),
+ * whatever `on` says, since they are the material's own sound rather than an accent; an authored accent still wins. */
 function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio, quiet: ReadonlySet<string>,
-  authored: ReadonlyMap<string, FilmTransition["accent"]> = new Map()): SoundEvent[] {
+  authored: ReadonlyMap<string, FilmTransition["accent"]> = new Map(), materials: ReadonlyMap<string, string> = new Map()): SoundEvent[] {
   const place = (id: string, sound: string, peakFrame: number, extraDb = 0, align: FilmSoundCue["align"] = "peak"): SoundEvent => {
     const found = kit.sounds[sound], lead = align === "start" ? 0 : (found?.peakSeconds ?? 0) * fps.num / fps.den, start = peakFrame - lead, frame = Math.max(0, Math.floor(start));
     return { id: `${id}/${sound}`, laneId: ACCENT_LANE, frame, subframeOffset: start > 0 ? start - frame : 0,
@@ -1318,6 +1326,8 @@ function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPla
       const choice = authored.get(item.toShotId);
       if (choice === "suck") return [place(`accent/${item.toShotId}`, "catalog:swell-reverse", item.startFrame)];
       if (choice === "none") return [];
+      const own = !choice && MATERIAL_SOUNDS[materials.get(item.toShotId) ?? ""];
+      if (own && own.length) return own.map(cue => place(`accent/${item.toShotId}`, "catalog:" + cue.sound, item.startFrame + cue.at * (item.endFrame - item.startFrame), cue.gainDb, cue.align));
       if (choice === "whoosh" || (item.endFrame > item.startFrame && !quiet.has(item.toShotId))) return [place(`accent/${item.toShotId}`, "whoosh", Math.floor((item.startFrame + item.endFrame) / 2))];
       return [];
     }),

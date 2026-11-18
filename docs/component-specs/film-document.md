@@ -289,6 +289,8 @@ Example: [`examples/film/lens.film.json`](../../examples/film/lens.film.json). S
 
 **Which transitions whoosh** (doc 34, S10). `"accents": { "kit": "…", "on": "moves" }` puts a whoosh only on transitions that travel: whip, pass-by, zoom, container, match, wipe, shape and lens. Trailers rarely mark a cut with sound: of 268 measured cut candidates, only 25 had a sound attack within a quarter second. Without `on`, every transition with length gets one, so existing films sound as they did. `accent-every-cut` warns when 70% or more of a film's transitions (four or more) get one. Dips, flashes and bursts never get one.
 
+**Material sounds.** A material transition makes its material's own recorded sound instead of a whoosh, with or without `on`: a pane breaking, then its pieces landing; a match and paper crackling; breath on glass; a drop on water; paper ripping or a page swishing past; syrup slopping. A refract matte travels like a pass-by, so it gets the whoosh. An authored `accent` still wins (`"none"` silences it). The sounds come from the sound catalog (`material-sound.ts` lists them), so `film:render` needs no extra kit files. See [material transitions](material-transitions.md#sounds).
+
 `npm run film:sound-kit -- <folder> --preset=neutral` makes a kit of designed CC0 sounds instead of plain tones, with physical sounds for `audio.cues`. See [Sound Catalog](sound-catalog.md).
 
 A cue can sit in a space. Its sound must come from a catalog kit:

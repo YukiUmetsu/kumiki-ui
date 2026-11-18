@@ -12,6 +12,7 @@
 | `registry/video/material-liquid.ts` | `ripple` and `melt` |
 | `registry/video/film-warp.ts` | Warps encoded for SVG `feDisplacementMap` (two exact 8-bit passes) |
 | `registry/video/film-material-react.tsx` | Drawing a frame in the DOM: the warp filter, vector overlays, clip paths |
+| `registry/video/material-sound.ts` | Each material's recorded sounds and when they play (no imports, so scripts read it) |
 
 **Storybook:** Video production → Promo Moves → *Material Transitions*. The four Iceland photo cards play each film,
 picked with **Compare**:
@@ -74,6 +75,40 @@ that bleeds open.
 - **Errors.** A shape wipe takes only bleed, burn or frost. It refuses `mark` (a picture has no measurable outline) and
   any other material.
 - **Reduced motion** keeps a dissolve.
+
+## Sounds
+
+With an accent kit (`audio.accents.kit`), a material transition makes its material's own recorded sound in place of a
+whoosh. It does this whether or not `on` is `"moves"`, because the sound belongs to the material, not to the edit. An
+authored `accent` still wins. `film:render` finds each sound in the catalog, so the kit needs no extra files.
+
+| Material | Sounds, and when (as a share of the transition) |
+|---|---|
+| `shatter` | `glass-shatter-pane` from the first frame; `glass-debris-tinkle` at 0.42, as the pieces land (about 0.6 s later) |
+| `burn` | `match-strike-flare` from the first frame; `fire-paper-crackle` from 0.12 |
+| `frost` | `breath-exhale-soft` from the first frame |
+| `bleed` | `drop-water-small` from the first frame |
+| `ripple` | `drop-water-full` from the first frame |
+| `paint` | `liquid-syrup-pour` from 0.02 |
+| `melt` | `liquid-syrup-ooze` from 0.15 |
+| `peel` | `paper-page-turn-1`, peaking at 0.45 as the flap passes fastest |
+| `tear` | `paper-tear-fast` from 0.1, as the tear gets going |
+| `refract` | None of its own. It travels past like a pass-by, so it gets the film's whoosh, also with `on: "moves"`. |
+
+The new recordings are CC0, from Freesound, read through earshot on the trimmed files:
+
+| Id | Source | earshot reading |
+|---|---|---|
+| `glass-shatter-pane` | *window break with axe glass shatter* by kyles ([452667](https://freesound.org/people/kyles/sounds/452667/)) | "glass clinking", z +3.47; AST "Breaking"; p_real 0.994; 10% of its energy below 150 Hz |
+| `glass-debris-tinkle` | *Breaking_Mirror* by LazyLids ([369070](https://freesound.org/people/LazyLids/sounds/369070/)) | "a triangle hit" z +3.39, "ice cubes in a glass" z +3.35; p_real 0.995 |
+| `match-strike-flare` | *Match - Strike and Light 02* by JarredGibb ([248236](https://freesound.org/people/JarredGibb/sounds/248236/)) | "a match being struck", z +4.72; p_real 0.988 |
+| `fire-paper-crackle` | *light fire in wood stove with match strike paper burn* by kyles ([453472](https://freesound.org/people/kyles/sounds/453472/)), the paper burning | "a crackling fire", z +3.71; p_real 0.905 |
+| `breath-exhale-soft` | *Exhale* by otherthings ([65619](https://freesound.org/people/otherthings/sounds/65619/)) | matches "a person breathing out a long soft exhale", z +3.99 over a whoosh and a drawn sword; p_real 0.969 |
+| `liquid-syrup-pour` | *syrup hands slop* by joshs ([320041](https://freesound.org/people/joshs/sounds/320041/)) | "a liquid bloop" z +3.23; p_real 0.997; high-passed at 180 Hz (36% → 11% below 150 Hz) |
+| `liquid-syrup-ooze` | the same recording, a slower section | "a squishy wet squelch", z +4.55; matches "a thick viscous liquid squelching and oozing", z +3.56; p_real 0.999 |
+
+Paper sounds (`paper-page-turn-1`, `paper-tear-fast`) and water drops were already in the catalog (see
+[paper sheet](paper-sheet.md)).
 
 ## API
 
@@ -168,9 +203,16 @@ for those images to decode, so every frame renders the same in any seek order.
     end; melt drains from the top first and leaves nothing on screen at the end;
   - the same coverage, within 3%, on a 384- and a 768-column grid for every material, and frost droplets that keep
     their size in the frame;
+  - every material sound is a recorded CC0 catalog sound that may ship; a shatter places the break on its first frame
+    and the landing pieces at 0.42; refract gets a whoosh with accents on moves only; an authored accent wins;
   - the material checks, and every example film compiling (with a mark refused).
 - `npm run film:seek -- examples/film/material-glass.film.json --only=draft --frames=240,110,240,236,110,240`: the
   same pixels in any seek order and on a fresh page.
+- `npm run film:render -- <film> --only=draft --audio-only` for the four material films, then earshot `timeline` with
+  the transitions as cues. Each shatter's break lands within 1 ms of its first frame (AST "Breaking"), each drop within
+  1 ms, and each refract's whoosh peaks at its middle. The burn reads as a strike then "paper rustling", and the frost
+  as "breath". The review swapped two takes: a page turn that ended in a slap (a curl never lands) and a slime take
+  that read as clicks.
 - Rendered review in Storybook (Chromium, 960×540) of every material across its transition. The review found and fixed
   these problems:
   - Ink feathering had aliased into pixel noise; fibres are now about three cells across.
