@@ -210,7 +210,7 @@ test("ANAT2 original standing scholar preserves all planted supports at 1x while
     await page.getByRole("combobox",{name:"Ink standing character"}).selectOption("elder");
     await page.getByRole("combobox",{name:"Ink standing emotion"}).selectOption("sad");
     await expect(figure).toHaveAttribute("data-km-ink-standing-figure","elder");
-    await expect(figure.locator('[data-km-ink-beard-fibre]')).toHaveCount(93);
+    await expect(figure.locator('[data-km-zj1-facial-hair="elder"] [data-km-zj1-beard-fibre]')).toHaveCount(31);
     await live.screenshot({animations:"disabled",
       path:info.outputPath("anat2-standing-source-540x1080-elder-frame95.png")});
     await page.getByRole("checkbox",{name:"Ink standing reduced motion"}).check();
