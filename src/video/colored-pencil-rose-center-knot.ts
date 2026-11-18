@@ -132,7 +132,7 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
   {
     id:"rose-whorl-scroll",
     path:"M232 174 C225 166 227 155 234 148 C241 140 251 139 260 145 C268 151 269 160 263 168 C259 174 252 177 246 179 C252 184 261 185 270 180 C267 189 250 192 239 185 C234 182 232 178 232 174 Z",
-    bounds:[222,136,52,60],
+    bounds:[222,136,52,59],
     palette:["#A94C64","#55213D","#D27A8D"],
     direction:35,flow:22,
     dryContours:contacts("rose-whorl-scroll",[
@@ -150,9 +150,9 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
  */
 export const ROSE_CENTER_SCROLL_BACKFACE={
   id:"rose-center-scroll-underturn",
-  hinge:"M235 174 C229 167 230 158 236 151",
-  path:"M235 174 C229 167 230 158 236 151 C230 146 224 150 222 157 C220 164 225 172 231 176 C233 177 234 176 235 174 Z",
-  bounds:[218,144,20,34] as const,
+  hinge:"M232 174 C225 166 227 155 234 148",
+  path:"M232 174 C225 166 227 155 234 148 C229 143 222 147 220 154 C218 162 222 171 228 176 C230 178 231 176 232 174 Z",
+  bounds:[216,143,19,35] as const,
   palette:["#8F3B58","#4E1E39","#B96980"] as const,
   direction:61,flow:19,
   details:[
