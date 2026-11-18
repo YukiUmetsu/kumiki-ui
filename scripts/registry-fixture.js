@@ -308,6 +308,18 @@ export function ShaderFxMomentsConsumerExample() {
   return <ShaderFxLayer spec={{ id: "sea", effect: "mesh-gradient", layer: "background" }} frame={0} fps={{ num: 30, den: 1 }} hostDurationFrames={90} />;
 }`,
   }),
+  "selective-color": (specifier) => {
+    return {
+      imports: [`import { createSelectiveColorEngine } from "${specifier}";`],
+      componentName: "SelectiveColorExample",
+      component: `export function SelectiveColorExample() {
+  // A 2×1 frame, red then blue: red keeps its colour, blue goes grey.
+  const [engine] = useState(() => createSelectiveColorEngine({ targets: [{ color: "#ff0000" }], feathering: { radius: 0 } }));
+  const { data, report } = engine.process({ width: 2, height: 1, data: new Uint8ClampedArray([255, 0, 0, 255, 0, 0, 255, 255]) }, 0);
+  return <output data-kept={report.kept}>{Array.from(data).join(",")}</output>;
+}`,
+    };
+  },
   "material-transitions": (specifier) => {
     return {
       imports: [`import { materialFrame, planMaterial } from "${specifier}";`],

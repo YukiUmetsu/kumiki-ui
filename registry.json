@@ -5661,6 +5661,26 @@
       ]
     },
     {
+      "name": "selective-color",
+      "type": "registry:ui",
+      "title": "Selective Colour",
+      "description": "High-contrast black and white that keeps chosen colours (VP1.1, the core and CPU reference path). One configuration object sets every number: the colour space for isolation (HSV hue window, CIELAB with CIE76 or CIEDE2000, or YCbCr chroma), targets with tolerance, soft edges and saturation and value floors, matte clean-up (clean black and white), edge-aware feathering with a guided filter, temporal smoothing against flicker, a styled monochrome base (Rec. 601/709 or custom luma weights, linear or sigmoid contrast, black and white levels) and time windows that fade in and out. Four decoupled stages as pure functions over typed arrays (temporal gate, mask, refine, composite), shader-ready per-pixel maths, and an engine that checks frames and times, logs, and throws coded errors.",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/video/selective-color.ts",
+          "type": "registry:ui",
+          "target": "components/video/selective-color.ts"
+        },
+        {
+          "path": "registry/video/selective-color-math.ts",
+          "type": "registry:ui",
+          "target": "components/video/selective-color-math.ts"
+        }
+      ]
+    },
+    {
       "name": "film-document",
       "type": "registry:ui",
       "title": "Film Document",
