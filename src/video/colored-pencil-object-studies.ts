@@ -59,9 +59,9 @@ interface ObjectShape {
 const ROSE_CENTER_PIGMENT_TONE:Readonly<Record<string,"core"|"rim">>={
   "inner-fold":"core",
   "rose-whorl-recess":"core",
-  "rose-whorl-left":"rim",
-  "rose-whorl-right":"rim",
-  "heart":"rim",
+  "rose-whorl-left":"core",
+  "rose-whorl-right":"core",
+  "heart":"core",
   "rose-whorl-scroll":"rim",
   "rose-center-scroll-underturn":"core",
 };
