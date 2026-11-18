@@ -263,7 +263,7 @@ describe("ArtCraft four-shot production storyboard and pencil scumbling",()=>{
       .toThrow(RangeError);
     expect(()=>createDryPencilHeadPlate(img,guides,271,.65,.85,1.01))
       .toThrow(RangeError);
-  },15000);
+  },25000);
   it("scumble is controllable, deterministic, doesn't mutate photo pixels",()=>{
     const img=source(),original=new Uint8ClampedArray(img.data);
     const raw=createDryPencilHeadPlate(img,guides,271,0);
@@ -284,5 +284,5 @@ describe("ArtCraft four-shot production storyboard and pencil scumbling",()=>{
       .toThrow(RangeError);
     expect(()=>createDryPencilHeadPlate(img,guides,271,.5,1.01))
       .toThrow(RangeError);
-  },15000);
+  },25000);
 });

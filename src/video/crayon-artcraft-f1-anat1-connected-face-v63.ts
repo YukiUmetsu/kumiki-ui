@@ -8,7 +8,7 @@ type PlanePatch=Readonly<{
 }>;
 
 /**
- * V63: source-calibrated value balance over the already approved V57 geometry.
+ * V63: source-calibrated value balance over the unchanged V57 geometry baseline (still experimental, not approved).
  * The five connected planes are orbital, malar highlight, lateral undercheek,
  * nasal bridge/alar, and mandibular roll. Existing Bezier boundaries, wax
  * marks, paper tooth, timing, hair flow and all 300 frames remain untouched.

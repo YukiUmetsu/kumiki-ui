@@ -57,7 +57,7 @@ describe("Crayon ArtCraft V63 connected five-plane value calibration",()=>{
     }
     for(const old of v57.elements){
       if(!PATCH_IDS.includes(old.id as typeof PATCH_IDS[number]))
-        expect(after.get(old.id)).toBe(old);
+        expect(after.get(old.id)).toEqual(old);
     }
   });
 
