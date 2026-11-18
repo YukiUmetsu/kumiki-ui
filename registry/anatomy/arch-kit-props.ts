@@ -6,7 +6,7 @@
 import type { Node, SculptPrim } from "./arch-sdf";
 import { leaf, sculpt, union } from "./arch-sdf";
 import type { SceneBuilder } from "./arch-kit";
-import { boxAt, capsule, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, repeatAround, repeatX, revolve, sphere, tree } from "./arch-kit";
+import { boxAt, capsule, clump, coneY, cut, cylX, cylY, cylZ, dome, ellipsoid, repeatAround, repeatX, revolve, sphere } from "./arch-kit";
 import type { SurfaceSpec } from "./arch-surface";
 
 const M = {
@@ -269,12 +269,33 @@ export function railings(b: SceneBuilder, x0: number, x1: number, z: number, h =
   b.add(repeatX(union([boxAt(x0 + 0.05, 0.18, z - 0.008, x0 + 0.066, h, z + 0.008, ir), coneY(x0 + 0.058, z, h, h + 0.09, 0.022, 0.002, ir)]), 0.13, n));
   b.place();
 }
-/** A London plane in the pavement: a mottled trunk, a crown lifted clear of the street, an iron grille round its foot. */
+/**
+ * A London plane in the pavement, as on Paris boulevards: a clear trunk about 4 m tall, leaning a little, its bark
+ * flaking in olive and cream patches; three or four main limbs fork steeply upward and split again; leaves gather in
+ * loose masses round the branch tips, so the crown is tall and open with sky through it; an iron grille at its foot.
+ */
 export function streetTree(b: SceneBuilder, x: number, z: number, h = 11) {
-  const ir = b.mat({ kind: "iron", colour: "#22201e", age: 0.3 });
+  const ir = b.mat({ kind: "iron", colour: "#22201e", age: 0.3 }), bark = b.mat({ kind: "bark", pattern: "plane" }), lm = b.mat({ kind: "foliage", colour: "#4e6a32" }), lm2 = b.mat({ kind: "foliage", colour: "#5e7a3a" });
   b.add(cut(boxAt(x - 0.7, 0.0, z - 0.7, x + 0.7, 0.03, z + 0.7, ir), [cylY(x, z, -0.1, 0.1, 0.25, 0)]));
-  b.place();
-  tree(b, x, z, h, h * 0.32, { kind: "foliage", colour: "#4e6a32" }, false);
+  const lean = b.r(-0.12, 0.12), clear = h * b.r(0.34, 0.4), tx = x + lean, tz = z + lean * 0.4;
+  b.add(capsule(x, 0, z, tx, clear, tz, h * 0.021, bark), coneY(x, z, 0, 0.5, h * 0.03, h * 0.021, bark));
+  const limbs = 3 + Math.floor(b.r(0, 2)), a0 = b.r(0, Math.PI * 2);
+  for (let i = 0; i < limbs; i++) {
+    const a = a0 + (i / limbs) * Math.PI * 2 + b.r(-0.3, 0.3), spread = b.r(0.22, 0.48), L = h * b.r(0.3, 0.38);
+    const ex = tx + Math.cos(a) * Math.sin(spread) * L, ey = clear + Math.cos(spread) * L, ez = tz + Math.sin(a) * Math.sin(spread) * L;
+    b.add(capsule(tx, clear - 0.2, tz, ex, ey, ez, h * 0.013, bark));
+    for (let j = 0; j < 2; j++) {
+      const a2 = a + (j ? 0.5 : -0.5) + b.r(-0.2, 0.2), sp2 = spread + (j ? b.r(0.1, 0.35) : b.r(-0.25, 0)), L2 = h * b.r(0.18, 0.28);
+      const fx = ex + Math.cos(a2) * Math.sin(sp2) * L2, fy = ey + Math.cos(sp2) * L2, fz = ez + Math.sin(a2) * Math.sin(sp2) * L2;
+      b.add(capsule(ex, ey, ez, fx, fy, fz, h * 0.007, bark));
+      // the leaf mass round this branch's tip: a few loose clusters, not a closed ball
+      for (let k = 0; k < 4; k++) { const r = h * b.r(0.07, 0.11); b.add(clump(fx + b.r(-1, 1) * h * 0.07, fy + b.r(-0.6, 0.8) * h * 0.06, fz + b.r(-1, 1) * h * 0.07, r * 1.2, r * 0.85, r * 1.2, k % 2 ? lm : lm2, b.r(), 0.45)); }
+    }
+  }
+  // a central leader carries the top of the dome; clusters along it and inside the limbs round the crown out
+  b.add(capsule(tx, clear, tz, tx + b.r(-0.4, 0.4), h * 0.92, tz + b.r(-0.4, 0.4), h * 0.01, bark));
+  for (let k = 0; k < 10; k++) { const yy = h * b.r(0.62, 0.98), rad = h * 0.22 * Math.sqrt(Math.max(0, 1 - ((yy - h * 0.72) / (h * 0.3)) ** 2)) * b.r(0.3, 1), aa = b.r(0, Math.PI * 2), r = h * b.r(0.07, 0.1); b.add(clump(tx + Math.cos(aa) * rad, yy, tz + Math.sin(aa) * rad, r * 1.2, r * 0.9, r * 1.2, k % 2 ? lm : lm2, b.r(), 0.45)); }
+  b.shade({ x: tx, z: tz, y: h * 0.7, r: h * 0.3, density: 0.6 });
   b.place();
 }
 /** A café terrace along a front from x0 to x1 at z: round marble-topped tables on iron feet, each with two bentwood chairs. */

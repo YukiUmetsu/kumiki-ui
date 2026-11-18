@@ -28,7 +28,7 @@ export type SurfaceKind =
   | "foliage" | "firewood" | "books" | "jars" | "bread" | "fabric" | "hay" | "fire" | "flame" | "floorboards" | "tile-floor" | "drawers" | "plain"
   | "parchment" | "polychrome" | "glazed-tube" | "board-concrete" | "travertine" | "titanium" | "steel" | "curtain" | "chinese-screen"
   | "cane" | "leather" | "velvet" | "rug" | "tatami-mat" | "veneer"
-  | "rush" | "gold-leaf" | "washi" | "earth" | "enamel" | "canvas" | "jute" | "furrows";
+  | "rush" | "gold-leaf" | "washi" | "earth" | "enamel" | "canvas" | "jute" | "furrows" | "bark";
 
 /** One surface in a scene. Colours are sRGB hex; sizes are metres. */
 export interface SurfaceSpec {
@@ -50,7 +50,7 @@ export interface SurfaceSpec {
   /** What a flaking coat shows beneath it. */
   under?: SurfaceKind;
   /** Timber-frame pattern. */
-  pattern?: "close" | "square" | "cross" | "colombage" | "fachwerk" | "herringbone" | "english" | "flemish" | "diamond" | "fish" | "star" | "medallion" | "rose" | "byobu" | "fusuma" | "plain" | "check" | "globe" | "text" | "ablaq";
+  pattern?: "close" | "square" | "cross" | "colombage" | "fachwerk" | "herringbone" | "english" | "flemish" | "diamond" | "fish" | "star" | "medallion" | "rose" | "byobu" | "fusuma" | "plain" | "check" | "globe" | "text" | "ablaq" | "plane";
   /** Storey height for a frame's rails, and the sill height of its middle rail. */
   storey?: number;
   sill?: number;
@@ -809,6 +809,21 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
         const cu = Math.floor(u / P), cv = Math.floor(v / P), over = (Math.floor(cu / 2) + Math.floor(cv / 2)) % 2 === 0, bump = over ? Math.sin(frac(u / P) * Math.PI) : Math.sin(frac(v / P) * Math.PI), rr = resolve(i.fw, P);
         set(o, c, (0.78 + 0.28 * bump * rr + 0.14 * (1 - rr)) * (1 + 0.08 * fbm(seed, u * 4, v * 4, 2) + 0.06 * hash2(seed, cu, cv)));
         o.h = 0.003 * bump * rr; o.cav = 0.7 + 0.3 * bump; o.rough = 1; o.spec = 0.01; o.porous = 0.7;
+      };
+    }
+    case "bark": {
+      // tree bark: by default rough, with vertical fissures and ridges; pattern "plane" is the London plane's, flaking in
+      // jigsaw patches of olive, cream, buff and grey
+      const base = C(s.colour, "#5a4c3e"), olive = linearOf("#7a7a5a"), cream = linearOf("#d8cfae"), buff = linearOf("#a8946a"), grey = linearOf("#8a8478");
+      return (u, v, i, o) => {
+        if (s.pattern === "plane") {
+          const w = worley(seed, u / 0.09, v / 0.14, 0.95), id = w.id, c = id < 0.3 ? olive : id < 0.55 ? cream : id < 0.8 ? buff : grey, edge = sst(0.06, 0.0, w.f2 - w.f1) * resolve(i.fw, 0.05);
+          set(o, c, 0.9 + 0.12 * fbm(seed + 1, u * 8, v * 8, 2)); o.r *= 1 - 0.3 * edge; o.g *= 1 - 0.3 * edge; o.b *= 1 - 0.3 * edge;
+          o.h = 0.0015 * (1 - edge) * (id < 0.55 ? 1 : 0.4); o.cav = 1 - 0.3 * edge; o.rough = 0.8; o.spec = 0.03; o.porous = 0.4;
+          return;
+        }
+        const fis = Math.abs(Math.sin(u * 40 + gradNoise(seed, u * 6, v * 0.8) * 3)), ridge = sst(0.2, 0.9, fis) * resolve(i.fw, 0.05);
+        set(o, base, 0.75 + 0.3 * ridge + 0.06 * fbm(seed + 1, u * 3, v * 3, 2)); o.h = 0.006 * ridge; o.cav = 0.6 + 0.4 * ridge; o.rough = 0.95; o.spec = 0.01; o.porous = 0.5;
       };
     }
     case "furrows": {

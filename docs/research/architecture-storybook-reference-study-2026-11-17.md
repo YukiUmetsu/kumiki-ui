@@ -332,6 +332,27 @@ The owner: "work on what's still weak." Three items were left from the last revi
     - a broad wing blade with a scalloped trailing edge;
     - lion's paws with toes under its column.
 
+## Plane trees, the eagle and the saints' faces (2026-11-18)
+
+The owner: "work on weak points, then merge code to main."
+
+- **Boulevard planes.** The trees were round balls on sticks. London planes on Paris boulevards (observation; common
+  knowledge, not measured here) have:
+  - a clear trunk about 4 m tall, with bark flaking in olive, cream, buff and grey patches;
+  - a few main limbs forking steeply upward;
+  - a tall, open, domed crown with sky through it.
+
+  `streetTree` now builds that, with a central leader and leaf masses only round the branch tips. A new `bark` surface
+  has a rough fissured default, and the London plane's mottle as its pattern `plane`.
+- **Eagle lectern.**
+  - The round head read as a parrot. An eagle's head is long and flat-crowned, so it now has a neck ruff, a heavy brow
+    over the eye sockets, a cere and a long hooked beak.
+  - Seen edge-on, the wings were thin spikes. They are now raised in a shallow V, thick and rounded at the leading
+    edge, so they read from in front.
+- **Saints' faces.** The figures had no features. They now have carved faces: an oval skull, a brow ridge, eye sockets
+  with eyeballs, cheekbones, a straight nose, a closed mouth and a rounded chin. Bearded apostles (hair, moustache, a
+  beard in locks) and veiled women saints alternate.
+
 ## Limits
 
 - Ornament is simplified: no carved capitals, tracery inside windows, statues or Lüftlmalerei figures.

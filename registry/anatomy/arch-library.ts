@@ -251,7 +251,7 @@ add({ id: "haussmann-facade", label: "Haussmannian apartment building", group: "
     lamppost(b, 9, 6.6); lamppost(b, -9, 6.6); b.place();
     const view = frameSubject(b, 24, { fov: 60, pad: 0.06 });
     // the boulevard: plane trees in grilles along the kerb, a café terrace under the awning, an advertising column, benches, a handcart
-    for (const x of [-14, -4.5, 4.5, 14]) streetTree(b, x, 5.6, 11);
+    for (const x of [-14, -4.5, 4.5, 14]) streetTree(b, x, 5.6, 15);
     cafeTerrace(b, -8.5, 6.5, 2.6); advertColumn(b, 18, 5.0); streetBench(b, 0, 5.4, 180); handcart(b, -16, 9.5, 70);
     for (const x of [-20, 20]) placeHouse(b, { w: 18, d: 14, storeys: 6, storeyH: 3.1, walls: [{ kind: "rustication", colour: "#d8cbb0", course: 0.42 }, stone], roof: { kind: "mansard", pitch: 20, mat: S.zinc, h1: 3.2 }, windows: { rows: [[], [-7, -3.5, 0, 3.5, 7], [-7, -3.5, 0, 3.5, 7], [-7, -3.5, 0, 3.5, 7], [-7, -3.5, 0, 3.5, 7], [-7, -3.5, 0, 3.5, 7]], spec: { w: 1.2, h: 2.2, panes: [2, 4] } }, balconies: [{ storey: 2, continuous: true }], door: null, cornice: stone }, x * 1.0 + Math.sign(x) * 0, -6, 0);
     return done(b, view, "golden"); } });
