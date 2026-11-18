@@ -1,0 +1,838 @@
+/**
+ * Ink figure portrait A2 — a fresh ANAT1/EXPR1 drawing, NOT a variation of
+ * the existing Shanshui reader's paths. Independent face, skull, hairstyle,
+ * garment, contours and paint layers for two different character identities.
+ *
+ * Original markmaking study: docs/research/chinese-ink-anatomical-portrait-rebuild-2026-11-17.md
+ * Authentic historical works are references, not imported / traced assets.
+ */
+import {useId, useMemo} from "react";
+import type {SVGProps} from "react";
+import type {FaceParams} from "../../registry/anatomy/anatomy-face";
+import {evaluateInkBrush} from "../../registry/video/ink-brush";
+import type {InkBrushSpec} from "../../registry/video/ink-brush";
+import {createFace,FACE_FEATURES,FACE_LANDMARKS,measureFace} from "../../registry/anatomy/anatomy-face";
+import {expressEmotion,expressFace,expressionFeatures,expressionMarks} from "../../registry/anatomy/expression-face";
+import type {ExpressedFace} from "../../registry/anatomy/expression-face";
+
+export const INK_PORTRAIT_CHARACTERS=["scholar","elder"] as const;
+export const INK_PORTRAIT_EMOTIONS=["neutral","smile","sad","angry","surprise"] as const;
+export type InkPortraitCharacter=typeof INK_PORTRAIT_CHARACTERS[number];
+export type InkPortraitEmotion=typeof INK_PORTRAIT_EMOTIONS[number];
+export type InkPortraitView="bust"|"face"|"robe"|"source";
+
+export interface InkAnatomicalPortraitProps extends Omit<SVGProps<SVGSVGElement>,"children"|"viewBox"> {
+  character?:InkPortraitCharacter;
+  emotion?:InkPortraitEmotion;
+  intensity?:number;
+  detail?:number;
+  view?:InkPortraitView;
+  /** Original period figure's face-to-broad-sleeve scale (0.38..0.75). */
+  headScale?:number;
+  /** Original source plate or warm unbleached-cotton layer for a complete standing figure. */
+  garmentWash?:"silk"|"cotton";
+  /** Transparent compositing into an existing FilmStage, not a paper sticker. */
+  transparentPaper?:boolean;
+  /** A calibrated paper color for standalone figure plates. */
+  paperColor?:string;
+  className?:string;
+}
+
+const PERSONS={
+  scholar:{yaw:19,face:{sex:.9,eyeSpacing:-.25,eyeWidth:.12,
+    noseWidth:-.2,noseLength:.16,lowerFace:-.28,faceWidth:.94,mouthWidth:.98} satisfies FaceParams,
+    complexion:"#f0e0c7",bone:"#8f7967",ink:"#292b29",warm:"#ae8d75",robe:"#b3ad9f"},
+  elder:{yaw:27,face:{sex:1,eyeSpacing:.18,eyeWidth:-.23,
+    noseWidth:.38,noseLength:.48,lowerFace:.44,faceWidth:1.1,mouthWidth:.91} satisfies FaceParams,
+    complexion:"#e8d4b7",bone:"#7e7261",ink:"#2d302e",warm:"#a3846e",robe:"#9a9992"},
+} as const;
+type Point=readonly[number,number];
+const clamp=(x:number,lo:number,hi:number)=>Math.max(lo,Math.min(hi,x));
+const fmt=(x:number)=>x.toFixed(2);
+const xy=(p:Point)=>fmt(p[0])+" "+fmt(p[1]);
+/** Project the original 468-point millimetre ANAT1 mask; no old portrait path is read. */
+function projection(yaw:number){
+  const a=yaw*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+  return (p:readonly number[]):Point=>{
+    const y=232-2.03*p[1];
+    // The raw sagittal scaffold overextended the chin and outer jaws.
+    // Move the lower third by a continuous, differentiable anatomical warp;
+    // retain the measured upper-face mesh, EXPR1 eye, brow and nose motion.
+    const t=clamp((y-292)/172,0,1),ease=t*t*(3-2*t);
+    return [270+1.91*(p[0]*c+p[2]*s)*(.965-.12*ease),y-37*ease];
+  };
+}
+function spline(points:readonly Point[],closed=false){
+  if(points.length<2)return "";
+  // Catmull–Rom to cubic with the original feature-vertex topology intact.
+  let out="M"+xy(points[0]);
+  const end=closed?points.length:points.length-1;
+  for(let i=0;i<end;i++){
+    const p0=points[(i-1+points.length)%points.length];
+    const a=points[i],b=points[(i+1)%points.length];
+    const p3=points[(i+2)%points.length];
+    const before=i===0&&!closed?a:p0;
+    const after=i===end-1&&!closed?b:p3;
+    out+=" C"+xy([a[0]+(b[0]-before[0])/6,a[1]+(b[1]-before[1])/6])
+      +" "+xy([b[0]-(after[0]-a[0])/6,b[1]-(after[1]-a[1])/6])+" "+xy(b);
+  }
+  return out+(closed?" Z":"");
+}
+function pathBetween(a:Point,b:Point,c:Point):string{
+  return "M"+xy(a)+" Q"+xy(b)+" "+xy(c);
+}
+const shift=(p:Point,dx:number,dy:number):Point=>[p[0]+dx,p[1]+dy];
+
+/** Numeric evidence for two *different* fitted ANAT1 head constructions. */
+export function inkPortraitAnatomy(character:InkPortraitCharacter, emotion:InkPortraitEmotion="neutral", intensity=1){
+  if(!(character in PERSONS)||!INK_PORTRAIT_EMOTIONS.includes(emotion))throw new RangeError("Unknown ink portrait identity or emotion");
+  if(!Number.isFinite(intensity)||intensity<0||intensity>1)throw new RangeError("Intensity must be finite and in [0,1]");
+  const base=createFace(PERSONS[character].face);
+  const posed=emotion==="neutral"||intensity===0?expressFace({},base):expressEmotion(emotion,intensity,base);
+  return {posed,measurements:measureFace(base.vertices),features:expressionFeatures(posed),
+    landmarks:FACE_LANDMARKS, expressionMarks:expressionMarks(posed)};
+}
+
+
+/**
+ * Source-informed calligraphic sleeve and lapel marks. Reuse the existing
+ * licensed INK1 native pressure/pace/material geometry instead of faking
+ * Chinese brushwork with uniform SVG vector stroke widths.
+ *
+ * Authors may tune every control point independently. These represent
+ * garment-specific calligraphic touch, not a full-frame procedural texture.
+ */
+function robeInkSpec(character:InkPortraitCharacter):InkBrushSpec{
+  const scholar=character==="scholar";
+  const pt=(x:number,y:number,pressure:number,pace:number)=>({x,y,pressure,pace});
+  return {
+    version:1,width:540,height:620,paper:"#f4ebd9",
+    seed:scholar?1641:1839,
+    strokes:[
+      {id:"left-wrap",width:scholar?3.1:3.8,load:.83,dryness:.38,tone:0,
+        startFrame:0,durationFrames:1,
+        points:scholar
+          ?[pt(211,434,.10,1.7),pt(256,476,.86,.64),pt(285,512,.23,1.3),pt(303,550,.03,2)]
+          :[pt(199,436,.09,1.6),pt(248,483,.91,.62),pt(274,499,.47,1.1),pt(305,545,.04,1.9)]},
+      {id:"right-wrap",width:scholar?2.8:3.25,load:.77,dryness:.54,tone:1,
+        startFrame:0,durationFrames:1,
+        points:scholar
+          ?[pt(340,434,.06,1.55),pt(311,472,.93,.7),pt(283,487,.59,1.1),pt(255,523,.04,2.1)]
+          :[pt(348,433,.05,1.9),pt(309,483,.85,.81),pt(283,513,.63,1.25),pt(257,537,.03,2)]},
+      {id:"sleeve-left",width:4.8,load:.72,dryness:.72,tone:1,
+        startFrame:0,durationFrames:1,
+        points:[pt(150,452,.08,1.9),pt(138,495,.87,.55),
+          pt(116,550,.72,1.09),pt(104,595,.03,2.2)]},
+      {id:"sleeve-right",width:4.4,load:.67,dryness:.79,tone:1,
+        startFrame:0,durationFrames:1,
+        points:[pt(394,454,.07,1.75),pt(414,502,.94,.64),
+          pt(432,559,.54,1.3),pt(444,599,.02,2.3)]},
+    ],
+  };
+}
+const ROBE_PRESSURE_MARKS={
+  scholar:evaluateInkBrush(robeInkSpec("scholar"),1,true),
+  elder:evaluateInkBrush(robeInkSpec("elder"),1,true),
+};
+
+interface PaintProps {posed:ExpressedFace; character:InkPortraitCharacter; detail:number; view:InkPortraitView; uid:string; headScale:number; garmentWash:"silk"|"cotton"}
+function PaintedPortrait({posed,character,detail,view,uid,headScale,garmentWash}:PaintProps){
+  const preset=PERSONS[character], P=projection(preset.yaw),v=posed.vertices;
+  const q=(k:keyof typeof FACE_LANDMARKS)=>P(v[FACE_LANDMARKS[k]]);
+  const feature=(id:string)=>FACE_FEATURES[id].loop.map(i=>P(v[i]));
+  const faceOutline=spline(feature("oval"),true);
+  const brow=(side:"L"|"R")=>feature("brow."+side);
+  const upper=(side:"L"|"R")=>feature("eye-upper."+side);
+  const lower=(side:"L"|"R")=>feature("eye-lower."+side);
+  const eyeAperture=(side:"L"|"R")=>spline([...upper(side),...lower(side).slice().reverse()],true);
+  const marks=expressionMarks(posed);
+  const features=expressionFeatures(posed);
+  const eyeInk=(side:"L"|"R")=>{
+    const ex=q(("exocanthion."+side) as keyof typeof FACE_LANDMARKS),en=q(("endocanthion."+side) as keyof typeof FACE_LANDMARKS);
+    const center:Point=[(ex[0]+en[0])/2,(ex[1]+en[1])/2+.8];
+    const radius=Math.hypot(ex[0]-en[0],ex[1]-en[1])*.15;
+    return <g key={side} data-km-ink-eye={side}>
+      <clipPath id={uid+"-eye-"+side}><path d={eyeAperture(side)}/></clipPath>
+      <g clipPath={"url(#"+uid+"-eye-"+side+")"}>
+        <ellipse cx={center[0]} cy={center[1]+radius*.18} rx={radius*1.05} ry={radius*1.18}
+          fill="#494139" opacity=".45"/>
+        <ellipse cx={center[0]+radius*.05} cy={center[1]+radius*.17}
+          rx={radius*.33} ry={radius*.68} fill={preset.ink} opacity=".79"/>
+        <path d={pathBetween(shift(center,-radius*.4,-radius*.5),
+          shift(center,-radius*.1,-radius*.7),shift(center,radius*.3,-radius*.47))}
+          fill="none" stroke="#ecddc5" strokeWidth=".55" opacity=".64"/>
+      </g>
+      <path d={spline(upper(side))} fill="none" stroke={preset.ink}
+        strokeWidth={side==="L"?1.26:1.03} strokeLinecap="round" opacity=".78"/>
+      <path d={spline(lower(side))} fill="none" stroke={preset.bone}
+        strokeWidth=".61" strokeLinecap="round" opacity=".46"/>
+      <path d={pathBetween(shift(ex,side==="L"?-2:2,-3.9),
+        shift(center,0,-radius*2.0),shift(en,side==="L"?2:-2,-3.6))}
+        fill="none" stroke={preset.bone} strokeWidth=".61" opacity=".32"/>
+      <path d={pathBetween(shift(ex,side==="L"?-1:1,4.8),
+        shift(center,1,radius*2.2),shift(en,0,4.1))}
+        fill="none" stroke={preset.warm} strokeWidth="1.15"
+        filter={"url(#"+uid+"-wash-feather)"} opacity=".19"/>
+      <circle cx={en[0]} cy={en[1]+.6} r=".85"
+        fill={preset.warm} opacity=".28"/>
+      {Array.from({length:5},(_,i)=>{
+        const t=(i+1)/6,a=upper(side),j=Math.max(0,Math.min(a.length-2,Math.floor(t*(a.length-1))));
+        const pos=a[j];return <path key={i} d={"M"+xy(pos)+" l"+fmt((side==="L"?1:-1)*(1.0+i*.08))+" -"+fmt(.7+i*.09)}
+          stroke={preset.ink} strokeWidth=".34" opacity={.36+detail*.28}/>;
+      })}
+    </g>;
+  };
+  const washes=(side:"L"|"R")=>{
+    const cheek=q(("cheekbone."+side) as keyof typeof FACE_LANDMARKS),zy=q(("zygion."+side) as keyof typeof FACE_LANDMARKS),al=q(("alare."+side) as keyof typeof FACE_LANDMARKS);
+    const gon=q(("gonion."+side) as keyof typeof FACE_LANDMARKS),eye=q(("palpebrale-inferius."+side) as keyof typeof FACE_LANDMARKS);
+    const near=side==="L"?1:.72;
+    // Oblique orbital-malared bony forms have no filled polygon boundary.
+    // Earlier exact-head browser raster exhibited a huge straight triangle
+    // from each lower lid to the alar groove: not present in Zeng Jing's
+    // near-transparent, bone-immersing facial glazes. Deposits are pressure
+    // tapered curved contacts, then paper-absorbed with soft edges.
+    const direction=side==="L"?1:-1;
+    const malarArc=pathBetween(shift(eye,direction*2,7),
+      shift(cheek,-direction*4,13),shift(zy,-direction*14,23));
+    const maxillaryArc=pathBetween(shift(cheek,direction*1,9),
+      shift(al,direction*10,19),shift(al,direction*6,27));
+    return <g key={side} data-km-ink-cheek={side}>
+      <path d={malarArc} data-km-ink-wet-malar="bone" fill="none"
+        stroke={preset.bone} strokeWidth={21} strokeLinecap="round"
+        opacity={.29*near} filter={"url(#"+uid+"-face-wet-diffusion)"}/>
+      <path d={maxillaryArc} data-km-ink-wet-malar="warm" fill="none"
+        stroke={preset.warm} strokeWidth={15} strokeLinecap="round"
+        opacity={.16*near} filter={"url(#"+uid+"-face-wet-diffusion)"}/>
+      <path d={"M"+xy(shift(eye,-1,5))+" Q"+xy(shift(cheek,0,7))+" "+xy(shift(zy,side==="L"?5:-5,14))}
+        stroke={preset.bone} strokeWidth="7.8" opacity={.12*near}
+        filter={"url(#"+uid+"-face-wet-diffusion)"} fill="none"/>
+      <path d={"M"+xy(shift(eye,0,8))+" Q"+xy(shift(cheek,1,10))+" "+xy(shift(al,side==="L"?7:-7,15))}
+        stroke={preset.warm} strokeWidth="6.3" opacity={.10*near}
+        filter={"url(#"+uid+"-face-wet-diffusion)"} fill="none"/>
+      <path d={"M"+xy(shift(zy,side==="L"?-7:7,8))+" Q"+xy(shift(gon,side==="L"?7:-7,-6))+" "+xy(shift(gon,0,8))}
+        stroke={preset.bone} strokeWidth="5.1" opacity={.12*near}
+        filter={"url(#"+uid+"-face-wet-diffusion)"} fill="none"/>
+      {detail>.42&&Array.from({length:9},(_,i)=>{
+        const a=shift(eye,(side==="L"?-1:1)*(i*.8),8+i*.72);
+        const b=shift(cheek,(side==="L"?1:-1)*(8+i*.25),4+i*1.22);
+        return <path key={i} d={pathBetween(a,shift(b,0,-2.1-i*.14),b)}
+          fill="none" stroke={i%3===0?preset.warm:preset.bone}
+          strokeWidth={.24+(i%3)*.12} opacity={(.13+(i%3)*.037)*near*detail}/>;
+      })}
+    </g>;
+  };
+  const top=q("forehead"),menton=q("menton"),nose=q("pronasale");
+  const templeL=q("zygion.L"),templeR=q("zygion.R");
+  const browPoints=[...brow("L"),...brow("R")];
+  const foreheadLeft=shift(browPoints[1],-5,-17),foreheadRight=shift(browPoints[browPoints.length-2],5,-17);
+  const upperLip=feature("lips-upper"),lowerLip=feature("lips-lower");
+  const mouthLine=feature("mouth-line");
+  // Source-space oral fissure: borrow the EXPR1 stomion and mobile lower
+  // vermilion, but NEVER paint its entire multi-lip contour as a solid
+  // trapezoid. Delicate near/far labial ledges surround a narrow asymmetric
+  // cavity whose volume grows continuously with mandibular displacement.
+  const oral=q("stomion"),lowerOral=q("labiale-inferius");
+  const lipGap=clamp(features.mouthOpen,0,1.5);
+  const apertureWidth=clamp(3.3+lipGap*8.4,3.3,11.2);
+  const apertureHeight=clamp(1.9+(lowerOral[1]-oral[1])*.43,3.5,20);
+  const cavityTop:Point=[oral[0]+1.4,oral[1]-1.5];
+  const mouthCavityD="M"+xy(shift(cavityTop,-apertureWidth,2))
+    +" C"+xy(shift(cavityTop,-apertureWidth*.67,-2.8))
+    +" "+xy(shift(cavityTop,apertureWidth*.42,-2.3))
+    +" "+xy(shift(cavityTop,apertureWidth,1.6))
+    +" C"+xy(shift(cavityTop,apertureWidth*.89,apertureHeight*.6))
+    +" "+xy(shift(cavityTop,apertureWidth*.15,apertureHeight))
+    +" "+xy(shift(cavityTop,-apertureWidth*.15,apertureHeight))
+    +" C"+xy(shift(cavityTop,-apertureWidth*.69,apertureHeight*.83))
+    +" "+xy(shift(cavityTop,-apertureWidth*.94,apertureHeight*.31))
+    +" "+xy(shift(cavityTop,-apertureWidth,2))+" Z";
+  const spokenMouthContour=features.mouthOpen>.012?
+    mouthCavityD:spline(mouthLine);
+  // A genuinely independently sculpted garment: elder open cross-lapel versus
+  // scholar's wrapped collar, not the original Shanshui body's part assets.
+  return <>
+    <defs>
+      <clipPath id={uid+"-skin"}><path d={faceOutline}/></clipPath>
+      <filter id={uid+"-wash-feather"} x="-35%" y="-35%" width="170%" height="170%">
+        <feGaussianBlur stdDeviation="5.2"/>
+      </filter>
+      <filter id={uid+"-face-wet-diffusion"} x="-70%" y="-70%" width="240%" height="240%">
+        <feGaussianBlur stdDeviation="11.5"/>
+      </filter>
+      <filter id={uid+"-fibres"} x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency=".074 .12" numOctaves="3"
+          seed={character==="scholar"?11:31} result="grain"/>
+        <feColorMatrix in="grain" type="saturate" values="0"/>
+        <feComponentTransfer><feFuncA type="linear" slope=".14"/></feComponentTransfer>
+      </filter>
+    </defs>
+    <g data-km-ink-costume={character}
+      data-km-ink-costume-material={garmentWash}
+      opacity={garmentWash==="cotton"?.89:1}>
+      <path d={character==="scholar"
+        ?"M202 421 C163 424 131 439 116 470 Q98 506 83 612 L460 612 Q440 532 425 471 C412 443 372 428 328 420 Q263 451 202 421 Z"
+        :"M184 419 C140 422 113 458 92 514 L59 612 L481 612 C469 554 443 458 394 426 Q356 410 324 422 Q250 471 184 419 Z"}
+        fill={garmentWash==="cotton"?"#ece2d3":preset.robe}
+        fillOpacity={garmentWash==="cotton"?.28:.42}
+        stroke={preset.ink} strokeWidth="1.08"
+        strokeOpacity={garmentWash==="cotton"?.41:.77}/>
+      {/** Wet robe shadows bend across fabric drape, never the earlier
+           triangular poster-like tone panels. Stroke pressure stays separate
+           from the dry small folds and paper-reserved cloth underlayer. */}
+      <path d="M173 449 C182 480 165 517 156 550 S143 590 138 611"
+        fill="none" stroke={preset.bone} strokeWidth="26" opacity=".20"
+        filter={"url(#"+uid+"-wash-feather)"}/>
+      <path d="M369 449 C379 489 399 523 403 559 S410 588 421 610"
+        fill="none" stroke={preset.ink} strokeWidth="24" opacity=".15"
+        filter={"url(#"+uid+"-wash-feather)"}/>
+      <path d="M191 466 C195 507 196 530 191 552 S176 594 181 609"
+        fill="none" stroke={preset.warm} strokeWidth="12" opacity=".21"
+        filter={"url(#"+uid+"-wash-feather)"}/>
+      <path d="M353 462 Q342 503 355 540 T366 611"
+        fill="none" stroke={preset.ink} strokeWidth="14" opacity=".095"
+        filter={"url(#"+uid+"-wash-feather)"}/>
+      {character==="scholar"
+        ?<g data-km-ink-collar="late-ming-scholar-crossed">
+          {/** Real folded undercollar, not a plunging rectangular V. The
+               asymmetrical left lapel wraps over right and settles as a
+               wet-loading, dry-ending stroke into the chest. */}
+          <path d="M211 431 C236 448 255 462 282 476
+            Q317 451 339 423 L350 447
+            Q314 479 282 505 C254 486 224 464 211 431 Z"
+            fill="#e3d9c7" fillOpacity=".86"/>
+          <path d="M213 437 C239 459 260 486 285 511
+            Q307 531 311 562"
+            fill="none" stroke={preset.ink} strokeWidth="1.65"
+            strokeLinecap="round" opacity=".66"/>
+          <path d="M341 435 C325 456 309 470 282 486
+            Q261 499 249 526"
+            fill="none" stroke={preset.bone} strokeWidth="1.11"
+            strokeLinecap="round" opacity=".61"/>
+          <path d="M224 450 Q250 481 278 497"
+            fill="none" stroke={preset.warm} strokeWidth="5.3"
+            filter={"url(#"+uid+"-wash-feather)"} opacity=".19"/>
+          <path d="M337 450 Q309 484 267 506"
+            fill="none" stroke={preset.bone} strokeWidth="4.5"
+            filter={"url(#"+uid+"-wash-feather)"} opacity=".13"/>
+          <path d="M291 509 C302 533 290 558 295 575"
+            fill="none" stroke={preset.bone} strokeWidth=".64"
+            opacity=".36"/>
+        </g>
+        :<g data-km-ink-collar="elder-overlapping-soft-wrap">
+          <path d="M192 427 C223 462 252 477 275 488
+            Q324 464 341 424 L361 460
+            Q307 495 264 529 C232 496 209 472 192 427 Z"
+            fill="#ddd2c0" fillOpacity=".78"/>
+          <path d="M200 435 C225 469 248 482 276 499
+            Q298 522 303 549"
+            stroke={preset.ink} strokeWidth="1.92"
+            opacity=".65" strokeLinecap="round" fill="none"/>
+          <path d="M348 431 C318 475 282 504 257 537"
+            stroke={preset.ink} strokeWidth="1.53"
+            opacity=".55" strokeLinecap="round" fill="none"/>
+          <path d="M210 456 Q259 498 289 519"
+            stroke={preset.warm} strokeWidth="5.9"
+            opacity=".15" filter={"url(#"+uid+"-wash-feather)"}
+            fill="none"/>
+          <path d="M331 445 Q306 479 265 517"
+            stroke={preset.bone} strokeWidth="6.7"
+            opacity=".14" filter={"url(#"+uid+"-wash-feather)"}
+            fill="none"/>
+        </g>}
+      {/** Rooted silk sleeve cascade: direct continuity from the upper
+           shoulder, broad circular weight at elbow and pressure lift before
+           a late-Ming hanging-fold tip. Two sleeves are never mirrors. */}
+      {Array.from({length:12},(_,i)=>{
+        const side=i<6?-1:1,k=i%6;
+        const sx=side<0?135+k*10:394-k*7;
+        const sy=462+k*6;
+        const control:Point=[sx+side*(20+k*2.7),505+k*6];
+        const tip:Point=[sx+side*(28+k*4.4),565+k*8];
+        return <path key={"sleeve"+i} data-km-ink-sleeve-loading={i}
+          d={"M"+fmt(sx)+" "+fmt(sy)+" Q"+xy(control)+" "+xy(tip)}
+          stroke={i%3===0?preset.ink:preset.bone}
+          strokeWidth={i%4===0?1.26:.48+(i%3)*.14}
+          opacity={(i%4===0?.36:.20)*detail}
+          strokeLinecap="round" fill="none"/>;
+      })}
+      {Array.from({length:17},(_,i)=>{
+        const side=i%2===0?-1:1,k=Math.floor(i/2);
+        const twist=Math.sin(i*2.12)*8;
+        const start:Point=[270+side*(65+k*11)+twist*.38,438+Math.cos(i*1.3)*7];
+        const mid:Point=[270+side*(79+k*12)+twist,488+Math.sin(i*.83)*25];
+        const tipY=520+Math.min(86,((i*37)%103));
+        const end:Point=[270+side*(93+k*13)+twist*.7,tipY];
+        return <path key={i} data-km-ink-cloth-pressure={i}
+          d={"M"+xy(start)+" C"+xy(shift(mid,-side*9,-20))
+            +" "+xy(shift(mid,side*4,24))+" "+xy(end)}
+          fill="none" stroke={i%5===0?preset.ink:preset.bone}
+          strokeWidth={.42+(i%4)*.22}
+          opacity={(.16+(i%5)*.073)*detail}/>;
+      })}
+      {Array.from({length:24},(_,i)=>{
+        const u=i%12,dir=i<12?-1:1,noise=Math.sin(i*2.27);
+        const x=270+dir*(76+u*10+noise*5);
+        const y=499+u*4.4+Math.sin(i*.7)*11;
+        const length=16+24*Math.abs(Math.sin(i*1.17));
+        return <path key={"f"+i}
+          d={"M"+fmt(x)+" "+fmt(y)
+            +" q"+fmt(dir*(3+noise*2))+" "+fmt(length*.44)
+            +" "+fmt(dir*(2+noise*4))+" "+fmt(length)}
+          fill="none" stroke={i%7===0?preset.warm:preset.ink}
+          strokeWidth={.27+(i%5)*.09} opacity={(.14+(i%3)*.028)*detail}/>;
+      })}
+      {Array.from({length:11},(_,i)=>{
+        const t=i/10,side=i%2===0?-1:1;
+        const a:Point=[270+side*(62+t*39),446+t*14];
+        const b:Point=[270+side*(88+t*54),513+t*46];
+        const c:Point=[270+side*(105+t*66),570+t*29];
+        return <path key={"paperlift"+i} data-km-ink-cloth-dry-lift={i}
+          d={pathBetween(a,b,c)} fill="none" stroke="#f0e5d4"
+          strokeWidth={.54+(i%3)*.16} opacity={(.19+(i%4)*.045)*detail}/>;
+      })}
+      {ROBE_PRESSURE_MARKS[character].map((mark,i)=><g key={mark.id}
+        data-km-ink-native-robe-brush={mark.id}
+        data-km-ink-brush-pressure="INK1-variable-width"
+        opacity={mark.opacity*(character==="scholar"?.67:.71)*detail}>
+        <defs>
+          <mask id={uid+"-ink1-robe-"+i}
+            maskUnits="userSpaceOnUse" x="0" y="0" width="540" height="620">
+            <rect x="0" y="0" width="540" height="620" fill="#fff"/>
+            {mark.gaps.map((gap,j)=><path key={"gap"+j} d={gap.d}
+              stroke="#000" strokeWidth={gap.width} fill="none"
+              strokeLinecap="round"/>)}
+            {mark.pores.map((p,j)=><ellipse key={"pore"+j}
+              cx={p.x} cy={p.y} rx={p.rx} ry={p.ry} fill="#000"/>)}
+          </mask>
+        </defs>
+        <path d={mark.outline} fill={preset.ink} opacity=".56"
+          mask={"url(#"+uid+"-ink1-robe-"+i+")"}/>
+        <path d={mark.core} fill={preset.ink} opacity=".15"
+          mask={"url(#"+uid+"-ink1-robe-"+i+")"}/>
+        {mark.hairs.map((hair,j)=><path key={"hair"+j}
+          data-km-ink-robe-bristle={mark.id}
+          d={hair.d} fill="none" stroke={preset.ink}
+          strokeWidth={hair.width} opacity={hair.opacity*.78}/>)}
+      </g>)}
+    </g>
+    {/** Real source head/body ratio is not the old cartoon's giant head.
+         Preserve every ANAT1 point, EXPR1 action, cap fiber and jaw/neck
+         connection with a shared transform about the measured collar seam
+         (270,420). The face microscope rescales its camera inversely. */}
+    <g data-km-ink-anatomic-bust-ratio={fmt(headScale)}
+      transform={"translate("+fmt(270*(1-headScale))+" "+fmt(420*(1-headScale))
+        +") scale("+fmt(headScale)+")"}>
+    {/** Neck is physically continuous between the ANAT1 jaw and the robe.
+         The old exact-head screenshot left a strip of empty paper beneath
+         the chin. This independent original anatomical cylinder sits
+         BEHIND the face and above the cross-collar at the same pivot. */}
+    <g data-km-ink-neck-contact="mandible-to-silk">
+      <path d={"M"+xy(shift(menton,-39,-13))
+        +" C"+xy(shift(menton,-38,1))
+        +" "+xy(shift(menton,-25,20))
+        +" "+xy(shift(menton,-31,34))
+        +" Q"+xy(shift(menton,-39,45))
+        +" "+xy(shift(menton,-50,51))
+        +" Q"+xy(shift(menton,0,64))
+        +" "+xy(shift(menton,51,51))
+        +" Q"+xy(shift(menton,38,40))
+        +" "+xy(shift(menton,31,34))
+        +" C"+xy(shift(menton,29,17))
+        +" "+xy(shift(menton,37,0))
+        +" "+xy(shift(menton,40,-13))+" Z"}
+        fill={preset.complexion} stroke={preset.bone}
+        strokeWidth=".79" strokeOpacity=".44"/>
+      {Array.from({length:8},(_,i)=>{
+        const x=menton[0]-34+i*9.7,k=i/7;
+        const y=menton[1]+2+3*Math.sin(i*1.17);
+        return <path key={i} data-km-ink-neck-tendon={i}
+          d={"M"+fmt(x)+" "+fmt(y)
+            +" q"+fmt(5*Math.cos(i*.7))+" "+fmt(21+k*8)
+            +" "+fmt(1.5+3*Math.sin(i*.8))+" "+fmt(35+k*8)}
+          stroke={i<3?preset.bone:preset.warm}
+          strokeWidth={.48+(i%3)*.16} strokeLinecap="round" fill="none"
+          opacity={(i%3===0?.28:.11)*detail}/>;
+      })}
+      <path d={"M"+xy(shift(menton,-29,38))
+        +" Q"+xy(shift(menton,0,51))
+        +" "+xy(shift(menton,35,37))}
+        fill="none" stroke={preset.bone} strokeWidth="5.4"
+        opacity=".12" filter={"url(#"+uid+"-wash-feather)"}/>
+    </g>
+    {/** Cranial hair/hat, painted behind skin; scalp height derives from the ANAT1 forehead. */}
+    {/** Independent temporal hair under headcloth only. Earlier native 1x
+         showed one large modern black wedge from the far temple to the ear.
+         These two narrow cap-rooted locks respect the ear/skin occlusion. */}
+    <g data-km-ink-temporal-hair={character}>
+      <path d={"M"+xy(shift(templeL,-2,-22))
+        +" Q"+xy(shift(templeL,19,-27))+" "+xy(shift(templeL,15,-7))
+        +" Q"+xy(shift(templeL,10,11))+" "+xy(shift(templeL,5,19))
+        +" Q"+xy(shift(templeL,-1,2))+" "+xy(shift(templeL,-2,-22))+" Z"}
+        fill={preset.ink} fillOpacity={character==="scholar"?.77:.45}/>
+      <path d={"M"+xy(shift(templeR,-6,-22))
+        +" Q"+xy(shift(templeR,-13,-16))+" "+xy(shift(templeR,-11,-2))
+        +" L"+xy(shift(templeR,-4,7))
+        +" Q"+xy(shift(templeR,0,-8))+" "+xy(shift(templeR,-6,-22))+" Z"}
+        fill={preset.ink} fillOpacity={character==="scholar"?.62:.32}/>
+      {Array.from({length:9},(_,i)=>{
+        const y=templeL[1]-20+i*4.8;
+        const x=templeL[0]+4+Math.sin(i*1.7)*3;
+        return <path key={i}
+          d={"M"+fmt(x)+" "+fmt(y)+" q"+fmt(2+i%3)+" 5 "+fmt(1+i%4)+" 11"}
+          fill="none" stroke={character==="elder"?"#b6ae9f":"#c9baa0"}
+          strokeWidth=".45" opacity={(i%3===0?.43:.24)*detail}/>;
+      })}
+    </g>
+    <path d={faceOutline} data-km-ink-face-sculpt="lower-third-continuous"
+      fill={preset.complexion} stroke={preset.bone}
+      strokeWidth=".65" strokeOpacity=".44"/>
+    <g clipPath={"url(#"+uid+"-skin)"} data-km-ink-anatomy-washes="true">
+      {/** No digital airbrush gradients: several overlaid, locally mapped pigment glazes. */}
+      {/** Overlapping wet brush deposits following living frontal bone arcs;
+           preserve sharp microstroke layers above, no hard polygon ends. */}
+      {Array.from({length:13},(_,i)=>{
+        const k=i/12,spread=(1-Math.pow(Math.abs(k-.5)*2,2))*.72+.28;
+        const start=shift(foreheadLeft,4+i*.8,-3-i*1.36);
+        const mid=shift(top,-4+(i-6)*1.4,58-i*2.2);
+        const end=shift(foreheadRight,-4-i*.84,-2-i*1.25);
+        return <path key={i} data-km-ink-frontal-glaze={i}
+          d={"M"+xy(start)+" Q"+xy(mid)+" "+xy(end)}
+          stroke={i%3===0?preset.warm:preset.bone}
+          strokeWidth={4+7*spread} strokeLinecap="round" fill="none"
+          filter={"url(#"+uid+"-wash-feather)"}
+          opacity={.032+(.017*spread)}/>;
+      })}
+      <path d={"M"+xy(shift(foreheadLeft,-3,9))+" Q"+xy(shift(top,-6,67))
+        +" "+xy(shift(foreheadRight,2,9))}
+        stroke={preset.warm} strokeWidth="8.5" opacity=".085"
+        filter={"url(#"+uid+"-wash-feather)"} fill="none"/>
+      {washes("R")}{washes("L")}
+      <path d={spline(feature("nose-bridge"))} stroke={preset.bone}
+        strokeWidth="9" strokeOpacity=".17" filter={"url(#"+uid+"-wash-feather)"}
+        fill="none"/>
+      <path d={pathBetween(shift(q("alare.R"),-3,2),
+        shift(q("subnasale"),-12,6),shift(q("subnasale"),-4,7))}
+        stroke={preset.warm} strokeWidth="5.3" strokeOpacity=".12"
+        filter={"url(#"+uid+"-wash-feather)"} fill="none"/>
+      <path d={pathBetween(shift(q("subnasale"),4,7),
+        shift(q("subnasale"),12,4),shift(q("alare.L"),3,2))}
+        stroke={preset.bone} strokeWidth="4.5" strokeOpacity=".10"
+        filter={"url(#"+uid+"-wash-feather)"} fill="none"/>
+      <path d={"M"+xy(shift(nose,-10,0))+" Q"+xy(shift(nose,-4,14))+" "+xy(shift(q("subnasale"),-5,5))}
+        stroke={preset.bone} strokeWidth="2" opacity=".19" fill="none"/>
+      <path d={"M"+xy(shift(menton,-48,-4))+" Q"+xy(shift(menton,0,-14))+" "+xy(shift(menton,50,-9))}
+        stroke={preset.bone} strokeWidth="6.1" opacity=".09" fill="none"/>
+      <rect x="45" y="40" width="450" height="440" fill={preset.ink}
+        filter={"url(#"+uid+"-fibres)"} opacity={.10*detail}/>
+    </g>
+    <g data-km-ink-facial-structures="true">
+      {/** Nose and orbital canthi come from pose-dependent ANAT1 vertex loops. */}
+      <path d={spline(feature("nose-bridge"))} fill="none" stroke={preset.bone}
+        strokeWidth=".42" strokeLinecap="round" opacity=".16"/>
+      {/** Nostril ink is localized to the actual alar tissue, rather than
+           connecting both wings into the cartoon U seen at 1×. A slender
+           lifted tip and soft base shadow suggest bone-immersed depth. */}
+      {(["R","L"] as const).map(side=>{
+        const ala=q(("alare."+side) as keyof typeof FACE_LANDMARKS);
+        const sign=side==="R"?-1:1;
+        return <g key={side} data-km-ink-alar-pocket={side}>
+          <path d={pathBetween(shift(ala,-sign*5,-1),
+            shift(ala,sign*1,4),shift(ala,sign*4,1))}
+            stroke={preset.bone} strokeWidth=".78" opacity=".27"
+            fill="none" strokeLinecap="round"/>
+          <path d={pathBetween(shift(ala,-sign*2,0),
+            shift(ala,sign*1,6),shift(ala,sign*5,4))}
+            stroke={preset.warm} strokeWidth="3.8" opacity=".15"
+            filter={"url(#"+uid+"-wash-feather)"} fill="none"/>
+        </g>;
+      })}
+      <path d={pathBetween(shift(nose,-8,8),shift(nose,-2,11),shift(nose,7,8))}
+        fill="none" stroke={preset.warm} strokeWidth="2.3" opacity=".08"
+        filter={"url(#"+uid+"-wash-feather)"}/>
+      {(["R","L"] as const).map(side=><g key={side} data-km-ink-brow={side}>
+        <path d={spline(brow(side))} stroke={preset.ink}
+          strokeWidth={side==="L"?.98:.81} fill="none"
+          opacity={character==="scholar"?.38:.34} strokeLinecap="round"/>
+        {Array.from({length:16},(_,i)=>{
+          const raw=brow(side),t=i/15,j=Math.min(raw.length-2,Math.floor(t*(raw.length-1)));
+          const a=raw[j],b=raw[j+1],r=t*(raw.length-1)-j;
+          const x=a[0]+(b[0]-a[0])*r,y=a[1]+(b[1]-a[1])*r;
+          return <path key={i} d={"M"+xy([x,y])+" q"+fmt((side==="L"?-.9:.6))+" -1.6 "+fmt(i%2===0?1.2:-.8)+" -"+fmt(2.5+i%4*.35)}
+            fill="none" stroke={preset.ink} strokeWidth={.33+(i%3)*.16}
+            opacity={(i%4===0?.32:.21)*detail}/>;
+        })}
+      </g>)}
+      {eyeInk("R")}{eyeInk("L")}
+      <path d={spline(upperLip)} fill="none" stroke={preset.warm} opacity=".32" strokeWidth=".68"/>
+      <path d={spline(lowerLip)} fill="none" stroke={preset.bone} opacity=".31" strokeWidth=".67"/>
+      {features.mouthOpen>.012&&<>
+        <path data-km-ink-mouth-cavity="true" d={mouthCavityD}
+          fill={preset.warm} opacity={clamp(.25+lipGap*.16,.25,.46)}/>
+        <path d={mouthCavityD} fill={preset.ink}
+          opacity={clamp(.12+lipGap*.12,.12,.30)}/>
+        <path d={pathBetween(
+          shift(cavityTop,-apertureWidth*.65,apertureHeight+.4),
+          shift(cavityTop,0,apertureHeight+2.4),
+          shift(cavityTop,apertureWidth*.62,apertureHeight+.5))}
+          fill="none" stroke={preset.warm} strokeWidth="1.4" opacity=".27"/>
+      </>}
+      <path data-km-ink-mouth-line="true" d={spokenMouthContour} stroke={preset.ink}
+        strokeWidth={lipGap>.012?.78:.68} opacity={lipGap>.012?.42:.48}
+        strokeLinecap="round" fill="none"/>
+      <path d={"M"+xy(shift(q("sublabiale"),-12,4))+" Q"+xy(shift(q("sublabiale"),1,8))+" "+xy(shift(q("sublabiale"),13,1))}
+        stroke={preset.bone} fill="none" strokeWidth=".64" opacity=".46"/>
+      {character==="elder"&&<g data-km-ink-age-anatomy="orbital-temporal-volume">
+        {(["R","L"] as const).map(side=>{
+          const sign=side==="R"?-1:1;
+          const outer=q(("exocanthion."+side) as keyof typeof FACE_LANDMARKS);
+          const under=q(("palpebrale-inferius."+side) as keyof typeof FACE_LANDMARKS);
+          const z=q(("cheekbone."+side) as keyof typeof FACE_LANDMARKS);
+          return <g key={side} data-km-ink-age-eye={side}>
+            {Array.from({length:4},(_,i)=><path key={i}
+              d={pathBetween(shift(outer,sign*(2+i*2),1+i*2.2),
+                shift(outer,sign*(8+i*2),-1+i*3),
+                shift(outer,sign*(15+i*2),-4+i*3.7))}
+              fill="none" stroke={i%2===0?preset.bone:preset.warm}
+              strokeWidth={.31+(i%3)*.13} opacity={.17+detail*.08}/>)}
+            {Array.from({length:3},(_,i)=><path key={"bag"+i}
+              d={pathBetween(shift(under,sign*1,6+i*2.7),
+                shift(z,sign*2,-6+i*2),shift(z,sign*7,6+i*2))}
+              fill="none" stroke={preset.bone}
+              strokeWidth={1.45+i*.4} strokeLinecap="round"
+              filter={"url(#"+uid+"-wash-feather)"}
+              opacity={.18+(2-i)*.032}/>)}
+          </g>;
+        })}
+        {Array.from({length:4},(_,i)=>{
+          const a=shift(q("forehead"),-38+i*6,-2+i*3.3);
+          const b=shift(q("forehead"),-5+i*5,-1+i*3.1);
+          const c=shift(q("forehead"),27+i*3,2+i*3.2);
+          return <path key={i} data-km-ink-age-frontal={i}
+            d={pathBetween(a,b,c)} stroke={preset.bone}
+            strokeWidth={.35+(i%3)*.12} fill="none"
+            opacity={(i%2===0?.33:.22)*detail}/>;
+        })}
+      </g>}
+      {marks.map(m=><g key={m.id} data-km-ink-action-mark={m.id}>
+        <path d={spline(m.points.map(([x,y])=>P([x,y,42])))} fill="none"
+          stroke={preset.bone} strokeWidth={.38+(.3*m.strength)}
+          opacity={.15+.25*m.strength} strokeLinecap="round"/>
+      </g>)}
+    </g>
+    {/** Ear anatomy: its lobule, concha, crus and tragus are separate ink deposits. */}
+    <g data-km-ink-ear="near">
+      <path d={"M"+xy(shift(templeL,3,-4))+" C"+xy(shift(templeL,17,-24))
+        +" "+xy(shift(templeL,31,-12))+" "+xy(shift(templeL,28,12))
+        +" C"+xy(shift(templeL,25,28))+" "+xy(shift(templeL,8,34))
+        +" "+xy(shift(templeL,6,21))} fill={preset.complexion} stroke={preset.bone}
+        strokeWidth=".9" opacity=".76"/>
+      <path d={"M"+xy(shift(templeL,10,-7))+" Q"+xy(shift(templeL,26,-3))
+        +" "+xy(shift(templeL,22,17))+" M"+xy(shift(templeL,20,1))
+        +" Q"+xy(shift(templeL,10,5))+" "+xy(shift(templeL,17,12))}
+        stroke={preset.ink} opacity=".37" strokeWidth=".72" fill="none"/>
+      <path d={"M"+xy(shift(templeL,18,8))+" q6 6 2 10"}
+        fill="none" stroke={preset.ink} strokeWidth="1.2" opacity=".23"/>
+    </g>
+
+    {/** Unlike the rejected earlier crown, no exposed vertical hair comb or
+         disconnected cap. All hair fibers have a true painted support mask. */}
+    {(()=>{
+      // Folded Ming headcloth; not the rejected modern beret silhouette.
+      // Both forms are attached to the real ANAT1 forehead landmark.
+      const crown=character==="scholar"?
+        "M"+xy(shift(top,-85,9))
+        +" C"+xy(shift(top,-85,-13))+" "+xy(shift(top,-70,-96))
+        +" "+xy(shift(top,-60,-111))
+        +" L"+xy(shift(top,34,-117))
+        +" Q"+xy(shift(top,50,-111))+" "+xy(shift(top,59,-83))
+        +" L"+xy(shift(top,78,-4))
+        +" C"+xy(shift(top,65,13))+" "+xy(shift(top,-43,21))
+        +" "+xy(shift(top,-85,9))+" Z"
+        :
+        "M"+xy(shift(top,-82,12))
+        +" L"+xy(shift(top,-71,-94))
+        +" Q"+xy(shift(top,-33,-97))+" "+xy(shift(top,19,-95))
+        +" Q"+xy(shift(top,56,-88))+" "+xy(shift(top,66,-45))
+        +" L"+xy(shift(top,73,14))
+        +" C"+xy(shift(top,46,10))+" "+xy(shift(top,-45,23))
+        +" "+xy(shift(top,-82,12))+" Z";
+      return <g data-km-ink-hair={character}>
+        <path d={crown} fill={preset.ink}
+          fillOpacity={character==="scholar"?.90:.66}
+          stroke={preset.ink} strokeWidth=".62" strokeOpacity=".7"/>
+        <clipPath id={uid+"-hair-crown"}><path d={crown}/></clipPath>
+        <g clipPath={"url(#"+uid+"-hair-crown)"}>
+          {Array.from({length:65},(_,i)=>{
+            const t=i/64,edge=Math.abs(t-.5)*2;
+            const x=top[0]-65+t*119;
+            const y=top[1]-24-79*(1-edge*.4)+2.1*Math.sin(i*1.87);
+            const length=12+38*(1-edge)+2.2*Math.sin(i*2.31);
+            const bend=1.5+2.8*Math.cos(i*.93);
+            return <path key={i}
+              d={"M"+fmt(x)+" "+fmt(y)
+                +" q"+fmt(bend)+" "+fmt(length*.46)
+                +" "+fmt(bend+(i%3-1)*2)+" "+fmt(length)}
+              stroke={character==="elder"&&i%5===0?"#c9bca6":"#bcb09b"}
+              fill="none" strokeWidth={i%7===0?.83:.33+(i%4)*.07}
+              opacity={(character==="scholar"?.22:.37)*detail}/>;
+          })}
+        </g>
+        {character==="scholar"?<>
+          {/** Folded Ming scholar cap, with a continuous brim and side wings. */}
+          <path d={"M"+xy(shift(top,-86,7))
+            +" C"+xy(shift(top,-40,16))+" "+xy(shift(top,30,13))
+            +" "+xy(shift(top,88,7))
+            +" L"+xy(shift(top,80,19))
+            +" Q"+xy(shift(top,-7,20))+" "+xy(shift(top,-79,18))+" Z"}
+            fill="#262724" opacity=".95"/>
+          <path d={"M"+xy(shift(top,-78,9))
+            +" Q"+xy(shift(top,-102,14))+" "+xy(shift(top,-116,21))
+            +" Q"+xy(shift(top,-94,27))+" "+xy(shift(top,-72,19))}
+            fill="#2e2e2a" opacity=".82"/>
+          <path d={"M"+xy(shift(top,80,7))
+            +" Q"+xy(shift(top,101,11))+" "+xy(shift(top,110,22))
+            +" Q"+xy(shift(top,89,23))+" "+xy(shift(top,77,18))}
+            fill="#2e2e2a" opacity=".87"/>
+          <path d={"M"+xy(shift(top,-73,9))
+            +" Q"+xy(shift(top,-11,13))+" "+xy(shift(top,70,9))}
+            fill="none" stroke="#cabca0" strokeWidth=".69" opacity=".37"/>
+          <path d={"M"+xy(shift(top,-64,-98))
+            +" Q"+xy(shift(top,-22,-101))+" "+xy(shift(top,35,-103))}
+            fill="none" stroke="#c7b7a0" strokeWidth=".69" opacity=".28"/>
+          <path d={"M"+xy(shift(top,30,-115))
+            +" Q"+xy(shift(top,58,-76))+" "+xy(shift(top,75,7))}
+            fill="none" stroke="#b4a593" strokeWidth="1.04" opacity=".41"/>
+          <path d={"M"+xy(shift(top,-75,-11))
+            +" Q"+xy(shift(top,-48,-26))+" "+xy(shift(top,-30,-94))}
+            fill="none" stroke="#c7b7a0" strokeWidth="1.01" opacity=".24"/>
+        </>:<>
+          <path d={"M"+xy(shift(top,-53,12))
+            +" Q"+xy(shift(top,-18,10))+" "+xy(shift(top,12,12))
+            +" Q"+xy(shift(top,43,10))+" "+xy(shift(top,54,16))}
+            stroke="#c8b7a0" strokeWidth=".9" fill="none" opacity=".42"/>
+          {Array.from({length:8},(_,i)=><path key={i}
+            d={"M"+xy(shift(top,-47+i*11,14+(i%2)*2))
+              +" q"+fmt(1.1+(i%3))+" 6 "+fmt(3+(i%3))+" "+fmt(10+(i%4))}
+            stroke={i%3===0?"#bdb5a6":preset.ink}
+            strokeWidth=".53" opacity=".37" fill="none"/>)}
+          {/** Individual late-Ming oral-root whisker clusters; a feathered
+               underpaint follows the mandibular volume into five separate
+               tapering locks and does not flatten the robe into a stamp. */}
+          {/** Under-chin contact only: no mouth-to-chin triangular bib. The
+               observed previous output read as a pasted geometric goatee.
+               Preserve a single tinted foundation but spread it through
+               absorbent-paper blur beneath separate fine physical hairs. */}
+          <path data-km-ink-beard-substrate="organic"
+            d={"M"+xy(shift(menton,-34,-19))
+              +" C"+xy(shift(menton,-40,20))
+              +" "+xy(shift(menton,-28,50))
+              +" "+xy(shift(menton,-12,77))
+              +" Q"+xy(shift(menton,3,88))
+              +" "+xy(shift(menton,11,70))
+              +" C"+xy(shift(menton,29,42))
+              +" "+xy(shift(menton,36,21))
+              +" "+xy(shift(menton,34,-19))
+              +" Q"+xy(shift(menton,0,-9))
+              +" "+xy(shift(menton,-34,-19))+" Z"}
+            fill={preset.ink} opacity=".13"
+            filter={"url(#"+uid+"-face-wet-diffusion)"}/>
+          <path d={pathBetween(shift(q("stomion"),-24,-2),
+            shift(q("stomion"),-16,0),shift(q("stomion"),-5,3))}
+            stroke={preset.ink} strokeWidth="4.2" opacity=".30" fill="none"
+            strokeLinecap="round" filter={"url(#"+uid+"-wash-feather)"}/>
+          <path d={pathBetween(shift(q("stomion"),6,3),
+            shift(q("stomion"),16,-2),shift(q("stomion"),22,-2))}
+            stroke={preset.ink} strokeWidth="4.4" opacity=".28" fill="none"
+            strokeLinecap="round" filter={"url(#"+uid+"-wash-feather)"}/>
+          {/** Isolated moustache-root clusters with actual hairline directions. */}
+          {Array.from({length:18},(_,i)=>{
+            const near=i<9,side=near?-1:1,k=i%9;
+            const x=q("subnasale")[0]+side*(4+k*1.4);
+            const y=q("stomion")[1]-8+(k%3)*.38;
+            return <path key={"m"+i}
+              d={"M"+fmt(x)+" "+fmt(y)+" q"+fmt(side*(2+k*.17))
+                +" "+fmt(2.1+k*.1)+" "+fmt(side*(4+k*.32))+" "+fmt(4.3+(k%3)*1.2)}
+              fill="none" stroke={preset.ink}
+              opacity={(i%4===0?.40:.25)*detail} strokeWidth={i%3===0?.70:.38}/>;
+          })}
+          {/** Five separate tapering chin locks, never one rectangular beard. */}
+          {Array.from({length:5},(_,i)=>{
+            const offset=i-2,root=shift(menton,offset*11,-24+Math.abs(offset)*5);
+            const end=shift(menton,offset*9,83+Math.cos(offset*1.8)*18);
+            const mid:Point=shift(menton,offset*11,28+Math.abs(offset)*2);
+            return <path key={"lock"+i} data-km-ink-beard-lock={i}
+              d={"M"+xy(shift(root,-4,-1))
+                +" Q"+xy(shift(mid,-5,-1))+" "+xy(end)
+                +" Q"+xy(shift(mid,4,3))+" "+xy(shift(root,3,2))+" Z"}
+              fill={preset.ink} opacity={.11+(i===2?.21:.065)}/>;
+          })}
+          {Array.from({length:93},(_,i)=>{
+            // Five tapering families; preserve *all* 93 independent bristles,
+            // but cluster roots and differentiate each hair's trajectory.
+            // No equal-length vertical barcode lines.
+            const lock=Math.min(4,Math.floor(i*5/93)),local=(i%19)/18-.5;
+            const sweep=lock-2,noise=Math.sin(i*2.78),wave=Math.sin(i*.71);
+            const rootX=menton[0]+sweep*12+local*12;
+            const rootY=menton[1]-22+Math.abs(sweep)*4.2+
+              2.7*Math.sin(i*1.83);
+            const len=(1-Math.abs(local)*.42)*(
+              40+Math.abs(sweep)*8+30*Math.abs(noise)+11*wave);
+            const drift=sweep*(4+len*.075)+local*10+
+              4.7*Math.sin(i*1.29);
+            const tipX=rootX+drift,tipY=rootY+len;
+            return <path key={i} data-km-ink-beard-fibre={lock}
+              d={"M"+fmt(rootX)+" "+fmt(rootY)
+                +" C"+fmt(rootX+drift*.08+3*wave)+" "+fmt(rootY+len*.28)
+                +" "+fmt(tipX-5*wave)+" "+fmt(rootY+len*.73)
+                +" "+fmt(tipX)+" "+fmt(tipY)}
+              fill="none" stroke={i%7===0?"#bfb3a1":preset.ink}
+              strokeLinecap="round"
+              strokeWidth={i%4===0?.69:.27+(i%3)*.085}
+              opacity={(i%7===0?.53:.31+(i%4)*.035)*detail}/>;
+          })}
+        </>}
+      </g>;
+    })()}
+    </g>
+    {/** Paper fibers are individual dry, directional lines, not a flat gradient. */}
+    {detail>.5&&Array.from({length:27},(_,i)=>{
+      const x=110+(i*73)%317,y=492+(i*47)%108;
+      return <path key={"p"+i} d={"M"+fmt(x)+" "+fmt(y)+" l"+fmt((i%3-1)*3)+" "+fmt(4+i%5)}
+        stroke={preset.ink} fill="none" strokeWidth=".28" opacity=".105"/>;
+    })}
+    <title>{`${character==="scholar"?"Young scholar":"Elder scholar"} — ${view} — ${features.eyeOpen.toFixed(2)} eye aperture`}</title>
+  </>;
+}
+/** Reusable live SVG layer for cinematics, independent of existing reader art. */
+export function InkAnatomicalPortrait({character="scholar",emotion="neutral",intensity=1,
+  detail=1,view="bust",headScale=.48,garmentWash="silk",className,transparentPaper=false,
+  paperColor="#f4ebd9",style, ...svgProps}:InkAnatomicalPortraitProps){
+  const uid=useId().replace(/:/g,"");
+  if(!/^#[0-9a-fA-F]{6}$/.test(paperColor))throw new RangeError("paperColor must be #RRGGBB");
+  if(!Number.isFinite(headScale)||headScale<.38||headScale>.75)
+    throw new RangeError("headScale must be finite and in [0.38,0.75]");
+  if(garmentWash!=="silk"&&garmentWash!=="cotton")
+    throw new RangeError("garmentWash must be silk or cotton");
+  const study=useMemo(()=>inkPortraitAnatomy(character,emotion,intensity),
+    [character,emotion,intensity]);
+  const amount=clamp(detail,0,1);
+  const scaleRatio=headScale/.69;
+  const faceBox=[270+(100-270)*scaleRatio,
+    420+(112-420)*scaleRatio,345*scaleRatio,419*scaleRatio];
+  const bustTop=420+(95-420)*scaleRatio;
+  const camera=view==="source"?"0 0 540 620":view==="face"?faceBox.map(fmt).join(" "):
+    view==="robe"?"55 410 430 202":"0 "+fmt(bustTop)+" 540 "+fmt(620-bustTop);
+  return <svg {...svgProps} data-testid="ink-anat2-portrait" data-ink-character={character}
+      data-ink-emotion={emotion} data-ink-view={view}
+      data-ink-head-scale={fmt(headScale)}
+      data-ink-transparent-paper={transparentPaper?"true":"false"}
+      className={className} xmlns="http://www.w3.org/2000/svg"
+      role="img" aria-label={svgProps["aria-label"]??(character+" ink portrait, "+emotion+" expression")}
+      viewBox={camera}
+      style={{display:"block",background:transparentPaper?"transparent":paperColor,
+        width:"100%",height:"auto",...style}}>
+    {!transparentPaper&&<rect data-km-ink-paper="true" width="540" height="620" fill={paperColor}/>}
+    <g><PaintedPortrait posed={study.posed} character={character} detail={amount}
+      view={view} uid={"ink-a2-"+uid} headScale={headScale} garmentWash={garmentWash}/></g>
+  </svg>;
+}

@@ -21,6 +21,8 @@ export interface ShanshuiControls {
   scene:ShanshuiScene;
   /** Source-specific, code-drawn rock construction, independent of scene/clock. */
   inkSchool?:InkRockSchool;
+  /** Experimental, reversible Fuchun-only 3rd-band rock silhouette; never the normal film default. */
+  fuchunNearShoulderStudy?:boolean;
   /** Independent, bounded original pigment/foliage topology. */
   seed:number;
   /** 0..1; controls the number of brush and dry-rock details, not a post-filter. */
@@ -44,6 +46,7 @@ const finite=(v:number,min:number,max:number)=>Number.isFinite(v)&&v>=min&&v<=ma
 export function assertShanshuiControls(c:ShanshuiControls):void {
   if(!c||!SHANSHUI_SCENES.includes(c.scene)||
     (c.inkSchool!==undefined&&!INK_ROCK_SCHOOLS.includes(c.inkSchool))||
+    (c.fuchunNearShoulderStudy!==undefined&&typeof c.fuchunNearShoulderStudy!=="boolean")||
     !Number.isSafeInteger(c.seed)||c.seed<0||c.seed>2147483647||
     !finite(c.detail,0,1)||!finite(c.mist,0,1)||
     !finite(c.wind,0,1)||!finite(c.ink,0,1))
