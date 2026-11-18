@@ -142,11 +142,11 @@ export function RisoSlatRevealStudio(){
         <select aria-label="RISO81 slat direction" value={direction}
           onChange={e=>setDirection(e.target.value as RisoSlatDirection)}>
           {axis==="horizontal"?<>
-            <option value="down">Enter from above · down</option>
-            <option value="up">Enter from below · up</option>
-          </>:<>
             <option value="right">Enter from left · right</option>
             <option value="left">Enter from right · left</option>
+          </>:<>
+            <option value="down">Enter from above · down</option>
+            <option value="up">Enter from below · up</option>
           </>}
         </select>
       </label>
