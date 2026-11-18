@@ -127,6 +127,16 @@ function ReferenceAtelier(){
       </div>
     </section>
     <section style={{...card,marginTop:22}}>
+      <h2 style={{font:"normal 23px Georgia,serif",marginTop:0}}>Identity continuity</h2>
+      <p style={{fontSize:13,lineHeight:1.7}}>
+        The three approved teacher paintings remain the canonical identity and pose ground truth:
+        Misty Hermit, Riverside Scholar and Mountain Trail. These archival sitters are separate
+        anatomy and brush-craft references only; this study is not a replacement or an identity match.
+        The approved source paintings are not staged in this repository or the accessible file library,
+        so no source-relative landmark or pose claim is made here.
+      </p>
+    </section>
+    <section style={{...card,marginTop:22}}>
       <h2 style={{font:"normal 23px Georgia,serif",marginTop:0}}>Style and craft decisions</h2>
       <ul style={{lineHeight:1.75,fontSize:13,paddingLeft:20}}>
         <li>Style anchor: <a href="https://umma.umich.edu/objects/portrait-of-pan-qintai-1966-1-110/" target="_blank" rel="noreferrer">Zeng Jing, Portrait of Pan Qintai (1621)</a>. The museum image is linked, not embedded or traced.</li>
