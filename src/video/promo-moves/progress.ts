@@ -1,4 +1,5 @@
-/** Every move from doc 34 (docs/34-promo-motion-and-sound-gaps.md) and how far along it is. The Progress story draws this table; update
+/** Every move from doc 34 (docs/34-promo-motion-and-sound-gaps.md), and the short-form editing techniques of VE1 (docs/06-roadmap.md), and
+ * how far along each is. The Progress story draws this table; update
  * an item's `status` and `story` in the same change that builds it. */
 
 export type MoveStatus = "built" | "in-progress" | "planned";
@@ -66,6 +67,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
     what: "A clear glass circle or pill glides over a scene, magnifying what is behind it and bending its edge harder.", usage: '"lens": { "shape": "pill", "path": [{ "at": 24, "x": 0.12, "y": 0.5 }, …] }' },
   { id: "A11", name: "Sound-driven motion", group: "Animation and type", rank: "P3", status: "built", story: "video-production-promo-moves--sound-drive",
     what: "A bed's measured loudness drives a scene's scale or a soft glow, frame by frame: a bump on every beat.", usage: '"drive": { "bed": "pulse", "property": "scale" }' },
+  { id: "VE1.1", name: "Beat hits", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--beat-hits",
+    what: "A punch zoom, a camera shake, an RGB split, a zoom blur or a flash on each beat of a bed with a declared tempo, on its loud onsets, or on moments; patterns combine (punch on the kick, shake on the snare).",
+    usage: '"hits": [{ "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } }, { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }] · bed "bpm": 110' },
   { id: "A12", name: "Focus pull", group: "Animation and type", rank: "P3", status: "built", story: "video-production-promo-moves--focus-pull",
     what: "On a photo card, focus racks between the photograph and the words.", usage: '"focus": [{ "at": 0, "on": "words" }, { "at": 80, "on": "photo" }]' },
   { id: "S1", name: "Air gap", group: "Sound", rank: "P0", status: "built", story: "video-production-promo-moves--sound-moves",
@@ -94,6 +98,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.1": { registryItem: "film-document", jobs: ["cut the picture to the beat", "make an edit hit harder"], keywords: ["beat sync", "edit to music", "camera shake", "screen shake", "zoom punch", "punch zoom", "zoom on beat",
+    "bass shake", "rgb split", "chromatic aberration", "zoom blur", "radial blur", "impact", "velocity edit", "music video", "beat drop", "flash on beat", "bpm", "tempo"],
+    avoid: "Hits on every beat of a fast track read as jitter (over four a second warns); flashes stop at three a second; keep splits light over words." },
   T1: { registryItem: "film-document", jobs: ["change place or time", "open or close a film"], keywords: ["dip to black", "dip to white", "fade to black", "fade in", "fade out", "colour dip", "transition", "time jump"], avoid: "Under about 4 frames a fade reads as a flash; do not cover the next scene's title with the dip." },
   T2: { registryItem: "film-document", jobs: ["punch a cut", "show many pictures fast"], keywords: ["flash cut", "white flash", "flash frame", "burst", "strobe", "montage", "photo flash", "transition"], avoid: "More than three flashes a second is refused for photosensitive viewers." },
   T3: { registryItem: "film-document", jobs: ["reveal from a point", "brand a transition"], keywords: ["shape wipe", "iris", "iris wipe", "circle wipe", "star wipe", "logo wipe", "mask transition", "transition"], avoid: "Open from a point that matters, not the middle by habit." },

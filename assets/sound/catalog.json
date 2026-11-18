@@ -282,6 +282,39 @@
    "verifiedAt": "2026-11-12"
   },
   {
+   "id": "bed-drums-hiphop-110",
+   "path": "recorded/bed-drums-hiphop-110.wav",
+   "sha256": "bba01165be2c383bb7db5f825a4a32cbde21f1a13919aac808e3a1560c3d48b5",
+   "channels": 2,
+   "sampleRate": 48000,
+   "bitDepth": 16,
+   "durationSamples": 418909,
+   "peakSeconds": 0,
+   "loudnessLufs": -23,
+   "tags": [
+    "ambience",
+    "loop",
+    "music",
+    "drums",
+    "beat",
+    "hip-hop",
+    "tempo",
+    "110bpm",
+    "recorded"
+   ],
+   "description": "A hip-hop drum loop at 110 beats a minute, four bars: a deep kick, a crisp snare on the backbeat and quick hats. The loop starts on its first beat.",
+   "sourceUrl": "https://freesound.org/people/blakengouda/sounds/573948/",
+   "author": "blakengouda",
+   "licenseId": "CC0-1.0",
+   "origin": "recorded",
+   "redistributable": true,
+   "allowedUses": [
+    "commercial-video",
+    "library-distribution"
+   ],
+   "verifiedAt": "2026-11-18"
+  },
+  {
    "id": "bed-fire-hearth",
    "path": "recorded/bed-fire-hearth.wav",
    "sha256": "3532f9afc4a2409f31a47a048face72c06815ca0fe59c92a29612f852b25604c",
