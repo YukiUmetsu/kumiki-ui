@@ -125,7 +125,7 @@ const PROFILES:Record<InkSourceLedCharacter,SourceProfile>={
     sourceId:"met-jiang-jun-portrait-of-a-lady-52.177.5",
     sourceObjectId:"Met 52.177.5",
     sourceLabel:"Jiang Jun · Portrait of a Lady study",
-    sourceNote:"A new late-Qing female character study from the Met's 1906 portrait: softly tapered jaw, small vermilion lips, high pinned coiffure, pink peony, jade hairpins, hanging earrings, embroidered blue robe and folded fan. It is an original character, not the sitter's likeness.",
+    sourceNote:"A new 19th-century Qing female character study from Met 52.177.5: softly tapered jaw, vermilion lips, rounded pinned coiffure, pink peony, jade hair ornaments, long hanging earrings, blue embroidered robe, white patterned cuffs and a folded fan. The inscription appears to identify the sitter at age 26; this redraw is not her likeness.",
     yaw:3,pitch:0,faceWidth:.90,jawWidth:.84,templeWidth:.94,chinWidth:.78,
     lowerFace:.99,malarProjection:2.4,orbitDepth:.7,ageSag:.08,
     noseWidth:.90,noseProjection:.94,eyeSpacing:1.0,eyeHeight:1.08,mouthWidth:.88,
@@ -281,13 +281,16 @@ export function buildSourceLedPortraitGeometry(
   const scaleWeights=(weights:Readonly<Record<number,number>>):Record<number,number>=>Object.fromEntries(
     Object.entries(weights).map(([id,value])=>[Number(id),value*intensity]),
   ) as Record<number,number>;
-  const fromWeights=fromEmotion==="neutral"?{}:findEmotion(fromEmotion)?.aus??{};
-  const toWeights=emotion==="neutral"?{}:findEmotion(emotion)?.aus??{};
+  const fromPrototype=fromEmotion==="neutral"?undefined:findEmotion(fromEmotion);
+  const toPrototype=emotion==="neutral"?undefined:findEmotion(emotion);
+  const fromWeights=fromPrototype?.aus??{};
+  const toWeights=toPrototype?.aus??{};
   const progress=transitionProgress;
+  const side=toPrototype?.side??(progress<.5?fromPrototype?.side:undefined);
   const expressed=expressFace(blendWeights(
     [scaleWeights(fromWeights),1-progress],
     [scaleWeights(toWeights),progress],
-  ),base);
+  ),base,side);
   const frame=renderMeshFrame(
     expressed.mesh,{yaw,pitch:p.pitch},
     {width:240,height:280,pixelsPerMetre:610,centerOnTarget:true,padding:0},
@@ -916,6 +919,43 @@ export function InkSourceLedCharacterPortrait({
         </g>;
       })}
       <path d="M 164 494 Q 240 526 316 494 M 179 505 Q 240 536 301 505" strokeWidth=".7" opacity=".55"/>
+    </g>}
+    {character==="lady"&&<g data-km-ink-anat6-sleeve-cuffs="true">
+      <path d="M 100 548 Q 137 525 178 550 L 191 585 Q 151 606 111 580 Z"
+        fill="#eadfcf" stroke="#51483e" strokeWidth="1.1"/>
+      <path d="M 380 548 Q 343 525 302 550 L 289 585 Q 329 606 369 580 Z"
+        fill="#eadfcf" stroke="#51483e" strokeWidth="1.1"/>
+      <path d="M 108 555 Q 145 535 181 557 M 113 568 Q 149 548 185 570 M 119 581 Q 153 562 188 583"
+        fill="none" stroke="#b98d65" strokeWidth=".8"/>
+      <path d="M 372 555 Q 335 535 299 557 M 367 568 Q 331 548 295 570 M 361 581 Q 327 562 292 583"
+        fill="none" stroke="#b98d65" strokeWidth=".8"/>
+      {Array.from({length:12},(_,i)=>{
+        const side=i<6?-1:1,k=i%6,x=side<0?119+k*11:361-k*11,y=555+k*4.8;
+        return <g key={i} data-km-ink-anat6-cuff-flower={i} transform={"translate("+x+" "+y+")"}>
+          <path d="M 0 -3.5 Q 3 -1 0 2 Q -3 -1 0 -3.5 Z M -3.5 0 Q -1 -3 2 0 Q -1 3 -3.5 0 Z"
+            fill="#b86b6b" stroke="#86544c" strokeWidth=".45"/>
+          <circle r="1" fill="#d0ad70" stroke="none"/>
+        </g>;
+      })}
+    </g>}
+    {character==="lady"&&<g data-km-ink-anat6-fan-ornament="true" fill="none" strokeLinecap="round">
+      <path d="M 207 529 Q 220 520 233 529 M 247 529 Q 260 520 273 529"
+        stroke="#a75f64" strokeWidth=".8" opacity=".75"/>
+      <path d="M 220 532 q 4 -7 8 0 q -4 7 -8 0 M 252 532 q 4 -7 8 0 q -4 7 -8 0"
+        stroke="#bd8b62" strokeWidth=".7"/>
+      <circle cx="240" cy="535" r="2" fill="#b96d71" stroke="none"/>
+    </g>}
+    {character==="lady"&&<g data-km-ink-anat6-fan-hands="true">
+      <path d="M 212 542 C 206 546 207 557 214 564 Q 222 570 232 560 L 237 550 Q 229 541 220 540 Z"
+        fill={p.skin} stroke={p.ink} strokeWidth=".8"/>
+      <path d="M 216 545 Q 220 550 220 557 M 223 543 Q 228 549 226 556 M 230 547 Q 234 552 231 558"
+        fill="none" stroke={p.wash} strokeWidth=".7" strokeLinecap="round"/>
+      <path d="M 268 542 C 274 546 273 557 266 564 Q 258 570 248 560 L 243 550 Q 251 541 260 540 Z"
+        fill={p.skin} stroke={p.ink} strokeWidth=".8"/>
+      <path d="M 264 545 Q 260 550 260 557 M 257 543 Q 252 549 254 556 M 250 547 Q 246 552 249 558"
+        fill="none" stroke={p.wash} strokeWidth=".7" strokeLinecap="round"/>
+      <path d="M 218 543 q 2 -3 4 -2 M 261 541 q 2 -1 4 2"
+        fill="none" stroke="#fff1e7" strokeWidth=".65" opacity=".7"/>
     </g>}
     <g fill="none" stroke={p.ink} strokeLinecap="round">
       {Array.from({length:Math.round(22*detail)},(_,i)=>{
