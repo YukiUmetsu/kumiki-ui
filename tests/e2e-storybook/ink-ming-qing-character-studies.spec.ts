@@ -8,16 +8,21 @@ test("ANAT5 portrait atelier exposes new references and live expressions",async(
   const portrait=atelier.getByTestId("ink-anat5-selected-portrait").locator("svg");
   await expect(portrait).toHaveAttribute("data-km-ink-anat5-source-object","55.37");
   await expect(atelier.locator("[data-km-ink-anat5-reference-card]")).toHaveCount(8);
+  await expect(atelier.locator("[data-km-ink-anat5-reference-image]")).toHaveCount(8);
+  await expect(atelier.locator('[data-km-ink-anat5-reference-image][loading="eager"]')).toHaveCount(8);
+  await expect(portrait).toHaveAttribute("data-km-ink-anat5-source-references",/Met 55\\.37/);
   await expect(atelier.locator('[data-testid="ink-anat5-expression-contact-sheet"] svg')).toHaveCount(6);
   await page.screenshot({fullPage:true,animations:"disabled",path:info.outputPath("anat5-scholar-neutral.png")});
   await atelier.getByRole("combobox",{name:"Historical character"}).selectOption("writer");
   await expect(portrait)
     .toHaveAttribute("data-km-ink-anat5-source-object","2024.180");
+  await expect(portrait).toHaveAttribute("data-km-ink-anat5-source-references",/52\\.177\\.5/);
   await atelier.getByRole("combobox",{name:"Facial expression"}).selectOption("smile");
   await expect(portrait).toHaveAttribute("data-km-expr1-emotion","smile");
   await atelier.getByRole("combobox",{name:"Historical character"}).selectOption("attendant");
   await expect(portrait)
     .toHaveAttribute("data-km-ink-anat5-hair-style","attendant-double-pin");
+  await expect(portrait).toHaveAttribute("data-km-ink-anat5-source-references",/F1916\\.135/);
   await atelier.getByRole("combobox",{name:"Facial expression"}).selectOption("fear");
   await expect(portrait).toHaveAttribute("data-km-expr1-emotion","fear");
   await atelier.getByRole("slider",{name:"Expression intensity"}).evaluate(el=>{
