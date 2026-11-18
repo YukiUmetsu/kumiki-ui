@@ -75,6 +75,9 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
       expect(current?.layers).toHaveLength(3);
       const layers=current!.layers;
       expect(layers.map(layer=>layer.texture)).toEqual(["hatch","fiber","fiber"]);
+      const tone=id==="inner-fold"||id==="rose-whorl-recess"||
+        id===ROSE_CENTER_SCROLL_BACKFACE.id?"core":"rim";
+      expect(layers.map(layer=>layer.tone)).toEqual([tone,tone,tone]);
       expect(layers[1].angle-layers[0].angle).toBeCloseTo(11,6);
       expect(layers[2].angle-layers[0].angle).toBeCloseTo(-9,6);
       expect(layers[1].flow).toBeCloseTo((layers[0].flow??0)*.88,6);
@@ -82,8 +85,8 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
       const previous=baseline.regions.find(region=>region.id===id);
       if(previous){
         // Preserve every layer property other than the authored angle and fan.
-        expect(layers.map(({angle,flow,color,...rest})=>rest))
-          .toEqual(previous.layers.map(({angle,flow,color,...rest})=>rest));
+        expect(layers.map(({angle,flow,color,tone,...rest})=>rest))
+          .toEqual(previous.layers.map(({angle,flow,color,tone,...rest})=>rest));
       }
     }
     // The separate four-petal whorl option remains byte-compatible when the
