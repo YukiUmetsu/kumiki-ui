@@ -3,6 +3,7 @@ import {
   ROSE_CENTER_KNOT_SURFACES,ROSE_CENTER_SCROLL_BACKFACE,
   inspectRoseCenterKnot,
 } from "../src/video/colored-pencil-rose-center-knot";
+import {ROSE_INNER_WHORL_ORGANS} from "../src/video/colored-pencil-rose-inner-whorl";
 import {pencilObjectStudyDrawing} from "../src/video/colored-pencil-object-studies";
 import {inspectPencilFoundationDrawing} from "../registry/video/colored-pencil-foundation";
 
@@ -51,6 +52,16 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
     expect(ROSE_CENTER_KNOT_SURFACES[ROSE_CENTER_KNOT_SURFACES.length-1]?.path.startsWith(
       ROSE_CENTER_SCROLL_BACKFACE.hinge)).toBe(true);
     expect(ROSE_CENTER_SCROLL_BACKFACE.details).toHaveLength(4);
+  });
+
+  it("keeps the four shared whorl silhouettes and their source-local contacts byte-synchronized",()=>{
+    for(const organ of ROSE_INNER_WHORL_ORGANS){
+      const center=ROSE_CENTER_KNOT_SURFACES.find(surface=>surface.id===organ.id);
+      expect(center).toBeDefined();
+      expect(center?.path).toBe(organ.path);
+      expect(center?.dryContours.map(trace=>trace.path))
+        .toEqual(organ.details.map(trace=>trace.path));
+    }
   });
 
   it.each(["landscape","portrait"] as const)(
