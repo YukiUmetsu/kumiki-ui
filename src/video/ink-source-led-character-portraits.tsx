@@ -798,7 +798,7 @@ export function InkSourceLedCharacterPortrait({
       <ellipse cx={g.landmarks.eyeInnerL[0]-10} cy={g.landmarks.eyeInnerL[1]+1} rx="18" ry="10"
         fill={"url(#"+uid+"-orbit)"} opacity=".72"/>
       <ellipse cx={g.landmarks.eyeInnerR[0]+10} cy={g.landmarks.eyeInnerR[1]+1} rx="18" ry="10"
-        fill={"url(#"+uid+"-orbit)"} opacity=".58"/>>
+        fill={"url(#"+uid+"-orbit)"} opacity=".58"/>
       <path d={"M "+fmt(g.landmarks.sellion[0]-7)+" "+fmt(g.landmarks.sellion[1]+5)+" C "+fmt(g.landmarks.sellion[0]-9)+" "+fmt(g.landmarks.sellion[1]+25)+" "+fmt(nose[0]-8)+" "+fmt(nose[1]-14)+" "+fmt(nose[0]-7)+" "+fmt(nose[1]+2)+" C "+fmt(nose[0]-2)+" "+fmt(nose[1]+8)+" "+fmt(nose[0]+3)+" "+fmt(nose[1]+8)+" "+fmt(nose[0]+5)+" "+fmt(nose[1]+2)+" C "+fmt(nose[0]+7)+" "+fmt(nose[1]-13)+" "+fmt(g.landmarks.sellion[0]+5)+" "+fmt(g.landmarks.sellion[1]+25)+" "+fmt(g.landmarks.sellion[0]+4)+" "+fmt(g.landmarks.sellion[1]+5)+" Z"}
         fill={"url(#"+uid+"-nose)"} opacity=".62"/>
       <path d={"M "+fmt(g.landmarks.sellion[0]-4)+" "+fmt(g.landmarks.sellion[1]+8)+" C "+fmt(g.landmarks.sellion[0]-7)+" "+fmt(g.landmarks.sellion[1]+24)+" "+fmt(nose[0]-5)+" "+fmt(nose[1]-6)+" "+fmt(nose[0]-5)+" "+fmt(nose[1]+1)}
