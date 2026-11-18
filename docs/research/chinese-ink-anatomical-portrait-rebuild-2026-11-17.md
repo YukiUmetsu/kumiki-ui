@@ -293,3 +293,19 @@ This is an **experimental anatomy-to-ink study**, not a finished production char
 - The ArtCraft v7 `portrait_fidelity_gate.py` measured pass and independent 1×/3× human visual review have not been run. The script/package is not staged in this repository.
 - ANAT1's MakeHuman/ANSUR body scaffold and coarse ancestry axis are not a historical Chinese body norm; the figure proportions still need source-relative measurement.
 - Keep ANAT3/ANAT4 in the existing experimental Chinese Ink Storybook section under **ART HOLD / UNAPPROVED**. Do not merge or promote based on structural tests or screenshots alone.
+
+
+### Canonical character identity constraint
+
+The user's three approved teacher paintings remain the canonical identity and
+pose ground truth for **Misty Hermit**, **Riverside Scholar** and
+**Mountain Trail**. They were accepted for face, proportions, sleeves, robe,
+gesture and pose. The Smithsonian, LOC and Met sources added in ANAT3/ANAT4
+are **anatomy, hand, garment and brush-craft references only**; they must not
+replace or redefine those three characters.
+
+A search of the accessible Library and current repository did not surface the
+three original teacher-image files or the annotated proportion atlas. Therefore
+ANAT3/ANAT4 must remain separate experimental studies until the approved
+paintings are available for source-pixel landmark annotation and pose comparison.
+No identity-matched or source-fidelity claim is made in their absence.
