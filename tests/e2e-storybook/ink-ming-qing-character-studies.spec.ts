@@ -7,7 +7,7 @@ test("ANAT5 portrait atelier exposes new references and live expressions",async(
   await expect(atelier).toBeVisible();
   const portrait=atelier.getByTestId("ink-anat5-selected-portrait").locator("svg");
   await expect(portrait).toHaveAttribute("data-km-ink-anat5-source-object","55.37");
-  await expect(atelier.locator("[data-km-ink-anat5-reference-card]")).toHaveCount(4);
+  await expect(atelier.locator("[data-km-ink-anat5-reference-card]")).toHaveCount(8);
   await expect(atelier.locator('[data-testid="ink-anat5-expression-contact-sheet"] svg')).toHaveCount(6);
   await page.screenshot({fullPage:true,animations:"disabled",path:info.outputPath("anat5-scholar-neutral.png")});
   await atelier.getByRole("combobox",{name:"Historical character"}).selectOption("writer");
