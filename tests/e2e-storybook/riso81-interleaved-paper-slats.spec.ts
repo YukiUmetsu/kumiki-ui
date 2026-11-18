@@ -20,6 +20,10 @@ async({page},info)=>{
   await expect(theatre).toHaveAttribute("data-km-riso81-axis","horizontal");
   await expect(theatre).toHaveAttribute("data-km-riso81-direction","right");
   await expect(theatre).toHaveAttribute("data-km-riso81-collision-clearance-mm","0.1");
+  await expect(theatre).toHaveAttribute("data-km-riso81-stagger","0.22");
+  const exposures=await theatre.locator("[data-km-riso81-slat]").evaluateAll(slats=>
+    slats.map(s=>Number(s.getAttribute("data-km-riso81-exposure"))));
+  expect(new Set(exposures).size).toBeGreaterThan(1);
   const sourceSignature=async()=>theatre.locator("[data-km-riso81-slat]").evaluateAll(slats=>
     slats.map(s=>{
       const print=s.querySelector("[data-km-riso81-original-printed-strip] [data-km-riso-print]");
