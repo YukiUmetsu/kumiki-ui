@@ -49,6 +49,8 @@ interface CharacterProfile {
   faceWidth:number;
   lowerFace:number;
   jawTaper:number;
+  cheekFullness:number;
+  chinWidth:number;
   noseWidth:number;
   eyeSpacing:number;
   eyeHeight:number;
@@ -65,29 +67,29 @@ interface CharacterProfile {
 }
 const PROFILES:Record<InkMingQingCharacter,CharacterProfile>={
   scholar:{
-    sourceId:"met-55.37-and-52.177.8-scholar-study",sourceObjectId:"55.37",
-    sourceReferences:["Met 55.37 · Twenty-five bust portraits","Met 52.177.8 · Jiang Yun, Portrait of a Man"],
-    sex:1,yaw:18,pitch:-2,faceWidth:.91,lowerFace:1.16,jawTaper:.82,
-    noseWidth:.92,eyeSpacing:.97,eyeHeight:.94,mouthWidth:.96,
+    sourceId:"met-55.37-rightmost-sitter",sourceObjectId:"55.37",
+    sourceReferences:["Met 55.37 · rightmost anonymous sitter, primary source","Met 52.177.8 · tonal modeling and robe-material benchmark only"],
+    sex:1,yaw:18,pitch:-2,faceWidth:.95,lowerFace:1.05,jawTaper:.89,
+    cheekFullness:1.12,chinWidth:.96,noseWidth:1.02,eyeSpacing:.98,eyeHeight:.96,mouthWidth:.98,
     hairStyle:"tall-scholar-cap",hairFiberCount:38,beardFiberCount:92,
     ink:"#34332e",skin:"#eadbc6",wash:"#94765e",hair:"#292b28",
     robe:"#e8dfd0",accent:"#8e4e3b",
   },
   writer:{
-    sourceId:"met-2024.180-and-52.177.5-writer-study",sourceObjectId:"2024.180",
-    sourceReferences:["Met 2024.180 · Woman at her dressing table","Met 52.177.5 · Jiang Jun, Portrait of a Lady"],
-    sex:0,yaw:-18,pitch:-8,faceWidth:.88,lowerFace:1.08,jawTaper:.84,
-    noseWidth:.90,eyeSpacing:1.01,eyeHeight:.98,mouthWidth:.92,
+    sourceId:"met-2024.180-seated-writer",sourceObjectId:"2024.180",
+    sourceReferences:["Met 2024.180 · seated writer, primary source","Met 52.177.5 · female face and collar technique benchmark only"],
+    sex:0,yaw:-18,pitch:-8,faceWidth:.94,lowerFace:1.00,jawTaper:.90,
+    cheekFullness:1.06,chinWidth:.91,noseWidth:.96,eyeSpacing:1.00,eyeHeight:.95,mouthWidth:.96,
     hairStyle:"pinned-writer-coil",hairFiberCount:64,beardFiberCount:0,
     ink:"#37342e",skin:"#efdfca",wash:"#a98770",hair:"#282723",
     robe:"#ded4c2",accent:"#9c5847",
   },
   attendant:{
-    sourceId:"met-2024.180-and-smithsonian-F1916.135-attendant-study",sourceObjectId:"2024.180",
-    sourceReferences:["Met 2024.180 · Woman at her dressing table","Smithsonian F1916.135 · Court ladies and attendant"],
-    sex:0,yaw:14,pitch:-5,faceWidth:.90,lowerFace:1.06,jawTaper:.82,
-    noseWidth:.91,eyeSpacing:1.00,eyeHeight:.94,mouthWidth:.90,
-    hairStyle:"attendant-double-pin",hairFiberCount:56,beardFiberCount:0,
+    sourceId:"met-2024.180-standing-attendant",sourceObjectId:"2024.180",
+    sourceReferences:["Met 2024.180 · standing attendant, primary source","Smithsonian F1916.135 · Ming court hair and role-hierarchy benchmark only"],
+    sex:0,yaw:14,pitch:-5,faceWidth:.95,lowerFace:1.00,jawTaper:.91,
+    cheekFullness:1.04,chinWidth:.90,noseWidth:.96,eyeSpacing:1.00,eyeHeight:.93,mouthWidth:.92,
+    hairStyle:"attendant-high-bun",hairFiberCount:56,beardFiberCount:0,
     ink:"#38342e",skin:"#e9d9c4",wash:"#9a7a63",hair:"#292722",
     robe:"#d7d0c1",accent:"#805447",
   },
@@ -118,6 +120,7 @@ function createSourceFace(character:InkMingQingCharacter){
   const at=(name:LandmarkName)=>vertices[FACE_LANDMARKS[name]];
   const sellionY=at("sellion")[1],subnasaleY=at("subnasale")[1];
   const mentonY=at("menton")[1],stomionY=at("stomion")[1];
+  const cheekY=(at("zygion.L")[1]+at("zygion.R")[1])/2;
   const lowerSpan=Math.max(1,subnasaleY-mentonY);
   const eyeL=(at("palpebrale-superius.L")[1]+at("palpebrale-inferius.L")[1])/2;
   const eyeR=(at("palpebrale-superius.R")[1]+at("palpebrale-inferius.R")[1])/2;
@@ -133,10 +136,17 @@ function createSourceFace(character:InkMingQingCharacter){
       Math.exp(-(((ox+25)/27)**2+((oy-eyeY)/17)**2)),
     );
     const mouthWeight=Math.exp(-((ox/31)**2+((oy-stomionY)/13)**2));
+    const cheekWeight=Math.max(
+      Math.exp(-(((ox-37)/23)**2+((oy-cheekY)/24)**2)),
+      Math.exp(-(((ox+37)/23)**2+((oy-cheekY)/24)**2)),
+    );
+    const chinWeight=Math.exp(-((ox/25)**2+((oy-mentonY)/18)**2));
     let x=ox*profile.faceWidth;
     let y=oy;
     if(oy<subnasaleY)y=subnasaleY+(oy-subnasaleY)*profile.lowerFace;
     x*=1+(profile.jawTaper-1)*lower;
+    x*=1+(profile.cheekFullness-1)*cheekWeight;
+    x*=1+(profile.chinWidth-1)*chinWeight;
     x*=1+(profile.noseWidth-1)*noseWeight;
     x*=1+(profile.eyeSpacing-1)*eyeWeight;
     x*=1+(profile.mouthWidth-1)*mouthWeight;
@@ -282,6 +292,14 @@ function capOrHairPath(character:InkMingQingCharacter,g:MingQingPortraitGeometry
       +" C"+fmt(c-4)+" "+fmt(crown-30)+" "+fmt(c+24)+" "+fmt(crown-24)+" "+fmt(c+26)+" "+fmt(crown-4)
       +" C"+fmt(c+49)+" "+fmt(crown-7)+" "+fmt(r+20)+" "+fmt(t-8)+" "+fmt(r+12)+" "+fmt(t+14)
       +" Q"+fmt(c)+" "+fmt(t+29)+" "+fmt(l-13)+" "+fmt(t+13)+" Z";
+  }
+  if(character==="attendant"){
+    const crown=t-38;
+    return "M"+fmt(l-12)+" "+fmt(t+12)
+      +" C"+fmt(l-20)+" "+fmt(t-8)+" "+fmt(c-31)+" "+fmt(crown+9)+" "+fmt(c-18)+" "+fmt(crown+1)
+      +" C"+fmt(c-7)+" "+fmt(crown-17)+" "+fmt(c+11)+" "+fmt(crown-27)+" "+fmt(c+23)+" "+fmt(crown-13)
+      +" C"+fmt(c+38)+" "+fmt(crown-3)+" "+fmt(r+18)+" "+fmt(t-5)+" "+fmt(r+12)+" "+fmt(t+13)
+      +" Q"+fmt(c)+" "+fmt(t+27)+" "+fmt(l-12)+" "+fmt(t+12)+" Z";
   }
   const crown=t-30;
   return "M"+fmt(l-12)+" "+fmt(t+12)
@@ -483,7 +501,7 @@ export function InkMingQingCharacterStudy({
           const t=i/Math.max(1,hairCount-1);
           const rootX=g.left-4+t*(g.right-g.left+8);
           const rootY=g.top+8+Math.sin(t*Math.PI)*2;
-          const side=character==="writer"?(t<.5?-1:1):(i%2?-1:1);
+          const side=character==="writer"?(t<.5?-1:1):1;
           const endX=cx+side*(12+(i%9)*2.1);
           const endY=g.top-15-(i%7)*2.4;
           const midX=(rootX+endX)/2+Math.sin(i*1.31)*4;
@@ -507,19 +525,21 @@ export function InkMingQingCharacterStudy({
             fill={p.accent} stroke="#c6a875" strokeWidth=".55" opacity=".88"/>
           <circle cx={cx+21} cy={g.top-23} r="1.8" fill="#e7c78e"/>
         </g>}
-        {character==="attendant"&&<g data-km-ink-anat5-attendant-hair-pins="paired-coils">
-          <path d={"M"+fmt(cx-28)+" "+fmt(g.top-17)+" C"+fmt(cx-42)+" "+fmt(g.top-30)+" "+fmt(cx-27)+" "+fmt(g.top-44)+" "+fmt(cx-12)+" "+fmt(g.top-29)
-            +" Q"+fmt(cx-7)+" "+fmt(g.top-17)+" "+fmt(cx-28)+" "+fmt(g.top-17)+" Z"}
-            fill="#20221f" stroke="#4b463d" strokeWidth=".6"/>
-          <path d={"M"+fmt(cx+10)+" "+fmt(g.top-22)+" C"+fmt(cx+21)+" "+fmt(g.top-42)+" "+fmt(cx+42)+" "+fmt(g.top-32)+" "+fmt(cx+31)+" "+fmt(g.top-15)
-            +" Q"+fmt(cx+18)+" "+fmt(g.top-9)+" "+fmt(cx+10)+" "+fmt(g.top-22)+" Z"}
-            fill="#20221f" stroke="#4b463d" strokeWidth=".6"/>
-          <path d={"M"+fmt(cx-26)+" "+fmt(g.top-38)+" Q"+fmt(cx-5)+" "+fmt(g.top-50)+" "+fmt(cx+17)+" "+fmt(g.top-39)}
-            fill="none" stroke="#b8a27c" strokeWidth="1" opacity=".78"/>
-          <path d={"M"+fmt(cx+13)+" "+fmt(g.top-42)+" l14 -9 M"+fmt(cx-23)+" "+fmt(g.top-41)+" l-12 -8"}
-            fill="none" stroke="#b38c55" strokeWidth="1.1" strokeLinecap="round"/>
-          <circle cx={cx+27} cy={g.top-51} r="2" fill={p.accent}/>
-          <circle cx={cx-35} cy={g.top-49} r="1.8" fill="#bda36f"/>
+        {character==="attendant"&&<g data-km-ink-anat5-attendant-hair-pins="single-high-bun">
+          <path data-km-ink-anat5-attendant-bun="overlapping-back-coil"
+            d={"M"+fmt(cx+2)+" "+fmt(g.top-13)+" C"+fmt(cx+7)+" "+fmt(g.top-38)+" "+fmt(cx+30)+" "+fmt(g.top-47)+" "+fmt(cx+43)+" "+fmt(g.top-29)
+              +" C"+fmt(cx+54)+" "+fmt(g.top-11)+" "+fmt(cx+35)+" "+fmt(g.top+1)+" "+fmt(cx+16)+" "+fmt(g.top-2)
+              +" Q"+fmt(cx+7)+" "+fmt(g.top-4)+" "+fmt(cx+2)+" "+fmt(g.top-13)+" Z"}
+            fill="#20221f" stroke="#4b463d" strokeWidth=".65"/>
+          <path d={"M"+fmt(cx+10)+" "+fmt(g.top-22)+" Q"+fmt(cx+25)+" "+fmt(g.top-42)+" "+fmt(cx+41)+" "+fmt(g.top-25)}
+            fill="none" stroke="#b8a27c" strokeWidth=".85" opacity=".68"/>
+          <path d={"M"+fmt(cx+22)+" "+fmt(g.top-34)+" l18 -12"}
+            fill="none" stroke="#b38c55" strokeWidth="1.15" strokeLinecap="round"/>
+          <g data-km-ink-anat5-attendant-flower-pin="single-flower">
+            <path d={"M"+fmt(cx+39)+" "+fmt(g.top-47)+" q-5 -5 -7 1 q4 4 7 -1 q5 -4 7 2 q-5 4 -7 -2"}
+              fill={p.accent} stroke="#c6a875" strokeWidth=".5"/>
+            <circle cx={cx+39} cy={g.top-47} r="1.6" fill="#e7c78e"/>
+          </g>
         </g>}
       </g>}
     </g>
@@ -565,7 +585,7 @@ export function InkMingQingCharacterStudy({
         fill="none" stroke="#8f735d" strokeWidth=".75" opacity=".32"/>
 
     </g>
-    <path d={g.outline} fill={"url(#"+uid+"-skin)"} stroke={p.ink} strokeWidth=".7" strokeOpacity=".38"/>
+    <path d={g.outline} fill={"url(#"+uid+"-skin)"} stroke={p.ink} strokeWidth=".55" strokeOpacity=".30"/>
     <path data-km-ink-anat5-hairline="temple-to-temple"
       d={"M"+fmt(g.left+9)+" "+fmt(g.top+8)+" Q"+fmt(cx)+" "+fmt(g.top+17)+" "+fmt(g.right-9)+" "+fmt(g.top+8)}
       fill="none" stroke={p.ink} strokeWidth=".48" opacity=".35"/>
@@ -601,12 +621,23 @@ export function InkMingQingCharacterStudy({
         +" Q"+fmt(cx)+" "+fmt(g.landmarks.menton[1]+10)
         +" "+fmt(g.landmarks.menton[0]+20)+" "+fmt(g.landmarks.menton[1]-7)}
         fill="none" stroke="#6f5747" strokeWidth="8" opacity=".09" filter={"url(#"+uid+"-wet)"}/>
-      {Array.from({length:22},(_,i)=>{
-        const t=i/21,x=g.left+8+t*(g.right-g.left-16);
-        const y=g.landmarks.cheekboneL[1]+16+(i%5)*3;
-        return <path key={i} d={"M"+fmt(x)+" "+fmt(y)+" q"+fmt(Math.sin(i*1.7)*3)+" 2 "+fmt(Math.cos(i*.9)*4)+" "+(4+i%4)}
-          fill="none" stroke={i%4===0?"#fff6e8":p.wash}
-          strokeWidth={.32+(i%3)*.14} opacity={.13*detail}/>;
+      {eyes.map(eye=><path key={"under-eye-"+eye.side} data-km-ink-anat5-under-eye-wash={eye.side}
+        d={"M"+fmt(eye.outer[0])+" "+fmt(eye.outer[1]+4)
+          +" Q"+fmt((eye.outer[0]+eye.inner[0])/2)+" "+fmt(eye.lower[1]+5)
+          +" "+fmt(eye.inner[0])+" "+fmt(eye.inner[1]+4)}
+        fill="none" stroke={p.wash} strokeWidth="3.4" strokeLinecap="round"
+        opacity=".11" filter={"url(#"+uid+"-soft)"}/>)}
+      {Array.from({length:12},(_,i)=>{
+        const side=i<6?-1:1,j=i%6,t=(j+.5)/6;
+        const cheek=side<0?g.landmarks.cheekboneL:g.landmarks.cheekboneR;
+        const jaw=side<0?g.landmarks.gonionL:g.landmarks.gonionR;
+        const x=cheek[0]+(jaw[0]-cheek[0])*t;
+        const y=cheek[1]+14+(jaw[1]-cheek[1])*.42+(j%3)*1.8;
+        return <path key={i} data-km-ink-anat5-malar-stroke={side+":"+j}
+          d={"M"+fmt(x)+" "+fmt(y)+" Q"+fmt(x+side*2.2)+" "+fmt(y+2.2)
+            +" "+fmt(x+side*(3.1+(j%3)*.45))+" "+fmt(y+5.2+(j%2))}
+          fill="none" stroke={j===0?"#fff6e8":p.wash}
+          strokeWidth={.24+(j%3)*.12} opacity={.09*detail} strokeLinecap="round"/>; 
       })}
     </g>
     <g data-km-ink-anat5-landmark-facial-planes="nose-philtrum-lips-chin">
@@ -657,12 +688,12 @@ export function InkMingQingCharacterStudy({
           +" "+fmt(g.landmarks.labialeSuperius[0]+3)+" "+fmt(g.landmarks.labialeSuperius[1])}
         fill="none" stroke={p.wash} strokeWidth=".8" opacity=".42"/>
       <path data-km-ink-anat5-lip-volume="vermilion-border" d={lipPath}
-        fill="#9a6d5c" opacity=".22"/>
+        fill="#9a6d5c" opacity={character==="scholar"?.12:.15}/>
       <path data-km-ink-anat5-lip-highlight="lower-vermilion"
         d={"M"+fmt(g.landmarks.mouthL[0]+3)+" "+fmt(g.landmarks.mouthL[1]+1)
           +" Q"+fmt(g.landmarks.labialeInferius[0])+" "+fmt(g.landmarks.labialeInferius[1]+2)
           +" "+fmt(g.landmarks.mouthR[0]-3)+" "+fmt(g.landmarks.mouthR[1]+1)}
-        fill="none" stroke="#f7e6d2" strokeWidth="1" opacity=".6" strokeLinecap="round"/>
+        fill="none" stroke="#f7e6d2" strokeWidth=".8" opacity=".34" strokeLinecap="round"/>
       <path data-km-ink-anat5-nasolabial="L"
         d={"M"+fmt(g.landmarks.alareL[0]-1)+" "+fmt(g.landmarks.alareL[1]+2)
           +" Q"+fmt(g.landmarks.mouthL[0]-8)+" "+fmt(g.landmarks.mouthL[1]+8)
@@ -681,7 +712,7 @@ export function InkMingQingCharacterStudy({
     </g>
     <g data-km-anat1-projected-features="true">
       {eyes.map(eye=><g key={eye.side} data-km-ink-anat5-eye-anatomy={eye.side}>
-        <path data-km-ink-anat5-eye-aperture={eye.side} d={eye.d} fill="#f6ead9" opacity=".72"/>
+        <path data-km-ink-anat5-eye-aperture={eye.side} d={eye.d} fill="#f1e4d2" opacity=".46"/>
         <path data-km-ink-anat5-eye-lid-fold={eye.side} d={eye.fold}
           fill="none" stroke={p.wash} strokeWidth=".68" opacity=".54"/>
         <path data-km-ink-anat5-eye-lower-rim={eye.side} d={eye.rim}
@@ -713,9 +744,9 @@ export function InkMingQingCharacterStudy({
         const nose=f.id.startsWith("nose"),lip=f.id.startsWith("lips")||f.id==="mouth-line";
         return <path key={f.id+"-"+i} data-km-anat1-feature={f.id} d={f.d}
           fill="none" stroke={lip?"#755548":p.ink}
-          strokeWidth={brow ? 1.05 : eye ? 0.82 : nose ? 0.68 : lip ? 0.72 : 0.5}
+          strokeWidth={brow ? 1.05 : eye ? 0.82 : nose ? 0.68 : lip ? 0.48 : 0.46}
           strokeLinecap="round" strokeLinejoin="round"
-          opacity={brow ? 0.68 : eye ? 0.78 : nose ? 0.56 : lip ? 0.75 : 0.48}/>;
+          opacity={brow ? 0.68 : eye ? 0.78 : nose ? 0.56 : lip ? 0.52 : 0.44}/>;
       })}
       {brows.map(brow=><g key={brow.side} data-km-ink-anat5-brow-anatomy={brow.side}>
         <path d={"M"+fmt(brow.a[0])+" "+fmt(brow.a[1])
@@ -746,7 +777,7 @@ export function InkMingQingCharacterStudy({
           +" C"+fmt(cx-7)+" "+fmt(g.landmarks.menton[1]+8)
           +" "+fmt(g.landmarks.mouthL[0]+3)+" "+fmt(mouthY+11)
           +" "+fmt(g.landmarks.mouthL[0]-4)+" "+fmt(mouthY+4)+" Z"}
-        fill={p.hair} opacity=".14"/>
+        fill={p.hair} opacity=".22"/>
       <path data-km-ink-anat5-beard-substrate="right-cheek-to-chin"
         d={"M"+fmt(g.landmarks.mouthR[0]+4)+" "+fmt(mouthY+4)
           +" C"+fmt(g.landmarks.mouthR[0]+19)+" "+fmt(mouthY+19)
@@ -761,7 +792,7 @@ export function InkMingQingCharacterStudy({
         d={"M"+fmt(g.landmarks.mouthL[0]-2)+" "+fmt(mouthY+3)
           +" Q"+fmt(cx-13)+" "+fmt(mouthY-1)+" "+fmt(cx-1)+" "+fmt(mouthY+7)
           +" Q"+fmt(cx-10)+" "+fmt(mouthY+11)+" "+fmt(g.landmarks.mouthL[0]-2)+" "+fmt(mouthY+3)+" Z"}
-        fill={p.hair} opacity=".23"/>
+        fill={p.hair} opacity=".28"/>
       <path data-km-ink-anat5-moustache-substrate="right"
         d={"M"+fmt(g.landmarks.mouthR[0]+2)+" "+fmt(mouthY+3)
           +" Q"+fmt(cx+13)+" "+fmt(mouthY-1)+" "+fmt(cx+1)+" "+fmt(mouthY+7)
