@@ -67,6 +67,8 @@ const N_GLASS = 1.52;
 const GRAVITY = 7.3;
 /** The camera's distance from the pane, frame heights: sets how fast a receding shard shrinks. */
 const CAMERA = 1.8;
+/** A loose shard's ground edge, frame heights wide, and how far light through it is pulled inward. */
+const BEVEL = 0.006, BEVEL_PULL = 0.004;
 /** How long the cracks take to cross the pane (truly under a millisecond; two frames so the eye can see them run). */
 const CRACK_SECONDS = 0.07;
 
@@ -383,10 +385,25 @@ function shatterFrame(plan: GlassPlan, p: number): MaterialFrame {
     for (const { i } of depth) {
       if (!visible[i]) continue;
       const [a, b, c, d, e, f] = poses[i].m, det = a * d - b * c;
-      eachCellInRing(current[i], cols, rows, aspect, (k) => {
-        const x = (((k % cols) + 0.5) / cols) * aspect, y = (Math.floor(k / cols) + 0.5) / rows;
+      // Once a shard is loose, its ground edge is a narrow bevel of glass: light through it bends inward, so the picture
+      // within a bevel's width of the edge is drawn from a little further in (more so as the shard tilts and the edge
+      // turns toward the lens).
+      const ring = current[i], m = ring.length / 2, bevel = t > shards[i].release ? BEVEL * (1 + 1.5 * (1 - Math.abs(poses[i].n[2]))) : 0;
+      eachCellInRing(ring, cols, rows, aspect, (k) => {
+        let x = (((k % cols) + 0.5) / cols) * aspect, y = (Math.floor(k / cols) + 0.5) / rows;
+        const sx = x, sy = y;
+        if (bevel > 0) {
+          let near = Infinity, nx = 0, ny = 0;
+          for (let q = 0; q < m; q++) {
+            const ax = ring[2 * q], ay = ring[2 * q + 1], bx = ring[(2 * q + 2) % ring.length], by = ring[(2 * q + 3) % ring.length];
+            const ex = bx - ax, ey = by - ay, len = Math.hypot(ex, ey) || 1e-9, u = clamp01(((x - ax) * ex + (y - ay) * ey) / (len * len));
+            const dist = Math.hypot(x - ax - u * ex, y - ay - u * ey);
+            if (dist < near) { near = dist; nx = -ey / len; ny = ex / len; }
+          }
+          if (near < bevel) { const pull = BEVEL_PULL * (1 - near / bevel) ** 2; x += nx * pull; y += ny * pull; }
+        }
         const rx = (d * (x - e) - c * (y - f)) / det, ry = (-b * (x - e) + a * (y - f)) / det;
-        owner[k] = i; dx[k] = rx - x; dy[k] = ry - y;
+        owner[k] = i; dx[k] = rx - sx; dy[k] = ry - sy;
       });
     }
     warpOut = { dx, dy, owner };
@@ -405,6 +422,8 @@ function shatterFrame(plan: GlassPlan, p: number): MaterialFrame {
   // Fracture faces catch the light: brighter on shards that have turned.
   const tiltLight = running ? [] : shards.map((_, i) => 1 - Math.abs(poses[i].n[2])).filter((_, i) => visible[i]);
   if (outlines.length) {
+    // A loose shard's edge shows the glass's own green where light runs along it.
+    if (!running && loose) vectors.push({ id: "glass-edge", rings: outlines, closed: false, stroke: "#9db8ab", width: 6, alpha: 0.35, blend: "multiply" });
     vectors.push({ id: "crack-shadow", rings: outlines, closed: false, stroke: "#000000", width: 3, alpha: 0.45, blend: "multiply" });
     vectors.push({ id: "crack-light", rings: outlines, closed: false, stroke: plan.color, width: 1.4, alpha: 0.9, alphas: running ? undefined : tiltLight.map((v) => 0.75 + 0.25 * v), blend: "screen" });
   }
