@@ -392,8 +392,8 @@ export function InkReferenceCharacterRedraw({
       {g.facialHair.map(hair=><path key={hair.id}
         data-km-anat1-facial-hair={hair.kind} data-km-anat1-hair-side={hair.side}
         d={hair.d} fill="none" stroke={palette.ink}
-        strokeWidth={hair.kind==="brow"?.34:hair.kind==="lash-upper"?.28:.19}
-        strokeLinecap="round" opacity={(hair.kind==="brow"?.48:hair.kind==="lash-upper"?.52:.3)*detail}/>)}
+        strokeWidth={hair.kind==="brow" ? .34 : hair.kind==="lash-upper" ? .28 : .19}
+        strokeLinecap="round" opacity={(hair.kind==="brow" ? .48 : hair.kind==="lash-upper" ? .52 : .3)*detail}/>)}
       {g.irises.map(eye=><g key={eye.side} data-km-anat1-iris={eye.side}>
         <ellipse cx={eye.x} cy={eye.y} rx={eye.rx} ry={eye.ry}
           fill="#705541" opacity=".84"/>
