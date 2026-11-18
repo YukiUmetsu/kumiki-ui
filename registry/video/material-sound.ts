@@ -6,7 +6,8 @@
  * - A match flares as the paper catches, then the paper crackles.
  * - Breath frosts the glass. A drop lands on the water. Ink drops onto the paper.
  * - Paint and melting wax slop and stretch.
- * - A page curls past with a turn's swish, peaking as the flap passes fastest. A page rips as the tear runs.
+ * - A page curls past with a turn's swish, peaking as the flap passes fastest. A page rips as the tear runs. A folded
+ *   page creases as each flap lands, and swishes as it is tossed away.
  * - Reeded glass passing the lens makes no sound of its own; it travels past like a pass-by, so the film's whoosh plays.
  */
 
@@ -36,6 +37,11 @@ export const MATERIAL_SOUNDS: Readonly<Record<string, readonly MaterialSoundCue[
   ],
   peel: [{ sound: "paper-page-turn-1", at: 0.45, align: "peak", gainDb: 0 }],
   tear: [{ sound: "paper-tear-fast", at: 0.1, align: "start", gainDb: -2 }],
+  fold: [
+    { sound: "paper-fold", at: 0.38, align: "peak", gainDb: 0 },
+    { sound: "paper-fold", at: 0.7, align: "peak", gainDb: -2 },
+    { sound: "paper-page-turn-1", at: 0.86, align: "peak", gainDb: -4 },
+  ],
   ripple: [{ sound: "drop-water-full", at: 0, align: "start", gainDb: 0 }],
   melt: [{ sound: "liquid-syrup-ooze", at: 0.15, align: "start", gainDb: 0 }],
 };

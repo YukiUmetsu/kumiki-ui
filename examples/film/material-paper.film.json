@@ -99,9 +99,8 @@
       "durationFrames": 90,
       "transition": {
         "kind": "matte",
-        "texture": "peel",
-        "direction": "right",
-        "durationFrames": 34
+        "texture": "fold",
+        "durationFrames": 48
       },
       "content": {
         "card": "headline",

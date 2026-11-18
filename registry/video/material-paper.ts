@@ -12,12 +12,16 @@
  *   as it goes. Behind the tip the halves open into a V, hinged at the tip; once it reaches the bottom they are pulled
  *   apart and away. One torn edge shows the paper's white core and loose fibres (torn toward the viewer); both halves cast
  *   soft shadows on the page beneath.
+ * - **fold**: the page is folded like a letter. The right half lifts about a crease and, in perspective, swings over onto
+ *   the left, showing its back (paper, the print faintly through it, mirrored); then the bottom half of the folded page
+ *   swings up onto the top; then the quarter-size packet is tossed away. Each flap is lit by its tilt (Lambert, light
+ *   from the upper left), casts a soft shadow that widens with its height, and its crease catches a line of light.
  */
 import { clamp01, clipHalfPlane, clipToFrame, densify, eachCellInRing, frameRing, hash, positive, smooth } from "./material-kit";
 import type { MaterialFrame, MaterialVector } from "./material-kit";
 import type { MaterialDirection } from "./material-glass";
 
-export type PaperKind = "peel" | "tear";
+export type PaperKind = "peel" | "tear" | "fold";
 
 export interface PaperPlan {
   material: PaperKind;
@@ -35,8 +39,8 @@ export interface PaperPlan {
   away: [number, number];
 }
 
-export const PAPER_FRAMES: Readonly<Record<PaperKind, number>> = { peel: 36, tear: 42 };
-const DEFAULT_COLOR: Record<PaperKind, string> = { peel: "#f3efe6", tear: "#fbfaf5" };
+export const PAPER_FRAMES: Readonly<Record<PaperKind, number>> = { peel: 36, tear: 42, fold: 48 };
+const DEFAULT_COLOR: Record<PaperKind, string> = { peel: "#f3efe6", tear: "#fbfaf5", fold: "#f3efe6" };
 /** Light from the upper left, in the frame's plane, and its height. */
 const LIGHT = { x: -0.55, y: -0.72, z: 0.85 };
 /** Magazine stock passes about this much light, so the print shows through its back. */
@@ -45,7 +49,7 @@ const SHOW_THROUGH = 0.12;
 export function planPaper(material: PaperKind, opts: { cols: number; rows: number; aspect: number; seed: number; direction?: MaterialDirection; color?: string }): PaperPlan {
   const { cols, rows, aspect, seed } = opts;
   const base: PaperPlan = { material, cols, rows, aspect, seed, direction: opts.direction ?? (material === "peel" ? "left" : "down"), color: opts.color ?? DEFAULT_COLOR[material], path: [], along: [], away: [0, 0] };
-  if (material === "peel") return base;
+  if (material === "peel" || material === "fold") return base;
   // A self-affine tear path (Hurst exponent 0.65) by midpoint displacement, from just above the frame to just below.
   const H = 0.65, levels = 8, count = 2 ** levels + 1, ys = Array.from({ length: count }, (_, i) => -0.02 + (1.04 * i) / (count - 1));
   const xs = new Array<number>(count).fill(0);
@@ -72,7 +76,8 @@ export function planPaper(material: PaperKind, opts: { cols: number; rows: numbe
 }
 
 export function paperFrame(plan: PaperPlan, progress: number): MaterialFrame {
-  return plan.material === "peel" ? peelFrame(plan, clamp01(progress)) : tearFrame(plan, clamp01(progress));
+  const p = clamp01(progress);
+  return plan.material === "peel" ? peelFrame(plan, p) : plan.material === "fold" ? foldFrame(plan, p) : tearFrame(plan, p);
 }
 
 /* ------------------------------------------------------------------ *
@@ -160,6 +165,130 @@ function peelFrame(plan: PaperPlan, p: number): MaterialFrame {
 function mix(a: string, b: string, t: number): string {
   const ca = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16)), cb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
   return "#" + ca.map((v, i) => Math.round(v + (cb[i] - v) * clamp01(t)).toString(16).padStart(2, "0")).join("");
+}
+
+/* ------------------------------------------------------------------ *
+ * Fold
+ * ------------------------------------------------------------------ */
+
+/** An affine map of 3D space: x' = A·x + t, stored row-major as [a00 a01 a02 t0, a10 a11 a12 t1, a20 a21 a22 t2]. */
+type Affine = number[];
+const IDENTITY: Affine = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0];
+const compose = (m: Affine, n: Affine): Affine => {
+  // m ∘ n: apply n first.
+  const out = new Array<number>(12);
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) out[r * 4 + c] = m[r * 4] * n[c] + m[r * 4 + 1] * n[4 + c] + m[r * 4 + 2] * n[8 + c];
+    out[r * 4 + 3] = m[r * 4] * n[3] + m[r * 4 + 1] * n[7] + m[r * 4 + 2] * n[11] + m[r * 4 + 3];
+  }
+  return out;
+};
+const apply = (m: Affine, x: number, y: number, z: number): [number, number, number] =>
+  [m[0] * x + m[1] * y + m[2] * z + m[3], m[4] * x + m[5] * y + m[6] * z + m[7], m[8] * x + m[9] * y + m[10] * z + m[11]];
+/** A turn by θ about the line through (cx, ·, cz) along y: +x swings toward the camera (+z), then over to −x. */
+const turnAboutY = (theta: number, cx: number, cz: number): Affine => {
+  const c = Math.cos(theta), s = Math.sin(theta);
+  return [c, 0, -s, cx - c * cx + s * cz, 0, 1, 0, 0, s, 0, c, cz - s * cx - c * cz];
+};
+/** A turn by θ about the line through (·, cy, cz) along x: +y (down the frame) swings toward the camera, then over to −y. */
+const turnAboutX = (theta: number, cy: number, cz: number): Affine => {
+  const c = Math.cos(theta), s = Math.sin(theta);
+  return [1, 0, 0, 0, 0, c, -s, cy - c * cy + s * cz, 0, s, c, cz - s * cy - c * cz];
+};
+/** The camera's distance from the page, frame heights: a normal lens, so a lifted flap grows a little toward the lens. */
+const CAMERA_Z = 2.4;
+/** One sheet's thickness, frame heights: folded layers lie this far apart, so they never share a plane. */
+const PLY = 0.0016;
+const easeFold = (t: number) => { const v = clamp01(t); return v < 0.5 ? 4 * v * v * v : 1 - (-2 * v + 2) ** 3 / 2; };
+
+function foldFrame(plan: PaperPlan, p: number): MaterialFrame {
+  const { cols, rows, aspect } = plan, n = cols * rows, A = aspect, cx = A / 2, cy = 0.5;
+  // Three moves: fold the right half over, fold the bottom half up, toss the packet away.
+  const t1 = easeFold((p - 0.03) / 0.35), t2 = easeFold((p - 0.42) / 0.28), t3 = clamp01((p - 0.74) / 0.26);
+  const fold1 = turnAboutY(Math.PI * t1, cx, PLY / 2), folded1 = turnAboutY(Math.PI, cx, PLY / 2);
+  const fold2 = turnAboutX(Math.PI * t2, cy, 1.5 * PLY);
+  // The toss: lifted toward the lens, turned and thrown off to the lower left, faster and faster.
+  const go = t3 * t3, lift = 0.2 * Math.sin(Math.PI * Math.min(1, t3 * 1.2)) * (1 - 0.4 * t3);
+  const psi = -0.75 * go, cp = Math.cos(psi), sp = Math.sin(psi), px = A / 4, py = 0.25;
+  const toss: Affine = [cp, -sp, 0, px - cp * px + sp * py - (A * 0.62) * go, sp, cp, 0, py - sp * px - cp * py + 1.05 * go, 0, 0, 1, lift];
+  const quarter = (x0: number, y0: number, x1: number, y1: number) => [x0, y0, x1, y0, x1, y1, x0, y1];
+  type Face = { rest: number[]; m: Affine };
+  const faces: Face[] = t2 <= 0 && t3 <= 0
+    ? [{ rest: quarter(0, 0, cx, 1), m: IDENTITY }, { rest: quarter(cx, 0, A, 1), m: fold1 }]
+    : [
+      { rest: quarter(0, 0, cx, cy), m: compose(toss, IDENTITY) },
+      { rest: quarter(cx, 0, A, cy), m: compose(toss, folded1) },
+      { rest: quarter(0, cy, cx, 1), m: compose(toss, fold2) },
+      { rest: quarter(cx, cy, A, 1), m: compose(toss, compose(fold2, folded1)) },
+    ];
+  const light = [-0.45, -0.6, 0.66], ll = Math.hypot(light[0], light[1], light[2]);
+  const C = { x: A / 2, y: 0.5 };
+  const project = (w: [number, number, number]): [number, number] => { const k = CAMERA_Z / (CAMERA_Z - w[2]); return [C.x + (w[0] - C.x) * k, C.y + (w[1] - C.y) * k]; };
+  const drawn = faces.map((face) => {
+    const ring = densify(face.rest, 0.05), world: [number, number, number][] = [], screen: number[] = [];
+    for (let i = 0; i < ring.length; i += 2) { const w = apply(face.m, ring[i], ring[i + 1], 0); world.push(w); screen.push(...project(w)); }
+    // The face's normal, and which side faces the lens at its middle.
+    const m = face.m, nx = m[4] * m[9] - m[8] * m[5], ny = m[8] * m[1] - m[0] * m[9], nz = m[0] * m[5] - m[4] * m[1];
+    const mid = world.reduce((a, w) => [a[0] + w[0] / world.length, a[1] + w[1] / world.length, a[2] + w[2] / world.length], [0, 0, 0]);
+    const front = nx * (C.x - mid[0]) + ny * (C.y - mid[1]) + nz * (CAMERA_Z - mid[2]) > 0, sign = front ? 1 : -1;
+    const lambert = Math.max(0, (sign * (nx * light[0] + ny * light[1] + nz * light[2])) / ll) / (light[2] / ll);
+    // The rest-plane-to-screen map is a homography; its inverse takes each pixel back to the page.
+    const H = [CAMERA_Z * m[0] - C.x * m[8], CAMERA_Z * m[1] - C.x * m[9], CAMERA_Z * m[3] - C.x * m[11],
+      CAMERA_Z * m[4] - C.y * m[8], CAMERA_Z * m[5] - C.y * m[9], CAMERA_Z * m[7] - C.y * m[11], -m[8], -m[9], CAMERA_Z - m[11]];
+    return { face, world, screen: positive(screen), front, light: Math.min(1.12, 0.62 + 0.38 * lambert), depth: mid[2], inverse: invert3(H), height: Math.max(...world.map((w) => w[2])) };
+  });
+  // Far to near, so a flap above covers what lies under it.
+  const order = drawn.map((_, i) => i).sort((a, b) => drawn[a].depth - drawn[b].depth);
+  const owner = new Int16Array(n).fill(-1), dx = new Float32Array(n), dy = new Float32Array(n);
+  for (const i of order) {
+    const { inverse: h, screen, face } = drawn[i];
+    const [x0, y0, x1, y1] = [face.rest[0], face.rest[1], face.rest[4], face.rest[5]];
+    eachCellInRing(screen, cols, rows, aspect, (k) => {
+      const x = (((k % cols) + 0.5) / cols) * aspect, y = (Math.floor(k / cols) + 0.5) / rows;
+      const w = h[6] * x + h[7] * y + h[8], rx = (h[0] * x + h[1] * y + h[2]) / w, ry = (h[3] * x + h[4] * y + h[5]) / w;
+      owner[k] = i;
+      dx[k] = Math.min(x1 - 0.001, Math.max(x0 + 0.001, rx)) - x;
+      dy[k] = Math.min(y1 - 0.001, Math.max(y0 + 0.001, ry)) - y;
+    });
+  }
+  const vectors: MaterialVector[] = [];
+  // A lifted flap's shadow on what lies flat below: its corners carried down along the light, softer the higher it is.
+  for (const i of order) {
+    const d = drawn[i];
+    if (d.height < 0.004) continue;
+    const shadow: number[] = [];
+    for (const w of d.world) shadow.push(w[0] - (light[0] / light[2]) * w[2], w[1] - (light[1] / light[2]) * w[2]);
+    const above = order.slice(order.indexOf(i)).map((j) => drawn[j].screen);
+    vectors.push({ id: `fold-shadow-${i}`, rings: [shadow], closed: true, fill: "#141210", alpha: 0.34 * (1 - smooth(0.15, 0.45, d.height)) * (1 - t3), blend: "multiply", blur: 5 + 120 * d.height, outside: above });
+  }
+  // Each face: the page's back is paper with the print faintly through it; a tilted front darkens as it turns away.
+  for (const i of order) {
+    const d = drawn[i];
+    if (!d.front) vectors.push({ id: `fold-back-${i}`, rings: [d.screen], closed: true, fill: shade(plan.color, d.light), alpha: 1 - SHOW_THROUGH, blend: "normal" });
+    else if (d.light < 0.995) vectors.push({ id: `fold-tilt-${i}`, rings: [d.screen], closed: true, fill: "#000000", alpha: Math.min(0.55, 0.9 * (1 - d.light)), blend: "multiply" });
+    else if (d.light > 1.005) vectors.push({ id: `fold-tilt-${i}`, rings: [d.screen], closed: true, fill: "#ffffff", alpha: 0.6 * (d.light - 1), blend: "screen" });
+  }
+  // Creases: a folded edge is a tight round bend that catches a line of light.
+  const crease = (a: [number, number, number], b: [number, number, number]) => [...project(a), ...project(b)];
+  const creases: number[][] = [];
+  if (t1 > 0.02) creases.push(crease(apply(faces.length === 2 ? IDENTITY : faces[0].m, cx, 0, 0), apply(faces.length === 2 ? IDENTITY : faces[2].m, cx, 1, 0)));
+  if (t2 > 0.02) creases.push(crease(apply(faces[2].m, 0, cy, 0), apply(faces[2].m, cx, cy, 0)));
+  if (creases.length) {
+    vectors.push({ id: "fold-crease-shade", rings: creases, closed: false, stroke: "#2a2620", width: 2.6, alpha: 0.3, blend: "multiply" });
+    vectors.push({ id: "fold-crease-light", rings: creases, closed: false, stroke: "#ffffff", width: 1.1, alpha: 0.55, blend: "screen" });
+  }
+  return { reveal: new Uint8ClampedArray(n).fill(255), layers: [], vectors, warpOut: { dx, dy, owner }, outClip: drawn.map((d) => d.screen), incomingBelow: true };
+}
+
+/** The inverse of a 3×3 matrix, row-major. */
+function invert3(m: number[]): number[] {
+  const [a, b, c, d, e, f, g, h, i] = m, A = e * i - f * h, B = -(d * i - f * g), C = d * h - e * g, det = a * A + b * B + c * C;
+  return [A / det, -(b * i - c * h) / det, (b * f - c * e) / det, B / det, (a * i - c * g) / det, -(a * f - c * d) / det, C / det, -(a * h - b * g) / det, (a * e - b * d) / det];
+}
+
+/** A colour lit by `k` (1 unchanged). */
+function shade(color: string, k: number): string {
+  return "#" + [1, 3, 5].map((i) => Math.round(Math.min(255, parseInt(color.slice(i, i + 2), 16) * k)).toString(16).padStart(2, "0")).join("");
 }
 
 /* ------------------------------------------------------------------ *

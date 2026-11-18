@@ -232,8 +232,9 @@ Evidence (2026-11-11): `tests/film-document.test.ts`, "shape wipe". Frames rende
 - **Materials** (`bleed`, `burn`, `paint`, `frost`): the next scene arrives the way ink soaks into paper, paper burns
   away, paint runs down or breath frosts glass. The fronts come from each material's physics, with their own overlays.
   `grain` sets the paper's fibre direction.
-- **Glass, paper and liquids** (`refract`, `shatter`, `peel`, `tear`, `ripple`, `melt`): a sheet of reeded glass passes
-  the lens, the picture breaks like a struck pane, the page curls back from a corner or is torn in two, a drop rings out
+- **Glass, paper and liquids** (`refract`, `shatter`, `peel`, `tear`, `fold`, `ripple`, `melt`): a sheet of reeded glass
+  passes the lens, the picture breaks like a struck pane, the page curls back from a corner, is torn in two or is folded
+  like a letter and tossed away, a drop rings out
   on water, or the picture drains down like warm wax. `subject` sets where the pane is struck or the drop lands;
   `direction` sets the way the glass travels (`refract`) or the curl travels (`peel`). See
   [material transitions](material-transitions.md).

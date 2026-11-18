@@ -8,7 +8,7 @@
 | `registry/video/film-material.ts` | The materials' entry point: `planMaterial`, `materialFrame`, `inspectMaterial`, and the four front materials |
 | `registry/video/material-kit.ts` | The frame contract (`MaterialFrame`, layers, vectors, warps), noise, easing and polygon helpers |
 | `registry/video/material-glass.ts` | `refract` and `shatter` |
-| `registry/video/material-paper.ts` | `peel` and `tear` |
+| `registry/video/material-paper.ts` | `peel`, `tear` and `fold` |
 | `registry/video/material-liquid.ts` | `ripple` and `melt` |
 | `registry/video/film-warp.ts` | Warps encoded for SVG `feDisplacementMap` (two exact 8-bit passes) |
 | `registry/video/film-material-react.tsx` | Drawing a frame in the DOM: the warp filter, vector overlays, clip paths |
@@ -19,7 +19,7 @@ picked with **Compare**:
 
 - bleed, burn, paint and frost;
 - glass: refract and shatter;
-- paper: peel and tear;
+- paper: peel, tear and fold;
 - liquid: ripple and melt;
 - shapes opened through materials;
 - the noise mattes, for comparison.
@@ -43,6 +43,7 @@ own.
 | `shatter` | A pane struck at a point cracks radially out to its edges, with concentric cracks between the radials (a struck plate; Vandenberghe, Vermorel & Villermaux 2013). The cracks cross the pane in under a millisecond. | Ten to thirteen radial cracks and rings about 1.85× apart, with some secondary radials and forks. The impact point is crushed white. The shards hold and slip a little, then fall under gravity for a pane about 1.35 m tall, the loosened ones near the impact first. They tumble, drift back from the lens and glint as their faces turn (Fresnel rises toward grazing). Each shard carries its piece of the outgoing scene; the incoming scene is behind the glass. Every shard has left the frame by the last frame. |
 | `peel` | The page curls back from a corner around a cylinder whose radius grows as more of the page lifts (the cylinder page curl) and lies back over itself. | Seen from above, the curl and the flap show the page's back. That is paper, with the print showing through faintly and mirrored (thin stock passes about a tenth of the light, Kubelka–Munk). The curl is shaded as a cylinder lit from the upper left. The flap casts a soft shadow on the page, and the lifted curl shades the page beneath. |
 | `tear` | The page is ripped from the top edge to the bottom along a rough, self-affine path (rupture lines in paper have a roughness exponent near 0.65). The tear runs faster as it goes. | Behind the tip the halves open into a V, hinged at the tip; below it the page is still whole. When the tear reaches the bottom, the halves are pulled apart and away. One torn edge shows the paper's white core and loose fibres; the other shows the paper's thickness in shadow. Both halves cast soft shadows on the page beneath. |
+| `fold` | The page is folded like a letter: the right half lifts about a vertical crease and, seen through a normal lens (camera 2.4 frame heights away), swings over onto the left; then the bottom half of the folded page swings up onto the top; then the quarter-size packet is lifted, turned and thrown off. Each face maps to the page by an exact homography. | Past 90° each flap shows the page's back: paper, with the print faintly through it, mirrored. Each face is lit by its tilt (Lambert, light from the upper left). A lifted flap casts a soft shadow that widens with its height, and each crease catches a line of light. The next scene is under the page from the first fold on. |
 | `ripple` | A drop lands on water. The surface is the Cauchy–Poisson response to it: η(r, t) = ∫ η̂(k) J₀(kr) cos(ωt) e^(−2νk²t) k dk with ω² = gk + (σ/ρ)k³ (water at 20 °C). Short ripples outrun long ones and die faster. | Rings spread at the real speeds of capillary–gravity waves. The frame is scaled so that the drop's main packet (about 9 mm waves at 0.32 m/s) reaches the far corner near the end. The surface's slope bends the view and catches the light. The next scene shows inside the main packet, which breaks the seam into rings. Ahead of the fastest ripples the water is still, and the rings calm over the last frames. |
 | `melt` | The picture is a layer of wax on a warm wall. A viscous film on a vertical wall drains with a speed that grows with depth and thins fastest at the top (Jeffreys 1930). | The picture sags and stretches from the top. A wet edge runs down the frame, with narrow drips of uneven length running ahead of it; above the edge the film has drained too thin to see. The meniscus at the edge catches the light, and the next scene is behind the melt. |
 
@@ -58,6 +59,7 @@ that bleeds open.
 "transition": { "kind": "matte", "texture": "shatter", "subject": "glow", "seed": 4 }
 "transition": { "kind": "matte", "texture": "peel", "direction": "right" }
 "transition": { "kind": "matte", "texture": "tear", "seed": 3 }
+"transition": { "kind": "matte", "texture": "fold" }
 "transition": { "kind": "matte", "texture": "ripple", "subject": "glow" }
 "transition": { "kind": "matte", "texture": "melt" }
 "transition": { "kind": "shape", "shape": "circle", "material": "burn", "subject": "glow" }
@@ -70,7 +72,7 @@ that bleeds open.
 - **Colour.** `color` sets the ink, the char, the gloss, the frost's tint, the glass's tint, the light on the cracks,
   the paper's back (peel) or core (tear), or the light on the water and the melt.
 - **Length.** Defaults, in frames at 30 fps: bleed 40, burn 44, paint 36, frost 48, refract 34, shatter 44, peel 36,
-  tear 42, ripple 40, melt 48. The timing check warns outside a range for each material, for example 1 to 2.2 s for a
+  tear 42, fold 48, ripple 40, melt 48. The timing check warns outside a range for each material, for example 1 to 2.2 s for a
   shatter (shards need about 0.6 s to fall a frame height).
 - **Errors.** A shape wipe takes only bleed, burn or frost. It refuses `mark` (a picture has no measurable outline) and
   any other material.
@@ -93,6 +95,7 @@ authored `accent` still wins. `film:render` finds each sound in the catalog, so 
 | `melt` | `liquid-syrup-ooze` from 0.15 |
 | `peel` | `paper-page-turn-1`, peaking at 0.45 as the flap passes fastest |
 | `tear` | `paper-tear-fast` from 0.1, as the tear gets going |
+| `fold` | `paper-fold` peaking at 0.38 and at 0.7, as each flap lands; `paper-page-turn-1` peaking at 0.86, as the packet is tossed |
 | `refract` | None of its own. It travels past like a pass-by, so it gets the film's whoosh, also with `on: "moves"`. |
 
 The new recordings are CC0, from Freesound, read through earshot on the trimmed files:
@@ -198,7 +201,8 @@ for those images to decode, so every frame renders the same in any seek order.
   - refract bends the view and changes the scenes behind it; shatter's cracks run first, its shards fall, and all have
     gone by the end;
   - peel shows the flap and its back, and the page is gone at the end; tear opens behind its tip, the page below the tip
-    stays whole, and the halves leave the frame;
+    stays whole, and the halves leave the frame; fold shows the page's back, uncovers the right half after the first
+    fold, leaves under 30% of the frame after the second, and is gone at the end;
   - the ripple's revealed radius grows in step with time (group velocity), the water ahead is still, and it calms at the
     end; melt drains from the top first and leaves nothing on screen at the end;
   - the same coverage, within 3%, on a 384- and a 768-column grid for every material, and frost droplets that keep

@@ -181,9 +181,20 @@ describe("material transitions", () => {
     // Below the tip the page is still whole.
     expect(running.slice(running.length - COLS).every((o) => o >= 0)).toBe(true);
     expect(materialFrame(tear, 1).warpOut!.owner!.every((o) => o < 0)).toBe(true);
+    // Fold: the right half swings over (its back faces the lens past 90°), then the bottom half, then the packet leaves.
+    const fold = planMaterial({ material: "fold" }, COLS, ROWS, aspect);
+    expect(materialFrame(fold, 0).warpOut!.owner!.every((o) => o >= 0)).toBe(true);
+    const half = materialFrame(fold, 0.4);
+    expect(half.vectors!.some((v) => v.id.startsWith("fold-back-"))).toBe(true);
+    // Folded in half: the right half of the frame shows the page beneath.
+    const right = Array.from({ length: ROWS }, (_, j) => half.warpOut!.owner![j * COLS + COLS - 3]);
+    expect(right.every((o) => o < 0)).toBe(true);
+    const quarter = materialFrame(fold, 0.72).warpOut!.owner!;
+    expect(quarter.filter((o) => o >= 0).length / quarter.length).toBeLessThan(0.3);
+    expect(materialFrame(fold, 1).warpOut!.owner!.every((o) => o < 0)).toBe(true);
     const film = compileFilm(materialPaper as unknown as FilmDocument, { outputId: "draft" });
     expect(film.ok).toBe(true);
-    if (film.ok) expect(Object.values(film.film.mattes).map((m) => m.texture)).toEqual(["peel", "tear", "peel", "tear"]);
+    if (film.ok) expect(Object.values(film.film.mattes).map((m) => m.texture)).toEqual(["peel", "tear", "fold", "tear"]);
   });
 
   it("rings out water and drains wax", () => {
@@ -239,7 +250,7 @@ describe("material transitions", () => {
     const doc = materialGlass as unknown as FilmDocument, compiled = compileFilm(doc, { outputId: "draft", accentKit: kit });
     expect(compiled.ok).toBe(true);
     if (!compiled.ok) return;
-    const sounds = compiled.film.audio!.sounds.filter((sound) => sound.id.startsWith("accent/"));
+    const sounds = (compiled.film.audio?.sounds ?? []).filter((sound) => sound.id.startsWith("accent/"));
     const at = (scene: string) => compiled.film.cut.transitions.find((item) => item.toShotId === scene)!;
     // The pane breaks on the transition's first frame, and its pieces land about 0.6 s later.
     const shatter = at("dynjandi"), breaking = sounds.filter((sound) => sound.id.startsWith("accent/dynjandi/"));
@@ -251,6 +262,6 @@ describe("material transitions", () => {
     // An authored accent still wins.
     const quiet = { ...doc, scenes: doc.scenes.map((scene) => (scene.id === "dynjandi" ? { ...scene, transition: { ...scene.transition!, accent: "none" as const } } : scene)) };
     const silenced = compileFilm(quiet, { outputId: "draft", accentKit: kit });
-    expect(silenced.ok && silenced.film.audio!.sounds.some((sound) => sound.id.startsWith("accent/dynjandi/"))).toBe(false);
+    expect(silenced.ok && (silenced.film.audio?.sounds ?? []).some((sound) => sound.id.startsWith("accent/dynjandi/"))).toBe(false);
   });
 });

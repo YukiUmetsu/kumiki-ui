@@ -13,8 +13,8 @@
  *   figures, Beysens & Knobler 1986), until the old scene is lost behind frosted glass; the scenes change behind it and
  *   the frost clears to the next one.
  *
- * - **peel** and **tear**: paper. A page curls back from a corner, showing its back; a page is ripped in two and the
- *   halves pulled away. See `material-paper.ts`.
+ * - **peel**, **tear** and **fold**: paper. A page curls back from a corner, showing its back; a page is ripped in two
+ *   and the halves pulled away; a page is folded like a letter and tossed away. See `material-paper.ts`.
  * - **ripple** and **melt**: liquids. A drop rings out on water at the real speeds of capillary–gravity waves; a layer
  *   of wax softens and drains down the frame in drips. See `material-liquid.ts`.
  * - **refract** and **shatter**: glass. A sheet of reeded glass passes the lens and its flutes break the cut into strips;
@@ -85,12 +85,12 @@ export interface FrontPlan {
 /** Everything a material needs on every frame, solved once. */
 export type MaterialPlan = FrontPlan | GlassPlan | PaperPlan | LiquidPlan;
 const isGlassPlan = (plan: MaterialPlan): plan is GlassPlan => plan.material === "refract" || plan.material === "shatter";
-const isPaperPlan = (plan: MaterialPlan): plan is PaperPlan => plan.material === "peel" || plan.material === "tear";
+const isPaperPlan = (plan: MaterialPlan): plan is PaperPlan => plan.material === "peel" || plan.material === "tear" || plan.material === "fold";
 const isLiquidPlan = (plan: MaterialPlan): plan is LiquidPlan => plan.material === "ripple" || plan.material === "melt";
 /** Materials that take a direction. */
 const DIRECTED: readonly MaterialKind[] = ["refract", "peel"];
 
-export const MATERIAL_KINDS: readonly MaterialKind[] = ["bleed", "burn", "paint", "frost", "refract", "shatter", "peel", "tear", "ripple", "melt"];
+export const MATERIAL_KINDS: readonly MaterialKind[] = ["bleed", "burn", "paint", "frost", "refract", "shatter", "peel", "tear", "fold", "ripple", "melt"];
 export const MATERIAL_SHAPES: readonly MaterialShape[] = ["circle", "diamond", "square", "star"];
 /** The grid that cell-sized details are tuned on. */
 const REFERENCE_COLS = 384;
@@ -252,7 +252,7 @@ export function planMaterial(spec: MaterialSpec, cols: number, rows: number, asp
     const origin = spec.origins?.[0] ?? (spec.material === "shatter" ? materialOrigins(seed, 1)[0] : undefined);
     return planGlass(spec.material, { cols, rows, aspect, seed, seconds: spec.seconds ?? MATERIAL_FRAMES[spec.material] / 30, direction: spec.direction, color: spec.color, origin });
   }
-  if (spec.material === "peel" || spec.material === "tear") return planPaper(spec.material, { cols, rows, aspect, seed, direction: spec.direction, color: spec.color });
+  if (spec.material === "peel" || spec.material === "tear" || spec.material === "fold") return planPaper(spec.material, { cols, rows, aspect, seed, direction: spec.direction, color: spec.color });
   if (spec.material === "ripple" || spec.material === "melt") {
     const origin = spec.origins?.[0] ?? (spec.material === "ripple" ? materialOrigins(seed, 1)[0] : undefined);
     return planLiquid(spec.material, { cols, rows, aspect, seed, seconds: spec.seconds ?? MATERIAL_FRAMES[spec.material] / 30, color: spec.color, origin });
@@ -536,8 +536,8 @@ export interface MaterialProblem {
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 /** Lengths that read as the material, seconds. Shards need about 0.6 s to fall a frame height, after a short hold. */
-const TIMING: Record<MaterialKind, readonly [number, number]> = { bleed: [0.8, 2.2], burn: [0.8, 2.2], paint: [0.7, 1.8], frost: [1, 2.4], refract: [0.7, 1.6], shatter: [1, 2.2], peel: [0.8, 1.8], tear: [0.9, 2], ripple: [0.9, 2], melt: [1.1, 2.4] };
-const READS_AS: Record<MaterialKind, string> = { bleed: "ink soaking into paper", burn: "burning paper", paint: "running paint", frost: "breath on glass", refract: "glass passing the lens", shatter: "breaking glass", peel: "a page peeling away", tear: "paper tearing", ripple: "ripples on water", melt: "melting wax" };
+const TIMING: Record<MaterialKind, readonly [number, number]> = { bleed: [0.8, 2.2], burn: [0.8, 2.2], paint: [0.7, 1.8], frost: [1, 2.4], refract: [0.7, 1.6], shatter: [1, 2.2], peel: [0.8, 1.8], tear: [0.9, 2], fold: [1.2, 2.4], ripple: [0.9, 2], melt: [1.1, 2.4] };
+const READS_AS: Record<MaterialKind, string> = { bleed: "ink soaking into paper", burn: "burning paper", paint: "running paint", frost: "breath on glass", refract: "glass passing the lens", shatter: "breaking glass", peel: "a page peeling away", tear: "paper tearing", fold: "a page folded and tossed", ripple: "ripples on water", melt: "melting wax" };
 
 /** Problems with a material spec at `path`, given its length in frames at `rate` fps. */
 export function inspectMaterial(spec: Partial<MaterialSpec>, frames: number, rate: number, path: string): MaterialProblem[] {
@@ -550,7 +550,7 @@ export function inspectMaterial(spec: Partial<MaterialSpec>, frames: number, rat
   if (spec.shape !== undefined && !MATERIAL_SHAPES.includes(spec.shape)) say("error", "material-shape", "/shape", `"${spec.shape}" is not a shape a material front can keep.`, `Shapes: ${MATERIAL_SHAPES.join(", ")}.`);
   if (spec.material === "paint" && spec.shape) say("warning", "material-shape-unused", "/shape", "Paint runs down under gravity; it does not grow a shape.");
   if ((spec.material === "refract" || spec.material === "shatter") && spec.shape) say("warning", "material-shape-unused", "/shape", "Glass bends or breaks; it does not grow a shape.");
-  if ((spec.material === "peel" || spec.material === "tear") && spec.shape) say("warning", "material-shape-unused", "/shape", "A page peels or tears; it does not grow a shape.");
+  if ((spec.material === "peel" || spec.material === "tear" || spec.material === "fold") && spec.shape) say("warning", "material-shape-unused", "/shape", "A page peels or tears; it does not grow a shape.");
   if ((spec.material === "ripple" || spec.material === "melt") && spec.shape) say("warning", "material-shape-unused", "/shape", "Water rings out and wax drains; neither grows a shape.");
   if (spec.direction !== undefined && !["left", "right", "up", "down"].includes(spec.direction)) say("error", "material-direction", "/direction", `"${spec.direction}" is not a direction.`, "Directions: left, right, up, down.");
   if (spec.direction !== undefined && spec.material !== undefined && MATERIAL_KINDS.includes(spec.material) && !DIRECTED.includes(spec.material)) say("warning", "material-direction-unused", "/direction", `A ${spec.material} has no direction.`, `Only ${DIRECTED.join(" and ")} take one.`);
