@@ -112,8 +112,10 @@ function ReferenceAtelier(){
               :"Object 2024.180: a distinct attendant face and head inclination, double-pin hair arrangement and asymmetric collar folds."}
         </p>
         <div style={{maxWidth:440,margin:"0 auto"}}>
-          <InkMingQingCharacterStudy character={character} emotion={emotion}
-            intensity={intensity} detail={detail} yaw={yaw}/>
+          <div data-testid="ink-anat5-selected-portrait">
+            <InkMingQingCharacterStudy character={character} emotion={emotion}
+              intensity={intensity} detail={detail} yaw={yaw}/>
+          </div>
         </div>
         <p style={{fontSize:11,letterSpacing:1,fontWeight:700,marginBottom:0}}>
           ANAT1 LANDMARKS · EXPR1 {emotion.toUpperCase()} · SOURCE OBJECT {character==="scholar"?"55.37":"2024.180"}
