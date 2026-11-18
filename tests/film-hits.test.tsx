@@ -6,7 +6,8 @@ import type { FilmDocument } from "../registry/video/film-document";
 import type { SoundLevels } from "../registry/video/film-drive";
 import { bedBeats, compileHits, HIT_RANGE, hitAt, hitsAt, hitsReach } from "../registry/video/film-hits";
 import type { FilmHitsSpec } from "../registry/video/film-hits";
-import { coverScale, HitFilter, zoomMaps } from "../registry/video/film-hits-react";
+import { coverScale, HitFilter } from "../registry/video/film-hits-react";
+import { blurMaps } from "../registry/video/film-blur-react";
 import levels from "../assets/sound/levels.json";
 
 const drums = { sound: "bed-drums-hiphop-110", bpm: 110 };
@@ -103,10 +104,9 @@ describe("beat hits", () => {
   });
 
   it("draws the zoom blur as two averaged passes about the centre, and the split as moved channels", () => {
-    const maps = zoomMaps({ x: .5, y: .5 }, 1920, 1080);
-    expect(maps.m).toBe(960);
+    expect(blurMaps("zoom", { x: .5, y: .5 }, 1920, 1080).m).toBe(960);
     const markup = renderToStaticMarkup(<HitFilter id="f" hit={{ scale: 1, x: 0, y: 0, rotate: 0, splitX: .01, splitY: 0, blur: .06, flash: 0 }} centre={{ x: .5, y: .5 }} width={1920} height={1080} />);
-    expect(markup.match(/<feDisplacementMap/g)).toHaveLength(10);
+    expect(markup.match(/<feDisplacementMap/g)).toHaveLength(12);
     expect(markup.match(/<feOffset/g)).toHaveLength(2);
     expect(markup).toContain('dx="10.80"');
     // The map images are in the page, so an export waits for them to decode.

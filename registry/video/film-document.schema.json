@@ -7032,11 +7032,21 @@
       "flash",
       "burst",
       "dither",
-      "lens"
+      "lens",
+      "spin",
+      "zoom-blur"
      ]
     },
     "durationFrames": {
      "type": "number"
+    },
+    "turn": {
+     "type": "number",
+     "description": "`spin`: the whole turn in degrees, half in each scene, 90 to 720. `direction` \"right\" turns clockwise, \"left\" anticlockwise."
+    },
+    "zoom": {
+     "type": "number",
+     "description": "`zoom-blur`: the scale at the cut, 1.2 to 4."
     },
     "subject": {
      "type": "string",
@@ -10969,6 +10979,7 @@
         "shake",
         "rain",
         "burst",
+        "spin",
         "burn",
         "melt",
         "pop",
@@ -10976,7 +10987,6 @@
         "stack",
         "walk",
         "hop",
-        "spin",
         "grow",
         "shrink",
         "drop",

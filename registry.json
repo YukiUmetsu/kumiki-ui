@@ -5805,6 +5805,16 @@
           "target": "components/video/film-hits-react.tsx"
         },
         {
+          "path": "registry/video/film-blur-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-blur-react.tsx"
+        },
+        {
+          "path": "registry/video/film-spin.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-spin.ts"
+        },
+        {
           "path": "registry/video/footage-react.tsx",
           "type": "registry:ui",
           "target": "components/video/footage-react.tsx"

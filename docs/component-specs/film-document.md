@@ -119,6 +119,54 @@ Evidence (2026-11-09): `tests/film-document.test.ts`, "container transform" (mea
 
 `{ "kind": "whip", "direction": "left" }` swings from one scene to the next as one camera move: both scenes move together edge to edge, eased in and out, smeared by motion blur in the middle, and grown slightly while blurred so the blur's faded edges stay out of frame. A scene is exactly one frame big, so the next one is carried in behind the last rather than the camera panning off the edge into the empty stage. Default 10 frames; reduced motion keeps a dissolve.
 
+### Spin and zoom blur
+
+Two short-form cuts that hide the join inside one fast move (VE1.3). Both are `registry/video/film-spin.ts`. Their blur is `film-blur-react.tsx`, shared with beat hits.
+
+- **`{ "kind": "spin", "direction": "right", "turn": 180 }`**
+  - **The turn.** The picture turns about the frame's centre, faster and faster, and cuts at the fastest point. The next scene finishes the turn and settles.
+  - **Options.** `turn` is the whole turn, 90 to 720 degrees, half in each scene (default 180). `direction` `right` turns clockwise (the default), `left` anticlockwise.
+  - **Coverage.** Each scene is enlarged just enough to keep the frame covered at its angle, across the whole smear: 1.78× at 90° in a 16:9 frame. So the move swells as it turns.
+  - **Length.** Default 14 frames.
+- **`{ "kind": "zoom-blur", "zoom": 1.8 }`**
+  - **The push.** The outgoing scene pushes in, faster and faster, and cuts at the fastest point. The incoming scene starts pushed in and pulls back to rest.
+  - **Options.** `zoom` is the scale at the cut, 1.2 to 4.
+  - **Length.** Default 10 frames.
+
+**How they are drawn.**
+
+- **The blur.** It is half a frame of the move (a 180° shutter): a turn smears along circles about the centre, a zoom along rays from it.
+  - **Turn blur.** At most 24° per frame, because a turn's first-order blur shrinks the picture beyond that.
+  - **Zoom blur.** At most a 25 % zoom per frame.
+- **The filter.** One SVG filter averages displaced copies of the visible scene in two passes. The turn uses a tangential map, the zoom a radial map. A turn's map is the zoom's with its channels swapped and one negated.
+- **The cut.** It is the first frame at or past the middle (`progress ≥ 0.5`). For the cut to land on a beat, start the transition half its length before the beat: 7 frames for a 14-frame spin, 5 for a 10-frame zoom blur.
+- **Sound.** Both count as moves that travel, so `audio.accents` with `"on": "moves"` puts a whoosh at their middle.
+- **Reduced motion** plays a dissolve.
+
+| Code | Severity | When |
+|---|---|---|
+| `spin-turn`, `zoom-blur-zoom`, `spin-direction` | error | A turn outside 90 to 720 degrees, a zoom outside 1.2 to 4, a direction other than left or right |
+| `spin-length` | warning | Shorter than 0.2 s (a jump) or longer than 1 s (no longer one move) |
+
+**Example.** [`examples/film/spin-zoom.film.json`](../../examples/film/spin-zoom.film.json): three photo cards on `bed-drums-hiphop-110`, a spin into the second and a zoom blur into the third, each cutting on a kick (frames 147 and 278). Storybook: **Promo Moves → Spin And Zoom Blur**, beside the same film with hard cuts, with the film's mix (`npm run sound:moves -- --mix=spin-zoom`).
+
+**Evidence (2026-11-18).**
+
+- **Tests.** `tests/film-spin.test.tsx` covers:
+  - frame coverage at every angle;
+  - one direction of turn through the cut;
+  - the blur peaking at the cut and its cap;
+  - the push in and the pull back;
+  - the checks;
+  - the filter's primitives;
+  - the example's cuts landing on the kicks.
+- **Rendered frames** (960×540, `film:frame`):
+  - frames 144 to 149 show the rotational smear through the spin's cut;
+  - frames 276 and 278 show the radial smear and the zoom of the zoom-blur cut.
+  - A half-size contact sheet hid the zoom blur's smear; judge these frames at full size.
+- **Sound.** earshot timeline of the mix: both cuts have an onset within 10 ms (offsets +10 and +4 ms), −15.5 LUFS.
+- **Owner review.** Visual and listening review is pending.
+
 ### Zoom through
 
 `{ "kind": "zoom", "subject": "glow", "edge": "soft" }` pushes the camera into a region of the outgoing scene, and the incoming scene is inside it: a photograph inside a screen inside a room, or daylight through a wall of ice (doc 32, P2 "Infinite zoom"). The camera's scale moves in log space, eased at both ends, while the region slides to the frame's centre, until the region covers the frame.
