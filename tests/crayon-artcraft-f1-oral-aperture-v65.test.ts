@@ -36,6 +36,7 @@ describe("ArtCraft F1 V65 source-led oral cavity and vermilion",()=>{
     expect(mouth.coverage).toBe("opaque");
     expect(mouth.deposition).toBe("stroke-built");
     expect(mouth.pressure).toBeGreaterThanOrEqual(.95);
+    expect(mouth.spacing).toBeGreaterThanOrEqual(4);
     expect(mouth.opaqueBurnish).toBeGreaterThanOrEqual(.95);
     expect(mouth.underpaintTooth).toBeLessThanOrEqual(.05);
     expect(mouth.blendRadius).toBeGreaterThan(0);

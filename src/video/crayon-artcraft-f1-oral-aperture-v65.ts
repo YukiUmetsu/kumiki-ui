@@ -17,7 +17,7 @@ const patches:Readonly<Record<string,Partial<Wax>>>={
   "mouth-aperture-depth":{
     coverage:"opaque",deposition:"stroke-built",
     colors:["#342129","#1b1118","#57343d"],
-    pressure:.98,spacing:3.8,markStrength:.17,
+    pressure:.98,spacing:4.0,markStrength:.17,
     underpaintTooth:.045,opaqueBurnish:.98,
     underpaintGradient:{
       light:"#21131a",shadow:"#4a2c35",
