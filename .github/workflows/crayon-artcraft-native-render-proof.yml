@@ -1,6 +1,6 @@
 name: Crayon ArtCraft source-native browser proof
 
-# PR checks exercise V52 source baseline, V54 upper-lid, V56/V57 hair and V63 facial values
+# PR checks exercise V52 source baseline, V54 upper-lid, V56/V57 hair, V63 face and V64 oral candidates
 # hypotheses plus the independent photo-SSIM proof. Rejected V51/V53 and
 # all prior experimental versions remain in source tests, available via manual
 # workflow_dispatch; do not repeatedly replay the historical 8+ spec suite.
