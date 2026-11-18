@@ -4555,6 +4555,11 @@
           "target": "components/anatomy/arch-kit-civic.ts"
         },
         {
+          "path": "registry/anatomy/arch-kit-props.ts",
+          "type": "registry:ui",
+          "target": "components/anatomy/arch-kit-props.ts"
+        },
+        {
           "path": "registry/anatomy/arch-library.ts",
           "type": "registry:ui",
           "target": "components/anatomy/arch-library.ts"

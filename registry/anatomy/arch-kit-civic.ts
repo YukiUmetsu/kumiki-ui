@@ -476,7 +476,8 @@ export function room(b: SceneBuilder, r: RoomSpec) {
       b.portals.push({ x: win.at, y: win.sill + win.h / 2, z: -r.d / 2 - t * 0.5, axis: "z", hw: win.w / 2, hh: win.h / 2, tint: tintOf(win.glass) });
     } else {
       const xw = win.wall === "left" ? -r.w / 2 : r.w / 2, s = win.wall === "left" ? -1 : 1;
-      (win.wall === "left" ? cutsL : cutsR).push(opening(win.at, win.sill, win.w, hs, shape, xw - 0.1 * -s, xw + (t + 0.1) * s, "x"));
+      // from 10 cm inside the room (-s) through the wall to 10 cm beyond it (+s)
+      (win.wall === "left" ? cutsL : cutsR).push(opening(win.at, win.sill, win.w, hs, shape, xw - 0.1 * s, xw + (t + 0.1) * s, "x"));
       const g = opening(win.at, win.sill, win.w + 0.02, hs, shape, xw + t * 0.55 * s, xw + t * 0.6 * s, "x"); b.add(leaf(g.f, g.lo, g.hi, glass));
       b.portals.push({ x: xw + t * 0.5 * s, y: win.sill + win.h / 2, z: win.at, axis: "x", hw: win.w / 2, hh: win.h / 2, tint: tintOf(win.glass) });
     }
@@ -486,6 +487,9 @@ export function room(b: SceneBuilder, r: RoomSpec) {
   b.add(cut(boxAt(r.w / 2, 0, -r.d / 2 - t, r.w / 2 + t, r.h, r.d / 2 + 4, wm, b.r()), cutsR));
   b.add(boxAt(-r.w / 2 - t, -0.3, -r.d / 2 - t, r.w / 2 + t, 0, r.d / 2 + 4, b.mat(r.floor)));
   if (r.attic) {
+    // the back gable closes the triangle under the roof, its windows cut through it as through the wall below
+    const gRise = (r.w / 2 + t) * Math.tan((r.attic * Math.PI) / 180), half = r.w / 2 + t, zc = -r.d / 2 - t / 2;
+    b.add(cut(leaf((x, y, z) => Math.max(Math.abs(z - zc) - t / 2, r.h - y, ((y - r.h) - gRise * (1 - Math.abs(x) / half)) * 0.7), [-half, r.h, -r.d / 2 - t], [half, r.h + gRise, -r.d / 2], wm), cutsB));
     b.add(gableRoof({ x0: -r.w / 2 - t, x1: r.w / 2 + t, z0: -r.d / 2 - t, z1: r.d / 2 + 4, y: r.h, pitch: r.attic, over: 0, ridge: "z", t: 0.25 }, b.mat(r.ceiling ?? { kind: "boards", colour: "#6a5440" })));
     const oak = b.mat({ kind: "oak", colour: "#4e3b2b" }), rise = (r.w / 2 + t) * Math.tan((r.attic * Math.PI) / 180);
     for (let z = -r.d / 2 + 0.6; z < r.d / 2 + 4; z += 0.9) for (const s of [-1, 1]) b.add(beam(s * (r.w / 2), r.h - 0.15, z, 0, r.h + rise - 0.35, z, 0.14, oak));
@@ -621,7 +625,9 @@ export function hearth(b: SceneBuilder, x: number, zf: number, w = 1.6, h = 1.3,
   const m = b.mat(s);
   b.add(cut(boxAt(x - w / 2 - 0.5, 0, zf, x + w / 2 + 0.5, h + 0.9, zf + 0.7, m), [opening(x, 0.35, w, h - w * 0.25, "segmental", zf - 1, zf + 1)]));
   b.add(boxAt(x - w / 2 - 0.7, h + 0.8, zf, x + w / 2 + 0.7, h + 0.95, zf + 0.95, b.mat({ kind: "oak", colour: "#3c2c20" })));
-  b.add(ellipsoid(x, 0.55, zf + 0.25, w * 0.32, 0.28, 0.25, b.mat({ kind: "fire", emit: 5 })));
+  // the fire: a low bed of embers with tongues of flame over the logs, not a glowing mass filling the opening
+  b.add(ellipsoid(x, 0.44, zf + 0.25, w * 0.26, 0.07, 0.2, b.mat({ kind: "fire", emit: 2.2 })));
+  for (let k = 0; k < 5; k++) { const fx = x + (k - 2) * w * 0.1; b.add(ellipsoid(fx, 0.56 + 0.04 * (k % 2), zf + 0.25, w * 0.04, 0.12 + 0.05 * ((k * 3) % 2), 0.05, b.mat({ kind: "flame", emit: 6 }))); }
   b.add(boxAt(x - w * 0.35, 0.35, zf + 0.15, x + w * 0.35, 0.45, zf + 0.45, b.mat({ kind: "firewood" })));
   b.light({ x, y: 0.75, z: zf + 0.75, kelvin: 1700, power, shadow: true });
 }
@@ -783,7 +789,7 @@ export interface NaveLevels { arcade: number; arcadeTop: number; springing: numb
  */
 export function gothicNave(b: SceneBuilder, o: NaveSpec = {}): NaveLevels {
   const n = o.bays ?? 6, B = o.bay ?? 6.8, S = o.span ?? 12, A = o.aisle ?? 6, Ha = o.arcade ?? 9, T = 1.0, half = S / 2 + T / 2, L = n * B;
-  const st = b.mat(o.stone ?? { kind: "ashlar", colour: "#c4ae88", course: 0.38, age: 0.65 }), web = b.mat(o.web ?? { kind: "plaster", colour: "#c9b998", flake: 0.01 });
+  const st = b.mat(o.stone ?? { kind: "ashlar", colour: "#c4ae88", course: 0.38, age: 0.65 }), web = b.mat(o.web ?? { kind: "ashlar", colour: "#cdbd9a", course: 0.3, unit: 0.62, age: 0.35 });
   const fl = b.mat(o.floor ?? { kind: "flags", colour: "#a29a88", unit: 0.9, age: 0.6 }), rib = b.mat({ kind: "ashlar", colour: "#b8a27c", course: 0.5, age: 0.5 }), gilt = b.mat({ kind: "gold" });
   const pierSt = b.mat(o.stone ? { ...o.stone, course: 0.46, unit: 1.5 } : { kind: "ashlar", colour: "#c4ae88", course: 0.46, unit: 1.5, age: 0.65 }), shadow = b.mat({ kind: "ashlar", colour: "#8f8470", course: 0.38 }), glassSpec: SurfaceSpec = o.glass ?? { kind: "stained", pattern: "medallion", emit: 0.55 };
   const wArc = B - 1.6, arcTop = Ha + 0.3 + archRise(0, wArc, 1), triB = arcTop + 0.5, triT = triB + 2.6, ys = triT + 0.6, rise = archRise(0, S, 1), crown = ys + rise, Sa = A - T / 2 - 0.4 - T / 2;

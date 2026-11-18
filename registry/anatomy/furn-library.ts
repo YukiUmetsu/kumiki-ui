@@ -70,7 +70,20 @@ export const ROOMS: readonly RoomEntry[] = [
     const oval = (x: number, y: number, z: number, a: number, c: number, h: number, m: number) => leaf((px, py, pz) => Math.max((Math.hypot((px - x) / a, (pz - z) / c) - 1) * Math.min(a, c), y - py, py - y - h), [x - a, y, z - c], [x + a, y + h, z + c], m);
     b.add(oval(2.4, 0, -3.1, 0.22, 0.15, 0.13, red), oval(2.4, 0.13, -3.1, 0.18, 0.12, 0.11, ochre), oval(2.4, 0.24, -3.1, 0.14, 0.095, 0.09, teal), oval(2.4, 0.33, -3.1, 0.15, 0.1, 0.012, teal));
     b.place(); put(b, "gateleg-table", 0, -0.5); put(b, "ladder-back", -0.9, -0.4, 90); put(b, "ladder-back", 0.9, -0.6, -90); put(b, "ladder-back", 0.2, 0.55, 180);
-    return cam(4.2, 1.5, 62, 0.08); } },
+    // the built-in wall of drawers and cupboards in the corner: graduated drawers with turned knobs, doors above
+    const pine = b.mat({ kind: "painted-wood", colour: "#a8743a", flake: 0.03 }), knob = b.mat({ kind: "oak", colour: "#6a4a2a" });
+    b.add(boxAt(2.95, 0, -3.5, 3.0, 2.95, -1.0, pine), boxAt(2.4, 0, -3.5, 2.95, 2.95, -1.0, pine));
+    for (let k = 0; k < 5; k++) { const y0 = 0.08 + k * 0.24, y1 = y0 + 0.21; b.add(boxAt(2.38, y0, -3.45, 2.4, y1, -1.05, pine)); for (const z of [-2.9, -1.6]) b.add(sphere(2.36, (y0 + y1) / 2, z, 0.022, knob)); }
+    for (const [z0, z1] of [[-3.45, -2.3], [-2.2, -1.05]]) b.add(boxAt(2.38, 1.35, z0, 2.4, 2.85, z1, pine), boxAt(2.37, 1.42, z0 + 0.07, 2.38, 2.78, z1 - 0.07, pine), sphere(2.355, 2.0, z0 < -3 ? z1 - 0.12 : z0 + 0.12, 0.02, knob));
+    b.place();
+    // a braided rag rug: concentric bands of rag colours in an oval; a rocking chair with a woven tape seat by the window
+    const bands = ["#7a3a2a", "#c8b48a", "#3a4a5a", "#8a6a3a", "#c8b48a", "#5a3a2a"];
+    for (let k = 0; k < bands.length; k++) { const a = 1.25 - k * 0.17, c = 0.85 - k * 0.12; b.add(leaf((x, y, z) => Math.max((Math.hypot(x / a, (z - 0.4) / c) - 1) * Math.min(a, c), -y, y - (0.008 + k * 0.0004)), [-a, 0, 0.4 - c], [a, 0.012, 0.4 + c], b.mat({ kind: "fabric", colour: bands[k], colour2: bands[(k + 2) % bands.length], unit: 0.02 }))); }
+    b.place();
+    const mp = b.mat({ kind: "oak", colour: "#b98a55", age: 0.2 });
+    buildFurniture(b, "ladder-back"); for (const sx of [-0.21, 0.21]) b.add(leaf((x, y, z) => Math.max(Math.abs(x - sx) - 0.015, Math.hypot(y - 1.4, z) - 1.42 + 0.0 * x, 1.38 - Math.hypot(y - 1.4, z), Math.abs(z) - 0.42), [sx - 0.02, -0.05, -0.45], [sx + 0.02, 0.08, 0.45], mp));
+    b.place({ x: -1.9, z: -2.0, yaw: 55 });
+    return cam(4.2, 1.5, 64, 0.1, 0.3, 4); } },
   { id: "alpine-stube", label: "Alpine Stube", mood: "interior-day", note: "A pine-lined room round a tiled stove, a corner bench and a table.", build: b => {
     room(b, { view: "garden", w: 6, d: 7, h: 2.6, wall: { kind: "boards", colour: "#b9935e", course: 0.16, age: 0.05 }, floor: { kind: "floorboards", colour: "#9a7448" }, ceiling: { kind: "boards", colour: "#a8834e" }, windows: [{ wall: "left", at: -1, sill: 0.9, w: 0.9, h: 0.9, glass: { kind: "glass" } }, { wall: "back", at: -1.6, sill: 0.9, w: 0.9, h: 0.9, glass: { kind: "glass" } }], trim: { mould: { kind: "boards", colour: "#9a7448" }, bars: [2, 2], curtains: { kind: "fabric", colour: "#a83a2e", colour2: "#efe6d6", pattern: "check", unit: 0.04 } } });
     put(b, "tiled-stove", 1.9, -2.5, -30); put(b, "refectory-table", -1.2, -1.6, 90);
@@ -95,8 +108,27 @@ export const ROOMS: readonly RoomEntry[] = [
   { id: "mid-century-living", label: "Mid-century living room", mood: "interior-day", note: "White walls, oak floor and wool rug, a moulded plywood lounge chair, a teak sideboard under a wide window.", build: b => {
     room(b, { view: "garden", w: 8, d: 8, h: 2.8, wall: { kind: "plaster", colour: "#f1eee6", flake: 0.01 }, floor: { kind: "floorboards", colour: "#a8784a" }, windows: [{ wall: "back", at: 0, sill: 0.4, w: 4.4, h: 2.1, glass: { kind: "glass" } }],
       trim: { mould: { kind: "painted-wood", colour: "#f1eee6" }, skirting: 0.07, bars: [4, 1], curtains: { kind: "fabric", colour: "#e8dfcc", colour2: "#e2d8c4", pattern: "plain" }, pictures: [{ wall: "right", at: -1.0, y: 1.6, w: 0.9, h: 0.65, frame: { kind: "oak", colour: "#c8a070" } }] } });
-    rug(b, 0, 0, 2.8, 2.2, { kind: "fabric", colour: "#d8cdb6", colour2: "#cfc3aa" }); put(b, "lounge-chair", -1, 0, 30); put(b, "sideboard", 1.5, -3.75);
-    return cam(4.6, 1.4, 62, 0.08); } },
+    rug(b, 0, 0, 2.8, 2.2, { kind: "jute", colour: "#c8b896", unit: 0.03 }); put(b, "lounge-chair", -1.2, 0.1, 35); put(b, "sideboard", 1.5, -3.75);
+    // a low teak sofa facing the window, a coffee table with records and a bowl, an arc lamp, a tall rubber plant, a record player on the sideboard
+    const teak = b.mat({ kind: "veneer", colour: "#8a5530" }), wool = b.mat({ kind: "fabric", colour: "#4a6a6a", colour2: "#46646a", pattern: "plain" }), mustard = b.mat({ kind: "fabric", colour: "#c8962a", pattern: "plain" });
+    b.add(boxAt(0.3, 0.18, 1.5, 2.5, 0.24, 2.3, teak), boxAt(0.35, 0.24, 1.55, 2.45, 0.42, 2.25, wool, 0, 0.04), boxAt(0.35, 0.42, 2.0, 2.45, 0.8, 2.28, wool, 0, 0.06), boxAt(0.6, 0.42, 1.85, 0.95, 0.7, 2.02, mustard, 0, 0.06));
+    for (const [lx, lz] of [[0.4, 1.6], [2.4, 1.6], [0.4, 2.2], [2.4, 2.2]] as const) b.add(capsule(lx, 0.18, lz, lx + (lx < 1 ? -0.04 : 0.04), 0, lz + (lz < 2 ? -0.04 : 0.04), 0.018, teak));
+    b.add(boxAt(0.6, 0.36, 0.0, 1.9, 0.4, 0.7, teak, 0, 0.01));
+    for (const [lx, lz] of [[0.7, 0.1], [1.8, 0.1], [0.7, 0.6], [1.8, 0.6]] as const) b.add(capsule(lx, 0.36, lz, lx + (lx < 1 ? -0.03 : 0.03), 0, lz + (lz < 0.3 ? -0.03 : 0.03), 0.016, teak));
+    b.add(boxAt(0.8, 0.4, 0.1, 1.11, 0.415, 0.41, b.mat({ kind: "plain", colour: "#c84a2a" })), boxAt(0.82, 0.415, 0.12, 1.13, 0.42, 0.43, b.mat({ kind: "plain", colour: "#2a3a5a" })), cut(revolve(1.5, 0.4, 0.4, 0.5, t => 0.08 + 0.05 * t, 0.13, b.mat({ kind: "enamel", colour: "#e8e2d4" })), [revolve(1.5, 0.4, 0.41, 0.52, t => 0.07 + 0.05 * t, 0.12, 0)]));
+    const brass = b.mat({ kind: "brass", colour: "#c09a4e" }), shade = b.mat({ kind: "enamel", colour: "#e8e4dc" });
+    b.add(cylY(3.3, 1.4, 0, 0.05, 0.18, b.mat({ kind: "marble", colour: "#e6e0d4" })));
+    // the arc rises from its marble foot and ends over the table, where the shade hangs from it
+    const aEnd = Math.acos(1 - 1.55 / 1.8), arc = (a: number): [number, number, number] => [3.3 - 1.8 * (1 - Math.cos(a)), 0.05 + 2.0 * Math.sin(a), 1.4 - 0.4 * (1 - Math.cos(a))];
+    for (let k = 0; k < 10; k++) b.add(capsule(...arc((k / 10) * aEnd), ...arc(((k + 1) / 10) * aEnd), 0.012, brass));
+    const [ex, ey, ez] = arc(aEnd);
+    b.add(capsule(ex, ey, ez, ex, ey - 0.12, ez, 0.008, brass), cut(sphere(ex, ey - 0.3, ez, 0.2, shade), [sphere(ex, ey - 0.3, ez, 0.19, 0), boxAt(ex - 0.35, ey - 0.65, ez - 0.35, ex + 0.35, ey - 0.35, ez + 0.35, 0)]), sphere(ex, ey - 0.33, ez, 0.06, b.mat({ kind: "plain", colour: "#fff2d0", emit: 2 })));
+    b.light({ x: ex, y: ey - 0.37, z: ez, kelvin: 2700, power: 0.08 });
+    b.add(revolve(-3.3, -3.3, 0, 0.45, t => 0.17 + 0.03 * t, 0.2, b.mat({ kind: "enamel", colour: "#d8d0c0" })), capsule(-3.3, 0.45, -3.3, -3.25, 1.6, -3.25, 0.015, b.mat({ kind: "oak", colour: "#5a4a2a" })));
+    for (let k = 0; k < 11; k++) { const a = k * 2.4, y = 0.7 + k * 0.09; b.add(ellipsoid(-3.3 + Math.cos(a) * 0.2, y, -3.3 + Math.sin(a) * 0.2, 0.13, 0.03, 0.08, b.mat({ kind: "foliage", colour: "#2f4a2a" }))); }
+    b.add(boxAt(1.2, 0.75, -3.85, 1.7, 0.85, -3.5, teak), cylY(1.42, -3.67, 0.85, 0.86, 0.15, b.mat({ kind: "plain", colour: "#1a1a1a" })));
+    b.place();
+    return cam(4.6, 1.4, 66, 0.08, 0.3, 6); } },
   { id: "washitsu", label: "Japanese shoin room", mood: { ...MOODS["interior-day"], sunElevation: 26, sunAzimuth: 68, sunPower: 4.0, burn: 5 }, dust: 0.3, note: "Eight Kyōma mats laid so no four corners meet; a tokonoma with a natural post, scroll and flower beside staggered chigaidana shelves; fusuma painted in ink under a shippō ranma; shoji slid open onto the engawa, a stone lantern and a maple.", build: b => {
     const w = washitsu(b);
     put(b, "zataku", 0.25, -0.15, 90); put(b, "floor-cushions", -0.6, -0.15, 90); put(b, "hibachi", 1.3, 0.9); put(b, "andon", -1.55, 1.45);
