@@ -13,7 +13,7 @@
  */
 import type { Material, MeshPhysicalMaterial, MeshStandardMaterial, WebGLProgramParametersWithUniforms } from "three";
 
-export type SurfaceDetailKind = "cast-metal" | "stone" | "fur" | "paper" | "brushed" | "hammered" | "glaze" | "fabric";
+export type SurfaceDetailKind = "cast-metal" | "stone" | "fur" | "paper" | "brushed" | "hammered" | "glaze" | "fabric" | "tooled-leather";
 
 export interface SurfaceDetailOptions {
   kind: SurfaceDetailKind;
@@ -29,10 +29,13 @@ export interface SurfaceDetailOptions {
   albedoVariation?: number;
   /** Read per-vertex `surface` (vec2: roughness×, metalness×) attribute. */
   vertexSurface?: boolean;
+  /** Read a per-vertex `kmFlow` (vec3, object space) direction instead of `flow`: hair that lies differently
+   * over the body (down the legs, back along the barrel, out from a whorl). */
+  vertexFlow?: boolean;
 }
 
 const KIND_ID: Record<SurfaceDetailKind, number> = {
-  "cast-metal": 0, stone: 1, fur: 2, paper: 3, brushed: 4, hammered: 5, glaze: 6, fabric: 7,
+  "cast-metal": 0, stone: 1, fur: 2, paper: 3, brushed: 4, hammered: 5, glaze: 6, fabric: 7, "tooled-leather": 8,
 };
 const DEFAULTS: Record<SurfaceDetailKind, { frequency: number; strength: number; roughnessVariation: number }> = {
   "cast-metal": { frequency: 30, strength: .0008, roughnessVariation: .3 },
@@ -43,10 +46,13 @@ const DEFAULTS: Record<SurfaceDetailKind, { frequency: number; strength: number;
   hammered: { frequency: 9, strength: .004, roughnessVariation: .2 },
   glaze: { frequency: 6, strength: .0012, roughnessVariation: .15 },
   fabric: { frequency: 70, strength: .0012, roughnessVariation: .2 },
+  // Basketweave stamping: about 2.5 cm cells (frequency = cells per unit), three bars each, over pebbled grain.
+  "tooled-leather": { frequency: 40, strength: .0005, roughnessVariation: .25 },
 };
 
 const NOISE = /* glsl */`
 varying vec3 vKmPos;
+varying vec3 vKmNormal;
 uniform float kmDetailFrequency;
 uniform float kmDetailStrength;
 uniform float kmDetailRoughness;
@@ -107,25 +113,41 @@ float kmDetailHeight(vec3 p){
     return grain * .8 + smoothstep(.78, .90, kmFilteredNoise(q * 4.0)) * .2 * fleckPx;
   #elif KM_DETAIL_KIND == 2
     // Strands: low frequency along the flow, high across it.
-    vec3 f = normalize(kmDetailFlow);
+    vec3 f = normalize(KM_FLOW + vec3(1e-5));
     float along = dot(q, f);
     vec3 across = q - f * along;
     float strands = kmFilteredNoise(across * 1.6 + f * along * .18);
     float clumps = kmFilteredNoise(q * .22);
     return strands * .75 + clumps * .25;
   #elif KM_DETAIL_KIND == 3
-    vec3 f = normalize(kmDetailFlow);
+    vec3 f = normalize(KM_FLOW + vec3(1e-5));
     return kmFilteredNoise(q) * .6 + kmFilteredNoise((q - f * dot(q, f)) * 2.0 + f * dot(q, f) * .2) * .4;
   #elif KM_DETAIL_KIND == 4
-    vec3 f = normalize(kmDetailFlow);
+    vec3 f = normalize(KM_FLOW + vec3(1e-5));
     vec3 across = q - f * dot(q, f);
     return kmFilteredNoise(across * 2.0 + f * dot(q, f) * .02);
   #elif KM_DETAIL_KIND == 5
     return 1.0 - kmCells(q);
   #elif KM_DETAIL_KIND == 6
     return kmFbm(q) * .5 + kmFilteredNoise(q * 5.0) * .08;
+  #elif KM_DETAIL_KIND == 8
+    // Basketweave on the plane facing the surface (triplanar by the object normal): alternate cells of three
+    // stamped bars, each bar a rounded ridge with a deep groove between, over fine pebbled grain.
+    vec3 n = abs(normalize(vKmNormal)); n = n * n * n * n; n /= (n.x + n.y + n.z);
+    vec2 planes[3]; planes[0] = q.yz; planes[1] = q.xz; planes[2] = q.xy;
+    float weave = 0.0;
+    for (int k = 0; k < 3; k++) {
+      vec2 c = planes[k], cell = floor(c), f = fract(c);
+      float vertical = mod(cell.x + cell.y, 2.0);
+      float across = mix(f.y, f.x, vertical) * 3.0;
+      float bar = 1.0 - pow(abs(fract(across) - .5) * 2.0, 3.0);
+      float edge = smoothstep(0.0, .06, f.x) * smoothstep(0.0, .06, 1.0 - f.x) * smoothstep(0.0, .06, f.y) * smoothstep(0.0, .06, 1.0 - f.y);
+      weave += (k == 0 ? n.x : k == 1 ? n.y : n.z) * bar * edge;
+    }
+    float aa = 1.0 - smoothstep(.3, .9, length(fwidth(q * 3.0)));
+    return mix(.5, weave, aa) * .82 + kmFilteredNoise(q * 9.0) * .18;
   #else
-    vec3 f = normalize(kmDetailFlow);
+    vec3 f = normalize(KM_FLOW + vec3(1e-5));
     float weftArg = dot(q, f) * 6.2831;
     float weft = sin(weftArg) * (1.0 - smoothstep(.25, .80, fwidth(weftArg)));
     vec3 side = normalize(cross(f, vec3(.3, .9, .1)));
@@ -146,7 +168,7 @@ export function applySurfaceDetail<T extends MeshStandardMaterial | MeshPhysical
   const flow = options.flow ?? [0, -1, 0];
   if (![frequency, strength, roughness, ...flow].every(Number.isFinite) || frequency <= 0)
     throw new Error("Surface detail needs finite positive frequency and finite strength.");
-  const vertexSurface = options.vertexSurface ?? false;
+  const vertexSurface = options.vertexSurface ?? false, vertexFlow = options.vertexFlow ?? false;
   const kind = KIND_ID[options.kind];
   const previous = material.onBeforeCompile;
   material.onBeforeCompile = (shader: WebGLProgramParametersWithUniforms, renderer) => {
@@ -157,13 +179,14 @@ export function applySurfaceDetail<T extends MeshStandardMaterial | MeshPhysical
     shader.uniforms.kmDetailAlbedo = { value: options.albedoVariation ?? 0 };
     shader.uniforms.kmDetailFlow = { value: { x: flow[0], y: flow[1], z: flow[2], isVector3: true } };
     const surfaceVarying = vertexSurface ? "varying vec2 vKmSurface;\n" : "";
+    const flowVarying = vertexFlow ? "varying vec3 vKmFlow;\n#define KM_FLOW vKmFlow\n" : "#define KM_FLOW kmDetailFlow\n";
     shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", `#include <common>\nvarying vec3 vKmPos;\n${
-        vertexSurface ? "attribute vec2 surface;\n" + surfaceVarying : ""}`)
-      .replace("#include <begin_vertex>", `#include <begin_vertex>\nvKmPos = position;\n${
-        vertexSurface ? "vKmSurface = surface;\n" : ""}`);
+      .replace("#include <common>", `#include <common>\nvarying vec3 vKmPos;\nvarying vec3 vKmNormal;\n${
+        vertexSurface ? "attribute vec2 surface;\n" + surfaceVarying : ""}${vertexFlow ? "attribute vec3 kmFlow;\nvarying vec3 vKmFlow;\n" : ""}`)
+      .replace("#include <begin_vertex>", `#include <begin_vertex>\nvKmPos = position;\nvKmNormal = objectNormal;\n${
+        vertexSurface ? "vKmSurface = surface;\n" : ""}${vertexFlow ? "vKmFlow = kmFlow;\n" : ""}`);
     shader.fragmentShader = shader.fragmentShader
-      .replace("#include <common>", `#include <common>\n#define KM_DETAIL_KIND ${kind}\n${surfaceVarying}${NOISE}`)
+      .replace("#include <common>", `#include <common>\n#define KM_DETAIL_KIND ${kind}\n${surfaceVarying}${flowVarying}${NOISE}`)
       .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
         float kmH = kmDetailHeight(vKmPos);
         // Fade detail as its period approaches one pixel (prevents shimmer).
@@ -187,10 +210,10 @@ export function applySurfaceDetail<T extends MeshStandardMaterial | MeshPhysical
           normal = normalize(abs(kmDet) * normal - kmGrad);
         }`);
   };
-  const key = `km-detail:${kind}:${vertexSurface ? 1 : 0}`;
+  const key = `km-detail:${kind}:${vertexSurface ? 1 : 0}:${vertexFlow ? 1 : 0}`;
   const previousKey = material.customProgramCacheKey.bind(material);
   material.customProgramCacheKey = () => previousKey() + key;
-  material.userData.surfaceDetail = { ...options, frequency, strength, roughnessVariation: roughness };
+  material.userData.surfaceDetail = { ...options, frequency, strength, roughnessVariation: roughness, vertexFlow };
   material.needsUpdate = true;
   return material;
 }

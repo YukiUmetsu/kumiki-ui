@@ -17,6 +17,7 @@ import type { BirdPostureId, PostureId } from "../../registry/anatomy/animal-pos
 import { BIRD_FLIGHT, flightAt, speciesWingbeat } from "../../registry/anatomy/animal-flight";
 import { coatAt, growthRule, heightAt, juvenileConstruction } from "../../registry/anatomy/animal-growth";
 import type { UkiyoeSpecies } from "../../registry/video/ukiyoe/ukiyoe-creatures";
+import { GallopScene3D } from "../../registry/video/gallop-scene-3d-react";
 
 const page = { display: "grid", gap: 16, alignContent: "start", padding: 24, minHeight: "100vh", background: "var(--km-surface-canvas, #f6f3f1)", color: "var(--km-text-primary, #242424)",
   font: "15px/1.5 var(--km-font-sans, system-ui, sans-serif)" } as const;
@@ -345,3 +346,23 @@ export const Flight: Story = { render: () => <FlightLab /> };
 export const Growth: Story = { render: () => <GrowthLab /> };
 export const BodyPlans: Story = { name: "Body plans", render: () => <BodyPlansStory /> };
 export const UkiyoeCheck: Story = { name: "UKIYO1 proportion check", render: () => <ProportionCheck /> };
+
+/* Horse and rider at a gallop in 3D: the gait table above, Muybridge-timed, on an original sculpted stock horse (GLB),
+ * western tack, a Rocketbox rider (MIT) locked in the stirrups, recorded CC0 hoofbeats on the contacts, dust and a chase camera.
+ * Provenance: assets/THIRD_PARTY_ASSETS.json and assets/sound/catalog.json. */
+const GALLOP_ASSETS = {
+  horseUrl: new URL("../../assets/models/animals/stock-horse-bay.glb", import.meta.url).href,
+  gearUrl: new URL("../../assets/models/animals/western-gear.glb", import.meta.url).href,
+  riderUrl: new URL("../../assets/models/people/rocketbox-male-adult-08.glb", import.meta.url).href,
+  sounds: {
+    hoof: [1, 2, 3, 4, 5, 6, 7, 8].map(i => new URL(`../../assets/sound/recorded/hoof-dirt-${i}.wav`, import.meta.url).href),
+    scuff: [new URL("../../assets/sound/recorded/hoof-dirt-scuff-1.wav", import.meta.url).href],
+    breath: [1, 2].map(i => new URL(`../../assets/sound/recorded/horse-breath-${i}.wav`, import.meta.url).href),
+  },
+};
+export const Gallop3D: Story = {
+  name: "Horse and rider gallop (3D)",
+  parameters: { layout: "fullscreen" },
+  // The built scene is exposed as window.__kmGallop for capture scripts (stats, framing, stepping).
+  render: () => <div style={{ height: "100vh" }}><GallopScene3D {...GALLOP_ASSETS} onReady={scene => { (window as unknown as { __kmGallop: unknown }).__kmGallop = scene; }} /></div>,
+};

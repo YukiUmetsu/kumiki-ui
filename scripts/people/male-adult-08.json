@@ -1,0 +1,9 @@
+{
+  "avatar": "Export/Male_Adult_08.fbx",
+  "textures": "Textures",
+  "size": 1024,
+  "rough": { "default": [0.45, 0.9], "head": [0.38, 0.72], "body": [0.5, 0.95], "opacity": [0.5, 0.5] },
+  "clips": [
+    { "file": "anim/m_idle_neutral_01.fbx", "name": "idle" }
+  ]
+}

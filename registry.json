@@ -7562,6 +7562,88 @@
       ]
     },
     {
+      "name": "gallop-rider-3d",
+      "type": "registry:ui",
+      "title": "Horse and Rider Gallop 3D",
+      "description": "An interactive Three.js gallop: an original sculpted, rigged stock horse (GLB) with 25 configurable coats read from photographs (base colours, dilutions, roan, grey, dun, pinto patterns, appaloosa spotting, face and leg markings), sizes from pony to Thoroughbred height, spring-driven tail hair and a Muybridge-timed transverse gallop clip (planted hooves, carpus fold, reciprocal stifle and hock, fetlock sink, break-over, swing-leg retraction), western tack fitted to its body (pad, tooled saddle, cinch, breast collar, lariat, headstall, curb bit, stirrups) and a cattleman hat; a rider coupled to the seat with hip absorption, boots IK-locked in the stirrups, legs kept outside the barrel and fenders and arms outside the torso; hoof contacts measured from the clip; recorded hoofbeats scheduled on the audio clock at those contacts, scaled by speed; pooled GPU dust and clods at each strike and push-off; a damped chase, tracking, front and hoof-height camera with free orbit and zoom, FOV punch, speed blur and trauma shake; stop, pause, rider and saddle switches; Verlet reins and neckerchief; and a trail loop over rolling range with GEO1 mesas on the horizon.",
+      "dependencies": [
+        "three",
+        "@types/three"
+      ],
+      "registryDependencies": [
+        "crafted-3d-hero",
+        "domain-finance-hero-3d",
+        "terrain"
+      ],
+      "files": [
+        {
+          "path": "registry/craft/horse-3d.ts",
+          "type": "registry:ui",
+          "target": "components/craft/horse-3d.ts"
+        },
+        {
+          "path": "registry/craft/horse-gallop.ts",
+          "type": "registry:ui",
+          "target": "components/craft/horse-gallop.ts"
+        },
+        {
+          "path": "registry/craft/horse-coat.ts",
+          "type": "registry:ui",
+          "target": "components/craft/horse-coat.ts"
+        },
+        {
+          "path": "registry/craft/western-tack.ts",
+          "type": "registry:ui",
+          "target": "components/craft/western-tack.ts"
+        },
+        {
+          "path": "registry/craft/mounted-rider.ts",
+          "type": "registry:ui",
+          "target": "components/craft/mounted-rider.ts"
+        },
+        {
+          "path": "registry/craft/verlet-cloth.ts",
+          "type": "registry:ui",
+          "target": "components/craft/verlet-cloth.ts"
+        },
+        {
+          "path": "registry/craft/gait-contacts.ts",
+          "type": "registry:ui",
+          "target": "components/craft/gait-contacts.ts"
+        },
+        {
+          "path": "registry/craft/impact-dust.ts",
+          "type": "registry:ui",
+          "target": "components/craft/impact-dust.ts"
+        },
+        {
+          "path": "registry/craft/trail-terrain.ts",
+          "type": "registry:ui",
+          "target": "components/craft/trail-terrain.ts"
+        },
+        {
+          "path": "registry/motion/chase-camera-three.ts",
+          "type": "registry:ui",
+          "target": "components/motion/chase-camera-three.ts"
+        },
+        {
+          "path": "registry/video/footfall-audio.ts",
+          "type": "registry:ui",
+          "target": "components/video/footfall-audio.ts"
+        },
+        {
+          "path": "registry/video/gallop-scene-3d.ts",
+          "type": "registry:ui",
+          "target": "components/video/gallop-scene-3d.ts"
+        },
+        {
+          "path": "registry/video/gallop-scene-3d-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/gallop-scene-3d-react.tsx"
+        }
+      ]
+    },
+    {
       "name": "redaction-reveal",
       "type": "registry:ui",
       "title": "Redaction Reveal",

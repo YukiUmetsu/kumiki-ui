@@ -223,6 +223,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:asset-state-sequence":{storyId:"house-math-asset-state-sequence--states"},
   "pack:asset-state-sequence-three":{storyId:"house-math-asset-state-sequence--states"},
   "pack:people-3d":{storyId:"domains-people-3d--casual-adult"},
+  "pack:gallop-rider-3d":{storyId:"video-animal-anatomy--gallop-3-d"},
 };
 export function previewsForKinds(
   finance:readonly {kind:string}[],business:readonly {kind:string}[],
@@ -348,6 +349,7 @@ export const CATALOG_DOCS:Record<string,string>={
   "asset-state-sequence":"docs/component-specs/asset-state-sequence.md",
   "asset-state-sequence-three":"docs/component-specs/asset-state-sequence.md",
   "people-3d":"docs/component-specs/people-3d.md",
+  "gallop-rider-3d":"docs/component-specs/gallop-rider-3d.md",
   "explainer-principles":"docs/visual-production-contract.md",
   "short-safe-frame":"docs/component-specs/short-safe-frame.md",
   "caption-performer":"docs/component-specs/caption-performer.md",
