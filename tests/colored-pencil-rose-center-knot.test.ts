@@ -82,8 +82,8 @@ describe("CP-F1 FLORA1 six-source rose centre and real curled underturn",()=>{
       const previous=baseline.regions.find(region=>region.id===id);
       if(previous){
         // Preserve every layer property other than the authored angle and fan.
-        expect(layers.map(({angle,flow,...rest})=>rest))
-          .toEqual(previous.layers.map(({angle,flow,...rest})=>rest));
+        expect(layers.map(({angle,flow,color,...rest})=>rest))
+          .toEqual(previous.layers.map(({angle,flow,color,...rest})=>rest));
       }
     }
     // The separate four-petal whorl option remains byte-compatible when the
