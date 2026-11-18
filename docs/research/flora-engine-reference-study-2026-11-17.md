@@ -140,6 +140,48 @@ Each round was rendered in Storybook (default headless Chromium, full page) and 
    - A cached juvenile template made mature dragon trees cost 5 M triangles. Template keys now hold the detail level.
    - Scene stats counted unused specimens. They are now excluded.
 
+## Round two: popular plants
+
+The owner asked for more popular plants and more detail. Ten profiles were added in `flora-profiles-popular.ts`. Sizes
+come from the Wikipedia species pages (cited, graded `reported`). Commons rate limits allowed five photos, so the other
+plants have estimated colours, and their profiles say so.
+
+| Plant | Photo studied | Licence | Observed |
+|---|---|---|---|
+| Coconut palm | [Sea view, Himsori](https://commons.wikimedia.org/wiki/File:Sea_View_from_himsori_bangladesh_(cropped).jpg), [frond](https://commons.wikimedia.org/wiki/File:Coconut_tree_leave.jpeg) | CC BY-SA 4.0, 3.0 | Leaning, curving trunks about 1/40 H across; pinnae hang in a V from a yellow rachis; pinnae p50 #85962a |
+| English oak | [Baginton oak](https://commons.wikimedia.org/wiki/File:Baginton_oak_tree_july06.JPG), [leaves and acorns](https://commons.wikimedia.org/wiki/File:Quercus_robur.jpg) | CC BY-SA 3.0 | Low massive limbs under a billowy crown of leaf clumps; leaves crowded at shoot tips; crown p50 #637649, leaf p50 #505e25, trunk p75 #544a32 |
+| Snake plant | ['Laurentii'](https://commons.wikimedia.org/wiki/File:Snake_Plant_(Sansevieria_trifasciata_%27Laurentii%27).jpg) | CC BY-SA 3.0 | Zigzag cross-bands; yellow margin about a tenth of the width; dark p50 #29451e, margin #b1b65e |
+
+New engine features, each general and data-driven:
+
+- **Pinnae** on both sides of a rachis (`sides`, `lift`): coconut palm, Boston fern.
+- **Outlines:** rounded lobes (oak), a waist (fiddle-leaf fig), a coloured rim (snake plant, aloe).
+- **Maps:** banded and spotted leaf maps, and a cactus skin map.
+- **Flowers:** a `corolla` organ (tulip) with incurved tepals (negative droop).
+- **Stems:** `ribs` on axes, with spines placed on the crests (`phase`, `offset`), and `lean` for root axes (palms).
+- **Fruit:** stalked buds for hanging fruit (baobab pods, acorns, coconuts).
+- **Light:** crown self-shading and tone variation, and matte, paler undersides from a luminance ratio.
+
+Render review log, round two:
+
+1. **Round 6.**
+   - The coconut trunk wiggled, and the crown was a small starburst. A smooth `lean`, longer fronds and hanging pinnae
+     made it read as a palm.
+   - The oak and the maple looked bare in winter. The cause was leaves strung along metre-long shoots. Oak leaves now
+     crowd on short shoots at the twig ends, drawn 2.2× life size.
+   - Fern fronds lay flat. They are now longer, more numerous and arching.
+2. **Round 7.**
+   - Leaf undersides were pale specks. The shader replaced half the colour with an absolute underside colour, which
+     dropped the crown shading. It is now a softened luminance ratio, a little greyer, matte and without the clear coat.
+   - The softbox studio washed foliage out, so golden hour stays.
+3. **Round 8.**
+   - The maple leaf read as cannabis. Its lobes are now broader and joined at the base.
+   - The tulip close-up was a crumpled polyhedron. Organ close-ups pointed the flower axis at the camera, and the cup was
+     too shallow. Corollas now stand upright, and the tepals are deep spoons.
+4. **Round 9.**
+   - The parkland at `preview` looked leafless, and at `high_def` it ran at 44 fps. `preview` now keeps 65% of small
+     organs at about 12 triangles each: 9.5 M triangles at 60 fps.
+
 ## What not to copy
 
 The photos are for measurement only. No pixels, textures or compositions from them are in the engine. Every texture is

@@ -28,13 +28,15 @@ export interface FloraSource {
 /** A colour at a place along an axis or organ: 0 at its foot or base, 1 at its tip (sRGB hex). */
 export interface ColourStop { at: number; hex: string }
 
-export type SurfaceTexture = "bark-folds" | "bark-fissured" | "bark-ringed" | "stem" | "root" | "coir" | "leaf-veins" | "parallel-veins" | "petal" | "farina" | "none";
+export type SurfaceTexture = "bark-folds" | "bark-fissured" | "bark-ringed" | "stem" | "root" | "coir" | "cactus" | "leaf-veins" | "parallel-veins" | "banded" | "spotted" | "petal" | "farina" | "none";
 
 /** How a surface looks: colour stops, PBR response and a procedural texture. */
 export interface SurfaceSpec {
   colour: readonly ColourStop[];
-  /** Colour multiplier for the underside of a blade (abaxial side), sRGB hex. */
+  /** Colour of the underside of a blade (abaxial side), sRGB hex. */
   back?: string;
+  /** A coloured margin (variegated rim) over the outer `width` (fraction) of a blade's half-width, sRGB hex. */
+  rim?: { hex: string; width: number };
   roughness: number;
   /** Waxy cuticle: a clear, glossy coat (0–1). */
   clearcoat?: number;
@@ -79,6 +81,8 @@ export interface AxisRule {
   upturn?: number;
   /** Random wander of the direction (deg, smooth along the axis). */
   wander?: number;
+  /** Root axes: tilt from vertical at the foot (deg, in a random direction); upturn can bend it back up (a leaning palm). */
+  lean?: number;
   /** Start angle from the parent axis (deg) at the lower and the upper end of the child range. */
   angle?: readonly [number, number];
   /** Rotation round the parent between successive children (deg): 137.5 spiral, 180 two-ranked, 90 decussate. */
@@ -90,6 +94,8 @@ export interface AxisRule {
   climb?: { turns: number };
   /** Many stems side by side (a moss cushion): disc radius (m), stem spacing (m), rim stem height ÷ centre stem height. */
   colony?: { radius: number; spacing: number; dome: number };
+  /** Longitudinal ribs (columnar cacti): rib count and groove depth as a fraction of the radius. */
+  ribs?: { count: number; depth: number };
   /** Node rings (culms, aroid stems): spacing in metres and radius swelling. */
   nodeRings?: { spacing: number; swell: number };
   /** Growth stage at which this axis appears. */
@@ -141,10 +147,13 @@ export interface BladeSpec {
   apexShape: number;
   /** A short sharp point on a rounded apex (mucronate tip): its length as a fraction of the lamina. */
   mucro?: number;
+  /** A narrowing of the blade (a fiddle or violin shape): where along the lamina (0–1) and how deep (fraction of the width). */
+  waist?: { at: number; depth: number };
   /** Cordate basal lobes: fraction of the lamina length behind the petiole, and the half-width of the sinus at the base (× width). */
   lobe?: number;
   sinus?: number;
-  margin?: { kind: "serrate" | "undulate"; count: number; depth: number };
+  /** Margin: teeth (serrate), waves (undulate) or rounded lobes with sinuses (lobed, as on an oak), count per side. */
+  margin?: { kind: "serrate" | "undulate" | "lobed"; count: number; depth: number };
   /** Veins: laterals per side, their angle from the midrib (deg) near the apex and at the base, end curvature, midrib width (× width). */
   veins: { style: "pinnate" | "parallel"; laterals: number; angle: number; baseAngle?: number; curve?: number; midrib: number };
   /**
@@ -167,7 +176,8 @@ export interface BladeSpec {
   corrugation?: number;
   ruffle?: number;
   twist?: number;
-  /** Heavy-elastica G along the midrib, and the base pitch it was measured at (deg above horizontal). */
+  /** Heavy-elastica G along the midrib, and the base pitch it was measured at (deg above horizontal). A negative G
+   * curls the blade toward its upper face (incurved petals and tepals). */
   droop?: number;
   droopPitch?: number;
   /** A stalk built into the organ (petiolule, short petiole): length (m), radius (m), surface. */
@@ -190,10 +200,26 @@ export interface CapitulumSpec {
 /** A grass ear: a cob wrapped in husk leaves with silk at the tip. */
 export interface EarSpec { kind: "ear"; length: Range; width: number; husk: string; silk: string; silkLength: number }
 
-/** A small spindle-shaped organ: a spikelet, a bud, a capsule. */
-export interface BudSpec { kind: "bud"; surface: string; length: Range; width: number }
+/** A small spindle-shaped organ: a spikelet, a bud, a capsule, a hanging fruit (with a stalk). */
+export interface BudSpec { kind: "bud"; surface: string; length: Range; width: number; stalk?: { length: number; radius: number; surface: string } }
 
-export type OrganSpec = BladeSpec | CapitulumSpec | EarSpec | BudSpec;
+/**
+ * A flower of separate petals or tepals round its axis (tulip, lily, rose): `count` petals in whorls of `perWhorl`, or
+ * in a golden-angle spiral. `angle` is each petal's angle from the flower axis and `scale` its size, from the innermost
+ * to the outermost petal. The petal is a blade (its `length` is the petal length). Stamens stand in the centre.
+ */
+export interface CorollaSpec {
+  kind: "corolla";
+  petal: BladeSpec;
+  count: number;
+  arrangement: "whorled" | "spiral";
+  perWhorl?: number;
+  angle: readonly [number, number];
+  scale?: readonly [number, number];
+  stamens?: { count: number; length: number; surface: string };
+}
+
+export type OrganSpec = BladeSpec | CapitulumSpec | EarSpec | BudSpec | CorollaSpec;
 
 /** Where organs sit on an axis. */
 export interface OrganRule {
@@ -211,7 +237,16 @@ export interface OrganRule {
   divergence?: number;
   /** Angle from the axis (deg): along, at `from` → `to`; rosette, inner → outer; tip, the bend at the junction. */
   angle: readonly [number, number];
-  scale?: readonly [number, number];
+  /** Size along the range (from → to), or base → middle → tip. */
+  scale?: readonly [number, number] | readonly [number, number, number];
+  /** Along: put the organs on both sides of the axis in its horizontal plane (pinnae on a palm or fern rachis), raised
+   * `lift` degrees above that plane (a V-shaped frond). */
+  sides?: boolean;
+  lift?: number;
+  /** Along: a fixed azimuth for the first organ (deg) instead of a random one, to line organs up with ribs. */
+  phase?: number;
+  /** Along: where the organ's base sits, as a fraction of the axis radius (default 0.85; 1 puts spines on rib crests). */
+  offset?: number;
   /** Rosette: radius of the ring of leaf bases (m) and the height they climb (m). */
   core?: number;
   rise?: number;
@@ -281,6 +316,7 @@ export function checkFloraProfile(p: SpeciesMorphologyProfile): FloraProfileIssu
     if (!s.colour?.length) err(`surfaces.${k}.colour`, "give at least one colour stop");
     s.colour?.forEach((c, i) => { if (!HEX.test(c.hex)) err(`surfaces.${k}.colour[${i}]`, `"${c.hex}" is not #rrggbb`); if (!(c.at >= 0 && c.at <= 1)) err(`surfaces.${k}.colour[${i}].at`, "use 0…1"); });
     if (s.back && !HEX.test(s.back)) err(`surfaces.${k}.back`, "use #rrggbb");
+    if (s.rim && (!HEX.test(s.rim.hex) || !(s.rim.width > 0 && s.rim.width < 1))) err(`surfaces.${k}.rim`, "use #rrggbb and a width in 0…1");
     if (!(s.roughness >= 0 && s.roughness <= 1)) err(`surfaces.${k}.roughness`, "use 0…1");
   }
   const needSurface = (path: string, id: string | undefined) => { if (!id || !surfaces[id]) err(path, `unknown surface "${id}"`); };
@@ -337,6 +373,11 @@ export function checkFloraProfile(p: SpeciesMorphologyProfile): FloraProfileIssu
       range(`${at}.length`, o.length); needSurface(`${at}.husk`, o.husk); needSurface(`${at}.silk`, o.silk);
     } else if (o.kind === "bud") {
       range(`${at}.length`, o.length); needSurface(`${at}.surface`, o.surface);
+      if (o.stalk) needSurface(`${at}.stalk.surface`, o.stalk.surface);
+    } else if (o.kind === "corolla") {
+      needSurface(`${at}.petal.surface`, o.petal.surface); range(`${at}.petal.length`, o.petal.length);
+      if (!(o.count >= 1 && o.count <= 200)) err(`${at}.count`, "use 1…200 petals");
+      if (o.stamens) needSurface(`${at}.stamens.surface`, o.stamens.surface);
     } else err(at, "unknown organ kind");
   }
   (p.placements ?? []).forEach((r, i) => {

@@ -11,12 +11,12 @@
  */
 import { seeded } from "./foundation-shapes";
 import { fbm3, gradNoise3, linearOf } from "./foundation-raster";
-import type { BladeSpec, BudSpec, CapitulumSpec, ColourStop, EarSpec, SpeciesMorphologyProfile, SurfaceSpec } from "./flora-profile";
+import type { BladeSpec, BudSpec, CapitulumSpec, ColourStop, CorollaSpec, EarSpec, SpeciesMorphologyProfile, SurfaceSpec } from "./flora-profile";
 import { growSkeleton } from "./flora-skeleton";
 import type { FloraAxis, FloraSkeleton, OrganPlacement } from "./flora-skeleton";
 import { buildBlade } from "./flora-leaf";
 import type { BladeStats } from "./flora-leaf";
-import { DEG, GOLDEN_ANGLE, MeshBuffer, add, basisMatrix, catmullRom, clamp, cross, lerp, normalize, scale, smooth, transportFrames } from "./flora-math";
+import { DEG, GOLDEN_ANGLE, MeshBuffer, add, basisMatrix, catmullRom, clamp, cross, dot, lerp, normalize, scale, smooth, transportFrames } from "./flora-math";
 import type { MeshData, V3 } from "./flora-math";
 
 export type FloraFidelity = "preview" | "high_def" | "macro_ultra";
@@ -44,7 +44,7 @@ export interface FidelitySettings {
   florets: number;
 }
 export const FLORA_FIDELITY: Readonly<Record<FloraFidelity, FidelitySettings>> = {
-  preview: { radial: 7, detail: 0.6, leafCells: 16, organTriangles: 4e5, texture: 256, density: 0.4, holeRows: 1, maxOrgans: 30000, variants: 2, relief: false, florets: 0.35 },
+  preview: { radial: 7, detail: 0.6, leafCells: 16, organTriangles: 4e5, texture: 256, density: 0.65, holeRows: 1, maxOrgans: 60000, variants: 2, relief: false, florets: 0.35 },
   high_def: { radial: 14, detail: 1, leafCells: 40, organTriangles: 2.5e6, texture: 512, density: 0.75, holeRows: 2, maxOrgans: 300000, variants: 3, relief: true, florets: 0.8 },
   macro_ultra: { radial: 24, detail: 1.6, leafCells: 96, organTriangles: 8e6, texture: 1024, density: 1, holeRows: 3, maxOrgans: 800000, variants: 4, relief: true, florets: 1 },
 };
@@ -108,7 +108,7 @@ function tube(buf: MeshBuffer, a: FloraAxis, surf: SurfaceSpec, f: FidelitySetti
     radii = pts.map((_, i) => { const u = i / sub, j = Math.min(radii.length - 2, Math.floor(u)); return lerp(radii[j], radii[j + 1], u - j); });
   }
   const { n, b } = transportFrames(pts);
-  const r0 = radii[0], segs = Math.max(3, Math.min(f.radial * 2, Math.round(f.radial * (0.45 + Math.sqrt(r0 / 0.1) * 0.55))));
+  const r0 = radii[0], ribs = a.rule.ribs, segs = Math.max(ribs ? ribs.count * 4 : 3, Math.min(f.radial * 2, Math.round(f.radial * (0.45 + Math.sqrt(r0 / 0.1) * 0.55))));
   const tile = surf.tile ?? 0.5, wraps = Math.max(1, Math.round(2 * Math.PI * r0 / tile));
   const relief = f.relief && r0 > 0.015 ? (surf.relief ?? 0) : 0, flare = a.level === 0 ? a.rule.flare : undefined, swell = a.rule.swell ?? 0;
   const rings = a.rule.nodeRings, flarePhase = (seed % 97) * 0.13;
@@ -127,6 +127,8 @@ function tube(buf: MeshBuffer, a: FloraAxis, surf: SurfaceSpec, f: FidelitySetti
       if (flare && s < flare.height * r0 * 3) rr *= 1 + flare.amount * Math.exp(-s / (flare.height * r0 * 0.45)) * (0.5 + 0.5 * Math.max(0, Math.cos(flare.lobes * phi + flarePhase + 1.2 * fbm3(seed, Math.cos(phi), s, Math.sin(phi), 2))) ** 1.5);
       const rel = relief ? barkRelief(surf.texture, seed, phi, s, r) : 0;
       rr *= 1 + relief * rel;
+      // Ribs: crests on the frame's normal, rounded grooves between them.
+      if (ribs) rr *= 1 - ribs.depth * (0.5 - 0.5 * Math.cos(ribs.count * phi)) ** 1.3;
       const dir = add(scale(n[i], Math.cos(phi)), scale(b[i], Math.sin(phi)));
       const shade = 1 + 0.22 * clamp(rel, -1, 1) * (relief ? 1 : 0);
       const c = ramp(age);
@@ -216,9 +218,11 @@ export class ProceduralMeshBuilder {
     const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
     const spec = profile.organs[organ];
     if (!spec) throw new Error(`Unknown organ "${organ}" in ${profile.id}`);
-    const size = spec.kind === "capitulum" ? spec.diameter.typical : spec.length.typical;
+    const size = spec.kind === "capitulum" ? spec.diameter.typical : spec.kind === "corolla" ? spec.petal.length.typical * 2 : spec.length.typical;
     // Build once at the origin, then lift the organ so its lowest point rests just above the ground.
-    const at = (lift: number): FloraSkeleton => ({ profile, axes: [], height: size, stage: o.maturity, organs: [{ organ, p: [0, lift, 0], x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1], scale: 1, maturity: o.maturity, pick: 0.5 }] });
+    // A corolla stands on its axis (its +z is the flower axis); blades and flower heads face the camera.
+    const upright = spec.kind === "corolla", fy: V3 = upright ? [0, 0, -1] : [0, 1, 0], fz: V3 = upright ? [0, 1, 0] : [0, 0, 1];
+    const at = (lift: number): FloraSkeleton => ({ profile, axes: [], height: size, stage: o.maturity, organs: [{ organ, p: [0, lift, 0], x: [1, 0, 0], y: fy, z: fz, scale: 1, maturity: o.maturity, pick: 0.5 }] });
     const first = organBatches(at(0), this.settings, 1, this.#templates, profileKey(profile));
     let low = Infinity;
     for (const b of first.batches) for (let k = 0; k < b.count; k++) {
@@ -281,10 +285,13 @@ function organBatches(sk: FloraSkeleton, f: FidelitySettings, seed: number, temp
   const counts = new Map<string, number>();
   for (const pl of sk.organs) counts.set(pl.organ, (counts.get(pl.organ) ?? 0) + 1);
   const budget = (spec: BladeSpec, organ: string) => f.organTriangles / ((counts.get(organ) ?? 1) * (spec.leaflets ? spec.leaflets.count.typical : 1));
-  const cellsFor = (spec: BladeSpec, organ: string) => Math.max(2, Math.min(f.leafCells, Math.round(Math.sqrt(budget(spec, organ) / (0.9 / Math.max(0.02, spec.width))))));
+  // Narrow blades need few cells across (a 5 cm sword leaf does not need a hero leaf's 40).
+  const cellsFor = (spec: BladeSpec, organ: string) => Math.max(2, Math.min(Math.max(4, Math.round(f.leafCells * Math.min(1, 2.5 * spec.width))), Math.round(Math.sqrt(budget(spec, organ) / (0.9 / Math.max(0.02, spec.width))))));
   const bladeMesh = (spec: BladeSpec, maturity: number, s: number, length?: number, cells = f.leafCells, triangles?: number) => {
-    const surf = p.surfaces[spec.surface], ramp = colourRamp(surf.colour);
-    const built = buildBlade(spec, { seed: s, resolution: cells, maturity, holeRows: f.holeRows, colour: ramp, length, triangles });
+    const surf = p.surfaces[spec.surface], ramp = colourRamp(surf.colour), rim = surf.rim, rimC = rim ? linearOf(rim.hex) : undefined;
+    // A coloured rim (a variegated margin) blends in over the outer `width` of the half-width.
+    const colour = rim && rimC ? (t: number, a: number): V3 => { const c = ramp(t), k = smooth((a - (1 - rim.width)) / (rim.width * 0.35)); return [lerp(c[0], rimC[0], k), lerp(c[1], rimC[1], k), lerp(c[2], rimC[2], k)]; } : ramp;
+    const built = buildBlade(spec, { seed: s, resolution: cells, maturity, holeRows: f.holeRows, colour, length, triangles });
     if (!leaf && built.stats.holes + built.stats.splits > 0) leaf = built.stats;
     return built;
   };
@@ -300,12 +307,30 @@ function organBatches(sk: FloraSkeleton, f: FidelitySettings, seed: number, temp
       for (let i = 0; i < n; i++) {
         const u = n === 1 ? 0 : i / (n - 1) * 2 - 1, ang = u * spec.leaflets.spread / 2 * DEG, size = 1 - 0.42 * Math.abs(u) ** 1.4;
         const lm = bladeMesh(spec, maturity, s + i * 17, undefined, cells, triangles).mesh, x: V3 = [Math.cos(ang), -Math.sin(ang), 0], y: V3 = [Math.sin(ang), Math.cos(ang), 0];
-        out.append(lm, basisMatrix([0, stalkLen, 0], scale(x, size), scale(y, size), [0, 0, size]));
+        // Fused palmate lobes overlap at the base: lift each a hair so they never fight for the same depth.
+        out.append(lm, basisMatrix([0, stalkLen, i * 0.002 * spec.length.typical], scale(x, size), scale(y, size), [0, 0, size]));
       }
     } else out.append(bladeMesh(spec, maturity, s, undefined, cells, triangles).mesh, stalk ? basisMatrix([0, stalkLen, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]) : undefined);
     return out.build();
   };
   const bins = (spec: BladeSpec) => (spec.fenestration || spec.leaflets ? 4 : 1);
+  // Crown self-shading: leaves deep in the organ cloud and low in it are darker; each leaf also varies a little in tone.
+  const cloud = sk.organs.length >= 40 ? (() => {
+    const c = [0, 0, 0], d = [0, 0, 0];
+    let lo = Infinity, hi = -Infinity;
+    for (const o of sk.organs) for (let i = 0; i < 3; i++) c[i] += o.p[i] / sk.organs.length;
+    for (const o of sk.organs) { for (let i = 0; i < 3; i++) d[i] += (o.p[i] - c[i]) ** 2 / sk.organs.length; lo = Math.min(lo, o.p[1]); hi = Math.max(hi, o.p[1]); }
+    return { c, sd: d.map(v => Math.max(1e-3, Math.sqrt(v)) * 1.8), lo, hi };
+  })() : undefined;
+  const leafTint = (pl: OrganPlacement): V3 => {
+    const h = (k: number) => ((Math.sin(pl.pick * 12.9898 + k * 78.233) * 43758.5453) % 1 + 1) % 1 - 0.5;
+    let shade = 1 + 0.1 * h(3);
+    if (cloud) {
+      const r = Math.hypot((pl.p[0] - cloud.c[0]) / cloud.sd[0], (pl.p[1] - cloud.c[1]) / cloud.sd[1], (pl.p[2] - cloud.c[2]) / cloud.sd[2]);
+      shade *= lerp(0.48, 1, smooth(r)) * (0.82 + 0.18 * smooth((pl.p[1] - cloud.lo) / Math.max(1e-3, cloud.hi - cloud.lo)));
+    }
+    return [shade * (1 + 0.06 * h(1)), shade * (1 + 0.03 * h(2)), shade * (1 - 0.05 * h(1))];
+  };
   for (const pl of sk.organs) {
     const spec = p.organs[pl.organ];
     const lengthFactor = (r: { min: number; typical: number; max: number }) => lerp(r.min, r.max, 0.25 + 0.5 * pl.pick) / r.typical;
@@ -314,22 +339,56 @@ function organBatches(sk: FloraSkeleton, f: FidelitySettings, seed: number, temp
       const m = nb === 1 ? 1 : (bin + 0.7) / nb;
       const cells = cellsFor(spec, pl.organ), tris = budget(spec, pl.organ);
       // The key holds the detail level, so a template made for a sparse plant is never reused on a dense one.
-      push(`${pl.organ}|${bin}|${v}|${cells}|${Math.round(Math.log2(Math.min(tris, 1e9)) * 2)}`, pl.organ, spec.surface, () => bladeTemplate(spec, m, tseed + bin * 101 + v * 13, cells, tris), mat(pl.p, pl.x, pl.y, pl.z, pl.scale * lengthFactor(spec.length)));
+      push(`${pl.organ}|${bin}|${v}|${cells}|${Math.round(Math.log2(Math.min(tris, 1e9)) * 2)}`, pl.organ, spec.surface, () => bladeTemplate(spec, m, tseed + bin * 101 + v * 13, cells, tris), mat(pl.p, pl.x, pl.y, pl.z, pl.scale * lengthFactor(spec.length)), leafTint(pl));
     } else if (spec.kind === "bud") {
       const v = Math.floor(pl.pick * 2);
-      push(`${pl.organ}|${v}`, pl.organ, spec.surface, () => budTemplate(spec, p.surfaces[spec.surface], v), mat(pl.p, pl.x, pl.y, pl.z, pl.scale * lengthFactor(spec.length) * spec.length.typical));
+      push(`${pl.organ}|${v}`, pl.organ, spec.surface, () => budTemplate(spec, p, v), mat(pl.p, pl.x, pl.y, pl.z, pl.scale * lengthFactor(spec.length) * spec.length.typical));
     } else if (spec.kind === "ear") {
       push(`${pl.organ}`, pl.organ, spec.husk, () => earTemplate(spec, p, f, tseed), mat(pl.p, pl.x, pl.y, pl.z, pl.scale * lengthFactor(spec.length) * spec.length.typical));
-    } else capitulum(spec, pl, p, f, seed, tseed, push, bladeMesh);
+    } else if (spec.kind === "corolla") corolla(spec, pl, p, f, tseed, push, bladeMesh);
+    else capitulum(spec, pl, p, f, seed, tseed, push, bladeMesh);
   }
   const batches = [...groups.values()].map(g => ({ organ: g.organ, surface: g.surface, template: g.template, matrices: new Float32Array(g.mats), tints: g.tints.some(v => v !== 1) ? new Float32Array(g.tints) : undefined, count: g.mats.length / 16 }));
   return { batches, leaf };
 }
 
-function budTemplate(spec: BudSpec, surf: SurfaceSpec, v: number): MeshData {
-  const out = new MeshBuffer(), ramp = colourRamp(surf.colour), w = spec.width * (v ? 0.85 : 1);
-  lathe(out, Array.from({ length: 8 }, (_, i) => { const t = i / 7; return [w / 2 * Math.sin(Math.PI * t) ** 0.8, t] as [number, number]; }), 6, u => ramp(u));
+/** A spindle at unit length along +y; with a stalk, the stalk comes first (a fruit hanging on its peduncle). */
+function budTemplate(spec: BudSpec, p: SpeciesMorphologyProfile, v: number): MeshData {
+  const out = new MeshBuffer(), ramp = colourRamp(p.surfaces[spec.surface].colour), w = spec.width * (v ? 0.85 : 1);
+  const stalk = spec.stalk ? spec.stalk.length / spec.length.typical : 0;
+  if (spec.stalk) {
+    const sr = colourRamp(p.surfaces[spec.stalk.surface].colour), r = spec.stalk.radius / spec.length.typical;
+    strand(out, Array.from({ length: 6 }, (_, i) => [Math.sin(i / 5 * Math.PI) * stalk * 0.04, i / 5 * stalk, 0] as V3), r, r * 0.8, 5, u => sr(u));
+  }
+  lathe(out, Array.from({ length: 10 }, (_, i) => { const t = i / 9; return [w / 2 * Math.sin(Math.PI * t) ** 0.8, stalk + t] as [number, number]; }), spec.stalk ? 12 : 6, u => ramp(u));
   return out.build();
+}
+
+/** A flower of petals or tepals round its axis (+z), in whorls or a spiral, opening with maturity, with stamens. */
+function corolla(spec: CorollaSpec, pl: OrganPlacement, p: SpeciesMorphologyProfile, f: FidelitySettings, tseed: number, push: Push, bladeMesh: (s: BladeSpec, m: number, seed: number, length?: number, cells?: number) => { mesh: MeshData }) {
+  const open = smooth((pl.maturity - 0.45) / 0.45), { p: o, x, y, z } = pl;
+  const L = lerp(spec.petal.length.min, spec.petal.length.max, 0.3 + 0.4 * pl.pick), n = spec.count, per = spec.perWhorl ?? n, whorls = Math.ceil(n / per);
+  const cells = Math.max(4, Math.round(f.leafCells * 0.5));
+  for (let k = 0; k < n; k++) {
+    const w = Math.floor(k / per), whorled = spec.arrangement === "whorled";
+    // rel 1 = outermost (first formed), 0 = innermost.
+    const rel = whorled ? (whorls > 1 ? 1 - w / (whorls - 1) : 1) : 1 - k / Math.max(1, n - 1);
+    const az = (whorled ? (k % per) * 360 / per + w * 180 / per : k * GOLDEN_ANGLE) * DEG;
+    const A = lerp(spec.angle[0], spec.angle[1], rel) * lerp(0.3, 1, open) * DEG, sc = spec.scale ? lerp(spec.scale[0], spec.scale[1], rel) : 1;
+    const radial = add(scale(x, Math.cos(az)), scale(y, Math.sin(az)));
+    const py = normalize(add(scale(z, Math.cos(A)), scale(radial, Math.sin(A))));
+    const inward = scale(radial, -1), pz = normalize(add(inward, py, -dot(inward, py))), px = cross(py, pz);
+    const len = L * sc * lerp(0.75, 1, open), base = add(o, radial, 0.06 * L * (0.4 + rel));
+    push(`${pl.organ}|petal|${w % 2}|${k % f.variants}`, pl.organ, spec.petal.surface, () => bladeMesh(spec.petal, 1, tseed + 300 + (k % f.variants) * 7 + w, 1, cells).mesh,
+      basisMatrix(base, scale(px, len), scale(py, len), scale(pz, len)));
+  }
+  if (spec.stamens && open > 0.2) {
+    const st = spec.stamens, bud: BudSpec = { kind: "bud", surface: st.surface, length: { min: st.length, typical: st.length, max: st.length, grade: "estimated" }, width: 0.18 };
+    for (let k = 0; k < st.count; k++) {
+      const az = (k * 360 / st.count + 30) * DEG, radial = add(scale(x, Math.cos(az)), scale(y, Math.sin(az))), sy = normalize(add(z, radial, 0.18)), sx = normalize(cross(sy, radial));
+      push(`${pl.organ}|stamen`, pl.organ, st.surface, () => budTemplate(bud, p, 0), basisMatrix(add(o, radial, 0.05 * L), scale(sx, st.length), scale(sy, st.length), scale(cross(sx, sy), st.length)));
+    }
+  }
 }
 
 /** A maize ear: husked spindle with flag leaves and silk, built at unit length along +y. */

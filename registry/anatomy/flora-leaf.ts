@@ -27,8 +27,8 @@ export interface BladeOptions {
   length?: number;
   /** 0 shade → 1 full sun: picks the hole-area fraction between its measured min and max. */
   light?: number;
-  /** Linear-RGB colour from the base (0) to the tip (1). */
-  colour: (s: number) => V3;
+  /** Linear-RGB colour at s from the base (0) to the tip (1), and a from the midrib (0) to the margin (1). */
+  colour: (s: number, a: number) => V3;
 }
 
 export interface BladeStats { area: number; holeArea: number; holes: number; splits: number; triangles: number }
@@ -55,9 +55,11 @@ export function bladeLayout(spec: BladeSpec, L: number): BladeLayout {
     const s = (y - yBase) / L;
     if (s <= 0 || s >= 1) return 0;
     let w = s <= m ? Math.sin(Math.PI / 2 * s / m) ** a : Math.sin(Math.PI / 2 * (1 - s) / (1 - m)) ** b;
+    if (spec.waist) w *= 1 - spec.waist.depth * Math.exp(-(((s - spec.waist.at) / 0.16) ** 2));
     if (spec.mucro && 1 - s < spec.mucro * 2.5) w *= Math.min(1, ((1 - s) / (spec.mucro * 2.5)) ** 0.85 * 1.15);
     if (margin?.kind === "serrate") { const f = (s * margin.count) % 1, tooth = f < 0.75 ? f / 0.75 : (1 - f) / 0.25; w *= 1 - margin.depth * (1 - tooth) * smooth(s * 6) * smooth((1 - s) * 8); }
     else if (margin?.kind === "undulate") w *= 1 + margin.depth * Math.sin(2 * Math.PI * margin.count * s);
+    else if (margin?.kind === "lobed") w *= 1 - margin.depth * (0.5 + 0.5 * Math.cos(2 * Math.PI * ((s * margin.count) % 1))) ** 2 * smooth(s * 5) * smooth((1 - s) * 5);
     return W * w;
   };
   const n = Math.max(1, spec.veins.laterals), first = lobe > 0 ? 0.01 * L : 0.05 * yApex, last = 0.9 * yApex;
@@ -151,7 +153,7 @@ export function buildBlade(spec: BladeSpec, o: BladeOptions): BladeMesh {
   const pts: number[] = [], tris: number[] = [];
   if (!(fen && ripe > 0) && !(sinus > 0)) {
     // No cuts: a strip that follows the outline exactly (cheap for the thousands of small leaves on a tree).
-    const sx = Math.max(2, Math.round(o.resolution)), sy = Math.max(3, Math.min(sx * 10, Math.round(sx * (yApex - yBase) / (2 * W) * 0.45) + 3, Math.round((o.triangles ?? Infinity) / (2 * sx))));
+    const sx = Math.max(2, Math.round(o.resolution)), sy = Math.max(3, Math.min(sx * 10, Math.round(sx * (yApex - yBase) / (2 * W) * 0.45) + 3, Math.round((o.triangles ?? Infinity) / (2 * sx)), Math.max(12, Math.round(o.resolution * 2.5))));
     for (let j = 0; j <= sy; j++) {
       const y = yBase + (yApex - yBase) * (j / sy), w = halfWidth(y);
       for (let i = 0; i <= sx; i++) pts.push((-1 + 2 * i / sx) * w, y);
@@ -213,7 +215,9 @@ export function buildBlade(spec: BladeSpec, o: BladeOptions): BladeMesh {
     area += ((pts[j] - pts[i]) * (pts[k + 1] - pts[i + 1]) - (pts[k] - pts[i]) * (pts[j + 1] - pts[i + 1])) / 2;
   }
   // Shape in 3D: fold, cup, pleats, ruffle, twist, thickness, then bend the midrib by the elastica.
-  const pitch = (spec.droopPitch ?? 20) * DEG, bend = heavyElastica(pitch, spec.droop ?? 0, 32).map(t => t - pitch);
+  // A negative droop curls the blade toward its upper face: the mirrored elastica.
+  const pitch = (spec.droopPitch ?? 20) * DEG, g = spec.droop ?? 0;
+  const bend = g >= 0 ? heavyElastica(pitch, g, 32).map(t => t - pitch) : heavyElastica(-pitch, -g, 32).map(t => -t - pitch);
   const midrib: [number, number][] = [[0, 0]];
   for (let i = 1; i < bend.length; i++) {
     const t = (bend[i - 1] + bend[i]) / 2, [py, pz] = midrib[i - 1];
@@ -238,7 +242,7 @@ export function buildBlade(spec: BladeSpec, o: BladeOptions): BladeMesh {
     const base = out.count;
     for (let i = 0; i < pts.length; i += 2) {
       const x = pts[i], y = pts[i + 1], v = (y - yBase) / (yApex - yBase);
-      out.vertex(shape(x, y, side), 0.5 + x / (2 * W), v, o.colour(clamp(v)));
+      out.vertex(shape(x, y, side), 0.5 + x / (2 * W), v, o.colour(clamp(v), clamp(Math.abs(x) / Math.max(1e-6, halfWidth(y)))));
     }
     for (let t = 0; t < tris.length; t += 3) {
       if (side > 0) out.tri(base + tris[t], base + tris[t + 1], base + tris[t + 2]);
