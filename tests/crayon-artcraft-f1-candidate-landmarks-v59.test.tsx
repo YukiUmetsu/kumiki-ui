@@ -89,6 +89,7 @@ describe("ArtCraft V59 actual rendered-landmark evidence quarantine",()=>{
     expect(candidates()).toHaveLength(0);
     expect(source()).toHaveLength(18);
     expect(screen.getByRole("option",{name:/V63 connected-face value candidate/})).toBeTruthy();
+    expect(screen.getByRole("option",{name:/V64 oral-aperture candidate/})).toBeTruthy();
     expect(JSON.parse(output().value).marks).toEqual({});
     expect(screen.getByText(/0\/18 candidate observations/)).toBeTruthy();
     const canvas=screen.getByRole("button",{
@@ -117,6 +118,18 @@ describe("ArtCraft V59 actual rendered-landmark evidence quarantine",()=>{
     expect(screen.getByText(/0\/18 candidate observations/)).toBeTruthy();
     expect(JSON.parse(output().value).releaseApproved).toBe(false);
   },60_000);
+  it("keeps the V64 oral-aperture native capture independently identifiable",()=>{
+    const worksheet=crayonF1NativeCaptureWorksheetV60({
+      variant:"source-anat1-connected-face-v64",
+      nativePngSha256:"c".repeat(64),
+      checkoutCommitSha:"f".repeat(40),
+      pngFileName:"v64-oral-native-299.png",
+    });
+    expect(worksheet.native.variant).toBe("source-anat1-connected-face-v64");
+    expect(worksheet.audit.status).toBe("INCOMPLETE");
+    expect(worksheet.audit.measured).toBe(0);
+    expect(worksheet.releaseApproved).toBe(false);
+  });
   it("keeps the connected-face V63 native capture independently identifiable",()=>{
     const worksheet=crayonF1NativeCaptureWorksheetV60({
       variant:"source-anat1-connected-face-v63",
