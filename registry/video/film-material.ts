@@ -30,7 +30,7 @@ import { GLASS_FRAMES, glassFrame, planGlass } from "./material-glass";
 import type { GlassKind, GlassPlan, MaterialDirection } from "./material-glass";
 import { PAPER_FRAMES, paperFrame, planPaper } from "./material-paper";
 import type { PaperKind, PaperPlan } from "./material-paper";
-import { LIQUID_FRAMES, liquidFrame, planLiquid } from "./material-liquid";
+import { fingeringArrival, fingeringFront, frontAt, LIQUID_FRAMES, liquidFrame, planLiquid } from "./material-liquid";
 import type { LiquidKind, LiquidPlan } from "./material-liquid";
 
 export type { MaterialFrame, MaterialLayer, MaterialVector, MaterialWarp } from "./material-kit";
@@ -311,37 +311,19 @@ function planFront(spec: MaterialSpec & { material: FrontKind }, cols: number, r
     return { material: "burn", cols, rows, aspect, arrival, grainField, color, seed };
   }
   if (spec.material === "paint") {
-    // A film running down a slope breaks into fingers of one spacing (about 8–12 per frame width here).
-    const count = 8 + Math.floor(hash(1, 2, seed) * 5);
+    // Paint poured along the top runs down as a viscous front whose drips appear, compete and merge (fingeringFront):
+    // arrival is when the front reaches each cell.
+    const front = fingeringFront(seed + 1, 0.11 + 0.04 * hash(1, 2, seed)), arrival = fingeringArrival(front, cols, rows);
+    // A drip's lead halfway down sets how big its head is.
     const fingers = new Float32Array(cols);
-    const centres = Array.from({ length: count }, (_, k) => (k + 0.3 + 0.4 * hash(k, 3, seed)) / count);
-    const heights = centres.map((_, k) => 0.35 + 0.65 * hash(k, 5, seed));
-    const widths = centres.map((_, k) => (0.18 + 0.12 * hash(k, 9, seed)) / count);
-    for (let i = 0; i < cols; i++) {
-      const x = (i + 0.5) / cols;
-      let f = -0.35;
-      centres.forEach((c, k) => {
-        const d = (x - c) / widths[k];
-        // Flat-topped: a drip keeps its width down its length and ends in a rounded head.
-        f = Math.max(f, heights[k] * Math.exp(-(d * d) * (d * d)) * 1.35 - 0.35);
-      });
-      fingers[i] = Math.min(1, f + 0.08 * (fbm(x * 30, 0, seed + 4, 3) - 0.5));
-    }
-    // The front: y_f(x, t) = v·t + a·t²·φ(x). Arrival t where y_f = y; the slowest column reaches the bottom at t = 1.
-    const amp = 0.32;
-    let lowest = Infinity;
-    for (const f of fingers) lowest = Math.min(lowest, f);
-    const v = 1 - amp * lowest;
-    const arrival = new Float32Array(n);
+    let mean = 0;
+    for (let i = 0; i < cols; i++) mean += frontAt(front, (i + 0.5) / cols, 0.6) / cols;
+    for (let i = 0; i < cols; i++) fingers[i] = Math.max(-1, Math.min(1, (frontAt(front, (i + 0.5) / cols, 0.6) - mean) / 0.15));
     for (let j = 0; j < rows; j++) {
-      const y = (j + 0.5) / rows;
       for (let i = 0; i < cols; i++) {
-        const a = amp * fingers[i];
-        const wobble = 0.006 * (fbm((i * 0.4) / unit, (j * 0.08) / unit, seed + 7, 3) - 0.5);
-        // Solve a·t² + v·t − y = 0 for t ≥ 0.
-        const t = Math.abs(a) < 1e-6 ? y / v : (-v + Math.sqrt(Math.max(0, v * v + 4 * a * y))) / (2 * a);
-        arrival[i + j * cols] = Math.min(1, Math.max(0, t + wobble));
-        grainField[i + j * cols] = fbm((i * 0.35) / unit, (j * 0.05) / unit, seed + 13, 3);
+        const k = i + j * cols;
+        arrival[k] = clamp01(arrival[k] + 0.004 * (fbm((i * 0.4) / unit, (j * 0.08) / unit, seed + 7, 3) - 0.5));
+        grainField[k] = fbm((i * 0.35) / unit, (j * 0.05) / unit, seed + 13, 3);
       }
     }
     return { material: "paint", cols, rows, aspect, arrival, grainField, fingers, color, seed };

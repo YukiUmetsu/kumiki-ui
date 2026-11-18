@@ -34,8 +34,8 @@ export interface LiquidPlan {
   reach: number;
   /** ripple: refraction gain, frame heights of displacement per unit slope. */
   gain: number;
-  /** melt: the drip profile per column (−1..1). */
-  drips: Float32Array;
+  /** melt: the wet edge running down the wall, drips and all. */
+  front?: Front;
   /** ripple: the splash's spray, per droplet [angle, outward speed m/s, upward speed m/s, radius m]. */
   spray: Float32Array;
 }
@@ -80,6 +80,95 @@ function rippleSlope(radii: Float64Array, t: number): Float64Array {
   return out;
 }
 
+/**
+ * A viscous front running down a wall, column by column (a reduced model of thin-film fingering, after Huppert 1982 and
+ * Troian et al. 1989). The front's leading ridge holds a volume V that sets its speed (u ∝ h², so v ∝ V^(2/3) for a
+ * ridge whose width grows with its height). Fluid in the ridge drains sideways toward the columns that are ahead, so a
+ * drip that leads takes its neighbours' fluid and runs faster still; surface tension smooths the front (a fourth-order
+ * term, which sets the drip spacing). Fresh fluid arrives from behind, and some is left on the wall as a film. Drips
+ * appear, compete and merge on their own. Returns the front, normalised so the last column reaches the foot at the
+ * last sample: `y[sample · columns + column]`, frame heights.
+ */
+export interface Front { columns: number; samples: number; y: Float32Array }
+export function fingeringFront(seed: number, spacing = 0.14, columns = 160, samples = 96): Front {
+  const N = columns, ds = 1 / N, k = (2 * Math.PI) / spacing;
+  // Small ripples in the front grow at about gain·k against smoothing·k⁴, fastest at k = (gain / 4·smoothing)^(1/3), the
+  // chosen spacing; strong enough that drips show from a third of the way down.
+  const c = 1.2, q = 0.5, film = 0.4, slow = 0.18, gain = 0.3, cprime = (2 / 3) * c, kappa = (gain * gain) / cprime;
+  // Explicit steps: the fourth-order term needs dt < ds⁴ / (8 · smoothing); half of that.
+  const smoothing = gain / (4 * k ** 3), spread = 2e-5, dt = Math.min(5e-4, ds ** 4 / (16 * smoothing));
+  const y = new Float64Array(N), V = new Float64Array(N), ny = new Float64Array(N), nv = new Float64Array(N);
+  for (let i = 0; i < N; i++) {
+    // A poured edge is never straight: a little unevenness in how much arrived where.
+    V[i] = 1 + 0.1 * (fbm((i / N) * 9, 0.5, seed + 81, 4) - 0.5) + 0.03 * (hash(i, 82, seed) - 0.5);
+    y[i] = 0.012 * (fbm((i / N) * 14, 1.5, seed + 84, 3) - 0.5);
+  }
+  const at = (a: Float64Array, i: number) => a[i < 0 ? -i - 1 : i >= N ? 2 * N - i - 1 : i];
+  const history: Float64Array[] = [], times: number[] = [];
+  let t = 0;
+  history.push(Float64Array.from(y)); times.push(0);
+  for (let step = 0; step < 60000; step++) {
+    for (let i = 0; i < N; i++) {
+      const yxx = (at(y, i - 1) - 2 * y[i] + at(y, i + 1)) / (ds * ds);
+      const yxxxx = (at(y, i - 2) - 4 * at(y, i - 1) + 6 * y[i] - 4 * at(y, i + 1) + at(y, i + 2)) / ds ** 4;
+      const v = c * (Math.max(0, V[i]) + slow) ** (2 / 3);
+      ny[i] = y[i] + dt * (v + spread * yxx - smoothing * yxxxx);
+      // Sideways flow toward the columns that are ahead: J = κ V ∂y/∂s, and V changes by −∂J/∂s. V is taken from the
+      // column the fluid leaves (upwind), and no step moves more than a quarter of it, so V stays positive and stable.
+      const flux = (a: number, b: number, ya: number, yb: number) => {
+        const slope = (yb - ya) / ds, from = slope > 0 ? a : b, j = kappa * from * slope;
+        return Math.sign(j) * Math.min(Math.abs(j), (0.25 * from * ds) / dt);
+      };
+      const jr = flux(V[i], at(V, i + 1), y[i], at(y, i + 1)), jl = flux(at(V, i - 1), V[i], at(y, i - 1), y[i]);
+      const vxx = (at(V, i - 1) - 2 * V[i] + at(V, i + 1)) / (ds * ds);
+      nv[i] = Math.max(0, V[i] + dt * (q - film * v - (jr - jl) / ds + spread * vxx));
+    }
+    y.set(ny); V.set(nv); t += dt;
+    if (step % 8 === 0) { history.push(Float64Array.from(y)); times.push(t); }
+    let lowest = Infinity;
+    for (let i = 0; i < N; i++) lowest = Math.min(lowest, y[i]);
+    if (!(lowest < 1.02)) break;
+  }
+  // Resample to even times, from the start until the last column passes the foot.
+  const out = new Float32Array(samples * N), end = times[times.length - 1];
+  for (let s = 0; s < samples; s++) {
+    const want = (s / (samples - 1)) * end;
+    let lo = 0;
+    while (lo < times.length - 2 && times[lo + 1] < want) lo++;
+    const u = clamp01((want - times[lo]) / Math.max(1e-9, times[lo + 1] - times[lo]));
+    for (let i = 0; i < N; i++) out[s * N + i] = history[lo][i] * (1 - u) + history[lo + 1][i] * u;
+  }
+  return { columns: N, samples, y: out };
+}
+
+/** The front at column s (0..1 across the frame) and time u (0..1), frame heights. */
+export function frontAt(front: Front, s: number, u: number): number {
+  const fc = clamp01(s) * (front.columns - 1), c0 = Math.min(front.columns - 2, Math.floor(fc)), a = fc - c0;
+  const fu = clamp01(u) * (front.samples - 1), u0 = Math.min(front.samples - 2, Math.floor(fu)), b = fu - u0, N = front.columns, y = front.y;
+  const row = (k: number) => y[k * N + c0] * (1 - a) + y[k * N + c0 + 1] * a;
+  return row(u0) * (1 - b) + row(u0 + 1) * b;
+}
+
+/** When the front reaches each cell of a `cols × rows` grid, 0..1 (1: the last column reaches the foot). */
+export function fingeringArrival(front: Front, cols: number, rows: number): Float32Array {
+  const { columns: N, samples: S, y } = front, crossing = new Float32Array(N * rows);
+  for (let c = 0; c < N; c++) {
+    let k = 0;
+    for (let j = 0; j < rows; j++) {
+      const target = (j + 0.5) / rows;
+      while (k < S - 1 && y[(k + 1) * N + c] < target) k++;
+      const y0 = y[k * N + c], y1 = y[Math.min(S - 1, k + 1) * N + c];
+      crossing[c * rows + j] = Math.min(1, (k + clamp01((target - y0) / Math.max(1e-9, y1 - y0))) / (S - 1));
+    }
+  }
+  const out = new Float32Array(cols * rows);
+  for (let i = 0; i < cols; i++) {
+    const fc = ((i + 0.5) / cols) * (N - 1), c0 = Math.min(N - 2, Math.floor(fc)), a = fc - c0;
+    for (let j = 0; j < rows; j++) out[i + j * cols] = crossing[c0 * rows + j] * (1 - a) + crossing[(c0 + 1) * rows + j] * a;
+  }
+  return out;
+}
+
 export function planLiquid(material: LiquidKind, opts: { cols: number; rows: number; aspect: number; seed: number; seconds: number; color?: string; origin?: { x: number; y: number } }): LiquidPlan {
   const { cols, rows, aspect, seed, seconds } = opts;
   const origin = { x: (opts.origin?.x ?? 0.5) * aspect, y: opts.origin?.y ?? 0.5 };
@@ -91,27 +180,14 @@ export function planLiquid(material: LiquidKind, opts: { cols: number; rows: num
   const radii = Float64Array.from({ length: 240 }, (_, i) => ((i + 0.5) / 240) * reach * metres);
   const slope = rippleSlope(radii, seconds / 3);
   const gain = 0.022 / Math.max(1e-12, Math.max(...slope.map(Math.abs)));
-  // Melt: drips of one spacing (Huppert), 7 to 10 across the frame.
-  const drips = new Float32Array(cols);
-  if (material === "melt") {
-    // Narrow drips with flat edge between them, of uneven length: a few run far, most only a little.
-    const count = 9 + Math.floor(hash(1, 9, seed) * 5);
-    const centres = Array.from({ length: count }, (_, k) => (k + 0.2 + 0.6 * hash(k, 13, seed)) / count);
-    const heights = centres.map((_, k) => 0.25 + 0.75 * hash(k, 17, seed) ** 1.6), widths = centres.map((_, k) => (0.1 + 0.08 * hash(k, 19, seed)) / count);
-    for (let i = 0; i < cols; i++) {
-      const x = (i + 0.5) / cols;
-      let f = -0.25;
-      // Flat-topped: a drip keeps its width down its length and ends in a rounded head.
-      centres.forEach((c, k) => { const d = (x - c) / widths[k]; f = Math.max(f, heights[k] * 1.25 * Math.exp(-(d * d) * (d * d)) - 0.25); });
-      drips[i] = f + 0.05 * (fbm(x * 24, 1, seed + 3, 3) - 0.5);
-    }
-  }
+  // Melt: the wet edge is a draining front whose drips appear, compete and merge (fingeringFront).
+  const front = material === "melt" ? fingeringFront(seed + 2, 0.11) : undefined;
   // A 4 mm drop falling about half a metre throws a dozen or so droplets of a millimetre or less.
   const spray = new Float32Array(material === "ripple" ? 4 * 16 : 0);
   for (let i = 0; i < spray.length / 4; i++) {
     spray.set([((i + 0.6 * hash(i, 61, seed)) / (spray.length / 4)) * Math.PI * 2, 0.18 + 0.4 * hash(i, 62, seed), 0.35 + 0.55 * hash(i, 63, seed), 0.0004 + 0.0007 * hash(i, 64, seed) ** 2], 4 * i);
   }
-  return { material, cols, rows, aspect, seed, seconds, color: opts.color ?? DEFAULT_COLOR[material], origin, metres, reach, gain, drips, spray };
+  return { material, cols, rows, aspect, seed, seconds, color: opts.color ?? DEFAULT_COLOR[material], origin, metres, reach, gain, front, spray };
 }
 
 export function liquidFrame(plan: LiquidPlan, progress: number): MaterialFrame {
@@ -216,7 +292,7 @@ function splash(plan: LiquidPlan, t: number): MaterialFrame["vectors"] {
 }
 
 function meltFrame(plan: LiquidPlan, p: number): MaterialFrame {
-  const { cols, rows, aspect, drips } = plan, n = cols * rows;
+  const { cols, rows, aspect } = plan, n = cols * rows, front = plan.front!;
   // The layer drains like a viscous film on a wall (Jeffreys): material moves with a speed that grows with depth, so the
   // picture sags and stretches from the top, and the film above a wet edge thins until it is gone. Drip columns run
   // faster. Slow while the wax softens, then faster.
@@ -224,10 +300,17 @@ function meltFrame(plan: LiquidPlan, p: number): MaterialFrame {
   // The even stretch is exact (a transform of the whole layer); the warp holds only each column's extra.
   const dx = new Float32Array(n), dy = new Float32Array(n), cover = new Uint8ClampedArray(n);
   const gloss = new Uint8ClampedArray(n), lip = new Uint8ClampedArray(n);
+  // The wet edge runs down the wall as the draining front: its drips appear, compete and merge. Its mean, for each
+  // column's lead.
+  const u = tau ** 1.3;
+  let mean = 0;
+  for (let i = 0; i < cols; i++) mean += frontAt(front, (i + 0.5) / cols, u) / cols;
   for (let i = 0; i < cols; i++) {
-    const f = drips[i], own = stretch * (1 + 0.12 * tau * f), x = ((i + 0.5) / cols) * aspect;
-    // The wet edge: above it the film has drained too thin to see. It runs ahead down the drip columns.
-    const edge = -0.08 + 1.35 * tau ** 1.3 * (1 + 0.3 * f) + 0.012 * (fbm(x * 14, tau * 3, plan.seed + 7, 3) - 0.5);
+    const at = frontAt(front, (i + 0.5) / cols, u), lead = Math.max(-1, Math.min(1, (at - mean) / 0.2));
+    // A drip column carries more of the wax down, so it stretches more.
+    const own = stretch * (1 + 0.12 * tau * lead), x = ((i + 0.5) / cols) * aspect;
+    // Above the wet edge the film has drained too thin to see; by the end the edge is past the frame's foot everywhere.
+    const edge = -0.1 + 1.25 * at + 0.01 * (fbm(x * 14, tau * 3, plan.seed + 7, 3) - 0.5);
     for (let j = 0; j < rows; j++) {
       const k = i + j * cols, local = (j + 0.5) / rows, y = local * stretch;
       // On screen this cell shows the picture from y / own; in the layer's own coordinates that is local·stretch/own.

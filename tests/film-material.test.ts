@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { eikonal, inspectMaterial, materialFrame, planMaterial } from "../registry/video/film-material";
 import type { MaterialKind } from "../registry/video/film-material";
 import { encodeWarp } from "../registry/video/film-warp";
+import { fingeringFront } from "../registry/video/material-liquid";
 import { MATERIAL_SOUNDS, MATERIAL_SOUND_IDS } from "../registry/video/material-sound";
 import catalog from "../assets/sound/catalog.json";
 import type { EncodedWarp } from "../registry/video/film-warp";
@@ -226,6 +227,19 @@ describe("material transitions", () => {
     const film = compileFilm(materialLiquid as unknown as FilmDocument, { outputId: "draft" });
     expect(film.ok).toBe(true);
     if (film.ok) expect(Object.values(film.film.mattes).map((m) => m.texture)).toEqual(["ripple", "melt", "ripple", "melt"]);
+  });
+
+  it("lets paint and melt drips appear, compete and merge", () => {
+    const front = fingeringFront(6), row = (u: number) => Array.from(front.y.slice(Math.round(u * (front.samples - 1)) * front.columns, (Math.round(u * (front.samples - 1)) + 1) * front.columns));
+    const drips = (u: number) => { const r = row(u); let count = 0; for (let i = 2; i < r.length - 2; i++) if (r[i] > r[i - 1] && r[i] >= r[i + 1] && r[i] - Math.min(...r.slice(Math.max(0, i - 10), i + 10)) > 0.02) count++; return count; };
+    // Flat at first, drips by half way, fewer and longer by the end as the leaders take their neighbours' fluid.
+    expect(drips(0.1)).toBe(0);
+    expect(drips(0.5)).toBeGreaterThanOrEqual(5);
+    expect(drips(1)).toBeLessThanOrEqual(drips(0.5));
+    const last = row(1);
+    expect(Math.min(...last)).toBeGreaterThanOrEqual(1);
+    expect(Math.max(...last) - Math.min(...last)).toBeGreaterThan(0.3);
+    expect(fingeringFront(6).y).toEqual(front.y);
   });
 
   it("draws the same material on a finer grid for a larger output", () => {
