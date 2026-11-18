@@ -67,31 +67,45 @@ test("native 16:9 + 9:16: real six-source central knot with a visible curled bac
         expect(await path.getAttribute("d")).toBe(previousPaths[id]);
       const details=region.locator("[data-km-pencil-details] path");
       expect(await details.count()).toBeGreaterThanOrEqual(5);
-      if(id.startsWith("rose-whorl-")){
-        const localContacts=await region.evaluate(node=>{
-          const support=node.querySelector("path[data-km-pencil-support]") as SVGPathElement|null;
-          if(!support)return [];
-          const paths=[...node.querySelectorAll(
-            'path[data-km-pencil-trace^="rw-"],path[data-km-pencil-trace^="rk-rose-whorl-"]',
-          )] as SVGPathElement[];
-          return paths.map(path=>{
-            const length=path.getTotalLength();let inside=0;
-            for(let i=1;i<=9;i++){
-              const point=path.getPointAtLength(length*i/10);
-              if(support.isPointInFill(new DOMPoint(point.x,point.y)))inside++;
-            }
-            return {id:path.getAttribute("data-km-pencil-trace"),inside};
-          });
+      const localContacts=await region.evaluate(node=>{
+        const support=node.querySelector("path[data-km-pencil-support]") as SVGPathElement|null;
+        if(!support)return [];
+        const paths=[...node.querySelectorAll(
+          'path[data-km-pencil-trace^="rw-"],path[data-km-pencil-trace^="rk-"]',
+        )] as SVGPathElement[];
+        return paths.map(path=>{
+          const length=path.getTotalLength();let inside=0;
+          for(let i=1;i<=9;i++){
+            const point=path.getPointAtLength(length*i/10);
+            if(support.isPointInFill(new DOMPoint(point.x,point.y)))inside++;
+          }
+          return {id:path.getAttribute("data-km-pencil-trace"),inside};
         });
-        expect(localContacts.length).toBeGreaterThanOrEqual(8);
-        for(const contact of localContacts)
-          expect(contact.inside,contact.id+" stays on its own filled lamina").toBeGreaterThanOrEqual(5);
-      }
+      });
+      expect(localContacts.length).toBe(id==="inner-fold"||id==="heart"?6:8);
+      for(const contact of localContacts)
+        expect(contact.inside,contact.id+" stays on its own filled lamina").toBeGreaterThanOrEqual(7);
       await expect(region.locator("[data-km-pigment-layer]")).toHaveCount(3);
     }
     const physical=svg.locator('[data-km-pencil-region="rose-center-scroll-underturn"]');
     await expect(physical.locator("path[data-km-pencil-support]")).toHaveCount(1);
     await expect(physical.locator("[data-km-pencil-details] path")).toHaveCount(4);
+    const undersideContacts=await physical.evaluate(node=>{
+      const support=node.querySelector("path[data-km-pencil-support]") as SVGPathElement|null;
+      if(!support)return [];
+      const paths=[...node.querySelectorAll('path[data-km-pencil-trace^="rk-underturn-"]')] as SVGPathElement[];
+      return paths.map(path=>{
+        const length=path.getTotalLength();let inside=0;
+        for(let i=1;i<=9;i++){
+          const point=path.getPointAtLength(length*i/10);
+          if(support.isPointInFill(new DOMPoint(point.x,point.y)))inside++;
+        }
+        return {id:path.getAttribute("data-km-pencil-trace"),inside};
+      });
+    });
+    expect(undersideContacts).toHaveLength(4);
+    for(const contact of undersideContacts)
+      expect(contact.inside,contact.id+" stays on the reverse-petal lamina").toBeGreaterThanOrEqual(7);
     const stats=await svg.evaluate(root=>{
       const underside=root.querySelector('[data-km-pencil-region="rose-center-scroll-underturn"] path[data-km-pencil-support]') as SVGPathElement|null;
       const front=root.querySelector('[data-km-pencil-region="rose-whorl-scroll"] path[data-km-pencil-support]') as SVGPathElement|null;
