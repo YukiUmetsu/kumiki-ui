@@ -88,3 +88,20 @@ The first CI run of the value-first pass correctly caught two stale physical-rev
 - The four-organ and six-surface whorl definitions remain synchronized. Existing semantic IDs, layer order, pencil contacts, deterministic seeds and opt-in defaults are unchanged.
 
 The previous CI failure was a real stale-hinge/bounds defect, not a test false positive. The next run must pass the foundation contract and all affected rose tests before native browser proof can proceed. ART HOLD remains.
+
+
+## Second native geometry audit — 2026-11-18
+
+The next Chromium proof exposed two genuine defects in the first overlap correction; neither was a flaky screenshot comparison and neither is fixed by lowering thresholds:
+
+1. The recess's first, second and fourth legacy dry-contact paths sat outside their own opaque SVG fill. The third only grazed the fill. The scroll's lower two contacts also sat outside its own support. The browser correctly reported `rw-recess-0` with zero of nine samples inside.
+2. The supposed `cup-under-left` overlap had **zero** shared fill samples. The previous left-wall lower heel remained below the recess instead of crossing it. The earlier documentation's statement that this axis crossed the recess was therefore inaccurate; the path/fill audit is authoritative.
+
+Corrections on this branch:
+
+- Reprofile the left wall's lower inner edge into a lifted, oblique lobe: it now sweeps from the heel at `(231,174)` through `(238,166)` and `(247,163)` to `(255,166)`, then returns to `(266,179)`. This creates a real shared opaque area with the recess while preserving the left-wall's distinct outer curl and source bounds.
+- Move the `cup-under-left` contact axis onto that actual shared boundary segment, `(255,166) → (266,179)`. The original 41×5 native fill/exposure audit remains unchanged.
+- Re-author all four recess dry contacts and the lower two scroll contacts so their complete paths sit on their own lamina fills. No trace count, width, pigment opacity, or test threshold was reduced.
+- Add a unit invariant that the four common whorl/centre silhouettes and their four local contact paths remain byte-synchronized. This prevents the two independently gated study definitions from silently diverging again.
+
+The next exact-head CI must pass both native occupancy tests in 16:9 and 9:16, all 45-region coexistence, source-macro capture and restoration checks. Passing those checks still does not constitute artistic approval; inspect the updated 1× and 2.15× screenshots before changing the opt-in status. **ART HOLD remains.**
