@@ -58,7 +58,6 @@ test("F1 V55 source-vs-native similarity 608x1082 CC0 V52 and V54 (research repo
     ["V54","source-anat1-superior-tarsus-v54"],
   ] as const){
     const spec=crayonCc0FaceStudy({midfaceForm,detail:1});
-    capturedSpecs[label]=spec;
     await page.setContent("<!doctype html><html><body style='margin:0'>"+
       renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
       "</body></html>");
@@ -184,7 +183,6 @@ test("F1 V58 original CC0 22-station hair silhouette source image and V56 V57",a
   const original=discoverSource(process.env.KM_ARTCRAFT_CC0_SOURCE_DIR??".artcraft-original-photo");
   const errors:string[]=[];page.on("pageerror",e=>errors.push(e.message));
   const captures:Record<string,string>={};
-  const capturedSpecs:Record<string,ReturnType<typeof crayonCc0FaceStudy>>={};
   for(const [label,midfaceForm] of [
     ["V56","source-anat1-hair-top-v56"],
     ["V57","source-anat1-hair-edge-v57"],
@@ -398,11 +396,13 @@ test("F1 V63 source-connected facial value calibration native PNG and V60 eviden
   await page.setViewportSize({width:W,height:H});
   const original=discoverSource(process.env.KM_ARTCRAFT_CC0_SOURCE_DIR??".artcraft-original-photo");
   const captures:Record<string,string>={};
+  const capturedSpecs:Record<string,ReturnType<typeof crayonCc0FaceStudy>>={};
   for(const [label,midfaceForm] of [
     ["V57","source-anat1-hair-edge-v57"],
     ["V63","source-anat1-connected-face-v63"],
   ] as const){
     const spec=crayonCc0FaceStudy({midfaceForm,detail:1});
+    capturedSpecs[label]=spec;
     await page.setContent("<!doctype html><html><body style='margin:0'>"+
       renderToStaticMarkup(createElement(CrayonScene,{spec,frame:299}))+
       "</body></html>");
