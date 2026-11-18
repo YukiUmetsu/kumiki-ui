@@ -41,6 +41,7 @@ export interface InkMingQingCharacterStudyProps {
 interface CharacterProfile {
   sourceId:string;
   sourceObjectId:string;
+  sourceReferences:string[];
   sex:number;
   yaw:number;
   pitch:number;
@@ -63,26 +64,29 @@ interface CharacterProfile {
 }
 const PROFILES:Record<InkMingQingCharacter,CharacterProfile>={
   scholar:{
-    sourceId:"met-55.37-dark-bearded-tall-hat-study",sourceObjectId:"55.37",
-    sex:1,yaw:18,pitch:-2,faceWidth:1.01,lowerFace:1.10,jawTaper:1.07,
-    noseWidth:.95,eyeSpacing:.96,eyeHeight:.90,mouthWidth:1.01,
-    hairStyle:"tall-scholar-cap",hairFiberCount:24,beardFiberCount:68,
+    sourceId:"met-55.37-and-52.177.8-scholar-study",sourceObjectId:"55.37",
+    sourceReferences:["Met 55.37 · Twenty-five bust portraits","Met 52.177.8 · Jiang Yun, Portrait of a Man"],
+    sex:1,yaw:18,pitch:-2,faceWidth:.91,lowerFace:1.16,jawTaper:.82,
+    noseWidth:.92,eyeSpacing:.97,eyeHeight:.94,mouthWidth:.96,
+    hairStyle:"tall-scholar-cap",hairFiberCount:38,beardFiberCount:92,
     ink:"#34332e",skin:"#eadbc6",wash:"#94765e",hair:"#292b28",
     robe:"#e8dfd0",accent:"#8e4e3b",
   },
   writer:{
-    sourceId:"met-2024.180-seated-writer-study",sourceObjectId:"2024.180",
-    sex:0,yaw:-18,pitch:-8,faceWidth:.92,lowerFace:.94,jawTaper:.78,
-    noseWidth:.88,eyeSpacing:.98,eyeHeight:.96,mouthWidth:.90,
-    hairStyle:"pinned-writer-coil",hairFiberCount:44,beardFiberCount:0,
+    sourceId:"met-2024.180-and-52.177.5-writer-study",sourceObjectId:"2024.180",
+    sourceReferences:["Met 2024.180 · Woman at her dressing table","Met 52.177.5 · Jiang Jun, Portrait of a Lady"],
+    sex:0,yaw:-18,pitch:-8,faceWidth:.88,lowerFace:1.08,jawTaper:.84,
+    noseWidth:.90,eyeSpacing:1.01,eyeHeight:.98,mouthWidth:.92,
+    hairStyle:"pinned-writer-coil",hairFiberCount:64,beardFiberCount:0,
     ink:"#37342e",skin:"#efdfca",wash:"#a98770",hair:"#282723",
     robe:"#ded4c2",accent:"#9c5847",
   },
   attendant:{
-    sourceId:"met-2024.180-standing-attendant-study",sourceObjectId:"2024.180",
-    sex:0,yaw:14,pitch:-5,faceWidth:.95,lowerFace:.97,jawTaper:.86,
-    noseWidth:.91,eyeSpacing:1.02,eyeHeight:.90,mouthWidth:.93,
-    hairStyle:"attendant-double-pin",hairFiberCount:38,beardFiberCount:0,
+    sourceId:"met-2024.180-and-smithsonian-F1916.135-attendant-study",sourceObjectId:"2024.180",
+    sourceReferences:["Met 2024.180 · Woman at her dressing table","Smithsonian F1916.135 · Court ladies and attendant"],
+    sex:0,yaw:14,pitch:-5,faceWidth:.90,lowerFace:1.06,jawTaper:.82,
+    noseWidth:.91,eyeSpacing:1.00,eyeHeight:.94,mouthWidth:.90,
+    hairStyle:"attendant-double-pin",hairFiberCount:56,beardFiberCount:0,
     ink:"#38342e",skin:"#e9d9c4",wash:"#9a7a63",hair:"#292722",
     robe:"#d7d0c1",accent:"#805447",
   },
@@ -90,6 +94,12 @@ const PROFILES:Record<InkMingQingCharacter,CharacterProfile>={
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
 const smooth=(v:number)=>{const t=clamp(v,0,1);return t*t*(3-2*t);};
 const fmt=(v:number)=>Number(v.toFixed(2));
+const quadPoint=(a:Point,b:Point,c:Point,t:number):Point=>{
+  const u=1-t;return [
+    u*u*a[0]+2*u*t*b[0]+t*t*c[0],
+    u*u*a[1]+2*u*t*b[1]+t*t*c[1],
+  ];
+};
 const FACE_BASE:Record<InkMingQingCharacter,ReturnType<typeof createFace>>={
   scholar:createSourceFace("scholar"),
   writer:createSourceFace("writer"),
@@ -143,6 +153,7 @@ export interface MingQingPortraitGeometry {
   character:InkMingQingCharacter;
   sourceId:string;
   sourceObjectId:string;
+  sourceReferences:string[];
   hairStyle:string;
   hairFiberCount:number;
   beardFiberCount:number;
@@ -219,11 +230,22 @@ export function buildMingQingPortraitGeometry(
     forehead:landmark("forehead"),glabella:landmark("glabella"),
     sellion:landmark("sellion"),pronasale:landmark("pronasale"),
     subnasale:landmark("subnasale"),menton:landmark("menton"),
+    labialeSuperius:landmark("labiale-superius"),stomion:landmark("stomion"),
+    labialeInferius:landmark("labiale-inferius"),sublabiale:landmark("sublabiale"),
+    pogonion:landmark("pogonion"),
+    alareL:landmark("alare.L"),alareR:landmark("alare.R"),
     zygionL:landmark("zygion.L"),zygionR:landmark("zygion.R"),
     gonionL:landmark("gonion.L"),gonionR:landmark("gonion.R"),
     cheekboneL:landmark("cheekbone.L"),cheekboneR:landmark("cheekbone.R"),
     mouthL:landmark("cheilion.L"),mouthR:landmark("cheilion.R"),
     eyeL:landmark("endocanthion.L"),eyeR:landmark("endocanthion.R"),
+    exocanthionL:landmark("exocanthion.L"),exocanthionR:landmark("exocanthion.R"),
+    endocanthionL:landmark("endocanthion.L"),endocanthionR:landmark("endocanthion.R"),
+    upperLidL:landmark("palpebrale-superius.L"),upperLidR:landmark("palpebrale-superius.R"),
+    lowerLidL:landmark("palpebrale-inferius.L"),lowerLidR:landmark("palpebrale-inferius.R"),
+    browInnerL:landmark("brow-inner.L"),browInnerR:landmark("brow-inner.R"),
+    browMidL:landmark("brow-mid.L"),browMidR:landmark("brow-mid.R"),
+    browOuterL:landmark("brow-outer.L"),browOuterR:landmark("brow-outer.R"),
   };
   const measures=measureFace(expressed.vertices);
   const expression=expressionFeatures(expressed);
@@ -232,7 +254,7 @@ export function buildMingQingPortraitGeometry(
   const right=Math.max(...outlinePoints.map(p=>p[0]));
   return {
     character,sourceId:profile.sourceId,sourceObjectId:profile.sourceObjectId,
-    hairStyle:profile.hairStyle,hairFiberCount:profile.hairFiberCount,
+    sourceReferences:profile.sourceReferences,hairStyle:profile.hairStyle,hairFiberCount:profile.hairFiberCount,
     beardFiberCount:profile.beardFiberCount,yaw,outline,features,marks,irises,
     landmarks,expression,faceWidthMm:fmt(measures.zyZy),
     mouthWidthMm:fmt(measures.chCh),noseWidthMm:fmt(measures.alAl),
@@ -243,11 +265,14 @@ export function buildMingQingPortraitGeometry(
 function capOrHairPath(character:InkMingQingCharacter,g:MingQingPortraitGeometry){
   const l=g.left,r=g.right,t=g.top,c=(l+r)/2;
   if(character==="scholar"){
-    const crown=t-54,band=t+10;
-    return "M"+fmt(l-12)+" "+fmt(band)
-      +" C"+fmt(l-17)+" "+fmt(t-18)+" "+fmt(c-37)+" "+fmt(crown+5)+" "+fmt(c)+" "+fmt(crown)
-      +" C"+fmt(c+36)+" "+fmt(crown-4)+" "+fmt(r+16)+" "+fmt(t-18)+" "+fmt(r+12)+" "+fmt(band)
-      +" Q"+fmt(c)+" "+fmt(band+17)+" "+fmt(l-12)+" "+fmt(band)+" Z";
+    const crown=t-61,band=t+10;
+    return "M"+fmt(l-14)+" "+fmt(band)
+      +" C"+fmt(l-19)+" "+fmt(t-4)+" "+fmt(l-12)+" "+fmt(t-34)+" "+fmt(l-5)+" "+fmt(crown+10)
+      +" L"+fmt(c-25)+" "+fmt(crown)
+      +" Q"+fmt(c)+" "+fmt(crown-3)+" "+fmt(c+23)+" "+fmt(crown)
+      +" L"+fmt(r+6)+" "+fmt(crown+10)
+      +" C"+fmt(r+15)+" "+fmt(t-31)+" "+fmt(r+18)+" "+fmt(t-5)+" "+fmt(r+13)+" "+fmt(band)
+      +" Q"+fmt(c)+" "+fmt(band+15)+" "+fmt(l-14)+" "+fmt(band)+" Z";
   }
   if(character==="writer"){
     const crown=t-34;
