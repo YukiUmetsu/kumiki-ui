@@ -13,6 +13,8 @@ import { panelClip, panelFrame, panelOpen } from "./film-panels";
 import { ditherTile, isMaterialTexture, matteAlpha, matteField } from "./film-matte";
 import { materialFrame, planMaterial } from "./film-material";
 import type { MaterialShape, MaterialSpec } from "./film-material";
+import { encodeWarp } from "./film-warp";
+import { alphaImage, MaterialVectors, MaterialWarpFilter, ringsClipPath, warpImages } from "./film-material-react";
 import { lensAt, lensCopies, lensGateFrame } from "./film-lens";
 import type { FilmDip } from "./film-dip";
 import { speedClock, speedSource } from "./film-speed";
@@ -156,23 +158,14 @@ function whipFrame(direction: "left" | "right" | "up" | "down", progress: number
 }
 /** Resolution of a material's fields across the frame: fine enough for paper fibres and droplets. */
 const MATERIAL_COLS = 384;
-/** The material behind a transition into `sceneId`: a material matte, or a shape opened through a material. */
-function materialSpecFor(film: CompiledFilm, sceneId: string): MaterialSpec | undefined {
+/** The material behind a transition into `sceneId`: a material matte, or a shape opened through a material. `seconds` is the transition's
+ * length, for materials that move at real rates. */
+function materialSpecFor(film: CompiledFilm, sceneId: string, seconds: number): MaterialSpec | undefined {
   const matte = film.mattes[sceneId];
-  if (matte && isMaterialTexture(matte.texture)) return { material: matte.texture, seed: matte.seed, origins: matte.origins, color: matte.edge, grain: matte.grain };
+  if (matte && isMaterialTexture(matte.texture)) return { material: matte.texture, seed: matte.seed, origins: matte.origins, color: matte.edge, grain: matte.grain, direction: matte.direction, seconds };
   const shape = film.shapes[sceneId];
-  if (shape?.material && shape.shape !== "mark") return { material: shape.material, origins: [{ x: shape.origin.x / film.width, y: shape.origin.y / film.height }], color: shape.edge, shape: shape.shape as MaterialShape };
+  if (shape?.material && shape.shape !== "mark") return { material: shape.material, origins: [{ x: shape.origin.x / film.width, y: shape.origin.y / film.height }], color: shape.edge, shape: shape.shape as MaterialShape, seconds };
   return undefined;
-}
-/** A mask from a grid of opacities, as a PNG data URL: white, with the opacity in its alpha. The browser smooths it as it scales it to the
- * frame, which softens a matte's edge. */
-function alphaImage(alpha: Uint8ClampedArray, cols: number, rows: number): string {
-  const canvas = document.createElement("canvas");
-  canvas.width = cols; canvas.height = rows;
-  const context = canvas.getContext("2d")!, image = context.createImageData(cols, rows);
-  for (let k = 0; k < alpha.length; k++) { image.data[k * 4] = image.data[k * 4 + 1] = image.data[k * 4 + 2] = 255; image.data[k * 4 + 3] = alpha[k]; }
-  context.putImageData(image, 0, 0);
-  return canvas.toDataURL("image/png");
 }
 /** One tile of a dither, eight cells by eight at `cell` pixels each, drawn at its true size so its cells stay hard-edged as it repeats. */
 function ditherImage(tile: boolean[][], cell: number): string {
@@ -307,14 +300,23 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   // fronts come from an eikonal solve that is too costly to repeat each frame. Reduced motion keeps the dissolve.
   const materialKey = state.transition && !reduce ? state.transition.toShotId : undefined;
   const materialRows = Math.max(2, Math.round(MATERIAL_COLS * film.height / film.width));
+  const materialSeconds = window ? (window.endFrame - window.startFrame) / fpsValue : 0;
   const materialPlan = useMemo(() => {
     if (!materialKey) return undefined;
-    const spec = materialSpecFor(film, materialKey);
+    const spec = materialSpecFor(film, materialKey, materialSeconds);
     return spec ? planMaterial(spec, MATERIAL_COLS, materialRows, film.width / film.height) : undefined;
-  }, [film, materialKey, materialRows]);
+  }, [film, materialKey, materialRows, materialSeconds]);
+  const warpId = "km-film-warp-" + useId().replace(/[^a-zA-Z0-9]/g, "");
   const material = materialPlan ? (() => {
     const frame = materialFrame(materialPlan, state.transition!.progress);
-    return { reveal: alphaImage(frame.reveal, MATERIAL_COLS, materialRows), layers: frame.layers.filter(layer => layer.alpha.some(v => v > 0)).map(layer => ({ ...layer, image: alphaImage(layer.alpha, MATERIAL_COLS, materialRows) })) };
+    const warp = (w: typeof frame.warpOut) => { const encoded = w && encodeWarp(w, MATERIAL_COLS, materialRows, film.width, film.height); return encoded ? warpImages(encoded) : undefined; };
+    return {
+      // An incoming scene under the outgoing one shows wherever the outgoing scene has gone; it needs no mask.
+      reveal: frame.reveal.every(v => v === 255) ? undefined : alphaImage(frame.reveal, MATERIAL_COLS, materialRows),
+      layers: frame.layers.filter(layer => layer.alpha.some(v => v > 0)).map(layer => ({ ...layer, image: alphaImage(layer.alpha, MATERIAL_COLS, materialRows) })),
+      vectors: frame.vectors ?? [], below: frame.incomingBelow === true, warpOut: warp(frame.warpOut), warpIn: warp(frame.warpIn),
+      clipOut: frame.outClip ? ringsClipPath(frame.outClip, film.height) : undefined,
+    };
   })() : undefined;
   // A shape wipe opens the next scene through a growing shape; reduced motion keeps the dissolve.
   const shapeSpec = state.transition && !reduce && !materialPlan ? film.shapes[state.transition.toShotId] : undefined;
@@ -328,7 +330,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   const matte = matteSpec && field && !isMaterialTexture(matteSpec.texture) ? (() => { const { reveal, stain } = matteAlpha(matteSpec.texture, field, state.transition!.progress); return { reveal: alphaImage(reveal, matteCols, matteRows), stain: matteSpec.edge ? alphaImage(stain, matteCols, matteRows) : undefined }; })() : undefined;
   const ditherCell = ditherSpec ? Math.max(1, Math.round(ditherSpec.cell * Math.min(film.width, film.height))) : 0;
   const dither = ditherSpec ? ditherImage(ditherTile(state.transition!.progress), ditherCell) : undefined;
-  const patternMask = material ? maskStyle(material.reveal, "100% 100%", "no-repeat") : matte ? maskStyle(matte.reveal, "100% 100%", "no-repeat") : dither ? maskStyle(dither, `${ditherCell * 8}px ${ditherCell * 8}px`, "repeat") : undefined;
+  const patternMask = material?.reveal ? maskStyle(material.reveal, "100% 100%", "no-repeat") : matte ? maskStyle(matte.reveal, "100% 100%", "no-repeat") : dither ? maskStyle(dither, `${ditherCell * 8}px ${ditherCell * 8}px`, "repeat") : undefined;
   // A lens gateway: a round lens enters and grows over the old scene with the new one behind its glass; reduced motion keeps the dissolve.
   const gateSpec = state.transition && !reduce ? film.lensGates[state.transition.toShotId] : undefined;
   const gate = gateSpec ? lensGateFrame(state.transition!.progress, film.width, film.height, gateSpec.direction) : undefined;
@@ -339,8 +341,11 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   // replay has no seam. It is a dissolve, so reduced motion keeps it.
   const looping = film.loop && state.frame >= film.loop.startFrame ? (state.frame - film.loop.startFrame + 1) / film.loop.frames : 0;
   const top = state.layers[state.layers.length - 1], still = { opacity: 1, mask: undefined, blur: undefined, matrix: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 } };
-  const shown = insert ? ("sceneId" in insert ? [{ ...top, ...still, sceneId: insert.sceneId, localFrame: insert.localFrame }] : []) : state.layers;
+  const shownAsIs = insert ? ("sceneId" in insert ? [{ ...top, ...still, sceneId: insert.sceneId, localFrame: insert.localFrame }] : []) : state.layers;
+  // A material that breaks, tears or peels the outgoing scene away draws the incoming scene under it.
+  const shown = material?.below ? [...shownAsIs].sort((a, b) => Number(b.sceneId === state.transition!.toShotId) - Number(a.sceneId === state.transition!.toShotId)) : shownAsIs;
   const layers = looping > 0 ? [...shown, { ...top, ...still, sceneId: film.scenes[0].id, localFrame: 0, opacity: looping * looping * (3 - 2 * looping) }] : shown;
+  const layerWarp = (incoming: boolean) => material && (incoming ? material.warpIn : material.warpOut);
   return <div {...props} ref={setRef} data-km-appearance={film.appearance} data-km-film={film.id} data-km-film-scene={state.shotId} data-km-film-transition={state.transition?.kind ?? ""}
     style={{ position: "relative", width: film.width, height: film.height, overflow: "hidden", background: "var(--km-surface-canvas, #102133)", ...film.appearance === "light" ? LIGHT_SHOT : undefined, ...filmType, ...style }}>
     {layers.map((layer, layerIndex) => {
@@ -409,7 +414,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
       // In a pass-by both scenes are whole, and the foreground's centre is the seam.
-      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : shape ? (incoming ? 1 : shape.outgoing) : patternMask || gate ? 1 : layer.opacity;
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : shape ? (incoming ? 1 : shape.outgoing) : material || patternMask || gate ? 1 : layer.opacity;
       const node = <div key={loopLayer ? `${layer.sceneId}:loop` : layer.sceneId} data-km-film-layer={loopLayer ? undefined : layer.sceneId} data-km-film-loop={loopLayer ? "" : undefined} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
         ...through && incoming && through.mask ? { maskImage: through.mask, WebkitMaskImage: through.mask } : {},
@@ -419,9 +424,9 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
           const image = `url("${shapeSpec!.mark}"), linear-gradient(rgba(0,0,0,${shape.around}), rgba(0,0,0,${shape.around}))`, size = `${shape.maskSize}px, 100% 100%`, position = `${shape.maskPosition}, 0 0`;
           return { maskImage: image, WebkitMaskImage: image, maskSize: size, WebkitMaskSize: size, maskPosition: position, WebkitMaskPosition: position, maskRepeat: "no-repeat", WebkitMaskRepeat: "no-repeat" };
         })() : {},
-        clipPath: gate && incoming ? `circle(${gate.r}px at ${gate.cx}px ${gate.cy}px)` : shape && incoming && shape.clipPath ? shape.clipPath : container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
+        clipPath: material?.clipOut && !incoming && !loopLayer ? material.clipOut : gate && incoming ? `circle(${gate.r}px at ${gate.cx}px ${gate.cy}px)` : shape && incoming && shape.clipPath ? shape.clipPath : container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
-        filter: whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : flash && incoming && flash.glow > .01 ? `brightness(${1 + 1.6 * flash.glow}) saturate(${1 - .5 * flash.glow})` : undefined }}>
+        filter: layerWarp(incoming) && !loopLayer ? `url(#${warpId}-${incoming ? "in" : "out"})` : whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : flash && incoming && flash.glow > .01 ? `brightness(${1 + 1.6 * flash.glow}) saturate(${1 - .5 * flash.glow})` : undefined }}>
         <div style={{ ...LAYER, transformOrigin: gate && incoming ? `${gate.cx}px ${gate.cy}px` : undefined,
           transform: gate && incoming ? `scale(${gate.scale})` : drifts || driven !== 1 ? `scale(${Math.round((drifts ? 1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame) : 1) * driven * 1e5) / 1e5})` : undefined }}>
           {look ? <FilmLookLayer look={look} frame={layer.localFrame} fps={fpsValue} width={film.width} height={film.height} seed={index + 1}
@@ -445,11 +450,14 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     {shape?.edge && shapeSpec!.edge && <svg aria-hidden="true" data-km-film-shape-edge="" width={film.width} height={film.height} style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
       <path d={shape.edge} fill="none" stroke={shapeSpec!.edge} strokeWidth={Math.max(1.5, Math.min(film.width, film.height) * .004)} strokeLinejoin="round" />
     </svg>}
+    {material?.warpOut && <MaterialWarpFilter id={`${warpId}-out`} images={material.warpOut} width={film.width} height={film.height} />}
+    {material?.warpIn && <MaterialWarpFilter id={`${warpId}-in`} images={material.warpIn} width={film.width} height={film.height} />}
     {material?.layers.map(layer => <div key={layer.id} aria-hidden="true" data-km-film-material={layer.id} style={{ ...LAYER, pointerEvents: "none",
       // Frosted glass blurs what is behind it under a light veil; other layers are a colour through their alpha.
-      background: layer.backdropBlur ? `${layer.color}5c` : layer.color, mixBlendMode: layer.blend === "normal" ? undefined : layer.blend,
+      background: layer.backdropBlur ? `${layer.color}${Math.round(255 * (layer.veil ?? .36)).toString(16).padStart(2, "0")}` : layer.color, mixBlendMode: layer.blend === "normal" ? undefined : layer.blend,
       ...layer.backdropBlur ? { backdropFilter: `blur(${(layer.backdropBlur * film.height / 1000).toFixed(1)}px)`, WebkitBackdropFilter: `blur(${(layer.backdropBlur * film.height / 1000).toFixed(1)}px)` } : {},
       ...maskStyle(layer.image, "100% 100%", "no-repeat") }} />)}
+    {material && material.vectors.length > 0 && <MaterialVectors vectors={material.vectors} width={film.width} height={film.height} idPrefix={warpId} />}
     {matte?.stain && <div aria-hidden="true" data-km-film-matte-stain="" style={{ ...LAYER, background: matteSpec!.edge, pointerEvents: "none", ...maskStyle(matte.stain, "100% 100%", "no-repeat") }} />}
     {gate && gate.rim > .01 && <svg aria-hidden="true" data-km-film-lens-gate="" width={film.width} height={film.height} style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible", opacity: gate.rim }}>
       <defs><radialGradient id="km-lens-gate" cx="38%" cy="30%" r="75%"><stop offset="0" stopColor="#fff" stopOpacity=".18" /><stop offset=".5" stopColor="#fff" stopOpacity="0" /><stop offset=".94" stopColor="#fff" stopOpacity=".06" /><stop offset="1" stopColor="#fff" stopOpacity=".3" /></radialGradient></defs>

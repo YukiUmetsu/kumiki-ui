@@ -24,15 +24,18 @@ export interface FilmShapeWipeSpec {
    * material: the material's colour (the ink, the char, the frost). */
   color?: string;
   /** Open the shape through a material: its edge bleeds like ink, burns like paper or clears like frost. */
-  material?: Exclude<MaterialKind, "paint">;
+  material?: ShapeMaterial;
 }
+/** Materials whose front can grow a shape. */
+export type ShapeMaterial = "bleed" | "burn" | "frost";
 /** A shape wipe as the stage draws it, by incoming scene ID. `origin` is in pixels. */
-export interface FilmShapeWipe { shape: ShapeWipeShape; origin: { x: number; y: number }; edge?: string; mark?: string; material?: Exclude<MaterialKind, "paint"> }
+export interface FilmShapeWipe { shape: ShapeWipeShape; origin: { x: number; y: number }; edge?: string; mark?: string; material?: ShapeMaterial }
 /** A shape wipe's default length: a material edge needs time to read. */
 export const shapeWipeFrames = (material?: MaterialKind) => (material ? MATERIAL_FRAMES[material] : SHAPE_WIPE_FRAMES);
 export interface ShapeWipeProblem { severity: "error" | "warning"; code: string; path: string; message: string; hint?: string }
 
 export const SHAPE_WIPE_FRAMES = 16;
+const SHAPE_MATERIALS: readonly string[] = ["bleed", "burn", "frost"];
 const SHAPES: readonly ShapeWipeShape[] = ["circle", "diamond", "star", "square", "mark"];
 const COLOR = /^#[0-9a-f]{6}$/i;
 /** A five-pointed star's inner radius as a share of its outer radius. */
@@ -83,6 +86,7 @@ export function inspectShapeWipe(spec: FilmShapeWipeSpec, frames: number, rate: 
   if (spec.material !== undefined) {
     if (shape === "mark") say("error", "shape-material-mark", "/material", "A mark is a picture, so it cannot open through a material.", "Use a circle, diamond, square or star.");
     else if (spec.material === ("paint" as MaterialKind)) say("error", "shape-material-paint", "/material", "Paint runs down under gravity; it does not grow a shape.", "Use a paint matte instead.");
+    else if (!SHAPE_MATERIALS.includes(spec.material)) say("error", "shape-material", "/material", `A ${spec.material} does not grow a shape.`, `Shapes open through ${SHAPE_MATERIALS.join(", ")}; use a ${spec.material} matte instead.`);
     else for (const item of inspectMaterial({ material: spec.material, color: spec.color, shape }, frames, rate, path)) problems.push(item);
   }
   if (problems.some(item => item.severity === "error")) return { problems };

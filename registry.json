@@ -5609,7 +5609,7 @@
       "name": "material-transitions",
       "type": "registry:ui",
       "title": "Material Transitions",
-      "description": "Transitions driven by how materials really move (MC1.4): ink bleeding into paper (Lucas-Washburn sqrt(t) front along the fibres, feathering, coffee-ring pigment at the wet edge), paper burning away (a steady smouldering front through uneven paper with scorch, blackbody-coloured embers and crumbling char), paint running down in fingers of one spacing whose tips speed ahead (Huppert 1982) with a glossy capillary ridge, and breath frosting glass (breath-figure droplets growing as t^(1/3), the scenes changing behind full frost, then clearing). Fronts come from an eikonal solve through each material's speed field; a shape (circle, diamond, square, star) keeps its outline while the material roughens it. Each frame is a pure function of progress: a reveal mask plus overlay layers (blend modes, frosted-glass backdrop blur) for any renderer. FilmMatte gains the textures bleed, burn, paint and frost; FilmShapeWipe gains a material.",
+      "description": "Transitions driven by how materials really move (MC1.4): ink bleeding into paper (Lucas-Washburn sqrt(t) front along the fibres, feathering, coffee-ring pigment at the wet edge), paper burning away (a steady smouldering front with scorch, blackbody embers and crumbling char), paint running down in fingers whose tips speed ahead (Huppert 1982), breath frosting glass (breath-figure droplets growing as t^(1/3)), reeded glass passing the lens (each flute a cylindrical lens by Snell's law, Fresnel-shaded, motion-blurred, the cut broken into strips behind it), and a pane shattering from a point (radial and concentric cracks of a struck plate, shards that hold, then fall under real gravity, tumbling and glinting). Fronts come from an eikonal solve; a shape (circle, diamond, square, star) keeps its outline while the material roughens it. Each frame is a pure function of progress: a reveal mask, raster and vector overlays, warps (backward displacement maps, encoded for SVG feDisplacementMap in two exact 8-bit passes so rigid shards land within a tenth of a pixel) and clip rings. FilmMatte gains the textures bleed, burn, paint, frost, refract and shatter; FilmShapeWipe gains a material.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -5617,6 +5617,26 @@
           "path": "registry/video/film-material.ts",
           "type": "registry:ui",
           "target": "components/video/film-material.ts"
+        },
+        {
+          "path": "registry/video/material-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/material-kit.ts"
+        },
+        {
+          "path": "registry/video/material-glass.ts",
+          "type": "registry:ui",
+          "target": "components/video/material-glass.ts"
+        },
+        {
+          "path": "registry/video/film-warp.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-warp.ts"
+        },
+        {
+          "path": "registry/video/film-material-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-material-react.tsx"
         }
       ]
     },

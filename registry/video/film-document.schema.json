@@ -6768,11 +6768,13 @@
      "enum": [
       "bleed",
       "burn",
-      "paint",
       "frost",
       "ink",
       "brush",
-      "smoke"
+      "smoke",
+      "paint",
+      "refract",
+      "shatter"
      ]
     },
     "seed": {

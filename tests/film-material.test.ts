@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { eikonal, inspectMaterial, materialFrame, planMaterial } from "../registry/video/film-material";
 import type { MaterialKind } from "../registry/video/film-material";
+import { encodeWarp } from "../registry/video/film-warp";
+import type { EncodedWarp } from "../registry/video/film-warp";
 import { compileFilm } from "../registry/video/film-document";
 import type { FilmDocument } from "../registry/video/film-document";
 import materialFilm from "../examples/film/material.film.json";
 import materialShapes from "../examples/film/material-shapes.film.json";
+import materialGlass from "../examples/film/material-glass.film.json";
 
 const COLS = 96, ROWS = 54, ASPECT = 16 / 9;
 const mean = (a: Uint8ClampedArray) => a.reduce((s, v) => s + v, 0) / a.length / 255;
@@ -71,5 +74,88 @@ describe("material transitions", () => {
     const bad = { ...(materialShapes as unknown as FilmDocument), scenes: (materialShapes as unknown as FilmDocument).scenes.map((s) => (s.id === "fall" ? { ...s, transition: { kind: "shape" as const, shape: "mark" as const, material: "burn" as const } } : s)) };
     const refused = compileFilm(bad, { outputId: "draft" });
     expect(refused.ok).toBe(false);
+  });
+
+  it("encodes large warps precisely: the browser's two 8-bit passes land within half a pixel", () => {
+    // The stage's own grid: 384 columns, 2.5 px cells at 960 px.
+    const cols = 384, rows = 216, W = 960, H = 540, n = cols * rows;
+    // The browser: feDisplacementMap reads each map bilinearly between cell centres, fine pass first, then coarse.
+    const read = (map: Uint8ClampedArray, c: number, px: number, py: number) => {
+      const fi = (px / W) * cols - 0.5, fj = (py / H) * rows - 0.5, i0 = Math.floor(fi), j0 = Math.floor(fj), u = fi - i0, v = fj - j0;
+      let s = 0;
+      for (const [di, dj, w] of [[0, 0, (1 - u) * (1 - v)], [1, 0, u * (1 - v)], [0, 1, (1 - u) * v], [1, 1, u * v]] as const) {
+        const a = Math.min(cols - 1, Math.max(0, i0 + di)), b = Math.min(rows - 1, Math.max(0, j0 + dj));
+        s += w * map[4 * (a + b * cols) + c];
+      }
+      return s / 255;
+    };
+    const browser = (enc: EncodedWarp, px: number, py: number) => {
+      let sx = 0, sy = 0, mass = 0;
+      for (const b of enc.branches) {
+        const m = read(b.coarse, 2, px, py);
+        if (m < 1e-3) continue;
+        const d1x = b.coarseScale * (read(b.coarse, 0, px, py) - 0.5), d1y = b.coarseScale * (read(b.coarse, 1, px, py) - 0.5);
+        const d2x = b.fine ? b.fineScale * (read(b.fine, 0, px + d1x, py + d1y) - 0.5) : 0, d2y = b.fine ? b.fineScale * (read(b.fine, 1, px + d1x, py + d1y) - 0.5) : 0;
+        sx += m * (px + d1x + d2x); sy += m * (py + d1y + d2y); mass += m;
+      }
+      return [sx / mass, sy / mass, mass];
+    };
+    // Two rigid pieces: one thrown far, one turned and dropped. And a smooth warp far beyond one pass's range.
+    const owner = new Int16Array(n), dx = new Float32Array(n), dy = new Float32Array(n), sdx = new Float32Array(n), sdy = new Float32Array(n);
+    const turn = 0.3, c = Math.cos(turn), s = Math.sin(turn);
+    const truth = (piece: number, x: number, y: number): [number, number] => piece === 0 ? [x - 310, y - 205] : [720 + c * (x + 140 - 720) + s * (y - 420 - 270), 270 - s * (x + 140 - 720) + c * (y - 420 - 270)];
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      const k = i + j * cols, x = (i + 0.5) * 2.5, y = (j + 0.5) * 2.5;
+      owner[k] = x < 480 ? 0 : 1;
+      const [rx, ry] = truth(owner[k], x, y);
+      dx[k] = (rx - x) / H; dy[k] = (ry - y) / H;
+      sdx[k] = (180 * Math.sin((y / H) * Math.PI)) / H; sdy[k] = (140 * Math.cos((x / W) * 2)) / H;
+    }
+    const rigid = encodeWarp({ dx, dy, owner }, cols, rows, W, H)!, smoothWarp = encodeWarp({ dx: sdx, dy: sdy }, cols, rows, W, H)!;
+    expect(rigid.branches.every((b) => b.fine)).toBe(true);
+    let worst = 0, worstSmooth = 0;
+    for (let py = 25; py < H - 25; py += 7) for (let px = 25; px < W - 25; px += 7) {
+      // Only where the picture comes from inside the frame: a material never reads from outside it.
+      const inside = (x: number, y: number) => x > 30 && y > 30 && x < W - 30 && y < H - 30;
+      const [tx, ty] = truth(px < 480 ? 0 : 1, px, py);
+      if (Math.abs(px - 480) > 25 && inside(tx, ty)) {
+        const [sx, sy, mass] = browser(rigid, px, py);
+        expect(mass).toBeGreaterThan(0.99);
+        worst = Math.max(worst, Math.hypot(sx - tx, sy - ty));
+      }
+      const ux = px + 180 * Math.sin((py / H) * Math.PI), uy = py + 140 * Math.cos((px / W) * 2);
+      if (inside(ux, uy)) {
+        const [qx, qy] = browser(smoothWarp, px, py);
+        worstSmooth = Math.max(worstSmooth, Math.hypot(qx - ux, qy - uy));
+      }
+    }
+    // One 8-bit pass over this range would be off by up to 1.7 px (rigid) and 0.7 px (smooth).
+    expect(worst).toBeLessThan(0.5);
+    expect(worstSmooth).toBeLessThan(0.5);
+  });
+
+  it("breaks glass and bends it", () => {
+    const aspect = 16 / 9;
+    // Refract: the sheet passes, the flutes pull the view toward their crests, and the scenes change behind it.
+    const refract = planMaterial({ material: "refract", seconds: 34 / 30 }, COLS, ROWS, aspect);
+    const mid = materialFrame(refract, 0.5);
+    expect(mid.warpOut && Math.max(...mid.warpOut.dx.map(Math.abs))).toBeGreaterThan(0.01);
+    expect(mean(mid.reveal)).toBeGreaterThan(0.25);
+    expect(mean(mid.reveal)).toBeLessThan(0.75);
+    for (const p of [0, 1]) expect(materialFrame(refract, p).warpOut!.dx.every((v) => v === 0)).toBe(true);
+    // Shatter: cracks run out at once, the shards hold, fall under gravity and are gone by the end.
+    const shatter = planMaterial({ material: "shatter", seed: 4, seconds: 44 / 30, origins: [{ x: 0.5, y: 0.45 }] }, COLS, ROWS, aspect);
+    const start = materialFrame(shatter, 0.03);
+    expect(start.vectors!.some((v) => v.id === "crack-light")).toBe(true);
+    expect(start.outClip).toBeUndefined();
+    const falling = materialFrame(shatter, 0.55);
+    expect(falling.incomingBelow).toBe(true);
+    expect(falling.warpOut!.owner!.some((o) => o < 0)).toBe(true);
+    const end = materialFrame(shatter, 1);
+    expect(end.outClip ?? []).toEqual([]);
+    for (const v of end.vectors ?? []) expect(v.rings.length).toBe(0);
+    const film = compileFilm(materialGlass as unknown as FilmDocument, { outputId: "draft" });
+    expect(film.ok).toBe(true);
+    if (film.ok) expect(Object.values(film.film.mattes).map((m) => m.texture)).toEqual(["refract", "shatter", "refract", "shatter"]);
   });
 });

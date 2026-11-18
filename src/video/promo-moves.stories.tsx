@@ -13,6 +13,7 @@ import typeExample from "../../examples/film/type-moves.film.json";
 import matteExample from "../../examples/film/matte.film.json";
 import materialExample from "../../examples/film/material.film.json";
 import materialShapesExample from "../../examples/film/material-shapes.film.json";
+import materialGlassExample from "../../examples/film/material-glass.film.json";
 import revealsExample from "../../examples/film/reveals.film.json";
 import demoExample from "../../examples/film/demo-moves.film.json";
 import { renderFilmScreen } from "../film/film-screens";
@@ -274,6 +275,7 @@ export const MaterialTransitions: StoryObj = {
   render: function MaterialTransitions() {
     const variants = useMemo(() => ({
       material: { label: "Bleed, burn, paint, frost", film: compileExample(materialExample as unknown as FilmDocument) },
+      glass: { label: "Glass: refract, shatter", film: compileExample(materialGlassExample as unknown as FilmDocument) },
       shapes: { label: "Shapes opened through materials", film: compileExample(materialShapesExample as unknown as FilmDocument) },
       mattes: { label: "Noise mattes (before)", film: compileExample(matteDoc) },
     }), []);

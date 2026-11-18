@@ -13,31 +13,49 @@
  *   figures, Beysens & Knobler 1986), until the old scene is lost behind frosted glass; the scenes change behind it and
  *   the frost clears to the next one.
  *
+ * - **refract** and **shatter**: glass. A sheet of reeded glass passes the lens and its flutes break the cut into strips;
+ *   a pane breaks from a point and its shards fall away. See `material-glass.ts`.
+ *
  * Every field is solved once per transition; each frame is a pure function of the transition's progress, so the same
  * seed and size give the same frames, and any frame renders on its own. A `shape` (circle, diamond, square, star) makes
  * the front keep that shape while the material roughens it, so a shape wipe can burn or bleed open.
  */
+import { byte, clamp01, easeInOut, fbm, hash, smooth } from "./material-kit";
+import type { MaterialFrame } from "./material-kit";
+import { GLASS_FRAMES, glassFrame, planGlass } from "./material-glass";
+import type { GlassKind, GlassPlan, MaterialDirection } from "./material-glass";
 
-export type MaterialKind = "bleed" | "burn" | "paint" | "frost";
+export type { MaterialFrame, MaterialLayer, MaterialVector, MaterialWarp } from "./material-kit";
+export type { MaterialDirection } from "./material-glass";
+
+/** Materials whose front spreads through a speed field. */
+export type FrontKind = "bleed" | "burn" | "paint" | "frost";
+export type MaterialKind = FrontKind | GlassKind;
 export type MaterialShape = "circle" | "diamond" | "square" | "star";
 
 export interface MaterialSpec {
   material: MaterialKind;
   /** A different seed gives a different sheet of the same material. @default 1 */
   seed?: number;
-  /** Where the front starts, as fractions of the frame (bleed, burn, frost). @default seeded points */
+  /** Where the front starts, as fractions of the frame (bleed, burn, frost), or where the pane is struck (shatter).
+   * @default seeded points */
   origins?: readonly { x: number; y: number }[];
-  /** bleed: the ink. burn: the char. paint: the gloss. frost: the frost's tint. */
+  /** bleed: the ink. burn: the char. paint: the gloss. frost: the frost's tint. refract: the glass's tint. shatter: the
+   * light on the cracks. */
   color?: string;
   /** bleed and burn: the paper's grain (fibre direction), degrees from the frame's x axis. @default 90 */
   grain?: number;
   /** The front keeps this shape around the first origin while the material roughens it. */
   shape?: MaterialShape;
+  /** refract: the way the glass travels. @default "right" */
+  direction?: MaterialDirection;
+  /** The transition's length in seconds, for materials that move at real rates (falling shards). @default the default length at 30 fps */
+  seconds?: number;
 }
 
-/** Everything a material needs on every frame, solved once. Fields are `cols × rows`, row-major. */
-export interface MaterialPlan {
-  material: MaterialKind;
+/** Everything a front material needs on every frame, solved once. Fields are `cols × rows`, row-major. */
+export interface FrontPlan {
+  material: FrontKind;
   cols: number;
   rows: number;
   aspect: number;
@@ -55,55 +73,15 @@ export interface MaterialPlan {
   seed: number;
 }
 
-/** One overlay over the frame: a colour shown through `alpha`, blended onto what is below. */
-export interface MaterialLayer {
-  id: string;
-  color: string;
-  alpha: Uint8ClampedArray;
-  blend: "normal" | "multiply" | "screen";
-  /** Blur what is behind the layer by this many pixels per 1000 px of frame height (frosted glass). */
-  backdropBlur?: number;
-}
+/** Everything a material needs on every frame, solved once. */
+export type MaterialPlan = FrontPlan | GlassPlan;
+const isGlassPlan = (plan: MaterialPlan): plan is GlassPlan => plan.material === "refract" || plan.material === "shatter";
 
-export interface MaterialFrame {
-  /** The incoming scene's opacity, 0..255 per cell. */
-  reveal: Uint8ClampedArray;
-  layers: MaterialLayer[];
-}
-
-export const MATERIAL_KINDS: readonly MaterialKind[] = ["bleed", "burn", "paint", "frost"];
+export const MATERIAL_KINDS: readonly MaterialKind[] = ["bleed", "burn", "paint", "frost", "refract", "shatter"];
 export const MATERIAL_SHAPES: readonly MaterialShape[] = ["circle", "diamond", "square", "star"];
 /** Default length of each material, frames at 30 fps: capillary and burning fronts read slower than a matte. */
-export const MATERIAL_FRAMES: Readonly<Record<MaterialKind, number>> = { bleed: 40, burn: 44, paint: 36, frost: 48 };
-const DEFAULT_COLOR: Record<MaterialKind, string> = { bleed: "#162033", burn: "#15110f", paint: "#ffffff", frost: "#e8eef2" };
-
-/* ------------------------------------------------------------------ *
- * Noise
- * ------------------------------------------------------------------ */
-
-function hash(x: number, y: number, seed: number): number {
-  let h = (x * 374761393 + y * 668265263 + seed * 2147483647) | 0;
-  h = Math.imul(h ^ (h >>> 13), 1274126177);
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
-}
-
-function noise(x: number, y: number, seed: number): number {
-  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
-  const a = hash(xi, yi, seed), b = hash(xi + 1, yi, seed), c = hash(xi, yi + 1, seed), d = hash(xi + 1, yi + 1, seed);
-  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
-}
-
-function fbm(x: number, y: number, seed: number, octaves = 5): number {
-  let sum = 0, amp = 0.5, total = 0;
-  for (let o = 0; o < octaves; o++) {
-    sum += amp * noise(x, y, seed + o * 17);
-    total += amp;
-    x *= 2.03;
-    y *= 2.03;
-    amp *= 0.5;
-  }
-  return sum / total;
-}
+export const MATERIAL_FRAMES: Readonly<Record<MaterialKind, number>> = { bleed: 40, burn: 44, paint: 36, frost: 48, ...GLASS_FRAMES };
+const DEFAULT_COLOR: Record<FrontKind, string> = { bleed: "#162033", burn: "#15110f", paint: "#ffffff", frost: "#e8eef2" };
 
 /* ------------------------------------------------------------------ *
  * Fronts: the eikonal arrival distance through a speed field
@@ -251,8 +229,18 @@ function frontArrival(speed: Float32Array, cols: number, rows: number, aspect: n
 }
 
 /** Plan a material transition for a `cols × rows` grid on a frame of `aspect` (width / height). */
+export function planMaterial(spec: MaterialSpec & { material: FrontKind }, cols: number, rows: number, aspect: number): FrontPlan;
+export function planMaterial(spec: MaterialSpec, cols: number, rows: number, aspect: number): MaterialPlan;
 export function planMaterial(spec: MaterialSpec, cols: number, rows: number, aspect: number): MaterialPlan {
   const seed = spec.seed ?? 1;
+  if (spec.material === "refract" || spec.material === "shatter") {
+    const origin = spec.origins?.[0] ?? (spec.material === "shatter" ? materialOrigins(seed, 1)[0] : undefined);
+    return planGlass(spec.material, { cols, rows, aspect, seed, seconds: spec.seconds ?? MATERIAL_FRAMES[spec.material] / 30, direction: spec.direction, color: spec.color, origin });
+  }
+  return planFront(spec as MaterialSpec & { material: FrontKind }, cols, rows, aspect, seed);
+}
+
+function planFront(spec: MaterialSpec & { material: FrontKind }, cols: number, rows: number, aspect: number, seed: number): FrontPlan {
   const color = spec.color ?? DEFAULT_COLOR[spec.material];
   const n = cols * rows;
   const grainField = new Float32Array(n);
@@ -362,20 +350,16 @@ export function planMaterial(spec: MaterialSpec, cols: number, rows: number, asp
  * Frames
  * ------------------------------------------------------------------ */
 
-const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
-const smooth = (e0: number, e1: number, v: number) => {
-  const t = clamp01((v - e0) / (e1 - e0));
-  return t * t * (3 - 2 * t);
-};
-const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
-const byte = (v: number) => Math.round(255 * clamp01(v));
-
 /** Blackbody colours of glowing paper embers, sampled from FX1 `blackbodyRGB` (CIE 1931) and sRGB-encoded. */
 const EMBER = { hot: "#ffb15a", warm: "#ff7a2a", dull: "#b32a10" } as const;
 const SCORCH = "#7a5326";
 
 /** The frame of a material transition at `progress` (0 = only the old scene, 1 = only the new). */
 export function materialFrame(plan: MaterialPlan, progress: number): MaterialFrame {
+  return isGlassPlan(plan) ? glassFrame(plan, progress) : frontFrame(plan, progress);
+}
+
+function frontFrame(plan: FrontPlan, progress: number): MaterialFrame {
   const p = clamp01(progress);
   const n = plan.cols * plan.rows;
   const reveal = new Uint8ClampedArray(n);
@@ -528,6 +512,9 @@ export interface MaterialProblem {
 }
 
 const COLOR = /^#[0-9a-f]{6}$/i;
+/** Lengths that read as the material, seconds. Shards need about 0.6 s to fall a frame height, after a short hold. */
+const TIMING: Record<MaterialKind, readonly [number, number]> = { bleed: [0.8, 2.2], burn: [0.8, 2.2], paint: [0.7, 1.8], frost: [1, 2.4], refract: [0.7, 1.6], shatter: [1, 2.2] };
+const READS_AS: Record<MaterialKind, string> = { bleed: "ink soaking into paper", burn: "burning paper", paint: "running paint", frost: "breath on glass", refract: "glass passing the lens", shatter: "breaking glass" };
 
 /** Problems with a material spec at `path`, given its length in frames at `rate` fps. */
 export function inspectMaterial(spec: Partial<MaterialSpec>, frames: number, rate: number, path: string): MaterialProblem[] {
@@ -539,11 +526,14 @@ export function inspectMaterial(spec: Partial<MaterialSpec>, frames: number, rat
   if (spec.grain !== undefined && !Number.isFinite(spec.grain)) say("error", "material-grain", "/grain", "The grain is an angle in degrees.");
   if (spec.shape !== undefined && !MATERIAL_SHAPES.includes(spec.shape)) say("error", "material-shape", "/shape", `"${spec.shape}" is not a shape a material front can keep.`, `Shapes: ${MATERIAL_SHAPES.join(", ")}.`);
   if (spec.material === "paint" && spec.shape) say("warning", "material-shape-unused", "/shape", "Paint runs down under gravity; it does not grow a shape.");
+  if ((spec.material === "refract" || spec.material === "shatter") && spec.shape) say("warning", "material-shape-unused", "/shape", "Glass bends or breaks; it does not grow a shape.");
+  if (spec.direction !== undefined && !["left", "right", "up", "down"].includes(spec.direction)) say("error", "material-direction", "/direction", `"${spec.direction}" is not a direction.`, "Directions: left, right, up, down.");
+  if (spec.direction !== undefined && spec.material !== "refract" && spec.material !== undefined && MATERIAL_KINDS.includes(spec.material)) say("warning", "material-direction-unused", "/direction", `A ${spec.material} has no direction.`);
   if (spec.origins?.some((o) => !(o.x >= 0 && o.x <= 1 && o.y >= 0 && o.y <= 1))) say("error", "material-origin", "/origins", "Origins are fractions of the frame, 0 to 1.");
   if (problems.some((p) => p.severity === "error") || !spec.material) return problems;
   const seconds = frames / rate;
-  const [lo, hi] = spec.material === "frost" ? [1, 2.4] : spec.material === "paint" ? [0.7, 1.8] : [0.8, 2.2];
-  if (seconds < lo) say("warning", "material-timing", "/durationFrames", `A ${seconds.toFixed(2)} s ${spec.material} is too fast to read as ${spec.material === "frost" ? "breath on glass" : spec.material === "paint" ? "running paint" : spec.material === "burn" ? "burning paper" : "ink soaking into paper"}.`, `Run it over ${lo} to ${hi} s.`);
+  const [lo, hi] = TIMING[spec.material];
+  if (seconds < lo) say("warning", "material-timing", "/durationFrames", `A ${seconds.toFixed(2)} s ${spec.material} is too fast to read as ${READS_AS[spec.material]}.`, `Run it over ${lo} to ${hi} s.`);
   if (seconds > hi) say("warning", "material-timing", "/durationFrames", `A ${seconds.toFixed(2)} s ${spec.material} drags: the viewer watches the material, not the scenes.`, `Run it over ${lo} to ${hi} s.`);
   return problems;
 }
