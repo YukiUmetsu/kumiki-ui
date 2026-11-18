@@ -164,8 +164,8 @@ function createSourceFace(character:InkSourceLedCharacter){
     v[0]*=1+(p.mouthWidth-1)*mouth;
     v[0]*=1+(p.cheekWidth-1)*cheek;
     v[1]=subnasaleY+(y-subnasaleY)*(y<subnasaleY?p.lowerFace:1);
-    v[1]+=p.cheekLift*cheek;
-    v[1]+=p.browLift*brow;
+    v[1]-=p.cheekLift*cheek;
+    v[1]-=p.browLift*brow;
     v[2]*=1+(p.noseProjection-1)*nose;
   }
   const points=new Float32Array(vertices.length*3);
@@ -453,8 +453,8 @@ function beardMassPath(g:SourceLedPortraitGeometry,p:SourceProfile){
   if(p.beardStyle==="pointed"){
     return "M "+fmt(mL[0]-4)+" "+fmt(my+7)+
       " Q "+fmt(l[0]-7)+" "+fmt(chin+8)+" "+fmt(cx-spread*.65)+" "+fmt(end-18)+
-      Q "+fmt(cx)+" "+fmt(end+9)+" "+fmt(cx+spread*.65)+" "+fmt(end-18)+
-      Q "+fmt(r[0]+7)+" "+fmt(chin+8)+" "+fmt(mR[0]+4)+" "+fmt(my+7)+
+      " Q "+fmt(cx)+" "+fmt(end+9)+" "+fmt(cx+spread*.65)+" "+fmt(end-18)+
+      " Q "+fmt(r[0]+7)+" "+fmt(chin+8)+" "+fmt(mR[0]+4)+" "+fmt(my+7)+
       " Q "+fmt(cx)+" "+fmt(my+22)+" "+fmt(mL[0]-4)+" "+fmt(my+7)+" Z";
   }
   if(p.beardStyle==="long"){
