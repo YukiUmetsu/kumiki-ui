@@ -3,6 +3,7 @@ import { FilmLookLayer } from "../../registry/video/film-look-react";
 import { LOOK_MOODS, LOOK_PRESETS, LOOK_PRESET_IDS, resolveLook } from "../../registry/video/film-look";
 import type { LookMood, LookPresetId } from "../../registry/video/film-look";
 import { StudioCaption } from "../../registry/visual/studio-recipes-react";
+import { SelectiveColorDemo } from "./selective-color-demo";
 import nightStreet from "../../assets/photos/look-plates/night-neon-street.jpg?url";
 import summerBeach from "../../assets/photos/look-plates/summer-beach.jpg?url";
 import mountainsDusk from "../../assets/photos/look-plates/mountains-dusk.jpg?url";
@@ -82,3 +83,6 @@ export const NeonSilhouette: Story = { args: { preset: "studio-clean" }, render:
 /** Pick a plate and a look; the left half stays untouched. */
 export const Compare: StoryObj<typeof Split> = { args: { plate: "night-street", preset: "neon-longing", mood: [] }, render: args => <Split {...args} />,
   argTypes: { plate: { control: "select", options: Object.keys(PLATES) }, preset: { control: "select", options: LOOK_PRESET_IDS }, mood: { control: "check", options: LOOK_MOODS } } };
+
+/** VP1: selective colour. High-contrast black and white that keeps one colour, in a window that fades in and out. */
+export const SelectiveColour: Story = { args: { preset: "studio-clean" }, render: () => <SelectiveColorDemo plates={{ "night-street": nightStreet, beach: summerBeach, "neon-silhouette": neonSilhouette }} /> };

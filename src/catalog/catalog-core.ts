@@ -101,6 +101,7 @@ const EXTRA_SYNONYMS:Record<string,string[]>={
   "paper-sheet":["paper fold","folding paper","page curl","dog-ear","torn paper","paper tear","peel off","sticker peel","paper roll","scroll","origami","crease"],
   "paper-book":["magazine page flip","page flip","page turn","turning pages","flip through","riffle","book","magazine","flipbook"],
   "paper-book-three":["magazine page flip","page flip","3d book","3d magazine","page turn"],
+  "selective-color":["selective colour","selective color","colour splash","color splash","color key","colour key","leave one colour","leave color","isolate colour","color isolation","black and white except","noir","film noir","monochrome","desaturate","keep red","colour pop","color pop"],
   "material-transitions":["ink bleed","ink on paper","paper burn","burn transition","burning paper","paint drip","paint transition","frost transition","fogged glass","condensation","glass shatter","shatter transition","broken glass","fluted glass","reeded glass","glass refraction","page curl","page peel","paper tear","torn paper","paper fold","letter fold","folded paper","water ripple","ripple transition","drop ripple","melt transition","melting","dripping","material transition","transition"],
   "paper-sound":["paper sound","page flip sound","page turn sound","tearing sound","paper foley","rustle","sound effects"],
   "craft-procedural-environments":["window treatments","window depth","recessed room pockets",
