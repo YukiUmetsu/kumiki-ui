@@ -621,6 +621,8 @@ A `"recipeId": "title-sequence"` scene opens a film on one symbol in cut paper, 
 
 ## Footage, cast and model turns
 
+A footage scene can carry its `subject`: the subject cut out of the same clip by `npm run video:matte`. With it, the title can stand behind the subject (`behind`, with a `"size": "giant"` title), and the subject can take an outline, a new background or clones. See [Subject matte](subject-matte.md).
+
 - **Footage** (`"recipeId": "footage"`): a real clip, frame-exact through the browser video adapter, cover-fitted under a slow push (`push`, default 1 to 1.06), with `from`, `rate`, `focus` and optional words (`title`: lands word by word over a soft shade, top, middle or bottom). Prepare clips as VP9 WebM with a keyframe on every frame (`ffmpeg -c:v libvpx-vp9 -g 1`) so each frame seeks exactly. Checks: `footage-video`, `footage-rate`, `footage-push` (errors); `footage-licence`, `footage-runs-out`, `footage-title-short`, `footage-title-long`.
 - **Cast** (`cast` on any scene): characters that perform over the scene: where their feet stand, their height, how they arrive (pop, or slide from a side or below), when they leave, and cues (an action, an expression, speech frames). FilmStage gives each a box inside the scene's layer, so transitions carry them with their scene; the host draws them with `renderCast`. Kumiki's capture page draws Pip and Quill from the character fixtures (`src/film/film-cast.tsx`). Check: `film-cast`.
 - **Model turn** (`"shot": "model-turn"`): a licensed glTF, loaded by the host into the 3D renderer's `models` (the capture page loads `models/<id>.glb` beside the film), turned like a hero turn.

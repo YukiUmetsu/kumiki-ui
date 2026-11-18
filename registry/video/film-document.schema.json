@@ -19116,6 +19116,9 @@
      "additionalProperties": false,
      "description": "The point kept in view when the frame crops the clip, as fractions."
     },
+    "subject": {
+     "$ref": "#/$defs/FilmFootageSubject"
+    },
     "title": {
      "type": "object",
      "properties": {
@@ -19138,8 +19141,10 @@
       "size": {
        "enum": [
         "large",
-        "huge"
-       ]
+        "huge",
+        "giant"
+       ],
+       "description": "`giant` fills most of the frame's width: a word or two for a subject to stand in front of (`subject.behind`)."
       },
       "emphasis": {
        "type": "string"
@@ -19156,6 +19161,120 @@
    "required": [
     "video",
     "label"
+   ],
+   "additionalProperties": false
+  },
+  "FilmFootageSubject": {
+   "type": "object",
+   "properties": {
+    "cutout": {
+     "type": "object",
+     "properties": {
+      "id": {
+       "type": "string"
+      },
+      "src": {
+       "type": "string"
+      },
+      "width": {
+       "type": "number"
+      },
+      "height": {
+       "type": "number"
+      },
+      "fps": {
+       "type": "number"
+      },
+      "frameCount": {
+       "type": "number"
+      },
+      "licenseRef": {
+       "type": "string"
+      },
+      "offset": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "id",
+      "src",
+      "width",
+      "height",
+      "fps",
+      "frameCount"
+     ],
+     "additionalProperties": false,
+     "description": "The cutout from `npm run video:matte`: its frame 0 is `offset` frames into the footage."
+    },
+    "behind": {
+     "type": "boolean"
+    },
+    "outline": {
+     "type": "object",
+     "properties": {
+      "color": {
+       "type": "string"
+      },
+      "width": {
+       "type": "number"
+      },
+      "glow": {
+       "type": "number"
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "background": {
+     "anyOf": [
+      {
+       "type": "object",
+       "properties": {
+        "color": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "color"
+       ],
+       "additionalProperties": false
+      },
+      {
+       "type": "object",
+       "properties": {
+        "blur": {
+         "type": "number"
+        }
+       },
+       "required": [
+        "blur"
+       ],
+       "additionalProperties": false
+      }
+     ]
+    },
+    "clones": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "delay": {
+        "type": "number"
+       },
+       "opacity": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "delay"
+      ],
+      "additionalProperties": false
+     },
+     "description": "Up to six. `opacity` 0.2 to 1."
+    }
+   },
+   "required": [
+    "cutout"
    ],
    "additionalProperties": false
   },

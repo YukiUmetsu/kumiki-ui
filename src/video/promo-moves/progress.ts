@@ -73,6 +73,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
   { id: "VE1.4", name: "Chat story", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--chat-story",
     what: "A message thread card: bubbles land one by one at reading pace, the other side's after typing dots; groups name each sender; a sound per message.",
     usage: '{ "card": "chat", "people": [{ "id": "me", "name": "Me" }, { "id": "sam", "name": "Sam" }], "messages": [{ "from": "sam", "text": "…" }] }' },
+  { id: "VE1.5", name: "Subject cutout", group: "Animation and type", rank: "P0", status: "built", story: "video-production-promo-moves--subject-cutout",
+    what: "The subject of real footage cut out frame by frame (npm run video:matte): words behind it, an outline, a new background, clones from earlier frames.",
+    usage: '"subject": { "cutout": { "src": "assets/footage/peacock-walk-cutout.webm", … }, "behind": true, "outline": { "color": "#ffffff" } }' },
   { id: "VE1.1", name: "Beat hits", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--beat-hits",
     what: "A punch zoom, a camera shake, an RGB split, a zoom blur or a flash on each beat of a bed with a declared tempo, on its loud onsets, or on moments; patterns combine (punch on the kick, shake on the snare).",
     usage: '"hits": [{ "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } }, { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }] · bed "bpm": 110' },
@@ -107,6 +110,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.5": { registryItem: "film-document", jobs: ["put text behind a person", "cut out the subject of a video"], keywords: ["text behind subject", "text behind person", "subject cutout", "background removal",
+    "remove background video", "segmentation", "matte", "rotoscope", "outline stroke", "subject outline", "glow outline", "background replace", "clone effect", "clone yourself", "depth effect"],
+    avoid: "Clones need a locked-off camera; a cutout carries the footage's licence; Safari does not play VP9 alpha." },
   "VE1.4": { registryItem: "film-document", jobs: ["tell a story as a text conversation", "show a message thread"], keywords: ["chat story", "text story", "text message video", "texting story",
     "message thread", "chat bubbles", "conversation", "typing indicator", "dm", "sms", "group chat", "faceless video", "vertical"],
     avoid: "Do not copy a real messaging app's look or name; give each message time to be read." },

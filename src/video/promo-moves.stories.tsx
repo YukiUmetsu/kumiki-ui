@@ -29,6 +29,7 @@ import driveExample from "../../examples/film/sound-drive.film.json";
 import beatHitsExample from "../../examples/film/beat-hits.film.json";
 import spinZoomExample from "../../examples/film/spin-zoom.film.json";
 import chatExample from "../../examples/film/chat-story.film.json";
+import subjectExample from "../../examples/film/subject.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -503,6 +504,25 @@ export const ChatStory: StoryObj = {
       after typing dots that become the message. The thread fills from the bottom and older messages scroll away at the top, each bubble
       growing its own height so nothing jumps. "Me" sits on the right in the brand colour; a group shows each sender's name and initial.
       Styling is neutral, not any messaging app's. Reduced motion drops the growth and the bouncing dots.
+    </FilmCompare>;
+  },
+};
+
+const subjectDoc = subjectExample as unknown as FilmDocument;
+/** Real footage with its subject cut out by `npm run video:matte` (a CC0 clip from Wikimedia Commons): a giant word behind a peacock, then
+ * the peacock outlined over a new ground. Beside it, the same footage without the subject. */
+export const SubjectCutout: StoryObj = {
+  render: function SubjectCutout() {
+    const variants = useMemo(() => ({
+      subject: { label: "Subject cut out", film: compileExample(subjectDoc) },
+      plain: { label: "Plain footage (before)", film: compileExample({ ...subjectDoc, scenes: subjectDoc.scenes.map(scene => ({ ...scene, content: { ...scene.content as object, subject: undefined } })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      The cutout is the peacock itself, found in every frame by a segmentation model (IS-Net, Apache-2.0), edge-snapped
+      with the guided filter, steadied over time only where the picture is still, and with the grass taken out of its feathers' edges. The
+      word stands behind the bird; the outline grows from the solid part of the cutout's own alpha. The haze under its legs is the model
+      reading the deck between them as part of the bird. Clip: <a href="https://commons.wikimedia.org/wiki/File:Peacock_walking_and_eating.webm" style={{ color: "#7cc6ff" }}>Peacock walking and eating</a> by
+      Mx. Granger, CC0. The cutout uses VP9 with alpha, which Chromium and Firefox play; Safari shows the plain footage.
     </FilmCompare>;
   },
 };

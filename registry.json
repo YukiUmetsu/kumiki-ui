@@ -5677,6 +5677,11 @@
           "path": "registry/video/selective-color-math.ts",
           "type": "registry:ui",
           "target": "components/video/selective-color-math.ts"
+        },
+        {
+          "path": "registry/video/subject-matte.ts",
+          "type": "registry:ui",
+          "target": "components/video/subject-matte.ts"
         }
       ]
     },
@@ -5818,6 +5823,11 @@
           "path": "registry/video/film-chat-react.tsx",
           "type": "registry:ui",
           "target": "components/video/film-chat-react.tsx"
+        },
+        {
+          "path": "registry/video/film-subject.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-subject.ts"
         },
         {
           "path": "registry/video/footage-react.tsx",
