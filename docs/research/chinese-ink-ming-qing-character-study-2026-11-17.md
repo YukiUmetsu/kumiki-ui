@@ -85,3 +85,21 @@ The 468-point ANAT1 surface is only the underlying facial volume. The visible fa
 The first ANAT5 browser capture was reviewed at native Storybook scale. It is **not artistically acceptable**: the scholar still reads as a round generic head under a dome cap with a small triangular beard; the writer's face and hair remain too simplified; the robe is a generic shoulder arc; and two museum cards were blank because the images were lazy-loaded below the viewport. The Storybook board has now been expanded to eight eager-loaded source views, including new male, female and attendant references. This fixes reference visibility and breadth, **not the drawing-quality defect**.
 
 **ART HOLD remains.** The next implementation pass must redraw the scholar hero face from the source-specific landmark map, then derive the writer and attendant as genuinely different constructions. A new 1×/3× screenshot must be visually inspected before approval. The strict ArtCraft local-evidence gate is also still blocked: source images are currently linked from official museum/IIIF endpoints in Storybook, but local archival copies, annotated crops and source-relative masks have not yet been committed. Do not claim an ArtCraft visual-fidelity pass or artistic acceptance from the Storybook screenshot alone.
+
+
+## Second construction pass — anatomy and material layers
+
+The first native screenshot was rejected; the next pass has now been implemented, but its new render is awaiting browser evidence. Changes are source-directed rather than a recolor of the earlier portrait:
+
+- **Face shape:** reduced generic cheek width and tapered the lower face independently for scholar, writer and attendant. ANAT1 remains the underlying 468-point surface; no published population norm is used as an identity or attractiveness target.
+- **Eye construction:** added landmark-connected scleral apertures, upper/lower lid rims, lid folds, tear-corner accents, iris rings, lashes and separately rooted brow fibers. Near/far geometry still comes from the projected 3D surface.
+- **Nose and mouth:** added bridge/sidewall washes, alar rims, nostril pockets, philtrum columns, nasolabial transitions, vermilion volume and sublabial/chin relief from ANAT1 landmarks.
+- **Scholar headwear:** replaced the rounded dome with a taller, squared cap silhouette, a separate front panel, crown/side seams, woven band and cap fibers.
+- **Writer and attendant hair:** added distinct coil/pin masses, ornaments, hair fibers and suspended earrings. Their hair arrangements are no longer only a single shared hair silhouette with different colors.
+- **Scholar facial hair:** replaced the single triangular substrate with separate left/right cheek-to-chin masses, split flow and two moustache substrates; individual fibers follow the split.
+- **Anatomical support:** added ear helix/antihelix/tragus, neck tendons and clavicle-to-collar contact.
+- **Textile/material:** added separate collar embroidery motifs for the women, character-specific shoulder contours, a more varied paper-fibre field and small pigment deposits.
+
+The new unit contract checks the existence and count of these semantic features. This proves DOM construction, not artistic quality. The next review must inspect the new 1× and 3× screenshots, confirm that the details read as connected anatomy rather than decorative line noise, and reject any face that still appears round/cartoon-like at actual film scale.
+
+**Current status: ART HOLD.** The new source board and renderer are committed, but this pass has not yet been accepted by a fresh visual comparison or a human art reviewer. Local source-image archives and annotated crops are also still absent, so the strict local-reference evidence gate remains blocked.
