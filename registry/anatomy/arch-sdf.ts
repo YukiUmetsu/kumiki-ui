@@ -218,12 +218,14 @@ export function hipRoof(s: RoofSpan, mat: number, tone = 0): Node {
 /** A pyramid or spire with `sides` faces (4 or 8), base half-width `r` at `y0`, apex at `y1`. */
 export function spire(cx: number, cz: number, y0: number, y1: number, r: number, sides: 4 | 6 | 8, mat: number, tone = 0, rot = 0): Node {
   const h = y1 - y0, a = Math.atan2(h, r), sn = Math.sin(a), cs = Math.cos(a), step = (Math.PI * 2) / sides;
+  // the box must reach the corners (the circumradius, r / cos(π/sides): 1.41 r for a square), or they are clipped off
+  const R = r / Math.cos(Math.PI / sides) + 1e-3;
   return leaf((x, y, z) => {
     const px = x - cx, pz = z - cz;
     // the face whose outward normal is nearest this point's direction
     const ang = Math.atan2(pz, px) - rot, k = Math.round(ang / step) * step + rot, d = px * Math.cos(k) + pz * Math.sin(k);
     return Math.max((y - y1) * cs + d * sn, y0 - y);
-  }, [cx - r * 1.09, y0, cz - r * 1.09], [cx + r * 1.09, y1, cz + r * 1.09], mat, tone, wrapAt(cx, cz));
+  }, [cx - R, y0, cz - R], [cx + R, y1, cz + R], mat, tone, wrapAt(cx, cz));
 }
 /** A mansard: a steep lower slope (`steep`°) up to `y + h1`, then a low hip (`pitch`°). Haussmann's are 45°. */
 export function mansard(s: RoofSpan & { h1: number; steep: number }, mat: number, tone = 0): Node {
@@ -305,7 +307,9 @@ function pair(a: Node, b: Node): Node {
     lo, hi, f: (x, y, z) => {
       const ba = boxDist(a.lo, a.hi, x, y, z), bb = boxDist(b.lo, b.hi, x, y, z);
       const first = ba <= bb ? a : b, second = ba <= bb ? b : a, b1 = ba <= bb ? ba : bb, b2 = ba <= bb ? bb : ba;
-      if (b1 > 0.25) return b1;
+      // a box distance is a safe bound, but must stay above the march's hit tolerance (0.0005 + 0.0006·t, 0.36 m at 600 m),
+      // or far bounding boxes are taken for surfaces
+      if (b1 > 1) return b1;
       const d1 = first.f(x, y, z);
       if (d1 <= b2) return d1;
       const m = M, t = TN, fr = FR, uc = UC, d2 = second.f(x, y, z);

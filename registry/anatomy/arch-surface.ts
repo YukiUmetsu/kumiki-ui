@@ -50,7 +50,7 @@ export interface SurfaceSpec {
   /** What a flaking coat shows beneath it. */
   under?: SurfaceKind;
   /** Timber-frame pattern. */
-  pattern?: "close" | "square" | "cross" | "colombage" | "fachwerk" | "herringbone" | "english" | "flemish" | "diamond" | "fish" | "star" | "medallion" | "rose" | "byobu" | "fusuma" | "plain" | "check" | "globe" | "text";
+  pattern?: "close" | "square" | "cross" | "colombage" | "fachwerk" | "herringbone" | "english" | "flemish" | "diamond" | "fish" | "star" | "medallion" | "rose" | "byobu" | "fusuma" | "plain" | "check" | "globe" | "text" | "ablaq";
   /** Storey height for a frame's rails, and the sill height of its middle rail. */
   storey?: number;
   sill?: number;
@@ -106,6 +106,7 @@ const mixInto = (o: SurfOut, c: readonly number[], t: number) => { o.r += (c[0] 
 const tint = (c: readonly number[], k: readonly number[]) => [c[0] * k[0], c[1] * k[1], c[2] * k[2]];
 /** A colour varied per piece: brightness ±`v`, and a little hue drift (warmer or cooler). */
 const vary = (c: readonly number[], h: number, v: number, warm = 0.06): number[] => { const k = 1 + (h - 0.5) * 2 * v, w = (hash2(911, Math.floor(h * 1e6), 7) - 0.5) * warm; return [c[0] * k * (1 + w), c[1] * k, c[2] * k * (1 - w)]; };
+const ABLAQ_DARK = linearOf("#3e3b38"), ABLAQ_OCHRE = linearOf("#c99a62");
 const MOSS = linearOf("#6b7536"), MOSS_DARK = linearOf("#3f4a22"), LICHEN = linearOf("#b7b08a"), SOOT = linearOf("#1d1916");
 
 /** Rows of units with staggered joints: returns the unit's id, the distance to the nearest joint (m) and the row. */
@@ -249,7 +250,9 @@ function surfaceBody(s: SurfaceSpec, seed: number): SurfFn {
       return (u, v, i, o) => {
         const c = courses(u, v, H, L, seed, 0.3);
         // each block cut from its own part of the bed: brighter or duller, warmer (iron-stained) or greyer
-        const col = vary(stone, c.id, s.kind === "marble" ? 0.04 : 0.11, s.kind === "marble" ? 0.03 : 0.18);
+        // ablaq (Syria, Egypt): courses of black basalt and pale limestone by turns, every third pale course a warm ochre
+        const base = s.pattern === "ablaq" ? (c.row % 2 ? ABLAQ_DARK : c.row % 6 === 2 ? ABLAQ_OCHRE : stone) : stone;
+        const col = vary(base, c.id, s.kind === "marble" ? 0.04 : 0.11, s.kind === "marble" ? 0.03 : 0.18);
         const grain = fbm(seed + 3, u * 9, v * 9, 3), pits = gradNoise(seed + 9, u * 60, v * 60);
         set(o, col, 1 + grain * 0.06 + pits * 0.02);
         if (!rust && s.kind !== "marble") {
