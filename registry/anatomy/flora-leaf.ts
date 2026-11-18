@@ -111,12 +111,13 @@ export function buildBlade(spec: BladeSpec, o: BladeOptions): BladeMesh {
       }
     }
   }
-  const sinus = (spec.sinus ?? 0) * W, lobeDepth = -yBase;
+  const sinus = (spec.sinus ?? 0) * W, lobeDepth = -yBase, notch = spec.notch, notchFrom = notch ? yApex - notch.depth * L : Infinity;
   let holeScale = 1;
   const field = (x: number, y: number, withHoles = true) => {
     const ax = Math.abs(x), w = halfWidth(y);
     let f = ax - w;
     if (sinus > 0 && y < 0) f = Math.max(f, sinus * (-y / lobeDepth) ** 0.8 - ax);
+    if (notch && y > notchFrom) f = Math.max(f, notch.width * W * ((y - notchFrom) / (yApex - notchFrom)) ** 0.9 - ax);
     if (f >= 0 || !fen || ripe <= 0) return f;
     const { k, alpha } = veinAt(x, y), i = Math.floor(k), list = cuts[x < 0 ? 0 : 1][i];
     if (!list) return f;
@@ -151,7 +152,8 @@ export function buildBlade(spec: BladeSpec, o: BladeOptions): BladeMesh {
     if (ratio > 0) holeScale = clamp(Math.sqrt(target / ratio), 0.4, 2.2);
   }
   const pts: number[] = [], tris: number[] = [];
-  if (!(fen && ripe > 0) && !(sinus > 0)) {
+  // A blade of two or three cells across is too coarse to show a notch or sinus: it becomes a plain strip.
+  if (!(fen && ripe > 0) && ((!(sinus > 0) && !notch) || o.resolution <= 3)) {
     // No cuts: a strip that follows the outline exactly (cheap for the thousands of small leaves on a tree).
     const sx = Math.max(2, Math.round(o.resolution)), sy = Math.max(3, Math.min(sx * 10, Math.round(sx * (yApex - yBase) / (2 * W) * 0.45) + 3, Math.round((o.triangles ?? Infinity) / (2 * sx)), Math.max(12, Math.round(o.resolution * 2.5))));
     for (let j = 0; j <= sy; j++) {
@@ -229,7 +231,7 @@ export function buildBlade(spec: BladeSpec, o: BladeOptions): BladeMesh {
     const w = Math.max(1e-6, halfWidth(y)), a = clamp(Math.abs(x) / w), s = (y - yBase) / L;
     let z = Math.abs(x) * fold + cup * W * a * a;
     if (pleat && !lay.parallel) { const { k } = veinAt(x, y); z += pleat * W * 0.5 * (1 - Math.cos(2 * Math.PI * k)) * a * (1 - a) * 4; }
-    if (ruffle) z += ruffle * W * Math.sin(2 * Math.PI * y / (0.06 * L) + phase) * smooth((a - 0.55) / 0.45) * smooth(s * 4);
+    if (ruffle) z += ruffle * W * Math.sin(2 * Math.PI * y / ((spec.ruffleWave ?? 0.06) * L) + phase) * smooth((a - 0.55) / 0.45) * smooth(s * 4);
     if (fleshy) { const t = thick * Math.sqrt(Math.max(0, 1 - a * a)) * (1 - 0.45 * s); z += side > 0 ? t / 2 : -t / 2 - keel * t * (1 - a) ** 2; }
     const tw = twist * clamp(s), cx = x * Math.cos(tw) - z * Math.sin(tw), cz = x * Math.sin(tw) + z * Math.cos(tw);
     const u = clamp(y / yApex) * 32, i = Math.min(31, Math.floor(u)), f = u - i;

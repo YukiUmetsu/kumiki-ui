@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
 import { InstancedMesh } from "three";
 import { ReferenceGuidedFloraEngine } from "../registry/anatomy/flora-engine";
 import { FLORA_PROFILES, MONSTERA } from "../registry/anatomy/flora-profiles";
@@ -12,6 +13,15 @@ import { COCONUT_PALM } from "../registry/anatomy/flora-profiles-popular";
 import { SpatialLayoutManager } from "../registry/anatomy/flora-layout";
 import { createFloraAsset } from "../registry/anatomy/flora-three";
 import { inspectHeroAsset } from "../registry/craft/hero-quality-gate";
+import { SOMEI_YOSHINO, WISTERIA } from "../registry/anatomy/flora-profiles-anime";
+import type { MeshData } from "../registry/anatomy/flora-math";
+
+/** Connected pieces of a mesh (union-find over its triangles). */
+const pieces = (m: MeshData) => {
+  const up = Array.from({ length: m.positions.length / 3 }, (_, i) => i), find = (i: number): number => (up[i] === i ? i : (up[i] = find(up[i])));
+  for (let t = 0; t < m.indices.length; t += 3) { up[find(m.indices[t + 1])] = find(m.indices[t]); up[find(m.indices[t + 2])] = find(m.indices[t]); }
+  return new Set(Array.from(m.indices, i => find(i))).size;
+};
 
 const white = () => [1, 1, 1] as const;
 
@@ -24,6 +34,16 @@ describe("FLORA2 profiles", () => {
     const paths = checkFloraProfile(broken).filter(i => i.level === "error").map(i => i.path);
     expect(paths).toEqual(expect.arrayContaining(["id", "placements[0].organ"]));
     expect(() => new ReferenceGuidedFloraEngine([]).register(broken)).toThrow(FloraProfileError);
+  });
+  it("ships the three CC0 maps of every scanned bark, listed in the asset manifest", () => {
+    const manifest = JSON.parse(readFileSync("assets/THIRD_PARTY_ASSETS.json", "utf8")) as { assetPath: string; license: string }[];
+    const scans = new Set(FLORA_PROFILES.flatMap(p => Object.values(p.surfaces).flatMap(s => (s.scan ? [s.scan.id] : []))));
+    expect(scans.size).toBeGreaterThanOrEqual(9);
+    for (const id of scans) for (const map of ["diff", "nor_gl", "rough"]) {
+      const path = `assets/textures/bark/${id}_${map}.jpg`;
+      expect(existsSync(path), path).toBe(true);
+      expect(manifest.find(a => a.assetPath === path)?.license, path).toBe("CC0-1.0");
+    }
   });
 });
 
@@ -65,14 +85,30 @@ describe("FLORA2 growth", () => {
     expect(sinuses).toBeGreaterThanOrEqual(2);
   });
   it("builds a tulip of six tepals and six stamens, and coconut pinnae on both sides of the rachis", () => {
+    // One flower is one instance per part: its six tepals, and its six stamens (each a filament and an anther), are
+    // merged pieces of one template.
     const tulip = engine.organ("tulipa-gesneriana", "flower", "preview", 1).specimens[0].batches;
-    const count = (part: string) => tulip.filter(b => b.surface === part).reduce((s, b) => s + b.count, 0);
-    expect(count("tepal")).toBe(6); expect(count("anther")).toBe(6);
+    const part = (surface: string) => tulip.filter(b => b.surface === surface);
+    expect(part("tepal").map(b => [b.count, pieces(b.template)])).toEqual([[1, 6]]);
+    expect(part("anther").map(b => [b.count, pieces(b.template)])).toEqual([[1, 12]]);
     const sk = growSkeleton(COCONUT_PALM, { seed: 3, stage: 1, density: 1, detail: 1, maxOrgans: 1e5 });
     const frond = sk.axes.find(a => a.rule.id === "frond")!, t = normalize(sub(frond.nodes[4].p, frond.nodes[3].p)), side = normalize(cross(t, UP));
     const near = sk.organs.filter(o => o.organ === "pinna" && Math.hypot(...sub(o.p, frond.nodes[4].p)) < 0.4);
     const left = near.filter(o => dot(o.y, side) > 0).length, right = near.filter(o => dot(o.y, side) < 0).length;
     expect(left).toBeGreaterThan(2); expect(right).toBeGreaterThan(2);
+  });
+  it("hangs wisteria racemes, lays fallen petals flat under the sakura, and draws distant blossom as cheap stars", () => {
+    const wisteria = growSkeleton(WISTERIA, { seed: 2, stage: 1, density: 0.4, detail: 0.6, maxOrgans: 3e4 }).organs.filter(o => o.organ === "raceme");
+    expect(wisteria.length).toBeGreaterThan(10);
+    expect(wisteria.every(o => o.z[1] < -0.9)).toBe(true);
+    const sakura = growSkeleton(SOMEI_YOSHINO, { seed: 2, stage: 1, density: 0.4, detail: 0.6, maxOrgans: 6e4 }).organs, fallen = sakura.filter(o => o.litter);
+    expect(fallen.length).toBeGreaterThan(500);
+    expect(fallen.every(o => o.p[1] < 0.01 && Math.abs(o.z[1]) === 1)).toBe(true);
+    const avenue = engine.generate({ speciesProfile: "prunus-yedoensis", seed: 4, fidelityLevel: "preview", layoutMode: { mode: "hero" }, growthStage: 1 }).specimens[0].batches;
+    const flowers = avenue.filter(b => b.organ === "flower");
+    expect(flowers.length).toBeGreaterThan(0);
+    // A cluster of four to six star florets: ten triangles per floret.
+    for (const b of flowers) expect(b.template.indices.length / 3).toBeLessThanOrEqual(60);
   });
   it("keeps the dragon tree's crown near the measured width (1.69 × height)", () => {
     const sp = engine.generate({ speciesProfile: "dracaena-cinnabari", seed: 4, fidelityLevel: "preview", layoutMode: { mode: "hero" }, growthStage: 1 }).specimens[0];

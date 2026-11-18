@@ -63,4 +63,8 @@ API; this is the working order.
    - Render the hero view and an organ close-up, and compare them with the photos. Fix what differs, and keep a review
      log.
    - Use `preview` for fields and groves, `high_def` for a hero, and `macro_ultra` for close-ups.
+   - For real bark, give the surface a `scan` (`polyHavenScan(id, widthMetres)`), load the maps once with
+     `loadFloraScans`, and pass `scans` to every `createFloraAsset`. Use CC0 scans only and list them in
+     `assets/THIRD_PARTY_ASSETS.json`.
+   - Judge junctions on the bare tree ("Trunks and junctions" story). Do not judge them on a tree in leaf.
 
