@@ -98,7 +98,7 @@ function ReferenceAtelier(){
         <p style={{fontSize:12,lineHeight:1.55,minHeight:58}}>
           A separate, broader face and lower-third construction: rounded cap,
           deepened malar/jaw wash, split beard locks and age creases. The
-          1860 charcoal drawing informs age, gesture and garment gravity.
+          1860 charcoal drawing informs age and beard structure; seated gesture, sleeve gravity and pipe-hand contact are studied separately in ANAT4.
         </p>
         <div style={{maxWidth:360,margin:"0 auto"}}>
           <InkReferenceCharacterRedraw character="elder" emotion={emotion}
