@@ -17,7 +17,7 @@
  * `createSelectiveColorEngine` runs them frame by frame, keeps the temporal state, checks frames and times, and logs.
  * Decoding and encoding files is the file pipeline's job (VP1.3); a renderer passes RGBA frames in.
  */
-import { deltaE2000, deltaE76, hueDistance, LUMA_WEIGHTS, parseHex, rgbToHsv, rgbToLab, rgbToYcbcr, softFloor, softWindow, SRGB_TO_LINEAR, linearToLab } from "./selective-color-math";
+import { deltaE2000, deltaE76, hueDistance, linearToLab, LUMA_WEIGHTS, parseHex, rgbToHsv, rgbToLab, rgbToYcbcr, softFloor, softWindow, srgbToLinear } from "./selective-color-math";
 import type { LumaStandard } from "./selective-color-math";
 
 export type SelectiveColorSpace = "hsv" | "lab" | "ycbcr";
@@ -107,16 +107,45 @@ export interface SelectiveColorConfig {
   outside: "monochrome" | "passthrough";
   /** A time before 0 or past the duration: clamp it with a warning, or refuse it. */
   outOfRange: "clamp" | "error";
+  /** Keep colour only on one item, followed through the shot, rather than on every pixel of the target colour. */
+  selection?: SelectiveColorSelection;
+}
+
+/**
+ * One item to keep in colour: the patch of the target colour under `seed` at time `at`, followed frame by frame by its
+ * overlap with where it was. Gaps narrower than `close` are bridged and holes inside its outline filled, so a bus keeps
+ * its windows and lettering; the outline is then snapped to the picture's own edges with the guided filter.
+ */
+export interface SelectiveColorSelection {
+  /** A point on the item at time `at`, as fractions of the frame (0..1). */
+  seed: { x: number; y: number };
+  /** When the seed point is on the item, seconds. Before it nothing keeps colour. */
+  at: number;
+  /** `whole`: everything inside the item's outline keeps its real colour (windows, white panels, wheels). `colour`: only
+   * the item's own target colour does. */
+  keep: "whole" | "colour";
+  /** Gaps up to this wide join the item (stripes, lettering, thin frames), thousandths of the frame height. */
+  close: number;
+  /** Fill holes inside the item's outline (windows framed by its colour). */
+  fillHoles: boolean;
+  /** Frames the item may vanish for (passing behind something) before it counts as gone. */
+  hold: number;
+  /** How far the outline snaps to the picture's edges, thousandths of the frame height. */
+  edge: number;
 }
 
 /** A config to resolve: any part may be left out and takes the default. */
-export type SelectiveColorInput = Partial<Omit<SelectiveColorConfig, "targets" | "monochrome" | "feathering" | "matte" | "temporal">> & {
+export type SelectiveColorInput = Partial<Omit<SelectiveColorConfig, "targets" | "monochrome" | "feathering" | "matte" | "temporal" | "selection">> & {
   targets?: readonly (Partial<SelectiveColorTarget> & { color: string })[];
   monochrome?: Partial<SelectiveColorMonochrome>;
   feathering?: Partial<SelectiveColorFeathering>;
   matte?: Partial<SelectiveColorConfig["matte"]>;
   temporal?: Partial<SelectiveColorConfig["temporal"]>;
+  selection?: Partial<SelectiveColorSelection> & { seed: { x: number; y: number } };
 };
+
+/** Selection defaults: keep the whole item, bridge gaps up to 1.2% of the frame height, fill its holes. */
+export const SELECTION_DEFAULTS: Omit<SelectiveColorSelection, "seed"> = { at: 0, keep: "whole", close: 12, fillHoles: true, hold: 8, edge: 3 };
 
 /** Defaults for a noir look that keeps strong reds. Every value is a starting point, not a constant of the engine. */
 export const SELECTIVE_COLOR_DEFAULTS: SelectiveColorConfig = {
@@ -178,6 +207,7 @@ export function resolveSelectiveColorConfig(input: SelectiveColorInput): { confi
     matte: { ...d.matte, ...input.matte },
     temporal: { ...d.temporal, ...input.temporal },
     windows: input.windows ?? d.windows,
+    selection: input.selection ? { ...SELECTION_DEFAULTS, ...input.selection } : undefined,
   };
   return { config, problems: inspectSelectiveColorConfig(config) };
 }
@@ -223,6 +253,16 @@ export function inspectSelectiveColorConfig(c: SelectiveColorConfig): SelectiveC
   });
   if (c.outside !== "monochrome" && c.outside !== "passthrough") say("error", "sc-outside", "/outside", `"${c.outside}" is not an outside mode.`, "Use monochrome or passthrough.");
   if (c.outOfRange !== "clamp" && c.outOfRange !== "error") say("error", "sc-out-of-range", "/outOfRange", `"${c.outOfRange}" is not an out-of-range mode.`, "Use clamp or error.");
+  const sel = c.selection;
+  if (sel) {
+    if (!range(sel.seed?.x, 0, 1) || !range(sel.seed?.y, 0, 1)) say("error", "sc-selection-seed", "/selection/seed", "The seed is a point on the item, x and y as fractions of the frame, 0 to 1.");
+    if (!range(sel.at, 0, Infinity)) say("error", "sc-selection-at", "/selection/at", "The seed's time must be 0 or more seconds.");
+    if (sel.keep !== "whole" && sel.keep !== "colour") say("error", "sc-selection-keep", "/selection/keep", `"${sel.keep}" is not a keep mode.`, "Use whole or colour.");
+    if (!range(sel.close, 0, 100)) say("error", "sc-selection-close", "/selection/close", "close must be 0 to 100 thousandths of the frame height.");
+    if (!range(sel.hold, 0, 120) || !Number.isInteger(sel.hold)) say("error", "sc-selection-hold", "/selection/hold", "hold must be a whole number of frames, 0 to 120.");
+    if (!range(sel.edge, 0, 50)) say("error", "sc-selection-edge", "/selection/edge", "edge must be 0 to 50 thousandths of the frame height.");
+    if (!c.targets.length) say("error", "sc-selection-target", "/selection", "An item is found by its colour, so a selection needs a target colour.");
+  }
   return out;
 }
 
@@ -249,32 +289,75 @@ export function strengthAt(windows: readonly SelectiveColorWindow[], t: number, 
  * Stage 2: colour mask
  * ------------------------------------------------------------------ */
 
-/** How much each pixel matches the targets, 0..1 (the best target wins). */
-export function colorMask(frame: SelectiveColorFrame, config: SelectiveColorConfig): Float32Array {
-  const { width, height, data } = frame, n = width * height, mask = new Float32Array(n);
-  if (!config.targets.length) return mask;
+/** A function giving how much an sRGB colour (0..1 per channel) matches the config's targets, 0..1 (the best wins). */
+export function colorMatcher(config: SelectiveColorConfig): (r: number, g: number, b: number) => number {
   const space = config.colorSpace;
   const targets = config.targets.map((t) => {
     const [r, g, b] = parseHex(t.color)!;
     return { t, hsv: rgbToHsv(r, g, b), lab: rgbToLab(r, g, b), ycc: rgbToYcbcr(r, g, b, config.ycbcrStandard) };
   });
-  for (let p = 0; p < n; p++) {
-    const r8 = data[4 * p], g8 = data[4 * p + 1], b8 = data[4 * p + 2], r = r8 / 255, g = g8 / 255, b = b8 / 255;
+  if (space === "hsv") return (r, g, b) => {
+    const [h, s, v] = rgbToHsv(r, g, b);
     let best = 0;
-    if (space === "hsv") {
-      const [h, s, v] = rgbToHsv(r, g, b);
-      for (const { t, hsv } of targets) best = Math.max(best, softWindow(hueDistance(h, hsv[0]), t.tolerance, t.softness) * softFloor(s, t.saturationMin, t.saturationSoftness) * softFloor(v, t.valueMin, t.valueSoftness));
-    } else if (space === "lab") {
-      const [l, a, bb] = linearToLab(SRGB_TO_LINEAR[r8], SRGB_TO_LINEAR[g8], SRGB_TO_LINEAR[b8]), chroma = Math.hypot(a, bb) / 100;
-      for (const { t, lab } of targets) {
-        const dist = t.metric === "cie76" ? deltaE76(l, a, bb, lab[0], lab[1], lab[2], t.lightness) : deltaE2000(l, a, bb, lab[0], lab[1], lab[2], t.lightness);
-        best = Math.max(best, softWindow(dist, t.tolerance, t.softness) * softFloor(chroma, t.saturationMin, t.saturationSoftness) * softFloor(l / 100, t.valueMin, t.valueSoftness));
-      }
-    } else {
-      const [y, cb, cr] = rgbToYcbcr(r, g, b, config.ycbcrStandard), chroma = 2 * Math.hypot(cb, cr);
-      for (const { t, ycc } of targets) best = Math.max(best, softWindow(Math.hypot(cb - ycc[1], cr - ycc[2]), t.tolerance, t.softness) * softFloor(chroma, t.saturationMin, t.saturationSoftness) * softFloor(y, t.valueMin, t.valueSoftness));
+    for (const { t, hsv } of targets) best = Math.max(best, softWindow(hueDistance(h, hsv[0]), t.tolerance, t.softness) * softFloor(s, t.saturationMin, t.saturationSoftness) * softFloor(v, t.valueMin, t.valueSoftness));
+    return best;
+  };
+  if (space === "lab") return (r, g, b) => {
+    const [l, a, bb] = linearToLab(srgbToLinear(r), srgbToLinear(g), srgbToLinear(b)), chroma = Math.hypot(a, bb) / 100;
+    let best = 0;
+    for (const { t, lab } of targets) {
+      const dist = t.metric === "cie76" ? deltaE76(l, a, bb, lab[0], lab[1], lab[2], t.lightness) : deltaE2000(l, a, bb, lab[0], lab[1], lab[2], t.lightness);
+      best = Math.max(best, softWindow(dist, t.tolerance, t.softness) * softFloor(chroma, t.saturationMin, t.saturationSoftness) * softFloor(l / 100, t.valueMin, t.valueSoftness));
     }
-    mask[p] = best;
+    return best;
+  };
+  return (r, g, b) => {
+    const [y, cb, cr] = rgbToYcbcr(r, g, b, config.ycbcrStandard), chroma = 2 * Math.hypot(cb, cr);
+    let best = 0;
+    for (const { t, ycc } of targets) best = Math.max(best, softWindow(Math.hypot(cb - ycc[1], cr - ycc[2]), t.tolerance, t.softness) * softFloor(chroma, t.saturationMin, t.saturationSoftness) * softFloor(y, t.valueMin, t.valueSoftness));
+    return best;
+  };
+}
+
+/** Points per side of the colour lookup table: 65³ values, about one per four 8-bit levels. */
+export const MASK_LUT_SIZE = 65;
+const lutCache = new WeakMap<SelectiveColorConfig, Float32Array>();
+
+/** The match for every colour on a `MASK_LUT_SIZE`³ RGB grid, as a grading tool's 3D LUT. Cached per config. */
+export function maskLut(config: SelectiveColorConfig): Float32Array {
+  let lut = lutCache.get(config);
+  if (lut) return lut;
+  const n = MASK_LUT_SIZE, match = colorMatcher(config);
+  lut = new Float32Array(n * n * n);
+  for (let b = 0; b < n; b++) for (let g = 0; g < n; g++) for (let r = 0; r < n; r++) lut[r + n * (g + n * b)] = match(r / (n - 1), g / (n - 1), b / (n - 1));
+  lutCache.set(config, lut);
+  return lut;
+}
+
+/**
+ * How much each pixel matches the targets, 0..1 (the best target wins). The match depends only on a pixel's colour, so
+ * large frames in CIELAB or YCbCr read it from a 3D lookup table (trilinear; within 0.05 of the exact match in CIELAB
+ * and 0.025 in YCbCr). HSV is computed directly: its hue jumps across dark, washed-out colours faster than a table can
+ * follow, and it is cheap anyway. `exact` forces the direct path.
+ */
+export function colorMask(frame: SelectiveColorFrame, config: SelectiveColorConfig, exact = false): Float32Array {
+  const { width, height, data } = frame, count = width * height, mask = new Float32Array(count);
+  if (!config.targets.length) return mask;
+  const N = MASK_LUT_SIZE;
+  if (exact || config.colorSpace === "hsv" || count < (N * N * N) / 4) {
+    const match = colorMatcher(config);
+    for (let p = 0; p < count; p++) mask[p] = match(data[4 * p] / 255, data[4 * p + 1] / 255, data[4 * p + 2] / 255);
+    return mask;
+  }
+  const lut = maskLut(config), k = (N - 1) / 255;
+  for (let p = 0; p < count; p++) {
+    const fr = data[4 * p] * k, fg = data[4 * p + 1] * k, fb = data[4 * p + 2] * k;
+    const r0 = Math.min(N - 2, fr | 0), g0 = Math.min(N - 2, fg | 0), b0 = Math.min(N - 2, fb | 0), u = fr - r0, v = fg - g0, w = fb - b0;
+    const i = r0 + N * (g0 + N * b0), gs = N, bs = N * N;
+    const c00 = lut[i] + (lut[i + 1] - lut[i]) * u, c10 = lut[i + gs] + (lut[i + gs + 1] - lut[i + gs]) * u;
+    const c01 = lut[i + bs] + (lut[i + bs + 1] - lut[i + bs]) * u, c11 = lut[i + gs + bs] + (lut[i + gs + bs + 1] - lut[i + gs + bs]) * u;
+    const c0 = c00 + (c10 - c00) * v, c1 = c01 + (c11 - c01) * v;
+    mask[p] = c0 + (c1 - c0) * w;
   }
   return mask;
 }
@@ -339,6 +422,12 @@ export interface SelectiveColorState { previous?: Float32Array }
 
 /** Clean the matte, feather it, and smooth it against the last frame. Updates `state`. */
 export function refineMask(mask: Float32Array, frame: SelectiveColorFrame, config: SelectiveColorConfig, state: SelectiveColorState = {}): Float32Array {
+  return smoothMask(cleanAndFeather(mask, frame, config), config, state);
+}
+
+/** The spatial part of refining, frame by frame with no state: clean the matte, then feather it. Frames can run on
+ * separate threads. */
+export function cleanAndFeather(mask: Float32Array, frame: SelectiveColorFrame, config: SelectiveColorConfig): Float32Array {
   const { width, height } = frame, { cleanBlack, cleanWhite } = config.matte, span = Math.max(1e-6, 1 - cleanBlack - cleanWhite);
   let out: Float32Array = new Float32Array(mask.length);
   for (let k = 0; k < mask.length; k++) out[k] = Math.min(1, Math.max(0, (mask[k] - cleanBlack) / span));
@@ -348,10 +437,16 @@ export function refineMask(mask: Float32Array, frame: SelectiveColorFrame, confi
     // Three box passes approach a Gaussian, so the feather has no visible box corners.
     else { const step = Math.max(1, Math.round(r / Math.sqrt(3))); out = boxMean(boxMean(boxMean(out, width, height, step), width, height, step), width, height, step); }
   }
-  const s = config.temporal.smoothing;
-  if (s > 0 && state.previous && state.previous.length === out.length) for (let k = 0; k < out.length; k++) out[k] = (1 - s) * out[k] + s * state.previous[k];
-  state.previous = out;
   return out;
+}
+
+/** The temporal part of refining, in frame order: carry part of the last frame's mask over, against flicker. Updates
+ * `state`; `mask` is changed in place. */
+export function smoothMask(mask: Float32Array, config: SelectiveColorConfig, state: SelectiveColorState): Float32Array {
+  const s = config.temporal.smoothing;
+  if (s > 0 && state.previous && state.previous.length === mask.length) for (let k = 0; k < mask.length; k++) mask[k] = (1 - s) * mask[k] + s * state.previous[k];
+  state.previous = mask;
+  return mask;
 }
 
 /* ------------------------------------------------------------------ *
@@ -390,6 +485,107 @@ export function composite(frame: SelectiveColorFrame, mask: Float32Array, streng
 }
 
 /* ------------------------------------------------------------------ *
+ * Selected item
+ * ------------------------------------------------------------------ */
+
+/** What the selection carries from frame to frame: where the item was (on its working grid) and how long it has been lost. */
+export interface SelectionState { region?: Uint8Array; cols?: number; rows?: number; lost: number }
+
+/** Grow (`grow` true) or shrink a binary grid by a square of radius r, in two separable passes. */
+function morph(src: Uint8Array, cols: number, rows: number, r: number, grow: boolean): Uint8Array {
+  if (r <= 0) return src;
+  const tmp = new Uint8Array(src.length), out = new Uint8Array(src.length), hit = grow ? 1 : 0;
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+    let v = 1 - hit;
+    for (let d = -r; d <= r && v !== hit; d++) { const x = Math.min(cols - 1, Math.max(0, i + d)); if (src[x + j * cols] === hit) v = hit; }
+    tmp[i + j * cols] = v;
+  }
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+    let v = 1 - hit;
+    for (let d = -r; d <= r && v !== hit; d++) { const y = Math.min(rows - 1, Math.max(0, j + d)); if (tmp[i + y * cols] === hit) v = hit; }
+    out[i + j * cols] = v;
+  }
+  return out;
+}
+
+/**
+ * The selected item's mask for this frame (0..1, full size), from the colour mask. Run frames in order: `state` follows
+ * the item. Returns zeros before the seed's time, or once the item has been lost for longer than `hold` frames.
+ */
+export function selectItem(mask: Float32Array, frame: SelectiveColorFrame, config: SelectiveColorConfig, state: SelectionState, t: number): Float32Array {
+  const sel = config.selection!, { width: W, height: H } = frame, out = new Float32Array(W * H);
+  if (t < sel.at) return out;
+  // Work on a grid about 240 rows tall: enough to find and follow an item, cheap at any output size.
+  const step = Math.max(1, Math.round(H / 240)), cols = Math.ceil(W / step), rows = Math.ceil(H / step), n = cols * rows;
+  if (state.cols !== cols || state.rows !== rows) { state.region = undefined; state.cols = cols; state.rows = rows; }
+  const on = new Uint8Array(n);
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) on[i + j * cols] = mask[Math.min(H - 1, j * step + (step >> 1)) * W + Math.min(W - 1, i * step + (step >> 1))] >= 0.5 ? 1 : 0;
+  // Connected patches of the colour (4-connected, union–find).
+  const parent = new Int32Array(n).map((_, k) => k), find = (k: number): number => { while (parent[k] !== k) { parent[k] = parent[parent[k]]; k = parent[k]; } return k; };
+  for (let k = 0; k < n; k++) {
+    if (!on[k]) continue;
+    const i = k % cols;
+    if (i > 0 && on[k - 1]) parent[find(k)] = find(k - 1);
+    if (k >= cols && on[k - cols]) parent[find(k)] = find(k - cols);
+  }
+  const area = new Int32Array(n), chosen = new Set<number>();
+  for (let k = 0; k < n; k++) if (on[k]) area[find(k)]++;
+  if (!state.region) {
+    // The patch under the seed, or the nearest one within a tenth of the frame.
+    const si = Math.min(cols - 1, Math.floor(sel.seed.x * cols)), sj = Math.min(rows - 1, Math.floor(sel.seed.y * rows)), reach = Math.round(rows / 10);
+    let best = -1, gap = Infinity;
+    for (let j = Math.max(0, sj - reach); j <= Math.min(rows - 1, sj + reach); j++) for (let i = Math.max(0, si - reach); i <= Math.min(cols - 1, si + reach); i++) {
+      const k = i + j * cols, d = (i - si) ** 2 + (j - sj) ** 2;
+      if (on[k] && d < gap) { gap = d; best = find(k); }
+    }
+    if (best >= 0) chosen.add(best);
+  } else {
+    // The patches that overlap where the item was: it may grow, move, or break into pieces behind a lamp post.
+    const near = morph(state.region, cols, rows, 2, true), overlap = new Map<number, number>();
+    for (let k = 0; k < n; k++) if (on[k] && near[k]) { const r = find(k); overlap.set(r, (overlap.get(r) ?? 0) + 1); }
+    for (const [r, count] of overlap) if (count >= 3 && count >= 0.1 * area[r]) chosen.add(r);
+  }
+  let region: Uint8Array;
+  if (chosen.size) {
+    state.lost = 0;
+    region = new Uint8Array(n);
+    for (let k = 0; k < n; k++) if (on[k] && chosen.has(find(k))) region[k] = 1;
+    const r = Math.round(((sel.close / 1000) * H) / step);
+    region = morph(morph(region, cols, rows, r, true), cols, rows, r, false);
+    if (sel.fillHoles) {
+      // Flood the outside from the grid's border; whatever it cannot reach is a hole in the item.
+      const outside = new Uint8Array(n), stack: number[] = [];
+      for (let k = 0; k < n; k++) { const i = k % cols, j = (k - i) / cols; if ((i === 0 || j === 0 || i === cols - 1 || j === rows - 1) && !region[k]) { outside[k] = 1; stack.push(k); } }
+      while (stack.length) {
+        const k = stack.pop()!, i = k % cols;
+        for (const m of [i > 0 ? k - 1 : -1, i < cols - 1 ? k + 1 : -1, k - cols, k + cols]) if (m >= 0 && m < n && !outside[m] && !region[m]) { outside[m] = 1; stack.push(m); }
+      }
+      for (let k = 0; k < n; k++) if (!outside[k]) region[k] = 1;
+    }
+    state.region = region;
+  } else if (state.region && state.lost < sel.hold) {
+    state.lost++;
+    region = state.region;
+  } else {
+    state.region = undefined;
+    return out;
+  }
+  // Up to full size, bilinear, then snapped to the picture's edges.
+  for (let y = 0; y < H; y++) {
+    const fy = Math.min(rows - 1, Math.max(0, (y + 0.5) / step - 0.5)), j0 = Math.min(rows - 2, Math.floor(fy)), v = rows > 1 ? fy - j0 : 0;
+    for (let x = 0; x < W; x++) {
+      const fx = Math.min(cols - 1, Math.max(0, (x + 0.5) / step - 0.5)), i0 = Math.min(cols - 2, Math.floor(fx)), u = cols > 1 ? fx - i0 : 0;
+      const k = Math.max(0, i0) + Math.max(0, j0) * cols, a = region[k], b = region[Math.min(n - 1, k + 1)], c = region[Math.min(n - 1, k + cols)], d = region[Math.min(n - 1, k + cols + 1)];
+      out[x + y * W] = (a * (1 - u) + b * u) * (1 - v) + (c * (1 - u) + d * u) * v;
+    }
+  }
+  const edge = Math.round((sel.edge / 1000) * H);
+  const snapped = edge > 0 ? guidedFilter(luma(frame, config.monochrome.luminanceWeights), out, W, H, edge, 1e-3) : out;
+  if (sel.keep === "colour") for (let k = 0; k < snapped.length; k++) snapped[k] *= mask[k];
+  return snapped;
+}
+
+/* ------------------------------------------------------------------ *
  * The engine
  * ------------------------------------------------------------------ */
 
@@ -425,7 +621,7 @@ export function createSelectiveColorEngine(input: SelectiveColorInput, options: 
   }
   for (const p of problems) log.warn?.(`selective colour: ${p.message}`, { code: p.code, path: p.path, hint: p.hint });
   if (!(fps > 0)) throw new SelectiveColorError("sc-fps", "fps must be above 0.");
-  const state: SelectiveColorState = {};
+  const state: SelectiveColorState = {}, selection: SelectionState = { lost: 0 };
   const time = (t: number) => {
     const limit = options.duration;
     if (!Number.isFinite(t)) throw new SelectiveColorError("sc-time", `The time ${t} is not a number.`);
@@ -448,7 +644,8 @@ export function createSelectiveColorEngine(input: SelectiveColorInput, options: 
       }
       if (state.previous && state.previous.length !== frame.width * frame.height) { log.info?.("selective colour: the frame size changed; temporal state reset"); state.previous = undefined; }
       const at = time(t), strength = strengthAt(config.windows, at, fps);
-      const mask = refineMask(colorMask(frame, config), frame, config, state);
+      const refined = refineMask(colorMask(frame, config), frame, config, state);
+      const mask = config.selection ? selectItem(refined, frame, config, selection, at) : refined;
       const data = composite(frame, mask, strength, config, out);
       let kept = 0;
       for (const v of mask) if (v >= 0.5) kept++;
@@ -456,6 +653,6 @@ export function createSelectiveColorEngine(input: SelectiveColorInput, options: 
       log.debug?.("selective colour: frame", report);
       return { data, mask, report };
     },
-    reset() { state.previous = undefined; },
+    reset() { state.previous = undefined; selection.region = undefined; selection.lost = 0; },
   };
 }

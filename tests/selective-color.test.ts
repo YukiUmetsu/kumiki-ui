@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { deltaE2000, hueDistance, rgbToHsv, rgbToLab, rgbToYcbcr } from "../registry/video/selective-color-math";
-import { colorMask, composite, createSelectiveColorEngine, monochromeCurve, refineMask, resolveSelectiveColorConfig, SelectiveColorError, strengthAt } from "../registry/video/selective-color";
+import { colorMask, colorMatcher, composite, selectItem, createSelectiveColorEngine, monochromeCurve, refineMask, resolveSelectiveColorConfig, SelectiveColorError, strengthAt } from "../registry/video/selective-color";
 import type { SelectiveColorFrame, SelectiveColorInput } from "../registry/video/selective-color";
 
 /** Sharma, Wu & Dalal (2005), Table 1: L1 a1 b1 L2 a2 b2 ΔE00 — test data for CIEDE2000 implementations. */
@@ -65,6 +65,19 @@ describe("selective colour", () => {
     for (let i = 1; i < 40; i++) expect(ramp[i]).toBeLessThanOrEqual(ramp[i - 1] + 1e-6);
     expect(ramp[0]).toBe(1);
     expect(ramp[39]).toBe(0);
+  });
+
+  it("reads large frames from a 3D lookup table close to the exact match (CIELAB and YCbCr)", () => {
+    for (const colorSpace of ["lab", "ycbcr"] as const) {
+      const { config } = resolveSelectiveColorConfig({ ...RED, colorSpace }), match = colorMatcher(config);
+      // Every colour of a fine RGB sweep, as one large frame, so the lookup table is used.
+      const side = 96, frame = { width: side * side, height: side, data: new Uint8ClampedArray(side * side * side * 4) };
+      for (let b = 0; b < side; b++) for (let g = 0; g < side; g++) for (let r = 0; r < side; r++) frame.data.set([Math.round((r * 255) / (side - 1)), Math.round((g * 255) / (side - 1)), Math.round((b * 255) / (side - 1)), 255], 4 * (r + side * (g + side * b)));
+      const mask = colorMask(frame, config);
+      let worst = 0;
+      for (let p = 0; p < mask.length; p++) worst = Math.max(worst, Math.abs(mask[p] - match(frame.data[4 * p] / 255, frame.data[4 * p + 1] / 255, frame.data[4 * p + 2] / 255)));
+      expect(worst, colorSpace).toBeLessThan(colorSpace === "lab" ? 0.05 : 0.025);
+    }
   });
 
   it("fades the effect in and out over each window", () => {
@@ -133,5 +146,39 @@ describe("selective colour", () => {
     expect(report.kept).toBeGreaterThan(0.05);
     const strict = createSelectiveColorEngine({ ...RED, outOfRange: "error" }, { duration: 4 });
     expect(() => strict.process(card(), -1)).toThrow(expect.objectContaining({ code: "sc-time-range" }));
+  });
+
+  it("keeps colour on one selected item, follows it, and fills its windows", () => {
+    // Two red squares on grey; the right one has a white window inside. The seed is on the right one's red frame.
+    const frameAt = (shift: number) => {
+      const width = 120, height = 60, data = new Uint8ClampedArray(width * height * 4);
+      for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+        let c = [128, 128, 128];
+        if (x >= 10 && x < 30 && y >= 20 && y < 40) c = [210, 30, 40];
+        const rx = 70 + shift;
+        if (x >= rx && x < rx + 30 && y >= 15 && y < 45) c = x >= rx + 8 && x < rx + 22 && y >= 23 && y < 37 ? [235, 235, 240] : [210, 30, 40];
+        data.set([c[0], c[1], c[2], 255], 4 * (x + y * width));
+      }
+      return { width, height, data };
+    };
+    const { config } = resolveSelectiveColorConfig({ ...RED, selection: { seed: { x: 0.6, y: 0.5 }, at: 0, close: 0, edge: 0 } });
+    const state = { lost: 0 }, m = (mask: Float32Array, x: number, y: number) => mask[x + y * 120];
+    const first = selectItem(colorMask(frameAt(0), config), frameAt(0), config, state, 0);
+    expect(m(first, 20, 30)).toBeLessThan(0.01);
+    expect(m(first, 74, 20)).toBeGreaterThan(0.99);
+    // The window inside the item keeps its own colour, though it is not the target colour.
+    expect(m(first, 85, 30)).toBeGreaterThan(0.99);
+    // It moves; the selection follows, and the other square stays out.
+    let moved = first;
+    for (const shift of [3, 6, 9, 12]) moved = selectItem(colorMask(frameAt(shift), config), frameAt(shift), config, state, shift / 30);
+    expect(m(moved, 86, 20)).toBeGreaterThan(0.99);
+    expect(m(moved, 20, 30)).toBeLessThan(0.01);
+    // `colour` keeps only the item's target colour; before the seed's time nothing is kept.
+    const colourOnly = resolveSelectiveColorConfig({ ...RED, selection: { seed: { x: 0.6, y: 0.5 }, keep: "colour", close: 0, edge: 0, at: 1 } }).config;
+    expect(Math.max(...selectItem(colorMask(frameAt(0), colourOnly), frameAt(0), colourOnly, { lost: 0 }, 0.5))).toBe(0);
+    const late = selectItem(colorMask(frameAt(0), colourOnly), frameAt(0), colourOnly, { lost: 0 }, 1);
+    expect(m(late, 85, 30)).toBeLessThan(0.01);
+    expect(m(late, 74, 20)).toBeGreaterThan(0.99);
+    expect(resolveSelectiveColorConfig({ selection: { seed: { x: 2, y: 0.5 } } }).problems.map((p) => p.code)).toEqual(expect.arrayContaining(["sc-selection-seed", "sc-selection-target"]));
   });
 });
