@@ -567,7 +567,12 @@ test("F1 V64 source-led oral aperture native PNG, 3x mouth and V60 evidence",asy
     await expect(svg).toBeVisible();
     await expect(svg).toHaveAttribute("data-km-crayon-frame","299");
     const aperture=svg.locator('[data-km-crayon-element="mouth-aperture-depth"]');
-    const apertureBox=await aperture.evaluate(element=>{
+    // Measure the authored silhouette path, not the outer wax group. The
+    // latter also includes renderer filter extents and is not the aperture.
+    const apertureShape=aperture.locator(
+      '[data-km-crayon-region] > defs > clipPath > path').first();
+    await expect(apertureShape).toHaveCount(1);
+    const apertureBox=await apertureShape.evaluate(element=>{
       const box=(element as SVGGraphicsElement).getBBox();
       return {width:box.width,height:box.height};
     });
@@ -576,7 +581,10 @@ test("F1 V64 source-led oral aperture native PNG, 3x mouth and V60 evidence",asy
       expect(apertureBox.height).toBeLessThanOrEqual(34);
       for(const id of ["dental-surface-left","dental-surface-center","dental-surface-far"]){
         const tooth=svg.locator('[data-km-crayon-element="'+id+'"]');
-        const box=await tooth.evaluate(element=>{
+        const toothShape=tooth.locator(
+          '[data-km-crayon-region] > defs > clipPath > path').first();
+        await expect(toothShape).toHaveCount(1);
+        const box=await toothShape.evaluate(element=>{
           const bounds=(element as SVGGraphicsElement).getBBox();
           return {width:bounds.width,height:bounds.height};
         });
