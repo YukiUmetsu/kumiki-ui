@@ -358,9 +358,9 @@ export function InkMingQingCharacterStudy({
       ?"M6 390 C20 355 49 323 91 304 Q122 295 145 321 Q160 337 175 321 Q198 295 229 304 C271 323 300 355 314 390 Z"
       :"M8 390 C22 357 48 326 88 307 Q116 298 143 319 Q160 333 177 319 Q204 298 232 307 C272 326 298 357 312 390 Z";
   return <svg className={className} style={{display:"block",width:"100%",height:"auto",...style}}
-    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 390" role="img"
-    aria-label={character+" Chinese ink portrait study"}
-    data-km-ink-anat5="true" data-km-ink-anat5-character={character}
+    xmlns="http://www.w3.org/2000/svg" viewBox={viewBox} role="img"
+    aria-label={character+" Chinese ink "+(view==="face"?"facial anatomy crop":"portrait study")}
+    data-km-ink-anat5-view={view} data-km-ink-anat5="true" data-km-ink-anat5-character={character}
     data-km-ink-anat5-source={g.sourceId} data-km-ink-anat5-source-object={g.sourceObjectId} data-km-ink-anat5-source-references={g.sourceReferences.join(" | ")}
     data-km-ink-anat5-hair-style={g.hairStyle} data-km-ink-anat5-yaw={fmt(g.yaw)}
     data-km-anat1-source="468-point-face-mesh"
