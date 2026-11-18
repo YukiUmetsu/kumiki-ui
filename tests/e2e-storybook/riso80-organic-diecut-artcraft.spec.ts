@@ -42,12 +42,12 @@ async({page},info)=>{
   await expect(print.locator("[data-km-riso80-organic-contour]")).toHaveCount(3);
   const lensX=studio.getByRole("slider",{name:"RISO79 lens X"});
   const captureContour=async(x:number,name:string)=>{
-    await lensX.evaluate((el,value)=>{
-      const input=el as HTMLInputElement;
-      input.value=String(value);
-      input.dispatchEvent(new Event("input",{bubbles:true}));
-      input.dispatchEvent(new Event("change",{bubbles:true}));
-    },x);
+    // Use real range-keyboard input so React's controlled state and the
+    // browser's native value tracker stay synchronized in Chromium.
+    const current=Number(await lensX.inputValue());
+    await lensX.focus();
+    const key=x<current?"ArrowLeft":"ArrowRight";
+    for(let step=0;step<Math.abs(x-current);step++)await lensX.press(key);
     await expect(studio).toHaveAttribute("data-km-riso80-lens-x",String(x));
     await studio.locator("[data-km-riso79-film]").screenshot({
       path:info.outputPath(name),animations:"disabled",
