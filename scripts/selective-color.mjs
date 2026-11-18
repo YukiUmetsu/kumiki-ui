@@ -93,7 +93,7 @@ async function process_(args, prep, log) {
   let decodeError = "", encodeError = "";
   decoder.stderr.on("data", (d) => { decodeError += d; });
   encoder.stderr.on("data", (d) => { encodeError += d; });
-  const state = {}, done = new Map(), started = performance.now(), keptAll = [];
+  const state = {}, selection = { lost: 0 }, done = new Map(), started = performance.now(), keptAll = [];
   let next = 0, sent = 0, pending = Buffer.alloc(0), lastLog = started, failure;
   // Frames decoded and not yet written: the decoder waits while there are enough, so memory stays bounded.
   const waiting = () => sent - next, enough = prep.workers * 3;
@@ -105,7 +105,9 @@ async function process_(args, prep, log) {
       while (done.has(next)) {
         const { buffer, mask } = done.get(next); done.delete(next);
         const frame = { width, height, data: new Uint8ClampedArray(buffer) }, t = (range.start + next) * info.fps.den / info.fps.num;
-        const smoothed = engine.smoothMask(new Float32Array(mask), resolved, state);
+        let smoothed = engine.smoothMask(new Float32Array(mask), resolved, state);
+        // A selected item is followed in frame order, like the smoothing.
+        if (resolved.selection) smoothed = engine.selectItem(smoothed, frame, resolved, selection, t);
         engine.composite(frame, smoothed, engine.strengthAt(resolved.windows, t, info.fpsValue), resolved, frame.data);
         let kept = 0;
         for (const v of smoothed) if (v >= 0.5) kept++;

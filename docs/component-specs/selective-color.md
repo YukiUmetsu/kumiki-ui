@@ -42,6 +42,40 @@ The pipeline is four decoupled stages. Each is a pure function over typed arrays
 - it logs through an optional logger;
 - it throws `SelectiveColorError` with a code.
 
+## A selected item
+
+Colour alone keeps every pixel of the colour: a red bus, but also the red bus lane, the bricks and the other buses.
+`selection` keeps colour on **one item**:
+
+1. On a working grid about 240 rows tall, the colour mask becomes connected patches.
+2. The patch under `seed` (or the nearest within a tenth of the frame) is the item, from time `at`.
+3. Each later frame takes the patches that overlap where the item was, so the item can grow, move, or break into pieces
+   behind a lamp post. It is held for `hold` frames when it vanishes, then let go.
+4. Gaps up to `close` are bridged, and holes inside the outline filled (`fillHoles`). The outline is brought up to full
+   size and snapped to the picture's edges with the guided filter (`edge`).
+5. `keep: "whole"` keeps all the item's own colours inside its outline: windows, lettering, a yellow destination board,
+   the driver behind the glass. `keep: "colour"` keeps only its target colour.
+
+```jsonc
+"selection": { "seed": { "x": 0.706, "y": 0.48 }, "at": 11, "keep": "whole", "close": 25, "fillHoles": true, "hold": 8, "edge": 4 }
+```
+
+In Storybook, click the picture to select the item under the click.
+
+**Example.** `examples/selective-color/selected-bus.json` keeps one London bus in colour as it pulls in, on
+*London Bus pulls in* by Christopher Parker (CC BY 3.0,
+[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:London_Bus_pulls_in.webm); credit him when you show it).
+Download the clip, then:
+
+```sh
+npm run video:selective-color -- London_Bus_pulls_in.webm --config=examples/selective-color/selected-bus.json \
+  --out=selected-bus.mp4 --from=11 --to=15.4
+```
+
+The shot opens in black and white, and the bus's colour fades in over 0.8 s as it approaches. The street, the red bus
+lane, the brick buildings, the cars, the sky and a second red bus behind it stay black and white. It runs at about
+25 fps at 640×480 on four workers.
+
 ## Configuration
 
 Every value comes from the config. `SELECTIVE_COLOR_DEFAULTS` and `TARGET_DEFAULTS` hold the documented starting points,
@@ -76,6 +110,7 @@ const { data, mask, report } = engine.process({ width, height, data: rgba }, sec
 | `windows[]` | `start`, `end`, `transition` (or `fadeIn` and `fadeOut`), `unit` (`seconds` or `frames`), `curve` (`linear` or `smooth`). Overlapping windows take the strongest. No windows: always on. |
 | `outside` | `monochrome` or `passthrough`. |
 | `outOfRange` | `clamp` (with a warning) or `error`. |
+| `selection` | One item to keep: `seed` (x, y as fractions of the frame), `at` (seconds), `keep` (`whole` or `colour`), `close` and `edge` (thousandths of the frame height), `fillHoles`, `hold` (frames). See [A selected item](#a-selected-item). |
 
 **Checks** (`inspectSelectiveColorConfig`): an unknown colour space or standard; a bad target colour, tolerance,
 softness, floor or metric; an amount, radius, epsilon, matte or smoothing out of range; luma weights that do not add up
@@ -167,8 +202,11 @@ skipped the GPU renderer (VP1.2).
 
 ## Limits
 
-- The mask measures colour only. It does not know objects, so a red sign and a red dress keep colour together; spatial
-  masks (shapes, tracked regions) are VP1.4.
+- Without `selection`, the mask measures colour only, so a red sign and a red dress keep colour together. With it, the
+  item is found and followed by its colour patch, so the item needs its own colour. Two items of the same colour that
+  touch in the picture are one item until they part.
+- A hole is filled only when the item's colour encloses it. When the item runs off the frame's edge (a close-up), its
+  windows and panels open onto the edge and go grey.
 - Temporal smoothing is a blend with the last frame, not motion-compensated, so high values trail behind fast motion.
 - Feathering and colour maths run in gamma-encoded sRGB, as grading qualifiers do; CIELAB is computed through linear
   light.
@@ -189,7 +227,11 @@ skipped the GPU renderer (VP1.2).
     (passthrough); the black level crushes, and the contrast curve steepens;
   - an edge-aware feather keeps a hard edge where a blur spreads, and temporal smoothing calms a flickering mask;
   - bad configs, frames and times are refused with codes, and clamped times are logged;
-  - the lookup table is within 0.05 of the exact match in CIELAB and 0.025 in YCbCr over a 96-level sweep.
+  - the lookup table is within 0.05 of the exact match in CIELAB and 0.025 in YCbCr over a 96-level sweep;
+  - a selected item keeps colour while another square of the same colour does not, keeps its window's own colour,
+    follows the item as it moves, keeps only the target colour with `keep: "colour"`, and nothing before `at`.
+- The bus example through the pipeline: only the bus keeps colour, with its destination board, side graphics and
+  windows, while a second red bus, the red bus lane and the bricks stay black and white.
 - `node --test tests/selective-color-file.test.mjs`:
   - probe parsing (rational rates, rotation, audio, no video), codec listing and container checks, frame ranges
     (seconds and frames, clamping and refusing) and FFmpeg arguments;

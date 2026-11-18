@@ -26,6 +26,8 @@ export function SelectiveColorDemo({ plates, width = 960 }: { plates: Readonly<R
   const [space, setSpace] = useState<SelectiveColorSpace>("hsv"), [tolerance, setTolerance] = useState<number>(TOLERANCE.hsv.tolerance), [softness, setSoftness] = useState<number>(TOLERANCE.hsv.softness);
   const [feather, setFeather] = useState(2), [edgeAware, setEdgeAware] = useState(true), [contrast, setContrast] = useState(1.5), [black, setBlack] = useState(0.06);
   const [time, setTime] = useState(3), [playing, setPlaying] = useState(false), [showMask, setShowMask] = useState(false);
+  // Click the picture to keep colour on one item only: the patch of the colour under the click, windows and all.
+  const [seed, setSeed] = useState<{ x: number; y: number }>(), [keep, setKeep] = useState<"whole" | "colour">("whole");
   const [pixels, setPixels] = useState<ImageData>(), [report, setReport] = useState<SelectiveColorFrameReport>(), [error, setError] = useState<string>();
   const canvas = useRef<HTMLCanvasElement>(null), height = Math.round((width * 9) / 16);
 
@@ -48,7 +50,8 @@ export function SelectiveColorDemo({ plates, width = 960 }: { plates: Readonly<R
     feathering: { radius: feather, edgeAware },
     monochrome: { contrastBoost: contrast, blackLevel: black },
     windows: [WINDOW],
-  }), [space, preset, tolerance, softness, feather, edgeAware, contrast, black]);
+    ...seed ? { selection: { seed, keep, at: 0 } } : {},
+  }), [space, preset, tolerance, softness, feather, edgeAware, contrast, black, seed, keep]);
   const engine = useMemo(() => {
     try { setError(undefined); return createSelectiveColorEngine(config, { duration: SECONDS }); }
     catch (e) { setError(e instanceof SelectiveColorError ? e.message : String(e)); return undefined; }
@@ -80,13 +83,20 @@ export function SelectiveColorDemo({ plates, width = 960 }: { plates: Readonly<R
   const pickSpace = (next: SelectiveColorSpace) => { setSpace(next); setTolerance(TOLERANCE[next].tolerance); setSoftness(TOLERANCE[next].softness); };
   const t = TOLERANCE[space];
   return <div style={{ display: "grid", gap: 12, padding: 16, background: "#0d1117", color: "#e6edf3", minHeight: "100vh", boxSizing: "border-box", maxWidth: "100%" }}>
-    <canvas ref={canvas} width={width} height={height} role="img" aria-label={`The plate in black and white, keeping ${PRESETS[preset].label.toLowerCase()}`} style={{ width: "100%", maxWidth: width, height: "auto", borderRadius: 6, background: "#000" }} />
+    <canvas ref={canvas} width={width} height={height} role="img" aria-label={`The plate in black and white, keeping ${seed ? "one selected item in" : ""} ${PRESETS[preset].label.toLowerCase()}`}
+      onClick={(e) => { const box = e.currentTarget.getBoundingClientRect(); setSeed({ x: (e.clientX - box.left) / box.width, y: (e.clientY - box.top) / box.height }); }}
+      style={{ width: "100%", maxWidth: width, height: "auto", borderRadius: 6, background: "#000", cursor: "crosshair" }} />
     <div style={row}>
       <button type="button" onClick={() => setPlaying((p) => !p)} style={{ padding: "8px 16px", borderRadius: 6, border: 0, background: "#7cc6ff", color: "#06121f", font: "600 14px system-ui" }}>{playing ? "Pause" : "Play"}</button>
       <label style={label}>Time {time.toFixed(2)} s · strength {report ? report.strength.toFixed(2) : "–"}
         <input type="range" min={0} max={SECONDS} step={0.01} value={time} onChange={(e) => { setPlaying(false); setTime(Number(e.target.value)); }} style={{ width: 320 }} />
       </label>
       <label style={label}><span><input type="checkbox" checked={showMask} onChange={(e) => setShowMask(e.target.checked)} /> Show the mask</span></label>
+      <label style={label}>Selected item{seed ? ` at ${(seed.x * 100).toFixed(0)}%, ${(seed.y * 100).toFixed(0)}%` : " (click the picture)"}
+        <select value={seed ? keep : "off"} onChange={(e) => { if (e.target.value === "off") setSeed(undefined); else { setKeep(e.target.value as "whole" | "colour"); if (!seed) setSeed({ x: 0.5, y: 0.5 }); } }}>
+          <option value="off">Off: every pixel of the colour</option><option value="whole">The whole item, windows and all</option><option value="colour">Only the item's colour</option>
+        </select>
+      </label>
       <span style={{ font: "12px ui-monospace, monospace", color: "#9aa4b2" }}>{report ? `kept ${(report.kept * 100).toFixed(1)}% · ${report.milliseconds.toFixed(0)} ms a frame (CPU)` : ""}</span>
     </div>
     <div style={row}>
@@ -107,7 +117,9 @@ export function SelectiveColorDemo({ plates, width = 960 }: { plates: Readonly<R
       The picture turns into high-contrast black and white except for the colour kept. A pixel keeps its colour as much as it
       matches: within the tolerance fully, fading out over the softness, never when it is grey or near black. The mask is
       feathered along the picture's own edges, so colour does not bleed into the grey. The window fades selective colour in
-      at 1 s and out at 5 s; outside it the shot is all black and white. This is the CPU reference path; the GPU path comes next.
+      at 1 s and out at 5 s; outside it the shot is all black and white. Click the picture to keep colour on one item only:
+      the patch of the colour under the click, with its windows and lettering, followed through a video by the file
+      pipeline.
     </p>
   </div>;
 }
