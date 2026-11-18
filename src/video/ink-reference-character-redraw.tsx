@@ -19,6 +19,7 @@ import {
   irisPositions,nearestEmotion,findEmotion,
 } from "../../registry/anatomy/expression-face";
 import {renderMeshFrame,projectPoint,smoothPath} from "../../registry/anatomy/anatomy-view";
+import {faceHair as createFacialHair} from "../../registry/anatomy/anatomy-hair";
 
 export const INK_REFERENCE_CHARACTERS=["scholar","elder"] as const;
 export const INK_REFERENCE_EXPRESSIONS=[
@@ -151,6 +152,15 @@ function createReferenceGeometry(
       ry:fmt(gaze.r*.58*1.05),
     };
   });
+  const facialHair=createFacialHair(expressed.vertices,FACE_FEATURES,{
+    browDensity:.42,lashes:13,seed:character==="elder"?2841:1937,
+  }).map((stroke,index)=>{
+    const points=stroke.points.map(p=>{
+      const q=projectPoint(frame,[p[0]/1000,p[1]/1000,p[2]/1000]);
+      return map([q[0],q[1]]);
+    });
+    return {id:stroke.kind+"-"+stroke.side+"-"+index,kind:stroke.kind,side:stroke.side,d:smoothPath(points,false)};
+  }).filter(stroke=>stroke.d.length>0);
   const measures=measureFace(expressed.vertices);
   const featuresNow=expressionFeatures(expressed);
   const nearest=emotion==="neutral"
@@ -278,7 +288,8 @@ export function InkReferenceCharacterRedraw({
     data-km-anat1-mouth-width-mm={fmt(g.measures.chCh)}
     data-km-expr1-emotion={emotion}
     data-km-expr1-nearest={g.nearest}
-    data-km-expr1-mark-count={g.marks.length}>
+    data-km-expr1-mark-count={g.marks.length}
+    data-km-anat1-facial-hair-count={g.facialHair.length}>
     <defs>
       <clipPath id={uid+"-face-clip"}><path d={g.outline}/></clipPath>
       <radialGradient id={uid+"-skin"} cx=".43" cy=".29" r=".78">
@@ -378,6 +389,11 @@ export function InkReferenceCharacterRedraw({
           strokeLinecap="round" strokeLinejoin="round"
           opacity={brow? .62:eye? .76:nose? .52:lip? .72:.5}/>;
       })}
+      {g.facialHair.map(hair=><path key={hair.id}
+        data-km-anat1-facial-hair={hair.kind} data-km-anat1-hair-side={hair.side}
+        d={hair.d} fill="none" stroke={palette.ink}
+        strokeWidth={hair.kind==="brow"?.34:hair.kind==="lash-upper"?.28:.19}
+        strokeLinecap="round" opacity={(hair.kind==="brow"?.48:hair.kind==="lash-upper"?.52:.3)*detail}/>)}
       {g.irises.map(eye=><g key={eye.side} data-km-anat1-iris={eye.side}>
         <ellipse cx={eye.x} cy={eye.y} rx={eye.rx} ry={eye.ry}
           fill="#705541" opacity=".84"/>
