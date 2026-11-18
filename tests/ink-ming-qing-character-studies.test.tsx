@@ -96,6 +96,16 @@ describe("ANAT5 original Ming/Qing Chinese ink character studies",()=>{
     expect((attendant.match(/data-km-ink-anat5-earring=/g)||[])).toHaveLength(1);
   });
 
+  it("exposes a source-space face camera for enlarged anatomical review",()=>{
+    const full=render({character:"scholar",view:"full"});
+    const face=render({character:"scholar",view:"face"});
+    expect(full).toContain('data-km-ink-anat5-view="full"');
+    expect(full).toContain('viewBox="0 0 320 390"');
+    expect(face).toContain('data-km-ink-anat5-view="face"');
+    expect(face).not.toContain('viewBox="0 0 320 390"');
+    expect(face).toContain('facial anatomy crop');
+  });
+
   it("rejects invalid identities, expressions and non-finite controls",()=>{
     expect(()=>render({character:"unknown"})).toThrow(RangeError);
     expect(()=>render({emotion:"unknown"})).toThrow(RangeError);
