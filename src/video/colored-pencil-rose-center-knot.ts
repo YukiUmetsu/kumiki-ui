@@ -126,7 +126,7 @@ export const ROSE_CENTER_KNOT_SURFACES:readonly RoseCenterKnotSurface[]=[
       "M263 178 Q277 168 294 168",
       "M297 172 Q305 175 306 180",
       "M275 183 Q286 179 297 179",
-      "M261 179 L267 174 M302 180 L297 185",
+      "M269 179 L275 176 M281 181 L288 178",
     ]),
   },
   {
