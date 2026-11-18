@@ -229,9 +229,9 @@ export function RisoSlatRevealStudio(){
     </section>
     <p style={{fontSize:13,maxWidth:1000,margin:0}}>
       Each moving band is clipped from the complete second spot-ink master and
-      shares one rigid translation. Adjacent bands alternate between two
-      calibrated depth lanes; overlap is bounded by slot pitch and the lane
-      clearance must exceed paper caliper plus slot clearance. This is a
+      follows its own along-axis slot trajectory from one shared pull state.
+      Adjacent bands alternate between two calibrated depth lanes; overlap is
+      bounded by slot pitch and lane clearance must exceed caliper plus slot clearance. This is a
       deterministic 2.5D paper-engineering model, not a friction, tear-force
       or physical die-cut simulation.
     </p>
