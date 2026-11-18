@@ -182,7 +182,8 @@ describe("Chinese ink ANAT2: independent anatomically rebuilt figures",()=>{
     expect(actor).toContain('data-km-shanshui-scene="misty-hermit"');
     expect(actor).toContain('data-km-ink-standing-paper="transparent"');
     expect(actor).toContain('data-ink-cue="1.0000"');
-    expect((actor.match(/data-km-ink-native-robe-brush=/g)||[])).toHaveLength(4);
+    expect((actor.match(/data-km-ink-standing-pressure=/g)||[])).toHaveLength(6);
+    expect((actor.match(/data-km-ink-garment-flow=/g)||[])).toHaveLength(82);
     expect(actor).not.toMatch(/(?:NaN|Infinity|undefined)/);
   });
   it("advances 96 actor film frames deterministically and preserves neutral reduced-motion output",()=>{
