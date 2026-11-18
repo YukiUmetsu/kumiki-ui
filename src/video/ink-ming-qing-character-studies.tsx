@@ -34,6 +34,7 @@ export interface InkMingQingCharacterStudyProps {
   detail?:number;
   /** Animated head turn in degrees. Defaults to the pose observed in the source. */
   yaw?:number;
+  view?:"full"|"face";
   className?:string;
   style?:CSSProperties;
 }
@@ -297,7 +298,7 @@ function collarPath(character:InkMingQingCharacter){
 }
 
 export function InkMingQingCharacterStudy({
-  character="scholar",emotion="neutral",intensity=.82,detail=1,yaw,className,style,
+  character="scholar",emotion="neutral",intensity=.82,detail=1,yaw,view="full",className,style,
 }:InkMingQingCharacterStudyProps){
   if(!INK_MING_QING_CHARACTERS.includes(character))throw new RangeError("Unknown ANAT5 character");
   if(!INK_MING_QING_EXPRESSIONS.includes(emotion)||(emotion!=="neutral"&&!findEmotion(emotion)))
@@ -348,6 +349,9 @@ export function InkMingQingCharacterStudy({
   const hairCount=Math.max(0,Math.round(g.hairFiberCount*detail));
   const beardCount=Math.max(0,Math.round(g.beardFiberCount*detail));
   const capCount=character==="scholar"?Math.max(12,Math.round(42*detail)):0;
+  const viewBox=view==="face"
+    ?[g.left-35,g.top-82,g.right-g.left+70,g.landmarks.menton[1]-g.top+146].map(fmt).join(" ")
+    :"0 0 320 390";
   const shoulderPath=character==="scholar"
     ?"M7 390 C18 358 42 325 83 306 Q111 294 137 305 L160 333 L183 305 Q209 294 237 306 C278 325 302 358 313 390 Z"
     :character==="writer"
