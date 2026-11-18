@@ -207,7 +207,7 @@ Storybook keeps the component in **Video production → Film Looks → Risograph
 
 ## Interleaved printed-paper slat reveal (RISO81)
 
-\`RisoSlatTheatre\` composes two complete, independently printed spot-ink masters. The cover remains stationary; the second master is clipped into 4–24 source-ordered paper strips and moved through its corresponding slot set by one rigid pull comb. The moving strips reconstruct the exact second image at the end stop.
+\`RisoSlatTheatre\` composes two complete, independently printed spot-ink masters. The cover remains stationary; the second master is clipped into 4–24 source-ordered paper strips. One pull tab drives each strip through its own parallel slot with bounded per-slot timing. The moving strips reconstruct the exact second image at the end stop.
 
 ### API
 
@@ -232,7 +232,7 @@ Storybook keeps the component in **Video production → Film Looks → Risograph
 - Each slat carries source-locked paper grain, directional cut-edge relief and deterministic cellulose microfibres. These details are fixed to the strip and do not crawl or flicker.
 - \`data-km-riso81-slat\`, \`data-km-riso81-slot\`, \`data-km-riso81-lane\`, \`data-km-riso81-exposure\` and collision-clearance attributes expose inspectable geometry evidence.
 
-Storybook: **Video production → Film Looks → Risograph → Interleaved Paper Slat Reveal**. Controls cover 16:9 / 9:16, row/column orientation, compatible travel direction, 4–24 strips, lap, stock caliper, slot clearance, paper relief, grain, seed, registration, microscope zoom and reduced motion.
+Storybook: **Video production → Film Looks → Risograph → Interleaved Paper Slat Reveal**. Controls cover 16:9 / 9:16, row/column orientation, compatible along-axis travel direction, 4–24 strips, lap, per-slot timing stagger, stock caliper, slot clearance, paper relief, grain, seed, registration, microscope zoom and reduced motion.
 
 ### Scope and limitations
 
