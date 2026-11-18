@@ -193,7 +193,7 @@ function createReferenceGeometry(
       +" Q140 "+fmt(capBottom+17)+" "+fmt(left-12)+" "+fmt(capBottom+5)+" Z";
 
   return {
-    outline,features,marks,irises,landmarks,capPath,top,left,right,
+    outline,features,marks,irises,facialHair,landmarks,capPath,top,left,right,
     nearest,measures,
     source:character==="scholar"?"LOC-1903-cph-3a44343":"LOC-1860-LCCN2011660679",
   };
