@@ -56,6 +56,16 @@ interface ObjectShape {
   startFrame?: number;
 }
 
+const ROSE_CENTER_PIGMENT_TONE:Readonly<Record<string,"core"|"rim">>={
+  "inner-fold":"core",
+  "rose-whorl-recess":"core",
+  "rose-whorl-left":"rim",
+  "rose-whorl-right":"rim",
+  "heart":"rim",
+  "rose-whorl-scroll":"rim",
+  "rose-center-scroll-underturn":"core",
+};
+
 function material(shape: ObjectShape, seed: number, transform: string,
   formAlignedRoseCenter=false): PencilRegion {
   const input: PencilMaterialInput = {
@@ -83,6 +93,7 @@ function material(shape: ObjectShape, seed: number, transform: string,
       ...layer,
       angle:normalise(direction+offsets[index]),
       flow:flow*fan[index],
+      tone:ROSE_CENTER_PIGMENT_TONE[shape.id]??layer.tone,
     })),
   };
 }
