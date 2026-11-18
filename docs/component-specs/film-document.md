@@ -206,7 +206,7 @@ Evidence (2026-11-11): `tests/film-document.test.ts`, "flash cut, burst and pola
 
 ### Shape wipe
 
-`{ "kind": "shape", "shape": "circle", "subject": "glow", "color": "#ffffff" }` opens the next scene through a growing shape: an iris `circle`, a `diamond`, a `star`, a `square`, or the brand's `mark`. It grows from the centre of a subject of the outgoing scene (declared in its `subjects`), or from the frame's centre, slow at first and fast into the corners, and its last frame covers the far corner. `color` draws a thin line on its edge so the shape reads as designed. Default 16 frames.
+`{ "kind": "shape", "shape": "circle", "subject": "glow", "color": "#ffffff" }` opens the next scene through a growing shape (add `"material": "burn"`, `"bleed"` or `"frost"` to open it through a material; see [material transitions](material-transitions.md)): an iris `circle`, a `diamond`, a `star`, a `square`, or the brand's `mark`. It grows from the centre of a subject of the outgoing scene (declared in its `subjects`), or from the frame's centre, slow at first and fast into the corners, and its last frame covers the far corner. `color` draws a thin line on its edge so the shape reads as designed. Default 16 frames.
 
 - **Mark.** `"shape": "mark"` grows the film's `brand.mark`, used as a mask. A picture's outline cannot be measured, so over the last third the rest of the incoming scene fades in around the mark, and the wipe always ends on the full scene. Use a solid silhouette with a transparent background.
 - **Reduced motion** keeps a dissolve of the same length.
@@ -229,8 +229,12 @@ Evidence (2026-11-11): `tests/film-document.test.ts`, "shape wipe". Frames rende
 - **`ink`**: it spreads from a subject of the scene before (or two points placed by the seed) in tendrils, like ink in water.
 - **`brush`**: it sweeps left to right with an edge broken into streaks, like bristles dragged across.
 - **`smoke`**: it drifts in from everywhere at once, with a soft edge.
+- **Materials** (`bleed`, `burn`, `paint`, `frost`): the next scene arrives the way ink soaks into paper, paper burns
+  away, paint runs down or breath frosts glass. The fronts come from each material's physics, with their own overlays.
+  `grain` sets the paper's fibre direction. See [material transitions](material-transitions.md).
 
-`seed` picks another matte of the same kind. `color` stains the travelling edge. Default 26 frames.
+`seed` picks another matte of the same kind. `color` stains the travelling edge (for a material: the ink, the char, the
+gloss or the frost). Default 26 frames, and 36–48 for a material.
 
 **Dither.** `{ "kind": "dither", "cell": 0.008 }` shows the next scene cell by cell in an 8×8 ordered (Bayer) pattern, at a cell size given as a share of the frame's short side. Default 14 frames.
 

@@ -60,9 +60,9 @@ import type { CompiledSceneSound, FilmSceneSound, FilmSplit } from "./film-split
 import { dipFrames, DIP_FRAMES, dipHiddenFrames, inspectDip, inspectFade } from "./film-dip";
 import { burstFrames, flashFrames, inspectBurst, inspectFlash, MAX_FLASHES_PER_SECOND, peakFlashesPerSecond } from "./film-flash";
 import type { FilmBurst, FilmBurstInsert, FilmBurstSpec, FilmFlash, FilmFlashSpec } from "./film-flash";
-import { inspectShapeWipe, SHAPE_WIPE_FRAMES } from "./film-shape-wipe";
+import { inspectShapeWipe, SHAPE_WIPE_FRAMES, shapeWipeFrames } from "./film-shape-wipe";
 import { compilePanels } from "./film-panels";
-import { DITHER_FRAMES, inspectDither, inspectMatte, MATTE_FRAMES } from "./film-matte";
+import { DITHER_FRAMES, inspectDither, inspectMatte, MATTE_FRAMES, matteFrames } from "./film-matte";
 import type { FilmDither, FilmDitherSpec, FilmMatte, FilmMatteSpec } from "./film-matte";
 import { compileStutter, stutterExtra } from "./film-stutter";
 import { inspectLens } from "./film-lens";
@@ -78,7 +78,7 @@ export type FilmOutput =
 /** Duration comes out of the incoming scene, so a film lasts the sum of its scenes. */
 /** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
  * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
-export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames" | "text">, Pick<FilmFlashSpec, "frames" | "fadeFrames">, Partial<FilmBurstSpec>, Pick<FilmShapeWipeSpec, "shape">, Pick<FilmMatteSpec, "texture" | "seed">, FilmDitherSpec {
+export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames" | "text">, Pick<FilmFlashSpec, "frames" | "fadeFrames">, Partial<FilmBurstSpec>, Pick<FilmShapeWipeSpec, "shape" | "material">, Pick<FilmMatteSpec, "texture" | "seed" | "grain">, FilmDitherSpec {
   kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip" | "flash" | "burst" | "shape" | "matte" | "dither" | "lens";
   durationFrames?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve.
@@ -959,7 +959,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     if (index === 0 || transition?.kind !== "shape") return;
     const before = compiled[index - 1], box = transition.subject ? before?.subjects[transition.subject]?.end : undefined;
     const origin = transition.subject ? (box ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : before ? "unknown" as const : undefined) : undefined;
-    const { wipe, problems } = inspectShapeWipe(transition, transition.durationFrames ?? SHAPE_WIPE_FRAMES, rate, `/scenes/${index}/transition`, size, origin, doc.brand?.mark?.src);
+    const { wipe, problems } = inspectShapeWipe(transition, transition.durationFrames ?? shapeWipeFrames(transition.material), rate, `/scenes/${index}/transition`, size, origin, doc.brand?.mark?.src);
     for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
     if (wipe) shapes[scene.id] = wipe;
   });
@@ -976,7 +976,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     }
     const before = compiled[index - 1], box = transition.subject ? before?.subjects[transition.subject]?.end : undefined;
     const origin = transition.subject ? (box ? { x: (box.x + box.width / 2) / size.width, y: (box.y + box.height / 2) / size.height } : before ? "unknown" as const : undefined) : undefined;
-    const { matte, problems } = inspectMatte(transition, transition.durationFrames ?? MATTE_FRAMES, rate, path, origin);
+    const { matte, problems } = inspectMatte(transition, transition.durationFrames ?? matteFrames(transition.texture), rate, path, origin);
     for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
     if (matte) mattes[scene.id] = matte;
   });
@@ -1059,7 +1059,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     // A container transform is a dissolve too: FilmStage grows the incoming scene out of the tile. Reduced motion keeps the dissolve.
     // A pass-by is a dissolve in the plan too, and FilmStage draws it; reduced motion keeps the dissolve.
     transitions: doc.scenes.slice(1).map(({ transition }) => transition && hasKey(DRAWN_FRAMES, transition.kind)
-      ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? (transition.kind === "dip" ? dipFrames(transition, doc.fps.num / doc.fps.den) : transition.kind === "flash" ? flashFrames(transition) : transition.kind === "burst" ? burstFrames({ inserts: transition.inserts ?? [], framesEach: transition.framesEach }) : DRAWN_FRAMES[transition.kind as keyof typeof DRAWN_FRAMES]) }
+      ? { kind: "dissolve" as const, durationFrames: transition.durationFrames ?? (transition.kind === "dip" ? dipFrames(transition, doc.fps.num / doc.fps.den) : transition.kind === "flash" ? flashFrames(transition) : transition.kind === "burst" ? burstFrames({ inserts: transition.inserts ?? [], framesEach: transition.framesEach }) : transition.kind === "matte" ? matteFrames(transition.texture) : transition.kind === "shape" ? shapeWipeFrames(transition.material) : DRAWN_FRAMES[transition.kind as keyof typeof DRAWN_FRAMES]) }
       : { durationFrames: transition?.durationFrames ?? 0, axis: transition?.axis, direction: transition?.direction, reducedMotion: transition?.reducedMotion, kind: (transition?.kind ?? "cut") as Exclude<FilmTransition["kind"], keyof typeof DRAWN_FRAMES> }),
   });
   for (const item of cutResult?.diagnostics ?? []) {

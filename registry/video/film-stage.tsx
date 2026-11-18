@@ -10,7 +10,9 @@ import { dipFrame, fadeVeil } from "./film-dip";
 import { burstInsert, flashFrame } from "./film-flash";
 import { shapeWipeFrame } from "./film-shape-wipe";
 import { panelClip, panelFrame, panelOpen } from "./film-panels";
-import { ditherTile, matteAlpha, matteField } from "./film-matte";
+import { ditherTile, isMaterialTexture, matteAlpha, matteField } from "./film-matte";
+import { materialFrame, planMaterial } from "./film-material";
+import type { MaterialShape, MaterialSpec } from "./film-material";
 import { lensAt, lensCopies, lensGateFrame } from "./film-lens";
 import type { FilmDip } from "./film-dip";
 import { speedClock, speedSource } from "./film-speed";
@@ -152,6 +154,16 @@ function whipFrame(direction: "left" | "right" | "up" | "down", progress: number
   const blur = Math.sin(Math.PI * t) ** 2 * .018 * reach, k = 1 + 3 * blur / Math.min(width, height), ox = (1 - k) * width / 2, oy = (1 - k) * height / 2;
   return { outgoing: { a: k, b: 0, c: 0, d: k, e: ox + dx * reach * e, f: oy + dy * reach * e }, incoming: { a: k, b: 0, c: 0, d: k, e: ox - dx * reach * (1 - e), f: oy - dy * reach * (1 - e) }, blur };
 }
+/** Resolution of a material's fields across the frame: fine enough for paper fibres and droplets. */
+const MATERIAL_COLS = 384;
+/** The material behind a transition into `sceneId`: a material matte, or a shape opened through a material. */
+function materialSpecFor(film: CompiledFilm, sceneId: string): MaterialSpec | undefined {
+  const matte = film.mattes[sceneId];
+  if (matte && isMaterialTexture(matte.texture)) return { material: matte.texture, seed: matte.seed, origins: matte.origins, color: matte.edge, grain: matte.grain };
+  const shape = film.shapes[sceneId];
+  if (shape?.material && shape.shape !== "mark") return { material: shape.material, origins: [{ x: shape.origin.x / film.width, y: shape.origin.y / film.height }], color: shape.edge, shape: shape.shape as MaterialShape };
+  return undefined;
+}
 /** A mask from a grid of opacities, as a PNG data URL: white, with the opacity in its alpha. The browser smooths it as it scales it to the
  * frame, which softens a matte's edge. */
 function alphaImage(alpha: Uint8ClampedArray, cols: number, rows: number): string {
@@ -291,19 +303,32 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   // A flash cut lands on the next scene under a frame or two of colour, and the scene burns back through it. Reduced motion keeps the cut.
   const flashSpec = state.transition && film.flashes[state.transition.toShotId];
   const flash = flashSpec && window && !reduce ? flashFrame(flashSpec, state.frame - window.startFrame) : undefined;
+  // A material transition (a material matte, or a shape opened through a material) is solved once per transition: its
+  // fronts come from an eikonal solve that is too costly to repeat each frame. Reduced motion keeps the dissolve.
+  const materialKey = state.transition && !reduce ? state.transition.toShotId : undefined;
+  const materialRows = Math.max(2, Math.round(MATERIAL_COLS * film.height / film.width));
+  const materialPlan = useMemo(() => {
+    if (!materialKey) return undefined;
+    const spec = materialSpecFor(film, materialKey);
+    return spec ? planMaterial(spec, MATERIAL_COLS, materialRows, film.width / film.height) : undefined;
+  }, [film, materialKey, materialRows]);
+  const material = materialPlan ? (() => {
+    const frame = materialFrame(materialPlan, state.transition!.progress);
+    return { reveal: alphaImage(frame.reveal, MATERIAL_COLS, materialRows), layers: frame.layers.filter(layer => layer.alpha.some(v => v > 0)).map(layer => ({ ...layer, image: alphaImage(layer.alpha, MATERIAL_COLS, materialRows) })) };
+  })() : undefined;
   // A shape wipe opens the next scene through a growing shape; reduced motion keeps the dissolve.
-  const shapeSpec = state.transition && !reduce ? film.shapes[state.transition.toShotId] : undefined;
+  const shapeSpec = state.transition && !reduce && !materialPlan ? film.shapes[state.transition.toShotId] : undefined;
   const shape = shapeSpec ? shapeWipeFrame(shapeSpec, state.transition!.progress, film.width, film.height) : undefined;
   // A matte or a dither shows the next scene through a mask drawn for this frame; reduced motion keeps the dissolve.
-  const matteSpec = state.transition && !reduce ? film.mattes[state.transition.toShotId] : undefined;
+  const matteSpec = state.transition && !reduce && !materialPlan ? film.mattes[state.transition.toShotId] : undefined;
   const ditherSpec = state.transition && !reduce ? film.dithers[state.transition.toShotId] : undefined;
   const matteCols = 192, matteRows = Math.max(2, Math.round(192 * film.height / film.width));
   // The field does not change across the transition, so it is worked out once for each matte.
   const field = useMemo(() => matteSpec && matteField(matteSpec, matteCols, matteRows, film.width / film.height), [matteSpec, matteCols, matteRows, film.width, film.height]);
-  const matte = matteSpec && field ? (() => { const { reveal, stain } = matteAlpha(matteSpec.texture, field, state.transition!.progress); return { reveal: alphaImage(reveal, matteCols, matteRows), stain: matteSpec.edge ? alphaImage(stain, matteCols, matteRows) : undefined }; })() : undefined;
+  const matte = matteSpec && field && !isMaterialTexture(matteSpec.texture) ? (() => { const { reveal, stain } = matteAlpha(matteSpec.texture, field, state.transition!.progress); return { reveal: alphaImage(reveal, matteCols, matteRows), stain: matteSpec.edge ? alphaImage(stain, matteCols, matteRows) : undefined }; })() : undefined;
   const ditherCell = ditherSpec ? Math.max(1, Math.round(ditherSpec.cell * Math.min(film.width, film.height))) : 0;
   const dither = ditherSpec ? ditherImage(ditherTile(state.transition!.progress), ditherCell) : undefined;
-  const patternMask = matte ? maskStyle(matte.reveal, "100% 100%", "no-repeat") : dither ? maskStyle(dither, `${ditherCell * 8}px ${ditherCell * 8}px`, "repeat") : undefined;
+  const patternMask = material ? maskStyle(material.reveal, "100% 100%", "no-repeat") : matte ? maskStyle(matte.reveal, "100% 100%", "no-repeat") : dither ? maskStyle(dither, `${ditherCell * 8}px ${ditherCell * 8}px`, "repeat") : undefined;
   // A lens gateway: a round lens enters and grows over the old scene with the new one behind its glass; reduced motion keeps the dissolve.
   const gateSpec = state.transition && !reduce ? film.lensGates[state.transition.toShotId] : undefined;
   const gate = gateSpec ? lensGateFrame(state.transition!.progress, film.width, film.height, gateSpec.direction) : undefined;
@@ -420,6 +445,11 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     {shape?.edge && shapeSpec!.edge && <svg aria-hidden="true" data-km-film-shape-edge="" width={film.width} height={film.height} style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
       <path d={shape.edge} fill="none" stroke={shapeSpec!.edge} strokeWidth={Math.max(1.5, Math.min(film.width, film.height) * .004)} strokeLinejoin="round" />
     </svg>}
+    {material?.layers.map(layer => <div key={layer.id} aria-hidden="true" data-km-film-material={layer.id} style={{ ...LAYER, pointerEvents: "none",
+      // Frosted glass blurs what is behind it under a light veil; other layers are a colour through their alpha.
+      background: layer.backdropBlur ? `${layer.color}5c` : layer.color, mixBlendMode: layer.blend === "normal" ? undefined : layer.blend,
+      ...layer.backdropBlur ? { backdropFilter: `blur(${(layer.backdropBlur * film.height / 1000).toFixed(1)}px)`, WebkitBackdropFilter: `blur(${(layer.backdropBlur * film.height / 1000).toFixed(1)}px)` } : {},
+      ...maskStyle(layer.image, "100% 100%", "no-repeat") }} />)}
     {matte?.stain && <div aria-hidden="true" data-km-film-matte-stain="" style={{ ...LAYER, background: matteSpec!.edge, pointerEvents: "none", ...maskStyle(matte.stain, "100% 100%", "no-repeat") }} />}
     {gate && gate.rim > .01 && <svg aria-hidden="true" data-km-film-lens-gate="" width={film.width} height={film.height} style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible", opacity: gate.rim }}>
       <defs><radialGradient id="km-lens-gate" cx="38%" cy="30%" r="75%"><stop offset="0" stopColor="#fff" stopOpacity=".18" /><stop offset=".5" stopColor="#fff" stopOpacity="0" /><stop offset=".94" stopColor="#fff" stopOpacity=".06" /><stop offset="1" stopColor="#fff" stopOpacity=".3" /></radialGradient></defs>

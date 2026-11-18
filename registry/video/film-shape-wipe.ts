@@ -7,7 +7,12 @@
  * The shape grows on a curve that starts slow and ends fast, and its last frame covers the frame's far corner from the origin, so no
  * sliver of the outgoing scene is left behind. A mark is a picture, so the stage cannot know when its outline covers the frame; over the
  * last third the rest of the incoming scene fades in around it.
+ *
+ * With a `material` (bleed, burn or frost), the shape keeps its outline while the material roughens and dresses its edge:
+ * a circle that burns open from a face, a diamond that bleeds open like ink. See `film-material.ts`.
  */
+import { inspectMaterial, MATERIAL_FRAMES } from "./film-material";
+import type { MaterialKind } from "./film-material";
 
 export type ShapeWipeShape = "circle" | "diamond" | "star" | "square" | "mark";
 export interface FilmShapeWipeSpec {
@@ -15,11 +20,16 @@ export interface FilmShapeWipeSpec {
   shape?: ShapeWipeShape;
   /** A subject of the outgoing scene the shape grows from. @default the frame's centre */
   subject?: string;
-  /** A thin line drawn on the shape's edge, in this colour, so it reads as designed rather than as a mask. */
+  /** A thin line drawn on the shape's edge, in this colour, so it reads as designed rather than as a mask. With a
+   * material: the material's colour (the ink, the char, the frost). */
   color?: string;
+  /** Open the shape through a material: its edge bleeds like ink, burns like paper or clears like frost. */
+  material?: Exclude<MaterialKind, "paint">;
 }
 /** A shape wipe as the stage draws it, by incoming scene ID. `origin` is in pixels. */
-export interface FilmShapeWipe { shape: ShapeWipeShape; origin: { x: number; y: number }; edge?: string; mark?: string }
+export interface FilmShapeWipe { shape: ShapeWipeShape; origin: { x: number; y: number }; edge?: string; mark?: string; material?: Exclude<MaterialKind, "paint"> }
+/** A shape wipe's default length: a material edge needs time to read. */
+export const shapeWipeFrames = (material?: MaterialKind) => (material ? MATERIAL_FRAMES[material] : SHAPE_WIPE_FRAMES);
 export interface ShapeWipeProblem { severity: "error" | "warning"; code: string; path: string; message: string; hint?: string }
 
 export const SHAPE_WIPE_FRAMES = 16;
@@ -70,7 +80,16 @@ export function inspectShapeWipe(spec: FilmShapeWipeSpec, frames: number, rate: 
   if (shape === "mark" && !mark) say("error", "shape-mark", "/shape", "A mark wipe grows the brand's mark, and the film has no `brand.mark`.");
   if (spec.color !== undefined && !COLOR.test(spec.color)) say("error", "shape-color", "/color", "An edge colour is a #rrggbb colour.");
   if (origin === "unknown") say("error", "shape-subject", "/subject", `"${spec.subject}" is not a subject of the scene before.`, "Declare it in that scene's `subjects`, or leave `subject` out to grow from the centre.");
-  if (problems.length) return { problems };
+  if (spec.material !== undefined) {
+    if (shape === "mark") say("error", "shape-material-mark", "/material", "A mark is a picture, so it cannot open through a material.", "Use a circle, diamond, square or star.");
+    else if (spec.material === ("paint" as MaterialKind)) say("error", "shape-material-paint", "/material", "Paint runs down under gravity; it does not grow a shape.", "Use a paint matte instead.");
+    else for (const item of inspectMaterial({ material: spec.material, color: spec.color, shape }, frames, rate, path)) problems.push(item);
+  }
+  if (problems.some(item => item.severity === "error")) return { problems };
+  if (spec.material !== undefined) {
+    const at = (origin as { x: number; y: number } | undefined) ?? { x: size.width / 2, y: size.height / 2 };
+    return { wipe: { shape, origin: at, edge: spec.color, material: spec.material }, problems };
+  }
   if (frames < rate * .27 || frames > rate * 1) say("warning", "shape-timing", "/durationFrames", `A ${(frames / rate).toFixed(2)} s shape wipe ${frames < rate * .27 ? "pops open before the shape can be seen" : "opens so slowly the viewer studies the outgoing scene through it"}.`, "Open it over 8 to 30 frames.");
   return { wipe: { shape, origin: (origin as { x: number; y: number } | undefined) ?? { x: size.width / 2, y: size.height / 2 }, edge: spec.color, mark: shape === "mark" ? mark : undefined }, problems };
 }

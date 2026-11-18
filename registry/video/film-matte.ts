@@ -1,5 +1,9 @@
 /** Matte transitions: the next scene shows through a pattern that grows over the old one.
  *
+ * - **Material matte** (`{ "kind": "matte", "texture": "burn" }`): `bleed`, `burn`, `paint` and `frost` follow how ink,
+ *   paper, paint and breath on glass really move, with their own overlays (pigment rim, embers and char, paint gloss,
+ *   frosted glass). See `film-material.ts`.
+ *
  * - **Organic matte** (`{ "kind": "matte", "texture": "ink" }`): the next scene spreads in like ink in water, a brush stroke or smoke, from
  *   seeded noise. Its edge is soft and irregular; an optional `color` stains the edge as it travels.
  * - **Dither** (`{ "kind": "dither" }`): the next scene appears cell by cell in an ordered (Bayer) pattern of hard pixels, like an old
@@ -14,7 +18,10 @@
  * frame shows only the old scene and the last only the new.
  */
 
-export type MatteTexture = "ink" | "brush" | "smoke";
+import { inspectMaterial, MATERIAL_FRAMES, MATERIAL_KINDS, materialOrigins } from "./film-material";
+import type { MaterialKind } from "./film-material";
+
+export type MatteTexture = "ink" | "brush" | "smoke" | MaterialKind;
 export interface FilmMatteSpec {
   /** @default "ink" */
   texture?: MatteTexture;
@@ -22,23 +29,30 @@ export interface FilmMatteSpec {
   seed?: number;
   /** A subject of the outgoing scene where ink starts. @default two seeded points */
   subject?: string;
-  /** A stain on the travelling edge, in this colour. */
+  /** A stain on the travelling edge, in this colour. For a material: the ink (bleed), the char (burn), the gloss (paint) or
+   * the frost's tint. */
   color?: string;
+  /** bleed and burn: the paper's grain (fibre direction), degrees from the frame's x axis. @default 90 */
+  grain?: number;
 }
 export interface FilmDitherSpec {
   /** A dither cell's size, as a fraction of the frame's short side. @default 0.008 */
   cell?: number;
 }
 /** A matte as the stage draws it, by incoming scene ID. Origins are fractions of the frame. */
-export interface FilmMatte { texture: MatteTexture; seed: number; origins: ReadonlyArray<{ x: number; y: number }>; edge?: string }
+export interface FilmMatte { texture: MatteTexture; seed: number; origins: ReadonlyArray<{ x: number; y: number }>; edge?: string; grain?: number }
 export interface FilmDither { cell: number }
 export interface MatteProblem { severity: "error" | "warning"; code: string; path: string; message: string; hint?: string }
 
 export const MATTE_FRAMES = 26, DITHER_FRAMES = 14;
-const TEXTURES: readonly MatteTexture[] = ["ink", "brush", "smoke"];
+const TEXTURES: readonly MatteTexture[] = ["ink", "brush", "smoke", ...MATERIAL_KINDS];
+/** A texture that a material physically drives, rather than seeded noise. */
+export const isMaterialTexture = (texture: MatteTexture): texture is MaterialKind => (MATERIAL_KINDS as readonly string[]).includes(texture);
+/** A matte's default length: material fronts read slower than noise mattes. */
+export const matteFrames = (texture: MatteTexture = "ink") => (isMaterialTexture(texture) ? MATERIAL_FRAMES[texture] : MATTE_FRAMES);
 const COLOR = /^#[0-9a-f]{6}$/i;
 /** How soft each texture's edge is, in field units. */
-const SOFT: Record<MatteTexture, number> = { ink: .035, brush: .02, smoke: .1 };
+const SOFT: Record<"ink" | "brush" | "smoke", number> = { ink: .035, brush: .02, smoke: .1 };
 
 /** A seeded hash of a lattice point to 0..1. */
 function hash(x: number, y: number, seed: number): number {
@@ -91,7 +105,7 @@ export function matteField(matte: Pick<FilmMatte, "texture" | "seed" | "origins"
 }
 const ease = (t: number) => { const v = Math.min(1, Math.max(0, t)); return v < .5 ? 2 * v * v : 1 - (-2 * v + 2) ** 2 / 2; };
 /** The incoming scene's opacity (0..255) in each cell at `progress`, and the edge stain's opacity in each cell. */
-export function matteAlpha(texture: MatteTexture, field: { field: Float32Array; min: number; max: number }, progress: number): { reveal: Uint8ClampedArray; stain: Uint8ClampedArray } {
+export function matteAlpha(texture: "ink" | "brush" | "smoke", field: { field: Float32Array; min: number; max: number }, progress: number): { reveal: Uint8ClampedArray; stain: Uint8ClampedArray } {
   const soft = SOFT[texture], level = field.min - soft + (field.max - field.min + 2 * soft) * ease(progress);
   const reveal = new Uint8ClampedArray(field.field.length), stain = new Uint8ClampedArray(field.field.length);
   for (let k = 0; k < field.field.length; k++) {
@@ -127,7 +141,16 @@ export function inspectMatte(spec: FilmMatteSpec, frames: number, rate: number, 
   if (!(Number.isSafeInteger(seed) && seed >= 0)) say("error", "matte-seed", "/seed", "A seed is a whole number, 0 or more.");
   if (spec.color !== undefined && !COLOR.test(spec.color)) say("error", "matte-color", "/color", "A stain's colour is a #rrggbb colour.");
   if (origin === "unknown") say("error", "matte-subject", "/subject", `"${spec.subject}" is not a subject of the scene before.`);
-  if (spec.subject && texture !== "ink") say("warning", "matte-subject-unused", "/subject", `A ${texture} matte does not start from a point; only ink does.`);
+  const fromPoint = texture === "ink" || texture === "bleed" || texture === "burn" || texture === "frost";
+  if (spec.subject && !fromPoint) say("warning", "matte-subject-unused", "/subject", `A ${texture} matte does not start from a point.`);
+  if (spec.grain !== undefined && texture !== "bleed" && texture !== "burn") say("warning", "matte-grain-unused", "/grain", "Only paper (bleed and burn) has a grain.");
+  if (isMaterialTexture(texture)) {
+    // A material checks its own colour, grain and timing.
+    for (const item of inspectMaterial({ material: texture, seed, color: spec.color, grain: spec.grain }, frames, rate, path)) problems.push(item);
+    if (problems.some(item => item.severity === "error")) return { problems };
+    const origins = fromPoint ? (origin && origin !== "unknown" ? [origin] : materialOrigins(seed, texture === "frost" ? 1 : 2)) : [];
+    return { matte: { texture, seed, origins, edge: spec.color, grain: spec.grain }, problems };
+  }
   if (problems.some(item => item.severity === "error")) return { problems };
   if (frames < rate * .5 || frames > rate * 1.6) say("warning", "matte-timing", "/durationFrames", `A ${(frames / rate).toFixed(2)} s matte ${frames < rate * .5 ? "is gone before its texture can be seen" : "drags: the viewer watches the stain, not the scenes"}.`, "Run it over 0.6 to 1.2 s.");
   return { matte: { texture, seed, origins: texture === "ink" ? (origin && origin !== "unknown" ? [origin] : inkOrigins(seed)) : [], edge: spec.color }, problems };
