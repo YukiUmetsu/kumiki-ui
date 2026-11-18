@@ -40,7 +40,7 @@ function lit(b: SceneBuilder, x: number, y: number, z: number, h: number, r: num
  * sway (contrapposto), a robe falling in vertical folds to a broken hem, a mantle drawn across the body, one hand holding
  * a book to the chest and the other raised in blessing, a veiled head with brow and nose, a halo with a raised rim.
  */
-function statuette(x: number, y: number, z: number, h: number, robe: number, skin: number, halo: number): Node[] {
+function statuette(x: number, y: number, z: number, h: number, robe: number, skin: number, halo: number, hair = robe, beard = false): Node[] {
   const P = (px: number, py: number, pz: number): [number, number, number] => [x + px * h, y + py * h, z + pz * h];
   const body: SculptPrim[] = [
     { a: P(0, 0.035, 0.01), e: [0.15 * h, 0.04 * h, 0.11 * h] },
@@ -48,8 +48,8 @@ function statuette(x: number, y: number, z: number, h: number, robe: number, ski
     { a: P(0.025, 0.46, 0.005), b: P(0, 0.73, 0), r1: 0.098 * h, r2: 0.085 * h },
     { a: P(0, 0.775, -0.005), e: [0.125 * h, 0.04 * h, 0.07 * h] },
     { a: P(0, 0.78, 0), b: P(0, 0.84, 0.005), r1: 0.035 * h, r2: 0.03 * h },
-    // the veil over the back of the head, falling to the shoulders
-    { a: P(0, 0.905, -0.012), e: [0.066 * h, 0.076 * h, 0.064 * h] }, { a: P(0, 0.9, -0.03), b: P(0, 0.76, -0.045), r1: 0.06 * h, r2: 0.09 * h },
+    // a hood or veil falling from the head to the shoulders
+    { a: P(0, 0.9, -0.03), b: P(0, 0.76, -0.045), r1: 0.06 * h, r2: 0.09 * h },
     // the mantle drawn across from the left shoulder to the right hip, and its edge falling at the side
     { a: P(-0.1, 0.74, 0.055), b: P(0.1, 0.4, 0.095), r1: 0.035 * h, r2: 0.03 * h, k: 0.02 * h }, { a: P(0.1, 0.4, 0.095), b: P(0.12, 0.08, 0.07), r1: 0.03 * h, r2: 0.035 * h, k: 0.02 * h },
     // arms: the left holds the book at the chest, the right is raised in blessing
@@ -62,15 +62,29 @@ function statuette(x: number, y: number, z: number, h: number, robe: number, ski
     body.push({ a: P(fx * 1.25, 0.06, 0.125 - Math.abs(fx) * 0.25), b: P(fx * 0.7 + 0.02, 0.4, 0.088), r1: 0.011 * h, r2: 0.006 * h, sub: true, k: 0.008 * h });
     body.push({ a: P(fx * 1.25 + 0.022, 0.05, 0.13 - Math.abs(fx) * 0.25), b: P(fx * 0.7 + 0.04, 0.38, 0.092), r1: 0.012 * h, r2: 0.006 * h, k: 0.01 * h });
   }
+  // the face, carved: an oval skull, the brow ridge, eye sockets with the eyeballs in them, cheekbones, a straight nose,
+  // a closed mouth and a rounded chin; the hands
   const head: SculptPrim[] = [
-    { a: P(0, 0.895, 0.006), e: [0.052 * h, 0.066 * h, 0.056 * h] },
-    { a: P(0, 0.905, 0.056), b: P(0, 0.88, 0.068), r1: 0.009 * h, r2: 0.012 * h, k: 0.006 * h },
-    { a: P(0, 0.918, 0.05), e: [0.04 * h, 0.01 * h, 0.012 * h] },
+    { a: P(0, 0.895, 0.004), e: [0.05 * h, 0.066 * h, 0.055 * h] }, { a: P(0, 0.862, 0.03), e: [0.034 * h, 0.03 * h, 0.03 * h] },
+    { a: P(0, 0.917, 0.046), e: [0.03 * h, 0.008 * h, 0.012 * h] },
+    { a: P(-0.019, 0.906, 0.056), r1: 0.011 * h, sub: true, k: 0.004 * h }, { a: P(0.019, 0.906, 0.056), r1: 0.011 * h, sub: true, k: 0.004 * h },
+    { a: P(-0.019, 0.905, 0.05), r1: 0.0075 * h }, { a: P(0.019, 0.905, 0.05), r1: 0.0075 * h },
+    { a: P(-0.025, 0.889, 0.044), e: [0.009 * h, 0.008 * h, 0.009 * h] }, { a: P(0.025, 0.889, 0.044), e: [0.009 * h, 0.008 * h, 0.009 * h] },
+    { a: P(0, 0.908, 0.058), b: P(0, 0.88, 0.07), r1: 0.006 * h, r2: 0.01 * h, k: 0.004 * h },
+    { a: P(-0.011, 0.866, 0.058), b: P(0.011, 0.866, 0.058), r1: 0.0025 * h, r2: 0.0025 * h, sub: true, k: 0.002 * h },
+    { a: P(0, 0.85, 0.052), e: [0.014 * h, 0.01 * h, 0.01 * h] },
     { a: P(-0.03, 0.6, 0.11), r1: 0.018 * h }, { a: P(0.11, 0.745, 0.09), b: P(0.108, 0.78, 0.092), r1: 0.014 * h, r2: 0.01 * h },
   ];
+  // hair and beard for an apostle (a beard falling to the chest in locks); a veil over the head for a woman saint
+  const crown: SculptPrim[] = beard
+    ? [{ a: P(0, 0.925, -0.01), e: [0.056 * h, 0.05 * h, 0.06 * h] }, { a: P(-0.045, 0.89, -0.01), e: [0.016 * h, 0.04 * h, 0.04 * h] }, { a: P(0.045, 0.89, -0.01), e: [0.016 * h, 0.04 * h, 0.04 * h] },
+      { a: P(0, 0.855, 0.042), b: P(0, 0.815, 0.05), r1: 0.026 * h, r2: 0.01 * h }, { a: P(-0.018, 0.86, 0.045), b: P(-0.01, 0.825, 0.052), r1: 0.009 * h, r2: 0.004 * h }, { a: P(0.018, 0.86, 0.045), b: P(0.01, 0.825, 0.052), r1: 0.009 * h, r2: 0.004 * h },
+      { a: P(-0.016, 0.874, 0.058), b: P(0.016, 0.874, 0.058), r1: 0.006 * h, r2: 0.006 * h }]
+    : [{ a: P(0, 0.915, -0.008), e: [0.064 * h, 0.07 * h, 0.064 * h] }, { a: P(0, 0.935, 0.025), b: P(0, 0.935, -0.03), r1: 0.06 * h, r2: 0.066 * h }, { a: P(-0.045, 0.88, 0.0), b: P(-0.06, 0.78, -0.01), r1: 0.018 * h, r2: 0.026 * h }, { a: P(0.045, 0.88, 0.0), b: P(0.06, 0.78, -0.01), r1: 0.018 * h, r2: 0.026 * h },
+      { a: P(0, 0.9, 0.06), e: [0.046 * h, 0.06 * h, 0.03 * h], sub: true, k: 0.008 * h }];
   const ox = x, oy = y + 0.915 * h, oz = z - 0.055 * h, R = 0.105 * h;
   return [
-    sculpt(body, 0.025 * h, robe), sculpt(head, 0.012 * h, skin),
+    sculpt(body, 0.025 * h, robe), sculpt(head, 0.006 * h, skin), sculpt(crown, 0.01 * h, beard ? hair : robe),
     // the book, closed, its cover and gilt clasp
     boxAt(x - 0.08 * h, y + 0.56 * h, z + 0.085 * h, x + 0.0 * h, y + 0.66 * h, z + 0.115 * h, robe, 0, 0.004 * h), boxAt(x - 0.082 * h, y + 0.6 * h, z + 0.112 * h, x - 0.06 * h, y + 0.62 * h, z + 0.118 * h, halo),
     cylZ(ox, oy, oz - 0.006 * h, oz + 0.006 * h, R, halo), cut(cylZ(ox, oy, oz + 0.004 * h, oz + 0.016 * h, R, halo), [cylZ(ox, oy, oz, oz + 0.03 * h, R - 0.012 * h, 0)]),
@@ -115,7 +129,7 @@ export const MORE: Record<string, Builder> = {
     // a high altar on three steps: a stone mensa with a velvet frontal and gold orphreys, linen, six candles and a cross on
     // the gradine, before a gilded reredos of three tiers of niches with saints, crocketed canopies and pinnacles
     const stone = b.mat(W.limestone), marble = b.mat({ kind: "marble", colour: "#ddd5c6" }), vel = b.mat({ kind: "velvet", colour: "#7a1420" }), gilt = b.mat(W.gilt), brass = b.mat(W.brass);
-    const lin = b.mat({ kind: "fabric", colour: "#f1ece0", colour2: "#e9e3d4", pattern: "plain" }), blue = b.mat({ kind: "painted-wood", colour: "#1d2f66", flake: 0.01 }), robe = b.mat({ kind: "painted-wood", colour: "#8c2a24", flake: 0.03 }), robe2 = b.mat({ kind: "painted-wood", colour: "#2c4f7a", flake: 0.03 }), skin = b.mat({ kind: "plain", colour: "#d8b090" });
+    const lin = b.mat({ kind: "fabric", colour: "#f1ece0", colour2: "#e9e3d4", pattern: "plain" }), blue = b.mat({ kind: "painted-wood", colour: "#1d2f66", flake: 0.01 }), robe = b.mat({ kind: "painted-wood", colour: "#8c2a24", flake: 0.03 }), robe2 = b.mat({ kind: "painted-wood", colour: "#2c4f7a", flake: 0.03 }), skin = b.mat({ kind: "plain", colour: "#d8b090" }), hair = b.mat({ kind: "painted-wood", colour: "#4a3424", flake: 0.03 });
     for (let k = 0; k < 3; k++) b.add(boxAt(-2.3 + k * 0.25, k * 0.16, -1.4, 2.3 - k * 0.25, (k + 1) * 0.16, 1.3 - k * 0.35, marble));
     const y0 = 0.48;
     b.add(boxAt(-1.3, y0, -0.55, 1.3, y0 + 0.92, 0.38, stone), boxAt(-1.38, y0 + 0.92, -0.6, 1.38, y0 + 1.0, 0.44, marble));
@@ -147,7 +161,7 @@ export const MORE: Record<string, Builder> = {
           const nw = bw > 1.2 && r === 1 ? 0.9 : 0.42;
           b.add(boxAt(nx - nw / 2, ny, rz - 0.2, nx + nw / 2, ny + nh + nw * 0.87, rz - 0.18, blue), repeatAround(sphere(nx + nw * 0.3, ny + nh * 0.75, rz - 0.18, 0.008, gilt), nx, rz - 0.18, 5, nw * 0.32));
           b.add(boxAt(nx - nw / 2 - 0.02, ny - 0.04, rz - 0.2, nx + nw / 2 + 0.02, ny, rz + 0.08, gilt));
-          b.add(...statuette(nx, ny, rz - 0.11, Math.min(nh + nw * 0.4, bw > 1.2 && r === 1 ? 1.6 : 0.95) * 0.82, (k + r) % 2 ? robe : robe2, skin, gilt));
+          b.add(...statuette(nx, ny, rz - 0.11, Math.min(nh + nw * 0.4, bw > 1.2 && r === 1 ? 1.6 : 0.95) * 0.82, (k + r) % 2 ? robe : robe2, skin, gilt, hair, (k + r + Math.round(nx)) % 2 === 0));
           // a crocketed gable over each niche with a finial
           b.add(leaf((x, y, z) => { const dx = Math.abs(x - nx), g = ny + nh + nw * 0.87 + 0.1 + (nw / 2 + 0.06 - dx) * 1.4; return Math.max(y - g, ny + nh + nw * 0.6 - y, dx - nw / 2 - 0.06, Math.abs(z - rz - 0.07) - 0.03); }, [nx - nw / 2 - 0.07, ny + nh, rz + 0.03], [nx + nw / 2 + 0.07, ny + nh + nw * 1.8 + 0.2, rz + 0.11], gilt), sphere(nx, ny + nh + nw * 0.87 + 0.1 + (nw / 2 + 0.06) * 1.4 + 0.04, rz + 0.07, 0.035, gilt));
         }
@@ -181,13 +195,17 @@ export const MORE: Record<string, Builder> = {
     const eagle: SculptPrim[] = [
       // a full breast and back, the neck curving up to the head, a crest of feathers behind it, the hooked beak
       { a: [0, 1.33, 0.05], e: [0.075, 0.085, 0.07] }, { a: [0, 1.3, -0.08], b: [0, 1.29, -0.2], r1: 0.07, r2: 0.045 },
-      { a: [0, 1.38, 0.09], b: [0, 1.445, 0.15], r1: 0.05, r2: 0.04 }, { a: [0, 1.465, 0.17], e: [0.044, 0.04, 0.056] },
-      { a: [0, 1.48, 0.13], b: [0, 1.47, 0.09], r1: 0.03, r2: 0.012 },
-      { a: [0, 1.475, 0.215], b: [0, 1.46, 0.258], r1: 0.019, r2: 0.012 }, { a: [0, 1.46, 0.258], b: [0, 1.435, 0.262], r1: 0.012, r2: 0.004 }, { a: [0, 1.452, 0.222], b: [0, 1.447, 0.248], r1: 0.012, r2: 0.006 },
-      // the eye sockets under a heavy brow, and the gape of the beak
-      { a: [-0.034, 1.474, 0.19], r1: 0.009, sub: true, k: 0.004 }, { a: [0.034, 1.474, 0.19], r1: 0.009, sub: true, k: 0.004 },
-      { a: [-0.03, 1.486, 0.188], e: [0.012, 0.006, 0.014] }, { a: [0.03, 1.486, 0.188], e: [0.012, 0.006, 0.014] },
-      { a: [0, 1.456, 0.236], b: [0, 1.456, 0.252], r1: 0.004, r2: 0.003, sub: true, k: 0.002 },
+      // an eagle's head is long and flat-crowned, not round: a ruff of neck feathers, a heavy brow, a long hooked beak
+      { a: [0, 1.38, 0.09], b: [0, 1.44, 0.145], r1: 0.05, r2: 0.04 }, { a: [0, 1.43, 0.14], e: [0.05, 0.03, 0.04] },
+      { a: [0, 1.462, 0.17], e: [0.036, 0.03, 0.06] },
+      { a: [0, 1.474, 0.13], b: [0, 1.466, 0.1], r1: 0.024, r2: 0.01 },
+      { a: [0, 1.466, 0.215], b: [0, 1.458, 0.252], r1: 0.017, r2: 0.013 }, { a: [0, 1.458, 0.252], b: [0, 1.447, 0.278], r1: 0.013, r2: 0.008 },
+      { a: [0, 1.447, 0.278], b: [0, 1.424, 0.281], r1: 0.008, r2: 0.003 }, { a: [0, 1.444, 0.22], b: [0, 1.44, 0.256], r1: 0.01, r2: 0.005 },
+      // the cere where the beak meets the face, the eye sockets under an overhanging brow, the gape
+      { a: [0, 1.47, 0.214], e: [0.019, 0.013, 0.01] },
+      { a: [-0.026, 1.466, 0.196], r1: 0.007, sub: true, k: 0.003 }, { a: [0.026, 1.466, 0.196], r1: 0.007, sub: true, k: 0.003 },
+      { a: [-0.024, 1.477, 0.196], e: [0.011, 0.006, 0.016] }, { a: [0.024, 1.477, 0.196], e: [0.011, 0.006, 0.016] },
+      { a: [0, 1.449, 0.226], b: [0, 1.449, 0.262], r1: 0.0035, r2: 0.003, sub: true, k: 0.002 },
       // feathered thighs down to the globe, and the talons curled over it
       { a: [-0.05, 1.28, 0.03], b: [-0.05, 1.235, 0.04], r1: 0.035, r2: 0.025 }, { a: [0.05, 1.28, 0.03], b: [0.05, 1.235, 0.04], r1: 0.035, r2: 0.025 },
     ];
@@ -197,19 +215,20 @@ export const MORE: Record<string, Builder> = {
     for (let k = -2; k <= 2; k++) eagle.push({ a: [0, 1.29, -0.18], b: [k * 0.04, 1.27, -0.38], r1: 0.024, r2: 0.012, k: 0.01 });
     for (const s of [-1, 1]) {
       // the arm of the wing with rows of coverts, six primaries splayed from the wrist, five secondaries along the trailing edge
-      eagle.push({ a: [s * 0.05, 1.37, 0.04], b: [s * 0.27, 1.43, 0.0], r1: 0.05, r2: 0.035 }, { a: [s * 0.17, 1.395, -0.07], e: [0.13, 0.026, 0.12] });
-      for (let k = 0; k < 5; k++) eagle.push({ a: [s * (0.08 + k * 0.045), 1.415, -0.02 - k * 0.012], e: [0.028, 0.012, 0.05] });
-      for (let k = 0; k < 6; k++) eagle.push({ a: [s * 0.26, 1.42, -0.02 - k * 0.03], b: [s * (0.47 - k * 0.035), 1.45 - k * 0.012, 0.07 - k * 0.075], r1: 0.032, r2: 0.012, k: 0.006 });
-      for (let k = 0; k < 5; k++) eagle.push({ a: [s * (0.07 + k * 0.042), 1.38, -0.1], b: [s * (0.08 + k * 0.048), 1.35, -0.27 + k * 0.012], r1: 0.028, r2: 0.012, k: 0.006 });
+      eagle.push({ a: [s * 0.05, 1.37, 0.04], b: [s * 0.27, 1.46, 0.0], r1: 0.05, r2: 0.035 }, { a: [s * 0.17, 1.42, -0.07], e: [0.13, 0.026, 0.12] });
+      for (let k = 0; k < 5; k++) eagle.push({ a: [s * (0.08 + k * 0.045), 1.425 + k * 0.012, -0.02 - k * 0.012], e: [0.028, 0.012, 0.05] });
+      for (let k = 0; k < 6; k++) eagle.push({ a: [s * 0.26, 1.46, -0.02 - k * 0.03], b: [s * (0.47 - k * 0.035), 1.53 - k * 0.012, 0.07 - k * 0.075], r1: 0.032, r2: 0.012, k: 0.006 });
+      for (let k = 0; k < 5; k++) eagle.push({ a: [s * (0.07 + k * 0.042), 1.39 + k * 0.012, -0.1], b: [s * (0.08 + k * 0.048), 1.36 + k * 0.014, -0.27 + k * 0.012], r1: 0.028, r2: 0.012, k: 0.006 });
     }
     b.add(sculpt(eagle, 0.02, br));
     // each wing a broad, slightly cambered blade from the shoulder, its trailing edge scalloped into feather ends
     for (const s2 of [-1, 1]) b.add(leaf((x, y, z) => {
-      const ax = s2 * x, t = (ax - 0.05) / 0.4, tc = Math.min(1, Math.max(0, t)), yc = 1.395 + 0.06 * tc + 0.02 * Math.sin(Math.PI * tc) + (z + 0.05) * 0.12;
-      const lead = 0.05 - 0.04 * tc, trail = -0.1 - 0.17 * tc + 0.022 * Math.abs(Math.sin(tc * Math.PI * 6));
-      const plan = Math.max(-t * 0.4, (t - 1) * 0.4, z - lead, trail - z);
-      return Math.max(plan, (Math.abs(y - yc) - 0.012 * (1 - 0.5 * tc)) * 0.85);
-    }, [s2 > 0 ? 0.04 : -0.46, 1.36, -0.32], [s2 > 0 ? 0.46 : -0.04, 1.5, 0.07], br));
+      // raised in a shallow V so the wings read from in front; thick and rounded at the leading edge, thin at the feathers
+      const ax = s2 * x, t = (ax - 0.05) / 0.4, tc = Math.min(1, Math.max(0, t)), yc = 1.395 + 0.13 * tc + 0.02 * Math.sin(Math.PI * tc) + (z + 0.05) * 0.12;
+      const lead = 0.05 - 0.04 * tc, trail = -0.1 - 0.17 * tc + 0.022 * Math.abs(Math.sin(tc * Math.PI * 6)), chord = Math.max(1e-3, lead - trail), f = Math.min(1, Math.max(0, (lead - z) / chord));
+      const plan = Math.max(-t * 0.4, (t - 1) * 0.4, z - lead, trail - z), thick = (0.026 * (1 - f) ** 0.6 + 0.006) * (1 - 0.45 * tc);
+      return Math.max(plan, (Math.abs(y - yc) - thick) * 0.75);
+    }, [s2 > 0 ? 0.04 : -0.46, 1.36, -0.32], [s2 > 0 ? 0.46 : -0.04, 1.6, 0.07], br));
     // the open Bible across its back, sloping down toward the reader behind, with a red ribbon
     for (const s of [-1, 1]) b.add(leaf((x, y, z) => { const lx = s * x; return Math.max(Math.abs(y - (1.47 + 0.02 * lx / 0.2) - (z + 0.08) * 0.45) - 0.012, -lx, lx - 0.22, Math.abs(z + 0.08) - 0.15); }, [s > 0 ? 0 : -0.23, 1.36, -0.24], [s > 0 ? 0.23 : 0, 1.6, 0.08], pg));
     b.add(boxAt(-0.006, 1.38, -0.22, 0.006, 1.5, -0.2, red));

@@ -153,8 +153,10 @@ antique globe, jute.
 ## Limits
 
 - No carving below a few centimetres (no acanthus on the Chippendale knees, no carved crest). The reredos saints are
-  carved standing figures (sway, drapery folds, mantle, book, blessing hand, veil, haloes) and the eagle has a breast of
-  carved feathers, a hooked beak, talons and broad wings, but neither has portrait faces or feather-by-feather detail.
+  carved standing figures (sway, drapery folds, mantle, book, blessing hand, haloes), bearded apostles and veiled women
+  by turns, with carved faces (brow, eyes, cheekbones, nose, mouth, chin); the eagle has a flat-crowned head with a long
+  hooked beak, carved breast feathers, talons and broad wings raised in a V. Neither is a portrait, and there is no
+  feather-by-feather detail.
 - Upholstery is smooth shapes with a surface pattern, not sewn panels; curtains hang in regular folds.
 - Room trim runs along whole walls: it does not wrap round a chimney breast or stop at furniture.
 - Vault webs are plastered, without stone coursing; crockets and spurs are simplified leaves, not carved foliage.
