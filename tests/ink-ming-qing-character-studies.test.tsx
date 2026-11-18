@@ -19,6 +19,11 @@ describe("ANAT5 original Ming/Qing Chinese ink character studies",()=>{
     const attendant=buildMingQingPortraitGeometry("attendant","neutral",.8);
     expect([scholar.sourceObjectId,writer.sourceObjectId,attendant.sourceObjectId])
       .toEqual(["55.37","2024.180","2024.180"]);
+    expect([scholar.sourceId,writer.sourceId,attendant.sourceId])
+      .toEqual(["met-55.37-rightmost-sitter","met-2024.180-seated-writer","met-2024.180-standing-attendant"]);
+    expect(scholar.sourceReferences[1]).toContain("benchmark only");
+    expect(writer.sourceReferences[1]).toContain("benchmark only");
+    expect(attendant.sourceReferences[1]).toContain("hierarchy benchmark only");
     expect(scholar.sourceReferences).toHaveLength(2);
     expect(writer.sourceReferences).toHaveLength(2);
     expect(attendant.sourceReferences.some(x=>x.includes("F1916.135"))).toBe(true);
@@ -92,7 +97,8 @@ describe("ANAT5 original Ming/Qing Chinese ink character studies",()=>{
     expect(writer).toContain('data-km-ink-anat5-writer-hair-ornament="floral-coil"');
     expect((writer.match(/data-km-ink-anat5-earring=/g)||[])).toHaveLength(1);
     expect((attendant.match(/data-km-ink-anat5-collar-motif=/g)||[])).toHaveLength(18);
-    expect(attendant).toContain('data-km-ink-anat5-attendant-hair-pins="paired-coils"');
+    expect(attendant).toContain('data-km-ink-anat5-attendant-hair-pins="single-high-bun"');
+    expect(attendant).toContain('data-km-ink-anat5-attendant-bun="overlapping-back-coil"');
     expect((attendant.match(/data-km-ink-anat5-earring=/g)||[])).toHaveLength(1);
   });
 
