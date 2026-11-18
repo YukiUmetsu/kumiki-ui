@@ -74,7 +74,7 @@ export const ROSE_INNER_WHORL_ORGANS:readonly RoseInnerWhorlOrgan[]=[
   {
     id:"rose-whorl-scroll",surface:"petal",
     path:"M232 174 C225 166 227 155 234 148 C241 140 251 139 260 145 C268 151 269 160 263 168 C259 174 252 177 246 179 C252 184 261 185 270 180 C267 189 250 192 239 185 C234 182 232 178 232 174 Z",
-    bounds:[226,143,40,45],palette:["#B0526B","#57213E","#D58696"],
+    bounds:[222,136,52,60],palette:["#B0526B","#57213E","#D58696"],
     direction:35,flow:22,
     details:strokes("scroll",[
       ["M239 158 Q245 149 252 148","#E2A4AB",.52,.39,177],
