@@ -22,7 +22,10 @@ import { SHODO_BASICS, auditShodoTechniques, shodoStepLabel } from "../../regist
 import { SHODO_FPS, SHODO_PHASE_LABEL, SHODO_TECH_LABEL, ShodoTransport, useShodoGlyphs, useShodoPlayback, useShodoTeachers, shodoTeacherLabels } from "./shodo-studio";
 import { ShodoKanjiCard } from "../../registry/video/shodo/shodo-kanji-card";
 import type { ShodoKanjiCardProps } from "../../registry/video/shodo/shodo-kanji-card";
-import { KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardPhaseAt, kanjiCardSections, kanjiCardTimeline, kanjiCardWriting } from "../../registry/video/shodo/shodo-kanji-card-plan";
+import {
+  DEFAULT_KANJI_CARD_LABELS, DEFAULT_KANJI_CARD_THEME, KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardPhaseAt, kanjiCardSections, kanjiCardTheme,
+  kanjiCardTimeline, kanjiCardWriting,
+} from "../../registry/video/shodo/shodo-kanji-card-plan";
 import type {
   JlptLevel, KanjiCardContent, KanjiCardDensity, KanjiCardInk, KanjiCardIntro, KanjiCardPhase, KanjiCardSafeInset, KanjiCardSection, KanjiCardTiming,
   KanjiCardWord, KanjiWordHighlight,
@@ -187,9 +190,9 @@ export function ShodoKanjiCardPlayer({ char = "道", style, ...props }: ShodoKan
   const timingKey = [props.timing?.intro, props.timing?.write, props.timing?.review, props.timing?.info].map(String).join(",");
   const insetKey = JSON.stringify(props.safeInset ?? {});
   const vermilionKey = (content.vermilionStrokes ?? []).join(",");
-  const contentKey = JSON.stringify([content.meanings, content.onyomi, content.kunyomi, content.jlpt, content.words?.length, props.sections]);
+  const contentKey = JSON.stringify([content.meanings, content.onyomi, content.kunyomi, content.jlpt, content.words?.length, props.sections, props.brushStyle]);
   const writing = useMemo(() => glyph ? kanjiCardWriting(glyph, {
-    layout, density: props.density, safeInset: props.safeInset, content, sections: props.sections,
+    layout, density: props.density, safeInset: props.safeInset, content, sections: props.sections, brushStyle: props.brushStyle,
     timing: props.timing, ink: props.ink, speed: props.speed, vermilionStrokes: content.vermilionStrokes,
   }) : null, [glyph, layout, props.density, insetKey, timingKey, props.ink, props.speed, vermilionKey, show.label, contentKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const last = writing ? writing.timeline.frames - 1 : 0;
@@ -343,6 +346,18 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
     else vermilionStrokes = o.vermilionStrokes as number[];
   }
   const speed = o.speed === undefined ? undefined : num(o.speed, "speed", .25, 4);
+  const strings = (key: string, keys: readonly string[], max: number): Record<string, string> | undefined => {
+    if (o[key] === undefined) return undefined;
+    const x = o[key] && typeof o[key] === "object" && !Array.isArray(o[key]) ? o[key] as Record<string, unknown> : null;
+    if (!x || Object.entries(x).some(([k, v]) => !keys.includes(k) || typeof v !== "string" || !v.trim() || v.length > max)) {
+      errors.push(`${key}: { ${keys.join(", ")} } as texts of at most ${max} characters is required.`);
+      return undefined;
+    }
+    return x as Record<string, string>;
+  };
+  const labels = strings("labels", Object.keys(DEFAULT_KANJI_CARD_LABELS), 30);
+  const theme = strings("theme", Object.keys(DEFAULT_KANJI_CARD_THEME), 200);
+  if (theme) { try { kanjiCardTheme(theme); } catch (error) { errors.push(`theme: ${(error as Error).message}`); } }
   let sections: Partial<Record<KanjiCardSection, boolean>> | undefined;
   if (o.sections !== undefined) {
     const x = o.sections && typeof o.sections === "object" && !Array.isArray(o.sections) ? o.sections as Record<string, unknown> : null;
@@ -355,7 +370,7 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
     char: chars[0] ?? "", layout: portrait ? "portrait" : "landscape", timing,
     density: density as KanjiCardDensity | undefined, intro, cardFrom: o.cardFrom as KanjiCardPhase | undefined,
     heading: text("heading", 40), meanings: text("meanings", 120), onyomi: text("onyomi", 120), kunyomi: text("kunyomi", 120),
-    jlpt, words, wordHighlights: cues, safeInset, ink: ink as KanjiCardInk | undefined, vermilionStrokes, speed, sections,
+    jlpt, words, wordHighlights: cues, safeInset, ink: ink as KanjiCardInk | undefined, vermilionStrokes, speed, sections, labels, theme,
     strokeNumbers: bool("strokeNumbers"),
     // An export is the same on every machine: the motion does not follow the viewer's setting.
     reducedMotion: bool("reducedMotion") ?? false,

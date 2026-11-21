@@ -12,6 +12,7 @@ import { DEFAULT_SHODO_STYLE, inspectShodoStyle, resolveShodoStyle } from "../re
 import { SHODO_BASICS, auditShodoTechniques } from "../registry/video/shodo/shodo-techniques";
 import { fillKanjiCardContent, readKanjiCardExport, resolveKanjiCardContent } from "../src/video/shodo-demos";
 import { ShodoKanjiCard, ShodoKanjiInfoCard } from "../registry/video/shodo/shodo-kanji-card";
+import { DEFAULT_KANJI_CARD_THEME, kanjiCardTheme } from "../registry/video/shodo/shodo-kanji-card-plan";
 import {
   KANJI_WORD_EASE, kanjiCardGeometry, kanjiCardPhaseAt, kanjiCardSafeInset, kanjiCardStrokeTimes, kanjiCardTimeline, kanjiCardTypedAt, kanjiCardWriting,
   parseWordHighlights, spreadWordHighlights, wordHighlightAt,
@@ -693,6 +694,34 @@ describe("SHO1 shodō calligraphy", () => {
   it("with reduced motion and no reading shows nothing before the conversion, as full motion shows only a caret", () => {
     expect(kanjiCardTypedAt("水", { convertAt: 1.5 }, 3, 1, { reducedMotion: true })).toMatchObject({ text: "", opacity: 0 });
     expect(kanjiCardTypedAt("水", { convertAt: 1.5 }, 3, 1.6, { reducedMotion: true }).text).toBe("水");
+  });
+
+  it("takes its words, colours, fonts and brush from the host, and plans the same brush the card draws", () => {
+    const glyph = SHODO_GLYPHS["三"], timing = { write: 4, review: 4, info: 1 };
+    const { container, unmount } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 200, layout: "portrait", timing,
+      meanings: "THREE", onyomi: "SAN (サン)", jlpt: "N5", words: [{ word: "三月", ruby: "さんがつ", romaji: "sangatsu", meaning: "March" }],
+      labels: { onyomi: "音読み", kunyomi: "訓読み", words: "ことば", jlpt: "日本語能力試験" }, theme: { accent: "#1F5FAD", card: "#FFFFFF" } }));
+    expect(screen.getByText("音読み")).toBeInTheDocument();
+    expect(screen.getByText("ことば")).toBeInTheDocument();
+    expect(screen.getByText("日本語能力試験 N5")).toBeInTheDocument();
+    expect(container.querySelector<HTMLElement>("aside")!.style.background).toBe("rgb(255, 255, 255)");
+    unmount();
+    expect(() => kanjiCardTheme({ accent: "red" })).toThrow(/accent must be a #RRGGBB/u);
+    expect(kanjiCardTheme({ ink: "#000000" })).toMatchObject({ ...DEFAULT_KANJI_CARD_THEME, ink: "#000000" });
+    // A brush style changes the plan, and the card plans with it exactly as kanjiCardWriting does.
+    const brushStyle = { hand: { pressure: .6 }, brush: { diameter: 140 } };
+    const plain = kanjiCardWriting(glyph, { layout: "portrait", timing, content: { meanings: "THREE" } });
+    const styled = kanjiCardWriting(glyph, { layout: "portrait", timing, content: { meanings: "THREE" }, brushStyle });
+    expect(styled.plan.style.hand.pressure).toBe(.6);
+    expect(styled.plan.brush.diameter).not.toBe(plain.plan.brush.diameter);
+    const { container: c2 } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 0, layout: "portrait", timing, meanings: "THREE", brushStyle }));
+    expect(c2.querySelector<HTMLElement>("[data-km-kanji-card]")!.dataset.kmInkBox).toBe(styled.inkBox.map(v => v.toFixed(1)).join(" "));
+  });
+
+  it("types at the host's pace", () => {
+    const slow = kanjiCardTypedAt("水", { reading: "みず", convertAt: 2, typeStep: .4 }, 3, 2 - .12 - .5);
+    expect(slow.text).toBe("み");                                                          // the second kana comes 0.4 s after the first
+    expect(kanjiCardTypedAt("水", { reading: "みず", convertAt: 2, typeStep: .4 }, 3, 2 - .12 - .3).text).toBe("みず");
   });
 
   it("finishes the conversion inside the intro, also when convertAt is at its end", () => {

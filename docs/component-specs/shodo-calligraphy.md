@@ -100,7 +100,7 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
 
 ## Kanji study card
 
-The registry item **`shodo-kanji-card`** (`registry/video/shodo/shodo-kanji-card.tsx` and `shodo-kanji-card-plan.ts`, depends on `shodo-calligraphy`) is a study video for one kanji. `ShodoKanjiCard` is frame-addressed: the host gives the glyph (for example from `loadShodoGlyph`), the frame (30 fps, `KANJI_CARD_FPS`) and all the card text. It loads nothing and has no clock, so a video export can seek in any order. `shodo-kanji-card-plan.ts` has no React and no DOM: `kanjiCardWriting(glyph, options)` returns the layout, the brush plan, the phases, the ink box and the stroke times that the card draws, so a production tool can time a voice-over in Node before it renders. Give it the same layout, density, bands, `content`, `sections`, timing, ink, speed and vermilion strokes as the card: it decides from `content` and `sections`, as the card does, whether the reading card and the label show. The card renders only the picture: no transport, status line or credit (the host credits KanjiVG).
+The registry item **`shodo-kanji-card`** (`registry/video/shodo/shodo-kanji-card.tsx` and `shodo-kanji-card-plan.ts`, depends on `shodo-calligraphy`) is a study video for one kanji. `ShodoKanjiCard` is frame-addressed: the host gives the glyph (for example from `loadShodoGlyph`), the frame (30 fps, `KANJI_CARD_FPS`) and all the card text. It loads nothing and has no clock, so a video export can seek in any order. `shodo-kanji-card-plan.ts` has no React and no DOM: `kanjiCardWriting(glyph, options)` returns the layout, the brush plan, the phases, the ink box and the stroke times that the card draws, so a production tool can time a voice-over in Node before it renders. Give it the same layout, density, bands, `content`, `sections`, `brushStyle`, timing, ink, speed and vermilion strokes as the card: it decides from `content` and `sections`, as the card does, whether the reading card and the label show. The card renders only the picture: no transport, status line or credit (the host credits KanjiVG).
 
 In the stories, `ShodoKanjiCardPlayer` (in `src/video/shodo-demos.tsx`) adds the 道 sample data, loads the strokes from KanjiVG and plays the card with a transport. The video has four phases:
 
@@ -117,7 +117,10 @@ The ink of the character is centred in the writing panel, not in the full frame.
 | `glyph` | required | Its stroke data. The player reads it from KanjiVG. |
 | `frame` | required | The video frame to show. The player runs its own clock. |
 | `density` | `"regular"` | `"compact"` (9:16 only): the JLPT badge joins the title row, the word tiles are tighter and the card's text takes 350 instead of 462 design px, so the writing panel is taller. |
-| `intro` | none | `{ reading?, convertAt?, emphasizeAt? }` for the intro phase. |
+| `intro` | none | `{ reading?, convertAt?, emphasizeAt?, typeStep? }` for the intro phase. `typeStep` is the seconds per typed kana (0.05..0.6, default 0.16). |
+| `labels` | English | The reading card's fixed words: `{ onyomi, kunyomi, words, jlpt }` (`DEFAULT_KANJI_CARD_LABELS`: ON'YOMI, KUN'YOMI, USEFUL WORDS, JLPT), for another language or wording. |
+| `theme` | `DEFAULT_KANJI_CARD_THEME` | Colours (#RRGGBB: `ink`, `muted`, `accent`, `card`, `tile`, `tileHighlight`, `rule`) and font stacks (`display`, `serif`, `sans`, `body`) of the card's text. `kanjiCardTheme` fills the defaults and throws a RangeError that names a bad value. |
+| `brushStyle` | the default style | Brush, ink, paper and hand settings (`DeepPartial<ShodoStyle>`) over the default; the card sets the hand's speed, and `ink: "vermilion"` the ink. Plan with the same value in `kanjiCardWriting`. Invalid values throw a RangeError that names every bad path. |
 | `heading` | `"Kanji study"` | The label text. |
 | `meanings`, `onyomi`, `kunyomi` | sample for 道 only | The text of the card. |
 | `jlpt` | sample for 道 only (`"N4"`) | `"N5"` to `"N1"`. With no level (or `null`), the card shows no badge. |
