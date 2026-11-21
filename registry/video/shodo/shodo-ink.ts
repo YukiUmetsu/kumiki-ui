@@ -55,6 +55,9 @@ interface StrokeField {
   halo: Float32Array | null; // cached final bleed pigment
 }
 
+/** A stroke tile being built: the samples before `next` are stamped. */
+interface FieldBuild { field: StrokeField; next: number }
+
 /** Paper fibre field: long kozo fibres plus fine tooth, raster sized, deterministic. */
 export function shodoFibreField(width: number, height: number, seed: number, density: number): { fibre: Float32Array; tooth: Float32Array } {
   const fibre = new Float32Array(width * height), tooth = new Float32Array(width * height);
@@ -108,6 +111,7 @@ export class ShodoInkSurface {
   readonly width: number;
   readonly height: number;
   private readonly fields: (StrokeField | null)[];
+  private readonly building: (FieldBuild | null)[];
   private readonly fibre: Float32Array;
   private readonly tooth: Float32Array;
   /** Optical density, Σ k·P (k from each stroke's ink strength). */
@@ -135,15 +139,31 @@ export class ShodoInkSurface {
     this.frameWet = new Float32Array(n);
     this.rgba = new Uint8ClampedArray(n * 4);
     this.fields = plan.strokes.map(() => null);
+    this.building = plan.strokes.map(() => null);
     this.bleedRadius = Math.max(0, plan.brush.diameter * region.scale * (.035 + .3 * style.paper.absorbency));
   }
 
   /** Stamp one planned stroke into its own raster tile. */
   private build(index: number): StrokeField {
-    const cached = this.fields[index];
-    if (cached) return cached;
+    return this.fields[index] ?? this.advance(index, Infinity) as StrokeField;
+  }
+
+  /**
+   * Build stroke tiles ahead of time, in stroke order, until `deadline` (a performance.now()
+   * time in ms): a player calls this while idle, so no frame waits for a whole stroke to be
+   * stamped. A tile resumes where the last call stopped and ends the same as one built in one
+   * go. Returns true when every tile is built.
+   */
+  prepare(deadline: number): boolean {
+    for (let i = 0; i < this.plan.strokes.length; i++) {
+      if (!this.fields[i] && !this.advance(i, deadline)) return false;
+    }
+    return true;
+  }
+
+  /** The empty tile of one stroke, sized to its bounds plus room for the bleed. */
+  private begin(index: number): FieldBuild {
     const stroke: ShodoPlannedStroke = this.plan.strokes[index];
-    const { style } = this.plan;
     const s = this.region.scale, ox = this.region.x, oy = this.region.y;
     const pad = Math.ceil(this.bleedRadius * 2.4 + 4);
     const x0 = clamp(Math.floor((stroke.bounds[0] - ox) * s) - pad, 0, this.width - 1);
@@ -151,8 +171,21 @@ export class ShodoInkSurface {
     const x1 = clamp(Math.ceil((stroke.bounds[2] - ox) * s) + pad, 0, this.width - 1);
     const y1 = clamp(Math.ceil((stroke.bounds[3] - oy) * s) + pad, 0, this.height - 1);
     const w = x1 - x0 + 1, h = y1 - y0 + 1;
-    const P = new Float32Array(w * h), Q = new Float32Array(w * h), W = new Float32Array(w * h);
-    const T0 = new Float32Array(w * h).fill(Infinity), T1 = new Float32Array(w * h).fill(-Infinity);
+    const bleedTau = .3 + .7 * this.plan.style.paper.absorbency;
+    return { next: 1, field: {
+      x0, y0, w, h, P: new Float32Array(w * h), Q: new Float32Array(w * h), W: new Float32Array(w * h),
+      T0: new Float32Array(w * h).fill(Infinity), T1: new Float32Array(w * h).fill(-Infinity),
+      t0: stroke.t0, t1: stroke.t1, wetUntil: stroke.t1 + bleedTau * 5, halo: null,
+    } };
+  }
+
+  /** Stamp a stroke's samples into its tile until `deadline`; the tile when done, else null. */
+  private advance(index: number, deadline: number): StrokeField | null {
+    const job = this.building[index] ?? (this.building[index] = this.begin(index));
+    const stroke: ShodoPlannedStroke = this.plan.strokes[index];
+    const { style } = this.plan;
+    const s = this.region.scale, ox = this.region.x, oy = this.region.y;
+    const { x0, y0, w, h, P, Q, W, T0, T1 } = job.field;
     const samples = stroke.samples;
     const bristles = style.brush.bristles;
     const seed = style.seed + index * 7919;
@@ -164,7 +197,9 @@ export class ShodoInkSurface {
     const refSpeed = D * 14;
     const fibre = this.fibre, tooth = this.tooth, W0 = this.width;
 
-    for (let i = 1; i < samples.length; i++) {
+    for (let i = job.next; i < samples.length; i++) {
+      // Every eighth sample, stop at the deadline (at least one sample is stamped per call).
+      if (i > job.next && (i - job.next) % 8 === 0 && performance.now() > deadline) { job.next = i; return null; }
       const A = samples[i - 1], B = samples[i];
       const dist = Math.hypot(B.x - A.x, B.y - A.y) * s;
       const n = Math.max(1, Math.ceil(dist / .7));
@@ -248,13 +283,9 @@ export class ShodoInkSurface {
         }
       }
     }
-    const bleedTau = .3 + .7 * style.paper.absorbency;
-    const field: StrokeField = {
-      x0, y0, w, h, P, Q, W, T0, T1, t0: stroke.t0, t1: stroke.t1,
-      wetUntil: stroke.t1 + bleedTau * 5, halo: null,
-    };
-    this.fields[index] = field;
-    return field;
+    this.fields[index] = job.field;
+    this.building[index] = null;
+    return job.field;
   }
 
   /** Bleed pigment of one stroke at time t, in its tile. */

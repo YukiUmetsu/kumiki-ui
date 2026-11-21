@@ -13,7 +13,11 @@ export type ShodoHair = "goat" | "weasel" | "mixed" | "horse";
 export interface ShodoHand {
   /** Script grammar: kaisho stops and presses at every entry, turn and end; gyōsho rounds and links; sōsho flows. */
   script: ShodoScript;
-  /** Writing-speed multiplier. 1 is an unhurried teacher's model; 2 is a confident performance. 0.25..4. */
+  /**
+   * Writing-speed multiplier. 0.25..4. The kaisho default, 0.32, is a teacher's pace with the
+   * brush on the paper (measured on 438 of her lesson videos: 21 s per character); 1 is about
+   * three times as fast, a brisk demonstration.
+   */
   speed: number;
   /** Pressure ("strength") multiplier on every authored press. 0.3..1.8. */
   pressure: number;
@@ -160,17 +164,18 @@ export interface ShodoStyle {
 
 export type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? Partial<T[K]> : T[K] };
 
+// Gyōsho and sōsho keep their pace relative to kaisho (1.5 and 2.1 times as fast).
 export const SHODO_HANDS = {
   kaisho: {
-    script: "kaisho", speed: 1, pressure: 1, width: 1, widthDecay: .08, tipAngle: -135, entryAngle: 45,
+    script: "kaisho", speed: .32, pressure: 1, width: 1, widthDecay: .08, tipAngle: -135, entryAngle: 45,
     tipFollow: .22, tremor: .35, ligature: 0, pause: 1, lean: 38, leanAzimuth: 68, sideBrush: .15,
   },
   gyosho: {
-    script: "gyosho", speed: 1.5, pressure: .95, width: .95, widthDecay: .18, tipAngle: -128, entryAngle: 32,
+    script: "gyosho", speed: .48, pressure: .95, width: .95, widthDecay: .18, tipAngle: -128, entryAngle: 32,
     tipFollow: .5, tremor: .4, ligature: .55, pause: .55, lean: 40, leanAzimuth: 64, sideBrush: .45,
   },
   sosho: {
-    script: "sosho", speed: 2.1, pressure: .9, width: .9, widthDecay: .3, tipAngle: -120, entryAngle: 20,
+    script: "sosho", speed: .67, pressure: .9, width: .9, widthDecay: .3, tipAngle: -120, entryAngle: 20,
     tipFollow: .78, tremor: .5, ligature: .9, pause: .3, lean: 42, leanAzimuth: 60, sideBrush: .65,
   },
 } as const satisfies Record<ShodoScript, ShodoHand>;

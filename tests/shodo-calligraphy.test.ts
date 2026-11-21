@@ -102,6 +102,19 @@ describe("SHO1 shodō calligraphy", () => {
     expect(surface.coverageAt(mid.t, ahead.x, ahead.y)).toBe(0);
   });
 
+  it("builds the ink ahead of the brush in slices, with the same image as in one go", () => {
+    const plan = ei();
+    const whole = new ShodoInkSurface(plan, { x: 0, y: 0, width: 400, height: 400, scale: .5 });
+    const sliced = new ShodoInkSurface(plan, { x: 0, y: 0, width: 400, height: 400, scale: .5 });
+    // A deadline already past: every call stamps a few samples, then stops.
+    let calls = 0;
+    while (!sliced.prepare(0)) calls++;
+    expect(calls).toBeGreaterThan(plan.strokes.length);
+    for (const t of [plan.strokes[2].t0 + .1, plan.duration]) {
+      expect(Array.from(sliced.render(t).rgba)).toEqual(Array.from(whole.render(t).rgba));
+    }
+  });
+
   it("renders the same frame however it is reached", () => {
     const plan = ei(), t = plan.strokes[3].t0 + .1;
     const seeking = new ShodoInkSurface(plan, { x: 0, y: 0, width: 400, height: 400, scale: .5 });
@@ -311,7 +324,8 @@ describe("SHO1 shodō calligraphy", () => {
         bendStep = Math.max(bendStep, Math.abs(c.bend - b.bend));
         if (step(a, b) < .5 && step(b, c) > 8) jumps++;                  // standstill, then full speed
       }
-      expect(P.findIndex((p, f) => f > 0 && step(P[f - 1], p) > .5)).toBeLessThanOrEqual(8);  // moves within 8 frames
+      // moves within 10 frames (the owner's pacing rule: 6 to 10); 9 at the teacher's pace, 0.32
+      expect(P.findIndex((p, f) => f > 0 && step(P[f - 1], p) > .5)).toBeLessThanOrEqual(10);
       expect(airAcc, char).toBeLessThan(.4 * D);                         // was .52–.59 D before the eased arcs
       expect(bendStep, char).toBeLessThan(.25);                          // was .35 when the spring-back snapped
       expect(jumps, char).toBe(0);
