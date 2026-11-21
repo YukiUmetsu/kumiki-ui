@@ -5677,6 +5677,11 @@
           "path": "registry/video/selective-color-math.ts",
           "type": "registry:ui",
           "target": "components/video/selective-color-math.ts"
+        },
+        {
+          "path": "registry/video/subject-matte.ts",
+          "type": "registry:ui",
+          "target": "components/video/subject-matte.ts"
         }
       ]
     },
@@ -5793,6 +5798,56 @@
           "path": "registry/video/film-drive.ts",
           "type": "registry:ui",
           "target": "components/video/film-drive.ts"
+        },
+        {
+          "path": "registry/video/film-hits.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-hits.ts"
+        },
+        {
+          "path": "registry/video/film-hits-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-hits-react.tsx"
+        },
+        {
+          "path": "registry/video/film-blur-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-blur-react.tsx"
+        },
+        {
+          "path": "registry/video/film-spin.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-spin.ts"
+        },
+        {
+          "path": "registry/video/film-chat-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-chat-react.tsx"
+        },
+        {
+          "path": "registry/video/film-subject.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-subject.ts"
+        },
+        {
+          "path": "registry/video/film-freeze.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-freeze.ts"
+        },
+        {
+          "path": "registry/video/film-freeze-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-freeze-react.tsx"
+        },
+        {
+          "path": "registry/video/film-glitch.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-glitch.ts"
+        },
+        {
+          "path": "registry/video/film-glitch-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-glitch-react.tsx"
         },
         {
           "path": "registry/video/footage-react.tsx",

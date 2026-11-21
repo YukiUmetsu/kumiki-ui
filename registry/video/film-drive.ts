@@ -56,13 +56,19 @@ export function follow(values: readonly number[], release = RELEASE_FRAMES): num
   return out.map(value => Math.round(value * 1000) / 1000);
 }
 
+/** The frames where a level climbs more than `rise` above its lowest point since the last rise: each loud onset once, even when the
+ * meter has not settled between them. */
+export function riseFrames(values: readonly number[], rise = .3): number[] {
+  const rises: number[] = [];
+  let trough = values[0] ?? 0;
+  values.forEach((value, frame) => { if (value - trough > rise) { rises.push(frame); trough = value; } else trough = Math.min(trough, value); });
+  return rises;
+}
+
 /** The most rises a drive makes in any one second: each time it climbs more than 0.3 above its lowest point since the last rise. Each is a
  * bump or a pulse of light, even when the meter has not settled between them. */
 export function peakRisesPerSecond(values: readonly number[], fps: number): number {
-  const rises: number[] = [];
-  let trough = values[0] ?? 0;
-  values.forEach((value, frame) => { if (value - trough > .3) { rises.push(frame); trough = value; } else trough = Math.min(trough, value); });
-  const window = Math.round(fps);
+  const rises = riseFrames(values), window = Math.round(fps);
   return rises.reduce((most, frame, i) => Math.max(most, rises.slice(i).filter(other => other < frame + window).length), 0);
 }
 

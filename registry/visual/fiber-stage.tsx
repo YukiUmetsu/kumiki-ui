@@ -115,7 +115,10 @@ export const FiberStage = forwardRef<HTMLDivElement, FiberStageProps>(function F
     style={{ position: "relative", width: "100%", height: "100%", background, ...style }}>
     {failed ? (fallback ?? <span role="alert" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: "#fff", background: "#7a1f1f", padding: 16, textAlign: "center" }}>3D scene failed: {failed}</span>)
       : <Boundary onError={setFailed}>
+        {/* Measured by layout size (offsetSize), not on-screen size: a film moves, scales and turns its layers with CSS transforms (beat
+            hits, sound-driven scale, whip and zoom transitions), and a canvas measured through them would resize and re-render mid-shot. */}
         <Canvas frameloop="never" dpr={dpr} shadows={shadows ? "percentage" : false} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: !background, stencil: true }} style={{ position: "absolute", inset: 0 }}
+          resize={{ offsetSize: true }}
           camera={{ position: camera?.position ? [...camera.position] : [0, 0, 5], fov: camera?.fov ?? 40, near: camera?.near ?? 0.05, far: camera?.far ?? 200 }}
 >
           {/* Part of the scene, so it is there for the very first frame drawn. */}

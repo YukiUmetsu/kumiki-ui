@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "subject",
+  "fps": { "num": 30, "den": 1 },
+  "outputs": [{ "id": "landscape", "preset": "youtube" }, { "id": "draft", "width": 960, "height": 540 }],
+  "scenes": [
+    { "id": "behind", "recipeId": "footage", "durationFrames": 120,
+      "content": {
+        "video": { "id": "peacock-walk", "src": "assets/footage/peacock-walk.mp4", "width": 960, "height": 540, "fps": 30, "frameCount": 120, "licenseRef": "commons-peacock-walking-cc0" },
+        "label": "A peacock with a long green train walks along a wooden deck and pecks at the boards; the word STRUT stands behind it.",
+        "push": [1, 1.04],
+        "title": { "text": "STRUT", "at": 4, "place": "top", "size": "giant" },
+        "subject": { "cutout": { "id": "peacock-walk-cutout", "src": "assets/footage/peacock-walk-cutout.webm", "width": 960, "height": 540, "fps": 30, "frameCount": 120, "licenseRef": "commons-peacock-walking-cc0" }, "behind": true }
+      } },
+    { "id": "outline", "recipeId": "footage", "durationFrames": 90,
+      "content": {
+        "video": { "id": "peacock-walk", "src": "assets/footage/peacock-walk.mp4", "width": 960, "height": 540, "fps": 30, "frameCount": 120, "licenseRef": "commons-peacock-walking-cc0" },
+        "label": "The same peacock cut out with a white outline, over a deep blue ground.",
+        "from": 30, "push": [1, 1.03],
+        "subject": { "cutout": { "id": "peacock-walk-cutout", "src": "assets/footage/peacock-walk-cutout.webm", "width": 960, "height": 540, "fps": 30, "frameCount": 120, "licenseRef": "commons-peacock-walking-cc0" },
+          "outline": { "color": "#ffffff", "width": 0.007, "glow": 0.5 }, "background": { "color": "#16213a" } }
+      } }
+  ]
+}

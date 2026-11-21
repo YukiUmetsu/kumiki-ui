@@ -26,6 +26,14 @@ import lensExample from "../../examples/film/lens.film.json";
 import soundMoves from "../../assets/sound/lab/moves/moves.json";
 import tapeExample from "../../examples/film/tape-rewind.film.json";
 import driveExample from "../../examples/film/sound-drive.film.json";
+import beatHitsExample from "../../examples/film/beat-hits.film.json";
+import spinZoomExample from "../../examples/film/spin-zoom.film.json";
+import chatExample from "../../examples/film/chat-story.film.json";
+import subjectExample from "../../examples/film/subject.film.json";
+import freezeExample from "../../examples/film/freeze-intro.film.json";
+import slowmoExample from "../../examples/film/slowmo.film.json";
+import trailExample from "../../examples/film/motion-trail.film.json";
+import glitchExample from "../../examples/film/glitch.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -447,6 +455,149 @@ export const SoundDrive: StoryObj = {
       Press Play with your sound on: the picture follows the pulse it hears. The levels come from <code>npm run sound:levels</code>, measured
       ahead of time, so every frame renders the same. A loud moment rises at once and settles over about six frames. Reduced motion keeps
       the scene still.
+    </FilmCompare>;
+  },
+};
+
+const beatHitsDoc = beatHitsExample as unknown as FilmDocument;
+/** A 110 bpm drum loop (a recorded CC0 take) and four photo cards cut on its bars, each with its own pattern of hits: a punch on every beat;
+ * a punch and zoom blur on the kick with a shake on the snare; a punch and RGB split with a vertical shake; a landing with a flash every
+ * bar. Played with the film's own mix. */
+export const BeatHits: StoryObj = {
+  render: function BeatHits() {
+    const variants = useMemo(() => ({
+      hits: { label: "Hits on the beat", film: compileExample(beatHitsDoc) },
+      still: { label: "No hits (before)", film: compileExample({ ...beatHitsDoc, scenes: beatHitsDoc.scenes.map(scene => ({ ...scene, hits: undefined })) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0} audio={soundUrls["../../assets/sound/lab/moves/beat-hits.m4a"]}>
+      Press Play with your sound on: every hit lands on a beat of the loop, from the bed's declared tempo (<code>"bpm": 110</code>), so the
+      picture is cut to the music frame by frame. A punch snaps the frame to about 108 % and settles in 0.2 s; a shake swings four or five
+      times, each smaller; the split and the blur last a few frames. Use Quarter speed to see each swing. Reduced motion holds the picture
+      still. The loop is <a href="https://freesound.org/people/blakengouda/sounds/573948/" style={{ color: "#7cc6ff" }}>Hip-Hop Drum Loop -
+      110bpm</a> by blakengouda (CC0).
+    </FilmCompare>;
+  },
+};
+
+const spinZoomDoc = spinZoomExample as unknown as FilmDocument;
+/** Three photo cards on the 110 bpm drum loop, joined by a spin (clockwise, 180°) and a zoom-blur cut, each cutting on a kick at its
+ * fastest, most blurred frame; beside it, the same film with hard cuts. */
+export const SpinAndZoomBlur: StoryObj = {
+  render: function SpinAndZoomBlur() {
+    const variants = useMemo(() => ({
+      moves: { label: "Spin, then zoom blur", film: compileExample(spinZoomDoc) },
+      cuts: { label: "Hard cuts (before)", film: compileExample({ ...spinZoomDoc, scenes: spinZoomDoc.scenes.map(scene => scene.transition ? { ...scene, transition: { kind: "cut" } } : scene) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={film => film.cut.transitions[0].startFrame - 12} audio={soundUrls["../../assets/sound/lab/moves/spin-zoom.m4a"]}>
+      Each move hides its cut inside itself: the picture turns (or pushes in) faster and faster and cuts at the fastest point, where the
+      blur is strongest, and the next scene finishes the move. The spin blurs along circles about the centre and is enlarged just enough
+      to keep the frame covered at each angle; the zoom blurs along rays. Both cuts land on a kick. Use Quarter speed to see the frames;
+      Reduced motion plays a dissolve.
+    </FilmCompare>;
+  },
+};
+
+const chatDoc = chatExample as unknown as FilmDocument;
+/** A vertical text story: a two-person thread on a dark ground, then a group chat on light paper, each message landing with a soft sound
+ * over a low drum loop. */
+export const ChatStory: StoryObj = {
+  render: function ChatStory() {
+    const variants = useMemo(() => ({ chat: { label: "Chat story", film: compileExample(chatDoc) } }), []);
+    return <FilmCompare variants={variants} moment={() => 0} audio={soundUrls["../../assets/sound/lab/moves/chat-story.m4a"]}>
+      The first message is on screen at once, as the hook; each next one lands once the last has had time to be read, the other side's
+      after typing dots that become the message. The thread fills from the bottom and older messages scroll away at the top, each bubble
+      growing its own height so nothing jumps. "Me" sits on the right in the brand colour; a group shows each sender's name and initial.
+      Styling is neutral, not any messaging app's. Reduced motion drops the growth and the bouncing dots.
+    </FilmCompare>;
+  },
+};
+
+const subjectDoc = subjectExample as unknown as FilmDocument;
+/** Real footage with its subject cut out by `npm run video:matte` (a CC0 clip from Wikimedia Commons): a giant word behind a peacock, then
+ * the peacock outlined over a new ground. Beside it, the same footage without the subject. */
+export const SubjectCutout: StoryObj = {
+  render: function SubjectCutout() {
+    const variants = useMemo(() => ({
+      subject: { label: "Subject cut out", film: compileExample(subjectDoc) },
+      plain: { label: "Plain footage (before)", film: compileExample({ ...subjectDoc, scenes: subjectDoc.scenes.map(scene => ({ ...scene, content: { ...scene.content as object, subject: undefined } })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      The cutout is the peacock itself, found in every frame by a segmentation model (IS-Net, Apache-2.0), edge-snapped
+      with the guided filter, steadied over time only where the picture is still, and with the grass taken out of its feathers' edges. The
+      word stands behind the bird; the outline grows from the solid part of the cutout's own alpha. The haze under its legs is the model
+      reading the deck between them as part of the bird. Clip: <a href="https://commons.wikimedia.org/wiki/File:Peacock_walking_and_eating.webm" style={{ color: "#7cc6ff" }}>Peacock walking and eating</a> by
+      Mx. Granger, CC0. The cutout uses VP9 with alpha, which Chromium and Firefox play; Safari shows the plain footage.
+    </FilmCompare>;
+  },
+};
+
+const freezeDoc = freezeExample as unknown as FilmDocument;
+/** A freeze-frame character intro on real footage: the peacock stops mid-step, the deck and grass drain to grey while the bird keeps its
+ * colour, its name and role slam in with a hit, then it walks on. Beside it, the same footage without the freeze. */
+export const FreezeFrameIntro: StoryObj = {
+  render: function FreezeFrameIntro() {
+    const variants = useMemo(() => ({
+      freeze: { label: "Freeze-frame intro", film: compileExample(freezeDoc) },
+      plain: { label: "No freeze (before)", film: compileExample({ ...freezeDoc, scenes: freezeDoc.scenes.map(scene => ({ ...scene, freeze: undefined, durationFrames: 120 })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 30} audio={soundUrls["../../assets/sound/lab/moves/freeze-intro.m4a"]}>
+      The picture holds one frame for 2.2 s: one short flash as it stops, the background greyed while the bird keeps its colour (its cutout,
+      from <code>npm run video:matte</code>, with a thin light edge), and the name card sliding in over a soft shade that keeps the white
+      name readable on the deck. Then colour returns and the footage plays on. Reduced motion keeps the grade and the card and drops the
+      flash and the slide.
+    </FilmCompare>;
+  },
+};
+
+const slowmoDoc = slowmoExample as unknown as FilmDocument;
+/** One second of footage slowed four times: with new in-between frames from `npm run video:slowmo` (motion-compensated interpolation),
+ * against the same second played at a quarter speed, which shows each real frame four times. */
+export const SmoothSlowMotion: StoryObj = {
+  render: function SmoothSlowMotion() {
+    const variants = useMemo(() => ({
+      smooth: { label: "Interpolated (4×)", film: compileExample(slowmoDoc) },
+      repeated: { label: "Repeated frames (before)", film: compileExample({ ...slowmoDoc, scenes: slowmoDoc.scenes.map(scene => ({ ...scene, content: { ...scene.content as object,
+        video: { id: "peacock-walk", src: "assets/footage/peacock-walk.mp4", width: 960, height: 540, fps: 30, frameCount: 120, licenseRef: "commons-peacock-walking-cc0" }, from: 30, rate: .25 } })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      Switch between the two at Quarter speed: repeated frames step every fourth frame; the interpolated clip moves on every frame. Its
+      check rebuilt dropped frames of this clip at 0.952 SSIM against the real ones, where repeating frames scores 0.933. Interpolation
+      guesses: fast or tangled motion (wings, water, crowds) shows warped seams, which the check warns about before you use it.
+    </FilmCompare>;
+  },
+};
+
+const trailDoc = trailExample as unknown as FilmDocument;
+/** Motion trails on an 1894 dance film (CC0): fading copies of the cut-out dancer every two frames; the same trail washed in magenta; and a
+ * whole-frame echo, which needs no cutout. Beside it, the same footage plain. */
+export const MotionTrail: StoryObj = {
+  render: function MotionTrail() {
+    const variants = useMemo(() => ({
+      trail: { label: "Trails and echo", film: compileExample(trailDoc) },
+      plain: { label: "Plain footage (before)", film: compileExample({ ...trailDoc, scenes: trailDoc.scenes.map(scene => ({ ...scene, content: { ...scene.content as object, subject: undefined, echo: undefined } })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      A trail is the subject's own cutout from earlier frames: six copies two frames apart, each 0.72 as strong as the last, under the live
+      dancer; tinted, the copies are washed toward one colour. The echo instead lays earlier frames of the whole picture over the current
+      one, so anything that moves, the camera included, leaves a ghost. Film: <a href="https://commons.wikimedia.org/wiki/File:Annabelle_butterfly_dance_1894.ogv" style={{ color: "#7cc6ff" }}>Annabelle
+      Butterfly Dance</a> (W. K. L. Dickson, 1894), CC0.
+    </FilmCompare>;
+  },
+};
+
+const glitchDoc = glitchExample as unknown as FilmDocument;
+/** Glitch cuts on the 110 bpm drum loop, centred on kicks: the frame breaks into bands that jump sideways and tear into red and blue while
+ * the next scene takes over band by band. The last scene is a real datamosh made by `npm run video:datamosh`. Beside it, hard cuts. */
+export const GlitchAndDatamosh: StoryObj = {
+  render: function GlitchAndDatamosh() {
+    const variants = useMemo(() => ({
+      glitch: { label: "Glitch cuts", film: compileExample(glitchDoc) },
+      cuts: { label: "Hard cuts (before)", film: compileExample({ ...glitchDoc, scenes: glitchDoc.scenes.map(scene => scene.transition ? { ...scene, transition: { kind: "cut" } } : scene) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={film => film.cut.transitions[0].startFrame - 10} audio={soundUrls["../../assets/sound/lab/moves/glitch.m4a"]}>
+      The bands hold for two frames and then change; the tear peaks in the middle of the cut, and every band is the next scene by its end.
+      Under reduced motion each cut is a dissolve. The last scene is not drawn by the film: it is a real datamosh between two CC0 clips,
+      the 1894 dancer's picture moved by the peacock's motion vectors until the next keyframe brings the peacock back clean.
     </FilmCompare>;
   },
 };
