@@ -119,6 +119,54 @@ Evidence (2026-11-09): `tests/film-document.test.ts`, "container transform" (mea
 
 `{ "kind": "whip", "direction": "left" }` swings from one scene to the next as one camera move: both scenes move together edge to edge, eased in and out, smeared by motion blur in the middle, and grown slightly while blurred so the blur's faded edges stay out of frame. A scene is exactly one frame big, so the next one is carried in behind the last rather than the camera panning off the edge into the empty stage. Default 10 frames; reduced motion keeps a dissolve.
 
+### Spin and zoom blur
+
+Two short-form cuts that hide the join inside one fast move (VE1.3). Both are `registry/video/film-spin.ts`. Their blur is `film-blur-react.tsx`, shared with beat hits.
+
+- **`{ "kind": "spin", "direction": "right", "turn": 180 }`**
+  - **The turn.** The picture turns about the frame's centre, faster and faster, and cuts at the fastest point. The next scene finishes the turn and settles.
+  - **Options.** `turn` is the whole turn, 90 to 720 degrees, half in each scene (default 180). `direction` `right` turns clockwise (the default), `left` anticlockwise.
+  - **Coverage.** Each scene is enlarged just enough to keep the frame covered at its angle, across the whole smear: 1.78× at 90° in a 16:9 frame. So the move swells as it turns.
+  - **Length.** Default 14 frames.
+- **`{ "kind": "zoom-blur", "zoom": 1.8 }`**
+  - **The push.** The outgoing scene pushes in, faster and faster, and cuts at the fastest point. The incoming scene starts pushed in and pulls back to rest.
+  - **Options.** `zoom` is the scale at the cut, 1.2 to 4.
+  - **Length.** Default 10 frames.
+
+**How they are drawn.**
+
+- **The blur.** It is half a frame of the move (a 180° shutter): a turn smears along circles about the centre, a zoom along rays from it.
+  - **Turn blur.** At most 24° per frame, because a turn's first-order blur shrinks the picture beyond that.
+  - **Zoom blur.** At most a 25 % zoom per frame.
+- **The filter.** One SVG filter averages displaced copies of the visible scene in two passes. The turn uses a tangential map, the zoom a radial map. A turn's map is the zoom's with its channels swapped and one negated.
+- **The cut.** It is the first frame at or past the middle (`progress ≥ 0.5`). For the cut to land on a beat, start the transition half its length before the beat: 7 frames for a 14-frame spin, 5 for a 10-frame zoom blur.
+- **Sound.** Both count as moves that travel, so `audio.accents` with `"on": "moves"` puts a whoosh at their middle.
+- **Reduced motion** plays a dissolve.
+
+| Code | Severity | When |
+|---|---|---|
+| `spin-turn`, `zoom-blur-zoom`, `spin-direction` | error | A turn outside 90 to 720 degrees, a zoom outside 1.2 to 4, a direction other than left or right |
+| `spin-length` | warning | Shorter than 0.2 s (a jump) or longer than 1 s (no longer one move) |
+
+**Example.** [`examples/film/spin-zoom.film.json`](../../examples/film/spin-zoom.film.json): three photo cards on `bed-drums-hiphop-110`, a spin into the second and a zoom blur into the third, each cutting on a kick (frames 147 and 278). Storybook: **Promo Moves → Spin And Zoom Blur**, beside the same film with hard cuts, with the film's mix (`npm run sound:moves -- --mix=spin-zoom`).
+
+**Evidence (2026-11-18).**
+
+- **Tests.** `tests/film-spin.test.tsx` covers:
+  - frame coverage at every angle;
+  - one direction of turn through the cut;
+  - the blur peaking at the cut and its cap;
+  - the push in and the pull back;
+  - the checks;
+  - the filter's primitives;
+  - the example's cuts landing on the kicks.
+- **Rendered frames** (960×540, `film:frame`):
+  - frames 144 to 149 show the rotational smear through the spin's cut;
+  - frames 276 and 278 show the radial smear and the zoom of the zoom-blur cut.
+  - A half-size contact sheet hid the zoom blur's smear; judge these frames at full size.
+- **Sound.** earshot timeline of the mix: both cuts have an onset within 10 ms (offsets +10 and +4 ms), −15.5 LUFS.
+- **Owner review.** Visual and listening review is pending.
+
 ### Zoom through
 
 `{ "kind": "zoom", "subject": "glow", "edge": "soft" }` pushes the camera into a region of the outgoing scene, and the incoming scene is inside it: a photograph inside a screen inside a room, or daylight through a wall of ice (doc 32, P2 "Infinite zoom"). The camera's scale moves in log space, eased at both ends, while the region slides to the frame's centre, until the region covers the frame.
@@ -431,6 +479,99 @@ Example: [`examples/film/sonic-logo.film.json`](../../examples/film/sonic-logo.f
 
 Example: [`examples/film/sound-drive.film.json`](../../examples/film/sound-drive.film.json): a headline bumps on each beat of a 90 bpm pulse, then a light rises from a photograph on each beat. In a 960×540 render, the centre of the photograph measured 91 between beats and 108 on them, at frames 159, 179 and 198. Storybook: **Promo Moves → Sound Drive**, played with the film's own mix.
 
+## Beat hits
+
+`"hits"` on a scene puts short impulses on beats, the way short-form editors cut the picture to a track (VE1.1). `registry/video/film-hits.ts` compiles and evaluates them; it is pure. `film-hits-react.tsx` draws them on any scene, 3D shots and footage included.
+
+```json
+"hits": [
+  { "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } },
+  { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }
+]
+```
+
+**Kinds.** One kind or several per pattern. The values are for `amount` 0.5 (the default; 0.1 to 1).
+
+| Kind | What it does | At amount 0.5 |
+|---|---|---|
+| `punch` | The picture snaps larger about `centre` on the hit and eases back. | 108 % |
+| `shake` | A shake that swings about every 1/24 s, each swing smaller, in a new direction each hit (or `direction` in degrees), with a slight turn. | 1 % of the frame height, 0.6° |
+| `split` | The red and blue channels jump apart along `direction` (default across) and close. | 2 % of the frame height |
+| `blur` | A zoom blur from `centre`: the picture smeared outwards, as if the camera lunged. | a 6 % zoom |
+| `flash` | A short lift of white over the picture. | 25 % |
+
+**Sources.** Each pattern lands on exactly one source:
+
+- **`at`**: content frames or the scene's moments by name. Content frames follow the scene's speed ramp or stutter.
+- **`beats`**: the beats of a bed that declares its tempo. A bed takes `bpm` (40 to 240) and `beatOffset` (seconds to its first beat, default 0). `every` is 1, 2, 4 or 8 beats; `phase` picks a beat of the group, so `"every": 2, "phase": 1` is the backbeat. `from` and `to` (scene frames) keep hits to part of the scene.
+- **`onsets`**: a bed's loud onsets, measured ahead of time by `npm run sound:levels`. An onset is a rise of more than `rise` (default 0.3) above the lowest level since the last onset. The meter starts a second before the scene, so a beat on its first frame counts. Onsets follow the rhythm the bed actually plays, syncopation included.
+
+**Timing and shape.**
+
+- **Envelope.** A hit peaks on its frame and settles over `frames` (default 0.2 s). The split, blur and flash fall in about 70 % of that.
+- **Lead.** `lead` (0 to 3 frames) lands the picture early: viewers accept picture slightly before sound more readily than after it. A hit led past a cut lands on the cut.
+- **Several patterns.** Up to four patterns combine: scales multiply, moves add, and the strongest split, blur and flash win. They share the first pattern's `centre`.
+- **Sound on hits.** `sound` (a kit sound, or `catalog:<id>`) puts a sound on every hit. Its start meets the hit, and it needs `audio.accents.kit`.
+
+**How it is drawn.**
+
+- **Transform.** Punch, shake and turn are one transform about the centre. It is scaled just enough to keep the frame covered while the picture moves and turns.
+- **Filter.** The split and the blur are one SVG filter on the scene's pixels.
+  - **Split.** The channels are separated with colour matrices and moved apart with offsets.
+  - **Blur.** The blur is two passes of six zoomed copies, averaged through `feDisplacementMap` with a radial map: a coarse pass across the smear and a fine pass across one of its steps. The copies blend into one streak, without the dotted texture of a single pass.
+- **Order.** Hits sit under the film look, so its grain and vignette stay still in the frame.
+- **Stable structure.** The elements are the same at rest and during a hit, so a 3D canvas or a video is never remounted by its hits.
+- **Reduced motion** shows no hits.
+
+**Checks.**
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `hits-source`, `hits-kind`, `hits-amount`, `hits-frames`, `hits-lead`, `hits-centre`, `hits-direction`, `hits-gain`, `hits-patterns` | error | No source or more than one, an unknown kind, values outside their ranges, more than four patterns |
+| `hits-bed`, `hits-no-tempo`, `hits-reverse`, `hits-every`, `hits-phase`, `hits-range` | error | No such bed, a bed with no `bpm`, a reversed bed, a bad grouping or frame range |
+| `hits-moment`, `hits-at`, `hits-levels` | error | An unknown moment, a frame outside the content, a bed `sound:levels` has not measured |
+| `hits-flash-rate` | error | More than three flashes in a second (WCAG 2.3.1) |
+| `hits-sound`, `hits-sound-no-kit` | error | A sound the kit does not have, or no kit |
+| `hits-busy` | warning | More than four hits in a second, which reads as jitter |
+| `hits-split-text`, `hits-shake-text` | warning | On cards and other text scenes, a split above 0.5 or settling slower than 0.2 s, or a shake above 0.6 |
+| `hits-none`, `hits-no-levels` | warning | No hit inside the scene, or a compile without bed levels |
+
+**Example.** [`examples/film/beat-hits.film.json`](../../examples/film/beat-hits.film.json). Four photo cards are cut on the bars of `bed-drums-hiphop-110`, a recorded CC0 drum loop ([Hip-Hop Drum Loop - 110bpm](https://freesound.org/people/blakengouda/sounds/573948/) by blakengouda) declared at `"bpm": 110`:
+
+1. a punch on every beat;
+2. a punch and zoom blur on the kick, with a shake on the snare;
+3. a punch and split, with a vertical shake;
+4. a landing with a flash every bar.
+
+Storybook: **Promo Moves → Beat Hits**, played with the film's own mix (`npm run sound:moves -- --mix=beat-hits`), beside the same film without hits.
+
+**Evidence (2026-11-18).**
+
+- **Tests.** `tests/film-hits.test.tsx` covers:
+  - the beat grid;
+  - phases, leads and moments;
+  - onsets measured on the drum loop: the first frame is included, and 60 % or more of the beats have an onset within two frames;
+  - the envelope and the alternating shake, at 30 and 60 fps;
+  - combining patterns;
+  - every check;
+  - frame coverage under a move and a turn;
+  - the filter's primitives;
+  - the example compiling with every hit on a beat;
+  - hit sounds on the accent lane.
+- **Rendered frames.** At 960×540, frames 131 (punch and blur), 262 (punch and split) and 327 (punch, blur and flash) show the radial smear, the red and blue fringes and the lift. A first single-pass blur showed a dotted texture; the two-pass blur is smooth.
+- **The loop.** It was imported with `limitDb: 9` and `crossSeconds: 0.01`.
+  - **Limiting.** The raw take peaks 17.5 dB over its loudness, and no film master could reach −14 LUFS. The film's mix now measures −15.0 LUFS (−15.4 before the master's loudness passes, below).
+  - **A/B.** earshot hears the limited loop as the same sound as the raw take: cosine 0.99, and the same strong match (z +5.0 against +5.1), slightly darker.
+  - **Clicks.** The mix's `mix-click` warnings fall on its eighth notes; earshot reads one as crisp hi-hats (z +4.8).
+- **Owner review.** Visual and listening review is pending.
+
+**Sources (practice, graded C: practitioner tutorials and presets).**
+
+- A zoom from 100 % to about 110 % per beat ([Adobe community](https://community.adobe.com/t5/premiere-pro-discussions/how-to-zoom-in-on-beat-in-a-music-video/m-p/8792160)).
+- A shake as four or five keyframes of falling size in position and rotation ([FreeVisuals](https://www.freevisuals.net/item/dynamic-shake-2)).
+- A beat shake of 2 to 10 px over about 150 ms ([a beat-effects demo](https://fbratten.github.io/music-video-creator-showcase/demos/beat-effects)).
+- Velocity edits with a shake, a glow or a flash on each hit ([CapCut](https://www.capcut.com/resource/how-to-do-velocity-on-capcut)).
+
 ## Loop
 
 `"loop": { "frames": 18 }` makes a film loop, as Shorts and Reels replay on their own. Over its last `frames` (default 12, 6 to 45), the first scene's opening frame dissolves in on top, so the film's last frame is its first and the replay starts on the picture it ends on. It is a dissolve, so reduced motion keeps it.
@@ -479,6 +620,8 @@ An `"recipeId": "annotate"` scene makes an argument on a picture: the camera sto
 A `"recipeId": "title-sequence"` scene opens a film on one symbol in cut paper, its pieces arriving on twos, then lays the title in word by word. See [Title Sequence](title-sequence.md).
 
 ## Footage, cast and model turns
+
+A footage scene can carry its `subject`: the subject cut out of the same clip by `npm run video:matte`. With it, the title can stand behind the subject (`behind`, with a `"size": "giant"` title), and the subject can take an outline, a new background or clones. See [Subject matte](subject-matte.md).
 
 - **Footage** (`"recipeId": "footage"`): a real clip, frame-exact through the browser video adapter, cover-fitted under a slow push (`push`, default 1 to 1.06), with `from`, `rate`, `focus` and optional words (`title`: lands word by word over a soft shade, top, middle or bottom). Prepare clips as VP9 WebM with a keyframe on every frame (`ffmpeg -c:v libvpx-vp9 -g 1`) so each frame seeks exactly. Checks: `footage-video`, `footage-rate`, `footage-push` (errors); `footage-licence`, `footage-runs-out`, `footage-title-short`, `footage-title-long`.
 - **Cast** (`cast` on any scene): characters that perform over the scene: where their feet stand, their height, how they arrive (pop, or slide from a side or below), when they leave, and cues (an action, an expression, speech frames). FilmStage gives each a box inside the scene's layer, so transitions carry them with their scene; the host draws them with `renderCast`. Kumiki's capture page draws Pip and Quill from the character fixtures (`src/film/film-cast.tsx`). Check: `film-cast`.
@@ -686,6 +829,70 @@ A film can carry a **brand** (a name, a colour, an optional mark, one call to ac
 
 When a film has a brand, `film:check` adds the ABCD ad checks: a hook within 3 s, the brand within 5 s, an end card with a call to action, captions for narration, and a vertical ad of 60 s or less. `npm run film:ad -- <brief.ad.json>` writes a whole ad from a short brief in one of six formats. See [Ad Formats](ad-formats.md).
 
+## Chat story
+
+`{ "card": "chat", "people": [...], "messages": [...] }` is a message thread (VE1.4), the text-story format of short-form video. `registry/video/film-cards.ts` times it (`chatTiming`); `film-chat-react.tsx` draws it.
+
+```json
+"content": { "card": "chat",
+  "people": [{ "id": "me", "name": "Me" }, { "id": "sam", "name": "Sam" }],
+  "messages": [{ "from": "sam", "text": "did you borrow my umbrella this morning?" }, { "from": "me", "text": "no? why" }],
+  "sound": { "me": "catalog:whoosh-fast-soft", "them": "catalog:tech-pulse-soft", "gainDb": -6 } }
+```
+
+**Pacing.**
+
+- **The hook.** The first message is on screen as the card enters, with no wait.
+- **Reading time.** Each next message lands once the last has been read: 0.35 s plus 3.2 words a second. That is a little faster than a card's text, because the eye already knows where the newest bubble is.
+- **Typing dots.** The other side's messages come after typing dots that last about as long as typing the text, from 0.5 to 1.6 s. The dots overlap the reading.
+- **Options.** `pause` adds silence before a message. `"typing": false` drops the dots.
+- **Moments.** The card names `message-1`, `message-2` and so on, and `landed`, for `audio.cues`.
+
+**Drawing.**
+
+- **Layout.** The thread fills from the bottom of a phone-like column: most of a tall frame, about half a wide one. Older messages scroll away at the top.
+- **No jumps.** Each bubble grows its own height (a grid row from 0fr to 1fr) over 7 frames, so nothing jumps and nothing is measured.
+- **Me and the others.** "Me", the first person, is on the right in the brand colour. The others are on the left on a quiet surface, or in their own `color`, with the text in white or near-black, whichever reads better.
+- **Groups.** A group shows each sender's name over their run of messages and their initial beside its last. The header shows "typing…" while someone types.
+- **Neutral look.** The styling is neutral; do not copy a messaging app's colours, shapes or name.
+- **Accessibility.** The thread is a `role="log"`.
+- **Reduced motion** drops the growth and the bouncing dots.
+
+**Sound.** `sound.me` and `sound.them` play a kit or catalog sound as each message lands. They need `audio.accents.kit`.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `card-chat-people`, `card-chat-length`, `card-chat-from`, `card-chat-text`, `card-chat-pause` | error | 2 to 8 people with unique IDs and names, 1 to 40 messages, a sender who is not in the chat, an empty message, a pause outside 0 to 10 s |
+| `card-chat-sound`, `card-chat-sound-no-kit` | error | A sound the kit lacks, or no kit |
+| `card-chat-long` | warning | A message over 40 words |
+| `card-chat-one-side` | warning | Every message from one person |
+| `card-short` | error | Too short to read the last message |
+
+**Example.** [`examples/film/chat-story.film.json`](../../examples/film/chat-story.film.json), vertical 9:16:
+
+- a two-person thread on dark (nine messages, about 21 s);
+- a group chat on light paper with the senders' own colours;
+- a soft notification sound for theirs and a short whoosh for mine;
+- a low drum loop under it.
+
+Storybook: **Promo Moves → Chat Story**, with the film's own mix.
+
+**Evidence (2026-11-18).**
+
+- **Tests.** `tests/film-chat.test.tsx` covers:
+  - timing: the first message at once, typing for the other side, pauses;
+  - the cues;
+  - every check;
+  - the rendered log, with dots before a message and the message after;
+  - group names;
+  - message sounds placed at each landing.
+- **Rendered frames** (540×960 and 960×540): the dots, the full thread, the group chat in colours, Japanese messages, and a long message wrapping.
+  - **The hook fix.** A first draft held the opening behind 1.6 s of dots, and the review flagged the frame as mostly empty. The first message now lands at once.
+- **Sounds.** earshot hears `tech-pulse-soft` as a notification (a success chime z +3.4, a chat message pop z +2.5) and `whoosh-fast-soft` as a fast whoosh (z +4.8).
+- **The mix.** −14.7 LUFS. All nine message sounds land within a frame of their messages (median offset 0 ms).
+- **Fixed alongside: the master.** `film:render` now adds back loudness that the limiter takes off a peaky music bed, at most twice and within the limiting allowed. With a drum bed the mix had stopped 1.7 LU short of its target.
+- **Owner review.** Visual and listening review is pending.
+
 ## Speed ramps
 
 Any scene can take a `speed`: it plays `source` frames of its content in its own `durationFrames`. Practice behind it (doc 32, §7):
@@ -746,6 +953,59 @@ The wheels' motion blur follows the ramp: `FilmStage` gives each 3D shot its pla
 
 A ramp multiplies the content's own motion. Ramping into a cut needs a shot that is still moving at its end; a shot that eases to a stop gains nothing from `exit`.
 
+### Velocity edit
+
+`"speed": { "source": 315, "beats": { "bed": "drums", "every": 2, "shape": "rush" } }` makes the speed follow the beats of a bed with a declared tempo (VE1.2), the short-form "velocity" edit. Between beats the content races; on each beat it drops to slow motion, so every hit of the music lands on a slowed, readable moment.
+
+| Field | Meaning |
+|---|---|
+| `beats.bed` | A bed with `bpm` (and `beatOffset`); its beats are the speed points. |
+| `beats.every`, `beats.phase` | Every 1, 2, 4 or 8 beats, at a beat of the group, as for hits. |
+| `beats.shape` | `rush` (default): races into each beat and drops to slow motion on it, the classic velocity edit. `dip`: slow on each beat, fastest midway. `burst`: fast out of each beat, slowing into the next. `freeze`: almost stops on each beat. |
+| `beats.contrast` | The fast speed over the slow one, 2 to 20. Default 8. |
+
+**How the curve is built.**
+
+- **Fit.** The curve's shape is scaled so the content fits the scene exactly. `source` sets how slow the slow motion is: more content for the same frames plays faster everywhere.
+- **The example's range.** `"source": 315` in 262 frames with `rush` at contrast 8 runs from 0.40× on each kick to 3.1× just before the next.
+- **Enter and exit.** `enter` and `exit` still ramp into and out of cuts.
+- **Holds.** A velocity edit takes no holds (`speed-beats-holds`).
+
+**Playback.**
+
+- **Motion blur.** 3D shots get the instantaneous speed as their playback rate, so motion blur streams in the fast stretches and clears in the slow ones.
+- **Reduced motion** plays the content at an even speed.
+- **Hits.** Pair the speed with beat hits on the same beats: a punch and zoom blur on the slowed kick, a shake on the snare.
+
+| Code | Severity | When |
+|---|---|---|
+| `speed-beats-bed`, `speed-beats-tempo`, `speed-beats-every` | error | No such bed, a bed with no `bpm`, a bad grouping |
+| `speed-beats-shape`, `speed-beats-contrast`, `speed-beats-holds`, `speed-beats-few` | error | An unknown shape, a contrast outside 2 to 20, holds as well, fewer than two beats in the scene |
+| `speed-fast` | warning | Over 10× anywhere; motion stops reading |
+| `speed-beats-flat` | warning | The beats still play near full speed, so nothing reads as slow motion |
+
+**Example.** [`examples/film/velocity-edit.film.json`](../../examples/film/velocity-edit.film.json).
+
+- **The shot.** The race car from behind, on a camera locked to it, cut to `bed-drums-hiphop-110`.
+- **The cut.** `rush` on the kicks, with a punch and zoom blur on each kick and a shake on each snare.
+- **Storybook.**
+  - **Speed Ramp → Velocity** plays it beside the same content at an even 1.2×, on one clock, with the film's mix (`npm run sound:moves -- --mix=velocity-edit`).
+  - **Speed Ramp → Graphs** draws the four shapes on the 110 bpm grid.
+
+**Evidence (2026-11-18).**
+
+- **Tests.** `tests/film-velocity.test.ts` covers:
+  - the shapes;
+  - the exact fit;
+  - slow on every kick and fast just before it;
+  - every check;
+  - the example's hits landing on slow motion.
+- **Rendered frames** (960×540), with the motion blur following the speed:
+  - frame 31 at 2.9×: the ground and kerbs streak;
+  - frame 34 at 0.4×: sharp, under the kick's zoom blur.
+- **A shared fix found here.** With hits on the race shot, the asphalt, lines and kerbs vanished. `FiberStage` measured its canvas with `getBoundingClientRect`, which counts the hit layer's CSS scale, so the canvas re-sized itself under any transform. It now measures layout size (`resize: { offsetSize: true }`). The same mismatch affected sound-driven scale and the whip and zoom transitions on 3D shots.
+- **Owner review.** Visual and listening review is pending.
+
 ## Stutter
 
 `"stutter": { "at": 66, "frames": 6, "repeats": 3 }` on a scene plays six content frames from frame 66 four times in all, then the scene carries on: a "b-b-b-but" on a landing, a hit or a turn. `at` is a content frame or one of the scene's moments; `frames` is 2 to 8 (default 4); `repeats` is 1 to 4 (default 2).
@@ -765,6 +1025,50 @@ A ramp multiplies the content's own motion. Ramping into a cut needs a shot that
 Example: [`examples/film/stutter.film.json`](../../examples/film/stutter.film.json), the cut-paper title sequence with its falling water stuttered. Storybook, **Video production → Promo Moves → Stutter**.
 
 Evidence (2026-11-11): `tests/film-document.test.ts`, "stutter". Frames 66 to 90 rendered at 960×540: the water streaks fall, jump back and fall again three times. A first draft stuttered on the `symbol` moment, after the pieces had landed, so nothing visibly repeated; the example now stutters the falling water.
+
+## Freeze-frame intro
+
+`"freeze": { "at": 42, "frames": 66, "name": "Kevin", "role": "Peacock. Regular. Snack inspector", "sound": "hit" }` on a scene stops the picture on a moment and introduces someone (VE1.6). `registry/video/film-freeze.ts` holds the timing; `film-freeze-react.tsx` draws the card.
+
+**The hold.**
+
+- **Time map.** A freeze is a time map, like a stutter. The scene runs `frames` longer than its content (default 1.6 s, 0.6 to 4 s), showing content frame `at` (a frame or a moment) throughout. Moments after it move later by the hold.
+- **Moments.** It adds `freeze`, where the picture stops, and `named`, where the card has landed.
+- **One time map.** A scene can only have one time map at a time (`freeze-time-map`).
+
+**The look, during the hold.**
+
+- **Grade.** `mono` (default) greys and deepens the picture; `dim` darkens it; `none` leaves it. The grade snaps in over two frames as the picture stops.
+- **Flash.** One short white flash as it stops (`"flash": false` drops it).
+- **Name card.** A large white name with a thin bar of the brand colour (default a warm yellow) under it, wiping in from its `side` (`left`, the default, or `right`). The role sits on a solid label in the ink that reads on it. A soft shade in the card's corner keeps the white name readable on bright ground.
+- **Sound.** `sound` plays a kit or catalog sound as the picture stops, and needs `audio.accents.kit`.
+- **With a cutout.** On a footage scene with a `subject` cutout ([Subject matte](subject-matte.md)), only the background is graded. The subject keeps its colour, with a thin light edge.
+- **Reduced motion** keeps the grade and the card and drops the flash and the slides.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `freeze-frames`, `freeze-moment`, `freeze-at`, `freeze-name`, `freeze-side`, `freeze-grade` | error | A hold outside 0.6 to 4 s, an unknown moment or a frame outside the content, no name, a bad side or grade |
+| `freeze-time-map` | error | A freeze with a speed ramp, a stutter, a rewind or a stretch |
+| `freeze-sound`, `freeze-sound-no-kit` | error | A sound the kit lacks, or no kit |
+| `freeze-short` | warning | The hold is shorter than the name and role need to be read (0.5 s plus three words a second) |
+| `freeze-name-long`, `freeze-role-long` | warning | A name over 28 characters, a role over 40 |
+
+**Example.** [`examples/film/freeze-intro.film.json`](../../examples/film/freeze-intro.film.json): the CC0 peacock clip with its cutout, frozen mid-step for 2.2 s as "Kevin", with the kit's hit over the drum loop. Storybook: **Promo Moves → Freeze Frame Intro**, beside the same footage without the freeze, with the film's mix.
+
+**Evidence (2026-11-18).**
+
+- **Tests.** `tests/film-freeze.test.tsx` covers:
+  - the time map;
+  - the grade, the slide and the single flash;
+  - reduced motion;
+  - the checks;
+  - the card's markup;
+  - the example's moment, its sound, and the one-time-map rule.
+- **Rendered frames** (960×540): the flash as it stops, the grey deck with the bird in colour, the card, and colour back after the hold.
+- **Review fixes.**
+  - A first card set the white name on a yellow bar (2.1:1) and over the bright tail (2.4:1). The card now stands on the side away from the bird, over a corner shade, and the frame passes the contrast check.
+  - A 1.6 s hold was too short for the name and role; the example holds 2.2 s.
+- **Owner review.** Visual and listening review is pending.
 
 ## Screen demos
 
