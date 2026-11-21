@@ -18,6 +18,8 @@ import { alphaImage, MaterialVectors, MaterialWarpFilter, ringsClipPath, warpIma
 import { lensAt, lensCopies, lensGateFrame } from "./film-lens";
 import type { FilmDip } from "./film-dip";
 import { speedClock, speedSource } from "./film-speed";
+import { hitsAt, hitsReach } from "./film-hits";
+import { HitLayer } from "./film-hits-react";
 import type { ResolvedLook } from "./film-look";
 import { FilmLookLayer } from "./film-look-react";
 import { BrandBug, FilmCard } from "./film-cards-react";
@@ -431,8 +433,13 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         filter: layerWarp(incoming) && !loopLayer ? `url(#${warpId}-${incoming ? "in" : "out"})` : whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : flash && incoming && flash.glow > .01 ? `brightness(${1 + 1.6 * flash.glow}) saturate(${1 - .5 * flash.glow})` : undefined }}>
         <div style={{ ...LAYER, transformOrigin: gate && incoming ? `${gate.cx}px ${gate.cy}px` : undefined,
           transform: gate && incoming ? `scale(${gate.scale})` : drifts || driven !== 1 ? `scale(${Math.round((drifts ? 1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame) : 1) * driven * 1e5) / 1e5})` : undefined }}>
-          {look ? <FilmLookLayer look={look} frame={layer.localFrame} fps={fpsValue} width={film.width} height={film.height} seed={index + 1}
-            turnFrame={scene.turnFrame !== undefined ? scene.turnFrame - scene.startFrame : undefined}>{lensed}</FilmLookLayer> : lensed}
+          {(() => {
+            // Beat hits move and filter the picture under the look, so its grain and vignette stay still in the frame.
+            const hit = scene.hits ? <HitLayer id={`${warpId}-hit-${index}${loopLayer ? "-loop" : ""}`} hit={hitsAt(scene.hits, layer.localFrame, fpsValue, reduce)} reach={reduce ? undefined : hitsReach(scene.hits)} centre={scene.hits[0].centre}
+              width={film.width} height={film.height}>{lensed}</HitLayer> : lensed;
+            return look ? <FilmLookLayer look={look} frame={layer.localFrame} fps={fpsValue} width={film.width} height={film.height} seed={index + 1}
+              turnFrame={scene.turnFrame !== undefined ? scene.turnFrame - scene.startFrame : undefined}>{hit}</FilmLookLayer> : hit;
+          })()}
         </div>
         {glow > .004 && <div aria-hidden="true" data-km-film-drive-glow="" style={{ ...LAYER, pointerEvents: "none", mixBlendMode: "screen", opacity: glow,
           background: `radial-gradient(ellipse 62% 58% at 50% 50%, ${scene.drive!.color}, transparent 72%)` }} />}

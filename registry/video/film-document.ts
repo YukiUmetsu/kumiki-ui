@@ -46,6 +46,8 @@ import { compileSceneSounds, inspectSplitEdits } from "./film-split-edits";
 import { inspectSonic, sonicRef } from "./film-sonic";
 import { bedLevels, DRIVE_AMOUNTS, follow, inspectDrive, peakRisesPerSecond } from "./film-drive";
 import type { DriveProperty, FilmDrive, FilmDriveSpec, SoundLevels } from "./film-drive";
+import { compileHits } from "./film-hits";
+import type { FilmHits, FilmHitsSpec } from "./film-hits";
 import { compileMotionChart } from "./motion-chart";
 import { compileAnnotate } from "./annotate";
 import { compileDrawOn, inspectDrawOnOutput } from "./draw-on";
@@ -171,6 +173,9 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   lens?: FilmLensSpec;
   /** A bed's loudness moves the scene: it grows a little, or glows, on each loud moment. See `film-drive.ts`. (Doc 34, A11.) */
   drive?: FilmDriveSpec;
+  /** Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See
+   * `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre. */
+  hits?: FilmHitsSpec | readonly FilmHitsSpec[];
   /** The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: "let's go back".
    * The scene runs `frames` longer than its content. (Doc 34, S6.) */
   rewind?: { frames: number };
@@ -323,6 +328,10 @@ export interface FilmAudioBed {
   /** Level automation: the bed reaches `db` (added to `gainDb`) at each point, a frame or a `<scene id>/<moment>`, easing between points.
    * `open` from 0 (dull, low-passed at 700 Hz) to 1 (full) brightens it as it swells. Points in order. (Doc 34, S3.) */
   gain?: ReadonlyArray<{ at: number | string; db: number; open?: number }>;
+  /** The bed's tempo, so scenes can put hits on its beats (`hits.beats`). From 40 to 240. */
+  bpm?: number;
+  /** Seconds from the bed's start to its first beat. @default 0 */
+  beatOffset?: number;
 }
 export interface FilmAudioGap {
   id: string;
@@ -421,6 +430,7 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   /** The scene's resolved look, when the film or the scene sets one. */ look?: ResolvedLook;
   /** A glass lens over the scene. */ lens?: FilmLens;
   /** A bed's loudness moving the scene, one value per scene frame. */ drive?: FilmDrive;
+  /** Impulses on beats or moments, at scene frames: one compiled pattern per authored one. */ hits?: readonly FilmHits[];
   /** The scene's time map, when it has a speed ramp or plays a stretch: content frame for each output frame. */ speed?: CompiledSpeed;
   /** The length the content is timed in, when it differs from the map's last frame (a scene that plays a stretch). */ contentFrames?: number;
   /** Characters performing over the scene. */ cast?: readonly FilmCastMember[] } & (
@@ -1112,6 +1122,8 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     if (!(bed.fadeSeconds === undefined || (bed.fadeSeconds >= 0 && bed.fadeSeconds <= 30))) report("error", "sound-bed", at + "/fadeSeconds", "A fade runs from 0 to 30 seconds.");
     if (!(bed.startFrame === undefined || (Number.isSafeInteger(bed.startFrame) && bed.startFrame >= 0 && bed.startFrame < durationFrames))) report("error", "sound-bed", at + "/startFrame", "A bed starts inside the film.");
     if (!(bed.durationFrames === undefined || (Number.isSafeInteger(bed.durationFrames) && bed.durationFrames > 0 && (bed.startFrame ?? 0) + bed.durationFrames <= durationFrames))) report("error", "sound-bed", at + "/durationFrames", "A bed ends inside the film.");
+    if (!(bed.bpm === undefined || (bed.bpm >= 40 && bed.bpm <= 240))) report("error", "sound-bed", at + "/bpm", "A bed's tempo runs from 40 to 240 beats a minute.");
+    if (!(bed.beatOffset === undefined || (bed.beatOffset >= 0 && bed.beatOffset <= 10))) report("error", "sound-bed", at + "/beatOffset", "The first beat is 0 to 10 seconds into the bed.");
   });
   if (master && !hasKey(MIX_PROFILES, master.profile)) report("error", "sound-master", "/audio/master/profile", `"${master.profile}" is not a profile.`, `Profiles: ${Object.keys(MIX_PROFILES).join(", ")}.`);
   if (master?.duckDb !== undefined && !(master.duckDb >= 0 && master.duckDb <= 40)) report("error", "sound-master", "/audio/master/duckDb", "Ducking runs from 0 to 40 dB.");
@@ -1175,6 +1187,32 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     // A light that pulses more than three times a second is a flash (WCAG 2.3.1); a bump that fast is a shake.
     const busy = peakRisesPerSecond(scene.drive.values, rate);
     if (busy > 3) report("warning", "drive-busy", `/scenes/${index}/drive`, `"${spec.drive.bed}" moves the scene ${busy} times in one second.`, property === "glow" ? "More than three pulses of light a second is a flash. Drive it with a slower bed." : "Drive it with a bed that has a slower pulse.");
+  });
+  // Hits: impulses on content frames, moments, a bed's beats or its loud onsets, at scene frames after any time map.
+  const TEXT_KINDS = new Set(["card", "screen-demo", "motion-chart", "chart-morph", "annotate", "draw-on", "title-sequence"]);
+  doc.scenes.forEach((spec, index) => {
+    const scene = compiled.find(item => item.id === spec.id);
+    if (!spec.hits || !scene) return;
+    const length = scene.endFrame - scene.startFrame, rate = fps.num / fps.den, list = Array.isArray(spec.hits) ? spec.hits as readonly FilmHitsSpec[] : [spec.hits as FilmHitsSpec], compiledHits: FilmHits[] = [];
+    if (!list.length || list.length > 4) { report("error", "hits-patterns", `/scenes/${index}/hits`, "A scene takes one to four hit patterns."); return; }
+    list.forEach((item, i) => {
+      const path = `/scenes/${index}/hits` + (Array.isArray(spec.hits) ? `/${i}` : "");
+      const { hits, problems } = compileHits(item, { path, durationFrames: length, contentFrames: scene.contentFrames ?? spec.speed?.source ?? (spec.stutter ? length - stutterExtra(spec.stutter) : length),
+        fps: rate, filmStart: scene.startFrame, filmFrames: durationFrames, beds, levels: options.soundLevels, textHeavy: TEXT_KINDS.has(scene.kind),
+        moment: id => { const cue = scene.cues.find(cue => cue.id === id); return cue && cue.frame - scene.startFrame; },
+        output: content => scene.speed ? speedOutput(scene.speed, content) : content,
+        silent: frame => gaps.some(gap => frame >= gap.startFrame && frame < gap.endFrame) });
+      for (const problem of problems) report(problem.severity, problem.code, problem.path, problem.message, problem.hint);
+      if (!hits) return;
+      compiledHits.push(hits);
+      if (!hits.sound) return;
+      if (!doc.audio?.accents) { report("error", "hits-sound-no-kit", path + "/sound", "A sound on hits needs `audio.accents.kit`."); return; }
+      if (!options.accentKit) return;
+      if (!options.accentKit.sounds[hits.sound]) { report("error", "hits-sound", path + "/sound", `The accent kit has no "${hits.sound}" sound.`, "Name a kit sound, or a catalog sound as catalog:<id>."); return; }
+      const place = accentPlacer(fps, options.accentKit, doc.audio);
+      hits.frames.forEach((frame, n) => accents.push(place(`hit/${scene.id}/${i}/${n}`, hits.sound!, scene.startFrame + frame, hits.gainDb ?? 0, "start")));
+    });
+    if (compiledHits.length === list.length) scene.hits = compiledHits;
   });
   const seconds = (frames: number) => Number((frames * fps.den / fps.num).toFixed(3));
   // A period or lo-fi look muffles beds that set no filter of their own.
@@ -1311,13 +1349,16 @@ const DROP_SECONDS = .015;
 /** A whoosh that peaks at the middle of each transition that moves (a dip through a colour is quiet), and on each turn the sound that its story asks for. A sound
  * that the kit does not have gets no `assetRef`, and the compiler reports it. A material transition makes its material's recorded sounds instead (`material-sound.ts`),
  * whatever `on` says, since they are the material's own sound rather than an accent; an authored accent still wins. */
-function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio, quiet: ReadonlySet<string>,
-  authored: ReadonlyMap<string, FilmTransition["accent"]> = new Map(), materials: ReadonlyMap<string, string> = new Map()): SoundEvent[] {
-  const place = (id: string, sound: string, peakFrame: number, extraDb = 0, align: FilmSoundCue["align"] = "peak"): SoundEvent => {
+/** Places a kit sound on the accent lane so that its peak (or its start) meets a frame. */
+const accentPlacer = (fps: RationalFps, kit: FilmAccentKit, request: FilmAudio) =>
+  (id: string, sound: string, peakFrame: number, extraDb = 0, align: FilmSoundCue["align"] = "peak"): SoundEvent => {
     const found = kit.sounds[sound], lead = align === "start" ? 0 : (found?.peakSeconds ?? 0) * fps.num / fps.den, start = peakFrame - lead, frame = Math.max(0, Math.floor(start));
     return { id: `${id}/${sound}`, laneId: ACCENT_LANE, frame, subframeOffset: start > 0 ? start - frame : 0,
       assetRef: found && request.accents!.kit + "/" + found.file, gainDb: (request.accents!.gainDb ?? -8) + (found?.gainDb ?? 0) + extraDb };
   };
+function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio, quiet: ReadonlySet<string>,
+  authored: ReadonlyMap<string, FilmTransition["accent"]> = new Map(), materials: ReadonlyMap<string, string> = new Map()): SoundEvent[] {
+  const place = accentPlacer(fps, kit, request);
   const TURN: Record<NonNullable<FilmStory["turnAccent"]>, readonly string[]> = { soft: ["ping"], impact: ["riser", "hit"], braam: ["catalog:braam-low"], none: [] };
   const moment = (at: string) => { const [sceneId, cueId] = at.split("/"); return scenes.find(scene => scene.id === sceneId)?.cues.find(cue => cue.id === cueId)?.frame; };
   return [

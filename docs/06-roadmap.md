@@ -276,7 +276,7 @@ mixer, contrast, blacks and whites; `frame-accurate-clip.tsx` and `footage-react
 |---|---|---|
 | **VP1.1 — Core** | Config schema and validation with JSON-pointer problems; colour conversions (HSV, CIELAB, YCbCr) and distances (hue window, ΔE); the mask with tolerance, feathering and edge-aware smoothing so masks do not halo or flicker; the monochrome base; time windows with transition curves. Pure TypeScript on typed arrays: the reference implementation. | Merged 2026-11-18 (PR #645, 04db3949): `selective-color` ([spec](component-specs/selective-color.md)); Storybook Video production → Film Looks → Selective Colour. Owner visual review pending. |
 | **VP1.2 — Renderers** | The same maths as a WebGL fragment shader for previews and films, with a parity test against the reference to a stated tolerance. | Skipped by the owner (2026-11-18) |
-| **VP1.3 — File pipeline** | Decode → process → encode on files through FFmpeg, with probing, logging and errors for missing files, unsupported codecs and out-of-range times; parallel frame processing. | Built 2026-11-18, in review: `npm run video:selective-color` (worker-thread masks, ordered smoothing, coded errors, audio carried over), a 3D lookup table for the colour match, and a selected item followed through the shot (only that item keeps colour) ([spec](component-specs/selective-color.md#video-files-vp13)). |
+| **VP1.3 — File pipeline** | Decode → process → encode on files through FFmpeg, with probing, logging and errors for missing files, unsupported codecs and out-of-range times; parallel frame processing. | Merged 2026-11-18 (PR #646, b60dd719): `npm run video:selective-color` (worker-thread masks, ordered smoothing, coded errors, audio carried over), a 3D lookup table for the colour match, and a selected item followed through the shot (only that item keeps colour) ([spec](component-specs/selective-color.md#video-files-vp13)). |
 | **VP1.4 — Films and discovery** | A film-document field and a FilmLook option; a Storybook story in the existing Film Looks section; spec, catalog entry and clean registry install. | Queued |
 
 Research before VP1.1 (graded sources in the spec):
@@ -284,6 +284,35 @@ Research before VP1.1 (graded sources in the spec):
 - edge-aware mask feathering (for example the guided filter);
 - temporal stability of masks across frames;
 - how editors and colourists build selective-colour and noir grades.
+
+### Short-form editing techniques (VE1) — owner request 2026-11-18
+
+The owner asked for the short-form editing techniques that Kumiki does not cover yet, then asked to build them. The
+gap analysis (2026-11-18) checked each technique against the catalog and the code. Its evidence is mostly that the
+platforms ship the technique as a one-tap feature: Adobe Premiere (Object Mask), CapCut, Instagram Edits and YouTube
+Shorts. Vendor tutorials show that a technique is common, not that it brings views.
+
+Take **one slice at a time**, in this order. Each slice extends the components named in its row and follows the MC1
+rules above: modular and configurable code, no consumer or brand names (no app look-alikes, such as a messaging app's
+bubbles), a spec section with graded sources, catalog metadata and a story in an existing Storybook section, related
+tests, rendered review, and a clean registry install. Short drafts only; no full-size renders without the owner.
+
+| Slice | Extends | Deliverable | State |
+|---|---|---|---|
+| **VE1.1 — Beat hits** | `film-drive.ts`, film scenes, the accent plans in `attention-editing-treatments.ts` | Impulses on beats, moments or a bed's loud onsets: punch zoom, directional shake, RGB split, zoom blur and a bounded flash; a bed's declared tempo (`bpm`) as the film's beat grid. | Built 2026-11-18, in review: `film-hits.ts`, `film-hits-react.tsx`, scene `hits`, bed `bpm`/`beatOffset`, and `bed-drums-hiphop-110`, a recorded CC0 drum loop ([spec](component-specs/film-document.md#beat-hits)); Storybook Promo Moves → Beat Hits. Owner visual and listening review pending. |
+| **VE1.2 — Velocity edit** | `film-speed.ts` | Speed curves keyed to the beat grid (fast between beats, slow on each hit), with named curve shapes and hits on the slow points. | Queued |
+| **VE1.3 — Spin and zoom-blur transitions** | Film transitions (`whip`, `zoom`) | A spin cut and a zoom-blur cut, blurred along the motion, with sound on the move. | Queued |
+| **VE1.4 — Chat story** | Film scenes | A message-thread scene: bubbles that arrive with typing dots, timed by reading speed, neutral styling, long and CJK text, sounds. | Queued |
+| **VE1.5 — Subject matte** | VP1.3 file pipeline, `selective-color` | A person or subject matte per frame (an alpha video, a mask sequence or an optional, licence-checked model) and the effects it unlocks: text behind the subject, an outline stroke, background replace, the clone effect. | Queued |
+| **VE1.6 — Freeze-frame intro** | `frame-accurate-clip`, flash, kinetic type | Freeze, the subject lifted from a graded background, a name card, then play on. | Queued |
+| **VE1.7 — Smooth slow motion** | VP1.3 file pipeline | New in-between frames by motion interpolation (FFmpeg `minterpolate`), with a check on the result. | Queued |
+| **VE1.8 — Motion trail** | VP1.3 file pipeline | Echo and afterimage trails, whole frame or subject only. | Queued |
+| **VE1.9 — Glitch and datamosh** | Film warps (`film-warp.ts`) | A glitch cut and a datamosh-style smear driven by motion. | Queued |
+| **VE1.10 — Jump cuts** | Captions, the file pipeline | Silence removal and alternating punch-in on talking heads. | Queued |
+| **VE1.11 — Dolly zoom** | 3D shots | The vertigo move: the camera moves while the field of view changes, so the subject holds its size. | Queued |
+| **VE1.12 — Subject reframe** | `frame-accurate-clip` reframe | A 9:16 crop that follows the subject, smoothed. Needs VE1.5. | Queued |
+
+Left out: generative restyle and animate-a-still. They need generative models and do not give the same frames twice.
 
 
 ## Within each component slice

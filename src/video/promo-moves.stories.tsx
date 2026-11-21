@@ -26,6 +26,7 @@ import lensExample from "../../examples/film/lens.film.json";
 import soundMoves from "../../assets/sound/lab/moves/moves.json";
 import tapeExample from "../../examples/film/tape-rewind.film.json";
 import driveExample from "../../examples/film/sound-drive.film.json";
+import beatHitsExample from "../../examples/film/beat-hits.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -447,6 +448,26 @@ export const SoundDrive: StoryObj = {
       Press Play with your sound on: the picture follows the pulse it hears. The levels come from <code>npm run sound:levels</code>, measured
       ahead of time, so every frame renders the same. A loud moment rises at once and settles over about six frames. Reduced motion keeps
       the scene still.
+    </FilmCompare>;
+  },
+};
+
+const beatHitsDoc = beatHitsExample as unknown as FilmDocument;
+/** A 110 bpm drum loop (a recorded CC0 take) and four photo cards cut on its bars, each with its own pattern of hits: a punch on every beat;
+ * a punch and zoom blur on the kick with a shake on the snare; a punch and RGB split with a vertical shake; a landing with a flash every
+ * bar. Played with the film's own mix. */
+export const BeatHits: StoryObj = {
+  render: function BeatHits() {
+    const variants = useMemo(() => ({
+      hits: { label: "Hits on the beat", film: compileExample(beatHitsDoc) },
+      still: { label: "No hits (before)", film: compileExample({ ...beatHitsDoc, scenes: beatHitsDoc.scenes.map(scene => ({ ...scene, hits: undefined })) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0} audio={soundUrls["../../assets/sound/lab/moves/beat-hits.m4a"]}>
+      Press Play with your sound on: every hit lands on a beat of the loop, from the bed's declared tempo (<code>"bpm": 110</code>), so the
+      picture is cut to the music frame by frame. A punch snaps the frame to about 108 % and settles in 0.2 s; a shake swings four or five
+      times, each smaller; the split and the blur last a few frames. Use Quarter speed to see each swing. Reduced motion holds the picture
+      still. The loop is <a href="https://freesound.org/people/blakengouda/sounds/573948/" style={{ color: "#7cc6ff" }}>Hip-Hop Drum Loop -
+      110bpm</a> by blakengouda (CC0).
     </FilmCompare>;
   },
 };
