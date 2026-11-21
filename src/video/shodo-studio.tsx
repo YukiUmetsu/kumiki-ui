@@ -181,9 +181,13 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
   </section>;
 }
 
-/** Frame clock for the demos: autoplays from 0 whenever `resetKey` changes, pauses at the end. */
+/**
+ * Frame clock for the demos: autoplays from 0 whenever `resetKey` changes, pauses at the end.
+ * `frame` is the whole frame for the readout and the scrubber; `position` is the exact frame for
+ * the canvas, so the brush moves at the screen's own refresh rate instead of in 30 fps steps.
+ */
 export function useShodoPlayback(last: number, resetKey: unknown) {
-  const [frame, setFrame] = useState(0);
+  const [position, setFrame] = useState(0);
   const [playing, setPlaying] = useState(true);
   const lastRef = useRef(last);
   lastRef.current = last;
@@ -194,15 +198,17 @@ export function useShodoPlayback(last: number, resetKey: unknown) {
     setFrame(f => { base = f >= lastRef.current ? 0 : f; return base; });
     const start = performance.now();
     const tick = (now: number) => {
-      const f = base + Math.floor((now - start) * FPS / 1000);
+      const f = base + (now - start) * FPS / 1000;
       if (f >= lastRef.current) { setFrame(lastRef.current); setPlaying(false); return; }
       setFrame(f);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing]);
-  return { frame, setFrame, playing, setPlaying };
+    // A new resetKey restarts the loop: a tick that ended an empty plan (last 0) and the reset that
+    // sets playing again can fall in one batch, and then playing never changes.
+  }, [playing, resetKey]);
+  return { frame: Math.floor(position), position, setFrame, playing, setPlaying };
 }
 
 /** Play/pause and frame scrubber shared by the SHO1 demos. */
@@ -260,7 +266,7 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
   }, [loaded, style]); // eslint-disable-line react-hooks/exhaustive-deps
   const sheet = useMemo(() => grid ? kenteiSheet(paper.width, paper.height, 1, Math.max(1, glyphs.length)) : null, [grid, paper, glyphs.length]);
   const last = plan ? Math.ceil(plan.duration * FPS) : 0;
-  const { frame, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
+  const { frame, position, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
 
   const pose = plan ? shodoBrushPose(plan, frame / FPS) : null;
   const step = plan && pose?.contact ? plan.strokes[pose.stroke]?.samples.find(s => s.t >= frame / FPS) : undefined;
@@ -279,7 +285,7 @@ export function ShodoStudio({ initialText = "永", initialStyle = DEFAULT_SHODO_
       </div>
     </header>
     <div style={{ maxWidth: 1280, width: "100%", borderRadius: 6, overflow: "hidden", boxShadow: "0 14px 40px rgba(40,30,20,.18)" }}>
-      {plan ? <ShodoCanvas plan={plan} frame={frame} fps={FPS} width={W} height={H} paper={paper} sheet={sheet}
+      {plan ? <ShodoCanvas plan={plan} frame={position} fps={FPS} width={W} height={H} paper={paper} sheet={sheet}
         orderGuide={guide} showBrush={showBrush} label={`Brush calligraphy of ${chars.join("")}`} />
         : <div role="alert" style={{ padding: 24, background: "#fff" }}>
           {issues.length ? issues.map(i => i.path + ": " + i.message).join("; ") : loadError ?? "Loading strokes…"}

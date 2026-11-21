@@ -35,7 +35,7 @@ export interface ShodoCanvasProps extends Omit<CanvasHTMLAttributes<HTMLCanvasEl
   brushLook?: Partial<ShodoBrushLook>;
   /** Camera height in design px; lower gives stronger perspective on the brush. */
   cameraHeight?: number;
-  /** Ink raster pixels per design pixel. */
+  /** Ink raster pixels per design pixel, with the device pixel ratio; at most 2 in all. Default 2: sharp ink edges on every screen. */
   inkScale?: number;
   /** Device pixel ratio for the backing store; defaults to the window's, capped at 2. */
   pixelRatio?: number;
@@ -82,7 +82,7 @@ function feltTile(seed: number): HTMLCanvasElement | null {
  */
 export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(function ShodoCanvas({
   plan, frame, fps = 30, width, height, paper, sheet = null, underlay = "felt", paperweight = "wood", motionBlur = true,
-  showBrush = true, brushLook, cameraHeight, inkScale = 1, pixelRatio, orderGuide = "none", guideStrokes, guideColor, guideSize,
+  showBrush = true, brushLook, cameraHeight, inkScale = 2, pixelRatio, orderGuide = "none", guideStrokes, guideColor, guideSize,
   reducedMotion = false, label, style, ...props
 }, ref) {
   const guideInk = guideColor ?? (orderGuide === "numbers" ? "#B3301A" : "#D8432A");
@@ -110,6 +110,58 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
     return () => { live = false; };
   }, []);
   const blurLayers = useMemo(() => typeof document === "undefined" ? null : [document.createElement("canvas"), document.createElement("canvas")], []);
+  // The layers that do not change while the brush writes (the underlay, the sheet with its shadow,
+  // the paperweight) are drawn once at the backing resolution; a frame draws only ink and brush.
+  const backW = Math.round(width * dpr), backH = Math.round(height * dpr);
+  const background = useMemo(() => {
+    if (typeof document === "undefined" || !paperCanvas) return null;
+    const c = document.createElement("canvas");
+    c.width = backW; c.height = backH;
+    const b = c.getContext("2d");
+    if (!b) return null;
+    b.setTransform(dpr, 0, 0, dpr, 0, 0);
+    b.imageSmoothingEnabled = true;
+    b.imageSmoothingQuality = "high";
+    // Underlay (下敷き) and the sheet's soft contact shadow.
+    if (underlay === "felt") {
+      b.fillStyle = (felt && b.createPattern(felt, "repeat")) ?? "#1B1E2B";
+      b.fillRect(0, 0, width, height);
+    }
+    b.save();
+    b.shadowColor = "rgba(0,0,0,.35)";
+    b.shadowBlur = 10;
+    b.shadowOffsetY = 2;
+    b.fillStyle = plan.style.paper.color;
+    b.fillRect(paper.x, paper.y, paper.width, paper.height);
+    b.restore();
+    b.drawImage(paperCanvas, paper.x, paper.y, paper.width, paper.height);
+    return c;
+  }, [backW, backH, dpr, width, height, underlay, felt, paper, paperCanvas, plan.style.paper.color]);
+  const weight = useMemo(() => {
+    if (typeof document === "undefined" || paperweight === "none") return null;
+    const c = document.createElement("canvas");
+    c.width = backW; c.height = backH;
+    const w = c.getContext("2d");
+    if (!w) return null;
+    w.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawPaperweight(w, paper, paperweight, textures);
+    return c;
+  }, [backW, backH, dpr, paper, paperweight, textures]);
+  // Stamp the strokes' ink tiles ahead of the brush while the browser is idle, so no frame waits
+  // for a whole stroke to be stamped when the brush lands.
+  useEffect(() => {
+    if (reducedMotion || typeof window === "undefined") return;
+    let live = true, id = 0;
+    const idle = typeof window.requestIdleCallback === "function";
+    const next = () => { id = idle ? window.requestIdleCallback(step, { timeout: 120 }) : window.setTimeout(() => step(), 16); };
+    const step = (deadline?: IdleDeadline) => {
+      if (!live) return;
+      const budget = !deadline || deadline.didTimeout ? 4 : Math.max(1, Math.min(12, deadline.timeRemaining()));
+      if (!surface.prepare(performance.now() + budget)) next();
+    };
+    next();
+    return () => { live = false; if (idle) window.cancelIdleCallback(id); else window.clearTimeout(id); };
+  }, [surface, reducedMotion]);
   // Placed once per plan against the finished writing, so a number never moves or lands on later ink.
   const numbers = useMemo(() => orderGuide === "numbers" ? shodoStrokeNumbers(plan, { size: guideSize, bounds: paper, only: guideStrokes }) : null,
     [orderGuide, plan, guideSize, paper, guideStrokes]);
@@ -118,28 +170,18 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
     const canvas = canvasRef.current, ctx = canvas?.getContext("2d");
     if (!canvas || !ctx || !paperCanvas || !inkCanvas) return;
     const seconds = reducedMotion ? plan.duration : Math.max(0, frame) / fps;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (background) ctx.drawImage(background, 0, 0);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    // Underlay (下敷き) and the sheet's soft contact shadow.
-    if (underlay === "felt") {
-      ctx.fillStyle = (felt && ctx.createPattern(felt, "repeat")) ?? "#1B1E2B";
-      ctx.fillRect(0, 0, width, height);
-    } else ctx.clearRect(0, 0, width, height);
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,.35)";
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetY = 2;
-    ctx.fillStyle = plan.style.paper.color;
-    ctx.fillRect(paper.x, paper.y, paper.width, paper.height);
-    ctx.restore();
-    ctx.drawImage(paperCanvas, paper.x, paper.y, paper.width, paper.height);
     // Ink.
     const ink = surface.render(seconds, reducedMotion);
     if (inkCanvas.width !== ink.width || inkCanvas.height !== ink.height) { inkCanvas.width = ink.width; inkCanvas.height = ink.height; }
     inkCanvas.getContext("2d")?.putImageData(new ImageData(ink.rgba, ink.width, ink.height), 0, 0);
     ctx.drawImage(inkCanvas, paper.x, paper.y, paper.width, paper.height);
-    if (paperweight !== "none") drawPaperweight(ctx, paper, paperweight, textures);
+    if (weight) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(weight, 0, 0); ctx.restore(); }
     const pose = shodoBrushPose(plan, seconds);
     if (numbers) drawStrokeNumbers(ctx, numbers, seconds, guideInk, plan.style.paper.color);
     else if (orderGuide !== "none" && orderGuide !== "numbers" && !reducedMotion) {
@@ -184,7 +226,7 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
         } else drawAt(ctx, pose);
       } else drawAt(ctx, pose);
     }
-  }, [frame, fps, plan, surface, paperCanvas, inkCanvas, felt, width, height, paper, dpr, underlay, paperweight, showBrush, look, textures, blurLayers, motionBlur,
+  }, [frame, fps, plan, surface, paperCanvas, inkCanvas, background, weight, width, height, paper, dpr, showBrush, look, textures, blurLayers, motionBlur,
     cameraHeight, orderGuide, guideStrokes, guideInk, numbers, reducedMotion]);
 
   return <canvas {...props} ref={canvasRef} role="img" aria-label={label ?? "Brush calligraphy being written"}

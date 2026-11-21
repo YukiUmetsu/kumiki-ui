@@ -49,7 +49,7 @@ export function ShodoTechniquesBoard() {
   // Measured once per plan: every basic must leave the shape its technique implies.
   const audit = useMemo(() => auditShodoTechniques(new ShodoInkSurface(plan, { ...paper, scale: 1 })), [plan, paper]);
   const last = Math.ceil(plan.duration * SHODO_FPS);
-  const { frame, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
+  const { frame, position, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
   const pose = shodoBrushPose(plan, frame / SHODO_FPS);
   const activeItem = plan.strokes[pose.stroke]?.item;
   const contact = pose.contact ? plan.strokes[pose.stroke]?.samples.find(s => s.t >= frame / SHODO_FPS) : undefined;
@@ -63,7 +63,7 @@ export function ShodoTechniquesBoard() {
       <h1 style={{ margin: "2px 0 0", font: "600 24px/1.2 Georgia, serif" }}>The basics: how a stroke starts, turns, stops and ends</h1>
     </header>
     <div style={frameBox}>
-      <ShodoCanvas plan={plan} frame={frame} width={W} height={H} paper={paper} sheet={sheet} paperweight="none"
+      <ShodoCanvas plan={plan} frame={position} width={W} height={H} paper={paper} sheet={sheet} paperweight="none"
         label="Ten basic brush techniques written one after another" />
       {SHODO_BASICS.map((basic, i) => {
         const x = paper.x + (i % cols) * cw, y = paper.y + Math.floor(i / cols) * ch + ch - label;
@@ -588,13 +588,14 @@ export function ShodoKanjiCard({
   const timeline = useMemo(() => kanjiCardTimeline(plan?.duration ?? 0, { write: timing?.write, review: timing?.review, info: timing?.info }),
     [plan, timing?.write, timing?.review, timing?.info]);
   const last = timeline.frames - 1;
-  const { frame, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
+  const { frame, position, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
   const sheet = useMemo(() => kenteiSheet(g.paper.width, g.paper.height, 1, 1), [g]);
   const inkBox = useMemo(() => plan ? kanjiInkBox(plan).map(v => v.toFixed(1)).join(" ") : "", [plan]);
   if (!loaded) return <div style={page}>Loading strokes…</div>;
   if (!glyph || !plan) return <div role="alert" style={page}>No stroke data for {char}.</div>;
 
-  const at = kanjiCardPhaseAt(timeline, Math.min(frame, last));
+  // The canvas follows the exact playback position, so the brush moves at the screen's refresh rate.
+  const at = kanjiCardPhaseAt(timeline, Math.min(position, last));
   const reviewed = timeline.review[1] > timeline.review[0];
   const writeGuide = vermilion.length ? "all" as const : "none" as const;
   // Each pass plays the same plan, stretched to its phase; the info phase holds the last pass.
@@ -654,11 +655,11 @@ export function ShodoBrushCloseUp({ ink = "sumi" }: { ink?: keyof typeof SHODO_I
     style, items: [{ glyph: CLOSE_UP, x: 150, y: -110, size: 960 }], rest: [W - 160, H - 60], inkstone: [W + 200, 200],
   }), [style]);
   const last = Math.ceil(plan.duration * SHODO_FPS);
-  const { frame, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
+  const { frame, position, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
   const pose = shodoBrushPose(plan, frame / SHODO_FPS);
   return <div style={page}>
     <div style={frameBox}>
-      <ShodoCanvas plan={plan} frame={frame} width={W} height={H} paper={paper} sheet={null} paperweight="none"
+      <ShodoCanvas plan={plan} frame={position} width={W} height={H} paper={paper} sheet={null} paperweight="none"
         underlay="none" cameraHeight={2600} label="Close-up of a brush writing a horizontal stroke and a hooked vertical" />
     </div>
     <ShodoTransport frame={frame} last={last} playing={playing} onPlaying={setPlaying} onFrame={setFrame} />
@@ -734,7 +735,7 @@ export function ShodoCharacterGallery({ initialText = "道永書和夢心東京�
     rest: [width - 40, height - 30],
   }) : null, [glyphs, style, width, height]);
   const last = plan ? Math.ceil(plan.duration * SHODO_FPS) : 0;
-  const { frame, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
+  const { frame, position, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
   const sheet = useMemo(() => kenteiSheet(width, height, cols, rows), [width, height, rows]);
   const usesKanjiVg = glyphs?.some(g => g.source === "kanjivg" || g.source === "teacher");
   const taughtCount = glyphs?.filter(g => g.source === "teacher").length ?? 0;
@@ -753,7 +754,7 @@ export function ShodoCharacterGallery({ initialText = "道永書和夢心東京�
     </div>
     {error ? <div role="alert">{error}</div> : null}
     <div style={{ ...frameBox, maxWidth: width }}>
-      {plan ? <ShodoCanvas plan={plan} frame={frame} width={width} height={height} paper={paper} sheet={sheet} underlay="none"
+      {plan ? <ShodoCanvas plan={plan} frame={position} width={width} height={height} paper={paper} sheet={sheet} underlay="none"
         paperweight="none" label={`Brush calligraphy of ${chars.join("")}`} /> : <div style={{ padding: 24 }}>Loading strokes…</div>}
     </div>
     <ShodoTransport frame={frame} last={last} playing={playing} onPlaying={setPlaying} onFrame={setFrame} />
@@ -795,7 +796,7 @@ export function ShodoBrushMotionStudy({ char = "永" }: { char?: string }) {
     style, items: [{ glyph, x: 440, y: 150, size: 400 }], rest: [960, 470], inkstone: [1300, 160],
   }), [style, glyph]);
   const last = Math.ceil(plan.duration * SHODO_FPS);
-  const { frame, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
+  const { frame, position, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
   // Lean (degrees) and ferrule height (tuft lengths) over the whole writing.
   const trace = useMemo(() => Array.from({ length: last + 1 }, (_, f) => {
     const p = shodoBrushPose(plan, f / SHODO_FPS);
@@ -816,11 +817,11 @@ export function ShodoBrushMotionStudy({ char = "永" }: { char?: string }) {
     </header>
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 12, maxWidth: 1280 }}>
       <div style={{ ...frameBox }}>
-        <ShodoCanvas plan={plan} frame={frame} width={W} height={H} paper={paper} sheet={kenteiSheet(paper.width, paper.height)}
+        <ShodoCanvas plan={plan} frame={position} width={W} height={H} paper={paper} sheet={kenteiSheet(paper.width, paper.height)}
           paperweight="none" label={`Top view: the brush writing ${glyph.char}`} />
       </div>
       <div style={{ ...frameBox }}>
-        <ShodoBrushProfile plan={plan} frame={frame} width={W} height={H} paper={paper} label={`Side view: the brush writing ${glyph.char}`} />
+        <ShodoBrushProfile plan={plan} frame={position} width={W} height={H} paper={paper} label={`Side view: the brush writing ${glyph.char}`} />
       </div>
     </div>
     <svg viewBox={`0 0 ${cw} ${ch}`} role="img" aria-label="Brush lean and ferrule height over time" style={{ width: "100%", maxWidth: 1280, background: "#FFFFFF", borderRadius: 6 }}>

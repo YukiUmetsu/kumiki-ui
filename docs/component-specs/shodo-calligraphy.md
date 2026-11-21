@@ -80,6 +80,11 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
     - peak tip acceleration: 41 → 22 px/frame² in the air, 18 → 14 on the paper;
     - steps from a standstill to full speed: 7 → 1;
     - the largest bend step: 0.42 → 0.25.
+- **The teacher's pace by default.** The kaisho hand's default speed is 0.32: a teacher's time with the brush on the paper, measured on 438 of her lesson videos (21 s per character; 3.2 s per stroke). Speed 1 is about three times as fast. Gyōsho (0.48) and sōsho (0.67) keep their pace relative to kaisho. The air moves between strokes scale with the square root of the speed, so they become about 1 s.
+- **Smooth playback at any refresh rate.** The demos play on the clock: the canvas gets the exact playback position, not a 30 fps step, so the brush moves at the screen's refresh rate (60 or 120 Hz). Exported films keep whole frames.
+  - The underlay, the sheet with its shadow and the paperweight are drawn once into cached layers; a frame draws only the ink and the brush.
+  - `ShodoInkSurface.prepare(deadline)` stamps the strokes' ink tiles ahead of the brush, in slices, while the browser is idle; the result is the same as stamping a tile in one go. Before this, the first frame of each stroke stamped the whole stroke (up to 360 ms at the teacher's pace).
+  - The ink is rasterised at 2 pixels per design pixel on every screen (`inkScale` default 2, at most 2 with the device pixel ratio).
 
 ## Configuration
 
@@ -88,7 +93,7 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
 - **Ink (墨):** colour and dilute colour, strength (濃墨 to 淡墨), water, load, colour-strength decay per em written, fade as the brush empties, re-dip threshold, gloss. Presets: sumi, seiboku, chaboku, tanboku, shuboku.
 - **Paper (紙):** colour, absorbency (にじみ), fibre, tooth (かすれ catch), drying time. Presets: hanshi, gasenshi, sized, practice.
 - **Per stroke:** `weight`, `start`, `end`, `turns`, `hook`, `pace` (speed of this stroke relative to the hand, 0.25..4; a teacher's form uses it so each stroke gets that teacher's share of the writing time), `technique` (this stroke's own technique settings over the style's, within the same ranges; a teacher's form uses it for that teacher's heads, stops and lifts stroke by stroke), `press` (one press multiplier per point, 0.4..1.8, applied where the brush passes nearest that part of the centreline; a teacher's form uses it for the swelling and thinning inside one stroke). **Per item:** `strokeInk` writes chosen strokes in another ink; the brush visits the inkstone to change ink.
-- **Canvas:** `sheet` (null or `kenteiSheet(...)`), `underlay`, `paperweight`, `orderGuide` (`none`, `current`, `all` or `numbers`), `guideStrokes`, `guideColor`, `guideSize`, `brushLook` (lean, azimuth, light, shadow, cord), `cameraHeight`, `inkScale`, `reducedMotion`.
+- **Canvas:** `sheet` (null or `kenteiSheet(...)`), `underlay`, `paperweight`, `orderGuide` (`none`, `current`, `all` or `numbers`), `guideStrokes`, `guideColor`, `guideSize`, `brushLook` (lean, azimuth, light, shadow, cord), `cameraHeight`, `inkScale` (default 2), `reducedMotion`.
 
 ## Kanji study card
 
