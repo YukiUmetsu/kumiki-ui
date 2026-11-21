@@ -57,6 +57,11 @@ export interface KanjiCardIntro {
   reading?: string;
   /** Seconds from the start of the intro when the reading converts to the character. Default: 60 % of the intro. */
   convertAt?: number;
+  /**
+   * Seconds from the start of the intro when the typed character is emphasized with a short
+   * highlight pulse, for example when a voice-over says its name. Default: none.
+   */
+  emphasizeAt?: number;
 }
 
 /**
@@ -382,6 +387,8 @@ export interface KanjiCardTypedState {
   converted: number;
   /** 0..1 growth from the reading's size to the character's size. */
   grow: number;
+  /** Size of the typed character relative to its full size: a slow push-in while it holds, and a small bump on emphasis. */
+  scale: number;
   /** Whether the caret shows. */
   caret: boolean;
   /** 0..1 opacity of the whole typed text. */
@@ -390,7 +397,7 @@ export interface KanjiCardTypedState {
 
 /** Seconds per typed kana, and how long the conversion highlight and the fade out take. */
 export const KANJI_TYPE_STEP = .16;
-const CONVERT_GLOW = .5, GROW = .22, FADE_OUT = .35;
+const CONVERT_GLOW = .5, GROW = .22, FADE_OUT = .35, PUSH_FROM = .93;
 
 /**
  * The typed intro at `time` seconds from the start of the intro phase (it may run past the
@@ -400,7 +407,7 @@ const CONVERT_GLOW = .5, GROW = .22, FADE_OUT = .35;
  * - At `convertAt` the reading turns into the character, which grows to its full size and holds.
  */
 export function kanjiCardTypedAt(char: string, intro: KanjiCardIntro | undefined, introLength: number, time: number): KanjiCardTypedState {
-  const none: KanjiCardTypedState = { text: "", composing: false, converted: 0, grow: 1, caret: false, opacity: 0 };
+  const none: KanjiCardTypedState = { text: "", composing: false, converted: 0, grow: 1, scale: 1, caret: false, opacity: 0 };
   if (!(introLength > 0) || time < 0 || time > introLength + FADE_OUT) return none;
   const kana = [...(intro?.reading ?? "").trim()];
   const convertAt = Math.min(introLength, Math.max(0, intro?.convertAt !== undefined && Number.isFinite(intro.convertAt) ? intro.convertAt : introLength * .6));
@@ -411,14 +418,21 @@ export function kanjiCardTypedAt(char: string, intro: KanjiCardIntro | undefined
   if (time < convertAt) {
     const typed = Math.min(kana.length, Math.floor((time - typeStart) / KANJI_TYPE_STEP) + 1);
     if (time < typeStart || typed <= 0) return { ...none, caret: blink, opacity };
-    return { text: kana.slice(0, typed).join(""), composing: true, converted: 0, grow: 0, caret: true, opacity };
+    return { text: kana.slice(0, typed).join(""), composing: true, converted: 0, grow: 0, scale: PUSH_FROM, caret: true, opacity };
   }
   const since = time - convertAt;
+  // While it holds, the character moves slowly toward the viewer (a push-in), so the picture never stands still.
+  const hold = Math.max(GROW, introLength - convertAt);
+  const push = PUSH_FROM + (1 - PUSH_FROM) * smoothstep((since - GROW) / (hold - GROW || 1));
+  // Emphasis: a highlight that rises in 0.1 s and fades over 0.5 s, with a 4 % bump.
+  const e = intro?.emphasizeAt !== undefined && Number.isFinite(intro.emphasizeAt) ? time - intro.emphasizeAt : -1;
+  const emphasis = e < 0 ? 0 : e < .1 ? smoothstep(e / .1) : 1 - smoothstep((e - .1) / .5);
   return {
     text: char, composing: false, opacity,
     // The conversion highlight is strongest while the character is small, and gone soon after it has grown.
-    converted: 1 - smoothstep(since / CONVERT_GLOW),
+    converted: Math.max(1 - smoothstep(since / CONVERT_GLOW), emphasis * .8),
     grow: kana.length ? smoothstep(since / GROW) : 1,
+    scale: push * (1 + .04 * emphasis),
     caret: since < .4,
   };
 }

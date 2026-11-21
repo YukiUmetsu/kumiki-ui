@@ -260,12 +260,13 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
   let intro: KanjiCardIntro | undefined;
   if (o.intro !== undefined) {
     const x = o.intro && typeof o.intro === "object" && !Array.isArray(o.intro) ? o.intro as Record<string, unknown> : null;
-    if (!x) errors.push("intro: { reading?, convertAt? } is required.");
+    if (!x) errors.push("intro: { reading?, convertAt?, emphasizeAt? } is required.");
     else {
       if (x.reading !== undefined && (typeof x.reading !== "string" || !x.reading.trim() || x.reading.length > 12)) errors.push("intro.reading: a text of 1 to 12 characters is required.");
       intro = {
         ...(typeof x.reading === "string" ? { reading: x.reading } : {}),
         ...(x.convertAt === undefined ? {} : { convertAt: num(x.convertAt, "intro.convertAt", 0, timing.intro ?? 0) }),
+        ...(x.emphasizeAt === undefined ? {} : { emphasizeAt: num(x.emphasizeAt, "intro.emphasizeAt", 0, timing.intro ?? 0) }),
       };
     }
   }

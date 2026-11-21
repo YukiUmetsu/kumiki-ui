@@ -302,7 +302,7 @@ export function ShodoKanjiCard({
   const kanjiSize = Math.max(ix1 - ix0, iy1 - iy0);
   const kana = Math.max(1, [...(intro?.reading ?? "")].length);
   const kanaSize = Math.min(kanjiSize * .42, g.writing.width * .8 / kana);
-  const typedSize = typed.composing ? kanaSize : kanaSize + (kanjiSize - kanaSize) * (reduce ? 1 : typed.grow);
+  const typedSize = typed.composing ? kanaSize : (kanaSize + (kanjiSize - kanaSize) * (reduce ? 1 : typed.grow)) * (reduce ? 1 : typed.scale);
   return <div {...rest} data-km-kanji-card={layout} data-km-kanji-phase={at.phase} data-km-ink-box={inkBox.map(v => v.toFixed(1)).join(" ")}
     data-km-design={`${g.width}x${g.height}`} data-km-kanji-frame={frame} data-km-safe-inset={insetKey} data-km-stroke-times={JSON.stringify(strokes)}
     data-km-word-highlight={highlight.word === null ? "" : `${highlight.word} ${highlight.strength.toFixed(3)}`}

@@ -603,6 +603,14 @@ describe("SHO1 shodō calligraphy", () => {
     expect(at(2.9).opacity).toBe(0);                                                       // gone 0.35 s into the writing
     expect(kanjiCardTypedAt("水", intro, 0, 0).opacity).toBe(0);                          // no intro, no typing
     expect(kanjiCardTypedAt("水", undefined, 2, 1.5)).toMatchObject({ text: "水", grow: 1 }); // no reading: the character itself
+    // Typed early, the character holds with a slow push-in and a pulse when its name is spoken.
+    const early = (time: number) => kanjiCardTypedAt("水", { reading: "みず", convertAt: .6, emphasizeAt: 2 }, 3, time);
+    expect(early(.9).scale).toBeLessThan(early(1.5).scale);
+    expect(early(1.5).scale).toBeLessThan(early(2.9).scale + .04);
+    expect(early(1.99).converted).toBe(0);
+    expect(early(2.1).converted).toBeCloseTo(.8, 5);                                    // the pulse peaks 0.1 s after the name
+    expect(early(2.1).scale).toBeGreaterThan(early(1.99).scale);
+    expect(early(2.7).converted).toBe(0);
   });
 
   it("gives the compact 9:16 card a taller writing panel, and plans in Node what the card draws", () => {
