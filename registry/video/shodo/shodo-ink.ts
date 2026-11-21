@@ -123,7 +123,13 @@ export class ShodoInkSurface {
   private readonly rgba: Uint8ClampedArray<ArrayBuffer>;
   private readonly bleedRadius: number;
 
-  constructor(readonly plan: ShodoPlan, readonly region: ShodoInkRegion) {
+  readonly plan: ShodoPlan;
+  readonly region: ShodoInkRegion;
+
+  // Plain fields, not parameter properties, so the file also compiles with `erasableSyntaxOnly`.
+  constructor(plan: ShodoPlan, region: ShodoInkRegion) {
+    this.plan = plan;
+    this.region = region;
     if (!(region.scale >= .25 && region.scale <= 3)) throw new RangeError("Ink raster scale must be 0.25..3.");
     this.width = Math.max(1, Math.round(region.width * region.scale));
     this.height = Math.max(1, Math.round(region.height * region.scale));
