@@ -43,3 +43,28 @@ describe("book GPU capture fence", () => {
     }
   });
 });
+
+describe("calligraphy canvas capture fence", () => {
+  it("waits until every calligraphy canvas has drawn what it was asked for", async () => {
+    let paints = 0;
+    const { container } = render(<VideoExportStage manifest={manifest} frame={12} onSeek={() => {}}>
+      <canvas data-km-shodo="" data-km-shodo-frame="12" data-km-shodo-drawn="12" />
+      <canvas data-km-shodo="" data-km-shodo-frame="12" data-km-shodo-drawn="11" />
+    </VideoExportStage>);
+    const late = container.querySelectorAll<HTMLCanvasElement>("canvas")[1];
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      queueMicrotask(() => { paints++; if (paints === 4) late.dataset.kmShodoDrawn = "12"; callback(performance.now()); });
+      return paints;
+    });
+    await act(async () => { await window.__kmVideoExport!.seek(12); });
+    expect(paints).toBeGreaterThanOrEqual(4);
+  });
+
+  it("fails at once, with the reason, when a calligraphy canvas cannot draw", async () => {
+    render(<VideoExportStage manifest={manifest} frame={3} onSeek={() => {}}>
+      <canvas data-km-shodo="" data-km-shodo-frame="3" data-km-shodo-status="error" />
+    </VideoExportStage>);
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { queueMicrotask(() => callback(performance.now())); return 1; });
+    await expect(act(async () => { await window.__kmVideoExport!.seek(3); })).rejects.toThrow(/no 2D context at frame 3/u);
+  });
+});
