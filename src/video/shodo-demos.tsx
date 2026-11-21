@@ -17,13 +17,14 @@ import { kenteiSheet } from "../../registry/video/shodo/shodo-paper";
 import { SHODO_KANKA_RULES, shodoKankaRulesFor } from "../../registry/video/shodo/shodo-structure";
 import { ShodoBrushProfile, ShodoCanvas } from "../../registry/video/shodo/shodo-react";
 import { shodoFerruleHeight } from "../../registry/video/shodo/shodo-brush";
-import { SHODO_INKS, resolveShodoStyle } from "../../registry/video/shodo/shodo-style";
+import { SHODO_INKS, inspectShodoStyle, resolveShodoStyle } from "../../registry/video/shodo/shodo-style";
+import type { DeepPartial, ShodoStyle } from "../../registry/video/shodo/shodo-style";
 import { SHODO_BASICS, auditShodoTechniques, shodoStepLabel } from "../../registry/video/shodo/shodo-techniques";
 import { SHODO_FPS, SHODO_PHASE_LABEL, SHODO_TECH_LABEL, ShodoTransport, useShodoGlyphs, useShodoPlayback, useShodoTeachers, shodoTeacherLabels } from "./shodo-studio";
 import { ShodoKanjiCard } from "../../registry/video/shodo/shodo-kanji-card";
 import type { ShodoKanjiCardProps } from "../../registry/video/shodo/shodo-kanji-card";
 import {
-  DEFAULT_KANJI_CARD_LABELS, DEFAULT_KANJI_CARD_THEME, KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardPhaseAt, kanjiCardSections, kanjiCardTheme,
+  DEFAULT_KANJI_CARD_LABELS, DEFAULT_KANJI_CARD_THEME, KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardPhaseAt, kanjiCardSections, kanjiCardThemeIssues,
   kanjiCardTimeline, kanjiCardWriting,
 } from "../../registry/video/shodo/shodo-kanji-card-plan";
 import type {
@@ -265,11 +266,13 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
   const introSeconds = Math.round((timing.intro ?? 0) * KANJI_CARD_FPS) / KANJI_CARD_FPS;
   if (o.intro !== undefined) {
     const x = o.intro && typeof o.intro === "object" && !Array.isArray(o.intro) ? o.intro as Record<string, unknown> : null;
-    if (!x) errors.push("intro: { reading?, convertAt?, emphasizeAt? } is required.");
+    if (!x) errors.push("intro: { reading?, convertAt?, emphasizeAt?, typeStep? } is required.");
     else {
       if (x.reading !== undefined && (typeof x.reading !== "string" || !x.reading.trim() || x.reading.length > 12)) errors.push("intro.reading: a text of 1 to 12 characters is required.");
+      if (x.typeStep !== undefined) num(x.typeStep, "intro.typeStep", .05, .6);
       intro = {
         ...(typeof x.reading === "string" ? { reading: x.reading } : {}),
+        ...(typeof x.typeStep === "number" ? { typeStep: x.typeStep } : {}),
         // Against the intro the card plays (whole frames). The conversion must leave time to show the
         // character before the brush comes (0.32 s).
         ...(x.convertAt === undefined ? {} : { convertAt: num(x.convertAt, "intro.convertAt", 0, Math.max(0, Math.round((introSeconds - .32) * 1000) / 1000)) }),
@@ -355,9 +358,18 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
     }
     return x as Record<string, string>;
   };
-  const labels = strings("labels", Object.keys(DEFAULT_KANJI_CARD_LABELS), 30);
+  const labels = strings("labels", Object.keys(DEFAULT_KANJI_CARD_LABELS), 80);
   const theme = strings("theme", Object.keys(DEFAULT_KANJI_CARD_THEME), 200);
-  if (theme) { try { kanjiCardTheme(theme); } catch (error) { errors.push(`theme: ${(error as Error).message}`); } }
+  if (theme) for (const issue of kanjiCardThemeIssues(theme)) errors.push(`theme.${issue}.`);
+  // The brush, ink, paper and hand: checked as the planner will use them, so an export never draws other strokes than a host planned.
+  let brushStyle: DeepPartial<ShodoStyle> | undefined;
+  if (o.brushStyle !== undefined) {
+    if (!o.brushStyle || typeof o.brushStyle !== "object" || Array.isArray(o.brushStyle)) errors.push("brushStyle: an object of brush, ink, paper and hand settings is required.");
+    else {
+      brushStyle = o.brushStyle as DeepPartial<ShodoStyle>;
+      for (const issue of inspectShodoStyle(resolveShodoStyle(brushStyle))) errors.push(`brushStyle${issue.path.replace(/\//gu, ".")}: ${issue.message}`);
+    }
+  }
   let sections: Partial<Record<KanjiCardSection, boolean>> | undefined;
   if (o.sections !== undefined) {
     const x = o.sections && typeof o.sections === "object" && !Array.isArray(o.sections) ? o.sections as Record<string, unknown> : null;
@@ -370,7 +382,7 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
     char: chars[0] ?? "", layout: portrait ? "portrait" : "landscape", timing,
     density: density as KanjiCardDensity | undefined, intro, cardFrom: o.cardFrom as KanjiCardPhase | undefined,
     heading: text("heading", 40), meanings: text("meanings", 120), onyomi: text("onyomi", 120), kunyomi: text("kunyomi", 120),
-    jlpt, words, wordHighlights: cues, safeInset, ink: ink as KanjiCardInk | undefined, vermilionStrokes, speed, sections, labels, theme,
+    jlpt, words, wordHighlights: cues, safeInset, ink: ink as KanjiCardInk | undefined, vermilionStrokes, speed, sections, labels, theme, brushStyle,
     strokeNumbers: bool("strokeNumbers"),
     // An export is the same on every machine: the motion does not follow the viewer's setting.
     reducedMotion: bool("reducedMotion") ?? false,

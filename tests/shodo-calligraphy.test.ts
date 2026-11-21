@@ -12,7 +12,7 @@ import { DEFAULT_SHODO_STYLE, inspectShodoStyle, resolveShodoStyle } from "../re
 import { SHODO_BASICS, auditShodoTechniques } from "../registry/video/shodo/shodo-techniques";
 import { fillKanjiCardContent, readKanjiCardExport, resolveKanjiCardContent } from "../src/video/shodo-demos";
 import { ShodoKanjiCard, ShodoKanjiInfoCard } from "../registry/video/shodo/shodo-kanji-card";
-import { DEFAULT_KANJI_CARD_THEME, kanjiCardTheme } from "../registry/video/shodo/shodo-kanji-card-plan";
+import { DEFAULT_KANJI_CARD_THEME, kanjiCardConvertAt, kanjiCardLabelText, kanjiCardTheme } from "../registry/video/shodo/shodo-kanji-card-plan";
 import {
   KANJI_WORD_EASE, kanjiCardGeometry, kanjiCardPhaseAt, kanjiCardSafeInset, kanjiCardStrokeTimes, kanjiCardTimeline, kanjiCardTypedAt, kanjiCardWriting,
   parseWordHighlights, spreadWordHighlights, wordHighlightAt,
@@ -704,9 +704,16 @@ describe("SHO1 shodō calligraphy", () => {
     expect(screen.getByText("音読み")).toBeInTheDocument();
     expect(screen.getByText("ことば")).toBeInTheDocument();
     expect(screen.getByText("日本語能力試験 N5")).toBeInTheDocument();
+    expect(container.querySelector("[data-km-kanji-label]")!.textContent).toBe("KANJI STUDY: 三");
+    expect(container.querySelector("[data-km-kanji-label] [lang=ja]")!.textContent).toBe("三");
     expect(container.querySelector<HTMLElement>("aside")!.style.background).toBe("rgb(255, 255, 255)");
     unmount();
     expect(() => kanjiCardTheme({ accent: "red" })).toThrow(/accent must be a #RRGGBB/u);
+    expect(() => kanjiCardTheme({ ink: "black", accent: "blue" })).toThrow(/ink must be .*; accent must be/u);   // every bad key
+    expect(() => kanjiCardTheme({ body: "M PLUS 1p, sans-serif" })).toThrow(/body must be a CSS font stack/u);  // "1p" is not a CSS name
+    expect(kanjiCardTheme({ body: "'M PLUS 1p', sans-serif" }).body).toBe("'M PLUS 1p', sans-serif");
+    expect(kanjiCardTheme({ accent: undefined })).toEqual(DEFAULT_KANJI_CARD_THEME);                       // undefined uses the default
+    expect(() => kanjiCardTheme({ accnt: "#000000" } as never)).toThrow(/accnt is not a theme key/u);
     expect(kanjiCardTheme({ ink: "#000000" })).toMatchObject({ ...DEFAULT_KANJI_CARD_THEME, ink: "#000000" });
     // A brush style changes the plan, and the card plans with it exactly as kanjiCardWriting does.
     const brushStyle = { hand: { pressure: .6 }, brush: { diameter: 140 } };
@@ -716,6 +723,31 @@ describe("SHO1 shodō calligraphy", () => {
     expect(styled.plan.brush.diameter).not.toBe(plain.plan.brush.diameter);
     const { container: c2 } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 0, layout: "portrait", timing, meanings: "THREE", brushStyle }));
     expect(c2.querySelector<HTMLElement>("[data-km-kanji-card]")!.dataset.kmInkBox).toBe(styled.inkBox.map(v => v.toFixed(1)).join(" "));
+  });
+
+  it("formats the heading and the accessible names from the labels, and keeps undefined labels at their defaults", () => {
+    const glyph = SHODO_GLYPHS["三"];
+    const { container } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 0, heading: "漢字", timing: { write: 1, info: 1 }, meanings: "THREE",
+      labels: { heading: "{char} — {heading}", cardName: "{char}の読みと言葉", writingName: "筆で書く{char}", jlpt: undefined } }));
+    expect(container.querySelector("[data-km-kanji-label]")!.textContent).toBe("三 — 漢字");
+    expect(container.querySelector("aside")!.getAttribute("aria-label")).toBe("三の読みと言葉");
+    expect(container.querySelector("canvas")!.getAttribute("aria-label")).toBe("筆で書く三");
+    expect(kanjiCardLabelText("{HEADING}: {char}", { heading: "istanbul", char: "三" }, "tr")).toBe("İSTANBUL: 三");
+  });
+
+  it("reads the brush style and typing pace of an export description, checked as the planner uses them", () => {
+    const ok = readKanjiCardExport({ char: "水", timing: { intro: 2, write: 1, review: 1, info: 1 }, intro: { typeStep: .3 }, brushStyle: { hand: { script: "gyosho" }, seed: 7 } });
+    expect(ok.errors).toEqual([]);
+    expect(ok.value?.props).toMatchObject({ intro: { typeStep: .3 }, brushStyle: { hand: { script: "gyosho" }, seed: 7 } });
+    const bad = readKanjiCardExport({ char: "水", timing: { write: 1, review: 1, info: 1 }, brushStyle: { brush: { diameter: 5 } }, theme: { ink: "black", accent: "blue" } });
+    expect(bad.errors).toEqual(expect.arrayContaining([expect.stringMatching(/^brushStyle\.brush\.diameter: /u), "theme.ink must be a #RRGGBB colour.", "theme.accent must be a #RRGGBB colour."]));
+  });
+
+  it("gives the convertAt that starts typing at a chosen moment, so hosts do not copy the typing constants", () => {
+    const convertAt = kanjiCardConvertAt(2, { startAt: .15, typeStep: .2 });
+    expect(convertAt).toBe(.67);
+    expect(kanjiCardTypedAt("水", { reading: "みず", convertAt, typeStep: .2 }, 3, .14).text).toBe("");     // nothing typed yet
+    expect(kanjiCardTypedAt("水", { reading: "みず", convertAt, typeStep: .2 }, 3, .16).text).toBe("み");   // typing starts at 0.15 s
   });
 
   it("types at the host's pace", () => {
