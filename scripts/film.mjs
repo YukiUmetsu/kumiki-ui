@@ -12,7 +12,7 @@
  * Requires Playwright Chromium, and for render ffmpeg and ffprobe on PATH.
  */
 import { execFileSync, spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { bakeCompiled, decodeChannels, loudness } from "./sound-catalog.mjs";
 import { dirname, isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -114,8 +114,8 @@ function accentKit(document) {
   const loaded = JSON.parse(readFileSync(file, "utf8"));
   // A cue may name a catalog sound outright ("catalog:rise-shepard"), for a one-shot no kit carries; it is found in the catalog, and its
   // peak lands on the cue's moment like any kit sound.
-  // Turn and transition accents name catalog sounds too: a braam on a turn, a reverse swell on a cut.
-  const wanted = [...new Set([...(document.audio?.cues ?? []).map(cue => cue.sound), ...document.scenes.some(scene => scene.story?.turnAccent === "braam") ? ["catalog:braam-low"] : [],
+  // Turn and transition accents name catalog sounds too: a braam on a turn, a reverse swell on a cut; so may a scene's hits.
+  const wanted = [...new Set([...(document.audio?.cues ?? []).map(cue => cue.sound), ...document.scenes.flatMap(scene => [scene.hits ?? []].flat().map(hits => hits.sound)), ...document.scenes.flatMap(scene => scene.content?.card === "chat" ? [scene.content.sound?.me, scene.content.sound?.them] : []), ...document.scenes.some(scene => scene.story?.turnAccent === "braam") ? ["catalog:braam-low"] : [],
     ...document.scenes.some(scene => scene.transition?.accent === "suck") ? ["catalog:swell-reverse"] : [],
     // A material transition makes its material's own recorded sounds.
     ...document.scenes.flatMap(scene => (MATERIAL_SOUNDS[scene.transition?.kind === "matte" ? scene.transition.texture ?? "" : scene.transition?.kind === "shape" ? scene.transition.material ?? "" : ""] ?? []).map(cue => "catalog:" + cue.sound))]
@@ -244,12 +244,25 @@ async function render() {
         execFileSync("ffmpeg", ["-v", "error", "-y", "-f", "f32le", "-ar", "48000", "-ac", "2", "-i", "-", "-c:a", "pcm_s24le", audioPath + ".warp.wav"], { input: Buffer.from(out.buffer) });
         renameSync(audioPath + ".warp.wav", audioPath);
       }
-      const { MAX_LIMITING_DB, inspectMix, inspectMixChannels, limitingDb, masterFilter, masterGainDb } = registry.mastering, profile = master?.profile ?? "youtube";
-      const raw = loudness(audioPath), gain = master ? masterGainDb(raw, profile, { limit: master.limit }) : 0, limited = master?.limit ? limitingDb(raw, gain, profile) : 0;
+      const { MAX_LIMITING_DB, MIX_PROFILES, inspectMix, inspectMixChannels, limitingDb, masterFilter, masterGainDb } = registry.mastering, profile = master?.profile ?? "youtube";
+      const raw = loudness(audioPath);
+      let gain = master ? masterGainDb(raw, profile, { limit: master.limit }) : 0, limited = master?.limit ? limitingDb(raw, gain, profile) : 0;
       if (limited > MAX_LIMITING_DB) throw Error(`The limiter would take ${limited} dB off the peaks, and the most it should take is ${MAX_LIMITING_DB} dB. Lower the loudest sound, or raise the bed.`);
       if (gain) {
-        await run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-i", audioPath, "-af", masterFilter(gain, profile, { limit: master.limit }), "-c:a", "pcm_s24le", "-bitexact", audioPath + ".master.wav"]);
-        renameSync(audioPath + ".master.wav", audioPath);
+        const source = audioPath + ".premaster.wav";
+        renameSync(audioPath, source);
+        const apply = g => run("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-i", source, "-af", masterFilter(g, profile, { limit: master.limit }), "-c:a", "pcm_s24le", "-bitexact", audioPath]);
+        await apply(gain);
+        // A limiter takes loudness off the peaks it holds, so a mix with large natural peaks (a drum bed) lands short of its target. Add the
+        // shortfall and limit again, at most twice and within the limiting allowed.
+        for (let pass = 0; master.limit && pass < 2; pass++) {
+          const short = MIX_PROFILES[profile].lufs - loudness(audioPath).integratedLufs;
+          if (!(short > .3) || limitingDb(raw, gain + short, profile) > MAX_LIMITING_DB) break;
+          gain = Number((gain + short).toFixed(2));
+          limited = limitingDb(raw, gain, profile);
+          await apply(gain);
+        }
+        rmSync(source, { force: true });
       }
       const measure = loudness(audioPath), signal = inspectMixChannels(decodeChannels(audioPath), 48000);
       const problems = inspectMix(measure, signal, profile, { sparse: !manifest.inputs.some(item => item.kind !== "sound") }).filter(item => master || item.severity === "error" && item.code !== "mix-loudness" && item.code !== "mix-true-peak");
