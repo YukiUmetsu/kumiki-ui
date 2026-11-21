@@ -1,0 +1,30 @@
+{
+ "sourceStart": 0,
+ "segments": [
+  {
+   "start": 0,
+   "end": 3.8319,
+   "punch": false
+  },
+  {
+   "start": 4.1672,
+   "end": 4.3894,
+   "punch": false
+  },
+  {
+   "start": 5.2877,
+   "end": 14.1981,
+   "punch": true
+  },
+  {
+   "start": 14.463,
+   "end": 16.9978,
+   "punch": false
+  },
+  {
+   "start": 17.5931,
+   "end": 22,
+   "punch": true
+  }
+ ]
+}

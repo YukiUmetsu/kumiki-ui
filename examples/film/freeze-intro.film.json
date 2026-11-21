@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "freeze-intro",
+  "fps": { "num": 30, "den": 1 },
+  "outputs": [{ "id": "landscape", "preset": "youtube" }, { "id": "draft", "width": 960, "height": 540 }],
+  "scenes": [
+    { "id": "kevin", "recipeId": "footage", "durationFrames": 186,
+      "freeze": { "at": 42, "frames": 66, "name": "Kevin", "role": "Peacock. Regular. Snack inspector", "side": "left", "sound": "hit" },
+      "content": {
+        "video": { "id": "peacock-walk", "src": "assets/footage/peacock-walk.mp4", "width": 960, "height": 540, "fps": 30, "frameCount": 120, "licenseRef": "commons-peacock-walking-cc0" },
+        "label": "A peacock walks along a wooden deck; the picture freezes and greys around it while its name, Kevin, appears, then it walks on.",
+        "push": [1, 1.04],
+        "subject": { "cutout": { "id": "peacock-walk-cutout", "src": "assets/footage/peacock-walk-cutout.webm", "width": 960, "height": 540, "fps": 30, "frameCount": 120, "licenseRef": "commons-peacock-walking-cc0" } }
+      } }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "accents": { "kit": "assets/sfx", "gainDb": 0, "on": "moves" },
+    "beds": [{ "id": "drums", "sound": "bed-drums-hiphop-110", "gainDb": -4, "fadeSeconds": 0.3 }],
+    "master": { "profile": "youtube", "limit": true }
+  }
+}
