@@ -13367,6 +13367,25 @@
          "type": "number",
          "description": "A chasing camera's speed in metres a second of film time."
         },
+        "dollyZoom": {
+         "type": "object",
+         "properties": {
+          "to": {
+           "type": "number"
+          },
+          "start": {
+           "type": "number"
+          },
+          "end": {
+           "type": "number"
+          }
+         },
+         "required": [
+          "to"
+         ],
+         "additionalProperties": false,
+         "description": "A dolly zoom, for a camera locked to the car (`follow`): the lens moves from `fov` to `to` degrees while the camera slides along its line to the car, so the car keeps its size and the track and mountains behind stretch (a wider lens, closer) or squeeze (a longer lens, farther). From content frame `start` to `end` (default the whole shot), eased in and out."
+        },
         "gap": {
          "type": "number",
          "description": "How far a chasing camera starts behind the car's centre, metres."

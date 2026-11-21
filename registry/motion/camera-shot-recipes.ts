@@ -19,6 +19,8 @@ const DEFAULT_SHOTS: Record<CameraShotKind, Partial<CameraShotSpec>> = {
   exploded: { framing: "medium", orbitDegrees: 35, elevation: 20, endElevation: 35 },
   "detail-to-overview": { framing: "wide", movement: "dolly-out", elevation: 30 },
   "multi-object": { framing: "wide", movement: "slow-dolly", elevation: 30 },
+  // The framing holds the target's size for any lens, so sweeping the lens alone makes the camera travel: a dolly zoom.
+  "dolly-zoom": { framing: "medium", movement: "hold", elevation: 8, dollyZoom: { from: 20, to: 60 } },
 };
 export const CAMERA_SHOT_RECIPES = Object.keys(DEFAULT_SHOTS) as CameraShotKind[];
 export function CameraShotRecipe(type: CameraShotKind, parameters: Omit<CameraShotSpec, "type">): CameraShotSpec {

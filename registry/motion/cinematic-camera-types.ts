@@ -76,7 +76,7 @@ export type FramingConstraint = ConstraintBase & (
   | { kind: "distance"; min: number; max: number }
   | { kind: "placement"; position: readonly [number, number] }
 );
-export type CameraShotKind = "establish" | "dolly" | "orbit" | "follow" | "crane" | "fly-through" | "turntable" | "exploded" | "detail-to-overview" | "multi-object" | "inspect";
+export type CameraShotKind = "establish" | "dolly" | "orbit" | "follow" | "crane" | "fly-through" | "turntable" | "exploded" | "detail-to-overview" | "multi-object" | "inspect" | "dolly-zoom";
 export interface CameraOverrides {
   position?: CameraVector3;
   endPosition?: CameraVector3;
@@ -116,6 +116,10 @@ export interface CameraShotSpec {
   constraints?: FramingConstraint[];
   transition?: { kind: "cut" } | { kind: "continuous"; durationFrames?: number; continuity?: "C0" | "C1"; allowPartialFraming?: boolean };
   movement?: "hold" | "slow-dolly" | "dolly-in" | "dolly-out";
+  /** `dolly-zoom`: the lens moves from `from` to `to` degrees while the camera keeps the target framed at the same
+   * size, so it travels in as the lens widens (the background stretches away) or out as it lengthens (the background looms).
+   * @default { from: 20, to: 60 } */
+  dollyZoom?: { from: number; to: number };
   orbitDegrees?: number;
   azimuth?: number;
   elevation?: number;
