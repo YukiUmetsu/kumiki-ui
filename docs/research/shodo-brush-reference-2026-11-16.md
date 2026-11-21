@@ -114,3 +114,18 @@ Also looked at: [Japanese calligraphy in action 01](https://commons.wikimedia.or
 - There is no engraved lettering on the handle, which many real brushes have.
 - Only the owner's review decides whether it reads as a real brush at playback speed.
 
+### Owner review: the knee (2026-11-21)
+
+The owner asked for a smoother join between the hair pressed onto the paper and the free hair above it. At the knee:
+
+- each sample was either a round bundle or a flat fan, so hairs jumped from one place to the other and stuck out as spikes;
+- the curve from the collar ended on the paper, while the lying part started 0.04 D above it;
+- the bundle's thickness dropped to a third in one step.
+
+Now:
+
+- The bundle flattens gradually, from six samples before the knee to two after it. Each hair moves from its place in the round bundle to its place in the fan.
+- The curve from the collar ends at the height of the lying part.
+- The thickness falls over the first quarter of the lying part.
+- Three relaxation passes, weighted around the knee, round off its corner. The knee is still sharper under a harder press, as in the side-view study.
+

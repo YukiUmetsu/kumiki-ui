@@ -89,8 +89,10 @@ function tuftRadius(s: number): number {
 interface TuftGeometry {
   spine: V3[];
   radius: number[];
-  /** Flattened half-width on the paper for contact samples (0 elsewhere). */
+  /** Half-width of the hair fanned out on the paper (on the paper and through the knee; 0 in the air). */
   flat: number[];
+  /** How far each sample is pressed flat: 0 a round bundle, 1 hair lying on the paper. */
+  blend: number[];
   frameN: V3[];
   frameB: V3[];
   ferrule: V3;
@@ -108,7 +110,7 @@ function tuftGeometry(pose: ShodoBrushPose, brush: ShodoBrush, D: number): TuftG
   const Lt = D * brush.length, r0 = D / 2;
   let axis = handleAxis(pose);
   const N = 36;
-  const spine: V3[] = [], radius: number[] = [], flat: number[] = [];
+  const spine: V3[] = [], radius: number[] = [], flat: number[] = [], blend: number[] = [];
   let ferrule: V3;
   if (pose.contact && pose.p > .004) {
     const ell = Lt * shodoContactLength(pose.p), w = D * shodoContactWidth(pose.p, brush.stiffness);
@@ -123,22 +125,39 @@ function tuftGeometry(pose: ShodoBrushPose, brush: ShodoBrush, D: number): TuftG
     ferrule = add(belly, mul(chordDir, free * (1 - .3 * pose.p)));
     const c1 = add(ferrule, mul(axis, -free * .45));
     const c2: V3 = [belly[0] - pose.tx * free * (.15 + .35 * beta), belly[1] - pose.ty * free * (.15 + .35 * beta), Math.min(free * .1, D * .25)];
-    const bentShare = free / Lt;
+    const bentShare = free / Lt, lie = D * .04;
+    // The bundle flattens gradually: from six samples before the knee to two after it, the hair
+    // fans out toward the contact width and its round section turns into the flat fan on the paper,
+    // so the pressed and the free part join without a seam.
+    const knee = bentShare * N;
+    const ending: V3 = [belly[0], belly[1], lie];
     for (let i = 0; i <= N; i++) {
       const s = i / N;
+      blend.push(smooth01((i - (knee - 6)) / 8));
       if (s <= bentShare) {
         const u = s / Math.max(1e-3, bentShare);
-        spine.push(bezier3(ferrule, c1, c2, belly, u));
+        // The curve from the collar ends at the height of the lying part, not on the paper below it.
+        spine.push(bezier3(ferrule, c1, c2, ending, u));
         // Pressed, the bundle stays fat through the knee and splays to the contact width.
-        const knee = r0 * (1 + .14 * Math.sin(Math.PI * u) + .1 * pose.p);
-        radius.push(lerp(knee, Math.max(knee * .92, w / 2), smooth01(u) * smooth01(u)));
-        flat.push(0);
+        const fat = r0 * (1 + .14 * Math.sin(Math.PI * u) + .1 * pose.p);
+        radius.push(lerp(fat, Math.max(fat * .92, w / 2), smooth01(u) * smooth01(u)));
+        flat.push(w / 2);
       } else {
         const u = (s - bentShare) / Math.max(1e-3, 1 - bentShare);
-        spine.push([lerp(belly[0], tip[0], u), lerp(belly[1], tip[1], u), D * .04 * (1 - u)]);
+        spine.push([lerp(belly[0], tip[0], u), lerp(belly[1], tip[1], u), lie * (1 - u)]);
         const hw = w / 2 * Math.pow(Math.max(0, 1 - u), .8);
-        radius.push(Math.max(.4, hw * .32));
+        // The bundle thins from its round radius to a flat layer over the first quarter.
+        radius.push(Math.max(.4, lerp(w / 2, hw * .32, smooth01(u / .25))));
         flat.push(hw);
+      }
+    }
+    // Round the corner of the knee a little (three relaxation passes, weighted around the knee):
+    // the knee stays sharper under a harder press, as in the side-view study, but has no corner.
+    for (let pass = 0; pass < 3; pass++) {
+      const prev = spine.map(q => [...q] as V3);
+      for (let i = 1; i < N; i++) {
+        const k = .6 * Math.exp(-Math.pow((i - knee) / 3, 2));
+        for (let c = 0; c < 3; c++) spine[i][c] = lerp(prev[i][c], (prev[i - 1][c] + prev[i + 1][c]) / 2, k);
       }
     }
   } else {
@@ -155,6 +174,7 @@ function tuftGeometry(pose: ShodoBrushPose, brush: ShodoBrush, D: number): TuftG
       spine.push(bezier3(ferrule, c1, c2, tipPt, s));
       radius.push(r0 * tuftRadius(s) * (1 - .12 * (1 - pose.ink)));
       flat.push(0);
+      blend.push(0);
     }
   }
   // Rotation-minimizing-ish frame along the spine.
@@ -169,7 +189,7 @@ function tuftGeometry(pose: ShodoBrushPose, brush: ShodoBrush, D: number): TuftG
     ref = b;
   }
   axis = unit(axis);
-  return { spine, radius, flat, frameN, frameB, ferrule, axis };
+  return { spine, radius, flat, blend, frameN, frameB, ferrule, axis };
 }
 
 function lightVector(look: ShodoBrushLook): V3 {
@@ -238,17 +258,16 @@ export function drawShodoBrush(
   const hair: HairLook = { dry: [...dryRgb], wet: [...wetRgb], inkLine: clamp(.24 + .52 * (1 - pose.ink), .22, .86) };
   const N = g.spine.length - 1;
   const P = (i: number, ang: number, rho: number): V3 => {
-    const flatHw = g.flat[i];
-    if (flatHw > 0) {
-      // On the paper the hairs fan across the contact width.
-      const lateral = Math.cos(ang) * rho * flatHw;
-      const up = Math.max(0, Math.sin(ang)) * rho * g.radius[i] * .9;
-      const t = unit(sub(g.spine[Math.min(N, i + 1)], g.spine[Math.max(0, i - 1)]));
-      const side = unit(cross([0, 0, 1], t));
-      return add(g.spine[i], add(mul(side, lateral), [0, 0, up]));
-    }
     const r = g.radius[i] * rho;
-    return add(g.spine[i], add(mul(g.frameN[i], Math.cos(ang) * r), mul(g.frameB[i], Math.sin(ang) * r)));
+    const round = add(g.spine[i], add(mul(g.frameN[i], Math.cos(ang) * r), mul(g.frameB[i], Math.sin(ang) * r)));
+    const b = g.blend[i];
+    if (b <= 0) return round;
+    // On the paper the hairs fan across the contact width; through the knee each hair moves from
+    // its place in the round bundle to its place in the fan, so no hair jumps.
+    const t = unit(sub(g.spine[Math.min(N, i + 1)], g.spine[Math.max(0, i - 1)]));
+    const side = unit(cross([0, 0, 1], t));
+    const fan = add(g.spine[i], add(mul(side, Math.cos(ang) * rho * g.flat[i]), [0, 0, Math.max(0, Math.sin(ang)) * rho * g.radius[i] * .9]));
+    return b >= 1 ? fan : add(mul(round, 1 - b), mul(fan, b));
   };
   const handleRgb = shodoRgb(brush.handleColor);
 
@@ -262,7 +281,7 @@ export function drawShodoBrush(
     // nearest neighbours turn so sharply that the two sides would cross into spikes.
     const next = project(cam, g.spine[Math.min(N, i + 3)]), prev = project(cam, g.spine[Math.max(0, i - 3)]);
     const dx = next[0] - prev[0], dy = next[1] - prev[1], l = Math.hypot(dx, dy) || 1;
-    const w = (g.flat[i] > 0 ? g.flat[i] : g.radius[i]) * scaleAt(cam, g.spine[i][2]);
+    const w = lerp(g.radius[i], g.flat[i], g.blend[i]) * scaleAt(cam, g.spine[i][2]);
     const bump = .95 + .06 * (shodoNoise(seed + 5, i * .32, 0) - .5) * (1 - smooth01((i / N - .8) / .2));
     const bump2 = .95 + .06 * (shodoNoise(seed + 6, i * .32, 0) - .5) * (1 - smooth01((i / N - .8) / .2));
     left.push([c[0] - dy / l * w * bump, c[1] + dx / l * w * bump]);
@@ -314,7 +333,7 @@ export function drawShodoBrush(
     const pts: V2[] = [], half: number[] = [];
     for (let i = 0; i <= N; i++) {
       pts.push(project(cam, P(i, rb.ang, rb.rho)));
-      half.push(Math.max(.3, (g.flat[i] > 0 ? g.flat[i] * .5 : g.radius[i]) * rb.width * scaleAt(cam, g.spine[i][2])));
+      half.push(Math.max(.3, lerp(g.radius[i], g.flat[i] * .5, g.blend[i]) * rb.width * scaleAt(cam, g.spine[i][2])));
     }
     const nrm = unit(add(mul(g.frameN[midN], Math.cos(rb.ang)), mul(g.frameB[midN], Math.sin(rb.ang))));
     const lam = clamp(dot(nrm, L) * .5 + .5, 0, 1);
@@ -409,7 +428,7 @@ export function drawShodoBrush(
       // flicker it on and off.
       const k: number[] = [];
       for (let i = 0; i <= last; i++) {
-        if (g.flat[i] > 0) { k.push(0); continue; }
+        if (g.blend[i] > .5) { k.push(0); continue; }
         const n = unit(add(mul(g.frameN[i], Math.cos(h.ang)), mul(g.frameB[i], Math.sin(h.ang))));
         const th = dot(tangents[i], halfway);
         k.push(Math.pow(Math.sqrt(Math.max(0, 1 - th * th)), 30) * clamp(dot(n, L) + .3, 0, 1));
