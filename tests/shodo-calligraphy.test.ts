@@ -620,7 +620,8 @@ describe("SHO1 shodō calligraphy", () => {
     expect(compact.writing.height - regular.writing.height).toBeGreaterThan(120);
     expect(compact.card!.height).toBeLessThan(regular.card!.height);
     expect(kanjiCardGeometry("landscape", true, undefined, true, "compact").density).toBe("regular");  // landscape has one size
-    const writing = kanjiCardWriting(SHODO_GLYPHS["三"], { layout: "portrait", density: "compact", safeInset: inset, timing: { intro: 2, write: 5, review: 5, info: 2 } });
+    const writing = kanjiCardWriting(SHODO_GLYPHS["三"], { layout: "portrait", density: "compact", safeInset: inset, timing: { intro: 2, write: 5, review: 5, info: 2 },
+      content: { meanings: "THREE" } });
     expect(writing.timeline.write).toEqual([60, 210]);
     expect(writing.strokes.write).toHaveLength(3);
     expect(writing.strokes.write[0][0]).toBeGreaterThan(2);                                // the brush lands after the intro
@@ -638,7 +639,62 @@ describe("SHO1 shodō calligraphy", () => {
     expect(ok.errors).toEqual([]);
     expect(ok.value?.props).toMatchObject({ timing: { intro: 2.5 }, intro: { reading: "みず", convertAt: 2 }, density: "compact", cardFrom: "write" });
     expect(readKanjiCardExport({ char: "水", timing: { intro: 1, write: 1, review: 1, info: 1 }, intro: { convertAt: 3 }, density: "tiny", cardFrom: "later" }).errors).toEqual([
-      'density: "regular" or "compact" is required.', "intro.convertAt: a number from 0 to 1 is required.", 'cardFrom: "intro", "write", "review" or "info" is required.',
+      'density: "regular" or "compact" is required.', "intro.convertAt: a number from 0 to 0.68 is required.", 'cardFrom: "intro", "write", "review" or "info" is required.',
+    ]);
+  });
+
+  it("keeps every allowed pair of safe bands drawable, and reports the bands it uses", () => {
+    // Each band may be 0..0.4; opposite bands shrink together to 0.45, so the writing panel keeps room.
+    expect(kanjiCardSafeInset({ top: .2, bottom: .4 })).toMatchObject({ top: .15, bottom: .3 });
+    for (const density of ["regular", "compact"] as const) for (let top = 0; top <= .4001; top += .05) for (let bottom = 0; bottom <= .4001; bottom += .05) {
+      const writing = kanjiCardWriting(SHODO_GLYPHS["三"], { layout: "portrait", density, safeInset: { top, bottom, left: .4, right: .4 }, content: { meanings: "THREE" } });
+      expect(writing.geometry.writing.height).toBeGreaterThan(100);
+      expect(writing.geometry.label.y).toBeLessThan(writing.geometry.card!.y);
+    }
+    const { container } = render(createElement(ShodoKanjiCard, { char: "三", glyph: SHODO_GLYPHS["三"], frame: 0, safeInset: { left: .5, top: Number.NaN }, timing: { write: 1, info: 1 } }));
+    expect(container.querySelector<HTMLElement>("[data-km-kanji-card]")!.dataset.kmSafeInset).toBe("0.4,0,0,0");
+  });
+
+  it("plans with the card's own rule for the reading card and the label, so Node and the card agree", () => {
+    const glyph = SHODO_GLYPHS["三"], timing = { write: 4, review: 4, info: 1 };
+    for (const [content, sections] of [[{}, {}], [{ meanings: "THREE" }, { meanings: false }], [{ meanings: "THREE" }, { label: false }]] as const) {
+      const writing = kanjiCardWriting(glyph, { layout: "portrait", timing, content, sections });
+      const { container, unmount } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 0, layout: "portrait", timing, sections, ...content }));
+      const card = container.querySelector<HTMLElement>("[data-km-kanji-card]")!;
+      expect(card.dataset.kmInkBox).toBe(writing.inkBox.map(v => v.toFixed(1)).join(" "));
+      expect(JSON.parse(card.dataset.kmStrokeTimes!)).toEqual(JSON.parse(JSON.stringify(writing.strokes)));
+      unmount();
+    }
+    expect(kanjiCardWriting(glyph, { layout: "portrait", timing }).geometry.card).toBeNull();                // no text, no card
+  });
+
+  it("with reduced motion shows the same words at the same times, with no typing, caret, growth or bump", () => {
+    const intro = { reading: "みず", convertAt: 1, emphasizeAt: 2 };
+    const at = (time: number) => kanjiCardTypedAt("水", intro, 3, time, { reducedMotion: true });
+    expect(at(.2)).toMatchObject({ text: "みず", caret: false, grow: 1, scale: 1 });             // the whole reading, at once
+    expect(at(1.5)).toMatchObject({ text: "水", caret: false, grow: 1, scale: 1, converted: 0 });
+    expect(at(2.1).converted).toBeCloseTo(.8, 5);                                                 // the name still shows, as a fade
+    expect(at(2.1).scale).toBe(1);
+    for (let t = 0; t < 3; t += .05) expect(at(t).caret).toBe(false);
+  });
+
+  it("finishes the conversion inside the intro, also when convertAt is at its end", () => {
+    const late = kanjiCardTypedAt("水", { reading: "みず", convertAt: 3 }, 3, 2.95);   // converted at 2.68 s, grown by 2.9 s
+    expect(late.text).toBe("水");
+    expect(late.grow).toBe(1);
+  });
+
+  it("checks export sizes the way the export stage does", () => {
+    const size = (layout: string, width: number) => readKanjiCardExport({ char: "水", layout, width, timing: { write: 1, review: 1, info: 1 } });
+    expect(size("portrait", 1080).value).toMatchObject({ width: 1080, height: 1920 });
+    expect(size("portrait", 1024).errors[0]).toMatch(/divisible by 18/u);
+    expect(size("portrait", 2880).errors[0]).toMatch(/360 to 2430/u);
+    expect(size("landscape", 1280).value).toMatchObject({ width: 1280, height: 720 });
+    expect(size("landscape", 1040).errors[0]).toMatch(/divisible by 32/u);
+    const full = readKanjiCardExport({ char: "水", timing: { write: 1, review: 1, info: 1 }, ink: "vermilion", vermilionStrokes: [1], speed: 2, sections: { label: false } });
+    expect(full.value?.props).toMatchObject({ ink: "vermilion", vermilionStrokes: [1], speed: 2, sections: { label: false } });
+    expect(readKanjiCardExport({ char: "水", timing: { write: 1, review: 1, info: 1 }, ink: "blue", sections: { title: true } }).errors).toEqual([
+      'ink: "sumi" or "vermilion" is required.', "sections: { label, meanings, readings, jlpt, words } as true or false is required.",
     ]);
   });
 });

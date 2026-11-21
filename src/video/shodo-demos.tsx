@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { compileFilm } from "../../registry/video/film-document";
 import type { FilmDocument } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
@@ -7,7 +7,7 @@ import type { VideoPlatformPresetId } from "../../registry/video/platform-preset
 import { VideoExportStage } from "../../registry/video/video-export-stage";
 import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 import { renderShodoSlot, shodoWritingFrames } from "../../registry/video/shodo/shodo-film-slot";
-import { SHODO_KANJIVG_CREDIT } from "../../registry/video/shodo/shodo-glyph-source";
+import { SHODO_KANJIVG_CREDIT, loadShodoGlyph } from "../../registry/video/shodo/shodo-glyph-source";
 import type { CSSProperties } from "react";
 import { SHODO_GLYPHS } from "../../registry/video/shodo/shodo-glyphs";
 import type { ShodoGlyph } from "../../registry/video/shodo/shodo-glyphs";
@@ -22,9 +22,10 @@ import { SHODO_BASICS, auditShodoTechniques, shodoStepLabel } from "../../regist
 import { SHODO_FPS, SHODO_PHASE_LABEL, SHODO_TECH_LABEL, ShodoTransport, useShodoGlyphs, useShodoPlayback, useShodoTeachers, shodoTeacherLabels } from "./shodo-studio";
 import { ShodoKanjiCard } from "../../registry/video/shodo/shodo-kanji-card";
 import type { ShodoKanjiCardProps } from "../../registry/video/shodo/shodo-kanji-card";
-import { KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardHasCard, kanjiCardPhaseAt, kanjiCardTimeline, kanjiCardWriting } from "../../registry/video/shodo/shodo-kanji-card-plan";
+import { KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardPhaseAt, kanjiCardTimeline, kanjiCardWriting } from "../../registry/video/shodo/shodo-kanji-card-plan";
 import type {
-  JlptLevel, KanjiCardContent, KanjiCardDensity, KanjiCardIntro, KanjiCardPhase, KanjiCardSafeInset, KanjiCardTiming, KanjiCardWord, KanjiWordHighlight,
+  JlptLevel, KanjiCardContent, KanjiCardDensity, KanjiCardInk, KanjiCardIntro, KanjiCardPhase, KanjiCardSafeInset, KanjiCardSection, KanjiCardTiming,
+  KanjiCardWord, KanjiWordHighlight,
 } from "../../registry/video/shodo/shodo-kanji-card-plan";
 
 const W = 1280, H = 720;
@@ -183,12 +184,12 @@ export function ShodoKanjiCardPlayer({ char = "道", style, ...props }: ShodoKan
   const glyph = loaded ? loaded.glyphs[0] ?? SHODO_GLYPHS[char] : undefined;
   const show = { label: true, ...props.sections };
   const layout = props.layout ?? "landscape";
-  const timingKey = JSON.stringify(props.timing ?? {});
+  const timingKey = [props.timing?.intro, props.timing?.write, props.timing?.review, props.timing?.info].map(String).join(",");
   const insetKey = JSON.stringify(props.safeInset ?? {});
   const vermilionKey = (content.vermilionStrokes ?? []).join(",");
   const contentKey = JSON.stringify([content.meanings, content.onyomi, content.kunyomi, content.jlpt, content.words?.length, props.sections]);
   const writing = useMemo(() => glyph ? kanjiCardWriting(glyph, {
-    layout, density: props.density, safeInset: props.safeInset, withCard: kanjiCardHasCard(content, props.sections), withLabel: show.label,
+    layout, density: props.density, safeInset: props.safeInset, content, sections: props.sections,
     timing: props.timing, ink: props.ink, speed: props.speed, vermilionStrokes: content.vermilionStrokes,
   }) : null, [glyph, layout, props.density, insetKey, timingKey, props.ink, props.speed, vermilionKey, show.label, contentKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const last = writing ? writing.timeline.frames - 1 : 0;
@@ -265,7 +266,8 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
       if (x.reading !== undefined && (typeof x.reading !== "string" || !x.reading.trim() || x.reading.length > 12)) errors.push("intro.reading: a text of 1 to 12 characters is required.");
       intro = {
         ...(typeof x.reading === "string" ? { reading: x.reading } : {}),
-        ...(x.convertAt === undefined ? {} : { convertAt: num(x.convertAt, "intro.convertAt", 0, timing.intro ?? 0) }),
+        // The conversion must leave time to show the character before the brush comes (0.32 s).
+        ...(x.convertAt === undefined ? {} : { convertAt: num(x.convertAt, "intro.convertAt", 0, Math.max(0, Math.round(((timing.intro ?? 0) - .32) * 1000) / 1000)) }),
         ...(x.emphasizeAt === undefined ? {} : { emphasizeAt: num(x.emphasizeAt, "intro.emphasizeAt", 0, timing.intro ?? 0) }),
       };
     }
@@ -318,20 +320,40 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
     if ((presetInfo.height > presetInfo.width) !== portrait || presetInfo.width * 9 !== presetInfo.height * 16 && presetInfo.width * 16 !== presetInfo.height * 9)
       errors.push(`preset: ${presetInfo.id} (${presetInfo.width} × ${presetInfo.height}) does not fit the ${portrait ? "9:16" : "16:9"} card.`);
   } else if (o.width !== undefined) {
-    width = num(o.width, "width", 360, 3840);
-    if (!Number.isInteger(width) || width % 16 !== 0) errors.push("width: a whole number of pixels divisible by 16 is required.");
+    // The export stage needs even sides of at most 7680 × 4320: 9:16 widths are multiples of 18 up to 2430,
+    // 16:9 widths multiples of 32 up to 7680.
+    width = num(o.width, "width", 360, portrait ? 2430 : 7680);
     height = portrait ? width * 16 / 9 : width * 9 / 16;
+    if (!Number.isInteger(width) || width % (portrait ? 18 : 32) !== 0)
+      errors.push(`width: a whole number of pixels divisible by ${portrait ? 18 : 32} is required, so both sides are even.`);
   }
   const bool = (key: string): boolean | undefined => {
     if (o[key] === undefined) return undefined;
     if (typeof o[key] !== "boolean") { errors.push(`${key}: true or false is required.`); return undefined; }
     return o[key] as boolean;
   };
+  const ink = o.ink === undefined ? undefined : o.ink;
+  if (ink !== undefined && ink !== "sumi" && ink !== "vermilion") errors.push('ink: "sumi" or "vermilion" is required.');
+  let vermilionStrokes: number[] | undefined;
+  if (o.vermilionStrokes !== undefined) {
+    if (!Array.isArray(o.vermilionStrokes) || o.vermilionStrokes.length > 64 || o.vermilionStrokes.some(n => !Number.isInteger(n) || (n as number) < 1 || (n as number) > 64))
+      errors.push("vermilionStrokes: stroke numbers from 1 are required.");
+    else vermilionStrokes = o.vermilionStrokes as number[];
+  }
+  const speed = o.speed === undefined ? undefined : num(o.speed, "speed", .25, 4);
+  let sections: Partial<Record<KanjiCardSection, boolean>> | undefined;
+  if (o.sections !== undefined) {
+    const x = o.sections && typeof o.sections === "object" && !Array.isArray(o.sections) ? o.sections as Record<string, unknown> : null;
+    const keys: readonly KanjiCardSection[] = ["label", "meanings", "readings", "jlpt", "words"];
+    if (!x || Object.entries(x).some(([k, v]) => !keys.includes(k as KanjiCardSection) || typeof v !== "boolean"))
+      errors.push("sections: { label, meanings, readings, jlpt, words } as true or false is required.");
+    else sections = x as Partial<Record<KanjiCardSection, boolean>>;
+  }
   const props: KanjiCardExport["props"] = {
     char: chars[0] ?? "", layout: portrait ? "portrait" : "landscape", timing,
     density: density as KanjiCardDensity | undefined, intro, cardFrom: o.cardFrom as KanjiCardPhase | undefined,
     heading: text("heading", 40), meanings: text("meanings", 120), onyomi: text("onyomi", 120), kunyomi: text("kunyomi", 120),
-    jlpt, words, wordHighlights: cues, safeInset,
+    jlpt, words, wordHighlights: cues, safeInset, ink: ink as KanjiCardInk | undefined, vermilionStrokes, speed, sections,
     strokeNumbers: bool("strokeNumbers"),
     // An export is the same on every machine: the motion does not follow the viewer's setting.
     reducedMotion: bool("reducedMotion") ?? false,
@@ -351,9 +373,16 @@ export function ShodoKanjiCardExport({ video }: { video: KanjiCardExport }) {
   const { props, width, height, preset } = video;
   const [frame, setFrame] = useState(0);
   const root = useRef<HTMLDivElement>(null);
-  const chars = useMemo(() => [props.char], [props.char]);
-  const loaded = useShodoGlyphs(chars, "kanjivg");
-  const glyph = loaded ? loaded.glyphs[0] ?? SHODO_GLYPHS[props.char] : undefined;
+  // KanjiVG only, never a bundled stand-in: a host that planned from KanjiVG must get the same strokes.
+  const [loaded, setLoaded] = useState<{ glyph: ShodoGlyph | null; error: string | null } | null>(null);
+  useEffect(() => {
+    let live = true;
+    loadShodoGlyph(props.char, { preferBundled: false })
+      .then(glyph => { if (live) setLoaded({ glyph, error: null }); })
+      .catch((error: unknown) => { if (live) setLoaded({ glyph: null, error: error instanceof Error ? error.message : String(error) }); });
+    return () => { live = false; };
+  }, [props.char]);
+  const glyph = loaded?.glyph ?? undefined;
   const timeline = kanjiCardTimeline(0, props.timing);
   const manifest = useMemo<VideoExportManifest>(() => ({
     schemaVersion: 1, id: `shodo-kanji-card-${props.char.codePointAt(0)?.toString(16) ?? "x"}`,
@@ -363,7 +392,8 @@ export function ShodoKanjiCardExport({ video }: { video: KanjiCardExport }) {
     const start = performance.now();
     for (;;) {
       const el = root.current;
-      if (el?.querySelector("[data-km-kanji-card-status=error]")) throw new Error(`No stroke data for ${props.char}.`);
+      const failed = el?.querySelector("[data-km-kanji-card-status=error]");
+      if (failed) throw new Error(failed.textContent || `No stroke data for ${props.char}.`);
       const card = el?.querySelector<HTMLElement>("[data-km-kanji-card]");
       if (card?.dataset.kmKanjiFrame === String(target) && el?.querySelector("[data-km-shodo-ready=true]")) return;
       if (performance.now() - start > 30000) throw new Error(`The kanji card did not reach frame ${target}.`);
@@ -374,7 +404,7 @@ export function ShodoKanjiCardExport({ video }: { video: KanjiCardExport }) {
   return <div ref={root}>
     <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame} prepareFrame={prepareFrame}>
       {glyph ? <ShodoKanjiCard {...props} glyph={glyph} frame={frame} pixelRatio={pixelRatio} />
-        : loaded ? <div role="alert" data-km-kanji-card-status="error">No stroke data for {props.char}.</div>
+        : loaded ? <div role="alert" data-km-kanji-card-status="error">{loaded.error ?? `No stroke data for ${props.char}.`}</div>
         : <div data-km-kanji-card-status="loading">Loading strokes…</div>}
     </VideoExportStage>
   </div>;
