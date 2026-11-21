@@ -7,6 +7,13 @@
  *
  * The speed profile is a baseline rate with smooth dips for holds and smooth boosts at the ends. The baseline and each hold's place in
  * output time are solved so the content fits the scene exactly and each hold is centred on its moment.
+ *
+ * **Velocity edit** (`beats`, VE1.2): the speed follows the beats of a bed with a declared tempo, the short-form "velocity" edit. Between
+ * beats the content races; on each beat it drops to slow motion, so every hit of the music lands on a slowed, readable moment. Four
+ * shapes: `dip` slows on each beat and races between; `rush` races into the beat and drops to slow motion on it (the classic velocity
+ * edit); `burst` bursts out of the beat and slows into the next; `freeze` almost stops on each beat. `contrast` is the fast speed over the
+ * slow one. The curve is scaled so the content fits the scene exactly. Practice: editors draw speed points on the beats and drag them
+ * up to speed up and down to slow down, 0.1× to 10× ([CapCut](https://www.capcut.com/resource/how-to-do-velocity-on-capcut)).
  */
 
 export interface FilmSpeed {
@@ -23,7 +30,12 @@ export interface FilmSpeed {
    * a cut or a whip. */
   exit?: number;
   enter?: number;
+  /** A velocity edit: the speed follows the beats of a bed that declares `bpm`, slow on each beat and fast between. Takes the place of
+   * `holds`. `every` and `phase` pick the beats as for hits. */
+  beats?: { bed: string; every?: number; phase?: number; shape?: VelocityShape; /** Fast speed over slow speed, 2 to 20. @default 8 */ contrast?: number };
 }
+export const VELOCITY_SHAPES = ["dip", "rush", "burst", "freeze"] as const;
+export type VelocityShape = typeof VELOCITY_SHAPES[number];
 export interface SpeedProblem { severity: "error" | "warning"; code: string; path: string; message: string; hint?: string }
 export interface CompiledSpeed {
   /** Content frame for each output frame 0..durationFrames (inclusive), increasing. */
@@ -47,11 +59,56 @@ const plateau = (t: number, c: number, hold: number, ramp: number) => {
   return t < a ? smooth((t - (a - ramp)) / ramp) : t > b ? 1 - smooth((t - b) / ramp) : 1;
 };
 
-/** The time map for one scene. `moment` resolves a hold named by a moment to its content frame. */
-export function compileSpeed(speed: FilmSpeed, durationFrames: number, fps: number, moment: (id: string) => number | undefined): { speed?: CompiledSpeed; problems: SpeedProblem[] } {
+/** A velocity curve's relative speed at phase `u` (0 on a beat, 1 at the next), from slow (1) to fast (`contrast`). */
+export function velocityWeight(shape: VelocityShape, u: number, contrast: number): number {
+  const x = Math.min(1, Math.max(0, u)), mid = Math.min(x, 1 - x) * 2;
+  switch (shape) {
+    case "dip": return 1 + (contrast - 1) * smooth(mid);
+    // Races into the beat and drops to slow motion on it: the speed climbs as the beat nears.
+    case "rush": return 1 + (contrast - 1) * x ** 2.5;
+    case "burst": return 1 + (contrast - 1) * (1 - x) ** 2.5;
+    // Near-stillness on the beat: a narrow, deep dip, a quarter of the slow speed at its floor.
+    case "freeze": return .25 + (contrast - .25) * smooth(mid / .45);
+  }
+}
+
+/** A velocity edit's time map: the content plays at the shape's speed between the given beats (scene frames), scaled to fit `source`. */
+function compileVelocity(speed: FilmSpeed, D: number, beats: readonly number[], report: (severity: SpeedProblem["severity"], code: string, path: string, message: string, hint?: string) => void): CompiledSpeed | undefined {
+  const shape = speed.beats!.shape ?? "rush", contrast = speed.beats!.contrast ?? 8, S = speed.source;
+  if (!(VELOCITY_SHAPES as readonly string[]).includes(shape)) { report("error", "speed-beats-shape", "/beats/shape", `"${shape}" is not a velocity shape.`, `Shapes: ${VELOCITY_SHAPES.join(", ")}.`); return undefined; }
+  if (!(contrast >= 2 && contrast <= 20)) { report("error", "speed-beats-contrast", "/beats/contrast", "A velocity edit's contrast runs from 2 to 20."); return undefined; }
+  if (speed.holds?.length) { report("error", "speed-beats-holds", "/holds", "A velocity edit slows on its beats; it takes no holds as well."); return undefined; }
+  const inside = beats.filter(beat => beat >= 0 && beat <= D);
+  if (inside.length < 2) { report("error", "speed-beats-few", "/beats", "A velocity edit needs at least two beats inside the scene.", "Lengthen the scene, or hit every beat."); return undefined; }
+  const period = (inside[inside.length - 1] - inside[0]) / (inside.length - 1), enter = Math.max(0, speed.enter ?? 0), exit = Math.max(0, speed.exit ?? 0);
+  // The phase of a frame between the beat before it and the beat after it; before the first and after the last, the grid carries on.
+  const phase = (t: number) => {
+    let i = 0;
+    while (i < inside.length && inside[i] <= t) i++;
+    const from = i ? inside[i - 1] : inside[0] - period * Math.ceil((inside[0] - t) / period), to = i < inside.length ? inside[i] : from + period;
+    return (t - from) / Math.max(1e-6, to - from);
+  };
+  const raw = [0];
+  for (let k = 0; k < D; k++) {
+    let v = velocityWeight(shape, phase(k + .5), contrast);
+    if (enter) v *= 1 + (SPEED_CUT_BOOST - 1) * (1 - smooth((k + .5) / enter));
+    if (exit) v *= 1 + (SPEED_CUT_BOOST - 1) * smooth((k + .5 - (D - exit)) / exit);
+    raw.push(raw[k] + v);
+  }
+  const scale = S / raw[D], map = raw.map(v => v * scale), steps = map.slice(1).map((v, k) => v - map[k]);
+  const fastest = Math.max(...steps), slowest = Math.min(...steps);
+  if (fastest > 10) report("warning", "speed-fast", "/source", `Between beats the content plays at up to ${fastest.toFixed(1)}×; past about 10× motion stops reading as motion.`, "Lower the contrast, give the content fewer frames, or the scene more.");
+  if (shape !== "freeze" && slowest > .9) report("warning", "speed-beats-flat", "/source", `On the beats the content still plays at ${slowest.toFixed(2)}×, so nothing reads as slow motion.`, "Give the content more frames for its length, or lower the contrast.");
+  return { map, rate: S / D, holds: [], ...exit ? { rampUp: D - exit } : {} };
+}
+
+/** The time map for one scene. `moment` resolves a hold named by a moment to its content frame. `beats` are the scene frames of the beats
+ * a velocity edit (`speed.beats`) follows. */
+export function compileSpeed(speed: FilmSpeed, durationFrames: number, fps: number, moment: (id: string) => number | undefined, beats: readonly number[] = []): { speed?: CompiledSpeed; problems: SpeedProblem[] } {
   const problems: SpeedProblem[] = [], report = (severity: SpeedProblem["severity"], code: string, path: string, message: string, hint?: string) => problems.push({ severity, code, path, message, hint });
   const D = durationFrames, S = speed.source, slow = Math.min(.9, Math.max(0, speed.slow ?? .08)), ramp = Math.max(1, speed.ramp ?? 8);
   if (!(Number.isFinite(S) && S >= 1)) { report("error", "speed-source", "/source", "A speed ramp needs the content's length in frames."); return { problems }; }
+  if (speed.beats) { const compiled = compileVelocity(speed, D, beats, report); return { ...compiled ? { speed: compiled } : {}, problems }; }
   const holds: Array<{ at: number; frames: number }> = [];
   (speed.holds ?? []).forEach((hold, i) => {
     const at = typeof hold.at === "number" ? hold.at : moment(hold.at);

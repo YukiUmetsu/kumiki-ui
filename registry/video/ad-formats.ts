@@ -8,7 +8,7 @@
  */
 import type { FilmDocument, FilmOutput, FilmScene } from "./film-document";
 import type { CardImage, CardProduct, FilmBrand, FilmCardContent } from "./film-cards";
-import { cardCues, CARD_ENTER, itemGap, proofTiming, readingSeconds, readingWords, wordFlashTiming } from "./film-cards";
+import { cardCues, CARD_ENTER, itemGap, proofTiming, readingSeconds, readingWords, wordFlashTiming, chatReadingSeconds } from "./film-cards";
 import type { FilmLookSpec } from "./film-look";
 
 export const AD_FORMATS = ["hook-body-close", "problem-solution", "before-after", "three-reasons", "myth-vs-fact", "social-proof"] as const;
@@ -78,6 +78,7 @@ function cardFrames(content: FilmCardContent): number {
     case "end": return 96;
     case "words": { const timing = wordFlashTiming(content, FPS), lastWord = timing[timing.length - 1]; return Math.round((lastWord?.start ?? 3) + Math.max(lastWord?.frames ?? 0, FPS * .8) + 6); }
     case "wall": return 54;
+    case "chat": return Math.round(last + (chatReadingSeconds(content.messages[content.messages.length - 1]?.text ?? "") + .4) * FPS + 12);
   }
 }
 const card = (id: string, content: FilmCardContent, story?: FilmScene["story"]): FilmScene => ({ id, recipeId: "card", durationFrames: cardFrames(content), content, ...story ? { story } : {} } as FilmScene);
