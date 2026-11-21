@@ -86,7 +86,7 @@ Checked in the code on 2026-11-11, so these are not proposed again:
 - **Sound:** kit sounds `whoosh`, `riser` (1 s and 2 s), `hit`, `ping`; a whoosh at the middle of every transition; `turnAccent` (`soft`, `impact`, `none`); named cues; beds with fades, `lowpassHz` and `reverse`; scene sounds with J- and L-cuts; voice ducking (`duckDb`); mastering; sound recipes with layers, pitch, rooms and pan (`sound-design`); original sounds from FFmpeg recipes (`sound:synth`).
 - **Type:** word-by-word reveals (`KineticWords`, `animated-text`), word highlight captions, impact typography styles (snap, overshoot, wipe, word highlight, count-up), count-ups (`animated-metric`).
 - **Shape:** contour morphs (`shape-morph`), draw-on strokes, cut-paper title sequence.
-- **Accents** (`registry/motion/attention-editing-treatments.ts`): punch scale, outline pulse, one brief flash, directional shake, chromatic offset, focus rack. These are plans for a host to draw. Films cannot use them yet.
+- **Accents** (`registry/motion/attention-editing-treatments.ts`): punch scale, outline pulse, one brief flash, directional shake, chromatic offset, focus rack. These are plans for a host to draw. Films now draw punch, shake, split, zoom blur and flash themselves as beat hits (VE1.1, `film-hits.ts`).
 - **Looks:** grain, halation, weave, flicker, light leaks, scan lines, on-twos cadence, ink outlines. No depth of field.
 - **Shader effects:** mesh gradient, grain gradient, liquid metal, god rays, water over a picture, halftone dots.
 - **Demos:** screen demo with one cursor, clicks, typing, scrolling and callouts.

@@ -94,12 +94,12 @@ export function frameRange(info, from, to, outOfRange = "clamp") {
   return { start, end, count: end - start, warnings };
 }
 
-/** FFmpeg arguments that decode `count` frames from `start` as raw RGBA on stdout, at the video's own rate. */
-export function decodeArgs(info, start, count) {
+/** FFmpeg arguments that decode `count` frames from `start` as raw RGBA on stdout, at the video's own rate, scaled to `size` if given. */
+export function decodeArgs(info, start, count, size) {
   const fps = `${info.fps.num}/${info.fps.den}`;
   return ["-v", "error", "-nostdin", "-ss", (start * info.fps.den / info.fps.num).toFixed(6), "-i", info.file, "-map", "0:v:0",
     // A variable frame rate is held to the stated average, so frame n is always at time n / fps.
-    "-vf", `fps=${fps}`, "-frames:v", String(count), "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"];
+    "-vf", `fps=${fps}${size ? `,scale=${size.width}:${size.height}:flags=lanczos` : ""}`, "-frames:v", String(count), "-f", "rawvideo", "-pix_fmt", "rgba", "pipe:1"];
 }
 
 /** FFmpeg arguments that encode raw RGBA frames from stdin into `out`, carrying the source's audio for the same span. */
@@ -113,9 +113,9 @@ export function encodeArgs(info, out, codec, range, options = {}) {
 }
 
 /** A logger that writes levels at or above `level` to `write` (stderr by default). */
-export function createLogger(level = "info", write = (line) => process.stderr.write(line + "\n")) {
+export function createLogger(level = "info", write = (line) => process.stderr.write(line + "\n"), name = "selective-color") {
   const order = ["debug", "info", "warn", "error"], at = order.indexOf(level);
   if (at < 0) throw new PipelineError("log-level", `"${level}" is not a log level.`, `Use ${order.join(", ")}.`);
-  const log = (name) => (message, details) => { if (order.indexOf(name) >= at) write(`[selective-color] ${name}: ${message}${details ? " " + JSON.stringify(details) : ""}`); };
+  const log = (severity) => (message, details) => { if (order.indexOf(severity) >= at) write(`[${name}] ${severity}: ${message}${details ? " " + JSON.stringify(details) : ""}`); };
   return { debug: log("debug"), info: log("info"), warn: log("warn"), error: log("error") };
 }

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "velocity-edit",
+  "fps": { "num": 30, "den": 1 },
+  "outputs": [{ "id": "landscape", "preset": "youtube" }, { "id": "draft", "width": 960, "height": 540 }],
+  "scenes": [
+    { "id": "drive", "recipeId": "shot-3d", "durationFrames": 262,
+      "speed": { "source": 315, "beats": { "bed": "drums", "every": 2, "shape": "rush", "contrast": 8 } },
+      "hits": [
+        { "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 }, "amount": 0.45 },
+        { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 }, "amount": 0.4 }
+      ],
+      "content": {
+        "shot": "race",
+        "label": "A white race car, number 27, seen from behind by a camera locked to it. Between the drum hits time races and the track streams past in a blur; on each kick it drops to slow motion.",
+        "spec": {
+          "speed": 58,
+          "passFrame": 150,
+          "camera": { "mode": "follow", "along": -10, "side": 1.2, "height": 1.4, "fov": 28, "lead": -1 },
+          "livery": { "body": "#f3f3f0", "accent": "#1f3f9e", "number": "27", "stripes": "#c8202a" }
+        }
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "beds": [{ "id": "drums", "sound": "bed-drums-hiphop-110", "bpm": 110, "beatOffset": 0, "fadeSeconds": 0.05 }],
+    "master": { "profile": "youtube", "limit": true }
+  }
+}
