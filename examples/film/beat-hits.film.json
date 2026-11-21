@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "beat-hits",
+  "fps": { "num": 30, "den": 1 },
+  "outputs": [{ "id": "landscape", "preset": "youtube" }, { "id": "draft", "width": 960, "height": 540 }],
+  "scenes": [
+    { "id": "punch", "recipeId": "card", "durationFrames": 131,
+      "hits": { "kind": "punch", "beats": { "bed": "drums" }, "amount": 0.45 },
+      "content": { "card": "headline", "text": "Cut to the beat", "emphasis": "beat",
+        "photo": { "id": "ice-cave", "src": "assets/iceland-large/ice-cave.jpg", "alt": "Blue ice arching over the mouth of a glacier cave", "licenseRef": "commons-ice-cave-cc0-large", "width": 3200, "height": 2133 } } },
+    { "id": "kick-snare", "recipeId": "card", "durationFrames": 131,
+      "hits": [
+        { "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 }, "amount": 0.5 },
+        { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 }, "amount": 0.55 }
+      ],
+      "content": { "card": "headline", "text": "Kick and snare", "emphasis": "snare",
+        "photo": { "id": "dynjandi", "src": "assets/iceland-large/dynjandi.jpg", "alt": "Dynjandi, a broad waterfall spreading over tiers of rock", "licenseRef": "commons-dynjandi-cc0-large", "width": 3200, "height": 2136 } } },
+    { "id": "split", "recipeId": "card", "durationFrames": 65,
+      "hits": [
+        { "kind": ["punch", "split"], "beats": { "bed": "drums", "every": 2 }, "amount": 0.5, "frames": 5 },
+        { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 }, "amount": 0.4, "direction": 90 }
+      ],
+      "content": { "card": "headline", "text": "Split it", "emphasis": "Split",
+        "photo": { "id": "jokulsarlon", "src": "assets/iceland-large/jokulsarlon.jpg", "alt": "Icebergs floating in a glacier lagoon under pale sky", "licenseRef": "commons-jokulsarlon-cc0-large", "width": 3200, "height": 2133 } } },
+    { "id": "land", "recipeId": "card", "durationFrames": 196,
+      "hits": [
+        { "kind": ["punch", "blur", "flash"], "beats": { "bed": "drums", "every": 4 }, "amount": 0.6, "frames": 8 },
+        { "kind": "punch", "beats": { "bed": "drums", "every": 4, "phase": 2 }, "amount": 0.3 }
+      ],
+      "content": { "card": "headline", "text": "Land it", "emphasis": "Land",
+        "photo": { "id": "seljalandsfoss", "src": "assets/iceland-large/seljalandsfoss.jpg", "alt": "Seljalandsfoss, a tall waterfall falling over a mossy cliff", "licenseRef": "commons-seljalandsfoss-cc0-large", "width": 3200, "height": 2133 } } }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "beds": [{ "id": "drums", "sound": "bed-drums-hiphop-110", "bpm": 110, "beatOffset": 0, "fadeSeconds": 0.05, "gainDb": 0 }],
+    "master": { "profile": "youtube", "limit": true }
+  }
+}
