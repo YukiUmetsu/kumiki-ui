@@ -2,6 +2,7 @@
 /** Bakes the Storybook fixtures for doc 34's sound moves: each example film's mix, through the library's own compiler and mixer
  * (`film:render --audio-only`), in a "before" and an "after" version, as AAC with its level measured every 50 ms.
  *   npm run sound:moves
+ *   npm run sound:moves -- --mix=beat-hits     only one example film's own mix, for a story about a picture move
  * Writes assets/sound/lab/moves/<id>.m4a and assets/sound/lab/moves/moves.json. Nothing is played or judged here: an agent cannot hear,
  * so the files are for a person to listen to.
  */
@@ -68,18 +69,34 @@ function levels(file) {
   return out;
 }
 
+/** Render one film's mix through the library (`film:render --audio-only`) into `dir`. */
+function mix(film, name, dir) {
+  // The film file sits beside the example, so its kit and assets resolve as they do for the example itself.
+  const temp = join(FILMS, `.sound-moves-${name}.film.json`);
+  writeFileSync(temp, JSON.stringify(film));
+  try { execFileSync(process.execPath, [join(ROOT, "scripts/film.mjs"), "render", temp, "--only=draft", "--audio-only", "--out=" + dir], { stdio: "inherit" }); }
+  finally { rmSync(temp, { force: true }); }
+}
+
 mkdirSync(OUT, { recursive: true });
-const work = mkdtempSync(join(tmpdir(), "km-sound-moves-")), rows = [];
+const work = mkdtempSync(join(tmpdir(), "km-sound-moves-")), rows = [], single = process.argv.find(arg => arg.startsWith("--mix="))?.slice("--mix=".length);
+// A picture move (beat hits) has no "before" sound: its story plays the example's own mix, written alone as <id>.m4a.
+if (single) {
+  try {
+    const dir = join(work, single);
+    mix(load(`${single}.film.json`), single, dir);
+    execFileSync("ffmpeg", ["-v", "error", "-y", "-i", join(dir, "mix.wav"), "-c:a", "aac", "-b:a", "160k", join(OUT, `${single}.m4a`)]);
+    console.log(`Wrote ${join(OUT, `${single}.m4a`)}.`);
+  } finally { rmSync(work, { recursive: true, force: true }); }
+  process.exit(0);
+}
 try {
   for (const pair of PAIRS) {
     const doc = load(pair.film), versions = { after: doc, before: pair.before(doc) };
     const row = { id: pair.id, title: pair.title, what: pair.what, marks: pair.marks, versions: {} };
     for (const [version, film] of Object.entries(versions)) {
-      // The film file sits beside the example, so its kit and assets resolve as they do for the example itself.
-      const temp = join(FILMS, `.sound-moves-${pair.id}-${version}.film.json`), dir = join(work, `${pair.id}-${version}`);
-      writeFileSync(temp, JSON.stringify(film));
-      try { execFileSync(process.execPath, [join(ROOT, "scripts/film.mjs"), "render", temp, "--only=draft", "--audio-only", "--out=" + dir], { stdio: "inherit" }); }
-      finally { rmSync(temp, { force: true }); }
+      const dir = join(work, `${pair.id}-${version}`);
+      mix(film, `${pair.id}-${version}`, dir);
       const file = `${pair.id}-${version}.m4a`;
       execFileSync("ffmpeg", ["-v", "error", "-y", "-i", join(dir, "mix.wav"), "-c:a", "aac", "-b:a", "160k", join(OUT, file)]);
       row.versions[version] = { file, levels: levels(join(dir, "mix.wav")) };
