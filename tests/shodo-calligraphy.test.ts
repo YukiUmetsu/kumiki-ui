@@ -12,7 +12,7 @@ import { DEFAULT_SHODO_STYLE, inspectShodoStyle, resolveShodoStyle } from "../re
 import { SHODO_BASICS, auditShodoTechniques } from "../registry/video/shodo/shodo-techniques";
 import { fillKanjiCardContent, readKanjiCardExport, resolveKanjiCardContent } from "../src/video/shodo-demos";
 import { ShodoKanjiCard, ShodoKanjiInfoCard } from "../registry/video/shodo/shodo-kanji-card";
-import { DEFAULT_KANJI_CARD_THEME, kanjiCardConvertAt, kanjiCardLabelText, kanjiCardTheme } from "../registry/video/shodo/shodo-kanji-card-plan";
+import { DEFAULT_KANJI_CARD_THEME, kanjiCardConvertAt, kanjiCardLabelText, kanjiCardTheme, kanjiCardThemeIssues } from "../registry/video/shodo/shodo-kanji-card-plan";
 import {
   KANJI_WORD_EASE, kanjiCardGeometry, kanjiCardPhaseAt, kanjiCardSafeInset, kanjiCardStrokeTimes, kanjiCardTimeline, kanjiCardTypedAt, kanjiCardWriting,
   parseWordHighlights, spreadWordHighlights, wordHighlightAt,
@@ -713,7 +713,10 @@ describe("SHO1 shodō calligraphy", () => {
     expect(() => kanjiCardTheme({ body: "M PLUS 1p, sans-serif" })).toThrow(/body must be a CSS font stack/u);  // "1p" is not a CSS name
     expect(kanjiCardTheme({ body: "'M PLUS 1p', sans-serif" }).body).toBe("'M PLUS 1p', sans-serif");
     expect(kanjiCardTheme({ accent: undefined })).toEqual(DEFAULT_KANJI_CARD_THEME);                       // undefined uses the default
-    expect(() => kanjiCardTheme({ accnt: "#000000" } as never)).toThrow(/accnt is not a theme key/u);
+    expect(kanjiCardThemeIssues({ accnt: "#000000" } as never)).toEqual([expect.stringMatching(/^accnt is not a theme key/u)]);   // a description is checked
+    expect(kanjiCardTheme({ accent: "#1E5AA8", name: "Acme" } as never).accent).toBe("#1E5AA8");                                // the card ignores extra keys
+    for (const word of ["inherit", "initial", "default, serif"]) expect(kanjiCardThemeIssues({ body: word })).toHaveLength(1);    // CSS-wide keywords
+    expect(kanjiCardThemeIssues({ body: "'inherit', serif" })).toEqual([]);                                                       // quoted, it is a name
     expect(kanjiCardTheme({ ink: "#000000" })).toMatchObject({ ...DEFAULT_KANJI_CARD_THEME, ink: "#000000" });
     // A brush style changes the plan, and the card plans with it exactly as kanjiCardWriting does.
     const brushStyle = { hand: { pressure: .6 }, brush: { diameter: 140 } };
