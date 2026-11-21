@@ -171,6 +171,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:makeup":{storyId:"video-makeup--makeup-lab"},
   "pack:ukiyoe-handscroll":{storyId:"video-ukiyoe-handscroll--night-ferry"},
   "pack:shodo-calligraphy":{storyId:"video-shodo--studio"},
+  "pack:shodo-kanji-card":{storyId:"video-shodo--kanji-card-short"},
   "pack:ukiyoe-episode":{storyId:"video-ukiyoe-handscroll--episode"},
   "pack:ink-shanshui-landscape":{storyId:"video-ink-shanshui--gallery-studio"},
   "pack:crayon-storybook":{storyId:"video-crayon-storybook--lantern-trail"},

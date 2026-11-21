@@ -1,8 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useMemo } from "react";
+import { VIDEO_PLATFORM_PRESETS } from "../../registry/video/platform-presets";
+import { parseWordHighlights } from "../../registry/video/shodo/shodo-kanji-card-plan";
 import {
-  ShodoBrushCloseUp, ShodoBrushMotionStudy, ShodoCharacterGallery, ShodoFilmShot, ShodoKanjiCard, ShodoTechniquesBoard, fillKanjiCardContent, parseWordHighlights,
+  ShodoBrushCloseUp, ShodoBrushMotionStudy, ShodoCharacterGallery, ShodoFilmShot, ShodoKanjiCardExport, ShodoKanjiCardPlayer, ShodoTechniquesBoard,
+  fillKanjiCardContent, readKanjiCardExport,
 } from "./shodo-demos";
-import type { JlptLevel, KanjiCardContent, KanjiCardInk, KanjiCardLayout, KanjiCardPhase, KanjiCardWord } from "./shodo-demos";
+import type { JlptLevel, KanjiCardContent, KanjiCardDensity, KanjiCardInk, KanjiCardLayout, KanjiCardPhase, KanjiCardWord } from "./shodo-demos";
 import { ShodoStudio, useKanjiCardDataset } from "./shodo-studio";
 
 const meta = {
@@ -51,12 +55,46 @@ interface KanjiCardArgs {
   /** Word highlight cues as text: "word@seconds", with an optional "+hold", or "each". */
   wordHighlights: string;
   highlightMotion: "viewer" | "full" | "fade";
+  /** Keep the text and the ink out of a platform's buttons and caption: "none" or a preset id. */
+  safeArea: string;
+  density: KanjiCardDensity;
+  /** Seconds of the typed intro (0: none) and the kana it types before converting. */
+  introSeconds: number;
+  introReading: string;
 }
 
 // A cleared number field gives null or NaN; treat both as "not set".
 const seconds = (value: number | null | undefined) => typeof value === "number" && Number.isFinite(value) ? value : undefined;
 
+/**
+ * Export mode (`kmExport=1`): the card described by the URL parameter `kmCard`, URI-encoded JSON
+ * read by `readKanjiCardExport`. The exporter's `kmPreset` names the preset when the JSON does not.
+ *   npm run video:export -- --url="http://127.0.0.1:6006/iframe.html?id=video-shodo--kanji-card-short&viewMode=story&kmExport=1&kmCard=…" --preset=youtube-shorts --audio=mix.wav
+ */
+function KanjiCardExportFromUrl() {
+  const read = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    let json: unknown;
+    try { json = JSON.parse(params.get("kmCard") ?? ""); } catch { return { value: null, errors: ["kmCard: URI-encoded JSON describing the card is required."] }; }
+    const preset = params.get("kmPreset");
+    if (preset && json && typeof json === "object" && !Array.isArray(json) && !("preset" in json)) json = { ...json, preset };
+    return readKanjiCardExport(json);
+  }, []);
+  if (!read.value) return <div role="alert" style={{ padding: 20, font: "14px/1.5 system-ui, sans-serif" }}>
+    <strong>The kanji card cannot be exported.</strong>
+    <ul>{read.errors.map(e => <li key={e}>{e}</li>)}</ul>
+  </div>;
+  return <div style={{ padding: 20, background: "#000", width: "max-content" }}><ShodoKanjiCardExport video={read.value} /></div>;
+}
+
+const exporting = () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("kmExport") === "1";
+
 function KanjiCardFromArgs(args: KanjiCardArgs) {
+  if (exporting()) return <KanjiCardExportFromUrl />;
+  return <KanjiCardPreview {...args} />;
+}
+
+function KanjiCardPreview(args: KanjiCardArgs) {
   // The owner's local study-card data (missing on other machines) fills the fields left empty.
   const dataset = useKanjiCardDataset();
   const char = args.char.trim() ? [...args.char.trim()][0] : "道";
@@ -66,15 +104,17 @@ function KanjiCardFromArgs(args: KanjiCardArgs) {
   };
   const content = fillKanjiCardContent(typed, dataset?.get(char)?.card);
   const cues = args.wordHighlights?.trim().toLowerCase() === "each" ? "each" as const : parseWordHighlights(args.wordHighlights ?? "");
-  return <ShodoKanjiCard
+  return <ShodoKanjiCardPlayer
     key={char + "|" + args.layout}
     char={char} heading={args.heading} layout={args.layout}
     meanings={content.meanings} onyomi={content.onyomi} kunyomi={content.kunyomi} jlpt={content.jlpt} words={content.words}
-    speed={args.speed} timing={{ write: seconds(args.writeSeconds), review: seconds(args.reviewSeconds), info: seconds(args.infoSeconds) }}
+    speed={args.speed} timing={{ intro: seconds(args.introSeconds), write: seconds(args.writeSeconds), review: seconds(args.reviewSeconds), info: seconds(args.infoSeconds) }}
+    intro={args.introReading?.trim() ? { reading: args.introReading.trim() } : undefined} density={args.density}
     sections={{ label: args.showLabel, meanings: args.showMeanings, readings: args.showReadings, jlpt: args.showJlpt, words: args.showWords }}
     cardFrom={args.cardFrom} ink={args.ink} strokeNumbers={args.strokeNumbers}
     vermilionStrokes={args.highlightStroke > 0 ? [Math.round(args.highlightStroke)] : []}
     wordHighlights={cues}
+    safeInset={VIDEO_PLATFORM_PRESETS.find(p => p.id === args.safeArea)?.safeInset}
     reducedMotion={args.highlightMotion === "viewer" ? undefined : args.highlightMotion === "fade"} />;
 }
 
@@ -93,21 +133,25 @@ const KANJI_CARD_ARG_TYPES = {
   infoSeconds: { control: { type: "number", min: 0, step: .5 }, description: "Seconds the finished card holds at the end." },
   showLabel: { control: "boolean" }, showMeanings: { control: "boolean" }, showReadings: { control: "boolean" },
   showJlpt: { control: "boolean" }, showWords: { control: "boolean" },
-  cardFrom: { control: "inline-radio", options: ["write", "review", "info"], description: "The phase in which the card text fades in." },
+  cardFrom: { control: "inline-radio", options: ["intro", "write", "review", "info"], description: "The phase in which the card text fades in. At the first phase of the video it shows at once." },
   ink: { control: "inline-radio", options: ["sumi", "vermilion"], description: "Ink for the whole character." },
   highlightStroke: { control: { type: "number", min: 0, step: 1 }, description: "One stroke (from 1) written in vermilion. 0: none." },
   strokeNumbers: { control: "boolean", description: "Order numbers in the review pass." },
   wordHighlights: { control: "text", description: "Highlight the useful words one at a time. \"each\": every word in turn, from 20 % to 80 % of the video. Or cues: word@seconds, with an optional +hold (default 2.5 s); words count from 0, seconds from the start of the video (the frame readout). Example: 0@3, 1@6.5+1.5, 2@9." },
   highlightMotion: { control: "inline-radio", options: ["viewer", "full", "fade"], description: "\"viewer\" follows prefers-reduced-motion; \"fade\" has no scale or lift; \"full\" always lifts (use it for an export)." },
+  density: { control: "inline-radio", options: ["regular", "compact"], description: "\"compact\" (9:16 only): a shorter reading card and a taller writing panel." },
+  introSeconds: { control: { type: "number", min: 0, step: .5 }, description: "Seconds of the typed intro before the brush writes. 0: no intro." },
+  introReading: { control: "text", description: "Kana that the intro types before it converts to the character, for example みず. Empty: the character is typed directly." },
+  safeArea: { control: "select", options: ["none", ...VIDEO_PLATFORM_PRESETS.map(p => p.id)], description: "Keep the label, the ink and the card text out of a platform's buttons and caption (the preset's approximate safe bands). \"none\": the whole frame." },
   initialText: { table: { disable: true } }, initialStyle: { table: { disable: true } },
 } as const;
 
 const KANJI_CARD_ARGS: KanjiCardArgs = {
   char: "道", heading: "Kanji study", jlpt: "sample", layout: "landscape", speed: 1.6, infoSeconds: 4,
   showLabel: true, showMeanings: true, showReadings: true, showJlpt: true, showWords: true,
-  cardFrom: "write", ink: "sumi", highlightStroke: 0, strokeNumbers: true,
+  cardFrom: "intro", ink: "sumi", highlightStroke: 0, strokeNumbers: true,
   // Every word in turn, spread over the video, whatever its length.
-  wordHighlights: "each", highlightMotion: "viewer",
+  wordHighlights: "each", highlightMotion: "viewer", safeArea: "none", density: "regular", introSeconds: 0, introReading: "",
 };
 
 /**
@@ -122,11 +166,15 @@ export const KanjiCard: StoryObj<typeof KanjiCardFromArgs> = {
   argTypes: KANJI_CARD_ARG_TYPES,
 };
 
-/** The same card as a 9:16 short for phones: the card sits under the sheet, and the video lasts about 20 s. */
+/**
+ * The same card as a 9:16 short for phones: the card sits under the sheet, and the video lasts
+ * about 20 s. The label, the ink and the card text stay out of the YouTube Shorts buttons and
+ * caption (`safeArea`). Export mode: see `KanjiCardExportFromUrl`.
+ */
 export const KanjiCardShort: StoryObj<typeof KanjiCardFromArgs> = {
   name: "SHO1 · Kanji study card (9:16 short)",
   render: args => <KanjiCardFromArgs {...args} />,
-  args: { ...KANJI_CARD_ARGS, layout: "portrait", writeSeconds: 7, reviewSeconds: 9, infoSeconds: 4 },
+  args: { ...KANJI_CARD_ARGS, layout: "portrait", writeSeconds: 7, reviewSeconds: 9, infoSeconds: 4, safeArea: "youtube-shorts", density: "compact" },
   argTypes: KANJI_CARD_ARG_TYPES,
 };
 

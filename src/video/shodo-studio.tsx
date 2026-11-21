@@ -185,13 +185,14 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
  * Frame clock for the demos: autoplays from 0 whenever `resetKey` changes, pauses at the end.
  * `frame` is the whole frame for the readout and the scrubber; `position` is the exact frame for
  * the canvas, so the brush moves at the screen's own refresh rate instead of in 30 fps steps.
+ * With `autoplay` false the clock stays at its frame (a host that sets the frame itself).
  */
-export function useShodoPlayback(last: number, resetKey: unknown) {
+export function useShodoPlayback(last: number, resetKey: unknown, autoplay = true) {
   const [position, setFrame] = useState(0);
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(autoplay);
   const lastRef = useRef(last);
   lastRef.current = last;
-  useEffect(() => { setFrame(0); setPlaying(true); }, [resetKey]);
+  useEffect(() => { setFrame(0); setPlaying(autoplay); }, [resetKey, autoplay]);
   useEffect(() => {
     if (!playing) return;
     let raf = 0, base = 0;

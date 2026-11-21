@@ -44,6 +44,8 @@ Every contact sample in a plan reports `phase` (`kihitsu`, `sohitsu`, `tensetsu`
 | `shodo-techniques.ts` | `SHODO_BASICS`, step labels, width measurement and technique checks |
 | `shodo-react.tsx` | `ShodoCanvas`: underlay, paper, ink, stroke-order guide, shadow, brush, motion blur. `ShodoBrushProfile`: the same writing seen from the side |
 | `shodo-film-slot.tsx` | `renderShodoSlot` for FilmStage (`shodo-writing`), `shodoWritingFrames` |
+| `shodo-kanji-card-plan.ts` | Item `shodo-kanji-card`: Node-safe planning of the kanji study card (`kanjiCardWriting`, timeline, geometry and safe bands, stroke times, typed intro, word highlights) |
+| `shodo-kanji-card.tsx` | Item `shodo-kanji-card`: `ShodoKanjiCard` (frame-addressed) and `ShodoKanjiInfoCard` |
 
 ## Writing any character
 
@@ -98,8 +100,11 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
 
 ## Kanji study card
 
-`ShodoKanjiCard` (in `src/video/shodo-demos.tsx`, story *Kanji study card*) is a study video for one kanji in three phases:
+The registry item **`shodo-kanji-card`** (`registry/video/shodo/shodo-kanji-card.tsx` and `shodo-kanji-card-plan.ts`, depends on `shodo-calligraphy`) is a study video for one kanji. `ShodoKanjiCard` is frame-addressed: the host gives the glyph (for example from `loadShodoGlyph`), the frame (30 fps, `KANJI_CARD_FPS`) and all the card text. It loads nothing and has no clock, so a video export can seek in any order. `shodo-kanji-card-plan.ts` has no React and no DOM: `kanjiCardWriting(glyph, options)` returns the layout, the brush plan, the phases, the ink box and the stroke times that the card draws, so a production tool can time a voice-over in Node before it renders.
 
+In the stories, `ShodoKanjiCardPlayer` (in `src/video/shodo-demos.tsx`) adds the 道 sample data, loads the strokes from KanjiVG and plays the card with a transport. The video has four phases:
+
+0. **Intro** (optional, `timing.intro`). The character is typed as on a phone or computer keyboard: a caret blinks, the reading is typed in kana (`intro.reading`, underlined while it is composed, one kana every 0.16 s), and at `intro.convertAt` it converts to the character. The character grows from the reading's size to about the size of the brush's ink and keeps a light conversion highlight for 0.5 s. A host sets `convertAt` to the moment the voice-over says the character's name. The typed character fades out during the first 0.35 s of the writing, while the brush comes down. `kanjiCardTypedAt` gives the state at any time. With reduced motion the character shows at once, with no typing.
 1. **Write.** The brush writes the character in black ink (sumi). Vermilion ink (朱墨) is an option, off by default: `ink: "vermilion"` for the whole character, or `vermilionStrokes` to highlight strokes (these get the arrow guide).
 2. **Review.** The sheet is fresh and the brush writes the character again. When the brush lands for a stroke, a small number fades in next to the start of that stroke. The numbers are dark vermilion (#B3301A, contrast 5.6:1 on hanshi) with a thin paper halo. Their text size is 0.42 of the brush diameter (about 24 px at 1280 × 720). `shodoStrokeNumbers` applies two rules. First, a number is nearer to the start of its own stroke than to the start of any other stroke, so it cannot be read as the number of a different stroke. Second, a number is clear of the ink of the finished character, also of ink that a later stroke writes. When no place within about 3.6 text sizes obeys both rules, the number sits on the ink at the start of its own stroke, with a wider paper halo (in 道, number 4 sits on 一 where the first stroke of 自 starts). The numbers do not overlap each other.
 3. **Info.** The finished review holds with the reading card.
@@ -108,7 +113,11 @@ The ink of the character is centred in the writing panel, not in the full frame.
 
 | Prop | Default | Purpose |
 |---|---|---|
-| `char` | `"道"` | The character. Stroke data is read from KanjiVG. |
+| `char` | required (`"道"` in the player) | The character. |
+| `glyph` | required | Its stroke data. The player reads it from KanjiVG. |
+| `frame` | required | The video frame to show. The player runs its own clock. |
+| `density` | `"regular"` | `"compact"` (9:16 only): the JLPT badge joins the title row, the word tiles are tighter and the card's text takes 350 instead of 462 design px, so the writing panel is taller. |
+| `intro` | none | `{ reading?, convertAt? }` for the intro phase. |
 | `heading` | `"Kanji study"` | The label text. |
 | `meanings`, `onyomi`, `kunyomi` | sample for 道 only | The text of the card. |
 | `jlpt` | sample for 道 only (`"N4"`) | `"N5"` to `"N1"`. With no level (or `null`), the card shows no badge. |
@@ -120,9 +129,12 @@ The ink of the character is centred in the writing panel, not in the full frame.
 | `wordHighlights` | none | Timed highlights of the useful words: `{ word, at, hold? }[]`. See *Word highlights*. |
 | `reducedMotion` | the viewer's setting | `true`: the word highlight has no scale or lift (fade only). Give `true` or `false` for a video export. |
 | `layout` | `"landscape"` | `"landscape"` is 16:9 (1280 × 720), card on the right. `"portrait"` is 9:16 (720 × 1280) for phone shorts, card under the sheet. |
-| `timing` | `{}` | Seconds per phase: `write` (default: the natural pace of the brush at speed 1.6), `review` (default: the same as `write`), `info` (default: 4). A phase of 0 s is skipped. When `write` is set (or `review`, with `write: 0`), the hand speed is fitted to it (0.25 to 4), and each pass is then stretched to its phase. |
+| `timing` | `{}` | Seconds per phase: `intro` (default 0), `write` (default: the natural pace of the brush at speed 1.6), `review` (default: the same as `write`), `info` (default: 4). A phase of 0 s is skipped. When `write` is set (or `review`, with `write: 0`), the hand speed is fitted to it (0.25 to 4), and each pass is then stretched to its phase. |
 | `sections` | all `true` | Turn off `label`, `meanings`, `readings`, `jlpt` or `words`. A part with no data never shows. With no card parts, the sheet fills the frame. |
-| `cardFrom` | `"write"` | The phase in which the text of the card fades in (over 12 frames). The card panel always shows. |
+| `cardFrom` | `"intro"` | The phase in which the text of the card fades in (over 12 frames). At the first phase of the video it shows at once. The card panel always shows. |
+| `safeInset` | none | Bands at the frame's edges that a platform covers with its buttons and caption: `{ left, right, top, bottom }`, fractions of the frame (0..0.4), for example a `VideoPlatformPreset`'s `safeInset`. See *Safe bands*. |
+| `frame` | none | The video frame to show (30 fps), set by a host such as a video export. The card then has no clock of its own and renders only the picture: no transport, status line or credit (the host credits KanjiVG). |
+| `pixelRatio` | the screen's, at most 2 | Backing-store pixels per design pixel of the brush canvas. Set it when the picture is larger than its design size: 1.5 for a 1080 × 1920 export of the portrait card. |
 
 **Sample data.** The text props fall back to a sample only when `char` is 道. For any other character, the card shows only the data that the host gives. It does not invent a reading or a level.
 
@@ -158,6 +170,32 @@ The ink of the character is centred in the writing panel, not in the full frame.
   - Only transforms and shadows change. The layout does not move, and the scaled card stays inside the card panel (measured on every checked frame).
 - **Reduced motion.** With `reducedMotion` (default: the viewer's prefers-reduced-motion setting), there is no scale and no lift. Only the tint, the ring and the dimming fade.
 - **Before the reveal.** A highlighted word card shows also before the card text fades in (`cardFrom`). It fades in and out with its highlight, and the rest of the card stays hidden until its reveal.
+
+### Safe bands
+
+Phone apps cover the edges of a short with their own buttons and caption. With `safeInset`, the label, the ink of the character and the text of the card stay inside the bands; the paper and the card panel still fill the frame.
+- The label moves to the inner corner of the bands. The ink is centred in the free part of the paper: inside the bands and under the label (`kanjiCardGeometry(...).writing`).
+- The card panel keeps its place at the edge, and its text gets padding of at least the side bands.
+- In 9:16 the card ends above the bottom band. The band shows the brush canvas's dark felt underlay (下敷き): the platform's caption is white text, which stays readable there.
+- The 9:16 card keeps the height of its text (462 design px, compact 350), so the paper above it gets shorter. With the YouTube Shorts bands (8 % left, 12 % right, 9 % top, 19 % bottom) the ink of 水 is 431 design px tall in the compact card (34 % of the frame).
+- Without `safeInset` (or with all bands 0) the layout is unchanged.
+- The *Kanji study card (9:16 short)* story uses the YouTube Shorts bands by default (control `safeArea`).
+
+**Stroke-order numbers on phones.** In the portrait layout the numbers are at least 28 design px (15 px on a phone 390 px wide), also when the character is smaller.
+
+### Video export and stroke times
+
+- `kanjiCardStrokeTimes(plan, timeline)` gives, for the first writing and for the review, the time of each stroke in seconds of the video: `[start, end]` while the brush is on the paper, in writing order. The card also reports it as JSON in `data-km-stroke-times`. A host uses it to place a voice-over or sounds on the strokes, for example a word as the brush lands.
+- `ShodoKanjiCardExport` (stories only) loads the strokes and puts the card in a `VideoExportStage` (`window.__kmVideoExport`) at the output size. A frame is ready when the strokes have loaded, the brush canvas reports ready and the card shows that frame. When the strokes cannot load, the export fails with the reason.
+- `readKanjiCardExport(json)` reads a description of the video and lists every problem by path:
+  - `char` and all three phase times (`timing.write`, `review`, `info`) are required, so that the length of the video is known before the strokes load.
+  - The card text, `words`, `wordHighlights`, `strokeNumbers`, `safeInset` and `heading` are optional. `reducedMotion` is false unless it is given, so every export is the same.
+  - The output is 1080 × 1920 (portrait) or 1920 × 1080 (landscape). `width` sets another size. A `preset` sets the preset's size and, unless `safeInset` is given, its safe bands.
+- Both kanji-card stories have an export mode. `kmExport=1` with `kmCard=<URI-encoded JSON>` renders the described card for the exporter. The exporter's `--preset` names the preset when the JSON does not:
+
+  ```sh
+  npm run video:export -- --url="http://127.0.0.1:6006/iframe.html?id=video-shodo--kanji-card-short&viewMode=story&kmExport=1&kmCard=…" --preset=youtube-shorts --audio=mix.wav
+  ```
 
 **Phone fit.** In the portrait layout, body text is 25 design px or more and the furigana is 22 design px. On a phone frame 390 px wide, this gives 13.5 px body text and 11.9 px furigana. If long text does not fit the card, its text gets smaller, to 60 % at the least, before anything is cut. The card reports `data-km-fit` and `data-km-overflow`. The frame reports `data-km-ink-box`, `data-km-timeline` and `data-km-kanji-phase` for rendered-bounds checks.
 
