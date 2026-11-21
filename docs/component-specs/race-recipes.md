@@ -75,6 +75,8 @@ A `chase` camera is a camera car driving behind the car. It starts at the car's 
 
 A `follow` camera is locked to the car's speed, `along` metres ahead (+) or behind (−) and `side` metres out. The car holds its place in frame and the track streams past. A camera car shakes a little on the road (`shake`, default 12 mm).
 
+A `follow` camera can also make a dolly zoom (`dollyZoom`): the lens changes while the camera slides along its line to the car, so the car keeps its size and the background stretches or looms. See [Dolly zoom](dolly-zoom.md).
+
 Storybook **Video production → Speed Ramp → Compare** has camera buttons on the page:
 
 | Setup | Position |
@@ -114,6 +116,7 @@ A film camera's 180° shutter smears them into a disc instead, so each rim gets 
 | `race-camera-close` | warning | A camera within 4 m of the car's line |
 | `race-title-at-pass` | warning | A title entering at the pass |
 | `race-title-short` | error | A title not on screen long enough to read |
+| `race-dolly-zoom-*` | error, warning | A dolly zoom that cannot hold the car's size; see [Dolly zoom](dolly-zoom.md) |
 
 The pass rules do not apply to `follow` or `chase`.
 

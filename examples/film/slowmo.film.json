@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "slowmo",
+  "fps": { "num": 30, "den": 1 },
+  "outputs": [{ "id": "landscape", "preset": "youtube" }, { "id": "draft", "width": 960, "height": 540 }],
+  "scenes": [
+    { "id": "slow", "recipeId": "footage", "durationFrames": 112,
+      "content": {
+        "video": { "id": "peacock-walk-slow4", "src": "assets/footage/peacock-walk-slow4.mp4", "width": 960, "height": 540, "fps": 30, "frameCount": 113, "licenseRef": "commons-peacock-walking-cc0" },
+        "label": "One second of a peacock stepping along a wooden deck, slowed four times with new in-between frames.",
+        "push": [1, 1.02],
+        "title": { "text": "Four times slower", "at": 6, "until": 96, "place": "top" }
+      } }
+  ]
+}
