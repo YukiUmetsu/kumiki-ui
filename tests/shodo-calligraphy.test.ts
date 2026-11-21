@@ -678,6 +678,23 @@ describe("SHO1 shodō calligraphy", () => {
     for (let t = 0; t < 3; t += .05) expect(at(t).caret).toBe(false);
   });
 
+  it("plans vermilion strokes from the content too, refuses the old options, and treats an undefined section as shown", () => {
+    const glyph = SHODO_GLYPHS["三"], timing = { write: 4, review: 4, info: 1 };
+    const fromContent = kanjiCardWriting(glyph, { layout: "portrait", timing, content: { meanings: "THREE", vermilionStrokes: [3] } });
+    const fromOption = kanjiCardWriting(glyph, { layout: "portrait", timing, content: { meanings: "THREE" }, vermilionStrokes: [3] });
+    expect(fromContent.strokes).toEqual(fromOption.strokes);
+    const { container } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 0, layout: "portrait", timing, meanings: "THREE", vermilionStrokes: [3], sections: { label: undefined } }));
+    const card = container.querySelector<HTMLElement>("[data-km-kanji-card]")!;
+    expect(JSON.parse(card.dataset.kmStrokeTimes!)).toEqual(JSON.parse(JSON.stringify(fromContent.strokes)));
+    expect(container.querySelector("[data-km-kanji-label]")).not.toBeNull();                   // undefined: the label shows, as planned
+    expect(() => kanjiCardWriting(glyph, { withCard: true } as never)).toThrow(/no longer an option/u);
+  });
+
+  it("with reduced motion and no reading shows nothing before the conversion, as full motion shows only a caret", () => {
+    expect(kanjiCardTypedAt("水", { convertAt: 1.5 }, 3, 1, { reducedMotion: true })).toMatchObject({ text: "", opacity: 0 });
+    expect(kanjiCardTypedAt("水", { convertAt: 1.5 }, 3, 1.6, { reducedMotion: true }).text).toBe("水");
+  });
+
   it("finishes the conversion inside the intro, also when convertAt is at its end", () => {
     const late = kanjiCardTypedAt("水", { reading: "みず", convertAt: 3 }, 3, 2.95);   // converted at 2.68 s, grown by 2.9 s
     expect(late.text).toBe("水");

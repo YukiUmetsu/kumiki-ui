@@ -22,7 +22,7 @@ import { SHODO_BASICS, auditShodoTechniques, shodoStepLabel } from "../../regist
 import { SHODO_FPS, SHODO_PHASE_LABEL, SHODO_TECH_LABEL, ShodoTransport, useShodoGlyphs, useShodoPlayback, useShodoTeachers, shodoTeacherLabels } from "./shodo-studio";
 import { ShodoKanjiCard } from "../../registry/video/shodo/shodo-kanji-card";
 import type { ShodoKanjiCardProps } from "../../registry/video/shodo/shodo-kanji-card";
-import { KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardPhaseAt, kanjiCardTimeline, kanjiCardWriting } from "../../registry/video/shodo/shodo-kanji-card-plan";
+import { KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardPhaseAt, kanjiCardSections, kanjiCardTimeline, kanjiCardWriting } from "../../registry/video/shodo/shodo-kanji-card-plan";
 import type {
   JlptLevel, KanjiCardContent, KanjiCardDensity, KanjiCardInk, KanjiCardIntro, KanjiCardPhase, KanjiCardSafeInset, KanjiCardSection, KanjiCardTiming,
   KanjiCardWord, KanjiWordHighlight,
@@ -182,7 +182,7 @@ export function ShodoKanjiCardPlayer({ char = "道", style, ...props }: ShodoKan
   const chars = useMemo(() => [char], [char]);
   const loaded = useShodoGlyphs(chars, "kanjivg");
   const glyph = loaded ? loaded.glyphs[0] ?? SHODO_GLYPHS[char] : undefined;
-  const show = { label: true, ...props.sections };
+  const show = kanjiCardSections(props.sections);
   const layout = props.layout ?? "landscape";
   const timingKey = [props.timing?.intro, props.timing?.write, props.timing?.review, props.timing?.info].map(String).join(",");
   const insetKey = JSON.stringify(props.safeInset ?? {});
@@ -259,6 +259,7 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
   };
   if (t && (timing.intro ?? 0) + timing.write + timing.review + timing.info <= 0) errors.push("timing: the video needs a length above 0 s.");
   let intro: KanjiCardIntro | undefined;
+  const introSeconds = Math.round((timing.intro ?? 0) * KANJI_CARD_FPS) / KANJI_CARD_FPS;
   if (o.intro !== undefined) {
     const x = o.intro && typeof o.intro === "object" && !Array.isArray(o.intro) ? o.intro as Record<string, unknown> : null;
     if (!x) errors.push("intro: { reading?, convertAt?, emphasizeAt? } is required.");
@@ -266,9 +267,10 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
       if (x.reading !== undefined && (typeof x.reading !== "string" || !x.reading.trim() || x.reading.length > 12)) errors.push("intro.reading: a text of 1 to 12 characters is required.");
       intro = {
         ...(typeof x.reading === "string" ? { reading: x.reading } : {}),
-        // The conversion must leave time to show the character before the brush comes (0.32 s).
-        ...(x.convertAt === undefined ? {} : { convertAt: num(x.convertAt, "intro.convertAt", 0, Math.max(0, Math.round(((timing.intro ?? 0) - .32) * 1000) / 1000)) }),
-        ...(x.emphasizeAt === undefined ? {} : { emphasizeAt: num(x.emphasizeAt, "intro.emphasizeAt", 0, timing.intro ?? 0) }),
+        // Against the intro the card plays (whole frames). The conversion must leave time to show the
+        // character before the brush comes (0.32 s).
+        ...(x.convertAt === undefined ? {} : { convertAt: num(x.convertAt, "intro.convertAt", 0, Math.max(0, Math.round((introSeconds - .32) * 1000) / 1000)) }),
+        ...(x.emphasizeAt === undefined ? {} : { emphasizeAt: num(x.emphasizeAt, "intro.emphasizeAt", 0, introSeconds) }),
       };
     }
   }
