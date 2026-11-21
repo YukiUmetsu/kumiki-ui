@@ -19,7 +19,7 @@
  */
 import { inkHash as shodoHash } from "../ink-brush";
 import { shodoNoise, shodoRgb } from "./shodo-style";
-import { SHODO_TIP_SHARE } from "./shodo-hand";
+import { SHODO_TIP_SHARE, shodoContactTipPower } from "./shodo-hand";
 import type { ShodoPlan, ShodoPlannedStroke } from "./shodo-hand";
 
 export interface ShodoInkRegion {
@@ -222,7 +222,7 @@ export class ShodoInkSurface {
         const arc = A.arc + (B.arc - A.arc) * u;
         const half = width / 2;
         const tipA = SHODO_TIP_SHARE * length, bellyA = (SHODO_TIP_SHARE - 1) * length;
-        const tipPow = clamp(.95 - .9 * p, .5, .95);
+        const tipPow = shodoContactTipPower(p);
         const R = tipA + half + 2;
         // Ink transfer: wet brushes lay full pigment; speed and an empty brush starve lanes.
         // A loaded brush keeps its point wet even in a fast flick; an emptying one splits.
@@ -252,7 +252,6 @@ export class ShodoInkSurface {
             let inside: number;
             if (along >= bellyA) {
               const uu = (tipA - along) / Math.max(1e-3, length);
-              // A light touch leaves a pointed tip; a pressed tuft splays into a blunt front.
               const hw = half * Math.pow(clamp(uu, 0, 1), tipPow) * (1 + rough * (f - .35));
               inside = hw - Math.abs(across);
             } else {

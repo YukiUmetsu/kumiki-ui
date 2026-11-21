@@ -129,3 +129,51 @@ Now:
 - The thickness falls over the first quarter of the lying part.
 - Three relaxation passes, weighted around the knee, round off its corner. The knee is still sharper under a harder press, as in the side-view study.
 
+
+## Third study: the pressed part (2026-11-21)
+
+The part of the tuft that lies on the paper read as a smooth grey wedge, and a few hairs crossed at the knee. This study looked at the teacher's own lesson videos at 1080p:
+
+- [「大」の書き方とコツ](https://www.youtube.com/watch?v=J2tJlU0NwgQ): V14 in the [calligraphy reference study](shodo-calligraphy-reference-study-2026-11-15.md).
+- [「永」の書き方とコツ](https://www.youtube.com/watch?v=afB6vG44CnI): V3 in that study.
+
+Frames were taken at 2 fps over the whole 大, and at 10 fps over 3.5 s from 7.6 s, where the brush lands and presses. As before, no frame is in the repository and nothing was traced.
+
+### Observations
+
+- **Loaded, in the air:** dark grey, with small light flecks. The point is sharp.
+- **Pressed:** the tuft becomes one smooth black mass, as black as the stroke under it. No single hair shows: ink fills the gaps between the hairs. The front is round, not pointed.
+- **Gloss:** the light breaks into many small white and blue-grey flecks in a band along the lit side of the pressed mass. The band thins out toward the knee. The side away from the light stays black.
+- **Fresh ink:** where it lies thick, a fresh stroke shows blue-grey reflections of the room.
+
+### Diagnosis of the crossing hairs
+
+- **Twisted frames:** the old frames along the tuft twisted through the knee. Near a vertical handle, they also switched their reference, so the frames jumped as the lean changed.
+- **Mismatched fan:** the fan on the paper used its own side direction, not the frame of the round bundle. Where the two disagreed, a hair moved from one side of the tuft to the other through the knee.
+- **Long way round:** a hair drawn toward its clump turned the long way round the tuft when the two angles were on either side of zero, so it swung through the far side.
+
+### What changed in the drawing
+
+- **Frames:** rotation-minimizing frames (double reflection), from a reference fixed at the collar. They do not twist through the knee and do not jump with the lean.
+- **Flattening:** the round bundle is pressed flat. Each hair keeps its place across the stroke, scaled out to the contact width, and keeps its height, squashed. The lower half lies on the paper. No hair changes sides through the knee.
+- **Clump angles:** a hair turns toward its clump by the short way round.
+- **Draw order:** hairs and clumps are drawn back to front by their offset toward the camera, not by a fixed angle.
+- **Pressed outline:** the outline of the pressed hair has the same shape as the ink's contact patch: blunter under a harder press (`shodoContactTipPower`, shared by the brush and the ink).
+- **Wet film:** a near-black film covers the pressed hair. It fades in from where the hair is half pressed and reaches a little past the outermost hairs, for a crisp edge. It begins below the knee because, higher up, the knee can fold back over the pressed part on screen.
+- **Gloss:**
+  - The specular comes from the normal of the pressed surface on a grid. Normals are taken over two samples each way, so the sharp turn of the knee does not switch a whole row off at once. The lobe is tight (exponent 70), because wet ink is glossy.
+  - Each grid cell holds up to ten specks at fixed places. The brighter the cell, the more specks show. Each speck takes its brightness from the four corners of its cell.
+  - Faint specks are blue-grey and the strongest are white. A soft blue-grey sheen, blurred over about a cell, lies under them.
+  - The gloss fades in over the knee more gradually than the film, because the bent hair is wet too.
+  - All values follow the pose smoothly, so the gloss glints and fades but does not flicker.
+- **Side view:** the highlights of the hairs use the side camera's own view direction.
+
+### Cost
+
+On the CPU, with no raster, one draw in contact takes 2.1 ms. Before, it took 1.8 ms. In headless Chromium at 2× it takes 2.2 ms, with the raster.
+
+### Limits
+
+- The camera looks straight down, so the gloss shows only where the pressed surface turns toward the light. With the teacher's oblique camera the band is wider and brighter.
+- In fast moves, the multi-pose motion blur shows each speck as a few copies, not as one streak.
+- Only the owner's review decides whether the pressed tuft reads as wet ink at playback speed.

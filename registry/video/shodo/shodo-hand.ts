@@ -153,6 +153,13 @@ export function shodoContactWidth(p: number, stiffness: number): number {
   const spread = 1 + .28 * (1 - stiffness);
   return (.07 + 1.1 * (1 - Math.pow(1 - clamp(p, 0, 1), 1.8))) * spread;
 }
+/**
+ * Shape of the contact from the tip back to the belly: half-width ∝ (distance from the tip)^power.
+ * A light touch leaves a pointed tip; a pressed tuft splays into a blunt front.
+ */
+export function shodoContactTipPower(p: number): number {
+  return clamp(.95 - .9 * p, .5, .95);
+}
 /** Contact length along the tip axis, in units of the tuft length. */
 export function shodoContactLength(p: number): number {
   // A pressed tuft lies on the paper as a seed about 1.6 times as long as it is wide
