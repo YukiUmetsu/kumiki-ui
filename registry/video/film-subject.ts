@@ -13,6 +13,11 @@
  * short-form editors ([Adobe](https://www.adobe.com/learn/premiere-pro/web/text-behind-subject-object-mask),
  * [CapCut](https://www.capcut.com/resource/how-to-put-text-behind-a-person-in-capcut)).
  */
+import type { RationalFps } from "../motion/types";
+import { resolveClipFrame } from "./frame-clip";
+import type { ClipPlacement } from "./frame-clip";
+import { planReframe, trackFromRows } from "./subject-reframe";
+import type { ReframeMode, ReframeMotion, ReframePlan, SubjectTrackRow } from "./subject-reframe";
 
 export interface FilmFootageSubject {
   /** The cutout from `npm run video:matte`: its frame 0 is `offset` frames into the footage. */
@@ -27,6 +32,49 @@ export interface FilmFootageSubject {
   trail?: { copies?: number; spacing?: number; fade?: number; tint?: string };
 }
 export interface SubjectProblem { severity: "error" | "warning"; code: string; path: string; message: string; hint?: string }
+
+/** A crop that follows the subject in an output whose shape differs from the footage's (VE1.12), so a vertical output of a landscape clip
+ * keeps its subject in view instead of showing the middle. `track` is one row a footage frame from frame `offset`, as
+ * `npm run video:reframe -- <footage> --cutout=<cutout.webm> --out=<file> --track=<track.json>` writes them (its `rows` and `offset`).
+ * The crop is planned for the frames the scene plays: see `subject-reframe.ts`. An output with the footage's own shape is not cropped. */
+export interface FilmFootageReframe { track: readonly SubjectTrackRow[]; offset?: number; mode?: "auto" | ReframeMode; motion?: ReframeMotion; padding?: number }
+
+/** A footage scene's clip: its source played from `from` at `rate`, frame for frame with the scene. */
+export function footagePlacement(video: { id: string; width: number; height: number; fps: number; frameCount: number; licenseRef?: string }, from: number, rate: number, durationFrames: number): ClipPlacement & { timing: { trimIn: number; rate: number; end: "hold" } } {
+  return { id: `footage-${video.id}`, source: { id: video.id, width: video.width, height: video.height, frameCount: video.frameCount, fps: { num: Math.round(video.fps * 1000), den: 1000 }, licenseRef: video.licenseRef },
+    startFrame: 0, durationFrames, timing: { trimIn: from, rate, end: "hold" } };
+}
+/** The footage frame a scene frame shows. */
+export const footageFrameAt = (placement: ClipPlacement, frame: number, fps: RationalFps) => resolveClipFrame(placement, frame, fps).sourceFrame ?? placement.timing?.trimIn ?? 0;
+
+/** A footage scene's reframe for one output: the plan over the source frames `first` to `last`, or nothing for an output with the
+ * footage's own shape. */
+export function footageReframe(reframe: FilmFootageReframe, video: { width: number; height: number; fps: number }, first: number, last: number,
+  box: { width: number; height: number }): ReframePlan | undefined {
+  if (Math.abs(box.width / box.height - video.width / video.height) < .01) return undefined;
+  const offset = reframe.offset ?? 0, rows = reframe.track.slice(Math.max(0, first - offset), Math.max(0, last - offset + 1));
+  return planReframe(trackFromRows(rows, video.width, video.height, video.fps), { aspect: box.width / box.height, mode: reframe.mode, motion: reframe.motion, padding: reframe.padding });
+}
+
+/** Checks a reframe against its footage and the frames the scene plays, and plans it for one output to report what the plan warns of. */
+export function inspectReframe(reframe: FilmFootageReframe, video: { width: number; height: number; fps: number; frameCount: number }, first: number, last: number,
+  box: { width: number; height: number }, path: string): SubjectProblem[] {
+  const problems: SubjectProblem[] = [], say = (severity: SubjectProblem["severity"], code: string, at: string, message: string, hint?: string) => problems.push({ severity, code, path: path + at, message, ...hint ? { hint } : {} });
+  const rows = Array.isArray(reframe?.track) ? reframe.track : [], offset = reframe?.offset ?? 0;
+  const bad = rows.findIndex(row => row !== null && !(Array.isArray(row) && row.length === 6 && row.every(Number.isFinite) && row[2] > 0 && row[3] > 0));
+  if (!rows.length || bad >= 0) say("error", "reframe-track", bad >= 0 ? `/track/${bad}` : "/track", "A track is one row a footage frame: [x, y, width, height, cx, cy] in the footage's pixels, or null.",
+    "Write one with npm run video:reframe -- <footage> --cutout=<cutout.webm> --out=<file> --track=<track.json>.");
+  if (!(Number.isSafeInteger(offset) && offset >= 0 && offset < video.frameCount)) say("error", "reframe-offset", "/offset", "The offset is a frame of the footage.");
+  else if (rows.length && (first < offset || last - offset >= rows.length)) say("error", "reframe-track-short", "/track",
+    `The scene plays footage frames ${first} to ${last}, and the track covers ${offset} to ${offset + rows.length - 1}.`, "Track the whole range the scene plays.");
+  if (reframe?.mode !== undefined && !["auto", "stationary", "panning", "tracking"].includes(reframe.mode)) say("error", "reframe-mode", "/mode", "A mode is auto, stationary, panning or tracking.");
+  if (reframe?.motion !== undefined && !["slower", "default", "faster"].includes(reframe.motion)) say("error", "reframe-motion", "/motion", "Motion is slower, default or faster.");
+  if (reframe?.padding !== undefined && !(reframe.padding >= 0 && reframe.padding <= .3)) say("error", "reframe-padding", "/padding", "Padding runs from 0 to 0.3 of the crop.");
+  if (problems.length) return problems;
+  const plan = footageReframe(reframe, video, first, last, box);
+  for (const problem of plan?.problems ?? []) say(problem.severity, problem.code, "", `In the ${box.width}×${box.height} output: ${problem.message}`);
+  return problems;
+}
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 /** The trail's copies, oldest first: how many frames behind each is, and its opacity. */

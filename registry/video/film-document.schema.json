@@ -19318,6 +19318,9 @@
     "subject": {
      "$ref": "#/$defs/FilmFootageSubject"
     },
+    "reframe": {
+     "$ref": "#/$defs/FilmFootageReframe"
+    },
     "echo": {
      "type": "object",
      "properties": {
@@ -19513,6 +19516,74 @@
     "cutout"
    ],
    "additionalProperties": false
+  },
+  "FilmFootageReframe": {
+   "type": "object",
+   "properties": {
+    "track": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/SubjectTrackRow"
+     }
+    },
+    "offset": {
+     "type": "number"
+    },
+    "mode": {
+     "enum": [
+      "tracking",
+      "auto",
+      "stationary",
+      "panning"
+     ]
+    },
+    "motion": {
+     "enum": [
+      "slower",
+      "default",
+      "faster"
+     ]
+    },
+    "padding": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "track"
+   ],
+   "additionalProperties": false
+  },
+  "SubjectTrackRow": {
+   "anyOf": [
+    {
+     "type": "null"
+    },
+    {
+     "type": "array",
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "minItems": 6,
+     "maxItems": 6
+    }
+   ]
   },
   "FilmSlotScene": {
    "type": "object",

@@ -56,6 +56,7 @@
     "video:datamosh": "node scripts/video-datamosh.mjs",
     "video:jumpcut": "node scripts/video-jumpcut.mjs",
     "video:matte": "node scripts/video-matte.mjs",
+    "video:reframe": "node scripts/video-reframe.mjs",
     "video:slowmo": "node scripts/video-slowmo.mjs",
     "video:selective-color": "node scripts/selective-color.mjs",
     "sound:check": "node scripts/sound-catalog.mjs check",

@@ -91,6 +91,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
   { id: "VE1.10", name: "Jump cuts", group: "Transitions", rank: "P1", status: "built", story: "video-production-promo-moves--jump-cuts",
     what: "A talking head with its pauses taken out and every other long stretch pushed in, so each cut reads as a new angle; subtitles retimed to the cut.",
     usage: "npm run video:jumpcut -- talk.mp4 --out=cut.mp4 --punch=1.12 --srt=talk.srt" },
+  { id: "VE1.12", name: "Subject reframe", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--subject-reframe",
+    what: "A vertical (or any other shape) crop of landscape footage that follows the subject from its cutout: stationary, panning or tracking, planned for the whole clip and smoothed.",
+    usage: 'npm run video:reframe -- clip.mp4 --cutout=cut.webm --out=tall.mp4 --track=track.json · "reframe": { "track": [[x, y, w, h, cx, cy], …] }' },
   { id: "VE1.11", name: "Dolly zoom", group: "Animation and type", rank: "P2", status: "built", story: "video-production-speed-ramp--dolly-zoom",
     what: "The lens changes while the camera moves along its line to the subject, so the subject keeps its size and the background stretches away or looms up: on a race shot's locked camera, or as a cinematic camera shot.",
     usage: '"camera": { "mode": "follow", "fov": 50, "dollyZoom": { "to": 16, "start": 20, "end": 120 } } · CameraShotRecipe("dolly-zoom", { …, dollyZoom: { from: 20, to: 60 } })' },
@@ -128,6 +131,10 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.12": { registryItem: "film-document", jobs: ["make a vertical video from landscape footage", "keep the subject in frame in another shape"], keywords: ["auto reframe", "reframe",
+    "vertical video", "9:16", "smart crop", "subject tracking crop", "follow crop", "aspect ratio conversion", "landscape to portrait", "shorts", "reels",
+    "virtual camera", "pan and scan"],
+    avoid: "One subject at a time; two people far apart are one wide subject. A crop that pans fast over a sharp background strobes." },
   "VE1.11": { registryItem: "studio-shot-model", jobs: ["make the background stretch or loom behind a subject", "a moment of unease or realisation"], keywords: ["dolly zoom", "zolly",
     "contra zoom", "trombone shot", "zoom and dolly", "push pull", "background stretch", "perspective shift", "lens sweep", "camera move", "race car", "3d camera"],
     avoid: "Once or twice a film; it needs depth behind a subject that holds still in frame. Race shots: a locked follow camera only." },

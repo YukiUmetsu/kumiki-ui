@@ -3314,6 +3314,24 @@
   "notes": "Commons file page licence: CC0 (an 1894 film, in the public domain). The cutout is a derivative."
  },
  {
+  "id": "commons-blm-deer-owyhee-pd",
+  "assetPath": "examples/film/assets/footage/deer-river.mp4",
+  "name": "Deer walks across Owyhee River, eastern Oregon",
+  "creator": "Larry Moore, BLM Oregon & Washington (U.S. Bureau of Land Management), uploaded to Wikimedia Commons",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Deer_walks_across_Owyhee_River,_eastern_Oregon_(22197216555).webm",
+  "license": "Public domain (US federal government work)",
+  "licenseUrl": "https://commons.wikimedia.org/wiki/File:Deer_walks_across_Owyhee_River,_eastern_Oregon_(22197216555).webm#Licensing",
+  "acquiredOn": "2026-11-21",
+  "modifications": [
+   "seconds 20 to 30 (300 frames), held to 30 fps (0.1 % faster than the source's 29.97), scaled from 1920x1080 to 960x540, H.264 re-encoded, audio removed",
+   "deer-river-cutout.webm: the deer cut out by npm run video:matte (IS-Net, Apache-2.0 weights), VP9 with alpha; the reframe track in examples/film/reframe.film.json is read from it by npm run video:reframe"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": true,
+  "notes": "The Commons file page carries {{PD-USGov-BLM}} (a work of a BLM employee in the course of official duties) and, from the Flickr upload, {{Cc-by-2.0}} with a passed Flickr review. Credited as Larry Moore, BLM Oregon & Washington, so the CC BY terms are met as well."
+ },
+ {
   "id": "commons-teacher-interview-cc0",
   "assetPath": "examples/film/assets/footage/teacher-talk.mp4",
   "name": "Interview with a Teacher - Glen Caruso",
