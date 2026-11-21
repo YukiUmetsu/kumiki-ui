@@ -195,7 +195,7 @@ export const ShodoCanvas = forwardRef<HTMLCanvasElement, ShodoCanvasProps>(funct
       const cam: ShodoCamera = { x: width / 2, y: height / 2, height: cameraHeight ?? Math.max(width, height) * 2.2 };
       const drawAt = (c: CanvasRenderingContext2D, p: typeof pose) => {
         drawShodoBrushShadow(c, cam, p, plan.style.brush, plan.brush.diameter, look);
-        drawShodoBrush(c, cam, p, plan.style.brush, plan.style.ink, plan.brush.diameter, look, plan.style.seed, textures);
+        drawShodoBrush(c, cam, p, plan.style.brush, plan.style.ink, plan.brush.diameter, look, plan.style.seed);
       };
       // A 180° shutter at the film rate: fast moves are averaged over several sub-poses. The
       // travel is measured over the shutter: the tip in 3D, and the top of the handle, which
@@ -434,7 +434,7 @@ export const ShodoBrushProfile = forwardRef<HTMLCanvasElement, ShodoBrushProfile
     ctx.fillStyle = "rgba(255,255,255,.55)";
     ctx.fillRect(paper.x, ground - 1 / s, paper.width, 2 / s);
     const pose = shodoBrushPose(plan, seconds);
-    drawShodoBrush(ctx, cam, pose, plan.style.brush, plan.style.ink, plan.brush.diameter, look, plan.style.seed, textures);
+    drawShodoBrush(ctx, cam, pose, plan.style.brush, plan.style.ink, plan.brush.diameter, look, plan.style.seed);
   }, [frame, fps, plan, surface, inkCanvas, width, height, paper, depth, dpr, look, textures]);
   return <canvas {...props} ref={canvasRef} role="img" aria-label={label ?? "The brush seen from the side while writing"}
     data-km-shodo-profile="" data-km-shodo-frame={frame} data-km-shodo-ready={textures ? "true" : "false"}
