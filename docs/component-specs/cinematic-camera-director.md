@@ -87,8 +87,9 @@ are integer, clamped to the timeline; no playback history or accumulated deltas 
 ## Recipes and art direction
 
 `CameraShotRecipe` supports establish, dolly, orbit, inspect, follow, crane, fly-through,
-turntable, exploded, detail-to-overview and multi-object. `inspect` is a restrained orbit
-shorthand. Ordinary shots need semantic targets and duration only. Fly-through needs an
+turntable, exploded, detail-to-overview, multi-object and dolly-zoom. `inspect` is a restrained orbit
+shorthand. `dolly-zoom` sweeps the lens (`dollyZoom: { from, to }`) while the framing keeps the
+target's size, so the camera travels; see [Dolly zoom](dolly-zoom.md). Ordinary shots need semantic targets and duration only. Fly-through needs an
 authored `CameraPath`; path control points are intentional spatial art direction.
 
 Profiles editorial/technical/cinematic/expressive expose numeric easing, intensity,

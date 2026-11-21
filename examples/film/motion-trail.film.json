@@ -1,0 +1,132 @@
+{
+ "schemaVersion": 1,
+ "id": "motion-trail",
+ "fps": {
+  "num": 30,
+  "den": 1
+ },
+ "outputs": [
+  {
+   "id": "landscape",
+   "preset": "youtube"
+  },
+  {
+   "id": "draft",
+   "width": 960,
+   "height": 540
+  }
+ ],
+ "scenes": [
+  {
+   "id": "echo",
+   "recipeId": "footage",
+   "durationFrames": 110,
+   "content": {
+    "video": {
+     "id": "annabelle-dance",
+     "src": "assets/footage/annabelle-dance.mp4",
+     "width": 768,
+     "height": 576,
+     "fps": 25,
+     "frameCount": 200,
+     "licenseRef": "commons-annabelle-butterfly-dance-cc0"
+    },
+    "label": "A dancer in a butterfly costume swirls a long skirt on a dark stage, in an 1894 film; fading copies of her trail behind each move.",
+    "push": [
+     1,
+     1
+    ],
+    "subject": {
+     "cutout": {
+      "id": "annabelle-dance-cutout",
+      "src": "assets/footage/annabelle-dance-cutout.webm",
+      "width": 768,
+      "height": 576,
+      "fps": 25,
+      "frameCount": 200,
+      "licenseRef": "commons-annabelle-butterfly-dance-cc0"
+     },
+     "trail": {
+      "copies": 6,
+      "spacing": 2,
+      "fade": 0.72
+     }
+    }
+   }
+  },
+  {
+   "id": "tinted",
+   "recipeId": "footage",
+   "durationFrames": 110,
+   "transition": {
+    "kind": "dissolve",
+    "durationFrames": 8
+   },
+   "content": {
+    "video": {
+     "id": "annabelle-dance",
+     "src": "assets/footage/annabelle-dance.mp4",
+     "width": 768,
+     "height": 576,
+     "fps": 25,
+     "frameCount": 200,
+     "licenseRef": "commons-annabelle-butterfly-dance-cc0"
+    },
+    "label": "The same dance, her trail washed in magenta.",
+    "from": 95,
+    "push": [
+     1,
+     1
+    ],
+    "subject": {
+     "cutout": {
+      "id": "annabelle-dance-cutout",
+      "src": "assets/footage/annabelle-dance-cutout.webm",
+      "width": 768,
+      "height": 576,
+      "fps": 25,
+      "frameCount": 200,
+      "licenseRef": "commons-annabelle-butterfly-dance-cc0"
+     },
+     "trail": {
+      "copies": 8,
+      "spacing": 1,
+      "fade": 0.8,
+      "tint": "#ff3d9a"
+     }
+    }
+   }
+  },
+  {
+   "id": "whole",
+   "recipeId": "footage",
+   "durationFrames": 100,
+   "transition": {
+    "kind": "dissolve",
+    "durationFrames": 8
+   },
+   "content": {
+    "video": {
+     "id": "annabelle-dance",
+     "src": "assets/footage/annabelle-dance.mp4",
+     "width": 768,
+     "height": 576,
+     "fps": 25,
+     "frameCount": 200,
+     "licenseRef": "commons-annabelle-butterfly-dance-cc0"
+    },
+    "label": "The dance again with a whole-frame echo, no cutout needed: earlier frames of the whole picture fade over the current one.",
+    "from": 40,
+    "push": [
+     1,
+     1
+    ],
+    "echo": {
+     "copies": 5,
+     "spacing": 2,
+     "fade": 0.75
+    }
+   }
+  }
+ ]
+}

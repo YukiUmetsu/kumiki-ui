@@ -68,7 +68,9 @@ export function prepareCameraShot(placement: PlannedCameraShot, source: CameraSe
       }
       direction = rotateCameraDirection(direction, angleCorrection);
       const dolly = shot.movement === "dolly-in" ? 1.4 - 0.4 * progress : shot.movement === "dolly-out" ? 1 + 0.4 * progress : shot.movement === "slow-dolly" ? 1.12 - 0.12 * progress : 1;
-      const startFov = override.fov ?? 40, fov = startFov + ((override.endFov ?? startFov) - startFov) * progress;
+      // A dolly zoom sweeps the lens; the framing below then sets the distance that keeps the target's size.
+      const zoom = shot.type === "dolly-zoom" ? shot.dollyZoom : undefined;
+      const startFov = zoom?.from ?? override.fov ?? 40, fov = startFov + ((zoom?.to ?? override.endFov ?? startFov) - startFov) * progress;
       const pose = frameCameraBounds({ bounds, focus, direction, aspect, framing: shot.framing ?? "medium", composition: shot.composition,
         margin: profile.margin, projection: shot.projection ?? "perspective", fov, roll: override.roll, distanceScale: dolly * distanceCorrection * (override.distanceScale ?? 1), projector });
       if (override.distance !== undefined) {

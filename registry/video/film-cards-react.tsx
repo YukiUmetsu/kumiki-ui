@@ -9,6 +9,7 @@
  */
 import { flippedGround } from "./film-flash";
 import { RebuildLine, ScrambleLine, WeightLine } from "./film-card-reveals-react";
+import { ChatThread } from "./film-chat-react";
 import { useId } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { CARD_ENTER, cardCues, focusAt, itemGap, PRODUCT_LAND, PROOF_COUNT_FRAMES, proofLabel, proofTiming, readingWords, wordFlashTiming } from "./film-cards";
@@ -407,6 +408,12 @@ export function FilmCard({ content, brand, frame, fps, width, height, safeInset,
         <div key={current.start} data-km-words-word="" {...into < 3 ? { "data-km-text-entering": "" } : {}} style={{ ...TITLE, font: `850 ${size}px/1 ${DISPLAY}`, color: current.held ? accent : ink,
           transform: `scale(${settle})`, whiteSpace: "nowrap" } as CSSProperties}>{current.word}</div>
       </div>;
+      decor = false;
+      break;
+    }
+    case "chat": {
+      body = <ChatThread content={content} frame={frame} fps={fps} width={width} height={height} u={u} vertical={vertical} reducedMotion={reducedMotion}
+        colors={{ ink, soft, fill, onFill, surface: p.surface, border: p.border, light: p.light }} />;
       decor = false;
       break;
     }

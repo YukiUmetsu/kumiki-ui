@@ -1,6 +1,9 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type { CompiledFilm, FilmDocument } from "../../registry/video/film-document";
+import type { CompiledFilm, FilmDocument, FilmFootageContent } from "../../registry/video/film-document";
+import { FilmStage } from "../../registry/video/film-stage";
+import { footageFrameAt, footagePlacement, footageReframe } from "../../registry/video/film-subject";
+import { reframeCrop } from "../../registry/video/subject-reframe";
 import { compileExample, FilmCompare } from "./promo-moves/film-compare";
 import { PROMO_MOVES } from "./promo-moves/progress";
 import type { MoveGroup, MoveStatus } from "./promo-moves/progress";
@@ -26,6 +29,18 @@ import lensExample from "../../examples/film/lens.film.json";
 import soundMoves from "../../assets/sound/lab/moves/moves.json";
 import tapeExample from "../../examples/film/tape-rewind.film.json";
 import driveExample from "../../examples/film/sound-drive.film.json";
+import beatHitsExample from "../../examples/film/beat-hits.film.json";
+import spinZoomExample from "../../examples/film/spin-zoom.film.json";
+import chatExample from "../../examples/film/chat-story.film.json";
+import subjectExample from "../../examples/film/subject.film.json";
+import freezeExample from "../../examples/film/freeze-intro.film.json";
+import slowmoExample from "../../examples/film/slowmo.film.json";
+import trailExample from "../../examples/film/motion-trail.film.json";
+import glitchExample from "../../examples/film/glitch.film.json";
+import teacherTalk from "../../examples/film/assets/footage/teacher-talk.mp4?url";
+import teacherCut from "../../examples/film/assets/footage/teacher-talk-jumpcut.mp4?url";
+import teacherCutReport from "../../examples/film/assets/footage/teacher-talk-jumpcut.json";
+import reframeExample from "../../examples/film/reframe.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -448,6 +463,246 @@ export const SoundDrive: StoryObj = {
       ahead of time, so every frame renders the same. A loud moment rises at once and settles over about six frames. Reduced motion keeps
       the scene still.
     </FilmCompare>;
+  },
+};
+
+const beatHitsDoc = beatHitsExample as unknown as FilmDocument;
+/** A 110 bpm drum loop (a recorded CC0 take) and four photo cards cut on its bars, each with its own pattern of hits: a punch on every beat;
+ * a punch and zoom blur on the kick with a shake on the snare; a punch and RGB split with a vertical shake; a landing with a flash every
+ * bar. Played with the film's own mix. */
+export const BeatHits: StoryObj = {
+  render: function BeatHits() {
+    const variants = useMemo(() => ({
+      hits: { label: "Hits on the beat", film: compileExample(beatHitsDoc) },
+      still: { label: "No hits (before)", film: compileExample({ ...beatHitsDoc, scenes: beatHitsDoc.scenes.map(scene => ({ ...scene, hits: undefined })) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0} audio={soundUrls["../../assets/sound/lab/moves/beat-hits.m4a"]}>
+      Press Play with your sound on: every hit lands on a beat of the loop, from the bed's declared tempo (<code>"bpm": 110</code>), so the
+      picture is cut to the music frame by frame. A punch snaps the frame to about 108 % and settles in 0.2 s; a shake swings four or five
+      times, each smaller; the split and the blur last a few frames. Use Quarter speed to see each swing. Reduced motion holds the picture
+      still. The loop is <a href="https://freesound.org/people/blakengouda/sounds/573948/" style={{ color: "#7cc6ff" }}>Hip-Hop Drum Loop -
+      110bpm</a> by blakengouda (CC0).
+    </FilmCompare>;
+  },
+};
+
+const spinZoomDoc = spinZoomExample as unknown as FilmDocument;
+/** Three photo cards on the 110 bpm drum loop, joined by a spin (clockwise, 180°) and a zoom-blur cut, each cutting on a kick at its
+ * fastest, most blurred frame; beside it, the same film with hard cuts. */
+export const SpinAndZoomBlur: StoryObj = {
+  render: function SpinAndZoomBlur() {
+    const variants = useMemo(() => ({
+      moves: { label: "Spin, then zoom blur", film: compileExample(spinZoomDoc) },
+      cuts: { label: "Hard cuts (before)", film: compileExample({ ...spinZoomDoc, scenes: spinZoomDoc.scenes.map(scene => scene.transition ? { ...scene, transition: { kind: "cut" } } : scene) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={film => film.cut.transitions[0].startFrame - 12} audio={soundUrls["../../assets/sound/lab/moves/spin-zoom.m4a"]}>
+      Each move hides its cut inside itself: the picture turns (or pushes in) faster and faster and cuts at the fastest point, where the
+      blur is strongest, and the next scene finishes the move. The spin blurs along circles about the centre and is enlarged just enough
+      to keep the frame covered at each angle; the zoom blurs along rays. Both cuts land on a kick. Use Quarter speed to see the frames;
+      Reduced motion plays a dissolve.
+    </FilmCompare>;
+  },
+};
+
+const chatDoc = chatExample as unknown as FilmDocument;
+/** A vertical text story: a two-person thread on a dark ground, then a group chat on light paper, each message landing with a soft sound
+ * over a low drum loop. */
+export const ChatStory: StoryObj = {
+  render: function ChatStory() {
+    const variants = useMemo(() => ({ chat: { label: "Chat story", film: compileExample(chatDoc) } }), []);
+    return <FilmCompare variants={variants} moment={() => 0} audio={soundUrls["../../assets/sound/lab/moves/chat-story.m4a"]}>
+      The first message is on screen at once, as the hook; each next one lands once the last has had time to be read, the other side's
+      after typing dots that become the message. The thread fills from the bottom and older messages scroll away at the top, each bubble
+      growing its own height so nothing jumps. "Me" sits on the right in the brand colour; a group shows each sender's name and initial.
+      Styling is neutral, not any messaging app's. Reduced motion drops the growth and the bouncing dots.
+    </FilmCompare>;
+  },
+};
+
+const subjectDoc = subjectExample as unknown as FilmDocument;
+/** Real footage with its subject cut out by `npm run video:matte` (a CC0 clip from Wikimedia Commons): a giant word behind a peacock, then
+ * the peacock outlined over a new ground. Beside it, the same footage without the subject. */
+export const SubjectCutout: StoryObj = {
+  render: function SubjectCutout() {
+    const variants = useMemo(() => ({
+      subject: { label: "Subject cut out", film: compileExample(subjectDoc) },
+      plain: { label: "Plain footage (before)", film: compileExample({ ...subjectDoc, scenes: subjectDoc.scenes.map(scene => ({ ...scene, content: { ...scene.content as object, subject: undefined } })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      The cutout is the peacock itself, found in every frame by a segmentation model (IS-Net, Apache-2.0), edge-snapped
+      with the guided filter, steadied over time only where the picture is still, and with the grass taken out of its feathers' edges. The
+      word stands behind the bird; the outline grows from the solid part of the cutout's own alpha. The haze under its legs is the model
+      reading the deck between them as part of the bird. Clip: <a href="https://commons.wikimedia.org/wiki/File:Peacock_walking_and_eating.webm" style={{ color: "#7cc6ff" }}>Peacock walking and eating</a> by
+      Mx. Granger, CC0. The cutout uses VP9 with alpha, which Chromium and Firefox play; Safari shows the plain footage.
+    </FilmCompare>;
+  },
+};
+
+const freezeDoc = freezeExample as unknown as FilmDocument;
+/** A freeze-frame character intro on real footage: the peacock stops mid-step, the deck and grass drain to grey while the bird keeps its
+ * colour, its name and role slam in with a hit, then it walks on. Beside it, the same footage without the freeze. */
+export const FreezeFrameIntro: StoryObj = {
+  render: function FreezeFrameIntro() {
+    const variants = useMemo(() => ({
+      freeze: { label: "Freeze-frame intro", film: compileExample(freezeDoc) },
+      plain: { label: "No freeze (before)", film: compileExample({ ...freezeDoc, scenes: freezeDoc.scenes.map(scene => ({ ...scene, freeze: undefined, durationFrames: 120 })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 30} audio={soundUrls["../../assets/sound/lab/moves/freeze-intro.m4a"]}>
+      The picture holds one frame for 2.2 s: one short flash as it stops, the background greyed while the bird keeps its colour (its cutout,
+      from <code>npm run video:matte</code>, with a thin light edge), and the name card sliding in over a soft shade that keeps the white
+      name readable on the deck. Then colour returns and the footage plays on. Reduced motion keeps the grade and the card and drops the
+      flash and the slide.
+    </FilmCompare>;
+  },
+};
+
+const slowmoDoc = slowmoExample as unknown as FilmDocument;
+/** One second of footage slowed four times: with new in-between frames from `npm run video:slowmo` (motion-compensated interpolation),
+ * against the same second played at a quarter speed, which shows each real frame four times. */
+export const SmoothSlowMotion: StoryObj = {
+  render: function SmoothSlowMotion() {
+    const variants = useMemo(() => ({
+      smooth: { label: "Interpolated (4×)", film: compileExample(slowmoDoc) },
+      repeated: { label: "Repeated frames (before)", film: compileExample({ ...slowmoDoc, scenes: slowmoDoc.scenes.map(scene => ({ ...scene, content: { ...scene.content as object,
+        video: { id: "peacock-walk", src: "assets/footage/peacock-walk.mp4", width: 960, height: 540, fps: 30, frameCount: 120, licenseRef: "commons-peacock-walking-cc0" }, from: 30, rate: .25 } })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      Switch between the two at Quarter speed: repeated frames step every fourth frame; the interpolated clip moves on every frame. Its
+      check rebuilt dropped frames of this clip at 0.952 SSIM against the real ones, where repeating frames scores 0.933. Interpolation
+      guesses: fast or tangled motion (wings, water, crowds) shows warped seams, which the check warns about before you use it.
+    </FilmCompare>;
+  },
+};
+
+const trailDoc = trailExample as unknown as FilmDocument;
+/** Motion trails on an 1894 dance film (CC0): fading copies of the cut-out dancer every two frames; the same trail washed in magenta; and a
+ * whole-frame echo, which needs no cutout. Beside it, the same footage plain. */
+export const MotionTrail: StoryObj = {
+  render: function MotionTrail() {
+    const variants = useMemo(() => ({
+      trail: { label: "Trails and echo", film: compileExample(trailDoc) },
+      plain: { label: "Plain footage (before)", film: compileExample({ ...trailDoc, scenes: trailDoc.scenes.map(scene => ({ ...scene, content: { ...scene.content as object, subject: undefined, echo: undefined } })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      A trail is the subject's own cutout from earlier frames: six copies two frames apart, each 0.72 as strong as the last, under the live
+      dancer; tinted, the copies are washed toward one colour. The echo instead lays earlier frames of the whole picture over the current
+      one, so anything that moves, the camera included, leaves a ghost. Film: <a href="https://commons.wikimedia.org/wiki/File:Annabelle_butterfly_dance_1894.ogv" style={{ color: "#7cc6ff" }}>Annabelle
+      Butterfly Dance</a> (W. K. L. Dickson, 1894), CC0.
+    </FilmCompare>;
+  },
+};
+
+const glitchDoc = glitchExample as unknown as FilmDocument;
+/** Glitch cuts on the 110 bpm drum loop, centred on kicks: the frame breaks into bands that jump sideways and tear into red and blue while
+ * the next scene takes over band by band. The last scene is a real datamosh made by `npm run video:datamosh`. Beside it, hard cuts. */
+export const GlitchAndDatamosh: StoryObj = {
+  render: function GlitchAndDatamosh() {
+    const variants = useMemo(() => ({
+      glitch: { label: "Glitch cuts", film: compileExample(glitchDoc) },
+      cuts: { label: "Hard cuts (before)", film: compileExample({ ...glitchDoc, scenes: glitchDoc.scenes.map(scene => scene.transition ? { ...scene, transition: { kind: "cut" } } : scene) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={film => film.cut.transitions[0].startFrame - 10} audio={soundUrls["../../assets/sound/lab/moves/glitch.m4a"]}>
+      The bands hold for two frames and then change; the tear peaks in the middle of the cut, and every band is the next scene by its end.
+      Under reduced motion each cut is a dissolve. The last scene is not drawn by the film: it is a real datamosh between two CC0 clips,
+      the 1894 dancer's picture moved by the peacock's motion vectors until the next keyframe brings the peacock back clean.
+    </FilmCompare>;
+  },
+};
+
+/** The source timeline of a jump cut: kept stretches as bars (pushed-in ones in blue), the pauses taken out as gaps. */
+function JumpCutStrip({ segments, seconds, width = 960 }: { segments: ReadonlyArray<{ start: number; end: number; punch: boolean }>; seconds: number; width?: number }) {
+  const x = (t: number) => t / seconds * width;
+  return <svg width={width} height={58} role="img" aria-label={`${segments.length} kept stretches of ${seconds} seconds; ${segments.filter(s => s.punch).length} pushed in`} style={{ maxWidth: "100%" }}>
+    <rect x={0} y={14} width={width} height={22} rx={4} fill="#2a1d24" />
+    {segments.map((segment, k) => <rect key={k} x={x(segment.start)} y={14} width={x(segment.end) - x(segment.start)} height={22} rx={3} fill={segment.punch ? "#7cc6ff" : "#8592a3"} />)}
+    {Array.from({ length: Math.floor(seconds / 2) + 1 }, (_, k) => <text key={k} x={x(k * 2)} y={52} fill="#6b7686" fontSize={10} textAnchor="middle">{k * 2}s</text>)}
+    <text x={0} y={10} fill="#9aa4b2" fontSize={11}>grey: kept, as shot · blue: kept, pushed in · dark: pause taken out</text>
+  </svg>;
+}
+/** A real talking head (CC0) cut by `npm run video:jumpcut`: the pauses taken out and every other long stretch pushed in, so each cut
+ * reads as a tighter angle. The original and the cut play side by side, with their sound. */
+export const JumpCuts: StoryObj = {
+  render: function JumpCuts() {
+    const segments = teacherCutReport.segments, kept = segments.reduce((sum, s) => sum + s.end - s.start, 0);
+    const video = { width: "100%", borderRadius: 8, background: "#000", display: "block" } as const;
+    return <div style={{ display: "grid", gap: 14, padding: 16, background: "#0b0d10", color: "#e8ecf2", font: "14px system-ui", minHeight: "100vh", alignContent: "start" }}>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+        <figure style={{ margin: 0, flex: "1 1 360px", maxWidth: 480 }}>
+          <video src={teacherTalk} controls preload="metadata" playsInline aria-label="Original: a teacher speaks to camera for 22 seconds, with his pauses" style={video} />
+          <figcaption style={{ marginTop: 6, color: "#9aa4b2" }}>Original · 22.0 s</figcaption>
+        </figure>
+        <figure style={{ margin: 0, flex: "1 1 360px", maxWidth: 480 }}>
+          <video src={teacherCut} controls preload="metadata" playsInline aria-label="Jump cut: the same talk with the pauses removed and every other stretch pushed in" style={video} />
+          <figcaption style={{ marginTop: 6, color: "#9aa4b2" }}>Jump cut · {kept.toFixed(1)} s, {(22 - kept).toFixed(1)} s of pauses out, {segments.length - 1} cuts</figcaption>
+        </figure>
+      </div>
+      <JumpCutStrip segments={segments} seconds={22} />
+      <p style={{ margin: 0, maxWidth: 960, color: "#9aa4b2", font: "13px/1.55 system-ui" }}>
+        FFmpeg's silencedetect finds the pauses (below −35 dB for 0.3 s or more); each kept stretch keeps 0.08 s of breath at both ends and a
+        10 ms fade, so no word is clipped and no cut clicks. Every other long stretch is pushed in 1.12 times about the face; a short one
+        (a single word) keeps the framing before it. <code>--srt</code> retimes a subtitle file to the cut. This demo has no transcript, so
+        it plays without captions. Clip: <a href="https://commons.wikimedia.org/wiki/File:Interview_with_a_Teacher_-_Glen_Caruso.webm" style={{ color: "#7cc6ff" }}>Interview
+        with a Teacher - Glen Caruso</a> by Chase Bohannon and Glen Caruso, CC0.
+      </p>
+    </div>;
+  },
+};
+
+const reframeDoc = reframeExample as unknown as FilmDocument;
+/** A deer wading across a river, filmed on a long lens that follows it loosely, made vertical. Left, the whole landscape clip with the
+ * vertical crop drawn on it; then the vertical film, whose crop follows the deer (`reframe`); then a plain centre crop, as Kumiki cropped
+ * before. */
+export const SubjectReframe: StoryObj = {
+  render: function SubjectReframe() {
+    const scene = reframeDoc.scenes[0], content = scene.content as FilmFootageContent, fps = reframeDoc.fps;
+    const films = useMemo(() => ({
+      source: compileExample({ ...reframeDoc, outputs: [{ id: "source", width: 480, height: Math.round(480 * content.video.height / content.video.width) }] }, "source"),
+      reframed: compileExample(reframeDoc),
+      centre: compileExample({ ...reframeDoc, scenes: reframeDoc.scenes.map(item => ({ ...item, content: { ...item.content as object, reframe: undefined } })) } as unknown as FilmDocument),
+    }), [content]);
+    const placement = useMemo(() => footagePlacement(content.video, content.from ?? 0, content.rate ?? 1, scene.durationFrames), [content, scene]);
+    const first = footageFrameAt(placement, 0, fps), plan = useMemo(() => footageReframe(content.reframe!, content.video, first, footageFrameAt(placement, scene.durationFrames - 1, fps), { width: 360, height: 640 })!, [content, first, placement, scene, fps]);
+    const [frame, setFrame] = useState(0), [playing, setPlaying] = useState(false), clock = useRef({ from: 0, at: 0 }), last = films.reframed.durationFrames - 1;
+    useEffect(() => {
+      if (!playing) return;
+      clock.current = { from: performance.now(), at: frame };
+      let id = 0;
+      const tick = (now: number) => { const next = Math.floor(clock.current.at + (now - clock.current.from) / 1000 * fps.num / fps.den); if (next >= last) { setFrame(last); setPlaying(false); return; } setFrame(next); id = requestAnimationFrame(tick); };
+      id = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(id);
+    }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
+    const crop = reframeCrop(plan, footageFrameAt(placement, frame, fps) - first), k = 480 / content.video.width;
+    const panel = (film: CompiledFilm, width: number, height: number) => <div style={{ position: "relative", width, height, borderRadius: 8, overflow: "hidden", background: "#000" }}>
+      <FilmStage film={film} frame={frame} renderObject={() => null} reducedMotion={false} /></div>;
+    const caption = { marginTop: 6, color: "#9aa4b2", maxWidth: 360 } as const;
+    return <div style={{ display: "grid", gap: 14, padding: 16, background: "#0b0d10", color: "#e8ecf2", font: "14px system-ui", minHeight: "100vh", alignContent: "start" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <button type="button" onClick={() => { if (frame >= last) setFrame(0); setPlaying(p => !p); }} style={{ font: "650 14px system-ui", padding: "8px 16px", borderRadius: 8, border: 0, background: "#7cc6ff", color: "#06121f" }}>{playing ? "Pause" : "Play"}</button>
+        <input type="range" min={0} max={last} value={frame} onChange={event => { setPlaying(false); setFrame(Number(event.target.value)); }} aria-label="Film frame" style={{ width: 360 }} />
+        <span style={{ font: "600 13px ui-monospace, monospace", color: "#9aa4b2" }}>{(frame * fps.den / fps.num).toFixed(2)} s · f{frame}</span>
+      </div>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
+        <figure style={{ margin: 0 }}>
+          <div style={{ position: "relative" }}>
+            {panel(films.source, 480, films.source.height)}
+            <svg width={480} height={films.source.height} aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+              <rect x={crop.x * k} y={crop.y * k} width={crop.width * k} height={crop.height * k} fill="none" stroke="#7cc6ff" strokeWidth={3} />
+            </svg>
+          </div>
+          <figcaption style={{ ...caption, maxWidth: 480 }}>The whole clip. Blue: the vertical crop, a {plan.mode} move planned over the whole clip.</figcaption>
+        </figure>
+        <figure style={{ margin: 0 }}>{panel(films.reframed, 360, 640)}
+          <figcaption style={caption}>Reframed: the crop follows the deer, at most {plan.speed.toFixed(2)} crop widths a second.</figcaption></figure>
+        <figure style={{ margin: 0 }}>{panel(films.centre, 360, 640)}
+          <figcaption style={caption}>Centre crop (before): the middle of the picture, wherever the deer is.</figcaption></figure>
+      </div>
+      <p style={{ margin: 0, maxWidth: 1000, color: "#9aa4b2", font: "13px/1.55 system-ui" }}>
+        <code>npm run video:reframe</code> reads the deer's place in every frame from its cutout (<code>npm run video:matte</code>) and plans
+        the crop for the whole clip before it moves, choosing a still, panning or tracking crop. A tracking crop sees what comes, so it starts to
+        move before the deer reaches its edge. Clip: <a href="https://commons.wikimedia.org/wiki/File:Deer_walks_across_Owyhee_River,_eastern_Oregon_(22197216555).webm" style={{ color: "#7cc6ff" }}>Deer
+        walks across Owyhee River, eastern Oregon</a> by Larry Moore, BLM Oregon &amp; Washington: a U.S. government work in the public domain.
+      </p>
+    </div>;
   },
 };
 
