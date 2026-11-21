@@ -10,10 +10,13 @@ import { shodoFerruleHeight } from "../registry/video/shodo/shodo-brush";
 import { ShodoInkSurface } from "../registry/video/shodo/shodo-ink";
 import { DEFAULT_SHODO_STYLE, inspectShodoStyle, resolveShodoStyle } from "../registry/video/shodo/shodo-style";
 import { SHODO_BASICS, auditShodoTechniques } from "../registry/video/shodo/shodo-techniques";
+import { fillKanjiCardContent, readKanjiCardExport, resolveKanjiCardContent } from "../src/video/shodo-demos";
+import { ShodoKanjiCard, ShodoKanjiInfoCard } from "../registry/video/shodo/shodo-kanji-card";
+import { DEFAULT_KANJI_CARD_THEME, kanjiCardConvertAt, kanjiCardLabelText, kanjiCardTheme, kanjiCardThemeIssues } from "../registry/video/shodo/shodo-kanji-card-plan";
 import {
-  KANJI_WORD_EASE, ShodoKanjiInfoCard, fillKanjiCardContent, kanjiCardPhaseAt, kanjiCardTimeline, parseWordHighlights, resolveKanjiCardContent,
-  spreadWordHighlights, wordHighlightAt,
-} from "../src/video/shodo-demos";
+  KANJI_WORD_EASE, kanjiCardGeometry, kanjiCardPhaseAt, kanjiCardSafeInset, kanjiCardStrokeTimes, kanjiCardTimeline, kanjiCardTypedAt, kanjiCardWriting,
+  parseWordHighlights, spreadWordHighlights, wordHighlightAt,
+} from "../registry/video/shodo/shodo-kanji-card-plan";
 import { readKanjiCardDataset } from "../src/video/shodo-studio";
 
 const ei = () => planShodoWriting({ items: [{ glyph: SHODO_GLYPHS["永"], x: 20, y: 20, size: 360 }], style: DEFAULT_SHODO_STYLE });
@@ -509,5 +512,270 @@ describe("SHO1 shodō calligraphy", () => {
     // "each": every word in turn, from 20 % to 80 % of the video.
     expect(spreadWordHighlights(3, 20).map(c => c.at)).toEqual([4, 10, 16]);
     expect(spreadWordHighlights(2, 10)).toEqual([{ word: 0, at: 2, hold: 2.5 }, { word: 1, at: 8, hold: 2.5 }]);
+  });
+
+  it("keeps the label, the ink and the card text inside a platform's safe bands, and the layout unchanged without them", () => {
+    // Without bands the layout is the one the stories have always had.
+    const plain = kanjiCardGeometry("portrait", true);
+    expect(plain.paper).toEqual({ x: 0, y: 0, width: 720, height: 750 });
+    expect(plain.writing).toEqual(plain.paper);
+    expect(plain.cardPad).toEqual([34, 36, 34, 36]);
+    expect(kanjiCardGeometry("landscape", true).cardPad).toEqual([40, 34, 40, 34]);
+    // YouTube Shorts bands: 8 % left, 12 % right, 9 % top, 19 % bottom.
+    const inset = { left: .08, right: .12, top: .09, bottom: .19 };
+    const g = kanjiCardGeometry("portrait", true, inset);
+    const [L, R, T, B] = [.08 * 720, .12 * 720, .09 * 1280, .19 * 1280];
+    expect(g.label.x).toBeGreaterThanOrEqual(L);
+    expect(g.label.y).toBeGreaterThanOrEqual(T);
+    expect(g.writing.x).toBeGreaterThanOrEqual(L);
+    expect(g.writing.x + g.writing.width).toBeLessThanOrEqual(720 - R);
+    expect(g.writing.y).toBeGreaterThanOrEqual(g.label.y + g.type.label);                 // under the label
+    expect(g.writing.y + g.writing.height).toBeLessThanOrEqual(g.card!.y);
+    expect(g.cardPad[1]).toBeGreaterThanOrEqual(R);
+    expect(g.card!.y + g.card!.height).toBeCloseTo(1280 - B, 6);                       // the card ends above the bottom band
+    expect(g.band).toEqual({ x: 0, y: 1280 - B, width: 720, height: B });               // which shows the dark felt
+    expect(plain.band).toBeNull();
+    expect(g.cardPad[3]).toBeGreaterThanOrEqual(L);
+    // The card keeps the height of its text, so the paper above it is shorter.
+    expect(g.card!.height - g.cardPad[0] - g.cardPad[2]).toBeCloseTo(plain.card!.height - plain.cardPad[0] - plain.cardPad[2], 6);
+    // Bands are limited to 0..0.4, and a value that is not a number counts as 0.
+    expect(kanjiCardSafeInset({ left: -1, right: .9, top: Number.NaN })).toEqual({ left: 0, right: .4, top: 0, bottom: 0 });
+  });
+
+  it("places the strokes of each pass on the video clock, in writing order", () => {
+    const plan = { duration: 4, strokes: [{ kind: "vertical", t0: 1, t1: 2 }, { kind: "link", t0: 2, t1: 2.1 }, { kind: "dot", t0: 3, t1: 3.5 }] } as unknown as Parameters<typeof kanjiCardStrokeTimes>[0];
+    const t = kanjiCardTimeline(4, { write: 4, review: 8, info: 1 }, 30);
+    // The review pass is the same plan stretched to 8 s; links (連綿) are not strokes.
+    expect(kanjiCardStrokeTimes(plan, t)).toEqual({ write: [[1, 2], [3, 3.5]], review: [[6, 8], [10, 11]] });
+    expect(kanjiCardStrokeTimes(plan, kanjiCardTimeline(4, { write: 0, review: 4 }, 30)).write).toEqual([]);
+  });
+
+  it("reads an export description, names every problem, and takes a preset's size and safe bands", () => {
+    const ok = readKanjiCardExport({
+      char: "水", timing: { write: 4.5, review: 6, info: 3 }, jlpt: "N5", meanings: "WATER",
+      words: [{ word: "水", ruby: "みず", romaji: "mizu", meaning: "water" }], wordHighlights: [{ word: 0, at: 9, hold: 1.3 }], preset: "youtube-shorts",
+    });
+    expect(ok.errors).toEqual([]);
+    expect(ok.value).toMatchObject({ width: 1080, height: 1920, preset: "youtube-shorts" });
+    expect(ok.value?.props).toMatchObject({ char: "水", layout: "portrait", reducedMotion: false, safeInset: { left: .08, right: .12, top: .09, bottom: .19 } });
+    expect(readKanjiCardExport({ char: "水", timing: { write: 1, review: 1, info: 1 }, width: 720 }).value).toMatchObject({ width: 720, height: 1280 });
+    expect(readKanjiCardExport({ char: "水", layout: "landscape", timing: { write: 1, review: 1, info: 1 } }).value).toMatchObject({ width: 1920, height: 1080 });
+    const bad = readKanjiCardExport({ char: "水道", timing: { write: 1 }, jlpt: "N6", words: [{ word: "水" }], wordHighlights: [{ word: 3, at: -1 }], preset: "youtube" });
+    expect(bad.value).toBeNull();
+    expect(bad.errors).toEqual(expect.arrayContaining([
+      "char: exactly one character is required.", "timing.review: a number from 0 to 600 is required.", 'jlpt: "N5" to "N1", or null, is required.',
+      "words[0].ruby: a text of 1 to 60 characters is required.", "wordHighlights[0].word: a number from 0 to 0 is required.",
+      "wordHighlights[0].at: a number from 0 to 1800 is required.", "preset: youtube (1920 × 1080) does not fit the 9:16 card.",
+    ]));
+    expect(readKanjiCardExport([]).errors).toEqual(["The description must be a JSON object."]);
+  });
+
+  it("draws the host's frame from the host's glyph, with no clock, transport or credit", () => {
+    const { container } = render(createElement(ShodoKanjiCard, { char: "一", glyph: SHODO_GLYPHS["一"], frame: 40, timing: { write: 1, review: 1, info: 1 } }));
+    expect(container.querySelector("input[type=range]")).toBeNull();
+    expect(screen.queryByRole("button")).toBeNull();
+    const card = container.querySelector<HTMLElement>("[data-km-kanji-card]")!;
+    expect(card.dataset.kmKanjiFrame).toBe("40");
+    expect(card.dataset.kmKanjiPhase).toBe("review");
+    expect(JSON.parse(card.dataset.kmStrokeTimes!).review).toHaveLength(1);
+  });
+
+  it("adds an intro phase before the writing, and keeps the old phases when there is none", () => {
+    const t = kanjiCardTimeline(10, { intro: 2, write: 6, review: 8, info: 4 }, 30);
+    expect([t.intro, t.write, t.review, t.info, t.frames]).toEqual([[0, 60], [60, 240], [240, 480], [480, 600], 600]);
+    expect(kanjiCardPhaseAt(t, 59)).toEqual({ phase: "intro", local: 59, length: 60 });
+    expect(kanjiCardPhaseAt(t, 60)).toEqual({ phase: "write", local: 0, length: 180 });
+    expect(kanjiCardTimeline(10, { write: 6 }, 30).intro).toEqual([0, 0]);
+    expect(kanjiCardPhaseAt(kanjiCardTimeline(10, { write: 6 }, 30), 0).phase).toBe("write");
+  });
+
+  it("types the reading, converts it to the character on time, and fades it out as the brush starts", () => {
+    const intro = { reading: "みず", convertAt: 2 };
+    const at = (time: number) => kanjiCardTypedAt("水", intro, 2.5, time);
+    expect(at(.1)).toMatchObject({ text: "", composing: false });                         // only the caret before typing
+    expect(at(2 - .12 - .3)).toMatchObject({ text: "み", composing: true });
+    expect(at(1.99)).toMatchObject({ text: "みず", composing: true, caret: true });
+    expect(at(2)).toMatchObject({ text: "水", composing: false });                       // converts exactly at convertAt
+    expect(at(2).converted).toBeGreaterThan(.9);
+    expect(at(2.4).grow).toBe(1);
+    expect(at(2.5).opacity).toBe(1);
+    expect(at(2.5 + .175).opacity).toBeGreaterThan(0);
+    expect(at(2.5 + .175).opacity).toBeLessThan(1);
+    expect(at(2.9).opacity).toBe(0);                                                       // gone 0.35 s into the writing
+    expect(kanjiCardTypedAt("水", intro, 0, 0).opacity).toBe(0);                          // no intro, no typing
+    expect(kanjiCardTypedAt("水", undefined, 2, 1.5)).toMatchObject({ text: "水", grow: 1 }); // no reading: the character itself
+    // Typed early, the character holds with a slow push-in and a pulse when its name is spoken.
+    const early = (time: number) => kanjiCardTypedAt("水", { reading: "みず", convertAt: .6, emphasizeAt: 2 }, 3, time);
+    expect(early(.9).scale).toBeLessThan(early(1.5).scale);
+    expect(early(1.5).scale).toBeLessThan(early(2.9).scale + .04);
+    expect(early(1.99).converted).toBe(0);
+    expect(early(2.1).converted).toBeCloseTo(.8, 5);                                    // the pulse peaks 0.1 s after the name
+    expect(early(2.1).scale).toBeGreaterThan(early(1.99).scale);
+    expect(early(2.7).converted).toBe(0);
+  });
+
+  it("gives the compact 9:16 card a taller writing panel, and plans in Node what the card draws", () => {
+    const inset = { left: .08, right: .12, top: .09, bottom: .19 };
+    const regular = kanjiCardGeometry("portrait", true, inset);
+    const compact = kanjiCardGeometry("portrait", true, inset, true, "compact");
+    expect(compact.writing.height - regular.writing.height).toBeGreaterThan(120);
+    expect(compact.card!.height).toBeLessThan(regular.card!.height);
+    expect(kanjiCardGeometry("landscape", true, undefined, true, "compact").density).toBe("regular");  // landscape has one size
+    const writing = kanjiCardWriting(SHODO_GLYPHS["三"], { layout: "portrait", density: "compact", safeInset: inset, timing: { intro: 2, write: 5, review: 5, info: 2 },
+      content: { meanings: "THREE" } });
+    expect(writing.timeline.write).toEqual([60, 210]);
+    expect(writing.strokes.write).toHaveLength(3);
+    expect(writing.strokes.write[0][0]).toBeGreaterThan(2);                                // the brush lands after the intro
+    const [, y0, , y1] = writing.inkBox;
+    expect(y0).toBeGreaterThanOrEqual(compact.writing.y);
+    expect(y1).toBeLessThanOrEqual(compact.writing.y + compact.writing.height);
+    // The card draws the same plan: the same stroke times.
+    const { container } = render(createElement(ShodoKanjiCard, { char: "三", glyph: SHODO_GLYPHS["三"], frame: 0, layout: "portrait", density: "compact",
+      safeInset: inset, timing: { intro: 2, write: 5, review: 5, info: 2 }, meanings: "THREE" }));
+    expect(JSON.parse(container.querySelector<HTMLElement>("[data-km-kanji-card]")!.dataset.kmStrokeTimes!)).toEqual(JSON.parse(JSON.stringify(writing.strokes)));
+  });
+
+  it("reads the intro, density and card reveal of an export description", () => {
+    const ok = readKanjiCardExport({ char: "水", timing: { intro: 2.5, write: 6, review: 6, info: 4 }, intro: { reading: "みず", convertAt: 2 }, density: "compact", cardFrom: "write" });
+    expect(ok.errors).toEqual([]);
+    expect(ok.value?.props).toMatchObject({ timing: { intro: 2.5 }, intro: { reading: "みず", convertAt: 2 }, density: "compact", cardFrom: "write" });
+    expect(readKanjiCardExport({ char: "水", timing: { intro: 1, write: 1, review: 1, info: 1 }, intro: { convertAt: 3 }, density: "tiny", cardFrom: "later" }).errors).toEqual([
+      'density: "regular" or "compact" is required.', "intro.convertAt: a number from 0 to 0.68 is required.", 'cardFrom: "intro", "write", "review" or "info" is required.',
+    ]);
+  });
+
+  it("keeps every allowed pair of safe bands drawable, and reports the bands it uses", () => {
+    // Each band may be 0..0.4; opposite bands shrink together to 0.45, so the writing panel keeps room.
+    expect(kanjiCardSafeInset({ top: .2, bottom: .4 })).toMatchObject({ top: .15, bottom: .3 });
+    for (const density of ["regular", "compact"] as const) for (let top = 0; top <= .4001; top += .05) for (let bottom = 0; bottom <= .4001; bottom += .05) {
+      const writing = kanjiCardWriting(SHODO_GLYPHS["三"], { layout: "portrait", density, safeInset: { top, bottom, left: .4, right: .4 }, content: { meanings: "THREE" } });
+      expect(writing.geometry.writing.height).toBeGreaterThan(100);
+      expect(writing.geometry.label.y).toBeLessThan(writing.geometry.card!.y);
+    }
+    const { container } = render(createElement(ShodoKanjiCard, { char: "三", glyph: SHODO_GLYPHS["三"], frame: 0, safeInset: { left: .5, top: Number.NaN }, timing: { write: 1, info: 1 } }));
+    expect(container.querySelector<HTMLElement>("[data-km-kanji-card]")!.dataset.kmSafeInset).toBe("0.4,0,0,0");
+  });
+
+  it("plans with the card's own rule for the reading card and the label, so Node and the card agree", () => {
+    const glyph = SHODO_GLYPHS["三"], timing = { write: 4, review: 4, info: 1 };
+    for (const [content, sections] of [[{}, {}], [{ meanings: "THREE" }, { meanings: false }], [{ meanings: "THREE" }, { label: false }]] as const) {
+      const writing = kanjiCardWriting(glyph, { layout: "portrait", timing, content, sections });
+      const { container, unmount } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 0, layout: "portrait", timing, sections, ...content }));
+      const card = container.querySelector<HTMLElement>("[data-km-kanji-card]")!;
+      expect(card.dataset.kmInkBox).toBe(writing.inkBox.map(v => v.toFixed(1)).join(" "));
+      expect(JSON.parse(card.dataset.kmStrokeTimes!)).toEqual(JSON.parse(JSON.stringify(writing.strokes)));
+      unmount();
+    }
+    expect(kanjiCardWriting(glyph, { layout: "portrait", timing }).geometry.card).toBeNull();                // no text, no card
+  });
+
+  it("with reduced motion shows the same words at the same times, with no typing, caret, growth or bump", () => {
+    const intro = { reading: "みず", convertAt: 1, emphasizeAt: 2 };
+    const at = (time: number) => kanjiCardTypedAt("水", intro, 3, time, { reducedMotion: true });
+    expect(at(.2)).toMatchObject({ text: "みず", caret: false, grow: 1, scale: 1 });             // the whole reading, at once
+    expect(at(1.5)).toMatchObject({ text: "水", caret: false, grow: 1, scale: 1, converted: 0 });
+    expect(at(2.1).converted).toBeCloseTo(.8, 5);                                                 // the name still shows, as a fade
+    expect(at(2.1).scale).toBe(1);
+    for (let t = 0; t < 3; t += .05) expect(at(t).caret).toBe(false);
+  });
+
+  it("plans vermilion strokes from the content too, refuses the old options, and treats an undefined section as shown", () => {
+    const glyph = SHODO_GLYPHS["三"], timing = { write: 4, review: 4, info: 1 };
+    const fromContent = kanjiCardWriting(glyph, { layout: "portrait", timing, content: { meanings: "THREE", vermilionStrokes: [3] } });
+    const fromOption = kanjiCardWriting(glyph, { layout: "portrait", timing, content: { meanings: "THREE" }, vermilionStrokes: [3] });
+    expect(fromContent.strokes).toEqual(fromOption.strokes);
+    const { container } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 0, layout: "portrait", timing, meanings: "THREE", vermilionStrokes: [3], sections: { label: undefined } }));
+    const card = container.querySelector<HTMLElement>("[data-km-kanji-card]")!;
+    expect(JSON.parse(card.dataset.kmStrokeTimes!)).toEqual(JSON.parse(JSON.stringify(fromContent.strokes)));
+    expect(container.querySelector("[data-km-kanji-label]")).not.toBeNull();                   // undefined: the label shows, as planned
+    expect(() => kanjiCardWriting(glyph, { withCard: true } as never)).toThrow(/no longer an option/u);
+  });
+
+  it("with reduced motion and no reading shows nothing before the conversion, as full motion shows only a caret", () => {
+    expect(kanjiCardTypedAt("水", { convertAt: 1.5 }, 3, 1, { reducedMotion: true })).toMatchObject({ text: "", opacity: 0 });
+    expect(kanjiCardTypedAt("水", { convertAt: 1.5 }, 3, 1.6, { reducedMotion: true }).text).toBe("水");
+  });
+
+  it("takes its words, colours, fonts and brush from the host, and plans the same brush the card draws", () => {
+    const glyph = SHODO_GLYPHS["三"], timing = { write: 4, review: 4, info: 1 };
+    const { container, unmount } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 200, layout: "portrait", timing,
+      meanings: "THREE", onyomi: "SAN (サン)", jlpt: "N5", words: [{ word: "三月", ruby: "さんがつ", romaji: "sangatsu", meaning: "March" }],
+      labels: { onyomi: "音読み", kunyomi: "訓読み", words: "ことば", jlpt: "日本語能力試験" }, theme: { accent: "#1F5FAD", card: "#FFFFFF" } }));
+    expect(screen.getByText("音読み")).toBeInTheDocument();
+    expect(screen.getByText("ことば")).toBeInTheDocument();
+    expect(screen.getByText("日本語能力試験 N5")).toBeInTheDocument();
+    expect(container.querySelector("[data-km-kanji-label]")!.textContent).toBe("KANJI STUDY: 三");
+    expect(container.querySelector("[data-km-kanji-label] [lang=ja]")!.textContent).toBe("三");
+    expect(container.querySelector<HTMLElement>("aside")!.style.background).toBe("rgb(255, 255, 255)");
+    unmount();
+    expect(() => kanjiCardTheme({ accent: "red" })).toThrow(/accent must be a #RRGGBB/u);
+    expect(() => kanjiCardTheme({ ink: "black", accent: "blue" })).toThrow(/ink must be .*; accent must be/u);   // every bad key
+    expect(() => kanjiCardTheme({ body: "M PLUS 1p, sans-serif" })).toThrow(/body must be a CSS font stack/u);  // "1p" is not a CSS name
+    expect(kanjiCardTheme({ body: "'M PLUS 1p', sans-serif" }).body).toBe("'M PLUS 1p', sans-serif");
+    expect(kanjiCardTheme({ accent: undefined })).toEqual(DEFAULT_KANJI_CARD_THEME);                       // undefined uses the default
+    expect(kanjiCardThemeIssues({ accnt: "#000000" } as never)).toEqual([expect.stringMatching(/^accnt is not a theme key/u)]);   // a description is checked
+    expect(kanjiCardTheme({ accent: "#1E5AA8", name: "Acme" } as never).accent).toBe("#1E5AA8");                                // the card ignores extra keys
+    for (const word of ["inherit", "initial", "default, serif"]) expect(kanjiCardThemeIssues({ body: word })).toHaveLength(1);    // CSS-wide keywords
+    expect(kanjiCardThemeIssues({ body: "'inherit', serif" })).toEqual([]);                                                       // quoted, it is a name
+    expect(kanjiCardTheme({ ink: "#000000" })).toMatchObject({ ...DEFAULT_KANJI_CARD_THEME, ink: "#000000" });
+    // A brush style changes the plan, and the card plans with it exactly as kanjiCardWriting does.
+    const brushStyle = { hand: { pressure: .6 }, brush: { diameter: 140 } };
+    const plain = kanjiCardWriting(glyph, { layout: "portrait", timing, content: { meanings: "THREE" } });
+    const styled = kanjiCardWriting(glyph, { layout: "portrait", timing, content: { meanings: "THREE" }, brushStyle });
+    expect(styled.plan.style.hand.pressure).toBe(.6);
+    expect(styled.plan.brush.diameter).not.toBe(plain.plan.brush.diameter);
+    const { container: c2 } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 0, layout: "portrait", timing, meanings: "THREE", brushStyle }));
+    expect(c2.querySelector<HTMLElement>("[data-km-kanji-card]")!.dataset.kmInkBox).toBe(styled.inkBox.map(v => v.toFixed(1)).join(" "));
+  });
+
+  it("formats the heading and the accessible names from the labels, and keeps undefined labels at their defaults", () => {
+    const glyph = SHODO_GLYPHS["三"];
+    const { container } = render(createElement(ShodoKanjiCard, { char: "三", glyph, frame: 0, heading: "漢字", timing: { write: 1, info: 1 }, meanings: "THREE",
+      labels: { heading: "{char} — {heading}", cardName: "{char}の読みと言葉", writingName: "筆で書く{char}", jlpt: undefined } }));
+    expect(container.querySelector("[data-km-kanji-label]")!.textContent).toBe("三 — 漢字");
+    expect(container.querySelector("aside")!.getAttribute("aria-label")).toBe("三の読みと言葉");
+    expect(container.querySelector("canvas")!.getAttribute("aria-label")).toBe("筆で書く三");
+    expect(kanjiCardLabelText("{HEADING}: {char}", { heading: "istanbul", char: "三" }, "tr")).toBe("İSTANBUL: 三");
+  });
+
+  it("reads the brush style and typing pace of an export description, checked as the planner uses them", () => {
+    const ok = readKanjiCardExport({ char: "水", timing: { intro: 2, write: 1, review: 1, info: 1 }, intro: { typeStep: .3 }, brushStyle: { hand: { script: "gyosho" }, seed: 7 } });
+    expect(ok.errors).toEqual([]);
+    expect(ok.value?.props).toMatchObject({ intro: { typeStep: .3 }, brushStyle: { hand: { script: "gyosho" }, seed: 7 } });
+    const bad = readKanjiCardExport({ char: "水", timing: { write: 1, review: 1, info: 1 }, brushStyle: { brush: { diameter: 5 } }, theme: { ink: "black", accent: "blue" } });
+    expect(bad.errors).toEqual(expect.arrayContaining([expect.stringMatching(/^brushStyle\.brush\.diameter: /u), "theme.ink must be a #RRGGBB colour.", "theme.accent must be a #RRGGBB colour."]));
+  });
+
+  it("gives the convertAt that starts typing at a chosen moment, so hosts do not copy the typing constants", () => {
+    const convertAt = kanjiCardConvertAt(2, { startAt: .15, typeStep: .2 });
+    expect(convertAt).toBe(.67);
+    expect(kanjiCardTypedAt("水", { reading: "みず", convertAt, typeStep: .2 }, 3, .14).text).toBe("");     // nothing typed yet
+    expect(kanjiCardTypedAt("水", { reading: "みず", convertAt, typeStep: .2 }, 3, .16).text).toBe("み");   // typing starts at 0.15 s
+  });
+
+  it("types at the host's pace", () => {
+    const slow = kanjiCardTypedAt("水", { reading: "みず", convertAt: 2, typeStep: .4 }, 3, 2 - .12 - .5);
+    expect(slow.text).toBe("み");                                                          // the second kana comes 0.4 s after the first
+    expect(kanjiCardTypedAt("水", { reading: "みず", convertAt: 2, typeStep: .4 }, 3, 2 - .12 - .3).text).toBe("みず");
+  });
+
+  it("finishes the conversion inside the intro, also when convertAt is at its end", () => {
+    const late = kanjiCardTypedAt("水", { reading: "みず", convertAt: 3 }, 3, 2.95);   // converted at 2.68 s, grown by 2.9 s
+    expect(late.text).toBe("水");
+    expect(late.grow).toBe(1);
+  });
+
+  it("checks export sizes the way the export stage does", () => {
+    const size = (layout: string, width: number) => readKanjiCardExport({ char: "水", layout, width, timing: { write: 1, review: 1, info: 1 } });
+    expect(size("portrait", 1080).value).toMatchObject({ width: 1080, height: 1920 });
+    expect(size("portrait", 1024).errors[0]).toMatch(/divisible by 18/u);
+    expect(size("portrait", 2880).errors[0]).toMatch(/360 to 2430/u);
+    expect(size("landscape", 1280).value).toMatchObject({ width: 1280, height: 720 });
+    expect(size("landscape", 1040).errors[0]).toMatch(/divisible by 32/u);
+    const full = readKanjiCardExport({ char: "水", timing: { write: 1, review: 1, info: 1 }, ink: "vermilion", vermilionStrokes: [1], speed: 2, sections: { label: false } });
+    expect(full.value?.props).toMatchObject({ ink: "vermilion", vermilionStrokes: [1], speed: 2, sections: { label: false } });
+    expect(readKanjiCardExport({ char: "水", timing: { write: 1, review: 1, info: 1 }, ink: "blue", sections: { title: true } }).errors).toEqual([
+      'ink: "sumi" or "vermilion" is required.', "sections: { label, meanings, readings, jlpt, words } as true or false is required.",
+    ]);
   });
 });

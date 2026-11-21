@@ -3889,6 +3889,28 @@
       ]
     },
     {
+      "name": "shodo-kanji-card",
+      "type": "registry:ui",
+      "title": "Shodō Kanji Study Card (SHO1 card)",
+      "description": "A frame-addressed study video for one kanji: an optional intro types the character (caret, kana reading, conversion); the brush writes it on gridded hanshi; writes it again with vermilion stroke-order numbers; then a reading card holds meanings, on'yomi, kun'yomi, a JLPT badge and useful words, highlighted one at a time on cues from a voice-over. 16:9 and 9:16 (regular or compact) layouts, platform safe bands that keep text and ink clear of app buttons and captions, phone-legible text that shrinks before it clips, and pure Node-safe planning (`kanjiCardWriting`) that gives the same layout, phases and per-stroke times the card draws, so a host can time narration to the brush. The host supplies the glyph (for example from `loadShodoGlyph`), the frame and all card text; the card bundles no kanji data.",
+      "dependencies": [],
+      "registryDependencies": [
+        "shodo-calligraphy"
+      ],
+      "files": [
+        {
+          "path": "registry/video/shodo/shodo-kanji-card-plan.ts",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-kanji-card-plan.ts"
+        },
+        {
+          "path": "registry/video/shodo/shodo-kanji-card.tsx",
+          "type": "registry:ui",
+          "target": "components/video/shodo/shodo-kanji-card.tsx"
+        }
+      ]
+    },
+    {
       "name": "universal-rig",
       "type": "registry:ui",
       "title": "Universal Rig (RIG1)",

@@ -1,22 +1,36 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { compileFilm } from "../../registry/video/film-document";
 import type { FilmDocument } from "../../registry/video/film-document";
 import { FilmStage } from "../../registry/video/film-stage";
+import { VIDEO_PLATFORM_PRESETS } from "../../registry/video/platform-presets";
+import type { VideoPlatformPresetId } from "../../registry/video/platform-presets";
+import { VideoExportStage } from "../../registry/video/video-export-stage";
+import type { VideoExportManifest } from "../../registry/video/video-export-stage";
 import { renderShodoSlot, shodoWritingFrames } from "../../registry/video/shodo/shodo-film-slot";
-import { SHODO_KANJIVG_CREDIT } from "../../registry/video/shodo/shodo-glyph-source";
-import type { CSSProperties, HTMLAttributes, RefObject } from "react";
+import { SHODO_KANJIVG_CREDIT, loadShodoGlyph } from "../../registry/video/shodo/shodo-glyph-source";
+import type { CSSProperties } from "react";
 import { SHODO_GLYPHS } from "../../registry/video/shodo/shodo-glyphs";
 import type { ShodoGlyph } from "../../registry/video/shodo/shodo-glyphs";
 import { planShodoWriting, shodoBrushPose } from "../../registry/video/shodo/shodo-hand";
-import type { ShodoPlan } from "../../registry/video/shodo/shodo-hand";
 import { ShodoInkSurface } from "../../registry/video/shodo/shodo-ink";
 import { kenteiSheet } from "../../registry/video/shodo/shodo-paper";
 import { SHODO_KANKA_RULES, shodoKankaRulesFor } from "../../registry/video/shodo/shodo-structure";
 import { ShodoBrushProfile, ShodoCanvas } from "../../registry/video/shodo/shodo-react";
 import { shodoFerruleHeight } from "../../registry/video/shodo/shodo-brush";
-import { DEFAULT_SHODO_STYLE, SHODO_INKS, resolveShodoStyle, shodoRgb } from "../../registry/video/shodo/shodo-style";
+import { SHODO_INKS, inspectShodoStyle, resolveShodoStyle } from "../../registry/video/shodo/shodo-style";
+import type { DeepPartial, ShodoStyle } from "../../registry/video/shodo/shodo-style";
 import { SHODO_BASICS, auditShodoTechniques, shodoStepLabel } from "../../registry/video/shodo/shodo-techniques";
 import { SHODO_FPS, SHODO_PHASE_LABEL, SHODO_TECH_LABEL, ShodoTransport, useShodoGlyphs, useShodoPlayback, useShodoTeachers, shodoTeacherLabels } from "./shodo-studio";
+import { ShodoKanjiCard } from "../../registry/video/shodo/shodo-kanji-card";
+import type { ShodoKanjiCardProps } from "../../registry/video/shodo/shodo-kanji-card";
+import {
+  DEFAULT_KANJI_CARD_LABELS, DEFAULT_KANJI_CARD_THEME, KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardPhaseAt, kanjiCardSections, kanjiCardThemeIssues,
+  kanjiCardTimeline, kanjiCardWriting,
+} from "../../registry/video/shodo/shodo-kanji-card-plan";
+import type {
+  JlptLevel, KanjiCardContent, KanjiCardDensity, KanjiCardInk, KanjiCardIntro, KanjiCardPhase, KanjiCardSafeInset, KanjiCardSection, KanjiCardTiming,
+  KanjiCardWord, KanjiWordHighlight,
+} from "../../registry/video/shodo/shodo-kanji-card-plan";
 
 const W = 1280, H = 720;
 const page: CSSProperties = {
@@ -95,70 +109,14 @@ export function ShodoTechniquesBoard() {
 }
 
 // ── Kanji study card: written character beside a reading card ──────────────────────
+// The card is the registry item `shodo-kanji-card` (frame-addressed: the host gives the glyph and
+// the frame). This file adds the 道 sample data, a player with its own clock and the export mode
+// of the stories.
 
-export interface KanjiCardWord { word: string; ruby: string; romaji: string; meaning: string }
-/** JLPT level, from N5 (easiest) to N1. */
-export type JlptLevel = "N5" | "N4" | "N3" | "N2" | "N1";
-export type KanjiCardLayout = "landscape" | "portrait";
-export type KanjiCardPhase = "write" | "review" | "info";
-export type KanjiCardSection = "label" | "meanings" | "readings" | "jlpt" | "words";
-
-/** What the card says about the character. Every field is data from the host. */
-export interface KanjiCardContent {
-  meanings?: string;
-  onyomi?: string;
-  kunyomi?: string;
-  /** JLPT level. No level (or null) shows no badge. */
-  jlpt?: JlptLevel | null;
-  words?: readonly KanjiCardWord[];
-  /** Strokes (writing order from 1) written in vermilion ink (朱墨) to highlight them. Default: none. */
-  vermilionStrokes?: readonly number[];
-}
-
-/** Ink for the whole character: black sumi (default) or vermilion shuboku (朱墨). */
-export type KanjiCardInk = "sumi" | "vermilion";
-
-/** Seconds for each phase of the video. A phase of 0 seconds is skipped. */
-export interface KanjiCardTiming {
-  /** First writing, with its short hold at the end. Default: the natural pace of the brush. */
-  write?: number;
-  /** Second writing, which shows the order number of each stroke. Default: the same as `write`. */
-  review?: number;
-  /** Hold of the finished card at the end. Default: 4. */
-  info?: number;
-}
-
-export interface ShodoKanjiCardProps extends KanjiCardContent {
-  /** The character to write. Default: 道, which also has sample card data. */
-  char?: string;
-  /** The label at the top of the writing panel reads "HEADING: char". */
-  heading?: string;
-  /** "landscape" is 16:9 (1280 × 720). "portrait" is 9:16 (720 × 1280) for phone shorts. */
-  layout?: KanjiCardLayout;
-  timing?: KanjiCardTiming;
-  /** Parts to show. All parts show by default. A part with no data never shows. */
-  sections?: Partial<Record<KanjiCardSection, boolean>>;
-  /** The phase in which the text of the card fades in. Default: "write" (from the first frame). */
-  cardFrom?: KanjiCardPhase;
-  /** Ink for the whole character. Default: "sumi" (black). Use `vermilionStrokes` to highlight single strokes. */
-  ink?: KanjiCardInk;
-  /** Hand speed, 0.25..4 (1 is an unhurried teacher). Used when `timing.write` is not set. Default: 1.6. */
-  speed?: number;
-  /** Show the order number of each stroke in the review pass. Default: true. */
-  strokeNumbers?: boolean;
-  /**
-   * Timed highlights of the useful words, one word at a time, in seconds from the start of the
-   * video (see `wordHighlightAt`). "each" highlights every word in turn, spread over the video
-   * (see `spreadWordHighlights`). A highlighted word card shows also before the card text is
-   * revealed (`cardFrom`). Default: none.
-   */
-  wordHighlights?: readonly KanjiWordHighlight[] | "each";
-  /**
-   * Highlight without scale or lift (fade only). Default: the viewer's prefers-reduced-motion
-   * setting. Give true or false for a video export, so that every export is the same.
-   */
-  reducedMotion?: boolean;
-}
+export type {
+  JlptLevel, KanjiCardContent, KanjiCardDensity, KanjiCardInk, KanjiCardIntro, KanjiCardLayout, KanjiCardPhase, KanjiCardSafeInset,
+  KanjiCardSection, KanjiCardTiming, KanjiCardWord, KanjiWordHighlight,
+} from "../../registry/video/shodo/shodo-kanji-card-plan";
 
 const MICHI_WORDS: readonly KanjiCardWord[] = [
   { word: "道", ruby: "みち", romaji: "michi", meaning: "street, path" },
@@ -206,435 +164,278 @@ export function fillKanjiCardContent(typed: KanjiCardContent, data: KanjiCardCon
   return { ...typed, meanings: pick("meanings"), onyomi: pick("onyomi"), kunyomi: pick("kunyomi"), jlpt: pick("jlpt"), words: pick("words") };
 }
 
-export interface KanjiCardTimeline {
-  fps: number;
-  /** Frame ranges [start, end) of each phase. */
-  write: readonly [number, number];
-  review: readonly [number, number];
-  info: readonly [number, number];
-  frames: number;
-}
-
-/** Frame ranges of the three phases for a writing that takes `writing` seconds at its natural pace. */
-export function kanjiCardTimeline(writing: number, timing: KanjiCardTiming = {}, fps = SHODO_FPS): KanjiCardTimeline {
-  const seconds = (value: number | undefined, fallback: number) => Math.max(0, value !== undefined && Number.isFinite(value) ? value : fallback);
-  const write = seconds(timing.write, writing);
-  const review = seconds(timing.review, write > 0 ? write : writing);
-  const info = seconds(timing.info, 4);
-  const w = Math.round(write * fps), r = Math.round(review * fps), i = Math.round(info * fps);
-  return { fps, write: [0, w], review: [w, w + r], info: [w + r, w + r + i], frames: Math.max(1, w + r + i) };
-}
-
-/** The phase at `frame`, the frame within the phase and the length of the phase in frames. */
-export function kanjiCardPhaseAt(timeline: KanjiCardTimeline, frame: number): { phase: KanjiCardPhase; local: number; length: number } {
-  for (const phase of ["write", "review"] as const) {
-    const [a, b] = timeline[phase];
-    if (frame < b) return { phase, local: Math.max(0, frame - a), length: b - a };
-  }
-  const [a, b] = timeline.info;
-  return { phase: "info", local: Math.max(0, frame - a), length: b - a };
-}
-
-/**
- * One cue for the useful words: highlight word `word` (index in `words`, from 0) from `at`
- * seconds after the start of the video, for `hold` seconds (default `KANJI_WORD_HOLD`). The
- * times are plain seconds, so a voice-over cue list (the start time of each spoken word) can
- * give them directly.
- */
-export interface KanjiWordHighlight { word: number; at: number; hold?: number }
-
-/** The highlighted word (null for none) and the strength of its highlight, 0..1. */
-export interface KanjiWordHighlightState { word: number | null; strength: number }
-
-/** Default time that a word stays highlighted, s (eases included). */
-export const KANJI_WORD_HOLD = 2.5;
-/** Time of the ease in and of the ease out, s. */
-export const KANJI_WORD_EASE = .25;
-
-/**
- * The useful word that is highlighted at a time of the video, and how strongly. Pure.
- * - One word at a time. When cues overlap, the later cue wins (by `at`, then by list order),
- *   and the earlier highlight ends where the later one starts.
- * - A highlight eases in during the first `ease` seconds after `at` and eases out during the
- *   last `ease` seconds before it ends (`at + hold`, or the next cue's `at` if that is earlier).
- * - A cue with a word index outside `count`, or with a time that is not a finite number, is ignored.
- */
-export function wordHighlightAt(
-  schedule: readonly KanjiWordHighlight[], seconds: number, options: { count?: number; ease?: number } = {},
-): KanjiWordHighlightState {
-  const ease = Math.max(1e-3, options.ease ?? KANJI_WORD_EASE);
-  const cues = schedule.map((cue, order) => ({ cue, order }))
-    .filter(({ cue }) => Number.isInteger(cue.word) && cue.word >= 0 && (options.count === undefined || cue.word < options.count) && Number.isFinite(cue.at))
-    .sort((a, b) => a.cue.at - b.cue.at || a.order - b.order);
-  // Only the latest cue that has started can be active: it ends every earlier one.
-  let k = -1;
-  for (let i = 0; i < cues.length; i++) if (cues[i].cue.at <= seconds) k = i;
-  if (k < 0) return { word: null, strength: 0 };
-  const { cue } = cues[k];
-  const hold = cue.hold !== undefined && Number.isFinite(cue.hold) && cue.hold > 0 ? cue.hold : KANJI_WORD_HOLD;
-  const end = Math.min(cue.at + hold, k + 1 < cues.length ? cues[k + 1].cue.at : Infinity);
-  const ramp = (x: number) => { const u = Math.min(1, Math.max(0, x)); return u * u * (3 - 2 * u); };
-  const strength = Math.min(ramp((seconds - cue.at) / ease), ramp((end - seconds) / ease));
-  return strength > 0 ? { word: cue.word, strength } : { word: null, strength: 0 };
-}
-
-/**
- * Reads a cue list such as "0@3, 1@6.5, 2@9+1.5": word index (from 0) @ seconds, with an
- * optional "+hold" in seconds. Commas, semicolons and new lines separate the cues. A cue
- * that does not match the pattern is ignored.
- */
-/**
- * A demo cue list: each of `count` words in turn over a video of `seconds`. The first word starts
- * at 20 % and the last at 80 % of the video, evenly spaced; each one holds for 2.5 s, or until
- * the next one if that is sooner.
- */
-export function spreadWordHighlights(count: number, seconds: number): KanjiWordHighlight[] {
-  if (!(count > 0) || !(seconds > 0)) return [];
-  const gap = count > 1 ? seconds * .6 / (count - 1) : 0;
-  return Array.from({ length: count }, (_, word) => ({ word, at: Math.round((seconds * .2 + gap * word) * 100) / 100, hold: Math.min(KANJI_WORD_HOLD, gap || KANJI_WORD_HOLD) }));
-}
-
-export function parseWordHighlights(text: string): KanjiWordHighlight[] {
-  const out: KanjiWordHighlight[] = [];
-  for (const part of text.split(/[,;\n]+/)) {
-    const m = /^\s*(\d+)\s*@\s*(\d+(?:\.\d+)?)\s*(?:\+\s*(\d+(?:\.\d+)?))?\s*$/.exec(part);
-    if (m) out.push(m[3] !== undefined ? { word: Number(m[1]), at: Number(m[2]), hold: Number(m[3]) } : { word: Number(m[1]), at: Number(m[2]) });
-  }
-  return out;
-}
-
-interface KanjiCardType {
-  label: number; pad: readonly [number, number]; gap: number; head: number; headKanji: number;
-  reading: number; badge: number; title: number; word: number; ruby: number; gloss: number;
-}
-interface KanjiCardGeometry {
-  width: number; height: number;
-  /** The writing panel (the sheet) and the info card, design px. */
-  paper: { x: number; y: number; width: number; height: number };
-  card: { x: number; y: number; width: number; height: number } | null;
-  /** Largest em size of the character, design px. */
-  em: number;
-  label: { x: number; y: number };
-  type: KanjiCardType;
-}
-
-// Text sizes in design px. Portrait sizes keep body text at 13 px or more on a 390 px wide phone.
-const KANJI_CARD_TYPE: Record<KanjiCardLayout, KanjiCardType> = {
-  landscape: { label: 33, pad: [40, 34], gap: 22, head: 31, headKanji: 38, reading: 19, badge: 16, title: 24, word: 46, ruby: 16, gloss: 20 },
-  portrait: { label: 42, pad: [34, 36], gap: 26, head: 38, headKanji: 48, reading: 26, badge: 23, title: 26, word: 58, ruby: 22, gloss: 25 },
-};
-
-function kanjiCardGeometry(layout: KanjiCardLayout, withCard: boolean): KanjiCardGeometry {
-  if (layout === "portrait") {
-    const width = 720, height = 1280, split = withCard ? 750 : height;
-    return {
-      width, height, paper: { x: 0, y: 0, width, height: split },
-      card: withCard ? { x: 0, y: split, width, height: height - split } : null,
-      em: 600, label: { x: 36, y: 32 }, type: KANJI_CARD_TYPE.portrait,
-    };
-  }
-  const width = 1280, height = 720, split = withCard ? 880 : width;
-  return {
-    width, height, paper: { x: 0, y: 0, width: split, height },
-    card: withCard ? { x: split, y: 0, width: width - split, height } : null,
-    em: 540, label: { x: 44, y: 36 }, type: KANJI_CARD_TYPE.landscape,
-  };
-}
-
-const KANJI_CARD_SPEED = 1.6;
-const KANJI_CARD_COLUMNS = (n: number) => n <= 3 ? n : n === 4 ? 2 : 3;
-
-/** Union of the contact bounds of every stroke, design px. */
-function kanjiInkBox(plan: ShodoPlan): [number, number, number, number] {
-  return plan.strokes.reduce<[number, number, number, number]>((a, s) =>
-    [Math.min(a[0], s.bounds[0]), Math.min(a[1], s.bounds[1]), Math.max(a[2], s.bounds[2]), Math.max(a[3], s.bounds[3])],
-  [Infinity, Infinity, -Infinity, -Infinity]);
-}
-
-/**
- * Plans the writing with the ink centred in the writing panel. The character is made smaller
- * only when its ink would reach the label band or the edge of the sheet. With `seconds`, the
- * hand's speed is fitted so that the writing takes about that long.
- */
-function planKanjiCard(
-  glyph: ShodoGlyph, g: KanjiCardGeometry, vermilion: readonly number[], withLabel: boolean, seconds: number | undefined,
-  ink: KanjiCardInk, natural: number,
-): ShodoPlan {
-  const strokeInk = Object.fromEntries(vermilion.map(n => [n - 1, SHODO_INKS.shuboku]));
-  const rest: [number, number] = [g.paper.x + g.paper.width - 90, g.paper.y + g.paper.height * .83];
-  const inkstone: [number, number] = [g.width + 80, g.height / 2];
-  const body = ink === "vermilion" ? { ...SHODO_INKS.shuboku } : undefined;
-  const at = (speed: number, x: number, y: number, size: number) => planShodoWriting({
-    style: resolveShodoStyle({ hand: { speed }, ink: body }, DEFAULT_SHODO_STYLE),
-    items: [{ glyph, x, y, size, strokeInk }], rest, inkstone, exit: "hover",
-  });
-  const [x0, y0, x1, y1] = kanjiInkBox(at(natural, 0, 0, g.em));
-  const cx = g.paper.x + g.paper.width / 2, cy = g.paper.y + g.paper.height / 2;
-  const margin = Math.min(g.paper.width, g.paper.height) * .045;
-  const top = withLabel ? g.label.y + g.type.label * 1.5 : g.paper.y + margin;
-  const k = Math.min(1,
-    (g.paper.width / 2 - margin) / ((x1 - x0) / 2),
-    (cy - top) / ((y1 - y0) / 2),
-    (g.paper.y + g.paper.height - margin - cy) / ((y1 - y0) / 2));
-  const size = g.em * k, x = cx - k * (x0 + x1) / 2, y = cy - k * (y0 + y1) / 2;
-  if (!seconds || !(seconds > 0)) return at(natural, x, y, size);
-  // The writing takes less time at a higher speed: bisect the speed on a log scale.
-  let lo = Math.log(.25), hi = Math.log(4);
-  if (at(4, x, y, size).duration >= seconds) return at(4, x, y, size);
-  if (at(.25, x, y, size).duration <= seconds) return at(.25, x, y, size);
-  for (let i = 0; i < 12; i++) {
-    const mid = (lo + hi) / 2;
-    if (at(Math.exp(mid), x, y, size).duration > seconds) lo = mid; else hi = mid;
-  }
-  return at(Math.exp((lo + hi) / 2), x, y, size);
-}
-
-const JLPT_LEVELS: readonly JlptLevel[] = ["N5", "N4", "N3", "N2", "N1"];
-
-const KANJI_INK = "#1B1A18", KANJI_MUTED = "#665B51", KANJI_SHU = "#B3301A";
-
-/** Mix two #RRGGBB colours, t = 0..1. */
-function mixHex(a: string, b: string, t: number): string {
-  const ca = shodoRgb(a), cb = shodoRgb(b), u = Math.min(1, Math.max(0, t));
-  return `rgb(${ca.map((v, i) => Math.round(v + (cb[i] - v) * u)).join(",")})`;
-}
-
-/** The viewer's prefers-reduced-motion setting, kept up to date. False where it cannot be read. */
-function usePrefersReducedMotion(): boolean {
-  const query = "(prefers-reduced-motion: reduce)";
-  const [reduce, setReduce] = useState(() => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(query).matches);
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const media = window.matchMedia(query);
-    const update = () => setReduce(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
-  return reduce;
-}
-const KANJI_SERIF = "'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif";
-const KANJI_DISPLAY = "'Oswald', 'Arial Narrow', system-ui, sans-serif";
-
-/** Keeps the content inside a box of fixed height: text gets smaller (to 60 %) before it is cut. */
-function useFitHeight(ref: RefObject<HTMLElement | null>, key: string) {
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const fits = (f: number) => { el.style.setProperty("--km-fit", f.toFixed(3)); return el.scrollHeight <= el.clientHeight + 1; };
-    const fit = () => {
-      // Shorter lines wrap less, so the size is found by bisection, not by one ratio.
-      let f = 1;
-      if (!fits(1)) {
-        let lo = .6, hi = 1;
-        for (let i = 0; i < 7; i++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; }
-        f = lo;
-        fits(f);
-      }
-      el.dataset.kmFit = f.toFixed(3);
-      el.dataset.kmOverflow = String(el.scrollHeight > el.clientHeight + 1);
-    };
-    fit();
-    let live = true;
-    document.fonts?.ready.then(() => { if (live) fit(); }).catch(() => undefined);
-    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(fit);
-    observer?.observe(el);
-    return () => { live = false; observer?.disconnect(); };
-  }, [ref, key]);
-}
-
-export interface ShodoKanjiInfoCardProps extends KanjiCardContent, Omit<HTMLAttributes<HTMLElement>, "children"> {
-  char: string;
-  layout?: KanjiCardLayout;
-  sections?: Partial<Record<KanjiCardSection, boolean>>;
-  /** Opacity of the text, 0..1, for a frame-driven fade-in. The panel itself always shows. */
-  reveal?: number;
-  /** The highlighted useful word and its strength (from `wordHighlightAt`). */
-  highlight?: KanjiWordHighlightState;
-  /** Highlight without scale or lift (fade only). Default: false. */
-  reducedMotion?: boolean;
-}
-
-/**
- * The reading card: meanings, readings, JLPT level and useful words. Sizes are in `cqw` of the
- * nearest size container (the video frame), so the card scales with the frame.
- */
-export function ShodoKanjiInfoCard({
-  char, meanings, onyomi, kunyomi, jlpt, words, layout = "landscape", sections, reveal = 1, highlight, reducedMotion = false, style, ...rest
-}: ShodoKanjiInfoCardProps) {
-  const ref = useRef<HTMLElement>(null);
-  const t = KANJI_CARD_TYPE[layout], W = layout === "portrait" ? 720 : 1280;
-  const cq = (px: number) => `${(px / W * 100).toFixed(3)}cqw`;
-  const fs = (px: number) => `calc(${cq(px)} * var(--km-fit, 1))`;
-  const show = { meanings: true, readings: true, jlpt: true, words: true, ...sections };
-  const level = show.jlpt && jlpt && JLPT_LEVELS.includes(jlpt) ? jlpt : null;
-  const readings = show.readings && (onyomi || kunyomi);
-  const list = show.words && words?.length ? words : null;
-  useFitHeight(ref, [char, meanings, onyomi, kunyomi, level, layout, JSON.stringify(list), JSON.stringify(show)].join("|"));
-  const term: CSSProperties = { font: `700 ${fs(t.reading * .84)}/1.3 ${KANJI_DISPLAY}`, letterSpacing: ".06em", color: KANJI_MUTED };
-  // The 9:16 card is wide and short: readings side by side, and the words as a row of tiles.
-  const wide = layout === "portrait";
-  // Word highlight: a light vermilion tint and ring, a small lift and scale (transforms only,
-  // so nothing around it moves), and the other words dimmed a little. Fade only with reduced motion.
-  const active = highlight && highlight.word !== null && list && highlight.word < list.length ? highlight.word : null;
-  const S = active === null ? 0 : Math.min(1, Math.max(0, highlight?.strength ?? 0));
-  const wordOpacity = (i: number) => i === active ? Math.max(reveal, S) : reveal * (1 - .3 * S);
-  const ring = (s: number, width: number) => s > 0
-    ? `inset 0 0 0 max(1.5px, ${cq(width)}) rgba(179,48,26,${(.85 * s).toFixed(3)}), 0 ${cq(10 * s)} ${cq(24)} rgba(110,40,20,${(.18 * s).toFixed(3)})`
-    : "none";
-  return <aside {...rest} ref={ref} aria-label={`${char} readings and words`} style={{
-    background: "#FBFAF7", padding: `${cq(t.pad[0])} ${cq(t.pad[1])}`, boxSizing: "border-box", overflow: "hidden", color: KANJI_INK, ...style,
-  }}>
-    <div style={{ display: "grid", alignContent: "start", gap: fs(t.gap) }}>
-      {show.meanings && meanings ? <div style={{
-        opacity: reveal, display: "flex", flexWrap: "wrap", alignItems: "baseline", columnGap: ".3em", rowGap: ".1em",
-        font: `700 ${fs(t.head)}/1.12 ${KANJI_DISPLAY}`, borderBottom: "1px solid #C9C3B8", paddingBottom: fs(t.gap * .6),
-      }}>
-        <span lang="ja" style={{ font: `700 ${fs(t.headKanji)}/1 ${KANJI_SERIF}` }}>{char}</span>
-        <span aria-hidden="true" style={{ color: "#A39A8E" }}>|</span>
-        <span style={{ flex: "1 1 8em", minWidth: 0 }}>{meanings}</span>
-      </div> : null}
-      {readings || level ? <div style={{ opacity: reveal, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: `${fs(t.gap * .5)} ${fs(t.gap)}` }}>
-        {readings && wide ? <dl style={{ margin: 0, display: "flex", flexWrap: "wrap", columnGap: fs(t.gap * 1.6), rowGap: fs(t.gap * .4), font: `600 ${fs(t.reading)}/1.3 system-ui, sans-serif` }}>
-          {onyomi ? <div><dt style={term}>ON&apos;YOMI</dt><dd style={{ margin: 0 }}>{onyomi}</dd></div> : null}
-          {kunyomi ? <div><dt style={term}>KUN&apos;YOMI</dt><dd style={{ margin: 0 }}>{kunyomi}</dd></div> : null}
-        </dl> : readings ? <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "auto auto", justifyContent: "start", alignItems: "baseline", columnGap: ".7em", rowGap: ".2em", font: `600 ${fs(t.reading)}/1.3 system-ui, sans-serif` }}>
-          {onyomi ? <><dt style={term}>ON&apos;YOMI</dt><dd style={{ margin: 0 }}>{onyomi}</dd></> : null}
-          {kunyomi ? <><dt style={term}>KUN&apos;YOMI</dt><dd style={{ margin: 0 }}>{kunyomi}</dd></> : null}
-        </dl> : null}
-        {level ? <span data-km-jlpt={level} style={{
-          // When long readings push the badge to its own row, it stays at the right.
-          marginLeft: "auto", display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", font: `700 ${fs(t.badge)}/1 ${KANJI_DISPLAY}`, letterSpacing: ".06em",
-          color: KANJI_SHU, border: `max(1px, ${cq(2)}) solid ${KANJI_SHU}`, borderRadius: ".3em", padding: ".42em .8em",
-        }}>JLPT {level}</span> : null}
-      </div> : null}
-      {list ? <>
-        <div style={{ opacity: reveal, font: `700 ${fs(t.title)}/1 ${KANJI_DISPLAY}`, marginTop: fs(t.gap * .3), letterSpacing: wide ? ".04em" : undefined }}>USEFUL WORDS</div>
-        {wide ? <ul role="list" style={{
-          margin: 0, padding: 0, listStyle: "none", display: "grid", gap: fs(t.gap * .55),
-          gridTemplateColumns: `repeat(${KANJI_CARD_COLUMNS(list.length)}, minmax(0, 1fr))`,
-        }}>
-          {list.map((w, i) => {
-            const s = i === active ? S : 0;
-            return <li key={i} aria-current={s >= .5 ? "true" : undefined} data-km-word-highlight={s > 0 ? s.toFixed(3) : undefined} style={{
-              display: "grid", justifyItems: "center", alignContent: "start", textAlign: "center", minWidth: 0,
-              background: mixHex("#F3EFE7", "#F9E0D4", s), borderRadius: fs(14), padding: `${fs(t.gap * .7)} ${fs(t.gap * .45)} ${fs(t.gap * .8)}`,
-              opacity: wordOpacity(i), position: "relative", zIndex: s > 0 ? 1 : 0, boxShadow: ring(s, 2.5), transformOrigin: "50% 60%",
-              transform: s > 0 && !reducedMotion ? `translateY(${cq(-6 * s)}) scale(${(1 + .045 * s).toFixed(4)})` : undefined,
-            }}>
-              <ruby lang="ja" style={{ font: `600 ${fs(t.word)}/1.08 ${KANJI_SERIF}` }}>{w.word}<rt style={{ font: `600 ${fs(t.ruby)}/1.2 system-ui, sans-serif`, letterSpacing: ".04em", color: KANJI_MUTED }}>{w.ruby}</rt></ruby>
-              <span style={{ marginTop: fs(t.gap * .35), font: `600 ${fs(t.gloss)}/1.25 system-ui, sans-serif`, color: mixHex(KANJI_MUTED, KANJI_SHU, s), overflowWrap: "anywhere" }}>{w.romaji}</span>
-              <span style={{ font: `500 ${fs(t.gloss)}/1.25 system-ui, sans-serif`, overflowWrap: "anywhere" }}>{w.meaning}</span>
-            </li>;
-          })}
-        </ul> : <ul role="list" style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "auto 1fr", columnGap: fs(t.word * .45), rowGap: fs(t.gap * .75) }}>
-          {list.map((w, i) => {
-            const s = i === active ? S : 0;
-            return <li key={i} aria-current={s >= .5 ? "true" : undefined} data-km-word-highlight={s > 0 ? s.toFixed(3) : undefined} style={{
-              display: "grid", gridColumn: "1 / -1", gridTemplateColumns: "subgrid", alignItems: "end",
-              opacity: wordOpacity(i), position: "relative", isolation: "isolate", zIndex: s > 0 ? 1 : 0, transformOrigin: "50% 50%",
-              transform: s > 0 && !reducedMotion ? `scale(${(1 + .03 * s).toFixed(4)})` : undefined,
-            }}>
-              {/* The highlight sits behind the row and takes no space, so the list does not move. */}
-              <span aria-hidden="true" style={{
-                position: "absolute", inset: `${cq(-10)} ${cq(-12)}`, zIndex: -1, borderRadius: cq(14),
-                background: `rgba(179,48,26,${(.075 * s).toFixed(3)})`, boxShadow: ring(s, 2),
-              }} />
-              <ruby lang="ja" style={{ font: `600 ${fs(t.word)}/1.08 ${KANJI_SERIF}` }}>{w.word}<rt style={{ font: `600 ${fs(t.ruby)}/1.2 system-ui, sans-serif`, letterSpacing: ".04em", color: KANJI_MUTED }}>{w.ruby}</rt></ruby>
-              <span style={{ display: "grid", font: `500 ${fs(t.gloss)}/1.25 system-ui, sans-serif`, paddingBottom: ".12em", minWidth: 0 }}>
-                <span style={{ color: mixHex(KANJI_MUTED, KANJI_SHU, s), fontWeight: 600 }}>{w.romaji}</span>
-                <span>{w.meaning}</span>
-              </span>
-            </li>;
-          })}
-        </ul>}
-      </> : null}
-    </div>
-  </aside>;
-}
-
 const KANJI_PHASE_TEXT: Record<KanjiCardPhase, string> = {
+  intro: "0 · Intro: the character is typed",
   write: "1 · Write: the brush writes the character",
   review: "2 · Review: the brush writes it again",
   info: "3 · Info: the finished card holds",
 };
 
-/**
- * A study video for one kanji: the brush writes the character on gridded hanshi, writes it
- * again with small vermilion stroke-order numbers, then holds the reading card. The ink is
- * centred in the writing panel. Landscape (16:9) puts the card on the right; portrait (9:16)
- * puts it under the sheet for phone shorts.
- */
-export function ShodoKanjiCard({
-  char = "道", heading = "Kanji study", layout = "landscape", timing, sections, cardFrom = "write", ink = "sumi",
-  speed = KANJI_CARD_SPEED, strokeNumbers = true, wordHighlights, reducedMotion, ...data
-}: ShodoKanjiCardProps) {
-  const prefersReduced = usePrefersReducedMotion();
-  const content = resolveKanjiCardContent(char, data);
-  const show = { label: true, meanings: true, readings: true, jlpt: true, words: true, ...sections };
-  const withCard = !!(show.meanings && content.meanings || show.readings && (content.onyomi || content.kunyomi)
-    || show.jlpt && content.jlpt || show.words && content.words?.length);
-  const g = useMemo(() => kanjiCardGeometry(layout, withCard), [layout, withCard]);
-  const vermilion = content.vermilionStrokes ?? [];
-  const vermilionKey = vermilion.join(",");
-  const card0 = useMemo(() => [char], [char]);
-  const loaded = useShodoGlyphs(card0, "kanjivg");
-  const glyph = loaded ? loaded.glyphs[0] ?? SHODO_GLYPHS[char] : undefined;
-  // The hand's pace follows the first writing that has a set length; otherwise its natural pace.
-  const pace = timing?.write ? timing.write : timing?.write === 0 && timing.review ? timing.review : undefined;
-  const natural = Number.isFinite(speed) ? Math.min(4, Math.max(.25, speed)) : KANJI_CARD_SPEED;
-  const plan = useMemo(() => glyph ? planKanjiCard(glyph, g, vermilionKey ? vermilionKey.split(",").map(Number) : [], show.label, pace, ink, natural) : null,
-    [glyph, g, vermilionKey, show.label, pace, ink, natural]);
-  const timeline = useMemo(() => kanjiCardTimeline(plan?.duration ?? 0, { write: timing?.write, review: timing?.review, info: timing?.info }),
-    [plan, timing?.write, timing?.review, timing?.info]);
-  const last = timeline.frames - 1;
-  const { frame, position, setFrame, playing, setPlaying } = useShodoPlayback(last, plan);
-  const sheet = useMemo(() => kenteiSheet(g.paper.width, g.paper.height, 1, 1), [g]);
-  const inkBox = useMemo(() => plan ? kanjiInkBox(plan).map(v => v.toFixed(1)).join(" ") : "", [plan]);
-  if (!loaded) return <div style={page}>Loading strokes…</div>;
-  if (!glyph || !plan) return <div role="alert" style={page}>No stroke data for {char}.</div>;
+export interface ShodoKanjiCardPlayerProps extends Omit<ShodoKanjiCardProps, "char" | "glyph" | "frame"> {
+  /** The character to write. Default: 道, which also has sample card data. */
+  char?: string;
+}
 
-  // The canvas follows the exact playback position, so the brush moves at the screen's refresh rate.
-  const at = kanjiCardPhaseAt(timeline, Math.min(position, last));
-  const reviewed = timeline.review[1] > timeline.review[0];
-  const writeGuide = vermilion.length ? "all" as const : "none" as const;
-  // Each pass plays the same plan, stretched to its phase; the info phase holds the last pass.
-  const writing = at.phase !== "info" && at.length > 0;
-  const guide = strokeNumbers && (writing ? at.phase === "review" : reviewed) ? "numbers" as const : writeGuide;
-  const canvasFps = writing ? at.length / plan.duration : SHODO_FPS;
-  const canvasFrame = writing ? at.local : Math.ceil(plan.duration * SHODO_FPS);
-  // The text fades in over 12 frames at the start of its phase; from "write" it shows at once.
-  const reveal = cardFrom === "write" ? 1 : Math.min(1, Math.max(0, (frame - timeline[cardFrom][0]) / 12));
-  const pct = (v: number, of: number) => `${(v / of * 100).toFixed(3)}%`;
+/**
+ * The kanji card with its own clock: it loads the strokes from KanjiVG, plays from the start
+ * whenever the plan changes and has a transport. Other characters than 道 show only the data
+ * that the host gives; the card never invents a reading or a level.
+ */
+export function ShodoKanjiCardPlayer({ char = "道", style, ...props }: ShodoKanjiCardPlayerProps) {
+  const content = resolveKanjiCardContent(char, props);
+  const chars = useMemo(() => [char], [char]);
+  const loaded = useShodoGlyphs(chars, "kanjivg");
+  const glyph = loaded ? loaded.glyphs[0] ?? SHODO_GLYPHS[char] : undefined;
+  const show = kanjiCardSections(props.sections);
+  const layout = props.layout ?? "landscape";
+  const timingKey = [props.timing?.intro, props.timing?.write, props.timing?.review, props.timing?.info].map(String).join(",");
+  const insetKey = JSON.stringify(props.safeInset ?? {});
+  const vermilionKey = (content.vermilionStrokes ?? []).join(",");
+  const contentKey = JSON.stringify([content.meanings, content.onyomi, content.kunyomi, content.jlpt, content.words?.length, props.sections, props.brushStyle]);
+  const writing = useMemo(() => glyph ? kanjiCardWriting(glyph, {
+    layout, density: props.density, safeInset: props.safeInset, content, sections: props.sections, brushStyle: props.brushStyle,
+    timing: props.timing, ink: props.ink, speed: props.speed, vermilionStrokes: content.vermilionStrokes,
+  }) : null, [glyph, layout, props.density, insetKey, timingKey, props.ink, props.speed, vermilionKey, show.label, contentKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const last = writing ? writing.timeline.frames - 1 : 0;
+  const { frame, position, setFrame, playing, setPlaying } = useShodoPlayback(last, writing?.plan ?? null);
+  if (!loaded) return <div style={page}>Loading strokes…</div>;
+  if (!glyph || !writing) return <div role="alert" style={page}>No stroke data for {char}.</div>;
+  const at = kanjiCardPhaseAt(writing.timeline, Math.min(position, last));
   const portrait = layout === "portrait";
-  // Word highlights run on the video clock (frame / fps), so every frame renders the same way.
-  const wordCount = show.words ? content.words?.length ?? 0 : 0;
-  const cues = wordHighlights === "each" ? spreadWordHighlights(wordCount, timeline.frames / SHODO_FPS) : wordHighlights ?? [];
-  const highlight = wordHighlightAt(cues, Math.min(frame, last) / SHODO_FPS, { count: wordCount });
   return <div style={page}>
-    <div data-km-kanji-card={layout} data-km-kanji-phase={at.phase} data-km-ink-box={inkBox} data-km-design={`${g.width}x${g.height}`}
-      data-km-word-highlight={highlight.word === null ? "" : `${highlight.word} ${highlight.strength.toFixed(3)}`}
-      data-km-timeline={[timeline.review[0], timeline.info[0], timeline.frames].join(" ")} style={{
-      ...frameBox, maxWidth: portrait ? "min(100%, calc((100dvh - 190px) * 720 / 1280))" : frameBox.maxWidth,
-    }}>
-      <ShodoCanvas plan={plan} frame={canvasFrame} fps={canvasFps} width={g.width} height={g.height} paper={g.paper} sheet={sheet} paperweight="none"
-        underlay="none" orderGuide={guide} guideStrokes={guide === "numbers" ? undefined : vermilion} label={`The kanji ${char} written with a brush`} />
-      {show.label ? <div data-km-kanji-label="" style={{
-        position: "absolute", left: pct(g.label.x, g.width), top: pct(g.label.y, g.height),
-        font: `700 ${(g.type.label / g.width * 100).toFixed(3)}cqw/1 ${KANJI_DISPLAY}`, letterSpacing: ".01em", color: KANJI_INK,
-      }}>{heading.toUpperCase()}: <span lang="ja">{char}</span></div> : null}
-      {g.card ? <ShodoKanjiInfoCard char={char} layout={layout} sections={show} reveal={reveal}
-        highlight={highlight} reducedMotion={reducedMotion ?? prefersReduced}
-        meanings={content.meanings} onyomi={content.onyomi} kunyomi={content.kunyomi} jlpt={content.jlpt} words={content.words} style={{
-          position: "absolute", left: pct(g.card.x, g.width), top: pct(g.card.y, g.height), width: pct(g.card.width, g.width), height: pct(g.card.height, g.height),
-          boxShadow: portrait ? "0 -6px 18px rgba(0,0,0,.12)" : "-6px 0 18px rgba(0,0,0,.12)",
-        }} /> : null}
-    </div>
+    <ShodoKanjiCard {...props} {...content} char={char} glyph={glyph} frame={Math.min(position, last)} style={{
+      maxWidth: portrait ? "min(100%, calc((100dvh - 190px) * 720 / 1280))" : 1280, borderRadius: 6, boxShadow: "0 14px 40px rgba(40,30,20,.18)", ...style,
+    }} />
     <ShodoTransport frame={frame} last={last} playing={playing} onPlaying={setPlaying} onFrame={setFrame} />
     <div aria-live="polite" style={{ fontWeight: 600, minHeight: 22 }}>
-      {KANJI_PHASE_TEXT[at.phase]}{at.phase === "review" && strokeNumbers ? ", with the order number of each stroke" : ""}
+      {KANJI_PHASE_TEXT[at.phase]}{at.phase === "review" && props.strokeNumbers !== false ? ", with the order number of each stroke" : ""}
     </div>
     {glyph.source === "kanjivg" ? <p style={{ margin: 0, fontSize: 12.5 }}>{SHODO_KANJIVG_CREDIT}.</p> : null}
+  </div>;
+}
+
+// ── Video export of the kanji card ─────────────────────────────────────────────────
+
+/** A kanji card video for export: the card's props with all phase times, and the output size. */
+export interface KanjiCardExport {
+  props: Omit<ShodoKanjiCardProps, "glyph" | "frame"> & { timing: Required<Pick<KanjiCardTiming, "write" | "review" | "info">> & Pick<KanjiCardTiming, "intro"> };
+  /** Output size in pixels. */
+  width: number;
+  height: number;
+  /** The platform preset the video is made for, when one is named. */
+  preset?: VideoPlatformPresetId;
+}
+
+/**
+ * Reads the description of a kanji card video (for example JSON from a production tool) and
+ * lists every problem by path. The write, review and info times are required (the intro is
+ * optional), so the length of the video is known before the strokes load. Text fields are
+ * limited in length; unknown fields are ignored. The output is 1080 × 1920 (portrait) or
+ * 1920 × 1080 (landscape) unless `width` is set; a `preset` fixes the size and gives its safe
+ * bands unless `safeInset` is set.
+ */
+export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; errors: [] } | { value: null; errors: string[] } {
+  const errors: string[] = [];
+  const o = json && typeof json === "object" && !Array.isArray(json) ? json as Record<string, unknown> : null;
+  if (!o) return { value: null, errors: ["The description must be a JSON object."] };
+  const text = (key: string, max: number, required = false): string | undefined => {
+    const v = o[key];
+    if (v === undefined && !required) return undefined;
+    if (typeof v !== "string" || !v.trim() || v.length > max) { errors.push(`${key}: a text of 1 to ${max} characters is required.`); return undefined; }
+    return v;
+  };
+  const num = (v: unknown, path: string, min: number, max: number): number => {
+    if (typeof v !== "number" || !Number.isFinite(v) || v < min || v > max) { errors.push(`${path}: a number from ${min} to ${max} is required.`); return min; }
+    return v;
+  };
+  const char = text("char", 8, true);
+  const chars = char ? [...char.trim()] : [];
+  if (char && chars.length !== 1) errors.push("char: exactly one character is required.");
+  const layout = o.layout === undefined ? "portrait" : o.layout;
+  if (layout !== "portrait" && layout !== "landscape") errors.push('layout: "portrait" or "landscape" is required.');
+  const density = o.density === undefined ? undefined : o.density;
+  if (density !== undefined && density !== "regular" && density !== "compact") errors.push('density: "regular" or "compact" is required.');
+  const t = o.timing && typeof o.timing === "object" ? o.timing as Record<string, unknown> : null;
+  if (!t) errors.push("timing: { write, review, info } in seconds is required.");
+  const timing = {
+    ...(t?.intro === undefined ? {} : { intro: num(t.intro, "timing.intro", 0, 60) }),
+    write: num(t?.write, "timing.write", 0, 600), review: num(t?.review, "timing.review", 0, 600), info: num(t?.info, "timing.info", 0, 600),
+  };
+  if (t && (timing.intro ?? 0) + timing.write + timing.review + timing.info <= 0) errors.push("timing: the video needs a length above 0 s.");
+  let intro: KanjiCardIntro | undefined;
+  const introSeconds = Math.round((timing.intro ?? 0) * KANJI_CARD_FPS) / KANJI_CARD_FPS;
+  if (o.intro !== undefined) {
+    const x = o.intro && typeof o.intro === "object" && !Array.isArray(o.intro) ? o.intro as Record<string, unknown> : null;
+    if (!x) errors.push("intro: { reading?, convertAt?, emphasizeAt?, typeStep? } is required.");
+    else {
+      if (x.reading !== undefined && (typeof x.reading !== "string" || !x.reading.trim() || x.reading.length > 12)) errors.push("intro.reading: a text of 1 to 12 characters is required.");
+      if (x.typeStep !== undefined) num(x.typeStep, "intro.typeStep", .05, .6);
+      intro = {
+        ...(typeof x.reading === "string" ? { reading: x.reading } : {}),
+        ...(typeof x.typeStep === "number" ? { typeStep: x.typeStep } : {}),
+        // Against the intro the card plays (whole frames). The conversion must leave time to show the
+        // character before the brush comes (0.32 s).
+        ...(x.convertAt === undefined ? {} : { convertAt: num(x.convertAt, "intro.convertAt", 0, Math.max(0, Math.round((introSeconds - .32) * 1000) / 1000)) }),
+        ...(x.emphasizeAt === undefined ? {} : { emphasizeAt: num(x.emphasizeAt, "intro.emphasizeAt", 0, introSeconds) }),
+      };
+    }
+  }
+  const phases = ["intro", "write", "review", "info"];
+  if (o.cardFrom !== undefined && !phases.includes(o.cardFrom as string)) errors.push('cardFrom: "intro", "write", "review" or "info" is required.');
+  let jlpt: JlptLevel | null | undefined;
+  if (o.jlpt === null) jlpt = null;
+  else if (o.jlpt !== undefined) {
+    if (typeof o.jlpt === "string" && (KANJI_CARD_JLPT_LEVELS as readonly string[]).includes(o.jlpt)) jlpt = o.jlpt as JlptLevel;
+    else errors.push('jlpt: "N5" to "N1", or null, is required.');
+  }
+  let words: KanjiCardWord[] | undefined;
+  if (o.words !== undefined) {
+    if (!Array.isArray(o.words) || o.words.length > 6) errors.push("words: a list of up to 6 words is required.");
+    else words = o.words.map((w, i) => {
+      const x = w && typeof w === "object" ? w as Record<string, unknown> : {};
+      const field = (k: string) => {
+        const v = x[k];
+        if (typeof v !== "string" || !v.trim() || v.length > 60) { errors.push(`words[${i}].${k}: a text of 1 to 60 characters is required.`); return ""; }
+        return v;
+      };
+      return { word: field("word"), ruby: field("ruby"), romaji: field("romaji"), meaning: field("meaning") };
+    });
+  }
+  let cues: KanjiWordHighlight[] | undefined;
+  if (o.wordHighlights !== undefined) {
+    if (!Array.isArray(o.wordHighlights) || o.wordHighlights.length > 50) errors.push("wordHighlights: a list of up to 50 cues is required.");
+    else cues = o.wordHighlights.map((c, i) => {
+      const x = c && typeof c === "object" ? c as Record<string, unknown> : {};
+      const word = num(x.word, `wordHighlights[${i}].word`, 0, (words?.length ?? 1) - 1);
+      if (!Number.isInteger(word)) errors.push(`wordHighlights[${i}].word: a whole number is required.`);
+      const at = num(x.at, `wordHighlights[${i}].at`, 0, 1800);
+      return x.hold === undefined ? { word, at } : { word, at, hold: num(x.hold, `wordHighlights[${i}].hold`, .05, 60) };
+    });
+  }
+  let preset: VideoPlatformPresetId | undefined;
+  const presetInfo = o.preset === undefined ? undefined : VIDEO_PLATFORM_PRESETS.find(p => p.id === o.preset);
+  if (o.preset !== undefined && !presetInfo) errors.push("preset: a known video platform preset is required.");
+  else if (presetInfo) preset = presetInfo.id;
+  let safeInset: KanjiCardSafeInset | undefined;
+  if (o.safeInset !== undefined) {
+    const x = o.safeInset && typeof o.safeInset === "object" ? o.safeInset as Record<string, unknown> : {};
+    safeInset = { left: num(x.left, "safeInset.left", 0, .4), right: num(x.right, "safeInset.right", 0, .4), top: num(x.top, "safeInset.top", 0, .4), bottom: num(x.bottom, "safeInset.bottom", 0, .4) };
+  } else if (presetInfo) safeInset = presetInfo.safeInset;
+  const portrait = layout !== "landscape";
+  let width = portrait ? 1080 : 1920, height = portrait ? 1920 : 1080;
+  if (presetInfo) {
+    ({ width, height } = presetInfo);
+    if ((presetInfo.height > presetInfo.width) !== portrait || presetInfo.width * 9 !== presetInfo.height * 16 && presetInfo.width * 16 !== presetInfo.height * 9)
+      errors.push(`preset: ${presetInfo.id} (${presetInfo.width} × ${presetInfo.height}) does not fit the ${portrait ? "9:16" : "16:9"} card.`);
+  } else if (o.width !== undefined) {
+    // The export stage needs even sides of at most 7680 × 4320: 9:16 widths are multiples of 18 up to 2430,
+    // 16:9 widths multiples of 32 up to 7680.
+    width = num(o.width, "width", 360, portrait ? 2430 : 7680);
+    height = portrait ? width * 16 / 9 : width * 9 / 16;
+    if (!Number.isInteger(width) || width % (portrait ? 18 : 32) !== 0)
+      errors.push(`width: a whole number of pixels divisible by ${portrait ? 18 : 32} is required, so both sides are even.`);
+  }
+  const bool = (key: string): boolean | undefined => {
+    if (o[key] === undefined) return undefined;
+    if (typeof o[key] !== "boolean") { errors.push(`${key}: true or false is required.`); return undefined; }
+    return o[key] as boolean;
+  };
+  const ink = o.ink === undefined ? undefined : o.ink;
+  if (ink !== undefined && ink !== "sumi" && ink !== "vermilion") errors.push('ink: "sumi" or "vermilion" is required.');
+  let vermilionStrokes: number[] | undefined;
+  if (o.vermilionStrokes !== undefined) {
+    if (!Array.isArray(o.vermilionStrokes) || o.vermilionStrokes.length > 64 || o.vermilionStrokes.some(n => !Number.isInteger(n) || (n as number) < 1 || (n as number) > 64))
+      errors.push("vermilionStrokes: stroke numbers from 1 are required.");
+    else vermilionStrokes = o.vermilionStrokes as number[];
+  }
+  const speed = o.speed === undefined ? undefined : num(o.speed, "speed", .25, 4);
+  const strings = (key: string, keys: readonly string[], max: number): Record<string, string> | undefined => {
+    if (o[key] === undefined) return undefined;
+    const x = o[key] && typeof o[key] === "object" && !Array.isArray(o[key]) ? o[key] as Record<string, unknown> : null;
+    if (!x || Object.entries(x).some(([k, v]) => !keys.includes(k) || typeof v !== "string" || !v.trim() || v.length > max)) {
+      errors.push(`${key}: { ${keys.join(", ")} } as texts of at most ${max} characters is required.`);
+      return undefined;
+    }
+    return x as Record<string, string>;
+  };
+  const labels = strings("labels", Object.keys(DEFAULT_KANJI_CARD_LABELS), 80);
+  const theme = strings("theme", Object.keys(DEFAULT_KANJI_CARD_THEME), 200);
+  if (theme) for (const issue of kanjiCardThemeIssues(theme)) errors.push(`theme.${issue}.`);
+  // The brush, ink, paper and hand: checked as the planner will use them, so an export never draws other strokes than a host planned.
+  let brushStyle: DeepPartial<ShodoStyle> | undefined;
+  if (o.brushStyle !== undefined) {
+    if (!o.brushStyle || typeof o.brushStyle !== "object" || Array.isArray(o.brushStyle)) errors.push("brushStyle: an object of brush, ink, paper and hand settings is required.");
+    else {
+      brushStyle = o.brushStyle as DeepPartial<ShodoStyle>;
+      for (const issue of inspectShodoStyle(resolveShodoStyle(brushStyle))) errors.push(`brushStyle${issue.path.replace(/\//gu, ".")}: ${issue.message}`);
+    }
+  }
+  let sections: Partial<Record<KanjiCardSection, boolean>> | undefined;
+  if (o.sections !== undefined) {
+    const x = o.sections && typeof o.sections === "object" && !Array.isArray(o.sections) ? o.sections as Record<string, unknown> : null;
+    const keys: readonly KanjiCardSection[] = ["label", "meanings", "readings", "jlpt", "words"];
+    if (!x || Object.entries(x).some(([k, v]) => !keys.includes(k as KanjiCardSection) || typeof v !== "boolean"))
+      errors.push("sections: { label, meanings, readings, jlpt, words } as true or false is required.");
+    else sections = x as Partial<Record<KanjiCardSection, boolean>>;
+  }
+  const props: KanjiCardExport["props"] = {
+    char: chars[0] ?? "", layout: portrait ? "portrait" : "landscape", timing,
+    density: density as KanjiCardDensity | undefined, intro, cardFrom: o.cardFrom as KanjiCardPhase | undefined,
+    heading: text("heading", 40), meanings: text("meanings", 120), onyomi: text("onyomi", 120), kunyomi: text("kunyomi", 120),
+    jlpt, words, wordHighlights: cues, safeInset, ink: ink as KanjiCardInk | undefined, vermilionStrokes, speed, sections, labels, theme, brushStyle,
+    strokeNumbers: bool("strokeNumbers"),
+    // An export is the same on every machine: the motion does not follow the viewer's setting.
+    reducedMotion: bool("reducedMotion") ?? false,
+  };
+  for (const key of Object.keys(props) as (keyof typeof props)[]) if (props[key] === undefined) delete props[key];
+  return errors.length ? { value: null, errors } : { value: { props, width, height, preset }, errors: [] };
+}
+
+const nextPaint = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+/**
+ * The kanji card as a Kumiki video export (`window.__kmVideoExport`): the card at the output
+ * size, driven frame by frame. A frame is ready when the strokes have loaded, the brush canvas
+ * reports ready and the card shows that frame. Fails visibly when the strokes cannot load.
+ */
+export function ShodoKanjiCardExport({ video }: { video: KanjiCardExport }) {
+  const { props, width, height, preset } = video;
+  const [frame, setFrame] = useState(0);
+  const root = useRef<HTMLDivElement>(null);
+  // KanjiVG only, never a bundled stand-in: a host that planned from KanjiVG must get the same strokes.
+  const [loaded, setLoaded] = useState<{ glyph: ShodoGlyph | null; error: string | null } | null>(null);
+  useEffect(() => {
+    let live = true;
+    loadShodoGlyph(props.char, { preferBundled: false })
+      .then(glyph => { if (live) setLoaded({ glyph, error: null }); })
+      .catch((error: unknown) => { if (live) setLoaded({ glyph: null, error: error instanceof Error ? error.message : String(error) }); });
+    return () => { live = false; };
+  }, [props.char]);
+  const glyph = loaded?.glyph ?? undefined;
+  const timeline = kanjiCardTimeline(0, props.timing);
+  const manifest = useMemo<VideoExportManifest>(() => ({
+    schemaVersion: 1, id: `shodo-kanji-card-${props.char.codePointAt(0)?.toString(16) ?? "x"}`,
+    durationFrames: timeline.frames, width, height, fps: { num: KANJI_CARD_FPS, den: 1 }, ...(preset ? { preset } : {}),
+  }), [props.char, timeline.frames, width, height, preset]);
+  const prepareFrame = async (target: number) => {
+    const start = performance.now();
+    for (;;) {
+      const el = root.current;
+      const failed = el?.querySelector("[data-km-kanji-card-status=error]");
+      if (failed) throw new Error(failed.textContent || `No stroke data for ${props.char}.`);
+      const card = el?.querySelector<HTMLElement>("[data-km-kanji-card]");
+      if (card?.dataset.kmKanjiFrame === String(target) && el?.querySelector("[data-km-shodo-ready=true]")) return;
+      if (performance.now() - start > 30000) throw new Error(`The kanji card did not reach frame ${target}.`);
+      await nextPaint();
+    }
+  };
+  const pixelRatio = width / (props.layout === "landscape" ? 1280 : 720);
+  return <div ref={root}>
+    <VideoExportStage manifest={manifest} frame={frame} onSeek={setFrame} prepareFrame={prepareFrame}>
+      {glyph ? <ShodoKanjiCard {...props} glyph={glyph} frame={frame} pixelRatio={pixelRatio} />
+        : loaded ? <div role="alert" data-km-kanji-card-status="error">{loaded.error ?? `No stroke data for ${props.char}.`}</div>
+        : <div data-km-kanji-card-status="loading">Loading strokes…</div>}
+    </VideoExportStage>
   </div>;
 }
 
