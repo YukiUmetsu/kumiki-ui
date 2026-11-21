@@ -22,6 +22,8 @@ import { hitsAt, hitsReach } from "./film-hits";
 import { HitLayer } from "./film-hits-react";
 import { MotionBlurFilter } from "./film-blur-react";
 import { spinCutFrame } from "./film-spin";
+import { glitchBands } from "./film-glitch";
+import { GlitchFilter } from "./film-glitch-react";
 import { freezeAt } from "./film-freeze";
 import { FreezeCard, freezeGrade } from "./film-freeze-react";
 import type { ResolvedLook } from "./film-look";
@@ -297,6 +299,9 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
   // A spin or zoom-blur cut: both scenes move as one, and the cut happens at the fastest, most blurred point.
   const spinSpec = state.transition && !reduce ? film.spins[state.transition.toShotId] : undefined;
   const spin = spinSpec && window ? spinCutFrame(spinSpec, state.transition!.progress, window.endFrame - window.startFrame, film.width, film.height) : undefined;
+  // A glitch cut: both scenes in place, broken into the same bands; the incoming one draws only the bands it has taken.
+  const glitchSpec = state.transition && !reduce ? film.glitches[state.transition.toShotId] : undefined;
+  const glitch = glitchSpec && window ? glitchBands(glitchSpec, state.transition!.progress, window.endFrame - window.startFrame, film.width, film.height) : undefined;
   const passBySpec = state.transition && !reduce ? film.passBys[state.transition.toShotId] : undefined;
   const pass = passBySpec && window ? passByFrame(passBySpec, state.transition!.progress, film.width, window.endFrame - window.startFrame) : undefined;
   // A dip is not motion, so reduced motion keeps it: down to a colour, a hold, up on the next scene.
@@ -429,7 +434,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
       const clip = layer.mask?.rect;
       // In a container transform the outgoing scene stays whole under a deepening scrim; until the tile is measured, the incoming waits.
       // In a pass-by both scenes are whole, and the foreground's centre is the seam.
-      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip ? 1 : spin ? (incoming === spin.showIncoming ? 1 : 0) : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : shape ? (incoming ? 1 : shape.outgoing) : material || patternMask || gate ? 1 : layer.opacity;
+      const opacity = container ? (incoming ? grow?.incoming ?? 0 : 1) : zoom ? (incoming ? through?.opacity ?? 0 : 1) : pass || whip || glitch ? 1 : spin ? (incoming === spin.showIncoming ? 1 : 0) : dip ? (incoming === dip.incoming ? 1 : 0) : insert ? layer.opacity : flashSpec ? (incoming ? 1 : 0) : shape ? (incoming ? 1 : shape.outgoing) : material || patternMask || gate ? 1 : layer.opacity;
       const node = <div key={loopLayer ? `${layer.sceneId}:loop` : layer.sceneId} data-km-film-layer={loopLayer ? undefined : layer.sceneId} data-km-film-loop={loopLayer ? "" : undefined} style={{ ...LAYER, opacity,
         transform: `matrix(${a},${b},${c},${d},${e},${f})`, transformOrigin: "0 0",
         ...through && incoming && through.mask ? { maskImage: through.mask, WebkitMaskImage: through.mask } : {},
@@ -441,7 +446,7 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
         })() : {},
         clipPath: material?.clipOut && !incoming && !loopLayer ? material.clipOut : gate && incoming ? `circle(${gate.r}px at ${gate.cx}px ${gate.cy}px)` : shape && incoming && shape.clipPath ? shape.clipPath : container && incoming && grow ? grow.clip : through && incoming ? through.clip : pass && incoming ? pass.clip : clip ? `inset(${clip.y}px ${film.width - clip.x - clip.width}px ${film.height - clip.y - clip.height}px ${clip.x}px)` : undefined,
         // CSS blur has no direction. A whip lasts a few frames, so the larger axis is enough.
-        filter: layerWarp(incoming) && !loopLayer ? `url(#${warpId}-${incoming ? "in" : "out"})` : spin && incoming === spin.showIncoming && (spin.spin > 0 || spin.zoom > 0) ? `url(#${warpId}-spin)` : whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : flash && incoming && flash.glow > .01 ? `brightness(${1 + 1.6 * flash.glow}) saturate(${1 - .5 * flash.glow})` : undefined }}>
+        filter: layerWarp(incoming) && !loopLayer ? `url(#${warpId}-${incoming ? "in" : "out"})` : spin && incoming === spin.showIncoming && (spin.spin > 0 || spin.zoom > 0) ? `url(#${warpId}-spin)` : glitch ? `url(#${warpId}-glitch-${incoming ? "in" : "out"})` : whip && whip.blur > .5 ? `blur(${whip.blur}px)` : layer.blur ? `blur(${Math.max(layer.blur.x, layer.blur.y)}px)` : flash && incoming && flash.glow > .01 ? `brightness(${1 + 1.6 * flash.glow}) saturate(${1 - .5 * flash.glow})` : undefined }}>
         <div style={{ ...LAYER, filter: gradeWhole, transformOrigin: gate && incoming ? `${gate.cx}px ${gate.cy}px` : undefined,
           transform: gate && incoming ? `scale(${gate.scale})` : drifts || driven !== 1 ? `scale(${Math.round((drifts ? 1 + film.drift * layer.localFrame / (scene.endFrame - scene.startFrame) : 1) * driven * 1e5) / 1e5})` : undefined }}>
           {(() => {
@@ -472,6 +477,8 @@ export const FilmStage = forwardRef<HTMLDivElement, FilmStageProps>(function Fil
     {shape?.edge && shapeSpec!.edge && <svg aria-hidden="true" data-km-film-shape-edge="" width={film.width} height={film.height} style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
       <path d={shape.edge} fill="none" stroke={shapeSpec!.edge} strokeWidth={Math.max(1.5, Math.min(film.width, film.height) * .004)} strokeLinejoin="round" />
     </svg>}
+    {glitch && <GlitchFilter id={`${warpId}-glitch-out`} bands={glitch} incoming={false} width={film.width} height={film.height} />}
+    {glitch && <GlitchFilter id={`${warpId}-glitch-in`} bands={glitch} incoming width={film.width} height={film.height} />}
     {spin && <MotionBlurFilter id={`${warpId}-spin`} zoom={spin.zoom} spin={spin.spin} centre={{ x: .5, y: .5 }} width={film.width} height={film.height} />}
     {material?.warpOut && <MaterialWarpFilter id={`${warpId}-out`} images={material.warpOut} width={film.width} height={film.height} />}
     {material?.warpIn && <MaterialWarpFilter id={`${warpId}-in`} images={material.warpIn} width={film.width} height={film.height} />}

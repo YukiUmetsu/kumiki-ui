@@ -3305,7 +3305,8 @@
   "acquiredOn": "2026-11-18",
   "modifications": [
    "first 8 s, scaled from 384x288 to 768x576, H.264 re-encoded at its own 25 fps",
-   "annabelle-dance-cutout.webm: the dancer cut out by npm run video:matte (IS-Net, Apache-2.0 weights), VP9 with alpha"
+   "annabelle-dance-cutout.webm: the dancer cut out by npm run video:matte (IS-Net, Apache-2.0 weights), VP9 with alpha",
+   "annabelle-peacock-mosh.mp4: datamosh of this film into the CC0 peacock clip by npm run video:datamosh (both clips CC0)"
   ],
   "intendedUse": "storybook-demo",
   "redistributionVerified": true,

@@ -33,6 +33,7 @@ import subjectExample from "../../examples/film/subject.film.json";
 import freezeExample from "../../examples/film/freeze-intro.film.json";
 import slowmoExample from "../../examples/film/slowmo.film.json";
 import trailExample from "../../examples/film/motion-trail.film.json";
+import glitchExample from "../../examples/film/glitch.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -580,6 +581,23 @@ export const MotionTrail: StoryObj = {
       dancer; tinted, the copies are washed toward one colour. The echo instead lays earlier frames of the whole picture over the current
       one, so anything that moves, the camera included, leaves a ghost. Film: <a href="https://commons.wikimedia.org/wiki/File:Annabelle_butterfly_dance_1894.ogv" style={{ color: "#7cc6ff" }}>Annabelle
       Butterfly Dance</a> (W. K. L. Dickson, 1894), CC0.
+    </FilmCompare>;
+  },
+};
+
+const glitchDoc = glitchExample as unknown as FilmDocument;
+/** Glitch cuts on the 110 bpm drum loop, centred on kicks: the frame breaks into bands that jump sideways and tear into red and blue while
+ * the next scene takes over band by band. The last scene is a real datamosh made by `npm run video:datamosh`. Beside it, hard cuts. */
+export const GlitchAndDatamosh: StoryObj = {
+  render: function GlitchAndDatamosh() {
+    const variants = useMemo(() => ({
+      glitch: { label: "Glitch cuts", film: compileExample(glitchDoc) },
+      cuts: { label: "Hard cuts (before)", film: compileExample({ ...glitchDoc, scenes: glitchDoc.scenes.map(scene => scene.transition ? { ...scene, transition: { kind: "cut" } } : scene) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={film => film.cut.transitions[0].startFrame - 10} audio={soundUrls["../../assets/sound/lab/moves/glitch.m4a"]}>
+      The bands hold for two frames and then change; the tear peaks in the middle of the cut, and every band is the next scene by its end.
+      Under reduced motion each cut is a dissolve. The last scene is not drawn by the film: it is a real datamosh between two CC0 clips,
+      the 1894 dancer's picture moved by the peacock's motion vectors until the next keyframe brings the peacock back clean.
     </FilmCompare>;
   },
 };

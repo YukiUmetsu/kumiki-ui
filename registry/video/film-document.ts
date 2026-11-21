@@ -75,6 +75,8 @@ import { compileFreeze, freezeExtra, FREEZE_CARD_IN } from "./film-freeze";
 import type { FilmFreeze, FilmFreezeSpec } from "./film-freeze";
 import type { FilmFootageSubject } from "./film-subject";
 import type { FilmSpinCut } from "./film-spin";
+import { GLITCH_FRAMES, inspectGlitch } from "./film-glitch";
+import type { FilmGlitchCut } from "./film-glitch";
 import type { FilmLens, FilmLensSpec } from "./film-lens";
 import type { FilmStutter } from "./film-stutter";
 import type { FilmPanelsContent, PanelsPlan } from "./film-panels";
@@ -88,13 +90,15 @@ export type FilmOutput =
 /** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
  * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
 export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames" | "text">, Pick<FilmFlashSpec, "frames" | "fadeFrames">, Partial<FilmBurstSpec>, Pick<FilmShapeWipeSpec, "shape" | "material">, Pick<FilmMatteSpec, "texture" | "seed" | "grain">, FilmDitherSpec {
-  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip" | "flash" | "burst" | "shape" | "matte" | "dither" | "lens" | "spin" | "zoom-blur";
+  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip" | "flash" | "burst" | "shape" | "matte" | "dither" | "lens" | "spin" | "zoom-blur" | "glitch";
   durationFrames?: number;
   /** `spin`: the whole turn in degrees, half in each scene, 90 to 720. `direction` "right" turns clockwise, "left" anticlockwise.
    * @default 180 */
   turn?: number;
   /** `zoom-blur`: the scale at the cut, 1.2 to 4. @default 1.8 */
   zoom?: number;
+  /** `glitch`: how hard the bands jump and tear, 0.1 to 1. @default 0.7 */
+  intensity?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve.
    * `shape`: a subject of the outgoing scene the shape grows from (its centre). `matte`: a subject where ink starts.
    * `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene.
@@ -501,6 +505,8 @@ export interface CompiledFilm {
   whips: Readonly<Record<string, { direction: "left" | "right" | "up" | "down" }>>;
   /** Spin and zoom-blur cuts, by incoming scene ID. */
   spins: Readonly<Record<string, FilmSpinCut>>;
+  /** Glitch cuts, by incoming scene ID. */
+  glitches: Readonly<Record<string, FilmGlitchCut>>;
   /** Pass-bys, by incoming scene ID. */
   passBys: Readonly<Record<string, FilmPassBy>>;
   /** Dips through a colour, by incoming scene ID. */
@@ -566,7 +572,7 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
 
 const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14, ZOOM_FRAMES = 36, WHIP_FRAMES = 10,
   /** Transitions the plan holds as dissolves and FilmStage draws, with their default lengths. */
-  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES, flash: 6, burst: 8, shape: SHAPE_WIPE_FRAMES, matte: MATTE_FRAMES, dither: DITHER_FRAMES, lens: 24, spin: SPIN_FRAMES, "zoom-blur": ZOOM_BLUR_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
+  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES, flash: 6, burst: 8, shape: SHAPE_WIPE_FRAMES, matte: MATTE_FRAMES, dither: DITHER_FRAMES, lens: 24, spin: SPIN_FRAMES, "zoom-blur": ZOOM_BLUR_FRAMES, glitch: GLITCH_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -1119,6 +1125,14 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
     if (cut) spins[scene.id] = cut;
   });
+  // Glitch cuts: each seeded by its place in the film, so it tears the same way every render.
+  const glitches: Record<string, FilmGlitchCut> = {};
+  doc.scenes.forEach((scene, index) => {
+    if (scene.transition?.kind !== "glitch") return;
+    const { cut, problems } = inspectGlitch(scene.transition, index * 7919 + 17, `/scenes/${index}/transition`);
+    for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
+    if (cut) glitches[scene.id] = cut;
+  });
   const cutResult = diagnostics.some(item => item.severity === "error") ? undefined : compileCutPlan({
     id: doc.id, fps, output: size, scenes: doc.scenes.map(scene => ({ id: scene.id, subjects: {} })),
     shots: doc.scenes.map(scene => ({ id: scene.id, sceneId: scene.id, durationFrames: scene.play?.frames ?? scene.durationFrames, subjectIds: [],
@@ -1323,7 +1337,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, shapes, mattes, dithers, lensGates, tapeStops, rewinds, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), spins, passBys, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, shapes, mattes, dithers, lensGates, tapeStops, rewinds, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), spins, glitches, passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };
