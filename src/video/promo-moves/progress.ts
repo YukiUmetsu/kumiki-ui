@@ -1,4 +1,5 @@
-/** Every move from doc 34 (docs/34-promo-motion-and-sound-gaps.md) and how far along it is. The Progress story draws this table; update
+/** Every move from doc 34 (docs/34-promo-motion-and-sound-gaps.md), and the short-form editing techniques of VE1 (docs/06-roadmap.md), and
+ * how far along each is. The Progress story draws this table; update
  * an item's `status` and `story` in the same change that builds it. */
 
 export type MoveStatus = "built" | "in-progress" | "planned";
@@ -66,6 +67,21 @@ export const PROMO_MOVES: readonly PromoMove[] = [
     what: "A clear glass circle or pill glides over a scene, magnifying what is behind it and bending its edge harder.", usage: '"lens": { "shape": "pill", "path": [{ "at": 24, "x": 0.12, "y": 0.5 }, …] }' },
   { id: "A11", name: "Sound-driven motion", group: "Animation and type", rank: "P3", status: "built", story: "video-production-promo-moves--sound-drive",
     what: "A bed's measured loudness drives a scene's scale or a soft glow, frame by frame: a bump on every beat.", usage: '"drive": { "bed": "pulse", "property": "scale" }' },
+  { id: "VE1.3", name: "Spin and zoom-blur cuts", group: "Transitions", rank: "P1", status: "built", story: "video-production-promo-moves--spin-and-zoom-blur",
+    what: "The picture turns or pushes in faster and faster and cuts at the fastest point, blurred along circles or rays; the next scene finishes the move.",
+    usage: '"transition": { "kind": "spin", "direction": "right", "turn": 180 } · { "kind": "zoom-blur", "zoom": 1.8 }' },
+  { id: "VE1.4", name: "Chat story", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--chat-story",
+    what: "A message thread card: bubbles land one by one at reading pace, the other side's after typing dots; groups name each sender; a sound per message.",
+    usage: '{ "card": "chat", "people": [{ "id": "me", "name": "Me" }, { "id": "sam", "name": "Sam" }], "messages": [{ "from": "sam", "text": "…" }] }' },
+  { id: "VE1.5", name: "Subject cutout", group: "Animation and type", rank: "P0", status: "built", story: "video-production-promo-moves--subject-cutout",
+    what: "The subject of real footage cut out frame by frame (npm run video:matte): words behind it, an outline, a new background, clones from earlier frames.",
+    usage: '"subject": { "cutout": { "src": "assets/footage/peacock-walk-cutout.webm", … }, "behind": true, "outline": { "color": "#ffffff" } }' },
+  { id: "VE1.1", name: "Beat hits", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--beat-hits",
+    what: "A punch zoom, a camera shake, an RGB split, a zoom blur or a flash on each beat of a bed with a declared tempo, on its loud onsets, or on moments; patterns combine (punch on the kick, shake on the snare).",
+    usage: '"hits": [{ "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } }, { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }] · bed "bpm": 110' },
+  { id: "VE1.2", name: "Velocity edit", group: "Animation and type", rank: "P1", status: "built", story: "video-production-speed-ramp--velocity",
+    what: "The speed follows the beat: content races between beats and drops to slow motion on each one (rush, dip, burst or freeze), fitted exactly to the scene.",
+    usage: '"speed": { "source": 315, "beats": { "bed": "drums", "every": 2, "shape": "rush", "contrast": 8 } }' },
   { id: "A12", name: "Focus pull", group: "Animation and type", rank: "P3", status: "built", story: "video-production-promo-moves--focus-pull",
     what: "On a photo card, focus racks between the photograph and the words.", usage: '"focus": [{ "at": 0, "on": "words" }, { "at": 80, "on": "photo" }]' },
   { id: "S1", name: "Air gap", group: "Sound", rank: "P0", status: "built", story: "video-production-promo-moves--sound-moves",
@@ -94,6 +110,21 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.5": { registryItem: "film-document", jobs: ["put text behind a person", "cut out the subject of a video"], keywords: ["text behind subject", "text behind person", "subject cutout", "background removal",
+    "remove background video", "segmentation", "matte", "rotoscope", "outline stroke", "subject outline", "glow outline", "background replace", "clone effect", "clone yourself", "depth effect"],
+    avoid: "Clones need a locked-off camera; a cutout carries the footage's licence; Safari does not play VP9 alpha." },
+  "VE1.4": { registryItem: "film-document", jobs: ["tell a story as a text conversation", "show a message thread"], keywords: ["chat story", "text story", "text message video", "texting story",
+    "message thread", "chat bubbles", "conversation", "typing indicator", "dm", "sms", "group chat", "faceless video", "vertical"],
+    avoid: "Do not copy a real messaging app's look or name; give each message time to be read." },
+  "VE1.3": { registryItem: "film-document", jobs: ["hide a cut inside a fast move", "energetic transition"], keywords: ["spin transition", "rotate transition", "rotation blur", "spin blur",
+    "zoom transition", "zoom blur transition", "zoom in transition", "punch in", "radial blur", "motion blur transition", "velocity edit", "transition"],
+    avoid: "One or two per film; on every cut they read as a template. Keep them between 0.2 s and 1 s." },
+  "VE1.2": { registryItem: "film-document", jobs: ["cut the speed to the music", "slow motion on the beat"], keywords: ["velocity edit", "velocity", "speed curve", "speed ramp to music",
+    "slow motion on beat", "time remap to beat", "beat sync speed", "slowmo", "fast slow", "car edit", "sports edit", "music video", "bpm", "tempo"],
+    avoid: "Over about 10× motion stops reading; give the content enough frames that the beats really slow down." },
+  "VE1.1": { registryItem: "film-document", jobs: ["cut the picture to the beat", "make an edit hit harder"], keywords: ["beat sync", "edit to music", "camera shake", "screen shake", "zoom punch", "punch zoom", "zoom on beat",
+    "bass shake", "rgb split", "chromatic aberration", "zoom blur", "radial blur", "impact", "velocity edit", "music video", "beat drop", "flash on beat", "bpm", "tempo"],
+    avoid: "Hits on every beat of a fast track read as jitter (over four a second warns); flashes stop at three a second; keep splits light over words." },
   T1: { registryItem: "film-document", jobs: ["change place or time", "open or close a film"], keywords: ["dip to black", "dip to white", "fade to black", "fade in", "fade out", "colour dip", "transition", "time jump"], avoid: "Under about 4 frames a fade reads as a flash; do not cover the next scene's title with the dip." },
   T2: { registryItem: "film-document", jobs: ["punch a cut", "show many pictures fast"], keywords: ["flash cut", "white flash", "flash frame", "burst", "strobe", "montage", "photo flash", "transition"], avoid: "More than three flashes a second is refused for photosensitive viewers." },
   T3: { registryItem: "film-document", jobs: ["reveal from a point", "brand a transition"], keywords: ["shape wipe", "iris", "iris wipe", "circle wipe", "star wipe", "logo wipe", "mask transition", "transition"], avoid: "Open from a point that matters, not the middle by habit." },

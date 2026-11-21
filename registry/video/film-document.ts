@@ -8,7 +8,7 @@ import { inspectShaderFxUse } from "./shader-fx-guide";
 import { RAY_WORLD_IDS } from "./ray-world";
 import { inspectShot3d, shot3dCues, shot3dTurnCue } from "./film-3d";
 import { inspectLookSpec, mergeLookSpecs, resolveLook } from "./film-look";
-import { CARD_ENTER, cardCues, inspectCard, readingSeconds, readingWords } from "./film-cards";
+import { CARD_ENTER, cardCues, inspectCard, readingSeconds, readingWords, chatTiming } from "./film-cards";
 import { compileScreenDemo, inspectScreenDemoOutput } from "./screen-demo";
 import { compileSpeed, speedOutput } from "./film-speed";
 import type { CompiledSpeed, FilmSpeed } from "./film-speed";
@@ -46,6 +46,8 @@ import { compileSceneSounds, inspectSplitEdits } from "./film-split-edits";
 import { inspectSonic, sonicRef } from "./film-sonic";
 import { bedLevels, DRIVE_AMOUNTS, follow, inspectDrive, peakRisesPerSecond } from "./film-drive";
 import type { DriveProperty, FilmDrive, FilmDriveSpec, SoundLevels } from "./film-drive";
+import { bedBeats, compileHits } from "./film-hits";
+import type { FilmHits, FilmHitsSpec } from "./film-hits";
 import { compileMotionChart } from "./motion-chart";
 import { compileAnnotate } from "./annotate";
 import { compileDrawOn, inspectDrawOnOutput } from "./draw-on";
@@ -67,6 +69,10 @@ import { MATERIAL_SOUNDS } from "./material-sound";
 import type { FilmDither, FilmDitherSpec, FilmMatte, FilmMatteSpec } from "./film-matte";
 import { compileStutter, stutterExtra } from "./film-stutter";
 import { inspectLens } from "./film-lens";
+import { inspectSpinCut, SPIN_FRAMES, ZOOM_BLUR_FRAMES } from "./film-spin";
+import { inspectSubject } from "./film-subject";
+import type { FilmFootageSubject } from "./film-subject";
+import type { FilmSpinCut } from "./film-spin";
 import type { FilmLens, FilmLensSpec } from "./film-lens";
 import type { FilmStutter } from "./film-stutter";
 import type { FilmPanelsContent, PanelsPlan } from "./film-panels";
@@ -80,8 +86,13 @@ export type FilmOutput =
 /** How a scene arrives. `audioLead` and `audioTail` split the edit: the incoming scene's sound starts early (a J-cut), or the outgoing
  * scene's carries over the cut (an L-cut). See `film-split-edits.ts`. */
 export interface FilmTransition extends FilmSplit, Pick<FilmDipSpec, "holdFrames" | "text">, Pick<FilmFlashSpec, "frames" | "fadeFrames">, Partial<FilmBurstSpec>, Pick<FilmShapeWipeSpec, "shape" | "material">, Pick<FilmMatteSpec, "texture" | "seed" | "grain">, FilmDitherSpec {
-  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip" | "flash" | "burst" | "shape" | "matte" | "dither" | "lens";
+  kind: "cut" | "dissolve" | "wipe" | "whip" | "match" | "container" | "pass-by" | "zoom" | "dip" | "flash" | "burst" | "shape" | "matte" | "dither" | "lens" | "spin" | "zoom-blur";
   durationFrames?: number;
+  /** `spin`: the whole turn in degrees, half in each scene, 90 to 720. `direction` "right" turns clockwise, "left" anticlockwise.
+   * @default 180 */
+  turn?: number;
+  /** `zoom-blur`: the scale at the cut, 1.2 to 4. @default 1.8 */
+  zoom?: number;
   /** `match`: a subject that both scenes hold. It travels from its old place to its new place while the scenes dissolve.
    * `shape`: a subject of the outgoing scene the shape grows from (its centre). `matte`: a subject where ink starts.
    * `container`: a subject of the outgoing scene (a tile, a row, a card) that grows into the incoming scene.
@@ -171,6 +182,9 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   lens?: FilmLensSpec;
   /** A bed's loudness moves the scene: it grows a little, or glows, on each loud moment. See `film-drive.ts`. (Doc 34, A11.) */
   drive?: FilmDriveSpec;
+  /** Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See
+   * `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre. */
+  hits?: FilmHitsSpec | readonly FilmHitsSpec[];
   /** The scene ends by running back to its start over its last `frames`, picture and sound, as a tape thrown into rewind: "let's go back".
    * The scene runs `frames` longer than its content. (Doc 34, S6.) */
   rewind?: { frames: number };
@@ -226,8 +240,12 @@ export interface FilmFootageContent {
   push?: readonly [number, number];
   /** The point kept in view when the frame crops the clip, as fractions. @default the centre */
   focus?: { x: number; y: number };
+  /** The subject cut out of this footage (`npm run video:matte`): words behind it, an outline, a new background, clones. See
+   * `film-subject.ts`. */
+  subject?: FilmFootageSubject;
   /** Words over the footage, landing word by word at `at` and leaving at `until` (or the scene's end). */
-  title?: { text: string; at: number; until?: number; place?: "top" | "middle" | "bottom"; size?: "large" | "huge"; emphasis?: string };
+  title?: { text: string; at: number; until?: number; place?: "top" | "middle" | "bottom";
+    /** `giant` fills most of the frame's width: a word or two for a subject to stand in front of (`subject.behind`). */ size?: "large" | "huge" | "giant"; emphasis?: string };
 }
 export interface FilmFootageScene extends FilmSceneBase { recipeId: "footage"; content: FilmFootageContent }
 /** A scene the host draws by name, for work no recipe covers (a bespoke 3D set, a branded animation). The film times, cuts, casts and
@@ -323,6 +341,10 @@ export interface FilmAudioBed {
   /** Level automation: the bed reaches `db` (added to `gainDb`) at each point, a frame or a `<scene id>/<moment>`, easing between points.
    * `open` from 0 (dull, low-passed at 700 Hz) to 1 (full) brightens it as it swells. Points in order. (Doc 34, S3.) */
   gain?: ReadonlyArray<{ at: number | string; db: number; open?: number }>;
+  /** The bed's tempo, so scenes can put hits on its beats (`hits.beats`). From 40 to 240. */
+  bpm?: number;
+  /** Seconds from the bed's start to its first beat. @default 0 */
+  beatOffset?: number;
 }
 export interface FilmAudioGap {
   id: string;
@@ -421,6 +443,7 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   /** The scene's resolved look, when the film or the scene sets one. */ look?: ResolvedLook;
   /** A glass lens over the scene. */ lens?: FilmLens;
   /** A bed's loudness moving the scene, one value per scene frame. */ drive?: FilmDrive;
+  /** Impulses on beats or moments, at scene frames: one compiled pattern per authored one. */ hits?: readonly FilmHits[];
   /** The scene's time map, when it has a speed ramp or plays a stretch: content frame for each output frame. */ speed?: CompiledSpeed;
   /** The length the content is timed in, when it differs from the map's last frame (a scene that plays a stretch). */ contentFrames?: number;
   /** Characters performing over the scene. */ cast?: readonly FilmCastMember[] } & (
@@ -466,6 +489,8 @@ export interface CompiledFilm {
   zooms: Readonly<Record<string, FilmZoom>>;
   /** Whip pans, by incoming scene ID: the way the camera swings. */
   whips: Readonly<Record<string, { direction: "left" | "right" | "up" | "down" }>>;
+  /** Spin and zoom-blur cuts, by incoming scene ID. */
+  spins: Readonly<Record<string, FilmSpinCut>>;
   /** Pass-bys, by incoming scene ID. */
   passBys: Readonly<Record<string, FilmPassBy>>;
   /** Dips through a colour, by incoming scene ID. */
@@ -531,7 +556,7 @@ function outputSize(output: FilmOutput): { width: number; height: number; preset
 
 const MATCH_FRAMES = 16, CONTAINER_FRAMES = 22, PASS_BY_FRAMES = 14, ZOOM_FRAMES = 36, WHIP_FRAMES = 10,
   /** Transitions the plan holds as dissolves and FilmStage draws, with their default lengths. */
-  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES, flash: 6, burst: 8, shape: SHAPE_WIPE_FRAMES, matte: MATTE_FRAMES, dither: DITHER_FRAMES, lens: 24 }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
+  DRAWN_FRAMES = { match: MATCH_FRAMES, container: CONTAINER_FRAMES, "pass-by": PASS_BY_FRAMES, zoom: ZOOM_FRAMES, whip: WHIP_FRAMES, dip: DIP_FRAMES, flash: 6, burst: 8, shape: SHAPE_WIPE_FRAMES, matte: MATTE_FRAMES, dither: DITHER_FRAMES, lens: 24, spin: SPIN_FRAMES, "zoom-blur": ZOOM_BLUR_FRAMES }, FLAT_ARC_SECONDS = 20, MAX_SCENE_FX = 2;
 const within = (box: Rect, region: FocusRegion): Rect => ({ x: box.x + region.x * box.width, y: box.y + region.y * box.height, width: region.width * box.width, height: region.height * box.height });
 
 /** The smallest box that both scenes can bring their subject to while each scene still covers the whole frame.
@@ -776,6 +801,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
           else if (((title.until ?? scene.durationFrames) - title.at) / fps < readingSeconds(title.text)) report("warning", "footage-title-short", at + "/title", `"${title.text}" is on screen for less than its reading time.`, `Give it ${readingSeconds(title.text).toFixed(1)} s.`);
           if (readingWords(title.text) > 7) report("warning", "footage-title-long", at + "/title/text", "Over seven words: footage carries a line, not a paragraph.");
         }
+        if (content.subject) for (const item of inspectSubject(content.subject, v, Boolean(title), at + "/subject")) report(item.severity, item.code, item.path, item.message, item.hint);
       }
       if (!hasProblem(path)) compiled.push({ kind: "footage", recipeId: "footage", id: scene.id, startFrame, endFrame, content,
         cues: [{ id: "start", frame: startFrame }, ...content.title ? [{ id: "title", frame: startFrame + content.title.at }] : []], ...placed(scene, {}, path) });
@@ -831,7 +857,13 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     const done = compiled[compiled.length - 1];
     if (authored.speed && done?.id === authored.id) {
       const local = (frame: number) => frame - startFrame;
-      const { speed, problems } = compileSpeed(authored.speed, authored.durationFrames, doc.fps.num / doc.fps.den, id => { const cue = done.cues.find(item => item.id === id); return cue && local(cue.frame); });
+      // A velocity edit follows the beats of a bed with a declared tempo, in this scene's frames.
+      const want = authored.speed.beats, bed = want && doc.audio?.beds?.find(item => item.id === want.bed), every = want?.every ?? 1, phase = want?.phase ?? 0;
+      if (want && !bed) report("error", "speed-beats-bed", path + "/speed/beats/bed", `The film has no bed "${want.bed}".`, "Name a bed in audio.beds.");
+      else if (want && !bed!.bpm) report("error", "speed-beats-tempo", path + "/speed/beats/bed", `The bed "${want.bed}" declares no tempo.`, "Give the bed its `bpm` (and `beatOffset`).");
+      if (want && !([1, 2, 4, 8].includes(every) && Number.isSafeInteger(phase) && phase >= 0 && phase < every)) report("error", "speed-beats-every", path + "/speed/beats", "A velocity edit follows every 1, 2, 4 or 8 beats, at a phase inside the group.");
+      const beats = bed?.bpm ? bedBeats(bed, doc.fps.num / doc.fps.den, startFrame + authored.durationFrames + 1).flatMap((frame, n) => n % every === phase ? [frame - startFrame] : []) : [];
+      const { speed, problems } = compileSpeed(authored.speed, authored.durationFrames, doc.fps.num / doc.fps.den, id => { const cue = done.cues.find(item => item.id === id); return cue && local(cue.frame); }, beats);
       for (const item of problems) report(item.severity, item.code, path + "/speed" + item.path, item.message, item.hint);
       if (speed) {
         done.speed = speed;
@@ -1052,6 +1084,15 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
         shared.length ? `Subjects in both scenes: ${shared.join(", ")}.` : "Give both scenes a subject with the same ID.");
     });
   }
+  // Spin and zoom-blur cuts: checked here, drawn by FilmStage over a dissolve in the cut plan.
+  const spins: Record<string, FilmSpinCut> = {};
+  doc.scenes.forEach((scene, index) => {
+    const transition = scene.transition;
+    if (transition?.kind !== "spin" && transition?.kind !== "zoom-blur") return;
+    const { cut, problems } = inspectSpinCut({ ...transition, kind: transition.kind }, doc.fps.num / doc.fps.den, `/scenes/${index}/transition`);
+    for (const item of problems) report(item.severity, item.code, item.path, item.message, item.hint);
+    if (cut) spins[scene.id] = cut;
+  });
   const cutResult = diagnostics.some(item => item.severity === "error") ? undefined : compileCutPlan({
     id: doc.id, fps, output: size, scenes: doc.scenes.map(scene => ({ id: scene.id, subjects: {} })),
     shots: doc.scenes.map(scene => ({ id: scene.id, sceneId: scene.id, durationFrames: scene.play?.frames ?? scene.durationFrames, subjectIds: [],
@@ -1078,7 +1119,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     report(item.severity, item.code, "/captions" + (index >= 0 ? "/cues/" + index : ""), item.message);
   }
   // Quiet transitions get no whoosh: dips, flashes and bursts always; with `on: "moves"`, every transition that does not travel.
-  const TRAVELS = new Set(["whip", "pass-by", "zoom", "container", "match", "wipe", "shape", "lens"]);
+  const TRAVELS = new Set(["whip", "pass-by", "zoom", "container", "match", "wipe", "shape", "lens", "spin", "zoom-blur"]);
   // Reeded glass sweeping past the lens travels like a pass-by.
   const travels = (transition?: FilmTransition) => TRAVELS.has(transition?.kind ?? "cut") || (transition?.kind === "matte" && transition.texture === "refract");
   const quiet = new Set([...Object.keys(dips), ...Object.keys(flashes), ...Object.keys(bursts),
@@ -1112,6 +1153,8 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     if (!(bed.fadeSeconds === undefined || (bed.fadeSeconds >= 0 && bed.fadeSeconds <= 30))) report("error", "sound-bed", at + "/fadeSeconds", "A fade runs from 0 to 30 seconds.");
     if (!(bed.startFrame === undefined || (Number.isSafeInteger(bed.startFrame) && bed.startFrame >= 0 && bed.startFrame < durationFrames))) report("error", "sound-bed", at + "/startFrame", "A bed starts inside the film.");
     if (!(bed.durationFrames === undefined || (Number.isSafeInteger(bed.durationFrames) && bed.durationFrames > 0 && (bed.startFrame ?? 0) + bed.durationFrames <= durationFrames))) report("error", "sound-bed", at + "/durationFrames", "A bed ends inside the film.");
+    if (!(bed.bpm === undefined || (bed.bpm >= 40 && bed.bpm <= 240))) report("error", "sound-bed", at + "/bpm", "A bed's tempo runs from 40 to 240 beats a minute.");
+    if (!(bed.beatOffset === undefined || (bed.beatOffset >= 0 && bed.beatOffset <= 10))) report("error", "sound-bed", at + "/beatOffset", "The first beat is 0 to 10 seconds into the bed.");
   });
   if (master && !hasKey(MIX_PROFILES, master.profile)) report("error", "sound-master", "/audio/master/profile", `"${master.profile}" is not a profile.`, `Profiles: ${Object.keys(MIX_PROFILES).join(", ")}.`);
   if (master?.duckDb !== undefined && !(master.duckDb >= 0 && master.duckDb <= 40)) report("error", "sound-master", "/audio/master/duckDb", "Ducking runs from 0 to 40 dB.");
@@ -1176,6 +1219,46 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     const busy = peakRisesPerSecond(scene.drive.values, rate);
     if (busy > 3) report("warning", "drive-busy", `/scenes/${index}/drive`, `"${spec.drive.bed}" moves the scene ${busy} times in one second.`, property === "glow" ? "More than three pulses of light a second is a flash. Drive it with a slower bed." : "Drive it with a bed that has a slower pulse.");
   });
+  // Hits: impulses on content frames, moments, a bed's beats or its loud onsets, at scene frames after any time map.
+  const TEXT_KINDS = new Set(["card", "screen-demo", "motion-chart", "chart-morph", "annotate", "draw-on", "title-sequence"]);
+  doc.scenes.forEach((spec, index) => {
+    const scene = compiled.find(item => item.id === spec.id);
+    if (!spec.hits || !scene) return;
+    const length = scene.endFrame - scene.startFrame, rate = fps.num / fps.den, list = Array.isArray(spec.hits) ? spec.hits as readonly FilmHitsSpec[] : [spec.hits as FilmHitsSpec], compiledHits: FilmHits[] = [];
+    if (!list.length || list.length > 4) { report("error", "hits-patterns", `/scenes/${index}/hits`, "A scene takes one to four hit patterns."); return; }
+    list.forEach((item, i) => {
+      const path = `/scenes/${index}/hits` + (Array.isArray(spec.hits) ? `/${i}` : "");
+      const { hits, problems } = compileHits(item, { path, durationFrames: length, contentFrames: scene.contentFrames ?? spec.speed?.source ?? (spec.stutter ? length - stutterExtra(spec.stutter) : length),
+        fps: rate, filmStart: scene.startFrame, filmFrames: durationFrames, beds, levels: options.soundLevels, textHeavy: TEXT_KINDS.has(scene.kind),
+        moment: id => { const cue = scene.cues.find(cue => cue.id === id); return cue && cue.frame - scene.startFrame; },
+        output: content => scene.speed ? speedOutput(scene.speed, content) : content,
+        silent: frame => gaps.some(gap => frame >= gap.startFrame && frame < gap.endFrame) });
+      for (const problem of problems) report(problem.severity, problem.code, problem.path, problem.message, problem.hint);
+      if (!hits) return;
+      compiledHits.push(hits);
+      if (!hits.sound) return;
+      if (!doc.audio?.accents) { report("error", "hits-sound-no-kit", path + "/sound", "A sound on hits needs `audio.accents.kit`."); return; }
+      if (!options.accentKit) return;
+      if (!options.accentKit.sounds[hits.sound]) { report("error", "hits-sound", path + "/sound", `The accent kit has no "${hits.sound}" sound.`, "Name a kit sound, or a catalog sound as catalog:<id>."); return; }
+      const place = accentPlacer(fps, options.accentKit, doc.audio);
+      hits.frames.forEach((frame, n) => accents.push(place(`hit/${scene.id}/${i}/${n}`, hits.sound!, scene.startFrame + frame, hits.gainDb ?? 0, "start")));
+    });
+    if (compiledHits.length === list.length) scene.hits = compiledHits;
+  });
+  // A chat's messages: a sound as each lands, one for mine and one for the others'.
+  compiled.forEach(scene => {
+    if (scene.kind !== "card" || scene.content.card !== "chat" || !scene.content.sound) return;
+    const chat = scene.content, sound = chat.sound!, path = `/scenes/${doc.scenes.findIndex(item => item.id === scene.id)}/content/sound`;
+    if (!doc.audio?.accents) { report("error", "card-chat-sound-no-kit", path, "Message sounds need `audio.accents.kit`."); return; }
+    if (!options.accentKit) return;
+    for (const name of new Set([sound.me, sound.them].filter((item): item is string => Boolean(item))))
+      if (!options.accentKit.sounds[name]) report("error", "card-chat-sound", path, `The accent kit has no "${name}" sound.`, "Name a kit sound, or a catalog sound as catalog:<id>.");
+    const place = accentPlacer(fps, options.accentKit, doc.audio);
+    for (const item of chatTiming(chat, fps.num / fps.den)) {
+      const name = item.mine ? sound.me : sound.them, cue = scene.cues.find(entry => entry.id === `message-${item.index + 1}`);
+      if (name && cue && options.accentKit.sounds[name]) accents.push(place(`chat/${scene.id}/${item.index}`, name, cue.frame, sound.gainDb ?? 0, "start"));
+    }
+  });
   const seconds = (frames: number) => Number((frames * fps.den / fps.num).toFixed(3));
   // A period or lo-fi look muffles beds that set no filter of their own.
   const filmLowpass = doc.look ? resolveLook(doc.look).sound.lowpassHz : undefined;
@@ -1205,7 +1288,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       id: scene.id + "/" + asset.id, kind: "image" as const, url: asset.src, licenseRef: asset.licenseRef })))],
   };
   return { ok: true, diagnostics, film: {
-    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, shapes, mattes, dithers, lensGates, tapeStops, rewinds, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), passBys, captions, audio, sceneSounds, manifest,
+    id: doc.id, fps, outputId: output.id, appearance: doc.appearance ?? "dark", drift: Math.min(.1, Math.max(0, doc.drift ?? 0)), width: size.width, height: size.height, durationFrames, scenes: compiled, cut: plan, matches, containers, zooms, loop, dips, flashes, bursts, shapes, mattes, dithers, lensGates, tapeStops, rewinds, fade: fade?.fade, whips: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.kind === "whip" ? [[scene.id, { direction: scene.transition.direction ?? "left" }]] : [])), spins, passBys, captions, audio, sceneSounds, manifest,
     transitionFx: Object.fromEntries(doc.scenes.flatMap(scene => scene.transition?.fx ? [[scene.id, scene.transition.fx]] : [])),
     reviewFrames: reviewFrames(compiled, plan), safeInset: size.preset ? videoPlatformPreset(size.preset).safeInset : undefined, look: doc.look ? resolveLook(doc.look) : undefined, brand: doc.brand,
   } };
@@ -1311,13 +1394,16 @@ const DROP_SECONDS = .015;
 /** A whoosh that peaks at the middle of each transition that moves (a dip through a colour is quiet), and on each turn the sound that its story asks for. A sound
  * that the kit does not have gets no `assetRef`, and the compiler reports it. A material transition makes its material's recorded sounds instead (`material-sound.ts`),
  * whatever `on` says, since they are the material's own sound rather than an accent; an authored accent still wins. */
-function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio, quiet: ReadonlySet<string>,
-  authored: ReadonlyMap<string, FilmTransition["accent"]> = new Map(), materials: ReadonlyMap<string, string> = new Map()): SoundEvent[] {
-  const place = (id: string, sound: string, peakFrame: number, extraDb = 0, align: FilmSoundCue["align"] = "peak"): SoundEvent => {
+/** Places a kit sound on the accent lane so that its peak (or its start) meets a frame. */
+const accentPlacer = (fps: RationalFps, kit: FilmAccentKit, request: FilmAudio) =>
+  (id: string, sound: string, peakFrame: number, extraDb = 0, align: FilmSoundCue["align"] = "peak"): SoundEvent => {
     const found = kit.sounds[sound], lead = align === "start" ? 0 : (found?.peakSeconds ?? 0) * fps.num / fps.den, start = peakFrame - lead, frame = Math.max(0, Math.floor(start));
     return { id: `${id}/${sound}`, laneId: ACCENT_LANE, frame, subframeOffset: start > 0 ? start - frame : 0,
       assetRef: found && request.accents!.kit + "/" + found.file, gainDb: (request.accents!.gainDb ?? -8) + (found?.gainDb ?? 0) + extraDb };
   };
+function deriveAccents(scenes: readonly CompiledFilmScene[], cut: CompiledCutPlan, fps: RationalFps, kit: FilmAccentKit, request: FilmAudio, quiet: ReadonlySet<string>,
+  authored: ReadonlyMap<string, FilmTransition["accent"]> = new Map(), materials: ReadonlyMap<string, string> = new Map()): SoundEvent[] {
+  const place = accentPlacer(fps, kit, request);
   const TURN: Record<NonNullable<FilmStory["turnAccent"]>, readonly string[]> = { soft: ["ping"], impact: ["riser", "hit"], braam: ["catalog:braam-low"], none: [] };
   const moment = (at: string) => { const [sceneId, cueId] = at.split("/"); return scenes.find(scene => scene.id === sceneId)?.cues.find(cue => cue.id === cueId)?.frame; };
   return [

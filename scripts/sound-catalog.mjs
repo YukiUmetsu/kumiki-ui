@@ -3,6 +3,7 @@
  *   npm run sound:check
  *   npm run sound:import -- --from=<clone of wyzowl/sfx-kit> --ids=<id,id,...>
  *   npm run sound:import -- --recordings=<manifest.json>     Trim verified recordings. Loops get a seamless join.
+ *     A music loop cut on its beats takes `crossSeconds` (a short join) and `limitDb` (peak limiting for an unmastered take).
  *   npm run sound:discover -- "a query" [--draft=<file>]     Search the catalog, then Openverse; drafts stay unverified until a person checks them.
  *   npm run sound:measure -- <file.wav>   Loudness, true peak, DC, clipping and clicks, with FFmpeg.
  *   npm run sound:find -- "soft paper slide" [--material=paper] [--origin=recorded]
@@ -82,12 +83,22 @@ function importRecordings(file) {
   if (unverified.length) throw Error(`Not imported: ${unverified.map(item => item.id).join(", ")} ${unverified.length === 1 ? "is" : "are"} not verified. Read each licence on its sourceUrl, set file, seek and length, then set verified to true.`);
   const today = new Date().toISOString().slice(0, 10), sounds = catalog.sounds.filter(item => !ids.has(item.id)), work = mkdtempSync(join(tmpdir(), "km-sound-"));
   for (const item of items) {
-    const path = `recorded/${item.id}.wav`, out = join(DIR, path), raw = join(work, "raw.wav"), cross = 1.5;
+    // A bed blends its tail over its head for 1.5 s at equal power, as two unrelated washes of noise add. A music loop cut on its beats
+    // (`crossSeconds` under 0.2) repeats the same beat at the seam, so a few milliseconds at equal gain join it without a doubled hit.
+    const path = `recorded/${item.id}.wav`, out = join(DIR, path), raw = join(work, "raw.wav"), cross = item.crossSeconds ?? 1.5, curve = cross < .2 ? "tri" : "qsin";
     mkdirSync(dirname(out), { recursive: true });
     if (item.loop) {
       // `highpassHz` filters the whole section before the join, so the crossfaded seam stays continuous.
       ffmpeg(["-ss", String(item.seek), "-t", String(item.length + cross), "-i", item.file, ...(item.highpassHz ? ["-af", `highpass=f=${item.highpassHz}`] : []), "-ar", "48000", "-ac", "2", "-c:a", "pcm_f32le", raw]);
-      ffmpeg(["-i", raw, "-filter_complex", `[0:a]asplit[a][b];[a]atrim=0:${item.length},asetpts=PTS-STARTPTS,afade=t=in:d=${cross}:curve=qsin[x];[b]atrim=${item.length}:${item.length + cross},asetpts=PTS-STARTPTS,afade=t=out:d=${cross}:curve=qsin[y];[x][y]amix=inputs=2:normalize=0:duration=first,highpass=f=20[o]`, "-map", "[o]", "-c:a", "pcm_s16le", "-bitexact", out]);
+      if (item.limitDb) {
+        // An unmastered music loop (raw drums) peaks far above its loudness, and no film master can bring it to a platform's level
+        // without crushing it. `limitDb` takes that much off its loudest peaks first, as mastering would: the peak is raised that far
+        // over a -1 dBFS ceiling and a 4x-oversampled limiter holds it there.
+        const section = decode(raw), peak = section.reduce((top, value) => Math.max(top, Math.abs(value)), 0), lifted = join(work, "limited.wav");
+        ffmpeg(["-i", raw, "-af", `volume=${(item.limitDb - 1 - 20 * Math.log10(peak || 1)).toFixed(2)}dB,aresample=192000,alimiter=limit=0.8913:attack=2:release=80:level=disabled:latency=1,aresample=48000`, "-c:a", "pcm_f32le", lifted]);
+        renameSync(lifted, raw);
+      }
+      ffmpeg(["-i", raw, "-filter_complex", `[0:a]asplit[a][b];[a]atrim=0:${item.length},asetpts=PTS-STARTPTS,afade=t=in:d=${cross}:curve=${curve}[x];[b]atrim=${item.length}:${item.length + cross},asetpts=PTS-STARTPTS,afade=t=out:d=${cross}:curve=${curve}[y];[x][y]amix=inputs=2:normalize=0:duration=first,highpass=f=20[o]`, "-map", "[o]", "-c:a", "pcm_s16le", "-bitexact", out]);
     } else {
       // A one-shot starts just before its peak, and its peak sits at -6 dBFS. `keepLead` keeps what builds to the peak
       // (a blade drawn, a sheet sliding, wings beating up to their loudest stroke); the peak time then says where it lands.
