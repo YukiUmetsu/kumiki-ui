@@ -103,7 +103,7 @@ async function main() {
   } finally { rmSync(work, { recursive: true, force: true }); }
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch(error => {
     const json = process.argv.includes("--format=json"), code = error instanceof PipelineError ? error.code : "internal";
     if (json) process.stdout.write(JSON.stringify({ error: { code, message: error.message, hint: error.hint } }) + "\n");

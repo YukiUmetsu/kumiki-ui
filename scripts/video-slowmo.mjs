@@ -108,7 +108,7 @@ async function main() {
   else log.info(`Wrote ${args.out}: ${report.frames} frames in ${report.seconds.toFixed(1)} s.`);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch(error => {
     const json = process.argv.includes("--format=json"), code = error instanceof PipelineError ? error.code : "internal";
     if (json) process.stdout.write(JSON.stringify({ error: { code, message: error.message, hint: error.hint } }) + "\n");
