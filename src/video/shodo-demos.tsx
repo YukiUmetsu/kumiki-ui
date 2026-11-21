@@ -424,7 +424,9 @@ export function ShodoKanjiCardExport({ video }: { video: KanjiCardExport }) {
       const failed = el?.querySelector("[data-km-kanji-card-status=error]");
       if (failed) throw new Error(failed.textContent || `No stroke data for ${props.char}.`);
       const card = el?.querySelector<HTMLElement>("[data-km-kanji-card]");
-      if (card?.dataset.kmKanjiFrame === String(target) && el?.querySelector("[data-km-shodo-ready=true]")) return;
+      // Every canvas of the card (the page and the brush) must be ready, not just one of them.
+      const canvases = el ? [...el.querySelectorAll<HTMLElement>("[data-km-shodo]")] : [];
+      if (card?.dataset.kmKanjiFrame === String(target) && canvases.length > 0 && canvases.every(c => c.dataset.kmShodoReady === "true")) return;
       if (performance.now() - start > 30000) throw new Error(`The kanji card did not reach frame ${target}.`);
       await nextPaint();
     }

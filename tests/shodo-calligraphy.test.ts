@@ -15,7 +15,7 @@ import { fillKanjiCardContent, readKanjiCardExport, resolveKanjiCardContent } fr
 import { ShodoKanjiCard, ShodoKanjiInfoCard } from "../registry/video/shodo/shodo-kanji-card";
 import { DEFAULT_KANJI_CARD_THEME, kanjiCardConvertAt, kanjiCardLabelText, kanjiCardTheme, kanjiCardThemeIssues } from "../registry/video/shodo/shodo-kanji-card-plan";
 import {
-  KANJI_CARD_MARGIN, KANJI_WORD_EASE, kanjiCardTextHeight, kanjiCardTileRoom, kanjiCardType, kanjiCardWordSize, kanjiCardGeometry, kanjiCardPhaseAt, kanjiCardSafeInset, kanjiCardStrokeTimes, kanjiCardTimeline, kanjiCardTypedAt, kanjiCardWriting,
+  KANJI_CARD_MARGIN, KANJI_CARD_MIN_BOX, KANJI_WORD_EASE, kanjiCardTextHeight, kanjiCardTileRoom, kanjiCardType, kanjiCardWordSize, kanjiCardGeometry, kanjiCardPhaseAt, kanjiCardSafeInset, kanjiCardStrokeTimes, kanjiCardTimeline, kanjiCardTypedAt, kanjiCardWriting,
   parseWordHighlights, spreadWordHighlights, wordHighlightAt,
 } from "../registry/video/shodo/shodo-kanji-card-plan";
 import { readKanjiCardDataset } from "../src/video/shodo-studio";
@@ -756,6 +756,40 @@ describe("SHO1 shodō calligraphy", () => {
     const four = kanjiCardWordSize([...short.words, { word: "聞こえる" }], room, t);
     expect(four).toBeLessThan(t.word);
     expect(four * 4).toBeLessThanOrEqual(room + 1e-9);
+  });
+
+  it("keeps the compact practice box at least its minimum share, so long text cannot crush the character", () => {
+    const long = { meanings: "TAKE OUT / GET OUT / EXIT / LEAVE / PUT FORTH", onyomi: "SHUTSU (シュツ), SUI (スイ)", kunyomi: "deru (でる), dasu (だす), ideru (いでる)", jlpt: "N5" as const,
+      words: Array.from({ length: 6 }, (_, i) => ({ word: "出かける", ruby: "でかける", romaji: `dekakeru ${i}`, meaning: "to go out, to leave, to set out on a long journey" })) };
+    for (const safeInset of [{ top: .15, bottom: .3 }, { top: .05, bottom: .4 }, { left: .08, right: .12, top: .09, bottom: .19 }])
+      for (const char of ["永", "三", "道"] as const) {
+        const w = kanjiCardWriting(SHODO_GLYPHS[char], { layout: "portrait", density: "compact", safeInset, content: long, timing: { write: 5, review: 5 } });
+        const g = w.geometry, floor = g.card!.y + g.card!.height;
+        expect(g.cell!.height).toBeGreaterThanOrEqual((floor - g.cell!.y) * KANJI_CARD_MIN_BOX - 1e-9);
+        expect(w.inkBox[1]).toBeGreaterThanOrEqual(g.writing.y);
+        expect(w.inkBox[3]).toBeLessThanOrEqual(g.writing.y + g.writing.height);
+      }
+  });
+
+  it("rests the brush past the edge its handle leans away from, among the edges away from the card", () => {
+    const glyph = SHODO_GLYPHS["永"], timing = { write: 5, review: 5 }, content = { meanings: "ETERNITY" };
+    const rest = (layout: "portrait" | "landscape", hand?: { lean: number; leanAzimuth: number }) => {
+      const { plan } = kanjiCardWriting(glyph, { layout, timing, content, ...(hand ? { brushStyle: { hand } } : {}) });
+      return plan.air[0].from;
+    };
+    expect(rest("portrait")[0]).toBeGreaterThan(720);                                     // the default hand leans down and right
+    expect(rest("portrait", { lean: 50, leanAzimuth: 180 })[0]).toBeLessThan(0);          // a handle leaning left: out past the left edge
+    expect(rest("landscape")[1]).toBeGreaterThan(720);
+    expect(rest("landscape", { lean: 50, leanAzimuth: -90 })[1]).toBeLessThan(0);        // leaning up: out past the top
+  });
+
+  it("reports the host's frame on both canvases, and that a canvas without a 2D context cannot draw", () => {
+    const { container } = render(createElement(ShodoKanjiCard, { char: "三", glyph: SHODO_GLYPHS["三"], frame: 40, layout: "portrait", timing: { write: 1, review: 1, info: 1 }, meanings: "THREE" }));
+    const canvases = [...container.querySelectorAll<HTMLCanvasElement>("canvas")];
+    // Frame 40 is the review pass; its frame within the pass repeats one in the first pass, the host's does not.
+    expect(canvases.map(c => c.dataset.kmShodoFrame)).toEqual(["40", "40"]);
+    // The test DOM has no 2D context.
+    expect(canvases.map(c => c.dataset.kmShodoStatus)).toEqual(["error", "error"]);
   });
 
   it("keeps the regular 9:16 character as large as it was before the paper filled the frame", () => {
