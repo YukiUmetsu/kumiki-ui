@@ -6,7 +6,8 @@ import { shodoKankaRulesFor, shodoLayout, shodoStructure } from "../registry/vid
 import { createElement } from "react";
 import { render, screen } from "@testing-library/react";
 import { planShodoWriting, shodoBrushPose, shodoRestLean, shodoStrokeNumberBox, shodoStrokeNumbers } from "../registry/video/shodo/shodo-hand";
-import { shodoFerruleHeight } from "../registry/video/shodo/shodo-brush";
+import { DEFAULT_BRUSH_LOOK, shodoBrushClearance, shodoFerruleHeight } from "../registry/video/shodo/shodo-brush";
+import { kenteiSheet } from "../registry/video/shodo/shodo-paper";
 import { ShodoInkSurface } from "../registry/video/shodo/shodo-ink";
 import { DEFAULT_SHODO_STYLE, inspectShodoStyle, resolveShodoStyle } from "../registry/video/shodo/shodo-style";
 import { SHODO_BASICS, auditShodoTechniques } from "../registry/video/shodo/shodo-techniques";
@@ -14,7 +15,7 @@ import { fillKanjiCardContent, readKanjiCardExport, resolveKanjiCardContent } fr
 import { ShodoKanjiCard, ShodoKanjiInfoCard } from "../registry/video/shodo/shodo-kanji-card";
 import { DEFAULT_KANJI_CARD_THEME, kanjiCardConvertAt, kanjiCardLabelText, kanjiCardTheme, kanjiCardThemeIssues } from "../registry/video/shodo/shodo-kanji-card-plan";
 import {
-  KANJI_WORD_EASE, kanjiCardGeometry, kanjiCardPhaseAt, kanjiCardSafeInset, kanjiCardStrokeTimes, kanjiCardTimeline, kanjiCardTypedAt, kanjiCardWriting,
+  KANJI_CARD_GAP, KANJI_CARD_MARGIN, KANJI_WORD_EASE, kanjiCardGeometry, kanjiCardPhaseAt, kanjiCardSafeInset, kanjiCardStrokeTimes, kanjiCardTimeline, kanjiCardTypedAt, kanjiCardWriting,
   parseWordHighlights, spreadWordHighlights, wordHighlightAt,
 } from "../registry/video/shodo/shodo-kanji-card-plan";
 import { readKanjiCardDataset } from "../src/video/shodo-studio";
@@ -514,29 +515,38 @@ describe("SHO1 shodō calligraphy", () => {
     expect(spreadWordHighlights(2, 10)).toEqual([{ word: 0, at: 2, hold: 2.5 }, { word: 1, at: 8, hold: 2.5 }]);
   });
 
-  it("keeps the label, the ink and the card text inside a platform's safe bands, and the layout unchanged without them", () => {
-    // Without bands the layout is the one the stories have always had.
+  it("lays the 9:16 card on paper that fills the frame, keeps label, ink and card text inside a platform's safe bands, and leaves the bottom band plain paper", () => {
+    const M = KANJI_CARD_MARGIN;
     const plain = kanjiCardGeometry("portrait", true);
-    expect(plain.paper).toEqual({ x: 0, y: 0, width: 720, height: 750 });
-    expect(plain.writing).toEqual(plain.paper);
+    expect(plain.paper).toEqual({ x: 0, y: 0, width: 720, height: 1280 });               // no underlay shows anywhere
     expect(plain.cardPad).toEqual([34, 36, 34, 36]);
-    expect(kanjiCardGeometry("landscape", true).cardPad).toEqual([40, 34, 40, 34]);
+    expect(plain.card).toMatchObject({ x: M, width: 720 - 2 * M });                       // a card lying on the paper,
+    expect(plain.card!.y + plain.card!.height).toBe(1280 - M);                            // with a margin all round
+    expect(plain.cardRadius).toBeGreaterThan(0);
+    const wide = kanjiCardGeometry("landscape", true);
+    expect(wide.cardPad).toEqual([40, 34, 40, 34]);
+    expect(wide.paper).toEqual({ x: 0, y: 0, width: 880, height: 720 });                // 16:9 keeps its two panels
+    expect(wide.cardRadius).toBe(0);
     // YouTube Shorts bands: 8 % left, 12 % right, 9 % top, 19 % bottom.
     const inset = { left: .08, right: .12, top: .09, bottom: .19 };
     const g = kanjiCardGeometry("portrait", true, inset);
     const [L, R, T, B] = [.08 * 720, .12 * 720, .09 * 1280, .19 * 1280];
+    expect(g.paper).toEqual(plain.paper);
     expect(g.label.x).toBeGreaterThanOrEqual(L);
     expect(g.label.y).toBeGreaterThanOrEqual(T);
+    expect(g.label.x).toBe(g.card!.x + g.cardPad[3]);                                    // the label and the card text share a left edge
     expect(g.writing.x).toBeGreaterThanOrEqual(L);
     expect(g.writing.x + g.writing.width).toBeLessThanOrEqual(720 - R);
+    expect(g.writing.x + g.writing.width / 2).toBe(360);                                  // the character is centred in the frame
     expect(g.writing.y).toBeGreaterThanOrEqual(g.label.y + g.type.label);                 // under the label
-    expect(g.writing.y + g.writing.height).toBeLessThanOrEqual(g.card!.y);
-    expect(g.cardPad[1]).toBeGreaterThanOrEqual(R);
-    expect(g.card!.y + g.card!.height).toBeCloseTo(1280 - B, 6);                       // the card ends above the bottom band
-    expect(g.band).toEqual({ x: 0, y: 1280 - B, width: 720, height: B });               // which shows the dark felt
-    expect(plain.band).toBeNull();
-    expect(g.cardPad[3]).toBeGreaterThanOrEqual(L);
-    // The card keeps the height of its text, so the paper above it is shorter.
+    expect(g.writing.y + g.writing.height + KANJI_CARD_GAP).toBeCloseTo(g.card!.y, 6);
+    expect(g.cell).toEqual({ x: M, y: g.writing.y, width: 720 - 2 * M, height: g.writing.height });
+    expect(g.guides.x).toBeGreaterThanOrEqual(L);                                         // stroke numbers stay out of the bands
+    expect(g.guides.x + g.guides.width).toBeLessThanOrEqual(720 - R);
+    expect(g.card!.x + g.cardPad[3]).toBeGreaterThanOrEqual(L);                           // so does the card text
+    expect(g.card!.x + g.card!.width - g.cardPad[1]).toBeLessThanOrEqual(720 - R);
+    expect(g.card!.y + g.card!.height).toBeCloseTo(1280 - B, 6);                       // the card ends above the bottom band: plain paper
+    // The card keeps the height of its text, so the box above it is shorter.
     expect(g.card!.height - g.cardPad[0] - g.cardPad[2]).toBeCloseTo(plain.card!.height - plain.cardPad[0] - plain.cardPad[2], 6);
     // Bands are limited to 0..0.4, and a value that is not a number counts as 0.
     expect(kanjiCardSafeInset({ left: -1, right: .9, top: Number.NaN })).toEqual({ left: 0, right: .4, top: 0, bottom: 0 });
@@ -649,7 +659,10 @@ describe("SHO1 shodō calligraphy", () => {
     expect(kanjiCardSafeInset({ top: .2, bottom: .4 })).toMatchObject({ top: .15, bottom: .3 });
     for (const density of ["regular", "compact"] as const) for (let top = 0; top <= .4001; top += .05) for (let bottom = 0; bottom <= .4001; bottom += .05) {
       const writing = kanjiCardWriting(SHODO_GLYPHS["三"], { layout: "portrait", density, safeInset: { top, bottom, left: .4, right: .4 }, content: { meanings: "THREE" } });
-      expect(writing.geometry.writing.height).toBeGreaterThan(100);
+      expect(writing.geometry.writing.height).toBeGreaterThan(90);
+      const [, y0, , y1] = writing.inkBox;
+      expect(y0).toBeGreaterThanOrEqual(writing.geometry.writing.y);
+      expect(y1).toBeLessThanOrEqual(writing.geometry.writing.y + writing.geometry.writing.height);
       expect(writing.geometry.label.y).toBeLessThan(writing.geometry.card!.y);
     }
     const { container } = render(createElement(ShodoKanjiCard, { char: "三", glyph: SHODO_GLYPHS["三"], frame: 0, safeInset: { left: .5, top: Number.NaN }, timing: { write: 1, info: 1 } }));
@@ -667,6 +680,58 @@ describe("SHO1 shodō calligraphy", () => {
       unmount();
     }
     expect(kanjiCardWriting(glyph, { layout: "portrait", timing }).geometry.card).toBeNull();                // no text, no card
+  });
+
+  it("brings the brush in from outside the frame and takes it out after each pass, on the side away from the card", () => {
+    const glyph = SHODO_GLYPHS["永"], inset = { left: .08, right: .12, top: .09, bottom: .19 }, timing = { write: 5, review: 5, info: 1 };
+    for (const layout of ["portrait", "landscape"] as const) {
+      const { plan, geometry: g, strokes } = kanjiCardWriting(glyph, { layout, safeInset: inset, timing, content: { meanings: "ETERNITY" } });
+      const before = shodoBrushPose(plan, 0), after = shodoBrushPose(plan, plan.duration);
+      expect([after.x, after.y]).toEqual([before.x, before.y]);                              // it rests in one place
+      if (layout === "portrait") expect(before.x).toBeGreaterThan(g.width); else expect(before.y).toBeGreaterThan(g.height);
+      // It leaves after the last stroke, not before.
+      const last = plan.air[plan.air.length - 1];
+      expect(last.to).toEqual([before.x, before.y]);
+      expect(last.t0).toBeGreaterThanOrEqual(plan.strokes[plan.strokes.length - 1].t1);
+      expect(strokes.write).toHaveLength(5);
+    }
+  });
+
+  it("knows how far past an edge a brush must rest for none of it, or its shadow, to show", () => {
+    const brush = DEFAULT_SHODO_STYLE.brush, D = 60, reach = D * brush.length * (1 + brush.handleLength);
+    // The default hand leans the handle down and to the right: past the right edge only its width and the shadow's blur count.
+    expect(shodoBrushClearance([1, 0], shodoRestLean(DEFAULT_SHODO_STYLE), 0, brush, D)).toBeCloseTo(D * .7 + 16, 6);
+    expect(shodoBrushClearance([1, 0], [0, 38], 0, brush, D, { ...DEFAULT_BRUSH_LOOK, shadow: 0 })).toBeCloseTo(D * .7, 6);
+    // A handle leaning back into the frame needs the brush further out.
+    expect(shodoBrushClearance([1, 0], [-38, 0], 0, brush, D)).toBeGreaterThan(reach * Math.sin(38 * Math.PI / 180));
+    // Higher in the air, the shadow falls further from the brush (down and to the right).
+    expect(shodoBrushClearance([-1, 0], [0, 0], 200, brush, D)).toBeGreaterThan(shodoBrushClearance([-1, 0], [0, 0], 0, brush, D));
+  });
+
+  it("draws the brush on its own canvas above the reading card, hidden from assistive technology", () => {
+    const { container } = render(createElement(ShodoKanjiCard, { char: "三", glyph: SHODO_GLYPHS["三"], frame: 30, layout: "portrait", timing: { write: 2, review: 2, info: 1 }, meanings: "THREE" }));
+    const canvases = [...container.querySelectorAll<HTMLCanvasElement>("canvas")];
+    expect(canvases.map(c => c.dataset.kmShodoLayer)).toEqual(["page", "brush"]);
+    expect(canvases[0].getAttribute("role")).toBe("img");
+    expect(canvases[0].getAttribute("aria-label")).toContain("三");
+    expect(canvases[1].getAttribute("aria-hidden")).toBe("true");
+    expect(canvases[1].getAttribute("role")).toBeNull();
+    // Later in the same stacking context is drawn above.
+    expect(container.querySelector("aside")!.compareDocumentPosition(canvases[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("prints the practice box where the layout puts it, and keeps stroke numbers inside the safe part of it", () => {
+    expect(kenteiSheet(720, 1280, 1, 1, { x: 24, y: 166, width: 672, height: 500 }).cells!.inset).toEqual([24, 166, 24, 614]);
+    for (const v of kenteiSheet(700, 600).cells!.inset) expect(v).toBeCloseTo(42, 9);       // without a block: a 7 % margin
+    const { plan, geometry: g } = kanjiCardWriting(SHODO_GLYPHS["永"], { layout: "portrait", density: "compact", safeInset: { left: .08, right: .12, top: .09, bottom: .19 },
+      content: { meanings: "ETERNITY" }, timing: { write: 5, review: 5 } });
+    const size = Math.max(12, plan.brush.diameter * .42, g.type.number);
+    for (const n of shodoStrokeNumbers(plan, { size, bounds: g.guides })) {
+      const [hw, hh] = shodoStrokeNumberBox(String(n.number).length, size);
+      expect(n.x - hw).toBeGreaterThanOrEqual(g.guides.x);
+      expect(n.x + hw).toBeLessThanOrEqual(g.guides.x + g.guides.width);
+      expect(n.y + hh).toBeLessThanOrEqual(g.guides.y + g.guides.height);
+    }
   });
 
   it("with reduced motion shows the same words at the same times, with no typing, caret, growth or bump", () => {
