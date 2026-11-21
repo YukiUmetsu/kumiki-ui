@@ -15,7 +15,7 @@
  */
 import { inkHash } from "../ink-brush";
 import type { ShodoBrushPose } from "./shodo-hand";
-import { SHODO_TIP_SHARE, shodoContactLength, shodoContactWidth } from "./shodo-hand";
+import { SHODO_TIP_SHARE, shodoContactLength, shodoContactTipPower, shodoContactWidth } from "./shodo-hand";
 import type { ShodoBrush, ShodoInk } from "./shodo-style";
 import { shodoNoise, shodoRgb } from "./shodo-style";
 
@@ -95,6 +95,8 @@ interface TuftGeometry {
   blend: number[];
   frameN: V3[];
   frameB: V3[];
+  /** Horizontal, across the stroke direction: where the pressed hair spreads on the paper. */
+  side: V3;
   ferrule: V3;
   axis: V3;
 }
@@ -125,7 +127,7 @@ function tuftGeometry(pose: ShodoBrushPose, brush: ShodoBrush, D: number): TuftG
     ferrule = add(belly, mul(chordDir, free * (1 - .3 * pose.p)));
     const c1 = add(ferrule, mul(axis, -free * .45));
     const c2: V3 = [belly[0] - pose.tx * free * (.15 + .35 * beta), belly[1] - pose.ty * free * (.15 + .35 * beta), Math.min(free * .1, D * .25)];
-    const bentShare = free / Lt, lie = D * .04;
+    const bentShare = free / Lt, lie = D * .04, tipPow = shodoContactTipPower(pose.p);
     // The bundle flattens gradually: from six samples before the knee to two after it, the hair
     // fans out toward the contact width and its round section turns into the flat fan on the paper,
     // so the pressed and the free part join without a seam.
@@ -145,7 +147,8 @@ function tuftGeometry(pose: ShodoBrushPose, brush: ShodoBrush, D: number): TuftG
       } else {
         const u = (s - bentShare) / Math.max(1e-3, 1 - bentShare);
         spine.push([lerp(belly[0], tip[0], u), lerp(belly[1], tip[1], u), lie * (1 - u)]);
-        const hw = w / 2 * Math.pow(Math.max(0, 1 - u), .8);
+        // The same outline as the ink's contact patch: blunter under a harder press.
+        const hw = w / 2 * Math.pow(Math.max(0, 1 - u), tipPow);
         // The bundle thins from its round radius to a flat layer over the first quarter.
         radius.push(Math.max(.4, lerp(w / 2, hw * .32, smooth01(u / .25))));
         flat.push(hw);
@@ -177,19 +180,30 @@ function tuftGeometry(pose: ShodoBrushPose, brush: ShodoBrush, D: number): TuftG
       blend.push(0);
     }
   }
-  // Rotation-minimizing-ish frame along the spine.
+  // Rotation-minimizing frames (double reflection, Wang et al. 2008) from a reference fixed at the
+  // collar: the hair does not twist through the knee, so no hair changes sides there, and the
+  // frames do not jump as the lean changes. The ferrule tangent is -axis, which is at least 20°
+  // from the horizontal, so the x reference never lies along it.
   const frameN: V3[] = [], frameB: V3[] = [];
-  let ref: V3 = Math.abs(axis[2]) < .9 ? [0, 0, 1] : [1, 0, 0];
+  const T = spine.map((_, i) => unit(sub(spine[Math.min(N, i + 1)], spine[Math.max(0, i - 1)])));
+  let n = unit(sub([1, 0, 0], mul(T[0], T[0][0])));
   for (let i = 0; i <= N; i++) {
-    const t = unit(sub(spine[Math.min(N, i + 1)], spine[Math.max(0, i - 1)]));
-    let n = unit(cross(ref, t));
-    if (len(n) < .1) n = unit(cross([0, 1, 0], t));
-    const b = unit(cross(t, n));
-    frameN.push(n); frameB.push(b);
-    ref = b;
+    if (i > 0) {
+      const v1 = sub(spine[i], spine[i - 1]), c1 = dot(v1, v1);
+      if (c1 > 1e-9) {
+        const rL = sub(n, mul(v1, 2 / c1 * dot(v1, n))), tL = sub(T[i - 1], mul(v1, 2 / c1 * dot(v1, T[i - 1])));
+        const v2 = sub(T[i], tL), c2 = dot(v2, v2);
+        n = c2 > 1e-12 ? sub(rL, mul(v2, 2 / c2 * dot(v2, rL))) : rL;
+      }
+      n = unit(sub(n, mul(T[i], dot(n, T[i]))));
+    }
+    frameN.push(n); frameB.push(unit(cross(T[i], n)));
   }
+  // Across the stroke on the paper: the hair pressed flat spreads along this direction.
+  const fl = Math.hypot(pose.tx, pose.ty);
+  const side: V3 = fl > 1e-6 ? [-pose.ty / fl, pose.tx / fl, 0] : [0, 1, 0];
   axis = unit(axis);
-  return { spine, radius, flat, blend, frameN, frameB, ferrule, axis };
+  return { spine, radius, flat, blend, frameN, frameB, side, ferrule, axis };
 }
 
 function lightVector(look: ShodoBrushLook): V3 {
@@ -250,25 +264,28 @@ export function drawShodoBrush(
 ): void {
   const g = tuftGeometry(pose, brush, D);
   const L = lightVector(look);
-  const view: V3 = [0, 0, 1];
-  const halfway = unit(add(L, view));
   const dryRgb = shodoRgb(brush.hairColor), wetRgb = shodoRgb(pose.color || ink.color);
   // Photographs of loaded 大筆 and 小筆: the ink reaches from the point to about three quarters
   // of the tuft; the quarter at the collar stays dry and pale, with a soft wicking edge.
   const hair: HairLook = { dry: [...dryRgb], wet: [...wetRgb], inkLine: clamp(.24 + .52 * (1 - pose.ink), .22, .86) };
   const N = g.spine.length - 1;
   const P = (i: number, ang: number, rho: number): V3 => {
-    const r = g.radius[i] * rho;
-    const round = add(g.spine[i], add(mul(g.frameN[i], Math.cos(ang) * r), mul(g.frameB[i], Math.sin(ang) * r)));
+    const o = add(mul(g.frameN[i], Math.cos(ang) * rho), mul(g.frameB[i], Math.sin(ang) * rho));
+    const round = add(g.spine[i], mul(o, g.radius[i]));
     const b = g.blend[i];
     if (b <= 0) return round;
-    // On the paper the hairs fan across the contact width; through the knee each hair moves from
-    // its place in the round bundle to its place in the fan, so no hair jumps.
-    const t = unit(sub(g.spine[Math.min(N, i + 1)], g.spine[Math.max(0, i - 1)]));
-    const side = unit(cross([0, 0, 1], t));
-    const fan = add(g.spine[i], add(mul(side, Math.cos(ang) * rho * g.flat[i]), [0, 0, Math.max(0, Math.sin(ang)) * rho * g.radius[i] * .9]));
+    // On the paper the round bundle is pressed flat: each hair keeps its place across the stroke,
+    // scaled out to the contact width, and its height, squashed; the lower half lies on the paper.
+    // So through the knee no hair changes sides.
+    const fan = add(g.spine[i], add(mul(g.side, dot(o, g.side) * g.flat[i]), [0, 0, Math.max(0, o[2]) * g.radius[i] * .9]));
     return b >= 1 ? fan : add(mul(round, 1 - b), mul(fan, b));
   };
+  // Toward the camera, for draw order (back to front) and the specular highlights.
+  const viewAt = (p: V3): V3 => cam.view === "side" ? unit([0, 1, cam.depth ?? .12]) : unit([cam.x - p[0], cam.y - p[1], cam.height - p[2]]);
+  const midN = Math.floor(N * .45);
+  const depthOf = (ang: number, rho: number) =>
+    dot(add(mul(g.frameN[midN], Math.cos(ang)), mul(g.frameB[midN], Math.sin(ang))), viewAt(g.spine[midN])) * rho;
+  const halfway = unit(add(L, viewAt(g.spine[midN])));
   const handleRgb = shodoRgb(brush.handleColor);
 
   // ── Tuft body: silhouette fill so the hair layer never shows gaps ──
@@ -326,9 +343,8 @@ export function drawShodoBrush(
     const step = inkHash(seed, k, 201) < .24 ? (inkHash(seed, k, 203) < .5 ? -.2 : .16) : 0;
     const ang = inkHash(seed, k, 205) * Math.PI * 2, rho = .3 + .66 * Math.sqrt(inkHash(seed, k, 207));
     return { ang, rho, width: .18 + .2 * inkHash(seed, k, 209), tone: inkHash(seed, k, 213),
-      line: clamp(hair.inkLine + (inkHash(seed, k, 211) - .5) * .2 + step, .04, .97), depth: Math.sin(ang) * rho };
+      line: clamp(hair.inkLine + (inkHash(seed, k, 211) - .5) * .2 + step, .04, .97), depth: depthOf(ang, rho) };
   }).sort((a, b) => a.depth - b.depth);
-  const midN = Math.floor(N * .45);
   for (const rb of ribbons) {
     const pts: V2[] = [], half: number[] = [];
     for (let i = 0; i <= N; i++) {
@@ -370,7 +386,7 @@ export function drawShodoBrush(
     // Ink wicks unevenly: most hairs near the clump's line, some far above or below it (R2).
     const step = inkHash(seed, h, 17) < .16 ? (inkHash(seed, h, 19) < .5 ? -.22 : .18) : 0;
     hairs.push({ ang, rho, jitter: inkHash(seed, h, 7) - .5, line: hair.inkLine + (inkHash(seed, h, 11) - .5) * .2 + step,
-      depth: Math.sin(ang) * rho, clump: Math.floor(inkHash(seed, h, 13) * clumps.length), tone: inkHash(seed, h, 23),
+      depth: depthOf(ang, rho), clump: Math.floor(inkHash(seed, h, 13) * clumps.length), tone: inkHash(seed, h, 23),
       // The point is made by the long core hairs; mantle hairs end a little short of it.
       end: N - Math.floor(rho * rho * inkHash(seed, h, 29) * N * .14),
       // A few hairs fork away from the point (a ragged tip, R2).
@@ -392,7 +408,9 @@ export function drawShodoBrush(
       const spread = 1 + splitDry * Math.pow(s, 2) * (.6 + h.jitter);
       const cl = clumps[h.clump], pull = smooth01((s - .5) / .45) * (.55 + .35 * pose.ink);
       const tipOut = h.fork * smooth01((s - .86) / .14);
-      const ang = lerp(h.ang + h.jitter * .2 * s, cl.ang, pull * .7) + tipOut * .9;
+      // Toward the clump by the short way round: a hair never swings through the far side of the tuft.
+      const own = h.ang + h.jitter * .2 * s, toClump = Math.atan2(Math.sin(cl.ang - own), Math.cos(cl.ang - own));
+      const ang = own + toClump * pull * .7 + tipOut * .9;
       const rho = lerp(h.rho, cl.rho * (1 + splitDry * .9), pull * .8) + Math.abs(tipOut) * .35;
       // Each clump bulges and narrows along the tuft on its own: the soft, bumpy outline (R2).
       const bulge = 1 + .16 * (shodoNoise(seed + 50 + h.clump, i * .3, 0) - .5) * (1 - smooth01((s - .8) / .2));
@@ -465,6 +483,124 @@ export function drawShodoBrush(
     ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.quadraticCurveTo(p1[0], p1[1], p2[0], p2[1]); ctx.stroke();
   }
   ctx.restore();
+
+  // ── The pressed part: one wet, glossy mass ──
+  // Teacher A's lesson videos at 1080p (see the research note): a loaded tuft pressed on the paper
+  // is as black as its stroke and shows no single hairs, because ink fills the gaps between them.
+  // The light breaks into many small white flecks along its lit side. So a near-black film covers
+  // the pressed hair, and the flecks come from the normal of the pressed surface under the light.
+  const wet = pose.contact ? smooth01((pose.ink - .05) / .3) : 0;
+  // The film begins where the hair is half pressed, just before the knee reaches the paper. Higher
+  // up, the knee can fold back over the pressed part on screen, and one fade along the tuft would
+  // then cross itself. The sample before the first filmed one carries no film, so the start moves
+  // with the knee without a jump.
+  const pressFrom = Math.max(0, g.blend.findIndex(b => b > .5) - 1);
+  if (wet > 0 && pressFrom > 0 && pressFrom < N) {
+    const soaked = (i: number) => wet * smooth01((i / N - hair.inkLine) / .08);
+    const film = (i: number) => soaked(i) * smooth01((g.blend[i] - .5) / .5);
+    const black = mix(hair.wet, [255, 255, 255], .02);
+    const A = project(cam, g.spine[pressFrom]), B = project(cam, g.spine[N]);
+    const ax = B[0] - A[0], ay = B[1] - A[1], a2 = ax * ax + ay * ay || 1;
+    const fade = ctx.createLinearGradient(A[0], A[1], B[0], B[1]);
+    let at = 0;
+    for (let i = pressFrom; i <= N; i++) {
+      const p = project(cam, g.spine[i]);
+      at = clamp(((p[0] - A[0]) * ax + (p[1] - A[1]) * ay) / a2, at, 1);
+      fade.addColorStop(at, css(black, .92 * film(i)));
+    }
+    // The film reaches a little past the body outline, over the outermost hairs, for the crisp
+    // edge of the pressed mass.
+    const edge = (side: V2[], i: number): V2 => {
+      const c = project(cam, g.spine[i]);
+      return [c[0] + (side[i][0] - c[0]) * 1.08, c[1] + (side[i][1] - c[1]) * 1.08];
+    };
+    ctx.save();
+    ctx.fillStyle = fade;
+    ctx.beginPath();
+    for (let i = pressFrom; i <= N; i++) { const q = edge(left, i); if (i === pressFrom) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]); }
+    for (let i = N; i >= pressFrom; i--) { const q = edge(right, i); ctx.lineTo(q[0], q[1]); }
+    ctx.closePath();
+    ctx.fill();
+    // Gloss. The pressed surface is divided into cells (samples along × angles around). The hairs
+    // under the ink film are small cylinders, so the surface is rough at the scale of a hair: the
+    // light breaks into specks wherever a cell's normal lies near the halfway vector between the
+    // light and the camera. Each cell holds a few specks at fixed places; the brighter the cell,
+    // the more of them show, so the light reads as the speckled band along the lit side seen in the
+    // video, over a faint blue-grey sheen of the room. Every speck's brightness follows the pose
+    // smoothly: the gloss glints and fades but never flickers.
+    const AN = 48, turn = Math.PI * 2, cache = new Map<number, V3>();
+    const surf = (i: number, a: number): V3 => {
+      const ii = clamp(i, 0, N), aa = (a + AN) % AN, key = ii * AN + aa;
+      let p = cache.get(key);
+      if (!p) { p = P(ii, aa / AN * turn, 1); cache.set(key, p); }
+      return p;
+    };
+    // The gloss fades in over the knee, more gradually than the film: the bent hair is wet too.
+    // Brightness is found at the grid points, with normals taken over two samples each way so the
+    // sharp turn of the knee does not switch a whole row of cells off at once; each speck then
+    // takes its brightness from the four corners of its cell.
+    const glossFrom = Math.max(1, g.blend.findIndex(b => b > .15)), litAt = new Map<number, number>();
+    const brightness = (i: number, a: number): number => {
+      const aa = (a + AN) % AN, key = i * AN + aa;
+      const known = litAt.get(key);
+      if (known !== undefined) return known;
+      let lit = 0;
+      const f = soaked(i) * smooth01((g.blend[i] - .15) / .7) * (1 - smooth01((i / N - .9) / .1));
+      const ang = aa / AN * turn, o = add(mul(g.frameN[i], Math.cos(ang)), mul(g.frameB[i], Math.sin(ang)));
+      const q = surf(i, aa), V = viewAt(q);
+      // Only the half of the surface that faces the camera.
+      if (f >= .02 && dot(o, V) > 0) {
+        let nrm = unit(cross(sub(surf(i + 2, aa), surf(i - 2, aa)), sub(surf(i, aa + 1), surf(i, aa - 1))));
+        if (dot(nrm, o) < 0) nrm = mul(nrm, -1);
+        const hv = dot(nrm, unit(add(L, V)));
+        if (hv > 0) lit = f * smooth01((dot(nrm, V) - .05) / .15) * Math.pow(hv, 70);
+      }
+      litAt.set(key, lit);
+      return lit;
+    };
+    const specks: V2[][][] = [[], [], [], [], []], sheen: V2[][][] = [[], [], []];
+    for (let i = glossFrom; i < N; i++) {
+      for (let a = 0; a < AN; a++) {
+        const l00 = brightness(i, a), l01 = brightness(i, a + 1), l10 = brightness(i + 1, a), l11 = brightness(i + 1, a + 1);
+        if (Math.max(l00, l01, l10, l11) < .02) continue;
+        const c00 = surf(i, a), c01 = surf(i, a + 1), c10 = surf(i + 1, a), c11 = surf(i + 1, a + 1);
+        const mean = (l00 + l01 + l10 + l11) / 4;
+        if (mean > .12) sheen[Math.min(2, Math.floor((mean - .12) / .3))].push([c00, c01, c11, c10].map(c => project(cam, c)));
+        const dir = unit(sub(add(c10, c11), add(c00, c01))), cell = i * AN + a;
+        for (let m = 0; m < 10; m++) {
+          const u = inkHash(seed, cell, 640 + m), v = inkHash(seed, cell, 650 + m);
+          const lit = lerp(lerp(l00, l01, v), lerp(l10, l11, v), u);
+          const show = smooth01((lit - .9 * inkHash(seed, cell, 620 + m)) / .2) * (.35 + .65 * inkHash(seed, cell, 630 + m));
+          if (show < .1) continue;
+          const p = add(mul(add(mul(c00, 1 - v), mul(c01, v)), 1 - u), mul(add(mul(c10, 1 - v), mul(c11, v)), u));
+          // Mostly specks, a few short streaks along the hair.
+          const reach = D * (.003 + .03 * Math.pow(inkHash(seed, cell, 660 + m), 3));
+          specks[Math.min(4, Math.floor(show * 5))].push([project(cam, p), project(cam, add(p, mul(dir, reach)))]);
+        }
+      }
+    }
+    // The sheen is soft: blurred over about a cell, so its levels show no edges.
+    ctx.filter = `blur(${Math.max(1, D * .05 * scaleAt(cam, 0)).toFixed(1)}px)`;
+    sheen.forEach((cells, lv) => {
+      if (!cells.length) return;
+      ctx.fillStyle = css([118, 132, 156], .07 + .06 * lv);
+      ctx.beginPath();
+      for (const q of cells) { ctx.moveTo(q[0][0], q[0][1]); for (let j = 1; j < 4; j++) ctx.lineTo(q[j][0], q[j][1]); ctx.closePath(); }
+      ctx.fill();
+    });
+    ctx.filter = "none";
+    // Faint specks are the blue-grey of the room in the wet ink; the strongest are the white light.
+    ctx.lineCap = "round";
+    ctx.lineWidth = widthPx;
+    specks.forEach((marks, lv) => {
+      if (!marks.length) return;
+      ctx.strokeStyle = css(mix([120, 134, 158], [244, 247, 252], lv / 4), .3 + .6 * lv / 4);
+      ctx.beginPath();
+      for (const [q0, q1] of marks) { ctx.moveTo(q0[0], q0[1]); ctx.lineTo(q1[0], q1[1]); }
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
 
   // ── Collar (首), handle (軸) and end cap ──
   // As on school 大筆 (R1, R2, R4): the hair leaves a long black collar, about 1.6 handle

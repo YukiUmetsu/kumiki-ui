@@ -69,6 +69,7 @@ The hand leans and lifts the brush as it writes, after side-view teaching videos
 - **Lean** (`ShodoBrushPose.leanX/leanY`, degrees): `hand.lean` toward `hand.leanAzimuth` at rest; pressing stands the brush up; travel tilts it toward the direction of motion, more with `hand.sideBrush` (直筆 0 → 側筆 1); 払い follows through, 撥ね throws toward the hook, a pushed 逆筆 entry leans against the motion. Filtered at 85 ms.
 - **Height**: in contact the ferrule height falls with press (about 0.9 → 0.45 tuft lengths) and the tuft bends into an L; in the air the brush lifts nearly straight up, travels high and comes straight down onto the next start.
 - `ShodoBrushProfile` draws the brush from the side; the story *Brush motion (top and side)* traces lean and height over time.
+- **Pressed tuft:** the hair on the paper has the outline of the ink's contact patch (`shodoContactTipPower`). A loaded tuft is drawn as one wet black mass with gloss specks along its lit side, after the teacher's lesson videos (see the [brush reference note](../research/shodo-brush-reference-2026-11-16.md), third study).
 - **Smooth at 30 fps.** These rules were measured frame by frame on 道.
   - The brush starts to move after 0.2 s (6 frames; `lead`, before 0.5 s).
   - An air move is one smooth arc. It uses quintic eases. The lift takes the first 42 % of the move, the travel 90 % and the descent the last 45 %. The travel starts at the speed with which the brush left the paper, so a 払い follows through.
