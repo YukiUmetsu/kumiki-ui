@@ -797,6 +797,13 @@ describe("SHO1 shodō calligraphy", () => {
     expect(sectionCueAt(cues, "words", 9.9)).toEqual({ strength: 0, progress: 0 });
     expect(sectionCueAt(cues, "words", 10).strength).toBe(0);                                   // eases in from the cue time
     expect(sectionCueAt(cues, "words", 11.5)).toEqual({ strength: 1, progress: .5 });
+    // An overlapping later cue: the earlier one eases out before it starts instead of snapping off.
+    const both = [...cues, { section: "words" as const, at: 12, hold: 2 }];
+    expect(sectionCueAt(both, "words", 11.9).strength).toBeGreaterThan(0);
+    expect(sectionCueAt(both, "words", 11.9).strength).toBeLessThan(sectionCueAt(both, "words", 11.8).strength);   // fading
+    expect(sectionCueAt(both, "words", 11.999).strength).toBeLessThan(.01);
+    // A cue shorter than the eases only fades a little: no one-frame flash.
+    for (let t = 5; t < 5.1; t += 1 / 30) expect(sectionCueAt([{ section: "words", at: 5, hold: .05 }], "words", t).strength).toBeLessThan(.1);
     expect(sectionCueAt(cues, "words", 13).strength).toBe(0);                                   // and out by its end
     expect(sectionCueAt(cues, "readings", 2.5).strength).toBe(1);
     expect(sectionCueAt([...cues, { section: "words", at: 12, hold: 2 }], "words", 12.5).progress).toBeCloseTo(.25, 9);   // a later cue wins
@@ -829,6 +836,14 @@ describe("SHO1 shodō calligraphy", () => {
     const calm = render(createElement(ShodoKanjiCard, { ...base, reducedMotion: true }));
     expect([...calm.container.querySelectorAll<HTMLElement>("li")].every(li => li.style.transform === "")).toBe(true);
     calm.unmount();
+    // No words, no words cue reported; nonsense cue values draw nothing.
+    const bare = render(createElement(ShodoKanjiCard, { ...base, words: [] }));
+    expect(bare.container.querySelector<HTMLElement>("[data-km-kanji-card]")!.dataset.kmSectionCue).toBe("");
+    bare.unmount();
+    const odd = render(createElement(ShodoKanjiInfoCard, { char: "三", layout: "portrait", density: "compact", meanings: "THREE", words: base.words,
+      cues: { words: { strength: Number.NaN, progress: Number.NaN } } }));
+    expect([...odd.container.querySelectorAll<HTMLElement>("li")].every(li => li.style.transform === "" && !li.style.background.includes("NaN"))).toBe(true);
+    odd.unmount();
     // The export description reads the cues and names a bad one.
     expect(readKanjiCardExport({ char: "三", timing: { write: 1, review: 1, info: 1 }, sectionCues: [{ section: "words", at: 1, hold: 2 }] }).value?.props.sectionCues)
       .toEqual([{ section: "words", at: 1, hold: 2 }]);

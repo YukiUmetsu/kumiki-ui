@@ -292,17 +292,22 @@ export interface KanjiSectionCue { section: KanjiCardCueSection; at: number; hol
 export interface KanjiSectionCueState { strength: number; progress: number }
 
 /**
- * The cue of `section` at a time of the video. The latest cue that has started wins; it eases in
- * and out over a quarter second (less for a short cue). A cue with a time that is not a finite
- * number, or a hold that is not positive, is ignored. Pure.
+ * The cue of `section` at a time of the video, eased in and out over a quarter second, as word
+ * highlights are. When cues of a section overlap, the later one wins and the earlier one ends
+ * where it starts (it eases out before, so nothing snaps). A cue shorter than the eases only
+ * fades a little, never flashes. A cue with a time that is not a finite number, or a hold that
+ * is not positive, is ignored. Pure.
  */
 export function sectionCueAt(cues: readonly KanjiSectionCue[], section: KanjiCardCueSection, time: number): KanjiSectionCueState {
-  let cue: KanjiSectionCue | undefined;
-  for (const c of cues) if (c.section === section && Number.isFinite(c.at) && Number.isFinite(c.hold) && c.hold > 0 && c.at <= time && (!cue || c.at >= cue.at)) cue = c;
-  if (!cue) return { strength: 0, progress: 0 };
-  const ease = Math.min(KANJI_WORD_EASE, cue.hold / 4);
-  const strength = Math.min(smoothstep((time - cue.at) / ease), smoothstep((cue.at + cue.hold - time) / ease));
-  return strength > 0 ? { strength, progress: Math.min(1, (time - cue.at) / cue.hold) } : { strength: 0, progress: 0 };
+  const list = cues.filter(c => c.section === section && Number.isFinite(c.at) && Number.isFinite(c.hold) && c.hold > 0)
+    .map((cue, order) => ({ cue, order })).sort((a, b) => a.cue.at - b.cue.at || a.order - b.order);
+  let k = -1;
+  for (let i = 0; i < list.length; i++) if (list[i].cue.at <= time) k = i;
+  if (k < 0) return { strength: 0, progress: 0 };
+  const { cue } = list[k];
+  const end = Math.min(cue.at + cue.hold, k + 1 < list.length ? list[k + 1].cue.at : Infinity);
+  const strength = Math.min(smoothstep((time - cue.at) / KANJI_WORD_EASE), smoothstep((end - time) / KANJI_WORD_EASE));
+  return strength > 0 ? { strength, progress: Math.min(1, (time - cue.at) / (end - cue.at)) } : { strength: 0, progress: 0 };
 }
 
 /**

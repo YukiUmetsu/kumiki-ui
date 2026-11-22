@@ -123,8 +123,10 @@ export function ShodoKanjiInfoCard({
   // The fit is measured again when anything that changes the text's size changes, labels and fonts included.
   useFitHeight(ref, [char, meanings, onyomi, kunyomi, level, layout, density, wordSize, JSON.stringify(list), JSON.stringify(show), JSON.stringify(words_), JSON.stringify(th)].join("|"));
   // Section cues: the readings take an accent tint; the words' title the accent colour, and the tiles lift one after another.
-  const R = Math.min(1, Math.max(0, cues?.readings?.strength ?? 0)), Wc = Math.min(1, Math.max(0, cues?.words?.strength ?? 0));
-  const lift = (i: number) => list ? Wc * wordTileWave(i, list.length, cues?.words?.progress ?? 0) : 0;
+  // NaN or out-of-range values count as no cue.
+  const unit = (v: number | undefined) => typeof v === "number" && v > 0 ? Math.min(1, v) : 0;
+  const R = unit(cues?.readings?.strength), Wc = unit(cues?.words?.strength);
+  const lift = (i: number) => list ? Wc * wordTileWave(i, list.length, unit(cues?.words?.progress)) : 0;
   const term: CSSProperties = { font: `700 ${fs(t.reading * .84)}/1.3 ${th.display}`, letterSpacing: ".06em", color: mixHex(th.muted, th.accent, R) };
   const readingsCue: CSSProperties | undefined = R > 0 ? { background: `rgba(${shodoRgb(th.accent).join(",")},${(.08 * R).toFixed(3)})`, borderRadius: cq(10), boxShadow: `0 0 0 ${cq(6)} rgba(${shodoRgb(th.accent).join(",")},${(.08 * R).toFixed(3)})` } : undefined;
   // Word highlight: a light vermilion tint and ring, a small lift and scale (transforms only,
@@ -338,7 +340,10 @@ export function ShodoKanjiCard({
   const cues = wordHighlights === "each" ? spreadWordHighlights(wordCount, timeline.frames / fps) : wordHighlights ?? [];
   const highlight = wordHighlightAt(cues, frame / fps, { count: wordCount });
   const sectionCueList = sectionCues ?? [];
-  const cueStates = { readings: sectionCueAt(sectionCueList, "readings", frame / fps), words: sectionCueAt(sectionCueList, "words", frame / fps) };
+  // A cue is reported (and drawn) only for a part the card shows.
+  const drawn = { readings: !!g.card && show.readings && !!(onyomi || kunyomi), words: !!g.card && wordCount > 0 };
+  const cueStates = (["readings", "words"] as const).reduce((out, k) => ({ ...out, [k]: drawn[k] ? sectionCueAt(sectionCueList, k, frame / fps) : { strength: 0, progress: 0 } }),
+    {} as Record<KanjiCardCueSection, KanjiSectionCueState>);
   // The typed intro: the reading in kana, then the character at the size the brush will write it.
   const introLength = (timeline.intro[1] - timeline.intro[0]) / fps;
   const typed = kanjiCardTypedAt(char, intro, introLength, position / fps, { reducedMotion: reduce });
