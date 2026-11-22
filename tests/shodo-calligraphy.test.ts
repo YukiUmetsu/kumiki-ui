@@ -842,7 +842,8 @@ describe("SHO1 shodō calligraphy", () => {
     bare.unmount();
     const odd = render(createElement(ShodoKanjiInfoCard, { char: "三", layout: "portrait", density: "compact", meanings: "THREE", words: base.words,
       cues: { words: { strength: Number.NaN, progress: Number.NaN } } }));
-    expect([...odd.container.querySelectorAll<HTMLElement>("li")].every(li => li.style.transform === "" && !li.style.background.includes("NaN"))).toBe(true);
+    // Each tile keeps the plain tile colour (#F3EFE7), not an invalid rgb(NaN…) that would drop it.
+    for (const li of odd.container.querySelectorAll<HTMLElement>("li")) { expect(li.style.transform).toBe(""); expect(li.style.background).toBe("rgb(243, 239, 231)"); }
     odd.unmount();
     // The export description reads the cues and names a bad one.
     expect(readKanjiCardExport({ char: "三", timing: { write: 1, review: 1, info: 1 }, sectionCues: [{ section: "words", at: 1, hold: 2 }] }).value?.props.sectionCues)
