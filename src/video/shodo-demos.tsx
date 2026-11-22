@@ -24,12 +24,12 @@ import { SHODO_FPS, SHODO_PHASE_LABEL, SHODO_TECH_LABEL, ShodoTransport, useShod
 import { ShodoKanjiCard } from "../../registry/video/shodo/shodo-kanji-card";
 import type { ShodoKanjiCardProps } from "../../registry/video/shodo/shodo-kanji-card";
 import {
-  DEFAULT_KANJI_CARD_LABELS, DEFAULT_KANJI_CARD_THEME, KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardPhaseAt, kanjiCardSections, kanjiCardThemeIssues,
+  DEFAULT_KANJI_CARD_LABELS, DEFAULT_KANJI_CARD_THEME, KANJI_CARD_CUE_SECTIONS, KANJI_CARD_FPS, KANJI_CARD_JLPT_LEVELS, kanjiCardPhaseAt, kanjiCardSections, kanjiCardThemeIssues,
   kanjiCardTimeline, kanjiCardWriting,
 } from "../../registry/video/shodo/shodo-kanji-card-plan";
 import type {
-  JlptLevel, KanjiCardContent, KanjiCardDensity, KanjiCardInk, KanjiCardIntro, KanjiCardPhase, KanjiCardSafeInset, KanjiCardSection, KanjiCardTiming,
-  KanjiCardWord, KanjiWordHighlight,
+  JlptLevel, KanjiCardContent, KanjiCardCueSection, KanjiCardDensity, KanjiCardInk, KanjiCardIntro, KanjiCardPhase, KanjiCardSafeInset, KanjiCardSection, KanjiCardTiming,
+  KanjiCardWord, KanjiSectionCue, KanjiWordHighlight,
 } from "../../registry/video/shodo/shodo-kanji-card-plan";
 
 const W = 1280, H = 720;
@@ -312,6 +312,16 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
       return x.hold === undefined ? { word, at } : { word, at, hold: num(x.hold, `wordHighlights[${i}].hold`, .05, 60) };
     });
   }
+  let sectionCues: KanjiSectionCue[] | undefined;
+  if (o.sectionCues !== undefined) {
+    if (!Array.isArray(o.sectionCues) || o.sectionCues.length > 20) errors.push("sectionCues: a list of up to 20 cues is required.");
+    else sectionCues = o.sectionCues.map((c, i) => {
+      const x = c && typeof c === "object" ? c as Record<string, unknown> : {};
+      const section = KANJI_CARD_CUE_SECTIONS.includes(x.section as KanjiCardCueSection) ? x.section as KanjiCardCueSection : "words";
+      if (section !== x.section) errors.push(`sectionCues[${i}].section: one of ${KANJI_CARD_CUE_SECTIONS.map(v => `"${v}"`).join(", ")} is required.`);
+      return { section, at: num(x.at, `sectionCues[${i}].at`, 0, 1800), hold: num(x.hold, `sectionCues[${i}].hold`, .05, 60) };
+    });
+  }
   let preset: VideoPlatformPresetId | undefined;
   const presetInfo = o.preset === undefined ? undefined : VIDEO_PLATFORM_PRESETS.find(p => p.id === o.preset);
   if (o.preset !== undefined && !presetInfo) errors.push("preset: a known video platform preset is required.");
@@ -382,7 +392,7 @@ export function readKanjiCardExport(json: unknown): { value: KanjiCardExport; er
     char: chars[0] ?? "", layout: portrait ? "portrait" : "landscape", timing,
     density: density as KanjiCardDensity | undefined, intro, cardFrom: o.cardFrom as KanjiCardPhase | undefined,
     heading: text("heading", 40), meanings: text("meanings", 120), onyomi: text("onyomi", 120), kunyomi: text("kunyomi", 120),
-    jlpt, words, wordHighlights: cues, safeInset, ink: ink as KanjiCardInk | undefined, vermilionStrokes, speed, sections, labels, theme, brushStyle,
+    jlpt, words, wordHighlights: cues, ...(sectionCues ? { sectionCues } : {}), safeInset, ink: ink as KanjiCardInk | undefined, vermilionStrokes, speed, sections, labels, theme, brushStyle,
     strokeNumbers: bool("strokeNumbers"),
     // An export is the same on every machine: the motion does not follow the viewer's setting.
     reducedMotion: bool("reducedMotion") ?? false,
