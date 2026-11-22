@@ -177,6 +177,15 @@ The ink of the character is centred in the writing box (in 9:16, the frame's cen
 - **Reduced motion.** With `reducedMotion` (default: the viewer's prefers-reduced-motion setting), there is no scale and no lift. Only the tint, the ring and the dimming fade.
 - **Before the reveal.** A highlighted word card shows also before the card text fades in (`cardFrom`). It fades in and out with its highlight, and the rest of the card stays hidden until its reveal.
 
+### Section cues
+
+`sectionCues` draws attention to a part of the reading card on the video clock, for example while a voice-over introduces the useful words. One cue is `{ section, at, hold }`: `section` is `"words"` or `"readings"` (`KANJI_CARD_CUE_SECTIONS`), `at` and `hold` are seconds.
+- **Words:** the "USEFUL WORDS" title turns the accent colour and the tiles lift and tint one after another in a wave (`wordTileWave`): each tile rises and settles in turn, neighbours overlap, so something moves for the whole cue, and it is flat at both ends. A highlighted word lifts more and wins where both apply, so a cue that ends where the first word's highlight starts hands over without a jump.
+- **Readings:** a light accent tint behind the readings, and the terms in the accent colour. No motion.
+- **Timing:** `sectionCueAt(cues, section, seconds)` gives the strength (eased in and out over a quarter second, less for a short cue) and the progress; the latest cue of a section wins. The card reports the active cues in `data-km-section-cue`.
+- **Reduced motion:** colour only, no lift.
+- The stories' export description reads `sectionCues` and names a bad one.
+
 ### Safe bands
 
 Phone apps cover the edges of a short with their own buttons and caption. With `safeInset`, the label, the ink of the character, the stroke numbers and the text of the card stay inside the bands; the paper still fills the frame.

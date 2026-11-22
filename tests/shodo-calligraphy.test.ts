@@ -15,7 +15,7 @@ import { fillKanjiCardContent, readKanjiCardExport, resolveKanjiCardContent } fr
 import { ShodoKanjiCard, ShodoKanjiInfoCard } from "../registry/video/shodo/shodo-kanji-card";
 import { DEFAULT_KANJI_CARD_THEME, kanjiCardConvertAt, kanjiCardLabelText, kanjiCardTheme, kanjiCardThemeIssues } from "../registry/video/shodo/shodo-kanji-card-plan";
 import {
-  KANJI_CARD_MARGIN, KANJI_CARD_MIN_BOX, KANJI_WORD_EASE, kanjiCardTextHeight, kanjiCardTileRoom, kanjiCardType, kanjiCardWordSize, kanjiCardGeometry, kanjiCardPhaseAt, kanjiCardSafeInset, kanjiCardStrokeTimes, kanjiCardTimeline, kanjiCardTypedAt, kanjiCardWriting,
+  KANJI_CARD_MARGIN, KANJI_CARD_MIN_BOX, KANJI_WORD_EASE, sectionCueAt, wordTileWave, kanjiCardTextHeight, kanjiCardTileRoom, kanjiCardType, kanjiCardWordSize, kanjiCardGeometry, kanjiCardPhaseAt, kanjiCardSafeInset, kanjiCardStrokeTimes, kanjiCardTimeline, kanjiCardTypedAt, kanjiCardWriting,
   parseWordHighlights, spreadWordHighlights, wordHighlightAt,
 } from "../registry/video/shodo/shodo-kanji-card-plan";
 import { readKanjiCardDataset } from "../src/video/shodo-studio";
@@ -790,6 +790,50 @@ describe("SHO1 shodō calligraphy", () => {
     expect(canvases.map(c => c.dataset.kmShodoFrame)).toEqual(["40", "40"]);
     // The test DOM has no 2D context.
     expect(canvases.map(c => c.dataset.kmShodoStatus)).toEqual(["error", "error"]);
+  });
+
+  it("cues a section of the card on the video clock: eased in and out, the latest cue first", () => {
+    const cues = [{ section: "words" as const, at: 10, hold: 3 }, { section: "readings" as const, at: 2, hold: 1 }];
+    expect(sectionCueAt(cues, "words", 9.9)).toEqual({ strength: 0, progress: 0 });
+    expect(sectionCueAt(cues, "words", 10).strength).toBe(0);                                   // eases in from the cue time
+    expect(sectionCueAt(cues, "words", 11.5)).toEqual({ strength: 1, progress: .5 });
+    expect(sectionCueAt(cues, "words", 13).strength).toBe(0);                                   // and out by its end
+    expect(sectionCueAt(cues, "readings", 2.5).strength).toBe(1);
+    expect(sectionCueAt([...cues, { section: "words", at: 12, hold: 2 }], "words", 12.5).progress).toBeCloseTo(.25, 9);   // a later cue wins
+    expect(sectionCueAt([{ section: "words", at: Number.NaN, hold: 3 }, { section: "words", at: 1, hold: 0 }], "words", 2).strength).toBe(0);
+  });
+
+  it("lifts the word tiles in a wave that never stops while the cue lasts, and is flat at both ends", () => {
+    for (const n of [1, 2, 3, 6]) {
+      for (let i = 0; i < n; i++) {
+        expect(wordTileWave(i, n, 0)).toBe(0);
+        expect(wordTileWave(i, n, 1)).toBe(0);
+        expect(wordTileWave(i, n, (i + 1) / (n + 1))).toBeCloseTo(1, 9);                    // each tile peaks in turn
+      }
+      // Some tile is clearly up through the middle of the cue (it starts and ends flat, so the ends are slight).
+      for (let p = .1; p <= .9; p += .02) expect(Math.max(...Array.from({ length: n }, (_, i) => wordTileWave(i, n, p)))).toBeGreaterThan(.05);
+    }
+  });
+
+  it("draws a words cue: the title in the accent colour and the tiles lifting, colour only with reduced motion", () => {
+    const base = { char: "三", glyph: SHODO_GLYPHS["三"], frame: 75, layout: "portrait" as const, density: "compact" as const, timing: { write: 1, review: 1, info: 3 }, meanings: "THREE",
+      words: [{ word: "三月", ruby: "さんがつ", romaji: "sangatsu", meaning: "March" }, { word: "三つ", ruby: "みっつ", romaji: "mittsu", meaning: "three" }],
+      sectionCues: [{ section: "words" as const, at: 2, hold: 1.5 }] };
+    const { container, unmount } = render(createElement(ShodoKanjiCard, { ...base, reducedMotion: false }));
+    const root = container.querySelector<HTMLElement>("[data-km-kanji-card]")!;
+    expect(root.dataset.kmSectionCue).toMatch(/^words 1\.000 0\.333$/u);                       // frame 75 is 2.5 s
+    expect(container.querySelector<HTMLElement>("[data-km-section-cue]:not([data-km-kanji-card])")!.style.color).not.toBe("");
+    const tiles = [...container.querySelectorAll<HTMLElement>("li")];
+    expect(tiles[0].style.transform).toMatch(/translateY/u);                                    // the first tile is up at a third of the cue
+    unmount();
+    const calm = render(createElement(ShodoKanjiCard, { ...base, reducedMotion: true }));
+    expect([...calm.container.querySelectorAll<HTMLElement>("li")].every(li => li.style.transform === "")).toBe(true);
+    calm.unmount();
+    // The export description reads the cues and names a bad one.
+    expect(readKanjiCardExport({ char: "三", timing: { write: 1, review: 1, info: 1 }, sectionCues: [{ section: "words", at: 1, hold: 2 }] }).value?.props.sectionCues)
+      .toEqual([{ section: "words", at: 1, hold: 2 }]);
+    expect(readKanjiCardExport({ char: "三", timing: { write: 1, review: 1, info: 1 }, sectionCues: [{ section: "title", at: 1, hold: 2 }] }).errors)
+      .toEqual(['sectionCues[0].section: one of "readings", "words" is required.']);
   });
 
   it("keeps the regular 9:16 character as large as it was before the paper filled the frame", () => {
