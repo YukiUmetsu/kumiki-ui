@@ -232,7 +232,24 @@ export type RigDriver = RigWindow & (
       /** Random spread of speeds, swing and timing (0..1), default .35. */ vary?: number;
       /** Roll about the particle's own length, radians per frame (petals curl and twist as they fall). */ roll?: number;
       /** Fade in and out over this many frames, default 10. */ fade?: number; seed?: number }
+  /**
+   * Hanging chains that touch the body (long hair, a sash, a scarf end, a tail that lies on the floor). It runs after every
+   * other driver. First `hang` (0..1) keeps the chain pointing down when its parent tilts away from its rest pose: 1 hangs
+   * like hair or a rope, 0 turns with the parent like a tail. Then each bone, root to tip, turns the least it can so that
+   * its segment stays `radius` clear of every collider, and above the ground when `floor` is set. Bone lengths never
+   * change and nothing carries over between frames. A bone whose joint is already inside a collider (a strand growing out
+   * of the scalp, hair falling from the nape onto the shoulder) may not reach deeper into it.
+   */
+  | { type: "drape"; bones: readonly string[]; colliders?: readonly RigCollider[];
+      /** Half the thickness of the strand, in design px. */ radius?: number; hang?: number; floor?: boolean;
+      /** The steepest a strand can lie on a body, degrees from straight down (default 75). A strand pushed steeper slides
+       * off beside the body in depth (a side view cannot show it going round) and the rest of the chain hangs free there,
+       * drawn behind the body by its z: long hair falls past the head in a deep bow instead of lying flat on the back. */
+      slip?: number }
 );
+
+/** A round obstacle for `drape`, in a bone's space: a capsule from `at` to `to`, or a circle when `to` is left out. */
+export interface RigCollider { bone: string; at: readonly [number, number]; to?: readonly [number, number]; radius: number }
 export type RigDriverType = RigDriver["type"];
 
 export interface RigSpec {
@@ -410,6 +427,20 @@ export function inspectRig(input: unknown): string[] {
       case "serpent": if (!Array.isArray(d.bones) || d.bones.length < 2) out.push(p + ".bones needs at least two bones"); else d.bones.forEach((b, j) => {
           bone(b, p + ".bones[" + j + "]"); if (!((bones.get(b)?.length ?? 0) > 0)) out.push(p + " bone \"" + b + "\" needs a length"); });
         if (!fin(d.amplitude) || !fin(d.wavelength) || d.wavelength <= 0) out.push(p + " needs amplitude and wavelength > 0"); break;
+      case "drape": {
+        if (!Array.isArray(d.bones) || !d.bones.length) out.push(p + ".bones must not be empty"); else d.bones.forEach((b, j) => {
+          bone(b, p + ".bones[" + j + "]"); if (!((bones.get(b)?.length ?? 0) > 0)) out.push(p + " bone \"" + b + "\" needs a length"); });
+        const pair = (v: unknown) => Array.isArray(v) && v.length === 2 && v.every(fin);
+        (d.colliders ?? []).forEach((c, j) => {
+          bone(c?.bone, p + ".colliders[" + j + "].bone");
+          if (!pair(c?.at) || (c.to !== undefined && !pair(c.to)) || !(fin(c.radius) && c.radius > 0)) out.push(p + ".colliders[" + j + "] needs at [x, y], an optional to [x, y] and radius > 0");
+        });
+        if (!d.colliders?.length && !d.floor) out.push(p + " needs colliders or floor");
+        if (d.radius !== undefined && !(fin(d.radius) && d.radius >= 0)) out.push(p + ".radius must be ≥ 0");
+        if (d.hang !== undefined && !(fin(d.hang) && d.hang >= 0 && d.hang <= 1)) out.push(p + ".hang must be 0..1");
+        if (d.slip !== undefined && !(fin(d.slip) && d.slip > 0 && d.slip <= 180)) out.push(p + ".slip must be in (0, 180] degrees");
+        break;
+      }
       default: out.push(p + ".type is unknown");
     }
   });

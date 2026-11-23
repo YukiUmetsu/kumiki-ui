@@ -91,6 +91,37 @@ export function addPersonBody(rig: Rig, parent: string, px: number, py: number, 
   }
 }
 
+/**
+ * Long hair that falls from the back of the head over the nape and down the back in layered locks. A `chain` sways it
+ * and streams it back at speed; a `drape` hangs it under gravity and keeps it on the head, shoulders and back instead
+ * of passing through them, and off the floor when the person lies down. Locks sit behind the head and in front of the
+ * neck and torso: they cover the nape, and hair that slides off a bowed back falls past the near shoulder.
+ */
+function addLongHair(rig: Rig, motion: string) {
+  const u = rig.u, bones: string[] = [];
+  // At rest the locks already follow the slope from the nape to the shoulder blades; the drape adds what a pose needs.
+  const lengths = [8, 6.5, 6.5, 6.5, 6, 5.5], rest = [18, 8, -10, -8, -4, -2], half = [4.2, 4.4, 4.3, 4, 3.5, 2.9, 2];
+  lengths.forEach((L, i) => {
+    const id = rig.bone("hair-" + i, i ? "hair-" + (i - 1) : "head", i ? 0 : -7.6, i ? lengths[i - 1] : -2.6, rest[i], L);
+    bones.push(id);
+    const a = half[i], b = half[i + 1], last = i === lengths.length - 1;
+    // Each lock tucks under the one above and ends in a ragged row of tips, so the joints read as layered hair.
+    const ends: Pt[] = last ? [[b, L - 1], [b * .5, L + 2.6], [b * .1, L + .8], [-b * .35, L + 3.4], [-b * .75, L + 1.2], [-b, L - .6]]
+      : [[b, L + .6], [b * .55, L + 2.4], [b * .15, L + 1], [-b * .3, L + 2.6], [-b * .7, L + 1], [-b, L + 2]];
+    rig.part(id, id, poly([[-a, -1.2], [a, -1.2], ...ends]), "hair", 4.6 - i * .02);
+  });
+  const run = motion === "run", walk = motion === "walk";
+  rig.drivers.push(
+    { type: "chain", bones, amplitude: run ? 4 : 1.6, period: run ? 22 : 110, lag: .45, growth: 1.2, follow: 3, bias: run ? 14 : walk ? 4 : 0 },
+    // Colliders follow the back of the torso outline: the shoulder line, then the back down to the waist.
+    { type: "drape", bones, radius: 2.8 * u, hang: .85, floor: true, colliders: [
+      { bone: "head", at: [0, 0], radius: 9.6 * u },
+      { bone: "torso", at: [-3.2 * u, -24.6 * u], to: [2 * u, -24.6 * u], radius: 3.6 * u },
+      { bone: "torso", at: [-6.6 * u, -22.4 * u], to: [-5.2 * u, -4 * u], radius: 3.4 * u },
+    ] },
+  );
+}
+
 const personLegs = (u: number): RigLeg[] => [
   { upper: "thigh-f", lower: "shin-f", foot: "foot-f", phase: 0, bend: 1, sole: 2.4 * u, toe: 6.4 * u },
   { upper: "thigh-b", lower: "shin-b", foot: "foot-b", phase: .5, bend: 1, sole: 2.4 * u, toe: 6.4 * u },
@@ -110,12 +141,13 @@ function addChair(rig: Rig, x: number) {
 }
 
 /** A person: idle, walk, run, wave, talk, cheer, sit, sit-down, stand-up, jump, point, think, clap, bow, dance, phone. */
-export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSpec {
+export function personRig(o: RigPresetOptions & { chair?: boolean; hair?: "short" | "long" } = {}): RigSpec {
   const u = (o.size ?? 360) / 100, rig = new Rig(u), m = o.motion ?? "walk", start = o.start ?? 0, end = o.end ?? 180, D = end - start, t = at(start, end);
   rig.bone("root", undefined, 0, 0);
   const seatedMotion = m === "sit" || m === "sit-down" || m === "stand-up";
   if (seatedMotion && o.chair !== false) addChair(rig, -13);
   addPersonBody(rig, "root", 0, -44, { phone: m === "phone" });
+  if (o.hair === "long") addLongHair(rig, m);
   rig.drivers.push(
     { type: "oscillate", bone: "torso", property: "scaleY", amplitude: .008, period: 76 },
     { type: "oscillate", bone: "head", property: "rotate", amplitude: 1.6, period: 140, wobble: .5 },

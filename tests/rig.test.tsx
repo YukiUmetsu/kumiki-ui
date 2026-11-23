@@ -18,10 +18,11 @@ describe("RIG1 contract", () => {
   it("reports bad bones, parts and drivers with paths", () => {
     const issues = inspectRig({ version: 1, id: "x", kind: "t", bounds: { x: 0, y: 0, width: 1, height: 1 }, provenance: { license: "CC0", source: "t" }, palette: { skin: "#fff" },
       bones: [{ id: "a", x: 0, y: 0 }, { id: "b", parent: "zz", x: 0, y: 0 }], parts: [{ id: "p", bone: "nope", role: "skin", z: 0, shape: { type: "path", d: "<x>" } }],
-      drivers: [{ type: "gait", body: "a", stride: 10, legs: [{ upper: "a", lower: "b", phase: 0, bend: 1 }] }] });
+      drivers: [{ type: "gait", body: "a", stride: 10, legs: [{ upper: "a", lower: "b", phase: 0, bend: 1 }] }, { type: "drape", bones: ["a"], hang: 2 }] });
     expect(issues).toEqual(expect.arrayContaining([
       expect.stringContaining("palette.skin"), expect.stringContaining("bones[1].parent"), expect.stringContaining("parts[0].bone"),
-      expect.stringContaining("parts[0].shape.d"), expect.stringContaining("needs a length")]));
+      expect.stringContaining("parts[0].shape.d"), expect.stringContaining("needs a length"),
+      expect.stringContaining("drivers[1] needs colliders or floor"), expect.stringContaining("drivers[1].hang must be 0..1")]));
   });
   it("scales path data without touching arc flags", () => {
     expect(scalePath("M1 2A3 3 0 1 0 4 5Z", 2)).toBe("M2 4A6 6 0 1 0 8 10Z");
@@ -149,6 +150,48 @@ describe("RIG1 motion", () => {
     expect(pelvis).toBeGreaterThan(700 - 30 * 3.6);
     expect(Math.abs(foot - (700 - 2.4 * 3.6))).toBeLessThan(.5);
     expect(f.parts.some(p => p.id === "chair-seat")).toBe(true);
+  });
+  it("rests long hair on the back instead of passing through it, hangs it in a bow and keeps it off the floor", () => {
+    type P = [number, number];
+    const seg = (p: P, a: P, b: P) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l)) : 0; return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy); };
+    const hair = (motion: string) => personRig({ motion, hair: "long", start: 0, end: 180, from: 400, to: motion === "walk" || motion === "run" ? 900 : 400, y: 700 });
+    const strands = (spec: RigSpec, f: number) => {
+      const fr = evaluateRig(spec, f), drape = spec.drivers!.find(d => d.type === "drape")!;
+      if (drape.type !== "drape") throw new Error("no drape");
+      const at = (bone: string, x: number, y: number): P => { const m = fr.bones.get(bone)!.world; return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]; };
+      return { drape, bones: drape.bones.map(id => { const b = fr.bones.get(id)!; return [at(id, 0, 0), at(id, 0, b.length)] as [P, P]; }),
+        // A collider's radius scales with its bone (the torso breathes).
+        caps: drape.colliders!.map(c => { const m = fr.bones.get(c.bone)!.world; return { a: at(c.bone, ...c.at), b: at(c.bone, ...(c.to ?? c.at)), r: c.radius * Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) + drape.radius! }; }) };
+    };
+    // Upright: every lock tip stays a strand's half-thickness clear of the head, shoulders and back (a lock that starts
+    // inside a collider, at the scalp, may not reach deeper), and a lock cuts a round surface by its chord's sagitta at most.
+    for (const motion of ["idle", "walk", "run", "wave", "dance", "jump"]) {
+      const spec = hair(motion);
+      for (let f = 0; f <= 180; f += 3) {
+        const { bones, caps } = strands(spec, f);
+        for (const [j, t] of bones) for (const c of caps) {
+          const need = Math.min(c.r, seg(j, c.a, c.b)), half = Math.hypot(t[0] - j[0], t[1] - j[1]) / 2;
+          const closest = Math.min(...Array.from({ length: 21 }, (_, k) => seg([j[0] + (t[0] - j[0]) * k / 20, j[1] + (t[1] - j[1]) * k / 20], c.a, c.b)));
+          expect(seg(t, c.a, c.b), motion + "@" + f).toBeGreaterThan(need - .01);
+          expect(closest, motion + "@" + f).toBeGreaterThan(Math.sqrt(Math.max(0, need * need - half * half)) - .01);
+        }
+      }
+    }
+    // A deep bow: the hair slides off the back and hangs, its last lock near straight down.
+    const locks = strands(hair("bow"), 100).bones, bow = locks[locks.length - 1], heading = Math.atan2(-(bow[1][0] - bow[0][0]), bow[1][1] - bow[0][1]) * 180 / Math.PI;
+    expect(Math.abs(heading)).toBeLessThan(30);
+    // Lying down: no lock below the floor, on any frame. In a roll the head itself touches the floor, so there a lock may
+    // only not go deeper than its joint.
+    for (const motion of ["lie-down", "go-to-sleep", "roll"]) {
+      const spec = hair(motion), floor = 700 - spec.drivers!.reduce((r, d) => d.type === "drape" ? d.radius! : r, 0);
+      for (let f = 0; f <= 180; f += 2) for (const [j, t] of strands(spec, f).bones)
+        expect(t[1], motion + "@" + f).toBeLessThan((motion === "roll" ? Math.max(floor, j[1]) : floor) + .01);
+    }
+    // Still a pure function of the frame.
+    const spec = hair("bow"), parts = (f: number) => JSON.stringify(evaluateRig(spec, f).parts.map(p => p.matrix));
+    const first = parts(100);
+    parts(40);
+    expect(parts(100)).toBe(first);
   });
 });
 

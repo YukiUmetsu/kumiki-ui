@@ -43,6 +43,8 @@ const inPlace = new Set<string>(["idle", "wave", "talk", "cheer", "sit", "sit-do
 /** Every preset with its motions. */
 export const RIG_PRESETS: readonly RigPresetEntry[] = [
   { id: "person", label: "Person", group: "people", motions: PERSON_MOTIONS, size: 360, travels: m => !inPlace.has(m), build: personRig, pace: (m, s) => (PERSON_PACE[m] ?? 0) * s / 100 },
+  { id: "person-long-hair", label: "Person, long hair", group: "people", motions: PERSON_MOTIONS, size: 360, travels: m => !inPlace.has(m),
+    build: o => personRig({ id: "person-long-hair", ...o, hair: "long" }), pace: (m, s) => (PERSON_PACE[m] ?? 0) * s / 100 },
   { id: "dog", label: "Dog", group: "animals", motions: QUADRUPED_MOTIONS, size: 320, travels: m => m !== "idle" && m !== "sit", build: o => quadrupedRig("dog", o), pace: (m, s) => quadPace("dog", m, s) },
   { id: "horse", label: "Horse", group: "animals", motions: QUADRUPED_MOTIONS.filter(m => m !== "sit"), size: 430, travels: m => m !== "idle", build: o => quadrupedRig("horse", o), pace: (m, s) => quadPace("horse", m, s) },
   { id: "cat", label: "Cat", group: "animals", motions: QUADRUPED_MOTIONS, size: 280, travels: m => m !== "idle" && m !== "sit", build: o => quadrupedRig("cat", o), pace: (m, s) => quadPace("cat", m, s) },
