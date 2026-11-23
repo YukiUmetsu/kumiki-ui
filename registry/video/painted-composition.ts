@@ -3,7 +3,7 @@
  * WM1 creates physical brush trails; WM2 can paint ANY independently authored SVG silhouette.
  * Neither the scene graph nor the material evaluator owns a playback clock.
  */
-import { inspectPaintSurface, paintClamp, paintHash } from "./watercolour-brush";
+import { inspectPaintSurface, paintBloomPath, paintClamp, paintHash } from "./watercolour-brush";
 import type { PaintStroke, PaintSurfaceSpec, PaintIssue } from "./watercolour-brush";
 
 /** A timed droplet of clean water entering pigment that is still damp.
@@ -202,20 +202,8 @@ export function paintBackrunAt(run: PaintBackrun, frame: number, reducedMotion =
  * time and independent of seek direction; no frame-seeded random jitter.
  */
 export function paintBackrunPath(run: PaintBackrun, seed: number, progress: number): string {
-  const t = paintClamp(progress);
-  if (t <= 0) return "";
-  const points: string[] = [];
-  const segments = 64;
-  for (let i = 0; i < segments; i++) {
-    const a = i * 2 * Math.PI / segments;
-    const coarse = Math.sin(a * 5 + seed * .17) * .09 +
-      Math.cos(a * 9 + seed * .037) * .036;
-    const paper = (paintHash(seed + 31, Math.floor((i % segments) / 4), 73) - .5) * .065;
-    const r = run.radius * t * Math.max(.72, 1 + coarse + paper);
-    points.push((run.x + Math.cos(a) * r).toFixed(2) + " " +
-      (run.y + Math.sin(a) * r).toFixed(2));
-  }
-  return "M" + points.join(" L") + " Z";
+  // One canonical cauliflower front for the whole style (WM1 blooms use the same geometry).
+  return paintBloomPath(run.x, run.y, run.radius, seed, progress);
 }
 
 /** Author-facing presets are just defaults, not a second timeline or a paint API tied to demo artwork. */

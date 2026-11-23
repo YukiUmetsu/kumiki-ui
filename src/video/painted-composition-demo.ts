@@ -67,7 +67,9 @@ function brush(
 function natural(b: Artboard): PaintedLayer[] {
   const sky = rectangle(b, .05, .06, .91, .74);
   const mountain = "M"+b.P(.04,.69)+" C"+b.P(.2,.54)+" "+b.P(.3,.53)+" "+b.P(.39,.61)+
-    " S"+b.P(.72,.48)+" "+b.P(.94,.62)+" L"+b.P(.97,.82)+" L"+b.P(.02,.82)+" Z";
+    " S"+b.P(.72,.48)+" "+b.P(.94,.62)+" L"+b.P(.96,.77)+
+    // The haze ends at the horizon, under the sea's edge, not in a straight cut across the hills.
+    " Q"+b.P(.75,.8)+" "+b.P(.54,.785)+" Q"+b.P(.35,.74)+" "+b.P(.03,.775)+" Z";
   const sea = "M"+b.P(.05,.76)+" Q"+b.P(.35,.72)+" "+b.P(.54,.77)+
     " T"+b.P(.96,.75)+" L"+b.P(.96,.97)+" L"+b.P(.04,.97)+" Z";
   const hill = "M"+b.P(.03,.87)+" Q"+b.P(.2,.72)+" "+b.P(.36,.84)+

@@ -1,8 +1,8 @@
-import { memo, useId, useMemo } from "react";
+import { memo, useId } from "react";
 import type { ReactNode, SVGProps } from "react";
-import { WatercolourSurface } from "./watercolour-brush-react";
-import { evaluatePaintWash, inspectPaintedComposition, samplePigmentGrains, paintBackrunAt, paintBackrunPath } from "./painted-composition";
-import type { PaintWash, PaintedCompositionSpec, PigmentGrain, WashFrame } from "./painted-composition";
+import { WatercolourPaper, WatercolourSurface, WatercolourTideFilter, WatercolourWashFilter } from "./watercolour-brush-react";
+import { evaluatePaintWash, inspectPaintedComposition, paintBackrunAt, paintBackrunPath } from "./painted-composition";
+import type { PaintWash, PaintedCompositionSpec, WashFrame } from "./painted-composition";
 
 export interface PaintedCompositionProps extends Omit<SVGProps<SVGSVGElement>, "children" | "width" | "height" | "viewBox"> {
   spec: PaintedCompositionSpec;
@@ -25,22 +25,22 @@ interface WashLayerProps {
   reducedMotion: boolean;
   index: number;
   uid: string;
-  grains: readonly PigmentGrain[];
 }
 
 /** A paint layer acts on its SUBJECT'S ORIGINAL SILHOUETTE.
- * Its brush reveals coverage; material wash, pigment fringe, reserve and granulation are independent.
+ * Its brush reveals coverage; the shared watercolour material gives the wash its wandering dried contour, a dried
+ * edge as strong as the layer's `edgePooling`, granulation as strong as its `granulation`, and the accent charged
+ * wet-in-wet into it. Reserves, backruns and details stay independent.
  */
-const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState: state, frame, reducedMotion, index, uid, grains }: WashLayerProps) {
+const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState: state, frame, reducedMotion, index, uid }: WashLayerProps) {
   if (state.deposit <= 0) return null;
   const prefix = uid + "-wash-" + index;
   const shapeId = prefix + "-shape", brushId = prefix + "-gesture";
   const reserveId = prefix + "-reserve", gradientId = prefix + "-pigment";
-  const [x, y, width, height] = wash.bounds;
   const amount = tones[wash.tone] * wash.opacity;
   const deposited = amount * (.77 + .14 * state.absorption);
-  const wetFringe = wash.water * state.spread * .24 * amount;
-  const edge = amount * wash.edgePooling * (.085 + .18 * state.absorption);
+  // The wet fringe is part of the same wash: it carries the dried edge once the water has gone.
+  const wetFringe = wash.water * state.spread * .6 * deposited;
   const hasReserve = Boolean(wash.reservePaths?.length);
   const animated = wash.paintFrames > 0;
   return <g data-km-paint-wash={wash.id} data-km-wash-phase={state.settled ? "dry" : "wet"}
@@ -52,6 +52,10 @@ const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState
         <stop offset="48%" stopColor={wash.accent ?? wash.pigment}/>
         <stop offset="100%" stopColor={wash.pigment}/>
       </linearGradient>
+      <WatercolourWashFilter id={prefix + "-material"} seed={spec.seed + index * 31} tooth={spec.paper.tooth}
+        granulation={wash.granulation * (.4 + .5 * spec.paper.tooth)} driedEdge={.25 + .7 * wash.edgePooling}
+        rim={1.6 + 1.4 * wash.water} mottle={.15 + .3 * wash.water}
+        charge={wash.accent ? { color: wash.accent, amount: .25 + .3 * wash.water } : undefined}/>
       {animated && <mask id={brushId} maskUnits="userSpaceOnUse"
         x={0} y={0} width={spec.width} height={spec.height}>
         {state.deposit > 0 && <path d={wash.brushPath} fill="none" stroke="#fff"
@@ -66,28 +70,16 @@ const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState
     </defs>
     <g mask={animated && state.deposit < 1 ? `url(#${brushId})` : undefined}>
       <g mask={hasReserve ? `url(#${reserveId})` : undefined}>
-        {/* Wash extends gently beyond the line only during drying; this is not an RGB-wide film filter. */}
-        {state.spread > 0 && <path d={wash.path} fill={wash.pigment} opacity={wetFringe}
-          stroke={wash.accent ?? wash.pigment} strokeWidth={2.5 * state.spread * wash.water}
-          strokeLinejoin="round" filter={`url(#${uid}-edge)`}/>}
-        <path data-km-wash-pigment="" d={wash.path} fill={`url(#${gradientId})`}
-          opacity={deposited}/>
+        <g data-km-wash-material="" filter={`url(#${prefix}-material)`}>
+          {/* The wash creeps a little beyond its line while wet; never an RGB-wide film filter. */}
+          {state.spread > 0 && <path d={wash.path} fill={wash.pigment} opacity={wetFringe}
+            stroke={wash.pigment} strokeWidth={2.5 * state.spread * wash.water} strokeLinejoin="round"/>}
+          <path data-km-wash-pigment="" d={wash.path} fill={`url(#${gradientId})`}
+            opacity={deposited}/>
+        </g>
         <g clipPath={`url(#${shapeId})`}>
-          {/* Underpainting is transparent and pigment varies by paper coordinate, not current frame. */}
-          {wash.accent && <ellipse cx={x + width*.7} cy={y + height*.53}
-            rx={width*.34} ry={height*.32} fill={wash.accent}
-            opacity={.12 * wash.water * amount}/>}
-          {grains.map((g, i) => <ellipse key={i} cx={g.x} cy={g.y}
-            rx={g.radius * (1 + .7 * wash.water)} ry={g.radius * .57}
-            fill={g.accent && wash.accent ? wash.accent : wash.pigment}
-            opacity={g.strength * wash.granulation * (.3 + .7 * state.absorption)}/>)}
-          {/* Paper valleys accumulate pigment at the perimeter; line is irregular, light and incomplete. */}
-          {edge > 0 && <path d={wash.path} fill="none" stroke={wash.pigment}
-            strokeWidth={Math.max(.6, 2.6 * wash.water + 1.2 * wash.edgePooling)}
-            opacity={edge} strokeDasharray={`${10 + index % 7} ${3 + index % 5}`}
-            filter={`url(#${uid}-edge)`}/>}
-          {/* A drop into still-damp pigment pushes out a translucent clear center
-              and leaves a scalloped, pigment-enriched perimeter inside the original shape. */}
+          {/* A drop into still-damp pigment pushes out a lighter centre and leaves a lobed,
+              partly visible tide line inside the original shape. */}
           {wash.backruns?.map((run, i) => {
             const state = paintBackrunAt(run, frame, reducedMotion);
             if (state.progress === 0) return null;
@@ -96,9 +88,9 @@ const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState
               <path d={path} fill={spec.paper.color}
                 opacity={run.strength * (.26 + .18 * state.progress)} />
               <path d={path} fill="none" stroke={wash.pigment}
-                strokeWidth={Math.max(.8, Math.min(4.5, 1.2 + run.radius * .035))}
-                opacity={run.strength * (.12 + .28 * state.progress)}
-                strokeLinejoin="round" />
+                strokeWidth={Math.max(1.2, Math.min(5, 1.4 + run.radius * .04))}
+                opacity={Math.min(.75, amount * 1.4) * run.strength * (.3 + .5 * state.progress)}
+                filter={`url(#${uid}-tide)`} />
             </g>;
           })}
           {wash.details?.map((detail, i) => <path key={i} d={detail.path}
@@ -108,7 +100,7 @@ const PaintedWashLayer = memo(function PaintedWashLayer({ spec, wash, frameState
       </g>
     </g>
   </g>;
-}, (a, b) => a.spec === b.spec && a.wash === b.wash && a.grains === b.grains &&
+}, (a, b) => a.spec === b.spec && a.wash === b.wash &&
   a.index === b.index && a.uid === b.uid &&
   (a.wash.backruns?.length ? a.frame === b.frame && a.reducedMotion === b.reducedMotion : true) &&
   a.frameState.deposit === b.frameState.deposit && a.frameState.spread === b.frameState.spread &&
@@ -129,14 +121,6 @@ export function PaintedComposition({
     camera.zoom < .1 || camera.zoom > 24)) throw new RangeError("Camera requires finite x,y and zoom 0.1..24.");
 
   const rawId = useId(), uid = "wm2" + rawId.replace(/[^a-zA-Z0-9_-]/g, "");
-  const grains = useMemo(() => spec.layers.map((layer, i) => layer.kind === "wash"
-    ? samplePigmentGrains(layer, spec.seed + 101 * i) : []), [spec]);
-  const paper = useMemo(() => Array.from({ length: 290 }, (_, i) => ({
-    x: (i * 9176.113 + spec.seed * 43.19) % spec.width,
-    y: (i * 3836.137 + spec.seed * 27.71) % spec.height,
-    length: .9 + (i % 11) * .65,
-    alpha: .04 + ((i * 23) % 17) / 170,
-  })), [spec]);
   const transform = camera ? `translate(${camera.x} ${camera.y}) scale(${camera.zoom})` : undefined;
   return <svg {...svgProps} xmlns="http://www.w3.org/2000/svg"
     viewBox={`0 0 ${spec.width} ${spec.height}`}
@@ -145,27 +129,17 @@ export function PaintedComposition({
     data-km-painted-composition="" data-km-paint-frame={frame}
     style={{ width: "100%", height: "100%", display: "block", isolation: "isolate", overflow: "hidden", ...style }}>
     <defs>
-      <filter id={uid+"-edge"} x="-7%" y="-7%" width="114%" height="114%"
-        colorInterpolationFilters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency=".019 .027" numOctaves={2}
-          seed={1+(spec.seed % 997)} result="pores"/>
-        <feDisplacementMap in="SourceGraphic" in2="pores" scale={3*spec.paper.tooth}
-          xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
+      <WatercolourTideFilter id={uid + "-tide"} seed={spec.seed} tooth={spec.paper.tooth}/>
     </defs>
     <g transform={transform}>
-      {!transparentPaper && <>
-        <rect width={spec.width} height={spec.height} fill={spec.paper.color}/>
-        <g pointerEvents="none" data-km-composition-paper="">
-          {paper.map((p, i) => <path key={i}
-            d={`M${p.x.toFixed(1)} ${p.y.toFixed(1)} h${p.length.toFixed(1)}`}
-            stroke="#777064" strokeWidth=".6" opacity={p.alpha * spec.paper.tooth}/>)}
-        </g>
-      </>}
+      {!transparentPaper && <g data-km-composition-paper="">
+        <WatercolourPaper id={uid + "-paper"} width={spec.width} height={spec.height}
+          color={spec.paper.color} tooth={spec.paper.tooth} seed={spec.seed}/>
+      </g>}
       {spec.layers.map((layer, i) => {
         if (layer.kind === "wash") return <PaintedWashLayer key={layer.id}
           spec={spec} wash={layer} index={i} uid={uid}
-          grains={grains[i]} frame={frame} reducedMotion={reducedMotion}
+          frame={frame} reducedMotion={reducedMotion}
           frameState={evaluatePaintWash(layer, frame, reducedMotion)}/>;
         if (layer.kind === "brush") {
           return <WatercolourSurface key={layer.id} spec={{ version: 1, medium: "watercolour",
