@@ -26,6 +26,8 @@ export interface StrandOptions {
    * out, it lies the way it was already heading, at full length.
    */
   floorSide?: number;
+  /** On the floor, keep the length each segment is drawn with instead (it may lie toward the viewer). */
+  floorFree?: boolean;
   /** Steps per point (default 24). */
   steps?: number;
 }
@@ -80,7 +82,8 @@ export function settleStrand(hang: readonly StrandPoint[], capsules: readonly St
       if (y >= floor) {
         y = floor;
         const reach = Math.sqrt(Math.max(0, L * L - (y - j[1]) ** 2));
-        x = j[0] + reach * (options.floorSide === undefined ? (x < j[0] ? -1 : 1) : Math.max(-1, Math.min(1, options.floorSide / .4)));
+        x = options.floorFree ? Math.max(j[0] - reach, Math.min(j[0] + reach, x))
+          : j[0] + reach * (options.floorSide === undefined ? (x < j[0] ? -1 : 1) : Math.max(-1, Math.min(1, options.floorSide / .4)));
         continue;
       }
       keepLength();

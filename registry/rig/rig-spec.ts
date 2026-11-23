@@ -180,8 +180,14 @@ export type RigDriver = RigWindow & (
   /** Two-bone IK reach toward a target: feet planted on the ground or a pedal, hands on a knee, a chin, a handlebar.
    * The target is keyed in root space, or follows another bone's joint (plus an offset in root space). */
   | { type: "reach"; upper: string; lower: string; tip?: string; bend: 1 | -1;
-      target?: readonly { frame: number; x: number; y: number; ease?: EasingSpec }[];
+      /** `out` (0..1): how far the middle joint points toward the viewer, so the limb is drawn shorter and straighter (an
+       * arm swung out to the side). At 1 the bend no longer shows. Give the lower bone `inheritScale: false`. */
+      target?: readonly { frame: number; x: number; y: number; ease?: EasingSpec; out?: number }[];
       follow?: string; offset?: readonly [number, number];
+      /** Keep the middle joint and the end of the reach this far above the ground, in design px. A joint that would dip
+       * lower points toward the viewer, as with `out`. A `tip` bone with a length and no `tipAngle` bends at its joint
+       * to stay above it too: a hand lies forward on the floor it is put on. */
+      floor?: number;
       /** World angle for the `tip` bone (0 keeps a foot level), or omit to leave it as posed. */ tipAngle?: number }
   /** Lights and indicators: opacity switches on and off on a square wave (`period`, `duty`), or stays on in the window. */
   | { type: "flash"; bones: readonly string[]; period?: number; duty?: number; phase?: number; fade?: number }
@@ -236,15 +242,19 @@ export type RigDriver = RigWindow & (
    * Hanging chains that touch the body (long hair, a sash, a scarf end). It runs after every other driver. First `hang`
    * (0..1) keeps the chain pointing down when its parent tilts away from its rest pose: 1 hangs like hair or a rope, 0
    * turns with the parent like a tail. Then the chain settles on the colliders, `radius` clear of them, and above the
-   * ground when `floor` is set (`rig-strand.ts`). Bone lengths never change and nothing carries over between frames.
+   * ground when `floor` is set (`rig-strand.ts`). Bone lengths never change. Nothing carries over between frames: `momentum`
+   * looks back at where the chain hung on the frames before, so any frame still evaluates alone.
    */
   | { type: "drape"; bones: readonly string[]; colliders?: readonly RigCollider[];
-      /** Half the thickness of the strand, in design px. */ radius?: number; hang?: number; floor?: boolean;
+      /** Half the thickness of the strand, in design px. */ radius?: number; hang?: number;
+      /** Keep the strand off the ground, or off something this many design px thick that lies on it (a mat). */ floor?: boolean | number;
       /** The way the strand lies down on the floor, in the parent's space (long hair: the crown, [0, -1]). */
       floorSide?: readonly [number, number];
       /** How far a body can tip before the strand slides off it, degrees from its rest pose (default 65, eased over +-10).
        * Past it the strand hangs beside the body in depth: long hair falls past the head in a deep bow. */
-      slip?: number }
+      slip?: number;
+      /** Period of the strand's own swing, frames: it trails a fast move, overshoots a little and settles. Left out, it answers at once. */
+      momentum?: number }
 );
 
 /** A round obstacle for `drape`, in a bone's space: a capsule from `at` to `to`, or a circle when `to` is left out. */
@@ -389,7 +399,7 @@ export function inspectRig(input: unknown): string[] {
         if (d.bend !== 1 && d.bend !== -1) out.push(p + ".bend must be 1 or -1");
         for (const id of [d.upper, d.lower]) if (!((bones.get(id)?.length ?? 0) > 0)) out.push(p + " bone \"" + id + "\" needs a length");
         if (!d.follow && !(Array.isArray(d.target) && d.target.length)) out.push(p + " needs target keys or a follow bone");
-        else if (d.target) { let pf = -Infinity; d.target.forEach((k, j) => { if (!int(k.frame) || k.frame <= pf || !fin(k.x) || !fin(k.y)) out.push(p + ".target[" + j + "] needs increasing frame, x, y"); pf = k.frame; }); }
+        else if (d.target) { let pf = -Infinity; d.target.forEach((k, j) => { if (!int(k.frame) || k.frame <= pf || !fin(k.x) || !fin(k.y) || k.out !== undefined && !(k.out >= 0 && k.out <= 1)) out.push(p + ".target[" + j + "] needs increasing frame, x, y, and out 0..1"); pf = k.frame; }); }
         break;
       case "flash": if (!Array.isArray(d.bones) || !d.bones.length) out.push(p + ".bones must not be empty"); else d.bones.forEach((b, j) => bone(b, p + ".bones[" + j + "]"));
         if (d.period !== undefined && (!fin(d.period) || d.period < 2)) out.push(p + ".period must be ≥ 2");

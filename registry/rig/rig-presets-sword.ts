@@ -265,7 +265,7 @@ export function addSwordAction(rig: Rig, m: SwordMotion, c: SwordContext): void 
     rig.drivers.push({ type: "reach", start: from, end: to, ramp, upper: "arm-" + side, lower: "fore-" + side, bend: -1, follow, offset: [0, 0] });
   reach("f", start, end + 60, "sword", 0);
   reach("b", start, end + 60, draw ? "saya-grip" : "sword-pommel", 0);
-  for (const [s0, s1] of pommel) reach("b", s0 - 3, s1 + 3, "sword-pommel", 4);
+  for (const [s0, s1] of pommel) reach("b", s0 - 7, s1 + 5, "sword-pommel", 8);
   rig.drivers.push({ type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: start, name: "fist" }] },
     { type: "variant", part: "hand-b", mode: "keys", keys: [{ frame: start, name: "fist" }] });
 }

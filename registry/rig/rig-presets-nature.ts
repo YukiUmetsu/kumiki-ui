@@ -65,12 +65,12 @@ const FROG = { thigh: 21, shank: 22, tarsus: 12, toes: 15, arm: 9.5, fore: 10 } 
 const HIND = FROG.thigh + FROG.shank + FROG.tarsus + FROG.toes;
 /** Body-local joints (hip at the origin, nose along +x). */
 const SHOULDER: Pt = [31, 3.5];
-const FAR_HIP: Pt = [-1.6, -1.4], FAR_SHOULDER: Pt = [33.2, 2.2];
+const FAR_HIP: Pt = [-1.6, -1.4], FAR_SHOULDER: Pt = [33.2, 2.2], FAR_TOE = 2.6;
 /** Crouch: hip height, body pitch (nose up), planted ankle, toe tip and hand (root space, design units). */
-const CROUCH = { hip: [0, -11] as Pt, pitch: -22, ankle: [-3.5, -1.8] as Pt, toe: [23.4, -.2] as Pt, hand: [33.5, -.5] as Pt };
+const CROUCH = { hip: [0, -11] as Pt, pitch: -22, ankle: [.3, -4] as Pt, toe: [27.2, -3] as Pt, hand: [33.5, -1.6] as Pt };
 const FROG_HOP = { pre: 8, push: 7, flight: 10, land: 3, fold: 12, settle: 5 };
 const FROG_CYCLE = FROG_HOP.pre + FROG_HOP.push + FROG_HOP.flight + FROG_HOP.land + FROG_HOP.fold + FROG_HOP.settle + 4;
-const FROG_HOP_LENGTH = 234;
+const FROG_HOP_LENGTH = 234, FROG_MIN_HOP = 80;
 
 interface FrogPose { hip: Pt; pitch: number; hind: number[]; fore: number[]; farHind: number[]; farFore: number[];
   /** Foot length factor while a foot swings around the side of the body (foreshortened in profile). */ foot?: number }
@@ -96,7 +96,7 @@ function crouchPose(dx = 0, sink = 0, pitch = CROUCH.pitch): FrogPose {
   return {
     hip, pitch,
     hind: hindTo(hip, at(CROUCH.toe), tarsus, toes), fore: foreTo(toBody(hip, pitch, SHOULDER), at(CROUCH.hand)),
-    farHind: hindTo(toBody(hip, pitch, FAR_HIP), at(CROUCH.toe, 4.5, -.5), tarsus, toes), farFore: foreTo(toBody(hip, pitch, FAR_SHOULDER), at(CROUCH.hand, 4, -.4)),
+    farHind: hindTo(toBody(hip, pitch, FAR_HIP), at(CROUCH.toe, FAR_TOE, -.5), tarsus, toes), farFore: foreTo(toBody(hip, pitch, FAR_SHOULDER), at(CROUCH.hand, 4, -.4)),
   };
 }
 const blendPose = (a: FrogPose, b: FrogPose, t: number): FrogPose => ({
@@ -111,8 +111,12 @@ function frogHopPose(tau: number, dist: number): FrogPose {
   const tPush = H.pre, tFly = tPush + H.push, tLand = tFly + H.flight, tFold = tLand + H.land, tSettle = tFold + H.fold;
   // Take-off geometry: toes stay planted, the leg ends as one straight line at LAUNCH below the horizontal.
   const LAUNCH = 50, toe = CROUCH.toe, ld = dirOf(LAUNCH);
-  const hip1: Pt = [toe[0] - HIND * ld[0], toe[1] - HIND * ld[1]];
-  const ant = crouchPose(0, 1.4, -27), push = (s: number) => s ** 1.4;
+  const full: Pt = [toe[0] - HIND * ld[0], toe[1] - HIND * ld[1]];
+  // A short hop takes off from a leg that is still bent: the hip leaves a third of the way along, at the speed the flight keeps.
+  const reachOut = Math.min(1, (dist - 3) / 3 / full[0]), rise = Math.max(.45, reachOut);
+  const hip1: Pt = [full[0] * reachOut, lerp(CROUCH.hip[1], full[1], rise)];
+  // The hip rises before it goes forward, so the knee turns over above the ground; both ways end at 1.4 times their mean speed.
+  const ant = crouchPose(0, 1.4, -27), pushX = (s: number) => 1.6 * s * s - .6 * s ** 3, pushY = (s: number) => .9 * s - .2 * s * s + .3 * s ** 3;
   const vy = 1.4 * (hip1[1] - ant.hip[1]) / H.push;
   // Landing: forelegs reach the spot where the next crouch keeps its hands.
   const landPitch = 20, hipL: [number, number] = [dist - 3, 0];
@@ -121,16 +125,22 @@ function frogHopPose(tau: number, dist: number): FrogPose {
   const handL: Pt = [dist + CROUCH.hand[0], CROUCH.hand[1]];
   const g = 2 * (hipL[1] - hip1[1] - vy * H.flight) / (H.flight * H.flight);
   const flightX = (q: number) => hip1[0] + (hipL[0] - hip1[0]) * q;
+  // Proximal to distal: hip and knee extend first, the heel lifts late and the toes leave last.
+  const offToes = (hip: Pt, pitch: number, s: number): [number[], number[]] => {
+    const toes = lerp(boneAngle(FROG.toes, .6), LAUNCH, s ** 2.6 * rise), tarsus = lerp(ant.hind[2], LAUNCH, s ** 1.7 * rise);
+    return [hindTo(hip, toe, tarsus, toes), hindTo(toBody(hip, pitch, FAR_HIP), [toe[0] + FAR_TOE, toe[1] - .5], tarsus, toes)];
+  };
+  // In the air the legs trail in line with the body; after a short take-off they stay partly folded.
+  const tuck: number[] = [100, 250, 70, 85];
+  const trail = (angle: number, far: boolean) => [0, 2, 4, 8].map((add, i) => lerpAngle(angle + add - (far ? 3 - i * .5 : 0), tuck[i], (1 - rise) * .3));
   if (tau < tPush) {
     const s = smooth((tau - (tPush - 5)) / 5);
     return blendPose(c0, ant, s);
   }
   if (tau < tFly) {
-    const s = (tau - tPush) / H.push, e = push(s);
-    const hip: Pt = [lerp(ant.hip[0], hip1[0], e), lerp(ant.hip[1], hip1[1], e)], pitch = lerp(-27, -14, smooth(s));
-    // Proximal to distal: hip and knee extend first, the heel lifts late and the toes leave last.
-    const toes = lerp(boneAngle(FROG.toes, .6), LAUNCH, s ** 2.6), tarsus = lerp(ant.hind[2], LAUNCH, s ** 1.7);
-    const hind = hindTo(hip, toe, tarsus, toes), farHind = hindTo(toBody(hip, pitch, FAR_HIP), [toe[0] + 4.5, toe[1] - .5], tarsus, toes);
+    const s = (tau - tPush) / H.push;
+    const hip: Pt = [lerp(ant.hip[0], hip1[0], pushX(s)), lerp(ant.hip[1], hip1[1], pushY(s))], pitch = lerp(-27, -14, smooth(s));
+    const [hind, farHind] = offToes(hip, pitch, s);
     const lift = smooth((s - .2) / .8), up = [26, 40, -40];
     const fore = s < .2 ? foreTo(toBody(hip, pitch, SHOULDER), CROUCH.hand) : ant.fore.map((v, i) => lerpAngle(v, up[i], lift));
     const farFore = ant.farFore.map((v, i) => lerpAngle(v, up[i] - 6, lift));
@@ -139,45 +149,43 @@ function frogHopPose(tau: number, dist: number): FrogPose {
   if (tau < tLand) {
     const q = (tau - tFly) / H.flight, t = tau - tFly;
     const hip: Pt = [flightX(q), hip1[1] + vy * t + .5 * g * t * t], pitch = lerp(-14, landPitch, smooth(q));
-    // Legs trail in line with the body, drooping less as the flight goes on; feet spread.
-    const back = 90 + pitch, droop = lerp(-(back - LAUNCH), -4, smooth(q * 1.4));
-    const leg = back + droop, hind = [leg, leg + 2, leg + 4, leg + 8], farHind = [leg - 3, leg, leg + 3, leg + 6];
+    const off = offToes(hip1, -14, 1), k0 = smooth(q * 1.4), back = 86 + pitch;
+    const [hind, farHind] = off.map((pose, i) => { const to = trail(back, i === 1); return pose.map((v, j) => lerpAngle(v, to[j], k0)); });
     const reachUp = [26, 40, -40], reachDown = [-28, -26, -78], k = smooth((q - .15) / .7);
     const fore = reachUp.map((v, i) => lerpAngle(v, reachDown[i], k)), farFore = reachUp.map((v, i) => lerpAngle(v - 6, reachDown[i] + 4, k));
     return { hip, pitch, hind, farHind, fore, farFore };
   }
   const end = crouchPose(dist), LANDED = { y: -19, pitch: 8 };
-  // Fold pose: a compact Z close to the hips (thigh back, shank folded forward over it, foot tucked back down), so
-  // the legs never stand up over the back.
-  const tuck: number[] = [100, 250, 70, 85];
+  // The legs fold through the tuck, a compact Z close to the hips (thigh back, shank folded forward over it, foot tucked
+  // back down), so they never stand up over the back.
   if (tau < tFold) {
     const s = (tau - tLand) / H.land;
     // The forelegs fold to take the landing with the shoulders still clear of the ground, so the elbows never go under it.
     const hip: Pt = [lerp(hipL[0], dist - 1.2, 1 - (1 - s) ** 2), lerp(hipL[1], LANDED.y, 1 - (1 - s) ** 2)], pitch = lerp(landPitch, LANDED.pitch, s);
-    const leg = 90 + pitch + lerp(-4, 2, s), hind = [leg, leg + 2, leg + 4, leg + 8], farHind = [leg - 3, leg, leg + 3, leg + 6];
-    return { hip, pitch, hind, farHind, fore: foreTo(toBody(hip, pitch, SHOULDER), handL), farFore: foreTo(toBody(hip, pitch, FAR_SHOULDER), [handL[0] + 4, handL[1] - .4]) };
+    const leg = 90 + pitch + lerp(-4, 2, s);
+    return { hip, pitch, hind: trail(leg, false), farHind: trail(leg, true), fore: foreTo(toBody(hip, pitch, SHOULDER), handL), farFore: foreTo(toBody(hip, pitch, FAR_SHOULDER), [handL[0] + 4, handL[1] - .4]) };
   }
   if (tau < tSettle) {
     const s = (tau - tFold) / H.fold, e = smooth(s);
     const hip: Pt = [lerp(dist - 1.2, end.hip[0], e), lerp(LANDED.y, end.hip[1] + .8, e)], pitch = lerp(LANDED.pitch, CROUCH.pitch - 3, e);
-    const ext = 90 + LANDED.pitch + 2, from = [ext, ext + 2, ext + 4, ext + 8];
+    const ext = 90 + LANDED.pitch + 2;
     const crouchHere = crouchPose(dist, hip[1] - end.hip[1], pitch);
     // First the legs fold into the tuck; then the feet come forward beside the body (IK on a forward arc that stays
     // above the ground) while each foot flips forward to lie flat, instead of the thighs swinging down through the floor.
-    const fold = (hipW: Pt, to: number[], spread: number) => {
-      if (s < .4) return from.map((v, i) => lerpAngle(v, tuck[i], smooth(s / .4)) - spread);
+    const fold = (hipW: Pt, to: number[], far: boolean) => {
+      if (s < .4) return trail(ext, far).map((v, i) => lerpAngle(v, tuck[i], smooth(s / .4)));
       const q = smooth((s - .4) / .6), ankleAt = (pose: number[], hp: Pt): Pt => {
         const a = dirOf(pose[0]), b = dirOf(pose[1]);
         return [hp[0] + FROG.thigh * a[0] + FROG.shank * b[0], hp[1] + FROG.thigh * a[1] + FROG.shank * b[1]];
       };
       const a0 = ankleAt(tuck, hipW), a1 = ankleAt(to, hipW);
-      const ankle: Pt = [lerp(a0[0], a1[0], q) + Math.sin(Math.PI * q) * 14, Math.min(-1.8, lerp(a0[1], a1[1], q) - Math.sin(Math.PI * q) * 3)];
+      const ankle: Pt = [lerp(a0[0], a1[0], q) + Math.sin(Math.PI * q) * 14, Math.min(CROUCH.ankle[1], lerp(a0[1], a1[1], q) - Math.sin(Math.PI * q) * 3)];
       const [thigh, shank] = ik2(hipW[0], hipW[1], ankle[0], ankle[1], FROG.thigh, FROG.shank, 1);
       // The foot swings round the outside of the body: back, toward the camera (foreshortened), then forward flat.
       return q < .5 ? [thigh, shank, lerpAngle(tuck[2], 95, q * 2), lerpAngle(tuck[3], 100, q * 2)] : [thigh, shank, to[2], to[3]];
     };
     const footScale = s < .4 ? 1 : Math.max(.14, Math.abs(Math.cos(Math.PI * smooth((s - .4) / .6))));
-    return { hip, pitch, foot: footScale, hind: fold(hip, crouchHere.hind, 0), farHind: fold(toBody(hip, pitch, FAR_HIP), crouchHere.farHind, s < .4 ? 3 * (1 - s) : 0),
+    return { hip, pitch, foot: footScale, hind: fold(hip, crouchHere.hind, false), farHind: fold(toBody(hip, pitch, FAR_HIP), crouchHere.farHind, true),
       fore: foreTo(toBody(hip, pitch, SHOULDER), handL), farFore: foreTo(toBody(hip, pitch, FAR_SHOULDER), [handL[0] + 4, handL[1] - .4]) };
   }
   const s = smooth((tau - tSettle) / H.settle);
@@ -254,10 +262,12 @@ export function frogRig(o: RigPresetOptions = {}): RigSpec {
     rootKeys.push({ frame, x: rootX });
   };
   if (m === "hop") {
-    const dir = to >= from ? 1 : -1, hops = Math.max(1, Math.floor((end - start) / FROG_CYCLE));
-    const dist = from === to ? FROG_HOP_LENGTH : Math.min(FROG_HOP_LENGTH * 1.6, Math.abs(to - from) / u / hops);
+    // A short way takes fewer hops, spread over the time with a rest after each, not more hops than a frog would make.
+    const dir = to === from ? o.facing ?? 1 : to > from ? 1 : -1, most = Math.max(1, Math.floor((end - start) / FROG_CYCLE)), way = Math.abs(to - from) / u;
+    const hops = from === to ? most : Math.max(1, Math.min(most, Math.floor(way / FROG_MIN_HOP))), cycle = hops < most ? (end - start) / hops : FROG_CYCLE;
+    const dist = from === to ? FROG_HOP_LENGTH : Math.min(FROG_HOP_LENGTH * 1.6, way / hops);
     for (let f = start; f <= end; f++) {
-      const k = Math.min(hops - 1, Math.floor((f - start) / FROG_CYCLE)), tau = f - start - k * FROG_CYCLE;
+      const k = Math.min(hops - 1, Math.floor((f - start) / cycle)), tau = f - start - Math.round(k * cycle);
       const p = k === hops - 1 && tau > FROG_CYCLE ? crouchPose(dist) : frogHopPose(Math.min(tau, FROG_CYCLE), dist);
       // The root rides with the hip so a tracking camera follows the leap; planted feet are held in hop space.
       const hopX = p.hip[0];

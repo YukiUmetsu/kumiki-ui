@@ -99,9 +99,11 @@ function rootSample(keys: readonly RigRootKey[], frame: number): RootSample {
   return { x: keys[keys.length - 1].x, y, rotate: rot, scale: sc, yaw };
 }
 const hasDepth = (keys: readonly RigRootKey[]) => keys.some(k => k.scale !== undefined || k.yaw !== undefined);
-/** Facing at a frame: explicit `facing` keys hold from their frame on; otherwise the figure faces its travel. */
+/** Facing at a frame: explicit `facing` keys hold from their frame on; otherwise the figure faces its travel, and
+ * before it sets off the way it will go. */
 function facingAt(keys: readonly RigRootKey[], frame: number): 1 | -1 {
-  let facing: 1 | -1 = 1, explicit: 1 | -1 | undefined;
+  const off = keys.findIndex((k, i) => i > 0 && k.x !== keys[i - 1].x);
+  let facing: 1 | -1 = off > 0 && keys[off].x < keys[off - 1].x ? -1 : 1, explicit: 1 | -1 | undefined;
   for (let i = 0; i < keys.length; i++) {
     const k = keys[i];
     if (k.facing && (k.frame <= frame || i === 0)) explicit = k.facing;
@@ -169,14 +171,14 @@ export function wingStroke(u: number, downstroke = .4): number {
   return t < downstroke ? Math.cos(Math.PI * t / downstroke) : -Math.cos(Math.PI * (t - downstroke) / (1 - downstroke));
 }
 
-function keyedPoint(keys: readonly { frame: number; x: number; y: number; ease?: EasingSpec }[], frame: number): [number, number] {
-  if (frame <= keys[0].frame) return [keys[0].x, keys[0].y];
+function keyedPoint(keys: readonly { frame: number; x: number; y: number; ease?: EasingSpec; out?: number }[], frame: number): [number, number, number] {
+  if (frame <= keys[0].frame) return [keys[0].x, keys[0].y, keys[0].out ?? 0];
   for (let i = 1; i < keys.length; i++) if (frame <= keys[i].frame) {
     const a = keys[i - 1], b = keys[i], t = evaluateEasing(b.ease ?? "ease-in-out-cubic", (frame - a.frame) / (b.frame - a.frame));
-    return [a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t];
+    return [a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, (a.out ?? 0) + ((b.out ?? 0) - (a.out ?? 0)) * t];
   }
   const z = keys[keys.length - 1];
-  return [z.x, z.y];
+  return [z.x, z.y, z.out ?? 0];
 }
 
 export interface RigBoneFrame { id: string; local: AffineMatrix; world: AffineMatrix; opacity: number; length: number }
@@ -203,6 +205,8 @@ export interface RigEvaluateOptions {
   stepRoot?: boolean;
   /** Settled pose: drivers at rest, root at its last key. */
   reducedMotion?: boolean;
+  /** False: hanging chains answer at once, without the swing of `drape.momentum`. */
+  momentum?: boolean;
 }
 
 const POSE_DRIVERS_IN_REDUCED = new Set(["clock", "reach", "turn", "flash", "serpent", "drift", "drape"]);
@@ -481,14 +485,27 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
     if (d.type !== "reach") continue;
     const w = envelope(d, f);
     if (w <= 0) continue;
-    let target: [number, number];
+    let target: [number, number], out = 0;
     if (d.follow) {
       const [fx, fy] = apply(world.get(d.follow)!, 0, 0);
       target = [fx + (d.offset?.[0] ?? 0), fy + (d.offset?.[1] ?? 0)];
-      if (d.target?.length) { const [ox, oy] = keyedPoint(d.target, f); target = [target[0] + ox, target[1] + oy]; }
-    } else target = keyedPoint(d.target!, f);
-    solveTwoBone(d.upper, d.lower, d.bend, target, byId, pose, world, w);
+      if (d.target?.length) { const [ox, oy, o] = keyedPoint(d.target, f); target = [target[0] + ox, target[1] + oy]; out = o; }
+    } else { const [tx, ty, o] = keyedPoint(d.target!, f); target = [tx, ty]; out = o; }
+    solveTwoBone(d.upper, d.lower, d.bend, target, byId, pose, world, w, out);
     solve();
+    if (d.floor !== undefined) {
+      const at = world.get(d.lower)!, s = world.get(d.upper)!, tip = apply(at, 0, byId.get(d.lower)!.length!), low = (spec.ground ?? 0) - d.floor;
+      if (Math.max(at.f, tip[1]) > low) {
+        // Blending two poses, or a bend that points down, would put the joint or the tip under the ground.
+        const bend = (at.e - s.e) * (tip[1] - s.f) - (at.f - s.f) * (tip[0] - s.e) < 0 ? -1 : 1;
+        solveTwoBone(d.upper, d.lower, bend, [tip[0], Math.min(tip[1], low)], byId, pose, world, 1, 0, low);
+        solve();
+      }
+    }
+    if (d.floor !== undefined && d.tip && d.tipAngle === undefined) {
+      const m = world.get(d.tip)!, L = byId.get(d.tip)!.length ?? 0, turn = L > 0 ? layOnFloor(Math.atan2(m.d, m.c), ((spec.ground ?? 0) - d.floor - m.f) / L) : 0;
+      if (turn) { pose.get(d.tip)!.rotate += turn * 180 / Math.PI; solve(); }
+    }
     if (d.tip && d.tipAngle !== undefined) {
       const lowerAngle = angleOf(world.get(d.lower)!), q = pose.get(d.tip)!;
       q.rotate += angleDelta(q.rotate, d.tipAngle - lowerAngle) * w;
@@ -536,7 +553,18 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
   for (const d of drivers) {
     if (d.type !== "drape") continue;
     const w = envelope(d, f);
-    if (w > 0) drape(d, w, spec.ground ?? 0, byId, pose, world, rest ??= restWorld(spec), solve);
+    if (w <= 0) continue;
+    drape(d, w, spec.ground ?? 0, byId, pose, world, rest ??= restWorld(spec), solve);
+    if (d.momentum && !reduced && options.momentum !== false) {
+      // Where each lock hung over the last frames, weighted as a damped pendulum remembers them. Turning over passes through zero
+      // length: the lock swings toward the viewer instead of flipping.
+      const swung = d.bones.map((): [number, number] => [0, 0]);
+      swingWeights(d.momentum).forEach((g, k) => {
+        const locks = k ? stillLocks(spec, f - k, d.bones) : d.bones.map(id => lockVector(world.get(id)!, byId.get(id)!.length!));
+        locks.forEach((v, i) => { swung[i][0] += v[0] * g; swung[i][1] += v[1] * g; });
+      });
+      drape(d, w, spec.ground ?? 0, byId, pose, world, rest, solve, swung);
+    }
   }
   for (const id of spec.shadows ?? []) contacts.push([apply(world.get(id)!, 0, 0)[0], spec.ground ?? 0]);
   for (const d of drivers) if (d.type === "wheel" && d.radius > 0) for (const id of d.bones) {
@@ -748,20 +776,52 @@ function legTarget(leg: RigLeg, cycle: number, stance: number, stride: number, l
   return { hip: hx, foot: [hx + x * w, ground - sole + (y - ground + sole) * w] as [number, number], swing: w > .5, swingT: s, stanceAngle: 0, swingAngle, contact: undefined };
 }
 
-/** Analytic two-bone IK in root space; blends the upper and lower bones' local rotations toward the solution by `w`. */
+/**
+ * How far (radians) a hand or foot turns at its joint so that its end does not pass the floor. `angle` is its direction
+ * (0 forward, π/2 straight down) and `room` the height of the joint above the floor in bone lengths. It starts to turn
+ * forward before it lands and lies flat when there is no room left; one that already points well back lies flat backward.
+ */
+function layOnFloor(angle: number, room: number): number {
+  if (angle <= 0 || room >= 1.6) return 0;
+  const flat = Math.asin(clamp(room, 0, 1));
+  if (angle > Math.PI * 5 / 6) return Math.max(0, Math.PI - flat - angle);
+  return Math.min(0, (room > 1 ? Math.PI / 2 * (1 + (room - 1) / .6) : flat) - angle);
+}
+
+/**
+ * Analytic two-bone IK in root space; blends the upper and lower bones' local rotations toward the solution by `w`.
+ * `out` (0..1) points the joint toward the viewer: both bones are drawn shorter, and at 1 the limb is straight. With `low`,
+ * a joint that would sit below that y points toward the viewer as far as it takes.
+ */
 function solveTwoBone(upperId: string, lowerId: string, bend: 1 | -1, target: [number, number], byId: Map<string, RigBone>,
-  pose: Map<string, Pose>, world: Map<string, AffineMatrix>, w: number) {
+  pose: Map<string, Pose>, world: Map<string, AffineMatrix>, w: number, out = 0, low?: number) {
   const upper = byId.get(upperId)!, lower = byId.get(lowerId)!;
   const parentM = upper.parent ? world.get(upper.parent)! : IDENT;
   const up = pose.get(upperId)!, lo = pose.get(lowerId)!;
   // A limb pointing into depth is drawn shorter (scaleY on its bone): solve with the lengths as drawn.
-  const a = upper.length! * Math.abs(up.sy), b = lower.length! * Math.abs(lo.sy) * (lower.inheritScale === false ? 1 : Math.abs(up.sy));
+  let a = upper.length! * Math.abs(up.sy), b = lower.length! * Math.abs(lo.sy) * (lower.inheritScale === false ? 1 : Math.abs(up.sy));
   const [hx, hy] = apply(parentM, up.x, up.y);
-  const dx = target[0] - hx, dy = target[1] - hy;
-  const dist = clamp(Math.hypot(dx, dy), Math.abs(a - b) + .001, a + b - .001);
-  const base = Math.atan2(dy, dx);
-  const inner = Math.acos(clamp((a * a + dist * dist - b * b) / (2 * a * dist), -1, 1));
-  const thigh = base - bend * inner;
+  const dx = target[0] - hx, dy = target[1] - hy, base = Math.atan2(dy, dx);
+  const upperAngle = (k: number) => {
+    const dist = clamp(Math.hypot(dx, dy), Math.abs(a - b) * k + .001, (a + b) * k - .001);
+    return base - bend * Math.acos(clamp((a * a * k * k + dist * dist - b * b * k * k) / (2 * a * k * dist), -1, 1));
+  };
+  // Shortest is the straight limb, whose joint lies between the shoulder and the hand.
+  const straight = Math.min(1, Math.hypot(dx, dy) / (a + b));
+  let short = 1 - out * w * (1 - straight);
+  if (low !== undefined) {
+    const limit = Math.max(low, hy), jointY = (k: number) => hy + a * k * Math.sin(upperAngle(k));
+    if (jointY(short) > limit) {
+      let from = straight, to = short;
+      for (let i = 0; i < 24; i++) { const mid = (from + to) / 2; if (jointY(mid) > limit) to = mid; else from = mid; }
+      short = from;
+    }
+  }
+  if (short < 1) {
+    up.sy *= short; a *= short; b *= short;
+    if (lower.inheritScale === false) lo.sy *= short;
+  }
+  const thigh = upperAngle(1);
   const kx = hx + a * Math.cos(thigh), ky = hy + a * Math.sin(thigh);
   const shin = Math.atan2(target[1] - ky, target[0] - kx);
   const thighDeg = thigh * DEG - 90, shinDeg = shin * DEG - 90;
@@ -773,18 +833,46 @@ function solveTwoBone(upperId: string, lowerId: string, bend: 1 | -1, target: [n
 
 // ---- Drape -----------------------------------------------------------------------------------------------------------------------
 
+/** Where a lock points and how long it is drawn: joint to tip. */
+const lockVector = (m: AffineMatrix, length: number): [number, number] => [m.c * length, m.d * length];
+const stillCache = new WeakMap<RigSpec, Map<number, RigFrame>>();
+/** The locks of a chain in root space as they hang at frame `f` without momentum. */
+function stillLocks(spec: RigSpec, f: number, bones: readonly string[]): [number, number][] {
+  let frames = stillCache.get(spec);
+  if (!frames) stillCache.set(spec, frames = new Map());
+  let fr = frames.get(f);
+  if (!fr) {
+    fr = evaluateRig(spec, f, { momentum: false });
+    if (frames.size >= 64) frames.delete(frames.keys().next().value!);
+    frames.set(f, fr);
+  }
+  const back = invert({ ...fr.toScene, e: 0, f: 0 });
+  return bones.map(id => { const b = fr.bones.get(id)!, [x, y] = lockVector(b.world, b.length); return apply(back, x, y); });
+}
+const swingCache = new Map<number, number[]>();
+/** The answer of a half-damped pendulum, sampled each frame and summing to 1: it overshoots once, by about a sixth, and settles. */
+function swingWeights(period: number): number[] {
+  let weights = swingCache.get(period);
+  if (!weights) {
+    const w0 = 2 * Math.PI / period, wd = w0 * Math.sqrt(.75);
+    const raw = Array.from({ length: Math.ceil(period * 1.1) }, (_, t) => Math.exp(-.5 * w0 * (t + .5)) * Math.sin(wd * (t + .5))), sum = raw.reduce((a, b) => a + b, 0);
+    swingCache.set(period, weights = raw.map(v => v / sum));
+  }
+  return weights;
+}
+
 /**
  * Hang a chain under gravity, settle it on the colliders and the floor (`rig-strand.ts`), and turn the bones to follow.
- * Rotation never changes a bone's length.
+ * Rotation never changes a bone's length. `swung` (lock vectors) replaces the hanging pose when the chain has momentum.
  */
 function drape(d: Extract<RigDriver, { type: "drape" }>, w: number, ground: number, byId: Map<string, RigBone>, pose: Map<string, Pose>,
-  world: Map<string, AffineMatrix>, rest: Map<string, AffineMatrix>, solve: () => void) {
+  world: Map<string, AffineMatrix>, rest: Map<string, AffineMatrix>, solve: () => void, swung?: readonly [number, number][]) {
   const r = d.radius ?? 0, n = d.bones.length;
   // A local turn shows mirrored in the world under a mirrored parent.
   const parentSign = (id: string) => { const p = byId.get(id)!.parent, m = p ? world.get(p)! : IDENT; return Math.sign(m.a * m.d - m.b * m.c) || 1; };
   const tilted = (bone: string) => angleDelta(angleOf(rest.get(bone)!), angleOf(world.get(bone)!));
   const parent = byId.get(d.bones[0])!.parent;
-  if (d.hang && parent) {
+  if (d.hang && parent && !swung) {
     // Undo the parent's tilt from rest, more of it down the chain, so the root follows the head and the tip hangs straight.
     // Each bone blends two directions (with the parent, and hanging), not two angles: an angle flips sign upside down.
     const tilt = tilted(parent) / DEG, undone = (k: number) => Math.atan2(k * Math.sin(tilt), 1 - k + k * Math.cos(tilt)) * DEG;
@@ -802,9 +890,13 @@ function drape(d: Extract<RigDriver, { type: "drape" }>, w: number, ground: numb
   }).filter(c => c.r > 0);
   const tipOf = (id: string) => apply(world.get(id)!, 0, byId.get(id)!.length!);
   const hang = [apply(world.get(d.bones[0])!, 0, 0), ...d.bones.map(tipOf)];
+  if (swung) swung.forEach((v, i) => {
+    const k = Math.min(1, byId.get(d.bones[i])!.length! / (Math.hypot(v[0], v[1]) || 1)); // the overshoot turns a lock, it does not stretch it
+    hang[i + 1] = [hang[i][0] + v[0] * k, hang[i][1] + v[1] * k];
+  });
   const pm = parent ? world.get(parent)! : IDENT;
   const floorSide = d.floorSide && (pm.a * d.floorSide[0] + pm.c * d.floorSide[1]) / (Math.hypot(pm.a * d.floorSide[0] + pm.c * d.floorSide[1], pm.b * d.floorSide[0] + pm.d * d.floorSide[1]) || 1);
-  const settled = settleStrand(hang, capsules, { floor: d.floor ? ground - r : undefined, floorSide });
+  const settled = settleStrand(hang, capsules, { floor: d.floor ? ground - (d.floor === true ? 0 : d.floor) - r : undefined, floorSide, floorFree: !!swung });
   const heading = (a: readonly [number, number], b: readonly [number, number]) => Math.atan2(-(b[0] - a[0]), b[1] - a[1]) * DEG;
   d.bones.forEach((id, i) => {
     const bone = byId.get(id)!, want = heading(settled[i], settled[i + 1]), from = pose.get(id)!.rotate, sign = parentSign(id);

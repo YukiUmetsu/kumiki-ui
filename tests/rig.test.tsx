@@ -233,6 +233,21 @@ describe("RIG1 motion", () => {
       const spec = hair("bow"), parts = (f: number) => JSON.stringify(evaluateRig(spec, f).parts.map(p => p.matrix)), first = parts(100);
       parts(40);
       expect(parts(100)).toBe(first);
+      // Momentum looks back over earlier poses: a fresh rig at one frame still gives what a played one gives.
+      const roll = hair("roll"), at = (s: RigSpec, f: number) => JSON.stringify(evaluateRig(s, f).parts.map(p => p.matrix));
+      for (let f = 30; f <= 60; f++) at(roll, f);
+      expect(at(hair("roll"), 44)).toBe(at(roll, 44));
+      expect(at({ ...roll, drivers: roll.drivers!.map(d => (d.type === "drape" ? { ...d, momentum: undefined } : d)) }, 44)).not.toBe(at(roll, 44));
+    });
+
+    it("puts elbows and hands on the floor, not through it", () => {
+      for (const motion of lying) {
+        const spec = hair(motion), top = motion === "lie-down" || motion === "roll" ? 700 : 700 - 2.4 * 3.6;
+        for (let f = 0; f <= 180; f += 2) {
+          const fr = evaluateRig(spec, f);
+          for (const id of ["fore-f", "fore-b", "hand-f", "hand-b"]) { const b = fr.bones.get(id)!, m = b.world; expect(Math.max(m.f, m.d * b.length! + m.f), motion + " " + id + "@" + f).toBeLessThan(top); }
+        }
+      }
     });
   });
 });
