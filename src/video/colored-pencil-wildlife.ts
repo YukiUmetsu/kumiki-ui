@@ -95,9 +95,15 @@ export function pencilWildlifeScene({
     const added=part.id==="near-wing"?wingTracts:
       part.id==="head"?crownTracts:[];
     const details=[...(part.region.details??[]),...added];
+    // Study mode thins the static graphite embellishments only. Fibre traces
+    // that a detail track animates are anatomy, and the rig validator needs
+    // every track to find its trace, so those are always kept.
+    const tracked=new Set(part.detailTracks?.map(track=>track.id));
+    let untracked=0;
     return {...part,region:{
-      ...part.region,details:detailMode==="full"?
-        details:details.filter((_,i)=>i%2===0),
+      ...part.region,details:detailMode==="full"?details:
+        details.filter(trace=>(trace.id!==undefined&&tracked.has(trace.id))||
+          untracked++%2===0),
     }};
   })}];
   const width=portrait?540:960,height=portrait?960:540;
