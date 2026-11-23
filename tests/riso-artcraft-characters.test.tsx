@@ -4,6 +4,7 @@ import {selectRisoSourceContour,risoContourSignedArea,risoPointInContour} from "
 import {evaluateRisoCharacterMesh,inspectRisoCharacterMesh} from "../registry/video/riso-proportion-mesh";
 import {COURIER,PAPER_BIRD} from "../src/video/riso-character-demo";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "../src/video/riso-character-mesh-sheets";
+import {riso54WebReserveParts} from "../src/video/riso54-interdigital-paper-reserve";
 
 /** ArtCraft structural checks are deliberately independent of its visual-quality review. */
 const frameParts=(actor:typeof COURIER,frame:number)=>
@@ -18,10 +19,15 @@ describe("RISO9 reference-led hand-authored character detail",()=>{
       expect(inspectRisoCharacterMesh(actor,sheet)).toEqual([]);
       const ink=new Set(actor.parts.map(p=>p.id));
       const mapped=new Set(sheet.regions.flatMap(r=>r.parts));
-      expect([...ink].filter(p=>!mapped.has(p))).toEqual([]);
+      // Only the RISO54 zero-area paper-white web reserves stay outside the positive mesh.
+      expect([...ink].filter(p=>!mapped.has(p))).toEqual(
+        actor.id==="courier"?riso54WebReserveParts("courier").map(p=>p.id):[]);
       for(const part of actor.parts){
         expect(part.opacity??1,part.id).toBe(1);
-        expect(selectRisoSourceContour(part.d).length,part.id).toBeGreaterThan(2);
+        // A web reserve rests as a point (before and after the grip); its contact keys are the drawable contour.
+        const keys=mapped.has(part.id)?[part.d]:(part.pathKeys??[]).map(k=>k.d);
+        const sizes=keys.map(d=>{try{return selectRisoSourceContour(d).length;}catch{return 0;}});
+        expect(Math.max(0,...sizes),part.id).toBeGreaterThan(2);
       }
     });
   }

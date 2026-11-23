@@ -1,28 +1,41 @@
 import type { RisoCharacterMeshSheet, RisoMeshRegion, RisoMeshCategory } from "../../registry/video/riso-proportion-mesh";
+import type { RisoCharacterPart } from "../../registry/video/riso-character";
+import { COURIER } from "./riso-character-demo";
+import { isRiso54WebReserve } from "./riso54-interdigital-paper-reserve";
 
 /** RISO7: only source-linked regions; no invented rectangular proportion cages. */
 function source(id:string,label:string,category:RisoMeshCategory,joint:string,
                 parts:readonly string[],tipJoint?:string):RisoMeshRegion {
   return {id,label,category,joint,parts,tipJoint};
 }
-export const RISO_COURIER_SHEET: RisoCharacterMeshSheet={
-  id:"courier",label:"Paper Courier",view:"authored-2d",headRegion:"head-shape",
-  missingViews:["true-side","back","three-quarter","top"],
-  poses:[{frame:0,label:"Initial pose"},{frame:46,label:"Swing / knee bend"},{frame:198,label:"Final smile"}],
-  measurements:[
-    {id:"interocular",label:"Interocular spacing",from:"eye-left",to:"eye-right"},
-    {id:"brow-eye-left",label:"Left eyebrow to eye",from:"brow-left",to:"eye-left"},
-    {id:"brow-eye-right",label:"Right eyebrow to eye",from:"brow-right",to:"eye-right"},
-    {id:"eye-to-nose",label:"Eye to nose bridge",from:"eye-left",to:"nose"},
-    {id:"nose-mouth",label:"Nose to mouth",from:"nose",to:"mouth"},
-    {id:"hair-face",label:"Hairline to face",from:"hair-mass",to:"head-shape"},
-    {id:"shoulder-width",label:"Sleeve shoulder spacing",from:"sleeve-left",to:"sleeve-right"},
-    {id:"knee-span",label:"Stride stance knee spread",from:"thigh-left",to:"thigh-right"},
-    {id:"hem-bag",label:"Coat to satchel spacing",from:"coat-shell",to:"satchel"},
-    {id:"right-grip-span",label:"Opposed thumb to index",from:"glove-right-thumb",to:"glove-right-index"},
-    {id:"eye-mouth",label:"Eyelid fold to lip",from:"eye-upper-lid-folds",to:"mouth"},
-  ],
-  regions:[
+/** Mesh category of a human part from its joint and name (shared by the Courier and Paper Artist sheets). */
+export function risoHumanMeshCategory(part:RisoCharacterPart):RisoMeshCategory{
+  if(part.id.startsWith("hair"))return "hair";
+  if(part.joint==="head")return "face";
+  if(part.id.includes("boot"))return "foot";
+  if(part.id.includes("thigh")||part.id.includes("shin"))return "leg";
+  if(part.joint.endsWith("hand")||part.joint.endsWith("-palm-surface")||
+    ["thumb","index","middle","ring","pinky"].some(d=>part.joint.endsWith("-"+d))||
+    /^(?:left|right)-(?:(?:index|middle|ring|pinky)-(?:pip|dip)|thumb-ip)$/.test(part.joint))
+    return "hand";
+  if(part.joint.includes("arm")||part.joint.includes("elbow"))return "arm";
+  if(part.id==="scarf"||part.id.includes("pocket"))return "accessory";
+  return "torso";
+}
+/**
+ * One source region per part, named after the part. RISO54 web reserves are skipped: they are zero-area negative
+ * masks until a hand grips, not positive meshes. Used for whole sheets (Paper Artist) and to complete hand-labelled
+ * sheets, so a part added to a character later can never fall out of its mesh.
+ */
+export function risoPartMeshRegions(parts:readonly RisoCharacterPart[],
+                                    labelled:readonly RisoMeshRegion[]=[]):RisoMeshRegion[]{
+  const mapped=new Set(labelled.flatMap(r=>r.parts));
+  return parts.filter(part=>!mapped.has(part.id)&&!isRiso54WebReserve(part.id)).map(part=>({
+    id:part.id,label:part.id.replace(/-/g," "),category:risoHumanMeshCategory(part),
+    joint:part.joint,parts:[part.id],...(part.skin?{tipJoint:part.skin.tipJoint}:{}),
+  }));
+}
+const COURIER_LABELLED_REGIONS:readonly RisoMeshRegion[]=[
     source("head-shape","Head / face silhouette","face","head",["face","face-outline"]),
     source("ear-left","Outer ear and inner helix","face","head",["ear-left"]),
     source("ear-helix-fold","Curved inner helix and antihelix","face","head",["ear-helix-fold"]),
@@ -159,7 +172,27 @@ export const RISO_COURIER_SHEET: RisoCharacterMeshSheet={
     source("satchel-flap-stitch","Bag flap running stitch","accessory","satchel",["satchel-flap-stitch"]),
     source("satchel-buckle","Satchel buckle","accessory","satchel",["satchel-buckle"]),
     source("satchel-strap","Cross-body strap","accessory","body",["satchel-strap"]),
+];
+export const RISO_COURIER_SHEET: RisoCharacterMeshSheet={
+  id:"courier",label:"Paper Courier",view:"authored-2d",headRegion:"head-shape",
+  missingViews:["true-side","back","three-quarter","top"],
+  poses:[{frame:0,label:"Initial pose"},{frame:46,label:"Swing / knee bend"},{frame:198,label:"Final smile"}],
+  measurements:[
+    {id:"interocular",label:"Interocular spacing",from:"eye-left",to:"eye-right"},
+    {id:"brow-eye-left",label:"Left eyebrow to eye",from:"brow-left",to:"eye-left"},
+    {id:"brow-eye-right",label:"Right eyebrow to eye",from:"brow-right",to:"eye-right"},
+    {id:"eye-to-nose",label:"Eye to nose bridge",from:"eye-left",to:"nose"},
+    {id:"nose-mouth",label:"Nose to mouth",from:"nose",to:"mouth"},
+    {id:"hair-face",label:"Hairline to face",from:"hair-mass",to:"head-shape"},
+    {id:"shoulder-width",label:"Sleeve shoulder spacing",from:"sleeve-left",to:"sleeve-right"},
+    {id:"knee-span",label:"Stride stance knee spread",from:"thigh-left",to:"thigh-right"},
+    {id:"hem-bag",label:"Coat to satchel spacing",from:"coat-shell",to:"satchel"},
+    {id:"right-grip-span",label:"Opposed thumb to index",from:"glove-right-thumb",to:"glove-right-index"},
+    {id:"eye-mouth",label:"Eyelid fold to lip",from:"eye-upper-lid-folds",to:"mouth"},
   ],
+  // Hand-labelled RISO7 regions, then one region per part added later (RISO29 neck, RISO30–37 hand engraving,
+  // RISO33 wrist clearance), which had been left out of the mesh.
+  regions:[...COURIER_LABELLED_REGIONS,...risoPartMeshRegions(COURIER.parts,COURIER_LABELLED_REGIONS)],
 };
 export const RISO_PAPER_BIRD_SHEET: RisoCharacterMeshSheet={
   id:"paper-bird",label:"Paper Bird",view:"authored-2d",headRegion:"head",
