@@ -30,6 +30,7 @@ import beatHitsExample from "../../examples/film/beat-hits.film.json";
 import spinZoomExample from "../../examples/film/spin-zoom.film.json";
 import chatExample from "../../examples/film/chat-story.film.json";
 import subjectExample from "../../examples/film/subject.film.json";
+import freezeExample from "../../examples/film/freeze-intro.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -523,6 +524,24 @@ export const SubjectCutout: StoryObj = {
       word stands behind the bird; the outline grows from the solid part of the cutout's own alpha. The haze under its legs is the model
       reading the deck between them as part of the bird. Clip: <a href="https://commons.wikimedia.org/wiki/File:Peacock_walking_and_eating.webm" style={{ color: "#7cc6ff" }}>Peacock walking and eating</a> by
       Mx. Granger, CC0. The cutout uses VP9 with alpha, which Chromium and Firefox play; Safari shows the plain footage.
+    </FilmCompare>;
+  },
+};
+
+const freezeDoc = freezeExample as unknown as FilmDocument;
+/** A freeze-frame character intro on real footage: the peacock stops mid-step, the deck and grass drain to grey while the bird keeps its
+ * colour, its name and role slam in with a hit, then it walks on. Beside it, the same footage without the freeze. */
+export const FreezeFrameIntro: StoryObj = {
+  render: function FreezeFrameIntro() {
+    const variants = useMemo(() => ({
+      freeze: { label: "Freeze-frame intro", film: compileExample(freezeDoc) },
+      plain: { label: "No freeze (before)", film: compileExample({ ...freezeDoc, scenes: freezeDoc.scenes.map(scene => ({ ...scene, freeze: undefined, durationFrames: 120 })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 30} audio={soundUrls["../../assets/sound/lab/moves/freeze-intro.m4a"]}>
+      The picture holds one frame for 2.2 s: one short flash as it stops, the background greyed while the bird keeps its colour (its cutout,
+      from <code>npm run video:matte</code>, with a thin light edge), and the name card sliding in over a soft shade that keeps the white
+      name readable on the deck. Then colour returns and the footage plays on. Reduced motion keeps the grade and the card and drops the
+      flash and the slide.
     </FilmCompare>;
   },
 };

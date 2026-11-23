@@ -71,6 +71,8 @@ import { compileStutter, stutterExtra } from "./film-stutter";
 import { inspectLens } from "./film-lens";
 import { inspectSpinCut, SPIN_FRAMES, ZOOM_BLUR_FRAMES } from "./film-spin";
 import { inspectSubject } from "./film-subject";
+import { compileFreeze, freezeExtra, FREEZE_CARD_IN } from "./film-freeze";
+import type { FilmFreeze, FilmFreezeSpec } from "./film-freeze";
 import type { FilmFootageSubject } from "./film-subject";
 import type { FilmSpinCut } from "./film-spin";
 import type { FilmLens, FilmLensSpec } from "./film-lens";
@@ -178,6 +180,9 @@ interface FilmSceneBase extends Pick<SceneBase, "cueFrames" | "background" | "ac
   /** A few frames that play again and again on a beat, then the scene carries on. The scene runs `frames × repeats` longer than its
    * content. See `film-stutter.ts`. */
   stutter?: FilmStutter;
+  /** A freeze-frame intro: the picture stops on a moment, greys out around its subject, a name and role slam in, and it plays on. The
+   * scene runs `frames` longer than its content. See `film-freeze.ts`. */
+  freeze?: FilmFreezeSpec;
   /** A clear glass lens that moves over the scene and bends what is behind it. See `film-lens.ts`. */
   lens?: FilmLensSpec;
   /** A bed's loudness moves the scene: it grows a little, or glows, on each loud moment. See `film-drive.ts`. (Doc 34, A11.) */
@@ -444,6 +449,7 @@ export type CompiledFilmScene = { id: string; startFrame: number; endFrame: numb
   /** A glass lens over the scene. */ lens?: FilmLens;
   /** A bed's loudness moving the scene, one value per scene frame. */ drive?: FilmDrive;
   /** Impulses on beats or moments, at scene frames: one compiled pattern per authored one. */ hits?: readonly FilmHits[];
+  /** A freeze-frame intro's hold and card, in scene frames. */ freeze?: FilmFreeze;
   /** The scene's time map, when it has a speed ramp or plays a stretch: content frame for each output frame. */ speed?: CompiledSpeed;
   /** The length the content is timed in, when it differs from the map's last frame (a scene that plays a stretch). */ contentFrames?: number;
   /** Characters performing over the scene. */ cast?: readonly FilmCastMember[] } & (
@@ -687,6 +693,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     // A speed ramp plays `source` frames of content in the scene's own length: the content is compiled and checked at its own length.
     const scene = (authored?.speed ? { ...authored, durationFrames: authored.speed.source }
       : authored?.stutter ? { ...authored, durationFrames: authored.durationFrames - stutterExtra(authored.stutter) }
+      : authored?.freeze ? { ...authored, durationFrames: authored.durationFrames - freezeExtra(authored.freeze, doc.fps.num / doc.fps.den) }
       : authored?.rewind ? { ...authored, durationFrames: authored.durationFrames - (authored.rewind.frames ?? 0) } : authored) as FilmScene;
     if (seen.has(scene?.id)) report("error", "film-duplicate-scene", path + "/id", `Scene ID "${scene.id}" is used twice.`, "Give each scene its own ID.");
     seen.add(scene?.id);
@@ -698,6 +705,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       if (authored.speed) report("error", "film-play-speed", path + "/play", "A scene plays a stretch or ramps its speed, not both.");
     }
     if (authored.stutter && (authored.speed || authored.play)) report("error", "stutter-time-map", path + "/stutter", "A scene stutters, ramps its speed or plays a stretch: one time map at a time.");
+    if (authored.freeze && (authored.speed || authored.play || authored.stutter || authored.rewind)) report("error", "freeze-time-map", path + "/freeze", "A scene freezes, stutters, rewinds, ramps its speed or plays a stretch: one time map at a time.");
     if (authored.rewind) {
       const f = authored.rewind.frames;
       if (authored.speed || authored.play || authored.stutter) report("error", "rewind-time-map", path + "/rewind", "A scene rewinds, stutters, ramps its speed or plays a stretch: one time map at a time.");
@@ -888,6 +896,17 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       if (speed && output) {
         done.speed = speed;
         done.cues = done.cues.map(cue => ({ ...cue, frame: startFrame + output(local(cue.frame)) }));
+      }
+    }
+    // A freeze is a time map: the content up to its moment, that frame held, then the rest, later by the hold.
+    if (authored.freeze && !authored.speed && !authored.play && !authored.stutter && !authored.rewind && done?.id === authored.id) {
+      const local = (frame: number) => frame - startFrame;
+      const { speed, output, freeze, problems } = compileFreeze(authored.freeze, authored.durationFrames, doc.fps.num / doc.fps.den, id => { const cue = done.cues.find(item => item.id === id); return cue && local(cue.frame); });
+      for (const item of problems) report(item.severity, item.code, path + "/freeze" + item.path, item.message, item.hint);
+      if (speed && output && freeze) {
+        done.speed = speed;
+        done.freeze = freeze;
+        done.cues = [...done.cues.map(cue => ({ ...cue, frame: startFrame + output(local(cue.frame)) })), { id: "freeze", frame: startFrame + freeze.start, transient: true }, { id: "named", frame: startFrame + freeze.start + FREEZE_CARD_IN + 2 }];
       }
     }
     // A rewind is a time map: the content plays through, then runs back to its start, slow at first and then fast.
@@ -1228,7 +1247,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     if (!list.length || list.length > 4) { report("error", "hits-patterns", `/scenes/${index}/hits`, "A scene takes one to four hit patterns."); return; }
     list.forEach((item, i) => {
       const path = `/scenes/${index}/hits` + (Array.isArray(spec.hits) ? `/${i}` : "");
-      const { hits, problems } = compileHits(item, { path, durationFrames: length, contentFrames: scene.contentFrames ?? spec.speed?.source ?? (spec.stutter ? length - stutterExtra(spec.stutter) : length),
+      const { hits, problems } = compileHits(item, { path, durationFrames: length, contentFrames: scene.contentFrames ?? spec.speed?.source ?? (spec.stutter ? length - stutterExtra(spec.stutter) : spec.freeze ? length - freezeExtra(spec.freeze, rate) : length),
         fps: rate, filmStart: scene.startFrame, filmFrames: durationFrames, beds, levels: options.soundLevels, textHeavy: TEXT_KINDS.has(scene.kind),
         moment: id => { const cue = scene.cues.find(cue => cue.id === id); return cue && cue.frame - scene.startFrame; },
         output: content => scene.speed ? speedOutput(scene.speed, content) : content,
@@ -1244,6 +1263,15 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       hits.frames.forEach((frame, n) => accents.push(place(`hit/${scene.id}/${i}/${n}`, hits.sound!, scene.startFrame + frame, hits.gainDb ?? 0, "start")));
     });
     if (compiledHits.length === list.length) scene.hits = compiledHits;
+  });
+  // A freeze-frame intro's sound, as the picture stops.
+  compiled.forEach(scene => {
+    if (!scene.freeze?.sound) return;
+    const path = `/scenes/${doc.scenes.findIndex(item => item.id === scene.id)}/freeze/sound`;
+    if (!doc.audio?.accents) { report("error", "freeze-sound-no-kit", path, "A freeze's sound needs `audio.accents.kit`."); return; }
+    if (!options.accentKit) return;
+    if (!options.accentKit.sounds[scene.freeze.sound]) { report("error", "freeze-sound", path, `The accent kit has no "${scene.freeze.sound}" sound.`, "Name a kit sound, or a catalog sound as catalog:<id>."); return; }
+    accents.push(accentPlacer(fps, options.accentKit, doc.audio)(`freeze/${scene.id}`, scene.freeze.sound, scene.startFrame + scene.freeze.start, 0, "start"));
   });
   // A chat's messages: a sound as each lands, one for mine and one for the others'.
   compiled.forEach(scene => {

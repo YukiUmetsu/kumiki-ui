@@ -685,6 +685,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -915,6 +918,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -1149,6 +1155,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -1456,6 +1465,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -1789,6 +1801,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -2011,6 +2026,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -2174,6 +2192,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -2359,6 +2380,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -2547,6 +2571,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -2739,6 +2766,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -2929,6 +2959,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -3144,6 +3177,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -3328,6 +3364,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -3516,6 +3555,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -3702,6 +3744,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -3897,6 +3942,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -4080,6 +4128,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -4272,6 +4323,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -4458,6 +4512,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -4659,6 +4716,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -4863,6 +4923,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -5069,6 +5132,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -5270,6 +5336,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -5458,6 +5527,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -5649,6 +5721,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -5938,6 +6013,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -6297,6 +6375,9 @@
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
       },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
+      },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
       },
@@ -6460,6 +6541,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -6780,6 +6864,9 @@
       },
       "stutter": {
        "$ref": "#/$defs/FilmStutter"
+      },
+      "freeze": {
+       "$ref": "#/$defs/FilmFreezeSpec"
       },
       "lens": {
        "$ref": "#/$defs/FilmLensSpec"
@@ -8334,6 +8421,61 @@
    },
    "required": [
     "at"
+   ],
+   "additionalProperties": false
+  },
+  "FilmFreezeSpec": {
+   "type": "object",
+   "properties": {
+    "at": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "description": "The content frame to stop on, or one of the scene's moments."
+    },
+    "frames": {
+     "type": "number",
+     "description": "Frames the picture holds."
+    },
+    "name": {
+     "type": "string",
+     "description": "The name on the card, and a short line under it."
+    },
+    "role": {
+     "type": "string"
+    },
+    "side": {
+     "enum": [
+      "left",
+      "right"
+     ],
+     "description": "Where the card stands."
+    },
+    "grade": {
+     "enum": [
+      "none",
+      "mono",
+      "dim"
+     ],
+     "description": "How the held picture is graded."
+    },
+    "flash": {
+     "type": "boolean",
+     "description": "One short white flash as the picture stops."
+    },
+    "sound": {
+     "type": "string",
+     "description": "A sound as the picture stops: a kit sound, or `catalog:<id>`. Needs `audio.accents.kit`."
+    }
+   },
+   "required": [
+    "at",
+    "name"
    ],
    "additionalProperties": false
   },
@@ -10508,6 +10650,9 @@
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
     },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
+    },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
@@ -11324,6 +11469,9 @@
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
     },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
+    },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
@@ -11583,6 +11731,9 @@
     },
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
+    },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
@@ -13396,6 +13547,10 @@
     "spec": {
      "type": "object",
      "properties": {
+      "dim": {
+       "type": "number",
+       "description": "How far the rest of the subject dims, 0 to 0.7. The part stays at full light."
+      },
       "label": {
        "$ref": "#/$defs/TextBeat"
       },
@@ -13413,10 +13568,6 @@
       },
       "pushEnd": {
        "type": "number"
-      },
-      "dim": {
-       "type": "number",
-       "description": "How far the rest of the subject dims, 0 to 0.7. The part stays at full light."
       }
      },
      "required": [
@@ -15194,6 +15345,9 @@
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
     },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
+    },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
@@ -16409,6 +16563,9 @@
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
     },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
+    },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
@@ -17238,6 +17395,9 @@
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
     },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
+    },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
@@ -17624,6 +17784,9 @@
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
     },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
+    },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
@@ -17934,6 +18097,9 @@
     },
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
+    },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
@@ -18249,6 +18415,9 @@
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
     },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
+    },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
@@ -18563,6 +18732,9 @@
     },
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
+    },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
@@ -18924,6 +19096,9 @@
     },
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
+    },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
@@ -19332,6 +19507,9 @@
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
     },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
+    },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
@@ -19579,6 +19757,9 @@
     "stutter": {
      "$ref": "#/$defs/FilmStutter"
     },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
+    },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
     },
@@ -19742,6 +19923,9 @@
     },
     "lens": {
      "$ref": "#/$defs/FilmLensSpec"
+    },
+    "freeze": {
+     "$ref": "#/$defs/FilmFreezeSpec"
     },
     "durationFrames": {
      "type": "number"

@@ -8,6 +8,7 @@ import { createVideoElementAdapter } from "./frame-clip-adapters";
 import type { ClipFrameAdapter } from "./frame-clip-adapters";
 import type { FilmFootageContent } from "./film-document";
 import type { FilmFootageSubject } from "./film-subject";
+import { freezeGrade } from "./film-freeze-react";
 
 /** The outline around a cutout: its solid part (alpha over about 0.3, so a model's faint haze over shadows gets no line) grown by `px` (a
  * dilation), less the cutout, in `color`, and a soft glow of the same line. */
@@ -41,8 +42,10 @@ function cutoutPlacement(subject: FilmFootageSubject, content: FilmFootageConten
     startFrame: 0, durationFrames, timing: { trimIn: (content.from ?? 0) - (c.offset ?? 0) - delay, rate: content.rate ?? 1, end: "hold" as const } };
 }
 
-export function FootageScene({ content, frame, fps, durationFrames, width, height, safeInset, reducedMotion = false }: { content: FilmFootageContent; frame: number; fps: RationalFps;
-  durationFrames: number; width: number; height: number; safeInset?: { left: number; right: number; top: number; bottom: number }; reducedMotion?: boolean }) {
+export function FootageScene({ content, frame, fps, durationFrames, width, height, safeInset, reducedMotion = false, freeze }: { content: FilmFootageContent; frame: number; fps: RationalFps;
+  durationFrames: number; width: number; height: number; safeInset?: { left: number; right: number; top: number; bottom: number }; reducedMotion?: boolean;
+  /** A freeze-frame intro in its hold: the background is graded and the subject keeps its colour, with a thin light edge. */
+  freeze?: { grade: "mono" | "dim" | "none"; amount: number } }) {
   const v = content.video, subject = content.subject;
   SOURCES.set(v.id, v.src);
   if (subject) SOURCES.set(subject.cutout.id, subject.cutout.src);
@@ -80,10 +83,12 @@ export function FootageScene({ content, frame, fps, durationFrames, width, heigh
     <div style={push}>{clip("footage", placement, content.label)}</div>
     {words}
   </div>;
-  const background = subject.background, outline = subject.outline, outlineId = `km-subject-outline-${subject.cutout.id}`;
+  // In a freeze the subject takes a thin light edge, unless it has its own outline.
+  const background = subject.background, outline = subject.outline ?? (freeze && freeze.amount > 0 ? { color: "#ffffff", width: .0035, glow: .3 } : undefined), outlineId = `km-subject-outline-${subject.cutout.id}`;
+  const graded = freeze ? freezeGrade(freeze.grade, freeze.amount) : undefined;
   return <div role="img" aria-label={content.label} data-km-footage={v.id} data-km-subject={subject.cutout.id} style={{ ...layer, overflow: "hidden", background: background && "color" in background ? background.color : "#07090c" }}>
     {/* The footage, unless a colour replaces it; blurred when the background is the footage itself, a little larger so the blur's edge stays out. */}
-    {!(background && "color" in background) && <div style={push}>{clip("footage", placement, content.label, background && "blur" in background ? { filter: `blur(${background.blur * short}px)`, transform: "scale(1.06)" } : undefined)}</div>}
+    {!(background && "color" in background) && <div style={{ ...push, filter: graded }}>{clip("footage", placement, content.label, background && "blur" in background ? { filter: `blur(${background.blur * short}px)`, transform: "scale(1.06)" } : undefined)}</div>}
     {subject.behind && words}
     <div aria-hidden="true" style={push} data-km-illustration-region="art">
       {(subject.clones ?? []).map(clone => clip(`clone-${clone.delay}`, cutoutPlacement(subject, content, durationFrames, clone.delay), "", { opacity: clone.opacity ?? .85 }))}
