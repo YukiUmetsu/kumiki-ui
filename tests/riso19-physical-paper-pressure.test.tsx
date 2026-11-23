@@ -144,10 +144,12 @@ describe("RISO19 material-native pressure creases",()=>{
           expect(state.receiverContactPressure).toBe(0);
           expect(creases.receiver).toHaveLength(0);
         }
+        // RISO41: with the paper edge on the pads, pressure is the grip scaled by the measured
+        // thumb/index red pad contact, so an open pinch (pad pressure 0) prints no crease.
         if(sourceGap<.001)
-          expect(state.sourceContactPressure).toBeCloseTo(state.sourceGrip,6);
+          expect(state.sourceContactPressure).toBeCloseTo(state.sourceGrip*state.donorInk.pressure,6);
         if(receiverGap<.001)
-          expect(state.receiverContactPressure).toBeCloseTo(state.receiverGrip,6);
+          expect(state.receiverContactPressure).toBeCloseTo(state.receiverGrip*state.receiverInk.pressure,6);
       }
     }
   });
