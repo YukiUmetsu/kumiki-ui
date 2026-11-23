@@ -3919,7 +3919,8 @@
       "registryDependencies": [
         "motion-track",
         "crayon-storybook",
-        "animal-anatomy"
+        "animal-anatomy",
+        "riso-print"
       ],
       "files": [
         {
@@ -3986,6 +3987,11 @@
           "path": "registry/rig/rig-react.tsx",
           "type": "registry:ui",
           "target": "components/rig/rig-react.tsx"
+        },
+        {
+          "path": "registry/rig/rig-look-riso.tsx",
+          "type": "registry:ui",
+          "target": "components/rig/rig-look-riso.tsx"
         },
         {
           "path": "registry/video/collage/collage-geometry.ts",

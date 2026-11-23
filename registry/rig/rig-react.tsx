@@ -6,7 +6,7 @@
  *   flat      clean vector fills, far side shaded, soft contact shadows
  *   collage   scissor-cut paper parts with fibre, lift shadows and halftone on the far side
  *   crayon    wax fills and dry wax outlines on toothy paper, redrawn on held poses
- *   riso      two spot-ink plates in misregistration, screened tints, multiply overprint
+ *   riso      a real Risograph pass per frame on the RISO1 press (rig-look-riso.tsx): drum inks, paper-locked screens
  *   ink       wet ink washes with bleeding edges and a dry brush outline
  *   blueprint white technical line work on a blue grid, bones and joints shown
  */
@@ -18,6 +18,8 @@ import type { RigRole, RigShape, RigSpec } from "./rig-spec";
 import { flattenPath, paperEdge, toPathD } from "../video/collage/collage-geometry";
 import { boardTexture, fiberTexture } from "../video/collage/collage-texture";
 import { Paper, WaxLine, WaxRegion } from "../video/materials/crayon-react";
+import { RisoBackdrop, RisoFigure, RisoGroundTile, RisoLookDefs } from "./rig-look-riso";
+import type { RisoPaperFrame } from "./rig-look-riso";
 
 export type RigLook = "flat" | "collage" | "crayon" | "riso" | "ink" | "blueprint";
 /**
@@ -36,7 +38,7 @@ const lookOf = (look: RigLook) => RIG_LOOKS.find(l => l.id === look)!;
 /** Texture redraw step for a frame: on the motion cadence or the medium's boil, whichever is slower. */
 const boilStep = (look: RigLook, frame: number, cadence?: number) => Math.floor(frame / Math.max(1, cadence ?? 1, lookOf(look).boil));
 
-export interface RigLookContext { look: RigLook; uid: string; seed: number; step: number; showBones: boolean; reduced: boolean; inkPass?: "wash" | "line" }
+export interface RigLookContext { look: RigLook; uid: string; seed: number; step: number; showBones: boolean; reduced: boolean; inkPass?: "wash" | "line"; paper?: RisoPaperFrame }
 const LookCtx = createContext<RigLookContext | null>(null);
 
 // ---- Colour --------------------------------------------------------------------------------------------------------------------
@@ -115,23 +117,6 @@ function CrayonPart({ spec, p, ctx }: { spec: RigSpec; p: RigPartFrame; ctx: Rig
   if (b.width < 3 || b.height < 3) return <path d={d} fill={base} />;
   return <WaxRegion d={d} bounds={b} colors={[base, shade(base, -.3), shade(base, .22)]} seed={seed} pressure={.86} tooth={ctx.uid + "-tooth"}
     frame={2} first={0} last={1} reduced spacing={Math.max(4, Math.min(9, Math.min(b.width, b.height) / 3))} angle={-22} />;
-}
-
-/** Split a colour into two spot inks: warm into the pink plate, cool into the blue, darkness into both. */
-function risoSplit(hex: string): [number, number] {
-  // Warm hues go to the fluorescent pink plate, cool hues to blue; darkness adds both, and only near-black is solid blue.
-  const [r, g, b] = hexRgb(hex), dark = 1 - lum(hex), warm = Math.max(0, Math.min(1, .5 + (r - b) / 300 + (r - g) / 600));
-  const pink = Math.min(1, dark * .25 + warm * (.25 + dark * .9)), blue = Math.min(1, dark * (.2 + (1 - warm) * .8) + (dark > .78 ? .4 : 0));
-  return [pink, blue];
-}
-const RISO_LEVELS = [.15, .3, .5, .72, 1];
-function RisoPart({ spec, p, ctx, plate }: { spec: RigSpec; p: RigPartFrame; ctx: RigLookContext; plate: 0 | 1 }) {
-  const c = partColor(spec, p), cov = risoSplit(p.far ? shade(c, -.15) : c)[plate];
-  if (cov < .08) return null;
-  const level = RISO_LEVELS.reduce((best, l) => Math.abs(l - cov) < Math.abs(best - cov) ? l : best, RISO_LEVELS[0]);
-  const fill = level >= 1 ? (plate ? "#0078bf" : "#ff48b0") : `url(#${ctx.uid}-riso${plate}-${Math.round(level * 100)})`;
-  const d = pathOf(p.shape);
-  return p.line ? <path d={d} fill="none" stroke={plate ? "#0078bf" : "#ff48b0"} strokeWidth={p.lineWidth ?? 1} /> : <path d={d} fill={fill} />;
 }
 
 function InkPart({ spec, p, ctx }: { spec: RigSpec; p: RigPartFrame; ctx: RigLookContext }) {
@@ -222,14 +207,14 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
   const look = RIG_LOOKS.find(l => l.id === ctx.look)!;
   const f = evaluateRig(spec, frame, { cadence: cadence ?? look.cadence, reducedMotion: reducedMotion ?? ctx.reduced });
   const parts = withSolidFaces(spec, f.parts);
-  const shadowFill = ctx.look === "blueprint" ? "none" : ctx.look === "riso" ? "#0078bf" : "#1c1208";
-  const contacts = <g data-km-rig-contacts="">{f.contacts.map(([x, y], i) => <ellipse key={i} cx={r2(x)} cy={r2(y + 1)} rx={r2(14 * f.root.scale)} ry={r2(3.2 * f.root.scale)} fill={shadowFill}
-    opacity={ctx.look === "riso" ? .25 : .16} filter={`url(#${ctx.uid}-soft)`} />)}</g>;
-  const draw = (p: RigPartFrame, plate?: 0 | 1) => {
+  const shadowFill = ctx.look === "blueprint" ? "none" : "#1c1208";
+  // The riso look prints its own screened contact shadows on the darkest drum.
+  const contacts = ctx.look === "riso" ? null : <g data-km-rig-contacts="">{f.contacts.map(([x, y], i) => <ellipse key={i} cx={r2(x)} cy={r2(y + 1)} rx={r2(14 * f.root.scale)} ry={r2(3.2 * f.root.scale)} fill={shadowFill}
+    opacity={.16} filter={`url(#${ctx.uid}-soft)`} />)}</g>;
+  const draw = (p: RigPartFrame) => {
     switch (ctx.look) {
       case "collage": return <CollagePart spec={spec} p={p} ctx={ctx} />;
       case "crayon": return <CrayonPart spec={spec} p={p} ctx={ctx} />;
-      case "riso": return <RisoPart spec={spec} p={p} ctx={ctx} plate={plate!} />;
       case "ink": return <InkPart spec={spec} p={p} ctx={ctx} />;
       case "blueprint": return <BlueprintPart p={p} />;
       default: return <FlatPart spec={spec} p={p} />;
@@ -248,10 +233,8 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
         <g filter={`url(#${ctx.uid}-dry)`}>{parts.filter(p => p.role === "eye" || p.role === "mouth" || p.role === "detail" || p.line).map(p => wrap(p, <InkPart spec={spec} p={p} ctx={{ ...ctx, inkPass: "line" }} />))}</g>
       </>
     : ctx.look === "riso"
-    // Two plates printed separately, each a touch out of register, overprinting by multiply.
-    ? <>{([0, 1] as const).map(plate => <g key={plate} transform={plate ? "translate(1.6 -1.1)" : "translate(-.8 .6)"} style={{ mixBlendMode: "multiply" }} opacity={.92}>
-        {parts.map(p => <g key={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r2(p.opacity) : undefined}>{draw(p, plate)}</g>)}
-      </g>)}</>
+    ? <RisoFigure spec={spec} parts={parts} contacts={f.contacts} scale={f.root.scale} ctx={ctx} paper={ctx.paper}
+        colorOf={p => p.far ? shade(partColor(spec, p), -.15) : partColor(spec, p)} />
     : parts.map(p => <g key={p.id} data-km-rig-part={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r2(p.opacity) : undefined}>{draw(p)}</g>);
   return <g data-km-rig={spec.id} data-km-rig-frame={f.frame}>
     {contacts}
@@ -270,12 +253,7 @@ function LookDefs({ look, uid, width, height, seed }: { look: RigLook; uid: stri
       <pattern id={`${uid}-fibre`} patternUnits="userSpaceOnUse" width={256} height={256}><image href={fibre} width={256} height={256} /></pattern>
       <pattern id={`${uid}-dots`} patternUnits="userSpaceOnUse" width={6} height={6} patternTransform="rotate(45)"><circle cx={3} cy={3} r={1.25} fill="#1d1b19" /></pattern>
     </>}
-    {look === "riso" && ([0, 1] as const).flatMap(plate => RISO_LEVELS.filter(l => l < 1).map(l => {
-      const cell = 5, r = Math.sqrt(l / Math.PI) * cell * 1.05;
-      return <pattern key={`${plate}-${l}`} id={`${uid}-riso${plate}-${Math.round(l * 100)}`} patternUnits="userSpaceOnUse" width={cell} height={cell} patternTransform={`rotate(${plate ? 75 : 15})`}>
-        <circle cx={cell / 2} cy={cell / 2} r={r} fill={plate ? "#0078bf" : "#ff48b0"} />
-      </pattern>;
-    }))}
+    {look === "riso" && <RisoLookDefs uid={uid} width={width} height={height} seed={seed} />}
     {look === "ink" && <>
       <filter id={`${uid}-bleed`} x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves={3} seed={seed % 97} result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale={7} /><feGaussianBlur stdDeviation={.7} /></filter>
       <filter id={`${uid}-dry`} x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves={1} seed={(seed + 5) % 97} result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale={2.4} /></filter>
@@ -301,7 +279,7 @@ function Backdrop({ look, uid, width, height, seed }: { look: RigLook; uid: stri
       <rect width={width} height={height} fill={`url(#${uid}-board)`} />
     </>;
     case "crayon": return <Paper width={width} height={height} seed={seed} tooth={uid + "-tooth"} strength={.6} color="#f6ecd6" />;
-    case "riso": return <rect width={width} height={height} fill="#f4efe1" />;
+    case "riso": return <RisoBackdrop uid={uid} width={width} height={height} />;
     case "ink": return <rect width={width} height={height} fill="#f3eee2" />;
     case "blueprint": {
       const lines: string[] = [];
@@ -320,7 +298,7 @@ const TILE = 640;
 const tileRand = (seed: number, k: number, i: number) => { let h = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(k + 7919, 0xc2b2ae35) ^ Math.imul(i + 31, 0x27d4eb2d); h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d); return ((h ^ (h >>> 13)) >>> 0) / 4294967296; };
 /** One world-anchored tile of ground: its edge, its band and a few marks (tufts, pebbles), seeded by tile index so the
  * ground is the same wherever the camera looks from. */
-function GroundTile({ look, uid, k, ground, depth, seed }: { look: RigLook; uid: string; k: number; ground: number; depth: number; seed: number }) {
+function GroundTile({ look, uid, k, ground, depth, seed, paper }: { look: RigLook; uid: string; k: number; ground: number; depth: number; seed: number; paper?: RisoPaperFrame }) {
   const x0 = k * TILE, x1 = x0 + TILE, bottom = ground + depth;
   const edge = useMemo(() => look === "collage" ? toPathD(paperEdge([[x0 - 6, ground], [x1 + 6, ground], [x1 + 6, bottom], [x0 - 6, bottom]], { style: "torn", seed: seed + k * 31 + 5000, roughness: 4 }), true) : "", [look, x0, x1, ground, bottom, seed, k]);
   const marks: ReactNode[] = [];
@@ -328,7 +306,7 @@ function GroundTile({ look, uid, k, ground, depth, seed }: { look: RigLook; uid:
     const x = x0 + (i + tileRand(seed, k, i)) * TILE / 5, y = ground + 6 + tileRand(seed, k, i + 9) * Math.min(60, depth * .4), kind = tileRand(seed, k, i + 17) > .45 ? "tuft" : "pebble", s = .8 + tileRand(seed, k, i + 23) * .6;
     const d = kind === "tuft" ? `M${r2(x - 7 * s)} ${r2(y)}Q${r2(x - 5 * s)} ${r2(y - 9 * s)} ${r2(x - 3 * s)} ${r2(y - 13 * s)}M${r2(x)} ${r2(y)}Q${r2(x)} ${r2(y - 10 * s)} ${r2(x + 2 * s)} ${r2(y - 16 * s)}M${r2(x + 6 * s)} ${r2(y)}Q${r2(x + 6 * s)} ${r2(y - 7 * s)} ${r2(x + 10 * s)} ${r2(y - 11 * s)}`
       : `M${r2(x - 6 * s)} ${r2(y)}Q${r2(x)} ${r2(y - 6 * s)} ${r2(x + 6 * s)} ${r2(y)}Z`;
-    const stroke = look === "blueprint" ? "#eaf3ff" : look === "riso" ? "#0078bf" : look === "crayon" ? "#7d6a45" : look === "ink" ? "#2a2a30" : look === "collage" ? "#6f5a3c" : "#9fb08f";
+    const stroke = look === "blueprint" ? "#eaf3ff" : look === "riso" ? "currentColor" : look === "crayon" ? "#7d6a45" : look === "ink" ? "#2a2a30" : look === "collage" ? "#6f5a3c" : "#9fb08f";
     marks.push(look === "crayon"
       ? <WaxLine key={i} d={d} color={stroke} width={2.4} frame={2} first={0} last={1} reduced seed={seed + k * 13 + i} />
       : <path key={i} d={d} fill={kind === "pebble" && look !== "blueprint" && look !== "ink" ? stroke : "none"} stroke={stroke} strokeWidth={look === "ink" ? 1.6 : 2} strokeLinecap="round" opacity={look === "ink" ? .55 : .8}
@@ -337,7 +315,7 @@ function GroundTile({ look, uid, k, ground, depth, seed }: { look: RigLook; uid:
   switch (look) {
     case "collage": return <g><path d={edge} fill="#ece2c8" />{marks}</g>;
     case "crayon": return <g><WaxLine d={`M${x0} ${ground + 2} C${x0 + TILE * .3} ${ground - 3} ${x0 + TILE * .6} ${ground + 5} ${x1} ${ground + 2}`} color="#8a6b4a" width={4} frame={2} first={0} last={1} reduced seed={seed + k} />{marks}</g>;
-    case "riso": return <g><rect x={x0} y={ground} width={TILE + .5} height={depth} fill={`url(#${uid}-riso1-15)`} opacity={.9} />{marks}</g>;
+    case "riso": return <RisoGroundTile uid={uid} k={k} ground={ground} depth={depth} seed={seed} paper={paper} tileWidth={TILE} marks={marks} />;
     case "ink": return <g><path d={`M${x0} ${ground + 3} C${x0 + TILE * .25} ${ground - 4} ${x0 + TILE * .55} ${ground + 6} ${x1} ${ground + 3}`} fill="none" stroke="#2a2a30" strokeWidth={2.2} opacity={.5} filter={`url(#${uid}-dry)`} />{marks}</g>;
     case "blueprint": return <g><path d={`M${x0} ${ground}H${x1}`} stroke="#eaf3ff" strokeWidth={1.4} />{marks}</g>;
     default: return <g><rect x={x0} y={ground} width={TILE + .5} height={depth} fill="#cfd9c4" />{marks}</g>;
@@ -380,8 +358,9 @@ export interface RigSceneProps extends Omit<SVGProps<SVGSVGElement>, "width" | "
 /** A board in a film look with rigged figures on it. */
 export function RigScene({ look, width, height, ground, frame, rigs, cadence, showBones = false, reducedMotion = false, seed = 11, style, children, camera, showGround = true, ...svg }: RigSceneProps) {
   const raw = useId(), uid = "rg" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
-  const ctx: RigLookContext = { look, uid, seed, step: boilStep(look, frame, cadence), showBones, reduced: reducedMotion };
   const zoom = camera?.zoom ?? 1, cx = camera?.x ?? width / 2, cy = camera?.y ?? height / 2;
+  const paper: RisoPaperFrame = { zoom, x: width / 2 - cx * zoom, y: height / 2 - cy * zoom, width, height };
+  const ctx: RigLookContext = { look, uid, seed, step: boilStep(look, frame, cadence), showBones, reduced: reducedMotion, paper };
   const view = camera ? `translate(${r2(width / 2 - cx * zoom)} ${r2(height / 2 - cy * zoom)}) scale(${zoom})` : undefined;
   const left = cx - width / 2 / zoom, right = cx + width / 2 / zoom, tiles: number[] = [];
   for (let k = Math.floor(left / TILE); k * TILE < right; k++) tiles.push(k);
@@ -392,7 +371,7 @@ export function RigScene({ look, width, height, ground, frame, rigs, cadence, sh
     <LookDefs look={look} uid={uid} width={width} height={height} seed={seed} />
     <Backdrop look={look} uid={uid} width={width} height={height} seed={seed} />
     <g transform={view} data-km-rig-world="">
-      {showGround && <g data-km-rig-ground="">{tiles.map(k => <GroundTile key={k} look={look} uid={uid} k={k} ground={ground} depth={depth} seed={seed} />)}</g>}
+      {showGround && <g data-km-rig-ground="">{tiles.map(k => <GroundTile key={k} look={look} uid={uid} k={k} ground={ground} depth={depth} seed={seed} paper={paper} />)}</g>}
       {children}
       <LookCtx.Provider value={ctx}>
         {rigs.map(r => <RigFigure key={r.id} spec={r} frame={frame} cadence={cadence} />)}
