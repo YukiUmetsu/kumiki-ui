@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "dolly-zoom",
+  "fps": { "num": 30, "den": 1 },
+  "outputs": [{ "id": "landscape", "preset": "youtube" }, { "id": "draft", "width": 960, "height": 540 }],
+  "scenes": [
+    { "id": "pull-back", "recipeId": "shot-3d", "durationFrames": 150,
+      "content": {
+        "shot": "race",
+        "label": "A white race car, number 27, seen from the side by a camera locked to it. The car keeps its size while the lens lengthens and the camera pulls back, so the mountains behind it loom up.",
+        "spec": {
+          "speed": 58,
+          "passFrame": 75,
+          "camera": { "mode": "follow", "along": 0.6, "side": 3.6, "height": 1, "fov": 60, "lead": 0, "dollyZoom": { "to": 22, "start": 20, "end": 120 } },
+          "livery": { "body": "#f3f3f0", "accent": "#1f3f9e", "number": "27", "stripes": "#c8202a" }
+        }
+      }
+    }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "beds": [{ "id": "drone", "sound": "bed-drone-low", "fadeSeconds": 0.6 }],
+    "master": { "profile": "youtube", "limit": true }
+  }
+}

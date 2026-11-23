@@ -89,6 +89,9 @@ export function validateCameraSequence(input: unknown): { spec?: CameraSequenceS
     if (shot.projection !== undefined && !["perspective", "orthographic"].includes(String(shot.projection))) error(`${path}.projection`, "Choose perspective or orthographic.");
     if (shot.movement !== undefined && !["hold", "slow-dolly", "dolly-in", "dolly-out"].includes(String(shot.movement))) error(`${path}.movement`, "Choose hold, slow-dolly, dolly-in or dolly-out.");
     if (shot.followSide !== undefined && !["leading", "trailing"].includes(String(shot.followSide))) error(`${path}.followSide`, "Choose leading or trailing follow placement.");
+    const zoom = shot.dollyZoom as { from?: unknown; to?: unknown } | undefined;
+    if (zoom !== undefined && (![zoom.from, zoom.to].every(v => finite(v) && Number(v) >= 5 && Number(v) <= 120) || Math.abs(Number(zoom.from) - Number(zoom.to)) < 5)) error(`${path}.dollyZoom`, "A dolly zoom sweeps the lens between 5 and 120 degrees, by at least 5.");
+    if (zoom !== undefined && shot.type !== "dolly-zoom") error(`${path}.dollyZoom`, "`dollyZoom` belongs to a dolly-zoom shot.");
     for (const key of ["orbitDegrees", "azimuth", "elevation", "endElevation"]) if (shot[key] !== undefined && (!finite(shot[key]) || (key.includes("levation") && Math.abs(Number(shot[key])) >= 89))) error(`${path}.${key}`, "Use finite degrees, with elevation inside ±89°.");
     for (const key of ["leadFrames", "smoothingFrames", "holdFrames"]) if (shot[key] !== undefined && (!integer(shot[key]) || Number(shot[key]) >= Number(shot.durationFrames) - 1 || (key === "smoothingFrames" && Number(shot[key]) > 60))) error(`${path}.${key}`, "Use non-negative integer frames below duration-1; smoothing is capped at 60.");
     if (shot.easing !== undefined && !isEasingSpec(shot.easing)) error(`${path}.easing`, "Use existing MG1 easing.");
