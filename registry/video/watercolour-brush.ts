@@ -149,7 +149,8 @@ export function paintBloomPath(x: number, y: number, radius: number, seed: numbe
   for (let i = 0; i < n; i++) {
     const a = i / n * turn;
     const large = Math.sin(a * 2 + p1) * .1 + Math.sin(a * 3 + p2) * .07;
-    const bumps = Math.abs(Math.sin(a * lobes / 2 + p3)) * .11 + Math.abs(Math.sin(a * lobes * 1.7 + p1)) * .035;
+    // Whole numbers of waves round the front, so the outline closes without a step.
+    const bumps = Math.abs(Math.sin(a * lobes / 2 + p3)) * .11 + Math.abs(Math.sin(a * Math.round(lobes * 1.7) + p1)) * .035;
     const r = radius * t * (.9 + large + bumps + (paintHash(seed + 17, i, 13) - .5) * .03);
     points.push((x + Math.cos(a) * r).toFixed(2) + " " + (y + Math.sin(a) * r).toFixed(2));
   }
