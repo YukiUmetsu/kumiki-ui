@@ -3,7 +3,7 @@
 **Registry pack:** `universal-rig` (depends on `motion-track`, `crayon-storybook`)
 **Files:** `registry/rig/rig-spec.ts` (contract + validation), `rig-evaluate.ts` (pure evaluator), `rig-kit.ts` (authoring
 builder and shape helpers), `rig-presets-living.ts`, `rig-presets-machines.ts`, `rig-presets-nature.ts` (frog, snake, leaf, petals), `rig-presets-actions.ts` (person actions with props), `rig-presets-sword.ts` (sword techniques), `rig-presets-archery.ts`, `rig-presets-rest.ts` (lying, sleeping, rolling, picking up), `rig-flutter.ts` (falling-plate kinematics), `rig-presets.ts` (catalogue and re-exports),
-`rig-react.tsx` (six painters, `RigScene`, `RigFigure`, `RigLayer`, `followCamera`)
+`rig-react.tsx` (six painters, `RigScene`, `RigFigure`, `RigLayer`, `followCamera`), `rig-look-ink.tsx` (the ink painter on the INK1 brush and wet-paper engines; see [Making a video in Chinese ink](chinese-ink-wash.md#making-a-video-in-chinese-ink))
 **Storybook:** Video production → Film Looks → Universal Rig → **One rig, any film look**, **Action sheet**, **Rig parade**,
 **Rigs inside a collage film**
 **Status:** implemented; agent review of Chromium contact sheets (frame-by-frame) only — **human normal-speed review not recorded**.
