@@ -1,6 +1,6 @@
 import { useId, useMemo } from "react";
 import type { SVGProps } from "react";
-import { assertInkWash, evaluateInkWash, flyingWhite, inkHash, inkOutline, inkSamples } from "./ink-wash";
+import { assertInkWash, evaluateInkWash, flyingWhite, inkHash, inkOutline, inkPaperGrain, inkSamples } from "./ink-wash";
 import type { InkWashSpec } from "./ink-wash";
 
 export interface InkWashProps extends Omit<SVGProps<SVGSVGElement>, "children" | "viewBox" | "width" | "height"> {
@@ -31,16 +31,8 @@ export function InkWash({
   const states = evaluateInkWash(spec, frame, reducedMotion);
   const rawId = useId();
   const uid = "ink" + rawId.replace(/[^a-zA-Z0-9_-]/g, "");
-  const fibers = useMemo(() => Array.from({ length: 550 }, (_, i) => ({
-    x: inkHash(spec.seed, i, 13) * spec.width, y: inkHash(spec.seed, i, 17) * spec.height,
-    length: 2 + inkHash(spec.seed, i, 19) * 17,
-    horizontal: inkHash(spec.seed, i, 23) > .48,
-    opacity: .10 + inkHash(spec.seed, i, 29) * .23,
-  })), [spec.seed, spec.width, spec.height]);
-  const pores = useMemo(() => Array.from({ length: 580 }, (_, i) => ({
-    x: inkHash(spec.seed + 51, i, 37) * spec.width, y: inkHash(spec.seed + 51, i, 41) * spec.height,
-    radius: .4 + inkHash(spec.seed + 51, i, 43) * 1.8,
-  })), [spec.seed, spec.width, spec.height]);
+  const { fibres: fibers, pores } = useMemo(() => inkPaperGrain(spec.seed, spec.width, spec.height),
+    [spec.seed, spec.width, spec.height]);
 
   return <svg {...svgProps} viewBox={"0 0 " + spec.width + " " + spec.height}
     xmlns="http://www.w3.org/2000/svg" role={svgProps["aria-hidden"] ? undefined : "img"}
@@ -48,11 +40,15 @@ export function InkWash({
     data-km-ink-wash="" data-km-ink-frame={frame}
     style={{ display: "block", width: "100%", height: "100%", overflow: "hidden", isolation: "isolate", ...style }}>
     <defs>
-      {/* Blur affects only the wet pigment fringe, never the paper, captions or dry-brush center. */}
-      <filter id={uid + "-fringe"} x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
+      {/* Blur affects only the wet pigment fringe, never the paper, captions or dry-brush center. The filter region is
+          the whole sheet in artwork units: a region relative to each stroke's box cut a thin stroke's blurred fringe
+          off in a hard rectangle. */}
+      <filter id={uid + "-fringe"} filterUnits="userSpaceOnUse" x={0} y={0} width={spec.width} height={spec.height}
+        colorInterpolationFilters="sRGB">
         <feGaussianBlur stdDeviation={1.2 + wetness * 1.6}/>
       </filter>
-      <filter id={uid + "-wash"} x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
+      <filter id={uid + "-wash"} filterUnits="userSpaceOnUse" x={0} y={0} width={spec.width} height={spec.height}
+        colorInterpolationFilters="sRGB">
         <feGaussianBlur stdDeviation={.55 + wetness * .9}/>
       </filter>
       <mask id={uid + "-tooth"} maskUnits="userSpaceOnUse" x={0} y={0} width={spec.width} height={spec.height}>

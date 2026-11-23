@@ -89,7 +89,7 @@ export function InkZengJingScholarHead({
     const cx=side==="L"?255:285,far=side==="R";
     const y=313+(far?.55:0),half=9.6;
     const top=y-eyeOpen*.56,bottom=y+eyeOpen*.42;
-    return <g key={side} data-km-zj1-eye={side}>
+    return <g key={"eye-"+side} data-km-zj1-eye={side}>
       <path d={`M${n(cx-half)} ${n(y)}
         Q${n(cx-3)} ${n(top-1.6)} ${n(cx+half)} ${n(y)}
         Q${n(cx+2)} ${n(bottom+1.2)} ${n(cx-half)} ${n(y)} Z`}
@@ -117,7 +117,7 @@ export function InkZengJingScholarHead({
     const d=near
       ?`M244 ${n(outerY+1)} Q251 ${n(innerY-1.2)} 264 ${n(innerY+.8)}`
       :`M276 ${n(innerY+.8)} Q289 ${n(innerY-1.2)} 296 ${n(outerY+1)}`;
-    return <g key={side} data-km-zj1-brow={side}>
+    return <g key={"brow-"+side} data-km-zj1-brow={side}>
       <path d={d} stroke={ink} strokeWidth={elder?1.05:.82}
         strokeLinecap="round" fill="none" opacity=".58"/>
       {Array.from({length:5},(_,i)=>{

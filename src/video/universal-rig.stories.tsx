@@ -212,3 +212,31 @@ function RigInCollage() {
   </div>;
 }
 export const InCollage: StoryObj<typeof RigLab> = { name: "RIG1 · Rigs inside a collage film", render: () => <RigInCollage /> };
+
+const INK_PICKS = [["person", "walk"], ["horse", "gallop"], ["bird", "fly"], ["fish", "swim"], ["dragon", "fly"]] as const;
+/** Five subjects in Chinese ink on xuan paper, each tracked closely: the brushwork must stay on the parts as they move. */
+function InkSheet() {
+  const loop = useLoop(DURATION - 1, 40);
+  const tiles = useMemo(() => INK_PICKS.map(([id, motion]) => {
+    const entry = RIG_PRESETS.find(p => p.id === id)!;
+    return { entry, motion, ...stage(entry, motion, defaultMode(entry, motion), id + "-ink") };
+  }), []);
+  return <div style={page}>
+    <header><h1 style={{ margin: 0, font: "700 32px/1.15 Georgia, serif" }}>In Chinese ink</h1>
+      <p style={{ margin: "6px 0 0", maxWidth: 860 }}>The ink look paints each part with the style's own engines: a pale first wash on the exact
+        silhouette, side-brush strokes deposited by the INK1 wet-paper engine, lost-and-found pressure contours on the silhouette only, dark ink
+        for eyes and hooves, and a light traditional pigment taken from the palette's hue, on xuan paper. The marks are computed once per part,
+        in the part's own space, so they ride with it frame after frame.</p></header>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 12 }}>
+      {tiles.map(t => <figure key={t.entry.id} style={{ margin: 0, background: "#fff", boxShadow: "0 4px 14px rgba(40,30,20,.12)" }}>
+        <div style={{ aspectRatio: "16 / 9", overflow: "hidden" }}>
+          <RigScene look="ink" width={W} height={H} ground={t.horizon} frame={loop.frame} rigs={[t.spec]} aria-label={`${t.entry.label}, ${t.motion}, ink`}
+            camera={tileCamera(t.entry, t, loop.frame)} />
+        </div>
+        <figcaption style={{ padding: "8px 12px", font: "600 14px system-ui" }}>{t.entry.label} · {t.motion}</figcaption>
+      </figure>)}
+    </div>
+    <Controls loop={loop} />
+  </div>;
+}
+export const InInk: StoryObj<typeof RigLab> = { name: "RIG1 · In Chinese ink", render: () => <InkSheet /> };

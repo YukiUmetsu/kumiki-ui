@@ -3919,7 +3919,9 @@
       "registryDependencies": [
         "motion-track",
         "crayon-storybook",
-        "animal-anatomy"
+        "animal-anatomy",
+        "ink-wash-core",
+        "ink-brush"
       ],
       "files": [
         {
@@ -4011,6 +4013,11 @@
           "path": "registry/video/colored-pencil-foundation.ts",
           "type": "registry:ui",
           "target": "components/video/colored-pencil-foundation.ts"
+        },
+        {
+          "path": "registry/rig/rig-look-ink.tsx",
+          "type": "registry:ui",
+          "target": "components/rig/rig-look-ink.tsx"
         },
         {
           "path": "registry/video/collage/collage-geometry.ts",

@@ -45,6 +45,23 @@ export function Example({frame}:{frame:number}) {
 }
 \`\`\`
 
+## Making a video in Chinese ink
+
+Pick the pieces below; they share one absolute film frame, so any of them can be seeked and exported through `FilmStage`/`VideoExportStage`.
+
+| Need | Entry point | Storybook (Video production / Film Looks) |
+|---|---|---|
+| Paper | `inkPaperGrain(seed, w, h)` (xuan fibres and pores, `ink-wash.ts`); `InkWash` and `InkBrushCanvas` draw it for you | Chinese Ink / Ink Wash Film Stage |
+| Brush marks, vector | `InkWash` with authored `InkWashSpec` strokes (pressure, tone, water, load, oblique brush, flying white, timed deposit and spread); `inkOutline` / `flyingWhite` for single pressure strokes; `makeInkRockTexture` for axe-cut, hemp-fibre and moss-dot rock marks | Ink Wash Film Stage, Studio |
+| Brush marks, wet paper | `InkBrushCanvas` / `sampleWetInk` (`ink-brush` pack): pigment and water deposited into a fixed paper-fibre raster, capillary halo, dry-brush split; the most convincing ink surface in the style | Chinese Ink / Ink Brush |
+| Any subject (people, animals, birds, fish, dragons, vehicles…) | RIG1 `RigScene look="ink"` or `RigLayer look="ink"` (`registry/rig/rig-look-ink.tsx`): each part gets a pale first wash, side-brush strokes deposited by `sampleWetInk`, lost-and-found `inkOutline` contours on the silhouette, dark ink for eyes and hooves, a light traditional pigment from the palette hue; marks are cached per part in bone space, so they never swim | Universal Rig / In Chinese ink; Chinese Ink / Shanshui Film Gallery / Any RIG1 subject in the landscape |
+| The style's own characters | `InkCharacter` (`ink-wash-character`), continuous walks and IK feet (`ink-actor-director`), garment brushwork (`ink-figure-craft`), cloth follow-through (`ink-figure-motion`), two-actor blocking (`InkEnsemble`) | Chinese Ink / Character Performance, Character Director, Ensemble |
+| Landscapes | `InkShanshuiStage` (three compositions, four rock-brush schools, mist, wind; `children` is an HTML acting layer, so put rigs in their own `<svg viewBox="0 0 960 540">`); `makeInkCinematicSpec` + `InkCinematicScene` (editable motif lists, both aspects) | Shanshui Film Gallery, Cinematic Landscape Engine |
+| Camera and transitions | `createInkFilmDocument(plan)` + `InkWashScene`: handscroll camera keys with per-layer parallax, `brush` / `bloom` / `instant` reveals of any React layer; `followCamera` for a tracked RIG1 subject | Multi-Genre Film, Studio |
+| Text and seals | Captions go in `InkWashScene`'s `children` reading plane (never under a pigment mask). A seal is a few `accent: true` strokes with the spec's `accent` colour (example: `addSeal` in `src/video/ink-wash-demo.ts`) | Ink Wash Film Stage |
+
+**Known gaps.** There is no reusable seal or calligraphic title component yet (seals are authored strokes; titles are plain DOM text). The RIG1 ink look paints each rigid part separately: rigs built from abutting panels (the horse's barrel and shoulders, the dragon's tail) still read as planes, joint caps read as balls, and stroke direction is each part's own long axis, not the animal's fur or the garment's folds. Its ink is neutral pine soot, so on the sepia shanshui stage it looks cooler than the scene, and inside the stage's HTML acting layer it cannot multiply into the painting. The first frame of a new rig pays for its wet-paper deposits (about 150 ms for a koi, more for a dragon); later frames reuse them. The InkWash vector renderer still reads as soft blurred shapes beside the wet-paper raster, and several Studio and Wash demos use star-shaped pine needles.
+
 ## Reproducible review
 
 - Unit/SSR: \`npx vitest run --project unit tests/ink-wash.test.tsx\`.

@@ -46,6 +46,12 @@ function fibre(seed: number, x: number, y: number): number {
     c = inkHash(seed, ix, iy + 1), d = inkHash(seed, ix + 1, iy + 1);
   return lerp(lerp(a, b, ux), lerp(c, d, ux), uy);
 }
+/** Paper sizing and fibre clumps at the scale of a few fibres, without a visible lattice. */
+function paperMacro(seed: number, px: number, py: number): number {
+  const a = fibre(seed, (px * .83 + py * .56) / 7.9, (py * .83 - px * .56) / 12.3);
+  const b = fibre(seed + 29, (px * .6 - py * .8) / 4.7, (px * .8 + py * .6) / 6.1);
+  return clamp(.5 + (.62 * a + .38 * b - .5) * 1.35, 0, 1);
+}
 export function sampleWetInk(
   spec: InkBrushSpec, frame: number, options: InkWetOptions = {},
 ): InkWetFrame {
@@ -127,7 +133,9 @@ export function sampleWetInk(
             if (q > 2.2) continue;
             const k = py * width + px;
             // Fibres are in *paper coordinates* and never regenerate with frame.
-            const macro = fibre(paperSeed, px / 7.5, py / 11.5);
+            // Two octaves on rotated lattices: a single axis-aligned value-noise grid printed its cells as
+            // regular bands across every wash (one band per 7.5 raster px).
+            const macro = paperMacro(paperSeed, px, py);
             const micro = inkHash(paperSeed + 17, px, py);
             // A fairly solid hair-bundle print, with an irregular fibre edge.
             // Only the narrower *outer* moisture halo is diffuse.
@@ -158,8 +166,10 @@ export function sampleWetInk(
             );
             const split = 1 - Math.min(.99, stroke.dryness * 1.30 * broken);
             const granulation = (.90 + micro * .16) * (.92 + macro * .16);
+            // Pigment pools along the stroke's two sides as it dries. A ring around every dab instead stacked
+            // into scallops, one per dab, along the whole mark.
             const loadedEdge = 1 + water * absorbed * .14 *
-              Math.exp(-Math.pow((Math.sqrt(q) - 1.02) / .1, 2));
+              Math.exp(-Math.pow((Math.abs(across) - 1.02) / .1, 2));
             const pigment = norm * (solidContact + halo) *
               split * granulation * loadedEdge;
             if (pigment <= 0) continue;
