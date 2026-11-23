@@ -3,15 +3,15 @@
 **Registry pack:** `universal-rig` (depends on `motion-track`, `crayon-storybook`)
 **Files:** `registry/rig/rig-spec.ts` (contract + validation), `rig-evaluate.ts` (pure evaluator), `rig-kit.ts` (authoring
 builder and shape helpers), `rig-presets-living.ts`, `rig-presets-machines.ts`, `rig-presets-nature.ts` (frog, snake, leaf, petals), `rig-presets-actions.ts` (person actions with props), `rig-presets-sword.ts` (sword techniques), `rig-presets-archery.ts`, `rig-presets-rest.ts` (lying, sleeping, rolling, picking up), `rig-flutter.ts` (falling-plate kinematics), `rig-presets.ts` (catalogue and re-exports),
-`rig-react.tsx` (six painters, `RigScene`, `RigFigure`, `RigLayer`, `followCamera`), `rig-look-ink.tsx` (the ink painter on the INK1 brush and wet-paper engines; see [Making a video in Chinese ink](chinese-ink-wash.md#making-a-video-in-chinese-ink))
+`rig-react.tsx` (painters, `RigScene`, `RigFigure`, `RigLayer`, `followCamera`), `rig-look-ink.tsx` (the ink painter on the INK1 brush and wet-paper engines; see [Making a video in Chinese ink](chinese-ink-wash.md#making-a-video-in-chinese-ink)), `rig-look-watercolour.tsx` (the watercolour painter)
 **Storybook:** Video production → Film Looks → Universal Rig → **One rig, any film look**, **Action sheet**, **Rig parade**,
-**Rigs inside a collage film**
+**Rigs inside a collage film**, **Watercolour sheet**
 **Status:** implemented; agent review of Chromium contact sheets (frame-by-frame) only — **human normal-speed review not recorded**.
 
 ## Idea
 
 A rig says *what moves and how*; a painter says *what it looks like*. The same `RigSpec` is drawn as flat vector,
-scissor-cut paper (collage), wax crayon, two-plate riso, ink wash or blueprint, and the same rig can sit inside a COLLAGE1
+scissor-cut paper (collage), wax crayon, two-plate riso, ink wash, blueprint or watercolour, and the same rig can sit inside a COLLAGE1
 scene as a `rig` node. Rigs are JSON (no functions), every frame is a pure function of `(spec, frame)`, so any seek order
 draws the same pose.
 
@@ -90,7 +90,7 @@ or is staged on screen:
 ## Painters and camera
 
 `RigScene` draws a backdrop plus figures; `RigFigure` draws one figure inside a scene; `RigLayer` is a self-contained
-figure for embedding (COLLAGE1 uses it). Looks: `flat`, `collage`, `crayon`, `riso`, `ink`, `blueprint`. **Every look animates
+figure for embedding (COLLAGE1 uses it). Looks: `flat`, `collage`, `crayon`, `riso`, `ink`, `blueprint`, `watercolour` (see [watercolour-brush.md](watercolour-brush.md#making-a-video-in-watercolour)). **Every look animates
 on ones by default**; pass `cadence={2}` for a stop-motion feel. A medium's texture `boil` is separate from the motion
 cadence (crayon wax redraws every four frames even on ones). `camera={{ x, y, zoom }}` frames any world point;
 `followCamera(spec, frame, { y, lead })` tracks a travelling rig. The ground band and its marks are anchored to the world in

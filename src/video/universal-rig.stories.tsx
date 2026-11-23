@@ -174,11 +174,38 @@ function RigParade() {
   </div>;
 }
 
+/** The watercolour look on the subjects it is reviewed with: a walk, a gallop, flight, sail and a balloon. */
+const WATERCOLOUR_SHEET = [["person", "walk"], ["horse", "gallop"], ["bird", "fly"], ["ship", "sail"], ["balloon", "float"]] as const;
+function WatercolourSheet() {
+  const loop = useLoop(DURATION - 1, 40);
+  const tiles = useMemo(() => WATERCOLOUR_SHEET.map(([id, motion]) => {
+    const entry = RIG_PRESETS.find(p => p.id === id)!;
+    return { entry, motion, ...stage(entry, motion, defaultMode(entry, motion), `${id}-${motion}-wc`) };
+  }), []);
+  return <div style={page}>
+    <header><h1 style={{ margin: 0, font: "700 32px/1.15 Georgia, serif" }}>Watercolour sheet</h1>
+      <p style={{ margin: "6px 0 0", maxWidth: 820 }}>Five rigs in the watercolour look: transparent washes on cold-press paper with dried edges,
+        a cool shadow glaze away from the light, granulation, a light pencil underdrawing and a dried graded sky. The pigment rides on
+        each body; the paper and sky stay on the sheet; the ground stays in the world.</p></header>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12 }}>
+      {tiles.map(t => <figure key={t.entry.id} style={{ margin: 0, background: "#fff", boxShadow: "0 4px 14px rgba(40,30,20,.12)" }}>
+        <div style={{ aspectRatio: "16 / 9", overflow: "hidden" }}>
+          <RigScene look="watercolour" width={W} height={H} ground={t.horizon} frame={loop.frame} rigs={[t.spec]} aria-label={`${t.entry.label}, ${t.motion}, watercolour`}
+            camera={tileCamera(t.entry, t, loop.frame)} />
+        </div>
+        <figcaption style={{ padding: "8px 12px", font: "600 14px system-ui" }}>{t.entry.label} · {t.motion}</figcaption>
+      </figure>)}
+    </div>
+    <Controls loop={loop} />
+  </div>;
+}
+
 const meta = { title: "Video production/Film Looks/Universal Rig", id: "video-universal-rig", component: RigLab, parameters: { layout: "fullscreen" } } satisfies Meta<typeof RigLab>;
 export default meta;
 export const Lab: StoryObj<typeof RigLab> = { name: "RIG1 · One rig, any film look", render: () => <RigLab /> };
 export const Actions: StoryObj<typeof RigLab> = { name: "RIG1 · Action sheet", render: () => <ActionSheet /> };
 export const Parade: StoryObj<typeof RigLab> = { name: "RIG1 · Rig parade", render: () => <RigParade /> };
+export const Watercolour: StoryObj<typeof RigLab> = { name: "RIG1 · Watercolour sheet", render: () => <WatercolourSheet /> };
 
 /** RIG1 rigs inside a COLLAGE1 scene: rigged figures sit on the same board as paper cut-outs, type and camera. */
 function RigInCollage() {
