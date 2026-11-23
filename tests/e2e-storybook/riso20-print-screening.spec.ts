@@ -27,14 +27,34 @@ test("RISO20 screened print remains usable in both output aspects and spot separ
 
     await page.getByRole("combobox", { name: "Screening method" }).selectOption("fm");
     await expect(print).toHaveAttribute("data-km-riso-screen-mode", "fm");
-    await expect(print.locator("pattern")).toHaveCount(2);
+    // RISO26 (095ffc44, #412) cuts three co-registered masters per ink: full tone, mid and light.
+    await expect(print.locator("pattern")).toHaveCount(6);
+    const masters = async () => {
+      const read = await print.locator("pattern").evaluateAll(nodes => nodes.map(node => ({
+        id: node.id, width: Number(node.getAttribute("width")), angle: node.getAttribute("patternTransform"),
+        ink: node.querySelector("circle")?.getAttribute("fill"),
+        radius: Number(node.querySelector("circle")?.getAttribute("r")),
+        count: node.querySelectorAll("circle").length })));
+      return [0, 1].map(plate => {
+        const of = (tone: string) => read.find(pattern => pattern.id.endsWith(`-dots-${tone}${plate}`))!;
+        return { full: of(""), mid: of("mid-"), light: of("light-") };
+      });
+    };
     // Every ink's screen tile is larger than its AM cell; all droplets are source-/seed-anchored.
-    const patterns = await print.locator("pattern").evaluateAll(nodes =>
-      nodes.map(node => ({ width: Number(node.getAttribute("width")), count: node.querySelectorAll("circle").length })));
-    expect(patterns[0].width).toBe(72);
-    expect(patterns[1].width).toBe(64);
-    expect(patterns[0].count).toBeGreaterThan(10);
-    expect(patterns[1].count).toBeGreaterThan(10);
+    const patterns = await masters();
+    expect(patterns[0].full.width).toBe(72);
+    expect(patterns[1].full.width).toBe(64);
+    expect(patterns[0].full.count).toBeGreaterThan(10);
+    expect(patterns[1].full.count).toBeGreaterThan(10);
+    for (const { full, mid, light } of patterns) {
+      // Lighter tones print fewer droplets of the same ink on the same registered tile.
+      for (const tone of [mid, light])
+        expect([tone.width, tone.angle, tone.ink]).toEqual([full.width, full.angle, full.ink]);
+      expect(mid.count).toBeLessThan(full.count);
+      expect(light.count).toBeLessThan(mid.count);
+      expect(light.count).toBeGreaterThan(0);
+    }
+    expect(patterns[0].full.ink).not.toBe(patterns[1].full.ink);
 
     const setRange = async (name: string, value: string) => page.getByRole("slider", { name })
       .evaluate((node, next) => {
@@ -66,7 +86,13 @@ test("RISO20 screened print remains usable in both output aspects and spot separ
     await setRange("Dot gain", "0");
     await page.getByRole("combobox", { name: "Screening method" }).selectOption("am");
     await expect(print).toHaveAttribute("data-km-riso-screen-mode", "am");
-    await expect(print.locator("pattern circle")).toHaveCount(2);
+    // AM: one dot per cell on each of the six masters, and tone is dot size.
+    await expect(print.locator("pattern circle")).toHaveCount(6);
+    for (const { full, mid, light } of await masters()) {
+      expect(mid.radius).toBeLessThan(full.radius);
+      expect(light.radius).toBeLessThan(mid.radius);
+      expect(light.radius).toBeGreaterThan(0);
+    }
     await print.screenshot({ path: info.outputPath(`riso20-${aspect}-am.png`), animations: "disabled" });
   }
   expect(errors).toEqual([]);
