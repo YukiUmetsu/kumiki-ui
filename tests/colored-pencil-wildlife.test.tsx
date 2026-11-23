@@ -7,6 +7,7 @@ import { PencilScene } from "../registry/video/colored-pencil-scene-react";
 import { compileFilm } from "../registry/video/film-document";
 import { pencilWildlifeScene, KINGFISHER_REBUILT_PARTS } from "../src/video/colored-pencil-wildlife";
 import { COLOR_PENCIL_WILDLIFE_FILM } from "../src/video/colored-pencil-wildlife-film";
+import { KINGFISHER_PERCHING_FEET } from "../src/video/colored-pencil-anatomy-detail";
 import portableFilm from "../examples/film/colored-pencil-wildlife.film.json";
 
 describe("ArtCraft rebuilt kingfisher wildlife illustration",()=>{
@@ -107,8 +108,10 @@ describe("ArtCraft rebuilt kingfisher wildlife illustration",()=>{
     expect(beak.bounds[2]).toBeGreaterThan(beak.bounds[3]*3);
     expect(breast.layers[0].color).toBe("#E0A26C");
     expect(head.layers[0].color).toBe("#3787A6");
-    expect((feet.path.match(/M/g)??[]).length).toBe(2);
-    expect(feet.path.match(/Z/g)).toHaveLength(2);
+    // Two perching feet, each a closed tarsus, forward toes and a hallux.
+    expect(feet.path).toBe(KINGFISHER_PERCHING_FEET.path);
+    expect((feet.path.match(/M/g)??[]).length).toBe(6);
+    expect(feet.path.match(/Z/g)).toHaveLength(6);
     expect(beak.opaqueSupport).toBe(true);
     expect(feet.opaqueSupport).toBe(true);
     expect(inspectPencilScene(pencilWildlifeScene({aspect:"portrait"}))).toEqual([]);
