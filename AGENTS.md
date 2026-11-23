@@ -17,6 +17,7 @@ Reuse registered packs and verified Storybook examples before you create a compo
 - Start a visual review with the contact sheet. Then open only the frames that need a closer look.
 - Brief a subagent with exact paths, line ranges and what is already verified, never "explore the repo".
 - Run the test files that your change touches, not whole suites.
+- Every call sends the whole conversation again. Send independent calls together, join small shell steps, and start a new session for a new task.
 
 ## Non-negotiable
 
