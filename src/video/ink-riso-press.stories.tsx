@@ -30,7 +30,7 @@ function Proofs() {
   </main>;
 }
 
-const meta: Meta = { title: "Video production/Film Looks/Risograph", id: "video-ink-riso-press", parameters: { layout: "fullscreen" } };
+const meta: Meta = { title: "Video production/Film Looks/Risograph", id: "video-riso-ink-press", parameters: { layout: "fullscreen" } };
 export default meta;
 
 /** The whole page: brush ink printed in three spot colours. */

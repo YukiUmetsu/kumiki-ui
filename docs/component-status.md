@@ -167,7 +167,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `ink-cinematic-landscape` | video | dom | [spec](component-specs/ink-cinematic-landscape.md) | `video-ink-cinematic-landscape--mountain-journey` | — |
 | `ink-figure-craft` | video | data | — | `video-ink-ensemble--ink-figure-brushwork-study` | — |
 | `ink-figure-motion` | video | data | — | `video-ink-character-director--continuous-walk` | — |
-| `ink-riso-press` | video | dom | [spec](component-specs/ink-riso-press.md) | `video-ink-riso-press--ink-portrait` | — |
+| `ink-riso-press` | video | dom | [spec](component-specs/ink-riso-press.md) | `video-riso-ink-press--ink-portrait` | — |
 | `ink-shanshui-landscape` | video | dom | — | `video-ink-shanshui--gallery-studio` | — |
 | `ink-wash-character` | video | dom | — | `video-ink-character--interactive` | — |
 | `ink-wash-core` | video | dom | [spec](component-specs/chinese-ink-wash.md) | `video-ink-wash--chinese-ink-wash` | — |

@@ -149,7 +149,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:film-document":{storyId:"video-film-stage--example-film"},
   "pack:ad-formats":{storyId:"video-production-ad-formats--formats"},
   "pack:film-cards":{storyId:"video-production-ad-formats--cards"},
-  "pack:ink-riso-press":{storyId:"video-ink-riso-press--ink-portrait"},
+  "pack:ink-riso-press":{storyId:"video-riso-ink-press--ink-portrait"},
   "pack:ink-brush":{storyId:"video-ink-brush--brush-studio-film"},
   "pack:editorial-collage":{storyId:"video-editorial-collage--collage-film"},
   "pack:universal-rig":{storyId:"video-universal-rig--lab"},

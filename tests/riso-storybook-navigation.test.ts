@@ -10,6 +10,7 @@ const studios = [
   ["riso-opaque-print.stories.tsx", "video-riso-opaque-lab"],
   ["riso-character-model-sheets.stories.tsx", "video-riso-character-model-sheets"],
   ["riso-artcraft-studies.stories.tsx", "video-riso-artcraft-studies"],
+  ["ink-riso-press.stories.tsx", "video-riso-ink-press"],
 ] as const;
 const read = (file: string) => readFileSync(join(process.cwd(), "src/video", file), "utf8");
 
