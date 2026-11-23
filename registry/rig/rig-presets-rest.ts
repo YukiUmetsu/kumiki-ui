@@ -200,8 +200,9 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       leg("f", f1, LATE, 14, [pt(f1, 15, -SOLE - g), pt(l1, ankleN[0], ankleN[1])], -90);
       leg("b", f1, LATE, 14, [pt(f1, 11, -SOLE - g), pt(l1, ankleF[0], ankleF[1])], -90);
       // The near hand reaches back to the ground to lower the body, supports while lying back, then rests.
-      const restA: Pt = sleepy ? [LIE.x - 16, LIE.y - 10.6] : [LIE.x - 43, LIE.y + 1.4], restB: Pt = sleepy ? [LIE.x - 22, LIE.y - 10] : [LIE.x - 42, LIE.y + 2];
-      arm("f", c0 + 4, sleepy ? LATE : l1 - 2, 8, [pt(c0 + 4, 6, -46), pt(c1, -10, -6 - g), pt(s1, -14, -2.9 - g), pt(l0, -15, -2.9 - g), pt(l1 - n(4), -26, -2 - g), pt(l1 + n(10), restA[0], restA[1])]);
+      const restA: Pt = sleepy ? [LIE.x - 16, LIE.y - 10.6] : [LIE.x - 43, LIE.y + 1.4], restB: Pt = sleepy ? [LIE.x - 22, LIE.y - 10] : [LIE.x - 42, LIE.y - 2.4];
+      // It holds until the next reach is fully in, or the arm would drop straight through the floor.
+      arm("f", c0 + 4, sleepy ? LATE : l1 + 12, 8, [pt(c0 + 4, 6, -46), pt(c1, -10, -6 - g), pt(s1, -14, -2.9 - g), pt(l0, -15, -2.9 - g), pt(l1 - n(4), -26, -2 - g), pt(l1 + n(10), restA[0], restA[1])]);
       arm("b", l0, LATE, 10, [pt(l0, -4, -30), pt(l1 + n(14), restB[0], restB[1])], sleepy ? -1 : 1);
       // Hands behind the head: the elbows point up off the ground, not across the face.
       if (!sleepy) arm("f", l1 - n(6), LATE, 8, [pt(l1 - n(6), -26, -2), pt(l1 + n(10), restA[0], restA[1])], 1);

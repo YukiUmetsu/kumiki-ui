@@ -125,6 +125,10 @@ export function crayonIllustratedChildScene(
     // The child is on the page before the first step, so every plant is visible.
     atmosphere:[0,26],underlay:[2,26],garment:[6,34],
     skin:[10,38],detail:[18,46],finish:[26,56],
+  }:mode==="acting"?{
+    // The face is painted before the first expression (Curiosity, frame 70), so every beat of the acting shows.
+    atmosphere:[2,40],underlay:[6,40],garment:[10,48],
+    skin:[14,54],detail:[24,60],finish:[34,66],
   }:{
     atmosphere:[4,96],underlay:[14,100],garment:[31,128],
     skin:[47,141],detail:[83,181],finish:[126,219],

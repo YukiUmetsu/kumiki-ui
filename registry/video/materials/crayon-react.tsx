@@ -757,24 +757,25 @@ function MeadowDetails({width,height,seed,frame,reduced,day}:{
     })}
   </g>;
 }
-function StoryTitle({ width, height, portrait, day, frame, reduced }: { width:number;height:number;portrait:boolean;day:boolean;frame:number;reduced:boolean }) {
+function StoryTitle({ width, portrait, day, frame, reduced }: { width:number;portrait:boolean;day:boolean;frame:number;reduced:boolean }) {
   const title = day ? (portrait ? ["ONE", "LITTLE", "SEED"] : ["ONE LITTLE", "SEED"]) : (portrait ? ["FOLLOW", "THE", "GLOW"] : ["FOLLOW", "THE GLOW"]);
   const x = portrait ? 34 : 52;
-  const y = portrait ? 112 : 118;
+  // The rule clears the capitals below it, and at night the subtitle starts clear of the left tree.
+  const y = portrait ? 112 : 126;
   const ink = day ? "#34455b" : "#fbefcd";
   const titleSize = portrait ? 64 : 74;
   return <g fill={ink} opacity={crayonProgress(frame,60,110,0,1,reduced)} data-km-crayon-title="">
     <text x={x} y={portrait ? 51 : 50} fontFamily="Georgia, 'Times New Roman', serif" fontSize={portrait ? 15 : 16}
       fontWeight="700" letterSpacing={3}>TINY TALES   /   {day ? "02" : "01"}</text>
-    <path d={"M" + x + " " + (portrait ? 65 : 64) + " H" + (portrait ? 255 : 404)}
+    <path d={"M" + x + " " + (portrait ? 65 : 61) + " H" + (portrait ? 255 : 404)}
       fill="none" stroke={ink} opacity=".65" strokeWidth="1.6"/>
     {title.map((line,i)=><text key={i} x={x} y={y + i * (portrait ? 72 : 79)}
       fontFamily="Georgia, 'Times New Roman', serif" fontWeight="700"
       fontSize={titleSize} letterSpacing={-2.3}>{line}</text>)}
-    <text x={x+3} y={y + title.length * (portrait ? 72 : 79) + 16} fontFamily="Georgia,serif"
+    <text x={!portrait && !day ? x + 130 : x + 3} y={portrait ? y + title.length * 72 + 16 : y + (title.length - 1) * 79 + 52} fontFamily="Georgia,serif"
       fontSize={portrait ? 20 : 23} fontStyle="italic" opacity=".88">{day ? "A pocketful of beginnings." : "A little light for the long way home."}</text>
-    {!portrait && <text x={width-53} y={height-27} textAnchor="end" fontFamily="Georgia,serif"
-      fontSize="15" letterSpacing={1.3} fill={day ? "#304d54" : "#f8eccd"}>WAX CRAYON   /   001</text>}
+    {!portrait && <text x={width-53} y={50} textAnchor="end" fontFamily="Georgia,serif"
+      fontSize="15" letterSpacing={1.3} fill={day ? "#304d54" : "#f8eccd"}>WAX CRAYON   /   {day ? "002" : "001"}</text>}
   </g>;
 }
 export function CrayonStorybook({frame, story = "lantern", aspect = "landscape", seed = 23,
@@ -793,7 +794,7 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
   const W = portrait ? 540 : 960, H = portrait ? 960 : 540;
   const raw = useId(), tooth = "crayonpaper-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
   const groundY = H * (portrait ? .76 : .78);
-  const skyD = "M0 0 H" + W + " V" + H*.68 + " Q" + W*.76 + " " + H*.59 + " " + W*.50 + " " + H*.67 + " T0 " + H*.61 + "Z";
+  const skyD = "M0 0 H" + W + " V" + H*.68 + " Q" + W*.76 + " " + H*.59 + " " + W*.50 + " " + H*.67 + " T0 " + H*.70 + "Z"; // reaches the far hills at the left edge
   const backD = "M0 " + H*.68 + " Q" + W*.23 + " " + H*.48 + " " + W*.44 + " " + H*.67 +
     " Q" + W*.70 + " " + H*.46 + " " + W + " " + H*.65 + " V" + H + " H0Z";
   const hillD = "M0 " + groundY + " Q" + W*.23 + " " + H*.66 + " " + W*.47 + " " + H*.75 +
@@ -836,7 +837,7 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
         color="#caa990" width={9} seed={seed+140} frame={totalFrame} first={220} last={340} reduced={reducedMotion} opacity={.56}/>
     </>}
     <MeadowDetails width={W} height={H} seed={seed+172} frame={totalFrame} reduced={reducedMotion} day={day}/>
-    {showStoryEditorial && <StoryTitle width={W} height={H} portrait={portrait} day={day} frame={totalFrame} reduced={reducedMotion}/>}
+    {showStoryEditorial && <StoryTitle width={W} portrait={portrait} day={day} frame={totalFrame} reduced={reducedMotion}/>}
     {portrait && showStoryEditorial && <g fill={day?"#365265":"#f9ebd2"} fontSize="17" fontFamily="Georgia,serif" letterSpacing="2" opacity=".86">
       <path d={"M33 " + (H-70) + " H" + (W-33)} stroke={day?"#365265":"#f9ebd2"} strokeWidth="1.5" fill="none"/>
       <text x={34} y={H-36}>WAX CRAYON   /   {day?"002":"001"}</text>

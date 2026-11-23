@@ -668,10 +668,12 @@ function pasternLeg(leg: RigLeg, cycle: number, stance: number, stride: number, 
     // leg unfolds so the last third of the swing is a straight reach that sets the hoof down flat.
     const fold = Math.max(s < .35 ? Math.sin(Math.PI / 2 * s / .35) : Math.cos(Math.PI / 2 * Math.min(1, (s - .35) / .42)) ** 2, .28 * Math.sqrt(Math.sin(Math.PI * s)));
     const lift0 = hoofAt(relStance(stance)), end = breakover(lift0, 1, restAngle), fade = 1 - smooth(s / .3);
-    const H: [number, number] = [hx + rel * w + (end.H[0] - lift0[0]) * fade, ground - L * w * fold + (end.H[1] - lift0[1]) * fade];
+    // Everything the swing adds fades with `w`: a leg that stands still in the swing part of the cycle stands flat.
+    const H: [number, number] = [hx + rel * w + (end.H[0] - lift0[0]) * fade * w, ground - L * w * fold + (end.H[1] - lift0[1]) * fade * w];
     const Fl = fetlockFor(H, P, J, reachS), hang = directionAngle(unloaded(H), H), land = directionAngle(Fl, H);
     lw = smooth((s - .6) / .4);
-    const theta = s < .3 ? lerpAngle(end.pastern, hang, smooth(s / .3)) : lerpAngle(hang, land, lw);
+    const theta = lerpAngle(land, s < .3 ? lerpAngle(end.pastern, hang, smooth(s / .3)) : lerpAngle(hang, land, lw), w);
+    lw = 1 - (1 - lw) * w;
     F = fromHoof(H, theta); aim = H;
   }
   solveTwoBone(leg.upper, leg.lower, leg.bend, F, byId, pose, world, 1);
