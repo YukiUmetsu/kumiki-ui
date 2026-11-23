@@ -46,7 +46,7 @@ import { compileSceneSounds, inspectSplitEdits } from "./film-split-edits";
 import { inspectSonic, sonicRef } from "./film-sonic";
 import { bedLevels, DRIVE_AMOUNTS, follow, inspectDrive, peakRisesPerSecond } from "./film-drive";
 import type { DriveProperty, FilmDrive, FilmDriveSpec, SoundLevels } from "./film-drive";
-import { compileHits } from "./film-hits";
+import { bedBeats, compileHits } from "./film-hits";
 import type { FilmHits, FilmHitsSpec } from "./film-hits";
 import { compileMotionChart } from "./motion-chart";
 import { compileAnnotate } from "./annotate";
@@ -841,7 +841,13 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
     const done = compiled[compiled.length - 1];
     if (authored.speed && done?.id === authored.id) {
       const local = (frame: number) => frame - startFrame;
-      const { speed, problems } = compileSpeed(authored.speed, authored.durationFrames, doc.fps.num / doc.fps.den, id => { const cue = done.cues.find(item => item.id === id); return cue && local(cue.frame); });
+      // A velocity edit follows the beats of a bed with a declared tempo, in this scene's frames.
+      const want = authored.speed.beats, bed = want && doc.audio?.beds?.find(item => item.id === want.bed), every = want?.every ?? 1, phase = want?.phase ?? 0;
+      if (want && !bed) report("error", "speed-beats-bed", path + "/speed/beats/bed", `The film has no bed "${want.bed}".`, "Name a bed in audio.beds.");
+      else if (want && !bed!.bpm) report("error", "speed-beats-tempo", path + "/speed/beats/bed", `The bed "${want.bed}" declares no tempo.`, "Give the bed its `bpm` (and `beatOffset`).");
+      if (want && !([1, 2, 4, 8].includes(every) && Number.isSafeInteger(phase) && phase >= 0 && phase < every)) report("error", "speed-beats-every", path + "/speed/beats", "A velocity edit follows every 1, 2, 4 or 8 beats, at a phase inside the group.");
+      const beats = bed?.bpm ? bedBeats(bed, doc.fps.num / doc.fps.den, startFrame + authored.durationFrames + 1).flatMap((frame, n) => n % every === phase ? [frame - startFrame] : []) : [];
+      const { speed, problems } = compileSpeed(authored.speed, authored.durationFrames, doc.fps.num / doc.fps.den, id => { const cue = done.cues.find(item => item.id === id); return cue && local(cue.frame); }, beats);
       for (const item of problems) report(item.severity, item.code, path + "/speed" + item.path, item.message, item.hint);
       if (speed) {
         done.speed = speed;

@@ -70,6 +70,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
   { id: "VE1.1", name: "Beat hits", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--beat-hits",
     what: "A punch zoom, a camera shake, an RGB split, a zoom blur or a flash on each beat of a bed with a declared tempo, on its loud onsets, or on moments; patterns combine (punch on the kick, shake on the snare).",
     usage: '"hits": [{ "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } }, { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }] · bed "bpm": 110' },
+  { id: "VE1.2", name: "Velocity edit", group: "Animation and type", rank: "P1", status: "built", story: "video-production-speed-ramp--velocity",
+    what: "The speed follows the beat: content races between beats and drops to slow motion on each one (rush, dip, burst or freeze), fitted exactly to the scene.",
+    usage: '"speed": { "source": 315, "beats": { "bed": "drums", "every": 2, "shape": "rush", "contrast": 8 } }' },
   { id: "A12", name: "Focus pull", group: "Animation and type", rank: "P3", status: "built", story: "video-production-promo-moves--focus-pull",
     what: "On a photo card, focus racks between the photograph and the words.", usage: '"focus": [{ "at": 0, "on": "words" }, { "at": 80, "on": "photo" }]' },
   { id: "S1", name: "Air gap", group: "Sound", rank: "P0", status: "built", story: "video-production-promo-moves--sound-moves",
@@ -98,6 +101,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.2": { registryItem: "film-document", jobs: ["cut the speed to the music", "slow motion on the beat"], keywords: ["velocity edit", "velocity", "speed curve", "speed ramp to music",
+    "slow motion on beat", "time remap to beat", "beat sync speed", "slowmo", "fast slow", "car edit", "sports edit", "music video", "bpm", "tempo"],
+    avoid: "Over about 10× motion stops reading; give the content enough frames that the beats really slow down." },
   "VE1.1": { registryItem: "film-document", jobs: ["cut the picture to the beat", "make an edit hit harder"], keywords: ["beat sync", "edit to music", "camera shake", "screen shake", "zoom punch", "punch zoom", "zoom on beat",
     "bass shake", "rgb split", "chromatic aberration", "zoom blur", "radial blur", "impact", "velocity edit", "music video", "beat drop", "flash on beat", "bpm", "tempo"],
     avoid: "Hits on every beat of a fast track read as jitter (over four a second warns); flashes stop at three a second; keep splits light over words." },
