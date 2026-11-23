@@ -156,6 +156,9 @@ export function CrayonDrawingStudio({aspect,detail,pressure,paperTooth,nibStyle=
 const meta={
   title:"Video production/Film Looks/Crayon/Drawing System",
   id:"video-crayon-drawing-system",
+  // The camera helper is exported for tests; it is not a story (it threw
+  // "Invalid crayon inspection area" when Storybook rendered it as one).
+  excludeStories:["crayonDrawingInspectionSpec"],
   component:CrayonDrawingStudio,
   // No newly constructed artwork is approved for public galleries without
   // native-resolution reference-matched artistic review.

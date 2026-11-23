@@ -84,7 +84,8 @@ export function CrayonPlayground({subject,aspect,paperRecipe,seed,paperTooth,red
     const target=actorClose?(atelierCrop==="face"?
       {x:0,y:-135,zoom:aspect==="portrait"?2.1:2.6}:
       {x:-8,y:31,zoom:aspect==="portrait"?1.8:2.3}):
-      wildlifeCrop==="eye"?{x:-56,y:-57,zoom:3.35}:
+      // CRAYON1 cameras allow zoom 1..3; 3.35 made the eye macro throw.
+      wildlifeCrop==="eye"?{x:-56,y:-57,zoom:3}:
       wildlifeCrop==="muzzle"?{x:-179,y:-2,zoom:3.0}:
       wildlifeCrop==="ear"?{x:109,y:-222,zoom:2.15}:
       {x:-58,y:27,zoom:2.55};
