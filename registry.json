@@ -5223,6 +5223,11 @@
       ],
       "files": [
         {
+          "path": "registry/rig/rig-strand.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-strand.ts"
+        },
+        {
           "path": "registry/video/ukiyoe/ukiyoe-core.ts",
           "type": "registry:ui",
           "target": "components/video/ukiyoe/ukiyoe-core.ts"

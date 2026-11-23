@@ -32,6 +32,7 @@ import { dangoProp, noboriProp } from "./ukiyoe-treasure";
 import { drawTool, firewood, hachiSide, kozuchi, onigiri, strikeBits, toolAt, toolBody, toolContact, toolStrikes, treasure } from "./ukiyoe-folk";
 import { babyBundle, faceOutline, ghostFaceSide, gotokuCrown, humanFeatures, isGhostFace, peonyLantern } from "./ukiyoe-onna";
 import type { UkiyoePaint, UkiyoeFill } from "./ukiyoe-pigments";
+import { settleStrand } from "../../rig/rig-strand";
 
 export type UkiyoeHair = "chonmage" | "shimada" | "child" | "bald" | "long" | "elder" | "topknot" | "wild" | "hyogo" | "kamuro" | "wareshinobu" | "mizura" | "tenko" | "heian" | "gourd";
 export type UkiyoeHat = "none" | "kasa" | "conical" | "eboshi" | "hood" | "headband" | "gotoku" | "hachi" | "zukin" | "kabuto" | "kanmuri" | "dragon";
@@ -592,6 +593,40 @@ export function isFemaleHair(hair: string | undefined): boolean {
   return hair === "shimada" || hair === "long" || hair === "hyogo" || hair === "kamuro" || hair === "wareshinobu" || hair === "heian" || hair === "tenko";
 }
 
+/**
+ * Long hair seen from the side, in the figure's space: it hangs from the back of the head, leans with the wind, and rests
+ * on the shoulders, the back and the obi knot (`settleStrand`), so it lies over the robe instead of going into it. A body
+ * bowed past 70 degrees lets go of it, and it swings down past the head.
+ */
+function longHairSide(s: Skeleton, tilt: number, flip: number, headBack: number, k: number, H: number, backTop: Pt, knot: boolean, floor: number, wind: number, frame: number, seed: number,
+  hairC: UkiyoePaint, lw: number): Prim[] {
+  // The back of the head; looking behind, the hair still falls from the nape.
+  const lx = lerp(-11.5 * flip, -3, headBack) * k, ly = lerp(-7, 10, headBack) * k, ct = Math.cos(tilt * DEG), st = Math.sin(tilt * DEG);
+  const root: Pt = add(s.head, [lx * ct - ly * st, lx * st + ly * ct]);
+  const N = 9, step = 96 * k / N, gust = wind * 10 + Math.sin(frame / 20 + seed) * 2, hang: Pt[] = [root];
+  // It hangs along the back of a leaning body, sagging onto it. As a bow deepens the body lets go first (60-70 degrees of lean), and only then
+  // does the hair swing down past the head (70-88), so nothing changes at once.
+  const along = s.lean * lerp(.85, 1, smooth((Math.abs(s.lean) - 35) / 23)) * (1 - smooth((Math.abs(s.lean) - 70) / 18));
+  for (let i = 0; i < N; i++) { const a = (2 + along + gust * .9 * (.35 + i / N)) * DEG; hang.push(add(hang[i], [-Math.sin(a) * step, Math.cos(a) * step])); }
+  const back: Pt = [-Math.cos(s.lean * DEG), -Math.sin(s.lean * DEG)], half = 5 * k, hold = 1 - smooth((Math.abs(s.lean) - 60) / 10), rho = H * .05;
+  const inward = (q: Pt, r: number): Pt => add(q, [-back[0] * r, -back[1] * r]);
+  const bodies = [
+    { a: inward(backTop, rho), b: inward(s.waistB, rho), r: rho },
+    { a: add(s.shB, [0, H * .012]), b: add(s.shF, [0, H * .012]), r: H * .026 },
+    ...(knot ? [{ a: inward(s.waistB, -H * .012), b: inward(s.waistB, -H * .012), r: H * .03 }] : []),
+  ];
+  const line = settleStrand(hang, bodies.map(c => ({ ...c, side: back, r: (c.r + half) * hold })).filter(c => c.r > 0), { floor: floor - half * .5, floorSide: -1 });
+  const left: Pt[] = [], right: Pt[] = [];
+  line.forEach((q, i) => {
+    const u = i / N, p0 = line[Math.max(0, i - 1)], p1 = line[Math.min(N, i + 1)], l = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) || 1, nx = -(p1[1] - p0[1]) / l, ny = (p1[0] - p0[0]) / l;
+    const w = k * lerp(lerp(6.4, 5.4, Math.min(1, u * 2)), 3.4, Math.max(0, u * 2 - 1));
+    left.push(add(q, [nx * w, ny * w])); right.push(add(q, [-nx * w, -ny * w]));
+  });
+  const d = smoothD([...left, ...right.reverse()], true, .35);
+  const strands = [-.45, .1, .55].map(o => carvedLine(line.slice(1).map((q, i) => { const l = left[i + 1]; return lerp2(q, l, o); }), lw * .55, { taper: "both", seed: seed + o * 10 }));
+  return [{ t: "fill", d, fill: hairC, outline: lw }, ...strands.map(sd => ({ t: "line", d: sd, color: hairC === "sumi" ? "usuzumi" : "sumi", opacity: .4 } as Prim))];
+}
+
 function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: number, wind: number, frame: number, seed: number, tq = false): Prim[] {
   const P = (x: number, y: number): Pt => [x * k, y * k];
   const out: Prim[] = [], lw = lineW(H) * .85, skin = look.skin ?? "hada", hairC = look.hairColor ?? (look.hair === "elder" ? "usuzumi" : "sumi");
@@ -603,11 +638,6 @@ function headPrims(look: UkiyoeFigureLook, pose: FigurePose, k: number, H: numbe
   const heian = hair === "heian" ? heianHairSide(P, lw, hairC, (H * lerp(.86, .52, pose.kneel)) / k, pose.kneel, wind * 6 + Math.sin(frame / 25 + seed)) : undefined;
   if (heian) out.push(...heian.behind);
   if (hair === "gourd") out.push(...gourdSide(P, lw, skin));
-  // Long hair falls behind the head and blows in the wind.
-  if (hair === "long") {
-    const sway = wind * 10 + Math.sin(frame / 20 + seed) * 2;
-    out.push({ t: "fill", d: smoothD([P(-6, -18), P(-17, -6), P(-19 - sway * .3, 20), P(-16 - sway, 52), P(-22 - sway * 1.4, 88), P(-8 - sway, 86), P(-6, 40), P(-4, 12)], true, .4), fill: hairC, outline: lw });
-  }
   if (hair === "shimada") out.push({ t: "fill", d: smoothD([P(-12, 4), P(-25, 8), P(-27, 16), P(-17, 19), P(-8, 14)], true, .5), fill: hairC, outline: lw });
   if (hair === "wild") {
     // A wild mane of spikes behind the face, blown by the wind.
@@ -1265,6 +1295,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   // Profile or three-quarter: the head narrows as it swings round and the drawing changes at the midpoint.
   const view = look.face === "oni" ? 0 : clamp01((look.view === "three-quarter" ? 1 : 0) + pose.faceView * (look.view === "three-quarter" ? -1 : 1));
   const swing = view > 0 && view < 1 ? Math.max(.62, Math.abs(Math.cos(Math.PI * view))) : 1;
+  if (look.hair === "long") out.push(...longHairSide(s, tilt * headFlip, 1, pose.headBack, k, H, backTop, !maeObi && !darari, gh, wl, frame, seed, look.hairColor ?? "sumi", lineW(H) * .85));
   if (look.beads) out.push(...magatama(add(s.neck, [H * .005, H * .03]), H, lw));
   out.push({ t: "group", transform: `translate(${s.head[0].toFixed(2)} ${s.head[1].toFixed(2)}) rotate(${(tilt * headFlip).toFixed(2)}) scale(${(headFlip * swing).toFixed(3)} 1)`, prims: headPrims(look, pose, k, H, wl * headFlip, frame, seed, view >= .5) });
 

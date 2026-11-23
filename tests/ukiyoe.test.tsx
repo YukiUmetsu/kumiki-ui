@@ -1224,3 +1224,22 @@ describe("UKIYO1 sound", () => {
     }
   });
 });
+
+describe("long hair seen from the side", () => {
+  type AnyPrim = { t: string; d?: string; fill?: unknown; outline?: number; transform?: string };
+  const prims = (action: Partial<UkiyoeAction> & { type: UkiyoeAction["type"] } | undefined, wind = 0) =>
+    drawFigure({ look: { hair: "long", robe: "beni", obi: "kin", build: "slim" }, facing: "right", actions: action ? [{ start: 0, end: 100, ...action }] : [] } as never, 50, wind, 31).prims as unknown as AnyPrim[];
+  const headAt = (list: AnyPrim[]) => list.findIndex(p => p.t === "group" && /scale\(/.test(p.transform ?? ""));
+  const hairAt = (list: AnyPrim[]) => { let i = headAt(list); while (i >= 0 && !(list[i].t === "fill" && list[i].fill === "sumi" && list[i].outline)) i--; return i; };
+  const points = (d: string) => { const n = (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number); return Array.from({ length: n.length >> 1 }, (_, i) => [n[2 * i], n[2 * i + 1]]).filter((_, i) => i % 3 === 0); };
+  it("is painted over the robe and the obi knot, and under the head", () => {
+    const list = prims(undefined), hair = hairAt(list), robe = list.map(p => p.t === "fill" && p.fill === "beni").lastIndexOf(true, headAt(list));
+    expect(hair).toBeGreaterThan(robe);
+    expect(hair).toBeLessThan(headAt(list));
+  });
+  it("moves smoothly through every bow and every wind, with no change of sides", () => {
+    const worst = (steps: AnyPrim[][]) => steps.map(l => points(l[hairAt(l)].d!)).reduce((m, p, i, all) => i ? Math.max(m, ...p.map((q, k) => Math.hypot(q[0] - all[i - 1][k][0], q[1] - all[i - 1][k][1]))) : m, 0);
+    expect(worst(Array.from({ length: 89 }, (_, a) => prims({ type: "bow", angle: a })))).toBeLessThan(13);
+    expect(worst(Array.from({ length: 61 }, (_, i) => prims(undefined, -1.5 + i * .05)))).toBeLessThan(6);
+  });
+});
