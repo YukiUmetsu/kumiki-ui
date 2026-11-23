@@ -8,12 +8,13 @@
 | --- | --- |
 | Showcase app `#/catalog` | Responsive browsable search; domain / renderer / level filters, registry dependency inspector, source and docs links, verified Storybook previews |
 | Storybook **Start here → Component Catalog → Browse** | The same searchable gallery in existing Storybook |
-| `npm run catalog:find -- --query="ATM"` | Concise developer-readable results |
+| `npm run catalog:find -- --query="ATM"` | The 10 best matches, one line each. `--full` adds every field; `--id=` shows one entry in full |
 | `npm run catalog:find -- --query="cash machine" --type=object --renderer=three --format=json` | Deterministic, machine-readable results |
 | `npm run catalog:find -- --id=object:finance:credit-card:2d --format=json` | Exact one-item retrieval without name ambiguity |
-| `npm run catalog:find -- --all --format=json` | Entire machine-readable catalog (stdout; pipe to a JSON file if desired) |
+| `npm run catalog:find -- --all --full --format=json` | Entire machine-readable catalog (stdout; pipe to a JSON file if desired) |
 | `npm run catalog:check` | Drift check: registry, named vocabulary, curated hero definitions, linked docs and actual Storybook exports |
-| `npm run catalog:api -- --id=diagram-stage --format=json` | TypeScript-verified public exports, component props, types and source-declared defaults for the installable pack |
+| `npm run catalog:api -- --id=diagram-stage` | Compact, at most 4 KB: exports, own props, types and defaults. What it leaves out is named or counted; add `--export=A,B` for exact types |
+| `npm run catalog:api -- --id=diagram-stage --full --format=json` | TypeScript-verified public exports, component props, types and source-declared defaults for the installable pack |
 | `npm run catalog:api -- --id=diagram-stage --export=DiagramStage --format=json` | Inspect only the requested public export (agent-friendly, bounded response) |
 | `npm run catalog:api:check` | Node-only tests for types, defaults, re-exports, CLI JSON and error behavior |
 

@@ -1,0 +1,30 @@
+# ripgrep, fd and agent search skip these: one-line data, where a single match prints hundreds of kilobytes.
+# They stay in git. To search them: rg --no-ignore, or name the file.
+/assets/baked/slot-canyon.path.json
+/assets/physics/domino-amplifier-3.json
+/assets/physics/domino-amplifier-4.json
+/assets/physics/domino-amplifier-5.json
+/assets/physics/domino-amplifier-6.json
+/assets/physics/domino-amplifier-7.json
+/assets/physics/domino-amplifier-8.json
+/assets/physics/domino-chain.json
+/assets/physics/stack-compare.json
+/assets/sound/lab/moves/moves.json
+/assets/sound/levels.json
+/docs/research/assets/paper-royal-study/fox-anim1-schematic.svg
+/examples/film/editorial-collage-archive.film.json
+/examples/film/editorial-collage.film.json
+/examples/film/ukiyoe-kaguya-hime.film.json
+/examples/film/ukiyoe-kasa-jizo.film.json
+/examples/film/ukiyoe-momotaro.film.json
+/examples/film/ukiyoe-urashima-taro.film.json
+/registry/anatomy/data/face-mesh-mediapipe.json
+/registry/anatomy/data/face-types.json
+/registry/anatomy/data/model-tables.json
+/registry/anatomy/data/stature-for-age-cdc.json
+/src/craft/fixtures/blender-desk-lamp-physics/baked-actions.json
+/src/craft/fixtures/blender-mechanical-joints/baked-actions.json
+/src/craft/fixtures/blender-pair-impacts/baked-actions.json
+/src/video/assets/place-iceland-boundary.json
+/src/video/assets/relief-rainier-route.json
+/tests/fixtures/makeup-zone-parity.json

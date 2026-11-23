@@ -222,10 +222,12 @@ export function inspectCatalogApi(entry, { exportName } = {}) {
       if (!same.some(item => item.resolved === resolved)) found.set(name, [...same, { symbol, resolved, source }]);
     }
   }
-  if (exportName && !found.has(exportName))
-    throw Error("Export '" + exportName + "' not found in " + entry.registryItem +
+  const wanted = exportName?.split(",");
+  const missing = wanted?.find(name => !found.has(name));
+  if (missing !== undefined)
+    throw Error("Export '" + missing + "' not found in " + entry.registryItem +
       ". Available: " + [...found.keys()].sort().join(", "));
-  const selected = exportName ? [exportName] : [...found.keys()].sort((a, b) =>
+  const selected = wanted ?? [...found.keys()].sort((a, b) =>
     a === "default" ? 1 : b === "default" ? -1 : a.localeCompare(b, "en"));
   for (const name of selected) for (const { symbol, resolved, source } of found.get(name)) {
     const named = [...found].find(([other, value]) => other !== "default" &&

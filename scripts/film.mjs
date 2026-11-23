@@ -22,7 +22,7 @@ import { chromium } from "playwright";
 import { createServer } from "vite";
 import { serveFile } from "./serve-file.mjs";
 import { glArgs } from "./video-export-core.mjs";
-import { selectFilmFrame } from "./film-frame-core.mjs";
+import { selectFilmFrame, problemLines } from "./film-frame-core.mjs";
 import { SHADER_FX_GUIDE } from "../registry/video/shader-fx-guide.ts";
 import { MATERIAL_SOUNDS } from "../registry/video/material-sound.ts";
 
@@ -377,7 +377,10 @@ async function review() {
     const problems = report.outputs.flatMap(output => [...output.problems ?? [], ...output.frames.flatMap(frame => frame.problems)]);
     for (const problem of report.outputs.flatMap(output => output.problems ?? [])) console.log(`${problem.severity.toUpperCase()} [${problem.code}] ${problem.text}`);
     const failed = problems.filter(problem => problem.severity === "error").length;
-    for (const output of report.outputs) console.log(`${output.id}: ${output.frames.length} frames, ${output.contactSheet}`);
+    for (const output of report.outputs) {
+      console.log(`${output.id}: ${output.frames.length} frames, ${output.contactSheet}`);
+      for (const line of problemLines(output.frames)) console.log("  " + line);
+    }
     console.log(`${failed} error(s), ${problems.length - failed} warning(s). Report: ${join(dir, "report.json")}`);
     for (const fx of report.effects) console.log(`Check ${fx.scene}/${fx.id} (${fx.effect}${fx.job ? ", " + fx.job : ""}): ${fx.questions.join(" ")}`);
     console.log("Status: not reviewed. These checks cover geometry only. Look at each contact sheet before you accept the film.");

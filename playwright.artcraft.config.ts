@@ -7,7 +7,8 @@ export default defineConfig({
   workers:1,
   retries:0,
   timeout:60_000,
-  reporter:[["list"]],
+  // A coding agent needs the failures, not a line for each pass. Both reporters print failures in full.
+  reporter: [[process.env.AI_AGENT || process.env.CLAUDECODE ? "dot" : "list"]],
   use:{viewport:{width:960,height:540},deviceScaleFactor:1,
     trace:"retain-on-failure",...devices["Desktop Chrome"]},
   projects:[{name:"chromium",use:{...devices["Desktop Chrome"]}}],

@@ -7,7 +7,7 @@ description: Implement or review premium, accessible, themeable React components
 
 Use this skill for a new component, component modification, registry release or visual design review.
 
-1. Read [AGENTS](../../AGENTS.md), the [catalog](../../docs/02-component-catalog.md) and the specific [component contract](../../docs/03-component-standards.md). Avoid reading every doc when a narrow task will do.
+1. Read [AGENTS](../../AGENTS.md), search with `npm run -s catalog:find -- --query="intent"` (do not read the [catalog](../../docs/02-component-catalog.md) itself), and read the parts you need of the [component contract](../../docs/03-component-standards.md).
 2. Search approved Kumiki components before creating new primitives. Respect the documented API and semantic tokens; keep copy and behaviors generic.
 3. For each component, write a concise [spec](../../templates/component-spec.md): task, API, states, keyboard/focus, variants, customization, dependencies and acceptance tests.
 4. Implement functional state and accessibility before visual polish. Use typography, composition, motion and themes from [foundations](../../docs/01-design-foundations.md).
