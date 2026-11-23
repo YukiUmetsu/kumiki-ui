@@ -9,6 +9,7 @@
  *   riso      two spot-ink plates in misregistration, screened tints, multiply overprint
  *   ink       wet ink washes with bleeding edges and a dry brush outline
  *   blueprint white technical line work on a blue grid, bones and joints shown
+ *   pencil    coloured pencil on toothy paper: layered hatching fixed to each part, value turning with the light
  */
 import { createContext, useContext, useId, useMemo } from "react";
 import type { CSSProperties, ReactNode, SVGProps } from "react";
@@ -18,8 +19,9 @@ import type { RigRole, RigShape, RigSpec } from "./rig-spec";
 import { flattenPath, paperEdge, toPathD } from "../video/collage/collage-geometry";
 import { boardTexture, fiberTexture } from "../video/collage/collage-texture";
 import { Paper, WaxLine, WaxRegion } from "../video/materials/crayon-react";
+import { PencilGroundTile, PencilLookDefs, PencilPaper, PencilPart } from "./rig-look-pencil";
 
-export type RigLook = "flat" | "collage" | "crayon" | "riso" | "ink" | "blueprint";
+export type RigLook = "flat" | "collage" | "crayon" | "riso" | "ink" | "blueprint" | "pencil";
 /**
  * Looks animate on ones by default (smooth); pass `cadence={2}` for a stop-motion feel. `boil` is how often a
  * hand-drawn medium redraws its texture, independent of the motion: wax boils every few frames even on ones.
@@ -31,6 +33,7 @@ export const RIG_LOOKS: readonly { id: RigLook; label: string; cadence: number; 
   { id: "riso", label: "Riso print", cadence: 1, boil: 1 },
   { id: "ink", label: "Ink wash", cadence: 1, boil: 1 },
   { id: "blueprint", label: "Blueprint", cadence: 1, boil: 1 },
+  { id: "pencil", label: "Coloured pencil", cadence: 1, boil: 6 },
 ];
 const lookOf = (look: RigLook) => RIG_LOOKS.find(l => l.id === look)!;
 /** Texture redraw step for a frame: on the motion cadence or the medium's boil, whichever is slower. */
@@ -232,6 +235,7 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
       case "riso": return <RisoPart spec={spec} p={p} ctx={ctx} plate={plate!} />;
       case "ink": return <InkPart spec={spec} p={p} ctx={ctx} />;
       case "blueprint": return <BlueprintPart p={p} />;
+      case "pencil": return <PencilPart p={p} d={pathOf(p.shape)} color={partColor(spec, p)} seed={hashStr(spec.id + p.id)} ctx={ctx} />;
       default: return <FlatPart spec={spec} p={p} />;
     }
   };
@@ -289,6 +293,7 @@ function LookDefs({ look, uid, width, height, seed }: { look: RigLook; uid: stri
         <feComposite in2="rough" operator="in" />
       </filter>
     </>}
+    {look === "pencil" && <PencilLookDefs uid={uid} seed={seed} />}
     <rect width={0} height={0} data-w={width} data-h={height} />
   </defs>;
 }
@@ -303,6 +308,7 @@ function Backdrop({ look, uid, width, height, seed }: { look: RigLook; uid: stri
     case "crayon": return <Paper width={width} height={height} seed={seed} tooth={uid + "-tooth"} strength={.6} color="#f6ecd6" />;
     case "riso": return <rect width={width} height={height} fill="#f4efe1" />;
     case "ink": return <rect width={width} height={height} fill="#f3eee2" />;
+    case "pencil": return <PencilPaper uid={uid} width={width} height={height} seed={seed} />;
     case "blueprint": {
       const lines: string[] = [];
       for (let x = 0; x <= width; x += 40) lines.push(`M${x} 0V${height}`);
@@ -340,6 +346,7 @@ function GroundTile({ look, uid, k, ground, depth, seed }: { look: RigLook; uid:
     case "riso": return <g><rect x={x0} y={ground} width={TILE + .5} height={depth} fill={`url(#${uid}-riso1-15)`} opacity={.9} />{marks}</g>;
     case "ink": return <g><path d={`M${x0} ${ground + 3} C${x0 + TILE * .25} ${ground - 4} ${x0 + TILE * .55} ${ground + 6} ${x1} ${ground + 3}`} fill="none" stroke="#2a2a30" strokeWidth={2.2} opacity={.5} filter={`url(#${uid}-dry)`} />{marks}</g>;
     case "blueprint": return <g><path d={`M${x0} ${ground}H${x1}`} stroke="#eaf3ff" strokeWidth={1.4} />{marks}</g>;
+    case "pencil": return <PencilGroundTile uid={uid} x0={x0} x1={x1} ground={ground} depth={depth} seed={seed + k * 31} />;
     default: return <g><rect x={x0} y={ground} width={TILE + .5} height={depth} fill="#cfd9c4" />{marks}</g>;
   }
 }

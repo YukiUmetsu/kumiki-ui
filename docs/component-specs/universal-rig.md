@@ -94,6 +94,14 @@ cadence (crayon wax redraws every four frames even on ones). `camera={{ x, y, zo
 `followCamera(spec, frame, { y, lead })` tracks a travelling rig. The ground band and its marks are anchored to the world in
 tiles, so they scroll under a tracking camera and show the true speed of a gait. Every look can show the bones.
 
+**Coloured pencil** (`look="pencil"`, painter in `registry/rig/rig-look-pencil.tsx`) draws with the CP-F1 pencil engine:
+each rig role maps to a CP-F1 surface (`PENCIL_ROLE_SURFACE`: fur, skin, fabric, metal, keratin, glass…), the surface's
+three pigment passes come from `createPencilMaterialRegion`, the marks from `hatchPencilRegion` and the paper tooth from
+`pencilGrainTile`. Each part gets opaque paper support, a value underlayer lit from the upper left (turning with the part),
+the three passes and a broken pencil contour. Marks and tooth are masks in the part's own coordinates, so they move with
+the part and never swim; they redraw only on the look's boil step (every six frames, three mark sets), and not at all
+with reduced motion. The ground is a drawn line over hatched earth. COLLAGE1 `rig` nodes do not offer this look yet.
+
 ## In COLLAGE1
 
 ```ts
