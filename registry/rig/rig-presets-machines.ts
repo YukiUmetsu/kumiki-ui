@@ -178,8 +178,8 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   rig.part("shell", "body", path("M48.5 4.2L50.6 2.4Q51.6 -.4 51.2 -4.8L49.4 -7.4Q44 -9.4 30 -11.2L22.5 -12L8.6 -22.4Q6.6 -23.9 3 -24L-12 -24.4Q-22 -24.2 -30 -22.6L-35.4 -20.6L-44.6 -12.4Q-46.8 -10.2 -47.4 -6L-47.6 -1L-46.4 3.6L-41.52 4.2A11 11 0 0 1 -20.48 4.2L20.48 4.2A11 11 0 0 1 41.52 4.2Z"), "paint", 4, { extrude: true });
   // Shadow under the sill and overhangs (the dark gap between body and road on every real car).
   rig.part("underbody", "body", path("M-21 3.6L21 3.6Q22 5 20.6 6.2L-20.6 6.2Q-22 5 -21 3.6Z M42 3.6L48.6 3.6Q49.2 4.8 47.6 5.6L42.6 5.6Z M-42 3.6L-46.4 3.6Q-47.2 4.8 -45.8 5.6L-42.6 5.6Z"), "detail", 3.8, { color: "#26292e" });
-  rig.part("well-r", "body", ell(-31, 1, 10.4, 10.4), "metal-dark", 3.9);
-  rig.part("well-f", "body", ell(31, 1, 10.4, 10.4), "metal-dark", 3.9);
+  rig.part("well-r", "body", path("M-41.02 3.8A10.4 10.4 0 1 1 -20.98 3.8Z"), "metal-dark", 3.9);
+  rig.part("well-f", "body", path("M20.98 3.8A10.4 10.4 0 1 1 41.02 3.8Z"), "metal-dark", 3.9);
   rig.part("cabin", "body", poly([[21, -12.8], [8.4, -21.8], [3.6, -23.2], [-12, -23.6], [-24, -23], [-38.4, -14.8]]), "detail", 4.1, { extrude: true, faceRole: "glass" });
   // Driver and headrest behind the glass.
   rig.part("headrest", "body", rect(-6.6, -21.2, 3.4, 5.6, 1.2), "metal-dark", 4.15);

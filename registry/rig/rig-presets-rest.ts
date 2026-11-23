@@ -11,7 +11,9 @@
  *     along the ground without slipping (the centre advances by radius × angle).
  * The body stays one rig: lying is the pelvis turned a quarter round with the feet held on the ground by IK.
  */
-import type { RigKey } from "./rig-spec";
+import { evaluateRig } from "./rig-evaluate";
+import type { RigPartFrame } from "./rig-evaluate";
+import type { RigKey, RigSpec } from "./rig-spec";
 import { Rig, path, rect } from "./rig-kit";
 import type { Pt } from "./rig-kit";
 
@@ -104,8 +106,8 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       };
       const prop = (from: number, to: number) => {
         // Hands go to the mat beside the hips first, then take the weight behind as the trunk comes up.
-        arm("f", from, to, 6, [pt(from, LIE.x - 20, -1.4 - g), pt(mid, SIT.x - 8, -1.2 - g), pt(to, SIT.x - 6, -1.2 - g)]);
-        arm("b", from, to, 6, [pt(from, LIE.x - 23, -1.4 - g), pt(mid, SIT.x - 11, -1.2 - g), pt(to, SIT.x - 9, -1.2 - g)]);
+        arm("f", from, to, 6, [pt(from, LIE.x - 20, -2.9 - g), pt(mid, SIT.x - 8, -2.9 - g), pt(to, SIT.x - 6, -2.9 - g)]);
+        arm("b", from, to, 6, [pt(from, LIE.x - 23, -2.9 - g), pt(mid, SIT.x - 11, -2.9 - g), pt(to, SIT.x - 9, -2.9 - g)]);
       };
       // Legs: out straight (toes up) while lying and sitting.
       // (Getting up, the knees-up IK takes over at the very pose these leave, so there is no blend through the rest pose.)
@@ -123,7 +125,7 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
         rig.track("blanket", [{ frame: start, scaleX: 1, scaleY: 1 }, { frame: n(126), scaleX: 1, scaleY: 1 }, { frame: n(144), scaleX: .72, scaleY: .8, ease: IO }]);
         edge(n(124), n(146));
         prop(n(144), sit1 + 2);
-        arm("b", sit1, LATE, 8, [pt(sit1, SIT.x - 9, -1.2 - g), pt(sit1 + 12, 2, -17 - g)]);
+        arm("b", sit1, LATE, 8, [pt(sit1, SIT.x - 9, -2.9 - g), pt(sit1 + 12, 2, -17 - g)]);
         const r0 = n(186), r1 = n(208);
         armFollow("f", sit1, r0, 8, "pelvis", [10, -14]);
         rig.drivers.push({ type: "reach", start: r0 - 6, end: r1 + 6, ramp: 6, upper: "arm-f", lower: "fore-f", bend: -1, follow: "head", offset: [5.2 * u, -.4 * u],
@@ -140,7 +142,7 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
         rig.track("blanket", [{ frame: start, scaleX: 1, scaleY: 1 }, { frame: sit0, scaleX: 1, scaleY: 1 }, { frame: sit1, scaleX: .72, scaleY: .8, ease: IO },
           { frame: b0, scaleX: .72, scaleY: .8 }, { frame: b1, scaleX: .44, scaleY: .66, ease: IO }, { frame: b2, scaleX: .12, scaleY: .34, ease: "ease-out-quad" }]);
         T(b0, 4); T(b1, 30); T(b2, 12); edge(b0 - 2, b1 + 2);
-        arm("b", sit1, b2 + 8, 6, [pt(sit1, SIT.x - 9, -1.2 - g)]);
+        arm("b", sit1, b2 + 8, 6, [pt(sit1, SIT.x - 9, -2.9 - g)]);
         // Knees up, feet flat on the mat close to the seat; weight forward over the feet with a hand on the mat; crouch
         // with the hands on the knees; stand; a standing stretch and yawn.
         const k1 = n(112), w0 = n(122), c0 = n(138), s0 = n(160), st0 = n(170), st1 = n(196);
@@ -154,7 +156,7 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
         kneesUp("f", n(98), ankleN, k1, FOOT_N); kneesUp("b", n(100), sitHeelF, k1 + 2, FOOT_F);
         P(b2, SIT.x, SIT.y, SIT.r); P(k1, SIT.x + 1.6, SIT.y, 0); P(w0, -6.4, -13.4 - g, 0); P(c0, -.4, -25 - g, 0); P(s0, .2, -HIP - g, 0);
         T(k1, 14); T(w0, 40); T(c0, 46); T(s0, 0); H(k1, 6); H(w0, 14); H(c0, 18); H(s0, 0);
-        arm("f", b1, c0 + 4, 8, [pt(b1, 6, -18 - g), pt(w0, -1, -1.2 - g), pt(c0 - 4, -1, -1.2 - g)]);
+        arm("f", b1, c0 + 4, 8, [pt(b1, 6, -18 - g), pt(w0, -1, -2.9 - g), pt(c0 - 4, -1, -2.9 - g)]);
         armFollow("f", c0, s0 - 2, 6, "shin-f", [-1.6, 3]); armFollow("b", b2 + 4, s0 - 2, 8, "shin-b", [-1.6, 3]);
         for (const sd of ["f", "b"]) rig.track("arm-" + sd, [{ frame: st0, rotate: 0 }, { frame: st0 + 12, rotate: sd === "f" ? -160 : -150, ease: "ease-out-cubic" }, { frame: st1, rotate: sd === "f" ? -156 : -148 }, { frame: st1 + 12, rotate: 0 }]);
         T(st0, 0); T(st0 + 14, -6); T(st1, -4); T(st1 + 12, 0); H(st0, 0); H(st0 + 14, -14); H(st1, -10); H(st1 + 12, 0);
@@ -192,13 +194,14 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       }
       // Feet: planted while crouching and sitting, then walked forward, then slid out long with the toes up.
       // (On the mat the floor is g higher.) Steps are [frame, x, lift].
-      const steps = (side: "f" | "b", keys: Steps) => leg(side, start, f1 + n(8), 0, keys.map(([frame, x, lift]) => pt(frame, x, -SOLE - g - (lift ?? 0))), 0);
+      // They hold until the next reach is fully in (14 frames), or the leg would drop to its straight pose, through the floor.
+      const steps = (side: "f" | "b", keys: Steps) => leg(side, start, f1 + 15, 0, keys.map(([frame, x, lift]) => pt(frame, x, -SOLE - g - (lift ?? 0))), 0);
       steps("f", [[start, 2.2], [s1, 2.2], [s1 + n(6), 9, 2.6], [f1, 15]]); steps("b", [[start, -1.4], [s1 + n(3), -1.4], [s1 + n(9), 6, 2.4], [f1 + n(2), 11]]);
       leg("f", f1, LATE, 14, [pt(f1, 15, -SOLE - g), pt(l1, ankleN[0], ankleN[1])], -90);
       leg("b", f1, LATE, 14, [pt(f1, 11, -SOLE - g), pt(l1, ankleF[0], ankleF[1])], -90);
       // The near hand reaches back to the ground to lower the body, supports while lying back, then rests.
       const restA: Pt = sleepy ? [LIE.x - 16, LIE.y - 10.6] : [LIE.x - 43, LIE.y + 1.4], restB: Pt = sleepy ? [LIE.x - 22, LIE.y - 10] : [LIE.x - 42, LIE.y + 2];
-      arm("f", c0 + 4, sleepy ? LATE : l1 - 2, 8, [pt(c0 + 4, 6, -46), pt(c1, -10, -6 - g), pt(s1, -14, -1.2 - g), pt(l0, -15, -1.2 - g), pt(l1 - n(4), -26, -2 - g), pt(l1 + n(10), restA[0], restA[1])]);
+      arm("f", c0 + 4, sleepy ? LATE : l1 - 2, 8, [pt(c0 + 4, 6, -46), pt(c1, -10, -6 - g), pt(s1, -14, -2.9 - g), pt(l0, -15, -2.9 - g), pt(l1 - n(4), -26, -2 - g), pt(l1 + n(10), restA[0], restA[1])]);
       arm("b", l0, LATE, 10, [pt(l0, -4, -30), pt(l1 + n(14), restB[0], restB[1])], sleepy ? -1 : 1);
       // Hands behind the head: the elbows point up off the ground, not across the face.
       if (!sleepy) arm("f", l1 - n(6), LATE, 8, [pt(l1 - n(6), -26, -2), pt(l1 + n(10), restA[0], restA[1])], 1);
@@ -231,15 +234,17 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
     const thighs: RigKey[] = [], shins: RigKey[] = [], feet: RigKey[] = [];
     P(start, X0, -HIP, 0); T(start, 0); H(start, 0);
     let windowStart = start;
+    // Whole turns so far: after a forward roll the pelvis stays at 360 degrees, or it would unwind the turn while standing up.
+    let turned = 0;
     for (const [i, rl] of rolls.entries()) {
       const { at: a, x0, dir } = rl, crouch = a + 14, roll = crouch + 6, done = roll + LEN, up = done + 18;
       // Centre of the ball when the tucked ankles are on the planted feet (ankle at x0 + 2.2).
       const cx0 = x0 + 2.2 - (ANKLE[0] - C[0]), cx1 = cx0 + dir * 2 * Math.PI * R;
       const tuckAt = (frame: number, th: number, cx: number, ease: Ease) => {
         const off: Pt = [-C[0], -C[1]], cr = Math.cos(th / RD), sr = Math.sin(th / RD);
-        P(frame, cx + off[0] * cr - off[1] * sr, -R + off[0] * sr + off[1] * cr, tuck.pelvis + th, ease);
+        P(frame, cx + off[0] * cr - off[1] * sr, -R + off[0] * sr + off[1] * cr, tuck.pelvis + th + turned, ease);
       };
-      P(a, x0, -HIP, 0); P(crouch, x0 - 3, -26, -12); T(a, 0); T(crouch, dir > 0 ? 44 : 34); H(a, 0); H(crouch, dir > 0 ? 24 : 16);
+      P(a, x0, -HIP, turned); P(crouch, x0 - 3, -26, -12 + turned); T(a, 0); T(crouch, dir > 0 ? 44 : 34); H(a, 0); H(crouch, dir > 0 ? 24 : 16);
       tuckAt(roll, 0, cx0, IO); T(roll, tuck.torso); H(roll, tuck.head);
       // Rolling over the rounded back without slipping: the centre advances by R × angle.
       for (let k = 1; k <= LEN; k++) {
@@ -250,7 +255,8 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       H(roll + Math.round(LEN * .3), 80); H(roll + Math.round(LEN * .7), 80);
       T(done, tuck.torso); H(done, tuck.head);
       const xEnd = cx1 + (ANKLE[0] - C[0]) - 2.2;
-      P(done + 6, xEnd - 3, -26, -12); P(up, xEnd, -HIP, 0); T(done + 6, dir > 0 ? 40 : 30); T(up, 0); H(done + 6, 18); H(up, 0);
+      turned += dir * 360;
+      P(done + 6, xEnd - 3, -26, -12 + turned); P(up, xEnd, -HIP, turned); T(done + 6, dir > 0 ? 40 : 30); T(up, 0); H(done + 6, 18); H(up, 0);
       // Legs: planted by IK while standing and squatting; held in the tuck by keyed angles through the roll.
       thighs.push({ frame: crouch, rotate: 0 }, { frame: roll, rotate: tuck.thigh }, { frame: done, rotate: tuck.thigh }, { frame: done + 6, rotate: 0 });
       shins.push({ frame: crouch, rotate: 0 }, { frame: roll, rotate: tuck.shin }, { frame: done, rotate: tuck.shin }, { frame: done + 6, rotate: 0 });
@@ -259,8 +265,8 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       if (i === rolls.length - 1) c.plant(done - 2, LATE, [[done, xEnd + 2.2]], [[done, xEnd - 1.4]], 4);
       windowStart = done - 2;
       // Hands: to the ground ahead (forward roll) or beside the hips (backward), then hugging the shins in the tuck.
-      arm("f", a + 2, roll + 2, 4, [pt(a + 2, x0 + 6, -46), pt(crouch, x0 + (dir > 0 ? 17 : -9), -1.4)]);
-      arm("b", a + 2, roll + 2, 4, [pt(a + 2, x0 + 1, -46), pt(crouch, x0 + (dir > 0 ? 14 : -11), -1.4)]);
+      arm("f", a + 2, roll + 2, 4, [pt(a + 2, x0 + 6, -46), pt(crouch, x0 + (dir > 0 ? 17 : -9), -2.9)]);
+      arm("b", a + 2, roll + 2, 4, [pt(a + 2, x0 + 1, -46), pt(crouch, x0 + (dir > 0 ? 14 : -11), -2.9)]);
       armFollow("f", roll - 2, done + 2, 3, "shin-f", [1, 4]); armFollow("b", roll - 2, done + 2, 3, "shin-b", [1, 4]);
     }
     for (const s of ["f", "b"]) { rig.track("thigh-" + s, thighs.map(k => ({ ...k }))); rig.track("shin-" + s, shins.map(k => ({ ...k }))); rig.track("foot-" + s, feet.map(k => ({ ...k }))); }
@@ -293,4 +299,31 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
   if (pelvis.length) rig.track("pelvis", pelvis);
   if (torso.length) rig.track("torso", torso);
   if (head.length) rig.track("head", head);
+}
+
+/** Lowest point of a part in scene y (sampled outline). */
+function lowestOf(p: RigPartFrame): number {
+  const y = (px: number, py: number) => p.matrix.b * px + p.matrix.d * py + p.matrix.f, s = p.shape;
+  switch (s.type) {
+    case "ellipse": return Math.max(...Array.from({ length: 24 }, (_, i) => y((s.cx ?? 0) + s.rx * Math.cos(i * Math.PI / 12), (s.cy ?? 0) + s.ry * Math.sin(i * Math.PI / 12))));
+    case "rect": return Math.max(y(s.x, s.y), y(s.x + s.width, s.y), y(s.x, s.y + s.height), y(s.x + s.width, s.y + s.height));
+    case "capsule": return Math.max(...[[0, s.w0 / 2], [s.length, s.w1 / 2]].flatMap(([cy, r]) => Array.from({ length: 16 }, (_, i) => y(r * Math.cos(i * Math.PI / 8), cy + r * Math.sin(i * Math.PI / 8)))));
+    case "polygon": return Math.max(...s.points.map(([a, b]) => y(a, b)));
+    case "path": return -Infinity;
+  }
+}
+
+/**
+ * A tucked body is not a ball: rolling about one centre, its head and seat would dig into the floor. Raise the pelvis on
+ * its per-frame keys by as much as the lowest part would sink, smoothed so the body does not bump along.
+ */
+export function rollOnTheGround(spec: RigSpec): RigSpec {
+  const keys = spec.tracks?.pelvis ?? [], ground = spec.root?.[0]?.y ?? 0;
+  const dense = new Set(keys.filter((k, i) => i > 0 && k.frame - keys[i - 1].frame === 1 || i < keys.length - 1 && keys[i + 1].frame - k.frame === 1).map(k => k.frame));
+  const depth = (f: number) => Math.max(0, ...evaluateRig(spec, f).parts.filter(p => !p.id.startsWith("hair-")).map(p => lowestOf(p) - ground));
+  const sink = new Map([...dense].map(f => [f, depth(f)] as const));
+  const near = (f: number, r: number) => Array.from({ length: 2 * r + 1 }, (_, i) => sink.get(f - r + i) ?? 0);
+  const peak = new Map([...dense].map(f => [f, Math.max(...near(f, 1))] as const));
+  const lift = (f: number) => { const w = [1, 2, 3, 2, 1]; let sum = 0; w.forEach((g, i) => { sum += g * (peak.get(f - 2 + i) ?? 0); }); return Math.max(sink.get(f) ?? 0, sum / 9); };
+  return { ...spec, tracks: { ...spec.tracks, pelvis: keys.map(k => dense.has(k.frame) ? { ...k, y: (k.y ?? 0) - lift(k.frame) } : k) } };
 }

@@ -783,9 +783,10 @@ function drape(d: Extract<RigDriver, { type: "drape" }>, w: number, ground: numb
   const tilted = (bone: string) => angleDelta(angleOf(rest.get(bone)!), angleOf(world.get(bone)!));
   const parent = byId.get(d.bones[0])!.parent;
   if (d.hang && parent) {
-    // Undo the parent's tilt from rest, a share per bone, so the root still follows the head and the tip hangs straight.
-    const tilt = tilted(parent);
-    for (const id of d.bones) pose.get(id)!.rotate -= parentSign(id) * w * d.hang * tilt / n;
+    // Undo the parent's tilt from rest, more of it down the chain, so the root follows the head and the tip hangs straight.
+    // Each bone blends two directions (with the parent, and hanging), not two angles: an angle flips sign upside down.
+    const tilt = tilted(parent) / DEG, undone = (k: number) => Math.atan2(k * Math.sin(tilt), 1 - k + k * Math.cos(tilt)) * DEG;
+    d.bones.forEach((id, i) => { pose.get(id)!.rotate -= parentSign(id) * w * angleDelta(undone(d.hang! * i / n), undone(d.hang! * (i + 1) / n)); });
     solve();
   }
   // A body tipped past `slip` no longer holds the strand: its collider fades out over +-10 degrees, so the strand slips off
@@ -800,11 +801,13 @@ function drape(d: Extract<RigDriver, { type: "drape" }>, w: number, ground: numb
   const tipOf = (id: string) => apply(world.get(id)!, 0, byId.get(id)!.length!);
   const hang = [apply(world.get(d.bones[0])!, 0, 0), ...d.bones.map(tipOf)];
   const pm = parent ? world.get(parent)! : IDENT;
-  const floorSide = d.floorSide && pm.a * d.floorSide[0] + pm.c * d.floorSide[1];
+  const floorSide = d.floorSide && (pm.a * d.floorSide[0] + pm.c * d.floorSide[1]) / (Math.hypot(pm.a * d.floorSide[0] + pm.c * d.floorSide[1], pm.b * d.floorSide[0] + pm.d * d.floorSide[1]) || 1);
   const settled = settleStrand(hang, capsules, { floor: d.floor ? ground - r : undefined, floorSide });
   const heading = (a: readonly [number, number], b: readonly [number, number]) => Math.atan2(-(b[0] - a[0]), b[1] - a[1]) * DEG;
   d.bones.forEach((id, i) => {
-    const want = heading(settled[i], settled[i + 1]), from = pose.get(id)!.rotate, sign = parentSign(id);
+    const bone = byId.get(id)!, want = heading(settled[i], settled[i + 1]), from = pose.get(id)!.rotate, sign = parentSign(id);
+    // A lock lying toward the viewer is drawn shorter; its children keep their own length (`inheritScale: false`).
+    if (bone.inheritScale === false) pose.get(id)!.sy = Math.max(.15, Math.min(1, Math.hypot(settled[i + 1][0] - settled[i][0], settled[i + 1][1] - settled[i][1]) / bone.length!));
     // Twice, because an uneven scale above the bone (a breathing torso) skews how far one local turn goes.
     for (let k = 0; k < 2; k++) {
       const m = world.get(id)!;

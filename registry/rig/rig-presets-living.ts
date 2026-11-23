@@ -16,7 +16,7 @@ import { Rig, arc, at, cap, ell, finish, path, poly, rect, sampledPath, travel, 
 import type { Pt, RigPresetOptions } from "./rig-kit";
 import { ACTION_MOTIONS, ACTION_PALETTE, addPersonAction } from "./rig-presets-actions";
 import type { ActionMotion } from "./rig-presets-actions";
-import { FLOOR_MOTIONS } from "./rig-presets-rest";
+import { FLOOR_MOTIONS, rollOnTheGround } from "./rig-presets-rest";
 import { ANIMAL_GAITS } from "../anatomy/animal-gaits";
 import type { AnimalGait } from "../anatomy/animal-gaits";
 
@@ -103,6 +103,7 @@ function addLongHair(rig: Rig, motion: string) {
   const lengths = [8, 6.5, 6.5, 6.5, 6, 5.5], rest = [18, 8, -10, -8, -4, -2], half = [4.2, 4.4, 4.3, 4, 3.5, 2.9, 2];
   lengths.forEach((L, i) => {
     const id = rig.bone("hair-" + i, i ? "hair-" + (i - 1) : "head", i ? 0 : -7.6, i ? lengths[i - 1] : -2.6, rest[i], L);
+    rig.bones[rig.bones.length - 1].inheritScale = false;
     bones.push(id);
     const a = half[i], b = half[i + 1], last = i === lengths.length - 1;
     // Each lock tucks under the one above and ends in a ragged row of tips, so the joints read as layered hair.
@@ -348,7 +349,8 @@ export function personRig(o: RigPresetOptions & { chair?: boolean; hair?: "short
   }
   const action = (ACTION_MOTIONS as readonly string[]).includes(m);
   if (action) addPersonAction(rig, m as ActionMotion, { u, start, end, t, plant });
-  return finish("person", "biped", rig, travel(o, start, end, moving ? "linear" : undefined), action ? { ...PERSON_PALETTE, ...ACTION_PALETTE } : PERSON_PALETTE, { x: -16 * u, y: -100 * u, width: 32 * u, height: 102 * u }, o);
+  const spec = finish("person", "biped", rig, travel(o, start, end, moving ? "linear" : undefined), action ? { ...PERSON_PALETTE, ...ACTION_PALETTE } : PERSON_PALETTE, { x: -16 * u, y: -100 * u, width: 32 * u, height: 102 * u }, o);
+  return m === "roll" ? rollOnTheGround(spec) : spec;
 }
 
 // ---- Four-legged animals ---------------------------------------------------------------------------------------------------------
@@ -515,6 +517,8 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
   }
   // A horse's tail streams back as the pace rises; dogs wag, cats swish slowly.
   const stream = horse ? ({ walk: 4, trot: 12, canter: 20, gallop: 26 } as Record<string, number>)[m] ?? 0 : 0;
+  // A sitting tail lies on the floor behind instead of going through it.
+  if (sitting) rig.drivers.push({ type: "drape", bones: tailBones, floor: true, floorSide: [-1, 0], radius: 1.6 * u });
   rig.drivers.push({ type: "chain", end: sitting ? t(.34) : undefined, bones: tailBones, amplitude: kind === "dog" ? (moving ? 12 : 16) : kind === "cat" ? 6 : horse && moving ? 7 : 4,
     period: kind === "dog" ? 14 : kind === "cat" ? 70 : horse && moving ? CYCLE.horse[m] ?? 40 : 40, lag: .8, growth: 1.2, follow: 2, bias: stream / tailN });
   rig.drivers.push({ type: "oscillate", bone: "chest", property: "scaleY", amplitude: .012, period: 80 });

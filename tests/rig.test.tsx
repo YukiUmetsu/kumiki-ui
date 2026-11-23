@@ -152,6 +152,22 @@ describe("RIG1 motion", () => {
     expect(Math.abs(foot - (700 - 2.4 * 3.6))).toBeLessThan(.5);
     expect(f.parts.some(p => p.id === "chair-seat")).toBe(true);
   });
+  it("keeps feet on the floor lying down, and rolls without digging in or unwinding its turn", () => {
+    const ellipseLow = (m: { b: number; d: number; f: number }, cx: number, cy: number, rx: number, ry: number) => m.b * cx + m.d * cy + m.f + Math.hypot(m.b * rx, m.d * ry);
+    // Every window length: the feet used to drop through the floor between two reaches at 180 frames but not at 240.
+    for (const D of [150, 180, 240]) for (const motion of ["lie-down", "go-to-sleep"]) {
+      const spec = personRig({ motion, start: 0, end: D, from: 400, to: 400, y: 700 });
+      for (let f = 0; f <= D; f++) for (const id of ["foot-f", "foot-b"]) expect(world(spec, id, f)[1], `${motion} ${D} ${id}@${f}`).toBeLessThan(700);
+    }
+    const spec = personRig({ motion: "roll", start: 0, end: 180, from: 400, to: 400, y: 700 }), head = spec.parts.find(p => p.id === "hair")!;
+    expect(head).toBeDefined();
+    const angle = (f: number) => { const m = evaluateRig(spec, f).bones.get("pelvis")!.world; return Math.atan2(m.b, m.a) * 180 / Math.PI; };
+    for (let f = 0; f <= 180; f++) {
+      // The head's outline (10.2 x 11.2 design units) stays on the floor, upside down included.
+      expect(ellipseLow(evaluateRig(spec, f).bones.get("head")!.world, 0, 0, 10.2 * 3.6, 11.2 * 3.6), "head@" + f).toBeLessThan(700 + 4);
+      if (f) expect(Math.abs(((angle(f) - angle(f - 1) + 540) % 360 + 360) % 360 - 180), "turn@" + f).toBeLessThan(30);
+    }
+  });
   describe("long hair", () => {
     type P = [number, number];
     const seg = (p: P, a: P, b: P) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l)) : 0; return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy); };

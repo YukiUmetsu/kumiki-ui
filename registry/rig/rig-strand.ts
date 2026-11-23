@@ -20,7 +20,11 @@ export interface StrandCapsule {
 export interface StrandOptions {
   /** Lowest y a point may reach. A strand whose root is already lower stays no lower than its root. */
   floor?: number;
-  /** Which way the strand lies down on the floor: the sign of x. Left out, the way it was already heading. */
+  /**
+   * Which way the strand lies down on the floor, -1 (toward -x) to 1. Between about -.4 and .4 neither way is favoured and
+   * it spreads toward or away from the viewer, so it looks shorter: it passes from one side to the other smoothly. Left
+   * out, it lies the way it was already heading, at full length.
+   */
   floorSide?: number;
   /** Steps per point (default 24). */
   steps?: number;
@@ -51,7 +55,8 @@ function inside(p: StrandPoint, c: StrandCapsule, need: number): { depth: number
   return { depth: -dot + Math.sqrt(Math.max(0, dot * dot - (d * d - need * need))), n: [ux, uy] };
 }
 
-/** Settle the strand whose hanging pose is `hang` (root first). Segment lengths are kept exactly. */
+/** Settle the strand whose hanging pose is `hang` (root first). Segments keep their lengths, except lying on the floor toward
+ * or away from the viewer (`floorSide`), where they look shorter. */
 export function settleStrand(hang: readonly StrandPoint[], capsules: readonly StrandCapsule[], options: StrandOptions = {}): [number, number][] {
   const steps = options.steps ?? 24, out: [number, number][] = [[hang[0][0], hang[0][1]]];
   for (let i = 1; i < hang.length; i++) {
@@ -72,10 +77,11 @@ export function settleStrand(hang: readonly StrandPoint[], capsules: readonly St
         const mid = inside([(x + j[0]) / 2, (y + j[1]) / 2], c, Math.sqrt(Math.max(0, needs[m] ** 2 - L * L / 4)));
         if (mid) { x += 2 * mid.n[0] * mid.depth; y += 2 * mid.n[1] * mid.depth; }
       });
-      if (y > floor) {
+      if (y >= floor) {
         y = floor;
         const reach = Math.sqrt(Math.max(0, L * L - (y - j[1]) ** 2));
-        x = j[0] + ((options.floorSide ?? x - j[0]) < 0 ? -reach : reach);
+        x = j[0] + reach * (options.floorSide === undefined ? (x < j[0] ? -1 : 1) : Math.max(-1, Math.min(1, options.floorSide / .4)));
+        continue;
       }
       keepLength();
     }
