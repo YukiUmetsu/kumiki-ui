@@ -3923,7 +3923,8 @@
         "ink-wash-core",
         "ink-brush",
         "watercolour-brush",
-        "watercolour-wet-paper"
+        "watercolour-wet-paper",
+        "riso-print"
       ],
       "files": [
         {
@@ -4030,6 +4031,11 @@
           "path": "registry/rig/rig-look-watercolour.tsx",
           "type": "registry:ui",
           "target": "components/rig/rig-look-watercolour.tsx"
+        },
+        {
+          "path": "registry/rig/rig-look-riso.tsx",
+          "type": "registry:ui",
+          "target": "components/rig/rig-look-riso.tsx"
         },
         {
           "path": "registry/video/collage/collage-geometry.ts",

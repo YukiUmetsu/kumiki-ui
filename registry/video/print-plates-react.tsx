@@ -1,10 +1,11 @@
 import { Fragment, useId, useMemo } from "react";
 import type { ReactNode, SVGProps } from "react";
-import { evaluateRisoPrint, inspectRisoPrint, plateRegistration, printHash } from "./print-plates";
+import { evaluateRisoPrint, inspectRisoPrint, plateRegistration, printHash, risoPaperFibres, risoPaperPores } from "./print-plates";
 import type { RisoPrintSpec } from "./print-plates";
 import { createRisoScreenGeometry, wrapRisoScreenDots } from "./riso-screening";
-import type { RisoScreenMode } from "./riso-screening";
+import type { RisoScreenGeometry, RisoScreenMode } from "./riso-screening";
 import {createRisoDrumContactGeometry} from "./riso-drum-contact";
+import type {RisoDrumContactGeometry} from "./riso-drum-contact";
 
 /** Render-owned SVG paint bindings: authored artwork chooses solid fills or screened densities per spot ink. */
 export interface RisoPaint {
@@ -64,6 +65,44 @@ export function printRevealPath(width: number, height: number, progress: number,
   return `M0 0 L${edge.join(" L")} L0 ${height} Z`;
 }
 
+// ---- Shared print materials (used by RisoPrint and by other renderers that print in this style, e.g. the RIG1 look) ----
+
+/** One plate's halftone screen as an SVG pattern: separate ink dots in the referencing element's user space. */
+export function RisoScreenPattern({ id, geometry, angle, color }: { id: string; geometry: RisoScreenGeometry; angle: number; color: string }) {
+  return <pattern id={id} x={0} y={0} width={geometry.tileSize} height={geometry.tileSize}
+    patternUnits="userSpaceOnUse" patternTransform={`rotate(${angle})`}>
+    {wrapRisoScreenDots(geometry).map((dot, dotIndex) => <circle key={dotIndex} cx={dot.x} cy={dot.y} r={dot.r} fill={color} />)}
+  </pattern>;
+}
+/** Paper pores as black mask dots (place inside a white mask): the specks of paper every ink pass leaves open. */
+export function RisoPaperPores({ pores, grain }: { pores: readonly { x: number; y: number; r: number }[]; grain: number }) {
+  return <>{grain > 0 && pores.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={p.r * (.4 + grain)} fill="#000" />)}</>;
+}
+/** Paper fibres: short darker strokes locked to the sheet, so texture never crawls with the camera or the art. */
+export function RisoPaperFibres({ fibres, grain }: { fibres: readonly { x: number; y: number; length: number; opacity: number; vertical: boolean }[]; grain: number }) {
+  return <g pointerEvents="none" stroke="#694B38" strokeWidth=".7">
+    {fibres.map((p, i) => <path key={i} opacity={p.opacity * grain}
+      d={`M${p.x.toFixed(1)} ${p.y.toFixed(1)} l${p.vertical ? "0.8" : p.length.toFixed(1)} ${p.vertical ? p.length.toFixed(1) : "0.8"}`} />)}
+  </g>;
+}
+/** RISO75 drum contact as black mask marks (place inside a white mask): dry roller streaks and pinpricks per drum. */
+export function RisoDrumContactMarks({ geometry, plateId }: { geometry: RisoDrumContactGeometry; plateId: string }) {
+  return <>
+    <g stroke="#000" strokeLinecap="round" fill="none"
+      data-km-riso75-fibre-master={plateId}>
+      {geometry.streaks.map(line=><path
+        key={line.id} data-km-riso75-streak={line.id}
+        d={line.d} strokeWidth={line.strokeWidth}
+        opacity={line.opacity}/>)}
+    </g>
+    <g fill="#000" data-km-riso75-pore-master={plateId}>
+      {geometry.pinpricks.map(p=><ellipse
+        key={p.id} cx={p.cx} cy={p.cy} rx={p.rx} ry={p.ry}
+        opacity={p.opacity}/>)}
+    </g>
+  </>;
+}
+
 /** Separate ink layers over fixed paper; no local clocks, image downloads, or WebGL. */
 export function RisoPrint({
   spec, frame, artworks, foregroundLayers = [], misregistration = 0, paperGrain = .5, drumContact,
@@ -120,18 +159,8 @@ export function RisoPrint({
       width:spec.width,height:spec.height,seed:spec.seed,
       plateIndex:index,dryness:drumContact.dryness,feed:drumContact.feed,
     }):null);
-  const sheet = useMemo(() => Array.from({ length: 450 }, (_, i) => ({
-    x: printHash(spec.seed, i, 31) * spec.width,
-    y: printHash(spec.seed, i, 37) * spec.height,
-    length: 2 + printHash(spec.seed, i, 41) * 18,
-    opacity: .09 + printHash(spec.seed, i, 43) * .18,
-    vertical: printHash(spec.seed, i, 47) > .4,
-  })), [spec.seed, spec.width, spec.height]);
-  const pores = useMemo(() => Array.from({ length: 330 }, (_, i) => ({
-    x: printHash(spec.seed + 41, i, 1) * spec.width,
-    y: printHash(spec.seed + 41, i, 3) * spec.height,
-    r: .35 + printHash(spec.seed + 41, i, 9) * 1.7,
-  })), [spec.seed, spec.width, spec.height]);
+  const sheet = useMemo(() => risoPaperFibres(spec.seed, spec.width, spec.height), [spec.seed, spec.width, spec.height]);
+  const pores = useMemo(() => risoPaperPores(spec.seed, spec.width, spec.height), [spec.seed, spec.width, spec.height]);
   const inkPass = (i: number, artwork: RisoArtwork, layerId?: string) => {
     const plate = spec.plates[i];
     const [dx, dy] = plateRegistration(spec, i, misregistration);
@@ -166,40 +195,19 @@ export function RisoPrint({
     <defs>
       <mask id={`${uid}-tooth`} x={0} y={0} width={spec.width} height={spec.height} maskUnits="userSpaceOnUse">
         <rect width={spec.width} height={spec.height} fill="#fff" />
-        {grain > 0 && pores.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={p.r * (.4 + grain)} fill="#000" />)}
+        <RisoPaperPores pores={pores} grain={grain} />
       </mask>
       {spec.plates.map((plate, index) => <Fragment key={plate.id}>
         {drumContactGeometry[index]&&<mask id={`${uid}-contact-${index}`}
           x={0} y={0} width={spec.width} height={spec.height}
           maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse">
           <rect width={spec.width} height={spec.height} fill="#fff"/>
-          <g stroke="#000" strokeLinecap="round" fill="none"
-            data-km-riso75-fibre-master={plate.id}>
-            {drumContactGeometry[index].streaks.map(line=><path
-              key={line.id} data-km-riso75-streak={line.id}
-              d={line.d} strokeWidth={line.strokeWidth}
-              opacity={line.opacity}/>)}
-          </g>
-          <g fill="#000" data-km-riso75-pore-master={plate.id}>
-            {drumContactGeometry[index].pinpricks.map(p=><ellipse
-              key={p.id} cx={p.cx} cy={p.cy} rx={p.rx} ry={p.ry}
-              opacity={p.opacity}/>)}
-          </g>
+          <RisoDrumContactMarks geometry={drumContactGeometry[index]} plateId={plate.id} />
         </mask>}
-        <pattern id={`${uid}-dots-${index}`} x={0} y={0}
-          width={screens[index].tileSize} height={screens[index].tileSize}
-          patternUnits="userSpaceOnUse" patternTransform={`rotate(${plate.dotAngle})`}>
-          {wrapRisoScreenDots(screens[index]).map((dot, dotIndex) => <circle key={dotIndex}
-            cx={dot.x} cy={dot.y} r={dot.r} fill={plate.color} />)}
-        </pattern>
-        {(["light","mid"] as const).map(tone => <pattern key={tone}
-          id={`${uid}-dots-${tone}-${index}`}
-          x={0} y={0} width={toneScreens[index][tone].tileSize}
-          height={toneScreens[index][tone].tileSize}
-          patternUnits="userSpaceOnUse" patternTransform={`rotate(${plate.dotAngle})`}>
-          {wrapRisoScreenDots(toneScreens[index][tone]).map((dot, dotIndex)=><circle
-            key={dotIndex} cx={dot.x} cy={dot.y} r={dot.r} fill={plate.color}/>)}
-        </pattern>)}
+        <RisoScreenPattern id={`${uid}-dots-${index}`} geometry={screens[index]} angle={plate.dotAngle} color={plate.color} />
+        {(["light","mid"] as const).map(tone => <RisoScreenPattern key={tone}
+          id={`${uid}-dots-${tone}-${index}`} geometry={toneScreens[index][tone]}
+          angle={plate.dotAngle} color={plate.color} />)}
         <clipPath id={`${uid}-clip-${index}`} clipPathUnits="userSpaceOnUse">
           <path d={printRevealPath(spec.width, spec.height, frameState.plates[index].progress, spec.seed + index * 11)} />
         </clipPath>
@@ -207,10 +215,7 @@ export function RisoPrint({
     </defs>
     {!transparentPaper && <rect width={spec.width} height={spec.height} fill={spec.paper} />}
     {/* Paper fibres stay locked to the sheet, preventing camera/animation texture crawl. */}
-    {!transparentPaper && grain > 0 && <g pointerEvents="none" stroke="#694B38" strokeWidth=".7">
-      {sheet.map((p, i) => <path key={i} opacity={p.opacity * grain}
-        d={`M${p.x.toFixed(1)} ${p.y.toFixed(1)} l${p.vertical ? "0.8" : p.length.toFixed(1)} ${p.vertical ? p.length.toFixed(1) : "0.8"}`} />)}
-    </g>}
+    {!transparentPaper && grain > 0 && <RisoPaperFibres fibres={sheet} grain={grain} />}
     {spec.plates.map((plate, i) => activePlateIds && !activePlateIds.has(plate.id)
       ? null : inkPass(i, artworks[plate.id]))}
     {/* The paper knockout is applied only *after* all backdrop inks and *before*

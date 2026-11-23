@@ -102,11 +102,17 @@ describe("RISO23 actual-render-informed facial tone and microink layout",()=>{
         ? ["screen-orbit-left","screen-orbit-right","screen-cheek-left",
             "screen-cheek-right","screen-jaw-left","screen-jaw-right"]
         : [...regions];
+      // Areas in head-local source units: RISO29 drew the head at about half its old size (headScale .52) to fix
+      // the giant head, which shrinks stage areas by ~.27 without thinning any plane. Divide by the head transform's
+      // determinant so the RISO23 thresholds keep measuring the drawn planes, not the figure's proportions.
+      const [a,b,c,d]=(face.transform.match(/-?\d*\.?\d+(?:e-?\d+)?/g)??[]).map(Number);
+      const headArea=Math.abs(a*d-b*c);
+      expect(headArea).toBeGreaterThan(.05);
       for(const id of names){
         const r=mesh.regions.find(p=>p.id===id)!;
         expect(r,id).toBeDefined();
-        expect(r.contourArea,id).toBeGreaterThan(12);
-        expect(r.triangleArea,id).toBeGreaterThan(10);
+        expect(r.contourArea/headArea,id).toBeGreaterThan(12);
+        expect(r.triangleArea/headArea,id).toBeGreaterThan(10);
         expect(r.triangleArea,id).toBeLessThan(r.contourArea*1.05);
       }
       expect(evaluateRisoCharacter(actor,frame)).toEqual(pose);

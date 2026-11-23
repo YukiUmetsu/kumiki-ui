@@ -58,6 +58,9 @@ export function riso54WebContour(cx:number,cy:number,skew:number):string{
  * neutral and detail shapes untouched. The anatomy source gets preserved
  * for both actors via separately authored handedness and pressure.
  */
+/** True for the RISO54 paper-white web reserves. They are a zero-area point until a hand grips, so they are negative
+ * ink masks, never a positive 2D mesh region on a model sheet. */
+export const isRiso54WebReserve=(partId:string)=>partId.includes("-glove-web-reserve-");
 export function riso54WebReserveParts(actor:Riso54Actor):readonly RisoCharacterPart[]{
   const side:Riso54Side=actor==="courier"?"right":"left";
   // RISO57: the previous fixed x=-3.2/-8.12 and y=18.8/16.15

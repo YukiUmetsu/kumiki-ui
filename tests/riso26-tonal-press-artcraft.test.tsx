@@ -12,14 +12,16 @@ import {PAPER_ARTIST} from "../src/video/riso-human-ensemble";
 
 const subjects=[COURIER,PAPER_ARTIST] as const;
 const samples=[46,78,160,198] as const;
+// RISO29 deliberately quietened the orbital screens from mid to light on both actors ("quieter graded orbital inks",
+// after review rejected the darker sockets); temples and sockets keep the mid master.
 const expectedTone:Record<string,Record<string,"light"|"mid">>={
   courier:{
-    "orbital-tone-planes":"mid","face-temple-shadow":"mid","eye-socket-planes":"mid",
+    "orbital-tone-planes":"light","face-temple-shadow":"mid","eye-socket-planes":"mid",
     "zygomatic-tone-planes":"light","jaw-shadow-planing":"light","nose-bridge-plane":"light",
     "chin-plane":"light","lip-shadow":"light",
   },
   "paper-artist":{
-    "orbital-tone-planes":"mid","temple-tones":"mid",
+    "orbital-tone-planes":"light","temple-tones":"mid",
     "zygomatic-tone-planes":"light","jaw-shadow-planing":"light",
     "cheek-tones":"light","chin-tone":"light",
   },
@@ -56,7 +58,8 @@ describe("RISO26 ArtCraft graded facial spot-master value and source anatomy",()
       expect(part?.screenTone,id).toBe(tone);
       expect(part?.opacity??1,id).toBe(1); // no semitransparent facial overlay
     }
-    expect(actor.parts.filter(p=>p.screenTone).map(p=>p.id).sort())
+    // Facial tone parts only: later neck (RISO29) and hand (RISO30–37) engravings carry their own screen tones.
+    expect(actor.parts.filter(p=>p.screenTone&&p.joint==="head").map(p=>p.id).sort())
       .toEqual(Object.keys(expected).sort());
     for(const original of ["face","face-outline","iris-left","iris-right",
       actor.id==="courier"?"nose":"nose-bridge"]){
@@ -148,7 +151,8 @@ describe("RISO26 ArtCraft graded facial spot-master value and source anatomy",()
     expect(svg).toContain("-dots-1");
     expect(svg).toContain("data-km-riso-foreground-plate=\"red\"");
     expect(partFill(svg,"zygomatic-tone-planes")).toMatch(/fill="url\(#[^)]+-dots-light-1\)"/);
-    expect(partFill(svg,"orbital-tone-planes")).toMatch(/fill="url\(#[^)]+-dots-mid-1\)"/);
+    expect(partFill(svg,"orbital-tone-planes")).toMatch(/fill="url\(#[^)]+-dots-light-1\)"/);
+    expect(partFill(svg,"face-temple-shadow")).toMatch(/fill="url\(#[^)]+-dots-mid-1\)"/);
     expect(svg).not.toContain('fill-opacity="0.');
     expect(svg).not.toContain("feGaussianBlur");
   });

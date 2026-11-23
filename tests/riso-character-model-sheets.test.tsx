@@ -6,6 +6,7 @@ import {evaluateRisoCharacterMesh,inspectRisoCharacterMesh} from "../registry/vi
 import {COURIER,PAPER_BIRD} from "../src/video/riso-character-demo";
 import {evaluateRisoCharacter} from "../registry/video/riso-character";
 import {RISO_COURIER_SHEET,RISO_PAPER_BIRD_SHEET} from "../src/video/riso-character-mesh-sheets";
+import {isRiso54WebReserve,riso54WebReserveParts} from "../src/video/riso54-interdigital-paper-reserve";
 
 const cases=[
   {spec:COURIER,sheet:RISO_COURIER_SHEET},
@@ -16,7 +17,12 @@ describe("Source-anchored Riso character proportional construction sheets",()=>{
     it(`${spec.id}: every authored component is mapped into a named 2D mesh`,()=>{
       expect(inspectRisoCharacterMesh(spec,sheet)).toEqual([]);
       const mapped=new Set(sheet.regions.flatMap(r=>r.parts));
-      expect(spec.parts.filter(p=>!mapped.has(p.id)).map(p=>p.id)).toEqual([]);
+      // RISO54 paper-white web reserves are zero-area negative masks until a hand grips, never a positive mesh.
+      // They are the only parts allowed outside the sheet, and only the Courier's two.
+      const reserves=spec.parts.filter(p=>isRiso54WebReserve(p.id));
+      expect(reserves.map(p=>p.id)).toEqual(spec.id==="courier"?riso54WebReserveParts("courier").map(p=>p.id):[]);
+      expect(reserves.every(p=>p.knockoutOnly)).toBe(true);
+      expect(spec.parts.filter(p=>!mapped.has(p.id)&&!isRiso54WebReserve(p.id)).map(p=>p.id)).toEqual([]);
       expect(new Set(sheet.regions.map(r=>r.id)).size).toBe(sheet.regions.length);
       expect(sheet.view).toBe("authored-2d");
       expect(sheet.missingViews).toContain("back");

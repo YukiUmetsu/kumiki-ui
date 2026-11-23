@@ -209,6 +209,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:ray-world-terraced-relief":{storyId:"video-ray-worlds--terraced-relief"},
   "pack:ray-world-river-flight":{storyId:"video-ray-worlds--river-flight"},
   "pack:film-gallery":{storyId:"showcases-films--gallery"},
+  "pack:riso-character":{storyId:"video-riso-characters--paper-courier-performance"},
   "pack:sound-design":{storyId:"video-sound-lab--rooms"},
   "pack:sound-mastering":{storyId:"video-sound-lab--ducking-under-narration"},
   "pack:freeze-frame-focus":{storyId:"video-freeze-frame-focus--focus"},

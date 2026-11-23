@@ -4,6 +4,9 @@ import { RIG_PRESETS } from "../../registry/rig/rig-presets";
 import type { RigPresetEntry } from "../../registry/rig/rig-presets";
 import { RIG_LOOKS, RigScene, followCamera } from "../../registry/rig/rig-react";
 import type { RigCamera, RigLook } from "../../registry/rig/rig-react";
+import { RisoLookProvider } from "../../registry/rig/rig-look-riso";
+import { RISO_DRUM_SETS } from "../../registry/video/print-plates";
+import type { RisoDrumSetId } from "../../registry/video/print-plates";
 import "../styles/collage-fonts.css";
 import { CollageScene } from "../../registry/video/collage/collage-react";
 import type { CollageSceneSpec } from "../../registry/video/collage/collage-scene";
@@ -73,6 +76,9 @@ function RigLab() {
   const [bones, setBones] = useState(false);
   const [cadence, setCadence] = useState(1);
   const [mode, setMode] = useState<CameraMode | null>(null);
+  const [drums, setDrums] = useState<RisoDrumSetId>("medium-blue-orange");
+  const [screen, setScreen] = useState<"am" | "fm">("am");
+  const riso = useMemo(() => ({ drums, screen }), [drums, screen]);
   const cam = mode ?? defaultMode(entry, m);
   const loop = useLoop(DURATION - 1, 70);
   const { spec, follows, horizon } = useMemo(() => stage(entry, m, cam), [entry, m, cam]);
@@ -95,7 +101,9 @@ function RigLab() {
     <nav aria-label="Film looks" style={row}><span style={rowLabel}>Look</span>
       {RIG_LOOKS.map(l => <button type="button" key={l.id} style={l.id === look ? active : button} aria-pressed={l.id === look} onClick={() => setLook(l.id)}>{l.label}</button>)}</nav>
     <div style={{ width: 1120, maxWidth: "100%", aspectRatio: "16 / 9", boxShadow: "0 14px 44px rgba(40,30,20,.2)", overflow: "hidden" }}>
-      <RigScene look={look} width={W} height={H} ground={horizon} frame={loop.frame} rigs={[spec]} showBones={bones} cadence={cadence} camera={camera} aria-label={`${entry.label}, ${m}, ${look}`} />
+      <RisoLookProvider value={riso}>
+        <RigScene look={look} width={W} height={H} ground={horizon} frame={loop.frame} rigs={[spec]} showBones={bones} cadence={cadence} camera={camera} aria-label={`${entry.label}, ${m}, ${look}`} />
+      </RisoLookProvider>
     </div>
     <Controls loop={loop} />
     <div style={{ ...row, gap: 18 }}>
@@ -105,6 +113,12 @@ function RigLab() {
         {[[1, "Smooth · on ones"], [2, "Stop-motion · on twos"]].map(([c, l]) => <button type="button" key={c} style={c === cadence ? active : button} aria-pressed={c === cadence} onClick={() => setCadence(c as number)}>{l}</button>)}</div>
       <label style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px system-ui" }}><input type="checkbox" checked={bones} onChange={e => setBones(e.target.checked)} /> Show bones</label>
     </div>
+    {look === "riso" && <div style={{ ...row, gap: 18 }}>
+      <label style={label}>Riso drums<select aria-label="Riso drums" value={drums} onChange={e => setDrums(e.target.value as RisoDrumSetId)}>
+        {Object.keys(RISO_DRUM_SETS).map(id => <option key={id} value={id}>{id.replace(/-/g, " ")}</option>)}</select></label>
+      <label style={label}>Screen<select aria-label="Riso screen" value={screen} onChange={e => setScreen(e.target.value as "am" | "fm")}>
+        <option value="am">AM · dots grow with tone</option><option value="fm">FM · dispersed droplets</option></select></label>
+    </div>}
   </div>;
 }
 
