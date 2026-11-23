@@ -7121,7 +7121,8 @@
       "dither",
       "lens",
       "spin",
-      "zoom-blur"
+      "zoom-blur",
+      "glitch"
      ]
     },
     "durationFrames": {
@@ -7134,6 +7135,10 @@
     "zoom": {
      "type": "number",
      "description": "`zoom-blur`: the scale at the cut, 1.2 to 4."
+    },
+    "intensity": {
+     "type": "number",
+     "description": "`glitch`: how hard the bands jump and tear, 0.1 to 1."
     },
     "subject": {
      "type": "string",

@@ -167,6 +167,10 @@ Two short-form cuts that hide the join inside one fast move (VE1.3). Both are `r
 - **Sound.** earshot timeline of the mix: both cuts have an onset within 10 ms (offsets +10 and +4 ms), −15.5 LUFS.
 - **Owner review.** Visual and listening review is pending.
 
+### Glitch cut
+
+`{ "kind": "glitch", "intensity": 0.7 }`: the frame breaks into bands that jump sideways and tear into red and blue while the next scene takes over band by band (VE1.9). Default 8 frames; reduced motion keeps a dissolve. See [Glitch cut and datamosh](glitch-datamosh.md), which also covers `npm run video:datamosh`.
+
 ### Zoom through
 
 `{ "kind": "zoom", "subject": "glow", "edge": "soft" }` pushes the camera into a region of the outgoing scene, and the incoming scene is inside it: a photograph inside a screen inside a room, or daylight through a wall of ice (doc 32, P2 "Infinite zoom"). The camera's scale moves in log space, eased at both ends, while the region slides to the frame's centre, until the region covers the frame.

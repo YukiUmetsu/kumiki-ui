@@ -5967,6 +5967,16 @@
           "target": "components/video/film-freeze-react.tsx"
         },
         {
+          "path": "registry/video/film-glitch.ts",
+          "type": "registry:ui",
+          "target": "components/video/film-glitch.ts"
+        },
+        {
+          "path": "registry/video/film-glitch-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/film-glitch-react.tsx"
+        },
+        {
           "path": "registry/video/footage-react.tsx",
           "type": "registry:ui",
           "target": "components/video/footage-react.tsx"

@@ -85,6 +85,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
   { id: "VE1.8", name: "Motion trail and echo", group: "Animation and type", rank: "P2", status: "built", story: "video-production-promo-moves--motion-trail",
     what: "Fading copies of the cut-out subject every few frames, plain or washed in a colour; or a whole-frame echo of earlier frames, with no cutout.",
     usage: '"subject": { …, "trail": { "copies": 6, "spacing": 2, "fade": 0.72, "tint": "#ff3d9a" } } · "echo": { "copies": 5, "spacing": 2 }' },
+  { id: "VE1.9", name: "Glitch cut and datamosh", group: "Transitions", rank: "P2", status: "built", story: "video-production-promo-moves--glitch-and-datamosh",
+    what: "A glitch cut (bands that jump and tear into red and blue while the next scene takes over), and a real datamosh between two video files (npm run video:datamosh).",
+    usage: '"transition": { "kind": "glitch", "intensity": 0.7 } · npm run video:datamosh -- a.mp4 b.mp4 --out=mosh.mp4 --mosh=36' },
   { id: "VE1.1", name: "Beat hits", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--beat-hits",
     what: "A punch zoom, a camera shake, an RGB split, a zoom blur or a flash on each beat of a bed with a declared tempo, on its loud onsets, or on moments; patterns combine (punch on the kick, shake on the snare).",
     usage: '"hits": [{ "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } }, { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }] · bed "bpm": 110' },
@@ -119,6 +122,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.9": { registryItem: "film-document", jobs: ["break the picture on a cut", "lo-fi digital transition"], keywords: ["glitch", "glitch transition", "datamosh", "data moshing", "pixel bleed",
+    "rgb split", "digital distortion", "signal loss", "vhs glitch", "compression artifacts", "transition", "music video"],
+    avoid: "One or two per film; a glitch on every cut reads as broken. The datamosh needs two video files." },
   "VE1.8": { registryItem: "film-document", jobs: ["show the path of a move", "dreamy dance look"], keywords: ["motion trail", "echo", "afterimage", "ghost trail", "trail effect", "onion skin",
     "multiple exposure", "dance edit", "silhouette trail", "time echo", "frame blend"],
     avoid: "A trail needs a cutout; an echo ghosts the whole picture, camera shake included." },
