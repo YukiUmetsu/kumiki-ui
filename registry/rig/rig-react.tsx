@@ -7,7 +7,7 @@
  *   collage   scissor-cut paper parts with fibre, lift shadows and halftone on the far side
  *   crayon    wax fills and dry wax outlines on toothy paper, redrawn on held poses
  *   riso      two spot-ink plates in misregistration, screened tints, multiply overprint
- *   ink       wet ink washes with bleeding edges and a dry brush outline
+ *   ink       Chinese ink on xuan paper from the INK1 brush and wet-paper engines (rig-look-ink.tsx)
  *   blueprint white technical line work on a blue grid, bones and joints shown
  */
 import { createContext, useContext, useId, useMemo } from "react";
@@ -18,6 +18,7 @@ import type { RigRole, RigShape, RigSpec } from "./rig-spec";
 import { flattenPath, paperEdge, toPathD } from "../video/collage/collage-geometry";
 import { boardTexture, fiberTexture } from "../video/collage/collage-texture";
 import { Paper, WaxLine, WaxRegion } from "../video/materials/crayon-react";
+import { InkFigure, InkGroundTile, InkPaper } from "./rig-look-ink";
 
 export type RigLook = "flat" | "collage" | "crayon" | "riso" | "ink" | "blueprint";
 /**
@@ -134,16 +135,6 @@ function RisoPart({ spec, p, ctx, plate }: { spec: RigSpec; p: RigPartFrame; ctx
   return p.line ? <path d={d} fill="none" stroke={plate ? "#0078bf" : "#ff48b0"} strokeWidth={p.lineWidth ?? 1} /> : <path d={d} fill={fill} />;
 }
 
-function InkPart({ spec, p, ctx }: { spec: RigSpec; p: RigPartFrame; ctx: RigLookContext }) {
-  const c = partColor(spec, p), tone = Math.min(.92, (1 - lum(c)) * .95 + .08) * (p.far ? .7 : 1), d = pathOf(p.shape);
-  const tint = shade(rgbHex(...hexRgb(c).map(v => v * .35 + 40 * .65) as [number, number, number]), -.1);
-  if (p.line) return <path d={d} fill="none" stroke="#1b1a1f" strokeWidth={(p.lineWidth ?? 1) * 1.2} opacity={.8} />;
-  // Wash: opaque inside its own layer group (the group carries the transparency), so overlapping parts of one
-  // figure read as one continuous wash instead of darkening at every joint. Outlines go in a second pass.
-  return ctx.inkPass === "wash" ? <path d={d} fill={tint} fillOpacity={Math.min(1, tone * 1.15)} />
-    : p.role === "smoke" ? null : <path d={d} fill="none" stroke="#1b1a1f" strokeWidth={1.5} strokeLinejoin="round" opacity={.72} vectorEffect="non-scaling-stroke" />;
-}
-
 function BlueprintPart({ p }: { p: RigPartFrame }) {
   const d = pathOf(p.shape);
   return <path d={d} fill={p.role === "smoke" ? "none" : "rgba(255,255,255,.07)"} stroke="#eaf3ff" strokeWidth={p.role === "smoke" ? .8 : 1.2}
@@ -230,23 +221,12 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
       case "collage": return <CollagePart spec={spec} p={p} ctx={ctx} />;
       case "crayon": return <CrayonPart spec={spec} p={p} ctx={ctx} />;
       case "riso": return <RisoPart spec={spec} p={p} ctx={ctx} plate={plate!} />;
-      case "ink": return <InkPart spec={spec} p={p} ctx={ctx} />;
       case "blueprint": return <BlueprintPart p={p} />;
       default: return <FlatPart spec={spec} p={p} />;
     }
   };
-  const wrap = (p: RigPartFrame, node: ReactNode) => <g key={p.id} data-km-rig-part={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r2(p.opacity) : undefined}>{node}</g>;
   const body = ctx.look === "ink"
-    // Wash pass flattened in one group, bled once and laid down translucent; then the dry outline pass on top.
-    ? <>
-        <g filter={`url(#${ctx.uid}-bleed)`} opacity={.66} style={{ mixBlendMode: "multiply" }}>
-          {parts.map(p => wrap(p, <InkPart spec={spec} p={p} ctx={{ ...ctx, inkPass: "wash" }} />))}
-        </g>
-        {/* One brush contour around the whole silhouette (traced from the union of the parts), not a line per part,
-            plus brush lines only where a part reads as its own shape: eyes, mouths, details, far limbs. */}
-        <g filter={`url(#${ctx.uid}-contour)`}>{parts.filter(p => p.role !== "smoke").map(p => wrap(p, <path d={pathOf(p.shape)} fill="#000" />))}</g>
-        <g filter={`url(#${ctx.uid}-dry)`}>{parts.filter(p => p.role === "eye" || p.role === "mouth" || p.role === "detail" || p.line).map(p => wrap(p, <InkPart spec={spec} p={p} ctx={{ ...ctx, inkPass: "line" }} />))}</g>
-      </>
+    ? <InkFigure spec={spec} parts={parts} colorOf={p => partColor(spec, p)} />
     : ctx.look === "riso"
     // Two plates printed separately, each a touch out of register, overprinting by multiply.
     ? <>{([0, 1] as const).map(plate => <g key={plate} transform={plate ? "translate(1.6 -1.1)" : "translate(-.8 .6)"} style={{ mixBlendMode: "multiply" }} opacity={.92}>
@@ -276,19 +256,6 @@ function LookDefs({ look, uid, width, height, seed }: { look: RigLook; uid: stri
         <circle cx={cell / 2} cy={cell / 2} r={r} fill={plate ? "#0078bf" : "#ff48b0"} />
       </pattern>;
     }))}
-    {look === "ink" && <>
-      <filter id={`${uid}-bleed`} x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves={3} seed={seed % 97} result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale={7} /><feGaussianBlur stdDeviation={.7} /></filter>
-      <filter id={`${uid}-dry`} x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves={1} seed={(seed + 5) % 97} result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale={2.4} /></filter>
-      {/* Silhouette contour: grow the union's alpha, subtract the original, roughen like a dry brush, ink it. */}
-      <filter id={`${uid}-contour`} x="-10%" y="-10%" width="120%" height="120%">
-        <feMorphology in="SourceAlpha" operator="dilate" radius={1.5} result="grown" />
-        <feComposite in="grown" in2="SourceAlpha" operator="out" result="ring" />
-        <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves={2} seed={(seed + 9) % 97} result="n" />
-        <feDisplacementMap in="ring" in2="n" scale={2.6} result="rough" />
-        <feFlood floodColor="#1b1a1f" floodOpacity={.82} />
-        <feComposite in2="rough" operator="in" />
-      </filter>
-    </>}
     <rect width={0} height={0} data-w={width} data-h={height} />
   </defs>;
 }
@@ -302,7 +269,7 @@ function Backdrop({ look, uid, width, height, seed }: { look: RigLook; uid: stri
     </>;
     case "crayon": return <Paper width={width} height={height} seed={seed} tooth={uid + "-tooth"} strength={.6} color="#f6ecd6" />;
     case "riso": return <rect width={width} height={height} fill="#f4efe1" />;
-    case "ink": return <rect width={width} height={height} fill="#f3eee2" />;
+    case "ink": return <InkPaper width={width} height={height} seed={seed} />;
     case "blueprint": {
       const lines: string[] = [];
       for (let x = 0; x <= width; x += 40) lines.push(`M${x} 0V${height}`);
@@ -338,7 +305,7 @@ function GroundTile({ look, uid, k, ground, depth, seed }: { look: RigLook; uid:
     case "collage": return <g><path d={edge} fill="#ece2c8" />{marks}</g>;
     case "crayon": return <g><WaxLine d={`M${x0} ${ground + 2} C${x0 + TILE * .3} ${ground - 3} ${x0 + TILE * .6} ${ground + 5} ${x1} ${ground + 2}`} color="#8a6b4a" width={4} frame={2} first={0} last={1} reduced seed={seed + k} />{marks}</g>;
     case "riso": return <g><rect x={x0} y={ground} width={TILE + .5} height={depth} fill={`url(#${uid}-riso1-15)`} opacity={.9} />{marks}</g>;
-    case "ink": return <g><path d={`M${x0} ${ground + 3} C${x0 + TILE * .25} ${ground - 4} ${x0 + TILE * .55} ${ground + 6} ${x1} ${ground + 3}`} fill="none" stroke="#2a2a30" strokeWidth={2.2} opacity={.5} filter={`url(#${uid}-dry)`} />{marks}</g>;
+    case "ink": return <InkGroundTile k={k} tile={TILE} ground={ground} seed={seed} />;
     case "blueprint": return <g><path d={`M${x0} ${ground}H${x1}`} stroke="#eaf3ff" strokeWidth={1.4} />{marks}</g>;
     default: return <g><rect x={x0} y={ground} width={TILE + .5} height={depth} fill="#cfd9c4" />{marks}</g>;
   }

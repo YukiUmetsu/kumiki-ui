@@ -311,6 +311,25 @@ describe("RIG1 painters", () => {
       expect(html).toContain("data-km-rig-bones");
     }
   });
+  it("paints the ink look with the INK1 engines, and keeps each part's brushwork fixed to the part", () => {
+    const rig = quadrupedRig("horse", { motion: "gallop", start: 0, end: 100, from: 100, to: 700, y: 500 });
+    const at = (frame: number) => renderToStaticMarkup(<RigScene look="ink" width={800} height={600} ground={500} frame={frame} rigs={[rig]} />);
+    const a = at(30), b = at(31);
+    // Wet-paper deposits (raster) and brush polygons, on xuan paper; no SVG filter stands in for the medium.
+    expect(a).toContain('data-km-rig-paper="xuan"');
+    expect(a).toMatch(/<image href="data:image\/png;base64,/);
+    expect(a).not.toMatch(/<filter[^>]*-(bleed|dry|contour)"/);
+    // Between frames a part moves (its transform) but its washes, deposits and line shapes do not change.
+    const marks = (html: string, id: string) => {
+      const m = new RegExp(`data-km-rig-part="${id}" transform="[^"]*"[^>]*>(.*?)</g>`).exec(html)!;
+      return m[1].replace(/ opacity="[^"]*"/g, "");
+    };
+    const moved = (html: string, id: string) => new RegExp(`data-km-rig-part="${id}" transform="([^"]*)"`).exec(html)![1];
+    const ids = ["barrel", "head", "neck"].filter(p => a.includes(`data-km-rig-part="${p}"`));
+    expect(ids.length).toBeGreaterThanOrEqual(2);
+    for (const id of ids) expect(marks(a, id), id).toBe(marks(b, id));
+    expect(moved(a, "head")).not.toBe(moved(b, "head"));
+  });
   it("tracks a travelling rig with a camera over world-anchored ground", () => {
     const rig = quadrupedRig("horse", { motion: "gallop", start: 0, end: 100, from: 0, to: 3000, y: 500 });
     const html = renderToStaticMarkup(<RigScene look="collage" width={800} height={450} ground={500} frame={60} rigs={[rig]} camera={followCamera(rig, 60, { y: 225 })} />);
