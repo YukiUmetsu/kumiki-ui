@@ -691,6 +691,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -907,6 +921,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -1127,6 +1155,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -1420,6 +1462,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -1739,6 +1795,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -1947,6 +2017,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -2096,6 +2180,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -2267,6 +2365,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -2441,6 +2553,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -2619,6 +2745,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -2795,6 +2935,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -2996,6 +3150,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -3166,6 +3334,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -3340,6 +3522,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -3512,6 +3708,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -3693,6 +3903,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -3862,6 +4086,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -4040,6 +4278,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -4212,6 +4464,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -4399,6 +4665,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -4589,6 +4869,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -4781,6 +5075,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -4968,6 +5276,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -5142,6 +5464,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -5319,6 +5655,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -5594,6 +5944,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -5939,6 +6303,20 @@
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
       },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+      },
       "rewind": {
        "type": "object",
        "properties": {
@@ -6088,6 +6466,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -6394,6 +6786,20 @@
       },
       "drive": {
        "$ref": "#/$defs/FilmDriveSpec"
+      },
+      "hits": {
+       "anyOf": [
+        {
+         "$ref": "#/$defs/FilmHitsSpec"
+        },
+        {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/FilmHitsSpec"
+         }
+        }
+       ],
+       "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
       },
       "rewind": {
        "type": "object",
@@ -7967,6 +8373,146 @@
    "required": [
     "bed"
    ],
+   "additionalProperties": false
+  },
+  "FilmHitsSpec": {
+   "type": "object",
+   "properties": {
+    "kind": {
+     "anyOf": [
+      {
+       "const": "shake"
+      },
+      {
+       "const": "flash"
+      },
+      {
+       "const": "punch"
+      },
+      {
+       "const": "split"
+      },
+      {
+       "const": "blur"
+      },
+      {
+       "type": "array",
+       "items": {
+        "enum": [
+         "shake",
+         "flash",
+         "punch",
+         "split",
+         "blur"
+        ]
+       }
+      }
+     ],
+     "description": "What each hit does: one kind, or several at once."
+    },
+    "at": {
+     "type": "array",
+     "items": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "number"
+       }
+      ]
+     },
+     "description": "Hits on content frames of the scene, or on its moments by name."
+    },
+    "beats": {
+     "type": "object",
+     "properties": {
+      "bed": {
+       "type": "string"
+      },
+      "every": {
+       "type": "number"
+      },
+      "phase": {
+       "type": "number"
+      },
+      "from": {
+       "type": "number"
+      },
+      "to": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "bed"
+     ],
+     "additionalProperties": false,
+     "description": "Hits on the beats of a bed that declares `bpm`. `every`: every nth beat (1, 2, 4 or 8). `phase`: which beat of each group, so `every: 2, phase: 1` is the backbeat. `from` and `to`: scene frames, to keep hits to part of the scene."
+    },
+    "onsets": {
+     "type": "object",
+     "properties": {
+      "bed": {
+       "type": "string"
+      },
+      "rise": {
+       "type": "number"
+      },
+      "from": {
+       "type": "number"
+      },
+      "to": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "bed"
+     ],
+     "additionalProperties": false,
+     "description": "Hits on a bed's loud onsets, measured by `npm run sound:levels`. `rise`: how far (0 to 1) the level must climb."
+    },
+    "amount": {
+     "type": "number",
+     "description": "Strength from 0.1 to 1. At 0.5: a punch to 108 %, a 1 % shake, a 2 % split, a 6 % zoom blur, a flash at 25 %."
+    },
+    "frames": {
+     "type": "number",
+     "description": "Frames a hit takes to settle."
+    },
+    "lead": {
+     "type": "number",
+     "description": "Frames the picture lands before the beat; a viewer accepts picture slightly early more readily than late."
+    },
+    "direction": {
+     "type": "number",
+     "description": "Direction of the shake and the split, in degrees (0 is to the right)."
+    },
+    "centre": {
+     "type": "object",
+     "properties": {
+      "x": {
+       "type": "number"
+      },
+      "y": {
+       "type": "number"
+      }
+     },
+     "required": [
+      "x",
+      "y"
+     ],
+     "additionalProperties": false,
+     "description": "Centre of the punch and the zoom blur, as fractions of the frame."
+    },
+    "sound": {
+     "type": "string",
+     "description": "A sound on every hit: a kit sound name, or `catalog:<id>`. Needs `audio.accents.kit`. Its start meets the hit."
+    },
+    "gainDb": {
+     "type": "number"
+    }
+   },
+   "required": [],
    "additionalProperties": false
   },
   "FilmSceneSound": {
@@ -9928,6 +10474,20 @@
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
     },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -10382,6 +10942,7 @@
         "burn",
         "melt",
         "pop",
+        "split",
         "stack",
         "walk",
         "hop",
@@ -10393,7 +10954,6 @@
         "explode",
         "print",
         "stamp",
-        "split",
         "vanish",
         "inflate",
         "deflate",
@@ -10730,6 +11290,20 @@
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
     },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -10975,6 +11549,20 @@
     },
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
+    },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
     },
     "rewind": {
      "type": "object",
@@ -14572,6 +15160,20 @@
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
     },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -15634,6 +16236,20 @@
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
     },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -16449,6 +17065,20 @@
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
     },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -16821,6 +17451,20 @@
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
     },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -17117,6 +17761,20 @@
     },
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
+    },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
     },
     "rewind": {
      "type": "object",
@@ -17418,6 +18076,20 @@
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
     },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -17718,6 +18390,20 @@
     },
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
+    },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
     },
     "rewind": {
      "type": "object",
@@ -18066,6 +18752,20 @@
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
     },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -18340,6 +19040,20 @@
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
     },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -18573,6 +19287,20 @@
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
     },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
+    },
     "rewind": {
      "type": "object",
      "properties": {
@@ -18757,6 +19485,20 @@
     },
     "drive": {
      "$ref": "#/$defs/FilmDriveSpec"
+    },
+    "hits": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/FilmHitsSpec"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/FilmHitsSpec"
+       }
+      }
+     ],
+     "description": "Short impulses on beats, moments or a bed's loud onsets: a punch zoom, a shake, an RGB split, a zoom blur or a flash. See `film-hits.ts`. Several patterns combine: a punch on the kick and a shake on the snare. They share the first one's centre."
     },
     "rewind": {
      "type": "object",
@@ -21347,6 +22089,14 @@
       "additionalProperties": false
      },
      "description": "Level automation: the bed reaches `db` (added to `gainDb`) at each point, a frame or a `<scene id>/<moment>`, easing between points. `open` from 0 (dull, low-passed at 700 Hz) to 1 (full) brightens it as it swells. Points in order. (Doc 34, S3.)"
+    },
+    "bpm": {
+     "type": "number",
+     "description": "The bed's tempo, so scenes can put hits on its beats (`hits.beats`). From 40 to 240."
+    },
+    "beatOffset": {
+     "type": "number",
+     "description": "Seconds from the bed's start to its first beat."
     }
    },
    "required": [

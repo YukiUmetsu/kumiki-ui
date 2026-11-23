@@ -431,6 +431,99 @@ Example: [`examples/film/sonic-logo.film.json`](../../examples/film/sonic-logo.f
 
 Example: [`examples/film/sound-drive.film.json`](../../examples/film/sound-drive.film.json): a headline bumps on each beat of a 90 bpm pulse, then a light rises from a photograph on each beat. In a 960×540 render, the centre of the photograph measured 91 between beats and 108 on them, at frames 159, 179 and 198. Storybook: **Promo Moves → Sound Drive**, played with the film's own mix.
 
+## Beat hits
+
+`"hits"` on a scene puts short impulses on beats, the way short-form editors cut the picture to a track (VE1.1). `registry/video/film-hits.ts` compiles and evaluates them; it is pure. `film-hits-react.tsx` draws them on any scene, 3D shots and footage included.
+
+```json
+"hits": [
+  { "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } },
+  { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }
+]
+```
+
+**Kinds.** One kind or several per pattern. The values are for `amount` 0.5 (the default; 0.1 to 1).
+
+| Kind | What it does | At amount 0.5 |
+|---|---|---|
+| `punch` | The picture snaps larger about `centre` on the hit and eases back. | 108 % |
+| `shake` | A shake that swings about every 1/24 s, each swing smaller, in a new direction each hit (or `direction` in degrees), with a slight turn. | 1 % of the frame height, 0.6° |
+| `split` | The red and blue channels jump apart along `direction` (default across) and close. | 2 % of the frame height |
+| `blur` | A zoom blur from `centre`: the picture smeared outwards, as if the camera lunged. | a 6 % zoom |
+| `flash` | A short lift of white over the picture. | 25 % |
+
+**Sources.** Each pattern lands on exactly one source:
+
+- **`at`**: content frames or the scene's moments by name. Content frames follow the scene's speed ramp or stutter.
+- **`beats`**: the beats of a bed that declares its tempo. A bed takes `bpm` (40 to 240) and `beatOffset` (seconds to its first beat, default 0). `every` is 1, 2, 4 or 8 beats; `phase` picks a beat of the group, so `"every": 2, "phase": 1` is the backbeat. `from` and `to` (scene frames) keep hits to part of the scene.
+- **`onsets`**: a bed's loud onsets, measured ahead of time by `npm run sound:levels`. An onset is a rise of more than `rise` (default 0.3) above the lowest level since the last onset. The meter starts a second before the scene, so a beat on its first frame counts. Onsets follow the rhythm the bed actually plays, syncopation included.
+
+**Timing and shape.**
+
+- **Envelope.** A hit peaks on its frame and settles over `frames` (default 0.2 s). The split, blur and flash fall in about 70 % of that.
+- **Lead.** `lead` (0 to 3 frames) lands the picture early: viewers accept picture slightly before sound more readily than after it. A hit led past a cut lands on the cut.
+- **Several patterns.** Up to four patterns combine: scales multiply, moves add, and the strongest split, blur and flash win. They share the first pattern's `centre`.
+- **Sound on hits.** `sound` (a kit sound, or `catalog:<id>`) puts a sound on every hit. Its start meets the hit, and it needs `audio.accents.kit`.
+
+**How it is drawn.**
+
+- **Transform.** Punch, shake and turn are one transform about the centre. It is scaled just enough to keep the frame covered while the picture moves and turns.
+- **Filter.** The split and the blur are one SVG filter on the scene's pixels.
+  - **Split.** The channels are separated with colour matrices and moved apart with offsets.
+  - **Blur.** The blur is two passes of six zoomed copies, averaged through `feDisplacementMap` with a radial map: a coarse pass across the smear and a fine pass across one of its steps. The copies blend into one streak, without the dotted texture of a single pass.
+- **Order.** Hits sit under the film look, so its grain and vignette stay still in the frame.
+- **Stable structure.** The elements are the same at rest and during a hit, so a 3D canvas or a video is never remounted by its hits.
+- **Reduced motion** shows no hits.
+
+**Checks.**
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `hits-source`, `hits-kind`, `hits-amount`, `hits-frames`, `hits-lead`, `hits-centre`, `hits-direction`, `hits-gain`, `hits-patterns` | error | No source or more than one, an unknown kind, values outside their ranges, more than four patterns |
+| `hits-bed`, `hits-no-tempo`, `hits-reverse`, `hits-every`, `hits-phase`, `hits-range` | error | No such bed, a bed with no `bpm`, a reversed bed, a bad grouping or frame range |
+| `hits-moment`, `hits-at`, `hits-levels` | error | An unknown moment, a frame outside the content, a bed `sound:levels` has not measured |
+| `hits-flash-rate` | error | More than three flashes in a second (WCAG 2.3.1) |
+| `hits-sound`, `hits-sound-no-kit` | error | A sound the kit does not have, or no kit |
+| `hits-busy` | warning | More than four hits in a second, which reads as jitter |
+| `hits-split-text`, `hits-shake-text` | warning | On cards and other text scenes, a split above 0.5 or settling slower than 0.2 s, or a shake above 0.6 |
+| `hits-none`, `hits-no-levels` | warning | No hit inside the scene, or a compile without bed levels |
+
+**Example.** [`examples/film/beat-hits.film.json`](../../examples/film/beat-hits.film.json). Four photo cards are cut on the bars of `bed-drums-hiphop-110`, a recorded CC0 drum loop ([Hip-Hop Drum Loop - 110bpm](https://freesound.org/people/blakengouda/sounds/573948/) by blakengouda) declared at `"bpm": 110`:
+
+1. a punch on every beat;
+2. a punch and zoom blur on the kick, with a shake on the snare;
+3. a punch and split, with a vertical shake;
+4. a landing with a flash every bar.
+
+Storybook: **Promo Moves → Beat Hits**, played with the film's own mix (`npm run sound:moves -- --mix=beat-hits`), beside the same film without hits.
+
+**Evidence (2026-11-18).**
+
+- **Tests.** `tests/film-hits.test.tsx` covers:
+  - the beat grid;
+  - phases, leads and moments;
+  - onsets measured on the drum loop: the first frame is included, and 60 % or more of the beats have an onset within two frames;
+  - the envelope and the alternating shake, at 30 and 60 fps;
+  - combining patterns;
+  - every check;
+  - frame coverage under a move and a turn;
+  - the filter's primitives;
+  - the example compiling with every hit on a beat;
+  - hit sounds on the accent lane.
+- **Rendered frames.** At 960×540, frames 131 (punch and blur), 262 (punch and split) and 327 (punch, blur and flash) show the radial smear, the red and blue fringes and the lift. A first single-pass blur showed a dotted texture; the two-pass blur is smooth.
+- **The loop.** It was imported with `limitDb: 9` and `crossSeconds: 0.01`.
+  - **Limiting.** The raw take peaks 17.5 dB over its loudness, and no film master could reach −14 LUFS. The film's mix now measures −15.4 LUFS.
+  - **A/B.** earshot hears the limited loop as the same sound as the raw take: cosine 0.99, and the same strong match (z +5.0 against +5.1), slightly darker.
+  - **Clicks.** The mix's `mix-click` warnings fall on its eighth notes; earshot reads one as crisp hi-hats (z +4.8).
+- **Owner review.** Visual and listening review is pending.
+
+**Sources (practice, graded C: practitioner tutorials and presets).**
+
+- A zoom from 100 % to about 110 % per beat ([Adobe community](https://community.adobe.com/t5/premiere-pro-discussions/how-to-zoom-in-on-beat-in-a-music-video/m-p/8792160)).
+- A shake as four or five keyframes of falling size in position and rotation ([FreeVisuals](https://www.freevisuals.net/item/dynamic-shake-2)).
+- A beat shake of 2 to 10 px over about 150 ms ([a beat-effects demo](https://fbratten.github.io/music-video-creator-showcase/demos/beat-effects)).
+- Velocity edits with a shake, a glow or a flash on each hit ([CapCut](https://www.capcut.com/resource/how-to-do-velocity-on-capcut)).
+
 ## Loop
 
 `"loop": { "frames": 18 }` makes a film loop, as Shorts and Reels replay on their own. Over its last `frames` (default 12, 6 to 45), the first scene's opening frame dissolves in on top, so the film's last frame is its first and the replay starts on the picture it ends on. It is a dissolve, so reduced motion keeps it.
