@@ -223,7 +223,7 @@ export function RisoFigure({ spec, parts, contacts, scale, ctx, colorOf, paper =
     return { key: `shadow-${i}-${j}`, d: `M${r2(x - rx)} ${r2(cy)}A${r2(rx)} ${r2(ry)} 0 1 0 ${r2(x + rx)} ${r2(cy)}A${r2(rx)} ${r2(ry)} 0 1 0 ${r2(x - rx)} ${r2(cy)}Z`,
       matrix: IDENTITY, tints: press.inks.map((_, p) => p === shadowPlate ? tint : -1), occludes: false };
   }));
-  const items: PrintItem[] = [...shadows, ...parts.map((p, i) => {
+  const items: PrintItem[] = [...shadows, ...parts.flatMap((p, i): PrintItem[] => {
     const translucent = p.role === "smoke" || p.opacity < .999;
     let tints = tintsOf(colorOf(p), translucent ? Math.min(1, p.opacity) * (p.role === "smoke" ? .6 : 1) : 1);
     // Fine linear work (legs, rims, straps, outlines) under about two dots across would break up into loose dots:
@@ -236,7 +236,11 @@ export function RisoFigure({ spec, parts, contacts, scale, ctx, colorOf, paper =
       const firm = tints.map(t => t >= 2 ? SOLID : -1);
       if (firm.some(t => t >= 0)) tints = firm;
     }
-    return { key: `${p.id}-${i}`, d: pathOf(p.shape), matrix: p.matrix, stroke: p.line ? (p.lineWidth ?? 1) : undefined, tints, occludes: !translucent };
+    const item: PrintItem = { key: `${p.id}-${i}`, d: pathOf(p.shape), matrix: p.matrix, stroke: p.line ? (p.lineWidth ?? 1) : undefined, tints, occludes: !translucent };
+    // A near-white shape prints no ink and would vanish into the paper (a koi, sails): give it a keyline on the darkest
+    // drum. It goes under the shape, so only the outer half shows and shapes in front cover it.
+    if (p.line || translucent || tints.some(t => t >= 0)) return [item];
+    return [{ ...item, key: item.key + "-key", stroke: 3 / (Math.hypot(m.a, m.b) || 1), tints: press.inks.map((_, plate) => plate === shadowPlate ? SOLID : -1), occludes: false }, item];
   })];
   // Paper-space bounds of the figure (masks and tint rectangles only cover this box).
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;

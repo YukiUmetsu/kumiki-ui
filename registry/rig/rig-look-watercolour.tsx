@@ -179,7 +179,6 @@ export function WatercolourGroundTile({ uid, k, ground, tile, seed }: { uid: str
 
 // ---- Figure ----------------------------------------------------------------------------------------------------------
 
-const NO_WASH = new Set<RigRole>(["eye", "mouth", "detail", "smoke"]);
 const anchorCache = new WeakMap<RigSpec, string>();
 /** The bone the pigment texture rides on: the main body (pelvis, barrel, hull, envelope) rather than the bare root, so
  * the texture follows the body's bob instead of sliding over it. */
@@ -203,8 +202,16 @@ export function WatercolourRigBody({ spec, frame, parts, uid, seed }: { spec: Ri
   const size = Math.max(spec.bounds.width, spec.bounds.height) * Math.abs(frame.root.scale || 1);
   const depth = r2(Math.min(12, Math.max(3, size * .022)));
 
+  // Marks go on last, over everything. A large dark part (a cabin behind its windows) is a wash in its own place instead.
+  const isMark = (p: RigPartFrame) => {
+    if (p.line || p.role === "eye" || p.role === "mouth") return true;
+    const b = sceneBox(p.matrix, boxOf(p.shape));
+    return p.role === "detail" && Math.min(b.w, b.h) < size * .05;
+  };
+  // White paper is kept under the figure, as masking fluid keeps it, so the sky does not tint its washes.
+  const kept = parts.filter(p => !p.line && p.role !== "smoke" && p.role !== "light").map(p => wrap(p, <path d={pathOf(p.shape)} fill={WATERCOLOUR_PAPER} />));
   const regions: { color: string; box: Box }[] = [], seams = new Set<string>();
-  const wash = parts.filter(p => !p.line && !NO_WASH.has(p.role)).map(p => {
+  const wash = parts.filter(p => !isMark(p) && p.role !== "smoke").map(p => {
     const d = pathOf(p.shape), w = watercolourWash(partColor(spec, p), p.far), sb = sceneBox(p.matrix, boxOf(p.shape));
     // A dried edge only where this wash meets another colour: touching parts of one colour are one wash.
     const joined = regions.some(q => q.color === w.base && touches(q.box, sb));
@@ -222,7 +229,7 @@ export function WatercolourRigBody({ spec, frame, parts, uid, seed }: { spec: Ri
   // Construction seams inside one wash are drawn faintly, as an artist's lighter under-drawing.
   const pencil = parts.filter(p => !p.line && p.role !== "smoke" && p.role !== "light").map(p => wrap(p,
     <path d={pathOf(p.shape)} fill="#ffffff" stroke={GRAPHITE} strokeOpacity={seams.has(p.id) ? .4 : 1} strokeWidth={.9} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />));
-  const details = parts.filter(p => p.line || p.role === "eye" || p.role === "mouth" || p.role === "detail").map(p => {
+  const details = parts.filter(isMark).map(p => {
     const c = mix(partColor(spec, p), DETAIL, p.line ? .45 : .6), d = pathOf(p.shape);
     return wrap(p, p.line ? <path d={d} fill="none" stroke={c} strokeWidth={Math.max(.7, (p.lineWidth ?? 1) * .9)} strokeLinecap="round" opacity={.85} />
       : <path d={d} fill={c} opacity={.9} />);
@@ -232,6 +239,7 @@ export function WatercolourRigBody({ spec, frame, parts, uid, seed }: { spec: Ri
   return <g data-km-rig-watercolour="">
     <defs><WatercolourWashFilter id={`${fig}-wash`} seed={seed} tooth={.55} granulation={.42} driedEdge={.75} rim={2} mottle={.35}
       shade={{ color: SHADOW, amount: .5, depth, light: LIGHT, reserve: .32 }} /></defs>
+    <g data-km-rig-watercolour-kept="">{kept}</g>
     {anchored(`url(#${fig}-wash)`, wash, { mixBlendMode: "multiply" }, .95)}
     {anchored(`url(#${uid}-wc-pencil)`, pencil, { mixBlendMode: "multiply" }, .45)}
     {smoke.length > 0 && anchored(`url(#${uid}-wc-soft)`, smoke, { mixBlendMode: "multiply" })}

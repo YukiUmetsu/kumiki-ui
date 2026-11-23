@@ -196,13 +196,17 @@ export function PencilPart({ p, d, color, seed, ctx }: PencilPartProps) {
   const ox = r2(pencilHash(seed, 1, 91) * TILE), oy = r2(pencilHash(seed, 2, 91) * TILE);
   const hatch = (pass: 0 | 1 | 2, fill: string, opacity: number) => <Hatch key={pass} uid={ctx.uid} d={d} texture={passes.textures[pass]} pass={pass}
     variant={v} angle={passes.angles[pass]} ox={ox} oy={oy} fill={fill} opacity={r3(opacity * passes.weight * (p.far ? .85 : 1))} />;
-  if (kind === "translucent") return <g mask={tooth}>
+  if (kind === "translucent") return <>
+    {/* Glass keeps most of its paper, so the paint of the body behind it does not show through. */}
+    {p.role === "glass" && <path d={d} fill={PENCIL_PAPER} opacity={.82} />}
+    <g mask={tooth}>
     <defs>{grad("u", [[0, light, .12], [1, c, .32]])}</defs>
     <path d={d} fill={`url(#${id}u)`} />
     {hatch(0, c, .55)}
     {/* Smoke is soft: no drawn edge. Glass keeps a light one. */}
     {p.role !== "smoke" && <Contour d={d} color={dark} seed={seed} variant={v} strength={.45} />}
-  </g>;
+    </g>
+  </>;
   if (kind === "glow") return <>
     <path d={d} fill={PENCIL_PAPER} />
     <g mask={tooth}><path d={d} fill={c} opacity={.82} />{hatch(0, mix(c, -.12), .6)}<Contour d={d} color={mix(c, -.35)} seed={seed} variant={v} strength={.5} /></g>
