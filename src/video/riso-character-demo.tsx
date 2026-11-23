@@ -747,8 +747,11 @@ export function RisoCharacterPerformance({
   }, bird = { ...PAPER_BIRD, cadence };
   const sample = reducedMotion ? 239 : Math.min(239, frame);
   const titleX = portrait ? 32 : 45, headlineY = portrait ? 160 : 93;
-  const stage = portrait ? { x: 115, y: 744, scale: 1.42, birdX: 405, birdY: 455 } :
-    { x: 465, y: 381, scale: 1.16, birdX: 730, birdY: 108 };
+  // The bird flies its loop in front of the printed sun, clear of the Courier. Since RISO29 the Courier stands taller
+  // (neck) and stops further right, and the old placement put the bird on his head from frame ~144 (16:9) and through
+  // his chest for most of the 9:16 film.
+  const stage = portrait ? { x: 115, y: 744, scale: 1.42, birdX: 420, birdY: 250 } :
+    { x: 465, y: 381, scale: 1.16, birdX: 845, birdY: 112 };
   const artwork = (plateId: "blue" | "red"): RisoArtwork => (paint: RisoPaint) =>
     <g data-km-riso-performance-plate={plateId}>
       <LayeredCity aspect={aspect} paint={paint} ink={plateId}/>
