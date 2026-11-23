@@ -313,7 +313,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `transform-and-track` | video | dom | [spec](component-specs/scene-templates.md) | — | — |
 | `two-lane-swap` | motion | dom | [spec](component-specs/two-lane-swap.md) | `motion-two-lane-swap--crossing` | — |
 | `ukiyoe-episode` | video | data | — | `video-ukiyoe-handscroll--episode` | — |
-| `ukiyoe-handscroll` | finance | dom | — | `video-ukiyoe-handscroll--night-ferry` | — |
+| `ukiyoe-handscroll` | video | dom | — | `video-ukiyoe-handscroll--night-ferry` | — |
 | `universal-rig` | finance | dom | [spec](component-specs/universal-rig.md) | `video-universal-rig--lab` | — |
 | `video-export-stage` | video | dom | — | — | — |
 | `video-platform-presets` | video | data | [spec](component-specs/finance-objects-social-export.md) | — | — |
