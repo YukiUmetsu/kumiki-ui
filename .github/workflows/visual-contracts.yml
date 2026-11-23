@@ -27,7 +27,11 @@ jobs:
         with:
           node-version: "24.15.0"
           cache: npm
+      - name: Keep agent instructions and long docs within their size limits
+        run: node scripts/docs-context.mjs check
       - run: npm ci --no-audit --no-fund
+      - name: Guard compact agent output
+        run: npm run -s context:check
       - name: Typecheck changed source against all exported contracts
         run: npm run typecheck
       - name: Guard video Storybook source parsing and local imports

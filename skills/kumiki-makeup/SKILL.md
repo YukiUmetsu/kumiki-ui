@@ -54,7 +54,7 @@ API. This is the working order.
 
 - The file map is in [`registry/anatomy/README.md`](../../registry/anatomy/README.md).
 - Search with `npm run catalog:find -- --query="contour"` (also "blush", "lipstick", "undertone", "face chart").
-- Get the exact exports with `npm run catalog:api -- --id=makeup --format=json`.
+- Get the exact exports with `npm run -s catalog:api -- --id=makeup`.
 - Storybook: Video production → Art Foundations → Makeup.
 
 Rules:

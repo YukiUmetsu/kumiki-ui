@@ -14,7 +14,8 @@ export default defineConfig({
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
-  reporter: [["list"]],
+  // A coding agent needs the failures, not a line for each pass. Both reporters print failures in full.
+  reporter: [[process.env.AI_AGENT || process.env.CLAUDECODE ? "dot" : "list"]],
   expect: {
     // Keep screenshot diffing deterministic across minor rasterisation noise.
     toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: "disabled" },

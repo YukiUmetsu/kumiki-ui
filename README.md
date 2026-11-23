@@ -139,25 +139,26 @@ Open the URL printed by Vite (usually **http://localhost:5173**) and use `#/cata
 
 ```bash
 # Find candidates by intent (deterministic, offline, no AI model or GPU).
-npm run catalog:find -- --query="diagram" --type=pack --format=json
-npm run catalog:find -- --query="character" --type=pack --format=json
-npm run catalog:find -- --query="relief" --type=pack --format=json
-npm run catalog:find -- --query="exact 3d label" --type=pack --format=json
-npm run catalog:find -- --query="real window cut" --type=pack --format=json
-npm run catalog:find -- --query="seeded scatter placement" --type=pack --format=json
-npm run catalog:find -- --query="tree facade procedural environment" --type=pack --format=json
-npm run catalog:find -- --query="camera detail level background" --type=pack --format=json
+npm run catalog:find -- --query="diagram" --type=pack
+npm run catalog:find -- --query="character" --type=pack
+npm run catalog:find -- --query="relief" --type=pack
+npm run catalog:find -- --query="exact 3d label" --type=pack
+npm run catalog:find -- --query="real window cut" --type=pack
+npm run catalog:find -- --query="seeded scatter placement" --type=pack
+npm run catalog:find -- --query="tree facade procedural environment" --type=pack
+npm run catalog:find -- --query="camera detail level background" --type=pack
 
 # Inspect one exact candidate and its dependency-first install order.
 npm run catalog:find -- --id=pack:image-relief-2-5d --format=json
 
 # Inspect real TypeScript exports, signatures, props and literal defaults.
-npm run catalog:api -- --id=image-relief-2-5d --export=createImageReliefFromSources --format=json
-npm run catalog:api -- --id=button --export=Button --format=json
+# Output is compact (at most 4 KB). Add --full for everything.
+npm run catalog:api -- --id=image-relief-2-5d --export=createImageReliefFromSources
+npm run catalog:api -- --id=button
 
 # Validate the installed inventory; list every indexed item if needed.
 npm run catalog:check
-npm run catalog:find -- --all --format=json
+npm run catalog:find -- --all --full --format=json
 ```
 
 `catalog:find` tells you **what exists**: source files, registry name, dependencies, preview and review metadata. `catalog:api` tells you **how to call it**, using the checked-in TypeScript source. **Do not invent props from a search result.** For complex behavior, inspect the linked source and spec as well.
@@ -166,7 +167,7 @@ The catalog indexes registered packs, domain objects and curated heroes. A named
 
 ## For coding agents
 
-Read [`AGENTS.md`](AGENTS.md) and [`docs/INDEX.md`](docs/INDEX.md) first. Kumiki is deliberately discoverable **without embeddings, web access, screenshots or loading a 3D renderer**.
+Read [`AGENTS.md`](AGENTS.md) first, then search: `docs:find` returns the docs, specs and skills for a task with their token cost, and `docs:sections` returns the line ranges of a long one. Do not read this README or [`docs/INDEX.md`](docs/INDEX.md) whole. Kumiki is deliberately discoverable **without embeddings, web access, screenshots or loading a 3D renderer**.
 
 Use this repeatable selection process:
 
@@ -184,7 +185,7 @@ Goal: [the visual and why it helps the audience]
 Output: [UI | infographic | scene | video] at [aspect/resolution]
 Assets: [approved source images, depth/alpha, GLB, data, narration, rights]
 
-1. Read AGENTS.md and the README capability map.
+1. Read AGENTS.md.
 2. Search catalog:find by intent; report exact installed registry IDs.
 3. Inspect catalog:api plus specs for the selected exports.
 4. Compose existing packs before adding a new primitive.

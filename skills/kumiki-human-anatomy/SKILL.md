@@ -62,7 +62,7 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
 
 **Find things fast:** file map in [`registry/anatomy/README.md`](../../registry/anatomy/README.md);
 `npm run catalog:find -- --query="hair"` (also "skin colour", "pose", "face proportions", "hand poses");
-`npm run catalog:api -- --id=human-anatomy --format=json` for exact exports; numbers without code in
+`npm run -s catalog:api -- --id=human-anatomy` for exact exports; numbers without code in
 `registry/anatomy/data/` (`ansur-ii-ranges.json`, `model-tables.json`, `stature-for-age-cdc.json`).
 
 Rules: no consumer-specific people or names; ancestry morphs are coarse averages, never identities; the framework

@@ -2,11 +2,10 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import { playwright } from '@vitest/browser-playwright';
 import { setPriority } from 'node:os';
-const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+const dirname = import.meta.dirname;
 
 /** On a laptop, tests stay out of the way: lower priority, and fewer workers. Measured on an M4 with 4 performance cores, 4 workers ran
  * the unit suite faster than one per core (47 s against 53 s) with 40% less memory (2.5 GB against 4.0 GB). CI keeps its defaults. */

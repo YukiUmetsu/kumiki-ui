@@ -3,7 +3,7 @@
 Measured, posable humans for drawing people in any art style. Full guide: [spec](../../docs/component-specs/human-anatomy.md) ·
 agent workflow: [skill](../../skills/kumiki-human-anatomy/SKILL.md) · Storybook: Video production → Art Foundations → Human Anatomy ·
 find it: `npm run catalog:find -- --query="hair"` (or "skin colour", "pose", "face proportions") · exact exports:
-`npm run catalog:api -- --id=human-anatomy --format=json`.
+`npm run -s catalog:api -- --id=human-anatomy`.
 
 | I need… | File | Start with |
 |---|---|---|
@@ -32,7 +32,7 @@ Binary body model: `assets/models/anatomy/human-body-lattice.bin` (CC0 MakeHuman
 The same animal in any art style. Full guide: [spec](../../docs/component-specs/animal-anatomy.md) · agent workflow:
 [skill](../../skills/kumiki-animal-anatomy/SKILL.md) · Storybook: Video production → Art Foundations → Animal Anatomy ·
 find it: `npm run catalog:find -- --query="tanuki"` (or "gallop", "fur map", "animal proportions") · exact exports:
-`npm run catalog:api -- --id=animal-anatomy --format=json`.
+`npm run -s catalog:api -- --id=animal-anatomy`.
 
 | I need… | File | Start with |
 |---|---|---|
@@ -65,7 +65,7 @@ Shared by ANIM1 and FLORA1 (`art-foundations`): `foundation-shapes.ts` (geometry
 Makeup on any face in any style: where each product goes, which colour suits the skin, light and shadow, finish.
 Guide: [spec](../../docs/component-specs/makeup.md) · [skill](../../skills/kumiki-makeup/SKILL.md) · Storybook: Art
 Foundations → Makeup · photo pipeline (Python): [`scripts/makeup`](../../scripts/makeup/README.md) · find it:
-`npm run catalog:find -- --query="contour"` · exact exports: `npm run catalog:api -- --id=makeup --format=json`.
+`npm run catalog:find -- --query="contour"` · exact exports: `npm run -s catalog:api -- --id=makeup`.
 
 | I need… | File | Start with |
 |---|---|---|

@@ -10,7 +10,8 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   timeout: 180_000,
-  reporter: [["list"]],
+  // A coding agent needs the failures, not a line for each pass. Both reporters print failures in full.
+  reporter: [[process.env.AI_AGENT || process.env.CLAUDECODE ? "dot" : "list"]],
   expect: { timeout: 120_000 },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"],
     // Use a verified system/headless Chrome when Playwright's CDN is unavailable.

@@ -91,7 +91,7 @@ test("type text carries no path from this machine", () => {
 
 test("CLI offers stable parseable JSON for agents", () => {
   const run = spawnSync(process.execPath, ["scripts/catalog-api.mjs",
-    "--id=button", "--export=Button", "--format=json"],
+    "--id=button", "--export=Button", "--full", "--format=json"],
     { encoding: "utf8", timeout: 60000 });
   assert.equal(run.status, 0, run.stderr);
   const data = JSON.parse(run.stdout);

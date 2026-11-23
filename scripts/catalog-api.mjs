@@ -2,11 +2,12 @@
 /** Public Kumiki API inspector. Offline TypeScript checker; never executes components. */
 import { prepareCatalog } from "./catalog-data.mjs";
 import { inspectCatalogApi } from "./catalog-api-data.mjs";
+import { API_BUDGET, apiHeader, compactApi } from "./catalog-compact.mjs";
 
 function flags(args) {
   const options = {};
   for (const arg of args) {
-    if (arg === "--help") { options.help = true; continue; }
+    if (arg === "--help" || arg === "--full") { options[arg.slice(2)] = true; continue; }
     const match = /^--(id|export|format)=(.+)$/.exec(arg);
     if (!match || options[match[1]] !== undefined) throw Error("Unexpected argument: " + arg);
     options[match[1]] = match[2];
@@ -18,14 +19,23 @@ function flags(args) {
 }
 const options = flags(process.argv.slice(2));
 if (options.help) {
-  console.log("npm run catalog:api -- --id=diagram-stage [--export=DiagramStage] [--format=json]");
+  console.log("npm run -s catalog:api -- --id=diagram-stage [--export=DiagramStage,DiagramNode] [--format=json] [--full]");
 } else {
   const entries = prepareCatalog();
   const id = options.id.includes(":") ? options.id : "pack:" + options.id;
   const entry = entries.find(row => row.id === id);
   if (!entry) throw Error("Unknown catalog ID: " + id + ". Search with npm run catalog:find first.");
   const result = inspectCatalogApi(entry, { exportName: options.export });
-  if (options.format === "json") console.log(JSON.stringify(result, null, 2));
+  if (!options.full) {
+    const header = apiHeader(result, entry);
+    const api = compactApi(result, { budget: API_BUDGET - header.join("\n").length - 300, chosen: Boolean(options.export) });
+    const more = api.omittedCount ? `${api.omittedCount} more exports: use --export=NAME[,NAME] for exact types, or --full for everything.`
+      : "Long types and text are shortened with …; use --export=NAME or --full for the rest.";
+    if (options.format === "json") console.log(JSON.stringify({ schemaVersion: 1, mode: "compact", id: result.id,
+      status: result.status, header: header.slice(1), ...api, more }));
+    else console.log([...header, ...api.exports, ...(api.omitted.length ? ["also: " + api.omitted.join(", ") +
+      (api.omittedCount > api.omitted.length ? ", …" : "")] : []), more].join("\n"));
+  } else if (options.format === "json") console.log(JSON.stringify(result, null, 2));
   else {
     console.log(result.id + " [" + result.status + "]");
     console.log("  registry: " + result.registryItem);
