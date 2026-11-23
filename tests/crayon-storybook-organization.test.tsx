@@ -69,6 +69,11 @@ describe("Crayon Storybook organization",()=>{
    const crops=macroStories.map(story=>story.args?.wildlifeCrop);
    expect(new Set(crops).size).toBe(4);
    expect(crops).toEqual(expect.arrayContaining(["eye","fur","muzzle","ear"]));
+   // Every macro camera must pass the CRAYON1 camera contract (zoom 1..3):
+   // the eye crop once asked for 3.35 and the story threw.
+   for(const story of macroStories)
+     expect(()=>renderToStaticMarkup(<CrayonPlayground {...crayonSceneDefaultArgs}
+       {...story.args} subject="wildlife-portrait" reducedMotion/>)).not.toThrow();
    const html=renderToStaticMarkup(<CrayonPlayground {...crayonSceneDefaultArgs}
       subject="wildlife-portrait" aspect="landscape" wildlifeCrop="muzzle"
       startFrame={228} reducedMotion/>);

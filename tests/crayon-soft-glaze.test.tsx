@@ -52,15 +52,25 @@ describe("medium-native artistically blended crayon pigment",()=>{
       expect(inspectCrayonScene(scene)).toEqual([]);
       const blur=scene.elements.filter(x=>x.kind==="wax"&&x.blendRadius);
       expect(blur.length).toBeGreaterThanOrEqual(9);
+      const byId=new Map(scene.elements.map(x=>[x.id,x]));
+      // Later anatomy passes (#276 neck planes, eye apertures, lips…) clip
+      // each glaze to the exact part it shades, so the parent is no longer
+      // always the face. What must hold: every soft glaze is open wax,
+      // clipped to a solid opaque part of this one character, and that
+      // part's chain reaches the coat silhouette (never scenery or nothing).
       for(const node of blur){
         if(node.kind!=="wax")continue;
         expect(node.coverage).toBe("open");
-        const expectedParent=node.id==="hair-amber-crown-glaze"?
-          "hair-crown-part":node.id.startsWith("coat-")?
-          "coat-silhouette":"adult-face";
-        expect(node.parentId).toBe(expectedParent);
         expect(node.clipToParent).toBe(true);
+        const parent=byId.get(node.parentId??"");
+        expect(parent,node.id).toBeDefined();
+        if(parent?.kind==="wax")expect(parent.coverage,node.id).toBe("opaque");
+        const chain:string[]=[];
+        for(let at=parent;at;at=byId.get(at.parentId??""))chain.push(at.id);
+        expect(chain,node.id).toContain("coat-silhouette");
       }
+      expect(blur.filter(x=>x.parentId==="adult-face").length).toBeGreaterThanOrEqual(9);
+      expect(blur.find(x=>x.id==="neck-lateral-turn")?.parentId).toBe("neck-under-jaw");
       const full=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
       expect(full).toContain('data-km-crayon-soft-glaze="');
       expect(full).toContain('data-km-crayon-anatomical-mask="adult-face"');
