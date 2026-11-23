@@ -32,6 +32,7 @@ import chatExample from "../../examples/film/chat-story.film.json";
 import subjectExample from "../../examples/film/subject.film.json";
 import freezeExample from "../../examples/film/freeze-intro.film.json";
 import slowmoExample from "../../examples/film/slowmo.film.json";
+import trailExample from "../../examples/film/motion-trail.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -561,6 +562,24 @@ export const SmoothSlowMotion: StoryObj = {
       Switch between the two at Quarter speed: repeated frames step every fourth frame; the interpolated clip moves on every frame. Its
       check rebuilt dropped frames of this clip at 0.952 SSIM against the real ones, where repeating frames scores 0.933. Interpolation
       guesses: fast or tangled motion (wings, water, crowds) shows warped seams, which the check warns about before you use it.
+    </FilmCompare>;
+  },
+};
+
+const trailDoc = trailExample as unknown as FilmDocument;
+/** Motion trails on an 1894 dance film (CC0): fading copies of the cut-out dancer every two frames; the same trail washed in magenta; and a
+ * whole-frame echo, which needs no cutout. Beside it, the same footage plain. */
+export const MotionTrail: StoryObj = {
+  render: function MotionTrail() {
+    const variants = useMemo(() => ({
+      trail: { label: "Trails and echo", film: compileExample(trailDoc) },
+      plain: { label: "Plain footage (before)", film: compileExample({ ...trailDoc, scenes: trailDoc.scenes.map(scene => ({ ...scene, content: { ...scene.content as object, subject: undefined, echo: undefined } })) } as unknown as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={() => 0}>
+      A trail is the subject's own cutout from earlier frames: six copies two frames apart, each 0.72 as strong as the last, under the live
+      dancer; tinted, the copies are washed toward one colour. The echo instead lays earlier frames of the whole picture over the current
+      one, so anything that moves, the camera included, leaves a ghost. Film: <a href="https://commons.wikimedia.org/wiki/File:Annabelle_butterfly_dance_1894.ogv" style={{ color: "#7cc6ff" }}>Annabelle
+      Butterfly Dance</a> (W. K. L. Dickson, 1894), CC0.
     </FilmCompare>;
   },
 };
