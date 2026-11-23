@@ -45,6 +45,15 @@ async function pixelDelta(page: Page, a: Buffer, b: Buffer) {
     return {changed,peak,total:x.width*x.height};
   },[a.toString("base64"),b.toString("base64")] as [string,string]);
 }
+/** Where a printed boot meets the ground on screen, in artwork units. */
+async function bootOnPaper(page: Page, id: string) {
+  return page.locator("svg[data-km-riso-rig-lab]").evaluate((svg,part)=>{
+    const paper=svg.getBoundingClientRect(),unit=960/paper.width;
+    const boot=svg.querySelector(`[data-km-riso-part="${part}"]`)!.getBoundingClientRect();
+    return {left:(boot.left-paper.left)*unit,right:(boot.right-paper.left)*unit,
+      sole:(boot.bottom-paper.top)*unit};
+  },id);
+}
 test("RISO3 magnified rig: real stance foot planting, gait close-ups, FK comparison and seeking",async({page},info)=>{
   await page.goto("/iframe.html?id=video-riso-rig-lab--rigging-microscope&viewMode=story");
   await page.evaluate(()=>document.fonts.ready);
@@ -60,17 +69,32 @@ test("RISO3 magnified rig: real stance foot planting, gait close-ups, FK compari
   const targetY=await left.locator("circle").getAttribute("cy");
   const hip=stage.locator('[data-km-riso-joint="left-leg"]');
   const initialHip=Number(await hip.getAttribute("cx"));
+  const planted=await bootOnPaper(page,"left-boot");
   await stage.screenshot({path:info.outputPath("riso3-stance-planted.png"),animations:"disabled"});
-  await setFrame(page,36);
-  await expect(stage.locator('[data-km-riso-grip-target="satchel-handhold"]')).toHaveCount(1);
-  const gripError = Number(await stage.locator('[data-km-riso-grip-target="satchel-handhold"]')
-    .getAttribute("data-km-riso-ik-error"));
-  expect(gripError).toBeLessThan(.001);
-  await expect(left.locator("circle")).toHaveAttribute("cx",targetX!);
-  await expect(left.locator("circle")).toHaveAttribute("cy",targetY!);
+  // RISO28 (31426a6c) shortened the step: a 54-frame cycle with a stance of
+  // frames 0-31, printed on twos, so frame 30 is the last planted drawing.
+  for(const at of [14,20,26,30]) {
+    await setFrame(page,at);
+    await expect(stage.locator('[data-km-riso-grip-target="satchel-handhold"]')).toHaveCount(1);
+    const gripError = Number(await stage.locator('[data-km-riso-grip-target="satchel-handhold"]')
+      .getAttribute("data-km-riso-ik-error"));
+    expect(gripError).toBeLessThan(.001);
+    await expect(left.locator("circle")).toHaveAttribute("cx",targetX!);
+    await expect(left.locator("circle")).toHaveAttribute("cy",targetY!);
+    expect(Number(await left.getAttribute("data-km-riso-foot-error"))).toBeLessThan(.001);
+    // Not only the target: the printed boot itself must not slide or lift.
+    const boot=await bootOnPaper(page,"left-boot");
+    for(const edge of ["left","right","sole"] as const)
+      expect(Math.abs(boot[edge]-planted[edge]),"left boot "+edge+" at "+at).toBeLessThan(.05);
+  }
   expect(Math.abs(Number(await hip.getAttribute("cx"))-initialHip)).toBeGreaterThan(10);
-  const plantedError=Number(await left.getAttribute("data-km-riso-foot-error"));
-  expect(plantedError).toBeLessThan(.001);
+  // Frame 36 is the swing now: the left boot is off the ground and the right one holds.
+  const rightPlanted=await bootOnPaper(page,"right-boot");
+  await setFrame(page,36);
+  expect((await bootOnPaper(page,"left-boot")).sole).toBeLessThan(planted.sole-8);
+  expect(Math.abs((await bootOnPaper(page,"right-boot")).sole-planted.sole)).toBeLessThan(.05);
+  for(const edge of ["left","right","sole"] as const)
+    expect(Math.abs((await bootOnPaper(page,"right-boot"))[edge]-rightPlanted[edge])).toBeLessThan(.05);
   for(const at of [0,25,46,53,78,112,143,198,239]) {
     await setFrame(page,at);
     await expect(stage).toHaveAttribute("data-km-riso-rig-frame",String(at));

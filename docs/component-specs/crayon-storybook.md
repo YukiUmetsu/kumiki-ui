@@ -162,7 +162,12 @@ coat stitchwork, a plaid scarf, an embroidered dress, leather boots,
 satchel and hand, all in native editable wax. Acting has configurable
 **Expression**, **Detail** and **Crop (composition / face / costume)**
 controls; walk exposes stride, lift and true optional two-bone knee IK.
-Draw-In keeps outline/fill order and explicit pigment deposition windows.
+The walk is a step-together gait with authored `contacts`: the back boot
+carries weight on frames 0–38, 94–156 and 214–269, the front boot on 0–94 and
+156–269. Each sole stays on its spot while it carries weight, and the pelvis
+sinks only as far as both legs reach.
+Draw-In keeps outline/fill order and explicit pigment deposition windows,
+after light construction guides that fade once wax replaces them.
 
 See `docs/research/crayon-character-atelier-2026.md` for the reference
 matrix, proportion guide, known limitations and required 16:9 / 9:16

@@ -1,4 +1,21 @@
 import { expect, test } from "@playwright/test";
+/** Capture the drawing from one whole repaint.
+ * After a seek Chromium re-rasters only the rectangle that changed and keeps the
+ * rest of each tile. Masked wax at that rectangle's edge then differs by up to 8
+ * levels from a first paint of the very same markup, and even two captures of one
+ * untouched frame can differ. Measured 2026-11-22 on all four stories at 1280x720
+ * and 1600x1000: seeking back changed up to 702 pixels by up to 8 levels; with
+ * --disable-partial-raster, or with this repaint, it changed 0 pixels in 16 of 16
+ * runs. So the fix is one full paint, not a wider tolerance. */
+async function capture(svg:import("@playwright/test").Locator,path?:string){
+  await svg.evaluate(node=>new Promise<void>(done=>{
+    const style=(node as SVGSVGElement).style;
+    const twoFrames=(next:()=>void)=>requestAnimationFrame(()=>requestAnimationFrame(next));
+    style.visibility="hidden";
+    twoFrames(()=>{style.visibility="";twoFrames(done);});
+  }));
+  return svg.screenshot({animations:"disabled",path});
+}
 /** Chromium may round a handful of SVG subpixel edges by 1–2 levels during reseeks.
  * Compare decoded RGBA values, not compressed PNG buffer bytes and metadata. */
 async function expectStablePixels(page:import("@playwright/test").Page,before:Buffer,after:Buffer) {
@@ -62,9 +79,8 @@ for (const [subject, aspect, storyId] of [
     for (const chapter of chapters) {
       await page.getByRole("button",{name:chapter.name,exact:true}).click();
       await expect(svg).toHaveAttribute("data-km-crayon-frame",String(chapter.frame));
-      const png=await svg.screenshot({animations:"disabled",
-        path:info.outputPath("crayon-"+subject+"-"+aspect+"-"+chapter.frame+".png")});
-      captures.push(png);
+      captures.push(await capture(svg,
+        info.outputPath("crayon-"+subject+"-"+aspect+"-"+chapter.frame+".png")));
     }
     expect(captures[0]).not.toEqual(captures[1]);
     expect(captures[1]).not.toEqual(captures[2]);
@@ -73,7 +89,7 @@ for (const [subject, aspect, storyId] of [
     // Return to a prior frame after newer frames: paper/scumble must remain fixed.
     await page.getByRole("button",{name:"2 · Scene emerges",exact:true}).click();
     await expect(svg).toHaveAttribute("data-km-crayon-frame","156");
-    const again=await svg.screenshot({animations:"disabled"});
+    const again=await capture(svg);
     await expectStablePixels(page,again,captures[1]);
 
     const rect=await svg.evaluate(node=>{

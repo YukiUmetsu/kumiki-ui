@@ -1,7 +1,9 @@
 import {test,expect} from "@playwright/test";
 for(const actor of [
-  {id:"courier-construction-sheet",slug:"courier",part:"eye-left",frame:46},
-  {id:"paper-bird-construction-sheet",slug:"paper-bird",part:"beak",frame:84},
+  // #302 (4b83ba61) redrew the Courier's eye as a thin 13-unit lid. Its longest
+  // source edge is now 3.84 units, so a 4-unit cell has nothing left to split.
+  {id:"courier-construction-sheet",slug:"courier",part:"eye-left",frame:46,fineCell:3},
+  {id:"paper-bird-construction-sheet",slug:"paper-bird",part:"beak",frame:84,fineCell:4},
 ]) {
   test(`Riso construction: ${actor.slug} face, body and IK mesh study`,async({page},info)=>{
     const runtimeErrors:string[]=[];
@@ -59,11 +61,18 @@ for(const actor of [
       await expect(meshSize).toHaveValue(String(size));
       await expect(svg).toHaveAttribute("data-km-riso-mesh-edge-length",String(size));
     };
+    const achieved=async()=>Number(await page.locator("[data-km-riso-achieved-edge]")
+      .getAttribute("data-km-riso-achieved-edge"));
     await setMeshSize(14);
     const coarse=await svg.locator("[data-km-riso-selected-source-triangle]").count();
-    await setMeshSize(4);
+    const coarseEdge=await achieved();
+    await setMeshSize(actor.fineCell);
     const fine=await svg.locator("[data-km-riso-selected-source-triangle]").count();
+    const fineEdge=await achieved();
     expect(fine, "fine mesh should contain more smaller triangles").toBeGreaterThan(coarse);
+    // "Smaller" is measured: the longest edge shrinks to the requested cell.
+    expect(fineEdge).toBeLessThan(coarseEdge);
+    expect(fineEdge).toBeLessThanOrEqual(actor.fineCell);
     await svg.screenshot({path:info.outputPath(`${actor.slug}-fine-mesh.png`),animations:"disabled"});
     await setMeshSize(5);
     // Stress the smallest supported mesh, then select another anatomical

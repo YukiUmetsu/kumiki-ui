@@ -1,4 +1,33 @@
 import { expect, test } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+
+/** Seek the film to a frame that has no beat button. */
+async function seekFilm(page:Page,frame:number){
+  await page.getByRole("slider",{name:"Film frame"}).evaluate((node,n)=>{
+    const input=node as HTMLInputElement;
+    const native=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value")?.set;
+    if(!native)throw new Error("No native range setter");
+    native.call(input,String(n));
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+    input.dispatchEvent(new Event("change",{bubbles:true}));
+  },frame);
+  await expect(page.locator("svg[data-km-crayon-scene]"))
+    .toHaveAttribute("data-km-crayon-frame",String(frame));
+}
+/** Where a painted boot meets the paper on screen, in scene units. */
+async function soleOf(boot:Locator){
+  return boot.evaluate(node=>{
+    const svg=(node as SVGGElement).ownerSVGElement!;
+    const page=svg.getBoundingClientRect(),unit=svg.viewBox.baseVal.width/page.width;
+    const paint=node.querySelector("[data-km-crayon-underpaint]")!.getBoundingClientRect();
+    return {x:(paint.left+paint.width/2-page.left)*unit,y:(paint.bottom-page.top)*unit};
+  });
+}
+/** A planted sole may not slide or leave the ground: 0.05 of a scene unit is far
+ * below one pixel, and the measured drift over every stance frame is 0.000. */
+function expectPlanted(sole:{x:number;y:number},plant:{x:number;y:number},what:string){
+  expect(Math.hypot(sole.x-plant.x,sole.y-plant.y),what).toBeLessThan(.05);
+}
 
 /** Cheap real-browser sanity proof; exhaustive frame suites run only on demand. */
 const samples=[
@@ -32,31 +61,69 @@ for(const sample of samples) {
   });
 }
 
+// #246 (58a0c658) replaced the first character with the Blue Coat child: mouth,
+// brows and painted eyelids have their own names, beats and exposure frames.
 test("crayon acting mouth and eyes switch named poses at exact exposure frames",async({page},info)=>{
   await page.goto("/iframe.html?id=video-crayon-acting--character-performance&viewMode=story");
   const scene=page.locator("svg[data-km-crayon-scene]");
-  const mouth=scene.locator('[data-km-crayon-element="mouth"]');
-  const eye=scene.locator('[data-km-crayon-element="left-eye"]');
-  await page.getByRole("button",{name:"Speech begins"}).click();
-  await expect(scene).toHaveAttribute("data-km-crayon-frame","90");
-  await expect(mouth).toHaveAttribute("data-km-crayon-pose","ee");
-  await scene.screenshot({path:info.outputPath("acting-90.png"),animations:"disabled"});
+  const mouth=scene.locator('[data-km-crayon-element="mouth-expression"]');
+  const brows=["eyebrow-left","eyebrow-right"].map(id=>
+    scene.locator('[data-km-crayon-element="'+id+'"]'));
+  const lids=["left","right"].map(side=>
+    scene.locator('[data-km-crayon-element="eye-'+side+'-blink-wax"]'));
+  const face=async(pose:string)=>{
+    await expect(mouth).toHaveAttribute("data-km-crayon-pose",pose);
+    for(const brow of brows)await expect(brow).toHaveAttribute("data-km-crayon-pose",pose);
+  };
+  await page.getByRole("button",{name:"Curiosity"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","70");
+  await face("wonder");
+  await page.getByRole("button",{name:"Blink"}).click();
+  await expect(scene).toHaveAttribute("data-km-crayon-frame","97");
+  for(const lid of lids)await expect(lid).toHaveAttribute("data-km-crayon-drawing","1");
+  await seekFilm(page,141);
+  await face("base");
   await page.getByRole("button",{name:"Smile"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","176");
-  await expect(eye).toHaveAttribute("data-km-crayon-pose","smile");
+  await face("smile");
+  for(const lid of lids)await expect(lid).toHaveAttribute("data-km-crayon-drawing","2");
   await scene.screenshot({path:info.outputPath("acting-176.png"),animations:"disabled"});
-  await page.getByRole("button",{name:"Speech begins"}).click();
-  await expect(mouth).toHaveAttribute("data-km-crayon-pose","ee");
+  // A closed lid is painted over the whole iris, not drawn beside it.
+  await seekFilm(page,188);
+  for(const [i,side] of (["left","right"] as const).entries()){
+    await expect(lids[i]).toHaveAttribute("data-km-crayon-drawing","3");
+    const lid=(await lids[i].locator("[data-km-crayon-underpaint]").boundingBox())!;
+    const iris=(await scene.locator('[data-km-crayon-element="eye-'+side+'-iris"] '+
+      "[data-km-crayon-underpaint]").boundingBox())!;
+    expect(lid.x).toBeLessThan(iris.x);
+    expect(lid.y).toBeLessThan(iris.y+1);
+    expect(lid.x+lid.width).toBeGreaterThan(iris.x+iris.width);
+    expect(lid.y+lid.height).toBeGreaterThan(iris.y+iris.height);
+  }
+  await scene.screenshot({path:info.outputPath("acting-188.png"),animations:"disabled"});
+  await seekFilm(page,216);
+  await face("concern");
+  for(const lid of lids)await expect(lid).toHaveAttribute("data-km-crayon-drawing","4");
+  await page.getByRole("button",{name:"Smile"}).click();
+  await face("smile");
+  for(const lid of lids)await expect(lid).toHaveAttribute("data-km-crayon-drawing","2");
 });
 
 test("walk animation plants, releases, and replants the correct foot on keyed story beats",async({page},info)=>{
   await page.goto("/iframe.html?id=video-crayon-walk--character-walk-cycle&viewMode=story");
   const scene=page.locator("svg[data-km-crayon-scene]");
-  const back=scene.locator('[data-km-crayon-element="foot-back"]');
-  const front=scene.locator('[data-km-crayon-element="foot-front"]');
+  const back=scene.locator('[data-km-crayon-element="boot-back"]');
+  const front=scene.locator('[data-km-crayon-element="boot-front"]');
+  const coat=scene.locator('[data-km-crayon-element="coat-body"]');
   await page.getByRole("button",{name:"Back-foot lift"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","38");
   await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
+  const backStart=await soleOf(back),frontStart=await soleOf(front);
+  await seekFilm(page,66);
+  await expect(back).not.toHaveAttribute("data-km-crayon-contact","planted");
+  await expect(front).toHaveAttribute("data-km-crayon-contact","planted");
+  expect((await soleOf(back)).y,"the back foot clears the ground").toBeLessThan(backStart.y-8);
+  expectPlanted(await soleOf(front),frontStart,"front foot carries the weight at 66");
   await page.getByRole("button",{name:"Back-foot plant"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","94");
   await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
@@ -64,24 +131,40 @@ test("walk animation plants, releases, and replants the correct foot on keyed st
   const leg=scene.locator('[data-km-crayon-element="leg-front"]');
   await expect(leg).toHaveAttribute("data-km-crayon-kind","connector");
   const legAtPlant=await leg.locator("path").first().getAttribute("d");
+  const backPlant=await soleOf(back),bodyAtPlant=await coat.getAttribute("transform");
+  expectPlanted(await soleOf(front),frontStart,"front foot holds until the back foot lands");
+  expect(backPlant.y).toBeCloseTo(backStart.y,1);
+  expect(backPlant.x).toBeGreaterThan(backStart.x+10);
   await scene.screenshot({path:info.outputPath("walk-94.png"),animations:"disabled"});
   await page.getByRole("button",{name:"Front-foot swing"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","124");
   await expect(front).not.toHaveAttribute("data-km-crayon-contact","planted");
+  await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
   expect(await leg.locator("path").first().getAttribute("d")).not.toEqual(legAtPlant);
+  expect(await coat.getAttribute("transform")).not.toEqual(bodyAtPlant);
+  expectPlanted(await soleOf(back),backPlant,"back foot carries the weight at 124");
+  expect((await soleOf(front)).y,"the front foot clears the ground").toBeLessThan(frontStart.y-8);
   await page.getByRole("button",{name:"Front-foot plant"}).click();
   await expect(front).toHaveAttribute("data-km-crayon-contact","planted");
+  expectPlanted(await soleOf(back),backPlant,"back foot holds until the front foot lands");
+  const frontPlant=await soleOf(front);
+  expect(frontPlant.y).toBeCloseTo(frontStart.y,1);
+  expect(frontPlant.x).toBeGreaterThan(frontStart.x+20);
   await scene.screenshot({path:info.outputPath("walk-156.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Final plant"}).click();
+  await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
+  expectPlanted(await soleOf(front),frontPlant,"front foot stays while the back foot closes");
   await page.getByRole("button",{name:"Back-foot plant"}).click();
   await expect(back).toHaveAttribute("data-km-crayon-contact","planted");
+  expectPlanted(await soleOf(back),backPlant,"a backward seek lands on the same spot");
 });
 
 
 test("two-bone walk uses analytic knees and eases a releasing planted foot",async({page},info)=>{
   await page.goto("/iframe.html?id=video-crayon-walk--character-two-bone-ik&viewMode=story");
   const scene=page.locator("svg[data-km-crayon-scene]");
-  const back=scene.locator('[data-km-crayon-element="foot-back"]');
-  const front=scene.locator('[data-km-crayon-element="foot-front"]');
+  const back=scene.locator('[data-km-crayon-element="boot-back"]');
+  const front=scene.locator('[data-km-crayon-element="boot-front"]');
   const leg=scene.locator('[data-km-crayon-element="leg-front"]');
   await expect(leg).toHaveAttribute("data-km-crayon-rig","two-bone");
   await page.getByRole("button",{name:"Back-foot plant"}).click();
@@ -91,6 +174,15 @@ test("two-bone walk uses analytic knees and eases a releasing planted foot",asyn
   await page.getByRole("button",{name:"Contact release"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","44");
   await expect(back).toHaveAttribute("data-km-crayon-contact","releasing");
+  // Eased release: no frame of the lift-off may jump away from the last plant.
+  await seekFilm(page,38);
+  let last=await soleOf(back);
+  for(let frame=39;frame<=48;frame++){
+    await seekFilm(page,frame);
+    const next=await soleOf(back);
+    expect(Math.hypot(next.x-last.x,next.y-last.y),"release step at "+frame).toBeLessThan(4);
+    last=next;
+  }
   await page.getByRole("button",{name:"Front-foot swing"}).click();
   await expect(scene).toHaveAttribute("data-km-crayon-frame","124");
   await expect(front).not.toHaveAttribute("data-km-crayon-contact","planted");
@@ -124,15 +216,20 @@ test("crayon Storybook wall-clock playback advances, pauses, and restarts",async
 test("drawn-character film builds wax after outlines and clears transient guides",async({page},info)=>{
   await page.goto("/iframe.html?id=video-crayon-draw-in--character-draw-in&viewMode=story");
   const svg=page.locator("svg[data-km-crayon-scene]");
-  const body=svg.locator('[data-km-crayon-element="body"] [data-km-crayon-build]');
+  const body=svg.locator('[data-km-crayon-element="coat-body"] [data-km-crayon-build]');
   const guide=svg.locator('[data-km-crayon-element="construction-head"]');
   await page.getByRole("button",{name:"Sketch guides"}).click();
-  await expect(svg).toHaveAttribute("data-km-crayon-frame","48");
+  await expect(svg).toHaveAttribute("data-km-crayon-frame","33");
   await expect(guide).toHaveAttribute("data-km-crayon-exit","visible");
-  await svg.screenshot({path:info.outputPath("draw-in-guides-48.png"),animations:"disabled"});
+  // The guides come before any part of the character is outlined or painted.
+  await expect(guide.locator("path").first()).toBeVisible();
+  await expect(body).toHaveAttribute("data-km-crayon-build","pending");
+  await svg.screenshot({path:info.outputPath("draw-in-guides-33.png"),animations:"disabled"});
   await page.getByRole("button",{name:"First outlines"}).click();
+  await expect(svg).toHaveAttribute("data-km-crayon-frame","80");
   await expect(body).toHaveAttribute("data-km-crayon-build","outlining");
-  await svg.screenshot({path:info.outputPath("draw-in-outlines-146.png"),animations:"disabled"});
+  await expect(guide).toHaveAttribute("data-km-crayon-exit","visible");
+  await svg.screenshot({path:info.outputPath("draw-in-outlines-80.png"),animations:"disabled"});
   await page.getByRole("button",{name:"Wax colour"}).click();
   await expect(body).toHaveAttribute("data-km-crayon-build","pigment");
   await expect(guide).toHaveAttribute("data-km-crayon-exit","fading");
@@ -149,13 +246,23 @@ test("drawn-character film builds wax after outlines and clears transient guides
 test("drawn-character portrait retains separate guide, pigment and acting frames",async({page},info)=>{
   await page.goto("/iframe.html?id=video-crayon-draw-in--character-draw-in-portrait&viewMode=story");
   const svg=page.locator("svg[data-km-crayon-scene]");
-  const body=svg.locator('[data-km-crayon-element="body"] [data-km-crayon-build]');
+  const coat=svg.locator('[data-km-crayon-element="coat-body"]');
+  const body=coat.locator("[data-km-crayon-build]");
+  const guide=svg.locator('[data-km-crayon-element="construction-head"]');
   await expect(svg).toHaveAttribute("viewBox","0 0 540 960");
+  await page.getByRole("button",{name:"Sketch guides"}).click();
+  await expect(guide).toHaveAttribute("data-km-crayon-exit","visible");
+  await svg.screenshot({path:info.outputPath("draw-in-portrait-33.png"),animations:"disabled"});
+  await page.getByRole("button",{name:"Wax colour"}).click();
+  await expect(body).toHaveAttribute("data-km-crayon-build","pigment");
   await page.getByRole("button",{name:"Layered shading"}).click();
   await expect(body).toHaveAttribute("data-km-crayon-build","finished");
+  await expect(guide).toHaveAttribute("data-km-crayon-exit","finished");
   await svg.screenshot({path:info.outputPath("draw-in-portrait-280.png"),animations:"disabled"});
+  const still=await coat.getAttribute("transform");
   await page.getByRole("button",{name:"Drawing moves"}).click();
   await expect(svg).toHaveAttribute("data-km-crayon-frame","400");
+  expect(await coat.getAttribute("transform")).not.toBe(still);
   await svg.screenshot({path:info.outputPath("draw-in-portrait-400.png"),animations:"disabled"});
 });
 
@@ -213,7 +320,8 @@ test("dragon and architecture close-ups expose actual craft geometry and distinc
     {id:"dragon-anatomy-detail-portrait",name:"dragon-portrait-close",kind:"dragon-neck-overlapping-scutes"},
   ];
   for(const item of frames){
-    await page.goto("/iframe.html?id=video-crayon-scene-engine--"+item.id+"&viewMode=story");
+    // #228 (2ca0c5dd) moved the dragon stories out of the scene-engine file.
+    await page.goto("/iframe.html?id=video-crayon-dragon--"+item.id+"&viewMode=story");
     const svg=page.locator("svg[data-km-crayon-scene]");
     const target=svg.locator('[data-km-crayon-element="'+item.kind+'"]');
     await expect(target).toBeAttached();
@@ -250,9 +358,20 @@ test("opaque wax optical regression: background cannot bleed through finished ch
     await page.goto("/iframe.html?id=video-crayon-material-studies--"+id+"&viewMode=story");
     const svg=page.locator("svg[data-km-crayon-optics]");
     await expect(svg).toBeVisible();
+    const head=(actor:"open"|"opaque")=>
+      svg.locator('[data-km-crayon-optics-actor="'+actor+'"] > [data-km-crayon-region]');
+    for(const actor of ["open","opaque"] as const){
+      await expect(head(actor)).toHaveCount(1);
+      await expect(head(actor)).toHaveAttribute("data-km-crayon-coverage",actor);
+      await expect(head(actor).locator('[data-km-crayon-underpaint="opaque"]'))
+        .toHaveCount(actor==="opaque"?1:0);
+      // #239 (82bbff08) paints each nose as its own small opaque wax shape, so
+      // every head carries exactly one opaque nose beside its own coverage.
+      await expect(svg.locator('[data-km-crayon-optics-actor="'+actor+
+        '"] [data-km-crayon-optics-nose] > [data-km-crayon-coverage="opaque"]')).toHaveCount(1);
+    }
     await expect(svg.locator('[data-km-crayon-coverage="open"]')).toHaveCount(1);
-    await expect(svg.locator('[data-km-crayon-coverage="opaque"]')).toHaveCount(1);
-    await expect(svg.locator('[data-km-crayon-underpaint="opaque"]')).toHaveCount(1);
+    await expect(svg.locator('[data-km-crayon-coverage="opaque"]')).toHaveCount(3);
     const pixels=await page.evaluate(async()=>{
       const svg=document.querySelector('svg[data-km-crayon-optics]');
       if(!svg)throw new Error("Missing optical proof SVG");

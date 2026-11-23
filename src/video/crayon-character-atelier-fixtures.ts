@@ -51,6 +51,53 @@ type Box={x:number;y:number;width:number;height:number};
 const bounds=(x:number,y:number,width:number,height:number):Box=>({x,y,width,height});
 const isFiniteScale=(n:number,a:number,b:number)=>Number.isFinite(n)&&n>=a&&n<=b;
 
+/** Rest geometry of the walking legs, in the child's own drawing units. */
+const LEG={hipX:14,hipY:92,ankleBackX:-33,ankleFrontX:32,ankleY:189,bone:51} as const;
+/** Feet alternate: back closes (38-94), front opens (94-156), back closes (156-214).
+ * Each stance starts on the frame where the foot lands and ends where it lifts. */
+const STANCE={
+  back:[{start:0,end:38,releaseFrames:10},{start:94,end:156,releaseFrames:10},{start:214,end:269}],
+  front:[{start:0,end:94,releaseFrames:10},{start:156,end:269}],
+} as const;
+const smoothStep=(t:number)=>{const u=Math.max(0,Math.min(1,t));return u*u*(3-2*u);};
+const ramp=(frame:number,start:number,end:number,from:number,to:number)=>
+  from+(to-from)*smoothStep((frame-start)/(end-start));
+
+/**
+ * A child's step-together walk. The feet are authored first, on the ground; the
+ * pelvis then travels between them and sinks only as far as both legs can reach.
+ * Every boot key counter-moves the body keyed on the same frame, so the planted
+ * sole is already still before the CRAYON1 contact pins it exactly.
+ */
+function crayonChildWalk(stride:number,stepLift:number,scale:number){
+  const travel=60*stride,wide=30*stride,rise=17*stepLift,reachable=LEG.bone*2*.985;
+  const swing=(frame:number,start:number,end:number)=>Math.max(0,Math.min(1,(frame-start)/(end-start)));
+  const backX=(f:number)=>f<=94?ramp(f,38,94,-travel/2-wide,-travel/2):ramp(f,156,214,-travel/2,travel/2);
+  const frontX=(f:number)=>ramp(f,94,156,-travel/2,travel/2);
+  const backUp=(f:number)=>Math.sin(Math.PI*swing(f,38,94))+Math.sin(Math.PI*swing(f,156,214));
+  const frontUp=(f:number)=>Math.sin(Math.PI*swing(f,94,156));
+  const pelvisX=(f:number)=>f<=38?ramp(f,6,38,-travel*.75,-travel*.5):
+    f<=94?ramp(f,38,94,-travel*.5,-travel*.44):
+    f<=214?ramp(f,94,214,-travel*.44,travel*.54):ramp(f,214,246,travel*.54,travel/2);
+  // How far the hip must sink for this leg to reach its own ankle, planted or lifted.
+  const drop=(f:number,ankle:number,up:number,hip:number)=>LEG.ankleY-rise*up-LEG.hipY-
+    Math.sqrt(Math.max(0,reachable**2-(ankle-pelvisX(f)-hip)**2));
+  const pelvisY=(f:number)=>Math.max(-2.5*stepLift,
+    drop(f,backX(f)+LEG.ankleBackX,backUp(f),-LEG.hipX),
+    drop(f,frontX(f)+LEG.ankleFrontX,frontUp(f),LEG.hipX));
+  const frames=[0,6,12,18,24,30,38,45,52,59,66,73,80,87,94,102,110,118,125,132,140,148,156,
+    163,170,177,185,192,199,206,214,222,230,238,246,269];
+  const n=(v:number)=>Math.round(v*1000)/1000;
+  const body:readonly CrayonMotionKey[]=frames.map(frame=>({
+    frame,x:n(scale*pelvisX(frame)),y:n(scale*pelvisY(frame))}));
+  const boot=(side:-1|1):readonly CrayonMotionKey[]=>frames.map(frame=>{
+    const foot=side<0?backX(frame):frontX(frame),up=side<0?backUp(frame):frontUp(frame);
+    return {frame,x:n(foot-pelvisX(frame)),y:n(-rise*up-pelvisY(frame)),rotate:n(side*9*up)};
+  });
+  const shadow:readonly CrayonMotionKey[]=frames.map(frame=>({frame,x:n(scale*pelvisX(frame)),y:0}));
+  return {body,boot,shadow};
+}
+
 export function crayonIllustratedChildScene(
   aspect:"landscape"|"portrait", options:CrayonAtelierOptions={},
 ):CrayonSceneSpec {
@@ -74,6 +121,10 @@ export function crayonIllustratedChildScene(
   const times:Record<Stage,readonly [number,number]>=draw?{
     atmosphere:[138,343],underlay:[35,203],garment:[150,324],
     skin:[207,352],detail:[280,418],finish:[335,440],
+  }:walk?{
+    // The child is on the page before the first step, so every plant is visible.
+    atmosphere:[0,26],underlay:[2,26],garment:[6,34],
+    skin:[10,38],detail:[18,46],finish:[26,56],
   }:{
     atmosphere:[4,96],underlay:[14,100],garment:[31,128],
     skin:[47,141],detail:[83,181],finish:[126,219],
@@ -112,18 +163,14 @@ export function crayonIllustratedChildScene(
   wax("soft-cloud","M"+(W*.45)+" "+(H*.22)+"q-25 -21 -57 3q-35 -17 -49 19q-6 25 38 29h90q41 -12 24 -32Z",
     bounds(W*.35,H*.16,170,97),P.light,"atmosphere",
     {coverage:"open",pressure:.35,spacing:12,outlineOpacity:0});
+  const gait=walk?crayonChildWalk(stride,stepLift,scale):null;
   wax("ground-shadow","M"+(ox-115)+" "+(oy+215*scale)+"q110 -30 232 -3q20 19 -27 20h-185q-37 -5 -20 -17Z",
     bounds(ox-125,oy+193*scale,250,45),P.leather,"underlay",
-    {coverage:"open",pressure:.22,spacing:14,outlineOpacity:0});
+    {coverage:"open",pressure:.22,spacing:14,outlineOpacity:0,
+      ...(gait?{motion:gait.shadow}:{})});
   // Body movement is a child-friendly offset with weighted squash and head
   // anticipation, never a substitute for the actual garment/body silhouette.
-  const bodyMotion:readonly CrayonMotionKey[]=walk?[
-    {frame:0,x:-73*stride,y:0},{frame:40,x:-73*stride,y:0},
-    {frame:78,x:-38*stride,y:-7*stepLift,rotate:-2},
-    {frame:105,x:-14*stride,y:0},{frame:145,x:17*stride,y:-8*stepLift,rotate:2},
-    {frame:179,x:36*stride,y:0},{frame:220,x:66*stride,y:-6*stepLift},
-    {frame:269,x:66*stride,y:0},
-  ]:draw?[
+  const bodyMotion:readonly CrayonMotionKey[]=gait?gait.body:draw?[
     {frame:0,x:0,y:0},{frame:365,x:0,y:0},
     {frame:393,x:0,y:-4,rotate:-1},{frame:424,x:0,y:0,rotate:1},
     {frame:449,x:0,y:0},
@@ -148,13 +195,12 @@ export function crayonIllustratedChildScene(
     {frame:127,x:0,y:0,rotate:-15},{frame:167,x:0,y:0,rotate:-8},
     {frame:225,x:0,y:0,rotate:5},{frame:269,x:0,y:0,rotate:-3},
   ];
-  const shoeMove=(side:-1|1):readonly CrayonMotionKey[]=>walk?[
-    {frame:0,x:0,y:0},{frame:41,x:0,y:0,rotate:side*3},
-    {frame:73,x:side*20*stride,y:-18*stepLift,rotate:-side*12},
-    {frame:104,x:side*23*stride,y:0},{frame:135,x:-side*11*stride,y:0},
-    {frame:162,x:side*12*stride,y:-16*stepLift},
-    {frame:188,x:side*17*stride,y:0},{frame:269,x:0,y:0},
-  ]:[{frame:0,x:0,y:0},{frame:durationFrames-1,x:0,y:0}];
+  const shoeMove=(side:-1|1):readonly CrayonMotionKey[]=>gait?gait.boot(side):
+    [{frame:0,x:0,y:0},{frame:durationFrames-1,x:0,y:0}];
+  // A planted boot is pinned at its sole; CRAYON1 eases the pin out after lift-off.
+  const shoePlant=(side:-1|1):Pick<Wax,"contacts">=>gait?{contacts:
+    (side<0?STANCE.back:STANCE.front).map(range=>({...range,
+      anchor:{x:side<0?LEG.ankleBackX:LEG.ankleFrontX,y:224}}))}:{};
 
   // Layer one: overlapping hair, back sleeve, dress, legs. All attached to
   // semantic parents; painter order does not determine rig parentage.
@@ -167,6 +213,20 @@ export function crayonIllustratedChildScene(
     "Q-92 51 -78 39L-50 -13Z",
     bounds(-128,-83,83,142),P.coatDeep,"garment",
     {parentId:"coat-body",pivot:{x:-70,y:-59},motion:armMotion});
+  // In the walk each leg is one connector from hip to planted ankle, painted
+  // under the skirt; a rigid stocking would leave the boot it belongs to.
+  if(walk)for(const [id,side] of [["leg-back",-1],["leg-front",1]] as const)
+    elements.push({kind:"connector",id,
+      from:{elementId:"coat-body",anchor:{x:side*LEG.hipX,y:LEG.hipY}},
+      to:{elementId:side<0?"boot-back":"boot-front",
+        anchor:{x:side<0?LEG.ankleBackX:LEG.ankleFrontX,y:LEG.ankleY}},
+      ...(rig==="ik"?{ik:{upperLength:LEG.bone*scale,lowerLength:LEG.bone*scale,
+        bendSide:side<0?"left" as const:"right" as const}}:
+        {bendKeys:(side<0?[[0,4],[38,5],[66,22],[94,5],[156,4],[185,22],[214,5],[269,4]]:
+          [[0,4],[94,5],[125,24],[156,4],[214,5],[269,4]])
+          .map(([frame,bend])=>({frame,bend:-side*bend*scale}))}),
+      color:"#e3cdb1",width:23*scale,opacity:1,
+      timing:{start:times.garment[0],end:times.garment[1]}});
   wax("dress-skirt","M-44 37Q-10 53 45 39Q61 82 73 143"+
     "Q21 157 -24 143Q-71 148 -81 130Q-69 75 -44 37Z",
     bounds(-93,31,176,135),P.dress,"garment",
@@ -176,20 +236,22 @@ export function crayonIllustratedChildScene(
     "Q-35 160 -49 147Q-68 161 -84 144Z",
     bounds(-94,121,181,51),P.lace,"detail",
     {parentId:"dress-skirt",spacing:4.9,outlineOpacity:.13});
-  wax("stocking-back","M-48 127Q-27 134 -17 130L-20 197Q-31 204 -47 192Z",
-    bounds(-57,122,47,88),P.dress,"garment",
-    {parentId:"coat-body",spacing:5.5});
-  wax("stocking-front","M17 132Q31 138 46 129L49 196Q33 201 18 193Z",
-    bounds(8,123,53,83),P.dress,"garment",
-    {parentId:"coat-body",spacing:5.5});
+  if(!walk){
+    wax("stocking-back","M-48 127Q-27 134 -17 130L-20 197Q-31 204 -47 192Z",
+      bounds(-57,122,47,88),P.dress,"garment",
+      {parentId:"coat-body",spacing:5.5});
+    wax("stocking-front","M17 132Q31 138 46 129L49 196Q33 201 18 193Z",
+      bounds(8,123,53,83),P.dress,"garment",
+      {parentId:"coat-body",spacing:5.5});
+  }
   wax("boot-back","M-51 184Q-30 178 -13 186L-7 211Q1 217 -7 227"+
     "H-65Q-78 222 -66 208Z",
     bounds(-79,175,83,62),P.boot,"garment",
-    {parentId:"coat-body",pivot:{x:-34,y:191},motion:shoeMove(-1),spacing:5.1});
+    {parentId:"coat-body",pivot:{x:-34,y:191},motion:shoeMove(-1),...shoePlant(-1),spacing:5.1});
   wax("boot-front","M14 184Q37 176 54 187L55 209Q78 213 73 225"+
     "Q57 232 8 229Q0 220 13 213Z",
     bounds(-2,175,85,64),P.boot,"garment",
-    {parentId:"coat-body",pivot:{x:32,y:192},motion:shoeMove(1),spacing:5.1});
+    {parentId:"coat-body",pivot:{x:32,y:192},motion:shoeMove(1),...shoePlant(1),spacing:5.1});
 
   wax("coat-body","M-48 -69Q-66 -83 -78 -60C-99 -33 -85 39 -75 89"+
     "Q-61 109 -43 113L-20 91Q8 117 34 114Q60 111 70 89"+
@@ -261,10 +323,14 @@ export function crayonIllustratedChildScene(
   wax("eye-right-pupil","M43 -138Q50 -137 50 -129Q48 -124 44 -127Z",
     bounds(38,-144,17,23),P.dark,"skin",
     {parentId:"face",spacing:4.2,outlineOpacity:0});
+  // Catchlights sit on the eyeball: the lid paint below closes over them.
+  line("eye-catchlights","M-34 -139l3 -2M42 -135l3 -2",
+    "#fff5dd",1.8,"finish",{parentId:"face",opacity:.93});
   // Dense skin-colour blink paint is above irises, not a transparent outline.
   // The open state is a microscopic mark; the closed frame blocks both eyes.
-  const blinkL="M-52 -140Q-32 -153 -11 -136Q-28 -119 -52 -140Z";
-  const blinkR="M23 -135Q43 -149 62 -131Q44 -114 23 -135Z";
+  // A closed lid reaches the lower-lid crease, so no iris shows below it.
+  const blinkL="M-54 -139Q-32 -157 -10 -137Q-29 -111 -54 -139Z";
+  const blinkR="M22 -135Q43 -150 63 -131Q45 -104 22 -135Z";
   const blinkFrames=draw?[{frame:418,d:blinkL,bounds:bounds(-58,-158,51,45)},
     {frame:426,d:"M-53 -137l1 0.1 -1 0Z",bounds:bounds(-54,-138,4,4)}]:
     [{frame:97,d:blinkL,bounds:bounds(-58,-158,51,45)},
@@ -384,8 +450,10 @@ export function crayonIllustratedChildScene(
   line("boot-right-lacing","M29 188L43 207M43 187L29 206"+
     "M29 193L42 199M29 200L42 205",
     "#d7af87",1.7,"finish",{parentId:"boot-front"});
-  line("boot-soles","M-66 224Q-31 233 -8 224M8 227Q46 236 72 223",
-    "#463536",3.1,"finish",{parentId:"coat-body"});
+  line("boot-sole-back","M-66 224Q-31 233 -8 224",
+    "#463536",3.1,"finish",{parentId:"boot-back"});
+  line("boot-sole-front","M8 227Q46 236 72 223",
+    "#463536",3.1,"finish",{parentId:"boot-front"});
   line("satchel-edge-stitch","M-126 82L-124 107Q-89 124 -64 107L-64 80",
     "#d8b48a",1.05,"finish",{parentId:"satchel-body",opacity:.75});
   line("satchel-strap","M-85 38Q-43 -31 41 -48",
@@ -482,20 +550,21 @@ export function crayonIllustratedChildScene(
     "#9b6361",1.3,"finish",{parentId:"face",opacity:.85});
   line("freckles-right","M48 -103l2 -1M55 -109l1 -1M64 -104l1 -1",
     "#a67068",1.2,"finish",{parentId:"face",opacity:.77});
-  line("eye-catchlights","M-34 -144l3 -2M40 -140l3 -2",
-    "#fff5dd",1.8,"finish",{parentId:"face",opacity:.93});
 
-  if(walk){
-    // Knees are independently addressable, and the IK story actually uses
-    // analytic two-bone connectors rather than a mislabeled preset.
-    for(const [id,x,side] of [["left",-34,"left"],["right",30,"right"]] as const){
-      elements.push({kind:"connector",id:"knee-"+id,
-        from:{elementId:"coat-body",anchor:{x,y:90}},
-        to:{elementId:id==="left"?"boot-back":"boot-front",anchor:{x,y:187}},
-        ...(rig==="ik"?{ik:{upperLength:51,lowerLength:51,bendSide:side}}:
-          {bend:side==="left"?-10:11}),
-        color:"#b39b85",width:11,opacity:.88,timing:{start:20,end:66}});
-    }
+  if(draw){
+    // Light construction guides come first, under the wax, and leave the page
+    // once the outlines and the first pigment have replaced them.
+    const guide=(id:string,d:string,start:number,end:number)=>
+      line("construction-"+id,d,"#6f6a70",1.7,"underlay",{
+        placement:{x:ox,y:oy,scale},pivot:{x:0,y:36},renderLayer:"backdrop",
+        opacity:.5,timing:{start,end},exitFade:{start:182,end:234}});
+    guide("head","M-88 -137C-88 -187 -47 -214 4 -214C56 -214 95 -184 95 -134"+
+      "C95 -88 53 -59 3 -59C-47 -59 -88 -90 -88 -137Z",3,20);
+    guide("axis","M6 -222Q-3 -140 3 -59Q-4 24 -1 150",9,24);
+    guide("eye-line","M-84 -139Q4 -121 92 -132",14,26);
+    guide("shoulders","M-76 -56Q-4 -42 73 -52",16,28);
+    guide("body","M-76 -56Q-92 18 -76 92M73 -52Q90 18 72 94M-76 92Q0 116 72 94",18,31);
+    guide("legs","M-33 100L-35 206M32 102L34 206M-80 222Q0 231 80 222",22,33);
   }
 
   txt("eyebrow",["ORIGINAL CHARACTER  /  WAX & PAPER"],portrait?30:55,
