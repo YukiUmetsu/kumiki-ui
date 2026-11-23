@@ -207,11 +207,11 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `one-change-hold` | video | data | [spec](component-specs/subject-led-explainer.md) | `video-production-scene-templates-subject-led-explainers--compare-reveal` | — |
 | `orbit-world` | video | dom | [spec](component-specs/orbit-world.md) | `video-production-scene-templates--orbit-world` | — |
 | `page-turn-story` | video | dom | [spec](component-specs/page-turn-story.md) | `video-production-scene-templates--page-turn-story` | — |
-| `painted-composition` | video | dom | — | — | — |
+| `painted-composition` | video | dom | — | `film-art-watercolour-worlds--any-subject-painted-film` | — |
 | `paired-focus` | motion | dom | [spec](component-specs/paired-focus.md) | `motion-paired-focus--complete-sequence` | — |
 | `paper-book` | motion | data | [spec](component-specs/paper-sheet.md) | `video-production-film-looks-paper-craft--magazine-page-flip` | — |
 | `paper-book-three` | motion | data | [spec](component-specs/paper-sheet.md) | `video-production-film-looks-paper-craft--magazine-page-flip` | — |
-| `paper-craft` | video | dom | — | — | — |
+| `paper-craft` | video | dom | — | `video-production-film-looks-paper-craft--gallery` | — |
 | `paper-sheet` | motion | dom | [spec](component-specs/paper-sheet.md) | `video-production-film-looks-paper-craft--physical-paper` | — |
 | `paper-sound` | motion | data | [spec](component-specs/paper-sheet.md) | `video-production-film-looks-paper-craft--magazine-page-flip` | — |
 | `particle-moments` | visual | dom | [spec](component-specs/environmental-effects.md) | `video-particle-moments--choose-particles` | — |
@@ -238,7 +238,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `relief-map-expedition` | video | dom | [spec](component-specs/relief-map-expedition.md) | `video-production-scene-templates--relief-map-expedition` | — |
 | `rendered-text-audit` | visual | data | [spec](component-specs/film-document.md) | — | — |
 | `resource-explorer` | patterns | dom | — | `patterns-resource-explorer--default` | — |
-| `riso-character` | video | dom | — | — | — |
+| `riso-character` | video | dom | — | `video-riso-characters--paper-courier-performance` | — |
 | `riso-print` | video | dom | — | — | — |
 | `scalar-field` | visual | dom | [spec](component-specs/scalar-field.md) | `house-math-scalar-field-overlay--fields` | — |
 | `scalar-field-three` | visual | data | [spec](component-specs/scalar-field.md) | `house-math-scalar-field-overlay--fields` | — |
@@ -320,9 +320,9 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `visual-transformation` | motion | dom | — | `motion-visual-transformation--reference-film` | — |
 | `water` | finance | dom | — | `video-water--sheet` | — |
 | `watercolour-actor` | video | dom | — | — | — |
-| `watercolour-brush` | video | dom | — | — | — |
-| `watercolour-illustration` | video | svg | — | — | — |
-| `watercolour-wet-paper` | video | dom | — | — | — |
+| `watercolour-brush` | video | dom | — | `film-art-watercolour-brush--painted-film` | — |
+| `watercolour-illustration` | video | svg | — | `film-art-watercolour-art-director--heron-wetland-film` | — |
+| `watercolour-wet-paper` | video | dom | — | `film-art-watercolour-wet-paper--wet-pigment-studio` | — |
 | `worked-example` | video | dom | [spec](component-specs/scene-templates.md) | — | — |
 | `zone-boundary` | visual | dom | [spec](component-specs/zone-boundary.md) | `visual-zone-boundary--zones` | — |
 

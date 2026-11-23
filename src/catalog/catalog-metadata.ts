@@ -155,6 +155,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:watercolour-brush":{storyId:"film-art-watercolour-brush--painted-film"},
   "pack:watercolour-wet-paper":{storyId:"film-art-watercolour-wet-paper--wet-pigment-studio"},
   "pack:painted-composition":{storyId:"film-art-watercolour-worlds--any-subject-painted-film"},
+  "pack:paper-craft":{storyId:"video-production-film-looks-paper-craft--gallery"},
   "pack:watercolour-illustration":{storyId:"film-art-watercolour-art-director--heron-wetland-film"},
   "pack:human-anatomy":{storyId:"video-human-anatomy--lab"},
   "pack:animal-anatomy":{storyId:"video-animal-anatomy--sheet"},
