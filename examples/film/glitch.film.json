@@ -1,0 +1,130 @@
+{
+ "schemaVersion": 1,
+ "id": "glitch",
+ "fps": {
+  "num": 30,
+  "den": 1
+ },
+ "outputs": [
+  {
+   "id": "landscape",
+   "preset": "youtube"
+  },
+  {
+   "id": "draft",
+   "width": 960,
+   "height": 540
+  }
+ ],
+ "scenes": [
+  {
+   "id": "signal",
+   "recipeId": "card",
+   "durationFrames": 127,
+   "content": {
+    "card": "headline",
+    "text": "Signal lost",
+    "emphasis": "lost",
+    "photo": {
+     "id": "ice-cave",
+     "src": "assets/iceland-large/ice-cave.jpg",
+     "alt": "Blue ice arching over the mouth of a glacier cave",
+     "licenseRef": "commons-ice-cave-cc0-large",
+     "width": 3200,
+     "height": 2133
+    }
+   }
+  },
+  {
+   "id": "found",
+   "recipeId": "card",
+   "durationFrames": 130,
+   "transition": {
+    "kind": "glitch",
+    "durationFrames": 8
+   },
+   "content": {
+    "card": "headline",
+    "text": "Signal found",
+    "emphasis": "found",
+    "photo": {
+     "id": "jokulsarlon",
+     "src": "assets/iceland-large/jokulsarlon.jpg",
+     "alt": "Icebergs floating in a glacier lagoon under pale sky",
+     "licenseRef": "commons-jokulsarlon-cc0-large",
+     "width": 3200,
+     "height": 2133
+    }
+   }
+  },
+  {
+   "id": "hard",
+   "recipeId": "card",
+   "durationFrames": 131,
+   "transition": {
+    "kind": "glitch",
+    "durationFrames": 10,
+    "intensity": 1
+   },
+   "content": {
+    "card": "headline",
+    "text": "Hard glitch",
+    "emphasis": "glitch",
+    "photo": {
+     "id": "seljalandsfoss",
+     "src": "assets/iceland-large/seljalandsfoss.jpg",
+     "alt": "Seljalandsfoss, a tall waterfall falling over a mossy cliff",
+     "licenseRef": "commons-seljalandsfoss-cc0-large",
+     "width": 3200,
+     "height": 2133
+    }
+   }
+  },
+  {
+   "id": "mosh",
+   "recipeId": "footage",
+   "durationFrames": 156,
+   "transition": {
+    "kind": "glitch",
+    "durationFrames": 8
+   },
+   "content": {
+    "video": {
+     "id": "annabelle-peacock-mosh",
+     "src": "assets/footage/annabelle-peacock-mosh.mp4",
+     "width": 768,
+     "height": 576,
+     "fps": 25,
+     "frameCount": 130,
+     "licenseRef": "commons-annabelle-butterfly-dance-cc0"
+    },
+    "label": "A real datamosh: an 1894 dancer's picture is moved by a peacock's motion until the peacock snaps in clean.",
+    "push": [
+     1,
+     1
+    ]
+   }
+  }
+ ],
+ "audio": {
+  "lanes": [],
+  "licenseRef": "kumiki-sound-catalog",
+  "accents": {
+   "kit": "assets/sfx",
+   "gainDb": -4,
+   "on": "all"
+  },
+  "beds": [
+   {
+    "id": "drums",
+    "sound": "bed-drums-hiphop-110",
+    "bpm": 110,
+    "fadeSeconds": 0.05
+   }
+  ],
+  "master": {
+   "profile": "youtube",
+   "limit": true
+  }
+ }
+}

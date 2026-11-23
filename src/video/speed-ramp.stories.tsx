@@ -7,6 +7,14 @@ import type { CompiledFilm, FilmDocument } from "../../registry/video/film-docum
 import { FilmStage } from "../../registry/video/film-stage";
 import { createShot3dRenderer } from "../../registry/video/film-3d-react";
 import example from "../../examples/film/speed-ramp-3d.film.json";
+import velocityExample from "../../examples/film/velocity-edit.film.json";
+import velocityMix from "../../assets/sound/lab/moves/velocity-edit.m4a?url";
+import dollyExample from "../../examples/film/dolly-zoom.film.json";
+import dollyMix from "../../assets/sound/lab/moves/dolly-zoom.m4a?url";
+import { trackPassState } from "../../registry/visual/race-shots";
+import type { TrackPassSpec } from "../../registry/visual/race-shots";
+import { bedBeats } from "../../registry/video/film-hits";
+import { VELOCITY_SHAPES } from "../../registry/video/film-speed";
 import { LOCAL_MOUNTAINS, RACE_CARS, RACE_TRACK } from "./race-assets";
 
 /** One renderer per car: the example's car, or one of your own from local-assets/vehicles. */
@@ -57,6 +65,8 @@ function speedAt(film: CompiledFilm, frame: number): { scene: string; speed: num
   const map = scene.speed.map, i = Math.min(map.length - 2, Math.max(0, Math.floor(local)));
   return { scene: scene.id, speed: map[i + 1] - map[i], hold: scene.speed.holds.some(h => local >= h.start && local < h.end) };
 }
+/** Whether a time map changes speed anywhere (a ramp, a hold or a velocity curve), not one even rate. */
+const varies = (map: readonly number[]) => { const steps = map.slice(1).map((v, k) => v - map[k]); return Math.max(...steps) - Math.min(...steps) > .05; };
 /** The film's timeline: scenes, holds shaded, ramps into and out of cuts marked, and the playhead. */
 function Timeline({ film, frame, onSeek }: { film: CompiledFilm; frame: number; onSeek: (frame: number) => void }) {
   const x = (f: number) => f / film.durationFrames * W;
@@ -74,7 +84,7 @@ function Timeline({ film, frame, onSeek }: { film: CompiledFilm; frame: number; 
         {speed?.holds.map((hold, h) => <rect key={h} x={x(scene.startFrame + hold.start)} y={6} width={x(hold.end - hold.start)} height={18} rx={3} fill="rgba(124,198,255,.38)" />)}
         {speed?.rampUp !== undefined ? <rect x={x(scene.startFrame + speed.rampUp)} y={6} width={x(scene.endFrame - scene.startFrame - speed.rampUp)} height={18} fill="rgba(255,201,74,.45)" /> : null}
         {/* Sections: the initial speed, then the speed ramp; a film without a ramp plays at one speed throughout. */}
-        <text x={x(scene.startFrame) + 8} y={19} fill="#c9ced6" fontSize={11} fontWeight={600}>{speed?.rampUp !== undefined ? "initial speed" : "even speed"}</text>
+        <text x={x(scene.startFrame) + 8} y={19} fill="#c9ced6" fontSize={11} fontWeight={600}>{speed?.rampUp !== undefined ? "initial speed" : speed && varies(speed.map) ? "speed curve" : "even speed"}</text>
         {speed?.rampUp !== undefined ? <text x={x(scene.startFrame + speed.rampUp) + 8} y={19} fill="#ffe2a0" fontSize={11} fontWeight={600}>speed ramp</text> : null}
       </g>;
     })}
@@ -175,9 +185,104 @@ export const Compare: StoryObj<{ frame: number; car: string; camera: CameraId }>
   },
 };
 
+/** A velocity edit: the race shot cut to a 110 bpm drum loop. Time races between the kicks and drops to slow motion on each one, with a
+ * punch and zoom blur on the kick and a shake on the snare; beside it, the same content at an even speed. Play with your sound on: the
+ * film's own mix plays in step. The content ticks bunch where time races and spread where it slows. */
+export const Velocity: StoryObj = {
+  render: function Velocity() {
+    const doc = velocityExample as unknown as FilmDocument;
+    const velocity = useMemo(() => compiled(doc), [doc]), even = useMemo(() => compiled({ ...doc, id: doc.id + "-even", scenes: doc.scenes.map(scene => ({ ...scene, hits: undefined, speed: { source: (scene.speed as FilmSpeed).source } })) } as FilmDocument), [doc]);
+    const { frame, setFrame, playing, toggle } = useClock(velocity.durationFrames), sound = useRef<HTMLAudioElement>(null);
+    useEffect(() => {
+      const element = sound.current;
+      if (!element) return;
+      // eslint-disable-next-line storybook/context-in-play-function -- an audio element's play(), not a story's play function
+      if (playing) { element.currentTime = frame / 30; void element.play().catch(() => undefined); } else element.pause();
+    }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
+    return <div style={{ background: "#0b0d10", padding: 16, display: "grid", gap: 14, font: "14px system-ui", color: "#e8ecf2" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <button type="button" onClick={toggle} style={{ font: "650 14px system-ui", padding: "8px 16px", borderRadius: 8, border: 0, background: "#7cc6ff", color: "#06121f" }}>{playing ? "Pause" : "Play both"}</button>
+        <input type="range" min={0} max={velocity.durationFrames - 1} value={frame} onChange={event => setFrame(Number(event.target.value))} aria-label="Film frame" style={{ width: 420 }} />
+        <span style={{ font: "600 13px ui-monospace, monospace", color: "#9aa4b2" }}>frame {frame} / {velocity.durationFrames}</span>
+        <audio ref={sound} src={velocityMix} preload="auto" />
+      </div>
+      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+        <Panel film={velocity} frame={frame} title="Velocity edit (rush)" onSeek={setFrame} car="concept-car"
+          note="Slow motion (0.4×) on each kick, racing to 3.1× into the next; the motion blur follows the speed. Punch and zoom blur on the kick, a shake on the snare." />
+        <Panel film={even} frame={frame} title="Even speed, same content" onSeek={setFrame} car="concept-car"
+          note="The same content in the same frames at an even 1.2×, with no hits: nothing lands on the music." />
+      </div>
+      <p style={{ margin: 0, color: "#6b7686", font: "12px system-ui", maxWidth: 1300 }}>Music: <a href="https://freesound.org/people/blakengouda/sounds/573948/" style={{ color: "#7cc6ff" }}>Hip-Hop Drum Loop - 110bpm</a> by blakengouda (CC0). The car is CC BY; see assets/models/vehicles/concept-car.LICENSE.md.</p>
+    </div>;
+  },
+};
+
+/** A race film's camera: its spec, and the lens and distance to the point it aims at in a film frame (one scene, no speed ramp). */
+const raceCamera = (doc: FilmDocument) => (doc.scenes[0].content as { spec: Omit<TrackPassSpec, "durationFrames"> }).spec;
+function lensAt(doc: FilmDocument, frame: number): { fov: number; distance: number } {
+  const { pose } = trackPassState({ ...raceCamera(doc), durationFrames: doc.scenes[0].durationFrames }, frame, 30);
+  return { fov: pose.fov, distance: Math.hypot(...pose.position.map((value, k) => value - pose.target[k])) };
+}
+/** One film in a panel, with the camera's lens and distance over it. */
+function LensPanel({ film, doc, frame, title, note, onSeek }: { film: CompiledFilm; doc: FilmDocument; frame: number; title: string; note: string; onSeek: (frame: number) => void }) {
+  const lens = lensAt(doc, frame);
+  return <figure style={{ margin: 0, display: "grid", gap: 6, alignContent: "start" }}>
+    <figcaption style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", height: 22, color: "#e8ecf2", font: "650 15px/22px system-ui" }}>
+      <span>{title}</span>
+      <span style={{ font: "600 13px ui-monospace, monospace", color: "#c9ced6" }}>lens {lens.fov.toFixed(1)}° · camera {lens.distance.toFixed(1)} m away</span>
+    </figcaption>
+    <div style={{ width: W, height: H, overflow: "hidden", borderRadius: 8, background: "#000" }}>
+      <Suspense fallback={null}><FilmStage film={film} frame={frame} renderObject={() => null} renderShot3d={rendererFor("concept-car")} reducedMotion={false} /></Suspense>
+    </div>
+    <Timeline film={film} frame={frame} onSeek={onSeek} />
+    <p style={{ margin: 0, color: "#9aa4b2", font: "13px/1.45 system-ui", maxWidth: W }}>{note}</p>
+  </figure>;
+}
+
+/** A dolly zoom: the lens lengthens from 60° to 22° while the camera locked to the car pulls back along its line to it, so the car keeps
+ * its size and the mountains behind it grow. Beside it, the same camera with the lens held. Play with your sound on: the film's own mix
+ * plays in step. */
+export const DollyZoom: StoryObj = {
+  render: function DollyZoom() {
+    const doc = dollyExample as unknown as FilmDocument;
+    const held = useMemo((): FilmDocument => ({ ...doc, id: doc.id + "-held", scenes: doc.scenes.map(scene => {
+      if (scene.recipeId !== "shot-3d" || scene.content.shot !== "race") return scene;
+      const content = scene.content;
+      return { ...scene, content: { ...content, spec: { ...content.spec, camera: { ...content.spec.camera, dollyZoom: undefined } } } };
+    }) as FilmDocument["scenes"] }), [doc]);
+    const zoomed = useMemo(() => compiled(doc), [doc]), still = useMemo(() => compiled(held), [held]);
+    const { frame, setFrame, playing, toggle } = useClock(zoomed.durationFrames), sound = useRef<HTMLAudioElement>(null);
+    useEffect(() => {
+      const element = sound.current;
+      if (!element) return;
+      // eslint-disable-next-line storybook/context-in-play-function -- an audio element's play(), not a story's play function
+      if (playing) { element.currentTime = frame / 30; void element.play().catch(() => undefined); } else element.pause();
+    }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
+    const zoom = raceCamera(doc).camera?.dollyZoom, jumps: Array<[string, number]> = [["before", 0], ["middle", Math.round(((zoom?.start ?? 0) + (zoom?.end ?? 0)) / 2)], ["after", zoomed.durationFrames - 1]];
+    return <div style={{ background: "#0b0d10", padding: 16, display: "grid", gap: 14, alignContent: "start", minHeight: "100vh", font: "14px system-ui", color: "#e8ecf2" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <button type="button" onClick={toggle} style={{ font: "650 14px system-ui", padding: "8px 16px", borderRadius: 8, border: 0, background: "#7cc6ff", color: "#06121f" }}>{playing ? "Pause" : "Play both"}</button>
+        <input type="range" min={0} max={zoomed.durationFrames - 1} value={frame} onChange={event => setFrame(Number(event.target.value))} aria-label="Film frame" style={{ width: 420 }} />
+        <span style={{ font: "600 13px ui-monospace, monospace", color: "#9aa4b2" }}>frame {frame} / {zoomed.durationFrames}</span>
+        <span style={{ color: "#9aa4b2" }}>Jump to:</span>
+        {jumps.map(([label, at]) =>
+          <button key={label} type="button" onClick={() => setFrame(at)} style={{ font: "600 13px system-ui", padding: "6px 10px", borderRadius: 6, border: "1px solid #2b3442", background: "#151b23", color: "#c9ced6" }}>{label}</button>)}
+        <audio ref={sound} src={dollyMix} preload="auto" />
+      </div>
+      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+        <LensPanel film={zoomed} doc={doc} frame={frame} title="Dolly zoom" onSeek={setFrame}
+          note="From frame 20 to 120 the lens goes from 60° to 22° and the camera pulls back from 3.7 m to about 9.7 m: the car keeps its size, and the mountains grow about three times." />
+        <LensPanel film={still} doc={held} frame={frame} title="Lens held at 60°" onSeek={setFrame}
+          note="The same camera without the zoom: the car and the mountains keep their sizes." />
+      </div>
+      <p style={{ margin: 0, color: "#6b7686", font: "12px system-ui", maxWidth: 1300 }}>Sound: bed-drone-low, a drone made in code (Kumiki UI, MIT). The car is CC BY; see assets/models/vehicles/concept-car.LICENSE.md.</p>
+    </div>;
+  },
+};
+
 /** A time map drawn as a curve: film frames across, content frames up. Holds are shaded; the yellow band is the speed. */
-function SpeedGraph({ title, speed, durationFrames, width = 560, height = 260 }: { title: string; speed: FilmSpeed; durationFrames: number; width?: number; height?: number }) {
-  const { speed: plan, problems } = compileSpeed(speed, durationFrames, 30, () => undefined);
+function SpeedGraph({ title, speed, durationFrames, beats = [], width = 560, height = 260 }: { title: string; speed: FilmSpeed; durationFrames: number; beats?: readonly number[]; width?: number; height?: number }) {
+  const { speed: plan, problems } = compileSpeed(speed, durationFrames, 30, () => undefined, beats);
   if (!plan) return <pre style={{ color: "#f88" }}>{problems.map(p => p.message).join("\n")}</pre>;
   const pad = 36, w = width - pad * 2, h = height - pad * 2 - 60, S = speed.source;
   const x = (f: number) => pad + f / durationFrames * w, y = (c: number) => pad + h - c / S * h;
@@ -188,10 +293,11 @@ function SpeedGraph({ title, speed, durationFrames, width = 560, height = 260 }:
     <svg width={width} height={height} role="img" aria-label={`${title}: content frame against film frame`} style={{ background: "#11151b", borderRadius: 8 }}>
       {plan.holds.map((hold, i) => <rect key={i} x={x(hold.start)} y={pad} width={x(hold.end) - x(hold.start)} height={height - pad * 2} fill="rgba(124,198,255,.12)" />)}
       <path d={`M${x(0)},${y(0)} L${x(durationFrames)},${y(S)}`} stroke="rgba(255,255,255,.18)" strokeDasharray="4 4" fill="none" />
+      {beats.map(beat => <line key={beat} x1={x(beat)} x2={x(beat)} y1={pad} y2={height - pad} stroke="rgba(255,201,74,.28)" />)}
       <path d={curve} stroke="#7cc6ff" strokeWidth={2.5} fill="none" />
       <path d={band} stroke="#ffc94a" strokeWidth={1.5} fill="none" />
       <text x={pad} y={22} fill="#e8ecf2" fontSize={13} fontWeight={650}>{title}</text>
-      <text x={width - pad} y={22} fill="#9aa4b2" fontSize={12} textAnchor="end">{plan.rate.toFixed(2)}× outside holds · {S} → {durationFrames} frames</text>
+      <text x={width - pad} y={22} fill="#9aa4b2" fontSize={12} textAnchor="end">{speed.beats ? `${Math.min(...speeds).toFixed(2)}× to ${top.toFixed(2)}×` : `${plan.rate.toFixed(2)}× outside holds`} · {S} → {durationFrames} frames</text>
     </svg>
   </figure>;
 }
@@ -205,6 +311,9 @@ export const Graphs: StoryObj = {
       <SpeedGraph title="Ramp into and out of a cut" speed={{ source: 150, enter: 12, exit: 12 }} durationFrames={120} />
       {example.scenes.map((scene, i) => scene.speed && <SpeedGraph key={scene.id} title={`speed-ramp-3d: ${scene.id}`}
         speed={{ ...scene.speed, holds: (scene.speed as FilmSpeed).holds?.map((h, k) => ({ ...h, at: film.scenes[i].speed?.holds[k]?.at ?? 0 })) } as FilmSpeed} durationFrames={scene.durationFrames} />)}
+      {/* Velocity edits on a 110 bpm grid, one speed point every two beats (the kicks, gold lines). */}
+      {VELOCITY_SHAPES.map(shape => <SpeedGraph key={shape} title={`Velocity: ${shape}`} speed={{ source: 315, beats: { bed: "drums", every: 2, shape } }} durationFrames={262}
+        beats={bedBeats({ bpm: 110 }, 30, 263).filter((_, n) => n % 2 === 0)} />)}
     </div>;
   },
 };

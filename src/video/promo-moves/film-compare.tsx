@@ -11,9 +11,18 @@ import dynjandi from "../../../examples/film/assets/iceland-large/dynjandi.jpg?u
 import jokulsarlon from "../../../examples/film/assets/iceland-large/jokulsarlon.jpg?url";
 import seljalandsfoss from "../../../examples/film/assets/iceland-large/seljalandsfoss.jpg?url";
 import waterMark from "../../../examples/film/assets/water-mark.svg?url";
+import peacockWalk from "../../../examples/film/assets/footage/peacock-walk.mp4?url";
+import peacockCutout from "../../../examples/film/assets/footage/peacock-walk-cutout.webm?url";
+import peacockSlow from "../../../examples/film/assets/footage/peacock-walk-slow4.mp4?url";
+import annabelle from "../../../examples/film/assets/footage/annabelle-dance.mp4?url";
+import annabelleCutout from "../../../examples/film/assets/footage/annabelle-dance-cutout.webm?url";
+import annabelleMosh from "../../../examples/film/assets/footage/annabelle-peacock-mosh.mp4?url";
+import deerRiver from "../../../examples/film/assets/footage/deer-river.mp4?url";
 
-/** The example pictures, served by Storybook, by image ID. */
-export const EXAMPLE_IMAGES: Record<string, string> = { "ice-cave": iceCave, dynjandi, jokulsarlon, seljalandsfoss, "water-mark": waterMark };
+/** The example pictures and clips, served by Storybook, by ID. */
+export const EXAMPLE_IMAGES: Record<string, string> = { "ice-cave": iceCave, dynjandi, jokulsarlon, seljalandsfoss, "water-mark": waterMark,
+  "peacock-walk": peacockWalk, "peacock-walk-cutout": peacockCutout, "peacock-walk-slow4": peacockSlow,
+  "annabelle-dance": annabelle, "annabelle-dance-cutout": annabelleCutout, "annabelle-peacock-mosh": annabelleMosh, "deer-river": deerRiver };
 
 /** Every picture of an example (`{ id, src }` with a known ID, wherever it sits) served by Storybook. */
 function serveImages<T>(value: T): T {

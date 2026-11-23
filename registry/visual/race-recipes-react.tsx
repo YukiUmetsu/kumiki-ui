@@ -21,7 +21,7 @@ import { FiberStage } from "./fiber-stage";
 import { StudioCaption } from "./studio-recipes-react";
 import type { StudioTone } from "./studio-recipes-react";
 import { shutterAngle, shutterOffsets, trackPassState } from "./race-shots";
-import type { FilmClock } from "./race-shots";
+import type { CarBody, FilmClock } from "./race-shots";
 import type { RaceLivery, TrackPassSpec } from "./race-shots";
 import { generatedMountain, MOUNTAIN_RING, mountainCentre, SCENERY_HAZE } from "./race-scenery";
 
@@ -201,7 +201,7 @@ function Track({ assets }: { assets: RaceTrackAssets }) {
   return <primitive object={built.group} />;
 }
 
-interface RaceCar { root: Group; spinners: Array<{ pivot: Object3D; axle: Vector3; sign: number }>; radius: number; base: number; blur: MeshStandardMaterial }
+interface RaceCar { root: Group; spinners: Array<{ pivot: Object3D; axle: Vector3; sign: number }>; radius: number; base: number; blur: MeshStandardMaterial; body: CarBody }
 /** A spinning wheel seen through a film shutter: the spokes smear into a disc of their average tone, with a darker hub and the rim's
  * bright lip. Drawn once on a canvas. */
 function blurDiscTexture(): CanvasTexture {
@@ -298,7 +298,15 @@ function useRaceCar(src: string, livery?: RaceLivery): RaceCar {
     root.updateMatrixWorld(true);
     // Measured precisely on the vertices: loose boxes of rotated meshes sit lower than the tyres and would float the car.
     const tyres = wheelNodes.map(node => new Box3().setFromObject(node, true));
-    const radius = (tyres[2].max.y - tyres[2].min.y) / 2, base = -Math.min(...tyres.map(t => t.min.y));
+    const radius = (tyres[2].max.y - tyres[2].min.y) / 2, base = -Math.min(...tyres.map(t => t.min.y)), extent = box.getSize(new Vector3());
+    // Points on the body for a dolly zoom to hold its outline: its vertices, thinned to about 3000, in the car's frame from the road.
+    const meshes: Mesh[] = [], vertex = new Vector3(), outline: number[] = [];
+    inner.traverse(o => { if ((o as Mesh).isMesh && (o as Mesh).geometry?.attributes.position) meshes.push(o as Mesh); });
+    const stride = Math.max(1, Math.ceil(meshes.reduce((sum, mesh) => sum + mesh.geometry.attributes.position.count, 0) / 3000));
+    let seen = 0;
+    for (const mesh of meshes) for (let i = 0, position = mesh.geometry.attributes.position; i < position.count; i++, seen++)
+      if (seen % stride === 0) { vertex.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld); outline.push(vertex.x, vertex.y + base, vertex.z); }
+    const body = { length: extent.x, width: extent.z, height: base + box.max.y, outline: Float32Array.from(outline) };
     const blur = new MeshStandardMaterial({ map: blurDiscTexture(), transparent: true, opacity: 0, depthWrite: false, metalness: .55, roughness: .42, polygonOffset: true, polygonOffsetFactor: -2 });
     const carCentre = new Box3().setFromObject(inner).getCenter(new Vector3());
     const spinners = wheelNodes.map(node => {
@@ -334,7 +342,7 @@ function useRaceCar(src: string, livery?: RaceLivery): RaceCar {
       return { pivot, axle, sign: world.z > 0 ? -1 : 1 };
     });
     if (livery) applyLivery(inner, livery);
-    return { root, spinners, radius, base, blur };
+    return { root, spinners, radius, base, blur, body };
   }, [gltf, key]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
@@ -359,7 +367,7 @@ function RaceWorld({ spec, frame, fps, car: src, track, rate, clock, mountains }
   }, [scene, sky, sun, car, gl]);
   /** Poses the car, its wheels, the sun and the camera for a content time. Every value is set outright. */
   const applyAt = (t: number) => {
-    const state = trackPassState(spec, t, fps, car.radius, clock);
+    const state = trackPassState(spec, t, fps, car.radius, clock, car.body);
     car.root.position.set(state.carX, car.base + state.ride.lift, 0);
     car.root.rotation.z = state.ride.pitch * Math.PI / 180;
     const q = new Quaternion();
