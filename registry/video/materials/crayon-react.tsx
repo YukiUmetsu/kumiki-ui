@@ -39,6 +39,8 @@ export type WaxProps = {
   markStrength?: number;
   /** Surface-integrated, opaque multi-pigment underpaint, not flat vector fill. */
   underpaintGradient?:CrayonVolumeGradient;
+  /** One light for several regions: the gradient's centre and reach in this region's units, not in its bounding box. */
+  underpaintFrame?:{cx:number;cy:number;r:number};
   underpaintFields?:readonly CrayonUnderpaintField[];
   /** 0..1 optical paper-tooth color variation on *opaque* wax.
    * Samples page-seeded relief without making the subject transparent. */
@@ -94,7 +96,7 @@ export function crayonPaperTintedWaxBase(
   }).join("");
 }
 
-export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor = "#f7ecd8", pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintFields, underpaintTooth = 0, opaqueBurnish = 0,
+export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor = "#f7ecd8", pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintFrame, underpaintFields, underpaintTooth = 0, opaqueBurnish = 0,
   featherContacts = false, redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long", deposition = "smooth" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
@@ -255,10 +257,10 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {underpaintGradient && <radialGradient id={volumeId}
-        cx={(100*underpaintGradient.focusX).toFixed(2)+"%"}
-        cy={(100*underpaintGradient.focusY).toFixed(2)+"%"}
-        r={(100*underpaintGradient.radius).toFixed(2)+"%"}
-        gradientUnits="objectBoundingBox"
+        cx={underpaintFrame?underpaintFrame.cx.toFixed(2):(100*underpaintGradient.focusX).toFixed(2)+"%"}
+        cy={underpaintFrame?underpaintFrame.cy.toFixed(2):(100*underpaintGradient.focusY).toFixed(2)+"%"}
+        r={underpaintFrame?underpaintFrame.r.toFixed(2):(100*underpaintGradient.radius).toFixed(2)+"%"}
+        gradientUnits={underpaintFrame?"userSpaceOnUse":"objectBoundingBox"}
         data-km-crayon-underpaint-gradient=""
         data-km-crayon-pressure-tinted={strokeBuilt?"true":undefined}>
         <stop offset="0%" stopColor={volumeStop(underpaintGradient.light)}/>
@@ -633,12 +635,13 @@ export function Paper({ width, height, seed, tooth, strength, color = "#faf1da",
     </g>
   </>;
 }
-function Starfield({ width, height, seed, frame, reduced, day }: { width: number; height: number; seed: number; frame: number; reduced: boolean; day: boolean }) {
+function Starfield({ width, height, seed, frame, reduced, day, moon }: { width: number; height: number; seed: number; frame: number; reduced: boolean; day: boolean; moon: { x: number; y: number; r: number } }) {
   const stars = useMemo(() => Array.from({ length: day ? 6 : 26 }, (_, i) => ({
     x: 26 + crayonHash(seed + 30, i, 1) * (width - 52),
     y: 25 + crayonHash(seed + 30, i, 2) * height * .53,
     r: 1.8 + crayonHash(seed + 30, i, 3) * 4.3,
-  })), [width, height, seed, day]);
+    // No star shines in front of the moon, and the landscape credit in the upper right corner keeps a clear sky.
+  })).filter(p => Math.hypot(p.x - moon.x, p.y - moon.y) > moon.r + 12 && (width < height || p.x < width - 250 || p.y > 74)), [width, height, seed, day, moon.x, moon.y, moon.r]);
   return <g aria-hidden="true">
     {stars.map((p, i) => <g key={i} opacity={crayonProgress(frame, 55, 148, i, stars.length, reduced) * (day ? .20 : .7)}
       stroke={day ? "#fff3d4" : "#fff1b9"} strokeLinecap="round" fill="none">
@@ -757,24 +760,25 @@ function MeadowDetails({width,height,seed,frame,reduced,day}:{
     })}
   </g>;
 }
-function StoryTitle({ width, height, portrait, day, frame, reduced }: { width:number;height:number;portrait:boolean;day:boolean;frame:number;reduced:boolean }) {
+function StoryTitle({ width, portrait, day, frame, reduced }: { width:number;portrait:boolean;day:boolean;frame:number;reduced:boolean }) {
   const title = day ? (portrait ? ["ONE", "LITTLE", "SEED"] : ["ONE LITTLE", "SEED"]) : (portrait ? ["FOLLOW", "THE", "GLOW"] : ["FOLLOW", "THE GLOW"]);
   const x = portrait ? 34 : 52;
-  const y = portrait ? 112 : 118;
+  // The rule clears the capitals below it, and at night the subtitle starts clear of the left tree.
+  const y = portrait ? 112 : 126;
   const ink = day ? "#34455b" : "#fbefcd";
   const titleSize = portrait ? 64 : 74;
   return <g fill={ink} opacity={crayonProgress(frame,60,110,0,1,reduced)} data-km-crayon-title="">
     <text x={x} y={portrait ? 51 : 50} fontFamily="Georgia, 'Times New Roman', serif" fontSize={portrait ? 15 : 16}
       fontWeight="700" letterSpacing={3}>TINY TALES   /   {day ? "02" : "01"}</text>
-    <path d={"M" + x + " " + (portrait ? 65 : 64) + " H" + (portrait ? 255 : 404)}
+    <path d={"M" + x + " " + (portrait ? 65 : 61) + " H" + (portrait ? 255 : 404)}
       fill="none" stroke={ink} opacity=".65" strokeWidth="1.6"/>
     {title.map((line,i)=><text key={i} x={x} y={y + i * (portrait ? 72 : 79)}
       fontFamily="Georgia, 'Times New Roman', serif" fontWeight="700"
       fontSize={titleSize} letterSpacing={-2.3}>{line}</text>)}
-    <text x={x+3} y={y + title.length * (portrait ? 72 : 79) + 16} fontFamily="Georgia,serif"
+    <text x={!portrait && !day ? x + 130 : x + 3} y={portrait ? y + title.length * 72 + 16 : y + (title.length - 1) * 79 + 52} fontFamily="Georgia,serif"
       fontSize={portrait ? 20 : 23} fontStyle="italic" opacity=".88">{day ? "A pocketful of beginnings." : "A little light for the long way home."}</text>
-    {!portrait && <text x={width-53} y={height-27} textAnchor="end" fontFamily="Georgia,serif"
-      fontSize="15" letterSpacing={1.3} fill={day ? "#304d54" : "#f8eccd"}>WAX CRAYON   /   001</text>}
+    {!portrait && <text x={width-53} y={50} textAnchor="end" fontFamily="Georgia,serif"
+      fontSize="15" letterSpacing={1.3} fill={day ? "#304d54" : "#f8eccd"}>WAX CRAYON   /   {day ? "002" : "001"}</text>}
   </g>;
 }
 export function CrayonStorybook({frame, story = "lantern", aspect = "landscape", seed = 23,
@@ -793,7 +797,7 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
   const W = portrait ? 540 : 960, H = portrait ? 960 : 540;
   const raw = useId(), tooth = "crayonpaper-" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
   const groundY = H * (portrait ? .76 : .78);
-  const skyD = "M0 0 H" + W + " V" + H*.68 + " Q" + W*.76 + " " + H*.59 + " " + W*.50 + " " + H*.67 + " T0 " + H*.61 + "Z";
+  const skyD = "M0 0 H" + W + " V" + H*.68 + " Q" + W*.76 + " " + H*.59 + " " + W*.50 + " " + H*.67 + " T0 " + H*.70 + "Z"; // reaches the far hills at the left edge
   const backD = "M0 " + H*.68 + " Q" + W*.23 + " " + H*.48 + " " + W*.44 + " " + H*.67 +
     " Q" + W*.70 + " " + H*.46 + " " + W + " " + H*.65 + " V" + H + " H0Z";
   const hillD = "M0 " + groundY + " Q" + W*.23 + " " + H*.66 + " " + W*.47 + " " + H*.75 +
@@ -816,27 +820,28 @@ export function CrayonStorybook({frame, story = "lantern", aspect = "landscape",
     <WaxRegion d={skyD} bounds={skyBounds} colors={sky} seed={seed+1} pressure={pressure * .66} tooth={tooth} frame={totalFrame} first={0} last={121} reduced={reducedMotion} spacing={11}/>
     <WaxRegion d={circle} bounds={{x:moonX-sunR-4,y:moonY-sunR-4,width:2*sunR+8,height:2*sunR+8}} colors={yellow} seed={seed+2}
       pressure={pressure * .81} tooth={tooth} frame={totalFrame} first={47} last={138} reduced={reducedMotion} spacing={7}/>
-    <Starfield width={W} height={H} seed={seed} frame={totalFrame} reduced={reducedMotion} day={day}/>
+    <Starfield width={W} height={H} seed={seed} frame={totalFrame} reduced={reducedMotion} day={day} moon={{ x: moonX, y: moonY, r: sunR }}/>
     <WaxRegion d={backD} bounds={{x:0,y:H*.42,width:W,height:H*.60}} colors={far} seed={seed+3} pressure={pressure * .71}
       tooth={tooth} frame={totalFrame} first={82} last={194} reduced={reducedMotion} spacing={10}/>
     <WaxRegion d={hillD} bounds={{x:0,y:H*.60,width:W,height:H*.4}} colors={foreground} seed={seed+4} pressure={pressure * .77}
       tooth={tooth} frame={totalFrame} first={135} last={260} reduced={reducedMotion} spacing={10}/>
+    {/* Grass and paths lie on the ground, so everything that stands on it covers them. */}
+    <MeadowDetails width={W} height={H} seed={seed+172} frame={totalFrame} reduced={reducedMotion} day={day}/>
     {day ? <>
+      <WaxLine d={"M" + W*.09 + " " + H*.89 + " Q" + W*.48 + " " + H*.96 + " " + W*.94 + " " + H*.91}
+        color="#e8ca9e" width={6} seed={seed+181} frame={totalFrame} first={295} last={400} reduced={reducedMotion} opacity={.8}/>
       <Bloom x={W*.22} y={H*.74} scale={portrait ? .85 : 1.04} seed={seed+50} frame={totalFrame} tooth={tooth} reduced={reducedMotion}/>
       <Bloom x={W*.62} y={H*.72} scale={portrait ? 1.11 : 1.27} seed={seed+90} frame={totalFrame} tooth={tooth} reduced={reducedMotion}/>
       <Bloom x={W*.86} y={H*.80} scale={portrait ? .58 : .68} seed={seed+140} frame={totalFrame} tooth={tooth} reduced={reducedMotion}/>
-      <WaxLine d={"M" + W*.09 + " " + H*.89 + " Q" + W*.48 + " " + H*.96 + " " + W*.94 + " " + H*.91}
-        color="#e8ca9e" width={6} seed={seed+181} frame={totalFrame} first={295} last={400} reduced={reducedMotion} opacity={.8}/>
     </> : <>
+      <WaxLine d={"M" + W*.05 + " " + H*.90 + " Q" + W*.43 + " " + H*.86 + " " + W*.82 + " " + H*.98}
+        color="#caa990" width={9} seed={seed+140} frame={totalFrame} first={220} last={340} reduced={reducedMotion} opacity={.56}/>
       <Pine x={W*.13} y={H*.72} scale={portrait ? 1.07 : 1.08} seed={seed+30} frame={totalFrame} tooth={tooth} reduced={reducedMotion}/>
       <Pine x={W*.88} y={H*.69} scale={portrait ? .84 : .83} seed={seed+44} frame={totalFrame} tooth={tooth} reduced={reducedMotion}/>
       <Fox x={portrait ? W*.45 : W*.58} y={portrait ? H*.79 : H*.76} scale={portrait ? .98 : .98}
         seed={seed+80} frame={totalFrame} tooth={tooth} reduced={reducedMotion}/>
-      <WaxLine d={"M" + W*.05 + " " + H*.90 + " Q" + W*.43 + " " + H*.86 + " " + W*.82 + " " + H*.98}
-        color="#caa990" width={9} seed={seed+140} frame={totalFrame} first={220} last={340} reduced={reducedMotion} opacity={.56}/>
     </>}
-    <MeadowDetails width={W} height={H} seed={seed+172} frame={totalFrame} reduced={reducedMotion} day={day}/>
-    {showStoryEditorial && <StoryTitle width={W} height={H} portrait={portrait} day={day} frame={totalFrame} reduced={reducedMotion}/>}
+    {showStoryEditorial && <StoryTitle width={W} portrait={portrait} day={day} frame={totalFrame} reduced={reducedMotion}/>}
     {portrait && showStoryEditorial && <g fill={day?"#365265":"#f9ebd2"} fontSize="17" fontFamily="Georgia,serif" letterSpacing="2" opacity=".86">
       <path d={"M33 " + (H-70) + " H" + (W-33)} stroke={day?"#365265":"#f9ebd2"} strokeWidth="1.5" fill="none"/>
       <text x={34} y={H-36}>WAX CRAYON   /   {day?"002":"001"}</text>

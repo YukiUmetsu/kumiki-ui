@@ -56,10 +56,17 @@ describe("ArtCraft foreground pigment attention",()=>{
     const bird=count([55,20,90,62]),background=count([15,10,35,50]);
     expect(bird).toBeGreaterThan(background*2.2);
     const birdPixel=(44*p.width+70)*4,backgroundPixel=(12*p.width+22)*4;
-    expect(s.pigment[birdPixel+2]).toBeLessThan(s.pigment[backgroundPixel+2]-35);
+    // Colour distinction is warmth (red minus blue): the orange bird stays
+    // clearly warmer than the olive backdrop. Since #297 the backdrop keeps
+    // a floor of its real pigment, so its blue channel is no longer lifted
+    // toward paper; comparing raw blue values measured only that fade.
+    const warmth=(px:Uint8ClampedArray,i:number)=>px[i]-px[i+2];
+    expect(warmth(s.pigment,birdPixel)).toBeGreaterThan(warmth(s.pigment,backgroundPixel)+70);
     expect(s.pigment[0]).toBeGreaterThanOrEqual(240);
     const noFocus=createPencilPhotoStudy(p,{density:2,focus:0});
     expect(noFocus.pigment).not.toEqual(s.pigment);
+    // Focus still lifts the backdrop toward paper.
+    expect(s.pigment[backgroundPixel+2]).toBeGreaterThan(noFocus.pigment[backgroundPixel+2]+15);
     expect(noFocus.strokes).not.toEqual(s.strokes);
   });
 

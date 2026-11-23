@@ -6,6 +6,7 @@ import {COURIER} from "../src/video/riso-character-demo";
 import {PAPER_ARTIST,evaluateRisoHumanEnsemble} from "../src/video/riso-human-ensemble";
 import {RISO_PAPER_ARTIST_SHEET} from "../src/video/riso-human-ensemble";
 import {RISO_COURIER_SHEET} from "../src/video/riso-character-mesh-sheets";
+import {evaluateRiso40PaperGrip} from "../src/video/riso40-paper-fingertip-contact";
 import {
  RISO30_ANAT1_HAND,RISO30_GRIP_FOREGROUND_IDS,
  inspectRisoHandArtcraft,risoHandArtcraftParts,layoutRisoHandArtcraft,
@@ -40,7 +41,14 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
     expect(actor.cadence).toBe(2);
     for(const side of sides){
       const parts=risoHandArtcraftParts(actor.id as "courier"|"paper-artist",side);
-      expect(parts).toHaveLength(18);
+      // 14 RISO30 marks, 4 RISO31 DIP creases, the RISO32 thumb-IP crease and 4 RISO37 dorsal planes (23 in all;
+      // RISO31's own test pins the same 23). Every one is named so a dropped or renamed mark fails here.
+      const digits=["index","middle","ring","pinky"];
+      expect(parts.map(p=>p.id).sort()).toEqual([
+        "knuckle-arc","thenar-plane","thenar-fold","wrist-crease","thumb-nail","dorsal-tendon",
+        ...digits.flatMap(d=>[d+"-nail",d+"-joint-crease",d+"-dip-crease",d+"-dorsal-plane"]),
+        "thumb-ip-crease",
+      ].map(id=>side+"-glove-"+id).sort());
       const names=parts.map(p=>p.id);
       expect(new Set(names).size).toBe(names.length);
       const specNames=actor.parts.map(p=>p.id);
@@ -49,7 +57,11 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
       expect(parts.every(p=>p.joint.startsWith(side+"-"))).toBe(true);
       expect(parts.every(p=>p.opacity===undefined&&!p.knockoutOnly&&!p.skin)).toBe(true);
       expect(new Set(parts.map(p=>p.plate))).toEqual(new Set(["blue","red"]));
-      expect(parts.filter(p=>p.paint==="screen").every(p=>p.screenTone==="light")).toBe(true);
+      // Red planes and the fine DIP/IP/dorsal engravings print on the light screen; RISO37 softened the blue nails,
+      // thenar fold and wrist crease from solid ink to the mid screen (riso37-anatomical-engraving pins those).
+      const midScreen=["thenar-fold","wrist-crease","thumb-nail",...digits.map(d=>d+"-nail")].map(id=>side+"-glove-"+id);
+      for(const p of parts.filter(p=>p.paint==="screen"))
+        expect(p.screenTone,p.id).toBe(midScreen.includes(p.id)?"mid":"light");
       expect(parts.filter(p=>p.paint==="solid").every(p=>p.plate==="blue")).toBe(true);
       for(const id of ["knuckle-arc","thenar-plane","thenar-fold","wrist-crease",
         "index-nail","middle-nail","ring-nail","pinky-nail","thumb-nail",
@@ -122,15 +134,19 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
   it("new nail beds and finger-fold engravings print ABOVE the real paper at the exact handhold, not as a separate sticker",()=>{
     for(const side of sides){
       const layerIds=RISO30_GRIP_FOREGROUND_IDS(side);
-      expect(layerIds).toHaveLength(13);
+      // RISO32 added the moving thumb-IP crease as the ninth crease (a light screen like the DIP creases).
+      expect(layerIds).toHaveLength(14);
       expect(layerIds.every(id=>id.startsWith(side+"-glove"))).toBe(true);
       expect(layerIds.filter(id=>id.includes("nail"))).toHaveLength(5);
-      expect(layerIds.filter(id=>id.includes("crease"))).toHaveLength(8);
+      expect(layerIds.filter(id=>id.includes("crease"))).toHaveLength(9);
+      expect(layerIds).toContain(side+"-glove-thumb-ip-crease");
       for(const actor of actors)expect(layerIds.every(id=>
         actor.parts.some(p=>p.id===id&&p.plate==="blue"&&
-          (id.endsWith("-dip-crease")
+          (id.endsWith("-dip-crease")||id.endsWith("-thumb-ip-crease")
             ? p.paint==="screen"&&p.screenTone==="light"
-            : p.paint==="solid")))).toBe(true);
+            : id.endsWith("-nail")
+              ? p.paint==="screen"&&p.screenTone==="mid"
+              : p.paint==="solid")))).toBe(true);
     }
     for(const aspect of ["landscape","portrait"] as const){
       const first=evaluateRisoHumanEnsemble(160,aspect);
@@ -145,9 +161,14 @@ describe("RISO30 ArtCraft + ANAT1 source fingertip press engraving",()=>{
         expect(courier.ik.every(i=>i.reachable)).toBe(true);
         // The source-paper contact points remain anchored to existing
         // hands, regardless of how many individual printed nail contours
-        // are added to the real glove source.
+        // are added to the real glove source. Since RISO40 the anchor is the
+        // midpoint of the opposed thumb-IP and index-DIP pads, not the wrist.
+        const grip=evaluateRiso40PaperGrip(COURIER,frame,"right",props.first);
+        expect(props.source.x).toBeCloseTo(grip.paperAnchor.x,5);
+        expect(props.source.y).toBeCloseTo(grip.paperAnchor.y,5);
         const src=courier.joints.find(j=>j.id==="right-hand")!;
-        expect(props.source.x).toBeCloseTo(props.first.x+src.x*props.first.scale,5);
+        const wrist={x:props.first.x+src.x*props.first.scale,y:props.first.y+src.y*props.first.scale};
+        expect(dist(props.source,wrist)).toBeLessThan(30*props.first.scale);
       }
     }
   });

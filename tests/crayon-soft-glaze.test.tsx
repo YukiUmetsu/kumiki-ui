@@ -52,14 +52,26 @@ describe("medium-native artistically blended crayon pigment",()=>{
       expect(inspectCrayonScene(scene)).toEqual([]);
       const blur=scene.elements.filter(x=>x.kind==="wax"&&x.blendRadius);
       expect(blur.length).toBeGreaterThanOrEqual(9);
+      // Since #276 each glaze is clipped to the exact solid part it shades, so every parent is named here; any glaze not
+      // listed shades the face.
+      const parents:Record<string,string>={
+        "neck-lateral-turn":"neck-under-jaw","neck-jaw-cast-shadow":"neck-under-jaw",
+        "eye-cast-shadow-near":"left-eye-aperture","eye-cast-shadow-far":"right-eye-aperture",
+        "hair-amber-crown-glaze":"hair-crown-part","forelock-underturn":"forelock-loose-curl",
+        "coat-collar-felt-near":"coat-collar-left","coat-collar-felt-far":"coat-collar-right",
+        "shirt-linen-pleat-near":"shirt-linen","shirt-linen-pleat-far":"shirt-linen",
+        "scarf-overlap-fold":"tailored-scarf-wrap",
+        "coat-shoulder-shadow-left":"coat-silhouette","coat-sleeve-shadow-right":"coat-silhouette",
+      };
+      const byId=new Map(scene.elements.map(x=>[x.id,x]));
+      for(const id of Object.keys(parents))expect(blur.some(x=>x.id===id),id).toBe(true);
       for(const node of blur){
         if(node.kind!=="wax")continue;
         expect(node.coverage).toBe("open");
-        const expectedParent=node.id==="hair-amber-crown-glaze"?
-          "hair-crown-part":node.id.startsWith("coat-")?
-          "coat-silhouette":"adult-face";
-        expect(node.parentId).toBe(expectedParent);
         expect(node.clipToParent).toBe(true);
+        expect(node.parentId,node.id).toBe(parents[node.id]??"adult-face");
+        const parent=byId.get(node.parentId!);
+        expect(parent?.kind==="wax"&&parent.coverage,node.id).toBe("opaque");
       }
       const full=renderToStaticMarkup(<CrayonScene spec={scene} frame={299}/>);
       expect(full).toContain('data-km-crayon-soft-glaze="');

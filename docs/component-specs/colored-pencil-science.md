@@ -183,3 +183,28 @@ The original fox and kingfisher rigs now expose fine fur/feather tracts as **edi
 `src/video/colored-pencil-anatomical-fibres.ts` builds deterministic pigment hairs from authored root-to-tip quadratic trajectories, orthogonal field widths, rooted tangents, three colour strata and bounded 18–240 stroke families. Current demo has **7 authored growth fields / 21 poseable pigment groups**, on the existing 12-piece fox and 11-piece kingfisher without relaxing CP1's 24-region scene limit.
 
 The existing **Film Looks → Colour-pencil → Character performance** Storybook offers `Editable fine-fibre animation` (animated/fixed/hidden) and ruff/covert macro crops in 16:9 and 9:16, frame scrubbing, and original film playback. Rendering and region continuity are tested by `tests/colored-pencil-anatomical-fibres.test.ts` and path-scoped real Chromium screenshots from `.github/workflows/colored-pencil-fibre-visual-proof.yml`. This is a **technical anatomy-editability improvement**, not final colored-pencil craft acceptance. See [ArtCraft anchored-fibre field study](../research/colour-pencil-animatable-fibres-artcraft-2026-11-14.md).
+
+## Making a video in coloured pencil
+
+One frame number drives everything below; nothing owns a timer, so any frame can be rendered in any order.
+
+| Need | Entry point | Notes |
+|---|---|---|
+| Paper and ground | `PencilDrawingSpec.paper` / `paperTooth` drawn by `PencilDrawing` (`registry/video/colored-pencil-react.tsx`); `PencilPaper` and the pencil ground tile in `registry/rig/rig-look-pencil.tsx` | Tooth is `pencilGrainTile`, fixed to the paper (CP1) or to each part (RIG1). |
+| Marks | `hatchPencilRegion` (hatch, fibre or stipple rows with seeded pressure) in `colored-pencil.ts`; `createPencilMaterialRegion` with 18 `PENCIL_MATERIALS` surfaces; `pencilMicroDeposit` craft marks | New authored art must go through `createPencilFoundationDrawing` (CP-F1, see AGENTS rule 13). |
+| Any subject that moves | RIG1: `<RigScene look="pencil">` with any `RIG_PRESETS` subject (person, dog, horse, cat, bird, butterfly, koi, frog, snake, dragon, leaf, petals, cars, bicycle, locomotive, plane, helicopter, balloon, ship, clock) and its motions; `RigLayer` for one figure inside another SVG | Rig roles map to CP-F1 surfaces (`PENCIL_ROLE_SURFACE`). Marks are fixed to each part and boil every six frames. See [RIG1](universal-rig.md). |
+| The style's own characters and objects | `pencilCharacterScene` (fox and kingfisher, `src/video/colored-pencil-character-rebuild.ts`), `pencilWildlifeScene`, `pencilObjectStudyDrawing` (rose, glass, architecture, fabric), `pencilLivingStudyDrawing` (fox, valley) | Demo art in `src/video`, not registry packs. The human portrait is quarantined (rule 14). |
+| Articulated pencil actors | `PencilSceneSpec.actors` with `PencilActorSpec` parts, pivots and `PencilPoseKey` keys (`colored-pencil-actor.ts`), rendered by `PencilScene` | At most 24 regions per page, scenery and actor parts together. |
+| Scenes and landscapes | `PencilSceneSpec` + `PencilScene` (`colored-pencil-scene.ts`, `-scene-react.tsx`); demo worlds `pencilDemoScene("terrain" \| "orbit" \| "circuit")`; the valley study | Scenery is authored SVG regions; there is no landscape generator in this style yet. |
+| Camera | `PencilScene` camera `{ from, to: [x, y, zoom], startFrame, durationFrames }`; RIG1 `camera={{ x, y, zoom }}` and `followCamera` | The `PencilScene` camera zooms about the page's top-left corner. To zoom on a point (cx, cy), set x = cx·(1 − zoom) and y = cy·(1 − zoom), or subjects near the right edge leave the frame. |
+| Shots and transitions | FD1 film documents (`examples/film/colored-pencil-*.film.json`) with the `colored-pencil-science`, `colored-pencil-character` and `colored-pencil-wildlife` slots in `src/film/film-slots.tsx`; `film:check`, `film:review`, `film:render` | All FD1 transitions are available; the pencil films use cuts. There is no FilmStage slot for a pencil `RigScene` yet; host it with your own slot. |
+| Text | `PencilAnnotation` text and strokes in `PencilSceneSpec.annotations` (screen or paper space, own timing); the plate layout in `ColoredPencilSciencePlate` with `PENCIL_TEXT_ZONES` | Keep text in its own zone; check rendered bounds at both aspects. |
+| Photo to pencil | `createPencilPhotoStudy` (`src/video/colored-pencil-photo.ts`) on rights-checked pixels | Canvas output, not editable vector art. |
+
+**Known gaps.** No landscape, sky or water kit in pencil (SKY1, GEO1 and WATER1 are not connected to this style).
+No FilmStage slot or COLLAGE1 node look for pencil rigs. Pencil actors are rigid parts; there is no drawing-hand,
+erasing or wet water-colour-pencil activation. The fox and kingfisher still read as cut panels and stand on small
+floating planks; the human portrait fails art review and stays quarantined. The RIG1 pencil look shows each rig part as
+a panel with its own soft contour (rigs are many overlapping parts), and its hatch direction follows the part, not a fur
+or feather flow field. Shading is a per-part gradient from one fixed light, not a cast-shadow or occlusion model.
+Human normal-speed review of the pencil films and the RIG1 look is not recorded.

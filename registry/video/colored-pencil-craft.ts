@@ -124,16 +124,19 @@ export function pencilMicroDeposit(region:Pick<PencilRegion,"bounds"|"layers">,
   return marks;
 }
 
-/** Build pigment grain as one reusable fixed paper-space tile. */
+/** Build pigment grain as one reusable fixed paper-space tile.
+ * Each dot reads four consecutive hash indices. Reading x and y from one index
+ * with two nearby salts made them correlated: every dot fell on two diagonal
+ * lines per tile, which showed as pale diagonal streaks through the pigment. */
 export interface PencilGrainDot {x:number;y:number;r:number;value:number;}
 export function pencilGrainTile(seed:number,count=750):PencilGrainDot[]{
   if(!Number.isSafeInteger(seed)||seed<0||seed>2147483647||
     !Number.isSafeInteger(count)||count<0||count>1100)
     throw new RangeError("Invalid paper-grain tile request");
   return Array.from({length:count},(_,i)=>({
-    x:pencilHash(seed,i,61)*64,
-    y:pencilHash(seed,i,62)*64,
-    r:.10+pencilHash(seed,i,63)*.50,
-    value:.35+pencilHash(seed,i,64)*.65,
+    x:pencilHash(seed,4*i,61)*64,
+    y:pencilHash(seed,4*i+1,61)*64,
+    r:.10+pencilHash(seed,4*i+2,61)*.50,
+    value:.35+pencilHash(seed,4*i+3,61)*.65,
   }));
 }

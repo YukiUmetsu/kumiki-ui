@@ -28,8 +28,10 @@ describe("CP3 authored coloured-pencil ensemble", () => {
       expect(all).toContain("fox-eye");
       expect(all).toContain("fox-tail-tip");
       expect(scene.actors![0].parts.find(part=>part.id==="tail-tip")!.parent).toBe("tail");
+      // Warm cream tip (#285), darker than the body's pale cream so it does
+      // not read as a paper-white hole.
       expect(scene.actors![0].parts.find(part=>part.id==="tail-tip")!.region.layers[0].color)
-        .toBe("#E7D0B7");
+        .toBe("#D9C5AA");
       expect(all).toContain("fox-ear-interiors");
       expect(all).toContain("fox-nose");
       expect(all).toContain("kingfisher-head");

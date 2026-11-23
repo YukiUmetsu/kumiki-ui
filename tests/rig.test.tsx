@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { RIG_PRESETS, scalePath, personRig, quadrupedRig, locomotiveRig, clockRig, birdRig, modernCarRig, bicycleRig, helicopterRig, frogRig, snakeRig, leafRig, petalsRig } from "../registry/rig/rig-presets";
 import { evaluateRig, wingStroke } from "../registry/rig/rig-evaluate";
-import { inspectRig } from "../registry/rig/rig-spec";
+import { RIG_ROLES, inspectRig } from "../registry/rig/rig-spec";
 import type { RigSpec } from "../registry/rig/rig-spec";
 import { RIG_LOOKS, RigScene, followCamera } from "../registry/rig/rig-react";
+import { PENCIL_ROLE_SURFACE } from "../registry/rig/rig-look-pencil";
 import { inspectCollageScene } from "../registry/video/collage/collage-scene";
 import { CollageScene } from "../registry/video/collage/collage-react";
 
@@ -18,10 +19,11 @@ describe("RIG1 contract", () => {
   it("reports bad bones, parts and drivers with paths", () => {
     const issues = inspectRig({ version: 1, id: "x", kind: "t", bounds: { x: 0, y: 0, width: 1, height: 1 }, provenance: { license: "CC0", source: "t" }, palette: { skin: "#fff" },
       bones: [{ id: "a", x: 0, y: 0 }, { id: "b", parent: "zz", x: 0, y: 0 }], parts: [{ id: "p", bone: "nope", role: "skin", z: 0, shape: { type: "path", d: "<x>" } }],
-      drivers: [{ type: "gait", body: "a", stride: 10, legs: [{ upper: "a", lower: "b", phase: 0, bend: 1 }] }] });
+      drivers: [{ type: "gait", body: "a", stride: 10, legs: [{ upper: "a", lower: "b", phase: 0, bend: 1 }] }, { type: "drape", bones: ["a"], hang: 2 }] });
     expect(issues).toEqual(expect.arrayContaining([
       expect.stringContaining("palette.skin"), expect.stringContaining("bones[1].parent"), expect.stringContaining("parts[0].bone"),
-      expect.stringContaining("parts[0].shape.d"), expect.stringContaining("needs a length")]));
+      expect.stringContaining("parts[0].shape.d"), expect.stringContaining("needs a length"),
+      expect.stringContaining("drivers[1] needs colliders or floor"), expect.stringContaining("drivers[1].hang must be 0..1")]));
   });
   it("scales path data without touching arc flags", () => {
     expect(scalePath("M1 2A3 3 0 1 0 4 5Z", 2)).toBe("M2 4A6 6 0 1 0 8 10Z");
@@ -149,6 +151,104 @@ describe("RIG1 motion", () => {
     expect(pelvis).toBeGreaterThan(700 - 30 * 3.6);
     expect(Math.abs(foot - (700 - 2.4 * 3.6))).toBeLessThan(.5);
     expect(f.parts.some(p => p.id === "chair-seat")).toBe(true);
+  });
+  it("keeps feet on the floor lying down, and rolls without digging in or unwinding its turn", () => {
+    const ellipseLow = (m: { b: number; d: number; f: number }, cx: number, cy: number, rx: number, ry: number) => m.b * cx + m.d * cy + m.f + Math.hypot(m.b * rx, m.d * ry);
+    // Every window length: the feet used to drop through the floor between two reaches at 180 frames but not at 240.
+    for (const D of [150, 180, 240]) for (const motion of ["lie-down", "go-to-sleep"]) {
+      const spec = personRig({ motion, start: 0, end: D, from: 400, to: 400, y: 700 });
+      for (let f = 0; f <= D; f++) for (const id of ["foot-f", "foot-b"]) expect(world(spec, id, f)[1], `${motion} ${D} ${id}@${f}`).toBeLessThan(700);
+    }
+    const spec = personRig({ motion: "roll", start: 0, end: 180, from: 400, to: 400, y: 700 }), head = spec.parts.find(p => p.id === "hair")!;
+    expect(head).toBeDefined();
+    const angle = (f: number) => { const m = evaluateRig(spec, f).bones.get("pelvis")!.world; return Math.atan2(m.b, m.a) * 180 / Math.PI; };
+    for (let f = 0; f <= 180; f++) {
+      // The head's outline (10.2 x 11.2 design units) stays on the floor, upside down included.
+      expect(ellipseLow(evaluateRig(spec, f).bones.get("head")!.world, 0, 0, 10.2 * 3.6, 11.2 * 3.6), "head@" + f).toBeLessThan(700 + 4);
+      if (f) expect(Math.abs(((angle(f) - angle(f - 1) + 540) % 360 + 360) % 360 - 180), "turn@" + f).toBeLessThan(30);
+    }
+  });
+  describe("long hair", () => {
+    type P = [number, number];
+    const seg = (p: P, a: P, b: P) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l)) : 0; return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy); };
+    const hair = (motion: string) => personRig({ motion, hair: "long", start: 0, end: 180, from: 400, to: motion === "walk" || motion === "run" ? 900 : 400, y: 700 });
+    const turn = (m: { a: number; b: number }) => Math.atan2(m.b, m.a) * 180 / Math.PI;
+    const strands = (spec: RigSpec, f: number) => {
+      const fr = evaluateRig(spec, f), drape = spec.drivers!.find(d => d.type === "drape")!;
+      if (drape.type !== "drape") throw new Error("no drape");
+      const at = (bone: string, x: number, y: number): P => { const m = fr.bones.get(bone)!.world; return [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]; };
+      return { drape, head: at("head", 0, 0), lean: Math.abs(turn(fr.bones.get("torso")!.world)), locks: drape.bones.map(id => [at(id, 0, 0), at(id, 0, fr.bones.get(id)!.length)] as [P, P]),
+        // A collider's radius scales with its bone (the torso breathes).
+        torso: drape.colliders!.filter(c => c.bone === "torso").map(c => { const m = fr.bones.get(c.bone)!.world; return { a: at(c.bone, ...c.at), b: at(c.bone, ...(c.to ?? c.at)), r: c.radius * Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) }; }) };
+    };
+    // A breathing torso scales the locks by .8%, so a 24 px lock changes length by up to .2 px as it turns.
+    const SKEW = .2;
+    const lying = new Set<string>(["lie-down", "go-to-sleep", "sleep", "wake-up", "get-up", "roll"]), motions = RIG_PRESETS.find(p => p.id === "person-long-hair")!.motions;
+    it("stays on the shoulders and back in every upright motion, on every frame", () => {
+      for (const motion of motions) {
+        if (lying.has(motion)) continue;
+        const spec = hair(motion);
+        for (let f = 0; f <= 180; f++) {
+          const { drape, locks, torso, lean } = strands(spec, f);
+          // Past 55 degrees of lean the back starts to let go (`slip`).
+          if (lean > 55) continue;
+          for (const [j, t] of locks) for (const c of torso) {
+            const need = Math.min(c.r + drape.radius!, seg(j, c.a, c.b)), half = Math.hypot(t[0] - j[0], t[1] - j[1]) / 2;
+            const closest = Math.min(...Array.from({ length: 21 }, (_, k) => seg([j[0] + (t[0] - j[0]) * k / 20, j[1] + (t[1] - j[1]) * k / 20], c.a, c.b)));
+            expect(seg(t, c.a, c.b), motion + "@" + f + " tip").toBeGreaterThan(need - SKEW);
+            // A lock may cut a round shoulder by its chord's sagitta, and its centre line never enters the body.
+            expect(closest, motion + "@" + f + " lock").toBeGreaterThan(Math.sqrt(Math.max(0, need * need - half * half)) - SKEW);
+            expect(closest, motion + "@" + f + " centre").toBeGreaterThan(c.r);
+          }
+        }
+      }
+    });
+    it("never changes sides from one frame to the next", () => {
+      for (const motion of motions) {
+        if (lying.has(motion)) continue;
+        const spec = hair(motion), bare = { ...spec, drivers: spec.drivers!.filter(d => d.type !== "drape") };
+        const tips = (s: RigSpec, f: number) => { const fr = evaluateRig(s, f), h = fr.bones.get("head")!.world; return [0, 1, 2, 3, 4, 5].map(i => { const b = fr.bones.get("hair-" + i)!; return [b.world.c * b.length + b.world.e - h.e, b.world.d * b.length + b.world.f - h.f]; }); };
+        for (let f = 1; f <= 180; f++) {
+          const jump = (s: RigSpec) => { const a = tips(s, f - 1), b = tips(s, f); return Math.max(...b.map((t, i) => Math.hypot(t[0] - a[i][0], t[1] - a[i][1]))); };
+          expect(jump(spec), motion + "@" + f).toBeLessThan(Math.max(18, jump(bare) * 1.5));
+        }
+      }
+    });
+    it("lies along a bowed back, and hangs free once the body tips past its slip", () => {
+      const head = ([a, b]: [P, P]) => Math.atan2(-(b[0] - a[0]), b[1] - a[1]) * 180 / Math.PI;
+      const bow = strands(hair("bow"), 100);
+      expect(Math.abs(head(bow.locks[5]) - bow.lean)).toBeLessThan(12);
+      const spec = hair("idle"), tipped = { ...spec, tracks: { ...spec.tracks, torso: [{ frame: 0, rotate: 85 }] } };
+      expect(Math.abs(head(strands(tipped, 60).locks[5]))).toBeLessThan(30);
+    });
+    it("keeps off the floor in every motion, and settles the same in any seek order", () => {
+      for (const motion of motions) {
+        const spec = hair(motion);
+        for (let f = 0; f <= 180; f += 2) {
+          const { drape, locks } = strands(spec, f);
+          // A roll puts the head itself on the floor: there a lock may only go no deeper than its joint.
+          for (const [j, t] of locks) expect(t[1], motion + "@" + f).toBeLessThan(Math.max(700 - drape.radius!, j[1]) + SKEW);
+        }
+      }
+      const spec = hair("bow"), parts = (f: number) => JSON.stringify(evaluateRig(spec, f).parts.map(p => p.matrix)), first = parts(100);
+      parts(40);
+      expect(parts(100)).toBe(first);
+      // Momentum looks back over earlier poses: a fresh rig at one frame still gives what a played one gives.
+      const roll = hair("roll"), at = (s: RigSpec, f: number) => JSON.stringify(evaluateRig(s, f).parts.map(p => p.matrix));
+      for (let f = 30; f <= 60; f++) at(roll, f);
+      expect(at(hair("roll"), 44)).toBe(at(roll, 44));
+      expect(at({ ...roll, drivers: roll.drivers!.map(d => (d.type === "drape" ? { ...d, momentum: undefined } : d)) }, 44)).not.toBe(at(roll, 44));
+    });
+
+    it("puts elbows and hands on the floor, not through it", () => {
+      for (const motion of lying) {
+        const spec = hair(motion), top = motion === "lie-down" || motion === "roll" ? 700 : 700 - 2.4 * 3.6;
+        for (let f = 0; f <= 180; f += 2) {
+          const fr = evaluateRig(spec, f);
+          for (const id of ["fore-f", "fore-b", "hand-f", "hand-b"]) { const b = fr.bones.get(id)!, m = b.world; expect(Math.max(m.f, m.d * b.length! + m.f), motion + " " + id + "@" + f).toBeLessThan(top); }
+        }
+      }
+    });
   });
 });
 
@@ -310,6 +410,48 @@ describe("RIG1 painters", () => {
       expect(html, l.id).toContain('data-km-rig="dog"');
       expect(html).toContain("data-km-rig-bones");
     }
+  });
+  it("draws coloured pencil from the CP-F1 surfaces, with marks that change only on the boil step", () => {
+    for (const role of RIG_ROLES) expect(PENCIL_ROLE_SURFACE[role], role).toBeDefined();
+    const rig = quadrupedRig("horse", { motion: "gallop", start: 0, end: 100, from: 100, to: 700, y: 500 });
+    const scene = (frame: number, reducedMotion = false) => renderToStaticMarkup(<RigScene look="pencil" width={800} height={600} ground={500} frame={frame} rigs={[rig]} reducedMotion={reducedMotion} />);
+    // The mark tile each part pass uses, in paint order.
+    const used = (html: string) => [...html.matchAll(/mask="url\(#[^)]*-pcm-([a-z]+\d-\d)\)"/g)].map(m => m[1]);
+    const html = scene(36);
+    expect(used(html).length).toBeGreaterThan(30);
+    for (const key of new Set(used(html))) expect(html).toContain(`-pcm-${key}"`);
+    expect(html).toContain('data-km-pencil-ground=""');
+    // Within one boil step (six frames) the marks hold while the horse moves; the next step redraws them.
+    expect(used(scene(41))).toEqual(used(html));
+    expect(used(scene(42))).not.toEqual(used(html));
+    // Reduced motion never boils.
+    expect(used(scene(36, true))).toEqual(used(scene(42, true)));
+  });
+  it("paints the ink look with the INK1 engines, and keeps each part's brushwork fixed to the part", () => {
+    const rig = quadrupedRig("horse", { motion: "gallop", start: 0, end: 100, from: 100, to: 700, y: 500 });
+    const at = (frame: number) => renderToStaticMarkup(<RigScene look="ink" width={800} height={600} ground={500} frame={frame} rigs={[rig]} />);
+    const a = at(30), b = at(31);
+    // Wet-paper deposits (raster) and brush polygons, on xuan paper; no SVG filter stands in for the medium.
+    expect(a).toContain('data-km-rig-paper="xuan"');
+    expect(a).toMatch(/<image href="data:image\/png;base64,/);
+    expect(a).not.toMatch(/<filter[^>]*-(bleed|dry|contour)"/);
+    // Between frames a part moves (its transform) but its washes, deposits and drawn lines do not change. Its contours stay
+    // where they are too, and only thin where another part passes.
+    const marks = (html: string, id: string) => {
+      const m = new RegExp(`data-km-rig-part="${id}" transform="[^"]*"[^>]*>(.*?)</g>`).exec(html)!;
+      return m[1].replace(/ opacity="[^"]*"/g, "");
+    };
+    const moved = (html: string, id: string) => new RegExp(`data-km-rig-part="${id}" transform="([^"]*)"`).exec(html)![1];
+    const ids = ["barrel", "head", "neck"].filter(p => a.includes(`data-km-rig-part="${p}"`));
+    expect(ids.length).toBeGreaterThanOrEqual(2);
+    const contour = /<path data-km-ink-contour="" d="([^"]*)"[^>]*>(<\/path>)?/g;
+    for (const id of ids) {
+      expect(marks(a, id).replace(contour, ""), id).toBe(marks(b, id).replace(contour, ""));
+      const [pa, pb] = [a, b].map(html => new Set([...marks(html, id).matchAll(contour)].flatMap(m => m[1].split(/[MLZ]/).filter(Boolean))));
+      expect(pa.size, id).toBeGreaterThan(40);
+      expect([...pb].filter(q => pa.has(q)).length / pb.size, id).toBeGreaterThan(.6);
+    }
+    expect(moved(a, "head")).not.toBe(moved(b, "head"));
   });
   it("tracks a travelling rig with a camera over world-anchored ground", () => {
     const rig = quadrupedRig("horse", { motion: "gallop", start: 0, end: 100, from: 0, to: 3000, y: 500 });

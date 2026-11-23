@@ -12,11 +12,11 @@
  * Designs are original (CC0 dedication).
  */
 import type { RigDriver, RigLeg, RigRole, RigSpec } from "./rig-spec";
-import { Rig, arc, at, cap, ell, finish, path, poly, rect, sampledPath, travel, tube } from "./rig-kit";
+import { Rig, arc, at, cap, ell, finish, path, poly, rect, sampledPath, soft, travel, tube } from "./rig-kit";
 import type { Pt, RigPresetOptions } from "./rig-kit";
 import { ACTION_MOTIONS, ACTION_PALETTE, addPersonAction } from "./rig-presets-actions";
 import type { ActionMotion } from "./rig-presets-actions";
-import { FLOOR_MOTIONS } from "./rig-presets-rest";
+import { FLOOR_MOTIONS, rollOnTheGround } from "./rig-presets-rest";
 import { ANIMAL_GAITS } from "../anatomy/animal-gaits";
 import type { AnimalGait } from "../anatomy/animal-gaits";
 
@@ -34,21 +34,23 @@ export const PERSON_PACE: Record<string, number> = { walk: 1.62, run: 4.6 };
  * `parent`'s space; every limb is an IK-ready two-bone chain. Used by `personRig` and by riders (bicycle).
  */
 export function addPersonBody(rig: Rig, parent: string, px: number, py: number, options: { phone?: boolean } = {}) {
-  // Leg reach (21.5 + 21 + sole 2.4) just exceeds the hip height (44): a standing knee is soft, never locked.
+  // Leg reach (21.3 + 20.6 + sole 2.4) just exceeds the hip height (44): a standing knee is soft, never locked.
   rig.bone("pelvis", parent, px, py);
   rig.bone("torso", "pelvis", 0, 0);
   for (const [side, x, far] of [["b", -1.4, true], ["f", 2.2, false]] as const) {
-    rig.bone("thigh-" + side, "pelvis", x, 0, 0, 21.5);
-    rig.bone("shin-" + side, "thigh-" + side, 0, 21.5, 0, 21);
-    rig.bone("foot-" + side, "shin-" + side, 0, 21);
+    rig.bone("thigh-" + side, "pelvis", x, 0, 0, 21.3);
+    rig.bone("shin-" + side, "thigh-" + side, 0, 21.3, 0, 20.6);
+    rig.bone("foot-" + side, "shin-" + side, 0, 20.6);
     const z = far ? 1 : 3;
-    rig.part("thigh-" + side, "thigh-" + side, cap(21.5, 8, 6.6), "cloth-dark", z, { far });
-    rig.part("knee-" + side, "shin-" + side, ell(0, 0, 3.4, 3.6), "cloth-dark", z + .02, { far });
-    rig.part("shin-" + side, "shin-" + side, cap(21, 6.4, 5.4), "cloth-dark", z, { far });
+    rig.part("thigh-" + side, "thigh-" + side, cap(21.3, 8, 6.6), "cloth-dark", z, { far });
+    // The knee lies under the two segments: it only fills the outside of the bend.
+    rig.part("knee-" + side, "shin-" + side, ell(0, 0, 3.4, 3.6), "cloth-dark", z - .02, { far });
+    rig.part("shin-" + side, "shin-" + side, cap(20.6, 6.4, 5.4), "cloth-dark", z, { far });
+    rig.mass("leg-" + side, new RegExp(`^(thigh|knee|shin)-${side}$`));
     rig.part("shoe-" + side, "foot-" + side, poly([[-2.6, -1.4], [2.2, -1.8], [5.4, -.6], [7.2, 1.2], [7, 2.6], [-2.8, 2.6], [-3.2, .6]]), "shoe", z + .1, { far });
   }
-  rig.part("torso", "torso", poly([[-6.8, -27.9], [7.6, -28.3], [10, -25.3], [9.6, -17], [8.7, -9], [8.5, 1.8], [7.3, 3], [-7.3, 3], [-8.5, 1.8], [-8.3, -9], [-9.4, -17], [-10.2, -25.3]]), "cloth", 4);
-  rig.part("collar", "torso", poly([[-2.6, -26.6], [1.6, -22.4], [5, -26.8]]), "accent", 4.1);
+  rig.part("torso", "torso", soft([[-6.8, -27.9], [7.6, -28.3], [10, -25.3], [9.6, -17], [8.7, -9], [8.5, 1.8], [7.3, 3], [-7.3, 3], [-8.5, 1.8], [-8.3, -9], [-9.4, -17], [-10.2, -25.3]]), "cloth", 4, { mass: "body" });
+  rig.part("collar", "torso", path("M-2.2 -30.8Q1.6 -28.9 5.4 -31L6.2 -28.3Q1.8 -26.6 -3.2 -28Z"), "accent", 4.1);
   rig.part("belt", "torso", rect(-8.4, -.6, 16.8, 2.4, .8), "cloth-dark", 4.05);
   rig.bone("neck", "torso", 1.4, -29.5);
   rig.part("neck", "neck", rect(-2.1, -1, 4.4, 6.4, 1), "skin", 3.9);
@@ -61,7 +63,8 @@ export function addPersonBody(rig: Rig, parent: string, px: number, py: number, 
     head.push([x, y]);
   }
   rig.part("head", "head", poly(head), "skin", 5);
-  rig.part("ear", "head", ell(-1.6, .8, 1.6, 2.2), "skin", 5.1, { far: true });
+  rig.part("ear", "head", ell(-1.6, .8, 1.6, 2.2), "skin", 5.1);
+  rig.part("ear-fold", "head", path("M-2.1 2Q-2.6 -.6 -1.4 -.6Q-.7 -.3 -1.2 .8"), "detail", 5.12, { line: true, lineWidth: .4 });
   rig.part("hair", "head", poly([...arc(0, 0, 11.3, 12.3, 148, 332, 22), [6.3, -4], [2.8, -4.9], [-1, -3.4], [-4.6, -.2], [-6.7, 3.4]]), "hair", 5.3);
   rig.part("eye", "head", ell(5.3, -1.5, .95, 1.25), "eye", 5.4, { variants: { shut: ell(5.3, -1.1, 1.3, .28), up: ell(5.6, -2.5, .95, 1.15) } });
   rig.part("brow", "head", poly([[3.6, -4.6], [7.4, -4.9], [7.3, -4.1], [3.7, -3.9]]), "hair", 5.45);
@@ -70,25 +73,65 @@ export function addPersonBody(rig: Rig, parent: string, px: number, py: number, 
   });
   for (const [side, x, far] of [["b", -1, true], ["f", 2, false]] as const) {
     rig.bone("arm-" + side, "torso", x, -25, far ? -5 : 6, 14.5);
-    rig.bone("fore-" + side, "arm-" + side, 0, 14.5, far ? 12 : 10, 13.5);
+    rig.bone("fore-" + side, "arm-" + side, 0, 14.5, far ? -8 : -11, 13.5);
     rig.bone("hand-" + side, "fore-" + side, 0, 14.6);
     const z = far ? .5 : 7;
     rig.part("arm-" + side, "arm-" + side, cap(14.5, 6.6, 5.4), "cloth", z, { far });
-    rig.part("elbow-" + side, "fore-" + side, ell(0, 0, 2.7, 2.8), "cloth", z + .02, { far });
+    rig.part("elbow-" + side, "fore-" + side, ell(0, 0, 2.7, 2.8), "cloth", z - .02, { far });
     rig.part("fore-" + side, "fore-" + side, cap(13.5, 5.2, 4.4), "cloth", z, { far });
     rig.part("cuff-" + side, "fore-" + side, rect(-2.3, 11.6, 4.6, 1.8, .6), "skin", z + .03, { far });
-    rig.part("hand-" + side, "hand-" + side, ell(0, 0, 3, 3.3), "skin", z + .1, {
-      far, variants: { point: path("M-3 0A3 3.3 0 1 0 3 0A3 3.3 0 1 0 -3 0Z M-.9 1.2L.9 1.2L.8 8.6Q0 9.4 -.8 8.6Z"), open: path("M-3.2 -.4A3.2 3.4 0 1 0 3.2 -.4L2.6 5.6L1.4 6.8L.2 5.4L-1 6.8L-2.2 5.6L-3.2 4Z"),
+    // The relaxed hand: fingers curled a little, the thumb lying along the front.
+    rig.part("hand-" + side, "hand-" + side, path("M-2 -2Q-2.9 0 -2.8 2Q-2.7 4 -1.8 5Q-.6 6 .6 5.4Q1.7 4.8 2 3.6Q2.5 4 3 3.5Q3.4 2.9 3.2 1.7Q2.9 -.4 2 -2Q0 -2.9 -2 -2Z"), "skin", z + .1, {
+      far, variants: {
+        // One finger out of a closed hand: folded knuckles on the lower side, the finger along the bone.
+        point: path("M-2.6 -1.3Q-3.1 1.2 -2.7 2.9Q-2 4.1 -.2 4L.2 8.4Q.5 9.6 1.3 9.5Q2.1 9.3 2.1 8.3L2.3 3.7Q3.2 1.4 2.6 -1.4Q1.4 -2.7 -.2 -2.6Q-1.9 -2.4 -2.6 -1.3Z"),
+        // Raised open hand, fingers spread and the thumb out (waving, stopping, reaching).
+        open: path("M-2 -2Q-2.9 .4 -2.8 2.6L-4.3 5.9Q-4.6 6.9 -3.9 7.1Q-3.2 7.2 -2.9 6.5L-1.9 4.4L-2 7.8Q-1.9 8.7 -1.2 8.7Q-.6 8.6 -.6 7.8L-.5 4.6L.3 8.1Q.5 9 1.2 8.9Q1.8 8.7 1.7 7.9L1.2 4.3L2.6 7.1Q3.1 7.8 3.7 7.5Q4.2 7.1 3.9 6.4L2.7 3Q3.6 3.9 4.6 4.3Q5.5 4.5 5.6 3.8Q5.6 3.3 5 2.9Q3.4 1.7 2.4 -.6L2 -2Q0 -2.9 -2 -2Z"),
         // Open hand held flat, fingers together along the bone, thumb along the upper edge (clapping, waving off).
-        flat: path("M-1.9 -.6Q-2.6 2 -2.4 4.2L-2.1 7.4Q-1.9 8.4 -1.3 8.1L-1 7.6L-.8 8.7Q-.3 9.4 .1 8.6L.3 8L.6 8.8Q1.1 9.2 1.4 8.4L1.5 7.9L1.7 8.3Q2.2 8 2.1 6.9L2.1 4.6L2.6 3Q3.8 4.4 4.2 4.1Q4.3 3.6 3.2 1.6Q2.6 .4 1.9 -.6Z"),
+        flat: path("M-1.9 -2Q-2.6 1.6 -2.4 4.2L-2.1 7.4Q-1.9 8.4 -1.3 8.1L-1 7.6L-.8 8.7Q-.3 9.4 .1 8.6L.3 8L.6 8.8Q1.1 9.2 1.4 8.4L1.5 7.9L1.7 8.3Q2.2 8 2.1 6.9L2.1 4.6L2.6 3Q3.8 4.4 4.2 4.1Q4.3 3.6 3.2 1.6Q2.6 .2 1.9 -2Q0 -2.8 -1.9 -2Z"),
         // Closed fist or grip: knuckles squared off at the end, thumb wrapped over the front.
         fist: path("M-2.7 -1.2Q-3.1 1.6 -2.6 3.2Q-1.6 4.3 .2 4.2Q2.4 4.1 3 2.8Q3.4 .6 2.7 -1.4Q1.4 -2.7 -.2 -2.6Q-2 -2.4 -2.7 -1.2Z") },
     });
+    rig.mass("arm-" + side, new RegExp(`^(arm|elbow|fore)-${side}$`), /^arm/);
+    rig.mass("hand-" + side, new RegExp(`^(cuff|hand)-${side}$`));
   }
   if (options.phone) {
-    rig.bone("phone", "hand-f", -.4, 1.2, 0);
-    rig.part("phone", "phone", rect(-1.7, -4.4, 3.4, 8, .9), "metal-dark", 7.05);
+    // Lies in the palm across the fingers, its ends showing: one at the ear, the other toward the mouth.
+    rig.bone("phone", "hand-f", .4, 2.4, -44);
+    rig.part("phone", "phone", rect(-1.9, -5.2, 3.8, 9.4, .9), "metal-dark", 7.05);
   }
+}
+
+/**
+ * Long hair that falls from the back of the head over the nape and down the back in layered locks. A `chain` sways it
+ * and streams it back at speed; a `drape` hangs it under gravity and keeps it on the head, shoulders and back instead
+ * of passing through them, and off the floor when the person lies down. Locks sit behind the head and in front of the
+ * neck and torso: they cover the nape, and hair that slides off a bowed back falls past the near shoulder.
+ */
+function addLongHair(rig: Rig, motion: string) {
+  const u = rig.u, bones: string[] = [];
+  // At rest the locks already follow the slope from the nape to the shoulder blades; the drape adds what a pose needs.
+  const lengths = [8, 6.5, 6.5, 6.5, 6, 5.5], rest = [18, 8, -10, -8, -4, -2], half = [4.2, 4.4, 4.3, 4, 3.5, 2.9, 2];
+  lengths.forEach((L, i) => {
+    const id = rig.bone("hair-" + i, i ? "hair-" + (i - 1) : "head", i ? 0 : -7.6, i ? lengths[i - 1] : -2.6, rest[i], L);
+    rig.bones[rig.bones.length - 1].inheritScale = false;
+    bones.push(id);
+    const a = half[i], b = half[i + 1], last = i === lengths.length - 1;
+    // Each lock tucks under the one above and ends in a ragged row of tips, so the joints read as layered hair.
+    const ends: Pt[] = last ? [[b, L - 1], [b * .5, L + 2.6], [b * .1, L + .8], [-b * .35, L + 3.4], [-b * .75, L + 1.2], [-b, L - .6]]
+      : [[b, L + .6], [b * .55, L + 2.4], [b * .15, L + 1], [-b * .3, L + 2.6], [-b * .7, L + 1], [-b, L + 2]];
+    rig.part(id, id, poly([[-a, -1.2], [a, -1.2], ...ends]), "hair", 4.6 - i * .02);
+  });
+  const run = motion === "run", walk = motion === "walk";
+  rig.drivers.push(
+    { type: "chain", bones, amplitude: run ? 4 : 1.6, period: run ? 22 : 110, lag: .45, growth: 1.2, follow: 3, bias: run ? 5 : walk ? 1 : 0 },
+    // Colliders follow the back of the torso outline: the shoulder line, then the back down to the waist.
+    { type: "drape", bones, radius: 2.8 * u, hang: .85, momentum: 18, floor: true, floorSide: [0, -1], colliders: [
+      { bone: "head", at: [0, 0], radius: 9.6 * u, side: [-1, 0] },
+      { bone: "torso", at: [-3.2 * u, -24.6 * u], to: [2 * u, -24.6 * u], radius: 3.6 * u, side: [-1, 0] },
+      { bone: "torso", at: [-6.6 * u, -22.4 * u], to: [-5.2 * u, -4 * u], radius: 3.4 * u, side: [-1, 0] },
+    ] },
+  );
 }
 
 const personLegs = (u: number): RigLeg[] => [
@@ -110,12 +153,13 @@ function addChair(rig: Rig, x: number) {
 }
 
 /** A person: idle, walk, run, wave, talk, cheer, sit, sit-down, stand-up, jump, point, think, clap, bow, dance, phone. */
-export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSpec {
+export function personRig(o: RigPresetOptions & { chair?: boolean; hair?: "short" | "long" } = {}): RigSpec {
   const u = (o.size ?? 360) / 100, rig = new Rig(u), m = o.motion ?? "walk", start = o.start ?? 0, end = o.end ?? 180, D = end - start, t = at(start, end);
   rig.bone("root", undefined, 0, 0);
   const seatedMotion = m === "sit" || m === "sit-down" || m === "stand-up";
   if (seatedMotion && o.chair !== false) addChair(rig, -13);
   addPersonBody(rig, "root", 0, -44, { phone: m === "phone" });
+  if (o.hair === "long") addLongHair(rig, m);
   rig.drivers.push(
     { type: "oscillate", bone: "torso", property: "scaleY", amplitude: .008, period: 76 },
     { type: "oscillate", bone: "head", property: "rotate", amplitude: 1.6, period: 140, wobble: .5 },
@@ -124,12 +168,12 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
   const legs = personLegs(u), moving = m === "walk" || m === "run", run = m === "run";
   const sole = 2.4 * u;
   if (moving) {
-    rig.drivers.push({ type: "gait", start, end, body: "pelvis", stride: (run ? 96 : 52) * u, stance: run ? .36 : .62, lift: (run ? 14 : 5) * u,
-      bob: (run ? 4 : 3) * u, bobPhase: run ? .43 : .31, sink: (run ? 2.5 : 0) * u, legs,
+    rig.drivers.push({ type: "gait", start, end, body: "pelvis", stride: (run ? 96 : 52) * u, stance: run ? .3 : .62, lift: (run ? 14 : 5) * u,
+      bob: (run ? 2 : 3) * u, bobPhase: run ? .43 : .28, sink: (run ? 2.1 : 0) * u, legs,
       swing: [{ bone: "arm-f", amplitude: run ? 38 : 22, phase: 0 }, { bone: "arm-b", amplitude: run ? 38 : 22, phase: .5 },
         { bone: "fore-f", amplitude: run ? 12 : 9, phase: .95 }, { bone: "fore-b", amplitude: run ? 12 : 9, phase: .45 },
         { bone: "head", amplitude: 1.4, phase: .25, harmonic: 2 }, { bone: "torso", amplitude: run ? 1.6 : .8, phase: .31, harmonic: 2 }] });
-    if (run) { rig.track("torso", [{ frame: start, rotate: 9 }]); rig.track("fore-f", [{ frame: start, rotate: -80 }]); rig.track("fore-b", [{ frame: start, rotate: -84 }]); rig.track("head", [{ frame: start, rotate: -6 }]); }
+    if (run) { rig.track("torso", [{ frame: start, rotate: 9 }]); rig.track("fore-f", [{ frame: start, rotate: -62 }]); rig.track("fore-b", [{ frame: start, rotate: -66 }]); rig.track("head", [{ frame: start, rotate: -6 }]); }
     else rig.track("torso", [{ frame: start, rotate: 3 }]);
   } else if (m !== "jump" && !FLOOR_MOTIONS.has(m)) rig.drivers.push({ type: "gait", body: "pelvis", stride: 52 * u, legs });
 
@@ -151,19 +195,26 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
   const SEAT_X = -11, SEAT_Y = -24.5;
 
   if (m === "wave") {
-    rig.track("arm-f", [{ frame: start, rotate: 0 }, { frame: start + 10, rotate: -152, ease: "ease-out-back" }, { frame: end - 10, rotate: -152 }, { frame: end, rotate: 0 }]);
-    rig.drivers.push({ type: "oscillate", start: start + 10, end: end - 10, bone: "fore-f", property: "rotate", amplitude: 26, period: 14, ramp: 5 },
+    // The elbow comes up in front of the shoulder and the forearm stands beside the face, so it never crosses it.
+    rig.track("arm-f", [{ frame: start, rotate: 0 }, { frame: start + 15, rotate: -118, ease: "ease-in-out-quad" }, { frame: start + 21, rotate: -113, ease: "ease-in-out-quad" }, { frame: end - 16, rotate: -113 }, { frame: end, rotate: 0, ease: "ease-in-out-quad" }]);
+    rig.track("fore-f", [{ frame: start, rotate: 0 }, { frame: start + 15, rotate: -34, ease: "ease-in-out-quad" }, { frame: end - 16, rotate: -34 }, { frame: end, rotate: 0, ease: "ease-in-out-quad" }]);
+    rig.drivers.push({ type: "oscillate", start: start + 13, end: end - 12, bone: "fore-f", property: "rotate", amplitude: 22, period: 14, ramp: 5 },
       { type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: start + 8, name: "open" }, { frame: end - 8, name: null }] });
     rig.track("head", [{ frame: start, rotate: 0 }, { frame: start + 12, rotate: -5 }]);
   }
   if (m === "talk" || m === "wave" || m === "phone") rig.drivers.push({ type: "variant", start, end, part: "mouth", mode: "talk", open: "open", mid: "mid" });
   if (m === "talk") rig.drivers.push({ type: "oscillate", start, end, bone: "fore-f", property: "rotate", amplitude: 18, period: 44, wobble: .6, ramp: 10 },
     { type: "oscillate", start, end, bone: "arm-f", property: "rotate", amplitude: 9, period: 60, wobble: .4, ramp: 10 });
+  if (m === "talk") {
+    // The forearm gestures in front of the body.
+    rig.track("arm-f", [{ frame: start, rotate: 0 }, { frame: start + 18, rotate: -8 }, { frame: end - 18, rotate: -8 }, { frame: end, rotate: 0 }]);
+    rig.track("fore-f", [{ frame: start, rotate: 0 }, { frame: start + 18, rotate: -44 }, { frame: end - 18, rotate: -44 }, { frame: end, rotate: 0 }]);
+  }
   if (m === "cheer") {
-    for (const s of ["f", "b"]) rig.track("arm-" + s, [{ frame: start, rotate: 0 }, { frame: start + 8, rotate: s === "f" ? -168 : -160, ease: "ease-out-back" }]);
+    for (const s of ["f", "b"]) rig.track("arm-" + s, [{ frame: start, rotate: 0 }, { frame: start + 14, rotate: s === "f" ? -192 : -152, ease: "ease-in-out-quad" }, { frame: start + 19, rotate: s === "f" ? -188 : -148, ease: "ease-in-out-quad" }]);
     rig.track("pelvis", [{ frame: start, y: 0 }, { frame: start + 8, y: 2.4 * u }]);
     rig.drivers.push({ type: "oscillate", start: start + 8, end, bone: "pelvis", property: "y", amplitude: 2.2 * u, period: 16 },
-      { type: "oscillate", start: start + 8, end, bone: "fore-f", property: "rotate", amplitude: 12, period: 16, phase: .2 },
+      { type: "oscillate", start: start + 12, end, bone: "fore-f", property: "rotate", amplitude: 12, period: 16, phase: .2 },
       { type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: start + 6, name: "open" }] },
       { type: "variant", start, end, part: "mouth", mode: "talk", open: "open", mid: "smile" });
   }
@@ -175,7 +226,7 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
     hand("b", start, end, "shin-b", -5, -4, 0);
     hand("f", start, t(.32), "shin-f", -5.5, -4.4, 0); hand("f", t(.66), end, "shin-f", -5.5, -4.4, 12);
     rig.track("arm-f", [{ frame: t(.3), rotate: 6 }, { frame: t(.4), rotate: -38, ease: "ease-out-back" }, { frame: t(.62), rotate: -30 }]);
-    rig.track("fore-f", [{ frame: t(.3), rotate: 10 }, { frame: t(.4), rotate: -74, ease: "ease-out-cubic" }]);
+    rig.track("fore-f", [{ frame: t(.3), rotate: 0 }, { frame: t(.4), rotate: -53, ease: "ease-out-cubic" }]);
     rig.drivers.push({ type: "oscillate", start: t(.4), end: t(.64), bone: "fore-f", property: "rotate", amplitude: 12, period: 26, wobble: .6, ramp: 6 },
       { type: "variant", start: t(.3), end: t(.66), part: "mouth", mode: "talk", open: "open", mid: "mid" },
       { type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: t(.38), name: "open" }, { frame: t(.64), name: null }] });
@@ -201,18 +252,20 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
     const feetB: [number, number, number?][] = down ? [[start, STAND_B], ...step(k(.86), k(1) + 6, STAND_B, 5, 2.2)] : [[start, 5], ...step(k(1) - 6, k(.86), 5, STAND_B, 2.2)];
     plant(start, end, feetF, feetB, 0);
     const kneeFrom = down ? k(.8) : start, kneeTo = down ? end : k(.78);
-    hand("f", kneeFrom, kneeTo, "shin-f", -5.5, -4.4, down ? 12 : 0); hand("b", kneeFrom, kneeTo, "shin-b", -5, -4, down ? 12 : 0);
+    // Standing up, the hands are on the knees from the first frame and leave them gradually.
+    const on = down ? 0 : 12;
+    hand("f", kneeFrom - on, kneeTo + on / 2, "shin-f", -5.5, -4.4, 12); hand("b", kneeFrom - on, kneeTo + on / 2, "shin-b", -5, -4, 12);
   }
   if (m === "jump") {
     // Anticipation crouch, arms swing up through take-off, knees tuck at the apex, land and absorb, recover.
     const reps = Math.max(1, Math.floor(D / 64));
     const pel: { frame: number; y: number; x?: number; ease?: "ease-out-quad" | "ease-in-quad" | "ease-in-out-cubic" | "ease-out-back" }[] = [];
-    const arms: { frame: number; rotate: number; ease?: "ease-out-back" | "ease-in-out-cubic" }[] = [], torso: typeof arms = [], thigh: typeof arms = [], shin: typeof arms = [], head: typeof arms = [];
+    const arms: { frame: number; rotate: number; ease?: "ease-in-out-quad" }[] = [], torso: typeof arms = [], thigh: typeof arms = [], shin: typeof arms = [], head: typeof arms = [];
     for (let r = 0; r < reps; r++) {
       const b = start + r * 64, F = (n: number) => b + n;
       pel.push({ frame: F(0), y: 0 }, { frame: F(11), y: 10 * u, ease: "ease-in-out-cubic" }, { frame: F(15), y: 10.6 * u }, { frame: F(21), y: -2.2 * u, ease: "ease-out-quad" },
         { frame: F(31), y: -26 * u, ease: "ease-out-quad" }, { frame: F(41), y: -2.2 * u, ease: "ease-in-quad" }, { frame: F(47), y: 9 * u, ease: "ease-out-quad" }, { frame: F(60), y: 0, ease: "ease-in-out-cubic" });
-      arms.push({ frame: F(0), rotate: 0 }, { frame: F(12), rotate: 48 }, { frame: F(23), rotate: -166, ease: "ease-out-back" }, { frame: F(33), rotate: -150 }, { frame: F(43), rotate: -36 }, { frame: F(50), rotate: 16 }, { frame: F(60), rotate: 0 });
+      arms.push({ frame: F(0), rotate: 0 }, { frame: F(9), rotate: 48 }, { frame: F(24), rotate: -160, ease: "ease-in-out-quad" }, { frame: F(33), rotate: -150 }, { frame: F(48), rotate: -10, ease: "ease-in-out-quad" }, { frame: F(53), rotate: 14, ease: "ease-in-out-quad" }, { frame: F(60), rotate: 0 });;
       torso.push({ frame: F(0), rotate: 0 }, { frame: F(12), rotate: 22 }, { frame: F(22), rotate: -2 }, { frame: F(33), rotate: 4 }, { frame: F(47), rotate: 20 }, { frame: F(60), rotate: 0 });
       head.push({ frame: F(0), rotate: 0 }, { frame: F(12), rotate: -14 }, { frame: F(23), rotate: -4 }, { frame: F(47), rotate: -12 }, { frame: F(60), rotate: 0 });
       thigh.push({ frame: F(20), rotate: 0 }, { frame: F(31), rotate: -62 }, { frame: F(40), rotate: -10 });
@@ -225,8 +278,8 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
     rig.drivers.push({ type: "variant", part: "mouth", mode: "keys", keys: Array.from({ length: reps }, (_, r) => [{ frame: start + r * 64 + 20, name: "open" }, { frame: start + r * 64 + 46, name: null }]).flat() });
   }
   if (m === "point") {
-    rig.track("arm-f", [{ frame: start, rotate: 0 }, { frame: t(.08), rotate: 6 }, { frame: t(.16), rotate: -88, ease: "ease-out-back" }, { frame: t(.8), rotate: -84 }, { frame: t(.92), rotate: 0 }]);
-    rig.track("fore-f", [{ frame: t(.08), rotate: 10 }, { frame: t(.16), rotate: -4, ease: "ease-out-cubic" }, { frame: t(.8), rotate: -4 }, { frame: t(.92), rotate: 10 }]);
+    rig.track("arm-f", [{ frame: start, rotate: 0 }, { frame: t(.08), rotate: 6 }, { frame: t(.16), rotate: -91, ease: "ease-in-out-quad" }, { frame: t(.2), rotate: -88 }, { frame: t(.8), rotate: -84 }, { frame: t(.92), rotate: 0 }]);
+    rig.track("fore-f", [{ frame: t(.08), rotate: 0 }, { frame: t(.16), rotate: 8, ease: "ease-out-cubic" }, { frame: t(.8), rotate: 8 }, { frame: t(.92), rotate: 0 }]);
     rig.track("torso", [{ frame: start, rotate: 0 }, { frame: t(.16), rotate: 4 }, { frame: t(.8), rotate: 3 }, { frame: t(.92), rotate: 0 }]);
     rig.track("head", [{ frame: start, rotate: 0 }, { frame: t(.16), rotate: -4 }, { frame: t(.5), rotate: -2 }, { frame: t(.92), rotate: 0 }]);
     rig.drivers.push({ type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: t(.12), name: "point" }, { frame: t(.86), name: null }] },
@@ -306,7 +359,8 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
       { type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: start, name: "open" }] });
   }
   if (m === "phone") {
-    hand("f", t(.06), end, "head", -1.2, 1.4, 12);
+    // The wrist by the jaw, so that the hand holds the phone to the ear and the elbow hangs in front of the chest.
+    hand("f", t(.06), end, "head", 2.8, 7.2, 16);
     rig.track("phone", [{ frame: start, opacity: 0 }, { frame: t(.05), opacity: 0 }, { frame: t(.06), opacity: 1 }]);
     rig.track("head", [{ frame: start, rotate: 0 }, { frame: t(.12), rotate: 5 }]);
     rig.track("pelvis", [{ frame: start, x: 0 }, { frame: t(.2), x: 1.2 * u }]);
@@ -316,7 +370,8 @@ export function personRig(o: RigPresetOptions & { chair?: boolean } = {}): RigSp
   }
   const action = (ACTION_MOTIONS as readonly string[]).includes(m);
   if (action) addPersonAction(rig, m as ActionMotion, { u, start, end, t, plant });
-  return finish("person", "biped", rig, travel(o, start, end, moving ? "linear" : undefined), action ? { ...PERSON_PALETTE, ...ACTION_PALETTE } : PERSON_PALETTE, { x: -16 * u, y: -100 * u, width: 32 * u, height: 102 * u }, o);
+  const spec = finish("person", "biped", rig, travel(o, start, end, moving ? "linear" : undefined), action ? { ...PERSON_PALETTE, ...ACTION_PALETTE } : PERSON_PALETTE, { x: -16 * u, y: -100 * u, width: 32 * u, height: 102 * u }, o);
+  return m === "roll" ? rollOnTheGround(spec) : spec;
 }
 
 // ---- Four-legged animals ---------------------------------------------------------------------------------------------------------
@@ -359,21 +414,22 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
   // The pelvis end of the spine: hind legs and tail hang from it, so the back can flex in a rotary gallop or a sit.
   rig.bone("haunch", "body", -8, 0);
   const barrel: Pt[] = kind === "cat"
-    ? [[-36, -4], [-30, -11], [-10, -13], [16, -12], [32, -9], [38, -2], [34, 8], [12, 11], [-14, 11], [-32, 7]]
-    : [[-40, -3], [-34, -12], [-12, -14], [14, -14], [34, -12], [44, -4], [40, 10], [16, 14], [-14, 13], [-36, 8]];
+    ? [[-7, -2], [-5, -9.6], [1, -12.4], [16, -12], [32, -9], [38, -2], [34, 8], [14, 11], [3, 10.6], [-5, 5.4]]
+    : [[-15, -2], [-11, -11.6], [-3, -13.8], [14, -14], [34, -12], [44, -4], [40, 10], [16, 14], [-4, 13.4], [-12, 10.8]];
   rig.bone("chest", "body", 0, 0);
-  rig.part("barrel", "chest", poly(barrel), "fur", 4);
-  rig.part("belly", "chest", poly(kind === "cat" ? [[-24, 6], [14, 6], [26, 3], [12, 11], [-14, 11]] : [[-26, 6], [16, 7], [34, 5], [16, 14], [-14, 13]]), "belly", 4.1);
-  // Rump on the haunch bone (coordinates relative to it).
-  rig.part("rump", "haunch", poly(kind === "cat" ? [[4, -12], [-12, -13], [-24, -10], [-30, -2], [-29, 7], [-20, 11], [-6, 10], [6, 4]]
-    : [[6, -13.6], [-10, -15.4], [-24, -13.6], [-32, -6], [-33.6, 4], [-28.4, 12.4], [-16, 14.2], [-2, 12], [8, 4]]), "fur", 4.05);
-  if (horse) rig.part("shoulder", "body", poly([[22, -12], [34, -12], [41, -2], [38, 10], [28, 12], [22, 0]]), "fur", 4.06);
+  rig.part("barrel", "chest", soft(barrel), "fur", 4);
+  rig.part("belly", "chest", soft(kind === "cat" ? [[-1, 8.2], [4, 6.8], [10, 6.4], [24, 6.8], [32, 8.4], [14, 11], [3, 10.6]] : [[-9, 10], [-2, 7.8], [8, 7.4], [26, 8], [38, 10.2], [16, 14], [-2, 13.4]]), "belly", 4.1);
+  // Rump on the haunch bone (coordinates relative to it). The barrel ends well inside it, so the haunch can flex and tuck in.
+  const rump: Pt[] = kind === "cat" ? [[14, -8], [6, -12.2], [-12, -13], [-24, -10], [-30, -2], [-29, 7], [-20, 11], [-4, 9.8], [7, 4]]
+    : [[11, -9], [0, -13.6], [-11, -15.2], [-24, -13.6], [-32, -6], [-33.6, 4], [-28.4, 12.4], [-17, 13.6], [-6, 10], [3, 2]];
+  rig.part("rump", "haunch", soft(rump), "fur", 4.05);
+  if (horse) rig.part("shoulder", "body", soft([[22, -12], [34, -12], [41, -2], [38, 10], [28, 12], [22, 0]]), "fur", 4.06);
   const legs: RigLeg[] = [];
   const legDefs = [
     { id: "hind-far", x: -30, front: false, far: true }, { id: "fore-far", x: 30, front: true, far: true },
     { id: "hind-near", x: -32, front: false, far: false }, { id: "fore-near", x: 32, front: true, far: false },
   ];
-  const Tf = foreLength(kind), Th = legLength(kind, H - 3, HIND_STRAIGHT), w = q.legW, P = q.pastern, restPastern = -(90 - q.pasternAngle);
+  const Tf = foreLength(kind), Th = legLength(kind, H - 3, HIND_STRAIGHT), w = q.legW, P = q.pastern, restPastern = -(90 - q.pasternAngle), toe = horse ? 4.2 : 1.4 + w * .6;
   for (const l of legDefs) {
     const z = l.far ? 1 : 6, role: RigRole = l.far ? "fur-dark" : "fur", T = l.front ? Tf : Th;
     const up = T * (l.front ? .54 : .52), lo = T - up;
@@ -383,34 +439,34 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
     rig.bone("paw-" + l.id, "lo-" + l.id, 0, lo, restPastern, P);
     rig.bone("hoof-" + l.id, "paw-" + l.id, 0, P, -restPastern);
     if (l.front) {
-      rig.part("up-" + l.id, "up-" + l.id, poly([[-w * .95, -5], [w * .95, -5], [w * .78, up * .5], [w * .5, up], [-w * .5, up], [-w * .7, up * .45]]), role, z, { far: l.far });
-      rig.part("knee-" + l.id, "lo-" + l.id, ell(0, .4, w * .52, w * .62), role, z + .02, { far: l.far });
+      rig.part("up-" + l.id, "up-" + l.id, soft([[-w * .95, -5], [w * .95, -5], [w * .78, up * .5], [w * .5, up], [-w * .5, up], [-w * .7, up * .45]]), role, z, { far: l.far });
+      rig.part("knee-" + l.id, "lo-" + l.id, ell(0, .4, w * .52, w * .62), role, z - .02, { far: l.far });
       rig.part("lo-" + l.id, "lo-" + l.id, cap(lo, w * .8, w * .62), role, z, { far: l.far });
     } else {
       // Gaskin from the stifle to the point of the hock (behind), then the cannon.
-      rig.part("up-" + l.id, "up-" + l.id, poly([[-w * 1.4, -5], [w * 1.5, -6], [w * 1.05, up * .55], [w * .55, up], [-w * .62, up + 1.4], [-w * 1.05, up * .62]]), role, z, { far: l.far });
+      rig.part("up-" + l.id, "up-" + l.id, soft([[-w * 1.4, -5], [w * 1.5, -6], [w * 1.05, up * .55], [w * .55, up], [-w * .62, up + 1.4], [-w * 1.05, up * .62]]), role, z, { far: l.far });
       rig.part("lo-" + l.id, "lo-" + l.id, cap(lo, w * .82, w * .6), role, z, { far: l.far });
     }
     // Fetlock: a small bulge at the back of the joint; the pastern ends inside the hoof (no knob below the sole).
     // Lower leg after Muybridge's plates: cannon, a fetlock bulging at the back, a sloping pastern about as long as the
     // hoof is tall, and a hoof whose front wall continues the pastern's slope (the hoof–pastern axis).
-    rig.part("fetlock-" + l.id, "paw-" + l.id, ell(-w * .16, .6, w * .38, w * .44), role, z + .03, { far: l.far });
+    rig.part("fetlock-" + l.id, "paw-" + l.id, horse ? ell(-w * .16, .6, w * .38, w * .44) : ell(0, -.2, w * .36, w * .34), role, z - .02, { far: l.far });
     rig.part("pastern-" + l.id, "paw-" + l.id, cap(P - (horse ? 2.8 : 1.6), w * .46, w * .42), role, z + .04, { far: l.far });
     // Hoof (or paw) with its sole on the ground line at the bone's origin.
     // Hoof about half the fetlock's standing height, so the pastern shows above it.
-    rig.part("hoof-" + l.id, "hoof-" + l.id, horse ? poly([[4.2, 0], [1.7, -3.7], [-1, -3.3], [-3.6, -2.1], [-4.1, -.9], [-3.5, 0]]) : ell(1.6, -1.5, w * .66, 1.7), horse ? "horn" : role, z + .1, { far: l.far });
+    rig.part("hoof-" + l.id, "hoof-" + l.id, horse ? poly([[4.2, 0], [1.7, -3.7], [-1, -3.3], [-3.6, -2.1], [-4.1, -.9], [-3.5, 0]]) : path(`M${-w * .42} 0Q${-w * .6} -2.6 ${-w * .1} -3.2Q${w * .34} -3.5 ${w * .62} -2.8Q${toe} -2.2 ${toe} -.8Q${toe} 0 ${toe - .8} 0Z`), horse ? "horn" : role, z + .1, { far: l.far });
     if (horse) {
       rig.part("coronet-" + l.id, "hoof-" + l.id, poly([[1.9, -3.95], [-3.8, -2.3], [-3.5, -1.65], [1.5, -3.25]]), "hair", z + .11, { far: l.far });
       rig.part("hoof-wall-" + l.id, "hoof-" + l.id, path("M3.2 -.5L1.3 -3.1"), "detail", z + .12, { far: l.far, line: true, lineWidth: .35, color: "#5a5a5a" });
     }
-    legs.push({ upper: "up-" + l.id, lower: "lo-" + l.id, foot: "paw-" + l.id, hoof: "hoof-" + l.id, pastern: P * u, toe: (horse ? 4.2 : kind === "dog" ? 2.6 : 2) * u, straight: l.front ? FORE_STRAIGHT : HIND_STRAIGHT, phase: 0, bend: l.front ? 1 : -1,
+    legs.push({ upper: "up-" + l.id, lower: "lo-" + l.id, foot: "paw-" + l.id, hoof: "hoof-" + l.id, pastern: P * u, toe: toe * u, straight: l.front ? FORE_STRAIGHT : HIND_STRAIGHT, phase: 0, bend: l.front ? 1 : -1,
       lift: l.front ? 1.25 : .9, curl: l.front ? q.curlFore : q.curlHind, swingHip: l.front ? .16 : .12 });
   }
   // Neck and head.
   rig.bone("neck", "body", kind === "cat" ? 32 : horse ? 34 : 38, horse ? -8 : -6, q.neckAngle, q.neck);
   // Neck local +x is the crest (top line), −x the throat.
   if (horse) {
-    rig.part("neck", "neck", poly([[14, -4], [12, 6], [10, 15], [8, 23], [6.4, 31], [-5, 33], [-6.6, 25], [-8.4, 16], [-11, 7], [-13, -2], [-6, -8], [6, -8]]), "fur", 5);
+    rig.part("neck", "neck", soft([[11.4, 0], [11.2, 7], [10, 15], [8, 23], [6.4, 31], [-5, 33], [-6.6, 25], [-8.4, 16], [-11, 7], [-13, -2], [-6, -8], [5, -6]]), "fur", 5);
     rig.part("mane", "neck", poly([[13, -4], [16.4, 3], [14, 9], [15, 15], [11.6, 20], [12, 26], [8.6, 33], [5.4, 31], [8.2, 22], [9.6, 12], [11, 2]]), "hair", 5.2);
   } else rig.part("neck", "neck", cap(q.neck, 12, 9), "fur", 5);
   // Head: a horse's head hangs from the poll, nose well down; dogs and cats hold theirs level.
@@ -418,20 +474,31 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
   const hs = q.head;
   if (horse) {
     rig.part("ear-far", "head", poly([[-4.6, -5.6], [-3.2, -15.4], [-.4, -6.6]]), "fur-dark", 5.9, { far: true });
-    rig.part("head", "head", poly([[-4, -7], [6, -6.5], [14, -3.8], [22, 0], [26.5, 2.2], [28.2, 5.2], [27, 8.2], [23.5, 9.6], [14, 8.6], [4, 10.4], [-3.5, 7.5], [-7, 2]]), "fur", 6);
+    rig.part("head", "head", soft([[-4, -7], [6, -6.5], [14, -3.8], [22, 0], [26.5, 2.2], [28.2, 5.2], [27, 8.2], [23.5, 9.6], [14, 8.6], [4, 10.4], [-3.5, 7.5], [-7, 2]]), "fur", 6);
     rig.part("muzzle", "head", ell(24.6, 5.6, 4.2, 3.9), "fur-dark", 6.05);
     rig.part("nostril", "head", ell(26, 3.6, 1, .7), "detail", 6.1);
     rig.part("jaw-line", "head", path("M23 8.4Q16 7.6 9 9.4"), "detail", 6.1, { line: true, lineWidth: .5 });
     rig.part("ear", "head", poly([[-2.6, -6], [.4, -17], [3, -6.6]]), "fur", 6.15);
-    rig.part("forelock", "head", poly([[-1, -6.4], [6, -7.4], [9, -4], [4, -3.6], [1, -2.2]]), "hair", 6.2);
+    rig.part("forelock", "head", path("M-3 -6Q1.6 -9 7.4 -7.4Q12 -6 14 -2.6Q10.8 -4.2 8.4 -3.6Q9 -5 5 -5.2Q1.6 -4.2 -1 -4.2Z"), "hair", 6.2);
   } else {
     rig.part("skull", "head", ell(0, 0, 10 * hs, 9 * hs), "fur", 6);
-    rig.part("snout", "head", kind === "cat" ? ell(8, 3, 5, 4) : poly([[4, -3], [17, -1], [20, 3], [18, 7], [6, 8]].map(([x, y]) => [x * hs, y * hs] as Pt)), kind === "cat" ? "belly" : "fur", 6.1);
+    rig.part("snout", "head", kind === "cat" ? ell(8, 3, 5, 4) : soft([[4, -3], [17, -1], [20, 3], [18, 7], [6, 8]].map(([x, y]) => [x * hs, y * hs] as Pt)), kind === "cat" ? "belly" : "fur", 6.1);
     rig.part("nose", "head", ell(kind === "cat" ? 12 : 19 * hs, 1.5, 2, 1.6), "detail", 6.2);
-    rig.part("ear", "head", kind === "cat" ? poly([[-6, -6], [-3, -17], [3, -8]]) : poly([[-5, -5], [2, -7], [3, 4], [-1, 12], [-6, 9]]), kind === "cat" ? "fur" : "fur-dark", 6.3);
+    rig.part("ear", "head", kind === "cat" ? poly([[-6, -6], [-3, -17], [3, -8]]) : soft([[-5, -5], [2, -7], [3, 4], [-1, 12], [-6, 9]]), kind === "cat" ? "fur" : "fur-dark", 6.3);
+    if (kind === "cat") {
+      rig.part("ear-far", "head", poly([[-.6, -7.4], [3.4, -15.6], [6.6, -5.4]]), "fur-dark", 5.9, { far: true });
+      rig.part("whiskers", "head", path("M10 3.2Q5 3.4 .6 5.4M10 4.2Q5.4 5.4 1.8 8.4"), "detail", 6.25, { line: true, lineWidth: .35 });
+    }
     if (kind === "dog") rig.part("tongue", "head", poly([[10, 6.6], [15, 6.8], [15.4, 10.6], [12.6, 11.6], [10.4, 9]]), "mouth", 6.05, { color: "#d65a63" });
   }
   rig.part("eye", "head", ell(horse ? 6 : 4, -2, 1.4, 1.7), "eye", 6.4, { variants: { shut: ell(horse ? 6 : 4, -1.5, 1.8, .35) } });
+  if (kind === "cat") {
+    rig.part("pupil", "head", ell(4.1, -2, .5, 1.5), "detail", 6.42, { variants: { shut: ell(4, -1.5, 1.7, .25) } });
+    rig.drivers.push({ type: "variant", part: "pupil", name: "shut", mode: "blink", interval: [70, 150], duration: 4 });
+  }
+  rig.mass("body", /^(barrel|belly|rump|shoulder|neck)$/);
+  rig.mass("head", horse ? /^(head|muzzle)$/ : /^(skull|snout)$/, /^(head|skull)$/);
+  for (const l of legDefs) rig.mass("leg-" + l.id, new RegExp(`^(up|knee|lo|fetlock|pastern${horse ? "" : "|hoof"})-${l.id}$`), /^up/);
   // Tail.
   const tailBones: string[] = [];
   const tailN = horse ? 3 : 4;
@@ -446,6 +513,7 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
         : [[-5.6, -.4], [7.6, -.4], [8.6, L * .55], [7, L + 4], [3, L + 9], [1, L + 6], [-2, L + 10], [-4.6, L + 5], [-6.6, L * .5]]), "hair", 3.5);
     else rig.part(id, id, cap(L + 1.5, w0, w1), "fur", 3.5);
   }
+  rig.mass("tail", /^tail-\d$/, /^tail-0$/);
   if (horse) rig.part("tail-strands", "tail-2", path("M-3 2Q-4 10 -2.4 17M1.4 2Q2.4 10 1.6 15M4.8 3Q6 10 4.6 14"), "detail", 3.52, { line: true, lineWidth: .5, color: "#3a2618" });
   rig.drivers.push({ type: "variant", part: "eye", name: "shut", mode: "blink", interval: [70, 150], duration: 4 });
   const sitting = m === "sit", moving = m !== "idle" && !sitting, g = quadGait(kind, m);
@@ -460,29 +528,38 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
   const stretch = ({ trot: 4, canter: 9, gallop: 15 } as Record<string, number>)[m] ?? 0;
   if (stretch && horse) { rig.track("neck", [{ frame: start, rotate: stretch }]); rig.track("head", [{ frame: start, rotate: -stretch * .5 }]); }
   if (sitting) {
-    // Sit: the rump lowers to the ground over folded hind legs, the chest rises on straight forelegs, the tail curls.
-    const s0 = t(.14), s1 = t(.34);
-    // Lower the body until the raised forelegs still reach the ground (the pitch lifts the shoulders).
-    const drop = H + 32 * Math.sin(22 * Math.PI / 180) - 5 * Math.cos(22 * Math.PI / 180) - fetlockY - Tf * .965;
-    rig.track("body", [{ frame: s0, rotate: 0, y: 0 }, { frame: s1, rotate: -22, y: drop * u, ease: "ease-in-out-cubic" }]);
-    rig.track("haunch", [{ frame: s0, rotate: 0 }, { frame: s1, rotate: -8, ease: "ease-in-out-cubic" }]);
-    rig.track("neck", [{ frame: s0, rotate: 0 }, { frame: s1, rotate: 16, ease: "ease-in-out-cubic" }]);
-    rig.track("head", [{ frame: s0, rotate: 0 }, { frame: s1, rotate: 8 }]);
-    // Forefeet stay planted; each hind foot steps forward under the lowering rump (lift, then set down).
+    // Sit: the chest rises on straight forelegs, the haunch tucks in under the back and turns until the rump and the
+    // thigh rest on the ground, and the hind legs fold with the stifles forward.
+    const s0 = t(.14), s1 = t(.34), A = 40, back = 10, tuck = kind === "cat" ? 24 : 22, rad = Math.PI / 180, sin = Math.sin(A * rad), cos = Math.cos(A * rad);
+    const shoulder = Tf * .965 + fetlockY, chest = shoulder - 32 * sin + 5 * cos, pelvis = chest - (8 - tuck) * sin;
+    let tilt = A;
+    while (tilt > 0 && Math.max(w * 1.7 + 3 * Math.cos(tilt * rad) + 24 * Math.sin(tilt * rad), ...rump.map(([x, y]) => y * Math.cos(tilt * rad) - x * Math.sin(tilt * rad))) > pelvis - .8) tilt--;
+    const hip = -back - (8 - tuck) * cos - 24 * Math.cos(tilt * rad) + 3 * Math.sin(tilt * rad);
+    rig.track("body", [{ frame: s0, rotate: 0, x: 0, y: 0 }, { frame: s1, rotate: -A, x: -back * u, y: (H - chest) * u, ease: "ease-in-out-cubic" }]);
+    // The hips rise a little while the hind legs turn from hock-back to stifle-forward, because between the two they are straight.
+    const turn = t(.12);
+    rig.track("haunch", [{ frame: turn, rotate: 0, x: 0, y: 0 }, { frame: Math.min(s1 - 2, turn + 4), y: -2 * u, ease: "ease-in-out-cubic" }, { frame: Math.min(s1 - 1, turn + 9), y: 0, ease: "ease-in-out-cubic" }]);
+    rig.track("haunch", [{ frame: s0, rotate: 0, x: 0 }, { frame: s1, rotate: A - tilt, x: tuck * u, ease: "ease-in-out-cubic" }]);
+    rig.track("neck", [{ frame: s0, rotate: 0 }, { frame: s1, rotate: A - 150 - q.neckAngle, ease: "ease-in-out-cubic" }]);
+    rig.track("head", [{ frame: s0, rotate: 0 }, { frame: s1, rotate: 152 + q.neckAngle, ease: "ease-in-out-cubic" }]);
+    // One foot at a time lifts and sets down: the forefeet a short step back, the hind feet forward beside the rump.
     for (const l of legs) {
-      const front = l.bend === 1, far = l.upper.includes("far"), x0 = front ? (far ? 30 : 32) : (far ? -30 : -32), x1 = front ? x0 : x0 + 14;
-      const mid = Math.round((s0 + s1) / 2) + (far ? 4 : -4);
+      const front = l.bend === 1, far = l.upper.includes("far"), x0 = front ? (far ? 30 : 32) : (far ? -30 : -32), x1 = front ? x0 - back : hip + (far ? 13 : 10);
+      // The hind feet are in place before the rump is down.
+      const mid = Math.round(s0 + (s1 - s0) * (front ? far ? .62 : .46 : far ? .4 : .26)), half = Math.round((s1 - s0) * (front ? .18 : .24));
+      const key = (frame: number, x: number, lift: number) => ({ frame, x: (x - fetlockBack) * u, y: -(fetlockY + lift) * u });
       // Folded under a sitting rump the hind leg bends stifle-forward (a Z), so the joint never dips through the ground.
-      const fx = (x: number) => (x - fetlockBack) * u;
-      rig.drivers.push({ type: "reach", start: t(.12), ramp: 8, upper: l.upper, lower: l.lower, tip: l.foot, tipAngle: restPastern, bend: 1, target: front
-        ? [{ frame: s0, x: fx(x0), y: -fetlockY * u }]
-        : [{ frame: s0, x: fx(x0), y: -fetlockY * u }, { frame: mid, x: fx((x0 + x1) / 2), y: -(fetlockY + 4) * u }, { frame: s1, x: fx(x1), y: -fetlockY * u }] });
+      rig.drivers.push({ type: "reach", start: t(.12), ramp: 8, upper: l.upper, lower: l.lower, tip: l.foot, tipAngle: restPastern, level: l.hoof, floor: fetlockY * .6 * u, bend: 1,
+        target: [key(s0, x0, 0), key(Math.max(s0 + 1, mid - half), x0, 0), key(mid, (x0 + x1) / 2, front ? 3 : 4), key(Math.min(s1, mid + half), x1, 0)] });
     }
     rig.drivers.push({ type: "chain", start: s1, bones: tailBones, amplitude: kind === "dog" ? 14 : 5, period: kind === "dog" ? 12 : 60, lag: .8, growth: 1.2, bias: kind === "cat" ? 10 : -4, ramp: 16 });
     if (kind === "dog") rig.drivers.push({ type: "oscillate", start: s1, bone: "chest", property: "scaleY", amplitude: .02, period: 12, ramp: 10 });
   }
   // A horse's tail streams back as the pace rises; dogs wag, cats swish slowly.
   const stream = horse ? ({ walk: 4, trot: 12, canter: 20, gallop: 26 } as Record<string, number>)[m] ?? 0 : 0;
+  // A sitting tail lies on the floor behind instead of going through it.
+  if (sitting && kind === "cat") rig.track("tail-0", [{ frame: t(.14), rotate: 0 }, { frame: t(.34), rotate: -55, ease: "ease-in-out-cubic" }]);
+  if (sitting) rig.drivers.push({ type: "drape", bones: tailBones, floor: true, floorSide: [-1, 0], radius: 1.6 * u });
   rig.drivers.push({ type: "chain", end: sitting ? t(.34) : undefined, bones: tailBones, amplitude: kind === "dog" ? (moving ? 12 : 16) : kind === "cat" ? 6 : horse && moving ? 7 : 4,
     period: kind === "dog" ? 14 : kind === "cat" ? 70 : horse && moving ? CYCLE.horse[m] ?? 40 : 40, lag: .8, growth: 1.2, follow: 2, bias: stream / tailN });
   rig.drivers.push({ type: "oscillate", bone: "chest", property: "scaleY", amplitude: .012, period: 80 });
@@ -503,42 +580,57 @@ export function birdRig(o: RigPresetOptions = {}): RigSpec {
   const palette: Partial<Record<RigRole, string>> = { feather: "#2f5d8a", "fur-dark": "#1b3550", belly: "#e7a35c", beak: "#e2a62b", eye: "#1d1715", detail: "#122436", fur: "#4f86b8", light: "#f4efe4" };
   rig.bone("root", undefined, 0, 0);
   rig.bone("body", "root", 0, airborne ? 0 : -31, airborne ? 4 : -14);
-  rig.part("body", "body", poly([[-30, 0], [-18, -14], [6, -18], [24, -12], [30, -2], [22, 10], [0, 16], [-20, 10]]), "feather", 4);
-  rig.part("breast", "body", poly([[2, 2], [24, -2], [26, 6], [12, 14], [-6, 13]]), "belly", 4.1);
+  rig.part("body", "body", soft([[-30, 0], [-18, -14], [6, -18], [24, -12], [30, -2], [22, 10], [0, 16], [-20, 10]]), "feather", 4);
+  rig.part("breast", "body", soft([[29.2, -4], [28.4, 2], [22, 10], [11, 14], [0, 15.8], [-13, 12.4], [-6, 8.4], [6, 5.4], [15, 0], [21, -6], [26, -8]]), "belly", 4.1);
   rig.bone("head", "body", 26, -14);
   rig.part("head", "head", ell(0, -4, 13, 12), "feather", 5);
   rig.part("cheek", "head", ell(4, 1, 6, 4.4), "light", 5.05);
-  rig.part("beak", "head", poly([[10, -6], [24, -2], [10, 1]]), "beak", 5.1);
+  rig.part("beak", "head", path("M10.6 -6.6Q16 -6 20.6 -2.4Q16 .2 10.8 .6Z"), "beak", 5.1);
+  rig.part("gape", "head", path("M10.8 -2.6L18.6 -2.3"), "detail", 5.12, { line: true, lineWidth: .5 });
   rig.part("eye", "head", ell(5, -7, 2.2, 2.4), "eye", 5.2, { variants: { shut: ell(5, -6.5, 2.6, .5) } });
+  rig.mass("body", /^(body|breast|head|cheek)$/);
   rig.bone("tail", "body", -28, -2, 72, 22);
   rig.part("tail", "tail", poly([[-4, 0], [4, 0], [9, 24], [0, 20], [-9, 24]]), "fur-dark", 3);
+  // Folded along the flank: coverts over the secondaries, the long primaries crossing the rump.
+  if (!airborne) {
+    rig.part("wing-fold", "body", path("M15 -8Q11 -15.4 -2 -14.6Q-13 -13 -22 -7.4L-39 2.4Q-38 4.6 -33 4.2L-30.4 5.6L-25 5L-20.6 7L-15.4 6.2L-10.4 8Q2 8.6 10 3Q15.4 -1.4 15 -8Z"), "fur-dark", 6);
+    rig.part("wing-lines", "body", path("M-33 4.2Q-24 2 -14 -1.4M-25 5Q-18 3 -10.6 .6M-15.4 6.2Q-10 5 -6 3.4"), "detail", 6.02, { line: true, lineWidth: .5 });
+    rig.part("wing-covert", "body", path("M15 -8Q11 -15.4 -2 -14.6Q-9.6 -13.8 -15.4 -11Q-11.6 -6.4 -11.4 -3.6Q-7.4 -3 -6 .2Q-2.4 .4 -.6 3.4Q5 3.6 10 .6Q15.4 -2.6 15 -8Z"), "fur", 6.05);
+    rig.part("wing-bar", "body", path("M-15.4 -11Q-11.6 -6.4 -11.4 -3.6Q-7.4 -3 -6 .2Q-2.4 .4 -.6 3.4L-2.6 4.6Q-4.4 2 -7.4 2Q-9 -1.4 -13 -2Q-13.4 -5.6 -17.6 -10Z"), "light", 6.06);
+    rig.mass("wing", /^wing-(fold|covert|bar)$/);
+  }
   for (const [side, far] of [["far", true], ["near", false]] as const) {
     rig.bone("wing-" + side, "body", 4, -11, 180);
     rig.bone("arm-" + side, "wing-" + side, 0, 0, 0, 20);
     rig.bone("hand-" + side, "arm-" + side, 0, 20, 0, 28);
-    // Plumage: dark flight feathers, lighter coverts with a pale wing bar, so the wing reads against the body.
-    const z = far ? 1 : 7, role: RigRole = "fur-dark";
-    // Inner wing: coverts and secondaries, scalloped along the trailing edge (local +x = toward the tail).
-    rig.part("arm-" + side, "arm-" + side, poly([[-3.4, -2], [-4.2, 8], [-3.8, 18.6], [1, 20], [5, 19], [8, 20.4], [11, 18.4], [14, 18.6], [15.6, 14.6], [17.4, 13], [17, 8], [18, 4.4], [15, 1], [8, -2.4]]), role, z, { far });
-    rig.part("covert-" + side, "arm-" + side, poly([[-3.4, -1], [-3.8, 12], [3, 12.6], [9, 10], [12, 4], [7, -1.6]]), "fur", z + .05, { far });
-    rig.part("wingbar-" + side, "arm-" + side, poly([[-3.6, 12.4], [3, 13], [9.2, 10.4], [12.2, 4.4], [13.4, 5.4], [10.4, 11.8], [3.2, 14.6], [-3.7, 14.2]]), "light", z + .06, { far });
-    // Hand: primaries fanned from the wrist, separated at the tip.
-    rig.part("hand-" + side, "hand-" + side, poly([[-3.8, -1.4], [-4.4, 9], [-2.6, 18], [.4, 25], [2.6, 28], [4.4, 25.4], [6.4, 26.4], [7.8, 22.4], [10, 23], [11, 18.6], [13, 18.6], [13.4, 13.6], [15, 12.6], [14.4, 7], [14.8, 2.4], [10, -1.6]]), role, z + .1, { far });
-    rig.part("hand-covert-" + side, "hand-" + side, poly([[-3.8, -1.4], [-4.2, 6], [2, 7.4], [9, 6], [14.6, 2.6], [10, -1.6]]), "fur", z + .11, { far });
-    rig.part("primary-line-" + side, "hand-" + side, path("M-1 6L1.8 25M3 6.6L6 24M6.6 6.4L10 20M10 5.4L13 14"), "detail", z + .12, { far, line: true, lineWidth: .5 });
+    if (airborne) {
+      // Plumage: dark flight feathers, lighter coverts with a pale wing bar, so the wing reads against the body.
+      const z = far ? 1 : 7, role: RigRole = "fur-dark";
+      // Inner wing: coverts and secondaries, scalloped along the trailing edge (local +x = toward the tail).
+      rig.part("arm-" + side, "arm-" + side, poly([[-3.4, -2], [-4.2, 8], [-3.8, 18.6], [1, 20], [5, 19], [8, 20.4], [11, 18.4], [14, 18.6], [15.6, 14.6], [17.4, 13], [17, 8], [18, 4.4], [15, 1], [8, -2.4]]), role, z, { far });
+      rig.part("covert-" + side, "arm-" + side, poly([[-3.4, -1], [-3.8, 12], [3, 12.6], [9, 10], [12, 4], [7, -1.6]]), "fur", z + .05, { far });
+      rig.part("wingbar-" + side, "arm-" + side, poly([[-3.6, 12.4], [3, 13], [9.2, 10.4], [12.2, 4.4], [13.4, 5.4], [10.4, 11.8], [3.2, 14.6], [-3.7, 14.2]]), "light", z + .06, { far });
+      // Hand: primaries fanned from the wrist, separated at the tip.
+      rig.part("hand-" + side, "hand-" + side, poly([[-3.8, -1.4], [-4.4, 9], [-2.6, 18], [.4, 25], [2.6, 28], [4.4, 25.4], [6.4, 26.4], [7.8, 22.4], [10, 23], [11, 18.6], [13, 18.6], [13.4, 13.6], [15, 12.6], [14.4, 7], [14.8, 2.4], [10, -1.6]]), role, z + .1, { far });
+      rig.part("hand-covert-" + side, "hand-" + side, poly([[-3.8, -1.4], [-4.2, 6], [2, 7.4], [9, 6], [14.6, 2.6], [10, -1.6]]), "fur", z + .11, { far });
+      rig.part("primary-line-" + side, "hand-" + side, path("M-1 6L1.8 25M3 6.6L6 24M6.6 6.4L10 20M10 5.4L13 14"), "detail", z + .12, { far, line: true, lineWidth: .5 });
+    }
     rig.bone("leg-" + side, "body", far ? -4 : 2, 12, 0, 10);
     rig.bone("shank-" + side, "leg-" + side, 0, 10, 0, 10);
     rig.bone("toe-" + side, "shank-" + side, 0, 10);
-    rig.part("leg-" + side, "leg-" + side, cap(10, 2.6, 2), "beak", z - .5, { far });
-    rig.part("shank-" + side, "shank-" + side, cap(10, 2, 1.8), "beak", z - .5, { far });
-    rig.part("toe-" + side, "toe-" + side, poly([[-4, -1], [7, -1], [8, 1], [-5, 1]]), "beak", z - .4, { far });
+    const under = far ? .5 : 3.9;
+    rig.part("leg-" + side, "leg-" + side, cap(10, 2.6, 2), "beak", under, { far });
+    rig.part("shank-" + side, "shank-" + side, cap(10, 2, 1.8), "beak", under, { far });
+    rig.part("toe-" + side, "toe-" + side, poly([[-4, -1], [7, -1], [8, 1], [-5, 1]]), "beak", under + .02, { far });
+    rig.mass("wing-" + side, new RegExp(`^(arm|covert|wingbar|hand|hand-covert)-${side}$`));
+    rig.mass("leg-" + side, new RegExp(`^(leg|shank|toe)-${side}$`));
   }
   rig.drivers.push({ type: "variant", part: "eye", name: "shut", mode: "blink", interval: [60, 120], duration: 3 });
   if (airborne) {
     const glide = m === "glide";
     for (const side of ["near", "far"] as const) rig.drivers.push({ type: "flap", plane: "wing-" + side, arm: "arm-" + side, hand: "hand-" + side, period: 14, phase: side === "far" ? .02 : 0,
       up: 72, down: -52, downstroke: .45, side, tilt: 14, fold: 74, sweep: 9, body: side === "near" ? "body" : undefined, heave: 3.2 * u, glide: glide ? 6 : undefined });
-    for (const side of ["near", "far"]) { rig.track("leg-" + side, [{ frame: start, rotate: 70 }]); rig.track("shank-" + side, [{ frame: start, rotate: -120 }]); }
+    for (const side of ["near", "far"]) { rig.track("leg-" + side, [{ frame: start, rotate: 82 }]); rig.track("shank-" + side, [{ frame: start, rotate: -150 }]); }
     rig.drivers.push({ type: "bank", amount: .6, max: 25 }, { type: "oscillate", bone: "tail", property: "rotate", amplitude: glide ? 3 : 5, period: glide ? 60 : 28 },
       { type: "oscillate", bone: "head", property: "rotate", amplitude: 2, period: 70, wobble: .5 });
     const y = o.y ?? 0, from = o.from ?? 0, to = o.to ?? from + 600, dy = (glide ? 30 : 50) * u;
@@ -547,12 +639,6 @@ export function birdRig(o: RigPresetOptions = {}): RigSpec {
       ? [{ frame: start, x: from, y: y - dy }, { frame: end, x: to, y: y + dy * .6, ease: "linear" }]
       : [{ frame: start, x: from, y }, { frame: Math.round(start + (end - start) * .5), x: (from + to) / 2, y: y - dy, ease: "ease-in-out-quad" }, { frame: end, x: to, y: y + 10 * u, ease: "ease-in-out-quad" }],
     palette, { x: -40 * u, y: -110 * u, width: 80 * u, height: 112 * u }, o);
-  }
-  // Folded: the wing lies against the flank (its plane faces the camera), arm and hand pointing back to the tail.
-  for (const side of ["near", "far"]) {
-    rig.track("wing-" + side, [{ frame: start, scaleY: -.92, rotate: 8 }]);
-    rig.track("arm-" + side, [{ frame: start, rotate: -84 }]);
-    rig.track("hand-" + side, [{ frame: start, rotate: -6 }]);
   }
   rig.drivers.push({ type: "gait", body: "body", start, end: m === "hop" ? end : start + 1, stride: 26 * u, stance: m === "hop" ? .5 : .62, lift: 4 * u,
     legs: [{ upper: "leg-near", lower: "shank-near", foot: "toe-near", phase: 0, bend: -1, sole: 1 * u }, { upper: "leg-far", lower: "shank-far", foot: "toe-far", phase: m === "hop" ? 0 : .5, bend: -1, sole: 1 * u }] });
@@ -583,8 +669,8 @@ export function dragonRig(o: RigPresetOptions = {}): RigSpec {
   rig.bone("root", undefined, 0, 0);
   rig.bone("body", "root", 0, airborne ? 0 : -H, airborne ? -3 : 0);
   rig.bone("chest", "body", 0, 0);
-  rig.part("body", "chest", poly([[-24, -2], [-16, -9], [0, -11], [16, -10], [26, -5], [28, 4], [18, 9], [0, 10], [-18, 8], [-26, 4]]), "scale", 4);
-  rig.part("belly", "chest", poly([[-18, 4], [0, 6], [20, 5], [16, 9], [0, 10], [-16, 8]]), "belly", 4.1);
+  rig.part("body", "chest", soft([[-24, -2], [-16, -9], [0, -11], [16, -10], [26, -5], [28, 4], [18, 9], [0, 10], [-18, 8], [-26, 4]]), "scale", 4);
+  rig.part("belly", "chest", soft([[-25, 4.6], [-12, 5.2], [2, 5.8], [16, 5.4], [26, 4.8], [18, 9], [0, 10], [-18, 8]]), "belly", 4.1);
   rig.part("spines", "body", poly([[-22, -4], [-19, -11], [-15, -7], [-11, -13], [-7, -9], [-3, -14], [1, -10], [5, -14], [9, -10], [13, -13], [17, -8], [-20, -5]]), "horn", 3.9);
   const legs: RigLeg[] = [];
   const L = 12;
@@ -595,8 +681,8 @@ export function dragonRig(o: RigPresetOptions = {}): RigSpec {
     rig.bone("claw-" + l.id, "lo-" + l.id, 0, L);
     rig.part("up-" + l.id, "up-" + l.id, cap(L, l.front ? 7 : 9.5, 5), role, z, { far: l.far });
     rig.part("lo-" + l.id, "lo-" + l.id, cap(L, 5, 4), role, z, { far: l.far });
-    rig.part("claw-" + l.id, "claw-" + l.id, poly([[-3, -1], [3, -1], [7, 2], [5, 3], [3, 2.2], [1, 3.4], [-1, 2.2], [-3, 3]]), "horn", z + .1, { far: l.far });
-    legs.push({ upper: "up-" + l.id, lower: "lo-" + l.id, foot: "claw-" + l.id, phase: 0, bend: l.front ? 1 : -1, sole: 2.6 * u, toe: 3 * u, curl: l.front ? 30 : 20, swingHip: .12 });
+    rig.part("claw-" + l.id, "claw-" + l.id, poly([[-3, -1], [3, -1], [7, 1.4], [5, 2.4], [3, 1.8], [1, 2.6], [-1, 1.8], [-3, 2.4]]), "horn", z + .1, { far: l.far });
+    legs.push({ upper: "up-" + l.id, lower: "lo-" + l.id, foot: "claw-" + l.id, phase: 0, bend: l.front ? 1 : -1, sole: 2.6 * u, toe: 5 * u, curl: l.front ? 30 : 20, swingHip: .12 });
   }
   // Wings: a projected plane at the shoulder, the arm spar with its membrane back to the flank, finger spars fanning
   // from the wrist with a scalloped trailing edge.
@@ -621,10 +707,10 @@ export function dragonRig(o: RigPresetOptions = {}): RigSpec {
     rig.bone(id, i ? "neck-" + (i - 1) : "body", i ? 0 : 24, i ? 7 : -4, i ? 7 : -122, 7);
     neck.push(id);
     rig.part(id, id, cap(8, 8 - i * .9, 7 - i * .9), "scale", 5 + i * .01);
-    rig.part(id + "-spine", id, poly([[-3.6, 1], [-7.6, 3.6], [-3.4, 5]]), "horn", 4.9);
+    rig.part(id + "-spine", id, poly([[3.6, 1], [7.6, 3.6], [3.4, 5]]), "horn", 4.9);
   }
   rig.bone("head", "neck-3", 0, 7, 101);
-  rig.part("head", "head", poly([[-6, -4], [2, -7], [12, -6], [20, -3], [22, 1], [10, 2], [-4, 4]]), "scale", 7);
+  rig.part("head", "head", soft([[-6, -4], [2, -7], [12, -6], [20, -3], [22, 1], [10, 2], [-4, 4]]), "scale", 7);
   rig.part("horn-1", "head", poly([[-4, -5], [-14, -13], [-2, -7]]), "horn", 6.9);
   rig.part("horn-2", "head", poly([[1, -6], [-6, -16], [4, -7]]), "horn", 6.95);
   rig.part("eye", "head", ell(6, -3, 1.6, 1.3), "eye", 7.2, { variants: { shut: ell(6, -2.8, 2, .3) } });
@@ -644,6 +730,11 @@ export function dragonRig(o: RigPresetOptions = {}): RigSpec {
     rig.part(id + "-spine", id, poly([[-3.4 + i * .3, 2], [-7.4 + i * .6, 4.4], [-3.2 + i * .3, 6]]), "horn", 2.9);
   }
   rig.part("spade", "tail-6", poly([[0, 6], [6, 10], [0, 18], [-6, 10]]), "membrane", 3.1);
+  rig.mass("body", /^(body|belly|neck-\d)$/);
+  rig.mass("head", /^head$/, /./);
+  rig.mass("tail", /^tail-\d$/, /^tail-0$/);
+  for (const l of legs) { const id = l.upper.slice(3); rig.mass("leg-" + id, new RegExp(`^(up|lo)-${id}$`), /^up/); }
+  for (const side of ["far", "near"]) { rig.mass("membrane-" + side, new RegExp(`^(wmem|wfan)-${side}$`)); rig.mass("spar-" + side, new RegExp(`^(warm-spar|wspar-\\d)-${side}$`)); }
   rig.drivers.push({ type: "variant", part: "eye", name: "shut", mode: "blink", interval: [80, 160], duration: 5 });
   if (airborne) {
     const glide = m === "glide";
@@ -699,22 +790,33 @@ export function fishRig(o: RigPresetOptions = {}): RigSpec {
   const palette: Partial<Record<RigRole, string>> = { scale: "#f0eee6", "scale-dark": "#d9d4c4", accent: "#e0582b", fin: "#f3c8a8", eye: "#1d1715", detail: "#1d1715" };
   rig.bone("root", undefined, 0, 0);
   rig.bone("head", "root", 30, -30, 90);
-  rig.part("head", "head", poly([[-12, 0], [-10, -12], [0, -20], [10, -12], [12, 0]]), "scale", 5);
-  rig.part("cap-spot", "head", ell(0, -10, 6, 5), "accent", 5.1);
-  rig.part("eye", "head", ell(-5, -11, 2, 2), "eye", 5.2);
+  // Local −y is forward and −x is the back. A blunt head: a small low mouth with barbels, the gill cover behind the eye.
+  rig.part("head", "head", soft([[-12, 2], [-11.2, -6], [-8, -13.4], [-3, -18.6], [2.4, -20.8], [5.6, -19.2], [9.6, -12.4], [12, -5], [12, 2], [0, 5]]), "scale", 5);
+  rig.part("cap-spot", "head", soft([[-9.6, -8], [-5.8, -13.6], [-.6, -14], [1.6, -9.6], [-.8, -4], [-4.6, 0], [-9.8, .6], [-10.4, -3.6]]), "accent", 5.1);
+  rig.part("gill", "head", path("M-7.6 -5.4Q3 3.4 9.4 -6.2"), "detail", 5.12, { line: true, lineWidth: .5 });
+  rig.part("mouth", "head", path("M5.2 -19.2Q4.2 -16.8 5.6 -15.4"), "detail", 5.12, { line: true, lineWidth: .6 });
+  rig.part("barbels", "head", path("M5.8 -18.4Q8.6 -19.4 9.2 -22.2M6.8 -16.8Q9.6 -17 11.2 -19"), "detail", 4.9, { line: true, lineWidth: .6 });
+  rig.part("eye", "head", ell(-4.2, -11.4, 1.8, 1.8), "eye", 5.2);
   const body: string[] = [];
-  const widths = [12, 11, 9, 6.5, 4];
+  const widths = [12, 11.4, 9.6, 7, 4.4, 3];
   for (let i = 0; i < 5; i++) {
     const id = "body-" + i;
     rig.bone(id, i ? "body-" + (i - 1) : "head", 0, i ? 13 : 0, 0, 13);
     body.push(id);
-    rig.part(id, id, poly([[-widths[i], 0], [widths[i], 0], [widths[i + 1] ?? 3, 14], [-(widths[i + 1] ?? 3), 14]]), "scale", 4 - i * .01);
-    if (i === 1 || i === 3) rig.part(id + "-spot", id, ell(i === 1 ? 3 : -2, 6, 6 - i, 4), "accent", 4.05);
+    // Round joints: the segments stay one outline when the body bends.
+    rig.part(id, id, cap(13, 2 * widths[i], 2 * widths[i + 1]), "scale", 4 - i * .01);
   }
-  rig.part("tail", "body-4", poly([[0, 10], [14, 30], [4, 26], [0, 18], [-4, 26], [-14, 30]]), "fin", 3.5);
-  rig.part("dorsal", "body-1", poly([[-12, 2], [-22, 10], [-12, 16]]), "fin", 3.4);
-  rig.bone("pec", "body-0", 10, 4, -40, 10);
-  rig.part("pec", "pec", poly([[0, 0], [6, 12], [-2, 10]]), "fin", 6);
+  // A koi's red patches lie over the back and stop above the belly.
+  rig.part("body-1-spot", "body-1", soft([[-10.6, -5], [-5, -7.4], [1.4, -5], [4.4, .6], [2.2, 5], [3.4, 9.4], [-2, 12.4], [-7.4, 10.6], [-9.8, 4]]), "accent", 4.05);
+  rig.part("body-3-spot", "body-3", soft([[-6, -3.6], [-1.8, -5.4], [2.6, -2], [1.4, 3], [2.4, 7.2], [-1.4, 9.6], [-4.4, 7]]), "accent", 4.05);
+  rig.mass("body", /^(head|body-\d)$/);
+  rig.part("tail", "body-4", path("M-2.6 8Q-5 17 -14.4 27.4Q-17 31.6 -12.6 32Q-5.4 30.6 0 23.4Q5.4 30.6 12.6 32Q17 31.6 14.4 27.4Q5 17 2.6 8Z"), "fin", 3.5);
+  rig.part("tail-rays", "body-4", path("M-1.4 15Q-5 23 -11.6 29M-.5 16L-5 26.4M.5 16L5 26.4M1.4 15Q5 23 11.6 29"), "detail", 3.52, { line: true, lineWidth: .3, color: "#b98a66" });
+  rig.part("dorsal", "body-1", path("M-9 -7Q-18 -5.4 -20.4 1.6Q-17.8 5.6 -18 10Q-15 12.6 -13.6 18Q-10 19.4 -6.8 19Z"), "fin", 3.4);
+  rig.part("pelvic", "body-1", path("M8.6 4Q15.4 8 17.2 16.4Q12.4 17.6 8 12.6Z"), "fin", 3.4);
+  rig.part("anal", "body-3", path("M3.6 2Q9.6 5 11.6 12.4Q7.4 14 3 9.6Z"), "fin", 3.4);
+  rig.bone("pec", "body-0", 8.4, 1, -34, 10);
+  rig.part("pec", "pec", path("M-2 -1Q-3.8 7 -2 13.4Q1.2 16.4 5.6 14Q7.4 7.6 2.4 -1Q0 -2.4 -2 -1Z"), "fin", 6);
   rig.drivers.push({ type: "chain", bones: body, amplitude: 9, period: 30, lag: .85, growth: 1.6 }, { type: "oscillate", bone: "pec", property: "rotate", amplitude: 22, period: 30 },
     { type: "oscillate", bone: "head", property: "rotate", amplitude: 3, period: 30, phase: .5 });
   return finish("fish", "fish", rig, travel(o, start, end, "linear"), palette, { x: -30 * u, y: -70 * u, width: 100 * u, height: 80 * u }, o);

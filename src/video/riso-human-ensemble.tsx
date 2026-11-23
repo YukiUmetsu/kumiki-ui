@@ -9,7 +9,8 @@ import {evaluateRisoPropHandoff,RISO_HANDOFF_DEFAULTS} from "../../registry/vide
 import type {RisoHandoffSchedule} from "../../registry/video/riso-prop-handoff";
 import type {RisoForegroundLayer} from "../../registry/video/print-plates-react";
 import type {RisoPrintSpec} from "../../registry/video/print-plates";
-import type {RisoCharacterMeshSheet,RisoMeshCategory} from "../../registry/video/riso-proportion-mesh";
+import type {RisoCharacterMeshSheet} from "../../registry/video/riso-proportion-mesh";
+import {risoPartMeshRegions} from "./riso-character-mesh-sheets";
 import {COURIER,COURIER_BASE_JOINTS} from "./riso-character-demo";
 import {risoAnatomicalNeckParts} from "./riso-human-anatomy";
 import {risoHandArtcraftParts} from "./riso-hand-artcraft";
@@ -328,19 +329,6 @@ export const PAPER_ARTIST:RisoCharacterSpec=riso58ApplyContactSkin({
     ...facePieces].map(p=>riso51MorphSourcePart(p,"paper-artist")),
     "paper-artist"),"paper-artist"),
 },"paper-artist");
-function category(part:RisoCharacterPart):RisoMeshCategory{
-  if(part.id.startsWith("hair"))return "hair";
-  if(part.joint==="head")return "face";
-  if(part.id.includes("boot"))return "foot";
-  if(part.id.includes("thigh")||part.id.includes("shin"))return "leg";
-  if(part.joint.endsWith("hand")||part.joint.endsWith("-palm-surface")||
-    ["thumb","index","middle","ring","pinky"].some(d=>part.joint.endsWith("-"+d))||
-    /^(?:left|right)-(?:(?:index|middle|ring|pinky)-(?:pip|dip)|thumb-ip)$/.test(part.joint))
-    return "hand";
-  if(part.joint.includes("arm")||part.joint.includes("elbow"))return "arm";
-  if(part.id==="scarf"||part.id.includes("pocket"))return "accessory";
-  return "torso";
-}
 export const RISO_PAPER_ARTIST_SHEET:RisoCharacterMeshSheet={
   id:"paper-artist",label:"Paper Artist",view:"authored-2d",headRegion:"face",
   missingViews:["true-side","back","three-quarter","top"],
@@ -358,11 +346,7 @@ export const RISO_PAPER_ARTIST_SHEET:RisoCharacterMeshSheet={
   // They are legitimate negative ink-masks, NOT positive 2D meshes.
   // Keep them in the original actor/print rig; exclude only these two
   // nondrawable source paths from the positive source-mesh catalog.
-  regions:PAPER_ARTIST.parts.filter(part=>
-    !part.id.includes("-glove-web-reserve-")).map(part=>({
-    id:part.id,label:part.id.replace(/-/g," "),category:category(part),
-    joint:part.joint,parts:[part.id],...(part.skin?{tipJoint:part.skin.tipJoint}:{}),
-  })),
+  regions:risoPartMeshRegions(PAPER_ARTIST.parts),
 };
 const paper="#FAEED9",blue="#255B8E",red="#D65641";
 type EnsemblePlate="both"|"blue"|"red";

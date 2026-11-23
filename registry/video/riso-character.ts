@@ -320,13 +320,32 @@ function jointAt(j: RisoJoint, frame: number): RisoMatrix {
   const scale = mix(get(current, "scale", 1), next ? get(next, "scale", 1) : get(current, "scale", 1), easing);
   return matrix(j.x + x, j.y + y, (j.rotate ?? 0) + rot, (j.scale ?? 1) * scale);
 }
+/**
+ * Validation verdicts per spec object and plate list. A spec is immutable data (every field is readonly), and full
+ * validation re-parses every path and morph key, which cost ~80% of each frame once RISO51 added path morphs. A film
+ * evaluates the same spec hundreds of times, so the verdict is computed once per spec object.
+ */
+const validated = new WeakMap<object, Map<string, string>>();
+function assertValidRisoCharacter(spec: RisoCharacterSpec, allowedPlates?: readonly string[]) {
+  const cacheable = typeof spec === "object" && spec !== null;
+  const key = allowedPlates ? allowedPlates.join("\u0000") : "";
+  let byPlates = cacheable ? validated.get(spec) : undefined;
+  let message = byPlates?.get(key);
+  if (message === undefined) {
+    message = inspectRisoCharacter(spec, allowedPlates).map(p => p.path + ": " + p.message).join("; ");
+    if (cacheable) {
+      if (!byPlates) validated.set(spec, byPlates = new Map());
+      byPlates.set(key, message);
+    }
+  }
+  if (message) throw new RangeError(message);
+}
 export function evaluateRisoCharacter(
   spec: RisoCharacterSpec, frame: number, options: {
     reducedMotion?: boolean; allowedPlates?: readonly string[]; disableIK?: boolean;
   } = {},
 ): RisoCharacterFrame {
-  const issues = inspectRisoCharacter(spec, options.allowedPlates);
-  if (issues.length) throw new RangeError(issues.map(p => p.path + ": " + p.message).join("; "));
+  assertValidRisoCharacter(spec, options.allowedPlates);
   if (!integer(frame) || frame < 0) throw new RangeError("character frame must be a nonnegative integer");
   const raw = options.reducedMotion ? spec.durationFrames - 1 : Math.min(frame, spec.durationFrames - 1);
   // Reduced motion resolves the same final *printed cel* as ordinary playback.
@@ -350,6 +369,16 @@ export function evaluateRisoCharacter(
   // Resolve all parents before applying a constrained rotation to a subtree.
   for (const joint of spec.joints) resolve(joint.id);
   const ik = options.disableIK ? [] : applyRisoIK(spec.joints, world, spec.ik ?? [], sampledFrame);
+  // Many parts share a joint; format each joint's transform once per frame.
+  const transforms = new Map<string, string>();
+  const transformOf = (joint: string) => {
+    let t = transforms.get(joint);
+    if (t === undefined) {
+      const m = resolve(joint);
+      transforms.set(joint, t = "matrix(" + [m.a, m.b, m.c, m.d, m.e, m.f].map(number).join(" ") + ")");
+    }
+    return t;
+  };
   return {
     expression, sampledFrame, ik,
     joints: spec.joints.map(j => {
@@ -367,8 +396,7 @@ export function evaluateRisoCharacter(
         d: p.skin ? risoJointSkinPath(m, resolve(p.skin.tipJoint), p.skin)
           : (p.expressions?.[expression] ??
             (p.pathKeys ? evaluateRisoPathMorph(p.pathKeys, sampledFrame) : p.d)),
-        transform: p.skin ? "matrix(1 0 0 1 0 0)"
-          : "matrix(" + [m.a, m.b, m.c, m.d, m.e, m.f].map(number).join(" ") + ")",
+        transform: p.skin ? "matrix(1 0 0 1 0 0)" : transformOf(p.joint),
       };
     }),
   };

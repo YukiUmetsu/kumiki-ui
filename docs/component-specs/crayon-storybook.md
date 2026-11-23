@@ -6,6 +6,24 @@
 **Portable FilmDocument:** `examples/film/crayon-storybook.film.json`  
 **Visual-approval state:** `not-reviewed` (automated tests are not visual acceptance)
 
+## Making a video in crayon
+
+Start here. Every entry point below is in this registry item (`crayon-storybook`) or in `universal-rig`.
+
+| Need | Entry point | Notes |
+| --- | --- | --- |
+| Paper | `Paper` (`crayon-react.tsx`); `paper`, `paperTooth`, `seed` on a `CrayonSceneSpec` | One paper per film. Every wax mark samples the same tooth, so all layers sit in one surface. Set `pigmentRelief` for tooth in opaque wax. Set `handContact` for stroke-built wax. `CrayonScene` sets both for you. |
+| Wax fills | `WaxRegion`, or a `wax` element in a scene | Solid things (characters, props, buildings) use `coverage: "opaque"`. Then `deposition: "stroke-built"`, `underpaintGradient` for light and shadow, and `underpaintTooth` for paper in the wax. Sky, haze and glazes use `coverage: "open"`, with `blendRadius` for soft edges. `angle` sets the stroke direction. Keep wide shapes at angle 0, because a tilted hatch covers the square of the diagonal. `nibStyle: "dry"` gives the richest marks but costs about four times the SVG. |
+| Lines | `WaxLine`, or a `contour` element (`waxContact: "dry-wax"` for broken fibre lines) | `construction` on a wax region traces its silhouette with a darker wax line. |
+| Any subject that moves | RIG1 `RigScene`, `RigFigure` or `RigLayer` with `look="crayon"` (`registry/rig/rig-look-crayon.tsx`) | 18 subjects (people, animals, vehicles, nature, a clock) with gaits and actions. Parts are opaque stroke-built wax lit from the upper left. They have a darker wax contour, and the parts of one body (`mass` in the rig spec) share one contour and one light. Marks redraw every 4 frames (the boil); the undercoat and silhouette stay steady. The ground is a crayon verge over a paler field. Use `cadence={2}` for motion on twos. |
+| Authored scenes and characters | `CrayonScene` + `CrayonSceneSpec` (`crayon-scene.ts`); check with `inspectCrayonScene` | Elements: `wax`, `contour`, `connector` (limbs, two-bone IK) and `lettering`. Each has `parentId` and `clipToParent` (glazes stay inside their part), `placement`/`motion` keys, held `drawings` and `poses`, `contacts` (planted feet), `redraw` (boil on held exposures), and `renderLayer: "backdrop"`. The style's own characters (Blue Coat child, wild hare, dragon village fox, owl and dragon) are worked examples in `src/video/crayon-*-fixtures.ts`. They are not art-approved and stay `!dev`. |
+| Drawing order | `inspectCrayonDrawingPlan` and `crayonDirectionalStrokes` (`crayon-art-direction.ts`) | Four passes (blocking, value, colour, detail), each part declared solid, glaze or stroke, and attachment checks across the motion. |
+| Camera | `camera` keys on a scene (zoom 1–3); `camera` / `followCamera` on `RigScene` | Paper and world elements move together. `screenSpace` lettering does not. |
+| Scenes, cuts, output | FilmDocument (`examples/film/crayon-storybook.film.json`, `src/video/crayon-storybook-film.ts`): `slot` scenes paint crayon, the timeline owns frames | Scenes join with FilmDocument transitions. The crayon film uses `cut`. |
+| Text | `lettering` element: `screenSpace: true`, `backing` for contrast; `hideScreenSpace` on `CrayonScene` for clean plates | Text is readable ink, not wax. Measure safe areas for each aspect. Portrait films hide unmeasured text. |
+
+**Known gaps.** A CRAYON1 scene has no `rig` node. To put RIG1 figures over crayon scenery, use `RigScene` `children`, or layer the SVGs. There is no wax-specific transition, such as a wipe that redraws in wax. In both CRAYON1 and RIG1, paper tooth inside a moving part travels with that part rather than staying fixed to the page. A `RigScene` uses one boil for all figures. Parts of a rig that have no `mass` (a car's panels, the turns of a coiled snake) keep their own contour. The hand-built characters are hidden studies (ArtCraft quarantine, below). Heavy scenes, like the hare and the dragon village, render slowly in the browser. Nothing here has had human visual approval.
+
 ## Ground-contact correction and source-native ArtCraft A/B (2026-11-14)
 
 The existing **Video production / Film Looks / Crayon / Drawing System** Storybook page offers a
@@ -144,7 +162,12 @@ coat stitchwork, a plaid scarf, an embroidered dress, leather boots,
 satchel and hand, all in native editable wax. Acting has configurable
 **Expression**, **Detail** and **Crop (composition / face / costume)**
 controls; walk exposes stride, lift and true optional two-bone knee IK.
-Draw-In keeps outline/fill order and explicit pigment deposition windows.
+The walk is a step-together gait with authored `contacts`: the back boot
+carries weight on frames 0–38, 94–156 and 214–269, the front boot on 0–94 and
+156–269. Each sole stays on its spot while it carries weight, and the pelvis
+sinks only as far as both legs reach.
+Draw-In keeps outline/fill order and explicit pigment deposition windows,
+after light construction guides that fade once wax replaces them.
 
 See `docs/research/crayon-character-atelier-2026.md` for the reference
 matrix, proportion guide, known limitations and required 16:9 / 9:16

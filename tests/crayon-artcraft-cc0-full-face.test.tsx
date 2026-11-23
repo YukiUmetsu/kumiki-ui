@@ -815,8 +815,13 @@ describe("ArtCraft F1 registered CC0 face experiment",()=>{
     const scene=crayonCc0FaceStudy();
     const base=scene.elements.find(e=>e.id==="socket-near");
     if(base?.kind!=="wax")throw new Error("Missing measured F1 skin");
+    // An opaque solid that keeps blendRadius without opting in to
+    // featherContacts is the accidental case. Opaque + featherContacts +
+    // stroke-built is the explicit V25 solid-feather opt-in and is valid.
     for(const invalid of [
-      {...base,coverage:"opaque" as const},
+      {...base,coverage:"opaque" as const,featherContacts:false},
+      {...base,coverage:"opaque" as const,featherContacts:undefined},
+      {...base,coverage:"opaque" as const,deposition:"smooth" as const},
       {...base,blendRadius:0},
       {...base,deposition:"smooth" as const},
       {...base,featherContacts:1 as unknown as boolean},

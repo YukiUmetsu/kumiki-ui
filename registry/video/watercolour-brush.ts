@@ -45,9 +45,8 @@ export interface PaintSurfaceSpec {
   /** Artist-defined unpainted paper in original SVG coordinates. The real WM1
    * brush deposits MUST respect these shapes, including later glazes. */
   reservePaths?: readonly string[];
-  /** 0..1 microscopic sediment variation INSIDE true brush ribbons.
-   * Opt-in: existing authored paintings remain pixel-identical by default.
-   * This does not apply film-wide noise or invent brush marks.
+  /** 0..1 extra microscopic sediment INSIDE true brush ribbons, on top of the granulation every wash takes from the
+   * paper tooth. Opt-in. This does not apply film-wide noise or invent brush marks.
    */
   pigmentGranulation?: number;
 }
@@ -134,6 +133,28 @@ export function paintHash(seed: number, x: number, y: number): number {
   let h = Math.imul((x | 0) + 113, 374761393) ^ Math.imul((y | 0) + 197, 668265263) ^ Math.imul(seed | 0, 1442695041);
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+/**
+ * A bloom (backrun, "cauliflower") front: water pushed into a damp wash drives pigment outward into a lobed edge,
+ * a few large lobes carrying many small rounded bumps that cusp inward. A pure function of place, size and seed, never
+ * of the frame; `progress` grows it from nothing to its dried size.
+ */
+export function paintBloomPath(x: number, y: number, radius: number, seed: number, progress = 1): string {
+  const t = paintClamp(progress);
+  if (t <= 0 || !(radius > 0)) return "";
+  const n = 96, lobes = 9 + Math.floor(paintHash(seed, 3, 5) * 7), turn = Math.PI * 2;
+  const p1 = paintHash(seed, 1, 7) * turn, p2 = paintHash(seed, 2, 9) * turn, p3 = paintHash(seed, 4, 11) * turn;
+  const points: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = i / n * turn;
+    const large = Math.sin(a * 2 + p1) * .1 + Math.sin(a * 3 + p2) * .07;
+    // Whole numbers of waves round the front, so the outline closes without a step.
+    const bumps = Math.abs(Math.sin(a * lobes / 2 + p3)) * .11 + Math.abs(Math.sin(a * Math.round(lobes * 1.7) + p1)) * .035;
+    const r = radius * t * (.9 + large + bumps + (paintHash(seed + 17, i, 13) - .5) * .03);
+    points.push((x + Math.cos(a) * r).toFixed(2) + " " + (y + Math.sin(a) * r).toFixed(2));
+  }
+  return "M" + points.join(" L") + " Z";
 }
 
 /** Deposition -> diffusion -> absorption/evaporation -> permanent dry hold. */

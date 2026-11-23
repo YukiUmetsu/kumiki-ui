@@ -196,7 +196,6 @@ describe("UKIYO1 figures", () => {
   });
   it("draws a figure square on: both eyes from the front, none from behind, and both legs side by side", () => {
     type P = { t: string; color?: unknown; prims?: P[] };
-    const flat = (ps: P[]): P[] => ps.flatMap(p => p.t === "group" || p.t === "clip" ? flat(p.prims ?? []) : [p]);
     const look = { hair: "shimada" as const, robe: "beni", under: "ki" }, walk = [{ type: "walk" as const, start: 0, end: 100, to: 300 }];
     const draw = (view?: "front" | "back") => drawFigure({ look: { ...look, view }, actions: walk }, 25, 0, 3);
     // Each open eye draws its iris clipped to the lids.
@@ -983,14 +982,14 @@ describe("UKIYO1 boats, boarding and riding a wave", () => {
 describe("UKIYO1 parades", () => {
   it("builds each parade; the line keeps its order and gaps, and the palanquin rides between its bearers", () => {
     for (const k of UKIYOE_PARADE_SCENES) expect(inspectUkiyoeScene(paradeScene(k)), k).toEqual([]);
-    const s = paradeScene("foxwedding"), node = (id: string) => s.nodes.find(n => n.id === id) as any;
-    const at = (id: string, f: number) => { const n = node(id); return n.kind === "motif" ? nodeState(n, f, s.cadence ?? 1).pose.x : n.x + travelAt(n.actions, f).x; };
+    const s = paradeScene("foxwedding"), node = (id: string) => s.nodes.find(n => n.id === id)!;
+    const at = (id: string, f: number) => { const n = node(id); return n.kind === "figure" ? (n.x ?? 0) + travelAt(n.actions ?? [], f).x : nodeState(n, f, s.cadence ?? 1).pose.x; };
     for (const f of [0, 120, 240, s.durationFrames - 1]) {
       const b0 = at("bearer0", f), b1 = at("bearer1", f), k = at("kago", f);
       expect(k, `kago at ${f}`).toBeGreaterThan(b0 + 60); expect(k).toBeLessThan(b1 - 60);
       expect(at("lantern2", f)).toBeLessThan(b0); expect(at("bride", f)).toBeGreaterThan(b1);
     }
-    const fox = JSON.stringify(drawFigure({ look: { animal: "fox", robe: "gofun" } } as any, 0, 0, 1).prims);
+    const fox = JSON.stringify(drawFigure({ look: { animal: "fox", robe: "gofun" } }, 0, 0, 1).prims);
     expect(fox).toContain("tan");
   });
 });
@@ -1222,5 +1221,24 @@ describe("UKIYO1 sound", () => {
       for (const cue of audio.cues ?? []) expect(byId.get(cue.sound.replace("catalog:", ""))?.origin, cue.id).toBe("recorded");
       for (const bed of audio.beds ?? []) expect(byId.get(bed.sound)?.tags, bed.id).toContain("loop");
     }
+  });
+});
+
+describe("long hair seen from the side", () => {
+  type AnyPrim = { t: string; d?: string; fill?: unknown; outline?: number; transform?: string };
+  const prims = (action: Partial<UkiyoeAction> & { type: UkiyoeAction["type"] } | undefined, wind = 0) =>
+    drawFigure({ look: { hair: "long", robe: "beni", obi: "kin", build: "slim" }, facing: "right", actions: action ? [{ start: 0, end: 100, ...action }] : [] } as never, 50, wind, 31).prims as unknown as AnyPrim[];
+  const headAt = (list: AnyPrim[]) => list.findIndex(p => p.t === "group" && /scale\(/.test(p.transform ?? ""));
+  const hairAt = (list: AnyPrim[]) => { let i = headAt(list); while (i >= 0 && !(list[i].t === "fill" && list[i].fill === "sumi" && list[i].outline)) i--; return i; };
+  const points = (d: string) => { const n = (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number); return Array.from({ length: n.length >> 1 }, (_, i) => [n[2 * i], n[2 * i + 1]]).filter((_, i) => i % 3 === 0); };
+  it("is painted over the robe and the obi knot, and under the head", () => {
+    const list = prims(undefined), hair = hairAt(list), robe = list.map(p => p.t === "fill" && p.fill === "beni").lastIndexOf(true, headAt(list));
+    expect(hair).toBeGreaterThan(robe);
+    expect(hair).toBeLessThan(headAt(list));
+  });
+  it("moves smoothly through every bow and every wind, with no change of sides", () => {
+    const worst = (steps: AnyPrim[][]) => steps.map(l => points(l[hairAt(l)].d!)).reduce((m, p, i, all) => i ? Math.max(m, ...p.map((q, k) => Math.hypot(q[0] - all[i - 1][k][0], q[1] - all[i - 1][k][1]))) : m, 0);
+    expect(worst(Array.from({ length: 89 }, (_, a) => prims({ type: "bow", angle: a })))).toBeLessThan(13);
+    expect(worst(Array.from({ length: 61 }, (_, i) => prims(undefined, -1.5 + i * .05)))).toBeLessThan(6);
   });
 });

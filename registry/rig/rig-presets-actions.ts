@@ -120,16 +120,16 @@ export function addPersonAction(rig: Rig, m: ActionMotion, c: ActionContext): vo
 
   if (m === "box" || m === "kick") {
     // Guard: lead (far) fist forward at eye level, rear (near) fist at the chin, elbows in; wide staggered stance.
-    const NEAR = [12.5, -71] as const, FAR = [21.5, -78.5] as const, s0 = start + 8;
+    const NEAR = [12.5, -71] as const, FAR = [21.5, -78.5] as const, s0 = start + 13;
     plant(start, end, m === "kick" ? null : [[start, 2.2], [s0, -7, 2.4]], [[start, -1.4], [s0, 8, 2.4]], 0);
     rig.drivers.push({ type: "oscillate", start: s0, end, ramp: 8, bone: "pelvis", property: "y", amplitude: .9 * u, period: 15 });
     fists(start + 3, start + 3);
-    const near: ReturnType<typeof P>[] = [P(start, 7, -48), P(s0, NEAR[0], NEAR[1], "ease-out-cubic")];
-    const far: ReturnType<typeof P>[] = [P(start, 1, -48), P(s0, FAR[0], FAR[1], "ease-out-cubic")];
+    const near: ReturnType<typeof P>[] = [P(start, 7, -48), P(s0, NEAR[0], NEAR[1], "ease-in-out-quad")];
+    const far: ReturnType<typeof P>[] = [P(start, 1, -48), P(s0, FAR[0], FAR[1], "ease-in-out-quad")];
     const torso: RigKey[] = [{ frame: start, rotate: 0 }, { frame: s0, rotate: 8 }], pelvis: RigKey[] = [{ frame: start, x: 0, y: 0 }, { frame: s0, x: .5 * u, y: 3 * u }];
     const head: RigKey[] = [{ frame: start, rotate: 0 }, { frame: s0, rotate: 6 }];
     if (m === "box") {
-      for (let b = s0 + 6; b + 46 <= end; b += 50) {
+      for (let b = start + 14; b + 46 <= end; b += 50) {
         // Jab, jab: the lead arm snaps straight in three frames and comes back in five.
         for (const j of [0, 12]) far.push(P(b + j, FAR[0], FAR[1]), P(b + j + 3, 32, -69.5, "ease-out-quad"), P(b + j + 4, 32.3, -69.5), P(b + j + 8, FAR[0], FAR[1], "ease-in-out-cubic"));
         for (const j of [0, 12]) torso.push({ frame: b + j, rotate: 8 }, { frame: b + j + 3, rotate: 11 }, { frame: b + j + 8, rotate: 8 });
@@ -145,8 +145,9 @@ export function addPersonAction(rig: Rig, m: ActionMotion, c: ActionContext): vo
       rig.drivers.push({ type: "variant", part: "mouth", mode: "keys", keys: [{ frame: s0, name: "mid" }] });
     } else {
       // Front snap kick with the rear (near) leg: chamber the knee high, snap, rechamber, set down.
-      const leg: ReturnType<typeof P>[] = [P(start, 2.2, -2.4), P(s0, -7, -2.4)], foot: RigKey[] = [];
-      for (let b = s0 + 10; b + 30 <= end; b += 64) {
+      const leg: ReturnType<typeof P>[] = [P(start, 2.2, -2.4), P(start + 6, -2.4, -4.8), P(s0, -7, -2.4)], foot: RigKey[] = [], kicks: number[] = [];
+      for (let b = start + 18; b + 30 <= end; b += 64) {
+        kicks.push(b);
         leg.push(P(b, -7, -2.4), P(b + 7, 7, -29, "ease-out-quad"), P(b + 10, 36, -52, "ease-out-quad"), P(b + 12, 36.4, -52.4), P(b + 16, 7, -29, "ease-in-out-quad"), P(b + 23, -6.6, -2.4, "ease-in-out-cubic"));
         foot.push({ frame: b, rotate: 0 }, { frame: b + 6, rotate: 34 }, { frame: b + 10, rotate: -4 }, { frame: b + 15, rotate: 30 }, { frame: b + 23, rotate: 0 });
         torso.push({ frame: b, rotate: 8 }, { frame: b + 7, rotate: -4 }, { frame: b + 10, rotate: -15, ease: "ease-out-quad" }, { frame: b + 12, rotate: -15 }, { frame: b + 16, rotate: -4 }, { frame: b + 23, rotate: 8 });
@@ -155,10 +156,13 @@ export function addPersonAction(rig: Rig, m: ActionMotion, c: ActionContext): vo
         head.push({ frame: b + 7, rotate: 2 }, { frame: b + 10, rotate: 10 }, { frame: b + 23, rotate: 6 });
       }
       // The kicking (near) leg has its own reach; the far foot stays planted.
-      rig.drivers.push({ type: "reach", start, end: end + 60, ramp: 0, upper: "thigh-f", lower: "shin-f", bend: 1, target: leg });
+      const kicking = { type: "reach" as const, upper: "thigh-f", lower: "shin-f", bend: 1 as const, target: leg };
+      rig.drivers.push({ ...kicking, start, end: end + 60, ramp: 0 });
+      // In the guard, its sole lies flat on the ground.
+      [start - 24, ...kicks].forEach((b, i) => rig.drivers.push({ ...kicking, start: b + 18, end: (kicks[i] ?? end + 60) + 5, ramp: 5, tip: "foot-f", tipAngle: 0 }));
       rig.track("foot-f", foot);
     }
-    reachTo("f", start, end, near, 6); reachTo("b", start, end, far, 6);
+    reachTo("f", start, end, near, 8); reachTo("b", start, end, far, 8);
     rig.track("torso", torso); rig.track("pelvis", pelvis); rig.track("head", head);
     return;
   }

@@ -3,15 +3,15 @@
 **Registry pack:** `universal-rig` (depends on `motion-track`, `crayon-storybook`)
 **Files:** `registry/rig/rig-spec.ts` (contract + validation), `rig-evaluate.ts` (pure evaluator), `rig-kit.ts` (authoring
 builder and shape helpers), `rig-presets-living.ts`, `rig-presets-machines.ts`, `rig-presets-nature.ts` (frog, snake, leaf, petals), `rig-presets-actions.ts` (person actions with props), `rig-presets-sword.ts` (sword techniques), `rig-presets-archery.ts`, `rig-presets-rest.ts` (lying, sleeping, rolling, picking up), `rig-flutter.ts` (falling-plate kinematics), `rig-presets.ts` (catalogue and re-exports),
-`rig-react.tsx` (six painters, `RigScene`, `RigFigure`, `RigLayer`, `followCamera`)
+`rig-react.tsx` (painters, `RigScene`, `RigFigure`, `RigLayer`, `followCamera`), `rig-look-ink.tsx` (the ink painter on the INK1 brush and wet-paper engines; see [Making a video in Chinese ink](chinese-ink-wash.md#making-a-video-in-chinese-ink)), `rig-look-watercolour.tsx` (the watercolour painter)
 **Storybook:** Video production → Film Looks → Universal Rig → **One rig, any film look**, **Action sheet**, **Rig parade**,
-**Rigs inside a collage film**
+**Rigs inside a collage film**, **Watercolour sheet**
 **Status:** implemented; agent review of Chromium contact sheets (frame-by-frame) only — **human normal-speed review not recorded**.
 
 ## Idea
 
 A rig says *what moves and how*; a painter says *what it looks like*. The same `RigSpec` is drawn as flat vector,
-scissor-cut paper (collage), wax crayon, two-plate riso, ink wash or blueprint, and the same rig can sit inside a COLLAGE1
+scissor-cut paper (collage), wax crayon, two-plate riso, ink wash, blueprint or watercolour, and the same rig can sit inside a COLLAGE1
 scene as a `rig` node. Rigs are JSON (no functions), every frame is a pure function of `(spec, frame)`, so any seek order
 draws the same pose.
 
@@ -25,16 +25,24 @@ draws the same pose.
   (hood, windscreen, nose, tail) are painted, shaded by orientation (`faceRole` gives the faces their own material, e.g. a
   dark cabin whose windscreen faces are glass); `far3d` parts (far wheels, the other lamps, far-side
   indicators) are drawn at the far side, under or over those faces.
+- **Forms**: parts with the same `mass` name are one solid (a barrel, rump, shoulder and neck). Every look draws the
+  outlines of the whole mass first and the fills over them, so no seam or joint disc shows inside it, and lights the mass
+  as one body instead of shading each part on its own. `grows` names the mass it grows out of (a leg from the body): the
+  two keep their own outline but fade into each other at the joint and share the light. In a preset, write
+  `rig.mass("leg", /^(up|lo|paw)$/, /^up$/)` after the parts. Use it for any body made of several parts. Keep parts that
+  lie over each other and must read apart (the turns of a coiled snake) without a `mass`.
+  `soft(points)` (`rig-kit.ts`) makes a rounded closed outline through a few points, for bodies that are not polygons.
 - **Palette**: role → colour. Painters restyle it.
 - **Root keys**: travel through the scene (`x`, `y`, `rotate`, `facing`, depth `scale`, `yaw`). The evaluator derives
-  **signed travel** in the figure's own units: moving against an explicit `facing` is reversing (feet step back, wheels roll
+  **signed travel** in the figure's own units. Without `facing` the figure faces its travel, and before it sets off the
+  way it will go. Moving against an explicit `facing` is reversing (feet step back, wheels roll
   backward), and depth scale and yaw are removed so wheels and feet turn by the distance actually covered.
 - **Tracks**: keyed local overrides per bone (added to the rest pose).
 - **Drivers** (each with an optional `start`/`end`/`ramp` window):
   | Driver | Use |
   | --- | --- |
   | `gait` | Legs by analytic two-bone IK with real footfall phases. Legs with a `pastern` (hooves, paws) keep the leg above it almost straight through stance — a column on a sinking fetlock, as in Muybridge's gallop plates — fold tightly in swing, then straighten to reach before landing; the hoof (`hoof` bone) stays flat while planted and flips back in swing. Stance feet are locked to the ground; feet with a `toe` roll up onto the planted toe at push-off; swing feet follow a Hermite arc whose end speeds match the stance sweep (no snap at lift-off or touch-down); `curl` folds hooves and paws with the shin; `swingHip` lets the shoulder blade and pelvis follow the leg. Body `bob` (`bobPhase`, `bobHarmonic`), `pitch` and `sink` are locked to the cycle; `swing` moves arms, necks, heads and spines in step. |
-  | `reach` | Two-bone IK toward keyed root-space targets or another bone's joint: feet planted on the floor or on pedals, hands on knees, a chin, a handlebar, a phone at the ear. Blends with the FK pose by its window. |
+  | `reach` | Two-bone IK toward keyed root-space targets or another bone's joint: feet planted on the floor or on pedals, hands on knees, a chin, a handlebar, a phone at the ear. Blends with the FK pose by its window. `level` names the bone past the `tip` that stays flat on the ground (a hoof or paw). `floor` keeps the middle joint and the end of the reach above the ground (an elbow that would dip points toward the viewer), and a `tip` bone with a length bends at the wrist, so a hand lies flat on the floor it is put on. `out` on a target key swings the middle joint toward the viewer, so an arm can pass its folded pose without a flip. |
   | `flap` | Side-view wingbeats by projection: the wing plane turns about the body's long axis, so its span foreshortens by sin(elevation) — spread above the back, edge-on, below the belly — never swinging forward. Arm and hand fold back on the upstroke, the hand presses ahead on the downstroke, `tilt` shows the far wing, `heave` lifts the body each stroke, `glide` holds the wings spread. |
   | `wing` | The older in-plane flap (kept for existing rigs). |
   | `suspension` | A damped spring driven by the root's real forward acceleration (convolved over the recent frames, still pure): noses dive under braking and rebound at the stop, cars squat on throttle, riders lurch; `range` limits it one-sidedly (a bicycle lifts its rear wheel but never sinks it). |
@@ -49,6 +57,7 @@ draws the same pose.
   | `variant` | Seeded blinks, keyed drawings, talking mouth on a syllable rhythm. |
   | `serpent` | Lateral undulation: the chain (head first) lies on a sine track fixed to the ground and slides along it as the root travels, so every point of the body passes where the head was, with no sideways slip; the head swings less than the body (`head`). |
   | `drift` | Flat particles (petals, leaves, snow, confetti) released in an area, carried by gusty wind and falling in the flutter or tumble regime of a light plate (`rig-flutter.ts`), recycled after `life` frames. |
+  | `drape` | Hanging chains that touch the body: long hair, a sash, a scarf end. It runs after every other driver. `hang` keeps the chain pointing down when its parent tilts (1 hangs like hair, 0 turns with the parent like a tail). Then the chain settles on capsule `colliders` on body bones, `radius` clear of them, and above the ground with `floor` (`rig-strand.ts`, plain points, usable outside RIG1). A collider's `side` fixes the way the strand comes out (behind the back), and `floorSide` the way it lies down, so it never changes sides between frames. `floor` can be a number: the thickness of something lying on the ground, such as a mat. `momentum` is the period of the strand's own swing in frames: each lock follows a weighted average of where it would have hung over the last period (a half-damped pendulum), so it trails a fast move, overshoots a little and settles; the result is settled on the body again, so it still touches and never passes through. A body tipped past `slip` (default 65 degrees, eased over +-10) lets go, and the strand hangs beside it in depth. Lengths never change. Every frame is worked out from the spec alone, momentum included, so any frame can be seeked to. |
 - Tracks also take `shear`, so a flat part (a leaf, a petal, a pancake) can be projected tilted in depth with rotate, scale
   and shear. A part's `backColor` shows when its bone is mirrored (the paler underside of a flipped leaf), and `side`
   draws a part only on the front or the back face (veins on top, raised pale veins underneath).
@@ -65,6 +74,7 @@ or is staged on screen:
 | Subject | Motions |
 | --- | --- |
 | Person | idle, walk (heel-to-toe, body lowest in double support), run (flight phase), wave, talk, cheer, sit (on a chair, gestures while talking), sit-down and stand-up (hip hinge, feet step, hands to knees), jump (crouch, arm swing, knee tuck, land and absorb), point, think, clap, bow, dance (120 bpm), phone, shoot (draw from the hip, bladed two-hand stance, three shots with muzzle rise, flash and ejected casings, lower to ready), box (guard, jab–jab–cross with the body leaning into the cross, duck), kick (front snap kick: chamber, snap, rechamber), sword (a varied form chaining six techniques from the middle guard), sword-cut (overhead: raise, step in, cut in two frames, dead stop, zanshin), sword-slash (diagonal from the near shoulder down across the body), sword-thrust (lunge: front shin vertical, rear leg straight, hips low), sword-rise (rising cut from the low guard), sword-sweep (horizontal cut across the body, foreshortened in depth), sword-parry (level blade above the head takes a cut, then an answering cut), sword-draw (draw-cut from the scabbard on the far hip, finishing cut, chiburi flick, slow resheathe); a scabbard rides the far hip and every cut leaves a swoosh traced from the blade tip's path, archery (take an arrow from the back quiver, nock, raise, draw to the anchor, aim, release, follow-through), archery-get-arrow, archery-ready (raise and draw, holding at full draw), archery-shoot (loose, re-arm and loose again), lie-down (crouch, hand back, sit, lie back with the legs out straight, hands behind the head), go-to-sleep (yawn and stretch, lie down on a mat with a pillow, pull the blanket up, eyes close, breathing slows), sleep (asleep under the blanket, a stir and a settle), wake-up (a stir, eyes flutter open, a lying stretch and yawn, blanket pushed to the lap, sit up on the hands, rub the eyes, look around), get-up (wake, sit up, push the blanket off, knees up, weight forward onto the feet with a hand on the mat, crouch with hands on the knees, stand, stretch — Muybridge plate 248 read forward), roll (a forward roll and a backward roll back, as a tucked ball rolling without slip), pick-up (stoop, lift a box to the waist, look at it, set it down), chop (rocking knife at a counter, slices tipping over, guiding knuckles walking along), pan-toss (pan shaken and see-sawed over a gas flame, then a flip: push, jerk back with the lip rising, pancake turning over in the air, steam) |
+| Person, long hair | Every person motion, with long hair in six layered locks: a `chain` sways it and streams it back in a walk or a run, and a `drape` hangs it, rests it on the shoulders and back (also in a bow), and spreads it on the floor when the person lies down. `personRig({ hair: "long" })` gives the same hair to any person motion. |
 | Frog | idle (throat pumping, blinks), hop (long leaps: take-off off planted toes, legs trailing in flight, forelegs land first, hind legs fold back low beside the body in a compact Z, feet swinging round the sides foreshortened, never standing up over the back), croak (throat sac fills with the mouth shut, flanks squeeze, calls in bouts) |
 | Snake | slither (lateral undulation seen from a raised camera, tongue flicks), idle (coiled, neck raised in an S, tongue flicks), strike (cocks, lunges a third of its length in two frames gaping, holds, recoils) |
 | Leaf | sway (on a twig, fluttering and flashing undersides in gusts), fall (zigzag flutter with a tumble, settles flat), fall-water (lands on a pond, floats and turns, ripples spread), blow (skitters along the ground in three gusts, flipping end over end) |
@@ -88,11 +98,21 @@ or is staged on screen:
 ## Painters and camera
 
 `RigScene` draws a backdrop plus figures; `RigFigure` draws one figure inside a scene; `RigLayer` is a self-contained
-figure for embedding (COLLAGE1 uses it). Looks: `flat`, `collage`, `crayon`, `riso`, `ink`, `blueprint`. **Every look animates
+figure for embedding (COLLAGE1 uses it). Looks: `flat`, `collage`, `crayon`, `riso`, `ink`, `blueprint`, `pencil`, `watercolour` (see [watercolour-brush.md](watercolour-brush.md#making-a-video-in-watercolour)). The `riso` look prints
+on the RISO1 press (`rig-look-riso.tsx`, see [riso-print](riso-print.md#making-a-video-in-risograph)): drum inks,
+per-part colour separation, paper-locked screens, fixed register, tooth and roller marks; `RisoLookProvider` picks the drums. **Every look animates
 on ones by default**; pass `cadence={2}` for a stop-motion feel. A medium's texture `boil` is separate from the motion
 cadence (crayon wax redraws every four frames even on ones). `camera={{ x, y, zoom }}` frames any world point;
 `followCamera(spec, frame, { y, lead })` tracks a travelling rig. The ground band and its marks are anchored to the world in
 tiles, so they scroll under a tracking camera and show the true speed of a gait. Every look can show the bones.
+
+**Coloured pencil** (`look="pencil"`, painter in `registry/rig/rig-look-pencil.tsx`) draws with the CP-F1 pencil engine:
+each rig role maps to a CP-F1 surface (`PENCIL_ROLE_SURFACE`: fur, skin, fabric, metal, keratin, glass…), the surface's
+three pigment passes come from `createPencilMaterialRegion`, the marks from `hatchPencilRegion` and the paper tooth from
+`pencilGrainTile`. Each part gets opaque paper support, a value underlayer lit from the upper left (turning with the part),
+the three passes and a broken pencil contour. Marks and tooth are masks in the part's own coordinates, so they move with
+the part and never swim; they redraw only on the look's boil step (every six frames, three mark sets), and not at all
+with reduced motion. The ground is a drawn line over hatched earth. COLLAGE1 `rig` nodes do not offer this look yet.
 
 ## In COLLAGE1
 
@@ -117,7 +137,7 @@ Tests cover: every preset × motion validates; seek-order purity; a planted foot
 hock directions and the transverse landing order; projected wings reach above and below the body and never far ahead of
 the shoulder; braking dives then rebounds; reversing rolls wheels backward with reverse lamps lit only while reversing; a
 turn away shrinks, yaws and opens the rear face; a seated person has the pelvis on the chair and feet planted; wheels and
-crank linkages; clock and pendulum; every look renders; the camera transforms the world; rig nodes inside collage scenes.
+crank linkages; clock and pendulum; long hair on every frame of every motion: on the shoulders and back while upright, no change of sides between frames, off the floor; every look renders; the camera transforms the world; rig nodes inside collage scenes.
 
 Gait audit at the time of writing: planted-foot drift 0 px for every quadruped gait and under 0.5 px for people; the
 touch-down / lift-off frame skids by a few px at most (the horse walk ~20 px at the audit's 2.5× speed). Reference: Muybridge,
@@ -176,7 +196,7 @@ Source: Li et al., [frame sequence of a *Rana dybowskii* jump](https://commons.w
 | Observation | Construction rule |
 | --- | --- |
 | Crouch: the hind leg folds in a Z (thigh forward, shank back, long foot forward under the chest); forelegs prop the chest; the back slopes up to the head with a sacral hump. | Body pitched −22° about the hip; the thigh and shank are solved by IK from the hip to a planted ankle; tarsus and toes lie flat forward. |
-| Take-off: the leg straightens until hip, knee, ankle and toes form one line about 30–40° below horizontal; the toes leave last. | The toe tip stays planted while the hip travels to the end of the straight leg; the hip and knee extend first and the foot rolls off its toes late (proximal to distal). |
+| Take-off: the leg straightens until hip, knee, ankle and toes form one line about 30–40° below horizontal; the toes leave last. | The toe tip stays planted while the hip travels to the end of the straight leg; the hip and knee extend first and the foot rolls off its toes late (proximal to distal). A short hop leaves with the leg still bent, a third of the way along. A way shorter than 80 design units for each hop gets fewer hops. |
 | Flight: the legs trail straight behind, in line with the body; the forelegs swing from hanging to reaching down and forward. | Leg angles follow the body axis with a decreasing droop; the body follows a parabola timed from the take-off speed. |
 | Landing: forelegs fully extended touch first, the body pitched nose-down, the hind legs still high behind; then they fold forward and the frog settles back into the crouch. | Hands are planted at the next crouch's spot by IK; the hind legs pass through a tuck (thighs up and back, feet up) over 12 frames and land in the crouch. |
 
@@ -202,9 +222,10 @@ Every prop is a keyed bone and the hands reach for its grip points, so a test ca
 
 - Side-on 2D rigs: no full turnarounds. Turns in depth extrude the side outline across the figure's width (an
   orthographic solid): good to about ±30° of yaw; beyond that a real 3/4 drawing is needed.
-- No mesh deformation (parts are rigid); wings and membranes are planar. Snake bodies are capsule chains, so outlines
-  show faint seams in looks that stroke every part.
+- No mesh deformation (parts are rigid); wings and membranes are planar. Parts without a `mass` (a car's panels, the turns
+  of a coiled snake) keep their own outline, so looks that stroke every part show a line between them.
 - Leaves, petals and food turn in depth by projection of a flat plate; they have no thickness or curl.
+- `drape` colliders are capsules in the picture plane; a lock may cut a round collider by its chord's sagitta (about 3 px on the 360 px person's shoulder). A body lying on its own hair is not modelled: the hair passes beside it. Ukiyo-e figures settle their long hair with the same solver in profile and three-quarter view, without momentum; riso, ink, crayon and watercolour characters draw their own hair. Hair lying toward or away from the viewer, on the floor or while it swings from one side to the other, is drawn shorter. In a roll it swings about as fast as the trunk turns (58 px a frame on the 360 px person, against 50), and for a few frames it is hidden behind the head. The first frames of a walk or a run start in the middle of the swing.
 - Gaits assume flat ground at `ground`; no slopes or stairs. Quadruped legs are two-segment chains with a curling foot.
 - Older style-specific character systems (crayon, ink, watercolour, riso characters, the collage puppet) are not
   migrated; RIG1 is the recommended base for new work.

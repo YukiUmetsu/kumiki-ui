@@ -11,7 +11,9 @@
  *     along the ground without slipping (the centre advances by radius × angle).
  * The body stays one rig: lying is the pelvis turned a quarter round with the feet held on the ground by IK.
  */
-import type { RigKey } from "./rig-spec";
+import { evaluateRig } from "./rig-evaluate";
+import type { RigPartFrame } from "./rig-evaluate";
+import type { RigKey, RigSpec } from "./rig-spec";
 import { Rig, path, rect } from "./rig-kit";
 import type { Pt } from "./rig-kit";
 
@@ -29,6 +31,8 @@ type Ease = RigKey["ease"];
 const IO: Ease = "ease-in-out-cubic";
 const RD = 180 / Math.PI;
 const HIP = 44;
+/** Radius of an elbow, and the thickness of the futon mat, in body units. */
+const ELBOW = 2.8, MAT = 2.4;
 
 export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
   const { u, start, end, t } = c, D = end - start;
@@ -37,28 +41,34 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
   const P = (frame: number, x: number, y: number, r: number, ease: Ease = IO) => pelvis.push({ frame, x: x * u, y: (y + HIP) * u, rotate: r, ease });
   const T = (frame: number, r: number, ease: Ease = IO) => torso.push({ frame, rotate: r, ease });
   const H = (frame: number, r: number, ease: Ease = IO) => head.push({ frame, rotate: r, ease });
-  const pt = (frame: number, x: number, y: number, ease: Ease = IO) => ({ frame, x: x * u, y: y * u, ease });
+  const pt = (frame: number, x: number, y: number, ease: Ease = IO, out = 0) => ({ frame, x: x * u, y: y * u, ease, out });
   /** Short windows squeeze key frames together: keep them strictly increasing. */
   const inc = <K extends { frame: number }>(keys: K[]) => keys.filter((k, i, all) => i === 0 || k.frame > all[i - 1].frame);
+  // Elbows and hands stay on the ground, or on the mat.
+  const floor = FLOOR_MOTIONS.has(m) ? (ELBOW + (m === "lie-down" || m === "roll" ? 0 : MAT)) * u : undefined;
+  if (floor) for (const b of rig.bones) if (/^(fore|hand)-[fb]$/.test(b.id)) { b.inheritScale = false; if (b.id[0] === "h") b.length = 4.2 * u; }
   /** A leg held by IK on root-space ankle targets, with the foot at a fixed world angle (0 flat, −90 toes up). */
   const leg = (side: "f" | "b", from: number, to: number, ramp: number, target: ReturnType<typeof pt>[], tipAngle: number) =>
     rig.drivers.push({ type: "reach", start: from, end: to, ramp, upper: "thigh-" + side, lower: "shin-" + side, tip: "foot-" + side, tipAngle, bend: 1, target: inc(target) });
   const arm = (side: "f" | "b", from: number, to: number, ramp: number, target: ReturnType<typeof pt>[], bend: 1 | -1 = -1) =>
-    rig.drivers.push({ type: "reach", start: from, end: to, ramp, upper: "arm-" + side, lower: "fore-" + side, bend, target: inc(target) });
+    rig.drivers.push({ type: "reach", start: from, end: to, ramp, upper: "arm-" + side, lower: "fore-" + side, tip: "hand-" + side, bend, target: inc(target), floor });
   const armFollow = (side: "f" | "b", from: number, to: number, ramp: number, follow: string, offset: Pt = [0, 0]) =>
-    rig.drivers.push({ type: "reach", start: from, end: to, ramp, upper: "arm-" + side, lower: "fore-" + side, bend: -1, follow, offset: [offset[0] * u, offset[1] * u] });
+    rig.drivers.push({ type: "reach", start: from, end: to, ramp, upper: "arm-" + side, lower: "fore-" + side, tip: "hand-" + side, bend: -1, follow, offset: [offset[0] * u, offset[1] * u], floor });
   const variant = (part: string, keys: { frame: number; name: string | null }[]) => rig.drivers.push({ type: "variant", part, mode: "keys", keys });
   const SOLE = 2.4, LATE = end + 60;
 
   if (m === "lie-down" || m === "go-to-sleep" || m === "sleep" || m === "wake-up" || m === "get-up") {
-    const sleepy = m !== "lie-down", g = sleepy ? 2.4 : 0;
+    const sleepy = m !== "lie-down", g = sleepy ? MAT : 0;
     // Lying on the back: hips quarter-turned (head to the left), back flat on the ground (or the mat).
     const LIE = { x: -10, y: -10 - g, r: -90 };
     if (sleepy) {
       // A futon mat and a pillow; a blanket folded at the foot that is drawn up to the chest.
+      // Long hair lies on the mat past the near side of the pillow: the mat is long enough for it.
+      const hair = rig.drivers.find(d => d.type === "drape"), top = hair ? -86 : -62;
       rig.bone("mat", "root", 0, 0);
-      rig.part("mat", "mat", rect(-60, -g, 98, g, 1), "cloth", .2, { color: "#e7ddc8" });
-      rig.part("mat-edge", "mat", path(`M-59 ${-g + .5}H37`), "detail", .21, { line: true, lineWidth: .3, color: "#b9ab90" });
+      rig.part("mat", "mat", rect(top, -g, 40 - top, g, 1), "cloth", .2, { color: "#e7ddc8" });
+      rig.part("mat-edge", "mat", path(`M${top + 1} ${-g + .5}H39`), "detail", .21, { line: true, lineWidth: .3, color: "#b9ab90" });
+      if (hair) hair.floor = g * u;
       rig.part("pillow", "mat", path(`M-58 ${-g}Q-59 ${-g - 6.4} -51 ${-g - 6.8}Q-43 ${-g - 7} -42.6 ${-g - 1}Q-50 ${-g + .2} -58 ${-g}Z`), "cloth", 3.95, { color: "#f4f0e6" });
       rig.part("pillow-seam", "mat", path(`M-56.6 ${-g - 4.6}Q-50 ${-g - 6} -44 ${-g - 4}`), "detail", 3.96, { line: true, lineWidth: .25, color: "#cfc6b4" });
       rig.bone("blanket", "root", 39, -g);
@@ -75,7 +85,7 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
     };
     // Lying, the legs lie out straight (a relaxed knee, ~4° short of locked): each heel rests on the ground a full leg
     // length from its hip. With the hips turned a quarter round, the near hip sits 2.2 above the pelvis joint, the far 1.4 below.
-    const LEG = 21.5 + 21 - .05, heel = (hipY: number, y: number): Pt => [LIE.x + Math.sqrt(LEG * LEG - (y - hipY) ** 2), y];
+    const LEG = 21.3 + 20.6 - .05, heel = (hipY: number, y: number): Pt => [LIE.x + Math.sqrt(LEG * LEG - (y - hipY) ** 2), y];
     const ankleN = heel(LIE.y - 2.2, -3 - g), ankleF = heel(LIE.y + 1.4, -3.2 - g);
     if (m === "wake-up" || m === "get-up") {
       // Waking (after Muybridge's rising-from-the-ground sequence, plate 248 read forward): asleep, a stir, the eyes
@@ -104,8 +114,8 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       };
       const prop = (from: number, to: number) => {
         // Hands go to the mat beside the hips first, then take the weight behind as the trunk comes up.
-        arm("f", from, to, 6, [pt(from, LIE.x - 20, -1.4 - g), pt(mid, SIT.x - 8, -1.2 - g), pt(to, SIT.x - 6, -1.2 - g)]);
-        arm("b", from, to, 6, [pt(from, LIE.x - 23, -1.4 - g), pt(mid, SIT.x - 11, -1.2 - g), pt(to, SIT.x - 9, -1.2 - g)]);
+        arm("f", from, to + 6, 12, [pt(from, LIE.x - 20, -2.9 - g), pt(mid, SIT.x - 8, -2.9 - g), pt(to, SIT.x - 6, -2.9 - g)]);
+        arm("b", from, to + 6, 12, [pt(from, LIE.x - 23, -2.9 - g), pt(mid, SIT.x - 11, -2.9 - g), pt(to, SIT.x - 9, -2.9 - g)]);
       };
       // Legs: out straight (toes up) while lying and sitting.
       // (Getting up, the knees-up IK takes over at the very pose these leave, so there is no blend through the rest pose.)
@@ -114,33 +124,33 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       leg("b", start, legsOut, 0, [pt(start, ankleF[0], ankleF[1]), pt(sit0, ankleF[0], ankleF[1]), pt(sit1, sitHeelF[0], sitHeelF[1])], -90);
       const edge = (from: number, to: number) => armFollow("f", from, to, 4, "blanket-edge", [0, -1]);
       if (!up) {
-        lieHands(start, n(80));
+        lieHands(start - 6, n(80)); // already there at the first frame
         // A long stretch lying down: arms overhead along the ground, a yawn; then back to the chest.
-        arm("f", n(76), n(122), 8, [pt(n(78), LIE.x - 26, LIE.y - 9), pt(n(92), LIE.x - 60, LIE.y - 7), pt(n(106), LIE.x - 61, LIE.y - 7.4), pt(n(118), LIE.x - 18, LIE.y - 10.6)]);
-        arm("b", n(76), n(122), 8, [pt(n(78), LIE.x - 28, LIE.y - 8), pt(n(92), LIE.x - 58, LIE.y - 3), pt(n(106), LIE.x - 59, LIE.y - 3.4), pt(n(118), LIE.x - 22, LIE.y - 10)]);
-        lieHands(n(118), n(126));
+        arm("f", n(58), n(126), 8, [pt(n(62), LIE.x - 16, LIE.y - 10.6), pt(n(76), LIE.x - 36, LIE.y - 19, "ease-in-quad"), pt(n(90), LIE.x - 60, LIE.y - 7, "ease-out-quad"), pt(n(100), LIE.x - 61, LIE.y - 7.4), pt(n(111), LIE.x - 36, LIE.y - 19, "ease-in-quad"), pt(n(124), LIE.x - 18, LIE.y - 10.6, "ease-out-quad")]);
+        arm("b", n(58), n(126), 8, [pt(n(62), LIE.x - 22, LIE.y - 10), pt(n(76), LIE.x - 38, LIE.y - 17, "ease-in-quad"), pt(n(90), LIE.x - 58, LIE.y - 3, "ease-out-quad"), pt(n(100), LIE.x - 59, LIE.y - 3.4), pt(n(111), LIE.x - 38, LIE.y - 17, "ease-in-quad"), pt(n(124), LIE.x - 22, LIE.y - 10, "ease-out-quad")]);
+        lieHands(n(120), n(130));
         // The blanket is pushed down to the lap, then the sit-up; seated, a hand rubs the eyes, then both rest on the lap.
         rig.track("blanket", [{ frame: start, scaleX: 1, scaleY: 1 }, { frame: n(126), scaleX: 1, scaleY: 1 }, { frame: n(144), scaleX: .72, scaleY: .8, ease: IO }]);
         edge(n(124), n(146));
-        prop(n(144), sit1 + 2);
-        arm("b", sit1, LATE, 8, [pt(sit1, SIT.x - 9, -1.2 - g), pt(sit1 + 12, 2, -17 - g)]);
+        prop(n(140), sit1 + 2);
+        arm("b", sit1, LATE, 8, [pt(sit1, SIT.x - 9, -2.9 - g), pt(sit1 + 12, 2, -17 - g)]);
         const r0 = n(186), r1 = n(208);
-        armFollow("f", sit1, r0, 8, "pelvis", [10, -14]);
-        rig.drivers.push({ type: "reach", start: r0 - 6, end: r1 + 6, ramp: 6, upper: "arm-f", lower: "fore-f", bend: -1, follow: "head", offset: [5.2 * u, -.4 * u],
+        armFollow("f", sit1, LATE, 8, "pelvis", [10, -14]);
+        rig.drivers.push({ type: "reach", start: r0 - 14, end: r1 + 14, ramp: 14, upper: "arm-f", lower: "fore-f", bend: -1, follow: "head", offset: [5.2 * u, -.4 * u],
           target: Array.from({ length: 7 }, (_, k) => pt(r0 + Math.round(k * (r1 - r0) / 6), k % 2 ? 1.2 : -.6, k % 2 ? .4 : -.2)) });
-        armFollow("f", r1, LATE, 10, "pelvis", [14, -14]);
+        armFollow("f", r1 + 14, LATE, 10, "pelvis", [14, -14]);
         H(r0, 8); H(r1, 2); H(n(218), -7); H(n(232), 4);
         variant("hand-f", [{ frame: r0 - 4, name: "fist" }, { frame: r1 + 4, name: null }]);
         rig.drivers.push({ type: "oscillate", start: sit1, end: LATE, ramp: 20, bone: "torso", property: "rotate", amplitude: 1.4, period: 90 });
       } else {
-        lieHands(start, sit0 + 2);
+        lieHands(start - 6, sit0 + 2);
         prop(sit0, sit1 + 2);
         // Blanket rides down to the lap as the body sits up, then is pushed off over the knees and slides away.
         const b0 = n(74), b1 = n(92), b2 = n(102);
         rig.track("blanket", [{ frame: start, scaleX: 1, scaleY: 1 }, { frame: sit0, scaleX: 1, scaleY: 1 }, { frame: sit1, scaleX: .72, scaleY: .8, ease: IO },
           { frame: b0, scaleX: .72, scaleY: .8 }, { frame: b1, scaleX: .44, scaleY: .66, ease: IO }, { frame: b2, scaleX: .12, scaleY: .34, ease: "ease-out-quad" }]);
         T(b0, 4); T(b1, 30); T(b2, 12); edge(b0 - 2, b1 + 2);
-        arm("b", sit1, b2 + 8, 6, [pt(sit1, SIT.x - 9, -1.2 - g)]);
+        arm("b", sit1, b2 + 16, 6, [pt(sit1, SIT.x - 9, -2.9 - g)]);
         // Knees up, feet flat on the mat close to the seat; weight forward over the feet with a hand on the mat; crouch
         // with the hands on the knees; stand; a standing stretch and yawn.
         const k1 = n(112), w0 = n(122), c0 = n(138), s0 = n(160), st0 = n(170), st1 = n(196);
@@ -152,11 +162,14 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
           target: [pt(from, heelAt[0], heelAt[1]), pt(Math.round((from + to) / 2), (heelAt[0] + x) / 2 + 4, (heelAt[1] - SOLE - g) / 2 - 3), pt(Math.max(to, from + 2), x, -SOLE - g)]
             .filter((k, i, all) => i === 0 || k.frame > all[i - 1].frame) });
         kneesUp("f", n(98), ankleN, k1, FOOT_N); kneesUp("b", n(100), sitHeelF, k1 + 2, FOOT_F);
+        // Then both soles stay flat on the mat while the shins lean over them.
+        leg("f", k1 - 6, LATE, 12, [pt(k1, FOOT_N, -SOLE - g)], 0); leg("b", k1 - 4, LATE, 12, [pt(k1 + 2, FOOT_F, -SOLE - g)], 0);
         P(b2, SIT.x, SIT.y, SIT.r); P(k1, SIT.x + 1.6, SIT.y, 0); P(w0, -6.4, -13.4 - g, 0); P(c0, -.4, -25 - g, 0); P(s0, .2, -HIP - g, 0);
         T(k1, 14); T(w0, 40); T(c0, 46); T(s0, 0); H(k1, 6); H(w0, 14); H(c0, 18); H(s0, 0);
-        arm("f", b1, c0 + 4, 8, [pt(b1, 6, -18 - g), pt(w0, -1, -1.2 - g), pt(c0 - 4, -1, -1.2 - g)]);
+        // Each hold runs on under the next one, so a hand passes from the mat to the knee without hanging in between.
+        arm("f", b1, c0 + 16, 8, [pt(b1, 6, -18 - g), pt(w0, -1, -2.9 - g), pt(c0 - 4, -1, -2.9 - g)]);
         armFollow("f", c0, s0 - 2, 6, "shin-f", [-1.6, 3]); armFollow("b", b2 + 4, s0 - 2, 8, "shin-b", [-1.6, 3]);
-        for (const sd of ["f", "b"]) rig.track("arm-" + sd, [{ frame: st0, rotate: 0 }, { frame: st0 + 12, rotate: sd === "f" ? -160 : -150, ease: "ease-out-cubic" }, { frame: st1, rotate: sd === "f" ? -156 : -148 }, { frame: st1 + 12, rotate: 0 }]);
+        for (const sd of ["f", "b"]) rig.track("arm-" + sd, [{ frame: st0, rotate: 0 }, { frame: st0 + 18, rotate: sd === "f" ? -160 : -150, ease: "ease-in-out-quad" }, { frame: Math.max(st1, st0 + 20), rotate: sd === "f" ? -156 : -148 }, { frame: Math.max(st1, st0 + 20) + 18, rotate: 0, ease: "ease-in-out-quad" }]);
         T(st0, 0); T(st0 + 14, -6); T(st1, -4); T(st1 + 12, 0); H(st0, 0); H(st0 + 14, -14); H(st1, -10); H(st1 + 12, 0);
         variant("eye", [{ frame: st0 + 8, name: "shut" }, { frame: st1 - 4, name: null }]);
       }
@@ -184,24 +197,26 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       H(start, 0); H(c0, 0); H(c1, 14); H(s1, 4); H(l0, -4); H(l1 - 6, 2); H(l1, 4);
       if (yawn) {
         // Yawn and stretch: arms up overhead, back arched a little, head tipped back, mouth wide, eyes squeezed.
-        for (const s of ["f", "b"]) rig.track("arm-" + s, [{ frame: y0, rotate: 0 }, { frame: y0 + n(12), rotate: s === "f" ? -162 : -152, ease: "ease-out-cubic" }, { frame: y1, rotate: s === "f" ? -158 : -150 }, { frame: y2, rotate: 0 }]);
-        for (const s of ["f", "b"]) rig.track("fore-" + s, [{ frame: y0, rotate: 0 }, { frame: y0 + n(12), rotate: -18 }, { frame: y1, rotate: -12 }, { frame: y2, rotate: 0 }]);
+        for (const s of ["f", "b"]) rig.track("arm-" + s, [{ frame: y0, rotate: 0 }, { frame: y0 + n(22), rotate: s === "f" ? -162 : -152, ease: "ease-in-out-quad" }, { frame: y1 - n(4), rotate: s === "f" ? -158 : -150 }, { frame: c0 + 4, rotate: 0, ease: "ease-in-out-quad" }]);
+        for (const s of ["f", "b"]) rig.track("fore-" + s, [{ frame: y0, rotate: 0 }, { frame: y0 + n(22), rotate: -18 }, { frame: y1 - n(4), rotate: -12 }, { frame: c0 + 4, rotate: 0 }]);
         T(y0, 0); T(y0 + n(14), -7); T(y1, -5); T(y2, 0); H(y0, 0); H(y0 + n(14), -16); H(y1, -12); H(y2, 0);
         variant("mouth", [{ frame: y0 + n(6), name: "open" }, { frame: y1 - n(4), name: null }]);
         variant("eye", [{ frame: y0 + n(8), name: "shut" }, { frame: y1 - n(4), name: null }]);
       }
       // Feet: planted while crouching and sitting, then walked forward, then slid out long with the toes up.
       // (On the mat the floor is g higher.) Steps are [frame, x, lift].
-      const steps = (side: "f" | "b", keys: Steps) => leg(side, start, f1 + n(8), 0, keys.map(([frame, x, lift]) => pt(frame, x, -SOLE - g - (lift ?? 0))), 0);
-      steps("f", [[start, 2.2], [s1, 2.2], [s1 + n(6), 9, 2.6], [f1, 15]]); steps("b", [[start, -1.4], [s1 + n(3), -1.4], [s1 + n(9), 6, 2.4], [f1 + n(2), 11]]);
-      leg("f", f1, LATE, 14, [pt(f1, 15, -SOLE - g), pt(l1, ankleN[0], ankleN[1])], -90);
-      leg("b", f1, LATE, 14, [pt(f1, 11, -SOLE - g), pt(l1, ankleF[0], ankleF[1])], -90);
+      // They hold until the next reach is fully in (14 frames), or the leg would drop to its straight pose, through the floor.
+      // As the foot turns up on its heel, the ankle rises.
+      const steps = (side: "f" | "b", keys: Steps) => leg(side, start, f1 + 15, 0, keys.map(([frame, x, lift]) => pt(frame, x, -SOLE - g - (lift ?? 0))), 0);
+      steps("f", [[start, 2.2], [s1, 2.2], [s1 + n(6), 9, 2.6], [f1, 15], [f1 + 7, 15.6, 1.5]]); steps("b", [[start, -1.4], [s1 + n(3), -1.4], [s1 + n(9), 6, 2.4], [f1 + n(2), 11], [f1 + 7, 11.6, 1.5]]);
+      leg("f", f1, LATE, 14, [pt(f1, 15, -SOLE - g), pt(f1 + 7, 15.6, -SOLE - g - 1.5), pt(l1, ankleN[0], ankleN[1])], -90);
+      leg("b", f1, LATE, 14, [pt(f1, 11, -SOLE - g), pt(f1 + 7, 11.6, -SOLE - g - 1.5), pt(l1, ankleF[0], ankleF[1])], -90);
       // The near hand reaches back to the ground to lower the body, supports while lying back, then rests.
-      const restA: Pt = sleepy ? [LIE.x - 16, LIE.y - 10.6] : [LIE.x - 43, LIE.y + 1.4], restB: Pt = sleepy ? [LIE.x - 22, LIE.y - 10] : [LIE.x - 42, LIE.y + 2];
-      arm("f", c0 + 4, sleepy ? LATE : l1 - 2, 8, [pt(c0 + 4, 6, -46), pt(c1, -10, -6 - g), pt(s1, -14, -1.2 - g), pt(l0, -15, -1.2 - g), pt(l1 - n(4), -26, -2 - g), pt(l1 + n(10), restA[0], restA[1])]);
-      arm("b", l0, LATE, 10, [pt(l0, -4, -30), pt(l1 + n(14), restB[0], restB[1])], sleepy ? -1 : 1);
-      // Hands behind the head: the elbows point up off the ground, not across the face.
-      if (!sleepy) arm("f", l1 - n(6), LATE, 8, [pt(l1 - n(6), -26, -2), pt(l1 + n(10), restA[0], restA[1])], 1);
+      const restA: Pt = sleepy ? [LIE.x - 16, LIE.y - 10.6] : [LIE.x - 43, LIE.y + 1.4], restB: Pt = sleepy ? [LIE.x - 22, LIE.y - 10] : [LIE.x - 42, LIE.y - 2.4];
+      // Lying awake the hands go behind the head: the elbows swing out toward the viewer, and stay there.
+      arm("f", c0 + 4, LATE, 8, [pt(c0 + 4, 6, -46), pt(c1, -10, -6 - g), pt(s1, -14, -2.9 - g), pt(l0, -15, -2.9 - g), pt(l1 - n(4), -26, -2 - g),
+        ...sleepy ? [pt(l1 + n(10), restA[0], restA[1])] : [pt(l1 + n(8), LIE.x - 22, LIE.y - 16, "ease-in-quad", 1), pt(l1 + n(22), restA[0], restA[1], "ease-out-quad", 1)]]);
+      arm("b", l0, LATE, 10, [pt(l0, -4, -30), pt(l1 + n(14), restB[0], restB[1], IO, sleepy ? 0 : 1)], sleepy ? -1 : 1);
       if (sleepy) {
         // Draw the blanket up from the feet; eyes close; breathing slows and deepens; the head rolls a little.
         const b0 = l1 + n(10), b1 = b0 + n(22), e0 = b1 + n(10);
@@ -225,21 +240,23 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
     // The tuck (from the somersault plates): pelvis tipped back 40°, trunk flexed 80° onto the thighs, chin tucked, knees
     // up, heels under the seat. Measured in the body frame (pelvis at the origin) its centroid is C, and the tucked body
     // rolls as a ball of radius R about it; the ankles sit on the ground at the start and end of each roll.
-    const tuck = { pelvis: -40, thigh: -95, shin: 150, foot: -20, torso: 82, head: 40 }, C: Pt = [16.5, -12], R = 19, ANKLE: Pt = [11.5, 3.7], LEN = 26;
+    const tuck = { pelvis: -40, thigh: -95, shin: 150, foot: -20, torso: 82, head: 40 }, C: Pt = [16.5, -12], R = 19, ANKLE: Pt = [11.5, 3.7], GRIP: Pt = [1, 4], LEN = 26;
     const X0 = -64, rolls: { at: number; x0: number; dir: 1 | -1 }[] = [{ at: start + 12, x0: X0, dir: 1 }];
     rolls.push({ at: start + 12 + Math.round(D * .48), x0: X0 + 2 * Math.PI * R, dir: -1 });
     const thighs: RigKey[] = [], shins: RigKey[] = [], feet: RigKey[] = [];
     P(start, X0, -HIP, 0); T(start, 0); H(start, 0);
     let windowStart = start;
+    // Whole turns so far: after a forward roll the pelvis stays at 360 degrees, or it would unwind the turn while standing up.
+    let turned = 0;
     for (const [i, rl] of rolls.entries()) {
       const { at: a, x0, dir } = rl, crouch = a + 14, roll = crouch + 6, done = roll + LEN, up = done + 18;
       // Centre of the ball when the tucked ankles are on the planted feet (ankle at x0 + 2.2).
       const cx0 = x0 + 2.2 - (ANKLE[0] - C[0]), cx1 = cx0 + dir * 2 * Math.PI * R;
       const tuckAt = (frame: number, th: number, cx: number, ease: Ease) => {
         const off: Pt = [-C[0], -C[1]], cr = Math.cos(th / RD), sr = Math.sin(th / RD);
-        P(frame, cx + off[0] * cr - off[1] * sr, -R + off[0] * sr + off[1] * cr, tuck.pelvis + th, ease);
+        P(frame, cx + off[0] * cr - off[1] * sr, -R + off[0] * sr + off[1] * cr, tuck.pelvis + th + turned, ease);
       };
-      P(a, x0, -HIP, 0); P(crouch, x0 - 3, -26, -12); T(a, 0); T(crouch, dir > 0 ? 44 : 34); H(a, 0); H(crouch, dir > 0 ? 24 : 16);
+      P(a, x0, -HIP, turned); P(crouch, x0 - 3, -26, -12 + turned); T(a, 0); T(crouch, dir > 0 ? 44 : 34); H(a, 0); H(crouch, dir > 0 ? 24 : 16);
       tuckAt(roll, 0, cx0, IO); T(roll, tuck.torso); H(roll, tuck.head);
       // Rolling over the rounded back without slipping: the centre advances by R × angle.
       for (let k = 1; k <= LEN; k++) {
@@ -250,7 +267,8 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       H(roll + Math.round(LEN * .3), 80); H(roll + Math.round(LEN * .7), 80);
       T(done, tuck.torso); H(done, tuck.head);
       const xEnd = cx1 + (ANKLE[0] - C[0]) - 2.2;
-      P(done + 6, xEnd - 3, -26, -12); P(up, xEnd, -HIP, 0); T(done + 6, dir > 0 ? 40 : 30); T(up, 0); H(done + 6, 18); H(up, 0);
+      turned += dir * 360;
+      P(done + 6, xEnd - 3, -26, -12 + turned); P(up, xEnd, -HIP, turned); T(done + 6, dir > 0 ? 40 : 30); T(up, 0); H(done + 6, 18); H(up, 0);
       // Legs: planted by IK while standing and squatting; held in the tuck by keyed angles through the roll.
       thighs.push({ frame: crouch, rotate: 0 }, { frame: roll, rotate: tuck.thigh }, { frame: done, rotate: tuck.thigh }, { frame: done + 6, rotate: 0 });
       shins.push({ frame: crouch, rotate: 0 }, { frame: roll, rotate: tuck.shin }, { frame: done, rotate: tuck.shin }, { frame: done + 6, rotate: 0 });
@@ -259,10 +277,12 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       if (i === rolls.length - 1) c.plant(done - 2, LATE, [[done, xEnd + 2.2]], [[done, xEnd - 1.4]], 4);
       windowStart = done - 2;
       // Hands: to the ground ahead (forward roll) or beside the hips (backward), then hugging the shins in the tuck.
-      arm("f", a + 2, roll + 2, 4, [pt(a + 2, x0 + 6, -46), pt(crouch, x0 + (dir > 0 ? 17 : -9), -1.4)]);
-      arm("b", a + 2, roll + 2, 4, [pt(a + 2, x0 + 1, -46), pt(crouch, x0 + (dir > 0 ? 14 : -11), -1.4)]);
-      armFollow("f", roll - 2, done + 2, 3, "shin-f", [1, 4]); armFollow("b", roll - 2, done + 2, 3, "shin-b", [1, 4]);
+      arm("f", a + 2, roll + 2, 4, [pt(a + 2, x0 + 6, -46), pt(crouch, x0 + (dir > 0 ? 17 : -9), -2.9)]);
+      arm("b", a + 2, roll + 2, 4, [pt(a + 2, x0 + 1, -46), pt(crouch, x0 + (dir > 0 ? 14 : -11), -2.9)]);
+      armFollow("f", roll - 2, done + 8, 6, "grip-f"); armFollow("b", roll - 2, done + 8, 6, "grip-b");
     }
+    // The hold is a bone on the shin, so it turns over with the body.
+    for (const s of ["f", "b"]) rig.bone("grip-" + s, "shin-" + s, GRIP[0], GRIP[1]);
     for (const s of ["f", "b"]) { rig.track("thigh-" + s, thighs.map(k => ({ ...k }))); rig.track("shin-" + s, shins.map(k => ({ ...k }))); rig.track("foot-" + s, feet.map(k => ({ ...k }))); }
     variant("mouth", [{ frame: start, name: null }]);
   }
@@ -276,21 +296,50 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
     rig.part("box-tape", "box", rect(-1, -9.2, 2, 9.2, .2), "light", 6.92, { color: "#e8d8b4" });
     rig.part("box-edge", "box", path("M-5.2 -7H5.2"), "detail", 6.93, { line: true, lineWidth: .25, color: "#8a6a3e" });
     rig.bone("box-grip-f", "box", -3.8, -8.4); rig.bone("box-grip-b", "box", 1.6, -8.8);
-    const st = start + 12, sp = st + 12, sd = sp + 24, g0 = sd + 6, l1 = g0 + 30, h1 = t(.62), d1 = h1 + 30, r1 = d1 + 6, u1 = r1 + 24, b1 = u1 + 12;
-    c.plant(start, LATE, [[start, 2.2], [st, 2.2], [st + 6, 5, 2.6], [sp, 7.6], [u1, 7.6], [u1 + 6, 5, 2.2], [b1, 2.2]], [[start, -1.4]], 0);
-    P(start, 0, -HIP, 0); P(sp, .6, -HIP, 0); P(sd, -2.6, -25, 0); P(g0, -2.6, -25.4, 0); P(l1, 0, -HIP, 0, "ease-in-out-quad");
-    P(h1, 0, -HIP, 0); P(d1, -2.6, -25, 0, "ease-in-out-quad"); P(r1, -2.6, -25.4, 0); P(u1, .6, -HIP, 0); P(b1, 0, -HIP, 0);
+    // Shorter windows play it faster, in the same order.
+    const q = (frames: number) => Math.round(frames * Math.min(1, D / 180));
+    const st = start + q(12), sp = st + q(12), sd = sp + q(24), g0 = sd + q(6), l1 = g0 + q(30), h1 = t(.62), d1 = h1 + q(30), r1 = d1 + q(6), u1 = r1 + q(24), b1 = u1 + q(12);
+    c.plant(start, LATE, [[start, 2.2], [st, 2.2], [st + q(6), 5, 2.6], [sp, 7.6], [u1, 7.6], [u1 + q(6), 5, 2.2], [b1, 2.2]], [[start, -1.4]], 0);
+    P(start, 0, -HIP, 0); P(sp, .6, .6 - HIP, 0); P(sd, -2.6, -25, 0); P(g0, -2.6, -25.4, 0); P(l1, 0, .6 - HIP, 0, "ease-in-out-quad");
+    P(h1, 0, .6 - HIP, 0); P(d1, -2.6, -25, 0, "ease-in-out-quad"); P(r1, -2.6, -25.4, 0); P(u1, .6, .6 - HIP, 0); P(b1, 0, -HIP, 0);
     T(start, 0); T(sp, 2); T(sd, 56); T(g0, 57); T(l1, 4); T(h1, 4); T(d1, 56); T(r1, 57); T(u1, 2); T(b1, 0);
-    H(start, 0); H(sp, 6); H(sd, 14); H(l1, 12); H(l1 + 20, 16); H(h1 - 20, 10); H(h1, 12); H(d1, 14); H(u1, 4); H(b1, 0);
+    H(start, 0); H(sp, 6); H(sd, 14); H(l1, 12); H(l1 + q(20), 16); H(h1 - q(20), 10); H(h1, 12); H(d1, 14); H(u1, 4); H(b1, 0);
     // The box rides in the hands along a path close to the body.
     const box = (frame: number, x: number, y: number, r = 0, ease: Ease = IO) => ({ frame, x: (x - 14) * u, y: y * u, rotate: r, ease });
-    rig.track("box", [box(start, 14, 0), box(g0, 14, 0), box(g0 + 10, 15, -14, -3, "ease-in-quad"), box(g0 + 20, 15, -32, -2), box(l1, 13.4, -50.5, 0, "ease-out-quad"),
-      box(l1 + 16, 13.6, -51.4, 4), box(l1 + 34, 13.6, -51.2, -3), box(h1, 13.4, -50.5, 0), box(h1 + 10, 15, -32, -2, "ease-in-quad"), box(h1 + 20, 15, -14, -3), box(d1, 14, 0, 0, "ease-out-quad")]);
-    armFollow("f", sp + 6, r1 + 4, 10, "box-grip-f"); armFollow("b", sp + 8, r1 + 3, 10, "box-grip-b");
-    variant("hand-f", [{ frame: sd - 4, name: "open" }, { frame: g0, name: "fist" }, { frame: r1, name: "open" }, { frame: r1 + 10, name: null }]);
-    variant("hand-b", [{ frame: sd - 4, name: "open" }, { frame: g0, name: "fist" }, { frame: r1, name: "open" }, { frame: r1 + 10, name: null }]);
+    rig.track("box", [box(start, 14, 0), box(g0, 14, 0), box(g0 + q(10), 15, -14, -3, "ease-in-quad"), box(g0 + q(20), 15, -32, -2), box(l1, 13.4, -50.5, 0, "ease-out-quad"),
+      box(l1 + q(16), 13.6, -51.4, 4), box(l1 + q(34), 13.6, -51.2, -3), box(h1, 13.4, -50.5, 0), box(h1 + q(10), 15, -32, -2, "ease-in-quad"), box(h1 + q(20), 15, -14, -3), box(d1, 14, 0, 0, "ease-out-quad")]);
+    armFollow("f", sp + q(6), r1 + q(4), 10, "box-grip-f"); armFollow("b", sp + q(8), r1 + q(3), 10, "box-grip-b");
+    variant("hand-f", [{ frame: sd - q(4), name: "open" }, { frame: g0, name: "fist" }, { frame: r1, name: "open" }, { frame: r1 + q(10), name: null }]);
+    variant("hand-b", [{ frame: sd - q(4), name: "open" }, { frame: g0, name: "fist" }, { frame: r1, name: "open" }, { frame: r1 + q(10), name: null }]);
   }
   if (pelvis.length) rig.track("pelvis", pelvis);
   if (torso.length) rig.track("torso", torso);
   if (head.length) rig.track("head", head);
+}
+
+/** Lowest point of a part in scene y (sampled outline). */
+function lowestOf(p: RigPartFrame): number {
+  const y = (px: number, py: number) => p.matrix.b * px + p.matrix.d * py + p.matrix.f, s = p.shape;
+  switch (s.type) {
+    case "ellipse": return Math.max(...Array.from({ length: 24 }, (_, i) => y((s.cx ?? 0) + s.rx * Math.cos(i * Math.PI / 12), (s.cy ?? 0) + s.ry * Math.sin(i * Math.PI / 12))));
+    case "rect": return Math.max(y(s.x, s.y), y(s.x + s.width, s.y), y(s.x, s.y + s.height), y(s.x + s.width, s.y + s.height));
+    case "capsule": return Math.max(...[[0, s.w0 / 2], [s.length, s.w1 / 2]].flatMap(([cy, r]) => Array.from({ length: 16 }, (_, i) => y(r * Math.cos(i * Math.PI / 8), cy + r * Math.sin(i * Math.PI / 8)))));
+    case "polygon": return Math.max(...s.points.map(([a, b]) => y(a, b)));
+    case "path": return -Infinity;
+  }
+}
+
+/**
+ * A tucked body is not a ball: rolling about one centre, its head and seat would dig into the floor. Raise the pelvis on
+ * its per-frame keys by as much as the lowest part would sink, smoothed so the body does not bump along.
+ */
+export function rollOnTheGround(spec: RigSpec): RigSpec {
+  const keys = spec.tracks?.pelvis ?? [], ground = spec.root?.[0]?.y ?? 0;
+  const dense = new Set(keys.filter((k, i) => i > 0 && k.frame - keys[i - 1].frame === 1 || i < keys.length - 1 && keys[i + 1].frame - k.frame === 1).map(k => k.frame));
+  const depth = (f: number) => Math.max(0, ...evaluateRig(spec, f, { momentum: false }).parts.filter(p => !p.id.startsWith("hair-")).map(p => lowestOf(p) - ground));
+  const sink = new Map([...dense].map(f => [f, depth(f)] as const));
+  const near = (f: number, r: number) => Array.from({ length: 2 * r + 1 }, (_, i) => sink.get(f - r + i) ?? 0);
+  const peak = new Map([...dense].map(f => [f, Math.max(...near(f, 1))] as const));
+  const lift = (f: number) => { const w = [1, 2, 3, 2, 1]; let sum = 0; w.forEach((g, i) => { sum += g * (peak.get(f - 2 + i) ?? 0); }); return Math.max(sink.get(f) ?? 0, sum / 9); };
+  return { ...spec, tracks: { ...spec.tracks, pelvis: keys.map(k => dense.has(k.frame) ? { ...k, y: (k.y ?? 0) - lift(k.frame) } : k) } };
 }

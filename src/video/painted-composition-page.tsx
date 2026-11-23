@@ -43,8 +43,9 @@ export function PaintedWorldPage({ spec, genre, frame, reducedMotion, camera }: 
         <text x={portrait ? 55 : 451} y={portrait ? 848 : 449}>MODEL: CELL SECTION</text>
         <text x={portrait ? 55 : 451} y={portrait ? 864 : 462}>ILLUSTRATIVE · NOT TO SCALE</text>
       </g>}
-      {genre === "product" && <g fill="#536660" fontSize={12} fontFamily="Georgia,serif"
-        fontStyle="italic"><text x={portrait ? 236 : 625} y={portrait ? 682 : 315}>An unbranded study</text></g>}
+      {/* Centred inside the label's reserved paper (demo label rectangle: u .40–.64, v .51–.69 of the artboard). */}
+      {genre === "product" && <g fill="#536660" fontSize={10.5} fontFamily="Georgia,serif" textAnchor="middle"
+        fontStyle="italic"><text x={portrait ? 280 : 687} y={portrait ? 661 : 315}>An unbranded study</text></g>}
     </g>
   </PaintedComposition>;
 }

@@ -1,4 +1,4 @@
-import {useEffect,useState} from "react";
+import {useEffect,useMemo,useState} from "react";
 import type {Meta,StoryObj} from "@storybook/react-vite";
 import {InkShanshuiFilm} from "./ink-shanshui-film";
 import {InkShanshuiStage} from "../../registry/video/ink-shanshui-react";
@@ -8,6 +8,8 @@ import {VideoExportStage} from "../../registry/video/video-export-stage";
 import {shanshuiFittedRoute} from "./ink-shanshui-full-body";
 import {inkRouteAt} from "../../registry/video/ink-actor-director";
 import type {VideoExportManifest} from "../../registry/video/video-export-stage";
+import {RIG_PRESETS} from "../../registry/rig/rig-presets";
+import {RigLayer} from "../../registry/rig/rig-react";
 
 /** Original code-drawn shanshui animated film study. The three reference images
  * are art-direction targets only; they are not uploaded or embedded in the code.
@@ -1449,4 +1451,36 @@ export const RiverScholarExport:StoryObj<typeof Export>={
 export const MistyHermitExport:StoryObj<typeof Export>={
   name:"Misty hermit · production MP4 (16:9)",
   render:()=> <Export scene="misty-hermit"/>,
+};
+
+/** Any RIG1 subject walks into the painted landscape: the rig's ink look multiplies into the same paper. */
+function RigInLandscape(){
+  const [frame,setFrame]=useState(150);
+  const rigs=useMemo(()=>{
+    const pick=(id:string,motion:string,size:number,from:number,to:number,y:number)=>
+      RIG_PRESETS.find(p=>p.id===id)!.build({id:id+"-shanshui",size,motion,start:0,end:SHANSHUI_FRAMES,y,from,to});
+    return [pick("horse","walk",120,140,560,494),pick("bird","fly",42,980,-40,150)];
+  },[]);
+  return <main style={{padding:24,background:"#e9dfcf",minHeight:"100vh",color:"#332b23",font:"14px/1.5 system-ui"}}>
+    <h1 style={{font:"normal 30px Georgia,serif",margin:"0 0 6px"}}>Any rigged subject in the landscape</h1>
+    <p style={{maxWidth:860,margin:"0 0 14px"}}>A RIG1 horse and songbird drawn by the ink look (<code>RigLayer look="ink"</code>) as the
+      stage's acting layer: wet-paper brush deposits and pressure contours in the stage's 960×540 coordinates, multiplied into
+      the same painted paper as the mountains.</p>
+    <div style={{width:960,maxWidth:"100%",boxShadow:"0 10px 30px rgba(50,40,30,.18)"}}>
+      <InkShanshuiStage frame={frame} controls={{...DEFAULT_SHANSHUI,scene:"mountain-trail"}}>
+        {/* The stage's acting layer is HTML; the rigs get their own SVG in the stage's coordinates. */}
+        <svg viewBox="0 0 960 540" width={960} height={540} aria-hidden="true"
+          style={{position:"absolute",inset:0,overflow:"visible"}}>
+          {rigs.map(r=><RigLayer key={r.id} look="ink" spec={r} frame={frame}/>)}
+        </svg>
+      </InkShanshuiStage>
+    </div>
+    <label style={{...style.field,maxWidth:960,marginTop:12}}>Frame · {frame}
+      <input aria-label="Shanshui rig frame" type="range" min={0} max={SHANSHUI_FRAMES-1} value={frame}
+        onChange={e=>setFrame(Number(e.target.value))}/></label>
+  </main>;
+}
+export const RigSubjectsInLandscape:StoryObj<typeof RigInLandscape>={
+  name:"Any RIG1 subject in the landscape (ink look)",
+  render:()=> <RigInLandscape/>,
 };

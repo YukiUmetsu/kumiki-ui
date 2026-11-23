@@ -1,4 +1,23 @@
 import {test,expect} from "@playwright/test";
+import type {Locator,Page} from "@playwright/test";
+
+/** Drag one tonal region on the photo, as an artist does: with the photo in view.
+ * page.mouse never scrolls. #485 (bb7a53d4) put the nudge and zoom rows above the
+ * photo and the correction buttons scroll back up to them, so in a 720 px high
+ * window the drag started 190 px below the window, where nothing is drawn. */
+async function dragTone(page:Page,overlay:Locator,left:number){
+  await overlay.evaluate(node=>node.scrollIntoView({block:"center"}));
+  const box=(await overlay.boundingBox())!;
+  const from={x:box.x+box.width*left,y:box.y+box.height*.68};
+  const to={x:from.x+box.width*.09,y:from.y+box.height*.07};
+  for(const point of [from,to])
+    expect(await overlay.evaluate((node,at)=>
+      node.contains(document.elementFromPoint(at.x,at.y)),point),
+      "the drag must stay on the visible photo").toBe(true);
+  await page.mouse.move(from.x,from.y);await page.mouse.down();
+  await page.mouse.move(to.x,to.y,{steps:4});
+  await page.mouse.up();
+}
 
 /** Create strictly local, test-only image pixels in Chromium; no network,
  * source model, cross-origin bitmap or artwork substitution. Their colors
@@ -79,11 +98,7 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
     await expect(parent.locator("[data-km-annotated-contour]")).toHaveCount(18);
     await page.getByLabel(side+" annotation mode").selectOption("tone");
     for(let i=0;i<5;i++){
-      const b=await overlay.boundingBox();
-      const x=b!.x+b!.width*(.04+i*.19),y=b!.y+b!.height*.68;
-      await page.mouse.move(x,y);await page.mouse.down();
-      await page.mouse.move(x+b!.width*.09,y+b!.height*.07,{steps:4});
-      await page.mouse.up();
+      await dragTone(page,overlay,.04+i*.19);
       // Fail precisely at the bad drag, rather than hanging for two
       // minutes after all five values when a selection/capture eats input.
       await expect(parent.locator("[data-km-annotated-tone]"),
@@ -101,11 +116,7 @@ test("ArtCraft annotation atlas uses separate local source/native files and expo
 
     await page.getByRole("button",{name:"Remove selected "+side+" tone"}).click();
     await expect(parent.locator("[data-km-annotated-tone]")).toHaveCount(4);
-    const bx=await overlay.boundingBox();
-    const x=bx!.x+bx!.width*.04,y=bx!.y+bx!.height*.68;
-    await page.mouse.move(x,y);await page.mouse.down();
-    await page.mouse.move(x+bx!.width*.09,y+bx!.height*.07,{steps:4});
-    await page.mouse.up();
+    await dragTone(page,overlay,.04);
     await expect(parent.locator("[data-km-annotated-tone]")).toHaveCount(5);
     await expect(parent.locator("[data-km-annotation-side-ready]"))
       .toHaveAttribute("data-km-annotation-side-ready","yes");

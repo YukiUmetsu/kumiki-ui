@@ -69,6 +69,15 @@ export interface RigPart {
   /** Line width when `line` is set. */
   lineWidth?: number;
   /**
+   * Body form: the parts with one `mass` (a whole arm, a whole body) are drawn as one form. Painters draw one outline
+   * round it and no edge where its parts meet. Its outline is painted at its lowest part, so keep other parts out of its
+   * `z` range.
+   */
+  mass?: string;
+  /** The `mass` this part's form grows out of, on the part at the joint (an upper arm, a thigh, a head): its outline
+   * fades in from the bone's origin, so the joint has no edge, and one light crosses both forms. */
+  grows?: string;
+  /**
    * Solid depth for turns: the outline is extruded across the figure's `depth3d`. When the root yaws, the far side
    * shifts by depth·tan(yaw) and the faces between the near and far outlines (a car's hood, windscreen, nose, tail)
    * are drawn, shaded by the way they face.
@@ -180,9 +189,16 @@ export type RigDriver = RigWindow & (
   /** Two-bone IK reach toward a target: feet planted on the ground or a pedal, hands on a knee, a chin, a handlebar.
    * The target is keyed in root space, or follows another bone's joint (plus an offset in root space). */
   | { type: "reach"; upper: string; lower: string; tip?: string; bend: 1 | -1;
-      target?: readonly { frame: number; x: number; y: number; ease?: EasingSpec }[];
+      /** `out` (0..1): how far the middle joint points toward the viewer, so the limb is drawn shorter and straighter (an
+       * arm swung out to the side). At 1 the bend no longer shows. Give the lower bone `inheritScale: false`. */
+      target?: readonly { frame: number; x: number; y: number; ease?: EasingSpec; out?: number }[];
       follow?: string; offset?: readonly [number, number];
-      /** World angle for the `tip` bone (0 keeps a foot level), or omit to leave it as posed. */ tipAngle?: number }
+      /** Keep the middle joint and the end of the reach this far above the ground, in design px. A joint that would dip
+       * lower points toward the viewer, as with `out`. A `tip` bone with a length and no `tipAngle` bends at its joint
+       * to stay above it too: a hand lies forward on the floor it is put on. */
+      floor?: number;
+      /** World angle for the `tip` bone (0 keeps a foot level), or omit to leave it as posed. */ tipAngle?: number;
+      /** A bone past the tip that stays level with the ground (a hoof or a paw below its pastern). */ level?: string }
   /** Lights and indicators: opacity switches on and off on a square wave (`period`, `duty`), or stays on in the window. */
   | { type: "flash"; bones: readonly string[]; period?: number; duty?: number; phase?: number; fade?: number }
   /** Suspension and inertia: the bone pitches and heaves on a damped spring driven by the root's acceleration
@@ -232,7 +248,29 @@ export type RigDriver = RigWindow & (
       /** Random spread of speeds, swing and timing (0..1), default .35. */ vary?: number;
       /** Roll about the particle's own length, radians per frame (petals curl and twist as they fall). */ roll?: number;
       /** Fade in and out over this many frames, default 10. */ fade?: number; seed?: number }
+  /**
+   * Hanging chains that touch the body (long hair, a sash, a scarf end). It runs after every other driver. First `hang`
+   * (0..1) keeps the chain pointing down when its parent tilts away from its rest pose: 1 hangs like hair or a rope, 0
+   * turns with the parent like a tail. Then the chain settles on the colliders, `radius` clear of them, and above the
+   * ground when `floor` is set (`rig-strand.ts`). Bone lengths never change. Nothing carries over between frames: `momentum`
+   * looks back at where the chain hung on the frames before, so any frame still evaluates alone.
+   */
+  | { type: "drape"; bones: readonly string[]; colliders?: readonly RigCollider[];
+      /** Half the thickness of the strand, in design px. */ radius?: number; hang?: number;
+      /** Keep the strand off the ground, or off something this many design px thick that lies on it (a mat). */ floor?: boolean | number;
+      /** The way the strand lies down on the floor, in the parent's space (long hair: the crown, [0, -1]). */
+      floorSide?: readonly [number, number];
+      /** How far a body can tip before the strand slides off it, degrees from its rest pose (default 65, eased over +-10).
+       * Past it the strand hangs beside the body in depth: long hair falls past the head in a deep bow. */
+      slip?: number;
+      /** Period of the strand's own swing, frames: it trails a fast move, overshoots a little and settles. Left out, it answers at once. */
+      momentum?: number }
 );
+
+/** A round obstacle for `drape`, in a bone's space: a capsule from `at` to `to`, or a circle when `to` is left out. */
+export interface RigCollider { bone: string; at: readonly [number, number]; to?: readonly [number, number]; radius: number;
+  /** The way the strand comes out, in the bone's space (behind the back is [-1, 0]). Left out: the nearest way. */
+  side?: readonly [number, number] }
 export type RigDriverType = RigDriver["type"];
 
 export interface RigSpec {
@@ -320,6 +358,8 @@ export function inspectRig(input: unknown): string[] {
     if (!RIG_ROLES.includes(q.role)) out.push(p + ".role is not a rig role");
     if (!fin(q.z)) out.push(p + ".z must be finite");
     if (q.color !== undefined && !HEX.test(q.color)) out.push(p + ".color must be a 6-digit hex colour");
+    if (q.mass !== undefined && (typeof q.mass !== "string" || !q.mass)) out.push(p + ".mass must be a name");
+    if (q.grows !== undefined && (!q.mass || q.grows === q.mass || !(r.parts ?? []).some(o => o?.mass === q.grows))) out.push(p + ".grows must name the mass of another form");
     if (q.far3d !== undefined && q.far3d !== "under" && q.far3d !== "over") out.push(p + ".far3d must be under or over");
     if (q.faceRole !== undefined && !RIG_ROLES.includes(q.faceRole)) out.push(p + ".faceRole is not a rig role");
     if (q.side !== undefined && q.side !== "front" && q.side !== "back") out.push(p + ".side must be front or back");
@@ -367,11 +407,11 @@ export function inspectRig(input: unknown): string[] {
         if (!fin(d.period) || d.period < 2) out.push(p + ".period must be ≥ 2");
         if (!fin(d.up) || !fin(d.down) || d.up <= d.down || d.up > 90 || d.down < -90) out.push(p + " needs -90 ≤ down < up ≤ 90");
         if (d.downstroke !== undefined && !(d.downstroke > .15 && d.downstroke < .85)) out.push(p + ".downstroke must be .15..0.85"); break;
-      case "reach": bone(d.upper, p + ".upper"); bone(d.lower, p + ".lower"); if (d.tip) bone(d.tip, p + ".tip"); if (d.follow) bone(d.follow, p + ".follow");
+      case "reach": bone(d.upper, p + ".upper"); bone(d.lower, p + ".lower"); if (d.tip) bone(d.tip, p + ".tip"); if (d.level) bone(d.level, p + ".level"); if (d.follow) bone(d.follow, p + ".follow");
         if (d.bend !== 1 && d.bend !== -1) out.push(p + ".bend must be 1 or -1");
         for (const id of [d.upper, d.lower]) if (!((bones.get(id)?.length ?? 0) > 0)) out.push(p + " bone \"" + id + "\" needs a length");
         if (!d.follow && !(Array.isArray(d.target) && d.target.length)) out.push(p + " needs target keys or a follow bone");
-        else if (d.target) { let pf = -Infinity; d.target.forEach((k, j) => { if (!int(k.frame) || k.frame <= pf || !fin(k.x) || !fin(k.y)) out.push(p + ".target[" + j + "] needs increasing frame, x, y"); pf = k.frame; }); }
+        else if (d.target) { let pf = -Infinity; d.target.forEach((k, j) => { if (!int(k.frame) || k.frame <= pf || !fin(k.x) || !fin(k.y) || k.out !== undefined && !(k.out >= 0 && k.out <= 1)) out.push(p + ".target[" + j + "] needs increasing frame, x, y, and out 0..1"); pf = k.frame; }); }
         break;
       case "flash": if (!Array.isArray(d.bones) || !d.bones.length) out.push(p + ".bones must not be empty"); else d.bones.forEach((b, j) => bone(b, p + ".bones[" + j + "]"));
         if (d.period !== undefined && (!fin(d.period) || d.period < 2)) out.push(p + ".period must be ≥ 2");
@@ -410,6 +450,21 @@ export function inspectRig(input: unknown): string[] {
       case "serpent": if (!Array.isArray(d.bones) || d.bones.length < 2) out.push(p + ".bones needs at least two bones"); else d.bones.forEach((b, j) => {
           bone(b, p + ".bones[" + j + "]"); if (!((bones.get(b)?.length ?? 0) > 0)) out.push(p + " bone \"" + b + "\" needs a length"); });
         if (!fin(d.amplitude) || !fin(d.wavelength) || d.wavelength <= 0) out.push(p + " needs amplitude and wavelength > 0"); break;
+      case "drape": {
+        if (!Array.isArray(d.bones) || !d.bones.length) out.push(p + ".bones must not be empty"); else d.bones.forEach((b, j) => {
+          bone(b, p + ".bones[" + j + "]"); if (!((bones.get(b)?.length ?? 0) > 0)) out.push(p + " bone \"" + b + "\" needs a length"); });
+        const pair = (v: unknown) => Array.isArray(v) && v.length === 2 && v.every(fin);
+        (d.colliders ?? []).forEach((c, j) => {
+          bone(c?.bone, p + ".colliders[" + j + "].bone");
+          if (!pair(c?.at) || (c.to !== undefined && !pair(c.to)) || (c.side !== undefined && !pair(c.side)) || !(fin(c.radius) && c.radius > 0)) out.push(p + ".colliders[" + j + "] needs at [x, y], an optional to [x, y] and radius > 0");
+        });
+        if (!d.colliders?.length && !d.floor) out.push(p + " needs colliders or floor");
+        if (d.radius !== undefined && !(fin(d.radius) && d.radius >= 0)) out.push(p + ".radius must be ≥ 0");
+        if (d.hang !== undefined && !(fin(d.hang) && d.hang >= 0 && d.hang <= 1)) out.push(p + ".hang must be 0..1");
+        if (d.floorSide !== undefined && !pair(d.floorSide)) out.push(p + ".floorSide must be [x, y]");
+        if (d.slip !== undefined && !(fin(d.slip) && d.slip > 0 && d.slip <= 180)) out.push(p + ".slip must be in (0, 180] degrees");
+        break;
+      }
       default: out.push(p + ".type is unknown");
     }
   });

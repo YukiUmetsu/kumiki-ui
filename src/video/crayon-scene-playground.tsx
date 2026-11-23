@@ -84,7 +84,8 @@ export function CrayonPlayground({subject,aspect,paperRecipe,seed,paperTooth,red
     const target=actorClose?(atelierCrop==="face"?
       {x:0,y:-135,zoom:aspect==="portrait"?2.1:2.6}:
       {x:-8,y:31,zoom:aspect==="portrait"?1.8:2.3}):
-      wildlifeCrop==="eye"?{x:-56,y:-57,zoom:3.35}:
+      // CRAYON1 cameras allow zoom 1..3; 3.35 made the eye macro throw.
+      wildlifeCrop==="eye"?{x:-56,y:-57,zoom:3}:
       wildlifeCrop==="muzzle"?{x:-179,y:-2,zoom:3.0}:
       wildlifeCrop==="ear"?{x:109,y:-222,zoom:2.15}:
       {x:-58,y:27,zoom:2.55};
@@ -115,7 +116,7 @@ export function CrayonPlayground({subject,aspect,paperRecipe,seed,paperTooth,red
   const beats:readonly (readonly [number,string])[]=subject==="wildlife-portrait" ?
     [[0,"Paper"],[32,"First mass"],[82,"Eye & ear"],[137,"Fur grain"],[197,"Portrait"],[239,"Final artwork"]] : subject==="dragon-village" ?
     [[0,"Paper"],[58,"Towers rise"],[112,"Dragon arrives"],[155,"Wings unfurl"],[207,"Dragon reacts"],[260,"Friends answer"],[329,"Final pose"]] : subject==="draw-in" ?
-    [[0,"Blank paper"],[48,"Sketch guides"],[146,"First outlines"],[190,"Wax colour"],[280,"Layered shading"],[343,"Face details"],[400,"Drawing moves"],[449,"Complete"]] : subject==="walk" ?
+    [[0,"Blank paper"],[33,"Sketch guides"],[80,"First outlines"],[190,"Wax colour"],[280,"Layered shading"],[343,"Face details"],[400,"Drawing moves"],[449,"Complete"]] : subject==="walk" ?
     [[0,"Ready"],[38,"Back-foot lift"],[44,"Contact release"],[94,"Back-foot plant"],[124,"Front-foot swing"],[156,"Front-foot plant"],[214,"Final plant"],[269,"Rest"]] : subject==="performance" ?
     [[0,"Paper"],[70,"Curiosity"],[97,"Blink"],[118,"Face study"],[176,"Smile"],[269,"Final artwork"]] :
     [[0,"Blank paper"],[72,"First wax"],[145,"Illustration builds"],[239,"Finished page"]];

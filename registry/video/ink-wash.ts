@@ -119,6 +119,36 @@ export function inkHash(seed: number, x: number, y: number): number {
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
 }
+/**
+ * Smooth seeded 1D noise in 0..1 along a coordinate `t` (a sample index, an arc length in cells): the hash at whole
+ * cells, eased between them. A paper edge wanders; a hash per sample makes it bristle like a saw.
+ */
+export function inkNoise1(seed: number, t: number, channel: number): number {
+  const cell = Math.floor(t), f = t - cell, e = f * f * (3 - 2 * f);
+  return lerp(inkHash(seed, cell, channel), inkHash(seed, cell + 1, channel), e);
+}
+/**
+ * Xuan paper grain in artwork coordinates: short fibres lying along or across the sheet, and pores where the sheet
+ * takes less pigment. Fixed by seed and size, never by frame.
+ */
+export interface InkPaperGrain {
+  fibres: { x: number; y: number; length: number; horizontal: boolean; opacity: number }[];
+  pores: { x: number; y: number; radius: number }[];
+}
+export function inkPaperGrain(seed: number, width: number, height: number, fibres = 550, pores = 580): InkPaperGrain {
+  return {
+    fibres: Array.from({ length: fibres }, (_, i) => ({
+      x: inkHash(seed, i, 13) * width, y: inkHash(seed, i, 17) * height,
+      length: 2 + inkHash(seed, i, 19) * 17,
+      horizontal: inkHash(seed, i, 23) > .48,
+      opacity: .10 + inkHash(seed, i, 29) * .23,
+    })),
+    pores: Array.from({ length: pores }, (_, i) => ({
+      x: inkHash(seed + 51, i, 37) * width, y: inkHash(seed + 51, i, 41) * height,
+      radius: .4 + inkHash(seed + 51, i, 43) * 1.8,
+    })),
+  };
+}
 /** Independent deposition, capillary spread, absorption and drying are evaluated by absolute frame. */
 export function evaluateInkStroke(stroke: InkStroke, frame: number, reducedMotion = false): InkStrokeState {
   if (!Number.isSafeInteger(frame) || frame < 0) throw new RangeError("INK1 frame must be a nonnegative integer.");
@@ -174,19 +204,27 @@ export function inkOutline(stroke: InkStroke, seed: number, progress: number, ex
   const samples = inkSamples(stroke, progress);
   if (!samples.length) return "";
   const left: string[] = [], right: string[] = [];
+  // Arc length along the centreline: the capillary fringe wanders in lobes about as long as it is wide, and closes
+  // round the stroke's two ends instead of stopping in a square-cut slab of full width.
+  const arcs: number[] = [];
+  samples.forEach((s, i) => arcs.push(i ? arcs[i - 1] + Math.hypot(s.x - samples[i - 1].x, s.y - samples[i - 1].y) : 0));
+  const length = arcs[arcs.length - 1], lobe = Math.max(6, expansion * 1.6);
   samples.forEach((s, i) => {
     const total = Math.max(1, samples.length - 1);
     const across = i / total;
     const tip = Math.min(1, .16 + across * 10, .13 + (1 - across) * 12);
-    // Slow variation follows paper grain, rather than a different random edge every sample.
+    // Slow variation follows paper grain, rather than a different random edge every sample. Both edges and the
+    // capillary fringe wander smoothly: a hash per sample (or held for a few samples) bristled like a saw and stepped.
     const slow = Math.sin(i * .19 + seed * .001) * .044;
-    const jitter = slow + (inkHash(seed, Math.floor(i / 3), 11) - .5) * (.022 + stroke.water * .08);
+    const jitter = slow + (inkNoise1(seed, i / 3, 11) - .5) * (.022 + stroke.water * .08);
     const r = Math.max(.1, stroke.width * (.15 + .85 * s.pressure) * tip * .5);
-    const extra = expansion * (0.63 + inkHash(seed, i, 19) * .72);
+    const end = Math.min(1, Math.min(arcs[i], length - arcs[i]) / Math.max(1e-3, expansion * 1.2));
+    const cap = Math.sqrt(Math.max(0, 1 - (1 - end) * (1 - end)));
+    const extra = expansion * cap * (0.63 + inkNoise1(seed, arcs[i] / lobe, 19) * .72);
     const bias = stroke.brush === "oblique" ? .52 : 0;
     const drag = stroke.drag ?? 0;
     const a = r * (1 + jitter + bias + .09 * drag) + extra;
-    const b = r * (1 - jitter - bias * .74) + extra * (.78 + inkHash(seed, Math.floor(i / 4), 23) * .42);
+    const b = r * (1 - jitter - bias * .74) + extra * (.78 + inkNoise1(seed, arcs[i] / lobe + 17.3, 23) * .42);
     left.push(fmt(s.x + s.nx * a) + " " + fmt(s.y + s.ny * a));
     right.push(fmt(s.x - s.nx * b) + " " + fmt(s.y - s.ny * b));
   });

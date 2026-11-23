@@ -178,8 +178,8 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   rig.part("shell", "body", path("M48.5 4.2L50.6 2.4Q51.6 -.4 51.2 -4.8L49.4 -7.4Q44 -9.4 30 -11.2L22.5 -12L8.6 -22.4Q6.6 -23.9 3 -24L-12 -24.4Q-22 -24.2 -30 -22.6L-35.4 -20.6L-44.6 -12.4Q-46.8 -10.2 -47.4 -6L-47.6 -1L-46.4 3.6L-41.52 4.2A11 11 0 0 1 -20.48 4.2L20.48 4.2A11 11 0 0 1 41.52 4.2Z"), "paint", 4, { extrude: true });
   // Shadow under the sill and overhangs (the dark gap between body and road on every real car).
   rig.part("underbody", "body", path("M-21 3.6L21 3.6Q22 5 20.6 6.2L-20.6 6.2Q-22 5 -21 3.6Z M42 3.6L48.6 3.6Q49.2 4.8 47.6 5.6L42.6 5.6Z M-42 3.6L-46.4 3.6Q-47.2 4.8 -45.8 5.6L-42.6 5.6Z"), "detail", 3.8, { color: "#26292e" });
-  rig.part("well-r", "body", ell(-31, 1, 10.4, 10.4), "metal-dark", 3.9);
-  rig.part("well-f", "body", ell(31, 1, 10.4, 10.4), "metal-dark", 3.9);
+  rig.part("well-r", "body", path("M-41.02 3.8A10.4 10.4 0 1 1 -20.98 3.8Z"), "metal-dark", 3.9);
+  rig.part("well-f", "body", path("M20.98 3.8A10.4 10.4 0 1 1 41.02 3.8Z"), "metal-dark", 3.9);
   rig.part("cabin", "body", poly([[21, -12.8], [8.4, -21.8], [3.6, -23.2], [-12, -23.6], [-24, -23], [-38.4, -14.8]]), "detail", 4.1, { extrude: true, faceRole: "glass" });
   // Driver and headrest behind the glass.
   rig.part("headrest", "body", rect(-6.6, -21.2, 3.4, 5.6, 1.2), "metal-dark", 4.15);
@@ -273,7 +273,7 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   const wheels: string[] = [], flat = Math.sqrt(2 * R * .55 - .3025);
   const tyre = path(`M${-flat} ${R - .55}A${R} ${R} 0 1 1 ${flat} ${R - .55}Z`);
   for (const [id, x] of [["wheel-r", -31], ["wheel-f", 31]] as const) {
-    rig.bone(id + "-axle", "root", x, -R);
+    rig.bone(id + "-axle", "root", x, .55 - R);
     rig.part(id + "-tread", id + "-axle", tyre, "rubber", 4.98, { extrude: true, extrudeDepth: .22 });
     rig.part(id + "-tyre", id + "-axle", path(`M${-flat} ${R - .55}A${R} ${R} 0 1 1 ${flat} ${R - .55}Z M-5.5 0A5.5 5.5 0 1 1 5.5 0A5.5 5.5 0 1 1 -5.5 0Z`), "rubber", 5);
     rig.part(id + "-sidewall", id + "-axle", ring(7.9, 5.8), "metal-dark", 5.01, { color: "#26282c" });
@@ -497,7 +497,7 @@ export function helicopterRig(o: RigPresetOptions = {}): RigSpec {
   const size = o.size ?? 420, u = size / 100, rig = new Rig(u), m = o.motion ?? "hover", start = o.start ?? 0, end = o.end ?? 180, t = at(start, end);
   const palette: Partial<Record<RigRole, string>> = { paint: "#d8473a", "paint-dark": "#9b2f26", metal: "#a9afb6", "metal-dark": "#2a2d33", glass: "#a9c6d4", rubber: "#1b1b1d", skin: "#c98d6a", detail: "#16202b", light: "#f6f1df" };
   rig.bone("root", undefined, 0, 0);
-  rig.bone("body", "root", 0, -17);
+  rig.bone("body", "root", 0, -15);
   rig.part("boom", "body", path("M-8 -8L-52 -6L-54 -2L-8 2Z"), "paint", 3.8);
   rig.part("fin", "body", path("M-48 -6L-56 -20L-53 -21L-44 -6Z"), "paint", 3.7);
   rig.part("stab", "body", path("M-46 -2L-38 -2.4L-38 -.6L-46 0Z"), "paint-dark", 3.9);
@@ -545,7 +545,7 @@ export function helicopterRig(o: RigPresetOptions = {}): RigSpec {
     root = [{ frame: start, x: from, y: y - 70 * u, facing: o.facing ?? 1 as const }, { frame: t(.12), x: from, y: y - 70 * u },
       { frame: t(.56), x: from + 26 * u, y, ease: "ease-in-out-cubic" as const }];
     rig.track("body", [{ frame: t(.3), rotate: 0, y: 0 }, { frame: t(.46), rotate: -5, ease: "ease-in-out-cubic" }, { frame: t(.56), rotate: 0, y: 0 },
-      { frame: t(.59), y: 1.4 * u, ease: "ease-out-quad" }, { frame: t(.66), y: 0, ease: "ease-in-out-cubic" }]);
+      { frame: t(.59), y: .4 * u, ease: "ease-out-quad" }, { frame: t(.66), y: 0, ease: "ease-in-out-cubic" }]);
   } else if (m === "fly") {
     rig.drivers.push({ type: "bank", amount: 0, lean: 9 / Math.max(1, (to - from) / Math.max(1, end - start)), max: 14 }, { type: "oscillate", bone: "body", property: "y", amplitude: 1 * u, period: 60, wobble: .4 });
     root = [{ frame: start, x: from, y }, { frame: end, x: to, y: y - 10 * u, ease: "ease-in-out-quad" as const }];

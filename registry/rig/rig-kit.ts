@@ -36,6 +36,10 @@ export class Rig {
   part(id: string, bone: string, shape: RigShape, role: RigRole, z: number, extra: Partial<RigPart> = {}) {
     this.parts.push({ id, bone, shape: this.scale(shape), role, z, ...extra, variants: extra.variants ? Object.fromEntries(Object.entries(extra.variants).map(([k, v]) => [k, this.scale(v)])) : undefined });
   }
+  /** Make the parts whose id matches one body form. `joint` picks the parts where it grows out of the form `from`. */
+  mass(name: string, ids: RegExp, joint?: RegExp, from = "body") {
+    for (const p of this.parts) if (ids.test(p.id)) { p.mass = name; if (joint?.test(p.id)) p.grows = from; }
+  }
   scale(shape: RigShape): RigShape {
     const u = this.u;
     switch (shape.type) {
@@ -64,6 +68,21 @@ export function scalePath(d: string, k: number): string {
   return out;
 }
 
+/** A closed outline that curves through its points: flesh, fur and cloth. `poly` keeps hard corners. */
+export function soft(points: Pt[]): RigShape {
+  const n = points.length, at = (i: number) => points[(i + n) % n];
+  // Catmull–Rom, with each handle kept short of its own span so close points do not bulge.
+  const handle = (a: Pt, p: Pt, b: Pt, next: Pt): Pt => {
+    const tx = b[0] - a[0], ty = b[1] - a[1], L = Math.hypot(tx, ty) || 1, k = Math.min(L / 6, .36 * Math.hypot(next[0] - p[0], next[1] - p[1])) / L;
+    return [tx * k, ty * k];
+  };
+  let d = `M${r2(points[0][0])} ${r2(points[0][1])}`;
+  for (let i = 0; i < n; i++) {
+    const [p, q] = [at(i), at(i + 1)], h = handle(at(i - 1), p, q, q), g = handle(p, q, at(i + 2), p);
+    d += `C${r2(p[0] + h[0])} ${r2(p[1] + h[1])} ${r2(q[0] - g[0])} ${r2(q[1] - g[1])} ${r2(q[0])} ${r2(q[1])}`;
+  }
+  return { type: "path", d: d + "Z" };
+}
 export const poly = (points: Pt[]): RigShape => ({ type: "polygon", points });
 export const ell = (cx: number, cy: number, rx: number, ry: number): RigShape => ({ type: "ellipse", cx, cy, rx, ry });
 export const cap = (length: number, w0: number, w1: number): RigShape => ({ type: "capsule", length, w0, w1 });

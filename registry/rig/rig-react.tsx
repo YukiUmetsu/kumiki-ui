@@ -6,20 +6,29 @@
  *   flat      clean vector fills, far side shaded, soft contact shadows
  *   collage   scissor-cut paper parts with fibre, lift shadows and halftone on the far side
  *   crayon    wax fills and dry wax outlines on toothy paper, redrawn on held poses
- *   riso      two spot-ink plates in misregistration, screened tints, multiply overprint
- *   ink       wet ink washes with bleeding edges and a dry brush outline
+ *   riso      a real Risograph pass per frame on the RISO1 press (rig-look-riso.tsx): drum inks, paper-locked screens
+ *   ink       Chinese ink on xuan paper from the INK1 brush and wet-paper engines (rig-look-ink.tsx)
  *   blueprint white technical line work on a blue grid, bones and joints shown
+ *   pencil    coloured pencil on toothy paper: layered hatching fixed to each part, value turning with the light
+ *   watercolour transparent washes on cold-press paper, dried edges, granulation, pencil underdrawing (rig-look-watercolour.tsx)
  */
-import { createContext, useContext, useId, useMemo } from "react";
+import { Fragment, createContext, useContext, useId, useMemo } from "react";
 import type { CSSProperties, ReactNode, SVGProps } from "react";
 import type { RigFrame, RigPartFrame } from "./rig-evaluate";
 import { evaluateRig, matrixAttr, rootState, shapePath } from "./rig-evaluate";
+import { JointFade, boxOfParts, formsOf, reachOf } from "./rig-form";
+import type { RigForm } from "./rig-form";
 import type { RigRole, RigShape, RigSpec } from "./rig-spec";
 import { flattenPath, paperEdge, toPathD } from "../video/collage/collage-geometry";
 import { boardTexture, fiberTexture } from "../video/collage/collage-texture";
-import { Paper, WaxLine, WaxRegion } from "../video/materials/crayon-react";
+import { PencilFormEdge, PencilGroundTile, PencilLookDefs, PencilPaper, PencilPart } from "./rig-look-pencil";
+import { InkFigure, InkGroundTile, InkPaper } from "./rig-look-ink";
+import { RigCrayonFormEdge, RigCrayonGroundTile, RigCrayonPaper, RigCrayonPart } from "./rig-look-crayon";
+import { WatercolourGroundTile, WatercolourRigBackdrop, WatercolourRigBody, WatercolourRigDefs } from "./rig-look-watercolour";
+import { RisoBackdrop, RisoFigure, RisoGroundTile, RisoLookDefs } from "./rig-look-riso";
+import type { RisoPaperFrame } from "./rig-look-riso";
 
-export type RigLook = "flat" | "collage" | "crayon" | "riso" | "ink" | "blueprint";
+export type RigLook = "flat" | "collage" | "crayon" | "riso" | "ink" | "blueprint" | "pencil" | "watercolour";
 /**
  * Looks animate on ones by default (smooth); pass `cadence={2}` for a stop-motion feel. `boil` is how often a
  * hand-drawn medium redraws its texture, independent of the motion: wax boils every few frames even on ones.
@@ -31,12 +40,14 @@ export const RIG_LOOKS: readonly { id: RigLook; label: string; cadence: number; 
   { id: "riso", label: "Riso print", cadence: 1, boil: 1 },
   { id: "ink", label: "Ink wash", cadence: 1, boil: 1 },
   { id: "blueprint", label: "Blueprint", cadence: 1, boil: 1 },
+  { id: "pencil", label: "Coloured pencil", cadence: 1, boil: 6 },
+  { id: "watercolour", label: "Watercolour", cadence: 1, boil: 1 },
 ];
 const lookOf = (look: RigLook) => RIG_LOOKS.find(l => l.id === look)!;
 /** Texture redraw step for a frame: on the motion cadence or the medium's boil, whichever is slower. */
 const boilStep = (look: RigLook, frame: number, cadence?: number) => Math.floor(frame / Math.max(1, cadence ?? 1, lookOf(look).boil));
 
-export interface RigLookContext { look: RigLook; uid: string; seed: number; step: number; showBones: boolean; reduced: boolean; inkPass?: "wash" | "line" }
+export interface RigLookContext { look: RigLook; uid: string; seed: number; step: number; showBones: boolean; reduced: boolean; paper?: RisoPaperFrame }
 const LookCtx = createContext<RigLookContext | null>(null);
 
 // ---- Colour --------------------------------------------------------------------------------------------------------------------
@@ -48,7 +59,6 @@ export function shade(hex: string, k: number): string {
   const [r, g, b] = hexRgb(hex), t = k >= 0 ? 255 : 24, a = Math.min(1, Math.abs(k));
   return rgbHex(r + (t - r) * a, g + (t - g) * a, b + (t - b) * a);
 }
-const lum = (hex: string) => { const [r, g, b] = hexRgb(hex); return (.299 * r + .587 * g + .114 * b) / 255; };
 const FALLBACK: Partial<Record<RigRole, string>> = { smoke: "#e9e4d8", light: "#f2d98a", detail: "#1d1b19", eye: "#1d1b19", mouth: "#3b1714" };
 function partColor(spec: RigSpec, p: RigPartFrame): string {
   return p.color ?? spec.palette[p.role] ?? FALLBACK[p.role] ?? "#888888";
@@ -84,64 +94,28 @@ function cutPath(shape: RigShape, seed: number, torn = false): string {
 
 // ---- Painters --------------------------------------------------------------------------------------------------------------------
 
-function FlatPart({ spec, p }: { spec: RigSpec; p: RigPartFrame }) {
-  const c = partColor(spec, p), fill = p.far ? shade(c, -.2) : c, d = pathOf(p.shape);
+const flatFill = (spec: RigSpec, p: RigPartFrame) => { const c = partColor(spec, p); return p.far ? shade(c, -.2) : c; };
+function FlatPart({ spec, p, formed }: { spec: RigSpec; p: RigPartFrame; formed: boolean }) {
+  const fill = flatFill(spec, p), d = pathOf(p.shape);
   if (p.line) return <path d={d} fill="none" stroke={fill} strokeWidth={p.lineWidth ?? 1} />;
   if (p.role === "smoke") return <path d={d} fill={fill} opacity={.75} />;
   return <>
     <path d={d} fill={fill} />
-    <path d={d} fill="none" stroke={shade(fill, -.28)} strokeWidth={.9} vectorEffect="non-scaling-stroke" opacity={.55} />
+    {!formed && <path d={d} fill="none" stroke={shade(fill, -.28)} strokeWidth={.9} vectorEffect="non-scaling-stroke" opacity={.55} />}
   </>;
 }
 
-function CollagePart({ spec, p, ctx }: { spec: RigSpec; p: RigPartFrame; ctx: RigLookContext }) {
+const paperCut = (spec: RigSpec, p: RigPartFrame) => cutPath(p.shape, hashStr(spec.id + p.id), p.role === "smoke" || p.role === "membrane" || p.role === "sail");
+function CollagePart({ spec, p, ctx, formed }: { spec: RigSpec; p: RigPartFrame; ctx: RigLookContext; formed: boolean }) {
   const c = partColor(spec, p), fill = p.far ? shade(c, -.16) : c;
   if (p.line) return <path d={pathOf(p.shape)} fill="none" stroke={shade(fill, -.2)} strokeWidth={(p.lineWidth ?? 1) * 1.4} />;
-  const d = cutPath(p.shape, hashStr(spec.id + p.id), p.role === "smoke" || p.role === "membrane" || p.role === "sail");
+  const d = paperCut(spec, p);
   return <>
-    <path d={d} fill="#1c1208" opacity={.28} transform="translate(1.6 2.4)" filter={`url(#${ctx.uid}-soft)`} />
+    {!formed && <path d={d} fill="#1c1208" opacity={.28} transform="translate(1.6 2.4)" filter={`url(#${ctx.uid}-soft)`} />}
     <path d={d} fill={fill} />
     {p.far && <path d={d} fill={`url(#${ctx.uid}-dots)`} opacity={.35} />}
     <path d={d} fill={`url(#${ctx.uid}-fibre)`} opacity={.55} style={{ mixBlendMode: "soft-light" }} />
   </>;
-}
-
-function CrayonPart({ spec, p, ctx }: { spec: RigSpec; p: RigPartFrame; ctx: RigLookContext }) {
-  const c = partColor(spec, p), base = p.far ? shade(c, -.14) : c, d = pathOf(p.shape);
-  // Each held pose is a fresh drawing: the wax seed advances with the step, so the fill boils like hand-redrawn frames.
-  const seed = hashStr(spec.id + p.id) + (ctx.reduced ? 0 : ctx.step % 3) * 101;
-  if (p.line) return <WaxLine d={d} color={shade(base, -.25)} width={(p.lineWidth ?? 1) * 1.6} frame={2} first={0} last={1} reduced seed={seed} />;
-  const b = boundsOf(p.shape);
-  if (b.width < 3 || b.height < 3) return <path d={d} fill={base} />;
-  return <WaxRegion d={d} bounds={b} colors={[base, shade(base, -.3), shade(base, .22)]} seed={seed} pressure={.86} tooth={ctx.uid + "-tooth"}
-    frame={2} first={0} last={1} reduced spacing={Math.max(4, Math.min(9, Math.min(b.width, b.height) / 3))} angle={-22} />;
-}
-
-/** Split a colour into two spot inks: warm into the pink plate, cool into the blue, darkness into both. */
-function risoSplit(hex: string): [number, number] {
-  // Warm hues go to the fluorescent pink plate, cool hues to blue; darkness adds both, and only near-black is solid blue.
-  const [r, g, b] = hexRgb(hex), dark = 1 - lum(hex), warm = Math.max(0, Math.min(1, .5 + (r - b) / 300 + (r - g) / 600));
-  const pink = Math.min(1, dark * .25 + warm * (.25 + dark * .9)), blue = Math.min(1, dark * (.2 + (1 - warm) * .8) + (dark > .78 ? .4 : 0));
-  return [pink, blue];
-}
-const RISO_LEVELS = [.15, .3, .5, .72, 1];
-function RisoPart({ spec, p, ctx, plate }: { spec: RigSpec; p: RigPartFrame; ctx: RigLookContext; plate: 0 | 1 }) {
-  const c = partColor(spec, p), cov = risoSplit(p.far ? shade(c, -.15) : c)[plate];
-  if (cov < .08) return null;
-  const level = RISO_LEVELS.reduce((best, l) => Math.abs(l - cov) < Math.abs(best - cov) ? l : best, RISO_LEVELS[0]);
-  const fill = level >= 1 ? (plate ? "#0078bf" : "#ff48b0") : `url(#${ctx.uid}-riso${plate}-${Math.round(level * 100)})`;
-  const d = pathOf(p.shape);
-  return p.line ? <path d={d} fill="none" stroke={plate ? "#0078bf" : "#ff48b0"} strokeWidth={p.lineWidth ?? 1} /> : <path d={d} fill={fill} />;
-}
-
-function InkPart({ spec, p, ctx }: { spec: RigSpec; p: RigPartFrame; ctx: RigLookContext }) {
-  const c = partColor(spec, p), tone = Math.min(.92, (1 - lum(c)) * .95 + .08) * (p.far ? .7 : 1), d = pathOf(p.shape);
-  const tint = shade(rgbHex(...hexRgb(c).map(v => v * .35 + 40 * .65) as [number, number, number]), -.1);
-  if (p.line) return <path d={d} fill="none" stroke="#1b1a1f" strokeWidth={(p.lineWidth ?? 1) * 1.2} opacity={.8} />;
-  // Wash: opaque inside its own layer group (the group carries the transparency), so overlapping parts of one
-  // figure read as one continuous wash instead of darkening at every joint. Outlines go in a second pass.
-  return ctx.inkPass === "wash" ? <path d={d} fill={tint} fillOpacity={Math.min(1, tone * 1.15)} />
-    : p.role === "smoke" ? null : <path d={d} fill="none" stroke="#1b1a1f" strokeWidth={1.5} strokeLinejoin="round" opacity={.72} vectorEffect="non-scaling-stroke" />;
 }
 
 function BlueprintPart({ p }: { p: RigPartFrame }) {
@@ -200,6 +174,27 @@ function withSolidFaces(spec: RigSpec, parts: RigPartFrame[]): RigPartFrame[] {
   return out.sort((a, b) => a.z - b.z);
 }
 
+/** What goes down under a body form: the outlines of all its parts (their lift shadow in cut paper). */
+function FormEdge({ spec, parts: form, ctx }: { spec: RigSpec; parts: readonly RigPartFrame[]; ctx: RigLookContext }) {
+  if (ctx.look === "collage") return <g opacity={.28} filter={`url(#${ctx.uid}-soft)`}>
+    {form.map(p => <g key={p.id} transform={matrixAttr(p.matrix)}><path d={paperCut(spec, p)} fill="#1c1208" transform="translate(1.6 2.4)" /></g>)}
+  </g>;
+  return <g opacity={ctx.look === "flat" ? .55 : undefined} data-km-rig-form={form[0].mass}>
+    {form.map(p => {
+      const d = pathOf(p.shape), seed = hashStr(spec.id + p.id), color = partColor(spec, p);
+      const fade = p.grows ? { id: `${ctx.uid}-grow-${seed.toString(36)}`, reach: reachOf(boundsOf(p.shape)) } : undefined;
+      return <g key={p.id} transform={matrixAttr(p.matrix)}>
+        {ctx.look === "crayon" ? <RigCrayonFormEdge p={p} ctx={ctx} d={d} color={color} seed={seed} fade={fade} />
+          : ctx.look === "pencil" ? <PencilFormEdge p={p} ctx={ctx} d={d} color={color} seed={seed} fade={fade} />
+            : <>
+              {fade && <JointFade {...fade} color={shade(flatFill(spec, p), -.28)} />}
+              <path d={d} fill="none" stroke={fade ? `url(#${fade.id})` : shade(flatFill(spec, p), -.28)} strokeWidth={1.5} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+            </>}
+      </g>;
+    })}
+  </g>;
+}
+
 /** Bones as tapered lines from joint to child joint, joints as rings: the rig itself, for explainers and debugging. */
 function BoneOverlay({ frame, color }: { frame: RigFrame; color: string }) {
   const items: ReactNode[] = [];
@@ -222,37 +217,36 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
   const look = RIG_LOOKS.find(l => l.id === ctx.look)!;
   const f = evaluateRig(spec, frame, { cadence: cadence ?? look.cadence, reducedMotion: reducedMotion ?? ctx.reduced });
   const parts = withSolidFaces(spec, f.parts);
-  const shadowFill = ctx.look === "blueprint" ? "none" : ctx.look === "riso" ? "#0078bf" : "#1c1208";
-  const contacts = <g data-km-rig-contacts="">{f.contacts.map(([x, y], i) => <ellipse key={i} cx={r2(x)} cy={r2(y + 1)} rx={r2(14 * f.root.scale)} ry={r2(3.2 * f.root.scale)} fill={shadowFill}
-    opacity={ctx.look === "riso" ? .25 : .16} filter={`url(#${ctx.uid}-soft)`} />)}</g>;
-  const draw = (p: RigPartFrame, plate?: 0 | 1) => {
+  const shadowFill = ctx.look === "blueprint" ? "none" : ctx.look === "watercolour" ? "#3c4776" : "#1c1208";
+  // The riso look prints its own screened contact shadows on the darkest drum.
+  const contacts = ctx.look === "riso" ? null : <g data-km-rig-contacts="">{f.contacts.map(([x, y], i) => <ellipse key={i} cx={r2(x)} cy={r2(y + 1)} rx={r2(14 * f.root.scale)} ry={r2(3.2 * f.root.scale)} fill={shadowFill}
+    opacity={.16} filter={`url(#${ctx.uid}-soft)`} />)}</g>;
+  // A blueprint shows its construction, so there every part keeps its own line.
+  const forms = formsOf(ctx.look === "blueprint" ? [] : parts), boxes = new Map<RigForm["lit"], ReturnType<typeof boxOfParts>>();
+  const lightBox = (form: RigForm) => { let b = boxes.get(form.lit); if (!b) { b = boxOfParts(form.lit, boundsOf); boxes.set(form.lit, b); } return b; };
+  const draw = (p: RigPartFrame) => {
+    const form = forms.get(p.id), formed = !!form;
     switch (ctx.look) {
-      case "collage": return <CollagePart spec={spec} p={p} ctx={ctx} />;
-      case "crayon": return <CrayonPart spec={spec} p={p} ctx={ctx} />;
-      case "riso": return <RisoPart spec={spec} p={p} ctx={ctx} plate={plate!} />;
-      case "ink": return <InkPart spec={spec} p={p} ctx={ctx} />;
+      case "collage": return <CollagePart spec={spec} p={p} ctx={ctx} formed={formed} />;
+      case "crayon": return <RigCrayonPart p={p} ctx={ctx} d={pathOf(p.shape)} bounds={boundsOf(p.shape)} color={partColor(spec, p)} seed={hashStr(spec.id + p.id)} lightBox={form && lightBox(form)} />;
       case "blueprint": return <BlueprintPart p={p} />;
-      default: return <FlatPart spec={spec} p={p} />;
+      case "pencil": return <PencilPart p={p} d={pathOf(p.shape)} color={partColor(spec, p)} seed={hashStr(spec.id + p.id)} ctx={ctx} lightBox={form && lightBox(form)} />;
+      default: return <FlatPart spec={spec} p={p} formed={formed} />;
     }
   };
-  const wrap = (p: RigPartFrame, node: ReactNode) => <g key={p.id} data-km-rig-part={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r2(p.opacity) : undefined}>{node}</g>;
-  const body = ctx.look === "ink"
-    // Wash pass flattened in one group, bled once and laid down translucent; then the dry outline pass on top.
-    ? <>
-        <g filter={`url(#${ctx.uid}-bleed)`} opacity={.66} style={{ mixBlendMode: "multiply" }}>
-          {parts.map(p => wrap(p, <InkPart spec={spec} p={p} ctx={{ ...ctx, inkPass: "wash" }} />))}
-        </g>
-        {/* One brush contour around the whole silhouette (traced from the union of the parts), not a line per part,
-            plus brush lines only where a part reads as its own shape: eyes, mouths, details, far limbs. */}
-        <g filter={`url(#${ctx.uid}-contour)`}>{parts.filter(p => p.role !== "smoke").map(p => wrap(p, <path d={pathOf(p.shape)} fill="#000" />))}</g>
-        <g filter={`url(#${ctx.uid}-dry)`}>{parts.filter(p => p.role === "eye" || p.role === "mouth" || p.role === "detail" || p.line).map(p => wrap(p, <InkPart spec={spec} p={p} ctx={{ ...ctx, inkPass: "line" }} />))}</g>
-      </>
+  const body = ctx.look === "watercolour" ? <WatercolourRigBody spec={spec} frame={f} parts={parts} uid={ctx.uid} seed={ctx.seed} />
+    : ctx.look === "ink"
+    ? <InkFigure spec={spec} parts={parts} colorOf={p => partColor(spec, p)} />
     : ctx.look === "riso"
-    // Two plates printed separately, each a touch out of register, overprinting by multiply.
-    ? <>{([0, 1] as const).map(plate => <g key={plate} transform={plate ? "translate(1.6 -1.1)" : "translate(-.8 .6)"} style={{ mixBlendMode: "multiply" }} opacity={.92}>
-        {parts.map(p => <g key={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r2(p.opacity) : undefined}>{draw(p, plate)}</g>)}
-      </g>)}</>
-    : parts.map(p => <g key={p.id} data-km-rig-part={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r2(p.opacity) : undefined}>{draw(p)}</g>);
+    ? <RisoFigure spec={spec} parts={parts} contacts={f.contacts} scale={f.root.scale} ctx={ctx} paper={ctx.paper}
+        colorOf={p => p.far ? shade(partColor(spec, p), -.15) : partColor(spec, p)} />
+    : parts.map(p => {
+      const form = forms.get(p.id);
+      return <Fragment key={p.id}>
+        {form?.parts[0] === p && <FormEdge spec={spec} parts={form.parts} ctx={ctx} />}
+        <g data-km-rig-part={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r2(p.opacity) : undefined}>{draw(p)}</g>
+      </Fragment>;
+    });
   return <g data-km-rig={spec.id} data-km-rig-frame={f.frame}>
     {contacts}
     {body}
@@ -270,25 +264,9 @@ function LookDefs({ look, uid, width, height, seed }: { look: RigLook; uid: stri
       <pattern id={`${uid}-fibre`} patternUnits="userSpaceOnUse" width={256} height={256}><image href={fibre} width={256} height={256} /></pattern>
       <pattern id={`${uid}-dots`} patternUnits="userSpaceOnUse" width={6} height={6} patternTransform="rotate(45)"><circle cx={3} cy={3} r={1.25} fill="#1d1b19" /></pattern>
     </>}
-    {look === "riso" && ([0, 1] as const).flatMap(plate => RISO_LEVELS.filter(l => l < 1).map(l => {
-      const cell = 5, r = Math.sqrt(l / Math.PI) * cell * 1.05;
-      return <pattern key={`${plate}-${l}`} id={`${uid}-riso${plate}-${Math.round(l * 100)}`} patternUnits="userSpaceOnUse" width={cell} height={cell} patternTransform={`rotate(${plate ? 75 : 15})`}>
-        <circle cx={cell / 2} cy={cell / 2} r={r} fill={plate ? "#0078bf" : "#ff48b0"} />
-      </pattern>;
-    }))}
-    {look === "ink" && <>
-      <filter id={`${uid}-bleed`} x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves={3} seed={seed % 97} result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale={7} /><feGaussianBlur stdDeviation={.7} /></filter>
-      <filter id={`${uid}-dry`} x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves={1} seed={(seed + 5) % 97} result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale={2.4} /></filter>
-      {/* Silhouette contour: grow the union's alpha, subtract the original, roughen like a dry brush, ink it. */}
-      <filter id={`${uid}-contour`} x="-10%" y="-10%" width="120%" height="120%">
-        <feMorphology in="SourceAlpha" operator="dilate" radius={1.5} result="grown" />
-        <feComposite in="grown" in2="SourceAlpha" operator="out" result="ring" />
-        <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves={2} seed={(seed + 9) % 97} result="n" />
-        <feDisplacementMap in="ring" in2="n" scale={2.6} result="rough" />
-        <feFlood floodColor="#1b1a1f" floodOpacity={.82} />
-        <feComposite in2="rough" operator="in" />
-      </filter>
-    </>}
+    {look === "riso" && <RisoLookDefs uid={uid} width={width} height={height} seed={seed} />}
+    {look === "pencil" && <PencilLookDefs uid={uid} seed={seed} />}
+    {look === "watercolour" && <WatercolourRigDefs uid={uid} seed={seed} />}
     <rect width={0} height={0} data-w={width} data-h={height} />
   </defs>;
 }
@@ -300,9 +278,11 @@ function Backdrop({ look, uid, width, height, seed }: { look: RigLook; uid: stri
       <defs><pattern id={`${uid}-board`} patternUnits="userSpaceOnUse" width={384} height={384}><image href={kraft} width={384} height={384} /></pattern></defs>
       <rect width={width} height={height} fill={`url(#${uid}-board)`} />
     </>;
-    case "crayon": return <Paper width={width} height={height} seed={seed} tooth={uid + "-tooth"} strength={.6} color="#f6ecd6" />;
-    case "riso": return <rect width={width} height={height} fill="#f4efe1" />;
-    case "ink": return <rect width={width} height={height} fill="#f3eee2" />;
+    case "crayon": return <RigCrayonPaper width={width} height={height} seed={seed} uid={uid} />;
+    case "riso": return <RisoBackdrop uid={uid} width={width} height={height} />;
+    case "ink": return <InkPaper width={width} height={height} seed={seed} />;
+    case "pencil": return <PencilPaper uid={uid} width={width} height={height} seed={seed} />;
+    case "watercolour": return <WatercolourRigBackdrop uid={uid} width={width} height={height} seed={seed} />;
     case "blueprint": {
       const lines: string[] = [];
       for (let x = 0; x <= width; x += 40) lines.push(`M${x} 0V${height}`);
@@ -320,26 +300,26 @@ const TILE = 640;
 const tileRand = (seed: number, k: number, i: number) => { let h = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(k + 7919, 0xc2b2ae35) ^ Math.imul(i + 31, 0x27d4eb2d); h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d); return ((h ^ (h >>> 13)) >>> 0) / 4294967296; };
 /** One world-anchored tile of ground: its edge, its band and a few marks (tufts, pebbles), seeded by tile index so the
  * ground is the same wherever the camera looks from. */
-function GroundTile({ look, uid, k, ground, depth, seed }: { look: RigLook; uid: string; k: number; ground: number; depth: number; seed: number }) {
+function GroundTile({ look, uid, k, ground, depth, seed, paper }: { look: RigLook; uid: string; k: number; ground: number; depth: number; seed: number; paper?: RisoPaperFrame }) {
   const x0 = k * TILE, x1 = x0 + TILE, bottom = ground + depth;
   const edge = useMemo(() => look === "collage" ? toPathD(paperEdge([[x0 - 6, ground], [x1 + 6, ground], [x1 + 6, bottom], [x0 - 6, bottom]], { style: "torn", seed: seed + k * 31 + 5000, roughness: 4 }), true) : "", [look, x0, x1, ground, bottom, seed, k]);
-  const marks: ReactNode[] = [];
+  if (look === "watercolour") return <WatercolourGroundTile uid={uid} k={k} ground={ground} tile={TILE} seed={seed} />;
+  const marks: ReactNode[] = [], shapes: { d: string; kind: "tuft" | "pebble" }[] = [];
   for (let i = 0; i < 5; i++) {
     const x = x0 + (i + tileRand(seed, k, i)) * TILE / 5, y = ground + 6 + tileRand(seed, k, i + 9) * Math.min(60, depth * .4), kind = tileRand(seed, k, i + 17) > .45 ? "tuft" : "pebble", s = .8 + tileRand(seed, k, i + 23) * .6;
     const d = kind === "tuft" ? `M${r2(x - 7 * s)} ${r2(y)}Q${r2(x - 5 * s)} ${r2(y - 9 * s)} ${r2(x - 3 * s)} ${r2(y - 13 * s)}M${r2(x)} ${r2(y)}Q${r2(x)} ${r2(y - 10 * s)} ${r2(x + 2 * s)} ${r2(y - 16 * s)}M${r2(x + 6 * s)} ${r2(y)}Q${r2(x + 6 * s)} ${r2(y - 7 * s)} ${r2(x + 10 * s)} ${r2(y - 11 * s)}`
       : `M${r2(x - 6 * s)} ${r2(y)}Q${r2(x)} ${r2(y - 6 * s)} ${r2(x + 6 * s)} ${r2(y)}Z`;
-    const stroke = look === "blueprint" ? "#eaf3ff" : look === "riso" ? "#0078bf" : look === "crayon" ? "#7d6a45" : look === "ink" ? "#2a2a30" : look === "collage" ? "#6f5a3c" : "#9fb08f";
-    marks.push(look === "crayon"
-      ? <WaxLine key={i} d={d} color={stroke} width={2.4} frame={2} first={0} last={1} reduced seed={seed + k * 13 + i} />
-      : <path key={i} d={d} fill={kind === "pebble" && look !== "blueprint" && look !== "ink" ? stroke : "none"} stroke={stroke} strokeWidth={look === "ink" ? 1.6 : 2} strokeLinecap="round" opacity={look === "ink" ? .55 : .8}
-        filter={look === "ink" ? `url(#${uid}-dry)` : undefined} />);
+    const stroke = look === "blueprint" ? "#eaf3ff" : look === "riso" ? "currentColor" : look === "collage" ? "#6f5a3c" : "#9fb08f";
+    shapes.push({ d, kind });
+    marks.push(<path key={i} d={d} fill={kind === "pebble" && look !== "blueprint" ? stroke : "none"} stroke={stroke} strokeWidth={2} strokeLinecap="round" opacity={.8} />);
   }
   switch (look) {
     case "collage": return <g><path d={edge} fill="#ece2c8" />{marks}</g>;
-    case "crayon": return <g><WaxLine d={`M${x0} ${ground + 2} C${x0 + TILE * .3} ${ground - 3} ${x0 + TILE * .6} ${ground + 5} ${x1} ${ground + 2}`} color="#8a6b4a" width={4} frame={2} first={0} last={1} reduced seed={seed + k} />{marks}</g>;
-    case "riso": return <g><rect x={x0} y={ground} width={TILE + .5} height={depth} fill={`url(#${uid}-riso1-15)`} opacity={.9} />{marks}</g>;
-    case "ink": return <g><path d={`M${x0} ${ground + 3} C${x0 + TILE * .25} ${ground - 4} ${x0 + TILE * .55} ${ground + 6} ${x1} ${ground + 3}`} fill="none" stroke="#2a2a30" strokeWidth={2.2} opacity={.5} filter={`url(#${uid}-dry)`} />{marks}</g>;
+    case "crayon": return <RigCrayonGroundTile uid={uid} k={k} x0={x0} x1={x1} ground={ground} depth={depth} seed={seed} marks={shapes} />;
+    case "riso": return <RisoGroundTile uid={uid} k={k} ground={ground} depth={depth} seed={seed} paper={paper} tileWidth={TILE} marks={marks} />;
+    case "ink": return <InkGroundTile k={k} tile={TILE} ground={ground} seed={seed} />;
     case "blueprint": return <g><path d={`M${x0} ${ground}H${x1}`} stroke="#eaf3ff" strokeWidth={1.4} />{marks}</g>;
+    case "pencil": return <PencilGroundTile uid={uid} x0={x0} x1={x1} ground={ground} depth={depth} seed={seed + k * 31} />;
     default: return <g><rect x={x0} y={ground} width={TILE + .5} height={depth} fill="#cfd9c4" />{marks}</g>;
   }
 }
@@ -380,8 +360,9 @@ export interface RigSceneProps extends Omit<SVGProps<SVGSVGElement>, "width" | "
 /** A board in a film look with rigged figures on it. */
 export function RigScene({ look, width, height, ground, frame, rigs, cadence, showBones = false, reducedMotion = false, seed = 11, style, children, camera, showGround = true, ...svg }: RigSceneProps) {
   const raw = useId(), uid = "rg" + raw.replace(/[^a-zA-Z0-9_-]/g, "");
-  const ctx: RigLookContext = { look, uid, seed, step: boilStep(look, frame, cadence), showBones, reduced: reducedMotion };
   const zoom = camera?.zoom ?? 1, cx = camera?.x ?? width / 2, cy = camera?.y ?? height / 2;
+  const paper: RisoPaperFrame = { zoom, x: width / 2 - cx * zoom, y: height / 2 - cy * zoom, width, height };
+  const ctx: RigLookContext = { look, uid, seed, step: boilStep(look, frame, cadence), showBones, reduced: reducedMotion, paper };
   const view = camera ? `translate(${r2(width / 2 - cx * zoom)} ${r2(height / 2 - cy * zoom)}) scale(${zoom})` : undefined;
   const left = cx - width / 2 / zoom, right = cx + width / 2 / zoom, tiles: number[] = [];
   for (let k = Math.floor(left / TILE); k * TILE < right; k++) tiles.push(k);
@@ -392,7 +373,7 @@ export function RigScene({ look, width, height, ground, frame, rigs, cadence, sh
     <LookDefs look={look} uid={uid} width={width} height={height} seed={seed} />
     <Backdrop look={look} uid={uid} width={width} height={height} seed={seed} />
     <g transform={view} data-km-rig-world="">
-      {showGround && <g data-km-rig-ground="">{tiles.map(k => <GroundTile key={k} look={look} uid={uid} k={k} ground={ground} depth={depth} seed={seed} />)}</g>}
+      {showGround && <g data-km-rig-ground="">{tiles.map(k => <GroundTile key={k} look={look} uid={uid} k={k} ground={ground} depth={depth} seed={seed} paper={paper} />)}</g>}
       {children}
       <LookCtx.Provider value={ctx}>
         {rigs.map(r => <RigFigure key={r.id} spec={r} frame={frame} cadence={cadence} />)}
@@ -413,7 +394,7 @@ export function RigLayer({ look, spec, frame, cadence, reducedMotion = false, sh
   const step = boilStep(look, frame, cadence);
   return <g data-km-rig-layer={look}>
     <LookDefs look={look} uid={uid} width={0} height={0} seed={seed} />
-    {look === "crayon" && <defs><Paper width={1} height={1} seed={seed} tooth={uid + "-tooth"} strength={.6} /></defs>}
+    {look === "crayon" && <defs><RigCrayonPaper width={1} height={1} seed={seed} uid={uid} /></defs>}
     <LookCtx.Provider value={{ look, uid, seed, step, showBones, reduced: reducedMotion }}>
       <RigFigure spec={spec} frame={frame} cadence={cadence} />
     </LookCtx.Provider>

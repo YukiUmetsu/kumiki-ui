@@ -9,7 +9,7 @@ import artcraftMeta,{SourceMeasuredBodyStudy}
 
 describe("ArtCraft source-studied adult body (research-only)",()=>{
   it("keeps the single Crayon Storybook folder quarantined from polished galleries",()=>{
-    expect(artcraftMeta.title).toBe("Video production/Film Looks/Crayon/ArtCraft Adult Face Lab");
+    expect(artcraftMeta.title).toBe("Video production/Film Looks/Crayon/ArtCraft Source Lab");
     expect(artcraftMeta.tags).toContain("!dev");
     expect(SourceMeasuredBodyStudy.name).toContain("ArtCraft experiment");
     expect(CRAYON_BODY_REFERENCE.license).toBe("CC BY-SA 4.0");

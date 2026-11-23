@@ -162,16 +162,16 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `infographic-economic-charts` | infographic | dom | [spec](component-specs/economic-charts.md) | `house-math-economic-charts--cost-waterfall` | — |
 | `infographic-system` | infographic | data | — | — | — |
 | `infographic-view` | infographic | dom | — | — | — |
-| `ink-actor-director` | video | data | — | — | — |
-| `ink-brush` | video | dom | — | `video-ink-brush--brush-studio-film` | — |
-| `ink-cinematic-landscape` | video | dom | — | — | — |
-| `ink-figure-craft` | video | data | — | — | — |
-| `ink-figure-motion` | video | data | — | — | — |
+| `ink-actor-director` | video | data | — | `video-ink-character-director--continuous-walk` | — |
+| `ink-brush` | video | dom | [spec](component-specs/ink-brush.md) | `video-ink-brush--brush-studio-film` | — |
+| `ink-cinematic-landscape` | video | dom | [spec](component-specs/ink-cinematic-landscape.md) | `video-ink-cinematic-landscape--mountain-journey` | — |
+| `ink-figure-craft` | video | data | — | `video-ink-ensemble--ink-figure-brushwork-study` | — |
+| `ink-figure-motion` | video | data | — | `video-ink-character-director--continuous-walk` | — |
 | `ink-shanshui-landscape` | video | dom | — | `video-ink-shanshui--gallery-studio` | — |
-| `ink-wash-character` | video | dom | — | — | — |
-| `ink-wash-core` | video | dom | — | — | — |
-| `ink-wash-ensemble` | video | dom | — | — | — |
-| `ink-wash-film` | video | dom | — | — | — |
+| `ink-wash-character` | video | dom | — | `video-ink-character--interactive` | — |
+| `ink-wash-core` | video | dom | [spec](component-specs/chinese-ink-wash.md) | `video-ink-wash--chinese-ink-wash` | — |
+| `ink-wash-ensemble` | video | dom | — | `video-ink-ensemble--ink-ensemble-story` | — |
+| `ink-wash-film` | video | dom | [spec](36-chinese-ink-wash-craft-and-film-system.md) | `video-ink-any-topic--interactive` | — |
 | `input` | ui | dom | — | `components-input--default` | — |
 | `inspect-then-quantify` | visual | data | [spec](component-specs/inspect-then-quantify.md) | `house-math-inspect-then-quantify--recipe` | — |
 | `inspectable-asset` | visual | data | [spec](component-specs/inspectable-asset.md) | `house-math-inspectable-asset--three-fixtures` | — |
@@ -207,11 +207,11 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `one-change-hold` | video | data | [spec](component-specs/subject-led-explainer.md) | `video-production-scene-templates-subject-led-explainers--compare-reveal` | — |
 | `orbit-world` | video | dom | [spec](component-specs/orbit-world.md) | `video-production-scene-templates--orbit-world` | — |
 | `page-turn-story` | video | dom | [spec](component-specs/page-turn-story.md) | `video-production-scene-templates--page-turn-story` | — |
-| `painted-composition` | video | dom | — | — | — |
+| `painted-composition` | video | dom | — | `film-art-watercolour-worlds--any-subject-painted-film` | — |
 | `paired-focus` | motion | dom | [spec](component-specs/paired-focus.md) | `motion-paired-focus--complete-sequence` | — |
 | `paper-book` | motion | data | [spec](component-specs/paper-sheet.md) | `video-production-film-looks-paper-craft--magazine-page-flip` | — |
 | `paper-book-three` | motion | data | [spec](component-specs/paper-sheet.md) | `video-production-film-looks-paper-craft--magazine-page-flip` | — |
-| `paper-craft` | video | dom | — | — | — |
+| `paper-craft` | video | dom | — | `video-production-film-looks-paper-craft--gallery` | — |
 | `paper-sheet` | motion | dom | [spec](component-specs/paper-sheet.md) | `video-production-film-looks-paper-craft--physical-paper` | — |
 | `paper-sound` | motion | data | [spec](component-specs/paper-sheet.md) | `video-production-film-looks-paper-craft--magazine-page-flip` | — |
 | `particle-moments` | visual | dom | [spec](component-specs/environmental-effects.md) | `video-particle-moments--choose-particles` | — |
@@ -238,7 +238,7 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `relief-map-expedition` | video | dom | [spec](component-specs/relief-map-expedition.md) | `video-production-scene-templates--relief-map-expedition` | — |
 | `rendered-text-audit` | visual | data | [spec](component-specs/film-document.md) | — | — |
 | `resource-explorer` | patterns | dom | — | `patterns-resource-explorer--default` | — |
-| `riso-character` | video | dom | — | — | — |
+| `riso-character` | video | dom | — | `video-riso-characters--paper-courier-performance` | — |
 | `riso-print` | video | dom | — | — | — |
 | `scalar-field` | visual | dom | [spec](component-specs/scalar-field.md) | `house-math-scalar-field-overlay--fields` | — |
 | `scalar-field-three` | visual | data | [spec](component-specs/scalar-field.md) | `house-math-scalar-field-overlay--fields` | — |
@@ -314,15 +314,15 @@ A pack in this table is installable. That does not mean that it is visually appr
 | `two-lane-swap` | motion | dom | [spec](component-specs/two-lane-swap.md) | `motion-two-lane-swap--crossing` | — |
 | `ukiyoe-episode` | video | data | — | `video-ukiyoe-handscroll--episode` | — |
 | `ukiyoe-handscroll` | video | dom | — | `video-ukiyoe-handscroll--night-ferry` | — |
-| `universal-rig` | finance | dom | — | `video-universal-rig--lab` | — |
+| `universal-rig` | finance | dom | [spec](component-specs/universal-rig.md) | `video-universal-rig--lab` | — |
 | `video-export-stage` | video | dom | — | — | — |
 | `video-platform-presets` | video | data | [spec](component-specs/finance-objects-social-export.md) | — | — |
 | `visual-transformation` | motion | dom | — | `motion-visual-transformation--reference-film` | — |
 | `water` | finance | dom | — | `video-water--sheet` | — |
 | `watercolour-actor` | video | dom | — | — | — |
-| `watercolour-brush` | video | dom | — | — | — |
-| `watercolour-illustration` | video | svg | — | — | — |
-| `watercolour-wet-paper` | video | dom | — | — | — |
+| `watercolour-brush` | video | dom | — | `film-art-watercolour-brush--painted-film` | — |
+| `watercolour-illustration` | video | svg | — | `film-art-watercolour-art-director--heron-wetland-film` | — |
+| `watercolour-wet-paper` | video | dom | — | `film-art-watercolour-wet-paper--wet-pigment-studio` | — |
 | `worked-example` | video | dom | [spec](component-specs/scene-templates.md) | — | — |
 | `zone-boundary` | visual | dom | [spec](component-specs/zone-boundary.md) | `visual-zone-boundary--zones` | — |
 
@@ -341,7 +341,6 @@ A pack in this table is installable. That does not mean that it is visually appr
 - [3D Camera Rig and Viewport](component-specs/camera-rig-3d.md)
 - [Camera Stage](component-specs/camera-stage.md)
 - [CausalSystemStage — signed causal models with evidence, interventions and loops](component-specs/causal-system-stage.md)
-- [Chinese ink wash — INK1 material-native brush study](component-specs/chinese-ink-wash.md)
 - [Cinematic Animation Templates — implementation preview](component-specs/cinematic-animation-templates.md)
 - [Cinematic Camera Director](component-specs/cinematic-camera-director.md)
 - [Coloured Pencil / Scientific Field Notes (CP1)](component-specs/colored-pencil-science.md)
@@ -388,8 +387,6 @@ A pack in this table is installable. That does not mean that it is visually appr
 - [Component: Infographic System (slice)](component-specs/infographic-system.md)
 - [Component: Infographic Templates](component-specs/infographic-templates.md)
 - [Component: Infographic View](component-specs/infographic-view.md)
-- [INK1 — material-native brush and absorbent paper](component-specs/ink-brush.md)
-- [Code-painted Chinese ink cinematic scene engine (INK7)](component-specs/ink-cinematic-landscape.md)
 - [INTERIOR1 — interiors and furniture for any art style](component-specs/interiors-furniture.md)
 - [Layered Cutaway — material anatomy](component-specs/layered-cutaway-3d.md)
 - [Component: Listbox](component-specs/listbox-spec.md)
@@ -434,7 +431,6 @@ A pack in this table is installable. That does not mean that it is visually appr
 - [Travel Study — Reusable 3D Environment & Objects](component-specs/travel-study-3d.md)
 - [UKIYO1 — ukiyo-e woodblock & emaki handscroll](component-specs/ukiyoe-handscroll.md)
 - [Unified component catalog (UC1)](component-specs/unified-component-catalog.md)
-- [RIG1 — universal rig for any film look](component-specs/universal-rig.md)
 - [Visual Transformation — VT1](component-specs/visual-transformation.md)
 - [WATER1 — water framework for any art style](component-specs/water.md)
 - [Watercolour characters — WM3 performer integration](component-specs/watercolour-actor.md)

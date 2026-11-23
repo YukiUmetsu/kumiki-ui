@@ -4,6 +4,9 @@ import { RIG_PRESETS } from "../../registry/rig/rig-presets";
 import type { RigPresetEntry } from "../../registry/rig/rig-presets";
 import { RIG_LOOKS, RigScene, followCamera } from "../../registry/rig/rig-react";
 import type { RigCamera, RigLook } from "../../registry/rig/rig-react";
+import { RisoLookProvider } from "../../registry/rig/rig-look-riso";
+import { RISO_DRUM_SETS } from "../../registry/video/print-plates";
+import type { RisoDrumSetId } from "../../registry/video/print-plates";
 import "../styles/collage-fonts.css";
 import { CollageScene } from "../../registry/video/collage/collage-react";
 import type { CollageSceneSpec } from "../../registry/video/collage/collage-scene";
@@ -73,6 +76,9 @@ function RigLab() {
   const [bones, setBones] = useState(false);
   const [cadence, setCadence] = useState(1);
   const [mode, setMode] = useState<CameraMode | null>(null);
+  const [drums, setDrums] = useState<RisoDrumSetId>("medium-blue-orange");
+  const [screen, setScreen] = useState<"am" | "fm">("am");
+  const riso = useMemo(() => ({ drums, screen }), [drums, screen]);
   const cam = mode ?? defaultMode(entry, m);
   const loop = useLoop(DURATION - 1, 70);
   const { spec, follows, horizon } = useMemo(() => stage(entry, m, cam), [entry, m, cam]);
@@ -95,7 +101,9 @@ function RigLab() {
     <nav aria-label="Film looks" style={row}><span style={rowLabel}>Look</span>
       {RIG_LOOKS.map(l => <button type="button" key={l.id} style={l.id === look ? active : button} aria-pressed={l.id === look} onClick={() => setLook(l.id)}>{l.label}</button>)}</nav>
     <div style={{ width: 1120, maxWidth: "100%", aspectRatio: "16 / 9", boxShadow: "0 14px 44px rgba(40,30,20,.2)", overflow: "hidden" }}>
-      <RigScene look={look} width={W} height={H} ground={horizon} frame={loop.frame} rigs={[spec]} showBones={bones} cadence={cadence} camera={camera} aria-label={`${entry.label}, ${m}, ${look}`} />
+      <RisoLookProvider value={riso}>
+        <RigScene look={look} width={W} height={H} ground={horizon} frame={loop.frame} rigs={[spec]} showBones={bones} cadence={cadence} camera={camera} aria-label={`${entry.label}, ${m}, ${look}`} />
+      </RisoLookProvider>
     </div>
     <Controls loop={loop} />
     <div style={{ ...row, gap: 18 }}>
@@ -105,6 +113,12 @@ function RigLab() {
         {[[1, "Smooth · on ones"], [2, "Stop-motion · on twos"]].map(([c, l]) => <button type="button" key={c} style={c === cadence ? active : button} aria-pressed={c === cadence} onClick={() => setCadence(c as number)}>{l}</button>)}</div>
       <label style={{ display: "flex", alignItems: "center", gap: 8, font: "600 13px system-ui" }}><input type="checkbox" checked={bones} onChange={e => setBones(e.target.checked)} /> Show bones</label>
     </div>
+    {look === "riso" && <div style={{ ...row, gap: 18 }}>
+      <label style={label}>Riso drums<select aria-label="Riso drums" value={drums} onChange={e => setDrums(e.target.value as RisoDrumSetId)}>
+        {Object.keys(RISO_DRUM_SETS).map(id => <option key={id} value={id}>{id.replace(/-/g, " ")}</option>)}</select></label>
+      <label style={label}>Screen<select aria-label="Riso screen" value={screen} onChange={e => setScreen(e.target.value as "am" | "fm")}>
+        <option value="am">AM · dots grow with tone</option><option value="fm">FM · dispersed droplets</option></select></label>
+    </div>}
   </div>;
 }
 
@@ -174,11 +188,38 @@ function RigParade() {
   </div>;
 }
 
+/** The watercolour look on the subjects it is reviewed with: a walk, a gallop, flight, sail and a balloon. */
+const WATERCOLOUR_SHEET = [["person", "walk"], ["horse", "gallop"], ["bird", "fly"], ["ship", "sail"], ["balloon", "float"]] as const;
+function WatercolourSheet() {
+  const loop = useLoop(DURATION - 1, 40);
+  const tiles = useMemo(() => WATERCOLOUR_SHEET.map(([id, motion]) => {
+    const entry = RIG_PRESETS.find(p => p.id === id)!;
+    return { entry, motion, ...stage(entry, motion, defaultMode(entry, motion), `${id}-${motion}-wc`) };
+  }), []);
+  return <div style={page}>
+    <header><h1 style={{ margin: 0, font: "700 32px/1.15 Georgia, serif" }}>Watercolour sheet</h1>
+      <p style={{ margin: "6px 0 0", maxWidth: 820 }}>Five rigs in the watercolour look: transparent washes on cold-press paper with dried edges,
+        a cool shadow glaze away from the light, granulation, a light pencil underdrawing and a dried graded sky. The pigment rides on
+        each body; the paper and sky stay on the sheet; the ground stays in the world.</p></header>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12 }}>
+      {tiles.map(t => <figure key={t.entry.id} style={{ margin: 0, background: "#fff", boxShadow: "0 4px 14px rgba(40,30,20,.12)" }}>
+        <div style={{ aspectRatio: "16 / 9", overflow: "hidden" }}>
+          <RigScene look="watercolour" width={W} height={H} ground={t.horizon} frame={loop.frame} rigs={[t.spec]} aria-label={`${t.entry.label}, ${t.motion}, watercolour`}
+            camera={tileCamera(t.entry, t, loop.frame)} />
+        </div>
+        <figcaption style={{ padding: "8px 12px", font: "600 14px system-ui" }}>{t.entry.label} · {t.motion}</figcaption>
+      </figure>)}
+    </div>
+    <Controls loop={loop} />
+  </div>;
+}
+
 const meta = { title: "Video production/Film Looks/Universal Rig", id: "video-universal-rig", component: RigLab, parameters: { layout: "fullscreen" } } satisfies Meta<typeof RigLab>;
 export default meta;
 export const Lab: StoryObj<typeof RigLab> = { name: "RIG1 · One rig, any film look", render: () => <RigLab /> };
 export const Actions: StoryObj<typeof RigLab> = { name: "RIG1 · Action sheet", render: () => <ActionSheet /> };
 export const Parade: StoryObj<typeof RigLab> = { name: "RIG1 · Rig parade", render: () => <RigParade /> };
+export const Watercolour: StoryObj<typeof RigLab> = { name: "RIG1 · Watercolour sheet", render: () => <WatercolourSheet /> };
 
 /** RIG1 rigs inside a COLLAGE1 scene: rigged figures sit on the same board as paper cut-outs, type and camera. */
 function RigInCollage() {
@@ -212,3 +253,31 @@ function RigInCollage() {
   </div>;
 }
 export const InCollage: StoryObj<typeof RigLab> = { name: "RIG1 · Rigs inside a collage film", render: () => <RigInCollage /> };
+
+const INK_PICKS = [["person", "walk"], ["horse", "gallop"], ["bird", "fly"], ["fish", "swim"], ["dragon", "fly"]] as const;
+/** Five subjects in Chinese ink on xuan paper, each tracked closely: the brushwork must stay on the parts as they move. */
+function InkSheet() {
+  const loop = useLoop(DURATION - 1, 40);
+  const tiles = useMemo(() => INK_PICKS.map(([id, motion]) => {
+    const entry = RIG_PRESETS.find(p => p.id === id)!;
+    return { entry, motion, ...stage(entry, motion, defaultMode(entry, motion), id + "-ink") };
+  }), []);
+  return <div style={page}>
+    <header><h1 style={{ margin: 0, font: "700 32px/1.15 Georgia, serif" }}>In Chinese ink</h1>
+      <p style={{ margin: "6px 0 0", maxWidth: 860 }}>The ink look paints each part with the style's own engines: a pale first wash on the exact
+        silhouette, side-brush strokes deposited by the INK1 wet-paper engine, lost-and-found pressure contours on the silhouette only, dark ink
+        for eyes and hooves, and a light traditional pigment taken from the palette's hue, on xuan paper. The marks are computed once per part,
+        in the part's own space, so they ride with it frame after frame.</p></header>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 12 }}>
+      {tiles.map(t => <figure key={t.entry.id} style={{ margin: 0, background: "#fff", boxShadow: "0 4px 14px rgba(40,30,20,.12)" }}>
+        <div style={{ aspectRatio: "16 / 9", overflow: "hidden" }}>
+          <RigScene look="ink" width={W} height={H} ground={t.horizon} frame={loop.frame} rigs={[t.spec]} aria-label={`${t.entry.label}, ${t.motion}, ink`}
+            camera={tileCamera(t.entry, t, loop.frame)} />
+        </div>
+        <figcaption style={{ padding: "8px 12px", font: "600 14px system-ui" }}>{t.entry.label} · {t.motion}</figcaption>
+      </figure>)}
+    </div>
+    <Controls loop={loop} />
+  </div>;
+}
+export const InInk: StoryObj<typeof RigLab> = { name: "RIG1 · In Chinese ink", render: () => <InkSheet /> };
