@@ -9,6 +9,7 @@
  *   riso      two spot-ink plates in misregistration, screened tints, multiply overprint
  *   ink       wet ink washes with bleeding edges and a dry brush outline
  *   blueprint white technical line work on a blue grid, bones and joints shown
+ *   watercolour transparent washes on cold-press paper, dried edges, granulation, pencil underdrawing (rig-look-watercolour.tsx)
  */
 import { createContext, useContext, useId, useMemo } from "react";
 import type { CSSProperties, ReactNode, SVGProps } from "react";
@@ -18,8 +19,9 @@ import type { RigRole, RigShape, RigSpec } from "./rig-spec";
 import { flattenPath, paperEdge, toPathD } from "../video/collage/collage-geometry";
 import { boardTexture, fiberTexture } from "../video/collage/collage-texture";
 import { Paper, WaxLine, WaxRegion } from "../video/materials/crayon-react";
+import { WatercolourGroundTile, WatercolourRigBackdrop, WatercolourRigBody, WatercolourRigDefs } from "./rig-look-watercolour";
 
-export type RigLook = "flat" | "collage" | "crayon" | "riso" | "ink" | "blueprint";
+export type RigLook = "flat" | "collage" | "crayon" | "riso" | "ink" | "blueprint" | "watercolour";
 /**
  * Looks animate on ones by default (smooth); pass `cadence={2}` for a stop-motion feel. `boil` is how often a
  * hand-drawn medium redraws its texture, independent of the motion: wax boils every few frames even on ones.
@@ -31,6 +33,7 @@ export const RIG_LOOKS: readonly { id: RigLook; label: string; cadence: number; 
   { id: "riso", label: "Riso print", cadence: 1, boil: 1 },
   { id: "ink", label: "Ink wash", cadence: 1, boil: 1 },
   { id: "blueprint", label: "Blueprint", cadence: 1, boil: 1 },
+  { id: "watercolour", label: "Watercolour", cadence: 1, boil: 1 },
 ];
 const lookOf = (look: RigLook) => RIG_LOOKS.find(l => l.id === look)!;
 /** Texture redraw step for a frame: on the motion cadence or the medium's boil, whichever is slower. */
@@ -222,7 +225,7 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
   const look = RIG_LOOKS.find(l => l.id === ctx.look)!;
   const f = evaluateRig(spec, frame, { cadence: cadence ?? look.cadence, reducedMotion: reducedMotion ?? ctx.reduced });
   const parts = withSolidFaces(spec, f.parts);
-  const shadowFill = ctx.look === "blueprint" ? "none" : ctx.look === "riso" ? "#0078bf" : "#1c1208";
+  const shadowFill = ctx.look === "blueprint" ? "none" : ctx.look === "riso" ? "#0078bf" : ctx.look === "watercolour" ? "#3c4776" : "#1c1208";
   const contacts = <g data-km-rig-contacts="">{f.contacts.map(([x, y], i) => <ellipse key={i} cx={r2(x)} cy={r2(y + 1)} rx={r2(14 * f.root.scale)} ry={r2(3.2 * f.root.scale)} fill={shadowFill}
     opacity={ctx.look === "riso" ? .25 : .16} filter={`url(#${ctx.uid}-soft)`} />)}</g>;
   const draw = (p: RigPartFrame, plate?: 0 | 1) => {
@@ -236,7 +239,8 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
     }
   };
   const wrap = (p: RigPartFrame, node: ReactNode) => <g key={p.id} data-km-rig-part={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r2(p.opacity) : undefined}>{node}</g>;
-  const body = ctx.look === "ink"
+  const body = ctx.look === "watercolour" ? <WatercolourRigBody spec={spec} frame={f} parts={parts} uid={ctx.uid} seed={ctx.seed} />
+    : ctx.look === "ink"
     // Wash pass flattened in one group, bled once and laid down translucent; then the dry outline pass on top.
     ? <>
         <g filter={`url(#${ctx.uid}-bleed)`} opacity={.66} style={{ mixBlendMode: "multiply" }}>
@@ -289,6 +293,7 @@ function LookDefs({ look, uid, width, height, seed }: { look: RigLook; uid: stri
         <feComposite in2="rough" operator="in" />
       </filter>
     </>}
+    {look === "watercolour" && <WatercolourRigDefs uid={uid} seed={seed} />}
     <rect width={0} height={0} data-w={width} data-h={height} />
   </defs>;
 }
@@ -303,6 +308,7 @@ function Backdrop({ look, uid, width, height, seed }: { look: RigLook; uid: stri
     case "crayon": return <Paper width={width} height={height} seed={seed} tooth={uid + "-tooth"} strength={.6} color="#f6ecd6" />;
     case "riso": return <rect width={width} height={height} fill="#f4efe1" />;
     case "ink": return <rect width={width} height={height} fill="#f3eee2" />;
+    case "watercolour": return <WatercolourRigBackdrop uid={uid} width={width} height={height} seed={seed} />;
     case "blueprint": {
       const lines: string[] = [];
       for (let x = 0; x <= width; x += 40) lines.push(`M${x} 0V${height}`);
@@ -323,6 +329,7 @@ const tileRand = (seed: number, k: number, i: number) => { let h = Math.imul(see
 function GroundTile({ look, uid, k, ground, depth, seed }: { look: RigLook; uid: string; k: number; ground: number; depth: number; seed: number }) {
   const x0 = k * TILE, x1 = x0 + TILE, bottom = ground + depth;
   const edge = useMemo(() => look === "collage" ? toPathD(paperEdge([[x0 - 6, ground], [x1 + 6, ground], [x1 + 6, bottom], [x0 - 6, bottom]], { style: "torn", seed: seed + k * 31 + 5000, roughness: 4 }), true) : "", [look, x0, x1, ground, bottom, seed, k]);
+  if (look === "watercolour") return <WatercolourGroundTile uid={uid} k={k} ground={ground} tile={TILE} seed={seed} />;
   const marks: ReactNode[] = [];
   for (let i = 0; i < 5; i++) {
     const x = x0 + (i + tileRand(seed, k, i)) * TILE / 5, y = ground + 6 + tileRand(seed, k, i + 9) * Math.min(60, depth * .4), kind = tileRand(seed, k, i + 17) > .45 ? "tuft" : "pebble", s = .8 + tileRand(seed, k, i + 23) * .6;
