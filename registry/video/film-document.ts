@@ -8,7 +8,7 @@ import { inspectShaderFxUse } from "./shader-fx-guide";
 import { RAY_WORLD_IDS } from "./ray-world";
 import { inspectShot3d, shot3dCues, shot3dTurnCue } from "./film-3d";
 import { inspectLookSpec, mergeLookSpecs, resolveLook } from "./film-look";
-import { CARD_ENTER, cardCues, inspectCard, readingSeconds, readingWords } from "./film-cards";
+import { CARD_ENTER, cardCues, inspectCard, readingSeconds, readingWords, chatTiming } from "./film-cards";
 import { compileScreenDemo, inspectScreenDemoOutput } from "./screen-demo";
 import { compileSpeed, speedOutput } from "./film-speed";
 import type { CompiledSpeed, FilmSpeed } from "./film-speed";
@@ -1237,6 +1237,20 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
       hits.frames.forEach((frame, n) => accents.push(place(`hit/${scene.id}/${i}/${n}`, hits.sound!, scene.startFrame + frame, hits.gainDb ?? 0, "start")));
     });
     if (compiledHits.length === list.length) scene.hits = compiledHits;
+  });
+  // A chat's messages: a sound as each lands, one for mine and one for the others'.
+  compiled.forEach(scene => {
+    if (scene.kind !== "card" || scene.content.card !== "chat" || !scene.content.sound) return;
+    const chat = scene.content, sound = chat.sound!, path = `/scenes/${doc.scenes.findIndex(item => item.id === scene.id)}/content/sound`;
+    if (!doc.audio?.accents) { report("error", "card-chat-sound-no-kit", path, "Message sounds need `audio.accents.kit`."); return; }
+    if (!options.accentKit) return;
+    for (const name of new Set([sound.me, sound.them].filter((item): item is string => Boolean(item))))
+      if (!options.accentKit.sounds[name]) report("error", "card-chat-sound", path, `The accent kit has no "${name}" sound.`, "Name a kit sound, or a catalog sound as catalog:<id>.");
+    const place = accentPlacer(fps, options.accentKit, doc.audio);
+    for (const item of chatTiming(chat, fps.num / fps.den)) {
+      const name = item.mine ? sound.me : sound.them, cue = scene.cues.find(entry => entry.id === `message-${item.index + 1}`);
+      if (name && cue && options.accentKit.sounds[name]) accents.push(place(`chat/${scene.id}/${item.index}`, name, cue.frame, sound.gainDb ?? 0, "start"));
+    }
   });
   const seconds = (frames: number) => Number((frames * fps.den / fps.num).toFixed(3));
   // A period or lo-fi look muffles beds that set no filter of their own.

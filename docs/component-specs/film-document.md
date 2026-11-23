@@ -560,7 +560,7 @@ Storybook: **Promo Moves → Beat Hits**, played with the film's own mix (`npm r
   - hit sounds on the accent lane.
 - **Rendered frames.** At 960×540, frames 131 (punch and blur), 262 (punch and split) and 327 (punch, blur and flash) show the radial smear, the red and blue fringes and the lift. A first single-pass blur showed a dotted texture; the two-pass blur is smooth.
 - **The loop.** It was imported with `limitDb: 9` and `crossSeconds: 0.01`.
-  - **Limiting.** The raw take peaks 17.5 dB over its loudness, and no film master could reach −14 LUFS. The film's mix now measures −15.4 LUFS.
+  - **Limiting.** The raw take peaks 17.5 dB over its loudness, and no film master could reach −14 LUFS. The film's mix now measures −15.0 LUFS (−15.4 before the master's loudness passes, below).
   - **A/B.** earshot hears the limited loop as the same sound as the raw take: cosine 0.99, and the same strong match (z +5.0 against +5.1), slightly darker.
   - **Clicks.** The mix's `mix-click` warnings fall on its eighth notes; earshot reads one as crisp hi-hats (z +4.8).
 - **Owner review.** Visual and listening review is pending.
@@ -826,6 +826,70 @@ A film can carry a **brand** (a name, a colour, an optional mark, one call to ac
 ```
 
 When a film has a brand, `film:check` adds the ABCD ad checks: a hook within 3 s, the brand within 5 s, an end card with a call to action, captions for narration, and a vertical ad of 60 s or less. `npm run film:ad -- <brief.ad.json>` writes a whole ad from a short brief in one of six formats. See [Ad Formats](ad-formats.md).
+
+## Chat story
+
+`{ "card": "chat", "people": [...], "messages": [...] }` is a message thread (VE1.4), the text-story format of short-form video. `registry/video/film-cards.ts` times it (`chatTiming`); `film-chat-react.tsx` draws it.
+
+```json
+"content": { "card": "chat",
+  "people": [{ "id": "me", "name": "Me" }, { "id": "sam", "name": "Sam" }],
+  "messages": [{ "from": "sam", "text": "did you borrow my umbrella this morning?" }, { "from": "me", "text": "no? why" }],
+  "sound": { "me": "catalog:whoosh-fast-soft", "them": "catalog:tech-pulse-soft", "gainDb": -6 } }
+```
+
+**Pacing.**
+
+- **The hook.** The first message is on screen as the card enters, with no wait.
+- **Reading time.** Each next message lands once the last has been read: 0.35 s plus 3.2 words a second. That is a little faster than a card's text, because the eye already knows where the newest bubble is.
+- **Typing dots.** The other side's messages come after typing dots that last about as long as typing the text, from 0.5 to 1.6 s. The dots overlap the reading.
+- **Options.** `pause` adds silence before a message. `"typing": false` drops the dots.
+- **Moments.** The card names `message-1`, `message-2` and so on, and `landed`, for `audio.cues`.
+
+**Drawing.**
+
+- **Layout.** The thread fills from the bottom of a phone-like column: most of a tall frame, about half a wide one. Older messages scroll away at the top.
+- **No jumps.** Each bubble grows its own height (a grid row from 0fr to 1fr) over 7 frames, so nothing jumps and nothing is measured.
+- **Me and the others.** "Me", the first person, is on the right in the brand colour. The others are on the left on a quiet surface, or in their own `color`, with the text in white or near-black, whichever reads better.
+- **Groups.** A group shows each sender's name over their run of messages and their initial beside its last. The header shows "typing…" while someone types.
+- **Neutral look.** The styling is neutral; do not copy a messaging app's colours, shapes or name.
+- **Accessibility.** The thread is a `role="log"`.
+- **Reduced motion** drops the growth and the bouncing dots.
+
+**Sound.** `sound.me` and `sound.them` play a kit or catalog sound as each message lands. They need `audio.accents.kit`.
+
+| Code | Severity | What it catches |
+|---|---|---|
+| `card-chat-people`, `card-chat-length`, `card-chat-from`, `card-chat-text`, `card-chat-pause` | error | 2 to 8 people with unique IDs and names, 1 to 40 messages, a sender who is not in the chat, an empty message, a pause outside 0 to 10 s |
+| `card-chat-sound`, `card-chat-sound-no-kit` | error | A sound the kit lacks, or no kit |
+| `card-chat-long` | warning | A message over 40 words |
+| `card-chat-one-side` | warning | Every message from one person |
+| `card-short` | error | Too short to read the last message |
+
+**Example.** [`examples/film/chat-story.film.json`](../../examples/film/chat-story.film.json), vertical 9:16:
+
+- a two-person thread on dark (nine messages, about 21 s);
+- a group chat on light paper with the senders' own colours;
+- a soft notification sound for theirs and a short whoosh for mine;
+- a low drum loop under it.
+
+Storybook: **Promo Moves → Chat Story**, with the film's own mix.
+
+**Evidence (2026-11-18).**
+
+- **Tests.** `tests/film-chat.test.tsx` covers:
+  - timing: the first message at once, typing for the other side, pauses;
+  - the cues;
+  - every check;
+  - the rendered log, with dots before a message and the message after;
+  - group names;
+  - message sounds placed at each landing.
+- **Rendered frames** (540×960 and 960×540): the dots, the full thread, the group chat in colours, Japanese messages, and a long message wrapping.
+  - **The hook fix.** A first draft held the opening behind 1.6 s of dots, and the review flagged the frame as mostly empty. The first message now lands at once.
+- **Sounds.** earshot hears `tech-pulse-soft` as a notification (a success chime z +3.4, a chat message pop z +2.5) and `whoosh-fast-soft` as a fast whoosh (z +4.8).
+- **The mix.** −14.7 LUFS. All nine message sounds land within a frame of their messages (median offset 0 ms).
+- **Fixed alongside: the master.** `film:render` now adds back loudness that the limiter takes off a peaky music bed, at most twice and within the limiting allowed. With a drum bed the mix had stopped 1.7 LU short of its target.
+- **Owner review.** Visual and listening review is pending.
 
 ## Speed ramps
 

@@ -97,8 +97,26 @@ export interface WordsCard extends CardBase { card: "words"; text: string; /** W
  * colour. A texture made of a word (doc 34, A2), not a sentence to read. */
 export interface WallCard extends CardBase { card: "wall"; word: string; /** @default 7 */ rows?: number; /** How far a row slides, in frame widths a second. @default 0.05 */ speed?: number;
   /** The row set in the brand colour, counting from 0 at the top. @default the middle row */ accentRow?: number }
-export type FilmCardContent = HeadlineCard | ListCard | VersusCard | QuoteCard | ProofCard | FeatureCard | EndCard | WordsCard | WallCard;
-export const FILM_CARD_KINDS = ["headline", "list", "versus", "quote", "proof", "feature", "end", "words", "wall"] as const;
+/** Someone in a chat. */
+export interface ChatPerson { id: string; name: string; /** Their bubbles' colour. @default the brand colour for the first person, a neutral surface for others */ color?: string }
+export interface ChatMessage { from: string; text: string; /** Extra frames of silence before this message, after the last one has been read. */ pause?: number }
+/** A message thread, the text-story format of short-form video (VE1.4): bubbles arrive one by one, the other side's after a typing
+ * indicator, each after the last has had time to be read; the first lands at once, as the hook. The first person is "me": their bubbles sit on the right in the brand colour.
+ * Neutral styling, not any messaging app's. */
+export interface ChatCard extends CardBase {
+  card: "chat";
+  /** Two to eight people; the first is "me". */
+  people: readonly ChatPerson[];
+  messages: readonly ChatMessage[];
+  /** The thread's title. @default the other person's name, or the names of a group */
+  title?: string;
+  /** Typing dots before the other side's messages. @default true */
+  typing?: boolean;
+  /** A sound as each message lands: `me` for mine, `them` for the rest (kit sounds, or `catalog:<id>`). Needs `audio.accents.kit`. */
+  sound?: { me?: string; them?: string; gainDb?: number };
+}
+export type FilmCardContent = HeadlineCard | ListCard | VersusCard | QuoteCard | ProofCard | FeatureCard | EndCard | WordsCard | WallCard | ChatCard;
+export const FILM_CARD_KINDS = ["headline", "list", "versus", "quote", "proof", "feature", "end", "words", "wall", "chat"] as const;
 /** Frames the product takes to land, and between one callout and the next. */
 export const PRODUCT_LAND = 16;
 export const calloutGap = (callouts: FeatureCard["callouts"], fps = 30) => Math.max(Math.round(fps * .9), Math.round(Math.max(...callouts.map(c => read(c.text)), 1) * .55 * fps));
@@ -157,6 +175,25 @@ export function wordFlashTiming(content: Pick<WordsCard, "text" | "hold" | "hold
 export const readingSeconds = (text: string) => .8 + words(text) / 3;
 const read = readingSeconds;
 
+/** Frames a chat bubble takes to grow into the thread. */
+export const CHAT_GROW = 7;
+/** Seconds to read a chat message: the eye already knows where the newest bubble is, so less time to find it than a card's text. */
+export const chatReadingSeconds = (text: string) => .35 + words(text) / 3.2;
+/** When each chat message's typing dots start and when it lands, in card frames: the first as the card enters; each next one once the
+ * last has been read, its dots showing while the viewer reads. Typing lasts about as long as typing the text, from 0.5 to 1.6 s. */
+export function chatTiming(content: Pick<ChatCard, "people" | "messages" | "typing">, fps = 30): Array<{ index: number; from: string; mine: boolean; typingAt?: number; landAt: number }> {
+  const me = content.people[0]?.id, out: Array<{ index: number; from: string; mine: boolean; typingAt?: number; landAt: number }> = [];
+  content.messages.forEach((message, index) => {
+    const mine = message.from === me, letters = [...message.text].length + (message.text.match(CJK)?.length ?? 0);
+    // The first message is the hook: it is on screen as the card enters, with no wait behind typing dots.
+    const typing = index > 0 && !mine && content.typing !== false ? Math.min(Math.round(fps * 1.6), Math.max(Math.round(fps * .5), Math.round(fps * (.35 + letters / 45)))) : 0;
+    const previous = out[index - 1], read = previous ? Math.round(fps * Math.max(.6, chatReadingSeconds(content.messages[index - 1].text))) : 0;
+    const landAt = (previous ? previous.landAt + Math.max(read, typing + Math.round(fps * .25)) : CARD_ENTER + typing) + (message.pause ?? 0);
+    out.push({ index, from: message.from, mine, ...typing ? { typingAt: landAt - typing } : {}, landAt });
+  });
+  return out;
+}
+
 /** Named moments of a card, in its own frames: when its main text has landed, and each item. */
 export function cardCues(content: FilmCardContent, fps = 30): Array<{ id: string; frame: number }> {
   switch (content.card) {
@@ -175,6 +212,7 @@ export function cardCues(content: FilmCardContent, fps = 30): Array<{ id: string
     case "end": return [{ id: "mark", frame: 4 }, { id: "cta", frame: 22 }];
     case "words": { const timing = wordFlashTiming(content, fps); return [...timing.map((item, i) => ({ id: `word-${i + 1}`, frame: item.start })), { id: "landed", frame: timing[timing.length - 1]?.start ?? 3 }]; }
     case "wall": return [{ id: "landed", frame: 0 }];
+    case "chat": { const timing = chatTiming(content, fps); return [...timing.map(item => ({ id: `message-${item.index + 1}`, frame: item.landAt })), { id: "landed", frame: timing[timing.length - 1]?.landAt ?? CARD_ENTER }]; }
   }
 }
 /** Frames a total's number takes to count up to its rating. */
@@ -291,6 +329,22 @@ export function inspectCard(content: FilmCardContent, durationFrames: number, fp
       if (content.speed !== undefined && !(content.speed >= 0 && content.speed <= .4)) problems.push({ severity: "error", code: "card-wall-speed", path: "/speed", message: "A wall's rows slide at 0 to 0.4 frame widths a second." });
       if (content.accentRow !== undefined && !(Number.isSafeInteger(content.accentRow) && content.accentRow >= 0 && content.accentRow < rows)) problems.push({ severity: "error", code: "card-wall-accent", path: "/accentRow", message: `The accent row is a row from 0 to ${rows - 1}.` });
       need(1.2, "the wall");
+      break;
+    }
+    case "chat": {
+      const ids = new Set(content.people.map(person => person.id));
+      if (content.people.length < 2 || content.people.length > 8) problems.push({ severity: "error", code: "card-chat-people", path: "/people", message: `A chat has 2 to 8 people; this has ${content.people.length}.` });
+      if (ids.size !== content.people.length || content.people.some(person => !person.id?.trim() || !person.name?.trim())) problems.push({ severity: "error", code: "card-chat-people", path: "/people", message: "Each person needs a unique ID and a name." });
+      if (!content.messages.length || content.messages.length > 40) problems.push({ severity: "error", code: "card-chat-length", path: "/messages", message: `A chat holds 1 to 40 messages; this has ${content.messages.length}.`, hint: "Split a long thread over scenes." });
+      content.messages.forEach((message, i) => {
+        if (!ids.has(message.from)) problems.push({ severity: "error", code: "card-chat-from", path: `/messages/${i}/from`, message: `"${message.from}" is not one of the people.` });
+        if (!message.text?.trim()) problems.push({ severity: "error", code: "card-chat-text", path: `/messages/${i}/text`, message: "A message needs text." });
+        else if (words(message.text) > 40) problems.push({ severity: "warning", code: "card-chat-long", path: `/messages/${i}/text`, message: `Message ${i + 1} runs over 40 words; people text in short lines.`, hint: "Split it into two messages." });
+        if (message.pause !== undefined && !(Number.isSafeInteger(message.pause) && message.pause >= 0 && message.pause <= fps * 10)) problems.push({ severity: "error", code: "card-chat-pause", path: `/messages/${i}/pause`, message: "A pause is 0 to 10 seconds of frames." });
+      });
+      if (content.messages.length && content.messages.every(message => message.from === content.people[0]?.id)) problems.push({ severity: "warning", code: "card-chat-one-side", path: "/messages", message: "Every message is from one person, so it reads as a list, not a conversation." });
+      const timing = chatTiming(content, fps), last = timing[timing.length - 1];
+      if (last) need(last.landAt / fps + chatReadingSeconds(content.messages[last.index].text) + .4, "the last message");
       break;
     }
     case "end":

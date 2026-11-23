@@ -70,6 +70,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
   { id: "VE1.3", name: "Spin and zoom-blur cuts", group: "Transitions", rank: "P1", status: "built", story: "video-production-promo-moves--spin-and-zoom-blur",
     what: "The picture turns or pushes in faster and faster and cuts at the fastest point, blurred along circles or rays; the next scene finishes the move.",
     usage: '"transition": { "kind": "spin", "direction": "right", "turn": 180 } · { "kind": "zoom-blur", "zoom": 1.8 }' },
+  { id: "VE1.4", name: "Chat story", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--chat-story",
+    what: "A message thread card: bubbles land one by one at reading pace, the other side's after typing dots; groups name each sender; a sound per message.",
+    usage: '{ "card": "chat", "people": [{ "id": "me", "name": "Me" }, { "id": "sam", "name": "Sam" }], "messages": [{ "from": "sam", "text": "…" }] }' },
   { id: "VE1.1", name: "Beat hits", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--beat-hits",
     what: "A punch zoom, a camera shake, an RGB split, a zoom blur or a flash on each beat of a bed with a declared tempo, on its loud onsets, or on moments; patterns combine (punch on the kick, shake on the snare).",
     usage: '"hits": [{ "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } }, { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }] · bed "bpm": 110' },
@@ -104,6 +107,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.4": { registryItem: "film-document", jobs: ["tell a story as a text conversation", "show a message thread"], keywords: ["chat story", "text story", "text message video", "texting story",
+    "message thread", "chat bubbles", "conversation", "typing indicator", "dm", "sms", "group chat", "faceless video", "vertical"],
+    avoid: "Do not copy a real messaging app's look or name; give each message time to be read." },
   "VE1.3": { registryItem: "film-document", jobs: ["hide a cut inside a fast move", "energetic transition"], keywords: ["spin transition", "rotate transition", "rotation blur", "spin blur",
     "zoom transition", "zoom blur transition", "zoom in transition", "punch in", "radial blur", "motion blur transition", "velocity edit", "transition"],
     avoid: "One or two per film; on every cut they read as a template. Keep them between 0.2 s and 1 s." },
