@@ -4,8 +4,8 @@
  *   wash    each part is laid in as a pale wash on its exact silhouette, then painted with side-brush strokes planned
  *           along its long axis and deposited by the INK1 wet-paper engine (`sampleWetInk`): pigment pressed into a
  *           paper-fibre field, a capillary halo, pooled sides, bristle channels when the brush runs dry
- *   line    INK1 brush polygons (`inkOutline`): lost-and-found contours with pressure along a part's long sides,
- *           pressure-swelled strokes for drawn lines, dark ink (焦墨) for eyes, hooves and shoes
+ *   line    lost-and-found brush contours along a part's long sides, thinned out where another part meets the edge;
+ *           pressure-swelled INK1 strokes (`inkOutline`) for drawn lines, dark ink (焦墨) for eyes, hooves and shoes
  *   colour  ink tone from the palette's value; a light traditional pigment (赭石, 花青, 朱砂…) from its hue
  *   paper   INK1 xuan grain (`inkPaperGrain`) with sizing mottle; the ground is brushed per world tile
  *
@@ -121,7 +121,7 @@ function wander(l: Pt[], amp: number, seed: number): Pt[] {
   let arc = 0;
   return l.map((p, i) => {
     if (i) arc += Math.hypot(p[0] - l[i - 1][0], p[1] - l[i - 1][1]);
-    const k = inkNoise1(seed, arc / 9, 3) * 1.6 * amp + inkNoise1(seed, arc / 3.2, 5) * amp * .4;
+    const k = inkNoise1(seed, arc / 15, 3) * 1.6 * amp + inkNoise1(seed, arc / 6, 5) * amp * .4;
     return [p[0] + n[i][0] * k, p[1] + n[i][1] * k];
   });
 }
@@ -257,49 +257,65 @@ const stroke = (id: string, points: InkPoint[], width: number, water: number, br
 /** Every `n`-th point of a run, keeping its last point. */
 const thin = <T,>(pts: T[], max: number) => pts.length <= max ? pts : Array.from({ length: max }, (_, i) => pts[Math.round(i * (pts.length - 1) / (max - 1))]);
 
+/** A contour brush line: half its width at each point, and for every `PROBE`-th point a place just outside the edge. */
+interface InkContour { pts: Pt[]; normal: Pt[]; half: number[]; probes: Pt[]; fill: string; opacity: number }
+const PROBE = 2;
+const smooth = (t: number) => t * t * (3 - 2 * t);
+
 /**
  * Lost-and-found contour: runs of the outline lying along the part's long axis (not across the ends, where parts join),
- * each a pressure-swelling brush line set just inside the edge; some runs left out. Ruled work (vehicles, 界画) keeps
- * the whole outline at an even pressure.
+ * each one brush line on the edge of the wash (about `edge` outside the outline) that presses in, swells and thins, is lost where it thins out to nothing and
+ * found again, and lifts off in a tail. Ruled work (vehicles, 界画) keeps the whole outline at an even pressure.
  */
-function contours(l: Pt[], f: Frame, m: Medium, seed: number, width: number): { d: string; probe: Pt[] }[] {
-  const n = normals(l), round = (f.smax - f.smin) < (f.mmax - f.mmin) * 1.35, ruled = m.kind === "ruled";
+function contours(l: Pt[], f: Frame, m: Medium, seed: number, width: number, edge: number): Pick<InkContour, "pts" | "normal" | "half" | "probes">[] {
+  const n = normals(l), N = l.length, round = (f.smax - f.smin) < (f.mmax - f.mmin) * 1.35, ruled = m.kind === "ruled";
   const along = l.map((p, i) => {
-    const q = l[(i + 1) % l.length], tx = q[0] - p[0], ty = q[1] - p[1], L = Math.hypot(tx, ty) || 1;
+    const q = l[(i + 1) % N], tx = q[0] - p[0], ty = q[1] - p[1], L = Math.hypot(tx, ty) || 1;
     return ruled || round || Math.abs((tx * f.ux + ty * f.uy) / L) > .55;
   });
   let start = along.findIndex(a => !a);
-  if (start < 0) start = Math.floor(inkHash(seed, 3, 29) * l.length);
+  if (start < 0) start = Math.floor(inkHash(seed, 3, 29) * N);
   const runs: number[][] = [];
   let run: number[] = [];
-  for (let k = 0; k <= l.length; k++) {
-    const i = (start + k) % l.length;
-    if (along[i] && k < l.length) run.push(i);
-    else { if (run.length >= 3) runs.push(run); run = []; }
+  for (let k = 0; k <= N; k++) {
+    const i = (start + k) % N;
+    if (along[i] && k < N) run.push(i);
+    else { if (run.length >= 5) runs.push(run); run = []; }
   }
-  const out: { d: string; probe: Pt[] }[] = [];
-  runs.forEach((r, ri) => {
-    // A run is laid as several touches of the brush (about 40-60 px each, so a seam and a silhouette sharing one run are
-    // judged apart); a few touches are left out altogether (the edge found by the wash alone).
-    const pieces = Math.max(1, Math.round(r.length / (18 + 8 * inkHash(seed, ri, 31))));
-    for (let pc = 0; pc < pieces; pc++) {
-      const a = Math.floor(r.length * pc / pieces), b = Math.floor(r.length * (pc + 1) / pieces) - (pc < pieces - 1 ? 2 : 0);
-      const seg = r.slice(a, b);
-      if (seg.length < 3 || (!ruled && inkHash(seed, ri * 7 + pc, 37) < .2)) continue;
-      const inset = width * .32;
-      let arc = 0;
-      const pts: InkPoint[] = seg.map((i, k) => {
-        if (k) arc += Math.hypot(l[i][0] - l[seg[k - 1]][0], l[i][1] - l[seg[k - 1]][1]);
-        const pressure = ruled ? .55 : clamp(.18 + .78 * inkNoise1(seed + ri * 13 + pc, arc / 26, 41));
-        return { x: l[i][0] - n[i][0] * inset, y: l[i][1] - n[i][1] * inset, pressure };
-      });
-      const d = inkOutline(stroke("c", thin(pts, 60), width, ruled ? .2 : .35, "upright", .2), seed + ri * 17 + pc, 1);
-      // Probes just outside the edge: if another part of the figure lies there, this edge is a seam, not silhouette.
-      const reach = inset + 1.6 + width * .3;
-      if (d) out.push({ d, probe: thin(seg, 5).map(i => [l[i][0] + n[i][0] * reach, l[i][1] + n[i][1] * reach] as Pt) });
-    }
+  return runs.map((r, ri) => {
+    if (inkHash(seed, ri, 31) < .5) r.reverse();
+    const arc = [0];
+    for (let k = 1; k < r.length; k++) arc.push(arc[k - 1] + Math.hypot(l[r[k]][0] - l[r[k - 1]][0], l[r[k]][1] - l[r[k - 1]][1]));
+    const S = arc[arc.length - 1], at = arc.map((_, k) => k).filter(k => k % 2 === 0 || k === arc.length - 1);
+    // The line and its sides run through the mean of three outline points, or a corner would spike.
+    const mean = (src: Pt[], i: number): Pt => { const a = src[(i + N - 1) % N], b = src[i], c = src[(i + 1) % N]; return [(a[0] + 2 * b[0] + c[0]) / 4, (a[1] + 2 * b[1] + c[1]) / 4]; };
+    const normal = at.map(k => { const v = mean(n, r[k]), L = Math.hypot(v[0], v[1]) || 1; return [v[0] / L, v[1] / L] as Pt; });
+    const inset = width * .3 - edge, reach = edge + 1.6 + width * .3;
+    const pts = at.map((k, j) => { const q = mean(l, r[k]); return [q[0] - normal[j][0] * inset, q[1] - normal[j][1] * inset] as Pt; });
+    const half = at.map(k => {
+      const x = arc[k], head = Math.min(1, .25 + x / (width * 1.5)), tail = Math.sqrt(Math.min(1, (S - x) / Math.max(1, Math.min(width * 6, S * .4))));
+      const grain = .94 + .12 * inkNoise1(seed + ri * 13, x / 7, 47);
+      if (ruled) return width * .31 * Math.min(head, tail) * grain;
+      const pressure = .3 + .7 * inkNoise1(seed + ri * 13, x / 30, 41);
+      const found = smooth(clamp((inkNoise1(seed + ri * 13, x / 44, 43) - .12) / .2));
+      return width * .5 * pressure * found * head * tail * grain;
+    });
+    return { pts, normal, half, probes: at.filter((_, j) => j % PROBE === 0).map((k, j) => [l[r[k]][0] + normal[j * PROBE][0] * reach, l[r[k]][1] + normal[j * PROBE][1] * reach] as Pt) };
   });
-  return out;
+}
+
+/** The outline of a contour, thinned at each probe by `weight` (0 to 1). */
+function contourD(c: InkContour, weight: number[]): string {
+  let d = "", left: string[] = [], right: string[] = [];
+  const flush = () => { if (left.length > 1) d += "M" + left.join("L") + "L" + right.reverse().join("L") + "Z"; left = []; right = []; };
+  c.pts.forEach(([x, y], k) => {
+    const i = Math.min(weight.length - 1, Math.floor(k / PROBE)), next = Math.min(weight.length - 1, i + 1), t = (k - i * PROBE) / PROBE;
+    const h = c.half[k] * (weight[i] + (weight[next] - weight[i]) * Math.min(1, t)), [nx, ny] = c.normal[k];
+    if (h < .1) return flush();
+    left.push(f2(x + nx * h) + " " + f2(y + ny * h)); right.push(f2(x - nx * h) + " " + f2(y - ny * h));
+  });
+  flush();
+  return d;
 }
 
 /** A drawn line (mane strands, whiskers, rigging): one brush stroke per subpath, swelling in the middle, lifting at the end. */
@@ -320,8 +336,10 @@ export interface InkPartPaint {
   halos: { d: string; fill: string; opacity: number }[];
   /** The wet brush body. */
   raster?: Raster;
-  /** Brush polygons drawn over it; a contour carries a few points along it to find whether it lies over another part. */
-  lines: { d: string; fill: string; opacity: number; probe?: Pt[] }[];
+  /** Drawn lines: brush polygons over it. */
+  lines: { d: string; fill: string; opacity: number }[];
+  /** Contours: brush lines that fade where another part of the figure lies just outside them. */
+  contours: InkContour[];
   /** Coarse outline, for telling which contours of the parts in front lie over this one. */
   occluder?: Pt[][];
 }
@@ -359,7 +377,7 @@ function paintPart(role: RigRole, color: string, d: string, far: boolean, line: 
   // Ink tone from the colour's value (墨分五色: from pale water to scorched black), paler for far-side parts (远淡).
   const dark = 1 - value, farK = far ? .62 : 1;
   const tinted = mix(INK_RGB, pigmentFor(hue), clamp(sat * m.tint * 1.25) * clamp(.35 + value));
-  const out: InkPartPaint = { halos: [], lines: [] };
+  const out: InkPartPaint = { halos: [], lines: [], contours: [] };
   if (line) {
     const density = clamp(.5 + .55 * dark) * farK;
     for (const p of lineStrokes(d, Math.max(1.2, lineWidth * 2.6), seed)) out.lines.push({ d: p, fill: hexOf(mix(tinted, INK_RGB, .5)), opacity: r3(density) });
@@ -396,7 +414,7 @@ function paintPart(role: RigRole, color: string, d: string, far: boolean, line: 
     const width = clamp(minDim * .1, 1.2, 6) * (.7 + .3 * md.contour);
     const lineInk = hexOf(mix(tinted, INK_RGB, .55));
     const lineDensity = clamp((.5 + .55 * dark) * md.contour) * farK;
-    for (const l of walked) for (const c of contours(l, f, md, seed, width)) out.lines.push({ d: c.d, fill: lineInk, opacity: r3(lineDensity), probe: c.probe });
+    for (const l of loops) for (const c of contours(l, f, md, seed, width, edge)) out.contours.push({ ...c, fill: lineInk, opacity: r3(lineDensity) });
   }
   return out;
 }
@@ -413,47 +431,50 @@ export interface InkFigureProps {
 }
 type Affine = RigPartFrame["matrix"];
 const apply = (m: Affine, [x, y]: Pt): Pt => [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f];
+/** A line fades over this distance (px) on each side of the edge of another part. */
+const SOFT = 3;
 /**
- * How much of each contour is a seam inside the figure rather than its silhouette (in this pose): another part lies just
- * outside it. A shoulder over the body, a head over the neck, one body segment against the next are one mass painted wet
- * into wet, so their seams fade out while the silhouette keeps its line. Measured at a few points fixed along each
- * contour, so it changes only as parts move.
+ * The contours of each part in this pose. Where another part lies just outside an edge, the edge is a seam inside the
+ * figure and not its silhouette: a shoulder over the body, a head over the neck, one body segment against the next are
+ * one mass painted wet into wet, so their lines thin out there while the silhouette keeps its line.
  */
-function seamWeights(parts: readonly RigPartFrame[], paints: InkPartPaint[]): number[][] {
+function seamedContours(parts: readonly RigPartFrame[], paints: InkPartPaint[]): string[][] {
   const occ = paints.map((paint, i) => {
     if (!paint.occluder) return undefined;
     const loops = paint.occluder.map(l => l.map(q => apply(parts[i].matrix, q)));
     const xs = loops.flat().map(q => q[0]), ys = loops.flat().map(q => q[1]);
-    return { loops, x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
+    return { loops, x0: Math.min(...xs) - SOFT, x1: Math.max(...xs) + SOFT, y0: Math.min(...ys) - SOFT, y1: Math.max(...ys) + SOFT };
   });
-  const inside = (loops: Pt[][], [x, y]: Pt) => {
-    let hit = false;
-    for (const l of loops) for (let i = 0, j = l.length - 1; i < l.length; j = i++)
-      if ((l[i][1] > y) !== (l[j][1] > y) && x < (l[j][0] - l[i][0]) * (y - l[i][1]) / (l[j][1] - l[i][1]) + l[i][0]) hit = !hit;
-    return hit;
+  /** 0 outside, 1 inside, changing over `SOFT` px on each side of the edge (a line must not pop as a limb passes it). */
+  const cover = (loops: Pt[][], [x, y]: Pt) => {
+    let hit = false, near = SOFT * SOFT;
+    for (const l of loops) for (let i = 0, j = l.length - 1; i < l.length; j = i++) {
+      const [ax, ay] = l[j], [bx, by] = l[i], dx = bx - ax, dy = by - ay;
+      if ((by > y) !== (ay > y) && x < dx * (y - ay) / dy + ax) hit = !hit;
+      const t = clamp(((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy || 1)), ex = x - ax - dx * t, ey = y - ay - dy * t;
+      near = Math.min(near, ex * ex + ey * ey);
+    }
+    return smooth(.5 + (hit ? .5 : -.5) * Math.sqrt(near) / SOFT);
   };
-  return paints.map((paint, i) => paint.lines.map(line => {
-    if (!line.probe) return 1;
-    let covered = 0;
-    for (const q0 of line.probe) {
+  return paints.map((paint, i) => paint.contours.map(line => {
+    const raw = line.probes.map(q0 => {
       const q = apply(parts[i].matrix, q0);
       // Another part here fades the line. Two parts of one body form need no line at all; a limb in front of a body keeps some.
       let seam = 0;
       const mass = parts[i].mass;
-      for (let j = 0; j < occ.length && seam < (mass ? 2 : 1); j++) {
-        const o = j === i ? undefined : occ[j], other = parts[j].mass;
-        if (o && q[0] >= o.x0 && q[0] <= o.x1 && q[1] >= o.y0 && q[1] <= o.y1 && inside(o.loops, q)) seam = Math.max(seam, !mass || !other ? 1 : mass === other ? 2 : .45);
+      for (let j = 0; j < occ.length; j++) {
+        const o = j === i ? undefined : occ[j], other = parts[j].mass, most = !mass || !other ? 1 : mass === other ? 1.4 : .45;
+        if (o && seam < most && q[0] >= o.x0 && q[0] <= o.x1 && q[1] >= o.y0 && q[1] <= o.y1) seam = Math.max(seam, most * cover(o.loops, q));
       }
-      covered += seam;
-    }
-    return Math.max(0, 1 - 1.4 * covered / line.probe.length);
+      return Math.max(0, 1 - 1.4 * seam);
+    });
+    return contourD(line, raw.map((w, k) => (raw[Math.max(0, k - 1)] + 2 * w + raw[Math.min(raw.length - 1, k + 1)]) / 4));
   }));
 }
-
 /** One rigged figure painted in ink: a single wash layer multiplied into the paper. */
 export function InkFigure({ parts, colorOf }: InkFigureProps) {
   const paints = parts.map(p => inkPartPaint(p.role, colorOf(p), shapePath(p.shape), !!p.far, !!p.line, p.lineWidth));
-  const seams = seamWeights(parts, paints);
+  const edges = seamedContours(parts, paints);
   return <g data-km-rig-ink="" style={{ mixBlendMode: "multiply" }}>
     {parts.map((p, pi) => {
       const paint = paints[pi];
@@ -464,7 +485,8 @@ export function InkFigure({ parts, colorOf }: InkFigureProps) {
         {paint.wash && <path d={paint.wash.d} fill={paint.wash.fill} fillRule="evenodd" {...(p.mass && paint.raster ? { stroke: paint.wash.fill, strokeWidth: 1.2 * CLIP, strokeLinejoin: "round" } : {})} />}
         {paint.raster && <image href={paint.raster.href} x={f2(paint.raster.x)} y={f2(paint.raster.y)} width={f2(paint.raster.width)}
           height={f2(paint.raster.height)} preserveAspectRatio="none" />}
-        {paint.lines.map((l, i) => <path key={i} d={l.d} fill={l.fill} opacity={r3(l.opacity * seams[pi][i])} />)}
+        {paint.contours.map((l, i) => edges[pi][i] && <path key={"c" + i} data-km-ink-contour="" d={edges[pi][i]} fill={l.fill} opacity={l.opacity} />)}
+        {paint.lines.map((l, i) => <path key={i} d={l.d} fill={l.fill} opacity={l.opacity} />)}
       </g>;
     })}
   </g>;

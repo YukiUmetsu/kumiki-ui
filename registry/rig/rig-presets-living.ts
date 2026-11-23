@@ -34,18 +34,18 @@ export const PERSON_PACE: Record<string, number> = { walk: 1.62, run: 4.6 };
  * `parent`'s space; every limb is an IK-ready two-bone chain. Used by `personRig` and by riders (bicycle).
  */
 export function addPersonBody(rig: Rig, parent: string, px: number, py: number, options: { phone?: boolean } = {}) {
-  // Leg reach (21.5 + 21 + sole 2.4) just exceeds the hip height (44): a standing knee is soft, never locked.
+  // Leg reach (21.3 + 20.6 + sole 2.4) just exceeds the hip height (44): a standing knee is soft, never locked.
   rig.bone("pelvis", parent, px, py);
   rig.bone("torso", "pelvis", 0, 0);
   for (const [side, x, far] of [["b", -1.4, true], ["f", 2.2, false]] as const) {
-    rig.bone("thigh-" + side, "pelvis", x, 0, 0, 21.5);
-    rig.bone("shin-" + side, "thigh-" + side, 0, 21.5, 0, 21);
-    rig.bone("foot-" + side, "shin-" + side, 0, 21);
+    rig.bone("thigh-" + side, "pelvis", x, 0, 0, 21.3);
+    rig.bone("shin-" + side, "thigh-" + side, 0, 21.3, 0, 20.6);
+    rig.bone("foot-" + side, "shin-" + side, 0, 20.6);
     const z = far ? 1 : 3;
-    rig.part("thigh-" + side, "thigh-" + side, cap(21.5, 8, 6.6), "cloth-dark", z, { far });
+    rig.part("thigh-" + side, "thigh-" + side, cap(21.3, 8, 6.6), "cloth-dark", z, { far });
     // The knee lies under the two segments: it only fills the outside of the bend.
     rig.part("knee-" + side, "shin-" + side, ell(0, 0, 3.4, 3.6), "cloth-dark", z - .02, { far });
-    rig.part("shin-" + side, "shin-" + side, cap(21, 6.4, 5.4), "cloth-dark", z, { far });
+    rig.part("shin-" + side, "shin-" + side, cap(20.6, 6.4, 5.4), "cloth-dark", z, { far });
     rig.mass("leg-" + side, new RegExp(`^(thigh|knee|shin)-${side}$`));
     rig.part("shoe-" + side, "foot-" + side, poly([[-2.6, -1.4], [2.2, -1.8], [5.4, -.6], [7.2, 1.2], [7, 2.6], [-2.8, 2.6], [-3.2, .6]]), "shoe", z + .1, { far });
   }
@@ -73,7 +73,7 @@ export function addPersonBody(rig: Rig, parent: string, px: number, py: number, 
   });
   for (const [side, x, far] of [["b", -1, true], ["f", 2, false]] as const) {
     rig.bone("arm-" + side, "torso", x, -25, far ? -5 : 6, 14.5);
-    rig.bone("fore-" + side, "arm-" + side, 0, 14.5, far ? 12 : 10, 13.5);
+    rig.bone("fore-" + side, "arm-" + side, 0, 14.5, far ? -8 : -11, 13.5);
     rig.bone("hand-" + side, "fore-" + side, 0, 14.6);
     const z = far ? .5 : 7;
     rig.part("arm-" + side, "arm-" + side, cap(14.5, 6.6, 5.4), "cloth", z, { far });
@@ -124,7 +124,7 @@ function addLongHair(rig: Rig, motion: string) {
   });
   const run = motion === "run", walk = motion === "walk";
   rig.drivers.push(
-    { type: "chain", bones, amplitude: run ? 4 : 1.6, period: run ? 22 : 110, lag: .45, growth: 1.2, follow: 3, bias: run ? 14 : walk ? 4 : 0 },
+    { type: "chain", bones, amplitude: run ? 4 : 1.6, period: run ? 22 : 110, lag: .45, growth: 1.2, follow: 3, bias: run ? 5 : walk ? 1 : 0 },
     // Colliders follow the back of the torso outline: the shoulder line, then the back down to the waist.
     { type: "drape", bones, radius: 2.8 * u, hang: .85, momentum: 18, floor: true, floorSide: [0, -1], colliders: [
       { bone: "head", at: [0, 0], radius: 9.6 * u, side: [-1, 0] },
@@ -168,12 +168,12 @@ export function personRig(o: RigPresetOptions & { chair?: boolean; hair?: "short
   const legs = personLegs(u), moving = m === "walk" || m === "run", run = m === "run";
   const sole = 2.4 * u;
   if (moving) {
-    rig.drivers.push({ type: "gait", start, end, body: "pelvis", stride: (run ? 96 : 52) * u, stance: run ? .36 : .62, lift: (run ? 14 : 5) * u,
-      bob: (run ? 4 : 3) * u, bobPhase: run ? .43 : .31, sink: (run ? 2.5 : 0) * u, legs,
+    rig.drivers.push({ type: "gait", start, end, body: "pelvis", stride: (run ? 96 : 52) * u, stance: run ? .3 : .62, lift: (run ? 14 : 5) * u,
+      bob: (run ? 2 : 3) * u, bobPhase: run ? .43 : .28, sink: (run ? 2.1 : 0) * u, legs,
       swing: [{ bone: "arm-f", amplitude: run ? 38 : 22, phase: 0 }, { bone: "arm-b", amplitude: run ? 38 : 22, phase: .5 },
         { bone: "fore-f", amplitude: run ? 12 : 9, phase: .95 }, { bone: "fore-b", amplitude: run ? 12 : 9, phase: .45 },
         { bone: "head", amplitude: 1.4, phase: .25, harmonic: 2 }, { bone: "torso", amplitude: run ? 1.6 : .8, phase: .31, harmonic: 2 }] });
-    if (run) { rig.track("torso", [{ frame: start, rotate: 9 }]); rig.track("fore-f", [{ frame: start, rotate: -80 }]); rig.track("fore-b", [{ frame: start, rotate: -84 }]); rig.track("head", [{ frame: start, rotate: -6 }]); }
+    if (run) { rig.track("torso", [{ frame: start, rotate: 9 }]); rig.track("fore-f", [{ frame: start, rotate: -62 }]); rig.track("fore-b", [{ frame: start, rotate: -66 }]); rig.track("head", [{ frame: start, rotate: -6 }]); }
     else rig.track("torso", [{ frame: start, rotate: 3 }]);
   } else if (m !== "jump" && !FLOOR_MOTIONS.has(m)) rig.drivers.push({ type: "gait", body: "pelvis", stride: 52 * u, legs });
 
@@ -195,16 +195,23 @@ export function personRig(o: RigPresetOptions & { chair?: boolean; hair?: "short
   const SEAT_X = -11, SEAT_Y = -24.5;
 
   if (m === "wave") {
-    rig.track("arm-f", [{ frame: start, rotate: 0 }, { frame: start + 15, rotate: -157, ease: "ease-in-out-quad" }, { frame: start + 21, rotate: -152, ease: "ease-in-out-quad" }, { frame: end - 16, rotate: -152 }, { frame: end, rotate: 0, ease: "ease-in-out-quad" }]);
-    rig.drivers.push({ type: "oscillate", start: start + 13, end: end - 12, bone: "fore-f", property: "rotate", amplitude: 26, period: 14, ramp: 5 },
+    // The elbow comes up in front of the shoulder and the forearm stands beside the face, so it never crosses it.
+    rig.track("arm-f", [{ frame: start, rotate: 0 }, { frame: start + 15, rotate: -118, ease: "ease-in-out-quad" }, { frame: start + 21, rotate: -113, ease: "ease-in-out-quad" }, { frame: end - 16, rotate: -113 }, { frame: end, rotate: 0, ease: "ease-in-out-quad" }]);
+    rig.track("fore-f", [{ frame: start, rotate: 0 }, { frame: start + 15, rotate: -34, ease: "ease-in-out-quad" }, { frame: end - 16, rotate: -34 }, { frame: end, rotate: 0, ease: "ease-in-out-quad" }]);
+    rig.drivers.push({ type: "oscillate", start: start + 13, end: end - 12, bone: "fore-f", property: "rotate", amplitude: 22, period: 14, ramp: 5 },
       { type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: start + 8, name: "open" }, { frame: end - 8, name: null }] });
     rig.track("head", [{ frame: start, rotate: 0 }, { frame: start + 12, rotate: -5 }]);
   }
   if (m === "talk" || m === "wave" || m === "phone") rig.drivers.push({ type: "variant", start, end, part: "mouth", mode: "talk", open: "open", mid: "mid" });
   if (m === "talk") rig.drivers.push({ type: "oscillate", start, end, bone: "fore-f", property: "rotate", amplitude: 18, period: 44, wobble: .6, ramp: 10 },
     { type: "oscillate", start, end, bone: "arm-f", property: "rotate", amplitude: 9, period: 60, wobble: .4, ramp: 10 });
+  if (m === "talk") {
+    // The forearm gestures in front of the body.
+    rig.track("arm-f", [{ frame: start, rotate: 0 }, { frame: start + 18, rotate: -8 }, { frame: end - 18, rotate: -8 }, { frame: end, rotate: 0 }]);
+    rig.track("fore-f", [{ frame: start, rotate: 0 }, { frame: start + 18, rotate: -44 }, { frame: end - 18, rotate: -44 }, { frame: end, rotate: 0 }]);
+  }
   if (m === "cheer") {
-    for (const s of ["f", "b"]) rig.track("arm-" + s, [{ frame: start, rotate: 0 }, { frame: start + 14, rotate: s === "f" ? -172 : -164, ease: "ease-in-out-quad" }, { frame: start + 19, rotate: s === "f" ? -168 : -160, ease: "ease-in-out-quad" }]);
+    for (const s of ["f", "b"]) rig.track("arm-" + s, [{ frame: start, rotate: 0 }, { frame: start + 14, rotate: s === "f" ? -192 : -152, ease: "ease-in-out-quad" }, { frame: start + 19, rotate: s === "f" ? -188 : -148, ease: "ease-in-out-quad" }]);
     rig.track("pelvis", [{ frame: start, y: 0 }, { frame: start + 8, y: 2.4 * u }]);
     rig.drivers.push({ type: "oscillate", start: start + 8, end, bone: "pelvis", property: "y", amplitude: 2.2 * u, period: 16 },
       { type: "oscillate", start: start + 12, end, bone: "fore-f", property: "rotate", amplitude: 12, period: 16, phase: .2 },
@@ -219,7 +226,7 @@ export function personRig(o: RigPresetOptions & { chair?: boolean; hair?: "short
     hand("b", start, end, "shin-b", -5, -4, 0);
     hand("f", start, t(.32), "shin-f", -5.5, -4.4, 0); hand("f", t(.66), end, "shin-f", -5.5, -4.4, 12);
     rig.track("arm-f", [{ frame: t(.3), rotate: 6 }, { frame: t(.4), rotate: -38, ease: "ease-out-back" }, { frame: t(.62), rotate: -30 }]);
-    rig.track("fore-f", [{ frame: t(.3), rotate: 10 }, { frame: t(.4), rotate: -74, ease: "ease-out-cubic" }]);
+    rig.track("fore-f", [{ frame: t(.3), rotate: 0 }, { frame: t(.4), rotate: -53, ease: "ease-out-cubic" }]);
     rig.drivers.push({ type: "oscillate", start: t(.4), end: t(.64), bone: "fore-f", property: "rotate", amplitude: 12, period: 26, wobble: .6, ramp: 6 },
       { type: "variant", start: t(.3), end: t(.66), part: "mouth", mode: "talk", open: "open", mid: "mid" },
       { type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: t(.38), name: "open" }, { frame: t(.64), name: null }] });
@@ -272,7 +279,7 @@ export function personRig(o: RigPresetOptions & { chair?: boolean; hair?: "short
   }
   if (m === "point") {
     rig.track("arm-f", [{ frame: start, rotate: 0 }, { frame: t(.08), rotate: 6 }, { frame: t(.16), rotate: -91, ease: "ease-in-out-quad" }, { frame: t(.2), rotate: -88 }, { frame: t(.8), rotate: -84 }, { frame: t(.92), rotate: 0 }]);
-    rig.track("fore-f", [{ frame: t(.08), rotate: 10 }, { frame: t(.16), rotate: -4, ease: "ease-out-cubic" }, { frame: t(.8), rotate: -4 }, { frame: t(.92), rotate: 10 }]);
+    rig.track("fore-f", [{ frame: t(.08), rotate: 0 }, { frame: t(.16), rotate: 8, ease: "ease-out-cubic" }, { frame: t(.8), rotate: 8 }, { frame: t(.92), rotate: 0 }]);
     rig.track("torso", [{ frame: start, rotate: 0 }, { frame: t(.16), rotate: 4 }, { frame: t(.8), rotate: 3 }, { frame: t(.92), rotate: 0 }]);
     rig.track("head", [{ frame: start, rotate: 0 }, { frame: t(.16), rotate: -4 }, { frame: t(.5), rotate: -2 }, { frame: t(.92), rotate: 0 }]);
     rig.drivers.push({ type: "variant", part: "hand-f", mode: "keys", keys: [{ frame: t(.12), name: "point" }, { frame: t(.86), name: null }] },
@@ -353,7 +360,7 @@ export function personRig(o: RigPresetOptions & { chair?: boolean; hair?: "short
   }
   if (m === "phone") {
     // The wrist by the jaw, so that the hand holds the phone to the ear and the elbow hangs in front of the chest.
-    hand("f", t(.06), end, "head", 5.4, 6.2, 16);
+    hand("f", t(.06), end, "head", 2.8, 7.2, 16);
     rig.track("phone", [{ frame: start, opacity: 0 }, { frame: t(.05), opacity: 0 }, { frame: t(.06), opacity: 1 }]);
     rig.track("head", [{ frame: start, rotate: 0 }, { frame: t(.12), rotate: 5 }]);
     rig.track("pelvis", [{ frame: start, x: 0 }, { frame: t(.2), x: 1.2 * u }]);
@@ -443,7 +450,7 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
     // Fetlock: a small bulge at the back of the joint; the pastern ends inside the hoof (no knob below the sole).
     // Lower leg after Muybridge's plates: cannon, a fetlock bulging at the back, a sloping pastern about as long as the
     // hoof is tall, and a hoof whose front wall continues the pastern's slope (the hoof–pastern axis).
-    rig.part("fetlock-" + l.id, "paw-" + l.id, ell(-w * .16, .6, w * .38, w * .44), role, z - .02, { far: l.far });
+    rig.part("fetlock-" + l.id, "paw-" + l.id, horse ? ell(-w * .16, .6, w * .38, w * .44) : ell(0, -.2, w * .36, w * .34), role, z - .02, { far: l.far });
     rig.part("pastern-" + l.id, "paw-" + l.id, cap(P - (horse ? 2.8 : 1.6), w * .46, w * .42), role, z + .04, { far: l.far });
     // Hoof (or paw) with its sole on the ground line at the bone's origin.
     // Hoof about half the fetlock's standing height, so the pastern shows above it.

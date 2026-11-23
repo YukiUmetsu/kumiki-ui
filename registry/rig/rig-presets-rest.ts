@@ -85,7 +85,7 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
     };
     // Lying, the legs lie out straight (a relaxed knee, ~4° short of locked): each heel rests on the ground a full leg
     // length from its hip. With the hips turned a quarter round, the near hip sits 2.2 above the pelvis joint, the far 1.4 below.
-    const LEG = 21.5 + 21 - .05, heel = (hipY: number, y: number): Pt => [LIE.x + Math.sqrt(LEG * LEG - (y - hipY) ** 2), y];
+    const LEG = 21.3 + 20.6 - .05, heel = (hipY: number, y: number): Pt => [LIE.x + Math.sqrt(LEG * LEG - (y - hipY) ** 2), y];
     const ankleN = heel(LIE.y - 2.2, -3 - g), ankleF = heel(LIE.y + 1.4, -3.2 - g);
     if (m === "wake-up" || m === "get-up") {
       // Waking (after Muybridge's rising-from-the-ground sequence, plate 248 read forward): asleep, a stir, the eyes
@@ -206,10 +206,11 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
       // Feet: planted while crouching and sitting, then walked forward, then slid out long with the toes up.
       // (On the mat the floor is g higher.) Steps are [frame, x, lift].
       // They hold until the next reach is fully in (14 frames), or the leg would drop to its straight pose, through the floor.
+      // As the foot turns up on its heel, the ankle rises.
       const steps = (side: "f" | "b", keys: Steps) => leg(side, start, f1 + 15, 0, keys.map(([frame, x, lift]) => pt(frame, x, -SOLE - g - (lift ?? 0))), 0);
-      steps("f", [[start, 2.2], [s1, 2.2], [s1 + n(6), 9, 2.6], [f1, 15]]); steps("b", [[start, -1.4], [s1 + n(3), -1.4], [s1 + n(9), 6, 2.4], [f1 + n(2), 11]]);
-      leg("f", f1, LATE, 14, [pt(f1, 15, -SOLE - g), pt(l1, ankleN[0], ankleN[1])], -90);
-      leg("b", f1, LATE, 14, [pt(f1, 11, -SOLE - g), pt(l1, ankleF[0], ankleF[1])], -90);
+      steps("f", [[start, 2.2], [s1, 2.2], [s1 + n(6), 9, 2.6], [f1, 15], [f1 + 7, 15.6, 1.5]]); steps("b", [[start, -1.4], [s1 + n(3), -1.4], [s1 + n(9), 6, 2.4], [f1 + n(2), 11], [f1 + 7, 11.6, 1.5]]);
+      leg("f", f1, LATE, 14, [pt(f1, 15, -SOLE - g), pt(f1 + 7, 15.6, -SOLE - g - 1.5), pt(l1, ankleN[0], ankleN[1])], -90);
+      leg("b", f1, LATE, 14, [pt(f1, 11, -SOLE - g), pt(f1 + 7, 11.6, -SOLE - g - 1.5), pt(l1, ankleF[0], ankleF[1])], -90);
       // The near hand reaches back to the ground to lower the body, supports while lying back, then rests.
       const restA: Pt = sleepy ? [LIE.x - 16, LIE.y - 10.6] : [LIE.x - 43, LIE.y + 1.4], restB: Pt = sleepy ? [LIE.x - 22, LIE.y - 10] : [LIE.x - 42, LIE.y - 2.4];
       // Lying awake the hands go behind the head: the elbows swing out toward the viewer, and stay there.
@@ -299,8 +300,8 @@ export function addRestAction(rig: Rig, m: RestMotion, c: RestContext): void {
     const q = (frames: number) => Math.round(frames * Math.min(1, D / 180));
     const st = start + q(12), sp = st + q(12), sd = sp + q(24), g0 = sd + q(6), l1 = g0 + q(30), h1 = t(.62), d1 = h1 + q(30), r1 = d1 + q(6), u1 = r1 + q(24), b1 = u1 + q(12);
     c.plant(start, LATE, [[start, 2.2], [st, 2.2], [st + q(6), 5, 2.6], [sp, 7.6], [u1, 7.6], [u1 + q(6), 5, 2.2], [b1, 2.2]], [[start, -1.4]], 0);
-    P(start, 0, -HIP, 0); P(sp, .6, -HIP, 0); P(sd, -2.6, -25, 0); P(g0, -2.6, -25.4, 0); P(l1, 0, -HIP, 0, "ease-in-out-quad");
-    P(h1, 0, -HIP, 0); P(d1, -2.6, -25, 0, "ease-in-out-quad"); P(r1, -2.6, -25.4, 0); P(u1, .6, -HIP, 0); P(b1, 0, -HIP, 0);
+    P(start, 0, -HIP, 0); P(sp, .6, .6 - HIP, 0); P(sd, -2.6, -25, 0); P(g0, -2.6, -25.4, 0); P(l1, 0, .6 - HIP, 0, "ease-in-out-quad");
+    P(h1, 0, .6 - HIP, 0); P(d1, -2.6, -25, 0, "ease-in-out-quad"); P(r1, -2.6, -25.4, 0); P(u1, .6, .6 - HIP, 0); P(b1, 0, -HIP, 0);
     T(start, 0); T(sp, 2); T(sd, 56); T(g0, 57); T(l1, 4); T(h1, 4); T(d1, 56); T(r1, 57); T(u1, 2); T(b1, 0);
     H(start, 0); H(sp, 6); H(sd, 14); H(l1, 12); H(l1 + q(20), 16); H(h1 - q(20), 10); H(h1, 12); H(d1, 14); H(u1, 4); H(b1, 0);
     // The box rides in the hands along a path close to the body.

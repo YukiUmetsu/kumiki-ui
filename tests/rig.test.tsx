@@ -435,7 +435,8 @@ describe("RIG1 painters", () => {
     expect(a).toContain('data-km-rig-paper="xuan"');
     expect(a).toMatch(/<image href="data:image\/png;base64,/);
     expect(a).not.toMatch(/<filter[^>]*-(bleed|dry|contour)"/);
-    // Between frames a part moves (its transform) but its washes, deposits and line shapes do not change.
+    // Between frames a part moves (its transform) but its washes, deposits and drawn lines do not change. Its contours stay
+    // where they are too, and only thin where another part passes.
     const marks = (html: string, id: string) => {
       const m = new RegExp(`data-km-rig-part="${id}" transform="[^"]*"[^>]*>(.*?)</g>`).exec(html)!;
       return m[1].replace(/ opacity="[^"]*"/g, "");
@@ -443,7 +444,13 @@ describe("RIG1 painters", () => {
     const moved = (html: string, id: string) => new RegExp(`data-km-rig-part="${id}" transform="([^"]*)"`).exec(html)![1];
     const ids = ["barrel", "head", "neck"].filter(p => a.includes(`data-km-rig-part="${p}"`));
     expect(ids.length).toBeGreaterThanOrEqual(2);
-    for (const id of ids) expect(marks(a, id), id).toBe(marks(b, id));
+    const contour = /<path data-km-ink-contour="" d="([^"]*)"[^>]*>(<\/path>)?/g;
+    for (const id of ids) {
+      expect(marks(a, id).replace(contour, ""), id).toBe(marks(b, id).replace(contour, ""));
+      const [pa, pb] = [a, b].map(html => new Set([...marks(html, id).matchAll(contour)].flatMap(m => m[1].split(/[MLZ]/).filter(Boolean))));
+      expect(pa.size, id).toBeGreaterThan(40);
+      expect([...pb].filter(q => pa.has(q)).length / pb.size, id).toBeGreaterThan(.6);
+    }
     expect(moved(a, "head")).not.toBe(moved(b, "head"));
   });
   it("tracks a travelling rig with a camera over world-anchored ground", () => {

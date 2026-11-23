@@ -145,8 +145,9 @@ export function addPersonAction(rig: Rig, m: ActionMotion, c: ActionContext): vo
       rig.drivers.push({ type: "variant", part: "mouth", mode: "keys", keys: [{ frame: s0, name: "mid" }] });
     } else {
       // Front snap kick with the rear (near) leg: chamber the knee high, snap, rechamber, set down.
-      const leg: ReturnType<typeof P>[] = [P(start, 2.2, -2.4), P(s0, -7, -2.4)], foot: RigKey[] = [];
+      const leg: ReturnType<typeof P>[] = [P(start, 2.2, -2.4), P(start + 6, -2.4, -4.8), P(s0, -7, -2.4)], foot: RigKey[] = [], kicks: number[] = [];
       for (let b = start + 18; b + 30 <= end; b += 64) {
+        kicks.push(b);
         leg.push(P(b, -7, -2.4), P(b + 7, 7, -29, "ease-out-quad"), P(b + 10, 36, -52, "ease-out-quad"), P(b + 12, 36.4, -52.4), P(b + 16, 7, -29, "ease-in-out-quad"), P(b + 23, -6.6, -2.4, "ease-in-out-cubic"));
         foot.push({ frame: b, rotate: 0 }, { frame: b + 6, rotate: 34 }, { frame: b + 10, rotate: -4 }, { frame: b + 15, rotate: 30 }, { frame: b + 23, rotate: 0 });
         torso.push({ frame: b, rotate: 8 }, { frame: b + 7, rotate: -4 }, { frame: b + 10, rotate: -15, ease: "ease-out-quad" }, { frame: b + 12, rotate: -15 }, { frame: b + 16, rotate: -4 }, { frame: b + 23, rotate: 8 });
@@ -155,7 +156,10 @@ export function addPersonAction(rig: Rig, m: ActionMotion, c: ActionContext): vo
         head.push({ frame: b + 7, rotate: 2 }, { frame: b + 10, rotate: 10 }, { frame: b + 23, rotate: 6 });
       }
       // The kicking (near) leg has its own reach; the far foot stays planted.
-      rig.drivers.push({ type: "reach", start, end: end + 60, ramp: 0, upper: "thigh-f", lower: "shin-f", bend: 1, target: leg });
+      const kicking = { type: "reach" as const, upper: "thigh-f", lower: "shin-f", bend: 1 as const, target: leg };
+      rig.drivers.push({ ...kicking, start, end: end + 60, ramp: 0 });
+      // In the guard, its sole lies flat on the ground.
+      [start - 24, ...kicks].forEach((b, i) => rig.drivers.push({ ...kicking, start: b + 18, end: (kicks[i] ?? end + 60) + 5, ramp: 5, tip: "foot-f", tipAngle: 0 }));
       rig.track("foot-f", foot);
     }
     reachTo("f", start, end, near, 8); reachTo("b", start, end, far, 8);
