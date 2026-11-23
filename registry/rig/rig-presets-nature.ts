@@ -146,20 +146,21 @@ function frogHopPose(tau: number, dist: number): FrogPose {
     const fore = reachUp.map((v, i) => lerpAngle(v, reachDown[i], k)), farFore = reachUp.map((v, i) => lerpAngle(v - 6, reachDown[i] + 4, k));
     return { hip, pitch, hind, farHind, fore, farFore };
   }
-  const end = crouchPose(dist);
+  const end = crouchPose(dist), LANDED = { y: -19, pitch: 8 };
   // Fold pose: a compact Z close to the hips (thigh back, shank folded forward over it, foot tucked back down), so
   // the legs never stand up over the back.
   const tuck: number[] = [100, 250, 70, 85];
   if (tau < tFold) {
     const s = (tau - tLand) / H.land;
-    const hip: Pt = [lerp(hipL[0], dist - 1.2, 1 - (1 - s) ** 2), lerp(hipL[1], -16, 1 - (1 - s) ** 2)], pitch = lerp(landPitch, 25, s);
+    // The forelegs fold to take the landing with the shoulders still clear of the ground, so the elbows never go under it.
+    const hip: Pt = [lerp(hipL[0], dist - 1.2, 1 - (1 - s) ** 2), lerp(hipL[1], LANDED.y, 1 - (1 - s) ** 2)], pitch = lerp(landPitch, LANDED.pitch, s);
     const leg = 90 + pitch + lerp(-4, 2, s), hind = [leg, leg + 2, leg + 4, leg + 8], farHind = [leg - 3, leg, leg + 3, leg + 6];
     return { hip, pitch, hind, farHind, fore: foreTo(toBody(hip, pitch, SHOULDER), handL), farFore: foreTo(toBody(hip, pitch, FAR_SHOULDER), [handL[0] + 4, handL[1] - .4]) };
   }
   if (tau < tSettle) {
     const s = (tau - tFold) / H.fold, e = smooth(s);
-    const hip: Pt = [lerp(dist - 1.2, end.hip[0], e), lerp(-16, end.hip[1] + .8, e)], pitch = lerp(25, CROUCH.pitch - 3, e);
-    const ext = 90 + 25 + 2, from = [ext, ext + 2, ext + 4, ext + 8];
+    const hip: Pt = [lerp(dist - 1.2, end.hip[0], e), lerp(LANDED.y, end.hip[1] + .8, e)], pitch = lerp(LANDED.pitch, CROUCH.pitch - 3, e);
+    const ext = 90 + LANDED.pitch + 2, from = [ext, ext + 2, ext + 4, ext + 8];
     const crouchHere = crouchPose(dist, hip[1] - end.hip[1], pitch);
     // First the legs fold into the tuck; then the feet come forward beside the body (IK on a forward arc that stays
     // above the ground) while each foot flips forward to lie flat, instead of the thighs swinging down through the floor.

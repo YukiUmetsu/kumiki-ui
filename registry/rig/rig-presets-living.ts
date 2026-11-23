@@ -499,7 +499,8 @@ export function quadrupedRig(kind: QuadKind, o: RigPresetOptions = {}): RigSpec 
     // Lower the body until the raised forelegs still reach the ground (the pitch lifts the shoulders).
     const drop = H + 32 * Math.sin(22 * Math.PI / 180) - 5 * Math.cos(22 * Math.PI / 180) - fetlockY - Tf * .965;
     rig.track("body", [{ frame: s0, rotate: 0, y: 0 }, { frame: s1, rotate: -22, y: drop * u, ease: "ease-in-out-cubic" }]);
-    rig.track("haunch", [{ frame: s0, rotate: 0 }, { frame: s1, rotate: -8, ease: "ease-in-out-cubic" }]);
+    // The rump rests on the ground, not in it.
+    rig.track("haunch", [{ frame: s0, rotate: 0, y: 0 }, { frame: s1, rotate: -8, y: -(kind === "cat" ? 6 : 2.4) * u, ease: "ease-in-out-cubic" }]);
     rig.track("neck", [{ frame: s0, rotate: 0 }, { frame: s1, rotate: 16, ease: "ease-in-out-cubic" }]);
     rig.track("head", [{ frame: s0, rotate: 0 }, { frame: s1, rotate: 8 }]);
     // Forefeet stay planted; each hind foot steps forward under the lowering rump (lift, then set down).
