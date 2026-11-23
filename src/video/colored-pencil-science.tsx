@@ -13,8 +13,26 @@ const draw = (path: string, color: string, width: number, startFrame: number,
   ({ path, color, width, opacity, startFrame, durationFrames });
 
 const leaf: readonly PencilRegion[] = [
+  // The younger blade grows behind the main leaf, so it is drawn first and the
+  // main leaf covers its base with opaque paper support.
+  {
+    id: "young-leaf",
+    path: "M175 286 C125 271 70 243 47 181 C99 163 155 191 178 241 Z",
+    bounds: [42, 157, 142, 134],
+    underpaint: "#A7B693", underpaintOpacity: .24,
+    contour: draw("M175 286 C125 271 70 243 47 181 C99 163 155 191 178 241 Z", GRAPHITE, 1.55, 28, 72),
+    layers: [
+      { color: "#90A47E", angle: 26, spacing: 4.1, pressure: .7, tipWidth: 1.1, seed: 92, flow: -20, tone: "core", startFrame: 88, durationFrames: 126 },
+      { color: "#6B8667", angle: -57, spacing: 6.2, pressure: .58, tipWidth: 1, seed: 93, startFrame: 132, durationFrames: 100 },
+    ],
+    details: [
+      draw("M175 286 Q120 220 47 181", MOSS, 1.7, 146, 70),
+      draw("M138 244 Q123 208 94 182 M115 225 Q100 215 68 204", "#6B806A", .85, 165, 54),
+    ],
+  },
   {
     id: "primary-leaf",
+    opaqueSupport: true,
     path: "M204 351 C161 296 99 229 110 155 C119 89 198 43 287 23 C342 71 377 138 353 204 C330 267 265 321 204 351 Z",
     bounds: [103, 18, 276, 336],
     underpaint: "#99A67E", underpaintOpacity: .21,
@@ -38,21 +56,6 @@ const leaf: readonly PencilRegion[] = [
       draw("M186 278 Q178 268 164 268 M177 255 Q168 246 154 246 M162 232 Q151 227 142 229 M146 207 Q136 199 124 202 M162 184 Q148 177 136 178", "#7B9375", .65, 169, 44, .61),
       draw("M236 276 Q261 267 279 273 M249 236 Q277 227 297 234 M265 183 Q281 169 304 175 M277 125 Q290 116 312 124", "#6C855E", .72, 166, 48, .66),
       draw("M204 351 Q210 347 219 339 M110 155 Q111 145 114 140 M351 202 Q357 196 357 183", "#B4A17A", .55, 193, 35, .51),
-    ],
-  },
-  {
-    id: "young-leaf",
-    path: "M175 286 C125 271 70 243 47 181 C99 163 155 191 178 241 Z",
-    bounds: [42, 157, 142, 134],
-    underpaint: "#A7B693", underpaintOpacity: .24,
-    contour: draw("M175 286 C125 271 70 243 47 181 C99 163 155 191 178 241 Z", GRAPHITE, 1.55, 28, 72),
-    layers: [
-      { color: "#90A47E", angle: 26, spacing: 4.1, pressure: .7, tipWidth: 1.1, seed: 92, flow: -20, tone: "core", startFrame: 88, durationFrames: 126 },
-      { color: "#6B8667", angle: -57, spacing: 6.2, pressure: .58, tipWidth: 1, seed: 93, startFrame: 132, durationFrames: 100 },
-    ],
-    details: [
-      draw("M175 286 Q120 220 47 181", MOSS, 1.7, 146, 70),
-      draw("M138 244 Q123 208 94 182 M115 225 Q100 215 68 204", "#6B806A", .85, 165, 54),
     ],
   },
 ];
@@ -165,7 +168,10 @@ export function ColoredPencilSciencePlate({ aspect, subject = "leaf", frame, red
     [subject, aspect, seed, paperTooth]);
   const landscape = aspect === "landscape";
   const copy = titles[subject];
-  const top = landscape ? 163 : 184;
+  // Cap height of the bold serif is about .7em; keep at least 14px between the
+  // eyebrow baseline and the headline's cap top.
+  const top = landscape ? 170 : 194;
+  const headline = landscape ? 52 : 56;
   const notesY = landscape ? 374 : 812;
   const ink = "#343C37", muted = "#677065", accent = subject === "leaf" ? MOSS : BLUE;
   const reveal = fade(frame, 197, 33, reducedMotion);
@@ -184,8 +190,8 @@ export function ColoredPencilSciencePlate({ aspect, subject = "leaf", frame, red
       <text x={landscape ? 44 : 38} y={landscape ? 119 : 131} fontSize="11.5"
         letterSpacing="2" fontWeight="700" fill={accent}>{copy.eyebrow}</text>
       <g fontFamily="Georgia, 'Times New Roman', serif" fontWeight={600} letterSpacing="-1.8">
-        <text x={landscape ? 40 : 35} y={top} fontSize={landscape ? 56 : 60}>{copy.top}</text>
-        <text x={landscape ? 40 : 35} y={top + (landscape ? 66 : 70)} fontSize={landscape ? 56 : 60}>{copy.bottom}</text>
+        <text x={landscape ? 42 : 36} y={top} fontSize={headline}>{copy.top}</text>
+        <text x={landscape ? 42 : 36} y={top + headline + 10} fontSize={headline}>{copy.bottom}</text>
       </g>
       <path d={landscape ? "M44 251 H391" : "M38 274 H484"} stroke={accent} strokeWidth="1.6" opacity=".64" fill="none"/>
       <text x={landscape ? 44 : 38} y={landscape ? 284 : 304} fontSize={landscape ? 17 : 16}
@@ -211,9 +217,12 @@ export function ColoredPencilSciencePlate({ aspect, subject = "leaf", frame, red
       {/* Small specimen keys are original diagrams, not measured scientific readings. */}
       <g opacity={special} transform={landscape ? "translate(503 70)" : "translate(48 377)"}
         stroke={GRAPHITE} strokeWidth="1.05" fill="none">
-        <circle cx={subject === "leaf" ? 260 : 242} cy={subject === "leaf" ? 182 : 155} r="4.3" fill={spec.paper}/>
-        <path d={subject === "leaf" ? "M264 182 L316 169 L382 169" : "M246 155 L331 101 L389 101"}/>
-        <circle cx={subject === "leaf" ? 260 : 242} cy={subject === "leaf" ? 182 : 155} r="1.45" fill={accent} stroke="none"/>
+        <circle cx={subject === "leaf" ? 266 : 242} cy={subject === "leaf" ? 180 : 155} r="4.3" fill={spec.paper}/>
+        <path d={subject === "leaf" ? "M269 184 L338 250 L402 250" : "M246 155 L331 101 L389 101"}/>
+        <circle cx={subject === "leaf" ? 266 : 242} cy={subject === "leaf" ? 180 : 155} r="1.45" fill={accent} stroke="none"/>
+        {/* The leader always ends at its term, above the line and outside the specimen. */}
+        <text x={subject === "leaf" ? 402 : 389} y={subject === "leaf" ? 244 : 95} textAnchor="end"
+          fontSize="9.5" fontWeight="700" letterSpacing="1.2" fill={accent} stroke="none">{copy.terms[0]}</text>
       </g>
       <path d={landscape ? "M44 486 H916" : "M38 911 H502"} stroke={GRAPHITE} strokeWidth=".85" opacity=".42" fill="none"/>
       <text x={landscape ? 44 : 38} y={landscape ? 511 : 935} fontSize="10.5" letterSpacing="1.5" fontWeight="700" fill={muted}>
