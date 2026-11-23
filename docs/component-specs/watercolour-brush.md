@@ -1,7 +1,7 @@
 # Watercolour & pressure brush — WM1
 
 **Registry:** `watercolour-brush`  
-**Storybook:** `Film Art Styles / Watercolour & Brush / Painted Film`  
+**Storybook:** `Video Production / Film Looks / Watercolour & Brush / 01 Brush & Washes / Painted Film`  
 **Source:** `registry/video/watercolour-brush.ts`, `registry/video/watercolour-brush-react.tsx`  
 **Status:** functional first implementation; **visual quality not yet accepted** (16:9 and 9:16 normal-speed external review outstanding).
 
@@ -53,6 +53,36 @@ const surface: PaintSurfaceSpec = {
 - A scene may freely author final letterforms as regular SVG text; typography is *not* passed through pigment distortion.
 - Extra-long films should cache stationary fully dried layers in their capture pipeline if profile data shows a bottleneck.
 - No source artwork from third-party examples, museum paintings or published demo frames is bundled.
+
+## Making a video in watercolour
+
+Every watercolour painter in Kumiki paints through one material, so pieces made with different tools sit on the same
+paper and dry the same way. Pick the entry point by what you need on screen.
+
+| Need | Entry point | Notes |
+| --- | --- | --- |
+| Paper | `WatercolourPaper` (`watercolour-brush-react`) | Cold-press relief, fixed to the sheet. WM1, WM2, WM4 and the RIG1 look all use it. |
+| Any shape as a wash | `WatercolourWashFilter` (`watercolour-brush-react`) on a filled group, blended `multiply` | Wandering dried contour, darker dried edge, optional shadow glaze (`shade`) and reserved lit edge, wet-in-wet `charge`, mottling, and granulation that scales with pigment density. Noise follows the user space of the filtered element, never the frame. |
+| Blooms and backruns | `paintBloomPath` (`watercolour-brush`) stroked through `WatercolourTideFilter` | One lobed front for the whole style (WM1 blooms, WM2 `backruns`). |
+| Brush marks | `WatercolourSurface` + `PaintSurfaceSpec` (WM1); `buildBrushRibbon` for the bare ribbon | Pressure, speed, load, dry brush; strokes reveal along the pen and dry by absolute frame. |
+| Washes over drawn silhouettes, a whole picture | `PaintedComposition` (WM2, `painted-composition`) | Ordered `wash`, `brush` and masked `image` layers, paper `reservePaths`, timed `backruns`, `details`, and a `camera`. |
+| Wet-in-wet fields, skies | `WatercolourWetPaper` (WM4) | Mass-conserving pigment transport; `paintAreas` keeps pigment inside a subject. A big graded sky needs several passes: see `watercolourSkySpec` in `registry/rig/rig-look-watercolour.tsx`. |
+| Any moving subject | RIG1 with `look="watercolour"`: `RigScene`, `RigFigure`, `RigLayer` | Every preset and motion (people, animals, birds, fish, vehicles, ships, balloons, leaves, petals, clocks). One wash per figure in paint order, dried edges only between colour regions, cool shadow glaze, granulation riding on the body, broken pencil underdrawing, dark details, wet-in-wet smoke; dried graded sky on the sheet, WM1 earth strokes on world-anchored ground. Storybook: Universal Rig → **Watercolour sheet**. |
+| Authored illustration with keyed parts | `WatercolourIllustration` (WC9) | A tree of paths with pivots and keys over an optional WM4 underpainting (Storybook **05 Illustration Director**). |
+| A `CharacterPresenter` character | `WatercolourActor` (WM3) | Grounded stage track, cadence, per-part watercolour material. |
+| Scenery behind rigs | `RigScene` `children` (world space) or a `PaintedComposition` / `WatercolourWetPaper` layer | Use `transparentPaper` on every layer but the bottom one so the sheet is painted once. |
+| Camera | `followCamera` / `camera` on `RigScene`; `camera` on `PaintedComposition` | The paper and sky stay on the sheet; ground and scenery move with the world. |
+| Scenes, transitions, timing | FilmStage / FD1 film documents with the `watercolour-*` and `painted-composition` slots | One absolute clock; see `examples/film/watercolour-*.film.json` and `painted-worlds.film.json`. |
+| Text | FilmStage captions, or `PaintedComposition` `children` | Keep type out of the pigment layers; it is never displaced or granulated. |
+
+Known gaps:
+
+- The WM4 field still reads as a soft blur where it is used on its own (Storybook **03 Wet Pigment Physics**): it has no dried tide line at its outer front yet.
+- RIG1 parts are rigid, so seams between limb segments show as faint pencil lines; the shadow glaze follows the whole figure's silhouette, not each form inside it.
+- The RIG1 ground is a generic earth band; there is no water ground yet, so the sailing ship sits on grass as in the other looks.
+- There is no film slot that places RIG1 figures in a watercolour FD1 scene; compose `RigScene` inside your own slot.
+- In headless Chromium with software raster the watercolour look plays at about 12 fps (horse gallop) and 6 fps (sailing ship) in the RIG1 lab; with GPU rasterisation (`--use-angle=metal --enable-gpu-rasterization`) both reach 60 fps. Frame-by-frame export is unaffected.
+- Art review is by an agent only; no human normal-speed review is recorded.
 
 ## Film fixtures and QA
 
