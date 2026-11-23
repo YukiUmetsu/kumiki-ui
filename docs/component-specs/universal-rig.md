@@ -88,7 +88,9 @@ or is staged on screen:
 ## Painters and camera
 
 `RigScene` draws a backdrop plus figures; `RigFigure` draws one figure inside a scene; `RigLayer` is a self-contained
-figure for embedding (COLLAGE1 uses it). Looks: `flat`, `collage`, `crayon`, `riso`, `ink`, `blueprint`. **Every look animates
+figure for embedding (COLLAGE1 uses it). Looks: `flat`, `collage`, `crayon`, `riso`, `ink`, `blueprint`. The `riso` look prints
+on the RISO1 press (`rig-look-riso.tsx`, see [riso-print](riso-print.md#making-a-video-in-risograph)): drum inks,
+per-part colour separation, paper-locked screens, fixed register, tooth and roller marks; `RisoLookProvider` picks the drums. **Every look animates
 on ones by default**; pass `cadence={2}` for a stop-motion feel. A medium's texture `boil` is separate from the motion
 cadence (crayon wax redraws every four frames even on ones). `camera={{ x, y, zoom }}` frames any world point;
 `followCamera(spec, frame, { y, lead })` tracks a travelling rig. The ground band and its marks are anchored to the world in

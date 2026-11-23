@@ -4,6 +4,34 @@
 **Source:** `registry/video/print-plates.ts`, `print-plates-react.tsx`, `riso-sheet-feed.tsx`, `riso-overprint.tsx`  
 **Storybook:** **Video production → Film Looks → Risograph**, with four original print stories: **Two-Ink Printing**, **3-Shot Film Stage**, **Paper Feed Transition**, and **Native Overprint Transition**. The existing character, rigging, ArtCraft, and construction-sheet demos share this same sidebar folder.
 
+## Making a video in risograph
+
+The style is one print engine (`print-plates.ts`, `riso-screening.ts`, `riso-drum-contact.ts`, `print-plates-react.tsx`)
+that everything else draws through. Start here; the RISO numbered sections below are the history of each part.
+
+| Need | Entry point |
+| --- | --- |
+| Paper and inks | `RISO_INKS` (stock drum colours, sRGB approximations), `RISO_DRUM_SETS` (pairs and trios in print order with screen angles and fixed register; default `medium-blue-orange`), `risoDrumPlates(drums, { dotCell })` → `RisoPrintSpec.plates`. Paper colour is the spec's `paper` (`RISO_PALETTE.paper` cream by default). |
+| Separation | Author one SVG drawing per plate (`RisoPrint` `artworks`), using `paint.solid` or a screen (`paint.dots`, `lightDots`, `midDots`). For a colour you did not separate by hand, `separateRisoColor(hex, paper, inks)` gives each drum's coverage (the inverse of `overprintColor`). |
+| Screens and material | `createRisoScreenGeometry` (AM or FM, locked to paper); `RisoGradientInk` (tonal ramps), `RisoDryBrushInk` (brush strokes); `drumContact` roller streaks; paper tooth, fibres and `risoInkMottle` are seeded and never change with the frame. Shared pieces for any renderer: `RisoScreenPattern`, `RisoPaperFibres`, `RisoPaperPores`, `RisoDrumContactMarks`. |
+| Subjects: any rig | RIG1 `RigScene look="riso"` (registry `universal-rig`, painter `registry/rig/rig-look-riso.tsx`): every RIG1 subject and motion prints through this engine. Choose the press with `<RisoLookProvider value={{ drums, screen, cell, misregistration, grain, mottle, dryness }}>`. Each part colour is separated and quantised to five tints or a solid; screens stay on the paper while parts and the camera move; each drum keeps one register offset; figures knock the background back to paper; thin linear parts print solid. Storybook: **Universal Rig → One rig, any film look**, look *Riso print* (drum set and AM/FM controls). |
+| Subjects: hand-drawn characters | `RisoCharacterInk` / `RisoCharacterKnockout` with a `RisoCharacterSpec` (registry `riso-character`), passed to `RisoPrint` `foregroundLayers` so each actor is opaque. See [riso-character](riso-character.md). |
+| Scenes | A `RisoPrint` with per-plate background artworks plus ordered `foregroundLayers`; or a `RigScene` with scenery as `children` (world space). |
+| Camera and transitions | RIG1 `camera` and `followCamera` (screens stay fixed to the sheet). Paper transitions: `RisoSheetFeed`, `RisoOverprintTransition`, `RisoTornPaperTransition`, `RisoRostrumStage`, `RisoAccordionPrintedZine`, `RisoPullTabTheatre`. Film Document slots in `src/film/film-slots.tsx`: `riso-print-study`, `riso-sheet-feed`, `riso-overprint`, `riso-dry-brush`, `riso-dry-brush-cinematic`, `riso-character-performance`. |
+| Text | SVG `<text>` inside one plate's artwork, solid ink (`paint.solid`), never screened; keep titles on one drum so misregistration does not double them. |
+| Print files | `serializeRisoSeparationMaster` (grayscale SVG per drum), `serializeRisoSeparationPdf`, `rasterizeRisoSeparationTiff`, shop profiles and scan proofs (RISO68–70). |
+
+Known gaps:
+- No Film Document slot renders an arbitrary RIG1 rig yet; use a FilmStage `renderSlot` that returns a `RigScene`, or a
+  COLLAGE1 `rig` node with `look: "riso"` (inside a collage the screen follows the collage camera, because `RigLayer`
+  does not know it).
+- Separation is a nearest-colour fit to a multiply model, not a measured ink profile; out-of-gamut colours shift
+  (choose drums for the subject: `medium-blue-orange` for skin, fur and wood, a trio for greens).
+- RIG1 parts are rigid and flat-coloured, so a riso rig has tints but no hand-drawn engraving; the riso characters have
+  engraving but only two actors.
+- Each frame is the same print run (fixed register, grain and screens); there is no per-frame press jitter option.
+- Rendering cost: about 8 ms per riso rig per frame in Chromium (a 12-rig parade ≈ 95 ms against ≈ 33 ms flat).
+
 ## Purpose
 
 An artwork-native Risograph material, **not** another film-stock grade or a full-frame RGB halftone filter. Authors supply separate SVG artwork per spot-ink plate. The renderer prints each plate independently onto a single paper surface, with a distinct halftone screen, order-dependent multiply-like overprint, fixed misregistration, seeded paper fiber/pores and a plate-print reveal.
