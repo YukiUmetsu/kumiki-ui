@@ -3914,7 +3914,7 @@
       "name": "universal-rig",
       "type": "registry:ui",
       "title": "Universal Rig (RIG1)",
-      "description": "Style-agnostic 2D rigs for people, dogs, horses, cats, songbirds, butterflies, koi, dragons, modern and vintage cars, bicycles with riders, locomotives, planes, helicopters, hot-air balloons, ships and clocks: a JSON bone hierarchy with material-role parts and procedural drivers (IK gaits with real footfall orders, toe roll and planted feet, side-view projected wingbeats, IK reaches, suspension springs, lights and indicators, turns in depth, rolling and skidding wheels, crank linkages, emitters, pendulums, clock hands, blinks and talk), evaluated purely from the frame, painted in six film looks on ones or twos with a tracking camera over world-anchored ground.",
+      "description": "Style-agnostic 2D rigs for people, dogs, horses, cats, songbirds, butterflies, koi, dragons, modern and vintage cars, bicycles with riders, locomotives, planes, helicopters, hot-air balloons, ships and clocks: a JSON bone hierarchy with material-role parts and procedural drivers (IK gaits with real footfall orders, toe roll and planted feet, side-view projected wingbeats, IK reaches, suspension springs, lights and indicators, turns in depth, rolling and skidding wheels, crank linkages, emitters, pendulums, clock hands, blinks and talk), evaluated purely from the frame, painted in seven film looks (including coloured pencil) on ones or twos with a tracking camera over world-anchored ground.",
       "dependencies": [],
       "registryDependencies": [
         "motion-track",
@@ -3986,6 +3986,31 @@
           "path": "registry/rig/rig-react.tsx",
           "type": "registry:ui",
           "target": "components/rig/rig-react.tsx"
+        },
+        {
+          "path": "registry/rig/rig-look-pencil.tsx",
+          "type": "registry:ui",
+          "target": "components/rig/rig-look-pencil.tsx"
+        },
+        {
+          "path": "registry/video/colored-pencil.ts",
+          "type": "registry:ui",
+          "target": "components/video/colored-pencil.ts"
+        },
+        {
+          "path": "registry/video/colored-pencil-craft.ts",
+          "type": "registry:ui",
+          "target": "components/video/colored-pencil-craft.ts"
+        },
+        {
+          "path": "registry/video/colored-pencil-materials.ts",
+          "type": "registry:ui",
+          "target": "components/video/colored-pencil-materials.ts"
+        },
+        {
+          "path": "registry/video/colored-pencil-foundation.ts",
+          "type": "registry:ui",
+          "target": "components/video/colored-pencil-foundation.ts"
         },
         {
           "path": "registry/video/collage/collage-geometry.ts",

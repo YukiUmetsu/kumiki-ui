@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { RIG_PRESETS, scalePath, personRig, quadrupedRig, locomotiveRig, clockRig, birdRig, modernCarRig, bicycleRig, helicopterRig, frogRig, snakeRig, leafRig, petalsRig } from "../registry/rig/rig-presets";
 import { evaluateRig, wingStroke } from "../registry/rig/rig-evaluate";
-import { inspectRig } from "../registry/rig/rig-spec";
+import { RIG_ROLES, inspectRig } from "../registry/rig/rig-spec";
 import type { RigSpec } from "../registry/rig/rig-spec";
 import { RIG_LOOKS, RigScene, followCamera } from "../registry/rig/rig-react";
+import { PENCIL_ROLE_SURFACE } from "../registry/rig/rig-look-pencil";
 import { inspectCollageScene } from "../registry/video/collage/collage-scene";
 import { CollageScene } from "../registry/video/collage/collage-react";
 
@@ -353,6 +354,22 @@ describe("RIG1 painters", () => {
       expect(html, l.id).toContain('data-km-rig="dog"');
       expect(html).toContain("data-km-rig-bones");
     }
+  });
+  it("draws coloured pencil from the CP-F1 surfaces, with marks that change only on the boil step", () => {
+    for (const role of RIG_ROLES) expect(PENCIL_ROLE_SURFACE[role], role).toBeDefined();
+    const rig = quadrupedRig("horse", { motion: "gallop", start: 0, end: 100, from: 100, to: 700, y: 500 });
+    const scene = (frame: number, reducedMotion = false) => renderToStaticMarkup(<RigScene look="pencil" width={800} height={600} ground={500} frame={frame} rigs={[rig]} reducedMotion={reducedMotion} />);
+    // The mark tile each part pass uses, in paint order.
+    const used = (html: string) => [...html.matchAll(/mask="url\(#[^)]*-pcm-([a-z]+\d-\d)\)"/g)].map(m => m[1]);
+    const html = scene(36);
+    expect(used(html).length).toBeGreaterThan(30);
+    for (const key of new Set(used(html))) expect(html).toContain(`-pcm-${key}"`);
+    expect(html).toContain('data-km-pencil-ground=""');
+    // Within one boil step (six frames) the marks hold while the horse moves; the next step redraws them.
+    expect(used(scene(41))).toEqual(used(html));
+    expect(used(scene(42))).not.toEqual(used(html));
+    // Reduced motion never boils.
+    expect(used(scene(36, true))).toEqual(used(scene(42, true)));
   });
   it("tracks a travelling rig with a camera over world-anchored ground", () => {
     const rig = quadrupedRig("horse", { motion: "gallop", start: 0, end: 100, from: 0, to: 3000, y: 500 });

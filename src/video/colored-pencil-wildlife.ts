@@ -19,6 +19,12 @@ const leaf=["#9BAE83","#597B71","#D7D0A4"] as const;
 const wood=["#A58B73","#624D4C","#D4B99B"] as const;
 
 function scenery(transform:string):PencilRegion[] {
+  // The leafy sprig was authored at x 254..405, which put it past the right
+  // edge of both formats at the bird's scale (only a sliver of leaf showed).
+  // Draw it at about half size with its base moved from x 262 to x 190, still on the
+  // branch just behind the bird's tail, so the whole sprig stays in frame
+  // through the camera move.
+  const sprig=transform+" translate(190 214) scale(.47) translate(-262 -214)";
   return [
     createPencilMaterialRegion({
       id:"perch-bark",surface:"wood",palette:wood,seed:1707,
@@ -36,7 +42,7 @@ function scenery(transform:string):PencilRegion[] {
       id:"branch-twig",surface:"wood",palette:wood,seed:1733,
       path:"M260 215 Q304 184 342 145 Q362 123 386 116 L397 118 Q360 149 348 165 Q319 206 276 219 Z",
       bounds:[254,111,146,114],direction:-49,flow:14,startFrame:55,
-      durationFrames:152,transform,craft:true,
+      durationFrames:152,transform:sprig,craft:true,
       details:[
         trace("M278 214 Q335 172 379 122 M316 187 Q342 155 354 147",
           "#DCC7AA",.8,208),
@@ -46,7 +52,7 @@ function scenery(transform:string):PencilRegion[] {
       id:"leaf-upper",surface:"leaf",palette:leaf,seed:1811,
       path:"M337 158 Q314 121 328 89 Q361 112 363 154 Q357 168 337 158 Z M356 156 Q363 116 400 105 Q391 142 367 161 Z",
       bounds:[309,85,96,82],direction:35,flow:30,startFrame:75,
-      durationFrames:154,transform,craft:true,
+      durationFrames:154,transform:sprig,craft:true,
       details:[
         trace("M342 155 Q334 118 330 96 M362 154 Q377 124 395 109",
           "#416F61",.96,216),
@@ -57,7 +63,7 @@ function scenery(transform:string):PencilRegion[] {
       id:"leaf-lower",surface:"leaf",palette:leaf,seed:1837,
       path:"M294 197 Q273 178 276 149 Q308 164 316 193 Z M363 181 Q371 150 403 143 Q393 177 375 187 Z",
       bounds:[267,138,140,56],direction:-23,flow:26,startFrame:92,
-      durationFrames:154,transform,craft:true,
+      durationFrames:154,transform:sprig,craft:true,
       details:[
         trace("M301 191 Q283 163 279 155 M369 181 Q388 152 398 148",
           "#3C6E60",.88,225),
@@ -95,9 +101,15 @@ export function pencilWildlifeScene({
     const added=part.id==="near-wing"?wingTracts:
       part.id==="head"?crownTracts:[];
     const details=[...(part.region.details??[]),...added];
+    // Study mode thins the static graphite embellishments only. Fibre traces
+    // that a detail track animates are anatomy, and the rig validator needs
+    // every track to find its trace, so those are always kept.
+    const tracked=new Set(part.detailTracks?.map(track=>track.id));
+    let untracked=0;
     return {...part,region:{
-      ...part.region,details:detailMode==="full"?
-        details:details.filter((_,i)=>i%2===0),
+      ...part.region,details:detailMode==="full"?details:
+        details.filter(trace=>(trace.id!==undefined&&tracked.has(trace.id))||
+          untracked++%2===0),
     }};
   })}];
   const width=portrait?540:960,height=portrait?960:540;

@@ -409,10 +409,17 @@ export function pencilCharacterScene(aspect:PencilAspect):PencilSceneSpec {
   if(aspect!=="landscape"&&aspect!=="portrait")throw new RangeError("Unknown pencil character aspect");
   const source=pencilDemoScene("terrain",aspect);
   const portrait=aspect==="portrait";
+  // Framing: the fox (local x -55..256) and kingfisher (local x 7..182) sit
+  // side by side between the text column and the right margin, and the camera
+  // below zooms about the pair's centre, so neither animal leaves the frame.
+  // Feet keep their old page height on the ground and the branch.
   const foxActor={...fox(),transform:portrait?
-    "translate(58 513) scale(.97)":"translate(487 226) scale(1.08)"};
+    "translate(90 513) scale(.97)":"translate(492.5 246.8) scale(.99)"};
   const birdActor={...createKingfisherActor(),transform:portrait?
-    "translate(301 496) scale(.94)":"translate(768 221) scale(.99)"};
+    "translate(333 496) scale(.94)":"translate(753.6 238.4) scale(.91)"};
+  // Zoom about the pair's centre: translate = centre * (1 - zoom).
+  const camera:PencilSceneSpec["camera"]={from:[0,0,1],
+    to:portrait?[-11,-26,1.04]:[-20,-11,1.03],startFrame:128,durationFrames:135};
   const annotations=source.annotations?.filter(a=>!a.id.startsWith("guide-")).map(a=>{
     if(a.id==="title"&&a.type==="text")return {...a,text:["FOX &","KINGFISHER"]};
     if(a.id==="section"&&a.type==="text")return {...a,text:"WILDLIFE / COLOURED PENCIL"};
@@ -431,6 +438,8 @@ export function pencilCharacterScene(aspect:PencilAspect):PencilSceneSpec {
     bounds:portrait?[73,682,420,67]:[465,418,502,68],
     palette:["#A08872","#665B52","#D6BC91"],seed:911,
     startFrame:34,durationFrames:170,direction:7,
+    // Portrait: the pair moved 32px right to centre it; the ground follows.
+    transform:portrait?"translate(32 0)":undefined,
     details:[trace(portrait?
       "M296 704 Q372 696 480 702":"M745 442 Q824 434 958 446",
       "#DED0B2",.95,220)],
@@ -439,5 +448,5 @@ export function pencilCharacterScene(aspect:PencilAspect):PencilSceneSpec {
   // tutorial mountain backdrop was removed with the cartoony cast, freeing
   // two region slots for a real tail tip and overlapping wing coverts.
   const drawing={...source.drawing,regions:[branch]};
-  return {...source,drawing,actors:[foxActor,birdActor],annotations};
+  return {...source,drawing,actors:[foxActor,birdActor],annotations,camera};
 }
