@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "spin-zoom",
+  "fps": { "num": 30, "den": 1 },
+  "outputs": [{ "id": "landscape", "preset": "youtube" }, { "id": "draft", "width": 960, "height": 540 }],
+  "scenes": [
+    { "id": "cave", "recipeId": "card", "durationFrames": 140,
+      "content": { "card": "headline", "text": "Spin into it", "emphasis": "Spin",
+        "photo": { "id": "ice-cave", "src": "assets/iceland-large/ice-cave.jpg", "alt": "Blue ice arching over the mouth of a glacier cave", "licenseRef": "commons-ice-cave-cc0-large", "width": 3200, "height": 2133 } } },
+    { "id": "falls", "recipeId": "card", "durationFrames": 133,
+      "transition": { "kind": "spin", "direction": "right", "durationFrames": 14 },
+      "content": { "card": "headline", "text": "Then punch through", "emphasis": "punch",
+        "photo": { "id": "dynjandi", "src": "assets/iceland-large/dynjandi.jpg", "alt": "Dynjandi, a broad waterfall spreading over tiers of rock", "licenseRef": "commons-dynjandi-cc0-large", "width": 3200, "height": 2136 } } },
+    { "id": "lagoon", "recipeId": "card", "durationFrames": 131,
+      "transition": { "kind": "zoom-blur", "durationFrames": 10 },
+      "content": { "card": "headline", "text": "Land on the beat", "emphasis": "beat",
+        "photo": { "id": "jokulsarlon", "src": "assets/iceland-large/jokulsarlon.jpg", "alt": "Icebergs floating in a glacier lagoon under pale sky", "licenseRef": "commons-jokulsarlon-cc0-large", "width": 3200, "height": 2133 } } }
+  ],
+  "audio": {
+    "lanes": [],
+    "licenseRef": "kumiki-sound-catalog",
+    "accents": { "kit": "assets/sfx", "gainDb": -4, "on": "moves" },
+    "beds": [{ "id": "drums", "sound": "bed-drums-hiphop-110", "bpm": 110, "fadeSeconds": 0.05 }],
+    "master": { "profile": "youtube", "limit": true }
+  }
+}

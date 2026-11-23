@@ -27,6 +27,7 @@ import soundMoves from "../../assets/sound/lab/moves/moves.json";
 import tapeExample from "../../examples/film/tape-rewind.film.json";
 import driveExample from "../../examples/film/sound-drive.film.json";
 import beatHitsExample from "../../examples/film/beat-hits.film.json";
+import spinZoomExample from "../../examples/film/spin-zoom.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -468,6 +469,24 @@ export const BeatHits: StoryObj = {
       times, each smaller; the split and the blur last a few frames. Use Quarter speed to see each swing. Reduced motion holds the picture
       still. The loop is <a href="https://freesound.org/people/blakengouda/sounds/573948/" style={{ color: "#7cc6ff" }}>Hip-Hop Drum Loop -
       110bpm</a> by blakengouda (CC0).
+    </FilmCompare>;
+  },
+};
+
+const spinZoomDoc = spinZoomExample as unknown as FilmDocument;
+/** Three photo cards on the 110 bpm drum loop, joined by a spin (clockwise, 180°) and a zoom-blur cut, each cutting on a kick at its
+ * fastest, most blurred frame; beside it, the same film with hard cuts. */
+export const SpinAndZoomBlur: StoryObj = {
+  render: function SpinAndZoomBlur() {
+    const variants = useMemo(() => ({
+      moves: { label: "Spin, then zoom blur", film: compileExample(spinZoomDoc) },
+      cuts: { label: "Hard cuts (before)", film: compileExample({ ...spinZoomDoc, scenes: spinZoomDoc.scenes.map(scene => scene.transition ? { ...scene, transition: { kind: "cut" } } : scene) } as FilmDocument) },
+    }), []);
+    return <FilmCompare variants={variants} moment={film => film.cut.transitions[0].startFrame - 12} audio={soundUrls["../../assets/sound/lab/moves/spin-zoom.m4a"]}>
+      Each move hides its cut inside itself: the picture turns (or pushes in) faster and faster and cuts at the fastest point, where the
+      blur is strongest, and the next scene finishes the move. The spin blurs along circles about the centre and is enlarged just enough
+      to keep the frame covered at each angle; the zoom blurs along rays. Both cuts land on a kick. Use Quarter speed to see the frames;
+      Reduced motion plays a dissolve.
     </FilmCompare>;
   },
 };

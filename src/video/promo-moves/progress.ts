@@ -67,6 +67,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
     what: "A clear glass circle or pill glides over a scene, magnifying what is behind it and bending its edge harder.", usage: '"lens": { "shape": "pill", "path": [{ "at": 24, "x": 0.12, "y": 0.5 }, …] }' },
   { id: "A11", name: "Sound-driven motion", group: "Animation and type", rank: "P3", status: "built", story: "video-production-promo-moves--sound-drive",
     what: "A bed's measured loudness drives a scene's scale or a soft glow, frame by frame: a bump on every beat.", usage: '"drive": { "bed": "pulse", "property": "scale" }' },
+  { id: "VE1.3", name: "Spin and zoom-blur cuts", group: "Transitions", rank: "P1", status: "built", story: "video-production-promo-moves--spin-and-zoom-blur",
+    what: "The picture turns or pushes in faster and faster and cuts at the fastest point, blurred along circles or rays; the next scene finishes the move.",
+    usage: '"transition": { "kind": "spin", "direction": "right", "turn": 180 } · { "kind": "zoom-blur", "zoom": 1.8 }' },
   { id: "VE1.1", name: "Beat hits", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--beat-hits",
     what: "A punch zoom, a camera shake, an RGB split, a zoom blur or a flash on each beat of a bed with a declared tempo, on its loud onsets, or on moments; patterns combine (punch on the kick, shake on the snare).",
     usage: '"hits": [{ "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } }, { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }] · bed "bpm": 110' },
@@ -101,6 +104,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.3": { registryItem: "film-document", jobs: ["hide a cut inside a fast move", "energetic transition"], keywords: ["spin transition", "rotate transition", "rotation blur", "spin blur",
+    "zoom transition", "zoom blur transition", "zoom in transition", "punch in", "radial blur", "motion blur transition", "velocity edit", "transition"],
+    avoid: "One or two per film; on every cut they read as a template. Keep them between 0.2 s and 1 s." },
   "VE1.2": { registryItem: "film-document", jobs: ["cut the speed to the music", "slow motion on the beat"], keywords: ["velocity edit", "velocity", "speed curve", "speed ramp to music",
     "slow motion on beat", "time remap to beat", "beat sync speed", "slowmo", "fast slow", "car edit", "sports edit", "music video", "bpm", "tempo"],
     avoid: "Over about 10× motion stops reading; give the content enough frames that the beats really slow down." },
