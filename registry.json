@@ -3988,6 +3988,11 @@
           "target": "components/rig/rig-react.tsx"
         },
         {
+          "path": "registry/rig/rig-look-crayon.tsx",
+          "type": "registry:ui",
+          "target": "components/rig/rig-look-crayon.tsx"
+        },
+        {
           "path": "registry/video/collage/collage-geometry.ts",
           "type": "registry:ui",
           "target": "components/video/collage/collage-geometry.ts"
