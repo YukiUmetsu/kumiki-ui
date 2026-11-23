@@ -180,9 +180,15 @@ export function PencilPart({ p, d, color, seed, ctx }: PencilPartProps) {
   const c = p.far ? mix(c0(color), -.2) : c0(color);
   const dark = mix(c, -.45), light = mix(c, .5);
   const tooth = `url(#${ctx.uid}-pc-tooth)`;
-  if (p.line) return <g mask={tooth}>
-    <path d={d} fill="none" stroke={mix(c, -.22)} strokeWidth={r2((p.lineWidth ?? 1) * 1.15)} strokeLinecap="round" strokeLinejoin="round" opacity={.92} />
-  </g>;
+  if (p.line) {
+    const w = r2((p.lineWidth ?? 1) * 1.15);
+    // The tooth mask is as large as the group's box, which leaves out the line's width and is empty for a straight line:
+    // two unpainted copies make the box as wide as the line.
+    return <g mask={tooth}>
+      {[-w, w].map(o => <path key={o} d={d} fill="none" transform={`translate(${o} ${o})`} />)}
+      <path d={d} fill="none" stroke={mix(c, -.22)} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round" opacity={.92} />
+    </g>;
+  }
   if (kind === "dark") return <g mask={tooth}><path d={d} fill={c} opacity={.94} /></g>;
   const passes = surfacePasses(surface);
   const id = `${ctx.uid}-pcg-${seed}-${p.id.replace(/[^A-Za-z0-9_-]/g, "")}`;

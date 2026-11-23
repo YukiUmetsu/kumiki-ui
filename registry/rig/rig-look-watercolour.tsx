@@ -202,7 +202,7 @@ export function WatercolourRigBody({ spec, frame, parts, uid, seed }: { spec: Ri
   const size = Math.max(spec.bounds.width, spec.bounds.height) * Math.abs(frame.root.scale || 1);
   const depth = r2(Math.min(12, Math.max(3, size * .022)));
 
-  // Marks go on last, over everything. A large dark part (a cabin behind its windows) is a wash in its own place instead.
+  // Marks go on after the washes. A large dark part (a cabin behind its windows) is a wash in its own place instead.
   const isMark = (p: RigPartFrame) => {
     if (p.line || p.role === "eye" || p.role === "mouth") return true;
     const b = sceneBox(p.matrix, boxOf(p.shape));
@@ -229,11 +229,20 @@ export function WatercolourRigBody({ spec, frame, parts, uid, seed }: { spec: Ri
   // Construction seams inside one wash are drawn faintly, as an artist's lighter under-drawing.
   const pencil = parts.filter(p => !p.line && p.role !== "smoke" && p.role !== "light").map(p => wrap(p,
     <path d={pathOf(p.shape)} fill="#ffffff" stroke={GRAPHITE} strokeOpacity={seams.has(p.id) ? .4 : 1} strokeWidth={.9} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />));
-  const details = parts.filter(isMark).map(p => {
-    const c = mix(partColor(spec, p), DETAIL, p.line ? .45 : .6), d = pathOf(p.shape);
-    return wrap(p, p.line ? <path d={d} fill="none" stroke={c} strokeWidth={Math.max(.7, (p.lineWidth ?? 1) * .9)} strokeLinecap="round" opacity={.85} />
-      : <path d={d} fill={c} opacity={.9} />);
-  });
+  // A nearer part is white here: white multiplied onto the page changes nothing, but it covers the marks behind it, so a
+  // mouth does not show through a raised hand. A glint is white too, and is kept out of the dark of the eye.
+  const marked: Box[] = [], details: ReactNode[] = [];
+  for (const p of parts) {
+    const d = pathOf(p.shape), sb = sceneBox(p.matrix, boxOf(p.shape));
+    if (!isMark(p)) {
+      if (p.role !== "smoke" && p.opacity > .9 && marked.some(m => touches(m, sb))) details.push(wrap(p, <path d={d} fill="#ffffff" />));
+      continue;
+    }
+    marked.push(sb);
+    const c = mix(partColor(spec, p), DETAIL, p.line ? .45 : .6);
+    details.push(wrap(p, p.line ? <path d={d} fill="none" stroke={c} strokeWidth={Math.max(.7, (p.lineWidth ?? 1) * .9)} strokeLinecap="round" opacity={.85} />
+      : <path d={d} fill={c} opacity={.9} />));
+  }
   const smoke = parts.filter(p => p.role === "smoke").map(p => wrap(p, <path d={pathOf(p.shape)} fill={mix(partColor(spec, p), "#7d8aa3", .45)} opacity={.55} />));
 
   return <g data-km-rig-watercolour="">

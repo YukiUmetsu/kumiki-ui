@@ -164,8 +164,10 @@ export function crayonIllustratedChildScene(
       " T"+W+" "+(H*.74)+" V"+H+"H0Z",
     bounds(0,H*.68,W,H*.32),P.meadow,"atmosphere",
     {coverage:"open",pressure:.36,spacing:14,outlineOpacity:0});
-  wax("soft-cloud","M"+(W*.45)+" "+(H*.22)+"q-25 -21 -57 3q-35 -17 -49 19q-6 25 38 29h90q41 -12 24 -32Z",
-    bounds(W*.35,H*.16,170,97),P.light,"atmosphere",
+  // Portrait: the cloud sits right of the subtitle.
+  const cloudX=W*(portrait?.84:.45);
+  wax("soft-cloud","M"+cloudX+" "+(H*.22)+"q-25 -21 -57 3q-35 -17 -49 19q-6 25 38 29h90q41 -12 24 -32Z",
+    bounds(cloudX-118,H*.22-34,176,92),P.light,"atmosphere",
     {coverage:"open",pressure:.35,spacing:12,outlineOpacity:0});
   const gait=walk?crayonChildWalk(stride,stepLift,scale):null;
   wax("ground-shadow","M"+(ox-115)+" "+(oy+215*scale)+"q110 -30 232 -3q20 19 -27 20h-185q-37 -5 -20 -17Z",
@@ -579,7 +581,7 @@ export function crayonIllustratedChildScene(
     draw?"Every garment begins with a line.":
       walk?"A little traveler, carefully animated.":
         "Eyes, wool, hair and a little courage."
-  ],portrait?30:56,portrait?169:150,portrait?17:19,31,102);
+  ],portrait?30:56,portrait?217:150,portrait?17:19,31,102);
   txt("footer",["CHARACTER ATELIER   /   HAND-DRAWN IN CODE"],portrait?30:55,
     portrait?915:512,portrait?11:13,152,durationFrames-1);
 
