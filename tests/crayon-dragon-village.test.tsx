@@ -157,7 +157,10 @@ describe("multi-actor crayon dragon village",()=>{
     expect(dragon.colors).toEqual(["#c27f67","#a4625b","#e2a58b"]);
     const title=scene.elements.find(n=>n.id==="dragon-village-subtitle");
     if(!title||title.kind!=="lettering")throw Error("title missing");
-    expect(title.lines[0]).toContain("TWO LITTLE LIVES");
+    // The subtitle copy changed in #215; what matters is that it counts
+    // the cast that is actually on screen (no owl in a duo).
+    expect(title.lines[0]).toContain("TWO STUDIES");
+    expect(title.lines[0]).not.toContain("THREE");
   });
   it("keeps source nodes unchanged between seeks and rendered film frames",()=>{
     const scene=crayonDragonVillageScene("landscape",{wingPower:1.3,detail:.55});

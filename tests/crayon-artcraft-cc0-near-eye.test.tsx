@@ -306,7 +306,7 @@ describe("ArtCraft CC0 near-eye source-crop study (not art approval)",()=>{
   }
   it("does not create a new Storybook folder or approve unverified source art",()=>{
     expect(faceMeta.tags).toContain("!dev");
-    expect(faceMeta.title).toBe("Video production/Film Looks/Crayon/ArtCraft Adult Face Lab");
+    expect(faceMeta.title).toBe("Video production/Film Looks/Crayon/ArtCraft Source Lab");
     expect(SourceMeasuredCc0Eye.args?.aspect).toBe("landscape");
     expect(SourceMeasuredCc0EyePortrait.args?.aspect).toBe("portrait");
     expect(()=>crayonCc0NearEyeStudy("portrait",0)).toThrow();
