@@ -34,6 +34,9 @@ import freezeExample from "../../examples/film/freeze-intro.film.json";
 import slowmoExample from "../../examples/film/slowmo.film.json";
 import trailExample from "../../examples/film/motion-trail.film.json";
 import glitchExample from "../../examples/film/glitch.film.json";
+import teacherTalk from "../../examples/film/assets/footage/teacher-talk.mp4?url";
+import teacherCut from "../../examples/film/assets/footage/teacher-talk-jumpcut.mp4?url";
+import teacherCutReport from "../../examples/film/assets/footage/teacher-talk-jumpcut.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -599,6 +602,45 @@ export const GlitchAndDatamosh: StoryObj = {
       Under reduced motion each cut is a dissolve. The last scene is not drawn by the film: it is a real datamosh between two CC0 clips,
       the 1894 dancer's picture moved by the peacock's motion vectors until the next keyframe brings the peacock back clean.
     </FilmCompare>;
+  },
+};
+
+/** The source timeline of a jump cut: kept stretches as bars (pushed-in ones in blue), the pauses taken out as gaps. */
+function JumpCutStrip({ segments, seconds, width = 960 }: { segments: ReadonlyArray<{ start: number; end: number; punch: boolean }>; seconds: number; width?: number }) {
+  const x = (t: number) => t / seconds * width;
+  return <svg width={width} height={58} role="img" aria-label={`${segments.length} kept stretches of ${seconds} seconds; ${segments.filter(s => s.punch).length} pushed in`} style={{ maxWidth: "100%" }}>
+    <rect x={0} y={14} width={width} height={22} rx={4} fill="#2a1d24" />
+    {segments.map((segment, k) => <rect key={k} x={x(segment.start)} y={14} width={x(segment.end) - x(segment.start)} height={22} rx={3} fill={segment.punch ? "#7cc6ff" : "#8592a3"} />)}
+    {Array.from({ length: Math.floor(seconds / 2) + 1 }, (_, k) => <text key={k} x={x(k * 2)} y={52} fill="#6b7686" fontSize={10} textAnchor="middle">{k * 2}s</text>)}
+    <text x={0} y={10} fill="#9aa4b2" fontSize={11}>grey: kept, as shot · blue: kept, pushed in · dark: pause taken out</text>
+  </svg>;
+}
+/** A real talking head (CC0) cut by `npm run video:jumpcut`: the pauses taken out and every other long stretch pushed in, so each cut
+ * reads as a tighter angle. The original and the cut play side by side, with their sound. */
+export const JumpCuts: StoryObj = {
+  render: function JumpCuts() {
+    const segments = teacherCutReport.segments, kept = segments.reduce((sum, s) => sum + s.end - s.start, 0);
+    const video = { width: "100%", borderRadius: 8, background: "#000", display: "block" } as const;
+    return <div style={{ display: "grid", gap: 14, padding: 16, background: "#0b0d10", color: "#e8ecf2", font: "14px system-ui", minHeight: "100vh", alignContent: "start" }}>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+        <figure style={{ margin: 0, flex: "1 1 360px", maxWidth: 480 }}>
+          <video src={teacherTalk} controls preload="metadata" playsInline aria-label="Original: a teacher speaks to camera for 22 seconds, with his pauses" style={video} />
+          <figcaption style={{ marginTop: 6, color: "#9aa4b2" }}>Original · 22.0 s</figcaption>
+        </figure>
+        <figure style={{ margin: 0, flex: "1 1 360px", maxWidth: 480 }}>
+          <video src={teacherCut} controls preload="metadata" playsInline aria-label="Jump cut: the same talk with the pauses removed and every other stretch pushed in" style={video} />
+          <figcaption style={{ marginTop: 6, color: "#9aa4b2" }}>Jump cut · {kept.toFixed(1)} s, {(22 - kept).toFixed(1)} s of pauses out, {segments.length - 1} cuts</figcaption>
+        </figure>
+      </div>
+      <JumpCutStrip segments={segments} seconds={22} />
+      <p style={{ margin: 0, maxWidth: 960, color: "#9aa4b2", font: "13px/1.55 system-ui" }}>
+        FFmpeg's silencedetect finds the pauses (below −35 dB for 0.3 s or more); each kept stretch keeps 0.08 s of breath at both ends and a
+        10 ms fade, so no word is clipped and no cut clicks. Every other long stretch is pushed in 1.12 times about the face; a short one
+        (a single word) keeps the framing before it. <code>--srt</code> retimes a subtitle file to the cut. This demo has no transcript, so
+        it plays without captions. Clip: <a href="https://commons.wikimedia.org/wiki/File:Interview_with_a_Teacher_-_Glen_Caruso.webm" style={{ color: "#7cc6ff" }}>Interview
+        with a Teacher - Glen Caruso</a> by Chase Bohannon and Glen Caruso, CC0.
+      </p>
+    </div>;
   },
 };
 

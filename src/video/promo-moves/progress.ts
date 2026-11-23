@@ -88,6 +88,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
   { id: "VE1.9", name: "Glitch cut and datamosh", group: "Transitions", rank: "P2", status: "built", story: "video-production-promo-moves--glitch-and-datamosh",
     what: "A glitch cut (bands that jump and tear into red and blue while the next scene takes over), and a real datamosh between two video files (npm run video:datamosh).",
     usage: '"transition": { "kind": "glitch", "intensity": 0.7 } · npm run video:datamosh -- a.mp4 b.mp4 --out=mosh.mp4 --mosh=36' },
+  { id: "VE1.10", name: "Jump cuts", group: "Transitions", rank: "P1", status: "built", story: "video-production-promo-moves--jump-cuts",
+    what: "A talking head with its pauses taken out and every other long stretch pushed in, so each cut reads as a new angle; subtitles retimed to the cut.",
+    usage: "npm run video:jumpcut -- talk.mp4 --out=cut.mp4 --punch=1.12 --srt=talk.srt" },
   { id: "VE1.1", name: "Beat hits", group: "Animation and type", rank: "P1", status: "built", story: "video-production-promo-moves--beat-hits",
     what: "A punch zoom, a camera shake, an RGB split, a zoom blur or a flash on each beat of a bed with a declared tempo, on its loud onsets, or on moments; patterns combine (punch on the kick, shake on the snare).",
     usage: '"hits": [{ "kind": ["punch", "blur"], "beats": { "bed": "drums", "every": 2 } }, { "kind": "shake", "beats": { "bed": "drums", "every": 2, "phase": 1 } }] · bed "bpm": 110' },
@@ -122,6 +125,9 @@ export const PROMO_MOVES: readonly PromoMove[] = [
  * to use it. `catalogPromoMoves` (src/catalog/catalog-effects.ts) joins it to the table above, so search and the Progress story agree. */
 export interface PromoMoveSearch { registryItem: string; jobs: readonly string[]; keywords: readonly string[]; avoid: string }
 export const PROMO_MOVE_SEARCH: Readonly<Record<string, PromoMoveSearch>> = {
+  "VE1.10": { registryItem: "film-document", jobs: ["tighten a talking head", "remove pauses"], keywords: ["jump cut", "silence removal", "remove silence", "auto cut", "punch in", "zoom cut",
+    "talking head", "retention editing", "dead air", "pause removal", "vlog edit", "subtitle retime"],
+    avoid: "Over-cut talks feel breathless; keep a breath (--keep) and do not push in on every cut." },
   "VE1.9": { registryItem: "film-document", jobs: ["break the picture on a cut", "lo-fi digital transition"], keywords: ["glitch", "glitch transition", "datamosh", "data moshing", "pixel bleed",
     "rgb split", "digital distortion", "signal loss", "vhs glitch", "compression artifacts", "transition", "music video"],
     avoid: "One or two per film; a glitch on every cut reads as broken. The datamosh needs two video files." },
