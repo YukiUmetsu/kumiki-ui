@@ -227,5 +227,5 @@ Every prop is a keyed bone and the hands reach for its grip points, so a test ca
 - Leaves, petals and food turn in depth by projection of a flat plate; they have no thickness or curl.
 - `drape` colliders are capsules in the picture plane; a lock may cut a round collider by its chord's sagitta (about 3 px on the 360 px person's shoulder). A body lying on its own hair is not modelled: the hair passes beside it. Ukiyo-e figures settle their long hair with the same solver in profile and three-quarter view, without momentum; riso, ink, crayon and watercolour characters draw their own hair. Hair lying toward or away from the viewer, on the floor or while it swings from one side to the other, is drawn shorter. In a roll it swings about as fast as the trunk turns (58 px a frame on the 360 px person, against 50), and for a few frames it is hidden behind the head. The first frames of a walk or a run start in the middle of the swing.
 - Gaits assume flat ground at `ground`; no slopes or stairs. Quadruped legs are two-segment chains with a curling foot.
-- Older style-specific character systems (crayon, ink, watercolour, riso characters, the collage puppet) are not
+- Older style-specific character systems (crayon, watercolour, riso characters, the collage puppet) are not
   migrated; RIG1 is the recommended base for new work.
