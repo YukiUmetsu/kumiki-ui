@@ -7,8 +7,10 @@ import { FrameAccurateClip } from "./frame-accurate-clip";
 import { createVideoElementAdapter } from "./frame-clip-adapters";
 import type { ClipFrameAdapter } from "./frame-clip-adapters";
 import type { FilmFootageContent } from "./film-document";
-import type { FilmFootageSubject } from "./film-subject";
-import { trailCopies } from "./film-subject";
+import type { FilmFootageReframe, FilmFootageSubject } from "./film-subject";
+import { footageFrameAt, footagePlacement, footageReframe, trailCopies } from "./film-subject";
+import { reframeCrop } from "./subject-reframe";
+import type { ReframePlan } from "./subject-reframe";
 import { freezeGrade } from "./film-freeze-react";
 
 /** The outline around a cutout: its solid part (alpha over about 0.3, so a model's faint haze over shadows gets no line) grown by `px` (a
@@ -47,6 +49,15 @@ function TintFilter({ id, color }: { id: string; color: string }) {
   </svg>;
 }
 
+/** Each reframe's plan per output size and played range: planned once, then read every frame. */
+const PLANS = new WeakMap<FilmFootageReframe, Map<string, ReframePlan | undefined>>();
+function plannedReframe(reframe: FilmFootageReframe, video: FilmFootageContent["video"], first: number, last: number, box: { width: number; height: number }) {
+  const plans = PLANS.get(reframe) ?? new Map<string, ReframePlan | undefined>(), key = `${box.width}x${box.height}:${first}-${last}`;
+  PLANS.set(reframe, plans);
+  if (!plans.has(key)) plans.set(key, footageReframe(reframe, video, first, last, box));
+  return plans.get(key);
+}
+
 /** The cutout's placement: the footage's own timing, in the cutout's frames (`offset` into the footage), `delay` frames behind. */
 function cutoutPlacement(subject: FilmFootageSubject, content: FilmFootageContent, durationFrames: number, delay = 0) {
   const c = subject.cutout;
@@ -62,9 +73,13 @@ export function FootageScene({ content, frame, fps, durationFrames, width, heigh
   SOURCES.set(v.id, v.src);
   if (subject) SOURCES.set(subject.cutout.id, subject.cutout.src);
   const [p0, p1] = content.push ?? [1, 1.06], t = clamp01(frame / Math.max(1, durationFrames - 1)), scale = reducedMotion ? p0 : p0 + (p1 - p0) * (t * t * (3 - 2 * t) * .4 + t * .6);
-  const focus = content.focus ?? { x: .5, y: .5 }, short = Math.min(width, height), title = content.title;
-  const placement = { id: `footage-${v.id}`, source: { id: v.id, width: v.width, height: v.height, frameCount: v.frameCount, fps: { num: Math.round(v.fps * 1000), den: 1000 }, licenseRef: v.licenseRef },
-    startFrame: 0, durationFrames, timing: { trimIn: content.from ?? 0, rate: content.rate ?? 1, end: "hold" as const } };
+  const short = Math.min(width, height), title = content.title;
+  const placement = footagePlacement(v, content.from ?? 0, content.rate ?? 1, durationFrames);
+  // A reframe: the crop that follows the subject in this output's shape, and the push centred on the subject inside it.
+  const first = footageFrameAt(placement, 0, fps), now = footageFrameAt(placement, frame, fps);
+  const plan = content.reframe && plannedReframe(content.reframe, v, first, footageFrameAt(placement, durationFrames - 1, fps), { width, height });
+  const crop = plan && reframeCrop(plan, now - first), row = crop && content.reframe!.track[now - (content.reframe!.offset ?? 0)];
+  const focus = crop ? { x: row ? clamp01((row[4] - crop.x) / crop.width) : .5, y: row ? clamp01((row[5] - crop.y) / crop.height) : .5 } : content.focus ?? { x: .5, y: .5 };
   let words: ReactNode;
   if (title) {
     const until = title.until ?? durationFrames, leave = clamp01((until - frame) / 8), place = title.place ?? "bottom";
@@ -91,9 +106,12 @@ export function FootageScene({ content, frame, fps, durationFrames, width, heigh
   // A whole-frame echo: earlier frames of the footage over the current one, oldest first; each at half the strength of a trail copy, so
   // the live picture stays the clearest.
   const echoes = content.echo ? trailCopies({ copies: content.echo.copies ?? 4, spacing: content.echo.spacing ?? 2, fade: content.echo.fade ?? .6 }) : [];
-  const layer: CSSProperties = { position: "absolute", inset: 0 }, framing = { fit: "cover" as const, focus }, push: CSSProperties = { ...layer, transform: `scale(${scale})`, transformOrigin: `${focus.x * 100}% ${focus.y * 100}%` };
+  const layer: CSSProperties = { position: "absolute", inset: 0 }, push: CSSProperties = { ...layer, transform: `scale(${scale})`, transformOrigin: `${focus.x * 100}% ${focus.y * 100}%` };
+  // The crop is in the footage's pixels; a cutout of another size takes it scaled to its own.
+  const framingFor = (source: { width: number }) => crop ? { fit: "cover" as const, crop: { x: crop.x * source.width / v.width, y: crop.y * source.width / v.width, width: crop.width * source.width / v.width, height: crop.height * source.width / v.width } }
+    : { fit: "cover" as const, focus };
   const clip = (key: string, place: typeof placement, description: string, style?: CSSProperties) =>
-    <FrameAccurateClip key={key} data-km-footage-layer={key} placement={place} frame={frame} fps={fps} adapter={shared()} width={width} height={height} framing={framing} description={description} style={{ ...layer, ...style }} />;
+    <FrameAccurateClip key={key} data-km-footage-layer={key} placement={place} frame={frame} fps={fps} adapter={shared()} width={width} height={height} framing={framingFor(place.source)} description={description} style={{ ...layer, ...style }} />;
   const echoLayers = echoes.map(copy => clip(`echo-${copy.delay}`, { ...placement, id: `${placement.id}-echo-${copy.delay}`, timing: { ...placement.timing, trimIn: placement.timing.trimIn - copy.delay } }, "", { opacity: copy.opacity * .5 }));
   if (!subject) return <div role="img" aria-label={content.label} data-km-footage={v.id} style={{ ...layer, overflow: "hidden", background: "#07090c" }}>
     <div style={push}>{clip("footage", placement, content.label)}{echoLayers}</div>

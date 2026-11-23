@@ -1,6 +1,9 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type { CompiledFilm, FilmDocument } from "../../registry/video/film-document";
+import type { CompiledFilm, FilmDocument, FilmFootageContent } from "../../registry/video/film-document";
+import { FilmStage } from "../../registry/video/film-stage";
+import { footageFrameAt, footagePlacement, footageReframe } from "../../registry/video/film-subject";
+import { reframeCrop } from "../../registry/video/subject-reframe";
 import { compileExample, FilmCompare } from "./promo-moves/film-compare";
 import { PROMO_MOVES } from "./promo-moves/progress";
 import type { MoveGroup, MoveStatus } from "./promo-moves/progress";
@@ -37,6 +40,7 @@ import glitchExample from "../../examples/film/glitch.film.json";
 import teacherTalk from "../../examples/film/assets/footage/teacher-talk.mp4?url";
 import teacherCut from "../../examples/film/assets/footage/teacher-talk-jumpcut.mp4?url";
 import teacherCutReport from "../../examples/film/assets/footage/teacher-talk-jumpcut.json";
+import reframeExample from "../../examples/film/reframe.film.json";
 
 const STATUS: Record<MoveStatus, { label: string; color: string }> = {
   built: { label: "Built", color: "#5bd6a0" }, "in-progress": { label: "In progress", color: "#ffc857" }, planned: { label: "Planned", color: "#6b7686" },
@@ -639,6 +643,64 @@ export const JumpCuts: StoryObj = {
         (a single word) keeps the framing before it. <code>--srt</code> retimes a subtitle file to the cut. This demo has no transcript, so
         it plays without captions. Clip: <a href="https://commons.wikimedia.org/wiki/File:Interview_with_a_Teacher_-_Glen_Caruso.webm" style={{ color: "#7cc6ff" }}>Interview
         with a Teacher - Glen Caruso</a> by Chase Bohannon and Glen Caruso, CC0.
+      </p>
+    </div>;
+  },
+};
+
+const reframeDoc = reframeExample as unknown as FilmDocument;
+/** A deer wading across a river, filmed on a long lens that follows it loosely, made vertical. Left, the whole landscape clip with the
+ * vertical crop drawn on it; then the vertical film, whose crop follows the deer (`reframe`); then a plain centre crop, as Kumiki cropped
+ * before. */
+export const SubjectReframe: StoryObj = {
+  render: function SubjectReframe() {
+    const scene = reframeDoc.scenes[0], content = scene.content as FilmFootageContent, fps = reframeDoc.fps;
+    const films = useMemo(() => ({
+      source: compileExample({ ...reframeDoc, outputs: [{ id: "source", width: 480, height: Math.round(480 * content.video.height / content.video.width) }] }, "source"),
+      reframed: compileExample(reframeDoc),
+      centre: compileExample({ ...reframeDoc, scenes: reframeDoc.scenes.map(item => ({ ...item, content: { ...item.content as object, reframe: undefined } })) } as unknown as FilmDocument),
+    }), [content]);
+    const placement = useMemo(() => footagePlacement(content.video, content.from ?? 0, content.rate ?? 1, scene.durationFrames), [content, scene]);
+    const first = footageFrameAt(placement, 0, fps), plan = useMemo(() => footageReframe(content.reframe!, content.video, first, footageFrameAt(placement, scene.durationFrames - 1, fps), { width: 360, height: 640 })!, [content, first, placement, scene, fps]);
+    const [frame, setFrame] = useState(0), [playing, setPlaying] = useState(false), clock = useRef({ from: 0, at: 0 }), last = films.reframed.durationFrames - 1;
+    useEffect(() => {
+      if (!playing) return;
+      clock.current = { from: performance.now(), at: frame };
+      let id = 0;
+      const tick = (now: number) => { const next = Math.floor(clock.current.at + (now - clock.current.from) / 1000 * fps.num / fps.den); if (next >= last) { setFrame(last); setPlaying(false); return; } setFrame(next); id = requestAnimationFrame(tick); };
+      id = requestAnimationFrame(tick);
+      return () => cancelAnimationFrame(id);
+    }, [playing]); // eslint-disable-line react-hooks/exhaustive-deps
+    const crop = reframeCrop(plan, footageFrameAt(placement, frame, fps) - first), k = 480 / content.video.width;
+    const panel = (film: CompiledFilm, width: number, height: number) => <div style={{ position: "relative", width, height, borderRadius: 8, overflow: "hidden", background: "#000" }}>
+      <FilmStage film={film} frame={frame} renderObject={() => null} reducedMotion={false} /></div>;
+    const caption = { marginTop: 6, color: "#9aa4b2", maxWidth: 360 } as const;
+    return <div style={{ display: "grid", gap: 14, padding: 16, background: "#0b0d10", color: "#e8ecf2", font: "14px system-ui", minHeight: "100vh", alignContent: "start" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <button type="button" onClick={() => { if (frame >= last) setFrame(0); setPlaying(p => !p); }} style={{ font: "650 14px system-ui", padding: "8px 16px", borderRadius: 8, border: 0, background: "#7cc6ff", color: "#06121f" }}>{playing ? "Pause" : "Play"}</button>
+        <input type="range" min={0} max={last} value={frame} onChange={event => { setPlaying(false); setFrame(Number(event.target.value)); }} aria-label="Film frame" style={{ width: 360 }} />
+        <span style={{ font: "600 13px ui-monospace, monospace", color: "#9aa4b2" }}>{(frame * fps.den / fps.num).toFixed(2)} s · f{frame}</span>
+      </div>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}>
+        <figure style={{ margin: 0 }}>
+          <div style={{ position: "relative" }}>
+            {panel(films.source, 480, films.source.height)}
+            <svg width={480} height={films.source.height} aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+              <rect x={crop.x * k} y={crop.y * k} width={crop.width * k} height={crop.height * k} fill="none" stroke="#7cc6ff" strokeWidth={3} />
+            </svg>
+          </div>
+          <figcaption style={{ ...caption, maxWidth: 480 }}>The whole clip. Blue: the vertical crop, a {plan.mode} move planned over the whole clip.</figcaption>
+        </figure>
+        <figure style={{ margin: 0 }}>{panel(films.reframed, 360, 640)}
+          <figcaption style={caption}>Reframed: the crop follows the deer, at most {plan.speed.toFixed(2)} crop widths a second.</figcaption></figure>
+        <figure style={{ margin: 0 }}>{panel(films.centre, 360, 640)}
+          <figcaption style={caption}>Centre crop (before): the middle of the picture, wherever the deer is.</figcaption></figure>
+      </div>
+      <p style={{ margin: 0, maxWidth: 1000, color: "#9aa4b2", font: "13px/1.55 system-ui" }}>
+        <code>npm run video:reframe</code> reads the deer's place in every frame from its cutout (<code>npm run video:matte</code>) and plans
+        the crop for the whole clip before it moves, choosing a still, panning or tracking crop. A tracking crop sees what comes, so it starts to
+        move before the deer reaches its edge. Clip: <a href="https://commons.wikimedia.org/wiki/File:Deer_walks_across_Owyhee_River,_eastern_Oregon_(22197216555).webm" style={{ color: "#7cc6ff" }}>Deer
+        walks across Owyhee River, eastern Oregon</a> by Larry Moore, BLM Oregon &amp; Washington: a U.S. government work in the public domain.
       </p>
     </div>;
   },

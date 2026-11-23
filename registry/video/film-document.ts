@@ -70,10 +70,10 @@ import type { FilmDither, FilmDitherSpec, FilmMatte, FilmMatteSpec } from "./fil
 import { compileStutter, stutterExtra } from "./film-stutter";
 import { inspectLens } from "./film-lens";
 import { inspectSpinCut, SPIN_FRAMES, ZOOM_BLUR_FRAMES } from "./film-spin";
-import { inspectSubject } from "./film-subject";
+import { footageFrameAt, footagePlacement, inspectReframe, inspectSubject } from "./film-subject";
 import { compileFreeze, freezeExtra, FREEZE_CARD_IN } from "./film-freeze";
 import type { FilmFreeze, FilmFreezeSpec } from "./film-freeze";
-import type { FilmFootageSubject } from "./film-subject";
+import type { FilmFootageReframe, FilmFootageSubject } from "./film-subject";
 import type { FilmSpinCut } from "./film-spin";
 import { GLITCH_FRAMES, inspectGlitch } from "./film-glitch";
 import type { FilmGlitchCut } from "./film-glitch";
@@ -252,6 +252,9 @@ export interface FilmFootageContent {
   /** The subject cut out of this footage (`npm run video:matte`): words behind it, an outline, a new background, clones. See
    * `film-subject.ts`. */
   subject?: FilmFootageSubject;
+  /** A crop that follows the subject in an output of another shape, such as a vertical output of a landscape clip (VE1.12). See
+   * `film-subject.ts`. */
+  reframe?: FilmFootageReframe;
   /** A whole-frame echo: earlier frames of the footage over the current one, fading with age, so everything that moves leaves a ghost
    * (VE1.8). `copies` 2 to 12 (default 4), `spacing` 1 to 6 frames (default 2), `fade` 0.3 to 0.9 (default 0.6). For the subject alone, use
    * `subject.trail`. */
@@ -820,6 +823,10 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
           if (readingWords(title.text) > 7) report("warning", "footage-title-long", at + "/title/text", "Over seven words: footage carries a line, not a paragraph.");
         }
         if (content.subject) for (const item of inspectSubject(content.subject, v, Boolean(title), at + "/subject")) report(item.severity, item.code, item.path, item.message, item.hint);
+        if (content.reframe && rate > 0 && rate <= 8) {
+          const clip = footagePlacement(v, content.from ?? 0, rate, scene.durationFrames), first = footageFrameAt(clip, 0, doc.fps), last = footageFrameAt(clip, scene.durationFrames - 1, doc.fps);
+          for (const item of inspectReframe(content.reframe, v, first, last, size, at + "/reframe")) report(item.severity, item.code, item.path, item.message, item.hint);
+        }
         const echo = content.echo;
         if (echo && !((echo.copies === undefined || (Number.isSafeInteger(echo.copies) && echo.copies >= 2 && echo.copies <= 12)) && (echo.spacing === undefined || (Number.isSafeInteger(echo.spacing) && echo.spacing >= 1 && echo.spacing <= 6))
           && (echo.fade === undefined || (echo.fade >= .3 && echo.fade <= .9)))) report("error", "footage-echo", at + "/echo", "An echo has 2 to 12 copies, 1 to 6 frames apart, each fading by 0.3 to 0.9.");
