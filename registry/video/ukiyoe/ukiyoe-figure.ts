@@ -601,19 +601,27 @@ export function isFemaleHair(hair: string | undefined): boolean {
 function longHairSide(s: Skeleton, tilt: number, flip: number, headBack: number, k: number, H: number, backTop: Pt, knot: boolean, floor: number, wind: number, frame: number, seed: number,
   hairC: UkiyoePaint, lw: number): Prim[] {
   // The back of the head; looking behind, the hair still falls from the nape.
-  const lx = lerp(-11.5 * flip, -3, headBack) * k, ly = lerp(-7, 10, headBack) * k, ct = Math.cos(tilt * DEG), st = Math.sin(tilt * DEG);
+  const lx = lerp(-8.5 * flip, -3, headBack) * k, ly = lerp(1, 10, headBack) * k, ct = Math.cos(tilt * DEG), st = Math.sin(tilt * DEG);
   const root: Pt = add(s.head, [lx * ct - ly * st, lx * st + ly * ct]);
-  const N = 9, step = 96 * k / N, gust = wind * 10 + Math.sin(frame / 20 + seed) * 2, hang: Pt[] = [root];
-  // It hangs along the back of a leaning body, sagging onto it. As a bow deepens the body lets go first (60-70 degrees of lean), and only then
-  // does the hair swing down past the head (70-88), so nothing changes at once.
-  const along = s.lean * lerp(.85, 1, smooth((Math.abs(s.lean) - 35) / 23)) * (1 - smooth((Math.abs(s.lean) - 70) / 18));
-  for (let i = 0; i < N; i++) { const a = (2 + along + gust * .9 * (.35 + i / N)) * DEG; hang.push(add(hang[i], [-Math.sin(a) * step, Math.cos(a) * step])); }
-  const back: Pt = [-Math.cos(s.lean * DEG), -Math.sin(s.lean * DEG)], half = 5 * k, hold = 1 - smooth((Math.abs(s.lean) - 60) / 10), rho = H * .05;
-  const inward = (q: Pt, r: number): Pt => add(q, [-back[0] * r, -back[1] * r]);
-  const bodies = [
-    { a: inward(backTop, rho), b: inward(s.waistB, rho), r: rho },
+  const N = 12, step = 96 * k / N, gust = wind * 10 + Math.sin(frame / 20 + seed) * 2, half = 5 * k;
+  const back: Pt = [-Math.cos(s.lean * DEG), -Math.sin(s.lean * DEG)], out = (q: Pt, r: number): Pt => add(q, [back[0] * r, back[1] * r]);
+  // Its rest line is drawn on the body: the back of the head, the shoulder, down the back, out over the obi knot, then
+  // straight down. It moves with the body, so the hair touches the back at any lean.
+  const waist = out(s.waistB, half + (knot ? H * .035 * Math.max(0, Math.cos(s.lean * DEG)) ** 2 : H * .004));
+  let rest: Pt[] = [root, out(backTop, half), lerp2(out(backTop, half), out(s.waistB, half), .55), waist, add(waist, [-Math.sin(s.lean * .3 * DEG) * H * .3, Math.cos(s.lean * .3 * DEG) * H * .3])];
+  for (let c = 0; c < 3; c++) rest = [rest[0], ...rest.slice(1).flatMap((q, i): Pt[] => [lerp2(rest[i], q, .25), lerp2(rest[i], q, .75)]), rest[rest.length - 1]];
+  const heading = (p: Pt, q: Pt) => Math.atan2(-(q[0] - p[0]), q[1] - p[1]) / DEG;
+  // Past 60-70 degrees of lean the body lets go, and only then does the hair swing down past the head (70-88).
+  const hold = 1 - smooth((Math.abs(s.lean) - 60) / 10), fall = smooth((Math.abs(s.lean) - 70) / 18), hang: Pt[] = [root];
+  for (let i = 0; i < N; i++) {
+    const on = heading(alongPath(rest, i * step), alongPath(rest, (i + 1) * step)), free = 2 + gust * .9 * (.35 + i / N);
+    // Wind from the front lifts the hair off the back a little more toward the tips.
+    const a = (lerp(on, free, fall) + (1 - fall) * Math.max(0, gust) * 1.5 * (i / N)) * DEG;
+    hang.push(add(hang[i], [-Math.sin(a) * step, Math.cos(a) * step]));
+  }
+  const rho = H * .05, bodies = [
+    { a: out(backTop, -rho), b: out(s.waistB, -rho), r: rho },
     { a: add(s.shB, [0, H * .012]), b: add(s.shF, [0, H * .012]), r: H * .026 },
-    ...(knot ? [{ a: inward(s.waistB, -H * .012), b: inward(s.waistB, -H * .012), r: H * .03 }] : []),
   ];
   const line = settleStrand(hang, bodies.map(c => ({ ...c, side: back, r: (c.r + half) * hold })).filter(c => c.r > 0), { floor: floor - half * .5, floorSide: -1 });
   const left: Pt[] = [], right: Pt[] = [];
