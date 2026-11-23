@@ -70,6 +70,8 @@ import type { FilmDither, FilmDitherSpec, FilmMatte, FilmMatteSpec } from "./fil
 import { compileStutter, stutterExtra } from "./film-stutter";
 import { inspectLens } from "./film-lens";
 import { inspectSpinCut, SPIN_FRAMES, ZOOM_BLUR_FRAMES } from "./film-spin";
+import { inspectSubject } from "./film-subject";
+import type { FilmFootageSubject } from "./film-subject";
 import type { FilmSpinCut } from "./film-spin";
 import type { FilmLens, FilmLensSpec } from "./film-lens";
 import type { FilmStutter } from "./film-stutter";
@@ -238,8 +240,12 @@ export interface FilmFootageContent {
   push?: readonly [number, number];
   /** The point kept in view when the frame crops the clip, as fractions. @default the centre */
   focus?: { x: number; y: number };
+  /** The subject cut out of this footage (`npm run video:matte`): words behind it, an outline, a new background, clones. See
+   * `film-subject.ts`. */
+  subject?: FilmFootageSubject;
   /** Words over the footage, landing word by word at `at` and leaving at `until` (or the scene's end). */
-  title?: { text: string; at: number; until?: number; place?: "top" | "middle" | "bottom"; size?: "large" | "huge"; emphasis?: string };
+  title?: { text: string; at: number; until?: number; place?: "top" | "middle" | "bottom";
+    /** `giant` fills most of the frame's width: a word or two for a subject to stand in front of (`subject.behind`). */ size?: "large" | "huge" | "giant"; emphasis?: string };
 }
 export interface FilmFootageScene extends FilmSceneBase { recipeId: "footage"; content: FilmFootageContent }
 /** A scene the host draws by name, for work no recipe covers (a bespoke 3D set, a branded animation). The film times, cuts, casts and
@@ -795,6 +801,7 @@ export function compileFilm(input: unknown, options: FilmCompileOptions = {}): F
           else if (((title.until ?? scene.durationFrames) - title.at) / fps < readingSeconds(title.text)) report("warning", "footage-title-short", at + "/title", `"${title.text}" is on screen for less than its reading time.`, `Give it ${readingSeconds(title.text).toFixed(1)} s.`);
           if (readingWords(title.text) > 7) report("warning", "footage-title-long", at + "/title/text", "Over seven words: footage carries a line, not a paragraph.");
         }
+        if (content.subject) for (const item of inspectSubject(content.subject, v, Boolean(title), at + "/subject")) report(item.severity, item.code, item.path, item.message, item.hint);
       }
       if (!hasProblem(path)) compiled.push({ kind: "footage", recipeId: "footage", id: scene.id, startFrame, endFrame, content,
         cues: [{ id: "start", frame: startFrame }, ...content.title ? [{ id: "title", frame: startFrame + content.title.at }] : []], ...placed(scene, {}, path) });

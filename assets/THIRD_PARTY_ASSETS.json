@@ -3285,5 +3285,23 @@
   "intendedUse": "storybook-demo",
   "redistributionVerified": true,
   "attributionRequired": false
+ },
+ {
+  "id": "commons-peacock-walking-cc0",
+  "assetPath": "examples/film/assets/footage/peacock-walk.mp4",
+  "name": "Peacock walking and eating",
+  "creator": "Mx. Granger (Wikimedia Commons)",
+  "sourceUrl": "https://commons.wikimedia.org/wiki/File:Peacock_walking_and_eating.webm",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "acquiredOn": "2026-11-18",
+  "modifications": [
+   "trimmed to 4 s from 1.5 s, held to 30 fps, scaled to 960x540, H.264 re-encoded, audio removed",
+   "peacock-walk-cutout.webm: the peacock cut out of the trimmed clip by npm run video:matte (IS-Net, Apache-2.0 weights), VP9 with alpha"
+  ],
+  "intendedUse": "storybook-demo",
+  "redistributionVerified": true,
+  "attributionRequired": false,
+  "notes": "Commons file page licence: CC0. The cutout is a derivative of the CC0 clip."
  }
 ]
