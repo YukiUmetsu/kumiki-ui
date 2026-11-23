@@ -100,7 +100,41 @@ test("Courier internal face paper clearance remains intact over body and props",
       await expect(stage).toHaveAttribute("data-km-riso-performance-frame",String(frame));
       // Each independent ink plate subtracts earlier body ink from the
       // paper-backed face before drawing facial ink. No alpha blending.
-      await expect(stage.locator('mask:has([data-km-riso-paper-clearance="face"])')).toHaveCount(2);
+      // RISO24-RISO58 (e013d050, 24fa578e, 179bef6e, 532cdf14) added clearances
+      // for neck, wrists, cap and glove, so each plate now has one mask for every
+      // run of ink between two clearances instead of a single one.
+      const plates=await stage.locator('[data-km-riso-character="courier"]').evaluateAll(nodes=>
+        nodes.map(actor=>{
+          const runs=[...actor.querySelectorAll(":scope > [data-km-riso-ink-segment]")].map(run=>{
+            const id=/^url\(#(.+)\)$/.exec(run.getAttribute("mask")??"")?.[1];
+            const mask=id?actor.querySelector("mask#"+CSS.escape(id)):null;
+            if(id&&!mask)throw new Error("Ink run points to a missing mask");
+            const face=mask?.querySelector('[data-km-riso-paper-clearance="face"]');
+            return {clearsFace:!!face,solid:!face||face.getAttribute("fill")==="black"&&
+                !face.hasAttribute("opacity")&&mask!.querySelector("rect")?.getAttribute("fill")==="white",
+              parts:[...run.querySelectorAll("[data-km-riso-part]")]
+                .map(part=>part.getAttribute("data-km-riso-part")!)};
+          });
+          const faceMasks=actor.querySelectorAll('mask:has([data-km-riso-paper-clearance="face"])').length;
+          return {plate:actor.closest("[data-km-riso-foreground-plate]")
+            ?.getAttribute("data-km-riso-foreground-plate"),runs,faceMasks};
+        }));
+      expect(plates.map(p=>p.plate).sort()).toEqual(["blue","red"]);
+      for(const {plate,runs,faceMasks} of plates){
+        const first=runs.findIndex(run=>!run.clearsFace);
+        // The masked runs come first and are contiguous; facial ink follows them.
+        expect(first,plate+" has body ink under the face").toBeGreaterThan(0);
+        expect(runs.slice(first).every(run=>!run.clearsFace)).toBe(true);
+        expect(runs.every(run=>run.solid),plate+" clearance is solid paper").toBe(true);
+        expect(faceMasks).toBe(first);
+        const under=new Set(runs.slice(0,first).flatMap(run=>run.parts));
+        const over=new Set(runs.slice(first).flatMap(run=>run.parts));
+        const [body,ink]=plate==="blue"?
+          [["right-thigh","coat","left-forearm","satchel-buckle"],["face-outline","eye-line","nose"]]:
+          [["right-boot-detail","coat-buttons","satchel-ink"],["cheek","mouth"]];
+        for(const part of body)expect(under.has(part),plate+" "+part+" is cleared").toBe(true);
+        for(const part of ink)expect(over.has(part),plate+" "+part+" prints on the face").toBe(true);
+      }
       await expect(stage.locator('[data-km-riso-character="courier"] [data-km-riso-part="mouth"]')).toHaveCount(1);
       await stage.screenshot({path:info.outputPath(
         "riso-face-clearance-"+aspect+"-f"+String(frame).padStart(3,"0")+".png"
