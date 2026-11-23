@@ -598,8 +598,10 @@ export function isFemaleHair(hair: string | undefined): boolean {
  * on the shoulders, the back and the obi knot (`settleStrand`), so it lies over the robe instead of going into it. A body
  * bowed past 70 degrees lets go of it, and it swings down past the head.
  */
-function longHairSide(s: Skeleton, tilt: number, flip: number, headBack: number, k: number, H: number, backTop: Pt, knot: boolean, floor: number, wind: number, frame: number, seed: number,
+function longHairSide(s: Skeleton, tilt: number, flip: number, headBack: number, k: number, H: number, backEdge: Pt, view: number, knot: boolean, floor: number, wind: number, frame: number, seed: number,
   hairC: UkiyoePaint, lw: number): Prim[] {
+  // Turned toward us (three-quarter), the hair lies on the part of the back we see, inside its far edge.
+  const inset = H * .034 * view, backTop = add(backEdge, [inset, inset * .5]), waistB = add(s.waistB, [inset * .6, 0]);
   // The back of the head; looking behind, the hair still falls from the nape.
   const lx = lerp(-8.5 * flip, -3, headBack) * k, ly = lerp(1, 10, headBack) * k, ct = Math.cos(tilt * DEG), st = Math.sin(tilt * DEG);
   const root: Pt = add(s.head, [lx * ct - ly * st, lx * st + ly * ct]);
@@ -607,8 +609,8 @@ function longHairSide(s: Skeleton, tilt: number, flip: number, headBack: number,
   const back: Pt = [-Math.cos(s.lean * DEG), -Math.sin(s.lean * DEG)], out = (q: Pt, r: number): Pt => add(q, [back[0] * r, back[1] * r]);
   // Its rest line is drawn on the body: the back of the head, the shoulder, down the back, out over the obi knot, then
   // straight down. It moves with the body, so the hair touches the back at any lean.
-  const waist = out(s.waistB, half + (knot ? H * .035 * Math.max(0, Math.cos(s.lean * DEG)) ** 2 : H * .004));
-  let rest: Pt[] = [root, out(backTop, half), lerp2(out(backTop, half), out(s.waistB, half), .55), waist, add(waist, [-Math.sin(s.lean * .3 * DEG) * H * .3, Math.cos(s.lean * .3 * DEG) * H * .3])];
+  const waist = out(waistB, half + (knot ? H * .035 * Math.max(0, Math.cos(s.lean * DEG)) ** 2 : H * .004));
+  let rest: Pt[] = [root, out(backTop, half), lerp2(out(backTop, half), out(waistB, half), .55), waist, add(waist, [-Math.sin(s.lean * .3 * DEG) * H * .3, Math.cos(s.lean * .3 * DEG) * H * .3])];
   for (let c = 0; c < 3; c++) rest = [rest[0], ...rest.slice(1).flatMap((q, i): Pt[] => [lerp2(rest[i], q, .25), lerp2(rest[i], q, .75)]), rest[rest.length - 1]];
   const heading = (p: Pt, q: Pt) => Math.atan2(-(q[0] - p[0]), q[1] - p[1]) / DEG;
   // Past 60-70 degrees of lean the body lets go, and only then does the hair swing down past the head (70-88).
@@ -620,7 +622,7 @@ function longHairSide(s: Skeleton, tilt: number, flip: number, headBack: number,
     hang.push(add(hang[i], [-Math.sin(a) * step, Math.cos(a) * step]));
   }
   const rho = H * .05, bodies = [
-    { a: out(backTop, -rho), b: out(s.waistB, -rho), r: rho },
+    { a: out(backTop, -rho), b: out(waistB, -rho), r: rho },
     { a: add(s.shB, [0, H * .012]), b: add(s.shF, [0, H * .012]), r: H * .026 },
   ];
   const line = settleStrand(hang, bodies.map(c => ({ ...c, side: back, r: (c.r + half) * hold })).filter(c => c.r > 0), { floor: floor - half * .5, floorSide: -1 });
@@ -1303,7 +1305,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
   // Profile or three-quarter: the head narrows as it swings round and the drawing changes at the midpoint.
   const view = look.face === "oni" ? 0 : clamp01((look.view === "three-quarter" ? 1 : 0) + pose.faceView * (look.view === "three-quarter" ? -1 : 1));
   const swing = view > 0 && view < 1 ? Math.max(.62, Math.abs(Math.cos(Math.PI * view))) : 1;
-  if (look.hair === "long") out.push(...longHairSide(s, tilt * headFlip, 1, pose.headBack, k, H, backTop, !maeObi && !darari, gh, wl, frame, seed, look.hairColor ?? "sumi", lineW(H) * .85));
+  if (look.hair === "long") out.push(...longHairSide(s, tilt * headFlip, 1, pose.headBack, k, H, backTop, view, !maeObi && !darari, gh, wl, frame, seed, look.hairColor ?? "sumi", lineW(H) * .85));
   if (look.beads) out.push(...magatama(add(s.neck, [H * .005, H * .03]), H, lw));
   out.push({ t: "group", transform: `translate(${s.head[0].toFixed(2)} ${s.head[1].toFixed(2)}) rotate(${(tilt * headFlip).toFixed(2)}) scale(${(headFlip * swing).toFixed(3)} 1)`, prims: headPrims(look, pose, k, H, wl * headFlip, frame, seed, view >= .5) });
 
