@@ -114,10 +114,10 @@ function addLongHair(rig: Rig, motion: string) {
   rig.drivers.push(
     { type: "chain", bones, amplitude: run ? 4 : 1.6, period: run ? 22 : 110, lag: .45, growth: 1.2, follow: 3, bias: run ? 14 : walk ? 4 : 0 },
     // Colliders follow the back of the torso outline: the shoulder line, then the back down to the waist.
-    { type: "drape", bones, radius: 2.8 * u, hang: .85, floor: true, colliders: [
-      { bone: "head", at: [0, 0], radius: 9.6 * u },
-      { bone: "torso", at: [-3.2 * u, -24.6 * u], to: [2 * u, -24.6 * u], radius: 3.6 * u },
-      { bone: "torso", at: [-6.6 * u, -22.4 * u], to: [-5.2 * u, -4 * u], radius: 3.4 * u },
+    { type: "drape", bones, radius: 2.8 * u, hang: .85, floor: true, floorSide: [0, -1], colliders: [
+      { bone: "head", at: [0, 0], radius: 9.6 * u, side: [-1, 0] },
+      { bone: "torso", at: [-3.2 * u, -24.6 * u], to: [2 * u, -24.6 * u], radius: 3.6 * u, side: [-1, 0] },
+      { bone: "torso", at: [-6.6 * u, -22.4 * u], to: [-5.2 * u, -4 * u], radius: 3.4 * u, side: [-1, 0] },
     ] },
   );
 }

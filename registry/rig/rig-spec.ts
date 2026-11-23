@@ -233,23 +233,24 @@ export type RigDriver = RigWindow & (
       /** Roll about the particle's own length, radians per frame (petals curl and twist as they fall). */ roll?: number;
       /** Fade in and out over this many frames, default 10. */ fade?: number; seed?: number }
   /**
-   * Hanging chains that touch the body (long hair, a sash, a scarf end, a tail that lies on the floor). It runs after every
-   * other driver. First `hang` (0..1) keeps the chain pointing down when its parent tilts away from its rest pose: 1 hangs
-   * like hair or a rope, 0 turns with the parent like a tail. Then each bone, root to tip, turns the least it can so that
-   * its segment stays `radius` clear of every collider, and above the ground when `floor` is set. Bone lengths never
-   * change and nothing carries over between frames. A bone whose joint is already inside a collider (a strand growing out
-   * of the scalp, hair falling from the nape onto the shoulder) may not reach deeper into it.
+   * Hanging chains that touch the body (long hair, a sash, a scarf end). It runs after every other driver. First `hang`
+   * (0..1) keeps the chain pointing down when its parent tilts away from its rest pose: 1 hangs like hair or a rope, 0
+   * turns with the parent like a tail. Then the chain settles on the colliders, `radius` clear of them, and above the
+   * ground when `floor` is set (`rig-strand.ts`). Bone lengths never change and nothing carries over between frames.
    */
   | { type: "drape"; bones: readonly string[]; colliders?: readonly RigCollider[];
       /** Half the thickness of the strand, in design px. */ radius?: number; hang?: number; floor?: boolean;
-      /** The steepest a strand can lie on a body, degrees from straight down (default 75). A strand pushed steeper slides
-       * off beside the body in depth (a side view cannot show it going round) and the rest of the chain hangs free there,
-       * drawn behind the body by its z: long hair falls past the head in a deep bow instead of lying flat on the back. */
+      /** The way the strand lies down on the floor, in the parent's space (long hair: the crown, [0, -1]). */
+      floorSide?: readonly [number, number];
+      /** How far a body can tip before the strand slides off it, degrees from its rest pose (default 65, eased over +-10).
+       * Past it the strand hangs beside the body in depth: long hair falls past the head in a deep bow. */
       slip?: number }
 );
 
 /** A round obstacle for `drape`, in a bone's space: a capsule from `at` to `to`, or a circle when `to` is left out. */
-export interface RigCollider { bone: string; at: readonly [number, number]; to?: readonly [number, number]; radius: number }
+export interface RigCollider { bone: string; at: readonly [number, number]; to?: readonly [number, number]; radius: number;
+  /** The way the strand comes out, in the bone's space (behind the back is [-1, 0]). Left out: the nearest way. */
+  side?: readonly [number, number] }
 export type RigDriverType = RigDriver["type"];
 
 export interface RigSpec {
@@ -433,11 +434,12 @@ export function inspectRig(input: unknown): string[] {
         const pair = (v: unknown) => Array.isArray(v) && v.length === 2 && v.every(fin);
         (d.colliders ?? []).forEach((c, j) => {
           bone(c?.bone, p + ".colliders[" + j + "].bone");
-          if (!pair(c?.at) || (c.to !== undefined && !pair(c.to)) || !(fin(c.radius) && c.radius > 0)) out.push(p + ".colliders[" + j + "] needs at [x, y], an optional to [x, y] and radius > 0");
+          if (!pair(c?.at) || (c.to !== undefined && !pair(c.to)) || (c.side !== undefined && !pair(c.side)) || !(fin(c.radius) && c.radius > 0)) out.push(p + ".colliders[" + j + "] needs at [x, y], an optional to [x, y] and radius > 0");
         });
         if (!d.colliders?.length && !d.floor) out.push(p + " needs colliders or floor");
         if (d.radius !== undefined && !(fin(d.radius) && d.radius >= 0)) out.push(p + ".radius must be ≥ 0");
         if (d.hang !== undefined && !(fin(d.hang) && d.hang >= 0 && d.hang <= 1)) out.push(p + ".hang must be 0..1");
+        if (d.floorSide !== undefined && !pair(d.floorSide)) out.push(p + ".floorSide must be [x, y]");
         if (d.slip !== undefined && !(fin(d.slip) && d.slip > 0 && d.slip <= 180)) out.push(p + ".slip must be in (0, 180] degrees");
         break;
       }

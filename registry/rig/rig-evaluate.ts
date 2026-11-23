@@ -15,6 +15,7 @@
  */
 import { evaluateEasing } from "../motion/easing";
 import { flutterState, projectPlate, seeded } from "./rig-flutter";
+import { settleStrand } from "./rig-strand";
 import type { FlutterParams } from "./rig-flutter";
 import type { AffineMatrix, EasingSpec } from "../motion/types";
 import type { RigBone, RigDriver, RigKey, RigLeg, RigPart, RigRole, RigRootKey, RigShape, RigSpec, RigWindow } from "./rig-spec";
@@ -770,98 +771,48 @@ function solveTwoBone(upperId: string, lowerId: string, bend: 1 | -1, target: [n
 
 // ---- Drape -----------------------------------------------------------------------------------------------------------------------
 
-type Pt2 = readonly [number, number];
-/** Distance from p to the segment a–b. */
-function pointSegment(p: Pt2, a: Pt2, b: Pt2): number {
-  const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
-  const t = l2 ? clamp(((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2, 0, 1) : 0;
-  return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
-}
-const cross = (o: Pt2, a: Pt2, b: Pt2) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-/** Distance between the segments p0–p1 and q0–q1 (0 when they cross). */
-function segmentSegment(p0: Pt2, p1: Pt2, q0: Pt2, q1: Pt2): number {
-  if (cross(p0, p1, q0) * cross(p0, p1, q1) < 0 && cross(q0, q1, p0) * cross(q0, q1, p1) < 0) return 0;
-  return Math.min(pointSegment(p0, q0, q1), pointSegment(p1, q0, q1), pointSegment(q0, p0, p1), pointSegment(q1, p0, p1));
-}
-
 /**
- * Hang a chain under gravity, then keep it out of the colliders and the floor. Each bone turns about its joint by the
- * smallest angle that clears it, found by a 2° scan each way and refined by bisection, so the strand ends up resting on
- * the surface it was pushed into. Rotation never changes a bone's length.
+ * Hang a chain under gravity, settle it on the colliders and the floor (`rig-strand.ts`), and turn the bones to follow.
+ * Rotation never changes a bone's length.
  */
 function drape(d: Extract<RigDriver, { type: "drape" }>, w: number, ground: number, byId: Map<string, RigBone>, pose: Map<string, Pose>,
   world: Map<string, AffineMatrix>, rest: Map<string, AffineMatrix>, solve: () => void) {
   const r = d.radius ?? 0, n = d.bones.length;
   // A local turn shows mirrored in the world under a mirrored parent.
   const parentSign = (id: string) => { const p = byId.get(id)!.parent, m = p ? world.get(p)! : IDENT; return Math.sign(m.a * m.d - m.b * m.c) || 1; };
+  const tilted = (bone: string) => angleDelta(angleOf(rest.get(bone)!), angleOf(world.get(bone)!));
   const parent = byId.get(d.bones[0])!.parent;
   if (d.hang && parent) {
     // Undo the parent's tilt from rest, a share per bone, so the root still follows the head and the tip hangs straight.
-    const tilt = angleDelta(angleOf(rest.get(parent)!), angleOf(world.get(parent)!));
+    const tilt = tilted(parent);
     for (const id of d.bones) pose.get(id)!.rotate -= parentSign(id) * w * d.hang * tilt / n;
     solve();
   }
-  const caps = (d.colliders ?? []).map(c => {
-    const m = world.get(c.bone)!, a = apply(m, c.at[0], c.at[1]);
-    return { a, b: c.to ? apply(m, c.to[0], c.to[1]) : a, r: c.radius * (Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1) + r };
+  // A body tipped past `slip` no longer holds the strand: its collider fades out over +-10 degrees, so the strand slips off
+  // and hangs beside it in depth.
+  const slip = d.slip ?? 65;
+  const capsules = (d.colliders ?? []).map(c => {
+    const m = world.get(c.bone)!, hold = 1 - smooth((Math.abs(tilted(c.bone)) - slip + 10) / 20);
+    const a = apply(m, c.at[0], c.at[1]), b = c.to ? apply(m, c.to[0], c.to[1]) : a;
+    const side = c.side && [m.a * c.side[0] + m.c * c.side[1], m.b * c.side[0] + m.d * c.side[1]] as const;
+    return { a, b, side, r: hold * (c.radius * (Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1) + r) };
+  }).filter(c => c.r > 0);
+  const tipOf = (id: string) => apply(world.get(id)!, 0, byId.get(id)!.length!);
+  const hang = [apply(world.get(d.bones[0])!, 0, 0), ...d.bones.map(tipOf)];
+  const pm = parent ? world.get(parent)! : IDENT;
+  const floorSide = d.floorSide && pm.a * d.floorSide[0] + pm.c * d.floorSide[1];
+  const settled = settleStrand(hang, capsules, { floor: d.floor ? ground - r : undefined, floorSide });
+  const heading = (a: readonly [number, number], b: readonly [number, number]) => Math.atan2(-(b[0] - a[0]), b[1] - a[1]) * DEG;
+  d.bones.forEach((id, i) => {
+    const want = heading(settled[i], settled[i + 1]), from = pose.get(id)!.rotate, sign = parentSign(id);
+    // Twice, because an uneven scale above the bone (a breathing torso) skews how far one local turn goes.
+    for (let k = 0; k < 2; k++) {
+      const m = world.get(id)!;
+      pose.get(id)!.rotate += sign * angleDelta(heading([m.e, m.f], tipOf(id)), want);
+      solve();
+    }
+    if (w < 1) { pose.get(id)!.rotate = from + (pose.get(id)!.rotate - from) * w; solve(); }
   });
-  const floor = ground - r, slip = d.slip ?? 75;
-  // How far the strand has slid off the body (0..1). Sliding hangs it beside the body in depth, so from there down the
-  // bones meet only the floor. It eases in over ±10° round `slip`, so a deepening bow lets the hair go gradually.
-  let slid = 0;
-  const clear = (j: Pt2, t: Pt2, bodies: boolean) => {
-    // Like a body, a joint already under the floor may not go deeper.
-    if (d.floor && t[1] > Math.max(floor, j[1]) + 1e-6) return false;
-    // The tip stays clear (or, from a joint already inside, as when a strand grows out of the scalp, no deeper). The
-    // segment may cut a curved surface by a chord's sagitta at most, so a strand wraps over a round shoulder instead of
-    // having to leave it along the tangent; a thin collider still blocks it, as a segment through one dips far deeper.
-    return !bodies || caps.every(c => {
-      const need = Math.min(c.r, pointSegment(j, c.a, c.b)), half = Math.hypot(t[0] - j[0], t[1] - j[1]) / 2;
-      return pointSegment(t, c.a, c.b) >= need - 1e-6 && segmentSegment(j, t, c.a, c.b) >= Math.sqrt(Math.max(0, need * need - half * half)) - 1e-6;
-    });
-  };
-  const heading = (j: Pt2, t: Pt2) => Math.atan2(-(t[0] - j[0]), t[1] - j[1]) * DEG;
-  /**
-   * The smallest turn that clears the segment, each way; NaN when none does. Gravity takes the way that leaves the tip
-   * clearly lower (hair slides off a bowed back rather than lying on it). When both are about as low (a strand on the
-   * floor), the strand keeps the heading of the one above it instead of folding back.
-   */
-  const wayOut = (j: Pt2, tip: (phi: number) => Pt2, bodies: boolean, along: number, L: number) => {
-    let best = NaN;
-    for (const dir of [1, -1]) {
-      let k = 1;
-      while (k <= 90 && !clear(j, tip(dir * k * 2 / DEG), bodies)) k++;
-      if (k > 90) continue;
-      let lo = dir * (k - 1) * 2 / DEG, hi = dir * k * 2 / DEG;
-      for (let it = 0; it < 14; it++) { const mid = (lo + hi) / 2; if (clear(j, tip(mid), bodies)) hi = mid; else lo = mid; }
-      if (Number.isNaN(best)) { best = hi; continue; }
-      const drop = tip(hi)[1] - tip(best)[1];
-      if (drop > .15 * L || (Math.abs(drop) <= .15 * L && Math.abs(angleDelta(along, heading(j, tip(hi)))) < Math.abs(angleDelta(along, heading(j, tip(best)))))) best = hi;
-    }
-    return best;
-  };
-  let along = NaN;
-  for (const id of d.bones) {
-    // Tips come from the bone's own matrix chain, so a parent's uneven scale (a breathing torso) cannot skew them.
-    const b = byId.get(id)!, p = pose.get(id)!, pm = b.parent ? world.get(b.parent)! : IDENT, L = b.length!, m = world.get(id)!, j: Pt2 = [m.e, m.f];
-    const tip = (phi: number): Pt2 => apply(boneWorld(b, { ...p, rotate: p.rotate + phi * DEG }, pm), 0, L);
-    // The first bone keeps its own heading; each next one, the heading of the bone above it as solved.
-    if (Number.isNaN(along)) along = heading(j, tip(0));
-    const way = (bodies: boolean) => wayOut(j, tip, bodies, along, L);
-    // The floor always holds; a body only holds a strand that can rest on it.
-    const free = clear(j, tip(0), false) ? 0 : way(false);
-    let onBody = free;
-    if (slid < 1) {
-      onBody = clear(j, tip(0), true) ? 0 : way(true);
-      slid = Math.max(slid, Number.isNaN(onBody) ? 1 : smooth((Math.abs(heading(j, tip(onBody))) - slip + 10) / 20));
-    }
-    let best = slid >= 1 || Number.isNaN(onBody) ? free : lerp(onBody, Number.isNaN(free) ? 0 : free, slid);
-    if (Number.isNaN(best) || !clear(j, tip(best), false)) best = Number.isNaN(free) ? 0 : free;
-    along = heading(j, tip(best * w));
-    if (best === 0) continue;
-    p.rotate += best * DEG * w;
-    solve();
-  }
 }
 
 // ---- Shapes ----------------------------------------------------------------------------------------------------------------------

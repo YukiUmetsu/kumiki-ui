@@ -3938,6 +3938,11 @@
           "target": "components/rig/rig-evaluate.ts"
         },
         {
+          "path": "registry/rig/rig-strand.ts",
+          "type": "registry:ui",
+          "target": "components/rig/rig-strand.ts"
+        },
+        {
           "path": "registry/rig/rig-kit.ts",
           "type": "registry:ui",
           "target": "components/rig/rig-kit.ts"
