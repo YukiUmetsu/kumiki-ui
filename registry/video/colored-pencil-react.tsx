@@ -81,6 +81,12 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
     opacity: .2 + pencilHash(drawing.seed, i, 17) * .48,
   })), [drawing.seed]);
   const grain = useMemo(()=>pencilGrainTile(drawing.seed,850),[drawing.seed]);
+  // The masks are used inside each region's own transform, so their area is in
+  // that region's local units. A page-sized area at 0,0 cut off pigment wherever
+  // a placed part has negative or beyond-page local coordinates (for example a
+  // branch drawn from x = -9 and scaled up). Cover a wide margin instead.
+  const maskArea = { x: -2 * drawing.width, y: -2 * drawing.height,
+    width: 5 * drawing.width, height: 5 * drawing.height };
   const fibers = useMemo(() => Array.from({ length: 180 }, (_, i) => ({
     x: pencilHash(drawing.seed, i, 21) * 1024,
     y: pencilHash(drawing.seed, i, 22) * 1024,
@@ -112,9 +118,9 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
       </pattern>
       {drawing.regions.map((region,i)=>region.craft&&
         <mask key={region.id} id={uid+"-craft-mask-"+i} maskUnits="userSpaceOnUse"
-          x={0} y={0} width={drawing.width} height={drawing.height}>
-          <rect width={drawing.width} height={drawing.height} fill="#fff"/>
-          <rect width={drawing.width} height={drawing.height}
+          {...maskArea}>
+          <rect {...maskArea} fill="#fff"/>
+          <rect {...maskArea}
             fill={"url(#"+uid+"-craft-grain)"}
             opacity={Math.min(.92,.86*drawing.paperTooth*region.craft.tooth)}/>
         </mask>)}
@@ -123,9 +129,9 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
           r={dot.radius * (.45 + drawing.paperTooth * .45)} fill="#000"
           opacity={.25 + dot.opacity * .65}/>)}
       </pattern>
-      <mask id={uid + "-pigment-mask"} x={0} y={0} width={drawing.width} height={drawing.height} maskUnits="userSpaceOnUse">
-        <rect width={drawing.width} height={drawing.height} fill="#fff" />
-        {drawing.paperTooth > 0 && <rect width={drawing.width} height={drawing.height} fill={"url(#" + uid + "-tooth)"} />}
+      <mask id={uid + "-pigment-mask"} {...maskArea} maskUnits="userSpaceOnUse">
+        <rect {...maskArea} fill="#fff" />
+        {drawing.paperTooth > 0 && <rect {...maskArea} fill={"url(#" + uid + "-tooth)"} />}
       </mask>
       {drawing.regions.map((region, i) => <clipPath key={region.id} id={uid + "-region-" + i}
         clipPathUnits="userSpaceOnUse"><path d={region.path}/></clipPath>)}
