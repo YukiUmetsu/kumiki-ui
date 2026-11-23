@@ -1,4 +1,47 @@
 import { test,expect } from "@playwright/test";
+import type { Locator,Page } from "@playwright/test";
+
+/** Capture the sheet from one fixed scroll position. The sheet starts half a CSS
+ * pixel down the page (413.5), so its crop includes one row of page above it. In a
+ * 720 px high window an earlier portrait capture can leave the page scrolled with
+ * that row above the window, where Chromium has not painted it: 960 pixels differ
+ * although the drawing is identical. Measured from one position: 0 pixels differ. */
+async function captureSheet(svg:Locator){
+  await svg.evaluate(node=>node.scrollIntoView({block:"center"}));
+  return svg.screenshot({animations:"disabled"});
+}
+/** Decoded pixels with the crayon storybook spec's tolerance, not PNG bytes. (A
+ * failing Buffer toEqual also spent minutes printing its difference.) */
+async function expectSamePixels(page:Page,before:Buffer,after:Buffer){
+  const diff=await page.evaluate(async({first,second})=>{
+    const decode=async(base64:string)=>{
+      const raw=Uint8Array.from(atob(base64),c=>c.charCodeAt(0));
+      const bitmap=await createImageBitmap(new Blob([raw],{type:"image/png"}));
+      const canvas=document.createElement("canvas");
+      canvas.width=bitmap.width;canvas.height=bitmap.height;
+      const ctx=canvas.getContext("2d",{willReadFrequently:true});
+      if(!ctx)throw new Error("Canvas2D unavailable");
+      ctx.drawImage(bitmap,0,0);bitmap.close();
+      return {width:canvas.width,height:canvas.height,
+        rgba:ctx.getImageData(0,0,canvas.width,canvas.height).data};
+    };
+    const a=await decode(first),b=await decode(second);
+    if(a.width!==b.width||a.height!==b.height)
+      return {sameSize:false,maxDelta:255,changedPixels:-1,totalPixels:0};
+    let maxDelta=0,changedPixels=0;
+    for(let i=0;i<a.rgba.length;i+=4){
+      let changed=0;
+      for(let c=0;c<4;c++)changed=Math.max(changed,Math.abs(a.rgba[i+c]-b.rgba[i+c]));
+      maxDelta=Math.max(maxDelta,changed);
+      if(changed>0)changedPixels++;
+    }
+    return {sameSize:true,maxDelta,changedPixels,totalPixels:a.width*a.height};
+  },{first:before.toString("base64"),second:after.toString("base64")});
+  expect(diff.sameSize,JSON.stringify(diff)).toBe(true);
+  expect(diff.maxDelta,JSON.stringify(diff)).toBeLessThanOrEqual(2);
+  expect(diff.changedPixels,JSON.stringify(diff))
+    .toBeLessThanOrEqual(Math.max(12,Math.ceil(diff.totalPixels*.0001)));
+}
 
 test("the single Colour-pencil foundation story uses the same pipeline for all subjects",async({page},info)=>{
   await page.goto("/iframe.html?id=video-colored-pencil-science--drawing-foundation&viewMode=story");
@@ -105,7 +148,8 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
   await aspect.selectOption("landscape");
   await subject.selectOption("fox");
   await expect(svg).toHaveAttribute("data-km-pencil-tonal-support","on");
-  const baseline=await svg.screenshot({animations:"disabled"});
+  const baseline=await captureSheet(svg);
+  const markup=await svg.evaluate(node=>node.outerHTML);
   const pigmentOnly=page.getByRole("checkbox",{name:"Foundation pigment-only audit"});
   await pigmentOnly.check();
   await expect(svg).toHaveAttribute("data-km-pencil-tonal-support","off");
@@ -117,7 +161,9 @@ test("the single Colour-pencil foundation story uses the same pipeline for all s
     path:info.outputPath("pencil-foundation-fox-pigment-only.png")});
   await pigmentOnly.uncheck();
   await expect(svg.locator("[data-km-pencil-craft-base]").first()).toBeVisible();
-  expect(await svg.screenshot({animations:"disabled"})).toEqual(baseline);
+  // Restored means the same drawing: identical markup and identical pixels.
+  expect(await svg.evaluate(node=>node.outerHTML)===markup).toBe(true);
+  await expectSamePixels(page,baseline,await captureSheet(svg));
   // The same negative control must be usable for human portraits.
   await subject.selectOption("portrait");
   await pigmentOnly.check();
