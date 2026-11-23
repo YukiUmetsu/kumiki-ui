@@ -1,6 +1,6 @@
 ---
 name: kumiki-human-anatomy
-description: Use when drawing, painting, rigging or reviewing any human figure, face, hand, hair, skin colour or pose in Kumiki in any art style (pencil, ink, collage, riso, cel, paint, 3D) — for realistic proportions by age/sex/build, believable joint angles, depth and silhouette from any camera angle, light and shadow shapes, facial feature placement, or checking a drawing against measured human ranges.
+description: Use when drawing, painting, rigging or reviewing any human figure, face, hand, hair, skin colour or pose in Kumiki in any art style (pencil, ink, collage, riso, cel, paint, 3D) — for realistic proportions by age/sex/build, believable joint angles, depth and silhouette from any camera angle, light and shadow shapes, facial feature placement, checking a drawing against measured human ranges, or when a drawn person looks worse than the owner's reference picture ("still not as beautiful", "copy the reference's jaw, eyes, hair").
 ---
 
 # Kumiki human anatomy (ANAT1)
@@ -59,6 +59,18 @@ The pack `human-anatomy` decides *where a person's forms are*; your style decide
 7. **Check before you claim realism** — `measureHumanBody` (headsTall, crotch, girths), `MODEL_TABLES.byAge`,
    `CANON_CHECKS` (no idealised 8-head bodies or equal face thirds unless the style asks), `SURFACE_FORMS` for the
    bony and muscle landmarks your medium should show. Study the plates in `data/anatomy-references.json`.
+
+8. **Match a reference picture** when the owner gives one, or says ours looks worse. Follow
+   [reference-match](../../docs/reference-match.md); step 7's ranges can all pass while the drawing still looks worse.
+   Do these in order:
+   - One main reference. Read the same two points (the irises) on both pictures, write `pair.json`, and check that the
+     red crosses of `side --grid` sit on all four irises.
+   - `python3 -I scripts/reference-match.py side pair.json …` **first**. Unlevelled pictures show false causes (a turned
+     head, a long chin, wide eyes), so give no number and name no pose or length difference before this.
+   - Outline, hair silhouette and hairline, eyes: `overlap`, `trace`. Then darks and busyness: `values`. Then where each
+     hair mass starts and what it runs along. `swap` when the cause is not clear.
+   - Report each cause as *part, reference value, our value, gap* in pupil distances, with the command that gave it.
+     Change one, render, measure again.
 
 **Find things fast:** file map in [`registry/anatomy/README.md`](../../registry/anatomy/README.md);
 `npm run catalog:find -- --query="hair"` (also "skin colour", "pose", "face proportions", "hand poses");

@@ -149,6 +149,7 @@ export const CATALOG_PREVIEWS:Record<string,{storyId:string;params?:Record<strin
   "pack:film-document":{storyId:"video-film-stage--example-film"},
   "pack:ad-formats":{storyId:"video-production-ad-formats--formats"},
   "pack:film-cards":{storyId:"video-production-ad-formats--cards"},
+  "pack:ink-riso-press":{storyId:"video-riso-ink-press--ink-portrait"},
   "pack:ink-brush":{storyId:"video-ink-brush--brush-studio-film"},
   "pack:editorial-collage":{storyId:"video-editorial-collage--collage-film"},
   "pack:universal-rig":{storyId:"video-universal-rig--lab"},
@@ -445,6 +446,7 @@ export const CATALOG_DOCS:Record<string,string>={
   "ink-wash-core":"docs/component-specs/chinese-ink-wash.md",
   "ink-wash-film":"docs/36-chinese-ink-wash-craft-and-film-system.md",
   "ink-brush":"docs/component-specs/ink-brush.md",
+  "ink-riso-press":"docs/component-specs/ink-riso-press.md",
   "ink-cinematic-landscape":"docs/component-specs/ink-cinematic-landscape.md",
   "universal-rig":"docs/component-specs/universal-rig.md",
 };

@@ -260,6 +260,7 @@ export const REGISTRY_GROUP: Record<string, CatalogGroupTitle> = {
   "riso-print": "Video production",
   "riso-character": "Video production",
   "ink-brush": "Video production",
+  "ink-riso-press": "Video production",
   "editorial-collage": "Video production",
   "universal-rig": "Video production",
   "watercolour-brush": "Video production",
