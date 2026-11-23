@@ -21,6 +21,7 @@ import { pencilGrainTile } from "../video/colored-pencil-craft";
 import { createPencilMaterialRegion } from "../video/colored-pencil-materials";
 import type { PencilSurface } from "../video/colored-pencil-materials";
 import type { RigPartFrame } from "./rig-evaluate";
+import { JointFade } from "./rig-form";
 import type { RigRole } from "./rig-spec";
 
 /** Warm drawing paper. */
@@ -171,13 +172,25 @@ export interface PencilPartProps {
   /** Stable per figure and part. */
   seed: number;
   ctx: PencilPartContext;
+  /** One part of a body form: the scene box its light turns across. Its form has the contour (`PencilFormEdge`). */
+  lightBox?: { x: number; y: number; width: number; height: number };
+}
+
+const pigment = (p: RigPartFrame, color: string) => p.far ? mix(c0(color), -.2) : c0(color);
+const variantOf = (ctx: PencilPartContext, seed: number) => ctx.reduced ? 0 : ((ctx.step % VARIANTS) + seed) % VARIANTS;
+/** A part's share of the pencil contour round its body form: it goes down before the parts, which cover its inner half. */
+export function PencilFormEdge({ p, d, color, seed, ctx, fade }: PencilPartProps & { fade?: { id: string; reach: number } }) {
+  const dark = mix(pigment(p, color), -.45);
+  return <g mask={`url(#${ctx.uid}-pc-tooth)`}>
+    {fade && <JointFade {...fade} color={dark} />}
+    <Contour d={d} color={fade ? `url(#${fade.id})` : dark} seed={seed} variant={variantOf(ctx, seed)} strength={.85} width={2} />
+  </g>;
 }
 
 /** One rig part in coloured pencil: paper support, value underlayer, three surface passes, a broken pencil contour. */
-export function PencilPart({ p, d, color, seed, ctx }: PencilPartProps) {
+export function PencilPart({ p, d, color, seed, ctx, lightBox }: PencilPartProps) {
   const { surface, kind } = PENCIL_ROLE_SURFACE[p.role] ?? PENCIL_ROLE_SURFACE.accent;
-  const v = ctx.reduced ? 0 : ((ctx.step % VARIANTS) + seed) % VARIANTS;
-  const c = p.far ? mix(c0(color), -.2) : c0(color);
+  const v = variantOf(ctx, seed), c = pigment(p, color);
   const dark = mix(c, -.45), light = mix(c, .5);
   const tooth = `url(#${ctx.uid}-pc-tooth)`;
   if (p.line) {
@@ -194,8 +207,9 @@ export function PencilPart({ p, d, color, seed, ctx }: PencilPartProps) {
   const id = `${ctx.uid}-pcg-${seed}-${p.id.replace(/[^A-Za-z0-9_-]/g, "")}`;
   // Light direction in the part's own coordinates, so the value turns with the part instead of being painted on it.
   const [sx, sy] = localDirection(p.matrix);
+  const light0 = lightBox ? acrossBox(p.matrix, lightBox) : { x1: r3(.5 - sx * .5), y1: r3(.5 - sy * .5), x2: r3(.5 + sx * .5), y2: r3(.5 + sy * .5) };
   const grad = (suffix: string, stops: readonly (readonly [number, string, number])[]) =>
-    <linearGradient id={id + suffix} x1={r3(.5 - sx * .5)} y1={r3(.5 - sy * .5)} x2={r3(.5 + sx * .5)} y2={r3(.5 + sy * .5)}>
+    <linearGradient id={id + suffix} gradientUnits={lightBox && "userSpaceOnUse"} {...light0}>
       {stops.map(([o, col, a], i) => <stop key={i} offset={o} stopColor={col} stopOpacity={a} />)}
     </linearGradient>;
   // Per-part offset so neighbouring parts never share hatch rows.
@@ -232,7 +246,7 @@ export function PencilPart({ p, d, color, seed, ctx }: PencilPartProps) {
       {hatch(1, `url(#${id}s)`, 1)}
       {hatch(2, `url(#${id}h)`, .75)}
       {/* Kept light: a rig is many overlapping parts, and a firm line round each one reads as a patchwork. */}
-      <Contour d={d} color={dark} seed={seed} variant={v} strength={.7} />
+      {!lightBox && <Contour d={d} color={dark} seed={seed} variant={v} strength={.7} />}
     </g>
   </>;
 }
@@ -249,14 +263,14 @@ function Hatch({ uid, d, texture, pass, variant, angle, ox, oy, fill, opacity }:
 }
 
 /** A pencil outline: a firm pass broken where the point lifts, and a lighter searching pass beside it. */
-function Contour({ d, color, seed, variant, strength }: { d: string; color: string; seed: number; variant: number; strength: number }) {
+function Contour({ d, color, seed, variant, strength, width = 1 }: { d: string; color: string; seed: number; variant: number; strength: number; width?: number }) {
   const h = (i: number) => pencilHash(seed + variant * 7717, i, 47);
   const dash = [24 + h(1) * 46, .8 + h(2) * 2.2, 14 + h(3) * 30, .6 + h(4) * 1.6].map(r2).join(" ");
   const jx = r2((h(5) - .5) * .9), jy = r2((h(6) - .5) * .9);
   return <>
-    <path d={d} fill="none" stroke={color} strokeWidth={1.2} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={dash}
+    <path d={d} fill="none" stroke={color} strokeWidth={r2(1.2 * width)} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={dash}
       strokeDashoffset={r2(h(7) * 60)} opacity={r2(.72 * strength)} />
-    <path d={d} fill="none" stroke={color} strokeWidth={.7} strokeLinejoin="round" opacity={r2(.3 * strength)} transform={`translate(${jx} ${jy})`} />
+    <path d={d} fill="none" stroke={color} strokeWidth={r2(.7 * width)} strokeLinejoin="round" opacity={r2(.3 * strength)} transform={`translate(${jx} ${jy})`} />
   </>;
 }
 
@@ -298,6 +312,13 @@ function localDirection(m: { a: number; b: number; c: number; d: number }): [num
   if (!Number.isFinite(det) || Math.abs(det) < 1e-9) return [SHADOW[0], SHADOW[1]];
   const x = (m.d * SHADOW[0] - m.c * SHADOW[1]) / det, y = (-m.b * SHADOW[0] + m.a * SHADOW[1]) / det, l = Math.hypot(x, y) || 1;
   return [x / l, y / l];
+}
+/** The light across a scene box, as a gradient line in a part's own coordinates. */
+function acrossBox(m: RigPartFrame["matrix"], b: { x: number; y: number; width: number; height: number }) {
+  const det = m.a * m.d - m.b * m.c, half = (Math.abs(SHADOW[0]) * b.width + Math.abs(SHADOW[1]) * b.height) / 2, cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+  const local = (x: number, y: number) => Math.abs(det) < 1e-9 ? [x, y] : [(m.d * (x - m.e) - m.c * (y - m.f)) / det, (-m.b * (x - m.e) + m.a * (y - m.f)) / det];
+  const [x1, y1] = local(cx - SHADOW[0] * half, cy - SHADOW[1] * half), [x2, y2] = local(cx + SHADOW[0] * half, cy + SHADOW[1] * half);
+  return { x1: r2(x1), y1: r2(y1), x2: r2(x2), y2: r2(y2) };
 }
 const c0 = (hex: string) => /^#[0-9a-f]{6}$/i.test(hex) ? hex : "#888888";
 /** Mix toward paper white (k > 0) or graphite (k < 0). */

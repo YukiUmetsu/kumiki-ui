@@ -196,7 +196,6 @@ describe("UKIYO1 figures", () => {
   });
   it("draws a figure square on: both eyes from the front, none from behind, and both legs side by side", () => {
     type P = { t: string; color?: unknown; prims?: P[] };
-    const flat = (ps: P[]): P[] => ps.flatMap(p => p.t === "group" || p.t === "clip" ? flat(p.prims ?? []) : [p]);
     const look = { hair: "shimada" as const, robe: "beni", under: "ki" }, walk = [{ type: "walk" as const, start: 0, end: 100, to: 300 }];
     const draw = (view?: "front" | "back") => drawFigure({ look: { ...look, view }, actions: walk }, 25, 0, 3);
     // Each open eye draws its iris clipped to the lids.
@@ -983,14 +982,14 @@ describe("UKIYO1 boats, boarding and riding a wave", () => {
 describe("UKIYO1 parades", () => {
   it("builds each parade; the line keeps its order and gaps, and the palanquin rides between its bearers", () => {
     for (const k of UKIYOE_PARADE_SCENES) expect(inspectUkiyoeScene(paradeScene(k)), k).toEqual([]);
-    const s = paradeScene("foxwedding"), node = (id: string) => s.nodes.find(n => n.id === id) as any;
-    const at = (id: string, f: number) => { const n = node(id); return n.kind === "motif" ? nodeState(n, f, s.cadence ?? 1).pose.x : n.x + travelAt(n.actions, f).x; };
+    const s = paradeScene("foxwedding"), node = (id: string) => s.nodes.find(n => n.id === id)!;
+    const at = (id: string, f: number) => { const n = node(id); return n.kind === "figure" ? (n.x ?? 0) + travelAt(n.actions ?? [], f).x : nodeState(n, f, s.cadence ?? 1).pose.x; };
     for (const f of [0, 120, 240, s.durationFrames - 1]) {
       const b0 = at("bearer0", f), b1 = at("bearer1", f), k = at("kago", f);
       expect(k, `kago at ${f}`).toBeGreaterThan(b0 + 60); expect(k).toBeLessThan(b1 - 60);
       expect(at("lantern2", f)).toBeLessThan(b0); expect(at("bride", f)).toBeGreaterThan(b1);
     }
-    const fox = JSON.stringify(drawFigure({ look: { animal: "fox", robe: "gofun" } } as any, 0, 0, 1).prims);
+    const fox = JSON.stringify(drawFigure({ look: { animal: "fox", robe: "gofun" } }, 0, 0, 1).prims);
     expect(fox).toContain("tan");
   });
 });

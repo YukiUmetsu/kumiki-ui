@@ -4028,6 +4028,11 @@
           "target": "components/rig/rig-look-ink.tsx"
         },
         {
+          "path": "registry/rig/rig-form.tsx",
+          "type": "registry:ui",
+          "target": "components/rig/rig-form.tsx"
+        },
+        {
           "path": "registry/rig/rig-look-crayon.tsx",
           "type": "registry:ui",
           "target": "components/rig/rig-look-crayon.tsx"

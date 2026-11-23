@@ -39,6 +39,8 @@ export type WaxProps = {
   markStrength?: number;
   /** Surface-integrated, opaque multi-pigment underpaint, not flat vector fill. */
   underpaintGradient?:CrayonVolumeGradient;
+  /** One light for several regions: the gradient's centre and reach in this region's units, not in its bounding box. */
+  underpaintFrame?:{cx:number;cy:number;r:number};
   underpaintFields?:readonly CrayonUnderpaintField[];
   /** 0..1 optical paper-tooth color variation on *opaque* wax.
    * Samples page-seeded relief without making the subject transparent. */
@@ -94,7 +96,7 @@ export function crayonPaperTintedWaxBase(
   }).join("");
 }
 
-export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor = "#f7ecd8", pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintFields, underpaintTooth = 0, opaqueBurnish = 0,
+export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor = "#f7ecd8", pressure, tooth, frame, first, last, reduced, spacing = 9.5, angle = 0, construction, coverage = "open", blendRadius = 0, markStrength = 1, underpaintGradient, underpaintFrame, underpaintFields, underpaintTooth = 0, opaqueBurnish = 0,
   featherContacts = false, redraw, edgeRoughness = 0, outlineOpacity = 1, sgraffito, nibStyle = "tapered", strokeOrder = "patches", markLength = "long", deposition = "smooth" }: WaxProps) {
   if (!Number.isFinite(angle) || angle < -89 || angle > 89) throw new RangeError("crayon hatch angle must be -89..89 degrees");
   if (coverage !== "open" && coverage !== "opaque") throw new RangeError("crayon coverage must be open or opaque");
@@ -255,10 +257,10 @@ export function WaxRegion({ d, bounds, colors, seed, paperSeed = 0, paperColor =
     <defs>
       <clipPath id={clip}><path d={d}/></clipPath>
       {underpaintGradient && <radialGradient id={volumeId}
-        cx={(100*underpaintGradient.focusX).toFixed(2)+"%"}
-        cy={(100*underpaintGradient.focusY).toFixed(2)+"%"}
-        r={(100*underpaintGradient.radius).toFixed(2)+"%"}
-        gradientUnits="objectBoundingBox"
+        cx={underpaintFrame?underpaintFrame.cx.toFixed(2):(100*underpaintGradient.focusX).toFixed(2)+"%"}
+        cy={underpaintFrame?underpaintFrame.cy.toFixed(2):(100*underpaintGradient.focusY).toFixed(2)+"%"}
+        r={underpaintFrame?underpaintFrame.r.toFixed(2):(100*underpaintGradient.radius).toFixed(2)+"%"}
+        gradientUnits={underpaintFrame?"userSpaceOnUse":"objectBoundingBox"}
         data-km-crayon-underpaint-gradient=""
         data-km-crayon-pressure-tinted={strokeBuilt?"true":undefined}>
         <stop offset="0%" stopColor={volumeStop(underpaintGradient.light)}/>

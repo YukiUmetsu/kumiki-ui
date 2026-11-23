@@ -273,7 +273,7 @@ export function modernCarRig(o: RigPresetOptions = {}): RigSpec {
   const wheels: string[] = [], flat = Math.sqrt(2 * R * .55 - .3025);
   const tyre = path(`M${-flat} ${R - .55}A${R} ${R} 0 1 1 ${flat} ${R - .55}Z`);
   for (const [id, x] of [["wheel-r", -31], ["wheel-f", 31]] as const) {
-    rig.bone(id + "-axle", "root", x, -R);
+    rig.bone(id + "-axle", "root", x, .55 - R);
     rig.part(id + "-tread", id + "-axle", tyre, "rubber", 4.98, { extrude: true, extrudeDepth: .22 });
     rig.part(id + "-tyre", id + "-axle", path(`M${-flat} ${R - .55}A${R} ${R} 0 1 1 ${flat} ${R - .55}Z M-5.5 0A5.5 5.5 0 1 1 5.5 0A5.5 5.5 0 1 1 -5.5 0Z`), "rubber", 5);
     rig.part(id + "-sidewall", id + "-axle", ring(7.9, 5.8), "metal-dark", 5.01, { color: "#26282c" });
@@ -497,7 +497,7 @@ export function helicopterRig(o: RigPresetOptions = {}): RigSpec {
   const size = o.size ?? 420, u = size / 100, rig = new Rig(u), m = o.motion ?? "hover", start = o.start ?? 0, end = o.end ?? 180, t = at(start, end);
   const palette: Partial<Record<RigRole, string>> = { paint: "#d8473a", "paint-dark": "#9b2f26", metal: "#a9afb6", "metal-dark": "#2a2d33", glass: "#a9c6d4", rubber: "#1b1b1d", skin: "#c98d6a", detail: "#16202b", light: "#f6f1df" };
   rig.bone("root", undefined, 0, 0);
-  rig.bone("body", "root", 0, -17);
+  rig.bone("body", "root", 0, -15);
   rig.part("boom", "body", path("M-8 -8L-52 -6L-54 -2L-8 2Z"), "paint", 3.8);
   rig.part("fin", "body", path("M-48 -6L-56 -20L-53 -21L-44 -6Z"), "paint", 3.7);
   rig.part("stab", "body", path("M-46 -2L-38 -2.4L-38 -.6L-46 0Z"), "paint-dark", 3.9);
@@ -545,7 +545,7 @@ export function helicopterRig(o: RigPresetOptions = {}): RigSpec {
     root = [{ frame: start, x: from, y: y - 70 * u, facing: o.facing ?? 1 as const }, { frame: t(.12), x: from, y: y - 70 * u },
       { frame: t(.56), x: from + 26 * u, y, ease: "ease-in-out-cubic" as const }];
     rig.track("body", [{ frame: t(.3), rotate: 0, y: 0 }, { frame: t(.46), rotate: -5, ease: "ease-in-out-cubic" }, { frame: t(.56), rotate: 0, y: 0 },
-      { frame: t(.59), y: 1.4 * u, ease: "ease-out-quad" }, { frame: t(.66), y: 0, ease: "ease-in-out-cubic" }]);
+      { frame: t(.59), y: .4 * u, ease: "ease-out-quad" }, { frame: t(.66), y: 0, ease: "ease-in-out-cubic" }]);
   } else if (m === "fly") {
     rig.drivers.push({ type: "bank", amount: 0, lean: 9 / Math.max(1, (to - from) / Math.max(1, end - start)), max: 14 }, { type: "oscillate", bone: "body", property: "y", amplitude: 1 * u, period: 60, wobble: .4 });
     root = [{ frame: start, x: from, y }, { frame: end, x: to, y: y - 10 * u, ease: "ease-in-out-quad" as const }];

@@ -69,6 +69,15 @@ export interface RigPart {
   /** Line width when `line` is set. */
   lineWidth?: number;
   /**
+   * Body form: the parts with one `mass` (a whole arm, a whole body) are drawn as one form. Painters draw one outline
+   * round it and no edge where its parts meet. Its outline is painted at its lowest part, so keep other parts out of its
+   * `z` range.
+   */
+  mass?: string;
+  /** The `mass` this part's form grows out of, on the part at the joint (an upper arm, a thigh, a head): its outline
+   * fades in from the bone's origin, so the joint has no edge, and one light crosses both forms. */
+  grows?: string;
+  /**
    * Solid depth for turns: the outline is extruded across the figure's `depth3d`. When the root yaws, the far side
    * shifts by depth·tan(yaw) and the faces between the near and far outlines (a car's hood, windscreen, nose, tail)
    * are drawn, shaded by the way they face.
@@ -188,7 +197,8 @@ export type RigDriver = RigWindow & (
        * lower points toward the viewer, as with `out`. A `tip` bone with a length and no `tipAngle` bends at its joint
        * to stay above it too: a hand lies forward on the floor it is put on. */
       floor?: number;
-      /** World angle for the `tip` bone (0 keeps a foot level), or omit to leave it as posed. */ tipAngle?: number }
+      /** World angle for the `tip` bone (0 keeps a foot level), or omit to leave it as posed. */ tipAngle?: number;
+      /** A bone past the tip that stays level with the ground (a hoof or a paw below its pastern). */ level?: string }
   /** Lights and indicators: opacity switches on and off on a square wave (`period`, `duty`), or stays on in the window. */
   | { type: "flash"; bones: readonly string[]; period?: number; duty?: number; phase?: number; fade?: number }
   /** Suspension and inertia: the bone pitches and heaves on a damped spring driven by the root's acceleration
@@ -348,6 +358,8 @@ export function inspectRig(input: unknown): string[] {
     if (!RIG_ROLES.includes(q.role)) out.push(p + ".role is not a rig role");
     if (!fin(q.z)) out.push(p + ".z must be finite");
     if (q.color !== undefined && !HEX.test(q.color)) out.push(p + ".color must be a 6-digit hex colour");
+    if (q.mass !== undefined && (typeof q.mass !== "string" || !q.mass)) out.push(p + ".mass must be a name");
+    if (q.grows !== undefined && (!q.mass || q.grows === q.mass || !(r.parts ?? []).some(o => o?.mass === q.grows))) out.push(p + ".grows must name the mass of another form");
     if (q.far3d !== undefined && q.far3d !== "under" && q.far3d !== "over") out.push(p + ".far3d must be under or over");
     if (q.faceRole !== undefined && !RIG_ROLES.includes(q.faceRole)) out.push(p + ".faceRole is not a rig role");
     if (q.side !== undefined && q.side !== "front" && q.side !== "back") out.push(p + ".side must be front or back");
@@ -395,7 +407,7 @@ export function inspectRig(input: unknown): string[] {
         if (!fin(d.period) || d.period < 2) out.push(p + ".period must be ≥ 2");
         if (!fin(d.up) || !fin(d.down) || d.up <= d.down || d.up > 90 || d.down < -90) out.push(p + " needs -90 ≤ down < up ≤ 90");
         if (d.downstroke !== undefined && !(d.downstroke > .15 && d.downstroke < .85)) out.push(p + ".downstroke must be .15..0.85"); break;
-      case "reach": bone(d.upper, p + ".upper"); bone(d.lower, p + ".lower"); if (d.tip) bone(d.tip, p + ".tip"); if (d.follow) bone(d.follow, p + ".follow");
+      case "reach": bone(d.upper, p + ".upper"); bone(d.lower, p + ".lower"); if (d.tip) bone(d.tip, p + ".tip"); if (d.level) bone(d.level, p + ".level"); if (d.follow) bone(d.follow, p + ".follow");
         if (d.bend !== 1 && d.bend !== -1) out.push(p + ".bend must be 1 or -1");
         for (const id of [d.upper, d.lower]) if (!((bones.get(id)?.length ?? 0) > 0)) out.push(p + " bone \"" + id + "\" needs a length");
         if (!d.follow && !(Array.isArray(d.target) && d.target.length)) out.push(p + " needs target keys or a follow bone");

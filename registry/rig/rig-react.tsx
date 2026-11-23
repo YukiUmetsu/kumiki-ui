@@ -12,16 +12,18 @@
  *   pencil    coloured pencil on toothy paper: layered hatching fixed to each part, value turning with the light
  *   watercolour transparent washes on cold-press paper, dried edges, granulation, pencil underdrawing (rig-look-watercolour.tsx)
  */
-import { createContext, useContext, useId, useMemo } from "react";
+import { Fragment, createContext, useContext, useId, useMemo } from "react";
 import type { CSSProperties, ReactNode, SVGProps } from "react";
 import type { RigFrame, RigPartFrame } from "./rig-evaluate";
 import { evaluateRig, matrixAttr, rootState, shapePath } from "./rig-evaluate";
+import { JointFade, boxOfParts, formsOf, reachOf } from "./rig-form";
+import type { RigForm } from "./rig-form";
 import type { RigRole, RigShape, RigSpec } from "./rig-spec";
 import { flattenPath, paperEdge, toPathD } from "../video/collage/collage-geometry";
 import { boardTexture, fiberTexture } from "../video/collage/collage-texture";
-import { PencilGroundTile, PencilLookDefs, PencilPaper, PencilPart } from "./rig-look-pencil";
+import { PencilFormEdge, PencilGroundTile, PencilLookDefs, PencilPaper, PencilPart } from "./rig-look-pencil";
 import { InkFigure, InkGroundTile, InkPaper } from "./rig-look-ink";
-import { RigCrayonGroundTile, RigCrayonPaper, RigCrayonPart } from "./rig-look-crayon";
+import { RigCrayonFormEdge, RigCrayonGroundTile, RigCrayonPaper, RigCrayonPart } from "./rig-look-crayon";
 import { WatercolourGroundTile, WatercolourRigBackdrop, WatercolourRigBody, WatercolourRigDefs } from "./rig-look-watercolour";
 import { RisoBackdrop, RisoFigure, RisoGroundTile, RisoLookDefs } from "./rig-look-riso";
 import type { RisoPaperFrame } from "./rig-look-riso";
@@ -92,22 +94,24 @@ function cutPath(shape: RigShape, seed: number, torn = false): string {
 
 // ---- Painters --------------------------------------------------------------------------------------------------------------------
 
-function FlatPart({ spec, p }: { spec: RigSpec; p: RigPartFrame }) {
-  const c = partColor(spec, p), fill = p.far ? shade(c, -.2) : c, d = pathOf(p.shape);
+const flatFill = (spec: RigSpec, p: RigPartFrame) => { const c = partColor(spec, p); return p.far ? shade(c, -.2) : c; };
+function FlatPart({ spec, p, formed }: { spec: RigSpec; p: RigPartFrame; formed: boolean }) {
+  const fill = flatFill(spec, p), d = pathOf(p.shape);
   if (p.line) return <path d={d} fill="none" stroke={fill} strokeWidth={p.lineWidth ?? 1} />;
   if (p.role === "smoke") return <path d={d} fill={fill} opacity={.75} />;
   return <>
     <path d={d} fill={fill} />
-    <path d={d} fill="none" stroke={shade(fill, -.28)} strokeWidth={.9} vectorEffect="non-scaling-stroke" opacity={.55} />
+    {!formed && <path d={d} fill="none" stroke={shade(fill, -.28)} strokeWidth={.9} vectorEffect="non-scaling-stroke" opacity={.55} />}
   </>;
 }
 
-function CollagePart({ spec, p, ctx }: { spec: RigSpec; p: RigPartFrame; ctx: RigLookContext }) {
+const paperCut = (spec: RigSpec, p: RigPartFrame) => cutPath(p.shape, hashStr(spec.id + p.id), p.role === "smoke" || p.role === "membrane" || p.role === "sail");
+function CollagePart({ spec, p, ctx, formed }: { spec: RigSpec; p: RigPartFrame; ctx: RigLookContext; formed: boolean }) {
   const c = partColor(spec, p), fill = p.far ? shade(c, -.16) : c;
   if (p.line) return <path d={pathOf(p.shape)} fill="none" stroke={shade(fill, -.2)} strokeWidth={(p.lineWidth ?? 1) * 1.4} />;
-  const d = cutPath(p.shape, hashStr(spec.id + p.id), p.role === "smoke" || p.role === "membrane" || p.role === "sail");
+  const d = paperCut(spec, p);
   return <>
-    <path d={d} fill="#1c1208" opacity={.28} transform="translate(1.6 2.4)" filter={`url(#${ctx.uid}-soft)`} />
+    {!formed && <path d={d} fill="#1c1208" opacity={.28} transform="translate(1.6 2.4)" filter={`url(#${ctx.uid}-soft)`} />}
     <path d={d} fill={fill} />
     {p.far && <path d={d} fill={`url(#${ctx.uid}-dots)`} opacity={.35} />}
     <path d={d} fill={`url(#${ctx.uid}-fibre)`} opacity={.55} style={{ mixBlendMode: "soft-light" }} />
@@ -170,6 +174,27 @@ function withSolidFaces(spec: RigSpec, parts: RigPartFrame[]): RigPartFrame[] {
   return out.sort((a, b) => a.z - b.z);
 }
 
+/** What goes down under a body form: the outlines of all its parts (their lift shadow in cut paper). */
+function FormEdge({ spec, parts: form, ctx }: { spec: RigSpec; parts: readonly RigPartFrame[]; ctx: RigLookContext }) {
+  if (ctx.look === "collage") return <g opacity={.28} filter={`url(#${ctx.uid}-soft)`}>
+    {form.map(p => <g key={p.id} transform={matrixAttr(p.matrix)}><path d={paperCut(spec, p)} fill="#1c1208" transform="translate(1.6 2.4)" /></g>)}
+  </g>;
+  return <g opacity={ctx.look === "flat" ? .55 : undefined} data-km-rig-form={form[0].mass}>
+    {form.map(p => {
+      const d = pathOf(p.shape), seed = hashStr(spec.id + p.id), color = partColor(spec, p);
+      const fade = p.grows ? { id: `${ctx.uid}-grow-${seed.toString(36)}`, reach: reachOf(boundsOf(p.shape)) } : undefined;
+      return <g key={p.id} transform={matrixAttr(p.matrix)}>
+        {ctx.look === "crayon" ? <RigCrayonFormEdge p={p} ctx={ctx} d={d} color={color} seed={seed} fade={fade} />
+          : ctx.look === "pencil" ? <PencilFormEdge p={p} ctx={ctx} d={d} color={color} seed={seed} fade={fade} />
+            : <>
+              {fade && <JointFade {...fade} color={shade(flatFill(spec, p), -.28)} />}
+              <path d={d} fill="none" stroke={fade ? `url(#${fade.id})` : shade(flatFill(spec, p), -.28)} strokeWidth={1.5} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+            </>}
+      </g>;
+    })}
+  </g>;
+}
+
 /** Bones as tapered lines from joint to child joint, joints as rings: the rig itself, for explainers and debugging. */
 function BoneOverlay({ frame, color }: { frame: RigFrame; color: string }) {
   const items: ReactNode[] = [];
@@ -196,13 +221,17 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
   // The riso look prints its own screened contact shadows on the darkest drum.
   const contacts = ctx.look === "riso" ? null : <g data-km-rig-contacts="">{f.contacts.map(([x, y], i) => <ellipse key={i} cx={r2(x)} cy={r2(y + 1)} rx={r2(14 * f.root.scale)} ry={r2(3.2 * f.root.scale)} fill={shadowFill}
     opacity={.16} filter={`url(#${ctx.uid}-soft)`} />)}</g>;
+  // A blueprint shows its construction, so there every part keeps its own line.
+  const forms = formsOf(ctx.look === "blueprint" ? [] : parts), boxes = new Map<RigForm["lit"], ReturnType<typeof boxOfParts>>();
+  const lightBox = (form: RigForm) => { let b = boxes.get(form.lit); if (!b) { b = boxOfParts(form.lit, boundsOf); boxes.set(form.lit, b); } return b; };
   const draw = (p: RigPartFrame) => {
+    const form = forms.get(p.id), formed = !!form;
     switch (ctx.look) {
-      case "collage": return <CollagePart spec={spec} p={p} ctx={ctx} />;
-      case "crayon": return <RigCrayonPart p={p} ctx={ctx} d={pathOf(p.shape)} bounds={boundsOf(p.shape)} color={partColor(spec, p)} seed={hashStr(spec.id + p.id)} />;
+      case "collage": return <CollagePart spec={spec} p={p} ctx={ctx} formed={formed} />;
+      case "crayon": return <RigCrayonPart p={p} ctx={ctx} d={pathOf(p.shape)} bounds={boundsOf(p.shape)} color={partColor(spec, p)} seed={hashStr(spec.id + p.id)} lightBox={form && lightBox(form)} />;
       case "blueprint": return <BlueprintPart p={p} />;
-      case "pencil": return <PencilPart p={p} d={pathOf(p.shape)} color={partColor(spec, p)} seed={hashStr(spec.id + p.id)} ctx={ctx} />;
-      default: return <FlatPart spec={spec} p={p} />;
+      case "pencil": return <PencilPart p={p} d={pathOf(p.shape)} color={partColor(spec, p)} seed={hashStr(spec.id + p.id)} ctx={ctx} lightBox={form && lightBox(form)} />;
+      default: return <FlatPart spec={spec} p={p} formed={formed} />;
     }
   };
   const body = ctx.look === "watercolour" ? <WatercolourRigBody spec={spec} frame={f} parts={parts} uid={ctx.uid} seed={ctx.seed} />
@@ -211,7 +240,13 @@ export function RigFigure({ spec, frame, cadence, reducedMotion, showBones }: Ri
     : ctx.look === "riso"
     ? <RisoFigure spec={spec} parts={parts} contacts={f.contacts} scale={f.root.scale} ctx={ctx} paper={ctx.paper}
         colorOf={p => p.far ? shade(partColor(spec, p), -.15) : partColor(spec, p)} />
-    : parts.map(p => <g key={p.id} data-km-rig-part={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r2(p.opacity) : undefined}>{draw(p)}</g>);
+    : parts.map(p => {
+      const form = forms.get(p.id);
+      return <Fragment key={p.id}>
+        {form?.parts[0] === p && <FormEdge spec={spec} parts={form.parts} ctx={ctx} />}
+        <g data-km-rig-part={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r2(p.opacity) : undefined}>{draw(p)}</g>
+      </Fragment>;
+    });
   return <g data-km-rig={spec.id} data-km-rig-frame={f.frame}>
     {contacts}
     {body}

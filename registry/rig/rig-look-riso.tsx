@@ -19,6 +19,7 @@ import type { ReactNode } from "react";
 import type { AffineMatrix } from "../motion/types";
 import type { RigPartFrame } from "./rig-evaluate";
 import { matrixAttr, shapePath } from "./rig-evaluate";
+import { JointFade, formsOf, reachOf } from "./rig-form";
 import type { RigShape, RigSpec } from "./rig-spec";
 import type { RigLookContext } from "./rig-react";
 import { flattenPath } from "../video/collage/collage-geometry";
@@ -191,7 +192,9 @@ function boxOf(shape: RigShape): [number, number, number, number] {
   }
   return b;
 }
-interface PrintItem { key: string; d: string; matrix: AffineMatrix; stroke?: number; tints: number[]; occludes: boolean }
+interface PrintItem { key: string; d: string; matrix: AffineMatrix; stroke?: number; tints: number[]; occludes: boolean;
+  /** A gap of bare paper (no drum prints), and the gradient that opens it away from a joint. */
+  gap?: { fade?: { id: string; reach: number } } }
 const IDENTITY: AffineMatrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
 const compose = (p: AffineMatrix, q: AffineMatrix): AffineMatrix => ({ a: p.a * q.a + p.c * q.b, b: p.b * q.a + p.d * q.b, c: p.a * q.c + p.c * q.d,
   d: p.b * q.c + p.d * q.d, e: p.a * q.e + p.c * q.f + p.e, f: p.b * q.e + p.d * q.f + p.f });
@@ -223,6 +226,18 @@ export function RisoFigure({ spec, parts, contacts, scale, ctx, colorOf, paper =
     return { key: `shadow-${i}-${j}`, d: `M${r2(x - rx)} ${r2(cy)}A${r2(rx)} ${r2(ry)} 0 1 0 ${r2(x + rx)} ${r2(cy)}A${r2(rx)} ${r2(ry)} 0 1 0 ${r2(x - rx)} ${r2(cy)}Z`,
       matrix: IDENTITY, tints: press.inks.map((_, p) => p === shadowPlate ? tint : -1), occludes: false };
   }));
+  // Flat inks have no outline, so a sleeve over a shirt of one colour would vanish: a form that grows out of another one
+  // (an arm, a near leg) gets a hairline of bare paper round it, as a printmaker leaves between two shapes of one ink.
+  const forms = formsOf(parts), GAP = 1.5;
+  const gaps = (p: RigPartFrame): PrintItem[] => {
+    const form = forms.get(p.id);
+    if (form?.parts[0] !== p || !form.parts.some(q => q.grows)) return [];
+    return form.parts.map(q => {
+      const [gx0, gy0, gx1, gy1] = boxOf(q.shape);
+      return { key: `gap-${q.id}`, d: pathOf(q.shape), matrix: q.matrix, stroke: 2 * GAP / paper.zoom / (Math.hypot(q.matrix.a, q.matrix.b) || 1), tints: press.inks.map(() => -1), occludes: true,
+        gap: { fade: q.grows ? { id: `${fid}-grow-${q.id}`, reach: reachOf({ x: gx0, y: gy0, width: gx1 - gx0, height: gy1 - gy0 }) } : undefined } };
+    });
+  };
   const items: PrintItem[] = [...shadows, ...parts.flatMap((p, i): PrintItem[] => {
     const translucent = p.role === "smoke" || p.opacity < .999;
     let tints = tintsOf(colorOf(p), translucent ? Math.min(1, p.opacity) * (p.role === "smoke" ? .6 : 1) : 1);
@@ -239,8 +254,8 @@ export function RisoFigure({ spec, parts, contacts, scale, ctx, colorOf, paper =
     const item: PrintItem = { key: `${p.id}-${i}`, d: pathOf(p.shape), matrix: p.matrix, stroke: p.line ? (p.lineWidth ?? 1) : undefined, tints, occludes: !translucent };
     // A near-white shape prints no ink and would vanish into the paper (a koi, sails): give it a keyline on the darkest
     // drum. It goes under the shape, so only the outer half shows and shapes in front cover it.
-    if (p.line || translucent || tints.some(t => t >= 0)) return [item];
-    return [{ ...item, key: item.key + "-key", stroke: 3 / (Math.hypot(m.a, m.b) || 1), tints: press.inks.map((_, plate) => plate === shadowPlate ? SOLID : -1), occludes: false }, item];
+    if (p.line || translucent || tints.some(t => t >= 0)) return [...gaps(p), item];
+    return [...gaps(p), { ...item, key: item.key + "-key", stroke: 3 / (Math.hypot(m.a, m.b) || 1), tints: press.inks.map((_, plate) => plate === shadowPlate ? SOLID : -1), occludes: false }, item];
   })];
   // Paper-space bounds of the figure (masks and tint rectangles only cover this box).
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -255,13 +270,14 @@ export function RisoFigure({ spec, parts, contacts, scale, ctx, colorOf, paper =
   const toPaperM: AffineMatrix = { a: paper.zoom, b: 0, c: 0, d: paper.zoom, e: paper.x, f: paper.y };
   const placed = items.map(it => ({ ...it, attr: matrixAttr(compose(toPaperM, it.matrix)) }));
   const shape = (it: (typeof placed)[number], fill: string) => it.stroke !== undefined
-    ? <path key={it.key} d={it.d} transform={it.attr} fill="none" stroke={fill} strokeWidth={it.stroke} strokeLinecap="round" strokeLinejoin="round" />
+    ? <path key={it.key} d={it.d} transform={it.attr} fill="none" stroke={it.gap?.fade ? `url(#${it.gap.fade.id})` : fill} strokeWidth={it.stroke} strokeLinecap="round" strokeLinejoin="round" />
     : <path key={it.key} d={it.d} transform={it.attr} fill={fill} />;
   const region = { maskUnits: "userSpaceOnUse" as const, ...box };
   const used = press.inks.map((_, plate) => [...new Set(placed.map(it => it.tints[plate]).filter(t => t >= 0))].sort((a, b) => a - b));
   return <g data-km-rig-riso={spec.id}>
     <defs>
-      <mask id={`${fid}-knockout`} {...region}>{placed.filter(it => it.occludes).map(it => shape(it, "#fff"))}</mask>
+      {placed.map(it => it.gap?.fade && <JointFade key={it.key} {...it.gap.fade} color="#000" hard />)}
+      <mask id={`${fid}-knockout`} {...region}>{placed.filter(it => it.occludes && !it.gap).map(it => shape(it, "#fff"))}</mask>
       {used.map((tints, plate) => tints.map(t => <mask key={`${plate}-${t}`} id={`${fid}-m${plate}-${t}`} {...region}>
         {/* Painted in z order: a nearer part blanks the tints of what it covers, so every drum is opaque per part. */}
         {placed.map(it => it.tints[plate] === t ? shape(it, "#fff") : it.occludes ? shape(it, "#000") : null)}

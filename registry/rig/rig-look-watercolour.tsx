@@ -24,6 +24,7 @@ import { useMemo } from "react";
 import type { AffineMatrix } from "../motion/types";
 import type { RigFrame, RigPartFrame } from "./rig-evaluate";
 import { matrixAttr, shapePath } from "./rig-evaluate";
+import { JointFade, formsOf, reachOf } from "./rig-form";
 import type { RigRole, RigShape, RigSpec } from "./rig-spec";
 import { flattenPath } from "../video/collage/collage-geometry";
 import { buildBrushRibbon } from "../video/watercolour-brush";
@@ -137,10 +138,15 @@ export function watercolourSkySpec(width: number, height: number, seed: number):
 }
 /** The watercolour sheet: cold-press paper with a dried graded sky. Static: it never changes with the frame. */
 export function WatercolourRigBackdrop({ uid, width, height, seed }: { uid: string; width: number; height: number; seed: number }) {
-  return useMemo(() => <g data-km-rig-watercolour-sheet="">
-    <WatercolourPaper id={`${uid}-wc-paper`} width={width} height={height} color={WATERCOLOUR_PAPER} tooth={.75} seed={seed} />
-    <WatercolourWetPaper spec={watercolourSkySpec(width, height, seed)} frame={0} reducedMotion transparentPaper aria-hidden="true" />
-  </g>, [uid, width, height, seed]);
+  return useMemo(() => {
+    // WM4 paper has whole sides of at least 240 and up to 4096 cells; a stage of any other size shows such a sheet scaled to fit.
+    const side = (v: number) => Math.round(Math.min(4096, Math.max(240, v))), w = side(width), h = side(height);
+    const sky = <WatercolourWetPaper spec={watercolourSkySpec(w, h, seed)} frame={0} reducedMotion transparentPaper aria-hidden="true" />;
+    return <g data-km-rig-watercolour-sheet="">
+      <WatercolourPaper id={`${uid}-wc-paper`} width={width} height={height} color={WATERCOLOUR_PAPER} tooth={.75} seed={seed} />
+      {w === width && h === height ? sky : <svg width={width} height={height} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">{sky}</svg>}
+    </g>;
+  }, [uid, width, height, seed]);
 }
 
 // ---- Ground: WM1 brush ribbons laid along the ground line, anchored to the world -------------------------------------
@@ -227,8 +233,22 @@ export function WatercolourRigBody({ spec, frame, parts, uid, seed }: { spec: Ri
   });
   // Pencil: every part as white paper with a graphite edge, in paint order, so later parts hide earlier lines.
   // Construction seams inside one wash are drawn faintly, as an artist's lighter under-drawing.
-  const pencil = parts.filter(p => !p.line && p.role !== "smoke" && p.role !== "light").map(p => wrap(p,
-    <path d={pathOf(p.shape)} fill="#ffffff" stroke={GRAPHITE} strokeOpacity={seams.has(p.id) ? .4 : 1} strokeWidth={.9} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />));
+  // A body form has one line: the edges of all its parts lie under them, so only its silhouette shows.
+  const forms = formsOf(parts);
+  const pencil = parts.filter(p => !p.line && p.role !== "smoke" && p.role !== "light").map(p => {
+    const form = forms.get(p.id), d = pathOf(p.shape);
+    if (!form) return wrap(p, <path d={d} fill="#ffffff" stroke={GRAPHITE} strokeOpacity={seams.has(p.id) ? .4 : 1} strokeWidth={.9} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />);
+    return <g key={p.id}>
+      {form.parts[0] === p && form.parts.map(q => {
+        const b = boxOf(q.shape), id = q.grows ? `${fig}-grow-${safeId(q.id)}` : undefined;
+        return wrap(q, <>
+          {id && <JointFade id={id} color={GRAPHITE} reach={reachOf({ x: b.x, y: b.y, width: b.w, height: b.h })} />}
+          <path d={pathOf(q.shape)} fill="none" stroke={id ? `url(#${id})` : GRAPHITE} strokeOpacity={.8} strokeWidth={1.8} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+        </>);
+      })}
+      {wrap(p, <path d={d} fill="#ffffff" />)}
+    </g>;
+  });
   // A nearer part is white here: white multiplied onto the page changes nothing, but it covers the marks behind it, so a
   // mouth does not show through a raised hand. A glint is white too, and is kept out of the dark of the eye.
   const marked: Box[] = [], details: ReactNode[] = [];

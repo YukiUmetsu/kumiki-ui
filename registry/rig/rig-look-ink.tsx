@@ -213,7 +213,7 @@ function brushBody(loops: Pt[][], m: Medium, seed: number, color: Rgb, density: 
       // Pressed a little wider than the band: the pigment pooled along a stroke's two sides falls outside the part and
       // is clipped, instead of drawing a grey seam along the part's edge.
       const [x, y] = toXY(f, c.s, mid);
-      run.push({ x, y, r: Math.max(.6, half * (bands > 1 ? 1.35 : 1.18)) });
+      run.push({ x, y, r: Math.max(.6, half * 1.35) });
     }
     flush();
   }
@@ -229,6 +229,10 @@ function brushBody(loops: Pt[][], m: Medium, seed: number, color: Rgb, density: 
   }
   if (cx1 < 0) return undefined;
   const cw = cx1 - cx0 + 1, ch = cy1 - cy0 + 1, rgba = new Uint8Array(cw * ch * 4);
+  // A wet wash never runs dry at the part's edge (a pale rim there drew every joint); a dry brush keeps its white (飞白).
+  let sum = 0, inked = 0;
+  for (let i = 3; i < wet.rgba.length; i += 4) if (wet.rgba[i] > 2) { sum += wet.rgba[i]; inked++; }
+  const least = sum / Math.max(1, inked) * clamp(.95 - 2 * m.dry);
   for (let y = 0; y < ch; y++) {
     // Scanline of the wash outline at this row (even-odd), in the part's units.
     const Y = y0 + (cy0 + y + .5) / k, xsec: number[] = [];
@@ -239,7 +243,7 @@ function brushBody(loops: Pt[][], m: Medium, seed: number, color: Rgb, density: 
     for (let x = 0; x < cw; x++) {
       const X = x0 + (cx0 + x + .5) / k;
       if (xsec.filter(v => v < X).length % 2 === 0) continue;
-      const a = wet.rgba[((y + cy0) * wet.width + x + cx0) * 4 + 3], o = (y * cw + x) * 4;
+      const a = Math.max(least, wet.rgba[((y + cy0) * wet.width + x + cx0) * 4 + 3]), o = (y * cw + x) * 4;
       rgba[o] = color[0]; rgba[o + 1] = color[1]; rgba[o + 2] = color[2]; rgba[o + 3] = Math.round(a * density);
     }
   }
@@ -321,8 +325,13 @@ export interface InkPartPaint {
   /** Coarse outline, for telling which contours of the parts in front lie over this one. */
   occluder?: Pt[][];
 }
+/** How far the brush body reaches past the edge of the first wash. */
+const CLIP = .9;
 const cache = new Map<string, InkPartPaint>();
 const CACHE_LIMIT = 4000;
+/** Brush bodies are images (data URLs): keep at most this many characters of them. */
+const RASTER_LIMIT = 48e6;
+let rasterSize = 0;
 function hashKey(s: string) { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return h >>> 0; }
 
 /**
@@ -332,10 +341,16 @@ function hashKey(s: string) { let h = 2166136261; for (let i = 0; i < s.length; 
 export function inkPartPaint(role: RigRole, color: string, d: string, far: boolean, line: boolean, lineWidth = 1): InkPartPaint {
   const key = role + "|" + color + "|" + (far ? 1 : 0) + "|" + (line ? lineWidth : "") + "|" + d;
   const hit = cache.get(key);
-  if (hit) return hit;
+  if (hit) { cache.delete(key); cache.set(key, hit); return hit; }
   const paint = paintPart(role, color, d, far, line, lineWidth, hashKey(key) % 1000003);
-  if (cache.size >= CACHE_LIMIT) cache.delete(cache.keys().next().value!);
   cache.set(key, paint);
+  rasterSize += paint.raster?.href.length ?? 0;
+  // The least recently used goes first; the newest always stays.
+  for (const [old, p] of cache) {
+    if (cache.size === 1 || (cache.size <= CACHE_LIMIT && rasterSize <= RASTER_LIMIT)) break;
+    cache.delete(old);
+    rasterSize -= p.raster?.href.length ?? 0;
+  }
   return paint;
 }
 
@@ -376,7 +391,7 @@ function paintPart(role: RigRole, color: string, d: string, far: boolean, line: 
   out.wash = { d: walked.map(loopD).join(""), fill: hexOf(mix(WHITE, tinted, density * md.base)) };
   if (md.kind === "wash") out.raster = brushBody(loops, md, seed, tinted, clamp(density * .85),
     // A raster pixel past the wash's edge, so the clip never leaves a hairline of the paler first wash between parts.
-    walked.map(l => { const n = normals(l); return l.map((p, i) => [p[0] + n[i][0] * .9, p[1] + n[i][1] * .9] as Pt); }));
+    walked.map(l => { const n = normals(l); return l.map((p, i) => [p[0] + n[i][0] * CLIP, p[1] + n[i][1] * CLIP] as Pt); }));
   if (md.contour > 0 && minDim > 3.5) {
     const width = clamp(minDim * .1, 1.2, 6) * (.7 + .3 * md.contour);
     const lineInk = hexOf(mix(tinted, INK_RGB, .55));
@@ -422,10 +437,14 @@ function seamWeights(parts: readonly RigPartFrame[], paints: InkPartPaint[]): nu
     let covered = 0;
     for (const q0 of line.probe) {
       const q = apply(parts[i].matrix, q0);
-      for (let j = 0; j < occ.length; j++) {
-        const o = j === i ? undefined : occ[j];
-        if (o && q[0] >= o.x0 && q[0] <= o.x1 && q[1] >= o.y0 && q[1] <= o.y1 && inside(o.loops, q)) { covered++; break; }
+      // Another part here fades the line. Two parts of one body form need no line at all; a limb in front of a body keeps some.
+      let seam = 0;
+      const mass = parts[i].mass;
+      for (let j = 0; j < occ.length && seam < (mass ? 2 : 1); j++) {
+        const o = j === i ? undefined : occ[j], other = parts[j].mass;
+        if (o && q[0] >= o.x0 && q[0] <= o.x1 && q[1] >= o.y0 && q[1] <= o.y1 && inside(o.loops, q)) seam = Math.max(seam, !mass || !other ? 1 : mass === other ? 2 : .45);
       }
+      covered += seam;
     }
     return Math.max(0, 1 - 1.4 * covered / line.probe.length);
   }));
@@ -440,7 +459,9 @@ export function InkFigure({ parts, colorOf }: InkFigureProps) {
       const paint = paints[pi];
       return <g key={p.id} data-km-rig-part={p.id} transform={matrixAttr(p.matrix)} opacity={p.opacity < 1 ? r3(p.opacity) : undefined}>
         {paint.halos.map((h, i) => <path key={"h" + i} d={h.d} fill={h.fill} opacity={h.opacity} />)}
-        {paint.wash && <path d={paint.wash.d} fill={paint.wash.fill} fillRule="evenodd" />}
+        {/* In a body form the first wash reaches out under the edge of the brush body over it: the brush body of one part on that of
+            the next doubled the ink along their joint. */}
+        {paint.wash && <path d={paint.wash.d} fill={paint.wash.fill} fillRule="evenodd" {...(p.mass && paint.raster ? { stroke: paint.wash.fill, strokeWidth: 1.2 * CLIP, strokeLinejoin: "round" } : {})} />}
         {paint.raster && <image href={paint.raster.href} x={f2(paint.raster.x)} y={f2(paint.raster.y)} width={f2(paint.raster.width)}
           height={f2(paint.raster.height)} preserveAspectRatio="none" />}
         {paint.lines.map((l, i) => <path key={i} d={l.d} fill={l.fill} opacity={r3(l.opacity * seams[pi][i])} />)}
@@ -476,6 +497,8 @@ export function InkPaper({ width, height, seed }: { width: number; height: numbe
   </g>;
 }
 
+/** Distance from the ground stroke's centre line to its upper edge at full pressure. */
+const GROUND_LEAN = 3;
 /**
  * One world tile of ground, brushed: a broken dry ground stroke and a pale wash below it, a few grass tufts flicked up
  * (撇) and moss dots (点苔). Seeded by the tile index, so the ground is the same wherever the camera looks from.
@@ -487,9 +510,11 @@ export function InkGroundTile({ k, tile, ground, seed }: { k: number; tile: numb
     // Two overlapping ground strokes per tile, each tapering in and out, so the line breaks where a brush would lift.
     for (let s = 0; s < 2; s++) {
       const a = x0 + (s ? tile * .42 : -tile * .08) + h(s, 1) * 40, b = s ? x1 + tile * .06 + h(s, 2) * 30 : x0 + tile * .62 + h(s, 3) * 50;
-      const pts: InkPoint[] = Array.from({ length: 7 }, (_, i) => ({
-        x: a + (b - a) * i / 6, y: ground + 2 + (h(s * 10 + i, 5) - .5) * 4, pressure: clamp(.2 + .7 * h(s * 10 + i, 7) * Math.sin(Math.PI * (i + .5) / 7)),
-      }));
+      // The brush leans over the ground line, so the stroke's upper edge is the ground and only its lower edge wanders.
+      const pts: InkPoint[] = Array.from({ length: 7 }, (_, i) => {
+        const pressure = clamp(.2 + .7 * h(s * 10 + i, 7) * Math.sin(Math.PI * (i + .5) / 7));
+        return { x: a + (b - a) * i / 6, y: ground + GROUND_LEAN * (.15 + .85 * pressure) + (h(s * 10 + i, 5) - .5) * 1.2, pressure };
+      });
       out.push({ d: inkOutline(stroke("g", pts, 10, .3, "oblique", .7), seed + k * 17 + s, 1), opacity: .46 });
     }
     for (let t = 0; t < 3; t++) {

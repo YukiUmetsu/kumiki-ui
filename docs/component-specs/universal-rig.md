@@ -25,6 +25,13 @@ draws the same pose.
   (hood, windscreen, nose, tail) are painted, shaded by orientation (`faceRole` gives the faces their own material, e.g. a
   dark cabin whose windscreen faces are glass); `far3d` parts (far wheels, the other lamps, far-side
   indicators) are drawn at the far side, under or over those faces.
+- **Forms**: parts with the same `mass` name are one solid (a barrel, rump, shoulder and neck). Every look draws the
+  outlines of the whole mass first and the fills over them, so no seam or joint disc shows inside it, and lights the mass
+  as one body instead of shading each part on its own. `grows` names the mass it grows out of (a leg from the body): the
+  two keep their own outline but fade into each other at the joint and share the light. In a preset, write
+  `rig.mass("leg", /^(up|lo|paw)$/, /^up$/)` after the parts. Use it for any body made of several parts. Keep parts that
+  lie over each other and must read apart (the turns of a coiled snake) without a `mass`.
+  `soft(points)` (`rig-kit.ts`) makes a rounded closed outline through a few points, for bodies that are not polygons.
 - **Palette**: role → colour. Painters restyle it.
 - **Root keys**: travel through the scene (`x`, `y`, `rotate`, `facing`, depth `scale`, `yaw`). The evaluator derives
   **signed travel** in the figure's own units. Without `facing` the figure faces its travel, and before it sets off the
@@ -35,7 +42,7 @@ draws the same pose.
   | Driver | Use |
   | --- | --- |
   | `gait` | Legs by analytic two-bone IK with real footfall phases. Legs with a `pastern` (hooves, paws) keep the leg above it almost straight through stance — a column on a sinking fetlock, as in Muybridge's gallop plates — fold tightly in swing, then straighten to reach before landing; the hoof (`hoof` bone) stays flat while planted and flips back in swing. Stance feet are locked to the ground; feet with a `toe` roll up onto the planted toe at push-off; swing feet follow a Hermite arc whose end speeds match the stance sweep (no snap at lift-off or touch-down); `curl` folds hooves and paws with the shin; `swingHip` lets the shoulder blade and pelvis follow the leg. Body `bob` (`bobPhase`, `bobHarmonic`), `pitch` and `sink` are locked to the cycle; `swing` moves arms, necks, heads and spines in step. |
-  | `reach` | Two-bone IK toward keyed root-space targets or another bone's joint: feet planted on the floor or on pedals, hands on knees, a chin, a handlebar, a phone at the ear. Blends with the FK pose by its window. `floor` keeps the middle joint and the end of the reach above the ground (an elbow that would dip points toward the viewer), and a `tip` bone with a length bends at the wrist, so a hand lies flat on the floor it is put on. `out` on a target key swings the middle joint toward the viewer, so an arm can pass its folded pose without a flip. |
+  | `reach` | Two-bone IK toward keyed root-space targets or another bone's joint: feet planted on the floor or on pedals, hands on knees, a chin, a handlebar, a phone at the ear. Blends with the FK pose by its window. `level` names the bone past the `tip` that stays flat on the ground (a hoof or paw). `floor` keeps the middle joint and the end of the reach above the ground (an elbow that would dip points toward the viewer), and a `tip` bone with a length bends at the wrist, so a hand lies flat on the floor it is put on. `out` on a target key swings the middle joint toward the viewer, so an arm can pass its folded pose without a flip. |
   | `flap` | Side-view wingbeats by projection: the wing plane turns about the body's long axis, so its span foreshortens by sin(elevation) — spread above the back, edge-on, below the belly — never swinging forward. Arm and hand fold back on the upstroke, the hand presses ahead on the downstroke, `tilt` shows the far wing, `heave` lifts the body each stroke, `glide` holds the wings spread. |
   | `wing` | The older in-plane flap (kept for existing rigs). |
   | `suspension` | A damped spring driven by the root's real forward acceleration (convolved over the recent frames, still pure): noses dive under braking and rebound at the stop, cars squat on throttle, riders lurch; `range` limits it one-sidedly (a bicycle lifts its rear wheel but never sinks it). |
@@ -215,8 +222,8 @@ Every prop is a keyed bone and the hands reach for its grip points, so a test ca
 
 - Side-on 2D rigs: no full turnarounds. Turns in depth extrude the side outline across the figure's width (an
   orthographic solid): good to about ±30° of yaw; beyond that a real 3/4 drawing is needed.
-- No mesh deformation (parts are rigid); wings and membranes are planar. Snake bodies are capsule chains, so outlines
-  show faint seams in looks that stroke every part.
+- No mesh deformation (parts are rigid); wings and membranes are planar. Parts without a `mass` (a car's panels, the turns
+  of a coiled snake) keep their own outline, so looks that stroke every part show a line between them.
 - Leaves, petals and food turn in depth by projection of a flat plate; they have no thickness or curl.
 - `drape` colliders are capsules in the picture plane; a lock may cut a round collider by its chord's sagitta (about 3 px on the 360 px person's shoulder). A body lying on its own hair is not modelled: the hair passes beside it. Ukiyo-e figures settle their long hair with the same solver in profile and three-quarter view, without momentum; riso, ink, crayon and watercolour characters draw their own hair. Hair lying toward or away from the viewer, on the floor or while it swings from one side to the other, is drawn shorter. In a roll it swings about as fast as the trunk turns (58 px a frame on the 360 px person, against 50), and for a few frames it is hidden behind the head. The first frames of a walk or a run start in the middle of the swing.
 - Gaits assume flat ground at `ground`; no slopes or stairs. Quadruped legs are two-segment chains with a curling foot.

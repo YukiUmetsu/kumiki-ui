@@ -15,7 +15,7 @@
 import type { RigDriver, RigKey, RigRole, RigSpec } from "./rig-spec";
 import { ELEVATION, flutterState, projectPlate, seeded } from "./rig-flutter";
 import type { FlutterParams } from "./rig-flutter";
-import { Rig, cap, ell, finish, path, poly, r2, sampledPath, travel, tube } from "./rig-kit";
+import { Rig, cap, ell, finish, path, poly, r2, sampledPath, soft, travel, tube } from "./rig-kit";
 import type { Pt, RigPresetOptions } from "./rig-kit";
 
 const RD = 180 / Math.PI;
@@ -116,7 +116,7 @@ function frogHopPose(tau: number, dist: number): FrogPose {
   const reachOut = Math.min(1, (dist - 3) / 3 / full[0]), rise = Math.max(.45, reachOut);
   const hip1: Pt = [full[0] * reachOut, lerp(CROUCH.hip[1], full[1], rise)];
   // The hip rises before it goes forward, so the knee turns over above the ground; both ways end at 1.4 times their mean speed.
-  const ant = crouchPose(0, 1.4, -27), pushX = (s: number) => 1.6 * s * s - .6 * s ** 3, pushY = (s: number) => .9 * s - .2 * s * s + .3 * s ** 3;
+  const ant = crouchPose(0, 1.4, -27), pushX = (s: number) => 1.6 * s * s - .6 * s ** 3, pushY = (s: number) => 1.5 * s - 1.4 * s * s + .9 * s ** 3;
   const vy = 1.4 * (hip1[1] - ant.hip[1]) / H.push;
   // Landing: forelegs reach the spot where the next crouch keeps its hands.
   const landPitch = 20, hipL: [number, number] = [dist - 3, 0];
@@ -139,8 +139,10 @@ function frogHopPose(tau: number, dist: number): FrogPose {
   }
   if (tau < tFly) {
     const s = (tau - tPush) / H.push;
-    const hip: Pt = [lerp(ant.hip[0], hip1[0], pushX(s)), lerp(ant.hip[1], hip1[1], pushY(s))], pitch = lerp(-27, -14, smooth(s));
-    const [hind, farHind] = offToes(hip, pitch, s);
+    const hip: [number, number] = [lerp(ant.hip[0], hip1[0], pushX(s)), lerp(ant.hip[1], hip1[1], pushY(s))], pitch = lerp(-27, -14, smooth(s));
+    let [hind, farHind] = offToes(hip, pitch, s);
+    // The hip rises as far as the knee needs to turn over above the ground.
+    while (hip[1] + FROG.thigh * dirOf(hind[0])[1] > -3.4 && hip[1] > hip1[1]) { hip[1] -= .25; [hind, farHind] = offToes(hip, pitch, s); }
     const lift = smooth((s - .2) / .8), up = [26, 40, -40];
     const fore = s < .2 ? foreTo(toBody(hip, pitch, SHOULDER), CROUCH.hand) : ant.fore.map((v, i) => lerpAngle(v, up[i], lift));
     const farFore = ant.farFore.map((v, i) => lerpAngle(v, up[i] - 6, lift));
@@ -203,8 +205,8 @@ export function frogRig(o: RigPresetOptions = {}): RigSpec {
   // Body in profile: rear, sacral hump, flat back, eye dome, rounded snout, throat, sagging belly.
   const outline: Pt[] = [[-4.2, -1], [-3.4, -6], [.8, -9.6], [5.8, -12.6], [10.6, -12.4], [17.6, -11.3], [25.6, -11.7], [31.6, -12.6], [38, -12.2], [43.8, -9.8],
     [48.8, -6.8], [51.4, -4.2], [51.2, -2.2], [48.2, -.6], [42.2, 1.6], [35, 3.6], [27, 6.2], [18, 7.9], [9, 7.7], [2, 5.8], [-2.2, 3]];
-  rig.part("body", "body", poly(outline), "skin", 4);
-  rig.part("belly", "body", poly([[48.4, -.9], [42.2, 1.6], [35, 3.6], [27, 6.2], [18, 7.9], [9, 7.7], [2, 5.8], [-2.2, 3], [-1.2, 1.6], [8, 3.6], [18, 3.9], [28, 2], [36, -.2], [44, -1.4]]), "belly", 4.05);
+  rig.part("body", "body", soft(outline), "skin", 4);
+  rig.part("belly", "body", soft([[48.4, -.9], [42.2, 1.6], [35, 3.6], [27, 6.2], [18, 7.9], [9, 7.7], [2, 5.8], [-2.2, 3], [-1.2, 1.6], [8, 3.6], [18, 3.9], [28, 2], [36, -.2], [44, -1.4]]), "belly", 4.05);
   // Dark blotches along the back and flank, and the pale dorsolateral fold.
   for (const [k, [x, y, rx, ry, a]] of ([[6, -9.4, 3, 2, 0], [14.5, -8.6, 3.6, 2.2, 0], [22.5, -9.2, 3, 1.8, 0], [10, -3.4, 2.4, 1.6, 0], [19, -3.8, 2.2, 1.5, 0], [27, -6, 1.8, 1.3, 0], [1.6, -4.6, 2, 1.6, 0]] as const).entries()) {
     void a; rig.part(`spot-${k}`, "body", ell(x, y, rx, ry), "scale-dark", 4.1);
@@ -233,8 +235,8 @@ export function frogRig(o: RigPresetOptions = {}): RigSpec {
     rig.part("thigh-" + s, "thigh-" + s, path("M-5.4 -1Q-6.6 8 -3.6 21.4L3.6 21.4Q5.8 10 4.2 -1.4Q0 -3.6 -5.4 -1Z"), "skin", z, opt);
     rig.part("shank-" + s, "shank-" + s, cap(FROG.shank, 7.2, 4.4), "skin", z - .02, opt);
     rig.part("tarsus-" + s, "tarsus-" + s, cap(FROG.tarsus, 4.2, 3), "skin", z - .04, opt);
-    rig.part("foot-" + s, "toes-" + s, path("M-1.6 0L-3.4 9.6L-4.6 15.4L-3.6 15.8L-2.2 11.4L-1.2 16.6L0 17L.6 12L2 15.2L3 14.8L1.8 9L1.6 0Z"), "skin", z - .05, opt);
-    rig.part("web-" + s, "toes-" + s, path("M-3 9.4Q-2.6 12.2 -2.2 11.4Q-1.6 13.6 -1 13.8Q0 14 .6 12Q1.4 13 2.2 12.6L1.6 6L-2 6Z"), "scale-dark", z - .045, { ...opt, color: "#55702f" });
+    rig.part("foot-" + s, "toes-" + s, path("M-1.6 0L-2.4 9.6L-3 15.4L-2.2 15.8L-1.5 11.4L-.8 16.6L.3 17L.8 12L2.2 15.2L3 14.8L1.8 9L1.6 0Z"), "skin", z - .05, opt);
+    rig.part("web-" + s, "toes-" + s, path("M-2.2 9.4Q-1.9 12.2 -1.5 11.4Q-1.1 13.6 -.6 13.8Q.2 14 .8 12Q1.5 13 2.2 12.6L1.6 6L-1.8 6Z"), "scale-dark", z - .045, { ...opt, color: "#55702f" });
     for (const [k, [y, w]] of ([[5, 6.4], [11, 6.4], [17, 6.4]] as const).entries()) rig.part(`thigh-band-${s}-${k}`, "thigh-" + s, path(`M${-w / 2 - .4} ${y}L${w / 2 + .6} ${y - 1.6}L${w / 2 + .6} ${y + 1}L${-w / 2 - .4} ${y + 2.4}Z`), "scale-dark", z + .01, opt);
     for (const [k, y] of [4, 10, 16].entries()) rig.part(`shank-band-${s}-${k}`, "shank-" + s, path(`M-3.4 ${y}L3.2 ${y - 1.2}L3 ${y + 1}L-3.2 ${y + 2}Z`), "scale-dark", z - .01, opt);
     rig.bone("arm-" + s, "body", sh[0], sh[1], 0, FROG.arm);
@@ -242,10 +244,12 @@ export function frogRig(o: RigPresetOptions = {}): RigSpec {
     rig.bone("hand-" + s, "fore-" + s, 0, FROG.fore);
     rig.part("arm-" + s, "arm-" + s, cap(FROG.arm, 4.6, 3.4), "skin", far ? 1.8 : 4.7, opt);
     rig.part("fore-" + s, "fore-" + s, cap(FROG.fore, 3.4, 2.6), "skin", far ? 1.79 : 4.69, opt);
-    rig.part("hand-" + s, "hand-" + s, path("M-1.2 -.6L-2.6 3.4L-1.8 3.6L-.8 1.6L-.4 4.4L.4 4.4L.6 1.8L1.8 3.8L2.4 3.4L1.2 -.6Z"), "skin", far ? 1.78 : 4.68, opt);
+    rig.part("hand-" + s, "hand-" + s, path("M-1.2 -.6L-1.6 3.4L-1 3.6L-.5 1.6L-.2 4.4L.5 4.4L.7 1.8L1.8 3.8L2.4 3.4L1.2 -.6Z"), "skin", far ? 1.78 : 4.68, opt);
   };
   leg("f", FAR_HIP, FAR_SHOULDER, true);
   leg("n", [0, 0], SHOULDER, false);
+  rig.mass("body", /^(body|belly|eye-dome)$/);
+  for (const s of ["n", "f"]) { rig.mass("leg-" + s, new RegExp(`^(thigh|shank|tarsus|foot)-${s}$`), /^thigh/); rig.mass("arm-" + s, new RegExp(`^(arm|fore|hand)-${s}$`), /^arm/); }
   rig.bone("shadow", "root", 14, 0);
   const keys: Record<string, RigKey[]> = {};
   const push = (bone: string, k: RigKey) => (keys[bone] ??= []).push(k);
@@ -356,6 +360,7 @@ export function snakeRig(o: RigPresetOptions = {}): RigSpec {
       rig.part(`eye-ring-${s}`, "head", ell(2.45 * s, 5.2, .95, 1.2), "accent", 4.32);
       rig.part(`nostril-${s}`, "head", ell(.7 * s, 7.4, .22, .2), "detail", 4.33);
     }
+    rig.mass("body", /^(body-\d+|neck|head)$/);
     addTongue(rig, "head", 0, 7.8, 0, 4.25);
     rig.track("tongue", tongueFlicks(start, end, 40, 3));
     rig.drivers.push({ type: "serpent", bones, amplitude: 9 * u, wavelength: 56 * u, head: .45 },
@@ -402,6 +407,7 @@ export function snakeRig(o: RigPresetOptions = {}): RigSpec {
   rig.part("eye", "head", ell(1.15, 5.2, .7, .7), "eye", 5.25);
   rig.part("eye-glint", "head", ell(1.5, 5.5, .22, .22), "light", 5.26, { color: "#fff3dc" });
   rig.part("nostril", "head", ell(.55, 7.6, .2, .2), "detail", 5.25);
+  rig.mass("neck", /^(neck-\d|head)$/);
   rig.bone("jaw", "head", -.5, .6, 0, 7.4);
   rig.part("mouth", "jaw", path("M.1 0L.4 7.2Q.1 7.6 -.2 7.2L-.6 .4Z"), "skin", 5.15);
   rig.part("jaw", "jaw", path("M-.1 -.2Q-.3 4 -.2 7.2Q-.6 7.6 -1 7Q-1.8 3.6 -2.2 .4Z"), "belly", 5.19);

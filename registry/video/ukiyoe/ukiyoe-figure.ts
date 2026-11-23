@@ -1143,7 +1143,7 @@ export function drawFigure(spec: UkiyoeFigureSpec, frame: number, wind: number, 
       // Suso-moyō: the design rises from the hem, its upper edge rolling like a hillside, clipped to the skirt.
       const top = kneel > .5 ? -H * .11 : hemY - H * (look.hem.height ?? .22), x0 = Math.min(hemB[0], s.waistB[0]) - H * .2, x1 = Math.max(hemF[0], s.waistF[0]) + H * .2, edge: Pt[] = [];
       for (let i = 0; i <= 10; i++) edge.push([lerp(x0, x1, i / 10), top + Math.sin(i * 1.7 + seed % 7) * H * .018 + (i % 3 === 0 ? -H * .012 : 0)]);
-      const band = smoothD([...edge, [x1, hemY + H * .1], [x0, hemY + H * .1]], true, .35), { ground, height: _h, ...hp } = look.hem;
+      const band = smoothD([...edge, [x1, hemY + H * .1], [x0, hemY + H * .1]], true, .35), { ground, ...hp } = { ...look.hem, height: undefined };
       out.push({ t: "clip", d: skirtD, key: "hem", prims: [{ t: "fill", d: band, fill: ground ?? robe, pattern: hp, grain: .25 }] });
     }
     // Three-quarter: the front panel's edge (okumi) runs down from the obi to the hem, a sliver of the under-robe beside it.

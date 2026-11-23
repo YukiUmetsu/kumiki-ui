@@ -15,6 +15,7 @@ import type { ReactNode } from "react";
 import { Paper, WaxLine, WaxRegion } from "../video/materials/crayon-react";
 import type { AffineMatrix } from "../motion/types";
 import type { RigPartFrame } from "./rig-evaluate";
+import { JointFade } from "./rig-form";
 import type { RigLookContext } from "./rig-react";
 import type { RigRole } from "./rig-spec";
 
@@ -57,6 +58,13 @@ function lightFocus(m: AffineMatrix): { focusX: number; focusY: number } {
   return { focusX: r(lx), focusY: r(ly) };
 }
 
+/** The same light across a scene box, in the part's own coordinates: one light for all the parts of a form. */
+function lightAcross(m: AffineMatrix, b: { x: number; y: number; width: number; height: number }) {
+  const det = m.a * m.d - m.b * m.c || 1, size = Math.hypot(b.width, b.height);
+  const x = b.x + b.width * (.5 + .34 * LIGHT_DIR[0]) - m.e, y = b.y + b.height * (.5 + .34 * LIGHT_DIR[1]) - m.f;
+  return { cx: (m.d * x - m.c * y) / det, cy: (-m.b * x + m.a * y) / det, r: .8 * size / Math.sqrt(Math.abs(det)) };
+}
+
 /**
  * Strokes run along a part's long axis: across-the-grain colouring on a limb looks like bands, not wax. Wide parts
  * keep angle 0 (the marks carry their own lean): a tilted hatch covers the square of the diagonal, several times the
@@ -81,10 +89,23 @@ export interface RigCrayonPartProps {
   color: string;
   /** Stable per part; the boil step is added here. */
   seed: number;
+  /** One part of a body form: the scene box its light turns across. Its form has the contour (`RigCrayonFormEdge`). */
+  lightBox?: { x: number; y: number; width: number; height: number };
+}
+const pigment = (p: RigPartFrame, color: string) => p.far ? mix(color, SHADOW, .2) : color;
+/** A part's share of the darker wax line round its body form: it goes down before the parts, which cover its inner half. */
+export function RigCrayonFormEdge({ p, ctx, d, color, seed, fade }: { p: RigPartFrame; ctx: RigLookContext; d: string; color: string; seed: number; fade?: { id: string; reach: number } }) {
+  const dark = mix(pigment(p, color), SHADOW, .42), r = RECIPES[p.role] ?? CLOTH;
+  return <>
+    {fade && <JointFade {...fade} color={dark} />}
+    <WaxLine d={d} color={fade ? `url(#${fade.id})` : dark} width={3.4 + r.pressure * 1.5} seed={seed + (ctx.reduced ? 0 : ctx.step % 3) * 101 + 919} opacity={.72 * r.outline}
+      paperSeed={ctx.seed} frame={2} first={0} last={1} reduced />
+  </>;
 }
 /** One rigged part drawn in wax crayon. */
-export function RigCrayonPart({ p, ctx, d, bounds: b, color, seed: partSeed }: RigCrayonPartProps): ReactNode {
-  const base = p.far ? mix(color, SHADOW, .2) : color;
+export function RigCrayonPart({ p, ctx, d, bounds: b, color, seed: partSeed, lightBox }: RigCrayonPartProps): ReactNode {
+  const formed = !!lightBox;
+  const base = pigment(p, color);
   const dark = mix(base, SHADOW, .42), light = mix(base, LIGHT, .3);
   // Each held pose is a fresh drawing: three drawings cycle on the boil step, never a texture sliding over the part.
   const seed = partSeed + (ctx.reduced ? 0 : ctx.step % 3) * 101;
@@ -93,7 +114,7 @@ export function RigCrayonPart({ p, ctx, d, bounds: b, color, seed: partSeed }: R
   const small = Math.max(b.width, b.height) < 16 || Math.min(b.width, b.height) < 3.5;
   // Eyes, mouths and tiny details are pressed hard in one go: a solid dab with a slightly darker edge.
   if (small || (SMALL_ROLES.has(p.role) && Math.max(b.width, b.height) < 40))
-    return <path d={d} fill={SMALL_ROLES.has(p.role) ? base : mix(base, RIG_CRAYON_PAPER, .1)} stroke={dark} strokeWidth={.8} strokeOpacity={.5} strokeLinejoin="round" />;
+    return <path d={d} fill={SMALL_ROLES.has(p.role) ? base : mix(base, RIG_CRAYON_PAPER, .1)} stroke={formed ? undefined : dark} strokeWidth={.8} strokeOpacity={.5} strokeLinejoin="round" />;
   const spacing = Math.max(4, Math.min(8.5, Math.min(b.width, b.height) / 3.2));
   const angle = strokeAngle(b.width, b.height, partSeed);
   if (p.role === "smoke" || p.role === "light") {
@@ -109,7 +130,8 @@ export function RigCrayonPart({ p, ctx, d, bounds: b, color, seed: partSeed }: R
     pressure={r.pressure} spacing={spacing} angle={angle} coverage="opaque" deposition="stroke-built"
     markLength="long" strokeOrder="patches" markStrength={r.marks} opaqueBurnish={r.burnish}
     underpaintGradient={cap ? undefined : { light: mix(base, LIGHT, .26), shadow: mix(base, SHADOW, .34), ...lightFocus(p.matrix), radius: 1.05 }}
-    underpaintTooth={.7} edgeRoughness={cap ? 0 : r.rough} outlineOpacity={cap ? 0 : r.outline} />;
+    underpaintFrame={lightBox && lightAcross(p.matrix, lightBox)}
+    underpaintTooth={.7} edgeRoughness={cap || formed ? 0 : r.rough} outlineOpacity={cap || formed ? 0 : r.outline} />;
 }
 
 /**
@@ -129,23 +151,30 @@ export function RigCrayonGroundTile({ uid, k, x0, x1, ground, depth, seed, marks
   marks: readonly { d: string; kind: "tuft" | "pebble" }[];
 }) {
   const shared = { tooth: uid + "-tooth", paperSeed: seed, paperColor: RIG_CRAYON_PAPER, frame: 2, first: 0, last: 1, reduced: true } as const;
-  const w = x1 - x0, verge = 44, bottom = ground + Math.max(verge + 8, depth);
-  // Drawn once per tile (the background is not redrawn). Undercoats are opaque, pre-mixed with the paper, and tiles
-  // overlap by a pixel, so the ground runs on without a seam. The grass verge ends in ragged stroke ends over a paler
-  // field coloured with the broad side of the crayon down to the bottom of the frame.
-  const ends: string[] = [];
-  for (let x = x1 + 1, i = 0; x > x0 - 1; x -= 16, i++)
-    ends.push(`${Math.round(Math.max(x0 - 1, x) * 10) / 10} ${ground + verge - 10 + ((seed * 7 + k * 31 + i * 17) % 13)}`);
-  ends.push(`${x0 - 1} ${ground + verge - 4}`);
-  const top = `M${x0 - 1} ${ground + 1}C${x0 + w * .3} ${ground - 2} ${x0 + w * .62} ${ground + 3} ${x1 + 1} ${ground + 1}`;
-  const field = `M${x0 - 1} ${ground + 18}H${x1 + 1}V${bottom}H${x0 - 1}Z`;
+  const w = x1 - x0, verge = 44, bottom = ground + Math.max(verge + 8, depth), hash = (n: number, m: number) => ((seed * 7 + n * 31) % 101 + 101) % 101 % m;
+  // Drawn once per tile (the background is not redrawn). Undercoats are opaque and pre-mixed with the paper. The grass
+  // verge ends in ragged stroke ends, at points shared by the tiles on both sides, over a paler field coloured with the
+  // broad side of the crayon. A tile laps over the one before it along a ragged edge: a straight edge cut the strokes.
+  const lap = (from: number, to: number) => {
+    let d = "";
+    for (let y = from, i = 0; y > to; y -= 13, i++) d += `L${x0 - 4 - hash(k * 5 + i * 3, 11)} ${y}`;
+    return d;
+  };
+  let ends = "";
+  for (let n = Math.ceil(x1 / 16); n >= Math.floor(x0 / 16) - 1; n--) ends += `L${Math.min(x1 + 1, Math.max(x0 - 6, n * 16))} ${ground + verge - 10 + hash(n, 13)}`;
+  const top = `M${x0} ${ground + 1}C${x0 + w * .3} ${ground - 2} ${x0 + w * .62} ${ground + 3} ${x1 + 1} ${ground + 1}`;
+  const field = `M${x0} ${ground + 18}H${x1 + 1}V${bottom}H${x0 - 4}${lap(bottom, ground + verge + 6)}L${x0} ${ground + verge + 5}Z`, line = uid + "-line" + k;
   return <g data-km-rig-crayon-ground={k}>
     {/* angle 0: a tilted hatch would cover the square of the tile's diagonal, ten times the strokes. */}
-    <WaxRegion d={field} bounds={{ x: x0 - 1, y: ground + 18, width: w + 2, height: bottom - ground - 18 }} colors={[mix("#c6c593", RIG_CRAYON_PAPER, .62), "#a7a679", "#ebe5c2"]}
+    <WaxRegion d={field} bounds={{ x: x0 - 16, y: ground + 18, width: w + 17, height: bottom - ground - 18 }} colors={[mix("#c6c593", RIG_CRAYON_PAPER, .62), "#a7a679", "#ebe5c2"]}
       seed={seed + k * 17 + 5} {...shared} pressure={.4} spacing={20} angle={0} coverage="opaque" markStrength={.42} underpaintTooth={.6} outlineOpacity={0} />
-    <WaxRegion d={`${top}L${ends.join("L")}Z`} bounds={{ x: x0 - 1, y: ground - 3, width: w + 2, height: verge + 8 }} colors={[mix("#b5bf86", RIG_CRAYON_PAPER, .4), "#a1a874", "#dfe1b4"]}
+    <WaxRegion d={`${top}${ends}${lap(ground + verge - 12, ground + 14)}L${x0} ${ground + 10}Z`} bounds={{ x: x0 - 16, y: ground - 3, width: w + 17, height: verge + 8 }} colors={[mix("#b5bf86", RIG_CRAYON_PAPER, .4), "#a1a874", "#dfe1b4"]}
       seed={seed + k * 17 + 3} {...shared} pressure={.55} spacing={11} angle={0} coverage="opaque" markStrength={.34} underpaintTooth={.6} outlineOpacity={0} />
-    <WaxLine d={`M${x0} ${ground + 2} C${x0 + w * .3} ${ground - 3} ${x0 + w * .6} ${ground + 5} ${x1} ${ground + 2}`} color="#7d6446" width={3.4} seed={seed + k} {...shared} />
+    {/* Cut flat at the tile's edges: the round end of a line on the next one made a knot. */}
+    <clipPath id={line}><rect x={x0} y={ground - 20} width={w} height={40} /></clipPath>
+    <g clipPath={`url(#${line})`}>
+      <WaxLine d={`M${x0 - 6} ${ground + 2}L${x0} ${ground + 2}C${x0 + w * .3} ${ground - 3} ${x0 + w * .6} ${ground + 5} ${x1} ${ground + 2}L${x1 + 6} ${ground + 2}`} color="#7d6446" width={3.4} seed={seed + k} {...shared} />
+    </g>
     {marks.map((m, i) => m.kind === "pebble"
       ? <path key={i} d={m.d} fill="#9c8a6c" stroke="#6f5d43" strokeWidth={1} strokeOpacity={.6} />
       : <WaxLine key={i} d={m.d} color="#6f7a48" width={2.2} seed={seed + k * 13 + i} {...shared} />)}

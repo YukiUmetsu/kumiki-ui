@@ -186,6 +186,8 @@ export interface RigPartFrame {
   id: string; bone: string; role: RigRole; shape: RigShape; matrix: AffineMatrix; z: number; color?: string; opacity: number; line?: boolean; lineWidth?: number; variant?: string; far?: boolean;
   /** For `extrude` parts: the far side's matrix (the faces span from `matrix` to it). For `far3d` parts it replaces `matrix`. */
   farMatrix?: AffineMatrix; extrude?: boolean; far3d?: "under" | "over"; faceRole?: RigRole;
+  /** Body form (`RigPart.mass`), and the form that this part grows out of. */
+  mass?: string; grows?: string;
 }
 export interface RigFrame {
   frame: number;
@@ -510,6 +512,13 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
       const lowerAngle = angleOf(world.get(d.lower)!), q = pose.get(d.tip)!;
       q.rotate += angleDelta(q.rotate, d.tipAngle - lowerAngle) * w;
       solve();
+      if (d.level) {
+        // A gait may have stretched the foot to reach its planted spot; this driver places the foot itself.
+        const l = pose.get(d.level)!;
+        q.sy += (1 - q.sy) * w; l.sy += (1 - l.sy) * w;
+        l.rotate += angleDelta(l.rotate, -angleOf(world.get(d.tip)!)) * w;
+        solve();
+      }
     }
   }
 
@@ -585,7 +594,7 @@ export function evaluateRig(spec: RigSpec, frame: number, options: RigEvaluateOp
   const parts: RigPartFrame[] = spec.parts.map((q: RigPart) => {
     const v = variants.get(q.id), m = world.get(q.bone)!, back = m.a * m.d - m.b * m.c < 0;
     return {
-      id: q.id, bone: q.bone, role: q.role, z: q.z, color: back && q.backColor ? q.backColor : q.color, line: q.line, lineWidth: q.lineWidth, variant: v, far: q.far,
+      id: q.id, bone: q.bone, role: q.role, z: q.z, color: back && q.backColor ? q.backColor : q.color, line: q.line, lineWidth: q.lineWidth, variant: v, far: q.far, mass: q.mass, grows: q.grows,
       hidden: q.side !== undefined && (q.side === "back") !== back,
       shape: v && q.variants?.[v] ? q.variants[v] : q.shape,
       matrix: mul(q.far3d ? farScene : toScene, world.get(q.bone)!), opacity: alpha.get(q.bone)!,
@@ -730,6 +739,9 @@ function pasternLeg(leg: RigLeg, cycle: number, stance: number, stride: number, 
       const tilt = Math.acos(clamp((ground - Fy) / P, -1, 1)) * DEG * (footAngle < 0 ? -1 : 1);
       footAngle = tilt;
     }
+    // Nor does its toe: a hoof coming down unfolds as it nears the ground, never steeper than its toe has room for.
+    const room = Math.max(0, ground - Fy - P * Math.cos(footAngle / DEG)) / toe, steepest = room < .3 ? Math.asin(room) * DEG : 17.5 + 45 * (room - .3);
+    hoofLocal -= Math.max(0, angleDelta(0, footAngle + hoofLocal) - steepest) * smooth((s - .3) / .35);
   }
   pose.get(leg.foot!)!.rotate = footAngle - shinAngle;
   if (leg.hoof) pose.get(leg.hoof)!.rotate = hoofLocal;
