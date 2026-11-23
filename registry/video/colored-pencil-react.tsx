@@ -74,11 +74,13 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
   // Reject before laying out hundreds of brush marks.
   evaluatePencilMark(frame, { startFrame: 0, durationFrames: 1 }, reducedMotion);
   const uid = "km-cp-" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  // Paper pores and fibres read consecutive hash indices (see pencilGrainTile):
+  // nearby salts on one index put them all in a diagonal band.
   const pores = useMemo(() => Array.from({ length: 850 }, (_, i) => ({
-    x: pencilHash(drawing.seed, i, 11) * 1024,
-    y: pencilHash(drawing.seed, i, 13) * 1024,
-    radius: .28 + pencilHash(drawing.seed, i, 15) * 1.3,
-    opacity: .2 + pencilHash(drawing.seed, i, 17) * .48,
+    x: pencilHash(drawing.seed, 4 * i, 11) * 1024,
+    y: pencilHash(drawing.seed, 4 * i + 1, 11) * 1024,
+    radius: .28 + pencilHash(drawing.seed, 4 * i + 2, 11) * 1.3,
+    opacity: .2 + pencilHash(drawing.seed, 4 * i + 3, 11) * .48,
   })), [drawing.seed]);
   const grain = useMemo(()=>pencilGrainTile(drawing.seed,850),[drawing.seed]);
   // The masks are used inside each region's own transform, so their area is in
@@ -88,10 +90,10 @@ export function PencilDrawing({ drawing, frame, reducedMotion = false,
   const maskArea = { x: -2 * drawing.width, y: -2 * drawing.height,
     width: 5 * drawing.width, height: 5 * drawing.height };
   const fibers = useMemo(() => Array.from({ length: 180 }, (_, i) => ({
-    x: pencilHash(drawing.seed, i, 21) * 1024,
-    y: pencilHash(drawing.seed, i, 22) * 1024,
-    len: 3 + pencilHash(drawing.seed, i, 23) * 23,
-    vertical: pencilHash(drawing.seed, i, 24) < .18,
+    x: pencilHash(drawing.seed, 4 * i, 21) * 1024,
+    y: pencilHash(drawing.seed, 4 * i + 1, 21) * 1024,
+    len: 3 + pencilHash(drawing.seed, 4 * i + 2, 21) * 23,
+    vertical: pencilHash(drawing.seed, 4 * i + 3, 21) < .18,
   })), [drawing.seed]);
   return <svg xmlns="http://www.w3.org/2000/svg" viewBox={"0 0 " + drawing.width + " " + drawing.height}
     role="img" aria-label={label} className={className}

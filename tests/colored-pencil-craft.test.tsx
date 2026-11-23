@@ -57,6 +57,13 @@ describe("ArtCraft high-fidelity medium deposition",()=>{
     expect(dots).toHaveLength(850);
     expect(dots.some(d=>d.r<.25)).toBe(true);
     expect(dots.every(d=>d.x>=0&&d.y>=0&&d.x<64&&d.y<64)).toBe(true);
+    // Dots spread over the whole tile instead of lining up on diagonals
+    // (which showed as pale streaks through every craft region).
+    for(const seed of [47,731,1024]){
+      const diagonal=new Array(16).fill(0);
+      for(const d of pencilGrainTile(seed,850))diagonal[Math.floor((((d.x-d.y)%64)+64)%64/4)]++;
+      expect(Math.min(...diagonal)).toBeGreaterThan(20);
+    }
     expect(()=>pencilGrainTile(1,1200)).toThrow(RangeError);
     const marks=pencilMicroDeposit(spec.regions[0],profile,123);
     expect(marks).toEqual(pencilMicroDeposit(spec.regions[0],profile,123));
