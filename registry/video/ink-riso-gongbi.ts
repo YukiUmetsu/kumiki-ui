@@ -90,9 +90,10 @@ const KEYS = ["white", "earth", "warm", "cool", "ink"] as const;
 /**
  * Colours as mixes: gives, for an sRGB colour, what each plate must take on this paper to show it, so that skin, lines and lips can be given
  * as the colours they should have. `white` is how much chalk lies under it (left out, plenty, less where the paper's own colour is wanted). With `on` there is
- * colour there already, and the mix is what turns that one into this.
+ * colour there already, and the mix is what turns that one into this. A plate left out takes no part: without `warm`, greys beside one another are
+ * never one from the black and one from blue against red, which would show as a red patch between them.
  */
-export function gongbiColours(specs: readonly InkRisoPlateSpec[], plates: GongbiPlates, paper: string): (colour: string, white?: number, on?: string) => GongbiMix {
+export function gongbiColours(specs: readonly InkRisoPlateSpec[], plates: Partial<GongbiPlates>, paper: string): (colour: string, white?: number, on?: string) => GongbiMix {
   const enc = (v: number) => 255 * (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055), ground = inkRgb(paper), inkOf = (id?: string) => { const p = id ? specs.find(q => q.id === id) : undefined; return p ? inkRgb(p.ink) : undefined; };
   const chalk = inkOf(plates.white), inks = (["earth", "warm", "cool", "ink"] as const).map(key => [key, inkOf(plates[key])] as const).filter(q => q[1]), memo = new Map<string, GongbiMix>();
   // a grey comes from the black rather than from blue against red, and from as little of either as will do

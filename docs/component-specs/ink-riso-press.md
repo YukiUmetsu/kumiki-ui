@@ -14,7 +14,8 @@ Chinese brush ink (水墨) drawn on the CPU, shown as ink on xuan paper or print
 | `registry/video/ink-riso-gongbi.ts` | 工筆: `paintGongbiFace`, `paintGongbiEar` (a face in layers over body white, from colours at places), `gongbiColours` (a colour as a mix of plates), `gongbiHand` (wash, melt, light, line in the level frame) |
 | `registry/video/ink-riso-gongbi-hair.ts` | `paintGongbiLock`, `paintGongbiSeams`, `paintGongbiLines`, `paintGongbiFlow`, `paintGongbiDown`: hair as wet locks with colours at places |
 | `registry/video/ink-riso-press-react.tsx` | `InkRisoCanvas` (`finish`: `riso` or `ink`) |
-| `registry/video/ink/cast/shuiyue.ts` (`ink-cast`) | The example: 水月, a three-quarter figure on the ANAT1 East Asian face |
+| `registry/video/ink/cast/shuiyue.ts` (`ink-cast`) | The example in brush ink: 水月, a three-quarter figure on the ANAT1 East Asian face |
+| `registry/video/ink/cast/shuiyue-gongbi.ts` (`ink-cast`) | The same figure in colour over white. The two share the moon, the name and the pose |
 
 For moving pictures, scenes and the rest of the cast see [INK-FILM1](chinese-ink-film.md).
 
@@ -100,7 +101,7 @@ What separated a plain face from an attractive one, side by side with ink portra
 
 ## Faces in layers over white (工筆)
 
-`paintGongbiFace` is the other way to paint a posed head. 清風 and 墨梅 use it; 水月 keeps `paintInkFace`, where the skin is paper. Everything is read in the level frame: irises level, 1 = the distance between them, +x the near side, y down. The pose still gives the outline, the hairline and the ear's place.
+`paintGongbiFace` is the other way to paint a posed head. 清風, 墨梅 and the colour version of 水月 use it; the first 水月 keeps `paintInkFace`, where the skin is paper. Everything is read in the level frame: irises level, 1 = the distance between them, +x the near side, y down. The pose still gives the outline, the hairline and the ear's place.
 
 - **Skin needs a white.** Inks only darken, so on cream paper no ink can make a light skin. An `opaque` plate (`white`, first in the list) covers the paper; earth, warm, cool and ink lie on it. `gongbiColours(specs, plates, paper)` turns a wanted colour into a mix, and `shade(to, on)` into what must be added to skin of a known colour. Give colours, not tones.
 - **Skin is colours at places**, about 50 of them, from the lit forehead to the shade under the jaw. Between places it runs. Shade goes by ratio: multiply the lit skin channel by channel, so that the shaded cheek turns redder and never grey.
@@ -132,9 +133,9 @@ Method: put drawing and reference side by side, both levelled on the irises and 
 
 ### Hair painted wet
 
-`inkSweep` is a loaded brush; a gongbi lock is a wash. 清風 and 墨梅 are built from it.
+`inkSweep` is a loaded brush; a gongbi lock is a wash. 清風, 墨梅 and the colour version of 水月 are built from it.
 
-- **A lock is an outline and colours at places** (`paintGongbiLock`, `gongbiHues`): warm brown-grey, lighter where it turns to the light, nearly black at the root and under the next lock, a little blue or rust in one or two places. Solid black hair was the largest difference in value from the studied pictures. Near-black hair takes a `mottle` of 0.03 to 0.05, or it looks like cloth; brown hair takes 0.1 to 0.3.
+- **A lock is an outline and colours at places** (`paintGongbiLock`, `gongbiHues`): warm brown-grey, lighter where it turns to the light, nearly black at the root and under the next lock, a little blue or rust in one or two places. Solid black hair was the largest difference in value from the studied pictures. Near-black hair takes a `mottle` of 0.03 to 0.05, or it looks like cloth; brown hair takes 0.1 to 0.3. Solve cool black hair without the red plate (`gongbiColours` with no `warm`): one grey may otherwise come from the black and the next from blue against red, and between two such places lies a red patch.
 - **Seams are pairs.** Where one lock lies on another, a dark line and a light one beside it (`paintGongbiSeams`). A few long hairs follow the lock's direction (`gongbiAlong`), never a regular comb.
 - **Edges:** crisp where a lock lies on another, `lost` where hair grows out of skin. Over a lost edge come short tufts (`paintGongbiDown`) of unlike length. Every lock ends in a point of no width.
 - **Melt, not glaze.** A lock takes the place of what it lies on: its soft edge goes from one colour straight into the other (`mode: "melt"`). A glaze over a wiped shape leaves a pale rim.

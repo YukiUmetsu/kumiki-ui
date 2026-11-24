@@ -14,7 +14,7 @@ const CAST: InkFilm = {
     layers: [
       { subject: "qingfeng", props: { name: false, mountain: false }, at: [962, 590], scale: 0.68, depth: 0, enter: { kind: "paint", at: 0.2, seconds: 6 } },
       { subject: "momei", props: { name: false, branch: false }, at: [350, 636], scale: 0.66, depth: 0, enter: { kind: "paint", at: 0.8, seconds: 6 } },
-      { subject: "shuiyue", at: [1570, 636], scale: 0.66, depth: 0, enter: { kind: "paint", at: 1.2, seconds: 6 } },
+      { subject: "shuiyue-gongbi", props: { name: false }, at: [1570, 636], scale: 0.66, depth: 0, enter: { kind: "paint", at: 1.2, seconds: 6 } },
     ],
   }],
 };
@@ -27,6 +27,9 @@ export const Cast: StoryObj = { render: () => <InkStudioFilm film={CAST} pixels=
 export const Shuiyue: StoryObj = { name: "水月 Shuiyue", render: show(portrait("shuiyue", "水月 in a light wind")) };
 /** The picture paints itself in the order the brush went. */
 export const ShuiyuePaintsItself: StoryObj = { name: "水月 Painted Stroke By Stroke", render: show(portrait("shuiyue", "水月, painted stroke by stroke", painted)) };
+/** The same woman painted again, in layers over white (工筆). */
+export const ShuiyueGongbi: StoryObj = { name: "水月 Shuiyue In Colour", render: show(portrait("shuiyue-gongbi", "水月 in colour, in a light wind")) };
+export const ShuiyueGongbiPaintsItself: StoryObj = { name: "水月 In Colour, Painted Stroke By Stroke", render: show(portrait("shuiyue-gongbi", "水月 in colour, painted stroke by stroke", painted)) };
 /** A swordsman with the wind in his hair and ribbons. */
 export const Qingfeng: StoryObj = { name: "清風 Qingfeng", render: show(portrait("qingfeng", "清風 in the mountain wind")) };
 export const QingfengPaintsItself: StoryObj = { name: "清風 Painted Stroke By Stroke", render: show(portrait("qingfeng", "清風, painted stroke by stroke", painted)) };

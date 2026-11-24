@@ -69,7 +69,7 @@ export const INK_DEMO: InkFilm = {
       id: "moon", seconds: 6.4, enter: { kind: "mist", seconds: 1.2 }, label: "水月 before the full moon, looking back over her shoulder",
       camera: [{ at: 0, zoom: 1.06 }, { at: 6.4, zoom: 1.0 }],
       layers: [
-        { id: "figure", subject: "shuiyue", props: { name: false }, at: [1290, 790], scale: 0.94, tall: { at: [560, 1230], scale: 1 } },
+        { id: "figure", subject: "shuiyue-gongbi", props: { name: false }, at: [1290, 790], scale: 0.94, tall: { at: [560, 1230], scale: 1 } },
         { id: "name", subject: "lettering", props: ink(5, "水月", 190), at: [360, 400], depth: 0.6, enter: { kind: "paint", at: 1.4, seconds: 2 }, tall: { at: [170, 480], scale: 0.8 } },
         { id: "seal", subject: "seal", props: { text: "心", size: 76, font: BRUSH, seed: 6 }, at: [500, 640], depth: 0.6, enter: { kind: "develop", at: 3.5, seconds: 0.3 }, tall: { at: [170, 705] } },
       ],

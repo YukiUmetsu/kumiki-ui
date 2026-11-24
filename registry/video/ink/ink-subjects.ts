@@ -6,6 +6,7 @@ import type { InkBook, InkSubjectMaker } from "./ink-film";
 import { inkMomei } from "./cast/momei";
 import { inkQingfeng } from "./cast/qingfeng";
 import { inkShuiyue } from "./cast/shuiyue";
+import { inkShuiyueGongbi } from "./cast/shuiyue-gongbi";
 import { inkButterfly, inkCrane, inkGoose, inkKoi, inkSwallow } from "./ink-fauna";
 import { inkBamboo, inkGrass, inkLeaf, inkLotus, inkMaple, inkOrchid, inkPetal, inkPine, inkPlum, inkRaindrop, inkReeds, inkSnowflake, inkWillow } from "./ink-flora";
 import { inkSwordsman, inkUmbrellaLady } from "./ink-folk";
@@ -20,7 +21,7 @@ const words = (p: Readonly<Record<string, unknown>>): string => { if (typeof p.t
 
 export const INK_BOOK = {
   // figures
-  shuiyue: of(inkShuiyue), qingfeng: of(inkQingfeng), momei: of(inkMomei), swordsman: of(inkSwordsman), "umbrella-lady": of(inkUmbrellaLady),
+  shuiyue: of(inkShuiyue), "shuiyue-gongbi": of(inkShuiyueGongbi), qingfeng: of(inkQingfeng), momei: of(inkMomei), swordsman: of(inkSwordsman), "umbrella-lady": of(inkUmbrellaLady),
   // land, water and sky
   massif: of(inkMassif), range: of(inkRange), mist: of(inkMist), water: of(inkWater), moon: of(inkMoon), sky: of(inkSky),
   // buildings and boats

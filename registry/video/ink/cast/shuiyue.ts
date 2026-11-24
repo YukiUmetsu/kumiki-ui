@@ -307,7 +307,7 @@ function tie(f: InkRisoPen, from: number) {
 const FIGURE: P2[] = [[90, 96], [112, 122], [134, 146], [152, 174], [164, 204], [171, 240], [174, 300], [170, 350], [172, 400], [184, 470], [-150, 470], [-132, 420], [-114, 382], [-92, 360], [-66, 350], [-72, 332], [-79, 318], [-83, 303], [-82, 287], [-76, 271], [-67, 254], [-58, 236], [-50, 218], [-43, 200], [-35, 182], [-23, 165], [-8, 150], [12, 137]];
 const MOON = { x: 742, y: 452, r: 302 };
 /** 烘雲托月: the moon is the paper the wash goes round. */
-function drawMist({ page: p }: Pens) {
+export function drawMist({ page: p }: Pick<Pens, "page">) {
   const out = (x: number, y: number) => Math.hypot(x - MOON.x, y - MOON.y) - MOON.r + (inkFbm2(17, x / 190, y / 190, 2) - 0.5) * 7;
   const lobe = (a: number, c: number, w: number) => { let d = a - c; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return Math.exp(-((d / w) ** 2)); };
   const lo = (fn: (x: number, y: number) => number) => (X: number, Y: number) => { const [x, y] = p.local(X, Y); return fn(x, y); };
@@ -406,7 +406,8 @@ function drawBody(pen: Pens) {
   edge([[-64, 347, 0.1], [-84, 353, 0.9], [-106, 370, 0.6], [-118, 393, 0.9], [-127, 420, 0.6], [-133, 448, 0.04]], 11, 1, { dryEnd: 0.9 });
   fold([[-72, 366, 0.3], [-89, 387, 0.9], [-98, 414, 0.5], [-102, 444, 0.03]], 10, 1);
 }
-function drawInscription({ page: p }: Pens) {
+/** The name 水月 and its seal. */
+export function drawInscription({ page: p }: Pick<Pens, "page">) {
   const glyph = (x: number, y: number, z: number, strokes: N3[][], w: number) => { for (const st of strokes) p.line(K, st.map(q => [x + (q[0] / 100) * z, y + (q[1] / 100) * z, q[2]] as const), w, { rough: 0.4, slant: 0.3, dryEnd: 0.35 }); };
   glyph(150, 236, 70, [[[50, 6, 0.8], [52, 20, 1], [51, 50, 0.8], [50, 84, 1], [44, 84, 0.6], [36, 74, 0.05]], [[14, 36, 0.5], [28, 34, 0.7], [39, 31, 0.9], [34, 46, 0.7], [24, 62, 0.5], [8, 80, 0.05]], [[80, 20, 0.9], [70, 32, 0.7], [56, 44, 0.1]], [[54, 40, 0.3], [66, 56, 0.6], [80, 70, 1], [96, 78, 0.1]]], 9);
   glyph(152, 322, 66, [[[32, 10, 0.8], [33, 40, 0.7], [30, 66, 0.7], [16, 92, 0.05]], [[33, 12, 0.5], [52, 9, 0.6], [70, 9, 1], [72, 40, 0.8], [71, 82, 1], [66, 86, 0.7], [56, 78, 0.05]], [[36, 35, 0.5], [52, 34, 0.5], [66, 33, 0.6]], [[34, 57, 0.5], [52, 56, 0.5], [67, 55, 0.6]]], 8);
