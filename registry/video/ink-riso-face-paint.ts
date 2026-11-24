@@ -21,6 +21,18 @@ export interface InkFaceStyle {
   smile?: number;
   /** Upper lashes toward the outer corner of each eye (default 6), and how long and heavy all lashes are (default 1). */
   lashes?: number; lashSize?: number;
+  /** How dark the brow is at its head, 0–1 (default 0: it starts pale by the nose and gathers ink). A man's sword brow starts loaded. */
+  browHead?: number;
+  /** Weight of the lower lid's line and of the lashes on it (default 1), and of the fold over the eye (1). */
+  lowerLid?: number; fold?: number;
+  /** A line down the far side of the nose, from its root to the tip, 0–1 (default 0: the bridge is left to the light). */
+  bridge?: number;
+  /** The shadow under the tip of the nose, of `shade` (default 1). On a man's lip a strong one reads as hair. */
+  underNose?: number;
+  /** Weight of the face's outline (default 1), and how far along the near jaw the line runs before it is out of ink, 0 chin – 1 hinge (default 0.78). */
+  contour?: number; jaw?: number;
+  /** A breath of grey under the near cheekbone, 0–1 (default 0). */
+  hollow?: number;
   seed?: number;
 }
 type P = readonly [number, number];
@@ -35,11 +47,12 @@ const spot = (x: number, y: number, c: PenPoint, l: number, s: number, an = 0) =
 const press = (pts: readonly PenPoint[], w: (t: number) => number): N[] => pts.map((q, i) => [q[0], q[1], w(i / (pts.length - 1))] as const);
 const pick = (pts: readonly PenPoint[], n: number): P[] => Array.from({ length: n }, (_, i) => { const q = pts[Math.round((i / (n - 1)) * (pts.length - 1))]; return [q[0], q[1]] as const; });
 
+/** `d` is the way the near side lies on the page (1: to the right). */
 interface Hand { f: InkRisoPen; z: number; w: (v: number) => number; d: number; st: Required<InkFaceStyle>; seed: () => number }
 function hand(f: InkRisoPen, head: InkHead, style: InkFaceStyle): Hand {
   const a = f.at(0, 0), b = f.at(1, 0), page = Math.hypot(b[0] - a[0], b[1] - a[1]), z = head.unit / 0.78;
   let s = 1000 + (style.seed ?? 0) * 200;
-  return { f, z, w: v => v * z * page / 2.1, d: head.eyes.near.dir, st: { rouge: 1, lip: 1, shade: 1, brow: 0.74, smile: 0.24, lashes: 6, lashSize: 1, seed: 0, ...style }, seed: () => s++ };
+  return { f, z, w: v => v * z * page / 2.1, d: head.eyes.near.dir, st: { rouge: 1, lip: 1, shade: 1, brow: 0.74, smile: 0.24, lashes: 6, lashSize: 1, browHead: 0, lowerLid: 1, fold: 1, bridge: 0, underNose: 1, contour: 1, jaw: 0.78, hollow: 0, seed: 0, ...style }, seed: () => s++ };
 }
 
 /** The outline the face fills: far contour, jaw and hairline. */
@@ -104,7 +117,9 @@ function skin({ f, w, st, seed }: Hand, head: InkHead, face: number[][]): void {
   // the near wing is a ball: its water starts crisp on the turn and lets go inward, so it needs no outline
   const wing = (u: number, v: number) => { const x = (u - wn[0] + 0.03) / 0.036, y = (v - wn[1] - 0.012) / 0.044, r = Math.hypot(x, y); return ss(1.12, 0.92, r) * ss(0.2, 0.96, r) * ss(0, 0.85, (x + 0.75 * y) / (r || 1)); };
   const side = (u: number, v: number) => ss(-0.16, 0.04, u - lerp(hinge[0] + 0.02, chin[0] + 0.17, ss(0.3, 0.97, v))) * ss(0.1, 0.5, v);
-  lay(st.ink, (u, v) => st.shade * (0.025 * side(u, v)
+  // the hollow under the near cheekbone: crisp above, along the bone, and let out toward the mouth
+  const bone = (u: number) => lerp(0.2, 0.36, ss(hinge[0], ml[0], u)), cheekbone = (u: number, v: number) => { const d = v - bone(u); return ss(-0.02, 0.02, d) * Math.exp(-((Math.max(0, d) / 0.12) ** 2)) * ss(ml[0] + 0.16, hinge[0] - 0.16, u) * ss(hinge[0] + 0.02, hinge[0] - 0.12, u); };
+  lay(st.ink, (u, v) => st.shade * (0.025 * side(u, v) + (st.hollow > 0 ? 0.1 * st.hollow * cheekbone(u, v) : 0)
     // the colour on the lids is broken with grey: alone it is rouge, with grey it is shadow
     + 0.09 * over(lids[0], u, v) * ss(1, 0.3, along(lids[0], u)) + 0.16 * over(lids[1], u, v) * lerp(0.35, 1, ss(0, 0.4, along(lids[1], u))) + 0.06 * under(lids[0], u, v) + 0.06 * under(lids[1], u, v)
     // sockets: water set down at the brow's head and drawn round the hollow, soft toward the eye, sharper on the bridge; it lets go under the corner of the eye
@@ -114,7 +129,7 @@ function skin({ f, w, st, seed }: Hand, head: InkHead, face: number[][]): void {
     + 0.045 * wet(u - edge.far(v), 0.034, 0.016) * ss(0, 0.1, v) * ss(tip[1] + 0.02, tip[1] - 0.08, v) + 0.05 * wet(u - edge.far(v), 0.026, 0.012) * bump(v, tip[1] - 0.03, 0.06)
     // the nose: the crease over the near wing, and the plane under the tip that runs on to the lip
     + 0.1 * wing(u, v) + 0.07 * spot(u, v, [lerp(base[0], wn[0], 0.2), wn[1] + 0.012], 0.092, 0.034, 0.1)
-    + 0.14 * ss(foot - 0.014, foot + 0.008, v) * (1 - ss(0.62, 1.08, Math.hypot((u - lerp(base[0], dip[0], 0.3) + 0.004) / 0.046, clamp(v - foot, 0, 1) / 0.078)))
+    + st.underNose * 0.14 * ss(foot - 0.014, foot + 0.008, v) * (1 - ss(0.62, 1.08, Math.hypot((u - lerp(base[0], dip[0], 0.3) + 0.004) / 0.046, clamp(v - foot, 0, 1) / 0.078)))
     + 0.16 * spot(u, v, [ml[0] + 0.012, ml[1] + 0.03], 0.07, 0.018)), 0.16);
 }
 
@@ -123,18 +138,21 @@ function brow({ f, w, st, seed }: Hand, head: InkHead, which: "near" | "far"): v
   const b = head.brows[which], up = inkSpline(b.upper, 0.5), lo = inkSpline(b.lower, 0.5), tail = b.mid[b.mid.length - 1], a = head.local(b.mid[0]), z = head.local(tail);
   const along = (X: number, Y: number) => { const [u] = head.local(f.local(X, Y)); return clamp((u - a[0]) / (z[0] - a[0])); }, n = (pts: number[][], t: number) => pts[Math.round(clamp(t) * (pts.length - 1))] as unknown as P;
   const lay = (k: number, tone: (t: number) => number, soft: (t: number) => number) => inkBloom(f, st.ink, f.shape([...b.upper.map((q, i) => mix(b.mid[i] as P, q as P, k)), [tail[0], tail[1]] as P, ...[...b.lower].reverse().map((q, i) => mix(b.mid[b.lower.length - 1 - i] as P, q as P, k))]), { tone: (X, Y) => st.brow * tone(along(X, Y)), soft: (X, Y) => w(soft(along(X, Y))), wander: 0, fringe: w(0.25), rim: 0, mottle: 0.12, cloud: w(12), seed: seed() });
-  lay(1.2, t => 0.1 + 0.3 * ss(0, 0.36, t), t => lerp(6, 2.6, ss(0, 0.4, t)));
-  lay(0.8, t => 0.14 + 0.56 * ss(0, 0.4, t) + 0.16 * ss(0.4, 0.7, t), t => lerp(5, 1.5, ss(0, 0.36, t)));
+  // where the ink has gathered: far along a soft brow, at once in a loaded one
+  const B = st.browHead, g = (v: number) => v * (1 - B) + 0.06 * B, wet0 = (v: number, u: number) => lerp(v, u, B);
+  lay(1.2, t => 0.1 + 0.3 * ss(0, g(0.36), t), t => lerp(wet0(6, 3.2), 2.6, ss(0, g(0.4), t)));
+  lay(0.8, t => 0.14 + 0.56 * ss(0, g(0.4), t) + 0.16 * ss(g(0.4), g(0.7), t), t => lerp(wet0(5, 2.2), 1.5, ss(0, g(0.36), t)));
   const id = seed(), N = 26;
   for (let i = 0; i < N; i++) {
-    const t = 0.04 + 0.8 * (i + inkHash2(id, i, 0)) / N, e = 0.2 + 0.6 * inkHash2(id, i, 1), p = mix(n(lo, t), n(up, t), e * 0.8), g = mix(n(lo, t + 0.16), n(up, t + 0.16), clamp(e + lerp(0.36, -0.4, t))), l = lerp(0.7, 1, inkHash2(id, i, 2));
-    inkThread(f, st.ink, [[p[0], p[1], 0.2], [lerp(p[0], g[0], 0.5 * l), lerp(p[1], g[1], 0.5 * l), 0.8], [lerp(p[0], g[0], l), lerp(p[1], g[1], l), 0.02]], w(0.9), { ink: st.brow * lerp(0.1, 0.4, ss(0.04, 0.5, t)), inkEnd: 0.1, seed: seed() });
+    const t = 0.04 + 0.8 * (i + inkHash2(id, i, 0)) / N, e = 0.2 + 0.6 * inkHash2(id, i, 1), p = mix(n(lo, t), n(up, t), e * 0.8), q = mix(n(lo, t + 0.16), n(up, t + 0.16), clamp(e + lerp(0.36, -0.4, t))), l = lerp(0.7, 1, inkHash2(id, i, 2));
+    inkThread(f, st.ink, [[p[0], p[1], 0.2], [lerp(p[0], q[0], 0.5 * l), lerp(p[1], q[1], 0.5 * l), 0.8], [lerp(p[0], q[0], l), lerp(p[1], q[1], l), 0.02]], w(0.9 + 0.5 * B), { ink: st.brow * lerp(0.1 + 0.5 * B, 0.4 + 0.5 * B, ss(0.04, 0.5, t)), inkEnd: 0.1, seed: seed() });
   }
 }
 
 function eye({ f, w, st, seed }: Hand, head: InkHead, which: "near" | "far"): void {
   const e = head.eyes[which], near = which === "near", K = st.ink, S = head.span, dir = e.dir, n = e.upper.length - 1, up = inkSpline(e.upper, 0.35) as number[][], lo = inkSpline(e.lower, 0.35) as number[][], white = [...up, ...[...lo].reverse()].map(p => f.at(p[0], p[1])), T = (x: number) => x * S;
-  const roll = Math.atan2(head.face(1, 0)[1] - head.face(0, 0)[1], head.face(1, 0)[0] - head.face(0, 0)[0]), dx: P = [Math.cos(roll), Math.sin(roll)], dy: P = [-dx[1], dx[0]], mv = (q: PenPoint, a: number, b: number): P => [q[0] + T(a) * dx[0] * dir + T(b) * dy[0], q[1] + T(a) * dx[1] * dir + T(b) * dy[1]];
+  // the pupils' line from left to right on the page, whichever way the head is turned
+  const R = head.nearSide === "L" ? 1 : -1, roll = Math.atan2(R * (head.face(1, 0)[1] - head.face(0, 0)[1]), R * (head.face(1, 0)[0] - head.face(0, 0)[0])), dx: P = [Math.cos(roll), Math.sin(roll)], dy: P = [-dx[1], dx[0]], mv = (q: PenPoint, a: number, b: number): P => [q[0] + T(a) * dx[0] * dir + T(b) * dy[0], q[1] + T(a) * dx[1] * dir + T(b) * dy[1]];
   f.knock(white);
   const inside = (plate: string, tone: (x: number, y: number) => number) => inkBloom(f, plate, white, { tone: (X, Y) => { const [x, y] = f.local(X, Y); return tone(x, y); }, soft: 0.6, wander: 0, fringe: 0, rim: 0, mottle: 0, seed: seed() });
   const lidY = (x: number) => { let b = 0, k = 1e9; for (const p of up) if (Math.abs(p[0] - x) < k) { k = Math.abs(p[0] - x); b = p[1]; } return b; };
@@ -160,13 +178,13 @@ function eye({ f, w, st, seed }: Hand, head: InkHead, which: "near" | "far"): vo
   const lash = (from: P, a: number, b: number, wd: number, ink = 0.95) => inkThread(f, K, [[from[0], from[1], 0.3], [...mv(from, a * 0.18, b * 0.07), 0.95], [...mv(from, a * 0.4, b * 0.2), 0.84], [...mv(from, a * 0.72, b * 0.52), 0.5], [...mv(from, a, b), 0.02]], w(wd), { ink, inkEnd: ink * 0.8, seed: seed() });
   for (let i = 0; i < st.lashes; i++) { const g = i / Math.max(1, st.lashes - 1), t = 0.78 + 0.28 * g, j = Math.min(m - 1, t * n), k = Math.floor(j), q = mix(mix(under[k], under[k + 1], j % 1), mix(over[k], over[k + 1], j % 1), 0.8), l = st.lashSize * (near ? 1 : 0.84) * lerp(0.052, 0.1, ss(0, 0.8, g)) * (0.88 + 0.12 * inkHash2(id, i, 3)); lash(q, l * lerp(0.82, 1, g), -l * lerp(0.5, 0.3, g), 1.5); }
   // Lower lid: lost at the pupil, found again toward the corner, where the lashes lengthen.
-  inkThread(f, K, press([...e.lower.slice(1), ...e.wing.slice(1, 3)], t => 0.14 + 0.3 * ss(0, 0.3, t) + 0.6 * ss(0.36, 0.76, t) - 0.9 * ss(0.8, 1, t)), w(2.3), { tone: t => 0.3 + 0.67 * ss(0.12, 0.62, t), seed: seed() });
-  const N = near ? 11 : 10;
+  inkThread(f, K, press([...e.lower.slice(1), ...e.wing.slice(1, 3)], t => 0.14 + 0.3 * ss(0, 0.3, t) + 0.6 * ss(0.36, 0.76, t) - 0.9 * ss(0.8, 1, t)), w(2.3 * lerp(0.5, 1, st.lowerLid)), { tone: t => st.lowerLid * (0.3 + 0.67 * ss(0.12, 0.62, t)), seed: seed() });
+  const N = Math.round(st.lowerLid >= 1 ? (near ? 11 : 10) : 0);
   for (let i = 0; i < N; i++) { const g = i / (N - 1), t = 0.5 + 0.48 * g + 0.02 * (inkHash2(id, i, 8) - 0.5), q = lo[Math.round(t * (lo.length - 1))], l = st.lashSize * (near ? 1 : 0.9) * (0.012 + 0.02 * ss(0, 0.7, g)) * lerp(0.7, 1.1, inkHash2(id, i, 9)); lash([q[0], q[1]], l * lerp(0.7, 1.4, g), l * lerp(0.9, 0.6, g), lerp(1, 1.4, g), lerp(0.42, 0.78, g)); }
   // The fold: one thin short line, well clear of the lid's.
   const fold = press(e.crease, t => 0.06 + 0.94 * Math.sin(Math.PI * Math.min(1, 0.06 + 0.86 * t)) ** 0.8);
   inkThread(f, st.warm, fold, w(1.2), { ink: 0.16 * st.rouge, mid: 0.2 * st.rouge, inkEnd: 0.12 * st.rouge, seed: seed() });
-  inkThread(f, K, fold, w(1.2), { ink: 0.26, mid: 0.44, inkEnd: 0.24, seed: seed() });
+  inkThread(f, K, fold, w(1.2), { ink: 0.26 * st.fold, mid: 0.44 * st.fold, inkEnd: 0.24 * st.fold, seed: seed() });
 }
 
 /**
@@ -182,15 +200,18 @@ function nose({ f, w, st, seed }: Hand, head: InkHead): void {
   inkThread(f, K, [q(c(0.78), vb + 0.012, 0.02), q(c(0.92), vb + 0.018, 0.8), q(n(0.02), vb + 0.02, 1), q(n(0.14), vb + 0.016, 0.02)], w(1.2), { ink: 0.22, seed: seed() });
   const e = bridge(head), on = (v: number, p: number) => q(e.far(v), v, p);
   inkThread(f, K, [on(fw[1] - 0.112, 0.02), on(fw[1] - 0.08, 0.4), on(fw[1] - 0.045, 0.85), on(fw[1] - 0.01, 1), q(fw[0] - 0.001, fw[1] + 0.01, 0.9), q(c(0.14), fw[1] + 0.022, 0.5), q(c(0.24), fw[1] + 0.03, 0.06)], w(1.6), { ink: 0.03, mid: 0.28, inkEnd: 0.42, seed: seed() });
+  if (st.bridge > 0) inkThread(f, K, [on(-0.04, 0.02), on(0, 0.5), on(0.05, 0.75), on(fw[1] - 0.2, 0.7), on(fw[1] - 0.12, 0.85), on(fw[1] - 0.06, 1), on(fw[1] - 0.02, 0.9), q(fw[0] + 0.002, fw[1] + 0.012, 0.5), q(c(0.16), fw[1] + 0.024, 0.05)], w(2.1), { tone: t => st.bridge * (0.16 + 0.56 * ss(0.3, 0.8, t)), seed: seed() });
 }
 
 /** A bow with soft shoulders, deep where the lips meet; a fuller, paler lower lip that stops short of the corners; the parting pressed at its ends. */
 function mouth({ f, w, st, seed }: Hand, head: InkHead): void {
-  const L = head.lips, L2 = (q: PenPoint) => head.local(q), A = L2(L.line[0]), Z = L2(L.line[10]), C = L2(L.line[5]), dip = L2(L.upper[5]), low = L2(L.lower[5]), up = C[1] - dip[1], dn = low[1] - C[1], far = C[0] - A[0] > 0 ? 1 : -1;
+  const L = head.lips, L2 = (q: PenPoint) => head.local(q), turned = head.nearSide === "R", A = L2(L.line[turned ? 10 : 0]), Z = L2(L.line[turned ? 0 : 10]), C = L2(L.line[5]), dip = L2(L.upper[5]), low = L2(L.lower[5]), up = C[1] - dip[1], dn = low[1] - C[1], far = C[0] - A[0] > 0 ? 1 : -1;
   /** The corners come up, the near one more; the middle stays. */
   const lift = (t: number) => st.smile * up * (t * far > 0 ? 1.15 : 0.8) * t * t;
   const at = (t: number, v: number): P => { const c = t < 0 ? A : Z, k = Math.abs(t), q = head.face(lerp(C[0], c[0], k), lerp(C[1], c[1], k * k) - lift(t) + v); return [q[0], q[1]]; };
-  const z0 = head.face(0, 0), q = (t: number, v: number): P => { const p = at(t, v), o = head.face((dip[0] - C[0]) * (1 - Math.min(1, Math.abs(t) * 1.6)) * clamp(-v / up), 0); return [p[0] + o[0] - z0[0], p[1] + o[1] - z0[1]]; };
+  // on a head turned far the dip would be carried over the far half of the bow: there it goes only part of the way
+  const carry = 1 - 0.85 * clamp((Math.abs(head.yaw) - 20) / 5);
+  const z0 = head.face(0, 0), q = (t: number, v: number): P => { const p = at(t, v), o = head.face((dip[0] - C[0]) * carry * (1 - Math.min(1, Math.abs(t) * 1.6)) * clamp(-v / up), 0); return [p[0] + o[0] - z0[0], p[1] + o[1] - z0[1]]; };
   const bow: P[] = ([[-0.9, 0.02], [-0.76, -0.24], [-0.58, -0.62], [-0.37, -1.02], [-0.22, -1.1], [-0.02, -0.88], [0.15, -1.08], [0.29, -1.06], [0.48, -0.7], [0.68, -0.3], [0.84, -0.06], [0.91, 0.02]] as const).map(([t, v]) => q(t, v * up));
   const part: P[] = ([[-1, 0], [-0.74, -0.03], [-0.42, -0.06], [-0.18, 0.03], [0, 0.07], [0.16, 0.03], [0.4, -0.05], [0.68, -0.03], [1, -0.06]] as const).map(([t, v]) => at(t, v * up * 1.3));
   const under: P[] = ([[0.84, 0.02], [0.7, 0.36], [0.52, 0.7], [0.32, 0.94], [0.1, 1.03], [-0.14, 1.03], [-0.38, 0.92], [-0.57, 0.66], [-0.72, 0.34], [-0.83, 0.04]] as const).map(([t, v]) => at(t, v * dn * 0.96));
@@ -202,15 +223,17 @@ function mouth({ f, w, st, seed }: Hand, head: InkHead): void {
   fill(st.warm, [...part.slice(1, -1), ...under], (t, v) => (0.86 - 0.44 * ss(0.04, 0.86, v / dn) - 0.2 * ss(0.4, 0.9, Math.abs(t))) * (1 - 0.46 * shine(t, v)), 1.4);
   fill(st.ink, [...bow, ...under], (t, v) => 0.26 * Math.exp(-((v / (0.2 * up)) ** 2)) * ss(1, 0.7, Math.abs(t)) + 0.06 * Math.exp(-(((v / up + 0.5) / 0.6) ** 2)) * ss(0.2, 0.9, Math.abs(t)), 1.4);
   f.line(st.ink, part.map((p, i) => { const t = i / (part.length - 1); return [p[0], p[1], 0.26 + 0.5 * bump(t, 0.1, 0.07) + 0.4 * bump(t, 0.48, 0.15) + 0.4 * bump(t, 0.9, 0.08) - 0.24 * ss(0.95, 1, t) - 0.22 * ss(0.05, 0, t)] as const; }), w(2.4), { rough: 0.14, bristles: 4 });
-  const k = head.face(C[0] + 0.01, low[1] + 0.026), g = head.span;
-  inkThread(f, st.ink, [[k[0] - 0.045 * g, k[1] + 0.006 * g, 0.02], [k[0], k[1] + 0.004 * g, 0.9], [k[0] + 0.05 * g, k[1] - 0.008 * g, 0.02]], w(1.8), { ink: 0.34, seed: seed() });
+  const k = head.face(C[0] + 0.01, low[1] + 0.026), g = head.span, R = turned ? -1 : 1;
+  inkThread(f, st.ink, [[k[0] - 0.045 * g * R, k[1] + 0.006 * g, 0.02], [k[0], k[1] + 0.004 * g, 0.9], [k[0] + 0.05 * g * R, k[1] - 0.008 * g, 0.02]], w(1.8), { ink: 0.34, seed: seed() });
 }
 
 /** One stroke from under the hair at the far temple to the chin: present the whole way, easing over the cheekbone, pressed at the turn of the chin. Then the near jaw: at full strength from the chin to well past the mouth's corner, then out of ink before the jaw's own corner. */
 function contour({ f, w, st, seed }: Hand, head: InkHead): void {
-  const far = pick(head.contour, 30), jaw = pick(head.jaw, 40), [u, v] = head.local(far[0]), turn = head.local(jaw[0])[0], reach = turn + 0.78 * (head.local(jaw[jaw.length - 1])[0] - turn), run = jaw.slice(0, 1 + jaw.findIndex(q => head.local(q)[0] > reach));
-  inkThread(f, st.ink, press([head.face(u - 0.008, v - 0.08), ...far, ...jaw.slice(1, 5)], t => 0.03 + 0.42 * ss(0, 0.14, t) + 0.08 * bump(t, 0.2, 0.12) + 0.26 * ss(0.42, 0.68, t) - 0.08 * ss(0.8, 0.9, t) - 0.12 * ss(0.9, 1, t)), w(3.6), { ink: 0.82, mid: 0.9, inkEnd: 0.94, seed: seed() });
-  inkThread(f, st.ink, press(run, t => 0.5 + 0.5 * ss(0.04, 0.3, t) - 0.14 * ss(0.5, 0.7, t) - 0.5 * ss(0.7, 1, t)), w(3.3), { tone: t => 0.94 * (1 - ss(0.6, 0.98, t)) + 0.02, seed: seed() });
+  const far = pick(head.contour, 30), jaw = pick(head.jaw, 40), [u, v] = head.local(far[0]), turn = head.local(jaw[0])[0], reach = turn + st.jaw * (head.local(jaw[jaw.length - 1])[0] - turn), run = jaw.slice(0, 1 + jaw.findIndex(q => head.local(q)[0] > reach));
+  inkThread(f, st.ink, press([head.face(u - 0.008, v - 0.08), ...far, ...jaw.slice(1, 5)], t => 0.03 + 0.42 * ss(0, 0.14, t) + 0.08 * bump(t, 0.2, 0.12) + 0.26 * ss(0.42, 0.68, t) - 0.08 * ss(0.8, 0.9, t) - 0.12 * ss(0.9, 1, t)), w(3.6 * st.contour), { ink: 0.82, mid: 0.9, inkEnd: 0.94, seed: seed() });
+  // a line drawn past the default run keeps its ink up to the corner of the jaw
+  const hold = 0.3 * clamp((st.jaw - 0.78) / 0.2);
+  inkThread(f, st.ink, press(run, t => 0.5 + 0.5 * ss(0.04, 0.3, t) - 0.14 * ss(0.5 + hold, 0.7 + hold, t) - 0.5 * ss(0.7 + 0.9 * hold, 1, t)), w(3.3 * st.contour), { tone: t => 0.94 * (1 - ss(0.6 + hold, 0.98, t)) + 0.02, seed: seed() });
 }
 
 /** The near ear: a warm water, one stroke round the rim, two for the fold inside. */

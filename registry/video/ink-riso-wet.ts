@@ -9,7 +9,7 @@
  *
  * Tones are what the eye sees (0 paper … 1 full ink). Marks glaze: ink over ink gets darker, as layers of wash do.
  */
-import { inkFbm2, inkHash2, inkNoise2, inkRgb, inkSpline, inkFillMask } from "./ink-riso-press";
+import { inkFbm2, inkHash2, inkMarkHit, inkMarkStart, inkNoise2, inkRgb, inkSpline, inkFillMask } from "./ink-riso-press";
 import type { InkRisoPrint, InkRisoSheet } from "./ink-riso-press";
 import type { InkRisoPen, PenNode, PenPoint, PenShape } from "./ink-riso-pen";
 
@@ -83,6 +83,7 @@ export function inkBloom(pen: InkRisoPen, plate: string, shape: PenShape, o: Ink
   const maxSoft = softF ? 60 : soft0, F = distanceField(sheet, shape, wander + fringe + maxSoft + 4);
   if (F.w < 2 || F.h < 2) return;
   const ox = F.x0 * F.step, oy = F.y0 * F.step, W = Math.min(sheet.w - ox, F.w * F.step), H = Math.min(sheet.h - oy, F.h * F.step);
+  const layer = o.mode === "lift" ? undefined : sheet.layer, mark = layer ? inkMarkStart(sheet, Math.sqrt(W * H) / S) : 0, wide = W >= H;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const gx = clamp((x + 0.5) / F.step - 0.5, 0, F.w - 1.001), gy = clamp((y + 0.5) / F.step - 0.5, 0, F.h - 1.001), ix = gx | 0, iy = gy | 0, fx = gx - ix, fy = gy - iy, j = iy * F.w + ix;
     let d = (F.d[j] * (1 - fx) + F.d[j + 1] * fx) * (1 - fy) + (F.d[j + F.w] * (1 - fx) + F.d[j + F.w + 1] * fx) * fy;
@@ -98,7 +99,9 @@ export function inkBloom(pen: InkRisoPen, plate: string, shape: PenShape, o: Ink
     if (mottle) t *= 1 + mottle * (inkFbm2(seed + 11, X / cloud, Y / cloud, 4) - 0.5) * 2 + mottle * 0.45 * (inkNoise2(seed + 12, X / 2.2, Y / 2.2) - 0.5);
     if (o.mode === "lift") { const k = clamp(t * c * (1 - edge * 0.9)); buf[q] = clamp(buf[q] * (1 - k) + rim * edge * c * buf[q] * 0.6); continue; }
     t *= 1 + rim * edge * (0.55 + 0.9 * inkNoise2(seed + 9, X / 24, Y / 24)) * (s > 6 ? 0.3 : 1);
-    buf[q] = 1 - (1 - buf[q]) * (1 - take(t * c));
+    const was = buf[q];
+    buf[q] = 1 - (1 - was) * (1 - take(t * c));
+    if (layer) inkMarkHit(layer, q, mark + 0.999 * clamp((wide ? x / W : y / H) * 0.72 + 0.28 * (1 - Math.min(1, inside / (0.3 * Math.min(W, H) / S + 1)))), buf[q] - was);
   }
 }
 /** The outline of a swollen line: [x, y, radius] nodes in the pen's units, as a shape in sheet units. */
@@ -184,6 +187,7 @@ export function inkHair(pen: InkRisoPen, plate: string, guides: readonly (readon
   let W = 0; for (let i = 1; i < G.length; i++) W += meanGap(G[i - 1], G[i]);
   const strand = o.strand ?? 1.5, K = W / strand, rootF = typeof o.root === "function" ? o.root : null, root0 = typeof o.root === "number" ? o.root : 0, tip = o.tip ?? 0, [e0, e1] = o.edge ?? [0.04, 0.04], streak = o.streak ?? 0.5, dry0 = o.dry ?? 0, dry1 = o.dryEnd ?? dry0, cover = o.cover ?? 0, S = sheet.spec.scale;
   const slits = Array.from({ length: o.slits?.n ?? 0 }, (_, i) => { const z = o.slits!, at = lerp(z.from, z.to, inkHash2(seed + 41, i, 0)), l = (0.1 + 0.22 * inkHash2(seed + 41, i, 1)) * (z.to - z.from + 0.4); return { u: (i + 0.2 + 0.6 * inkHash2(seed + 41, i, 2)) / z.n, at, l, w: (z.width * (0.35 + 0.9 * inkHash2(seed + 41, i, 3) ** 2)) / W, drift: (inkHash2(seed + 41, i, 4) - 0.5) * 0.06, open: (z.open ?? 1) * (0.55 + 0.45 * inkHash2(seed + 41, i, 5)) }; });
+  const layer = sheet.layer, mark = layer ? inkMarkStart(sheet, G[0].reduce((l, p, i) => l + (i ? Math.hypot(p[0] - G[0][i - 1][0], p[1] - G[0][i - 1][1]) : 0), 0)) : 0;
   eachSurfacePixel(sheet, G, (q, u, v, x, y, covers, du) => {
     const root = rootF ? rootF(u) : root0, k = u * K, n1 = inkNoise2(seed, k * 0.085, v * 1.3), n2 = inkNoise2(seed + 1, k * 0.31 + v * 0.6, v * 2.2), n3 = inkNoise2(seed + 2, k + (inkNoise2(seed + 9, k * 0.2, v * 2) - 0.5) * 1.6, v * 3.4), st = 0.4 * n1 + 0.34 * n2 + 0.26 * n3;
     const s1 = inkHash2(seed + 3, Math.floor(k * 0.9), 0), s2 = inkNoise2(seed + 4, k * 0.23, 0.5), own = 0.5 * inkNoise2(seed + 5, k * 1.1, v * 0.7) + 0.3 * s2 + 0.2 * s1;
@@ -207,8 +211,9 @@ export function inkHair(pen: InkRisoPen, plate: string, guides: readonly (readon
     const dry = lerp(dry0, dry1, sstep(0.2, 1, v));
     if (dry > 0.01) { const tooth = 0.6 * inkNoise2(seed + 11, x / 2.3, y / 2.3) + 0.4 * inkNoise2(seed + 12, x / 5.1, y / 5.1), b = 0.55 * n2 + 0.25 * n3 + 0.2 * n1; a *= sstep(-0.1, 0.1, 1.06 - dry - (0.72 * b + 0.28 * tooth)); }
     // a covering lock replaces what it lies on; laid over the rest like a glaze, its own soft edge would open a pale line in the dark
-    const ink = take(clamp(t)), glaze = 1 - (1 - buf[q]) * (1 - ink * a);
-    buf[q] = lerp(glaze, lerp(buf[q], ink, a), cover);
+    const was = buf[q], ink = take(clamp(t)), glaze = 1 - (1 - was) * (1 - ink * a);
+    buf[q] = lerp(glaze, lerp(was, ink, a), cover);
+    if (layer) inkMarkHit(layer, q, mark + 0.999 * v, buf[q] - was);
   });
 }
 
@@ -239,6 +244,7 @@ export function inkSide(pen: InkRisoPen, plate: string, points: readonly PenNode
     const r = Math.max(0.15, 0.5 * width * Math.max(0, P[i][2]) * (1 + 0.1 * (inkNoise2(seed, len[i] / 40, 1) - 0.5))), pad = r + bleed + 1.2 / S; rad.push(r);
     L.push([P[i][0] + Math.sin(th) * pad, P[i][1] - Math.cos(th) * pad]); R.push([P[i][0] - Math.sin(th) * pad, P[i][1] + Math.cos(th) * pad]);
   }
+  const layer = sheet.layer, mark = layer ? inkMarkStart(sheet, total) : 0;
   eachSurfacePixel(sheet, [L, R], (q, u, v, x, y) => {
     const s = v * total, fi = v * (n - 1), i = Math.min(n - 2, fi | 0), r = lerp(rad[i], rad[i + 1], fi - i), pad = r + bleed + 1.2 / S, w = (2 * u - 1) * pad / r;
     let d = r - Math.abs(w) * r;
@@ -255,7 +261,9 @@ export function inkSide(pen: InkRisoPen, plate: string, points: readonly PenNode
     t *= Math.max(0, 1 + grain * (bn - 0.5) * (1 + across));
     const dry = lerp(dry0, dry1, sstep(0.2, 1, f));
     if (dry > 0.01) { const avail = 1.08 - dry * (0.95 + 0.2 * w * w); c *= sstep(-0.09, 0.09, avail - (0.74 * sstep(0.12, 0.88, bn) + 0.26 * tooth)); }
-    buf[q] = 1 - (1 - buf[q]) * (1 - take(clamp(t)) * c);
+    const was = buf[q];
+    buf[q] = 1 - (1 - was) * (1 - take(clamp(t)) * c);
+    if (layer) inkMarkHit(layer, q, mark + 0.999 * v, buf[q] - was);
   });
 }
 /** A fine line. Pressure sets its width and `ink` → `inkEnd` its strength; `mid` is the strength half-way when it differs. */
@@ -265,18 +273,19 @@ export function inkThread(pen: InkRisoPen, plate: string, points: readonly PenNo
   if (n < 2) return;
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
   for (const p of P) { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
-  const cover = new Map<number, number>(), depth = new Map<number, number>();
+  const layer = sheet.layer, mark = layer ? inkMarkStart(sheet, (n * 1.1) / S) : 0;
+  const cover = new Map<number, number>(), depth = new Map<number, number>(), along = layer ? new Map<number, number>() : null;
   for (let i = 0; i < n; i++) {
     const f = i / (n - 1), r = Math.max(0, 0.5 * width * P[i][2] * (1 + 0.16 * (inkNoise2(seed, i / 22, 2) - 0.5)) * S), lean = (inkNoise2(seed + 1, i / 60, 4) - 0.5) * (o.tremor ?? 0.5) * S, cx = P[i][0] * S + lean, cy = P[i][1] * S + lean * 0.6;
     if (r <= 0.02) continue;
     const R = Math.max(r, 0.5) + 1, t = tone(f), thin = Math.min(1, r / 0.5);
     for (let y = Math.max(0, Math.floor(cy - R)); y <= Math.min(sheet.h - 1, cy + R); y++) for (let x = Math.max(0, Math.floor(cx - R)); x <= Math.min(sheet.w - 1, cx + R); x++) {
       const c = clamp(Math.max(r, 0.5) - Math.hypot(x + 0.5 - cx, y + 0.5 - cy) + 0.5) * thin, q = y * sheet.w + x;
-      if (c > 0.01 && c * t > (cover.get(q) ?? 0) * (depth.get(q) ?? 0)) { cover.set(q, c); depth.set(q, t); }
+      if (c > 0.01 && c * t > (cover.get(q) ?? 0) * (depth.get(q) ?? 0)) { cover.set(q, c); depth.set(q, t); along?.set(q, f); }
     }
   }
   // the tooth breaks a thin line; a loaded one fills it
-  for (const [q, c] of cover) { const d = depth.get(q)!, tooth = 1 + (0.36 * inkNoise2(sheet.spec.seed + 11, (q % sheet.w) / 2.3, ((q / sheet.w) | 0) / 2.3) - 0.18) * clamp(1.4 - 1.3 * d); buf[q] = 1 - (1 - buf[q]) * (1 - take(clamp(d * Math.min(1, tooth))) * c); }
+  for (const [q, c] of cover) { const d = depth.get(q)!, tooth = 1 + (0.36 * inkNoise2(sheet.spec.seed + 11, (q % sheet.w) / 2.3, ((q / sheet.w) | 0) / 2.3) - 0.18) * clamp(1.4 - 1.3 * d); const was = buf[q]; buf[q] = 1 - (1 - was) * (1 - take(clamp(d * Math.min(1, tooth))) * c); if (layer) inkMarkHit(layer, q, mark + 0.999 * along!.get(q)!, buf[q] - was); }
 }
 
 // ---- painting --------------------------------------------------------------------------------------------------------------------

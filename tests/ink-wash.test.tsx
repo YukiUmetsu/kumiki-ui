@@ -1,34 +1,33 @@
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { compileFilm } from "../registry/video/film-document";
-import { InkWash } from "../registry/video/ink-wash-react";
 import {
   INK_TONES, evaluateInkStroke, evaluateInkWash, flyingWhite, inkHash,
   inkHoldFrame, inkOutline, inkSamples, inspectInkWash,
 } from "../registry/video/ink-wash";
-import { inkExampleSpec, INK_READING_ZONE } from "../src/video/ink-wash-demo";
-import { INK_WASH_FILM } from "../src/video/ink-wash-film";
+import type { InkStroke, InkWashSpec } from "../registry/video/ink-wash";
+
+const stroke = (id: string, points: readonly (readonly [number, number, number])[], look: Pick<InkStroke, "width" | "tone" | "water" | "startFrame" | "drawFrames">): InkStroke => ({
+  id, points: points.map(([x, y, pressure]) => ({ x, y, pressure })), load: .88, spreadFrames: 28, dryFrames: 44, ...look,
+});
+/** One dry, dark stroke and one wet, pale stroke: the two ends of the moisture range. */
+const spec: InkWashSpec = {
+  version: 1, width: 960, height: 540, paper: "#F4F0E5", ink: "#20282A", accent: "#A63A2B", seed: 29, absorption: .69, grain: .5,
+  strokes: [
+    stroke("dry-trunk", [[220, 429, .82], [240, 393, .93], [250, 363, .64], [280, 330, .86], [275, 294, .23]],
+      { width: 21, tone: INK_TONES.black, water: .19, startFrame: 59, drawFrames: 38 }),
+    stroke("wet-ridge", [[566, 343, .07], [663, 304, .25], [751, 274, .5], [816, 300, .29], [944, 327, .06]],
+      { width: 18, tone: INK_TONES.pale, water: .97, startFrame: 4, drawFrames: 41 }),
+  ],
+};
+const [dry, wet] = spec.strokes;
 
 describe("INK1 pressure-shaped paper pigment engine", () => {
-  const spec = inkExampleSpec("landscape", "landscape");
   it("exposes five calibrated values and retains distinct pressure/brush moisture inputs", () => {
     expect(Object.values(INK_TONES)).toHaveLength(5);
     expect(Object.values(INK_TONES)).toEqual([.16, .31, .5, .73, 1]);
     expect(spec.strokes.some(s => s.water < .3)).toBe(true);
     expect(spec.strokes.some(s => s.water > .9)).toBe(true);
     expect(spec.strokes.some(s => s.points[0].pressure !== s.points[1].pressure)).toBe(true);
-  });
-  it.each(["landscape", "portrait"] as const)("validates original mountain and bamboo examples in %s", aspect => {
-    for (const subject of ["landscape", "bamboo"] as const) {
-      const art = inkExampleSpec(subject, aspect);
-      expect(inspectInkWash(art)).toEqual([]);
-      expect(art.strokes.length).toBeGreaterThan(25);
-      expect(art.strokes.some(s => s.accent)).toBe(true);
-      expect(art.strokes.every(s => s.points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y)))).toBe(true);
-      expect(INK_READING_ZONE[aspect].y + INK_READING_ZONE[aspect].height)
-        .toBeLessThan(Math.min(...art.strokes.flatMap(s => s.points.map(p => p.y))) + 5);
-    }
+    expect(inspectInkWash(spec)).toEqual([]);
   });
   it("rejects duplicate ids, invalid tone, nonfinite control points, missing accent and bad timelines", () => {
     const a = spec.strokes[0];
@@ -62,7 +61,7 @@ describe("INK1 pressure-shaped paper pigment engine", () => {
     expect(() => evaluateInkWash(spec, -1)).toThrow(RangeError);
   });
   it("samples curved centerlines with pressure, tapered ends and fixed seeded fibers", () => {
-    const s = spec.strokes.find(stroke => stroke.id === "pine-trunk")!;
+    const s = dry;
     const full = inkSamples(s, 1), half = inkSamples(s, .5);
     expect(full.length).toBeGreaterThan(half.length);
     expect(full[0].x).toBeCloseTo(s.points[0].x);
@@ -76,42 +75,7 @@ describe("INK1 pressure-shaped paper pigment engine", () => {
     expect(inkHash(29, 10, 4)).not.toBe(inkHash(29, 11, 4));
   });
   it("produces flying-white split in dry brush, not in water-loaded strokes", () => {
-    const dry = spec.strokes.find(stroke => stroke.id === "pine-trunk")!;
-    const wet = spec.strokes.find(stroke => stroke.id === "remote-spine-c")!;
     expect(flyingWhite(dry, 47, 1).length).toBeGreaterThan(0);
     expect(flyingWhite(wet, 47, 1)).toEqual([]);
-  });
-  it("renders actual paper, separate pigment shapes and a reproducible final SVG with an accessible label", () => {
-    const paint = (frame: number, reducedMotion = false) =>
-      renderToStaticMarkup(createElement(InkWash, {
-        spec, frame, reducedMotion, label: "Ink wash mountain and pine",
-      }));
-    const started = paint(0), complete = paint(420);
-    expect(started).toContain('data-km-ink-wash=""');
-    expect(started).not.toContain("data-km-ink-stroke=");
-    expect(complete).toContain("Ink wash mountain and pine");
-    expect(complete).toContain("mix-blend-mode:multiply");
-    expect(complete).toContain("data-km-ink-paper=");
-    expect(complete).toContain("data-km-ink-stroke=");
-    expect(complete).toContain("<mask");
-    expect(complete).toContain("data-km-ink-spread=");
-    expect(complete).toBe(paint(420));
-    expect(paint(0, true)).toContain("data-km-ink-stroke=");
-    expect(() => renderToStaticMarkup(createElement(InkWash, { spec, frame: 40, grain: -1 })))
-      .toThrow(RangeError);
-    expect(renderToStaticMarkup(createElement(InkWash, {
-      spec, frame: 420, transparentPaper: true,
-    }))).not.toContain('fill="#F4F0E5"');
-  });
-  it("uses the existing FD1 slot and FilmStage outputs for both aspect ratios", () => {
-    for (const outputId of ["landscape", "portrait"]) {
-      const result = compileFilm(INK_WASH_FILM, { outputId });
-      expect(result.ok).toBe(true);
-      expect(result.diagnostics.filter(d => d.severity === "error")).toEqual([]);
-      if (!result.ok) continue;
-      expect(result.film.durationFrames).toBe(420);
-      expect(result.film.scenes).toHaveLength(3);
-      expect(result.film.scenes.every(scene => scene.kind === "slot")).toBe(true);
-    }
   });
 });

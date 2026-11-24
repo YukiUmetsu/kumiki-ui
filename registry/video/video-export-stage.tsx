@@ -69,7 +69,7 @@ const bounded=<T,>(task:Promise<T>,ms:number,description:string):Promise<T>=>{
   })]).finally(()=>clearTimeout(timer!));
 };
 async function ready(root:HTMLDivElement,frame:number):Promise<void>{
-  const start=performance.now();
+  let start=performance.now(),painted="";
   while(root.dataset.frame!==String(frame)||
     [...root.querySelectorAll<HTMLElement>("[data-km-camera-viewport-3d]")]
       .some(el=>el.dataset.cameraFrame!==String(frame)||
@@ -88,11 +88,16 @@ async function ready(root:HTMLDivElement,frame:number):Promise<void>{
       el.dataset.kmShaderFxDrawn!==el.dataset.kmShaderFxFrame)||
     // A calligraphy canvas has drawn its frame once its drawn mark matches it.
     [...root.querySelectorAll<HTMLElement>("[data-km-shodo]")].some(el=>el.dataset.kmShodoStatus!=="error"&&el.dataset.kmShodoDrawn!==el.dataset.kmShodoFrame)||
+    // An ink film has painted its layers and drawn this frame.
+    [...root.querySelectorAll<HTMLElement>("[data-km-ink-film-frame]")].some(el=>el.dataset.kmInkFilmStatus!=="error"&&(el.dataset.kmInkFilmStatus!=="ready"||el.dataset.kmInkFilmDrawn!==el.dataset.kmInkFilmFrame))||
     // A FiberStage has drawn this frame only once its drawn mark matches the frame it was asked for.
     [...root.querySelectorAll<HTMLElement>("[data-km-fiber-frame]")].some(el=>el.dataset.kmFiberStatus!=="error"&&
       el.dataset.kmFiberDrawn!==el.dataset.kmFiberFrame)||
     [...root.querySelectorAll<HTMLElement>("[data-km-hero-viewer]")].some(el=>!el.querySelector("[role=alert]")&&
       el.querySelector<HTMLCanvasElement>("canvas")?.dataset.kmHeroReady!=="true")) {
+    // an ink film paints all its layers before its first frame: time counts from the last one that was finished
+    const progress=[...root.querySelectorAll<HTMLElement>("[data-km-ink-film-status=painting]")].map(el=>el.dataset.kmInkFilmDone).join();
+    if(progress!==painted){painted=progress;start=performance.now();}
     if(performance.now()-start>15000)throw new Error("Video frame did not settle at "+frame+".");
     await nextPaint();
   }
@@ -100,6 +105,7 @@ async function ready(root:HTMLDivElement,frame:number):Promise<void>{
   const brokenFx=root.querySelector<HTMLElement>("[data-km-shader-fx-status=error]");
   if(brokenFx)throw new Error("Shader effect \""+brokenFx.dataset.kmShaderFxId+"\" failed at frame "+frame+".");
   if(root.querySelector("[data-km-fiber-status=error]"))throw new Error("A 3D scene failed at frame "+frame+".");
+  if(root.querySelector("[data-km-ink-film-status=error]"))throw new Error("An ink film could not be painted at frame "+frame+".");
   if(root.querySelector("[data-km-shodo-status=error]"))throw new Error("A calligraphy canvas has no 2D context at frame "+frame+".");
   if(root.querySelector("[data-km-explainer-fallback], [data-km-camera-viewport-3d] [role=alert], [data-km-hero-viewer] [role=alert]"))
     throw new Error("Video frame has layout or 3D rendering errors.");

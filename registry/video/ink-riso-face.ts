@@ -16,6 +16,8 @@ export interface InkHeadSource {
   /** Head breadth, length and ear-hole-to-top height, mm (default: ANSUR II women). */
   head?: { breadth: number; length: number; top: number };
 }
+/** A drawn curve as rows of three numbers; what they are is said where it is used. */
+export type InkProfile = readonly (readonly [number, number, number])[];
 /** How far the drawing departs from the measured face. All 0–1 neutral values mean "as measured". */
 export interface InkHeadShape {
   /** Eye size, width and height (default [1.38, 1.1]). */
@@ -26,6 +28,8 @@ export interface InkHeadShape {
   wrap?: number;
   /** How far the eyes are turned against the line through the pupils, degrees (default 2.7): on a bowed, turned head the far one slants more and the near one less. The brows have their own: `brow.roll`. */
   eyeRoll?: number;
+  /** How far the outer corner of each eye rises, degrees, beyond the measured face's (default 0). */
+  eyeTilt?: number;
   /** How far the lids are open (default 1, calm; 1.2 = wide) and where the eyes look, shares of the iris from the viewer: [toward the subject's near side, down] (default [0, 0.1]). */
   open?: number; gaze?: readonly [number, number];
   mouth?: number;
@@ -45,7 +49,13 @@ export interface InkHeadShape {
   /** Height of the lips about their parting (default 1.08). */
   lips?: number;
   /** Brow: height over the eye (default 1), its lift toward the peak (1), thickness (1), and its turn like `eyeRoll` (default -1: the far one lies nearly level on a tipped head). */
-  brow?: { height?: number; arch?: number; thick?: number; roll?: number };
+  brow?: { height?: number; arch?: number; thick?: number; roll?: number; /** Another brow, seen from the front and drawn once: distance out from the face's middle and height over the brow's level, in spans, then thickness; seven places from the head to the tail. */ form?: InkProfile };
+  /** Size of the irises (default 1). */
+  iris?: number;
+  /** The painted lids, each 1 by default: how tall the opening is drawn, how thick the line on the upper lid is at the corner by the nose and at the outer one, how far that line runs on past the corner, and how far the fold stands off the lid. */
+  lids?: { tall?: number; line?: number; lineOut?: number; wing?: number; fold?: number };
+  /** Another outline for the face: share of its height, then the place on the far and on the near side, in spans, for a head turned 20°. */
+  outline?: InkProfile;
   /** Height of the hairline's peak above the brows, as a share of brow-to-chin (measured faces: about 0.28). Default 0.42. */
   forehead?: number;
   /** Ear size (default 0.76: portraits draw it small and high). */
@@ -138,7 +148,8 @@ const HAIRLINE = [[-0.56, -0.24], [-0.563, 0.111], [-0.54, 0.38], [-0.482, 0.614
 const smooth = (a: number, b: number, v: number) => { const t = Math.max(0, Math.min(1, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 export function poseInkHead(src: InkHeadSource, pose: InkHeadPose, shape: InkHeadShape = {}): InkHead {
-  const { eye: [ex, ey] = [1.38, 1.1], eyeOut = 0.72, wrap = 0.64, eyeRoll = 2.7, open = 1, gaze = [0, 0.1], mouth = 0.7, nose = 0.69, noseHeight = 0.18, noseUnder = 5, length = 0.93, cheek = 1, chinWidth = 1, lift = 4.6, philtrum = 1.4, lips = 1.08, brow = {}, forehead = 0.42, ear: earSize = 0.76 } = shape;
+  const { eye: [ex, ey] = [1.38, 1.1], eyeOut = 0.72, wrap = 0.64, eyeRoll = 2.7, eyeTilt = 0, open = 1, gaze = [0, 0.1], mouth = 0.7, nose = 0.69, noseHeight = 0.18, noseUnder = 5, length = 0.93, cheek = 1, chinWidth = 1, lift = 4.6, philtrum = 1.4, lips = 1.08, brow = {}, forehead = 0.42, ear: earSize = 0.76, iris = 1, lids = {}, outline = OUTLINE } = shape;
+  const { tall: lidTall = 1, line: lidLine = 1, lineOut = lidLine, wing: wingLong = 1, fold: foldUp = 1 } = lids, browForm: InkProfile = brow.form ?? BROW;
   const V = src.vertices, mid = (a: number, b: number): InkVec3 => [(V[a][0] + V[b][0]) / 2, (V[a][1] + V[b][1]) / 2, (V[a][2] + V[b][2]) / 2];
   const mouthAt = mid(61, 291), noseY = (V[4][1] + V[2][1]) / 2, chinY = V[152][1], lipY = V[17][1], browY = (V[105][1] + V[334][1]) / 2, bridgeY = V[6][1];
   // ---- the painter's bend: each pull fades out with distance, so nothing near it is torn
@@ -197,29 +208,32 @@ export function poseInkHead(src: InkHeadSource, pose: InkHeadPose, shape: InkHea
   /** The same, turned about a middle of its own. */
   const rolled = (side: "near" | "far", z: number, o: PenPoint, roll: number) => { const m = mask(side, o[0], o[1], z), c = Math.cos(roll * rad), n = Math.sin(roll * rad); return (f: number, h: number): PenPoint => { const q = mask(side, f, h, z), u = q[0] - m[0], v = q[1] - m[1]; return face(m[0] + u * c - v * n, m[1] + u * n + v * c); }; };
   const lidAt = { a: [Math.abs(bend(V[IDX.L.lid[0]])[0]) / front, (bend(V[IDX.L.lid[0]])[1] - eyeY) / front], b: [0.5, (cL[1] - eyeY) / front - 0.012] };
+  if (eyeTilt) { const { a, b } = lidAt, m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], c = Math.cos(eyeTilt * rad), n = Math.sin(eyeTilt * rad); for (const q of [a, b]) { const x = q[0] - m[0], y = q[1] - m[1]; q[0] = m[0] + x * c - y * n; q[1] = m[1] + x * n + y * c; } }
   const eyeLines = (side: "near" | "far"): InkEyeLines => {
-    const { a, b } = lidAt, l = Math.hypot(b[0] - a[0], b[1] - a[1]), n: PenPoint = [-(b[1] - a[1]) / l, (b[0] - a[0]) / l], put = rolled(side, lidZ, [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], eyeRoll), r = 0.074;
+    const { a, b } = lidAt, l = Math.hypot(b[0] - a[0], b[1] - a[1]), n: PenPoint = [-(b[1] - a[1]) / l, (b[0] - a[0]) / l], put = rolled(side, lidZ, [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], eyeRoll), r = 0.074 * iris;
     // the drawn eye keeps clear of both ends of its socket: the lid's line and its lashes fill the outer one
-    const on = (t: number, h: number) => { const s = 0.08 + 0.87 * t; return put(a[0] + (b[0] - a[0]) * s + n[0] * h, a[1] + (b[1] - a[1]) * s + n[1] * h); };
+    const on = (t: number, h: number) => { const s = 0.08 + 0.87 * t, k = h * lidTall; return put(a[0] + (b[0] - a[0]) * s + n[0] * k, a[1] + (b[1] - a[1]) * s + n[1] * k); };
+    // the top of the painted line, and the line past the corner
+    const top = (t: number, edge: number, over: number) => edge + (over - edge) * (lidLine + (lineOut - lidLine) * Math.max(0, Math.min(1, t))), out = (t: number) => 1 + (t - 1) * wingLong, at1 = WING[0][1];
     // what the lids' opening adds to the upper one
     const raise = (t: number) => { const j = Math.max(1, LIDS.findIndex(q => q[0] >= Math.min(1, t) - 1e-9)), x = LIDS[j], y = LIDS[j - 1], k = Math.max(0, Math.min(1, (t - y[0]) / (x[0] - y[0]))); return (open - 1) * (y[1] - y[2] + (x[1] - x[2] - y[1] + y[2]) * k); };
     // an eye that looks at the viewer shows its iris straight over the middle of the ball, which lies behind the lids
     const c = src.eyes[side === "near" ? nearSide : farSide], ball = local(at([bend(c)[0] * 0.97, eyeY + 0.022 * front, lidZ - 0.142 * front]));
     return {
-      upper: LIDS.map(q => on(q[0], q[1] + raise(q[0]))), lower: LIDS.map(q => on(q[0], q[2])), crease: inkSpline(FOLD, 0.04).map(q => on(q[0], q[1] + raise(q[0]))),
-      line: [on(TIP[0], TIP[1]), ...LIDS.map(q => on(q[0], q[3] + raise(q[0]))), ...WING.slice(1).map(q => on(q[0], q[2]))], wing: WING.map(q => on(q[0], q[1])),
+      upper: LIDS.map(q => on(q[0], q[1] + raise(q[0]))), lower: LIDS.map(q => on(q[0], q[2])), crease: inkSpline(FOLD, 0.04).map(q => on(q[0], foldUp === 1 ? q[1] + raise(q[0]) : 0.06 + (q[1] - 0.06) * foldUp + raise(q[0]))),
+      line: [on(TIP[0], TIP[1]), ...LIDS.map(q => on(q[0], top(q[0], q[1], q[3]) + raise(q[0]))), ...WING.slice(1).map(q => on(out(q[0]), wingLong === 1 ? top(1, q[1], q[2]) : at1 + (top(1, q[1], q[2]) - at1) * wingLong))], wing: WING.map(q => on(out(q[0]), wingLong === 1 ? q[1] : at1 + (q[1] - at1) * wingLong)),
       iris: face(ball[0] + gaze[0] * r, ball[1] + gaze[1] * r), rx: r * span * (side === "near" ? 1 : 0.97), ry: r * span, dir: (Math.sign(corner[side][1][0] - corner[side][0][0]) || 1) as 1 | -1,
     };
   };
   const browLines = (side: "near" | "far"): InkBrowLines => {
-    const tall = 0.235 * (brow.height ?? 1), arch = brow.arch ?? 1, th = 0.027 * (brow.thick ?? 1), put = rolled(side, browZ, [BROW[3][0], tall], brow.roll ?? -1);
-    const on = (i: number, e: number) => put(BROW[i][0], tall + BROW[i][1] * arch - e * BROW[i][2] * th);
-    const n = BROW.length;
-    return { lower: BROW.slice(0, n - 1).map((_, i) => on(i, 1)), upper: BROW.slice(0, n - 1).map((_, i) => on(i, -1)), mid: BROW.map((_, i) => on(i, 0)) };
+    const tall = 0.235 * (brow.height ?? 1), arch = brow.arch ?? 1, th = 0.027 * (brow.thick ?? 1), put = rolled(side, browZ, [browForm[3][0], tall], brow.roll ?? -1);
+    const on = (i: number, e: number) => put(browForm[i][0], tall + browForm[i][1] * arch - e * browForm[i][2] * th);
+    const n = browForm.length;
+    return { lower: browForm.slice(0, n - 1).map((_, i) => on(i, 1)), upper: browForm.slice(0, n - 1).map((_, i) => on(i, -1)), mid: browForm.map((_, i) => on(i, 0)) };
   };
   // ---- outline: it hangs on the features, so it keeps its taper at any size; a little more near side shows as the head turns
   // One curve, temple to chin to hinge, so the chin has no corner of its own.
-  const more = Math.abs(pose.yaw) - 20, edge = (side: 1 | 2) => OUTLINE.map(q => { const low = smooth(0.55, 1, q[0]), c = -0.03, w = (q[side] - c) * (1 + (cheek - 1) * (1 - low) + (chinWidth - 1) * low); return face(c + w + (side === 1 ? 0.005 : 0.009) * more * (1 - low), q[0] * length); });
+  const more = Math.abs(pose.yaw) - 20, edge = (side: 1 | 2) => outline.map(q => { const low = smooth(0.55, 1, q[0]), c = -0.03, w = (q[side] - c) * (1 + (cheek - 1) * (1 - low) + (chinWidth - 1) * low); return face(c + w + (side === 1 ? 0.005 : 0.009) * more * (1 - low), q[0] * length); });
   const round = inkSpline([...edge(1), ...edge(2).reverse().slice(1)], 0.5).map(q => [q[0], q[1]] as const), chin = round.reduce((b, q, i) => (local(q)[1] > local(round[b])[1] ? i : b), 0);
   const contour = round.slice(0, chin + 1), jaw = round.slice(chin).filter(q => local(q)[1] > 0.16);
   // ---- ear: a plate standing off the skull behind the jaw's hinge

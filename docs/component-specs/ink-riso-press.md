@@ -12,7 +12,9 @@ Chinese brush ink (水墨) drawn on the CPU, shown as ink on xuan paper or print
 | `registry/video/ink-riso-face.ts` | `poseInkHead`: every line of a face from one posed, measured head; `inkFaceRatios`, `INK_FACE_RANGE` |
 | `registry/video/ink-riso-face-paint.ts` | `paintInkFace`, `paintInkEar`, `paintInkEarring`, `inkDab`: the brush marks over those lines |
 | `registry/video/ink-riso-press-react.tsx` | `InkRisoCanvas` (`finish`: `riso` or `ink`) |
-| `src/video/ink-wash-portrait-art.ts` | The example: 水月, a three-quarter figure on the ANAT1 East Asian face |
+| `registry/video/ink/cast/shuiyue.ts` (`ink-cast`) | The example: 水月, a three-quarter figure on the ANAT1 East Asian face |
+
+For moving pictures, scenes and the rest of the cast see [INK-FILM1](chinese-ink-film.md).
 
 ## How a picture is made
 

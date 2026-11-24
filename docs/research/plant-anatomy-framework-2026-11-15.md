@@ -14,7 +14,6 @@ Each style draws its own vegetation:
 - **ukiyo-e:** pine, cherry, willow, reeds, bamboo, persimmon, the sacred tree and the rice field, in
   `ukiyoe-motifs.ts`, `ukiyoe-trees.ts` and about 20 other UKIYO1 files;
 - **paper:** silhouette trees in `paper-scenery-kit.ts`, and leaves, ferns and petals in `paper-botanical-kit.ts`;
-- **Chinese ink:** trees in the shanshui and cinematic landscapes;
 - **coloured pencil;**
 - **the 3D nature world.**
 

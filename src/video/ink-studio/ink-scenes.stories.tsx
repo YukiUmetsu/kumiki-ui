@@ -1,0 +1,25 @@
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import type { InkFilm, InkFilmLayer } from "../../../registry/video/ink/ink-film";
+import { InkStudioFilm } from "./ink-page";
+import { inkAutumnScene, inkHeightScene, inkLotusScene, inkPeaksScene, inkRainScene, inkRiverScene, inkSnowScene, inkTownScene } from "../../../registry/video/ink/ink-scenes";
+
+const scene = (id: string, title: string, label: string, layers: InkFilmLayer[]): InkFilm => ({ schemaVersion: 1, id: `ink-scene-${id}`, title, fps: 30, paper: "#F8F1E3", size: { width: 1920, height: 1080 }, tall: { width: 1080, height: 1920 }, shots: [{ id, seconds: 12, label, layers, camera: [{ at: 0, x: -40, zoom: 1 }, { at: 12, x: 40, zoom: 1.05 }] }] });
+const PEAKS = scene("peaks", "Peaks over a sea of cloud", "Tall stone peaks over a sea of cloud; cranes cross the sky", inkPeaksScene({ enter: 0.2 }));
+const RIVER = scene("river", "A river under the moon", "A covered boat with a lamp on a river under a full moon left as bare paper, hills in mist behind", inkRiverScene({ enter: 0.2 }));
+const TOWN = scene("town", "A water town", "White houses with dark roofs along the water, a humped bridge, a boat and a far pagoda", inkTownScene({ enter: 0.2 }));
+const HEIGHT = scene("height", "On the height", "A swordsman seen from behind on a rock above ranges in mist, a red sun before them", inkHeightScene({ enter: 0.2 }));
+const RAIN = scene("rain", "Rain", "A woman walks in the rain under a red umbrella, a pavilion far off", inkRainScene({ enter: 0.2 }));
+const LOTUS = scene("lotus", "A lotus pond", "Pink lotus and dark leaves over still water, koi below", inkLotusScene({ enter: 0.2 }));
+const AUTUMN = scene("autumn", "Autumn on the lake", "Red maple over a lake, geese passing a pale sun, a boat far off", inkAutumnScene({ enter: 0.2 }));
+const SNOW = scene("snow", "Snow", "Snow on a mountain and a pine under a dark sky", inkSnowScene({ enter: 0.2 }));
+const meta: Meta = { title: "Video production/Film Looks/Chinese Ink/Scenes", id: "video-ink-scenes", parameters: { layout: "fullscreen" } };
+export default meta;
+const show = (film: InkFilm): StoryObj => ({ render: () => <InkStudioFilm film={film} pixels={1440} /> });
+export const Peaks: StoryObj = show(PEAKS);
+export const River: StoryObj = show(RIVER);
+export const WaterTown: StoryObj = show(TOWN);
+export const OnTheHeight: StoryObj = show(HEIGHT);
+export const Rain: StoryObj = show(RAIN);
+export const LotusPond: StoryObj = show(LOTUS);
+export const Autumn: StoryObj = show(AUTUMN);
+export const Snow: StoryObj = show(SNOW);

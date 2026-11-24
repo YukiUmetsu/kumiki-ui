@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { InkRisoCanvas } from "../../registry/video/ink-riso-press-react";
 import type { InkRisoSheet } from "../../registry/video/ink-riso-press";
-import { drawInkWashPortrait, inkWashPortraitSheet } from "./ink-wash-portrait-art";
-import type { InkWashPortraitCrop } from "./ink-wash-portrait-art";
+import { drawInkWashPortrait, inkWashPortraitSheet } from "../../registry/video/ink/cast/shuiyue";
+import type { InkWashPortraitCrop } from "../../registry/video/ink/cast/shuiyue";
 
 const LABEL = "Half figure of a calm woman turned away, looking back over her shoulder: the hair parted over the forehead and gathered into a bun tied with a red ribbon, the rest falling down her back, before a full moon left as bare paper";
 const FACE: InkWashPortraitCrop = { x: 290, y: 350, width: 470, height: 480 };

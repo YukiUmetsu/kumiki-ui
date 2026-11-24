@@ -3842,6 +3842,192 @@
       ]
     },
     {
+      "name": "ink-film",
+      "type": "registry:ui",
+      "title": "Chinese Ink Film Engine (INK-FILM1)",
+      "description": "Moving pictures in Chinese brush ink, as data. A subject (a figure, a mountain, a plum branch) is a list of painted parts; each part is painted once, deterministically, as a transparent layer with how much light its ink lets through, what it hides and the order its strokes were made in. A WebGL2 stage multiplies the layers onto xuan paper with sway, breath, drift, ripple, blinking and wing poses, parallax, a camera, a mount (full, round fan, album leaf) and swarms of petals, rain, snow or birds. Layers paint themselves stroke by stroke, bloom, develop, wipe or rise out of mist; shots change by brush, blot, flood, mist or dissolve. A film is plain JSON with a wide and an upright layout, checked by inspectInkFilm; a frame is a pure function of time, so it exports frame by frame, and it can hold still for a viewer who asks for less motion. Includes a player, worker painting, brush lettering and carved seals from any font, pigments and papers, and a tool that turns a photograph into ink layers.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-riso-press"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink/ink-pigments.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-pigments.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-motion.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-motion.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-reveal.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-reveal.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-cel.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-cel.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-brush-kit.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-brush-kit.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-veil.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-veil.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-stage.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-stage.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-film.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-film.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-film-react.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-film-react.tsx"
+        },
+        {
+          "path": "registry/video/ink/ink-paint.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-paint.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-lettering.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-lettering.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-picture.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-picture.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-motifs",
+      "type": "registry:ui",
+      "title": "Chinese Ink Motifs",
+      "description": "Seeded ink subjects for INK-FILM1 films, each with options and its own motion. Land and sky: folded massifs with axe-cut, hemp-fibre or rain-drop texture strokes, pillar, crag and karst forms, far ranges, a waterfall, mist, water, moon and sun. Buildings and boats: houses, humped bridge, pagoda, pavilion, lantern boat. Plants: bamboo, plum, pine, lotus, orchid, willow, maple, reeds, grass, loose petals, leaves, snowflakes and raindrops. Animals: crane, goose, swallow, koi, butterfly. Small full-length figures seen from behind: a swordsman and a lady under an umbrella. Brush marks for explainers: ink circle, sweep, underline, arrow, splash, tick.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-film"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink/ink-terrain.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-terrain.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-land.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-land.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-place.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-place.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-marks.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-marks.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-flora.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-flora.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-fauna.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-fauna.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-folk.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-folk.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-cast",
+      "type": "registry:ui",
+      "title": "Chinese Ink Cast",
+      "description": "Three half figures in brush ink, in layers that breathe, blink and move their hair, ribbons and jewels in a light wind, and can paint themselves stroke by stroke: 水月, a woman looking back over her shoulder before the moon; 清風, a swordsman in indigo with a silver crown; 墨梅, a girl with looped hair beside plum blossom. Faces are posed from a measured head and painted with brush marks only. Backdrop, name and wind are options.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-film",
+        "human-anatomy"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink/cast/shuiyue.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/cast/shuiyue.ts"
+        },
+        {
+          "path": "registry/video/ink/cast/qingfeng.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/cast/qingfeng.ts"
+        },
+        {
+          "path": "registry/video/ink/cast/momei.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/cast/momei.ts"
+        }
+      ]
+    },
+    {
+      "name": "ink-studio",
+      "type": "registry:ui",
+      "title": "Chinese Ink Film Studio",
+      "description": "Everything an ink film can name, in one book: INK_BOOK maps subject names to makers (figures, land, buildings, plants, animals, marks, lettering, seals) and takes your own. Composed scenes in a wide and an upright layout (peaks over cloud, moonlit river, water town, figure on a height, rain), a pool of workers that paints the layers, and an ink-film slot for a film stage.",
+      "dependencies": [],
+      "registryDependencies": [
+        "ink-film",
+        "ink-motifs",
+        "ink-cast"
+      ],
+      "files": [
+        {
+          "path": "registry/video/ink/ink-subjects.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-subjects.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-scenes.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-scenes.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-paint-pool.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-paint-pool.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-paint-worker.ts",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-paint-worker.ts"
+        },
+        {
+          "path": "registry/video/ink/ink-film-slot.tsx",
+          "type": "registry:ui",
+          "target": "components/video/ink/ink-film-slot.tsx"
+        }
+      ]
+    },
+    {
       "name": "ink-brush",
       "type": "registry:ui",
       "title": "Material-Native Ink Brush (INK1)",
@@ -5579,37 +5765,10 @@
       ]
     },
     {
-      "name": "ink-shanshui-landscape",
-      "type": "registry:ui",
-      "title": "Chinese Ink Shanshui Landscape Animator",
-      "description": "Code-drawn 16:9 Chinese ink landscapes with layered sepia mountain washes, cunfa cliff lines, original pine, willow and bamboo art, arched bridges, water, mist and parallax; three compositional presets, deterministic absolute-frame animation, no raster references or external runtime dependencies.",
-      "dependencies": [],
-      "registryDependencies": [
-        "ink-actor-director"
-      ],
-      "files": [
-        {
-          "path": "registry/video/ink-shanshui.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-shanshui.ts"
-        },
-        {
-          "path": "registry/video/ink-shanshui-react.tsx",
-          "type": "registry:ui",
-          "target": "components/video/ink-shanshui-react.tsx"
-        },
-        {
-          "path": "registry/video/ink-shanshui-pine-fringe.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-shanshui-pine-fringe.ts"
-        }
-      ]
-    },
-    {
       "name": "ink-wash-core",
       "type": "registry:ui",
       "title": "Chinese Ink Wash Brush and Paper",
-      "description": "Standalone material-native ink brush renderer with pressure-shaped silhouettes, ink-loaded side-brush gradient, dry-brush splits, wet paper spread, procedural rock texture and reduced-motion final holds; frame addressed and no WebGL dependencies.",
+      "description": "Vector pressure-stroke geometry and paper grain for the RIG1 ink look: tapered, side-loaded brush outlines, dry-brush splits, a smoothly wandering wet edge, seeded paper fibres and frame-pure deposit, spread and drying states. Pure functions, with no renderer, DOM or WebGL.",
       "dependencies": [],
       "registryDependencies": [],
       "files": [
@@ -5617,136 +5776,6 @@
           "path": "registry/video/ink-wash.ts",
           "type": "registry:ui",
           "target": "components/video/ink-wash.ts"
-        },
-        {
-          "path": "registry/video/ink-wash-react.tsx",
-          "type": "registry:ui",
-          "target": "components/video/ink-wash-react.tsx"
-        },
-        {
-          "path": "registry/video/ink-wash-marks.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-wash-marks.ts"
-        }
-      ]
-    },
-    {
-      "name": "ink-wash-film",
-      "type": "registry:ui",
-      "title": "Chinese Ink Wash Film Composition",
-      "description": "Composable ink-wash directing grammar for any authored footage, illustrations, diagrams, titles, and actor layers: five looks, ink bloom/brush entrances, parallax handscroll camera and FilmDocument shot adapter.",
-      "dependencies": [],
-      "registryDependencies": [
-        "ink-wash-core",
-        "film-document"
-      ],
-      "files": [
-        {
-          "path": "registry/video/ink-wash-story.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-wash-story.ts"
-        },
-        {
-          "path": "registry/video/ink-wash-story-react.tsx",
-          "type": "registry:ui",
-          "target": "components/video/ink-wash-story-react.tsx"
-        }
-      ]
-    },
-    {
-      "name": "ink-wash-character",
-      "type": "registry:ui",
-      "title": "Chinese Ink Character Performance",
-      "description": "Paper-native, independently articulated 2D/2.5D ink-wash actor rendering over the existing validated character rig: per-part capillary fringe and paper-tooth edges, deterministic acting tracks, visemes, blink, gaze, gestures, props and optional tints, no new timeline or WebGL.",
-      "dependencies": [],
-      "registryDependencies": [
-        "character-presenter",
-        "ink-wash-core"
-      ],
-      "files": [
-        {
-          "path": "registry/video/ink-wash-character.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-wash-character.ts"
-        },
-        {
-          "path": "registry/video/ink-wash-character-react.tsx",
-          "type": "registry:ui",
-          "target": "components/video/ink-wash-character-react.tsx"
-        }
-      ]
-    },
-    {
-      "name": "ink-figure-craft",
-      "type": "registry:ui",
-      "title": "Chinese Ink Figure Brushwork",
-      "description": "Validated authored Chinese ink figure folds (floating silk-thread, layered wash, dry flying-white), pressure-native SVG geometry attached to existing CharacterPresenter part rigs; stable seed, detail and pigment controls.",
-      "dependencies": [],
-      "registryDependencies": [
-        "character-performance",
-        "ink-wash-core"
-      ],
-      "files": [
-        {
-          "path": "registry/video/ink-figure-craft.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-figure-craft.ts"
-        }
-      ]
-    },
-    {
-      "name": "ink-actor-director",
-      "type": "registry:ui",
-      "title": "Chinese Ink Character Motion Director",
-      "description": "Deterministic C1 continuous route blocking, planted-foot gait, 2-bone character IK, and independent cloth/arm/head correction tracks on the existing character timeline.",
-      "dependencies": [],
-      "registryDependencies": [
-        "ink-wash-character"
-      ],
-      "files": [
-        {
-          "path": "registry/video/ink-actor-director.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-actor-director.ts"
-        }
-      ]
-    },
-    {
-      "name": "ink-figure-motion",
-      "type": "registry:ui",
-      "title": "Chinese Ink Figure Cloth Motion",
-      "description": "Reusable frame-pure cloth follow-through. Bakes subtly moving independent hem and cuff corrections on top of an approved INK4 route; deterministic absolute-frame sampling, bounded intensity, no replacement clock.",
-      "dependencies": [],
-      "registryDependencies": [
-        "ink-actor-director"
-      ],
-      "files": [
-        {
-          "path": "registry/video/ink-figure-motion.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-figure-motion.ts"
-        }
-      ]
-    },
-    {
-      "name": "ink-wash-ensemble",
-      "type": "registry:ui",
-      "title": "Chinese Ink Character Ensemble",
-      "description": "Deterministic, identity-preserving multi-character Chinese ink acting: independently staged canonical ink rigs, attention/interaction beats, gaze targeting, ordered depth and explicit foot-separation/reach audits on the existing film timeline. Compose with ink-actor-director for continuous paths and IK.",
-      "dependencies": [],
-      "registryDependencies": [
-        "ink-wash-character"
-      ],
-      "files": [
-        {
-          "path": "registry/video/ink-wash-ensemble.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-wash-ensemble.ts"
-        },
-        {
-          "path": "registry/video/ink-wash-ensemble-react.tsx",
-          "type": "registry:ui",
-          "target": "components/video/ink-wash-ensemble-react.tsx"
         }
       ]
     },
@@ -8711,33 +8740,6 @@
           "path": "registry/video/paper-scenery-kit.ts",
           "type": "registry:ui",
           "target": "components/video/paper-scenery-kit.ts"
-        }
-      ]
-    },
-    {
-      "name": "ink-cinematic-landscape",
-      "type": "registry:ui",
-      "title": "Cinematic Chinese Ink Landscape",
-      "description": "Original code-painted shan-shui animation engine: typed scene/motif DSL, pressure-native mountains, pine and willow, cliffs, stone river, bridge, pavilion, atmosphere, scholar gestures, absolute-frame camera and 16:9/9:16 compositing.",
-      "dependencies": [],
-      "registryDependencies": [
-        "ink-wash-core"
-      ],
-      "files": [
-        {
-          "path": "registry/video/ink-cinematic-scene.ts",
-          "type": "registry:ui",
-          "target": "components/video/ink-cinematic-scene.ts"
-        },
-        {
-          "path": "registry/video/ink-cinematic-scholar-react.tsx",
-          "type": "registry:ui",
-          "target": "components/video/ink-cinematic-scholar-react.tsx"
-        },
-        {
-          "path": "registry/video/ink-cinematic-scene-react.tsx",
-          "type": "registry:ui",
-          "target": "components/video/ink-cinematic-scene-react.tsx"
         }
       ]
     }

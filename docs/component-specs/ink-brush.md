@@ -2,7 +2,7 @@
 
 **Registry pack:** `ink-brush`  
 **Files:** `registry/video/ink-brush.ts`, `registry/video/ink-wet-paper.ts`, `registry/video/ink-brush-react.tsx`  
-**Storybook:** Video production → Film Looks → Ink Brush → **Brush Deposition Lab** or **Brush Material Microscope**  
+**Storybook:** Video production → Film Looks → Chinese Ink → Ink Brush → **Brush Material Microscope**  
 **Production fixture:** `examples/film/ink-brush-studies.film.json`  
 **Status:** code implemented, artistic visual-review gate still separate.
 
