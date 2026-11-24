@@ -2,27 +2,27 @@
  * 墨梅 Mòméi, ink plum: an original ink-wash figure on the INK-RISO1 engine, painted wash first and line last. Three inks: indigo,
  * cinnabar, black.
  *
- * A court lady of some five and twenty, turned to the viewer's right, who looks down and aside to a plum branch: lids lowered over
- * irises that still show, the beginning of a smile. Her hair is combed up off a soft hairline into a high knot of two lobes (高髻) with
- * a spray of white plum and a pin whose bead chain swings (步搖). The robe closes the wearer's left over right; a thin scarf (披帛) lies
- * over the crooks of the arms.
+ * A young woman of about twenty, turned to the viewer's right beside a plum branch: wide calm eyes, a small mouth, warm cheeks, the plum
+ * blossom mark of 梅花妝 on her brow. Her hair is parted in two soft masses with a curtain lock at each temple; behind stand the hollow
+ * loops of an unmarried girl (鬟), with a spray of white plum and a pin whose bead chain swings (步搖), and one tress tied with a red
+ * cord comes down over the shoulder. The robe closes the wearer's left over right; a thin scarf (披帛) lies over the crooks of the arms.
  */
 import { inkSplatter } from "../../ink-riso-pen";
 import type { InkRisoPen, PenNode as N3, PenPoint as P2 } from "../../ink-riso-pen";
 import { inkBlob, inkBloom, inkSide, inkThread } from "../../ink-riso-wet";
 import { inkFbm2 } from "../../ink-riso-press";
-import { inkClumps, inkFlyaways, inkGap, inkSweep, inkTress, inkWisps } from "../../ink-riso-hair";
+import { inkClumps, inkFlyaways, inkGap, inkSweep, inkTress } from "../../ink-riso-hair";
 import type { InkClumpOptions, InkFlyawayOptions, InkGapShape, InkSweepOptions } from "../../ink-riso-hair";
 import { inkGuideSheet } from "../../ink-riso-coiffure";
 import type { InkSheetForm } from "../../ink-riso-coiffure";
 import { poseInkHead } from "../../ink-riso-face";
-import type { InkEyeLines, InkHead } from "../../ink-riso-face";
+import type { InkHead, InkProfile } from "../../ink-riso-face";
 import { paintInkEar, paintInkFace } from "../../ink-riso-face-paint";
 import type { InkFaceStyle } from "../../ink-riso-face-paint";
 import { beautifulFace } from "../../../anatomy/face-beauty";
 import { eyeCentres } from "../../../anatomy/anatomy-face";
 import { inkPaintOrder } from "../ink-cel";
-import { inkCover, inkFade, inkOval } from "../ink-veil";
+import { inkCover, inkFade } from "../ink-veil";
 import type { InkPaintContext, InkPart, InkSubject } from "../ink-cel";
 import { inkPlates } from "../ink-pigments";
 
@@ -37,38 +37,18 @@ const dice = (seed: number) => { let k = 0; return () => { const v = Math.sin(se
 const PAGE = { width: 1200, height: 1600, margin: 36 };
 const PLATES = inkPlates({ [B]: "indigo", [R]: "cinnabar", [K]: "ink" });
 const Z = 1.42;
-const FACE = { x: 650, y: 720, scale: 1.92 * Z };
 const SITTER = beautifulFace({ sex: 0, faceType: "east-asian" });
-/**
- * The head is posed, and all its hair is laid out, turned to the viewer's left; the pen it is drawn with is
- * mirrored, so she looks to the right. Not her face but her temper differs: the lids are lowered.
- */
-const pose = (open = 1): InkHead => lowered(soften(poseInkHead({ vertices: SITTER.vertices, faces: SITTER.mesh.faces, eyes: eyeCentres(SITTER.vertices) }, { yaw: -18, pitch: 9.5, roll: -5, scale: 0.78, at: [0, 0] }, { forehead: 0.6, length: 0.951, lift: 3.9, philtrum: 2.8, noseHeight: 0.08, gaze: [-0.14, 0.36], open: 1, brow: { arch: 0.96, height: 1.02, thick: 0.92 }, mouth: 0.65, lips: 1.04 })), open);
+/** A young woman's brow: soft, nearly level, its tail let down a little. */
+const BROW: InkProfile = [[0.17, -0.016, 0.7], [0.235, -0.004, 1], [0.32, 0.006, 1.1], [0.4, 0.012, 1.02], [0.465, 0.01, 0.8], [0.53, 0, 0.46], [0.58, -0.014, 0.02]];
+/** The head is posed, and all its hair is laid out, turned to the viewer's left; the pen it is drawn with is mirrored, so she looks to the right. */
+const pose = (open = 1): InkHead => soften(poseInkHead({ vertices: SITTER.vertices, faces: SITTER.mesh.faces, eyes: eyeCentres(SITTER.vertices) }, { yaw: -25, pitch: 7, roll: -5, scale: 0.78, at: [0, 0] }, {
+  open, gaze: [0, -0.02], forehead: 0.48, length: 0.91, cheek: 0.97, eye: [1.5, 1.44], iris: 1.16, eyeRoll: 0, eyeTilt: 1.2, lids: { tall: 1.32, line: 0.64, lineOut: 0.64, wing: 0.56, fold: 0.8 }, brow: { form: BROW, height: 1, thick: 0.84, roll: 0 },
+  lift: 1.8, noseUnder: 5, noseHeight: 0.04, nose: 0.58, philtrum: 3.2, mouth: 0.46, lips: 1.02, chinWidth: 0.94,
+}));
 const mirror = (p: InkRisoPen): InkRisoPen => {
   const m = (q: N3): N3 => [-q[0], q[1], q[2]];
   return { sheet: p.sheet, at: (x, y) => p.at(-x, y), local: (X, Y) => { const [x, y] = p.local(X, Y); return [-x, y]; }, line: (plate, q, w, o) => p.line(plate, q.map(m), w, o), shape: (q, closed) => p.shape(q.map(m), closed), wash: (plate, q, o, solid) => p.wash(plate, q, typeof o.tone === "number" ? o : { ...o, tone: (x, y) => (o.tone as (x: number, y: number) => number)(-x, y) }, solid), knock: p.knock, lift: (q, w, plates) => p.lift(q.map(m), w, plates), disc: (x, y, r) => p.disc(-x, y, r) };
 };
-
-// ---- lowered lids -----------------------------------------------------------------------------------------------------------------
-/** Along the eye from the corner by the nose, over the line from corner to corner, in spans: the upper lid's edge, and the thickness of the line on it. The edge is highest a third of the way out and then falls, past the corner's own height: lids that are let down hang at their outer end. */
-const LID = [[0, 0, 0.009], [0.05, 0.0062, 0.0105], [0.14, 0.0118, 0.0135], [0.26, 0.0155, 0.017], [0.42, 0.0148, 0.0205], [0.57, 0.0115, 0.0235], [0.74, 0.004, 0.0255], [0.88, -0.0055, 0.0255], [1, -0.0155, 0.022], [1.07, -0.021, 0.016], [1.13, -0.0245, 0.0095], [1.19, -0.026, 0.0015]] as const;
-/**
- * The upper lid comes down with the gaze and takes its line along; the fold stays up, so more of the lid shows, and the line lies in one
- * soft arch that goes on falling past the outer corner, where an open eye's would rise. `open` 1 is her own calm look, 0 shut.
- */
-function lowered(h: InkHead, open: number): InkHead {
-  const S = h.span;
-  const eye = (e: InkEyeLines): InkEyeLines => {
-    const A = e.upper[0], C = e.upper[e.upper.length - 1], ax = C[0] - A[0], ay = C[1] - A[1], l2 = ax * ax + ay * ay, l = Math.sqrt(l2), nx = ay / l, ny = -ax / l, sg = ny < 0 ? 1 : -1, up: P2 = [nx * sg, ny * sg];
-    const t = (q: P2) => ((q[0] - A[0]) * ax + (q[1] - A[1]) * ay) / l2, hgt = (q: P2) => ((q[0] - A[0]) * up[0] + (q[1] - A[1]) * up[1]) / S, on = (u: number, v: number): P2 => [A[0] + ax * u + up[0] * v * S, A[1] + ay * u + up[1] * v * S];
-    const read = (k: 1 | 2, u: number) => { let j = 1; while (j < LID.length - 1 && LID[j][0] < u) j++; const p = LID[j - 1], q = LID[j], f = clamp((u - p[0]) / (q[0] - p[0])); return lerp(p[k], q[k], f); };
-    const droop = (u: number) => -0.0135 * ss(0.4, 1.05, u), lower = e.lower.map(q => { const u = t(q); return on(u, hgt(q) + droop(u)); });
-    const lowAt = (u: number) => { const q = e.lower.map(v => [t(v), hgt(v)] as const); let j = 1; while (j < q.length - 1 && q[j][0] < u) j++; const f = clamp((u - q[j - 1][0]) / (q[j][0] - q[j - 1][0] || 1)); return lerp(q[j - 1][1], q[j][1], f) + droop(u); };
-    const edge = (u: number) => lerp(u > 1 ? read(1, u) : lowAt(u) + 0.002, read(1, u), open), thick = (u: number) => read(2, u) * lerp(0.8, 1, open), us = e.upper.map(t), out = e.wing.map(t);
-    return { ...e, lower, upper: us.map(u => on(u, edge(u))), line: [on(t(e.line[0]), hgt(e.line[0]) * 0.4 - 0.004), ...us.map(u => on(u, edge(u) + thick(u))), ...out.slice(1).map(u => on(u, edge(u) + thick(u)))], wing: out.map(u => on(u, edge(u))), crease: e.crease.map(q => { const u = t(q); return on(u, hgt(q) - 0.015 - 0.01 * ss(0.5, 1, u) - (1 - open) * 0.012); }) };
-  };
-  return { ...h, eyes: { near: eye(h.eyes.near), far: eye(h.eyes.far) } };
-}
 /** Chin and jaw run through one softer turn: a bowed chin has no corner on its far side. */
 function soften(h: InkHead): InkHead {
   const all = [...h.contour, ...h.jaw.slice(1)], at = h.contour.length - 1, local = all.map(q => h.local(q)), chin = local[at][0];
@@ -78,25 +58,13 @@ function soften(h: InkHead): InkHead {
 }
 
 const HEAD = pose();
+/** The middle between the pupils, pen units, and where it lies on the page; the distance between them on the page. */
+const EYES = HEAD.level(0, 0), AT = { x: 622, y: 640, pd: 134 };
+const UNIT = Math.hypot(HEAD.level(1, 0)[0] - EYES[0], HEAD.level(1, 0)[1] - EYES[1]), FZ = AT.pd / UNIT;
+const FACE = { x: AT.x + FZ * EYES[0], y: AT.y - FZ * EYES[1], scale: FZ };
 const FRAMES = { face: FACE, page: { x: 0, y: 0, scale: 1 } };
-const STYLE: InkFaceStyle = { ink: K, warm: R, lashes: 0, lashSize: 0.8, smile: 0.3, rouge: 0.9, brow: 0.7, shade: 0.82 };
+const STYLE: InkFaceStyle = { ink: K, warm: R, rouge: 1.2, lip: 0.74, shade: 0.55, lashes: 5, lashSize: 0.7, brow: 0.7, smile: 0.34, contour: 0.8, underNose: 0.8 };
 
-/** Lashes of lowered lids: they leave the line's under side near its outer end and hang outward, longest at the corner. */
-function drawLashes(f: InkRisoPen, head: InkHead, open: number) {
-  const S = head.span; let s = 2000;
-  for (const which of ["near", "far"] as const) {
-    const e = head.eyes[which], A = e.upper[0], C = e.upper[e.upper.length - 1], l = Math.hypot(C[0] - A[0], C[1] - A[1]), x: P2 = [(C[0] - A[0]) / l, (C[1] - A[1]) / l], y: P2 = x[0] > 0 ? [-x[1], x[0]] : [x[1], -x[0]], k = which === "near" ? 1 : 0.68;
-    const under = [...e.upper, ...e.wing.slice(1)], top = e.line.slice(1);
-    const at = (u: number): P2 => { const j = Math.min(under.length - 1.001, u), i = Math.floor(j), g = j - i, p = (q: readonly P2[]) => [lerp(q[i][0], q[i + 1][0], g), lerp(q[i][1], q[i + 1][1], g)], a = p(under), b = p(top); return [lerp(a[0], b[0], 0.35), lerp(a[1], b[1], 0.35)]; };
-    const n = which === "near" ? 7 : 6;
-    for (let i = 0; i < n; i++) {
-      const g = i / (n - 1), from = at(lerp(6.7, 10.7, g ** 0.85)), len = k * S * lerp(0.036, 0.074, ss(0, 0.9, g)) * [1, 0.78, 0.94, 0.7, 1, 0.82, 0.96][i], a = lerp(1.1, 0.12, g ** 0.9) - 0.2 * (1 - open);
-      // out along the lid first, then away from it, the tip lifted a little
-      const P = (r: number, turn: number, p: number): N3 => { const b = a + turn; return [from[0] + (x[0] * Math.cos(b) + y[0] * Math.sin(b)) * r * len, from[1] + (x[1] * Math.cos(b) + y[1] * Math.sin(b)) * r * len, p]; };
-      inkThread(f, K, [P(0, 0, 0.4), P(0.32, 0.26, 1), P(0.66, 0.14, 0.66), P(1, -0.06, 0.02)], lerp(0.9, 1.25, g) * (Z / 1.42), { ink: 0.92, inkEnd: 0.6, seed: s++ });
-    }
-  }
-}
 /** 梅花妝: the plum blossom a princess is said to have worn on her brow. Five wet touches of cinnabar, no two as full, smaller than the iris. */
 function drawHuadian(f: InkRisoPen, head: InkHead) {
   const bn = head.local(head.brows.near.mid[0]), bf = head.local(head.brows.far.mid[0]), c: P2 = [lerp(bf[0], bn[0], 0.5) - 0.004, lerp(bf[1], bn[1], 0.5) - 0.095], S = head.span;
@@ -106,62 +74,53 @@ function drawHuadian(f: InkRisoPen, head: InkHead) {
     inkBloom(f, R, inkBlob(f, [q(a, 0.007, 0.004), q(a, 0.017 * r, 0.0095 * w), q(a + 0.05, 0.026 * r, 0.0115 * w), q(a + 0.05, 0.03 * r, 0.008 * w)] as never), { tone: [0.95, 0.72, 0.9, 0.8, 0.66][i], soft: 0.7, wander: 0.35, wave: 5, fringe: 0.3, rim: 0.4, rimWidth: 1.6, mottle: 0.3, cloud: 6, seed: 2100 + i });
   }
 }
-function drawFace(f: InkRisoPen, head: InkHead, open = 1) {
+function drawFace(f: InkRisoPen, head: InkHead) {
   paintInkFace(f, head, STYLE);
-  drawLashes(f, head, open);
   drawHuadian(f, head);
 }
 // ---- hair -----------------------------------------------------------------------------------------------------------------------
-// Places are read in the frame portraits are measured in: the irises level, 1 = the distance between them, x toward the near side.
+// 鬟: a girl's hair, looped and not yet wound up. From one short part two soft masses leave for the temples; the near one bows over the
+// brow and goes back over the top of the ear; behind, three hollow loops stand and one tress is let down. Places are read in the frame
+// portraits are measured in: the irises level, 1 = the distance between them, x toward the near side.
 type Run = readonly P2[];
 type Lock = readonly (readonly [number, number, number])[];
 const lv = (q: Run): P2[] => q.map(([x, y]) => HEAD.level(x, y));
-const UNIT = Math.hypot(HEAD.level(1, 0)[0] - HEAD.level(0, 0)[0], HEAD.level(1, 0)[1] - HEAD.level(0, 0)[1]);
 const lock = (q: Lock) => q.map(([x, y, w]) => [...HEAD.level(x, y), w * UNIT] as const);
 const leaf = (t: number) => Math.sin(Math.PI * t) ** 0.8;
 const guides = (list: readonly (readonly [s: number, path: Run])[]) => inkGuideSheet(HEAD, list.map(([s, path]) => ({ s, path: lv(path) })));
 /** A place read in the head's own frame, on the page. */
 const onPage = (x: number, y: number): P2 => { const q = HEAD.level(x, y); return [FACE.x - FACE.scale * q[0], FACE.y + FACE.scale * q[1]]; };
-/** The far side: from the part and the far temple over the temple and up under the knot. The first guide is the outline. */
+/** The far mass: from the part down over the temple and out of sight. The first guide is the head's outline. */
 const FARSIDE = guides([
-  [0, [[-0.93, -0.2], [-0.99, -0.42], [-1.06, -0.72], [-1.1, -1.02], [-1.07, -1.34], [-0.95, -1.65], [-0.75, -1.92], [-0.48, -2.1]]],
-  [0.2, [[-0.92, -0.46], [-0.96, -0.7], [-0.97, -1], [-0.92, -1.33], [-0.8, -1.64], [-0.61, -1.9], [-0.4, -2.08]]],
-  [0.4, [[-0.87, -0.72], [-0.88, -0.94], [-0.84, -1.22], [-0.74, -1.49], [-0.58, -1.75], [-0.42, -1.95], [-0.26, -2.1]]],
-  [0.6, [[-0.75, -0.95], [-0.73, -1.16], [-0.66, -1.4], [-0.53, -1.64], [-0.38, -1.86], [-0.24, -2.03], [-0.12, -2.13]]],
-  [0.8, [[-0.53, -1.1], [-0.51, -1.31], [-0.44, -1.55], [-0.32, -1.77], [-0.18, -1.96], [-0.04, -2.1]]],
-  [1, [[-0.14, -1.13], [-0.15, -1.36], [-0.11, -1.6], [0, -1.83], [0.14, -2.04], [0.26, -2.22]]],
+  [0, [[-0.03, -2.0], [-0.34, -2.08], [-0.66, -1.9], [-0.9, -1.55], [-1.05, -1.12], [-1.11, -0.66], [-1.12, -0.18], [-1.06, 0.4]]],
+  [0.33, [[-0.07, -1.81], [-0.3, -1.82], [-0.57, -1.66], [-0.78, -1.36], [-0.93, -0.99], [-1.02, -0.6], [-1.06, -0.14], [-1.05, 0.4]]],
+  [0.66, [[-0.115, -1.58], [-0.27, -1.56], [-0.48, -1.41], [-0.66, -1.16], [-0.81, -0.87], [-0.92, -0.55], [-1.01, -0.12], [-1.035, 0.4]]],
+  [1, [[-0.145, -1.325], [-0.25, -1.27], [-0.39, -1.14], [-0.53, -0.96], [-0.67, -0.74], [-0.79, -0.48], [-0.935, -0.1], [-1.02, 0.4]]],
 ]);
-/** The near side: from the part along the hairline, over the temple and the top of the ear, and up. The last guide is the lower outline. */
+/** The near mass: from the part over the brow's end and the top of the ear to where the loops are gathered. */
 const NEARSIDE = guides([
-  [0, [[-0.18, -1.13], [-0.19, -1.36], [-0.16, -1.6], [-0.06, -1.83], [0.1, -2.04], [0.28, -2.22]]],
-  [0.16, [[0.02, -1.14], [0.12, -1.33], [0.32, -1.56], [0.54, -1.79], [0.76, -2], [0.92, -2.2]]],
-  [0.32, [[0.22, -1.13], [0.4, -1.27], [0.64, -1.44], [0.9, -1.64], [1.12, -1.87], [1.24, -2.1]]],
-  [0.48, [[0.45, -1.06], [0.64, -1.13], [0.9, -1.24], [1.16, -1.42], [1.38, -1.66], [1.48, -1.96]]],
-  [0.62, [[0.65, -0.9], [0.84, -0.93], [1.1, -1], [1.38, -1.15], [1.6, -1.4], [1.66, -1.72]]],
-  [0.76, [[0.8, -0.66], [0.98, -0.68], [1.24, -0.73], [1.52, -0.87], [1.74, -1.15], [1.78, -1.55]]],
-  [0.88, [[0.92, -0.45], [1.08, -0.44], [1.34, -0.48], [1.62, -0.6], [1.84, -0.88], [1.9, -1.25], [1.82, -1.58]]],
-  [1, [[0.99, -0.27], [1.12, -0.31], [1.36, -0.34], [1.64, -0.42], [1.88, -0.66], [2, -1.02], [1.97, -1.38], [1.84, -1.66]]],
+  [0, [[-0.08, -2.0], [0.26, -2.16], [0.62, -2.18], [0.98, -2.08], [1.32, -1.88], [1.58, -1.62], [1.76, -1.34], [1.86, -1.08]]],
+  [0.25, [[-0.11, -1.82], [0.18, -1.91], [0.5, -1.87], [0.86, -1.72], [1.2, -1.52], [1.48, -1.3], [1.69, -1.1], [1.83, -0.94]]],
+  [0.5, [[-0.135, -1.63], [0.1, -1.62], [0.4, -1.48], [0.73, -1.28], [1.06, -1.06], [1.37, -0.89], [1.62, -0.8], [1.8, -0.78]]],
+  [0.75, [[-0.16, -1.47], [0.04, -1.4], [0.28, -1.2], [0.57, -0.93], [0.89, -0.68], [1.24, -0.52], [1.54, -0.5], [1.78, -0.58]]],
+  [1, [[-0.18, -1.33], [-0.02, -1.24], [0.18, -1.02], [0.44, -0.74], [0.74, -0.46], [1.06, -0.24], [1.38, -0.15], [1.7, -0.3]]],
 ]);
-const GROUND: Run = [[-0.93, -0.22], [-0.99, -0.42], [-1.06, -0.72], [-1.1, -1.02], [-1.07, -1.34], [-0.95, -1.65], [-0.75, -1.92], [-0.48, -2.1], [0, -2.25], [0.6, -2.3], [1.2, -2.2], [1.84, -1.66], [1.97, -1.38], [2, -1.02], [1.88, -0.66], [1.64, -0.42], [1.36, -0.34], [1.12, -0.31], [1, -0.29], [0.9, -0.46], [0.78, -0.66], [0.62, -0.87], [0.43, -1.04], [0.21, -1.1], [0, -1.11], [-0.18, -1.11], [-0.4, -1.1], [-0.6, -1.07], [-0.76, -0.91], [-0.87, -0.68], [-0.93, -0.42]];
-/** The knot: one lobe combed up behind and rolled over to the far side, every hair from the same place to the same place. The first guide is its outline. */
-const ROLL = guides([
-  [0, [[1.56, -1.82], [1.78, -2.2], [1.8, -2.64], [1.6, -3.04], [1.2, -3.33], [0.7, -3.44], [0.2, -3.35], [-0.22, -3.08], [-0.52, -2.7], [-0.6, -2.3], [-0.46, -1.94]]],
-  [0.3, [[1.5, -1.84], [1.63, -2.16], [1.6, -2.52], [1.4, -2.85], [1.06, -3.08], [0.64, -3.16], [0.22, -3.07], [-0.12, -2.84], [-0.35, -2.54], [-0.44, -2.24], [-0.41, -1.94]]],
-  [0.6, [[1.43, -1.86], [1.47, -2.09], [1.39, -2.36], [1.2, -2.6], [0.92, -2.78], [0.6, -2.84], [0.27, -2.76], [0, -2.59], [-0.19, -2.38], [-0.3, -2.16], [-0.36, -1.94]]],
-  [1, [[1.36, -1.88], [1.3, -2.02], [1.18, -2.16], [0.98, -2.28], [0.76, -2.35], [0.54, -2.36], [0.32, -2.31], [0.11, -2.22], [-0.07, -2.12], [-0.2, -2.02], [-0.31, -1.93]]],
+/** The crown behind the part, back to the foot of the loops. The first guide is the outline. */
+const CROWN = guides([
+  [0, [[-0.36, -2.06], [-0.18, -2.22], [0.06, -2.34], [0.36, -2.4], [0.68, -2.39], [0.96, -2.31], [1.2, -2.2]]],
+  [0.5, [[-0.12, -2.03], [0.08, -2.14], [0.32, -2.21], [0.6, -2.23], [0.86, -2.2], [1.08, -2.13], [1.28, -2.04]]],
+  [1, [[-0.02, -1.96], [0.2, -2.03], [0.46, -2.05], [0.74, -2.03], [1, -1.97], [1.22, -1.9], [1.4, -1.82]]],
 ]);
-/** A second lobe behind it, leaning back. */
-const CREST = guides([
-  [0, [[1.76, -1.58], [2.08, -1.92], [2.25, -2.36], [2.22, -2.84], [2, -3.28], [1.63, -3.58], [1.2, -3.68], [0.82, -3.58], [0.54, -3.36]]],
-  [0.5, [[1.66, -1.66], [1.9, -1.98], [2.02, -2.38], [1.97, -2.8], [1.78, -3.14], [1.48, -3.36], [1.16, -3.42], [0.86, -3.36], [0.62, -3.22]]],
-  [1, [[1.54, -1.76], [1.7, -2.06], [1.77, -2.4], [1.71, -2.72], [1.54, -2.96], [1.32, -3.1], [1.1, -3.14], [0.88, -3.12], [0.7, -3.06]]],
+/** Behind the ear: let down from the gather to the nape, where a cord takes it. The first guide is the outline, the last lies along the ear and the neck. */
+const NAPE = guides([
+  [0, [[1.68, -1.5], [1.95, -1.14], [2.1, -0.68], [2.12, -0.2], [2.02, 0.24], [1.87, 0.6], [1.76, 0.86], [1.72, 1.06]]],
+  [0.5, [[1.64, -1], [1.8, -0.7], [1.88, -0.36], [1.87, 0], [1.8, 0.34], [1.71, 0.64], [1.65, 0.88], [1.64, 1.07]]],
+  [1, [[1.34, -0.36], [1.39, -0.18], [1.41, 0.04], [1.4, 0.28], [1.41, 0.52], [1.46, 0.74], [1.52, 0.92], [1.56, 1.08]]],
 ]);
-/** A lock laid across the foot of the knot, thin where it starts and where it is tucked in. */
-const BAND = guides([
-  [0, [[1.94, -1.5], [1.78, -1.84], [1.5, -2.12], [1.14, -2.3], [0.76, -2.36], [0.38, -2.33], [0.06, -2.23], [-0.2, -2.08]]],
-  [0.5, [[1.92, -1.48], [1.7, -1.75], [1.4, -1.98], [1.06, -2.13], [0.72, -2.19], [0.38, -2.19], [0.08, -2.14], [-0.19, -2.06]]],
-  [1, [[1.9, -1.46], [1.63, -1.66], [1.32, -1.84], [1, -1.97], [0.69, -2.04], [0.38, -2.07], [0.1, -2.06], [-0.18, -2.04]]],
-]);
+/** What the head's hair stands on. */
+const GROUND: Run = [[-0.16, -1.3], [-0.25, -1.25], [-0.39, -1.12], [-0.53, -0.94], [-0.66, -0.72], [-0.78, -0.46], [-0.88, -0.2], [-0.97, 0.06], [-1.05, 0.06], [-1.1, -0.24], [-1.1, -0.66], [-1.04, -1.12], [-0.89, -1.55], [-0.64, -1.9], [-0.36, -2.06], [-0.18, -2.2], [0.06, -2.32], [0.36, -2.38], [0.68, -2.37], [0.96, -2.29], [1.28, -2.1], [1.68, -1.5], [1.95, -1.14], [2.09, -0.68], [2.11, -0.2], [2.01, 0.24], [1.86, 0.6], [1.75, 0.86], [1.71, 1.06], [1.56, 1.08], [1.46, 0.74], [1.41, 0.5], [1.4, 0.28], [1.41, 0.04], [1.38, -0.16], [1.06, -0.24], [0.74, -0.46], [0.44, -0.74], [0.18, -1.02], [-0.02, -1.22]];
+/** The head and its hair, without the loops: what hides a scene behind the figure in a film. On the page. */
+const COVER: P2[] = ([[-0.96, 0.14], [-1.08, -0.2], [-1.1, -0.66], [-1.04, -1.12], [-0.89, -1.55], [-0.64, -1.9], [-0.36, -2.06], [-0.18, -2.2], [0.06, -2.32], [0.36, -2.38], [0.68, -2.37], [0.96, -2.29], [1.28, -2.1], [1.68, -1.5], [1.95, -1.14], [2.09, -0.68], [2.11, -0.2], [2.01, 0.24], [1.86, 0.6], [1.75, 0.86], [1.71, 1.06], [1.56, 1.08], [1.46, 0.74], [1.41, 0.5], [1.4, 0.2], [1.34, 0.02], [1.14, 0.4], [1, 0.8], [0.62, 1.16], [0.2, 1.38], [-0.08, 1.44], [-0.3, 1.36], [-0.56, 1.02], [-0.76, 0.6], [-0.85, 0.26]] as const).map(([x, y]) => onPage(x, y));
 function comb(f: InkRisoPen, from: number) {
   let s = from;
   const m = Z / 1.4, clear = [R, B];
@@ -170,68 +129,95 @@ function comb(f: InkRisoPen, from: number) {
   const sweep = (q: Lock, o: Partial<InkSweepOptions> & { seed: number }) => inkSweep(f, K, lock(q), { load: 0.98, root: 0.02, tip: 0.1, edge: [0.06, 0.06], hairs: 3, stray: 1.3, streak: 0.18, clear, hairWidth: 1.3, ...o });
   const hair = (q: Lock, w: number, ink: number, seed: number) => inkThread(f, K, q.map(([x, y, p]) => [...HEAD.level(x, y), p] as const), w * m, { ink, inkEnd: ink * 0.7, seed });
   const strand = (q: Run, w: number, ink: number, seed: number) => hair(q.map(([x, y], k) => [x, y, 0.1 + 0.9 * leaf(k / (q.length - 1))] as const), w, ink, seed);
-  const wisps = (g: readonly Run[], o: Omit<Parameters<typeof inkWisps>[3], "seed">) => inkWisps(f, K, g.map(lv), { seed: s++, ...o, width: [m * (o.width?.[0] ?? 0.7), m * (o.width?.[1] ?? 1.8)] });
   const clumps = (form: InkSheetForm, o: Omit<InkClumpOptions, "seed"> & { seed?: number }) => inkClumps(f, K, form, { seed: s++, clear, ...o, hairWidth: m * (o.hairWidth ?? 1.1) });
   const flyaways = (form: InkSheetForm, o: Omit<InkFlyawayOptions, "seed">) => inkFlyaways(f, K, form, { seed: s++, ...o, width: [m * (o.width?.[0] ?? 0.6), m * (o.width?.[1] ?? 1.5)] });
   const gap = (q: Run, w: number, shape?: InkGapShape) => inkGap(f, [K], lv(q), w * UNIT * FACE.scale, shape);
   const slit = (form: InkSheetForm, at: number, t0: number, t1: number, w: number, shape: InkGapShape = "leaf") => inkGap(f, [K], form.run(at, t0, t1, 9), w * UNIT * FACE.scale, shape);
   const lobe = (form: InkSheetForm, s0: number, s1: number, seed: number, o: NonNullable<Parameters<typeof tress>[3]> & { n?: number } = {}) => {
     const { n = 3, ...rest } = o, w = s1 - s0;
-    tress(form, s0, s1, { load: 0.94, root: 0.01, tip: 0.02, edge: [0.02, 0.03], streak: 0.26, hairs: 4, stray: 1.1, seed, ...rest });
-    if (n) clumps(form, { n, s: [s0 + 0.12 * w, s1 - 0.12 * w], half: [0.08 * w, 0.16 * w], from: [0.06, 0.3], to: [0.76, 0.98], lift: [1, 3], drift: 0.05 * w, load: [1, 0.96], root: 0.2, tip: 0.2, streak: 0.26, hairs: 1, stray: 1, seed: seed + 60 });
+    tress(form, s0, s1, { load: 0.92, root: 0.01, tip: 0.02, edge: [0.02, 0.03], streak: 0.3, hairs: 4, stray: 1.1, seed, ...rest });
+    if (n) clumps(form, { n, s: [s0 + 0.12 * w, s1 - 0.12 * w], half: [0.08 * w, 0.16 * w], from: [0.04, 0.3], to: [0.76, 0.98], lift: [1, 3], drift: 0.05 * w, load: [1, 0.95], root: 0.2, tip: 0.2, streak: 0.28, hairs: 1, stray: 1, seed: seed + 60 });
   };
-  return { tress, sweep, hair, strand, wisps, clumps, flyaways, gap, slit, lobe };
+  return { tress, sweep, hair, strand, clumps, flyaways, gap, slit, lobe };
 }
-/** Hairs that come out of the skin before a sheet's roots, in bunches, fine, each from its own place: without them a hairline is the edge of a cap. */
-function rootHairs(f: InkRisoPen, form: InkSheetForm, o: { n: number; s: readonly [number, number]; back: readonly [number, number]; length: readonly [number, number]; width?: number; ink?: number; seed: number }) {
-  const rnd = dice(o.seed), bunches = Math.max(3, Math.round(o.n / 4)), at = Array.from({ length: bunches }, (_, i) => [lerp(o.s[0], o.s[1], (i + 0.1 + 0.8 * rnd()) / bunches), 0.3 + 0.9 * rnd(), 0.6 + 0.8 * rnd()] as const);
-  for (let i = 0; i < o.n; i++) {
-    const [c, far, w] = at[i % bunches], s = clamp(c + (rnd() - 0.5) * ((o.s[1] - o.s[0]) / bunches) * 0.8, o.s[0], o.s[1]), run = form.run(s, 0, lerp(o.length[0], o.length[1], rnd()), 9), d = lerp(o.back[0], o.back[1], rnd() ** 1.4 * far) * HEAD.span, [a, b] = [run[0], run[1]], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, tw = 0.9 * (rnd() - 0.5);
-    const ux = (a[0] - b[0]) / l, uy = (a[1] - b[1]) / l, tip: P2 = [a[0] + d * (ux - tw * uy), a[1] + d * (uy + tw * ux)], half: P2 = [(tip[0] + a[0]) / 2 - 0.12 * tw * d * uy, (tip[1] + a[1]) / 2 + 0.12 * tw * d * ux];
-    inkThread(f, K, [[...tip, 0.03] as const, [...half, 0.4] as const, ...run.map((q, k) => [q[0], q[1], Math.min(1, 0.7 + 0.2 * k) - 0.09 * Math.max(0, k - 2)] as const)], (o.width ?? 1) * lerp(0.5, 1.1, rnd()) * w, { ink: (o.ink ?? 0.85) * lerp(0.45, 1, rnd()), inkEnd: 0.5, seed: o.seed * 7 + i });
-  }
-}
-/** Both sides, swept up from the hairline. */
+/** The two masses, the crown and the hair behind the ear. */
 function drawSides(f: InkRisoPen) {
-  const { gap, slit, lobe, flyaways, sweep } = comb(f, 500);
-  // the tail of the lock round the knot's foot, out behind
-  sweep([[1.5, -1.62, 0.06], [1.82, -1.68, 0.08], [2.12, -1.63, 0.072], [2.38, -1.46, 0.045], [2.56, -1.22, 0.018], [2.64, -0.98, 0]], { seed: 712, load: 0.96, tip: 0.2, hairs: 7, stray: 1.9, over: 4 });
+  const { gap, slit, lobe, flyaways, strand, hair } = comb(f, 500);
   f.knock(f.shape(lv(GROUND)), [K, R, B]);
-  flyaways(FARSIDE, { n: 5, s: [-0.04, 0.2], from: [0.1, 0.4], length: [0.3, 0.6], lift: [1, 6], drift: 0.06, ink: [0.4, 0.8] });
-  lobe(FARSIDE, 0, 1, 510, { n: 5, root: 0.05 });
-  lobe(NEARSIDE, 0, 0.36, 520, { n: 4, root: 0.05 });
-  lobe(NEARSIDE, 0.66, 1, 522, { n: 3, root: 0.05 });
-  lobe(NEARSIDE, 0.31, 0.72, 521, { n: 4, root: 0.05 });
-  // paper where locks part, long points that lie along them
-  gap([[1.965, -0.8], [1.94, -1.02], [1.86, -1.26], [1.76, -1.46]], 0.034, t => Math.sin(Math.PI * t ** 0.6) ** 0.8); gap([[1.5, -1.0], [1.66, -1.15], [1.75, -1.36]], 0.03, "leaf"); gap([[1.14, -0.86], [1.34, -0.93], [1.5, -1.05]], 0.016, "leaf");
-  slit(FARSIDE, 0.33, 0.3, 0.7, 0.014); slit(NEARSIDE, 0.2, 0.34, 0.66, 0.012);
-  gap([[0.96, -0.4], [1.12, -0.395], [1.34, -0.42], [1.55, -0.5]], 0.014, "leaf");
-  // the hairline
-  for (const [form, u, w, t0, t1, seed] of [[NEARSIDE, 0.1, 0.02, -0.03, 0.4, 551], [NEARSIDE, 0.27, 0.026, -0.02, 0.5, 552], [NEARSIDE, 0.44, 0.02, -0.035, 0.4, 553], [NEARSIDE, 0.57, 0.024, -0.03, 0.46, 554], [NEARSIDE, 0.72, 0.02, -0.04, 0.4, 555], [NEARSIDE, 0.86, 0.02, -0.03, 0.4, 556], [FARSIDE, 0.86, 0.04, -0.03, 0.4, 557], [FARSIDE, 0.62, 0.05, -0.035, 0.45, 558], [FARSIDE, 0.36, 0.04, -0.03, 0.4, 559], [FARSIDE, 0.14, 0.04, -0.03, 0.36, 560]] as const) {
-    const a = form.point(u, 0), b = form.point(u, 0.05), back = (k: number): P2 => [a[0] + (a[0] - b[0]) * k, a[1] + (a[1] - b[1]) * k], n = 11;
-    const mid = Array.from({ length: n }, (_, i) => { const t = lerp(t0, t1, i / (n - 1)); return t < 0 ? back(-t / 0.05) : form.point(u, t); });
-    inkSweep(f, K, mid.map((q, i) => [q[0], q[1], w * UNIT * 1.5 * Math.sin(Math.PI * Math.min(1, 0.04 + 0.96 * (i / (n - 1)) ** 0.7)) ** 0.7] as const), { load: 0.95, root: 0.3, tip: 0.3, edge: [0.3, 0.3], hairs: 3, stray: 1.8, streak: 0.3, hairWidth: 1, seed });
-  }
-  rootHairs(f, NEARSIDE, { n: 52, s: [0.01, 0.98], back: [0.01, 0.12], length: [0.06, 0.2], width: 0.95, seed: 541 });
-  rootHairs(f, FARSIDE, { n: 32, s: [0.05, 0.99], back: [0.01, 0.1], length: [0.06, 0.2], width: 0.95, seed: 542 });
-  // the part: narrow and ragged, gone before the knot; three locks fan from its end
-  gap([[-0.158, -1.1], [-0.168, -1.18], [-0.162, -1.25], [-0.174, -1.33], [-0.158, -1.4], [-0.162, -1.47], [-0.146, -1.56]], 0.034, t => [1, 0.75, 0.95, 0.6, 0.85, 0.7, 0.4][Math.round(6 * t)]);
-  gap([[-0.15, -1.48], [-0.11, -1.59], [-0.04, -1.69], [0.06, -1.77]], 0.034); gap([[-0.148, -1.5], [-0.075, -1.56], [0.015, -1.6]], 0.022); gap([[-0.16, -1.46], [-0.185, -1.56], [-0.175, -1.66]], 0.024);
+  lobe(NAPE, 0, 1, 505, { n: 5, hairs: 8, stray: 1.3, tip: 0 });
+  flyaways(NAPE, { n: 6, s: [-0.04, 0.2], from: [0.1, 0.5], length: [0.2, 0.36], lift: [1, 5], drift: 0.06, ink: [0.4, 0.8] });
+  slit(NAPE, 0.3, 0.3, 0.8, 0.014); slit(NAPE, 0.62, 0.34, 0.86, 0.012); slit(NAPE, 0.84, 0.5, 0.94, 0.009);
+  hair([[-0.3, -2.14, 0.3], [-0.1, -2.29, 0.9], [0.12, -2.38, 1], [0.38, -2.425, 0.7], [0.6, -2.42, 0]], 1.7, 0.74, 506);
+  lobe(CROWN, 0, 1, 507, { n: 4 });
+  slit(CROWN, 0.4, 0.2, 0.7, 0.01);
+  flyaways(CROWN, { n: 7, s: [-0.04, 0.2], from: [0, 0.3], length: [0.3, 0.6], lift: [1, 5], drift: 0.06, ink: [0.35, 0.8] });
+  // ---- near
+  lobe(NEARSIDE, 0.76, 1, 523, { n: 3, hairs: 8, stray: 1.4 });
+  lobe(NEARSIDE, 0.48, 0.78, 522, { n: 3 });
+  lobe(NEARSIDE, 0.24, 0.5, 521, { n: 3 });
+  lobe(NEARSIDE, 0, 0.26, 520, { n: 3 });
+  slit(NEARSIDE, 0.77, 0.24, 0.74, 0.018); slit(NEARSIDE, 0.49, 0.2, 0.6, 0.018); slit(NEARSIDE, 0.25, 0.26, 0.7, 0.014); slit(NEARSIDE, 0.9, 0.4, 0.86, 0.011); slit(NEARSIDE, 0.62, 0.56, 0.92, 0.012);
+  flyaways(NEARSIDE, { n: 8, s: [0.3, 1.03], from: [0.1, 0.4], length: [0.3, 0.5], lift: [1, 4], drift: 0.1, ink: [0.4, 0.8] });
+  for (const [i, [q, w, ink]] of ([
+    [[[0.2, -0.98], [0.46, -0.69], [0.76, -0.41], [1.06, -0.2], [1.34, -0.11]], 1.7, 0.8], [[[0.58, -0.58], [0.82, -0.35], [1.06, -0.17], [1.28, -0.08], [1.46, -0.1]], 1.4, 0.74],
+  ] as readonly (readonly [Run, number, number])[]).entries()) strand(q, w, ink, 566 + i);
+  // ---- far
+  hair([[-0.46, -2.06, 0.2], [-0.74, -1.87, 0.8], [-0.97, -1.52, 1], [-1.11, -1.1, 0.9], [-1.155, -0.7, 0.5], [-1.15, -0.4, 0]], 1.6, 0.72, 515);
+  lobe(FARSIDE, 0, 0.36, 510, { n: 3, tip: 0.24 });
+  lobe(FARSIDE, 0.34, 0.7, 511, { n: 3, tip: 0.26 });
+  lobe(FARSIDE, 0.66, 1, 512, { n: 3, tip: 0.28, hairs: 7, stray: 1.2 });
+  slit(FARSIDE, 0.35, 0.22, 0.62, 0.016); slit(FARSIDE, 0.68, 0.22, 0.64, 0.014); slit(FARSIDE, 0.14, 0.4, 0.8, 0.012);
+  flyaways(FARSIDE, { n: 5, s: [0.9, 1.04], from: [0.05, 0.3], length: [0.3, 0.5], lift: [0, 3], drift: 0.08, ink: [0.5, 0.8] });
+  // ---- the part: narrow, and wandering; locks fan from its end
+  gap([[-0.165, -1.31], [-0.172, -1.4], [-0.165, -1.52], [-0.158, -1.62], [-0.128, -1.74], [-0.09, -1.84], [-0.03, -1.95], [0.04, -2.03]], 0.014, t => [0.3, 0.8, 0.95, 0.6, 0.9, 0.6, 0.5, 0.1][Math.round(7 * t)]);
+  for (const [q, w] of [
+    [[[-0.06, -1.88], [0.04, -1.93], [0.17, -1.94]], 0.014], [[[-0.145, -1.66], [-0.05, -1.65], [0.06, -1.6]], 0.012], [[[-0.11, -1.79], [-0.2, -1.83], [-0.31, -1.82]], 0.013],
+  ] as readonly (readonly [Run, number])[]) gap(q, w);
+  // hairs at its foot: they leave the skin one by one
+  for (const [i, [q, w, ink]] of ([[[[-0.165, -1.2], [-0.175, -1.3], [-0.21, -1.42]], 1.9, 0.82], [[[-0.135, -1.19], [-0.12, -1.29], [-0.07, -1.41]], 1.9, 0.82], [[[-0.21, -1.2], [-0.24, -1.29], [-0.3, -1.4]], 1.5, 0.74], [[[-0.085, -1.18], [-0.04, -1.27], [0.04, -1.36]], 1.5, 0.74], [[[-0.28, -1.15], [-0.31, -1.23], [-0.39, -1.32]], 1.3, 0.66], [[[0, -1.12], [0.06, -1.19], [0.15, -1.26]], 1.3, 0.66]] as readonly (readonly [Run, number, number])[]).entries()) strand(q, w, ink, 570 + i);
 }
-function drawKnot(f: InkRisoPen) {
-  const { lobe, sweep, gap, slit, flyaways } = comb(f, 700);
-  // a loop that slipped out behind, thin and pale
-  sweep([[1.0, -3.38, 0.02], [0.52, -3.64, 0.06], [0.02, -3.72, 0.09], [-0.46, -3.62, 0.1], [-0.82, -3.34, 0.1], [-1, -2.96, 0.085], [-0.96, -2.6, 0.064], [-0.8, -2.28, 0.05], [-0.58, -2.04, 0.034], [-0.34, -1.9, 0.012]], { seed: 711, load: 0.36, loadEnd: 0.97, streak: 0.62, hairs: 9, stray: 1.7, root: 0.1, tip: 0.04, edge: [0.24, 0.24] });
-  flyaways(CREST, { n: 7, s: [-0.1, 0.2], from: [0, 0.5], length: [0.3, 0.6], lift: [2, 8], drift: 0.05, ink: [0.4, 0.8] });
-  lobe(CREST, 0, 1, 701, { n: 4 });
-  gap([[1.82, -1.86], [2.02, -2.2], [2.08, -2.6], [1.98, -2.96], [1.8, -3.22]], 0.036, "leaf");
-  lobe(ROLL, 0.56, 1, 702, { n: 3 });
-  lobe(ROLL, 0.26, 0.66, 703, { n: 4, sheen: [{ at: 0.42, width: 0.13, amount: 0.4, lean: 0.06 }] });
-  gap([[1.5, -1.95], [1.55, -2.2], [1.47, -2.46], [1.28, -2.7], [1.02, -2.88]], 0.045, t => Math.sin(Math.PI * t ** 0.7) ** 0.8);
-  lobe(ROLL, 0, 0.34, 704, { n: 4 });
-  gap([[-0.45, -2.08], [-0.44, -2.36], [-0.3, -2.66], [-0.06, -2.92], [0.2, -3.07]], 0.05, t => Math.sin(Math.PI * t ** 0.6) ** 0.8);
-  slit(ROLL, 0.14, 0.2, 0.5, 0.014); slit(ROLL, 0.78, 0.3, 0.64, 0.01);
-  lobe(BAND, 0, 1, 705, { n: 4, tip: 0.1 });
+/** Three hollow loops of hair, each a hank that rises thin, swells where it turns over and comes back thin to its foot: their middles, with half widths. */
+const LOOPS: { far: Lock; back: Lock; tall: Lock } = {
+  far: [[1, -2.16, 0.06], [0.76, -2.24, 0.12], [0.55, -2.42, 0.17], [0.48, -2.65, 0.195], [0.6, -2.86, 0.2], [0.83, -2.9, 0.18], [1.01, -2.76, 0.15], [1.08, -2.52, 0.12], [1.08, -2.26, 0.08]],
+  back: [[1.46, -1.96, 0.07], [1.74, -2.14, 0.15], [2.06, -2.2, 0.215], [2.36, -2.05, 0.25], [2.5, -1.74, 0.245], [2.43, -1.42, 0.21], [2.22, -1.2, 0.17], [1.97, -1.13, 0.12], [1.75, -1.2, 0.06]],
+  tall: [[1.14, -2.08, 0.07], [1, -2.34, 0.15], [0.96, -2.64, 0.21], [1.1, -2.94, 0.25], [1.4, -3.07, 0.26], [1.7, -2.96, 0.25], [1.86, -2.66, 0.22], [1.82, -2.34, 0.17], [1.66, -2.08, 0.11], [1.48, -1.92, 0.05]],
+};
+function drawLoops(f: InkRisoPen) {
+  const { sweep, gap, hair } = comb(f, 700);
+  const hank = { root: 0.02, tip: 0.04, edge: [0.03, 0.06] as [number, number], streak: 0.24, hairs: 7, stray: 1.2, load: 0.97 };
+  // the far one, small, seen nearly from its edge
+  sweep(LOOPS.far, { ...hank, load: 0.92, seed: 711, plies: { n: 3, load: [0.98, 0.86], streak: 0.34 } });
+  hair([[0.36, -2.44, 0.3], [0.265, -2.62, 0.9], [0.3, -2.86, 0.8], [0.44, -3.06, 0.4], [0.6, -3.16, 0]], 1.4, 0.66, 712);
+  gap([[0.84, -2.37], [0.7, -2.5], [0.66, -2.66], [0.74, -2.76]], 0.014, "leaf");
+  // the back one, let down toward the nape
+  sweep(LOOPS.back, { ...hank, seed: 713, plies: { n: 4, load: [1, 0.9], streak: 0.28 } });
+  hair([[2.3, -2.3, 0.3], [2.56, -2.14, 0.9], [2.74, -1.86, 0.8], [2.82, -1.58, 0.4], [2.83, -1.4, 0]], 1.5, 0.68, 714); hair([[2.5, -1.28, 0.3], [2.32, -1.08, 0.8], [2.1, -0.98, 0.5], [1.94, -0.97, 0]], 1.4, 0.66, 718);
+  gap([[1.8, -2.02], [2.04, -2.04], [2.24, -1.92], [2.32, -1.7]], 0.018, "leaf"); gap([[2.3, -2.16], [2.5, -1.96], [2.56, -1.66]], 0.013, "leaf"); gap([[2.3, -1.38], [2.14, -1.26], [1.94, -1.2]], 0.014, "leaf");
+  // the middle one, the tallest
+  sweep(LOOPS.tall, { ...hank, seed: 715, plies: { n: 5, load: [1, 0.92], streak: 0.26 } });
+  hair([[0.92, -3.04, 0.3], [1.1, -3.24, 0.9], [1.36, -3.35, 0.8], [1.6, -3.36, 0.4], [1.78, -3.3, 0]], 1.5, 0.7, 716); hair([[0.79, -2.4, 0.3], [0.735, -2.64, 0.8], [0.78, -2.88, 0.5], [0.86, -3.04, 0]], 1.3, 0.6, 719);
+  gap([[1.12, -2.4], [1.12, -2.68], [1.26, -2.86], [1.44, -2.88]], 0.02, "leaf"); gap([[0.9, -2.5], [0.88, -2.76], [1, -3.02], [1.22, -3.16]], 0.014, "leaf"); gap([[1.64, -2.8], [1.72, -2.58], [1.66, -2.3]], 0.016, "leaf"); gap([[1.86, -2.86], [1.94, -2.62], [1.88, -2.36]], 0.011, "leaf");
+  // one hank laid round their feet
+  sweep([[0.82, -2.2, 0.02], [1.02, -2.2, 0.08], [1.26, -2.08, 0.115], [1.48, -1.9, 0.125], [1.67, -1.64, 0.115], [1.8, -1.36, 0.085], [1.87, -1.1, 0.03]], { ...hank, seed: 717, plies: { n: 3, load: [1, 0.94], streak: 0.24 } });
+  gap([[1.06, -2.12], [1.28, -2], [1.47, -1.82], [1.61, -1.58]], 0.013, "leaf"); gap([[1.3, -2.14], [1.52, -1.96], [1.7, -1.7]], 0.01, "leaf");
+}
+/** 一縷青絲: the tress an unmarried girl lets down over her shoulder, tied at the nape with a cord. */
+function drawTress(f: InkRisoPen) {
+  const { sweep, gap, hair } = comb(f, 740);
+  const dark = { root: 0.01, tip: 0.06, hairs: 7, stray: 1.4, streak: 0.18, load: 0.98 };
+  f.knock(inkBlob(f, lock([[1.66, 1.16, 0.05], [1.78, 1.46, 0.1], [1.76, 1.9, 0.12], [1.65, 2.35, 0.12], [1.55, 2.8, 0.11], [1.52, 3.2, 0.1], [1.52, 3.6, 0.08], [1.46, 3.95, 0.05]])));
+  sweep([[1.64, 1.04, 0.07], [1.7, 1.24, 0.1], [1.77, 1.5, 0.135], [1.77, 1.9, 0.155], [1.68, 2.34, 0.15], [1.58, 2.78, 0.14], [1.53, 3.2, 0.125], [1.53, 3.58, 0.1], [1.49, 3.92, 0.07], [1.4, 4.22, 0.04], [1.34, 4.46, 0.016], [1.36, 4.64, 0]], { ...dark, seed: 741, plies: { n: 4, load: [1, 0.95], streak: 0.18 }, over: 8 });
+  gap([[1.74, 1.46], [1.72, 1.9], [1.62, 2.4], [1.53, 2.84]], 0.018, "leaf"); gap([[1.84, 1.76], [1.78, 2.2], [1.69, 2.62]], 0.014, "leaf"); gap([[1.5, 3], [1.5, 3.4], [1.48, 3.74]], 0.016, "leaf");
+  for (const [q, w, ink, seed] of [
+    [[[1.62, 1.5, 0.2], [1.58, 1.9, 0.8], [1.49, 2.4, 0.8], [1.4, 2.9, 0.6], [1.37, 3.4, 0.4], [1.42, 3.7, 0]], 1.5, 0.72, 742], [[[1.9, 1.6, 0.2], [1.92, 2, 0.8], [1.82, 2.5, 0.7], [1.72, 2.9, 0.3], [1.7, 3.1, 0]], 1.5, 0.7, 743], [[[1.62, 3, 0.2], [1.66, 3.4, 0.8], [1.64, 3.8, 0.7], [1.54, 4.2, 0.4], [1.52, 4.44, 0]], 1.6, 0.72, 744], [[[1.44, 3.3, 0.2], [1.41, 3.6, 0.8], [1.36, 3.9, 0.6], [1.27, 4.2, 0]], 1.3, 0.64, 745],
+  ] as const) hair(q, w, ink, seed);
+  // the cord: three turns, and two ends
+  f.knock(inkBlob(f, lock([[1.555, 1.04, 0.03], [1.64, 1.075, 0.06], [1.73, 1.06, 0.03]])), [K, R, B]);
+  for (const [i, y] of [1.03, 1.075, 1.12].entries()) inkThread(f, R, [[...HEAD.level(1.535 - 0.004 * i, y - 0.008), 0.6], [...HEAD.level(1.64, y + 0.016), 1], [...HEAD.level(1.75 + 0.008 * i, y - 0.004), 0.6]] as N3[], 7.4, { ink: 0.96, seed: 750 + i });
+  for (const [i, q] of ([[[1.6, 1.12, 0.7], [1.52, 1.3, 1], [1.53, 1.52, 0.9], [1.46, 1.78, 0.8], [1.48, 1.94, 0.3]], [[1.63, 1.12, 0.7], [1.62, 1.34, 1], [1.57, 1.56, 0.8], [1.58, 1.72, 0.3]]] as const).entries()) {
+    const n = q.map(([x, y, p]) => [...HEAD.level(x, y), p] as const) as unknown as N3[];
+    f.lift(n, 4.6, [K, B]); inkThread(f, R, n, 3.4, { ink: 0.94, seed: 755 + i });
+  }
 }
 // ---- neck and robe, in page units --------------------------------------------------------------------------------------------------
 /** The figure's ground: paper, so nothing behind her shows through. */
@@ -418,15 +404,18 @@ function ground(p: InkRisoPen, q: readonly N3[], width: number) {
   const w = (t: number) => { const x = t * (q.length - 1), i = Math.min(q.length - 2, Math.floor(x)); return 0.5 * width * lerp(q[i][2] ?? 1, q[i + 1][2] ?? 1, x - i); }, line = q.map(v => [v[0], v[1]] as const);
   p.knock(p.shape([...aside(line, w), ...[...aside(line, t => -w(t))].reverse()]));
 }
-/** The spray in her hair, over the seam where the knot is rolled in. */
+/** The spray in her hair, over the place where the loops are gathered. */
 function drawSpray(p: InkRisoPen) {
-  const twig = (q: N3[], w: number, seed: number) => { ground(p, q.map(v => [v[0], v[1] + 1.2, v[2]] as const), w * 1.5); inkThread(p, K, q, w * 0.62, { ink: 0.8, seed }); };
-  twig([[516, 384, 0.5], [556, 372, 0.9], [610, 346, 1], [662, 316, 0.9], [706, 282, 0.7], [744, 246, 0.1]], 8, 1200);
-  twig([[676, 306, 0.9], [684, 282, 0.7], [676, 254, 0.1]], 6, 1201);
-  bud(p, 748, 242, 12, -0.75, { white: true, seed: 1210 }); bud(p, 674, 246, 11, -1.75, { white: true, seed: 1215 }); bud(p, 506, 389, 11, 2.75, { white: true, seed: 1220 });
-  blossom(p, 700, 300, 31, { turn: 0.5, squash: 0.62, lean: -0.7, line: 0.4, seed: 1230 });
-  blossom(p, 572, 366, 36, { turn: 0.2, squash: 0.76, lean: 0.5, line: 0.4, seed: 1240 });
-  blossom(p, 636, 330, 48, { turn: -0.3, squash: 0.94, lean: 0.2, line: 0.4, seed: 1250 });
+  const on = (q: readonly (readonly [number, number, number])[]): N3[] => q.map(([x, y, k]) => [...onPage(x, y), k] as const);
+  const twig = (q: readonly (readonly [number, number, number])[], w: number, seed: number) => { const n = on(q); ground(p, n.map(v => [v[0], v[1] + 1.2, v[2]] as const), w * 1.5); inkThread(p, K, n, w * 0.62, { ink: 0.86, seed }); };
+  twig([[1.28, -2.06, 0.5], [1.5, -1.8, 0.9], [1.76, -1.56, 1], [1.96, -1.24, 0.9], [2.06, -1.02, 0.7], [2.06, -0.86, 0.1]], 7, 1200);
+  twig([[2.02, -1.14, 0.9], [2.32, -1.04, 0.7], [2.58, -1.12, 0.6], [2.76, -1.3, 0.1]], 6, 1201);
+  const at = (x: number, y: number) => onPage(x, y);
+  const b = (x: number, y: number, r: number, o: BlossomOptions) => { const q = at(x, y); blossom(p, q[0], q[1], r, o); }, d = (x: number, y: number, r: number, a: number, o: Parameters<typeof bud>[5]) => { const q = at(x, y); bud(p, q[0], q[1], r, a, o); };
+  d(2.06, -0.81, 9, 1.6, { red: 0.75, seed: 1210 }); d(2.8, -1.35, 10, 3.9, { red: 0.8, seed: 1215 }); d(2.56, -1.0, 8, 2.4, { red: 0.6, seed: 1220 });
+  b(2.02, -1.16, 30, { turn: 0.5, squash: 0.66, lean: 0.7, line: 0.4, seed: 1230 });
+  b(1.36, -1.96, 33, { turn: 0.2, squash: 0.74, lean: -0.5, line: 0.4, seed: 1240 });
+  b(1.7, -1.56, 46, { turn: -0.3, squash: 0.94, lean: 0.2, line: 0.4, seed: 1250 });
 }
 /** The branch she looks toward: an old limb that turns in angles, dragged with a drying brush, straight young shoots off its outer sides, a few blossoms. */
 function drawBranch(p: InkRisoPen) {
@@ -462,13 +451,12 @@ function bead(p: InkRisoPen, x: number, y: number, rx: number, ry: number, o: { 
   if (o.plate) { inkBloom(p, o.plate, shape, { tone: o.tone ?? 0.8, soft: 0.8, wander: 0.3, wave: 5, fringe: 0.2, rim: 0.4, rimWidth: 2.4, mottle: 0.4, cloud: 8, seed: o.seed }); if (o.plate !== K) p.lift([[x - rx * 0.4, y - ry * 0.3, 0.2], [x - rx * 0.36, y, 1], [x - rx * 0.3, y + ry * 0.22, 0.2]], rx * 0.36, [o.plate]); }
   else { inkBloom(p, K, shape, { tone: (X, Y) => { const [a, b] = p.local(X, Y); return 0.2 * ss(0.2, 1, (a - x) / rx + (b - y) / ry); }, soft: 0.8, wander: 0, fringe: 0, rim: 0, mottle: 0.3, cloud: 8, seed: o.seed }); inkThread(p, K, [[x - rx * 0.3, y - ry * 0.95, 0.5], [x + rx * 0.62, y - ry * 0.8, 0.8], [x + rx, y + ry * 0.1, 1], [x + rx * 0.5, y + ry * 0.88, 1], [x - rx * 0.5, y + ry * 0.88, 0.8], [x - rx, y, 0.5], [x - rx * 0.66, y - ry * 0.72, 0.1]], 1.6, { ink: 0.9, inkEnd: 0.6, seed: o.seed }); }
 }
-const HOOK: P2 = [834, 343];
-/** 步搖: the pin through the knot, and the chain that swings from its head. */
+const HOOK: P2 = onPage(2.44, -0.84);
+/** 步搖: the pin behind the blossoms, and the chain that swings from its head. */
 function drawPin(p: InkRisoPen) {
-  const shaft: N3[] = [[700, 355, 1], [744, 348, 1], [786, 341, 0.9], [818, 336, 0.8]];
-  ground(p, shaft, 9.6); inkThread(p, K, shaft, 5.6, { ink: 0.97, inkEnd: 0.95, seed: 1400 }); p.lift([[724, 350, 0.1], [752, 345.6, 1], [784, 340.6, 0.8], [804, 337.6, 0.1]], 1.5, [K]);
-  inkThread(p, K, [[366, 368, 1], [344, 371, 0.7], [320, 374, 0.05]], 6, { ink: 0.95, inkEnd: 0.9, seed: 1402 });
-  bead(p, 822, 335, 3, 6.4, { plate: K, tone: 0.97, seed: 1405 }); bead(p, 834, 333, 9.4, 8.8, { seed: 1403 }); bead(p, 847, 330.6, 4.4, 4.4, { plate: R, tone: 0.95, seed: 1404 });
+  const [x, y] = HOOK, q = (u: number, v: number, k: number): N3 => [x + u, y + v, k], shaft: N3[] = [q(62, -38, 1), q(44, -27, 1), q(26, -15, 0.9), q(11, -6, 0.8)];
+  ground(p, shaft, 9.6); inkThread(p, K, shaft, 5.6, { ink: 0.97, inkEnd: 0.95, seed: 1400 });
+  bead(p, x + 11, y + 1.6, 3, 6.4, { plate: K, tone: 0.97, seed: 1405 }); bead(p, x, y - 1, 9.4, 8.8, { seed: 1403 }); bead(p, x - 12, y - 3, 4.4, 4.4, { plate: R, tone: 0.95, seed: 1404 });
 }
 function drawChain(p: InkRisoPen) {
   const [x, y] = HOOK;
@@ -483,17 +471,22 @@ function drawEarring(p: InkRisoPen) {
   inkThread(p, K, [[x - 0.4, y + 7, 0.7], [x, y + 30, 0.6], [x, y + 54, 0.5]], 1.4, { ink: 0.85, seed: 1441 });
   bead(p, x - 0.3, y + 14, 3, 3, { plate: K, tone: 0.95, seed: 1442 }); bead(p, x, y + 29, 5.6, 8.6, { plate: B, tone: 0.82, seed: 1443 }); bead(p, x, y + 44, 2.6, 2.6, { plate: K, tone: 0.95, seed: 1444 }); bead(p, x, y + 58, 4, 7, { plate: R, tone: 0.95, seed: 1445 });
 }
-/** Strands that did not go up: before the near ear, beside the far cheek, and at the nape. */
+/** Strands let go: a curtain of two before the near ear, one fine pair over the brow, a lock past the far cheek, wisps at the nape. */
 function drawStrands(f: InkRisoPen) {
   const { sweep, hair } = comb(f, 800);
-  sweep([[0.74, -0.8, 0.004], [0.84, -0.6, 0.02], [0.93, -0.42, 0.032], [0.99, -0.24, 0.034], [1.025, -0.05, 0.03], [1.035, 0.16, 0.024], [1.02, 0.38, 0.017], [0.98, 0.6, 0.011], [0.93, 0.8, 0.006], [0.9, 0.96, 0]], { seed: 811, root: 0.3, tip: 0.26, hairs: 4, stray: 1.6, streak: 0.3 });
+  // the curtain: from the part across the temple to the cheek
+  sweep([[0.08, -1.24, 0.001], [0.14, -1.12, 0.008], [0.23, -0.95, 0.026], [0.36, -0.74, 0.043], [0.56, -0.53, 0.048], [0.76, -0.34, 0.044], [0.9, -0.12, 0.041], [0.97, 0.14, 0.038], [1, 0.42, 0.034], [1, 0.72, 0.029], [0.985, 1, 0.023], [0.99, 1.28, 0.017], [1.04, 1.54, 0.011], [1.11, 1.74, 0.005], [1.17, 1.86, 0]], { seed: 811, root: 0.02, tip: 0.2, hairs: 5, stray: 1.7, streak: 0.24 });
+  sweep([[0.02, -1.14, 0.003], [0.2, -0.82, 0.012], [0.42, -0.54, 0.015], [0.58, -0.34, 0.014], [0.72, -0.14, 0.012], [0.81, 0.08, 0.01], [0.85, 0.32, 0.007], [0.85, 0.52, 0.004], [0.81, 0.68, 0]], { seed: 812, root: 0.02, tip: 0.24, hairs: 1, stray: 1.6 });
+  sweep([[-0.39, -1.24, 0.001], [-0.43, -1.12, 0.008], [-0.51, -0.95, 0.028], [-0.625, -0.73, 0.048], [-0.75, -0.48, 0.06], [-0.865, -0.2, 0.058], [-0.935, 0.08, 0.053], [-0.965, 0.38, 0.047], [-0.96, 0.68, 0.04], [-0.945, 0.96, 0.031], [-0.95, 1.22, 0.022], [-1, 1.46, 0.013], [-1.08, 1.66, 0.006], [-1.15, 1.78, 0]], { seed: 813, root: 0.02, tip: 0.18, hairs: 5, stray: 1.6, streak: 0.24 });
+  sweep([[-1.02, -0.44, 0.01], [-1.07, -0.14, 0.022], [-1.08, 0.18, 0.024], [-1.06, 0.5, 0.021], [-1.04, 0.8, 0.016], [-1.07, 1.1, 0.011], [-1.16, 1.36, 0.005], [-1.24, 1.5, 0]], { seed: 814, root: 0.1, tip: 0.24, hairs: 2, stray: 1.6 });
   for (const [q, w, ink, seed] of [
-    [[[0.9, -0.44, 0.1], [1, -0.2, 0.8], [1.06, 0.06, 0.9], [1.08, 0.32, 0.8], [1.06, 0.6, 0.7], [1, 0.86, 0.5], [0.97, 1.08, 0.3], [1, 1.26, 0]], 1.7, 0.8, 820],
-    [[[0.8, -0.5, 0.1], [0.88, -0.28, 0.7], [0.94, -0.06, 0.8], [0.97, 0.2, 0.6], [0.95, 0.44, 0.3], [0.9, 0.62, 0]], 1.4, 0.7, 821],
-    [[[-0.9, -0.46, 0.1], [-0.96, -0.22, 0.8], [-0.98, 0.05, 0.9], [-0.96, 0.32, 0.8], [-0.92, 0.6, 0.7], [-0.9, 0.86, 0.5], [-0.94, 1.1, 0.3], [-1.03, 1.3, 0]], 2, 0.8, 822],
-    [[[-0.92, -0.4, 0.1], [-1.02, -0.1, 0.7], [-1.06, 0.2, 0.8], [-1.04, 0.5, 0.6], [-1.06, 0.76, 0.4], [-1.14, 0.96, 0]], 1.4, 0.64, 823],
-    [[[1.4, -0.36, 0.2], [1.43, -0.16, 0.8], [1.41, 0.06, 0.9], [1.35, 0.3, 0.8], [1.33, 0.52, 0.5], [1.38, 0.72, 0]], 1.5, 0.7, 824],
-    [[[1.3, -0.3, 0.2], [1.33, 0, 0.7], [1.29, 0.3, 0.9], [1.3, 0.62, 0.8], [1.36, 0.95, 0.6], [1.35, 1.22, 0]], 1.8, 0.74, 826],
+    [[[0.06, -1.1, 0.1], [0.2, -0.86, 0.8], [0.32, -0.6, 0.9], [0.44, -0.38, 0.7], [0.54, -0.22, 0.4], [0.6, -0.1, 0]], 1.4, 0.74, 819],
+    [[[0.86, -0.4, 0.1], [0.94, -0.16, 0.8], [0.96, 0.1, 0.9], [0.94, 0.36, 0.7], [0.88, 0.6, 0.4], [0.84, 0.74, 0]], 1.5, 0.72, 820],
+    [[[0.98, -0.2, 0.1], [1.05, 0.1, 0.8], [1.07, 0.42, 0.9], [1.05, 0.74, 0.8], [1.04, 1.06, 0.6], [1.1, 1.36, 0.3], [1.2, 1.56, 0]], 1.6, 0.76, 821],
+    [[[-1.06, -0.5, 0.1], [-1.14, -0.14, 0.8], [-1.16, 0.22, 0.9], [-1.12, 0.56, 0.8], [-1.07, 0.88, 0.6], [-1.1, 1.18, 0.3], [-1.2, 1.4, 0]], 1.7, 0.76, 822],
+    [[[-0.92, -0.2, 0.1], [-0.95, 0.12, 0.7], [-0.95, 0.44, 0.8], [-0.91, 0.74, 0.5], [-0.86, 0.98, 0]], 1.4, 0.7, 823],
+    [[[1.46, 0.36, 0.2], [1.44, 0.62, 0.8], [1.46, 0.86, 0.7], [1.54, 1.06, 0.3], [1.6, 1.16, 0]], 1.5, 0.7, 824],
+    [[[1.54, 0.46, 0.2], [1.5, 0.74, 0.7], [1.46, 1.02, 0.6], [1.5, 1.26, 0]], 1.5, 0.7, 826],
   ] as const) hair(q, w, ink, seed);
 }
 /** 墨梅, and a seal. */
@@ -517,7 +510,7 @@ function drawInscription({ page: p }: Pens) {
   cut([[24, 22, 0.8], [50, 21, 1], [77, 23, 0.8]], 4); cut([[28, 48, 0.8], [50, 47, 1], [72, 48, 0.8]], 4); cut([[17, 78, 0.8], [50, 77, 1], [84, 79, 0.9]], 4); cut([[50, 21, 0.9], [51, 50, 1], [50, 78, 0.9]], 4); cut([[63, 60, 0.7], [72, 67, 1]], 4);
 }
 // ---- the figure in layers ---------------------------------------------------------------------------------------------------------
-const LIDS: Readonly<Record<string, number>> = { open: 1, half: 0.45, shut: 0 };
+const LIDS: Readonly<Record<string, number>> = { open: 1, half: 0.5, shut: 0.04 };
 const pens = (c: InkPaintContext): Pens => { const p = c.pens(FRAMES); return { ...p, face: mirror(p.face) }; };
 const paint = (draw: (p: Pens) => void) => (c: InkPaintContext) => draw(pens(c));
 const BREATH = { kind: "breathe", at: [520, 1500], amount: 0.0045, seconds: 5 } as const;
@@ -534,18 +527,19 @@ export function inkMomei({ wash = true, branch = true, name = true, wind = 1 }: 
     { id: "wash", draw: paint(drawSplash), depth: -0.25 },
     { id: "branch", draw: c => drawBranch(pens(c).page), depth: 0.12, motion: [{ kind: "sway", from: [1236, 1104], to: [862, 872], amount: 6 * wind, seconds: 7.2, lag: 0.16, power: 1.5, lean: 0.1 }] },
     { id: "petals", draw: paint(drawPetals), depth: 0.2, motion: [{ kind: "drift", by: [-16 * wind, 22 * wind], back: 8 }] },
-    { id: "under", only: "film", group: "head", draw: c => { inkCover(c.page, c.page.shape(inkOval(600, 540, 140, 190))); inkCover(c.page, c.page.shape(inkOval(495, 255, 120, 95))); } },
+    { id: "under", only: "film", group: "head", draw: c => { const f = pens(c).face; inkCover(c.page, c.page.shape(COVER)); for (const q of Object.values(LOOPS)) inkCover(f, inkBlob(f, lock(q))); } },
     { id: "scarf-end", draw: paint(drawScarfEnd), motion: [{ kind: "sway", from: [740, 1264], to: [1034, 1562], amount: 16 * wind, seconds: 6, lag: 0.34, power: 1.6, lean: 0.25 }] },
     { id: "body", draw: c => { paint(drawBody)(c); inkFade(c.page, [0, 1440, PAGE.width, 160], (_, y) => 1 - ss(1480, 1592, y), { coverOnly: true }); }, motion: [BREATH] },
     { id: "scarf", draw: paint(drawScarf), motion: [BREATH, { kind: "sway", from: [392, 1430], to: [418, 1620], amount: 5 * wind, seconds: 6, lag: 0.3, power: 1.8, lean: 0.2, phase: 1.1 }] },
-    { id: "face", group: "head", poses: { kind: "blink", open: "open", order: ["half", "shut"], every: 5.2, seconds: 0.36 }, draw: c => { const f = pens(c).face, open = LIDS[c.pose] ?? 1; drawFace(f, open === 1 ? HEAD : pose(open), open); paintInkEar(f, HEAD, STYLE); } },
+    { id: "face", group: "head", poses: { kind: "blink", open: "open", order: ["half", "shut"], every: 5.2, seconds: 0.36 }, draw: c => { const f = pens(c).face, open = LIDS[c.pose] ?? 1; drawFace(f, c.pose === "open" ? HEAD : pose(open)); paintInkEar(f, HEAD, STYLE); } },
     { id: "hair", group: "head", draw: paint(p => drawSides(p.face)) },
-    { id: "chignon", group: "head", draw: paint(p => { drawKnot(p.face); drawPin(p.page); }) },
+    { id: "chignon", group: "head", draw: paint(p => { drawLoops(p.face); drawPin(p.page); }) },
     { id: "flowers", group: "head", draw: paint(p => drawSpray(p.page)) },
     { id: "pin", group: "head", draw: paint(p => drawChain(p.page)), motion: [{ kind: "turn", at: HOOK, degrees: 2.6 * wind, seconds: 3.4 }] },
+    { id: "tress", group: "head", draw: paint(p => drawTress(p.face)), motion: [{ kind: "sway", from: onPage(1.64, 1), to: onPage(1.36, 4.64), amount: 9 * wind, seconds: 6.2, lag: 0.26, power: 2, lean: 0.3, phase: 1.3 }] },
     { id: "strands", group: "head", draw: paint(p => drawStrands(p.face)), motion: [{ kind: "sway", from: onPage(0.4, -0.6), to: onPage(0.5, 1.2), amount: 6 * wind, seconds: 5.4, lag: 0.3, power: 1.8, lean: 0.3, phase: 2.2 }] },
     { id: "earring", group: "head", draw: paint(p => drawEarring(p.page)), motion: [{ kind: "turn", at: LOBE, degrees: 2.4 * wind, seconds: 2.9, phase: 0.7 }] },
     { id: "name", draw: paint(drawInscription) },
   ];
-  return { id: "momei", label: "Half figure of a court lady turned to the right, looking down and aside with lowered lids at a branch of plum blossom: a high knot of hair with white blossom and a pin with a hanging chain of beads, a white robe with a broad dark collar, a thin blue scarf", page: PAGE, plates: PLATES, paper: "#F8F1E3", seed: 23, groups: { head: [{ kind: "turn", at: [520, 900], degrees: 0.42, seconds: 7.4 }, BREATH] }, parts: inkPaintOrder(parts.filter(p => shown[p.id] ?? true), ["under", "hair", "chignon", "face", "flowers", "pin", "strands", "earring", "body", "scarf", "scarf-end", "wash", "branch", "petals", "name"], ["face"]) };
+  return { id: "momei", label: "Half figure of a girl turned to the right beside a branch of plum blossom: her hair parted in the middle and drawn up into three hollow loops with white blossom and a hanging chain of beads, one long tress tied with a red cord over her shoulder, a white robe with a broad dark collar, a thin blue scarf", page: PAGE, plates: PLATES, paper: "#F8F1E3", seed: 23, groups: { head: [{ kind: "turn", at: [520, 900], degrees: 0.42, seconds: 7.4 }, BREATH] }, parts: inkPaintOrder(parts.filter(p => shown[p.id] ?? true), ["under", "hair", "chignon", "face", "flowers", "pin", "strands", "tress", "earring", "body", "scarf", "scarf-end", "wash", "branch", "petals", "name"], ["face"]) };
 }

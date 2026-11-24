@@ -65,7 +65,8 @@ export const inkReed = (): InkSubject => ({
 - **Painting order.** For `paint`, give parts their `turn` with `inkPaintOrder`, and `soft` to faces: a face that wipes on from one side looks broken.
 - **Words.** On bare paper, never under or over a drawing; swarms fade near them. Measure it at both sizes: the darkest pixel under a caption should stay near the paper. Upright, keep captions near the top, clear of app buttons.
 - **Calm motion.** A light wind is 4–16 units; nothing loops in step; birds and fish face the way they travel. Do not swing a travelling subject with `back`: it would go backwards.
-- **Faces** come from a posed, measured head ([INK-RISO1](ink-riso-press.md)) and brush marks. Judge them by eye against real pictures, not with a face detector. A robe closes the wearer's left side over the right.
+- **Faces** come from a posed, measured head ([INK-RISO1](ink-riso-press.md)) and brush marks. Judge them by eye against real pictures, not with a face detector. A young woman has a short lower face, open lids and nearly level eyes; a young man has a longer face, narrow lids and a low brow loaded with ink. `eyeTilt` raises the outer corners of the eyes; a head turned about 25° is easier to make beautiful than one turned less. A robe closes the wearer's left side over the right.
+- **Hair** follows the [hair rules](ink-riso-press.md): a few dark masses from one short part, cut with paper wedges. A lock that curves from the part past the temple borders each cheek, so the hairline is never an arch. Loops and knots are hanks: thin at the foot, full at the turn. Keep the period's forms: a girl's hollow loops (鬟) with a tied tress, a young man's crowned knot with the rest let down.
 - **Full-size frames cost time**, not correctness: draft at `pixels={960}`. A small figure is painted up to twice its size and shrunk, and a small box gets a smaller canvas, so fine lines stay whole.
 - **Feet on the ground:** `inkSkyline(massif)` gives the rock's height at a place; see `inkHeightScene`.
 
@@ -75,4 +76,4 @@ Layers are ink on paper, not a fluid simulation: wet ink does not mix between la
 
 ## Checked
 
-Storybook in Chromium at both sizes, frame by frame for the cast, small figures, scenes, reveals, transitions and the demo film; export seek in both formats; text clearance measured under every caption of the demo film; reduced motion, keyboard and 320–360 px wide pages; the four packs installed and compiled in a clean app. The drawings of 清風 and 墨梅 have not had an outside art review.
+Storybook in Chromium at both sizes, frame by frame for the cast, small figures, scenes, reveals, transitions and the demo film; export seek in both formats; text clearance measured under every caption of the demo film; reduced motion, keyboard and 320–360 px wide pages; the four packs installed and compiled in a clean app. 清風 and 墨梅 were redrawn after the owner found their first faces and hair awkward: pictures of handsome young men and of pretty young women in historical dress were studied side by side and none was traced or kept. The new drawings have not had an outside art review.

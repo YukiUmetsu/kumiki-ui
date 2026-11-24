@@ -209,7 +209,9 @@ function mouth({ f, w, st, seed }: Hand, head: InkHead): void {
   /** The corners come up, the near one more; the middle stays. */
   const lift = (t: number) => st.smile * up * (t * far > 0 ? 1.15 : 0.8) * t * t;
   const at = (t: number, v: number): P => { const c = t < 0 ? A : Z, k = Math.abs(t), q = head.face(lerp(C[0], c[0], k), lerp(C[1], c[1], k * k) - lift(t) + v); return [q[0], q[1]]; };
-  const z0 = head.face(0, 0), q = (t: number, v: number): P => { const p = at(t, v), o = head.face((dip[0] - C[0]) * (1 - Math.min(1, Math.abs(t) * 1.6)) * clamp(-v / up), 0); return [p[0] + o[0] - z0[0], p[1] + o[1] - z0[1]]; };
+  // on a head turned far the dip would be carried over the far half of the bow: there it goes only part of the way
+  const carry = 1 - 0.85 * clamp((Math.abs(head.yaw) - 20) / 5);
+  const z0 = head.face(0, 0), q = (t: number, v: number): P => { const p = at(t, v), o = head.face((dip[0] - C[0]) * carry * (1 - Math.min(1, Math.abs(t) * 1.6)) * clamp(-v / up), 0); return [p[0] + o[0] - z0[0], p[1] + o[1] - z0[1]]; };
   const bow: P[] = ([[-0.9, 0.02], [-0.76, -0.24], [-0.58, -0.62], [-0.37, -1.02], [-0.22, -1.1], [-0.02, -0.88], [0.15, -1.08], [0.29, -1.06], [0.48, -0.7], [0.68, -0.3], [0.84, -0.06], [0.91, 0.02]] as const).map(([t, v]) => q(t, v * up));
   const part: P[] = ([[-1, 0], [-0.74, -0.03], [-0.42, -0.06], [-0.18, 0.03], [0, 0.07], [0.16, 0.03], [0.4, -0.05], [0.68, -0.03], [1, -0.06]] as const).map(([t, v]) => at(t, v * up * 1.3));
   const under: P[] = ([[0.84, 0.02], [0.7, 0.36], [0.52, 0.7], [0.32, 0.94], [0.1, 1.03], [-0.14, 1.03], [-0.38, 0.92], [-0.57, 0.66], [-0.72, 0.34], [-0.83, 0.04]] as const).map(([t, v]) => at(t, v * dn * 0.96));

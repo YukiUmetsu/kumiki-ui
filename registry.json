@@ -3964,7 +3964,7 @@
       "name": "ink-cast",
       "type": "registry:ui",
       "title": "Chinese Ink Cast",
-      "description": "Three half figures in brush ink, in layers that breathe, blink and move their hair, ribbons and jewels in a light wind, and can paint themselves stroke by stroke: 水月, a woman looking back over her shoulder before the moon; 清風, a swordsman in indigo with a silver crown; 墨梅, a court lady under plum blossom. Faces are posed from a measured head and painted with brush marks only. Backdrop, name and wind are options.",
+      "description": "Three half figures in brush ink, in layers that breathe, blink and move their hair, ribbons and jewels in a light wind, and can paint themselves stroke by stroke: 水月, a woman looking back over her shoulder before the moon; 清風, a swordsman in indigo with a silver crown; 墨梅, a girl with looped hair beside plum blossom. Faces are posed from a measured head and painted with brush marks only. Backdrop, name and wind are options.",
       "dependencies": [],
       "registryDependencies": [
         "ink-film",

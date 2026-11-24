@@ -28,6 +28,8 @@ export interface InkHeadShape {
   wrap?: number;
   /** How far the eyes are turned against the line through the pupils, degrees (default 2.7): on a bowed, turned head the far one slants more and the near one less. The brows have their own: `brow.roll`. */
   eyeRoll?: number;
+  /** How far the outer corner of each eye rises, degrees, beyond the measured face's (default 0). */
+  eyeTilt?: number;
   /** How far the lids are open (default 1, calm; 1.2 = wide) and where the eyes look, shares of the iris from the viewer: [toward the subject's near side, down] (default [0, 0.1]). */
   open?: number; gaze?: readonly [number, number];
   mouth?: number;
@@ -146,7 +148,7 @@ const HAIRLINE = [[-0.56, -0.24], [-0.563, 0.111], [-0.54, 0.38], [-0.482, 0.614
 const smooth = (a: number, b: number, v: number) => { const t = Math.max(0, Math.min(1, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 export function poseInkHead(src: InkHeadSource, pose: InkHeadPose, shape: InkHeadShape = {}): InkHead {
-  const { eye: [ex, ey] = [1.38, 1.1], eyeOut = 0.72, wrap = 0.64, eyeRoll = 2.7, open = 1, gaze = [0, 0.1], mouth = 0.7, nose = 0.69, noseHeight = 0.18, noseUnder = 5, length = 0.93, cheek = 1, chinWidth = 1, lift = 4.6, philtrum = 1.4, lips = 1.08, brow = {}, forehead = 0.42, ear: earSize = 0.76, iris = 1, lids = {}, outline = OUTLINE } = shape;
+  const { eye: [ex, ey] = [1.38, 1.1], eyeOut = 0.72, wrap = 0.64, eyeRoll = 2.7, eyeTilt = 0, open = 1, gaze = [0, 0.1], mouth = 0.7, nose = 0.69, noseHeight = 0.18, noseUnder = 5, length = 0.93, cheek = 1, chinWidth = 1, lift = 4.6, philtrum = 1.4, lips = 1.08, brow = {}, forehead = 0.42, ear: earSize = 0.76, iris = 1, lids = {}, outline = OUTLINE } = shape;
   const { tall: lidTall = 1, line: lidLine = 1, lineOut = lidLine, wing: wingLong = 1, fold: foldUp = 1 } = lids, browForm: InkProfile = brow.form ?? BROW;
   const V = src.vertices, mid = (a: number, b: number): InkVec3 => [(V[a][0] + V[b][0]) / 2, (V[a][1] + V[b][1]) / 2, (V[a][2] + V[b][2]) / 2];
   const mouthAt = mid(61, 291), noseY = (V[4][1] + V[2][1]) / 2, chinY = V[152][1], lipY = V[17][1], browY = (V[105][1] + V[334][1]) / 2, bridgeY = V[6][1];
@@ -206,6 +208,7 @@ export function poseInkHead(src: InkHeadSource, pose: InkHeadPose, shape: InkHea
   /** The same, turned about a middle of its own. */
   const rolled = (side: "near" | "far", z: number, o: PenPoint, roll: number) => { const m = mask(side, o[0], o[1], z), c = Math.cos(roll * rad), n = Math.sin(roll * rad); return (f: number, h: number): PenPoint => { const q = mask(side, f, h, z), u = q[0] - m[0], v = q[1] - m[1]; return face(m[0] + u * c - v * n, m[1] + u * n + v * c); }; };
   const lidAt = { a: [Math.abs(bend(V[IDX.L.lid[0]])[0]) / front, (bend(V[IDX.L.lid[0]])[1] - eyeY) / front], b: [0.5, (cL[1] - eyeY) / front - 0.012] };
+  if (eyeTilt) { const { a, b } = lidAt, m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], c = Math.cos(eyeTilt * rad), n = Math.sin(eyeTilt * rad); for (const q of [a, b]) { const x = q[0] - m[0], y = q[1] - m[1]; q[0] = m[0] + x * c - y * n; q[1] = m[1] + x * n + y * c; } }
   const eyeLines = (side: "near" | "far"): InkEyeLines => {
     const { a, b } = lidAt, l = Math.hypot(b[0] - a[0], b[1] - a[1]), n: PenPoint = [-(b[1] - a[1]) / l, (b[0] - a[0]) / l], put = rolled(side, lidZ, [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], eyeRoll), r = 0.074 * iris;
     // the drawn eye keeps clear of both ends of its socket: the lid's line and its lashes fill the outer one
